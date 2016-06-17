@@ -7,7 +7,7 @@
 section \<open>Type of finite sets defined as a subtype of sets\<close>
 
 theory FSet
-imports Conditionally_Complete_Lattices
+imports Main
 begin
 
 subsection \<open>Definition of the type\<close>
@@ -31,18 +31,18 @@ begin
 
 interpretation lifting_syntax .
 
-lift_definition bot_fset :: "'a fset" is "{}" parametric empty_transfer by simp 
+lift_definition bot_fset :: "'a fset" is "{}" parametric empty_transfer by simp
 
-lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is subset_eq parametric subset_transfer 
+lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is subset_eq parametric subset_transfer
   .
 
 definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a fset)"
 
 lemma less_fset_transfer[transfer_rule]:
-  assumes [transfer_rule]: "bi_unique A" 
+  assumes [transfer_rule]: "bi_unique A"
   shows "((pcr_fset A) ===> (pcr_fset A) ===> op =) op \<subset> op <"
   unfolding less_fset_def[abs_def] psubset_eq[abs_def] by transfer_prover
-  
+
 
 lift_definition sup_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is union parametric union_transfer
   by simp
@@ -69,7 +69,7 @@ instantiation fset :: (equal) equal
 begin
 definition "HOL.equal A B \<longleftrightarrow> A |\<subseteq>| B \<and> B |\<subseteq>| A"
 instance by intro_classes (auto simp add: equal_fset_def)
-end 
+end
 
 instantiation fset :: (type) conditionally_complete_lattice
 begin
@@ -78,18 +78,18 @@ interpretation lifting_syntax .
 
 lemma right_total_Inf_fset_transfer:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "right_total A"
-  shows "(rel_set (rel_set A) ===> rel_set A) 
-    (\<lambda>S. if finite (\<Inter>S \<inter> Collect (Domainp A)) then \<Inter>S \<inter> Collect (Domainp A) else {}) 
+  shows "(rel_set (rel_set A) ===> rel_set A)
+    (\<lambda>S. if finite (\<Inter>S \<inter> Collect (Domainp A)) then \<Inter>S \<inter> Collect (Domainp A) else {})
       (\<lambda>S. if finite (Inf S) then Inf S else {})"
     by transfer_prover
 
 lemma Inf_fset_transfer:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "bi_total A"
-  shows "(rel_set (rel_set A) ===> rel_set A) (\<lambda>A. if finite (Inf A) then Inf A else {}) 
+  shows "(rel_set (rel_set A) ===> rel_set A) (\<lambda>A. if finite (Inf A) then Inf A else {})
     (\<lambda>A. if finite (Inf A) then Inf A else {})"
   by transfer_prover
 
-lift_definition Inf_fset :: "'a fset set \<Rightarrow> 'a fset" is "\<lambda>A. if finite (Inf A) then Inf A else {}" 
+lift_definition Inf_fset :: "'a fset set \<Rightarrow> 'a fset" is "\<lambda>A. if finite (Inf A) then Inf A else {}"
 parametric right_total_Inf_fset_transfer Inf_fset_transfer by simp
 
 lemma Sup_fset_transfer:
@@ -107,11 +107,11 @@ lemma transfer_bdd_below[transfer_rule]: "(rel_set (pcr_fset op =) ===> op =) bd
   by auto
 
 instance
-proof 
+proof
   fix x z :: "'a fset"
   fix X :: "'a fset set"
   {
-    assume "x \<in> X" "bdd_below X" 
+    assume "x \<in> X" "bdd_below X"
     then show "Inf X |\<subseteq>| x" by transfer auto
   next
     assume "X \<noteq> {}" "(\<And>x. x \<in> X \<Longrightarrow> z |\<subseteq>| x)"
@@ -129,7 +129,7 @@ proof
 qed
 end
 
-instantiation fset :: (finite) complete_lattice 
+instantiation fset :: (finite) complete_lattice
 begin
 
 lift_definition top_fset :: "'a fset" is UNIV parametric right_total_UNIV_transfer UNIV_transfer
@@ -143,7 +143,7 @@ end
 instantiation fset :: (finite) complete_boolean_algebra
 begin
 
-lift_definition uminus_fset :: "'a fset \<Rightarrow> 'a fset" is uminus 
+lift_definition uminus_fset :: "'a fset \<Rightarrow> 'a fset" is uminus
   parametric right_total_Compl_transfer Compl_transfer by simp
 
 instance
@@ -169,7 +169,7 @@ translations
   "{|x, xs|}" == "CONST finsert x {|xs|}"
   "{|x|}"     == "CONST finsert x {||}"
 
-lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is Set.member 
+lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is Set.member
   parametric member_transfer .
 
 abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
@@ -179,20 +179,20 @@ begin
 
 interpretation lifting_syntax .
 
-lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter 
+lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter
   parametric Lifting_Set.filter_transfer unfolding Set.filter_def by simp
 
-lift_definition fPow :: "'a fset \<Rightarrow> 'a fset fset" is Pow parametric Pow_transfer 
+lift_definition fPow :: "'a fset \<Rightarrow> 'a fset fset" is Pow parametric Pow_transfer
 by (simp add: finite_subset)
 
 lift_definition fcard :: "'a fset \<Rightarrow> nat" is card parametric card_transfer .
 
-lift_definition fimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" (infixr "|`|" 90) is image 
+lift_definition fimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" (infixr "|`|" 90) is image
   parametric image_transfer by simp
 
 lift_definition fthe_elem :: "'a fset \<Rightarrow> 'a" is the_elem .
 
-lift_definition fbind :: "'a fset \<Rightarrow> ('a \<Rightarrow> 'b fset) \<Rightarrow> 'b fset" is Set.bind parametric bind_transfer 
+lift_definition fbind :: "'a fset \<Rightarrow> ('a \<Rightarrow> 'b fset) \<Rightarrow> 'b fset" is Set.bind parametric bind_transfer
 by (simp add: Set.bind_def)
 
 lift_definition ffUnion :: "'a fset fset \<Rightarrow> 'a fset" is Union parametric Union_transfer by simp
@@ -464,7 +464,7 @@ subsubsection \<open>\<open>fset\<close>\<close>
 
 lemmas fset_simps[simp] = bot_fset.rep_eq finsert.rep_eq
 
-lemma finite_fset [simp]: 
+lemma finite_fset [simp]:
   shows "finite (fset S)"
   by transfer simp
 
@@ -485,16 +485,16 @@ lemmas minus_fset[simp] = minus_fset.rep_eq
 
 subsubsection \<open>\<open>filter_fset\<close>\<close>
 
-lemma subset_ffilter: 
+lemma subset_ffilter:
   "ffilter P A |\<subseteq>| ffilter Q A = (\<forall> x. x |\<in>| A \<longrightarrow> P x \<longrightarrow> Q x)"
   by transfer auto
 
-lemma eq_ffilter: 
+lemma eq_ffilter:
   "(ffilter P A = ffilter Q A) = (\<forall>x. x |\<in>| A \<longrightarrow> P x = Q x)"
   by transfer auto
 
 lemma pfsubset_ffilter:
-  "(\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| A & \<not> P x & Q x) \<Longrightarrow> 
+  "(\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| A & \<not> P x & Q x) \<Longrightarrow>
     ffilter P A |\<subset>| ffilter Q A"
   unfolding less_fset_def by (auto simp add: subset_ffilter eq_ffilter)
 
@@ -520,9 +520,9 @@ by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
 subsubsection \<open>bounded quantification\<close>
 
 lemma bex_simps [simp, no_atp]:
-  "\<And>A P Q. fBex A (\<lambda>x. P x \<and> Q) = (fBex A P \<and> Q)" 
+  "\<And>A P Q. fBex A (\<lambda>x. P x \<and> Q) = (fBex A P \<and> Q)"
   "\<And>A P Q. fBex A (\<lambda>x. P \<and> Q x) = (P \<and> fBex A Q)"
-  "\<And>P. fBex {||} P = False" 
+  "\<And>P. fBex {||} P = False"
   "\<And>a B P. fBex (finsert a B) P = (P a \<or> fBex B P)"
   "\<And>A P f. fBex (f |`| A) P = fBex A (\<lambda>x. P (f x))"
   "\<And>A P. (\<not> fBex A P) = fBall A (\<lambda>x. \<not> P x)"
@@ -601,7 +601,7 @@ by transfer (rule card_seteq)
 lemma pfsubset_fcard_mono: "A |\<subset>| B \<Longrightarrow> fcard A < fcard B"
 by transfer (rule psubset_card_mono)
 
-lemma fcard_funion_finter: 
+lemma fcard_funion_finter:
   "fcard A + fcard B = fcard (A |\<union>| B) + fcard (A |\<inter>| B)"
 by transfer (rule card_Un_Int)
 
@@ -656,7 +656,7 @@ begin
     assumes "x |\<in>| A"
     shows "ffold f z A = f x (ffold f z (A |-| {|x|}))"
     using assms by (transfer fixing: f) (rule fold_rec)
-  
+
   lemma ffold_finsert_fremove:
     "ffold f z (finsert x A) = f x (ffold f z (A |-| {|x|}))"
      by (transfer fixing: f) (rule fold_insert_remove)
@@ -680,9 +680,9 @@ begin
   lemma ffold_finsert_idem:
     "ffold f z (finsert x A) = f x (ffold f z A)"
     by (transfer fixing: f) (rule fold_insert_idem)
-  
+
   declare ffold_finsert [simp del] ffold_finsert_idem [simp]
-  
+
   lemma ffold_finsert_idem2:
     "ffold f z (finsert x A) = ffold f (f x z) A"
     by (transfer fixing: f) (rule fold_insert_idem2)
@@ -692,7 +692,7 @@ end
 
 subsection \<open>Choice in fsets\<close>
 
-lemma fset_choice: 
+lemma fset_choice:
   assumes "\<forall>x. x |\<in>| A \<longrightarrow> (\<exists>y. P x y)"
   shows "\<exists>f. \<forall>x. x |\<in>| A \<longrightarrow> P x (f x)"
   using assms by transfer metis
@@ -701,7 +701,7 @@ lemma fset_choice:
 subsection \<open>Induction and Cases rules for fsets\<close>
 
 lemma fset_exhaust [case_names empty insert, cases type: fset]:
-  assumes fempty_case: "S = {||} \<Longrightarrow> P" 
+  assumes fempty_case: "S = {||} \<Longrightarrow> P"
   and     finsert_case: "\<And>x S'. S = finsert x S' \<Longrightarrow> P"
   shows "P"
   using assms by transfer blast
@@ -739,9 +739,9 @@ next
   case (insert x S)
   have h: "P S" by fact
   have "x |\<notin>| S" by fact
-  then have "Suc (fcard S) = fcard (finsert x S)" 
+  then have "Suc (fcard S) = fcard (finsert x S)"
     by transfer auto
-  then show "P (finsert x S)" 
+  then show "P (finsert x S)"
     using h card_fset_Suc_case by simp
 qed
 
@@ -771,11 +771,11 @@ subsubsection \<open>Relator and predicator properties\<close>
 lift_definition rel_fset :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" is rel_set
 parametric rel_set_transfer .
 
-lemma rel_fset_alt_def: "rel_fset R = (\<lambda>A B. (\<forall>x.\<exists>y. x|\<in>|A \<longrightarrow> y|\<in>|B \<and> R x y) 
+lemma rel_fset_alt_def: "rel_fset R = (\<lambda>A B. (\<forall>x.\<exists>y. x|\<in>|A \<longrightarrow> y|\<in>|B \<and> R x y)
   \<and> (\<forall>y. \<exists>x. y|\<in>|B \<longrightarrow> x|\<in>|A \<and> R x y))"
 apply (rule ext)+
 apply transfer'
-apply (subst rel_set_def[unfolded fun_eq_iff]) 
+apply (subst rel_set_def[unfolded fun_eq_iff])
 by blast
 
 lemma finite_rel_set:
@@ -787,12 +787,12 @@ proof -
   apply atomize_elim
   apply (subst bchoice_iff[symmetric])
   using R_S[unfolded rel_set_def OO_def] by blast
-  
+
   obtain g where g: "\<forall>z\<in>Z. S (g z) z \<and> (\<exists>x\<in>X. R x (g z))"
   apply atomize_elim
   apply (subst bchoice_iff[symmetric])
   using R_S[unfolded rel_set_def OO_def] by blast
-  
+
   let ?Y = "f ` X \<union> g ` Z"
   have "finite ?Y" by (simp add: fin)
   moreover have "rel_set R X ?Y"
@@ -960,7 +960,7 @@ qed
 
 bnf "'a fset"
   map: fimage
-  sets: fset 
+  sets: fset
   bd: natLeq
   wits: "{||}"
   rel: rel_fset
@@ -974,7 +974,7 @@ apply -
     apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
    apply (fastforce simp: rel_fset_alt)
  apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff rel_fset_alt
-   rel_fset_aux[unfolded OO_Grp_alt]) 
+   rel_fset_aux[unfolded OO_Grp_alt])
 apply transfer apply simp
 done
 
@@ -1009,7 +1009,7 @@ lemmas size_fset_overloaded_simps[simp] =
 lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = size_fset (g \<circ> f)"
   apply (subst fun_eq_iff)
   including fset.lifting by transfer (auto intro: setsum.reindex_cong subset_inj_on)
-  
+
 setup \<open>
 BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}
   @{thm size_fset_overloaded_def} @{thms size_fset_simps size_fset_overloaded_simps}
@@ -1023,8 +1023,8 @@ subsection \<open>Advanced relator customization\<close>
 
 (* Set vs. sum relators: *)
 
-lemma rel_set_rel_sum[simp]: 
-"rel_set (rel_sum \<chi> \<phi>) A1 A2 \<longleftrightarrow> 
+lemma rel_set_rel_sum[simp]:
+"rel_set (rel_sum \<chi> \<phi>) A1 A2 \<longleftrightarrow>
  rel_set \<chi> (Inl -` A1) (Inl -` A2) \<and> rel_set \<phi> (Inr -` A1) (Inr -` A2)"
 (is "?L \<longleftrightarrow> ?Rl \<and> ?Rr")
 proof safe

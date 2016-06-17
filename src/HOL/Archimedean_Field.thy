@@ -8,6 +8,63 @@ theory Archimedean_Field
 imports Main
 begin
 
+lemma cInf_abs_ge:
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  assumes "S \<noteq> {}" and bdd: "\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a"
+  shows "\<bar>Inf S\<bar> \<le> a"
+proof -
+  have "Sup (uminus ` S) = - (Inf S)"
+  proof (rule antisym)
+    show "- (Inf S) \<le> Sup(uminus ` S)"
+      apply (subst minus_le_iff)
+      apply (rule cInf_greatest [OF \<open>S \<noteq> {}\<close>])
+      apply (subst minus_le_iff)
+      apply (rule cSup_upper, force)
+      using bdd apply (force simp add: abs_le_iff bdd_above_def)
+      done
+  next
+    show "Sup (uminus ` S) \<le> - Inf S"
+      apply (rule cSup_least)
+       using \<open>S \<noteq> {}\<close> apply (force simp add: )
+      apply clarsimp
+      apply (rule cInf_lower)
+      apply assumption
+      using bdd apply (simp add: bdd_below_def)
+      apply (rule_tac x="-a" in exI)
+      apply force
+      done
+  qed
+  with cSup_abs_le [of "uminus ` S"] assms show ?thesis by fastforce
+qed
+
+lemma cSup_asclose:
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  assumes S: "S \<noteq> {}"
+    and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
+  shows "\<bar>Sup S - l\<bar> \<le> e"
+proof -
+  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
+    by arith
+  have "bdd_above S"
+    using b by (auto intro!: bdd_aboveI[of _ "l + e"])
+  with S b show ?thesis
+    unfolding th by (auto intro!: cSup_upper2 cSup_least)
+qed
+
+lemma cInf_asclose:
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  assumes S: "S \<noteq> {}"
+    and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
+  shows "\<bar>Inf S - l\<bar> \<le> e"
+proof -
+  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
+    by arith
+  have "bdd_below S"
+    using b by (auto intro!: bdd_belowI[of _ "l - e"])
+  with S b show ?thesis
+    unfolding th by (auto intro!: cInf_lower2 cInf_greatest)
+qed
+
 subsection \<open>Class of Archimedean fields\<close>
 
 text \<open>Archimedean fields have no infinite elements.\<close>
@@ -329,10 +386,10 @@ next
   also have "\<dots> = (of_int (k div l) + of_int (k mod l) / of_int l) * of_int l"
     using False by (simp only: of_int_add) (simp add: field_simps)
   finally have "(of_int k / of_int l :: 'a) = \<dots> / of_int l"
-    by simp 
+    by simp
   then have "(of_int k / of_int l :: 'a) = of_int (k div l) + of_int (k mod l) / of_int l"
     using False by (simp only:) (simp add: field_simps)
-  then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k div l) + of_int (k mod l) / of_int l :: 'a\<rfloor>" 
+  then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k div l) + of_int (k mod l) / of_int l :: 'a\<rfloor>"
     by simp
   then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l + of_int (k div l) :: 'a\<rfloor>"
     by (simp add: ac_simps)
@@ -355,10 +412,10 @@ next
   also have "\<dots> = (of_nat (m div n) + of_nat (m mod n) / of_nat n) * of_nat n"
     using False by (simp only: of_nat_add) (simp add: field_simps of_nat_mult)
   finally have "(of_nat m / of_nat n :: 'a) = \<dots> / of_nat n"
-    by simp 
+    by simp
   then have "(of_nat m / of_nat n :: 'a) = of_nat (m div n) + of_nat (m mod n) / of_nat n"
     using False by (simp only:) simp
-  then have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m div n) + of_nat (m mod n) / of_nat n :: 'a\<rfloor>" 
+  then have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m div n) + of_nat (m mod n) / of_nat n :: 'a\<rfloor>"
     by simp
   then have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m mod n) / of_nat n + of_nat (m div n) :: 'a\<rfloor>"
     by (simp add: ac_simps)
@@ -376,7 +433,7 @@ definition ceiling :: "'a::floor_ceiling \<Rightarrow> int"  ("\<lceil>_\<rceil>
   where "\<lceil>x\<rceil> = - \<lfloor>- x\<rfloor>"
 
 lemma ceiling_correct: "of_int \<lceil>x\<rceil> - 1 < x \<and> x \<le> of_int \<lceil>x\<rceil>"
-  unfolding ceiling_def using floor_correct [of "- x"] by (simp add: le_minus_iff) 
+  unfolding ceiling_def using floor_correct [of "- x"] by (simp add: le_minus_iff)
 
 lemma ceiling_unique: "\<lbrakk>of_int z - 1 < x; x \<le> of_int z\<rbrakk> \<Longrightarrow> \<lceil>x\<rceil> = z"
   unfolding ceiling_def using floor_unique [of "- z" "- x"] by simp
@@ -512,7 +569,7 @@ lemma ceiling_split[arith_split]: "P \<lceil>t\<rceil> \<longleftrightarrow> (\<
 
 lemma ceiling_diff_floor_le_1: "\<lceil>x\<rceil> - \<lfloor>x\<rfloor> \<le> 1"
 proof -
-  have "of_int \<lceil>x\<rceil> - 1 < x" 
+  have "of_int \<lceil>x\<rceil> - 1 < x"
     using ceiling_correct[of x] by simp
   also have "x < of_int \<lfloor>x\<rfloor> + 1"
     using floor_correct[of x] by simp_all
@@ -552,7 +609,7 @@ lemma frac_gt_0_iff [simp]: "frac x > 0 \<longleftrightarrow> x \<notin> \<int>"
 lemma frac_of_int [simp]: "frac (of_int z) = 0"
   by (simp add: frac_def)
 
-lemma floor_add: "\<lfloor>x + y\<rfloor> = (if frac x + frac y < 1 then \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> else (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>) + 1)"  
+lemma floor_add: "\<lfloor>x + y\<rfloor> = (if frac x + frac y < 1 then \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> else (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>) + 1)"
 proof -
   {assume "x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
    then have "\<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"
@@ -563,14 +620,14 @@ proof -
     then have "\<lfloor>x + y\<rfloor> = 1 + (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>)"
       apply (simp add: floor_unique_iff)
       apply (auto simp add: algebra_simps)
-      by linarith    
+      by linarith
   }
   ultimately show ?thesis
     by (auto simp add: frac_def algebra_simps)
 qed
 
 lemma frac_add: "frac (x + y) = (if frac x + frac y < 1 then frac x + frac y
-                                 else (frac x + frac y) - 1)"  
+                                 else (frac x + frac y) - 1)"
   by (simp add: frac_def floor_add)
 
 lemma frac_unique_iff:
@@ -582,7 +639,7 @@ lemma frac_unique_iff:
 
 lemma frac_eq: "(frac x) = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
   by (simp add: frac_unique_iff)
-  
+
 lemma frac_neg:
   fixes x :: "'a::floor_ceiling"
   shows  "frac (-x) = (if x \<in> \<int> then 0 else 1 - frac x)"
@@ -643,8 +700,8 @@ lemma floor_le_round: "\<lfloor>x\<rfloor> \<le> round x"
   unfolding round_def by (intro floor_mono) simp
 
 lemma ceiling_ge_round: "\<lceil>x\<rceil> \<ge> round x" unfolding round_altdef by simp
-     
-lemma round_diff_minimal: 
+
+lemma round_diff_minimal:
   fixes z :: "'a :: floor_ceiling"
   shows "\<bar>z - of_int (round z)\<bar> \<le> \<bar>z - of_int m\<bar>"
 proof (cases "of_int m \<ge> z")

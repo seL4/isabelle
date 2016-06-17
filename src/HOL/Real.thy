@@ -10,7 +10,7 @@
 section \<open>Development of the Reals using Cauchy Sequences\<close>
 
 theory Real
-imports Rat Conditionally_Complete_Lattices
+imports Rat
 begin
 
 text \<open>
@@ -960,7 +960,6 @@ proof
     using zero_neq_one by blast
 qed
 end
-
 
 subsection \<open>Hiding implementation details\<close>
 

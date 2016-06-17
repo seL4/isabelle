@@ -7,7 +7,7 @@
 section \<open>Conditionally-complete Lattices\<close>
 
 theory Conditionally_Complete_Lattices
-imports Main
+imports Finite_Set Lattices_Big Set_Interval
 begin
 
 lemma (in linorder) Sup_fin_eq_Max: "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup_fin X = Max X"
@@ -107,7 +107,7 @@ lemma bdd_above_image_mono: "mono f \<Longrightarrow> bdd_above A \<Longrightarr
 
 lemma bdd_below_image_mono: "mono f \<Longrightarrow> bdd_below A \<Longrightarrow> bdd_below (f`A)"
   by (auto simp: bdd_below_def mono_def)
-  
+
 lemma bdd_above_image_antimono: "antimono f \<Longrightarrow> bdd_below A \<Longrightarrow> bdd_above (f`A)"
   by (auto simp: bdd_above_def bdd_below_def antimono_def)
 
@@ -394,7 +394,7 @@ qed (intro cInf_eq_non_empty assms)
 class conditionally_complete_linorder = conditionally_complete_lattice + linorder
 begin
 
-lemma less_cSup_iff : (*REAL_SUP_LE in HOL4*)
+lemma less_cSup_iff:
   "X \<noteq> {} \<Longrightarrow> bdd_above X \<Longrightarrow> y < Sup X \<longleftrightarrow> (\<exists>x\<in>X. y < x)"
   by (rule iffI) (metis cSup_least not_less, metis cSup_upper less_le_trans)
 
@@ -429,7 +429,7 @@ proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x & x < d --> P x}"], au
        (metis \<open>a < b\<close> \<open>\<not> P b\<close> linear less_le)
 next
   show "Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c} \<le> b"
-    apply (rule cSup_least) 
+    apply (rule cSup_least)
     apply auto
     apply (metis less_le_not_le)
     apply (metis \<open>a<b\<close> \<open>~ P b\<close> linear less_le)
@@ -440,7 +440,7 @@ next
   show "P x"
     apply (rule less_cSupE [OF lt], auto)
     apply (metis less_le_not_le)
-    apply (metis x) 
+    apply (metis x)
     done
 next
   fix d
@@ -512,7 +512,7 @@ proof
       unfolding Inf_nat_def ex_in_conv[symmetric] by (rule LeastI2_ex) }
   { assume "x \<in> X" "bdd_above X" then show "x \<le> Sup X"
       by (simp add: Sup_nat_def bdd_above_nat) }
-  { assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> y \<le> x" 
+  { assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> y \<le> x"
     moreover then have "bdd_above X"
       by (auto simp: bdd_above_def)
     ultimately show "Sup X \<le> x"
@@ -593,7 +593,7 @@ proof -
   define lower upper where "lower = {x. \<exists>s\<in>S. s \<le> x}" and "upper = {x. \<exists>s\<in>S. x \<le> s}"
   with ivl have "S = lower \<inter> upper"
     by auto
-  moreover 
+  moreover
   have "\<exists>a. upper = UNIV \<or> upper = {} \<or> upper = {.. a} \<or> upper = {..< a}"
   proof cases
     assume *: "bdd_above S \<and> S \<noteq> {}"
@@ -644,7 +644,7 @@ apply (rule antisym)
 using a bdd
 apply (auto simp: cINF_lower)
 apply (metis eq cSUP_upper)
-done 
+done
 
 lemma cSUP_UNION:
   fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"
@@ -686,67 +686,10 @@ proof -
     by (rule order_antisym)
 qed
 
-lemma cSup_abs_le: 
+lemma cSup_abs_le:
   fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
   shows "S \<noteq> {} \<Longrightarrow> (\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
   apply (auto simp add: abs_le_iff intro: cSup_least)
   by (metis bdd_aboveI cSup_upper neg_le_iff_le order_trans)
-
-lemma cInf_abs_ge:
-  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
-  assumes "S \<noteq> {}" and bdd: "\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a"
-  shows "\<bar>Inf S\<bar> \<le> a"
-proof -
-  have "Sup (uminus ` S) = - (Inf S)"
-  proof (rule antisym)
-    show "- (Inf S) \<le> Sup(uminus ` S)"
-      apply (subst minus_le_iff)
-      apply (rule cInf_greatest [OF \<open>S \<noteq> {}\<close>])
-      apply (subst minus_le_iff)
-      apply (rule cSup_upper, force)
-      using bdd apply (force simp add: abs_le_iff bdd_above_def)
-      done
-  next
-    show "Sup (uminus ` S) \<le> - Inf S"
-      apply (rule cSup_least)
-       using \<open>S \<noteq> {}\<close> apply (force simp add: )
-      apply clarsimp  
-      apply (rule cInf_lower)
-      apply assumption
-      using bdd apply (simp add: bdd_below_def)
-      apply (rule_tac x="-a" in exI)
-      apply force
-      done
-  qed
-  with cSup_abs_le [of "uminus ` S"] assms show ?thesis by fastforce
-qed
-
-lemma cSup_asclose:
-  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
-  assumes S: "S \<noteq> {}"
-    and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
-  shows "\<bar>Sup S - l\<bar> \<le> e"
-proof -
-  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
-    by arith
-  have "bdd_above S"
-    using b by (auto intro!: bdd_aboveI[of _ "l + e"])
-  with S b show ?thesis
-    unfolding th by (auto intro!: cSup_upper2 cSup_least)
-qed
-
-lemma cInf_asclose:
-  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
-  assumes S: "S \<noteq> {}"
-    and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
-  shows "\<bar>Inf S - l\<bar> \<le> e"
-proof -
-  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
-    by arith
-  have "bdd_below S"
-    using b by (auto intro!: bdd_belowI[of _ "l - e"])
-  with S b show ?thesis
-    unfolding th by (auto intro!: cInf_lower2 cInf_greatest)
-qed
 
 end
