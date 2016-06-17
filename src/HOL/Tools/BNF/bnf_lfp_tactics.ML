@@ -55,7 +55,6 @@ sig
     thm list list -> tactic
   val mk_mor_UNIV_tac: Proof.context -> int -> thm list -> thm -> tactic
   val mk_mor_comp_tac: Proof.context -> thm -> thm list list -> thm list -> tactic
-  val mk_mor_convol_tac: Proof.context -> 'a list -> thm -> tactic
   val mk_mor_elim_tac: Proof.context -> thm -> tactic
   val mk_mor_incl_tac: Proof.context -> thm -> thm list -> tactic
   val mk_mor_fold_tac: Proof.context -> ctyp -> cterm -> thm list -> thm -> thm -> tactic
@@ -144,11 +143,6 @@ fun mk_mor_str_tac ctxt ks mor_def =
   (rtac ctxt (mor_def RS iffD2) THEN' rtac ctxt conjI THEN'
   CONJ_WRAP' (K (EVERY' [rtac ctxt ballI, rtac ctxt UNIV_I])) ks THEN'
   CONJ_WRAP' (K (EVERY' [rtac ctxt ballI, rtac ctxt refl])) ks) 1;
-
-fun mk_mor_convol_tac ctxt ks mor_def =
-  (rtac ctxt (mor_def RS iffD2) THEN' rtac ctxt conjI THEN'
-  CONJ_WRAP' (K (EVERY' [rtac ctxt ballI, rtac ctxt UNIV_I])) ks THEN'
-  CONJ_WRAP' (K (EVERY' [rtac ctxt ballI, rtac ctxt trans, rtac ctxt @{thm fst_convol'}, rtac ctxt o_apply])) ks) 1;
 
 fun mk_mor_UNIV_tac ctxt m morEs mor_def =
   let
