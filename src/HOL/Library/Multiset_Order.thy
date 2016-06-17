@@ -277,14 +277,14 @@ lemma less_multiset_empty_left[simp]:
 lemma less_multiset_empty_right[simp]:
   fixes M :: "('a :: linorder) multiset"
   shows "\<not> M #\<subset># {#}"
-  using le_empty less_multiset\<^sub>D\<^sub>M by blast
+  using subset_eq_empty less_multiset\<^sub>D\<^sub>M by blast
 
 lemma
   fixes M N :: "('a :: linorder) multiset"
   shows
     le_multiset_plus_left[simp]: "N #\<subseteq># (M + N)" and
     le_multiset_plus_right[simp]: "M #\<subseteq># (M + N)"
-  using [[metis_verbose = false]] by (metis less_eq_imp_le_multiset mset_le_add_left add.commute)+
+  using [[metis_verbose = false]] by (metis less_eq_imp_le_multiset mset_subset_eq_add_left add.commute)+
 
 lemma
   fixes M N :: "('a :: linorder) multiset"
