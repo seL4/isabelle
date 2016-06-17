@@ -55,7 +55,6 @@ sig
     thm list -> thm list list -> thm list list -> thm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list list -> thm list list list -> thm list list list ->
     thm list list -> thm list -> thm list -> tactic
-  val mk_mor_case_sum_tac: Proof.context -> 'a list -> thm -> tactic
   val mk_mor_comp_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_mor_elim_tac: Proof.context -> thm -> tactic
   val mk_mor_col_tac: Proof.context -> int -> int -> cterm option list -> int -> thm list ->
@@ -162,9 +161,6 @@ fun mk_mor_UNIV_tac ctxt morEs mor_def =
 
 fun mk_mor_str_tac ctxt ks mor_UNIV =
   (rtac ctxt (mor_UNIV RS iffD2) THEN' CONJ_WRAP' (K (rtac ctxt refl)) ks) 1;
-
-fun mk_mor_case_sum_tac ctxt ks mor_UNIV =
-  (rtac ctxt (mor_UNIV RS iffD2) THEN' CONJ_WRAP' (K (rtac ctxt @{thm case_sum_o_inj(1)[symmetric]})) ks) 1;
 
 fun mk_set_incl_Jset_tac ctxt rec_Suc =
   EVERY' (map (rtac ctxt) [@{thm SUP_upper2}, UNIV_I, @{thm ord_le_eq_trans}, @{thm Un_upper1}, sym,
