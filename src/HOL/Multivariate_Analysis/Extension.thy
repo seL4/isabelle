@@ -112,7 +112,7 @@ next
 qed
 
 
-subsection\<open>Urysohn's lemma (for real^N, where the proof is easy using distances)\<close>
+subsection\<open>Urysohn's lemma (for Euclidean spaces, where the proof is easy using distances)\<close>
 
 lemma Urysohn_both_ne:
   assumes US: "closedin (subtopology euclidean U) S"

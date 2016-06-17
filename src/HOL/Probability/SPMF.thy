@@ -169,7 +169,7 @@ lemma rel_predD: "\<lbrakk> rel_pred R A B; R x y \<rbrakk> \<Longrightarrow> x 
 by(simp add: rel_pred_def rel_fun_def)
 
 lemma Collect_parametric: "((A ===> op =) ===> rel_pred A) Collect Collect"
-  -- \<open>Declare this rule as @{attribute transfer_rule} only locally
+  \<comment> \<open>Declare this rule as @{attribute transfer_rule} only locally
       because it blows up the search space for @{method transfer}
       (in combination with @{thm [source] Collect_transfer})\<close>
 by(simp add: rel_funI rel_predI)
@@ -223,7 +223,7 @@ qed
 lemma bij_betw_rel_setD: "bij_betw f A B \<Longrightarrow> rel_set (\<lambda>x y. y = f x) A B"
 by(rule rel_setI)(auto dest: bij_betwE bij_betw_imp_surj_on[symmetric])
 
-subsection {* Subprobability mass function *}
+subsection \<open>Subprobability mass function\<close>
 
 type_synonym 'a spmf = "'a option pmf"
 translations (type) "'a spmf" \<leftharpoondown> (type) "'a option pmf"
@@ -347,7 +347,7 @@ proof(rule neq_top_trans)
     by(rule SUP_least)(simp add: measure_spmf.subprob_emeasure_le_1)
 qed simp
 
-subsection {* Support *}
+subsection \<open>Support\<close>
 
 definition set_spmf :: "'a spmf \<Rightarrow> 'a set"
 where "set_spmf p = set_pmf p \<bind> set_option"
@@ -429,13 +429,13 @@ lemma nn_integral_measure_spmf':
   "(\<integral>\<^sup>+ x. f x \<partial>measure_spmf p) = \<integral>\<^sup>+ x. ennreal (spmf p x) * f x \<partial>count_space (set_spmf p)"
 by(auto simp add: nn_integral_measure_spmf nn_integral_count_space_indicator in_set_spmf_iff_spmf intro!: nn_integral_cong split: split_indicator)
 
-subsection {* Functorial structure *}
+subsection \<open>Functorial structure\<close>
 
 abbreviation map_spmf :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a spmf \<Rightarrow> 'b spmf"
 where "map_spmf f \<equiv> map_pmf (map_option f)"
 
 context begin
-local_setup {* Local_Theory.map_background_naming (Name_Space.mandatory_path "spmf") *}
+local_setup \<open>Local_Theory.map_background_naming (Name_Space.mandatory_path "spmf")\<close>
 
 lemma map_comp: "map_spmf f (map_spmf g p) = map_spmf (f \<circ> g) p"
 by(simp add: pmf.map_comp o_def option.map_comp)
@@ -500,9 +500,9 @@ lemma ennreal_spmf_map_conv_nn_integral:
   "ennreal (spmf (map_spmf f p) x) = integral\<^sup>N (measure_spmf p) (indicator (f -` {x}))"
 by(auto simp add: ennreal_pmf_map measure_spmf_def emeasure_distr space_restrict_space emeasure_restrict_space intro: arg_cong2[where f=emeasure])
 
-subsection {* Monad operations *}
+subsection \<open>Monad operations\<close>
 
-subsubsection {* Return *}
+subsubsection \<open>Return\<close>
 
 abbreviation return_spmf :: "'a \<Rightarrow> 'a spmf"
 where "return_spmf x \<equiv> return_pmf (Some x)"
@@ -519,7 +519,7 @@ by(rule measure_eqI)(auto simp add: measure_spmf_def emeasure_distr space_restri
 lemma set_return_spmf [simp]: "set_spmf (return_spmf x) = {x}"
 by(auto simp add: set_spmf_def)
 
-subsubsection {* Bind *}
+subsubsection \<open>Bind\<close>
 
 definition bind_spmf :: "'a spmf \<Rightarrow> ('a \<Rightarrow> 'b spmf) \<Rightarrow> 'b spmf"
 where "bind_spmf x f = bind_pmf x (\<lambda>a. case a of None \<Rightarrow> return_pmf None | Some a' \<Rightarrow> f a')"
@@ -652,7 +652,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Relator *}
+subsection \<open>Relator\<close>
 
 abbreviation rel_spmf :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a spmf \<Rightarrow> 'b spmf \<Rightarrow> bool"
 where "rel_spmf R \<equiv> rel_pmf (rel_option R)"
@@ -780,7 +780,7 @@ apply(auto simp add: rel_pred_def rel_fun_def elim: option.rel_cases)
 done
 end
 
-subsection {* From @{typ "'a pmf"} to @{typ "'a spmf"} *}
+subsection \<open>From @{typ "'a pmf"} to @{typ "'a spmf"}\<close>
 
 definition spmf_of_pmf :: "'a pmf \<Rightarrow> 'a spmf"
 where "spmf_of_pmf = map_pmf Some"
@@ -821,7 +821,7 @@ by(simp add: spmf_of_pmf_def map_bind_pmf)
 lemma bind_pmf_return_spmf: "p \<bind> (\<lambda>x. return_spmf (f x)) = spmf_of_pmf (map_pmf f p)"
 by(simp add: map_pmf_def spmf_of_pmf_bind)
 
-subsection {* Weight of a subprobability *}
+subsection \<open>Weight of a subprobability\<close>
 
 abbreviation weight_spmf :: "'a spmf \<Rightarrow> real"
 where "weight_spmf p \<equiv> measure (measure_spmf p) (space (measure_spmf p))"
@@ -921,7 +921,7 @@ proof -
   thus ?thesis by(rule pmf.rel_mono_strong)(auto intro!: rel_optionI simp add: Option.is_none_def)
 qed
 
-subsection {* From density to spmfs *}
+subsection \<open>From density to spmfs\<close>
 
 context fixes f :: "'a \<Rightarrow> real" begin
 
@@ -975,22 +975,22 @@ end
 lemma embed_spmf_K_0[simp]: "embed_spmf (\<lambda>_. 0) = return_pmf None" (is "?lhs = ?rhs")
 by(rule spmf_eqI)(simp add: zero_ereal_def[symmetric])
 
-subsection {* Ordering on spmfs *}
+subsection \<open>Ordering on spmfs\<close>
 
-text {*
+text \<open>
   @{const rel_pmf} does not preserve a ccpo structure. Counterexample by Saheb-Djahromi:
-  Take prefix order over @{text "bool llist"} and
-  the set @{text "range (\<lambda>n :: nat. uniform (llist_n n))"} where @{text "llist_n"} is the set
-  of all @{text llist}s of length @{text n} and @{text uniform} returns a uniform distribution over
-  the given set. The set forms a chain in @{text "ord_pmf lprefix"}, but it has not an upper bound.
+  Take prefix order over \<open>bool llist\<close> and
+  the set \<open>range (\<lambda>n :: nat. uniform (llist_n n))\<close> where \<open>llist_n\<close> is the set
+  of all \<open>llist\<close>s of length \<open>n\<close> and \<open>uniform\<close> returns a uniform distribution over
+  the given set. The set forms a chain in \<open>ord_pmf lprefix\<close>, but it has not an upper bound.
   Any upper bound may contain only infinite lists in its support because otherwise it is not greater
-  than the @{text "n+1"}-st element in the chain where @{text n} is the length of the finite list.
+  than the \<open>n+1\<close>-st element in the chain where \<open>n\<close> is the length of the finite list.
   Moreover its support must contain all infinite lists, because otherwise there is a finite list
   all of whose finite extensions are not in the support - a contradiction to the upper bound property.
   Hence, the support is uncountable, but pmf's only have countable support.
 
   However, if all chains in the ccpo are finite, then it should preserve the ccpo structure.
-*}
+\<close>
 
 abbreviation ord_spmf :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a spmf \<Rightarrow> 'a spmf \<Rightarrow> bool"
 where "ord_spmf ord \<equiv> rel_pmf (ord_option ord)"
@@ -1218,13 +1218,13 @@ lemma ord_spmf_eqD_measure_spmf: "ord_spmf op = p q \<Longrightarrow> measure_sp
 by(rule less_eq_measure.intros)(simp_all add: ord_spmf_eqD_emeasure)
 
 
-subsection {* CCPO structure for the flat ccpo @{term "ord_option op ="} *}
+subsection \<open>CCPO structure for the flat ccpo @{term "ord_option op ="}\<close>
 
 context fixes Y :: "'a spmf set" begin
 
 definition lub_spmf :: "'a spmf"
 where "lub_spmf = embed_spmf (\<lambda>x. enn2real (SUP p : Y. ennreal (spmf p x)))"
-  -- \<open>We go through @{typ ennreal} to have a sensible definition even if @{term Y} is empty.\<close> 
+  \<comment> \<open>We go through @{typ ennreal} to have a sensible definition even if @{term Y} is empty.\<close> 
 
 lemma lub_spmf_empty [simp]: "SPMF.lub_spmf {} = return_pmf None"
 by(simp add: SPMF.lub_spmf_def bot_ereal_def)
@@ -1521,9 +1521,9 @@ interpretation spmf: partial_function_definitions "ord_spmf op =" "lub_spmf"
   rewrites "lub_spmf {} \<equiv> return_pmf None"
 by(rule partial_function_definitions_spmf) simp
 
-declaration {* Partial_Function.init "spmf" @{term spmf.fixp_fun}
+declaration \<open>Partial_Function.init "spmf" @{term spmf.fixp_fun}
   @{term spmf.mono_body} @{thm spmf.fixp_rule_uc} @{thm spmf.fixp_induct_uc}
-  NONE *}
+  NONE\<close>
 
 declare spmf.leq_refl[simp]
 declare admissible_leI[OF ccpo_spmf, cont_intro]
@@ -1710,7 +1710,7 @@ locale rel_spmf_characterisation =
     "\<And>(R :: 'a option \<Rightarrow> 'b option \<Rightarrow> bool) p q. 
     (\<And>A. measure (measure_pmf p) A \<le> measure (measure_pmf q) {y. \<exists>x\<in>A. R x y})
     \<Longrightarrow> rel_pmf R p q"
-  -- \<open>This assumption is shown to hold in general in the AFP entry @{text "MFMC_Countable"}.\<close>
+  \<comment> \<open>This assumption is shown to hold in general in the AFP entry \<open>MFMC_Countable\<close>.\<close>
 begin
 
 context fixes R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" begin
@@ -1819,7 +1819,7 @@ end
 
 end
 
-subsection {* Restrictions on spmfs *}
+subsection \<open>Restrictions on spmfs\<close>
 
 definition restrict_spmf :: "'a spmf \<Rightarrow> 'a set \<Rightarrow> 'a spmf" (infixl "\<upharpoonleft>" 110)
 where "p \<upharpoonleft> A = map_pmf (\<lambda>x. x \<bind> (\<lambda>y. if y \<in> A then Some y else None)) p"
@@ -1908,7 +1908,7 @@ proof -
   thus ?thesis by(simp add: weight_spmf_def)
 qed
 
-subsection {* Subprobability distributions of sets *}
+subsection \<open>Subprobability distributions of sets\<close>
 
 definition spmf_of_set :: "'a set \<Rightarrow> 'a spmf"
 where 
@@ -1965,7 +1965,7 @@ by(cases "finite A")(auto simp add: spmf_of_set_def nn_integral_pmf_of_set card_
 lemma integral_spmf_of_set: "integral\<^sup>L (measure_spmf (spmf_of_set A)) f = setsum f A / card A"
 by(clarsimp simp add: spmf_of_set_def integral_pmf_of_set card_gt_0_iff simp del: spmf_of_pmf_pmf_of_set)
 
-notepad begin -- \<open>@{const pmf_of_set} is not fully parametric.\<close>
+notepad begin \<comment> \<open>@{const pmf_of_set} is not fully parametric.\<close>
   define R :: "nat \<Rightarrow> nat \<Rightarrow> bool" where "R x y \<longleftrightarrow> (x \<noteq> 0 \<longrightarrow> y = 0)" for x y
   define A :: "nat set" where "A = {0, 1}"
   define B :: "nat set" where "B = {0, 1, 2}"
@@ -2076,7 +2076,7 @@ using map_eq_const_coin_spmf unfolding map_spmf_conv_bind_spmf by simp
 lemma bind_coin_spmf_eq_const': "coin_spmf \<bind> (\<lambda>x :: bool. return_spmf (x = b)) = coin_spmf"
 by(rewrite in "_ = \<hole>" bind_coin_spmf_eq_const[symmetric, of b])(auto intro: bind_spmf_cong)
 
-subsection {* Losslessness *}
+subsection \<open>Losslessness\<close>
 
 definition lossless_spmf :: "'a spmf \<Rightarrow> bool"
 where "lossless_spmf p \<longleftrightarrow> weight_spmf p = 1"
@@ -2167,7 +2167,7 @@ lemma rel_spmf_bindI2:
   \<Longrightarrow> rel_spmf R p (bind_spmf q f)"
 using rel_spmf_bindI1[of q "conversep R" f p] by(simp add: spmf_rel_conversep)
 
-subsection {* Scaling *}
+subsection \<open>Scaling\<close>
 
 definition scale_spmf :: "real \<Rightarrow> 'a spmf \<Rightarrow> 'a spmf"
 where
@@ -2376,7 +2376,7 @@ lemma map_const_spmf_of_set:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> map_spmf (\<lambda>_. c) (spmf_of_set A) = return_spmf c"
 by(simp add: map_spmf_conv_bind_spmf bind_spmf_const)
 
-subsection {* Conditional spmfs *}
+subsection \<open>Conditional spmfs\<close>
 
 lemma set_pmf_Int_Some: "set_pmf p \<inter> Some ` A = {} \<longleftrightarrow> set_spmf p \<inter> A = {}"
 by(auto simp add: in_set_spmf)
@@ -2412,7 +2412,7 @@ using bind_eq_return_pmf_None[of p f] by auto
 
 (* Conditional probabilities do not seem to interact nicely with bind. *)
 
-subsection {* Product spmf *}
+subsection \<open>Product spmf\<close>
 
 definition pair_spmf :: "'a spmf \<Rightarrow> 'b spmf \<Rightarrow> ('a \<times> 'b) spmf"
 where "pair_spmf p q = bind_pmf (pair_pmf p q) (\<lambda>xy. case xy of (Some x, Some y) \<Rightarrow> return_spmf (x, y) | _ \<Rightarrow> return_pmf None)"
@@ -2576,7 +2576,7 @@ lemma pair_commute_spmf:
   "pair_spmf p q = map_spmf (\<lambda>(y, x). (x, y)) (pair_spmf q p)"
 unfolding pair_spmf_alt_def by(subst bind_commute_spmf)(simp add: map_spmf_conv_bind_spmf)
 
-subsection {* Assertions *}
+subsection \<open>Assertions\<close>
 
 definition assert_spmf :: "bool \<Rightarrow> unit spmf"
 where "assert_spmf b = (if b then return_spmf () else return_pmf None)"
@@ -2595,7 +2595,7 @@ by(cases b) simp_all
 lemma lossless_assert_spmf [iff]: "lossless_spmf (assert_spmf b) \<longleftrightarrow> b"
 by(cases b) simp_all
 
-subsection {* Try *}
+subsection \<open>Try\<close>
 
 definition try_spmf :: "'a spmf \<Rightarrow> 'a spmf \<Rightarrow> 'a spmf" ("TRY _ ELSE _" [0,60] 59)
 where "try_spmf p q = bind_pmf p (\<lambda>x. case x of None \<Rightarrow> q | Some y \<Rightarrow> return_spmf y)"

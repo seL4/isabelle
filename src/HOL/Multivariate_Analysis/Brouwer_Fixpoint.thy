@@ -2298,11 +2298,13 @@ subsection\<open>Absolute retracts, Etc.\<close>
 text\<open>Absolute retracts (AR), absolute neighbourhood retracts (ANR) and also
  Euclidean neighbourhood retracts (ENR). We define AR and ANR by
  specializing the standard definitions for a set to embedding in
-spaces of higher dimension. This turns out to be sufficient (since any set in
+spaces of higher dimension. \<close>
+
+(*This turns out to be sufficient (since any set in
 R^n can be embedded as a closed subset of a convex subset of R^{n+1}) to
 derive the usual definitions, but we need to split them into two
 implications because of the lack of type quantifiers. Then ENR turns out
-to be equivalent to ANR plus local compactness.\<close>
+to be equivalent to ANR plus local compactness. -- JRH*)
 
 definition AR :: "'a::topological_space set => bool"
   where

@@ -69,7 +69,7 @@ The theory files are presented with a modified header to import Pure
 from the running Isabelle instance. Results from changed versions of
 each stage are *not* propagated to the next stage, and isolated from the
 actual Isabelle/Pure that runs the IDE itself. The sequential
-dependencies of the above files are only relevant for batch build.
+dependencies of the above files are only observed for batch build.
 
 * Highlighting of entity def/ref positions wrt. cursor.
 
