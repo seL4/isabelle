@@ -244,7 +244,7 @@ proof
 next
   assume ?rhs
   show ?lhs
-  proof (rule mset_less_eqI)
+  proof (rule mset_subset_eqI)
     fix x
     from \<open>?rhs\<close> have "count_of (DAList.impl_of xs) x \<le> count A x"
       by (cases "x \<in> fst ` set (DAList.impl_of xs)") (auto simp add: count_of_empty)

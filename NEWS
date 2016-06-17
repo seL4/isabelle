@@ -253,6 +253,37 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
+* The names of multiset theorems have been normalised to distinguish which
+  ordering the theorems are about
+    mset_less_eqI ~> mset_subset_eqI
+    mset_less_insertD ~> mset_subset_insertD
+    mset_less_eq_count ~> mset_subset_eq_count
+    mset_less_diff_self ~> mset_subset_diff_self
+    mset_le_exists_conv ~> mset_subset_eq_exists_conv
+    mset_le_mono_add_right_cancel ~> mset_subset_eq_mono_add_right_cancel
+    mset_le_mono_add_left_cancel ~> mset_subset_eq_mono_add_left_cancel
+    mset_le_mono_add ~> mset_subset_eq_mono_add
+    mset_le_add_left ~> mset_subset_eq_add_left
+    mset_le_add_right ~> mset_subset_eq_add_right
+    mset_le_single ~> mset_subset_eq_single
+    mset_le_multiset_union_diff_commute ~> mset_subset_eq_multiset_union_diff_commute
+    diff_le_self ~> diff_subset_eq_self
+    mset_leD ~> mset_subset_eqD
+    mset_lessD ~> mset_subsetD
+    mset_le_insertD ~> mset_subset_eq_insertD
+    mset_less_of_empty ~> mset_subset_of_empty
+    le_empty ~> subset_eq_empty
+    mset_less_add_bothsides ~> mset_subset_add_bothsides
+    mset_less_empty_nonempty ~> mset_subset_empty_nonempty
+    mset_less_size ~> mset_subset_size
+    wf_less_mset_rel ~> wf_subset_mset_rel
+    count_le_replicate_mset_le ~> count_le_replicate_mset_subset_eq
+    mset_remdups_le ~> mset_remdups_subset_eq
+    ms_lesseq_impl ~> subset_eq_mset_impl
+
+  Some functions have been renamed:
+    ms_lesseq_impl -> subset_eq_mset_impl
+
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
 
