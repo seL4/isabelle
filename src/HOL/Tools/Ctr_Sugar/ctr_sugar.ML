@@ -805,12 +805,13 @@ fun prepare_free_constructors kind prep_plugins prep_term
             (thm, asm_thm)
           end;
 
-        val (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,
-             discI_thms, nontriv_discI_thms, distinct_disc_thms, distinct_disc_thmsss,
-             exhaust_disc_thms, exhaust_sel_thms, all_collapse_thms, safe_collapse_thms,
-             expand_thms, split_sel_thms, split_sel_asm_thms, case_eq_if_thms, disc_eq_case_thms) =
+        val (sel_defs, all_sel_thms, sel_thmss, disc_defs, nontriv_disc_defs, disc_thmss,
+             nontriv_disc_thmss, discI_thms, nontriv_discI_thms, distinct_disc_thms,
+             distinct_disc_thmsss, exhaust_disc_thms, exhaust_sel_thms, all_collapse_thms,
+             safe_collapse_thms, expand_thms, split_sel_thms, split_sel_asm_thms, case_eq_if_thms,
+             disc_eq_case_thms) =
           if no_discs_sels then
-            ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
           else
             let
               val udiscs = map (rapp u) discs;
@@ -869,6 +870,9 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
               val has_alternate_disc_def =
                 exists (fn def => Thm.eq_thm_prop (def, alternate_disc_no_def)) disc_defs;
+
+              val nontriv_disc_defs = disc_defs
+                |> filter_out (member Thm.eq_thm_prop [unique_disc_no_def, alternate_disc_no_def]);
 
               val disc_defs' =
                 map2 (fn k => fn def =>
@@ -1044,11 +1048,11 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   |> Conjunction.elim_balanced (length goals)
                 end;
             in
-              (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,
-               discI_thms, nontriv_discI_thms, distinct_disc_thms, distinct_disc_thmsss,
-               [exhaust_disc_thm], [exhaust_sel_thm], all_collapse_thms, safe_collapse_thms,
-               [expand_thm], [split_sel_thm], [split_sel_asm_thm], [case_eq_if_thm],
-               disc_eq_case_thms)
+              (sel_defs, all_sel_thms, sel_thmss, disc_defs, nontriv_disc_defs, disc_thmss,
+               nontriv_disc_thmss, discI_thms, nontriv_discI_thms, distinct_disc_thms,
+               distinct_disc_thmsss, [exhaust_disc_thm], [exhaust_sel_thm], all_collapse_thms,
+               safe_collapse_thms, [expand_thm], [split_sel_thm], [split_sel_asm_thm],
+               [case_eq_if_thm], disc_eq_case_thms)
             end;
 
         val case_distrib_thm =
@@ -1118,7 +1122,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
           |> Local_Theory.declaration {syntax = false, pervasive = true}
             (fn phi => Case_Translation.register
                (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
-          |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
+          |> Local_Theory.background_theory (fold (fold Code.del_eqn) [nontriv_disc_defs, sel_defs])
           |> plugins code_plugin ?
             Local_Theory.declaration {syntax = false, pervasive = false}
               (fn phi => Context.mapping
@@ -1135,7 +1139,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
            exhaust = exhaust_thm, nchotomy = nchotomy_thm, injects = inject_thms,
            distincts = distinct_thms, case_thms = case_thms, case_cong = case_cong_thm,
            case_cong_weak = case_cong_weak_thm, case_distribs = [case_distrib_thm],
-           split = split_thm, split_asm = split_asm_thm, disc_defs = disc_defs,
+           split = split_thm, split_asm = split_asm_thm, disc_defs = nontriv_disc_defs,
            disc_thmss = disc_thmss, discIs = discI_thms, disc_eq_cases = disc_eq_case_thms,
            sel_defs = sel_defs, sel_thmss = sel_thmss, distinct_discsss = distinct_disc_thmsss,
            exhaust_discs = exhaust_disc_thms, exhaust_sels = exhaust_sel_thms,
