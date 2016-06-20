@@ -97,17 +97,12 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val self_fTs = map2 (curry op -->) activeAs activeAs;
     val gTs = map2 (curry op -->) activeBs activeCs;
     val all_gTs = map2 (curry op -->) allBs allCs';
-    val prodBsAs = map2 (curry HOLogic.mk_prodT) activeBs activeAs;
-    val prodFTs = mk_FTs (passiveAs @ prodBsAs);
-    val prod_sTs = map2 (curry op -->) prodFTs activeAs;
 
     (* terms *)
     val mapsAsAs = @{map 4} mk_map_of_bnf Dss Ass Ass bnfs;
     val mapsAsBs = @{map 4} mk_map_of_bnf Dss Ass Bss bnfs;
     val mapsBsCs' = @{map 4} mk_map_of_bnf Dss Bss Css' bnfs;
     val mapsAsCs' = @{map 4} mk_map_of_bnf Dss Ass Css' bnfs;
-    val map_fsts = @{map 4} mk_map_of_bnf Dss (replicate n (passiveAs @ prodBsAs)) Bss bnfs;
-    val map_fsts_rev = @{map 4} mk_map_of_bnf Dss Bss (replicate n (passiveAs @ prodBsAs)) bnfs;
     fun mk_setss Ts = @{map 3} mk_sets_of_bnf (map (replicate live) Dss)
       (map (replicate live) (replicate n Ts)) bnfs;
     val setssAs = mk_setss allAs;
@@ -131,10 +126,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val passive_UNIVs = map HOLogic.mk_UNIV passiveAs;
     val active_UNIVs = map HOLogic.mk_UNIV activeAs;
-    val prod_UNIVs = map HOLogic.mk_UNIV prodBsAs;
     val passive_ids = map HOLogic.id_const passiveAs;
     val active_ids = map HOLogic.id_const activeAs;
-    val fsts = map fst_const prodBsAs;
 
     (* thms *)
     val bd0_card_orders = map bd_card_order_of_bnf bnfs;
@@ -352,15 +345,13 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         Term.list_comb (Const (mor, morT), args)
       end;
 
-    val ((((((((((((Bs, Bs_copy), B's), B''s), ss), prod_ss), s's), s''s), fs), fs_copy), gs), xFs),
-        _) =
+    val (((((((((((Bs, Bs_copy), B's), B''s), ss), s's), s''s), fs), fs_copy), gs), xFs), _) =
       lthy
       |> mk_Frees "B" BTs
       ||>> mk_Frees "B" BTs
       ||>> mk_Frees "B'" B'Ts
       ||>> mk_Frees "B''" B''Ts
       ||>> mk_Frees "s" sTs
-      ||>> mk_Frees "prods" prod_sTs
       ||>> mk_Frees "s'" s'Ts
       ||>> mk_Frees "s''" s''Ts
       ||>> mk_Frees "f" fTs
@@ -433,20 +424,6 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => mk_mor_str_tac ctxt ks mor_def)
-        |> Thm.close_derivation
-      end;
-
-    val mor_convol_thm =
-      let
-        val maps = @{map 3} (fn s => fn prod_s => fn mapx =>
-          mk_convol (HOLogic.mk_comp (s, Term.list_comb (mapx, passive_ids @ fsts)), prod_s))
-          s's prod_ss map_fsts;
-        val goal = HOLogic.mk_Trueprop
-          (mk_mor prod_UNIVs maps (map HOLogic.mk_UNIV activeBs) s's fsts)
-        val vars = Variable.add_free_names lthy goal [];
-      in
-        Goal.prove_sorry lthy vars [] goal
-          (fn {context = ctxt, prems = _} => mk_mor_convol_tac ctxt ks mor_def)
         |> Thm.close_derivation
       end;
 
@@ -960,11 +937,6 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       mk_map_of_bnf Ds (passiveAs @ Ts) (passiveAs @ active_initTs)) Dss bnfs;
     val fTs = map2 (curry op -->) Ts activeAs;
     val foldT = Library.foldr1 HOLogic.mk_prodT (map2 (curry op -->) Ts activeAs);
-    val rec_sTs = map (Term.typ_subst_atomic (activeBs ~~ Ts)) prod_sTs;
-    val rec_maps = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_fsts;
-    val rec_maps_rev = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_fsts_rev;
-    val rec_fsts = map (Term.subst_atomic_types (activeBs ~~ Ts)) fsts;
-    val rec_UNIVs = map2 (HOLogic.mk_UNIV oo curry HOLogic.mk_prodT) Ts activeAs;
 
     val ((ss, (fold_f, fold_f')), _) =
       lthy
@@ -1054,15 +1026,14 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     (* algebra copies *)
 
-    val (((((((Bs, B's), ss), s's), inv_fs), fs), rec_ss), _) =
+    val ((((((Bs, B's), ss), s's), inv_fs), fs), _) =
       lthy
       |> mk_Frees "B" BTs
       ||>> mk_Frees "B'" B'Ts
       ||>> mk_Frees "s" sTs
       ||>> mk_Frees "s'" s'Ts
       ||>> mk_Frees "f" inv_fTs
-      ||>> mk_Frees "f" fTs
-      ||>> mk_Frees "s" rec_sTs;
+      ||>> mk_Frees "f" fTs;
 
     val copy_thm =
       let
@@ -1202,15 +1173,13 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val timer = time (timer "dtor definitions & thms");
 
-    val (((((((((Izs, (Izs1, Izs1'))), (Izs2, Izs2')), xFs), yFs), fs), rec_ss), init_phis), _) =
+    val (((((((Izs, (Izs1, Izs1'))), (Izs2, Izs2')), xFs), yFs), init_phis), _) =
       lthy
       |> mk_Frees "z" Ts
       ||>> mk_Frees' "z1" Ts
       ||>> mk_Frees' "z2" Ts'
       ||>> mk_Frees "x" FTs
       ||>> mk_Frees "y" FTs'
-      ||>> mk_Frees "f" fTs
-      ||>> mk_Frees "s" rec_sTs
       ||>> mk_Frees "P" (replicate n (mk_pred1T initT));
 
     val phis = map2 retype_const_or_free (map mk_pred1T Ts) init_phis;

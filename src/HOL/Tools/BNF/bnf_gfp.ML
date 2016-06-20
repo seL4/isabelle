@@ -135,17 +135,12 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val all_sbisT = HOLogic.mk_tupleT setsRTs;
     val setR'Ts = map HOLogic.mk_setT R'Ts;
     val FRTs = mk_FTs (passiveAs @ RTs);
-    val sumBsAs = map2 (curry mk_sumT) activeBs activeAs;
-    val sumFTs = mk_FTs (passiveAs @ sumBsAs);
-    val sum_sTs = map2 (fn T => fn U => T --> U) activeAs sumFTs;
 
     (* terms *)
     val mapsAsAs = @{map 4} mk_map_of_bnf Dss Ass Ass bnfs;
     val mapsAsBs = @{map 4} mk_map_of_bnf Dss Ass Bss bnfs;
     val mapsBsCs' = @{map 4} mk_map_of_bnf Dss Bss Css' bnfs;
     val mapsAsCs' = @{map 4} mk_map_of_bnf Dss Ass Css' bnfs;
-    val map_Inls = @{map 4} mk_map_of_bnf Dss Bss (replicate n (passiveAs @ sumBsAs)) bnfs;
-    val map_Inls_rev = @{map 4} mk_map_of_bnf Dss (replicate n (passiveAs @ sumBsAs)) Bss bnfs;
     val map_fsts = @{map 4} mk_map_of_bnf Dss (replicate n (passiveAs @ RTs)) Ass bnfs;
     val map_snds = @{map 4} mk_map_of_bnf Dss (replicate n (passiveAs @ RTs)) Bss bnfs;
     fun mk_setss Ts = @{map 3} mk_sets_of_bnf (map (replicate live) Dss)
@@ -174,10 +169,8 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val passive_UNIVs = map HOLogic.mk_UNIV passiveAs;
     val passive_eqs = map HOLogic.eq_const passiveAs;
     val active_UNIVs = map HOLogic.mk_UNIV activeAs;
-    val sum_UNIVs = map HOLogic.mk_UNIV sumBsAs;
     val passive_ids = map HOLogic.id_const passiveAs;
     val active_ids = map HOLogic.id_const activeAs;
-    val Inls = map2 Inl_const activeBs activeAs;
     val fsts = map fst_const RTs;
     val snds = map snd_const RTs;
 
@@ -389,8 +382,8 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         Term.list_comb (Const (mor, morT), args)
       end;
 
-    val (((((((((((((((zs, z's), Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs),
-        fs_copy), gs), RFs), Rs), _) =
+    val ((((((((((((((zs, z's), Bs), Bs_copy), B's), B''s), ss), s's), s''s), fs), fs_copy), gs),
+        RFs), Rs), _) =
       lthy
       |> mk_Frees "b" activeAs
       ||>> mk_Frees "b" activeBs
@@ -399,7 +392,6 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       ||>> mk_Frees "B'" B'Ts
       ||>> mk_Frees "B''" B''Ts
       ||>> mk_Frees "s" sTs
-      ||>> mk_Frees "sums" sum_sTs
       ||>> mk_Frees "s'" s'Ts
       ||>> mk_Frees "s''" s''Ts
       ||>> mk_Frees "f" fTs
@@ -494,19 +486,6 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => mk_mor_str_tac ctxt ks mor_UNIV_thm)
-        |> Thm.close_derivation
-      end;
-
-    val mor_case_sum_thm =
-      let
-        val maps = @{map 3} (fn s => fn sum_s => fn mapx =>
-          mk_case_sum (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ Inls), s), sum_s))
-          s's sum_ss map_Inls;
-        val goal = HOLogic.mk_Trueprop (mk_mor (map HOLogic.mk_UNIV activeBs) s's sum_UNIVs maps Inls);
-        val vars = Variable.add_free_names lthy goal [];
-      in
-        Goal.prove_sorry lthy vars [] goal
-          (fn {context = ctxt, prems = _} => mk_mor_case_sum_tac ctxt ks mor_UNIV_thm)
         |> Thm.close_derivation
       end;
 
@@ -1379,11 +1358,6 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val FTs_setss = mk_setss (passiveAs @ Ts);
     val map_FTs = map2 (fn Ds => mk_map_of_bnf Ds treeQTs (passiveAs @ Ts)) Dss bnfs;
     val unfold_fTs = map2 (curry op -->) activeAs Ts;
-    val corec_sTs = map (Term.typ_subst_atomic (activeBs ~~ Ts)) sum_sTs;
-    val corec_maps = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls;
-    val corec_maps_rev = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls_rev;
-    val corec_Inls = map (Term.subst_atomic_types (activeBs ~~ Ts)) Inls;
-    val corec_UNIVs = map2 (HOLogic.mk_UNIV oo curry mk_sumT) Ts activeAs;
 
     val emptys = map (fn T => HOLogic.mk_set T []) passiveAs;
     val Zeros = map (fn empty =>
@@ -1472,12 +1446,11 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val unfold_defs = map (fn def =>
       mk_unabs_def (n + 1) (Morphism.thm phi def RS meta_eq_to_obj_eq)) unfold_def_frees;
 
-    val ((((ss, TRs), unfold_fs), corec_ss), _) =
+    val (((ss, TRs), unfold_fs), _) =
       lthy
       |> mk_Frees "s" sTs
       ||>> mk_Frees "r" (map (mk_relT o `I) Ts)
-      ||>> mk_Frees "f" unfold_fTs
-      ||>> mk_Frees "s" corec_sTs;
+      ||>> mk_Frees "f" unfold_fTs;
 
     val mor_unfold_thm =
       let
@@ -1602,15 +1575,12 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val timer = time (timer "ctor definitions & thms");
 
-    val ((((((((zs, Jzs), Jzs_copy), Jzs1), Jzs2), unfold_fs), corec_ss), phis), _) =
+    val (((((Jzs, Jzs_copy), Jzs1), Jzs2), phis), _) =
       lthy
-      |> mk_Frees "b" activeAs
-      ||>> mk_Frees "z" Ts
+      |> mk_Frees "z" Ts
       ||>> mk_Frees "z'" Ts
       ||>> mk_Frees "z1" Ts
       ||>> mk_Frees "z2" Ts
-      ||>> mk_Frees "f" unfold_fTs
-      ||>> mk_Frees "s" corec_sTs
       ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
 
     val (coinduct_params, dtor_coinduct_thm) =
