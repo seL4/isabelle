@@ -793,15 +793,15 @@ lemma the_inv_f_f:
 
 subsection \<open>Cantor's Paradox\<close>
 
-lemma Cantors_paradox: "\<not> (\<exists>f. f ` A = Pow A)"
-proof clarify
-  fix f
-  assume "f ` A = Pow A"
-  then have *: "Pow A \<subseteq> f ` A" by blast
+theorem Cantors_paradox: "\<nexists>f. f ` A = Pow A"
+proof
+  assume "\<exists>f. f ` A = Pow A"
+  then obtain f where f: "f ` A = Pow A" ..
   let ?X = "{a \<in> A. a \<notin> f a}"
-  have "?X \<in> Pow A" unfolding Pow_def by auto
-  with * obtain x where "x \<in> A \<and> f x = ?X" by blast
-  then show False by best
+  have "?X \<in> Pow A" by blast
+  then have "?X \<in> f ` A" by (simp only: f)
+  then obtain x where "x \<in> A" and "f x = ?X" by blast
+  then show False by blast
 qed
 
 
