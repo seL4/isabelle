@@ -584,7 +584,7 @@ qed
 subsection \<open>Function Updating\<close>
 
 definition fun_upd :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"
-  where "fun_upd f a b \<equiv> \<lambda>x. if x = a then b else f x"
+  where "fun_upd f a b = (\<lambda>x. if x = a then b else f x)"
 
 nonterminal updbinds and updbind
 
@@ -739,7 +739,7 @@ hide_const (open) swap
 subsection \<open>Inversion of injective functions\<close>
 
 definition the_inv_into :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"
-  where "the_inv_into A f \<equiv> \<lambda>x. THE y. y \<in> A \<and> f y = x"
+  where "the_inv_into A f = (\<lambda>x. THE y. y \<in> A \<and> f y = x)"
 
 lemma the_inv_into_f_f: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow> the_inv_into A f (f x) = x"
   unfolding the_inv_into_def inj_on_def by blast
