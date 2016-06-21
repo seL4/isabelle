@@ -7,6 +7,9 @@ Build profile for continuous integration services.
 package isabelle
 
 
+import java.util.{Properties => JProperties}
+
+
 abstract class CI_Profile extends Isabelle_Tool.Body
 {
 
@@ -39,10 +42,22 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     }
   }
 
+  private def load_properties(): JProperties =
+  {
+    val props = new JProperties()
+    val file = Path.explode(Isabelle_System.getenv_strict("ISABELLE_CI_PROPERTIES")).file
+    if (file.exists())
+      props.load(new java.io.FileReader(file))
+    props
+  }
+
 
   override final def apply(args: List[String]): Unit =
   {
     List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS").foreach(print_variable)
+    val props = load_properties()
+    System.getProperties().putAll(props)
+
     val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
     println(s"Build for Isabelle id ${hg_id(isabelle_home)}")
 
