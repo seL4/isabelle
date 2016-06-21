@@ -810,7 +810,7 @@ val parse_params = Scan.optional (Args.parens (Parse.list parse_param)) [];
 (* command syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword "lift_definition"}
+  Outer_Syntax.local_theory_to_proof @{command_keyword lift_definition}
     "definition for constants over the quotient type"
     (parse_params --
       (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')

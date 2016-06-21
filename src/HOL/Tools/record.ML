@@ -2415,7 +2415,7 @@ val opt_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) []
 
 val _ =
-  Outer_Syntax.command @{command_keyword "print_record"} "print record definiton"
+  Outer_Syntax.command @{command_keyword print_record} "print record definiton"
     (opt_modes -- Parse.typ >> print_record);
 
 end

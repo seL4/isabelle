@@ -869,7 +869,7 @@ val _ =
     (Scan.succeed Isar_Cmd.skip_proof);
 
 val _ =
-  Outer_Syntax.command @{command_keyword "\<proof>"} "dummy proof (quick-and-dirty mode only!)"
+  Outer_Syntax.command @{command_keyword \<proof>} "dummy proof (quick-and-dirty mode only!)"
     (Scan.succeed Isar_Cmd.skip_proof);
 
 val _ =

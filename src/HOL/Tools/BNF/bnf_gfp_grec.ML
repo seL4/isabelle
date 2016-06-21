@@ -525,7 +525,7 @@ fun bnf_with_deads_and_lives dead_Es live_As Y fpT T lthy =
             val T = qsoty (unfreeze_fp Y);
             val T_backdrop = qsoty (unfreeze_fp Y_backdrop);
             fun register_hint () =
-              "\nUse the " ^ quote (#1 @{command_keyword "bnf"}) ^ " command to register " ^
+              "\nUse the " ^ quote (#1 @{command_keyword bnf}) ^ " command to register " ^
               quote bad_tc ^ " as a bounded natural functor to allow nested (co)recursion through \
               \it";
           in
