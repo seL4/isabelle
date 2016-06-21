@@ -61,8 +61,8 @@ sig
   (*locale target primitives*)
   val locale_target_notes: string -> string -> (Attrib.binding * Attrib.thms) list ->
     (Attrib.binding * Attrib.thms) list -> local_theory -> local_theory
-  val locale_target_abbrev: string -> Syntax.mode -> (binding * mixfix) -> term -> term list * term list ->
-    local_theory -> local_theory
+  val locale_target_abbrev: string -> Syntax.mode ->
+    (binding * mixfix) -> term -> term list * term list -> local_theory -> local_theory
   val locale_target_declaration: string -> bool -> declaration -> local_theory -> local_theory
   val locale_target_const: string -> (morphism -> bool) -> Syntax.mode ->
     (binding * mixfix) * term -> local_theory -> local_theory
@@ -90,7 +90,8 @@ fun export_abbrev lthy preprocess rhs =
     val rhs' = rhs
       |> Assumption.export_term lthy (Local_Theory.target_of lthy)
       |> preprocess;
-    val term_params = map Free (sort (Variable.fixed_ord lthy o apply2 #1) (Variable.add_fixed lthy rhs' []));
+    val term_params =
+      map Free (sort (Variable.fixed_ord lthy o apply2 #1) (Variable.add_fixed lthy rhs' []));
     val u = fold_rev lambda term_params rhs';
     val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 
@@ -351,7 +352,8 @@ fun theory_target_abbrev prmode (b, mx) global_rhs params =
   Local_Theory.background_theory_result
     (Sign.add_abbrev (#1 prmode) (b, global_rhs) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
-        Sign.notation true prmode [(lhs, check_mixfix_global (b, null (snd params)) mx)] #> pair lhs))
+        Sign.notation true prmode
+          [(lhs, check_mixfix_global (b, null (snd params)) mx)] #> pair lhs))
   #-> (fn lhs =>
         standard_const (op <>) prmode
           ((b, if null (snd params) then NoSyn else mx),
