@@ -36,8 +36,8 @@ sig
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: bool -> T list -> T -> (string * thm list) list
   val dest_all: Context.generic -> bool -> T list -> T -> (string * thm list) list
-  val props: T -> thm list
-  val could_unify: T -> term -> thm list
+  val props: T -> (thm * Position.T) list
+  val could_unify: T -> term -> (thm * Position.T) list
   val merge: T * T -> T
   val add_static: Context.generic -> {strict: bool, index: bool} ->
     binding * thm list -> T -> string * T
@@ -134,7 +134,7 @@ datatype fact = Static of thm list | Dynamic of Context.generic -> thm list;
 
 datatype T = Facts of
  {facts: fact Name_Space.table,
-  props: thm Net.net};
+  props: (thm * Position.T) Net.net};
 
 fun make_facts facts props = Facts {facts = facts, props = props};
 
@@ -227,7 +227,7 @@ end;
 
 (* indexed props *)
 
-val prop_ord = Term_Ord.term_ord o apply2 Thm.full_prop_of;
+val prop_ord = Term_Ord.term_ord o apply2 (Thm.full_prop_of o fst);
 
 fun props (Facts {props, ...}) = sort_distinct prop_ord (Net.content props);
 fun could_unify (Facts {props, ...}) = Net.unify_term props;
@@ -250,11 +250,13 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
 fun add_static context {strict, index} (b, ths) (Facts {facts, props}) =
   let
     val ths' = map Thm.trim_context ths;
+    val pos = #2 (Position.default (Binding.pos_of b));
+
     val (name, facts') =
       if Binding.is_empty b then ("", facts)
       else Name_Space.define context strict (b, Static ths') facts;
     val props' = props
-      |> index ? fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths';
+      |> index ? fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, (th, pos))) ths';
   in (name, make_facts facts' props') end;
 
 

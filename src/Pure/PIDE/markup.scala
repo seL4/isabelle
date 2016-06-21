@@ -95,10 +95,9 @@ object Markup
     def unapply(markup: Markup): Option[(String, String)] =
       markup match {
         case Markup(ENTITY, props) =>
-          (props, props) match {
-            case (Kind(kind), Name(name)) => Some((kind, name))
-            case _ => None
-          }
+          val kind = Kind.unapply(props).getOrElse("")
+          val name = Name.unapply(props).getOrElse("")
+          Some((kind, name))
         case _ => None
       }
   }

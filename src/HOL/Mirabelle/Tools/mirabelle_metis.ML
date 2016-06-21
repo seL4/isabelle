@@ -16,7 +16,7 @@ fun run id ({pre, post, timeout, log, ...}: Mirabelle.run_args) =
     val names = map Thm.get_name_hint thms
     val add_info = if null names then I else suffix (":\n" ^ commas names)
 
-    val facts = Facts.props (Proof_Context.facts_of (Proof.context_of pre))
+    val facts = map #1 (Facts.props (Proof_Context.facts_of (Proof.context_of pre)))
 
     fun metis ctxt =
       Metis_Tactic.metis_tac [] ATP_Problem_Generate.liftingN ctxt

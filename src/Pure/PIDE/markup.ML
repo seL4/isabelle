@@ -86,6 +86,7 @@ sig
   val fixedN: string val fixed: string -> T
   val caseN: string val case_: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
+  val literal_factN: string val literal_fact: string -> T
   val method_modifierN: string
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
@@ -343,7 +344,9 @@ val language_mixfix =
 val (bindingN, binding) = markup_elem "binding";
 
 val entityN = "entity";
-fun entity kind name = (entityN, [(nameN, name), (kindN, kind)]);
+fun entity kind name =
+  (entityN,
+    (if name = "" then [] else [(nameN, name)]) @ (if kind = "" then [] else [(kindN, kind)]));
 
 fun get_entity_kind (name, props) =
   if name = entityN then AList.lookup (op =) props kindN
@@ -441,6 +444,7 @@ val constantN = "constant";
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (caseN, case_) = markup_string "case" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
+val (literal_factN, literal_fact) = markup_string "literal_fact" nameN;
 
 val method_modifierN = "method_modifier";
 

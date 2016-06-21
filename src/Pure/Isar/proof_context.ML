@@ -945,15 +945,18 @@ val vacuous_facts = [Drule.termI];
 
 in
 
-fun fact_tac ctxt facts = Goal.norm_hhf_tac ctxt THEN' comp_incr_tac ctxt facts;
-
 fun potential_facts ctxt prop =
   let
     val body = Term.strip_all_body prop;
-    val vacuous = filter (fn th => Term.could_unify (body, Thm.concl_of th)) vacuous_facts;
+    val vacuous =
+      filter (fn th => Term.could_unify (body, Thm.concl_of th)) vacuous_facts
+      |> map (rpair Position.none);
   in Facts.could_unify (facts_of ctxt) body @ vacuous end;
 
-fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac ctxt (potential_facts ctxt goal) i);
+fun fact_tac ctxt facts = Goal.norm_hhf_tac ctxt THEN' comp_incr_tac ctxt facts;
+
+fun some_fact_tac ctxt =
+  SUBGOAL (fn (goal, i) => fact_tac ctxt (map #1 (potential_facts ctxt goal)) i);
 
 end;
 
@@ -993,18 +996,23 @@ fun retrieve pick context (Facts.Fact s) =
         val prop =
           Syntax.read_prop (ctxt |> set_mode mode_default |> allow_dummies) s
           |> singleton (Variable.polymorphic ctxt);
-        fun err msg = error (msg ^ Position.here pos ^ ":\n" ^ Syntax.string_of_term ctxt prop);
+        fun err ps msg =
+          error (msg ^ Position.here_list (pos :: ps) ^ ":\n" ^ Syntax.string_of_term ctxt prop);
 
         val (prop', _) = Term.replace_dummy_patterns prop (Variable.maxidx_of ctxt + 1);
-        fun prove_fact th =
-          Goal.prove ctxt [] [] prop' (K (ALLGOALS (fact_tac ctxt [th])));
-        val results = map_filter (try prove_fact) (potential_facts ctxt prop');
-        val thm =
-          (case distinct Thm.eq_thm_prop results of
-            [thm] => thm
-          | [] => err "Failed to retrieve literal fact"
-          | _ => err "Ambiguous specification of literal fact");
-      in pick true ("", Position.none) [thm] end
+        fun prove th = Goal.prove ctxt [] [] prop' (K (ALLGOALS (fact_tac ctxt [th])));
+        val results = map_filter (try (apfst prove)) (potential_facts ctxt prop');
+        val (thm, thm_pos) =
+          (case distinct (eq_fst Thm.eq_thm_prop) results of
+            [res] => res
+          | [] => err [] "Failed to retrieve literal fact"
+          | dups => err (distinct (op =) (map #2 dups)) "Ambiguous specification of literal fact");
+
+        val markup =
+          (Markup.entity Markup.literal_factN "")
+          |> Markup.properties (Position.def_properties_of thm_pos);
+        val _ = Context_Position.report_generic context pos markup;
+      in pick true ("", thm_pos) [thm] end
   | retrieve pick context (Facts.Named ((xname, pos), sel)) =
       let
         val thy = Context.theory_of context;
@@ -1450,7 +1458,7 @@ fun pretty_term_bindings ctxt =
 fun pretty_local_facts verbose ctxt =
   let
     val facts = facts_of ctxt;
-    val props = Facts.props facts;
+    val props = map #1 (Facts.props facts);
     val local_facts =
       (if null props then [] else [("<unnamed>", props)]) @
       Facts.dest_static verbose [Global_Theory.facts_of (theory_of ctxt)] facts;
