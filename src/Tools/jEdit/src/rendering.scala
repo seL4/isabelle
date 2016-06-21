@@ -600,7 +600,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
             Some(Text.Info(r, (t1 + t2, info)))
 
-          case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
+          case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _)))
+          if kind != "" &&
+            kind != Markup.ML_DEF &&
+            kind != Markup.ML_OPEN &&
+            kind != Markup.ML_STRUCTURE =>
             val kind1 = Word.implode(Word.explode('_', kind))
             val txt1 =
               if (name == "") kind1
