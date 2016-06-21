@@ -562,19 +562,19 @@ end
   par_thms - a parametricity theorem for rhs
 *)
 
-fun add_lift_def (config: config) var qty rhs rsp_thm par_thms lthy =
+fun add_lift_def (config: config) (binding, mx) qty rhs rsp_thm par_thms lthy =
   let
     val rty = fastype_of rhs
     val quot_thm = Lifting_Term.prove_quot_thm lthy (rty, qty)
     val absrep_trm =  quot_thm_abs quot_thm
     val rty_forced = (domain_type o fastype_of) absrep_trm
     val forced_rhs = force_rty_type lthy rty_forced rhs
-    val lhs = Free (Binding.name_of (#1 var), qty)
+    val lhs = Free (Binding.name_of binding, qty)
     val prop = Logic.mk_equals (lhs, absrep_trm $ forced_rhs)
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
-    val var = (#notes config = false ? apfst Binding.concealed) var
-    val def_name = if #notes config then Thm.def_binding (#1 var) else Binding.empty
+    val var = ((#notes config = false ? Binding.concealed) binding, mx)
+    val def_name = Thm.make_def_binding (#notes config) (#1 var)
     
     val ((lift_const, (_ , def_thm)), lthy) = 
       Local_Theory.define (var, ((def_name, []), newrhs)) lthy
@@ -586,7 +586,7 @@ fun add_lift_def (config: config) var qty rhs rsp_thm par_thms lthy =
 
     fun notes names =
       let
-        val lhs_name = (#1 var)
+        val lhs_name = Binding.reset_pos (#1 var)
         val rsp_thmN = Binding.qualify_name true lhs_name "rsp"
         val abs_eq_thmN = Binding.qualify_name true lhs_name "abs_eq"
         val rep_eq_thmN = Binding.qualify_name true lhs_name "rep_eq"
