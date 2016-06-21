@@ -604,6 +604,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             val kind1 = Word.implode(Word.explode('_', kind))
             val txt1 =
               if (name == "") kind1
+              else if (kind1 == "") quote(name)
               else kind1 + " " + quote(name)
             val t = prev.info._1
             val txt2 =

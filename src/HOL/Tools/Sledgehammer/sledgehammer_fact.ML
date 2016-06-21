@@ -468,6 +468,7 @@ fun all_facts ctxt generous ho_atp keywords add_ths chained css =
     val named_locals = Facts.dest_static true [global_facts] local_facts
     val unnamed_locals =
       Facts.props local_facts
+      |> map #1
       |> filter (is_useful_unnamed_local_fact ctxt)
       |> map (pair "" o single)
 
