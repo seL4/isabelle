@@ -935,11 +935,15 @@ lemma component_le_infnorm_cart: "\<bar>x$i\<bar> \<le> infnorm (x::real^'n)"
   using Basis_le_infnorm[of "axis i 1" x]
   by (simp add: Basis_vec_def axis_eq_axis inner_axis)
 
-lemma continuous_component: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x $ i)"
+lemma continuous_component[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x $ i)"
   unfolding continuous_def by (rule tendsto_vec_nth)
 
-lemma continuous_on_component: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x $ i)"
+lemma continuous_on_component[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x $ i)"
   unfolding continuous_on_def by (fast intro: tendsto_vec_nth)
+
+lemma continuous_on_vec_lambda[continuous_intros]:
+  "(\<And>i. continuous_on S (f i)) \<Longrightarrow> continuous_on S (\<lambda>x. \<chi> i. f i x)"
+  unfolding continuous_on_def by (auto intro: tendsto_vec_lambda)
 
 lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
   by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
@@ -1221,7 +1225,7 @@ lemma convex_box_cart:
   using assms unfolding convex_def by auto
 
 lemma convex_positive_orthant_cart: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
-  by (rule convex_box_cart) (simp add: atLeast_def[symmetric] convex_real_interval)
+  by (rule convex_box_cart) (simp add: atLeast_def[symmetric])
 
 lemma unit_interval_convex_hull_cart:
   "cbox (0::real^'n) 1 = convex hull {x. \<forall>i. (x$i = 0) \<or> (x$i = 1)}"
