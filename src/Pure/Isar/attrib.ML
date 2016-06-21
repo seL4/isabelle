@@ -6,21 +6,18 @@ Symbolic representation of attributes -- with name and syntax.
 
 signature ATTRIB =
 sig
-  type binding = binding * Token.src list
-  val empty_binding: binding
-  val is_empty_binding: binding -> bool
+  val empty_binding: Attrib.binding
+  val is_empty_binding: Attrib.binding -> bool
   val print_attributes: bool -> Proof.context -> unit
-  val define_global: Binding.binding -> (Token.src -> attribute) ->
-    string -> theory -> string * theory
-  val define: Binding.binding -> (Token.src -> attribute) ->
-    string -> local_theory -> string * local_theory
+  val define_global: binding -> (Token.src -> attribute) -> string -> theory -> string * theory
+  val define: binding -> (Token.src -> attribute) -> string -> local_theory -> string * local_theory
   val check_name_generic: Context.generic -> xstring * Position.T -> string
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> Token.src -> Token.src
   val attribs: Token.src list context_parser
   val opt_attribs: Token.src list context_parser
   val pretty_attribs: Proof.context -> Token.src list -> Pretty.T list
-  val pretty_binding: Proof.context -> binding -> string -> Pretty.T list
+  val pretty_binding: Proof.context -> Attrib.binding -> string -> Pretty.T list
   val attribute: Proof.context -> Token.src -> attribute
   val attribute_global: theory -> Token.src -> attribute
   val attribute_cmd: Proof.context -> Token.src -> attribute
@@ -34,16 +31,16 @@ sig
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
   type thms = (thm list * Token.src list) list
-  val global_notes: string -> (binding * thms) list ->
+  val global_notes: string -> (Attrib.binding * thms) list ->
     theory -> (string * thm list) list * theory
-  val local_notes: string -> (binding * thms) list ->
+  val local_notes: string -> (Attrib.binding * thms) list ->
     Proof.context -> (string * thm list) list * Proof.context
-  val generic_notes: string -> (binding * thms) list ->
+  val generic_notes: string -> (Attrib.binding * thms) list ->
     Context.generic -> (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * Token.src list) list -> thm list
   val attribute_syntax: attribute context_parser -> Token.src -> attribute
-  val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
-  val local_setup: Binding.binding -> attribute context_parser -> string ->
+  val setup: binding -> attribute context_parser -> string -> theory -> theory
+  val local_setup: binding -> attribute context_parser -> string ->
     local_theory -> local_theory
   val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
@@ -54,20 +51,17 @@ sig
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
   val transform_facts: morphism -> (Attrib.binding * thms) list -> (Attrib.binding * thms) list
-  val partial_evaluation: Proof.context -> (binding * thms) list -> (binding * thms) list
+  val partial_evaluation: Proof.context ->
+    (Attrib.binding * thms) list -> (Attrib.binding * thms) list
   val print_options: bool -> Proof.context -> unit
-  val config_bool: Binding.binding ->
-    (Context.generic -> bool) -> bool Config.T * (theory -> theory)
-  val config_int: Binding.binding ->
-    (Context.generic -> int) -> int Config.T * (theory -> theory)
-  val config_real: Binding.binding ->
-    (Context.generic -> real) -> real Config.T * (theory -> theory)
-  val config_string: Binding.binding ->
-    (Context.generic -> string) -> string Config.T * (theory -> theory)
-  val setup_config_bool: Binding.binding -> (Context.generic -> bool) -> bool Config.T
-  val setup_config_int: Binding.binding -> (Context.generic -> int) -> int Config.T
-  val setup_config_real: Binding.binding -> (Context.generic -> real) -> real Config.T
-  val setup_config_string: Binding.binding -> (Context.generic -> string) -> string Config.T
+  val config_bool: binding -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
+  val config_int: binding -> (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_real: binding -> (Context.generic -> real) -> real Config.T * (theory -> theory)
+  val config_string: binding -> (Context.generic -> string) -> string Config.T * (theory -> theory)
+  val setup_config_bool: binding -> (Context.generic -> bool) -> bool Config.T
+  val setup_config_int: binding -> (Context.generic -> int) -> int Config.T
+  val setup_config_real: binding -> (Context.generic -> real) -> real Config.T
+  val setup_config_string: binding -> (Context.generic -> string) -> string Config.T
   val option_bool: string * Position.T -> bool Config.T * (theory -> theory)
   val option_int: string * Position.T -> int Config.T * (theory -> theory)
   val option_real: string * Position.T -> real Config.T * (theory -> theory)
@@ -83,12 +77,12 @@ sig
   val case_conclusion: string * string list -> Token.src
 end;
 
-structure Attrib: ATTRIB =
+structure Attrib: sig type binding = Attrib.binding include ATTRIB end =
 struct
 
 (* source and bindings *)
 
-type binding = binding * Token.src list;
+type binding = Attrib.binding;
 
 val empty_binding: binding = (Binding.empty, []);
 fun is_empty_binding ((b, srcs): binding) = Binding.is_empty b andalso null srcs;
