@@ -10,9 +10,8 @@ sig
   val abs_def: term -> (string * typ) * term
   val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
-  val add_defs: ((binding * mixfix) * (Thm.binding * term)) list -> Proof.context ->
+  val define: ((binding * mixfix) * (Thm.binding * term)) list -> Proof.context ->
     (term * (string * thm)) list * Proof.context
-  val add_def: (binding * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
   val fixed_abbrev: (binding * mixfix) * term -> Proof.context ->
     (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> (thm list * thm list) * thm
@@ -66,7 +65,9 @@ fun mk_def ctxt args =
   let
     val (bs, rhss) = split_list args;
     val Ts = map Term.fastype_of rhss;
-    val (xs, _) = Proof_Context.add_fixes (map2 (fn b => fn T => (b, SOME T, NoSyn)) bs Ts) ctxt;
+    val (xs, _) = ctxt
+      |> Context_Position.set_visible false
+      |> Proof_Context.add_fixes (map2 (fn b => fn T => (b, SOME T, NoSyn)) bs Ts);
     val lhss = ListPair.map Free (xs, Ts);
   in map Logic.mk_equals (lhss ~~ rhss) end;
 
@@ -94,13 +95,13 @@ val expand_term = Envir.expand_term_frees o map (abs_def o Thm.term_of);
 fun def_export _ defs = (expand defs, expand_term defs);
 
 
-(* add defs *)
+(* define *)
 
-fun add_defs defs ctxt =
+fun define defs ctxt =
   let
     val ((xs, mxs), specs) = defs |> split_list |>> split_list;
     val (bs, rhss) = specs |> split_list;
-    val eqs = mk_def (Context_Position.set_visible false ctxt) (xs ~~ rhss);
+    val eqs = mk_def ctxt (xs ~~ rhss);
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
@@ -109,10 +110,6 @@ fun add_defs defs ctxt =
     |> Proof_Context.add_assms def_export (map2 (fn b => fn eq => (b, [(eq, [])])) bs eqs)
     |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
   end;
-
-fun add_def (var, rhs) ctxt =
-  let val ([(lhs, (_, th))], ctxt') = add_defs [(var, (Thm.empty_binding, rhs))] ctxt
-  in ((lhs, th), ctxt') end;
 
 
 (* fixed_abbrev *)

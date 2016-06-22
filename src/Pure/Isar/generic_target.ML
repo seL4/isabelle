@@ -241,8 +241,8 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
       |> foundation (((b, U), mx'), (b_def, rhs')) (type_params, term_params);
 
     (*local definition*)
-    val ((lhs, local_def), lthy3) = lthy2
-      |> Local_Defs.add_def ((b, NoSyn), lhs');
+    val ([(lhs, (_, local_def))], lthy3) = lthy2
+      |> Local_Defs.define [((b, NoSyn), (Thm.empty_binding, lhs'))];
 
     (*result*)
     val def =

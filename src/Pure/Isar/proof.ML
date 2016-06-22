@@ -699,7 +699,7 @@ fun gen_def prep_att prep_var prep_binds args state =
         let
           val defs = (vars ~~ (name_atts ~~ rhss)) |> map (fn ((x, mx), ((a, atts), rhs)) =>
             ((x, mx), ((Thm.def_binding_optional x a, atts), rhs)));
-        in map_context_result (Local_Defs.add_defs defs) end))
+        in map_context_result (Local_Defs.define defs) end))
     |-> (set_facts o map (#2 o #2))
   end;
 
@@ -868,7 +868,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
     val derived_def = Local_Defs.derived_def ctxt {conditional = false};
     val defs1 = map (derived_def o Logic.close_prop (map #2 fixes) []) (flat propss);
     val defs2 = match_defs decls defs1;
-    val (defs3, defs_ctxt) = Local_Defs.add_defs defs2 ctxt;
+    val (defs3, defs_ctxt) = Local_Defs.define defs2 ctxt;
 
     (*notes*)
     val def_thmss =
