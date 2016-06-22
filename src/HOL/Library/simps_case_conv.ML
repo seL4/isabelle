@@ -137,7 +137,7 @@ fun to_case ctxt ths =
         val frees = fold Term.add_frees pat []
         val abs_rhs = fold absfree frees rhs
         val ([(f, (_, def))], lthy') = lthy
-          |> Local_Defs.define [((Binding.name name, Mixfix.NoSyn), (Thm.empty_binding, abs_rhs))]
+          |> Local_Defs.define [((Binding.name name, NoSyn), (Thm.empty_binding, abs_rhs))]
       in ((list_comb (f, map Free (rev frees)), def), lthy') end
 
     val ((def_ts, def_thms), ctxt2) =

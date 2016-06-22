@@ -612,9 +612,9 @@ end;
 fun guess_infix (Syntax ({gram, ...}, _)) c =
   (case Parser.guess_infix_lr (Lazy.force gram) c of
     SOME (s, l, r, j) => SOME
-     (if l then Mixfix.Infixl (Input.string s, j, Position.no_range)
-      else if r then Mixfix.Infixr (Input.string s, j, Position.no_range)
-      else Mixfix.Infix (Input.string s, j, Position.no_range))
+     (if l then Infixl (Input.string s, j, Position.no_range)
+      else if r then Infixr (Input.string s, j, Position.no_range)
+      else Infix (Input.string s, j, Position.no_range))
   | NONE => NONE);
 
 
