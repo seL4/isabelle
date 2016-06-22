@@ -12,18 +12,18 @@ sig
   val base_sort: theory -> class -> sort
   val rules: theory -> class -> thm option * thm
   val these_defs: theory -> sort -> thm list
-  val these_operations: theory -> sort
-    -> (string * (class * ((typ * term) * bool))) list
+  val these_operations: theory -> sort -> (string * (class * ((typ * term) * bool))) list
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
-  val const: class -> (binding * mixfix) * term -> term list * term list -> local_theory -> local_theory
-  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
+  val const: class -> (binding * mixfix) * term -> term list * term list ->
+    local_theory -> local_theory
+  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory ->
+    (term * term) * local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
-  val register: class -> class list -> ((string * typ) * (string * typ)) list
-    -> sort -> morphism -> morphism -> thm option -> thm option -> thm
-    -> theory -> theory
+  val register: class -> class list -> ((string * typ) * (string * typ)) list ->
+    sort -> morphism -> morphism -> thm option -> thm option -> thm -> theory -> theory
 
   (*instances*)
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
@@ -160,6 +160,11 @@ fun morphism thy class =
 
 val export_morphism = #export_morph oo the_class_data;
 
+fun pretty_param ctxt (c, ty) =
+  Pretty.block
+   [Name_Space.pretty ctxt (Proof_Context.const_space ctxt) c, Pretty.str " ::",
+    Pretty.brk 1, Syntax.pretty_typ ctxt ty];
+
 fun print_classes ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -167,7 +172,6 @@ fun print_classes ctxt =
 
     val class_space = Proof_Context.class_space ctxt;
     val type_space = Proof_Context.type_space ctxt;
-    val const_space = Proof_Context.const_space ctxt;
 
     val arities =
       Symtab.empty
@@ -183,10 +187,7 @@ fun print_classes ctxt =
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
 
-    fun prt_param (c, ty) =
-      Pretty.block
-       [Name_Space.pretty ctxt const_space c, Pretty.str " ::",
-        Pretty.brk 1, Syntax.pretty_typ ctxt (Type.strip_sorts_dummy ty)];
+    fun prt_param (c, ty) = pretty_param ctxt (c, Type.strip_sorts_dummy ty);
 
     fun prt_entry class =
       Pretty.block
@@ -607,16 +608,28 @@ fun resort_terms ctxt algebra consts constraints ts =
 
 (* target *)
 
-fun define_overloaded (c, U) v (b_def, rhs) =
-  Local_Theory.background_theory_result (Axclass.declare_overloaded (c, U)
-  ##>> Axclass.define_overloaded b_def (c, rhs))
-  ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
-  ##> Local_Theory.map_contexts (K synchronize_inst_syntax);
+fun define_overloaded (c, U) b (b_def, rhs) lthy =
+  let
+    val name = Binding.name_of b;
+    val pos = Binding.pos_of b;
+    val _ =
+      if Context_Position.is_reported lthy pos then
+        Position.report_text pos Markup.class_parameter
+          (Pretty.string_of
+            (Pretty.block [Pretty.keyword1 "class", Pretty.brk 1,
+                Pretty.str "parameter", Pretty.brk 1, pretty_param lthy (c, U)]))
+      else ();
+  in
+    lthy |> Local_Theory.background_theory_result
+      (Axclass.declare_overloaded (c, U) ##>> Axclass.define_overloaded b_def (c, rhs))
+    ||> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = name))
+    ||> Local_Theory.map_contexts (K synchronize_inst_syntax)
+  end;
 
 fun foundation (((b, U), mx), (b_def, rhs)) params lthy =
   (case instantiation_param lthy b of
     SOME c =>
-      if Mixfix.is_empty mx then lthy |> define_overloaded (c, U) (Binding.name_of b) (b_def, rhs)
+      if Mixfix.is_empty mx then lthy |> define_overloaded (c, U) b (b_def, rhs)
       else error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
   | NONE => lthy |> Generic_Target.theory_target_foundation (((b, U), mx), (b_def, rhs)) params);
 

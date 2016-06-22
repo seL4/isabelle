@@ -156,7 +156,7 @@ object Rendering
   private val highlight_elements =
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.SORTING,
-      Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
+      Markup.TYPING, Markup.CLASS_PARAMETER, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
       Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name)
 
@@ -185,9 +185,9 @@ object Rendering
 
   private val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
-      Markup.SORTING, Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH,
-      Markup.DOC, Markup.URL, Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name) ++
-    Markup.Elements(tooltip_descriptions.keySet)
+      Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
+      Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.MARKDOWN_PARAGRAPH,
+      Markup.Markdown_List.name) ++ Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
@@ -287,6 +287,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val inner_cartouche_color = color_value("inner_cartouche_color")
   val inner_comment_color = color_value("inner_comment_color")
   val dynamic_color = color_value("dynamic_color")
+  val class_parameter_color = color_value("class_parameter_color")
 
   val markdown_item_color1 = color_value("markdown_item_color1")
   val markdown_item_color2 = color_value("markdown_item_color2")
@@ -635,6 +636,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if name == Markup.SORTING || name == Markup.TYPING =>
             Some(add(prev, r, (true, pretty_typing("::", body))))
 
+          case (prev, Text.Info(r, XML.Elem(Markup(Markup.CLASS_PARAMETER, _), body))) =>
+            Some(add(prev, r, (true, Pretty.block(0, body))))
+
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
 
@@ -867,6 +871,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.INNER_CARTOUCHE -> inner_cartouche_color,
       Markup.INNER_COMMENT -> inner_comment_color,
       Markup.DYNAMIC_FACT -> dynamic_color,
+      Markup.CLASS_PARAMETER -> class_parameter_color,
       Markup.ANTIQUOTE -> antiquote_color,
       Markup.ML_KEYWORD1 -> keyword1_color,
       Markup.ML_KEYWORD2 -> keyword2_color,

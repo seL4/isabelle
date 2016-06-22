@@ -267,6 +267,7 @@ object Markup
 
   val SORTING = "sorting"
   val TYPING = "typing"
+  val CLASS_PARAMETER = "class_parameter"
 
   val ATTRIBUTE = "attribute"
   val METHOD = "method"

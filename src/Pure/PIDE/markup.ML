@@ -103,6 +103,7 @@ sig
   val token_rangeN: string val token_range: T
   val sortingN: string val sorting: T
   val typingN: string val typing: T
+  val class_parameterN: string val class_parameter: T
   val ML_keyword1N: string val ML_keyword1: T
   val ML_keyword2N: string val ML_keyword2: T
   val ML_keyword3N: string val ML_keyword3: T
@@ -468,6 +469,7 @@ val (token_rangeN, token_range) = markup_elem "token_range";
 
 val (sortingN, sorting) = markup_elem "sorting";
 val (typingN, typing) = markup_elem "typing";
+val (class_parameterN, class_parameter) = markup_elem "class_parameter";
 
 
 (* ML *)
