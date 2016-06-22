@@ -242,7 +242,9 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
     (*local definition*)
     val ([(lhs, (_, local_def))], lthy3) = lthy2
-      |> Local_Defs.define [((b, NoSyn), (Thm.empty_binding, lhs'))];
+      |> Context_Position.set_visible false
+      |> Local_Defs.define [((b, NoSyn), (Thm.empty_binding, lhs'))]
+      ||> Context_Position.restore_visible lthy2;
 
     (*result*)
     val def =
@@ -329,8 +331,8 @@ fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
   in
     lthy
     |> target_abbrev prmode (b, mx') global_rhs (type_params, term_params)
-    |> Proof_Context.add_abbrev Print_Mode.internal (b, rhs) |> snd
     |> Context_Position.set_visible false
+    |> Proof_Context.add_abbrev Print_Mode.internal (b, rhs) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), rhs)
     ||> Context_Position.restore_visible lthy
   end;
