@@ -3,8 +3,8 @@ object profile extends isabelle.CI_Profile
 
   import isabelle._
 
-  def threads = 4
-  def jobs = 2
+  def threads = 2
+  def jobs = 3
   def all = true
   def groups = Nil
   def exclude = Nil
