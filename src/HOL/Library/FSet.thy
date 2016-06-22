@@ -29,8 +29,6 @@ end
 instantiation fset :: (type) "{bounded_lattice_bot, distrib_lattice, minus}"
 begin
 
-interpretation lifting_syntax .
-
 lift_definition bot_fset :: "'a fset" is "{}" parametric empty_transfer by simp
 
 lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is subset_eq parametric subset_transfer
@@ -39,6 +37,7 @@ lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> boo
 definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a fset)"
 
 lemma less_fset_transfer[transfer_rule]:
+  includes lifting_syntax
   assumes [transfer_rule]: "bi_unique A"
   shows "((pcr_fset A) ===> (pcr_fset A) ===> op =) op \<subset> op <"
   unfolding less_fset_def[abs_def] psubset_eq[abs_def] by transfer_prover
@@ -74,7 +73,8 @@ end
 instantiation fset :: (type) conditionally_complete_lattice
 begin
 
-interpretation lifting_syntax .
+context includes lifting_syntax
+begin
 
 lemma right_total_Inf_fset_transfer:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "right_total A"
@@ -105,6 +105,8 @@ by (auto intro: finite_subset)
 
 lemma transfer_bdd_below[transfer_rule]: "(rel_set (pcr_fset op =) ===> op =) bdd_below bdd_below"
   by auto
+
+end
 
 instance
 proof
@@ -174,10 +176,8 @@ lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix 
 
 abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
-context
+context includes lifting_syntax
 begin
-
-interpretation lifting_syntax .
 
 lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter
   parametric Lifting_Set.filter_transfer unfolding Set.filter_def by simp
@@ -808,10 +808,8 @@ subsubsection \<open>Transfer rules for the Transfer package\<close>
 
 text \<open>Unconditional transfer rules\<close>
 
-context
+context includes lifting_syntax
 begin
-
-interpretation lifting_syntax .
 
 lemmas fempty_transfer [transfer_rule] = empty_transfer[Transfer.transferred]
 

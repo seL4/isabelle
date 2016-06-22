@@ -14,10 +14,8 @@ lemma map_of_foldr: \<comment> \<open>FIXME move\<close>
   "map_of xs = foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) xs Map.empty"
   using map_add_map_of_foldr [of Map.empty] by auto
 
-context
+context includes lifting_syntax
 begin
-
-interpretation lifting_syntax .
 
 lemma empty_parametric:
   "(A ===> rel_option B) Map.empty Map.empty"
@@ -219,10 +217,8 @@ instance
 
 end
 
-context
+context includes lifting_syntax
 begin
-
-interpretation lifting_syntax .
 
 lemma [transfer_rule]:
   assumes [transfer_rule]: "bi_total A"

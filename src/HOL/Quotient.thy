@@ -28,9 +28,8 @@ lemma eq_comp_r:
   shows "((op =) OOO R) = R"
   by (auto simp add: fun_eq_iff)
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 subsection \<open>Quotient Predicate\<close>
 
@@ -805,9 +804,8 @@ lemma
 lemma QT_imp: "Quot_True a \<equiv> Quot_True b"
   by (simp add: Quot_True_def)
 
-context 
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 text \<open>Tactics for proving the lifted theorems\<close>
 ML_file "Tools/Quotient/quotient_tacs.ML"

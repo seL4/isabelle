@@ -70,8 +70,6 @@ declare
 instantiation cset :: (type) "{bounded_lattice_bot, distrib_lattice, minus}"
 begin
 
-interpretation lifting_syntax .
-
 lift_definition bot_cset :: "'a cset" is "{}" parametric empty_transfer by simp
 
 lift_definition less_eq_cset :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> bool"
@@ -81,6 +79,7 @@ definition less_cset :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> bool"
 where "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a cset)"
 
 lemma less_cset_transfer[transfer_rule]:
+  includes lifting_syntax
   assumes [transfer_rule]: "bi_unique A"
   shows "((pcr_cset A) ===> (pcr_cset A) ===> op =) op \<subset> op <"
 unfolding less_cset_def[abs_def] psubset_eq[abs_def] by transfer_prover
@@ -458,7 +457,8 @@ subsubsection \<open>Transfer rules for the Transfer package\<close>
 
 text \<open>Unconditional transfer rules\<close>
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
 
 lemmas cempty_parametric [transfer_rule] = empty_transfer[Transfer.transferred]
 

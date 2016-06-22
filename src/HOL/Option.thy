@@ -314,10 +314,8 @@ end
 
 subsection \<open>Transfer rules for the Transfer package\<close>
 
-context
+context includes lifting_syntax
 begin
-
-interpretation lifting_syntax .
 
 lemma option_bind_transfer [transfer_rule]:
   "(rel_option A ===> (A ===> rel_option B) ===> rel_option B)

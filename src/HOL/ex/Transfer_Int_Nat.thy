@@ -20,9 +20,8 @@ lemma Domainp_ZN [transfer_domain_rule]: "Domainp ZN = (\<lambda>x. x \<ge> 0)"
 
 subsection \<open>Transfer rules\<close>
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 lemma bi_unique_ZN [transfer_rule]: "bi_unique ZN"
   unfolding ZN_def bi_unique_def by simp

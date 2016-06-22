@@ -9,13 +9,10 @@ theory Complete_Partial_Order2 imports
   "~~/src/HOL/Library/Lattice_Syntax"
 begin
 
-context begin interpretation lifting_syntax .
-
 lemma chain_transfer [transfer_rule]:
-  "((A ===> A ===> op =) ===> rel_set A ===> op =) Complete_Partial_Order.chain Complete_Partial_Order.chain"
+  includes lifting_syntax
+  shows "((A ===> A ===> op =) ===> rel_set A ===> op =) Complete_Partial_Order.chain Complete_Partial_Order.chain"
 unfolding chain_def[abs_def] by transfer_prover
-
-end
 
 lemma linorder_chain [simp, intro!]:
   fixes Y :: "_ :: linorder set"

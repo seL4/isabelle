@@ -11,15 +11,14 @@ begin
 
 subsection \<open>Relator for function space\<close>
 
-locale lifting_syntax
+bundle lifting_syntax
 begin
-  notation rel_fun (infixr "===>" 55)
-  notation map_fun (infixr "--->" 55)
+  notation rel_fun  (infixr "===>" 55)
+  notation map_fun  (infixr "--->" 55)
 end
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 lemma rel_funD2:
   assumes "rel_fun A B f g" and "A x x"
@@ -236,9 +235,8 @@ declare refl [transfer_rule]
 
 hide_const (open) Rel
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 text \<open>Handling of domains\<close>
 
@@ -365,9 +363,8 @@ declare rel_fun_eq [relator_eq]
 
 subsection \<open>Transfer rules\<close>
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 lemma Domainp_forall_transfer [transfer_rule]:
   assumes "right_total A"

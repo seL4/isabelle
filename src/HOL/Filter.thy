@@ -1192,7 +1192,8 @@ lemma filterlim_at_bot_lt:
 
 subsection \<open>Setup @{typ "'a filter"} for lifting and transfer\<close>
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
 
 definition rel_filter :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> 'b filter \<Rightarrow> bool"
 where "rel_filter R F G = ((R ===> op =) ===> op =) (Rep_filter F) (Rep_filter G)"

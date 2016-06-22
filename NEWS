@@ -132,6 +132,10 @@ examples.
 
 *** HOL ***
 
+* Former locale lifting_syntax is now a bundle, which is easier to
+include in a local context or theorem statement, e.g. "context includes
+lifting_syntax begin ... end". Minor INCOMPATIBILITY.
+
 * Code generation for scala: ambiguous implicts in class diagrams
 are spelt out explicitly.
 

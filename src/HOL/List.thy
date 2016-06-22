@@ -6829,9 +6829,8 @@ subsection \<open>Setup for Lifting/Transfer\<close>
 
 subsubsection \<open>Transfer rules for the Transfer package\<close>
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 lemma tl_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) tl tl"

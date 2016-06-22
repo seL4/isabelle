@@ -16,9 +16,8 @@ begin
 
 subsection \<open>Function map\<close>
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 lemma map_fun_id:
   "(id ---> id) = id"

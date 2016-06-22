@@ -158,7 +158,9 @@ by(auto simp add: flat_ord_def)
 
 subsubsection \<open>A relator for sets that treats sets like predicates\<close>
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
+
 definition rel_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool"
 where "rel_pred R A B = (R ===> op =) (\<lambda>x. x \<in> A) (\<lambda>y. y \<in> B)"
 
@@ -173,6 +175,7 @@ lemma Collect_parametric: "((A ===> op =) ===> rel_pred A) Collect Collect"
       because it blows up the search space for @{method transfer}
       (in combination with @{thm [source] Collect_transfer})\<close>
 by(simp add: rel_funI rel_predI)
+
 end
 
 subsubsection \<open>Monotonicity rules\<close>
@@ -720,7 +723,8 @@ by(simp add: option.rel_conversep pmf.rel_conversep)
 lemma spmf_rel_eq: "rel_spmf op = = op ="
 by(simp add: pmf.rel_eq option.rel_eq)
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
 
 lemma bind_spmf_parametric [transfer_rule]:
   "(rel_spmf A ===> (A ===> rel_spmf B) ===> rel_spmf B) bind_spmf bind_spmf"
@@ -758,7 +762,9 @@ by(rule rel_spmf_bindI[where R="\<lambda>x y. x = y \<and> x \<in> set_spmf p"])
 lemma rel_pmf_return_pmfI: "P x y \<Longrightarrow> rel_pmf P (return_pmf x) (return_pmf y)"
 by(rule rel_pmf.intros[where pq="return_pmf (x, y)"])(simp_all)
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
+
 text \<open>We do not yet have a relator for @{typ "'a measure"}, so we combine @{const measure} and @{const measure_pmf}\<close>
 lemma measure_pmf_parametric:
   "(rel_pmf A ===> rel_pred A ===> op =) (\<lambda>p. measure (measure_pmf p)) (\<lambda>q. measure (measure_pmf q))"
@@ -778,6 +784,7 @@ apply(rule rel_funI)+
 apply(erule measure_pmf_parametric[THEN rel_funD, THEN rel_funD])
 apply(auto simp add: rel_pred_def rel_fun_def elim: option.rel_cases)
 done
+
 end
 
 subsection \<open>From @{typ "'a pmf"} to @{typ "'a spmf"}\<close>
@@ -1785,7 +1792,8 @@ lemma admissible_rel_spmf_mcont [cont_intro]:
   \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. rel_spmf R (f x) (g x))"
 by(rule admissible_subst[OF admissible_rel_spmf, where f="\<lambda>x. (f x, g x)", simplified])(rule mcont_Pair)
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
 
 lemma fixp_spmf_parametric':
   assumes f: "\<And>x. monotone (ord_spmf op =) (ord_spmf op =) F"
@@ -2032,7 +2040,9 @@ proof -
     by(auto simp add: spmf_of_set_def simp del: spmf_of_pmf_pmf_of_set intro: rel_pmf_of_set_bij)
 qed
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
+
 lemma rel_spmf_of_set:
   assumes "bi_unique R"
   shows "(rel_set R ===> rel_spmf R) spmf_of_set spmf_of_set"
@@ -2043,6 +2053,7 @@ proof
     by(auto dest: bi_unique_rel_set_bij_betw)
   then show "rel_spmf R (spmf_of_set A) (spmf_of_set B)" by(rule rel_spmf_of_set_bij)
 qed
+
 end
 
 lemma map_mem_spmf_of_set:
@@ -2637,10 +2648,13 @@ lemma lossless_try_spmf [simp]:
   "lossless_spmf (TRY p ELSE q) \<longleftrightarrow> lossless_spmf p \<or> lossless_spmf q"
 by(auto simp add: try_spmf_def in_set_spmf lossless_iff_set_pmf_None split: option.splits)
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
+
 lemma try_spmf_parametric [transfer_rule]:
   "(rel_spmf A ===> rel_spmf A ===> rel_spmf A) try_spmf try_spmf"
 unfolding try_spmf_def[abs_def] by transfer_prover
+
 end
 
 lemma try_spmf_cong:

@@ -112,10 +112,8 @@ subsection \<open>Transfer rules for the Transfer package\<close>
 
 subsubsection \<open>Unconditional transfer rules\<close>
 
-context
+context includes lifting_syntax
 begin
-
-interpretation lifting_syntax .
 
 lemma empty_transfer [transfer_rule]: "(rel_set A) {} {}"
   unfolding rel_set_def by simp

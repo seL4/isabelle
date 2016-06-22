@@ -25,9 +25,8 @@ lemma transp_list_eq: "transp list_eq"
 lemma equivp_list_eq: "equivp list_eq"
   by (intro equivpI reflp_list_eq symp_list_eq transp_list_eq)
 
-context
+context includes lifting_syntax
 begin
-interpretation lifting_syntax .
 
 lemma list_eq_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"

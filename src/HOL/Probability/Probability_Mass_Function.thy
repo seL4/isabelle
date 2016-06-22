@@ -1775,7 +1775,8 @@ lemma set_pmf_binomial_1[simp]: "set_pmf (binomial_pmf n 1) = {n}"
 lemma set_pmf_binomial[simp]: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (binomial_pmf n p) = {..n}"
   by (simp add: set_pmf_binomial_eq)
 
-context begin interpretation lifting_syntax .
+context includes lifting_syntax
+begin
 
 lemma bind_pmf_parametric [transfer_rule]:
   "(rel_pmf A ===> (A ===> rel_pmf B) ===> rel_pmf B) bind_pmf bind_pmf"
