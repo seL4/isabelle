@@ -16,16 +16,17 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   private def print_variable(name: String): Unit =
   {
     val value = Isabelle_System.getenv_strict(name)
-    println(s"""$name="$value"""")
+    println(name + "=" + Outer_Syntax.quote_string(value))
   }
 
   protected def hg_id(path: Path): String =
     Isabelle_System.hg("id -i", path.file).out
 
-  private def build(options: Options): Build.Results =
+  private def build(options: Options): (Build.Results, Time) =
   {
+    val start_time = Time.now()
     val progress = new Console_Progress(true)
-    progress.interrupt_handler {
+    val results = progress.interrupt_handler {
       Build.build(
         options = options,
         progress = progress,
@@ -40,6 +41,8 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         system_mode = true
       )
     }
+    val end_time = Time.now()
+    (results, end_time - start_time)
   }
 
   private def load_properties(): JProperties =
@@ -51,15 +54,18 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     props
   }
 
+  protected def print_section(title: String): Unit =
+    println(s"\n=== $title ===\n")
+
 
   override final def apply(args: List[String]): Unit =
   {
+    print_section("CONFIGURATION")
     List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS").foreach(print_variable)
     val props = load_properties()
     System.getProperties().putAll(props)
 
     val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
-    println(s"Build for Isabelle id ${hg_id(isabelle_home)}")
 
     val options =
       Options.init()
@@ -69,13 +75,20 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         .int.update("parallel_proofs", 2)
         .int.update("threads", threads)
 
+    print_section("BUILD")
+    println(s"Build for Isabelle id ${hg_id(isabelle_home)}")
     pre_hook(args)
 
-    val results = build(options)
+    val (results, elapsed_time) = build(options)
+
+    print_section("TIMING")
+    val total_timing =
+      (Timing.zero /: results.sessions.iterator.map(a => results(a).timing))(_ + _).
+        copy(elapsed = elapsed_time)
+    println(total_timing.message_resources)
 
     if (!results.ok) {
-      println()
-      println("=== FAILED SESSIONS ===")
+      print_section("FAILED SESSIONS")
 
       for (name <- results.sessions) {
         if (results.cancelled(name)) {
