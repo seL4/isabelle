@@ -13,8 +13,6 @@ end;
 structure Code_Scala : CODE_SCALA =
 struct
 
-val target = "Scala";
-
 open Basic_Code_Symbol;
 open Basic_Code_Thingol;
 open Code_Printer;
@@ -28,6 +26,15 @@ val case_insensitive = Attrib.setup_config_bool @{binding "scala_case_insensitiv
 
 
 (** Scala serializer **)
+
+val target = "Scala";
+
+datatype scala_stmt = Fun of typscheme * ((iterm list * iterm) * (thm option * bool)) list
+  | Datatype of vname list * ((string * vname list) * itype list) list
+  | Class of (vname * ((class * class) list * (string * itype) list))
+      * (string * { vs: (vname * sort) list,
+      inst_params: ((string * (const * int)) * (thm * bool)) list,
+      superinst_params: ((string * (const * int)) * (thm * bool)) list }) list;
 
 fun print_scala_stmt tyco_syntax const_syntax reserved
     args_num is_constr (deresolve, deresolve_full) =
@@ -172,14 +179,14 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             |> single
             |> enclose "(" ")"
           end;
-    fun print_context tyvars vs sym = applify "[" "]"
+    fun print_context tyvars vs s = applify "[" "]"
       (fn (v, sort) => (Pretty.block o map str)
         (lookup_tyvar tyvars v :: maps (fn class => [" : ", deresolve_class class]) sort))
-          NOBR ((str o deresolve) sym) vs;
+          NOBR (str s) vs;
     fun print_defhead export tyvars vars const vs params tys ty =
       concat [str "def", constraint (applify "(" ")" (fn (param, ty) =>
         constraint ((str o lookup_var vars) param) (print_typ tyvars NOBR ty))
-          NOBR (print_context tyvars vs (Constant const)) (params ~~ tys)) (print_typ tyvars NOBR ty),
+          NOBR (print_context tyvars vs (deresolve_const const)) (params ~~ tys)) (print_typ tyvars NOBR ty),
             str "="];
     fun print_def export const (vs, ty) [] =
           let
@@ -233,9 +240,38 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               (map print_clause eqs)
           end;
     val print_method = str o Library.enclose "`" "`" o deresolve_full o Constant;
-    fun print_stmt (Constant const, (export, Code_Thingol.Fun (((vs, ty), raw_eqs), _))) =
+    fun print_inst class (tyco, { vs, inst_params, superinst_params }) =
+      let
+        val tyvars = intro_tyvars vs reserved;
+        val classtyp = (class, tyco `%% map (ITyVar o fst) vs);
+        fun print_classparam_instance ((classparam, (const as { dom, ... }, dom_length)), (thm, _)) =
+          let
+            val aux_dom = Name.invent_names (snd reserved) "a" dom;
+            val auxs = map fst aux_dom;
+            val vars = intro_vars auxs reserved;
+            val (aux_dom1, aux_dom2) = chop dom_length aux_dom;
+            fun abstract_using [] = []
+              | abstract_using aux_dom = [enum "," "(" ")"
+                  (map (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
+                  (print_typ tyvars NOBR ty)) aux_dom), str "=>"];
+            val aux_abstr1 = abstract_using aux_dom1;
+            val aux_abstr2 = abstract_using aux_dom2;
+          in
+            concat ([str "val", print_method classparam, str "="]
+              @ aux_abstr1 @ aux_abstr2 @| print_app tyvars false (SOME thm) vars NOBR
+                (const, map (IVar o SOME) auxs))
+          end;
+      in
+        Pretty.block_enclose (concat [str "implicit def",
+          constraint (print_context tyvars vs
+            ((Library.enclose "`" "`" o deresolve_full o Class_Instance) (tyco, class)))
+          (print_dicttyp tyvars classtyp),
+          str "=", str "new", print_dicttyp tyvars classtyp, str "{"], str "}")
+            (map print_classparam_instance (inst_params @ superinst_params))
+      end;
+    fun print_stmt (Constant const, (export, Fun ((vs, ty), raw_eqs))) =
           print_def export const (vs, ty) (filter (snd o snd) raw_eqs)
-      | print_stmt (Type_Constructor tyco, (export, Code_Thingol.Datatype (vs, cos))) =
+      | print_stmt (Type_Constructor tyco, (export, Datatype (vs, cos))) =
           let
             val tyvars = intro_tyvars (map (rpair []) vs) reserved;
             fun print_co ((co, vs_args), tys) =
@@ -252,7 +288,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
                 :: map print_co cos)
           end
-      | print_stmt (Type_Class class, (export, Code_Thingol.Class (v, (classrels, classparams)))) =
+      | print_stmt (Type_Class class, (export, Class ((v, (classrels, classparams)), insts))) =
           let
             val tyvars = intro_tyvars [(v, [class])] reserved;
             fun add_typarg s = Pretty.block
@@ -286,37 +322,23 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                   @ the_list (print_super_classes classrels) @ [str "{"]), str "}")
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
+              @| Pretty.block_enclose
+                ((concat o map str) ["object", deresolve_class class, "{"], str "}")
+                (map (print_inst class) insts)
             )
-          end
-      | print_stmt (sym, (export, Code_Thingol.Classinst
-          { class, tyco, vs, inst_params, superinst_params, ... })) =
-          let
-            val tyvars = intro_tyvars vs reserved;
-            val classtyp = (class, tyco `%% map (ITyVar o fst) vs);
-            fun print_classparam_instance ((classparam, (const as { dom, ... }, dom_length)), (thm, _)) =
-              let
-                val aux_dom = Name.invent_names (snd reserved) "a" dom;
-                val auxs = map fst aux_dom;
-                val vars = intro_vars auxs reserved;
-                val (aux_dom1, aux_dom2) = chop dom_length aux_dom;
-                fun abstract_using [] = []
-                  | abstract_using aux_dom = [enum "," "(" ")"
-                      (map (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
-                      (print_typ tyvars NOBR ty)) aux_dom), str "=>"];
-                val aux_abstr1 = abstract_using aux_dom1;
-                val aux_abstr2 = abstract_using aux_dom2;
-              in
-                concat ([str "val", print_method classparam, str "="]
-                  @ aux_abstr1 @ aux_abstr2 @| print_app tyvars false (SOME thm) vars NOBR
-                    (const, map (IVar o SOME) auxs))
-              end;
-          in
-            Pretty.block_enclose (concat [str "implicit def",
-              constraint (print_context tyvars vs sym) (print_dicttyp tyvars classtyp),
-              str "=", str "new", print_dicttyp tyvars classtyp, str "{"], str "}")
-                (map print_classparam_instance (inst_params @ superinst_params))
           end;
   in print_stmt end;
+
+fun pickup_instances_for_class program =
+  let
+    val tab =
+      Symtab.empty
+      |> Code_Symbol.Graph.fold
+        (fn (_, (Code_Thingol.Classinst { class, tyco, vs, inst_params, superinst_params, ... }, _)) =>
+              Symtab.map_default (class, [])
+                (cons (tyco, { vs = vs, inst_params = inst_params, superinst_params = superinst_params }))
+           | _ => I) program;
+  in Symtab.lookup_list tab end;
 
 fun scala_program_of_program ctxt module_name reserved identifiers exports program =
   let
@@ -348,26 +370,24 @@ fun scala_program_of_program ctxt module_name reserved identifiers exports progr
       | namify_stmt (Code_Thingol.Classrel _) = namify_object
       | namify_stmt (Code_Thingol.Classparam _) = namify_object
       | namify_stmt (Code_Thingol.Classinst _) = namify_common;
-    fun memorize_implicits sym =
-      let
-        fun is_classinst stmt = case stmt
-         of Code_Thingol.Classinst _ => true
-          | _ => false;
-        val implicits = filter (is_classinst o Code_Symbol.Graph.get_node program)
-          (Code_Symbol.Graph.immediate_succs program sym);
-      in union (op =) implicits end;
+    val pickup_instances = pickup_instances_for_class program;
     fun modify_stmt (_, (_, Code_Thingol.Fun (_, SOME _))) = NONE
+      | modify_stmt (_, (export, Code_Thingol.Fun (x, NONE))) = SOME (export, Fun x)
+      | modify_stmt (_, (export, Code_Thingol.Datatype x)) = SOME (export, Datatype x)
       | modify_stmt (_, (_, Code_Thingol.Datatypecons _)) = NONE
+      | modify_stmt (Type_Class class, (export, Code_Thingol.Class x)) =
+          SOME (export, Class (x, pickup_instances class))
       | modify_stmt (_, (_, Code_Thingol.Classrel _)) = NONE
       | modify_stmt (_, (_, Code_Thingol.Classparam _)) = NONE
-      | modify_stmt (_, export_stmt) = SOME export_stmt;
+      | modify_stmt (_, (_, Code_Thingol.Classinst _)) = NONE
   in
     Code_Namespace.hierarchical_program ctxt
       { module_name = module_name, reserved = reserved, identifiers = identifiers,
         empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module,
         namify_stmt = namify_stmt, cyclic_modules = true,
-        class_transitive = true, class_relation_public = false, empty_data = [],
-        memorize_data = memorize_implicits, modify_stmts = map modify_stmt } exports program
+        class_transitive = true, class_relation_public = false, empty_data = (),
+        memorize_data = K I, modify_stmts = map modify_stmt }
+      exports program
   end;
 
 fun serialize_scala ctxt { module_name, reserved_syms, identifiers,
@@ -398,16 +418,9 @@ fun serialize_scala ctxt { module_name, reserved_syms, identifiers,
       (Code_Thingol.is_constr program) (deresolver prefix_fragments, deresolver []);
 
     (* print modules *)
-    fun print_implicit prefix_fragments implicit =
-      let
-        val s = deresolver prefix_fragments implicit;
-      in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
-    fun print_module prefix_fragments base implicits ps = Pretty.chunks2
-      ([str ("object " ^ base ^ " {")]
-        @ (case map_filter (print_implicit prefix_fragments) implicits
-            of [] => [] | implicit_ps => (single o Pretty.block)
-            (str "import /*implicits*/" :: Pretty.brk 1 :: commas implicit_ps))
-        @ ps @ [str ("} /* object " ^ base ^ " */")]);
+    fun print_module _ base _ ps = Pretty.chunks2
+      (str ("object " ^ base ^ " {")
+        :: ps @| str ("} /* object " ^ base ^ " */"));
 
     (* serialization *)
     val p = Pretty.chunks2 (map snd includes

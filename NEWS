@@ -129,6 +129,10 @@ method expression, e.g.
 different phases of code generation. See src/HOL/ex/Code_Timing.thy for
 examples.
 
+* Code generator: implicits in Scala (stemming from type class instances)
+are generated into companion object of corresponding type class, to resolve
+some situations where ambiguities may occur.
+
 
 *** HOL ***
 
