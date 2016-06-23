@@ -95,6 +95,8 @@ lemma [code]:
   "k < l \<longleftrightarrow> (of_int k :: integer) < of_int l"
   by transfer rule
 
+declare [[code drop: "gcd :: int \<Rightarrow> _" "lcm :: int \<Rightarrow> _"]]
+
 lemma gcd_int_of_integer [code]:
   "gcd (int_of_integer x) (int_of_integer y) = int_of_integer (gcd x y)"
 by transfer rule
