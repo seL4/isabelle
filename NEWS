@@ -478,6 +478,9 @@ multi-threaded environment. Note that files are usually located
 relatively to the master directory of a theory (see also
 File.full_path). Potential INCOMPATIBILITY.
 
+* Binding.empty_atts supersedes Thm.empty_binding and
+Attrib.empty_binding. Minor INCOMPATIBILITY.
+
 
 *** System ***
 

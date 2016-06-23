@@ -437,9 +437,9 @@ fun activate_all name thy activ_elem transfer (marked, input) =
       (not (null params) ?
         activ_elem (Fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params))) |>
       (* FIXME type parameters *)
-      (case asm of SOME A => activ_elem (Assumes [(Attrib.empty_binding, [(A, [])])]) | _ => I) |>
+      (case asm of SOME A => activ_elem (Assumes [(Binding.empty_atts, [(A, [])])]) | _ => I) |>
       (not (null defs) ?
-        activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs)));
+        activ_elem (Defines (map (fn def => (Binding.empty_atts, (def, []))) defs)));
     val activate = activate_notes activ_elem transfer (Context.Theory thy) NONE;
   in
     roundup thy activate Morphism.identity (name, Morphism.identity) (marked, input')
@@ -615,7 +615,7 @@ end;
 fun add_declaration loc syntax decl =
   syntax ?
     Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
-  #> add_thmss loc "" [(Attrib.empty_binding, Attrib.internal_declaration decl)];
+  #> add_thmss loc "" [(Binding.empty_atts, Attrib.internal_declaration decl)];
 
 
 (*** Reasoning about locales ***)

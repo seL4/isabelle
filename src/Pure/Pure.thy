@@ -408,14 +408,14 @@ val long_keyword =
   Parse_Spec.long_statement_keyword;
 
 val long_statement =
-  Scan.optional (Parse_Spec.opt_thm_name ":" --| Scan.ahead long_keyword) Attrib.empty_binding --
+  Scan.optional (Parse_Spec.opt_thm_name ":" --| Scan.ahead long_keyword) Binding.empty_atts --
   Scan.optional Parse_Spec.includes [] -- Parse_Spec.long_statement
     >> (fn ((binding, includes), (elems, concl)) => (true, binding, includes, elems, concl));
 
 val short_statement =
   Parse_Spec.statement -- Parse_Spec.if_statement -- Parse.for_fixes
     >> (fn ((shows, assumes), fixes) =>
-      (false, Attrib.empty_binding, [], [Element.Fixes fixes, Element.Assumes assumes],
+      (false, Binding.empty_atts, [], [Element.Fixes fixes, Element.Assumes assumes],
         Element.Shows shows));
 
 fun theorem spec schematic descr =
@@ -444,7 +444,7 @@ val _ =
   Outer_Syntax.local_theory' @{command_keyword declare} "declare theorems"
     (Parse.and_list1 Parse.thms1 -- Parse.for_fixes
       >> (fn (facts, fixes) =>
-          #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat facts)] fixes));
+          #2 oo Specification.theorems_cmd "" [(Binding.empty_atts, flat facts)] fixes));
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword named_theorems}
@@ -915,7 +915,7 @@ local
 
 val opt_fact_binding =
   Scan.optional (Parse.binding -- Parse.opt_attribs || Parse.attribs >> pair Binding.empty)
-    Attrib.empty_binding;
+    Binding.empty_atts;
 
 val for_params =
   Scan.optional

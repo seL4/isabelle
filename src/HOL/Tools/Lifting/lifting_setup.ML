@@ -45,10 +45,13 @@ fun define_crel (config: config) rep_fun lthy =
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     val crel_name = Binding.prefix_name "cr_" qty_name
     val (fixed_def_term, lthy) = yield_singleton (Variable.importT_terms) def_term lthy
-    val ((_, (_ , def_thm)), lthy) = if #notes config then
-        Local_Theory.define ((crel_name, NoSyn), ((Thm.def_binding crel_name, []), fixed_def_term)) lthy
+    val ((_, (_ , def_thm)), lthy) =
+      if #notes config then
+        Local_Theory.define
+          ((crel_name, NoSyn), ((Thm.def_binding crel_name, []), fixed_def_term)) lthy
       else 
-        Local_Theory.define ((Binding.concealed crel_name, NoSyn), ((Binding.empty, []), fixed_def_term)) lthy
+        Local_Theory.define
+          ((Binding.concealed crel_name, NoSyn), (Binding.empty_atts, fixed_def_term)) lthy
   in  
     (def_thm, lthy)
   end
@@ -90,12 +93,13 @@ fun define_pcrel (config: config) crel lthy =
     val definition_term = Logic.mk_equals (lhs, rhs)
     fun note_def lthy =
       Specification.definition (SOME (pcrel_name, SOME relator_type, NoSyn)) [] []
-        ((Binding.empty, []), definition_term) lthy |>> (snd #> snd);
+        (Binding.empty_atts, definition_term) lthy |>> (snd #> snd);
     fun raw_def lthy =
       let
         val ((_, rhs), prove) = Local_Defs.derived_def lthy {conditional = true} definition_term;
-        val ((_, (_, raw_th)), lthy) = lthy
-          |> Local_Theory.define ((Binding.concealed pcrel_name, NoSyn), ((Binding.empty, []), rhs));
+        val ((_, (_, raw_th)), lthy) =
+          Local_Theory.define
+            ((Binding.concealed pcrel_name, NoSyn), (Binding.empty_atts, rhs)) lthy;
         val th = prove lthy raw_th;
       in
         (th, lthy)
@@ -498,9 +502,9 @@ fun get_Domainp_thm quot_thm =
 fun notes names thms = 
   let
     val notes =
-        if names then map (fn (name, thms, attrs) => ((name, []), [(thms, attrs)])) thms
-        else map_filter (fn (_, thms, attrs) => if null attrs then NONE 
-          else SOME ((Binding.empty, []), [(thms, attrs)])) thms
+      if names then map (fn (name, thms, attrs) => ((name, []), [(thms, attrs)])) thms
+      else map_filter (fn (_, thms, attrs) => if null attrs then NONE 
+        else SOME (Binding.empty_atts, [(thms, attrs)])) thms
   in
     Local_Theory.notes notes #> snd
   end

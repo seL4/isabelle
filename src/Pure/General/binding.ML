@@ -25,6 +25,8 @@ sig
   val eq_name: binding * binding -> bool
   val empty: binding
   val is_empty: binding -> bool
+  val empty_atts: binding * 'a list
+  val is_empty_atts: binding * 'a list -> bool
   val conglomerate: binding list -> binding
   val qualify: bool -> string -> binding -> binding
   val qualify_name: bool -> binding -> string -> binding
@@ -101,6 +103,9 @@ val suffix_name = map_name o suffix;
 
 val empty = name "";
 fun is_empty b = name_of b = "";
+
+val empty_atts = (empty, []);
+fun is_empty_atts (b, atts) = is_empty b andalso null atts;
 
 fun conglomerate [b] = b
   | conglomerate bs = name (space_implode "_" (map name_of bs));

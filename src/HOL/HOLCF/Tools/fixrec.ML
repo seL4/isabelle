@@ -356,7 +356,7 @@ fun gen_fixrec
         | NONE => fixrec_err ("unknown pattern constructor: " ^ c)
 
     val matches = map (compile_eqs match_name) (map (map (snd o fst)) blocks)
-    val spec' = map (pair Attrib.empty_binding) matches
+    val spec' = map (pair Binding.empty_atts) matches
     val (lthy, _, _, unfold_thms) =
       add_fixdefs fixes spec' lthy
 
@@ -388,7 +388,7 @@ end (* local *)
 (*************************************************************************)
 
 val opt_thm_name' : (bool * Attrib.binding) parser =
-  @{keyword "("} -- @{keyword "unchecked"} -- @{keyword ")"} >> K (true, Attrib.empty_binding)
+  @{keyword "("} -- @{keyword "unchecked"} -- @{keyword ")"} >> K (true, Binding.empty_atts)
     || Parse_Spec.opt_thm_name ":" >> pair false
 
 val spec' : (bool * (Attrib.binding * string)) parser =

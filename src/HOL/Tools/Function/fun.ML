@@ -134,7 +134,7 @@ fun sequential_preproc (config as FunctionConfig {sequential, ...}) ctxt fixes s
         |> map (map snd)
 
 
-      val bnds' = bnds @ replicate (length spliteqs - length bnds) Attrib.empty_binding
+      val bnds' = bnds @ replicate (length spliteqs - length bnds) Binding.empty_atts
 
       (* using theorem names for case name currently disabled *)
       val case_names = map_index (fn (i, (_, es)) => mk_case_names i "" (length es)) 

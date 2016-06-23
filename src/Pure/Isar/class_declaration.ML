@@ -298,14 +298,14 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
       | [thm] => SOME thm);
   in
     thy
-    |> add_consts class base_sort sups supparam_names global_syntax
-    |-> (fn (param_map, params) => Axclass.define_class (bname, supsort)
-          (map (fst o snd) params)
-          [(Thm.empty_binding, Option.map (globalize param_map) raw_pred |> the_list)]
-    #> snd
-    #> `get_axiom
-    #-> (fn assm_axiom => fold (Sign.add_const_constraint o apsnd SOME o snd) params
-    #> pair (param_map, params, assm_axiom)))
+    |> add_consts class base_sort sups supparam_names global_syntax |-> (fn (param_map, params) =>
+      Axclass.define_class (bname, supsort)
+        (map (fst o snd) params)
+          [(Binding.empty_atts, Option.map (globalize param_map) raw_pred |> the_list)]
+      #> snd
+      #> `get_axiom
+      #-> (fn assm_axiom => fold (Sign.add_const_constraint o apsnd SOME o snd) params
+      #> pair (param_map, params, assm_axiom)))
   end;
 
 fun gen_class prep_class_spec b raw_supclasses raw_elems thy =

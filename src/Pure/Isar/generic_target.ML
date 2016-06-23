@@ -243,7 +243,7 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
     (*local definition*)
     val ([(lhs, (_, local_def))], lthy3) = lthy2
       |> Context_Position.set_visible false
-      |> Local_Defs.define [((b, NoSyn), (Thm.empty_binding, lhs'))]
+      |> Local_Defs.define [((b, NoSyn), (Binding.empty_atts, lhs'))]
       ||> Context_Position.restore_visible lthy2;
 
     (*result*)

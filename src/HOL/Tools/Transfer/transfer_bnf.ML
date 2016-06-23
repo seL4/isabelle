@@ -133,7 +133,7 @@ fun prove_relation_constraints bnf lthy =
 (* relator_eq *)
 
 fun relator_eq bnf =
-  [((Binding.empty, []), [([rel_eq_of_bnf bnf], @{attributes [relator_eq]})])]
+  [(Binding.empty_atts, [([rel_eq_of_bnf bnf], @{attributes [relator_eq]})])]
 
 (* transfer rules *)
 
@@ -143,7 +143,7 @@ fun bnf_transfer_rules bnf =
       :: rel_transfer_of_bnf bnf :: set_transfer_of_bnf bnf
     val transfer_attr = @{attributes [transfer_rule]}
   in
-    map (fn thm => ((Binding.empty,[]),[([thm],transfer_attr)])) transfer_rules
+    map (fn thm => (Binding.empty_atts, [([thm],transfer_attr)])) transfer_rules
   end
 
 (* Domainp theorem for predicator *)
@@ -251,7 +251,7 @@ fun fp_sugar_transfer_rules (fp_sugar:fp_sugar) =
       @ (#co_rec_transfers o #fp_co_induct_sugar) fp_sugar
     val transfer_attr = @{attributes [transfer_rule]}
   in
-    map (fn thm => ((Binding.empty, []), [([thm], transfer_attr)])) transfer_rules
+    map (fn thm => (Binding.empty_atts, [([thm], transfer_attr)])) transfer_rules
   end
 
 fun register_pred_injects fp_sugar lthy =

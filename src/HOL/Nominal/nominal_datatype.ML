@@ -251,7 +251,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
               else Const (@{const_name Nominal.perm}, permT --> T --> T) $ pi $ x
             end;
         in
-          ((Attrib.empty_binding, HOLogic.mk_Trueprop (HOLogic.mk_eq
+          ((Binding.empty_atts, HOLogic.mk_Trueprop (HOLogic.mk_eq
             (Free (nth perm_names_types' i) $
                Free ("pi", mk_permT (TFree ("'x", @{sort type}))) $
                list_comb (c, args),
@@ -544,7 +544,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
            coind = false, no_elim = true, no_ind = false, skip_mono = true}
           (map (fn (s, T) => ((Binding.name s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
-          [] (map (fn x => (Attrib.empty_binding, x)) intr_ts) []
+          [] (map (fn x => (Binding.empty_atts, x)) intr_ts) []
       ||> Sign.restore_naming thy3;
 
     (**** Prove that representing set is closed under permutation ****)
@@ -1533,7 +1533,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
            coind = false, no_elim = false, no_ind = false, skip_mono = true}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) []
+          (map (fn x => (Binding.empty_atts, x)) rec_intr_ts) []
       ||> Global_Theory.hide_fact true (Long_Name.append (Sign.full_bname thy10 big_rec_name) "induct")
       ||> Sign.restore_naming thy10;
 

@@ -728,7 +728,7 @@ fun chain_facts facts =
 
 (* note etc. *)
 
-fun no_binding args = map (pair (Binding.empty, [])) args;
+fun empty_bindings args = map (pair Binding.empty_atts) args;
 
 local
 
@@ -746,13 +746,13 @@ in
 val note_thmss = gen_thmss (K []) I #2 (K I) (K I);
 val note_thmss_cmd = gen_thmss (K []) I #2 Attrib.attribute_cmd Proof_Context.get_fact;
 
-val from_thmss = gen_thmss (K []) chain #2 (K I) (K I) o no_binding;
+val from_thmss = gen_thmss (K []) chain #2 (K I) (K I) o empty_bindings;
 val from_thmss_cmd =
-  gen_thmss (K []) chain #2 Attrib.attribute_cmd Proof_Context.get_fact o no_binding;
+  gen_thmss (K []) chain #2 Attrib.attribute_cmd Proof_Context.get_fact o empty_bindings;
 
-val with_thmss = gen_thmss the_facts chain #2 (K I) (K I) o no_binding;
+val with_thmss = gen_thmss the_facts chain #2 (K I) (K I) o empty_bindings;
 val with_thmss_cmd =
-  gen_thmss the_facts chain #2 Attrib.attribute_cmd Proof_Context.get_fact o no_binding;
+  gen_thmss the_facts chain #2 Attrib.attribute_cmd Proof_Context.get_fact o empty_bindings;
 
 val local_results = gen_thmss (K []) I I (K I) (K I) o map (apsnd Thm.simple_fact);
 
@@ -786,7 +786,7 @@ fun gen_using f g prep_att prep_fact args state =
   |> assert_backward
   |> map_context_result
     (fn ctxt => ctxt |> Proof_Context.note_thmss ""
-      (Attrib.map_facts_refs (map (prep_att ctxt)) (prep_fact ctxt) (no_binding args)))
+      (Attrib.map_facts_refs (map (prep_att ctxt)) (prep_fact ctxt) (empty_bindings args)))
   |> (fn (named_facts, state') =>
     state' |> map_goal (fn (goal_ctxt, statement, using, goal, before_qed, after_qed) =>
       let
@@ -855,7 +855,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
 
     (*defs*)
     fun match_defs (((b, _, mx), (_, Free (x, T))) :: more_decls) ((((y, U), t), _) :: more_defs) =
-          if x = y then ((b, mx), (Thm.empty_binding, t)) :: match_defs more_decls more_defs
+          if x = y then ((b, mx), (Binding.empty_atts, t)) :: match_defs more_decls more_defs
           else
             error ("Mismatch of declaration " ^ show_term (Free (x, T)) ^ " wrt. definition " ^
               show_term (Free (y, U)))

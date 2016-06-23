@@ -109,7 +109,7 @@ fun pretty (target, is_class) ctxt =
         map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
           (#1 (Proof_Context.inferred_fixes ctxt));
       val assumes =
-        map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
+        map (fn A => (Binding.empty_atts, [(Thm.term_of A, [])]))
           (Assumption.all_assms_of ctxt);
       val elems =
         (if null fixes then [] else [Element.Fixes fixes]) @

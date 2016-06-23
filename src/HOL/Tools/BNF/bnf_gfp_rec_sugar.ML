@@ -1609,7 +1609,7 @@ val corec_option_parser = Parse.group (K "option")
    || Parse.reserved "transfer" >> K Transfer_Option);
 
 val where_alt_props_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
-  ((Parse.prop >> pair Attrib.empty_binding) -- Scan.option (Parse.reserved "of" |-- Parse.const)));
+  ((Parse.prop >> pair Binding.empty_atts) -- Scan.option (Parse.reserved "of" |-- Parse.const)));
 
 val _ = Outer_Syntax.local_theory_to_proof @{command_keyword primcorecursive}
   "define primitive corecursive functions"

@@ -265,7 +265,7 @@ fun define_single_primrec b eqs lthy =
     val (([free], [def_free], [simps_free]), (lthy, lthy_old)) = lthy
       |> Local_Theory.open_target |> snd
       |> Local_Theory.map_background_naming (mk_internal true lthy Name_Space.concealed) (*TODO check*)
-      |> primrec [(b, NONE, NoSyn)] (map (fn eq => ((Attrib.empty_binding, eq), [], [])) eqs)
+      |> primrec [(b, NONE, NoSyn)] (map (fn eq => ((Binding.empty_atts, eq), [], [])) eqs)
       ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;

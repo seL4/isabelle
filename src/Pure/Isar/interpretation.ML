@@ -120,7 +120,7 @@ fun meta_rewrite eqns ctxt = (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns)
 
 fun note_eqns_register note activate deps witss def_eqns eqns attrss export export' ctxt =
   let
-    val facts = (Attrib.empty_binding, [(map (Morphism.thm (export' $> export)) def_eqns, [])])
+    val facts = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])])
       :: map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])])) attrss eqns;
     val (eqns', ctxt') = ctxt
       |> note Thm.theoremK facts

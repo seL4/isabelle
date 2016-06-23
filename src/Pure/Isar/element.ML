@@ -239,8 +239,8 @@ fun pretty_statement ctxt kind raw_th =
         then insert (op =) (Variable.revert_fixed ctxt' x, T) else I | _ => I) prop []);
   in
     pretty_ctxt ctxt' (Fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) fixes)) @
-    pretty_ctxt ctxt' (Assumes (map (fn t => (Attrib.empty_binding, [(t, [])])) assumes)) @
-     (if null cases then pretty_stmt ctxt' (Shows [(Attrib.empty_binding, [(concl, [])])])
+    pretty_ctxt ctxt' (Assumes (map (fn t => (Binding.empty_atts, [(t, [])])) assumes)) @
+     (if null cases then pretty_stmt ctxt' (Shows [(Binding.empty_atts, [(concl, [])])])
       else
         let val (clauses, ctxt'') = fold_map obtain cases ctxt'
         in pretty_stmt ctxt'' (Obtains clauses) end)
@@ -293,7 +293,7 @@ fun proof_local cmd goal_ctxt after_qed propp =
   in
     Proof.map_context (K goal_ctxt) #>
     Proof.internal_goal (K (K ())) (Proof_Context.get_mode goal_ctxt) true cmd
-      NONE after_qed' [] [] (map (pair Thm.empty_binding) propp) #> snd
+      NONE after_qed' [] [] (map (pair Binding.empty_atts) propp) #> snd
   end;
 
 in
