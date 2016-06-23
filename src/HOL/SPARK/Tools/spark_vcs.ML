@@ -795,7 +795,7 @@ fun mk_vc thy prfx types pfuns ids name_concl (tr, proved, ps, cs) =
        ((Binding.name ("H" ^ s'), []), [(prop_of e, [])])) ps),
      Element.Shows (map (fn (s', e) =>
        (if name_concl then (Binding.name ("C" ^ s'), [])
-        else Attrib.empty_binding,
+        else Binding.empty_atts,
         [(prop_of e, mk_pat s')])) cs))
   end;
 

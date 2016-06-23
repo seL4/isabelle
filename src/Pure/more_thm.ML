@@ -83,7 +83,6 @@ sig
   val add_def_global: bool -> bool -> binding * term -> theory -> (string * thm) * theory
   type attribute = Context.generic * thm -> Context.generic option * thm option
   type binding = binding * attribute list
-  val empty_binding: binding
   val tag_rule: string * string -> thm -> thm
   val untag_rule: string -> thm -> thm
   val is_free_dummy: thm -> bool
@@ -597,7 +596,6 @@ fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 type attribute = Context.generic * thm -> Context.generic option * thm option;
 
 type binding = binding * attribute list;
-val empty_binding: binding = (Binding.empty, []);
 
 fun rule_attribute ths f (x, th) =
   (NONE,

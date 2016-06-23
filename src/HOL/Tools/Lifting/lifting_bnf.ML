@@ -82,17 +82,17 @@ fun Quotient_map bnf ctxt =
 (* relator_eq_onp  *)
 
 fun relator_eq_onp bnf =
-  [((Binding.empty, []), [([rel_eq_onp_of_bnf bnf], @{attributes [relator_eq_onp]})])]
+  [(Binding.empty_atts, [([rel_eq_onp_of_bnf bnf], @{attributes [relator_eq_onp]})])]
 
 (* relator_mono  *)
 
 fun relator_mono bnf =
-  [((Binding.empty, []), [([rel_mono_of_bnf bnf], @{attributes [relator_mono]})])]    
+  [(Binding.empty_atts, [([rel_mono_of_bnf bnf], @{attributes [relator_mono]})])]    
   
 (* relator_distr  *)
 
 fun relator_distr bnf =
-  [((Binding.empty, []), [([rel_OO_of_bnf bnf RS sym], @{attributes [relator_distr]})])]
+  [(Binding.empty_atts, [([rel_OO_of_bnf bnf RS sym], @{attributes [relator_distr]})])]
 
 (* interpretation *)
 

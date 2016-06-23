@@ -228,7 +228,7 @@ fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw
     |> Proof.have true NONE after_qed
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       [((that_binding, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
-      [(Thm.empty_binding, [(thesis, [])])] int
+      [(Binding.empty_atts, [(thesis, [])])] int
     |-> Proof.refine_insert
     |> Proof.map_context (fold Variable.bind_term binds')
   end;
@@ -376,7 +376,7 @@ fun gen_guess prep_var raw_vars int state =
         |> Proof.fix (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) parms)
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm
           (obtain_export fix_ctxt rule (map (Thm.cterm_of ctxt) ts))
-            [] [] [(Thm.empty_binding, asms)])
+            [] [] [(Binding.empty_atts, asms)])
         |> Proof.map_context (fold Variable.unbind_term Auto_Bind.no_facts)
       end;
 
@@ -403,7 +403,7 @@ fun gen_guess prep_var raw_vars int state =
     |> Proof.chain_facts chain_facts
     |> Proof.internal_goal print_result Proof_Context.mode_schematic true "guess"
       (SOME before_qed) after_qed
-      [] [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
+      [] [] [(Binding.empty_atts, [(Logic.mk_term goal, []), (goal, [])])]
     |> snd
     |> Proof.refine_singleton
         (Method.primitive_text (fn _ => fn _ => Goal.init (Thm.cterm_of ctxt thesis)))

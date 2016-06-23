@@ -285,7 +285,7 @@ fun mk_abs_rep_transfers ctxt fpT_name =
   handle Fail _ => [];
 
 fun set_transfer_rule_attrs thms =
-  snd o Local_Theory.notes [((Binding.empty, []), [(thms, transfer_rule_attrs)])];
+  snd o Local_Theory.notes [(Binding.empty_atts, [(thms, transfer_rule_attrs)])];
 
 fun ensure_codatatype_extra fpT_name ctxt =
   (case codatatype_extra_of ctxt fpT_name of
@@ -1995,7 +1995,7 @@ fun prepare_corec_ursive_cmd long_cmd opts (raw_fixes, raw_eq) lthy =
 
     val (plugins, friend, transfer) = get_options lthy opts;
     val ([((b, fun_T), mx)], [(_, eq)]) =
-      fst (Specification.read_multi_specs raw_fixes [((Attrib.empty_binding, raw_eq), [], [])] lthy);
+      fst (Specification.read_multi_specs raw_fixes [((Binding.empty_atts, raw_eq), [], [])] lthy);
 
     val _ = Sign.of_sort (Proof_Context.theory_of lthy) (fun_T, @{sort type}) orelse
       error ("Type of " ^ Binding.print b ^ " contains top sort");

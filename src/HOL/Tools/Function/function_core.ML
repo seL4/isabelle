@@ -450,7 +450,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
             skip_mono = true}
           [binding] (* relation *)
           [] (* no parameters *)
-          (map (fn t => (Attrib.empty_binding, t)) intrs) (* intro rules *)
+          (map (fn t => (Binding.empty_atts, t)) intrs) (* intro rules *)
           [] (* no special monos *)
       ||> Proof_Context.restore_naming lthy
 

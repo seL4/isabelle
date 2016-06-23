@@ -378,7 +378,7 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
             |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(that, [])])]
             ||> Proof_Context.restore_stmt asms_ctxt;
 
-          val stmt' = [((Binding.empty, []), [(#2 (#1 (Obtain.obtain_thesis ctxt)), [])])];
+          val stmt' = [(Binding.empty_atts, [(#2 (#1 (Obtain.obtain_thesis ctxt)), [])])];
         in ((Obtain.obtains_attribs raw_obtains, prems, stmt', SOME that'), that_ctxt) end)
   end;
 
@@ -399,12 +399,12 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
         val results' =
           burrow (map (Goal.norm_result lthy) o Proof_Context.export goal_ctxt' lthy) results;
         val (res, lthy') =
-          if forall (Attrib.is_empty_binding o fst) stmt then (map (pair "") results', lthy)
+          if forall (Binding.is_empty_atts o fst) stmt then (map (pair "") results', lthy)
           else
             Local_Theory.notes_kind kind
               (map2 (fn (b, _) => fn ths => (b, [(ths, [])])) stmt results') lthy;
         val lthy'' =
-          if Attrib.is_empty_binding (name, atts) then
+          if Binding.is_empty_atts (name, atts) then
             (Proof_Display.print_results int pos lthy' ((kind, ""), res); lthy')
           else
             let

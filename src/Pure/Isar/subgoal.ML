@@ -207,7 +207,7 @@ fun gen_subgoal prep_atts raw_result_binding raw_prems_binding param_specs state
     val (prems_binding, do_prems) =
       (case raw_prems_binding of
         SOME (b, raw_atts) => ((b, map (prep_atts ctxt) raw_atts), true)
-      | NONE => ((Binding.empty, []), false));
+      | NONE => (Binding.empty_atts, false));
 
     val (subgoal_focus, _) =
       (if do_prems then focus else focus_params_fixed) ctxt
@@ -239,7 +239,7 @@ fun gen_subgoal prep_atts raw_result_binding raw_prems_binding param_specs state
       #context subgoal_focus
       |> Proof_Context.note_thmss "" [(prems_binding, [(#prems subgoal_focus, [])])] |> #2)
     |> Proof.internal_goal (K (K ())) (Proof_Context.get_mode ctxt) true "subgoal"
-        NONE after_qed [] [] [(Thm.empty_binding, [(Thm.term_of (#concl subgoal_focus), [])])] |> #2
+        NONE after_qed [] [] [(Binding.empty_atts, [(Thm.term_of (#concl subgoal_focus), [])])] |> #2
     |> Proof.using_facts facts
     |> pair subgoal_focus
   end;

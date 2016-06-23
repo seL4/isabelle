@@ -1781,7 +1781,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       |> fold (Code.add_eqn (Code.Equation, true)) simps
       |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_equal])
       |> `(fn lthy => Syntax.check_term lthy eq)
-      |-> (fn eq => Specification.definition NONE [] [] (Attrib.empty_binding, eq))
+      |-> (fn eq => Specification.definition NONE [] [] (Binding.empty_atts, eq))
       |-> (fn (_, (_, eq_def)) =>
          Class.prove_instantiation_exit_result Morphism.thm tac eq_def)
       |-> (fn eq_def => fn thy =>

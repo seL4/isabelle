@@ -591,10 +591,10 @@ fun eval_inst ctxt (loc, morph) text =
     val text' =
       text |>
        (if is_some asm then
-          eval_text ctxt false (Assumes [(Attrib.empty_binding, [(the asm', [])])])
+          eval_text ctxt false (Assumes [(Binding.empty_atts, [(the asm', [])])])
         else I) |>
        (if not (null defs) then
-          eval_text ctxt false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
+          eval_text ctxt false (Defines (map (fn def => (Binding.empty_atts, (def, []))) defs'))
         else I)
 (* FIXME clone from locale.ML *)
   in text' end;

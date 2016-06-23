@@ -6,8 +6,6 @@ Symbolic representation of attributes -- with name and syntax.
 
 signature ATTRIB =
 sig
-  val empty_binding: Attrib.binding
-  val is_empty_binding: Attrib.binding -> bool
   val print_attributes: bool -> Proof.context -> unit
   val define_global: binding -> (Token.src -> attribute) -> string -> theory -> string * theory
   val define: binding -> (Token.src -> attribute) -> string -> local_theory -> string * local_theory
@@ -80,12 +78,7 @@ end;
 structure Attrib: sig type binding = Attrib.binding include ATTRIB end =
 struct
 
-(* source and bindings *)
-
 type binding = Attrib.binding;
-
-val empty_binding: binding = (Binding.empty, []);
-fun is_empty_binding ((b, srcs): binding) = Binding.is_empty b andalso null srcs;
 
 
 
@@ -199,8 +192,8 @@ fun generic_notes kind facts context = context |>
 
 fun eval_thms ctxt srcs = ctxt
   |> Proof_Context.note_thmss ""
-    (map_facts_refs (map (attribute_cmd ctxt)) (Proof_Context.get_fact ctxt)
-      [((Binding.empty, []), srcs)])
+    (map_facts_refs
+      (map (attribute_cmd ctxt)) (Proof_Context.get_fact ctxt) [(Binding.empty_atts, srcs)])
   |> fst |> maps snd;
 
 
@@ -362,10 +355,10 @@ fun partial_evaluation ctxt facts =
           if eq_list (eq_fst Thm.eq_thm_strict) (decls', fact') then
             [((b, []), map2 (fn (th, atts1) => fn (_, atts2) => (th, atts1 @ atts2)) decls' fact')]
           else if null decls' then [((b, []), fact')]
-          else [(empty_binding, decls'), ((b, []), fact')];
+          else [(Binding.empty_atts, decls'), ((b, []), fact')];
       in (facts', context') end)
   |> fst |> flat |> map (apsnd (map (apfst single)))
-  |> filter_out (fn (b, fact) => is_empty_binding b andalso forall (null o #2) fact);
+  |> filter_out (fn (b, fact) => Binding.is_empty_atts b andalso forall (null o #2) fact);
 
 end;
 

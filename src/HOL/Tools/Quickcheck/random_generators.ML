@@ -141,7 +141,7 @@ fun random_aux_primrec_multi auxname [eq] lthy =
         val proj_eqs = map2 (fn v => fn proj => (v, lambda arg proj)) vs projs;
         val proj_defs = map2 (fn Free (name, _) => fn (_, rhs) =>
           ((Binding.concealed (Binding.name name), NoSyn),
-            (apfst Binding.concealed Attrib.empty_binding, rhs))) vs proj_eqs;
+            (apfst Binding.concealed Binding.empty_atts, rhs))) vs proj_eqs;
         val aux_eq' = Pattern.rewrite_term thy proj_eqs [] aux_eq;
         fun prove_eqs aux_simp proj_defs lthy = 
           let

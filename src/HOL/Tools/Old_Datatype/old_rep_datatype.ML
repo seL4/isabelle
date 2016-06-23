@@ -155,7 +155,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
             coind = false, no_elim = false, no_ind = true, skip_mono = true}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) []
+          (map (fn x => (Binding.empty_atts, x)) rec_intr_ts) []
       ||> Sign.restore_naming thy0;
 
     (* prove uniqueness and termination of primrec combinators *)

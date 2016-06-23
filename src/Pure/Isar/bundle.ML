@@ -112,7 +112,7 @@ fun gen_bundle prep_fact prep_att add_fixes (binding, raw_bundle) raw_fixes lthy
     val bundle0 = raw_bundle
       |> map (fn (fact, atts) => (prep_fact ctxt' fact, map (prep_att ctxt') atts));
     val bundle =
-      Attrib.partial_evaluation ctxt' [(Attrib.empty_binding, bundle0)] |> map snd |> flat
+      Attrib.partial_evaluation ctxt' [(Binding.empty_atts, bundle0)] |> map snd |> flat
       |> transform_bundle (Proof_Context.export_morphism ctxt' lthy);
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
@@ -200,7 +200,7 @@ fun gen_activate notes get args ctxt =
   let val decls = maps (get ctxt) args in
     ctxt
     |> Context_Position.set_visible false
-    |> notes [((Binding.empty, []), decls)] |> #2
+    |> notes [(Binding.empty_atts, decls)] |> #2
     |> Context_Position.restore_visible ctxt
   end;
 

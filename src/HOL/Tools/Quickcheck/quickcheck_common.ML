@@ -374,7 +374,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
   else
     fold_map (fn (name, T) => Local_Theory.define
         ((Binding.concealed (Binding.name name), NoSyn),
-          (apfst Binding.concealed Attrib.empty_binding, mk_undefined T))
+          (apfst Binding.concealed Binding.empty_atts, mk_undefined T))
       #> apfst fst) (names ~~ Ts)
     #> (fn (consts, lthy) =>
       let

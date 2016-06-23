@@ -46,7 +46,7 @@ fun thm_name s = Parse.binding -- Parse.opt_attribs --| Parse.$$$ s;
 fun opt_thm_name s =
   Scan.optional
     ((Parse.binding -- Parse.opt_attribs || Parse.attribs >> pair Binding.empty) --| Parse.$$$ s)
-    Attrib.empty_binding;
+    Binding.empty_atts;
 
 val simple_spec = opt_thm_name ":" -- Parse.prop;
 val simple_specs = opt_thm_name ":" -- Scan.repeat1 Parse.prop;
