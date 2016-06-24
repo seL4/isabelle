@@ -1,18 +1,24 @@
-(* Authors: Florian Haftmann, Johannes Hölzl, Tobias Nipkow *)
+(*  Title:      HOL/Library/Code_Real_Approx_By_Float.thy
+    Author:     Florian Haftmann
+    Author:     Johannes Hölzl
+    Author:     Tobias Nipkow
+*)
 
 theory Code_Real_Approx_By_Float
 imports Complex_Main Code_Target_Int
 begin
 
-text\<open>\textbf{WARNING} This theory implements mathematical reals by machine
-reals (floats). This is inconsistent. See the proof of False at the end of
-the theory, where an equality on mathematical reals is (incorrectly)
-disproved by mapping it to machine reals.
+text\<open>
+  \<^bold>\<open>WARNING!\<close> This theory implements mathematical reals by machine reals
+  (floats). This is inconsistent. See the proof of False at the end of the
+  theory, where an equality on mathematical reals is (incorrectly) disproved
+  by mapping it to machine reals.
 
-The value command cannot display real results yet.
+  The \<^theory_text>\<open>value\<close> command cannot display real results yet.
 
-The only legitimate use of this theory is as a tool for code generation
-purposes.\<close>
+  The only legitimate use of this theory is as a tool for code generation
+  purposes.
+\<close>
 
 code_printing
   type_constructor real \<rightharpoonup>
@@ -88,9 +94,10 @@ declare sqrt_def[code del]
 context
 begin
 
-qualified definition real_exp :: "real \<Rightarrow> real" where "real_exp = exp"
+qualified definition real_exp :: "real \<Rightarrow> real"
+  where "real_exp = exp"
 
-lemma exp_eq_real_exp[code_unfold]: "exp = real_exp"
+lemma exp_eq_real_exp [code_unfold]: "exp = real_exp"
   unfolding real_exp_def ..
 
 end
@@ -144,8 +151,8 @@ code_printing
     and (OCaml) "Pervasives.asin"
 declare arcsin_def[code del]
 
-definition real_of_integer :: "integer \<Rightarrow> real" where
-  "real_of_integer = of_int \<circ> int_of_integer"
+definition real_of_integer :: "integer \<Rightarrow> real"
+  where "real_of_integer = of_int \<circ> int_of_integer"
 
 code_printing
   constant real_of_integer \<rightharpoonup>
@@ -155,27 +162,22 @@ code_printing
 context
 begin
 
-qualified definition real_of_int :: "int \<Rightarrow> real" where
-  [code_abbrev]: "real_of_int = of_int"
+qualified definition real_of_int :: "int \<Rightarrow> real"
+  where [code_abbrev]: "real_of_int = of_int"
 
-lemma [code]:
-  "real_of_int = real_of_integer \<circ> integer_of_int"
+lemma [code]: "real_of_int = real_of_integer \<circ> integer_of_int"
   by (simp add: fun_eq_iff real_of_integer_def real_of_int_def)
 
-lemma [code_unfold del]:
-  "0 \<equiv> (of_rat 0 :: real)"
+lemma [code_unfold del]: "0 \<equiv> (of_rat 0 :: real)"
   by simp
 
-lemma [code_unfold del]:
-  "1 \<equiv> (of_rat 1 :: real)"
+lemma [code_unfold del]: "1 \<equiv> (of_rat 1 :: real)"
   by simp
 
-lemma [code_unfold del]:
-  "numeral k \<equiv> (of_rat (numeral k) :: real)"
+lemma [code_unfold del]: "numeral k \<equiv> (of_rat (numeral k) :: real)"
   by simp
 
-lemma [code_unfold del]:
-  "- numeral k \<equiv> (of_rat (- numeral k) :: real)"
+lemma [code_unfold del]: "- numeral k \<equiv> (of_rat (- numeral k) :: real)"
   by simp
 
 end
@@ -183,54 +185,43 @@ end
 code_printing
   constant Ratreal \<rightharpoonup> (SML)
 
-definition Realfract :: "int => int => real"
-where
-  "Realfract p q = of_int p / of_int q"
+definition Realfract :: "int \<Rightarrow> int \<Rightarrow> real"
+  where "Realfract p q = of_int p / of_int q"
 
 code_datatype Realfract
 
 code_printing
   constant Realfract \<rightharpoonup> (SML) "Real.fromInt _/ '// Real.fromInt _"
 
-lemma [code]:
-  "Ratreal r = case_prod Realfract (quotient_of r)"
+lemma [code]: "Ratreal r = case_prod Realfract (quotient_of r)"
   by (cases r) (simp add: Realfract_def quotient_of_Fract of_rat_rat)
 
-lemma [code, code del]:
-  "(HOL.equal :: real=>real=>bool) = (HOL.equal :: real => real => bool) "
+lemma [code, code del]: "(HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool) = (HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool)"
   ..
 
-lemma [code, code del]:
-  "(plus :: real => real => real) = plus"
+lemma [code, code del]: "(plus :: real \<Rightarrow> real \<Rightarrow> real) = plus"
   ..
 
-lemma [code, code del]:
-  "(uminus :: real => real) = uminus"
+lemma [code, code del]: "(uminus :: real \<Rightarrow> real) = uminus"
   ..
 
-lemma [code, code del]:
-  "(minus :: real => real => real) = minus"
+lemma [code, code del]: "(minus :: real \<Rightarrow> real \<Rightarrow> real) = minus"
   ..
 
-lemma [code, code del]:
-  "(times :: real => real => real) = times"
+lemma [code, code del]: "(times :: real \<Rightarrow> real \<Rightarrow> real) = times"
   ..
 
-lemma [code, code del]:
-  "(divide :: real => real => real) = divide"
+lemma [code, code del]: "(divide :: real \<Rightarrow> real \<Rightarrow> real) = divide"
   ..
 
-lemma [code]:
-  fixes r :: real
-  shows "inverse r = 1 / r"
+lemma [code]: "inverse r = 1 / r" for r :: real
   by (fact inverse_eq_divide)
 
 notepad
 begin
   have "cos (pi/2) = 0" by (rule cos_pi_half)
   moreover have "cos (pi/2) \<noteq> 0" by eval
-  ultimately have "False" by blast
+  ultimately have False by blast
 end
 
 end
-
