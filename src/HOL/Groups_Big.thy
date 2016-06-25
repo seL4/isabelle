@@ -133,7 +133,7 @@ next
   with False show ?thesis by simp
 qed
 
-lemma cong:
+lemma cong [fundef_cong]:
   assumes "A = B"
   assumes g_h: "\<And>x. x \<in> B \<Longrightarrow> g x = h x"
   shows "F g A = F h B"
