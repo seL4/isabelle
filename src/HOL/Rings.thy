@@ -757,6 +757,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma dvd_mult_imp_div:
+  assumes "a * c dvd b"
+  shows "a dvd b div c"
+proof (cases "c = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  from \<open>a * c dvd b\<close> obtain d where "b = a * c * d" ..
+  with False show ?thesis by (simp add: mult.commute [of a] mult.assoc)
+qed
+
 
 text \<open>Units: invertible elements in a ring\<close>
 
