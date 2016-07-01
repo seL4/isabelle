@@ -779,6 +779,228 @@ subsubsection \<open>Subset is an order\<close>
 
 interpretation subset_mset: order "op \<le>#" "op <#" by unfold_locales auto
 
+subsubsection \<open>Conditionally complete lattice\<close>
+
+instantiation multiset :: (type) Inf
+begin
+
+lift_definition Inf_multiset :: "'a multiset set \<Rightarrow> 'a multiset" is
+  "\<lambda>A i. if A = {} then 0 else Inf ((\<lambda>f. f i) ` A)"
+proof -
+  fix A :: "('a \<Rightarrow> nat) set" assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<in> multiset"
+  have "finite {i. (if A = {} then 0 else Inf ((\<lambda>f. f i) ` A)) > 0}" unfolding multiset_def
+  proof (cases "A = {}")
+    case False
+    then obtain f where "f \<in> A" by blast
+    hence "{i. Inf ((\<lambda>f. f i) ` A) > 0} \<subseteq> {i. f i > 0}"
+      by (auto intro: less_le_trans[OF _ cInf_lower])
+    moreover from \<open>f \<in> A\<close> * have "finite \<dots>" by (simp add: multiset_def)
+    ultimately have "finite {i. Inf ((\<lambda>f. f i) ` A) > 0}" by (rule finite_subset)
+    with False show ?thesis by simp
+  qed simp_all
+  thus "(\<lambda>i. if A = {} then 0 else INF f:A. f i) \<in> multiset" by (simp add: multiset_def)
+qed
+
+instance ..
+
+end
+
+lemma Inf_multiset_empty: "Inf {} = {#}"
+  by transfer simp_all
+
+lemma count_Inf_multiset_nonempty: "A \<noteq> {} \<Longrightarrow> count (Inf A) x = Inf ((\<lambda>X. count X x) ` A)"
+  by transfer simp_all
+
+
+instantiation multiset :: (type) Sup
+begin
+
+lift_definition Sup_multiset :: "'a multiset set \<Rightarrow> 'a multiset" is
+  "\<lambda>A i. if A \<noteq> {} \<and> (\<forall>i. bdd_above ((\<lambda>f. f i) ` A)) \<and> finite (\<Union>f\<in>A. {i. f i > 0}) then
+           Sup ((\<lambda>f. f i) ` A) else 0"
+proof -
+  fix A :: "('a \<Rightarrow> nat) set" assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<in> multiset"
+  show "(\<lambda>i. if A \<noteq> {} \<and> (\<forall>i. bdd_above ((\<lambda>f. f i) ` A)) \<and> finite (\<Union>f\<in>A. {i. 0 < f i})
+               then SUP f:A. f i else 0) \<in> multiset"
+  proof (cases "A \<noteq> {} \<and> (\<forall>i. bdd_above ((\<lambda>f. f i) ` A)) \<and> finite (\<Union>f\<in>A. {i. 0 < f i})")
+    case True
+    have "{i. Sup ((\<lambda>f. f i) ` A) > 0} \<subseteq> (\<Union>f\<in>A. {i. 0 < f i})"
+    proof safe
+      fix i assume pos: "(SUP f:A. f i) > 0"
+      show "i \<in> (\<Union>f\<in>A. {i. 0 < f i})"
+      proof (rule ccontr)
+        assume "i \<notin> (\<Union>f\<in>A. {i. 0 < f i})"
+        hence "\<forall>f\<in>A. f i \<le> 0" by auto
+        with True have "(SUP f:A. f i) \<le> 0"
+          by (intro cSup_least) auto
+        with pos show False by simp
+      qed
+    qed
+    moreover from True have "finite \<dots>" by blast
+    ultimately have "finite {i. Sup ((\<lambda>f. f i) ` A) > 0}" by (rule finite_subset)
+    with True show ?thesis by (simp add: multiset_def)
+  qed (simp_all add: multiset_def)
+qed
+
+instance ..
+
+end
+
+lemma Sup_multiset_empty: "Sup {} = {#}"
+  by transfer simp_all
+
+lemma bdd_below_multiset [simp]: "subset_mset.bdd_below A"
+  by (intro subset_mset.bdd_belowI[of _ "{#}"]) simp_all
+
+lemma bdd_above_multiset_imp_bdd_above_count:
+  assumes "subset_mset.bdd_above (A :: 'a multiset set)"
+  shows   "bdd_above ((\<lambda>X. count X x) ` A)"
+proof -
+  from assms obtain Y where Y: "\<forall>X\<in>A. X \<subseteq># Y"
+    by (auto simp: subset_mset.bdd_above_def)
+  hence "count X x \<le> count Y x" if "X \<in> A" for X
+    using that by (auto intro: mset_subset_eq_count)
+  thus ?thesis by (intro bdd_aboveI[of _ "count Y x"]) auto
+qed
+
+lemma bdd_above_multiset_imp_finite_support:
+  assumes "A \<noteq> {}" "subset_mset.bdd_above (A :: 'a multiset set)"
+  shows   "finite (\<Union>X\<in>A. {x. count X x > 0})"
+proof -
+  from assms obtain Y where Y: "\<forall>X\<in>A. X \<subseteq># Y"
+    by (auto simp: subset_mset.bdd_above_def)
+  hence "count X x \<le> count Y x" if "X \<in> A" for X x
+    using that by (auto intro: mset_subset_eq_count)
+  hence "(\<Union>X\<in>A. {x. count X x > 0}) \<subseteq> {x. count Y x > 0}"
+    by safe (erule less_le_trans)
+  moreover have "finite \<dots>" by simp
+  ultimately show ?thesis by (rule finite_subset)
+qed
+
+lemma count_Sup_multiset_nonempty:
+  assumes "A \<noteq> {}" "subset_mset.bdd_above A"
+  shows   "count (Sup A) x = (SUP X:A. count X x)"
+proof -
+  from bdd_above_multiset_imp_bdd_above_count[OF assms(2)]
+    have "\<forall>x. bdd_above ((\<lambda>X. count X x) ` A)" ..
+  moreover from bdd_above_multiset_imp_finite_support[OF assms]
+    have "finite (\<Union>X\<in>A. {x. count X x > 0})" .
+  ultimately show ?thesis using assms(1) by transfer simp
+qed
+
+
+interpretation subset_mset: conditionally_complete_lattice Inf Sup "op #\<inter>" "op \<subseteq>#" "op \<subset>#" "op #\<union>"
+proof
+  fix X :: "'a multiset" and A
+  assume "X \<in> A"
+  show "Inf A \<subseteq># X"
+  proof (rule mset_subset_eqI)
+    fix x
+    from \<open>X \<in> A\<close> have "A \<noteq> {}" by auto
+    hence "count (Inf A) x = (INF X:A. count X x)"
+      by (simp add: count_Inf_multiset_nonempty)
+    also from \<open>X \<in> A\<close> have "\<dots> \<le> count X x"
+      by (intro cInf_lower) simp_all
+    finally show "count (Inf A) x \<le> count X x" .
+  qed
+next
+  fix X :: "'a multiset" and A
+  assume nonempty: "A \<noteq> {}" and le: "\<And>Y. Y \<in> A \<Longrightarrow> X \<subseteq># Y"
+  show "X \<subseteq># Inf A"
+  proof (rule mset_subset_eqI)
+    fix x
+    from nonempty have "count X x \<le> (INF X:A. count X x)"
+      by (intro cInf_greatest) (auto intro: mset_subset_eq_count le)
+    also from nonempty have "\<dots> = count (Inf A) x" by (simp add: count_Inf_multiset_nonempty)
+    finally show "count X x \<le> count (Inf A) x" .
+  qed
+next
+  fix X :: "'a multiset" and A
+  assume X: "X \<in> A" and bdd: "subset_mset.bdd_above A"
+  show "X \<subseteq># Sup A"
+  proof (rule mset_subset_eqI)
+    fix x
+    from X have "A \<noteq> {}" by auto
+    have "count X x \<le> (SUP X:A. count X x)"
+      by (intro cSUP_upper X bdd_above_multiset_imp_bdd_above_count bdd)
+    also from count_Sup_multiset_nonempty[OF \<open>A \<noteq> {}\<close> bdd]
+      have "(SUP X:A. count X x) = count (Sup A) x" by simp
+    finally show "count X x \<le> count (Sup A) x" .
+  qed
+next
+  fix X :: "'a multiset" and A
+  assume nonempty: "A \<noteq> {}" and ge: "\<And>Y. Y \<in> A \<Longrightarrow> Y \<subseteq># X"
+  from ge have bdd: "subset_mset.bdd_above A" by (rule subset_mset.bdd_aboveI[of _ X])
+  show "Sup A \<subseteq># X"
+  proof (rule mset_subset_eqI)
+    fix x
+    from count_Sup_multiset_nonempty[OF \<open>A \<noteq> {}\<close> bdd]
+      have "count (Sup A) x = (SUP X:A. count X x)" .
+    also from nonempty have "\<dots> \<le> count X x"
+      by (intro cSup_least) (auto intro: mset_subset_eq_count ge)
+    finally show "count (Sup A) x \<le> count X x" .
+  qed
+qed
+
+lemma set_mset_Inf:
+  assumes "A \<noteq> {}"
+  shows   "set_mset (Inf A) = (\<Inter>X\<in>A. set_mset X)"
+proof safe
+  fix x X assume "x \<in># Inf A" "X \<in> A"
+  hence nonempty: "A \<noteq> {}" by (auto simp: Inf_multiset_empty)
+  from \<open>x \<in># Inf A\<close> have "{#x#} \<subseteq># Inf A" by auto
+  also from \<open>X \<in> A\<close> have "\<dots> \<subseteq># X" by (rule subset_mset.cInf_lower) simp_all
+  finally show "x \<in># X" by simp
+next
+  fix x assume x: "x \<in> (\<Inter>X\<in>A. set_mset X)"
+  hence "{#x#} \<subseteq># X" if "X \<in> A" for X using that by auto
+  from assms and this have "{#x#} \<subseteq># Inf A" by (rule subset_mset.cInf_greatest)
+  thus "x \<in># Inf A" by simp
+qed
+
+lemma in_Inf_multiset_iff:
+  assumes "A \<noteq> {}"
+  shows   "x \<in># Inf A \<longleftrightarrow> (\<forall>X\<in>A. x \<in># X)"
+proof -
+  from assms have "set_mset (Inf A) = (\<Inter>X\<in>A. set_mset X)" by (rule set_mset_Inf)
+  also have "x \<in> \<dots> \<longleftrightarrow> (\<forall>X\<in>A. x \<in># X)" by simp
+  finally show ?thesis .
+qed
+
+lemma set_mset_Sup:
+  assumes "subset_mset.bdd_above A"
+  shows   "set_mset (Sup A) = (\<Union>X\<in>A. set_mset X)"
+proof safe
+  fix x assume "x \<in># Sup A"
+  hence nonempty: "A \<noteq> {}" by (auto simp: Sup_multiset_empty)
+  show "x \<in> (\<Union>X\<in>A. set_mset X)"
+  proof (rule ccontr)
+    assume x: "x \<notin> (\<Union>X\<in>A. set_mset X)"
+    have "count X x \<le> count (Sup A) x" if "X \<in> A" for X x
+      using that by (intro mset_subset_eq_count subset_mset.cSup_upper assms)
+    with x have "X \<subseteq># Sup A - {#x#}" if "X \<in> A" for X
+      using that by (auto simp: subseteq_mset_def algebra_simps not_in_iff)
+    hence "Sup A \<subseteq># Sup A - {#x#}" by (intro subset_mset.cSup_least nonempty)
+    with \<open>x \<in># Sup A\<close> show False
+      by (auto simp: subseteq_mset_def count_greater_zero_iff [symmetric]
+               simp del: count_greater_zero_iff dest!: spec[of _ x])
+  qed
+next
+  fix x X assume "x \<in> set_mset X" "X \<in> A"
+  hence "{#x#} \<subseteq># X" by auto
+  also have "X \<subseteq># Sup A" by (intro subset_mset.cSup_upper \<open>X \<in> A\<close> assms)
+  finally show "x \<in> set_mset (Sup A)" by simp
+qed
+
+lemma in_Sup_multiset_iff:
+  assumes "subset_mset.bdd_above A"
+  shows   "x \<in># Sup A \<longleftrightarrow> (\<exists>X\<in>A. x \<in># X)"
+proof -
+  from assms have "set_mset (Sup A) = (\<Union>X\<in>A. set_mset X)" by (rule set_mset_Sup)
+  also have "x \<in> \<dots> \<longleftrightarrow> (\<exists>X\<in>A. x \<in># X)" by simp
+  finally show ?thesis .
+qed
+
 
 subsubsection \<open>Filter (with comprehension syntax)\<close>
 
