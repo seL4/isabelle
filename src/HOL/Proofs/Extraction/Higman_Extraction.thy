@@ -3,13 +3,11 @@
     Author:     Monika Seisenberger, LMU Muenchen
 *)
 
-(*<*)
+subsection \<open>Extracting the program\<close>
+
 theory Higman_Extraction
 imports Higman "~~/src/HOL/Library/State_Monad" Random
 begin
-(*>*)
-
-subsection \<open>Extracting the program\<close>
 
 declare R.induct [ind_realizer]
 declare T.induct [ind_realizer]
@@ -48,7 +46,8 @@ instance ..
 
 end
 
-function mk_word_aux :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed" where
+function mk_word_aux :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed"
+where
   "mk_word_aux k = exec {
      i \<leftarrow> Random.range 10;
      (if i > 7 \<and> k > 2 \<or> k > 1000 then Pair []
@@ -57,54 +56,58 @@ function mk_word_aux :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list
        ls \<leftarrow> mk_word_aux (Suc k);
        Pair (l # ls)
      })}"
-by pat_completeness auto
-termination by (relation "measure ((op -) 1001)") auto
+  by pat_completeness auto
+termination
+  by (relation "measure ((op -) 1001)") auto
 
-definition mk_word :: "Random.seed \<Rightarrow> letter list \<times> Random.seed" where
-  "mk_word = mk_word_aux 0"
+definition mk_word :: "Random.seed \<Rightarrow> letter list \<times> Random.seed"
+  where "mk_word = mk_word_aux 0"
 
-primrec mk_word_s :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed" where
+primrec mk_word_s :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed"
+where
   "mk_word_s 0 = mk_word"
-  | "mk_word_s (Suc n) = exec {
-       _ \<leftarrow> mk_word;
-       mk_word_s n
-     }"
+| "mk_word_s (Suc n) = exec {
+     _ \<leftarrow> mk_word;
+     mk_word_s n
+   }"
 
-definition g1 :: "nat \<Rightarrow> letter list" where
-  "g1 s = fst (mk_word_s s (20000, 1))"
+definition g1 :: "nat \<Rightarrow> letter list"
+  where "g1 s = fst (mk_word_s s (20000, 1))"
 
-definition g2 :: "nat \<Rightarrow> letter list" where
-  "g2 s = fst (mk_word_s s (50000, 1))"
+definition g2 :: "nat \<Rightarrow> letter list"
+  where "g2 s = fst (mk_word_s s (50000, 1))"
 
-fun f1 :: "nat \<Rightarrow> letter list" where
+fun f1 :: "nat \<Rightarrow> letter list"
+where
   "f1 0 = [A, A]"
-  | "f1 (Suc 0) = [B]"
-  | "f1 (Suc (Suc 0)) = [A, B]"
-  | "f1 _ = []"
+| "f1 (Suc 0) = [B]"
+| "f1 (Suc (Suc 0)) = [A, B]"
+| "f1 _ = []"
 
-fun f2 :: "nat \<Rightarrow> letter list" where
+fun f2 :: "nat \<Rightarrow> letter list"
+where
   "f2 0 = [A, A]"
-  | "f2 (Suc 0) = [B]"
-  | "f2 (Suc (Suc 0)) = [B, A]"
-  | "f2 _ = []"
+| "f2 (Suc 0) = [B]"
+| "f2 (Suc (Suc 0)) = [B, A]"
+| "f2 _ = []"
 
 ML_val \<open>
-local
-  val higman_idx = @{code higman_idx};
-  val g1 = @{code g1};
-  val g2 = @{code g2};
-  val f1 = @{code f1};
-  val f2 = @{code f2};
-in
-  val (i1, j1) = higman_idx g1;
-  val (v1, w1) = (g1 i1, g1 j1);
-  val (i2, j2) = higman_idx g2;
-  val (v2, w2) = (g2 i2, g2 j2);
-  val (i3, j3) = higman_idx f1;
-  val (v3, w3) = (f1 i3, f1 j3);
-  val (i4, j4) = higman_idx f2;
-  val (v4, w4) = (f2 i4, f2 j4);
-end;
+  local
+    val higman_idx = @{code higman_idx};
+    val g1 = @{code g1};
+    val g2 = @{code g2};
+    val f1 = @{code f1};
+    val f2 = @{code f2};
+  in
+    val (i1, j1) = higman_idx g1;
+    val (v1, w1) = (g1 i1, g1 j1);
+    val (i2, j2) = higman_idx g2;
+    val (v2, w2) = (g2 i2, g2 j2);
+    val (i3, j3) = higman_idx f1;
+    val (v3, w3) = (f1 i3, f1 j3);
+    val (i4, j4) = higman_idx f2;
+    val (v4, w4) = (f2 i4, f2 j4);
+  end;
 \<close>
 
 end

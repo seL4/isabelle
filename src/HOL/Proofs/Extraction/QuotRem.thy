@@ -14,7 +14,7 @@ theorem division: "\<exists>r q. a = Suc b * q + r \<and> r \<le> b"
 proof (induct a)
   case 0
   have "0 = Suc b * 0 + 0 \<and> 0 \<le> b" by simp
-  thus ?case by iprover
+  then show ?case by iprover
 next
   case (Suc a)
   then obtain r q where I: "a = Suc b * q + r" and "r \<le> b" by iprover
@@ -22,12 +22,12 @@ next
   proof
     assume "r = b"
     with I have "Suc a = Suc b * (Suc q) + 0 \<and> 0 \<le> b" by simp
-    thus ?case by iprover
+    then show ?case by iprover
   next
     assume "r \<noteq> b"
     with \<open>r \<le> b\<close> have "r < b" by (simp add: order_less_le)
     with I have "Suc a = Suc b * q + (Suc r) \<and> (Suc r) \<le> b" by simp
-    thus ?case by iprover
+    then show ?case by iprover
   qed
 qed
 

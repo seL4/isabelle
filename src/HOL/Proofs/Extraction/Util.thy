@@ -8,9 +8,7 @@ theory Util
 imports "~~/src/HOL/Library/Old_Datatype"
 begin
 
-text \<open>
-Decidability of equality on natural numbers.
-\<close>
+text \<open>Decidability of equality on natural numbers.\<close>
 
 lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   apply (induct m)
@@ -20,8 +18,8 @@ lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   done
 
 text \<open>
-Well-founded induction on natural numbers, derived using the standard
-structural induction rule.
+  Well-founded induction on natural numbers, derived using the standard
+  structural induction rule.
 \<close>
 
 lemma nat_wf_ind:
@@ -31,7 +29,7 @@ proof (rule R)
   show "\<And>y. y < z \<Longrightarrow> P y"
   proof (induct z)
     case 0
-    thus ?case by simp
+    then show ?case by simp
   next
     case (Suc n y)
     from nat_eq_dec show ?case
@@ -43,23 +41,22 @@ proof (rule R)
     next
       assume "n \<noteq> y"
       with Suc have "y < n" by simp
-      thus ?case by (rule Suc)
+      then show ?case by (rule Suc)
     qed
   qed
 qed
 
-text \<open>
-Bounded search for a natural number satisfying a decidable predicate.
-\<close>
+text \<open>Bounded search for a natural number satisfying a decidable predicate.\<close>
 
 lemma search:
   assumes dec: "\<And>x::nat. P x \<or> \<not> P x"
   shows "(\<exists>x<y. P x) \<or> \<not> (\<exists>x<y. P x)"
 proof (induct y)
-  case 0 show ?case by simp
+  case 0
+  show ?case by simp
 next
   case (Suc z)
-  thus ?case
+  then show ?case
   proof
     assume "\<exists>x<z. P x"
     then obtain x where le: "x < z" and P: "P x" by iprover
@@ -89,7 +86,7 @@ next
         with P have "\<exists>x<z. P x" by iprover
         with nex show False ..
       qed
-      thus ?case by iprover
+      then show ?case by iprover
     qed
   qed
 qed

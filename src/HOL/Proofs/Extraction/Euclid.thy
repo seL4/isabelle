@@ -14,8 +14,8 @@ imports
 begin
 
 text \<open>
-A constructive version of the proof of Euclid's theorem by
-Markus Wenzel and Freek Wiedijk @{cite "Wenzel-Wiedijk-JAR2002"}.
+  A constructive version of the proof of Euclid's theorem by
+  Markus Wenzel and Freek Wiedijk @{cite "Wenzel-Wiedijk-JAR2002"}.
 \<close>
 
 lemma factor_greater_one1: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < m"
@@ -24,11 +24,10 @@ lemma factor_greater_one1: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> 
 lemma factor_greater_one2: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < k"
   by (induct k) auto
 
-lemma prod_mn_less_k:
-  "(0::nat) < n ==> 0 < k ==> Suc 0 < m ==> m * n = k ==> n < k"
+lemma prod_mn_less_k: "0 < n \<Longrightarrow> 0 < k \<Longrightarrow> Suc 0 < m \<Longrightarrow> m * n = k \<Longrightarrow> n < k"
   by (induct m) auto
 
-lemma prime_eq: "prime (p::nat) = (1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p))"
+lemma prime_eq: "prime p \<longleftrightarrow> 1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p)"
   apply (simp add: prime_def)
   apply (rule iffI)
   apply blast
@@ -39,29 +38,25 @@ lemma prime_eq: "prime (p::nat) = (1 < p \<and> (\<forall>m. m dvd p \<longright
   apply (erule allE)
   apply (erule impE)
   apply assumption
-  apply (case_tac "m=0")
+  apply (case_tac "m = 0")
   apply simp
-  apply (case_tac "m=Suc 0")
+  apply (case_tac "m = Suc 0")
   apply simp
   apply simp
   done
 
-lemma prime_eq': "prime (p::nat) = (1 < p \<and> (\<forall>m k. p = m * k \<longrightarrow> 1 < m \<longrightarrow> m = p))"
+lemma prime_eq': "prime p \<longleftrightarrow> 1 < p \<and> (\<forall>m k. p = m * k \<longrightarrow> 1 < m \<longrightarrow> m = p)"
   by (simp add: prime_eq dvd_def HOL.all_simps [symmetric] del: HOL.all_simps)
 
 lemma not_prime_ex_mk:
   assumes n: "Suc 0 < n"
   shows "(\<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k) \<or> prime n"
 proof -
-  {
-    fix k
-    from nat_eq_dec
-    have "(\<exists>m<n. n = m * k) \<or> \<not> (\<exists>m<n. n = m * k)"
-      by (rule search)
-  }
-  hence "(\<exists>k<n. \<exists>m<n. n = m * k) \<or> \<not> (\<exists>k<n. \<exists>m<n. n = m * k)"
+  from nat_eq_dec have "(\<exists>m<n. n = m * k) \<or> \<not> (\<exists>m<n. n = m * k)" for k
     by (rule search)
-  thus ?thesis
+  then have "(\<exists>k<n. \<exists>m<n. n = m * k) \<or> \<not> (\<exists>k<n. \<exists>m<n. n = m * k)"
+    by (rule search)
+  then show ?thesis
   proof
     assume "\<exists>k<n. \<exists>m<n. n = m * k"
     then obtain k m where k: "k<n" and m: "m<n" and nmk: "n = m * k"
@@ -71,7 +66,7 @@ proof -
     ultimately show ?thesis using k m nmk by iprover
   next
     assume "\<not> (\<exists>k<n. \<exists>m<n. n = m * k)"
-    hence A: "\<forall>k<n. \<forall>m<n. n \<noteq> m * k" by iprover
+    then have A: "\<forall>k<n. \<forall>m<n. n \<noteq> m * k" by iprover
     have "\<forall>m k. n = m * k \<longrightarrow> Suc 0 < m \<longrightarrow> m = n"
     proof (intro allI impI)
       fix m k
@@ -99,11 +94,11 @@ proof -
     qed
     with n have "prime n"
       by (simp only: prime_eq' One_nat_def simp_thms)
-    thus ?thesis ..
+    then show ?thesis ..
   qed
 qed
 
-lemma dvd_factorial: "0 < m \<Longrightarrow> m \<le> n \<Longrightarrow> m dvd fact (n::nat)"
+lemma dvd_factorial: "0 < m \<Longrightarrow> m \<le> n \<Longrightarrow> m dvd fact n"
 proof (induct n rule: nat_induct)
   case 0
   then show ?case by simp
@@ -124,30 +119,30 @@ next
 qed
 
 lemma dvd_prod [iff]: "n dvd (\<Prod>m::nat \<in># mset (n # ns). m)"
-  by (simp add: msetprod_Un msetprod_singleton)
+  by (simp add: msetprod_Un)
 
-definition all_prime :: "nat list \<Rightarrow> bool" where
-  "all_prime ps \<longleftrightarrow> (\<forall>p\<in>set ps. prime p)"
+definition all_prime :: "nat list \<Rightarrow> bool"
+  where "all_prime ps \<longleftrightarrow> (\<forall>p\<in>set ps. prime p)"
 
 lemma all_prime_simps:
   "all_prime []"
   "all_prime (p # ps) \<longleftrightarrow> prime p \<and> all_prime ps"
   by (simp_all add: all_prime_def)
 
-lemma all_prime_append:
-  "all_prime (ps @ qs) \<longleftrightarrow> all_prime ps \<and> all_prime qs"
+lemma all_prime_append: "all_prime (ps @ qs) \<longleftrightarrow> all_prime ps \<and> all_prime qs"
   by (simp add: all_prime_def ball_Un)
 
 lemma split_all_prime:
   assumes "all_prime ms" and "all_prime ns"
-  shows "\<exists>qs. all_prime qs \<and> (\<Prod>m::nat \<in># mset qs. m) =
-    (\<Prod>m::nat \<in># mset ms. m) * (\<Prod>m::nat \<in># mset ns. m)" (is "\<exists>qs. ?P qs \<and> ?Q qs")
+  shows "\<exists>qs. all_prime qs \<and>
+    (\<Prod>m::nat \<in># mset qs. m) = (\<Prod>m::nat \<in># mset ms. m) * (\<Prod>m::nat \<in># mset ns. m)"
+  (is "\<exists>qs. ?P qs \<and> ?Q qs")
 proof -
   from assms have "all_prime (ms @ ns)"
     by (simp add: all_prime_append)
-  moreover from assms have "(\<Prod>m::nat \<in># mset (ms @ ns). m) =
-    (\<Prod>m::nat \<in># mset ms. m) * (\<Prod>m::nat \<in># mset ns. m)"
-    by (simp add: msetprod_Un)
+  moreover
+  have "(\<Prod>m::nat \<in># mset (ms @ ns). m) = (\<Prod>m::nat \<in># mset ms. m) * (\<Prod>m::nat \<in># mset ns. m)"
+    using assms by (simp add: msetprod_Un)
   ultimately have "?P (ms @ ns) \<and> ?Q (ms @ ns)" ..
   then show ?thesis ..
 qed
@@ -155,8 +150,10 @@ qed
 lemma all_prime_nempty_g_one:
   assumes "all_prime ps" and "ps \<noteq> []"
   shows "Suc 0 < (\<Prod>m::nat \<in># mset ps. m)"
-  using \<open>ps \<noteq> []\<close> \<open>all_prime ps\<close> unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
-    (simp_all add: all_prime_simps msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
+  using \<open>ps \<noteq> []\<close> \<open>all_prime ps\<close>
+  unfolding One_nat_def [symmetric]
+  by (induct ps rule: list_nonempty_induct)
+    (simp_all add: all_prime_simps msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
 
 lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = n)"
 proof (induct n rule: nat_wf_ind)
@@ -165,14 +162,17 @@ proof (induct n rule: nat_wf_ind)
   have "(\<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k) \<or> prime n"
     by (rule not_prime_ex_mk)
   then show ?case
-  proof 
+  proof
     assume "\<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k"
     then obtain m k where m: "Suc 0 < m" and k: "Suc 0 < k" and mn: "m < n"
-      and kn: "k < n" and nmk: "n = m * k" by iprover
-    from mn and m have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = m" by (rule 1)
+      and kn: "k < n" and nmk: "n = m * k"
+      by iprover
+    from mn and m have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = m"
+      by (rule 1)
     then obtain ps1 where "all_prime ps1" and prod_ps1_m: "(\<Prod>m::nat \<in># mset ps1. m) = m"
       by iprover
-    from kn and k have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = k" by (rule 1)
+    from kn and k have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = k"
+      by (rule 1)
     then obtain ps2 where "all_prime ps2" and prod_ps2_k: "(\<Prod>m::nat \<in># mset ps2. m) = k"
       by iprover
     from \<open>all_prime ps1\<close> \<open>all_prime ps2\<close>
@@ -192,27 +192,27 @@ lemma prime_factor_exists:
   assumes N: "(1::nat) < n"
   shows "\<exists>p. prime p \<and> p dvd n"
 proof -
-  from N obtain ps where "all_prime ps"
-    and prod_ps: "n = (\<Prod>m::nat \<in># mset ps. m)" using factor_exists
-    by simp iprover
+  from N obtain ps where "all_prime ps" and prod_ps: "n = (\<Prod>m::nat \<in># mset ps. m)"
+    using factor_exists by simp iprover
   with N have "ps \<noteq> []"
-    by (auto simp add: all_prime_nempty_g_one msetprod_empty)
-  then obtain p qs where ps: "ps = p # qs" by (cases ps) simp
-  with \<open>all_prime ps\<close> have "prime p" by (simp add: all_prime_simps)
-  moreover from \<open>all_prime ps\<close> ps prod_ps
-  have "p dvd n" by (simp only: dvd_prod)
+    by (auto simp add: all_prime_nempty_g_one)
+  then obtain p qs where ps: "ps = p # qs"
+    by (cases ps) simp
+  with \<open>all_prime ps\<close> have "prime p"
+    by (simp add: all_prime_simps)
+  moreover from \<open>all_prime ps\<close> ps prod_ps have "p dvd n"
+    by (simp only: dvd_prod)
   ultimately show ?thesis by iprover
 qed
 
-text \<open>
-Euclid's theorem: there are infinitely many primes.
-\<close>
+text \<open>Euclid's theorem: there are infinitely many primes.\<close>
 
-lemma Euclid: "\<exists>p::nat. prime p \<and> n < p"
+lemma Euclid: "\<exists>p. prime p \<and> n < p"
 proof -
   let ?k = "fact n + (1::nat)"
   have "1 < ?k" by simp
-  then obtain p where prime: "prime p" and dvd: "p dvd ?k" using prime_factor_exists by iprover
+  then obtain p where prime: "prime p" and dvd: "p dvd ?k"
+    using prime_factor_exists by iprover
   have "n < p"
   proof -
     have "\<not> p \<le> n"
@@ -232,10 +232,10 @@ qed
 extract Euclid
 
 text \<open>
-The program extracted from the proof of Euclid's theorem looks as follows.
-@{thm [display] Euclid_def}
-The program corresponding to the proof of the factorization theorem is
-@{thm [display] factor_exists_def}
+  The program extracted from the proof of Euclid's theorem looks as follows.
+  @{thm [display] Euclid_def}
+  The program corresponding to the proof of the factorization theorem is
+  @{thm [display] factor_exists_def}
 \<close>
 
 instantiation nat :: default
@@ -256,9 +256,10 @@ instance ..
 
 end
 
-primrec iterate :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list" where
+primrec iterate :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list"
+where
   "iterate 0 f x = []"
-  | "iterate (Suc n) f x = (let y = f x in y # iterate n f y)"
+| "iterate (Suc n) f x = (let y = f x in y # iterate n f y)"
 
 lemma "factor_exists 1007 = [53, 19]" by eval
 lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by eval
