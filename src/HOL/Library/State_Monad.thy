@@ -145,7 +145,7 @@ translations
   "_sdo_block (_sdo_final e)" => "e"
 
 text \<open>
-  For an example, see @{file "~~/src/HOL/Proofs/Extraction/Higman.thy"}.
+  For an example, see @{file "~~/src/HOL/Proofs/Extraction/Higman_Extraction.thy"}.
 \<close>
 
 end
