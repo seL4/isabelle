@@ -27,7 +27,7 @@ lemma fact_Suc_0 [simp]: "fact (Suc 0) = Suc 0"
 
 lemma of_nat_fact [simp]:
   "of_nat (fact n) = fact n"
-  by (induct n) (auto simp add: algebra_simps of_nat_mult)
+  by (induct n) (auto simp add: algebra_simps)
 
 lemma of_int_fact [simp]:
   "of_int (fact n) = fact n"
@@ -172,29 +172,101 @@ text \<open>This development is based on the work of Andy Gordon and
 
 subsection \<open>Basic definitions and lemmas\<close>
 
-primrec binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat" (infixl "choose" 65)
+text \<open>Combinatorial definition\<close>
+
+definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat" (infixl "choose" 65)
 where
-  "0 choose k = (if k = 0 then 1 else 0)"
-| "Suc n choose k = (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
+  "n choose k = card {K\<in>Pow {..<n}. card K = k}"
 
-lemma binomial_n_0 [simp]: "(n choose 0) = 1"
-  by (cases n) simp_all
+theorem n_subsets:
+  assumes "finite A"
+  shows "card {B. B \<subseteq> A \<and> card B = k} = card A choose k"
+proof -
+  from assms obtain f where bij: "bij_betw f {..<card A} A"
+    by (blast elim: bij_betw_nat_finite)
+  then have [simp]: "card (f ` C) = card C" if "C \<subseteq> {..<card A}" for C
+    by (meson bij_betw_imp_inj_on bij_betw_subset card_image that)
+  from bij have "bij_betw (image f) (Pow {..<card A}) (Pow A)"
+    by (rule bij_betw_Pow)
+  then have "inj_on (image f) (Pow {..<card A})"
+    by (rule bij_betw_imp_inj_on)
+  moreover have "{K. K \<subseteq> {..<card A} \<and> card K = k} \<subseteq> Pow {..<card A}"
+    by auto
+  ultimately have "inj_on (image f) {K. K \<subseteq> {..<card A} \<and> card K = k}"
+    by (rule inj_on_subset)
+  then have "card {K. K \<subseteq> {..<card A} \<and> card K = k} =
+    card (image f ` {K. K \<subseteq> {..<card A} \<and> card K = k})" (is "_ = card ?C")
+    by (simp add: card_image)
+  also have "?C = {K. K \<subseteq> f ` {..<card A} \<and> card K = k}"
+    by (auto elim!: subset_imageE)
+  also have "f ` {..<card A} = A"
+    by (meson bij bij_betw_def)
+  finally show ?thesis
+    by (simp add: binomial_def)
+qed
+    
+text \<open>Recursive characterization\<close>
 
-lemma binomial_0_Suc [simp]: "(0 choose Suc k) = 0"
-  by simp
+lemma binomial_n_0 [simp, code]:
+  "n choose 0 = 1"
+proof -
+  have "{K \<in> Pow {..<n}. card K = 0} = {{}}"
+    by (auto dest: subset_eq_range_finite) 
+  then show ?thesis
+    by (simp add: binomial_def)
+qed
 
-lemma binomial_Suc_Suc [simp]: "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)"
-  by simp
+lemma binomial_0_Suc [simp, code]:
+  "0 choose Suc k = 0"
+  by (simp add: binomial_def)
 
-lemma choose_reduce_nat:
-  "0 < (n::nat) \<Longrightarrow> 0 < k \<Longrightarrow>
-    (n choose k) = ((n - 1) choose (k - 1)) + ((n - 1) choose k)"
-  by (metis Suc_diff_1 binomial.simps(2) neq0_conv)
+lemma binomial_Suc_Suc [simp, code]:
+  "Suc n choose Suc k = (n choose k) + (n choose Suc k)"
+proof -
+  let ?P = "\<lambda>n k. {K. K \<subseteq> {..<n} \<and> card K = k}"
+  let ?Q = "?P (Suc n) (Suc k)"
+  have inj: "inj_on (insert n) (?P n k)"
+    by rule auto
+  have disjoint: "insert n ` ?P n k \<inter> ?P n (Suc k) = {}"
+    by auto
+  have "?Q = {K\<in>?Q. n \<in> K} \<union> {K\<in>?Q. n \<notin> K}"
+    by auto
+  also have "{K\<in>?Q. n \<in> K} = insert n ` ?P n k" (is "?A = ?B")
+  proof (rule set_eqI)
+    fix K
+    have K_finite: "finite K" if "K \<subseteq> insert n {..<n}"
+      using that by (rule finite_subset) simp_all
+    have Suc_card_K: "Suc (card K - Suc 0) = card K" if "n \<in> K"
+      and "finite K"
+    proof -
+      from \<open>n \<in> K\<close> obtain L where "K = insert n L" and "n \<notin> L"
+        by (blast elim: Set.set_insert)
+      with that show ?thesis by (simp add: card_insert)
+    qed
+    show "K \<in> ?A \<longleftrightarrow> K \<in> ?B"
+      by (subst in_image_insert_iff)
+        (auto simp add: card_insert subset_eq_range_finite Diff_subset_conv K_finite Suc_card_K)
+  qed    
+  also have "{K\<in>?Q. n \<notin> K} = ?P n (Suc k)"
+    by (auto simp add: lessThan_Suc)
+  finally show ?thesis using inj disjoint
+    by (simp add: binomial_def card_Un_disjoint card_image)
+qed
 
-lemma binomial_eq_0: "n < k \<Longrightarrow> n choose k = 0"
-  by (induct n arbitrary: k) auto
+lemma binomial_eq_0:
+  "n < k \<Longrightarrow> n choose k = 0"
+  by (auto simp add: binomial_def dest: subset_eq_range_card)
 
-declare binomial.simps [simp del]
+lemma zero_less_binomial: "k \<le> n \<Longrightarrow> n choose k > 0"
+  by (induct n k rule: diff_induct) simp_all
+
+lemma binomial_eq_0_iff [simp]:
+  "n choose k = 0 \<longleftrightarrow> n < k"
+  by (metis binomial_eq_0 less_numeral_extra(3) not_less zero_less_binomial)
+
+lemma zero_less_binomial_iff [simp]:
+  "n choose k > 0 \<longleftrightarrow> k \<le> n"
+  by (metis binomial_eq_0_iff not_less0 not_less zero_less_binomial)
 
 lemma binomial_n_n [simp]: "n choose n = 1"
   by (induct n) (simp_all add: binomial_eq_0)
@@ -205,28 +277,26 @@ lemma binomial_Suc_n [simp]: "Suc n choose n = Suc n"
 lemma binomial_1 [simp]: "n choose Suc 0 = n"
   by (induct n) simp_all
 
-lemma zero_less_binomial: "k \<le> n \<Longrightarrow> n choose k > 0"
-  by (induct n k rule: diff_induct) simp_all
-
-lemma binomial_eq_0_iff [simp]: "n choose k = 0 \<longleftrightarrow> n < k"
-  by (metis binomial_eq_0 less_numeral_extra(3) not_less zero_less_binomial)
-
-lemma zero_less_binomial_iff [simp]: "n choose k > 0 \<longleftrightarrow> k \<le> n"
-  by (metis binomial_eq_0_iff not_less0 not_less zero_less_binomial)
+lemma choose_reduce_nat:
+  "0 < (n::nat) \<Longrightarrow> 0 < k \<Longrightarrow>
+    (n choose k) = ((n - 1) choose (k - 1)) + ((n - 1) choose k)"
+  using binomial_Suc_Suc [of "n - 1" "k - 1"] by simp
 
 lemma Suc_times_binomial_eq:
   "Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
-  apply (induct n arbitrary: k, simp add: binomial.simps)
+  apply (induct n arbitrary: k)
+  apply simp apply arith
   apply (case_tac k)
    apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
   done
 
 lemma binomial_le_pow2: "n choose k \<le> 2^n"
-  apply (induction n arbitrary: k)
-  apply (simp add: binomial.simps)
+  apply (induct n arbitrary: k)
+  apply (case_tac k) apply simp_all
   apply (case_tac k)
-  apply (auto simp: power_Suc)
-  by (simp add: add_le_mono mult_2)
+  apply auto
+  apply (simp add: add_le_mono mult_2)
+  done
 
 text\<open>The absorption property\<close>
 lemma Suc_times_binomial:
@@ -244,66 +314,6 @@ lemma times_binomial_minus1_eq:
   "0 < k \<Longrightarrow> k * (n choose k) = n * ((n - 1) choose (k - 1))"
   using Suc_times_binomial_eq [where n = "n - 1" and k = "k - 1"]
   by (auto split add: nat_diff_split)
-
-
-subsection \<open>Combinatorial theorems involving \<open>choose\<close>\<close>
-
-text \<open>By Florian Kamm\"uller, tidied by LCP.\<close>
-
-lemma card_s_0_eq_empty: "finite A \<Longrightarrow> card {B. B \<subseteq> A & card B = 0} = 1"
-  by (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
-
-lemma choose_deconstruct: "finite M \<Longrightarrow> x \<notin> M \<Longrightarrow>
-    {s. s \<subseteq> insert x M \<and> card s = Suc k} =
-    {s. s \<subseteq> M \<and> card s = Suc k} \<union> {s. \<exists>t. t \<subseteq> M \<and> card t = k \<and> s = insert x t}"
-  apply safe
-     apply (auto intro: finite_subset [THEN card_insert_disjoint])
-  by (metis (full_types) Diff_insert_absorb Set.set_insert Zero_neq_Suc card_Diff_singleton_if
-     card_eq_0_iff diff_Suc_1 in_mono subset_insert_iff)
-
-lemma finite_bex_subset [simp]:
-  assumes "finite B"
-    and "\<And>A. A \<subseteq> B \<Longrightarrow> finite {x. P x A}"
-  shows "finite {x. \<exists>A \<subseteq> B. P x A}"
-  by (metis (no_types) assms finite_Collect_bounded_ex finite_Collect_subsets)
-
-text\<open>There are as many subsets of @{term A} having cardinality @{term k}
- as there are sets obtained from the former by inserting a fixed element
- @{term x} into each.\<close>
-lemma constr_bij:
-   "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow>
-    card {B. \<exists>C. C \<subseteq> A \<and> card C = k \<and> B = insert x C} =
-    card {B. B \<subseteq> A & card(B) = k}"
-  apply (rule card_bij_eq [where f = "\<lambda>s. s - {x}" and g = "insert x"])
-  apply (auto elim!: equalityE simp add: inj_on_def)
-  apply (metis card_Diff_singleton_if finite_subset in_mono)
-  done
-
-text \<open>
-  Main theorem: combinatorial statement about number of subsets of a set.
-\<close>
-
-theorem n_subsets: "finite A \<Longrightarrow> card {B. B \<subseteq> A \<and> card B = k} = (card A choose k)"
-proof (induct k arbitrary: A)
-  case 0 then show ?case by (simp add: card_s_0_eq_empty)
-next
-  case (Suc k)
-  show ?case using \<open>finite A\<close>
-  proof (induct A)
-    case empty show ?case by (simp add: card_s_0_eq_empty)
-  next
-    case (insert x A)
-    then show ?case using Suc.hyps
-      apply (simp add: card_s_0_eq_empty choose_deconstruct)
-      apply (subst card_Un_disjoint)
-         prefer 4 apply (force simp add: constr_bij)
-        prefer 3 apply force
-       prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
-         finite_subset [of _ "Pow (insert x F)" for F])
-      apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
-      done
-  qed
-qed
 
 
 subsection \<open>The binomial theorem (courtesy of Tobias Nipkow):\<close>
@@ -412,7 +422,7 @@ lemma choose_even_sum:
 proof -
   have "2 ^ n = (\<Sum>i\<le>n. of_nat (n choose i)) + (\<Sum>i\<le>n. (-1) ^ i * of_nat (n choose i) :: 'a)"
     using choose_row_sum[of n]
-    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_setsum[symmetric] of_nat_power)
+    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_setsum[symmetric])
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) + (-1) ^ i * of_nat (n choose i))"
     by (simp add: setsum.distrib)
   also have "\<dots> = 2 * (\<Sum>i\<le>n. if even i then of_nat (n choose i) else 0)"
@@ -426,7 +436,7 @@ lemma choose_odd_sum:
 proof -
   have "2 ^ n = (\<Sum>i\<le>n. of_nat (n choose i)) - (\<Sum>i\<le>n. (-1) ^ i * of_nat (n choose i) :: 'a)"
     using choose_row_sum[of n]
-    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_setsum[symmetric] of_nat_power)
+    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_setsum[symmetric])
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) - (-1) ^ i * of_nat (n choose i))"
     by (simp add: setsum_subtractf)
   also have "\<dots> = 2 * (\<Sum>i\<le>n. if odd i then of_nat (n choose i) else 0)"
@@ -475,10 +485,10 @@ lemma pochhammer_Suc_setprod: "pochhammer a (Suc n) = setprod (\<lambda>n. a + o
   by (simp add: pochhammer_def)
 
 lemma pochhammer_of_nat: "pochhammer (of_nat x) n = of_nat (pochhammer x n)"
-  by (simp add: pochhammer_def of_nat_setprod)
+  by (simp add: pochhammer_def)
 
 lemma pochhammer_of_int: "pochhammer (of_int x) n = of_int (pochhammer x n)"
-  by (simp add: pochhammer_def of_int_setprod)
+  by (simp add: pochhammer_def)
 
 lemma setprod_nat_ivl_Suc: "setprod f {0 .. Suc n} = setprod f {0..n} * f (Suc n)"
 proof -
@@ -537,7 +547,7 @@ qed simp_all
 lemma pochhammer_fact: "fact n = pochhammer 1 n"
   unfolding fact_altdef
   apply (cases n)
-   apply (simp_all add: of_nat_setprod pochhammer_Suc_setprod)
+   apply (simp_all add: pochhammer_Suc_setprod)
   apply (rule setprod.reindex_cong [where l = Suc])
     apply (auto simp add: fun_eq_iff)
   done
@@ -649,7 +659,7 @@ proof (induction n)
           ((z + of_nat n') * (z + 1/2 + of_nat n'))" (is "_ = _ * ?A")
      by (simp_all add: pochhammer_rec' mult_ac)
   also have "?A = (z + of_nat (Suc (2 * n + 1)) / 2) * (z + of_nat (Suc (Suc (2 * n + 1))) / 2)"
-    (is "_ = ?A") by (simp add: field_simps n'_def of_nat_mult)
+    (is "_ = ?A") by (simp add: field_simps n'_def)
   also note Suc[folded n'_def]
   also have "(\<Prod>k = 0..2 * n + 1. z + of_nat k / 2) * ?A = (\<Prod>k = 0..2 * Suc n + 1. z + of_nat k / 2)"
     by (simp add: setprod_nat_ivl_Suc)
@@ -663,12 +673,12 @@ proof (induction n)
   case (Suc n)
   have "pochhammer (2 * z) (2 * (Suc n)) = pochhammer (2 * z) (2 * n) *
           (2 * (z + of_nat n)) * (2 * (z + of_nat n) + 1)"
-    by (simp add: pochhammer_rec' ac_simps of_nat_mult)
+    by (simp add: pochhammer_rec' ac_simps)
   also note Suc
   also have "of_nat (2 ^ (2 * n)) * pochhammer z n * pochhammer (z + 1/2) n *
                  (2 * (z + of_nat n)) * (2 * (z + of_nat n) + 1) =
              of_nat (2 ^ (2 * (Suc n))) * pochhammer z (Suc n) * pochhammer (z + 1/2) (Suc n)"
-    by (simp add: of_nat_mult field_simps pochhammer_rec')
+    by (simp add: field_simps pochhammer_rec')
   finally show ?case .
 qed simp
 
@@ -745,7 +755,7 @@ proof -
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a]
         gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
       apply (simp add: pochhammer_Suc_setprod fact_altdef h
-        of_nat_setprod setprod.distrib[symmetric] eq' del: One_nat_def power_Suc)
+        setprod.distrib[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod.union_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult.assoc
       unfolding setprod.distrib[symmetric]
@@ -772,7 +782,7 @@ lemma gbinomial_mult_1:
 proof -
   have "?r = ((- 1) ^n * pochhammer (- a) n / (fact n)) * (of_nat n - (- a + of_nat n))"
     unfolding gbinomial_pochhammer
-      pochhammer_Suc of_nat_mult right_diff_distrib power_Suc
+      pochhammer_Suc right_diff_distrib power_Suc
     apply (simp del: of_nat_Suc fact.simps)
     apply (auto simp add: field_simps simp del: of_nat_Suc)
     done
@@ -904,10 +914,10 @@ proof (cases n)
   have "(\<Sum>i\<le>n. (-1) ^ i * of_nat i * of_nat (n choose i) :: 'a) =
             (\<Sum>i\<le>Suc m. (-1) ^ i * of_nat i * of_nat (Suc m choose i))" by (simp add: Suc)
   also have "... = (\<Sum>i\<le>m. (-1) ^ (Suc i) * of_nat (Suc i * (Suc m choose Suc i)))"
-    by (simp only: setsum_atMost_Suc_shift setsum_right_distrib[symmetric] of_nat_mult mult_ac) simp
+    by (simp only: setsum_atMost_Suc_shift setsum_right_distrib[symmetric] mult_ac of_nat_mult) simp
   also have "... = -of_nat (Suc m) * (\<Sum>i\<le>m. (-1) ^ i * of_nat ((m choose i)))"
     by (subst setsum_right_distrib, rule setsum.cong[OF refl], subst Suc_times_binomial)
-       (simp add: algebra_simps of_nat_mult)
+       (simp add: algebra_simps)
   also have "(\<Sum>i\<le>m. (-1 :: 'a) ^ i * of_nat ((m choose i))) = 0"
     using choose_alternating_sum[OF \<open>m > 0\<close>] by simp
   finally show ?thesis by simp
@@ -994,7 +1004,7 @@ proof -
     then have "x * of_nat k - x * of_nat i \<le> x * of_nat k - of_nat (i * k)" by arith
     then have "x * of_nat (k - i) \<le> (x - of_nat i) * of_nat k"
       using ik
-      by (simp add: algebra_simps zero_less_mult_iff of_nat_diff of_nat_mult)
+      by (simp add: algebra_simps zero_less_mult_iff of_nat_diff)
     then have "x * of_nat (k - i) \<le> (x - of_nat i) * (of_nat k :: 'a)"
       unfolding of_nat_mult[symmetric] of_nat_le_iff .
     with assms show "x / of_nat k \<le> (x - of_nat i) / (of_nat (k - i) :: 'a)"
@@ -1252,9 +1262,9 @@ lemma gbinomial_r_part_sum:
   "(\<Sum>k\<le>m. (2 * (of_nat m) + 1 gchoose k)) = 2 ^ (2 * m)" (is "?lhs = ?rhs")
 proof -
   have "?lhs = of_nat (\<Sum>k\<le>m. (2 * m + 1) choose k)"
-    by (simp add: binomial_gbinomial of_nat_mult add_ac of_nat_setsum)
+    by (simp add: binomial_gbinomial add_ac)
   also have "\<dots> = of_nat (2 ^ (2 * m))" by (subst binomial_r_part_sum) (rule refl)
-  finally show ?thesis by (simp add: of_nat_power)
+  finally show ?thesis by simp
 qed
 
 lemma gbinomial_sum_nat_pow2:
@@ -1316,7 +1326,7 @@ lemma choose_dvd: "k \<le> n \<Longrightarrow> fact k * fact (n - k) dvd (fact n
   unfolding dvd_def
   apply (rule exI [where x="of_nat (n choose k)"])
   using binomial_fact_lemma [of k n, THEN arg_cong [where f = of_nat and 'b='a]]
-  apply (auto simp: of_nat_mult)
+  apply auto
   done
 
 lemma fact_fact_dvd_fact:
@@ -1557,8 +1567,6 @@ proof -
     by (subst (1 2) binomial_altdef_nat)
        (simp_all only: ac_simps diff_Suc_Suc Suc_diff_le diff_add_inverse fact_Suc of_nat_id)
 qed
-
-
 
 lemma fact_code [code]:
   "fact n = (of_nat (fold_atLeastAtMost_nat (op *) 2 n 1) :: 'a :: semiring_char_0)"
