@@ -50,7 +50,8 @@ proof (rule allI impI)+
     unfolding atLeast0LessThan[symmetric] by auto
   have "(\<Sum>x<n - m. real x * t ^ (x - Suc 0) * diff (m + x) 0 / (fact x)) =
       (\<Sum>x<n - Suc m. real (Suc x) * t ^ x * diff (Suc m + x) 0 / (fact (Suc x)))"
-    unfolding intvl atLeast0LessThan by (subst setsum.insert) (auto simp: setsum.reindex)
+    unfolding intvl
+    by (subst setsum.insert) (auto simp add: setsum.reindex)
   moreover
   have fact_neq_0: "\<And>x. (fact x) + real x * (fact x) \<noteq> 0"
     by (metis add_pos_pos fact_gt_zero less_add_same_cancel1 less_add_same_cancel2 less_numeral_extra(3) mult_less_0_iff of_nat_less_0_iff)

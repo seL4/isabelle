@@ -272,7 +272,8 @@ proof -
     have "?s sums y" using sums_if'[OF \<open>f sums y\<close>] .
     from this[unfolded sums_def, THEN LIMSEQ_Suc]
     have "(\<lambda> n. if even n then f (n div 2) else 0) sums y"
-      by (simp add: lessThan_Suc_eq_insert_0 image_iff setsum.reindex if_eq sums_def cong del: if_cong)
+      by (simp add: lessThan_Suc_eq_insert_0 setsum_atLeast1_atMost_eq image_Suc_lessThan
+        if_eq sums_def cong del: if_cong)
   }
   from sums_add[OF g_sums this] show ?thesis unfolding if_sum .
 qed

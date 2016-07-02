@@ -1250,6 +1250,10 @@ lemma card_eq_0_iff:
   "card A = 0 \<longleftrightarrow> A = {} \<or> \<not> finite A"
   by auto
 
+lemma card_range_greater_zero:
+  "finite (range f) \<Longrightarrow> card (range f) > 0"
+  by (rule ccontr) (simp add: card_eq_0_iff)
+
 lemma card_gt_0_iff:
   "0 < card A \<longleftrightarrow> A \<noteq> {} \<and> finite A"
   by (simp add: neq0_conv [symmetric] card_eq_0_iff) 

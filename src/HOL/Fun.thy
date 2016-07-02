@@ -213,6 +213,20 @@ lemma inj_on_inverseI: "(\<And>x. x \<in> A \<Longrightarrow> g (f x) = x) \<Lon
 lemma inj_onD: "inj_on f A \<Longrightarrow> f x = f y \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x = y"
   unfolding inj_on_def by blast
 
+lemma inj_on_subset:
+  assumes "inj_on f A"
+  assumes "B \<subseteq> A"
+  shows "inj_on f B"
+proof (rule inj_onI)
+  fix a b
+  assume "a \<in> B" and "b \<in> B"
+  with assms have "a \<in> A" and "b \<in> A"
+    by auto
+  moreover assume "f a = f b"
+  ultimately show "a = b" using assms
+    by (auto dest: inj_onD)
+qed
+
 lemma comp_inj_on: "inj_on f A \<Longrightarrow> inj_on g (f ` A) \<Longrightarrow> inj_on (g \<circ> f) A"
   by (simp add: comp_def inj_on_def)
 

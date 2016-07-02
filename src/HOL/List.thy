@@ -3933,6 +3933,14 @@ lemma map_removeAll_inj: "inj f \<Longrightarrow>
   map f (removeAll x xs) = removeAll (f x) (map f xs)"
 by (rule map_removeAll_inj_on, erule subset_inj_on, rule subset_UNIV)
 
+lemma length_removeAll_less_eq [simp]:
+  "length (removeAll x xs) \<le> length xs"
+  by (simp add: removeAll_filter_not_eq)
+
+lemma length_removeAll_less [termination_simp]:
+  "x \<in> set xs \<Longrightarrow> length (removeAll x xs) < length xs"
+  by (auto dest: length_filter_less simp add: removeAll_filter_not_eq)
+
 
 subsubsection \<open>@{const replicate}\<close>
 

@@ -1402,7 +1402,26 @@ lemma bij_image_INT: "bij f ==> f ` (INTER A B) = (INT x:A. f ` B x)"
 lemma UNION_fun_upd:
   "UNION J (A(i := B)) = UNION (J - {i}) A \<union> (if i \<in> J then B else {})"
   by (auto simp add: set_eq_iff)
-  
+
+lemma bij_betw_Pow:
+  assumes "bij_betw f A B"
+  shows "bij_betw (image f) (Pow A) (Pow B)"
+proof -
+  from assms have "inj_on f A"
+    by (rule bij_betw_imp_inj_on)
+  then have "inj_on f (\<Union>Pow A)"
+    by simp
+  then have "inj_on (image f) (Pow A)"
+    by (rule inj_on_image)
+  then have "bij_betw (image f) (Pow A) (image f ` Pow A)"
+    by (rule inj_on_imp_bij_betw)
+  moreover from assms have "f ` A = B"
+    by (rule bij_betw_imp_surj_on)
+  then have "image f ` Pow A = Pow B"
+    by (rule image_Pow_surj)
+  ultimately show ?thesis by simp
+qed
+
 
 subsubsection \<open>Complement\<close>
 

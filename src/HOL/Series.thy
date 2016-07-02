@@ -283,9 +283,6 @@ lemma summableI[intro, simp]:
 
 subsection \<open>Infinite summability on topological monoids\<close>
 
-lemma Zero_notin_Suc: "0 \<notin> Suc ` A"
-  by auto
-
 context
   fixes f g :: "nat \<Rightarrow> 'a :: {t2_space, topological_comm_monoid_add}"
 begin
@@ -296,7 +293,8 @@ proof  -
   have "(\<lambda>n. (\<Sum>i<n. f (Suc i)) + f 0) \<longlonglongrightarrow> l + f 0"
     using assms by (auto intro!: tendsto_add simp: sums_def)
   moreover have "(\<Sum>i<n. f (Suc i)) + f 0 = (\<Sum>i<Suc n. f i)" for n
-    unfolding lessThan_Suc_eq_insert_0 by (simp add: Zero_notin_Suc ac_simps setsum.reindex)
+    unfolding lessThan_Suc_eq_insert_0
+      by (simp add: ac_simps setsum_atLeast1_atMost_eq image_Suc_lessThan)
   ultimately show ?thesis
     by (auto simp add: sums_def simp del: setsum_lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
 qed
@@ -338,7 +336,7 @@ proof -
   have "f sums (s + f 0) \<longleftrightarrow> (\<lambda>i. \<Sum>j<Suc i. f j) \<longlonglongrightarrow> s + f 0"
     by (subst LIMSEQ_Suc_iff) (simp add: sums_def)
   also have "\<dots> \<longleftrightarrow> (\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) \<longlonglongrightarrow> s + f 0"
-    by (simp add: ac_simps setsum.reindex image_iff lessThan_Suc_eq_insert_0)
+    by (simp add: ac_simps lessThan_Suc_eq_insert_0 image_Suc_lessThan setsum_atLeast1_atMost_eq)
   also have "\<dots> \<longleftrightarrow> (\<lambda>n. f (Suc n)) sums s"
   proof
     assume "(\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) \<longlonglongrightarrow> s + f 0"

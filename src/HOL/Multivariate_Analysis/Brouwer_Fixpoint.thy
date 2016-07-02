@@ -46,23 +46,11 @@ lemma swap_image:
   apply (metis member_remove remove_def)
   done
 
-lemma swap_apply1: "Fun.swap x y f x = f y"
-  by (simp add: Fun.swap_def)
-
-lemma swap_apply2: "Fun.swap x y f y = f x"
-  by (simp add: Fun.swap_def)
-
-lemma lessThan_empty_iff: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
-  by auto
-
-lemma Zero_notin_Suc: "0 \<notin> Suc ` A"
-  by auto
-
-lemma atMost_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
-  apply auto
-  apply (case_tac x)
-  apply auto
-  done
+lemmas swap_apply1 = swap_apply(1)
+lemmas swap_apply2 = swap_apply(2)
+lemmas lessThan_empty_iff = Iio_eq_empty_iff_nat
+lemmas Zero_notin_Suc = zero_notin_Suc_image
+lemmas atMost_Suc_eq_insert_0 = Iic_Suc_eq_insert_0
 
 lemma setsum_union_disjoint':
   assumes "finite A"

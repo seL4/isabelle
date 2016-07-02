@@ -129,8 +129,13 @@ apply (simp add: inv_into_def)
 apply (fast intro: someI2)
 done
 
-lemma inv_id [simp]: "inv id = id"
-by (simp add: inv_into_def id_def)
+lemma inv_identity [simp]:
+  "inv (\<lambda>a. a) = (\<lambda>a. a)"
+  by (simp add: inv_def)
+
+lemma inv_id [simp]:
+  "inv id = id"
+  by (simp add: id_def)
 
 lemma inv_into_f_f [simp]:
   "[| inj_on f A;  x : A |] ==> inv_into A f (f x) = x"

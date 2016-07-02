@@ -14,7 +14,7 @@ Examples: Ico = {_ ..< _} and Ici = {_ ..}
 section \<open>Set intervals\<close>
 
 theory Set_Interval
-imports Lattices_Big Nat_Transfer
+imports Lattices_Big Divides Nat_Transfer
 begin
 
 context ord
@@ -901,6 +901,16 @@ next
   qed
 qed
 
+corollary image_Suc_lessThan:
+  "Suc ` {..<n} = {1..n}"
+  using image_add_atLeastLessThan [of 1 0 n]
+  by (auto simp add: lessThan_Suc_atMost atLeast0LessThan)
+  
+corollary image_Suc_atMost:
+  "Suc ` {..n} = {1..Suc n}"
+  using image_add_atLeastLessThan [of 1 0 "Suc n"]
+  by (auto simp add: lessThan_Suc_atMost atLeast0LessThan)
+
 corollary image_Suc_atLeastAtMost[simp]:
   "Suc ` {i..j} = {Suc i..Suc j}"
 using image_add_atLeastAtMost[where k="Suc 0"] by simp
@@ -908,6 +918,14 @@ using image_add_atLeastAtMost[where k="Suc 0"] by simp
 corollary image_Suc_atLeastLessThan[simp]:
   "Suc ` {i..<j} = {Suc i..<Suc j}"
 using image_add_atLeastLessThan[where k="Suc 0"] by simp
+
+lemma atLeast1_lessThan_eq_remove0:
+  "{Suc 0..<n} = {..<n} - {0}"
+  by auto
+
+lemma atLeast1_atMost_eq_remove0:
+  "{Suc 0..n} = {..n} - {0}"
+  by auto
 
 lemma image_add_int_atLeastLessThan:
     "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
@@ -1146,6 +1164,12 @@ lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l"
 lemma card_greaterThanLessThan [simp]: "card {l<..<u} = u - Suc l"
   by (subst atLeastSucLessThan_greaterThanLessThan [THEN sym], simp)
 
+lemma subset_eq_range_finite:
+  fixes n :: nat
+  assumes "N \<subseteq> {..<n}"
+  shows "finite N" 
+  using assms finite_lessThan by (rule finite_subset)
+
 lemma ex_bij_betw_nat_finite:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h {0..<card M} M"
 apply(drule finite_imp_nat_seg_image_inj_on)
@@ -1155,6 +1179,18 @@ done
 lemma ex_bij_betw_finite_nat:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h M {0..<card M}"
 by (blast dest: ex_bij_betw_nat_finite bij_betw_inv)
+
+lemma bij_betw_nat_finite:
+  assumes "finite A"
+  obtains f where "bij_betw f {..<card A} A"
+proof -
+  from assms obtain f where "bij_betw f {0..<card A} A"
+    by (blast dest: ex_bij_betw_nat_finite)
+  also have "{0..<card A} = {..<card A}"
+    by auto
+  finally show thesis using that
+    by blast
+qed
 
 lemma finite_same_card_bij:
   "finite A \<Longrightarrow> finite B \<Longrightarrow> card A = card B \<Longrightarrow> EX h. bij_betw h A B"
@@ -1199,6 +1235,17 @@ proof (safe intro!: card_inj_on_le)
   }
   ultimately show "(\<exists>f. inj_on f A \<and> f ` A \<le> B)" by blast
 qed (insert assms, auto)
+
+lemma subset_eq_range_card:
+  fixes n :: nat
+  assumes "N \<subseteq> {..<n}"
+  shows "card N \<le> n"
+proof -
+  from assms finite_lessThan have "card N \<le> card {..<n}"
+    using card_mono by blast
+  then show ?thesis by simp
+qed
+
 
 subsection \<open>Intervals of integers\<close>
 
@@ -1665,11 +1712,15 @@ lemma nested_setsum_swap':
      "(\<Sum>i\<le>n. (\<Sum>j<i. a i j)) = (\<Sum>j<n. \<Sum>i = Suc j..n. a i j)"
   by (induction n) (auto simp: setsum.distrib)
 
-lemma setsum_zero_power' [simp]:
-  fixes c :: "nat \<Rightarrow> 'a::field"
-  shows "(\<Sum>i\<in>A. c i * 0^i / d i) = (if finite A \<and> 0 \<in> A then c 0 / d 0 else 0)"
-  using setsum_zero_power [of "\<lambda>i. c i / d i" A]
-  by auto
+lemma setsum_atLeast1_atMost_eq:
+  "setsum f {Suc 0..n} = (\<Sum>k<n. f (Suc k))"
+proof -
+  have "setsum f {Suc 0..n} = setsum f (Suc ` {..<n})"
+    by (simp add: image_Suc_lessThan)
+  also have "\<dots> = (\<Sum>k<n. f (Suc k))"
+    by (simp add: setsum.reindex)
+  finally show ?thesis .
+qed
 
 
 subsection \<open>Telescoping\<close>
@@ -1920,6 +1971,29 @@ proof -
   from assms have "{m..Suc n} = insert (Suc n) {m..n}" by auto
   also have "setprod f \<dots> = f (Suc n) * setprod f {m..n}" by simp
   finally show ?thesis .
+qed
+
+
+subsection \<open>Division remainder\<close>
+
+lemma range_mod:
+  fixes n :: nat
+  assumes "n > 0"
+  shows "range (\<lambda>m. m mod n) = {0..<n}" (is "?A = ?B")
+proof (rule set_eqI)
+  fix m
+  show "m \<in> ?A \<longleftrightarrow> m \<in> ?B"
+  proof
+    assume "m \<in> ?A"
+    with assms show "m \<in> ?B"
+      by auto 
+  next
+    assume "m \<in> ?B"
+    moreover have "m mod n \<in> ?A"
+      by (rule rangeI)
+    ultimately show "m \<in> ?A"
+      by simp
+  qed
 qed
 
 

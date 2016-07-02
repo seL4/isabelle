@@ -83,6 +83,11 @@ qed
 lemma set_eq_iff: "A = B \<longleftrightarrow> (\<forall>x. x \<in> A \<longleftrightarrow> x \<in> B)"
   by (auto intro:set_eqI)
 
+lemma Collect_eqI:
+  assumes "\<And>x. P x = Q x"
+  shows "Collect P = Collect Q"
+  using assms by (auto intro: set_eqI)
+
 text \<open>Lifting of predicate class instances\<close>
 
 instantiation set :: (type) boolean_algebra
@@ -973,6 +978,11 @@ lemma full_SetCompr_eq: "{u. \<exists>x. u = f x} = range f"
 lemma range_composition: "range (\<lambda>x. f (g x)) = f ` range g"
   by auto
 
+lemma range_eq_singletonD:
+  assumes "range f = {a}"
+  shows "f x = a"
+  using assms by auto
+
 
 subsubsection \<open>Some rules with \<open>if\<close>\<close>
 
@@ -1860,6 +1870,24 @@ lemma pairwise_image: "pairwise r (f ` s) \<longleftrightarrow> pairwise (\<lamb
 lemma Int_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> False) \<Longrightarrow> A \<inter> B = {}"
   by blast
 
+lemma in_image_insert_iff:
+  assumes "\<And>C. C \<in> B \<Longrightarrow> x \<notin> C"
+  shows "A \<in> insert x ` B \<longleftrightarrow> x \<in> A \<and> A - {x} \<in> B" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P then show ?Q
+    using assms by auto
+next
+  assume ?Q
+  then have "x \<in> A" and "A - {x} \<in> B"
+    by simp_all
+  from \<open>A - {x} \<in> B\<close> have "insert x (A - {x}) \<in> insert x ` B"
+    by (rule imageI)
+  also from \<open>x \<in> A\<close>
+  have "insert x (A - {x}) = A"
+    by auto
+  finally show ?P .
+qed
+
 hide_const (open) member not_member
 
 lemmas equalityI = subset_antisym
@@ -1920,4 +1948,3 @@ val vimage_Un = @{thm vimage_Un}
 \<close>
 
 end
-
