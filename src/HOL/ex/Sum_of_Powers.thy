@@ -147,7 +147,7 @@ subsection \<open>Instances for Square And Cubic Numbers\<close>
 
 lemma binomial_unroll:
   "n > 0 \<Longrightarrow> (n choose k) = (if k = 0 then 1 else (n - 1) choose (k - 1) + ((n - 1) choose k))"
-by (cases n) (auto simp add: binomial.simps(2))
+  by (auto simp add: gr0_conv_Suc)
 
 lemma setsum_unroll:
   "(\<Sum>k\<le>n::nat. f k) = (if n = 0 then f 0 else f n + (\<Sum>k\<le>n - 1. f k))"
@@ -157,7 +157,7 @@ lemma bernoulli_unroll:
   "n > 0 \<Longrightarrow> bernoulli n = - 1 / (real n + 1) * (\<Sum>k\<le>n - 1. real (n + 1 choose k) * bernoulli k)"
 by (cases n) (simp add: bernoulli.simps One_nat_def)+
 
-lemmas unroll = binomial.simps(1) binomial_unroll
+lemmas unroll = binomial_unroll
   bernoulli.simps(1) bernoulli_unroll setsum_unroll bernpoly_def
 
 lemma sum_of_squares: "(\<Sum>k\<le>n::nat. k ^ 2) = (2 * n ^ 3 + 3 * n ^ 2 + n) / 6"

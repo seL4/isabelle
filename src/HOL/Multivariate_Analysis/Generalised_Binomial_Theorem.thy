@@ -27,11 +27,12 @@ proof (rule Lim_transform_eventually)
     show "eventually (\<lambda>n. ?f n = (a gchoose n) /(a gchoose Suc n)) sequentially"
   proof eventually_elim
     fix n :: nat assume n: "n > 0"
-    let ?P = "\<Prod>i = 0..n - 1. a - of_nat i"
+    let ?P = "\<Prod>i<n. a - of_nat i"
     from n have "(a gchoose n) / (a gchoose Suc n) = (of_nat (Suc n) :: 'a) *
-                   (?P / (\<Prod>i = 0..n. a - of_nat i))" by (simp add: gbinomial_def)
-    also from n have "(\<Prod>i = 0..n. a - of_nat i) = ?P * (a - of_nat n)"
-      by (cases n) (simp_all add: setprod_nat_ivl_Suc)
+                   (?P / (\<Prod>i\<le>n. a - of_nat i))"
+      by (simp add: gbinomial_def lessThan_Suc_atMost)
+    also from n have "(\<Prod>i\<le>n. a - of_nat i) = ?P * (a - of_nat n)"
+      by (cases n) (simp_all add: setprod_nat_ivl_Suc lessThan_Suc_atMost)
     also have "?P / \<dots> = (?P / ?P) / (a - of_nat n)" by (rule divide_divide_eq_left[symmetric])
     also from assms have "?P / ?P = 1" by auto
     also have "of_nat (Suc n) * (1 / (a - of_nat n)) = 

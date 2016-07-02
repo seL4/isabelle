@@ -5906,7 +5906,7 @@ corollary higher_deriv_diff:
 
 
 lemma bb: "Suc n choose k = (n choose k) + (if k = 0 then 0 else (n choose (k - 1)))"
-  by (simp add: Binomial.binomial.simps)
+  by (cases k) simp_all
 
 proposition higher_deriv_mult:
   fixes z::complex
@@ -5924,7 +5924,7 @@ next
   have sumeq: "(\<Sum>i = 0..n.
                of_nat (n choose i) * (deriv ((deriv ^^ i) f) z * (deriv ^^ (n - i)) g z + deriv ((deriv ^^ (n - i)) g) z * (deriv ^^ i) f z)) =
             g z * deriv ((deriv ^^ n) f) z + (\<Sum>i = 0..n. (deriv ^^ i) f z * (of_nat (Suc n choose i) * (deriv ^^ (Suc n - i)) g z))"
-    apply (simp add: bb distrib_right algebra_simps setsum.distrib)
+    apply (simp add: bb algebra_simps setsum.distrib)
     apply (subst (4) setsum_Suc_reindex)
     apply (auto simp: algebra_simps Suc_diff_le intro: setsum.cong)
     done

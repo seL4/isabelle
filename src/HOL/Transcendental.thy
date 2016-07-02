@@ -1758,7 +1758,7 @@ proof -
       by (rule mult_mono)
         (rule mult_mono, simp_all add: power_le_one a b)
     hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<^sup>2/2) * ((1/2)^n)"
-      unfolding power_add by (simp add: ac_simps del: fact.simps) }
+      unfolding power_add by (simp add: ac_simps del: fact_Suc) }
   note aux1 = this
   have "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums (x\<^sup>2 / 2 * (1 / (1 - 1 / 2)))"
     by (intro sums_mult geometric_sums, simp)
@@ -3319,7 +3319,7 @@ done
 lemma cos_two_less_zero [simp]:
   "cos 2 < (0::real)"
 proof -
-  note fact.simps(2) [simp del]
+  note fact_Suc [simp del]
   from sums_minus [OF cos_paired]
   have *: "(\<lambda>n. - ((- 1) ^ n * 2 ^ (2 * n) / fact (2 * n))) sums - cos (2::real)"
     by simp
@@ -3335,7 +3335,7 @@ proof -
       have "(4::real) * (fact (?six4d)) < (Suc (Suc (?six4d)) * fact (Suc (?six4d)))"
         unfolding of_nat_mult   by (rule mult_strict_mono) (simp_all add: fact_less_mono)
       then have "(4::real) * (fact (?six4d)) < (fact (Suc (Suc (?six4d))))"
-        by (simp only: fact.simps(2) [of "Suc (?six4d)"] of_nat_mult of_nat_fact)
+        by (simp only: fact_Suc [of "Suc (?six4d)"] of_nat_mult of_nat_fact)
       then have "(4::real) * inverse (fact (Suc (Suc (?six4d)))) < inverse (fact (?six4d))"
         by (simp add: inverse_eq_divide less_divide_eq)
     }

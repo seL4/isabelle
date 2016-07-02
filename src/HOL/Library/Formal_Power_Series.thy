@@ -3700,7 +3700,7 @@ lemma E_deriv[simp]: "fps_deriv (E a) = fps_const (a::'a::field_char_0) * E a" (
 proof -
   have "?l$n = ?r $ n" for n
     apply (auto simp add: E_def field_simps power_Suc[symmetric]
-      simp del: fact.simps of_nat_Suc power_Suc)
+      simp del: fact_Suc of_nat_Suc power_Suc)
     apply (simp add: of_nat_mult field_simps)
     done
   then show ?thesis
@@ -4154,7 +4154,7 @@ proof -
         case False
         with kn have kn': "k < n"
           by simp
-        have m1nk: "?m1 n = setprod (\<lambda>i. - 1) {0..m}" "?m1 k = setprod (\<lambda>i. - 1) {0..h}"
+        have m1nk: "?m1 n = setprod (\<lambda>i. - 1) {..m}" "?m1 k = setprod (\<lambda>i. - 1) {0..h}"
           by (simp_all add: setprod_constant m h)
         have bnz0: "pochhammer (b - of_nat n + 1) k \<noteq> 0"
           using bn0 kn
@@ -4163,27 +4163,19 @@ proof -
           apply (erule_tac x= "n - ka - 1" in allE)
           apply (auto simp add: algebra_simps of_nat_diff)
           done
-        have eq1: "setprod (\<lambda>k. (1::'a) + of_nat m - of_nat k) {0 .. h} =
+        have eq1: "setprod (\<lambda>k. (1::'a) + of_nat m - of_nat k) {..h} =
           setprod of_nat {Suc (m - h) .. Suc m}"
           using kn' h m
           by (intro setprod.reindex_bij_witness[where i="\<lambda>k. Suc m - k" and j="\<lambda>k. Suc m - k"])
              (auto simp: of_nat_diff)
-
         have th1: "(?m1 k * ?p (of_nat n) k) / ?f n = 1 / of_nat(fact (n - k))"
           unfolding m1nk
-          unfolding m h pochhammer_Suc_setprod
-          apply (simp add: field_simps del: fact_Suc)
-          unfolding fact_altdef id_def
-          unfolding of_nat_setprod
-          unfolding setprod.distrib[symmetric]
-          apply auto
-          unfolding eq1
-          apply (subst setprod.union_disjoint[symmetric])
-          apply (auto)
-          apply (rule setprod.cong)
-          apply auto
+          apply (simp add: field_simps m h pochhammer_Suc_setprod del: fact_Suc)
+          apply (simp add: fact_altdef id_def atLeast0AtMost setprod.distrib [symmetric] eq1)
+          apply (subst setprod.union_disjoint [symmetric])
+          apply (auto intro!: setprod.cong)
           done
-        have th20: "?m1 n * ?p b n = setprod (\<lambda>i. b - of_nat i) {0..m}"
+        have th20: "?m1 n * ?p b n = setprod (\<lambda>i. b - of_nat i) {..m}"
           unfolding m1nk
           unfolding m h pochhammer_Suc_setprod
           unfolding setprod.distrib[symmetric]
@@ -4216,7 +4208,10 @@ proof -
           by (simp add: field_simps)
         also have "\<dots> = b gchoose (n - k)"
           unfolding th1 th2
-          using kn' by (simp add: gbinomial_def)
+          using kn' apply (simp add: gbinomial_def atLeast0AtMost)
+            apply (rule setprod.cong)
+            apply auto
+            done
         finally show ?thesis by simp
       qed
     qed

@@ -1106,19 +1106,19 @@ proof -
             ((fact(Suc n)) *(f(Suc n) u *(z-u) ^ n)) / (fact n) +
             ((fact(Suc n)) *(f(Suc(Suc n)) u *((z-u) *(z-u) ^ n)) / (fact(Suc n))) -
             ((fact(Suc n)) *(f(Suc n) u *(of_nat(Suc n) *(z-u) ^ n))) / (fact(Suc n))"
-          by (simp add: algebra_simps del: fact.simps)
+          by (simp add: algebra_simps del: fact_Suc)
         also have "... = ((fact (Suc n)) * (f (Suc n) u * (z-u) ^ n)) / (fact n) +
                          (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
                          (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
-          by (simp del: fact.simps)
+          by (simp del: fact_Suc)
         also have "... = (of_nat (Suc n) * (f (Suc n) u * (z-u) ^ n)) +
                          (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
                          (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
-          by (simp only: fact.simps of_nat_mult ac_simps) simp
+          by (simp only: fact_Suc of_nat_mult ac_simps) simp
         also have "... = f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)"
           by (simp add: algebra_simps)
         finally show ?thesis
-        by (simp add: mult_left_cancel [where c = "(fact (Suc n))", THEN iffD1] del: fact.simps)
+        by (simp add: mult_left_cancel [where c = "(fact (Suc n))", THEN iffD1] del: fact_Suc)
       qed
       finally show ?case .
     qed
