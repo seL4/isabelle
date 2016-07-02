@@ -78,6 +78,83 @@ sublocale monoid
 
 end
 
+locale group = semigroup +
+  fixes z :: 'a ("\<^bold>1")
+  fixes inverse :: "'a \<Rightarrow> 'a"
+  assumes group_left_neutral: "\<^bold>1 \<^bold>* a = a"
+  assumes left_inverse [simp]:  "inverse a \<^bold>* a = \<^bold>1"
+begin
+
+lemma left_cancel: "a \<^bold>* b = a \<^bold>* c \<longleftrightarrow> b = c"
+proof
+  assume "a \<^bold>* b = a \<^bold>* c"
+  then have "inverse a \<^bold>* (a \<^bold>* b) = inverse a \<^bold>* (a \<^bold>* c)" by simp
+  then have "(inverse a \<^bold>* a) \<^bold>* b = (inverse a \<^bold>* a) \<^bold>* c"
+    by (simp only: assoc)
+  then show "b = c" by (simp add: group_left_neutral)
+qed simp
+
+sublocale monoid
+proof
+  fix a
+  have "inverse a \<^bold>* a = \<^bold>1" by simp
+  then have "inverse a \<^bold>* (a \<^bold>* \<^bold>1) = inverse a \<^bold>* a"
+    by (simp add: group_left_neutral assoc [symmetric])
+  with left_cancel show "a \<^bold>* \<^bold>1 = a"
+    by (simp only: left_cancel)
+qed (fact group_left_neutral)
+
+lemma inverse_unique:
+  assumes "a \<^bold>* b = \<^bold>1"
+  shows "inverse a = b"
+proof -
+  from assms have "inverse a \<^bold>* (a \<^bold>* b) = inverse a"
+    by simp
+  then show ?thesis
+    by (simp add: assoc [symmetric])
+qed
+
+lemma inverse_neutral [simp]:
+  "inverse \<^bold>1 = \<^bold>1"
+  by (rule inverse_unique) simp
+
+lemma inverse_inverse [simp]:
+  "inverse (inverse a) = a"
+  by (rule inverse_unique) simp
+
+lemma right_inverse [simp]:
+  "a \<^bold>* inverse a = \<^bold>1"
+proof -
+  have "a \<^bold>* inverse a = inverse (inverse a) \<^bold>* inverse a"
+    by simp
+  also have "\<dots> = \<^bold>1"
+    by (rule left_inverse)
+  then show ?thesis by simp
+qed
+
+lemma inverse_distrib_swap:
+  "inverse (a \<^bold>* b) = inverse b \<^bold>* inverse a"
+proof (rule inverse_unique)
+  have "a \<^bold>* b \<^bold>* (inverse b \<^bold>* inverse a) =
+    a \<^bold>* (b \<^bold>* inverse b) \<^bold>* inverse a"
+    by (simp only: assoc)
+  also have "\<dots> = \<^bold>1"
+    by simp
+  finally show "a \<^bold>* b \<^bold>* (inverse b \<^bold>* inverse a) = \<^bold>1" .
+qed
+
+lemma right_cancel:
+  "b \<^bold>* a = c \<^bold>* a \<longleftrightarrow> b = c"
+proof
+  assume "b \<^bold>* a = c \<^bold>* a"
+  then have "b \<^bold>* a \<^bold>* inverse a= c \<^bold>* a \<^bold>* inverse a"
+    by simp
+  then show "b = c"
+    by (simp add: assoc)
+qed simp
+
+end
+
 
 subsection \<open>Generic operations\<close>
 
@@ -348,57 +425,35 @@ end
 subsection \<open>Groups\<close>
 
 class group_add = minus + uminus + monoid_add +
-  assumes left_minus [simp]: "- a + a = 0"
+  assumes left_minus: "- a + a = 0"
   assumes add_uminus_conv_diff [simp]: "a + (- b) = a - b"
 begin
 
 lemma diff_conv_add_uminus: "a - b = a + (- b)"
   by simp
 
+sublocale add: group plus 0 uminus
+  by standard (simp_all add: left_minus)
+
 lemma minus_unique:
   assumes "a + b = 0"
   shows "- a = b"
-proof -
-  from assms have "- a = - a + (a + b)" by simp
-  also have "\<dots> = b" by (simp add: add.assoc [symmetric])
-  finally show ?thesis .
-qed
+  using assms by (fact add.inverse_unique)
 
-lemma minus_zero [simp]: "- 0 = 0"
-proof -
-  have "0 + 0 = 0" by (rule add_0_right)
-  then show "- 0 = 0" by (rule minus_unique)
-qed
+lemma minus_zero: "- 0 = 0"
+  by (fact add.inverse_neutral)
 
-lemma minus_minus [simp]: "- (- a) = a"
-proof -
-  have "- a + a = 0" by (rule left_minus)
-  then show "- (- a) = a" by (rule minus_unique)
-qed
+lemma minus_minus: "- (- a) = a"
+  by (fact add.inverse_inverse)
 
 lemma right_minus: "a + - a = 0"
-proof -
-  have "a + - a = - (- a) + - a" by simp
-  also have "\<dots> = 0" by (rule left_minus)
-  finally show ?thesis .
-qed
+  by (fact add.right_inverse)
 
 lemma diff_self [simp]: "a - a = 0"
   using right_minus [of a] by simp
 
 subclass cancel_semigroup_add
-proof
-  fix a b c :: 'a
-  assume "a + b = a + c"
-  then have "- a + a + b = - a + a + c"
-    unfolding add.assoc by simp
-  then show "b = c" by simp
-next
-  fix a b c :: 'a
-  assume "b + a = c + a"
-  then have "b + a + - a = c + a  + - a" by simp
-  then show "b = c" unfolding add.assoc by simp
-qed
+  by standard (simp_all add: add.left_cancel add.right_cancel)
 
 lemma minus_add_cancel [simp]: "- a + (a + b) = b"
   by (simp add: add.assoc [symmetric])
@@ -413,12 +468,7 @@ lemma add_diff_cancel [simp]: "a + b - b = a"
   by (simp only: diff_conv_add_uminus add.assoc) simp
 
 lemma minus_add: "- (a + b) = - b + - a"
-proof -
-  have "(a + b) + (- b + - a) = 0"
-    by (simp only: add.assoc add_minus_cancel) simp
-  then show "- (a + b) = - b + - a"
-    by (rule minus_unique)
-qed
+  by (fact add.inverse_distrib_swap)
 
 lemma right_minus_eq [simp]: "a - b = 0 \<longleftrightarrow> a = b"
 proof
