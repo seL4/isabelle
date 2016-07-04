@@ -136,6 +136,9 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* Theory Library/Combinator_PER.thy: combinator to build partial
+equivalence relations from a predicate and an equivalenc relation.
+
 * Theory Library/Perm.thy: basic facts about almost everywhere fix
 bijections.
 
