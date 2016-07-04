@@ -255,12 +255,12 @@ fun the_fact state =
     [thm] => thm
   | _ => error "Single theorem expected");
 
-fun put_facts facts =
+fun put_facts index facts =
   map_top (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  map_context (Proof_Context.put_thms true (Auto_Bind.thisN, facts));
+  map_context (Proof_Context.put_thms index (Auto_Bind.thisN, facts));
 
-val set_facts = put_facts o SOME;
-val reset_facts = put_facts NONE;
+val set_facts = put_facts false o SOME;
+val reset_facts = put_facts false NONE;
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> set_facts (maps snd named_factss @ more_facts));
@@ -271,7 +271,7 @@ fun export_facts inner outer =
   | SOME thms =>
       thms
       |> Proof_Context.export (context_of inner) (context_of outer)
-      |> (fn ths => set_facts ths outer));
+      |> (fn ths => put_facts true (SOME ths) outer));
 
 
 (* mode *)
