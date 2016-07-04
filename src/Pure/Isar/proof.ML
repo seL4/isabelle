@@ -1097,6 +1097,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
           in (prems, ctxt'') end);
 
     (*result*)
+    val results_bindings = map (apfst Binding.default_pos) shows_bindings;
     fun after_qed' (result_ctxt, results) state' =
       let
         val ctxt' = context_of state';
@@ -1107,7 +1108,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
         val export = map export0 #> Variable.export result_ctxt ctxt';
       in
         state'
-        |> local_results (shows_bindings ~~ burrow export results)
+        |> local_results (results_bindings ~~ burrow export results)
         |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
         |> after_qed (result_ctxt, results)
       end;
