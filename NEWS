@@ -136,6 +136,9 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* Theory Library/Perm.thy: basic facts about almost everywhere fix
+bijections.
+
 * Locale bijection establishes convenient default simp rules
 like "inv f (f a) = a" for total bijections.
 

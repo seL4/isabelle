@@ -55,6 +55,7 @@ imports
   Option_ord
   Order_Continuity
   Parallel
+  Perm
   Permutation
   Permutations
   Polynomial
