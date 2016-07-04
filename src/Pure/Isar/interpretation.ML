@@ -116,23 +116,27 @@ end;
 
 local
 
-fun meta_rewrite eqns ctxt = (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
+fun meta_rewrite eqns ctxt =
+  (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
 fun note_eqns_register note activate deps witss def_eqns eqns attrss export export' ctxt =
   let
-    val facts = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])])
-      :: map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])])) attrss eqns;
+    val facts =
+      (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]) ::
+        map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])]))
+          attrss eqns;
     val (eqns', ctxt') = ctxt
       |> note Thm.theoremK facts
       |-> meta_rewrite;
-    val dep_morphs = map2 (fn (dep, morph) => fn wits =>
-      (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))) deps witss;
-    fun activate' dep_morph ctxt = activate dep_morph
-      (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns')) export ctxt;
-  in
-    ctxt'
-    |> fold activate' dep_morphs
-  end;
+    val dep_morphs =
+      map2 (fn (dep, morph) => fn wits =>
+          (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)))
+        deps witss;
+    fun activate' dep_morph ctxt =
+      activate dep_morph
+        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns'))
+        export ctxt;
+  in ctxt' |> fold activate' dep_morphs end;
 
 in
 
