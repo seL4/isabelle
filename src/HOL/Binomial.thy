@@ -6,7 +6,7 @@
     Additional binomial identities by Chaitanya Mangla and Manuel Eberl
 *)
 
-section\<open>Factorial Function, Binomial Coefficients and Binomial Theorem\<close>
+section \<open>Combinatorial Functions: Factorial Function, Rising Factorials, Binomial Coefficients and Binomial Theorem\<close>
 
 theory Binomial
 imports Main
@@ -170,7 +170,8 @@ lemma fact_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
 text \<open>This development is based on the work of Andy Gordon and
   Florian Kammueller.\<close>
 
-subsection \<open>Basic definitions and lemmas\<close>
+
+subsection \<open>Binomial coefficients\<close>
 
 text \<open>Combinatorial definition\<close>
 
@@ -471,7 +472,8 @@ proof -
   finally show ?thesis .
 qed
 
-subsection\<open>Pochhammer's symbol : generalized rising factorial\<close>
+
+subsection \<open>Pochhammer's symbol : generalized rising factorial\<close>
 
 text \<open>See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"}\<close>
 
@@ -1136,7 +1138,7 @@ proof (induction n)
   thus ?case using gbinomial_Suc_Suc[of "(r + of_nat m + 1)" m] by (simp add: add_ac)
 qed auto
 
-subsection \<open>Summation on the upper index\<close>
+subsubsection \<open>Summation on the upper index\<close>
 text \<open>
   Another summation formula is equation 5.10 of the reference material \cite[p.~160]{GKP},
   aptly named \emph{summation on the upper index}:\[\sum_{0 \leq k \leq n} {k \choose m} =
@@ -1383,7 +1385,7 @@ using assms choose_mult_lemma [of "m-k" "n-m" k]
 by simp
 
 
-subsection \<open>Binomial coefficients\<close>
+subsection \<open>More on Binomial Coefficients\<close>
 
 lemma choose_one: "(n::nat) choose 1 = n"
   by simp
@@ -1585,6 +1587,9 @@ proof -
        (simp_all only: ac_simps diff_Suc_Suc Suc_diff_le diff_add_inverse fact_Suc of_nat_id)
 qed
 
+
+subsection \<open>Misc\<close>
+
 lemma fact_code [code]:
   "fact n = (of_nat (fold_atLeastAtMost_nat (op *) 2 n 1) :: 'a :: semiring_char_0)"
 proof -
@@ -1599,7 +1604,6 @@ qed
 lemma setprod_lessThan_fold_atLeastAtMost_nat:
   "setprod f {..<Suc n} = fold_atLeastAtMost_nat (times \<circ> f) 0 n 1"
   by (simp add: lessThan_Suc_atMost atLeast0AtMost [symmetric] setprod_atLeastAtMost_code comp_def)
-
 
 lemma pochhammer_code [code]:
   "pochhammer a n = (if n = 0 then 1 else
