@@ -160,22 +160,21 @@ local
 fun gen_interpret prep_interpretation expression raw_eqns state =
   let
     val _ = Proof.assert_forward_or_chain state;
-    val ctxt = Proof.context_of state;
     fun lift_after_qed after_qed witss eqns =
       Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
     fun setup_proof after_qed propss eqns goal_ctxt =
       Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret"
         propss eqns goal_ctxt state;
   in
-    generic_interpretation prep_interpretation setup_proof
-      Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression raw_eqns ctxt
+    Proof.context_of state
+    |> generic_interpretation prep_interpretation setup_proof
+      Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression raw_eqns
   end;
 
 in
 
-fun interpret expression = gen_interpret cert_interpretation expression;
-
-fun interpret_cmd raw_expression = gen_interpret read_interpretation raw_expression;
+val interpret = gen_interpret cert_interpretation;
+val interpret_cmd = gen_interpret read_interpretation;
 
 end;
 
