@@ -14,4 +14,7 @@ object profile extends isabelle.CI_Profile
   def pre_hook(args: List[String]) = {}
   def post_hook(results: Build.Results) = {}
 
+  override def select_sessions(tree: Sessions.Tree): (List[String], Sessions.Tree) =
+    tree.selection(all_sessions = true)
+
 }
