@@ -119,7 +119,7 @@ local
 fun meta_rewrite eqns ctxt =
   (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
-fun note_eqns_register note activate deps witss def_eqns eqns attrss export export' ctxt =
+fun note_eqns_register pos note activate deps witss def_eqns eqns attrss export export' ctxt =
   let
     val facts =
       (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]) ::
@@ -130,8 +130,10 @@ fun note_eqns_register note activate deps witss def_eqns eqns attrss export expo
       |-> meta_rewrite;
     val dep_morphs =
       map2 (fn (dep, morph) => fn wits =>
-          (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)))
-        deps witss;
+        let val morph' = morph
+          $> Element.satisfy_morphism (map (Element.transform_witness export') wits)
+          $> Morphism.binding_morphism "position" (Binding.set_pos pos)
+        in (dep, morph') end) deps witss;
     fun activate' dep_morph ctxt =
       activate dep_morph
         (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns'))
@@ -145,8 +147,9 @@ fun generic_interpretation prep_interpretation setup_proof note add_registration
   let
     val (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) =
       prep_interpretation expression raw_defs raw_eqns initial_ctxt;
+    val pos = Position.thread_data ();
     fun after_qed witss eqns =
-      note_eqns_register note add_registration deps witss def_eqns eqns attrss export export';
+      note_eqns_register pos note add_registration deps witss def_eqns eqns attrss export export';
   in setup_proof after_qed propss eqns goal_ctxt end;
 
 end;
