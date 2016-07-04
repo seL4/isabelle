@@ -19,7 +19,6 @@ sig
   val map_context_result : (context -> 'a * context) -> state -> 'a * state
   val map_contexts: (context -> context) -> state -> state
   val propagate_ml_env: state -> state
-  val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val set_facts: thm list -> state -> state
@@ -241,8 +240,6 @@ fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mo
 fun propagate_ml_env state = map_contexts
   (Context.proof_map (ML_Env.inherit (Context.Proof (context_of state)))) state;
 
-val put_thms = map_context oo Proof_Context.put_thms;
-
 
 (* facts *)
 
@@ -260,7 +257,7 @@ fun the_fact state =
 
 fun put_facts facts =
   map_top (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  put_thms true (Auto_Bind.thisN, facts);
+  map_context (Proof_Context.put_thms true (Auto_Bind.thisN, facts));
 
 val set_facts = put_facts o SOME;
 val reset_facts = put_facts NONE;
