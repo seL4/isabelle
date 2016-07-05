@@ -122,7 +122,12 @@ fun prep_decls prep_var raw_vars ctxt =
   in ((vars, xs), ctxt'') end;
 
 fun close_form ctxt ys prems concl =
-  let val xs = rev (fold (Variable.add_free_names ctxt) (prems @ [concl]) (rev ys));
+  let
+    val xs = rev (fold (Variable.add_free_names ctxt) (prems @ [concl]) (rev ys));
+
+    val pos_props = Logic.strip_imp_concl concl :: Logic.strip_imp_prems concl @ prems;
+    fun get_pos x = maps (get_positions ctxt x) pos_props;
+    val _ = Context_Position.reports ctxt (maps (Syntax_Phases.reports_of_scope o get_pos) xs);
   in Logic.close_prop_constraint (Variable.default_type ctxt) (xs ~~ xs) prems concl end;
 
 fun dummy_frees ctxt xs tss =
