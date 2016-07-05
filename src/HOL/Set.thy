@@ -466,7 +466,7 @@ lemma subsetCE [elim]: "A \<subseteq> B \<Longrightarrow> (c \<notin> A \<Longri
   \<comment> \<open>Classical elimination rule.\<close>
   by (auto simp add: less_eq_set_def le_fun_def)
 
-lemma subset_eq: "A \<subseteq> B = (\<forall>x\<in>A. x \<in> B)"
+lemma subset_eq: "A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
   by blast
 
 lemma contra_subsetD: "A \<subseteq> B \<Longrightarrow> c \<notin> B \<Longrightarrow> c \<notin> A"

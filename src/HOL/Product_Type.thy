@@ -37,12 +37,11 @@ setup \<open>Sign.parent_path\<close>
 declare case_split [cases type: bool]
   \<comment> "prefer plain propositional version"
 
-lemma
-  shows [code]: "HOL.equal False P \<longleftrightarrow> \<not> P"
-    and [code]: "HOL.equal True P \<longleftrightarrow> P" 
-    and [code]: "HOL.equal P False \<longleftrightarrow> \<not> P"
-    and [code]: "HOL.equal P True \<longleftrightarrow> P"
-    and [code nbe]: "HOL.equal P P \<longleftrightarrow> True"
+lemma [code]: "HOL.equal False P \<longleftrightarrow> \<not> P"
+  and [code]: "HOL.equal True P \<longleftrightarrow> P" 
+  and [code]: "HOL.equal P False \<longleftrightarrow> \<not> P"
+  and [code]: "HOL.equal P True \<longleftrightarrow> P"
+  and [code nbe]: "HOL.equal P P \<longleftrightarrow> True"
   by (simp_all add: equal)
 
 lemma If_case_cert:
@@ -101,23 +100,23 @@ lemmas simps = unit.case unit.rec
 
 setup \<open>Sign.parent_path\<close>
 
-lemma unit_all_eq1: "(!!x::unit. PROP P x) == PROP P ()"
+lemma unit_all_eq1: "(\<And>x::unit. PROP P x) \<equiv> PROP P ()"
   by simp
 
-lemma unit_all_eq2: "(!!x::unit. PROP P) == PROP P"
+lemma unit_all_eq2: "(\<And>x::unit. PROP P) \<equiv> PROP P"
   by (rule triv_forall_equality)
 
 text \<open>
   This rewrite counters the effect of simproc \<open>unit_eq\<close> on @{term
-  [source] "%u::unit. f u"}, replacing it by @{term [source]
-  f} rather than by @{term [source] "%u. f ()"}.
+  [source] "\<lambda>u::unit. f u"}, replacing it by @{term [source]
+  f} rather than by @{term [source] "\<lambda>u. f ()"}.
 \<close>
 
-lemma unit_abs_eta_conv [simp]: "(%u::unit. f ()) = f"
+lemma unit_abs_eta_conv [simp]: "(\<lambda>u::unit. f ()) = f"
   by (rule ext) simp
 
-lemma UNIV_unit:
-  "UNIV = {()}" by auto
+lemma UNIV_unit: "UNIV = {()}"
+  by auto
 
 instantiation unit :: default
 begin
@@ -128,52 +127,41 @@ instance ..
 
 end
 
-instantiation unit :: "{complete_boolean_algebra, complete_linorder, wellorder}"
+instantiation unit :: "{complete_boolean_algebra,complete_linorder,wellorder}"
 begin
 
 definition less_eq_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool"
-where
-  "(_::unit) \<le> _ \<longleftrightarrow> True"
+  where "(_::unit) \<le> _ \<longleftrightarrow> True"
 
-lemma less_eq_unit [iff]:
-  "(u::unit) \<le> v"
+lemma less_eq_unit [iff]: "u \<le> v" for u v :: unit
   by (simp add: less_eq_unit_def)
 
 definition less_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool"
-where
-  "(_::unit) < _ \<longleftrightarrow> False"
+  where "(_::unit) < _ \<longleftrightarrow> False"
 
-lemma less_unit [iff]:
-  "\<not> (u::unit) < v"
+lemma less_unit [iff]: "\<not> u < v" for u v :: unit
   by (simp_all add: less_eq_unit_def less_unit_def)
 
 definition bot_unit :: unit
-where
-  [code_unfold]: "\<bottom> = ()"
+  where [code_unfold]: "\<bottom> = ()"
 
 definition top_unit :: unit
-where
-  [code_unfold]: "\<top> = ()"
+  where [code_unfold]: "\<top> = ()"
 
 definition inf_unit :: "unit \<Rightarrow> unit \<Rightarrow> unit"
-where
-  [simp]: "_ \<sqinter> _ = ()"
+  where [simp]: "_ \<sqinter> _ = ()"
 
 definition sup_unit :: "unit \<Rightarrow> unit \<Rightarrow> unit"
-where
-  [simp]: "_ \<squnion> _ = ()"
+  where [simp]: "_ \<squnion> _ = ()"
 
 definition Inf_unit :: "unit set \<Rightarrow> unit"
-where
-  [simp]: "\<Sqinter>_ = ()"
+  where [simp]: "\<Sqinter>_ = ()"
 
 definition Sup_unit :: "unit set \<Rightarrow> unit"
-where
-  [simp]: "\<Squnion>_ = ()"
+  where [simp]: "\<Squnion>_ = ()"
 
 definition uminus_unit :: "unit \<Rightarrow> unit"
-where
-  [simp]: "- _ = ()"
+  where [simp]: "- _ = ()"
 
 declare less_eq_unit_def [abs_def, code_unfold]
   less_unit_def [abs_def, code_unfold]
@@ -188,8 +176,8 @@ instance
 
 end
 
-lemma [code]:
-  "HOL.equal (u::unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
+lemma [code]: "HOL.equal u v \<longleftrightarrow> True" for u v :: unit
+  unfolding equal unit_eq [of u] unit_eq [of v] by rule+
 
 code_printing
   type_constructor unit \<rightharpoonup>
@@ -221,8 +209,8 @@ subsection \<open>The product type\<close>
 
 subsubsection \<open>Type definition\<close>
 
-definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
-  "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
+definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+  where "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
 definition "prod = {f. \<exists>a b. f = Pair_Rep (a::'a) (b::'b)}"
 
@@ -232,8 +220,8 @@ typedef ('a, 'b) prod ("(_ \<times>/ _)" [21, 20] 20) = "prod :: ('a \<Rightarro
 type_notation (ASCII)
   prod  (infixr "*" 20)
 
-definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
-  "Pair a b = Abs_prod (Pair_Rep a b)"
+definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b"
+  where "Pair a b = Abs_prod (Pair_Rep a b)"
 
 lemma prod_cases: "(\<And>a b. P (Pair a b)) \<Longrightarrow> P p"
   by (cases p) (auto simp add: prod_def Pair_def Pair_Rep_def)
@@ -258,7 +246,7 @@ text \<open>Avoid name clashes by prefixing the output of \<open>old_rep_datatyp
 setup \<open>Sign.mandatory_path "old"\<close>
 
 old_rep_datatype Pair
-by (erule prod_cases) (rule prod.inject)
+  by (erule prod_cases) (rule prod.inject)
 
 setup \<open>Sign.parent_path\<close>
 
@@ -297,16 +285,14 @@ text \<open>
 \<close>
 
 nonterminal tuple_args and patterns
-
 syntax
-  "_tuple"      :: "'a => tuple_args => 'a * 'b"        ("(1'(_,/ _'))")
-  "_tuple_arg"  :: "'a => tuple_args"                   ("_")
-  "_tuple_args" :: "'a => tuple_args => tuple_args"     ("_,/ _")
-  "_pattern"    :: "[pttrn, patterns] => pttrn"         ("'(_,/ _')")
-  ""            :: "pttrn => patterns"                  ("_")
-  "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
+  "_tuple"      :: "'a \<Rightarrow> tuple_args \<Rightarrow> 'a \<times> 'b"        ("(1'(_,/ _'))")
+  "_tuple_arg"  :: "'a \<Rightarrow> tuple_args"                   ("_")
+  "_tuple_args" :: "'a \<Rightarrow> tuple_args \<Rightarrow> tuple_args"     ("_,/ _")
+  "_pattern"    :: "pttrn \<Rightarrow> patterns \<Rightarrow> pttrn"         ("'(_,/ _')")
+  ""            :: "pttrn \<Rightarrow> patterns"                  ("_")
+  "_patterns"   :: "pttrn \<Rightarrow> patterns \<Rightarrow> patterns"      ("_,/ _")
   "_unit"       :: pttrn                                ("'(')")
-
 translations
   "(x, y)" \<rightleftharpoons> "CONST Pair x y"
   "_pattern x y" \<rightleftharpoons> "CONST Pair x y"
@@ -356,9 +342,9 @@ typed_print_translation \<open>
   in [(@{const_syntax case_prod}, K case_prod_guess_names_tr')] end
 \<close>
 
-text \<open>reconstruct pattern from (nested) @{const case_prod}s,
+text \<open>Reconstruct pattern from (nested) @{const case_prod}s,
   avoiding eta-contraction of body; required for enclosing "let",
-  if "let" does not avoid eta-contraction, which has been observed to occur\<close>
+  if "let" does not avoid eta-contraction, which has been observed to occur.\<close>
 
 print_translation \<open>
   let
@@ -421,19 +407,16 @@ code_printing
 
 subsubsection \<open>Fundamental operations and properties\<close>
 
-lemma Pair_inject:
-  assumes "(a, b) = (a', b')"
-    and "a = a' \<Longrightarrow> b = b' \<Longrightarrow> R"
-  shows R
-  using assms by simp
-
-lemma surj_pair [simp]: "EX x y. p = (x, y)"
-  by (cases p) simp
-
-lemma fst_eqD: "fst (x, y) = a ==> x = a"
+lemma Pair_inject: "(a, b) = (a', b') \<Longrightarrow> (a = a' \<Longrightarrow> b = b' \<Longrightarrow> R) \<Longrightarrow> R"
   by simp
 
-lemma snd_eqD: "snd (x, y) = a ==> y = a"
+lemma surj_pair [simp]: "\<exists>x y. p = (x, y)"
+  by (cases p) simp
+
+lemma fst_eqD: "fst (x, y) = a \<Longrightarrow> x = a"
+  by simp
+
+lemma snd_eqD: "snd (x, y) = a \<Longrightarrow> y = a"
   by simp
 
 lemma case_prod_unfold [nitpick_unfold]: "case_prod = (\<lambda>c p. c (fst p) (snd p))"
@@ -469,25 +452,25 @@ lemma case_prod_comp: "(case x of (a, b) \<Rightarrow> (f \<circ> g) a b) = f (g
 lemma The_case_prod: "The (case_prod P) = (THE xy. P (fst xy) (snd xy))"
   by (simp add: case_prod_unfold)
 
-lemma cond_case_prod_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
+lemma cond_case_prod_eta: "(\<And>x y. f x y = g (x, y)) \<Longrightarrow> (\<lambda>(x, y). f x y) = g"
   by (simp add: case_prod_eta)
 
-lemma split_paired_all [no_atp]: "(!!x. PROP P x) == (!!a b. PROP P (a, b))"
+lemma split_paired_all [no_atp]: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))"
 proof
   fix a b
-  assume "!!x. PROP P x"
+  assume "\<And>x. PROP P x"
   then show "PROP P (a, b)" .
 next
   fix x
-  assume "!!a b. PROP P (a, b)"
+  assume "\<And>a b. PROP P (a, b)"
   from \<open>PROP P (fst x, snd x)\<close> show "PROP P x" by simp
 qed
 
 text \<open>
   The rule @{thm [source] split_paired_all} does not work with the
   Simplifier because it also affects premises in congrence rules,
-  where this can lead to premises of the form \<open>!!a b. ... =
-  ?P(a, b)\<close> which cannot be solved by reflexivity.
+  where this can lead to premises of the form \<open>\<And>a b. \<dots> = ?P(a, b)\<close>
+  which cannot be solved by reflexivity.
 \<close>
 
 lemmas split_tupled_all = split_paired_all unit_all_eq2
@@ -520,11 +503,11 @@ ML \<open>
 
 setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
 
-lemma split_paired_All [simp, no_atp]: "(ALL x. P x) = (ALL a b. P (a, b))"
+lemma split_paired_All [simp, no_atp]: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>a b. P (a, b))"
   \<comment> \<open>\<open>[iff]\<close> is not a good idea because it makes \<open>blast\<close> loop\<close>
   by fast
 
-lemma split_paired_Ex [simp, no_atp]: "(EX x. P x) = (EX a b. P (a, b))"
+lemma split_paired_Ex [simp, no_atp]: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>a b. P (a, b))"
   by fast
 
 lemma split_paired_The [no_atp]: "(THE x. P x) = (THE (a, b). P (a, b))"
@@ -590,9 +573,9 @@ lemma case_prod_beta': "(\<lambda>(x,y). f x y) = (\<lambda>x. f (fst x) (snd x)
   by (auto simp: fun_eq_iff)
 
 text \<open>
-  \medskip @{const case_prod} used as a logical connective or set former.
+  \<^medskip> @{const case_prod} used as a logical connective or set former.
 
-  \medskip These rules are for use with \<open>blast\<close>; could instead
+  \<^medskip> These rules are for use with \<open>blast\<close>; could instead
   call \<open>simp\<close> using @{thm [source] prod.split} as rewrite.\<close>
 
 lemma case_prodI2:
@@ -621,12 +604,10 @@ proof (rule r)
     using q by (simp add: case_prod_unfold)
 qed
 
-lemma case_prodD':
-  "(case (a, b) of (c, d) \<Rightarrow> R c d) c \<Longrightarrow> R a b c"
+lemma case_prodD': "(case (a, b) of (c, d) \<Rightarrow> R c d) c \<Longrightarrow> R a b c"
   by simp
 
-lemma mem_case_prodI:
-  "z \<in> c a b \<Longrightarrow> z \<in> (case (a, b) of (d, e) \<Rightarrow> c d e)"
+lemma mem_case_prodI: "z \<in> c a b \<Longrightarrow> z \<in> (case (a, b) of (d, e) \<Rightarrow> c d e)"
   by simp
 
 lemma mem_case_prodI2 [intro!]:
@@ -661,13 +642,13 @@ end;
    to quite time-consuming computations (in particular for nested tuples) *)
 setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_conv_tac", split_conv_tac))\<close>
 
-lemma split_eta_SetCompr [simp, no_atp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
+lemma split_eta_SetCompr [simp, no_atp]: "(\<lambda>u. \<exists>x y. u = (x, y) \<and> P (x, y)) = P"
   by (rule ext) fast
 
-lemma split_eta_SetCompr2 [simp, no_atp]: "(%u. EX x y. u = (x, y) & P x y) = case_prod P"
+lemma split_eta_SetCompr2 [simp, no_atp]: "(\<lambda>u. \<exists>x y. u = (x, y) \<and> P x y) = case_prod P"
   by (rule ext) fast
 
-lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & case_prod Q ab)"
+lemma split_part [simp]: "(\<lambda>(a,b). P \<and> Q a b) = (\<lambda>ab. P \<and> case_prod Q ab)"
   \<comment> \<open>Allows simplifications of nested splits in case of independent predicates.\<close>
   by (rule ext) blast
 
@@ -676,16 +657,15 @@ lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & case_prod Q ab)"
    b) can lead to nontermination in the presence of split_def
 *)
 lemma split_comp_eq: 
-  fixes f :: "'a => 'b => 'c" and g :: "'d => 'a"
-  shows "(%u. f (g (fst u)) (snd u)) = (case_prod (%x. f (g x)))"
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c"
+    and g :: "'d \<Rightarrow> 'a"
+  shows "(\<lambda>u. f (g (fst u)) (snd u)) = case_prod (\<lambda>x. f (g x))"
   by (rule ext) auto
 
-lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
-  apply (rule_tac x = "(a, b)" in image_eqI)
-   apply auto
-  done
+lemma pair_imageI [intro]: "(a, b) \<in> A \<Longrightarrow> f a b \<in> (\<lambda>(a, b). f a b) ` A"
+  by (rule image_eqI [where x = "(a, b)"]) auto
 
-lemma The_split_eq [simp]: "(THE (x',y'). x = x' & y = y') = (x, y)"
+lemma The_split_eq [simp]: "(THE (x',y'). x = x' \<and> y = y') = (x, y)"
   by blast
 
 (*
@@ -701,8 +681,7 @@ by (Asm_full_simp_tac 1)
 qed "The_split_eq";
 *)
 
-lemma case_prod_beta:
-  "case_prod f p = f (fst p) (snd p)"
+lemma case_prod_beta: "case_prod f p = f (fst p) (snd p)"
   by (fact prod.case_eq_if)
 
 lemma prod_cases3 [cases type]:
@@ -710,7 +689,7 @@ lemma prod_cases3 [cases type]:
   by (cases y, case_tac b) blast
 
 lemma prod_induct3 [case_names fields, induct type]:
-    "(!!a b c. P (a, b, c)) ==> P x"
+  "(\<And>a b c. P (a, b, c)) \<Longrightarrow> P x"
   by (cases x) blast
 
 lemma prod_cases4 [cases type]:
@@ -718,7 +697,7 @@ lemma prod_cases4 [cases type]:
   by (cases y, case_tac c) blast
 
 lemma prod_induct4 [case_names fields, induct type]:
-    "(!!a b c d. P (a, b, c, d)) ==> P x"
+  "(\<And>a b c d. P (a, b, c, d)) \<Longrightarrow> P x"
   by (cases x) blast
 
 lemma prod_cases5 [cases type]:
@@ -726,7 +705,7 @@ lemma prod_cases5 [cases type]:
   by (cases y, case_tac d) blast
 
 lemma prod_induct5 [case_names fields, induct type]:
-    "(!!a b c d e. P (a, b, c, d, e)) ==> P x"
+  "(\<And>a b c d e. P (a, b, c, d, e)) \<Longrightarrow> P x"
   by (cases x) blast
 
 lemma prod_cases6 [cases type]:
@@ -734,7 +713,7 @@ lemma prod_cases6 [cases type]:
   by (cases y, case_tac e) blast
 
 lemma prod_induct6 [case_names fields, induct type]:
-    "(!!a b c d e f. P (a, b, c, d, e, f)) ==> P x"
+  "(\<And>a b c d e f. P (a, b, c, d, e, f)) \<Longrightarrow> P x"
   by (cases x) blast
 
 lemma prod_cases7 [cases type]:
@@ -742,11 +721,11 @@ lemma prod_cases7 [cases type]:
   by (cases y, case_tac f) blast
 
 lemma prod_induct7 [case_names fields, induct type]:
-    "(!!a b c d e f g. P (a, b, c, d, e, f, g)) ==> P x"
+  "(\<And>a b c d e f g. P (a, b, c, d, e, f, g)) \<Longrightarrow> P x"
   by (cases x) blast
 
-definition internal_case_prod :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
-  "internal_case_prod == case_prod"
+definition internal_case_prod :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"
+  where "internal_case_prod \<equiv> case_prod"
 
 lemma internal_case_prod_conv: "internal_case_prod c (a, b) = c a b"
   by (simp only: internal_case_prod_def case_prod_conv)
@@ -758,8 +737,8 @@ hide_const internal_case_prod
 
 subsubsection \<open>Derived operations\<close>
 
-definition curry :: "('a \<times> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c" where
-  "curry = (\<lambda>c x y. c (x, y))"
+definition curry :: "('a \<times> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c"
+  where "curry = (\<lambda>c x y. c (x, y))"
 
 lemma curry_conv [simp, code]: "curry f a b = f (a, b)"
   by (simp add: curry_def)
@@ -780,16 +759,14 @@ lemma case_prod_curry [simp]: "case_prod (curry f) = f"
   by (simp add: curry_def case_prod_unfold)
 
 lemma curry_K: "curry (\<lambda>x. c) = (\<lambda>x y. c)"
-by(simp add: fun_eq_iff)
+  by (simp add: fun_eq_iff)
 
-text \<open>
-  The composition-uncurry combinator.
-\<close>
+text \<open>The composition-uncurry combinator.\<close>
 
 notation fcomp (infixl "\<circ>>" 60)
 
-definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "\<circ>\<rightarrow>" 60) where
-  "f \<circ>\<rightarrow> g = (\<lambda>x. case_prod g (f x))"
+definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"  (infixl "\<circ>\<rightarrow>" 60)
+  where "f \<circ>\<rightarrow> g = (\<lambda>x. case_prod g (f x))"
 
 lemma scomp_unfold: "scomp = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
   by (simp add: fun_eq_iff scomp_def case_prod_unfold)
@@ -819,46 +796,37 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text \<open>
-  @{term map_prod} --- action of the product functor upon
-  functions.
+  @{term map_prod} --- action of the product functor upon functions.
 \<close>
 
-definition map_prod :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
-  "map_prod f g = (\<lambda>(x, y). (f x, g y))"
+definition map_prod :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd"
+  where "map_prod f g = (\<lambda>(x, y). (f x, g y))"
 
-lemma map_prod_simp [simp, code]:
-  "map_prod f g (a, b) = (f a, g b)"
+lemma map_prod_simp [simp, code]: "map_prod f g (a, b) = (f a, g b)"
   by (simp add: map_prod_def)
 
 functor map_prod: map_prod
   by (auto simp add: split_paired_all)
 
-lemma fst_map_prod [simp]:
-  "fst (map_prod f g x) = f (fst x)"
+lemma fst_map_prod [simp]: "fst (map_prod f g x) = f (fst x)"
   by (cases x) simp_all
 
-lemma snd_map_prod [simp]:
-  "snd (map_prod f g x) = g (snd x)"
+lemma snd_map_prod [simp]: "snd (map_prod f g x) = g (snd x)"
   by (cases x) simp_all
 
-lemma fst_comp_map_prod [simp]:
-  "fst \<circ> map_prod f g = f \<circ> fst"
+lemma fst_comp_map_prod [simp]: "fst \<circ> map_prod f g = f \<circ> fst"
   by (rule ext) simp_all
 
-lemma snd_comp_map_prod [simp]:
-  "snd \<circ> map_prod f g = g \<circ> snd"
+lemma snd_comp_map_prod [simp]: "snd \<circ> map_prod f g = g \<circ> snd"
   by (rule ext) simp_all
 
-lemma map_prod_compose:
-  "map_prod (f1 o f2) (g1 o g2) = (map_prod f1 g1 o map_prod f2 g2)"
+lemma map_prod_compose: "map_prod (f1 \<circ> f2) (g1 \<circ> g2) = (map_prod f1 g1 \<circ> map_prod f2 g2)"
   by (rule ext) (simp add: map_prod.compositionality comp_def)
 
-lemma map_prod_ident [simp]:
-  "map_prod (%x. x) (%y. y) = (%z. z)"
+lemma map_prod_ident [simp]: "map_prod (\<lambda>x. x) (\<lambda>y. y) = (\<lambda>z. z)"
   by (rule ext) (simp add: map_prod.identity)
 
-lemma map_prod_imageI [intro]:
-  "(a, b) \<in> R \<Longrightarrow> (f a, g b) \<in> map_prod f g ` R"
+lemma map_prod_imageI [intro]: "(a, b) \<in> R \<Longrightarrow> (f a, g b) \<in> map_prod f g ` R"
   by (rule image_eqI) simp_all
 
 lemma prod_fun_imageE [elim!]:
@@ -871,86 +839,67 @@ lemma prod_fun_imageE [elim!]:
   apply simp_all
   done
 
-definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b" where
-  "apfst f = map_prod f id"
+definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
+  where "apfst f = map_prod f id"
 
-definition apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c" where
-  "apsnd f = map_prod id f"
+definition apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
+  where "apsnd f = map_prod id f"
 
-lemma apfst_conv [simp, code]:
-  "apfst f (x, y) = (f x, y)" 
+lemma apfst_conv [simp, code]: "apfst f (x, y) = (f x, y)" 
   by (simp add: apfst_def)
 
-lemma apsnd_conv [simp, code]:
-  "apsnd f (x, y) = (x, f y)" 
+lemma apsnd_conv [simp, code]: "apsnd f (x, y) = (x, f y)" 
   by (simp add: apsnd_def)
 
-lemma fst_apfst [simp]:
-  "fst (apfst f x) = f (fst x)"
+lemma fst_apfst [simp]: "fst (apfst f x) = f (fst x)"
   by (cases x) simp
 
-lemma fst_comp_apfst [simp]:
-  "fst \<circ> apfst f = f \<circ> fst"
+lemma fst_comp_apfst [simp]: "fst \<circ> apfst f = f \<circ> fst"
   by (simp add: fun_eq_iff)
 
-lemma fst_apsnd [simp]:
-  "fst (apsnd f x) = fst x"
+lemma fst_apsnd [simp]: "fst (apsnd f x) = fst x"
   by (cases x) simp
 
-lemma fst_comp_apsnd [simp]:
-  "fst \<circ> apsnd f = fst"
+lemma fst_comp_apsnd [simp]: "fst \<circ> apsnd f = fst"
   by (simp add: fun_eq_iff)
 
-lemma snd_apfst [simp]:
-  "snd (apfst f x) = snd x"
+lemma snd_apfst [simp]: "snd (apfst f x) = snd x"
   by (cases x) simp
 
-lemma snd_comp_apfst [simp]:
-  "snd \<circ> apfst f = snd"
+lemma snd_comp_apfst [simp]: "snd \<circ> apfst f = snd"
   by (simp add: fun_eq_iff)
 
-lemma snd_apsnd [simp]:
-  "snd (apsnd f x) = f (snd x)"
+lemma snd_apsnd [simp]: "snd (apsnd f x) = f (snd x)"
   by (cases x) simp
 
-lemma snd_comp_apsnd [simp]:
-  "snd \<circ> apsnd f = f \<circ> snd"
+lemma snd_comp_apsnd [simp]: "snd \<circ> apsnd f = f \<circ> snd"
   by (simp add: fun_eq_iff)
 
-lemma apfst_compose:
-  "apfst f (apfst g x) = apfst (f \<circ> g) x"
+lemma apfst_compose: "apfst f (apfst g x) = apfst (f \<circ> g) x"
   by (cases x) simp
 
-lemma apsnd_compose:
-  "apsnd f (apsnd g x) = apsnd (f \<circ> g) x"
+lemma apsnd_compose: "apsnd f (apsnd g x) = apsnd (f \<circ> g) x"
   by (cases x) simp
 
-lemma apfst_apsnd [simp]:
-  "apfst f (apsnd g x) = (f (fst x), g (snd x))"
+lemma apfst_apsnd [simp]: "apfst f (apsnd g x) = (f (fst x), g (snd x))"
   by (cases x) simp
 
-lemma apsnd_apfst [simp]:
-  "apsnd f (apfst g x) = (g (fst x), f (snd x))"
+lemma apsnd_apfst [simp]: "apsnd f (apfst g x) = (g (fst x), f (snd x))"
   by (cases x) simp
 
-lemma apfst_id [simp] :
-  "apfst id = id"
+lemma apfst_id [simp]: "apfst id = id"
   by (simp add: fun_eq_iff)
 
-lemma apsnd_id [simp] :
-  "apsnd id = id"
+lemma apsnd_id [simp]: "apsnd id = id"
   by (simp add: fun_eq_iff)
 
-lemma apfst_eq_conv [simp]:
-  "apfst f x = apfst g x \<longleftrightarrow> f (fst x) = g (fst x)"
+lemma apfst_eq_conv [simp]: "apfst f x = apfst g x \<longleftrightarrow> f (fst x) = g (fst x)"
   by (cases x) simp
 
-lemma apsnd_eq_conv [simp]:
-  "apsnd f x = apsnd g x \<longleftrightarrow> f (snd x) = g (snd x)"
+lemma apsnd_eq_conv [simp]: "apsnd f x = apsnd g x \<longleftrightarrow> f (snd x) = g (snd x)"
   by (cases x) simp
 
-lemma apsnd_apfst_commute:
-  "apsnd f (apfst g p) = apfst g (apsnd f p)"
+lemma apsnd_apfst_commute: "apsnd f (apfst g p) = apfst g (apsnd f p)"
   by simp
 
 context
@@ -959,104 +908,83 @@ begin
 local_setup \<open>Local_Theory.map_background_naming (Name_Space.mandatory_path "prod")\<close>
 
 definition swap :: "'a \<times> 'b \<Rightarrow> 'b \<times> 'a"
-where
-  "swap p = (snd p, fst p)"
+  where "swap p = (snd p, fst p)"
 
 end
 
-lemma swap_simp [simp]:
-  "prod.swap (x, y) = (y, x)"
+lemma swap_simp [simp]: "prod.swap (x, y) = (y, x)"
   by (simp add: prod.swap_def)
 
-lemma swap_swap [simp]:
-  "prod.swap (prod.swap p) = p"
+lemma swap_swap [simp]: "prod.swap (prod.swap p) = p"
   by (cases p) simp
 
-lemma swap_comp_swap [simp]:
-  "prod.swap \<circ> prod.swap = id"
+lemma swap_comp_swap [simp]: "prod.swap \<circ> prod.swap = id"
   by (simp add: fun_eq_iff)
 
-lemma pair_in_swap_image [simp]:
-  "(y, x) \<in> prod.swap ` A \<longleftrightarrow> (x, y) \<in> A"
+lemma pair_in_swap_image [simp]: "(y, x) \<in> prod.swap ` A \<longleftrightarrow> (x, y) \<in> A"
   by (auto intro!: image_eqI)
 
-lemma inj_swap [simp]:
-  "inj_on prod.swap A"
+lemma inj_swap [simp]: "inj_on prod.swap A"
   by (rule inj_onI) auto
 
-lemma swap_inj_on:
-  "inj_on (\<lambda>(i, j). (j, i)) A"
+lemma swap_inj_on: "inj_on (\<lambda>(i, j). (j, i)) A"
   by (rule inj_onI) auto
 
-lemma surj_swap [simp]:
-  "surj prod.swap"
+lemma surj_swap [simp]: "surj prod.swap"
   by (rule surjI [of _ prod.swap]) simp
 
-lemma bij_swap [simp]:
-  "bij prod.swap"
+lemma bij_swap [simp]: "bij prod.swap"
   by (simp add: bij_def)
 
-lemma case_swap [simp]:
-  "(case prod.swap p of (y, x) \<Rightarrow> f x y) = (case p of (x, y) \<Rightarrow> f x y)"
+lemma case_swap [simp]: "(case prod.swap p of (y, x) \<Rightarrow> f x y) = (case p of (x, y) \<Rightarrow> f x y)"
   by (cases p) simp
 
 lemma fst_swap [simp]: "fst (prod.swap x) = snd x"
-by(cases x) simp
+  by (cases x) simp
 
 lemma snd_swap [simp]: "snd (prod.swap x) = fst x"
-by(cases x) simp
+  by (cases x) simp
 
-text \<open>
-  Disjoint union of a family of sets -- Sigma.
-\<close>
+text \<open>Disjoint union of a family of sets -- Sigma.\<close>
 
-definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<times> 'b) set" where
-  Sigma_def: "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
+definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<times> 'b) set"
+  where "Sigma A B \<equiv> \<Union>x\<in>A. \<Union>y\<in>B x. {Pair x y}"
 
-abbreviation
-  Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr "\<times>" 80) where
-  "A \<times> B == Sigma A (%_. B)"
+abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr "\<times>" 80)
+  where "A \<times> B \<equiv> Sigma A (\<lambda>_. B)"
 
 hide_const (open) Times
 
 syntax
-  "_Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
+  "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 translations
-  "SIGMA x:A. B" == "CONST Sigma A (%x. B)"
+  "SIGMA x:A. B" \<rightleftharpoons> "CONST Sigma A (\<lambda>x. B)"
 
-lemma SigmaI [intro!]: "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B"
-  by (unfold Sigma_def) blast
+lemma SigmaI [intro!]: "a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> (a, b) \<in> Sigma A B"
+  unfolding Sigma_def by blast
 
-lemma SigmaE [elim!]:
-    "[| c: Sigma A B;
-        !!x y.[| x:A;  y:B(x);  c=(x,y) |] ==> P
-     |] ==> P"
+lemma SigmaE [elim!]: "c \<in> Sigma A B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> B x \<Longrightarrow> c = (x, y) \<Longrightarrow> P) \<Longrightarrow> P"
   \<comment> \<open>The general elimination rule.\<close>
-  by (unfold Sigma_def) blast
+  unfolding Sigma_def by blast
 
 text \<open>
-  Elimination of @{term "(a, b) : A \<times> B"} -- introduces no
+  Elimination of @{term "(a, b) \<in> A \<times> B"} -- introduces no
   eigenvariables.
 \<close>
 
-lemma SigmaD1: "(a, b) : Sigma A B ==> a : A"
+lemma SigmaD1: "(a, b) \<in> Sigma A B \<Longrightarrow> a \<in> A"
   by blast
 
-lemma SigmaD2: "(a, b) : Sigma A B ==> b : B a"
+lemma SigmaD2: "(a, b) \<in> Sigma A B \<Longrightarrow> b \<in> B a"
   by blast
 
-lemma SigmaE2:
-    "[| (a, b) : Sigma A B;
-        [| a:A;  b:B(a) |] ==> P
-     |] ==> P"
+lemma SigmaE2: "(a, b) \<in> Sigma A B \<Longrightarrow> (a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> P) \<Longrightarrow> P"
   by blast
 
-lemma Sigma_cong:
-     "\<lbrakk>A = B; !!x. x \<in> B \<Longrightarrow> C x = D x\<rbrakk>
-      \<Longrightarrow> (SIGMA x: A. C x) = (SIGMA x: B. D x)"
+lemma Sigma_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (SIGMA x:A. C x) = (SIGMA x:B. D x)"
   by auto
 
-lemma Sigma_mono: "[| A <= C; !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D"
+lemma Sigma_mono: "A \<subseteq> C \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> D x) \<Longrightarrow> Sigma A B \<subseteq> Sigma C D"
   by blast
 
 lemma Sigma_empty1 [simp]: "Sigma {} B = {}"
@@ -1074,7 +1002,7 @@ lemma Compl_Times_UNIV1 [simp]: "- (UNIV \<times> A) = UNIV \<times> (-A)"
 lemma Compl_Times_UNIV2 [simp]: "- (A \<times> UNIV) = (-A) \<times> UNIV"
   by auto
 
-lemma mem_Sigma_iff [iff]: "((a,b): Sigma A B) = (a:A & b:B(a))"
+lemma mem_Sigma_iff [iff]: "(a, b) \<in> Sigma A B \<longleftrightarrow> a \<in> A \<and> b \<in> B a"
   by blast
 
 lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
@@ -1083,26 +1011,22 @@ lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \
 lemma Sigma_empty_iff: "(SIGMA i:I. X i) = {} \<longleftrightarrow> (\<forall>i\<in>I. X i = {})"
   by auto
 
-lemma Times_subset_cancel2: "x:C ==> (A \<times> C <= B \<times> C) = (A <= B)"
+lemma Times_subset_cancel2: "x \<in> C \<Longrightarrow> A \<times> C \<subseteq> B \<times> C \<longleftrightarrow> A \<subseteq> B"
   by blast
 
-lemma Times_eq_cancel2: "x:C ==> (A \<times> C = B \<times> C) = (A = B)"
+lemma Times_eq_cancel2: "x \<in> C \<Longrightarrow> A \<times> C = B \<times> C \<longleftrightarrow> A = B"
   by (blast elim: equalityE)
 
-lemma Collect_case_prod_Sigma:
-  "{(x, y). P x \<and> Q x y} = (SIGMA x:Collect P. Collect (Q x))"
+lemma Collect_case_prod_Sigma: "{(x, y). P x \<and> Q x y} = (SIGMA x:Collect P. Collect (Q x))"
   by blast
 
-lemma Collect_case_prod [simp]:
-  "{(a, b). P a \<and> Q b} = Collect P \<times> Collect Q "
+lemma Collect_case_prod [simp]: "{(a, b). P a \<and> Q b} = Collect P \<times> Collect Q "
   by (fact Collect_case_prod_Sigma)
 
-lemma Collect_case_prodD:
-  "x \<in> Collect (case_prod A) \<Longrightarrow> A (fst x) (snd x)"
+lemma Collect_case_prodD: "x \<in> Collect (case_prod A) \<Longrightarrow> A (fst x) (snd x)"
   by auto
 
-lemma Collect_case_prod_mono:
-  "A \<le> B \<Longrightarrow> Collect (case_prod A) \<subseteq> Collect (case_prod B)"
+lemma Collect_case_prod_mono: "A \<le> B \<Longrightarrow> Collect (case_prod A) \<subseteq> Collect (case_prod B)"
   by auto (auto elim!: le_funE)
 
 lemma Collect_split_mono_strong: 
@@ -1110,45 +1034,35 @@ lemma Collect_split_mono_strong:
     \<Longrightarrow> A \<subseteq> Collect (case_prod P) \<Longrightarrow> A \<subseteq> Collect (case_prod Q)"
   by fastforce
   
-lemma UN_Times_distrib:
-  "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = UNION A E \<times> UNION B F"
+lemma UN_Times_distrib: "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = UNION A E \<times> UNION B F"
   \<comment> \<open>Suggested by Pierre Chartier\<close>
   by blast
 
-lemma split_paired_Ball_Sigma [simp, no_atp]:
-  "(\<forall>z\<in>Sigma A B. P z) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B x. P (x, y))"
+lemma split_paired_Ball_Sigma [simp, no_atp]: "(\<forall>z\<in>Sigma A B. P z) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B x. P (x, y))"
   by blast
 
-lemma split_paired_Bex_Sigma [simp, no_atp]:
-  "(\<exists>z\<in>Sigma A B. P z) \<longleftrightarrow> (\<exists>x\<in>A. \<exists>y\<in>B x. P (x, y))"
+lemma split_paired_Bex_Sigma [simp, no_atp]: "(\<exists>z\<in>Sigma A B. P z) \<longleftrightarrow> (\<exists>x\<in>A. \<exists>y\<in>B x. P (x, y))"
   by blast
 
-lemma Sigma_Un_distrib1:
-  "Sigma (I \<union> J) C = Sigma I C \<union> Sigma J C"
+lemma Sigma_Un_distrib1: "Sigma (I \<union> J) C = Sigma I C \<union> Sigma J C"
   by blast
 
-lemma Sigma_Un_distrib2:
-  "(SIGMA i:I. A i \<union> B i) = Sigma I A \<union> Sigma I B"
+lemma Sigma_Un_distrib2: "(SIGMA i:I. A i \<union> B i) = Sigma I A \<union> Sigma I B"
   by blast
 
-lemma Sigma_Int_distrib1:
-  "Sigma (I \<inter> J) C = Sigma I C \<inter> Sigma J C"
+lemma Sigma_Int_distrib1: "Sigma (I \<inter> J) C = Sigma I C \<inter> Sigma J C"
   by blast
 
-lemma Sigma_Int_distrib2:
-  "(SIGMA i:I. A i \<inter> B i) = Sigma I A \<inter> Sigma I B"
+lemma Sigma_Int_distrib2: "(SIGMA i:I. A i \<inter> B i) = Sigma I A \<inter> Sigma I B"
   by blast
 
-lemma Sigma_Diff_distrib1:
-  "Sigma (I - J) C = Sigma I C - Sigma J C"
+lemma Sigma_Diff_distrib1: "Sigma (I - J) C = Sigma I C - Sigma J C"
   by blast
 
-lemma Sigma_Diff_distrib2:
-  "(SIGMA i:I. A i - B i) = Sigma I A - Sigma I B"
+lemma Sigma_Diff_distrib2: "(SIGMA i:I. A i - B i) = Sigma I A - Sigma I B"
   by blast
 
-lemma Sigma_Union:
-  "Sigma (\<Union>X) B = (\<Union>A\<in>X. Sigma A B)"
+lemma Sigma_Union: "Sigma (\<Union>X) B = (\<Union>A\<in>X. Sigma A B)"
   by blast
 
 lemma Pair_vimage_Sigma: "Pair x -` Sigma A f = (if x \<in> A then f x else {})"
@@ -1159,79 +1073,62 @@ text \<open>
   matching, especially when the rules are re-oriented.
 \<close>
 
-lemma Times_Un_distrib1:
-  "(A \<union> B) \<times> C = A \<times> C \<union> B \<times> C "
+lemma Times_Un_distrib1: "(A \<union> B) \<times> C = A \<times> C \<union> B \<times> C "
   by (fact Sigma_Un_distrib1)
 
-lemma Times_Int_distrib1:
-  "(A \<inter> B) \<times> C = A \<times> C \<inter> B \<times> C "
+lemma Times_Int_distrib1: "(A \<inter> B) \<times> C = A \<times> C \<inter> B \<times> C "
   by (fact Sigma_Int_distrib1)
 
-lemma Times_Diff_distrib1:
-  "(A - B) \<times> C = A \<times> C - B \<times> C "
+lemma Times_Diff_distrib1: "(A - B) \<times> C = A \<times> C - B \<times> C "
   by (fact Sigma_Diff_distrib1)
 
-lemma Times_empty [simp]:
-  "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
+lemma Times_empty [simp]: "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
   by auto
 
-lemma times_eq_iff:
-  "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> (A = {} \<or> B = {}) \<and> (C = {} \<or> D = {})"
+lemma times_eq_iff: "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> (A = {} \<or> B = {}) \<and> (C = {} \<or> D = {})"
   by auto
 
-lemma fst_image_times [simp]:
-  "fst ` (A \<times> B) = (if B = {} then {} else A)"
+lemma fst_image_times [simp]: "fst ` (A \<times> B) = (if B = {} then {} else A)"
   by force
 
-lemma snd_image_times [simp]:
-  "snd ` (A \<times> B) = (if A = {} then {} else B)"
+lemma snd_image_times [simp]: "snd ` (A \<times> B) = (if A = {} then {} else B)"
   by force
 
-lemma fst_image_Sigma:
-  "fst ` (Sigma A B) = {x \<in> A. B(x) \<noteq> {}}"
+lemma fst_image_Sigma: "fst ` (Sigma A B) = {x \<in> A. B(x) \<noteq> {}}"
   by force
 
-lemma snd_image_Sigma:
-  "snd ` (Sigma A B) = (\<Union> x \<in> A. B x)"
+lemma snd_image_Sigma: "snd ` (Sigma A B) = (\<Union> x \<in> A. B x)"
   by force
 
-lemma vimage_fst:
-  "fst -` A = A \<times> UNIV"
+lemma vimage_fst: "fst -` A = A \<times> UNIV"
   by auto
 
-lemma vimage_snd:
-  "snd -` A = UNIV \<times> A"
+lemma vimage_snd: "snd -` A = UNIV \<times> A"
   by auto
 
-lemma insert_times_insert[simp]:
-  "insert a A \<times> insert b B =
-   insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
+lemma insert_times_insert [simp]:
+  "insert a A \<times> insert b B = insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
   by blast
 
-lemma vimage_Times:
-  "f -` (A \<times> B) = (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B"
+lemma vimage_Times: "f -` (A \<times> B) = (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B"
 proof (rule set_eqI)
-  fix x
-  show "x \<in> f -` (A \<times> B) \<longleftrightarrow> x \<in> (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B"
+  show "x \<in> f -` (A \<times> B) \<longleftrightarrow> x \<in> (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B" for x
     by (cases "f x") (auto split: prod.split)
 qed
 
-lemma times_Int_times:
-  "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
+lemma times_Int_times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
   by auto
 
-lemma product_swap:
-  "prod.swap ` (A \<times> B) = B \<times> A"
+lemma product_swap: "prod.swap ` (A \<times> B) = B \<times> A"
   by (auto simp add: set_eq_iff)
 
-lemma swap_product:
-  "(\<lambda>(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
+lemma swap_product: "(\<lambda>(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
   by (auto simp add: set_eq_iff)
 
-lemma image_split_eq_Sigma:
-  "(\<lambda>x. (f x, g x)) ` A = Sigma (f ` A) (\<lambda>x. g ` (f -` {x} \<inter> A))"
+lemma image_split_eq_Sigma: "(\<lambda>x. (f x, g x)) ` A = Sigma (f ` A) (\<lambda>x. g ` (f -` {x} \<inter> A))"
 proof (safe intro!: imageI)
-  fix a b assume *: "a \<in> A" "b \<in> A" and eq: "f a = f b"
+  fix a b
+  assume *: "a \<in> A" "b \<in> A" and eq: "f a = f b"
   show "(f b, g a) \<in> (\<lambda>x. (f x, g x)) ` A"
     using * eq[symmetric] by auto
 qed simp_all
@@ -1240,16 +1137,16 @@ lemma subset_fst_snd: "A \<subseteq> (fst ` A \<times> snd ` A)"
   by force
 
 lemma inj_on_apfst [simp]: "inj_on (apfst f) (A \<times> UNIV) \<longleftrightarrow> inj_on f A"
-by(auto simp add: inj_on_def)
+  by (auto simp add: inj_on_def)
 
 lemma inj_apfst [simp]: "inj (apfst f) \<longleftrightarrow> inj f"
-using inj_on_apfst[of f UNIV] by simp
+  using inj_on_apfst[of f UNIV] by simp
 
 lemma inj_on_apsnd [simp]: "inj_on (apsnd f) (UNIV \<times> A) \<longleftrightarrow> inj_on f A"
-by(auto simp add: inj_on_def)
+  by (auto simp add: inj_on_def)
 
 lemma inj_apsnd [simp]: "inj (apsnd f) \<longleftrightarrow> inj f"
-using inj_on_apsnd[of f UNIV] by simp
+  using inj_on_apsnd[of f UNIV] by simp
 
 context
 begin
@@ -1257,9 +1154,8 @@ begin
 qualified definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
   [code_abbrev]: "product A B = A \<times> B"
 
-lemma member_product:
-  "x \<in> Product_Type.product A B \<longleftrightarrow> x \<in> A \<times> B"
-  by (simp add: Product_Type.product_def)
+lemma member_product: "x \<in> Product_Type.product A B \<longleftrightarrow> x \<in> A \<times> B"
+  by (simp add: product_def)
 
 end
   
@@ -1269,59 +1165,80 @@ lemma map_prod_inj_on:
   assumes "inj_on f A" and "inj_on g B"
   shows "inj_on (map_prod f g) (A \<times> B)"
 proof (rule inj_onI)
-  fix x :: "'a \<times> 'c" and y :: "'a \<times> 'c"
-  assume "x \<in> A \<times> B" hence "fst x \<in> A" and "snd x \<in> B" by auto
-  assume "y \<in> A \<times> B" hence "fst y \<in> A" and "snd y \<in> B" by auto
+  fix x :: "'a \<times> 'c"
+  fix y :: "'a \<times> 'c"
+  assume "x \<in> A \<times> B"
+  then have "fst x \<in> A" and "snd x \<in> B" by auto
+  assume "y \<in> A \<times> B"
+  then have "fst y \<in> A" and "snd y \<in> B" by auto
   assume "map_prod f g x = map_prod f g y"
-  hence "fst (map_prod f g x) = fst (map_prod f g y)" by (auto)
-  hence "f (fst x) = f (fst y)" by (cases x,cases y,auto)
-  with \<open>inj_on f A\<close> and \<open>fst x \<in> A\<close> and \<open>fst y \<in> A\<close>
-  have "fst x = fst y" by (auto dest:dest:inj_onD)
+  then have "fst (map_prod f g x) = fst (map_prod f g y)" by auto
+  then have "f (fst x) = f (fst y)" by (cases x, cases y) auto
+  with \<open>inj_on f A\<close> and \<open>fst x \<in> A\<close> and \<open>fst y \<in> A\<close> have "fst x = fst y"
+    by (auto dest: inj_onD)
   moreover from \<open>map_prod f g x = map_prod f g y\<close>
-  have "snd (map_prod f g x) = snd (map_prod f g y)" by (auto)
-  hence "g (snd x) = g (snd y)" by (cases x,cases y,auto)
-  with \<open>inj_on g B\<close> and \<open>snd x \<in> B\<close> and \<open>snd y \<in> B\<close>
-  have "snd x = snd y" by (auto dest:dest:inj_onD)
-  ultimately show "x = y" by(rule prod_eqI)
+  have "snd (map_prod f g x) = snd (map_prod f g y)" by auto
+  then have "g (snd x) = g (snd y)" by (cases x, cases y) auto
+  with \<open>inj_on g B\<close> and \<open>snd x \<in> B\<close> and \<open>snd y \<in> B\<close> have "snd x = snd y"
+    by (auto dest: inj_onD)
+  ultimately show "x = y" by (rule prod_eqI)
 qed
 
 lemma map_prod_surj:
-  fixes f :: "'a \<Rightarrow> 'b" and g :: "'c \<Rightarrow> 'd"
+  fixes f :: "'a \<Rightarrow> 'b"
+    and g :: "'c \<Rightarrow> 'd"
   assumes "surj f" and "surj g"
   shows "surj (map_prod f g)"
-unfolding surj_def
+  unfolding surj_def
 proof
   fix y :: "'b \<times> 'd"
-  from \<open>surj f\<close> obtain a where "fst y = f a" by (auto elim:surjE)
+  from \<open>surj f\<close> obtain a where "fst y = f a"
+    by (auto elim: surjE)
   moreover
-  from \<open>surj g\<close> obtain b where "snd y = g b" by (auto elim:surjE)
-  ultimately have "(fst y, snd y) = map_prod f g (a,b)" by auto
-  thus "\<exists>x. y = map_prod f g x" by auto
+  from \<open>surj g\<close> obtain b where "snd y = g b"
+    by (auto elim: surjE)
+  ultimately have "(fst y, snd y) = map_prod f g (a,b)"
+    by auto
+  then show "\<exists>x. y = map_prod f g x"
+    by auto
 qed
 
 lemma map_prod_surj_on:
   assumes "f ` A = A'" and "g ` B = B'"
   shows "map_prod f g ` (A \<times> B) = A' \<times> B'"
-unfolding image_def
-proof(rule set_eqI,rule iffI)
+  unfolding image_def
+proof (rule set_eqI, rule iffI)
   fix x :: "'a \<times> 'c"
   assume "x \<in> {y::'a \<times> 'c. \<exists>x::'b \<times> 'd\<in>A \<times> B. y = map_prod f g x}"
-  then obtain y where "y \<in> A \<times> B" and "x = map_prod f g y" by blast
-  from \<open>image f A = A'\<close> and \<open>y \<in> A \<times> B\<close> have "f (fst y) \<in> A'" by auto
-  moreover from \<open>image g B = B'\<close> and \<open>y \<in> A \<times> B\<close> have "g (snd y) \<in> B'" by auto
-  ultimately have "(f (fst y), g (snd y)) \<in> (A' \<times> B')" by auto
-  with \<open>x = map_prod f g y\<close> show "x \<in> A' \<times> B'" by (cases y, auto)
+  then obtain y where "y \<in> A \<times> B" and "x = map_prod f g y"
+    by blast
+  from \<open>image f A = A'\<close> and \<open>y \<in> A \<times> B\<close> have "f (fst y) \<in> A'"
+    by auto
+  moreover from \<open>image g B = B'\<close> and \<open>y \<in> A \<times> B\<close> have "g (snd y) \<in> B'"
+    by auto
+  ultimately have "(f (fst y), g (snd y)) \<in> (A' \<times> B')"
+    by auto
+  with \<open>x = map_prod f g y\<close> show "x \<in> A' \<times> B'"
+    by (cases y) auto
 next
   fix x :: "'a \<times> 'c"
-  assume "x \<in> A' \<times> B'" hence "fst x \<in> A'" and "snd x \<in> B'" by auto
-  from \<open>image f A = A'\<close> and \<open>fst x \<in> A'\<close> have "fst x \<in> image f A" by auto
-  then obtain a where "a \<in> A" and "fst x = f a" by (rule imageE)
-  moreover from \<open>image g B = B'\<close> and \<open>snd x \<in> B'\<close>
-  obtain b where "b \<in> B" and "snd x = g b" by auto
-  ultimately have "(fst x, snd x) = map_prod f g (a,b)" by auto
-  moreover from \<open>a \<in> A\<close> and  \<open>b \<in> B\<close> have "(a , b) \<in> A \<times> B" by auto
-  ultimately have "\<exists>y \<in> A \<times> B. x = map_prod f g y" by auto
-  thus "x \<in> {x. \<exists>y \<in> A \<times> B. x = map_prod f g y}" by auto
+  assume "x \<in> A' \<times> B'"
+  then have "fst x \<in> A'" and "snd x \<in> B'"
+    by auto
+  from \<open>image f A = A'\<close> and \<open>fst x \<in> A'\<close> have "fst x \<in> image f A"
+    by auto
+  then obtain a where "a \<in> A" and "fst x = f a"
+    by (rule imageE)
+  moreover from \<open>image g B = B'\<close> and \<open>snd x \<in> B'\<close> obtain b where "b \<in> B" and "snd x = g b"
+    by auto
+  ultimately have "(fst x, snd x) = map_prod f g (a, b)"
+    by auto
+  moreover from \<open>a \<in> A\<close> and  \<open>b \<in> B\<close> have "(a , b) \<in> A \<times> B"
+    by auto
+  ultimately have "\<exists>y \<in> A \<times> B. x = map_prod f g y"
+    by auto
+  then show "x \<in> {x. \<exists>y \<in> A \<times> B. x = map_prod f g y}"
+    by auto
 qed
 
 

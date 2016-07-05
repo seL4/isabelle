@@ -21,6 +21,7 @@ lemma uniq_choice: "\<forall>x. \<exists>!y. Q x y \<Longrightarrow> \<exists>f.
 lemma b_uniq_choice: "\<forall>x\<in>S. \<exists>!y. Q x y \<Longrightarrow> \<exists>f. \<forall>x\<in>S. Q x (f x)"
   by (force intro: theI')
 
+
 subsection \<open>The Identity Function \<open>id\<close>\<close>
 
 definition id :: "'a \<Rightarrow> 'a"
@@ -283,9 +284,8 @@ lemma linorder_injI:
   shows "inj f"
   \<comment> \<open>Courtesy of Stephan Merz\<close>
 proof (rule inj_onI)
-  fix x y
-  assume f_eq: "f x = f y"
-  show "x = y" by (rule linorder_cases) (auto dest: hyp simp: f_eq)
+  show "x = y" if "f x = f y" for x y
+   by (rule linorder_cases) (auto dest: hyp simp: that)
 qed
 
 lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
@@ -427,9 +427,8 @@ lemma bij_betw_id_iff: "bij_betw id A B \<longleftrightarrow> A = B"
   by (auto simp add: bij_betw_def)
 
 lemma bij_betw_combine:
-  assumes "bij_betw f A B" "bij_betw f C D" "B \<inter> D = {}"
-  shows "bij_betw f (A \<union> C) (B \<union> D)"
-  using assms unfolding bij_betw_def inj_on_Un image_Un by auto
+  "bij_betw f A B \<Longrightarrow> bij_betw f C D \<Longrightarrow> B \<inter> D = {} \<Longrightarrow> bij_betw f (A \<union> C) (B \<union> D)"
+  unfolding bij_betw_def inj_on_Un image_Un by auto
 
 lemma bij_betw_subset: "bij_betw f A A' \<Longrightarrow> B \<le> A \<Longrightarrow> f ` B = B' \<Longrightarrow> bij_betw f B B'"
   by (auto simp add: bij_betw_def inj_on_def)
@@ -531,14 +530,15 @@ lemma bij_betw_byWitness:
     and img2: "f' ` A' \<le> A"
   shows "bij_betw f A A'"
   using assms
-proof (unfold bij_betw_def inj_on_def, safe)
+  unfolding bij_betw_def inj_on_def
+proof safe
   fix a b
   assume *: "a \<in> A" "b \<in> A" and **: "f a = f b"
   have "a = f' (f a) \<and> b = f'(f b)" using * left by simp
   with ** show "a = b" by simp
 next
   fix a' assume *: "a' \<in> A'"
-  hence "f' a' \<in> A" using img2 by blast
+  then have "f' a' \<in> A" using img2 by blast
   moreover
   have "a' = f (f' a')" using * right by simp
   ultimately show "a' \<in> f ` A" by blast
@@ -823,7 +823,7 @@ subsection \<open>Setup\<close>
 
 subsubsection \<open>Proof tools\<close>
 
-text \<open>Simplify terms of the form f(...,x:=y,...,x:=z,...) to f(...,x:=z,...)\<close>
+text \<open>Simplify terms of the form \<open>f(\<dots>,x:=y,\<dots>,x:=z,\<dots>)\<close> to \<open>f(\<dots>,x:=z,\<dots>)\<close>\<close>
 
 simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>fn _ =>
   let
@@ -843,14 +843,14 @@ simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>fn _ =>
       let
         val t = Thm.term_of ct
       in
-        case find_double t of
+        (case find_double t of
           (T, NONE) => NONE
         | (T, SOME rhs) =>
             SOME (Goal.prove ctxt [] [] (Logic.mk_equals (t, rhs))
               (fn _ =>
                 resolve_tac ctxt [eq_reflection] 1 THEN
                 resolve_tac ctxt @{thms ext} 1 THEN
-                simp_tac (put_simpset ss ctxt) 1))
+                simp_tac (put_simpset ss ctxt) 1)))
       end
   in proc end
 \<close>
