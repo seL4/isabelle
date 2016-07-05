@@ -6,7 +6,7 @@ Local definitions.
 
 signature LOCAL_DEFS =
 sig
-  val cert_def: Proof.context -> term -> (string * typ) * term
+  val cert_def: Proof.context -> (string -> Position.T list) -> term -> (string * typ) * term
   val abs_def: term -> (string * typ) * term
   val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
@@ -33,8 +33,8 @@ sig
   val unfold0_tac: Proof.context -> thm list -> tactic
   val fold: Proof.context -> thm list -> thm -> thm
   val fold_tac: Proof.context -> thm list -> tactic
-  val derived_def: Proof.context -> {conditional: bool} -> term ->
-    ((string * typ) * term) * (Proof.context -> thm -> thm)
+  val derived_def: Proof.context -> (string -> Position.T list) -> {conditional: bool} ->
+    term -> ((string * typ) * term) * (Proof.context -> thm -> thm)
 end;
 
 structure Local_Defs: LOCAL_DEFS =
@@ -44,12 +44,12 @@ struct
 
 (* prepare defs *)
 
-fun cert_def ctxt eq =
+fun cert_def ctxt get_pos eq =
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in definition:\n" ^
         quote (Syntax.string_of_term ctxt eq));
-    val ((lhs, _), eq') = eq
+    val ((lhs, _), args, eq') = eq
       |> Sign.no_vars ctxt
       |> Primitive_Defs.dest_def ctxt
         {check_head = Term.is_Free,
@@ -57,6 +57,9 @@ fun cert_def ctxt eq =
          check_free_rhs = if Variable.is_body ctxt then K true else Variable.is_fixed ctxt,
          check_tfree = K true}
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
+    val _ =
+      Context_Position.reports ctxt
+        (maps (fn Free (x, _) => Syntax_Phases.reports_of_scope (get_pos x) | _ => []) args);
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 
 val abs_def = Primitive_Defs.abs_def #>> Term.dest_Free;
@@ -121,7 +124,7 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
       |> Variable.declare_term rhs
       |> Proof_Context.add_fixes [(x, SOME T, mx)];
     val lhs = Free (x', T);
-    val _ = cert_def ctxt' (Logic.mk_equals (lhs, rhs));
+    val _ = cert_def ctxt' (K []) (Logic.mk_equals (lhs, rhs));
     fun abbrev_export _ _ = (I, Envir.expand_term_frees [((x', T), rhs)]);
     val (_, ctxt'') = Assumption.add_assms abbrev_export [] ctxt';
   in ((lhs, rhs), ctxt'') end;
@@ -240,14 +243,14 @@ fun fold_tac ctxt rews = Raw_Simplifier.fold_goals_tac ctxt (map (meta_rewrite_r
 
 (* derived defs -- potentially within the object-logic *)
 
-fun derived_def ctxt {conditional} prop =
+fun derived_def ctxt get_pos {conditional} prop =
   let
     val ((c, T), rhs) = prop
       |> Thm.cterm_of ctxt
       |> meta_rewrite_conv ctxt
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> conditional ? Logic.strip_imp_concl
-      |> (abs_def o #2 o cert_def ctxt);
+      |> (abs_def o #2 o cert_def ctxt get_pos);
     fun prove ctxt' def =
       Goal.prove ctxt'
         ((not (Variable.is_body ctxt') ? Variable.add_free_names ctxt' prop) []) [] prop

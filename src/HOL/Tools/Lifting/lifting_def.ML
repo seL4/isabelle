@@ -572,7 +572,7 @@ fun add_lift_def (config: config) (binding, mx) qty rhs rsp_thm par_thms lthy =
     val forced_rhs = force_rty_type lthy rty_forced rhs
     val lhs = Free (Binding.name_of binding, qty)
     val prop = Logic.mk_equals (lhs, absrep_trm $ forced_rhs)
-    val (_, prop') = Local_Defs.cert_def lthy prop
+    val (_, prop') = Local_Defs.cert_def lthy (K []) prop
     val (_, newrhs) = Local_Defs.abs_def prop'
     val var = ((#notes config = false ? Binding.concealed) binding, mx)
     val def_name = Thm.make_def_binding (#notes config) (#1 var)

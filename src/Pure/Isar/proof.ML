@@ -862,7 +862,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
             (if null more_decls then "" else " ") ^
             "wrt. definitions " ^ commas (map (show_term o Free o #1 o #1) more_defs));
 
-    val derived_def = Local_Defs.derived_def ctxt {conditional = false};
+    val derived_def = Local_Defs.derived_def ctxt (K  []) {conditional = false};
     val defs1 = map (derived_def o Logic.close_prop (map #2 fixes) []) (flat propss);
     val defs2 = match_defs decls defs1;
     val (defs3, defs_ctxt) = Local_Defs.define defs2 ctxt;

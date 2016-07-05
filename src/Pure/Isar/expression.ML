@@ -330,7 +330,7 @@ fun closeup _ _ false elem = elem
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = Local_Defs.cert_def ctxt (close_frees t)
+            let val ((c, _), t') = Local_Defs.cert_def ctxt (K []) (close_frees t)
             in ((Thm.def_binding_optional (Binding.name c) name, atts), (t', no_binds ps)) end))
         | e => e)
       end;
@@ -540,7 +540,7 @@ val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
 fun bind_def ctxt eq (xs, env, eqs) =
   let
-    val _ = Local_Defs.cert_def ctxt eq;
+    val _ = Local_Defs.cert_def ctxt (K []) eq;
     val ((y, T), b) = Local_Defs.abs_def eq;
     val b' = norm_term env b;
     fun err msg = error (msg ^ ": " ^ quote y);

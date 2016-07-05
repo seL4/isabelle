@@ -1039,7 +1039,7 @@ fun gen_add_inductive_i mk_def
         let
           val _ = Binding.is_empty name andalso null atts orelse
             error "Abbreviations may not have names or attributes";
-          val ((x, T), rhs) = Local_Defs.abs_def (snd (Local_Defs.cert_def ctxt1 t));
+          val ((x, T), rhs) = Local_Defs.abs_def (snd (Local_Defs.cert_def ctxt1 (K []) t));
           val var =
             (case find_first (fn ((c, _), _) => Binding.name_of c = x) cnames_syn of
               NONE => error ("Undeclared head of abbreviation " ^ quote x)

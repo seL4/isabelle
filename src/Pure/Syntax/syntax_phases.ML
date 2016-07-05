@@ -7,6 +7,7 @@ of parse/unparse operations.
 
 signature SYNTAX_PHASES =
 sig
+  val reports_of_scope: Position.T list -> Position.report list
   val decode_sort: term -> sort
   val decode_typ: term -> typ
   val decode_term: Proof.context ->
@@ -74,6 +75,20 @@ fun markup_entity ctxt c =
       case_const = markup_const ctxt,
       case_fixed = markup_free ctxt,
       case_default = K []});
+
+
+
+(** reports of implicit variable scope **)
+
+fun reports_of_scope [] = []
+  | reports_of_scope (def_pos :: ps) =
+      let
+        val id = serial ();
+        fun entity def = (Markup.entityN, Position.entity_properties_of def id def_pos);
+      in
+        map (rpair Markup.bound) (def_pos :: ps) @
+        ((def_pos, entity true) :: map (rpair (entity false)) ps)
+      end;
 
 
 

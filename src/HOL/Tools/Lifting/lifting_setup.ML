@@ -96,7 +96,8 @@ fun define_pcrel (config: config) crel lthy =
         (Binding.empty_atts, definition_term) lthy |>> (snd #> snd);
     fun raw_def lthy =
       let
-        val ((_, rhs), prove) = Local_Defs.derived_def lthy {conditional = true} definition_term;
+        val ((_, rhs), prove) =
+          Local_Defs.derived_def lthy (K []) {conditional = true} definition_term;
         val ((_, (_, raw_th)), lthy) =
           Local_Theory.define
             ((Binding.concealed pcrel_name, NoSyn), (Binding.empty_atts, rhs)) lthy;
