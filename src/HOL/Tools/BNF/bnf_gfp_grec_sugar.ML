@@ -1256,7 +1256,7 @@ fun extract_rho_from_equation
           let val T = fastype_of1 (bound_Ts, hd args) in
             (case (Option.mapPartial (ctr_sugar_of lthy) (try (fst o dest_Type) T), T <> res_T) of
               (SOME {selss, T = Type (_, Ts), ...}, true) =>
-              (case const_of (fold (curry op @) selss []) fun_t of
+              (case const_of (flat selss) fun_t of
                 SOME sel =>
                 let
                   val args' = args |> map (typ_before explore params);
