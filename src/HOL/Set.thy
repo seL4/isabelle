@@ -466,7 +466,7 @@ lemma subsetCE [elim]: "A \<subseteq> B \<Longrightarrow> (c \<notin> A \<Longri
   \<comment> \<open>Classical elimination rule.\<close>
   by (auto simp add: less_eq_set_def le_fun_def)
 
-lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)"
+lemma subset_eq: "A \<subseteq> B = (\<forall>x\<in>A. x \<in> B)"
   by blast
 
 lemma contra_subsetD: "A \<subseteq> B \<Longrightarrow> c \<notin> B \<Longrightarrow> c \<notin> A"
@@ -942,7 +942,7 @@ lemma image_Int_subset: "f ` (A \<inter> B) \<subseteq> f ` A \<inter> f ` B"
 lemma image_diff_subset: "f ` A - f ` B \<subseteq> f ` (A - B)"
   by blast
 
-lemma Setcompr_eq_image: "{f x | x. x \<in> A} = f ` A"
+lemma Setcompr_eq_image: "{f x |x. x \<in> A} = f ` A"
   by blast
 
 lemma setcompr_eq_image: "{f x |x. P x} = f ` {x. P x}"
@@ -978,10 +978,8 @@ lemma full_SetCompr_eq: "{u. \<exists>x. u = f x} = range f"
 lemma range_composition: "range (\<lambda>x. f (g x)) = f ` range g"
   by auto
 
-lemma range_eq_singletonD:
-  assumes "range f = {a}"
-  shows "f x = a"
-  using assms by auto
+lemma range_eq_singletonD: "range f = {a} \<Longrightarrow> f x = a"
+  by auto
 
 
 subsubsection \<open>Some rules with \<open>if\<close>\<close>
