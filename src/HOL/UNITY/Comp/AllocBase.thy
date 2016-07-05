@@ -36,9 +36,9 @@ lemma mono_tokens: "mono tokens"
 lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
   by (fact mset_append)
 
-lemma subseteq_le_multiset: "A #\<subseteq># A + B"
-unfolding le_multiset_def apply (cases B; simp)
-apply (rule union_less_mono2[of "{#}" "_ + {#_#}" A, simplified])
+lemma subseteq_le_multiset: "(A :: 'a::order multiset) \<le> A + B"
+unfolding less_eq_multiset_def apply (cases B; simp)
+apply (rule union_le_mono2[of "{#}" "_ + {#_#}" A, simplified])
 apply (simp add: less_multiset\<^sub>H\<^sub>O)
 done
 
@@ -47,7 +47,7 @@ apply (rule monoI)
 apply (unfold prefix_def)
 apply (erule genPrefix.induct, simp_all add: add_right_mono)
 apply (erule order_trans)
-apply (simp add: less_eq_multiset_def subseteq_le_multiset)
+apply (simp add: subseteq_le_multiset)
 done
 
 (** setsum **)

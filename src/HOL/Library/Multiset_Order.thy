@@ -62,7 +62,7 @@ proof -
   have trans: "\<And>K M N :: 'a multiset. ?less K M \<Longrightarrow> ?less M N \<Longrightarrow> ?less K N"
     unfolding mult_def by (blast intro: trancl_trans)
   show "class.order ?le ?less"
-    by standard (auto simp add: le_multiset_def irrefl dest: trans)
+    by standard (auto simp add: less_eq_multiset_def irrefl dest: trans)
 qed
 
 text \<open>The Dershowitz--Manna ordering:\<close>
@@ -209,88 +209,88 @@ qed
 end
 
 lemma less_multiset_less_multiset\<^sub>H\<^sub>O:
-  "M #\<subset># N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
+  "M < N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
   unfolding less_multiset_def mult\<^sub>H\<^sub>O less_multiset\<^sub>H\<^sub>O_def ..
 
 lemmas less_multiset\<^sub>D\<^sub>M = mult\<^sub>D\<^sub>M[folded less_multiset_def]
 lemmas less_multiset\<^sub>H\<^sub>O = mult\<^sub>H\<^sub>O[folded less_multiset_def]
 
-lemma le_multiset\<^sub>H\<^sub>O:
+lemma less_eq_multiset\<^sub>H\<^sub>O:
   fixes M N :: "('a :: linorder) multiset"
-  shows "M #\<subseteq># N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
-  by (auto simp: le_multiset_def less_multiset\<^sub>H\<^sub>O)
+  shows "M \<le> N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
+  by (auto simp: less_eq_multiset_def less_multiset\<^sub>H\<^sub>O)
 
-lemma wf_less_multiset: "wf {(M :: ('a :: wellorder) multiset, N). M #\<subset># N}"
+lemma wf_less_multiset: "wf {(M :: ('a :: wellorder) multiset, N). M < N}"
   unfolding less_multiset_def by (auto intro: wf_mult wf)
 
 lemma order_multiset: "class.order
-  (le_multiset :: ('a :: order) multiset \<Rightarrow> ('a :: order) multiset \<Rightarrow> bool)
-  (less_multiset :: ('a :: order) multiset \<Rightarrow> ('a :: order) multiset \<Rightarrow> bool)"
+  (op \<le> :: ('a :: order) multiset \<Rightarrow> ('a :: order) multiset \<Rightarrow> bool)
+  (op < :: ('a :: order) multiset \<Rightarrow> ('a :: order) multiset \<Rightarrow> bool)"
   by unfold_locales
 
 lemma linorder_multiset: "class.linorder
-  (le_multiset :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool)
-  (less_multiset :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool)"
-  by unfold_locales (fastforce simp add: less_multiset\<^sub>H\<^sub>O le_multiset_def not_less_iff_gr_or_eq)
+  (op \<le> :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool)
+  (op < :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool)"
+  by unfold_locales (fastforce simp add: less_multiset\<^sub>H\<^sub>O less_eq_multiset_def not_less_iff_gr_or_eq)
 
 interpretation multiset_linorder: linorder
-  "le_multiset :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool"
-  "less_multiset :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool"
+  "op \<le> :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool"
+  "op < :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool"
   by (rule linorder_multiset)
 
 interpretation multiset_wellorder: wellorder
-  "le_multiset :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
-  "less_multiset :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
+  "op \<le> :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
+  "op < :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
   by unfold_locales (blast intro: wf_less_multiset [unfolded wf_def, simplified, rule_format])
 
-lemma le_multiset_total:
+lemma less_eq_multiset_total:
   fixes M N :: "('a :: linorder) multiset"
-  shows "\<not> M #\<subseteq># N \<Longrightarrow> N #\<subseteq># M"
+  shows "\<not> M \<le> N \<Longrightarrow> N \<le> M"
   by (metis multiset_linorder.le_cases)
 
-lemma less_eq_imp_le_multiset:
+lemma subset_eq_imp_le_multiset:
   fixes M N :: "('a :: linorder) multiset"
-  shows "M \<le># N \<Longrightarrow> M #\<subseteq># N"
-  unfolding le_multiset_def less_multiset\<^sub>H\<^sub>O
+  shows "M \<le># N \<Longrightarrow> M \<le> N"
+  unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O
   by (simp add: less_le_not_le subseteq_mset_def)
 
-lemma less_multiset_right_total:
+lemma le_multiset_right_total:
   fixes M :: "('a :: linorder) multiset"
-  shows "M #\<subset># M + {#undefined#}"
-  unfolding le_multiset_def less_multiset\<^sub>H\<^sub>O by simp
+  shows "M < M + {#undefined#}"
+  unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O by simp
+
+lemma less_eq_multiset_empty_left[simp]:
+  fixes M :: "('a :: linorder) multiset"
+  shows "{#} \<le> M"
+  by (simp add: subset_eq_imp_le_multiset)
+
+lemma less_eq_multiset_empty_right[simp]:
+  fixes M :: "('a :: linorder) multiset"
+  shows "M \<noteq> {#} \<Longrightarrow> \<not> M \<le> {#}"
+  by (metis less_eq_multiset_empty_left antisym)
 
 lemma le_multiset_empty_left[simp]:
   fixes M :: "('a :: linorder) multiset"
-  shows "{#} #\<subseteq># M"
-  by (simp add: less_eq_imp_le_multiset)
+  shows "M \<noteq> {#} \<Longrightarrow> {#} < M"
+  by (simp add: less_multiset\<^sub>H\<^sub>O)
 
 lemma le_multiset_empty_right[simp]:
   fixes M :: "('a :: linorder) multiset"
-  shows "M \<noteq> {#} \<Longrightarrow> \<not> M #\<subseteq># {#}"
-  by (metis le_multiset_empty_left multiset_order.antisym)
-
-lemma less_multiset_empty_left[simp]:
-  fixes M :: "('a :: linorder) multiset"
-  shows "M \<noteq> {#} \<Longrightarrow> {#} #\<subset># M"
-  by (simp add: less_multiset\<^sub>H\<^sub>O)
-
-lemma less_multiset_empty_right[simp]:
-  fixes M :: "('a :: linorder) multiset"
-  shows "\<not> M #\<subset># {#}"
+  shows "\<not> M < {#}"
   using subset_eq_empty less_multiset\<^sub>D\<^sub>M by blast
 
 lemma
   fixes M N :: "('a :: linorder) multiset"
   shows
-    le_multiset_plus_left[simp]: "N #\<subseteq># (M + N)" and
-    le_multiset_plus_right[simp]: "M #\<subseteq># (M + N)"
-  using [[metis_verbose = false]] by (metis less_eq_imp_le_multiset mset_subset_eq_add_left add.commute)+
+    less_eq_multiset_plus_left[simp]: "N \<le> (M + N)" and
+    less_eq_multiset_plus_right[simp]: "M \<le> (M + N)"
+  using [[metis_verbose = false]] by (metis subset_eq_imp_le_multiset mset_subset_eq_add_left add.commute)+
 
 lemma
   fixes M N :: "('a :: linorder) multiset"
   shows
-    less_multiset_plus_plus_left_iff[simp]: "M + N #\<subset># M' + N \<longleftrightarrow> M #\<subset># M'" and
-    less_multiset_plus_plus_right_iff[simp]: "M + N #\<subset># M + N' \<longleftrightarrow> N #\<subset># N'"
+    le_multiset_plus_plus_left_iff[simp]: "M + N < M' + N \<longleftrightarrow> M < M'" and
+    le_multiset_plus_plus_right_iff[simp]: "M + N < M + N' \<longleftrightarrow> N < N'"
   unfolding less_multiset\<^sub>H\<^sub>O by auto
 
 lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
@@ -299,22 +299,22 @@ lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
 lemma
   fixes M N :: "('a :: linorder) multiset"
   shows
-    less_multiset_plus_left_nonempty[simp]: "M \<noteq> {#} \<Longrightarrow> N #\<subset># M + N" and
-    less_multiset_plus_right_nonempty[simp]: "N \<noteq> {#} \<Longrightarrow> M #\<subset># M + N"
+    le_multiset_plus_left_nonempty[simp]: "M \<noteq> {#} \<Longrightarrow> N < M + N" and
+    le_multiset_plus_right_nonempty[simp]: "N \<noteq> {#} \<Longrightarrow> M < M + N"
   using [[metis_verbose = false]]
-  by (metis add.right_neutral less_multiset_empty_left less_multiset_plus_plus_right_iff
+  by (metis add.right_neutral le_multiset_empty_left le_multiset_plus_plus_right_iff
     add.commute)+
 
-lemma ex_gt_imp_less_multiset: "(\<exists>y :: 'a :: linorder. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M #\<subset># N"
+lemma ex_gt_imp_less_multiset: "(\<exists>y :: 'a :: linorder. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M < N"
   unfolding less_multiset\<^sub>H\<^sub>O
   by (metis count_eq_zero_iff count_greater_zero_iff less_le_not_le)
-  
-lemma ex_gt_count_imp_less_multiset:
-  "(\<forall>y :: 'a :: linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M #\<subset># N"
+
+lemma ex_gt_count_imp_le_multiset:
+  "(\<forall>y :: 'a :: linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M < N"
   unfolding less_multiset\<^sub>H\<^sub>O
   by (metis add_gr_0 count_union mem_Collect_eq not_gr0 not_le not_less_iff_gr_or_eq set_mset_def)
 
-lemma union_less_diff_plus: "P \<le># M \<Longrightarrow> N #\<subset># P \<Longrightarrow> M - P + N #\<subset># M"
-  by (drule subset_mset.diff_add[symmetric]) (metis union_less_mono2)
+lemma union_le_diff_plus: "P \<le># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
+  by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)
 
 end

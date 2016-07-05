@@ -175,19 +175,7 @@ done
 
 
 subsection\<open>Multiset union properties (with the multiset ordering)\<close>
-(*TODO: remove when multiset is of sort ord again*)
-instantiation multiset :: (order) ordered_ab_semigroup_add
-begin
 
-definition less_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-  "M' < M \<longleftrightarrow> M' #\<subset># M"
-
-definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-   "(M'::'a multiset) \<le> M \<longleftrightarrow> M' #\<subseteq># M"
-
-instance
-  by standard (auto simp add: less_eq_multiset_def less_multiset_def multiset_order.less_le_not_le add.commute multiset_order.add_right_mono)
-end
 
 lemma increasing_union: 
     "[| F \<in> increasing f;  F \<in> increasing g |]  

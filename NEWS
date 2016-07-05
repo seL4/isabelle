@@ -311,6 +311,43 @@ INCOMPATIBILITY.
   Some functions have been renamed:
     ms_lesseq_impl -> subset_eq_mset_impl
 
+* Multisets are now ordered with the multiset ordering
+    #\<subseteq># ~> \<le>
+    #\<subset># ~> <
+    le_multiset ~> less_eq_multiset
+    less_multiset ~> le_multiset
+INCOMPATIBILITY
+
+* The prefix multiset_order has been discontinued: the theorems can be directly
+accessed.
+INCOMPATILBITY
+
+* Some theorems about the multiset ordering have been renamed:
+    le_multiset_def ~> less_eq_multiset_def
+    less_multiset_def ~> le_multiset_def
+    less_eq_imp_le_multiset ~> subset_eq_imp_le_multiset
+    mult_less_not_refl ~> mset_le_not_refl
+    mult_less_trans ~> mset_le_trans
+    mult_less_not_sym ~> mset_le_not_sym
+    mult_less_asym ~> mset_le_asym
+    mult_less_irrefl ~> mset_le_irrefl
+    union_less_mono2{,1,2} ~> union_le_mono2{,1,2}
+
+    le_multiset\<^sub>H\<^sub>O ~> less_eq_multiset\<^sub>H\<^sub>O
+    le_multiset_total ~> less_eq_multiset_total
+    less_multiset_right_total ~> subset_eq_imp_le_multiset
+    le_multiset_empty_left ~> less_eq_multiset_empty_left
+    le_multiset_empty_right ~> less_eq_multiset_empty_right
+    less_multiset_empty_right ~> le_multiset_empty_left
+    less_multiset_empty_left ~> le_multiset_empty_right
+    union_less_diff_plus ~> union_le_diff_plus
+    ex_gt_count_imp_less_multiset ~> ex_gt_count_imp_le_multiset
+    less_multiset_plus_left_nonempty ~> le_multiset_plus_left_nonempty
+    le_multiset_plus_right_nonempty ~> le_multiset_plus_right_nonempty
+    less_multiset_plus_plus_left_iff ~> le_multiset_plus_plus_left_iff
+    less_multiset_plus_plus_right_iff ~> le_multiset_plus_plus_right_iff
+INCOMPATIBILITY
+
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
 

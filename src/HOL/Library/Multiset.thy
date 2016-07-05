@@ -2500,21 +2500,20 @@ proof -
   ultimately show thesis by (auto intro: that)
 qed
 
-definition less_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "#\<subset>#" 50)
-  where "M' #\<subset># M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+instantiation multiset :: (order) order
+begin
 
-definition le_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "#\<subseteq>#" 50)
-  where "M' #\<subseteq># M \<longleftrightarrow> M' #\<subset># M \<or> M' = M"
+definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
+  where "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
 
-notation (ASCII)
-  less_multiset (infix "#<#" 50) and
-  le_multiset (infix "#<=#" 50)
+definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
+  where "less_eq_multiset M' M \<longleftrightarrow> M' < M \<or> M' = M"
 
-interpretation multiset_order: order le_multiset less_multiset
+instance
 proof -
-  have irrefl: "\<not> M #\<subset># M" for M :: "'a multiset"
+  have irrefl: "\<not> M < M" for M :: "'a multiset"
   proof
-    assume "M #\<subset># M"
+    assume "M < M"
     then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def)
     have "trans {(x'::'a, x). x' < x}"
       by (rule transI) simp
@@ -2531,15 +2530,16 @@ proof -
       by (induct rule: finite_induct) (auto intro: order_less_trans)
     with * show False by simp
   qed
-  have trans: "K #\<subset># M \<Longrightarrow> M #\<subset># N \<Longrightarrow> K #\<subset># N" for K M N :: "'a multiset"
+  have trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < N" for K M N :: "'a multiset"
     unfolding less_multiset_def mult_def by (blast intro: trancl_trans)
-  show "class.order (le_multiset :: 'a multiset \<Rightarrow> _) less_multiset"
-    by standard (auto simp add: le_multiset_def irrefl dest: trans)
-qed \<comment> \<open>FIXME avoid junk stemming from type class interpretation\<close>
+  show "OFCLASS('a multiset, order_class)"
+    by standard (auto simp add: less_eq_multiset_def irrefl dest: trans)
+qed
+end \<comment> \<open>FIXME avoid junk stemming from type class interpretation\<close>
 
-lemma mult_less_irrefl [elim!]:
+lemma mset_le_irrefl [elim!]:
   fixes M :: "'a::order multiset"
-  shows "M #\<subset># M \<Longrightarrow> R"
+  shows "M < M \<Longrightarrow> R"
   by simp
 
 
@@ -2553,27 +2553,29 @@ apply (rule_tac x = "C + M0" in exI)
 apply (simp add: add.assoc)
 done
 
-lemma union_less_mono2: "B #\<subset># D \<Longrightarrow> C + B #\<subset># C + (D::'a::order multiset)"
+lemma union_le_mono2: "B < D \<Longrightarrow> C + B < C + (D::'a::order multiset)"
 apply (unfold less_multiset_def mult_def)
 apply (erule trancl_induct)
  apply (blast intro: mult1_union)
 apply (blast intro: mult1_union trancl_trans)
 done
 
-lemma union_less_mono1: "B #\<subset># D \<Longrightarrow> B + C #\<subset># D + (C::'a::order multiset)"
+lemma union_le_mono1: "B < D \<Longrightarrow> B + C < D + (C::'a::order multiset)"
 apply (subst add.commute [of B C])
 apply (subst add.commute [of D C])
-apply (erule union_less_mono2)
+apply (erule union_le_mono2)
 done
 
 lemma union_less_mono:
   fixes A B C D :: "'a::order multiset"
-  shows "A #\<subset># C \<Longrightarrow> B #\<subset># D \<Longrightarrow> A + B #\<subset># C + D"
-  by (blast intro!: union_less_mono1 union_less_mono2 multiset_order.less_trans)
+  shows "A < C \<Longrightarrow> B < D \<Longrightarrow> A + B < C + D"
+  by (blast intro!: union_le_mono1 union_le_mono2 less_trans)
 
-interpretation multiset_order: ordered_ab_semigroup_add plus le_multiset less_multiset
-  by standard (auto simp add: le_multiset_def intro: union_less_mono2)
-
+instantiation multiset :: (order) ordered_ab_semigroup_add
+begin
+instance
+  by standard (auto simp add: less_eq_multiset_def intro: union_le_mono2)
+end
 
 subsubsection \<open>Termination proofs with multiset orders\<close>
 
@@ -2767,17 +2769,17 @@ lemmas multiset_inter_ac =
   multiset_inter_assoc
   multiset_inter_left_commute
 
-lemma mult_less_not_refl: "\<not> M #\<subset># (M::'a::order multiset)"
-  by (fact multiset_order.less_irrefl)
+lemma mset_le_not_refl: "\<not> M < (M::'a::order multiset)"
+  by (fact less_irrefl)
 
-lemma mult_less_trans: "K #\<subset># M \<Longrightarrow> M #\<subset># N \<Longrightarrow> K #\<subset># (N::'a::order multiset)"
-  by (fact multiset_order.less_trans)
+lemma mset_le_trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < (N::'a::order multiset)"
+  by (fact less_trans)
 
-lemma mult_less_not_sym: "M #\<subset># N \<Longrightarrow> \<not> N #\<subset># (M::'a::order multiset)"
-  by (fact multiset_order.less_not_sym)
+lemma mset_le_not_sym: "M < N \<Longrightarrow> \<not> N < (M::'a::order multiset)"
+  by (fact less_not_sym)
 
-lemma mult_less_asym: "M #\<subset># N \<Longrightarrow> (\<not> P \<Longrightarrow> N #\<subset># (M::'a::order multiset)) \<Longrightarrow> P"
-  by (fact multiset_order.less_asym)
+lemma mset_le_asym: "M < N \<Longrightarrow> (\<not> P \<Longrightarrow> N < (M::'a::order multiset)) \<Longrightarrow> P"
+  by (fact less_asym)
 
 declaration \<open>
   let
@@ -2951,8 +2953,8 @@ proof -
 qed
 
 text \<open>
-  Exercise for the casual reader: add implementations for @{const le_multiset}
-  and @{const less_multiset} (multiset order).
+  Exercise for the casual reader: add implementations for @{term "op \<le>"}
+  and @{term "op <"} (multiset order).
 \<close>
 
 text \<open>Quickcheck generators\<close>
