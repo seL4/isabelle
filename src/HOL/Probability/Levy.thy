@@ -219,64 +219,46 @@ proof -
   have "cdf M1 = cdf M2"
   proof (rule ext)
     fix x
-    from M1.cdf_is_right_cont [of x] have "(cdf M1 \<longlongrightarrow> cdf M1 x) (at_right x)"
-      by (simp add: continuous_within)
-    from M2.cdf_is_right_cont [of x] have "(cdf M2 \<longlongrightarrow> cdf M2 x) (at_right x)"
-      by (simp add: continuous_within)
+    let ?D = "\<lambda>x. \<bar>cdf M1 x - cdf M2 x\<bar>"
 
     { fix \<epsilon> :: real
       assume "\<epsilon> > 0"
-      from \<open>\<epsilon> > 0\<close> \<open>(cdf M1 \<longlongrightarrow> 0) at_bot\<close> \<open>(cdf M2 \<longlongrightarrow> 0) at_bot\<close>
-      have "eventually (\<lambda>y. \<bar>cdf M1 y\<bar> < \<epsilon> / 4 \<and> \<bar>cdf M2 y\<bar> < \<epsilon> / 4 \<and> y \<le> x) at_bot"
-        by (simp only: tendsto_iff dist_real_def diff_0_right eventually_conj eventually_le_at_bot)
-      then obtain M where "\<And>y. y \<le> M \<Longrightarrow> \<bar>cdf M1 y\<bar> < \<epsilon> / 4" "\<And>y. y \<le> M \<Longrightarrow> \<bar>cdf M2 y\<bar> < \<epsilon> / 4" "M \<le> x"
+      have "(?D \<longlongrightarrow> 0) at_bot"
+        using \<open>(cdf M1 \<longlongrightarrow> 0) at_bot\<close> \<open>(cdf M2 \<longlongrightarrow> 0) at_bot\<close> by (intro tendsto_eq_intros) auto
+      then have "eventually (\<lambda>y. ?D y < \<epsilon> / 2 \<and> y \<le> x) at_bot"
+        using \<open>\<epsilon> > 0\<close> by (simp only: tendsto_iff dist_real_def diff_0_right eventually_conj eventually_le_at_bot abs_idempotent)
+      then obtain M where "\<And>y. y \<le> M \<Longrightarrow> ?D y < \<epsilon> / 2" "M \<le> x"
         unfolding eventually_at_bot_linorder by auto
       with open_minus_countable[OF count, of "{..< M}"] obtain a where
-        "measure M1 {a} = 0" "measure M2 {a} = 0" "a < M" "a \<le> x" "\<bar>cdf M1 a\<bar> < \<epsilon> / 4" "\<bar>cdf M2 a\<bar> < \<epsilon> / 4"
+        "measure M1 {a} = 0" "measure M2 {a} = 0" "a < M" "a \<le> x" and 1: "?D a < \<epsilon> / 2"
         by auto
 
-      from \<open>\<epsilon> > 0\<close> \<open>(cdf M1 \<longlongrightarrow> cdf M1 x) (at_right x)\<close> \<open>(cdf M2 \<longlongrightarrow> cdf M2 x) (at_right x)\<close>
-      have "eventually (\<lambda>y. \<bar>cdf M1 y - cdf M1 x\<bar> < \<epsilon> / 4 \<and> \<bar>cdf M2 y - cdf M2 x\<bar> < \<epsilon> / 4 \<and> x < y) (at_right x)"
-        by (simp only: tendsto_iff dist_real_def eventually_conj eventually_at_right_less)
-      then obtain N where "N > x" "\<And>y. x < y \<Longrightarrow> y < N \<Longrightarrow> \<bar>cdf M1 y - cdf M1 x\<bar> < \<epsilon> / 4"
-        "\<And>y. x < y \<Longrightarrow> y < N \<Longrightarrow> \<bar>cdf M2 y - cdf M2 x\<bar> < \<epsilon> / 4" "\<And>y. x < y \<Longrightarrow> y < N \<Longrightarrow> x < y"
+      have "(?D \<longlongrightarrow> ?D x) (at_right x)"
+        using M1.cdf_is_right_cont [of x] M2.cdf_is_right_cont [of x]
+        by (intro tendsto_intros) (auto simp add: continuous_within)
+      then have "eventually (\<lambda>y. \<bar>?D y - ?D x\<bar> < \<epsilon> / 2) (at_right x)"
+        using \<open>\<epsilon> > 0\<close> by (simp only: tendsto_iff dist_real_def eventually_conj eventually_at_right_less)
+      then obtain N where "N > x" "\<And>y. x < y \<Longrightarrow> y < N \<Longrightarrow> \<bar>?D y - ?D x\<bar> < \<epsilon> / 2"
         by (auto simp add: eventually_at_right[OF less_add_one])
       with open_minus_countable[OF count, of "{x <..< N}"] obtain b where "x < b" "b < N"
-          "measure M1 {b} = 0" "measure M2 {b} = 0" "\<bar>cdf M2 x - cdf M2 b\<bar> < \<epsilon> / 4" "\<bar>cdf M1 x - cdf M1 b\<bar> < \<epsilon> / 4"
+          "measure M1 {b} = 0" "measure M2 {b} = 0" and 2: "\<bar>?D b - ?D x\<bar> < \<epsilon> / 2"
         by (auto simp: abs_minus_commute)
       from \<open>a \<le> x\<close> \<open>x < b\<close> have "a < b" "a \<le> b" by auto
 
       from \<open>char M1 = char M2\<close>
-        M1.Levy_Inversion [OF \<open>a \<le> b\<close> \<open>measure M1 {a} = 0\<close>  \<open>measure M1 {b} = 0\<close>]
+        M1.Levy_Inversion [OF \<open>a \<le> b\<close> \<open>measure M1 {a} = 0\<close> \<open>measure M1 {b} = 0\<close>]
         M2.Levy_Inversion [OF \<open>a \<le> b\<close> \<open>measure M2 {a} = 0\<close> \<open>measure M2 {b} = 0\<close>]
       have "complex_of_real (measure M1 {a<..b}) = complex_of_real (measure M2 {a<..b})"
         by (intro LIMSEQ_unique) auto
-      then have "measure M1 {a<..b} = measure M2 {a<..b}" by auto
-      then have *: "cdf M1 b - cdf M1 a = cdf M2 b - cdf M2 a"
-        unfolding M1.cdf_diff_eq [OF \<open>a < b\<close>] M2.cdf_diff_eq [OF \<open>a < b\<close>] .
-
-      have "abs (cdf M1 x - (cdf M1 b - cdf M1 a)) = abs (cdf M1 x - cdf M1 b + cdf M1 a)"
+      then have "?D a = ?D b"
+        unfolding of_real_eq_iff M1.cdf_diff_eq [OF \<open>a < b\<close>, symmetric] M2.cdf_diff_eq [OF \<open>a < b\<close>, symmetric] by simp
+      then have "?D x = \<bar>(?D b - ?D x) - ?D a\<bar>"
         by simp
-      also have "\<dots> \<le> abs (cdf M1 x - cdf M1 b) + abs (cdf M1 a)"
-        by (rule abs_triangle_ineq)
-      also have "\<dots> \<le> \<epsilon> / 4 + \<epsilon> / 4"
-        by (intro add_mono less_imp_le \<open>\<bar>cdf M1 a\<bar> < \<epsilon> / 4\<close> \<open>\<bar>cdf M1 x - cdf M1 b\<bar> < \<epsilon> / 4\<close>)
-      finally have 1: "abs (cdf M1 x - (cdf M1 b - cdf M1 a)) \<le> \<epsilon> / 2" by simp
-
-      have "abs (cdf M2 x - (cdf M2 b - cdf M2 a)) = abs (cdf M2 x - cdf M2 b + cdf M2 a)"
-        by simp
-      also have "\<dots> \<le> abs (cdf M2 x - cdf M2 b) + abs (cdf M2 a)"
-        by (rule abs_triangle_ineq)
-      also have "\<dots> \<le> \<epsilon> / 4 + \<epsilon> / 4"
-        by (intro add_mono less_imp_le \<open>\<bar>cdf M2 x - cdf M2 b\<bar> < \<epsilon> / 4\<close> \<open>\<bar>cdf M2 a\<bar> < \<epsilon> / 4\<close>)
-      finally have 2: "abs (cdf M2 x - (cdf M2 b - cdf M2 a)) \<le> \<epsilon> / 2" by simp
-
-      have "abs (cdf M1 x - cdf M2 x) = abs ((cdf M1 x - (cdf M1 b - cdf M1 a)) -
-          (cdf M2 x - (cdf M2 b - cdf M2 a)))" by (subst *, simp)
-      also have "\<dots> \<le> abs (cdf M1 x - (cdf M1 b - cdf M1 a)) +
-          abs (cdf M2 x - (cdf M2 b - cdf M2 a))" by (rule abs_triangle_ineq4)
-      also have "\<dots> \<le> \<epsilon> / 2 + \<epsilon> / 2" by (rule add_mono [OF 1 2])
-      finally have "abs (cdf M1 x - cdf M2 x) \<le> \<epsilon>" by simp }
+      also have "\<dots> \<le> \<bar>?D b - ?D x\<bar> + \<bar>?D a\<bar>"
+        by (rule abs_triangle_ineq4)
+      also have "\<dots> \<le> \<epsilon> / 2 + \<epsilon> / 2"
+        using 1 2 by (intro add_mono) auto
+      finally have "?D x \<le> \<epsilon>" by simp }
     then show "cdf M1 x = cdf M2 x"
       by (metis abs_le_zero_iff dense_ge eq_iff_diff_eq_0)
   qed
