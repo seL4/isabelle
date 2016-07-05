@@ -11,11 +11,11 @@ sig
     term list * Proof.context
   val check_spec_open: (binding * typ option * mixfix) list ->
     (binding * typ option * mixfix) list -> term list -> term -> Proof.context ->
-    ((binding * typ option * mixfix) list * string list * (string -> Position.T) * term) *
+    ((binding * typ option * mixfix) list * string list * (string -> Position.T list) * term) *
     Proof.context
   val read_spec_open: (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list -> string list -> string -> Proof.context ->
-    ((binding * typ option * mixfix) list * string list * (string -> Position.T) * term) *
+    ((binding * typ option * mixfix) list * string list * (string -> Position.T list) * term) *
     Proof.context
   type multi_specs =
     ((Attrib.binding * term) * term list * (binding * typ option * mixfix) list) list
@@ -93,6 +93,19 @@ fun read_props raw_props raw_fixes ctxt =
 
 (* prepare specification *)
 
+fun get_positions ctxt x =
+  let
+    fun get Cs (Const ("_type_constraint_", C) $ t) = get (C :: Cs) t
+      | get Cs (Free (y, T)) =
+          if x = y then
+            map_filter Term_Position.decode_positionT
+              (T :: map (Type.constraint_type ctxt) Cs)
+          else []
+      | get _ (t $ u) = get [] t @ get [] u
+      | get _ (Abs (_, _, t)) = get [] t
+      | get _ _ = [];
+  in get [] end;
+
 local
 
 fun prep_decls prep_var raw_vars ctxt =
@@ -109,7 +122,12 @@ fun prep_decls prep_var raw_vars ctxt =
   in ((vars, xs), ctxt'') end;
 
 fun close_form ctxt ys prems concl =
-  let val xs = rev (fold (Variable.add_free_names ctxt) (prems @ [concl]) (rev ys));
+  let
+    val xs = rev (fold (Variable.add_free_names ctxt) (prems @ [concl]) (rev ys));
+
+    val pos_props = Logic.strip_imp_concl concl :: Logic.strip_imp_prems concl @ prems;
+    fun get_pos x = maps (get_positions ctxt x) pos_props;
+    val _ = Context_Position.reports ctxt (maps (Syntax_Phases.reports_of_scope o get_pos) xs);
   in Logic.close_prop_constraint (Variable.default_type ctxt) (xs ~~ xs) prems concl end;
 
 fun dummy_frees ctxt xs tss =
@@ -119,19 +137,6 @@ fun dummy_frees ctxt xs tss =
       |> fold Name.declare xs;
     val (tss', _) = (fold_map o fold_map) Term.free_dummy_patterns tss names;
   in tss' end;
-
-fun get_positions ctxt x =
-  let
-    fun get Cs (Const ("_type_constraint_", C) $ t) = get (C :: Cs) t
-      | get _ (t $ u) = get [] t @ get [] u
-      | get _ (Abs (_, _, t)) = get [] t
-      | get Cs (Free (y, T)) =
-          if x = y then
-            map_filter Term_Position.decode_positionT
-              (T :: map (Type.constraint_type ctxt) Cs)
-          else []
-      | get _ _ = [];
-  in get [] end;
 
 fun prep_spec_open prep_var parse_prop raw_vars raw_params raw_prems raw_concl ctxt =
   let
@@ -146,10 +151,7 @@ fun prep_spec_open prep_var parse_prop raw_vars raw_params raw_prems raw_concl c
     val spec = Logic.list_implies (prems, concl);
     val spec_ctxt = Variable.declare_term spec params_ctxt;
 
-    fun get_pos x =
-      (case maps (get_positions spec_ctxt x) props of
-        [] => Position.none
-      | pos :: _ => pos);
+    fun get_pos x = maps (get_positions spec_ctxt x) props;
   in ((vars, xs, get_pos, spec), spec_ctxt) end;
 
 fun prep_specs prep_var parse_prop prep_att raw_vars raw_specss ctxt =
@@ -240,13 +242,13 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
   let
     val atts = map (prep_att lthy) raw_atts;
 
-    val ((vars, xs, get_pos, spec), spec_ctxt) = lthy
+    val ((vars, xs, get_pos, spec), _) = lthy
       |> prep_spec (the_list raw_var) raw_params raw_prems raw_spec;
-    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy {conditional = true} spec;
+    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy get_pos {conditional = true} spec;
     val _ = Name.reject_internal (x, []);
     val (b, mx) =
       (case (vars, xs) of
-        ([], []) => (Binding.make (x, get_pos x), NoSyn)
+        ([], []) => (Binding.make (x, (case get_pos x of [] => Position.none | p :: _ => p)), NoSyn)
       | ([(b, _, mx)], [y]) =>
           if x = y then (b, mx)
           else
@@ -279,14 +281,14 @@ val definition_cmd = gen_def read_spec_open Attrib.check_src;
 fun gen_abbrev prep_spec mode raw_var raw_params raw_spec int lthy =
   let
     val lthy1 = lthy |> Proof_Context.set_syntax_mode mode;
-    val ((vars, xs, get_pos, spec), spec_ctxt) = lthy
+    val ((vars, xs, get_pos, spec), _) = lthy
       |> Proof_Context.set_mode Proof_Context.mode_abbrev
       |> prep_spec (the_list raw_var) raw_params [] raw_spec;
-    val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 spec));
+    val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 get_pos spec));
     val _ = Name.reject_internal (x, []);
     val (b, mx) =
       (case (vars, xs) of
-        ([], []) => (Binding.make (x, get_pos x), NoSyn)
+        ([], []) => (Binding.make (x, (case get_pos x of [] => Position.none | p :: _ => p)), NoSyn)
       | ([(b, _, mx)], [y]) =>
           if x = y then (b, mx)
           else

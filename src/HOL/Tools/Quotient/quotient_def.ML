@@ -58,7 +58,7 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
     val absrep_trm =
       Quotient_Term.absrep_fun lthy Quotient_Term.AbsF (rty, qty) $ rhs
     val prop = Syntax.check_term lthy (Logic.mk_equals (lhs, absrep_trm))
-    val (_, prop') = Local_Defs.cert_def lthy prop
+    val (_, prop') = Local_Defs.cert_def lthy (K []) prop
     val (_, newrhs) = Local_Defs.abs_def prop'
 
     val ((trm, (_ , def_thm)), lthy') =
