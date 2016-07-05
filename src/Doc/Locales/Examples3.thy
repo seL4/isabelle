@@ -408,7 +408,7 @@ text \<open>There are situations where an interpretation is not possible
     assumes non_neg: "0 \<le> n"
 
 text \<open>It is again convenient to make the interpretation in an
-  incremental fashion, first for order preserving maps, the for
+  incremental fashion, first for order preserving maps, then for
   lattice endomorphisms.\<close>
 
   sublocale non_negative \<subseteq>
