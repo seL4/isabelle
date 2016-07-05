@@ -62,7 +62,7 @@ fun mk_pointfree ctxt thm = thm
 
 (* Theorems for open typedefs with UNIV as representing set *)
 
-fun mk_Abs_inj_thm inj = inj OF (replicate 2 UNIV_I);
+fun mk_Abs_inj_thm inj = inj OF (replicate 2 @{thm UNIV_I});
 fun mk_Abs_bij_thm ctxt Abs_inj_thm surj = rule_by_tactic ctxt ((rtac ctxt surj THEN' etac ctxt exI) 1)
   (Abs_inj_thm RS @{thm bijI'});
 
@@ -96,11 +96,11 @@ fun mk_map_comp_id_tac ctxt map_comp0 =
 
 fun mk_map_cong0_tac ctxt m map_cong0 =
   EVERY' [rtac ctxt mp, rtac ctxt map_cong0,
-    CONJ_WRAP' (K (rtac ctxt ballI THEN' Goal.assume_rule_tac ctxt)) (1 upto m)] 1;
+    CONJ_WRAP' (K (rtac ctxt @{thm ballI} THEN' Goal.assume_rule_tac ctxt)) (1 upto m)] 1;
 
 fun mk_map_cong0L_tac ctxt passive map_cong0 map_id =
   (rtac ctxt trans THEN' rtac ctxt map_cong0 THEN' EVERY' (replicate passive (rtac ctxt refl))) 1 THEN
-  REPEAT_DETERM (EVERY' [rtac ctxt trans, etac ctxt bspec, assume_tac ctxt,
+  REPEAT_DETERM (EVERY' [rtac ctxt trans, etac ctxt @{thm bspec}, assume_tac ctxt,
       rtac ctxt sym, rtac ctxt @{thm id_apply}] 1) THEN
   rtac ctxt map_id 1;
 

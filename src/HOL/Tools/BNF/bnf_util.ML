@@ -420,12 +420,12 @@ fun mk_rel_funDN n = funpow n (fn thm => thm RS rel_funD);
 val mk_rel_funDN_rotated = rotate_prems ~1 oo mk_rel_funDN;
 
 local
-  fun mk_Un_upper' 0 = subset_refl
+  fun mk_Un_upper' 0 = @{thm subset_refl}
     | mk_Un_upper' 1 = @{thm Un_upper1}
     | mk_Un_upper' k = Library.foldr (op RS o swap)
       (replicate (k - 1) @{thm subset_trans[OF Un_upper1]}, @{thm Un_upper1});
 in
-  fun mk_Un_upper 1 1 = subset_refl
+  fun mk_Un_upper 1 1 = @{thm subset_refl}
     | mk_Un_upper n 1 = mk_Un_upper' (n - 2) RS @{thm subset_trans[OF Un_upper1]}
     | mk_Un_upper n m = mk_Un_upper' (n - m) RS @{thm subset_trans[OF Un_upper2]};
 end;

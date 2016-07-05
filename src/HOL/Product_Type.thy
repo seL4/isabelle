@@ -1362,8 +1362,10 @@ simproc_setup Collect_mem ("Collect t") = \<open>
                         (K (EVERY
                           [resolve_tac ctxt [eq_reflection] 1,
                            resolve_tac ctxt @{thms subset_antisym} 1,
-                           resolve_tac ctxt [subsetI] 1, dresolve_tac ctxt [CollectD] 1, simp,
-                           resolve_tac ctxt [subsetI] 1, resolve_tac ctxt [CollectI] 1, simp])))
+                           resolve_tac ctxt @{thms subsetI} 1,
+                           dresolve_tac ctxt @{thms CollectD} 1, simp,
+                           resolve_tac ctxt @{thms subsetI} 1,
+                           resolve_tac ctxt @{thms CollectI} 1, simp])))
                     end
                   else NONE)
           | _ => NONE)

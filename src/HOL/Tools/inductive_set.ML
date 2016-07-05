@@ -66,7 +66,7 @@ fun strong_ind_simproc tab =
           | decomp _ = NONE;
         val simp =
           full_simp_tac
-            (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm case_prod_conv}]) 1;
+            (put_simpset HOL_basic_ss ctxt addsimps @{thms mem_Collect_eq case_prod_conv}) 1;
         fun mk_rew t = (case strip_abs_vars t of
             [] => NONE
           | xs => (case decomp (strip_abs_body t) of
@@ -77,13 +77,17 @@ fun strong_ind_simproc tab =
                   (K (EVERY
                     [resolve_tac ctxt [eq_reflection] 1,
                      REPEAT (resolve_tac ctxt @{thms ext} 1),
-                     resolve_tac ctxt [iffI] 1,
-                     EVERY [eresolve_tac ctxt [conjE] 1, resolve_tac ctxt [IntI] 1, simp, simp,
-                       eresolve_tac ctxt [IntE] 1, resolve_tac ctxt [conjI] 1, simp, simp] ORELSE
-                     EVERY [eresolve_tac ctxt [disjE] 1, resolve_tac ctxt [UnI1] 1, simp,
-                       resolve_tac ctxt [UnI2] 1, simp,
-                       eresolve_tac ctxt [UnE] 1, resolve_tac ctxt [disjI1] 1, simp,
-                       resolve_tac ctxt [disjI2] 1, simp]])))
+                     resolve_tac ctxt @{thms iffI} 1,
+                     EVERY [eresolve_tac ctxt @{thms conjE} 1,
+                       resolve_tac ctxt @{thms IntI} 1, simp, simp,
+                       eresolve_tac ctxt @{thms IntE} 1,
+                       resolve_tac ctxt @{thms conjI} 1, simp, simp] ORELSE
+                     EVERY [eresolve_tac ctxt @{thms disjE} 1,
+                       resolve_tac ctxt @{thms UnI1} 1, simp,
+                       resolve_tac ctxt @{thms UnI2} 1, simp,
+                       eresolve_tac ctxt @{thms UnE} 1,
+                       resolve_tac ctxt @{thms disjI1} 1, simp,
+                       resolve_tac ctxt @{thms disjI2} 1, simp]])))
                   handle ERROR _ => NONE))
       in
         (case strip_comb (Thm.term_of ct) of
@@ -235,9 +239,10 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
           end)
   in
-    Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm case_prod_conv}]
-      addsimprocs [@{simproc Collect_mem}]) thm'' |>
-        zero_var_indexes |> eta_contract_thm ctxt (equal p)
+    Simplifier.simplify
+      (put_simpset HOL_basic_ss ctxt addsimps @{thms mem_Collect_eq case_prod_conv}
+        addsimprocs [@{simproc Collect_mem}]) thm''
+      |> zero_var_indexes |> eta_contract_thm ctxt (equal p)
   end;
 
 
@@ -342,7 +347,7 @@ fun to_pred thms context thm =
     thm |>
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
-      [to_pred_simproc (mem_Collect_eq :: @{thm case_prod_conv} :: to_pred_simps)]) |>
+      [to_pred_simproc (@{thm mem_Collect_eq} :: @{thm case_prod_conv} :: to_pred_simps)]) |>
     eta_contract_thm ctxt (is_pred pred_arities) |>
     Rule_Cases.save thm
   end;
@@ -445,7 +450,7 @@ fun add_ind_set_def
       end) |> split_list |>> split_list;
     val eqns' = eqns @
       map (Thm.prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq)
-        (mem_Collect_eq :: @{thm case_prod_conv} :: to_pred_simps);
+        (@{thm mem_Collect_eq} :: @{thm case_prod_conv} :: to_pred_simps);
 
     (* predicate version of the introduction rules *)
     val intros' =
@@ -486,7 +491,7 @@ fun add_ind_set_def
                   list_comb (c, params))))))
             (K (REPEAT (resolve_tac lthy @{thms ext} 1) THEN
               simp_tac (put_simpset HOL_basic_ss lthy addsimps
-                [def, mem_Collect_eq, @{thm case_prod_conv}]) 1))
+                [def, @{thm mem_Collect_eq}, @{thm case_prod_conv}]) 1))
         in
           lthy |> Local_Theory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
             [Attrib.internal (K pred_set_conv_att)]),

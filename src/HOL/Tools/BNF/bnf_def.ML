@@ -1735,7 +1735,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               unfold_thms_tac ctxt [#pred_set axioms] THEN
               HEADGOAL (EVERY' [REPEAT_DETERM o etac ctxt conjE,
                 etac ctxt (Lazy.force map_cong) THEN_ALL_NEW
-                  (etac ctxt bspec THEN' assume_tac ctxt)]))
+                  (etac ctxt @{thm bspec} THEN' assume_tac ctxt)]))
             |> Thm.close_derivation
           end;
 
