@@ -91,8 +91,8 @@ text \<open>Theorems that are available in the theory at this point are shown in
 \begin{tabular}{l}
   @{thm [source] int.less_def} from locale @{text partial_order}: \\
   \quad @{thm int.less_def} \\
-  @{thm [source] int.meet_left} from locale @{text lattice}: \\
-  \quad @{thm int.meet_left} \\
+  @{thm [source] int.ex_sup} from locale @{text lattice}: \\
+  \quad @{thm int.ex_sup} \\
   @{thm [source] int.join_distr} from locale @{text distrib_lattice}: \\
   \quad @{thm int.join_distr} \\
   @{thm [source] int.less_total} from locale @{text total_order}: \\
