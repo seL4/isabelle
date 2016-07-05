@@ -93,6 +93,19 @@ fun read_props raw_props raw_fixes ctxt =
 
 (* prepare specification *)
 
+fun get_positions ctxt x =
+  let
+    fun get Cs (Const ("_type_constraint_", C) $ t) = get (C :: Cs) t
+      | get Cs (Free (y, T)) =
+          if x = y then
+            map_filter Term_Position.decode_positionT
+              (T :: map (Type.constraint_type ctxt) Cs)
+          else []
+      | get _ (t $ u) = get [] t @ get [] u
+      | get _ (Abs (_, _, t)) = get [] t
+      | get _ _ = [];
+  in get [] end;
+
 local
 
 fun prep_decls prep_var raw_vars ctxt =
@@ -119,19 +132,6 @@ fun dummy_frees ctxt xs tss =
       |> fold Name.declare xs;
     val (tss', _) = (fold_map o fold_map) Term.free_dummy_patterns tss names;
   in tss' end;
-
-fun get_positions ctxt x =
-  let
-    fun get Cs (Const ("_type_constraint_", C) $ t) = get (C :: Cs) t
-      | get _ (t $ u) = get [] t @ get [] u
-      | get _ (Abs (_, _, t)) = get [] t
-      | get Cs (Free (y, T)) =
-          if x = y then
-            map_filter Term_Position.decode_positionT
-              (T :: map (Type.constraint_type ctxt) Cs)
-          else []
-      | get _ _ = [];
-  in get [] end;
 
 fun prep_spec_open prep_var parse_prop raw_vars raw_params raw_prems raw_concl ctxt =
   let
@@ -240,7 +240,7 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
   let
     val atts = map (prep_att lthy) raw_atts;
 
-    val ((vars, xs, get_pos, spec), spec_ctxt) = lthy
+    val ((vars, xs, get_pos, spec), _) = lthy
       |> prep_spec (the_list raw_var) raw_params raw_prems raw_spec;
     val (((x, T), rhs), prove) = Local_Defs.derived_def lthy {conditional = true} spec;
     val _ = Name.reject_internal (x, []);
@@ -279,7 +279,7 @@ val definition_cmd = gen_def read_spec_open Attrib.check_src;
 fun gen_abbrev prep_spec mode raw_var raw_params raw_spec int lthy =
   let
     val lthy1 = lthy |> Proof_Context.set_syntax_mode mode;
-    val ((vars, xs, get_pos, spec), spec_ctxt) = lthy
+    val ((vars, xs, get_pos, spec), _) = lthy
       |> Proof_Context.set_mode Proof_Context.mode_abbrev
       |> prep_spec (the_list raw_var) raw_params [] raw_spec;
     val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 spec));
