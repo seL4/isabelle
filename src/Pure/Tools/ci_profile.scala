@@ -19,10 +19,11 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     println(name + "=" + Outer_Syntax.quote_string(value))
   }
 
-  private def build(options: Options): Build.Results =
+  private def build(options: Options): (Build.Results, Time) =
   {
     val progress = new Console_Progress(true)
-    progress.interrupt_handler {
+    val start_time = Time.now()
+    val results = progress.interrupt_handler {
       Build.build_selection(
         options = options,
         progress = progress,
@@ -34,6 +35,8 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         system_mode = true,
         selection = select_sessions _)
     }
+    val end_time = Time.now()
+    (results, end_time - start_time)
   }
 
   private def load_properties(): JProperties =
@@ -85,14 +88,16 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     println(s"Build for Isabelle id $isabelle_id")
     pre_hook(args)
 
-    val results = build(options)
+    val (results, elapsed_time) = build(options)
 
     print_section("TIMING")
 
     val groups = results.sessions.map(results.info).flatMap(_.groups)
     for (group <- groups)
       println(s"Group $group: " + compute_timing(results, Some(group)).message_resources)
-    println("Overall: " + compute_timing(results, None).message_resources)
+
+    val total_timing = compute_timing(results, None).copy(elapsed = elapsed_time)
+    println("Overall: " + total_timing.message_resources)
 
     if (!results.ok) {
       print_section("FAILED SESSIONS")
