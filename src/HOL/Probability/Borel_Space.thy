@@ -1815,77 +1815,65 @@ lemma borel_measurable_suminf[measurable (raw)]:
   shows "(\<lambda>x. suminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
+lemma Collect_closed_imp_pred_borel: "closed {x. P x} \<Longrightarrow> Measurable.pred borel P"
+  by (simp add: pred_def)
+
 (* Proof by Jeremy Avigad and Luke Serafin *)
-lemma isCont_borel:
-  fixes f :: "'b::metric_space \<Rightarrow> 'a::metric_space"
-  shows "{x. isCont f x} \<in> sets borel"
-proof -
-  let ?I = "\<lambda>j. inverse(real (Suc j))"
-
-  { fix x
-    have "isCont f x = (\<forall>i. \<exists>j. \<forall>y z. dist x y < ?I j \<and> dist x z < ?I j \<longrightarrow> dist (f y) (f z) \<le> ?I i)"
-      unfolding continuous_at_eps_delta
-    proof safe
-      fix i assume "\<forall>e>0. \<exists>d>0. \<forall>y. dist y x < d \<longrightarrow> dist (f y) (f x) < e"
-      moreover have "0 < ?I i / 2"
-        by simp
-      ultimately obtain d where d: "0 < d" "\<And>y. dist x y < d \<Longrightarrow> dist (f y) (f x) < ?I i / 2"
-        by (metis dist_commute)
-      then obtain j where j: "?I j < d"
-        by (metis reals_Archimedean)
-
-      show "\<exists>j. \<forall>y z. dist x y < ?I j \<and> dist x z < ?I j \<longrightarrow> dist (f y) (f z) \<le> ?I i"
-      proof (safe intro!: exI[where x=j])
-        fix y z assume *: "dist x y < ?I j" "dist x z < ?I j"
-        have "dist (f y) (f z) \<le> dist (f y) (f x) + dist (f z) (f x)"
-          by (rule dist_triangle2)
-        also have "\<dots> < ?I i / 2 + ?I i / 2"
-          by (intro add_strict_mono d less_trans[OF _ j] *)
-        also have "\<dots> \<le> ?I i"
-          by (simp add: field_simps of_nat_Suc)
-        finally show "dist (f y) (f z) \<le> ?I i"
-          by simp
-      qed
-    next
-      fix e::real assume "0 < e"
-      then obtain n where n: "?I n < e"
-        by (metis reals_Archimedean)
-      assume "\<forall>i. \<exists>j. \<forall>y z. dist x y < ?I j \<and> dist x z < ?I j \<longrightarrow> dist (f y) (f z) \<le> ?I i"
-      from this[THEN spec, of "Suc n"]
-      obtain j where j: "\<And>y z. dist x y < ?I j \<Longrightarrow> dist x z < ?I j \<Longrightarrow> dist (f y) (f z) \<le> ?I (Suc n)"
-        by auto
-
-      show "\<exists>d>0. \<forall>y. dist y x < d \<longrightarrow> dist (f y) (f x) < e"
-      proof (safe intro!: exI[of _ "?I j"])
-        fix y assume "dist y x < ?I j"
-        then have "dist (f y) (f x) \<le> ?I (Suc n)"
-          by (intro j) (auto simp: dist_commute)
-        also have "?I (Suc n) < ?I n"
-          by simp
-        also note n
-        finally show "dist (f y) (f x) < e" .
-      qed simp
-    qed }
-  note * = this
-
-  have **: "\<And>e y. open {x. dist x y < e}"
-    using open_ball by (simp_all add: ball_def dist_commute)
-
-  have "{x\<in>space borel. isCont f x} \<in> sets borel"
-    unfolding *
-    apply (intro sets.sets_Collect_countable_All sets.sets_Collect_countable_Ex)
-    apply (simp add: Collect_all_eq)
-    apply (intro borel_closed closed_INT ballI closed_Collect_imp open_Collect_conj **)
-    apply auto
-    done
-  then show ?thesis
-    by simp
-qed
-
 lemma isCont_borel_pred[measurable]:
   fixes f :: "'b::metric_space \<Rightarrow> 'a::metric_space"
   shows "Measurable.pred borel (isCont f)"
-  unfolding pred_def by (simp add: isCont_borel)
+proof (subst measurable_cong)
+  let ?I = "\<lambda>j. inverse(real (Suc j))"
+  show "isCont f x = (\<forall>i. \<exists>j. \<forall>y z. dist x y < ?I j \<and> dist x z < ?I j \<longrightarrow> dist (f y) (f z) \<le> ?I i)" for x
+    unfolding continuous_at_eps_delta
+  proof safe
+    fix i assume "\<forall>e>0. \<exists>d>0. \<forall>y. dist y x < d \<longrightarrow> dist (f y) (f x) < e"
+    moreover have "0 < ?I i / 2"
+      by simp
+    ultimately obtain d where d: "0 < d" "\<And>y. dist x y < d \<Longrightarrow> dist (f y) (f x) < ?I i / 2"
+      by (metis dist_commute)
+    then obtain j where j: "?I j < d"
+      by (metis reals_Archimedean)
+
+    show "\<exists>j. \<forall>y z. dist x y < ?I j \<and> dist x z < ?I j \<longrightarrow> dist (f y) (f z) \<le> ?I i"
+    proof (safe intro!: exI[where x=j])
+      fix y z assume *: "dist x y < ?I j" "dist x z < ?I j"
+      have "dist (f y) (f z) \<le> dist (f y) (f x) + dist (f z) (f x)"
+        by (rule dist_triangle2)
+      also have "\<dots> < ?I i / 2 + ?I i / 2"
+        by (intro add_strict_mono d less_trans[OF _ j] *)
+      also have "\<dots> \<le> ?I i"
+        by (simp add: field_simps of_nat_Suc)
+      finally show "dist (f y) (f z) \<le> ?I i"
+        by simp
+    qed
+  next
+    fix e::real assume "0 < e"
+    then obtain n where n: "?I n < e"
+      by (metis reals_Archimedean)
+    assume "\<forall>i. \<exists>j. \<forall>y z. dist x y < ?I j \<and> dist x z < ?I j \<longrightarrow> dist (f y) (f z) \<le> ?I i"
+    from this[THEN spec, of "Suc n"]
+    obtain j where j: "\<And>y z. dist x y < ?I j \<Longrightarrow> dist x z < ?I j \<Longrightarrow> dist (f y) (f z) \<le> ?I (Suc n)"
+      by auto
+
+    show "\<exists>d>0. \<forall>y. dist y x < d \<longrightarrow> dist (f y) (f x) < e"
+    proof (safe intro!: exI[of _ "?I j"])
+      fix y assume "dist y x < ?I j"
+      then have "dist (f y) (f x) \<le> ?I (Suc n)"
+        by (intro j) (auto simp: dist_commute)
+      also have "?I (Suc n) < ?I n"
+        by simp
+      also note n
+      finally show "dist (f y) (f x) < e" .
+    qed simp
+  qed
+qed (intro pred_intros_countable closed_Collect_all closed_Collect_le open_Collect_less
+           Collect_closed_imp_pred_borel closed_Collect_imp open_Collect_conj continuous_intros)
+
+lemma isCont_borel:
+  fixes f :: "'b::metric_space \<Rightarrow> 'a::metric_space"
+  shows "{x. isCont f x} \<in> sets borel"
+  by simp
 
 lemma is_real_interval:
   assumes S: "is_interval S"
