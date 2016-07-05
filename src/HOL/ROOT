@@ -619,6 +619,7 @@ session "HOL-ex" in ex = HOL +
     Sum_of_Powers
     Sudoku
     Code_Timing
+    Perm_Fragments
   theories [skip_proofs = false]
     Meson_Test
   document_files "root.bib" "root.tex"

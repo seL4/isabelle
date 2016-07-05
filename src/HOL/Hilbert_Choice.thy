@@ -811,6 +811,73 @@ qed
 
 subsection \<open>More on injections, bijections, and inverses\<close>
 
+locale bijection =
+  fixes f :: "'a \<Rightarrow> 'a"
+  assumes bij: "bij f"
+begin
+
+lemma bij_inv:
+  "bij (inv f)"
+  using bij by (rule bij_imp_bij_inv)
+
+lemma surj [simp]:
+  "surj f"
+  using bij by (rule bij_is_surj)
+
+lemma inj:
+  "inj f"
+  using bij by (rule bij_is_inj)
+
+lemma surj_inv [simp]:
+  "surj (inv f)"
+  using inj by (rule inj_imp_surj_inv)
+
+lemma inj_inv:
+  "inj (inv f)"
+  using surj by (rule surj_imp_inj_inv)
+
+lemma eqI:
+  "f a = f b \<Longrightarrow> a = b"
+  using inj by (rule injD)
+
+lemma eq_iff [simp]:
+  "f a = f b \<longleftrightarrow> a = b"
+  by (auto intro: eqI)
+
+lemma eq_invI:
+  "inv f a = inv f b \<Longrightarrow> a = b"
+  using inj_inv by (rule injD)
+
+lemma eq_inv_iff [simp]:
+  "inv f a = inv f b \<longleftrightarrow> a = b"
+  by (auto intro: eq_invI)
+
+lemma inv_left [simp]:
+  "inv f (f a) = a"
+  using inj by (simp add: inv_f_eq)
+
+lemma inv_comp_left [simp]:
+  "inv f \<circ> f = id"
+  by (simp add: fun_eq_iff)
+
+lemma inv_right [simp]:
+  "f (inv f a) = a"
+  using surj by (simp add: surj_f_inv_f)
+
+lemma inv_comp_right [simp]:
+  "f \<circ> inv f = id"
+  by (simp add: fun_eq_iff)
+
+lemma inv_left_eq_iff [simp]:
+  "inv f a = b \<longleftrightarrow> f b = a"
+  by auto
+
+lemma inv_right_eq_iff [simp]:
+  "b = inv f a \<longleftrightarrow> f b = a"
+  by auto
+
+end
+
 lemma infinite_imp_bij_betw:
 assumes INF: "\<not> finite A"
 shows "\<exists>h. bij_betw h A (A - {a})"

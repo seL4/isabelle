@@ -67,6 +67,9 @@ qualified definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Righ
 qualified definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
   "filter P dxs = Dlist (List.filter P (list_of_dlist dxs))"
 
+qualified definition rotate :: "nat \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
+  "rotate n dxs = Dlist (List.rotate n (list_of_dlist dxs))"
+
 end
 
 
@@ -114,6 +117,10 @@ lemma list_of_dlist_map [simp, code abstract]:
 lemma list_of_dlist_filter [simp, code abstract]:
   "list_of_dlist (Dlist.filter P dxs) = List.filter P (list_of_dlist dxs)"
   by (simp add: Dlist.filter_def)
+
+lemma list_of_dlist_rotate [simp, code abstract]:
+  "list_of_dlist (Dlist.rotate n dxs) = List.rotate n (list_of_dlist dxs)"
+  by (simp add: Dlist.rotate_def)
 
 
 text \<open>Explicit executable conversion\<close>

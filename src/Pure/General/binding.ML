@@ -17,6 +17,7 @@ sig
   val pos_of: binding -> Position.T
   val set_pos: Position.T -> binding -> binding
   val reset_pos: binding -> binding
+  val default_pos: binding -> binding
   val name: bstring -> binding
   val name_of: binding -> bstring
   val map_name: (bstring -> bstring) -> binding -> binding
@@ -75,19 +76,27 @@ fun map_binding f (Binding {restricted, concealed, prefix, qualifier, name, pos}
 
 fun path_of (Binding {prefix, qualifier, ...}) = prefix @ qualifier;
 
+fun make (name, pos) = make_binding (NONE, false, [], [], name, pos);
+
 
 
 (** basic operations **)
 
-(* name and position *)
-
-fun make (name, pos) = make_binding (NONE, false, [], [], name, pos);
+(* position *)
 
 fun pos_of (Binding {pos, ...}) = pos;
+
 fun set_pos pos =
   map_binding (fn (restricted, concealed, prefix, qualifier, name, _) =>
     (restricted, concealed, prefix, qualifier, name, pos));
+
 val reset_pos = set_pos Position.none;
+
+fun default_pos b =
+  if pos_of b = Position.none then set_pos (Position.thread_data ()) b else b;
+
+
+(* name *)
 
 fun name name = make (name, Position.none);
 fun name_of (Binding {name, ...}) = name;

@@ -49,6 +49,9 @@ end
 context. Unlike "context includes ... begin", the effect of 'unbundle'
 on the target context persists, until different declarations are given.
 
+* Proof method "blast" is more robust wrt. corner cases of Pure
+statements without object-logic judgment.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
@@ -83,6 +86,13 @@ statement.
 
 
 *** Isar ***
+
+* The defining position of a literal fact \<open>prop\<close> is maintained more
+carefully, and made accessible as hyperlink in the Prover IDE.
+
+* Commands 'finally' and 'ultimately' used to expose the result as
+literal fact: this accidental behaviour has been discontinued. Rare
+INCOMPATIBILITY, use more explicit means to refer to facts in Isar.
 
 * Command 'axiomatization' has become more restrictive to correspond
 better to internal axioms as singleton facts with mandatory name. Minor
@@ -135,6 +145,15 @@ some situations where ambiguities may occur.
 
 
 *** HOL ***
+
+* Theory Library/Combinator_PER.thy: combinator to build partial
+equivalence relations from a predicate and an equivalence relation.
+
+* Theory Library/Perm.thy: basic facts about almost everywhere fix
+bijections.
+
+* Locale bijection establishes convenient default simp rules
+like "inv f (f a) = a" for total bijections.
 
 * Former locale lifting_syntax is now a bundle, which is easier to
 include in a local context or theorem statement, e.g. "context includes

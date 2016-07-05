@@ -19,7 +19,6 @@ sig
   val map_context_result : (context -> 'a * context) -> state -> 'a * state
   val map_contexts: (context -> context) -> state -> state
   val propagate_ml_env: state -> state
-  val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val set_facts: thm list -> state -> state
@@ -241,8 +240,6 @@ fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mo
 fun propagate_ml_env state = map_contexts
   (Context.proof_map (ML_Env.inherit (Context.Proof (context_of state)))) state;
 
-val put_thms = map_context oo Proof_Context.put_thms;
-
 
 (* facts *)
 
@@ -258,12 +255,12 @@ fun the_fact state =
     [thm] => thm
   | _ => error "Single theorem expected");
 
-fun put_facts facts =
+fun put_facts index facts =
   map_top (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  put_thms true (Auto_Bind.thisN, facts);
+  map_context (Proof_Context.put_thms index (Auto_Bind.thisN, facts));
 
-val set_facts = put_facts o SOME;
-val reset_facts = put_facts NONE;
+val set_facts = put_facts false o SOME;
+val reset_facts = put_facts false NONE;
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> set_facts (maps snd named_factss @ more_facts));
@@ -274,7 +271,7 @@ fun export_facts inner outer =
   | SOME thms =>
       thms
       |> Proof_Context.export (context_of inner) (context_of outer)
-      |> (fn ths => set_facts ths outer));
+      |> (fn ths => put_facts true (SOME ths) outer));
 
 
 (* mode *)
@@ -1100,6 +1097,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
           in (prems, ctxt'') end);
 
     (*result*)
+    val results_bindings = map (apfst Binding.default_pos) shows_bindings;
     fun after_qed' (result_ctxt, results) state' =
       let
         val ctxt' = context_of state';
@@ -1110,7 +1108,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
         val export = map export0 #> Variable.export result_ctxt ctxt';
       in
         state'
-        |> local_results (shows_bindings ~~ burrow export results)
+        |> local_results (results_bindings ~~ burrow export results)
         |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
         |> after_qed (result_ctxt, results)
       end;

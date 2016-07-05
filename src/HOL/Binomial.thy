@@ -6,7 +6,7 @@
     Additional binomial identities by Chaitanya Mangla and Manuel Eberl
 *)
 
-section\<open>Factorial Function, Binomial Coefficients and Binomial Theorem\<close>
+section \<open>Combinatorial Functions: Factorial Function, Rising Factorials, Binomial Coefficients and Binomial Theorem\<close>
 
 theory Binomial
 imports Main
@@ -170,7 +170,8 @@ lemma fact_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
 text \<open>This development is based on the work of Andy Gordon and
   Florian Kammueller.\<close>
 
-subsection \<open>Basic definitions and lemmas\<close>
+
+subsection \<open>Binomial coefficients\<close>
 
 text \<open>Combinatorial definition\<close>
 
@@ -394,6 +395,12 @@ proof (induct n arbitrary: k rule: nat_less_induct)
   ultimately show ?ths by blast
 qed
 
+lemma binomial_fact':
+  assumes "k \<le> n"
+  shows "n choose k = fact n div (fact k * fact (n - k))"
+  using binomial_fact_lemma [OF assms]
+  by (metis fact_nonzero mult_eq_0_iff nonzero_mult_divide_cancel_left)
+
 lemma binomial_fact:
   assumes kn: "k \<le> n"
   shows "(of_nat (n choose k) :: 'a::field_char_0) =
@@ -465,7 +472,8 @@ proof -
   finally show ?thesis .
 qed
 
-subsection\<open>Pochhammer's symbol : generalized rising factorial\<close>
+
+subsection \<open>Pochhammer's symbol : generalized rising factorial\<close>
 
 text \<open>See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"}\<close>
 
@@ -675,20 +683,24 @@ proof -
 qed
 
 
-subsection\<open>Generalized binomial coefficients\<close>
+subsection \<open>Generalized binomial coefficients\<close>
 
-definition (in field_char_0) gbinomial :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
+definition gbinomial :: "'a :: {semidom_divide, semiring_char_0} \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
 where
-  "a gchoose n = setprod (\<lambda>i. a - of_nat i) {..<n} / fact n"
+  "a gchoose n = setprod (\<lambda>i. a - of_nat i) {..<n} div fact n"
 
 lemma gbinomial_Suc:
   "a gchoose (Suc k) = setprod (\<lambda>i. a - of_nat i) {..k} / fact (Suc k)"
   by (simp add: gbinomial_def lessThan_Suc_atMost)
 
-lemma gbinomial_0 [simp]: "a gchoose 0 = 1" "0 gchoose (Suc n) = 0"
+lemma gbinomial_0 [simp]:
+  fixes a :: "'a::field_char_0"
+  shows "a gchoose 0 = 1" "(0::'a) gchoose (Suc n) = 0"
   by (simp_all add: gbinomial_def)
 
-lemma gbinomial_pochhammer: "a gchoose n = (- 1) ^ n * pochhammer (- a) n / (fact n)"
+lemma gbinomial_pochhammer:
+  fixes a :: "'a::field_char_0"
+  shows "a gchoose n = (- 1) ^ n * pochhammer (- a) n / (fact n)"
 proof (cases "n = 0")
   case True
   then show ?thesis by simp
@@ -708,6 +720,32 @@ proof -
     by (simp add: gbinomial_pochhammer pochhammer_minus mult_ac)
   also have "(-1 :: 'a)^n * (-1)^n = 1" by (subst power_add [symmetric]) simp
   finally show ?thesis by simp
+qed
+
+lemma gbinomial_binomial:
+  "n gchoose k = n choose k"
+proof (cases "k \<le> n")
+  case False
+  then have "n < k" by (simp add: not_le)
+  then have "0 \<in> (op - n) ` {..<k}"
+    by auto
+  then have "setprod (op - n) {..<k} = 0"
+    by (auto intro: setprod_zero)
+  with \<open>n < k\<close> show ?thesis
+    by (simp add: binomial_eq_0 gbinomial_def setprod_zero)
+next
+  case True
+  then have "inj_on (op - n) {..<k}"
+    by (auto intro: inj_onI)
+  then have "\<Prod>(op - n ` {..<k}) = setprod (op - n) {..<k}"
+    by (auto dest: setprod.reindex)
+  also have "op - n ` {..<k} = {Suc (n - k)..n}"
+    using True by (auto simp add: image_def Bex_def) arith
+  finally have *: "setprod (\<lambda>q. n - q) {..<k} = \<Prod>{Suc (n - k)..n}" ..
+  from True have "(n choose k) = fact n div (fact k * fact (n - k))"
+    by (rule binomial_fact')
+  with * show ?thesis
+    by (simp add: gbinomial_def mult.commute [of "fact k"] div_mult2_eq fact_div_fact)
 qed
 
 lemma binomial_gbinomial:
@@ -751,6 +789,8 @@ proof -
   have "k > n \<or> k = 0 \<or> (k \<le> n \<and> k \<noteq> 0)" by arith
   ultimately show ?thesis by blast
 qed
+
+setup \<open>Sign.add_const_constraint (@{const_name gbinomial}, SOME @{typ "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a"})\<close>
 
 lemma gbinomial_1[simp]: "a gchoose 1 = a"
   by (simp add: gbinomial_def lessThan_Suc)
@@ -1098,7 +1138,7 @@ proof (induction n)
   thus ?case using gbinomial_Suc_Suc[of "(r + of_nat m + 1)" m] by (simp add: add_ac)
 qed auto
 
-subsection \<open>Summation on the upper index\<close>
+subsubsection \<open>Summation on the upper index\<close>
 text \<open>
   Another summation formula is equation 5.10 of the reference material \cite[p.~160]{GKP},
   aptly named \emph{summation on the upper index}:\[\sum_{0 \leq k \leq n} {k \choose m} =
@@ -1345,7 +1385,7 @@ using assms choose_mult_lemma [of "m-k" "n-m" k]
 by simp
 
 
-subsection \<open>Binomial coefficients\<close>
+subsection \<open>More on Binomial Coefficients\<close>
 
 lemma choose_one: "(n::nat) choose 1 = n"
   by simp
@@ -1547,6 +1587,9 @@ proof -
        (simp_all only: ac_simps diff_Suc_Suc Suc_diff_le diff_add_inverse fact_Suc of_nat_id)
 qed
 
+
+subsection \<open>Misc\<close>
+
 lemma fact_code [code]:
   "fact n = (of_nat (fold_atLeastAtMost_nat (op *) 2 n 1) :: 'a :: semiring_char_0)"
 proof -
@@ -1561,7 +1604,6 @@ qed
 lemma setprod_lessThan_fold_atLeastAtMost_nat:
   "setprod f {..<Suc n} = fold_atLeastAtMost_nat (times \<circ> f) 0 n 1"
   by (simp add: lessThan_Suc_atMost atLeast0AtMost [symmetric] setprod_atLeastAtMost_code comp_def)
-
 
 lemma pochhammer_code [code]:
   "pochhammer a n = (if n = 0 then 1 else

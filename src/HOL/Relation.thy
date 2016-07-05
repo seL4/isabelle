@@ -51,6 +51,7 @@ declare SUP1_E [elim!]
 declare Sup2_E [elim!]
 declare SUP2_E [elim!]
 
+
 subsection \<open>Fundamental\<close>
 
 subsubsection \<open>Relations as sets of pairs\<close>
@@ -141,6 +142,7 @@ lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UN
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
   by (simp add: fun_eq_iff)
 
+
 subsection \<open>Properties of relations\<close>
 
 subsubsection \<open>Reflexivity\<close>
@@ -161,7 +163,7 @@ lemma reflp_refl_eq [pred_set_conv]:
   "reflp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> refl r" 
   by (simp add: refl_on_def reflp_def)
 
-lemma refl_onI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl_on A r"
+lemma refl_onI [intro?]: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl_on A r"
   by (unfold refl_on_def) (iprover intro!: ballI)
 
 lemma refl_onD: "refl_on A r ==> a : A ==> (a, a) : r"
@@ -173,7 +175,7 @@ lemma refl_onD1: "refl_on A r ==> (x, y) : r ==> x : A"
 lemma refl_onD2: "refl_on A r ==> (x, y) : r ==> y : A"
   by (unfold refl_on_def) blast
 
-lemma reflpI:
+lemma reflpI [intro?]:
   "(\<And>x. r x x) \<Longrightarrow> reflp r"
   by (auto intro: refl_onI simp add: reflp_def)
 
@@ -182,7 +184,7 @@ lemma reflpE:
   obtains "r x x"
   using assms by (auto dest: refl_onD simp add: reflp_def)
 
-lemma reflpD:
+lemma reflpD [dest?]:
   assumes "reflp r"
   shows "r x x"
   using assms by (auto elim: reflpE)
@@ -222,6 +224,7 @@ by(simp add: reflp_def)
 lemma reflp_mono: "\<lbrakk> reflp R; \<And>x y. R x y \<longrightarrow> Q x y \<rbrakk> \<Longrightarrow> reflp Q"
 by(auto intro: reflpI dest: reflpD)
 
+
 subsubsection \<open>Irreflexivity\<close>
 
 definition irrefl :: "'a rel \<Rightarrow> bool"
@@ -236,11 +239,11 @@ lemma irreflp_irrefl_eq [pred_set_conv]:
   "irreflp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> irrefl R" 
   by (simp add: irrefl_def irreflp_def)
 
-lemma irreflI:
+lemma irreflI [intro?]:
   "(\<And>a. (a, a) \<notin> R) \<Longrightarrow> irrefl R"
   by (simp add: irrefl_def)
 
-lemma irreflpI:
+lemma irreflpI [intro?]:
   "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
   by (fact irreflI [to_pred])
 
@@ -278,11 +281,11 @@ lemma symp_sym_eq [pred_set_conv]:
   "symp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> sym r" 
   by (simp add: sym_def symp_def)
 
-lemma symI:
+lemma symI [intro?]:
   "(\<And>a b. (a, b) \<in> r \<Longrightarrow> (b, a) \<in> r) \<Longrightarrow> sym r"
   by (unfold sym_def) iprover
 
-lemma sympI:
+lemma sympI [intro?]:
   "(\<And>a b. r a b \<Longrightarrow> r b a) \<Longrightarrow> symp r"
   by (fact symI [to_pred])
 
@@ -296,12 +299,12 @@ lemma sympE:
   obtains "r a b"
   using assms by (rule symE [to_pred])
 
-lemma symD:
+lemma symD [dest?]:
   assumes "sym r" and "(b, a) \<in> r"
   shows "(a, b) \<in> r"
   using assms by (rule symE)
 
-lemma sympD:
+lemma sympD [dest?]:
   assumes "symp r" and "r b a"
   shows "r a b"
   using assms by (rule symD [to_pred])
@@ -346,14 +349,14 @@ where
   "antisym r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r \<longrightarrow> x = y)"
 
 abbreviation antisymP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-where
+where -- \<open>FIXME proper logical operation\<close>
   "antisymP r \<equiv> antisym {(x, y). r x y}"
 
-lemma antisymI:
+lemma antisymI [intro?]:
   "(!!x y. (x, y) : r ==> (y, x) : r ==> x=y) ==> antisym r"
   by (unfold antisym_def) iprover
 
-lemma antisymD: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
+lemma antisymD [dest?]: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
   by (unfold antisym_def) iprover
 
 lemma antisym_subset: "r \<subseteq> s ==> antisym s ==> antisym r"
@@ -364,6 +367,7 @@ lemma antisym_empty [simp]: "antisym {}"
 
 lemma antisymP_equality [simp]: "antisymP op ="
 by(auto intro: antisymI)
+
 
 subsubsection \<open>Transitivity\<close>
 
@@ -379,15 +383,11 @@ lemma transp_trans_eq [pred_set_conv]:
   "transp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> trans r" 
   by (simp add: trans_def transp_def)
 
-abbreviation transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-where \<comment> \<open>FIXME drop\<close>
-  "transP r \<equiv> trans {(x, y). r x y}"
-
-lemma transI:
+lemma transI [intro?]:
   "(\<And>x y z. (x, y) \<in> r \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> (x, z) \<in> r) \<Longrightarrow> trans r"
   by (unfold trans_def) iprover
 
-lemma transpI:
+lemma transpI [intro?]:
   "(\<And>x y z. r x y \<Longrightarrow> r y z \<Longrightarrow> r x z) \<Longrightarrow> transp r"
   by (fact transI [to_pred])
 
@@ -401,12 +401,12 @@ lemma transpE:
   obtains "r x z"
   using assms by (rule transE [to_pred])
 
-lemma transD:
+lemma transD [dest?]:
   assumes "trans r" and "(x, y) \<in> r" and "(y, z) \<in> r"
   shows "(x, z) \<in> r"
   using assms by (rule transE)
 
-lemma transpD:
+lemma transpD [dest?]:
   assumes "transp r" and "r x y" and "r y z"
   shows "r x z"
   using assms by (rule transD [to_pred])
@@ -436,6 +436,7 @@ lemma transp_trans:
 lemma transp_equality [simp]: "transp op ="
 by(auto intro: transpI)
 
+
 subsubsection \<open>Totality\<close>
 
 definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
@@ -454,7 +455,8 @@ definition single_valued :: "('a \<times> 'b) set \<Rightarrow> bool"
 where
   "single_valued r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (\<forall>z. (x, z) \<in> r \<longrightarrow> y = z))"
 
-abbreviation single_valuedP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
+abbreviation single_valuedP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+where -- \<open>FIXME proper logical operation\<close>
   "single_valuedP r \<equiv> single_valued {(x, y). r x y}"
 
 lemma single_valuedI:
@@ -517,6 +519,7 @@ lemma total_on_diff_Id [simp]: "total_on A (r - Id) = total_on A r"
 
 lemma Id_fstsnd_eq: "Id = {x. fst x = snd x}"
   by force
+
 
 subsubsection \<open>Diagonal: identity over a set\<close>
 
@@ -684,6 +687,7 @@ by blast
 lemma OO_eq: "R OO op = = R"
 by blast
 
+
 subsubsection \<open>Converse\<close>
 
 inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set"  ("(_\<inverse>)" [1000] 999)
@@ -838,8 +842,6 @@ inductive_set Domain :: "('a \<times> 'b) set \<Rightarrow> 'a set"
 where
   DomainI [intro]: "(a, b) \<in> r \<Longrightarrow> a \<in> Domain r"
 
-abbreviation (input) "DomainP \<equiv> Domainp"
-
 lemmas DomainPI = Domainp.DomainI
 
 inductive_cases DomainE [elim!]: "a \<in> Domain r"
@@ -849,8 +851,6 @@ inductive_set Range :: "('a \<times> 'b) set \<Rightarrow> 'b set"
   for r :: "('a \<times> 'b) set"
 where
   RangeI [intro]: "(a, b) \<in> r \<Longrightarrow> b \<in> Range r"
-
-abbreviation (input) "RangeP \<equiv> Rangep"
 
 lemmas RangePI = Rangep.RangeI
 
@@ -1079,6 +1079,7 @@ lemma Sigma_Image: "(SIGMA x:A. B x) `` X = (\<Union>x\<in>X \<inter> A. B x)"
 lemma relcomp_Image: "(X O Y) `` Z = Y `` (X `` Z)"
   by auto
 
+
 subsubsection \<open>Inverse image\<close>
 
 definition inv_image :: "'b rel \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a rel"
@@ -1121,6 +1122,7 @@ lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. 
   by (auto simp add: Powp_def fun_eq_iff)
 
 lemmas Powp_mono [mono] = Pow_mono [to_pred]
+
 
 subsubsection \<open>Expressing relation operations via @{const Finite_Set.fold}\<close>
 
@@ -1195,5 +1197,18 @@ lemma relcomp_fold:
   using assms by (induct R)
     (auto simp: comp_fun_commute.fold_insert comp_fun_commute_relcomp_fold insert_relcomp_fold
       cong: if_cong)
+
+text \<open>Misc\<close>
+
+abbreviation (input) transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+where \<comment> \<open>FIXME drop\<close>
+  "transP r \<equiv> trans {(x, y). r x y}"
+
+abbreviation (input)
+  "RangeP \<equiv> Rangep"
+
+abbreviation (input)
+  "DomainP \<equiv> Domainp"
+
 
 end

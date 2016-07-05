@@ -116,37 +116,41 @@ end;
 
 local
 
-fun meta_rewrite eqns ctxt = (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
+fun meta_rewrite eqns ctxt =
+  (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
-fun note_eqns_register note activate deps witss def_eqns eqns attrss export export' ctxt =
+fun note_eqns_register pos note activate deps witss def_eqns eqns attrss export export' ctxt =
   let
-    val facts = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])])
-      :: map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])])) attrss eqns;
+    val facts =
+      (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]) ::
+        map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])]))
+          attrss eqns;
     val (eqns', ctxt') = ctxt
       |> note Thm.theoremK facts
       |-> meta_rewrite;
-    val dep_morphs = map2 (fn (dep, morph) => fn wits =>
-      (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))) deps witss;
-    fun activate' dep_morph ctxt = activate dep_morph
-      (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns')) export ctxt;
-  in
-    ctxt'
-    |> fold activate' dep_morphs
-  end;
+    val dep_morphs =
+      map2 (fn (dep, morph) => fn wits =>
+        let val morph' = morph
+          $> Element.satisfy_morphism (map (Element.transform_witness export') wits)
+          $> Morphism.binding_morphism "position" (Binding.set_pos pos)
+        in (dep, morph') end) deps witss;
+    fun activate' dep_morph ctxt =
+      activate dep_morph
+        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns'))
+        export ctxt;
+  in ctxt' |> fold activate' dep_morphs end;
 
 in
 
-fun generic_interpretation_with_defs prep_interpretation setup_proof note add_registration
+fun generic_interpretation prep_interpretation setup_proof note add_registration
     expression raw_defs raw_eqns initial_ctxt =
   let
     val (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) =
       prep_interpretation expression raw_defs raw_eqns initial_ctxt;
+    val pos = Position.thread_data ();
     fun after_qed witss eqns =
-      note_eqns_register note add_registration deps witss def_eqns eqns attrss export export';
+      note_eqns_register pos note add_registration deps witss def_eqns eqns attrss export export';
   in setup_proof after_qed propss eqns goal_ctxt end;
-
-fun generic_interpretation prep_interpretation setup_proof note add_registration expression =
-  generic_interpretation_with_defs prep_interpretation setup_proof note add_registration expression [];
 
 end;
 
@@ -160,22 +164,21 @@ local
 fun gen_interpret prep_interpretation expression raw_eqns state =
   let
     val _ = Proof.assert_forward_or_chain state;
-    val ctxt = Proof.context_of state;
     fun lift_after_qed after_qed witss eqns =
       Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
     fun setup_proof after_qed propss eqns goal_ctxt =
       Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret"
         propss eqns goal_ctxt state;
   in
-    generic_interpretation prep_interpretation setup_proof
-      Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression raw_eqns ctxt
+    Proof.context_of state
+    |> generic_interpretation prep_interpretation setup_proof
+      Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression [] raw_eqns
   end;
 
 in
 
-fun interpret expression = gen_interpret cert_interpretation expression;
-
-fun interpret_cmd raw_expression = gen_interpret read_interpretation raw_expression;
+val interpret = gen_interpret cert_interpretation;
+val interpret_cmd = gen_interpret read_interpretation;
 
 end;
 
@@ -184,33 +187,33 @@ end;
 
 fun interpretation expression =
   generic_interpretation cert_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind Locale.activate_fragment expression;
+    Local_Theory.notes_kind Locale.activate_fragment expression [];
 
-fun interpretation_cmd raw_expression =
+fun interpretation_cmd expression =
   generic_interpretation read_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind Locale.activate_fragment raw_expression;
+    Local_Theory.notes_kind Locale.activate_fragment expression [];
 
 
 (* interpretation into global theories *)
 
 fun global_interpretation expression =
-  generic_interpretation_with_defs cert_interpretation Element.witness_proof_eqs
+  generic_interpretation cert_interpretation Element.witness_proof_eqs
     Local_Theory.notes_kind Local_Theory.theory_registration expression;
 
-fun global_interpretation_cmd raw_expression =
-  generic_interpretation_with_defs read_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind Local_Theory.theory_registration raw_expression;
+fun global_interpretation_cmd expression =
+  generic_interpretation read_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Local_Theory.theory_registration expression;
 
 
 (* interpretation between locales *)
 
 fun sublocale expression =
-  generic_interpretation_with_defs cert_interpretation Element.witness_proof_eqs
+  generic_interpretation cert_interpretation Element.witness_proof_eqs
     Local_Theory.notes_kind Local_Theory.locale_dependency expression;
 
-fun sublocale_cmd raw_expression =
-  generic_interpretation_with_defs read_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind Local_Theory.locale_dependency raw_expression;
+fun sublocale_cmd expression =
+  generic_interpretation read_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Local_Theory.locale_dependency expression;
 
 local
 
@@ -223,7 +226,7 @@ fun gen_global_sublocale prep_loc prep_interpretation
         (fn wits => fn eqs => after_qed wits eqs #> Local_Theory.exit);
   in
     lthy |>
-      generic_interpretation_with_defs prep_interpretation setup_proof
+      generic_interpretation prep_interpretation setup_proof
         Local_Theory.notes_kind Local_Theory.locale_dependency expression raw_defs raw_eqns
   end;
 
@@ -249,7 +252,7 @@ fun register_or_activate lthy =
 
 fun gen_isar_interpretation prep_interpretation expression raw_eqns lthy =
   generic_interpretation prep_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind (register_or_activate lthy) expression raw_eqns lthy;
+    Local_Theory.notes_kind (register_or_activate lthy) expression [] raw_eqns lthy;
 
 in
 

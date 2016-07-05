@@ -12,6 +12,7 @@ imports
   Code_Test
   ContNotDenum
   Convex
+  Combine_PER
   Complete_Partial_Order2
   Countable
   Countable_Complete_Lattices
@@ -55,6 +56,7 @@ imports
   Option_ord
   Order_Continuity
   Parallel
+  Perm
   Permutation
   Permutations
   Polynomial
