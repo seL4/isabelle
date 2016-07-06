@@ -11,14 +11,13 @@ sig
   val locale_of: local_theory -> string option
   val bottom_locale_of: local_theory -> string option
   val class_of: local_theory -> string option
-  val init: string -> theory -> local_theory
+  val init: (local_theory -> local_theory) option -> string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val theory_map: (local_theory -> local_theory) -> theory -> theory
-  val theory_like_init: (local_theory -> local_theory) -> theory -> local_theory
   val begin: xstring * Position.T -> theory -> local_theory
   val exit: local_theory -> theory
-  val switch: (xstring * Position.T) option -> Context.generic
-    -> (local_theory -> Context.generic) * local_theory
+  val switch: (xstring * Position.T) option -> Context.generic ->
+    (local_theory -> Context.generic) * local_theory
 end;
 
 structure Named_Target: NAMED_TARGET =
@@ -133,7 +132,7 @@ fun init_context ("", _) = Proof_Context.init_global
   | init_context (locale, false) = Locale.init locale
   | init_context (class, true) = Class.init class;
 
-fun gen_init before_exit target thy =
+fun init before_exit target thy =
   let
     val name_data = make_name_data thy target;
     val background_naming =
@@ -155,19 +154,14 @@ fun gen_init before_exit target thy =
           #> Local_Theory.target_of #> Sign.change_end_local}
   end;
 
-val init = gen_init NONE
-
-val theory_init = init "";
-
+val theory_init = init NONE "";
 fun theory_map f = theory_init #> f #> Local_Theory.exit_global;
-
-fun theory_like_init before_exit = gen_init (SOME before_exit) "";
 
 
 (* toplevel interaction *)
 
 fun begin ("-", _) thy = theory_init thy
-  | begin target thy = init (Locale.check thy target) thy;
+  | begin target thy = init NONE (Locale.check thy target) thy;
 
 val exit = Local_Theory.assert_bottom true #> Local_Theory.exit_global;
 
@@ -178,7 +172,7 @@ fun switch NONE (Context.Theory thy) =
   | switch NONE (Context.Proof lthy) =
       (Context.Proof o Local_Theory.reset, lthy)
   | switch (SOME name) (Context.Proof lthy) =
-      (Context.Proof o init (target_of lthy) o exit,
+      (Context.Proof o init NONE (target_of lthy) o exit,
         (begin name o exit o Local_Theory.assert_nonbrittle) lthy);
 
 end;
