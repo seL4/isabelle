@@ -124,22 +124,12 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 
   def threads: Int
   def jobs: Int
-  def all: Boolean
-  def groups: List[String]
-  def exclude: List[String]
   def include: List[Path]
   def select: List[Path]
 
   def pre_hook(args: List[String]): Unit
   def post_hook(results: Build.Results): Unit
 
-  def select_sessions(tree: Sessions.Tree): (List[String], Sessions.Tree) =
-    tree.selection(
-      requirements = false,
-      all_sessions = all,
-      exclude_session_groups = exclude,
-      exclude_sessions = Nil,
-      session_groups = groups,
-      sessions = Nil)
+  def select_sessions(tree: Sessions.Tree): (List[String], Sessions.Tree)
 
 }
