@@ -19,12 +19,11 @@ codatatype 'a stream = SCons (shd: 'a) (stl: "'a stream") (infixr "\<lhd>" 65)
 corec "natsFrom" :: "nat \<Rightarrow> nat stream" where
   "natsFrom n = n \<lhd> natsFrom (n + 1)"
 
-corec (friend) addOne :: "nat stream \<Rightarrow> nat stream"
-where "addOne n = (shd n + 1) \<lhd> addOne (stl n)"
+corec (friend) add1 :: "nat stream \<Rightarrow> nat stream"
+where "add1 n = (shd n + 1) \<lhd> add1 (stl n)"
 
 corec natsFrom' :: "nat \<Rightarrow> nat stream" where
-  "natsFrom' n = n \<lhd> addOne (natsFrom' n)"
-
+  "natsFrom' n = n \<lhd> add1 (natsFrom' n)"
 
 section \<open>Examples from section 3\<close>
 
@@ -33,29 +32,28 @@ text \<open>We curry the example functions in this section because infix syntax 
 corec (friend) Plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infix "\<oplus>" 67) where
   "x\<^sub>1 \<oplus> x\<^sub>2 = (shd x\<^sub>1 + shd x\<^sub>2) \<lhd> (stl x\<^sub>1 \<oplus> stl x\<^sub>2)"
 
-
 section \<open>Examples from section 4\<close>
 
-corec collatz :: "nat \<Rightarrow> nat stream" where
-  "collatz n = (if even n \<and> n > 0 then collatz (n div 2) else n \<lhd> collatz (3 * n + 1))"
+codatatype 'a llist = LNil | LCons 'a "'a llist"
+
+corec collatz :: "nat \<Rightarrow> nat llist" where
+  "collatz n = (if n \<le> 1 then LNil
+     else if even n then collatz (n div 2)
+     else LCons n (collatz (3 * n + 1)))"
 
 datatype 'a nelist = NEList (hd:'a) (tl:"'a list")
 
-primrec (transfer) postpend :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a nelist" (infix "\<rhd>" 64) where
+primrec (transfer) snoc :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a nelist" (infix "\<rhd>" 64) where
  "[] \<rhd> a = NEList a []"
 |"(b # bs) \<rhd> a = NEList b (bs @ [a])"
 
 corec (friend) inter :: "nat stream nelist \<Rightarrow> nat stream" where
-"inter x = shd (hd x) \<lhd> inter (tl x \<rhd> stl (hd x))"
+"inter xss = shd (hd xss) \<lhd> inter (tl xss \<rhd> stl (hd xss))"
 
-corec (friend) inter2 :: "nat stream nelist \<Rightarrow> nat stream" where
-"inter2 x = (case hd x of n \<lhd> y \<Rightarrow> n \<lhd> inter2 (tl x \<rhd> y))"
+corec (friend) inter' :: "nat stream nelist \<Rightarrow> nat stream" where
+"inter' xss = (case hd xss of x \<lhd> xs \<Rightarrow> x \<lhd> inter' (tl xss \<rhd> xs))"
 
 corec zero :: "nat stream" where "zero = 0 \<lhd> zero"
-
-corec (friend) inter3 :: "nat stream nelist \<Rightarrow> nat stream" where
-"inter3 x = shd (stl zero) \<lhd> inter3 ([hd x] \<rhd> stl (hd x))"
-
 
 section \<open>Examples from Blanchette et al. (ICFP 2015)\<close>
 
@@ -91,7 +89,8 @@ corec (friend) tplus :: "tree \<Rightarrow> tree \<Rightarrow> tree"
 where "tplus t u = Node (val t + val u) (map (\<lambda>(t', u'). tplus t' u') (zip (sub t) (sub u)))"
 
 corec (friend) ttimes :: "tree \<Rightarrow> tree \<Rightarrow> tree"
-where "ttimes t u = Node (val t * val u) (map (\<lambda>(t , u ). tplus (ttimes t u ) (ttimes t u)) (zip (sub t) (sub u)))"
+where "ttimes t u = Node (val t * val u)
+  (map (\<lambda>(t, u). tplus (ttimes t u) (ttimes t u)) (zip (sub t) (sub u)))"
 
 corecursive primes :: "nat \<Rightarrow> nat \<Rightarrow> nat stream"
 where "primes m n =
