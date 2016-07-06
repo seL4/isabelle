@@ -223,30 +223,20 @@ lemma less_eq_multiset\<^sub>H\<^sub>O:
 lemma wf_less_multiset: "wf {(M :: ('a :: wellorder) multiset, N). M < N}"
   unfolding less_multiset_def by (auto intro: wf_mult wf)
 
-lemma order_multiset: "class.order
-  (op \<le> :: ('a :: order) multiset \<Rightarrow> ('a :: order) multiset \<Rightarrow> bool)
-  (op < :: ('a :: order) multiset \<Rightarrow> ('a :: order) multiset \<Rightarrow> bool)"
-  by unfold_locales
+instantiation multiset :: (linorder) linorder
+begin
+  instance by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
+end
 
-lemma linorder_multiset: "class.linorder
-  (op \<le> :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool)
-  (op < :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool)"
-  by unfold_locales (fastforce simp add: less_multiset\<^sub>H\<^sub>O less_eq_multiset_def not_less_iff_gr_or_eq)
-
-interpretation multiset_linorder: linorder
-  "op \<le> :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool"
-  "op < :: ('a :: linorder) multiset \<Rightarrow> ('a :: linorder) multiset \<Rightarrow> bool"
-  by (rule linorder_multiset)
-
-interpretation multiset_wellorder: wellorder
-  "op \<le> :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
-  "op < :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
-  by unfold_locales (blast intro: wf_less_multiset [unfolded wf_def, simplified, rule_format])
+instantiation multiset :: (wellorder) wellorder
+begin
+  instance by standard (metis less_multiset_def wf wf_def wf_mult)
+end
 
 lemma less_eq_multiset_total:
   fixes M N :: "('a :: linorder) multiset"
   shows "\<not> M \<le> N \<Longrightarrow> N \<le> M"
-  by (metis multiset_linorder.le_cases)
+  by simp
 
 lemma subset_eq_imp_le_multiset:
   fixes M N :: "('a :: linorder) multiset"
@@ -256,7 +246,7 @@ lemma subset_eq_imp_le_multiset:
 
 lemma le_multiset_right_total:
   fixes M :: "('a :: linorder) multiset"
-  shows "M < M + {#undefined#}"
+  shows "M < M + {#x#}"
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O by simp
 
 lemma less_eq_multiset_empty_left[simp]:
@@ -294,7 +284,7 @@ lemma
   unfolding less_multiset\<^sub>H\<^sub>O by auto
 
 lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
-  by (metis add.commute add_diff_cancel_right' monoid_add_class.add.left_neutral)
+  by (rule cancel_comm_monoid_add_class.add_cancel_left_right)
 
 lemma
   fixes M N :: "('a :: linorder) multiset"

@@ -316,11 +316,13 @@ INCOMPATIBILITY.
     #\<subset># ~> <
     le_multiset ~> less_eq_multiset
     less_multiset ~> le_multiset
-INCOMPATIBILITY
+INCOMPATIBILITY.
 
 * The prefix multiset_order has been discontinued: the theorems can be directly
-accessed.
-INCOMPATILBITY
+accessed. As a consequence, the lemmas "order_multiset" and "linorder_multiset"
+have been discontinued, and the interpretations "multiset_linorder" and
+"multiset_wellorder" have been replaced by instantiations.
+INCOMPATIBILITY.
 
 * Some theorems about the multiset ordering have been renamed:
     le_multiset_def ~> less_eq_multiset_def
@@ -346,7 +348,7 @@ INCOMPATILBITY
     le_multiset_plus_right_nonempty ~> le_multiset_plus_right_nonempty
     less_multiset_plus_plus_left_iff ~> le_multiset_plus_plus_left_iff
     less_multiset_plus_plus_right_iff ~> le_multiset_plus_plus_right_iff
-INCOMPATIBILITY
+INCOMPATIBILITY.
 
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
