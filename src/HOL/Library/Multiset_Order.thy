@@ -11,28 +11,8 @@ begin
 
 subsection \<open>Alternative characterizations\<close>
 
-context order
+context preorder
 begin
-
-lemma reflp_le: "reflp (op \<le>)"
-  unfolding reflp_def by simp
-
-lemma antisymP_le: "antisymP (op \<le>)"
-  unfolding antisym_def by auto
-
-lemma transp_le: "transp (op \<le>)"
-  unfolding transp_def by auto
-
-lemma irreflp_less: "irreflp (op <)"
-  unfolding irreflp_def by simp
-
-lemma antisymP_less: "antisymP (op <)"
-  unfolding antisym_def by auto
-
-lemma transp_less: "transp (op <)"
-  unfolding transp_def by auto
-
-lemmas le_trans = transp_le[unfolded transp_def, rule_format]
 
 lemma order_mult: "class.order
   (\<lambda>M N. (M, N) \<in> mult {(x, y). x < y} \<or> M = N)
@@ -43,7 +23,7 @@ proof -
   proof
     fix M :: "'a multiset"
     have "trans {(x'::'a, x). x' < x}"
-      by (rule transI) simp
+      by (rule transI) (blast intro: less_trans)
     moreover
     assume "(M, M) \<in> mult {(x, y). x < y}"
     ultimately have "\<exists>I J K. M = I + J \<and> M = I + K
@@ -91,7 +71,7 @@ next
   from step(2) obtain M0 a K where
     *: "P = M0 + {#a#}" "N = M0 + K" "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
     by (blast elim: mult1_lessE)
-  from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P" by (force dest: *(4) split: if_splits)
+  from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P" by (force dest: *(4) elim!: less_asym split: if_splits )
   moreover
   { assume "count P a \<le> count M a"
     with \<open>a \<notin># K\<close> have "count N a < count M a" unfolding *(1,2)
@@ -99,7 +79,7 @@ next
       with ** obtain z where z: "z > a" "count M z < count N z"
         by blast
       with * have "count N z \<le> count P z" 
-        by (force simp add: not_in_iff)
+        by (auto elim: less_asym intro: count_inI)
       with z have "\<exists>z > a. count M z < count P z" by auto
   } note count_a = this
   { fix y
@@ -186,27 +166,6 @@ lemmas mult\<^sub>H\<^sub>O = mult_less_multiset\<^sub>H\<^sub>O[unfolded less_m
 
 end
 
-context linorder
-begin
-
-lemma total_le: "total {(a :: 'a, b). a \<le> b}"
-  unfolding total_on_def by auto
-
-lemma total_less: "total {(a :: 'a, b). a < b}"
-  unfolding total_on_def by auto
-
-lemma linorder_mult: "class.linorder
-  (\<lambda>M N. (M, N) \<in> mult {(x, y). x < y} \<or> M = N)
-  (\<lambda>M N. (M, N) \<in> mult {(x, y). x < y})"
-proof -
-  interpret o: order
-    "(\<lambda>M N. (M, N) \<in> mult {(x, y). x < y} \<or> M = N)"
-    "(\<lambda>M N. (M, N) \<in> mult {(x, y). x < y})"
-    by (rule order_mult)
-  show ?thesis by unfold_locales (auto 0 3 simp: mult\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
-qed
-
-end
 
 lemma less_multiset_less_multiset\<^sub>H\<^sub>O:
   "M < N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
@@ -248,34 +207,28 @@ lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
 lemma union_le_diff_plus: "P \<le># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
   by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)
 
-instantiation multiset :: (linorder) linorder
+instantiation multiset :: (preorder) ordered_ab_semigroup_add_imp_le
 begin
 
 lemma less_eq_multiset\<^sub>H\<^sub>O:
   "M \<le> N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
   by (auto simp: less_eq_multiset_def less_multiset\<^sub>H\<^sub>O)
 
-instance by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
-
-lemma less_eq_multiset_total:
-  fixes M N :: "'a multiset"
-  shows "\<not> M \<le> N \<Longrightarrow> N \<le> M"
-  by simp
+instance by standard (auto simp: less_eq_multiset\<^sub>H\<^sub>O)
 
 lemma
   fixes M N :: "'a multiset"
   shows
     less_eq_multiset_plus_left[simp]: "N \<le> (M + N)" and
     less_eq_multiset_plus_right[simp]: "M \<le> (M + N)"
-  using [[metis_verbose = false]]
-  by (metis subset_eq_imp_le_multiset mset_subset_eq_add_left add.commute)+
+  using add_le_cancel_left[of N 0] add_le_cancel_left[of M 0 N] by (simp_all add: add.commute)
 
 lemma
   fixes M N :: "'a multiset"
   shows
-    le_multiset_plus_plus_left_iff[simp]: "M + N < M' + N \<longleftrightarrow> M < M'" and
-    le_multiset_plus_plus_right_iff[simp]: "M + N < M + N' \<longleftrightarrow> N < N'"
-  unfolding less_multiset\<^sub>H\<^sub>O by auto
+    le_multiset_plus_plus_left_iff: "M + N < M' + N \<longleftrightarrow> M < M'" and
+    le_multiset_plus_plus_right_iff: "M + N < M + N' \<longleftrightarrow> N < N'"
+  by simp_all
 
 lemma
   fixes M N :: "'a multiset"
@@ -285,12 +238,21 @@ lemma
   using [[metis_verbose = false]]
   by (metis add.right_neutral le_multiset_empty_left le_multiset_plus_plus_right_iff add.commute)+
 
-lemma ex_gt_count_imp_le_multiset:
-  "(\<forall>y :: 'a :: linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M < N"
-  unfolding less_multiset\<^sub>H\<^sub>O
-  by (metis add_gr_0 count_union mem_Collect_eq not_gr0 not_le not_less_iff_gr_or_eq set_mset_def)
-
 end
+
+lemma ex_gt_count_imp_le_multiset:
+  "(\<forall>y :: 'a :: order. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M < N"
+  unfolding less_multiset\<^sub>H\<^sub>O
+  by (metis count_greater_zero_iff le_imp_less_or_eq less_imp_not_less not_gr_zero union_iff)
+
+
+instance multiset :: (linorder) linordered_cancel_ab_semigroup_add
+  by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
+
+lemma less_eq_multiset_total:
+  fixes M N :: "'a :: linorder multiset"
+  shows "\<not> M \<le> N \<Longrightarrow> N \<le> M"
+  by simp
 
 instantiation multiset :: (wellorder) wellorder
 begin
@@ -301,5 +263,27 @@ lemma wf_less_multiset: "wf {(M :: 'a multiset, N). M < N}"
 instance by standard (metis less_multiset_def wf wf_def wf_mult)
 
 end
+
+instantiation multiset :: (preorder) order_bot
+begin
+
+definition bot_multiset :: "'a multiset" where "bot_multiset = {#}"
+
+instance by standard (simp add: bot_multiset_def)
+
+end
+
+instance multiset :: (preorder) no_top
+proof standard
+  fix x :: "'a multiset"
+  obtain a :: 'a where True by simp
+  have "x < x + (x + {#a#})"
+    by simp
+  then show "\<exists>y. x < y"
+    by blast
+qed
+
+instance multiset :: (preorder) ordered_cancel_comm_monoid_add
+  by standard
 
 end

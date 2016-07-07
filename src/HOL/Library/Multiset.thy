@@ -2488,7 +2488,7 @@ qed
 
 subsubsection \<open>Partial-order properties\<close>
 
-lemma (in order) mult1_lessE:
+lemma (in preorder) mult1_lessE:
   assumes "(N, M) \<in> mult1 {(a, b). a < b}"
   obtains a M0 K where "M = M0 + {#a#}" "N = M0 + K"
     "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
@@ -2499,7 +2499,7 @@ proof -
   ultimately show thesis by (auto intro: that)
 qed
 
-instantiation multiset :: (order) order
+instantiation multiset :: (preorder) order
 begin
 
 definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"
@@ -2515,7 +2515,7 @@ proof -
     assume "M < M"
     then have MM: "(M, M) \<in> mult {(x, y). x < y}" by (simp add: less_multiset_def)
     have "trans {(x'::'a, x). x' < x}"
-      by (rule transI) simp
+      by (metis (mono_tags, lifting) case_prodD case_prodI less_trans mem_Collect_eq transI)
     moreover note MM
     ultimately have "\<exists>I J K. M = I + J \<and> M = I + K
       \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_mset K. \<exists>j\<in>set_mset J. (k, j) \<in> {(x, y). x < y})"
@@ -2537,7 +2537,7 @@ qed
 end \<comment> \<open>FIXME avoid junk stemming from type class interpretation\<close>
 
 lemma mset_le_irrefl [elim!]:
-  fixes M :: "'a::order multiset"
+  fixes M :: "'a::preorder multiset"
   shows "M < M \<Longrightarrow> R"
   by simp
 
@@ -2552,25 +2552,25 @@ apply (rule_tac x = "C + M0" in exI)
 apply (simp add: add.assoc)
 done
 
-lemma union_le_mono2: "B < D \<Longrightarrow> C + B < C + (D::'a::order multiset)"
+lemma union_le_mono2: "B < D \<Longrightarrow> C + B < C + (D::'a::preorder multiset)"
 apply (unfold less_multiset_def mult_def)
 apply (erule trancl_induct)
  apply (blast intro: mult1_union)
 apply (blast intro: mult1_union trancl_trans)
 done
 
-lemma union_le_mono1: "B < D \<Longrightarrow> B + C < D + (C::'a::order multiset)"
+lemma union_le_mono1: "B < D \<Longrightarrow> B + C < D + (C::'a::preorder multiset)"
 apply (subst add.commute [of B C])
 apply (subst add.commute [of D C])
 apply (erule union_le_mono2)
 done
 
 lemma union_less_mono:
-  fixes A B C D :: "'a::order multiset"
+  fixes A B C D :: "'a::preorder multiset"
   shows "A < C \<Longrightarrow> B < D \<Longrightarrow> A + B < C + D"
   by (blast intro!: union_le_mono1 union_le_mono2 less_trans)
 
-instantiation multiset :: (order) ordered_ab_semigroup_add
+instantiation multiset :: (preorder) ordered_ab_semigroup_add
 begin
 instance
   by standard (auto simp add: less_eq_multiset_def intro: union_le_mono2)
@@ -2769,16 +2769,16 @@ lemmas multiset_inter_ac =
   multiset_inter_assoc
   multiset_inter_left_commute
 
-lemma mset_le_not_refl: "\<not> M < (M::'a::order multiset)"
+lemma mset_le_not_refl: "\<not> M < (M::'a::preorder multiset)"
   by (fact less_irrefl)
 
-lemma mset_le_trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < (N::'a::order multiset)"
+lemma mset_le_trans: "K < M \<Longrightarrow> M < N \<Longrightarrow> K < (N::'a::preorder multiset)"
   by (fact less_trans)
 
-lemma mset_le_not_sym: "M < N \<Longrightarrow> \<not> N < (M::'a::order multiset)"
+lemma mset_le_not_sym: "M < N \<Longrightarrow> \<not> N < (M::'a::preorder multiset)"
   by (fact less_not_sym)
 
-lemma mset_le_asym: "M < N \<Longrightarrow> (\<not> P \<Longrightarrow> N < (M::'a::order multiset)) \<Longrightarrow> P"
+lemma mset_le_asym: "M < N \<Longrightarrow> (\<not> P \<Longrightarrow> N < (M::'a::preorder multiset)) \<Longrightarrow> P"
   by (fact less_asym)
 
 declaration \<open>

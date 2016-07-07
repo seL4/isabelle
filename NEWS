@@ -350,6 +350,16 @@ INCOMPATIBILITY.
     less_multiset_plus_plus_right_iff ~> le_multiset_plus_plus_right_iff
 INCOMPATIBILITY.
 
+* Some typeclass constraints about multisets have been reduced from ordered or
+linordered to preorder. Multisets have the additional typeclasses order_bot,
+no_top, ordered_ab_semigroup_add_imp_le, ordered_cancel_comm_monoid_add,
+and linordered_cancel_ab_semigroup_add.
+INCOMPATIBILITY.
+
+* There are some new simplification rules about multisets and the multiset
+ordering.
+INCOMPATIBILITY.
+
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
 
