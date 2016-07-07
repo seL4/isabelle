@@ -39,7 +39,6 @@ lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
 lemma subseteq_le_multiset: "(A :: 'a::order multiset) \<le> A + B"
 unfolding less_eq_multiset_def apply (cases B; simp)
 apply (rule union_le_mono2[of "{#}" "_ + {#_#}" A, simplified])
-apply (simp add: less_multiset\<^sub>H\<^sub>O)
 done
 
 lemma mono_bag_of: "mono (bag_of :: 'a list => ('a::order) multiset)"

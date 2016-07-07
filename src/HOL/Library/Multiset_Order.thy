@@ -9,7 +9,7 @@ theory Multiset_Order
 imports Multiset
 begin
 
-subsubsection \<open>Alternative characterizations\<close>
+subsection \<open>Alternative characterizations\<close>
 
 context order
 begin
@@ -215,96 +215,91 @@ lemma less_multiset_less_multiset\<^sub>H\<^sub>O:
 lemmas less_multiset\<^sub>D\<^sub>M = mult\<^sub>D\<^sub>M[folded less_multiset_def]
 lemmas less_multiset\<^sub>H\<^sub>O = mult\<^sub>H\<^sub>O[folded less_multiset_def]
 
-lemma less_eq_multiset\<^sub>H\<^sub>O:
-  fixes M N :: "('a :: linorder) multiset"
-  shows "M \<le> N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
-  by (auto simp: less_eq_multiset_def less_multiset\<^sub>H\<^sub>O)
-
-lemma wf_less_multiset: "wf {(M :: ('a :: wellorder) multiset, N). M < N}"
-  unfolding less_multiset_def by (auto intro: wf_mult wf)
-
-instantiation multiset :: (linorder) linorder
-begin
-  instance by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
-end
-
-instantiation multiset :: (wellorder) wellorder
-begin
-  instance by standard (metis less_multiset_def wf wf_def wf_mult)
-end
-
-lemma less_eq_multiset_total:
-  fixes M N :: "('a :: linorder) multiset"
-  shows "\<not> M \<le> N \<Longrightarrow> N \<le> M"
-  by simp
-
 lemma subset_eq_imp_le_multiset:
-  fixes M N :: "('a :: linorder) multiset"
   shows "M \<le># N \<Longrightarrow> M \<le> N"
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O
   by (simp add: less_le_not_le subseteq_mset_def)
 
 lemma le_multiset_right_total:
-  fixes M :: "('a :: linorder) multiset"
   shows "M < M + {#x#}"
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O by simp
 
 lemma less_eq_multiset_empty_left[simp]:
-  fixes M :: "('a :: linorder) multiset"
   shows "{#} \<le> M"
   by (simp add: subset_eq_imp_le_multiset)
 
+lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
+  by (rule cancel_comm_monoid_add_class.add_cancel_left_right)
+
+lemma ex_gt_imp_less_multiset: "(\<exists>y. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M < N"
+  unfolding less_multiset\<^sub>H\<^sub>O
+  by (metis count_eq_zero_iff count_greater_zero_iff less_le_not_le)
+
 lemma less_eq_multiset_empty_right[simp]:
-  fixes M :: "('a :: linorder) multiset"
-  shows "M \<noteq> {#} \<Longrightarrow> \<not> M \<le> {#}"
+  "M \<noteq> {#} \<Longrightarrow> \<not> M \<le> {#}"
   by (metis less_eq_multiset_empty_left antisym)
 
-lemma le_multiset_empty_left[simp]:
-  fixes M :: "('a :: linorder) multiset"
-  shows "M \<noteq> {#} \<Longrightarrow> {#} < M"
+lemma le_multiset_empty_left[simp]: "M \<noteq> {#} \<Longrightarrow> {#} < M"
   by (simp add: less_multiset\<^sub>H\<^sub>O)
 
-lemma le_multiset_empty_right[simp]:
-  fixes M :: "('a :: linorder) multiset"
-  shows "\<not> M < {#}"
+lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
   using subset_eq_empty less_multiset\<^sub>D\<^sub>M by blast
 
+lemma union_le_diff_plus: "P \<le># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
+  by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)
+
+instantiation multiset :: (linorder) linorder
+begin
+
+lemma less_eq_multiset\<^sub>H\<^sub>O:
+  "M \<le> N \<longleftrightarrow> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
+  by (auto simp: less_eq_multiset_def less_multiset\<^sub>H\<^sub>O)
+
+instance by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
+
+lemma less_eq_multiset_total:
+  fixes M N :: "'a multiset"
+  shows "\<not> M \<le> N \<Longrightarrow> N \<le> M"
+  by simp
+
 lemma
-  fixes M N :: "('a :: linorder) multiset"
+  fixes M N :: "'a multiset"
   shows
     less_eq_multiset_plus_left[simp]: "N \<le> (M + N)" and
     less_eq_multiset_plus_right[simp]: "M \<le> (M + N)"
-  using [[metis_verbose = false]] by (metis subset_eq_imp_le_multiset mset_subset_eq_add_left add.commute)+
+  using [[metis_verbose = false]]
+  by (metis subset_eq_imp_le_multiset mset_subset_eq_add_left add.commute)+
 
 lemma
-  fixes M N :: "('a :: linorder) multiset"
+  fixes M N :: "'a multiset"
   shows
     le_multiset_plus_plus_left_iff[simp]: "M + N < M' + N \<longleftrightarrow> M < M'" and
     le_multiset_plus_plus_right_iff[simp]: "M + N < M + N' \<longleftrightarrow> N < N'"
   unfolding less_multiset\<^sub>H\<^sub>O by auto
 
-lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
-  by (rule cancel_comm_monoid_add_class.add_cancel_left_right)
-
 lemma
-  fixes M N :: "('a :: linorder) multiset"
+  fixes M N :: "'a multiset"
   shows
     le_multiset_plus_left_nonempty[simp]: "M \<noteq> {#} \<Longrightarrow> N < M + N" and
     le_multiset_plus_right_nonempty[simp]: "N \<noteq> {#} \<Longrightarrow> M < M + N"
   using [[metis_verbose = false]]
-  by (metis add.right_neutral le_multiset_empty_left le_multiset_plus_plus_right_iff
-    add.commute)+
-
-lemma ex_gt_imp_less_multiset: "(\<exists>y :: 'a :: linorder. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M < N"
-  unfolding less_multiset\<^sub>H\<^sub>O
-  by (metis count_eq_zero_iff count_greater_zero_iff less_le_not_le)
+  by (metis add.right_neutral le_multiset_empty_left le_multiset_plus_plus_right_iff add.commute)+
 
 lemma ex_gt_count_imp_le_multiset:
   "(\<forall>y :: 'a :: linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M < N"
   unfolding less_multiset\<^sub>H\<^sub>O
   by (metis add_gr_0 count_union mem_Collect_eq not_gr0 not_le not_less_iff_gr_or_eq set_mset_def)
 
-lemma union_le_diff_plus: "P \<le># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
-  by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)
+end
+
+instantiation multiset :: (wellorder) wellorder
+begin
+
+lemma wf_less_multiset: "wf {(M :: 'a multiset, N). M < N}"
+  unfolding less_multiset_def by (auto intro: wf_mult wf)
+
+instance by standard (metis less_multiset_def wf wf_def wf_mult)
+
+end
 
 end

@@ -426,8 +426,6 @@ proof -
 qed
 
 
-
-
 subsubsection \<open>Pointwise ordering induced by count\<close>
 
 definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<subseteq>#" 50)
@@ -778,6 +776,7 @@ lemma union_diff_sup_eq_inter:
 subsubsection \<open>Subset is an order\<close>
 
 interpretation subset_mset: order "op \<le>#" "op <#" by unfold_locales auto
+
 
 subsubsection \<open>Conditionally complete lattice\<close>
 
@@ -2576,6 +2575,7 @@ begin
 instance
   by standard (auto simp add: less_eq_multiset_def intro: union_le_mono2)
 end
+
 
 subsubsection \<open>Termination proofs with multiset orders\<close>
 
