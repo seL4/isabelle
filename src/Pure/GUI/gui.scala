@@ -15,7 +15,6 @@ import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JDialog,
   JButton, JTextField}
 
-import scala.collection.convert.WrapAsJava
 import scala.swing.{ComboBox, TextArea, ScrollPane}
 import scala.swing.event.SelectionChanged
 
