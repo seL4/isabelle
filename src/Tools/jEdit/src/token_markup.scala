@@ -12,15 +12,17 @@ import isabelle._
 import java.awt.{Font, Color}
 import java.awt.font.TextAttribute
 import java.awt.geom.AffineTransform
+import javax.swing.text.Segment
+
+import scala.collection.convert.WrapAsJava
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.{jEdit, Mode, Buffer}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, DummyTokenHandler,
   ParserRuleSet, ModeProvider, XModeHandler, SyntaxStyle}
+import org.gjt.sp.jedit.indent.{IndentRule, IndentAction}
 import org.gjt.sp.jedit.textarea.{TextArea, Selection}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-
-import javax.swing.text.Segment
 
 
 object Token_Markup
@@ -436,6 +438,15 @@ object Token_Markup
   }
 
 
+  /* indentation */
+
+  object Indent_Rule extends IndentRule
+  {
+    def apply(buffer: JEditBuffer, this_line: Int, prev_line: Int, prev_prev_line: Int,
+      actions: java.util.List[IndentAction]): Unit = ()
+  }
+
+
   /* mode provider */
 
   class Mode_Provider(orig_provider: ModeProvider) extends ModeProvider
@@ -446,6 +457,9 @@ object Token_Markup
     {
       super.loadMode(mode, xmh)
       Isabelle.mode_token_marker(mode.getName).foreach(mode.setTokenMarker _)
+      Isabelle.mode_indent_rule(mode.getName).foreach(indent_rule =>
+        Untyped.set[java.util.List[IndentRule]](
+          mode, "indentRules", WrapAsJava.seqAsJavaList(List(indent_rule))))
     }
   }
 }

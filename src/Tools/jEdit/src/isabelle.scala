@@ -18,6 +18,7 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.syntax.TokenMarker
+import org.gjt.sp.jedit.indent.IndentRule
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
 import org.jedit.options.CombinedOptions
 
@@ -81,6 +82,15 @@ object Isabelle
     if (mode == "isabelle") Some(new Token_Markup.Marker(mode, Some(buffer)))
     else mode_token_marker(mode)
   }
+
+
+  /* indentation */
+
+  def mode_indent_rule(mode: String): Option[IndentRule] =
+    mode match {
+      case "isabelle" => Some(Token_Markup.Indent_Rule)
+      case _ => None
+    }
 
 
   /* structure matchers */
