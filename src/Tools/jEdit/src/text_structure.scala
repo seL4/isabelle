@@ -72,10 +72,8 @@ object Text_Structure
 
       Isabelle.buffer_syntax(text_area.getBuffer) match {
         case Some(syntax) =>
+          val keywords = syntax.keywords
           val limit = PIDE.options.value.int("jedit_structure_limit") max 0
-
-          def is_command_kind(token: Token, pred: String => Boolean): Boolean =
-            token.is_command_kind(syntax.keywords, pred)
 
           def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
             Token_Markup.line_token_iterator(syntax, buffer, line, line + lim).
@@ -93,45 +91,45 @@ object Text_Structure
 
           iterator(caret_line, 1).find(info => info.range.touches(caret))
           match {
-            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.theory_goal) =>
+            case Some(Text.Info(range1, tok)) if keywords.is_command(tok, Keyword.theory_goal) =>
               find_block(
-                is_command_kind(_, Keyword.proof_goal),
-                is_command_kind(_, Keyword.qed),
-                is_command_kind(_, Keyword.qed_global),
+                keywords.is_command(_, Keyword.proof_goal),
+                keywords.is_command(_, Keyword.qed),
+                keywords.is_command(_, Keyword.qed_global),
                 t =>
-                  is_command_kind(t, Keyword.diag) ||
-                  is_command_kind(t, Keyword.proof),
+                  keywords.is_command(t, Keyword.diag) ||
+                  keywords.is_command(t, Keyword.proof),
                 caret_iterator())
 
-            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.proof_goal) =>
+            case Some(Text.Info(range1, tok)) if keywords.is_command(tok, Keyword.proof_goal) =>
               find_block(
-                is_command_kind(_, Keyword.proof_goal),
-                is_command_kind(_, Keyword.qed),
+                keywords.is_command(_, Keyword.proof_goal),
+                keywords.is_command(_, Keyword.qed),
                 _ => false,
                 t =>
-                  is_command_kind(t, Keyword.diag) ||
-                  is_command_kind(t, Keyword.proof),
+                  keywords.is_command(t, Keyword.diag) ||
+                  keywords.is_command(t, Keyword.proof),
                 caret_iterator())
 
-            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.qed_global) =>
-              rev_caret_iterator().find(info => is_command_kind(info.info, Keyword.theory))
+            case Some(Text.Info(range1, tok)) if keywords.is_command(tok, Keyword.qed_global) =>
+              rev_caret_iterator().find(info => keywords.is_command(info.info, Keyword.theory))
               match {
                 case Some(Text.Info(range2, tok))
-                if is_command_kind(tok, Keyword.theory_goal) => Some((range1, range2))
+                if keywords.is_command(tok, Keyword.theory_goal) => Some((range1, range2))
                 case _ => None
               }
 
-            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.qed) =>
+            case Some(Text.Info(range1, tok)) if keywords.is_command(tok, Keyword.qed) =>
               find_block(
-                is_command_kind(_, Keyword.qed),
+                keywords.is_command(_, Keyword.qed),
                 t =>
-                  is_command_kind(t, Keyword.proof_goal) ||
-                  is_command_kind(t, Keyword.theory_goal),
+                  keywords.is_command(t, Keyword.proof_goal) ||
+                  keywords.is_command(t, Keyword.theory_goal),
                 _ => false,
                 t =>
-                  is_command_kind(t, Keyword.diag) ||
-                  is_command_kind(t, Keyword.proof) ||
-                  is_command_kind(t, Keyword.theory_goal),
+                  keywords.is_command(t, Keyword.diag) ||
+                  keywords.is_command(t, Keyword.proof) ||
+                  keywords.is_command(t, Keyword.theory_goal),
                 rev_caret_iterator())
 
             case Some(Text.Info(range1, tok)) if tok.is_begin =>
@@ -147,7 +145,7 @@ object Text_Structure
                     find(info => info.info.is_command || info.info.is_begin)
                   match {
                     case Some(Text.Info(range3, tok)) =>
-                      if (is_command_kind(tok, Keyword.theory_block)) Some((range1, range3))
+                      if (keywords.is_command(tok, Keyword.theory_block)) Some((range1, range3))
                       else Some((range1, range2))
                     case None => None
                   }
