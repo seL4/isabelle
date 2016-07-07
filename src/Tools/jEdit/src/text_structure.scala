@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/structure_matching.scala
+/*  Title:      Tools/jEdit/src/text_structure.scala
     Author:     Makarius
 
-Structure matcher for Isabelle/Isar outer syntax.
+Text structure based on Isabelle/Isar outer syntax.
 */
 
 package isabelle.jedit
@@ -9,12 +9,31 @@ package isabelle.jedit
 
 import isabelle._
 
+import org.gjt.sp.jedit.indent.{IndentRule, IndentAction}
 import org.gjt.sp.jedit.textarea.{TextArea, StructureMatcher, Selection}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 
 
-object Structure_Matching
+object Text_Structure
 {
-  object Isabelle_Matcher extends StructureMatcher
+  /* indentation */
+
+  object Indent_Rule extends IndentRule
+  {
+    def apply(buffer: JEditBuffer, this_line: Int, prev_line: Int, prev_prev_line: Int,
+      actions: java.util.List[IndentAction])
+    {
+      val indent = 0  // FIXME
+
+      actions.clear()
+      actions.add(new IndentAction.AlignOffset(indent))
+    }
+  }
+
+
+  /* structure matching */
+
+  object Matcher extends StructureMatcher
   {
     private def find_block(
       open: Token => Boolean,
@@ -134,8 +153,7 @@ object Structure_Matching
       find_pair(text_area) match {
         case Some((_, range)) =>
           val line = text_area.getBuffer.getLineOfOffset(range.start)
-          new StructureMatcher.Match(Structure_Matching.Isabelle_Matcher,
-            line, range.start, line, range.stop)
+          new StructureMatcher.Match(Matcher, line, range.start, line, range.stop)
         case None => null
       }
 
@@ -164,4 +182,3 @@ object Structure_Matching
     }
   }
 }
-

@@ -84,19 +84,13 @@ object Isabelle
   }
 
 
-  /* indentation */
+  /* text structure */
 
-  def mode_indent_rule(mode: String): Option[IndentRule] =
-    mode match {
-      case "isabelle" => Some(Token_Markup.Indent_Rule)
-      case _ => None
-    }
+  def indent_rule(mode: String): Option[IndentRule] =
+    if (mode == "isabelle") Some(Text_Structure.Indent_Rule) else None
 
-
-  /* structure matchers */
-
-  def structure_matchers(name: String): List[StructureMatcher] =
-    if (name == "isabelle") List(Structure_Matching.Isabelle_Matcher) else Nil
+  def structure_matchers(mode: String): List[StructureMatcher] =
+    if (mode == "isabelle") List(Text_Structure.Matcher) else Nil
 
 
   /* dockable windows */
