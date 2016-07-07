@@ -12,6 +12,7 @@ import isabelle._
 import org.gjt.sp.jedit.indent.{IndentRule, IndentAction}
 import org.gjt.sp.jedit.textarea.{TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.buffer.JEditBuffer
+import org.gjt.sp.jedit.Buffer
 
 
 object Text_Structure
@@ -20,13 +21,23 @@ object Text_Structure
 
   object Indent_Rule extends IndentRule
   {
-    def apply(buffer: JEditBuffer, this_line: Int, prev_line: Int, prev_prev_line: Int,
+    def apply(buffer0: JEditBuffer, line: Int, prev_line: Int, prev_prev_line: Int,
       actions: java.util.List[IndentAction])
     {
-      val indent = 0  // FIXME
+      buffer0 match {
+        case buffer: Buffer =>
+          Isabelle.buffer_syntax(buffer) match {
+            case Some(syntax) =>
+              val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
-      actions.clear()
-      actions.add(new IndentAction.AlignOffset(indent))
+              val indent = 0  // FIXME
+
+              actions.clear()
+              actions.add(new IndentAction.AlignOffset(indent))
+            case _ =>
+          }
+        case _ =>
+      }
     }
   }
 
