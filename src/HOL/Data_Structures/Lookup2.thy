@@ -9,7 +9,7 @@ imports
   Map_by_Ordered
 begin
 
-fun lookup :: "('a::cmp * 'b, 'c) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where
+fun lookup :: "('a::linorder * 'b, 'c) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup Leaf x = None" |
 "lookup (Node _ l (a,b) r) x =
   (case cmp x a of LT \<Rightarrow> lookup l x | GT \<Rightarrow> lookup r x | EQ \<Rightarrow> Some b)"

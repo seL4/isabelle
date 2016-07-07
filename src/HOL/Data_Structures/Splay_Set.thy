@@ -51,7 +51,7 @@ lemma case_tree_cong:
   "\<lbrakk> x = x'; y = y'; z = z' \<rbrakk> \<Longrightarrow> case_tree x y z = case_tree x' y' z'"
 by auto
 
-lemma splay_code: "splay (x::_::cmp) t = (case t of Leaf \<Rightarrow> Leaf |
+lemma splay_code: "splay (x::_::linorder) t = (case t of Leaf \<Rightarrow> Leaf |
   Node al a ar \<Rightarrow> (case cmp x a of
     EQ \<Rightarrow> t |
     LT \<Rightarrow> (case al of
@@ -83,7 +83,7 @@ definition "isin t x = is_root x (splay x t)"
 
 hide_const (open) insert
 
-fun insert :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
+fun insert :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "insert x t =
   (if t = Leaf then Node Leaf x Leaf
    else case splay x t of

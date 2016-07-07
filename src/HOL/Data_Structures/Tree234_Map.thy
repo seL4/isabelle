@@ -10,7 +10,7 @@ begin
 
 subsection \<open>Map operations on 2-3-4 trees\<close>
 
-fun lookup :: "('a::cmp * 'b) tree234 \<Rightarrow> 'a \<Rightarrow> 'b option" where
+fun lookup :: "('a::linorder * 'b) tree234 \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup Leaf x = None" |
 "lookup (Node2 l (a,b) r) x = (case cmp x a of
   LT \<Rightarrow> lookup l x |
@@ -30,7 +30,7 @@ fun lookup :: "('a::cmp * 'b) tree234 \<Rightarrow> 'a \<Rightarrow> 'b option" 
   GT \<Rightarrow> (case cmp x a3 of
            LT \<Rightarrow> lookup t3 x | EQ \<Rightarrow> Some b3 | GT \<Rightarrow> lookup t4 x))"
 
-fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) up\<^sub>i" where
+fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) up\<^sub>i" where
 "upd x y Leaf = Up\<^sub>i Leaf (x,y) Leaf" |
 "upd x y (Node2 l ab r) = (case cmp x (fst ab) of
    LT \<Rightarrow> (case upd x y l of
@@ -72,10 +72,10 @@ fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree234 \<Rightarrow>
                     T\<^sub>i t4' => T\<^sub>i (Node4 t1 ab1 t2 ab2 t3 ab3 t4')
                   | Up\<^sub>i t41 q t42 => Up\<^sub>i (Node2 t1 ab1 t2) ab2 (Node3 t3 ab3 t41 q t42))))"
 
-definition update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) tree234" where
+definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) tree234" where
 "update x y t = tree\<^sub>i(upd x y t)"
 
-fun del :: "'a::cmp \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) up\<^sub>d" where
+fun del :: "'a::linorder \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) up\<^sub>d" where
 "del x Leaf = T\<^sub>d Leaf" |
 "del x (Node2 Leaf ab1 Leaf) = (if x=fst ab1 then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf ab1 Leaf))" |
 "del x (Node3 Leaf ab1 Leaf ab2 Leaf) = T\<^sub>d(if x=fst ab1 then Node2 Leaf ab2 Leaf
@@ -107,7 +107,7 @@ fun del :: "'a::cmp \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) up\<^sub
           EQ \<Rightarrow> let (ab',t4') = del_min t4 in node44 t1 ab1 t2 ab2 t3 ab' t4' |
           GT \<Rightarrow> node44 t1 ab1 t2 ab2 t3 ab3 (del x t4)))"
 
-definition delete :: "'a::cmp \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) tree234" where
+definition delete :: "'a::linorder \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) tree234" where
 "delete x t = tree\<^sub>d(del x t)"
 
 

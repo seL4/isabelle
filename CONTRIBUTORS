@@ -20,6 +20,9 @@ Contributions to this Isabelle version
 * June 2016: Andreas Lochbihler
   Formalisation of discrete subprobability distributions.
 
+* July 2016: Daniel Stuewe
+  Height-size proofs in HOL/Data_Structures
+
 Contributions to Isabelle2016
 -----------------------------
 

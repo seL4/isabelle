@@ -8,7 +8,7 @@ imports
   Map_by_Ordered
 begin
 
-fun lookup :: "('a \<times> 'b) bro \<Rightarrow> 'a::cmp \<Rightarrow> 'b option" where
+fun lookup :: "('a \<times> 'b) bro \<Rightarrow> 'a::linorder \<Rightarrow> 'b option" where
 "lookup N0 x = None" |
 "lookup (N1 t) x = lookup t x" |
 "lookup (N2 l (a,b) r) x =
@@ -20,7 +20,7 @@ fun lookup :: "('a \<times> 'b) bro \<Rightarrow> 'a::cmp \<Rightarrow> 'b optio
 locale update = insert
 begin
 
-fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
+fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
 "upd x y N0 = L2 (x,y)" |
 "upd x y (N1 t) = n1 (upd x y t)" |
 "upd x y (N2 l (a,b) r) =
@@ -29,7 +29,7 @@ fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a\<times>'b) bro \<Rightarr
      EQ \<Rightarrow> N2 l (a,y) r |
      GT \<Rightarrow> n2 l (a,b) (upd x y r))"
 
-definition update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
+definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
 "update x y t = tree(upd x y t)"
 
 end
@@ -37,7 +37,7 @@ end
 context delete
 begin
 
-fun del :: "'a::cmp \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
+fun del :: "'a::linorder \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
 "del _ N0         = N0" |
 "del x (N1 t)     = N1 (del x t)" |
 "del x (N2 l (a,b) r) =
@@ -48,7 +48,7 @@ fun del :: "'a::cmp \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b
               None \<Rightarrow> N1 l |
               Some (ab, r') \<Rightarrow> n2 l ab r'))"
 
-definition delete :: "'a::cmp \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
+definition delete :: "'a::linorder \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<times>'b) bro" where
 "delete a t = tree (del a t)"
 
 end
@@ -180,7 +180,7 @@ proof (induction h arbitrary: x t)
           show ?thesis by simp
         qed
       qed
-    } ultimately show ?case by auto
+    } ultimately show ?case by auto                         
   }
   { case 2 with Suc.IH(1) show ?case by auto }
 qed auto

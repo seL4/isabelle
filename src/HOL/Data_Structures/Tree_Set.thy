@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* Tree Implementation of Sets *}
+section \<open>Unbalanced Tree Implementation of Set\<close>
 
 theory Tree_Set
 imports
@@ -9,7 +9,7 @@ imports
   Set_by_Ordered
 begin
 
-fun isin :: "'a::cmp tree \<Rightarrow> 'a \<Rightarrow> bool" where
+fun isin :: "'a::linorder tree \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node l a r) x =
   (case cmp x a of
@@ -19,7 +19,7 @@ fun isin :: "'a::cmp tree \<Rightarrow> 'a \<Rightarrow> bool" where
 
 hide_const (open) insert
 
-fun insert :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
+fun insert :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "insert x Leaf = Node Leaf x Leaf" |
 "insert x (Node l a r) =
   (case cmp x a of
@@ -31,7 +31,7 @@ fun del_min :: "'a tree \<Rightarrow> 'a * 'a tree" where
 "del_min (Node l a r) =
   (if l = Leaf then (a,r) else let (x,l') = del_min l in (x, Node l' a r))"
 
-fun delete :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
+fun delete :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "delete x Leaf = Leaf" |
 "delete x (Node l a r) =
   (case cmp x a of

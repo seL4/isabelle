@@ -42,7 +42,7 @@ done
 termination splay
 by lexicographic_order
 
-lemma splay_code: "splay (x::_::cmp) t = (case t of Leaf \<Rightarrow> Leaf |
+lemma splay_code: "splay (x::_::linorder) t = (case t of Leaf \<Rightarrow> Leaf |
   Node al a ar \<Rightarrow> (case cmp x (fst a) of
     EQ \<Rightarrow> t |
     LT \<Rightarrow> (case al of
