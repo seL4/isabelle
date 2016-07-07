@@ -1,5 +1,5 @@
 (*
-Author: Tobias Nipkow and Daniel Stüwe
+Author: Tobias Nipkow, Daniel Stüwe
 *)
 
 section \<open>AA Tree Implementation of Sets\<close>
@@ -36,7 +36,7 @@ fun split :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
 
 hide_const (open) insert
 
-fun insert :: "'a::cmp \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" where
+fun insert :: "'a::linorder \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" where
 "insert x Leaf = Node 1 Leaf x Leaf" |
 "insert x (Node lv t1 a t2) =
   (case cmp x a of
@@ -81,7 +81,7 @@ fun del_max :: "'a aa_tree \<Rightarrow> 'a aa_tree * 'a" where
 "del_max (Node lv l a Leaf) = (l,a)" |
 "del_max (Node lv l a r) = (let (r',b) = del_max r in (adjust(Node lv l a r'), b))"
 
-fun delete :: "'a::cmp \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" where
+fun delete :: "'a::linorder \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" where
 "delete _ Leaf = Leaf" |
 "delete x (Node lv l a r) =
   (case cmp x a of

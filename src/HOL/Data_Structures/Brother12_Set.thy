@@ -1,4 +1,4 @@
-(* Author: Tobias Nipkow *)
+(* Author: Tobias Nipkow, Daniel Stüwe *)
 
 section \<open>1-2 Brother Tree Implementation of Sets\<close>
 
@@ -6,6 +6,7 @@ theory Brother12_Set
 imports
   Cmp
   Set_by_Ordered
+  "~~/src/HOL/Number_Theory/Fib"
 begin
 
 subsection \<open>Data Type and Operations\<close>
@@ -25,7 +26,7 @@ fun inorder :: "'a bro \<Rightarrow> 'a list" where
 "inorder (L2 a) = [a]" |
 "inorder (N3 t1 a1 t2 a2 t3) = inorder t1 @ a1 # inorder t2 @ a2 # inorder t3"
 
-fun isin :: "'a bro \<Rightarrow> 'a::cmp \<Rightarrow> bool" where
+fun isin :: "'a bro \<Rightarrow> 'a::linorder \<Rightarrow> bool" where
 "isin N0 x = False" |
 "isin (N1 t) x = isin t x" |
 "isin (N2 l a r) x =
@@ -53,7 +54,7 @@ fun n2 :: "'a bro \<Rightarrow> 'a \<Rightarrow> 'a bro \<Rightarrow> 'a bro" wh
 "n2 t1 a1 (N3 t2 a2 t3 a3 t4) = N3 t1 a1 (N1 t2) a2 (N2 t3 a3 t4)" |
 "n2 t1 a t2 = N2 t1 a t2"
 
-fun ins :: "'a::cmp \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
+fun ins :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
 "ins x N0 = L2 x" |
 "ins x (N1 t) = n1 (ins x t)" |
 "ins x (N2 l a r) =
@@ -67,7 +68,7 @@ fun tree :: "'a bro \<Rightarrow> 'a bro" where
 "tree (N3 t1 a1 t2 a2 t3) = N2 (N2 t1 a1 t2) a2 (N1 t3)" |
 "tree t = t"
 
-definition insert :: "'a::cmp \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
+definition insert :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
 "insert x t = tree(ins x t)"
 
 end
@@ -102,7 +103,7 @@ fun del_min :: "'a bro \<Rightarrow> ('a \<times> 'a bro) option" where
      None \<Rightarrow> Some (a, N1 t2) |
      Some (b, t1') \<Rightarrow> Some (b, n2 t1' a t2))"
 
-fun del :: "'a::cmp \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
+fun del :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
 "del _ N0         = N0" |
 "del x (N1 t)     = N1 (del x t)" |
 "del x (N2 l a r) =
@@ -117,7 +118,7 @@ fun tree :: "'a bro \<Rightarrow> 'a bro" where
 "tree (N1 t) = t" |
 "tree t = t"
 
-definition delete :: "'a::cmp \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
+definition delete :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
 "delete a t = tree (del a t)"
 
 end
@@ -482,5 +483,69 @@ next
 next
   case 7 thus ?case using delete.delete_type by blast
 qed auto
+
+
+subsection \<open>Height-Size Relation\<close>
+
+text \<open>By Daniel St\"uwe\<close>
+
+fun fib_tree :: "nat \<Rightarrow> unit bro" where
+  "fib_tree 0 = N0" 
+| "fib_tree (Suc 0) = N2 N0 () N0"
+| "fib_tree (Suc(Suc h)) = N2 (fib_tree (h+1)) () (N1 (fib_tree h))"
+
+fun fib' :: "nat \<Rightarrow> nat" where
+  "fib' 0 = 0" 
+| "fib' (Suc 0) = 1"
+| "fib' (Suc(Suc h)) = 1 + fib' (Suc h) + fib' h"
+
+fun size :: "'a bro \<Rightarrow> nat" where
+  "size N0 = 0" 
+| "size (N1 t) = size t"
+| "size (N2 t1 _ t2) = 1 + size t1 + size t2"
+
+lemma fib_tree_B: "fib_tree h \<in> B h"
+by (induction h rule: fib_tree.induct) auto
+
+declare [[names_short]]
+
+lemma size_fib': "size (fib_tree h) = fib' h"
+by (induction h rule: fib_tree.induct) auto
+
+lemma fibfib: "fib' h + 1 = fib (Suc(Suc h))"
+by (induction h rule: fib_tree.induct) auto
+
+lemma B_N2_cases[consumes 1]:
+assumes "N2 t1 a t2 \<in> B (Suc n)"
+obtains 
+  (BB) "t1 \<in> B n" and "t2 \<in> B n" |
+  (UB) "t1 \<in> U n" and "t2 \<in> B n" |
+  (BU) "t1 \<in> B n" and "t2 \<in> U n"
+using assms by auto
+
+lemma size_bounded: "t \<in> B h \<Longrightarrow> size t \<ge> size (fib_tree h)"
+unfolding size_fib' proof (induction h arbitrary: t rule: fib'.induct)
+case (3 h t')
+  note main = 3
+  then obtain t1 a t2 where t': "t' = N2 t1 a t2" by auto
+  with main have "N2 t1 a t2 \<in> B (Suc (Suc h))" by auto
+  thus ?case proof (cases rule: B_N2_cases)
+    case BB
+    then obtain x y z where t2: "t2 = N2 x y z \<or> t2 = N2 z y x" "x \<in> B h" by auto
+    show ?thesis unfolding t' using main(1)[OF BB(1)] main(2)[OF t2(2)] t2(1) by auto
+  next
+    case UB
+    then obtain t11 where t1: "t1 = N1 t11" "t11 \<in> B h" by auto
+    show ?thesis unfolding t' t1(1) using main(2)[OF t1(2)] main(1)[OF UB(2)] by simp
+  next
+    case BU
+    then obtain t22 where t2: "t2 = N1 t22" "t22 \<in> B h" by auto
+    show ?thesis unfolding t' t2(1) using main(2)[OF t2(2)] main(1)[OF BU(1)] by simp
+  qed
+qed auto
+
+theorem "t \<in> B h \<Longrightarrow> fib (h + 2) \<le> size t + 1"
+using size_bounded
+by (simp add: size_fib' fibfib[symmetric] del: fib.simps)
 
 end

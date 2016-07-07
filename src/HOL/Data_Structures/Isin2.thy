@@ -9,7 +9,7 @@ imports
   Set_by_Ordered
 begin
 
-fun isin :: "('a::cmp,'b) tree \<Rightarrow> 'a \<Rightarrow> bool" where
+fun isin :: "('a::linorder,'b) tree \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node _ l a r) x =
   (case cmp x a of

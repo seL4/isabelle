@@ -8,7 +8,7 @@ imports
   Map_by_Ordered
 begin
 
-fun lookup :: "('a::cmp * 'b) tree23 \<Rightarrow> 'a \<Rightarrow> 'b option" where
+fun lookup :: "('a::linorder * 'b) tree23 \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup Leaf x = None" |
 "lookup (Node2 l (a,b) r) x = (case cmp x a of
   LT \<Rightarrow> lookup l x |
@@ -22,7 +22,7 @@ fun lookup :: "('a::cmp * 'b) tree23 \<Rightarrow> 'a \<Rightarrow> 'b option" w
           EQ \<Rightarrow> Some b2 |
           GT \<Rightarrow> lookup r x))"
 
-fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>i" where
+fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>i" where
 "upd x y Leaf = Up\<^sub>i Leaf (x,y) Leaf" |
 "upd x y (Node2 l ab r) = (case cmp x (fst ab) of
    LT \<Rightarrow> (case upd x y l of
@@ -46,10 +46,10 @@ fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> 
                    T\<^sub>i r' => T\<^sub>i (Node3 l ab1 m ab2 r')
                  | Up\<^sub>i r1 ab' r2 => Up\<^sub>i (Node2 l ab1 m) ab2 (Node2 r1 ab' r2))))"
 
-definition update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
+definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
 "update a b t = tree\<^sub>i(upd a b t)"
 
-fun del :: "'a::cmp \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>d" where
+fun del :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>d" where
 "del x Leaf = T\<^sub>d Leaf" |
 "del x (Node2 Leaf ab1 Leaf) = (if x=fst ab1 then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf ab1 Leaf))" |
 "del x (Node3 Leaf ab1 Leaf ab2 Leaf) = T\<^sub>d(if x=fst ab1 then Node2 Leaf ab2 Leaf
@@ -66,7 +66,7 @@ fun del :: "'a::cmp \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>
            EQ \<Rightarrow> let (ab2',r') = del_min r in node33 l ab1 m ab2' r' |
            GT \<Rightarrow> node33 l ab1 m ab2 (del x r)))"
 
-definition delete :: "'a::cmp \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
+definition delete :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
 "delete x t = tree\<^sub>d(del x t)"
 
 

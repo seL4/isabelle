@@ -1,12 +1,15 @@
 (*
-Author:     Tobias Nipkow
-Derived from AFP entry AVL.
+Author:     Tobias Nipkow, Daniel Stüwe
+Largely derived from AFP entry AVL.
 *)
 
 section "AVL Tree Implementation of Sets"
 
 theory AVL_Set
-imports Cmp Isin2
+imports
+ Cmp
+ Isin2
+  "~~/src/HOL/Number_Theory/Fib"
 begin
 
 type_synonym 'a avl_tree = "('a,nat) tree"
@@ -48,7 +51,7 @@ definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
           else node (node l a bl) b br
   else node l a r)"
 
-fun insert :: "'a::cmp \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
+fun insert :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "insert x Leaf = Node 1 Leaf x Leaf" |
 "insert x (Node h l a r) = (case cmp x a of
    EQ \<Rightarrow> Node h l a r |
@@ -68,7 +71,7 @@ fun del_root :: "'a avl_tree \<Rightarrow> 'a avl_tree" where
 
 lemmas del_root_cases = del_root.cases[case_names Leaf_t Node_Leaf Node_Node]
 
-fun delete :: "'a::cmp \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
+fun delete :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "delete _ Leaf = Leaf" |
 "delete x (Node h l a r) =
   (case cmp x a of
@@ -448,5 +451,84 @@ proof (induct t)
     qed
   qed
 qed simp_all
+
+
+subsection \<open>Height-Size Relation\<close>
+
+text \<open>By Daniel St\"uwe\<close>
+
+fun fib_tree :: "nat \<Rightarrow> unit avl_tree" where
+"fib_tree 0 = Leaf" |
+"fib_tree (Suc 0) = Node 1 Leaf () Leaf" |
+"fib_tree (Suc(Suc n)) = Node (Suc(Suc(n))) (fib_tree (Suc n)) () (fib_tree n)"
+
+lemma [simp]: "ht (fib_tree h) = h"
+by (induction h rule: "fib_tree.induct") auto
+
+lemma [simp]: "height (fib_tree h) = h"
+by (induction h rule: "fib_tree.induct") auto
+
+lemma "avl(fib_tree h)"          
+by (induction h rule: "fib_tree.induct") auto
+
+lemma fib_tree_size1: "size1 (fib_tree h) = fib (h+2)"
+by (induction h rule: fib_tree.induct) auto
+
+lemma height_invers[simp]: 
+  "(height t = 0) = (t = Leaf)"
+  "avl t \<Longrightarrow> (height t = Suc h) = (\<exists> l a r . t = Node (Suc h) l a r)"
+by (induction t) auto
+
+lemma fib_Suc_lt: "fib n \<le> fib (Suc n)"
+by (induction n rule: fib.induct) auto
+
+lemma fib_mono: "n \<le> m \<Longrightarrow> fib n \<le> fib m"
+proof (induction n arbitrary: m rule: fib.induct )
+  case (2 m)
+  thus ?case using fib_neq_0_nat[of m] by auto
+next
+  case (3 n m)
+  from 3 obtain m' where "m = Suc (Suc m')"
+    by (metis le_Suc_ex plus_nat.simps(2)) 
+  thus ?case using 3(1)[of "Suc m'"] 3(2)[of m'] 3(3) by auto
+qed simp
+
+lemma size1_fib_tree_mono:
+  assumes "n \<le> m"
+  shows   "size1 (fib_tree n) \<le> size1 (fib_tree m)"
+using fib_tree_size1 fib_mono[OF assms] fib_mono[of "Suc n"] add_le_mono assms by fastforce 
+
+lemma fib_tree_minimal: "avl t \<Longrightarrow> size1 (fib_tree (ht t)) \<le> size1 t"
+proof (induction "ht t" arbitrary: t rule: fib_tree.induct)
+  case (2 t)
+  from 2 obtain l a r where "t = Node (Suc 0) l a r" by (cases t) auto
+  with 2 show ?case by auto
+next
+  case (3 h t)
+  note [simp] = 3(3)[symmetric] 
+  from 3 obtain l a r where [simp]: "t = Node (Suc (Suc h)) l a r" by (cases t) auto
+  show ?case proof (cases rule: linorder_cases[of "ht l" "ht r"]) 
+    case equal
+    with 3(3,4) have ht: "ht l = Suc h" "ht r = Suc h" by auto
+    with 3 have "size1 (fib_tree (ht l)) \<le> size1 l" by auto moreover
+    from 3(1)[of r] 3(3,4) ht(2) have "size1 (fib_tree (ht r)) \<le> size1 r" by auto ultimately
+    show ?thesis using ht size1_fib_tree_mono[of h "Suc h"] by auto
+  next
+    case greater
+    with 3(3,4) have ht: "ht l = Suc h"  "ht r = h" by auto
+    from ht 3(1,2,4) have "size1 (fib_tree (Suc h)) \<le> size1 l" by auto moreover
+    from ht 3(1,2,4) have "size1 (fib_tree h) \<le> size1 r" by auto ultimately
+    show ?thesis by auto
+  next
+    case less (* analogously *)
+    with 3 have ht: "ht l = h"  "Suc h = ht r" by auto
+    from ht 3 have "size1 (fib_tree h) \<le> size1 l" by auto moreover
+    from ht 3 have "size1 (fib_tree (Suc h)) \<le> size1 r" by auto ultimately
+    show ?thesis by auto
+  qed
+qed auto
+
+theorem avl_size_bound: "avl t \<Longrightarrow> fib(height t + 2) \<le> size1 t" 
+using fib_tree_minimal fib_tree_size1 by fastforce
 
 end

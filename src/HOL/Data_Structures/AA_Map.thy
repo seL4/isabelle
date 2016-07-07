@@ -8,7 +8,7 @@ imports
   Lookup2
 begin
 
-fun update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) aa_tree \<Rightarrow> ('a*'b) aa_tree" where
+fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) aa_tree \<Rightarrow> ('a*'b) aa_tree" where
 "update x y Leaf = Node 1 Leaf (x,y) Leaf" |
 "update x y (Node lv t1 (a,b) t2) =
   (case cmp x a of
@@ -16,7 +16,7 @@ fun update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) aa_tree \<Rightarr
      GT \<Rightarrow> split (skew (Node lv t1 (a,b) (update x y t2))) |
      EQ \<Rightarrow> Node lv t1 (x,y) t2)"
 
-fun delete :: "'a::cmp \<Rightarrow> ('a*'b) aa_tree \<Rightarrow> ('a*'b) aa_tree" where
+fun delete :: "'a::linorder \<Rightarrow> ('a*'b) aa_tree \<Rightarrow> ('a*'b) aa_tree" where
 "delete _ Leaf = Leaf" |
 "delete x (Node lv l (a,b) r) =
   (case cmp x a of

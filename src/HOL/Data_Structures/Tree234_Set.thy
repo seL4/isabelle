@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Set operations on 2-3-4 trees\<close>
 
-fun isin :: "'a::cmp tree234 \<Rightarrow> 'a \<Rightarrow> bool" where
+fun isin :: "'a::linorder tree234 \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node2 l a r) x =
   (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x)" |
@@ -38,7 +38,7 @@ fun tree\<^sub>i :: "'a up\<^sub>i \<Rightarrow> 'a tree234" where
 "tree\<^sub>i (T\<^sub>i t) = t" |
 "tree\<^sub>i (Up\<^sub>i l a r) = Node2 l a r"
 
-fun ins :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
+fun ins :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
 "ins x Leaf = Up\<^sub>i Leaf x Leaf" |
 "ins x (Node2 l a r) =
    (case cmp x a of
@@ -91,7 +91,7 @@ fun ins :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
 
 hide_const insert
 
-definition insert :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
+definition insert :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
 "insert x t = tree\<^sub>i(ins x t)"
 
 datatype 'a up\<^sub>d = T\<^sub>d "'a tree234" | Up\<^sub>d "'a tree234"
@@ -162,7 +162,7 @@ fun del_min :: "'a tree234 \<Rightarrow> 'a * 'a up\<^sub>d" where
 "del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))" |
 "del_min (Node4 l a m b n c r) = (let (x,l') = del_min l in (x, node41 l' a m b n c r))"
 
-fun del :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+fun del :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
 "del k Leaf = T\<^sub>d Leaf" |
 "del k (Node2 Leaf p Leaf) = (if k=p then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf p Leaf))" |
 "del k (Node3 Leaf p Leaf q Leaf) = T\<^sub>d(if k=p then Node2 Leaf q Leaf
@@ -194,7 +194,7 @@ fun del :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
            EQ \<Rightarrow> let (c',r') = del_min r in node44 l a m b n c' r' |
            GT \<Rightarrow> node44 l a m b n c (del k r)))"
 
-definition delete :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
+definition delete :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
 "delete x t = tree\<^sub>d(del x t)"
 
 

@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* Unbalanced Tree as Map *}
+section \<open>Unbalanced Tree Implementation of Map\<close>
 
 theory Tree_Map
 imports
@@ -8,19 +8,19 @@ imports
   Map_by_Ordered
 begin
 
-fun lookup :: "('a::cmp*'b) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where
+fun lookup :: "('a::linorder*'b) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup Leaf x = None" |
 "lookup (Node l (a,b) r) x =
   (case cmp x a of LT \<Rightarrow> lookup l x | GT \<Rightarrow> lookup r x | EQ \<Rightarrow> Some b)"
 
-fun update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
+fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
 "update x y Leaf = Node Leaf (x,y) Leaf" |
 "update x y (Node l (a,b) r) = (case cmp x a of
    LT \<Rightarrow> Node (update x y l) (a,b) r |
    EQ \<Rightarrow> Node l (x,y) r |
    GT \<Rightarrow> Node l (a,b) (update x y r))"
 
-fun delete :: "'a::cmp \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
+fun delete :: "'a::linorder \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
 "delete x Leaf = Leaf" |
 "delete x (Node l (a,b) r) = (case cmp x a of
   LT \<Rightarrow> Node (delete x l) (a,b) r |

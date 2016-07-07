@@ -8,7 +8,7 @@ imports
   Lookup2
 begin
 
-fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
+fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
 "upd x y Leaf = R Leaf (x,y) Leaf" |
 "upd x y (B l (a,b) r) = (case cmp x a of
   LT \<Rightarrow> bal (upd x y l) (a,b) r |
@@ -19,12 +19,12 @@ fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a
   GT \<Rightarrow> R l (a,b) (upd x y r) |
   EQ \<Rightarrow> R l (x,y) r)"
 
-definition update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
+definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
 "update x y t = paint Black (upd x y t)"
 
-fun del :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
-and delL :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
-and delR :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+fun del :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+and delL :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+and delR :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
 where
 "del x Leaf = Leaf" |
 "del x (Node c t1 (a,b) t2) = (case cmp x a of
@@ -36,7 +36,7 @@ where
 "delR x t1 a (B t2 b t3) = balR t1 a (del x (B t2 b t3))" | 
 "delR x t1 a t2 = R t1 a (del x t2)"
 
-definition delete :: "'a::cmp \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
+definition delete :: "'a::linorder \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
 "delete x t = paint Black (del x t)"
 
 
