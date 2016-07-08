@@ -13,7 +13,6 @@ import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Di
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
-import scala.annotation.tailrec
 import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
