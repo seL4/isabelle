@@ -309,12 +309,12 @@ If you want to try all of the above automatic proof methods you simply type
 \begin{isabelle}
 \isacom{try}
 \end{isabelle}
-You can also add specific simplification and introduction rules:
-\begin{isabelle}
-\isacom{try} @{text"simp: \<dots> intro: \<dots>"}
-\end{isabelle}
 There is also a lightweight variant \isacom{try0} that does not call
-sledgehammer.
+sledgehammer. If desired, specific simplification and introduction rules
+can be added:
+\begin{isabelle}
+\isacom{try0} @{text"simp: \<dots> intro: \<dots>"}
+\end{isabelle}
 
 \section{Single Step Proofs}
 

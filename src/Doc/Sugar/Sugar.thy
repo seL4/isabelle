@@ -1,6 +1,8 @@
 (*<*)
 theory Sugar
-imports "~~/src/HOL/Library/LaTeXsugar" "~~/src/HOL/Library/OptionalSugar"
+imports
+  "~~/src/HOL/Library/LaTeXsugar"
+  "~~/src/HOL/Library/OptionalSugar"
 begin
 no_translations
   ("prop") "P \<and> Q \<Longrightarrow> R" <= ("prop") "P \<Longrightarrow> Q \<Longrightarrow> R"
@@ -20,7 +22,7 @@ Theories}, @{cite LNCS2283} first.
 
 If you have mastered the art of Isabelle's \emph{antiquotations},
 i.e.\ things like the above \verb!@!\verb!{thm...}!, beware: in your vanity
-you may be tempted to think that all readers of the stunning ps or pdf
+you may be tempted to think that all readers of the stunning
 documents you can now produce at the drop of a hat will be struck with
 awe at the beauty unfolding in front of their eyes. Until one day you
 come across that very critical of readers known as the ``common referee''.
@@ -38,7 +40,7 @@ typeset by a machine. You merely need to load the right files:
 \item Import theory \texttt{LaTeXsugar} in the header of your own
 theory.  You may also want bits of \texttt{OptionalSugar}, which you can
 copy selectively into your own theory or import as a whole.  Both
-theories live in \texttt{HOL/Library} and are found automatically.
+theories live in \texttt{HOL/Library}.
 
 \item Should you need additional \LaTeX\ packages (the text will tell
 you so), you include them at the beginning of your \LaTeX\ document,
@@ -128,9 +130,11 @@ schematic variables they are prefixed with a question mark:
 \verb!@!\verb!{thm conjI}! results in @{thm conjI}. Most of the time
 you would rather not see the question marks. There is an attribute
 \verb!no_vars! that you can attach to the theorem that turns its
-schematic into ordinary free variables: \verb!@!\verb!{thm conjI[no_vars]}!
-results in @{thm conjI[no_vars]}.
-
+schematic into ordinary free variables:
+\begin{quote}
+\verb!@!\verb!{thm conjI[no_vars]}!\\
+\showout @{thm conjI[no_vars]}
+\end{quote}
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
 \begin{quote}
@@ -138,13 +142,7 @@ If you would rather never see question marks, simply put
 \end{quote}
 into the relevant \texttt{ROOT} file, just before the \texttt{theories} for that session.
 The rest of this document is produced with this flag set to \texttt{false}.
-
-Hint: Setting \verb!show_question_marks! to \texttt{false} only
-suppresses question marks; variables that end in digits,
-e.g. @{text"x1"}, are still printed with a trailing @{text".0"},
-e.g. @{text"x1.0"}, their internal index. This can be avoided by
-turning the last digit into a subscript: write \<^verbatim>\<open>x\<^sub>1\<close> and
-obtain the much nicer @{text"x\<^sub>1"}. *}
+*}
 
 (*<*)declare [[show_question_marks = false]](*>*)
 
@@ -163,24 +161,44 @@ configuration option in the context.
 It sometimes happens that you want to change the name of a
 variable in a theorem before printing it. This can easily be achieved
 with the help of Isabelle's instantiation attribute \texttt{where}:
-@{thm conjI[where P = \<phi> and Q = \<psi>]} is the result of
 \begin{quote}
-\verb!@!\verb!{thm conjI[where P = \<phi> and Q = \<psi>]}!
+\verb!@!\verb!{thm conjI[where P = \<phi> and Q = \<psi>]}!\\
+\showout @{thm conjI[where P = \<phi> and Q = \<psi>]}
 \end{quote}
 To support the ``\_''-notation for irrelevant variables
 the constant \texttt{DUMMY} has been introduced:
-@{thm fst_conv[of _ DUMMY]} is produced by
 \begin{quote}
-\verb!@!\verb!{thm fst_conv[of _ DUMMY]}!
+\verb!@!\verb!{thm fst_conv[of _ DUMMY]}!\\
+\showout @{thm fst_conv[of _ DUMMY]}
 \end{quote}
-Variables that are bound by quantifiers or lambdas cannot be renamed
-like this. Instead, the attribute \texttt{rename\_abs} does the
-job. It expects a list of names or underscores, similar to the
-\texttt{of} attribute:
+As expected, the second argument has been replaced by ``\_'',
+but the first argument is the ugly @{text "x1.0"}, a schematic variable
+with suppressed question mark. Schematic variables that end in digits,
+e.g. @{text"x1"}, are still printed with a trailing @{text".0"},
+e.g. @{text"x1.0"}, their internal index. This can be avoided by
+turning the last digit into a subscript: write \<^verbatim>\<open>x\<^sub>1\<close> and
+obtain the much nicer @{text"x\<^sub>1"}. Alternatively, you can display trailing digits of
+schematic and free variables as subscripts with the \texttt{sub} style:
 \begin{quote}
-\verb!@!\verb!{thm split_paired_All[rename_abs _ l r]}!
+\verb!@!\verb!{thm (sub) fst_conv[of _ DUMMY]}!\\
+\showout @{thm (sub) fst_conv[of _ DUMMY]}
 \end{quote}
-produces @{thm split_paired_All[rename_abs _ l r]}.
+The insertion of underscores can be automated with the \verb!dummy_pats! style:
+\begin{quote}
+\verb!@!\verb!{thm (dummy_pats,sub) fst_conv}!\\
+\showout @{thm (dummy_pats,sub) fst_conv}
+\end{quote}
+The theorem must be an equation. Then every schematic variable that occurs
+on the left-hand but not the right-hand side is replaced by \texttt{DUMMY}.
+This is convenient for displaying functional programs.
+
+Variables that are bound by quantifiers or lambdas can be renamed
+with the help of the attribute \verb!rename_abs!.
+It expects a list of names or underscores, similar to the \texttt{of} attribute:
+\begin{quote}
+\verb!@!\verb!{thm split_paired_All[rename_abs _ l r]}!\\
+\showout @{thm split_paired_All[rename_abs _ l r]}
+\end{quote}
 
 
 \subsection{Inference rules}
