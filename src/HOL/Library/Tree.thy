@@ -96,6 +96,26 @@ lemma balanced_size: "balanced t \<Longrightarrow> size t = 2 ^ height t - 1"
 using balanced_size1[simplified size1_def] by fastforce
 
 
+subsection \<open>Path length\<close>
+
+text \<open>The internal path length of a tree:\<close>
+
+fun path_len :: "'a tree \<Rightarrow> nat" where
+"path_len Leaf = 0 " |
+"path_len (Node l _ r) = path_len l + size l + path_len r + size r"
+
+lemma path_len_if_bal: "balanced t
+  \<Longrightarrow> path_len t = (let n = height t in 2 + n*2^n - 2^(n+1))"
+proof(induction t)
+  case (Node l x r)
+  have *: "2^(n+1) \<le> 2 + n*2^n" for n :: nat
+    by(induction n) auto
+  have **: "(0::nat) < 2^n" for n :: nat by simp
+  let ?h = "height r"
+  show ?case using Node *[of ?h] **[of ?h] by (simp add: balanced_size Let_def)
+qed simp
+
+
 subsection "The set of subtrees"
 
 fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
