@@ -37,7 +37,10 @@ object Text_Structure
 
   object Indent_Rule extends IndentRule
   {
-    def apply(buffer: JEditBuffer, line: Int, prev_line: Int, prev_prev_line: Int,
+    private val keyword_open = Keyword.theory_goal ++ Keyword.proof_open
+    private val keyword_close = Keyword.proof_close
+
+    def apply(buffer: JEditBuffer, current_line: Int, prev_line: Int, prev_prev_line: Int,
       actions: java.util.List[IndentAction])
     {
       Isabelle.buffer_syntax(buffer) match {
@@ -45,7 +48,55 @@ object Text_Structure
           val keywords = syntax.keywords
           val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer])
 
-          val indent = 0  // FIXME
+          def head_token(line: Int): Option[Token] =
+            nav.iterator(line, 1).toStream.headOption.map(_.info)
+
+          def prev_command: Option[Token] =
+            nav.reverse_iterator(prev_line, 1).
+              collectFirst({ case Text.Info(_, tok) if tok.is_command => tok })
+
+          def line_indent(line: Int): Int =
+            if (line < 0 || line >= buffer.getLineCount) 0
+            else buffer.getCurrentIndentForLine(line, null)
+
+          val indent_size = buffer.getIndentSize
+
+          def indent_indent(tok: Token): Int =
+            if (keywords.is_command(tok, keyword_open)) indent_size
+            else if (keywords.is_command(tok, keyword_close)) - indent_size
+            else 0
+
+          def indent_offset(tok: Token): Int =
+            if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
+            else 0
+
+          def indent_structure: Int =
+            nav.reverse_iterator(current_line - 1).scanLeft((0, false))(
+              { case ((ind, _), Text.Info(range, tok)) =>
+                  val ind1 = ind + indent_indent(tok)
+                  if (tok.is_command) {
+                    val line = buffer.getLineOfOffset(range.start)
+                    if (head_token(line) == Some(tok))
+                      (ind1 + indent_offset(tok) + line_indent(line), true)
+                    else (ind1, false)
+                  }
+                  else (ind1, false)
+              }).collectFirst({ case (i, true) => i }).getOrElse(0)
+
+          val indent =
+            head_token(current_line) match {
+              case Some(tok) if tok.is_command =>
+                if (keywords.is_command(tok, Keyword.theory)) 0
+                else indent_structure - indent_offset(tok)
+              case _ =>
+                if (nav.iterator(current_line, 1).isEmpty) indent_structure
+                else
+                  prev_command match {
+                    case Some(tok) =>
+                      indent_structure - indent_offset(tok) - indent_indent(tok) + indent_size
+                    case None => line_indent(prev_line)
+                  }
+            }
 
           actions.clear()
           actions.add(new IndentAction.AlignOffset(indent))

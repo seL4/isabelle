@@ -80,6 +80,7 @@ object Keyword
 
   val proof_open = proof_goal + PRF_OPEN
   val proof_close = qed + PRF_CLOSE
+  val proof_enclose = Set(PRF_BLOCK, NEXT_BLOCK, QED_BLOCK, PRF_CLOSE)
 
 
 
