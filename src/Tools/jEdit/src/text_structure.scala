@@ -27,7 +27,7 @@ object Text_Structure
       Token_Markup.line_token_iterator(syntax, buffer, line, line + lim).
         filter(_.info.is_proper)
 
-    def rev_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
+    def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
       Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim).
         filter(_.info.is_proper)
   }
@@ -92,8 +92,8 @@ object Text_Structure
           def caret_iterator(): Iterator[Text.Info[Token]] =
             nav.iterator(caret_line).dropWhile(info => !info.range.touches(caret))
 
-          def rev_caret_iterator(): Iterator[Text.Info[Token]] =
-            nav.rev_iterator(caret_line).dropWhile(info => !info.range.touches(caret))
+          def reverse_caret_iterator(): Iterator[Text.Info[Token]] =
+            nav.reverse_iterator(caret_line).dropWhile(info => !info.range.touches(caret))
 
           nav.iterator(caret_line, 1).find(info => info.range.touches(caret))
           match {
@@ -118,7 +118,7 @@ object Text_Structure
                 caret_iterator())
 
             case Some(Text.Info(range1, tok)) if keywords.is_command(tok, Keyword.qed_global) =>
-              rev_caret_iterator().find(info => keywords.is_command(info.info, Keyword.theory))
+              reverse_caret_iterator().find(info => keywords.is_command(info.info, Keyword.theory))
               match {
                 case Some(Text.Info(range2, tok))
                 if keywords.is_command(tok, Keyword.theory_goal) => Some((range1, range2))
@@ -136,16 +136,16 @@ object Text_Structure
                   keywords.is_command(t, Keyword.diag) ||
                   keywords.is_command(t, Keyword.proof) ||
                   keywords.is_command(t, Keyword.theory_goal),
-                rev_caret_iterator())
+                reverse_caret_iterator())
 
             case Some(Text.Info(range1, tok)) if tok.is_begin =>
               find_block(_.is_begin, _.is_end, _ => false, _ => true, caret_iterator())
 
             case Some(Text.Info(range1, tok)) if tok.is_end =>
-              find_block(_.is_end, _.is_begin, _ => false, _ => true, rev_caret_iterator())
+              find_block(_.is_end, _.is_begin, _ => false, _ => true, reverse_caret_iterator())
               match {
                 case Some((_, range2)) =>
-                  rev_caret_iterator().
+                  reverse_caret_iterator().
                     dropWhile(info => info.range != range2).
                     dropWhile(info => info.range == range2).
                     find(info => info.info.is_command || info.info.is_begin)
