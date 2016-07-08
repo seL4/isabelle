@@ -44,7 +44,7 @@ lemma transp_combine_per_transp:
   "transp R \<Longrightarrow> transp (combine_per P R)"
   by (auto intro!: transpI elim: transpE)
 
-lemma equivp_combine_per_part_equivp:
+lemma equivp_combine_per_part_equivp [intro?]:
   fixes R (infixl "\<approx>" 50)
   assumes "\<exists>x. P x" and "equivp R"
   shows "part_equivp (combine_per P R)"
