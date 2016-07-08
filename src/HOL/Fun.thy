@@ -150,14 +150,10 @@ text \<open>A common special case: functions injective, surjective or bijective 
 
 abbreviation "inj f \<equiv> inj_on f UNIV"
 
-abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  \<comment> "surjective"
+abbreviation (input) surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
   where "surj f \<equiv> range f = UNIV"
 
 abbreviation "bij f \<equiv> bij_betw f UNIV UNIV"
-
-text \<open>The negated case:\<close>
-translations
-  "\<not> CONST surj f" \<leftharpoondown> "CONST range f \<noteq> CONST UNIV"
 
 lemma injI: "(\<And>x y. f x = f y \<Longrightarrow> x = y) \<Longrightarrow> inj f"
   unfolding inj_on_def by auto
@@ -303,13 +299,7 @@ lemma surjE: "surj f \<Longrightarrow> (\<And>x. y = f x \<Longrightarrow> C) \<
   by (simp add: surj_def, blast)
 
 lemma comp_surj: "surj f \<Longrightarrow> surj g \<Longrightarrow> surj (g \<circ> f)"
-  apply (simp add: comp_def surj_def)
-  apply clarify
-  apply (drule_tac x = y in spec)
-  apply clarify
-  apply (drule_tac x = x in spec)
-  apply blast
-  done
+  by (simp add: image_comp [symmetric])
 
 lemma bij_betw_imageI: "inj_on f A \<Longrightarrow> f ` A = B \<Longrightarrow> bij_betw f A B"
   unfolding bij_betw_def by clarify

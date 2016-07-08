@@ -150,6 +150,9 @@ some situations where ambiguities may occur.
 equations in functional programming style: variables present on the
 left-hand but not on the righ-hand side are replaced by underscores.
 
+* "surj" is a mere input abbreviation, to avoid hiding an equation in
+term output.  Minor INCOMPATIBILITY.
+
 * Theory Library/Combinator_PER.thy: combinator to build partial
 equivalence relations from a predicate and an equivalence relation.
 
