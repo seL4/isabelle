@@ -7,32 +7,32 @@ begin
 
 subsection \<open>Additions to @{theory Binomial} Theory\<close>
 
+lemma (in field_char_0) one_plus_of_nat_neq_zero [simp]:
+  "1 + of_nat n \<noteq> 0"
+proof -
+  have "of_nat (Suc n) \<noteq> of_nat 0"
+    unfolding of_nat_eq_iff by simp
+  then show ?thesis by simp
+qed
+
 lemma of_nat_binomial_eq_mult_binomial_Suc:
   assumes "k \<le> n"
   shows "(of_nat :: (nat \<Rightarrow> ('a :: field_char_0))) (n choose k) = of_nat (n + 1 - k) / of_nat (n + 1) * of_nat (Suc n choose k)"
-proof -
-  have "of_nat (n + 1) * (\<Prod>i<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i<k. of_nat (Suc n - i))"
-  proof -
-    have "of_nat (n + 1) * (\<Prod>i<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1) * (\<Prod>i\<in>Suc ` {..<k}. of_nat (Suc n - i))"
-      by (auto simp add: setprod.reindex)
-    also have "... = (\<Prod>i\<le>k. of_nat (Suc n - i))"
-    proof (cases k)
-      case (Suc k')
-      have "of_nat (n + 1) * (\<Prod>i\<in>Suc ` {..<Suc k'}. of_nat (Suc n - i)) = (\<Prod>i\<in>insert 0 (Suc ` {..k'}). of_nat (Suc n - i))"
-        by (subst setprod.insert) (auto simp add: lessThan_Suc_atMost)
-      also have "... = (\<Prod>i\<le>Suc k'. of_nat (Suc n - i))" by (simp only: Iic_Suc_eq_insert_0)
-      finally show ?thesis using Suc by simp
-    qed (simp)
-    also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (Suc n - k) * (\<Prod>i<k. of_nat (Suc n - i))"
-      by (cases k) (auto simp add: atMost_Suc lessThan_Suc_atMost)
-    also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i<k. of_nat (Suc n - i))"
-      by (simp only: Suc_eq_plus1)
-    finally show ?thesis .
-  qed
-  then have "(\<Prod>i<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i<k. of_nat (Suc n - i))"
-    by (metis (no_types, lifting) le_add2 nonzero_mult_divide_cancel_left not_one_le_zero of_nat_eq_0_iff times_divide_eq_left)
-  from assms this show ?thesis
-    by (auto simp add: binomial_altdef_of_nat setprod_dividef)
+proof (cases k)
+  case 0 then show ?thesis by simp
+next
+  case (Suc l)
+  have "of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    using setprod.atLeast0_lessThan_Suc [where ?'a = 'a, symmetric, of "\<lambda>i. of_nat (Suc n - i)" k]
+    by (simp add: ac_simps setprod.atLeast0_lessThan_Suc_shift)
+  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (Suc n - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp add: Suc atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
+  also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp only: Suc_eq_plus1)
+  finally have "(\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
+    by (simp add: field_simps)
+  with assms show ?thesis
+    by (simp add: binomial_altdef_of_nat setprod_dividef)
 qed
 
 lemma real_binomial_eq_mult_binomial_Suc:

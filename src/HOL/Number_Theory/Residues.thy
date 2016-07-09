@@ -426,7 +426,7 @@ proof -
     apply auto
     done
   also have "\<dots> = fact (p - 1) mod p"
-    apply (subst fact_altdef_nat)
+    apply (simp add: fact_setprod)
     apply (insert assms)
     apply (subst res_prime_units_eq)
     apply (simp add: int_setprod zmod_int setprod_int_eq)
@@ -443,7 +443,7 @@ lemma wilson_theorem:
 proof (cases "p = 2")
   case True
   then show ?thesis
-    by (simp add: cong_int_def fact_altdef_nat)
+    by (simp add: cong_int_def fact_setprod)
 next
   case False
   then show ?thesis

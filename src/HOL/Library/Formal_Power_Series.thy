@@ -1711,7 +1711,7 @@ qed
 
 lemma fps_deriv_maclauren_0:
   "(fps_nth_deriv k (f :: 'a::comm_semiring_1 fps)) $ 0 = of_nat (fact k) * f $ k"
-  by (induct k arbitrary: f) (auto simp add: field_simps of_nat_mult)
+  by (induct k arbitrary: f) (auto simp add: field_simps)
 
 
 subsection \<open>Powers\<close>
@@ -3701,7 +3701,7 @@ proof -
   have "?l$n = ?r $ n" for n
     apply (auto simp add: E_def field_simps power_Suc[symmetric]
       simp del: fact_Suc of_nat_Suc power_Suc)
-    apply (simp add: of_nat_mult field_simps)
+    apply (simp add: field_simps)
     done
   then show ?thesis
     by (simp add: fps_eq_iff)
@@ -4110,6 +4110,7 @@ proof -
       (is ?pochhammer)
     if kn: "k \<in> {0..n}" for k
   proof -
+    from kn have "k \<le> n" by simp
     have nz: "pochhammer (1 + b - of_nat n) n \<noteq> 0"
     proof
       assume "pochhammer (1 + b - of_nat n) n = 0"
@@ -4169,32 +4170,25 @@ proof -
           by (intro setprod.reindex_bij_witness[where i="\<lambda>k. Suc m - k" and j="\<lambda>k. Suc m - k"])
              (auto simp: of_nat_diff)
         have th1: "(?m1 k * ?p (of_nat n) k) / ?f n = 1 / of_nat(fact (n - k))"
-          unfolding m1nk
-          apply (simp add: field_simps m h pochhammer_Suc_setprod del: fact_Suc)
-          apply (simp add: fact_altdef id_def atLeast0AtMost setprod.distrib [symmetric] eq1)
-          apply (subst setprod.union_disjoint [symmetric])
-          apply (auto intro!: setprod.cong)
+          apply (simp add: pochhammer_minus field_simps)
+          using \<open>k \<le> n\<close> apply (simp add: fact_split [of k n])
+          apply (simp add: pochhammer_setprod)
+          using setprod.atLeast_lessThan_shift_bounds [where ?'a = 'a, of "\<lambda>i. 1 + of_nat i" 0 "n - k" k]
+          apply (auto simp add: of_nat_diff field_simps)
           done
-        have th20: "?m1 n * ?p b n = setprod (\<lambda>i. b - of_nat i) {..m}"
-          unfolding m1nk
-          unfolding m h pochhammer_Suc_setprod
-          unfolding setprod.distrib[symmetric]
-          apply (rule setprod.cong)
-          apply auto
+        have th20: "?m1 n * ?p b n = setprod (\<lambda>i. b - of_nat i) {0..m}"
+          apply (simp add: pochhammer_minus field_simps m)
+          apply (auto simp add: pochhammer_setprod_rev of_nat_diff setprod.atLeast_Suc_atMost_Suc_shift)
           done
         have th21:"pochhammer (b - of_nat n + 1) k = setprod (\<lambda>i. b - of_nat i) {n - k .. n - 1}"
-          unfolding h m
-          unfolding pochhammer_Suc_setprod
-          using kn m h
-          by (intro setprod.reindex_bij_witness[where i="\<lambda>k. n - 1 - k" and j="\<lambda>i. m-i"])
-             (auto simp: of_nat_diff)
-
+          using kn apply (simp add: pochhammer_setprod_rev m h setprod.atLeast_Suc_atMost_Suc_shift)
+          using setprod.atLeast_atMost_shift_0 [of "m - h" m, where ?'a = 'a]
+          apply (auto simp add: of_nat_diff field_simps)
+          done
         have "?m1 n * ?p b n =
-          pochhammer (b - of_nat n + 1) k * setprod (\<lambda>i. b - of_nat i) {0.. n - k - 1}"
-          unfolding th20 th21
-          unfolding h m
-          apply (subst setprod.union_disjoint[symmetric])
-          using kn' h m
+          setprod (\<lambda>i. b - of_nat i) {0.. n - k - 1} * pochhammer (b - of_nat n + 1) k"
+          using kn' m h unfolding th20 th21 apply simp
+          apply (subst setprod.union_disjoint [symmetric])
           apply auto
           apply (rule setprod.cong)
           apply auto
@@ -4208,10 +4202,11 @@ proof -
           by (simp add: field_simps)
         also have "\<dots> = b gchoose (n - k)"
           unfolding th1 th2
-          using kn' apply (simp add: gbinomial_def atLeast0AtMost)
-            apply (rule setprod.cong)
-            apply auto
-            done
+          using kn' m h
+          apply (simp add: field_simps gbinomial_mult_fact)
+          apply (rule setprod.cong)
+          apply auto
+          done
         finally show ?thesis by simp
       qed
     qed
@@ -4230,10 +4225,6 @@ proof -
     unfolding gbinomial_pochhammer
     using bn0
     apply (simp add: setsum_left_distrib setsum_right_distrib field_simps)
-    apply (rule setsum.cong)
-    apply (rule refl)
-    apply (drule th00(2))
-    apply (simp add: field_simps power_add[symmetric])
     done
   finally show ?thesis by simp
 qed
@@ -4355,7 +4346,7 @@ lemma fps_sin_nth_add_2:
   apply (cases n)
   apply simp
   apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq del: of_nat_Suc fact_Suc)
-  apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
+  apply simp
   done
 
 lemma fps_cos_nth_0 [simp]: "fps_cos c $ 0 = 1"
@@ -4368,7 +4359,7 @@ lemma fps_cos_nth_add_2:
   "fps_cos c $ (n + 2) = - (c * c * fps_cos c $ n / (of_nat (n + 1) * of_nat (n + 2)))"
   unfolding fps_cos_def
   apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq del: of_nat_Suc fact_Suc)
-  apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
+  apply simp
   done
 
 lemma nat_induct2: "P 0 \<Longrightarrow> P 1 \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (n + 2)) \<Longrightarrow> P (n::nat)"
@@ -4593,7 +4584,7 @@ lemma F_rec:
   apply (simp del: of_nat_Suc of_nat_add fact_Suc)
   apply (simp add: foldl_mult_start del: fact_Suc of_nat_Suc)
   unfolding foldl_prod_prod[unfolded foldl_mult_start] pochhammer_Suc
-  apply (simp add: algebra_simps of_nat_mult)
+  apply (simp add: algebra_simps)
   done
 
 lemma XD_nth[simp]: "XD a $ n = (if n = 0 then 0 else of_nat n * a$n)"

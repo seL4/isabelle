@@ -743,17 +743,42 @@ nontermination). But outside, when the definition of the lhs is rarely
 used, the opposite orientation seems preferable because it reduces a
 specific concept to a more general one.\<close>
 
-lemma atLeast0LessThan: "{0::nat..<n} = {..<n}"
+lemma atLeast0LessThan [code_abbrev]: "{0::nat..<n} = {..<n}"
 by(simp add:lessThan_def atLeastLessThan_def)
 
-lemma atLeast0AtMost: "{0..n::nat} = {..n}"
+lemma atLeast0AtMost [code_abbrev]: "{0..n::nat} = {..n}"
 by(simp add:atMost_def atLeastAtMost_def)
 
-declare atLeast0LessThan[symmetric, code_unfold]
-        atLeast0AtMost[symmetric, code_unfold]
+lemma lessThan_atLeast0:
+  "{..<n} = {0::nat..<n}"
+  by (simp add: atLeast0LessThan)
+
+lemma atMost_atLeast0:
+  "{..n} = {0::nat..n}"
+  by (simp add: atLeast0AtMost)
 
 lemma atLeastLessThan0: "{m..<0::nat} = {}"
 by (simp add: atLeastLessThan_def)
+
+lemma atLeast0_lessThan_Suc:
+  "{0..<Suc n} = insert n {0..<n}"
+  by (simp add: atLeast0LessThan lessThan_Suc)
+
+lemma atLeast0_lessThan_Suc_eq_insert_0:
+  "{0..<Suc n} = insert 0 (Suc ` {0..<n})"
+  by (simp add: atLeast0LessThan lessThan_Suc_eq_insert_0)
+
+
+subsubsection \<open>The Constant @{term atLeastAtMost}\<close>
+
+lemma atLeast0_atMost_Suc:
+  "{0..Suc n} = insert (Suc n) {0..n}"
+  by (simp add: atLeast0AtMost atMost_Suc)
+
+lemma atLeast0_atMost_Suc_eq_insert_0:
+  "{0..Suc n} = insert 0 (Suc ` {0..n})"
+  by (simp add: atLeast0AtMost Iic_Suc_eq_insert_0)
+
 
 subsubsection \<open>Intervals of nats with @{term Suc}\<close>
 
@@ -1164,11 +1189,17 @@ lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l"
 lemma card_greaterThanLessThan [simp]: "card {l<..<u} = u - Suc l"
   by (subst atLeastSucLessThan_greaterThanLessThan [THEN sym], simp)
 
-lemma subset_eq_range_finite:
+lemma subset_eq_atLeast0_lessThan_finite:
   fixes n :: nat
-  assumes "N \<subseteq> {..<n}"
+  assumes "N \<subseteq> {0..<n}"
   shows "finite N" 
-  using assms finite_lessThan by (rule finite_subset)
+  using assms finite_atLeastLessThan by (rule finite_subset)
+
+lemma subset_eq_atLeast0_atMost_finite:
+  fixes n :: nat
+  assumes "N \<subseteq> {0..n}"
+  shows "finite N" 
+  using assms finite_atLeastAtMost by (rule finite_subset)
 
 lemma ex_bij_betw_nat_finite:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h {0..<card M} M"
@@ -1179,18 +1210,6 @@ done
 lemma ex_bij_betw_finite_nat:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h M {0..<card M}"
 by (blast dest: ex_bij_betw_nat_finite bij_betw_inv)
-
-lemma bij_betw_nat_finite:
-  assumes "finite A"
-  obtains f where "bij_betw f {..<card A} A"
-proof -
-  from assms obtain f where "bij_betw f {0..<card A} A"
-    by (blast dest: ex_bij_betw_nat_finite)
-  also have "{0..<card A} = {..<card A}"
-    by auto
-  finally show thesis using that
-    by blast
-qed
 
 lemma finite_same_card_bij:
   "finite A \<Longrightarrow> finite B \<Longrightarrow> card A = card B \<Longrightarrow> EX h. bij_betw h A B"
@@ -1236,12 +1255,12 @@ proof (safe intro!: card_inj_on_le)
   ultimately show "(\<exists>f. inj_on f A \<and> f ` A \<le> B)" by blast
 qed (insert assms, auto)
 
-lemma subset_eq_range_card:
+lemma subset_eq_atLeast0_lessThan_card:
   fixes n :: nat
-  assumes "N \<subseteq> {..<n}"
+  assumes "N \<subseteq> {0..<n}"
   shows "card N \<le> n"
 proof -
-  from assms finite_lessThan have "card N \<le> card {..<n}"
+  from assms finite_lessThan have "card N \<le> card {0..<n}"
     using card_mono by blast
   then show ?thesis by simp
 qed
@@ -1480,6 +1499,100 @@ apply(fastforce)
 done
 
 
+subsection \<open>Generic big monoid operation over intervals\<close>
+
+lemma inj_on_add_nat' [simp]:
+  "inj_on (plus k) N" for k :: nat
+  by rule simp
+
+context comm_monoid_set
+begin
+
+lemma atLeast_lessThan_shift_bounds:
+  fixes m n k :: nat
+  shows "F g {m + k..<n + k} = F (g \<circ> plus k) {m..<n}"
+proof -
+  have "{m + k..<n + k} = plus k ` {m..<n}"
+    by (auto simp add: image_add_atLeastLessThan [symmetric])
+  also have "F g (plus k ` {m..<n}) = F (g \<circ> plus k) {m..<n}"
+    by (rule reindex) simp
+  finally show ?thesis .
+qed
+
+lemma atLeast_atMost_shift_bounds:
+  fixes m n k :: nat
+  shows "F g {m + k..n + k} = F (g \<circ> plus k) {m..n}"
+proof -
+  have "{m + k..n + k} = plus k ` {m..n}"
+    by (auto simp del: image_add_atLeastAtMost simp add: image_add_atLeastAtMost [symmetric])
+  also have "F g (plus k ` {m..n}) = F (g \<circ> plus k) {m..n}"
+    by (rule reindex) simp
+  finally show ?thesis .
+qed
+
+lemma atLeast_Suc_lessThan_Suc_shift:
+  "F g {Suc m..<Suc n} = F (g \<circ> Suc) {m..<n}"
+  using atLeast_lessThan_shift_bounds [of _ _ 1] by simp
+
+lemma atLeast_Suc_atMost_Suc_shift:
+  "F g {Suc m..Suc n} = F (g \<circ> Suc) {m..n}"
+  using atLeast_atMost_shift_bounds [of _ _ 1] by simp
+
+lemma atLeast0_lessThan_Suc:
+  "F g {0..<Suc n} = F g {0..<n} \<^bold>* g n"
+  by (simp add: atLeast0_lessThan_Suc ac_simps)
+
+lemma atLeast0_atMost_Suc:
+  "F g {0..Suc n} = F g {0..n} \<^bold>* g (Suc n)"
+  by (simp add: atLeast0_atMost_Suc ac_simps)
+
+lemma atLeast0_lessThan_Suc_shift:
+  "F g {0..<Suc n} = g 0 \<^bold>* F (g \<circ> Suc) {0..<n}"
+  by (simp add: atLeast0_lessThan_Suc_eq_insert_0 atLeast_Suc_lessThan_Suc_shift)
+
+lemma atLeast0_atMost_Suc_shift:
+  "F g {0..Suc n} = g 0 \<^bold>* F (g \<circ> Suc) {0..n}"
+  by (simp add: atLeast0_atMost_Suc_eq_insert_0 atLeast_Suc_atMost_Suc_shift)
+
+lemma ivl_cong:
+  "a = c \<Longrightarrow> b = d \<Longrightarrow> (\<And>x. c \<le> x \<Longrightarrow> x < d \<Longrightarrow> g x = h x)
+    \<Longrightarrow> F g {a..<b} = F h {c..<d}"
+  by (rule cong) simp_all
+
+lemma atLeast_lessThan_shift_0:
+  fixes m n p :: nat
+  shows "F g {m..<n} = F (g \<circ> plus m) {0..<n - m}"
+  using atLeast_lessThan_shift_bounds [of g 0 m "n - m"]
+  by (cases "m \<le> n") simp_all
+
+lemma atLeast_atMost_shift_0:
+  fixes m n p :: nat
+  assumes "m \<le> n"
+  shows "F g {m..n} = F (g \<circ> plus m) {0..n - m}"
+  using assms atLeast_atMost_shift_bounds [of g 0 m "n - m"] by simp
+
+lemma atLeast_lessThan_concat:
+  fixes m n p :: nat
+  shows "m \<le> n \<Longrightarrow> n \<le> p \<Longrightarrow> F g {m..<n} \<^bold>* F g {n..<p} = F g {m..<p}"
+  by (simp add: union_disjoint [symmetric] ivl_disj_un)
+
+lemma atLeast_lessThan_rev:
+  "F g {n..<m} = F (\<lambda>i. g (m + n - Suc i)) {n..<m}"
+  by (rule reindex_bij_witness [where i="\<lambda>i. m + n - Suc i" and j="\<lambda>i. m + n - Suc i"], auto)
+
+lemma atLeast_atMost_rev:
+  fixes n m :: nat
+  shows "F g {n..m} = F (\<lambda>i. g (m + n - i)) {n..m}"
+  by (rule reindex_bij_witness [where i="\<lambda>i. m + n - i" and j="\<lambda>i. m + n - i"]) auto
+
+lemma atLeast_lessThan_rev_at_least_Suc_atMost:
+  "F g {n..<m} = F (\<lambda>i. g (m + n - i)) {Suc n..m}"
+  unfolding atLeast_lessThan_rev [of g n m]
+  by (cases m) (simp_all add: atLeast_Suc_atMost_Suc_shift atLeastLessThanSuc_atLeastAtMost)
+
+end
+
+
 subsection \<open>Summation indexed over intervals\<close>
 
 syntax (ASCII)
@@ -1539,27 +1652,26 @@ the standard theorem @{text[source]setsum.cong} does not work well
 with the simplifier who adds the unsimplified premise @{term"x:B"} to
 the context.\<close>
 
-lemma setsum_ivl_cong:
- "\<lbrakk>a = c; b = d; !!x. \<lbrakk> c \<le> x; x < d \<rbrakk> \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow>
- setsum f {a..<b} = setsum g {c..<d}"
-by(rule setsum.cong, simp_all)
+lemmas setsum_ivl_cong = setsum.ivl_cong
 
 (* FIXME why are the following simp rules but the corresponding eqns
 on intervals are not? *)
 
-lemma setsum_atMost_Suc[simp]: "(\<Sum>i \<le> Suc n. f i) = (\<Sum>i \<le> n. f i) + f(Suc n)"
-by (simp add:atMost_Suc ac_simps)
+lemma setsum_atMost_Suc [simp]:
+  "(\<Sum>i \<le> Suc n. f i) = (\<Sum>i \<le> n. f i) + f (Suc n)"
+  by (simp add: atMost_Suc ac_simps)
 
-lemma setsum_lessThan_Suc[simp]: "(\<Sum>i < Suc n. f i) = (\<Sum>i < n. f i) + f n"
-by (simp add:lessThan_Suc ac_simps)
+lemma setsum_lessThan_Suc [simp]:
+  "(\<Sum>i < Suc n. f i) = (\<Sum>i < n. f i) + f n"
+  by (simp add: lessThan_Suc ac_simps)
 
-lemma setsum_cl_ivl_Suc[simp]:
+lemma setsum_cl_ivl_Suc [simp]:
   "setsum f {m..Suc n} = (if Suc n < m then 0 else setsum f {m..n} + f(Suc n))"
-by (auto simp:ac_simps atLeastAtMostSuc_conv)
+  by (auto simp: ac_simps atLeastAtMostSuc_conv)
 
-lemma setsum_op_ivl_Suc[simp]:
+lemma setsum_op_ivl_Suc [simp]:
   "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
-by (auto simp:ac_simps atLeastLessThanSuc)
+  by (auto simp: ac_simps atLeastLessThanSuc)
 (*
 lemma setsum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
     (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
@@ -1598,9 +1710,7 @@ proof-
     atLeastSucAtMost_greaterThanAtMost)
 qed
 
-lemma setsum_add_nat_ivl: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
-  setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"
-by (simp add:setsum.union_disjoint[symmetric] ivl_disj_int ivl_disj_un)
+lemmas setsum_add_nat_ivl = setsum.atLeast_lessThan_concat
 
 lemma setsum_diff_nat_ivl:
 fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
@@ -1639,7 +1749,8 @@ by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
 lemma nat_diff_setsum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
   by (rule setsum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
 
-subsection\<open>Shifting bounds\<close>
+
+subsubsection \<open>Shifting bounds\<close>
 
 lemma setsum_shift_bounds_nat_ivl:
   "setsum f {m+k..<n+k} = setsum (%i. f(i + k)){m..<n::nat}"
@@ -1723,7 +1834,7 @@ proof -
 qed
 
 
-subsection \<open>Telescoping\<close>
+subsubsection \<open>Telescoping\<close>
 
 lemma setsum_telescope:
   fixes f::"nat \<Rightarrow> 'a::ab_group_add"
@@ -1735,7 +1846,8 @@ lemma setsum_telescope'':
   shows   "(\<Sum>k\<in>{Suc m..n}. f k - f (k - 1)) = f n - (f m :: 'a :: ab_group_add)"
   by (rule dec_induct[OF assms]) (simp_all add: algebra_simps)
 
-subsection \<open>The formula for geometric sums\<close>
+
+subsubsection \<open>The formula for geometric sums\<close>
 
 lemma geometric_sum:
   assumes "x \<noteq> 1"
@@ -1743,7 +1855,7 @@ lemma geometric_sum:
 proof -
   from assms obtain y where "y = x - 1" and "y \<noteq> 0" by simp_all
   moreover have "(\<Sum>i<n. (y + 1) ^ i) = ((y + 1) ^ n - 1) / y"
-    by (induct n) (simp_all add: power_Suc field_simps \<open>y \<noteq> 0\<close>)
+    by (induct n) (simp_all add: field_simps \<open>y \<noteq> 0\<close>)
   ultimately show ?thesis by simp
 qed
 
@@ -1755,15 +1867,15 @@ lemma diff_power_eq_setsum:
 proof (induct n)
   case (Suc n)
   have "x ^ Suc (Suc n) - y ^ Suc (Suc n) = x * (x * x^n) - y * (y * y ^ n)"
-    by (simp add: power_Suc)
+    by simp
   also have "... = y * (x ^ (Suc n) - y ^ (Suc n)) + (x - y) * (x * x^n)"
-    by (simp add: power_Suc algebra_simps)
+    by (simp add: algebra_simps)
   also have "... = y * ((x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
     by (simp only: Suc)
   also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
     by (simp only: mult.left_commute)
   also have "... = (x - y) * (\<Sum>p<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
-    by (simp add: power_Suc field_simps Suc_diff_le setsum_left_distrib setsum_right_distrib)
+    by (simp add: field_simps Suc_diff_le setsum_left_distrib setsum_right_distrib)
   finally show ?case .
 qed simp
 
@@ -1791,7 +1903,7 @@ lemma one_diff_power_eq:
 by (metis one_diff_power_eq' [of n x] nat_diff_setsum_reindex)
 
 
-subsection \<open>The formula for arithmetic sums\<close>
+subsubsection \<open>The formula for arithmetic sums\<close>
 
 lemma gauss_sum:
   "(2::'a::comm_semiring_1)*(\<Sum>i\<in>{1..n}. of_nat i) = of_nat n*((of_nat n)+1)"
@@ -1854,6 +1966,29 @@ lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n
   by (subst setsum_subtractf_nat) auto
 
 
+subsubsection \<open>Division remainder\<close>
+
+lemma range_mod:
+  fixes n :: nat
+  assumes "n > 0"
+  shows "range (\<lambda>m. m mod n) = {0..<n}" (is "?A = ?B")
+proof (rule set_eqI)
+  fix m
+  show "m \<in> ?A \<longleftrightarrow> m \<in> ?B"
+  proof
+    assume "m \<in> ?A"
+    with assms show "m \<in> ?B"
+      by auto 
+  next
+    assume "m \<in> ?B"
+    moreover have "m mod n \<in> ?A"
+      by (rule rangeI)
+    ultimately show "m \<in> ?A"
+      by simp
+  qed
+qed
+
+
 subsection \<open>Products indexed over intervals\<close>
 
 syntax (ASCII)
@@ -1884,44 +2019,6 @@ translations
   "\<Prod>i\<le>n. t" \<rightleftharpoons> "CONST setprod (\<lambda>i. t) {..n}"
   "\<Prod>i<n. t" \<rightleftharpoons> "CONST setprod (\<lambda>i. t) {..<n}"
 
-
-subsection \<open>Transfer setup\<close>
-
-lemma transfer_nat_int_set_functions:
-    "{..n} = nat ` {0..int n}"
-    "{m..n} = nat ` {int m..int n}"  (* need all variants of these! *)
-  apply (auto simp add: image_def)
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  done
-
-lemma transfer_nat_int_set_function_closures:
-    "x >= 0 \<Longrightarrow> nat_set {x..y}"
-  by (simp add: nat_set_def)
-
-declare transfer_morphism_nat_int[transfer add
-  return: transfer_nat_int_set_functions
-    transfer_nat_int_set_function_closures
-]
-
-lemma transfer_int_nat_set_functions:
-    "is_nat m \<Longrightarrow> is_nat n \<Longrightarrow> {m..n} = int ` {nat m..nat n}"
-  by (simp only: is_nat_def transfer_nat_int_set_functions
-    transfer_nat_int_set_function_closures
-    transfer_nat_int_set_return_embed nat_0_le
-    cong: transfer_nat_int_set_cong)
-
-lemma transfer_int_nat_set_function_closures:
-    "is_nat x \<Longrightarrow> nat_set {x..y}"
-  by (simp only: transfer_nat_int_set_function_closures is_nat_def)
-
-declare transfer_morphism_int_nat[transfer add
-  return: transfer_int_nat_set_functions
-    transfer_int_nat_set_function_closures
-]
-
 lemma setprod_int_plus_eq: "setprod int {i..i+j} =  \<Prod>{int i..int (i+j)}"
   by (induct j) (auto simp add: atLeastAtMostSuc_conv atLeastAtMostPlus1_int_conv)
 
@@ -1937,7 +2034,7 @@ next
 qed
 
 
-subsection \<open>Shifting bounds\<close>
+subsubsection \<open>Shifting bounds\<close>
 
 lemma setprod_shift_bounds_nat_ivl:
   "setprod f {m+k..<n+k} = setprod (%i. f(i + k)){m..<n::nat}"
@@ -1971,29 +2068,6 @@ proof -
   from assms have "{m..Suc n} = insert (Suc n) {m..n}" by auto
   also have "setprod f \<dots> = f (Suc n) * setprod f {m..n}" by simp
   finally show ?thesis .
-qed
-
-
-subsection \<open>Division remainder\<close>
-
-lemma range_mod:
-  fixes n :: nat
-  assumes "n > 0"
-  shows "range (\<lambda>m. m mod n) = {0..<n}" (is "?A = ?B")
-proof (rule set_eqI)
-  fix m
-  show "m \<in> ?A \<longleftrightarrow> m \<in> ?B"
-  proof
-    assume "m \<in> ?A"
-    with assms show "m \<in> ?B"
-      by auto 
-  next
-    assume "m \<in> ?B"
-    moreover have "m mod n \<in> ?A"
-      by (rule rangeI)
-    ultimately show "m \<in> ?A"
-      by simp
-  qed
 qed
 
 
@@ -2043,5 +2117,43 @@ proof -
 qed
 
 (* TODO: Add support for more kinds of intervals here *)
+
+
+subsection \<open>Transfer setup\<close>
+
+lemma transfer_nat_int_set_functions:
+    "{..n} = nat ` {0..int n}"
+    "{m..n} = nat ` {int m..int n}"  (* need all variants of these! *)
+  apply (auto simp add: image_def)
+  apply (rule_tac x = "int x" in bexI)
+  apply auto
+  apply (rule_tac x = "int x" in bexI)
+  apply auto
+  done
+
+lemma transfer_nat_int_set_function_closures:
+    "x >= 0 \<Longrightarrow> nat_set {x..y}"
+  by (simp add: nat_set_def)
+
+declare transfer_morphism_nat_int[transfer add
+  return: transfer_nat_int_set_functions
+    transfer_nat_int_set_function_closures
+]
+
+lemma transfer_int_nat_set_functions:
+    "is_nat m \<Longrightarrow> is_nat n \<Longrightarrow> {m..n} = int ` {nat m..nat n}"
+  by (simp only: is_nat_def transfer_nat_int_set_functions
+    transfer_nat_int_set_function_closures
+    transfer_nat_int_set_return_embed nat_0_le
+    cong: transfer_nat_int_set_cong)
+
+lemma transfer_int_nat_set_function_closures:
+    "is_nat x \<Longrightarrow> nat_set {x..y}"
+  by (simp only: transfer_nat_int_set_function_closures is_nat_def)
+
+declare transfer_morphism_int_nat[transfer add
+  return: transfer_int_nat_set_functions
+    transfer_int_nat_set_function_closures
+]
 
 end

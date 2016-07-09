@@ -4027,7 +4027,7 @@ next
 qed
 
 lemma setprod_fact: "real (\<Prod> {1..<1 + k}) = fact (k :: nat)"
-by (metis Suc_eq_plus1_left atLeastLessThanSuc_atLeastAtMost fact_altdef_nat of_nat_fact)
+  by (simp add: fact_setprod atLeastLessThanSuc_atLeastAtMost)
 
 lemma approx_tse:
   assumes "bounded_by xs vs"

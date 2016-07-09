@@ -185,11 +185,11 @@ proof -
   also have "\<dots> = (\<Sum>k\<le>n. 1 / fact k)"
   proof (intro setsum.cong refl)
     fix k assume k: "k \<in> {..n}"
-    have "fact n = (\<Prod>i=1..n. real i)" by (rule fact_altdef)
+    have "fact n = (\<Prod>i=1..n. real i)" by (simp add: fact_setprod)
     also from k have "{1..n} = {1..k} \<union> {k+1..n}" by auto
     also have "setprod real \<dots> / (\<Prod>i=k+1..n. real i) = (\<Prod>i=1..k. real i)"
       by (subst nonzero_divide_eq_eq, simp, subst setprod.union_disjoint [symmetric]) auto
-    also have "\<dots> = fact k" by (simp only: fact_altdef)
+    also have "\<dots> = fact k" by (simp add: fact_setprod)
     finally show "1 / (fact n / setprod real {k + 1..n}) = 1 / fact k" by simp
   qed
   also have "\<dots> = euler_approx n" by (simp add: euler_approx_def field_simps)

@@ -36,7 +36,7 @@ lemma of_real_fact [simp]: "of_real (fact n) = fact n"
   by (metis of_nat_fact of_real_of_nat_eq)
 
 lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
-  by (simp add: pochhammer_def)
+  by (simp add: pochhammer_setprod)
 
 lemma norm_fact [simp]:
   "norm (fact n :: 'a :: {real_normed_algebra_1}) = fact n"

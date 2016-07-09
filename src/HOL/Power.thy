@@ -164,7 +164,7 @@ begin
 
 lemma of_nat_power [simp]:
   "of_nat (m ^ n) = of_nat m ^ n"
-  by (induct n) (simp_all add: of_nat_mult)
+  by (induct n) simp_all
 
 lemma zero_power:
   "0 < n \<Longrightarrow> 0 ^ n = 0"
@@ -645,10 +645,10 @@ lemma power2_less_eq_zero_iff [simp]:
   by (simp add: le_less)
 
 lemma abs_power2 [simp]: "\<bar>a\<^sup>2\<bar> = a\<^sup>2"
-  by (simp add: power2_eq_square abs_mult abs_mult_self)
+  by (simp add: power2_eq_square)
 
 lemma power2_abs [simp]: "\<bar>a\<bar>\<^sup>2 = a\<^sup>2"
-  by (simp add: power2_eq_square abs_mult_self)
+  by (simp add: power2_eq_square)
 
 lemma odd_power_less_zero:
   "a < 0 \<Longrightarrow> a ^ Suc (2*n) < 0"
@@ -748,6 +748,18 @@ lemma (in comm_ring_1) power2_diff:
 lemma (in comm_ring_1) power2_commute:
   "(x - y)\<^sup>2 = (y - x)\<^sup>2"
   by (simp add: algebra_simps power2_eq_square)
+
+lemma (in comm_ring_1) minus_power_mult_self:
+  "(- a) ^ n * (- a) ^ n = a ^ (2 * n)"
+  by (simp add: power_mult_distrib [symmetric]) (simp add: power2_eq_square [symmetric] power_mult [symmetric])
+  
+lemma (in comm_ring_1) minus_one_mult_self [simp]:
+  "(- 1) ^ n * (- 1) ^ n = 1"
+  using minus_power_mult_self [of 1 n] by simp
+
+lemma (in comm_ring_1) left_minus_one_mult_self [simp]:
+  "(- 1) ^ n * ((- 1) ^ n * a) = a"
+  by (simp add: mult.assoc [symmetric])
 
 text \<open>Simprules for comparisons where common factors can be cancelled.\<close>
 

@@ -246,7 +246,7 @@ proof cases
   have "continuous_on ({0..} \<union> {.. 0}) (\<lambda>x. if 0 < x then x ^ n else - ((-x) ^ n) :: real)"
     using n by (intro continuous_on_If continuous_intros) auto
   then have "continuous_on UNIV ?f"
-    by (rule continuous_on_cong[THEN iffD1, rotated 2]) (auto simp: not_less sgn_neg le_less n)
+    by (rule continuous_on_cong[THEN iffD1, rotated 2]) (auto simp: not_less le_less n)
   then have [simp]: "\<And>x. isCont ?f x"
     by (simp add: continuous_on_eq_continuous_at)
 
@@ -654,8 +654,7 @@ proof -
          (simp_all add: at_infinity_eq_at_top_bot)
     { fix n :: nat assume "2 < n"
       have "1 + (real (n - 1) * n) / 2 * x n^2 = 1 + of_nat (n choose 2) * x n^2"
-        using \<open>2 < n\<close> unfolding gbinomial_def binomial_gbinomial
-        by (simp add: atLeast0AtMost lessThan_Suc field_simps of_nat_diff numeral_2_eq_2)
+        by (auto simp add: choose_two of_nat_div mod_eq_0_iff_dvd)
       also have "\<dots> \<le> (\<Sum>k\<in>{0, 2}. of_nat (n choose k) * x n^k)"
         by (simp add: x_def)
       also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
@@ -692,8 +691,7 @@ proof -
            (simp_all add: at_infinity_eq_at_top_bot)
       { fix n :: nat assume "1 < n"
         have "1 + x n * n = 1 + of_nat (n choose 1) * x n^1"
-          using \<open>1 < n\<close> unfolding gbinomial_def binomial_gbinomial
-            by (simp add: lessThan_Suc)
+          by (simp add: choose_one)
         also have "\<dots> \<le> (\<Sum>k\<in>{0, 1}. of_nat (n choose k) * x n^k)"
           by (simp add: x_def)
         also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"

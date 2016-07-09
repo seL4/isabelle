@@ -1432,6 +1432,15 @@ lemma div_eq_dividend_iff: "a \<noteq> 0 \<Longrightarrow> (a :: nat) div b = a 
   apply (metis (full_types) One_nat_def Suc_lessI div_less_dividend less_not_refl3)
   done
 
+lemma (in field_char_0) of_nat_div:
+  "of_nat (m div n) = ((of_nat m - of_nat (m mod n)) / of_nat n)"
+proof -
+  have "of_nat (m div n) = ((of_nat (m div n * n + m mod n) - of_nat (m mod n)) / of_nat n :: 'a)"
+    unfolding of_nat_add by (cases "n = 0") simp_all
+  then show ?thesis
+    by simp
+qed
+
 
 subsubsection \<open>An ``induction'' law for modulus arithmetic.\<close>
 

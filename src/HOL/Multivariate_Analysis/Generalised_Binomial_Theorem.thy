@@ -27,12 +27,13 @@ proof (rule Lim_transform_eventually)
     show "eventually (\<lambda>n. ?f n = (a gchoose n) /(a gchoose Suc n)) sequentially"
   proof eventually_elim
     fix n :: nat assume n: "n > 0"
-    let ?P = "\<Prod>i<n. a - of_nat i"
+    then obtain q where q: "n = Suc q" by (cases n) blast
+    let ?P = "\<Prod>i=0..<n. a - of_nat i"
     from n have "(a gchoose n) / (a gchoose Suc n) = (of_nat (Suc n) :: 'a) *
-                   (?P / (\<Prod>i\<le>n. a - of_nat i))"
-      by (simp add: gbinomial_def lessThan_Suc_atMost)
-    also from n have "(\<Prod>i\<le>n. a - of_nat i) = ?P * (a - of_nat n)"
-      by (cases n) (simp_all add: setprod_nat_ivl_Suc lessThan_Suc_atMost)
+                   (?P / (\<Prod>i=0..n. a - of_nat i))"
+      by (simp add: gbinomial_setprod_rev atLeastLessThanSuc_atLeastAtMost)
+    also from q have "(\<Prod>i=0..n. a - of_nat i) = ?P * (a - of_nat n)"
+      by (simp add: setprod.atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
     also have "?P / \<dots> = (?P / ?P) / (a - of_nat n)" by (rule divide_divide_eq_left[symmetric])
     also from assms have "?P / ?P = 1" by auto
     also have "of_nat (Suc n) * (1 / (a - of_nat n)) = 
@@ -119,7 +120,7 @@ proof -
   have "\<exists>c. \<forall>z\<in>ball 0 K. f z * (1 + z) powr (-a) = c"
   proof (rule has_field_derivative_zero_constant)
     fix z :: complex assume z': "z \<in> ball 0 K"
-    hence z: "norm z < K" by (simp add: dist_0_norm)
+    hence z: "norm z < K" by simp
     with K have nz: "1 + z \<noteq> 0" by (auto dest!: minus_unique)
     from z K have "norm z < 1" by simp
     hence "(1 + z) \<notin> \<real>\<^sub>\<le>\<^sub>0" by (cases z) (auto simp: complex_nonpos_Reals_iff)
@@ -209,7 +210,7 @@ proof -
   also have "(of_real (1 + z) :: complex) powr (of_real a) = of_real ((1 + z) powr a)"
     using assms by (subst powr_of_real) simp_all
   also have "(of_real a gchoose n :: complex) = of_real (a gchoose n)" for n 
-    by (simp add: gbinomial_def)
+    by (simp add: gbinomial_setprod_rev)
   hence "(\<lambda>n. (of_real a gchoose n :: complex) * of_real z ^ n) =
            (\<lambda>n. of_real ((a gchoose n) * z ^ n))" by (intro ext) simp
   finally show ?thesis by (simp only: sums_of_real_iff)
