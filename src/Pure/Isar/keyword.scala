@@ -39,6 +39,7 @@ object Keyword
   val PRF_SCRIPT = "prf_script"
   val PRF_SCRIPT_GOAL = "prf_script_goal"
   val PRF_SCRIPT_ASM_GOAL = "prf_script_asm_goal"
+  val QUASI_COMMAND = "quasi_command"
 
 
   /* command categories */
@@ -89,6 +90,7 @@ object Keyword
   type Spec = ((String, List[String]), List[String])
 
   val no_spec: Spec = (("", Nil), Nil)
+  val quasi_command_spec: Spec = ((QUASI_COMMAND, Nil), Nil)
 
   object Keywords
   {
@@ -98,17 +100,22 @@ object Keyword
   class Keywords private(
     val minor: Scan.Lexicon = Scan.Lexicon.empty,
     val major: Scan.Lexicon = Scan.Lexicon.empty,
+    protected val quasi_commands: Set[String] = Set.empty,
     protected val commands: Map[String, (String, List[String])] = Map.empty)
   {
     override def toString: String =
     {
-      val keywords1 = minor.iterator.map(quote(_)).toList
-      val keywords2 =
-        for ((name, (kind, files)) <- commands.toList.sortBy(_._1)) yield {
-          quote(name) + " :: " + quote(kind) +
-          (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
+      val keywords1 =
+        for (name <- minor.iterator.toList) yield {
+          if (quasi_commands.contains(name)) (name, quote(name) + " :: \"quasi_command\"")
+          else (name, quote(name))
         }
-      (keywords1 ::: keywords2).mkString("keywords\n  ", " and\n  ", "")
+      val keywords2 =
+        for ((name, (kind, files)) <- commands.toList) yield {
+          (name, quote(name) + " :: " + quote(kind) +
+            (if (files.isEmpty) "" else " (" + commas_quote(files) + ")"))
+        }
+      (keywords1 ::: keywords2).sortBy(_._1).map(_._2).mkString("keywords\n  ", " and\n  ", "")
     }
 
 
@@ -122,22 +129,25 @@ object Keyword
       else {
         val minor1 = minor ++ other.minor
         val major1 = major ++ other.major
+        val quasi_commands1 = quasi_commands ++ other.quasi_commands
         val commands1 =
           if (commands eq other.commands) commands
           else if (commands.isEmpty) other.commands
           else (commands /: other.commands) { case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
-        new Keywords(minor1, major1, commands1)
+        new Keywords(minor1, major1, quasi_commands1, commands1)
       }
 
 
     /* add keywords */
 
     def + (name: String, kind: String = "", tags: List[String] = Nil): Keywords =
-      if (kind == "") new Keywords(minor + name, major, commands)
+      if (kind == "") new Keywords(minor + name, major, quasi_commands, commands)
+      else if (kind == QUASI_COMMAND)
+        new Keywords(minor + name, major, quasi_commands + name, commands)
       else {
         val major1 = major + name
         val commands1 = commands + (name -> (kind, tags))
-        new Keywords(minor, major1, commands1)
+        new Keywords(minor, major1, quasi_commands, commands1)
       }
 
     def add_keywords(header: Thy_Header.Keywords): Keywords =
@@ -155,6 +165,9 @@ object Keyword
     def is_command(token: Token, check_kind: String => Boolean): Boolean =
       token.is_command &&
         (command_kind(token.source) match { case Some(k) => check_kind(k) case None => false })
+
+    def is_quasi_command(token: Token): Boolean =
+      token.is_keyword && quasi_commands.contains(token.source)
 
 
     /* load commands */

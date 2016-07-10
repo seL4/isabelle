@@ -32,8 +32,10 @@ sig
   val prf_script: string
   val prf_script_goal: string
   val prf_script_asm_goal: string
+  val quasi_command: string
   type spec = (string * string list) * string list
   val no_spec: spec
+  val quasi_command_spec: spec
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
   val major_keywords: keywords -> Scan.lexicon
@@ -105,8 +107,9 @@ val prf_asm_goal = "prf_asm_goal";
 val prf_script = "prf_script";
 val prf_script_goal = "prf_script_goal";
 val prf_script_asm_goal = "prf_script_asm_goal";
+val quasi_command = "quasi_command";
 
-val kinds =
+val command_kinds =
   [diag, document_heading, document_body, document_raw, thy_begin, thy_end, thy_load, thy_decl,
     thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global, prf_goal, prf_block,
     next_block, prf_open, prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script,
@@ -118,6 +121,7 @@ val kinds =
 type spec = (string * string list) * string list;
 
 val no_spec: spec = (("", []), []);
+val quasi_command_spec: spec = ((quasi_command, []), []);
 
 type entry =
  {pos: Position.T,
@@ -127,7 +131,7 @@ type entry =
   tags: string list};
 
 fun check_spec pos ((kind, files), tags) : entry =
-  if not (member (op =) kinds kind) then
+  if not (member (op =) command_kinds kind) then
     error ("Unknown outer syntax keyword kind " ^ quote kind)
   else if not (null files) andalso kind <> thy_load then
     error ("Illegal specification of files for " ^ quote kind)
@@ -171,7 +175,7 @@ fun merge_keywords
 
 val add_keywords =
   fold (fn ((name, pos), spec as ((kind, _), _)) => map_keywords (fn (minor, major, commands) =>
-    if kind = "" then
+    if kind = "" orelse kind = quasi_command then
       let
         val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
       in (minor', major, commands) end
