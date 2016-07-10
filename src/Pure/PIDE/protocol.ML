@@ -72,7 +72,7 @@ val _ =
                         val (master, (name, (imports, (keywords, errors)))) =
                           pair string (pair string (pair (list string)
                             (pair (list (pair string
-                              (option (pair (pair string (list string)) (list string)))))
+                              (pair (pair string (list string)) (list string))))
                               (list YXML.string_of_body)))) a;
                         val imports' = map (rpair Position.none) imports;
                         val keywords' = map (fn (x, y) => ((x, Position.none), y)) keywords;

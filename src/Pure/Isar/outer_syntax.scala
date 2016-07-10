@@ -85,16 +85,10 @@ final class Outer_Syntax private(
 
   /* add keywords */
 
-  def + (name: String): Outer_Syntax = this + (name, None, None)
-  def + (name: String, kind: String): Outer_Syntax = this + (name, Some((kind, Nil)), None)
-  def + (name: String, opt_kind: Option[(String, List[String])], replace: Option[String])
+  def + (name: String, kind: String = "", tags: List[String] = Nil, replace: Option[String] = None)
     : Outer_Syntax =
   {
-    val keywords1 =
-      opt_kind match {
-        case None => keywords + name
-        case Some(kind) => keywords + (name, kind)
-      }
+    val keywords1 = keywords + (name, kind, tags)
     val completion1 =
       if (replace == Some("")) completion
       else completion + (name, replace getOrElse name)
@@ -103,11 +97,10 @@ final class Outer_Syntax private(
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, (name, opt_spec, replace)) =>
-        val opt_kind = opt_spec.map(_._1)
+      case (syntax, (name, ((kind, tags), _), replace)) =>
         syntax +
-          (Symbol.decode(name), opt_kind, replace) +
-          (Symbol.encode(name), opt_kind, replace)
+          (Symbol.decode(name), kind, tags, replace) +
+          (Symbol.encode(name), kind, tags, replace)
     }
 
 

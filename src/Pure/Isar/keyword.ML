@@ -33,13 +33,14 @@ sig
   val prf_script_goal: string
   val prf_script_asm_goal: string
   type spec = (string * string list) * string list
+  val no_spec: spec
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
   val major_keywords: keywords -> Scan.lexicon
   val no_command_keywords: keywords -> keywords
   val empty_keywords: keywords
   val merge_keywords: keywords * keywords -> keywords
-  val add_keywords: ((string * Position.T) * spec option) list -> keywords -> keywords
+  val add_keywords: ((string * Position.T) * spec) list -> keywords -> keywords
   val is_keyword: keywords -> string -> bool
   val is_command: keywords -> string -> bool
   val is_literal: keywords -> string -> bool
@@ -116,6 +117,8 @@ val kinds =
 
 type spec = (string * string list) * string list;
 
+val no_spec: spec = (("", []), []);
+
 type entry =
  {pos: Position.T,
   id: serial,
@@ -129,7 +132,6 @@ fun check_spec pos ((kind, files), tags) : entry =
   else if not (null files) andalso kind <> thy_load then
     error ("Illegal specification of files for " ^ quote kind)
   else {pos = pos, id = serial (), kind = kind, files = files, tags = tags};
-
 
 
 (** keyword tables **)
@@ -168,18 +170,17 @@ fun merge_keywords
     Symtab.merge (K true) (commands1, commands2));
 
 val add_keywords =
-  fold (fn ((name, pos), opt_spec) => map_keywords (fn (minor, major, commands) =>
-    (case opt_spec of
-      NONE =>
-        let
-          val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
-        in (minor', major, commands) end
-    | SOME spec =>
-        let
-          val entry = check_spec pos spec;
-          val major' = Scan.extend_lexicon (Symbol.explode name) major;
-          val commands' = Symtab.update (name, entry) commands;
-        in (minor, major', commands') end)));
+  fold (fn ((name, pos), spec as ((kind, _), _)) => map_keywords (fn (minor, major, commands) =>
+    if kind = "" then
+      let
+        val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
+      in (minor', major, commands) end
+    else
+      let
+        val entry = check_spec pos spec;
+        val major' = Scan.extend_lexicon (Symbol.explode name) major;
+        val commands' = Symtab.update (name, entry) commands;
+      in (minor, major', commands') end));
 
 
 (* keyword status *)

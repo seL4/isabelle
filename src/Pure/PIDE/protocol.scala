@@ -378,7 +378,7 @@ trait Protocol
               (Nil,
                 pair(Encode.string, pair(Encode.string, pair(list(Encode.string),
                   pair(list(pair(Encode.string,
-                    option(pair(pair(Encode.string, list(Encode.string)), list(Encode.string))))),
+                    pair(pair(Encode.string, list(Encode.string)), list(Encode.string)))),
                   list(Encode.string)))))(
                 (master_dir, (theory, (imports, (keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>

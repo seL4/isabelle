@@ -88,6 +88,8 @@ object Keyword
 
   type Spec = ((String, List[String]), List[String])
 
+  val no_spec: Spec = (("", Nil), Nil)
+
   object Keywords
   {
     def empty: Keywords = new Keywords()
@@ -130,21 +132,19 @@ object Keyword
 
     /* add keywords */
 
-    def + (name: String): Keywords = new Keywords(minor + name, major, commands)
-    def + (name: String, kind: String): Keywords = this + (name, (kind, Nil))
-    def + (name: String, kind_tags: (String, List[String])): Keywords =
-    {
-      val major1 = major + name
-      val commands1 = commands + (name -> kind_tags)
-      new Keywords(minor, major1, commands1)
-    }
+    def + (name: String, kind: String = "", tags: List[String] = Nil): Keywords =
+      if (kind == "") new Keywords(minor + name, major, commands)
+      else {
+        val major1 = major + name
+        val commands1 = commands + (name -> (kind, tags))
+        new Keywords(minor, major1, commands1)
+      }
 
     def add_keywords(header: Thy_Header.Keywords): Keywords =
       (this /: header) {
-        case (keywords, (name, None, _)) =>
-          keywords + Symbol.decode(name) + Symbol.encode(name)
-        case (keywords, (name, Some((kind_tags, _)), _)) =>
-          keywords + (Symbol.decode(name), kind_tags) + (Symbol.encode(name), kind_tags)
+        case (keywords, (name, ((kind, tags), _), _)) =>
+          if (kind == "") keywords + Symbol.decode(name) + Symbol.encode(name)
+          else keywords + (Symbol.decode(name), kind, tags) + (Symbol.encode(name), kind, tags)
       }
 
 
