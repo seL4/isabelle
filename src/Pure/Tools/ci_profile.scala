@@ -42,10 +42,17 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   private def load_properties(): JProperties =
   {
     val props = new JProperties()
-    val file = Path.explode(Isabelle_System.getenv_strict("ISABELLE_CI_PROPERTIES")).file
-    if (file.exists())
-      props.load(new java.io.FileReader(file))
-    props
+    val file_name = Isabelle_System.getenv("ISABELLE_CI_PROPERTIES")
+
+    if (file_name != "")
+    {
+      val file = Path.explode(file_name).file
+      if (file.exists())
+        props.load(new java.io.FileReader(file))
+      props
+    }
+    else
+      props
   }
 
   private def compute_timing(results: Build.Results, group: Option[String]): Timing =
