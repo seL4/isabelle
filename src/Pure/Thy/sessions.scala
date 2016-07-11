@@ -163,9 +163,15 @@ object Sessions
   private val DOCUMENT_FILES = "document_files"
 
   lazy val root_syntax =
-    Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
-      IN + DESCRIPTION + OPTIONS + GLOBAL_THEORIES + THEORIES + FILES + DOCUMENT_FILES
+    Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" + IN +
+      (CHAPTER, Keyword.THY_DECL) +
+      (SESSION, Keyword.THY_DECL) +
+      (DESCRIPTION, Keyword.QUASI_COMMAND) +
+      (OPTIONS, Keyword.QUASI_COMMAND) +
+      (GLOBAL_THEORIES, Keyword.QUASI_COMMAND) +
+      (THEORIES, Keyword.QUASI_COMMAND) +
+      (FILES, Keyword.QUASI_COMMAND) +
+      (DOCUMENT_FILES, Keyword.QUASI_COMMAND)
 
   private object Parser extends Parse.Parser with Options.Parser
   {
