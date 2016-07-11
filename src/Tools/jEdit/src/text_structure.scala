@@ -51,9 +51,19 @@ object Text_Structure
           def head_token(line: Int): Option[Token] =
             nav.iterator(line, 1).toStream.headOption.map(_.info)
 
+          def head_is_quasi_command(line: Int): Boolean =
+            head_token(line) match {
+              case None => false
+              case Some(tok) => keywords.is_quasi_command(tok)
+            }
+
           def prev_command: Option[Token] =
             nav.reverse_iterator(prev_line, 1).
               collectFirst({ case Text.Info(_, tok) if tok.is_command => tok })
+
+          def prev_span: Iterator[Token] =
+            nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_command)
+
 
           def line_indent(line: Int): Int =
             if (line < 0 || line >= buffer.getLineCount) 0
@@ -68,6 +78,10 @@ object Text_Structure
 
           def indent_offset(tok: Token): Int =
             if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
+            else 0
+
+          def indent_extra: Int =
+            if (prev_span.exists(keywords.is_quasi_command(_))) indent_size
             else 0
 
           def indent_structure: Int =
@@ -85,17 +99,25 @@ object Text_Structure
 
           val indent =
             head_token(current_line) match {
-              case None => indent_structure
+              case None => indent_structure + indent_extra
               case Some(tok) =>
                 if (keywords.is_command(tok, Keyword.theory)) 0
                 else if (tok.is_command) indent_structure - indent_offset(tok)
-                else
+                else {
                   prev_command match {
-                    case None => line_indent(prev_line)
+                    case None =>
+                      val extra =
+                        (keywords.is_quasi_command(tok), head_is_quasi_command(prev_line)) match {
+                          case (true, true) | (false, false) => 0
+                          case (true, false) => - indent_extra
+                          case (false, true) => indent_extra
+                        }
+                      line_indent(prev_line) + extra
                     case Some(prev_tok) =>
                       indent_structure - indent_offset(prev_tok) -
                       indent_indent(prev_tok) + indent_size
                   }
+               }
             }
 
           actions.clear()
