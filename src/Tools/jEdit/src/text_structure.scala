@@ -68,6 +68,9 @@ object Text_Structure
           def prev_span: Iterator[Token] =
             nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_command)
 
+          def prev_line_span: Iterator[Token] =
+            nav.reverse_iterator(prev_line, 1).map(_.info).takeWhile(tok => !tok.is_command)
+
 
           def line_indent(line: Int): Int =
             if (line < 0 || line >= buffer.getLineCount) 0
@@ -83,6 +86,13 @@ object Text_Structure
           def indent_offset(tok: Token): Int =
             if (keywords.is_command(tok, Keyword.proof_enclose) || tok.is_begin) indent_size
             else 0
+
+          def indent_brackets: Int =
+            (0 /: prev_line_span)(
+              { case (i, tok) =>
+                  if (tok.is_open_bracket) i + indent_size
+                  else if (tok.is_close_bracket) i - indent_size
+                  else i })
 
           def indent_extra: Int =
             if (prev_span.exists(keywords.is_quasi_command(_))) indent_size
@@ -110,7 +120,7 @@ object Text_Structure
 
           val indent =
             head_token(current_line) match {
-              case None => indent_structure + indent_extra
+              case None => indent_structure + indent_brackets + indent_extra
               case Some(tok) =>
                 if (keywords.is_before_command(tok) ||
                     keywords.is_command(tok, Keyword.theory)) indent_begin
@@ -124,10 +134,10 @@ object Text_Structure
                           case (true, false) => - indent_extra
                           case (false, true) => indent_extra
                         }
-                      line_indent(prev_line) - indent_offset(tok) + extra
+                      line_indent(prev_line) - indent_offset(tok) + indent_brackets + extra
                     case Some(prev_tok) =>
-                      indent_structure - indent_offset(tok) - indent_offset(prev_tok) -
-                      indent_indent(prev_tok) + indent_size
+                      indent_structure - indent_offset(tok) - indent_offset(prev_tok) +
+                      indent_brackets - indent_indent(prev_tok) + indent_size
                   }
                }
             }
