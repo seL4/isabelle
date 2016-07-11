@@ -275,13 +275,15 @@ object Token_Markup
   def command_span(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
     : Option[Text.Info[Command_Span.Span]] =
   {
+    val keywords = syntax.keywords
+
     def maybe_command_start(i: Text.Offset): Option[Text.Info[Token]] =
       token_reverse_iterator(syntax, buffer, i).
-        find(info => info.info.is_command_modifier || info.info.is_command)
+        find(info => keywords.is_before_command(info.info) || info.info.is_command)
 
     def maybe_command_stop(i: Text.Offset): Option[Text.Info[Token]] =
       token_iterator(syntax, buffer, i).
-        find(info => info.info.is_command_modifier || info.info.is_command)
+        find(info => keywords.is_before_command(info.info) || info.info.is_command)
 
     if (JEdit_Lib.buffer_range(buffer).contains(offset)) {
       val start_info =
@@ -291,15 +293,16 @@ object Token_Markup
           case Some(Text.Info(range1, tok1)) if tok1.is_command =>
             val info2 = maybe_command_start(range1.start - 1)
             info2 match {
-              case Some(Text.Info(_, tok2)) if tok2.is_command_modifier => info2
+              case Some(Text.Info(_, tok2)) if keywords.is_before_command(tok2) => info2
               case _ => info1
             }
           case _ => info1
         }
       }
-      val (start_is_command_modifier, start, start_next) =
+      val (start_before_command, start, start_next) =
         start_info match {
-          case Some(Text.Info(range, tok)) => (tok.is_command_modifier, range.start, range.stop)
+          case Some(Text.Info(range, tok)) =>
+            (keywords.is_before_command(tok), range.start, range.stop)
           case None => (false, 0, 0)
         }
 
@@ -307,7 +310,7 @@ object Token_Markup
       {
         val info1 = maybe_command_stop(start_next)
         info1 match {
-          case Some(Text.Info(range1, tok1)) if tok1.is_command && start_is_command_modifier =>
+          case Some(Text.Info(range1, tok1)) if tok1.is_command && start_before_command =>
             maybe_command_stop(range1.stop)
           case _ => info1
         }

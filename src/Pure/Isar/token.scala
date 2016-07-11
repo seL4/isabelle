@@ -257,10 +257,6 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def is_begin: Boolean = is_keyword && source == "begin"
   def is_end: Boolean = is_command && source == "end"
 
-  // FIXME avoid hard-wired stuff
-  def is_command_modifier: Boolean =
-    is_keyword && (source == "public" || source == "private" || source == "qualified")
-
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)
     else if (kind == Token.Kind.ALT_STRING) Scan.Parsers.quoted_content("`", source)

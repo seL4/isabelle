@@ -8,8 +8,9 @@ theory Pure
 keywords
     "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "attach" "binder" "for" "if" "in" "infix" "infixl" "infixr" "is"
-    "open" "output" "overloaded" "pervasive" "premises" "private" "qualified"
-    "structure" "unchecked" "where" "when" "|"
+    "open" "output" "overloaded" "pervasive" "premises" "structure" "unchecked"
+    "where" "when" "|"
+  and "private" "qualified" :: before_command
   and "assumes" "constrains" "defines" "fixes" "includes" "notes" "rewrites"
     "obtains" "shows" :: quasi_command
   and "text" "txt" :: document_body
