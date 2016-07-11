@@ -78,6 +78,7 @@ object Text_Structure
 
           def indent_offset(tok: Token): Int =
             if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
+            else if (tok.is_begin) indent_size
             else 0
 
           def indent_extra: Int =
@@ -97,12 +98,19 @@ object Text_Structure
                   else (ind1, false)
               }).collectFirst({ case (i, true) => i }).getOrElse(0)
 
+          def nesting(it: Iterator[Token], open: Token => Boolean, close: Token => Boolean): Int =
+            (0 /: it)({ case (d, tok) => if (open(tok)) d + 1 else if (close(tok)) d - 1 else d })
+
+          def indent_begin: Int =
+            (nesting(nav.iterator(current_line - 1, 1).map(_.info), _.is_begin, _.is_end) max 0) *
+              indent_size
+
           val indent =
             head_token(current_line) match {
               case None => indent_structure + indent_extra
               case Some(tok) =>
-                if (keywords.is_command(tok, Keyword.theory)) 0
-                else if (tok.is_command) indent_structure - indent_offset(tok)
+                if (keywords.is_command(tok, Keyword.theory)) indent_begin
+                else if (tok.is_command) indent_structure + indent_begin - indent_offset(tok)
                 else {
                   prev_command match {
                     case None =>
@@ -112,9 +120,9 @@ object Text_Structure
                           case (true, false) => - indent_extra
                           case (false, true) => indent_extra
                         }
-                      line_indent(prev_line) + extra
+                      line_indent(prev_line) - indent_offset(tok) + extra
                     case Some(prev_tok) =>
-                      indent_structure - indent_offset(prev_tok) -
+                      indent_structure - indent_offset(tok) - indent_offset(prev_tok) -
                       indent_indent(prev_tok) + indent_size
                   }
                }
