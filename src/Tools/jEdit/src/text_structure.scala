@@ -109,7 +109,8 @@ object Text_Structure
             head_token(current_line) match {
               case None => indent_structure + indent_extra
               case Some(tok) =>
-                if (keywords.is_command(tok, Keyword.theory)) indent_begin
+                if (keywords.is_before_command(tok) ||
+                    keywords.is_command(tok, Keyword.theory)) indent_begin
                 else if (tok.is_command) indent_structure + indent_begin - indent_offset(tok)
                 else {
                   prev_command match {
