@@ -44,7 +44,7 @@ object Thy_Header extends Parse.Parser
       ("::", Keyword.no_spec, None),
       ("==", Keyword.no_spec, None),
       (AND, Keyword.no_spec, None),
-      (BEGIN, Keyword.no_spec, None),
+      (BEGIN, Keyword.quasi_command_spec, None),
       (IMPORTS, Keyword.quasi_command_spec, None),
       (KEYWORDS, Keyword.quasi_command_spec, None),
       (CHAPTER, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),

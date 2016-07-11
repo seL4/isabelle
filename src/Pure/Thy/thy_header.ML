@@ -70,7 +70,7 @@ val bootstrap_keywords =
      (("::", @{here}), Keyword.no_spec),
      (("==", @{here}), Keyword.no_spec),
      (("and", @{here}), Keyword.no_spec),
-     ((beginN, @{here}), Keyword.no_spec),
+     ((beginN, @{here}), Keyword.quasi_command_spec),
      ((importsN, @{here}), Keyword.quasi_command_spec),
      ((keywordsN, @{here}), Keyword.quasi_command_spec),
      ((chapterN, @{here}), ((Keyword.document_heading, []), [])),
