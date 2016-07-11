@@ -121,7 +121,7 @@ object Text_Structure
             }
 
           actions.clear()
-          actions.add(new IndentAction.AlignOffset(indent))
+          actions.add(new IndentAction.AlignOffset(indent max 0))
         case _ =>
       }
     }
