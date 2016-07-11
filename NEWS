@@ -146,6 +146,9 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* Theory Set_Interval.thy: substantial new theorems on indexed sums
+and products.
+
 * Theory Library/LaTeXsugar.thy: New style "dummy_pats" for displaying
 equations in functional programming style: variables present on the
 left-hand but not on the righ-hand side are replaced by underscores.
