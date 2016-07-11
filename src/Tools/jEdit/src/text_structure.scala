@@ -81,8 +81,7 @@ object Text_Structure
             else 0
 
           def indent_offset(tok: Token): Int =
-            if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
-            else if (tok.is_begin) indent_size
+            if (keywords.is_command(tok, Keyword.proof_enclose) || tok.is_begin) indent_size
             else 0
 
           def indent_extra: Int =
