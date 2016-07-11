@@ -76,6 +76,9 @@ dependencies of the above files are only observed for batch build.
 
 * Highlighting of entity def/ref positions wrt. cursor.
 
+* Indentation according to Isabelle outer syntax, cf. action
+"indent-lines" (shortcut C+i).
+
 * Action "isabelle.select-entity" (shortcut CS+ENTER) selects all
 occurences of the formal entity at the caret position. This facilitates
 systematic renaming.

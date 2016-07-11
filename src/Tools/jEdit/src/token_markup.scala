@@ -175,22 +175,23 @@ object Token_Markup
 
   /* line context */
 
-  private val context_rules = new ParserRuleSet("isabelle", "MAIN")
-
   object Line_Context
   {
-    val init = new Line_Context(Some(Scan.Finished), Outer_Syntax.Line_Structure.init)
+    def init(mode: String): Line_Context =
+      new Line_Context(mode, Some(Scan.Finished), Outer_Syntax.Line_Structure.init)
   }
 
   class Line_Context(
+      val mode: String,
       val context: Option[Scan.Line_Context],
       val structure: Outer_Syntax.Line_Structure)
-    extends TokenMarker.LineContext(context_rules, null)
+    extends TokenMarker.LineContext(new ParserRuleSet(mode, "MAIN"), null)
   {
-    override def hashCode: Int = (context, structure).hashCode
+    override def hashCode: Int = (mode, context, structure).hashCode
     override def equals(that: Any): Boolean =
       that match {
-        case other: Line_Context => context == other.context && structure == other.structure
+        case other: Line_Context =>
+          mode == other.mode && context == other.context && structure == other.structure
         case _ => false
       }
   }
@@ -205,7 +206,7 @@ object Token_Markup
       }
     context getOrElse {
       buffer.markTokens(line, DummyTokenHandler.INSTANCE)
-      context getOrElse Line_Context.init
+      context getOrElse Line_Context.init(JEdit_Lib.buffer_mode(buffer))
     }
   }
 
@@ -216,7 +217,7 @@ object Token_Markup
     : Option[List[Token]] =
   {
     val line_context =
-      if (line == 0) Line_Context.init
+      if (line == 0) Line_Context.init(JEdit_Lib.buffer_mode(buffer))
       else buffer_line_context(buffer, line - 1)
     for {
       ctxt <- line_context.context
@@ -275,13 +276,15 @@ object Token_Markup
   def command_span(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
     : Option[Text.Info[Command_Span.Span]] =
   {
+    val keywords = syntax.keywords
+
     def maybe_command_start(i: Text.Offset): Option[Text.Info[Token]] =
       token_reverse_iterator(syntax, buffer, i).
-        find(info => info.info.is_command_modifier || info.info.is_command)
+        find(info => keywords.is_before_command(info.info) || info.info.is_command)
 
     def maybe_command_stop(i: Text.Offset): Option[Text.Info[Token]] =
       token_iterator(syntax, buffer, i).
-        find(info => info.info.is_command_modifier || info.info.is_command)
+        find(info => keywords.is_before_command(info.info) || info.info.is_command)
 
     if (JEdit_Lib.buffer_range(buffer).contains(offset)) {
       val start_info =
@@ -291,15 +294,16 @@ object Token_Markup
           case Some(Text.Info(range1, tok1)) if tok1.is_command =>
             val info2 = maybe_command_start(range1.start - 1)
             info2 match {
-              case Some(Text.Info(_, tok2)) if tok2.is_command_modifier => info2
+              case Some(Text.Info(_, tok2)) if keywords.is_before_command(tok2) => info2
               case _ => info1
             }
           case _ => info1
         }
       }
-      val (start_is_command_modifier, start, start_next) =
+      val (start_before_command, start, start_next) =
         start_info match {
-          case Some(Text.Info(range, tok)) => (tok.is_command_modifier, range.start, range.stop)
+          case Some(Text.Info(range, tok)) =>
+            (keywords.is_before_command(tok), range.start, range.stop)
           case None => (false, 0, 0)
         }
 
@@ -307,7 +311,7 @@ object Token_Markup
       {
         val info1 = maybe_command_stop(start_next)
         info1 match {
-          case Some(Text.Info(range1, tok1)) if tok1.is_command && start_is_command_modifier =>
+          case Some(Text.Info(range1, tok1)) if tok1.is_command && start_before_command =>
             maybe_command_stop(range1.stop)
           case _ => info1
         }
@@ -378,7 +382,8 @@ object Token_Markup
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {
       val line = if (raw_line == null) new Segment else raw_line
-      val line_context = context match { case c: Line_Context => c case _ => Line_Context.init }
+      val line_context =
+        context match { case c: Line_Context => c case _ => Line_Context.init(mode) }
       val structure = line_context.structure
 
       val context1 =
@@ -393,18 +398,18 @@ object Token_Markup
             case (Some(ctxt), _) if mode == "isabelle-ml" || mode == "sml" =>
               val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, ctxt)
               val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
-              (styled_tokens, new Line_Context(Some(ctxt1), structure))
+              (styled_tokens, new Line_Context(line_context.mode, Some(ctxt1), structure))
 
             case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
               val (tokens, ctxt1) = Token.explode_line(syntax.keywords, line, ctxt)
               val structure1 = syntax.line_structure(tokens, structure)
               val styled_tokens =
                 tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
-              (styled_tokens, new Line_Context(Some(ctxt1), structure1))
+              (styled_tokens, new Line_Context(line_context.mode, Some(ctxt1), structure1))
 
             case _ =>
               val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
-              (List(styled_token), new Line_Context(None, structure))
+              (List(styled_token), new Line_Context(line_context.mode, None, structure))
           }
 
         val extended = extended_styles(line)

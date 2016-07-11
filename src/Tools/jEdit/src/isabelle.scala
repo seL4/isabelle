@@ -87,7 +87,11 @@ object Isabelle
   /* text structure */
 
   def indent_rule(mode: String): Option[IndentRule] =
-    if (mode == "isabelle") Some(Text_Structure.Indent_Rule) else None
+    mode match {
+      case "isabelle" | "isabelle-options" | "isabelle-root" =>
+        Some(Text_Structure.Indent_Rule)
+      case _ => None
+    }
 
   def structure_matchers(mode: String): List[StructureMatcher] =
     if (mode == "isabelle") List(Text_Structure.Matcher) else Nil

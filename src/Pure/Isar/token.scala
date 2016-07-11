@@ -225,7 +225,11 @@ object Token
 sealed case class Token(kind: Token.Kind.Value, source: String)
 {
   def is_command: Boolean = kind == Token.Kind.COMMAND
+  def is_command(name: String): Boolean = kind == Token.Kind.COMMAND && source == name
   def is_keyword: Boolean = kind == Token.Kind.KEYWORD
+  def is_keyword(name: String): Boolean = kind == Token.Kind.KEYWORD && source == name
+  def is_keyword(name: Char): Boolean =
+    kind == Token.Kind.KEYWORD && source.length == 1 && source(0) == name
   def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
   def is_ident: Boolean = kind == Token.Kind.IDENT
   def is_sym_ident: Boolean = kind == Token.Kind.SYM_IDENT
@@ -254,12 +258,11 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
     source.startsWith(Symbol.open) ||
     source.startsWith(Symbol.open_decoded))
 
-  def is_begin: Boolean = is_keyword && source == "begin"
-  def is_end: Boolean = is_command && source == "end"
+  def is_open_bracket: Boolean = is_keyword && Word.open_brackets.exists(is_keyword(_))
+  def is_close_bracket: Boolean = is_keyword && Word.close_brackets.exists(is_keyword(_))
 
-  // FIXME avoid hard-wired stuff
-  def is_command_modifier: Boolean =
-    is_keyword && (source == "public" || source == "private" || source == "qualified")
+  def is_begin: Boolean = is_keyword("begin")
+  def is_end: Boolean = is_command("end")
 
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)

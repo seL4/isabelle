@@ -19,17 +19,21 @@ object Text_Structure
 {
   /* token navigator */
 
-  class Navigator(syntax: Outer_Syntax, buffer: Buffer)
+  class Navigator(syntax: Outer_Syntax, buffer: Buffer, comments: Boolean)
   {
     val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
     def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-      Token_Markup.line_token_iterator(syntax, buffer, line, line + lim).
-        filter(_.info.is_proper)
+    {
+      val it = Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
+      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
+    }
 
     def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-      Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim).
-        filter(_.info.is_proper)
+    {
+      val it = Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
+      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
+    }
   }
 
 
@@ -46,7 +50,7 @@ object Text_Structure
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) if buffer.isInstanceOf[Buffer] =>
           val keywords = syntax.keywords
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer])
+          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], true)
 
           def head_token(line: Int): Option[Token] =
             nav.iterator(line, 1).toStream.headOption.map(_.info)
@@ -64,6 +68,9 @@ object Text_Structure
           def prev_span: Iterator[Token] =
             nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_command)
 
+          def prev_line_span: Iterator[Token] =
+            nav.reverse_iterator(prev_line, 1).map(_.info).takeWhile(tok => !tok.is_command)
+
 
           def line_indent(line: Int): Int =
             if (line < 0 || line >= buffer.getLineCount) 0
@@ -77,8 +84,15 @@ object Text_Structure
             else 0
 
           def indent_offset(tok: Token): Int =
-            if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
+            if (keywords.is_command(tok, Keyword.proof_enclose) || tok.is_begin) indent_size
             else 0
+
+          def indent_brackets: Int =
+            (0 /: prev_line_span)(
+              { case (i, tok) =>
+                  if (tok.is_open_bracket) i + indent_size
+                  else if (tok.is_close_bracket) i - indent_size
+                  else i })
 
           def indent_extra: Int =
             if (prev_span.exists(keywords.is_quasi_command(_))) indent_size
@@ -97,12 +111,20 @@ object Text_Structure
                   else (ind1, false)
               }).collectFirst({ case (i, true) => i }).getOrElse(0)
 
+          def nesting(it: Iterator[Token], open: Token => Boolean, close: Token => Boolean): Int =
+            (0 /: it)({ case (d, tok) => if (open(tok)) d + 1 else if (close(tok)) d - 1 else d })
+
+          def indent_begin: Int =
+            (nesting(nav.iterator(current_line - 1, 1).map(_.info), _.is_begin, _.is_end) max 0) *
+              indent_size
+
           val indent =
             head_token(current_line) match {
-              case None => indent_structure + indent_extra
+              case None => indent_structure + indent_brackets + indent_extra
               case Some(tok) =>
-                if (keywords.is_command(tok, Keyword.theory)) 0
-                else if (tok.is_command) indent_structure - indent_offset(tok)
+                if (keywords.is_before_command(tok) ||
+                    keywords.is_command(tok, Keyword.theory)) indent_begin
+                else if (tok.is_command) indent_structure + indent_begin - indent_offset(tok)
                 else {
                   prev_command match {
                     case None =>
@@ -112,16 +134,16 @@ object Text_Structure
                           case (true, false) => - indent_extra
                           case (false, true) => indent_extra
                         }
-                      line_indent(prev_line) + extra
+                      line_indent(prev_line) - indent_offset(tok) + indent_brackets + extra
                     case Some(prev_tok) =>
-                      indent_structure - indent_offset(prev_tok) -
-                      indent_indent(prev_tok) + indent_size
+                      indent_structure - indent_offset(tok) - indent_offset(prev_tok) +
+                      indent_brackets - indent_indent(prev_tok) + indent_size
                   }
                }
             }
 
           actions.clear()
-          actions.add(new IndentAction.AlignOffset(indent))
+          actions.add(new IndentAction.AlignOffset(indent max 0))
         case _ =>
       }
     }
@@ -160,7 +182,7 @@ object Text_Structure
         case Some(syntax) if buffer.isInstanceOf[Buffer] =>
           val keywords = syntax.keywords
 
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer])
+          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], false)
 
           def caret_iterator(): Iterator[Text.Info[Token]] =
             nav.iterator(caret_line).dropWhile(info => !info.range.touches(caret))

@@ -32,9 +32,11 @@ sig
   val prf_script: string
   val prf_script_goal: string
   val prf_script_asm_goal: string
+  val before_command: string
   val quasi_command: string
   type spec = (string * string list) * string list
   val no_spec: spec
+  val before_command_spec: spec
   val quasi_command_spec: spec
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
@@ -107,6 +109,8 @@ val prf_asm_goal = "prf_asm_goal";
 val prf_script = "prf_script";
 val prf_script_goal = "prf_script_goal";
 val prf_script_asm_goal = "prf_script_asm_goal";
+
+val before_command = "before_command";
 val quasi_command = "quasi_command";
 
 val command_kinds =
@@ -121,6 +125,7 @@ val command_kinds =
 type spec = (string * string list) * string list;
 
 val no_spec: spec = (("", []), []);
+val before_command_spec: spec = ((before_command, []), []);
 val quasi_command_spec: spec = ((quasi_command, []), []);
 
 type entry =
@@ -175,7 +180,7 @@ fun merge_keywords
 
 val add_keywords =
   fold (fn ((name, pos), spec as ((kind, _), _)) => map_keywords (fn (minor, major, commands) =>
-    if kind = "" orelse kind = quasi_command then
+    if kind = "" orelse kind = before_command orelse kind = quasi_command then
       let
         val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
       in (minor', major, commands) end

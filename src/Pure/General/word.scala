@@ -96,4 +96,10 @@ object Word
 
   def explode(text: String): List[String] =
     explode(Character.isWhitespace(_), text)
+
+
+  /* brackets */
+
+  val open_brackets = "([{«‹⟨⌈⌊⦇⟦⦃"
+  val close_brackets = ")]}»›⟩⌉⌋⦈⟧⦄"
 }

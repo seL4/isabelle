@@ -118,7 +118,7 @@ final class Outer_Syntax private(
 
   /* load commands */
 
-  def load_command(name: String): Option[List[String]] = keywords.load_command(name)
+  def load_command(name: String): Option[List[String]] = keywords.load_commands.get(name)
   def load_commands_in(text: String): Boolean = keywords.load_commands_in(text)
 
 
@@ -209,8 +209,9 @@ final class Outer_Syntax private(
 
     for (tok <- toks) {
       if (tok.is_improper) improper += tok
-      else if (tok.is_command_modifier ||
-        tok.is_command && (!content.exists(_.is_command_modifier) || content.exists(_.is_command)))
+      else if (keywords.is_before_command(tok) ||
+        tok.is_command &&
+          (!content.exists(keywords.is_before_command(_)) || content.exists(_.is_command)))
       { flush(); content += tok }
       else { content ++= improper; improper.clear; content += tok }
     }
@@ -236,7 +237,7 @@ final class Outer_Syntax private(
       case Thy_Header.PARAGRAPH => Some(4)
       case Thy_Header.SUBPARAGRAPH => Some(5)
       case _ =>
-        keywords.command_kind(name) match {
+        keywords.kinds.get(name) match {
           case Some(kind) if Keyword.theory(kind) && !Keyword.theory_end(kind) => Some(6)
           case _ => None
         }

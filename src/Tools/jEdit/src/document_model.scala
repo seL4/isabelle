@@ -96,8 +96,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           Token_Markup.line_token_iterator(
             Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).collectFirst(
               {
-                case Text.Info(range, tok)
-                if tok.is_command && tok.source == Thy_Header.THEORY => range.start
+                case Text.Info(range, tok) if tok.is_command(Thy_Header.THEORY) => range.start
               })
             match {
               case Some(offset) =>

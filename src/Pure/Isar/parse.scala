@@ -59,12 +59,8 @@ object Parse
     def atom(s: String, pred: Elem => Boolean): Parser[String] =
       token(s, pred) ^^ (_.content)
 
-    def command(name: String): Parser[String] =
-      atom("command " + quote(name), tok => tok.is_command && tok.source == name)
-
-    def $$$(name: String): Parser[String] =
-      atom("keyword " + quote(name), tok => tok.is_keyword && tok.source == name)
-
+    def command(name: String): Parser[String] = atom("command " + quote(name), _.is_command(name))
+    def $$$(name: String): Parser[String] = atom("keyword " + quote(name), _.is_keyword(name))
     def string: Parser[String] = atom("string", _.is_string)
     def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ (s => Integer.parseInt(s))
     def name: Parser[String] = atom("name", _.is_name)
