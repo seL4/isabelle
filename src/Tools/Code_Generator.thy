@@ -10,8 +10,10 @@ keywords
   "print_codeproc" "code_thms" "code_deps" :: diag and
   "export_code" "code_identifier" "code_printing" "code_reserved"
     "code_monad" "code_reflect" :: thy_decl and
-  "datatypes" "functions" "module_name" "file" "checking"
-  "constant" "type_constructor" "type_class" "class_relation" "class_instance" "code_module"
+  "checking" and
+  "datatypes" "functions" "module_name" "file"
+    "constant" "type_constructor" "type_class" "class_relation" "class_instance" "code_module"
+    :: quasi_command
 begin
 
 ML_file "~~/src/Tools/cache_io.ML"
