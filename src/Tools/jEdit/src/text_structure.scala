@@ -85,16 +85,16 @@ object Text_Structure
 
           val indent =
             head_token(current_line) match {
-              case Some(tok) if tok.is_command =>
+              case None => indent_structure
+              case Some(tok) =>
                 if (keywords.is_command(tok, Keyword.theory)) 0
-                else indent_structure - indent_offset(tok)
-              case _ =>
-                if (nav.iterator(current_line, 1).isEmpty) indent_structure
+                else if (tok.is_command) indent_structure - indent_offset(tok)
                 else
                   prev_command match {
-                    case Some(tok) =>
-                      indent_structure - indent_offset(tok) - indent_indent(tok) + indent_size
                     case None => line_indent(prev_line)
+                    case Some(prev_tok) =>
+                      indent_structure - indent_offset(prev_tok) -
+                      indent_indent(prev_tok) + indent_size
                   }
             }
 
