@@ -20,7 +20,9 @@ subsection \<open>Abstract type of permutations\<close>
 
 typedef 'a perm = "{f :: 'a \<Rightarrow> 'a. bij f \<and> finite {a. f a \<noteq> a}}"
   morphisms "apply" Perm
-  by (rule exI [of _ id]) simp
+proof
+  show "id \<in> ?perm" by simp
+qed
 
 setup_lifting type_definition_perm
 

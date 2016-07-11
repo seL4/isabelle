@@ -215,8 +215,7 @@ instance ..
 end
 
 interpretation Inf_sat: semilattice_neutr_set min "top :: 'a::len sat"
-rewrites
-  "semilattice_neutr_set.F min (top :: 'a sat) = Inf"
+  rewrites "semilattice_neutr_set.F min (top :: 'a sat) = Inf"
 proof -
   show "semilattice_neutr_set min (top :: 'a sat)"
     by standard (simp add: min_def)
@@ -225,8 +224,7 @@ proof -
 qed
 
 interpretation Sup_sat: semilattice_neutr_set max "bot :: 'a::len sat"
-rewrites
-  "semilattice_neutr_set.F max (bot :: 'a sat) = Sup"
+  rewrites "semilattice_neutr_set.F max (bot :: 'a sat) = Sup"
 proof -
   show "semilattice_neutr_set max (bot :: 'a sat)"
     by standard (simp add: max_def bot.extremum_unique)
