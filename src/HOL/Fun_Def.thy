@@ -6,7 +6,9 @@ section \<open>Function Definitions and Termination Proofs\<close>
 
 theory Fun_Def
 imports Basic_BNF_LFPs Partial_Function SAT
-keywords "function" "termination" :: thy_goal and "fun" "fun_cases" :: thy_decl
+keywords
+  "function" "termination" :: thy_goal and
+  "fun" "fun_cases" :: thy_decl
 begin
 
 subsection \<open>Definitions with default value\<close>

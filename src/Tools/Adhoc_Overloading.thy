@@ -6,7 +6,8 @@ section \<open>Adhoc overloading of constants based on their types\<close>
 
 theory Adhoc_Overloading
 imports Pure
-keywords "adhoc_overloading" :: thy_decl and  "no_adhoc_overloading" :: thy_decl
+keywords
+  "adhoc_overloading" "no_adhoc_overloading" :: thy_decl
 begin
 
 ML_file "adhoc_overloading.ML"
