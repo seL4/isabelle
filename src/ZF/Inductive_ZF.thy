@@ -16,7 +16,7 @@ imports Fixedpt QPair Nat_ZF
 keywords
   "inductive" "coinductive" "inductive_cases" "rep_datatype" "primrec" :: thy_decl and
   "domains" "intros" "monos" "con_defs" "type_intros" "type_elims"
-  "elimination" "induction" "case_eqns" "recursor_eqns"
+    "elimination" "induction" "case_eqns" "recursor_eqns" :: quasi_command
 begin
 
 lemma def_swap_iff: "a == b ==> a = c \<longleftrightarrow> c = b"

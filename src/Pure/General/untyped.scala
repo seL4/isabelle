@@ -8,7 +8,7 @@ Untyped, unscoped, unchecked access to JVM objects.
 package isabelle
 
 
-import java.lang.reflect.Method
+import java.lang.reflect.{Method, Field}
 
 
 object Untyped
@@ -30,20 +30,25 @@ object Untyped
     }
   }
 
+  def field(obj: AnyRef, x: String): Field =
+  {
+    val iterator =
+      for {
+        c <- classes(obj)
+        field <- c.getDeclaredFields.iterator
+        if field.getName == x
+      } yield {
+        field.setAccessible(true)
+        field
+      }
+    if (iterator.hasNext) iterator.next
+    else error("No field " + quote(x) + " for " + obj)
+  }
+
   def get[A](obj: AnyRef, x: String): A =
     if (obj == null) null.asInstanceOf[A]
-    else {
-      val iterator =
-        for {
-          c <- classes(obj)
-          field <- c.getDeclaredFields.iterator
-          if field.getName == x
-        } yield {
-          field.setAccessible(true)
-          field.get(obj)
-        }
-      if (iterator.hasNext) iterator.next.asInstanceOf[A]
-      else error("No field " + quote(x) + " for " + obj)
-    }
-}
+    else field(obj, x).get(obj).asInstanceOf[A]
 
+  def set[A](obj: AnyRef, x: String, y: A): Unit =
+    field(obj, x).set(obj, y)
+}

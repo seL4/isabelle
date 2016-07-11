@@ -8,7 +8,9 @@ section \<open>Sledgehammer: Isabelle--ATP Linkup\<close>
 
 theory Sledgehammer
 imports Presburger SMT
-keywords "sledgehammer" :: diag and "sledgehammer_params" :: thy_decl
+keywords
+  "sledgehammer" :: diag and
+  "sledgehammer_params" :: thy_decl
 begin
 
 lemma size_ne_size_imp_ne: "size x \<noteq> size y \<Longrightarrow> x \<noteq> y"

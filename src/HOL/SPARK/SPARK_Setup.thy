@@ -11,7 +11,8 @@ keywords
   "spark_open_vcg" :: thy_load ("vcg", "fdl", "rls") and
   "spark_open" :: thy_load ("siv", "fdl", "rls") and
   "spark_proof_functions" "spark_types" "spark_end" :: thy_decl and
-  "spark_vc" :: thy_goal and "spark_status" :: diag
+  "spark_vc" :: thy_goal and
+  "spark_status" :: diag
 begin
 
 ML_file "Tools/fdl_lexer.ML"

@@ -85,16 +85,10 @@ final class Outer_Syntax private(
 
   /* add keywords */
 
-  def + (name: String): Outer_Syntax = this + (name, None, None)
-  def + (name: String, kind: String): Outer_Syntax = this + (name, Some((kind, Nil)), None)
-  def + (name: String, opt_kind: Option[(String, List[String])], replace: Option[String])
+  def + (name: String, kind: String = "", tags: List[String] = Nil, replace: Option[String] = None)
     : Outer_Syntax =
   {
-    val keywords1 =
-      opt_kind match {
-        case None => keywords + name
-        case Some(kind) => keywords + (name, kind)
-      }
+    val keywords1 = keywords + (name, kind, tags)
     val completion1 =
       if (replace == Some("")) completion
       else completion + (name, replace getOrElse name)
@@ -103,11 +97,10 @@ final class Outer_Syntax private(
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, (name, opt_spec, replace)) =>
-        val opt_kind = opt_spec.map(_._1)
+      case (syntax, (name, ((kind, tags), _), replace)) =>
         syntax +
-          (Symbol.decode(name), opt_kind, replace) +
-          (Symbol.encode(name), opt_kind, replace)
+          (Symbol.decode(name), kind, tags, replace) +
+          (Symbol.encode(name), kind, tags, replace)
     }
 
 
@@ -156,7 +149,7 @@ final class Outer_Syntax private(
     val command1 = tokens.exists(_.is_command)
 
     val depth1 =
-      if (tokens.exists(tok => tok.is_command_kind(keywords, Keyword.theory))) 0
+      if (tokens.exists(keywords.is_command(_, Keyword.theory))) 0
       else if (command1) structure.after_span_depth
       else structure.span_depth
 
@@ -164,13 +157,13 @@ final class Outer_Syntax private(
       ((structure.span_depth, structure.after_span_depth) /: tokens) {
         case ((x, y), tok) =>
           if (tok.is_command) {
-            if (tok.is_command_kind(keywords, Keyword.theory_goal)) (2, 1)
-            else if (tok.is_command_kind(keywords, Keyword.theory)) (1, 0)
-            else if (tok.is_command_kind(keywords, Keyword.proof_open)) (y + 2, y + 1)
-            else if (tok.is_command_kind(keywords, Keyword.PRF_BLOCK == _)) (y + 2, y + 1)
-            else if (tok.is_command_kind(keywords, Keyword.QED_BLOCK == _)) (y + 1, y - 2)
-            else if (tok.is_command_kind(keywords, Keyword.proof_close)) (y + 1, y - 1)
-            else if (tok.is_command_kind(keywords, Keyword.qed_global)) (1, 0)
+            if (keywords.is_command(tok, Keyword.theory_goal)) (2, 1)
+            else if (keywords.is_command(tok, Keyword.theory)) (1, 0)
+            else if (keywords.is_command(tok, Keyword.proof_open)) (y + 2, y + 1)
+            else if (keywords.is_command(tok, Keyword.PRF_BLOCK == _)) (y + 2, y + 1)
+            else if (keywords.is_command(tok, Keyword.QED_BLOCK == _)) (y + 1, y - 2)
+            else if (keywords.is_command(tok, Keyword.proof_close)) (y + 1, y - 1)
+            else if (keywords.is_command(tok, Keyword.qed_global)) (1, 0)
             else (x, y)
           }
           else (x, y)

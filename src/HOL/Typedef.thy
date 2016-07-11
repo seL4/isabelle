@@ -6,7 +6,9 @@ section \<open>HOL type definitions\<close>
 
 theory Typedef
 imports Set
-keywords "typedef" :: thy_goal and "morphisms"
+keywords
+  "typedef" :: thy_goal and
+  "morphisms" :: quasi_command
 begin
 
 locale type_definition =

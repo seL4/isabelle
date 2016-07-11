@@ -18,6 +18,7 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.syntax.TokenMarker
+import org.gjt.sp.jedit.indent.IndentRule
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
 import org.jedit.options.CombinedOptions
 
@@ -83,10 +84,13 @@ object Isabelle
   }
 
 
-  /* structure matchers */
+  /* text structure */
 
-  def structure_matchers(name: String): List[StructureMatcher] =
-    if (name == "isabelle") List(Structure_Matching.Isabelle_Matcher) else Nil
+  def indent_rule(mode: String): Option[IndentRule] =
+    if (mode == "isabelle") Some(Text_Structure.Indent_Rule) else None
+
+  def structure_matchers(mode: String): List[StructureMatcher] =
+    if (mode == "isabelle") List(Text_Structure.Matcher) else Nil
 
 
   /* dockable windows */

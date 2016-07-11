@@ -6,13 +6,12 @@ The Pure theory, with definitions of Isar commands and some lemmas.
 
 theory Pure
 keywords
-    "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>"
-    "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
-    "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
-    "defines" "rewrites" "fixes" "for" "if" "in" "includes" "infix"
-    "infixl" "infixr" "is" "notes" "obtains" "open" "output"
-    "overloaded" "pervasive" "premises" "private" "qualified" "rewrites"
-    "shows" "structure" "unchecked" "where" "when" "|"
+    "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
+    "\<subseteq>" "]" "attach" "binder" "for" "if" "in" "infix" "infixl" "infixr" "is"
+    "open" "output" "overloaded" "pervasive" "premises" "private" "qualified"
+    "structure" "unchecked" "where" "when" "|"
+  and "assumes" "constrains" "defines" "fixes" "includes" "notes" "rewrites"
+    "obtains" "shows" :: quasi_command
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
   and "default_sort" :: thy_decl == ""

@@ -6,7 +6,9 @@ section \<open>A compiler for predicates defined by introduction rules\<close>
 
 theory Predicate_Compile
 imports Random_Sequence Quickcheck_Exhaustive
-keywords "code_pred" :: thy_goal and "values" :: diag
+keywords
+  "code_pred" :: thy_goal and
+  "values" :: diag
 begin
 
 ML_file "Tools/Predicate_Compile/predicate_compile_aux.ML"

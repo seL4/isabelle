@@ -6,7 +6,7 @@ Static theory header information.
 
 signature THY_HEADER =
 sig
-  type keywords = ((string * Position.T) * Keyword.spec option) list
+  type keywords = ((string * Position.T) * Keyword.spec) list
   type header =
    {name: string * Position.T,
     imports: (string * Position.T) list,
@@ -32,7 +32,7 @@ struct
 
 (* header *)
 
-type keywords = ((string * Position.T) * Keyword.spec option) list;
+type keywords = ((string * Position.T) * Keyword.spec) list;
 
 type header =
  {name: string * Position.T,
@@ -63,27 +63,27 @@ val beginN = "begin";
 val bootstrap_keywords =
   Keyword.empty_keywords
   |> Keyword.add_keywords
-    [(("%", @{here}), NONE),
-     (("(", @{here}), NONE),
-     ((")", @{here}), NONE),
-     ((",", @{here}), NONE),
-     (("::", @{here}), NONE),
-     (("==", @{here}), NONE),
-     (("and", @{here}), NONE),
-     ((beginN, @{here}), NONE),
-     ((importsN, @{here}), NONE),
-     ((keywordsN, @{here}), NONE),
-     ((chapterN, @{here}), SOME ((Keyword.document_heading, []), [])),
-     ((sectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
-     ((subsectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
-     ((subsubsectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
-     ((paragraphN, @{here}), SOME ((Keyword.document_heading, []), [])),
-     ((subparagraphN, @{here}), SOME ((Keyword.document_heading, []), [])),
-     ((textN, @{here}), SOME ((Keyword.document_body, []), [])),
-     ((txtN, @{here}), SOME ((Keyword.document_body, []), [])),
-     ((text_rawN, @{here}), SOME ((Keyword.document_raw, []), [])),
-     ((theoryN, @{here}), SOME ((Keyword.thy_begin, []), ["theory"])),
-     (("ML", @{here}), SOME ((Keyword.thy_decl, []), ["ML"]))];
+    [(("%", @{here}), Keyword.no_spec),
+     (("(", @{here}), Keyword.no_spec),
+     ((")", @{here}), Keyword.no_spec),
+     ((",", @{here}), Keyword.no_spec),
+     (("::", @{here}), Keyword.no_spec),
+     (("==", @{here}), Keyword.no_spec),
+     (("and", @{here}), Keyword.no_spec),
+     ((beginN, @{here}), Keyword.no_spec),
+     ((importsN, @{here}), Keyword.no_spec),
+     ((keywordsN, @{here}), Keyword.no_spec),
+     ((chapterN, @{here}), ((Keyword.document_heading, []), [])),
+     ((sectionN, @{here}), ((Keyword.document_heading, []), [])),
+     ((subsectionN, @{here}), ((Keyword.document_heading, []), [])),
+     ((subsubsectionN, @{here}), ((Keyword.document_heading, []), [])),
+     ((paragraphN, @{here}), ((Keyword.document_heading, []), [])),
+     ((subparagraphN, @{here}), ((Keyword.document_heading, []), [])),
+     ((textN, @{here}), ((Keyword.document_body, []), [])),
+     ((txtN, @{here}), ((Keyword.document_body, []), [])),
+     ((text_rawN, @{here}), ((Keyword.document_raw, []), [])),
+     ((theoryN, @{here}), ((Keyword.thy_begin, []), ["theory"])),
+     (("ML", @{here}), ((Keyword.thy_decl, []), ["ML"]))];
 
 
 (* theory data *)
@@ -133,7 +133,7 @@ val keyword_compl =
 
 val keyword_decl =
   Scan.repeat1 (Parse.position Parse.string) --
-  Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_spec) --
+  Scan.optional (Parse.$$$ "::" |-- Parse.!!! keyword_spec) Keyword.no_spec --
   Scan.option (Parse.$$$ "==" |-- Parse.!!! keyword_compl)
   >> (fn ((names, spec), _) => map (rpair spec) names);
 

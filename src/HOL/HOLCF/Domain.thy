@@ -7,8 +7,8 @@ section \<open>Domain package\<close>
 theory Domain
 imports Representable Domain_Aux
 keywords
-  "domaindef" :: thy_decl and "lazy" "unsafe" and
-  "domain_isomorphism" "domain" :: thy_decl
+  "lazy" "unsafe" and
+  "domaindef" "domain_isomorphism" "domain" :: thy_decl
 begin
 
 default_sort "domain"

@@ -9,7 +9,9 @@ section \<open>Refute\<close>
 
 theory Refute
 imports Main
-keywords "refute" :: diag and "refute_params" :: thy_decl
+keywords
+  "refute" :: diag and
+  "refute_params" :: thy_decl
 begin
 
 ML_file "refute.ML"

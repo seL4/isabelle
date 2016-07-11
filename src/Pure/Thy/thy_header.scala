@@ -17,7 +17,7 @@ object Thy_Header extends Parse.Parser
 {
   /* bootstrap keywords */
 
-  type Keywords = List[(String, Option[Keyword.Spec], Option[String])]
+  type Keywords = List[(String, Keyword.Spec, Option[String])]
 
   val CHAPTER = "chapter"
   val SECTION = "section"
@@ -37,27 +37,27 @@ object Thy_Header extends Parse.Parser
 
   private val bootstrap_header: Keywords =
     List(
-      ("%", None, None),
-      ("(", None, None),
-      (")", None, None),
-      (",", None, None),
-      ("::", None, None),
-      ("==", None, None),
-      (AND, None, None),
-      (BEGIN, None, None),
-      (IMPORTS, None, None),
-      (KEYWORDS, None, None),
-      (CHAPTER, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SUBSECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SUBSUBSECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (PARAGRAPH, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SUBPARAGRAPH, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (TEXT, Some(((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
-      (TXT, Some(((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
-      (TEXT_RAW, Some(((Keyword.DOCUMENT_RAW, Nil), Nil)), None),
-      (THEORY, Some((Keyword.THY_BEGIN, Nil), List("theory")), None),
-      ("ML", Some((Keyword.THY_DECL, Nil), List("ML")), None))
+      ("%", Keyword.no_spec, None),
+      ("(", Keyword.no_spec, None),
+      (")", Keyword.no_spec, None),
+      (",", Keyword.no_spec, None),
+      ("::", Keyword.no_spec, None),
+      ("==", Keyword.no_spec, None),
+      (AND, Keyword.no_spec, None),
+      (BEGIN, Keyword.no_spec, None),
+      (IMPORTS, Keyword.no_spec, None),
+      (KEYWORDS, Keyword.no_spec, None),
+      (CHAPTER, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SUBSUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (PARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SUBPARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (TEXT, (((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
+      (TXT, (((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
+      (TEXT_RAW, (((Keyword.DOCUMENT_RAW, Nil), Nil)), None),
+      (THEORY, ((Keyword.THY_BEGIN, Nil), List("theory")), None),
+      ("ML", ((Keyword.THY_DECL, Nil), List("ML")), None))
 
   private val bootstrap_keywords =
     Keyword.Keywords.empty.add_keywords(bootstrap_header)
@@ -108,7 +108,7 @@ object Thy_Header extends Parse.Parser
       rep1(string) ~
       opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
       opt($$$("==") ~! name ^^ { case _ ~ x => x }) ^^
-      { case xs ~ y ~ z => xs.map((_, y, z)) }
+      { case xs ~ y ~ z => xs.map((_, y.getOrElse(Keyword.no_spec), z)) }
 
     val keyword_decls =
       keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
@@ -177,7 +177,7 @@ sealed case class Thy_Header(
   {
     val f = Symbol.decode _
     Thy_Header((f(name._1), name._2), imports.map({ case (a, b) => (f(a), b) }),
-      keywords.map({ case (a, b, c) =>
-        (f(a), b.map({ case ((x, y), z) => ((f(x), y.map(f)), z.map(f)) }), c.map(f)) }))
+      keywords.map({ case (a, ((x, y), z), c) =>
+        (f(a), ((f(x), y.map(f)), z.map(f)), c.map(f)) }))
   }
 }

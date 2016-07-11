@@ -215,10 +215,8 @@ context comm_monoid_add
 begin
 
 sublocale Sum_any: comm_monoid_fun plus 0
-defines
-  Sum_any = Sum_any.G
-rewrites
-  "comm_monoid_set.F plus 0 = setsum"
+  defines Sum_any = Sum_any.G
+  rewrites "comm_monoid_set.F plus 0 = setsum"
 proof -
   show "comm_monoid_fun plus 0" ..
   then interpret Sum_any: comm_monoid_fun plus 0 .
@@ -284,10 +282,8 @@ context comm_monoid_mult
 begin
 
 sublocale Prod_any: comm_monoid_fun times 1
-defines
-  Prod_any = Prod_any.G
-rewrites
-  "comm_monoid_set.F times 1 = setprod"
+  defines Prod_any = Prod_any.G
+  rewrites "comm_monoid_set.F times 1 = setprod"
 proof -
   show "comm_monoid_fun times 1" ..
   then interpret Prod_any: comm_monoid_fun times 1 .
