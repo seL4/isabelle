@@ -19,20 +19,20 @@ object Text_Structure
 {
   /* token navigator */
 
-  class Navigator(syntax: Outer_Syntax, buffer: Buffer, improper: Boolean)
+  class Navigator(syntax: Outer_Syntax, buffer: Buffer, comments: Boolean)
   {
     val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
     def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
-      if (improper) it else it.filter(_.info.is_proper)
+      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
     }
 
     def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
-      if (improper) it else it.filter(_.info.is_proper)
+      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
     }
   }
 
