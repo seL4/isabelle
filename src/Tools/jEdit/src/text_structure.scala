@@ -19,17 +19,21 @@ object Text_Structure
 {
   /* token navigator */
 
-  class Navigator(syntax: Outer_Syntax, buffer: Buffer)
+  class Navigator(syntax: Outer_Syntax, buffer: Buffer, improper: Boolean)
   {
     val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
     def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-      Token_Markup.line_token_iterator(syntax, buffer, line, line + lim).
-        filter(_.info.is_proper)
+    {
+      val it = Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
+      if (improper) it else it.filter(_.info.is_proper)
+    }
 
     def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-      Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim).
-        filter(_.info.is_proper)
+    {
+      val it = Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
+      if (improper) it else it.filter(_.info.is_proper)
+    }
   }
 
 
@@ -46,7 +50,7 @@ object Text_Structure
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) if buffer.isInstanceOf[Buffer] =>
           val keywords = syntax.keywords
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer])
+          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], true)
 
           def head_token(line: Int): Option[Token] =
             nav.iterator(line, 1).toStream.headOption.map(_.info)
@@ -169,7 +173,7 @@ object Text_Structure
         case Some(syntax) if buffer.isInstanceOf[Buffer] =>
           val keywords = syntax.keywords
 
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer])
+          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], false)
 
           def caret_iterator(): Iterator[Text.Info[Token]] =
             nav.iterator(caret_line).dropWhile(info => !info.range.touches(caret))
