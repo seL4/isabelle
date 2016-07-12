@@ -76,6 +76,9 @@ dependencies of the above files are only observed for batch build.
 
 * Highlighting of entity def/ref positions wrt. cursor.
 
+* Refined folding mode "isabelle" based on Isar syntax: 'next' and 'qed'
+are treated as delimiters for fold structure.
+
 * Improved support for indentation according to Isabelle outer syntax.
 Action "indent-lines" (shortcut C+i) indents the current line according
 to command keywords and some command substructure. Action
