@@ -3,7 +3,7 @@
 section \<open>The Category of Measurable Spaces is not Cartesian Closed\<close>
 
 theory Measure_Not_CCC
-  imports "~~/src/HOL/Probability/Probability" "~~/src/HOL/Library/ContNotDenum"
+  imports "~~/src/HOL/Probability/Probability" "~~/src/HOL/Library/Continuum_Not_Denumerable"
 begin
 
 text \<open>

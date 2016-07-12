@@ -17,7 +17,7 @@ theorem.
  should be somewhere else. *)
 
 theory Distribution_Functions
-  imports Probability_Measure "~~/src/HOL/Library/ContNotDenum"
+  imports Probability_Measure "~~/src/HOL/Library/Continuum_Not_Denumerable"
 begin
 
 lemma UN_Ioc_eq_UNIV: "(\<Union>n. { -real n <.. real n}) = UNIV"

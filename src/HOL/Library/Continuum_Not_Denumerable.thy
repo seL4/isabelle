@@ -1,11 +1,11 @@
-(*  Title:      HOL/Library/ContNotDenum.thy
+(*  Title:      HOL/Library/Continuum_Not_Denumerable.thy
     Author:     Benjamin Porter, Monash University, NICTA, 2005
     Author:     Johannes Hölzl, TU München
 *)
 
 section \<open>Non-denumerability of the Continuum.\<close>
 
-theory ContNotDenum
+theory Continuum_Not_Denumerable
 imports Complex_Main Countable_Set
 begin
 

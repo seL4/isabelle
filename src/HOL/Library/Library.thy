@@ -10,7 +10,7 @@ imports
   Bourbaki_Witt_Fixpoint
   Char_ord
   Code_Test
-  ContNotDenum
+  Continuum_Not_Denumerable
   Convex
   Combine_PER
   Complete_Partial_Order2
