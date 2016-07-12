@@ -148,8 +148,20 @@ final class Outer_Syntax private(
     val improper1 = tokens.forall(_.is_improper)
     val command1 = tokens.exists(_.is_command)
 
+    val command_depth =
+      tokens.iterator.filter(_.is_proper).toStream.headOption match {
+        case Some(tok) =>
+          if (keywords.is_command(tok, Keyword.QED_BLOCK == _))
+            Some(structure.after_span_depth - 2)
+          else if (keywords.is_command(tok, Keyword.PRF_CLOSE == _))
+            Some(structure.after_span_depth - 1)
+          else None
+        case None => None
+      }
+
     val depth1 =
       if (tokens.exists(keywords.is_command(_, Keyword.theory))) 0
+      else if (command_depth.isDefined) command_depth.get
       else if (command1) structure.after_span_depth
       else structure.span_depth
 
@@ -161,7 +173,8 @@ final class Outer_Syntax private(
             else if (keywords.is_command(tok, Keyword.theory)) (1, 0)
             else if (keywords.is_command(tok, Keyword.proof_open)) (y + 2, y + 1)
             else if (keywords.is_command(tok, Keyword.PRF_BLOCK == _)) (y + 2, y + 1)
-            else if (keywords.is_command(tok, Keyword.QED_BLOCK == _)) (y + 1, y - 2)
+            else if (keywords.is_command(tok, Keyword.QED_BLOCK == _)) (y - 1, y - 2)
+            else if (keywords.is_command(tok, Keyword.PRF_CLOSE == _)) (y, y - 1)
             else if (keywords.is_command(tok, Keyword.proof_close)) (y + 1, y - 1)
             else if (keywords.is_command(tok, Keyword.qed_global)) (1, 0)
             else (x, y)
