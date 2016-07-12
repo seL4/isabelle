@@ -142,6 +142,9 @@ final class Outer_Syntax private(
 
   /* line-oriented structure */
 
+  private val close_structure =
+    Set(Keyword.NEXT_BLOCK, Keyword.QED_BLOCK, Keyword.PRF_CLOSE)
+
   def line_structure(tokens: List[Token], structure: Outer_Syntax.Line_Structure)
     : Outer_Syntax.Line_Structure =
   {
@@ -151,9 +154,7 @@ final class Outer_Syntax private(
     val command_depth =
       tokens.iterator.filter(_.is_proper).toStream.headOption match {
         case Some(tok) =>
-          if (keywords.is_command(tok, Keyword.QED_BLOCK == _))
-            Some(structure.after_span_depth - 2)
-          else if (keywords.is_command(tok, Keyword.PRF_CLOSE == _))
+          if (keywords.is_command(tok, close_structure))
             Some(structure.after_span_depth - 1)
           else None
         case None => None
