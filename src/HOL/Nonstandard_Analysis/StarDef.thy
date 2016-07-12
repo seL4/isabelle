@@ -806,6 +806,7 @@ instance star :: (ordered_ab_semigroup_add_imp_le) ordered_ab_semigroup_add_imp_
 by (intro_classes, transfer, rule add_le_imp_le_left)
 
 instance star :: (ordered_comm_monoid_add) ordered_comm_monoid_add ..
+instance star :: (ordered_ab_semigroup_monoid_add_imp_le) ordered_ab_semigroup_monoid_add_imp_le ..
 instance star :: (ordered_cancel_comm_monoid_add) ordered_cancel_comm_monoid_add ..
 instance star :: (ordered_ab_group_add) ordered_ab_group_add ..
 

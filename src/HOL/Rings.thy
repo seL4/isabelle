@@ -1292,35 +1292,13 @@ subclass ordered_cancel_semiring ..
 
 subclass ordered_cancel_comm_monoid_add ..
 
+subclass ordered_ab_semigroup_monoid_add_imp_le ..
+
 lemma mult_left_less_imp_less: "c * a < c * b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
   by (force simp add: mult_left_mono not_le [symmetric])
 
 lemma mult_right_less_imp_less: "a * c < b * c \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
   by (force simp add: mult_right_mono not_le [symmetric])
-
-lemma less_eq_add_cancel_left_greater_eq_zero [simp]: "a \<le> a + b \<longleftrightarrow> 0 \<le> b"
-  using add_le_cancel_left [of a 0 b] by simp
-
-lemma less_eq_add_cancel_left_less_eq_zero [simp]: "a + b \<le> a \<longleftrightarrow> b \<le> 0"
-  using add_le_cancel_left [of a b 0] by simp
-
-lemma less_eq_add_cancel_right_greater_eq_zero [simp]: "a \<le> b + a \<longleftrightarrow> 0 \<le> b"
-  using add_le_cancel_right [of 0 a b] by simp
-
-lemma less_eq_add_cancel_right_less_eq_zero [simp]: "b + a \<le> a \<longleftrightarrow> b \<le> 0"
-  using add_le_cancel_right [of b a 0] by simp
-
-lemma less_add_cancel_left_greater_zero [simp]: "a < a + b \<longleftrightarrow> 0 < b"
-  using add_less_cancel_left [of a 0 b] by simp
-
-lemma less_add_cancel_left_less_zero [simp]: "a + b < a \<longleftrightarrow> b < 0"
-  using add_less_cancel_left [of a b 0] by simp
-
-lemma less_add_cancel_right_greater_zero [simp]: "a < b + a \<longleftrightarrow> 0 < b"
-  using add_less_cancel_right [of 0 a b] by simp
-
-lemma less_add_cancel_right_less_zero [simp]: "b + a < a \<longleftrightarrow> b < 0"
-  using add_less_cancel_right [of b a 0] by simp
 
 end
 

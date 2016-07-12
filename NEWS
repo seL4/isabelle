@@ -254,6 +254,29 @@ eliminated altogether.
 * Removed obsolete theorem nat_less_cases. INCOMPATIBILITY, use
 linorder_cases instead.
 
+* Some theorems about groups and orders have been generalised from
+  groups to semi-groups that are also monoids:
+    le_add_same_cancel1
+    le_add_same_cancel2
+    less_add_same_cancel1
+    less_add_same_cancel2
+    add_le_same_cancel1
+    add_le_same_cancel2
+    add_less_same_cancel1
+    add_less_same_cancel2
+
+* Some simplifications theorems about rings have been removed, since
+  superseeded by a more general version:
+    less_add_cancel_left_greater_zero ~> less_add_same_cancel1
+    less_add_cancel_right_greater_zero ~> less_add_same_cancel2
+    less_eq_add_cancel_left_greater_eq_zero ~> le_add_same_cancel1
+    less_eq_add_cancel_right_greater_eq_zero ~> le_add_same_cancel2
+    less_eq_add_cancel_left_less_eq_zero ~> add_le_same_cancel1
+    less_eq_add_cancel_right_less_eq_zero ~> add_le_same_cancel2
+    less_add_cancel_left_less_zero ~> add_less_same_cancel1
+    less_add_cancel_right_less_zero ~> add_less_same_cancel2
+INCOMPATIBILITY.
+
 * Renamed split_if -> if_split and split_if_asm -> if_split_asm to
 resemble the f.split naming convention, INCOMPATIBILITY.
 
@@ -397,6 +420,12 @@ introduced as the combination of ordered_ab_semigroup_add + comm_monoid_add.
 INCOMPATIBILITY.
 
 * Introduced the type classes canonically_ordered_comm_monoid_add and dioid.
+
+* Introduced the type class ordered_ab_semigroup_monoid_add_imp_le. When
+instantiating linordered_semiring_strict and ordered_ab_group_add, an explicit
+instantiation of ordered_ab_semigroup_monoid_add_imp_le might be
+required.
+INCOMPATIBILITY.
 
 * Added topological_monoid
 

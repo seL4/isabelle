@@ -800,12 +800,55 @@ lemma add_strict_increasing2: "0 \<le> a \<Longrightarrow> b < c \<Longrightarro
 
 end
 
+class ordered_ab_semigroup_monoid_add_imp_le = monoid_add + ordered_ab_semigroup_add_imp_le
+begin
+
+lemma add_less_same_cancel1 [simp]:
+  "b + a < b \<longleftrightarrow> a < 0"
+  using add_less_cancel_left [of _ _ 0] by simp
+
+lemma add_less_same_cancel2 [simp]:
+  "a + b < b \<longleftrightarrow> a < 0"
+  using add_less_cancel_right [of _ _ 0] by simp
+
+lemma less_add_same_cancel1 [simp]:
+  "a < a + b \<longleftrightarrow> 0 < b"
+  using add_less_cancel_left [of _ 0] by simp
+
+lemma less_add_same_cancel2 [simp]:
+  "a < b + a \<longleftrightarrow> 0 < b"
+  using add_less_cancel_right [of 0] by simp
+
+lemma add_le_same_cancel1 [simp]:
+  "b + a \<le> b \<longleftrightarrow> a \<le> 0"
+  using add_le_cancel_left [of _ _ 0] by simp
+
+lemma add_le_same_cancel2 [simp]:
+  "a + b \<le> b \<longleftrightarrow> a \<le> 0"
+  using add_le_cancel_right [of _ _ 0] by simp
+
+lemma le_add_same_cancel1 [simp]:
+  "a \<le> a + b \<longleftrightarrow> 0 \<le> b"
+  using add_le_cancel_left [of _ 0] by simp
+
+lemma le_add_same_cancel2 [simp]:
+  "a \<le> b + a \<longleftrightarrow> 0 \<le> b"
+  using add_le_cancel_right [of 0] by simp
+
+subclass cancel_comm_monoid_add
+  by standard auto
+
+subclass ordered_cancel_comm_monoid_add
+  by standard
+
+end
+
 class ordered_ab_group_add = ab_group_add + ordered_ab_semigroup_add
 begin
 
 subclass ordered_cancel_ab_semigroup_add ..
 
-subclass ordered_ab_semigroup_add_imp_le
+subclass ordered_ab_semigroup_monoid_add_imp_le
 proof
   fix a b c :: 'a
   assume "c + a \<le> c + b"
@@ -815,32 +858,6 @@ proof
     by (simp only: add.assoc)
   then show "a \<le> b" by simp
 qed
-
-subclass ordered_cancel_comm_monoid_add ..
-
-lemma add_less_same_cancel1 [simp]: "b + a < b \<longleftrightarrow> a < 0"
-  using add_less_cancel_left [of _ _ 0] by simp
-
-lemma add_less_same_cancel2 [simp]: "a + b < b \<longleftrightarrow> a < 0"
-  using add_less_cancel_right [of _ _ 0] by simp
-
-lemma less_add_same_cancel1 [simp]: "a < a + b \<longleftrightarrow> 0 < b"
-  using add_less_cancel_left [of _ 0] by simp
-
-lemma less_add_same_cancel2 [simp]: "a < b + a \<longleftrightarrow> 0 < b"
-  using add_less_cancel_right [of 0] by simp
-
-lemma add_le_same_cancel1 [simp]: "b + a \<le> b \<longleftrightarrow> a \<le> 0"
-  using add_le_cancel_left [of _ _ 0] by simp
-
-lemma add_le_same_cancel2 [simp]: "a + b \<le> b \<longleftrightarrow> a \<le> 0"
-  using add_le_cancel_right [of _ _ 0] by simp
-
-lemma le_add_same_cancel1 [simp]: "a \<le> a + b \<longleftrightarrow> 0 \<le> b"
-  using add_le_cancel_left [of _ 0] by simp
-
-lemma le_add_same_cancel2 [simp]: "a \<le> b + a \<longleftrightarrow> 0 \<le> b"
-  using add_le_cancel_right [of 0] by simp
 
 lemma max_diff_distrib_left: "max x y - z = max (x - z) (y - z)"
   using max_add_distrib_left [of x y "- z"] by simp
