@@ -160,7 +160,8 @@ final class Outer_Syntax private(
       }
 
     val depth1 =
-      if (tokens.exists(keywords.is_command(_, Keyword.theory))) 0
+      if (tokens.exists(tok =>
+            keywords.is_before_command(tok) || keywords.is_command(tok, Keyword.theory))) 0
       else if (command_depth.isDefined) command_depth.get
       else if (command1) structure.after_span_depth
       else structure.span_depth
