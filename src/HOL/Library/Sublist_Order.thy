@@ -1,6 +1,7 @@
 (*  Title:      HOL/Library/Sublist_Order.thy
-    Authors:    Peter Lammich, Uni Muenster <peter.lammich@uni-muenster.de>
-                Florian Haftmann, Tobias Nipkow, TU Muenchen
+    Author:     Peter Lammich, Uni Muenster <peter.lammich@uni-muenster.de>
+    Author:     Florian Haftmann, , TU Muenchen
+    Author:     Tobias Nipkow, TU Muenchen
 *)
 
 section \<open>Sublist Ordering\<close>
@@ -10,9 +11,8 @@ imports Sublist
 begin
 
 text \<open>
-  This theory defines sublist ordering on lists.
-  A list \<open>ys\<close> is a sublist of a list \<open>xs\<close>,
-  iff one obtains \<open>ys\<close> by erasing some elements from \<open>xs\<close>.
+  This theory defines sublist ordering on lists. A list \<open>ys\<close> is a sublist of a
+  list \<open>xs\<close>, iff one obtains \<open>ys\<close> by erasing some elements from \<open>xs\<close>.
 \<close>
 
 subsection \<open>Definitions and basic lemmas\<close>
@@ -20,11 +20,8 @@ subsection \<open>Definitions and basic lemmas\<close>
 instantiation list :: (type) ord
 begin
 
-definition
-  "(xs :: 'a list) \<le> ys \<longleftrightarrow> sublisteq xs ys"
-
-definition
-  "(xs :: 'a list) < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
+definition "xs \<le> ys \<longleftrightarrow> sublisteq xs ys" for xs ys :: "'a list"
+definition "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs" for xs ys :: "'a list"
 
 instance ..
 
@@ -32,19 +29,15 @@ end
 
 instance list :: (type) order
 proof
-  fix xs ys :: "'a list"
-  show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs" unfolding less_list_def .. 
-next
-  fix xs :: "'a list"
-  show "xs \<le> xs" by (simp add: less_eq_list_def)
-next
-  fix xs ys :: "'a list"
-  assume "xs <= ys" and "ys <= xs"
-  thus "xs = ys" by (unfold less_eq_list_def) (rule sublisteq_antisym)
-next
   fix xs ys zs :: "'a list"
-  assume "xs <= ys" and "ys <= zs"
-  thus "xs <= zs" by (unfold less_eq_list_def) (rule sublisteq_trans)
+  show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
+    unfolding less_list_def ..
+  show "xs \<le> xs"
+    by (simp add: less_eq_list_def)
+  show "xs = ys" if "xs \<le> ys" and "ys \<le> xs"
+    using that unfolding less_eq_list_def by (rule sublisteq_antisym)
+  show "xs \<le> zs" if "xs \<le> ys" and "ys \<le> zs"
+    using that unfolding less_eq_list_def by (rule sublisteq_trans)
 qed
 
 lemmas less_eq_list_induct [consumes 1, case_names empty drop take] =
@@ -71,7 +64,8 @@ lemma less_list_take_iff: "x # xs < x # ys \<longleftrightarrow> xs < ys"
   by (metis sublisteq_Cons2_iff less_list_def less_eq_list_def)
 
 lemma less_list_drop_many: "xs < ys \<Longrightarrow> xs < zs @ ys"
-  by (metis sublisteq_append_le_same_iff sublisteq_drop_many order_less_le self_append_conv2 less_eq_list_def)
+  by (metis sublisteq_append_le_same_iff sublisteq_drop_many order_less_le
+      self_append_conv2 less_eq_list_def)
 
 lemma less_list_take_many_iff: "zs @ xs < zs @ ys \<longleftrightarrow> xs < ys"
   by (metis less_list_def less_eq_list_def sublisteq_append')

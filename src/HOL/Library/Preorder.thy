@@ -9,24 +9,21 @@ begin
 class preorder_equiv = preorder
 begin
 
-definition equiv :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
-  "equiv x y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
+definition equiv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  where "equiv x y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
 
 notation
   equiv ("op \<approx>") and
   equiv ("(_/ \<approx> _)"  [51, 51] 50)
 
-lemma refl [iff]:
-  "x \<approx> x"
-  unfolding equiv_def by simp
+lemma refl [iff]: "x \<approx> x"
+  by (simp add: equiv_def)
 
-lemma trans:
-  "x \<approx> y \<Longrightarrow> y \<approx> z \<Longrightarrow> x \<approx> z"
-  unfolding equiv_def by (auto intro: order_trans)
+lemma trans: "x \<approx> y \<Longrightarrow> y \<approx> z \<Longrightarrow> x \<approx> z"
+  by (auto simp: equiv_def intro: order_trans)
 
-lemma antisym:
-  "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x \<approx> y"
-  unfolding equiv_def ..
+lemma antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x \<approx> y"
+  by (simp only: equiv_def)
 
 lemma less_le: "x < y \<longleftrightarrow> x \<le> y \<and> \<not> x \<approx> y"
   by (auto simp add: equiv_def less_le_not_le)

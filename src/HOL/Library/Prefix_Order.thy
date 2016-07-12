@@ -11,16 +11,16 @@ begin
 instantiation list :: (type) order
 begin
 
-definition "(xs::'a list) \<le> ys \<equiv> prefix xs ys"
-definition "(xs::'a list) < ys \<equiv> xs \<le> ys \<and> \<not> (ys \<le> xs)"
+definition "xs \<le> ys \<equiv> prefix xs ys" for xs ys :: "'a list"
+definition "xs < ys \<equiv> xs \<le> ys \<and> \<not> (ys \<le> xs)" for xs ys :: "'a list"
 
 instance
   by standard (auto simp: less_eq_list_def less_list_def)
 
 end
 
-lemma less_list_def': "(xs::'a list) < ys \<longleftrightarrow> strict_prefix xs ys"
-by (simp add: less_eq_list_def order.strict_iff_order prefix_order.less_le)
+lemma less_list_def': "xs < ys \<longleftrightarrow> strict_prefix xs ys" for xs ys :: "'a list"
+  by (simp add: less_eq_list_def order.strict_iff_order prefix_order.less_le)
 
 lemmas prefixI [intro?] = prefixI [folded less_eq_list_def]
 lemmas prefixE [elim?] = prefixE [folded less_eq_list_def]
