@@ -179,6 +179,24 @@ object Token_Markup
   {
     def init(mode: String): Line_Context =
       new Line_Context(mode, Some(Scan.Finished), Outer_Syntax.Line_Structure.init)
+
+    def prev(buffer: JEditBuffer, line: Int): Line_Context =
+      if (line == 0) init(JEdit_Lib.buffer_mode(buffer))
+      else next(buffer, line - 1)
+
+    def next(buffer: JEditBuffer, line: Int): Line_Context =
+    {
+      val line_mgr = JEdit_Lib.buffer_line_manager(buffer)
+      def context =
+        line_mgr.getLineContext(line) match {
+          case c: Line_Context => Some(c)
+          case _ => None
+        }
+      context getOrElse {
+        buffer.markTokens(line, DummyTokenHandler.INSTANCE)
+        context getOrElse init(JEdit_Lib.buffer_mode(buffer))
+      }
+    }
   }
 
   class Line_Context(
@@ -187,6 +205,8 @@ object Token_Markup
       val structure: Outer_Syntax.Line_Structure)
     extends TokenMarker.LineContext(new ParserRuleSet(mode, "MAIN"), null)
   {
+    def get_context: Scan.Line_Context = context.getOrElse(Scan.Finished)
+
     override def hashCode: Int = (mode, context, structure).hashCode
     override def equals(that: Any): Boolean =
       that match {
@@ -196,29 +216,13 @@ object Token_Markup
       }
   }
 
-  def buffer_line_context(buffer: JEditBuffer, line: Int): Line_Context =
-  {
-    val line_mgr = JEdit_Lib.buffer_line_manager(buffer)
-    def context =
-      line_mgr.getLineContext(line) match {
-        case c: Line_Context => Some(c)
-        case _ => None
-      }
-    context getOrElse {
-      buffer.markTokens(line, DummyTokenHandler.INSTANCE)
-      context getOrElse Line_Context.init(JEdit_Lib.buffer_mode(buffer))
-    }
-  }
-
 
   /* tokens from line (inclusive) */
 
   private def try_line_tokens(syntax: Outer_Syntax, buffer: JEditBuffer, line: Int)
     : Option[List[Token]] =
   {
-    val line_context =
-      if (line == 0) Line_Context.init(JEdit_Lib.buffer_mode(buffer))
-      else buffer_line_context(buffer, line - 1)
+    val line_context = Line_Context.prev(buffer, line)
     for {
       ctxt <- line_context.context
       text <- JEdit_Lib.try_get_text(buffer, JEdit_Lib.line_range(buffer, line))
