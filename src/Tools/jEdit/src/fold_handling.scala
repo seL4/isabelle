@@ -34,12 +34,12 @@ object Fold_Handling
     override def getPrecedingFoldLevels(
       buffer: JEditBuffer, line: Int, seg: Segment, level: Int): java.util.List[Integer] =
     {
-      val struct = Token_Markup.Line_Context.next(buffer, line).structure
+      val structure = Token_Markup.Line_Context.next(buffer, line).structure
       val result =
-        if (line > 0 && struct.command)
+        if (line > 0 && structure.command)
           Range.inclusive(line - 1, 0, -1).iterator.
             map(i => Token_Markup.Line_Context.next(buffer, i).structure).
-            takeWhile(_.improper).map(_ => struct.depth max 0).toList
+            takeWhile(_.improper).map(_ => structure.depth max 0).toList
         else Nil
 
       if (result.isEmpty) null

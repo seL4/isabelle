@@ -5,7 +5,7 @@
 section \<open>Implementation of Association Lists\<close>
 
 theory AList
-imports Main
+  imports Main
 begin
 
 context
@@ -21,9 +21,9 @@ text \<open>
 subsection \<open>\<open>update\<close> and \<open>updates\<close>\<close>
 
 qualified primrec update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-  "update k v [] = [(k, v)]"
-| "update k v (p # ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
+  where
+    "update k v [] = [(k, v)]"
+  | "update k v (p # ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
 
 lemma update_conv': "map_of (update k v al)  = (map_of al)(k\<mapsto>v)"
   by (induct al) (auto simp add: fun_eq_iff)
@@ -82,12 +82,11 @@ lemma update_Some_unfold:
     x = k \<and> v = y \<or> x \<noteq> k \<and> map_of al x = Some y"
   by (simp add: update_conv' map_upd_Some_unfold)
 
-lemma image_update [simp]:
-  "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
+lemma image_update [simp]: "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
   by (simp add: update_conv')
 
-qualified definition
-    updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+qualified definition updates
+    :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where "updates ks vs = fold (case_prod update) (zip ks vs)"
 
 lemma updates_simps [simp]:
@@ -217,66 +216,75 @@ lemma length_delete_le: "length (delete k al) \<le> length al"
 
 subsection \<open>\<open>update_with_aux\<close> and \<open>delete_aux\<close>\<close>
 
-qualified primrec update_with_aux :: "'val \<Rightarrow> 'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-  "update_with_aux v k f [] = [(k, f v)]"
-| "update_with_aux v k f (p # ps) = (if (fst p = k) then (k, f (snd p)) # ps else p # update_with_aux v k f ps)"
+qualified primrec update_with_aux
+    :: "'val \<Rightarrow> 'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+  where
+    "update_with_aux v k f [] = [(k, f v)]"
+  | "update_with_aux v k f (p # ps) =
+      (if (fst p = k) then (k, f (snd p)) # ps else p # update_with_aux v k f ps)"
 
 text \<open>
   The above @{term "delete"} traverses all the list even if it has found the key.
   This one does not have to keep going because is assumes the invariant that keys are distinct.
 \<close>
 qualified fun delete_aux :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-  "delete_aux k [] = []"
-| "delete_aux k ((k', v) # xs) = (if k = k' then xs else (k', v) # delete_aux k xs)"
+  where
+    "delete_aux k [] = []"
+  | "delete_aux k ((k', v) # xs) = (if k = k' then xs else (k', v) # delete_aux k xs)"
 
 lemma map_of_update_with_aux':
-  "map_of (update_with_aux v k f ps) k' = ((map_of ps)(k \<mapsto> (case map_of ps k of None \<Rightarrow> f v | Some v \<Rightarrow> f v))) k'"
-by(induct ps) auto
+  "map_of (update_with_aux v k f ps) k' =
+    ((map_of ps)(k \<mapsto> (case map_of ps k of None \<Rightarrow> f v | Some v \<Rightarrow> f v))) k'"
+  by (induct ps) auto
 
 lemma map_of_update_with_aux:
-  "map_of (update_with_aux v k f ps) = (map_of ps)(k \<mapsto> (case map_of ps k of None \<Rightarrow> f v | Some v \<Rightarrow> f v))"
-by(simp add: fun_eq_iff map_of_update_with_aux')
+  "map_of (update_with_aux v k f ps) =
+    (map_of ps)(k \<mapsto> (case map_of ps k of None \<Rightarrow> f v | Some v \<Rightarrow> f v))"
+  by (simp add: fun_eq_iff map_of_update_with_aux')
 
 lemma dom_update_with_aux: "fst ` set (update_with_aux v k f ps) = {k} \<union> fst ` set ps"
   by (induct ps) auto
 
 lemma distinct_update_with_aux [simp]:
   "distinct (map fst (update_with_aux v k f ps)) = distinct (map fst ps)"
-by(induct ps)(auto simp add: dom_update_with_aux)
+  by (induct ps) (auto simp add: dom_update_with_aux)
 
 lemma set_update_with_aux:
-  "distinct (map fst xs) 
-  \<Longrightarrow> set (update_with_aux v k f xs) = (set xs - {k} \<times> UNIV \<union> {(k, f (case map_of xs k of None \<Rightarrow> v | Some v \<Rightarrow> v))})"
-by(induct xs)(auto intro: rev_image_eqI)
+  "distinct (map fst xs) \<Longrightarrow>
+    set (update_with_aux v k f xs) =
+      (set xs - {k} \<times> UNIV \<union> {(k, f (case map_of xs k of None \<Rightarrow> v | Some v \<Rightarrow> v))})"
+  by (induct xs) (auto intro: rev_image_eqI)
 
 lemma set_delete_aux: "distinct (map fst xs) \<Longrightarrow> set (delete_aux k xs) = set xs - {k} \<times> UNIV"
-apply(induct xs)
-apply simp_all
-apply clarsimp
-apply(fastforce intro: rev_image_eqI)
-done
+  apply (induct xs)
+  apply simp_all
+  apply clarsimp
+  apply (fastforce intro: rev_image_eqI)
+  done
 
 lemma dom_delete_aux: "distinct (map fst ps) \<Longrightarrow> fst ` set (delete_aux k ps) = fst ` set ps - {k}"
-by(auto simp add: set_delete_aux)
+  by (auto simp add: set_delete_aux)
 
-lemma distinct_delete_aux [simp]:
-  "distinct (map fst ps) \<Longrightarrow> distinct (map fst (delete_aux k ps))"
-proof(induct ps)
-  case Nil thus ?case by simp
+lemma distinct_delete_aux [simp]: "distinct (map fst ps) \<Longrightarrow> distinct (map fst (delete_aux k ps))"
+proof (induct ps)
+  case Nil
+  then show ?case by simp
 next
   case (Cons a ps)
-  obtain k' v where a: "a = (k', v)" by(cases a)
+  obtain k' v where a: "a = (k', v)"
+    by (cases a)
   show ?case
-  proof(cases "k' = k")
-    case True with Cons a show ?thesis by simp
+  proof (cases "k' = k")
+    case True
+    with Cons a show ?thesis by simp
   next
     case False
-    with Cons a have "k' \<notin> fst ` set ps" "distinct (map fst ps)" by simp_all
+    with Cons a have "k' \<notin> fst ` set ps" "distinct (map fst ps)"
+      by simp_all
     with False a have "k' \<notin> fst ` set (delete_aux k ps)"
-      by(auto dest!: dom_delete_aux[where k=k])
-    with Cons a show ?thesis by simp
+      by (auto dest!: dom_delete_aux[where k=k])
+    with Cons a show ?thesis
+      by simp
   qed
 qed
 
@@ -290,10 +298,10 @@ lemma map_of_delete_aux':
 
 lemma map_of_delete_aux:
   "distinct (map fst xs) \<Longrightarrow> map_of (delete_aux k xs) k' = ((map_of xs)(k := None)) k'"
-by(simp add: map_of_delete_aux')
+  by (simp add: map_of_delete_aux')
 
 lemma delete_aux_eq_Nil_conv: "delete_aux k ts = [] \<longleftrightarrow> ts = [] \<or> (\<exists>v. ts = [(k, v)])"
-by(cases ts)(auto split: if_split_asm)
+  by (cases ts) (auto split: if_split_asm)
 
 
 subsection \<open>\<open>restrict\<close>\<close>
@@ -308,16 +316,18 @@ lemma restr_simps [simp]:
 
 lemma restr_conv': "map_of (restrict A al) = ((map_of al)|` A)"
 proof
-  fix k
-  show "map_of (restrict A al) k = ((map_of al)|` A) k"
-    by (induct al) (simp, cases "k \<in> A", auto)
+  show "map_of (restrict A al) k = ((map_of al)|` A) k" for k
+    apply (induct al)
+    apply simp
+    apply (cases "k \<in> A")
+    apply auto
+    done
 qed
 
 corollary restr_conv: "map_of (restrict A al) k = ((map_of al)|` A) k"
   by (simp add: restr_conv')
 
-lemma distinct_restr:
-  "distinct (map fst al) \<Longrightarrow> distinct (map fst (restrict A al))"
+lemma distinct_restr: "distinct (map fst al) \<Longrightarrow> distinct (map fst (restrict A al))"
   by (induct al) (auto simp add: restrict_eq)
 
 lemma restr_empty [simp]:
@@ -341,8 +351,8 @@ lemma restr_restr [simp]: "restrict A (restrict B al) = restrict (A\<inter>B) al
   by (induct al) (auto simp add: restrict_eq)
 
 lemma restr_update[simp]:
- "map_of (restrict D (update x y al)) =
-  map_of ((if x \<in> D then (update x y (restrict (D-{x}) al)) else restrict D al))"
+  "map_of (restrict D (update x y al)) =
+    map_of ((if x \<in> D then (update x y (restrict (D-{x}) al)) else restrict D al))"
   by (simp add: restr_conv' update_conv')
 
 lemma restr_delete [simp]:
@@ -350,12 +360,12 @@ lemma restr_delete [simp]:
   apply (simp add: delete_eq restrict_eq)
   apply (auto simp add: split_def)
 proof -
-  have "\<And>y. y \<noteq> x \<longleftrightarrow> x \<noteq> y"
+  have "y \<noteq> x \<longleftrightarrow> x \<noteq> y" for y
     by auto
   then show "[p \<leftarrow> al. fst p \<in> D \<and> x \<noteq> fst p] = [p \<leftarrow> al. fst p \<in> D \<and> fst p \<noteq> x]"
     by simp
   assume "x \<notin> D"
-  then have "\<And>y. y \<in> D \<longleftrightarrow> y \<in> D \<and> x \<noteq> y"
+  then have "y \<in> D \<longleftrightarrow> y \<in> D \<and> x \<noteq> y" for y
     by auto
   then show "[p \<leftarrow> al . fst p \<in> D \<and> x \<noteq> fst p] = [p \<leftarrow> al . fst p \<in> D]"
     by simp
@@ -383,9 +393,9 @@ lemma restr_delete_twist: "(restrict A (delete a ps)) = delete a (restrict A ps)
 subsection \<open>\<open>clearjunk\<close>\<close>
 
 qualified function clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-  "clearjunk [] = []"
-| "clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
+  where
+    "clearjunk [] = []"
+  | "clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
   by pat_completeness auto
 termination
   by (relation "measure length") (simp_all add: less_Suc_eq_le length_delete_le)
@@ -420,7 +430,7 @@ lemma clearjunk_update: "clearjunk (update k v al) = update k v (clearjunk al)"
 lemma clearjunk_updates: "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
 proof -
   have "clearjunk \<circ> fold (case_prod update) (zip ks vs) =
-    fold (case_prod update) (zip ks vs) \<circ> clearjunk"
+      fold (case_prod update) (zip ks vs) \<circ> clearjunk"
     by (rule fold_commute) (simp add: clearjunk_update case_prod_beta o_def)
   then show ?thesis
     by (simp add: updates_def fun_eq_iff)
@@ -506,10 +516,8 @@ lemma merge_updates: "merge qs ps = updates (rev (map fst ps)) (rev (map snd ps)
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
   by (induct ys arbitrary: xs) (auto simp add: dom_update)
 
-lemma distinct_merge:
-  assumes "distinct (map fst xs)"
-  shows "distinct (map fst (merge xs ys))"
-  using assms by (simp add: merge_updates distinct_updates)
+lemma distinct_merge: "distinct (map fst xs) \<Longrightarrow> distinct (map fst (merge xs ys))"
+  by (simp add: merge_updates distinct_updates)
 
 lemma clearjunk_merge: "clearjunk (merge xs ys) = merge (clearjunk xs) ys"
   by (simp add: merge_updates clearjunk_updates)
@@ -542,12 +550,10 @@ lemmas merge_SomeD [dest!] = merge_Some_iff [THEN iffD1]
 lemma merge_find_right [simp]: "map_of n k = Some v \<Longrightarrow> map_of (merge m n) k = Some v"
   by (simp add: merge_conv')
 
-lemma merge_None [iff]:
-  "(map_of (merge m n) k = None) = (map_of n k = None \<and> map_of m k = None)"
+lemma merge_None [iff]: "(map_of (merge m n) k = None) = (map_of n k = None \<and> map_of m k = None)"
   by (simp add: merge_conv')
 
-lemma merge_upd [simp]:
-  "map_of (merge m (update k v n)) = map_of (update k v (merge m n))"
+lemma merge_upd [simp]: "map_of (merge m (update k v n)) = map_of (update k v (merge m n))"
   by (simp add: update_conv' merge_conv')
 
 lemma merge_updatess [simp]:
@@ -561,20 +567,18 @@ lemma merge_append: "map_of (xs @ ys) = map_of (merge ys xs)"
 subsection \<open>\<open>compose\<close>\<close>
 
 qualified function compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list"
-where
-  "compose [] ys = []"
-| "compose (x # xs) ys =
-    (case map_of ys (snd x) of
-      None \<Rightarrow> compose (delete (fst x) xs) ys
-    | Some v \<Rightarrow> (fst x, v) # compose xs ys)"
+  where
+    "compose [] ys = []"
+  | "compose (x # xs) ys =
+      (case map_of ys (snd x) of
+        None \<Rightarrow> compose (delete (fst x) xs) ys
+      | Some v \<Rightarrow> (fst x, v) # compose xs ys)"
   by pat_completeness auto
 termination
   by (relation "measure (length \<circ> fst)") (simp_all add: less_Suc_eq_le length_delete_le)
 
-lemma compose_first_None [simp]:
-  assumes "map_of xs k = None"
-  shows "map_of (compose xs ys) k = None"
-  using assms by (induct xs ys rule: compose.induct) (auto split: option.splits if_split_asm)
+lemma compose_first_None [simp]: "map_of xs k = None \<Longrightarrow> map_of (compose xs ys) k = None"
+  by (induct xs ys rule: compose.induct) (auto split: option.splits if_split_asm)
 
 lemma compose_conv: "map_of (compose xs ys) k = (map_of ys \<circ>\<^sub>m map_of xs) k"
 proof (induct xs ys rule: compose.induct)
@@ -617,10 +621,8 @@ qed
 lemma compose_conv': "map_of (compose xs ys) = (map_of ys \<circ>\<^sub>m map_of xs)"
   by (rule ext) (rule compose_conv)
 
-lemma compose_first_Some [simp]:
-  assumes "map_of xs k = Some v"
-  shows "map_of (compose xs ys) k = map_of ys v"
-  using assms by (simp add: compose_conv)
+lemma compose_first_Some [simp]: "map_of xs k = Some v \<Longrightarrow> map_of (compose xs ys) k = map_of ys v"
+  by (simp add: compose_conv)
 
 lemma dom_compose: "fst ` set (compose xs ys) \<subseteq> fst ` set xs"
 proof (induct xs ys rule: compose.induct)
@@ -631,19 +633,15 @@ next
   show ?case
   proof (cases "map_of ys (snd x)")
     case None
-    with "2.hyps"
-    have "fst ` set (compose (delete (fst x) xs) ys) \<subseteq> fst ` set (delete (fst x) xs)"
+    with "2.hyps" have "fst ` set (compose (delete (fst x) xs) ys) \<subseteq> fst ` set (delete (fst x) xs)"
       by simp
-    also
-    have "\<dots> \<subseteq> fst ` set xs"
+    also have "\<dots> \<subseteq> fst ` set xs"
       by (rule dom_delete_subset)
     finally show ?thesis
-      using None
-      by auto
+      using None by auto
   next
     case (Some v)
-    with "2.hyps"
-    have "fst ` set (compose xs ys) \<subseteq> fst ` set xs"
+    with "2.hyps" have "fst ` set (compose xs ys) \<subseteq> fst ` set xs"
       by simp
     with Some show ?thesis
       by auto
@@ -726,10 +724,10 @@ lemma map_comp_None_iff:
 subsection \<open>\<open>map_entry\<close>\<close>
 
 qualified fun map_entry :: "'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-  "map_entry k f [] = []"
-| "map_entry k f (p # ps) =
-    (if fst p = k then (k, f (snd p)) # ps else p # map_entry k f ps)"
+  where
+    "map_entry k f [] = []"
+  | "map_entry k f (p # ps) =
+      (if fst p = k then (k, f (snd p)) # ps else p # map_entry k f ps)"
 
 lemma map_of_map_entry:
   "map_of (map_entry k f xs) =
@@ -748,10 +746,10 @@ lemma distinct_map_entry:
 subsection \<open>\<open>map_default\<close>\<close>
 
 fun map_default :: "'key \<Rightarrow> 'val \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
-where
-  "map_default k v f [] = [(k, v)]"
-| "map_default k v f (p # ps) =
-    (if fst p = k then (k, f (snd p)) # ps else p # map_default k v f ps)"
+  where
+    "map_default k v f [] = [(k, v)]"
+  | "map_default k v f (p # ps) =
+      (if fst p = k then (k, f (snd p)) # ps else p # map_default k v f ps)"
 
 lemma map_of_map_default:
   "map_of (map_default k v f xs) =
