@@ -16,7 +16,7 @@ import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher, Selection}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.indent.IndentRule
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
@@ -251,6 +251,51 @@ object Isabelle
 
 
   /* structured edits */
+
+  def newline(text_area: TextArea)
+  {
+    if (!text_area.isEditable()) text_area.getToolkit().beep()
+    else {
+      val buffer = text_area.getBuffer
+      def nl { text_area.userInput('\n') }
+
+      if (indent_rule(JEdit_Lib.buffer_mode(buffer)).isDefined &&
+          buffer.getStringProperty("autoIndent") == "full" &&
+          PIDE.options.bool("jedit_indent_newline"))
+      {
+        Isabelle.buffer_syntax(buffer) match {
+          case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+            val caret = text_area.getCaretPosition
+            val line = text_area.getCaretLine
+            val line_range = JEdit_Lib.line_range(buffer, line)
+
+            def line_content(start: Text.Offset, stop: Text.Offset, context: Scan.Line_Context)
+              : (List[Token], Scan.Line_Context) =
+            {
+              val text = JEdit_Lib.try_get_text(buffer, Text.Range(start, stop)).getOrElse("")
+              val (toks, context1) = Token.explode_line(syntax.keywords, text, context)
+              val toks1 = toks.filterNot(_.is_space)
+              (toks1, context1)
+            }
+
+            val context0 = Token_Markup.Line_Context.prev(buffer, line).get_context
+            val (tokens1, context1) = line_content(line_range.start, caret, context0)
+            val (tokens2, _) = line_content(caret, line_range.stop, context1)
+
+            if (tokens1.nonEmpty && tokens1.head.is_command) buffer.indentLine(line, true)
+
+            if (tokens2.isEmpty || tokens2.head.is_command)
+              JEdit_Lib.buffer_edit(buffer) {
+                text_area.setSelectedText("\n")
+                if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)
+              }
+            else nl
+          case _ => nl
+        }
+      }
+      else nl
+    }
+  }
 
   def insert_line_padding(text_area: JEditTextArea, text: String)
   {

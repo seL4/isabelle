@@ -76,8 +76,12 @@ dependencies of the above files are only observed for batch build.
 
 * Highlighting of entity def/ref positions wrt. cursor.
 
-* Indentation according to Isabelle outer syntax, cf. action
-"indent-lines" (shortcut C+i).
+* Improved support for indentation according to Isabelle outer syntax.
+Action "indent-lines" (shortcut C+i) indents the current line according
+to command keywords and some command substructure. Action
+"isabelle.newline" (shortcut ENTER) indents the old and the new line
+according to command keywords only; see also option
+"jedit_indent_newline".
 
 * Action "isabelle.select-entity" (shortcut CS+ENTER) selects all
 occurences of the formal entity at the caret position. This facilitates

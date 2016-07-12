@@ -40,6 +40,12 @@ public option jedit_timing_threshold : real = 0.1
   -- "default threshold for timing display (seconds)"
 
 
+section "Indentation"
+
+public option jedit_indent_newline : bool = true
+  -- "indentation of Isabelle keywords on ENTER (action isabelle.newline)"
+
+
 section "Completion"
 
 public option jedit_completion : bool = true
