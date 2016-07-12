@@ -12,10 +12,10 @@ begin
 
 text \<open>A fact theorem on reals.\<close>
 
-lemma square_fact_le_2_fact:
-  shows "fact n * fact n \<le> (fact (2 * n) :: real)"
+lemma square_fact_le_2_fact: "fact n * fact n \<le> (fact (2 * n) :: real)"
 proof (induct n)
-  case 0 then show ?case by simp
+  case 0
+  then show ?case by simp
 next
   case (Suc n)
   have "(fact (Suc n)) * (fact (Suc n)) = of_nat (Suc n) * of_nat (Suc n) * (fact n * fact n :: real)"
@@ -28,7 +28,6 @@ next
   finally show ?case .
 qed
 
-
 lemma fact_in_Reals: "fact n \<in> \<real>"
   by (induction n) auto
 
@@ -38,33 +37,33 @@ lemma of_real_fact [simp]: "of_real (fact n) = fact n"
 lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
   by (simp add: pochhammer_setprod)
 
-lemma norm_fact [simp]:
-  "norm (fact n :: 'a :: {real_normed_algebra_1}) = fact n"
+lemma norm_fact [simp]: "norm (fact n :: 'a::real_normed_algebra_1) = fact n"
 proof -
-  have "(fact n :: 'a) = of_real (fact n)" by simp
-  also have "norm \<dots> = fact n" by (subst norm_of_real) simp
+  have "(fact n :: 'a) = of_real (fact n)"
+    by simp
+  also have "norm \<dots> = fact n"
+    by (subst norm_of_real) simp
   finally show ?thesis .
 qed
 
 lemma root_test_convergence:
   fixes f :: "nat \<Rightarrow> 'a::banach"
   assumes f: "(\<lambda>n. root n (norm (f n))) \<longlonglongrightarrow> x" \<comment> "could be weakened to lim sup"
-  assumes "x < 1"
+    and "x < 1"
   shows "summable f"
 proof -
   have "0 \<le> x"
     by (rule LIMSEQ_le[OF tendsto_const f]) (auto intro!: exI[of _ 1])
   from \<open>x < 1\<close> obtain z where z: "x < z" "z < 1"
     by (metis dense)
-  from f \<open>x < z\<close>
-  have "eventually (\<lambda>n. root n (norm (f n)) < z) sequentially"
+  from f \<open>x < z\<close> have "eventually (\<lambda>n. root n (norm (f n)) < z) sequentially"
     by (rule order_tendstoD)
   then have "eventually (\<lambda>n. norm (f n) \<le> z^n) sequentially"
     using eventually_ge_at_top
   proof eventually_elim
-    fix n assume less: "root n (norm (f n)) < z" and n: "1 \<le> n"
-    from power_strict_mono[OF less, of n] n
-    show "norm (f n) \<le> z ^ n"
+    fix n
+    assume less: "root n (norm (f n)) < z" and n: "1 \<le> n"
+    from power_strict_mono[OF less, of n] n show "norm (f n) \<le> z ^ n"
       by simp
   qed
   then show "summable f"
@@ -72,30 +71,30 @@ proof -
     using z \<open>0 \<le> x\<close> by (auto intro!: summable_comparison_test[OF _  summable_geometric])
 qed
 
+
 subsection \<open>Properties of Power Series\<close>
 
-lemma powser_zero [simp]:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_algebra_1"
-  shows "(\<Sum>n. f n * 0 ^ n) = f 0"
+lemma powser_zero [simp]: "(\<Sum>n. f n * 0 ^ n) = f 0"
+  for f :: "nat \<Rightarrow> 'a::real_normed_algebra_1"
 proof -
   have "(\<Sum>n<1. f n * 0 ^ n) = (\<Sum>n. f n * 0 ^ n)"
     by (subst suminf_finite[where N="{0}"]) (auto simp: power_0_left)
-  thus ?thesis unfolding One_nat_def by simp
+  then show ?thesis
+    by (simp add: One_nat_def)
 qed
 
-lemma powser_sums_zero:
-  fixes a :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
-  shows "(\<lambda>n. a n * 0^n) sums a 0"
-    using sums_finite [of "{0}" "\<lambda>n. a n * 0 ^ n"]
-    by simp
+lemma powser_sums_zero: "(\<lambda>n. a n * 0^n) sums a 0"
+  for a :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
+  using sums_finite [of "{0}" "\<lambda>n. a n * 0 ^ n"]
+  by simp
 
-lemma powser_sums_zero_iff [simp]:
-  fixes a :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
-  shows "(\<lambda>n. a n * 0^n) sums x \<longleftrightarrow> a 0 = x"
-using powser_sums_zero sums_unique2 by blast
+lemma powser_sums_zero_iff [simp]: "(\<lambda>n. a n * 0^n) sums x \<longleftrightarrow> a 0 = x"
+  for a :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
+  using powser_sums_zero sums_unique2 by blast
 
-text\<open>Power series has a circle or radius of convergence: if it sums for @{term
-  x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.\<close>
+text \<open>
+  Power series has a circle or radius of convergence: if it sums for \<open>x\<close>,
+  then it sums absolutely for \<open>z\<close> with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.\<close>
 
 lemma powser_insidea:
   fixes x z :: "'a::real_normed_div_algebra"
