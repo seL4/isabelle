@@ -5,7 +5,7 @@
 section \<open>Order on characters\<close>
 
 theory Char_ord
-imports Main
+  imports Main
 begin
 
 instantiation char :: linorder
@@ -20,17 +20,19 @@ instance
 end
 
 lemma less_eq_char_simps:
-  "(0 :: char) \<le> c"
+  "0 \<le> c"
   "Char k \<le> 0 \<longleftrightarrow> numeral k mod 256 = (0 :: nat)"
   "Char k \<le> Char l \<longleftrightarrow> numeral k mod 256 \<le> (numeral l mod 256 :: nat)"
+  for c :: char
   by (simp_all add: Char_def less_eq_char_def)
 
 lemma less_char_simps:
-  "\<not> c < (0 :: char)"
+  "\<not> c < 0"
   "0 < Char k \<longleftrightarrow> (0 :: nat) < numeral k mod 256"
   "Char k < Char l \<longleftrightarrow> numeral k mod 256 < (numeral l mod 256 :: nat)"
+  for c :: char
   by (simp_all add: Char_def less_char_def)
-  
+
 instantiation char :: distrib_lattice
 begin
 
@@ -45,28 +47,34 @@ end
 instantiation String.literal :: linorder
 begin
 
-context includes literal.lifting begin
-lift_definition less_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool" is "ord.lexordp op <" .
-lift_definition less_eq_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool" is "ord.lexordp_eq op <" .
+context includes literal.lifting
+begin
+
+lift_definition less_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
+  is "ord.lexordp op <" .
+
+lift_definition less_eq_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
+  is "ord.lexordp_eq op <" .
 
 instance
 proof -
   interpret linorder "ord.lexordp_eq op <" "ord.lexordp op < :: string \<Rightarrow> string \<Rightarrow> bool"
-    by(rule linorder.lexordp_linorder[where less_eq="op \<le>"])(unfold_locales)
+    by (rule linorder.lexordp_linorder[where less_eq="op \<le>"]) unfold_locales
   show "PROP ?thesis"
-    by(intro_classes)(transfer, simp add: less_le_not_le linear)+
+    by intro_classes (transfer, simp add: less_le_not_le linear)+
 qed
 
 end
+
 end
 
-lemma less_literal_code [code]: 
+lemma less_literal_code [code]:
   "op < = (\<lambda>xs ys. ord.lexordp op < (String.explode xs) (String.explode ys))"
-by(simp add: less_literal.rep_eq fun_eq_iff)
+  by (simp add: less_literal.rep_eq fun_eq_iff)
 
 lemma less_eq_literal_code [code]:
   "op \<le> = (\<lambda>xs ys. ord.lexordp_eq op < (String.explode xs) (String.explode ys))"
-by(simp add: less_eq_literal.rep_eq fun_eq_iff)
+  by (simp add: less_eq_literal.rep_eq fun_eq_iff)
 
 lifting_update literal.lifting
 lifting_forget literal.lifting

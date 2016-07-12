@@ -5,7 +5,7 @@
 section \<open>Big O notation\<close>
 
 theory BigO
-imports Complex_Main Function_Algebras Set_Algebras
+  imports Complex_Main Function_Algebras Set_Algebras
 begin
 
 text \<open>
