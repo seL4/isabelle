@@ -209,11 +209,6 @@ fun report tr m =
 fun status tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
 
-fun proof_status tr st =
-  (case try Toplevel.proof_of st of
-    SOME prf => status tr (Proof.status_markup prf)
-  | NONE => ());
-
 fun command_indent tr st =
   (case try Toplevel.proof_of st of
     SOME prf =>
@@ -251,7 +246,6 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
         in {failed = true, command = tr, state = st} end
     | SOME st' =>
         let
-          val _ = proof_status tr st';
           val _ = status tr Markup.finished;
         in {failed = false, command = tr, state = st'} end)
   end;

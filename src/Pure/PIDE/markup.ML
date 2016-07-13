@@ -156,8 +156,6 @@ sig
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
   val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
   val command_indentN: string val command_indent: int -> T
-  val subgoalsN: string
-  val proof_stateN: string val proof_state: int -> T
   val goalN: string val goal: T
   val subgoalN: string val subgoal: string -> T
   val taskN: string
@@ -583,9 +581,6 @@ val (command_indentN, command_indent) = markup_int "command_indent" indentN;
 
 
 (* goals *)
-
-val subgoalsN = "subgoals";
-val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;
 
 val (goalN, goal) = markup_elem "goal";
 val (subgoalN, subgoal) = markup_string "subgoal" nameN;

@@ -384,9 +384,6 @@ object Markup
 
   /* goals */
 
-  val SUBGOALS = "subgoals"
-  val PROOF_STATE = "proof_state"
-
   val GOAL = "goal"
   val SUBGOAL = "subgoal"
 
