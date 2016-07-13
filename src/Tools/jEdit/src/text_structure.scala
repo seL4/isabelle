@@ -26,13 +26,13 @@ object Text_Structure
     def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
-      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
+      if (comments) it.filterNot(_.info.is_space) else it.filterNot(_.info.is_improper)
     }
 
     def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
-      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
+      if (comments) it.filterNot(_.info.is_space) else it.filterNot(_.info.is_improper)
     }
   }
 
@@ -107,17 +107,6 @@ object Text_Structure
             if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
             else 0
 
-          def indent_brackets: Int =
-            (0 /: prev_line_span)(
-              { case (i, tok) =>
-                  if (tok.is_open_bracket) i + indent_size
-                  else if (tok.is_close_bracket) i - indent_size
-                  else i })
-
-          def indent_extra: Int =
-            if (prev_span.exists(keywords.is_quasi_command(_))) indent_size
-            else 0
-
           def indent_structure: Int =
             nav.reverse_iterator(current_line - 1).scanLeft((0, false))(
               { case ((ind, _), Text.Info(range, tok)) =>
@@ -132,6 +121,17 @@ object Text_Structure
                   }
                   else (ind1, false)
               }).collectFirst({ case (i, true) => i }).getOrElse(0)
+
+          def indent_brackets: Int =
+            (0 /: prev_line_span)(
+              { case (i, tok) =>
+                  if (tok.is_open_bracket) i + indent_size
+                  else if (tok.is_close_bracket) i - indent_size
+                  else i })
+
+          def indent_extra: Int =
+            if (prev_span.exists(keywords.is_quasi_command(_))) indent_size
+            else 0
 
           val indent =
             line_head(current_line) match {
