@@ -880,21 +880,21 @@ lemma smult_Poly: "smult c (Poly xs) = Poly (map (op * c) xs)"
   by (auto simp add: poly_eq_iff coeff_Poly_eq nth_default_def)
 
 lemma degree_smult_eq [simp]:
-  fixes a :: "'a::idom"
+  fixes a :: "'a::{comm_semiring_0,semiring_no_zero_divisors}"
   shows "degree (smult a p) = (if a = 0 then 0 else degree p)"
   by (cases "a = 0", simp, simp add: degree_def)
 
 lemma smult_eq_0_iff [simp]:
-  fixes a :: "'a::idom"
+  fixes a :: "'a::{comm_semiring_0,semiring_no_zero_divisors}"
   shows "smult a p = 0 \<longleftrightarrow> a = 0 \<or> p = 0"
   by (simp add: poly_eq_iff)
   
 lemma coeffs_smult [code abstract]:
-  fixes p :: "'a::idom poly"
+  fixes p :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   shows "coeffs (smult a p) = (if a = 0 then [] else map (Groups.times a) (coeffs p))"
   by (rule coeffs_eqI)
     (auto simp add: not_0_coeffs_not_Nil last_map last_coeffs_not_0 nth_default_map_eq nth_default_coeffs_eq)
-
+   
 instantiation poly :: (comm_semiring_0) comm_semiring_0
 begin
 
@@ -947,6 +947,24 @@ qed
 
 end
 
+lemma coeff_mult_degree_sum:
+  "coeff (p * q) (degree p + degree q) =
+   coeff p (degree p) * coeff q (degree q)"
+  by (induct p, simp, simp add: coeff_eq_0)
+
+instance poly :: ("{comm_semiring_0,semiring_no_zero_divisors}") semiring_no_zero_divisors
+proof
+  fix p q :: "'a poly"
+  assume "p \<noteq> 0" and "q \<noteq> 0"
+  have "coeff (p * q) (degree p + degree q) =
+        coeff p (degree p) * coeff q (degree q)"
+    by (rule coeff_mult_degree_sum)
+  also have "coeff p (degree p) * coeff q (degree q) \<noteq> 0"
+    using \<open>p \<noteq> 0\<close> and \<open>q \<noteq> 0\<close> by simp
+  finally have "\<exists>n. coeff (p * q) n \<noteq> 0" ..
+  thus "p * q \<noteq> 0" by (simp add: poly_eq_iff)
+qed
+
 instance poly :: (comm_semiring_0_cancel) comm_semiring_0_cancel ..
 
 lemma coeff_mult:
@@ -984,9 +1002,13 @@ qed
 
 end
 
+instance poly :: ("{comm_semiring_1,semiring_1_no_zero_divisors}") semiring_1_no_zero_divisors ..
+
 instance poly :: (comm_ring) comm_ring ..
 
 instance poly :: (comm_ring_1) comm_ring_1 ..
+
+instance poly :: (comm_ring_1) comm_semiring_1_cancel ..
 
 lemma coeff_1 [simp]: "coeff 1 n = (if n = 0 then 1 else 0)"
   unfolding one_poly_def
@@ -1106,56 +1128,67 @@ lemma smult_dvd_iff:
 
 subsection \<open>Polynomials form an integral domain\<close>
 
-lemma coeff_mult_degree_sum:
-  "coeff (p * q) (degree p + degree q) =
-   coeff p (degree p) * coeff q (degree q)"
-  by (induct p, simp, simp add: coeff_eq_0)
-
-instance poly :: (idom) idom
-proof
-  fix p q :: "'a poly"
-  assume "p \<noteq> 0" and "q \<noteq> 0"
-  have "coeff (p * q) (degree p + degree q) =
-        coeff p (degree p) * coeff q (degree q)"
-    by (rule coeff_mult_degree_sum)
-  also have "coeff p (degree p) * coeff q (degree q) \<noteq> 0"
-    using \<open>p \<noteq> 0\<close> and \<open>q \<noteq> 0\<close> by simp
-  finally have "\<exists>n. coeff (p * q) n \<noteq> 0" ..
-  thus "p * q \<noteq> 0" by (simp add: poly_eq_iff)
-qed
+instance poly :: (idom) idom ..
 
 lemma degree_mult_eq:
-  fixes p q :: "'a::semidom poly"
+  fixes p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   shows "\<lbrakk>p \<noteq> 0; q \<noteq> 0\<rbrakk> \<Longrightarrow> degree (p * q) = degree p + degree q"
 apply (rule order_antisym [OF degree_mult_le le_degree])
 apply (simp add: coeff_mult_degree_sum)
 done
 
 lemma degree_mult_right_le:
-  fixes p q :: "'a::semidom poly"
+  fixes p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   assumes "q \<noteq> 0"
   shows "degree p \<le> degree (p * q)"
   using assms by (cases "p = 0") (simp_all add: degree_mult_eq)
 
 lemma coeff_degree_mult:
-  fixes p q :: "'a::semidom poly"
+  fixes p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   shows "coeff (p * q) (degree (p * q)) =
     coeff q (degree q) * coeff p (degree p)"
   by (cases "p = 0 \<or> q = 0") (auto simp add: degree_mult_eq coeff_mult_degree_sum mult_ac)
 
 lemma dvd_imp_degree_le:
-  fixes p q :: "'a::semidom poly"
+  fixes p q :: "'a::{comm_semiring_1,semiring_no_zero_divisors} poly"
   shows "\<lbrakk>p dvd q; q \<noteq> 0\<rbrakk> \<Longrightarrow> degree p \<le> degree q"
   by (erule dvdE, hypsubst, subst degree_mult_eq) auto
 
 lemma divides_degree:
-  assumes pq: "p dvd (q :: 'a :: semidom poly)"
+  assumes pq: "p dvd (q :: 'a ::{comm_semiring_1,semiring_no_zero_divisors} poly)"
   shows "degree p \<le> degree q \<or> q = 0"
   by (metis dvd_imp_degree_le pq)
+  
+lemma const_poly_dvd_iff:
+  fixes c :: "'a :: {comm_semiring_1,semiring_no_zero_divisors}"
+  shows "[:c:] dvd p \<longleftrightarrow> (\<forall>n. c dvd coeff p n)"
+proof (cases "c = 0 \<or> p = 0")
+  case False
+  show ?thesis
+  proof
+    assume "[:c:] dvd p"
+    thus "\<forall>n. c dvd coeff p n" by (auto elim!: dvdE simp: coeffs_def)
+  next
+    assume *: "\<forall>n. c dvd coeff p n"
+    define mydiv where "mydiv = (\<lambda>x y :: 'a. SOME z. x = y * z)"
+    have mydiv: "x = y * mydiv x y" if "y dvd x" for x y
+      using that unfolding mydiv_def dvd_def by (rule someI_ex)
+    define q where "q = Poly (map (\<lambda>a. mydiv a c) (coeffs p))"
+    from False * have "p = q * [:c:]"
+      by (intro poly_eqI) (auto simp: q_def nth_default_def not_less length_coeffs_degree
+                             coeffs_nth intro!: coeff_eq_0 mydiv)
+    thus "[:c:] dvd p" by (simp only: dvd_triv_right)
+  qed
+qed (auto intro!: poly_eqI)
+
+lemma const_poly_dvd_const_poly_iff [simp]:
+  "[:a::'a::{comm_semiring_1,semiring_no_zero_divisors}:] dvd [:b:] \<longleftrightarrow> a dvd b"
+  by (subst const_poly_dvd_iff) (auto simp: coeff_pCons split: nat.splits)
+
 
 subsection \<open>Polynomials form an ordered integral domain\<close>
 
-definition pos_poly :: "'a::linordered_idom poly \<Rightarrow> bool"
+definition pos_poly :: "'a::linordered_semidom poly \<Rightarrow> bool"
 where
   "pos_poly p \<longleftrightarrow> 0 < coeff p (degree p)"
 
@@ -1178,7 +1211,7 @@ lemma pos_poly_mult: "\<lbrakk>pos_poly p; pos_poly q\<rbrakk> \<Longrightarrow>
   apply auto
   done
 
-lemma pos_poly_total: "p = 0 \<or> pos_poly p \<or> pos_poly (- p)"
+lemma pos_poly_total: "(p :: 'a :: linordered_idom poly) = 0 \<or> pos_poly p \<or> pos_poly (- p)"
 by (induct p) (auto simp add: pos_poly_pCons)
 
 lemma last_coeffs_eq_coeff_degree:
@@ -1321,7 +1354,7 @@ lemma synthetic_div_correct':
   by (simp add: algebra_simps)
 
 lemma poly_eq_0_iff_dvd:
-  fixes c :: "'a::idom"
+  fixes c :: "'a::{comm_ring_1}"
   shows "poly p c = 0 \<longleftrightarrow> [:-c, 1:] dvd p"
 proof
   assume "poly p c = 0"
@@ -1335,12 +1368,12 @@ next
 qed
 
 lemma dvd_iff_poly_eq_0:
-  fixes c :: "'a::idom"
+  fixes c :: "'a::{comm_ring_1}"
   shows "[:c, 1:] dvd p \<longleftrightarrow> poly p (-c) = 0"
   by (simp add: poly_eq_0_iff_dvd)
 
 lemma poly_roots_finite:
-  fixes p :: "'a::idom poly"
+  fixes p :: "'a::{comm_ring_1,ring_no_zero_divisors} poly"
   shows "p \<noteq> 0 \<Longrightarrow> finite {x. poly p x = 0}"
 proof (induct n \<equiv> "degree p" arbitrary: p)
   case (0 p)
@@ -1370,12 +1403,12 @@ next
 qed
 
 lemma poly_eq_poly_eq_iff:
-  fixes p q :: "'a::{idom,ring_char_0} poly"
+  fixes p q :: "'a::{comm_ring_1,ring_no_zero_divisors,ring_char_0} poly"
   shows "poly p = poly q \<longleftrightarrow> p = q" (is "?P \<longleftrightarrow> ?Q")
 proof
   assume ?Q then show ?P by simp
 next
-  { fix p :: "'a::{idom,ring_char_0} poly"
+  { fix p :: "'a poly"
     have "poly p = poly 0 \<longleftrightarrow> p = 0"
       apply (cases "p = 0", simp_all)
       apply (drule poly_roots_finite)
@@ -1387,7 +1420,7 @@ next
 qed
 
 lemma poly_all_0_iff_0:
-  fixes p :: "'a::{ring_char_0, idom} poly"
+  fixes p :: "'a::{ring_char_0, comm_ring_1,ring_no_zero_divisors} poly"
   shows "(\<forall>x. poly p x = 0) \<longleftrightarrow> p = 0"
   by (auto simp add: poly_eq_poly_eq_iff [symmetric])
 
@@ -1616,7 +1649,8 @@ lemma snd_pseudo_divmod_main:
   "snd (pseudo_divmod_main lc q r d dr n) = snd (pseudo_divmod_main lc q' r d dr n)"
 by (induct n arbitrary: q q' lc r d dr; simp add: Let_def)
 
-definition pseudo_mod :: "'a :: idom poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
+definition pseudo_mod 
+    :: "'a :: {comm_ring_1,semiring_1_no_zero_divisors} poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
   "pseudo_mod f g = snd (pseudo_divmod f g)"
   
 lemma pseudo_mod:
@@ -1802,6 +1836,10 @@ instance by (standard, auto simp: divide_poly divide_poly_0)
 end
 
 
+instance poly :: (idom_divide) algebraic_semidom ..
+
+
+
 subsubsection\<open>Division in Field Polynomials\<close>
 
 text\<open>
@@ -1950,7 +1988,7 @@ lemma is_unit_triv:
   using assms by (simp add: is_unit_monom_0 monom_0 [symmetric])
 
 lemma is_unit_iff_degree:
-  assumes "p \<noteq> 0"
+  assumes "p \<noteq> (0 :: _ :: field poly)"
   shows "is_unit p \<longleftrightarrow> degree p = 0" (is "?P \<longleftrightarrow> ?Q")
 proof
   assume ?Q
@@ -1967,7 +2005,7 @@ next
 qed
 
 lemma is_unit_pCons_iff:
-  "is_unit (pCons a p) \<longleftrightarrow> p = 0 \<and> a \<noteq> 0" (is "?P \<longleftrightarrow> ?Q")
+  "is_unit (pCons (a::_::field) p) \<longleftrightarrow> p = 0 \<and> a \<noteq> 0"
   by (cases "p = 0") (auto simp add: is_unit_triv is_unit_iff_degree)
 
 lemma is_unit_monom_trival:
@@ -1977,7 +2015,7 @@ lemma is_unit_monom_trival:
   using assms by (cases p) (simp_all add: monom_0 is_unit_pCons_iff)
 
 lemma is_unit_polyE:
-  assumes "is_unit p"
+  assumes "is_unit (p::_::field poly)"
   obtains a where "p = monom a 0" and "a \<noteq> 0"
 proof -
   obtain a q where "p = pCons a q" by (cases p)
@@ -1985,69 +2023,6 @@ proof -
     by (simp_all add: is_unit_pCons_iff)
   with that show thesis by (simp add: monom_0)
 qed
-
-instantiation poly :: (field) normalization_semidom
-begin
-
-definition normalize_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "normalize_poly p = smult (inverse (coeff p (degree p))) p"
-
-definition unit_factor_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "unit_factor_poly p = monom (coeff p (degree p)) 0"
-
-instance
-proof
-  fix p :: "'a poly"
-  show "unit_factor p * normalize p = p"
-    by (cases "p = 0")
-      (simp_all add: normalize_poly_def unit_factor_poly_def,
-      simp only: mult_smult_left [symmetric] smult_monom, simp)
-next
-  show "normalize 0 = (0::'a poly)"
-    by (simp add: normalize_poly_def)
-next
-  show "unit_factor 0 = (0::'a poly)"
-    by (simp add: unit_factor_poly_def)
-next
-  fix p :: "'a poly"
-  assume "is_unit p"
-  then obtain a where "p = monom a 0" and "a \<noteq> 0"
-    by (rule is_unit_polyE)
-  then show "normalize p = 1"
-    by (auto simp add: normalize_poly_def smult_monom degree_monom_eq)
-next
-  fix p q :: "'a poly"
-  assume "q \<noteq> 0"
-  from \<open>q \<noteq> 0\<close> have "is_unit (monom (coeff q (degree q)) 0)"
-    by (auto intro: is_unit_monom_0)
-  then show "is_unit (unit_factor q)"
-    by (simp add: unit_factor_poly_def)
-next
-  fix p q :: "'a poly"
-  have "monom (coeff (p * q) (degree (p * q))) 0 =
-    monom (coeff p (degree p)) 0 * monom (coeff q (degree q)) 0"
-    by (simp add: monom_0 coeff_degree_mult)
-  then show "unit_factor (p * q) =
-    unit_factor p * unit_factor q"
-    by (simp add: unit_factor_poly_def)
-qed
-
-end
-
-lemma unit_factor_monom [simp]:
-  "unit_factor (monom a n) =
-     (if a = 0 then 0 else monom a 0)"
-  by (simp add: unit_factor_poly_def degree_monom_eq)
-
-lemma unit_factor_pCons [simp]:
-  "unit_factor (pCons a p) =
-     (if p = 0 then monom a 0 else unit_factor p)"
-  by (simp add: unit_factor_poly_def)
-
-lemma normalize_monom [simp]:
-  "normalize (monom a n) =
-     (if a = 0 then 0 else monom 1 n)"
-  by (simp add: normalize_poly_def degree_monom_eq smult_monom)
 
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
@@ -2883,7 +2858,7 @@ lemma pcompose_setprod: "pcompose (setprod f A) p = setprod (\<lambda>i. pcompos
 (* The remainder of this section and the next were contributed by Wenda Li *)
 
 lemma degree_mult_eq_0:
-  fixes p q:: "'a :: semidom poly"
+  fixes p q:: "'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
   shows "degree (p*q) = 0 \<longleftrightarrow> p=0 \<or> q=0 \<or> (p\<noteq>0 \<and> q\<noteq>0 \<and> degree p =0 \<and> degree q =0)"
 by (auto simp add:degree_mult_eq)
 
@@ -2893,7 +2868,7 @@ lemma pcompose_0': "pcompose p 0 = [:coeff p 0:]"
   by (induct p) (auto simp add:pcompose_pCons)
 
 lemma degree_pcompose:
-  fixes p q:: "'a::semidom poly"
+  fixes p q:: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   shows "degree (pcompose p q) = degree p * degree q"
 proof (induct p)
   case 0
@@ -2940,7 +2915,7 @@ next
 qed
 
 lemma pcompose_eq_0:
-  fixes p q:: "'a :: semidom poly"
+  fixes p q:: "'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
   assumes "pcompose p q = 0" "degree q > 0" 
   shows "p = 0"
 proof -
@@ -2972,7 +2947,7 @@ lemma coeff_0_power: "coeff (p ^ n) 0 = coeff p 0 ^ n"
   by (induction n) (simp_all add: coeff_mult)
 
 lemma lead_coeff_mult:
-   fixes p q::"'a ::idom poly"
+   fixes p q::"'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
    shows "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
 by (unfold lead_coeff_def,cases "p=0 \<or> q=0",auto simp add:coeff_mult_degree_sum degree_mult_eq)
 
@@ -2986,9 +2961,20 @@ lemma lead_coeff_minus:
   "lead_coeff (-p) = - lead_coeff p"
 by (metis coeff_minus degree_minus lead_coeff_def)
 
+lemma lead_coeff_smult:
+  "lead_coeff (smult c p :: 'a :: {comm_semiring_0,semiring_no_zero_divisors} poly) = c * lead_coeff p"
+proof -
+  have "smult c p = [:c:] * p" by simp
+  also have "lead_coeff \<dots> = c * lead_coeff p"
+    by (subst lead_coeff_mult) simp_all
+  finally show ?thesis .
+qed
+
+lemma lead_coeff_eq_zero_iff [simp]: "lead_coeff p = 0 \<longleftrightarrow> p = 0"
+  by (simp add: lead_coeff_def)
 
 lemma lead_coeff_comp:
-  fixes p q:: "'a::idom poly"
+  fixes p q:: "'a::{comm_semiring_1,semiring_no_zero_divisors} poly"
   assumes "degree q > 0" 
   shows "lead_coeff (pcompose p q) = lead_coeff p * lead_coeff q ^ (degree p)"
 proof (induct p)
@@ -3011,19 +2997,10 @@ next
       also have "... = lead_coeff q * (lead_coeff p * lead_coeff q ^ degree p)"
         using pCons.hyps(2) lead_coeff_mult[of q "pcompose p q"] by simp
       also have "... = lead_coeff p * lead_coeff q ^ (degree p + 1)"
-        by auto
+        by (auto simp: mult_ac)
       finally show ?thesis by auto
     qed
   ultimately show ?case by blast
-qed
-
-lemma lead_coeff_smult: 
-  "lead_coeff (smult c p :: 'a :: idom poly) = c * lead_coeff p"
-proof -
-  have "smult c p = [:c:] * p" by simp
-  also have "lead_coeff \<dots> = c * lead_coeff p" 
-    by (subst lead_coeff_mult) simp_all
-  finally show ?thesis .
 qed
 
 lemma lead_coeff_1 [simp]: "lead_coeff 1 = 1"
@@ -3039,7 +3016,7 @@ lemma lead_coeff_numeral [simp]:
   by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
 
 lemma lead_coeff_power: 
-  "lead_coeff (p ^ n :: 'a :: idom poly) = lead_coeff p ^ n"
+  "lead_coeff (p ^ n :: 'a :: {comm_semiring_1,semiring_no_zero_divisors} poly) = lead_coeff p ^ n"
   by (induction n) (simp_all add: lead_coeff_mult)
 
 lemma lead_coeff_nonzero: "p \<noteq> 0 \<Longrightarrow> lead_coeff p \<noteq> 0"
@@ -3180,9 +3157,10 @@ lemma reflect_poly_pCons:
 lemma degree_reflect_poly_eq [simp]: "coeff p 0 \<noteq> 0 \<Longrightarrow> degree (reflect_poly p) = degree p"
   by (cases p rule: pCons_cases) (simp add: reflect_poly_pCons degree_eq_length_coeffs)
   
-(* TODO: does this work for non-idom as well? *)
+(* TODO: does this work with zero divisors as well? Probably not. *)
 lemma reflect_poly_mult:
-  "reflect_poly (p * q) = reflect_poly p * reflect_poly (q :: _ :: idom poly)"
+  "reflect_poly (p * q) = 
+     reflect_poly p * reflect_poly (q :: _ :: {comm_semiring_0,semiring_no_zero_divisors} poly)"
 proof (cases "p = 0 \<or> q = 0")
   case False
   hence [simp]: "p \<noteq> 0" "q \<noteq> 0" by auto
@@ -3216,19 +3194,23 @@ proof (cases "p = 0 \<or> q = 0")
 qed auto
 
 lemma reflect_poly_smult: 
-  "reflect_poly (Polynomial.smult (c::'a::idom) p) = Polynomial.smult c (reflect_poly p)"
+  "reflect_poly (Polynomial.smult (c::'a::{comm_semiring_0,semiring_no_zero_divisors}) p) = 
+     Polynomial.smult c (reflect_poly p)"
   using reflect_poly_mult[of "[:c:]" p] by simp
 
 lemma reflect_poly_power:
-    "reflect_poly (p ^ n :: 'a :: idom poly) = reflect_poly p ^ n"
+    "reflect_poly (p ^ n :: 'a :: {comm_semiring_1,semiring_no_zero_divisors} poly) = 
+       reflect_poly p ^ n"
   by (induction n) (simp_all add: reflect_poly_mult)
 
 lemma reflect_poly_setprod:
-  "reflect_poly (setprod (f :: _ \<Rightarrow> _ :: idom poly) A) = setprod (\<lambda>x. reflect_poly (f x)) A"
+  "reflect_poly (setprod (f :: _ \<Rightarrow> _ :: {comm_semiring_0,semiring_no_zero_divisors} poly) A) = 
+     setprod (\<lambda>x. reflect_poly (f x)) A"
   by (cases "finite A", induction rule: finite_induct) (simp_all add: reflect_poly_mult)
 
 lemma reflect_poly_listprod:
-  "reflect_poly (listprod (xs :: _ :: idom poly list)) = listprod (map reflect_poly xs)"
+  "reflect_poly (listprod (xs :: _ :: {comm_semiring_0,semiring_no_zero_divisors} poly list)) = 
+     listprod (map reflect_poly xs)"
   by (induction xs) (simp_all add: reflect_poly_mult)
 
 lemma reflect_poly_Poly_nz: 
@@ -3242,7 +3224,7 @@ lemmas reflect_poly_simps =
 
 subsection \<open>Derivatives of univariate polynomials\<close>
 
-function pderiv :: "('a :: semidom) poly \<Rightarrow> 'a poly"
+function pderiv :: "('a :: {comm_semiring_1,semiring_no_zero_divisors}) poly \<Rightarrow> 'a poly"
 where
   "pderiv (pCons a p) = (if p = 0 then 0 else p + pCons 0 (pderiv p))"
   by (auto intro: pCons_cases)
@@ -3271,11 +3253,13 @@ lemma coeff_pderiv: "coeff (pderiv p) n = of_nat (Suc n) * coeff p (Suc n)"
   by (induct p arbitrary: n) 
      (auto simp add: pderiv_pCons coeff_pCons algebra_simps split: nat.split)
 
-fun pderiv_coeffs_code :: "('a :: semidom) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+fun pderiv_coeffs_code 
+      :: "('a :: {comm_semiring_1,semiring_no_zero_divisors}) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "pderiv_coeffs_code f (x # xs) = cCons (f * x) (pderiv_coeffs_code (f+1) xs)"
 | "pderiv_coeffs_code f [] = []"
 
-definition pderiv_coeffs :: "('a :: semidom) list \<Rightarrow> 'a list" where
+definition pderiv_coeffs :: 
+    "'a :: {comm_semiring_1,semiring_no_zero_divisors} list \<Rightarrow> 'a list" where
   "pderiv_coeffs xs = pderiv_coeffs_code 1 (tl xs)"
 
 (* Efficient code for pderiv contributed by René Thiemann and Akihisa Yamada *)
@@ -3340,7 +3324,7 @@ next
 qed
 
 context
-  assumes "SORT_CONSTRAINT('a::{semidom, semiring_char_0})"
+  assumes "SORT_CONSTRAINT('a::{comm_semiring_1,semiring_no_zero_divisors, semiring_char_0})"
 begin
 
 lemma pderiv_eq_0_iff: 
@@ -3385,7 +3369,7 @@ by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 lemma pderiv_minus: "pderiv (- p :: 'a :: idom poly) = - pderiv p"
 by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
-lemma pderiv_diff: "pderiv (p - q) = pderiv p - pderiv q"
+lemma pderiv_diff: "pderiv ((p :: _ :: idom poly) - q) = pderiv p - pderiv q"
 by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_smult: "pderiv (smult a p) = smult a (pderiv p)"
