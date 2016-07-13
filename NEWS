@@ -79,12 +79,18 @@ dependencies of the above files are only observed for batch build.
 * Refined folding mode "isabelle" based on Isar syntax: 'next' and 'qed'
 are treated as delimiters for fold structure.
 
-* Improved support for indentation according to Isabelle outer syntax.
-Action "indent-lines" (shortcut C+i) indents the current line according
-to command keywords and some command substructure. Action
+* Syntactic indentation according to Isabelle outer syntax. Action
+"indent-lines" (shortcut C+i) indents the current line according to
+command keywords and some command substructure. Action
 "isabelle.newline" (shortcut ENTER) indents the old and the new line
 according to command keywords only; see also option
 "jedit_indent_newline".
+
+* Semantic indentation for unstructured proof scripts ('apply' etc.) via
+number of subgoals. This requires information of ongoing document
+processing and may thus lag behind, when the user is editing too
+quickly; see also option "jedit_script_indent" and
+"jedit_script_indent_limit".
 
 * Action "isabelle.select-entity" (shortcut CS+ENTER) selects all
 occurences of the formal entity at the caret position. This facilitates

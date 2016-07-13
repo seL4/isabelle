@@ -209,10 +209,20 @@ fun report tr m =
 fun status tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
 
-fun proof_status tr st =
+fun command_indent tr st =
   (case try Toplevel.proof_of st of
-    SOME prf => status tr (Proof.status_markup prf)
+    SOME prf =>
+      let val keywords = Thy_Header.get_keywords (Proof.theory_of prf) in
+        if Keyword.command_kind keywords (Toplevel.name_of tr) = SOME Keyword.prf_script then
+          (case try Proof.goal prf of
+            SOME {goal, ...} =>
+              let val n = Thm.nprems_of goal
+              in if n > 1 then report tr (Markup.command_indent (n - 1)) else () end
+          | NONE => ())
+        else ()
+      end
   | NONE => ());
+
 
 fun eval_state keywords span tr ({state, ...}: eval_state) =
   let
@@ -220,6 +230,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
 
     val st = reset_state keywords tr state;
 
+    val _ = command_indent tr st;
     val _ = status tr Markup.running;
     val (errs1, result) = run keywords true tr st;
     val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
@@ -235,7 +246,6 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
         in {failed = true, command = tr, state = st} end
     | SOME st' =>
         let
-          val _ = proof_status tr st';
           val _ = status tr Markup.finished;
         in {failed = false, command = tr, state = st'} end)
   end;

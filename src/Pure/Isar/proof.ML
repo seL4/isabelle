@@ -42,7 +42,6 @@ sig
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
   val goal: state -> {context: context, facts: thm list, goal: thm}
   val simple_goal: state -> {context: context, goal: thm}
-  val status_markup: state -> Markup.T
   val let_bind: (term list * term) list -> state -> state
   val let_bind_cmd: (string list * string) list -> state -> state
   val write: Syntax.mode -> (term * mixfix) list -> state -> state
@@ -560,11 +559,6 @@ fun simple_goal state =
     val (_, (using, _)) = get_goal state;
     val (ctxt, (_, goal)) = get_goal (refine_insert using state);
   in {context = ctxt, goal = goal} end;
-
-fun status_markup state =
-  (case try goal state of
-    SOME {goal, ...} => Markup.proof_state (Thm.nprems_of goal)
-  | NONE => Markup.empty);
 
 fun method_error kind pos state =
   Seq.single (Proof_Display.method_error kind pos (raw_goal state));

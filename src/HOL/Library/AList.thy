@@ -73,8 +73,7 @@ text \<open>Note that the lists are not necessarily the same:
         @{term "update k' v' (update k v []) = [(k, v), (k', v')]"}.\<close>
 
 lemma update_swap:
-  "k \<noteq> k' \<Longrightarrow>
-    map_of (update k v (update k' v' al)) = map_of (update k' v' (update k v al))"
+  "k \<noteq> k' \<Longrightarrow> map_of (update k v (update k' v' al)) = map_of (update k' v' (update k v al))"
   by (simp add: update_conv' fun_eq_iff)
 
 lemma update_Some_unfold:
@@ -85,8 +84,8 @@ lemma update_Some_unfold:
 lemma image_update [simp]: "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
   by (simp add: update_conv')
 
-qualified definition updates
-    :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+qualified definition updates ::
+    "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where "updates ks vs = fold (case_prod update) (zip ks vs)"
 
 lemma updates_simps [simp]:
@@ -216,8 +215,8 @@ lemma length_delete_le: "length (delete k al) \<le> length al"
 
 subsection \<open>\<open>update_with_aux\<close> and \<open>delete_aux\<close>\<close>
 
-qualified primrec update_with_aux
-    :: "'val \<Rightarrow> 'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+qualified primrec update_with_aux ::
+    "'val \<Rightarrow> 'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where
     "update_with_aux v k f [] = [(k, f v)]"
   | "update_with_aux v k f (p # ps) =
@@ -257,7 +256,7 @@ lemma set_update_with_aux:
 
 lemma set_delete_aux: "distinct (map fst xs) \<Longrightarrow> set (delete_aux k xs) = set xs - {k} \<times> UNIV"
   apply (induct xs)
-  apply simp_all
+   apply simp_all
   apply clarsimp
   apply (fastforce intro: rev_image_eqI)
   done
@@ -291,7 +290,7 @@ qed
 lemma map_of_delete_aux':
   "distinct (map fst xs) \<Longrightarrow> map_of (delete_aux k xs) = (map_of xs)(k := None)"
   apply (induct xs)
-  apply (fastforce simp add: map_of_eq_None_iff fun_upd_twist)
+   apply (fastforce simp add: map_of_eq_None_iff fun_upd_twist)
   apply (auto intro!: ext)
   apply (simp add: map_of_eq_None_iff)
   done
@@ -318,9 +317,9 @@ lemma restr_conv': "map_of (restrict A al) = ((map_of al)|` A)"
 proof
   show "map_of (restrict A al) k = ((map_of al)|` A) k" for k
     apply (induct al)
-    apply simp
+     apply simp
     apply (cases "k \<in> A")
-    apply auto
+     apply auto
     done
 qed
 

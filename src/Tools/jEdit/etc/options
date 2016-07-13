@@ -45,6 +45,12 @@ section "Indentation"
 public option jedit_indent_newline : bool = true
   -- "indentation of Isabelle keywords on ENTER (action isabelle.newline)"
 
+public option jedit_indent_script : bool = true
+  -- "indent unstructured proof script ('apply' etc.) via number of subgoals"
+
+public option jedit_indent_script_limit : int = 20
+  -- "maximum indentation of unstructured proof script ('apply' etc.)"
+
 
 section "Completion"
 

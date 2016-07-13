@@ -51,8 +51,11 @@ lemma equal_Mapping [code]:
 proof -
   have *: "(a, b) \<in> set xs \<Longrightarrow> a \<in> fst ` set xs" for a b xs
     by (auto simp add: image_def intro!: bexI)
-  show ?thesis apply transfer
-    by (auto intro!: map_of_eqI) (auto dest!: map_of_eq_dom intro: *)
+  show ?thesis
+    apply transfer
+    apply (auto intro!: map_of_eqI)
+     apply (auto dest!: map_of_eq_dom intro: *)
+    done
 qed
 
 lemma map_values_Mapping [code]:
@@ -72,8 +75,8 @@ lemma combine_with_key_code [code]:
   apply (rule sym)
   subgoal for f xs ys x
     apply (cases "map_of xs x"; cases "map_of ys x"; simp)
-    apply (force simp: map_of_eq_None_iff combine_options_def option.the_def o_def image_iff
-      dest: map_of_SomeD split: option.splits)+
+       apply (force simp: map_of_eq_None_iff combine_options_def option.the_def o_def image_iff
+        dest: map_of_SomeD split: option.splits)+
     done
   done
 
@@ -86,8 +89,8 @@ lemma combine_code [code]:
   apply (rule sym)
   subgoal for f xs ys x
     apply (cases "map_of xs x"; cases "map_of ys x"; simp)
-    apply (force simp: map_of_eq_None_iff combine_options_def option.the_def o_def image_iff
-      dest: map_of_SomeD split: option.splits)+
+       apply (force simp: map_of_eq_None_iff combine_options_def option.the_def o_def image_iff
+        dest: map_of_SomeD split: option.splits)+
     done
   done
 
@@ -106,7 +109,7 @@ lemma filter_Mapping [code]:
   apply transfer
   apply (rule ext)
   apply (subst map_of_filter_distinct)
-  apply (simp_all add: map_of_clearjunk split: option.split)
+   apply (simp_all add: map_of_clearjunk split: option.split)
   done
 
 lemma [code nbe]: "HOL.equal (x :: ('a, 'b) mapping) x \<longleftrightarrow> True"

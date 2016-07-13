@@ -6,7 +6,7 @@
 section \<open>Convexity in real vector spaces\<close>
 
 theory Convex
-imports Product_Vector
+  imports Product_Vector
 begin
 
 subsection \<open>Convexity\<close>
@@ -24,24 +24,27 @@ lemma convexD:
   shows "u *\<^sub>R x + v *\<^sub>R y \<in> s"
   using assms unfolding convex_def by fast
 
-lemma convex_alt:
-  "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> ((1 - u) *\<^sub>R x + u *\<^sub>R y) \<in> s)"
+lemma convex_alt: "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> ((1 - u) *\<^sub>R x + u *\<^sub>R y) \<in> s)"
   (is "_ \<longleftrightarrow> ?alt")
 proof
-  assume alt[rule_format]: ?alt
-  {
-    fix x y and u v :: real
-    assume mem: "x \<in> s" "y \<in> s"
-    assume "0 \<le> u" "0 \<le> v"
-    moreover
-    assume "u + v = 1"
-    then have "u = 1 - v" by auto
-    ultimately have "u *\<^sub>R x + v *\<^sub>R y \<in> s"
-      using alt[OF mem] by auto
-  }
-  then show "convex s"
-    unfolding convex_def by auto
-qed (auto simp: convex_def)
+  show "convex s" if alt: ?alt
+  proof -
+    {
+      fix x y and u v :: real
+      assume mem: "x \<in> s" "y \<in> s"
+      assume "0 \<le> u" "0 \<le> v"
+      moreover
+      assume "u + v = 1"
+      then have "u = 1 - v" by auto
+      ultimately have "u *\<^sub>R x + v *\<^sub>R y \<in> s"
+        using alt [rule_format, OF mem] by auto
+    }
+    then show ?thesis
+      unfolding convex_def by auto
+  qed
+  show ?alt if "convex s"
+    using that by (auto simp: convex_def)
+qed
 
 lemma convexD_alt:
   assumes "convex s" "a \<in> s" "b \<in> s" "0 \<le> u" "u \<le> 1"
@@ -53,7 +56,7 @@ lemma mem_convex_alt:
   shows "((u/(u+v)) *\<^sub>R x + (v/(u+v)) *\<^sub>R y) \<in> S"
   apply (rule convexD)
   using assms
-  apply (simp_all add: zero_le_divide_iff add_divide_distrib [symmetric])
+       apply (simp_all add: zero_le_divide_iff add_divide_distrib [symmetric])
   done
 
 lemma convex_empty[intro,simp]: "convex {}"
@@ -270,12 +273,12 @@ next
       case False
       then show ?thesis
         using *[rule_format, of "{x, y}" "\<lambda> z. if z = x then 1 - \<mu> else \<mu>"] **
-          by auto
+        by auto
     next
       case True
       then show ?thesis
         using *[rule_format, of "{x, y}" "\<lambda> z. 1"] **
-          by (auto simp: field_simps real_vector.scale_left_diff_distrib)
+        by (auto simp: field_simps real_vector.scale_left_diff_distrib)
     qed
   qed
 qed
@@ -293,8 +296,8 @@ proof safe
   have if_distrib_arg: "\<And>P f g x. (if P then f else g) x = (if P then f x else g x)"
     by simp
   show "(\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s"
-   using sum[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]] as *
-   by (auto simp: assms setsum.If_cases if_distrib if_distrib_arg)
+    using sum[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]] as *
+    by (auto simp: assms setsum.If_cases if_distrib if_distrib_arg)
 qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
 
 
@@ -306,39 +309,45 @@ definition convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> rea
 
 lemma convex_onI [intro?]:
   assumes "\<And>t x y. t > 0 \<Longrightarrow> t < 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow>
-             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
-  shows   "convex_on A f"
+    f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  shows "convex_on A f"
   unfolding convex_on_def
 proof clarify
-  fix x y u v assume A: "x \<in> A" "y \<in> A" "(u::real) \<ge> 0" "v \<ge> 0" "u + v = 1"
-  from A(5) have [simp]: "v = 1 - u" by (simp add: algebra_simps)
-  from A(1-4) show "f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y" using assms[of u y x]
+  fix x y
+  fix u v :: real
+  assume A: "x \<in> A" "y \<in> A" "u \<ge> 0" "v \<ge> 0" "u + v = 1"
+  from A(5) have [simp]: "v = 1 - u"
+    by (simp add: algebra_simps)
+  from A(1-4) show "f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y"
+    using assms[of u y x]
     by (cases "u = 0 \<or> u = 1") (auto simp: algebra_simps)
 qed
 
 lemma convex_on_linorderI [intro?]:
   fixes A :: "('a::{linorder,real_vector}) set"
   assumes "\<And>t x y. t > 0 \<Longrightarrow> t < 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x < y \<Longrightarrow>
-             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
-  shows   "convex_on A f"
+    f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  shows "convex_on A f"
 proof
-  fix t x y assume A: "x \<in> A" "y \<in> A" "(t::real) > 0" "t < 1"
-  with assms[of t x y] assms[of "1 - t" y x]
+  fix x y
+  fix t :: real
+  assume A: "x \<in> A" "y \<in> A" "t > 0" "t < 1"
+  with assms [of t x y] assms [of "1 - t" y x]
   show "f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
     by (cases x y rule: linorder_cases) (auto simp: algebra_simps)
 qed
 
 lemma convex_onD:
   assumes "convex_on A f"
-  shows   "\<And>t x y. t \<ge> 0 \<Longrightarrow> t \<le> 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow>
-             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
-  using assms unfolding convex_on_def by auto
+  shows "\<And>t x y. t \<ge> 0 \<Longrightarrow> t \<le> 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow>
+    f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  using assms by (auto simp: convex_on_def)
 
 lemma convex_onD_Icc:
   assumes "convex_on {x..y} f" "x \<le> (y :: _ :: {real_vector,preorder})"
-  shows   "\<And>t. t \<ge> 0 \<Longrightarrow> t \<le> 1 \<Longrightarrow>
-             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
-  using assms(2) by (intro convex_onD[OF assms(1)]) simp_all
+  shows "\<And>t. t \<ge> 0 \<Longrightarrow> t \<le> 1 \<Longrightarrow>
+    f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  using assms(2) by (intro convex_onD [OF assms(1)]) simp_all
 
 lemma convex_on_subset: "convex_on t f \<Longrightarrow> s \<subseteq> t \<Longrightarrow> convex_on s f"
   unfolding convex_on_def by auto
@@ -370,7 +379,8 @@ lemma convex_on_cmul [intro]:
     and "convex_on s f"
   shows "convex_on s (\<lambda>x. c * f x)"
 proof -
-  have *: "\<And>u c fx v fy :: real. u * (c * fx) + v * (c * fy) = c * (u * fx + v * fy)"
+  have *: "u * (c * fx) + v * (c * fy) = c * (u * fx + v * fy)"
+    for u c fx v fy :: real
     by (simp add: field_simps)
   show ?thesis using assms(2) and mult_left_mono [OF _ assms(1)]
     unfolding convex_on_def and * by auto
@@ -517,20 +527,24 @@ proof safe
   assume *: "y > 0" "x > 0" "\<mu> \<ge> 0" "\<mu> \<le> 1"
   {
     assume "\<mu> = 0"
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y = y" by simp
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0" using * by simp
+    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y = y"
+      by simp
+    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0"
+      using * by simp
   }
   moreover
   {
     assume "\<mu> = 1"
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0" using * by simp
+    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0"
+      using * by simp
   }
   moreover
   {
     assume "\<mu> \<noteq> 1" "\<mu> \<noteq> 0"
-    then have "\<mu> > 0" "(1 - \<mu>) > 0" using * by auto
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0" using *
-      by (auto simp: add_pos_pos)
+    then have "\<mu> > 0" "(1 - \<mu>) > 0"
+      using * by auto
+    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0"
+      using * by (auto simp: add_pos_pos)
   }
   ultimately show "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x > 0"
     by fastforce
@@ -550,11 +564,14 @@ lemma convex_on_setsum:
   using assms
 proof (induct s arbitrary: a rule: finite_ne_induct)
   case (singleton i)
-  then have ai: "a i = 1" by auto
-  then show ?case by auto
+  then have ai: "a i = 1"
+    by auto
+  then show ?case
+    by auto
 next
   case (insert i s)
-  then have "convex_on C f" by simp
+  then have "convex_on C f"
+    by simp
   from this[unfolded convex_on_def, rule_format]
   have conv: "\<And>x y \<mu>. x \<in> C \<Longrightarrow> y \<in> C \<Longrightarrow> 0 \<le> \<mu> \<Longrightarrow> \<mu> \<le> 1 \<Longrightarrow>
       f (\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y) \<le> \<mu> * f x + (1 - \<mu>) * f y"
@@ -593,8 +610,7 @@ next
       unfolding setsum_divide_distrib by simp
     have "convex C" using insert by auto
     then have asum: "(\<Sum> j \<in> s. ?a j *\<^sub>R y j) \<in> C"
-      using insert convex_setsum[OF \<open>finite s\<close>
-        \<open>convex C\<close> a1 a_nonneg] by auto
+      using insert convex_setsum [OF \<open>finite s\<close> \<open>convex C\<close> a1 a_nonneg] by auto
     have asum_le: "f (\<Sum> j \<in> s. ?a j *\<^sub>R y j) \<le> (\<Sum> j \<in> s. ?a j * f (y j))"
       using a_nonneg a1 insert by blast
     have "f (\<Sum> j \<in> insert i s. a j *\<^sub>R y j) = f ((\<Sum> j \<in> s. a j *\<^sub>R y j) + a i *\<^sub>R y i)"
@@ -611,10 +627,12 @@ next
       using conv[of "y i" "(\<Sum> j \<in> s. ?a j *\<^sub>R y j)" "a i", OF yai(1) asum yai(2) ai1]
       by (auto simp: add.commute)
     also have "\<dots> \<le> (1 - a i) * (\<Sum> j \<in> s. ?a j * f (y j)) + a i * f (y i)"
-      using add_right_mono[OF mult_left_mono[of _ _ "1 - a i",
-        OF asum_le less_imp_le[OF i0]], of "a i * f (y i)"] by simp
+      using add_right_mono [OF mult_left_mono [of _ _ "1 - a i",
+            OF asum_le less_imp_le[OF i0]], of "a i * f (y i)"]
+      by simp
     also have "\<dots> = (\<Sum> j \<in> s. (1 - a i) * ?a j * f (y j)) + a i * f (y i)"
-      unfolding setsum_right_distrib[of "1 - a i" "\<lambda> j. ?a j * f (y j)"] using i0 by auto
+      unfolding setsum_right_distrib[of "1 - a i" "\<lambda> j. ?a j * f (y j)"]
+      using i0 by auto
     also have "\<dots> = (\<Sum> j \<in> s. a j * f (y j)) + a i * f (y i)"
       using i0 by auto
     also have "\<dots> = (\<Sum> j \<in> insert i s. a j * f (y j))"
@@ -635,9 +653,9 @@ proof safe
   fix \<mu> :: real
   assume *: "convex_on C f" "x \<in> C" "y \<in> C" "0 \<le> \<mu>" "\<mu> \<le> 1"
   from this[unfolded convex_on_def, rule_format]
-  have "\<And>u v. 0 \<le> u \<Longrightarrow> 0 \<le> v \<Longrightarrow> u + v = 1 \<Longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y"
+  have "0 \<le> u \<Longrightarrow> 0 \<le> v \<Longrightarrow> u + v = 1 \<Longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y" for u v
     by auto
-  from this[of "\<mu>" "1 - \<mu>", simplified] *
+  from this [of "\<mu>" "1 - \<mu>", simplified] *
   show "f (\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y) \<le> \<mu> * f x + (1 - \<mu>) * f y"
     by auto
 next
@@ -701,8 +719,8 @@ proof safe
     using * unfolding convex_alt by fastforce
   have geq: "\<mu> * (f x - f ?x) + (1 - \<mu>) * (f y - f ?x) \<ge>
       \<mu> * f' ?x * (x - ?x) + (1 - \<mu>) * f' ?x * (y - ?x)"
-    using add_mono[OF mult_left_mono[OF leq[OF xpos *(2)] \<open>\<mu> \<ge> 0\<close>]
-      mult_left_mono[OF leq[OF xpos *(3)] \<open>1 - \<mu> \<ge> 0\<close>]]
+    using add_mono [OF mult_left_mono [OF leq [OF xpos *(2)] \<open>\<mu> \<ge> 0\<close>]
+        mult_left_mono [OF leq [OF xpos *(3)] \<open>1 - \<mu> \<ge> 0\<close>]]
     by auto
   then have "\<mu> * f x + (1 - \<mu>) * f y - f ?x \<ge> 0"
     by (auto simp: field_simps)
@@ -728,14 +746,14 @@ proof safe
     have "?\<mu> * x + (1 - ?\<mu>) * y = (y - z) * x / (y - x) + (1 - (y - z) / (y - x)) * y"
       by (auto simp: field_simps)
     also have "\<dots> = ((y - z) * x + (y - x - (y - z)) * y) / (y - x)"
-      using assms unfolding add_divide_distrib by (auto simp: field_simps)
+      using assms by (simp only: add_divide_distrib) (auto simp: field_simps)
     also have "\<dots> = z"
       using assms by (auto simp: field_simps)
     finally show ?thesis
       using comb by auto
   qed
-  show "z \<in> C" using z less assms
-    unfolding atLeastAtMost_iff le_less by auto
+  show "z \<in> C"
+    using z less assms by (auto simp: le_less)
 qed
 
 lemma f''_imp_f':
@@ -744,20 +762,21 @@ lemma f''_imp_f':
     and f': "\<And>x. x \<in> C \<Longrightarrow> DERIV f x :> (f' x)"
     and f'': "\<And>x. x \<in> C \<Longrightarrow> DERIV f' x :> (f'' x)"
     and pos: "\<And>x. x \<in> C \<Longrightarrow> f'' x \<ge> 0"
-    and "x \<in> C" "y \<in> C"
+    and x: "x \<in> C"
+    and y: "y \<in> C"
   shows "f' x * (y - x) \<le> f y - f x"
   using assms
 proof -
-  {
-    fix x y :: real
-    assume *: "x \<in> C" "y \<in> C" "y > x"
-    then have ge: "y - x > 0" "y - x \<ge> 0"
+  have less_imp: "f y - f x \<ge> f' x * (y - x)" "f' y * (x - y) \<le> f x - f y"
+    if *: "x \<in> C" "y \<in> C" "y > x" for x y :: real
+  proof -
+    from * have ge: "y - x > 0" "y - x \<ge> 0"
       by auto
     from * have le: "x - y < 0" "x - y \<le> 0"
       by auto
     then obtain z1 where z1: "z1 > x" "z1 < y" "f y - f x = (y - x) * f' z1"
       using subsetD[OF atMostAtLeast_subset_convex[OF \<open>convex C\<close> \<open>x \<in> C\<close> \<open>y \<in> C\<close> \<open>x < y\<close>],
-        THEN f', THEN MVT2[OF \<open>x < y\<close>, rule_format, unfolded atLeastAtMost_iff[symmetric]]]
+          THEN f', THEN MVT2[OF \<open>x < y\<close>, rule_format, unfolded atLeastAtMost_iff[symmetric]]]
       by auto
     then have "z1 \<in> C"
       using atMostAtLeast_subset_convex \<open>convex C\<close> \<open>x \<in> C\<close> \<open>y \<in> C\<close> \<open>x < y\<close>
@@ -766,11 +785,11 @@ proof -
       by (simp add: field_simps)
     obtain z2 where z2: "z2 > x" "z2 < z1" "f' z1 - f' x = (z1 - x) * f'' z2"
       using subsetD[OF atMostAtLeast_subset_convex[OF \<open>convex C\<close> \<open>x \<in> C\<close> \<open>z1 \<in> C\<close> \<open>x < z1\<close>],
-        THEN f'', THEN MVT2[OF \<open>x < z1\<close>, rule_format, unfolded atLeastAtMost_iff[symmetric]]] z1
+          THEN f'', THEN MVT2[OF \<open>x < z1\<close>, rule_format, unfolded atLeastAtMost_iff[symmetric]]] z1
       by auto
     obtain z3 where z3: "z3 > z1" "z3 < y" "f' y - f' z1 = (y - z1) * f'' z3"
       using subsetD[OF atMostAtLeast_subset_convex[OF \<open>convex C\<close> \<open>z1 \<in> C\<close> \<open>y \<in> C\<close> \<open>z1 < y\<close>],
-        THEN f'', THEN MVT2[OF \<open>z1 < y\<close>, rule_format, unfolded atLeastAtMost_iff[symmetric]]] z1
+          THEN f'', THEN MVT2[OF \<open>z1 < y\<close>, rule_format, unfolded atLeastAtMost_iff[symmetric]]] z1
       by auto
     have "f' y - (f x - f y) / (x - y) = f' y - f' z1"
       using * z1' by auto
@@ -818,22 +837,18 @@ proof -
       by (simp add: algebra_simps)
     then have "f y - f x - f' x * (y - x) \<ge> 0"
       using ge by auto
-    then have "f y - f x \<ge> f' x * (y - x)" "f' y * (x - y) \<le> f x - f y"
+    then show "f y - f x \<ge> f' x * (y - x)" "f' y * (x - y) \<le> f x - f y"
       using res by auto
-  } note less_imp = this
-  {
-    fix x y :: real
-    assume "x \<in> C" "y \<in> C" "x \<noteq> y"
-    then have"f y - f x \<ge> f' x * (y - x)"
-    unfolding neq_iff using less_imp by auto
-  }
-  moreover
-  {
-    fix x y :: real
-    assume "x \<in> C" "y \<in> C" "x = y"
-    then have "f y - f x \<ge> f' x * (y - x)" by auto
-  }
-  ultimately show ?thesis using assms by blast
+  qed
+  show ?thesis
+  proof (cases "x = y")
+    case True
+    with x y show ?thesis by auto
+  next
+    case False
+    with less_imp x y show ?thesis
+      by (auto simp: neq_iff)
+  qed
 qed
 
 lemma f''_ge0_imp_convex:
@@ -855,10 +870,10 @@ proof -
     using DERIV_log by auto
   then have f': "\<And>z. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - log b z) z :> - 1 / (ln b * z)"
     by (auto simp: DERIV_minus)
-  have "\<And>z :: real. z > 0 \<Longrightarrow> DERIV inverse z :> - (inverse z ^ Suc (Suc 0))"
+  have "\<And>z::real. z > 0 \<Longrightarrow> DERIV inverse z :> - (inverse z ^ Suc (Suc 0))"
     using less_imp_neq[THEN not_sym, THEN DERIV_inverse] by auto
   from this[THEN DERIV_cmult, of _ "- 1 / ln b"]
-  have "\<And>z :: real. z > 0 \<Longrightarrow>
+  have "\<And>z::real. z > 0 \<Longrightarrow>
     DERIV (\<lambda> z. (- 1 / ln b) * inverse z) z :> (- 1 / ln b) * (- (inverse z ^ Suc (Suc 0)))"
     by auto
   then have f''0: "\<And>z::real. z > 0 \<Longrightarrow>
@@ -866,9 +881,9 @@ proof -
     unfolding inverse_eq_divide by (auto simp: mult.assoc)
   have f''_ge0: "\<And>z::real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
     using \<open>b > 1\<close> by (auto intro!: less_imp_le)
-  from f''_ge0_imp_convex[OF pos_is_convex,
-    unfolded greaterThan_iff, OF f' f''0 f''_ge0]
-  show ?thesis by auto
+  from f''_ge0_imp_convex[OF pos_is_convex, unfolded greaterThan_iff, OF f' f''0 f''_ge0]
+  show ?thesis
+    by auto
 qed
 
 
@@ -876,45 +891,59 @@ subsection \<open>Convexity of real functions\<close>
 
 lemma convex_on_realI:
   assumes "connected A"
-  assumes "\<And>x. x \<in> A \<Longrightarrow> (f has_real_derivative f' x) (at x)"
-  assumes "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f' x \<le> f' y"
-  shows   "convex_on A f"
+    and "\<And>x. x \<in> A \<Longrightarrow> (f has_real_derivative f' x) (at x)"
+    and "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f' x \<le> f' y"
+  shows "convex_on A f"
 proof (rule convex_on_linorderI)
   fix t x y :: real
-  assume t: "t > 0" "t < 1" and xy: "x \<in> A" "y \<in> A" "x < y"
+  assume t: "t > 0" "t < 1"
+  assume xy: "x \<in> A" "y \<in> A" "x < y"
   define z where "z = (1 - t) * x + t * y"
-  with \<open>connected A\<close> and xy have ivl: "{x..y} \<subseteq> A" using connected_contains_Icc by blast
+  with \<open>connected A\<close> and xy have ivl: "{x..y} \<subseteq> A"
+    using connected_contains_Icc by blast
 
-  from xy t have xz: "z > x" by (simp add: z_def algebra_simps)
-  have "y - z = (1 - t) * (y - x)" by (simp add: z_def algebra_simps)
-  also from xy t have "... > 0" by (intro mult_pos_pos) simp_all
-  finally have yz: "z < y" by simp
+  from xy t have xz: "z > x"
+    by (simp add: z_def algebra_simps)
+  have "y - z = (1 - t) * (y - x)"
+    by (simp add: z_def algebra_simps)
+  also from xy t have "\<dots> > 0"
+    by (intro mult_pos_pos) simp_all
+  finally have yz: "z < y"
+    by simp
 
   from assms xz yz ivl t have "\<exists>\<xi>. \<xi> > x \<and> \<xi> < z \<and> f z - f x = (z - x) * f' \<xi>"
     by (intro MVT2) (auto intro!: assms(2))
-  then obtain \<xi> where \<xi>: "\<xi> > x" "\<xi> < z" "f' \<xi> = (f z - f x) / (z - x)" by auto
+  then obtain \<xi> where \<xi>: "\<xi> > x" "\<xi> < z" "f' \<xi> = (f z - f x) / (z - x)"
+    by auto
   from assms xz yz ivl t have "\<exists>\<eta>. \<eta> > z \<and> \<eta> < y \<and> f y - f z = (y - z) * f' \<eta>"
     by (intro MVT2) (auto intro!: assms(2))
-  then obtain \<eta> where \<eta>: "\<eta> > z" "\<eta> < y" "f' \<eta> = (f y - f z) / (y - z)" by auto
+  then obtain \<eta> where \<eta>: "\<eta> > z" "\<eta> < y" "f' \<eta> = (f y - f z) / (y - z)"
+    by auto
 
   from \<eta>(3) have "(f y - f z) / (y - z) = f' \<eta>" ..
-  also from \<xi> \<eta> ivl have "\<xi> \<in> A" "\<eta> \<in> A" by auto
-  with \<xi> \<eta> have "f' \<eta> \<ge> f' \<xi>" by (intro assms(3)) auto
+  also from \<xi> \<eta> ivl have "\<xi> \<in> A" "\<eta> \<in> A"
+    by auto
+  with \<xi> \<eta> have "f' \<eta> \<ge> f' \<xi>"
+    by (intro assms(3)) auto
   also from \<xi>(3) have "f' \<xi> = (f z - f x) / (z - x)" .
   finally have "(f y - f z) * (z - x) \<ge> (f z - f x) * (y - z)"
     using xz yz by (simp add: field_simps)
-  also have "z - x = t * (y - x)" by (simp add: z_def algebra_simps)
-  also have "y - z = (1 - t) * (y - x)" by (simp add: z_def algebra_simps)
-  finally have "(f y - f z) * t \<ge> (f z - f x) * (1 - t)" using xy by simp
-  thus "(1 - t) * f x + t * f y \<ge> f ((1 - t) *\<^sub>R x + t *\<^sub>R y)"
+  also have "z - x = t * (y - x)"
+    by (simp add: z_def algebra_simps)
+  also have "y - z = (1 - t) * (y - x)"
+    by (simp add: z_def algebra_simps)
+  finally have "(f y - f z) * t \<ge> (f z - f x) * (1 - t)"
+    using xy by simp
+  then show "(1 - t) * f x + t * f y \<ge> f ((1 - t) *\<^sub>R x + t *\<^sub>R y)"
     by (simp add: z_def algebra_simps)
 qed
 
 lemma convex_on_inverse:
   assumes "A \<subseteq> {0<..}"
-  shows   "convex_on A (inverse :: real \<Rightarrow> real)"
+  shows "convex_on A (inverse :: real \<Rightarrow> real)"
 proof (rule convex_on_subset[OF _ assms], intro convex_on_realI[of _ _ "\<lambda>x. -inverse (x^2)"])
-  fix u v :: real assume "u \<in> {0<..}" "v \<in> {0<..}" "u \<le> v"
+  fix u v :: real
+  assume "u \<in> {0<..}" "v \<in> {0<..}" "u \<le> v"
   with assms show "-inverse (u^2) \<le> -inverse (v^2)"
     by (intro le_imp_neg_le le_imp_inverse_le power_mono) (simp_all)
 qed (insert assms, auto intro!: derivative_eq_intros simp: divide_simps power2_eq_square)
@@ -922,40 +951,47 @@ qed (insert assms, auto intro!: derivative_eq_intros simp: divide_simps power2_e
 lemma convex_onD_Icc':
   assumes "convex_on {x..y} f" "c \<in> {x..y}"
   defines "d \<equiv> y - x"
-  shows   "f c \<le> (f y - f x) / d * (c - x) + f x"
-proof (cases y x rule: linorder_cases)
-  assume less: "x < y"
-  hence d: "d > 0" by (simp add: d_def)
+  shows "f c \<le> (f y - f x) / d * (c - x) + f x"
+proof (cases x y rule: linorder_cases)
+  case less
+  then have d: "d > 0"
+    by (simp add: d_def)
   from assms(2) less have A: "0 \<le> (c - x) / d" "(c - x) / d \<le> 1"
     by (simp_all add: d_def divide_simps)
-  have "f c = f (x + (c - x) * 1)" by simp
-  also from less have "1 = ((y - x) / d)" by (simp add: d_def)
+  have "f c = f (x + (c - x) * 1)"
+    by simp
+  also from less have "1 = ((y - x) / d)"
+    by (simp add: d_def)
   also from d have "x + (c - x) * \<dots> = (1 - (c - x) / d) *\<^sub>R x + ((c - x) / d) *\<^sub>R y"
     by (simp add: field_simps)
-  also have "f \<dots> \<le> (1 - (c - x) / d) * f x + (c - x) / d * f y" using assms less
-    by (intro convex_onD_Icc) simp_all
-  also from d have "\<dots> = (f y - f x) / d * (c - x) + f x" by (simp add: field_simps)
+  also have "f \<dots> \<le> (1 - (c - x) / d) * f x + (c - x) / d * f y"
+    using assms less by (intro convex_onD_Icc) simp_all
+  also from d have "\<dots> = (f y - f x) / d * (c - x) + f x"
+    by (simp add: field_simps)
   finally show ?thesis .
 qed (insert assms(2), simp_all)
 
 lemma convex_onD_Icc'':
   assumes "convex_on {x..y} f" "c \<in> {x..y}"
   defines "d \<equiv> y - x"
-  shows   "f c \<le> (f x - f y) / d * (y - c) + f y"
-proof (cases y x rule: linorder_cases)
-  assume less: "x < y"
-  hence d: "d > 0" by (simp add: d_def)
+  shows "f c \<le> (f x - f y) / d * (y - c) + f y"
+proof (cases x y rule: linorder_cases)
+  case less
+  then have d: "d > 0"
+    by (simp add: d_def)
   from assms(2) less have A: "0 \<le> (y - c) / d" "(y - c) / d \<le> 1"
     by (simp_all add: d_def divide_simps)
-  have "f c = f (y - (y - c) * 1)" by simp
-  also from less have "1 = ((y - x) / d)" by (simp add: d_def)
+  have "f c = f (y - (y - c) * 1)"
+    by simp
+  also from less have "1 = ((y - x) / d)"
+    by (simp add: d_def)
   also from d have "y - (y - c) * \<dots> = (1 - (1 - (y - c) / d)) *\<^sub>R x + (1 - (y - c) / d) *\<^sub>R y"
     by (simp add: field_simps)
-  also have "f \<dots> \<le> (1 - (1 - (y - c) / d)) * f x + (1 - (y - c) / d) * f y" using assms less
-    by (intro convex_onD_Icc) (simp_all add: field_simps)
-  also from d have "\<dots> = (f x - f y) / d * (y - c) + f y" by (simp add: field_simps)
+  also have "f \<dots> \<le> (1 - (1 - (y - c) / d)) * f x + (1 - (y - c) / d) * f y"
+    using assms less by (intro convex_onD_Icc) (simp_all add: field_simps)
+  also from d have "\<dots> = (f x - f y) / d * (y - c) + f y"
+    by (simp add: field_simps)
   finally show ?thesis .
 qed (insert assms(2), simp_all)
-
 
 end
