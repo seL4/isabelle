@@ -155,10 +155,10 @@ object Text_Structure
                           case (true, false) => - indent_extra
                           case (false, true) => indent_extra
                         }
-                      line_indent(prev_line) - indent_offset(tok) + indent_brackets + extra
+                      line_indent(prev_line) + indent_brackets + extra - indent_offset(tok)
                     case Some(prev_tok) =>
-                      indent_structure - indent_offset(tok) - indent_offset(prev_tok) +
-                      indent_brackets - indent_indent(prev_tok) + indent_size
+                      indent_structure + indent_brackets + indent_size - indent_offset(tok) -
+                      indent_offset(prev_tok) - indent_indent(prev_tok)
                   }
                }
             }
