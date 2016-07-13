@@ -141,7 +141,9 @@ object Text_Structure
                     keywords.is_before_command(tok) ||
                     keywords.is_command(tok, Keyword.theory)) 0
                 else if (keywords.is_command(tok, Keyword.PRF_SCRIPT == _))
-                  indent_structure + script_indent(range)
+                  (indent_structure + script_indent(range)) max indent_size
+                else if (keywords.is_command(tok, Keyword.proof))
+                  (indent_structure - indent_offset(tok)) max indent_size
                 else if (tok.is_command) indent_structure - indent_offset(tok)
                 else {
                   prev_line_command match {
