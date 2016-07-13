@@ -7,13 +7,13 @@
 section \<open>Algebraic operations on sets\<close>
 
 theory Set_Algebras
-imports Main
+  imports Main
 begin
 
 text \<open>
-  This library lifts operations like addition and multiplication to
-  sets.  It was designed to support asymptotic calculations. See the
-  comments at the top of @{file "BigO.thy"}.
+  This library lifts operations like addition and multiplication to sets. It
+  was designed to support asymptotic calculations. See the comments at the top
+  of @{file "BigO.thy"}.
 \<close>
 
 instantiation set :: (plus) plus
