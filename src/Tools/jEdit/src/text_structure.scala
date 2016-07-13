@@ -122,7 +122,7 @@ object Text_Structure
             nav.reverse_iterator(current_line - 1).scanLeft((0, false))(
               { case ((ind, _), Text.Info(range, tok)) =>
                   val ind1 = ind + indent_indent(tok)
-                  if (tok.is_begin_or_command && !keywords.is_command(tok, Keyword.PRF_SCRIPT == _)) {
+                  if (tok.is_begin_or_command && !keywords.is_command(tok, Keyword.prf_script)) {
                     val line = buffer.getLineOfOffset(range.start)
                     line_head(line) match {
                       case Some(info) if info.info == tok =>
@@ -140,7 +140,7 @@ object Text_Structure
                 if (tok.is_begin ||
                     keywords.is_before_command(tok) ||
                     keywords.is_command(tok, Keyword.theory)) 0
-                else if (keywords.is_command(tok, Keyword.PRF_SCRIPT == _))
+                else if (keywords.is_command(tok, Keyword.prf_script))
                   (indent_structure + script_indent(range)) max indent_size
                 else if (keywords.is_command(tok, Keyword.proof))
                   (indent_structure - indent_offset(tok)) max indent_size
