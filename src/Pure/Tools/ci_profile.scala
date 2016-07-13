@@ -7,6 +7,8 @@ Build profile for continuous integration services.
 package isabelle
 
 
+import java.time._
+import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties}
 
 
@@ -74,6 +76,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 
   final val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
   final val isabelle_id = hg_id(isabelle_home)
+  final val start_time = Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
 
 
   override final def apply(args: List[String]): Unit =
@@ -92,9 +95,11 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         .int.update("threads", threads)
 
     print_section("BUILD")
-    println(s"Build for Isabelle id $isabelle_id")
+    println(s"Build started at $start_time")
+    println(s"Isabelle id $isabelle_id")
     pre_hook(args)
 
+    print_section("LOG")
     val (results, elapsed_time) = build(options)
 
     print_section("TIMING")
