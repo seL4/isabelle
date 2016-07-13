@@ -141,6 +141,8 @@ object Text_Structure
                 if (tok.is_begin ||
                     keywords.is_before_command(tok) ||
                     keywords.is_command(tok, Keyword.theory)) 0
+                else if (keywords.is_command(tok, Keyword.proof_enclose))
+                  indent_structure + script_indent(info) - indent_offset(tok)
                 else if (keywords.is_command(tok, Keyword.proof))
                   (indent_structure + script_indent(info) - indent_offset(tok)) max indent_size
                 else if (tok.is_command) indent_structure - indent_offset(tok)
