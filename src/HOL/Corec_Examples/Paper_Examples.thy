@@ -20,7 +20,7 @@ corec "natsFrom" :: "nat \<Rightarrow> nat stream" where
   "natsFrom n = n \<lhd> natsFrom (n + 1)"
 
 corec (friend) add1 :: "nat stream \<Rightarrow> nat stream"
-where "add1 n = (shd n + 1) \<lhd> add1 (stl n)"
+where "add1 ns = (shd ns + 1) \<lhd> add1 (stl ns)"
 
 corec natsFrom' :: "nat \<Rightarrow> nat stream" where
   "natsFrom' n = n \<lhd> add1 (natsFrom' n)"
