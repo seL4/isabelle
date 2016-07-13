@@ -155,6 +155,7 @@ sig
   val parse_command_timing_properties:
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
   val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
+  val command_indentN: string val command_indent: int -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
   val goalN: string val goal: T
@@ -576,7 +577,12 @@ fun parse_command_timing_properties props =
   | _ => NONE);
 
 
-(* toplevel *)
+(* indentation *)
+
+val (command_indentN, command_indent) = markup_int "command_indent" indentN;
+
+
+(* goals *)
 
 val subgoalsN = "subgoals";
 val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;

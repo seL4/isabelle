@@ -214,12 +214,28 @@ fun proof_status tr st =
     SOME prf => status tr (Proof.status_markup prf)
   | NONE => ());
 
+fun command_indent tr st =
+  (case try Toplevel.proof_of st of
+    SOME prf =>
+      let val keywords = Thy_Header.get_keywords (Proof.theory_of prf) in
+        if Keyword.command_kind keywords (Toplevel.name_of tr) = SOME Keyword.prf_script then
+          (case try Proof.goal prf of
+            SOME {goal, ...} =>
+              let val n = Thm.nprems_of goal
+              in if n > 1 then report tr (Markup.command_indent (n - 1)) else () end
+          | NONE => ())
+        else ()
+      end
+  | NONE => ());
+
+
 fun eval_state keywords span tr ({state, ...}: eval_state) =
   let
     val _ = Thread_Attributes.expose_interrupt ();
 
     val st = reset_state keywords tr state;
 
+    val _ = command_indent tr st;
     val _ = status tr Markup.running;
     val (errs1, result) = run keywords true tr st;
     val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');

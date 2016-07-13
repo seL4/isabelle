@@ -372,7 +372,17 @@ object Markup
   val COMMAND_TIMING = "command_timing"
 
 
-  /* toplevel */
+  /* command indentation */
+
+  object Command_Indent
+  {
+    val name = "command_indent"
+    def unapply(markup: Markup): Option[Int] =
+      if (markup.name == name) Indent.unapply(markup.properties) else None
+  }
+
+
+  /* goals */
 
   val SUBGOALS = "subgoals"
   val PROOF_STATE = "proof_state"

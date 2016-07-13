@@ -52,13 +52,20 @@ object Text_Structure
           val keywords = syntax.keywords
           val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], true)
 
-          def head_token(line: Int): Option[Token] =
-            nav.iterator(line, 1).toStream.headOption.map(_.info)
+          val indent_size = buffer.getIndentSize
+
+
+          def line_indent(line: Int): Int =
+            if (line < 0 || line >= buffer.getLineCount) 0
+            else buffer.getCurrentIndentForLine(line, null)
+
+          def line_head(line: Int): Option[Text.Info[Token]] =
+            nav.iterator(line, 1).toStream.headOption
 
           def head_is_quasi_command(line: Int): Boolean =
-            head_token(line) match {
+            line_head(line) match {
               case None => false
-              case Some(tok) => keywords.is_quasi_command(tok)
+              case Some(Text.Info(_, tok)) => keywords.is_quasi_command(tok)
             }
 
           def prev_command: Option[Token] =
@@ -72,11 +79,24 @@ object Text_Structure
             nav.reverse_iterator(prev_line, 1).map(_.info).takeWhile(tok => !tok.is_command)
 
 
-          def line_indent(line: Int): Int =
-            if (line < 0 || line >= buffer.getLineCount) 0
-            else buffer.getCurrentIndentForLine(line, null)
-
-          val indent_size = buffer.getIndentSize
+          val script_indent: Text.Range => Int =
+          {
+            val opt_rendering: Option[Rendering] =
+              if (PIDE.options.value.bool("jedit_indent_script"))
+                GUI_Thread.now {
+                  (for {
+                    text_area <- JEdit_Lib.jedit_text_areas(buffer)
+                    doc_view <- PIDE.document_view(text_area)
+                  } yield doc_view.get_rendering).toStream.headOption
+                }
+              else None
+            val limit = PIDE.options.value.int("jedit_indent_script_limit")
+            (range: Text.Range) =>
+              opt_rendering match {
+                case Some(rendering) => (rendering.indentation(range) min limit) max 0
+                case None => 0
+              }
+          }
 
           def indent_indent(tok: Token): Int =
             if (keywords.is_command(tok, keyword_open)) indent_size
@@ -102,11 +122,13 @@ object Text_Structure
             nav.reverse_iterator(current_line - 1).scanLeft((0, false))(
               { case ((ind, _), Text.Info(range, tok)) =>
                   val ind1 = ind + indent_indent(tok)
-                  if (tok.is_command) {
+                  if (tok.is_command && !keywords.is_command(tok, Keyword.PRF_SCRIPT == _)) {
                     val line = buffer.getLineOfOffset(range.start)
-                    if (head_token(line) == Some(tok))
-                      (ind1 + indent_offset(tok) + line_indent(line), true)
-                    else (ind1, false)
+                    line_head(line) match {
+                      case Some(info) if info.info == tok =>
+                        (ind1 + indent_offset(tok) + line_indent(line), true)
+                      case _ => (ind1, false)
+                    }
                   }
                   else (ind1, false)
               }).collectFirst({ case (i, true) => i }).getOrElse(0)
@@ -119,12 +141,15 @@ object Text_Structure
               indent_size
 
           val indent =
-            head_token(current_line) match {
+            line_head(current_line) match {
               case None => indent_structure + indent_brackets + indent_extra
-              case Some(tok) =>
+              case Some(Text.Info(range, tok)) =>
                 if (keywords.is_before_command(tok) ||
                     keywords.is_command(tok, Keyword.theory)) indent_begin
-                else if (tok.is_command) indent_structure + indent_begin - indent_offset(tok)
+                else if (keywords.is_command(tok, Keyword.PRF_SCRIPT == _))
+                  indent_structure + script_indent(range)
+                else if (tok.is_command)
+                  indent_structure + indent_begin - indent_offset(tok)
                 else {
                   prev_command match {
                     case None =>
