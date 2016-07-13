@@ -79,7 +79,7 @@ object Text_Structure
             nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_begin_or_command)
 
 
-          val script_indent: Text.Range => Int =
+          val script_indent: Text.Info[Token] => Int =
           {
             val opt_rendering: Option[Rendering] =
               if (PIDE.options.value.bool("jedit_indent_script"))
@@ -91,10 +91,11 @@ object Text_Structure
                 }
               else None
             val limit = PIDE.options.value.int("jedit_indent_script_limit")
-            (range: Text.Range) =>
+            (info: Text.Info[Token]) =>
               opt_rendering match {
-                case Some(rendering) => (rendering.indentation(range) min limit) max 0
-                case None => 0
+                case Some(rendering) if keywords.is_command(info.info, Keyword.prf_script) =>
+                  (rendering.indentation(info.range) min limit) max 0
+                case _ => 0
               }
           }
 
@@ -136,14 +137,12 @@ object Text_Structure
           val indent =
             line_head(current_line) match {
               case None => indent_structure + indent_brackets + indent_extra
-              case Some(Text.Info(range, tok)) =>
+              case Some(info @ Text.Info(range, tok)) =>
                 if (tok.is_begin ||
                     keywords.is_before_command(tok) ||
                     keywords.is_command(tok, Keyword.theory)) 0
-                else if (keywords.is_command(tok, Keyword.prf_script))
-                  (indent_structure + script_indent(range)) max indent_size
                 else if (keywords.is_command(tok, Keyword.proof))
-                  (indent_structure - indent_offset(tok)) max indent_size
+                  (indent_structure + script_indent(info) - indent_offset(tok)) max indent_size
                 else if (tok.is_command) indent_structure - indent_offset(tok)
                 else {
                   prev_line_command match {
