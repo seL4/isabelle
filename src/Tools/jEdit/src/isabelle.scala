@@ -282,9 +282,10 @@ object Isabelle
             val (tokens1, context1) = line_content(line_range.start, caret, context0)
             val (tokens2, _) = line_content(caret, line_range.stop, context1)
 
-            if (tokens1.nonEmpty && tokens1.head.is_command) buffer.indentLine(line, true)
+            if (tokens1.nonEmpty && tokens1.head.is_begin_or_command)
+              buffer.indentLine(line, true)
 
-            if (tokens2.isEmpty || tokens2.head.is_command)
+            if (tokens2.isEmpty || tokens2.head.is_begin_or_command)
               JEdit_Lib.buffer_edit(buffer) {
                 text_area.setSelectedText("\n")
                 if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)

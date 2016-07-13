@@ -263,6 +263,7 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
 
   def is_begin: Boolean = is_keyword("begin")
   def is_end: Boolean = is_command("end")
+  def is_begin_or_command: Boolean = is_begin || is_command
 
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)

@@ -68,15 +68,15 @@ object Text_Structure
               case Some(Text.Info(_, tok)) => keywords.is_quasi_command(tok)
             }
 
-          def prev_command: Option[Token] =
+          def prev_line_command: Option[Token] =
             nav.reverse_iterator(prev_line, 1).
-              collectFirst({ case Text.Info(_, tok) if tok.is_command => tok })
-
-          def prev_span: Iterator[Token] =
-            nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_command)
+              collectFirst({ case Text.Info(_, tok) if tok.is_begin_or_command => tok })
 
           def prev_line_span: Iterator[Token] =
-            nav.reverse_iterator(prev_line, 1).map(_.info).takeWhile(tok => !tok.is_command)
+            nav.reverse_iterator(prev_line, 1).map(_.info).takeWhile(tok => !tok.is_begin_or_command)
+
+          def prev_span: Iterator[Token] =
+            nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_begin_or_command)
 
 
           val script_indent: Text.Range => Int =
@@ -104,7 +104,7 @@ object Text_Structure
             else 0
 
           def indent_offset(tok: Token): Int =
-            if (keywords.is_command(tok, Keyword.proof_enclose) || tok.is_begin) indent_size
+            if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
             else 0
 
           def indent_brackets: Int =
@@ -122,7 +122,7 @@ object Text_Structure
             nav.reverse_iterator(current_line - 1).scanLeft((0, false))(
               { case ((ind, _), Text.Info(range, tok)) =>
                   val ind1 = ind + indent_indent(tok)
-                  if (tok.is_command && !keywords.is_command(tok, Keyword.PRF_SCRIPT == _)) {
+                  if (tok.is_begin_or_command && !keywords.is_command(tok, Keyword.PRF_SCRIPT == _)) {
                     val line = buffer.getLineOfOffset(range.start)
                     line_head(line) match {
                       case Some(info) if info.info == tok =>
@@ -133,25 +133,18 @@ object Text_Structure
                   else (ind1, false)
               }).collectFirst({ case (i, true) => i }).getOrElse(0)
 
-          def nesting(it: Iterator[Token], open: Token => Boolean, close: Token => Boolean): Int =
-            (0 /: it)({ case (d, tok) => if (open(tok)) d + 1 else if (close(tok)) d - 1 else d })
-
-          def indent_begin: Int =
-            (nesting(nav.iterator(current_line - 1, 1).map(_.info), _.is_begin, _.is_end) max 0) *
-              indent_size
-
           val indent =
             line_head(current_line) match {
               case None => indent_structure + indent_brackets + indent_extra
               case Some(Text.Info(range, tok)) =>
-                if (keywords.is_before_command(tok) ||
-                    keywords.is_command(tok, Keyword.theory)) indent_begin
+                if (tok.is_begin ||
+                    keywords.is_before_command(tok) ||
+                    keywords.is_command(tok, Keyword.theory)) 0
                 else if (keywords.is_command(tok, Keyword.PRF_SCRIPT == _))
                   indent_structure + script_indent(range)
-                else if (tok.is_command)
-                  indent_structure + indent_begin - indent_offset(tok)
+                else if (tok.is_command) indent_structure - indent_offset(tok)
                 else {
-                  prev_command match {
+                  prev_line_command match {
                     case None =>
                       val extra =
                         (keywords.is_quasi_command(tok), head_is_quasi_command(prev_line)) match {
