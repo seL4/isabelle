@@ -1081,7 +1081,7 @@ lemma orthogonal_transformation_isometry:
   unfolding orthogonal_transformation
   apply (rule iffI)
   apply clarify
-  apply (clarsimp simp add: linear_0 linear_sub[symmetric] dist_norm)
+  apply (clarsimp simp add: linear_0 linear_diff[symmetric] dist_norm)
   apply (rule conjI)
   apply (rule isometry_linear)
   apply simp

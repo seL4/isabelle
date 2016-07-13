@@ -2170,7 +2170,7 @@ lemma retract_of_locally_compact:
     shows  "\<lbrakk> locally compact s; t retract_of s\<rbrakk> \<Longrightarrow> locally compact t"
   by (metis locally_compact_closedin closedin_retract)
 
-lemma retract_of_times:
+lemma retract_of_Times:
    "\<lbrakk>s retract_of s'; t retract_of t'\<rbrakk> \<Longrightarrow> (s \<times> t) retract_of (s' \<times> t')"
 apply (simp add: retract_of_def retraction_def Sigma_mono, clarify)
 apply (rename_tac f g)
@@ -2187,6 +2187,18 @@ apply (simp add: homotopic_with retract_of_def retraction_def, clarify)
 apply (rule_tac x="r o h" in exI)
 apply (rule conjI continuous_intros | erule continuous_on_subset | force simp: image_subset_iff)+
 done
+
+lemma retract_of_locally_connected:
+  assumes "locally connected T" "S retract_of T"
+    shows "locally connected S"
+  using assms
+  by (auto simp: retract_of_def retraction intro!: retraction_imp_quotient_map elim!: locally_connected_quotient_image)
+
+lemma retract_of_locally_path_connected:
+  assumes "locally path_connected T" "S retract_of T"
+    shows "locally path_connected S"
+  using assms
+  by (auto simp: retract_of_def retraction intro!: retraction_imp_quotient_map elim!: locally_path_connected_quotient_image)
 
 subsection\<open>Borsuk-style characterization of separation\<close>
 
@@ -3351,5 +3363,252 @@ corollary ANR_closed_Un:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>closed S; closed T; ANR S; ANR T; ANR (S \<inter> T)\<rbrakk> \<Longrightarrow> ANR (S \<union> T)"
 by (simp add: ANR_closed_Un_local closedin_def diff_eq open_Compl openin_open_Int)
+
+lemma ANR_openin:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR T" and opeTS: "openin (subtopology euclidean T) S"
+  shows "ANR S"
+proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
+  fix f :: "'a \<times> real \<Rightarrow> 'a" and U C
+  assume contf: "continuous_on C f" and fim: "f ` C \<subseteq> S"
+     and cloUC: "closedin (subtopology euclidean U) C"
+  have "f ` C \<subseteq> T"
+    using fim opeTS openin_imp_subset by blast
+  obtain W g where "C \<subseteq> W"
+               and UW: "openin (subtopology euclidean U) W"
+               and contg: "continuous_on W g"
+               and gim: "g ` W \<subseteq> T"
+               and geq: "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
+    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> contf \<open>f ` C \<subseteq> T\<close> cloUC])
+    using fim by auto
+  show "\<exists>V g. C \<subseteq> V \<and> openin (subtopology euclidean U) V \<and> continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x\<in>C. g x = f x)"
+  proof (intro exI conjI)
+    show "C \<subseteq> {x \<in> W. g x \<in> S}"
+      using \<open>C \<subseteq> W\<close> fim geq by blast
+    show "openin (subtopology euclidean U) {x \<in> W. g x \<in> S}"
+      by (metis (mono_tags, lifting) UW contg continuous_openin_preimage gim opeTS openin_trans)
+    show "continuous_on {x \<in> W. g x \<in> S} g"
+      by (blast intro: continuous_on_subset [OF contg])
+    show "g ` {x \<in> W. g x \<in> S} \<subseteq> S"
+      using gim by blast
+    show "\<forall>x\<in>C. g x = f x"
+      using geq by blast
+  qed
+qed
+
+lemma ENR_openin:
+    fixes S :: "'a::euclidean_space set"
+    assumes "ENR T" and opeTS: "openin (subtopology euclidean T) S"
+    shows "ENR S"
+  using assms apply (simp add: ENR_ANR)
+  using ANR_openin locally_open_subset by blast
+
+lemma ANR_neighborhood_retract:
+    fixes S :: "'a::euclidean_space set"
+    assumes "ANR U" "S retract_of T" "openin (subtopology euclidean U) T"
+    shows "ANR S"
+  using ANR_openin ANR_retract_of_ANR assms by blast
+
+lemma ENR_neighborhood_retract:
+    fixes S :: "'a::euclidean_space set"
+    assumes "ENR U" "S retract_of T" "openin (subtopology euclidean U) T"
+    shows "ENR S"
+  using ENR_openin ENR_retract_of_ENR assms by blast
+
+lemma ANR_rel_interior:
+  fixes S :: "'a::euclidean_space set"
+  shows "ANR S \<Longrightarrow> ANR(rel_interior S)"
+   by (blast intro: ANR_openin openin_set_rel_interior)
+
+lemma ANR_delete:
+  fixes S :: "'a::euclidean_space set"
+  shows "ANR S \<Longrightarrow> ANR(S - {a})"
+   by (blast intro: ANR_openin openin_delete openin_subtopology_self)
+
+lemma ENR_rel_interior:
+  fixes S :: "'a::euclidean_space set"
+  shows "ENR S \<Longrightarrow> ENR(rel_interior S)"
+   by (blast intro: ENR_openin openin_set_rel_interior)
+
+lemma ENR_delete:
+  fixes S :: "'a::euclidean_space set"
+  shows "ENR S \<Longrightarrow> ENR(S - {a})"
+   by (blast intro: ENR_openin openin_delete openin_subtopology_self)
+
+lemma open_imp_ENR: "open S \<Longrightarrow> ENR S"
+    using ENR_def by blast
+
+lemma open_imp_ANR:
+    fixes S :: "'a::euclidean_space set"
+    shows "open S \<Longrightarrow> ANR S"
+  by (simp add: ENR_imp_ANR open_imp_ENR)
+
+lemma ANR_ball [iff]:
+    fixes a :: "'a::euclidean_space"
+    shows "ANR(ball a r)"
+  by (simp add: convex_imp_ANR)
+
+lemma ENR_ball [iff]: "ENR(ball a r)"
+  by (simp add: open_imp_ENR)
+
+lemma AR_ball [simp]:
+    fixes a :: "'a::euclidean_space"
+    shows "AR(ball a r) \<longleftrightarrow> 0 < r"
+  by (auto simp: AR_ANR convex_imp_contractible)
+
+lemma ANR_cball [iff]:
+    fixes a :: "'a::euclidean_space"
+    shows "ANR(cball a r)"
+  by (simp add: convex_imp_ANR)
+
+lemma ENR_cball:
+    fixes a :: "'a::euclidean_space"
+    shows "ENR(cball a r)"
+  using ENR_convex_closed by blast
+
+lemma AR_cball [simp]:
+    fixes a :: "'a::euclidean_space"
+    shows "AR(cball a r) \<longleftrightarrow> 0 \<le> r"
+  by (auto simp: AR_ANR convex_imp_contractible)
+
+lemma ANR_box [iff]:
+    fixes a :: "'a::euclidean_space"
+    shows "ANR(cbox a b)" "ANR(box a b)"
+  by (auto simp: convex_imp_ANR open_imp_ANR)
+
+lemma ENR_box [iff]:
+    fixes a :: "'a::euclidean_space"
+    shows "ENR(cbox a b)" "ENR(box a b)"
+apply (simp add: ENR_convex_closed closed_cbox)
+by (simp add: open_box open_imp_ENR)
+
+lemma AR_box [simp]:
+    "AR(cbox a b) \<longleftrightarrow> cbox a b \<noteq> {}" "AR(box a b) \<longleftrightarrow> box a b \<noteq> {}"
+  by (auto simp: AR_ANR convex_imp_contractible)
+
+lemma ANR_interior:
+     fixes S :: "'a::euclidean_space set"
+     shows "ANR(interior S)"
+  by (simp add: open_imp_ANR)
+
+lemma ENR_interior:
+     fixes S :: "'a::euclidean_space set"
+     shows "ENR(interior S)"
+  by (simp add: open_imp_ENR)
+
+lemma AR_imp_contractible:
+    fixes S :: "'a::euclidean_space set"
+    shows "AR S \<Longrightarrow> contractible S"
+  by (simp add: AR_ANR)
+
+lemma ENR_imp_locally_compact:
+    fixes S :: "'a::euclidean_space set"
+    shows "ENR S \<Longrightarrow> locally compact S"
+  by (simp add: ENR_ANR)
+
+lemma ANR_imp_locally_path_connected:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR S"
+    shows "locally path_connected S"
+proof -
+  obtain U and T :: "('a \<times> real) set"
+     where "convex U" "U \<noteq> {}"
+       and UT: "closedin (subtopology euclidean U) T"
+       and "S homeomorphic T"
+    apply (rule homeomorphic_closedin_convex [of S])
+    using aff_dim_le_DIM [of S] apply auto
+    done
+  have "locally path_connected T"
+    by (meson ANR_imp_absolute_neighbourhood_retract \<open>S homeomorphic T\<close> \<open>closedin (subtopology euclidean U) T\<close> \<open>convex U\<close> assms convex_imp_locally_path_connected locally_open_subset retract_of_locally_path_connected)
+  then have S: "locally path_connected S"
+      if "openin (subtopology euclidean U) V" "T retract_of V" "U \<noteq> {}" for V
+    using \<open>S homeomorphic T\<close> homeomorphic_locally homeomorphic_path_connectedness by blast
+  show ?thesis
+    using assms
+    apply (clarsimp simp: ANR_def)
+    apply (drule_tac x=U in spec)
+    apply (drule_tac x=T in spec)
+    using \<open>S homeomorphic T\<close> \<open>U \<noteq> {}\<close> UT  apply (blast intro: S)
+    done
+qed
+
+lemma ANR_imp_locally_connected:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR S"
+    shows "locally connected S"
+using locally_path_connected_imp_locally_connected ANR_imp_locally_path_connected assms by auto
+
+lemma AR_imp_locally_path_connected:
+  fixes S :: "'a::euclidean_space set"
+  assumes "AR S"
+    shows "locally path_connected S"
+by (simp add: ANR_imp_locally_path_connected AR_imp_ANR assms)
+
+lemma AR_imp_locally_connected:
+  fixes S :: "'a::euclidean_space set"
+  assumes "AR S"
+    shows "locally connected S"
+using ANR_imp_locally_connected AR_ANR assms by blast
+
+lemma ENR_imp_locally_path_connected:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ENR S"
+    shows "locally path_connected S"
+by (simp add: ANR_imp_locally_path_connected ENR_imp_ANR assms)
+
+lemma ENR_imp_locally_connected:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ENR S"
+    shows "locally connected S"
+using ANR_imp_locally_connected ENR_ANR assms by blast
+
+lemma ANR_Times:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "ANR S" "ANR T" shows "ANR(S \<times> T)"
+proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
+  fix f :: " ('a \<times> 'b) \<times> real \<Rightarrow> 'a \<times> 'b" and U C
+  assume "continuous_on C f" and fim: "f ` C \<subseteq> S \<times> T"
+     and cloUC: "closedin (subtopology euclidean U) C"
+  have contf1: "continuous_on C (fst \<circ> f)"
+    by (simp add: \<open>continuous_on C f\<close> continuous_on_fst)
+  obtain W1 g where "C \<subseteq> W1"
+               and UW1: "openin (subtopology euclidean U) W1"
+               and contg: "continuous_on W1 g"
+               and gim: "g ` W1 \<subseteq> S"
+               and geq: "\<And>x. x \<in> C \<Longrightarrow> g x = (fst \<circ> f) x"
+    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> contf1 _ cloUC])
+    using fim apply auto
+    done
+  have contf2: "continuous_on C (snd \<circ> f)"
+    by (simp add: \<open>continuous_on C f\<close> continuous_on_snd)
+  obtain W2 h where "C \<subseteq> W2"
+               and UW2: "openin (subtopology euclidean U) W2"
+               and conth: "continuous_on W2 h"
+               and him: "h ` W2 \<subseteq> T"
+               and heq: "\<And>x. x \<in> C \<Longrightarrow> h x = (snd \<circ> f) x"
+    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> contf2 _ cloUC])
+    using fim apply auto
+    done
+  show "\<exists>V g. C \<subseteq> V \<and>
+               openin (subtopology euclidean U) V \<and>
+               continuous_on V g \<and> g ` V \<subseteq> S \<times> T \<and> (\<forall>x\<in>C. g x = f x)"
+  proof (intro exI conjI)
+    show "C \<subseteq> W1 \<inter> W2"
+      by (simp add: \<open>C \<subseteq> W1\<close> \<open>C \<subseteq> W2\<close>)
+    show "openin (subtopology euclidean U) (W1 \<inter> W2)"
+      by (simp add: UW1 UW2 openin_Int)
+    show  "continuous_on (W1 \<inter> W2) (\<lambda>x. (g x, h x))"
+      by (metis (no_types) contg conth continuous_on_Pair continuous_on_subset inf_commute inf_le1)
+    show  "(\<lambda>x. (g x, h x)) ` (W1 \<inter> W2) \<subseteq> S \<times> T"
+      using gim him by blast
+    show  "(\<forall>x\<in>C. (g x, h x) = f x)"
+      using geq heq by auto
+  qed
+qed
+
+lemma AR_Times:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "AR S" "AR T" shows "AR(S \<times> T)"
+using assms by (simp add: AR_ANR ANR_Times contractible_Times)
 
 end

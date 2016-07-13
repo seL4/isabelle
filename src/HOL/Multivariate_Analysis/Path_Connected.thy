@@ -4411,7 +4411,7 @@ lemma is_interval_contractible_1:
 using contractible_imp_simply_connected convex_imp_contractible is_interval_convex_1 
       is_interval_simply_connected_1 by auto
 
-lemma contractible_times:
+lemma contractible_Times:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes S: "contractible S" and T: "contractible T"
   shows "contractible (S \<times> T)"
@@ -5098,7 +5098,7 @@ proposition locally_path_connected:
           \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v))"
 by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
 
-proposition locally_path_connected_open_path_connected_component:
+proposition locally_path_connected_open_path_component:
   "locally path_connected S \<longleftrightarrow>
    (\<forall>t x. openin (subtopology euclidean S) t \<and> x \<in> t
           \<longrightarrow> openin (subtopology euclidean S) (path_component_set t x))"
@@ -5185,7 +5185,7 @@ next
       done
   qed
   show ?lhs
-    apply (clarsimp simp add: locally_path_connected_open_path_connected_component)
+    apply (clarsimp simp add: locally_path_connected_open_path_component)
     apply (subst openin_subopen)
     apply (blast intro: *)
     done
@@ -5258,6 +5258,190 @@ apply (erule (1) Topology_Euclidean_Space.openE)
 apply (rule_tac x = "S \<inter> ball x e" in exI)
 apply (force simp: convex_Int convex_imp_path_connected)
 done
+
+subsection\<open>Relations between components and path components\<close>
+
+lemma path_component_eq_connected_component:
+  assumes "locally path_connected S"
+    shows "(path_component S x = connected_component S x)"
+proof (cases "x \<in> S")
+  case True
+  have "openin (subtopology euclidean (connected_component_set S x)) (path_component_set S x)"
+    apply (rule openin_subset_trans [of S])
+    apply (intro conjI openin_path_component_locally_path_connected [OF assms])
+    using path_component_subset_connected_component   apply (auto simp: connected_component_subset)
+    done
+  moreover have "closedin (subtopology euclidean (connected_component_set S x)) (path_component_set S x)"
+    apply (rule closedin_subset_trans [of S])
+    apply (intro conjI closedin_path_component_locally_path_connected [OF assms])
+    using path_component_subset_connected_component   apply (auto simp: connected_component_subset)
+    done
+  ultimately have *: "path_component_set S x = connected_component_set S x"
+    by (metis connected_connected_component connected_clopen True path_component_eq_empty)
+  then show ?thesis
+    by blast
+next
+  case False then show ?thesis
+    by (metis Collect_empty_eq_bot connected_component_eq_empty path_component_eq_empty)
+qed
+
+lemma path_component_eq_connected_component_set:
+     "locally path_connected S \<Longrightarrow> (path_component_set S x = connected_component_set S x)"
+by (simp add: path_component_eq_connected_component)
+
+lemma locally_path_connected_path_component:
+     "locally path_connected S \<Longrightarrow> locally path_connected (path_component_set S x)"
+using locally_path_connected_connected_component path_component_eq_connected_component by fastforce
+
+lemma open_path_connected_component:
+  fixes S :: "'a :: real_normed_vector set"
+  shows "open S \<Longrightarrow> path_component S x = connected_component S x"
+by (simp add: path_component_eq_connected_component open_imp_locally_path_connected)
+
+lemma open_path_connected_component_set:
+  fixes S :: "'a :: real_normed_vector set"
+  shows "open S \<Longrightarrow> path_component_set S x = connected_component_set S x"
+by (simp add: open_path_connected_component)
+
+proposition locally_connected_quotient_image:
+  assumes lcS: "locally connected S"
+      and oo: "\<And>T. T \<subseteq> f ` S
+                \<Longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> T} \<longleftrightarrow>
+                    openin (subtopology euclidean (f ` S)) T"
+    shows "locally connected (f ` S)"
+proof (clarsimp simp: locally_connected_open_component)
+  fix U C
+  assume opefSU: "openin (subtopology euclidean (f ` S)) U" and "C \<in> components U"
+  then have "C \<subseteq> U" "U \<subseteq> f ` S"
+    by (meson in_components_subset openin_imp_subset)+
+  then have "openin (subtopology euclidean (f ` S)) C \<longleftrightarrow>
+             openin (subtopology euclidean S) {x \<in> S. f x \<in> C}"
+    by (auto simp: oo)
+  moreover have "openin (subtopology euclidean S) {x \<in> S. f x \<in> C}"
+  proof (subst openin_subopen, clarify)
+    fix x
+    assume "x \<in> S" "f x \<in> C"
+    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> {x \<in> S. f x \<in> C}"
+    proof (intro conjI exI)
+      show "openin (subtopology euclidean S) (connected_component_set {w \<in> S. f w \<in> U} x)"
+      proof (rule ccontr)
+        assume **: "\<not> openin (subtopology euclidean S) (connected_component_set {a \<in> S. f a \<in> U} x)"
+        then have "x \<notin> {a \<in> S. f a \<in> U}"
+          using \<open>U \<subseteq> f ` S\<close> opefSU lcS locally_connected_2 oo by blast
+        with ** show False
+          by (metis (no_types) connected_component_eq_empty empty_iff openin_subopen)
+      qed
+    next
+      show "x \<in> connected_component_set {w \<in> S. f w \<in> U} x"
+        using \<open>C \<subseteq> U\<close> \<open>f x \<in> C\<close> \<open>x \<in> S\<close> by auto
+    next
+      have contf: "continuous_on S f"
+        by (simp add: continuous_on_open oo openin_imp_subset)
+      then have "continuous_on (connected_component_set {w \<in> S. f w \<in> U} x) f"
+        apply (rule continuous_on_subset)
+        using connected_component_subset apply blast
+        done
+      then have "connected (f ` connected_component_set {w \<in> S. f w \<in> U} x)"
+        by (rule connected_continuous_image [OF _ connected_connected_component])
+      moreover have "f ` connected_component_set {w \<in> S. f w \<in> U} x \<subseteq> U"
+        using connected_component_in by blast
+      moreover have "C \<inter> f ` connected_component_set {w \<in> S. f w \<in> U} x \<noteq> {}"
+        using \<open>C \<subseteq> U\<close> \<open>f x \<in> C\<close> \<open>x \<in> S\<close> by fastforce
+      ultimately have fC: "f ` (connected_component_set {w \<in> S. f w \<in> U} x) \<subseteq> C"
+        by (rule components_maximal [OF \<open>C \<in> components U\<close>])
+      have cUC: "connected_component_set {a \<in> S. f a \<in> U} x \<subseteq> {a \<in> S. f a \<in> C}"
+        using connected_component_subset fC by blast
+      have "connected_component_set {w \<in> S. f w \<in> U} x \<subseteq> connected_component_set {w \<in> S. f w \<in> C} x"
+      proof -
+        { assume "x \<in> connected_component_set {a \<in> S. f a \<in> U} x"
+          then have ?thesis
+            by (simp add: cUC connected_component_maximal) }
+        then show ?thesis
+          using connected_component_eq_empty by auto
+      qed
+      also have "... \<subseteq> {w \<in> S. f w \<in> C}"
+        by (rule connected_component_subset)
+      finally show "connected_component_set {w \<in> S. f w \<in> U} x \<subseteq> {x \<in> S. f x \<in> C}" .
+    qed
+  qed
+  ultimately show "openin (subtopology euclidean (f ` S)) C"
+    by metis
+qed
+
+text\<open>The proof resembles that above but is not identical!\<close>
+proposition locally_path_connected_quotient_image:
+  assumes lcS: "locally path_connected S"
+      and oo: "\<And>T. T \<subseteq> f ` S
+                \<Longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> T} \<longleftrightarrow>
+                    openin (subtopology euclidean (f ` S)) T"
+    shows "locally path_connected (f ` S)"
+proof (clarsimp simp: locally_path_connected_open_path_component)
+  fix U y
+  assume opefSU: "openin (subtopology euclidean (f ` S)) U" and "y \<in> U"
+  then have "path_component_set U y \<subseteq> U" "U \<subseteq> f ` S"
+    by (meson path_component_subset openin_imp_subset)+
+  then have "openin (subtopology euclidean (f ` S)) (path_component_set U y) \<longleftrightarrow>
+             openin (subtopology euclidean S) {x \<in> S. f x \<in> path_component_set U y}"
+  proof -
+    have "path_component_set U y \<subseteq> f ` S"
+      using \<open>U \<subseteq> f ` S\<close> \<open>path_component_set U y \<subseteq> U\<close> by blast
+    then show ?thesis
+      using oo by blast
+  qed
+  moreover have "openin (subtopology euclidean S) {x \<in> S. f x \<in> path_component_set U y}"
+  proof (subst openin_subopen, clarify)
+    fix x
+    assume "x \<in> S" and Uyfx: "path_component U y (f x)"
+    then have "f x \<in> U"
+      using path_component_mem by blast
+    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> {x \<in> S. f x \<in> path_component_set U y}"
+    proof (intro conjI exI)
+      show "openin (subtopology euclidean S) (path_component_set {w \<in> S. f w \<in> U} x)"
+      proof (rule ccontr)
+        assume **: "\<not> openin (subtopology euclidean S) (path_component_set {a \<in> S. f a \<in> U} x)"
+        then have "x \<notin> {a \<in> S. f a \<in> U}"
+          by (metis (no_types, lifting) \<open>U \<subseteq> f ` S\<close> opefSU lcS oo locally_path_connected_open_path_component)
+        then show False
+          using ** \<open>path_component_set U y \<subseteq> U\<close>  \<open>x \<in> S\<close> \<open>path_component U y (f x)\<close> by blast
+      qed
+    next
+      show "x \<in> path_component_set {w \<in> S. f w \<in> U} x"
+        by (metis (no_types, lifting) \<open>x \<in> S\<close> IntD2 Int_Collect \<open>path_component U y (f x)\<close> path_component_mem(2) path_component_refl)
+    next
+      have contf: "continuous_on S f"
+        by (simp add: continuous_on_open oo openin_imp_subset)
+      then have "continuous_on (path_component_set {w \<in> S. f w \<in> U} x) f"
+        apply (rule continuous_on_subset)
+        using path_component_subset apply blast
+        done
+      then have "path_connected (f ` path_component_set {w \<in> S. f w \<in> U} x)"
+        by (simp add: path_connected_continuous_image path_connected_path_component)
+      moreover have "f ` path_component_set {w \<in> S. f w \<in> U} x \<subseteq> U"
+        using path_component_mem by fastforce
+      moreover have "f x \<in> f ` path_component_set {w \<in> S. f w \<in> U} x"
+        by (force simp: \<open>x \<in> S\<close> \<open>f x \<in> U\<close> path_component_refl_eq)
+      ultimately have "f ` (path_component_set {w \<in> S. f w \<in> U} x) \<subseteq> path_component_set U (f x)"
+        by (meson path_component_maximal)
+       also have  "... \<subseteq> path_component_set U y"
+        by (simp add: Uyfx path_component_maximal path_component_subset path_component_sym path_connected_path_component)
+      finally have fC: "f ` (path_component_set {w \<in> S. f w \<in> U} x) \<subseteq> path_component_set U y" .
+      have cUC: "path_component_set {a \<in> S. f a \<in> U} x \<subseteq> {a \<in> S. f a \<in> path_component_set U y}"
+        using path_component_subset fC by blast
+      have "path_component_set {w \<in> S. f w \<in> U} x \<subseteq> path_component_set {w \<in> S. f w \<in> path_component_set U y} x"
+      proof -
+        have "\<And>a. path_component_set (path_component_set {a \<in> S. f a \<in> U} x) a \<subseteq> path_component_set {a \<in> S. f a \<in> path_component_set U y} a"
+          using cUC path_component_mono by blast
+        then show ?thesis
+          using path_component_path_component by blast
+      qed
+      also have "... \<subseteq> {w \<in> S. f w \<in> path_component_set U y}"
+        by (rule path_component_subset)
+      finally show "path_component_set {w \<in> S. f w \<in> U} x \<subseteq> {x \<in> S. f x \<in> path_component_set U y}" .
+    qed
+  qed
+  ultimately show "openin (subtopology euclidean (f ` S)) (path_component_set U y)"
+    by metis
+qed
 
 subsection\<open>Components, continuity, openin, closedin\<close>
 

@@ -62,7 +62,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. f x - f y = 0 \<longrightarrow> x - y = 0)"
     by simp
   also have "\<dots> \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. f (x - y) = 0 \<longrightarrow> x - y = 0)"
-    by (simp add: linear_sub[OF lf])
+    by (simp add: linear_diff[OF lf])
   also have "\<dots> \<longleftrightarrow> (\<forall>x \<in> S. f x = 0 \<longrightarrow> x = 0)"
     using \<open>subspace S\<close> subspace_def[of S] subspace_diff[of S] by auto
   finally show ?thesis .
@@ -218,7 +218,7 @@ proof -
     from B(3) x y have x': "x \<in> span B" and y': "y \<in> span B"
       by blast+
     from gxy have th0: "g (x - y) = 0"
-      by (simp add: linear_sub[OF g(1)])
+      by (simp add: linear_diff[OF g(1)])
     have th1: "x - y \<in> span B" using x' y'
       by (metis span_sub)
     have "x = y" using g0[OF th1 th0] by simp
@@ -1103,6 +1103,9 @@ lemma cone_univ[intro, simp]: "cone UNIV"
 
 lemma cone_Inter[intro]: "\<forall>s\<in>f. cone s \<Longrightarrow> cone (\<Inter>f)"
   unfolding cone_def by auto
+
+lemma subspace_imp_cone: "subspace S \<Longrightarrow> cone S"
+  by (simp add: cone_def subspace_mul)
 
 
 subsubsection \<open>Conic hull\<close>
@@ -2969,6 +2972,11 @@ proof -
   then show ?thesis by auto
 qed
 
+lemma aff_dim_negative_iff [simp]:
+  fixes S :: "'n::euclidean_space set"
+  shows "aff_dim S < 0 \<longleftrightarrow>S = {}"
+by (metis aff_dim_empty aff_dim_geq diff_0 eq_iff zle_diff1_eq)
+
 lemma affine_independent_card_dim_diffs:
   fixes S :: "'a :: euclidean_space set"
   assumes "~ affine_dependent S" "a \<in> S"
@@ -3667,6 +3675,10 @@ lemma openin_rel_interior: "openin (subtopology euclidean (affine hull S)) (rel_
   apply blast
   done
 
+lemma openin_set_rel_interior:
+   "openin (subtopology euclidean S) (rel_interior S)"
+by (rule openin_subset_trans [OF openin_rel_interior rel_interior_subset hull_subset])
+
 lemma affine_rel_open:
   fixes S :: "'n::euclidean_space set"
   assumes "affine S"
@@ -3814,6 +3826,40 @@ lemma rel_interior_openin:
    "openin(subtopology euclidean (affine hull s)) s \<Longrightarrow> rel_interior s = s"
 by (simp add: rel_interior_eq)
 
+lemma rel_interior_affine:
+  fixes S :: "'n::euclidean_space set"
+  shows  "affine S \<Longrightarrow> rel_interior S = S"
+using affine_rel_open rel_open_def by auto
+
+lemma rel_interior_eq_closure:
+  fixes S :: "'n::euclidean_space set"
+  shows "rel_interior S = closure S \<longleftrightarrow> affine S"
+proof (cases "S = {}")
+  case True
+ then show ?thesis
+    by auto
+next
+  case False show ?thesis
+  proof
+    assume eq: "rel_interior S = closure S"
+    have "S = {} \<or> S = affine hull S"
+      apply (rule connected_clopen [THEN iffD1, rule_format])
+       apply (simp add: affine_imp_convex convex_connected)
+      apply (rule conjI)
+       apply (metis eq closure_subset openin_rel_interior rel_interior_subset subset_antisym)
+      apply (metis closed_subset closure_subset_eq eq hull_subset rel_interior_subset)
+      done
+    with False have "affine hull S = S"
+      by auto
+    then show "affine S"
+      by (metis affine_hull_eq)
+  next
+    assume "affine S"
+    then show "rel_interior S = closure S"
+      by (simp add: rel_interior_affine affine_closed)
+  qed
+qed
+
 
 subsubsection\<open>Relative interior preserves under linear transformations\<close>
 
@@ -3905,7 +3951,7 @@ proof -
       from y have "norm (x-y) \<le> e1 * e2"
         using cball_def[of x e] dist_norm[of x y] e_def by auto
       moreover have "f x - f y = f (x - y)"
-        using assms linear_sub[of f x y] linear_conv_bounded_linear[of f] by auto
+        using assms linear_diff[of f x y] linear_conv_bounded_linear[of f] by auto
       moreover have "e1 * norm (f (x-y)) \<le> norm (x - y)"
         using e1 by auto
       ultimately have "e1 * norm ((f x)-(f y)) \<le> e1 * e2"
@@ -3949,7 +3995,7 @@ proof -
       with y have "norm (f x - f xy) \<le> e1 * e2"
         using cball_def[of "f x" e] dist_norm[of "f x" y] e_def by auto
       moreover have "f x - f xy = f (x - xy)"
-        using assms linear_sub[of f x xy] linear_conv_bounded_linear[of f] by auto
+        using assms linear_diff[of f x xy] linear_conv_bounded_linear[of f] by auto
       moreover have *: "x - xy \<in> span S"
         using subspace_diff[of "span S" x xy] subspace_span \<open>x \<in> S\<close> xy
           affine_hull_subset_span[of S] span_inc
@@ -7854,6 +7900,13 @@ definition "rel_frontier S = closure S - rel_interior S"
 lemma rel_frontier_empty [simp]: "rel_frontier {} = {}"
   by (simp add: rel_frontier_def)
 
+lemma rel_frontier_eq_empty:
+    fixes S :: "'n::euclidean_space set"
+    shows "rel_frontier S = {} \<longleftrightarrow> affine S"
+  apply (simp add: rel_frontier_def)
+  apply (simp add: rel_interior_eq_closure [symmetric])
+  using rel_interior_subset_closure by blast
+  
 lemma rel_frontier_sing [simp]:
     fixes a :: "'n::euclidean_space"
     shows "rel_frontier {a} = {}"
@@ -7873,7 +7926,12 @@ next
     by (metis centre_in_ball empty_iff frontier_cball frontier_def interior_cball interior_rel_interior_gen rel_frontier_def)
 qed
 
-lemma closed_affine_hull:
+lemma rel_frontier_translation:
+  fixes a :: "'a::euclidean_space"
+  shows "rel_frontier((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (rel_frontier S)"
+by (simp add: rel_frontier_def translation_diff rel_interior_translation closure_translation)
+
+lemma closed_affine_hull [iff]:
   fixes S :: "'n::euclidean_space set"
   shows "closed (affine hull S)"
   by (metis affine_affine_hull affine_closed)
@@ -7888,7 +7946,7 @@ lemma rel_frontier_frontier:
   shows "affine hull S = UNIV \<Longrightarrow> rel_frontier S = frontier S"
 by (simp add: frontier_def rel_frontier_def rel_interior_interior)
 
-lemma closed_rel_frontier:
+lemma closed_rel_frontier [iff]:
   fixes S :: "'n::euclidean_space set"
   shows "closed (rel_frontier S)"
 proof -
@@ -10999,6 +11057,9 @@ subsection\<open>Properties of special hyperplanes\<close>
 lemma subspace_hyperplane: "subspace {x. a \<bullet> x = 0}"
   by (simp add: subspace_def inner_right_distrib)
 
+lemma subspace_hyperplane2: "subspace {x. x \<bullet> a = 0}"
+  by (simp add: inner_commute inner_right_distrib subspace_def)
+
 lemma special_hyperplane_span:
   fixes S :: "'n::euclidean_space set"
   assumes "k \<in> Basis"
@@ -11990,7 +12051,7 @@ lemma subspace_orthogonal_to_vectors: "subspace {y. \<forall>x \<in> S. orthogon
 lemma orthogonal_to_span:
   assumes a: "a \<in> span S" and x: "\<And>y. y \<in> S \<Longrightarrow> orthogonal x y"
     shows "orthogonal x a"
-apply (rule CollectD, rule span_induct [OF a subspace_orthogonal_to_vector])
+apply (rule span_induct [OF a subspace_orthogonal_to_vector])
 apply (simp add: x)
 done
 
@@ -12068,7 +12129,7 @@ proof -
   show ?thesis
     apply (rule_tac U=U in that)
      apply (simp add: \<open>pairwise orthogonal (S \<union> U)\<close>)
-    by (metis \<open>span (S \<union> U) = span (S \<union> B)\<close> \<open>span B = span T\<close> span_union)
+    by (metis \<open>span (S \<union> U) = span (S \<union> B)\<close> \<open>span B = span T\<close> span_Un)
 qed
 
 corollary orthogonal_extension_strong:
@@ -12083,7 +12144,7 @@ proof -
     apply (rule_tac U = "U - (insert 0 S)" in that)
       apply blast
      apply (force simp: pairwise_def)
-    apply (metis (no_types, lifting) Un_Diff_cancel span_insert_0 span_union)
+    apply (metis (no_types, lifting) Un_Diff_cancel span_insert_0 span_Un)
   done
 qed
 
@@ -12306,11 +12367,11 @@ proof -
     have 1: "((\<lambda>x. x - f a) ` f ` T) = {x - f a |x. x \<in> f ` T}"
       by auto
     have 2: "{x - f a| x. x \<in> f ` T} = f ` {x - a| x. x \<in> T}"
-      by (force simp: linear_sub [OF assms])
+      by (force simp: linear_diff [OF assms])
     have "aff_dim (f ` T) = int (dim {x - f a |x. x \<in> f ` T})"
       by (simp add: \<open>a \<in> T\<close> hull_inc aff_dim_eq_dim [of "f a"] 1)
     also have "... = int (dim (f ` {x - a| x. x \<in> T}))"
-      by (force simp: linear_sub [OF assms] 2)
+      by (force simp: linear_diff [OF assms] 2)
     also have "... \<le> int (dim {x - a| x. x \<in> T})"
       by (simp add: dim_image_le [OF assms])
     also have "... \<le> aff_dim T"
@@ -12368,10 +12429,10 @@ proof -
         by (meson span_mono subsetI)
       then have "span (insert y T) \<subseteq> span S"
         by (metis (no_types) \<open>T \<subseteq> span S\<close> subsetD insert_subset span_inc span_mono span_span)
-      with \<open>dim T = n\<close>  \<open>subspace T\<close> span_induct y show ?thesis
+      with \<open>dim T = n\<close>  \<open>subspace T\<close> y show ?thesis
         apply (rule_tac x="span(insert y T)" in exI)
-        apply (auto simp: subspace_span dim_insert)
-        done
+        apply (auto simp: dim_insert)
+        using span_eq by blast
     qed
   qed
   with that show ?thesis by blast

@@ -1128,6 +1128,8 @@ lemma Union_Pow_eq [simp]: "\<Union>(Pow A) = A"
 lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Union>B"
   by (fact Sup_subset_mono)
 
+lemma Union_subsetI: "(\<And>x. x \<in> A \<Longrightarrow> \<exists>y. y \<in> B \<and> x \<subseteq> y) \<Longrightarrow> \<Union>A \<subseteq> \<Union>B"
+  by blast
 
 subsubsection \<open>Unions of families\<close>
 

@@ -146,7 +146,7 @@ lemma linear_neg: "linear f \<Longrightarrow> f (- x) = - f x"
 lemma linear_add: "linear f \<Longrightarrow> f (x + y) = f x + f y"
   by (metis linear_iff)
 
-lemma linear_sub: "linear f \<Longrightarrow> f (x - y) = f x - f y"
+lemma linear_diff: "linear f \<Longrightarrow> f (x - y) = f x - f y"
   using linear_add [of f x "- y"] by (simp add: linear_neg)
 
 lemma linear_setsum:
@@ -177,7 +177,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> (\<forall> x y. f x - f y = 0 \<longrightarrow> x - y = 0)"
     by simp
   also have "\<dots> \<longleftrightarrow> (\<forall> x y. f (x - y) = 0 \<longrightarrow> x - y = 0)"
-    by (simp add: linear_sub[OF lin])
+    by (simp add: linear_diff[OF lin])
   also have "\<dots> \<longleftrightarrow> (\<forall> x. f x = 0 \<longrightarrow> x = 0)"
     by auto
   finally show ?thesis .
@@ -258,7 +258,7 @@ subsection \<open>Properties of span\<close>
 lemma (in real_vector) span_mono: "A \<subseteq> B \<Longrightarrow> span A \<subseteq> span B"
   by (metis span_def hull_mono)
 
-lemma (in real_vector) subspace_span: "subspace (span S)"
+lemma (in real_vector) subspace_span [iff]: "subspace (span S)"
   unfolding span_def
   apply (rule hull_in)
   apply (simp only: subspace_def Inter_iff Int_iff subset_eq)
@@ -284,15 +284,15 @@ lemma span_UNIV: "span UNIV = UNIV"
 
 lemma (in real_vector) span_induct:
   assumes x: "x \<in> span S"
-    and P: "subspace P"
-    and SP: "\<And>x. x \<in> S \<Longrightarrow> x \<in> P"
-  shows "x \<in> P"
+    and P: "subspace (Collect P)"
+    and SP: "\<And>x. x \<in> S \<Longrightarrow> P x"
+  shows "P x"
 proof -
-  from SP have SP': "S \<subseteq> P"
+  from SP have SP': "S \<subseteq> Collect P"
     by (simp add: subset_eq)
   from x hull_minimal[where S=subspace, OF SP' P, unfolded span_def[symmetric]]
-  show "x \<in> P"
-    by (metis subset_eq)
+  show ?thesis
+    using subset_eq by force
 qed
 
 lemma span_empty[simp]: "span {} = {0}"
@@ -385,7 +385,7 @@ proof -
           apply assumption
           apply simp
           done }
-      ultimately show "subspace (span_induct_alt_help S)"
+      ultimately show "subspace {a. a \<in> span_induct_alt_help S}"
         unfolding subspace_def Ball_def by blast
     qed
   }
@@ -501,7 +501,7 @@ lemma spans_image:
   shows "f ` V \<subseteq> span (f ` B)"
   unfolding span_linear_image[OF lf] by (metis VB image_mono)
 
-lemma span_union: "span (A \<union> B) = (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
+lemma span_Un: "span (A \<union> B) = (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
 proof (rule span_unique)
   show "A \<union> B \<subseteq> (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
     by safe (force intro: span_clauses)+
@@ -522,7 +522,7 @@ qed
 lemma span_insert: "span (insert a S) = {x. \<exists>k. (x - k *\<^sub>R a) \<in> span S}"
 proof -
   have "span ({a} \<union> S) = {x. \<exists>k. (x - k *\<^sub>R a) \<in> span S}"
-    unfolding span_union span_singleton
+    unfolding span_Un span_singleton
     apply safe
     apply (rule_tac x=k in exI, simp)
     apply (erule rev_image_eqI [OF SigmaI [OF rangeI]])
@@ -2059,6 +2059,23 @@ proof -
     by (simp only: ac_simps)
 qed
 
+lemma bounded_linear_imp_has_derivative:
+     "bounded_linear f \<Longrightarrow> (f has_derivative f) net"
+  by (simp add: has_derivative_def bounded_linear.linear linear_diff)
+
+lemma linear_imp_has_derivative:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  shows "linear f \<Longrightarrow> (f has_derivative f) net"
+by (simp add: has_derivative_def linear_conv_bounded_linear linear_diff)
+
+lemma bounded_linear_imp_differentiable: "bounded_linear f \<Longrightarrow> f differentiable net"
+  using bounded_linear_imp_has_derivative differentiable_def by blast
+
+lemma linear_imp_differentiable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  shows "linear f \<Longrightarrow> f differentiable net"
+by (metis linear_imp_has_derivative differentiable_def)
+
 
 subsection \<open>We continue.\<close>
 
@@ -2507,7 +2524,7 @@ next
     apply blast
     done
   then have "f x - k*\<^sub>R f a \<in> span (f ` b)"
-    by (simp add: linear_sub[OF lf] linear_cmul[OF lf])
+    by (simp add: linear_diff[OF lf] linear_cmul[OF lf])
   then have th: "-k *\<^sub>R f a \<in> span (f ` b)"
     using "2.prems"(5) by simp
   have xsb: "x \<in> span b"
@@ -2572,7 +2589,7 @@ proof -
     from B(3) x y have x': "x \<in> span B" and y': "y \<in> span B"
       by blast+
     from gxy have th0: "g (x - y) = 0"
-      by (simp add: linear_sub[OF g(1)])
+      by (simp add: linear_diff[OF g(1)])
     have th1: "x - y \<in> span B"
       using x' y' by (metis span_sub)
     have "x = y"

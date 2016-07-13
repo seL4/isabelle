@@ -1012,6 +1012,9 @@ lemma ball_trivial [simp]: "ball x 0 = {}"
 lemma cball_trivial [simp]: "cball x 0 = {x}"
   by (simp add: cball_def)
 
+lemma sphere_trivial [simp]: "sphere x 0 = {x}"
+  by (simp add: sphere_def)
+
 lemma mem_ball_0 [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "x \<in> ball 0 e \<longleftrightarrow> norm x < e"
@@ -2107,6 +2110,11 @@ lemma closedin_subset_trans:
     \<Longrightarrow> closedin (subtopology euclidean T) S"
 by (meson closedin_limpt subset_iff)
 
+lemma openin_subset_trans:
+    "\<lbrakk>openin (subtopology euclidean U) S; S \<subseteq> T; T \<subseteq> U\<rbrakk>
+     \<Longrightarrow> openin (subtopology euclidean T) S"
+  by (auto simp: openin_open)
+
 lemma closedin_Times:
    "\<lbrakk>closedin (subtopology euclidean S) S'; closedin (subtopology euclidean T) T'\<rbrakk>
     \<Longrightarrow> closedin (subtopology euclidean (S \<times> T)) (S' \<times> T')"
@@ -2323,6 +2331,14 @@ definition components:: "'a::topological_space set \<Rightarrow> 'a set set" whe
 
 lemma components_iff: "s \<in> components u \<longleftrightarrow> (\<exists>x. x \<in> u \<and> s = connected_component_set u x)"
   by (auto simp: components_def)
+
+lemma componentsI: "x \<in> u \<Longrightarrow> connected_component_set u x \<in> components u"
+  by (auto simp: components_def)
+
+lemma componentsE:
+  assumes "s \<in> components u"
+  obtains x where "x \<in> u" "s = connected_component_set u x"
+  using assms by (auto simp: components_def)
 
 lemma Union_components [simp]: "\<Union>(components u) = u"
   apply (rule subset_antisym)

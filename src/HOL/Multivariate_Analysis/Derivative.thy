@@ -220,6 +220,71 @@ lemma differentiable_transform_within:
    using assms has_derivative_transform_within unfolding differentiable_def
    by blast
 
+lemma differentiable_on_ident [simp, derivative_intros]: "(\<lambda>x. x) differentiable_on S"
+  by (simp add: differentiable_at_imp_differentiable_on)
+
+lemma differentiable_on_id [simp, derivative_intros]: "id differentiable_on S"
+  by (simp add: id_def)
+
+lemma differentiable_on_compose:
+   "\<lbrakk>g differentiable_on S; f differentiable_on (g ` S)\<rbrakk> \<Longrightarrow> (\<lambda>x. f (g x)) differentiable_on S"
+by (simp add: differentiable_in_compose differentiable_on_def)
+
+lemma bounded_linear_imp_differentiable_on: "bounded_linear f \<Longrightarrow> f differentiable_on S"
+  by (simp add: differentiable_on_def bounded_linear_imp_differentiable)
+
+lemma linear_imp_differentiable_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  shows "linear f \<Longrightarrow> f differentiable_on S"
+by (simp add: differentiable_on_def linear_imp_differentiable)
+
+lemma differentiable_on_minus [simp, derivative_intros]:
+   "f differentiable_on S \<Longrightarrow> (\<lambda>z. -(f z)) differentiable_on S"
+by (simp add: differentiable_on_def)
+
+lemma differentiable_on_add [simp, derivative_intros]:
+   "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) differentiable_on S"
+by (simp add: differentiable_on_def)
+
+lemma differentiable_on_diff [simp, derivative_intros]:
+   "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) differentiable_on S"
+by (simp add: differentiable_on_def)
+
+lemma differentiable_on_inverse [simp, derivative_intros]:
+  fixes f :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
+  shows "f differentiable_on S \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> f x \<noteq> 0) \<Longrightarrow> (\<lambda>x. inverse (f x)) differentiable_on S"
+by (simp add: differentiable_on_def)
+
+lemma differentiable_on_scaleR [derivative_intros, simp]:
+   "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>x. f x *\<^sub>R g x) differentiable_on S"
+  unfolding differentiable_on_def
+  by (blast intro: differentiable_scaleR)
+
+lemma has_derivative_sqnorm_at [derivative_intros, simp]:
+   "((\<lambda>x. (norm x)\<^sup>2) has_derivative (\<lambda>x. 2 *\<^sub>R (a \<bullet> x))) (at a)"
+using has_derivative_bilinear_at [of id id a id id "op  \<bullet>"]
+by (auto simp: inner_commute dot_square_norm bounded_bilinear_inner)
+
+lemma differentiable_sqnorm_at [derivative_intros, simp]:
+  fixes a :: "'a :: {real_normed_vector,real_inner}"
+  shows "(\<lambda>x. (norm x)\<^sup>2) differentiable (at a)"
+by (force simp add: differentiable_def intro: has_derivative_sqnorm_at)
+
+lemma differentiable_on_sqnorm [derivative_intros, simp]:
+  fixes S :: "'a :: {real_normed_vector,real_inner} set"
+  shows "(\<lambda>x. (norm x)\<^sup>2) differentiable_on S"
+by (simp add: differentiable_at_imp_differentiable_on)
+
+lemma differentiable_norm_at [derivative_intros, simp]:
+  fixes a :: "'a :: {real_normed_vector,real_inner}"
+  shows "a \<noteq> 0 \<Longrightarrow> norm differentiable (at a)"
+using differentiableI has_derivative_norm by blast
+
+lemma differentiable_on_norm [derivative_intros, simp]:
+  fixes S :: "'a :: {real_normed_vector,real_inner} set"
+  shows "0 \<notin> S \<Longrightarrow> norm differentiable_on S"
+by (metis differentiable_at_imp_differentiable_on differentiable_norm_at)
+
 
 subsection \<open>Frechet derivative and Jacobian matrix\<close>
 
@@ -1075,7 +1140,7 @@ proof -
      using assms by (auto simp: fun_diff_def)
   from differentiable_bound_segment[OF assms(1) g B] \<open>x0 \<in> S\<close>
   show ?thesis
-    by (simp add: g_def field_simps linear_sub[OF has_derivative_linear[OF f']])
+    by (simp add: g_def field_simps linear_diff[OF has_derivative_linear[OF f']])
 qed
 
 text \<open>In particular.\<close>
@@ -1288,7 +1353,7 @@ lemma has_derivative_inverse_basic_x:
     and "g (f x) = x"
     and "open t"
     and "f x \<in> t"
-    and "\<forall>y\<in>t. f (g y) = y"
+    and "\<forall>y\<in>t. f (g y) = y"    
   shows "(g has_derivative g') (at (f x))"
   apply (rule has_derivative_inverse_basic)
   using assms

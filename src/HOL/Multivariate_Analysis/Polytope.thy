@@ -167,8 +167,8 @@ lemma face_of_imp_compact:
   by (meson bounded_subset compact_eq_bounded_closed face_of_imp_closed face_of_imp_subset)
 
 lemma face_of_Int_subface:
-     "c1 \<inter> c2 face_of c1 \<and> c1 \<inter> c2 face_of c2 \<and> d1 face_of c1 \<and> d2 face_of c2
-      \<Longrightarrow> (d1 \<inter> d2) face_of d1 \<and> (d1 \<inter> d2) face_of d2"
+     "\<lbrakk>A \<inter> B face_of A; A \<inter> B face_of B; C face_of A; D face_of B\<rbrakk>
+      \<Longrightarrow> (C \<inter> D) face_of C \<and> (C \<inter> D) face_of D"
   by (meson face_of_Int_Int face_of_face inf_le1 inf_le2)
 
 lemma subset_of_face_of:
@@ -1101,9 +1101,8 @@ proof (induction n arbitrary: S rule: less_induct)
     proof -
       have "y \<in> span {x. a \<bullet> x = 0}"
         by (metis inf.cobounded2 span_mono subsetCE that)
-      then have "y \<in> {x. a \<bullet> x = 0}"
-        by (rule span_induct [OF _ subspace_hyperplane])
-      then show ?thesis by simp
+      then show ?thesis
+        by (blast intro: span_induct [OF _ subspace_hyperplane])
     qed
     then have "dim (S \<inter> {x. a \<bullet> x = 0}) < n"
       by (metis (no_types) less_ay c subsetD dim_eq_span inf.strict_order_iff

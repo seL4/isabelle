@@ -1254,7 +1254,7 @@ proof -
         next
           assume as': "k  = cbox a b"
           show ?thesis
-            using as' k' q(5) x' by blast 
+            using as' k' q(5) x' by blast
         next
           assume as': "k' = cbox a b"
           show ?thesis
@@ -1739,7 +1739,7 @@ lemma integrable_integral[dest]: "f integrable_on i \<Longrightarrow> (f has_int
   unfolding integrable_on_def integral_def by (metis (mono_tags, lifting) someI_ex)
 
 lemma not_integrable_integral: "~ f integrable_on i \<Longrightarrow> integral i f = 0"
-  unfolding integrable_on_def integral_def by blast 
+  unfolding integrable_on_def integral_def by blast
 
 lemma has_integral_integrable[intro]: "(f has_integral i) s \<Longrightarrow> f integrable_on s"
   unfolding integrable_on_def by auto
@@ -2559,7 +2559,7 @@ lemma has_integral_sub:
   "(f has_integral k) s \<Longrightarrow> (g has_integral l) s \<Longrightarrow>
     ((\<lambda>x. f x - g x) has_integral (k - l)) s"
   using has_integral_add[OF _ has_integral_neg, of f k s g l]
-  by (auto simp: algebra_simps) 
+  by (auto simp: algebra_simps)
 
 lemma integral_0 [simp]:
   "integral s (\<lambda>x::'n::euclidean_space. 0::'m::real_normed_vector) = 0"
@@ -5370,7 +5370,7 @@ lemma negligible_finite[intro]:
   shows "negligible s"
   using assms by (induct s) auto
 
-lemma negligible_unions[intro]:
+lemma negligible_Union[intro]:
   assumes "finite s"
     and "\<forall>t\<in>s. negligible t"
   shows "negligible(\<Union>s)"
@@ -5456,7 +5456,7 @@ proof -
   then show ?thesis
     apply -
     apply (rule negligible_subset[of ?A])
-    apply (rule negligible_unions[OF finite_imageI])
+    apply (rule negligible_Union[OF finite_imageI])
     apply auto
     done
 qed
@@ -8979,7 +8979,7 @@ lemma integrable_union:
   assumes "negligible (A \<inter> B)" "f integrable_on A" "f integrable_on B"
   shows   "f integrable_on (A \<union> B)"
 proof -
-  from assms obtain y z where "(f has_integral y) A" "(f has_integral z) B" 
+  from assms obtain y z where "(f has_integral y) A" "(f has_integral z) B"
      by (auto simp: integrable_on_def)
   from has_integral_union[OF this assms(1)] show ?thesis by (auto simp: integrable_on_def)
 qed
@@ -8999,7 +8999,7 @@ lemma has_integral_unions:
 proof -
   note * = has_integral_restrict_univ[symmetric, of f]
   have **: "negligible (\<Union>((\<lambda>(a,b). a \<inter> b) ` {(a,b). a \<in> t \<and> b \<in> {y. y \<in> t \<and> a \<noteq> y}}))"
-    apply (rule negligible_unions)
+    apply (rule negligible_Union)
     apply (rule finite_imageI)
     apply (rule finite_subset[of _ "t \<times> t"])
     defer
@@ -12254,7 +12254,7 @@ lemma integration_by_parts_interior_strong:
   assumes cont [continuous_intros]: "continuous_on {a..b} f" "continuous_on {a..b} g"
   assumes deriv: "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
                  "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
-  assumes int: "((\<lambda>x. prod (f x) (g' x)) has_integral 
+  assumes int: "((\<lambda>x. prod (f x) (g' x)) has_integral
                   (prod (f b) (g b) - prod (f a) (g a) - y)) {a..b}"
   shows   "((\<lambda>x. prod (f' x) (g x)) has_integral y) {a..b}"
 proof -
@@ -12720,7 +12720,7 @@ qed
 
 subsection \<open>Definite integrals for exponential and power function\<close>
 
-lemma has_integral_exp_minus_to_infinity: 
+lemma has_integral_exp_minus_to_infinity:
   assumes a: "a > 0"
   shows   "((\<lambda>x::real. exp (-a*x)) has_integral exp (-a*c)/a) {c..}"
 proof -
@@ -12728,7 +12728,7 @@ proof -
 
   {
     fix k :: nat assume k: "of_nat k \<ge> c"
-    from k a 
+    from k a
       have "((\<lambda>x. exp (-a*x)) has_integral (-exp (-a*real k)/a - (-exp (-a*c)/a))) {c..real k}"
       by (intro fundamental_theorem_of_calculus)
          (auto intro!: derivative_eq_intros
@@ -12738,7 +12738,7 @@ proof -
   } note has_integral_f = this
 
   have [simp]: "f k = (\<lambda>_. 0)" if "of_nat k < c" for k using that by (auto simp: fun_eq_iff f_def)
-  have integral_f: "integral {c..} (f k) = 
+  have integral_f: "integral {c..} (f k) =
                       (if real k \<ge> c then exp (-a*c)/a - exp (-a*real k)/a else 0)"
     for k using integral_unique[OF has_integral_f[of k]] by simp
 
@@ -12769,8 +12769,8 @@ proof -
       case False
       hence "abs (integral {c..} (f k)) = abs (exp (- (a * c)) / a - exp (- (a * real k)) / a)"
         by (simp add: integral_f)
-      also have "abs (exp (- (a * c)) / a - exp (- (a * real k)) / a) = 
-                   exp (- (a * c)) / a - exp (- (a * real k)) / a" 
+      also have "abs (exp (- (a * c)) / a - exp (- (a * real k)) / a) =
+                   exp (- (a * c)) / a - exp (- (a * real k)) / a"
         using False a by (intro abs_of_nonneg) (simp_all add: field_simps)
       also have "\<dots> \<le> exp (- a * c) / a" using a by simp
       finally show ?thesis .
@@ -12784,7 +12784,7 @@ proof -
   hence "eventually (\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a = integral {c..} (f k)) sequentially"
     by eventually_elim (simp add: integral_f)
   moreover have "(\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
-    by (intro tendsto_intros filterlim_compose[OF exp_at_bot] 
+    by (intro tendsto_intros filterlim_compose[OF exp_at_bot]
           filterlim_tendsto_neg_mult_at_bot[OF tendsto_const] filterlim_real_sequentially)+
        (insert a, simp_all)
   ultimately have "(\<lambda>k. integral {c..} (f k)) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
@@ -12804,9 +12804,9 @@ lemma has_integral_powr_from_0:
 proof (cases "c = 0")
   case False
   define f where "f = (\<lambda>k x. if x \<in> {inverse (of_nat (Suc k))..c} then x powr a else 0)"
-  define F where "F = (\<lambda>k. if inverse (of_nat (Suc k)) \<le> c then 
+  define F where "F = (\<lambda>k. if inverse (of_nat (Suc k)) \<le> c then
                              c powr (a+1)/(a+1) - inverse (real (Suc k)) powr (a+1)/(a+1) else 0)"
-  
+
   {
     fix k :: nat
     have "(f k has_integral F k) {0..c}"
@@ -12818,10 +12818,10 @@ proof (cases "c = 0")
         also note x
         finally have "x > 0" .
       } note x = this
-      hence "((\<lambda>x. x powr a) has_integral c powr (a + 1) / (a + 1) - 
-               inverse (real (Suc k)) powr (a + 1) / (a + 1)) {inverse (real (Suc k))..c}" 
+      hence "((\<lambda>x. x powr a) has_integral c powr (a + 1) / (a + 1) -
+               inverse (real (Suc k)) powr (a + 1) / (a + 1)) {inverse (real (Suc k))..c}"
         using True a by (intro fundamental_theorem_of_calculus)
-           (auto intro!: derivative_eq_intros continuous_on_powr' continuous_on_const 
+           (auto intro!: derivative_eq_intros continuous_on_powr' continuous_on_const
              continuous_on_id simp: has_field_derivative_iff_has_vector_derivative [symmetric])
       with True show ?thesis unfolding f_def F_def by (subst has_integral_restrict) simp_all
     next
@@ -12830,9 +12830,9 @@ proof (cases "c = 0")
     qed
   } note has_integral_f = this
   have integral_f: "integral {0..c} (f k) = F k" for k
-    using has_integral_f[of k] by (rule integral_unique) 
-  
-  have A: "(\<lambda>x. x powr a) integrable_on {0..c} \<and> 
+    using has_integral_f[of k] by (rule integral_unique)
+
+  have A: "(\<lambda>x. x powr a) integrable_on {0..c} \<and>
            (\<lambda>k. integral {0..c} (f k)) \<longlonglongrightarrow> integral {0..c} (\<lambda>x. x powr a)"
   proof (intro monotone_convergence_increasing ballI allI)
     fix k from has_integral_f[of k] show "f k integrable_on {0..c}"
@@ -12863,7 +12863,7 @@ proof (cases "c = 0")
       fix k
       from a have "F k \<le> c powr (a + 1) / (a + 1)"
         by (auto simp add: F_def divide_simps)
-      also from a have "F k \<ge> 0" 
+      also from a have "F k \<ge> 0"
         by (auto simp: F_def divide_simps simp del: of_nat_Suc intro!: powr_mono2)
       hence "F k = abs (F k)" by simp
       finally have "abs (F k) \<le>  c powr (a + 1) / (a + 1)" .

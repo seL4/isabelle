@@ -1439,7 +1439,8 @@ proof -
   show ?thesis by (auto intro: order_less_imp_le)
 qed
 
-lemma linear: "linear f" ..
+lemma linear: "linear f" 
+  by (fact local.linear_axioms)
 
 end
 

@@ -293,5 +293,15 @@ instance
 
 end
 
+lemma ANR_interval [iff]:
+    fixes a :: "'a::ordered_euclidean_space"
+    shows "ANR{a..b}"
+by (simp add: interval_cbox)
+
+lemma ENR_interval [iff]:
+    fixes a :: "'a::ordered_euclidean_space"
+    shows "ENR{a..b}"
+  by (auto simp: interval_cbox)
+
 end
 
