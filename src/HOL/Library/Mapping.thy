@@ -74,11 +74,11 @@ proof
       (\<lambda>k. if k < length xs then Some (xs ! k) else None)
       (\<lambda>k. if k < length ys then Some (ys ! k) else None)"
     apply induct
-    apply auto
+     apply auto
     unfolding rel_fun_def
     apply clarsimp
     apply (case_tac xa)
-    apply (auto dest: list_all2_lengthD list_all2_nthD)
+     apply (auto dest: list_all2_lengthD list_all2_nthD)
     done
 qed
 
