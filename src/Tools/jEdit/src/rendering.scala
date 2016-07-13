@@ -137,6 +137,9 @@ object Rendering
 
   /* markup elements */
 
+  private val indentation_elements =
+    Markup.Elements(Markup.Command_Indent.name)
+
   private val semantic_completion_elements =
     Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
@@ -293,6 +296,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val markdown_item_color2 = color_value("markdown_item_color2")
   val markdown_item_color3 = color_value("markdown_item_color3")
   val markdown_item_color4 = color_value("markdown_item_color4")
+
+
+  /* indentation */
+
+  def indentation(range: Text.Range): Int =
+    snapshot.select(range, Rendering.indentation_elements, _ =>
+      {
+        case Text.Info(_, XML.Elem(Markup.Command_Indent(i), _)) => Some(i)
+        case _ => None
+      }).headOption.map(_.info).getOrElse(0)
 
 
   /* completion */

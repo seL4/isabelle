@@ -26,13 +26,13 @@ object Text_Structure
     def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
-      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
+      if (comments) it.filterNot(_.info.is_space) else it.filterNot(_.info.is_improper)
     }
 
     def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
-      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
+      if (comments) it.filterNot(_.info.is_space) else it.filterNot(_.info.is_improper)
     }
   }
 
@@ -52,31 +52,52 @@ object Text_Structure
           val keywords = syntax.keywords
           val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], true)
 
-          def head_token(line: Int): Option[Token] =
-            nav.iterator(line, 1).toStream.headOption.map(_.info)
-
-          def head_is_quasi_command(line: Int): Boolean =
-            head_token(line) match {
-              case None => false
-              case Some(tok) => keywords.is_quasi_command(tok)
-            }
-
-          def prev_command: Option[Token] =
-            nav.reverse_iterator(prev_line, 1).
-              collectFirst({ case Text.Info(_, tok) if tok.is_command => tok })
-
-          def prev_span: Iterator[Token] =
-            nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_command)
-
-          def prev_line_span: Iterator[Token] =
-            nav.reverse_iterator(prev_line, 1).map(_.info).takeWhile(tok => !tok.is_command)
+          val indent_size = buffer.getIndentSize
 
 
           def line_indent(line: Int): Int =
             if (line < 0 || line >= buffer.getLineCount) 0
             else buffer.getCurrentIndentForLine(line, null)
 
-          val indent_size = buffer.getIndentSize
+          def line_head(line: Int): Option[Text.Info[Token]] =
+            nav.iterator(line, 1).toStream.headOption
+
+          def head_is_quasi_command(line: Int): Boolean =
+            line_head(line) match {
+              case None => false
+              case Some(Text.Info(_, tok)) => keywords.is_quasi_command(tok)
+            }
+
+          def prev_line_command: Option[Token] =
+            nav.reverse_iterator(prev_line, 1).
+              collectFirst({ case Text.Info(_, tok) if tok.is_begin_or_command => tok })
+
+          def prev_line_span: Iterator[Token] =
+            nav.reverse_iterator(prev_line, 1).map(_.info).takeWhile(tok => !tok.is_begin_or_command)
+
+          def prev_span: Iterator[Token] =
+            nav.reverse_iterator(prev_line).map(_.info).takeWhile(tok => !tok.is_begin_or_command)
+
+
+          val script_indent: Text.Info[Token] => Int =
+          {
+            val opt_rendering: Option[Rendering] =
+              if (PIDE.options.value.bool("jedit_indent_script"))
+                GUI_Thread.now {
+                  (for {
+                    text_area <- JEdit_Lib.jedit_text_areas(buffer)
+                    doc_view <- PIDE.document_view(text_area)
+                  } yield doc_view.get_rendering).toStream.headOption
+                }
+              else None
+            val limit = PIDE.options.value.int("jedit_indent_script_limit")
+            (info: Text.Info[Token]) =>
+              opt_rendering match {
+                case Some(rendering) if keywords.is_command(info.info, Keyword.prf_script) =>
+                  (rendering.indentation(info.range) min limit) max 0
+                case _ => 0
+              }
+          }
 
           def indent_indent(tok: Token): Int =
             if (keywords.is_command(tok, keyword_open)) indent_size
@@ -84,8 +105,23 @@ object Text_Structure
             else 0
 
           def indent_offset(tok: Token): Int =
-            if (keywords.is_command(tok, Keyword.proof_enclose) || tok.is_begin) indent_size
+            if (keywords.is_command(tok, Keyword.proof_enclose)) indent_size
             else 0
+
+          def indent_structure: Int =
+            nav.reverse_iterator(current_line - 1).scanLeft((0, false))(
+              { case ((ind, _), Text.Info(range, tok)) =>
+                  val ind1 = ind + indent_indent(tok)
+                  if (tok.is_begin_or_command && !keywords.is_command(tok, Keyword.prf_script)) {
+                    val line = buffer.getLineOfOffset(range.start)
+                    line_head(line) match {
+                      case Some(info) if info.info == tok =>
+                        (ind1 + indent_offset(tok) + line_indent(line), true)
+                      case _ => (ind1, false)
+                    }
+                  }
+                  else (ind1, false)
+              }).collectFirst({ case (i, true) => i }).getOrElse(0)
 
           def indent_brackets: Int =
             (0 /: prev_line_span)(
@@ -98,35 +134,20 @@ object Text_Structure
             if (prev_span.exists(keywords.is_quasi_command(_))) indent_size
             else 0
 
-          def indent_structure: Int =
-            nav.reverse_iterator(current_line - 1).scanLeft((0, false))(
-              { case ((ind, _), Text.Info(range, tok)) =>
-                  val ind1 = ind + indent_indent(tok)
-                  if (tok.is_command) {
-                    val line = buffer.getLineOfOffset(range.start)
-                    if (head_token(line) == Some(tok))
-                      (ind1 + indent_offset(tok) + line_indent(line), true)
-                    else (ind1, false)
-                  }
-                  else (ind1, false)
-              }).collectFirst({ case (i, true) => i }).getOrElse(0)
-
-          def nesting(it: Iterator[Token], open: Token => Boolean, close: Token => Boolean): Int =
-            (0 /: it)({ case (d, tok) => if (open(tok)) d + 1 else if (close(tok)) d - 1 else d })
-
-          def indent_begin: Int =
-            (nesting(nav.iterator(current_line - 1, 1).map(_.info), _.is_begin, _.is_end) max 0) *
-              indent_size
-
           val indent =
-            head_token(current_line) match {
+            line_head(current_line) match {
               case None => indent_structure + indent_brackets + indent_extra
-              case Some(tok) =>
-                if (keywords.is_before_command(tok) ||
-                    keywords.is_command(tok, Keyword.theory)) indent_begin
-                else if (tok.is_command) indent_structure + indent_begin - indent_offset(tok)
+              case Some(info @ Text.Info(range, tok)) =>
+                if (tok.is_begin ||
+                    keywords.is_before_command(tok) ||
+                    keywords.is_command(tok, Keyword.theory)) 0
+                else if (keywords.is_command(tok, Keyword.proof_enclose))
+                  indent_structure + script_indent(info) - indent_offset(tok)
+                else if (keywords.is_command(tok, Keyword.proof))
+                  (indent_structure + script_indent(info) - indent_offset(tok)) max indent_size
+                else if (tok.is_command) indent_structure - indent_offset(tok)
                 else {
-                  prev_command match {
+                  prev_line_command match {
                     case None =>
                       val extra =
                         (keywords.is_quasi_command(tok), head_is_quasi_command(prev_line)) match {
@@ -134,10 +155,10 @@ object Text_Structure
                           case (true, false) => - indent_extra
                           case (false, true) => indent_extra
                         }
-                      line_indent(prev_line) - indent_offset(tok) + indent_brackets + extra
+                      line_indent(prev_line) + indent_brackets + extra - indent_offset(tok)
                     case Some(prev_tok) =>
-                      indent_structure - indent_offset(tok) - indent_offset(prev_tok) +
-                      indent_brackets - indent_indent(prev_tok) + indent_size
+                      indent_structure + indent_brackets + indent_size - indent_offset(tok) -
+                      indent_offset(prev_tok) - indent_indent(prev_tok)
                   }
                }
             }
