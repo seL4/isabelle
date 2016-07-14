@@ -9,61 +9,68 @@ imports Main
 begin
 
 lemma cInf_abs_ge:
-  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
-  assumes "S \<noteq> {}" and bdd: "\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a"
+  fixes S :: "'a::{linordered_idom,conditionally_complete_linorder} set"
+  assumes "S \<noteq> {}"
+    and bdd: "\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a"
   shows "\<bar>Inf S\<bar> \<le> a"
 proof -
   have "Sup (uminus ` S) = - (Inf S)"
   proof (rule antisym)
-    show "- (Inf S) \<le> Sup(uminus ` S)"
+    show "- (Inf S) \<le> Sup (uminus ` S)"
       apply (subst minus_le_iff)
       apply (rule cInf_greatest [OF \<open>S \<noteq> {}\<close>])
       apply (subst minus_le_iff)
-      apply (rule cSup_upper, force)
-      using bdd apply (force simp add: abs_le_iff bdd_above_def)
+      apply (rule cSup_upper)
+       apply force
+      using bdd
+      apply (force simp: abs_le_iff bdd_above_def)
       done
   next
     show "Sup (uminus ` S) \<le> - Inf S"
       apply (rule cSup_least)
-       using \<open>S \<noteq> {}\<close> apply (force simp add: )
+      using \<open>S \<noteq> {}\<close>
+       apply force
       apply clarsimp
       apply (rule cInf_lower)
-      apply assumption
-      using bdd apply (simp add: bdd_below_def)
-      apply (rule_tac x="-a" in exI)
+       apply assumption
+      using bdd
+      apply (simp add: bdd_below_def)
+      apply (rule_tac x = "- a" in exI)
       apply force
       done
   qed
-  with cSup_abs_le [of "uminus ` S"] assms show ?thesis by fastforce
+  with cSup_abs_le [of "uminus ` S"] assms show ?thesis
+    by fastforce
 qed
 
 lemma cSup_asclose:
-  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  fixes S :: "'a::{linordered_idom,conditionally_complete_linorder} set"
   assumes S: "S \<noteq> {}"
     and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
   shows "\<bar>Sup S - l\<bar> \<le> e"
 proof -
-  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
+  have *: "\<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e" for x l e :: 'a
     by arith
   have "bdd_above S"
     using b by (auto intro!: bdd_aboveI[of _ "l + e"])
   with S b show ?thesis
-    unfolding th by (auto intro!: cSup_upper2 cSup_least)
+    unfolding * by (auto intro!: cSup_upper2 cSup_least)
 qed
 
 lemma cInf_asclose:
-  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  fixes S :: "'a::{linordered_idom,conditionally_complete_linorder} set"
   assumes S: "S \<noteq> {}"
     and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
   shows "\<bar>Inf S - l\<bar> \<le> e"
 proof -
-  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
+  have *: "\<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e" for x l e :: 'a
     by arith
   have "bdd_below S"
     using b by (auto intro!: bdd_belowI[of _ "l - e"])
   with S b show ?thesis
-    unfolding th by (auto intro!: cInf_lower2 cInf_greatest)
+    unfolding * by (auto intro!: cInf_lower2 cInf_greatest)
 qed
+
 
 subsection \<open>Class of Archimedean fields\<close>
 
@@ -72,36 +79,41 @@ text \<open>Archimedean fields have no infinite elements.\<close>
 class archimedean_field = linordered_field +
   assumes ex_le_of_int: "\<exists>z. x \<le> of_int z"
 
-lemma ex_less_of_int:
-  fixes x :: "'a::archimedean_field" shows "\<exists>z. x < of_int z"
+lemma ex_less_of_int: "\<exists>z. x < of_int z"
+  for x :: "'a::archimedean_field"
 proof -
   from ex_le_of_int obtain z where "x \<le> of_int z" ..
   then have "x < of_int (z + 1)" by simp
   then show ?thesis ..
 qed
 
-lemma ex_of_int_less:
-  fixes x :: "'a::archimedean_field" shows "\<exists>z. of_int z < x"
+lemma ex_of_int_less: "\<exists>z. of_int z < x"
+  for x :: "'a::archimedean_field"
 proof -
   from ex_less_of_int obtain z where "- x < of_int z" ..
   then have "of_int (- z) < x" by simp
   then show ?thesis ..
 qed
 
-lemma reals_Archimedean2:
-  fixes x :: "'a::archimedean_field" shows "\<exists>n. x < of_nat n"
+lemma reals_Archimedean2: "\<exists>n. x < of_nat n"
+  for x :: "'a::archimedean_field"
 proof -
-  obtain z where "x < of_int z" using ex_less_of_int ..
-  also have "\<dots> \<le> of_int (int (nat z))" by simp
-  also have "\<dots> = of_nat (nat z)" by (simp only: of_int_of_nat_eq)
+  obtain z where "x < of_int z"
+    using ex_less_of_int ..
+  also have "\<dots> \<le> of_int (int (nat z))"
+    by simp
+  also have "\<dots> = of_nat (nat z)"
+    by (simp only: of_int_of_nat_eq)
   finally show ?thesis ..
 qed
 
-lemma real_arch_simple:
-  fixes x :: "'a::archimedean_field" shows "\<exists>n. x \<le> of_nat n"
+lemma real_arch_simple: "\<exists>n. x \<le> of_nat n"
+  for x :: "'a::archimedean_field"
 proof -
-  obtain n where "x < of_nat n" using reals_Archimedean2 ..
-  then have "x \<le> of_nat n" by simp
+  obtain n where "x < of_nat n"
+    using reals_Archimedean2 ..
+  then have "x \<le> of_nat n"
+    by simp
   then show ?thesis ..
 qed
 
@@ -109,7 +121,8 @@ text \<open>Archimedean fields have no infinitesimal elements.\<close>
 
 lemma reals_Archimedean:
   fixes x :: "'a::archimedean_field"
-  assumes "0 < x" shows "\<exists>n. inverse (of_nat (Suc n)) < x"
+  assumes "0 < x"
+  shows "\<exists>n. inverse (of_nat (Suc n)) < x"
 proof -
   from \<open>0 < x\<close> have "0 < inverse x"
     by (rule positive_imp_inverse_positive)
@@ -126,15 +139,19 @@ qed
 
 lemma ex_inverse_of_nat_less:
   fixes x :: "'a::archimedean_field"
-  assumes "0 < x" shows "\<exists>n>0. inverse (of_nat n) < x"
+  assumes "0 < x"
+  shows "\<exists>n>0. inverse (of_nat n) < x"
   using reals_Archimedean [OF \<open>0 < x\<close>] by auto
 
 lemma ex_less_of_nat_mult:
   fixes x :: "'a::archimedean_field"
-  assumes "0 < x" shows "\<exists>n. y < of_nat n * x"
+  assumes "0 < x"
+  shows "\<exists>n. y < of_nat n * x"
 proof -
-  obtain n where "y / x < of_nat n" using reals_Archimedean2 ..
-  with \<open>0 < x\<close> have "y < of_nat n * x" by (simp add: pos_divide_less_eq)
+  obtain n where "y / x < of_nat n"
+    using reals_Archimedean2 ..
+  with \<open>0 < x\<close> have "y < of_nat n * x"
+    by (simp add: pos_divide_less_eq)
   then show ?thesis ..
 qed
 
@@ -145,11 +162,14 @@ lemma exists_least_lemma:
   assumes "\<not> P 0" and "\<exists>n. P n"
   shows "\<exists>n. \<not> P n \<and> P (Suc n)"
 proof -
-  from \<open>\<exists>n. P n\<close> have "P (Least P)" by (rule LeastI_ex)
+  from \<open>\<exists>n. P n\<close> have "P (Least P)"
+    by (rule LeastI_ex)
   with \<open>\<not> P 0\<close> obtain n where "Least P = Suc n"
     by (cases "Least P") auto
-  then have "n < Least P" by simp
-  then have "\<not> P n" by (rule not_less_Least)
+  then have "n < Least P"
+    by simp
+  then have "\<not> P n"
+    by (rule not_less_Least)
   then have "\<not> P n \<and> P (Suc n)"
     using \<open>P (Least P)\<close> \<open>Least P = Suc n\<close> by simp
   then show ?thesis ..
@@ -158,37 +178,40 @@ qed
 lemma floor_exists:
   fixes x :: "'a::archimedean_field"
   shows "\<exists>z. of_int z \<le> x \<and> x < of_int (z + 1)"
-proof (cases)
-  assume "0 \<le> x"
-  then have "\<not> x < of_nat 0" by simp
+proof (cases "0 \<le> x")
+  case True
+  then have "\<not> x < of_nat 0"
+    by simp
   then have "\<exists>n. \<not> x < of_nat n \<and> x < of_nat (Suc n)"
     using reals_Archimedean2 by (rule exists_least_lemma)
   then obtain n where "\<not> x < of_nat n \<and> x < of_nat (Suc n)" ..
-  then have "of_int (int n) \<le> x \<and> x < of_int (int n + 1)" by simp
+  then have "of_int (int n) \<le> x \<and> x < of_int (int n + 1)"
+    by simp
   then show ?thesis ..
 next
-  assume "\<not> 0 \<le> x"
-  then have "\<not> - x \<le> of_nat 0" by simp
+  case False
+  then have "\<not> - x \<le> of_nat 0"
+    by simp
   then have "\<exists>n. \<not> - x \<le> of_nat n \<and> - x \<le> of_nat (Suc n)"
     using real_arch_simple by (rule exists_least_lemma)
   then obtain n where "\<not> - x \<le> of_nat n \<and> - x \<le> of_nat (Suc n)" ..
-  then have "of_int (- int n - 1) \<le> x \<and> x < of_int (- int n - 1 + 1)" by simp
+  then have "of_int (- int n - 1) \<le> x \<and> x < of_int (- int n - 1 + 1)"
+    by simp
   then show ?thesis ..
 qed
 
-lemma floor_exists1:
-  fixes x :: "'a::archimedean_field"
-  shows "\<exists>!z. of_int z \<le> x \<and> x < of_int (z + 1)"
+lemma floor_exists1: "\<exists>!z. of_int z \<le> x \<and> x < of_int (z + 1)"
+  for x :: "'a::archimedean_field"
 proof (rule ex_ex1I)
   show "\<exists>z. of_int z \<le> x \<and> x < of_int (z + 1)"
     by (rule floor_exists)
 next
-  fix y z assume
-    "of_int y \<le> x \<and> x < of_int (y + 1)"
-    "of_int z \<le> x \<and> x < of_int (z + 1)"
+  fix y z
+  assume "of_int y \<le> x \<and> x < of_int (y + 1)"
+    and "of_int z \<le> x \<and> x < of_int (z + 1)"
   with le_less_trans [of "of_int y" "x" "of_int (z + 1)"]
-       le_less_trans [of "of_int z" "x" "of_int (y + 1)"]
-  show "y = z" by (simp del: of_int_add)
+       le_less_trans [of "of_int z" "x" "of_int (y + 1)"] show "y = z"
+    by (simp del: of_int_add)
 qed
 
 
@@ -198,13 +221,12 @@ class floor_ceiling = archimedean_field +
   fixes floor :: "'a \<Rightarrow> int"  ("\<lfloor>_\<rfloor>")
   assumes floor_correct: "of_int \<lfloor>x\<rfloor> \<le> x \<and> x < of_int (\<lfloor>x\<rfloor> + 1)"
 
-lemma floor_unique: "\<lbrakk>of_int z \<le> x; x < of_int z + 1\<rbrakk> \<Longrightarrow> \<lfloor>x\<rfloor> = z"
+lemma floor_unique: "of_int z \<le> x \<Longrightarrow> x < of_int z + 1 \<Longrightarrow> \<lfloor>x\<rfloor> = z"
   using floor_correct [of x] floor_exists1 [of x] by auto
 
-lemma floor_unique_iff:
-  fixes x :: "'a::floor_ceiling"
-  shows  "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
-using floor_correct floor_unique by auto
+lemma floor_unique_iff: "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
+  for x :: "'a::floor_ceiling"
+  using floor_correct floor_unique by auto
 
 lemma of_int_floor_le [simp]: "of_int \<lfloor>x\<rfloor> \<le> x"
   using floor_correct ..
@@ -254,7 +276,8 @@ lemma floor_of_nat [simp]: "\<lfloor>of_nat n\<rfloor> = int n"
 lemma le_floor_add: "\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> \<le> \<lfloor>x + y\<rfloor>"
   by (simp only: le_floor_iff of_int_add add_mono of_int_floor_le)
 
-text \<open>Floor with numerals\<close>
+
+text \<open>Floor with numerals.\<close>
 
 lemma floor_zero [simp]: "\<lfloor>0\<rfloor> = 0"
   using floor_of_int [of 0] by simp
@@ -274,12 +297,10 @@ lemma zero_le_floor [simp]: "0 \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> 0
 lemma one_le_floor [simp]: "1 \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> 1 \<le> x"
   by (simp add: le_floor_iff)
 
-lemma numeral_le_floor [simp]:
-  "numeral v \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> numeral v \<le> x"
+lemma numeral_le_floor [simp]: "numeral v \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> numeral v \<le> x"
   by (simp add: le_floor_iff)
 
-lemma neg_numeral_le_floor [simp]:
-  "- numeral v \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> - numeral v \<le> x"
+lemma neg_numeral_le_floor [simp]: "- numeral v \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> - numeral v \<le> x"
   by (simp add: le_floor_iff)
 
 lemma zero_less_floor [simp]: "0 < \<lfloor>x\<rfloor> \<longleftrightarrow> 1 \<le> x"
@@ -288,12 +309,10 @@ lemma zero_less_floor [simp]: "0 < \<lfloor>x\<rfloor> \<longleftrightarrow> 1 \
 lemma one_less_floor [simp]: "1 < \<lfloor>x\<rfloor> \<longleftrightarrow> 2 \<le> x"
   by (simp add: less_floor_iff)
 
-lemma numeral_less_floor [simp]:
-  "numeral v < \<lfloor>x\<rfloor> \<longleftrightarrow> numeral v + 1 \<le> x"
+lemma numeral_less_floor [simp]: "numeral v < \<lfloor>x\<rfloor> \<longleftrightarrow> numeral v + 1 \<le> x"
   by (simp add: less_floor_iff)
 
-lemma neg_numeral_less_floor [simp]:
-  "- numeral v < \<lfloor>x\<rfloor> \<longleftrightarrow> - numeral v + 1 \<le> x"
+lemma neg_numeral_less_floor [simp]: "- numeral v < \<lfloor>x\<rfloor> \<longleftrightarrow> - numeral v + 1 \<le> x"
   by (simp add: less_floor_iff)
 
 lemma floor_le_zero [simp]: "\<lfloor>x\<rfloor> \<le> 0 \<longleftrightarrow> x < 1"
@@ -302,12 +321,10 @@ lemma floor_le_zero [simp]: "\<lfloor>x\<rfloor> \<le> 0 \<longleftrightarrow> x
 lemma floor_le_one [simp]: "\<lfloor>x\<rfloor> \<le> 1 \<longleftrightarrow> x < 2"
   by (simp add: floor_le_iff)
 
-lemma floor_le_numeral [simp]:
-  "\<lfloor>x\<rfloor> \<le> numeral v \<longleftrightarrow> x < numeral v + 1"
+lemma floor_le_numeral [simp]: "\<lfloor>x\<rfloor> \<le> numeral v \<longleftrightarrow> x < numeral v + 1"
   by (simp add: floor_le_iff)
 
-lemma floor_le_neg_numeral [simp]:
-  "\<lfloor>x\<rfloor> \<le> - numeral v \<longleftrightarrow> x < - numeral v + 1"
+lemma floor_le_neg_numeral [simp]: "\<lfloor>x\<rfloor> \<le> - numeral v \<longleftrightarrow> x < - numeral v + 1"
   by (simp add: floor_le_iff)
 
 lemma floor_less_zero [simp]: "\<lfloor>x\<rfloor> < 0 \<longleftrightarrow> x < 0"
@@ -316,21 +333,19 @@ lemma floor_less_zero [simp]: "\<lfloor>x\<rfloor> < 0 \<longleftrightarrow> x <
 lemma floor_less_one [simp]: "\<lfloor>x\<rfloor> < 1 \<longleftrightarrow> x < 1"
   by (simp add: floor_less_iff)
 
-lemma floor_less_numeral [simp]:
-  "\<lfloor>x\<rfloor> < numeral v \<longleftrightarrow> x < numeral v"
+lemma floor_less_numeral [simp]: "\<lfloor>x\<rfloor> < numeral v \<longleftrightarrow> x < numeral v"
   by (simp add: floor_less_iff)
 
-lemma floor_less_neg_numeral [simp]:
-  "\<lfloor>x\<rfloor> < - numeral v \<longleftrightarrow> x < - numeral v"
+lemma floor_less_neg_numeral [simp]: "\<lfloor>x\<rfloor> < - numeral v \<longleftrightarrow> x < - numeral v"
   by (simp add: floor_less_iff)
 
-text \<open>Addition and subtraction of integers\<close>
+
+text \<open>Addition and subtraction of integers.\<close>
 
 lemma floor_add_of_int [simp]: "\<lfloor>x + of_int z\<rfloor> = \<lfloor>x\<rfloor> + z"
   using floor_correct [of x] by (simp add: floor_unique)
 
-lemma floor_add_numeral [simp]:
-    "\<lfloor>x + numeral v\<rfloor> = \<lfloor>x\<rfloor> + numeral v"
+lemma floor_add_numeral [simp]: "\<lfloor>x + numeral v\<rfloor> = \<lfloor>x\<rfloor> + numeral v"
   using floor_add_of_int [of x "numeral v"] by simp
 
 lemma floor_add_one [simp]: "\<lfloor>x + 1\<rfloor> = \<lfloor>x\<rfloor> + 1"
@@ -342,8 +357,7 @@ lemma floor_diff_of_int [simp]: "\<lfloor>x - of_int z\<rfloor> = \<lfloor>x\<rf
 lemma floor_uminus_of_int [simp]: "\<lfloor>- (of_int z)\<rfloor> = - z"
   by (metis floor_diff_of_int [of 0] diff_0 floor_zero)
 
-lemma floor_diff_numeral [simp]:
-  "\<lfloor>x - numeral v\<rfloor> = \<lfloor>x\<rfloor> - numeral v"
+lemma floor_diff_numeral [simp]: "\<lfloor>x - numeral v\<rfloor> = \<lfloor>x\<rfloor> - numeral v"
   using floor_diff_of_int [of x "numeral v"] by simp
 
 lemma floor_diff_one [simp]: "\<lfloor>x - 1\<rfloor> = \<lfloor>x\<rfloor> - 1"
@@ -353,32 +367,38 @@ lemma le_mult_floor:
   assumes "0 \<le> a" and "0 \<le> b"
   shows "\<lfloor>a\<rfloor> * \<lfloor>b\<rfloor> \<le> \<lfloor>a * b\<rfloor>"
 proof -
-  have "of_int \<lfloor>a\<rfloor> \<le> a"
-    and "of_int \<lfloor>b\<rfloor> \<le> b" by (auto intro: of_int_floor_le)
-  hence "of_int (\<lfloor>a\<rfloor> * \<lfloor>b\<rfloor>) \<le> a * b"
+  have "of_int \<lfloor>a\<rfloor> \<le> a" and "of_int \<lfloor>b\<rfloor> \<le> b"
+    by (auto intro: of_int_floor_le)
+  then have "of_int (\<lfloor>a\<rfloor> * \<lfloor>b\<rfloor>) \<le> a * b"
     using assms by (auto intro!: mult_mono)
   also have "a * b < of_int (\<lfloor>a * b\<rfloor> + 1)"
     using floor_correct[of "a * b"] by auto
-  finally show ?thesis unfolding of_int_less_iff by simp
+  finally show ?thesis
+    unfolding of_int_less_iff by simp
 qed
 
-lemma floor_divide_of_int_eq:
-  fixes k l :: int
-  shows "\<lfloor>of_int k / of_int l\<rfloor> = k div l"
+lemma floor_divide_of_int_eq: "\<lfloor>of_int k / of_int l\<rfloor> = k div l"
+  for k l :: int
 proof (cases "l = 0")
-  case True then show ?thesis by simp
+  case True
+  then show ?thesis by simp
 next
   case False
   have *: "\<lfloor>of_int (k mod l) / of_int l :: 'a\<rfloor> = 0"
   proof (cases "l > 0")
-    case True then show ?thesis
+    case True
+    then show ?thesis
       by (auto intro: floor_unique)
   next
     case False
-    obtain r where "r = - l" by blast
-    then have l: "l = - r" by simp
-    moreover with \<open>l \<noteq> 0\<close> False have "r > 0" by simp
-    ultimately show ?thesis using pos_mod_bound [of r]
+    obtain r where "r = - l"
+      by blast
+    then have l: "l = - r"
+      by simp
+    moreover with \<open>l \<noteq> 0\<close> False have "r > 0"
+      by simp
+    ultimately show ?thesis
+      using pos_mod_bound [of r]
       by (auto simp add: zmod_zminus2_eq_if less_le field_simps intro: floor_unique)
   qed
   have "(of_int k :: 'a) = of_int (k div l * l + k mod l)"
@@ -395,14 +415,15 @@ next
     by (simp add: ac_simps)
   then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l :: 'a\<rfloor> + k div l"
     by simp
-  with * show ?thesis by simp
+  with * show ?thesis
+    by simp
 qed
 
-lemma floor_divide_of_nat_eq:
-  fixes m n :: nat
-  shows "\<lfloor>of_nat m / of_nat n\<rfloor> = of_nat (m div n)"
+lemma floor_divide_of_nat_eq: "\<lfloor>of_nat m / of_nat n\<rfloor> = of_nat (m div n)"
+  for m n :: nat
 proof (cases "n = 0")
-  case True then show ?thesis by simp
+  case True
+  then show ?thesis by simp
 next
   case False
   then have *: "\<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> = 0"
@@ -410,7 +431,7 @@ next
   have "(of_nat m :: 'a) = of_nat (m div n * n + m mod n)"
     by simp
   also have "\<dots> = (of_nat (m div n) + of_nat (m mod n) / of_nat n) * of_nat n"
-    using False by (simp only: of_nat_add) (simp add: field_simps of_nat_mult)
+    using False by (simp only: of_nat_add) (simp add: field_simps)
   finally have "(of_nat m / of_nat n :: 'a) = \<dots> / of_nat n"
     by simp
   then have "(of_nat m / of_nat n :: 'a) = of_nat (m div n) + of_nat (m mod n) / of_nat n"
@@ -421,9 +442,11 @@ next
     by (simp add: ac_simps)
   moreover have "(of_nat (m div n) :: 'a) = of_int (of_nat (m div n))"
     by simp
-  ultimately have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> + of_nat (m div n)"
+  ultimately have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> =
+      \<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> + of_nat (m div n)"
     by (simp only: floor_add_of_int)
-  with * show ?thesis by simp
+  with * show ?thesis
+    by simp
 qed
 
 
@@ -433,9 +456,10 @@ definition ceiling :: "'a::floor_ceiling \<Rightarrow> int"  ("\<lceil>_\<rceil>
   where "\<lceil>x\<rceil> = - \<lfloor>- x\<rfloor>"
 
 lemma ceiling_correct: "of_int \<lceil>x\<rceil> - 1 < x \<and> x \<le> of_int \<lceil>x\<rceil>"
-  unfolding ceiling_def using floor_correct [of "- x"] by (simp add: le_minus_iff)
+  unfolding ceiling_def using floor_correct [of "- x"]
+  by (simp add: le_minus_iff)
 
-lemma ceiling_unique: "\<lbrakk>of_int z - 1 < x; x \<le> of_int z\<rbrakk> \<Longrightarrow> \<lceil>x\<rceil> = z"
+lemma ceiling_unique: "of_int z - 1 < x \<Longrightarrow> x \<le> of_int z \<Longrightarrow> \<lceil>x\<rceil> = z"
   unfolding ceiling_def using floor_unique [of "- z" "- x"] by simp
 
 lemma le_of_int_ceiling [simp]: "x \<le> of_int \<lceil>x\<rceil>"
@@ -468,7 +492,8 @@ lemma ceiling_of_nat [simp]: "\<lceil>of_nat n\<rceil> = int n"
 lemma ceiling_add_le: "\<lceil>x + y\<rceil> \<le> \<lceil>x\<rceil> + \<lceil>y\<rceil>"
   by (simp only: ceiling_le_iff of_int_add add_mono le_of_int_ceiling)
 
-text \<open>Ceiling with numerals\<close>
+
+text \<open>Ceiling with numerals.\<close>
 
 lemma ceiling_zero [simp]: "\<lceil>0\<rceil> = 0"
   using ceiling_of_int [of 0] by simp
@@ -488,12 +513,10 @@ lemma ceiling_le_zero [simp]: "\<lceil>x\<rceil> \<le> 0 \<longleftrightarrow> x
 lemma ceiling_le_one [simp]: "\<lceil>x\<rceil> \<le> 1 \<longleftrightarrow> x \<le> 1"
   by (simp add: ceiling_le_iff)
 
-lemma ceiling_le_numeral [simp]:
-  "\<lceil>x\<rceil> \<le> numeral v \<longleftrightarrow> x \<le> numeral v"
+lemma ceiling_le_numeral [simp]: "\<lceil>x\<rceil> \<le> numeral v \<longleftrightarrow> x \<le> numeral v"
   by (simp add: ceiling_le_iff)
 
-lemma ceiling_le_neg_numeral [simp]:
-  "\<lceil>x\<rceil> \<le> - numeral v \<longleftrightarrow> x \<le> - numeral v"
+lemma ceiling_le_neg_numeral [simp]: "\<lceil>x\<rceil> \<le> - numeral v \<longleftrightarrow> x \<le> - numeral v"
   by (simp add: ceiling_le_iff)
 
 lemma ceiling_less_zero [simp]: "\<lceil>x\<rceil> < 0 \<longleftrightarrow> x \<le> -1"
@@ -502,12 +525,10 @@ lemma ceiling_less_zero [simp]: "\<lceil>x\<rceil> < 0 \<longleftrightarrow> x \
 lemma ceiling_less_one [simp]: "\<lceil>x\<rceil> < 1 \<longleftrightarrow> x \<le> 0"
   by (simp add: ceiling_less_iff)
 
-lemma ceiling_less_numeral [simp]:
-  "\<lceil>x\<rceil> < numeral v \<longleftrightarrow> x \<le> numeral v - 1"
+lemma ceiling_less_numeral [simp]: "\<lceil>x\<rceil> < numeral v \<longleftrightarrow> x \<le> numeral v - 1"
   by (simp add: ceiling_less_iff)
 
-lemma ceiling_less_neg_numeral [simp]:
-  "\<lceil>x\<rceil> < - numeral v \<longleftrightarrow> x \<le> - numeral v - 1"
+lemma ceiling_less_neg_numeral [simp]: "\<lceil>x\<rceil> < - numeral v \<longleftrightarrow> x \<le> - numeral v - 1"
   by (simp add: ceiling_less_iff)
 
 lemma zero_le_ceiling [simp]: "0 \<le> \<lceil>x\<rceil> \<longleftrightarrow> -1 < x"
@@ -516,12 +537,10 @@ lemma zero_le_ceiling [simp]: "0 \<le> \<lceil>x\<rceil> \<longleftrightarrow> -
 lemma one_le_ceiling [simp]: "1 \<le> \<lceil>x\<rceil> \<longleftrightarrow> 0 < x"
   by (simp add: le_ceiling_iff)
 
-lemma numeral_le_ceiling [simp]:
-  "numeral v \<le> \<lceil>x\<rceil> \<longleftrightarrow> numeral v - 1 < x"
+lemma numeral_le_ceiling [simp]: "numeral v \<le> \<lceil>x\<rceil> \<longleftrightarrow> numeral v - 1 < x"
   by (simp add: le_ceiling_iff)
 
-lemma neg_numeral_le_ceiling [simp]:
-  "- numeral v \<le> \<lceil>x\<rceil> \<longleftrightarrow> - numeral v - 1 < x"
+lemma neg_numeral_le_ceiling [simp]: "- numeral v \<le> \<lceil>x\<rceil> \<longleftrightarrow> - numeral v - 1 < x"
   by (simp add: le_ceiling_iff)
 
 lemma zero_less_ceiling [simp]: "0 < \<lceil>x\<rceil> \<longleftrightarrow> 0 < x"
@@ -530,21 +549,20 @@ lemma zero_less_ceiling [simp]: "0 < \<lceil>x\<rceil> \<longleftrightarrow> 0 <
 lemma one_less_ceiling [simp]: "1 < \<lceil>x\<rceil> \<longleftrightarrow> 1 < x"
   by (simp add: less_ceiling_iff)
 
-lemma numeral_less_ceiling [simp]:
-  "numeral v < \<lceil>x\<rceil> \<longleftrightarrow> numeral v < x"
+lemma numeral_less_ceiling [simp]: "numeral v < \<lceil>x\<rceil> \<longleftrightarrow> numeral v < x"
   by (simp add: less_ceiling_iff)
 
-lemma neg_numeral_less_ceiling [simp]:
-  "- numeral v < \<lceil>x\<rceil> \<longleftrightarrow> - numeral v < x"
+lemma neg_numeral_less_ceiling [simp]: "- numeral v < \<lceil>x\<rceil> \<longleftrightarrow> - numeral v < x"
   by (simp add: less_ceiling_iff)
 
 lemma ceiling_altdef: "\<lceil>x\<rceil> = (if x = of_int \<lfloor>x\<rfloor> then \<lfloor>x\<rfloor> else \<lfloor>x\<rfloor> + 1)"
-  by (intro ceiling_unique, (simp, linarith?)+)
+  by (intro ceiling_unique; simp, linarith?)
 
 lemma floor_le_ceiling [simp]: "\<lfloor>x\<rfloor> \<le> \<lceil>x\<rceil>"
   by (simp add: ceiling_altdef)
 
-text \<open>Addition and subtraction of integers\<close>
+
+text \<open>Addition and subtraction of integers.\<close>
 
 lemma ceiling_add_of_int [simp]: "\<lceil>x + of_int z\<rceil> = \<lceil>x\<rceil> + z"
   using ceiling_correct [of x] by (simp add: ceiling_def)
@@ -579,6 +597,7 @@ proof -
     unfolding of_int_less_iff by simp
 qed
 
+
 subsection \<open>Negation\<close>
 
 lemma floor_minus: "\<lfloor>- x\<rfloor> = - \<lceil>x\<rceil>"
@@ -590,18 +609,17 @@ lemma ceiling_minus: "\<lceil>- x\<rceil> = - \<lfloor>x\<rfloor>"
 
 subsection \<open>Frac Function\<close>
 
-definition frac :: "'a \<Rightarrow> 'a::floor_ceiling" where
-  "frac x \<equiv> x - of_int \<lfloor>x\<rfloor>"
+definition frac :: "'a \<Rightarrow> 'a::floor_ceiling"
+  where "frac x \<equiv> x - of_int \<lfloor>x\<rfloor>"
 
 lemma frac_lt_1: "frac x < 1"
-  by  (simp add: frac_def) linarith
+  by (simp add: frac_def) linarith
 
 lemma frac_eq_0_iff [simp]: "frac x = 0 \<longleftrightarrow> x \<in> \<int>"
   by (simp add: frac_def) (metis Ints_cases Ints_of_int floor_of_int )
 
 lemma frac_ge_0 [simp]: "frac x \<ge> 0"
-  unfolding frac_def
-  by linarith
+  unfolding frac_def by linarith
 
 lemma frac_gt_0_iff [simp]: "frac x > 0 \<longleftrightarrow> x \<notin> \<int>"
   by (metis frac_eq_0_iff frac_ge_0 le_less less_irrefl)
@@ -611,57 +629,60 @@ lemma frac_of_int [simp]: "frac (of_int z) = 0"
 
 lemma floor_add: "\<lfloor>x + y\<rfloor> = (if frac x + frac y < 1 then \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> else (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>) + 1)"
 proof -
-  {assume "x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
-   then have "\<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"
-     by (metis add.commute floor_unique le_floor_add le_floor_iff of_int_add)
-   }
+  have "\<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>" if "x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
+    using that by (metis add.commute floor_unique le_floor_add le_floor_iff of_int_add)
   moreover
-  { assume "\<not> x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
-    then have "\<lfloor>x + y\<rfloor> = 1 + (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>)"
-      apply (simp add: floor_unique_iff)
-      apply (auto simp add: algebra_simps)
-      by linarith
-  }
+  have "\<lfloor>x + y\<rfloor> = 1 + (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>)" if "\<not> x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
+    using that
+    apply (simp add: floor_unique_iff)
+    apply (auto simp add: algebra_simps)
+    apply linarith
+    done
   ultimately show ?thesis
     by (auto simp add: frac_def algebra_simps)
 qed
 
-lemma frac_add: "frac (x + y) = (if frac x + frac y < 1 then frac x + frac y
-                                 else (frac x + frac y) - 1)"
+lemma frac_add:
+  "frac (x + y) = (if frac x + frac y < 1 then frac x + frac y else (frac x + frac y) - 1)"
   by (simp add: frac_def floor_add)
 
-lemma frac_unique_iff:
-  fixes x :: "'a::floor_ceiling"
-  shows  "frac x = a \<longleftrightarrow> x - a \<in> \<int> \<and> 0 \<le> a \<and> a < 1"
+lemma frac_unique_iff: "frac x = a \<longleftrightarrow> x - a \<in> \<int> \<and> 0 \<le> a \<and> a < 1"
+  for x :: "'a::floor_ceiling"
   apply (auto simp: Ints_def frac_def algebra_simps floor_unique)
-  apply linarith+
+   apply linarith+
   done
 
-lemma frac_eq: "(frac x) = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
+lemma frac_eq: "frac x = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
   by (simp add: frac_unique_iff)
 
-lemma frac_neg:
-  fixes x :: "'a::floor_ceiling"
-  shows  "frac (-x) = (if x \<in> \<int> then 0 else 1 - frac x)"
+lemma frac_neg: "frac (- x) = (if x \<in> \<int> then 0 else 1 - frac x)"
+  for x :: "'a::floor_ceiling"
   apply (auto simp add: frac_unique_iff)
-  apply (simp add: frac_def)
-  by (meson frac_lt_1 less_iff_diff_less_0 not_le not_less_iff_gr_or_eq)
+   apply (simp add: frac_def)
+  apply (meson frac_lt_1 less_iff_diff_less_0 not_le not_less_iff_gr_or_eq)
+  done
 
 
 subsection \<open>Rounding to the nearest integer\<close>
 
-definition round where "round x = \<lfloor>x + 1/2\<rfloor>"
+definition round :: "'a::floor_ceiling \<Rightarrow> int"
+  where "round x = \<lfloor>x + 1/2\<rfloor>"
 
-lemma of_int_round_ge:     "of_int (round x) \<ge> x - 1/2"
-  and of_int_round_le:     "of_int (round x) \<le> x + 1/2"
+lemma of_int_round_ge: "of_int (round x) \<ge> x - 1/2"
+  and of_int_round_le: "of_int (round x) \<le> x + 1/2"
   and of_int_round_abs_le: "\<bar>of_int (round x) - x\<bar> \<le> 1/2"
-  and of_int_round_gt:     "of_int (round x) > x - 1/2"
+  and of_int_round_gt: "of_int (round x) > x - 1/2"
 proof -
-  from floor_correct[of "x + 1/2"] have "x + 1/2 < of_int (round x) + 1" by (simp add: round_def)
-  from add_strict_right_mono[OF this, of "-1"] show A: "of_int (round x) > x - 1/2" by simp
-  thus "of_int (round x) \<ge> x - 1/2" by simp
-  from floor_correct[of "x + 1/2"] show "of_int (round x) \<le> x + 1/2" by (simp add: round_def)
-  with A show "\<bar>of_int (round x) - x\<bar> \<le> 1/2" by linarith
+  from floor_correct[of "x + 1/2"] have "x + 1/2 < of_int (round x) + 1"
+    by (simp add: round_def)
+  from add_strict_right_mono[OF this, of "-1"] show A: "of_int (round x) > x - 1/2"
+    by simp
+  then show "of_int (round x) \<ge> x - 1/2"
+    by simp
+  from floor_correct[of "x + 1/2"] show "of_int (round x) \<le> x + 1/2"
+    by (simp add: round_def)
+  with A show "\<bar>of_int (round x) - x\<bar> \<le> 1/2"
+    by linarith
 qed
 
 lemma round_of_int [simp]: "round (of_int n) = n"
@@ -686,37 +707,40 @@ lemma round_mono: "x \<le> y \<Longrightarrow> round x \<le> round y"
   unfolding round_def by (intro floor_mono) simp
 
 lemma round_unique: "of_int y > x - 1/2 \<Longrightarrow> of_int y \<le> x + 1/2 \<Longrightarrow> round x = y"
-unfolding round_def
+  unfolding round_def
 proof (rule floor_unique)
   assume "x - 1 / 2 < of_int y"
-  from add_strict_left_mono[OF this, of 1] show "x + 1 / 2 < of_int y + 1" by simp
+  from add_strict_left_mono[OF this, of 1] show "x + 1 / 2 < of_int y + 1"
+    by simp
 qed
 
 lemma round_altdef: "round x = (if frac x \<ge> 1/2 then \<lceil>x\<rceil> else \<lfloor>x\<rfloor>)"
   by (cases "frac x \<ge> 1/2")
-     (rule round_unique, ((simp add: frac_def field_simps ceiling_altdef, linarith?)+)[2])+
+    (rule round_unique, ((simp add: frac_def field_simps ceiling_altdef; linarith)+)[2])+
 
 lemma floor_le_round: "\<lfloor>x\<rfloor> \<le> round x"
   unfolding round_def by (intro floor_mono) simp
 
-lemma ceiling_ge_round: "\<lceil>x\<rceil> \<ge> round x" unfolding round_altdef by simp
+lemma ceiling_ge_round: "\<lceil>x\<rceil> \<ge> round x"
+  unfolding round_altdef by simp
 
-lemma round_diff_minimal:
-  fixes z :: "'a :: floor_ceiling"
-  shows "\<bar>z - of_int (round z)\<bar> \<le> \<bar>z - of_int m\<bar>"
+lemma round_diff_minimal: "\<bar>z - of_int (round z)\<bar> \<le> \<bar>z - of_int m\<bar>"
+  for z :: "'a::floor_ceiling"
 proof (cases "of_int m \<ge> z")
   case True
-  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int \<lceil>z\<rceil> - z\<bar>"
-    unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith?
-  also have "of_int \<lceil>z\<rceil> - z \<ge> 0" by linarith
+  then have "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int \<lceil>z\<rceil> - z\<bar>"
+    unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith
+  also have "of_int \<lceil>z\<rceil> - z \<ge> 0"
+    by linarith
   with True have "\<bar>of_int \<lceil>z\<rceil> - z\<bar> \<le> \<bar>z - of_int m\<bar>"
     by (simp add: ceiling_le_iff)
   finally show ?thesis .
 next
   case False
-  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int \<lfloor>z\<rfloor> - z\<bar>"
-    unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith?
-  also have "z - of_int \<lfloor>z\<rfloor> \<ge> 0" by linarith
+  then have "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int \<lfloor>z\<rfloor> - z\<bar>"
+    unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith
+  also have "z - of_int \<lfloor>z\<rfloor> \<ge> 0"
+    by linarith
   with False have "\<bar>of_int \<lfloor>z\<rfloor> - z\<bar> \<le> \<bar>z - of_int m\<bar>"
     by (simp add: le_floor_iff)
   finally show ?thesis .
