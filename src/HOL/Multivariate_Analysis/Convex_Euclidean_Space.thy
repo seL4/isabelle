@@ -7912,6 +7912,11 @@ lemma rel_frontier_sing [simp]:
     shows "rel_frontier {a} = {}"
   by (simp add: rel_frontier_def)
 
+lemma rel_frontier_affine_hull:
+  fixes S :: "'a::euclidean_space set"
+  shows "rel_frontier S \<subseteq> affine hull S"
+using closure_affine_hull rel_frontier_def by fastforce
+
 lemma rel_frontier_cball [simp]:
     fixes a :: "'n::euclidean_space"
     shows "rel_frontier(cball a r) = (if r = 0 then {} else sphere a r)"
@@ -12244,6 +12249,67 @@ proof -
   ultimately have "0 = x' - x"
     by (metis (full_types) add_diff_cancel_left' ST diff_right_commute orthogonal_clauses(10) orthogonal_clauses(5) orthogonal_self)
   with assms show ?thesis by auto
+qed
+
+proposition dim_orthogonal_sum:
+  fixes A :: "'a::euclidean_space set"
+  assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
+    shows "dim(A \<union> B) = dim A + dim B"
+proof -
+  have 1: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
+    by (erule span_induct [OF _ subspace_hyperplane2]; simp add: assms)
+  have "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
+    apply (erule span_induct [OF _ subspace_hyperplane])
+    using 1 by (simp add: )
+  then have 0: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
+    by simp
+  have "dim(A \<union> B) = dim (span (A \<union> B))"
+    by simp
+  also have "... = dim ((\<lambda>(a, b). a + b) ` (span A \<times> span B))"
+    by (simp add: span_Un)
+  also have "... = dim {x + y |x y. x \<in> span A \<and> y \<in> span B}"
+    by (auto intro!: arg_cong [where f=dim])
+  also have "... = dim {x + y |x y. x \<in> span A \<and> y \<in> span B} + dim(span A \<inter> span B)"
+    by (auto simp: dest: 0)
+  also have "... = dim (span A) + dim (span B)"
+    by (rule dim_sums_Int) auto
+  also have "... = dim A + dim B"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma dim_subspace_orthogonal_to_vectors:
+  fixes A :: "'a::euclidean_space set"
+  assumes "subspace A" "subspace B" "A \<subseteq> B"
+    shows "dim {y \<in> B. \<forall>x \<in> A. orthogonal x y} + dim A = dim B"
+proof -
+  have "dim (span ({y \<in> B. \<forall>x\<in>A. orthogonal x y} \<union> A)) = dim (span B)"
+  proof (rule arg_cong [where f=dim, OF subset_antisym])
+    show "span ({y \<in> B. \<forall>x\<in>A. orthogonal x y} \<union> A) \<subseteq> span B"
+      by (simp add: \<open>A \<subseteq> B\<close> Collect_restrict span_mono)
+  next
+    have *: "x \<in> span ({y \<in> B. \<forall>x\<in>A. orthogonal x y} \<union> A)"
+         if "x \<in> B" for x
+    proof -
+      obtain y z where "x = y + z" "y \<in> span A" and orth: "\<And>w. w \<in> span A \<Longrightarrow> orthogonal z w"
+        using orthogonal_subspace_decomp_exists [of A x] that by auto
+      have "y \<in> span B"
+        by (metis span_eq \<open>y \<in> span A\<close> assms subset_iff)
+      then have "z \<in> {a \<in> B. \<forall>x. x \<in> A \<longrightarrow> orthogonal x a}"
+        by simp (metis (no_types) span_eq \<open>x = y + z\<close> \<open>subspace A\<close> \<open>subspace B\<close> orth orthogonal_commute span_add_eq that)
+      then have z: "z \<in> span {y \<in> B. \<forall>x\<in>A. orthogonal x y}"
+        by (meson span_inc subset_iff)
+      then show ?thesis
+        apply (simp add: span_Un image_def)
+        apply (rule bexI [OF _ z])
+        apply (simp add: \<open>x = y + z\<close> \<open>y \<in> span A\<close>)
+        done
+    qed
+    show "span B \<subseteq> span ({y \<in> B. \<forall>x\<in>A. orthogonal x y} \<union> A)"
+      by (rule span_minimal) (auto intro: * span_minimal elim: )
+  qed
+  then show ?thesis
+    by (metis (no_types, lifting) dim_orthogonal_sum dim_span mem_Collect_eq orthogonal_commute orthogonal_def)
 qed
 
 subsection\<open>Parallel slices, etc.\<close>

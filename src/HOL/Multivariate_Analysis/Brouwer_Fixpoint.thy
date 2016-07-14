@@ -2057,7 +2057,7 @@ lemma retraction_comp:
 apply (auto simp: retraction_def intro: continuous_on_compose2)
 by blast
 
-lemma retract_of_trans:
+lemma retract_of_trans [trans]:
   assumes "s retract_of t" and "t retract_of u"
     shows "s retract_of u"
 using assms by (auto simp: retract_of_def intro: retraction_comp)
@@ -2199,6 +2199,227 @@ lemma retract_of_locally_path_connected:
     shows "locally path_connected S"
   using assms
   by (auto simp: retract_of_def retraction intro!: retraction_imp_quotient_map elim!: locally_path_connected_quotient_image)
+
+subsection\<open>Punctured affine hulls, etc.\<close>
+
+lemma continuous_on_compact_surface_projection_aux:
+  fixes S :: "'a::t2_space set"
+  assumes "compact S" "S \<subseteq> T" "image q T \<subseteq> S"
+      and contp: "continuous_on T p"
+      and "\<And>x. x \<in> S \<Longrightarrow> q x = x"
+      and [simp]: "\<And>x. x \<in> T \<Longrightarrow> q(p x) = q x"
+      and "\<And>x. x \<in> T \<Longrightarrow> p(q x) = p x"
+    shows "continuous_on T q"
+proof -
+  have *: "image p T = image p S"
+    using assms by auto (metis imageI subset_iff)
+  have contp': "continuous_on S p"
+    by (rule continuous_on_subset [OF contp \<open>S \<subseteq> T\<close>])
+  have "continuous_on T (q \<circ> p)"
+    apply (rule continuous_on_compose [OF contp])
+    apply (simp add: *)
+    apply (rule continuous_on_inv [OF contp' \<open>compact S\<close>])
+    using assms by auto
+  then show ?thesis
+    apply (rule continuous_on_eq [of _ "q o p"])
+    apply (simp add: o_def)
+    done
+qed
+
+lemma continuous_on_compact_surface_projection:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "compact S"
+      and S: "S \<subseteq> V - {0}" and "cone V"
+      and iff: "\<And>x k. x \<in> V - {0} \<Longrightarrow> 0 < k \<and> (k *\<^sub>R x) \<in> S \<longleftrightarrow> d x = k"
+  shows "continuous_on (V - {0}) (\<lambda>x. d x *\<^sub>R x)"
+proof (rule continuous_on_compact_surface_projection_aux [OF \<open>compact S\<close> S])
+  show "(\<lambda>x. d x *\<^sub>R x) ` (V - {0}) \<subseteq> S"
+    using iff by auto
+  show "continuous_on (V - {0}) (\<lambda>x. inverse(norm x) *\<^sub>R x)"
+    by (intro continuous_intros) force
+  show "\<And>x. x \<in> S \<Longrightarrow> d x *\<^sub>R x = x"
+    by (metis S zero_less_one local.iff scaleR_one subset_eq)
+  show "d (x /\<^sub>R norm x) *\<^sub>R (x /\<^sub>R norm x) = d x *\<^sub>R x" if "x \<in> V - {0}" for x
+    using iff [of "inverse(norm x) *\<^sub>R x" "norm x * d x", symmetric] iff that \<open>cone V\<close>
+    by (simp add: field_simps cone_def zero_less_mult_iff)
+  show "d x *\<^sub>R x /\<^sub>R norm (d x *\<^sub>R x) = x /\<^sub>R norm x" if "x \<in> V - {0}" for x
+  proof -
+    have "0 < d x"
+      using local.iff that by blast
+    then show ?thesis
+      by simp
+  qed
+qed
+
+proposition rel_frontier_deformation_retract_of_punctured_convex:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "convex T" "bounded S"
+      and arelS: "a \<in> rel_interior S"
+      and relS: "rel_frontier S \<subseteq> T"
+      and affS: "T \<subseteq> affine hull S"
+  obtains r where "homotopic_with (\<lambda>x. True) (T - {a}) (T - {a}) id r"
+                  "retraction (T - {a}) (rel_frontier S) r"
+proof -
+  have "\<exists>d. 0 < d \<and> (a + d *\<^sub>R l) \<in> rel_frontier S \<and>
+            (\<forall>e. 0 \<le> e \<and> e < d \<longrightarrow> (a + e *\<^sub>R l) \<in> rel_interior S)"
+       if "(a + l) \<in> affine hull S" "l \<noteq> 0" for l
+    apply (rule ray_to_rel_frontier [OF \<open>bounded S\<close> arelS])
+    apply (rule that)+
+    by metis
+  then obtain dd
+    where dd1: "\<And>l. \<lbrakk>(a + l) \<in> affine hull S; l \<noteq> 0\<rbrakk> \<Longrightarrow> 0 < dd l \<and> (a + dd l *\<^sub>R l) \<in> rel_frontier S"
+      and dd2: "\<And>l e. \<lbrakk>(a + l) \<in> affine hull S; e < dd l; 0 \<le> e; l \<noteq> 0\<rbrakk>
+                      \<Longrightarrow> (a + e *\<^sub>R l) \<in> rel_interior S"
+    by metis+
+  have aaffS: "a \<in> affine hull S"
+    by (meson arelS subsetD hull_inc rel_interior_subset)
+  have "((\<lambda>z. z - a) ` (affine hull S - {a})) = ((\<lambda>z. z - a) ` (affine hull S)) - {0}"
+    by (auto simp: )
+  moreover have "continuous_on (((\<lambda>z. z - a) ` (affine hull S)) - {0}) (\<lambda>x. dd x *\<^sub>R x)"
+  proof (rule continuous_on_compact_surface_projection)
+    show "compact (rel_frontier ((\<lambda>z. z - a) ` S))"
+      by (simp add: \<open>bounded S\<close> bounded_translation_minus compact_rel_frontier_bounded)
+    have releq: "rel_frontier ((\<lambda>z. z - a) ` S) = (\<lambda>z. z - a) ` rel_frontier S"
+      using rel_frontier_translation [of "-a"] add.commute by simp
+    also have "... \<subseteq> (\<lambda>z. z - a) ` (affine hull S) - {0}"
+      using rel_frontier_affine_hull arelS rel_frontier_def by fastforce
+    finally show "rel_frontier ((\<lambda>z. z - a) ` S) \<subseteq> (\<lambda>z. z - a) ` (affine hull S) - {0}" .
+    show "cone ((\<lambda>z. z - a) ` (affine hull S))"
+      apply (rule subspace_imp_cone)
+      using aaffS
+      apply (simp add: subspace_affine image_comp o_def affine_translation_aux [of a])
+      done
+    show "(0 < k \<and> k *\<^sub>R x \<in> rel_frontier ((\<lambda>z. z - a) ` S)) \<longleftrightarrow> (dd x = k)"
+         if x: "x \<in> (\<lambda>z. z - a) ` (affine hull S) - {0}" for k x
+    proof
+      show "dd x = k \<Longrightarrow> 0 < k \<and> k *\<^sub>R x \<in> rel_frontier ((\<lambda>z. z - a) ` S)"
+      using dd1 [of x] that image_iff by (fastforce simp add: releq)
+    next
+      assume k: "0 < k \<and> k *\<^sub>R x \<in> rel_frontier ((\<lambda>z. z - a) ` S)"
+      have False if "dd x < k"
+      proof -
+        have "k \<noteq> 0" "a + k *\<^sub>R x \<in> closure S"
+          using k closure_translation [of "-a"]
+          by (auto simp: rel_frontier_def)
+        then have segsub: "open_segment a (a + k *\<^sub>R x) \<subseteq> rel_interior S"
+          by (metis rel_interior_closure_convex_segment [OF \<open>convex S\<close> arelS])
+        have "x \<noteq> 0" and xaffS: "a + x \<in> affine hull S"
+          using x by (auto simp: )
+        then have "0 < dd x" and inS: "a + dd x *\<^sub>R x \<in> rel_frontier S"
+          using dd1 by auto
+        moreover have "a + dd x *\<^sub>R x \<in> open_segment a (a + k *\<^sub>R x)"
+          using k \<open>x \<noteq> 0\<close> \<open>0 < dd x\<close>
+          apply (simp add: in_segment)
+          apply (rule_tac x = "dd x / k" in exI)
+          apply (simp add: field_simps that)
+          apply (simp add: vector_add_divide_simps algebra_simps)
+          apply (metis (no_types) \<open>k \<noteq> 0\<close> divide_inverse_commute inverse_eq_divide mult.left_commute right_inverse)
+          done
+        ultimately show ?thesis
+          using segsub by (auto simp add: rel_frontier_def)
+      qed
+      moreover have False if "k < dd x"
+        using x k that rel_frontier_def
+        by (fastforce simp: algebra_simps releq dest!: dd2)
+      ultimately show "dd x = k"
+        by fastforce
+    qed
+  qed
+  ultimately have *: "continuous_on ((\<lambda>z. z - a) ` (affine hull S - {a})) (\<lambda>x. dd x *\<^sub>R x)"
+    by auto
+  have "continuous_on (affine hull S - {a}) ((\<lambda>x. a + dd x *\<^sub>R x) \<circ> (\<lambda>z. z - a))"
+    by (intro * continuous_intros continuous_on_compose)
+  with affS have contdd: "continuous_on (T - {a}) ((\<lambda>x. a + dd x *\<^sub>R x) \<circ> (\<lambda>z. z - a))"
+    by (blast intro: continuous_on_subset elim: )
+  show ?thesis
+  proof
+    show "homotopic_with (\<lambda>x. True) (T - {a}) (T - {a}) id (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+    proof (rule homotopic_with_linear)
+      show "continuous_on (T - {a}) id"
+        by (intro continuous_intros continuous_on_compose)
+      show "continuous_on (T - {a}) (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+        using contdd by (simp add: o_def)
+      show "closed_segment (id x) (a + dd (x - a) *\<^sub>R (x - a)) \<subseteq> T - {a}"
+           if "x \<in> T - {a}" for x
+      proof (clarsimp simp: in_segment, intro conjI)
+        fix u::real assume u: "0 \<le> u" "u \<le> 1"
+        show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x - a) *\<^sub>R (x - a)) \<in> T"
+          apply (rule convexD [OF \<open>convex T\<close>])
+          using that u apply (auto simp add: )
+          apply (metis add.commute affS dd1 diff_add_cancel eq_iff_diff_eq_0 relS subsetD)
+          done
+        have iff: "(1 - u) *\<^sub>R x + u *\<^sub>R (a + d *\<^sub>R (x - a)) = a \<longleftrightarrow>
+                  (1 - u + u * d) *\<^sub>R (x - a) = 0" for d
+          by (auto simp: algebra_simps)
+        have "x \<in> T" "x \<noteq> a" using that by auto
+        then have axa: "a + (x - a) \<in> affine hull S"
+           by (metis (no_types) add.commute affS diff_add_cancel set_rev_mp)
+        then have "\<not> dd (x - a) \<le> 0 \<and> a + dd (x - a) *\<^sub>R (x - a) \<in> rel_frontier S"
+          using \<open>x \<noteq> a\<close> dd1 by fastforce
+        with \<open>x \<noteq> a\<close> show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x - a) *\<^sub>R (x - a)) \<noteq> a"
+          apply (auto simp: iff)
+          using less_eq_real_def mult_le_0_iff not_less u by fastforce
+      qed
+    qed
+    show "retraction (T - {a}) (rel_frontier S) (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+    proof (simp add: retraction_def, intro conjI ballI)
+      show "rel_frontier S \<subseteq> T - {a}"
+        using arelS relS rel_frontier_def by fastforce
+      show "continuous_on (T - {a}) (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+        using contdd by (simp add: o_def)
+      show "(\<lambda>x. a + dd (x - a) *\<^sub>R (x - a)) ` (T - {a}) \<subseteq> rel_frontier S"
+        apply (auto simp: rel_frontier_def)
+        apply (metis Diff_subset add.commute affS dd1 diff_add_cancel eq_iff_diff_eq_0 rel_frontier_def subset_iff)
+        by (metis DiffE add.commute affS dd1 diff_add_cancel eq_iff_diff_eq_0 rel_frontier_def rev_subsetD)
+      show "a + dd (x - a) *\<^sub>R (x - a) = x" if x: "x \<in> rel_frontier S" for x
+      proof -
+        have "x \<noteq> a"
+          using that arelS by (auto simp add: rel_frontier_def)
+        have False if "dd (x - a) < 1"
+        proof -
+          have "x \<in> closure S"
+            using x by (auto simp: rel_frontier_def)
+          then have segsub: "open_segment a x \<subseteq> rel_interior S"
+            by (metis rel_interior_closure_convex_segment [OF \<open>convex S\<close> arelS])
+          have  xaffS: "x \<in> affine hull S"
+            using affS relS x by auto
+          then have "0 < dd (x - a)" and inS: "a + dd (x - a) *\<^sub>R (x - a) \<in> rel_frontier S"
+            using dd1 by (auto simp add: \<open>x \<noteq> a\<close>)
+          moreover have "a + dd (x - a) *\<^sub>R (x - a) \<in> open_segment a x"
+            using  \<open>x \<noteq> a\<close> \<open>0 < dd (x - a)\<close>
+            apply (simp add: in_segment)
+            apply (rule_tac x = "dd (x - a)" in exI)
+            apply (simp add: algebra_simps that)
+            done
+          ultimately show ?thesis
+            using segsub by (auto simp add: rel_frontier_def)
+        qed
+        moreover have False if "1 < dd (x - a)"
+          using x that dd2 [of "x - a" 1] \<open>x \<noteq> a\<close> closure_affine_hull
+          by (auto simp: rel_frontier_def)
+        ultimately have "dd (x - a) = 1" --\<open>similar to another proof above\<close>
+          by fastforce
+        with that show ?thesis
+          by (simp add: rel_frontier_def)
+      qed
+    qed
+  qed
+qed
+
+corollary rel_frontier_retract_of_punctured_affine_hull:
+  fixes S :: "'a::euclidean_space set"
+  assumes "bounded S" "convex S" "a \<in> rel_interior S"
+    shows "rel_frontier S retract_of (affine hull S - {a})"
+apply (rule rel_frontier_deformation_retract_of_punctured_convex [of S "affine hull S" a])
+apply (auto simp add: affine_imp_convex rel_frontier_affine_hull retract_of_def assms)
+done
+
+corollary rel_boundary_retract_of_punctured_affine_hull:
+  fixes S :: "'a::euclidean_space set"
+  assumes "compact S" "convex S" "a \<in> rel_interior S"
+    shows "(S - rel_interior S) retract_of (affine hull S - {a})"
+by (metis assms closure_closed compact_eq_bounded_closed rel_frontier_def
+          rel_frontier_retract_of_punctured_affine_hull)
 
 subsection\<open>Borsuk-style characterization of separation\<close>
 
@@ -3610,5 +3831,334 @@ lemma AR_Times:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "AR S" "AR T" shows "AR(S \<times> T)"
 using assms by (simp add: AR_ANR ANR_Times contractible_Times)
+
+
+lemma ENR_rel_frontier_convex:
+  fixes S :: "'a::euclidean_space set"
+  assumes "bounded S" "convex S"
+    shows "ENR(rel_frontier S)"
+proof (cases "S = {}")
+  case True then show ?thesis
+    by simp
+next
+  case False
+  with assms have "rel_interior S \<noteq> {}"
+    by (simp add: rel_interior_eq_empty)
+  then obtain a where a: "a \<in> rel_interior S"
+    by auto
+  have ahS: "affine hull S - {a} \<subseteq> {x. closest_point (affine hull S) x \<noteq> a}"
+    by (auto simp: closest_point_self)
+  have "rel_frontier S retract_of affine hull S - {a}"
+    by (simp add: assms a rel_frontier_retract_of_punctured_affine_hull)
+  also have "... retract_of {x. closest_point (affine hull S) x \<noteq> a}"
+    apply (simp add: retract_of_def retraction_def ahS)
+    apply (rule_tac x="closest_point (affine hull S)" in exI)
+    apply (auto simp add: False closest_point_self affine_imp_convex closest_point_in_set continuous_on_closest_point)
+    done
+  finally have "rel_frontier S retract_of {x. closest_point (affine hull S) x \<noteq> a}" .
+  moreover have "openin (subtopology euclidean UNIV) {x \<in> UNIV. closest_point (affine hull S) x \<in> - {a}}"
+    apply (rule continuous_openin_preimage_gen)
+    apply (auto simp add: False affine_imp_convex continuous_on_closest_point)
+    done
+  ultimately show ?thesis
+    apply (simp add: ENR_def)
+    apply (rule_tac x = "{x. x \<in> UNIV \<and>
+                             closest_point (affine hull S) x \<in> (- {a})}" in exI)
+    apply (simp add: open_openin)
+    done
+qed
+
+lemma ANR_rel_frontier_convex:
+                 fixes S :: "'a::euclidean_space set"
+  assumes "bounded S" "convex S"
+    shows "ANR(rel_frontier S)"
+by (simp add: ENR_imp_ANR ENR_rel_frontier_convex assms)
+
+(*UNUSED
+lemma ENR_Times:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "ENR S" "ENR T" shows "ENR(S \<times> T)"
+using assms apply (simp add: ENR_ANR ANR_Times)
+thm locally_compact_Times
+oops
+  SIMP_TAC[ENR_ANR; ANR_PCROSS; LOCALLY_COMPACT_PCROSS]);;
+*)
+
+subsection\<open>Borsuk homotopy extension theorem\<close>
+
+text\<open>It's only this late so we can use the concept of retraction,
+  saying that the domain sets or range set are ENRs.\<close>
+
+theorem Borsuk_homotopy_extension_homotopic:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes cloTS: "closedin (subtopology euclidean T) S"
+      and anr: "(ANR S \<and> ANR T) \<or> ANR U"
+      and contf: "continuous_on T f"
+      and "f ` T \<subseteq> U"
+      and "homotopic_with (\<lambda>x. True) S U f g"
+   obtains g' where "homotopic_with (\<lambda>x. True) T U f g'"
+                    "continuous_on T g'" "image g' T \<subseteq> U"
+                    "\<And>x. x \<in> S \<Longrightarrow> g' x = g x"
+proof -
+  have "S \<subseteq> T" using assms closedin_imp_subset by blast
+  obtain h where conth: "continuous_on ({0..1} \<times> S) h"
+             and him: "h ` ({0..1} \<times> S) \<subseteq> U"
+             and [simp]: "\<And>x. h(0, x) = f x" "\<And>x. h(1::real, x) = g x"
+       using assms by (auto simp: homotopic_with_def)
+  define h' where "h' \<equiv>  \<lambda>z. if snd z \<in> S then h z else (f o snd) z"
+  define B where "B \<equiv> {0::real} \<times> T \<union> {0..1} \<times> S"
+  have clo0T: "closedin (subtopology euclidean ({0..1} \<times> T)) ({0::real} \<times> T)"
+    by (simp add: closedin_subtopology_refl closedin_Times)
+  moreover have cloT1S: "closedin (subtopology euclidean ({0..1} \<times> T)) ({0..1} \<times> S)"
+    by (simp add: closedin_subtopology_refl closedin_Times assms)
+  ultimately have clo0TB:"closedin (subtopology euclidean ({0..1} \<times> T)) B"
+    by (auto simp: B_def)
+  have cloBS: "closedin (subtopology euclidean B) ({0..1} \<times> S)"
+    by (metis (no_types) Un_subset_iff B_def closedin_subset_trans [OF cloT1S] clo0TB closedin_imp_subset closedin_self)
+  moreover have cloBT: "closedin (subtopology euclidean B) ({0} \<times> T)"
+    using \<open>S \<subseteq> T\<close> closedin_subset_trans [OF clo0T]
+    by (metis B_def Un_upper1 clo0TB closedin_closed inf_le1)
+  moreover have "continuous_on ({0} \<times> T) (f \<circ> snd)"
+    apply (rule continuous_intros)+
+    apply (simp add: contf)
+    done
+  ultimately have conth': "continuous_on B h'"
+    apply (simp add: h'_def B_def Un_commute [of "{0} \<times> T"])
+    apply (auto intro!: continuous_on_cases_local conth)
+    done
+  have "image h' B \<subseteq> U"
+    using \<open>f ` T \<subseteq> U\<close> him by (auto simp: h'_def B_def)
+  obtain V k where "B \<subseteq> V" and opeTV: "openin (subtopology euclidean ({0..1} \<times> T)) V"
+               and contk: "continuous_on V k" and kim: "k ` V \<subseteq> U"
+               and keq: "\<And>x. x \<in> B \<Longrightarrow> k x = h' x"
+  using anr
+  proof
+    assume ST: "ANR S \<and> ANR T"
+    have eq: "({0} \<times> T \<inter> {0..1} \<times> S) = {0::real} \<times> S"
+      using \<open>S \<subseteq> T\<close> by auto
+    have "ANR B"
+      apply (simp add: B_def)
+      apply (rule ANR_closed_Un_local)
+          apply (metis cloBT B_def)
+         apply (metis Un_commute cloBS B_def)
+        apply (simp_all add: ANR_Times convex_imp_ANR ANR_singleton ST eq)
+      done
+    note Vk = that
+    have *: thesis if "openin (subtopology euclidean ({0..1::real} \<times> T)) V"
+                      "retraction V B r" for V r
+      using that
+      apply (clarsimp simp add: retraction_def)
+      apply (rule Vk [of V "h' o r"], assumption+)
+        apply (metis continuous_on_compose conth' continuous_on_subset) 
+      using \<open>h' ` B \<subseteq> U\<close> apply force+
+      done
+    show thesis
+        apply (rule ANR_imp_neighbourhood_retract [OF \<open>ANR B\<close> clo0TB])
+        apply (auto simp: ANR_Times ANR_singleton ST retract_of_def *)
+        done
+  next
+    assume "ANR U"
+    with ANR_imp_absolute_neighbourhood_extensor \<open>h' ` B \<subseteq> U\<close> clo0TB conth' that
+    show ?thesis by blast
+  qed
+  define S' where "S' \<equiv> {x. \<exists>u::real. u \<in> {0..1} \<and> (u, x::'a) \<in> {0..1} \<times> T - V}"
+  have "closedin (subtopology euclidean T) S'"
+    unfolding S'_def
+    apply (rule closedin_compact_projection, blast)
+    using closedin_self opeTV by blast
+  have S'_def: "S' = {x. \<exists>u::real.  (u, x::'a) \<in> {0..1} \<times> T - V}"
+    by (auto simp: S'_def)
+  have cloTS': "closedin (subtopology euclidean T) S'"
+    using S'_def \<open>closedin (subtopology euclidean T) S'\<close> by blast
+  have "S \<inter> S' = {}"
+    using S'_def B_def \<open>B \<subseteq> V\<close> by force
+  obtain a :: "'a \<Rightarrow> real" where conta: "continuous_on T a"
+      and "\<And>x. x \<in> T \<Longrightarrow> a x \<in> closed_segment 1 0"
+      and a1: "\<And>x. x \<in> S \<Longrightarrow> a x = 1"
+      and a0: "\<And>x. x \<in> S' \<Longrightarrow> a x = 0"
+    apply (rule Urysohn_local [OF cloTS cloTS' \<open>S \<inter> S' = {}\<close>, of 1 0], blast)
+    done
+  then have ain: "\<And>x. x \<in> T \<Longrightarrow> a x \<in> {0..1}"
+    using closed_segment_eq_real_ivl by auto
+  have inV: "(u * a t, t) \<in> V" if "t \<in> T" "0 \<le> u" "u \<le> 1" for t u
+  proof (rule ccontr)
+    assume "(u * a t, t) \<notin> V"
+    with ain [OF \<open>t \<in> T\<close>] have "a t = 0"
+      apply simp
+      apply (rule a0)
+      by (metis (no_types, lifting) Diff_iff S'_def SigmaI atLeastAtMost_iff mem_Collect_eq mult_le_one mult_nonneg_nonneg that)
+    show False
+      using B_def \<open>(u * a t, t) \<notin> V\<close> \<open>B \<subseteq> V\<close> \<open>a t = 0\<close> that by auto
+  qed
+  show ?thesis
+  proof
+    show hom: "homotopic_with (\<lambda>x. True) T U f (\<lambda>x. k (a x, x))"
+    proof (simp add: homotopic_with, intro exI conjI)
+      show "continuous_on ({0..1} \<times> T) (k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z)))"
+        apply (intro continuous_on_compose continuous_intros)
+        apply (rule continuous_on_subset [OF conta], force)
+        apply (rule continuous_on_subset [OF contk])
+        apply (force intro: inV)
+        done
+      show "(k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z))) ` ({0..1} \<times> T) \<subseteq> U"
+        using inV kim by auto
+      show "\<forall>x\<in>T. (k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z))) (0, x) = f x"
+        by (simp add: B_def h'_def keq)
+      show "\<forall>x\<in>T. (k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z))) (1, x) = k (a x, x)"
+        by auto
+    qed
+  show "continuous_on T (\<lambda>x. k (a x, x))"
+    using hom homotopic_with_imp_continuous by blast
+  show "(\<lambda>x. k (a x, x)) ` T \<subseteq> U"
+  proof clarify
+    fix t
+    assume "t \<in> T"
+    show "k (a t, t) \<in> U"
+      by (metis \<open>t \<in> T\<close> image_subset_iff inV kim not_one_le_zero linear mult_cancel_right1)
+  qed
+  show "\<And>x. x \<in> S \<Longrightarrow> k (a x, x) = g x"
+    by (simp add: B_def a1 h'_def keq)
+  qed
+qed
+
+
+corollary nullhomotopic_into_ANR_extension:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "closed S"
+      and contf: "continuous_on S f"
+      and "ANR T"
+      and fim: "f ` S \<subseteq> T"
+      and "S \<noteq> {}"
+   shows "(\<exists>c. homotopic_with (\<lambda>x. True) S T f (\<lambda>x. c)) \<longleftrightarrow>
+          (\<exists>g. continuous_on UNIV g \<and> range g \<subseteq> T \<and> (\<forall>x \<in> S. g x = f x))"
+       (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain c where c: "homotopic_with (\<lambda>x. True) S T (\<lambda>x. c) f"
+    by (blast intro: homotopic_with_symD elim: )
+  have "closedin (subtopology euclidean UNIV) S"
+    using \<open>closed S\<close> closed_closedin by fastforce
+  then obtain g where "continuous_on UNIV g" "range g \<subseteq> T"
+                      "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+    apply (rule Borsuk_homotopy_extension_homotopic [OF _ _ continuous_on_const _ c, where T=UNIV])
+    using \<open>ANR T\<close> \<open>S \<noteq> {}\<close> c homotopic_with_imp_subset1 apply fastforce+
+    done
+  then show ?rhs by blast
+next
+  assume ?rhs
+  then obtain g where "continuous_on UNIV g" "range g \<subseteq> T" "\<And>x. x\<in>S \<Longrightarrow> g x = f x"
+    by blast
+  then obtain c where "homotopic_with (\<lambda>h. True) UNIV T g (\<lambda>x. c)"
+    using nullhomotopic_from_contractible [of UNIV g T] contractible_UNIV by blast
+  then show ?lhs
+    apply (rule_tac x="c" in exI)
+    apply (rule homotopic_with_eq [of _ _ _ g "\<lambda>x. c"])
+    apply (rule homotopic_with_subset_left)
+    apply (auto simp add: \<open>\<And>x. x \<in> S \<Longrightarrow> g x = f x\<close>)
+    done
+qed
+
+corollary nullhomotopic_into_rel_frontier_extension:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "closed S"
+      and contf: "continuous_on S f"
+      and "convex T" "bounded T"
+      and fim: "f ` S \<subseteq> rel_frontier T"
+      and "S \<noteq> {}"
+   shows "(\<exists>c. homotopic_with (\<lambda>x. True) S (rel_frontier T) f (\<lambda>x. c)) \<longleftrightarrow>
+          (\<exists>g. continuous_on UNIV g \<and> range g \<subseteq> rel_frontier T \<and> (\<forall>x \<in> S. g x = f x))"
+by (simp add: nullhomotopic_into_ANR_extension assms ANR_rel_frontier_convex)
+
+corollary nullhomotopic_into_sphere_extension:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes "closed S" and contf: "continuous_on S f"
+      and "S \<noteq> {}" and fim: "f ` S \<subseteq> sphere a r"
+    shows "((\<exists>c. homotopic_with (\<lambda>x. True) S (sphere a r) f (\<lambda>x. c)) \<longleftrightarrow>
+           (\<exists>g. continuous_on UNIV g \<and> range g \<subseteq> sphere a r \<and> (\<forall>x \<in> S. g x = f x)))"
+           (is "?lhs = ?rhs")
+proof (cases "r = 0")
+  case True with fim show ?thesis
+    apply (auto simp: )
+    using fim continuous_on_const apply fastforce
+    by (metis contf contractible_sing nullhomotopic_into_contractible)
+next
+  case False
+  then have eq: "sphere a r = rel_frontier (cball a r)" by simp
+  show ?thesis
+    using fim unfolding eq
+    apply (rule nullhomotopic_into_rel_frontier_extension [OF \<open>closed S\<close> contf convex_cball bounded_cball])
+    apply (rule \<open>S \<noteq> {}\<close>)
+    done
+qed
+
+proposition Borsuk_map_essential_bounded_component:
+  fixes a :: "'a :: euclidean_space"
+  assumes "compact S" and "a \<notin> S"
+   shows "bounded (connected_component_set (- S) a) \<longleftrightarrow>
+          ~(\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1)
+                               (\<lambda>x. inverse(norm(x - a)) *\<^sub>R (x - a)) (\<lambda>x. c))"
+   (is "?lhs = ?rhs")
+proof (cases "S = {}")
+  case True then show ?thesis
+    by simp
+next
+  case False
+  have "closed S" "bounded S"
+    using \<open>compact S\<close> compact_eq_bounded_closed by auto
+  have s01: "(\<lambda>x. (x - a) /\<^sub>R norm (x - a)) ` S \<subseteq> sphere 0 1"
+    using \<open>a \<notin> S\<close>  by clarsimp (metis dist_eq_0_iff dist_norm mult.commute right_inverse)
+  have aincc: "a \<in> connected_component_set (- S) a"
+    by (simp add: \<open>a \<notin> S\<close>)
+  obtain r where "r>0" and r: "S \<subseteq> ball 0 r"
+    using bounded_subset_ballD \<open>bounded S\<close> by blast
+  have "~ ?rhs \<longleftrightarrow> ~ ?lhs"
+  proof
+    assume notr: "~ ?rhs"
+    have nog: "\<nexists>g. continuous_on (S \<union> connected_component_set (- S) a) g \<and>
+                   g ` (S \<union> connected_component_set (- S) a) \<subseteq> sphere 0 1 \<and>
+                   (\<forall>x\<in>S. g x = (x - a) /\<^sub>R norm (x - a))"
+         if "bounded (connected_component_set (- S) a)"
+      apply (rule non_extensible_Borsuk_map [OF \<open>compact S\<close> componentsI _ aincc])
+      using  \<open>a \<notin> S\<close> that by auto
+    obtain g where "range g \<subseteq> sphere 0 1" "continuous_on UNIV g"
+                        "\<And>x. x \<in> S \<Longrightarrow> g x = (x - a) /\<^sub>R norm (x - a)"
+      using notr
+      by (auto simp add: nullhomotopic_into_sphere_extension
+                 [OF \<open>closed S\<close> continuous_on_Borsuk_map [OF \<open>a \<notin> S\<close>] False s01])
+    with \<open>a \<notin> S\<close> show  "~ ?lhs"
+      apply (clarsimp simp: Borsuk_map_into_sphere [of a S, symmetric] dest!: nog)
+      apply (drule_tac x="g" in spec)
+      using continuous_on_subset by fastforce 
+  next
+    assume "~ ?lhs"
+    then obtain b where b: "b \<in> connected_component_set (- S) a" and "r \<le> norm b"
+      using bounded_iff linear by blast
+    then have bnot: "b \<notin> ball 0 r"
+      by simp
+    have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
+                                                   (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
+      apply (rule Borsuk_maps_homotopic_in_path_component)
+      using \<open>closed S\<close> b open_Compl open_path_connected_component apply fastforce
+      done
+    moreover
+    obtain c where "homotopic_with (\<lambda>x. True) (ball 0 r) (sphere 0 1)
+                                   (\<lambda>x. inverse (norm (x - b)) *\<^sub>R (x - b)) (\<lambda>x. c)"
+    proof (rule nullhomotopic_from_contractible)
+      show "contractible (ball (0::'a) r)"
+        by (metis convex_imp_contractible convex_ball)
+      show "continuous_on (ball 0 r) (\<lambda>x. inverse(norm (x - b)) *\<^sub>R (x - b))"
+        by (rule continuous_on_Borsuk_map [OF bnot])
+      show "(\<lambda>x. (x - b) /\<^sub>R norm (x - b)) ` ball 0 r \<subseteq> sphere 0 1"
+        using bnot Borsuk_map_into_sphere by blast
+    qed blast
+    ultimately have "homotopic_with (\<lambda>x. True) S (sphere 0 1)
+                         (\<lambda>x. (x - a) /\<^sub>R norm (x - a)) (\<lambda>x. c)"
+      by (meson homotopic_with_subset_left homotopic_with_trans r)
+    then show "~ ?rhs"
+      by blast
+  qed
+  then show ?thesis by blast
+qed
+
 
 end

@@ -5328,12 +5328,12 @@ lemma negligible_diff[intro?]:
   shows "negligible (s - t)"
   using assms by auto
 
-lemma negligible_inter:
+lemma negligible_Int:
   assumes "negligible s \<or> negligible t"
   shows "negligible (s \<inter> t)"
   using assms by auto
 
-lemma negligible_union:
+lemma negligible_Un:
   assumes "negligible s"
     and "negligible t"
   shows "negligible (s \<union> t)"
@@ -5350,15 +5350,15 @@ proof (safe, goal_cases)
     done
 qed
 
-lemma negligible_union_eq[simp]: "negligible (s \<union> t) \<longleftrightarrow> negligible s \<and> negligible t"
-  using negligible_union by auto
+lemma negligible_Un_eq[simp]: "negligible (s \<union> t) \<longleftrightarrow> negligible s \<and> negligible t"
+  using negligible_Un by auto
 
 lemma negligible_sing[intro]: "negligible {a::'a::euclidean_space}"
   using negligible_standard_hyperplane[OF SOME_Basis, of "a \<bullet> (SOME i. i \<in> Basis)"] by auto
 
 lemma negligible_insert[simp]: "negligible (insert a s) \<longleftrightarrow> negligible s"
   apply (subst insert_is_Un)
-  unfolding negligible_union_eq
+  unfolding negligible_Un_eq
   apply auto
   done
 
@@ -6802,7 +6802,6 @@ lemma integrable_stretch:
   apply assumption
   apply auto
   done
-
 
 subsection \<open>even more special cases.\<close>
 
@@ -8394,6 +8393,33 @@ proof
   qed
 qed auto
 
+lemma negligible_translation:
+  assumes "negligible S"
+    shows "negligible (op + c ` S)"
+proof -
+  have inj: "inj (op + c)"
+    by simp
+  show ?thesis
+  using assms
+  proof (clarsimp simp: negligible_def)
+    fix a b
+    assume "\<forall>x y. (indicator S has_integral 0) (cbox x y)"
+    then have *: "(indicator S has_integral 0) (cbox (a-c) (b-c))"
+      by (meson Diff_iff assms has_integral_negligible indicator_simps(2))
+    have eq: "indicator (op + c ` S) = (\<lambda>x. indicator S (x - c))"
+      by (force simp add: indicator_def)
+    show "(indicator (op + c ` S) has_integral 0) (cbox a b)"
+      using has_integral_affinity [OF *, of 1 "-c"]
+            cbox_translation [of "c" "-c+a" "-c+b"]
+      by (simp add: eq add.commute)
+  qed
+qed
+
+lemma negligible_translation_rev:
+  assumes "negligible (op + c ` S)"
+    shows "negligible S"
+by (metis negligible_translation [OF assms, of "-c"] translation_galois)
+
 lemma has_integral_spike_set_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "negligible ((s - t) \<union> (t - s))"
@@ -9065,7 +9091,7 @@ proof -
       unfolding obt interior_cbox
       apply -
       apply (rule negligible_subset[of "(cbox a b-box a b) \<union> (cbox c d-box c d)"])
-      apply (rule negligible_union negligible_frontier_interval)+
+      apply (rule negligible_Un negligible_frontier_interval)+
       apply auto
       done
   qed
