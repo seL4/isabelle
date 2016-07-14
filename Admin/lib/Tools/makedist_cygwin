@@ -43,7 +43,9 @@ TARGET="$PWD/cygwin"
 [ ! -e "$TARGET" ] || fail "Target already exists: \"$TARGET\""
 mkdir -p "$TARGET/isabelle" || fail "Failed to create target directory: \"$TARGET\""
 
-perl -MLWP::Simple -e "getprint '$CYGWIN_MIRROR/setup-x86.exe';" > "$TARGET/isabelle/cygwin.exe"
+type -p curl > /dev/null || fail "Cannot download files: missing curl"
+curl --fail --silent "$CYGWIN_MIRROR/setup-x86.exe" > "$TARGET/isabelle/cygwin.exe" || \
+  fail "Failed to download \"$CYGWIN_MIRROR/setup-x86.exe\""
 chmod +x "$TARGET/isabelle/cygwin.exe"
 
 "$TARGET/isabelle/cygwin.exe" -h </dev/null >/dev/null || exit 2
@@ -55,7 +57,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
   --site "$CYGWIN_MIRROR" --no-verify \
   --local-package-dir 'C:\temp' \
   --root "$(cygpath -w "$TARGET")" \
-  --packages perl,perl-libwww-perl,rlwrap,unzip,nano \
+  --packages curl,nano,perl,perl-libwww-perl,rlwrap,unzip \
   --no-shortcuts --no-startmenu --no-desktop --quiet-mode
 
 [ "$?" = 0 -a -e "$TARGET/etc" ] || exit 2

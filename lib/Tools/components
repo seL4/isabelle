@@ -124,9 +124,11 @@ else
     else
       if [ ! -e "${FULL_NAME}.tar.gz" ]; then
         REMOTE="$COMPONENT_REPOSITORY/${BASE_NAME}.tar.gz"
+        type -p curl > /dev/null || fail "Cannot download files: missing curl"
         echo "Getting \"$REMOTE\""
         mkdir -p "$(dirname "$FULL_NAME")"
-        perl -MLWP::Simple -e "getprint '$REMOTE';" > "${FULL_NAME}.tar.gz"
+        curl --fail --silent "$REMOTE" > "${FULL_NAME}.tar.gz" || \
+          fail "Failed to download \"$REMOTE\""
         if perl -e "exit((stat('${FULL_NAME}.tar.gz'))[7] == 0 ? 0 : 1);"
         then
           rm -f "${FULL_NAME}.tar.gz"

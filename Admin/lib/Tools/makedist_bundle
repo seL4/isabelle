@@ -113,9 +113,11 @@ do
                 echo "  component $COMPONENT"
                 CONTRIB="$ARCHIVE_DIR/contrib/${COMPONENT}.tar.gz"
                 if [ ! -f "$CONTRIB" ]; then
+                  type -p curl  > /dev/null || fail "Cannot download files: missing curl"
                   REMOTE="$ISABELLE_COMPONENT_REPOSITORY/${COMPONENT}.tar.gz"
-                  echo "  download $REMOTE"
-                  perl -MLWP::Simple -e "getprint '$REMOTE';" > "$CONTRIB"
+                  echo "  downloading $REMOTE"
+                  curl --fail --silent "$REMOTE" > "$CONTRIB" || \
+                    fail "Failed to download \"$REMOTE\""
                   perl -e "exit((stat('${CONTRIB}'))[7] == 0 ? 0 : 1);" && exit 2
                 fi
 
