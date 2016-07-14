@@ -4114,9 +4114,9 @@ next
   have "~ ?rhs \<longleftrightarrow> ~ ?lhs"
   proof
     assume notr: "~ ?rhs"
-    have nog: "\<nexists>g. continuous_on (S \<union> connected_component_set (- S) a) g \<and>
+    have nog: "~ (\<exists>g. continuous_on (S \<union> connected_component_set (- S) a) g \<and>
                    g ` (S \<union> connected_component_set (- S) a) \<subseteq> sphere 0 1 \<and>
-                   (\<forall>x\<in>S. g x = (x - a) /\<^sub>R norm (x - a))"
+                   (\<forall>x\<in>S. g x = (x - a) /\<^sub>R norm (x - a)))"
          if "bounded (connected_component_set (- S) a)"
       apply (rule non_extensible_Borsuk_map [OF \<open>compact S\<close> componentsI _ aincc])
       using  \<open>a \<notin> S\<close> that by auto
