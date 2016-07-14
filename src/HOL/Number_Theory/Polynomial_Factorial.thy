@@ -1343,6 +1343,7 @@ instance
   by standard (auto simp: euclidean_size_poly_def intro!: degree_mod_less' degree_mult_right_le)
 end
 
+
 instance poly :: ("{field,factorial_ring_gcd}") euclidean_ring_gcd
   by standard (simp_all add: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_poly_def eucl_eq_factorial)
 

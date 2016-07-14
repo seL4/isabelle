@@ -200,6 +200,17 @@ qed
 
 end
 
+(* We cannot state these two rules earlier because of pending sort hypotheses *)
+lemma div_add_self1_no_field [simp]:
+  assumes "NO_MATCH (x :: 'b :: field) b" "(b :: 'a :: semiring_div) \<noteq> 0"
+  shows "(b + a) div b = a div b + 1"
+  using assms(2) by (fact div_add_self1)
+
+lemma div_add_self2_no_field [simp]:
+  assumes "NO_MATCH (x :: 'b :: field) b" "(b :: 'a :: semiring_div) \<noteq> 0"
+  shows "(a + b) div b = a div b + 1"
+  using assms(2) by (fact div_add_self2)
+
 lemma of_nat_rat: "of_nat k = Fract (of_nat k) 1"
   by (induct k) (simp_all add: Zero_rat_def One_rat_def)
 

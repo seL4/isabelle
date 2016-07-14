@@ -128,12 +128,12 @@ lemma mod_self [simp]:
   "a mod a = 0"
   using mod_mult_self2_is_0 [of 1] by simp
 
-lemma div_add_self1 [simp]:
+lemma div_add_self1:
   assumes "b \<noteq> 0"
   shows "(b + a) div b = a div b + 1"
   using assms div_mult_self1 [of b a 1] by (simp add: add.commute)
 
-lemma div_add_self2 [simp]:
+lemma div_add_self2:
   assumes "b \<noteq> 0"
   shows "(a + b) div b = a div b + 1"
   using assms div_add_self1 [of b a] by (simp add: add.commute)
@@ -1116,7 +1116,7 @@ lemma div_positive:
 proof -
   from \<open>m \<ge> n\<close> obtain q where "m = n + q"
     by (auto simp add: le_iff_add)
-  with \<open>n > 0\<close> show ?thesis by simp
+  with \<open>n > 0\<close> show ?thesis by (simp add: div_add_self1)
 qed
 
 lemma div_eq_0_iff: "(a div b::nat) = 0 \<longleftrightarrow> a < b \<or> b = 0"
@@ -2154,7 +2154,7 @@ lemma div_pos_geq:
 proof -
   have "k = (k - l) + l" by simp
   then obtain j where k: "k = j + l" ..
-  with assms show ?thesis by simp
+  with assms show ?thesis by (simp add: div_add_self2)
 qed
 
 lemma mod_pos_geq:
