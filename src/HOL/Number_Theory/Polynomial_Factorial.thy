@@ -2,9 +2,8 @@ theory Polynomial_Factorial
 imports 
   Complex_Main
   Euclidean_Algorithm 
-  "~~/src/HOL/Library/Fraction_Field" 
   "~~/src/HOL/Library/Polynomial"
-  "/home/manuel/hg/Linear_Recurrences/Normalized_Fraction"
+  "~~/src/HOL/Library/Normalized_Fraction"
 begin
 
 subsection \<open>Prelude\<close>
