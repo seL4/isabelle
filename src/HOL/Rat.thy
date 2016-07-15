@@ -1,11 +1,11 @@
-(*  Title:  HOL/Rat.thy
-    Author: Markus Wenzel, TU Muenchen
+(*  Title:      HOL/Rat.thy
+    Author:     Markus Wenzel, TU Muenchen
 *)
 
 section \<open>Rational numbers\<close>
 
 theory Rat
-imports GCD Archimedean_Field
+  imports GCD Archimedean_Field
 begin
 
 subsection \<open>Rational numbers as quotient\<close>
@@ -27,17 +27,17 @@ lemma symp_ratrel: "symp ratrel"
 lemma transp_ratrel: "transp ratrel"
 proof (rule transpI, unfold split_paired_all)
   fix a b a' b' a'' b'' :: int
-  assume A: "ratrel (a, b) (a', b')"
-  assume B: "ratrel (a', b') (a'', b'')"
+  assume *: "ratrel (a, b) (a', b')"
+  assume **: "ratrel (a', b') (a'', b'')"
   have "b' * (a * b'') = b'' * (a * b')" by simp
-  also from A have "a * b' = a' * b" by auto
+  also from * have "a * b' = a' * b" by auto
   also have "b'' * (a' * b) = b * (a' * b'')" by simp
-  also from B have "a' * b'' = a'' * b'" by auto
+  also from ** have "a' * b'' = a'' * b'" by auto
   also have "b * (a'' * b') = b' * (a'' * b)" by simp
   finally have "b' * (a * b'') = b' * (a'' * b)" .
-  moreover from B have "b' \<noteq> 0" by auto
+  moreover from ** have "b' \<noteq> 0" by auto
   ultimately have "a * b'' = a'' * b" by simp
-  with A B show "ratrel (a, b) (a'', b'')" by auto
+  with * ** show "ratrel (a, b) (a'', b'')" by auto
 qed
 
 lemma part_equivp_ratrel: "part_equivp ratrel"
@@ -120,7 +120,7 @@ lemma One_rat_def: "1 = Fract 1 1"
 
 lift_definition plus_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat"
   is "\<lambda>x y. (fst x * snd y + fst y * snd x, snd x * snd y)"
-  by (clarsimp, simp add: distrib_right, simp add: ac_simps)
+  by (auto simp: distrib_right) (simp add: ac_simps)
 
 lemma add_rat [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
@@ -139,9 +139,8 @@ lemma minus_rat_cancel [simp]: "Fract (- a) (- b) = Fract a b"
 definition diff_rat_def: "q - r = q + - r" for q r :: rat
 
 lemma diff_rat [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
-  shows "Fract a b - Fract c d = Fract (a * d - c * b) (b * d)"
-  using assms by (simp add: diff_rat_def)
+  "b \<noteq> 0 \<Longrightarrow> d \<noteq> 0 \<Longrightarrow> Fract a b - Fract c d = Fract (a * d - c * b) (b * d)"
+  by (simp add: diff_rat_def)
 
 lift_definition times_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat"
   is "\<lambda>x y. (fst x * fst y, snd x * snd y)"
@@ -150,10 +149,8 @@ lift_definition times_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat"
 lemma mult_rat [simp]: "Fract a b * Fract c d = Fract (a * c) (b * d)"
   by transfer simp
 
-lemma mult_rat_cancel:
-  assumes "c \<noteq> 0"
-  shows "Fract (c * a) (c * b) = Fract a b"
-  using assms by transfer simp
+lemma mult_rat_cancel: "c \<noteq> 0 \<Longrightarrow> Fract (c * a) (c * b) = Fract a b"
+  by transfer simp
 
 lift_definition inverse_rat :: "rat \<Rightarrow> rat"
   is "\<lambda>x. if fst x = 0 then (0, 1) else (snd x, fst x)"
@@ -220,7 +217,7 @@ lemma rat_number_collapse:
   "Fract (- 1) 1 = - 1"
   "Fract k 0 = 0"
   using Fract_of_int_eq [of "numeral w"]
-  using Fract_of_int_eq [of "- numeral w"]
+    and Fract_of_int_eq [of "- numeral w"]
   by (simp_all add: Zero_rat_def One_rat_def eq_rat)
 
 lemma rat_number_expand:
@@ -255,7 +252,8 @@ subsubsection \<open>Function \<open>normalize\<close>\<close>
 lemma Fract_coprime: "Fract (a div gcd a b) (b div gcd a b) = Fract a b"
 proof (cases "b = 0")
   case True
-  then show ?thesis by (simp add: eq_rat)
+  then show ?thesis
+    by (simp add: eq_rat)
 next
   case False
   moreover have "b div gcd a b * gcd a b = b"
@@ -282,28 +280,27 @@ proof -
   have *: "p * s = q * r"
     if "p * gcd r s = sgn (q * s) * r * gcd p q" and "q * gcd r s = sgn (q * s) * s * gcd p q"
   proof -
-    from that
-    have "(p * gcd r s) * (sgn (q * s) * s * gcd p q) = (q * gcd r s) * (sgn (q * s) * r * gcd p q)"
+    from that have "(p * gcd r s) * (sgn (q * s) * s * gcd p q) =
+        (q * gcd r s) * (sgn (q * s) * r * gcd p q)"
       by simp
     with assms show ?thesis
       by (auto simp add: ac_simps sgn_times sgn_0_0)
   qed
   from assms show ?thesis
-    by (auto simp add: normalize_def Let_def dvd_div_div_eq_mult mult.commute sgn_times
+    by (auto simp: normalize_def Let_def dvd_div_div_eq_mult mult.commute sgn_times
         split: if_splits intro: *)
 qed
 
 lemma normalize_eq: "normalize (a, b) = (p, q) \<Longrightarrow> Fract p q = Fract a b"
-  by (auto simp add: normalize_def Let_def Fract_coprime dvd_div_neg rat_number_collapse
+  by (auto simp: normalize_def Let_def Fract_coprime dvd_div_neg rat_number_collapse
       split: if_split_asm)
 
 lemma normalize_denom_pos: "normalize r = (p, q) \<Longrightarrow> q > 0"
-  by (auto simp add: normalize_def Let_def dvd_div_neg pos_imp_zdiv_neg_iff nonneg1_imp_zdiv_pos_iff
+  by (auto simp: normalize_def Let_def dvd_div_neg pos_imp_zdiv_neg_iff nonneg1_imp_zdiv_pos_iff
       split: if_split_asm)
 
 lemma normalize_coprime: "normalize r = (p, q) \<Longrightarrow> coprime p q"
-  by (auto simp add: normalize_def Let_def dvd_div_neg div_gcd_coprime
-      split: if_split_asm)
+  by (auto simp: normalize_def Let_def dvd_div_neg div_gcd_coprime split: if_split_asm)
 
 lemma normalize_stable [simp]: "q > 0 \<Longrightarrow> coprime p q \<Longrightarrow> normalize (p, q) = (p, q)"
   by (simp add: normalize_def)
@@ -325,7 +322,8 @@ definition quotient_of :: "rat \<Rightarrow> int \<times> int"
 lemma quotient_of_unique: "\<exists>!p. r = Fract (fst p) (snd p) \<and> snd p > 0 \<and> coprime (fst p) (snd p)"
 proof (cases r)
   case (Fract a b)
-  then have "r = Fract (fst (a, b)) (snd (a, b)) \<and> snd (a, b) > 0 \<and> coprime (fst (a, b)) (snd (a, b))"
+  then have "r = Fract (fst (a, b)) (snd (a, b)) \<and>
+      snd (a, b) > 0 \<and> coprime (fst (a, b)) (snd (a, b))"
     by auto
   then show ?thesis
   proof (rule ex1I)
@@ -453,7 +451,8 @@ lemma positive_zero: "\<not> positive 0"
 lemma positive_add: "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x + y)"
   apply transfer
   apply (simp add: zero_less_mult_iff)
-  apply (elim disjE, simp_all add: add_pos_pos add_neg_neg mult_pos_neg mult_neg_pos mult_neg_neg)
+  apply (elim disjE)
+     apply (simp_all add: add_pos_pos add_neg_neg mult_pos_neg mult_neg_pos mult_neg_neg)
   done
 
 lemma positive_mult: "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x * y)"
@@ -484,8 +483,8 @@ proof
   show "a < b \<longleftrightarrow> a \<le> b \<and> \<not> b \<le> a"
     unfolding less_eq_rat_def less_rat_def
     apply auto
-    apply (drule (1) positive_add)
-    apply (simp_all add: positive_zero)
+     apply (drule (1) positive_add)
+     apply (simp_all add: positive_zero)
     done
   show "a \<le> a"
     unfolding less_eq_rat_def by simp
@@ -533,15 +532,12 @@ lemma positive_rat: "positive (Fract a b) \<longleftrightarrow> 0 < a * b"
   by transfer simp
 
 lemma less_rat [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
-  shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
-  using assms unfolding less_rat_def
-  by (simp add: positive_rat algebra_simps)
+  "b \<noteq> 0 \<Longrightarrow> d \<noteq> 0 \<Longrightarrow> Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
+  by (simp add: less_rat_def positive_rat algebra_simps)
 
 lemma le_rat [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
-  shows "Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
-  using assms unfolding le_less by (simp add: eq_rat)
+  "b \<noteq> 0 \<Longrightarrow> d \<noteq> 0 \<Longrightarrow> Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
+  by (simp add: le_less eq_rat)
 
 lemma abs_rat [simp, code]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (auto simp add: abs_rat_def zabs_def Zero_rat_def not_less le_less eq_rat zero_less_mult_iff)
@@ -565,7 +561,8 @@ proof (cases q)
     then show "P (Fract a b)"
       by (simp add: order_less_imp_not_eq [OF b])
   qed
-  from Fract show "P q" by (auto simp add: linorder_neq_iff step step')
+  from Fract show "P q"
+    by (auto simp add: linorder_neq_iff step step')
 qed
 
 lemma zero_less_Fract_iff: "0 < b \<Longrightarrow> 0 < Fract a b \<longleftrightarrow> 0 < a"
@@ -662,9 +659,7 @@ begin
 
 lift_definition of_rat :: "rat \<Rightarrow> 'a"
   is "\<lambda>x. of_int (fst x) / of_int (snd x)"
-  apply (clarsimp simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
-  apply (simp only: of_int_mult [symmetric])
-  done
+  by (auto simp: nonzero_divide_eq_eq nonzero_eq_divide_eq) (simp only: of_int_mult [symmetric])
 
 end
 
@@ -779,7 +774,7 @@ proof
     by (induct a) (simp add: of_rat_rat Fract_of_int_eq [symmetric])
 qed
 
-text \<open>Collapse nested embeddings\<close>
+text \<open>Collapse nested embeddings.\<close>
 lemma of_rat_of_nat_eq [simp]: "of_rat (of_nat n) = of_nat n"
   by (induct n) (simp_all add: of_rat_add)
 
@@ -854,31 +849,36 @@ lemma Rats_mult [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longr
   apply (rule of_rat_mult [symmetric])
   done
 
-lemma nonzero_Rats_inverse: "a \<in> \<rat> \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> inverse a \<in> \<rat>" for a :: "'a::field_char_0"
+lemma nonzero_Rats_inverse: "a \<in> \<rat> \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> inverse a \<in> \<rat>"
+  for a :: "'a::field_char_0"
   apply (auto simp add: Rats_def)
   apply (rule range_eqI)
   apply (erule nonzero_of_rat_inverse [symmetric])
   done
 
-lemma Rats_inverse [simp]: "a \<in> \<rat> \<Longrightarrow> inverse a \<in> \<rat>" for a :: "'a::{field_char_0,field}"
+lemma Rats_inverse [simp]: "a \<in> \<rat> \<Longrightarrow> inverse a \<in> \<rat>"
+  for a :: "'a::{field_char_0,field}"
   apply (auto simp add: Rats_def)
   apply (rule range_eqI)
   apply (rule of_rat_inverse [symmetric])
   done
 
-lemma nonzero_Rats_divide: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a / b \<in> \<rat>" for a b :: "'a::field_char_0"
+lemma nonzero_Rats_divide: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a / b \<in> \<rat>"
+  for a b :: "'a::field_char_0"
   apply (auto simp add: Rats_def)
   apply (rule range_eqI)
   apply (erule nonzero_of_rat_divide [symmetric])
   done
 
-lemma Rats_divide [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a / b \<in> \<rat>" for a b :: "'a::{field_char_0, field}"
+lemma Rats_divide [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a / b \<in> \<rat>"
+  for a b :: "'a::{field_char_0, field}"
   apply (auto simp add: Rats_def)
   apply (rule range_eqI)
   apply (rule of_rat_divide [symmetric])
   done
 
-lemma Rats_power [simp]: "a \<in> \<rat> \<Longrightarrow> a ^ n \<in> \<rat>" for a :: "'a::field_char_0"
+lemma Rats_power [simp]: "a \<in> \<rat> \<Longrightarrow> a ^ n \<in> \<rat>"
+  for a :: "'a::field_char_0"
   apply (auto simp add: Rats_def)
   apply (rule range_eqI)
   apply (rule of_rat_power [symmetric])
@@ -888,7 +888,8 @@ lemma Rats_cases [cases set: Rats]:
   assumes "q \<in> \<rat>"
   obtains (of_rat) r where "q = of_rat r"
 proof -
-  from \<open>q \<in> \<rat>\<close> have "q \<in> range of_rat" unfolding Rats_def .
+  from \<open>q \<in> \<rat>\<close> have "q \<in> range of_rat"
+    by (simp only: Rats_def)
   then obtain r where "q = of_rat r" ..
   then show thesis ..
 qed
@@ -1028,7 +1029,8 @@ lemma [code]: "of_rat p = (let (a, b) = quotient_of p in of_int a / of_int b)"
 text \<open>Quickcheck\<close>
 
 definition (in term_syntax)
-  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
+  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
+    int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow>
     rat \<times> (unit \<Rightarrow> Code_Evaluation.term)"
   where [code_unfold]: "valterm_fract k l = Code_Evaluation.valtermify Fract {\<cdot>} k {\<cdot>} l"
 
