@@ -173,7 +173,7 @@ apply (typechk assms)
 apply assumption
 done
 
-text "Example of sequent_style deduction"
+text "Example of sequent-style deduction"
 (*When splitting z:A \<times> B, the assumption C(z) is affected;  ?a becomes
     \<^bold>\<lambda>u. split(u,\<lambda>v w.split(v,\<lambda>x y.\<^bold> \<lambda>z. <x,<y,z>>) ` w)     *)
 schematic_goal

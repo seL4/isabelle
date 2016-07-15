@@ -16,12 +16,12 @@ session CTT = Pure +
     Simon Thompson, Type Theory and Functional Programming (Addison-Wesley,
     1991)
   *}
-  options [document = false]
+  options [thy_output_source]
   theories
     Main
-
-    (* Examples for Constructive Type Theory *)
     "ex/Typechecking"
     "ex/Elimination"
     "ex/Equality"
     "ex/Synthesis"
+  document_files
+    "root.tex"

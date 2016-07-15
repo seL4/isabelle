@@ -17,45 +17,46 @@ typedecl t
 typedecl o
 
 consts
-  (*Types*)
+  \<comment> \<open>Types\<close>
   F         :: "t"
-  T         :: "t"          (*F is empty, T contains one element*)
+  T         :: "t"          \<comment> \<open>\<open>F\<close> is empty, \<open>T\<close> contains one element\<close>
   contr     :: "i\<Rightarrow>i"
   tt        :: "i"
-  (*Natural numbers*)
+  \<comment> \<open>Natural numbers\<close>
   N         :: "t"
   succ      :: "i\<Rightarrow>i"
   rec       :: "[i, i, [i,i]\<Rightarrow>i] \<Rightarrow> i"
-  (*Unions*)
+  \<comment> \<open>Unions\<close>
   inl       :: "i\<Rightarrow>i"
   inr       :: "i\<Rightarrow>i"
   "when"    :: "[i, i\<Rightarrow>i, i\<Rightarrow>i]\<Rightarrow>i"
-  (*General Sum and Binary Product*)
+  \<comment> \<open>General Sum and Binary Product\<close>
   Sum       :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
   fst       :: "i\<Rightarrow>i"
   snd       :: "i\<Rightarrow>i"
   split     :: "[i, [i,i]\<Rightarrow>i] \<Rightarrow>i"
-  (*General Product and Function Space*)
+  \<comment> \<open>General Product and Function Space\<close>
   Prod      :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
-  (*Types*)
+  \<comment> \<open>Types\<close>
   Plus      :: "[t,t]\<Rightarrow>t"           (infixr "+" 40)
-  (*Equality type*)
+  \<comment> \<open>Equality type\<close>
   Eq        :: "[t,i,i]\<Rightarrow>t"
   eq        :: "i"
-  (*Judgements*)
+  \<comment> \<open>Judgements\<close>
   Type      :: "t \<Rightarrow> prop"          ("(_ type)" [10] 5)
   Eqtype    :: "[t,t]\<Rightarrow>prop"        ("(_ =/ _)" [10,10] 5)
   Elem      :: "[i, t]\<Rightarrow>prop"       ("(_ /: _)" [10,10] 5)
   Eqelem    :: "[i,i,t]\<Rightarrow>prop"      ("(_ =/ _ :/ _)" [10,10,10] 5)
   Reduce    :: "[i,i]\<Rightarrow>prop"        ("Reduce[_,_]")
-  (*Types*)
 
-  (*Functions*)
+  \<comment> \<open>Types\<close>
+
+  \<comment> \<open>Functions\<close>
   lambda    :: "(i \<Rightarrow> i) \<Rightarrow> i"      (binder "\<^bold>\<lambda>" 10)
   app       :: "[i,i]\<Rightarrow>i"           (infixl "`" 60)
-  (*Natural numbers*)
+  \<comment> \<open>Natural numbers\<close>
   Zero      :: "i"                  ("0")
-  (*Pairing*)
+  \<comment> \<open>Pairing\<close>
   pair      :: "[i,i]\<Rightarrow>i"           ("(1<_,/_>)")
 
 syntax
@@ -65,35 +66,37 @@ translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod(A, \<lambda>x. B)"
   "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum(A, \<lambda>x. B)"
 
-abbreviation
-  Arrow     :: "[t,t]\<Rightarrow>t"  (infixr "\<longrightarrow>" 30) where
-  "A \<longrightarrow> B \<equiv> \<Prod>_:A. B"
-abbreviation
-  Times     :: "[t,t]\<Rightarrow>t"  (infixr "\<times>" 50) where
-  "A \<times> B \<equiv> \<Sum>_:A. B"
+abbreviation Arrow :: "[t,t]\<Rightarrow>t"  (infixr "\<longrightarrow>" 30)
+  where "A \<longrightarrow> B \<equiv> \<Prod>_:A. B"
 
-  (*Reduction: a weaker notion than equality;  a hack for simplification.
-    Reduce[a,b] means either that  a=b:A  for some A or else that "a" and "b"
-    are textually identical.*)
+abbreviation Times :: "[t,t]\<Rightarrow>t"  (infixr "\<times>" 50)
+  where "A \<times> B \<equiv> \<Sum>_:A. B"
 
-  (*does not verify a:A!  Sound because only trans_red uses a Reduce premise
-    No new theorems can be proved about the standard judgements.*)
-axiomatization where
+text \<open>
+  Reduction: a weaker notion than equality;  a hack for simplification.
+  \<open>Reduce[a,b]\<close> means either that \<open>a = b : A\<close> for some \<open>A\<close> or else
+    that \<open>a\<close> and \<open>b\<close> are textually identical.
+
+  Does not verify \<open>a:A\<close>!  Sound because only \<open>trans_red\<close> uses a \<open>Reduce\<close>
+  premise. No new theorems can be proved about the standard judgements.
+\<close>
+axiomatization
+where
   refl_red: "\<And>a. Reduce[a,a]" and
   red_if_equal: "\<And>a b A. a = b : A \<Longrightarrow> Reduce[a,b]" and
   trans_red: "\<And>a b c A. \<lbrakk>a = b : A; Reduce[b,c]\<rbrakk> \<Longrightarrow> a = c : A" and
 
-  (*Reflexivity*)
+  \<comment> \<open>Reflexivity\<close>
 
   refl_type: "\<And>A. A type \<Longrightarrow> A = A" and
   refl_elem: "\<And>a A. a : A \<Longrightarrow> a = a : A" and
 
-  (*Symmetry*)
+  \<comment> \<open>Symmetry\<close>
 
   sym_type:  "\<And>A B. A = B \<Longrightarrow> B = A" and
   sym_elem:  "\<And>a b A. a = b : A \<Longrightarrow> b = a : A" and
 
-  (*Transitivity*)
+  \<comment> \<open>Transitivity\<close>
 
   trans_type:   "\<And>A B C. \<lbrakk>A = B; B = C\<rbrakk> \<Longrightarrow> A = C" and
   trans_elem:   "\<And>a b c A. \<lbrakk>a = b : A; b = c : A\<rbrakk> \<Longrightarrow> a = c : A" and
@@ -101,7 +104,7 @@ axiomatization where
   equal_types:  "\<And>a A B. \<lbrakk>a : A; A = B\<rbrakk> \<Longrightarrow> a : B" and
   equal_typesL: "\<And>a b A B. \<lbrakk>a = b : A; A = B\<rbrakk> \<Longrightarrow> a = b : B" and
 
-  (*Substitution*)
+  \<comment> \<open>Substitution\<close>
 
   subst_type:   "\<And>a A B. \<lbrakk>a : A; \<And>z. z:A \<Longrightarrow> B(z) type\<rbrakk> \<Longrightarrow> B(a) type" and
   subst_typeL:  "\<And>a c A B D. \<lbrakk>a = c : A; \<And>z. z:A \<Longrightarrow> B(z) = D(z)\<rbrakk> \<Longrightarrow> B(a) = D(c)" and
@@ -111,7 +114,7 @@ axiomatization where
     "\<And>a b c d A B. \<lbrakk>a = c : A; \<And>z. z:A \<Longrightarrow> b(z)=d(z) : B(z)\<rbrakk> \<Longrightarrow> b(a)=d(c) : B(a)" and
 
 
-  (*The type N -- natural numbers*)
+  \<comment> \<open>The type \<open>N\<close> -- natural numbers\<close>
 
   NF: "N type" and
   NI0: "0 : N" and
@@ -135,11 +138,11 @@ axiomatization where
    "\<And>p a b C. \<lbrakk>p: N;  a: C(0); \<And>u v. \<lbrakk>u: N; v: C(u)\<rbrakk> \<Longrightarrow> b(u,v): C(succ(u))\<rbrakk> \<Longrightarrow>
    rec(succ(p), a, \<lambda>u v. b(u,v)) = b(p, rec(p, a, \<lambda>u v. b(u,v))) : C(succ(p))" and
 
-  (*The fourth Peano axiom.  See page 91 of Martin-Löf's book*)
+  \<comment> \<open>The fourth Peano axiom.  See page 91 of Martin-Löf's book.\<close>
   zero_ne_succ: "\<And>a. \<lbrakk>a: N; 0 = succ(a) : N\<rbrakk> \<Longrightarrow> 0: F" and
 
 
-  (*The Product of a family of types*)
+  \<comment> \<open>The Product of a family of types\<close>
 
   ProdF: "\<And>A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> B(x) type\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) type" and
 
@@ -160,7 +163,7 @@ axiomatization where
   ProdC2: "\<And>p A B. p : \<Prod>x:A. B(x) \<Longrightarrow> (\<^bold>\<lambda>x. p`x) = p : \<Prod>x:A. B(x)" and
 
 
-  (*The Sum of a family of types*)
+  \<comment> \<open>The Sum of a family of types\<close>
 
   SumF:  "\<And>A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> B(x) type\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) type" and
   SumFL: "\<And>A B C D. \<lbrakk>A = C; \<And>x. x:A \<Longrightarrow> B(x) = D(x)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) = \<Sum>x:C. D(x)" and
@@ -182,7 +185,7 @@ axiomatization where
   snd_def:   "\<And>a. snd(a) \<equiv> split(a, \<lambda>x y. y)" and
 
 
-  (*The sum of two types*)
+  \<comment> \<open>The sum of two types\<close>
 
   PlusF: "\<And>A B. \<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> A+B type" and
   PlusFL: "\<And>A B C D. \<lbrakk>A = C; B = D\<rbrakk> \<Longrightarrow> A+B = C+D" and
@@ -217,27 +220,31 @@ axiomatization where
     \<Longrightarrow> when(inr(b), \<lambda>x. c(x), \<lambda>y. d(y)) = d(b) : C(inr(b))" and
 
 
-  (*The type Eq*)
+  \<comment> \<open>The type \<open>Eq\<close>\<close>
 
   EqF: "\<And>a b A. \<lbrakk>A type; a : A; b : A\<rbrakk> \<Longrightarrow> Eq(A,a,b) type" and
   EqFL: "\<And>a b c d A B. \<lbrakk>A = B; a = c : A; b = d : A\<rbrakk> \<Longrightarrow> Eq(A,a,b) = Eq(B,c,d)" and
   EqI: "\<And>a b A. a = b : A \<Longrightarrow> eq : Eq(A,a,b)" and
   EqE: "\<And>p a b A. p : Eq(A,a,b) \<Longrightarrow> a = b : A" and
 
-  (*By equality of types, can prove C(p) from C(eq), an elimination rule*)
+  \<comment> \<open>By equality of types, can prove \<open>C(p)\<close> from \<open>C(eq)\<close>, an elimination rule\<close>
   EqC: "\<And>p a b A. p : Eq(A,a,b) \<Longrightarrow> p = eq : Eq(A,a,b)" and
 
-  (*The type F*)
+
+  \<comment> \<open>The type \<open>F\<close>\<close>
 
   FF: "F type" and
   FE: "\<And>p C. \<lbrakk>p: F; C type\<rbrakk> \<Longrightarrow> contr(p) : C" and
   FEL: "\<And>p q C. \<lbrakk>p = q : F; C type\<rbrakk> \<Longrightarrow> contr(p) = contr(q) : C" and
 
-  (*The type T
-     Martin-Löf's book (page 68) discusses elimination and computation.
-     Elimination can be derived by computation and equality of types,
-     but with an extra premise C(x) type x:T.
-     Also computation can be derived from elimination. *)
+
+  \<comment> \<open>The type T\<close>
+  \<comment> \<open>
+    Martin-Löf's book (page 68) discusses elimination and computation.
+    Elimination can be derived by computation and equality of types,
+    but with an extra premise \<open>C(x)\<close> type \<open>x:T\<close>.
+    Also computation can be derived from elimination.
+  \<close>
 
   TF: "T type" and
   TI: "tt : T" and
@@ -248,55 +255,59 @@ axiomatization where
 
 subsection "Tactics and derived rules for Constructive Type Theory"
 
-(*Formation rules*)
+text \<open>Formation rules.\<close>
 lemmas form_rls = NF ProdF SumF PlusF EqF FF TF
   and formL_rls = ProdFL SumFL PlusFL EqFL
 
-(*Introduction rules
-  OMITTED: EqI, because its premise is an eqelem, not an elem*)
+text \<open>
+  Introduction rules. OMITTED:
+  \<^item> \<open>EqI\<close>, because its premise is an \<open>eqelem\<close>, not an \<open>elem\<close>.
+\<close>
 lemmas intr_rls = NI0 NI_succ ProdI SumI PlusI_inl PlusI_inr TI
   and intrL_rls = NI_succL ProdIL SumIL PlusI_inlL PlusI_inrL
 
-(*Elimination rules
-  OMITTED: EqE, because its conclusion is an eqelem,  not an elem
-           TE, because it does not involve a constructor *)
+text \<open>
+  Elimination rules. OMITTED:
+  \<^item> \<open>EqE\<close>, because its conclusion is an \<open>eqelem\<close>, not an \<open>elem\<close>
+  \<^item> \<open>TE\<close>, because it does not involve a constructor.
+\<close>
 lemmas elim_rls = NE ProdE SumE PlusE FE
   and elimL_rls = NEL ProdEL SumEL PlusEL FEL
 
-(*OMITTED: eqC are TC because they make rewriting loop: p = un = un = ... *)
+text \<open>OMITTED: \<open>eqC\<close> are \<open>TC\<close> because they make rewriting loop: \<open>p = un = un = \<dots>\<close>\<close>
 lemmas comp_rls = NC0 NC_succ ProdC SumC PlusC_inl PlusC_inr
 
-(*rules with conclusion a:A, an elem judgement*)
+text \<open>Rules with conclusion \<open>a:A\<close>, an elem judgement.\<close>
 lemmas element_rls = intr_rls elim_rls
 
-(*Definitions are (meta)equality axioms*)
+text \<open>Definitions are (meta)equality axioms.\<close>
 lemmas basic_defs = fst_def snd_def
 
-(*Compare with standard version: B is applied to UNSIMPLIFIED expression! *)
+text \<open>Compare with standard version: \<open>B\<close> is applied to UNSIMPLIFIED expression!\<close>
 lemma SumIL2: "\<lbrakk>c = a : A; d = b : B(a)\<rbrakk> \<Longrightarrow> <c,d> = <a,b> : Sum(A,B)"
-apply (rule sym_elem)
-apply (rule SumIL)
-apply (rule_tac [!] sym_elem)
-apply assumption+
-done
+  apply (rule sym_elem)
+  apply (rule SumIL)
+   apply (rule_tac [!] sym_elem)
+   apply assumption+
+  done
 
 lemmas intrL2_rls = NI_succL ProdIL SumIL2 PlusI_inlL PlusI_inrL
 
-(*Exploit p:Prod(A,B) to create the assumption z:B(a).
-  A more natural form of product elimination. *)
+text \<open>
+  Exploit \<open>p:Prod(A,B)\<close> to create the assumption \<open>z:B(a)\<close>.
+  A more natural form of product elimination.
+\<close>
 lemma subst_prodE:
   assumes "p: Prod(A,B)"
     and "a: A"
     and "\<And>z. z: B(a) \<Longrightarrow> c(z): C(z)"
   shows "c(p`a): C(p`a)"
-apply (rule assms ProdE)+
-done
+  by (rule assms ProdE)+
 
 
 subsection \<open>Tactics for type checking\<close>
 
 ML \<open>
-
 local
 
 fun is_rigid_elem (Const(@{const_name Elem},_) $ a $ _) = not(is_Var (head_of a))
@@ -307,26 +318,22 @@ fun is_rigid_elem (Const(@{const_name Elem},_) $ a $ _) = not(is_Var (head_of a)
 in
 
 (*Try solving a:A or a=b:A by assumption provided a is rigid!*)
-fun test_assume_tac ctxt = SUBGOAL(fn (prem,i) =>
-    if is_rigid_elem (Logic.strip_assums_concl prem)
-    then  assume_tac ctxt i  else  no_tac)
+fun test_assume_tac ctxt = SUBGOAL (fn (prem, i) =>
+  if is_rigid_elem (Logic.strip_assums_concl prem)
+  then assume_tac ctxt i else no_tac)
 
 fun ASSUME ctxt tf i = test_assume_tac ctxt i  ORELSE  tf i
 
-end;
-
+end
 \<close>
 
-(*For simplification: type formation and checking,
-  but no equalities between terms*)
+text \<open>
+  For simplification: type formation and checking,
+  but no equalities between terms.
+\<close>
 lemmas routine_rls = form_rls formL_rls refl_type element_rls
 
 ML \<open>
-local
-  val equal_rls = @{thms form_rls} @ @{thms element_rls} @ @{thms intrL_rls} @
-    @{thms elimL_rls} @ @{thms refl_elem}
-in
-
 fun routine_tac rls ctxt prems =
   ASSUME ctxt (filt_resolve_from_net_tac ctxt 4 (Tactic.build_net (prems @ rls)));
 
@@ -354,9 +361,9 @@ fun intr_tac ctxt thms =
 (*Equality proving: solve a=b:A (where a is rigid) by long rules. *)
 fun equal_tac ctxt thms =
   REPEAT_FIRST
-    (ASSUME ctxt (filt_resolve_from_net_tac ctxt 3 (Tactic.build_net (thms @ equal_rls))))
-
-end
+    (ASSUME ctxt
+      (filt_resolve_from_net_tac ctxt 3
+        (Tactic.build_net (thms @ @{thms form_rls element_rls intrL_rls elimL_rls refl_elem}))))
 \<close>
 
 method_setup form = \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt))\<close>
@@ -367,25 +374,25 @@ method_setup equal = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (
 
 subsection \<open>Simplification\<close>
 
-(*To simplify the type in a goal*)
+text \<open>To simplify the type in a goal.\<close>
 lemma replace_type: "\<lbrakk>B = A; a : A\<rbrakk> \<Longrightarrow> a : B"
-apply (rule equal_types)
-apply (rule_tac [2] sym_type)
-apply assumption+
-done
+  apply (rule equal_types)
+   apply (rule_tac [2] sym_type)
+   apply assumption+
+  done
 
-(*Simplify the parameter of a unary type operator.*)
+text \<open>Simplify the parameter of a unary type operator.\<close>
 lemma subst_eqtyparg:
   assumes 1: "a=c : A"
     and 2: "\<And>z. z:A \<Longrightarrow> B(z) type"
-  shows "B(a)=B(c)"
-apply (rule subst_typeL)
-apply (rule_tac [2] refl_type)
-apply (rule 1)
-apply (erule 2)
-done
+  shows "B(a) = B(c)"
+  apply (rule subst_typeL)
+   apply (rule_tac [2] refl_type)
+   apply (rule 1)
+  apply (erule 2)
+  done
 
-(*Simplification rules for Constructive Type Theory*)
+text \<open>Simplification rules for Constructive Type Theory.\<close>
 lemmas reduction_rls = comp_rls [THEN trans_elem]
 
 ML \<open>
@@ -462,12 +469,12 @@ method_setup hyp_rew = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD
 subsection \<open>The elimination rules for fst/snd\<close>
 
 lemma SumE_fst: "p : Sum(A,B) \<Longrightarrow> fst(p) : A"
-apply (unfold basic_defs)
-apply (erule SumE)
-apply assumption
-done
+  apply (unfold basic_defs)
+  apply (erule SumE)
+  apply assumption
+  done
 
-(*The first premise must be p:Sum(A,B) !!*)
+text \<open>The first premise must be \<open>p:Sum(A,B)\<close>!!.\<close>
 lemma SumE_snd:
   assumes major: "p: Sum(A,B)"
     and "A type"
@@ -476,7 +483,7 @@ lemma SumE_snd:
   apply (unfold basic_defs)
   apply (rule major [THEN SumE])
   apply (rule SumC [THEN subst_eqtyparg, THEN replace_type])
-  apply (typechk assms)
+      apply (typechk assms)
   done
 
 end
