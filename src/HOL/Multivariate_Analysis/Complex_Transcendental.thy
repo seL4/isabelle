@@ -2551,8 +2551,8 @@ proof -
   then have "cos (Arcsin z) \<noteq> 0"
     by (metis diff_0_right power_zero_numeral sin_squared_eq)
   then show ?thesis
-    apply (rule has_complex_derivative_inverse_basic [OF DERIV_sin])
-    apply (auto intro: isCont_Arcsin open_ball [of z 1] assms)
+    apply (rule has_complex_derivative_inverse_basic [OF DERIV_sin _ _ open_ball [of z 1]])
+    apply (auto intro: isCont_Arcsin assms)
     done
 qed
 
@@ -2716,8 +2716,8 @@ proof -
   then have "- sin (Arccos z) \<noteq> 0"
     by (metis cos_squared_eq diff_0_right mult_zero_left neg_0_equal_iff_equal power2_eq_square)
   then have "(Arccos has_field_derivative inverse(- sin(Arccos z))) (at z)"
-    apply (rule has_complex_derivative_inverse_basic [OF DERIV_cos])
-    apply (auto intro: isCont_Arccos open_ball [of z 1] assms)
+    apply (rule has_complex_derivative_inverse_basic [OF DERIV_cos _ _ open_ball [of z 1]])
+    apply (auto intro: isCont_Arccos assms)
     done
   then show ?thesis
     by simp

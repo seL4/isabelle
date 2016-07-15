@@ -819,7 +819,7 @@ lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
   apply (auto simp add: istopology_def)
   done
 
-lemma topspace_euclidean: "topspace euclidean = UNIV"
+lemma topspace_euclidean [simp]: "topspace euclidean = UNIV"
   apply (simp add: topspace_def)
   apply (rule set_eqI)
   apply (auto simp add: open_openin[symmetric])

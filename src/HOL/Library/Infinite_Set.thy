@@ -307,5 +307,36 @@ proof -
     unfolding bij_betw_def by (auto intro: enumerate_in_set)
 qed
 
+text\<open>A pair of weird and wonderful lemmas from HOL Light\<close>
+lemma finite_transitivity_chain:
+  assumes "finite A"
+      and R: "\<And>x. ~ R x x" "\<And>x y z. \<lbrakk>R x y; R y z\<rbrakk> \<Longrightarrow> R x z"
+      and A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y. y \<in> A \<and> R x y"
+  shows "A = {}"
+using \<open>finite A\<close> A
+proof (induction A)
+  case (insert a A)
+  with R show ?case
+    by (metis empty_iff insert_iff) 
+qed simp
+
+corollary Union_maximal_sets:
+  assumes "finite \<F>"
+    shows "\<Union>{T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} = \<Union>\<F>"
+    (is "?lhs = ?rhs")
+proof
+  show "?rhs \<subseteq> ?lhs"
+  proof (rule Union_subsetI)
+    fix S
+    assume "S \<in> \<F>"
+    have "{T \<in> \<F>. S \<subseteq> T} = {}" if "~ (\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y)"
+      apply (rule finite_transitivity_chain [of _ "\<lambda>T U. S \<subseteq> T \<and> T \<subset> U"])
+	 using assms that apply auto
+      by (blast intro: dual_order.trans psubset_imp_subset)
+    then show "\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y"
+      using \<open>S \<in> \<F>\<close> by blast
+  qed
+qed force
+
 end
 

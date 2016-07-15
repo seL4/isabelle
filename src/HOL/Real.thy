@@ -23,19 +23,24 @@ text \<open>
 
 subsection \<open>Preliminary lemmas\<close>
 
-lemma inj_add_left [simp]: "inj (op + x)" for x :: "'a::cancel_semigroup_add"
+lemma inj_add_left [simp]: "inj (op + x)"
+  for x :: "'a::cancel_semigroup_add"
   by (meson add_left_imp_eq injI)
 
-lemma inj_mult_left [simp]: "inj (op * x) \<longleftrightarrow> x \<noteq> 0" for x :: "'a::idom"
+lemma inj_mult_left [simp]: "inj (op * x) \<longleftrightarrow> x \<noteq> 0"
+  for x :: "'a::idom"
   by (metis injI mult_cancel_left the_inv_f_f zero_neq_one)
 
-lemma add_diff_add: "(a + c) - (b + d) = (a - b) + (c - d)" for a b c d :: "'a::ab_group_add"
+lemma add_diff_add: "(a + c) - (b + d) = (a - b) + (c - d)"
+  for a b c d :: "'a::ab_group_add"
   by simp
 
-lemma minus_diff_minus: "- a - - b = - (a - b)" for a b :: "'a::ab_group_add"
+lemma minus_diff_minus: "- a - - b = - (a - b)"
+  for a b :: "'a::ab_group_add"
   by simp
 
-lemma mult_diff_mult: "(x * y - a * b) = x * (y - b) + (x - a) * b" for x y a b :: "'a::ring"
+lemma mult_diff_mult: "(x * y - a * b) = x * (y - b) + (x - a) * b"
+  for x y a b :: "'a::ring"
   by (simp add: algebra_simps)
 
 lemma inverse_diff_inverse:
@@ -68,7 +73,7 @@ lemma vanishesD: "vanishes X \<Longrightarrow> 0 < r \<Longrightarrow> \<exists>
 lemma vanishes_const [simp]: "vanishes (\<lambda>n. c) \<longleftrightarrow> c = 0"
   unfolding vanishes_def
   apply (cases "c = 0")
-  apply auto
+   apply auto
   apply (rule exI [where x = "\<bar>c\<bar>"])
   apply auto
   done
@@ -93,9 +98,12 @@ proof (rule vanishesI)
   proof clarsimp
     fix n
     assume n: "i \<le> n" "j \<le> n"
-    have "\<bar>X n + Y n\<bar> \<le> \<bar>X n\<bar> + \<bar>Y n\<bar>" by (rule abs_triangle_ineq)
-    also have "\<dots> < s + t" by (simp add: add_strict_mono i j n)
-    finally show "\<bar>X n + Y n\<bar> < r" unfolding r .
+    have "\<bar>X n + Y n\<bar> \<le> \<bar>X n\<bar> + \<bar>Y n\<bar>"
+      by (rule abs_triangle_ineq)
+    also have "\<dots> < s + t"
+      by (simp add: add_strict_mono i j n)
+    finally show "\<bar>X n + Y n\<bar> < r"
+      by (simp only: r)
   qed
   then show "\<exists>k. \<forall>n\<ge>k. \<bar>X n + Y n\<bar> < r" ..
 qed
@@ -242,7 +250,8 @@ proof (rule cauchyI)
       unfolding abs_mult ..
     also have "\<dots> < a * t + s * b"
       by (simp_all add: add_strict_mono mult_strict_mono' a b i j *)
-    finally show "\<bar>X m * Y m - X n * Y n\<bar> < r" by (simp only: r)
+    finally show "\<bar>X m * Y m - X n * Y n\<bar> < r"
+      by (simp only: r)
   qed
   then show "\<exists>k. \<forall>m\<ge>k. \<forall>n\<ge>k. \<bar>X m * Y m - X n * Y n\<bar> < r" ..
 qed
@@ -273,7 +282,7 @@ qed
 
 lemma cauchy_not_vanishes:
   assumes X: "cauchy X"
-  assumes nz: "\<not> vanishes X"
+    and nz: "\<not> vanishes X"
   shows "\<exists>b>0. \<exists>k. \<forall>n\<ge>k. b < \<bar>X n\<bar>"
   using cauchy_not_vanishes_cases [OF assms]
   apply clarify
@@ -285,7 +294,7 @@ lemma cauchy_not_vanishes:
 
 lemma cauchy_inverse [simp]:
   assumes X: "cauchy X"
-  assumes nz: "\<not> vanishes X"
+    and nz: "\<not> vanishes X"
   shows "cauchy (\<lambda>n. inverse (X n))"
 proof (rule cauchyI)
   fix r :: rat
@@ -328,8 +337,10 @@ proof (rule vanishesI)
     using cauchy_not_vanishes [OF Y] by blast
   obtain s where s: "0 < s" and "inverse a * s * inverse b = r"
   proof
-    show "0 < a * r * b" using a r b by simp
-    show "inverse a * (a * r * b) * inverse b = r" using a r b by simp
+    show "0 < a * r * b"
+      using a r b by simp
+    show "inverse a * (a * r * b) * inverse b = r"
+      using a r b by simp
   qed
   obtain k where k: "\<forall>n\<ge>k. \<bar>X n - Y n\<bar> < s"
     using vanishesD [OF XY s] ..
@@ -435,16 +446,19 @@ proof -
   fix X Y
   assume "realrel X Y"
   then have X: "cauchy X" and Y: "cauchy Y" and XY: "vanishes (\<lambda>n. X n - Y n)"
-    unfolding realrel_def by simp_all
+    by (simp_all add: realrel_def)
   have "vanishes X \<longleftrightarrow> vanishes Y"
   proof
     assume "vanishes X"
-    from vanishes_diff [OF this XY] show "vanishes Y" by simp
+    from vanishes_diff [OF this XY] show "vanishes Y"
+      by simp
   next
     assume "vanishes Y"
-    from vanishes_add [OF this XY] show "vanishes X" by simp
+    from vanishes_add [OF this XY] show "vanishes X"
+      by simp
   qed
-  then show "?thesis X Y" by (simp add: vanishes_diff_inverse X Y XY realrel_def)
+  then show "?thesis X Y"
+    by (simp add: vanishes_diff_inverse X Y XY realrel_def)
 qed
 
 definition "x - y = x + - y" for x y :: real
@@ -495,9 +509,12 @@ proof
     apply transfer
     apply (simp add: realrel_def)
     apply (rule vanishesI)
-    apply (frule (1) cauchy_not_vanishes, clarify)
-    apply (rule_tac x=k in exI, clarify)
-    apply (drule_tac x=n in spec, simp)
+    apply (frule (1) cauchy_not_vanishes)
+    apply clarify
+    apply (rule_tac x=k in exI)
+    apply clarify
+    apply (drule_tac x=n in spec)
+    apply simp
     done
   show "a div b = a * inverse b"
     by (rule divide_real_def)
@@ -567,14 +584,15 @@ lemma positive_mult: "positive x \<Longrightarrow> positive y \<Longrightarrow> 
   apply (rule_tac x = "max i j" in exI)
   apply clarsimp
   apply (rule mult_strict_mono)
-  apply auto
+     apply auto
   done
 
 lemma positive_minus: "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
   apply transfer
   apply (simp add: realrel_def)
-  apply (drule (1) cauchy_not_vanishes_cases, safe)
-  apply blast+
+  apply (drule (1) cauchy_not_vanishes_cases)
+  apply safe
+   apply blast+
   done
 
 instantiation real :: linordered_field
@@ -596,8 +614,8 @@ proof
   show "a < b \<longleftrightarrow> a \<le> b \<and> \<not> b \<le> a"
     unfolding less_eq_real_def less_real_def
     apply auto
-    apply (drule (1) positive_add)
-    apply (simp_all add: positive_zero)
+     apply (drule (1) positive_add)
+     apply (simp_all add: positive_zero)
     done
   show "a \<le> a"
     unfolding less_eq_real_def by simp
@@ -637,7 +655,8 @@ definition "(inf :: real \<Rightarrow> real \<Rightarrow> real) = min"
 
 definition "(sup :: real \<Rightarrow> real \<Rightarrow> real) = max"
 
-instance by standard (auto simp add: inf_real_def sup_real_def max_min_distrib2)
+instance
+  by standard (auto simp add: inf_real_def sup_real_def max_min_distrib2)
 
 end
 
@@ -656,15 +675,16 @@ lemma of_rat_Real: "of_rat x = Real (\<lambda>n. x)"
 
 instance real :: archimedean_field
 proof
-  fix x :: real
-  show "\<exists>z. x \<le> of_int z"
+  show "\<exists>z. x \<le> of_int z" for x :: real
     apply (induct x)
     apply (frule cauchy_imp_bounded, clarify)
     apply (rule_tac x="\<lceil>b\<rceil> + 1" in exI)
     apply (rule less_imp_le)
     apply (simp add: of_int_Real less_real_def diff_Real positive_Real)
-    apply (rule_tac x=1 in exI, simp add: algebra_simps)
-    apply (rule_tac x=0 in exI, clarsimp)
+    apply (rule_tac x=1 in exI)
+    apply (simp add: algebra_simps)
+    apply (rule_tac x=0 in exI)
+    apply clarsimp
     apply (rule le_less_trans [OF abs_ge_self])
     apply (rule less_le_trans [OF _ le_of_int_ceiling])
     apply simp
@@ -687,26 +707,24 @@ end
 
 subsection \<open>Completeness\<close>
 
-lemma not_positive_Real:
-  assumes X: "cauchy X"
-  shows "\<not> positive (Real X) \<longleftrightarrow> (\<forall>r>0. \<exists>k. \<forall>n\<ge>k. X n \<le> r)"
-  unfolding positive_Real [OF X]
+lemma not_positive_Real: "\<not> positive (Real X) \<longleftrightarrow> (\<forall>r>0. \<exists>k. \<forall>n\<ge>k. X n \<le> r)" if "cauchy X"
+  apply (simp only: positive_Real [OF that])
   apply auto
-  apply (unfold not_less)
-  apply (erule obtain_pos_sum)
-  apply (drule_tac x=s in spec)
-  apply simp
-  apply (drule_tac r=t in cauchyD [OF X])
-  apply clarify
-  apply (drule_tac x=k in spec)
-  apply clarsimp
-  apply (rule_tac x=n in exI)
-  apply clarify
-  apply (rename_tac m)
-  apply (drule_tac x=m in spec)
-  apply simp
-  apply (drule_tac x=n in spec)
-  apply simp
+   apply (unfold not_less)
+   apply (erule obtain_pos_sum)
+   apply (drule_tac x=s in spec)
+   apply simp
+   apply (drule_tac r=t in cauchyD [OF that])
+   apply clarify
+   apply (drule_tac x=k in spec)
+   apply clarsimp
+   apply (rule_tac x=n in exI)
+   apply clarify
+   apply (rename_tac m)
+   apply (drule_tac x=m in spec)
+   apply simp
+   apply (drule_tac x=n in spec)
+   apply simp
   apply (drule spec)
   apply (drule (1) mp)
   apply clarify
@@ -743,9 +761,12 @@ proof (induct x)
     proof clarsimp
       fix n
       assume n: "i \<le> n" "j \<le> n"
-      have "X n \<le> Y i + t" using n j by simp
-      moreover have "\<bar>Y i - Y n\<bar> < s" using n i by simp
-      ultimately show "X n \<le> Y n + r" unfolding r by simp
+      have "X n \<le> Y i + t"
+        using n j by simp
+      moreover have "\<bar>Y i - Y n\<bar> < s"
+        using n i by simp
+      ultimately show "X n \<le> Y n + r"
+        unfolding r by simp
     qed
     then show ?thesis ..
   qed
@@ -773,7 +794,7 @@ lemma less_RealD:
 
 lemma of_nat_less_two_power [simp]: "of_nat n < (2::'a::linordered_idom) ^ n"
   apply (induct n)
-  apply simp
+   apply simp
   apply (metis add_le_less_mono mult_2 of_nat_Suc one_le_numeral one_le_power power_Suc)
   done
 
@@ -821,7 +842,7 @@ proof -
 
   have width: "B n - A n = (b - a) / 2^n" for n
     apply (induct n)
-    apply (simp_all add: eq_divide_eq)
+     apply (simp_all add: eq_divide_eq)
     apply (simp_all add: C_def avg_def algebra_simps)
     done
 
@@ -833,13 +854,15 @@ proof -
     apply (rule_tac x=n in exI)
     apply (erule less_trans)
     apply (rule mult_strict_right_mono)
-    apply (rule le_less_trans [OF _ of_nat_less_two_power])
-    apply simp
+     apply (rule le_less_trans [OF _ of_nat_less_two_power])
+     apply simp
     apply assumption
     done
 
-  have PA: "\<not> P (A n)" for n by (induct n) (simp_all add: a)
-  have PB: "P (B n)" for n by (induct n) (simp_all add: b)
+  have PA: "\<not> P (A n)" for n
+    by (induct n) (simp_all add: a)
+  have PB: "P (B n)" for n
+    by (induct n) (simp_all add: b)
   have ab: "a < b"
     using a b unfolding P_def
     apply (clarsimp simp add: not_le)
@@ -847,21 +870,22 @@ proof -
     apply (drule (1) less_le_trans)
     apply (simp add: of_rat_less)
     done
-  have AB: "A n < B n" for n by (induct n) (simp_all add: ab C_def avg_def)
+  have AB: "A n < B n" for n
+    by (induct n) (simp_all add: ab C_def avg_def)
   have A_mono: "\<And>i j. i \<le> j \<Longrightarrow> A i \<le> A j"
     apply (auto simp add: le_less [where 'a=nat])
     apply (erule less_Suc_induct)
-    apply (clarsimp simp add: C_def avg_def)
-    apply (simp add: add_divide_distrib [symmetric])
-    apply (rule AB [THEN less_imp_le])
+     apply (clarsimp simp add: C_def avg_def)
+     apply (simp add: add_divide_distrib [symmetric])
+     apply (rule AB [THEN less_imp_le])
     apply simp
     done
   have B_mono: "\<And>i j. i \<le> j \<Longrightarrow> B j \<le> B i"
     apply (auto simp add: le_less [where 'a=nat])
     apply (erule less_Suc_induct)
-    apply (clarsimp simp add: C_def avg_def)
-    apply (simp add: add_divide_distrib [symmetric])
-    apply (rule AB [THEN less_imp_le])
+     apply (clarsimp simp add: C_def avg_def)
+     apply (simp add: add_divide_distrib [symmetric])
+     apply (rule AB [THEN less_imp_le])
     apply simp
     done
   have cauchy_lemma: "\<And>X. \<forall>n. \<forall>i\<ge>n. A n \<le> X i \<and> X i \<le> B n \<Longrightarrow> cauchy X"
@@ -870,7 +894,7 @@ proof -
     apply (erule exE)
     apply (rule_tac x=n in exI, clarify, rename_tac i j)
     apply (rule_tac y="B n - A n" in le_less_trans) defer
-    apply (simp add: width)
+     apply (simp add: width)
     apply (drule_tac x=n in spec)
     apply (frule_tac x=i in spec, drule (1) mp)
     apply (frule_tac x=j in spec, drule (1) mp)
@@ -900,11 +924,13 @@ proof -
     apply clarify
     apply (erule contrapos_pp)
     apply (simp add: not_le)
-    apply (drule less_RealD [OF \<open>cauchy A\<close>], clarify)
+    apply (drule less_RealD [OF \<open>cauchy A\<close>])
+    apply clarify
     apply (subgoal_tac "\<not> P (A n)")
-    apply (simp add: P_def not_le, clarify)
-    apply (erule rev_bexI)
-    apply (erule (1) less_trans)
+     apply (simp add: P_def not_le)
+     apply clarify
+     apply (erule rev_bexI)
+     apply (erule (1) less_trans)
     apply (simp add: PA)
     done
   have "vanishes (\<lambda>n. (b - a) / 2 ^ n)"
@@ -945,13 +971,17 @@ definition "Inf X = - Sup (uminus ` X)" for X :: "real set"
 
 instance
 proof
-  show Sup_upper: "x \<le> Sup X" if "x \<in> X" "bdd_above X" for x :: real and X :: "real set"
+  show Sup_upper: "x \<le> Sup X"
+    if "x \<in> X" "bdd_above X"
+    for x :: real and X :: "real set"
   proof -
     from that obtain s where s: "\<forall>y\<in>X. y \<le> s" "\<And>z. \<forall>y\<in>X. y \<le> z \<Longrightarrow> s \<le> z"
       using complete_real[of X] unfolding bdd_above_def by blast
-    then show ?thesis unfolding Sup_real_def by (rule LeastI2_order) (auto simp: that)
+    then show ?thesis
+      unfolding Sup_real_def by (rule LeastI2_order) (auto simp: that)
   qed
-  show Sup_least: "Sup X \<le> z" if "X \<noteq> {}" and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
+  show Sup_least: "Sup X \<le> z"
+    if "X \<noteq> {}" and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
     for z :: real and X :: "real set"
   proof -
     from that obtain s where s: "\<forall>y\<in>X. y \<le> s" "\<And>z. \<forall>y\<in>X. y \<le> z \<Longrightarrow> s \<le> z"
@@ -962,9 +992,11 @@ proof
       by blast
     finally show ?thesis .
   qed
-  show "Inf X \<le> x" if "x \<in> X" "bdd_below X" for x :: real and X :: "real set"
+  show "Inf X \<le> x" if "x \<in> X" "bdd_below X"
+    for x :: real and X :: "real set"
     using Sup_upper [of "-x" "uminus ` X"] by (auto simp: Inf_real_def that)
-  show "z \<le> Inf X" if "X \<noteq> {}" "\<And>x. x \<in> X \<Longrightarrow> z \<le> x" for z :: real and X :: "real set"
+  show "z \<le> Inf X" if "X \<noteq> {}" "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
+    for z :: real and X :: "real set"
     using Sup_least [of "uminus ` X" "- z"] by (force simp: Inf_real_def that)
   show "\<exists>a b::real. a \<noteq> b"
     using zero_neq_one by blast
@@ -990,13 +1022,16 @@ subsection \<open>More Lemmas\<close>
 text \<open>BH: These lemmas should not be necessary; they should be
   covered by existing simp rules and simplification procedures.\<close>
 
-lemma real_mult_less_iff1 [simp]: "0 < z \<Longrightarrow> x * z < y * z \<longleftrightarrow> x < y" for x y z :: real
+lemma real_mult_less_iff1 [simp]: "0 < z \<Longrightarrow> x * z < y * z \<longleftrightarrow> x < y"
+  for x y z :: real
   by simp (* solved by linordered_ring_less_cancel_factor simproc *)
 
-lemma real_mult_le_cancel_iff1 [simp]: "0 < z \<Longrightarrow> x * z \<le> y * z \<longleftrightarrow> x \<le> y" for x y z :: real
+lemma real_mult_le_cancel_iff1 [simp]: "0 < z \<Longrightarrow> x * z \<le> y * z \<longleftrightarrow> x \<le> y"
+  for x y z :: real
   by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
-lemma real_mult_le_cancel_iff2 [simp]: "0 < z \<Longrightarrow> z * x \<le> z * y \<longleftrightarrow> x \<le> y" for x y z :: real
+lemma real_mult_le_cancel_iff2 [simp]: "0 < z \<Longrightarrow> z * x \<le> z * y \<longleftrightarrow> x \<le> y"
+  for x y z :: real
   by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
 
@@ -1072,7 +1107,7 @@ lemma real_of_int_div:
 
 lemma real_of_int_div2: "0 \<le> real_of_int n / real_of_int x - real_of_int (n div x)"
   apply (cases "x = 0")
-  apply simp
+   apply simp
   apply (cases "0 < x")
    apply (metis add.left_neutral floor_correct floor_divide_of_int_eq le_diff_eq)
   apply (metis add.left_neutral floor_correct floor_divide_of_int_eq le_diff_eq)
@@ -1096,7 +1131,8 @@ lemma real_of_card: "real (card A) = setsum (\<lambda>x. 1) A"
 lemma nat_less_real_le: "n < m \<longleftrightarrow> real n + 1 \<le> real m"
   by (metis discrete of_nat_1 of_nat_add of_nat_le_iff)
 
-lemma nat_le_real_less: "n \<le> m \<longleftrightarrow> real n < real m + 1" for m n :: nat
+lemma nat_le_real_less: "n \<le> m \<longleftrightarrow> real n < real m + 1"
+  for m n :: nat
   by (meson nat_less_real_le not_le)
 
 lemma real_of_nat_div_aux: "real x / real d = real (x div d) + real (x mod d) / real d"
@@ -1122,7 +1158,7 @@ lemma real_of_nat_div2: "0 \<le> real n / real x - real (n div x)" for n x :: na
 
 lemma real_of_nat_div3: "real n / real x - real (n div x) \<le> 1" for n x :: nat
   apply (cases "x = 0")
-  apply simp
+   apply simp
   apply (simp add: algebra_simps)
   apply (subst real_of_nat_div_aux)
   apply simp
@@ -1138,10 +1174,8 @@ lemma real_arch_inverse: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<note
   using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
   by (auto simp add: field_simps cong: conj_cong simp del: of_nat_Suc)
 
-lemma reals_Archimedean3:
-  assumes x_greater_zero: "0 < x"
-  shows "\<forall>y. \<exists>n. y < real n * x"
-  using \<open>0 < x\<close> by (auto intro: ex_less_of_nat_mult)
+lemma reals_Archimedean3: "0 < x \<Longrightarrow> \<forall>y. \<exists>n. y < real n * x"
+  by (auto intro: ex_less_of_nat_mult)
 
 lemma real_archimedian_rdiv_eq_0:
   assumes x0: "x \<ge> 0"
@@ -1250,7 +1284,7 @@ subsection \<open>Density of the Rational Reals in the Reals\<close>
 
 text \<open>
   This density proof is due to Stefan Richter and was ported by TN.  The
-  original source is \emph{Real Analysis} by H.L. Royden.
+  original source is \<^emph>\<open>Real Analysis\<close> by H.L. Royden.
   It employs the Archimedean property of the reals.\<close>
 
 lemma Rats_dense_in_real:
@@ -1263,15 +1297,15 @@ proof -
     by blast
   define p where "p = \<lceil>y * real q\<rceil> - 1"
   define r where "r = of_int p / real q"
-  from q have "x < y - inverse (real q)" by simp
-  also have "y - inverse (real q) \<le> r"
-    unfolding r_def p_def
-    by (simp add: le_divide_eq left_diff_distrib le_of_int_ceiling \<open>0 < q\<close>)
+  from q have "x < y - inverse (real q)"
+    by simp
+  also from \<open>0 < q\<close> have "y - inverse (real q) \<le> r"
+    by (simp add: r_def p_def le_divide_eq left_diff_distrib)
   finally have "x < r" .
-  moreover have "r < y"
-    unfolding r_def p_def
-    by (simp add: divide_less_eq diff_less_eq \<open>0 < q\<close> less_ceiling_iff [symmetric])
-  moreover from r_def have "r \<in> \<rat>" by simp
+  moreover from \<open>0 < q\<close> have "r < y"
+    by (simp add: r_def p_def divide_less_eq diff_less_eq less_ceiling_iff [symmetric])
+  moreover have "r \<in> \<rat>"
+    by (simp add: r_def)
   ultimately show ?thesis by blast
 qed
 
@@ -1307,19 +1341,24 @@ declaration \<open>
 
 subsection \<open>Simprules combining \<open>x + y\<close> and \<open>0\<close>\<close> (* FIXME ARE THEY NEEDED? *)
 
-lemma real_add_minus_iff [simp]: "x + - a = 0 \<longleftrightarrow> x = a" for x a :: real
+lemma real_add_minus_iff [simp]: "x + - a = 0 \<longleftrightarrow> x = a"
+  for x a :: real
   by arith
 
-lemma real_add_less_0_iff: "x + y < 0 \<longleftrightarrow> y < - x" for x y :: real
+lemma real_add_less_0_iff: "x + y < 0 \<longleftrightarrow> y < - x"
+  for x y :: real
   by auto
 
-lemma real_0_less_add_iff: "0 < x + y \<longleftrightarrow> - x < y" for x y :: real
+lemma real_0_less_add_iff: "0 < x + y \<longleftrightarrow> - x < y"
+  for x y :: real
   by auto
 
-lemma real_add_le_0_iff: "x + y \<le> 0 \<longleftrightarrow> y \<le> - x" for x y :: real
+lemma real_add_le_0_iff: "x + y \<le> 0 \<longleftrightarrow> y \<le> - x"
+  for x y :: real
   by auto
 
-lemma real_0_le_add_iff: "0 \<le> x + y \<longleftrightarrow> - x \<le> y" for x y :: real
+lemma real_0_le_add_iff: "0 \<le> x + y \<longleftrightarrow> - x \<le> y"
+  for x y :: real
   by auto
 
 
@@ -1331,10 +1370,12 @@ lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
 (* FIXME: declare this [simp] for all types, or not at all *)
 declare sum_squares_eq_zero_iff [simp] sum_power2_eq_zero_iff [simp]
 
-lemma real_minus_mult_self_le [simp]: "- (u * u) \<le> x * x" for u x :: real
+lemma real_minus_mult_self_le [simp]: "- (u * u) \<le> x * x"
+  for u x :: real
   by (rule order_trans [where y = 0]) auto
 
-lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> x\<^sup>2" for u x :: real
+lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> x\<^sup>2"
+  for u x :: real
   by (auto simp add: power2_eq_square)
 
 lemma numeral_power_eq_real_of_int_cancel_iff [simp]:
@@ -1396,17 +1437,21 @@ lemma real_of_int_le_neg_numeral_power_cancel_iff [simp]:
 
 subsection \<open>Density of the Reals\<close>
 
-lemma real_lbound_gt_zero: "0 < d1 \<Longrightarrow> 0 < d2 \<Longrightarrow> \<exists>e. 0 < e \<and> e < d1 \<and> e < d2" for d1 d2 :: real
+lemma real_lbound_gt_zero: "0 < d1 \<Longrightarrow> 0 < d2 \<Longrightarrow> \<exists>e. 0 < e \<and> e < d1 \<and> e < d2"
+  for d1 d2 :: real
   by (rule exI [where x = "min d1 d2 / 2"]) (simp add: min_def)
 
 text \<open>Similar results are proved in @{theory Fields}\<close>
-lemma real_less_half_sum: "x < y \<Longrightarrow> x < (x + y) / 2" for x y :: real
+lemma real_less_half_sum: "x < y \<Longrightarrow> x < (x + y) / 2"
+  for x y :: real
   by auto
 
-lemma real_gt_half_sum: "x < y \<Longrightarrow> (x + y) / 2 < y" for x y :: real
+lemma real_gt_half_sum: "x < y \<Longrightarrow> (x + y) / 2 < y"
+  for x y :: real
   by auto
 
-lemma real_sum_of_halves: "x / 2 + x / 2 = x" for x :: real
+lemma real_sum_of_halves: "x / 2 + x / 2 = x"
+  for x :: real
   by simp
 
 
@@ -1414,13 +1459,16 @@ subsection \<open>Floor and Ceiling Functions from the Reals to the Integers\<cl
 
 (* FIXME: theorems for negative numerals. Many duplicates, e.g. from Archimedean_Field.thy. *)
 
-lemma real_of_nat_less_numeral_iff [simp]: "real n < numeral w \<longleftrightarrow> n < numeral w" for n :: nat
+lemma real_of_nat_less_numeral_iff [simp]: "real n < numeral w \<longleftrightarrow> n < numeral w"
+  for n :: nat
   by (metis of_nat_less_iff of_nat_numeral)
 
-lemma numeral_less_real_of_nat_iff [simp]: "numeral w < real n \<longleftrightarrow> numeral w < n" for n :: nat
+lemma numeral_less_real_of_nat_iff [simp]: "numeral w < real n \<longleftrightarrow> numeral w < n"
+  for n :: nat
   by (metis of_nat_less_iff of_nat_numeral)
 
-lemma numeral_le_real_of_nat_iff [simp]: "numeral n \<le> real m \<longleftrightarrow> numeral n \<le> m" for m :: nat
+lemma numeral_le_real_of_nat_iff [simp]: "numeral n \<le> real m \<longleftrightarrow> numeral n \<le> m"
+  for m :: nat
   by (metis not_le real_of_nat_less_numeral_iff)
 
 declare of_int_floor_le [simp]  (* FIXME duplicate!? *)
@@ -1531,7 +1579,8 @@ text \<open>
   and natceiling.
 \<close>
 
-lemma nat_floor_neg: "x \<le> 0 \<Longrightarrow> nat \<lfloor>x\<rfloor> = 0" for x :: real
+lemma nat_floor_neg: "x \<le> 0 \<Longrightarrow> nat \<lfloor>x\<rfloor> = 0"
+  for x :: real
   by linarith
 
 lemma le_nat_floor: "real x \<le> a \<Longrightarrow> x \<le> nat \<lfloor>a\<rfloor>"
@@ -1547,7 +1596,8 @@ lemma nat_ceiling_le_eq [simp]: "nat \<lceil>x\<rceil> \<le> a \<longleftrightar
 lemma real_nat_ceiling_ge: "x \<le> real (nat \<lceil>x\<rceil>)"
   by linarith
 
-lemma Rats_no_top_le: "\<exists>q \<in> \<rat>. x \<le> q" for x :: real
+lemma Rats_no_top_le: "\<exists>q \<in> \<rat>. x \<le> q"
+  for x :: real
   by (auto intro!: bexI[of _ "of_nat (nat \<lceil>x\<rceil>)"]) linarith
 
 lemma Rats_no_bot_less: "\<exists>q \<in> \<rat>. q < x" for x :: real
@@ -1616,10 +1666,10 @@ lemma [code_post]:
 text \<open>Operations\<close>
 
 lemma zero_real_code [code]: "0 = Ratreal 0"
-by simp
+  by simp
 
 lemma one_real_code [code]: "1 = Ratreal 1"
-by simp
+  by simp
 
 instantiation real :: equal
 begin
@@ -1631,7 +1681,8 @@ instance by standard (simp add: equal_real_def)
 lemma real_equal_code [code]: "HOL.equal (Ratreal x) (Ratreal y) \<longleftrightarrow> HOL.equal x y"
   by (simp add: equal_real_def equal)
 
-lemma [code nbe]: "HOL.equal x x \<longleftrightarrow> True" for x :: real
+lemma [code nbe]: "HOL.equal x x \<longleftrightarrow> True"
+  for x :: real
   by (rule equal_refl)
 
 end
