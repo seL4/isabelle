@@ -12,7 +12,9 @@ sig
     binds: (indexname * term option) list,
     cases: (string * T) list}
   type cases = (string * T option) list
+  val case_conclN: string
   val case_hypsN: string
+  val case_premsN: string
   val strip_params: term -> (string * typ) list
   type info = ((string * string list) * string list) list
   val make_common: Proof.context -> term -> info -> cases
