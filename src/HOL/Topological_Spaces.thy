@@ -1942,7 +1942,8 @@ lemma continuous_at_split:
   by (simp add: continuous_within filterlim_at_split)
 
 text \<open>
-  The following open/closed Collect lemmas are ported from Sébastien Gouëzel's Ergodic_Theory.
+  The following open/closed Collect lemmas are ported from
+  Sébastien Gouëzel's \<open>Ergodic_Theory\<close>.
 \<close>
 lemma open_Collect_neq:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::t2_space"
