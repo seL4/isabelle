@@ -902,7 +902,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword proof} "backward proof step"
     (Scan.option Method.parse >> (fn m =>
-      (Option.map Method.report m; Toplevel.proofs (Proof.proof m))));
+      (Option.map Method.report m; Toplevel.proof (Proof.proof m #> Seq.the_result ""))));
 
 in end\<close>
 
