@@ -262,10 +262,6 @@ fun map_data f = snd o map_data_result (pair () o f);
 fun set_mode mode = map_data (fn (_, syntax, tsig, consts, facts, cases) =>
   (mode, syntax, tsig, consts, facts, cases));
 
-fun map_mode f =
-  map_data (fn (Mode {pattern, schematic, abbrev}, syntax, tsig, consts, facts, cases) =>
-    (make_mode (f (pattern, schematic, abbrev)), syntax, tsig, consts, facts, cases));
-
 fun map_syntax f =
   map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
     (mode, f syntax, tsig, consts, facts, cases));
