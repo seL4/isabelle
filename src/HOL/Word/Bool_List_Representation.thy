@@ -9,7 +9,7 @@
 section "Bool lists and integers"
 
 theory Bool_List_Representation
-imports Main Bits_Int
+imports Complex_Main Bits_Int
 begin
 
 definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
@@ -1106,7 +1106,7 @@ lemma bin_rsplit_aux_len:
   apply (case_tac m)
   apply simp
   apply (case_tac "m <= n")
-  apply auto
+   apply auto
   done
 
 lemma bin_rsplit_len: 
