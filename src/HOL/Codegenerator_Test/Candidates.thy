@@ -9,6 +9,7 @@ imports
   "~~/src/HOL/Library/Library"
   "~~/src/HOL/Library/Sublist_Order"
   "~~/src/HOL/Number_Theory/Euclidean_Algorithm"
+  "~~/src/HOL/Number_Theory/Polynomial_Factorial"
   "~~/src/HOL/Data_Structures/Tree_Map"
   "~~/src/HOL/Data_Structures/Tree_Set"
   "~~/src/HOL/Number_Theory/Eratosthenes"
