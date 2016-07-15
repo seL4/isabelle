@@ -322,24 +322,32 @@ object Isabelle
 
   def edit_command(
     snapshot: Document.Snapshot,
-    buffer: Buffer,
+    text_area: TextArea,
     padding: Boolean,
     id: Document_ID.Generic,
-    s: String)
+    text: String)
   {
-    if (!snapshot.is_outdated) {
+    val buffer = text_area.getBuffer
+    if (!snapshot.is_outdated && text != "") {
       (snapshot.state.find_command(snapshot.version, id), PIDE.document_model(buffer)) match {
         case (Some((node, command)), Some(model)) if command.node_name == model.node_name =>
           node.command_start(command) match {
             case Some(start) =>
               JEdit_Lib.buffer_edit(buffer) {
                 val range = command.proper_range + start
-                if (padding) {
-                  buffer.insert(start + range.length, "\n" + s)
-                }
-                else {
-                  buffer.remove(start, range.length)
-                  buffer.insert(start, s)
+                JEdit_Lib.buffer_edit(buffer) {
+                  if (padding) {
+                    text_area.moveCaretPosition(start + range.length)
+                    text_area.setSelectedText("\n" + text)
+                    val end_line = text_area.getCaretLine
+                    val start_line = end_line - split_lines(text).length
+                    buffer.indentLines(start_line, end_line)
+                  }
+                  else {
+                    buffer.remove(start, range.length)
+                    text_area.moveCaretPosition(start)
+                    text_area.setSelectedText(text)
+                  }
                 }
               }
             case None =>

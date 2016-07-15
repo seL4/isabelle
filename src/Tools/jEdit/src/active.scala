@@ -58,7 +58,7 @@ object Active
                 if (buffer.isEditable) {
                   props match {
                     case Position.Id(id) =>
-                      Isabelle.edit_command(snapshot, buffer,
+                      Isabelle.edit_command(snapshot, text_area,
                         props.contains(Markup.PADDING_COMMAND), id, text)
                     case _ =>
                       if (props.contains(Markup.PADDING_LINE))
