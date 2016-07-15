@@ -56,6 +56,7 @@ sig
   val dest_list: 'a list table -> (key * 'a) list
   val merge_list: ('a * 'a -> bool) -> 'a list table * 'a list table -> 'a list table
   type set = unit table
+  val insert_set: key -> set -> set
   val make_set: key list -> set
 end;
 
@@ -405,7 +406,8 @@ fun merge_list eq = join (fn _ => Library.merge eq);
 
 type set = unit table;
 
-fun make_set entries = fold (fn x => update (x, ())) entries empty;
+fun insert_set x = update (x, ());
+fun make_set entries = fold insert_set entries empty;
 
 
 (* ML pretty-printing *)
