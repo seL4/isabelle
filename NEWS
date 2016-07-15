@@ -100,6 +100,9 @@ systematic renaming.
 established at the end of a proof are properly identified in the theorem
 statement.
 
+* Command 'proof' provides information about proof outline with cases,
+e.g. for proof methods "cases", "induct", "goal_cases".
+
 
 *** Isar ***
 

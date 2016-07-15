@@ -144,7 +144,7 @@ sig
   val add_assms_cmd: Assumption.export ->
     (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
-  val dest_cases: Proof.context -> (string * (Rule_Cases.T * {legacy: bool})) list
+  val dest_cases: Proof.context option -> Proof.context -> (string * (Rule_Cases.T * {legacy: bool})) list
   val update_cases: (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val update_cases_legacy: (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
@@ -188,6 +188,7 @@ sig
   val pretty_local_facts: bool -> Proof.context -> Pretty.T list
   val print_local_facts: bool -> Proof.context -> unit
   val pretty_cases: Proof.context -> Pretty.T list
+  val print_cases_proof: Proof.context -> Proof.context -> string
   val debug: bool Config.T
   val verbose: bool Config.T
   val pretty_ctxt: Proof.context -> Pretty.T list
@@ -1272,9 +1273,18 @@ end;
 
 (** cases **)
 
-fun dest_cases ctxt =
-  Name_Space.fold_table (fn (a, (c, i)) => cons (i, (a, c))) (cases_of ctxt) []
-  |> sort (int_ord o apply2 #1) |> map #2;
+fun dest_cases prev_ctxt ctxt =
+  let
+    val ignored =
+      (case prev_ctxt of
+        NONE => Inttab.empty
+      | SOME ctxt0 =>
+          Name_Space.fold_table (Inttab.insert_set o #2 o #2) (cases_of ctxt0) Inttab.empty);
+  in
+    Name_Space.fold_table (fn (a, (c, i)) =>
+      not (Inttab.defined ignored i) ? cons (i, (a, c))) (cases_of ctxt) []
+    |> sort (int_ord o apply2 #1) |> map #2
+  end;
 
 local
 
@@ -1469,7 +1479,7 @@ fun print_local_facts verbose ctxt =
   Pretty.writeln_chunks (pretty_local_facts verbose ctxt);
 
 
-(* local contexts *)
+(* named local contexts *)
 
 local
 
@@ -1508,13 +1518,41 @@ fun pretty_cases ctxt =
     fun mk_case (_, (_, {legacy = true})) = NONE
       | mk_case (name, (c as Rule_Cases.Case {fixes, ...}, {legacy = false})) =
           SOME (name, (fixes, case_result c ctxt));
-    val cases = dest_cases ctxt |> map_filter mk_case;
+    val cases = dest_cases NONE ctxt |> map_filter mk_case;
   in
     if null cases then []
     else [Pretty.big_list "cases:" (map pretty_case cases)]
   end;
 
 end;
+
+fun print_cases_proof ctxt0 ctxt =
+  let
+    fun print_case name [] = name
+      | print_case name xs = enclose "(" ")" (space_implode " " (name :: map Name.clean xs));
+
+    fun print_proof (name, (Rule_Cases.Case {fixes, binds, ...}, {legacy})) =
+      if legacy then NONE
+      else
+        let
+          val concl =
+            if exists (fn ((x, _), SOME t) =>
+              x = Rule_Cases.case_conclN andalso Term.maxidx_of_term t = ~1 | _ => false) binds
+            then Rule_Cases.case_conclN
+            else Auto_Bind.thesisN;
+        in
+          SOME (cat_lines
+            ["  case " ^ print_case name (map (Name.clean o Binding.name_of o #1) fixes),
+             "  then show ?" ^ concl ^ " sorry"])
+        end;
+  in
+    (case map_filter print_proof (dest_cases (SOME ctxt0) ctxt) of
+      [] => ""
+    | proofs =>
+        "Proof outline with cases:\n" ^
+        Active.sendback_markup [Markup.padding_command]
+          (space_implode "\nnext\n" proofs ^ "\nqed"))
+  end;
 
 
 (* core context *)
