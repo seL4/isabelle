@@ -124,7 +124,6 @@ val _ =
   else
    (writeln_fn := (physical_writeln o implode);
     state_fn := (fn ss => ! writeln_fn ss);
-    information_fn := (fn ss => ! writeln_fn ss);
     tracing_fn := (fn ss => ! writeln_fn ss);
     warning_fn := (physical_writeln o prefix_lines "### " o implode);
     legacy_fn := (fn ss => ! warning_fn ss);
