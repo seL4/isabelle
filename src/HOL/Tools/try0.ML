@@ -143,7 +143,7 @@ fun generic_try0 mode timeout_opt quad st =
              Auto_Try => "Auto Try0 found a proof"
            | Try => "Try0 found a proof"
            | Normal => "Try this") ^ ": " ^
-          Active.sendback_markup [Markup.padding_command]
+          Active.sendback_markup_command
               ((if Thm.nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ command) ^
           (case xs of

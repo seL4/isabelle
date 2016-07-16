@@ -60,7 +60,7 @@ fun run_solver ctxt input =
 fun print_cert cert =
   Output.information
     ("To repeat this proof with a certificate use this command:\n" ^
-      Active.sendback_markup [Markup.padding_command]
+      Active.sendback_markup_command
         ("by (sos \"" ^ Positivstellensatz_Tools.print_cert cert ^ "\")"))
 
 fun sos_tac ctxt NONE =

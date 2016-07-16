@@ -1319,7 +1319,7 @@ fun mash_learn_proof ctxt ({timeout, ...} : params) t facts used_ths =
   else
     ()
 
-fun sendback sub = Active.sendback_markup [Markup.padding_command] (sledgehammerN ^ " " ^ sub)
+fun sendback sub = Active.sendback_markup_command (sledgehammerN ^ " " ^ sub)
 
 val commit_timeout = seconds 30.0
 

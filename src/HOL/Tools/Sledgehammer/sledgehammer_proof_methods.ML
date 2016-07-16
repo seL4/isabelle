@@ -180,7 +180,7 @@ fun proof_method_command ctxt meth i n used_chaineds _(*num_chained*) extras =
 
 fun try_command_line banner play command =
   let val s = string_of_play_outcome play in
-    banner ^ ": " ^ Active.sendback_markup [Markup.padding_command] command ^
+    banner ^ ": " ^ Active.sendback_markup_command command ^
     (s |> s <> "" ? enclose " (" ")") ^ "."
   end
 

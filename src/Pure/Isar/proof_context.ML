@@ -1555,8 +1555,7 @@ fun print_cases_proof ctxt0 ctxt =
       [] => ""
     | proofs =>
         "Proof outline with cases:\n" ^
-        Active.sendback_markup [Markup.padding_command]
-          (space_implode "\nnext\n" proofs ^ "\nqed"))
+        Active.sendback_markup_command (space_implode "\nnext\n" proofs ^ "\nqed"))
   end;
 
 
