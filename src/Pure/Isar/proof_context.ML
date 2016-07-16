@@ -1528,21 +1528,27 @@ end;
 
 fun print_cases_proof ctxt0 ctxt =
   let
-    fun print_case name [] = name
-      | print_case name xs = enclose "(" ")" (space_implode " " (name :: map Name.clean xs));
+    fun trim_name x = if Name.is_internal x then Name.clean x else "_";
+    val trim_names = map trim_name #> take_suffix (equal "_") #> #1;
+
+    fun print_case name xs =
+      (case trim_names xs of
+        [] => name
+      | xs' => enclose "(" ")" (space_implode " " (name :: xs')));
+
+    fun is_case x t =
+      x = Rule_Cases.case_conclN andalso not (Term.exists_subterm Term.is_Var t);
 
     fun print_proof (name, (Rule_Cases.Case {fixes, binds, ...}, {legacy})) =
       if legacy then NONE
       else
         let
           val concl =
-            if exists (fn ((x, _), SOME t) =>
-              x = Rule_Cases.case_conclN andalso Term.maxidx_of_term t = ~1 | _ => false) binds
-            then Rule_Cases.case_conclN
-            else Auto_Bind.thesisN;
+            if exists (fn ((x, _), SOME t) => is_case x t | _ => false) binds
+            then Rule_Cases.case_conclN else Auto_Bind.thesisN;
         in
           SOME (cat_lines
-            ["  case " ^ print_case name (map (Name.clean o Binding.name_of o #1) fixes),
+            ["  case " ^ print_case name (map (Binding.name_of o #1) fixes),
              "  then show ?" ^ concl ^ " sorry"])
         end;
   in
