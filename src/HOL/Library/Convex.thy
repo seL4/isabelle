@@ -177,16 +177,16 @@ next
   then have "0 \<le> setsum a s"
     by (simp add: setsum_nonneg)
   have "a i *\<^sub>R y i + (\<Sum>j\<in>s. a j *\<^sub>R y j) \<in> C"
-  proof (cases)
-    assume z: "setsum a s = 0"
+  proof (cases "setsum a s = 0")
+    case True
     with \<open>a i + setsum a s = 1\<close> have "a i = 1"
       by simp
-    from setsum_nonneg_0 [OF \<open>finite s\<close> _ z] \<open>\<forall>j\<in>s. 0 \<le> a j\<close> have "\<forall>j\<in>s. a j = 0"
+    from setsum_nonneg_0 [OF \<open>finite s\<close> _ True] \<open>\<forall>j\<in>s. 0 \<le> a j\<close> have "\<forall>j\<in>s. a j = 0"
       by simp
     show ?thesis using \<open>a i = 1\<close> and \<open>\<forall>j\<in>s. a j = 0\<close> and \<open>y i \<in> C\<close>
       by simp
   next
-    assume nz: "setsum a s \<noteq> 0"
+    case False
     with \<open>0 \<le> setsum a s\<close> have "0 < setsum a s"
       by simp
     then have "(\<Sum>j\<in>s. (a j / setsum a s) *\<^sub>R y j) \<in> C"
@@ -197,7 +197,7 @@ next
     have "a i *\<^sub>R y i + setsum a s *\<^sub>R (\<Sum>j\<in>s. (a j / setsum a s) *\<^sub>R y j) \<in> C"
       by (rule convexD)
     then show ?thesis
-      by (simp add: scaleR_setsum_right nz)
+      by (simp add: scaleR_setsum_right False)
   qed
   then show ?case using \<open>finite s\<close> and \<open>i \<notin> s\<close>
     by simp

@@ -92,11 +92,12 @@ qed
 lemma log_exp2_le:
   assumes "n > 0"
   shows "2 ^ log n \<le> n"
-using assms proof (induct n rule: log_induct)
-  show "2 ^ log 1 \<le> (1 :: nat)" by simp
+  using assms
+proof (induct n rule: log_induct)
+  case one
+  then show ?case by simp
 next
-  fix n :: nat
-  assume "n \<ge> 2"
+  case (double n)
   with log_mono have "log n \<ge> Suc 0"
     by (simp add: log.simps)
   assume "2 ^ log (n div 2) \<le> n div 2"
@@ -105,7 +106,7 @@ next
   with \<open>log n \<ge> Suc 0\<close> have "2 ^ log n \<le> n div 2 * 2"
     unfolding power_add [symmetric] by simp
   also have "n div 2 * 2 \<le> n" by (cases "even n") simp_all
-  finally show "2 ^ log n \<le> n" .
+  finally show ?case .
 qed
 
 
