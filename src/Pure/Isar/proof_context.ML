@@ -223,7 +223,7 @@ val mode_abbrev    = make_mode (false, false, true);
 
 (** Isar proof context information **)
 
-type cases = ((Rule_Cases.T * {legacy: bool}) * int) Name_Space.table;
+type cases = (Rule_Cases.T * {legacy: bool}) Name_Space.table;
 val empty_cases: cases = Name_Space.empty_table Markup.caseN;
 
 datatype data =
@@ -1275,14 +1275,20 @@ end;
 
 fun dest_cases prev_ctxt ctxt =
   let
+    val serial_of = #serial oo (Name_Space.the_entry o Name_Space.space_of_table);
     val ignored =
       (case prev_ctxt of
         NONE => Inttab.empty
       | SOME ctxt0 =>
-          Name_Space.fold_table (Inttab.insert_set o #2 o #2) (cases_of ctxt0) Inttab.empty);
+          let val cases0 = cases_of ctxt0 in
+            Name_Space.fold_table (fn (a, _) => Inttab.insert_set (serial_of cases0 a))
+              cases0 Inttab.empty
+          end);
+     val cases = cases_of ctxt;
   in
-    Name_Space.fold_table (fn (a, (c, i)) =>
-      not (Inttab.defined ignored i) ? cons (i, (a, c))) (cases_of ctxt) []
+    Name_Space.fold_table (fn (a, c) =>
+      let val i = serial_of cases a
+      in not (Inttab.defined ignored i) ? cons (i, (a, c)) end) cases []
     |> sort (int_ord o apply2 #1) |> map #2
   end;
 
@@ -1291,24 +1297,17 @@ local
 fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
-fun update_case _ _ ("", _) res = res
-  | update_case _ _ (name, NONE) (cases, index) =
-      (Name_Space.del_table name cases, index)
-  | update_case context legacy (name, SOME c) (cases, index) =
+fun update_case _ _ ("", _) cases = cases
+  | update_case _ _ (name, NONE) cases = Name_Space.del_table name cases
+  | update_case context legacy (name, SOME c) cases =
       let
         val binding = Binding.name name |> legacy ? Binding.concealed;
-        val (_, cases') = cases
-          |> Name_Space.define context false (binding, ((c, {legacy = legacy}), index));
-        val index' = index + 1;
-      in (cases', index') end;
+        val (_, cases') = Name_Space.define context false (binding, (c, {legacy = legacy})) cases;
+      in cases' end;
 
 fun update_cases' legacy args ctxt =
-  let
-    val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming);
-    val cases = cases_of ctxt;
-    val index = Name_Space.fold_table (fn _ => Integer.add 1) cases 0;
-    val (cases', _) = fold (update_case context legacy) args (cases, index);
-  in map_cases (K cases') ctxt end;
+  let val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming);
+  in map_cases (fold (update_case context legacy) args) ctxt end;
 
 fun fix (b, T) ctxt =
   let val ([x], ctxt') = add_fixes [(b, SOME T, NoSyn)] ctxt
@@ -1335,7 +1334,7 @@ val apply_case = apfst fst oo case_result;
 
 fun check_case ctxt internal (name, pos) param_specs =
   let
-    val (_, ((Rule_Cases.Case {fixes, assumes, binds, cases}, {legacy}), _)) =
+    val (_, (Rule_Cases.Case {fixes, assumes, binds, cases}, {legacy})) =
       Name_Space.check (Context.Proof ctxt) (cases_of ctxt) (name, pos);
     val _ =
       if legacy then
