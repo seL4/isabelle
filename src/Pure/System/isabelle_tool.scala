@@ -38,7 +38,16 @@ object Isabelle_Tool
         case _ => err("Ill-typed source: Isabelle_Tool.Body expected")
       }
     }
-    catch { case e: ToolBoxError => err(e.toString) }
+    catch {
+      case e: ToolBoxError =>
+        if (tool_box.frontEnd.hasErrors) {
+          val infos = tool_box.frontEnd.infos.toList
+          val msgs = infos.map(info => "Error in line " + info.pos.line + ":\n" + info.msg)
+          err(msgs.mkString("\n"))
+        }
+        else
+          err(e.toString)
+    }
   }
 
 
