@@ -6920,6 +6920,10 @@ lemma find_transfer [transfer_rule]:
   "((A ===> op =) ===> list_all2 A ===> rel_option A) List.find List.find"
   unfolding List.find_def by transfer_prover
 
+lemma those_transfer [transfer_rule]:
+  "(list_all2 (rel_option P) ===> rel_option (list_all2 P)) those those"
+  unfolding List.those_def by transfer_prover
+
 lemma remove1_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "(A ===> list_all2 A ===> list_all2 A) remove1 remove1"
