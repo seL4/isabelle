@@ -275,7 +275,8 @@ in
     else error "poly_of_term: term does not have real type"
 end;
 
-(* String of vector (just a list of space-separated numbers).                *)
+
+(* String of vector (just a list of space-separated numbers). *)
 
 fun sdpa_of_vector (v: vector) =
   let
@@ -288,55 +289,39 @@ fun triple_int_ord ((a, b, c), (a', b', c')) =
   prod_ord int_ord (prod_ord int_ord int_ord) ((a, (b, c)), (a', (b', c')));
 structure Inttriplefunc = FuncFun(type key = int * int * int val ord = triple_int_ord);
 
-fun index_char str chr pos =
-  if pos >= String.size str then ~1
-  else if String.sub(str,pos) = chr then pos
-  else index_char str chr (pos + 1);
-
-fun rat_of_quotient (a,b) =
-  if b = 0 then @0 else Rat.make (a, b);
-
-fun rat_of_string s =
-  let val n = index_char s #"/" 0 in
-    if n = ~1 then s |> Int.fromString |> the |> Rat.of_int
-    else
-      let
-        val SOME numer = Int.fromString(String.substring(s,0,n))
-        val SOME den = Int.fromString (String.substring(s,n+1,String.size s - n - 1))
-      in rat_of_quotient(numer, den) end
-  end;
-
-
-fun isnum x = member (op =) ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] x;
 
 (* More parser basics. *)
+
+local
+
+val decimal_digits = Scan.many1 Symbol.is_ascii_digit
+val decimal_nat = decimal_digits >> (#1 o Library.read_int);
+val decimal_int = decimal_nat >> Rat.of_int;
+
+val decimal_sig =
+  decimal_int -- Scan.option (Scan.$$ "." |-- decimal_digits) >>
+  (fn (a, NONE) => a
+    | (a, SOME bs) => a + Rat.of_int (#1 (Library.read_int bs)) / rat_pow @10 (length bs));
+
+fun signed neg parse = $$ "-" |-- parse >> neg || $$ "+" |-- parse || parse;
+val exponent = ($$ "e" || $$ "E") |-- signed ~ decimal_nat;
+
+in
+
+val decimal =
+  signed ~ decimal_sig -- Scan.optional exponent 0
+    >> (fn (a, b) => a * rat_pow @10 b);
+
+end;
+
+
+(* Parse back csdp output. *)
+
 (* FIXME improper use of parser combinators ahead *)
-
-val numeral = Scan.one isnum
-val decimalint = Scan.repeat1 numeral >> (rat_of_string o implode)
-val decimalfrac = Scan.repeat1 numeral
-  >> (fn s => rat_of_string(implode s) / rat_pow @10 (length s))
-val decimalsig =
-  decimalint -- Scan.option (Scan.$$ "." |-- decimalfrac)
-  >> (fn (h,NONE) => h | (h,SOME x) => h + x)
-fun signed prs =
-     $$ "-" |-- prs >> Rat.neg
-  || $$ "+" |-- prs
-  || prs;
-
-fun emptyin def xs = if null xs then (def, xs) else Scan.fail xs
-
-val exponent = ($$ "e" || $$ "E") |-- signed decimalint;
-
-val decimal = signed decimalsig -- (emptyin @0|| exponent)
-  >> (fn (h, x) => h * rat_pow @10 (int_of_rat x));
 
 fun mkparser p s =
   let val (x,rst) = p (raw_explode s)
   in if null rst then x else error "mkparser: unparsed input" end;
-
-(* Parse back csdp output.                                                      *)
-(* FIXME improper use of parser combinators ahead *)
 
 fun ignore _ = ((),[])
 fun csdpoutput inp =
