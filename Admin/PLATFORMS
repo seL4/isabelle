@@ -30,8 +30,8 @@ supported by the Isabelle distribution (and bundled tools), with the
 following reference versions (which have been selected to be neither
 too old nor too new):
 
-  x86-linux         Ubuntu 10.04 LTS
-  x86_64-linux      Ubuntu 10.04 LTS
+  x86-linux         Ubuntu 12.04 LTS
+  x86_64-linux      Ubuntu 12.04 LTS
 
   x86_64-darwin     Mac OS X 10.8 Mountain Lion (macbroy30)
                     Mac OS X 10.9 Mavericks (macbroy2)
