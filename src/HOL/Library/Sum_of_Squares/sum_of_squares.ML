@@ -290,7 +290,7 @@ fun triple_int_ord ((a, b, c), (a', b', c')) =
 structure Inttriplefunc = FuncFun(type key = int * int * int val ord = triple_int_ord);
 
 
-(* More parser basics. *)
+(* Parse back csdp output. *)
 
 local
 
@@ -306,28 +306,21 @@ val decimal_sig =
 fun signed neg parse = $$ "-" |-- parse >> neg || $$ "+" |-- parse || parse;
 val exponent = ($$ "e" || $$ "E") |-- signed ~ decimal_nat;
 
-in
-
 val decimal =
   signed ~ decimal_sig -- Scan.optional exponent 0
     >> (fn (a, b) => a * rat_pow @10 b);
 
+val csdp_output =
+  decimal -- Scan.repeat (Scan.$$ " " |-- Scan.option decimal) --| Scan.many Symbol.not_eof
+    >> (fn (a, bs) => vector_of_list (a :: map_filter I bs));
+
+in
+
+fun parse_csdpoutput s =
+  Symbol.scanner "Malformed CSDP output" csdp_output (raw_explode s);
+
 end;
 
-
-(* Parse back csdp output. *)
-
-(* FIXME improper use of parser combinators ahead *)
-
-fun mkparser p s =
-  let val (x,rst) = p (raw_explode s)
-  in if null rst then x else error "mkparser: unparsed input" end;
-
-fun ignore _ = ((),[])
-fun csdpoutput inp =
-  ((decimal -- Scan.repeat (Scan.$$ " " |-- Scan.option decimal) >>
-    (fn (h,to) => map_filter I ((SOME h)::to))) --| ignore >> vector_of_list) inp
-val parse_csdpoutput = mkparser csdpoutput
 
 (* Try some apparently sensible scaling first. Note that this is purely to   *)
 (* get a cleaner translation to floating-point, and doesn't affect any of    *)
