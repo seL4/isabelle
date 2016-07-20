@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Synopsis
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Synopsis\<close>

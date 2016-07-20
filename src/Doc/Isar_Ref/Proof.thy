@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Proof
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Proofs \label{ch:proofs}\<close>

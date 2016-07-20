@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Preface
-imports Base Main
+  imports Main Base
 begin
 
 text \<open>
