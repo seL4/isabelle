@@ -187,9 +187,6 @@ lemma less_eq_multiset_empty_left[simp]:
   shows "{#} \<le> M"
   by (simp add: subset_eq_imp_le_multiset)
 
-lemma add_eq_self_empty_iff: "M + N = M \<longleftrightarrow> N = {#}"
-  by (rule cancel_comm_monoid_add_class.add_cancel_left_right)
-
 lemma ex_gt_imp_less_multiset: "(\<exists>y. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M < N"
   unfolding less_multiset\<^sub>H\<^sub>O
   by (metis count_eq_zero_iff count_greater_zero_iff less_le_not_le)
@@ -207,7 +204,7 @@ lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
 lemma union_le_diff_plus: "P \<le># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
   by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)
 
-instantiation multiset :: (preorder) ordered_ab_semigroup_add_imp_le
+instantiation multiset :: (preorder) ordered_ab_semigroup_monoid_add_imp_le
 begin
 
 lemma less_eq_multiset\<^sub>H\<^sub>O:
@@ -219,24 +216,16 @@ instance by standard (auto simp: less_eq_multiset\<^sub>H\<^sub>O)
 lemma
   fixes M N :: "'a multiset"
   shows
-    less_eq_multiset_plus_left[simp]: "N \<le> (M + N)" and
-    less_eq_multiset_plus_right[simp]: "M \<le> (M + N)"
-  using add_le_cancel_left[of N 0] add_le_cancel_left[of M 0 N] by (simp_all add: add.commute)
-
-lemma
-  fixes M N :: "'a multiset"
-  shows
-    le_multiset_plus_plus_left_iff: "M + N < M' + N \<longleftrightarrow> M < M'" and
-    le_multiset_plus_plus_right_iff: "M + N < M + N' \<longleftrightarrow> N < N'"
+    less_eq_multiset_plus_left: "N \<le> (M + N)" and
+    less_eq_multiset_plus_right: "M \<le> (M + N)"
   by simp_all
 
 lemma
   fixes M N :: "'a multiset"
   shows
-    le_multiset_plus_left_nonempty[simp]: "M \<noteq> {#} \<Longrightarrow> N < M + N" and
-    le_multiset_plus_right_nonempty[simp]: "N \<noteq> {#} \<Longrightarrow> M < M + N"
-  using [[metis_verbose = false]]
-  by (metis add.right_neutral le_multiset_empty_left le_multiset_plus_plus_right_iff add.commute)+
+    le_multiset_plus_left_nonempty: "M \<noteq> {#} \<Longrightarrow> N < M + N" and
+    le_multiset_plus_right_nonempty: "N \<noteq> {#} \<Longrightarrow> M < M + N"
+    by simp_all
 
 end
 

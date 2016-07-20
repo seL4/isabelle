@@ -405,10 +405,16 @@ INCOMPATIBILITY.
 * The lemma mset_map has now the attribute [simp].
 INCOMPATIBILITY.
 
+* Some theorems about multisets have been removed:
+    le_multiset_plus_plus_left_iff ~> add_less_cancel_right
+    le_multiset_plus_plus_right_iff ~> add_less_cancel_left
+    add_eq_self_empty_iff ~> add_cancel_left_right
+INCOMPATIBILITY.
+
 * Some typeclass constraints about multisets have been reduced from ordered or
 linordered to preorder. Multisets have the additional typeclasses order_bot,
 no_top, ordered_ab_semigroup_add_imp_le, ordered_cancel_comm_monoid_add,
-and linordered_cancel_ab_semigroup_add.
+linordered_cancel_ab_semigroup_add, and ordered_ab_semigroup_monoid_add_imp_le.
 INCOMPATIBILITY.
 
 * There are some new simplification rules about multisets and the multiset
