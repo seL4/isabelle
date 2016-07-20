@@ -1612,7 +1612,7 @@ qed
 lemma mset_insort [simp]: "mset (insort x xs) = mset xs + {#x#}"
   by (induct xs) (simp_all add: ac_simps)
 
-lemma mset_map: "mset (map f xs) = image_mset f (mset xs)"
+lemma mset_map[simp]: "mset (map f xs) = image_mset f (mset xs)"
   by (induct xs) simp_all
 
 global_interpretation mset_set: folding "\<lambda>x M. {#x#} + M" "{#}"

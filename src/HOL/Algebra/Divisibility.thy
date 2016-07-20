@@ -1839,8 +1839,7 @@ subsubsection \<open>Comparing multisets\<close>
 lemma (in monoid) fmset_perm_cong:
   assumes prm: "as <~~> bs"
   shows "fmset G as = fmset G bs"
-using perm_map[OF prm]
-by (simp add: mset_eq_perm fmset_def)
+using perm_map[OF prm] unfolding mset_eq_perm fmset_def by blast
 
 lemma (in comm_monoid_cancel) eqc_listassoc_cong:
   assumes "as [\<sim>] bs"
@@ -1905,7 +1904,7 @@ lemma (in monoid_cancel) fmset_ee__hlp_induct:
   shows "\<forall>as bs. (cas <~~> cbs \<and> cas = map (assocs G) as \<and> 
                  cbs = map (assocs G) bs) \<longrightarrow> (\<exists>as'. as <~~> as' \<and> map (assocs G) as' = cbs)"
 apply (rule perm.induct[of cas cbs], rule prm)
-apply safe apply simp_all
+apply safe apply (simp_all del: mset_map)
   apply (simp add: map_eq_Cons_conv, blast)
  apply force
 proof -
@@ -1924,7 +1923,7 @@ proof -
 
   from p1
       have "mset (map (assocs G) as) = mset ys"
-      by (simp add: mset_eq_perm)
+      by (simp add: mset_eq_perm del: mset_map)
   hence setys: "set (map (assocs G) as) = set ys" by (rule mset_eq_setD)
 
   have "set (map (assocs G) as) = { assocs G x | x. x \<in> set as}" by clarsimp fast
@@ -1980,7 +1979,7 @@ lemma (in comm_monoid_cancel) fmset_ee:
 proof -
   from mset
       have mpp: "map (assocs G) as <~~> map (assocs G) bs"
-      by (simp add: fmset_def mset_eq_perm)
+      by (simp add: fmset_def mset_eq_perm del: mset_map)
 
   have "\<exists>cas. cas = map (assocs G) as" by simp
   from this obtain cas where cas: "cas = map (assocs G) as" by simp
@@ -2038,7 +2037,7 @@ proof -
   using elems
   unfolding Cs
     apply (induct Cs', simp)
-  proof clarsimp
+  proof (clarsimp simp del: mset_map)
     fix a Cs' cs 
     assume ih: "\<And>X. X = a \<or> X \<in> set Cs' \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
       and csP: "\<forall>x\<in>set cs. P x"
