@@ -145,8 +145,8 @@ Isabelle2016). INCOMPATIBILITY, use "standard" instead.
 "method_facts". This is particularly useful for Eisbach method
 definitions.
 
-* Eisbach provides method "use" to modify the main facts of a given
-method expression, e.g.
+* Proof method "use" allows to modify the main facts of a given method
+expression, e.g.
 
   (use facts in simp)
   (use facts in \<open>simp add: ...\<close>)

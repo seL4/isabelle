@@ -283,6 +283,8 @@ text \<open>
     @{command_def "with"} & : & \<open>proof(state) \<rightarrow> proof(chain)\<close> \\
     @{command_def "using"} & : & \<open>proof(prove) \<rightarrow> proof(prove)\<close> \\
     @{command_def "unfolding"} & : & \<open>proof(prove) \<rightarrow> proof(prove)\<close> \\
+    @{method_def "use"} & : & \<open>method\<close> \\
+    @{fact_def "method_facts"} & : & \<open>fact\<close> \\
   \end{matharray}
 
   New facts are established either by assumption or proof of local statements.
@@ -300,6 +302,8 @@ text \<open>
     ;
     (@@{command from} | @@{command with} | @@{command using} | @@{command unfolding})
       (@{syntax thms} + @'and')
+    ;
+    @{method use} @{syntax thms} @'in' @{syntax method}
   \<close>}
 
   \<^descr> @{command "note"}~\<open>a = b\<^sub>1 \<dots> b\<^sub>n\<close> recalls existing facts \<open>b\<^sub>1, \<dots>, b\<^sub>n\<close>,
@@ -323,13 +327,21 @@ text \<open>
   \<AND> this\<close>''; thus the forward chaining is from earlier facts together
   with the current ones.
 
-  \<^descr> @{command "using"}~\<open>b\<^sub>1 \<dots> b\<^sub>n\<close> augments the facts being currently
-  indicated for use by a subsequent refinement step (such as @{command_ref
-  "apply"} or @{command_ref "proof"}).
+  \<^descr> @{command "using"}~\<open>b\<^sub>1 \<dots> b\<^sub>n\<close> augments the facts to be used by a
+  subsequent refinement step (such as @{command_ref "apply"} or @{command_ref
+  "proof"}).
 
   \<^descr> @{command "unfolding"}~\<open>b\<^sub>1 \<dots> b\<^sub>n\<close> is structurally similar to @{command
-  "using"}, but unfolds definitional equations \<open>b\<^sub>1, \<dots> b\<^sub>n\<close> throughout the
+  "using"}, but unfolds definitional equations \<open>b\<^sub>1 \<dots> b\<^sub>n\<close> throughout the
   goal state and facts.
+
+  \<^descr> \<^theory_text>\<open>(use b\<^sub>1 \<dots> b\<^sub>n in method)\<close> uses the facts in the given method
+  expression. The facts provided by the proof state (via @{command "using"}
+  etc.) are ignored, but it is possible to refer to @{fact method_facts}
+  explicitly.
+
+  \<^descr> @{fact method_facts} is a dynamic fact that refers to the currently used
+  facts of the goal state.
 
 
   Forward chaining with an empty list of theorems is the same as not chaining

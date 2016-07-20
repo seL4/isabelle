@@ -100,7 +100,7 @@ fun parse_named_pats match_kind =
     (case Token.get_value body of
       SOME (Token.Source src) =>
         let
-          val text = Method_Closure.read ctxt src;
+          val text = Method.read ctxt src;
           val ts' =
             map
               (fn (b, (Parse_Tools.Real_Val v, match_args)) =>
@@ -201,7 +201,7 @@ fun parse_named_pats match_kind =
             |> (fn ctxt => fold2 upd_ctxt binds pats ([], ctxt) |> apfst rev)
             ||> Proof_Context.restore_mode ctxt;
 
-          val (text, src) = Method_Closure.read_closure_input ctxt6 (Token.input_of body);
+          val (text, src) = Method.read_closure_input ctxt6 (Token.input_of body);
 
           val morphism =
             Variable.export_morphism ctxt6
@@ -645,12 +645,12 @@ fun real_match using outer_ctxt fixes m text pats st =
       Match_Fact net =>
         make_fact_matches goal_ctxt (Item_Net.retrieve net)
         |> Seq.map (fn (text, ctxt') =>
-          Method_Closure.method_evaluate text ctxt' using (ctxt', st)
+          Method.evaluate_runtime text ctxt' using (ctxt', st)
           |> Seq.filter_results |> Seq.map (fn (_, thm) => (outer_ctxt, thm)))
     | Match_Term net =>
         make_term_matches goal_ctxt (Item_Net.retrieve net)
         |> Seq.map (fn (text, ctxt') =>
-          Method_Closure.method_evaluate text ctxt' using (ctxt', st)
+          Method.evaluate_runtime text ctxt' using (ctxt', st)
           |> Seq.filter_results |> Seq.map (fn (_, thm) => (outer_ctxt, thm)))
     | match_kind =>
         if Thm.no_prems st then Seq.empty
@@ -721,7 +721,7 @@ fun real_match using outer_ctxt fixes m text pats st =
               end;
 
             fun apply_text (text, ctxt') =
-                Method_Closure.method_evaluate text ctxt' using (ctxt', focused_goal)
+                Method.evaluate_runtime text ctxt' using (ctxt', focused_goal)
               |> Seq.filter_results
               |> Seq.maps (Seq.DETERM do_retrofit)             
 
