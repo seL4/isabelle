@@ -103,6 +103,9 @@ statement.
 * Command 'proof' provides information about proof outline with cases,
 e.g. for proof methods "cases", "induct", "goal_cases".
 
+* Completion templates for commands involving "begin ... end" blocks,
+e.g. 'context', 'notepad'.
+
 
 *** Isar ***
 

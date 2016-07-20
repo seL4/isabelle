@@ -458,8 +458,9 @@ object Symbol
     val symbolic = recode_set((for { (sym, _) <- symbols; if raw_symbolic(sym) } yield sym): _*)
 
 
-    /* comment */
+    /* misc symbols */
 
+    val newline_decoded = decode(newline)
     val comment_decoded = decode(comment)
 
 
@@ -526,7 +527,15 @@ object Symbol
   def is_blank(sym: Symbol): Boolean = symbols.blanks.contains(sym)
 
 
-  /* comment */
+  /* misc symbols */
+
+  val newline: Symbol = "\\<newline>"
+  def newline_decoded: Symbol = symbols.newline_decoded
+
+  def print_newlines(str: String): String =
+    if (str.contains('\n'))
+      (for (s <- iterator(str)) yield { if (s == "\n") newline_decoded else s }).mkString
+    else str
 
   val comment: Symbol = "\\<comment>"
   def comment_decoded: Symbol = symbols.comment_decoded
