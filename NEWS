@@ -52,6 +52,11 @@ on the target context persists, until different declarations are given.
 * Proof method "blast" is more robust wrt. corner cases of Pure
 statements without object-logic judgment.
 
+* Pure provides basic versions of proof methods "simp" and "simp_all"
+that only know about meta-equality (==). Potential INCOMPATIBILITY in
+theory imports that merge Pure with e.g. Main of Isabelle/HOL: the order
+is relevant to avoid confusion of Pure.simp vs. HOL.simp.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

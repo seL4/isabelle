@@ -82,7 +82,7 @@ theorem falseE [elim]:
   assumes "\<bottom>"
   shows A
 proof -
-  from \<open>\<bottom>\<close> have "\<forall>A. A" unfolding false_def .
+  from \<open>\<bottom>\<close> have "\<forall>A. A" by (simp only: false_def)
   then show A ..
 qed
 
@@ -108,7 +108,7 @@ theorem notE [elim]:
   assumes "\<not> A" and A
   shows B
 proof -
-  from \<open>\<not> A\<close> have "A \<longrightarrow> \<bottom>" unfolding not_def .
+  from \<open>\<not> A\<close> have "A \<longrightarrow> \<bottom>" by (simp only: not_def)
   from this and \<open>A\<close> have "\<bottom>" ..
   then show B ..
 qed

@@ -69,7 +69,10 @@ sig
   val simp_modifiers': Method.modifier parser list
   val simp_modifiers: Method.modifier parser list
   val method_setup: Method.modifier parser list -> theory -> theory
-  val easy_setup: thm -> thm list -> theory -> theory
+  val unsafe_solver_tac: Proof.context -> int -> tactic
+  val unsafe_solver: solver
+  val safe_solver_tac: Proof.context -> int -> tactic
+  val safe_solver: solver
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -376,31 +379,22 @@ fun method_setup more_mods =
         (CHANGED_PROP o PARALLEL_ALLGOALS o tac) ctxt))
     "simplification (all goals)";
 
-fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn ctxt0 =>
-  let
-    val trivialities = Drule.reflexive_thm :: trivs;
+fun unsafe_solver_tac ctxt =
+  FIRST' [resolve_tac ctxt (Drule.reflexive_thm :: Raw_Simplifier.prems_of ctxt), assume_tac ctxt];
+val unsafe_solver = mk_solver "Pure unsafe" unsafe_solver_tac;
 
-    fun unsafe_solver_tac ctxt =
-      FIRST' [resolve_tac ctxt (trivialities @ Raw_Simplifier.prems_of ctxt), assume_tac ctxt];
-    val unsafe_solver = mk_solver "easy unsafe" unsafe_solver_tac;
+(*no premature instantiation of variables during simplification*)
+fun safe_solver_tac ctxt =
+  FIRST' [match_tac ctxt (Drule.reflexive_thm :: Raw_Simplifier.prems_of ctxt), eq_assume_tac];
+val safe_solver = mk_solver "Pure safe" safe_solver_tac;
 
-    (*no premature instantiation of variables during simplification*)
-    fun safe_solver_tac ctxt =
-      FIRST' [match_tac ctxt (trivialities @ Raw_Simplifier.prems_of ctxt), eq_assume_tac];
-    val safe_solver = mk_solver "easy safe" safe_solver_tac;
-
-    fun mk_eq thm =
-      if can Logic.dest_equals (Thm.concl_of thm) then [thm]
-      else [thm RS reflect] handle THM _ => [];
-
-    fun mksimps thm = mk_eq (Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm);
-  in
-    empty_simpset ctxt0
-    setSSolver safe_solver
-    setSolver unsafe_solver
-    |> set_subgoaler asm_simp_tac
-    |> set_mksimps (K mksimps)
-  end));
+val _ =
+  Theory.setup
+    (method_setup [] #> Context.theory_map (map_ss (fn ctxt =>
+      empty_simpset ctxt
+      setSSolver safe_solver
+      setSolver unsafe_solver
+      |> set_subgoaler asm_simp_tac)));
 
 end;
 

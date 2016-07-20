@@ -258,6 +258,8 @@ text \<open>
   \begin{tabular}{rcll}
     @{method_def simp} & : & \<open>method\<close> \\
     @{method_def simp_all} & : & \<open>method\<close> \\
+    \<open>Pure.\<close>@{method_def (Pure) simp} & : & \<open>method\<close> \\
+    \<open>Pure.\<close>@{method_def (Pure) simp_all} & : & \<open>method\<close> \\
     @{attribute_def simp_depth_limit} & : & \<open>attribute\<close> & default \<open>100\<close> \\
   \end{tabular}
   \<^medskip>
@@ -354,6 +356,12 @@ text \<open>
 
   \end{tabular}
   \end{center}
+
+  \<^medskip>
+  In Isabelle/Pure, proof methods @{method (Pure) simp} and @{method (Pure)
+  simp_all} only know about meta-equality \<open>\<equiv>\<close>. Any new object-logic needs to
+  re-define these methods via @{ML Simplifier.method_setup} in ML:
+  Isabelle/FOL or Isabelle/HOL may serve as blue-prints.
 \<close>
 
 
