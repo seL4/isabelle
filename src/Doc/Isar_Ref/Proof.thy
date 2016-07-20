@@ -189,8 +189,8 @@ text \<open>
   "and"}; the resulting list of current facts consists of all of these
   concatenated.
 
-  A structured assumption like \<^theory_text>\<open>assume "B x" and "A x" for x\<close> is equivalent
-  to \<^theory_text>\<open>assume "\<And>x. A x \<Longrightarrow> B x"\<close>, but vacuous quantification is avoided: a
+  A structured assumption like \<^theory_text>\<open>assume "B x" if "A x" for x\<close> is equivalent to
+  \<^theory_text>\<open>assume "\<And>x. A x \<Longrightarrow> B x"\<close>, but vacuous quantification is avoided: a
   for-context only effects propositions according to actual use of variables.
 
   \<^descr> \<^theory_text>\<open>define x where "x = t"\<close> introduces a local (non-polymorphic) definition.
