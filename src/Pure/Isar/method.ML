@@ -92,6 +92,7 @@ sig
   val RUNTIME: context_tactic -> context_tactic
   val sleep: Time.time -> context_tactic
   val evaluate: text -> Proof.context -> method
+  val evaluate_runtime: text -> Proof.context -> method
   type modifier = {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T}
   val modifier: attribute -> Position.T -> modifier
   val old_section_parser: bool Config.T
@@ -103,6 +104,10 @@ sig
   val report: text_range -> unit
   val parser: int -> text_range parser
   val parse: text_range parser
+  val read: Proof.context -> Token.src -> text
+  val read_closure: Proof.context -> Token.src -> text * Token.src
+  val read_closure_input: Proof.context -> Input.source -> text * Token.src
+  val text_closure: text context_parser
 end;
 
 structure Method: METHOD =
@@ -576,6 +581,18 @@ fun evaluate text ctxt0 facts =
 
 end;
 
+fun evaluate_runtime text ctxt =
+  let
+    val text' =
+      text |> (map_source o map o Token.map_facts)
+        (fn SOME name =>
+              (case Proof_Context.lookup_fact ctxt name of
+                SOME {dynamic = true, thms} => K thms
+              | _ => I)
+          | NONE => I);
+    val ctxt' = Config.put closure false ctxt;
+  in fn facts => RUNTIME (fn st => evaluate text' ctxt' facts st) end;
+
 
 
 (** concrete syntax **)
@@ -743,6 +760,38 @@ val parse = parser 4;
 end;
 
 
+(* read method text *)
+
+fun read ctxt src =
+  (case Scan.read Token.stopper (Parse.!!! (parser 0 --| Scan.ahead Parse.eof)) src of
+    SOME (text, range) =>
+      if checked_text text then text
+      else (report (text, range); check_text ctxt text)
+  | NONE => error ("Failed to parse method" ^ Position.here (#1 (Token.range_of src))));
+
+fun read_closure ctxt src0 =
+  let
+    val src1 = map Token.init_assignable src0;
+    val text = read ctxt src1 |> map_source (method_closure ctxt);
+    val src2 = map Token.closure src1;
+  in (text, src2) end;
+
+fun read_closure_input ctxt =
+  Input.source_explode #>
+  Token.read_no_commands (Thy_Header.get_keywords' ctxt) (Scan.one Token.not_eof) #>
+  read_closure ctxt;
+
+val text_closure =
+  Args.context -- Scan.lift (Parse.token Parse.text) >> (fn (ctxt, tok) =>
+    (case Token.get_value tok of
+      SOME (Token.Source src) => read ctxt src
+    | _ =>
+        let
+          val (text, src) = read_closure_input ctxt (Token.input_of tok);
+          val _ = Token.assign (SOME (Token.Source src)) tok;
+        in text end));
+
+
 (* theory setup *)
 
 val _ = Theory.setup
@@ -792,7 +841,11 @@ val _ = Theory.setup
   setup @{binding tactic} (parse_tactic >> (K o METHOD))
     "ML tactic as proof method" #>
   setup @{binding raw_tactic} (parse_tactic >> (fn tac => fn _ => CONTEXT_TACTIC o tac))
-    "ML tactic as raw proof method");
+    "ML tactic as raw proof method" #>
+  setup @{binding use}
+    (Attrib.thms -- (Scan.lift (Parse.$$$ "in") |-- text_closure) >>
+      (fn (thms, text) => fn ctxt => fn _ => evaluate_runtime text ctxt thms))
+    "indicate method facts and context for method expression");
 
 
 (*final declarations of this structure!*)

@@ -1,23 +1,22 @@
 (*:maxLineLen=78:*)
 
 theory Generic
-imports Base Main
+imports Main Base
 begin
 
 chapter \<open>Generic tools and packages \label{ch:gen-tools}\<close>
 
 section \<open>Configuration options \label{sec:config}\<close>
 
-text \<open>Isabelle/Pure maintains a record of named configuration
-  options within the theory or proof context, with values of type
-  @{ML_type bool}, @{ML_type int}, @{ML_type real}, or @{ML_type
-  string}.  Tools may declare options in ML, and then refer to these
-  values (relative to the context).  Thus global reference variables
-  are easily avoided.  The user may change the value of a
-  configuration option by means of an associated attribute of the same
-  name.  This form of context declaration works particularly well with
-  commands such as @{command "declare"} or @{command "using"} like
-  this:
+text \<open>
+  Isabelle/Pure maintains a record of named configuration options within the
+  theory or proof context, with values of type @{ML_type bool}, @{ML_type
+  int}, @{ML_type real}, or @{ML_type string}. Tools may declare options in
+  ML, and then refer to these values (relative to the context). Thus global
+  reference variables are easily avoided. The user may change the value of a
+  configuration option by means of an associated attribute of the same name.
+  This form of context declaration works particularly well with commands such
+  as @{command "declare"} or @{command "using"} like this:
 \<close>
 
 (*<*)experiment begin(*>*)
@@ -40,14 +39,14 @@ text \<open>
     @{syntax name} ('=' ('true' | 'false' | @{syntax int} | @{syntax float} | @{syntax name}))?
   \<close>}
 
-  \<^descr> @{command "print_options"} prints the available configuration
-  options, with names, types, and current values; the ``\<open>!\<close>'' option
-  indicates extra verbosity.
+  \<^descr> @{command "print_options"} prints the available configuration options,
+  with names, types, and current values; the ``\<open>!\<close>'' option indicates extra
+  verbosity.
   
-  \<^descr> \<open>name = value\<close> as an attribute expression modifies the
-  named option, with the syntax of the value depending on the option's
-  type.  For @{ML_type bool} the default value is \<open>true\<close>.  Any
-  attempt to change a global option in a local context is ignored.
+  \<^descr> \<open>name = value\<close> as an attribute expression modifies the named option, with
+  the syntax of the value depending on the option's type. For @{ML_type bool}
+  the default value is \<open>true\<close>. Any attempt to change a global option in a
+  local context is ignored.
 \<close>
 
 
@@ -81,46 +80,41 @@ text \<open>
     @@{method sleep} @{syntax real}
   \<close>}
 
-  \<^descr> @{method unfold}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{method fold}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> expand (or fold back) the given definitions throughout
-  all goals; any chained facts provided are inserted into the goal and
-  subject to rewriting as well.
+  \<^descr> @{method unfold}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{method fold}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> expand (or
+  fold back) the given definitions throughout all goals; any chained facts
+  provided are inserted into the goal and subject to rewriting as well.
 
-  \<^descr> @{method insert}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> inserts theorems as facts
-  into all goals of the proof state.  Note that current facts
-  indicated for forward chaining are ignored.
+  \<^descr> @{method insert}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> inserts theorems as facts into all goals of
+  the proof state. Note that current facts indicated for forward chaining are
+  ignored.
 
-  \<^descr> @{method erule}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>, @{method
-  drule}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>, and @{method frule}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> are similar to the basic @{method rule}
-  method (see \secref{sec:pure-meth-att}), but apply rules by
-  elim-resolution, destruct-resolution, and forward-resolution,
-  respectively @{cite "isabelle-implementation"}.  The optional natural
-  number argument (default 0) specifies additional assumption steps to
-  be performed here.
+  \<^descr> @{method erule}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>, @{method drule}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>, and @{method
+  frule}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> are similar to the basic @{method rule} method (see
+  \secref{sec:pure-meth-att}), but apply rules by elim-resolution,
+  destruct-resolution, and forward-resolution, respectively @{cite
+  "isabelle-implementation"}. The optional natural number argument (default 0)
+  specifies additional assumption steps to be performed here.
 
   Note that these methods are improper ones, mainly serving for
-  experimentation and tactic script emulation.  Different modes of
-  basic rule application are usually expressed in Isar at the proof
-  language level, rather than via implicit proof state manipulations.
-  For example, a proper single-step elimination would be done using
-  the plain @{method rule} method, with forward chaining of current
-  facts.
+  experimentation and tactic script emulation. Different modes of basic rule
+  application are usually expressed in Isar at the proof language level,
+  rather than via implicit proof state manipulations. For example, a proper
+  single-step elimination would be done using the plain @{method rule} method,
+  with forward chaining of current facts.
 
-  \<^descr> @{method intro} and @{method elim} repeatedly refine some goal
-  by intro- or elim-resolution, after having inserted any chained
-  facts.  Exactly the rules given as arguments are taken into account;
-  this allows fine-tuned decomposition of a proof problem, in contrast
-  to common automated tools.
+  \<^descr> @{method intro} and @{method elim} repeatedly refine some goal by intro-
+  or elim-resolution, after having inserted any chained facts. Exactly the
+  rules given as arguments are taken into account; this allows fine-tuned
+  decomposition of a proof problem, in contrast to common automated tools.
 
-  \<^descr> @{method fail} yields an empty result sequence; it is the
-  identity of the ``\<open>|\<close>'' method combinator (cf.\
-  \secref{sec:proof-meth}).
+  \<^descr> @{method fail} yields an empty result sequence; it is the identity of the
+  ``\<open>|\<close>'' method combinator (cf.\ \secref{sec:proof-meth}).
 
-  \<^descr> @{method succeed} yields a single (unchanged) result; it is
-  the identity of the ``\<open>,\<close>'' method combinator (cf.\
-  \secref{sec:proof-meth}).
+  \<^descr> @{method succeed} yields a single (unchanged) result; it is the identity
+  of the ``\<open>,\<close>'' method combinator (cf.\ \secref{sec:proof-meth}).
 
-  \<^descr> @{method sleep}~\<open>s\<close> succeeds after a real-time delay of \<open>s\<close> seconds. This is occasionally useful for demonstration and testing
-  purposes.
+  \<^descr> @{method sleep}~\<open>s\<close> succeeds after a real-time delay of \<open>s\<close> seconds. This
+  is occasionally useful for demonstration and testing purposes.
 
 
   \begin{matharray}{rcl}
@@ -147,38 +141,35 @@ text \<open>
     @@{attribute rotated} @{syntax int}?
   \<close>}
 
-  \<^descr> @{attribute tagged}~\<open>name value\<close> and @{attribute
-  untagged}~\<open>name\<close> add and remove \<^emph>\<open>tags\<close> of some theorem.
-  Tags may be any list of string pairs that serve as formal comment.
-  The first string is considered the tag name, the second its value.
-  Note that @{attribute untagged} removes any tags of the same name.
+  \<^descr> @{attribute tagged}~\<open>name value\<close> and @{attribute untagged}~\<open>name\<close> add and
+  remove \<^emph>\<open>tags\<close> of some theorem. Tags may be any list of string pairs that
+  serve as formal comment. The first string is considered the tag name, the
+  second its value. Note that @{attribute untagged} removes any tags of the
+  same name.
 
-  \<^descr> @{attribute THEN}~\<open>a\<close> composes rules by resolution; it
-  resolves with the first premise of \<open>a\<close> (an alternative
-  position may be also specified).  See also @{ML_op "RS"} in
-  @{cite "isabelle-implementation"}.
+  \<^descr> @{attribute THEN}~\<open>a\<close> composes rules by resolution; it resolves with the
+  first premise of \<open>a\<close> (an alternative position may be also specified). See
+  also @{ML_op "RS"} in @{cite "isabelle-implementation"}.
   
-  \<^descr> @{attribute unfolded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{attribute
-  folded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> expand and fold back again the given
-  definitions throughout a rule.
+  \<^descr> @{attribute unfolded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{attribute folded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>
+  expand and fold back again the given definitions throughout a rule.
 
-  \<^descr> @{attribute abs_def} turns an equation of the form @{prop "f x
-  y \<equiv> t"} into @{prop "f \<equiv> \<lambda>x y. t"}, which ensures that @{method
-  simp} or @{method unfold} steps always expand it.  This also works
-  for object-logic equality.
+  \<^descr> @{attribute abs_def} turns an equation of the form @{prop "f x y \<equiv> t"}
+  into @{prop "f \<equiv> \<lambda>x y. t"}, which ensures that @{method simp} or @{method
+  unfold} steps always expand it. This also works for object-logic equality.
 
-  \<^descr> @{attribute rotated}~\<open>n\<close> rotate the premises of a
-  theorem by \<open>n\<close> (default 1).
+  \<^descr> @{attribute rotated}~\<open>n\<close> rotate the premises of a theorem by \<open>n\<close> (default
+  1).
 
-  \<^descr> @{attribute (Pure) elim_format} turns a destruction rule into
-  elimination rule format, by resolving with the rule @{prop "PROP A \<Longrightarrow>
-  (PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP B"}.
+  \<^descr> @{attribute (Pure) elim_format} turns a destruction rule into elimination
+  rule format, by resolving with the rule @{prop "PROP A \<Longrightarrow> (PROP A \<Longrightarrow> PROP B) \<Longrightarrow>
+  PROP B"}.
   
-  Note that the Classical Reasoner (\secref{sec:classical}) provides
-  its own version of this operation.
+  Note that the Classical Reasoner (\secref{sec:classical}) provides its own
+  version of this operation.
 
-  \<^descr> @{attribute no_vars} replaces schematic variables by free
-  ones; this is mainly for tuning output of pretty printed theorems.
+  \<^descr> @{attribute no_vars} replaces schematic variables by free ones; this is
+  mainly for tuning output of pretty printed theorems.
 \<close>
 
 
@@ -197,51 +188,45 @@ text \<open>
     @@{method split} @{syntax thms}
   \<close>}
 
-  These methods provide low-level facilities for equational reasoning
-  that are intended for specialized applications only.  Normally,
-  single step calculations would be performed in a structured text
-  (see also \secref{sec:calculation}), while the Simplifier methods
-  provide the canonical way for automated normalization (see
-  \secref{sec:simplifier}).
+  These methods provide low-level facilities for equational reasoning that are
+  intended for specialized applications only. Normally, single step
+  calculations would be performed in a structured text (see also
+  \secref{sec:calculation}), while the Simplifier methods provide the
+  canonical way for automated normalization (see \secref{sec:simplifier}).
 
-  \<^descr> @{method subst}~\<open>eq\<close> performs a single substitution step
-  using rule \<open>eq\<close>, which may be either a meta or object
-  equality.
+  \<^descr> @{method subst}~\<open>eq\<close> performs a single substitution step using rule \<open>eq\<close>,
+  which may be either a meta or object equality.
 
-  \<^descr> @{method subst}~\<open>(asm) eq\<close> substitutes in an
-  assumption.
+  \<^descr> @{method subst}~\<open>(asm) eq\<close> substitutes in an assumption.
 
-  \<^descr> @{method subst}~\<open>(i \<dots> j) eq\<close> performs several
-  substitutions in the conclusion. The numbers \<open>i\<close> to \<open>j\<close>
-  indicate the positions to substitute at.  Positions are ordered from
-  the top of the term tree moving down from left to right. For
-  example, in \<open>(a + b) + (c + d)\<close> there are three positions
-  where commutativity of \<open>+\<close> is applicable: 1 refers to \<open>a + b\<close>, 2 to the whole term, and 3 to \<open>c + d\<close>.
+  \<^descr> @{method subst}~\<open>(i \<dots> j) eq\<close> performs several substitutions in the
+  conclusion. The numbers \<open>i\<close> to \<open>j\<close> indicate the positions to substitute at.
+  Positions are ordered from the top of the term tree moving down from left to
+  right. For example, in \<open>(a + b) + (c + d)\<close> there are three positions where
+  commutativity of \<open>+\<close> is applicable: 1 refers to \<open>a + b\<close>, 2 to the whole
+  term, and 3 to \<open>c + d\<close>.
 
-  If the positions in the list \<open>(i \<dots> j)\<close> are non-overlapping
-  (e.g.\ \<open>(2 3)\<close> in \<open>(a + b) + (c + d)\<close>) you may
-  assume all substitutions are performed simultaneously.  Otherwise
-  the behaviour of \<open>subst\<close> is not specified.
+  If the positions in the list \<open>(i \<dots> j)\<close> are non-overlapping (e.g.\ \<open>(2 3)\<close> in
+  \<open>(a + b) + (c + d)\<close>) you may assume all substitutions are performed
+  simultaneously. Otherwise the behaviour of \<open>subst\<close> is not specified.
 
-  \<^descr> @{method subst}~\<open>(asm) (i \<dots> j) eq\<close> performs the
-  substitutions in the assumptions. The positions refer to the
-  assumptions in order from left to right.  For example, given in a
-  goal of the form \<open>P (a + b) \<Longrightarrow> P (c + d) \<Longrightarrow> \<dots>\<close>, position 1 of
-  commutativity of \<open>+\<close> is the subterm \<open>a + b\<close> and
-  position 2 is the subterm \<open>c + d\<close>.
+  \<^descr> @{method subst}~\<open>(asm) (i \<dots> j) eq\<close> performs the substitutions in the
+  assumptions. The positions refer to the assumptions in order from left to
+  right. For example, given in a goal of the form \<open>P (a + b) \<Longrightarrow> P (c + d) \<Longrightarrow> \<dots>\<close>,
+  position 1 of commutativity of \<open>+\<close> is the subterm \<open>a + b\<close> and position 2 is
+  the subterm \<open>c + d\<close>.
 
-  \<^descr> @{method hypsubst} performs substitution using some
-  assumption; this only works for equations of the form \<open>x =
-  t\<close> where \<open>x\<close> is a free or bound variable.
+  \<^descr> @{method hypsubst} performs substitution using some assumption; this only
+  works for equations of the form \<open>x = t\<close> where \<open>x\<close> is a free or bound
+  variable.
 
-  \<^descr> @{method split}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> performs single-step case
-  splitting using the given rules.  Splitting is performed in the
-  conclusion or some assumption of the subgoal, depending of the
-  structure of the rule.
+  \<^descr> @{method split}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> performs single-step case splitting using the
+  given rules. Splitting is performed in the conclusion or some assumption of
+  the subgoal, depending of the structure of the rule.
   
-  Note that the @{method simp} method already involves repeated
-  application of split rules as declared in the current context, using
-  @{attribute split}, for example.
+  Note that the @{method simp} method already involves repeated application of
+  split rules as declared in the current context, using @{attribute split},
+  for example.
 \<close>
 
 
@@ -273,6 +258,8 @@ text \<open>
   \begin{tabular}{rcll}
     @{method_def simp} & : & \<open>method\<close> \\
     @{method_def simp_all} & : & \<open>method\<close> \\
+    \<open>Pure.\<close>@{method_def (Pure) simp} & : & \<open>method\<close> \\
+    \<open>Pure.\<close>@{method_def (Pure) simp_all} & : & \<open>method\<close> \\
     @{attribute_def simp_depth_limit} & : & \<open>attribute\<close> & default \<open>100\<close> \\
   \end{tabular}
   \<^medskip>
@@ -369,6 +356,12 @@ text \<open>
 
   \end{tabular}
   \end{center}
+
+  \<^medskip>
+  In Isabelle/Pure, proof methods @{method (Pure) simp} and @{method (Pure)
+  simp_all} only know about meta-equality \<open>\<equiv>\<close>. Any new object-logic needs to
+  re-define these methods via @{ML Simplifier.method_setup} in ML:
+  Isabelle/FOL or Isabelle/HOL may serve as blue-prints.
 \<close>
 
 

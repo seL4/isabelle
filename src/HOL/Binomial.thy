@@ -1424,18 +1424,6 @@ subsection \<open>More on Binomial Coefficients\<close>
 lemma choose_one: "n choose 1 = n" for n :: nat
   by simp
 
-(*FIXME: messy and apparently unused*)
-lemma binomial_induct [rule_format]: "(\<forall>n::nat. P n n) \<longrightarrow>
-    (\<forall>n. P (Suc n) 0) \<longrightarrow> (\<forall>n. (\<forall>k < n. P n k \<longrightarrow> P n (Suc k) \<longrightarrow>
-    P (Suc n) (Suc k))) \<longrightarrow> (\<forall>k \<le> n. P n k)"
-  apply (induct n)
-  apply auto
-  apply (case_tac "k = 0")
-  apply auto
-  apply (case_tac "k = Suc n")
-  apply (auto simp add: le_Suc_eq elim: lessE)
-  done
-
 lemma card_UNION:
   assumes "finite A"
     and "\<forall>k \<in> A. finite k"

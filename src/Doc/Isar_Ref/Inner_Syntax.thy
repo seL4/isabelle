@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Inner_Syntax
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Inner syntax --- the term language \label{ch:inner-syntax}\<close>

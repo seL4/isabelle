@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Proof_Script
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Proof scripts\<close>
