@@ -202,9 +202,9 @@ end
 subsection \<open>Prime residues\<close>
 
 locale residues_prime =
-  fixes p and R (structure)
+  fixes p :: nat and R (structure)
   assumes p_prime [intro]: "prime p"
-  defines "R \<equiv> residue_ring p"
+  defines "R \<equiv> residue_ring (int p)"
 
 sublocale residues_prime < residues p
   apply (unfold R_def residues_def)
@@ -223,7 +223,7 @@ lemma is_field: "field R"
   apply (erule notE)
   apply (subst gcd.commute)
   apply (rule prime_imp_coprime_int)
-  apply (rule p_prime)
+  apply (simp add: p_prime)
   apply (rule notI)
   apply (frule zdvd_imp_le)
   apply auto
@@ -280,7 +280,7 @@ proof -
   qed
   then show ?thesis
     using \<open>2 \<le> p\<close>
-    by (simp add: prime_def)
+    by (simp add: is_prime_nat_iff)
        (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0
               not_numeral_le_zero one_dvd)
 qed
@@ -347,19 +347,21 @@ lemma (in residues_prime) phi_prime: "phi p = nat p - 1"
   apply auto
   done
 
-lemma phi_prime: "prime p \<Longrightarrow> phi p = nat p - 1"
+lemma phi_prime: "prime (int p) \<Longrightarrow> phi p = nat p - 1"
   apply (rule residues_prime.phi_prime)
+  apply simp
   apply (erule residues_prime.intro)
   done
 
 lemma fermat_theorem:
   fixes a :: int
-  assumes "prime p"
+  assumes "prime (int p)"
     and "\<not> p dvd a"
   shows "[a^(p - 1) = 1] (mod p)"
 proof -
   from assms have "[a ^ phi p = 1] (mod p)"
-    by (auto intro!: euler_theorem dest!: prime_imp_coprime_int simp add: ac_simps)
+    by (auto intro!: euler_theorem intro!: prime_imp_coprime_int[of p]
+             simp: gcd.commute[of _ "int p"])
   also have "phi p = nat p - 1"
     by (rule phi_prime) (rule assms)
   finally show ?thesis
@@ -367,7 +369,7 @@ proof -
 qed
 
 lemma fermat_theorem_nat:
-  assumes "prime p" and "\<not> p dvd a"
+  assumes "prime (int p)" and "\<not> p dvd a"
   shows "[a ^ (p - 1) = 1] (mod p)"
   using fermat_theorem [of p a] assms
   by (metis of_nat_1 of_nat_power transfer_int_nat_cong zdvd_int)

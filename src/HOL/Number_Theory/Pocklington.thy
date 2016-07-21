@@ -11,39 +11,17 @@ begin
 subsection\<open>Lemmas about previously defined terms\<close>
 
 lemma prime: 
-  "prime p \<longleftrightarrow> p \<noteq> 0 \<and> p \<noteq> 1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof-
-  {assume "p=0 \<or> p=1" hence ?thesis
-    by (metis one_not_prime_nat zero_not_prime_nat)}
-  moreover
-  {assume p0: "p\<noteq>0" "p\<noteq>1"
-    {assume H: "?lhs"
-      {fix m assume m: "m > 0" "m < p"
-        {assume "m=1" hence "coprime p m" by simp}
-        moreover
-        {assume "p dvd m" hence "p \<le> m" using dvd_imp_le m by blast with m(2)
-          have "coprime p m" by simp}
-        ultimately have "coprime p m" 
-          by (metis H prime_imp_coprime_nat)}
-      hence ?rhs using p0 by auto}
-    moreover
-    { assume H: "\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m"
-      obtain q where q: "prime q" "q dvd p"
-        by (metis p0(2) prime_factor_nat) 
-      have q0: "q > 0"
-        by (metis prime_gt_0_nat q(1))
-      from dvd_imp_le[OF q(2)] p0 have qp: "q \<le> p" by arith
-      {assume "q = p" hence ?lhs using q(1) by blast}
-      moreover
-      {assume "q\<noteq>p" with qp have qplt: "q < p" by arith
-        from H qplt q0 have "coprime p q" by arith
-       hence ?lhs using q
-         by (auto dest: gcd_nat.absorb2)}
-      ultimately have ?lhs by blast}
-    ultimately have ?thesis by blast}
-  ultimately show ?thesis  by (cases"p=0 \<or> p=1", auto)
-qed
+  "prime (p::nat) \<longleftrightarrow> p \<noteq> 0 \<and> p \<noteq> 1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
+  unfolding is_prime_nat_iff
+proof safe
+  fix m assume p: "p > 0" "p \<noteq> 1" and m: "m dvd p" "m \<noteq> p" 
+           and *: "\<forall>m. m > 0 \<and> m < p \<longrightarrow> coprime p m"
+  from p m have "m \<noteq> 0" by (intro notI) auto
+  moreover from p m have "m < p" by (auto dest: dvd_imp_le)
+  ultimately have "coprime p m" using * by blast
+  with m show "m = 1" by simp
+qed (auto simp: is_prime_nat_iff simp del: One_nat_def 
+          intro!: is_prime_imp_coprime dest: dvd_imp_le)
 
 lemma finite_number_segment: "card { m. 0 < m \<and> m < n } = n - 1"
 proof-
@@ -94,7 +72,7 @@ proof-
 qed
 
 lemma cong_solve_unique_nontrivial:
-  assumes p: "prime p" and pa: "coprime p a" and x0: "0 < x" and xp: "x < p"
+  assumes p: "prime (p::nat)" and pa: "coprime p a" and x0: "0 < x" and xp: "x < p"
   shows "\<exists>!y. 0 < y \<and> y < p \<and> [x * y = a] (mod p)"
 proof-
   from pa have ap: "coprime a p"
@@ -107,12 +85,12 @@ proof-
     with y(2) have th: "p dvd a"
       by (auto dest: cong_dvd_eq_nat)
     have False
-      by (metis gcd_nat.absorb1 one_not_prime_nat p pa th)}
+      by (metis gcd_nat.absorb1 not_is_prime_1 p pa th)}
   with y show ?thesis unfolding Ex1_def using neq0_conv by blast
 qed
 
 lemma cong_unique_inverse_prime:
-  assumes "prime p" and "0 < x" and "x < p"
+  assumes "prime (p::nat)" and "0 < x" and "x < p"
   shows "\<exists>!y. 0 < y \<and> y < p \<and> [x * y = 1] (mod p)"
   by (rule cong_solve_unique_nontrivial) (insert assms, simp_all)
 
@@ -445,28 +423,28 @@ qed
 subsection\<open>Another trivial primality characterization\<close>
 
 lemma prime_prime_factor:
-  "prime n \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n)" 
+  "prime (n::nat) \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n)" 
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof (cases "n=0 \<or> n=1")
   case True
   then show ?thesis
-     by (metis bigger_prime dvd_0_right one_not_prime_nat zero_not_prime_nat)
+     by (metis bigger_prime dvd_0_right not_is_prime_1 not_is_prime_0)
 next
   case False
   show ?thesis
   proof
     assume "prime n"
     then show ?rhs
-      by (metis one_not_prime_nat prime_def)
+      by (metis  not_is_prime_1 is_prime_nat_iff)
   next
     assume ?rhs
     with False show "prime n"
-      by (auto simp: prime_def) (metis One_nat_def prime_factor_nat prime_def)
+      by (auto simp: is_prime_nat_iff) (metis One_nat_def prime_factor_nat is_prime_nat_iff)
   qed
 qed
 
 lemma prime_divisor_sqrt:
-  "prime n \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>d. d dvd n \<and> d\<^sup>2 \<le> n \<longrightarrow> d = 1)"
+  "prime (n::nat) \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>d. d dvd n \<and> d\<^sup>2 \<le> n \<longrightarrow> d = 1)"
 proof -
   {assume "n=0 \<or> n=1" hence ?thesis
     by auto}
@@ -497,17 +475,17 @@ proof -
         with H[rule_format, of e] h have "e=1" by simp
         with e have "d = n" by simp}
       ultimately have "d=1 \<or> d=n"  by blast}
-    ultimately have ?thesis unfolding prime_def using np n(2) by blast}
+    ultimately have ?thesis unfolding is_prime_nat_iff using np n(2) by blast}
   ultimately show ?thesis by auto
 qed
 
 lemma prime_prime_factor_sqrt:
-  "prime n \<longleftrightarrow> n \<noteq> 0 \<and> n \<noteq> 1 \<and> \<not> (\<exists>p. prime p \<and> p dvd n \<and> p\<^sup>2 \<le> n)"
+  "prime (n::nat) \<longleftrightarrow> n \<noteq> 0 \<and> n \<noteq> 1 \<and> \<not> (\<exists>p. prime p \<and> p dvd n \<and> p\<^sup>2 \<le> n)"
   (is "?lhs \<longleftrightarrow>?rhs")
 proof-
   {assume "n=0 \<or> n=1" 
    hence ?thesis
-     by (metis one_not_prime_nat zero_not_prime_nat)}
+     by (metis not_is_prime_0 not_is_prime_1)}
   moreover
   {assume n: "n\<noteq>0" "n\<noteq>1"
     {assume H: ?lhs
@@ -535,10 +513,10 @@ subsection\<open>Pocklington theorem\<close>
 lemma pocklington_lemma:
   assumes n: "n \<ge> 2" and nqr: "n - 1 = q*r" and an: "[a^ (n - 1) = 1] (mod n)"
   and aq:"\<forall>p. prime p \<and> p dvd q \<longrightarrow> coprime (a^ ((n - 1) div p) - 1) n"
-  and pp: "prime p" and pn: "p dvd n"
+  and pp: "prime (p::nat)" and pn: "p dvd n"
   shows "[p = 1] (mod q)"
 proof -
-  have p01: "p \<noteq> 0" "p \<noteq> 1" using pp one_not_prime_nat zero_not_prime_nat by (auto intro: prime_gt_0_nat)
+  have p01: "p \<noteq> 0" "p \<noteq> 1" using pp by (auto intro: prime_gt_0_nat)
   obtain k where k: "a ^ (q * r) - 1 = n*k"
     by (metis an cong_to_1_nat dvd_def nqr)
   from pn[unfolded dvd_def] obtain l where l: "n = p*l" by blast
@@ -561,7 +539,7 @@ proof -
     from aq P(1) Pq have caP:"coprime (a^ ((n - 1) div P) - 1) n" by blast
     from Pq obtain s where s: "q = P*s" unfolding dvd_def by blast
     have P0: "P \<noteq> 0" using P(1)
-      by (metis zero_not_prime_nat) 
+      by (metis not_is_prime_0) 
     from P(2) obtain t where t: "d = P*t" unfolding dvd_def by blast
     from d s t P0  have s': "ord p (a^r) * t = s"
       by (metis mult.commute mult_cancel1 mult.assoc) 
@@ -581,7 +559,7 @@ proof -
   hence o: "ord p (a^r) = q" using d by simp
   from pp phi_prime[of p] have phip: "phi p = p - 1" by simp
   {fix d assume d: "d dvd p" "d dvd a" "d \<noteq> 1"
-    from pp[unfolded prime_def] d have dp: "d = p" by blast
+    from pp[unfolded is_prime_nat_iff] d have dp: "d = p" by blast
     from n have "n \<noteq> 0" by simp
     then have False using d dp pn
       by auto (metis One_nat_def Suc_pred an dvd_1_iff_1 gcd_greatest_iff lucas_coprime_lemma)} 
@@ -667,36 +645,28 @@ subsection\<open>Prime factorizations\<close>
 
 (* FIXME some overlap with material in UniqueFactorization, class unique_factorization *)
 
-definition "primefact ps n = (foldr op * ps  1 = n \<and> (\<forall>p\<in> set ps. prime p))"
+definition "primefact ps n = (foldr op * ps 1 = n \<and> (\<forall>p\<in> set ps. prime p))"
 
-lemma primefact: assumes n: "n \<noteq> 0"
+lemma primefact: 
+  assumes n: "n \<noteq> (0::nat)"
   shows "\<exists>ps. primefact ps n"
-using n
-proof(induct n rule: nat_less_induct)
-  fix n assume H: "\<forall>m<n. m \<noteq> 0 \<longrightarrow> (\<exists>ps. primefact ps m)" and n: "n\<noteq>0"
-  let ?ths = "\<exists>ps. primefact ps n"
-  {assume "n = 1"
-    hence "primefact [] n" by (simp add: primefact_def)
-    hence ?ths by blast }
-  moreover
-  {assume n1: "n \<noteq> 1"
-    with n have n2: "n \<ge> 2" by arith
-    obtain p where p: "prime p" "p dvd n"
-      by (metis n1 prime_factor_nat) 
-    from p(2) obtain m where m: "n = p*m" unfolding dvd_def by blast
-    from n m have m0: "m > 0" "m\<noteq>0" by auto
-    have "1 < p"
-      by (metis p(1) prime_def)
-    with m0 m have mn: "m < n" by auto
-    from H[rule_format, OF mn m0(2)] obtain ps where ps: "primefact ps m" ..
-    from ps m p(1) have "primefact (p#ps) n" by (simp add: primefact_def)
-    hence ?ths by blast}
-  ultimately show ?ths by blast
+proof -
+  have "\<exists>xs. mset xs = prime_factorization n" by (rule ex_mset)
+  then guess xs .. note xs = this
+  from assms have "n = msetprod (prime_factorization n)" 
+    by (simp add: msetprod_prime_factorization)
+  also have "\<dots> = msetprod (mset xs)" by (simp add: xs)
+  also have "\<dots> = foldr op * xs 1" by (induction xs) simp_all
+  finally have "foldr op * xs 1 = n" ..
+  moreover have "\<forall>p\<in>#mset xs. prime p"
+    by (subst xs) (auto dest: in_prime_factorization_imp_prime)
+  ultimately have "primefact xs n" by (auto simp: primefact_def)
+  thus ?thesis ..
 qed
 
 lemma primefact_contains:
   assumes pf: "primefact ps n" and p: "prime p" and pn: "p dvd n"
-  shows "p \<in> set ps"
+  shows "(p::nat) \<in> set ps"
   using pf p pn
 proof(induct ps arbitrary: p n)
   case Nil thus ?case by (auto simp add: primefact_def)
@@ -705,7 +675,7 @@ next
   from Cons.prems[unfolded primefact_def]
   have q: "prime q" "q * foldr op * qs 1 = n" "\<forall>p \<in>set qs. prime p"  and p: "prime p" "p dvd q * foldr op * qs 1" by simp_all
   {assume "p dvd q"
-    with p(1) q(1) have "p = q" unfolding prime_def by auto
+    with p(1) q(1) have "p = q" unfolding is_prime_nat_iff by auto
     hence ?case by simp}
   moreover
   { assume h: "p dvd foldr op * qs 1"
@@ -760,7 +730,7 @@ proof-
     from psp primefact_contains[OF pfpsq p]
     have p': "coprime (a ^ (r * (q div p)) mod n - 1) n"
       by (simp add: list_all_iff)
-    from p prime_def have p01: "p \<noteq> 0" "p \<noteq> 1" "p =Suc(p - 1)" 
+    from p is_prime_nat_iff have p01: "p \<noteq> 0" "p \<noteq> 1" "p =Suc(p - 1)" 
       by auto
     from div_mult1_eq[of r q p] p(2)
     have eq1: "r* (q div p) = (n - 1) div p"

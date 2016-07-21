@@ -295,8 +295,8 @@ proof -
     from 2 show ?thesis
       apply (auto simp add: numbers_of_marks_sieve numeral_2_eq_2 set_primes_upto
         dest: prime_gt_Suc_0_nat)
-      apply (metis One_nat_def Suc_le_eq less_not_refl prime_def)
-      apply (metis One_nat_def Suc_le_eq aux prime_def)
+      apply (metis One_nat_def Suc_le_eq less_not_refl is_prime_nat_iff)
+      apply (metis One_nat_def Suc_le_eq aux is_prime_nat_iff)
       done
   qed
 qed

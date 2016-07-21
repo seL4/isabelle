@@ -1005,7 +1005,14 @@ proof -
   have "subset_mset.bdd_above A"
     by (rule ccontr) (insert assms, simp_all add: Sup_multiset_unbounded)
   with assms show ?thesis by (simp add: in_Sup_multiset_iff)
-qed    
+qed
+
+interpretation subset_mset: distrib_lattice "op #\<inter>" "op \<subseteq>#" "op \<subset>#" "op #\<union>"
+proof
+  fix A B C :: "'a multiset"
+  show "A #\<union> (B #\<inter> C) = A #\<union> B #\<inter> (A #\<union> C)"
+    by (intro multiset_eqI) simp_all
+qed
 
 
 subsubsection \<open>Filter (with comprehension syntax)\<close>
@@ -1835,6 +1842,12 @@ lemma setsum_unfold_msetsum:
   "setsum f A = msetsum (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
+lemma msetsum_delta: "msetsum (image_mset (\<lambda>x. if x = y then c else 0) A) = c * count A y"
+  by (induction A) simp_all
+
+lemma msetsum_delta': "msetsum (image_mset (\<lambda>x. if y = x then c else 0) A) = c * count A y"
+  by (induction A) simp_all
+
 end
 
 lemma msetsum_diff:
@@ -1909,6 +1922,12 @@ lemma setprod_unfold_msetprod:
 lemma msetprod_multiplicity:
   "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_mset M)"
   by (simp add: fold_mset_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
+
+lemma msetprod_delta: "msetprod (image_mset (\<lambda>x. if x = y then c else 1) A) = c ^ count A y"
+  by (induction A) (simp_all add: mult_ac)
+
+lemma msetprod_delta': "msetprod (image_mset (\<lambda>x. if y = x then c else 1) A) = c ^ count A y"
+  by (induction A) (simp_all add: mult_ac)
 
 end
 

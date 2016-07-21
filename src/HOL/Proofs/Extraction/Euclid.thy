@@ -27,8 +27,8 @@ lemma factor_greater_one2: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> 
 lemma prod_mn_less_k: "0 < n \<Longrightarrow> 0 < k \<Longrightarrow> Suc 0 < m \<Longrightarrow> m * n = k \<Longrightarrow> n < k"
   by (induct m) auto
 
-lemma prime_eq: "prime p \<longleftrightarrow> 1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p)"
-  apply (simp add: prime_def)
+lemma prime_eq: "prime (p::nat) \<longleftrightarrow> 1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p)"
+  apply (simp add: is_prime_nat_iff)
   apply (rule iffI)
   apply blast
   apply (erule conjE)
@@ -45,7 +45,7 @@ lemma prime_eq: "prime p \<longleftrightarrow> 1 < p \<and> (\<forall>m. m dvd p
   apply simp
   done
 
-lemma prime_eq': "prime p \<longleftrightarrow> 1 < p \<and> (\<forall>m k. p = m * k \<longrightarrow> 1 < m \<longrightarrow> m = p)"
+lemma prime_eq': "prime (p::nat) \<longleftrightarrow> 1 < p \<and> (\<forall>m k. p = m * k \<longrightarrow> 1 < m \<longrightarrow> m = p)"
   by (simp add: prime_eq dvd_def HOL.all_simps [symmetric] del: HOL.all_simps)
 
 lemma not_prime_ex_mk:
@@ -207,7 +207,7 @@ qed
 
 text \<open>Euclid's theorem: there are infinitely many primes.\<close>
 
-lemma Euclid: "\<exists>p. prime p \<and> n < p"
+lemma Euclid: "\<exists>p::nat. prime p \<and> n < p"
 proof -
   let ?k = "fact n + (1::nat)"
   have "1 < ?k" by simp

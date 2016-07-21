@@ -109,10 +109,12 @@ proof -
     assume c: "x \<le> (int p - 1) div 2"
     assume d: "0 < y"
     assume e: "y \<le> (int p - 1) div 2"
-    from a p_a_relprime p_prime a_nonzero cong_mult_rcancel_int [of _ a x y]
-    have "[x = y](mod p)"
-      by (metis monoid_mult_class.mult.left_neutral cong_dvd_modulus_int cong_mult_rcancel_int 
-                cong_mult_self_int gcd.commute prime_imp_coprime_int)
+    from p_a_relprime have "\<not>p dvd a"
+      by (simp add: cong_altdef_int)
+    with p_prime have "coprime a (int p)" 
+       by (subst gcd.commute, intro is_prime_imp_coprime) auto
+    with a cong_mult_rcancel_int [of a "int p" x y]
+      have "[x = y] (mod p)" by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
         order_le_less_trans [of x "(int p - 1) div 2" p]
         order_le_less_trans [of y "(int p - 1) div 2" p] 
@@ -137,11 +139,14 @@ proof -
   assume d: "0 < y"
   assume e: "y \<le> (int p - 1) div 2"
   assume f: "x \<noteq> y"
-  from a have "[x * a = y * a](mod p)" 
+  from a have a': "[x * a = y * a](mod p)" 
     by (metis cong_int_def)
-  with p_a_relprime p_prime cong_mult_rcancel_int [of a p x y]
-  have "[x = y](mod p)" 
-    by (metis cong_mult_self_int dvd_div_mult_self gcd.commute prime_imp_coprime_int)
+  from p_a_relprime have "\<not>p dvd a"
+    by (simp add: cong_altdef_int)
+  with p_prime have "coprime a (int p)" 
+     by (subst gcd.commute, intro is_prime_imp_coprime) auto
+  with a' cong_mult_rcancel_int [of a "int p" x y]
+    have "[x = y] (mod p)" by simp
   with cong_less_imp_eq_int [of x y p] p_minus_one_l
     order_le_less_trans [of x "(int p - 1) div 2" p]
     order_le_less_trans [of y "(int p - 1) div 2" p] 
@@ -170,7 +175,7 @@ lemma A_greater_zero: "x \<in> A \<Longrightarrow> 0 < x"
   by (auto simp add: A_def)
 
 lemma B_ncong_p: "x \<in> B \<Longrightarrow> [x \<noteq> 0](mod p)"
-  by (auto simp add: B_def) (metis cong_prime_prod_zero_int A_ncong_p p_a_relprime p_prime)
+  by (auto simp: B_def p_prime p_a_relprime A_ncong_p dest: cong_prime_prod_zero_int) 
 
 lemma B_greater_zero: "x \<in> B \<Longrightarrow> 0 < x"
   using a_nonzero by (auto simp add: B_def A_greater_zero)
@@ -202,7 +207,7 @@ lemma D_eq: "D = {x. \<exists>y \<in> A. ( x = (y*a) mod p & (y*a) mod p \<le> (
 
 lemma all_A_relprime: assumes "x \<in> A" shows "gcd x p = 1"
   using p_prime A_ncong_p [OF assms]
-  by (simp add: cong_altdef_int) (metis gcd.commute prime_imp_coprime_int)
+  by (auto simp: cong_altdef_int gcd.commute[of _ "int p"] intro!: is_prime_imp_coprime)
 
 lemma A_prod_relprime: "gcd (setprod id A) p = 1"
   by (metis id_def all_A_relprime setprod_coprime)
@@ -266,7 +271,7 @@ proof (auto simp add: F_eq D_eq)
     by (metis cong_int_def mod_add_left_eq mod_add_right_eq mult.commute ring_class.ring_distribs(1))
   with p_prime a_nonzero p_a_relprime
   have a: "[y + z = 0] (mod p)"
-    by (metis cong_prime_prod_zero_int)
+    by (auto dest!: cong_prime_prod_zero_int)
   assume b: "y \<in> A" and c: "z \<in> A"
   with A_def have "0 < y + z"
     by auto

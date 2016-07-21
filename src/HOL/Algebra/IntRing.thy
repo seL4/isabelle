@@ -4,7 +4,7 @@
 *)
 
 theory IntRing
-imports QuotRing Lattice Int "~~/src/HOL/Number_Theory/Primes"
+imports "~~/src/HOL/Number_Theory/Primes" QuotRing Lattice Int
 begin
 
 section \<open>The Ring of Integers\<close>
@@ -240,18 +240,18 @@ apply (rule primeidealI)
  apply (elim exE)
 proof -
   fix a b x
-  assume "a * b = x * int p"
+  assume "a * b = x * p"
   then have "p dvd a * b" by simp
   then have "p dvd a \<or> p dvd b"
     by (metis prime prime_dvd_mult_eq_int)
-  then show "(\<exists>x. a = x * int p) \<or> (\<exists>x. b = x * int p)"
+  then show "(\<exists>x. a = x * p) \<or> (\<exists>x. b = x * p)"
     by (metis dvd_def mult.commute)
 next
-  assume "UNIV = {uu. EX x. uu = x * int p}"
-  then obtain x where "1 = x * int p" by best
-  then have "\<bar>int p * x\<bar> = 1" by (simp add: mult.commute)
-  then show False
-    by (metis abs_of_nat of_nat_1 of_nat_eq_iff abs_zmult_eq_1 one_not_prime_nat prime)
+  assume "UNIV = {uu. EX x. uu = x * p}"
+  then obtain x where "1 = x * p" by best
+  then have "\<bar>p * x\<bar> = 1" by (simp add: mult.commute)
+  then show False using prime
+    by (auto dest!: abs_zmult_eq_1 simp: is_prime_def)
 qed
 
 

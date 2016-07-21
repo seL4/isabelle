@@ -22,17 +22,17 @@ lemma prime_dvd_cases:
 proof -
   have "p dvd m*n" using dvd_mult_left pk by blast
   then consider "p dvd m" | "p dvd n"
-    using p prime_dvd_mult_eq_nat by blast
+    using p is_prime_dvd_mult_iff by blast
   then show ?thesis
   proof cases
     case 1 then obtain a where "m = p * a" by (metis dvd_mult_div_cancel) 
       then have "\<exists>x. k dvd x * n \<and> m = p * x"
-        using p pk by auto
+        using p pk by (auto simp: mult.assoc)
     then show ?thesis ..
   next
     case 2 then obtain b where "n = p * b" by (metis dvd_mult_div_cancel) 
-      then have "\<exists>y. k dvd m*y \<and> n = p*y"
-        using p pk by auto
+    with p pk have "\<exists>y. k dvd m*y \<and> n = p*y" 
+      by (metis dvd_mult_right dvd_times_left_cancel_iff mult.left_commute mult_zero_left)
     then show ?thesis ..
   qed
 qed
@@ -50,11 +50,16 @@ next
   then show ?case
   proof cases
     case (1 x) 
-      with Suc.hyps [of x n] show "\<exists>a b. a + b = Suc c \<and> p ^ a dvd m \<and> p ^ b dvd n"
-      by force
+    with Suc.hyps[of x n] obtain a b where "a + b = c \<and> p ^ a dvd x \<and> p ^ b dvd n" by blast
+    with 1 have "Suc a + b = Suc c \<and> p ^ Suc a dvd m \<and> p ^ b dvd n"
+      by (auto intro: mult_dvd_mono)
+    thus ?thesis by blast
   next
     case (2 y) 
-      with Suc.hyps [of m y] show "\<exists>a b. a + b = Suc c \<and> p ^ a dvd m \<and> p ^ b dvd n"
+    with Suc.hyps[of m y] obtain a b where "a + b = c \<and> p ^ a dvd m \<and> p ^ b dvd y" by blast
+    with 2 have "a + Suc b = Suc c \<and> p ^ a dvd m \<and> p ^ Suc b dvd n"
+      by (auto intro: mult_dvd_mono)
+    with Suc.hyps [of m y] show "\<exists>a b. a + b = Suc c \<and> p ^ a dvd m \<and> p ^ b dvd n"
       by force
   qed
 qed
@@ -73,20 +78,27 @@ corollary div_combine: "\<lbrakk>prime p; \<not> p ^ Suc r dvd n; p ^ (a + r) dv
 
 subsection\<open>The Exponent Function\<close>
 
+abbreviation (input) "exponent \<equiv> multiplicity"
+
+(*
 definition
   exponent :: "nat => nat => nat"
   where "exponent p s = (if prime p then (GREATEST r. p^r dvd s) else 0)"
+*)
 
-lemma exponent_eq_0 [simp]: "\<not> prime p \<Longrightarrow> exponent p s = 0"
-  by (simp add: exponent_def)
+(*lemma exponent_eq_0 [simp]: "\<not> prime p \<Longrightarrow> exponent p s = 0"
+  by (simp add: exponent_def)*)
 
 lemma Suc_le_power: "Suc 0 < p \<Longrightarrow> Suc n \<le> p ^ n"
   by (induct n) (auto simp: Suc_le_eq le_less_trans)
 
+(*
 text\<open>An upper bound for the @{term n} such that @{term"p^n dvd a"}: needed for GREATEST to exist\<close>
 lemma power_dvd_bound: "\<lbrakk>p ^ n dvd a; Suc 0 < p; 0 < a\<rbrakk> \<Longrightarrow> n < a"
   by (meson Suc_le_lessD Suc_le_power dvd_imp_le le_trans)
+*)
 
+(*
 lemma exponent_ge:
   assumes "p ^ k dvd n" "prime p" "0 < n"
     shows "k \<le> exponent p n"
@@ -96,7 +108,9 @@ proof -
   with assms show ?thesis
     by (simp add: \<open>prime p\<close> exponent_def) (meson Greatest_le power_dvd_bound)
 qed
+*)
 
+(*
 lemma power_exponent_dvd: "p ^ exponent p s dvd s"
 proof (cases "s = 0")
   case True then show ?thesis by simp
@@ -107,27 +121,35 @@ next
     apply (auto dest: prime_gt_Suc_0_nat power_dvd_bound)
     done
 qed
+*)
 
-lemma power_Suc_exponent_Not_dvd:
+(*lemma power_Suc_exponent_Not_dvd:
     "\<lbrakk>p * p ^ exponent p s dvd s; prime p\<rbrakk> \<Longrightarrow> s = 0"
   by (metis exponent_ge neq0_conv not_less_eq_eq order_refl power_Suc)
+*)
 
+
+(*
 lemma exponent_power_eq [simp]: "prime p \<Longrightarrow> exponent p (p ^ a) = a"
   apply (simp add: exponent_def)
   apply (rule Greatest_equality, simp)
   apply (simp add: prime_gt_Suc_0_nat power_dvd_imp_le)
   done
+*)
 
+(*
 lemma exponent_1_eq_0 [simp]: "exponent p (Suc 0) = 0"
   apply (case_tac "prime p")
   apply (metis exponent_power_eq nat_power_eq_Suc_0_iff)
   apply simp
   done
+*)
 
 lemma exponent_equalityI:
   "(\<And>r. p ^ r dvd a \<longleftrightarrow> p ^ r dvd b) \<Longrightarrow> exponent p a = exponent p b"
-  by (simp add: exponent_def)
+  by (simp add: multiplicity_def)
 
+(*
 lemma exponent_mult_add: 
   assumes "a > 0" "b > 0"
     shows "exponent p (a * b) = (exponent p a) + (exponent p b)"
@@ -149,15 +171,22 @@ next
   then show "exponent p (a * b) \<le> exponent p a + exponent p b" by (blast intro: leI)
   qed
 qed
+*)
 
-lemma not_divides_exponent_0: "~ (p dvd n) \<Longrightarrow> exponent p n = 0"
-  apply (case_tac "exponent p n", simp)
-  by (metis dvd_mult_left power_Suc power_exponent_dvd)
+lemma not_dvd_imp_multiplicity_0: 
+  assumes "\<not>p dvd x"
+  shows   "multiplicity p x = 0"
+proof -
+  from assms have "multiplicity p x < 1"
+    by (intro multiplicity_lessI) auto
+  thus ?thesis by simp
+qed
 
 
 subsection\<open>The Main Combinatorial Argument\<close>
 
 lemma exponent_p_a_m_k_equation: 
+  fixes p :: nat
   assumes "0 < m" "0 < k" "p \<noteq> 0" "k < p^a" 
     shows "exponent p (p^a * m - k) = exponent p (p^a - k)"
 proof (rule exponent_equalityI [OF iffI])
@@ -188,60 +217,56 @@ next
 qed
 
 lemma p_not_div_choose_lemma: 
+  fixes p :: nat
   assumes eeq: "\<And>i. Suc i < K \<Longrightarrow> exponent p (Suc i) = exponent p (Suc (j + i))"
-      and "k < K"
+      and "k < K" and p: "prime p"
     shows "exponent p (j + k choose k) = 0"
-proof (cases "prime p")
-  case False then show ?thesis by simp
+  using \<open>k < K\<close>
+proof (induction k)
+  case 0 then show ?case by simp
 next
-  case True show ?thesis using \<open>k < K\<close> 
-  proof (induction k)
-    case 0 then show ?case by simp
-  next
-    case (Suc k)
-    then have *: "(Suc (j+k) choose Suc k) > 0" by simp
-    then have "exponent p ((Suc (j+k) choose Suc k) * Suc k) = exponent p (Suc k)"
-      by (metis Suc.IH Suc.prems Suc_lessD Suc_times_binomial_eq add.comm_neutral eeq exponent_mult_add 
-                mult_pos_pos zero_less_Suc zero_less_mult_pos)
-    then show ?case
-      by (metis * add.commute add_Suc_right add_eq_self_zero exponent_mult_add zero_less_Suc)
-  qed
+  case (Suc k)
+  then have *: "(Suc (j+k) choose Suc k) > 0" by simp
+  then have "exponent p ((Suc (j+k) choose Suc k) * Suc k) = exponent p (Suc k)"
+    by (subst Suc_times_binomial_eq [symmetric], subst prime_multiplicity_mult_distrib)
+       (insert p Suc.prems, simp_all add: eeq [symmetric] Suc.IH)
+  with p * show ?case
+    by (subst (asm) prime_multiplicity_mult_distrib) simp_all
 qed
 
 text\<open>The lemma above, with two changes of variables\<close>
 lemma p_not_div_choose:
   assumes "k < K" and "k \<le> n" 
-      and eeq: "\<And>j. \<lbrakk>0<j; j<K\<rbrakk> \<Longrightarrow> exponent p (n - k + (K - j)) = exponent p (K - j)"
+      and eeq: "\<And>j. \<lbrakk>0<j; j<K\<rbrakk> \<Longrightarrow> exponent p (n - k + (K - j)) = exponent p (K - j)" "is_prime p"
     shows "exponent p (n choose k) = 0"
 apply (rule p_not_div_choose_lemma [of K p "n-k" k, simplified assms nat_minus_add_max max_absorb1])
 apply (metis add_Suc_right eeq diff_diff_cancel order_less_imp_le zero_less_Suc zero_less_diff)
-apply (rule TrueI)
+apply (rule TrueI)+
 done
 
 proposition const_p_fac:
-  assumes "m>0"
-    shows "exponent p (p^a * m choose p^a) = exponent p m"
-proof (cases "prime p")
-  case False then show ?thesis by auto
-next
-  case True 
-  with assms have p: "0 < p ^ a" "0 < p^a * m" "p^a \<le> p^a * m"
+  assumes "m>0" and prime: "is_prime p"
+  shows "exponent p (p^a * m choose p^a) = exponent p m"
+proof-
+  from assms have p: "0 < p ^ a" "0 < p^a * m" "p^a \<le> p^a * m"
     by (auto simp: prime_gt_0_nat) 
   have *: "exponent p ((p^a * m - 1) choose (p^a - 1)) = 0"
     apply (rule p_not_div_choose [where K = "p^a"])
-    using p exponent_p_a_m_k_equation by (auto simp: diff_le_mono)
+    using p exponent_p_a_m_k_equation by (auto simp: diff_le_mono prime)
   have "exponent p ((p ^ a * m choose p ^ a) * p ^ a) = a + exponent p m"
   proof -
-    have "p ^ a * m * (p ^ a * m - 1 choose (p ^ a - 1)) = p ^ a * (p ^ a * m choose p ^ a)"
-      using p One_nat_def times_binomial_minus1_eq by presburger
-    moreover have "exponent p (p ^ a) = a"
-      by (meson True exponent_power_eq)
-    ultimately show ?thesis
-      using * p 
-      by (metis (no_types, lifting) One_nat_def exponent_1_eq_0 exponent_mult_add mult.commute mult.right_neutral nat_0_less_mult_iff zero_less_binomial)
+    have "(p ^ a * m choose p ^ a) * p ^ a = p ^ a * m * (p ^ a * m - 1 choose (p ^ a - 1))" 
+      (is "_ = ?rhs") using prime 
+      by (subst times_binomial_minus1_eq [symmetric]) (auto simp: prime_gt_0_nat)
+    also from p have "p ^ a - Suc 0 \<le> p ^ a * m - Suc 0" by linarith
+    with prime * p have "multiplicity p ?rhs = multiplicity p (p ^ a * m)"
+      by (subst prime_multiplicity_mult_distrib) auto
+    also have "\<dots> = a + multiplicity p m" 
+      using prime p by (subst prime_multiplicity_mult_distrib) simp_all
+    finally show ?thesis .
   qed
   then show ?thesis
-    using True p exponent_mult_add by auto
+    using prime p by (subst (asm) prime_multiplicity_mult_distrib) simp_all
 qed
 
 end

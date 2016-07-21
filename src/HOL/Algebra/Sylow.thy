@@ -129,11 +129,15 @@ by (simp add: card_calM zero_less_binomial le_extend_mult zero_less_m)
 
 lemma max_p_div_calM:
      "~ (p ^ Suc(exponent p m) dvd card(calM))"
-proof -
-  have "exponent p m = exponent p (card calM)"
-    by (simp add: card_calM const_p_fac zero_less_m)
-  then show ?thesis
-    by (metis Suc_n_not_le_n exponent_ge prime_p zero_less_card_calM)
+proof
+  assume "p ^ Suc (multiplicity p m) dvd card calM"
+  with zero_less_card_calM prime_p 
+  have "Suc (multiplicity p m) \<le> multiplicity p (card calM)"
+    by (intro multiplicity_geI) auto
+  hence "multiplicity p m < multiplicity p (card calM)" by simp
+  also have "multiplicity p m = multiplicity p (card calM)"
+    by (simp add: const_p_fac prime_p zero_less_m card_calM)
+  finally show False by simp
 qed
 
 lemma finite_calM: "finite calM"
@@ -305,7 +309,7 @@ lemma (in sylow_central) lemma_leq1: "p^a \<le> card(H)"
 apply (rule dvd_imp_le)
  apply (rule div_combine [OF prime_p not_dvd_M])
  prefer 2 apply (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
-apply (simp add: index_lem order_G power_add mult_dvd_mono power_exponent_dvd
+apply (simp add: index_lem order_G power_add mult_dvd_mono multiplicity_dvd
                  zero_less_m)
 done
 

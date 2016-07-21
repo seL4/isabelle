@@ -17,7 +17,7 @@ text \<open>
 subsection \<open>Preliminaries\<close>
 
 lemma prime_nonzero:  "prime (p::nat) \<Longrightarrow> p \<noteq> 0"
-  by (force simp add: prime_def)
+  by (force simp add: is_prime_nat_iff)
 
 lemma prime_dvd_other_side:
     "(n::nat) * n = p * (k * k) \<Longrightarrow> prime p \<Longrightarrow> p dvd n"
@@ -32,7 +32,7 @@ lemma reduction: "prime (p::nat) \<Longrightarrow>
   apply (erule disjE)
    apply (frule mult_le_mono, assumption)
    apply auto
-  apply (force simp add: prime_def)
+  apply (force simp add: is_prime_nat_iff)
   done
 
 lemma rearrange: "(j::nat) * (p * j) = k * k \<Longrightarrow> k * k = p * (j * j)"
