@@ -505,19 +505,23 @@ qed simp
 
 instance
 proof
-  fix x :: nat and X :: "nat set"
-  { assume "x \<in> X" "bdd_below X" then show "Inf X \<le> x"
-      by (simp add: Inf_nat_def Least_le) }
-  { assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> x \<le> y" then show "x \<le> Inf X"
-      unfolding Inf_nat_def ex_in_conv[symmetric] by (rule LeastI2_ex) }
-  { assume "x \<in> X" "bdd_above X" then show "x \<le> Sup X"
-      by (simp add: Sup_nat_def bdd_above_nat) }
-  { assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> y \<le> x"
-    moreover then have "bdd_above X"
+  fix x :: nat
+  fix X :: "nat set"
+  show "Inf X \<le> x" if "x \<in> X" "bdd_below X"
+    using that by (simp add: Inf_nat_def Least_le)
+  show "x \<le> Inf X" if "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> x \<le> y"
+    using that unfolding Inf_nat_def ex_in_conv[symmetric] by (rule LeastI2_ex)
+  show "x \<le> Sup X" if "x \<in> X" "bdd_above X"
+    using that by (simp add: Sup_nat_def bdd_above_nat)
+  show "Sup X \<le> x" if "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> y \<le> x"
+  proof -
+    from that have "bdd_above X"
       by (auto simp: bdd_above_def)
-    ultimately show "Sup X \<le> x"
-      by (simp add: Sup_nat_def bdd_above_nat) }
+    with that show ?thesis 
+      by (simp add: Sup_nat_def bdd_above_nat)
+  qed
 qed
+
 end
 
 instantiation int :: conditionally_complete_linorder

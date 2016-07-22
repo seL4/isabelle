@@ -1411,7 +1411,7 @@ proof -
   show no_df0: "norm(deriv f 0) \<le> 1"
     by (simp add: \<open>\<And>z. cmod z < 1 \<Longrightarrow> cmod (h z) \<le> 1\<close> df0)
   show "?Q" if "?P"
-  using that
+    using that
   proof
     assume "\<exists>z. cmod z < 1 \<and> z \<noteq> 0 \<and> cmod (f z) = cmod z"
     then obtain \<gamma> where \<gamma>: "cmod \<gamma> < 1" "\<gamma> \<noteq> 0" "cmod (f \<gamma>) = cmod \<gamma>" by blast
@@ -1424,9 +1424,9 @@ proof -
       by (metis add_diff_cancel_left' diff_diff_eq2 le_less_trans noh_le norm_triangle_ineq4)
     ultimately obtain c where c: "\<And>z. norm z < 1 \<Longrightarrow> h z = c"
       using Schwarz2 [OF holh, of "1 - norm \<gamma>" \<gamma>, unfolded constant_on_def] \<gamma> by auto
-    moreover then have "norm c = 1"
+    then have "norm c = 1"
       using \<gamma> by force
-    ultimately show ?thesis
+    with c show ?thesis
       using fz_eq by auto
   next
     assume [simp]: "cmod (deriv f 0) = 1"

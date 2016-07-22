@@ -1734,7 +1734,7 @@ lemma measure_eqI_countable:
 proof (rule measure_eqI)
   fix X assume "X \<in> sets M"
   then have X: "X \<subseteq> A" by auto
-  moreover with A have "countable X" by (auto dest: countable_subset)
+  moreover from A X have "countable X" by (auto dest: countable_subset)
   ultimately have
     "emeasure M X = (\<integral>\<^sup>+a. emeasure M {a} \<partial>count_space X)"
     "emeasure N X = (\<integral>\<^sup>+a. emeasure N {a} \<partial>count_space X)"

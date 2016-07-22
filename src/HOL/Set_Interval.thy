@@ -578,9 +578,9 @@ proof
   obtain y where "Max {a <..} < y"
     using gt_ex by auto
 
-  obtain x where "a < x"
+  obtain x where x: "a < x"
     using gt_ex by auto
-  also then have "x \<le> Max {a <..}"
+  also from x have "x \<le> Max {a <..}"
     by fact
   also note \<open>Max {a <..} < y\<close>
   finally have "y \<le> Max { a <..}"

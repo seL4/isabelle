@@ -75,9 +75,9 @@ next
           fix i assume "i \<in> S - {m}"
           then have i: "i \<in> S" "i \<noteq> m" by auto
           { assume i': "l i < r i" "l i < r m"
-            moreover with \<open>finite S\<close> i m have "l m \<le> l i"
+            with \<open>finite S\<close> i m have "l m \<le> l i"
               by auto
-            ultimately have "{l i <.. r i} \<inter> {l m <.. r m} \<noteq> {}"
+            with i' have "{l i <.. r i} \<inter> {l m <.. r m} \<noteq> {}"
               by auto
             then have False
               using disjoint_family_onD[OF disj, of i m] i by auto }
@@ -852,9 +852,9 @@ lemma nn_integral_has_integral:
   shows "(f has_integral r) UNIV"
 using f proof (induct f arbitrary: r rule: borel_measurable_induct_real)
   case (set A)
-  moreover then have "((\<lambda>x. 1) has_integral measure lborel A) A"
+  then have "((\<lambda>x. 1) has_integral measure lborel A) A"
     by (intro has_integral_measure_lborel) (auto simp: ennreal_indicator)
-  ultimately show ?case
+  with set show ?case
     by (simp add: ennreal_indicator measure_def) (simp add: indicator_def)
 next
   case (mult g c)
@@ -868,13 +868,12 @@ next
     by (auto intro!: has_integral_cmult_real)
 next
   case (add g h)
-  moreover
   then have "(\<integral>\<^sup>+ x. h x + g x \<partial>lborel) = (\<integral>\<^sup>+ x. h x \<partial>lborel) + (\<integral>\<^sup>+ x. g x \<partial>lborel)"
     by (simp add: nn_integral_add)
   with add obtain a b where "0 \<le> a" "0 \<le> b" "(\<integral>\<^sup>+ x. h x \<partial>lborel) = ennreal a" "(\<integral>\<^sup>+ x. g x \<partial>lborel) = ennreal b" "r = a + b"
     by (cases "\<integral>\<^sup>+ x. h x \<partial>lborel" "\<integral>\<^sup>+ x. g x \<partial>lborel" rule: ennreal2_cases)
        (auto simp: add_top nn_integral_add top_add ennreal_plus[symmetric] simp del: ennreal_plus)
-  ultimately show ?case
+  with add show ?case
     by (auto intro!: has_integral_add)
 next
   case (seq U)
@@ -1020,8 +1019,8 @@ lemma has_integral_iff_emeasure_lborel:
   fixes A :: "'a::euclidean_space set"
   assumes A[measurable]: "A \<in> sets borel" and [simp]: "0 \<le> r"
   shows "((\<lambda>x. 1) has_integral r) A \<longleftrightarrow> emeasure lborel A = ennreal r"
-proof cases
-  assume emeasure_A: "emeasure lborel A = \<infinity>"
+proof (cases "emeasure lborel A = \<infinity>")
+  case emeasure_A: True
   have "\<not> (\<lambda>x. 1::real) integrable_on A"
   proof
     assume int: "(\<lambda>x. 1::real) integrable_on A"
@@ -1035,10 +1034,10 @@ proof cases
   with emeasure_A show ?thesis
     by auto
 next
-  assume "emeasure lborel A \<noteq> \<infinity>"
-  moreover then have "((\<lambda>x. 1) has_integral measure lborel A) A"
+  case False
+  then have "((\<lambda>x. 1) has_integral measure lborel A) A"
     by (simp add: has_integral_measure_lborel less_top)
-  ultimately show ?thesis
+  with False show ?thesis
     by (auto simp: emeasure_eq_ennreal_measure has_integral_unique)
 qed
 

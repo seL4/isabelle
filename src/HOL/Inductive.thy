@@ -270,10 +270,10 @@ proof (rule antisym)
   show "g (lfp (\<lambda>x. f (g x))) \<le> lfp (\<lambda>x. g (f x))"
   proof (rule lfp_greatest)
     fix u
-    assume "g (f u) \<le> u"
-    moreover then have "g (lfp (\<lambda>x. f (g x))) \<le> g (f u)"
+    assume u: "g (f u) \<le> u"
+    then have "g (lfp (\<lambda>x. f (g x))) \<le> g (f u)"
       by (intro assms[THEN monoD] lfp_lowerbound)
-    ultimately show "g (lfp (\<lambda>x. f (g x))) \<le> u"
+    with u show "g (lfp (\<lambda>x. f (g x))) \<le> u"
       by auto
   qed
 qed
@@ -307,10 +307,11 @@ proof (rule antisym)
     by (rule gfp_upperbound) (simp add: gfp_unfold[OF *, symmetric])
   show "gfp (\<lambda>x. g (f x)) \<le> g (gfp (\<lambda>x. f (g x)))"
   proof (rule gfp_least)
-    fix u assume "u \<le> g (f u)"
-    moreover then have "g (f u) \<le> g (gfp (\<lambda>x. f (g x)))"
+    fix u
+    assume u: "u \<le> g (f u)"
+    then have "g (f u) \<le> g (gfp (\<lambda>x. f (g x)))"
       by (intro assms[THEN monoD] gfp_upperbound)
-    ultimately show "u \<le> g (gfp (\<lambda>x. f (g x)))"
+    with u show "u \<le> g (gfp (\<lambda>x. f (g x)))"
       by auto
   qed
 qed

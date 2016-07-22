@@ -391,23 +391,22 @@ proof -
                 continuous_intros ballI M'.isCont_char continuous_intros)
     have "cmod (CLBINT t:{-d/2..d/2}. 1 - char M' t) \<le> LBINT t:{-d/2..d/2}. cmod (1 - char M' t)"
       using integral_norm_bound[OF 2] by simp
-    also have "\<dots> \<le> LBINT t:{-d/2..d/2}. \<epsilon> / 4"
+    also have 4: "\<dots> \<le> LBINT t:{-d/2..d/2}. \<epsilon> / 4"
       apply (rule integral_mono [OF 3])
-      apply (simp add: emeasure_lborel_Icc_eq)
-      apply (case_tac "x \<in> {-d/2..d/2}", auto)
+       apply (simp add: emeasure_lborel_Icc_eq)
+      apply (case_tac "x \<in> {-d/2..d/2}")
+       apply auto
       apply (subst norm_minus_commute)
       apply (rule less_imp_le)
       apply (rule d1 [simplified])
-      using d0 by auto
-    also with d0 have "\<dots> = d * \<epsilon> / 4"
+      using d0 apply auto
+      done
+    also from d0 4 have "\<dots> = d * \<epsilon> / 4"
       by simp
     finally have bound: "cmod (CLBINT t:{-d/2..d/2}. 1 - char M' t) \<le> d * \<epsilon> / 4" .
-    { fix n x
-      have "cmod (1 - char (M n) x) \<le> 2"
-        by (rule order_trans [OF norm_triangle_ineq4], auto simp add: Mn.cmod_char_le_1)
-    } note bd1 = this
-    have "(\<lambda>n. CLBINT t:{-d/2..d/2}. 1 - char (M n) t) \<longlonglongrightarrow> (CLBINT t:{-d/2..d/2}. 1 - char M' t)"
-      using bd1
+    have "cmod (1 - char (M n) x) \<le> 2" for n x
+      by (rule order_trans [OF norm_triangle_ineq4], auto simp add: Mn.cmod_char_le_1)
+    then have "(\<lambda>n. CLBINT t:{-d/2..d/2}. 1 - char (M n) t) \<longlonglongrightarrow> (CLBINT t:{-d/2..d/2}. 1 - char M' t)"
       apply (intro integral_dominated_convergence[where w="\<lambda>x. indicator {-d/2..d/2} x *\<^sub>R 2"])
       apply (auto intro!: char_conv tendsto_intros
                   simp: emeasure_lborel_Icc_eq

@@ -317,10 +317,10 @@ proof
   then show ?Q
   proof (rule nth_equalityI [rule_format])
     fix n
-    assume "n < length ?xs"
-    moreover with len have "n < length ?ys"
+    assume n: "n < length ?xs"
+    with len have "n < length ?ys"
       by simp
-    ultimately have xs: "nth_default dflt ?xs n = ?xs ! n"
+    with n have xs: "nth_default dflt ?xs n = ?xs ! n"
       and ys: "nth_default dflt ?ys n = ?ys ! n"
       by (simp_all only: nth_default_nth)
     with eq show "?xs ! n = ?ys ! n"

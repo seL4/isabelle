@@ -30,7 +30,6 @@ proof (relation "measure (\<lambda>(P, xs). LEAST n. P (lhd ((ltl ^^ n) xs)))", 
   from this(1,2) obtain a where "P (lhd ((ltl ^^ a) xs))"
     by (atomize_elim, induct x xs rule: llist.set_induct)
        (auto simp: funpow_Suc_right simp del: funpow.simps(2) intro: exI[of _ 0] exI[of _ "Suc i" for i])
-  moreover
   with \<open>\<not> P (lhd xs)\<close>
     have "(LEAST n. P (lhd ((ltl ^^ n) xs))) = Suc (LEAST n. P (lhd ((ltl ^^ Suc n) xs)))"
     by (intro Least_Suc) auto

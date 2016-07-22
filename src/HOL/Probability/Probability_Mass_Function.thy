@@ -1104,17 +1104,17 @@ next
   assume eq: "\<forall>x\<in>set_pmf p. \<forall>y\<in>set_pmf q. R x y \<longrightarrow> measure p {x. R x y} = measure q {y. R x y}"
 
   show "measure p C = measure q C"
-  proof cases
-    assume "p \<inter> C = {}"
-    moreover then have "q \<inter> C = {}"
+  proof (cases "p \<inter> C = {}")
+    case True
+    then have "q \<inter> C = {}"
       using quotient_rel_set_disjoint[OF assms C R] by simp
-    ultimately show ?thesis
+    with True show ?thesis
       unfolding measure_pmf_zero_iff[symmetric] by simp
   next
-    assume "p \<inter> C \<noteq> {}"
-    moreover then have "q \<inter> C \<noteq> {}"
+    case False
+    then have "q \<inter> C \<noteq> {}"
       using quotient_rel_set_disjoint[OF assms C R] by simp
-    ultimately obtain x y where in_set: "x \<in> set_pmf p" "y \<in> set_pmf q" and in_C: "x \<in> C" "y \<in> C"
+    with False obtain x y where in_set: "x \<in> set_pmf p" "y \<in> set_pmf q" and in_C: "x \<in> C" "y \<in> C"
       by auto
     then have "R x y"
       using in_quotient_imp_in_rel[of UNIV ?R C x y] C assms

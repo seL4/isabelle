@@ -7,7 +7,9 @@
 
 section \<open>The Bourbaki-Witt tower construction for transfinite iteration\<close>
 
-theory Bourbaki_Witt_Fixpoint imports Main begin
+theory Bourbaki_Witt_Fixpoint
+  imports Main
+begin
 
 lemma ChainsI [intro?]:
   "(\<And>a b. \<lbrakk> a \<in> Y; b \<in> Y \<rbrakk> \<Longrightarrow> (a, b) \<in> r \<or> (b, a) \<in> r) \<Longrightarrow> Y \<in> Chains r"
@@ -131,10 +133,10 @@ next
         with Sup.IH[OF z] \<open>y = a\<close> Sup.hyps(3)[OF z]
         show ?thesis by(auto dest: iterates_above_ge intro: a)
       next
-        assume "y \<in> iterates_above (f a)"
-        moreover with increasing[OF a] have "y \<in> Field leq"
+        assume *: "y \<in> iterates_above (f a)"
+        with increasing[OF a] have "y \<in> Field leq"
           by(auto dest!: iterates_above_Field intro: FieldI2)
-        ultimately show ?thesis using y by(auto)
+        with * show ?thesis using y by auto
       qed
     qed
     thus ?thesis by simp

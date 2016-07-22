@@ -382,7 +382,6 @@ proof (relation "measure (\<lambda>(P, xs). LEAST n. P (head ((tail ^^ n) xs)))"
   from this(1,2) obtain a where "P (head ((tail ^^ a) xs))"
     by (atomize_elim, induct xs x rule: llist_in.induct) (auto simp: funpow_Suc_right
       simp del: funpow.simps(2) intro: exI[of _ 0] exI[of _ "Suc i" for i])
-  moreover
   with \<open>\<not> P (head xs)\<close>
     have "(LEAST n. P (head ((tail ^^ n) xs))) = Suc (LEAST n. P (head ((tail ^^ Suc n) xs)))"
     by (intro Least_Suc) auto

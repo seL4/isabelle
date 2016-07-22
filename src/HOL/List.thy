@@ -3542,10 +3542,9 @@ next
 
     have "length ys = card (f ` {0 ..< size [x]})"
       using f_img by auto
-    then have "length ys = 1" by auto
-    moreover
+    then have *: "length ys = 1" by auto
     then have "f 0 = 0" using f_img by auto
-    ultimately show ?case using f_nth by (cases ys) auto
+    with * show ?case using f_nth by (cases ys) auto
   next
     case (3 x1 x2 xs)
     from "3.prems" obtain f where f_mono: "mono f"
@@ -5499,10 +5498,10 @@ proof (intro allI impI)
   next
     let ?k = "length abs"
     case eq
-    hence "abs = bcs" "b = b'" using bs bs' by auto
-    moreover hence "(a, c') \<in> r"
+    hence *: "abs = bcs" "b = b'" using bs bs' by auto
+    hence "(a, c') \<in> r"
       using abr b'c'r assms unfolding trans_def by blast
-    ultimately show ?thesis using n n' unfolding lexn_conv as bs cs by auto
+    with * show ?thesis using n n' unfolding lexn_conv as bs cs by auto
   qed
 qed
 
@@ -5840,8 +5839,8 @@ lemma lexordp_conv_lexordp_eq: "lexordp xs ys \<longleftrightarrow> lexordp_eq x
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
-  moreover hence "\<not> lexordp_eq ys xs" by induct simp_all
-  ultimately show ?rhs by(simp add: lexordp_into_lexordp_eq)
+  hence "\<not> lexordp_eq ys xs" by induct simp_all
+  with \<open>?lhs\<close> show ?rhs by (simp add: lexordp_into_lexordp_eq)
 next
   assume ?rhs
   hence "lexordp_eq xs ys" "\<not> lexordp_eq ys xs" by simp_all

@@ -2410,11 +2410,11 @@ proof -
         moreover have "(a, b) \<in> (r \<inter> D \<times> D)\<inverse>"
           using \<open>(b, a) \<in> r\<close> using \<open>b \<in># B\<close> and \<open>a \<in># B\<close>
           by (auto simp: D_def)
-        ultimately obtain x where "x \<in># X" and "(a, x) \<in> r"
+        ultimately obtain x where x: "x \<in># X" "(a, x) \<in> r"
           using "1.IH" by blast
-        moreover then have "(b, x) \<in> r"
+        then have "(b, x) \<in> r"
           using \<open>trans r\<close> and \<open>(b, a) \<in> r\<close> by (auto dest: transD)
-        ultimately show ?thesis by blast
+        with x show ?thesis by blast
       qed blast
     qed }
   note B_less = this

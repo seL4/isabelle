@@ -2520,8 +2520,8 @@ proof(intro iffI conjI)
     ultimately have "(weight_spmf p * weight_spmf q) * (weight_spmf p * weight_spmf q) = 1" by simp
     hence *: "weight_spmf p * weight_spmf q = 1"
       by(metis antisym_conv less_le mult_less_cancel_left1 weight_pair_spmf weight_spmf_le_1 weight_spmf_nonneg)
-    hence "weight_spmf p = 1" by(metis antisym_conv mult_left_le weight_spmf_le_1 weight_spmf_nonneg)
-    moreover with * have "weight_spmf q = 1" by simp
+    hence **: "weight_spmf p = 1" by(metis antisym_conv mult_left_le weight_spmf_le_1 weight_spmf_nonneg)
+    moreover from * ** have "weight_spmf q = 1" by simp
     moreover note calculation }
   note full = this
 

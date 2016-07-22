@@ -10168,14 +10168,14 @@ proof -
   then have x: "{integral s (f k) |k. True} = range x"
     by auto
 
-  have "g integrable_on s \<and> (\<lambda>k. integral s (f k)) \<longlonglongrightarrow> integral s g"
+  have *: "g integrable_on s \<and> (\<lambda>k. integral s (f k)) \<longlonglongrightarrow> integral s g"
   proof (intro monotone_convergence_increasing allI ballI assms)
     show "bounded {integral s (f k) |k. True}"
       unfolding x by (rule convergent_imp_bounded) fact
   qed (auto intro: f)
-  moreover then have "integral s g = x'"
+  then have "integral s g = x'"
     by (intro LIMSEQ_unique[OF _ \<open>x \<longlonglongrightarrow> x'\<close>]) (simp add: x_eq)
-  ultimately show ?thesis
+  with * show ?thesis
     by (simp add: has_integral_integral)
 qed
 
@@ -11559,18 +11559,16 @@ proof -
     with \<open>open W\<close>
     have "\<exists>X0 Y. open X0 \<and> open Y \<and> x0 \<in> X0 \<and> y \<in> Y \<and> X0 \<times> Y \<subseteq> W"
       by (rule open_prod_elim) blast
-  } then obtain X0 Y where
-    "\<forall>y \<in> K. open (X0 y) \<and> open (Y y) \<and> x0 \<in> X0 y \<and> y \<in> Y y \<and> X0 y \<times> Y y \<subseteq> W"
+  }
+  then obtain X0 Y where
+    *: "\<forall>y \<in> K. open (X0 y) \<and> open (Y y) \<and> x0 \<in> X0 y \<and> y \<in> Y y \<and> X0 y \<times> Y y \<subseteq> W"
     by metis
-  moreover
-  then have "\<forall>t\<in>Y ` K. open t" "K \<subseteq> \<Union>(Y ` K)" by auto
-  with \<open>compact K\<close> obtain CC where "CC \<subseteq> Y ` K" "finite CC" "K \<subseteq> \<Union>CC"
+  from * have "\<forall>t\<in>Y ` K. open t" "K \<subseteq> \<Union>(Y ` K)" by auto
+  with \<open>compact K\<close> obtain CC where CC: "CC \<subseteq> Y ` K" "finite CC" "K \<subseteq> \<Union>CC"
     by (rule compactE)
-  moreover
-  then obtain c where c:
-    "\<And>C. C \<in> CC \<Longrightarrow> c C \<in> K \<and> C = Y (c C)"
+  then obtain c where c: "\<And>C. C \<in> CC \<Longrightarrow> c C \<in> K \<and> C = Y (c C)"
     by (force intro!: choice)
-  ultimately show ?thesis
+  with * CC show ?thesis
     by (force intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"])
 qed
 

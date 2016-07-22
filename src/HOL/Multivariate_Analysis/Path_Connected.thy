@@ -3057,11 +3057,11 @@ next
     then have ftendsw: "((\<lambda>n. f (z n)) \<circ> K) \<longlonglongrightarrow> w"
       by (metis LIMSEQ_subseq_LIMSEQ fun.map_cong0 fz tendsw)
     have zKs: "\<And>n. (z o K) n \<in> S" by (simp add: zs)
-    have "f \<circ> z = \<xi>"  "(\<lambda>n. f (z n)) = \<xi>"
+    have fz: "f \<circ> z = \<xi>"  "(\<lambda>n. f (z n)) = \<xi>"
       using fz by auto
-    moreover then have "(\<xi> \<circ> K) \<longlonglongrightarrow> f y"
+    then have "(\<xi> \<circ> K) \<longlonglongrightarrow> f y"
       by (metis (no_types) Klim zKs y contf comp_assoc continuous_on_closure_sequentially)
-    ultimately have wy: "w = f y" using fz LIMSEQ_unique ftendsw by auto
+    with fz have wy: "w = f y" using fz LIMSEQ_unique ftendsw by auto
     have rle: "r \<le> norm (f y - f a)"
       apply (rule le_no)
       using w wy oint
