@@ -202,8 +202,8 @@ subsubsection \<open>Make prime naively executable\<close>
 lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
   unfolding One_nat_def [symmetric] by (rule not_is_prime_1)
 
-lemma prime_nat_code [code_unfold]:
-  "prime (p::nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
+lemma is_prime_nat_iff':
+  "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
 proof safe
   assume "p > 1" and *: "\<forall>n\<in>{1<..<p}. \<not>n dvd p"
   show "is_prime p" unfolding is_prime_nat_iff
@@ -217,8 +217,12 @@ proof safe
   qed fact+
 qed (auto simp: is_prime_nat_iff)
 
-lemma prime_int_code [code_unfold]:
-  "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma prime_nat_code [code_unfold]:
+  "(prime :: nat \<Rightarrow> bool) = (\<lambda>p. p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p))"
+  by (rule ext, rule is_prime_nat_iff')
+
+lemma is_prime_int_iff':
+  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
   thus "?rhs" by (auto simp: is_prime_int_nat_transfer dvd_int_unfold_dvd_nat prime_nat_code)
@@ -226,6 +230,10 @@ next
   assume "?rhs"
   thus "?lhs" by (auto simp: is_prime_int_nat_transfer zdvd_int prime_nat_code)
 qed
+
+lemma prime_int_code [code_unfold]:
+  "(prime :: int \<Rightarrow> bool) = (\<lambda>p. p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p))" 
+  by (rule ext, rule is_prime_int_iff')
 
 lemma prime_nat_simp:
     "prime p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..<p]. \<not> n dvd p)"
