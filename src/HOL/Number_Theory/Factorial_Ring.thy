@@ -582,9 +582,9 @@ proof -
   from prime_factorization_exists'[OF assms(1)] guess A . note A = this
   moreover from A and assms have "A \<noteq> {#}" by auto
   then obtain x where "x \<in># A" by blast
-  with A(1) have "x dvd msetprod A" "is_prime x" by (auto simp: dvd_msetprod)
-  moreover from this A have "x dvd a" by simp
-  ultimately show ?thesis by blast
+  with A(1) have *: "x dvd msetprod A" "is_prime x" by (auto simp: dvd_msetprod)
+  with A have "x dvd a" by simp
+  with * show ?thesis by blast
 qed
 
 lemma prime_divisors_induct [case_names zero unit factor]:

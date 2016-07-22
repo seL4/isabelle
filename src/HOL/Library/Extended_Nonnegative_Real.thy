@@ -1217,8 +1217,8 @@ proof
     using zero_neq_one by (intro exI)
   show "\<And>x y::ennreal. x < y \<Longrightarrow> \<exists>z>x. z < y"
   proof transfer
-    fix x y :: ereal assume "0 \<le> x" "x < y"
-    moreover from dense[OF this(2)] guess z ..
+    fix x y :: ereal assume "0 \<le> x" and *: "x < y"
+    moreover from dense[OF *] guess z ..
     ultimately show "\<exists>z\<in>Collect (op \<le> 0). x < z \<and> z < y"
       by (intro bexI[of _ z]) auto
   qed

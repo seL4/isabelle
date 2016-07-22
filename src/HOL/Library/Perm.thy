@@ -593,9 +593,9 @@ next
   define m where "m = order f a - n mod order f a - 1"
   moreover have "order f a - n mod order f a > 0"
     by simp
-  ultimately have "order f a - n mod order f a = Suc m"
+  ultimately have *: "order f a - n mod order f a = Suc m"
     by arith
-  moreover from this have m2: "order f a - Suc n mod order f a = (if m = 0 then order f a else m)"
+  moreover from * have m2: "order f a - Suc n mod order f a = (if m = 0 then order f a else m)"
     by (auto simp add: mod_Suc)
   ultimately show ?case
     using Suc

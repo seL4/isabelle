@@ -2493,9 +2493,9 @@ lemma (in preorder) mult1_lessE:
   obtains a M0 K where "M = M0 + {#a#}" "N = M0 + K"
     "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
 proof -
-  from assms obtain a M0 K where "M = M0 + {#a#}" "N = M0 + K"
-    "b \<in># K \<Longrightarrow> b < a" for b by (blast elim: mult1E)
-  moreover from this(3) [of a] have "a \<notin># K" by auto
+  from assms obtain a M0 K where "M = M0 + {#a#}" "N = M0 + K" and
+    *: "b \<in># K \<Longrightarrow> b < a" for b by (blast elim: mult1E)
+  moreover from * [of a] have "a \<notin># K" by auto
   ultimately show thesis by (auto intro: that)
 qed
 

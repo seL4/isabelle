@@ -1207,7 +1207,7 @@ lemma irreducible_linear_field_poly:
   shows "irreducible [:a,b:]"
 proof (rule irreducibleI)
   fix p q assume pq: "[:a,b:] = p * q"
-  also from this assms have "degree \<dots> = degree p + degree q" 
+  also from pq assms have "degree \<dots> = degree p + degree q" 
     by (intro degree_mult_eq) auto
   finally have "degree p = 0 \<or> degree q = 0" using assms by auto
   with assms pq show "is_unit p \<or> is_unit q"

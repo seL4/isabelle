@@ -633,13 +633,13 @@ proof (cases k "0::int" rule: linorder_cases)
   case equal with assms(1) show P by simp
 next
   case greater
-  then have "nat k > 0" by simp
-  moreover from this have "k = int (nat k)" by auto
+  then have *: "nat k > 0" by simp
+  moreover from * have "k = int (nat k)" by auto
   ultimately show P using assms(2) by blast
 next
   case less
-  then have "nat (- k) > 0" by simp
-  moreover from this have "k = - int (nat (- k))" by auto
+  then have *: "nat (- k) > 0" by simp
+  moreover from * have "k = - int (nat (- k))" by auto
   ultimately show P using assms(3) by blast
 qed
 
