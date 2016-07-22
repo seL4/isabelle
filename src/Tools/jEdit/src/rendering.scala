@@ -413,40 +413,30 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* caret focus */
 
-  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Set[Long] =
+  def entity_focus(range: Text.Range,
+    check: (Boolean, Long) => Boolean = (is_def: Boolean, i: Long) => is_def): Set[Long] =
   {
-    def focus(is_def: Boolean): Set[Long] =
-    {
-      val results =
-        snapshot.cumulate[Set[Long]](caret_range, Set.empty, Rendering.caret_focus_elements, _ =>
-            {
-              case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-                props match {
-                  case Markup.Entity.Def(i) if is_def => Some(serials + i)
-                  case Markup.Entity.Ref(i) if !is_def => Some(serials + i)
-                  case _ => None
-                }
-              case _ => None
-            })
-      (Set.empty[Long] /: results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
-    }
-
-    val focus_defs = focus(true)
-
-    if (focus_defs.nonEmpty) focus_defs
-    else {
-      val focus_refs = focus(false)
-      def visible_def: Boolean =
-        snapshot.cumulate[Boolean](visible_range, false, Rendering.caret_focus_elements, _ =>
+    val results =
+      snapshot.cumulate[Set[Long]](range, Set.empty, Rendering.caret_focus_elements, _ =>
           {
-            case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+            case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
-                case Markup.Entity.Def(i) if focus_refs(i) => Some(true)
+                case Markup.Entity.Def(i) if check(true, i) => Some(serials + i)
+                case Markup.Entity.Ref(i) if check(false, i) => Some(serials + i)
                 case _ => None
               }
-          }).exists(info => info.info)
-      if (focus_refs.nonEmpty && visible_def) focus_refs
-      else Set.empty[Long]
+            case _ => None
+          })
+    (Set.empty[Long] /: results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
+  }
+
+  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Set[Long] =
+  {
+    val focus_defs = entity_focus(caret_range)
+    if (focus_defs.nonEmpty) focus_defs
+    else {
+      val visible_defs = entity_focus(visible_range)
+      entity_focus(caret_range, (is_def: Boolean, i: Long) => !is_def && visible_defs.contains(i))
     }
   }
 
