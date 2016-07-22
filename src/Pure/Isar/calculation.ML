@@ -122,7 +122,9 @@ fun assert_sane final =
 
 fun maintain_calculation int final calc state =
   let
-    val state' = put_calculation (SOME calc) state;
+    val state' = state
+      |> put_calculation (SOME calc)
+      |> Proof.improper_reset_facts;
     val ctxt' = Proof.context_of state';
     val _ =
       if int then
