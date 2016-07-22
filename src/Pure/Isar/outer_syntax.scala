@@ -91,6 +91,8 @@ final class Outer_Syntax private(
     val keywords1 = keywords + (name, kind, tags)
     val completion1 =
       if (replace == Some("")) completion
+      else if (replace.isEmpty && Keyword.theory_block.contains(kind))
+        completion + (name, name + "\nbegin\n\u0007\nend") + (name, name)
       else completion + (name, replace getOrElse name)
     new Outer_Syntax(keywords1, completion1, language_context, true)
   }

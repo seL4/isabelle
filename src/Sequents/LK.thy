@@ -205,7 +205,7 @@ setup \<open>map_theory_simpset (put_simpset LK_ss)\<close>
 setup \<open>Simplifier.method_setup []\<close>
 
 
-text \<open>To create substition rules\<close>
+text \<open>To create substitution rules\<close>
 
 lemma eq_imp_subst: "\<turnstile> a = b \<Longrightarrow> $H, A(a), $G \<turnstile> $E, A(b), $F"
   by simp

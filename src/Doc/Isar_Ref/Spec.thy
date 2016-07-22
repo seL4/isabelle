@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Spec
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Specifications\<close>

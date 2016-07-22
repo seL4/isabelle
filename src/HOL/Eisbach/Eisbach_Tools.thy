@@ -55,11 +55,11 @@ ML \<open>
 \<close>
 
 method_setup catch = \<open>
-  Method_Closure.method_text -- Method_Closure.method_text >>
+  Method.text_closure -- Method.text_closure >>
     (fn (text, text') => fn ctxt => fn using => fn st =>
       let
-        val method = Method_Closure.method_evaluate text ctxt using;
-        val backup_results = Method_Closure.method_evaluate text' ctxt using st;
+        val method = Method.evaluate_runtime text ctxt using;
+        val backup_results = Method.evaluate_runtime text' ctxt using st;
       in
         (case try method st of
           SOME seq => try_map backup_results seq

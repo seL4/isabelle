@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Symbols
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Predefined Isabelle symbols \label{app:symbols}\<close>

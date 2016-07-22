@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Quick_Reference
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Isabelle/Isar quick reference \label{ap:refcard}\<close>

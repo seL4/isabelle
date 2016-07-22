@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Document_Preparation
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Document preparation \label{ch:document-prep}\<close>

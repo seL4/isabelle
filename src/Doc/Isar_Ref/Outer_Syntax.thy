@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Outer_Syntax
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>Outer syntax --- the theory language \label{ch:outer-syntax}\<close>

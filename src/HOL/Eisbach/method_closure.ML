@@ -10,11 +10,6 @@ existing ones with their usual syntax.
 
 signature METHOD_CLOSURE =
 sig
-  val read: Proof.context -> Token.src -> Method.text
-  val read_closure: Proof.context -> Token.src -> Method.text * Token.src
-  val read_closure_input: Proof.context -> Input.source -> Method.text * Token.src
-  val method_text: Method.text context_parser
-  val method_evaluate: Method.text -> Proof.context -> Method.method
   val apply_method: Proof.context -> string -> term list -> thm list list ->
     (Proof.context -> Method.method) list -> Proof.context -> thm list -> context_tactic
   val method: binding -> (binding * typ option * mixfix) list -> binding list ->
@@ -82,51 +77,7 @@ fun put_closure binding (closure: closure) lthy =
   end;
 
 
-(* read method text *)
-
-fun read ctxt src =
-  (case Scan.read Token.stopper (Parse.!!! (Method.parser 0 --| Scan.ahead Parse.eof)) src of
-    SOME (text, range) =>
-      if Method.checked_text text then text
-      else (Method.report (text, range); Method.check_text ctxt text)
-  | NONE => error ("Failed to parse method" ^ Position.here (#1 (Token.range_of src))));
-
-fun read_closure ctxt src0 =
-  let
-    val src1 = map Token.init_assignable src0;
-    val text = read ctxt src1 |> Method.map_source (Method.method_closure ctxt);
-    val src2 = map Token.closure src1;
-  in (text, src2) end;
-
-fun read_closure_input ctxt =
-  Input.source_explode #>
-  Token.read_no_commands (Thy_Header.get_keywords' ctxt) (Scan.one Token.not_eof) #>
-  read_closure ctxt;
-
-val method_text =
-  Args.context -- Scan.lift (Parse.token Parse.text) >> (fn (ctxt, tok) =>
-    (case Token.get_value tok of
-      SOME (Token.Source src) => read ctxt src
-    | _ =>
-        let
-          val (text, src) = read_closure_input ctxt (Token.input_of tok);
-          val _ = Token.assign (SOME (Token.Source src)) tok;
-        in text end));
-
-
-(* evaluate method text *)
-
-fun method_evaluate text ctxt =
-  let
-    val text' =
-      text |> (Method.map_source o map o Token.map_facts)
-        (fn SOME name =>
-              (case Proof_Context.lookup_fact ctxt name of
-                SOME {dynamic = true, thms} => K thms
-              | _ => I)
-          | NONE => I);
-    val ctxt' = Config.put Method.closure false ctxt;
-  in fn facts => Method.RUNTIME (fn st => Method.evaluate text' ctxt' facts st) end;
+(* instantiate and evaluate method text *)
 
 fun method_instantiate vars body ts ctxt =
   let
@@ -134,7 +85,7 @@ fun method_instantiate vars body ts ctxt =
     val subst = fold (Pattern.match thy) (vars ~~ ts) (Vartab.empty, Vartab.empty);
     val morphism = Morphism.term_morphism "method_instantiate" (Envir.subst_term subst);
     val body' = (Method.map_source o map) (Token.transform morphism) body;
-  in method_evaluate body' ctxt end;
+  in Method.evaluate_runtime body' ctxt end;
 
 
 
@@ -215,12 +166,12 @@ fun parse_method_args method_args =
   let
     fun bind_method (name, text) ctxt =
       let
-        val method = method_evaluate text;
+        val method = Method.evaluate_runtime text;
         val inner_update = method o update_dynamic_method (name, K (method ctxt));
       in update_dynamic_method (name, inner_update) ctxt end;
 
     fun rep [] x = Scan.succeed [] x
-      | rep (m :: ms) x = ((method_text >> pair m) ::: rep ms) x;
+      | rep (m :: ms) x = ((Method.text_closure >> pair m) ::: rep ms) x;
   in rep method_args >> fold bind_method end;
 
 fun gen_method add_fixes name vars uses declares methods source lthy =
@@ -256,7 +207,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
       |> put_recursive_method (full_name, fn _ => fn _ => Method.fail);
 
     val (text, src) =
-      read_closure (Config.put Proof_Context.dynamic_facts_dummy true lthy3) source;
+      Method.read_closure (Config.put Proof_Context.dynamic_facts_dummy true lthy3) source;
 
     val morphism =
       Variable.export_morphism lthy3
@@ -273,7 +224,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     |> Proof_Context.restore_naming lthy
     |> put_closure name
         {vars = term_args', named_thms = named_thms, methods = method_args, body = text'}
-    |> Method.local_setup name 
+    |> Method.local_setup name
         (Args.context :|-- (fn ctxt =>
           let val {body, vars, ...} = get_closure ctxt full_name in
             parser vars (recursive_method full_name vars body) end)) ""

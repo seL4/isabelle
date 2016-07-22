@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Framework
-imports Base Main
+  imports Main Base
 begin
 
 chapter \<open>The Isabelle/Isar Framework \label{ch:isar-framework}\<close>
