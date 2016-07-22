@@ -8,7 +8,7 @@ section \<open>Euclid's theorem\<close>
 
 theory Euclid
 imports
-  "~~/src/HOL/Number_Theory/UniqueFactorization"
+  "~~/src/HOL/Number_Theory/Primes"
   Util
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin

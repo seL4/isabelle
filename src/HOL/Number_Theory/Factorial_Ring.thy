@@ -233,6 +233,61 @@ lemma is_prime_elem_mult_unit_left:
   "is_unit a \<Longrightarrow> is_prime_elem (a * p) \<longleftrightarrow> is_prime_elem p"
   by (auto simp: is_prime_elem_def mult.commute[of a] is_unit_mult_iff mult_unit_dvd_iff)
 
+lemma prime_dvd_cases:
+  assumes pk: "p*k dvd m*n" and p: "is_prime_elem p"
+  shows "(\<exists>x. k dvd x*n \<and> m = p*x) \<or> (\<exists>y. k dvd m*y \<and> n = p*y)"
+proof -
+  have "p dvd m*n" using dvd_mult_left pk by blast
+  then consider "p dvd m" | "p dvd n"
+    using p prime_dvd_mult_iff by blast
+  then show ?thesis
+  proof cases
+    case 1 then obtain a where "m = p * a" by (metis dvd_mult_div_cancel) 
+      then have "\<exists>x. k dvd x * n \<and> m = p * x"
+        using p pk by (auto simp: mult.assoc)
+    then show ?thesis ..
+  next
+    case 2 then obtain b where "n = p * b" by (metis dvd_mult_div_cancel) 
+    with p pk have "\<exists>y. k dvd m*y \<and> n = p*y" 
+      by (metis dvd_mult_right dvd_times_left_cancel_iff mult.left_commute mult_zero_left)
+    then show ?thesis ..
+  qed
+qed
+
+lemma prime_power_dvd_prod:
+  assumes pc: "p^c dvd m*n" and p: "is_prime_elem p"
+  shows "\<exists>a b. a+b = c \<and> p^a dvd m \<and> p^b dvd n"
+using pc
+proof (induct c arbitrary: m n)
+  case 0 show ?case by simp
+next
+  case (Suc c)
+  consider x where "p^c dvd x*n" "m = p*x" | y where "p^c dvd m*y" "n = p*y"
+    using prime_dvd_cases [of _ "p^c", OF _ p] Suc.prems by force
+  then show ?case
+  proof cases
+    case (1 x) 
+    with Suc.hyps[of x n] obtain a b where "a + b = c \<and> p ^ a dvd x \<and> p ^ b dvd n" by blast
+    with 1 have "Suc a + b = Suc c \<and> p ^ Suc a dvd m \<and> p ^ b dvd n"
+      by (auto intro: mult_dvd_mono)
+    thus ?thesis by blast
+  next
+    case (2 y) 
+    with Suc.hyps[of m y] obtain a b where "a + b = c \<and> p ^ a dvd m \<and> p ^ b dvd y" by blast
+    with 2 have "a + Suc b = Suc c \<and> p ^ a dvd m \<and> p ^ Suc b dvd n"
+      by (auto intro: mult_dvd_mono)
+    with Suc.hyps [of m y] show "\<exists>a b. a + b = Suc c \<and> p ^ a dvd m \<and> p ^ b dvd n"
+      by force
+  qed
+qed
+
+lemma add_eq_Suc_lem: "a+b = Suc (x+y) \<Longrightarrow> a \<le> x \<or> b \<le> y"
+  by arith
+
+lemma prime_power_dvd_cases:
+     "\<lbrakk>p^c dvd m * n; a + b = Suc c; is_prime_elem p\<rbrakk> \<Longrightarrow> p ^ a dvd m \<or> p ^ b dvd n"
+  using power_le_dvd prime_power_dvd_prod by (blast dest: prime_power_dvd_prod add_eq_Suc_lem)
+
 end
 
 context normalization_semidom
@@ -1382,6 +1437,19 @@ proof -
   also from assms have "prime_factorization (\<Prod>i \<in># N. i) = N"
     by (subst prime_factorization_msetprod_primes) simp_all
   finally show ?thesis .
+qed
+
+lemma multiplicity_cong:
+  "(\<And>r. p ^ r dvd a \<longleftrightarrow> p ^ r dvd b) \<Longrightarrow> multiplicity p a = multiplicity p b"
+  by (simp add: multiplicity_def)
+
+lemma not_dvd_imp_multiplicity_0: 
+  assumes "\<not>p dvd x"
+  shows   "multiplicity p x = 0"
+proof -
+  from assms have "multiplicity p x < 1"
+    by (intro multiplicity_lessI) auto
+  thus ?thesis by simp
 qed
 
 

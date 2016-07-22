@@ -8,7 +8,7 @@ Euler's theorem and Wilson's theorem.
 section \<open>Residue rings\<close>
 
 theory Residues
-imports UniqueFactorization MiscAlgebra
+imports Cong MiscAlgebra
 begin
 
 subsection \<open>A locale for residue rings\<close>

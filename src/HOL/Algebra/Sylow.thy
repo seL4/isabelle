@@ -60,7 +60,7 @@ subsection\<open>Main Part of the Proof\<close>
 locale sylow_central = sylow +
   fixes H and M1 and M
   assumes M_in_quot:  "M \<in> calM // RelM"
-      and not_dvd_M:  "~(p ^ Suc(exponent p m) dvd card(M))"
+      and not_dvd_M:  "~(p ^ Suc(multiplicity p m) dvd card(M))"
       and M1_in_M:    "M1 \<in> M"
   defines "H == {g. g\<in>carrier G & M1 #> g = M1}"
 
@@ -128,7 +128,7 @@ lemma zero_less_card_calM: "card calM > 0"
 by (simp add: card_calM zero_less_binomial le_extend_mult zero_less_m)
 
 lemma max_p_div_calM:
-     "~ (p ^ Suc(exponent p m) dvd card(calM))"
+     "~ (p ^ Suc(multiplicity p m) dvd card(calM))"
 proof
   assume "p ^ Suc (multiplicity p m) dvd card calM"
   with zero_less_card_calM prime_p 
@@ -145,7 +145,7 @@ lemma finite_calM: "finite calM"
   by (rule_tac B = "Pow (carrier G) " in finite_subset) auto
 
 lemma lemma_A1:
-     "\<exists>M \<in> calM // RelM. ~ (p ^ Suc(exponent p m) dvd card(M))"
+     "\<exists>M \<in> calM // RelM. ~ (p ^ Suc(multiplicity p m) dvd card(M))"
   using RelM_equiv equiv_imp_dvd_card finite_calM max_p_div_calM by blast
 
 end
@@ -307,7 +307,7 @@ by (simp add: cardMeqIndexH lagrange H_is_subgroup)
 
 lemma (in sylow_central) lemma_leq1: "p^a \<le> card(H)"
 apply (rule dvd_imp_le)
- apply (rule div_combine [OF prime_p not_dvd_M])
+ apply (rule div_combine [OF prime_imp_prime_elem[OF prime_p] not_dvd_M])
  prefer 2 apply (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
 apply (simp add: index_lem order_G power_add mult_dvd_mono multiplicity_dvd
                  zero_less_m)

@@ -416,7 +416,6 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
     "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
     "~~/src/HOL/Number_Theory/Primes"
-    "~~/src/HOL/Number_Theory/UniqueFactorization"
     "~~/src/HOL/Library/State_Monad"
   theories
     Greatest_Common_Divisor
