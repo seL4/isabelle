@@ -7,7 +7,7 @@ Generic calculational proofs.
 signature CALCULATION =
 sig
   val print_rules: Proof.context -> unit
-  val get_calculation: Proof.state -> thm list option
+  val check: Proof.state -> thm list option
   val trans_add: attribute
   val trans_del: attribute
   val sym_add: attribute
@@ -28,9 +28,11 @@ struct
 
 (** calculation data **)
 
+type calculation = {result: thm list, level: int, serial: serial, pos: Position.T};
+
 structure Data = Generic_Data
 (
-  type T = (thm Item_Net.T * thm list) * (thm list * int) option;
+  type T = (thm Item_Net.T * thm list) * calculation option;
   val empty = ((Thm.elim_rules, []), NONE);
   val extend = I;
   fun merge (((trans1, sym1), _), ((trans2, sym2), _)) =
@@ -38,6 +40,7 @@ structure Data = Generic_Data
 );
 
 val get_rules = #1 o Data.get o Context.Proof;
+val get_calculation = #2 o Data.get o Context.Proof;
 
 fun print_rules ctxt =
   let
@@ -51,17 +54,43 @@ fun print_rules ctxt =
 
 (* access calculation *)
 
-fun get_calculation state =
-  (case #2 (Data.get (Context.Proof (Proof.context_of state))) of
+fun check_calculation state =
+  (case get_calculation (Proof.context_of state) of
     NONE => NONE
-  | SOME (thms, lev) => if lev = Proof.level state then SOME thms else NONE);
+  | SOME calculation =>
+      if #level calculation = Proof.level state then SOME calculation else NONE);
+
+val check = Option.map #result o check_calculation;
 
 val calculationN = "calculation";
 
-fun put_calculation calc =
-  `Proof.level #-> (fn lev => Proof.map_context (Context.proof_map
-     (Data.map (apsnd (K (Option.map (rpair lev) calc))))))
-  #> Proof.map_context (Proof_Context.put_thms false (calculationN, calc));
+fun update_calculation calc state =
+  let
+    fun report def serial pos =
+      Context_Position.report (Proof.context_of state)
+        (Position.thread_data ())
+          (Markup.entity calculationN ""
+            |> Markup.properties (Position.entity_properties_of def serial pos));
+    val calculation =
+      (case calc of
+        NONE => NONE
+      | SOME result =>
+          (case check_calculation state of
+            NONE =>
+              let
+                val level = Proof.level state;
+                val serial = serial ();
+                val pos = Position.thread_data ();
+                val _ = report true serial pos;
+              in SOME {result = result, level = level, serial = serial, pos = pos} end
+          | SOME {level, serial, pos, ...} =>
+              (report false serial pos;
+                SOME {result = result, level = level, serial = serial, pos = pos})));
+  in
+    state
+    |> (Proof.map_context o Context.proof_map o Data.map o apsnd) (K calculation)
+    |> Proof.map_context (Proof_Context.put_thms false (calculationN, calc))
+  end;
 
 
 
@@ -123,7 +152,7 @@ fun assert_sane final =
 fun maintain_calculation int final calc state =
   let
     val state' = state
-      |> put_calculation (SOME calc)
+      |> update_calculation (SOME calc)
       |> Proof.improper_reset_facts;
     val ctxt' = Proof.context_of state';
     val _ =
@@ -132,7 +161,7 @@ fun maintain_calculation int final calc state =
           (Proof_Context.full_name ctxt' (Binding.name calculationN), calc)
         |> Pretty.string_of |> writeln
       else ();
-  in state' |> final ? (put_calculation NONE #> Proof.chain_facts calc) end;
+  in state' |> final ? (update_calculation NONE #> Proof.chain_facts calc) end;
 
 
 (* also and finally *)
@@ -174,7 +203,7 @@ fun calculate prep_rules final raw_rules int state =
 
     val facts = Proof.the_facts (assert_sane final state);
     val (initial, calculations) =
-      (case get_calculation state of
+      (case check state of
         NONE => (true, Seq.single (Seq.Result facts))
       | SOME calc => (false, combine (calc @ facts)));
 
@@ -197,7 +226,7 @@ fun collect final int state =
   let
     val facts = Proof.the_facts (assert_sane final state);
     val (initial, thms) =
-      (case get_calculation state of
+      (case check state of
         NONE => (true, [])
       | SOME thms => (false, thms));
     val calc = thms @ facts;
