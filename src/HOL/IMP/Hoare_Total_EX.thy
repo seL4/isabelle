@@ -1,8 +1,10 @@
 (* Author: Tobias Nipkow *)
 
-theory Hoare_Total_EX imports Hoare_Sound_Complete Hoare_Examples begin
+theory Hoare_Total_EX
+imports Hoare
+begin
 
-subsection "Hoare Logic for Total Correctness"
+subsubsection "Hoare Logic for Total Correctness --- \<open>nat\<close>-Indexed Invariant"
 
 text{* This is the standard set of rules that you find in many publications.
 The While-rule is different from the one in Concrete Semantics in that the

@@ -1,8 +1,12 @@
 (* Author: Tobias Nipkow *)
 
-theory Hoare_Total imports Hoare_Sound_Complete Hoare_Examples begin
-
 subsection "Hoare Logic for Total Correctness"
+
+theory Hoare_Total
+imports Hoare_Examples
+begin
+
+subsubsection "Hoare Logic for Total Correctness --- Separate Termination Relation"
 
 text{* Note that this definition of total validity @{text"\<Turnstile>\<^sub>t"} only
 works if execution is deterministic (which it is in our case). *}

@@ -1,8 +1,12 @@
 (* Author: Tobias Nipkow *)
 
-theory Hoare_Sound_Complete imports Hoare begin
+subsection \<open>Soundness and Completeness\<close>
 
-subsection "Soundness"
+theory Hoare_Sound_Complete
+imports Hoare
+begin
+
+subsubsection "Soundness"
 
 lemma hoare_sound: "\<turnstile> {P}c{Q}  \<Longrightarrow>  \<Turnstile> {P}c{Q}"
 proof(induction rule: hoare.induct)
@@ -20,7 +24,7 @@ proof(induction rule: hoare.induct)
 qed (auto simp: hoare_valid_def)
 
 
-subsection "Weakest Precondition"
+subsubsection "Weakest Precondition"
 
 definition wp :: "com \<Rightarrow> assn \<Rightarrow> assn" where
 "wp c Q = (\<lambda>s. \<forall>t. (c,s) \<Rightarrow> t  \<longrightarrow>  Q t)"
@@ -52,7 +56,7 @@ lemma wp_While_False[simp]: "\<not> bval b s \<Longrightarrow> wp (WHILE b DO c)
 by(simp add: wp_While_If)
 
 
-subsection "Completeness"
+subsubsection "Completeness"
 
 lemma wp_is_pre: "\<turnstile> {wp c Q} c {Q}"
 proof(induction c arbitrary: Q)
