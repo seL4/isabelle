@@ -572,6 +572,11 @@ fun pretty_abbrev ctxt s =
     val ctxt' = Variable.auto_fixes eq ctxt;
   in Proof_Context.pretty_term_abbrev ctxt' eq end;
 
+fun pretty_locale ctxt (name, pos) =
+  let
+    val thy = Proof_Context.theory_of ctxt
+  in (Pretty.str o Locale.extern thy o Locale.check thy) (name, pos) end;
+
 fun pretty_class ctxt =
   Pretty.str o Proof_Context.extern_class ctxt o Proof_Context.read_class ctxt;
 
@@ -647,6 +652,7 @@ val _ = Theory.setup
   basic_entity @{binding const} (Args.const {proper = true, strict = false}) pretty_const #>
   basic_entity @{binding abbrev} (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
   basic_entity @{binding typ} Args.typ_abbrev Syntax.pretty_typ #>
+  basic_entity @{binding locale} (Scan.lift (Parse.position Args.name)) pretty_locale #>
   basic_entity @{binding class} (Scan.lift Args.embedded_inner_syntax) pretty_class #>
   basic_entity @{binding type} (Scan.lift Args.embedded) pretty_type #>
   basic_entities @{binding prf} Attrib.thms (pretty_prf false) #>

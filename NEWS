@@ -824,6 +824,9 @@ application uniformly on all platforms: Linux, Windows, Mac OS X.
 
 *** Document preparation ***
 
+* Text and ML antiquotation @{locale} for locales, similar to existing
+antiquotations for classes.
+
 * Commands 'paragraph' and 'subparagraph' provide additional section
 headings. Thus there are 6 levels of standard headings, as in HTML.
 

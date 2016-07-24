@@ -89,6 +89,15 @@ val _ = Theory.setup
       ML_Syntax.print_string (Method.check_name ctxt (name, pos)))));
 
 
+(* locales *)
+
+val _ = Theory.setup
+ (ML_Antiquotation.inline @{binding locale}
+   (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+      Locale.check (Proof_Context.theory_of ctxt) (name, pos)
+      |> ML_Syntax.print_string)));
+
+
 (* type classes *)
 
 fun class syn = Args.context -- Scan.lift Args.embedded_inner_syntax >> (fn (ctxt, s) =>
