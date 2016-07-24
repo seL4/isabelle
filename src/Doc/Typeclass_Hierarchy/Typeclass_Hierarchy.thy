@@ -6,7 +6,7 @@ section \<open>Introduction\<close>
 
 text \<open>
   The {Isabelle/HOL} type-class hierarchy entered the stage
-  in a quite ancient era -- first related \emph{NEWS} entries date
+  in a quite ancient era -- first related \<^emph>\<open>NEWS\<close> entries date
   back to release {Isabelle99-1}.  Since then, there have been
   ongoing modifications and additions, leading to ({Isabelle2016})
   more than 180 type-classes.  This sheer complexity makes access
@@ -79,8 +79,8 @@ text \<open>
       types, hence also sharing of notation and names: there
       is only one plus operation using infix syntax @{text "+"},
       only one zero written @{text 0}, and neutrality
-      (@{thm add_0_left [all, no_vars]} and
-      @{thm add_0_right [all, no_vars]})
+      (@{thm (frugal_sorts) add_0_left [all, no_vars]} and
+      @{thm (frugal_sorts) add_0_right [all, no_vars]})
       is referred to
       uniformly by names @{fact add_0_left} and @{fact add_0_right}.
 
@@ -128,20 +128,20 @@ text \<open>
 
 section \<open>The hierarchy\<close>
 
-subsection \<open>Syntactic type classes\<close>
+subsection \<open>Syntactic type classes \label{sec:syntactic-type-class}\<close>
 
 text \<open>
   At the top of the hierarchy there are a couple of syntactic type
   classes, ie. classes with operations but with no axioms,
   most notably:
 
-    \<^item> @{class plus} with @{term [source] "(a::'a::plus) + b"}
+    \<^item> @{command class} @{class plus} with @{term [source] "(a::'a::plus) + b"}
 
-    \<^item> @{class zero} with @{term [source] "0::'a::zero"}
+    \<^item> @{command class} @{class zero} with @{term [source] "0::'a::zero"}
 
-    \<^item> @{class times} with @{term [source] "(a::'a::times) * b"}
+    \<^item> @{command class} @{class times} with @{term [source] "(a::'a::times) * b"}
 
-    \<^item> @{class one} with @{term [source] "1::'a::one"}
+    \<^item> @{command class} @{class one} with @{term [source] "1::'a::one"}
 
   \noindent Before the introduction of the @{command class} statement in
   Isabelle \cite{Haftmann-Wenzel:2006:classes} it was impossible
@@ -171,6 +171,198 @@ text \<open>
   expectation towards a numeral notation;  in more ancient releases
   numerals were purely syntactic and @{prop "2 + 2 = 4"} was
   not provable without particular type constraints.
+\<close>
+
+
+subsection \<open>Additive and multiplicative semigroups and monoids\<close>
+
+text \<open>
+  In common literature, notation for semigroups and monoids
+  is either multiplicative @{text "(*, 1)"} or additive
+  @{text "(+, 0)"} with underlying properties isomorphic.
+  In {Isabelle/HOL}, this is accomplished using the following
+  abstract setup:
+
+    \<^item> A @{locale semigroup} introduces an abstract binary
+      associative operation.
+
+    \<^item> A @{locale monoid} is an extension of @{locale semigroup}
+      with a neutral element.
+
+    \<^item> Both @{locale semigroup} and @{locale monoid} provide
+      dedicated syntax for their operations @{text "(\<^bold>*, \<^bold>1)"}.
+      This syntax is not visible on the global theory level
+      but only for abstract reasoning inside the respective
+      locale.
+
+    \<^item> Concrete global syntax is added building on existing
+      syntactic type classes \secref{sec:syntactic-type-class}
+      using the following classes:
+
+        \<^item> @{command class} @{class semigroup_mult} = @{class times}
+
+        \<^item> @{command class} @{class monoid_mult} = @{class one} + @{class semigroup_mult}
+
+        \<^item> @{command class} @{class semigroup_add} = @{class plus}
+
+        \<^item> @{command class} @{class monoid_add} = @{class zero} + @{class semigroup_add}
+
+      Locales @{locale semigroup} and @{locale monoid} are
+      interpreted (using @{command sublocale}) into their
+      corresponding type classes, with prefixes @{text add}
+      and @{text mult}; hence facts derived in @{locale semigroup}
+      and @{locale monoid} are propagated simultaneously to
+      \<^emph>\<open>both\<close> using a consistent naming policy, ie.
+
+        \<^item> @{fact semigroup.assoc}: @{thm (frugal_sorts) semigroup.assoc [all, no_vars]}
+
+        \<^item> @{fact mult.assoc}: @{thm (frugal_sorts) mult.assoc [all, no_vars]}
+
+        \<^item> @{fact add.assoc}: @{thm (frugal_sorts) add.assoc [all, no_vars]}
+
+        \<^item> @{fact monoid.right_neutral}: @{thm (frugal_sorts) monoid.right_neutral [all, no_vars]}
+
+        \<^item> @{fact mult.right_neutral}: @{thm (frugal_sorts) mult.right_neutral [all, no_vars]}
+
+        \<^item> @{fact add.right_neutral}: @{thm (frugal_sorts) add.right_neutral [all, no_vars]}
+
+    \<^item> Note that the syntax in @{locale semigroup} and @{locale monoid}
+      is bold; this avoids clashes when writing properties
+      inside one of these locales in presence of that global
+      concrete type class syntax.
+
+  \noindent That hierarchy extends in a straightforward manner
+  to abelian semigroups and commutative monoids\footnote{The
+  designation \<^emph>\<open>abelian\<close> is quite standard concerning
+  (semi)groups, but not for monoids}:
+
+    \<^item> Locales @{locale abel_semigroup} and @{locale comm_monoid}
+      add commutativity as property.
+
+    \<^item> Concrete syntax emerges through
+
+        \<^item> @{command class} @{class ab_semigroup_add} = @{class semigroup_add}
+
+        \<^item> @{command class} @{class ab_semigroup_mult} = @{class semigroup_mult}
+
+        \<^item> @{command class} @{class comm_monoid_add} = @{class zero} + @{class ab_semigroup_add}
+
+        \<^item> @{command class} @{class comm_monoid_mult} = @{class one} + @{class ab_semigroup_mult}
+  
+      and corresponding interpretation of the locales above, yielding
+
+        \<^item> @{fact abel_semigroup.commute}: @{thm (frugal_sorts) abel_semigroup.commute [all, no_vars]}
+
+        \<^item> @{fact mult.commute}: @{thm (frugal_sorts) mult.commute [all, no_vars]}
+
+        \<^item> @{fact add.commute}: @{thm (frugal_sorts) add.commute [all, no_vars]}
+\<close>
+
+paragraph \<open>Named collection of theorems\<close>
+
+text \<open>
+  Locale interpretation interacts smoothly with named collections of
+  theorems as introduced by command @{command named_theorems}.  In our
+  example, rules concerning associativity and commutativity are no
+  simplification rules by default since they desired orientation may
+  vary depending on the situation.  However, there is a collection
+  @{fact ac_simps} where facts @{fact abel_semigroup.assoc},
+  @{fact abel_semigroup.commute} and @{fact abel_semigroup.left_commute}
+  are declared as members.  Due to interpretation, also
+  @{fact mult.assoc}, @{fact mult.commute} and @{fact mult.left_commute}
+  are also members of @{fact ac_simps}, as any corresponding facts
+  stemming from interpretation of @{locale abel_semigroup}.
+  Hence adding @{fact ac_simps} to the simplification rules for
+  a single method call uses all associativity and commutativity
+  rules known by means of interpretation.
+\<close>
+
+
+subsection \<open>Additive and multiplicative groups\<close>
+
+text \<open>
+  The hierarchy for inverse group operations takes into account
+  that there are weaker algebraic structures with only a partially
+  inverse operation.  E. g. the natural numbers have bounded
+  subtraction @{term "m - (n::nat)"} which is only an inverse
+  operation if @{term "m \<ge> (n::nat)"};  unary minus @{text "-"}
+  is pointless on the natural numbers.
+
+  Hence for both additive and multiplicative notation there
+  are syntactic classes for inverse operations, both unary
+  and binary:
+
+    \<^item> @{command class} @{class minus} with @{term [source] "(a::'a::minus) - b"}
+
+    \<^item> @{command class} @{class uminus} with @{term [source] "- a::'a::uminus"}
+
+    \<^item> @{command class} @{class divide} with @{term [source] "(a::'a::divide) div b"}
+
+    \<^item> @{command class} @{class inverse} = @{class divide} with @{term [source] "inverse a::'a::inverse"}
+        \\ and @{term [source] "(a::'a::inverse) / b"}
+
+  \noindent Here @{class inverse} specializes the ``partial'' syntax
+  @{term [source] "a div b"} to the more specific
+  @{term [source] "a / b"}. 
+
+  Semantic properties are added by
+
+    \<^item> @{command class} @{class cancel_ab_semigroup_add} = @{class ab_semigroup_add} + @{class minus}
+
+    \<^item> @{command class} @{class cancel_comm_monoid_add} = @{class cancel_ab_semigroup_add} + @{class comm_monoid_add}
+
+  \noindent which specify a minimal binary partially inverse operation as
+
+    \<^item> @{fact add_diff_cancel_left'}: @{thm (frugal_sorts) add_diff_cancel_left' [all, no_vars]}
+
+    \<^item> @{fact diff_diff_add}: @{thm (frugal_sorts) diff_diff_add [all, no_vars]}
+
+  \noindent which in turn allow to derive facts like
+
+    \<^item> @{fact add_left_imp_eq}: @{thm (frugal_sorts) add_left_imp_eq [all, no_vars]}
+
+  \noindent The total inverse operation is established as follows:
+
+    \<^item> Locale @{locale group} extends the abstract hierarchy with
+      the inverse operation.
+
+    \<^item> The concrete additive inverse operation emerges through
+
+      \<^item> @{command class} @{class group_add} = @{class minus} + @{class uminus} + @{class monoid_add} (in @{theory Groups}) \\
+
+      \<^item> @{command class} @{class ab_group_add} = @{class minus} + @{class uminus} + @{class comm_monoid_add} (in @{theory Groups})
+
+      and corresponding interpretation of locale @{locale group}, yielding e.g.
+
+      \<^item> @{fact group.left_inverse}: @{thm (frugal_sorts) group.left_inverse [all, no_vars]}
+
+      \<^item> @{fact add.left_inverse}: @{thm (frugal_sorts) add.left_inverse [all, no_vars]}
+
+  \noindent There is no multiplicative counterpart.  Why?  In rings,
+  the multiplicative group excludes the zero element, hence
+  the inverse operation is not total.  See further \secref{sec:rings}.
+\<close>
+
+paragraph \<open>Mitigating against redundancy by default simplification rules\<close>
+
+text \<open>
+  Inverse operations imposes some redundancy on the type class
+  hierarchy: in a group with a total inverse operation, the
+  unary operation is simpler and more primitive than the binary
+  one; but we cannot eliminate the binary one in favour of
+  a mere syntactic abbreviation since the binary one is vital
+  to express a partial inverse operation.
+
+  This is mitigated by providing suitable default simplification
+  rules: expression involving the unary inverse operation are
+  simplified to binary inverse operation whenever appropriate.
+  The rationale is that simplification is a central device in
+  explorative proving, where proof obligation remaining after certain
+  default proof steps including simplification are inspected
+  to get an idea what is missing to finish a proof.  When
+  preferable normal forms are encoded into
+  default simplification rules, proof obligations after simplification
+  are normalized and hence more proof-friendly.
 \<close>
 
 end
