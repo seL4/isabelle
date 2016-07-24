@@ -25,13 +25,10 @@ val _ =
 
 end;
 
+
 (* code theorem antiquotation *)
 
 local
-
-fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
-
-fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 fun no_vars ctxt thm =
   let
@@ -39,7 +36,7 @@ fun no_vars ctxt thm =
     val ((_, [thm]), _) = Variable.import true [thm] ctxt';
   in thm end;
 
-fun pretty_code_thm ctxt source raw_const =
+fun pretty_code_thm ctxt raw_const =
   let
     val thy = Proof_Context.theory_of ctxt;
     val const = Code.check_const thy raw_const;
@@ -51,13 +48,13 @@ fun pretty_code_thm ctxt source raw_const =
       |> these
       |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
       |> map (holize o no_vars ctxt o Axclass.overload ctxt);
-  in Thy_Output.output ctxt (Thy_Output.maybe_pretty_source pretty_thm ctxt source thms) end;
+  in Thy_Output.output ctxt (map (Thy_Output.pretty_thm ctxt) thms) end;
 
 in
 
 val _ =
   Theory.setup (Thy_Output.antiquotation @{binding code_thms} Args.term
-    (fn {source, context, ...} => pretty_code_thm context source));
+    (fn {context, ...} => pretty_code_thm context));
 
 end;
 
