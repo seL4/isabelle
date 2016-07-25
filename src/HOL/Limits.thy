@@ -2080,24 +2080,6 @@ proof atomize_elim
 qed
 
 
-subsubsection \<open>Cauchy Sequences are Bounded\<close>
-
-text \<open>
-  A Cauchy sequence is bounded -- this is the standard
-  proof mechanization rather than the nonstandard proof.
-\<close>
-
-lemma lemmaCauchy: "\<forall>n \<ge> M. norm (X M - X n) < (1::real) \<Longrightarrow>
-  \<forall>n \<ge> M. norm (X n :: 'a::real_normed_vector) < 1 + norm (X M)"
-  apply clarify
-  apply (drule spec)
-  apply (drule (1) mp)
-  apply (simp only: norm_minus_commute)
-  apply (drule order_le_less_trans [OF norm_triangle_ineq2])
-  apply simp
-  done
-
-
 subsection \<open>Power Sequences\<close>
 
 text \<open>
