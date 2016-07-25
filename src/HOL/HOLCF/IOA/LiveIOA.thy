@@ -25,7 +25,7 @@ definition liveexecutions :: "('a, 's) live_ioa \<Rightarrow> ('a, 's) execution
   where "liveexecutions AP = {exec. exec \<in> executions (fst AP) \<and> (exec \<TTurnstile> snd AP)}"
 
 definition livetraces :: "('a, 's) live_ioa \<Rightarrow> 'a trace set"
-  where "livetraces AP = {mk_trace (fst AP) $ (snd ex) |ex. ex \<in> liveexecutions AP}"
+  where "livetraces AP = {mk_trace (fst AP) \<cdot> (snd ex) |ex. ex \<in> liveexecutions AP}"
 
 definition live_implements :: "('a, 's1) live_ioa \<Rightarrow> ('a, 's2) live_ioa \<Rightarrow> bool"
   where "live_implements CL AM \<longleftrightarrow>

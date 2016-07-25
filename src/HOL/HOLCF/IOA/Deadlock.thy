@@ -11,8 +11,8 @@ begin
 text \<open>Input actions may always be added to a schedule.\<close>
 
 lemma scheds_input_enabled:
-  "Filter (\<lambda>x. x \<in> act A) $ sch \<in> schedules A \<Longrightarrow> a \<in> inp A \<Longrightarrow> input_enabled A \<Longrightarrow> Finite sch
-    \<Longrightarrow> Filter (\<lambda>x. x \<in> act A) $ sch @@ a \<leadsto> nil \<in> schedules A"
+  "Filter (\<lambda>x. x \<in> act A) \<cdot> sch \<in> schedules A \<Longrightarrow> a \<in> inp A \<Longrightarrow> input_enabled A \<Longrightarrow> Finite sch
+    \<Longrightarrow> Filter (\<lambda>x. x \<in> act A) \<cdot> sch @@ a \<leadsto> nil \<in> schedules A"
   apply (simp add: schedules_def has_schedule_def)
   apply auto
   apply (frule inp_is_act)
@@ -24,7 +24,7 @@ lemma scheds_input_enabled:
   apply (simp add: filter_act_def)
   defer
   apply (rule_tac [2] Map2Finite [THEN iffD1])
-  apply (rule_tac [2] t = "Map fst $ ex" in subst)
+  apply (rule_tac [2] t = "Map fst \<cdot> ex" in subst)
   prefer 2
   apply assumption
   apply (erule_tac [2] FiniteFilter)
@@ -60,7 +60,7 @@ lemma IOA_deadlock_free:
   assumes "a \<in> local A"
     and "Finite sch"
     and "sch \<in> schedules (A \<parallel> B)"
-    and "Filter (\<lambda>x. x \<in> act A) $ (sch @@ a \<leadsto> nil) \<in> schedules A"
+    and "Filter (\<lambda>x. x \<in> act A) \<cdot> (sch @@ a \<leadsto> nil) \<in> schedules A"
     and "compatible A B"
     and "input_enabled B"
   shows "(sch @@ a \<leadsto> nil) \<in> schedules (A \<parallel> B)"

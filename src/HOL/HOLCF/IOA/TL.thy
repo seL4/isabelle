@@ -19,11 +19,11 @@ definition unlift :: "'a lift \<Rightarrow> 'a"
   where "unlift x = (case x of Def y \<Rightarrow> y)"
 
 definition Init :: "'a predicate \<Rightarrow> 'a temporal"  ("\<langle>_\<rangle>" [0] 1000)
-  where "Init P s = P (unlift (HD $ s))"
+  where "Init P s = P (unlift (HD \<cdot> s))"
     \<comment> \<open>this means that for \<open>nil\<close> and \<open>UU\<close> the effect is unpredictable\<close>
 
 definition Next :: "'a temporal \<Rightarrow> 'a temporal"  ("\<circle>(_)" [80] 80)
-  where "(\<circle>P) s \<longleftrightarrow> (if TL $ s = UU \<or> TL $ s = nil then P s else P (TL $ s))"
+  where "(\<circle>P) s \<longleftrightarrow> (if TL \<cdot> s = UU \<or> TL \<cdot> s = nil then P s else P (TL \<cdot> s))"
 
 definition suffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
   where "suffix s2 s \<longleftrightarrow> (\<exists>s1. Finite s1 \<and> s = s1 @@ s2)"
@@ -110,7 +110,7 @@ lemma STL4: "\<TTurnstile> (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> \<^
 
 subsection \<open>LTL Axioms by Manna/Pnueli\<close>
 
-lemma tsuffix_TL [rule_format]: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> tsuffix s2 (TL $ s) \<longrightarrow> tsuffix s2 s"
+lemma tsuffix_TL [rule_format]: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> tsuffix s2 (TL \<cdot> s) \<longrightarrow> tsuffix s2 s"
   apply (unfold tsuffix_def suffix_def)
   apply auto
   apply (Seq_case_simp s)

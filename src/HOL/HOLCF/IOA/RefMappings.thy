@@ -14,7 +14,7 @@ definition move :: "('a, 's) ioa \<Rightarrow> ('a, 's) pairs \<Rightarrow> 's \
   where "move ioa ex s a t \<longleftrightarrow>
     is_exec_frag ioa (s, ex) \<and> Finite ex \<and>
     laststate (s, ex) = t \<and>
-    mk_trace ioa $ ex = (if a \<in> ext ioa then a \<leadsto> nil else nil)"
+    mk_trace ioa \<cdot> ex = (if a \<in> ext ioa then a \<leadsto> nil else nil)"
 
 definition is_ref_map :: "('s1 \<Rightarrow> 's2) \<Rightarrow> ('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Rightarrow> bool"
   where "is_ref_map f C A \<longleftrightarrow>

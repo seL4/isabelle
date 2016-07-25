@@ -11,17 +11,17 @@ begin
 definition corresp_exC ::
     "('a, 's2) ioa \<Rightarrow> ('s1 \<Rightarrow> 's2) \<Rightarrow> ('a, 's1) pairs \<rightarrow> ('s1 \<Rightarrow> ('a, 's2) pairs)"
   where "corresp_exC A f =
-    (fix $
+    (fix \<cdot>
       (LAM h ex.
         (\<lambda>s. case ex of
           nil \<Rightarrow> nil
         | x ## xs \<Rightarrow>
             flift1 (\<lambda>pr.
-              (SOME cex. move A cex (f s) (fst pr) (f (snd pr))) @@ ((h $ xs) (snd pr))) $ x)))"
+              (SOME cex. move A cex (f s) (fst pr) (f (snd pr))) @@ ((h \<cdot> xs) (snd pr))) \<cdot> x)))"
 
 definition corresp_ex ::
     "('a, 's2) ioa \<Rightarrow> ('s1 \<Rightarrow> 's2) \<Rightarrow> ('a, 's1) execution \<Rightarrow> ('a, 's2) execution"
-  where "corresp_ex A f ex = (f (fst ex), (corresp_exC A f $ (snd ex)) (fst ex))"
+  where "corresp_ex A f ex = (f (fst ex), (corresp_exC A f \<cdot> (snd ex)) (fst ex))"
 
 definition is_fair_ref_map ::
     "('s1 \<Rightarrow> 's2) \<Rightarrow> ('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Rightarrow> bool"
@@ -82,7 +82,7 @@ lemma corresp_exC_unfold:
         | x ## xs \<Rightarrow>
             (flift1 (\<lambda>pr.
               (SOME cex. move A cex (f s) (fst pr) (f (snd pr))) @@
-              ((corresp_exC A f $ xs) (snd pr))) $ x)))"
+              ((corresp_exC A f \<cdot> xs) (snd pr))) \<cdot> x)))"
   apply (rule trans)
   apply (rule fix_eq2)
   apply (simp only: corresp_exC_def)
@@ -90,20 +90,20 @@ lemma corresp_exC_unfold:
   apply (simp add: flift1_def)
   done
 
-lemma corresp_exC_UU: "(corresp_exC A f $ UU) s = UU"
+lemma corresp_exC_UU: "(corresp_exC A f \<cdot> UU) s = UU"
   apply (subst corresp_exC_unfold)
   apply simp
   done
 
-lemma corresp_exC_nil: "(corresp_exC A f $ nil) s = nil"
+lemma corresp_exC_nil: "(corresp_exC A f \<cdot> nil) s = nil"
   apply (subst corresp_exC_unfold)
   apply simp
   done
 
 lemma corresp_exC_cons:
-  "(corresp_exC A f $ (at \<leadsto> xs)) s =
+  "(corresp_exC A f \<cdot> (at \<leadsto> xs)) s =
      (SOME cex. move A cex (f s) (fst at) (f (snd at))) @@
-     ((corresp_exC A f $ xs) (snd at))"
+     ((corresp_exC A f \<cdot> xs) (snd at))"
   apply (rule trans)
   apply (subst corresp_exC_unfold)
   apply (simp add: Consq_def flift1_def)
@@ -156,7 +156,7 @@ lemma move_subprop3:
 
 lemma move_subprop4:
   "is_ref_map f C A \<Longrightarrow> reachable C s \<Longrightarrow> (s, a, t) \<in> trans_of C \<Longrightarrow>
-    mk_trace A $ ((SOME x. move A x (f s) a (f t))) =
+    mk_trace A \<cdot> ((SOME x. move A x (f s) a (f t))) =
       (if a \<in> ext A then a \<leadsto> nil else nil)"
   apply (cut_tac move_is_move)
   defer
@@ -172,7 +172,7 @@ subsubsection \<open>Lemmata for \<open>\<Longleftarrow>\<close>\<close>
 text \<open>Lemma 1.1: Distribution of \<open>mk_trace\<close> and \<open>@@\<close>\<close>
 
 lemma mk_traceConc:
-  "mk_trace C $ (ex1 @@ ex2) = (mk_trace C $ ex1) @@ (mk_trace C $ ex2)"
+  "mk_trace C \<cdot> (ex1 @@ ex2) = (mk_trace C \<cdot> ex1) @@ (mk_trace C \<cdot> ex2)"
   by (simp add: mk_trace_def filter_act_def MapConc)
 
 
@@ -181,7 +181,7 @@ text \<open>Lemma 1 : Traces coincide\<close>
 lemma lemma_1:
   "is_ref_map f C A \<Longrightarrow> ext C = ext A \<Longrightarrow>
     \<forall>s. reachable C s \<and> is_exec_frag C (s, xs) \<longrightarrow>
-      mk_trace C $ xs = mk_trace A $ (snd (corresp_ex A f (s, xs)))"
+      mk_trace C \<cdot> xs = mk_trace A \<cdot> (snd (corresp_ex A f (s, xs)))"
   supply if_split [split del]
   apply (unfold corresp_ex_def)
   apply (pair_induct xs simp: is_exec_frag_def)

@@ -11,7 +11,7 @@ begin
 definition mksch ::
     "('a, 's) ioa \<Rightarrow> ('a, 't) ioa \<Rightarrow> 'a Seq \<rightarrow> 'a Seq \<rightarrow> 'a Seq \<rightarrow> 'a Seq"
   where "mksch A B =
-    (fix $
+    (fix \<cdot>
       (LAM h tr schA schB.
         case tr of
           nil \<Rightarrow> nil
@@ -21,17 +21,17 @@ definition mksch ::
             | Def y \<Rightarrow>
                 (if y \<in> act A then
                   (if y \<in> act B then
-                    ((Takewhile (\<lambda>a. a \<in> int A) $ schA) @@
-                     (Takewhile (\<lambda>a. a \<in> int B) $ schB) @@
-                     (y \<leadsto> (h $ xs $ (TL $ (Dropwhile (\<lambda>a. a \<in> int A) $ schA))
-                                   $ (TL $ (Dropwhile (\<lambda>a. a \<in> int B) $ schB)))))
+                    ((Takewhile (\<lambda>a. a \<in> int A) \<cdot> schA) @@
+                     (Takewhile (\<lambda>a. a \<in> int B) \<cdot> schB) @@
+                     (y \<leadsto> (h \<cdot> xs \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int A) \<cdot> schA))
+                                   \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int B) \<cdot> schB)))))
                    else
-                    ((Takewhile (\<lambda>a. a \<in> int A) $ schA) @@
-                     (y \<leadsto> (h $ xs $ (TL $ (Dropwhile (\<lambda>a. a \<in> int A) $ schA)) $ schB))))
+                    ((Takewhile (\<lambda>a. a \<in> int A) \<cdot> schA) @@
+                     (y \<leadsto> (h \<cdot> xs \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int A) \<cdot> schA)) \<cdot> schB))))
                  else
                   (if y \<in> act B then
-                    ((Takewhile (\<lambda>a. a \<in> int B) $ schB) @@
-                     (y \<leadsto> (h $ xs $ schA $ (TL $ (Dropwhile (\<lambda>a. a \<in> int B) $ schB)))))
+                    ((Takewhile (\<lambda>a. a \<in> int B) \<cdot> schB) @@
+                     (y \<leadsto> (h \<cdot> xs \<cdot> schA \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int B) \<cdot> schB)))))
                    else UU)))))"
 
 definition par_traces :: "'a trace_module \<Rightarrow> 'a trace_module \<Rightarrow> 'a trace_module"
@@ -40,15 +40,15 @@ definition par_traces :: "'a trace_module \<Rightarrow> 'a trace_module \<Righta
       trA = fst TracesA; sigA = snd TracesA;
       trB = fst TracesB; sigB = snd TracesB
      in
-       ({tr. Filter (\<lambda>a. a \<in> actions sigA) $ tr \<in> trA} \<inter>
-        {tr. Filter (\<lambda>a. a \<in> actions sigB) $ tr \<in> trB} \<inter>
+       ({tr. Filter (\<lambda>a. a \<in> actions sigA) \<cdot> tr \<in> trA} \<inter>
+        {tr. Filter (\<lambda>a. a \<in> actions sigB) \<cdot> tr \<in> trB} \<inter>
         {tr. Forall (\<lambda>x. x \<in> externals sigA \<union> externals sigB) tr},
         asig_comp sigA sigB))"
 
 axiomatization where
-  finiteR_mksch: "Finite (mksch A B $ tr $ x $ y) \<Longrightarrow> Finite tr"
+  finiteR_mksch: "Finite (mksch A B \<cdot> tr \<cdot> x \<cdot> y) \<Longrightarrow> Finite tr"
 
-lemma finiteR_mksch': "\<not> Finite tr \<Longrightarrow> \<not> Finite (mksch A B $ tr $ x $ y)"
+lemma finiteR_mksch': "\<not> Finite tr \<Longrightarrow> \<not> Finite (mksch A B \<cdot> tr \<cdot> x \<cdot> y)"
   by (blast intro: finiteR_mksch)
 
 
@@ -68,17 +68,17 @@ lemma mksch_unfold:
           | Def y \<Rightarrow>
               (if y \<in> act A then
                 (if y \<in> act B then
-                  ((Takewhile (\<lambda>a. a \<in> int A) $ schA) @@
-                   (Takewhile (\<lambda>a. a \<in> int B) $ schB) @@
-                   (y \<leadsto> (mksch A B $ xs $(TL $ (Dropwhile (\<lambda>a. a \<in> int A) $ schA))
-                                         $(TL $ (Dropwhile (\<lambda>a. a \<in> int B) $ schB)))))
+                  ((Takewhile (\<lambda>a. a \<in> int A) \<cdot> schA) @@
+                   (Takewhile (\<lambda>a. a \<in> int B) \<cdot> schB) @@
+                   (y \<leadsto> (mksch A B \<cdot> xs \<cdot>(TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int A) \<cdot> schA))
+                                         \<cdot>(TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int B) \<cdot> schB)))))
                  else
-                  ((Takewhile (\<lambda>a. a \<in> int A) $ schA) @@
-                   (y \<leadsto> (mksch A B $ xs $ (TL $ (Dropwhile (\<lambda>a. a \<in> int A) $ schA)) $ schB))))
+                  ((Takewhile (\<lambda>a. a \<in> int A) \<cdot> schA) @@
+                   (y \<leadsto> (mksch A B \<cdot> xs \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int A) \<cdot> schA)) \<cdot> schB))))
                else
                 (if y \<in> act B then
-                  ((Takewhile (\<lambda>a. a \<in> int B) $ schB) @@
-                   (y \<leadsto> (mksch A B $ xs $ schA $ (TL $ (Dropwhile (\<lambda>a. a \<in> int B) $ schB)))))
+                  ((Takewhile (\<lambda>a. a \<in> int B) \<cdot> schB) @@
+                   (y \<leadsto> (mksch A B \<cdot> xs \<cdot> schA \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int B) \<cdot> schB)))))
                  else UU))))"
   apply (rule trans)
   apply (rule fix_eq4)
@@ -87,21 +87,21 @@ lemma mksch_unfold:
   apply simp
   done
 
-lemma mksch_UU: "mksch A B $ UU $ schA $ schB = UU"
+lemma mksch_UU: "mksch A B \<cdot> UU \<cdot> schA \<cdot> schB = UU"
   apply (subst mksch_unfold)
   apply simp
   done
 
-lemma mksch_nil: "mksch A B $ nil $ schA $ schB = nil"
+lemma mksch_nil: "mksch A B \<cdot> nil \<cdot> schA \<cdot> schB = nil"
   apply (subst mksch_unfold)
   apply simp
   done
 
 lemma mksch_cons1:
   "x \<in> act A \<Longrightarrow> x \<notin> act B \<Longrightarrow>
-    mksch A B $ (x \<leadsto> tr) $ schA $ schB =
-      (Takewhile (\<lambda>a. a \<in> int A) $ schA) @@
-      (x \<leadsto> (mksch A B $ tr $ (TL $ (Dropwhile (\<lambda>a. a \<in> int A) $ schA)) $ schB))"
+    mksch A B \<cdot> (x \<leadsto> tr) \<cdot> schA \<cdot> schB =
+      (Takewhile (\<lambda>a. a \<in> int A) \<cdot> schA) @@
+      (x \<leadsto> (mksch A B \<cdot> tr \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int A) \<cdot> schA)) \<cdot> schB))"
   apply (rule trans)
   apply (subst mksch_unfold)
   apply (simp add: Consq_def If_and_if)
@@ -110,9 +110,9 @@ lemma mksch_cons1:
 
 lemma mksch_cons2:
   "x \<notin> act A \<Longrightarrow> x \<in> act B \<Longrightarrow>
-    mksch A B $ (x \<leadsto> tr) $ schA $ schB =
-      (Takewhile (\<lambda>a. a \<in> int B) $ schB) @@
-      (x \<leadsto> (mksch A B $ tr $ schA $ (TL $ (Dropwhile (\<lambda>a. a \<in> int B) $ schB))))"
+    mksch A B \<cdot> (x \<leadsto> tr) \<cdot> schA \<cdot> schB =
+      (Takewhile (\<lambda>a. a \<in> int B) \<cdot> schB) @@
+      (x \<leadsto> (mksch A B \<cdot> tr \<cdot> schA \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int B) \<cdot> schB))))"
   apply (rule trans)
   apply (subst mksch_unfold)
   apply (simp add: Consq_def If_and_if)
@@ -121,11 +121,11 @@ lemma mksch_cons2:
 
 lemma mksch_cons3:
   "x \<in> act A \<Longrightarrow> x \<in> act B \<Longrightarrow>
-    mksch A B $ (x \<leadsto> tr) $ schA $ schB =
-      (Takewhile (\<lambda>a. a \<in> int A) $ schA) @@
-      ((Takewhile (\<lambda>a. a \<in> int B) $ schB) @@
-      (x \<leadsto> (mksch A B $ tr $ (TL $ (Dropwhile (\<lambda>a. a \<in> int A) $ schA))
-                            $ (TL $ (Dropwhile (\<lambda>a. a \<in> int B) $ schB)))))"
+    mksch A B \<cdot> (x \<leadsto> tr) \<cdot> schA \<cdot> schB =
+      (Takewhile (\<lambda>a. a \<in> int A) \<cdot> schA) @@
+      ((Takewhile (\<lambda>a. a \<in> int B) \<cdot> schB) @@
+      (x \<leadsto> (mksch A B \<cdot> tr \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int A) \<cdot> schA))
+                            \<cdot> (TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int B) \<cdot> schB)))))"
   apply (rule trans)
   apply (subst mksch_unfold)
   apply (simp add: Consq_def If_and_if)
@@ -169,7 +169,7 @@ lemma subst_lemma2: "(f x) = y \<leadsto> g \<Longrightarrow> x = h x \<Longrigh
 lemma ForallAorB_mksch [rule_format]:
   "compatible A B \<Longrightarrow>
     \<forall>schA schB. Forall (\<lambda>x. x \<in> act (A \<parallel> B)) tr \<longrightarrow>
-      Forall (\<lambda>x. x \<in> act (A \<parallel> B)) (mksch A B $ tr $ schA $ schB)"
+      Forall (\<lambda>x. x \<in> act (A \<parallel> B)) (mksch A B \<cdot> tr \<cdot> schA \<cdot> schB)"
   apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   apply auto
   apply (simp add: actions_of_par)
@@ -197,7 +197,7 @@ lemma ForallAorB_mksch [rule_format]:
 lemma ForallBnAmksch [rule_format]:
   "compatible B A \<Longrightarrow>
     \<forall>schA schB. Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) tr \<longrightarrow>
-      Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) (mksch A B $ tr $ schA $ schB)"
+      Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) (mksch A B \<cdot> tr \<cdot> schA \<cdot> schB)"
   apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   apply auto
   apply (rule Forall_Conc_impl [THEN mp])
@@ -207,7 +207,7 @@ lemma ForallBnAmksch [rule_format]:
 lemma ForallAnBmksch [rule_format]:
   "compatible A B \<Longrightarrow>
     \<forall>schA schB. Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) tr \<longrightarrow>
-      Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) (mksch A B $ tr $ schA $ schB)"
+      Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) (mksch A B \<cdot> tr \<cdot> schA \<cdot> schB)"
   apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   apply auto
   apply (rule Forall_Conc_impl [THEN mp])
@@ -221,9 +221,9 @@ lemma FiniteL_mksch [rule_format]:
   "Finite tr \<Longrightarrow> is_asig (asig_of A) \<Longrightarrow> is_asig (asig_of B) \<Longrightarrow>
     \<forall>x y.
       Forall (\<lambda>x. x \<in> act A) x \<and> Forall (\<lambda>x. x \<in> act B) y \<and>
-      Filter (\<lambda>a. a \<in> ext A) $ x = Filter (\<lambda>a. a \<in> act A) $ tr \<and>
-      Filter (\<lambda>a. a \<in> ext B) $ y = Filter (\<lambda>a. a \<in> act B) $ tr \<and>
-      Forall (\<lambda>x. x \<in> ext (A \<parallel> B)) tr \<longrightarrow> Finite (mksch A B $ tr $ x $ y)"
+      Filter (\<lambda>a. a \<in> ext A) \<cdot> x = Filter (\<lambda>a. a \<in> act A) \<cdot> tr \<and>
+      Filter (\<lambda>a. a \<in> ext B) \<cdot> y = Filter (\<lambda>a. a \<in> act B) \<cdot> tr \<and>
+      Forall (\<lambda>x. x \<in> ext (A \<parallel> B)) tr \<longrightarrow> Finite (mksch A B \<cdot> tr \<cdot> x \<cdot> y)"
   apply (erule Seq_Finite_ind)
   apply simp
   text \<open>main case\<close>
@@ -238,9 +238,9 @@ lemma FiniteL_mksch [rule_format]:
   text \<open>\<open>Finite (tw iA x)\<close> and \<open>Finite (tw iB y)\<close>\<close>
   apply (simp add: not_ext_is_int_or_not_act FiniteConc)
   text \<open>now for conclusion IH applicable, but assumptions have to be transformed\<close>
-  apply (drule_tac x = "x" and g = "Filter (\<lambda>a. a \<in> act A) $ s" in subst_lemma2)
+  apply (drule_tac x = "x" and g = "Filter (\<lambda>a. a \<in> act A) \<cdot> s" in subst_lemma2)
   apply assumption
-  apply (drule_tac x = "y" and g = "Filter (\<lambda>a. a \<in> act B) $ s" in subst_lemma2)
+  apply (drule_tac x = "y" and g = "Filter (\<lambda>a. a \<in> act B) \<cdot> s" in subst_lemma2)
   apply assumption
   text \<open>IH\<close>
   apply (simp add: not_ext_is_int_or_not_act ForallTL ForallDropwhile)
@@ -252,7 +252,7 @@ lemma FiniteL_mksch [rule_format]:
   text \<open>\<open>Finite (tw iB y)\<close>\<close>
   apply (simp add: not_ext_is_int_or_not_act FiniteConc)
   text \<open>now for conclusion IH applicable, but assumptions have to be transformed\<close>
-  apply (drule_tac x = "y" and g = "Filter (\<lambda>a. a \<in> act B) $ s" in subst_lemma2)
+  apply (drule_tac x = "y" and g = "Filter (\<lambda>a. a \<in> act B) \<cdot> s" in subst_lemma2)
   apply assumption
   text \<open>IH\<close>
   apply (simp add: not_ext_is_int_or_not_act ForallTL ForallDropwhile)
@@ -264,7 +264,7 @@ lemma FiniteL_mksch [rule_format]:
   text \<open>\<open>Finite (tw iA x)\<close>\<close>
   apply (simp add: not_ext_is_int_or_not_act FiniteConc)
   text \<open>now for conclusion IH applicable, but assumptions have to be transformed\<close>
-  apply (drule_tac x = "x" and g = "Filter (\<lambda>a. a \<in> act A) $ s" in subst_lemma2)
+  apply (drule_tac x = "x" and g = "Filter (\<lambda>a. a \<in> act A) \<cdot> s" in subst_lemma2)
   apply assumption
   text \<open>IH\<close>
   apply (simp add: not_ext_is_int_or_not_act ForallTL ForallDropwhile)
@@ -280,12 +280,12 @@ declare FilterConc [simp del]
 lemma reduceA_mksch1 [rule_format]:
   "Finite bs \<Longrightarrow> is_asig (asig_of A) \<Longrightarrow> is_asig (asig_of B) \<Longrightarrow> compatible A B \<Longrightarrow>
     \<forall>y. Forall (\<lambda>x. x \<in> act B) y \<and> Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) bs \<and>
-      Filter (\<lambda>a. a \<in> ext B) $ y = Filter (\<lambda>a. a \<in> act B) $ (bs @@ z) \<longrightarrow>
+      Filter (\<lambda>a. a \<in> ext B) \<cdot> y = Filter (\<lambda>a. a \<in> act B) \<cdot> (bs @@ z) \<longrightarrow>
       (\<exists>y1 y2.
-        (mksch A B $ (bs @@ z) $ x $ y) = (y1 @@ (mksch A B $ z $ x $ y2)) \<and>
+        (mksch A B \<cdot> (bs @@ z) \<cdot> x \<cdot> y) = (y1 @@ (mksch A B \<cdot> z \<cdot> x \<cdot> y2)) \<and>
         Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) y1 \<and>
         Finite y1 \<and> y = (y1 @@ y2) \<and>
-        Filter (\<lambda>a. a \<in> ext B) $ y1 = bs)"
+        Filter (\<lambda>a. a \<in> ext B) \<cdot> y1 = bs)"
   apply (frule_tac A1 = "A" in compat_commute [THEN iffD1])
   apply (erule Seq_Finite_ind)
   apply (rule allI)+
@@ -303,11 +303,11 @@ lemma reduceA_mksch1 [rule_format]:
   apply (frule sym [THEN eq_imp_below, THEN divide_Seq])
   apply (erule conjE)+
   text \<open>transform assumption \<open>f eB y = f B (s @ z)\<close>\<close>
-  apply (drule_tac x = "y" and g = "Filter (\<lambda>a. a \<in> act B) $ (s @@ z) " in subst_lemma2)
+  apply (drule_tac x = "y" and g = "Filter (\<lambda>a. a \<in> act B) \<cdot> (s @@ z) " in subst_lemma2)
   apply assumption
   apply (simp add: not_ext_is_int_or_not_act FilterConc)
   text \<open>apply IH\<close>
-  apply (erule_tac x = "TL $ (Dropwhile (\<lambda>a. a \<in> int B) $ y)" in allE)
+  apply (erule_tac x = "TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int B) \<cdot> y)" in allE)
   apply (simp add: ForallTL ForallDropwhile FilterConc)
   apply (erule exE)+
   apply (erule conjE)+
@@ -315,7 +315,7 @@ lemma reduceA_mksch1 [rule_format]:
   text \<open>for replacing IH in conclusion\<close>
   apply (rotate_tac -2)
   text \<open>instantiate \<open>y1a\<close> and \<open>y2a\<close>\<close>
-  apply (rule_tac x = "Takewhile (\<lambda>a. a \<in> int B) $ y @@ a \<leadsto> y1" in exI)
+  apply (rule_tac x = "Takewhile (\<lambda>a. a \<in> int B) \<cdot> y @@ a \<leadsto> y1" in exI)
   apply (rule_tac x = "y2" in exI)
   text \<open>elminate all obligations up to two depending on \<open>Conc_assoc\<close>\<close>
   apply (simp add: intA_is_not_actB int_is_act int_is_not_ext FilterConc)
@@ -327,12 +327,12 @@ lemmas reduceA_mksch = conjI [THEN [6] conjI [THEN [5] reduceA_mksch1]]
 lemma reduceB_mksch1 [rule_format]:
   "Finite a_s \<Longrightarrow> is_asig (asig_of A) \<Longrightarrow> is_asig (asig_of B) \<Longrightarrow> compatible A B \<Longrightarrow>
     \<forall>x. Forall (\<lambda>x. x \<in> act A) x \<and> Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) a_s \<and>
-      Filter (\<lambda>a. a \<in> ext A) $ x = Filter (\<lambda>a. a \<in> act A) $ (a_s @@ z) \<longrightarrow>
+      Filter (\<lambda>a. a \<in> ext A) \<cdot> x = Filter (\<lambda>a. a \<in> act A) \<cdot> (a_s @@ z) \<longrightarrow>
       (\<exists>x1 x2.
-        (mksch A B $ (a_s @@ z) $ x $ y) = (x1 @@ (mksch A B $ z $ x2 $ y)) \<and>
+        (mksch A B \<cdot> (a_s @@ z) \<cdot> x \<cdot> y) = (x1 @@ (mksch A B \<cdot> z \<cdot> x2 \<cdot> y)) \<and>
         Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) x1 \<and>
         Finite x1 \<and> x = (x1 @@ x2) \<and>
-        Filter (\<lambda>a. a \<in> ext A) $ x1 = a_s)"
+        Filter (\<lambda>a. a \<in> ext A) \<cdot> x1 = a_s)"
   apply (frule_tac A1 = "A" in compat_commute [THEN iffD1])
   apply (erule Seq_Finite_ind)
   apply (rule allI)+
@@ -350,11 +350,11 @@ lemma reduceB_mksch1 [rule_format]:
   apply (frule sym [THEN eq_imp_below, THEN divide_Seq])
   apply (erule conjE)+
   text \<open>transform assumption \<open>f eA x = f A (s @ z)\<close>\<close>
-  apply (drule_tac x = "x" and g = "Filter (\<lambda>a. a \<in> act A) $ (s @@ z)" in subst_lemma2)
+  apply (drule_tac x = "x" and g = "Filter (\<lambda>a. a \<in> act A) \<cdot> (s @@ z)" in subst_lemma2)
   apply assumption
   apply (simp add: not_ext_is_int_or_not_act FilterConc)
   text \<open>apply IH\<close>
-  apply (erule_tac x = "TL $ (Dropwhile (\<lambda>a. a \<in> int A) $ x)" in allE)
+  apply (erule_tac x = "TL \<cdot> (Dropwhile (\<lambda>a. a \<in> int A) \<cdot> x)" in allE)
   apply (simp add: ForallTL ForallDropwhile FilterConc)
   apply (erule exE)+
   apply (erule conjE)+
@@ -362,7 +362,7 @@ lemma reduceB_mksch1 [rule_format]:
   text \<open>for replacing IH in conclusion\<close>
   apply (rotate_tac -2)
   text \<open>instantiate \<open>y1a\<close> and \<open>y2a\<close>\<close>
-  apply (rule_tac x = "Takewhile (\<lambda>a. a \<in> int A) $ x @@ a \<leadsto> x1" in exI)
+  apply (rule_tac x = "Takewhile (\<lambda>a. a \<in> int A) \<cdot> x @@ a \<leadsto> x1" in exI)
   apply (rule_tac x = "x2" in exI)
   text \<open>eliminate all obligations up to two depending on \<open>Conc_assoc\<close>\<close>
   apply (simp add: intA_is_not_actB int_is_act int_is_not_ext FilterConc)
@@ -382,9 +382,9 @@ lemma FilterA_mksch_is_tr:
       Forall (\<lambda>x. x \<in> act A) schA \<and>
       Forall (\<lambda>x. x \<in> act B) schB \<and>
       Forall (\<lambda>x. x \<in> ext (A \<parallel> B)) tr \<and>
-      Filter (\<lambda>a. a \<in> act A) $ tr \<sqsubseteq> Filter (\<lambda>a. a \<in> ext A) $ schA \<and>
-      Filter (\<lambda>a. a \<in> act B) $ tr \<sqsubseteq> Filter (\<lambda>a. a \<in> ext B) $ schB
-      \<longrightarrow> Filter (\<lambda>a. a \<in> ext (A \<parallel> B)) $ (mksch A B $ tr $ schA $ schB) = tr"
+      Filter (\<lambda>a. a \<in> act A) \<cdot> tr \<sqsubseteq> Filter (\<lambda>a. a \<in> ext A) \<cdot> schA \<and>
+      Filter (\<lambda>a. a \<in> act B) \<cdot> tr \<sqsubseteq> Filter (\<lambda>a. a \<in> ext B) \<cdot> schB
+      \<longrightarrow> Filter (\<lambda>a. a \<in> ext (A \<parallel> B)) \<cdot> (mksch A B \<cdot> tr \<cdot> schA \<cdot> schB) = tr"
   apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   text \<open>main case\<close>
   text \<open>splitting into 4 cases according to \<open>a \<in> A\<close>, \<open>a \<in> B\<close>\<close>
@@ -436,10 +436,10 @@ lemma FilterAmksch_is_schA:
     Forall (\<lambda>x. x \<in> ext (A \<parallel> B)) tr \<and>
     Forall (\<lambda>x. x \<in> act A) schA \<and>
     Forall (\<lambda>x. x \<in> act B) schB \<and>
-    Filter (\<lambda>a. a \<in> ext A) $ schA = Filter (\<lambda>a. a \<in> act A) $ tr \<and>
-    Filter (\<lambda>a. a \<in> ext B) $ schB = Filter (\<lambda>a. a \<in> act B) $ tr \<and>
+    Filter (\<lambda>a. a \<in> ext A) \<cdot> schA = Filter (\<lambda>a. a \<in> act A) \<cdot> tr \<and>
+    Filter (\<lambda>a. a \<in> ext B) \<cdot> schB = Filter (\<lambda>a. a \<in> act B) \<cdot> tr \<and>
     LastActExtsch A schA \<and> LastActExtsch B schB
-    \<longrightarrow> Filter (\<lambda>a. a \<in> act A) $ (mksch A B $ tr $ schA $ schB) = schA"
+    \<longrightarrow> Filter (\<lambda>a. a \<in> act A) \<cdot> (mksch A B \<cdot> tr \<cdot> schA \<cdot> schB) = schA"
   apply (intro strip)
   apply (rule seq.take_lemma)
   apply (rule mp)
@@ -509,7 +509,7 @@ lemma FilterAmksch_is_schA:
 
   text \<open>eliminate the \<open>B\<close>-only prefix\<close>
 
-  apply (subgoal_tac "(Filter (\<lambda>a. a \<in> act A) $ y1) = nil")
+  apply (subgoal_tac "(Filter (\<lambda>a. a \<in> act A) \<cdot> y1) = nil")
   apply (erule_tac [2] ForallQFilterPnil)
   prefer 2 apply assumption
   prefer 2 apply fast
@@ -522,7 +522,7 @@ lemma FilterAmksch_is_schA:
   apply (rotate_tac -2)
   apply simp
 
-  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act A \<and> a \<in> ext B) $ y1 = nil")
+  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act A \<and> a \<in> ext B) \<cdot> y1 = nil")
   apply (rotate_tac -1)
   apply simp
   text \<open>eliminate introduced subgoal 2\<close>
@@ -556,7 +556,7 @@ lemma FilterAmksch_is_schA:
   text \<open>assumption \<open>schB\<close>\<close>
   apply (simp add: ext_and_act)
   text \<open>assumption \<open>schA\<close>\<close>
-  apply (drule_tac x = "schA" and g = "Filter (\<lambda>a. a \<in> act A) $ rs" in subst_lemma2)
+  apply (drule_tac x = "schA" and g = "Filter (\<lambda>a. a \<in> act A) \<cdot> rs" in subst_lemma2)
   apply assumption
   apply (simp add: int_is_not_ext)
   text \<open>assumptions concerning \<open>LastActExtsch\<close>, cannot be rewritten, as \<open>LastActExtsmalli\<close> are looping\<close>
@@ -574,7 +574,7 @@ lemma FilterAmksch_is_schA:
   apply (rotate_tac -2)
   apply simp
 
-  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act A \<and> a \<in> ext B) $ y1 = nil")
+  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act A \<and> a \<in> ext B) \<cdot> y1 = nil")
   apply (rotate_tac -1)
   apply simp
   text \<open>eliminate introduced subgoal 2\<close>
@@ -604,7 +604,7 @@ lemma FilterAmksch_is_schA:
   apply (frule_tac y = "y2" in sym [THEN eq_imp_below, THEN divide_Seq])
   apply (erule conjE)+
   text \<open>assumption \<open>schA\<close>\<close>
-  apply (drule_tac x = "schA" and g = "Filter (%a. a:act A) $rs" in subst_lemma2)
+  apply (drule_tac x = "schA" and g = "Filter (%a. a:act A) \<cdot>rs" in subst_lemma2)
   apply assumption
   apply (simp add: int_is_not_ext)
 
@@ -620,7 +620,7 @@ lemma FilterAmksch_is_schA:
   text \<open>now conclusion fulfills induction hypothesis, but assumptions are not all ready\<close>
 
   text \<open>assumption \<open>schB\<close>\<close>
-  apply (drule_tac x = "y2" and g = "Filter (\<lambda>a. a \<in> act B) $ rs" in subst_lemma2)
+  apply (drule_tac x = "y2" and g = "Filter (\<lambda>a. a \<in> act B) \<cdot> rs" in subst_lemma2)
   apply assumption
   apply (simp add: intA_is_not_actB int_is_not_ext)
 
@@ -654,10 +654,10 @@ lemma FilterBmksch_is_schB:
     Forall (\<lambda>x. x \<in> ext (A \<parallel> B)) tr \<and>
     Forall (\<lambda>x. x \<in> act A) schA \<and>
     Forall (\<lambda>x. x \<in> act B) schB \<and>
-    Filter (\<lambda>a. a \<in> ext A) $ schA = Filter (\<lambda>a. a \<in> act A) $ tr \<and>
-    Filter (\<lambda>a. a \<in> ext B) $ schB = Filter (\<lambda>a. a \<in> act B) $ tr \<and>
+    Filter (\<lambda>a. a \<in> ext A) \<cdot> schA = Filter (\<lambda>a. a \<in> act A) \<cdot> tr \<and>
+    Filter (\<lambda>a. a \<in> ext B) \<cdot> schB = Filter (\<lambda>a. a \<in> act B) \<cdot> tr \<and>
     LastActExtsch A schA \<and> LastActExtsch B schB
-    \<longrightarrow> Filter (\<lambda>a. a \<in> act B) $ (mksch A B $ tr $ schA $ schB) = schB"
+    \<longrightarrow> Filter (\<lambda>a. a \<in> act B) \<cdot> (mksch A B \<cdot> tr \<cdot> schA \<cdot> schB) = schB"
   apply (intro strip)
   apply (rule seq.take_lemma)
   apply (rule mp)
@@ -726,7 +726,7 @@ lemma FilterBmksch_is_schB:
 
   text \<open>eliminate the \<open>A\<close>-only prefix\<close>
 
-  apply (subgoal_tac "(Filter (\<lambda>a. a \<in> act B) $ x1) = nil")
+  apply (subgoal_tac "(Filter (\<lambda>a. a \<in> act B) \<cdot> x1) = nil")
   apply (erule_tac [2] ForallQFilterPnil)
   prefer 2 apply (assumption)
   prefer 2 apply (fast)
@@ -739,7 +739,7 @@ lemma FilterBmksch_is_schB:
   apply (rotate_tac -2)
   apply simp
 
-  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act B \<and> a \<in> ext A) $ x1 = nil")
+  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act B \<and> a \<in> ext A) \<cdot> x1 = nil")
   apply (rotate_tac -1)
   apply simp
   text \<open>eliminate introduced subgoal 2\<close>
@@ -772,7 +772,7 @@ lemma FilterBmksch_is_schB:
   text \<open>assumption \<open>schA\<close>\<close>
   apply (simp add: ext_and_act)
   text \<open>assumption \<open>schB\<close>\<close>
-  apply (drule_tac x = "schB" and g = "Filter (\<lambda>a. a \<in> act B) $ rs" in subst_lemma2)
+  apply (drule_tac x = "schB" and g = "Filter (\<lambda>a. a \<in> act B) \<cdot> rs" in subst_lemma2)
   apply assumption
   apply (simp add: int_is_not_ext)
   text \<open>assumptions concerning \<open>LastActExtsch\<close>, cannot be rewritten, as \<open>LastActExtsmalli\<close> are looping\<close>
@@ -790,7 +790,7 @@ lemma FilterBmksch_is_schB:
   apply (rotate_tac -2)
   apply simp
 
-  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act B \<and> a \<in> ext A) $ x1 = nil")
+  apply (subgoal_tac "Filter (\<lambda>a. a \<in> act B \<and> a \<in> ext A) \<cdot> x1 = nil")
   apply (rotate_tac -1)
   apply simp
   text \<open>eliminate introduced subgoal 2\<close>
@@ -820,7 +820,7 @@ lemma FilterBmksch_is_schB:
   apply (frule_tac y = "x2" in sym [THEN eq_imp_below, THEN divide_Seq])
   apply (erule conjE)+
   text \<open>assumption \<open>schA\<close>\<close>
-  apply (drule_tac x = "schB" and g = "Filter (\<lambda>a. a \<in> act B) $ rs" in subst_lemma2)
+  apply (drule_tac x = "schB" and g = "Filter (\<lambda>a. a \<in> act B) \<cdot> rs" in subst_lemma2)
   apply assumption
   apply (simp add: int_is_not_ext)
 
@@ -836,7 +836,7 @@ lemma FilterBmksch_is_schB:
   text \<open>now conclusion fulfills induction hypothesis, but assumptions are not all ready\<close>
 
   text \<open>assumption \<open>schA\<close>\<close>
-  apply (drule_tac x = "x2" and g = "Filter (\<lambda>a. a \<in> act A) $ rs" in subst_lemma2)
+  apply (drule_tac x = "x2" and g = "Filter (\<lambda>a. a \<in> act A) \<cdot> rs" in subst_lemma2)
   apply assumption
   apply (simp add: intA_is_not_actB int_is_not_ext)
 
@@ -869,20 +869,20 @@ theorem compositionality_tr:
   "is_trans_of A \<Longrightarrow> is_trans_of B \<Longrightarrow> compatible A B \<Longrightarrow> compatible B A \<Longrightarrow>
     is_asig (asig_of A) \<Longrightarrow> is_asig (asig_of B) \<Longrightarrow>
     tr \<in> traces (A \<parallel> B) \<longleftrightarrow>
-      Filter (\<lambda>a. a \<in> act A) $ tr \<in> traces A \<and>
-      Filter (\<lambda>a. a \<in> act B) $ tr \<in> traces B \<and>
+      Filter (\<lambda>a. a \<in> act A) \<cdot> tr \<in> traces A \<and>
+      Filter (\<lambda>a. a \<in> act B) \<cdot> tr \<in> traces B \<and>
       Forall (\<lambda>x. x \<in> ext(A \<parallel> B)) tr"
   apply (simp add: traces_def has_trace_def)
   apply auto
 
   text \<open>\<open>\<Longrightarrow>\<close>\<close>
   text \<open>There is a schedule of \<open>A\<close>\<close>
-  apply (rule_tac x = "Filter (\<lambda>a. a \<in> act A) $ sch" in bexI)
+  apply (rule_tac x = "Filter (\<lambda>a. a \<in> act A) \<cdot> sch" in bexI)
   prefer 2
   apply (simp add: compositionality_sch)
   apply (simp add: compatibility_consequence1 externals_of_par ext1_ext2_is_not_act1)
   text \<open>There is a schedule of \<open>B\<close>\<close>
-  apply (rule_tac x = "Filter (\<lambda>a. a \<in> act B) $ sch" in bexI)
+  apply (rule_tac x = "Filter (\<lambda>a. a \<in> act B) \<cdot> sch" in bexI)
   prefer 2
   apply (simp add: compositionality_sch)
   apply (simp add: compatibility_consequence2 externals_of_par ext1_ext2_is_not_act2)
@@ -907,7 +907,7 @@ theorem compositionality_tr:
   apply (rename_tac h1 h2 schA schB)
   text \<open>\<open>mksch\<close> is exactly the construction of \<open>trA\<parallel>B\<close> out of \<open>schA\<close>, \<open>schB\<close>, and the oracle \<open>tr\<close>,
      we need here\<close>
-  apply (rule_tac x = "mksch A B $ tr $ schA $ schB" in bexI)
+  apply (rule_tac x = "mksch A B \<cdot> tr \<cdot> schA \<cdot> schB" in bexI)
 
   text \<open>External actions of mksch are just the oracle\<close>
   apply (simp add: FilterA_mksch_is_tr)

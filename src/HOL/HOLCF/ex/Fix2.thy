@@ -10,9 +10,9 @@ imports HOLCF
 begin
 
 axiomatization
-  gix :: "('a->'a)->'a" where
-  gix1_def: "F$(gix$F) = gix$F" and
-  gix2_def: "F$y=y ==> gix$F << y"
+  gix :: "('a \<rightarrow> 'a) \<rightarrow>'a" where
+  gix1_def: "F\<cdot>(gix\<cdot>F) = gix\<cdot>F" and
+  gix2_def: "F\<cdot>y = y \<Longrightarrow> gix\<cdot>F << y"
 
 
 lemma lemma1: "fix = gix"
@@ -24,7 +24,7 @@ apply (rule gix2_def)
 apply (rule fix_eq [symmetric])
 done
 
-lemma lemma2: "gix$F=lub(range(%i. iterate i$F$UU))"
+lemma lemma2: "gix\<cdot>F = lub (range (\<lambda>i. iterate i\<cdot>F\<cdot>UU))"
 apply (rule lemma1 [THEN subst])
 apply (rule fix_def2)
 done

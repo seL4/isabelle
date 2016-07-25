@@ -11,17 +11,17 @@ begin
 domain dnat = dzero | dsucc (dpred :: dnat)
 
 definition
-  iterator :: "dnat -> ('a -> 'a) -> 'a -> 'a" where
-  "iterator = fix $ (LAM h n f x.
-    case n of dzero => x
-      | dsucc $ m => f $ (h $ m $ f $ x))"
+  iterator :: "dnat \<rightarrow> ('a \<rightarrow> 'a) \<rightarrow> 'a \<rightarrow> 'a" where
+  "iterator = fix\<cdot>(LAM h n f x.
+    case n of dzero \<Rightarrow> x
+      | dsucc\<cdot>m \<Rightarrow> f\<cdot>(h\<cdot>m\<cdot>f\<cdot>x))"
 
 text \<open>
   \medskip Expand fixed point properties.
 \<close>
 
 lemma iterator_def2:
-  "iterator = (LAM n f x. case n of dzero => x | dsucc$m => f$(iterator$m$f$x))"
+  "iterator = (LAM n f x. case n of dzero \<Rightarrow> x | dsucc\<cdot>m \<Rightarrow> f\<cdot>(iterator\<cdot>m\<cdot>f\<cdot>x))"
   apply (rule trans)
   apply (rule fix_eq2)
   apply (rule iterator_def [THEN eq_reflection])
@@ -31,17 +31,17 @@ lemma iterator_def2:
 
 text \<open>\medskip Recursive properties.\<close>
 
-lemma iterator1: "iterator $ UU $ f $ x = UU"
+lemma iterator1: "iterator\<cdot>UU\<cdot>f\<cdot>x = UU"
   apply (subst iterator_def2)
   apply simp
   done
 
-lemma iterator2: "iterator $ dzero $ f $ x = x"
+lemma iterator2: "iterator\<cdot>dzero\<cdot>f\<cdot>x = x"
   apply (subst iterator_def2)
   apply simp
   done
 
-lemma iterator3: "n ~= UU ==> iterator $ (dsucc $ n) $ f $ x = f $ (iterator $ n $ f $ x)"
+lemma iterator3: "n \<noteq> UU \<Longrightarrow> iterator\<cdot>(dsucc\<cdot>n)\<cdot>f\<cdot>x = f\<cdot>(iterator\<cdot>n\<cdot>f\<cdot>x)"
   apply (rule trans)
    apply (subst iterator_def2)
    apply simp
@@ -50,7 +50,7 @@ lemma iterator3: "n ~= UU ==> iterator $ (dsucc $ n) $ f $ x = f $ (iterator $ n
 
 lemmas iterator_rews = iterator1 iterator2 iterator3
 
-lemma dnat_flat: "ALL x y::dnat. x<<y --> x=UU | x=y"
+lemma dnat_flat: "\<forall>x y::dnat. x \<sqsubseteq> y \<longrightarrow> x = UU \<or> x = y"
   apply (rule allI)
   apply (induct_tac x)
     apply fast
@@ -62,7 +62,7 @@ lemma dnat_flat: "ALL x y::dnat. x<<y --> x=UU | x=y"
   apply (rule allI)
   apply (case_tac y)
     apply (fast intro!: bottomI)
-   apply (thin_tac "ALL y. dnat << y --> dnat = UU | dnat = y")
+   apply (thin_tac "\<forall>y. dnat \<sqsubseteq> y \<longrightarrow> dnat = UU \<or> dnat = y")
    apply simp
   apply (simp (no_asm_simp))
   apply (drule_tac x="dnata" in spec)

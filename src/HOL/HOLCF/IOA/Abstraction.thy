@@ -11,12 +11,12 @@ begin
 default_sort type
 
 definition cex_abs :: "('s1 \<Rightarrow> 's2) \<Rightarrow> ('a, 's1) execution \<Rightarrow> ('a, 's2) execution"
-  where "cex_abs f ex = (f (fst ex), Map (\<lambda>(a, t). (a, f t)) $ (snd ex))"
+  where "cex_abs f ex = (f (fst ex), Map (\<lambda>(a, t). (a, f t)) \<cdot> (snd ex))"
 
 text \<open>equals cex_abs on Sequences -- after ex2seq application\<close>
 definition cex_absSeq ::
     "('s1 \<Rightarrow> 's2) \<Rightarrow> ('a option, 's1) transition Seq \<Rightarrow> ('a option, 's2)transition Seq"
-  where "cex_absSeq f = (\<lambda>s. Map (\<lambda>(s, a, t). (f s, a, f t)) $ s)"
+  where "cex_absSeq f = (\<lambda>s. Map (\<lambda>(s, a, t). (f s, a, f t)) \<cdot> s)"
 
 definition is_abstraction :: "('s1 \<Rightarrow> 's2) \<Rightarrow> ('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Rightarrow> bool"
   where "is_abstraction f C A \<longleftrightarrow>
@@ -161,7 +161,7 @@ text \<open>
   that is to special Map Lemma.
 \<close>
 lemma traces_coincide_abs:
-  "ext C = ext A \<Longrightarrow> mk_trace C $ xs = mk_trace A $ (snd (cex_abs f (s, xs)))"
+  "ext C = ext A \<Longrightarrow> mk_trace C \<cdot> xs = mk_trace A \<cdot> (snd (cex_abs f (s, xs)))"
   apply (unfold cex_abs_def mk_trace_def filter_act_def)
   apply simp
   apply (pair_induct xs)
@@ -315,7 +315,7 @@ lemma cex_absSeq_tsuffix: "tsuffix s t \<Longrightarrow> tsuffix (cex_absSeq h s
   apply auto
   apply (simp add: Mapnil)
   apply (simp add: MapUU)
-  apply (rule_tac x = "Map (% (s,a,t) . (h s,a, h t))$s1" in exI)
+  apply (rule_tac x = "Map (% (s,a,t) . (h s,a, h t))\<cdot>s1" in exI)
   apply (simp add: Map2Finite MapConc)
   done
 
@@ -345,7 +345,7 @@ lemma strength_Init:
 
 subsubsection \<open>Next\<close>
 
-lemma TL_ex2seq_UU: "TL $ (ex2seq (cex_abs h ex)) = UU \<longleftrightarrow> TL $ (ex2seq ex) = UU"
+lemma TL_ex2seq_UU: "TL \<cdot> (ex2seq (cex_abs h ex)) = UU \<longleftrightarrow> TL \<cdot> (ex2seq ex) = UU"
   apply (pair ex)
   apply (Seq_case_simp x2)
   apply (pair a)
@@ -353,7 +353,7 @@ lemma TL_ex2seq_UU: "TL $ (ex2seq (cex_abs h ex)) = UU \<longleftrightarrow> TL 
   apply (pair a)
   done
 
-lemma TL_ex2seq_nil: "TL $ (ex2seq (cex_abs h ex)) = nil \<longleftrightarrow> TL $ (ex2seq ex) = nil"
+lemma TL_ex2seq_nil: "TL \<cdot> (ex2seq (cex_abs h ex)) = nil \<longleftrightarrow> TL \<cdot> (ex2seq ex) = nil"
   apply (pair ex)
   apply (Seq_case_simp x2)
   apply (pair a)
@@ -363,18 +363,18 @@ lemma TL_ex2seq_nil: "TL $ (ex2seq (cex_abs h ex)) = nil \<longleftrightarrow> T
 
 (*important property of cex_absSeq: As it is a 1to1 correspondence,
   properties carry over*)
-lemma cex_absSeq_TL: "cex_absSeq h (TL $ s) = TL $ (cex_absSeq h s)"
+lemma cex_absSeq_TL: "cex_absSeq h (TL \<cdot> s) = TL \<cdot> (cex_absSeq h s)"
   by (simp add: MapTL cex_absSeq_def)
 
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)
-lemma TLex2seq: "snd ex \<noteq> UU \<Longrightarrow> snd ex \<noteq> nil \<Longrightarrow> \<exists>ex'. TL$(ex2seq ex) = ex2seq ex'"
+lemma TLex2seq: "snd ex \<noteq> UU \<Longrightarrow> snd ex \<noteq> nil \<Longrightarrow> \<exists>ex'. TL\<cdot>(ex2seq ex) = ex2seq ex'"
   apply (pair ex)
   apply (Seq_case_simp x2)
   apply (pair a)
   apply auto
   done
 
-lemma ex2seqnilTL: "TL $ (ex2seq ex) \<noteq> nil \<longleftrightarrow> snd ex \<noteq> nil \<and> snd ex \<noteq> UU"
+lemma ex2seqnilTL: "TL \<cdot> (ex2seq ex) \<noteq> nil \<longleftrightarrow> snd ex \<noteq> nil \<and> snd ex \<noteq> UU"
   apply (pair ex)
   apply (Seq_case_simp x2)
   apply (pair a)

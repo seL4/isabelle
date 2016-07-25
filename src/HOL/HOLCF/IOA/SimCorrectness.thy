@@ -12,7 +12,7 @@ begin
 definition corresp_ex_simC ::
     "('a, 's2) ioa \<Rightarrow> ('s1 \<times> 's2) set \<Rightarrow> ('a, 's1) pairs \<rightarrow> ('s2 \<Rightarrow> ('a, 's2) pairs)"
   where "corresp_ex_simC A R =
-    (fix $ (LAM h ex. (\<lambda>s. case ex of
+    (fix \<cdot> (LAM h ex. (\<lambda>s. case ex of
       nil \<Rightarrow> nil
     | x ## xs \<Rightarrow>
         (flift1
@@ -21,13 +21,13 @@ definition corresp_ex_simC ::
               a = fst pr;
               t = snd pr;
               T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s a t'
-            in (SOME cex. move A cex s a T') @@ ((h $ xs) T')) $ x))))"
+            in (SOME cex. move A cex s a T') @@ ((h \<cdot> xs) T')) \<cdot> x))))"
 
 definition corresp_ex_sim ::
     "('a, 's2) ioa \<Rightarrow> ('s1 \<times> 's2) set \<Rightarrow> ('a, 's1) execution \<Rightarrow> ('a, 's2) execution"
   where "corresp_ex_sim A R ex \<equiv>
     let S' = SOME s'. (fst ex, s') \<in> R \<and> s' \<in> starts_of A
-    in (S', (corresp_ex_simC A R $ (snd ex)) S')"
+    in (S', (corresp_ex_simC A R \<cdot> (snd ex)) S')"
 
 
 subsection \<open>\<open>corresp_ex_sim\<close>\<close>
@@ -43,7 +43,7 @@ lemma corresp_ex_simC_unfold:
               a = fst pr;
               t = snd pr;
               T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s a t'
-            in (SOME cex. move A cex s a T') @@ ((corresp_ex_simC A R $ xs) T')) $ x)))"
+            in (SOME cex. move A cex s a T') @@ ((corresp_ex_simC A R \<cdot> xs) T')) \<cdot> x)))"
   apply (rule trans)
   apply (rule fix_eq2)
   apply (simp only: corresp_ex_simC_def)
@@ -51,20 +51,20 @@ lemma corresp_ex_simC_unfold:
   apply (simp add: flift1_def)
   done
 
-lemma corresp_ex_simC_UU [simp]: "(corresp_ex_simC A R $ UU) s = UU"
+lemma corresp_ex_simC_UU [simp]: "(corresp_ex_simC A R \<cdot> UU) s = UU"
   apply (subst corresp_ex_simC_unfold)
   apply simp
   done
 
-lemma corresp_ex_simC_nil [simp]: "(corresp_ex_simC A R $ nil) s = nil"
+lemma corresp_ex_simC_nil [simp]: "(corresp_ex_simC A R \<cdot> nil) s = nil"
   apply (subst corresp_ex_simC_unfold)
   apply simp
   done
 
 lemma corresp_ex_simC_cons [simp]:
-  "(corresp_ex_simC A R $ ((a, t) \<leadsto> xs)) s =
+  "(corresp_ex_simC A R \<cdot> ((a, t) \<leadsto> xs)) s =
     (let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s a t'
-     in (SOME cex. move A cex s a T') @@ ((corresp_ex_simC A R $ xs) T'))"
+     in (SOME cex. move A cex s a T') @@ ((corresp_ex_simC A R \<cdot> xs) T'))"
   apply (rule trans)
   apply (subst corresp_ex_simC_unfold)
   apply (simp add: Consq_def flift1_def)
@@ -134,7 +134,7 @@ lemma move_subprop3_sim:
 lemma move_subprop4_sim:
   "is_simulation R C A \<Longrightarrow> reachable C s \<Longrightarrow> s \<midarrow>a\<midarrow>C\<rightarrow> t \<Longrightarrow> (s, s') \<in> R \<Longrightarrow>
     let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'
-    in mk_trace A $ (SOME x. move A x s' a T') = (if a \<in> ext A then a \<leadsto> nil else nil)"
+    in mk_trace A \<cdot> (SOME x. move A x s' a T') = (if a \<in> ext A then a \<leadsto> nil else nil)"
   apply (cut_tac move_is_move_sim)
   defer
   apply assumption+
@@ -161,7 +161,7 @@ text \<open>Lemma 1: Traces coincide\<close>
 lemma traces_coincide_sim [rule_format (no_asm)]:
   "is_simulation R C A \<Longrightarrow> ext C = ext A \<Longrightarrow>
     \<forall>s s'. reachable C s \<and> is_exec_frag C (s, ex) \<and> (s, s') \<in> R \<longrightarrow>
-      mk_trace C $ ex = mk_trace A $ ((corresp_ex_simC A R $ ex) s')"
+      mk_trace C \<cdot> ex = mk_trace A \<cdot> ((corresp_ex_simC A R \<cdot> ex) s')"
   supply if_split [split del]
   apply (pair_induct ex simp: is_exec_frag_def)
   text \<open>cons case\<close>
@@ -181,7 +181,7 @@ text \<open>Lemma 2: \<open>corresp_ex_sim\<close> is execution\<close>
 lemma correspsim_is_execution [rule_format]:
   "is_simulation R C A \<Longrightarrow>
     \<forall>s s'. reachable C s \<and> is_exec_frag C (s, ex) \<and> (s, s') \<in> R
-      \<longrightarrow> is_exec_frag A (s', (corresp_ex_simC A R $ ex) s')"
+      \<longrightarrow> is_exec_frag A (s', (corresp_ex_simC A R \<cdot> ex) s')"
   apply (pair_induct ex simp: is_exec_frag_def)
   text \<open>main case\<close>
   apply auto

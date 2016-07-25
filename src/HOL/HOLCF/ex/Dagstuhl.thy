@@ -7,11 +7,11 @@ axiomatization
 
 definition
   YS :: "'a stream" where
-  "YS = fix$(LAM x. y && x)"
+  "YS = fix\<cdot>(LAM x. y && x)"
 
 definition
   YYS :: "'a stream" where
-  "YYS = fix$(LAM z. y && y && z)"
+  "YYS = fix\<cdot>(LAM z. y && y && z)"
 
 lemma YS_def2: "YS = y && YS"
   apply (rule trans)

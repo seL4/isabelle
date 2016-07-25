@@ -16,10 +16,10 @@ definition Consq :: "'a \<Rightarrow> 'a Seq \<rightarrow> 'a Seq"
   where "Consq a = (LAM s. Def a ## s)"
 
 definition Filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow> 'a Seq"
-  where "Filter P = sfilter $ (flift2 P)"
+  where "Filter P = sfilter \<cdot> (flift2 P)"
 
 definition Map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a Seq \<rightarrow> 'b Seq"
-  where "Map f = smap $ (flift2 f)"
+  where "Map f = smap \<cdot> (flift2 f)"
 
 definition Forall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<Rightarrow> bool"
   where "Forall P = sforall (flift2 P)"
@@ -28,14 +28,14 @@ definition Last :: "'a Seq \<rightarrow> 'a lift"
   where "Last = slast"
 
 definition Dropwhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow> 'a Seq"
-  where "Dropwhile P = sdropwhile $ (flift2 P)"
+  where "Dropwhile P = sdropwhile \<cdot> (flift2 P)"
 
 definition Takewhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow> 'a Seq"
-  where "Takewhile P = stakewhile $ (flift2 P)"
+  where "Takewhile P = stakewhile \<cdot> (flift2 P)"
 
 definition Zip :: "'a Seq \<rightarrow> 'b Seq \<rightarrow> ('a * 'b) Seq"
   where "Zip =
-    (fix $ (LAM h t1 t2.
+    (fix \<cdot> (LAM h t1 t2.
       case t1 of
         nil \<Rightarrow> nil
       | x ## xs \<Rightarrow>
@@ -47,24 +47,24 @@ definition Zip :: "'a Seq \<rightarrow> 'b Seq \<rightarrow> ('a * 'b) Seq"
               | Def a \<Rightarrow>
                   (case y of
                     UU \<Rightarrow> UU
-                  | Def b \<Rightarrow> Def (a, b) ## (h $ xs $ ys))))))"
+                  | Def b \<Rightarrow> Def (a, b) ## (h \<cdot> xs \<cdot> ys))))))"
 
 definition Flat :: "'a Seq seq \<rightarrow> 'a Seq"
   where "Flat = sflat"
 
 definition Filter2 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow> 'a Seq"
   where "Filter2 P =
-    (fix $
+    (fix \<cdot>
       (LAM h t.
         case t of
           nil \<Rightarrow> nil
         | x ## xs \<Rightarrow>
             (case x of
               UU \<Rightarrow> UU
-            | Def y \<Rightarrow> (if P y then x ## (h $ xs) else h $ xs))))"
+            | Def y \<Rightarrow> (if P y then x ## (h \<cdot> xs) else h \<cdot> xs))))"
 
 abbreviation Consq_syn  ("(_/\<leadsto>_)" [66, 65] 65)
-  where "a \<leadsto> s \<equiv> Consq a $ s"
+  where "a \<leadsto> s \<equiv> Consq a \<cdot> s"
 
 
 subsection \<open>List enumeration\<close>
@@ -87,25 +87,25 @@ subsection \<open>Recursive equations of operators\<close>
 
 subsubsection \<open>Map\<close>
 
-lemma Map_UU: "Map f $ UU = UU"
+lemma Map_UU: "Map f \<cdot> UU = UU"
   by (simp add: Map_def)
 
-lemma Map_nil: "Map f $ nil = nil"
+lemma Map_nil: "Map f \<cdot> nil = nil"
   by (simp add: Map_def)
 
-lemma Map_cons: "Map f $ (x \<leadsto> xs) = (f x) \<leadsto> Map f $ xs"
+lemma Map_cons: "Map f \<cdot> (x \<leadsto> xs) = (f x) \<leadsto> Map f \<cdot> xs"
   by (simp add: Map_def Consq_def flift2_def)
 
 
 subsubsection \<open>Filter\<close>
 
-lemma Filter_UU: "Filter P $ UU = UU"
+lemma Filter_UU: "Filter P \<cdot> UU = UU"
   by (simp add: Filter_def)
 
-lemma Filter_nil: "Filter P $ nil = nil"
+lemma Filter_nil: "Filter P \<cdot> nil = nil"
   by (simp add: Filter_def)
 
-lemma Filter_cons: "Filter P $ (x \<leadsto> xs) = (if P x then x \<leadsto> (Filter P $ xs) else Filter P $ xs)"
+lemma Filter_cons: "Filter P \<cdot> (x \<leadsto> xs) = (if P x then x \<leadsto> (Filter P \<cdot> xs) else Filter P \<cdot> xs)"
   by (simp add: Filter_def Consq_def flift2_def If_and_if)
 
 
@@ -129,50 +129,50 @@ lemma Conc_cons: "(x \<leadsto> xs) @@ y = x \<leadsto> (xs @@ y)"
 
 subsubsection \<open>Takewhile\<close>
 
-lemma Takewhile_UU: "Takewhile P $ UU = UU"
+lemma Takewhile_UU: "Takewhile P \<cdot> UU = UU"
   by (simp add: Takewhile_def)
 
-lemma Takewhile_nil: "Takewhile P $ nil = nil"
+lemma Takewhile_nil: "Takewhile P \<cdot> nil = nil"
   by (simp add: Takewhile_def)
 
 lemma Takewhile_cons:
-  "Takewhile P $ (x \<leadsto> xs) = (if P x then x \<leadsto> (Takewhile P $ xs) else nil)"
+  "Takewhile P \<cdot> (x \<leadsto> xs) = (if P x then x \<leadsto> (Takewhile P \<cdot> xs) else nil)"
   by (simp add: Takewhile_def Consq_def flift2_def If_and_if)
 
 
 subsubsection \<open>DropWhile\<close>
 
-lemma Dropwhile_UU: "Dropwhile P $ UU = UU"
+lemma Dropwhile_UU: "Dropwhile P \<cdot> UU = UU"
   by (simp add: Dropwhile_def)
 
-lemma Dropwhile_nil: "Dropwhile P $ nil = nil"
+lemma Dropwhile_nil: "Dropwhile P \<cdot> nil = nil"
   by (simp add: Dropwhile_def)
 
-lemma Dropwhile_cons: "Dropwhile P $ (x \<leadsto> xs) = (if P x then Dropwhile P $ xs else x \<leadsto> xs)"
+lemma Dropwhile_cons: "Dropwhile P \<cdot> (x \<leadsto> xs) = (if P x then Dropwhile P \<cdot> xs else x \<leadsto> xs)"
   by (simp add: Dropwhile_def Consq_def flift2_def If_and_if)
 
 
 subsubsection \<open>Last\<close>
 
-lemma Last_UU: "Last $ UU =UU"
+lemma Last_UU: "Last \<cdot> UU = UU"
   by (simp add: Last_def)
 
-lemma Last_nil: "Last $ nil =UU"
+lemma Last_nil: "Last \<cdot> nil = UU"
   by (simp add: Last_def)
 
-lemma Last_cons: "Last $ (x \<leadsto> xs) = (if xs = nil then Def x else Last $ xs)"
+lemma Last_cons: "Last \<cdot> (x \<leadsto> xs) = (if xs = nil then Def x else Last \<cdot> xs)"
   by (cases xs) (simp_all add: Last_def Consq_def)
 
 
 subsubsection \<open>Flat\<close>
 
-lemma Flat_UU: "Flat $ UU = UU"
+lemma Flat_UU: "Flat \<cdot> UU = UU"
   by (simp add: Flat_def)
 
-lemma Flat_nil: "Flat $ nil = nil"
+lemma Flat_nil: "Flat \<cdot> nil = nil"
   by (simp add: Flat_def)
 
-lemma Flat_cons: "Flat $ (x ## xs) = x @@ (Flat $ xs)"
+lemma Flat_cons: "Flat \<cdot> (x ## xs) = x @@ (Flat \<cdot> xs)"
   by (simp add: Flat_def Consq_def)
 
 
@@ -192,7 +192,7 @@ lemma Zip_unfold:
               | Def a \<Rightarrow>
                   (case y of
                     UU \<Rightarrow> UU
-                  | Def b \<Rightarrow> Def (a, b) ## (Zip $ xs $ ys)))))"
+                  | Def b \<Rightarrow> Def (a, b) ## (Zip \<cdot> xs \<cdot> ys)))))"
   apply (rule trans)
   apply (rule fix_eq4)
   apply (rule Zip_def)
@@ -200,29 +200,29 @@ lemma Zip_unfold:
   apply simp
   done
 
-lemma Zip_UU1: "Zip $ UU $ y = UU"
+lemma Zip_UU1: "Zip \<cdot> UU \<cdot> y = UU"
   apply (subst Zip_unfold)
   apply simp
   done
 
-lemma Zip_UU2: "x \<noteq> nil \<Longrightarrow> Zip $ x $ UU = UU"
+lemma Zip_UU2: "x \<noteq> nil \<Longrightarrow> Zip \<cdot> x \<cdot> UU = UU"
   apply (subst Zip_unfold)
   apply simp
   apply (cases x)
   apply simp_all
   done
 
-lemma Zip_nil: "Zip $ nil $ y = nil"
+lemma Zip_nil: "Zip \<cdot> nil \<cdot> y = nil"
   apply (subst Zip_unfold)
   apply simp
   done
 
-lemma Zip_cons_nil: "Zip $ (x \<leadsto> xs) $ nil = UU"
+lemma Zip_cons_nil: "Zip \<cdot> (x \<leadsto> xs) \<cdot> nil = UU"
   apply (subst Zip_unfold)
   apply (simp add: Consq_def)
   done
 
-lemma Zip_cons: "Zip $ (x \<leadsto> xs) $ (y \<leadsto> ys) = (x, y) \<leadsto> Zip $ xs $ ys"
+lemma Zip_cons: "Zip \<cdot> (x \<leadsto> xs) \<cdot> (y \<leadsto> ys) = (x, y) \<leadsto> Zip \<cdot> xs \<cdot> ys"
   apply (rule trans)
   apply (subst Zip_unfold)
   apply simp
@@ -298,7 +298,7 @@ lemma Cons_inject_eq: "a \<leadsto> s = b \<leadsto> t \<longleftrightarrow> a =
 lemma Cons_inject_less_eq: "a \<leadsto> s \<sqsubseteq> b \<leadsto> t \<longleftrightarrow> a = b \<and> s \<sqsubseteq> t"
   by (simp add: Consq_def2)
 
-lemma seq_take_Cons: "seq_take (Suc n) $ (a \<leadsto> x) = a \<leadsto> (seq_take n $ x)"
+lemma seq_take_Cons: "seq_take (Suc n) \<cdot> (a \<leadsto> x) = a \<leadsto> (seq_take n \<cdot> x)"
   by (simp add: Consq_def)
 
 lemmas [simp] =
@@ -345,10 +345,10 @@ lemma Seq_Finite_ind:
 
 subsection \<open>\<open>HD\<close> and \<open>TL\<close>\<close>
 
-lemma HD_Cons [simp]: "HD $ (x \<leadsto> y) = Def x"
+lemma HD_Cons [simp]: "HD \<cdot> (x \<leadsto> y) = Def x"
   by (simp add: Consq_def)
 
-lemma TL_Cons [simp]: "TL $ (x \<leadsto> y) = y"
+lemma TL_Cons [simp]: "TL \<cdot> (x \<leadsto> y) = y"
   by (simp add: Consq_def)
 
 
@@ -382,12 +382,12 @@ lemma FiniteConc [simp]: "Finite (x @@ y) \<longleftrightarrow> Finite (x::'a Se
   done
 
 
-lemma FiniteMap1: "Finite s \<Longrightarrow> Finite (Map f $ s)"
+lemma FiniteMap1: "Finite s \<Longrightarrow> Finite (Map f \<cdot> s)"
   apply (erule Seq_Finite_ind)
   apply simp_all
   done
 
-lemma FiniteMap2: "Finite s \<Longrightarrow> \<forall>t. s = Map f $ t \<longrightarrow> Finite t"
+lemma FiniteMap2: "Finite s \<Longrightarrow> \<forall>t. s = Map f \<cdot> t \<longrightarrow> Finite t"
   apply (erule Seq_Finite_ind)
   apply (intro strip)
   apply (rule_tac x="t" in Seq_cases, simp_all)
@@ -396,7 +396,7 @@ lemma FiniteMap2: "Finite s \<Longrightarrow> \<forall>t. s = Map f $ t \<longri
   apply (rule_tac x="t" in Seq_cases, simp_all)
   done
 
-lemma Map2Finite: "Finite (Map f $ s) = Finite s"
+lemma Map2Finite: "Finite (Map f \<cdot> s) = Finite s"
   apply auto
   apply (erule FiniteMap2 [rule_format])
   apply (rule refl)
@@ -404,7 +404,7 @@ lemma Map2Finite: "Finite (Map f $ s) = Finite s"
   done
 
 
-lemma FiniteFilter: "Finite s \<Longrightarrow> Finite (Filter P $ s)"
+lemma FiniteFilter: "Finite s \<Longrightarrow> Finite (Filter P \<cdot> s)"
   apply (erule Seq_Finite_ind)
   apply simp_all
   done
@@ -445,37 +445,37 @@ lemma nil_is_Conc2: "x @@ y = nil \<longleftrightarrow> (x::'a Seq) = nil \<and>
 
 subsection \<open>Last\<close>
 
-lemma Finite_Last1: "Finite s \<Longrightarrow> s \<noteq> nil \<longrightarrow> Last $ s \<noteq> UU"
+lemma Finite_Last1: "Finite s \<Longrightarrow> s \<noteq> nil \<longrightarrow> Last \<cdot> s \<noteq> UU"
   by (erule Seq_Finite_ind) simp_all
 
-lemma Finite_Last2: "Finite s \<Longrightarrow> Last $ s = UU \<longrightarrow> s = nil"
+lemma Finite_Last2: "Finite s \<Longrightarrow> Last \<cdot> s = UU \<longrightarrow> s = nil"
   by (erule Seq_Finite_ind) auto
 
 
 subsection \<open>Filter, Conc\<close>
 
-lemma FilterPQ: "Filter P $ (Filter Q $ s) = Filter (\<lambda>x. P x \<and> Q x) $ s"
+lemma FilterPQ: "Filter P \<cdot> (Filter Q \<cdot> s) = Filter (\<lambda>x. P x \<and> Q x) \<cdot> s"
   by (rule_tac x="s" in Seq_induct) simp_all
 
-lemma FilterConc: "Filter P $ (x @@ y) = (Filter P $ x @@ Filter P $ y)"
+lemma FilterConc: "Filter P \<cdot> (x @@ y) = (Filter P \<cdot> x @@ Filter P \<cdot> y)"
   by (simp add: Filter_def sfiltersconc)
 
 
 subsection \<open>Map\<close>
 
-lemma MapMap: "Map f $ (Map g $ s) = Map (f \<circ> g) $ s"
+lemma MapMap: "Map f \<cdot> (Map g \<cdot> s) = Map (f \<circ> g) \<cdot> s"
   by (rule_tac x="s" in Seq_induct) simp_all
 
-lemma MapConc: "Map f $ (x @@ y) = (Map f $ x) @@ (Map f $ y)"
+lemma MapConc: "Map f \<cdot> (x @@ y) = (Map f \<cdot> x) @@ (Map f \<cdot> y)"
   by (rule_tac x="x" in Seq_induct) simp_all
 
-lemma MapFilter: "Filter P $ (Map f $ x) = Map f $ (Filter (P \<circ> f) $ x)"
+lemma MapFilter: "Filter P \<cdot> (Map f \<cdot> x) = Map f \<cdot> (Filter (P \<circ> f) \<cdot> x)"
   by (rule_tac x="x" in Seq_induct) simp_all
 
-lemma nilMap: "nil = (Map f $ s) \<longrightarrow> s = nil"
+lemma nilMap: "nil = (Map f \<cdot> s) \<longrightarrow> s = nil"
   by (rule_tac x="s" in Seq_cases) simp_all
 
-lemma ForallMap: "Forall P (Map f $ s) = Forall (P \<circ> f) s"
+lemma ForallMap: "Forall P (Map f \<cdot> s) = Forall (P \<circ> f) s"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
@@ -502,7 +502,7 @@ lemma Forall_Conc_impl: "Forall P x \<and> Forall P y \<longrightarrow> Forall P
 lemma Forall_Conc [simp]: "Finite x \<Longrightarrow> Forall P (x @@ y) \<longleftrightarrow> Forall P x \<and> Forall P y"
   by (erule Seq_Finite_ind) simp_all
 
-lemma ForallTL1: "Forall P s \<longrightarrow> Forall P (TL $ s)"
+lemma ForallTL1: "Forall P s \<longrightarrow> Forall P (TL \<cdot> s)"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
@@ -510,7 +510,7 @@ lemma ForallTL1: "Forall P s \<longrightarrow> Forall P (TL $ s)"
 
 lemmas ForallTL = ForallTL1 [THEN mp]
 
-lemma ForallDropwhile1: "Forall P s \<longrightarrow> Forall P (Dropwhile Q $ s)"
+lemma ForallDropwhile1: "Forall P s \<longrightarrow> Forall P (Dropwhile Q \<cdot> s)"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
@@ -537,7 +537,7 @@ lemma Forall_postfixclosed: "Finite h \<Longrightarrow> Forall P s \<Longrightar
 
 
 lemma ForallPFilterQR1:
-  "(\<forall>x. P x \<longrightarrow> Q x = R x) \<and> Forall P tr \<longrightarrow> Filter Q $ tr = Filter R $ tr"
+  "(\<forall>x. P x \<longrightarrow> Q x = R x) \<and> Forall P tr \<longrightarrow> Filter Q \<cdot> tr = Filter R \<cdot> tr"
   apply (rule_tac x="tr" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
@@ -548,11 +548,11 @@ lemmas ForallPFilterQR = ForallPFilterQR1 [THEN mp, OF conjI, OF allI]
 
 subsection \<open>Forall, Filter\<close>
 
-lemma ForallPFilterP: "Forall P (Filter P $ x)"
+lemma ForallPFilterP: "Forall P (Filter P \<cdot> x)"
   by (simp add: Filter_def Forall_def forallPsfilterP)
 
 (*holds also in other direction, then equal to forallPfilterP*)
-lemma ForallPFilterPid1: "Forall P x \<longrightarrow> Filter P $ x = x"
+lemma ForallPFilterPid1: "Forall P x \<longrightarrow> Filter P \<cdot> x = x"
   apply (rule_tac x="x" in Seq_induct)
   apply (simp add: Forall_def sforall_def Filter_def)
   apply simp_all
@@ -561,14 +561,14 @@ lemma ForallPFilterPid1: "Forall P x \<longrightarrow> Filter P $ x = x"
 lemmas ForallPFilterPid = ForallPFilterPid1 [THEN mp]
 
 (*holds also in other direction*)
-lemma ForallnPFilterPnil1: "Finite ys \<Longrightarrow> Forall (\<lambda>x. \<not> P x) ys \<longrightarrow> Filter P $ ys = nil"
+lemma ForallnPFilterPnil1: "Finite ys \<Longrightarrow> Forall (\<lambda>x. \<not> P x) ys \<longrightarrow> Filter P \<cdot> ys = nil"
   by (erule Seq_Finite_ind) simp_all
 
 lemmas ForallnPFilterPnil = ForallnPFilterPnil1 [THEN mp]
 
 
 (*holds also in other direction*)
-lemma ForallnPFilterPUU1: "\<not> Finite ys \<and> Forall (\<lambda>x. \<not> P x) ys \<longrightarrow> Filter P $ ys = UU"
+lemma ForallnPFilterPUU1: "\<not> Finite ys \<and> Forall (\<lambda>x. \<not> P x) ys \<longrightarrow> Filter P \<cdot> ys = UU"
   apply (rule_tac x="ys" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
@@ -578,7 +578,7 @@ lemmas ForallnPFilterPUU = ForallnPFilterPUU1 [THEN mp, OF conjI]
 
 
 (*inverse of ForallnPFilterPnil*)
-lemma FilternPnilForallP [rule_format]: "Filter P $ ys = nil \<longrightarrow> Forall (\<lambda>x. \<not> P x) ys \<and> Finite ys"
+lemma FilternPnilForallP [rule_format]: "Filter P \<cdot> ys = nil \<longrightarrow> Forall (\<lambda>x. \<not> P x) ys \<and> Finite ys"
   apply (rule_tac x="ys" in Seq_induct)
   text \<open>adm\<close>
   apply (simp add: Forall_def sforall_def)
@@ -591,13 +591,13 @@ lemma FilternPnilForallP [rule_format]: "Filter P $ ys = nil \<longrightarrow> F
 
 (*inverse of ForallnPFilterPUU*)
 lemma FilternPUUForallP:
-  assumes "Filter P $ ys = UU"
+  assumes "Filter P \<cdot> ys = UU"
   shows "Forall (\<lambda>x. \<not> P x) ys \<and> \<not> Finite ys"
 proof
   show "Forall (\<lambda>x. \<not> P x) ys"
   proof (rule classical)
     assume "\<not> ?thesis"
-    then have "Filter P $ ys \<noteq> UU"
+    then have "Filter P \<cdot> ys \<noteq> UU"
       apply (rule rev_mp)
       apply (induct ys rule: Seq_induct)
       apply (simp add: Forall_def sforall_def)
@@ -608,7 +608,7 @@ proof
   show "\<not> Finite ys"
   proof
     assume "Finite ys"
-    then have "Filter P$ys \<noteq> UU"
+    then have "Filter P\<cdot>ys \<noteq> UU"
       by (rule Seq_Finite_ind) simp_all
     with assms show False by contradiction
   qed
@@ -616,13 +616,13 @@ qed
 
 
 lemma ForallQFilterPnil:
-  "Forall Q ys \<Longrightarrow> Finite ys \<Longrightarrow> (\<And>x. Q x \<Longrightarrow> \<not> P x) \<Longrightarrow> Filter P $ ys = nil"
+  "Forall Q ys \<Longrightarrow> Finite ys \<Longrightarrow> (\<And>x. Q x \<Longrightarrow> \<not> P x) \<Longrightarrow> Filter P \<cdot> ys = nil"
   apply (erule ForallnPFilterPnil)
   apply (erule ForallPForallQ)
   apply auto
   done
 
-lemma ForallQFilterPUU: "\<not> Finite ys \<Longrightarrow> Forall Q ys \<Longrightarrow> (\<And>x. Q x \<Longrightarrow> \<not> P x) \<Longrightarrow> Filter P $ ys = UU"
+lemma ForallQFilterPUU: "\<not> Finite ys \<Longrightarrow> Forall Q ys \<Longrightarrow> (\<And>x. Q x \<Longrightarrow> \<not> P x) \<Longrightarrow> Filter P \<cdot> ys = UU"
   apply (erule ForallnPFilterPUU)
   apply (erule ForallPForallQ)
   apply auto
@@ -631,11 +631,11 @@ lemma ForallQFilterPUU: "\<not> Finite ys \<Longrightarrow> Forall Q ys \<Longri
 
 subsection \<open>Takewhile, Forall, Filter\<close>
 
-lemma ForallPTakewhileP [simp]: "Forall P (Takewhile P $ x)"
+lemma ForallPTakewhileP [simp]: "Forall P (Takewhile P \<cdot> x)"
   by (simp add: Forall_def Takewhile_def sforallPstakewhileP)
 
 
-lemma ForallPTakewhileQ [simp]: "(\<And>x. Q x \<Longrightarrow> P x) \<Longrightarrow> Forall P (Takewhile Q $ x)"
+lemma ForallPTakewhileQ [simp]: "(\<And>x. Q x \<Longrightarrow> P x) \<Longrightarrow> Forall P (Takewhile Q \<cdot> x)"
   apply (rule ForallPForallQ)
   apply (rule ForallPTakewhileP)
   apply auto
@@ -643,7 +643,7 @@ lemma ForallPTakewhileQ [simp]: "(\<And>x. Q x \<Longrightarrow> P x) \<Longrigh
 
 
 lemma FilterPTakewhileQnil [simp]:
-  "Finite (Takewhile Q $ ys) \<Longrightarrow> (\<And>x. Q x \<Longrightarrow> \<not> P x) \<Longrightarrow> Filter P $ (Takewhile Q $ ys) = nil"
+  "Finite (Takewhile Q \<cdot> ys) \<Longrightarrow> (\<And>x. Q x \<Longrightarrow> \<not> P x) \<Longrightarrow> Filter P \<cdot> (Takewhile Q \<cdot> ys) = nil"
   apply (erule ForallnPFilterPnil)
   apply (rule ForallPForallQ)
   apply (rule ForallPTakewhileP)
@@ -651,7 +651,7 @@ lemma FilterPTakewhileQnil [simp]:
   done
 
 lemma FilterPTakewhileQid [simp]:
-  "(\<And>x. Q x \<Longrightarrow> P x) \<Longrightarrow> Filter P $ (Takewhile Q $ ys) = Takewhile Q $ ys"
+  "(\<And>x. Q x \<Longrightarrow> P x) \<Longrightarrow> Filter P \<cdot> (Takewhile Q \<cdot> ys) = Takewhile Q \<cdot> ys"
   apply (rule ForallPFilterPid)
   apply (rule ForallPForallQ)
   apply (rule ForallPTakewhileP)
@@ -659,28 +659,28 @@ lemma FilterPTakewhileQid [simp]:
   done
 
 
-lemma Takewhile_idempotent: "Takewhile P $ (Takewhile P $ s) = Takewhile P $ s"
+lemma Takewhile_idempotent: "Takewhile P \<cdot> (Takewhile P \<cdot> s) = Takewhile P \<cdot> s"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
   done
 
 lemma ForallPTakewhileQnP [simp]:
-  "Forall P s \<longrightarrow> Takewhile (\<lambda>x. Q x \<or> (\<not> P x)) $ s = Takewhile Q $ s"
+  "Forall P s \<longrightarrow> Takewhile (\<lambda>x. Q x \<or> (\<not> P x)) \<cdot> s = Takewhile Q \<cdot> s"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
   done
 
 lemma ForallPDropwhileQnP [simp]:
-  "Forall P s \<longrightarrow> Dropwhile (\<lambda>x. Q x \<or> (\<not> P x)) $ s = Dropwhile Q $ s"
+  "Forall P s \<longrightarrow> Dropwhile (\<lambda>x. Q x \<or> (\<not> P x)) \<cdot> s = Dropwhile Q \<cdot> s"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
   done
 
 
-lemma TakewhileConc1: "Forall P s \<longrightarrow> Takewhile P $ (s @@ t) = s @@ (Takewhile P $ t)"
+lemma TakewhileConc1: "Forall P s \<longrightarrow> Takewhile P \<cdot> (s @@ t) = s @@ (Takewhile P \<cdot> t)"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
@@ -688,7 +688,7 @@ lemma TakewhileConc1: "Forall P s \<longrightarrow> Takewhile P $ (s @@ t) = s @
 
 lemmas TakewhileConc = TakewhileConc1 [THEN mp]
 
-lemma DropwhileConc1: "Finite s \<Longrightarrow> Forall P s \<longrightarrow> Dropwhile P $ (s @@ t) = Dropwhile P $ t"
+lemma DropwhileConc1: "Finite s \<Longrightarrow> Forall P s \<longrightarrow> Dropwhile P \<cdot> (s @@ t) = Dropwhile P \<cdot> t"
   by (erule Seq_Finite_ind) simp_all
 
 lemmas DropwhileConc = DropwhileConc1 [THEN mp]
@@ -697,9 +697,9 @@ lemmas DropwhileConc = DropwhileConc1 [THEN mp]
 subsection \<open>Coinductive characterizations of Filter\<close>
 
 lemma divide_Seq_lemma:
-  "HD $ (Filter P $ y) = Def x \<longrightarrow>
-    y = (Takewhile (\<lambda>x. \<not> P x) $ y) @@ (x \<leadsto> TL $ (Dropwhile (\<lambda>a. \<not> P a) $ y)) \<and>
-    Finite (Takewhile (\<lambda>x. \<not> P x) $ y) \<and> P x"
+  "HD \<cdot> (Filter P \<cdot> y) = Def x \<longrightarrow>
+    y = (Takewhile (\<lambda>x. \<not> P x) \<cdot> y) @@ (x \<leadsto> TL \<cdot> (Dropwhile (\<lambda>a. \<not> P a) \<cdot> y)) \<and>
+    Finite (Takewhile (\<lambda>x. \<not> P x) \<cdot> y) \<and> P x"
   (* FIX: pay attention: is only admissible with chain-finite package to be added to
           adm test and Finite f x admissibility *)
   apply (rule_tac x="y" in Seq_induct)
@@ -713,16 +713,16 @@ lemma divide_Seq_lemma:
   apply simp
   done
 
-lemma divide_Seq: "(x \<leadsto> xs) \<sqsubseteq> Filter P $ y \<Longrightarrow>
-  y = ((Takewhile (\<lambda>a. \<not> P a) $ y) @@ (x \<leadsto> TL $ (Dropwhile (\<lambda>a. \<not> P a) $ y))) \<and>
-  Finite (Takewhile (\<lambda>a. \<not> P a) $ y) \<and> P x"
+lemma divide_Seq: "(x \<leadsto> xs) \<sqsubseteq> Filter P \<cdot> y \<Longrightarrow>
+  y = ((Takewhile (\<lambda>a. \<not> P a) \<cdot> y) @@ (x \<leadsto> TL \<cdot> (Dropwhile (\<lambda>a. \<not> P a) \<cdot> y))) \<and>
+  Finite (Takewhile (\<lambda>a. \<not> P a) \<cdot> y) \<and> P x"
   apply (rule divide_Seq_lemma [THEN mp])
   apply (drule_tac f="HD" and x="x \<leadsto> xs" in  monofun_cfun_arg)
   apply simp
   done
 
 
-lemma nForall_HDFilter: "\<not> Forall P y \<longrightarrow> (\<exists>x. HD $ (Filter (\<lambda>a. \<not> P a) $ y) = Def x)"
+lemma nForall_HDFilter: "\<not> Forall P y \<longrightarrow> (\<exists>x. HD \<cdot> (Filter (\<lambda>a. \<not> P a) \<cdot> y) = Def x)"
   unfolding not_Undef_is_Def [symmetric]
   apply (induct y rule: Seq_induct)
   apply (simp add: Forall_def sforall_def)
@@ -732,7 +732,7 @@ lemma nForall_HDFilter: "\<not> Forall P y \<longrightarrow> (\<exists>x. HD $ (
 
 lemma divide_Seq2:
   "\<not> Forall P y \<Longrightarrow>
-    \<exists>x. y = Takewhile P$y @@ (x \<leadsto> TL $ (Dropwhile P $ y)) \<and> Finite (Takewhile P $ y) \<and> \<not> P x"
+    \<exists>x. y = Takewhile P\<cdot>y @@ (x \<leadsto> TL \<cdot> (Dropwhile P \<cdot> y)) \<and> Finite (Takewhile P \<cdot> y) \<and> \<not> P x"
   apply (drule nForall_HDFilter [THEN mp])
   apply safe
   apply (rule_tac x="x" in exI)
@@ -752,15 +752,15 @@ lemmas [simp] = FilterPQ FilterConc Conc_cong
 
 subsection \<open>Take-lemma\<close>
 
-lemma seq_take_lemma: "(\<forall>n. seq_take n $ x = seq_take n $ x') \<longleftrightarrow> x = x'"
+lemma seq_take_lemma: "(\<forall>n. seq_take n \<cdot> x = seq_take n \<cdot> x') \<longleftrightarrow> x = x'"
   apply (rule iffI)
   apply (rule seq.take_lemma)
   apply auto
   done
 
 lemma take_reduction1:
-  "\<forall>n. ((\<forall>k. k < n \<longrightarrow> seq_take k $ y1 = seq_take k $ y2) \<longrightarrow>
-    seq_take n $ (x @@ (t \<leadsto> y1)) =  seq_take n $ (x @@ (t \<leadsto> y2)))"
+  "\<forall>n. ((\<forall>k. k < n \<longrightarrow> seq_take k \<cdot> y1 = seq_take k \<cdot> y2) \<longrightarrow>
+    seq_take n \<cdot> (x @@ (t \<leadsto> y1)) =  seq_take n \<cdot> (x @@ (t \<leadsto> y2)))"
   apply (rule_tac x="x" in Seq_induct)
   apply simp_all
   apply (intro strip)
@@ -771,8 +771,8 @@ lemma take_reduction1:
   done
 
 lemma take_reduction:
-  "x = y \<Longrightarrow> s = t \<Longrightarrow> (\<And>k. k < n \<Longrightarrow> seq_take k $ y1 = seq_take k $ y2)
-    \<Longrightarrow> seq_take n $ (x @@ (s \<leadsto> y1)) = seq_take n $ (y @@ (t \<leadsto> y2))"
+  "x = y \<Longrightarrow> s = t \<Longrightarrow> (\<And>k. k < n \<Longrightarrow> seq_take k \<cdot> y1 = seq_take k \<cdot> y2)
+    \<Longrightarrow> seq_take n \<cdot> (x @@ (s \<leadsto> y1)) = seq_take n \<cdot> (y @@ (t \<leadsto> y2))"
   by (auto intro!: take_reduction1 [rule_format])
 
 
@@ -781,8 +781,8 @@ text \<open>
 \<close>
           
 lemma take_reduction_less1:
-  "\<forall>n. ((\<forall>k. k < n \<longrightarrow> seq_take k $ y1 \<sqsubseteq> seq_take k$y2) \<longrightarrow>
-    seq_take n $ (x @@ (t \<leadsto> y1)) \<sqsubseteq> seq_take n $ (x @@ (t \<leadsto> y2)))"
+  "\<forall>n. ((\<forall>k. k < n \<longrightarrow> seq_take k \<cdot> y1 \<sqsubseteq> seq_take k\<cdot>y2) \<longrightarrow>
+    seq_take n \<cdot> (x @@ (t \<leadsto> y1)) \<sqsubseteq> seq_take n \<cdot> (x @@ (t \<leadsto> y2)))"
   apply (rule_tac x="x" in Seq_induct)
   apply simp_all
   apply (intro strip)
@@ -793,12 +793,12 @@ lemma take_reduction_less1:
   done
 
 lemma take_reduction_less:
-  "x = y \<Longrightarrow> s = t \<Longrightarrow> (\<And>k. k < n \<Longrightarrow> seq_take k $ y1 \<sqsubseteq> seq_take k $ y2) \<Longrightarrow>
-    seq_take n $ (x @@ (s \<leadsto> y1)) \<sqsubseteq> seq_take n $ (y @@ (t \<leadsto> y2))"
+  "x = y \<Longrightarrow> s = t \<Longrightarrow> (\<And>k. k < n \<Longrightarrow> seq_take k \<cdot> y1 \<sqsubseteq> seq_take k \<cdot> y2) \<Longrightarrow>
+    seq_take n \<cdot> (x @@ (s \<leadsto> y1)) \<sqsubseteq> seq_take n \<cdot> (y @@ (t \<leadsto> y2))"
   by (auto intro!: take_reduction_less1 [rule_format])
 
 lemma take_lemma_less1:
-  assumes "\<And>n. seq_take n $ s1 \<sqsubseteq> seq_take n $ s2"
+  assumes "\<And>n. seq_take n \<cdot> s1 \<sqsubseteq> seq_take n \<cdot> s2"
   shows "s1 \<sqsubseteq> s2"
   apply (rule_tac t="s1" in seq.reach [THEN subst])
   apply (rule_tac t="s2" in seq.reach [THEN subst])
@@ -808,7 +808,7 @@ lemma take_lemma_less1:
   apply (rule assms)
   done
 
-lemma take_lemma_less: "(\<forall>n. seq_take n $ x \<sqsubseteq> seq_take n $ x') \<longleftrightarrow> x \<sqsubseteq> x'"
+lemma take_lemma_less: "(\<forall>n. seq_take n \<cdot> x \<sqsubseteq> seq_take n \<cdot> x') \<longleftrightarrow> x \<sqsubseteq> x'"
   apply (rule iffI)
   apply (rule take_lemma_less1)
   apply auto
@@ -828,7 +828,7 @@ lemma take_lemma_principle1:
 lemma take_lemma_principle2:
   assumes "\<And>s. Forall Q s \<Longrightarrow> A s \<Longrightarrow> f s = g s"
     and "\<And>s1 s2 y. Forall Q s1 \<Longrightarrow> Finite s1 \<Longrightarrow> \<not> Q y \<Longrightarrow> A (s1 @@ y \<leadsto> s2) \<Longrightarrow>
-      \<forall>n. seq_take n $ (f (s1 @@ y \<leadsto> s2)) = seq_take n $ (g (s1 @@ y \<leadsto> s2))"
+      \<forall>n. seq_take n \<cdot> (f (s1 @@ y \<leadsto> s2)) = seq_take n \<cdot> (g (s1 @@ y \<leadsto> s2))"
   shows "A x \<longrightarrow> f x = g x"
   using assms
   apply (cases "Forall Q x")
@@ -852,10 +852,10 @@ text \<open>
 lemma take_lemma_induct:
   assumes "\<And>s. Forall Q s \<Longrightarrow> A s \<Longrightarrow> f s = g s"
     and "\<And>s1 s2 y n.
-      \<forall>t. A t \<longrightarrow> seq_take n $ (f t) = seq_take n $ (g t) \<Longrightarrow>
+      \<forall>t. A t \<longrightarrow> seq_take n \<cdot> (f t) = seq_take n \<cdot> (g t) \<Longrightarrow>
       Forall Q s1 \<Longrightarrow> Finite s1 \<Longrightarrow> \<not> Q y \<Longrightarrow> A (s1 @@ y \<leadsto> s2) \<Longrightarrow>
-      seq_take (Suc n) $ (f (s1 @@ y \<leadsto> s2)) =
-      seq_take (Suc n) $ (g (s1 @@ y \<leadsto> s2))"
+      seq_take (Suc n) \<cdot> (f (s1 @@ y \<leadsto> s2)) =
+      seq_take (Suc n) \<cdot> (g (s1 @@ y \<leadsto> s2))"
   shows "A x \<longrightarrow> f x = g x"
   apply (insert assms)
   apply (rule impI)
@@ -875,10 +875,10 @@ lemma take_lemma_induct:
 lemma take_lemma_less_induct:
   assumes "\<And>s. Forall Q s \<Longrightarrow> A s \<Longrightarrow> f s = g s"
     and "\<And>s1 s2 y n.
-      \<forall>t m. m < n \<longrightarrow> A t \<longrightarrow> seq_take m $ (f t) = seq_take m $ (g t) \<Longrightarrow>
+      \<forall>t m. m < n \<longrightarrow> A t \<longrightarrow> seq_take m \<cdot> (f t) = seq_take m \<cdot> (g t) \<Longrightarrow>
       Forall Q s1 \<Longrightarrow> Finite s1 \<Longrightarrow> \<not> Q y \<Longrightarrow> A (s1 @@ y \<leadsto> s2) \<Longrightarrow>
-      seq_take n $ (f (s1 @@ y \<leadsto> s2)) =
-      seq_take n $ (g (s1 @@ y \<leadsto> s2))"
+      seq_take n \<cdot> (f (s1 @@ y \<leadsto> s2)) =
+      seq_take n \<cdot> (g (s1 @@ y \<leadsto> s2))"
   shows "A x \<longrightarrow> f x = g x"
   apply (insert assms)
   apply (rule impI)
@@ -899,9 +899,9 @@ lemma take_lemma_in_eq_out:
   assumes "A UU \<Longrightarrow> f UU = g UU"
     and "A nil \<Longrightarrow> f nil = g nil"
     and "\<And>s y n.
-      \<forall>t. A t \<longrightarrow> seq_take n $ (f t) = seq_take n $ (g t) \<Longrightarrow> A (y \<leadsto> s) \<Longrightarrow>
-      seq_take (Suc n) $ (f (y \<leadsto> s)) =
-      seq_take (Suc n) $ (g (y \<leadsto> s))"
+      \<forall>t. A t \<longrightarrow> seq_take n \<cdot> (f t) = seq_take n \<cdot> (g t) \<Longrightarrow> A (y \<leadsto> s) \<Longrightarrow>
+      seq_take (Suc n) \<cdot> (f (y \<leadsto> s)) =
+      seq_take (Suc n) \<cdot> (g (y \<leadsto> s))"
   shows "A x \<longrightarrow> f x = g x"
   apply (insert assms)
   apply (rule impI)
@@ -928,21 +928,21 @@ declare FilterPQ [simp del]
   as for the entire proof?*)
 lemma Filter_lemma1:
   "Forall (\<lambda>x. \<not> (P x \<and> Q x)) s \<longrightarrow>
-    Filter P $ (Filter Q $ s) = Filter (\<lambda>x. P x \<and> Q x) $ s"
+    Filter P \<cdot> (Filter Q \<cdot> s) = Filter (\<lambda>x. P x \<and> Q x) \<cdot> s"
   apply (rule_tac x="s" in Seq_induct)
   apply (simp add: Forall_def sforall_def)
   apply simp_all
   done
 
 lemma Filter_lemma2: "Finite s \<Longrightarrow>
-  Forall (\<lambda>x. \<not> P x \<or> \<not> Q x) s \<longrightarrow> Filter P $ (Filter Q $ s) = nil"
+  Forall (\<lambda>x. \<not> P x \<or> \<not> Q x) s \<longrightarrow> Filter P \<cdot> (Filter Q \<cdot> s) = nil"
   by (erule Seq_Finite_ind) simp_all
 
 lemma Filter_lemma3: "Finite s \<Longrightarrow>
-  Forall (\<lambda>x. \<not> P x \<or> \<not> Q x) s \<longrightarrow> Filter (\<lambda>x. P x \<and> Q x) $ s = nil"
+  Forall (\<lambda>x. \<not> P x \<or> \<not> Q x) s \<longrightarrow> Filter (\<lambda>x. P x \<and> Q x) \<cdot> s = nil"
   by (erule Seq_Finite_ind) simp_all
 
-lemma FilterPQ_takelemma: "Filter P $ (Filter Q $ s) = Filter (\<lambda>x. P x \<and> Q x) $ s"
+lemma FilterPQ_takelemma: "Filter P \<cdot> (Filter Q \<cdot> s) = Filter (\<lambda>x. P x \<and> Q x) \<cdot> s"
   apply (rule_tac A1="\<lambda>x. True" and Q1="\<lambda>x. \<not> (P x \<and> Q x)" and x1="s" in
     take_lemma_induct [THEN mp])
   (*better support for A = \<lambda>x. True*)
@@ -956,7 +956,7 @@ declare FilterPQ [simp]
 
 subsubsection \<open>Alternative Proof of \<open>MapConc\<close>\<close>
 
-lemma MapConc_takelemma: "Map f $ (x @@ y) = (Map f $ x) @@ (Map f $ y)"
+lemma MapConc_takelemma: "Map f \<cdot> (x @@ y) = (Map f \<cdot> x) @@ (Map f \<cdot> y)"
   apply (rule_tac A1="\<lambda>x. True" and x1="x" in take_lemma_in_eq_out [THEN mp])
   apply auto
   done
@@ -1017,13 +1017,13 @@ method_setup pair_induct =
     Scan.optional ((Scan.lift (Args.$$$ "simp" -- Args.colon) |-- Attrib.thms)) []
     >> (fn (s, rws) => fn ctxt => SIMPLE_METHOD' (pair_induct_tac ctxt s rws))\<close>
 
-lemma Mapnil: "Map f $ s = nil \<longleftrightarrow> s = nil"
+lemma Mapnil: "Map f \<cdot> s = nil \<longleftrightarrow> s = nil"
   by (Seq_case_simp s)
 
-lemma MapUU: "Map f $ s = UU \<longleftrightarrow> s = UU"
+lemma MapUU: "Map f \<cdot> s = UU \<longleftrightarrow> s = UU"
   by (Seq_case_simp s)
 
-lemma MapTL: "Map f $ (TL $ s) = TL $ (Map f $ s)"
+lemma MapTL: "Map f \<cdot> (TL \<cdot> s) = TL \<cdot> (Map f \<cdot> s)"
   by (Seq_induct s)
 
 end

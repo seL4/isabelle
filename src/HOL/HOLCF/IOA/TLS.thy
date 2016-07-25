@@ -35,12 +35,12 @@ definition xt2 :: "'a option predicate \<Rightarrow> ('a, 's) step_pred"
 
 definition ex2seqC :: "('a, 's) pairs \<rightarrow> ('s \<Rightarrow> ('a option, 's) transition Seq)"
   where "ex2seqC =
-    (fix $ (LAM h ex. (\<lambda>s. case ex of
+    (fix \<cdot> (LAM h ex. (\<lambda>s. case ex of
       nil \<Rightarrow> (s, None, s) \<leadsto> nil
-    | x ## xs \<Rightarrow> (flift1 (\<lambda>pr. (s, Some (fst pr), snd pr) \<leadsto> (h $ xs) (snd pr)) $ x))))"
+    | x ## xs \<Rightarrow> (flift1 (\<lambda>pr. (s, Some (fst pr), snd pr) \<leadsto> (h \<cdot> xs) (snd pr)) \<cdot> x))))"
 
 definition ex2seq :: "('a, 's) execution \<Rightarrow> ('a option, 's) transition Seq"
-  where "ex2seq ex = (ex2seqC $ (mkfin (snd ex))) (fst ex)"
+  where "ex2seq ex = (ex2seqC \<cdot> (mkfin (snd ex))) (fst ex)"
 
 definition temp_sat :: "('a, 's) execution \<Rightarrow> ('a, 's) ioa_temp \<Rightarrow> bool"  (infixr "\<TTurnstile>" 22)
   where "(ex \<TTurnstile> P) \<longleftrightarrow> ((ex2seq ex) \<Turnstile> P)"
@@ -83,7 +83,7 @@ lemma ex2seqC_unfold:
     (LAM ex. (\<lambda>s. case ex of
       nil \<Rightarrow> (s, None, s) \<leadsto> nil
     | x ## xs \<Rightarrow>
-        (flift1 (\<lambda>pr. (s, Some (fst pr), snd pr) \<leadsto> (ex2seqC $ xs) (snd pr)) $ x)))"
+        (flift1 (\<lambda>pr. (s, Some (fst pr), snd pr) \<leadsto> (ex2seqC \<cdot> xs) (snd pr)) \<cdot> x)))"
   apply (rule trans)
   apply (rule fix_eq4)
   apply (rule ex2seqC_def)
@@ -91,17 +91,17 @@ lemma ex2seqC_unfold:
   apply (simp add: flift1_def)
   done
 
-lemma ex2seqC_UU [simp]: "(ex2seqC $ UU) s = UU"
+lemma ex2seqC_UU [simp]: "(ex2seqC \<cdot> UU) s = UU"
   apply (subst ex2seqC_unfold)
   apply simp
   done
 
-lemma ex2seqC_nil [simp]: "(ex2seqC $ nil) s = (s, None, s) \<leadsto> nil"
+lemma ex2seqC_nil [simp]: "(ex2seqC \<cdot> nil) s = (s, None, s) \<leadsto> nil"
   apply (subst ex2seqC_unfold)
   apply simp
   done
 
-lemma ex2seqC_cons [simp]: "(ex2seqC $ ((a, t) \<leadsto> xs)) s = (s, Some a,t ) \<leadsto> (ex2seqC $ xs) t"
+lemma ex2seqC_cons [simp]: "(ex2seqC \<cdot> ((a, t) \<leadsto> xs)) s = (s, Some a,t ) \<leadsto> (ex2seqC \<cdot> xs) t"
   apply (rule trans)
   apply (subst ex2seqC_unfold)
   apply (simp add: Consq_def flift1_def)

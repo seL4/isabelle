@@ -32,10 +32,10 @@ subsubsection \<open>\<open>smap\<close>\<close>
 
 fixrec smap :: "('a \<rightarrow> 'b) \<rightarrow> 'a seq \<rightarrow> 'b seq"
 where
-  smap_nil: "smap $ f $ nil = nil"
-| smap_cons: "x \<noteq> UU \<Longrightarrow> smap $ f $ (x ## xs) = (f $ x) ## smap $ f $ xs"
+  smap_nil: "smap \<cdot> f \<cdot> nil = nil"
+| smap_cons: "x \<noteq> UU \<Longrightarrow> smap \<cdot> f \<cdot> (x ## xs) = (f \<cdot> x) ## smap \<cdot> f \<cdot> xs"
 
-lemma smap_UU [simp]: "smap $ f $ UU = UU"
+lemma smap_UU [simp]: "smap \<cdot> f \<cdot> UU = UU"
   by fixrec_simp
 
 
@@ -43,13 +43,13 @@ subsubsection \<open>\<open>sfilter\<close>\<close>
 
 fixrec sfilter :: "('a \<rightarrow> tr) \<rightarrow> 'a seq \<rightarrow> 'a seq"
 where
-  sfilter_nil: "sfilter $ P $ nil = nil"
+  sfilter_nil: "sfilter \<cdot> P \<cdot> nil = nil"
 | sfilter_cons:
     "x \<noteq> UU \<Longrightarrow>
-      sfilter $ P $ (x ## xs) =
-      (If P $ x then x ## (sfilter $ P $ xs) else sfilter $ P $ xs)"
+      sfilter \<cdot> P \<cdot> (x ## xs) =
+      (If P \<cdot> x then x ## (sfilter \<cdot> P \<cdot> xs) else sfilter \<cdot> P \<cdot> xs)"
 
-lemma sfilter_UU [simp]: "sfilter $ P $ UU = UU"
+lemma sfilter_UU [simp]: "sfilter \<cdot> P \<cdot> UU = UU"
   by fixrec_simp
 
 
@@ -57,24 +57,24 @@ subsubsection \<open>\<open>sforall2\<close>\<close>
 
 fixrec sforall2 :: "('a \<rightarrow> tr) \<rightarrow> 'a seq \<rightarrow> tr"
 where
-  sforall2_nil: "sforall2 $ P $ nil = TT"
-| sforall2_cons: "x \<noteq> UU \<Longrightarrow> sforall2 $ P $ (x ## xs) = ((P $ x) andalso sforall2 $ P $ xs)"
+  sforall2_nil: "sforall2 \<cdot> P \<cdot> nil = TT"
+| sforall2_cons: "x \<noteq> UU \<Longrightarrow> sforall2 \<cdot> P \<cdot> (x ## xs) = ((P \<cdot> x) andalso sforall2 \<cdot> P \<cdot> xs)"
 
-lemma sforall2_UU [simp]: "sforall2 $ P $ UU = UU"
+lemma sforall2_UU [simp]: "sforall2 \<cdot> P \<cdot> UU = UU"
   by fixrec_simp
 
-definition "sforall P t = (sforall2 $ P $ t \<noteq> FF)"
+definition "sforall P t \<longleftrightarrow> sforall2 \<cdot> P \<cdot> t \<noteq> FF"
 
 
 subsubsection \<open>\<open>stakewhile\<close>\<close>
 
 fixrec stakewhile :: "('a \<rightarrow> tr) \<rightarrow> 'a seq \<rightarrow> 'a seq"
 where
-  stakewhile_nil: "stakewhile $ P $ nil = nil"
+  stakewhile_nil: "stakewhile \<cdot> P \<cdot> nil = nil"
 | stakewhile_cons:
-    "x \<noteq> UU \<Longrightarrow> stakewhile $ P $ (x ## xs) = (If P $ x then x ## (stakewhile $ P $ xs) else nil)"
+    "x \<noteq> UU \<Longrightarrow> stakewhile \<cdot> P \<cdot> (x ## xs) = (If P \<cdot> x then x ## (stakewhile \<cdot> P \<cdot> xs) else nil)"
 
-lemma stakewhile_UU [simp]: "stakewhile $ P $ UU = UU"
+lemma stakewhile_UU [simp]: "stakewhile \<cdot> P \<cdot> UU = UU"
   by fixrec_simp
 
 
@@ -82,11 +82,11 @@ subsubsection \<open>\<open>sdropwhile\<close>\<close>
 
 fixrec sdropwhile :: "('a \<rightarrow> tr) \<rightarrow> 'a seq \<rightarrow> 'a seq"
 where
-  sdropwhile_nil: "sdropwhile $ P $ nil = nil"
+  sdropwhile_nil: "sdropwhile \<cdot> P \<cdot> nil = nil"
 | sdropwhile_cons:
-    "x \<noteq> UU \<Longrightarrow> sdropwhile $ P $ (x ## xs) = (If P $ x then sdropwhile $ P $ xs else x ## xs)"
+    "x \<noteq> UU \<Longrightarrow> sdropwhile \<cdot> P \<cdot> (x ## xs) = (If P \<cdot> x then sdropwhile \<cdot> P \<cdot> xs else x ## xs)"
 
-lemma sdropwhile_UU [simp]: "sdropwhile $ P $ UU = UU"
+lemma sdropwhile_UU [simp]: "sdropwhile \<cdot> P \<cdot> UU = UU"
   by fixrec_simp
 
 
@@ -94,10 +94,10 @@ subsubsection \<open>\<open>slast\<close>\<close>
 
 fixrec slast :: "'a seq \<rightarrow> 'a"
 where
-  slast_nil: "slast $ nil = UU"
-| slast_cons: "x \<noteq> UU \<Longrightarrow> slast $ (x ## xs) = (If is_nil $ xs then x else slast $ xs)"
+  slast_nil: "slast \<cdot> nil = UU"
+| slast_cons: "x \<noteq> UU \<Longrightarrow> slast \<cdot> (x ## xs) = (If is_nil \<cdot> xs then x else slast \<cdot> xs)"
 
-lemma slast_UU [simp]: "slast $ UU = UU"
+lemma slast_UU [simp]: "slast \<cdot> UU = UU"
   by fixrec_simp
 
 
@@ -105,11 +105,11 @@ subsubsection \<open>\<open>sconc\<close>\<close>
 
 fixrec sconc :: "'a seq \<rightarrow> 'a seq \<rightarrow> 'a seq"
 where
-  sconc_nil: "sconc $ nil $ y = y"
-| sconc_cons': "x \<noteq> UU \<Longrightarrow> sconc $ (x ## xs) $ y = x ## (sconc $ xs $ y)"
+  sconc_nil: "sconc \<cdot> nil \<cdot> y = y"
+| sconc_cons': "x \<noteq> UU \<Longrightarrow> sconc \<cdot> (x ## xs) \<cdot> y = x ## (sconc \<cdot> xs \<cdot> y)"
 
-abbreviation sconc_syn :: "'a seq => 'a seq => 'a seq"  (infixr "@@" 65)
-  where "xs @@ ys \<equiv> sconc $ xs $ ys"
+abbreviation sconc_syn :: "'a seq \<Rightarrow> 'a seq \<Rightarrow> 'a seq"  (infixr "@@" 65)
+  where "xs @@ ys \<equiv> sconc \<cdot> xs \<cdot> ys"
 
 lemma sconc_UU [simp]: "UU @@ y = UU"
   by fixrec_simp
@@ -124,13 +124,13 @@ subsubsection \<open>\<open>sflat\<close>\<close>
 
 fixrec sflat :: "'a seq seq \<rightarrow> 'a seq"
 where
-  sflat_nil: "sflat $ nil = nil"
-| sflat_cons': "x \<noteq> UU \<Longrightarrow> sflat $ (x ## xs) = x @@ (sflat $ xs)"
+  sflat_nil: "sflat \<cdot> nil = nil"
+| sflat_cons': "x \<noteq> UU \<Longrightarrow> sflat \<cdot> (x ## xs) = x @@ (sflat \<cdot> xs)"
 
-lemma sflat_UU [simp]: "sflat $ UU = UU"
+lemma sflat_UU [simp]: "sflat \<cdot> UU = UU"
   by fixrec_simp
 
-lemma sflat_cons [simp]: "sflat $ (x ## xs) = x @@ (sflat $ xs)"
+lemma sflat_cons [simp]: "sflat \<cdot> (x ## xs) = x @@ (sflat \<cdot> xs)"
   by (cases "x = UU") simp_all
 
 declare sflat_cons' [simp del]
@@ -140,14 +140,14 @@ subsubsection \<open>\<open>szip\<close>\<close>
 
 fixrec szip :: "'a seq \<rightarrow> 'b seq \<rightarrow> ('a \<times> 'b) seq"
 where
-  szip_nil: "szip $ nil $ y = nil"
-| szip_cons_nil: "x \<noteq> UU \<Longrightarrow> szip $ (x ## xs) $ nil = UU"
-| szip_cons: "x \<noteq> UU \<Longrightarrow> y \<noteq> UU \<Longrightarrow> szip $ (x ## xs) $ (y ## ys) = (x, y) ## szip $ xs $ ys"
+  szip_nil: "szip \<cdot> nil \<cdot> y = nil"
+| szip_cons_nil: "x \<noteq> UU \<Longrightarrow> szip \<cdot> (x ## xs) \<cdot> nil = UU"
+| szip_cons: "x \<noteq> UU \<Longrightarrow> y \<noteq> UU \<Longrightarrow> szip \<cdot> (x ## xs) \<cdot> (y ## ys) = (x, y) ## szip \<cdot> xs \<cdot> ys"
 
-lemma szip_UU1 [simp]: "szip $ UU $ y = UU"
+lemma szip_UU1 [simp]: "szip \<cdot> UU \<cdot> y = UU"
   by fixrec_simp
 
-lemma szip_UU2 [simp]: "x \<noteq> nil \<Longrightarrow> szip $ x $ UU = UU"
+lemma szip_UU2 [simp]: "x \<noteq> nil \<Longrightarrow> szip \<cdot> x \<cdot> UU = UU"
   by (cases x) (simp_all, fixrec_simp)
 
 
@@ -166,7 +166,7 @@ lemma if_and_sconc [simp]:
   "(if b then tr1 else tr2) @@ tr = (if b then tr1 @@ tr else tr2 @@ tr)"
   by simp
 
-lemma sfiltersconc: "sfilter $ P $ (x @@ y) = (sfilter $ P $ x @@ sfilter $ P $ y)"
+lemma sfiltersconc: "sfilter \<cdot> P \<cdot> (x @@ y) = (sfilter \<cdot> P \<cdot> x @@ sfilter \<cdot> P \<cdot> y)"
   apply (induct x)
   text \<open>adm\<close>
   apply simp
@@ -174,13 +174,13 @@ lemma sfiltersconc: "sfilter $ P $ (x @@ y) = (sfilter $ P $ x @@ sfilter $ P $ 
   apply simp
   apply simp
   text \<open>main case\<close>
-  apply (rule_tac p = "P$a" in trE)
+  apply (rule_tac p = "P\<cdot>a" in trE)
   apply simp
   apply simp
   apply simp
   done
 
-lemma sforallPstakewhileP: "sforall P (stakewhile $ P $ x)"
+lemma sforallPstakewhileP: "sforall P (stakewhile \<cdot> P \<cdot> x)"
   apply (simp add: sforall_def)
   apply (induct x)
   text \<open>adm\<close>
@@ -189,13 +189,13 @@ lemma sforallPstakewhileP: "sforall P (stakewhile $ P $ x)"
   apply simp
   apply simp
   text \<open>main case\<close>
-  apply (rule_tac p = "P$a" in trE)
+  apply (rule_tac p = "P\<cdot>a" in trE)
   apply simp
   apply simp
   apply simp
   done
 
-lemma forallPsfilterP: "sforall P (sfilter $ P $ x)"
+lemma forallPsfilterP: "sforall P (sfilter \<cdot> P \<cdot> x)"
   apply (simp add: sforall_def)
   apply (induct x)
   text \<open>adm\<close>
@@ -204,7 +204,7 @@ lemma forallPsfilterP: "sforall P (sfilter $ P $ x)"
   apply simp
   apply simp
   text \<open>main case\<close>
-  apply (rule_tac p="P$a" in trE)
+  apply (rule_tac p="P\<cdot>a" in trE)
   apply simp
   apply simp
   apply simp
@@ -260,7 +260,7 @@ subsection \<open>Induction\<close>
 text \<open>Extensions to Induction Theorems.\<close>
 
 lemma seq_finite_ind_lemma:
-  assumes "\<And>n. P (seq_take n $ s)"
+  assumes "\<And>n. P (seq_take n \<cdot> s)"
   shows "seq_finite s \<longrightarrow> P s"
   apply (unfold seq.finite_def)
   apply (intro strip)

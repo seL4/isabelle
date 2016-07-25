@@ -13,14 +13,14 @@ text \<open>
   the correctness of the Hoare rule for while-loops.
 \<close>
 
-type_synonym assn = "state => bool"
+type_synonym assn = "state \<Rightarrow> bool"
 
 definition
-  hoare_valid :: "[assn, com, assn] => bool"  ("|= {(1_)}/ (_)/ {(1_)}" 50) where
-  "|= {P} c {Q} = (\<forall>s t. P s \<and> D c $(Discr s) = Def t --> Q t)"
+  hoare_valid :: "[assn, com, assn] \<Rightarrow> bool"  ("|= {(1_)}/ (_)/ {(1_)}" 50) where
+  "|= {P} c {Q} = (\<forall>s t. P s \<and> D c\<cdot>(Discr s) = Def t \<longrightarrow> Q t)"
 
 lemma WHILE_rule_sound:
-    "|= {A} c {A} ==> |= {A} WHILE b DO c {\<lambda>s. A s \<and> \<not> bval b s}"
+    "|= {A} c {A} \<Longrightarrow> |= {A} WHILE b DO c {\<lambda>s. A s \<and> \<not> bval b s}"
   apply (unfold hoare_valid_def)
   apply (simp (no_asm))
   apply (rule fix_ind)

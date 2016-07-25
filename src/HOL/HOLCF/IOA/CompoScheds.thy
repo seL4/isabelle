@@ -11,7 +11,7 @@ begin
 definition mkex2 :: "('a, 's) ioa \<Rightarrow> ('a, 't) ioa \<Rightarrow> 'a Seq \<rightarrow>
   ('a, 's) pairs \<rightarrow> ('a, 't) pairs \<rightarrow> ('s \<Rightarrow> 't \<Rightarrow> ('a, 's \<times> 't) pairs)"
   where "mkex2 A B =
-    (fix $
+    (fix \<cdot>
       (LAM h sch exA exB.
         (\<lambda>s t.
           case sch of
@@ -22,29 +22,29 @@ definition mkex2 :: "('a, 's) ioa \<Rightarrow> ('a, 't) ioa \<Rightarrow> 'a Se
             | Def y \<Rightarrow>
                (if y \<in> act A then
                  (if y \<in> act B then
-                    (case HD $ exA of
+                    (case HD \<cdot> exA of
                       UU \<Rightarrow> UU
                     | Def a \<Rightarrow>
-                        (case HD $ exB of
+                        (case HD \<cdot> exB of
                           UU \<Rightarrow> UU
                         | Def b \<Rightarrow>
                            (y, (snd a, snd b)) \<leadsto>
-                            (h $ xs $ (TL $ exA) $ (TL $ exB)) (snd a) (snd b)))
+                            (h \<cdot> xs \<cdot> (TL \<cdot> exA) \<cdot> (TL \<cdot> exB)) (snd a) (snd b)))
                   else
-                    (case HD $ exA of
+                    (case HD \<cdot> exA of
                       UU \<Rightarrow> UU
-                    | Def a \<Rightarrow> (y, (snd a, t)) \<leadsto> (h $ xs $ (TL $ exA) $ exB) (snd a) t))
+                    | Def a \<Rightarrow> (y, (snd a, t)) \<leadsto> (h \<cdot> xs \<cdot> (TL \<cdot> exA) \<cdot> exB) (snd a) t))
                 else
                   (if y \<in> act B then
-                    (case HD $ exB of
+                    (case HD \<cdot> exB of
                       UU \<Rightarrow> UU
-                    | Def b \<Rightarrow> (y, (s, snd b)) \<leadsto> (h $ xs $ exA $ (TL $ exB)) s (snd b))
+                    | Def b \<Rightarrow> (y, (s, snd b)) \<leadsto> (h \<cdot> xs \<cdot> exA \<cdot> (TL \<cdot> exB)) s (snd b))
                    else UU))))))"
 
 definition mkex :: "('a, 's) ioa \<Rightarrow> ('a, 't) ioa \<Rightarrow> 'a Seq \<Rightarrow>
     ('a, 's) execution \<Rightarrow> ('a, 't) execution \<Rightarrow> ('a, 's \<times> 't) execution"
   where "mkex A B sch exA exB =
-    ((fst exA, fst exB), (mkex2 A B $ sch $ (snd exA) $ (snd exB)) (fst exA) (fst exB))"
+    ((fst exA, fst exB), (mkex2 A B \<cdot> sch \<cdot> (snd exA) \<cdot> (snd exB)) (fst exA) (fst exB))"
 
 definition par_scheds :: "'a schedule_module \<Rightarrow> 'a schedule_module \<Rightarrow> 'a schedule_module"
   where "par_scheds SchedsA SchedsB =
@@ -52,8 +52,8 @@ definition par_scheds :: "'a schedule_module \<Rightarrow> 'a schedule_module \<
       schA = fst SchedsA; sigA = snd SchedsA;
       schB = fst SchedsB; sigB = snd SchedsB
      in
-      ({sch. Filter (%a. a:actions sigA)$sch : schA} \<inter>
-       {sch. Filter (%a. a:actions sigB)$sch : schB} \<inter>
+      ({sch. Filter (%a. a:actions sigA)\<cdot>sch : schA} \<inter>
+       {sch. Filter (%a. a:actions sigB)\<cdot>sch : schB} \<inter>
        {sch. Forall (%x. x:(actions sigA Un actions sigB)) sch},
         asig_comp sigA sigB))"
 
@@ -72,23 +72,23 @@ lemma mkex2_unfold:
             | Def y \<Rightarrow>
                 (if y \<in> act A then
                   (if y \<in> act B then
-                    (case HD $ exA of
+                    (case HD \<cdot> exA of
                       UU \<Rightarrow> UU
                     | Def a \<Rightarrow>
-                        (case HD $ exB of
+                        (case HD \<cdot> exB of
                           UU \<Rightarrow> UU
                         | Def b \<Rightarrow>
                             (y, (snd a, snd b)) \<leadsto>
-                              (mkex2 A B $ xs $ (TL $ exA) $ (TL $ exB)) (snd a) (snd b)))
+                              (mkex2 A B \<cdot> xs \<cdot> (TL \<cdot> exA) \<cdot> (TL \<cdot> exB)) (snd a) (snd b)))
                    else
-                     (case HD $ exA of
+                     (case HD \<cdot> exA of
                        UU \<Rightarrow> UU
-                     | Def a \<Rightarrow> (y, (snd a, t)) \<leadsto> (mkex2 A B $ xs $ (TL $ exA) $ exB) (snd a) t))
+                     | Def a \<Rightarrow> (y, (snd a, t)) \<leadsto> (mkex2 A B \<cdot> xs \<cdot> (TL \<cdot> exA) \<cdot> exB) (snd a) t))
                  else
                    (if y \<in> act B then
-                     (case HD $ exB of
+                     (case HD \<cdot> exB of
                        UU \<Rightarrow> UU
-                     | Def b \<Rightarrow> (y, (s, snd b)) \<leadsto> (mkex2 A B $ xs $ exA $ (TL $ exB)) s (snd b))
+                     | Def b \<Rightarrow> (y, (s, snd b)) \<leadsto> (mkex2 A B \<cdot> xs \<cdot> exA \<cdot> (TL \<cdot> exB)) s (snd b))
                     else UU)))))"
   apply (rule trans)
   apply (rule fix_eq2)
@@ -97,20 +97,20 @@ lemma mkex2_unfold:
   apply simp
   done
 
-lemma mkex2_UU: "(mkex2 A B $ UU $ exA $ exB) s t = UU"
+lemma mkex2_UU: "(mkex2 A B \<cdot> UU \<cdot> exA \<cdot> exB) s t = UU"
   apply (subst mkex2_unfold)
   apply simp
   done
 
-lemma mkex2_nil: "(mkex2 A B $ nil $ exA $ exB) s t = nil"
+lemma mkex2_nil: "(mkex2 A B \<cdot> nil \<cdot> exA \<cdot> exB) s t = nil"
   apply (subst mkex2_unfold)
   apply simp
   done
 
 lemma mkex2_cons_1:
-  "x \<in> act A \<Longrightarrow> x \<notin> act B \<Longrightarrow> HD $ exA = Def a \<Longrightarrow>
-    (mkex2 A B $ (x \<leadsto> sch) $ exA $ exB) s t =
-      (x, snd a,t) \<leadsto> (mkex2 A B $ sch $ (TL $ exA) $ exB) (snd a) t"
+  "x \<in> act A \<Longrightarrow> x \<notin> act B \<Longrightarrow> HD \<cdot> exA = Def a \<Longrightarrow>
+    (mkex2 A B \<cdot> (x \<leadsto> sch) \<cdot> exA \<cdot> exB) s t =
+      (x, snd a,t) \<leadsto> (mkex2 A B \<cdot> sch \<cdot> (TL \<cdot> exA) \<cdot> exB) (snd a) t"
   apply (rule trans)
   apply (subst mkex2_unfold)
   apply (simp add: Consq_def If_and_if)
@@ -118,9 +118,9 @@ lemma mkex2_cons_1:
   done
 
 lemma mkex2_cons_2:
-  "x \<notin> act A \<Longrightarrow> x \<in> act B \<Longrightarrow> HD $ exB = Def b \<Longrightarrow>
-    (mkex2 A B $ (x \<leadsto> sch) $ exA $ exB) s t =
-      (x, s, snd b) \<leadsto> (mkex2 A B $ sch $ exA $ (TL $ exB)) s (snd b)"
+  "x \<notin> act A \<Longrightarrow> x \<in> act B \<Longrightarrow> HD \<cdot> exB = Def b \<Longrightarrow>
+    (mkex2 A B \<cdot> (x \<leadsto> sch) \<cdot> exA \<cdot> exB) s t =
+      (x, s, snd b) \<leadsto> (mkex2 A B \<cdot> sch \<cdot> exA \<cdot> (TL \<cdot> exB)) s (snd b)"
   apply (rule trans)
   apply (subst mkex2_unfold)
   apply (simp add: Consq_def If_and_if)
@@ -128,9 +128,9 @@ lemma mkex2_cons_2:
   done
 
 lemma mkex2_cons_3:
-  "x \<in> act A \<Longrightarrow> x \<in> act B \<Longrightarrow> HD $ exA = Def a \<Longrightarrow> HD $ exB = Def b \<Longrightarrow>
-    (mkex2 A B $ (x \<leadsto> sch) $ exA $ exB) s t =
-      (x, snd a,snd b) \<leadsto> (mkex2 A B $ sch $ (TL $ exA) $ (TL $ exB)) (snd a) (snd b)"
+  "x \<in> act A \<Longrightarrow> x \<in> act B \<Longrightarrow> HD \<cdot> exA = Def a \<Longrightarrow> HD \<cdot> exB = Def b \<Longrightarrow>
+    (mkex2 A B \<cdot> (x \<leadsto> sch) \<cdot> exA \<cdot> exB) s t =
+      (x, snd a,snd b) \<leadsto> (mkex2 A B \<cdot> sch \<cdot> (TL \<cdot> exA) \<cdot> (TL \<cdot> exB)) (snd a) (snd b)"
   apply (rule trans)
   apply (subst mkex2_unfold)
   apply (simp add: Consq_def If_and_if)
@@ -190,16 +190,16 @@ subsubsection \<open>Lemmas for \<open>\<Longrightarrow>\<close>\<close>
 
 lemma lemma_2_1a:
   \<comment> \<open>\<open>tfilter ex\<close> and \<open>filter_act\<close> are commutative\<close>
-  "filter_act $ (Filter_ex2 (asig_of A) $ xs) =
-    Filter (\<lambda>a. a \<in> act A) $ (filter_act $ xs)"
+  "filter_act \<cdot> (Filter_ex2 (asig_of A) \<cdot> xs) =
+    Filter (\<lambda>a. a \<in> act A) \<cdot> (filter_act \<cdot> xs)"
   apply (unfold filter_act_def Filter_ex2_def)
   apply (simp add: MapFilter o_def)
   done
 
 lemma lemma_2_1b:
   \<comment> \<open>State-projections do not affect \<open>filter_act\<close>\<close>
-  "filter_act $ (ProjA2 $ xs) = filter_act $ xs \<and>
-    filter_act $ (ProjB2 $ xs) = filter_act $ xs"
+  "filter_act \<cdot> (ProjA2 \<cdot> xs) = filter_act \<cdot> xs \<and>
+    filter_act \<cdot> (ProjB2 \<cdot> xs) = filter_act \<cdot> xs"
   by (pair_induct xs)
 
 
@@ -213,7 +213,7 @@ text \<open>
 \<close>
 
 lemma sch_actions_in_AorB:
-  "\<forall>s. is_exec_frag (A \<parallel> B) (s, xs) \<longrightarrow> Forall (\<lambda>x. x \<in> act (A \<parallel> B)) (filter_act $ xs)"
+  "\<forall>s. is_exec_frag (A \<parallel> B) (s, xs) \<longrightarrow> Forall (\<lambda>x. x \<in> act (A \<parallel> B)) (filter_act \<cdot> xs)"
   apply (pair_induct xs simp: is_exec_frag_def Forall_def sforall_def)
   text \<open>main case\<close>
   apply auto
@@ -231,9 +231,9 @@ text \<open>
 lemma Mapfst_mkex_is_sch:
   "\<forall>exA exB s t.
     Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch \<and>
-    Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ exA \<and>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ exB \<longrightarrow>
-    filter_act $ (snd (mkex A B sch (s, exA) (t, exB))) = sch"
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exA \<and>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exB \<longrightarrow>
+    filter_act \<cdot> (snd (mkex A B sch (s, exA) (t, exB))) = sch"
   apply (Seq_induct sch simp: Filter_def Forall_def sforall_def mkex_def)
 
   text \<open>main case: splitting into 4 cases according to \<open>a \<in> A\<close>, \<open>a \<in> B\<close>\<close>
@@ -303,15 +303,15 @@ text \<open>
 lemma stutterA_mkex:
   "\<forall>exA exB s t.
     Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch \<and>
-    Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ exA \<and>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ exB \<longrightarrow>
-    stutter (asig_of A) (s, ProjA2 $ (snd (mkex A B sch (s, exA) (t, exB))))"
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exA \<and>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exB \<longrightarrow>
+    stutter (asig_of A) (s, ProjA2 \<cdot> (snd (mkex A B sch (s, exA) (t, exB))))"
   by (mkex_induct sch exA exB)
 
 lemma stutter_mkex_on_A:
   "Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ (snd exA) \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ (snd exB) \<Longrightarrow>
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> (snd exA) \<Longrightarrow>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> (snd exB) \<Longrightarrow>
     stutter (asig_of A) (ProjA (mkex A B sch exA exB))"
   apply (cut_tac stutterA_mkex)
   apply (simp add: stutter_def ProjA_def mkex_def)
@@ -330,16 +330,16 @@ text \<open>
 lemma stutterB_mkex:
   "\<forall>exA exB s t.
     Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch \<and>
-    Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ exA \<and>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ exB \<longrightarrow>
-    stutter (asig_of B) (t, ProjB2 $ (snd (mkex A B sch (s, exA) (t, exB))))"
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exA \<and>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exB \<longrightarrow>
+    stutter (asig_of B) (t, ProjB2 \<cdot> (snd (mkex A B sch (s, exA) (t, exB))))"
   by (mkex_induct sch exA exB)
 
 
 lemma stutter_mkex_on_B:
   "Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch \<Longrightarrow>
-   Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ (snd exA) \<Longrightarrow>
-   Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ (snd exB) \<Longrightarrow>
+   Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> (snd exA) \<Longrightarrow>
+   Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> (snd exB) \<Longrightarrow>
    stutter (asig_of B) (ProjB (mkex A B sch exA exB))"
   apply (cut_tac stutterB_mkex)
   apply (simp add: stutter_def ProjB_def mkex_def)
@@ -352,36 +352,36 @@ lemma stutter_mkex_on_B:
 
 text \<open>
   Filter of \<open>mkex (sch, exA, exB)\<close> to \<open>A\<close> after projection onto \<open>A\<close> is \<open>exA\<close>,
-  using \<open>zip $ (proj1 $ exA) $ (proj2 $ exA)\<close> instead of \<open>exA\<close>,
+  using \<open>zip \<cdot> (proj1 \<cdot> exA) \<cdot> (proj2 \<cdot> exA)\<close> instead of \<open>exA\<close>,
   because of admissibility problems structural induction.
 \<close>
 
 lemma filter_mkex_is_exA_tmp:
   "\<forall>exA exB s t.
     Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch \<and>
-    Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ exA \<and>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ exB \<longrightarrow>
-    Filter_ex2 (asig_of A) $ (ProjA2 $ (snd (mkex A B sch (s, exA) (t, exB)))) =
-      Zip $ (Filter (\<lambda>a. a \<in> act A) $ sch) $ (Map snd $ exA)"
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exA \<and>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exB \<longrightarrow>
+    Filter_ex2 (asig_of A) \<cdot> (ProjA2 \<cdot> (snd (mkex A B sch (s, exA) (t, exB)))) =
+      Zip \<cdot> (Filter (\<lambda>a. a \<in> act A) \<cdot> sch) \<cdot> (Map snd \<cdot> exA)"
   by (mkex_induct sch exB exA)
 
 text \<open>
-  \<open>zip $ (proj1 $ y) $ (proj2 $ y) = y\<close>  (using the lift operations)
+  \<open>zip \<cdot> (proj1 \<cdot> y) \<cdot> (proj2 \<cdot> y) = y\<close>  (using the lift operations)
   lemma for admissibility problems
 \<close>
 
-lemma Zip_Map_fst_snd: "Zip $ (Map fst $ y) $ (Map snd $ y) = y"
+lemma Zip_Map_fst_snd: "Zip \<cdot> (Map fst \<cdot> y) \<cdot> (Map snd \<cdot> y) = y"
   by (Seq_induct y)
 
 
 text \<open>
-  \<open>filter A $ sch = proj1 $ ex \<longrightarrow> zip $ (filter A $ sch) $ (proj2 $ ex) = ex\<close>
+  \<open>filter A \<cdot> sch = proj1 \<cdot> ex \<longrightarrow> zip \<cdot> (filter A \<cdot> sch) \<cdot> (proj2 \<cdot> ex) = ex\<close>
   lemma for eliminating non admissible equations in assumptions
 \<close>
 
 lemma trick_against_eq_in_ass:
-  "Filter (\<lambda>a. a \<in> act AB) $ sch = filter_act $ ex \<Longrightarrow>
-    ex = Zip $ (Filter (\<lambda>a. a \<in> act AB) $ sch) $ (Map snd $ ex)"
+  "Filter (\<lambda>a. a \<in> act AB) \<cdot> sch = filter_act \<cdot> ex \<Longrightarrow>
+    ex = Zip \<cdot> (Filter (\<lambda>a. a \<in> act AB) \<cdot> sch) \<cdot> (Map snd \<cdot> ex)"
   apply (simp add: filter_act_def)
   apply (rule Zip_Map_fst_snd [symmetric])
   done
@@ -393,8 +393,8 @@ text \<open>
 
 lemma filter_mkex_is_exA:
   "Forall (\<lambda>a. a \<in> act (A \<parallel> B)) sch \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act A) $ sch = filter_act $ (snd exA) \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act B) $ sch = filter_act $ (snd exB) \<Longrightarrow>
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch = filter_act \<cdot> (snd exA) \<Longrightarrow>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch = filter_act \<cdot> (snd exB) \<Longrightarrow>
   Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA"
   apply (simp add: ProjA_def Filter_ex_def)
   apply (pair exA)
@@ -409,17 +409,17 @@ lemma filter_mkex_is_exA:
 
 text \<open>
   Filter of \<open>mkex (sch, exA, exB)\<close> to \<open>B\<close> after projection onto \<open>B\<close> is \<open>exB\<close>
-  using \<open>zip $ (proj1 $ exB) $ (proj2 $ exB)\<close> instead of \<open>exB\<close>
+  using \<open>zip \<cdot> (proj1 \<cdot> exB) \<cdot> (proj2 \<cdot> exB)\<close> instead of \<open>exB\<close>
   because of admissibility problems structural induction.
 \<close>
 
 lemma filter_mkex_is_exB_tmp:
   "\<forall>exA exB s t.
     Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch \<and>
-    Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ exA \<and>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ exB \<longrightarrow>
-    Filter_ex2 (asig_of B) $ (ProjB2 $ (snd (mkex A B sch (s, exA) (t, exB)))) =
-      Zip $ (Filter (\<lambda>a. a \<in> act B) $ sch) $ (Map snd $ exB)"
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exA \<and>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exB \<longrightarrow>
+    Filter_ex2 (asig_of B) \<cdot> (ProjB2 \<cdot> (snd (mkex A B sch (s, exA) (t, exB)))) =
+      Zip \<cdot> (Filter (\<lambda>a. a \<in> act B) \<cdot> sch) \<cdot> (Map snd \<cdot> exB)"
   (*notice necessary change of arguments exA and exB*)
   by (mkex_induct sch exA exB)
 
@@ -430,8 +430,8 @@ text \<open>
 
 lemma filter_mkex_is_exB:
   "Forall (\<lambda>a. a \<in> act (A \<parallel> B)) sch \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act A) $ sch = filter_act $ (snd exA) \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act B) $ sch = filter_act $ (snd exB) \<Longrightarrow>
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch = filter_act \<cdot> (snd exA) \<Longrightarrow>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch = filter_act \<cdot> (snd exB) \<Longrightarrow>
     Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB"
   apply (simp add: ProjB_def Filter_ex_def)
   apply (pair exA)
@@ -448,16 +448,16 @@ lemma mkex_actions_in_AorB:
   \<comment> \<open>\<open>mkex\<close> has only \<open>A\<close>- or \<open>B\<close>-actions\<close>
   "\<forall>s t exA exB.
     Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch &
-    Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ exA \<and>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ exB \<longrightarrow>
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exA \<and>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<sqsubseteq> filter_act \<cdot> exB \<longrightarrow>
     Forall (\<lambda>x. fst x \<in> act (A \<parallel> B)) (snd (mkex A B sch (s, exA) (t, exB)))"
   by (mkex_induct sch exA exB)
 
 
 theorem compositionality_sch:
   "sch \<in> schedules (A \<parallel> B) \<longleftrightarrow>
-    Filter (\<lambda>a. a \<in> act A) $ sch \<in> schedules A \<and>
-    Filter (\<lambda>a. a \<in> act B) $ sch \<in> schedules B \<and>
+    Filter (\<lambda>a. a \<in> act A) \<cdot> sch \<in> schedules A \<and>
+    Filter (\<lambda>a. a \<in> act B) \<cdot> sch \<in> schedules B \<and>
     Forall (\<lambda>x. x \<in> act (A \<parallel> B)) sch"
   apply (simp add: schedules_def has_schedule_def)
   apply auto

@@ -338,7 +338,7 @@ by (simp add: cfun_below_iff)
 text \<open>some lemmata for functions with flat/chfin domain/range types\<close>
 
 lemma chfin_Rep_cfunR: "chain (Y::nat => 'a::cpo->'b::chfin)  
-      ==> !s. ? n. (LUB i. Y i)$s = Y n$s"
+      ==> !s. ? n. (LUB i. Y i)\<cdot>s = Y n\<cdot>s"
 apply (rule allI)
 apply (subst contlub_cfun_fun)
 apply assumption

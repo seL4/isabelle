@@ -12,9 +12,9 @@ lemma compatibility_consequence3: "eA \<longrightarrow> A \<Longrightarrow> eB \
 
 lemma Filter_actAisFilter_extA:
   "compatible A B \<Longrightarrow> Forall (\<lambda>a. a \<in> ext A \<or> a \<in> ext B) tr \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act A) $ tr = Filter (\<lambda>a. a \<in> ext A) $ tr"
+    Filter (\<lambda>a. a \<in> act A) \<cdot> tr = Filter (\<lambda>a. a \<in> ext A) \<cdot> tr"
   apply (rule ForallPFilterQR)
-  text \<open>i.e.: \<open>(\<forall>x. P x \<longrightarrow> (Q x = R x)) \<Longrightarrow> Forall P tr \<Longrightarrow> Filter Q $ tr = Filter R $ tr\<close>\<close>
+  text \<open>i.e.: \<open>(\<forall>x. P x \<longrightarrow> (Q x = R x)) \<Longrightarrow> Forall P tr \<Longrightarrow> Filter Q \<cdot> tr = Filter R \<cdot> tr\<close>\<close>
   prefer 2 apply assumption
   apply (rule compatibility_consequence3)
   apply (simp_all add: ext_is_act ext1_ext2_is_not_act1)
@@ -31,7 +31,7 @@ lemma compatibility_consequence4: "eA \<longrightarrow> A \<Longrightarrow> eB \
 
 lemma Filter_actAisFilter_extA2:
   "compatible A B \<Longrightarrow> Forall (\<lambda>a. a \<in> ext B \<or> a \<in> ext A) tr \<Longrightarrow>
-    Filter (\<lambda>a. a \<in> act A) $ tr = Filter (\<lambda>a. a \<in> ext A) $ tr"
+    Filter (\<lambda>a. a \<in> act A) \<cdot> tr = Filter (\<lambda>a. a \<in> ext A) \<cdot> tr"
   apply (rule ForallPFilterQR)
   prefer 2 apply (assumption)
   apply (rule compatibility_consequence4)

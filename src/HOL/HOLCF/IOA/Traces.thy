@@ -22,15 +22,15 @@ subsection \<open>Executions\<close>
 
 definition is_exec_fragC :: "('a, 's) ioa \<Rightarrow> ('a, 's) pairs \<rightarrow> 's \<Rightarrow> tr"
   where "is_exec_fragC A =
-    (fix $
+    (fix \<cdot>
       (LAM h ex.
         (\<lambda>s.
           case ex of
             nil \<Rightarrow> TT
-          | x ## xs \<Rightarrow> flift1 (\<lambda>p. Def ((s, p) \<in> trans_of A) andalso (h $ xs) (snd p)) $ x)))"
+          | x ## xs \<Rightarrow> flift1 (\<lambda>p. Def ((s, p) \<in> trans_of A) andalso (h \<cdot> xs) (snd p)) \<cdot> x)))"
 
 definition is_exec_frag :: "('a, 's) ioa \<Rightarrow> ('a, 's) execution \<Rightarrow> bool"
-  where "is_exec_frag A ex \<longleftrightarrow> (is_exec_fragC A $ (snd ex)) (fst ex) \<noteq> FF"
+  where "is_exec_frag A ex \<longleftrightarrow> (is_exec_fragC A \<cdot> (snd ex)) (fst ex) \<noteq> FF"
 
 definition executions :: "('a, 's) ioa \<Rightarrow> ('a, 's) execution set"
   where "executions ioa = {e. fst e \<in> starts_of ioa \<and> is_exec_frag ioa e}"
@@ -42,7 +42,7 @@ definition filter_act :: "('a, 's) pairs \<rightarrow> 'a trace"
   where "filter_act = Map fst"
 
 definition has_schedule :: "('a, 's) ioa \<Rightarrow> 'a trace \<Rightarrow> bool"
-  where "has_schedule ioa sch \<longleftrightarrow> (\<exists>ex \<in> executions ioa. sch = filter_act $ (snd ex))"
+  where "has_schedule ioa sch \<longleftrightarrow> (\<exists>ex \<in> executions ioa. sch = filter_act \<cdot> (snd ex))"
 
 definition schedules :: "('a, 's) ioa \<Rightarrow> 'a trace set"
   where "schedules ioa = {sch. has_schedule ioa sch}"
@@ -51,26 +51,26 @@ definition schedules :: "('a, 's) ioa \<Rightarrow> 'a trace set"
 subsection \<open>Traces\<close>
 
 definition has_trace :: "('a, 's) ioa \<Rightarrow> 'a trace \<Rightarrow> bool"
-  where "has_trace ioa tr \<longleftrightarrow> (\<exists>sch \<in> schedules ioa. tr = Filter (\<lambda>a. a \<in> ext ioa) $ sch)"
+  where "has_trace ioa tr \<longleftrightarrow> (\<exists>sch \<in> schedules ioa. tr = Filter (\<lambda>a. a \<in> ext ioa) \<cdot> sch)"
 
 definition traces :: "('a, 's) ioa \<Rightarrow> 'a trace set"
   where "traces ioa \<equiv> {tr. has_trace ioa tr}"
 
 definition mk_trace :: "('a, 's) ioa \<Rightarrow> ('a, 's) pairs \<rightarrow> 'a trace"
-  where "mk_trace ioa = (LAM tr. Filter (\<lambda>a. a \<in> ext ioa) $ (filter_act $ tr))"
+  where "mk_trace ioa = (LAM tr. Filter (\<lambda>a. a \<in> ext ioa) \<cdot> (filter_act \<cdot> tr))"
 
 
 subsection \<open>Fair Traces\<close>
 
 definition laststate :: "('a, 's) execution \<Rightarrow> 's"
   where "laststate ex =
-    (case Last $ (snd ex) of
+    (case Last \<cdot> (snd ex) of
       UU \<Rightarrow> fst ex
     | Def at \<Rightarrow> snd at)"
 
 text \<open>A predicate holds infinitely (finitely) often in a sequence.\<close>
 definition inf_often :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<Rightarrow> bool"
-  where "inf_often P s \<longleftrightarrow> Infinite (Filter P $ s)"
+  where "inf_often P s \<longleftrightarrow> Infinite (Filter P \<cdot> s)"
 
 text \<open>Filtering \<open>P\<close> yields a finite or partial sequence.\<close>
 definition fin_often :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<Rightarrow> bool"
@@ -122,7 +122,7 @@ definition fairexecutions :: "('a, 's) ioa \<Rightarrow> ('a, 's) execution set"
   where "fairexecutions A = {ex. ex \<in> executions A \<and> fair_ex A ex}"
 
 definition fairtraces :: "('a, 's) ioa \<Rightarrow> 'a trace set"
-  where "fairtraces A = {mk_trace A $ (snd ex) | ex. ex \<in> fairexecutions A}"
+  where "fairtraces A = {mk_trace A \<cdot> (snd ex) | ex. ex \<in> fairexecutions A}"
 
 
 subsection \<open>Implementation\<close>
@@ -167,13 +167,13 @@ subsection \<open>Recursive equations of operators\<close>
 
 subsubsection \<open>\<open>filter_act\<close>\<close>
 
-lemma filter_act_UU: "filter_act $ UU = UU"
+lemma filter_act_UU: "filter_act \<cdot> UU = UU"
   by (simp add: filter_act_def)
 
-lemma filter_act_nil: "filter_act $ nil = nil"
+lemma filter_act_nil: "filter_act \<cdot> nil = nil"
   by (simp add: filter_act_def)
 
-lemma filter_act_cons: "filter_act $ (x \<leadsto> xs) = fst x \<leadsto> filter_act $ xs"
+lemma filter_act_cons: "filter_act \<cdot> (x \<leadsto> xs) = fst x \<leadsto> filter_act \<cdot> xs"
   by (simp add: filter_act_def)
 
 declare filter_act_UU [simp] filter_act_nil [simp] filter_act_cons [simp]
@@ -181,17 +181,17 @@ declare filter_act_UU [simp] filter_act_nil [simp] filter_act_cons [simp]
 
 subsubsection \<open>\<open>mk_trace\<close>\<close>
 
-lemma mk_trace_UU: "mk_trace A $ UU = UU"
+lemma mk_trace_UU: "mk_trace A \<cdot> UU = UU"
   by (simp add: mk_trace_def)
 
-lemma mk_trace_nil: "mk_trace A $ nil = nil"
+lemma mk_trace_nil: "mk_trace A \<cdot> nil = nil"
   by (simp add: mk_trace_def)
 
 lemma mk_trace_cons:
-  "mk_trace A $ (at \<leadsto> xs) =
+  "mk_trace A \<cdot> (at \<leadsto> xs) =
     (if fst at \<in> ext A
-     then fst at \<leadsto> mk_trace A $ xs
-     else mk_trace A $ xs)"
+     then fst at \<leadsto> mk_trace A \<cdot> xs
+     else mk_trace A \<cdot> xs)"
   by (simp add: mk_trace_def)
 
 declare mk_trace_UU [simp] mk_trace_nil [simp] mk_trace_cons [simp]
@@ -206,7 +206,7 @@ lemma is_exec_fragC_unfold:
         case ex of
           nil \<Rightarrow> TT
         | x ## xs \<Rightarrow>
-            (flift1 (\<lambda>p. Def ((s, p) \<in> trans_of A) andalso (is_exec_fragC A$xs) (snd p)) $ x)))"
+            (flift1 (\<lambda>p. Def ((s, p) \<in> trans_of A) andalso (is_exec_fragC A\<cdot>xs) (snd p)) \<cdot> x)))"
   apply (rule trans)
   apply (rule fix_eq4)
   apply (rule is_exec_fragC_def)
@@ -214,19 +214,19 @@ lemma is_exec_fragC_unfold:
   apply (simp add: flift1_def)
   done
 
-lemma is_exec_fragC_UU: "(is_exec_fragC A $ UU) s = UU"
+lemma is_exec_fragC_UU: "(is_exec_fragC A \<cdot> UU) s = UU"
   apply (subst is_exec_fragC_unfold)
   apply simp
   done
 
-lemma is_exec_fragC_nil: "(is_exec_fragC A $ nil) s = TT"
+lemma is_exec_fragC_nil: "(is_exec_fragC A \<cdot> nil) s = TT"
   apply (subst is_exec_fragC_unfold)
   apply simp
   done
 
 lemma is_exec_fragC_cons:
-  "(is_exec_fragC A $ (pr \<leadsto> xs)) s =
-    (Def ((s, pr) \<in> trans_of A) andalso (is_exec_fragC A $ xs) (snd pr))"
+  "(is_exec_fragC A \<cdot> (pr \<leadsto> xs)) s =
+    (Def ((s, pr) \<in> trans_of A) andalso (is_exec_fragC A \<cdot> xs) (snd pr))"
   apply (rule trans)
   apply (subst is_exec_fragC_unfold)
   apply (simp add: Consq_def flift1_def)
@@ -279,7 +279,7 @@ subsection \<open>\<open>has_trace\<close> \<open>mk_trace\<close>\<close>
 
 (*alternative definition of has_trace tailored for the refinement proof, as it does not
   take the detour of schedules*)
-lemma has_trace_def2: "has_trace A b \<longleftrightarrow> (\<exists>ex \<in> executions A. b = mk_trace A $ (snd ex))"
+lemma has_trace_def2: "has_trace A b \<longleftrightarrow> (\<exists>ex \<in> executions A. b = mk_trace A \<cdot> (snd ex))"
   apply (unfold executions_def mk_trace_def has_trace_def schedules_def has_schedule_def [abs_def])
   apply auto
   done
@@ -296,14 +296,14 @@ text \<open>
 \<close>
 
 lemma execfrag_in_sig:
-  "is_trans_of A \<Longrightarrow> \<forall>s. is_exec_frag A (s, xs) \<longrightarrow> Forall (\<lambda>a. a \<in> act A) (filter_act $ xs)"
+  "is_trans_of A \<Longrightarrow> \<forall>s. is_exec_frag A (s, xs) \<longrightarrow> Forall (\<lambda>a. a \<in> act A) (filter_act \<cdot> xs)"
   apply (pair_induct xs simp: is_exec_frag_def Forall_def sforall_def)
   text \<open>main case\<close>
   apply (auto simp add: is_trans_of_def)
   done
 
 lemma exec_in_sig:
-  "is_trans_of A \<Longrightarrow> x \<in> executions A \<Longrightarrow> Forall (\<lambda>a. a \<in> act A) (filter_act $ (snd x))"
+  "is_trans_of A \<Longrightarrow> x \<in> executions A \<Longrightarrow> Forall (\<lambda>a. a \<in> act A) (filter_act \<cdot> (snd x))"
   apply (simp add: executions_def)
   apply (pair x)
   apply (rule execfrag_in_sig [THEN spec, THEN mp])
