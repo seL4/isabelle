@@ -2036,14 +2036,15 @@ lemma SUP_nat_Infty: "(SUP i::nat. ereal (real i)) = \<infinity>"
 lemma SUP_ereal_add_left:
   assumes "I \<noteq> {}" "c \<noteq> -\<infinity>"
   shows "(SUP i:I. f i + c :: ereal) = (SUP i:I. f i) + c"
-proof cases
-  assume "(SUP i:I. f i) = - \<infinity>"
-  moreover then have "\<And>i. i \<in> I \<Longrightarrow> f i = -\<infinity>"
+proof (cases "(SUP i:I. f i) = - \<infinity>")
+  case True
+  then have "\<And>i. i \<in> I \<Longrightarrow> f i = -\<infinity>"
     unfolding Sup_eq_MInfty by auto
-  ultimately show ?thesis
+  with True show ?thesis
     by (cases c) (auto simp: \<open>I \<noteq> {}\<close>)
 next
-  assume "(SUP i:I. f i) \<noteq> - \<infinity>" then show ?thesis
+  case False
+  then show ?thesis
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. x + c"])
        (auto simp: continuous_at_imp_continuous_at_within continuous_at mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
 qed
@@ -2158,14 +2159,15 @@ lemma SUP_ereal_mult_left:
   assumes "I \<noteq> {}"
   assumes f: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" and c: "0 \<le> c"
   shows "(SUP i:I. c * f i) = c * (SUP i:I. f i)"
-proof cases
-  assume "(SUP i: I. f i) = 0"
-  moreover then have "\<And>i. i \<in> I \<Longrightarrow> f i = 0"
+proof (cases "(SUP i: I. f i) = 0")
+  case True
+  then have "\<And>i. i \<in> I \<Longrightarrow> f i = 0"
     by (metis SUP_upper f antisym)
-  ultimately show ?thesis
+  with True show ?thesis
     by simp
 next
-  assume "(SUP i:I. f i) \<noteq> 0" then show ?thesis
+  case False
+  then show ?thesis
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. c * x"])
        (auto simp: mono_def continuous_at continuous_at_imp_continuous_at_within \<open>I \<noteq> {}\<close>
              intro!: ereal_mult_left_mono c)

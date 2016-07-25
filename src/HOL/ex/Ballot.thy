@@ -180,10 +180,10 @@ proof -
       by auto
     show "(\<lambda>V. V - {?l}) \<in> ?V (\<lambda>V. ?l \<in> V) \<rightarrow> {V \<in> Pow {0..<a + Suc b}. card V = a \<and> ?Q V (a + Suc b)}"
       by (auto simp: Ico_subset_finite *)
-    { fix V assume "V \<subseteq> {0..<?l}"
-      moreover then have "finite V" "?l \<notin> V" "{0..<Suc ?l} \<inter> V = V"
+    { fix V assume V: "V \<subseteq> {0..<?l}"
+      then have "finite V" "?l \<notin> V" "{0..<Suc ?l} \<inter> V = V"
         by (auto dest: finite_subset)
-      ultimately have "card (insert ?l V) = Suc (card V)"
+      with V have "card (insert ?l V) = Suc (card V)"
         "card ({0..<m} \<inter> insert ?l V) = (if m = Suc ?l then Suc (card V) else card ({0..<m} \<inter> V))"
         if "m \<le> Suc ?l" for m
         using that by auto }

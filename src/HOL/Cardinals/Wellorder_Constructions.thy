@@ -606,13 +606,13 @@ qed
 
 lemma not_isSucc_zero: "\<not> isSucc zero"
 proof
-  assume "isSucc zero"
-  moreover
+  assume *: "isSucc zero"
   then obtain i where "aboveS i \<noteq> {}" and 1: "minim (Field r) = succ i"
   unfolding isSucc_def zero_def by auto
   hence "succ i \<in> Field r" by auto
-  ultimately show False by (metis REFL isSucc_def minim_least refl_on_domain
-    subset_refl succ_in succ_not_in zero_def)
+  with * show False
+    by (metis REFL isSucc_def minim_least refl_on_domain
+        subset_refl succ_in succ_not_in zero_def)
 qed
 
 lemma isLim_zero[simp]: "isLim zero"

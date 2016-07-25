@@ -107,9 +107,9 @@ next
     have "s = s' (\<le> l)" by auto
     moreover
     from termi_if_non0[OF 1 0, of t] obtain t' where
-      "(IF b THEN c1 ELSE c2,t) \<Rightarrow> t'" ..
+      t': "(IF b THEN c1 ELSE c2,t) \<Rightarrow> t'" ..
     moreover
-    from confinement[OF this 1] `\<not> sec b \<le> l`
+    from confinement[OF t' 1] `\<not> sec b \<le> l`
     have "t = t' (\<le> l)" by auto
     ultimately
     show ?case using `s = t (\<le> l)` by auto
@@ -134,9 +134,9 @@ next
     have "s = s' (\<le> l)" by auto
     moreover
     from termi_if_non0[OF 1 0, of t] obtain t' where
-      "(IF b THEN c1 ELSE c2,t) \<Rightarrow> t'" ..
+      t': "(IF b THEN c1 ELSE c2,t) \<Rightarrow> t'" ..
     moreover
-    from confinement[OF this 1] `\<not> sec b \<le> l`
+    from confinement[OF t' 1] `\<not> sec b \<le> l`
     have "t = t' (\<le> l)" by auto
     ultimately
     show ?case using `s = t (\<le> l)` by auto

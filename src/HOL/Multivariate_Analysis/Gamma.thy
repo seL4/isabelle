@@ -1470,10 +1470,10 @@ instance proof
   finally show "(rGamma x) = 0 \<longleftrightarrow> (\<exists>n. x = - real_of_nat n)" by simp
 next
   fix x :: real assume "\<And>n. x \<noteq> - of_nat n"
-  hence "complex_of_real x \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  hence x: "complex_of_real x \<notin> \<int>\<^sub>\<le>\<^sub>0"
     by (subst of_real_in_nonpos_Ints_iff) (auto elim!: nonpos_Ints_cases')
-  moreover from this have "x \<noteq> 0" by auto
-  ultimately have "(rGamma has_field_derivative - rGamma x * Digamma x) (at x)"
+  then have "x \<noteq> 0" by auto
+  with x have "(rGamma has_field_derivative - rGamma x * Digamma x) (at x)"
     by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex
                   simp: Polygamma_of_real rGamma_real_def [abs_def])
   thus "let d = (THE d. (\<lambda>n. \<Sum>k<n. inverse (of_nat (Suc k)) - inverse (x + of_nat k))
@@ -2248,8 +2248,8 @@ proof -
   hence "(g has_field_derivative 0) (at z)" for z using g_g'[of z] by simp
   hence "\<exists>c'. \<forall>z\<in>UNIV. g z = c'" by (intro has_field_derivative_zero_constant) simp_all
   then obtain c' where c: "\<And>z. g z = c'" by (force simp: dist_0_norm)
-  moreover from this[of 0] have "c' = pi" unfolding g_def by simp
-  ultimately have "g z = pi" by simp
+  from this[of 0] have "c' = pi" unfolding g_def by simp
+  with c have "g z = pi" by simp
 
   show ?thesis
   proof (cases "z \<in> \<int>")

@@ -317,14 +317,17 @@ lemma infinite_countable_subset:
 proof -
   define Sseq where "Sseq = rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
   define pick where "pick n = (SOME e. e \<in> Sseq n)" for n
-  { fix n have "Sseq n \<subseteq> S" "\<not> finite (Sseq n)" by (induct n) (auto simp add: Sseq_def inf) }
-  moreover then have *: "\<And>n. pick n \<in> Sseq n"
+  have *: "Sseq n \<subseteq> S" "\<not> finite (Sseq n)" for n
+    by (induct n) (auto simp add: Sseq_def inf)
+  then have **: "\<And>n. pick n \<in> Sseq n"
     unfolding pick_def by (subst (asm) finite.simps) (auto simp add: ex_in_conv intro: someI_ex)
-  ultimately have "range pick \<subseteq> S" by auto
+  with * have "range pick \<subseteq> S" by auto
   moreover
-  { fix n m
-    have "pick n \<notin> Sseq (n + Suc m)" by (induct m) (auto simp add: Sseq_def pick_def)
-    with * have "pick n \<noteq> pick (n + Suc m)" by auto
+  {
+    fix n m
+    have "pick n \<notin> Sseq (n + Suc m)"
+      by (induct m) (auto simp add: Sseq_def pick_def)
+    with ** have "pick n \<noteq> pick (n + Suc m)" by auto
   }
   then have "inj pick" by (intro linorder_injI) (auto simp add: less_iff_Suc_add)
   ultimately show ?thesis by blast

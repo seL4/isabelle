@@ -58,10 +58,9 @@ theorem D_preservation:
   "(c,s) \<rightarrow> (c',s') \<Longrightarrow> D (dom s) c A \<Longrightarrow> EX A'. D (dom s') c' A' & A <= A'"
 proof (induction arbitrary: A rule: small_step_induct)
   case (While b c s)
-  then obtain A' where "vars b \<subseteq> dom s" "A = dom s" "D (dom s) c A'" by blast
-  moreover
+  then obtain A' where A': "vars b \<subseteq> dom s" "A = dom s" "D (dom s) c A'" by blast
   then obtain A'' where "D A' c A''" by (metis D_incr D_mono)
-  ultimately have "D (dom s) (IF b THEN c;; WHILE b DO c ELSE SKIP) (dom s)"
+  with A' have "D (dom s) (IF b THEN c;; WHILE b DO c ELSE SKIP) (dom s)"
     by (metis D.If[OF `vars b \<subseteq> dom s` D.Seq[OF `D (dom s) c A'` D.While[OF _ `D A' c A''`]] D.Skip] D_incr Int_absorb1 subset_trans)
   thus ?case by (metis D_incr `A = dom s`)
 next

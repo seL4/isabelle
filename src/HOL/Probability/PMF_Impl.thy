@@ -402,9 +402,9 @@ lemma mapping_of_pmf_pmf_of_list:
                (\<lambda>x. listsum (map snd (filter (\<lambda>z. fst z = x) xs)))"
 proof -
   from assms have wf: "pmf_of_list_wf xs" by (intro pmf_of_list_wfI) force
-  moreover from this assms have "set_pmf (pmf_of_list xs) = fst ` set xs"
+  with assms have "set_pmf (pmf_of_list xs) = fst ` set xs"
     by (intro set_pmf_of_list_eq) auto
-  ultimately show ?thesis
+  with wf show ?thesis
     by (intro mapping_of_pmfI) (auto simp: lookup_tabulate pmf_pmf_of_list)
 qed
 

@@ -1006,7 +1006,7 @@ fun retrieve pick context (Facts.Fact s) =
           | dups => err (distinct (op =) (map #2 dups)) "Ambiguous specification of literal fact");
 
         val markup =
-          (Markup.entity Markup.literal_factN "")
+          Markup.entity Markup.literal_factN ""
           |> Markup.properties (Position.def_properties_of thm_pos);
         val _ = Context_Position.report_generic context pos markup;
       in pick true ("", thm_pos) [thm] end

@@ -4343,10 +4343,11 @@ next
   have "F \<noteq> bot"
     unfolding F_def
   proof (rule INF_filter_not_bot)
-    fix X assume "X \<subseteq> insert U A" "finite X"
-    moreover with A(2)[THEN spec, of "X - {U}"] have "U \<inter> \<Inter>(X - {U}) \<noteq> {}"
+    fix X
+    assume X: "X \<subseteq> insert U A" "finite X"
+    with A(2)[THEN spec, of "X - {U}"] have "U \<inter> \<Inter>(X - {U}) \<noteq> {}"
       by auto
-    ultimately show "(INF a:X. principal a) \<noteq> bot"
+    with X show "(INF a:X. principal a) \<noteq> bot"
       by (auto simp add: INF_principal_finite principal_eq_bot_iff)
   qed
   moreover
@@ -6601,13 +6602,12 @@ proof -
       then obtain xs where xs: "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X"
         by (auto simp: closure_sequential)
       from continuous_on_tendsto_compose[OF cont_h xs(1)] xs(2) Y
-      have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> h x"
+      have hx: "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> h x"
         by (auto simp: set_mp extension)
-      moreover
       then have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> y x"
         using \<open>x \<notin> X\<close> not_eventuallyD xs(2)
         by (force intro!: filterlim_compose[OF y[OF \<open>x \<in> closure X\<close>]] simp: filterlim_at xs)
-      ultimately have "h x = y x" by (rule LIMSEQ_unique)
+      with hx have "h x = y x" by (rule LIMSEQ_unique)
     } then
     have "h x = ?g x"
       using extension by auto

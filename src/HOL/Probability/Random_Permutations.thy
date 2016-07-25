@@ -52,9 +52,9 @@ function fold_random_permutation :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Ri
 by (force, simp_all)
 termination proof (relation "Wellfounded.measure (\<lambda>(_,_,A). card A)")
   fix A :: "'a set" and f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and x :: 'b and y :: 'a
-  assume "finite A" "A \<noteq> {}" "y \<in> set_pmf (pmf_of_set A)"
-  moreover from this have "card A > 0" by (simp add: card_gt_0_iff)
-  ultimately show "((f, f y x, A - {y}), f, x, A) \<in> Wellfounded.measure (\<lambda>(_, _, A). card A)"
+  assume A: "finite A" "A \<noteq> {}" "y \<in> set_pmf (pmf_of_set A)"
+  then have "card A > 0" by (simp add: card_gt_0_iff)
+  with A show "((f, f y x, A - {y}), f, x, A) \<in> Wellfounded.measure (\<lambda>(_, _, A). card A)"
     by simp
 qed simp_all
 
@@ -128,9 +128,9 @@ by (force, simp_all)
 termination proof (relation "Wellfounded.measure (\<lambda>(_,_,_,A). card A)")
   fix A :: "'a set" and f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and x :: 'b 
     and y :: 'a and g :: "'b \<Rightarrow> 'c pmf"
-  assume "finite A" "A \<noteq> {}" "y \<in> set_pmf (pmf_of_set A)"
-  moreover from this have "card A > 0" by (simp add: card_gt_0_iff)
-  ultimately show "((f, g, f y x, A - {y}), f, g, x, A) \<in> Wellfounded.measure (\<lambda>(_, _, _, A). card A)"
+  assume A: "finite A" "A \<noteq> {}" "y \<in> set_pmf (pmf_of_set A)"
+  then have "card A > 0" by (simp add: card_gt_0_iff)
+  with A show "((f, g, f y x, A - {y}), f, g, x, A) \<in> Wellfounded.measure (\<lambda>(_, _, _, A). card A)"
     by simp
 qed simp_all
 

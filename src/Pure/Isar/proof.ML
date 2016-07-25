@@ -19,10 +19,12 @@ sig
   val map_context_result : (context -> 'a * context) -> state -> 'a * state
   val map_contexts: (context -> context) -> state -> state
   val propagate_ml_env: state -> state
+  val report_improper: state -> unit
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val set_facts: thm list -> state -> state
   val reset_facts: state -> state
+  val improper_reset_facts: state -> state
   val assert_forward: state -> state
   val assert_chain: state -> state
   val assert_forward_or_chain: state -> state
@@ -163,7 +165,7 @@ datatype state =
 and node =
   Node of
    {context: context,
-    facts: thm list option,
+    facts: (thm list * bool) option,
     mode: mode,
     goal: goal option}
 and goal =
@@ -242,11 +244,14 @@ fun propagate_ml_env state = map_contexts
 
 (* facts *)
 
+fun report_improper state =
+  Context_Position.report (context_of state) (Position.thread_data ()) Markup.improper;
+
 val get_facts = #facts o top;
 
 fun the_facts state =
   (case get_facts state of
-    SOME facts => facts
+    SOME (facts, proper) => (if proper then () else report_improper state; facts)
   | NONE => error "No current facts available");
 
 fun the_fact state =
@@ -256,10 +261,15 @@ fun the_fact state =
 
 fun put_facts index facts =
   map_top (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  map_context (Proof_Context.put_thms index (Auto_Bind.thisN, facts));
+  map_context (Proof_Context.put_thms index (Auto_Bind.thisN, Option.map #1 facts));
 
-val set_facts = put_facts false o SOME;
+fun set_facts thms = put_facts false (SOME (thms, true));
 val reset_facts = put_facts false NONE;
+
+fun improper_reset_facts state =
+  (case get_facts state of
+    SOME (thms, _) => put_facts false (SOME (thms, false)) state
+  | NONE => state);
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> set_facts (maps snd named_factss @ more_facts));
@@ -267,10 +277,9 @@ fun these_factss more_facts (named_factss, state) =
 fun export_facts inner outer =
   (case get_facts inner of
     NONE => reset_facts outer
-  | SOME thms =>
-      thms
-      |> Proof_Context.export (context_of inner) (context_of outer)
-      |> (fn ths => put_facts true (SOME ths) outer));
+  | SOME (thms, proper) =>
+      let val thms' = Proof_Context.export (context_of inner) (context_of outer) thms
+      in put_facts true (SOME (thms', proper)) outer end);
 
 
 (* mode *)
@@ -403,8 +412,8 @@ fun pretty_state state =
       [Pretty.mark_str (position_markup, "proof"), Pretty.str (" (" ^ mode_name mode ^ ")")]] @
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if verbose orelse mode = Forward then
-       pretty_sep (pretty_facts ctxt "" facts) (prt_goal (try find_goal state))
-     else if mode = Chain then pretty_facts ctxt "picking" facts
+       pretty_sep (pretty_facts ctxt "" (Option.map #1 facts)) (prt_goal (try find_goal state))
+     else if mode = Chain then pretty_facts ctxt "picking" (Option.map #1 facts)
      else prt_goal (try find_goal state))
   end;
 

@@ -125,10 +125,10 @@ proof (rule subdegreeI)
     
   from assms have "\<not>monom 1 (Suc n) dvd p"
     by (auto simp: monom_1_dvd_iff simp del: power_Suc)
-  then obtain k where "k \<le> n" "fps_of_poly p $ k \<noteq> 0" 
+  then obtain k where k: "k \<le> n" "fps_of_poly p $ k \<noteq> 0" 
     by (auto simp: monom_1_dvd_iff' less_Suc_eq_le)
-  moreover from this and zero[of k] have "k = n" by linarith
-  ultimately show "fps_of_poly p $ n \<noteq> 0" by simp
+  with zero[of k] have "k = n" by linarith
+  with k show "fps_of_poly p $ n \<noteq> 0" by simp
 qed
 
 lemma fps_of_poly_dvd:

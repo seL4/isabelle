@@ -1067,11 +1067,11 @@ proof transfer
   fix x y :: ereal assume xy: "0 \<le> x" "0 \<le> y" "x < y"
   moreover
   from ereal_dense3[OF \<open>x < y\<close>]
-  obtain r where "x < ereal (real_of_rat r)" "ereal (real_of_rat r) < y"
+  obtain r where r: "x < ereal (real_of_rat r)" "ereal (real_of_rat r) < y"
     by auto
-  moreover then have "0 \<le> r"
+  then have "0 \<le> r"
     using le_less_trans[OF \<open>0 \<le> x\<close> \<open>x < ereal (real_of_rat r)\<close>] by auto
-  ultimately show "\<exists>r. x < (sup 0 \<circ> ereal) (real_of_rat r) \<and> (sup 0 \<circ> ereal) (real_of_rat r) < y"
+  with r show "\<exists>r. x < (sup 0 \<circ> ereal) (real_of_rat r) \<and> (sup 0 \<circ> ereal) (real_of_rat r) < y"
     by (intro exI[of _ r]) (auto simp: max_absorb2)
 qed
 
@@ -1172,11 +1172,11 @@ proof -
       from ennreal_Ex_less_of_nat[OF r] guess n .. note n = this
       have "\<not> (X \<subseteq> enat ` {.. n})"
         using \<open>infinite X\<close> by (auto dest: finite_subset)
-      then obtain x where "x \<in> X" "x \<notin> enat ` {..n}"
+      then obtain x where x: "x \<in> X" "x \<notin> enat ` {..n}"
         by blast
-      moreover then have "of_nat n \<le> x"
+      then have "of_nat n \<le> x"
         by (cases x) (auto simp: of_nat_eq_enat)
-      ultimately show ?thesis
+      with x show ?thesis
         by (auto intro!: bexI[of _ x] less_le_trans[OF n])
     qed
     then have "(SUP x : X. ennreal_of_enat x) = top"
@@ -1217,8 +1217,8 @@ proof
     using zero_neq_one by (intro exI)
   show "\<And>x y::ennreal. x < y \<Longrightarrow> \<exists>z>x. z < y"
   proof transfer
-    fix x y :: ereal assume "0 \<le> x" "x < y"
-    moreover from dense[OF this(2)] guess z ..
+    fix x y :: ereal assume "0 \<le> x" and *: "x < y"
+    moreover from dense[OF *] guess z ..
     ultimately show "\<exists>z\<in>Collect (op \<le> 0). x < z \<and> z < y"
       by (intro bexI[of _ z]) auto
   qed

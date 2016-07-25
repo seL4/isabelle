@@ -366,9 +366,8 @@ next
     rest: "P @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^k (n, s', stk')"
     by auto
   from step `size P \<le> i`
-  have "P' \<turnstile> (i - size P, s, stk) \<rightarrow> (i' - size P, s'', stk'')" 
+  have *: "P' \<turnstile> (i - size P, s, stk) \<rightarrow> (i' - size P, s'', stk'')" 
     by (rule exec1_drop_left)
-  moreover
   then have "i' - size P \<in> succs P' 0"
     by (fastforce dest!: succs_iexec1 simp: exec1_def simp del: iexec.simps)
   with `exits P' \<subseteq> {0..}`
@@ -376,8 +375,7 @@ next
   from rest this `exits P' \<subseteq> {0..}`     
   have "P' \<turnstile> (i' - size P, s'', stk'') \<rightarrow>^k (n - size P, s', stk')"
     by (rule Suc.IH)
-  ultimately
-  show ?case by auto
+  with * show ?case by auto
 qed
 
 lemmas exec_n_drop_Cons = 

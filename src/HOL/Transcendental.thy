@@ -1617,14 +1617,15 @@ lemma ln_neg_is_const:
 
 lemma isCont_ln:
   fixes x::real assumes "x \<noteq> 0" shows "isCont ln x"
-proof cases
-  assume "0 < x"
-  moreover then have "isCont ln (exp (ln x))"
+proof (cases "0 < x")
+  case True
+  then have "isCont ln (exp (ln x))"
     by (intro isCont_inv_fun[where d="\<bar>x\<bar>" and f=exp]) auto
-  ultimately show ?thesis
+  with True show ?thesis
     by simp
 next
-  assume "\<not> 0 < x" with \<open>x \<noteq> 0\<close> show "isCont ln x"
+  case False
+  with \<open>x \<noteq> 0\<close> show "isCont ln x"
     unfolding isCont_def
     by (subst filterlim_cong[OF _ refl, of _ "nhds (ln 0)" _ "\<lambda>_. ln 0"])
        (auto simp: ln_neg_is_const not_less eventually_at dist_real_def
@@ -4902,11 +4903,11 @@ proof -
   have x1: "x \<le> 1"
     using assms
     by (metis le_add_same_cancel1 power2_le_imp_le power_one zero_le_power2)
-  moreover with assms have ax: "0 \<le> arccos x" "cos(arccos x) = x"
+  with assms have ax: "0 \<le> arccos x" "cos (arccos x) = x"
     by (auto simp: arccos)
-  moreover have "y = sqrt (1 - x\<^sup>2)" using assms
+  from assms have "y = sqrt (1 - x\<^sup>2)"
     by (metis abs_of_nonneg add.commute add_diff_cancel real_sqrt_abs)
-  ultimately show ?thesis using assms arccos_le_pi2 [of x]
+  with x1 ax assms arccos_le_pi2 [of x] show ?thesis
     by (rule_tac x="arccos x" in exI) (auto simp: sin_arccos)
 qed
 
@@ -5836,26 +5837,25 @@ proof -
     assume ?lhs
     with * have "(\<forall>i\<le>n. c i = (if i=0 then k else 0))"
       by (simp add: polyfun_eq_coeffs [symmetric])
-    then show ?rhs
-      by simp
+    then show ?rhs by simp
   next
-    assume ?rhs then show ?lhs
-      by (induct n) auto
+    assume ?rhs
+    then show ?lhs by (induct n) auto
   qed
 qed
 
 lemma root_polyfun:
-  fixes z:: "'a::idom"
+  fixes z :: "'a::idom"
   assumes "1 \<le> n"
-    shows "z^n = a \<longleftrightarrow> (\<Sum>i\<le>n. (if i = 0 then -a else if i=n then 1 else 0) * z^i) = 0"
+  shows "z^n = a \<longleftrightarrow> (\<Sum>i\<le>n. (if i = 0 then -a else if i=n then 1 else 0) * z^i) = 0"
   using assms
-  by (cases n; simp add: setsum_head_Suc atLeast0AtMost [symmetric])
+  by (cases n) (simp_all add: setsum_head_Suc atLeast0AtMost [symmetric])
 
 lemma
-    fixes zz :: "'a::{idom,real_normed_div_algebra}"
+  fixes zz :: "'a::{idom,real_normed_div_algebra}"
   assumes "1 \<le> n"
-    shows finite_roots_unity: "finite {z::'a. z^n = 1}"
-      and card_roots_unity:   "card {z::'a. z^n = 1} \<le> n"
+  shows finite_roots_unity: "finite {z::'a. z^n = 1}"
+    and card_roots_unity: "card {z::'a. z^n = 1} \<le> n"
   using polyfun_rootbound [of "\<lambda>i. if i = 0 then -1 else if i=n then 1 else 0" n n] assms
   by (auto simp add: root_polyfun [OF assms])
 

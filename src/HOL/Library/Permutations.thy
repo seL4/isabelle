@@ -1269,9 +1269,9 @@ proof (rule inj_onI)
     where x'y': "map_of xs x = Some x'" "map_of xs y = Some y'" 
     by (cases "map_of xs x"; cases "map_of xs y")
        (simp_all add: map_of_eq_None_iff)
-  moreover from this x'y' have "(x,x') \<in> set xs" "(y,y') \<in> set xs"
+  moreover from x'y' have *: "(x,x') \<in> set xs" "(y,y') \<in> set xs"
     by (force dest: map_of_SomeD)+
-  moreover from this eq x'y' have "x' = y'" by simp
+  moreover from * eq x'y' have "x' = y'" by simp
   ultimately show "x = y" using assms
     by (force simp: distinct_map dest: inj_onD[of _ _ "(x,x')" "(y,y')"])
 qed

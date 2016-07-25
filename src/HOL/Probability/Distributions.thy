@@ -164,8 +164,8 @@ qed
 lemma nn_integral_erlang_density:
   assumes [arith]: "0 < l"
   shows "(\<integral>\<^sup>+ x. ennreal (erlang_density k l x) * indicator {.. a} x \<partial>lborel) = erlang_CDF k l a"
-proof cases
-  assume [arith]: "0 \<le> a"
+proof (cases "0 \<le> a")
+  case [arith]: True
   have eq: "\<And>x. indicator {0..a} (x / l) = indicator {0..a*l} x"
     by (simp add: field_simps split: split_indicator)
   have "(\<integral>\<^sup>+x. ennreal (erlang_density k l x) * indicator {.. a} x \<partial>lborel) =
@@ -182,10 +182,10 @@ proof cases
     by (auto simp: erlang_CDF_def)
   finally show ?thesis .
 next
-  assume "\<not> 0 \<le> a"
-  moreover then have "(\<integral>\<^sup>+ x. ennreal (erlang_density k l x) * indicator {.. a} x \<partial>lborel) = (\<integral>\<^sup>+x. 0 \<partial>(lborel::real measure))"
+  case False
+  then have "(\<integral>\<^sup>+ x. ennreal (erlang_density k l x) * indicator {.. a} x \<partial>lborel) = (\<integral>\<^sup>+x. 0 \<partial>(lborel::real measure))"
     by (intro nn_integral_cong) (auto simp: erlang_density_def)
-  ultimately show ?thesis
+  with False show ?thesis
     by (simp add: erlang_CDF_def)
 qed
 

@@ -272,28 +272,28 @@ proof induct
   ultimately show ?case by simp
 next
   case (set B)
-  moreover then have "(\<lambda>M'. \<integral>\<^sup>+M''. indicator B M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. emeasure M' B) \<in> ?B"
+  then have "(\<lambda>M'. \<integral>\<^sup>+M''. indicator B M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. emeasure M' B) \<in> ?B"
     by (intro measurable_cong nn_integral_indicator) (simp add: space_subprob_algebra)
-  ultimately show ?case
+  with set show ?case
     by (simp add: measurable_emeasure_subprob_algebra)
 next
   case (mult f c)
-  moreover then have "(\<lambda>M'. \<integral>\<^sup>+M''. c * f M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. c * \<integral>\<^sup>+M''. f M'' \<partial>M') \<in> ?B"
+  then have "(\<lambda>M'. \<integral>\<^sup>+M''. c * f M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. c * \<integral>\<^sup>+M''. f M'' \<partial>M') \<in> ?B"
     by (intro measurable_cong nn_integral_cmult) (auto simp add: space_subprob_algebra)
-  ultimately show ?case
+  with mult show ?case
     by simp
 next
   case (add f g)
-  moreover then have "(\<lambda>M'. \<integral>\<^sup>+M''. f M'' + g M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. (\<integral>\<^sup>+M''. f M'' \<partial>M') + (\<integral>\<^sup>+M''. g M'' \<partial>M')) \<in> ?B"
+  then have "(\<lambda>M'. \<integral>\<^sup>+M''. f M'' + g M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. (\<integral>\<^sup>+M''. f M'' \<partial>M') + (\<integral>\<^sup>+M''. g M'' \<partial>M')) \<in> ?B"
     by (intro measurable_cong nn_integral_add) (auto simp add: space_subprob_algebra)
-  ultimately show ?case
+  with add show ?case
     by (simp add: ac_simps)
 next
   case (seq F)
-  moreover then have "(\<lambda>M'. \<integral>\<^sup>+M''. (SUP i. F i) M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. SUP i. (\<integral>\<^sup>+M''. F i M'' \<partial>M')) \<in> ?B"
+  then have "(\<lambda>M'. \<integral>\<^sup>+M''. (SUP i. F i) M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. SUP i. (\<integral>\<^sup>+M''. F i M'' \<partial>M')) \<in> ?B"
     unfolding SUP_apply
     by (intro measurable_cong nn_integral_monotone_convergence_SUP) (auto simp add: space_subprob_algebra)
-  ultimately show ?case
+  with seq show ?case
     by (simp add: ac_simps)
 qed
 
@@ -793,10 +793,10 @@ proof induct
     by simp
 next
   case (set A)
-  moreover with M have "(\<integral>\<^sup>+ M'. integral\<^sup>N M' (indicator A) \<partial>M) = (\<integral>\<^sup>+ M'. emeasure M' A \<partial>M)"
+  with M have "(\<integral>\<^sup>+ M'. integral\<^sup>N M' (indicator A) \<partial>M) = (\<integral>\<^sup>+ M'. emeasure M' A \<partial>M)"
     by (intro nn_integral_cong nn_integral_indicator)
        (auto simp: space_subprob_algebra dest!: sets_eq_imp_space_eq)
-  ultimately show ?case
+  with set show ?case
     using M by (simp add: emeasure_join)
 next
   case (mult f c)

@@ -41,8 +41,8 @@ lemma inv_mult_units:
   "[| x \<in> Units G; y \<in> Units G |] ==> inv (x \<otimes> y) = inv y \<otimes> inv x"
 proof -
   assume G: "x \<in> Units G"  "y \<in> Units G"
-  moreover then have "x \<in> carrier G"  "y \<in> carrier G" by auto
-  ultimately have "inv (x \<otimes> y) \<otimes> (x \<otimes> y) = (inv y \<otimes> inv x) \<otimes> (x \<otimes> y)"
+  then have "x \<in> carrier G"  "y \<in> carrier G" by auto
+  with G have "inv (x \<otimes> y) \<otimes> (x \<otimes> y) = (inv y \<otimes> inv x) \<otimes> (x \<otimes> y)"
     by (simp add: m_assoc) (simp add: m_assoc [symmetric])
   with G show ?thesis by (simp del: Units_l_inv)
 qed

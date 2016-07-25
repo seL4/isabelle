@@ -2429,11 +2429,11 @@ proof -
         moreover have "(a, b) \<in> (r \<inter> D \<times> D)\<inverse>"
           using \<open>(b, a) \<in> r\<close> using \<open>b \<in># B\<close> and \<open>a \<in># B\<close>
           by (auto simp: D_def)
-        ultimately obtain x where "x \<in># X" and "(a, x) \<in> r"
+        ultimately obtain x where x: "x \<in># X" "(a, x) \<in> r"
           using "1.IH" by blast
-        moreover then have "(b, x) \<in> r"
+        then have "(b, x) \<in> r"
           using \<open>trans r\<close> and \<open>(b, a) \<in> r\<close> by (auto dest: transD)
-        ultimately show ?thesis by blast
+        with x show ?thesis by blast
       qed blast
     qed }
   note B_less = this
@@ -2512,9 +2512,9 @@ lemma (in preorder) mult1_lessE:
   obtains a M0 K where "M = M0 + {#a#}" "N = M0 + K"
     "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
 proof -
-  from assms obtain a M0 K where "M = M0 + {#a#}" "N = M0 + K"
-    "b \<in># K \<Longrightarrow> b < a" for b by (blast elim: mult1E)
-  moreover from this(3) [of a] have "a \<notin># K" by auto
+  from assms obtain a M0 K where "M = M0 + {#a#}" "N = M0 + K" and
+    *: "b \<in># K \<Longrightarrow> b < a" for b by (blast elim: mult1E)
+  moreover from * [of a] have "a \<notin># K" by auto
   ultimately show thesis by (auto intro: that)
 qed
 

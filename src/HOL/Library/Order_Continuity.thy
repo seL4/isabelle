@@ -72,10 +72,11 @@ lemma sup_continuous_compose:
   shows "sup_continuous (\<lambda>x. f (g x))"
   unfolding sup_continuous_def
 proof safe
-  fix M :: "nat \<Rightarrow> 'c" assume "mono M"
-  moreover then have "mono (\<lambda>i. g (M i))"
+  fix M :: "nat \<Rightarrow> 'c"
+  assume M: "mono M"
+  then have "mono (\<lambda>i. g (M i))"
     using sup_continuous_mono[OF g] by (auto simp: mono_def)
-  ultimately show "f (g (SUPREMUM UNIV M)) = (SUP i. f (g (M i)))"
+  with M show "f (g (SUPREMUM UNIV M)) = (SUP i. f (g (M i)))"
     by (auto simp: sup_continuous_def g[THEN sup_continuousD] f[THEN sup_continuousD])
 qed
 
@@ -269,10 +270,11 @@ lemma inf_continuous_compose:
   shows "inf_continuous (\<lambda>x. f (g x))"
   unfolding inf_continuous_def
 proof safe
-  fix M :: "nat \<Rightarrow> 'c" assume "antimono M"
-  moreover then have "antimono (\<lambda>i. g (M i))"
+  fix M :: "nat \<Rightarrow> 'c"
+  assume M: "antimono M"
+  then have "antimono (\<lambda>i. g (M i))"
     using inf_continuous_mono[OF g] by (auto simp: mono_def antimono_def)
-  ultimately show "f (g (INFIMUM UNIV M)) = (INF i. f (g (M i)))"
+  with M show "f (g (INFIMUM UNIV M)) = (INF i. f (g (M i)))"
     by (auto simp: inf_continuous_def g[THEN inf_continuousD] f[THEN inf_continuousD])
 qed
 

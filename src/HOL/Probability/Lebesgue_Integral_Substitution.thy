@@ -323,9 +323,9 @@ lemma integral_substitution:
     and "(LBINT x. f x * indicator {g a..g b} x) = (LBINT x. f (g x) * g' x * indicator {a..b} x)"
 proof-
   from derivg have contg: "continuous_on {a..b} g" by (rule has_real_derivative_imp_continuous_on)
-  from this and contg' have Mg: "set_borel_measurable borel {a..b} g" and
-                             Mg': "set_borel_measurable borel {a..b} g'"
-      by (simp_all only: set_measurable_continuous_on_ivl)
+  with contg' have Mg: "set_borel_measurable borel {a..b} g"
+    and Mg': "set_borel_measurable borel {a..b} g'"
+    by (simp_all only: set_measurable_continuous_on_ivl)
   from derivg derivg_nonneg have monog: "\<And>x y. a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> b \<Longrightarrow> g x \<le> g y"
     by (rule deriv_nonneg_imp_mono) simp_all
 
@@ -341,18 +341,18 @@ proof-
           enn2real (\<integral>\<^sup>+ x. ennreal (f x) * indicator {g a..g b} x \<partial>lborel) -
           enn2real (\<integral>\<^sup>+ x. ennreal (- (f x)) * indicator {g a..g b} x \<partial>lborel)" using integrable
     by (subst real_lebesgue_integral_def) (simp_all add: nn_integral_set_ennreal mult.commute)
-  also have "(\<integral>\<^sup>+x. ennreal (f x) * indicator {g a..g b} x \<partial>lborel) =
-               (\<integral>\<^sup>+x. ennreal (f x * indicator {g a..g b} x) \<partial>lborel)"
+  also have *: "(\<integral>\<^sup>+x. ennreal (f x) * indicator {g a..g b} x \<partial>lborel) =
+      (\<integral>\<^sup>+x. ennreal (f x * indicator {g a..g b} x) \<partial>lborel)"
     by (intro nn_integral_cong) (simp split: split_indicator)
-  also with M1 have A: "(\<integral>\<^sup>+ x. ennreal (f x * indicator {g a..g b} x) \<partial>lborel) =
+  also from M1 * have A: "(\<integral>\<^sup>+ x. ennreal (f x * indicator {g a..g b} x) \<partial>lborel) =
                             (\<integral>\<^sup>+ x. ennreal (f (g x) * g' x * indicator {a..b} x) \<partial>lborel)"
     by (subst nn_integral_substitution[OF _ derivg contg' derivg_nonneg \<open>a \<le> b\<close>])
        (auto simp: nn_integral_set_ennreal mult.commute)
-  also have "(\<integral>\<^sup>+ x. ennreal (- (f x)) * indicator {g a..g b} x \<partial>lborel) =
-               (\<integral>\<^sup>+ x. ennreal (- (f x) * indicator {g a..g b} x) \<partial>lborel)"
+  also have **: "(\<integral>\<^sup>+ x. ennreal (- (f x)) * indicator {g a..g b} x \<partial>lborel) =
+      (\<integral>\<^sup>+ x. ennreal (- (f x) * indicator {g a..g b} x) \<partial>lborel)"
     by (intro nn_integral_cong) (simp split: split_indicator)
-  also with M2 have B: "(\<integral>\<^sup>+ x. ennreal (- (f x) * indicator {g a..g b} x) \<partial>lborel) =
-                            (\<integral>\<^sup>+ x. ennreal (- (f (g x)) * g' x * indicator {a..b} x) \<partial>lborel)"
+  also from M2 ** have B: "(\<integral>\<^sup>+ x. ennreal (- (f x) * indicator {g a..g b} x) \<partial>lborel) =
+        (\<integral>\<^sup>+ x. ennreal (- (f (g x)) * g' x * indicator {a..b} x) \<partial>lborel)"
     by (subst nn_integral_substitution[OF _ derivg contg' derivg_nonneg \<open>a \<le> b\<close>])
        (auto simp: nn_integral_set_ennreal mult.commute)
 

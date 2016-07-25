@@ -29,14 +29,18 @@ proof (rule PiM_eqI)
   note * = this
 
   have "emeasure (PiM I M) (emb I J (PiE J X)) = (\<Prod>i\<in>J. M i (X i))"
-  proof cases
-    assume "\<not> (J \<noteq> {} \<or> I = {})"
-    then obtain i where "J = {}" "i \<in> I" by auto
-    moreover then have "emb I {} {\<lambda>x. undefined} = emb I {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i))"
+  proof (cases "J \<noteq> {} \<or> I = {}")
+    case False
+    then obtain i where i: "J = {}" "i \<in> I" by auto
+    then have "emb I {} {\<lambda>x. undefined} = emb I {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i))"
       by (auto simp: space_PiM prod_emb_def)
-    ultimately show ?thesis
+    with i show ?thesis
       by (simp add: * M.emeasure_space_1)
-  qed (simp add: *[OF _ assms X])
+  next
+    case True
+    then show ?thesis
+      by (simp add: *[OF _ assms X])
+  qed
   with assms show "emeasure (distr (Pi\<^sub>M I M) (Pi\<^sub>M J M) (\<lambda>x. restrict x J)) (Pi\<^sub>E J X) = (\<Prod>i\<in>J. emeasure (M i) (X i))"
     by (subst emeasure_distr_restrict[OF _ refl]) (auto intro!: sets_PiM_I_finite X)
 qed (insert assms, auto)

@@ -1862,7 +1862,7 @@ proof (rule measure_eqI)
     using f unfolding Pi_def bij_betw_def by auto
   fix X assume "X \<in> sets (distr (count_space A) (count_space B) f)"
   then have X: "X \<in> sets (count_space B)" by auto
-  moreover then have "f -` X \<inter> A = the_inv_into A f ` X"
+  moreover from X have "f -` X \<inter> A = the_inv_into A f ` X"
     using f by (auto simp: bij_betw_def subset_image_iff image_iff the_inv_into_f_f intro: the_inv_into_f_f[symmetric])
   moreover have "inj_on (the_inv_into A f) B"
     using X f by (auto simp: bij_betw_def inj_on_the_inv_into)
@@ -1932,8 +1932,8 @@ subsection \<open>Measure restricted to space\<close>
 lemma emeasure_restrict_space:
   assumes "\<Omega> \<inter> space M \<in> sets M" "A \<subseteq> \<Omega>"
   shows "emeasure (restrict_space M \<Omega>) A = emeasure M A"
-proof cases
-  assume "A \<in> sets M"
+proof (cases "A \<in> sets M")
+  case True
   show ?thesis
   proof (rule emeasure_measure_of[OF restrict_space_def])
     show "op \<inter> \<Omega> ` sets M \<subseteq> Pow (\<Omega> \<inter> space M)" "A \<in> sets (restrict_space M \<Omega>)"
@@ -1951,10 +1951,10 @@ proof cases
     qed
   qed
 next
-  assume "A \<notin> sets M"
-  moreover with assms have "A \<notin> sets (restrict_space M \<Omega>)"
+  case False
+  with assms have "A \<notin> sets (restrict_space M \<Omega>)"
     by (simp add: sets_restrict_space_iff)
-  ultimately show ?thesis
+  with False show ?thesis
     by (simp add: emeasure_notin_sets)
 qed
 

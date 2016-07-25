@@ -489,9 +489,9 @@ lemma eventually_INF_mono:
   assumes **: "\<And>i P. i \<in> I \<Longrightarrow> \<forall>\<^sub>F x in F i. P x \<Longrightarrow> \<forall>\<^sub>F x in F' i. T P x"
   shows "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F' i. T P x"
 proof -
-  from * obtain X where "finite X" "X \<subseteq> I" "\<forall>\<^sub>F x in \<Sqinter>i\<in>X. F i. P x"
+  from * obtain X where X: "finite X" "X \<subseteq> I" "\<forall>\<^sub>F x in \<Sqinter>i\<in>X. F i. P x"
     unfolding eventually_INF[of _ _ I] by auto
-  moreover then have "eventually (T P) (INFIMUM X F')"
+  then have "eventually (T P) (INFIMUM X F')"
     apply (induction X arbitrary: P)
     apply (auto simp: eventually_inf T2)
     subgoal for x S P Q R
@@ -501,7 +501,7 @@ proof -
       apply (auto intro: T1) []
       done
     done
-  ultimately show "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F' i. T P x"
+  with X show "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F' i. T P x"
     by (subst eventually_INF) auto
 qed
 
@@ -798,9 +798,10 @@ lemma eventually_prod1:
   shows "(\<forall>\<^sub>F (x, y) in A \<times>\<^sub>F B. P x) \<longleftrightarrow> (\<forall>\<^sub>F x in A. P x)"
   unfolding eventually_prod_filter
 proof safe
-  fix R Q assume "\<forall>\<^sub>F x in A. R x" "\<forall>\<^sub>F x in B. Q x" "\<forall>x y. R x \<longrightarrow> Q y \<longrightarrow> P x"
-  moreover with \<open>B \<noteq> bot\<close> obtain y where "Q y" by (auto dest: eventually_happens)
-  ultimately show "eventually P A"
+  fix R Q
+  assume *: "\<forall>\<^sub>F x in A. R x" "\<forall>\<^sub>F x in B. Q x" "\<forall>x y. R x \<longrightarrow> Q y \<longrightarrow> P x"
+  with \<open>B \<noteq> bot\<close> obtain y where "Q y" by (auto dest: eventually_happens)
+  with * show "eventually P A"
     by (force elim: eventually_mono)
 next
   assume "eventually P A"
@@ -813,9 +814,10 @@ lemma eventually_prod2:
   shows "(\<forall>\<^sub>F (x, y) in A \<times>\<^sub>F B. P y) \<longleftrightarrow> (\<forall>\<^sub>F y in B. P y)"
   unfolding eventually_prod_filter
 proof safe
-  fix R Q assume "\<forall>\<^sub>F x in A. R x" "\<forall>\<^sub>F x in B. Q x" "\<forall>x y. R x \<longrightarrow> Q y \<longrightarrow> P y"
-  moreover with \<open>A \<noteq> bot\<close> obtain x where "R x" by (auto dest: eventually_happens)
-  ultimately show "eventually P B"
+  fix R Q
+  assume *: "\<forall>\<^sub>F x in A. R x" "\<forall>\<^sub>F x in B. Q x" "\<forall>x y. R x \<longrightarrow> Q y \<longrightarrow> P y"
+  with \<open>A \<noteq> bot\<close> obtain x where "R x" by (auto dest: eventually_happens)
+  with * show "eventually P B"
     by (force elim: eventually_mono)
 next
   assume "eventually P B"
@@ -827,35 +829,40 @@ lemma INF_filter_bot_base:
   fixes F :: "'a \<Rightarrow> 'b filter"
   assumes *: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. F k \<le> F i \<sqinter> F j"
   shows "(INF i:I. F i) = bot \<longleftrightarrow> (\<exists>i\<in>I. F i = bot)"
-proof cases
-  assume "\<exists>i\<in>I. F i = bot"
-  moreover then have "(INF i:I. F i) \<le> bot"
+proof (cases "\<exists>i\<in>I. F i = bot")
+  case True
+  then have "(INF i:I. F i) \<le> bot"
     by (auto intro: INF_lower2)
-  ultimately show ?thesis
+  with True show ?thesis
     by (auto simp: bot_unique)
 next
-  assume **: "\<not> (\<exists>i\<in>I. F i = bot)"
+  case False
   moreover have "(INF i:I. F i) \<noteq> bot"
-  proof cases
-    assume "I \<noteq> {}"
+  proof (cases "I = {}")
+    case True
+    then show ?thesis
+      by (auto simp add: filter_eq_iff)
+  next
+    case False': False
     show ?thesis
     proof (rule INF_filter_not_bot)
-      fix J assume "finite J" "J \<subseteq> I"
+      fix J
+      assume "finite J" "J \<subseteq> I"
       then have "\<exists>k\<in>I. F k \<le> (\<Sqinter>i\<in>J. F i)"
-      proof (induction J)
-        case empty then show ?case
+      proof (induct J)
+        case empty
+        then show ?case
           using \<open>I \<noteq> {}\<close> by auto
       next
         case (insert i J)
-        moreover then obtain k where "k \<in> I" "F k \<le> (\<Sqinter>i\<in>J. F i)" by auto
-        moreover note *[of i k]
-        ultimately show ?case
+        then obtain k where "k \<in> I" "F k \<le> (\<Sqinter>i\<in>J. F i)" by auto
+        with insert *[of i k] show ?case
           by auto
       qed
-      with ** show "(\<Sqinter>i\<in>J. F i) \<noteq> \<bottom>"
+      with False show "(\<Sqinter>i\<in>J. F i) \<noteq> \<bottom>"
         by (auto simp: bot_unique)
     qed
-  qed (auto simp add: filter_eq_iff)
+  qed
   ultimately show ?thesis
     by auto
 qed
@@ -883,9 +890,9 @@ lemma prod_filter_mono_iff:
   shows "A \<times>\<^sub>F B \<le> C \<times>\<^sub>F D \<longleftrightarrow> A \<le> C \<and> B \<le> D"
 proof safe
   assume *: "A \<times>\<^sub>F B \<le> C \<times>\<^sub>F D"
-  moreover with assms have "A \<times>\<^sub>F B \<noteq> bot"
+  with assms have "A \<times>\<^sub>F B \<noteq> bot"
     by (auto simp: bot_unique prod_filter_eq_bot)
-  ultimately have "C \<times>\<^sub>F D \<noteq> bot"
+  with * have "C \<times>\<^sub>F D \<noteq> bot"
     by (auto simp: bot_unique)
   then have nCD: "C \<noteq> bot" "D \<noteq> bot"
     by (auto simp: prod_filter_eq_bot)

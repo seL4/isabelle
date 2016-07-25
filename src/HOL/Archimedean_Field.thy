@@ -395,9 +395,9 @@ next
       by blast
     then have l: "l = - r"
       by simp
-    moreover with \<open>l \<noteq> 0\<close> False have "r > 0"
+    with \<open>l \<noteq> 0\<close> False have "r > 0"
       by simp
-    ultimately show ?thesis
+    with l show ?thesis
       using pos_mod_bound [of r]
       by (auto simp add: zmod_zminus2_eq_if less_le field_simps intro: floor_unique)
   qed

@@ -33,10 +33,10 @@ proof (intro sigma_algebra.sets_measure_of_eq sigma_algebra_iff2[THEN iffD2] con
   finally show "f ` space M - s \<in> {f ` A |A. A \<in> sets M}" .
 next
   fix A :: "nat \<Rightarrow> _" assume "range A \<subseteq> {f ` A |A. A \<in> sets M}"
-  then obtain A' where "\<And>i. A i = f ` A' i" "\<And>i. A' i \<in> sets M"
+  then obtain A' where A': "\<And>i. A i = f ` A' i" "\<And>i. A' i \<in> sets M"
     by (auto simp: subset_eq choice_iff)
-  moreover from this have "(\<Union>x. f ` A' x) = f ` (\<Union>x. A' x)" by blast
-  ultimately show "(\<Union>i. A i) \<in> {f ` A |A. A \<in> sets M}"
+  then have "(\<Union>x. f ` A' x) = f ` (\<Union>x. A' x)" by blast
+  with A' show "(\<Union>i. A i) \<in> {f ` A |A. A \<in> sets M}"
     by simp blast
 qed (auto dest: sets.sets_into_space)
 
@@ -81,7 +81,7 @@ lemma measurable_embed_measure2':
 proof-
   {
     fix A assume A: "A \<in> sets M"
-    also from this have "A = A \<inter> space M" by auto
+    also from A have "A = A \<inter> space M" by auto
     also have "... = f -` f ` A \<inter> space M" using A assms
       by (auto dest: inj_onD sets.sets_into_space)
     finally have "f -` f ` A \<inter> space M \<in> sets M" .

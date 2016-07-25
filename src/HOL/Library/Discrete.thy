@@ -28,11 +28,13 @@ using \<open>n > 0\<close> proof (induct n rule: log.induct)
   assume "n > 0"
   show "P n"
   proof (cases "n = 1")
-    case True with one show ?thesis by simp
+    case True
+    with one show ?thesis by simp
   next
-    case False with \<open>n > 0\<close> have "n \<ge> 2" by auto
-    moreover with * have "P (n div 2)" .
-    ultimately show ?thesis by (rule double)
+    case False
+    with \<open>n > 0\<close> have "n \<ge> 2" by auto
+    with * have "P (n div 2)" .
+    with \<open>n \<ge> 2\<close> show ?thesis by (rule double)
   qed
 qed
   

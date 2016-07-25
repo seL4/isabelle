@@ -310,11 +310,11 @@ proof -
   have minim[simp]: "minim r' (Field r') \<in> Field r'"
     using wo_rel.minim_inField[unfolded wo_rel_def, OF WELL' _ r'] by auto
   { fix b
-    assume "(b, minim r' (Field r')) \<in> r'"
-    moreover hence "b \<in> Field r'" unfolding Field_def by auto
+    assume b: "(b, minim r' (Field r')) \<in> r'"
+    hence "b \<in> Field r'" unfolding Field_def by auto
     hence "(minim r' (Field r'), b) \<in> r'"
       using wo_rel.minim_least[unfolded wo_rel_def, OF WELL' subset_refl] r' by auto
-    ultimately have "b = minim r' (Field r')"
+    with b have "b = minim r' (Field r')"
       by (metis WELL' antisym_def linear_order_on_def partial_order_on_def well_order_on_def)
   } note * = this
   have 1: "Well_order (r *o r')" using assms by (auto simp add: oprod_Well_order)
@@ -772,9 +772,9 @@ next
             have "G \<subseteq> fin_support r.zero (Field s)"
             unfolding FinFunc_def fin_support_def proof safe
               fix g assume "g \<in> G"
-              with GF obtain f where "f \<in> F" "g = f(z := r.zero)" by auto
-              moreover with SUPPF have "finite (SUPP f)" by blast
-              ultimately show "finite (SUPP g)"
+              with GF obtain f where f: "f \<in> F" "g = f(z := r.zero)" by auto
+              with SUPPF have "finite (SUPP f)" by blast
+              with f show "finite (SUPP g)"
                 by (elim finite_subset[rotated]) (auto simp: support_def)
             qed
             moreover from F GF zField have "G \<subseteq> Func (Field s) (Field r)"
@@ -831,13 +831,12 @@ next
                   case True
                   with f have "f(z := r.zero) \<in> G" unfolding G_def by blast
                   with g0(2) f0z have "(f0(z := r.zero), f(z := r.zero)) \<in> oexp" by auto
-                  hence "(f0(z := r.zero, z := x0), f(z := r.zero, z := x0)) \<in> oexp"
+                  hence oexp: "(f0(z := r.zero, z := x0), f(z := r.zero, z := x0)) \<in> oexp"
                     by (elim fun_upd_same_oexp[OF _ _ zField x0Field]) simp
-                  moreover
                   with f F(1) x0min True
                     have "(f(z := x0), f) \<in> oexp" unfolding G_def r.isMinim_def
                     by (intro fun_upd_smaller_oexp[OF _ zField x0Field]) auto
-                  ultimately show ?thesis using transD[OF oexp_trans, of f0 "f(z := x0)" f]
+                  with oexp show ?thesis using transD[OF oexp_trans, of f0 "f(z := x0)" f]
                     unfolding f0_def by auto
                 next
                   case False note notG = this
@@ -1336,10 +1335,9 @@ proof -
       hence max_Field: "t.max_fun_diff h (F g) \<in> {a \<in> Field t. h a \<noteq> F g a}"
         by (rule rt.max_fun_diff_in[OF _ gh(2,3)])
       { assume *: "t.max_fun_diff h (F g) \<notin> f ` Field s"
-        with max_Field have "F g (t.max_fun_diff h (F g)) = r.zero" unfolding F_def by auto
-        moreover
+        with max_Field have **: "F g (t.max_fun_diff h (F g)) = r.zero" unfolding F_def by auto
         with * gh(4) have "h (t.max_fun_diff h (F g)) = r.zero" unfolding Let_def by auto
-        ultimately have False using max_Field gh(2,3) unfolding FinFunc_def Func_def by auto
+        with ** have False using max_Field gh(2,3) unfolding FinFunc_def Func_def by auto
       }
       hence max_f_Field: "t.max_fun_diff h (F g) \<in> f ` Field s" by blast
       { fix z assume z: "z \<in> Field t - f ` Field s"
@@ -1433,7 +1431,6 @@ proof -
           with f inj have neq: "?f h \<noteq> ?f g"
             unfolding fun_eq_iff inj_on_def rt.oexp_def map_option_case FinFunc_def Func_def Let_def
             by simp metis
-          moreover
           with hg have "t.max_fun_diff (?f h) (?f g) = t.max_fun_diff h g" unfolding rt.oexp_def
             using rt.max_fun_diff[OF \<open>h \<noteq> g\<close>] rt.max_fun_diff_in[OF \<open>h \<noteq> g\<close>]
             by (subst t.max_fun_diff_def, intro t.maxim_equality)
@@ -1441,7 +1438,7 @@ proof -
           with Field_fg Field_fh hg fz f_underS compat neq have "(?f h, ?f g) \<in> st.oexp"
              using rt.max_fun_diff[OF \<open>h \<noteq> g\<close>] rt.max_fun_diff_in[OF \<open>h \<noteq> g\<close>] unfolding st.Field_oexp
              unfolding rt.oexp_def st.oexp_def Let_def compat_def by auto
-          ultimately show "?f h \<in> underS (s ^o t) (?f g)" unfolding underS_def by auto
+          with neq show "?f h \<in> underS (s ^o t) (?f g)" unfolding underS_def by auto
         qed
         ultimately have "?f g \<in> Field (s ^o t) \<and> ?f ` underS (r ^o t) g \<subseteq> underS (s ^o t) (?f g)"
           by blast
@@ -1609,12 +1606,12 @@ next
     have **: "(\<Union>g \<in> fg ` Field t. rs.SUPP g) =
               (\<Union>g \<in> fg ` Field t - {rs.const}. rs.SUPP g)"
       unfolding support_def by auto
-    from * have "\<forall>g \<in> fg ` Field t. finite (rs.SUPP g)" "finite (rst.SUPP fg)"
+    from * have ***: "\<forall>g \<in> fg ` Field t. finite (rs.SUPP g)" "finite (rst.SUPP fg)"
       unfolding rs.Field_oexp FinFunc_def Func_def fin_support_def Option.these_def by force+
-    moreover hence "finite (fg ` Field t - {rs.const})" using *
+    hence "finite (fg ` Field t - {rs.const})" using *
       unfolding support_def rs.zero_oexp[OF Field] FinFunc_def Func_def
       by (elim finite_surj[of _ _ fg]) (fastforce simp: image_iff Option.these_def)
-    ultimately have "finite ((\<Union>g \<in> fg ` Field t. rs.SUPP g) \<times> rst.SUPP fg)"
+    with *** have "finite ((\<Union>g \<in> fg ` Field t. rs.SUPP g) \<times> rst.SUPP fg)"
       by (subst **) (auto intro!: finite_cartesian_product)
     with * show "?g \<in> FinFunc r (s *o t)"
       unfolding Field_oprod rs.Field_oexp FinFunc_def Func_def fin_support_def Option.these_def
@@ -1680,8 +1677,9 @@ proof (cases "r = {}")
           ordIso_transitive[OF oone_ordIso_oexp[OF ordIso_symmetric[OF oone_ordIso] t] oone_ordIso])
   next
      case False
-     moreover hence "s *o t \<noteq> {}" unfolding oprod_def Field_def by fastforce
-     ultimately show ?thesis using \<open>r = {}\<close> ozero_ordIso
+     hence "s *o t \<noteq> {}" unfolding oprod_def Field_def by fastforce
+     with False show ?thesis
+       using \<open>r = {}\<close> ozero_ordIso
        by (auto simp add: s t oprod_Well_order ozero_def)
   qed
 next

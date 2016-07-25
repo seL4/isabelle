@@ -840,11 +840,11 @@ lemma RN_derivI:
   assumes "f \<in> borel_measurable M" "density M f = N"
   shows "density M (RN_deriv M N) = N"
 proof -
-  have "\<exists>f. f \<in> borel_measurable M \<and> density M f = N"
+  have *: "\<exists>f. f \<in> borel_measurable M \<and> density M f = N"
     using assms by auto
-  moreover then have "density M (SOME f. f \<in> borel_measurable M \<and> density M f = N) = N"
+  then have "density M (SOME f. f \<in> borel_measurable M \<and> density M f = N) = N"
     by (rule someI2_ex) auto
-  ultimately show ?thesis
+  with * show ?thesis
     by (auto simp: RN_deriv_def)
 qed
 

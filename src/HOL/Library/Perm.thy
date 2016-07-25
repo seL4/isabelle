@@ -78,15 +78,15 @@ proof
   assume "card (affected f) = 1"
   then obtain a where *: "affected f = {a}"
     by (rule card_1_singletonE)
-  then have "f \<langle>$\<rangle> a \<noteq> a"
+  then have **: "f \<langle>$\<rangle> a \<noteq> a"
     by (simp add: in_affected [symmetric])
-  moreover with * have "f \<langle>$\<rangle> a \<notin> affected f"
+  with * have "f \<langle>$\<rangle> a \<notin> affected f"
     by simp
   then have "f \<langle>$\<rangle> (f \<langle>$\<rangle> a) = f \<langle>$\<rangle> a"
     by (simp add: in_affected)
   then have "inv (apply f) (f \<langle>$\<rangle> (f \<langle>$\<rangle> a)) = inv (apply f) (f \<langle>$\<rangle> a)"
     by simp
-  ultimately show False by simp
+  with ** show False by simp
 qed
 
 
@@ -203,15 +203,18 @@ proof (rule perm_eqI)
     using assms by auto
   then show "(g * f) \<langle>$\<rangle> a = (f * g) \<langle>$\<rangle> a"
   proof cases
-    case 1 moreover with * have "f \<langle>$\<rangle> a \<notin> affected g"
+    case 1
+    with * have "f \<langle>$\<rangle> a \<notin> affected g"
       by auto
-    ultimately show ?thesis by (simp add: in_affected apply_times)
+    with 1 show ?thesis by (simp add: in_affected apply_times)
   next
-    case 2 moreover with * have "g \<langle>$\<rangle> a \<notin> affected f"
+    case 2
+    with * have "g \<langle>$\<rangle> a \<notin> affected f"
       by auto
-    ultimately show ?thesis by (simp add: in_affected apply_times)
+    with 2 show ?thesis by (simp add: in_affected apply_times)
   next
-    case 3 then show ?thesis by (simp add: in_affected apply_times)
+    case 3
+    then show ?thesis by (simp add: in_affected apply_times)
   qed
 qed
 
@@ -593,9 +596,9 @@ next
   define m where "m = order f a - n mod order f a - 1"
   moreover have "order f a - n mod order f a > 0"
     by simp
-  ultimately have "order f a - n mod order f a = Suc m"
+  ultimately have *: "order f a - n mod order f a = Suc m"
     by arith
-  moreover from this have m2: "order f a - Suc n mod order f a = (if m = 0 then order f a else m)"
+  moreover from * have m2: "order f a - Suc n mod order f a = (if m = 0 then order f a else m)"
     by (auto simp add: mod_Suc)
   ultimately show ?case
     using Suc

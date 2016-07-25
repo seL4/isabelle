@@ -71,9 +71,9 @@ lemma pointwise_minimal_pointwise_maximal:
 proof (induct s rule: finite_ne_induct)
   case (insert b s)
   assume *: "\<forall>x\<in>insert b s. \<forall>y\<in>insert b s. x \<le> y \<or> y \<le> x"
-  moreover then obtain u l where "l \<in> s" "\<forall>b\<in>s. l \<le> b" "u \<in> s" "\<forall>b\<in>s. b \<le> u"
+  then obtain u l where "l \<in> s" "\<forall>b\<in>s. l \<le> b" "u \<in> s" "\<forall>b\<in>s. b \<le> u"
     using insert by auto
-  ultimately show "\<exists>a\<in>insert b s. \<forall>x\<in>insert b s. a \<le> x" "\<exists>a\<in>insert b s. \<forall>x\<in>insert b s. x \<le> a"
+  with * show "\<exists>a\<in>insert b s. \<forall>x\<in>insert b s. a \<le> x" "\<exists>a\<in>insert b s. \<forall>x\<in>insert b s. x \<le> a"
     using *[rule_format, of b u] *[rule_format, of b l] by (metis insert_iff order.trans)+
 qed auto
 
