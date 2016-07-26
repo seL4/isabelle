@@ -157,12 +157,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
     val ctr_Tss = map (map fastype_of) ctrss;
 
     val As' = fold (fold Term.add_tfreesT) ctr_Tss [];
-    val unsorted_As' = map (apsnd (K @{sort type})) As';
     val As = map TFree As';
-    val unsorted_As = map TFree unsorted_As';
-
-    val unsortAT = Term.typ_subst_atomic (As ~~ unsorted_As);
-    val unsorted_fpTs = map unsortAT fpTs;
 
     val ((Cs, Xs), _) =
       no_defs_lthy
@@ -217,8 +212,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
 
-    val fp_eqs = map dest_TFree Xs ~~ map unsortAT ctrXs_repTs;
-    val key = key_of_fp_eqs fp unsorted_As unsorted_fpTs fp_eqs;
+    val fp_eqs = map dest_TFree Xs ~~ ctrXs_repTs;
+    val key = key_of_fp_eqs fp As fpTs fp_eqs;
   in
     (case n2m_sugar_of no_defs_lthy key of
       SOME n2m_sugar => (n2m_sugar, no_defs_lthy)
@@ -232,7 +227,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         val Type (s, Us) :: _ = fpTs;
         val killed_As' =
           (case bnf_of no_defs_lthy s of
-            NONE => unsorted_As'
+            NONE => As'
           | SOME bnf =>
             let
               val Type (_, Ts) = T_of_bnf bnf;
@@ -246,8 +241,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
 
         val (((pre_bnfs, absT_infos), _), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
-          fixpoint_bnf I (construct_mutualized_fp fp mutual_cliques unsorted_fpTs indexed_fp_ress)
-            fp_bs unsorted_As' killed_As' fp_eqs empty_comp_cache no_defs_lthy;
+          fixpoint_bnf I (construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress)
+            fp_bs As' killed_As' fp_eqs empty_comp_cache no_defs_lthy;
 
         val time = time lthy;
         val timer = time (Timer.startRealTimer ());
