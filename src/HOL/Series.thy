@@ -15,26 +15,23 @@ begin
 
 subsection \<open>Definition of infinite summability\<close>
 
-definition
-  sums :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a \<Rightarrow> bool"
-  (infixr "sums" 80)
-where
-  "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> s"
+definition sums :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a \<Rightarrow> bool"
+    (infixr "sums" 80)
+  where "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> s"
 
-definition summable :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> bool" where
-   "summable f \<longleftrightarrow> (\<exists>s. f sums s)"
+definition summable :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> bool"
+  where "summable f \<longleftrightarrow> (\<exists>s. f sums s)"
 
-definition
-  suminf :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a"
-  (binder "\<Sum>" 10)
-where
-  "suminf f = (THE s. f sums s)"
+definition suminf :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a"
+    (binder "\<Sum>" 10)
+  where "suminf f = (THE s. f sums s)"
 
 lemma sums_def': "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i = 0..n. f i) \<longlonglongrightarrow> s"
   apply (simp add: sums_def)
   apply (subst LIMSEQ_Suc_iff [symmetric])
   apply (simp only: lessThan_Suc_atMost atLeast0AtMost)
   done
+
 
 subsection \<open>Infinite summability on topological monoids\<close>
 
@@ -50,8 +47,7 @@ lemma sums_summable: "f sums l \<Longrightarrow> summable f"
 lemma summable_iff_convergent: "summable f \<longleftrightarrow> convergent (\<lambda>n. \<Sum>i<n. f i)"
   by (simp add: summable_def sums_def convergent_def)
 
-lemma summable_iff_convergent':
-  "summable f \<longleftrightarrow> convergent (\<lambda>n. setsum f {..n})"
+lemma summable_iff_convergent': "summable f \<longleftrightarrow> convergent (\<lambda>n. setsum f {..n})"
   by (simp_all only: summable_iff_convergent convergent_def
         lessThan_Suc_atMost [symmetric] LIMSEQ_Suc_iff[of "\<lambda>n. setsum f {..<n}"])
 
@@ -80,24 +76,29 @@ lemma suminf_cong: "(\<And>n. f n = g n) \<Longrightarrow> suminf f = suminf g"
   by (rule arg_cong[of f g], rule ext) simp
 
 lemma summable_cong:
-  assumes "eventually (\<lambda>x. f x = (g x :: 'a :: real_normed_vector)) sequentially"
-  shows   "summable f = summable g"
+  fixes f g :: "nat \<Rightarrow> 'a::real_normed_vector"
+  assumes "eventually (\<lambda>x. f x = g x) sequentially"
+  shows "summable f = summable g"
 proof -
-  from assms obtain N where N: "\<forall>n\<ge>N. f n = g n" by (auto simp: eventually_at_top_linorder)
+  from assms obtain N where N: "\<forall>n\<ge>N. f n = g n"
+    by (auto simp: eventually_at_top_linorder)
   define C where "C = (\<Sum>k<N. f k - g k)"
   from eventually_ge_at_top[of N]
-    have "eventually (\<lambda>n. setsum f {..<n} = C + setsum g {..<n}) sequentially"
+  have "eventually (\<lambda>n. setsum f {..<n} = C + setsum g {..<n}) sequentially"
   proof eventually_elim
-    fix n assume n: "n \<ge> N"
-    from n have "{..<n} = {..<N} \<union> {N..<n}" by auto
+    case (elim n)
+    then have "{..<n} = {..<N} \<union> {N..<n}"
+      by auto
     also have "setsum f ... = setsum f {..<N} + setsum f {N..<n}"
       by (intro setsum.union_disjoint) auto
-    also from N have "setsum f {N..<n} = setsum g {N..<n}" by (intro setsum.cong) simp_all
+    also from N have "setsum f {N..<n} = setsum g {N..<n}"
+      by (intro setsum.cong) simp_all
     also have "setsum f {..<N} + setsum g {N..<n} = C + (setsum g {..<N} + setsum g {N..<n})"
       unfolding C_def by (simp add: algebra_simps setsum_subtractf)
     also have "setsum g {..<N} + setsum g {N..<n} = setsum g ({..<N} \<union> {N..<n})"
       by (intro setsum.union_disjoint [symmetric]) auto
-    also from n have "{..<N} \<union> {N..<n} = {..<n}" by auto
+    also from elim have "{..<N} \<union> {N..<n} = {..<n}"
+      by auto
     finally show "setsum f {..<n} = C + setsum g {..<n}" .
   qed
   from convergent_cong[OF this] show ?thesis
@@ -105,32 +106,32 @@ proof -
 qed
 
 lemma sums_finite:
-  assumes [simp]: "finite N" and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 0"
+  assumes [simp]: "finite N"
+    and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 0"
   shows "f sums (\<Sum>n\<in>N. f n)"
 proof -
-  { fix n
-    have "setsum f {..<n + Suc (Max N)} = setsum f N"
-    proof cases
-      assume "N = {}"
-      with f have "f = (\<lambda>x. 0)" by auto
-      then show ?thesis by simp
-    next
-      assume [simp]: "N \<noteq> {}"
-      show ?thesis
-      proof (safe intro!: setsum.mono_neutral_right f)
-        fix i assume "i \<in> N"
-        then have "i \<le> Max N" by simp
-        then show "i < n + Suc (Max N)" by simp
-      qed
-    qed }
-  note eq = this
-  show ?thesis unfolding sums_def
+  have eq: "setsum f {..<n + Suc (Max N)} = setsum f N" for n
+  proof (cases "N = {}")
+    case True
+    with f have "f = (\<lambda>x. 0)" by auto
+    then show ?thesis by simp
+  next
+    case [simp]: False
+    show ?thesis
+    proof (safe intro!: setsum.mono_neutral_right f)
+      fix i
+      assume "i \<in> N"
+      then have "i \<le> Max N" by simp
+      then show "i < n + Suc (Max N)" by simp
+    qed
+  qed
+  show ?thesis
+    unfolding sums_def
     by (rule LIMSEQ_offset[of _ "Suc (Max N)"])
        (simp add: eq atLeast0LessThan del: add_Suc_right)
 qed
 
-corollary sums_0:
-   "(\<And>n. f n = 0) \<Longrightarrow> (f sums 0)"
+corollary sums_0: "(\<And>n. f n = 0) \<Longrightarrow> (f sums 0)"
     by (metis (no_types) finite.emptyI setsum.empty sums_finite)
 
 lemma summable_finite: "finite N \<Longrightarrow> (\<And>n. n \<notin> N \<Longrightarrow> f n = 0) \<Longrightarrow> summable f"
@@ -155,7 +156,7 @@ lemma summable_single[simp, intro]: "summable (\<lambda>r. if r = i then f r els
   by (rule sums_summable) (rule sums_single)
 
 context
-  fixes f :: "nat \<Rightarrow> 'a::{t2_space, comm_monoid_add}"
+  fixes f :: "nat \<Rightarrow> 'a::{t2_space,comm_monoid_add}"
 begin
 
 lemma summable_sums[intro]: "summable f \<Longrightarrow> f sums (suminf f)"
@@ -168,20 +169,19 @@ lemma summable_LIMSEQ: "summable f \<Longrightarrow> (\<lambda>n. \<Sum>i<n. f i
 lemma sums_unique: "f sums s \<Longrightarrow> s = suminf f"
   by (metis limI suminf_eq_lim sums_def)
 
-lemma sums_iff: "f sums x \<longleftrightarrow> summable f \<and> (suminf f = x)"
+lemma sums_iff: "f sums x \<longleftrightarrow> summable f \<and> suminf f = x"
   by (metis summable_sums sums_summable sums_unique)
 
-lemma summable_sums_iff:
-  "summable (f :: nat \<Rightarrow> 'a :: {comm_monoid_add,t2_space}) \<longleftrightarrow> f sums suminf f"
+lemma summable_sums_iff: "summable f \<longleftrightarrow> f sums suminf f"
   by (auto simp: sums_iff summable_sums)
 
-lemma sums_unique2:
-  fixes a b :: "'a::{comm_monoid_add,t2_space}"
-  shows "f sums a \<Longrightarrow> f sums b \<Longrightarrow> a = b"
-by (simp add: sums_iff)
+lemma sums_unique2: "f sums a \<Longrightarrow> f sums b \<Longrightarrow> a = b"
+  for a b :: 'a
+  by (simp add: sums_iff)
 
 lemma suminf_finite:
-  assumes N: "finite N" and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 0"
+  assumes N: "finite N"
+    and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 0"
   shows "suminf f = (\<Sum>n\<in>N. f n)"
   using sums_finite[OF assms, THEN sums_unique] by simp
 
@@ -193,16 +193,15 @@ lemma suminf_zero[simp]: "suminf (\<lambda>n. 0::'a::{t2_space, comm_monoid_add}
 
 subsection \<open>Infinite summability on ordered, topological monoids\<close>
 
-lemma sums_le:
-  fixes f g :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
-  shows "\<forall>n. f n \<le> g n \<Longrightarrow> f sums s \<Longrightarrow> g sums t \<Longrightarrow> s \<le> t"
+lemma sums_le: "\<forall>n. f n \<le> g n \<Longrightarrow> f sums s \<Longrightarrow> g sums t \<Longrightarrow> s \<le> t"
+  for f g :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add,linorder_topology}"
   by (rule LIMSEQ_le) (auto intro: setsum_mono simp: sums_def)
 
 context
-  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add,linorder_topology}"
 begin
 
-lemma suminf_le: "\<lbrakk>\<forall>n. f n \<le> g n; summable f; summable g\<rbrakk> \<Longrightarrow> suminf f \<le> suminf g"
+lemma suminf_le: "\<forall>n. f n \<le> g n \<Longrightarrow> summable f \<Longrightarrow> summable g \<Longrightarrow> suminf f \<le> suminf g"
   by (auto dest: sums_summable intro: sums_le)
 
 lemma setsum_le_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> setsum f {..<n} \<le> suminf f"
@@ -221,15 +220,14 @@ proof
     using summable_LIMSEQ[of f] by simp
   then have "\<And>i. (\<Sum>n\<in>{i}. f n) \<le> 0"
   proof (rule LIMSEQ_le_const)
-    fix i show "\<exists>N. \<forall>n\<ge>N. (\<Sum>n\<in>{i}. f n) \<le> setsum f {..<n}"
+    show "\<exists>N. \<forall>n\<ge>N. (\<Sum>n\<in>{i}. f n) \<le> setsum f {..<n}" for i
       using pos by (intro exI[of _ "Suc i"] allI impI setsum_mono2) auto
   qed
   with pos show "\<forall>n. f n = 0"
     by (auto intro!: antisym)
 qed (metis suminf_zero fun_eq_iff)
 
-lemma suminf_pos_iff:
-  "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
+lemma suminf_pos_iff: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
   using setsum_le_suminf[of 0] suminf_eq_zero_iff by (simp add: less_le)
 
 lemma suminf_pos2:
@@ -249,14 +247,14 @@ lemma suminf_pos: "summable f \<Longrightarrow> \<forall>n. 0 < f n \<Longrighta
 end
 
 context
-  fixes f :: "nat \<Rightarrow> 'a::{ordered_cancel_comm_monoid_add, linorder_topology}"
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_cancel_comm_monoid_add,linorder_topology}"
 begin
 
-lemma setsum_less_suminf2: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> n \<le> i \<Longrightarrow> 0 < f i \<Longrightarrow> setsum f {..<n} < suminf f"
-  using
-    setsum_le_suminf[of f "Suc i"]
-    add_strict_increasing[of "f i" "setsum f {..<n}" "setsum f {..<i}"]
-    setsum_mono2[of "{..<i}" "{..<n}" f]
+lemma setsum_less_suminf2:
+  "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> n \<le> i \<Longrightarrow> 0 < f i \<Longrightarrow> setsum f {..<n} < suminf f"
+  using setsum_le_suminf[of f "Suc i"]
+    and add_strict_increasing[of "f i" "setsum f {..<n}" "setsum f {..<i}"]
+    and setsum_mono2[of "{..<i}" "{..<n}" f]
   by (auto simp: less_imp_le ac_simps)
 
 lemma setsum_less_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 < f m \<Longrightarrow> setsum f {..<n} < suminf f"
@@ -265,10 +263,11 @@ lemma setsum_less_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 < f 
 end
 
 lemma summableI_nonneg_bounded:
-  fixes f:: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology, conditionally_complete_linorder}"
-  assumes pos[simp]: "\<And>n. 0 \<le> f n" and le: "\<And>n. (\<Sum>i<n. f i) \<le> x"
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add,linorder_topology,conditionally_complete_linorder}"
+  assumes pos[simp]: "\<And>n. 0 \<le> f n"
+    and le: "\<And>n. (\<Sum>i<n. f i) \<le> x"
   shows "summable f"
-  unfolding summable_def sums_def[abs_def]
+  unfolding summable_def sums_def [abs_def]
 proof (rule exI LIMSEQ_incseq_SUP)+
   show "bdd_above (range (\<lambda>n. setsum f {..<n}))"
     using le by (auto simp: bdd_above_def)
@@ -276,27 +275,28 @@ proof (rule exI LIMSEQ_incseq_SUP)+
     by (auto simp: mono_def intro!: setsum_mono2)
 qed
 
-lemma summableI[intro, simp]:
-  fixes f:: "nat \<Rightarrow> 'a::{canonically_ordered_monoid_add, linorder_topology, complete_linorder}"
-  shows "summable f"
+lemma summableI[intro, simp]: "summable f"
+  for f :: "nat \<Rightarrow> 'a::{canonically_ordered_monoid_add,linorder_topology,complete_linorder}"
   by (intro summableI_nonneg_bounded[where x=top] zero_le top_greatest)
+
 
 subsection \<open>Infinite summability on topological monoids\<close>
 
 context
-  fixes f g :: "nat \<Rightarrow> 'a :: {t2_space, topological_comm_monoid_add}"
+  fixes f g :: "nat \<Rightarrow> 'a::{t2_space,topological_comm_monoid_add}"
 begin
 
 lemma sums_Suc:
-  assumes "(\<lambda>n. f (Suc n)) sums l" shows "f sums (l + f 0)"
+  assumes "(\<lambda>n. f (Suc n)) sums l"
+  shows "f sums (l + f 0)"
 proof  -
   have "(\<lambda>n. (\<Sum>i<n. f (Suc i)) + f 0) \<longlonglongrightarrow> l + f 0"
     using assms by (auto intro!: tendsto_add simp: sums_def)
   moreover have "(\<Sum>i<n. f (Suc i)) + f 0 = (\<Sum>i<Suc n. f i)" for n
     unfolding lessThan_Suc_eq_insert_0
-      by (simp add: ac_simps setsum_atLeast1_atMost_eq image_Suc_lessThan)
+    by (simp add: ac_simps setsum_atLeast1_atMost_eq image_Suc_lessThan)
   ultimately show ?thesis
-    by (auto simp add: sums_def simp del: setsum_lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
+    by (auto simp: sums_def simp del: setsum_lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
 qed
 
 lemma sums_add: "f sums a \<Longrightarrow> g sums b \<Longrightarrow> (\<lambda>n. f n + g n) sums (a + b)"
@@ -311,7 +311,8 @@ lemma suminf_add: "summable f \<Longrightarrow> summable g \<Longrightarrow> sum
 end
 
 context
-  fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::{t2_space, topological_comm_monoid_add}" and I :: "'i set"
+  fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::{t2_space,topological_comm_monoid_add}"
+    and I :: "'i set"
 begin
 
 lemma sums_setsum: "(\<And>i. i \<in> I \<Longrightarrow> (f i) sums (x i)) \<Longrightarrow> (\<lambda>n. \<Sum>i\<in>I. f i n) sums (\<Sum>i\<in>I. x i)"
@@ -340,8 +341,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> (\<lambda>n. f (Suc n)) sums s"
   proof
     assume "(\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) \<longlonglongrightarrow> s + f 0"
-    with tendsto_add[OF this tendsto_const, of "- f 0"]
-    show "(\<lambda>i. f (Suc i)) sums s"
+    with tendsto_add[OF this tendsto_const, of "- f 0"] show "(\<lambda>i. f (Suc i)) sums s"
       by (simp add: sums_def)
   qed (auto intro: tendsto_add simp: sums_def)
   finally show ?thesis ..
@@ -350,9 +350,12 @@ qed
 lemma summable_Suc_iff: "summable (\<lambda>n. f (Suc n)) = summable f"
 proof
   assume "summable f"
-  hence "f sums suminf f" by (rule summable_sums)
-  hence "(\<lambda>n. f (Suc n)) sums (suminf f - f 0)" by (simp add: sums_Suc_iff)
-  thus "summable (\<lambda>n. f (Suc n))" unfolding summable_def by blast
+  then have "f sums suminf f"
+    by (rule summable_sums)
+  then have "(\<lambda>n. f (Suc n)) sums (suminf f - f 0)"
+    by (simp add: sums_Suc_iff)
+  then show "summable (\<lambda>n. f (Suc n))"
+    unfolding summable_def by blast
 qed (auto simp: sums_Suc_iff summable_def)
 
 lemma sums_Suc_imp: "f 0 = 0 \<Longrightarrow> (\<lambda>n. f (Suc n)) sums s \<Longrightarrow> (\<lambda>n. f n) sums s"
@@ -360,7 +363,7 @@ lemma sums_Suc_imp: "f 0 = 0 \<Longrightarrow> (\<lambda>n. f (Suc n)) sums s \<
 
 end
 
-context \<comment>\<open>Separate contexts are necessary to allow general use of the results above, here.\<close>
+context (* Separate contexts are necessary to allow general use of the results above, here. *)
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
 begin
 
@@ -384,12 +387,15 @@ lemma suminf_minus: "summable f \<Longrightarrow> (\<Sum>n. - f n) = - (\<Sum>n.
 
 lemma sums_iff_shift: "(\<lambda>i. f (i + n)) sums s \<longleftrightarrow> f sums (s + (\<Sum>i<n. f i))"
 proof (induct n arbitrary: s)
+  case 0
+  then show ?case by simp
+next
   case (Suc n)
-  moreover have "(\<lambda>i. f (Suc i + n)) sums s \<longleftrightarrow> (\<lambda>i. f (i + n)) sums (s + f n)"
+  then have "(\<lambda>i. f (Suc i + n)) sums s \<longleftrightarrow> (\<lambda>i. f (i + n)) sums (s + f n)"
     by (subst sums_Suc_iff) simp
-  ultimately show ?case
+  with Suc show ?case
     by (simp add: ac_simps)
-qed simp
+qed
 
 corollary sums_iff_shift': "(\<lambda>i. f (i + n)) sums (s - (\<Sum>i<n. f i)) \<longleftrightarrow> f sums s"
   by (simp add: sums_iff_shift)
@@ -397,10 +403,10 @@ corollary sums_iff_shift': "(\<lambda>i. f (i + n)) sums (s - (\<Sum>i<n. f i)) 
 lemma sums_zero_iff_shift:
   assumes "\<And>i. i < n \<Longrightarrow> f i = 0"
   shows "(\<lambda>i. f (i+n)) sums s \<longleftrightarrow> (\<lambda>i. f i) sums s"
-by (simp add: assms sums_iff_shift)
+  by (simp add: assms sums_iff_shift)
 
 lemma summable_iff_shift: "summable (\<lambda>n. f (n + k)) \<longleftrightarrow> summable f"
-  by (metis diff_add_cancel summable_def sums_iff_shift[abs_def])
+  by (metis diff_add_cancel summable_def sums_iff_shift [abs_def])
 
 lemma sums_split_initial_segment: "f sums s \<Longrightarrow> (\<lambda>i. f (i + n)) sums (s - (\<Sum>i<n. f i))"
   by (simp add: sums_iff_shift)
@@ -418,23 +424,30 @@ lemma suminf_split_head: "summable f \<Longrightarrow> (\<Sum>n. f (Suc n)) = su
   using suminf_split_initial_segment[of 1] by simp
 
 lemma suminf_exist_split:
-  fixes r :: real assumes "0 < r" and "summable f"
+  fixes r :: real
+  assumes "0 < r" and "summable f"
   shows "\<exists>N. \<forall>n\<ge>N. norm (\<Sum>i. f (i + n)) < r"
 proof -
   from LIMSEQ_D[OF summable_LIMSEQ[OF \<open>summable f\<close>] \<open>0 < r\<close>]
-  obtain N :: nat where "\<forall> n \<ge> N. norm (setsum f {..<n} - suminf f) < r" by auto
-  thus ?thesis
+  obtain N :: nat where "\<forall> n \<ge> N. norm (setsum f {..<n} - suminf f) < r"
+    by auto
+  then show ?thesis
     by (auto simp: norm_minus_commute suminf_minus_initial_segment[OF \<open>summable f\<close>])
 qed
 
 lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f \<longlonglongrightarrow> 0"
   apply (drule summable_iff_convergent [THEN iffD1])
   apply (drule convergent_Cauchy)
-  apply (simp only: Cauchy_iff LIMSEQ_iff, safe)
-  apply (drule_tac x="r" in spec, safe)
-  apply (rule_tac x="M" in exI, safe)
-  apply (drule_tac x="Suc n" in spec, simp)
-  apply (drule_tac x="n" in spec, simp)
+  apply (simp only: Cauchy_iff LIMSEQ_iff)
+  apply safe
+  apply (drule_tac x="r" in spec)
+  apply safe
+  apply (rule_tac x="M" in exI)
+  apply safe
+  apply (drule_tac x="Suc n" in spec)
+  apply simp
+  apply (drule_tac x="n" in spec)
+  apply simp
   done
 
 lemma summable_imp_convergent: "summable f \<Longrightarrow> convergent f"
@@ -445,13 +458,12 @@ lemma summable_imp_Bseq: "summable f \<Longrightarrow> Bseq f"
 
 end
 
-lemma summable_minus_iff:
-  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
-  shows "summable (\<lambda>n. - f n) \<longleftrightarrow> summable f"
-  by (auto dest: summable_minus) \<comment>\<open>used two ways, hence must be outside the context above\<close>
+lemma summable_minus_iff: "summable (\<lambda>n. - f n) \<longleftrightarrow> summable f"
+  for f :: "nat \<Rightarrow> 'a::real_normed_vector"
+  by (auto dest: summable_minus)  (* used two ways, hence must be outside the context above *)
 
 lemma (in bounded_linear) sums: "(\<lambda>n. X n) sums a \<Longrightarrow> (\<lambda>n. f (X n)) sums (f a)"
-  unfolding sums_def by (drule tendsto, simp only: setsum)
+  unfolding sums_def by (drule tendsto) (simp only: setsum)
 
 lemma (in bounded_linear) summable: "summable (\<lambda>n. X n) \<Longrightarrow> summable (\<lambda>n. f (X n))"
   unfolding summable_def by (auto intro: sums)
@@ -471,19 +483,21 @@ lemmas sums_scaleR_right = bounded_linear.sums[OF bounded_linear_scaleR_right]
 lemmas summable_scaleR_right = bounded_linear.summable[OF bounded_linear_scaleR_right]
 lemmas suminf_scaleR_right = bounded_linear.suminf[OF bounded_linear_scaleR_right]
 
-lemma summable_const_iff: "summable (\<lambda>_. c) \<longleftrightarrow> (c :: 'a :: real_normed_vector) = 0"
+lemma summable_const_iff: "summable (\<lambda>_. c) \<longleftrightarrow> c = 0"
+  for c :: "'a::real_normed_vector"
 proof -
-  {
-    assume "c \<noteq> 0"
-    hence "filterlim (\<lambda>n. of_nat n * norm c) at_top sequentially"
+  have "\<not> summable (\<lambda>_. c)" if "c \<noteq> 0"
+  proof -
+    from that have "filterlim (\<lambda>n. of_nat n * norm c) at_top sequentially"
       by (subst mult.commute)
-         (auto intro!: filterlim_tendsto_pos_mult_at_top filterlim_real_sequentially)
-    hence "\<not>convergent (\<lambda>n. norm (\<Sum>k<n. c))"
+        (auto intro!: filterlim_tendsto_pos_mult_at_top filterlim_real_sequentially)
+    then have "\<not> convergent (\<lambda>n. norm (\<Sum>k<n. c))"
       by (intro filterlim_at_infinity_imp_not_convergent filterlim_at_top_imp_at_infinity)
-         (simp_all add: setsum_constant_scaleR)
-    hence "\<not>summable (\<lambda>_. c)" unfolding summable_iff_convergent using convergent_norm by blast
-  }
-  thus ?thesis by auto
+        (simp_all add: setsum_constant_scaleR)
+    then show ?thesis
+      unfolding summable_iff_convergent using convergent_norm by blast
+  qed
+  then show ?thesis by auto
 qed
 
 
@@ -514,18 +528,20 @@ lemma suminf_mult2: "summable f \<Longrightarrow> suminf f * c = (\<Sum>n. f n *
 end
 
 lemma sums_mult_iff:
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra,field}"
   assumes "c \<noteq> 0"
-  shows   "(\<lambda>n. c * f n :: 'a :: {real_normed_algebra,field}) sums (c * d) \<longleftrightarrow> f sums d"
+  shows "(\<lambda>n. c * f n) sums (c * d) \<longleftrightarrow> f sums d"
   using sums_mult[of f d c] sums_mult[of "\<lambda>n. c * f n" "c * d" "inverse c"]
   by (force simp: field_simps assms)
 
 lemma sums_mult2_iff:
-  assumes "c \<noteq> (0 :: 'a :: {real_normed_algebra, field})"
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra,field}"
+  assumes "c \<noteq> 0"
   shows   "(\<lambda>n. f n * c) sums (d * c) \<longleftrightarrow> f sums d"
   using sums_mult_iff[OF assms, of f d] by (simp add: mult.commute)
 
 lemma sums_of_real_iff:
-  "(\<lambda>n. of_real (f n) :: 'a :: real_normed_div_algebra) sums of_real c \<longleftrightarrow> f sums c"
+  "(\<lambda>n. of_real (f n) :: 'a::real_normed_div_algebra) sums of_real c \<longleftrightarrow> f sums c"
   by (simp add: sums_def of_real_setsum[symmetric] tendsto_of_real_iff del: of_real_setsum)
 
 
@@ -544,26 +560,28 @@ lemma summable_divide: "summable f \<Longrightarrow> summable (\<lambda>n. f n /
 lemma suminf_divide: "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
   by (rule bounded_linear.suminf [OF bounded_linear_divide, symmetric])
 
-lemma sums_mult_D: "\<lbrakk>(\<lambda>n. c * f n) sums a; c \<noteq> 0\<rbrakk> \<Longrightarrow> f sums (a/c)"
+lemma sums_mult_D: "(\<lambda>n. c * f n) sums a \<Longrightarrow> c \<noteq> 0 \<Longrightarrow> f sums (a/c)"
   using sums_mult_iff by fastforce
 
-lemma summable_mult_D: "\<lbrakk>summable (\<lambda>n. c * f n); c \<noteq> 0\<rbrakk> \<Longrightarrow> summable f"
+lemma summable_mult_D: "summable (\<lambda>n. c * f n) \<Longrightarrow> c \<noteq> 0 \<Longrightarrow> summable f"
   by (auto dest: summable_divide)
 
-text\<open>Sum of a geometric progression.\<close>
 
-lemma geometric_sums: "norm c < 1 \<Longrightarrow> (\<lambda>n. c^n) sums (1 / (1 - c))"
+text \<open>Sum of a geometric progression.\<close>
+
+lemma geometric_sums:
+  assumes less_1: "norm c < 1"
+  shows "(\<lambda>n. c^n) sums (1 / (1 - c))"
 proof -
-  assume less_1: "norm c < 1"
-  hence neq_1: "c \<noteq> 1" by auto
-  hence neq_0: "c - 1 \<noteq> 0" by simp
+  from less_1 have neq_1: "c \<noteq> 1" by auto
+  then have neq_0: "c - 1 \<noteq> 0" by simp
   from less_1 have lim_0: "(\<lambda>n. c^n) \<longlonglongrightarrow> 0"
     by (rule LIMSEQ_power_zero)
-  hence "(\<lambda>n. c ^ n / (c - 1) - 1 / (c - 1)) \<longlonglongrightarrow> 0 / (c - 1) - 1 / (c - 1)"
+  then have "(\<lambda>n. c ^ n / (c - 1) - 1 / (c - 1)) \<longlonglongrightarrow> 0 / (c - 1) - 1 / (c - 1)"
     using neq_0 by (intro tendsto_intros)
-  hence "(\<lambda>n. (c ^ n - 1) / (c - 1)) \<longlonglongrightarrow> 1 / (1 - c)"
+  then have "(\<lambda>n. (c ^ n - 1) / (c - 1)) \<longlonglongrightarrow> 1 / (1 - c)"
     by (simp add: nonzero_minus_divide_right [OF neq_0] diff_divide_distrib)
-  thus "(\<lambda>n. c ^ n) sums (1 / (1 - c))"
+  then show "(\<lambda>n. c ^ n) sums (1 / (1 - c))"
     by (simp add: sums_def geometric_sum neq_1)
 qed
 
@@ -576,88 +594,106 @@ lemma suminf_geometric: "norm c < 1 \<Longrightarrow> suminf (\<lambda>n. c^n) =
 lemma summable_geometric_iff: "summable (\<lambda>n. c ^ n) \<longleftrightarrow> norm c < 1"
 proof
   assume "summable (\<lambda>n. c ^ n :: 'a :: real_normed_field)"
-  hence "(\<lambda>n. norm c ^ n) \<longlonglongrightarrow> 0"
+  then have "(\<lambda>n. norm c ^ n) \<longlonglongrightarrow> 0"
     by (simp add: norm_power [symmetric] tendsto_norm_zero_iff summable_LIMSEQ_zero)
   from order_tendstoD(2)[OF this zero_less_one] obtain n where "norm c ^ n < 1"
     by (auto simp: eventually_at_top_linorder)
-  thus "norm c < 1" using one_le_power[of "norm c" n] by (cases "norm c \<ge> 1") (linarith, simp)
+  then show "norm c < 1" using one_le_power[of "norm c" n]
+    by (cases "norm c \<ge> 1") (linarith, simp)
 qed (rule summable_geometric)
 
 end
 
 lemma power_half_series: "(\<lambda>n. (1/2::real)^Suc n) sums 1"
 proof -
-  have 2: "(\<lambda>n. (1/2::real)^n) sums 2" using geometric_sums [of "1/2::real"]
-    by auto
+  have 2: "(\<lambda>n. (1/2::real)^n) sums 2"
+    using geometric_sums [of "1/2::real"] by auto
   have "(\<lambda>n. (1/2::real)^Suc n) = (\<lambda>n. (1 / 2) ^ n / 2)"
     by (simp add: mult.commute)
-  thus ?thesis using sums_divide [OF 2, of 2]
-    by simp
+  then show ?thesis
+    using sums_divide [OF 2, of 2] by simp
 qed
 
 
 subsection \<open>Telescoping\<close>
 
 lemma telescope_sums:
-  assumes "f \<longlonglongrightarrow> (c :: 'a :: real_normed_vector)"
-  shows   "(\<lambda>n. f (Suc n) - f n) sums (c - f 0)"
+  fixes c :: "'a::real_normed_vector"
+  assumes "f \<longlonglongrightarrow> c"
+  shows "(\<lambda>n. f (Suc n) - f n) sums (c - f 0)"
   unfolding sums_def
 proof (subst LIMSEQ_Suc_iff [symmetric])
   have "(\<lambda>n. \<Sum>k<Suc n. f (Suc k) - f k) = (\<lambda>n. f (Suc n) - f 0)"
     by (simp add: lessThan_Suc_atMost atLeast0AtMost [symmetric] setsum_Suc_diff)
-  also have "\<dots> \<longlonglongrightarrow> c - f 0" by (intro tendsto_diff LIMSEQ_Suc[OF assms] tendsto_const)
+  also have "\<dots> \<longlonglongrightarrow> c - f 0"
+    by (intro tendsto_diff LIMSEQ_Suc[OF assms] tendsto_const)
   finally show "(\<lambda>n. \<Sum>n<Suc n. f (Suc n) - f n) \<longlonglongrightarrow> c - f 0" .
 qed
 
 lemma telescope_sums':
-  assumes "f \<longlonglongrightarrow> (c :: 'a :: real_normed_vector)"
-  shows   "(\<lambda>n. f n - f (Suc n)) sums (f 0 - c)"
+  fixes c :: "'a::real_normed_vector"
+  assumes "f \<longlonglongrightarrow> c"
+  shows "(\<lambda>n. f n - f (Suc n)) sums (f 0 - c)"
   using sums_minus[OF telescope_sums[OF assms]] by (simp add: algebra_simps)
 
 lemma telescope_summable:
-  assumes "f \<longlonglongrightarrow> (c :: 'a :: real_normed_vector)"
-  shows   "summable (\<lambda>n. f (Suc n) - f n)"
+  fixes c :: "'a::real_normed_vector"
+  assumes "f \<longlonglongrightarrow> c"
+  shows "summable (\<lambda>n. f (Suc n) - f n)"
   using telescope_sums[OF assms] by (simp add: sums_iff)
 
 lemma telescope_summable':
-  assumes "f \<longlonglongrightarrow> (c :: 'a :: real_normed_vector)"
-  shows   "summable (\<lambda>n. f n - f (Suc n))"
+  fixes c :: "'a::real_normed_vector"
+  assumes "f \<longlonglongrightarrow> c"
+  shows "summable (\<lambda>n. f n - f (Suc n))"
   using summable_minus[OF telescope_summable[OF assms]] by (simp add: algebra_simps)
 
 
 subsection \<open>Infinite summability on Banach spaces\<close>
 
-text\<open>Cauchy-type criterion for convergence of series (c.f. Harrison)\<close>
+text \<open>Cauchy-type criterion for convergence of series (c.f. Harrison).\<close>
 
-lemma summable_Cauchy:
-  fixes f :: "nat \<Rightarrow> 'a::banach"
-  shows "summable f \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n. norm (setsum f {m..<n}) < e)"
-  apply (simp only: summable_iff_convergent Cauchy_convergent_iff [symmetric] Cauchy_iff, safe)
-  apply (drule spec, drule (1) mp)
-  apply (erule exE, rule_tac x="M" in exI, clarify)
+lemma summable_Cauchy: "summable f \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n. norm (setsum f {m..<n}) < e)"
+  for f :: "nat \<Rightarrow> 'a::banach"
+  apply (simp only: summable_iff_convergent Cauchy_convergent_iff [symmetric] Cauchy_iff)
+  apply safe
+   apply (drule spec)
+   apply (drule (1) mp)
+   apply (erule exE)
+   apply (rule_tac x="M" in exI)
+   apply clarify
+   apply (rule_tac x="m" and y="n" in linorder_le_cases)
+    apply (frule (1) order_trans)
+    apply (drule_tac x="n" in spec)
+    apply (drule (1) mp)
+    apply (drule_tac x="m" in spec)
+    apply (drule (1) mp)
+    apply (simp_all add: setsum_diff [symmetric])
+  apply (drule spec)
+  apply (drule (1) mp)
+  apply (erule exE)
+  apply (rule_tac x="N" in exI)
+  apply clarify
   apply (rule_tac x="m" and y="n" in linorder_le_cases)
-  apply (frule (1) order_trans)
-  apply (drule_tac x="n" in spec, drule (1) mp)
-  apply (drule_tac x="m" in spec, drule (1) mp)
-  apply (simp_all add: setsum_diff [symmetric])
-  apply (drule spec, drule (1) mp)
-  apply (erule exE, rule_tac x="N" in exI, clarify)
-  apply (rule_tac x="m" and y="n" in linorder_le_cases)
-  apply (subst norm_minus_commute)
-  apply (simp_all add: setsum_diff [symmetric])
+   apply (subst norm_minus_commute)
+   apply (simp_all add: setsum_diff [symmetric])
   done
 
 context
   fixes f :: "nat \<Rightarrow> 'a::banach"
 begin
 
-text\<open>Absolute convergence imples normal convergence\<close>
+text \<open>Absolute convergence imples normal convergence.\<close>
 
 lemma summable_norm_cancel: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> summable f"
-  apply (simp only: summable_Cauchy, safe)
-  apply (drule_tac x="e" in spec, safe)
-  apply (rule_tac x="N" in exI, safe)
-  apply (drule_tac x="m" in spec, safe)
+  apply (simp only: summable_Cauchy)
+  apply safe
+  apply (drule_tac x="e" in spec)
+  apply safe
+  apply (rule_tac x="N" in exI)
+  apply safe
+  apply (drule_tac x="m" in spec)
+  apply safe
   apply (rule order_le_less_trans [OF norm_setsum])
   apply (rule order_le_less_trans [OF abs_ge_self])
   apply simp
@@ -666,98 +702,116 @@ lemma summable_norm_cancel: "summable (\<lambda>n. norm (f n)) \<Longrightarrow>
 lemma summable_norm: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> norm (suminf f) \<le> (\<Sum>n. norm (f n))"
   by (auto intro: LIMSEQ_le tendsto_norm summable_norm_cancel summable_LIMSEQ norm_setsum)
 
-text \<open>Comparison tests\<close>
+text \<open>Comparison tests.\<close>
 
 lemma summable_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable f"
-  apply (simp add: summable_Cauchy, safe)
-  apply (drule_tac x="e" in spec, safe)
-  apply (rule_tac x = "N + Na" in exI, safe)
+  apply (simp add: summable_Cauchy)
+  apply safe
+  apply (drule_tac x="e" in spec)
+  apply safe
+  apply (rule_tac x = "N + Na" in exI)
+  apply safe
   apply (rotate_tac 2)
   apply (drule_tac x = m in spec)
-  apply (auto, rotate_tac 2, drule_tac x = n in spec)
+  apply auto
+  apply (rotate_tac 2)
+  apply (drule_tac x = n in spec)
   apply (rule_tac y = "\<Sum>k=m..<n. norm (f k)" in order_le_less_trans)
-  apply (rule norm_setsum)
+   apply (rule norm_setsum)
   apply (rule_tac y = "setsum g {m..<n}" in order_le_less_trans)
-  apply (auto intro: setsum_mono simp add: abs_less_iff)
+   apply (auto intro: setsum_mono simp add: abs_less_iff)
   done
 
 lemma summable_comparison_test_ev:
-  shows "eventually (\<lambda>n. norm (f n) \<le> g n) sequentially \<Longrightarrow> summable g \<Longrightarrow> summable f"
+  "eventually (\<lambda>n. norm (f n) \<le> g n) sequentially \<Longrightarrow> summable g \<Longrightarrow> summable f"
   by (rule summable_comparison_test) (auto simp: eventually_at_top_linorder)
 
-(*A better argument order*)
-lemma summable_comparison_test': "summable g \<Longrightarrow> (\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> g n) \<Longrightarrow> summable f"
+text \<open>A better argument order.\<close>
+lemma summable_comparison_test': "summable g \<Longrightarrow> (\<And>n. n \<ge> N \<Longrightarrow> norm (f n) \<le> g n) \<Longrightarrow> summable f"
   by (rule summable_comparison_test) auto
+
 
 subsection \<open>The Ratio Test\<close>
 
 lemma summable_ratio_test:
   assumes "c < 1" "\<And>n. n \<ge> N \<Longrightarrow> norm (f (Suc n)) \<le> c * norm (f n)"
   shows "summable f"
-proof cases
-  assume "0 < c"
+proof (cases "0 < c")
+  case True
   show "summable f"
   proof (rule summable_comparison_test)
     show "\<exists>N'. \<forall>n\<ge>N'. norm (f n) \<le> (norm (f N) / (c ^ N)) * c ^ n"
     proof (intro exI allI impI)
-      fix n assume "N \<le> n" then show "norm (f n) \<le> (norm (f N) / (c ^ N)) * c ^ n"
+      fix n
+      assume "N \<le> n"
+      then show "norm (f n) \<le> (norm (f N) / (c ^ N)) * c ^ n"
       proof (induct rule: inc_induct)
+        case base
+        with True show ?case by simp
+      next
         case (step m)
-        moreover have "norm (f (Suc m)) / c ^ Suc m * c ^ n \<le> norm (f m) / c ^ m * c ^ n"
+        have "norm (f (Suc m)) / c ^ Suc m * c ^ n \<le> norm (f m) / c ^ m * c ^ n"
           using \<open>0 < c\<close> \<open>c < 1\<close> assms(2)[OF \<open>N \<le> m\<close>] by (simp add: field_simps)
-        ultimately show ?case by simp
-      qed (insert \<open>0 < c\<close>, simp)
+        with step show ?case by simp
+      qed
     qed
     show "summable (\<lambda>n. norm (f N) / c ^ N * c ^ n)"
       using \<open>0 < c\<close> \<open>c < 1\<close> by (intro summable_mult summable_geometric) simp
   qed
 next
-  assume c: "\<not> 0 < c"
-  { fix n assume "n \<ge> N"
-    then have "norm (f (Suc n)) \<le> c * norm (f n)"
-      by fact
+  case False
+  have "f (Suc n) = 0" if "n \<ge> N" for n
+  proof -
+    from that have "norm (f (Suc n)) \<le> c * norm (f n)"
+      by (rule assms(2))
     also have "\<dots> \<le> 0"
-      using c by (simp add: not_less mult_nonpos_nonneg)
-    finally have "f (Suc n) = 0"
-      by auto }
+      using False by (simp add: not_less mult_nonpos_nonneg)
+    finally show ?thesis
+      by auto
+  qed
   then show "summable f"
     by (intro sums_summable[OF sums_finite, of "{.. Suc N}"]) (auto simp: not_le Suc_less_eq2)
 qed
 
 end
 
-text\<open>Relations among convergence and absolute convergence for power series.\<close>
+
+text \<open>Relations among convergence and absolute convergence for power series.\<close>
 
 lemma Abel_lemma:
   fixes a :: "nat \<Rightarrow> 'a::real_normed_vector"
-  assumes r: "0 \<le> r" and r0: "r < r0" and M: "\<And>n. norm (a n) * r0^n \<le> M"
-    shows "summable (\<lambda>n. norm (a n) * r^n)"
+  assumes r: "0 \<le> r"
+    and r0: "r < r0"
+    and M: "\<And>n. norm (a n) * r0^n \<le> M"
+  shows "summable (\<lambda>n. norm (a n) * r^n)"
 proof (rule summable_comparison_test')
   show "summable (\<lambda>n. M * (r / r0) ^ n)"
     using assms
     by (auto simp add: summable_mult summable_geometric)
-next
-  fix n
-  show "norm (norm (a n) * r ^ n) \<le> M * (r / r0) ^ n"
+  show "norm (norm (a n) * r ^ n) \<le> M * (r / r0) ^ n" for n
     using r r0 M [of n]
     apply (auto simp add: abs_mult field_simps)
-    apply (cases "r=0", simp)
-    apply (cases n, auto)
+    apply (cases "r = 0")
+     apply simp
+     apply (cases n)
+      apply auto
     done
 qed
 
 
-text\<open>Summability of geometric series for real algebras\<close>
+text \<open>Summability of geometric series for real algebras.\<close>
 
 lemma complete_algebra_summable_geometric:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
-  shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
+  assumes "norm x < 1"
+  shows "summable (\<lambda>n. x ^ n)"
 proof (rule summable_comparison_test)
   show "\<exists>N. \<forall>n\<ge>N. norm (x ^ n) \<le> norm x ^ n"
     by (simp add: norm_power_ineq)
-  show "norm x < 1 \<Longrightarrow> summable (\<lambda>n. norm x ^ n)"
+  from assms show "summable (\<lambda>n. norm x ^ n)"
     by (simp add: summable_geometric)
 qed
+
 
 subsection \<open>Cauchy Product Formula\<close>
 
@@ -769,7 +823,7 @@ text \<open>
 lemma Cauchy_product_sums:
   fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"
   assumes a: "summable (\<lambda>k. norm (a k))"
-  assumes b: "summable (\<lambda>k. norm (b k))"
+    and b: "summable (\<lambda>k. norm (b k))"
   shows "(\<lambda>k. \<Sum>i\<le>k. a i * b (k - i)) sums ((\<Sum>k. a k) * (\<Sum>k. b k))"
 proof -
   let ?S1 = "\<lambda>n::nat. {..<n} \<times> {..<n}"
@@ -782,97 +836,103 @@ proof -
 
   let ?g = "\<lambda>(i,j). a i * b j"
   let ?f = "\<lambda>(i,j). norm (a i) * norm (b j)"
-  have f_nonneg: "\<And>x. 0 \<le> ?f x" by (auto)
-  hence norm_setsum_f: "\<And>A. norm (setsum ?f A) = setsum ?f A"
+  have f_nonneg: "\<And>x. 0 \<le> ?f x" by auto
+  then have norm_setsum_f: "\<And>A. norm (setsum ?f A) = setsum ?f A"
     unfolding real_norm_def
     by (simp only: abs_of_nonneg setsum_nonneg [rule_format])
 
   have "(\<lambda>n. (\<Sum>k<n. a k) * (\<Sum>k<n. b k)) \<longlonglongrightarrow> (\<Sum>k. a k) * (\<Sum>k. b k)"
     by (intro tendsto_mult summable_LIMSEQ summable_norm_cancel [OF a] summable_norm_cancel [OF b])
-  hence 1: "(\<lambda>n. setsum ?g (?S1 n)) \<longlonglongrightarrow> (\<Sum>k. a k) * (\<Sum>k. b k)"
+  then have 1: "(\<lambda>n. setsum ?g (?S1 n)) \<longlonglongrightarrow> (\<Sum>k. a k) * (\<Sum>k. b k)"
     by (simp only: setsum_product setsum.Sigma [rule_format] finite_lessThan)
 
   have "(\<lambda>n. (\<Sum>k<n. norm (a k)) * (\<Sum>k<n. norm (b k))) \<longlonglongrightarrow> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
     using a b by (intro tendsto_mult summable_LIMSEQ)
-  hence "(\<lambda>n. setsum ?f (?S1 n)) \<longlonglongrightarrow> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
+  then have "(\<lambda>n. setsum ?f (?S1 n)) \<longlonglongrightarrow> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
     by (simp only: setsum_product setsum.Sigma [rule_format] finite_lessThan)
-  hence "convergent (\<lambda>n. setsum ?f (?S1 n))"
+  then have "convergent (\<lambda>n. setsum ?f (?S1 n))"
     by (rule convergentI)
-  hence Cauchy: "Cauchy (\<lambda>n. setsum ?f (?S1 n))"
+  then have Cauchy: "Cauchy (\<lambda>n. setsum ?f (?S1 n))"
     by (rule convergent_Cauchy)
   have "Zfun (\<lambda>n. setsum ?f (?S1 n - ?S2 n)) sequentially"
   proof (rule ZfunI, simp only: eventually_sequentially norm_setsum_f)
     fix r :: real
     assume r: "0 < r"
     from CauchyD [OF Cauchy r] obtain N
-    where "\<forall>m\<ge>N. \<forall>n\<ge>N. norm (setsum ?f (?S1 m) - setsum ?f (?S1 n)) < r" ..
-    hence "\<And>m n. \<lbrakk>N \<le> n; n \<le> m\<rbrakk> \<Longrightarrow> norm (setsum ?f (?S1 m - ?S1 n)) < r"
+      where "\<forall>m\<ge>N. \<forall>n\<ge>N. norm (setsum ?f (?S1 m) - setsum ?f (?S1 n)) < r" ..
+    then have "\<And>m n. N \<le> n \<Longrightarrow> n \<le> m \<Longrightarrow> norm (setsum ?f (?S1 m - ?S1 n)) < r"
       by (simp only: setsum_diff finite_S1 S1_mono)
-    hence N: "\<And>m n. \<lbrakk>N \<le> n; n \<le> m\<rbrakk> \<Longrightarrow> setsum ?f (?S1 m - ?S1 n) < r"
+    then have N: "\<And>m n. N \<le> n \<Longrightarrow> n \<le> m \<Longrightarrow> setsum ?f (?S1 m - ?S1 n) < r"
       by (simp only: norm_setsum_f)
     show "\<exists>N. \<forall>n\<ge>N. setsum ?f (?S1 n - ?S2 n) < r"
     proof (intro exI allI impI)
-      fix n assume "2 * N \<le> n"
-      hence n: "N \<le> n div 2" by simp
+      fix n
+      assume "2 * N \<le> n"
+      then have n: "N \<le> n div 2" by simp
       have "setsum ?f (?S1 n - ?S2 n) \<le> setsum ?f (?S1 n - ?S1 (n div 2))"
-        by (intro setsum_mono2 finite_Diff finite_S1 f_nonneg
-                  Diff_mono subset_refl S1_le_S2)
+        by (intro setsum_mono2 finite_Diff finite_S1 f_nonneg Diff_mono subset_refl S1_le_S2)
       also have "\<dots> < r"
         using n div_le_dividend by (rule N)
       finally show "setsum ?f (?S1 n - ?S2 n) < r" .
     qed
   qed
-  hence "Zfun (\<lambda>n. setsum ?g (?S1 n - ?S2 n)) sequentially"
+  then have "Zfun (\<lambda>n. setsum ?g (?S1 n - ?S2 n)) sequentially"
     apply (rule Zfun_le [rule_format])
     apply (simp only: norm_setsum_f)
     apply (rule order_trans [OF norm_setsum setsum_mono])
     apply (auto simp add: norm_mult_ineq)
     done
-  hence 2: "(\<lambda>n. setsum ?g (?S1 n) - setsum ?g (?S2 n)) \<longlonglongrightarrow> 0"
+  then have 2: "(\<lambda>n. setsum ?g (?S1 n) - setsum ?g (?S2 n)) \<longlonglongrightarrow> 0"
     unfolding tendsto_Zfun_iff diff_0_right
     by (simp only: setsum_diff finite_S1 S2_le_S1)
-
   with 1 have "(\<lambda>n. setsum ?g (?S2 n)) \<longlonglongrightarrow> (\<Sum>k. a k) * (\<Sum>k. b k)"
     by (rule Lim_transform2)
-  thus ?thesis by (simp only: sums_def setsum_triangle_reindex)
+  then show ?thesis
+    by (simp only: sums_def setsum_triangle_reindex)
 qed
 
 lemma Cauchy_product:
   fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"
-  assumes a: "summable (\<lambda>k. norm (a k))"
-  assumes b: "summable (\<lambda>k. norm (b k))"
+  assumes "summable (\<lambda>k. norm (a k))"
+    and "summable (\<lambda>k. norm (b k))"
   shows "(\<Sum>k. a k) * (\<Sum>k. b k) = (\<Sum>k. \<Sum>i\<le>k. a i * b (k - i))"
-  using a b
-  by (rule Cauchy_product_sums [THEN sums_unique])
+  using assms by (rule Cauchy_product_sums [THEN sums_unique])
 
 lemma summable_Cauchy_product:
-  assumes "summable (\<lambda>k. norm (a k :: 'a :: {real_normed_algebra,banach}))"
-          "summable (\<lambda>k. norm (b k))"
-  shows   "summable (\<lambda>k. \<Sum>i\<le>k. a i * b (k - i))"
+  fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"
+  assumes "summable (\<lambda>k. norm (a k))"
+    and "summable (\<lambda>k. norm (b k))"
+  shows "summable (\<lambda>k. \<Sum>i\<le>k. a i * b (k - i))"
   using Cauchy_product_sums[OF assms] by (simp add: sums_iff)
+
 
 subsection \<open>Series on @{typ real}s\<close>
 
-lemma summable_norm_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. norm (f n))"
+lemma summable_norm_comparison_test:
+  "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. norm (f n))"
   by (rule summable_comparison_test) auto
 
-lemma summable_rabs_comparison_test: "\<lbrakk>\<exists>N. \<forall>n\<ge>N. \<bar>f n\<bar> \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable (\<lambda>n. \<bar>f n :: real\<bar>)"
+lemma summable_rabs_comparison_test: "\<exists>N. \<forall>n\<ge>N. \<bar>f n\<bar> \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. \<bar>f n\<bar>)"
+  for f :: "nat \<Rightarrow> real"
   by (rule summable_comparison_test) auto
 
-lemma summable_rabs_cancel: "summable (\<lambda>n. \<bar>f n :: real\<bar>) \<Longrightarrow> summable f"
+lemma summable_rabs_cancel: "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> summable f"
+  for f :: "nat \<Rightarrow> real"
   by (rule summable_norm_cancel) simp
 
-lemma summable_rabs: "summable (\<lambda>n. \<bar>f n :: real\<bar>) \<Longrightarrow> \<bar>suminf f\<bar> \<le> (\<Sum>n. \<bar>f n\<bar>)"
+lemma summable_rabs: "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> \<bar>suminf f\<bar> \<le> (\<Sum>n. \<bar>f n\<bar>)"
+  for f :: "nat \<Rightarrow> real"
   by (fold real_norm_def) (rule summable_norm)
 
-lemma summable_zero_power [simp]: "summable (\<lambda>n. 0 ^ n :: 'a :: {comm_ring_1,topological_space})"
+lemma summable_zero_power [simp]: "summable (\<lambda>n. 0 ^ n :: 'a::{comm_ring_1,topological_space})"
 proof -
-  have "(\<lambda>n. 0 ^ n :: 'a) = (\<lambda>n. if n = 0 then 0^0 else 0)" by (intro ext) (simp add: zero_power)
+  have "(\<lambda>n. 0 ^ n :: 'a) = (\<lambda>n. if n = 0 then 0^0 else 0)"
+    by (intro ext) (simp add: zero_power)
   moreover have "summable \<dots>" by simp
   ultimately show ?thesis by simp
 qed
 
-lemma summable_zero_power' [simp]: "summable (\<lambda>n. f n * 0 ^ n :: 'a :: {ring_1,topological_space})"
+lemma summable_zero_power' [simp]: "summable (\<lambda>n. f n * 0 ^ n :: 'a::{ring_1,topological_space})"
 proof -
   have "(\<lambda>n. f n * 0 ^ n :: 'a) = (\<lambda>n. if n = 0 then f 0 * 0^0 else 0)"
     by (intro ext) (simp add: zero_power)
@@ -882,33 +942,37 @@ qed
 
 lemma summable_power_series:
   fixes z :: real
-  assumes le_1: "\<And>i. f i \<le> 1" and nonneg: "\<And>i. 0 \<le> f i" and z: "0 \<le> z" "z < 1"
+  assumes le_1: "\<And>i. f i \<le> 1"
+    and nonneg: "\<And>i. 0 \<le> f i"
+    and z: "0 \<le> z" "z < 1"
   shows "summable (\<lambda>i. f i * z^i)"
 proof (rule summable_comparison_test[OF _ summable_geometric])
-  show "norm z < 1" using z by (auto simp: less_imp_le)
+  show "norm z < 1"
+    using z by (auto simp: less_imp_le)
   show "\<And>n. \<exists>N. \<forall>na\<ge>N. norm (f na * z ^ na) \<le> z ^ na"
-    using z by (auto intro!: exI[of _ 0] mult_left_le_one_le simp: abs_mult nonneg power_abs less_imp_le le_1)
+    using z
+    by (auto intro!: exI[of _ 0] mult_left_le_one_le simp: abs_mult nonneg power_abs less_imp_le le_1)
 qed
 
-lemma summable_0_powser:
-  "summable (\<lambda>n. f n * 0 ^ n :: 'a :: real_normed_div_algebra)"
+lemma summable_0_powser: "summable (\<lambda>n. f n * 0 ^ n :: 'a::real_normed_div_algebra)"
 proof -
   have A: "(\<lambda>n. f n * 0 ^ n) = (\<lambda>n. if n = 0 then f n else 0)"
     by (intro ext) auto
-  thus ?thesis by (subst A) simp_all
+  then show ?thesis
+    by (subst A) simp_all
 qed
 
 lemma summable_powser_split_head:
-  "summable (\<lambda>n. f (Suc n) * z ^ n :: 'a :: real_normed_div_algebra) = summable (\<lambda>n. f n * z ^ n)"
+  "summable (\<lambda>n. f (Suc n) * z ^ n :: 'a::real_normed_div_algebra) = summable (\<lambda>n. f n * z ^ n)"
 proof -
   have "summable (\<lambda>n. f (Suc n) * z ^ n) \<longleftrightarrow> summable (\<lambda>n. f (Suc n) * z ^ Suc n)"
+    (is "?lhs \<longleftrightarrow> ?rhs")
   proof
-    assume "summable (\<lambda>n. f (Suc n) * z ^ n)"
-    from summable_mult2[OF this, of z] show "summable (\<lambda>n. f (Suc n) * z ^ Suc n)"
+    show ?rhs if ?lhs
+      using summable_mult2[OF that, of z]
       by (simp add: power_commutes algebra_simps)
-  next
-    assume "summable (\<lambda>n. f (Suc n) * z ^ Suc n)"
-    from summable_mult2[OF this, of "inverse z"] show "summable (\<lambda>n. f (Suc n) * z ^ n)"
+    show ?lhs if ?rhs
+      using summable_mult2[OF that, of "inverse z"]
       by (cases "z \<noteq> 0", subst (asm) power_Suc2) (simp_all add: algebra_simps)
   qed
   also have "\<dots> \<longleftrightarrow> summable (\<lambda>n. f n * z ^ n)" by (rule summable_Suc_iff)
@@ -916,120 +980,133 @@ proof -
 qed
 
 lemma powser_split_head:
-  assumes "summable (\<lambda>n. f n * z ^ n :: 'a :: {real_normed_div_algebra,banach})"
-  shows   "suminf (\<lambda>n. f n * z ^ n) = f 0 + suminf (\<lambda>n. f (Suc n) * z ^ n) * z"
-          "suminf (\<lambda>n. f (Suc n) * z ^ n) * z = suminf (\<lambda>n. f n * z ^ n) - f 0"
-          "summable (\<lambda>n. f (Suc n) * z ^ n)"
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
+  assumes "summable (\<lambda>n. f n * z ^ n)"
+  shows "suminf (\<lambda>n. f n * z ^ n) = f 0 + suminf (\<lambda>n. f (Suc n) * z ^ n) * z"
+    and "suminf (\<lambda>n. f (Suc n) * z ^ n) * z = suminf (\<lambda>n. f n * z ^ n) - f 0"
+    and "summable (\<lambda>n. f (Suc n) * z ^ n)"
 proof -
-  from assms show "summable (\<lambda>n. f (Suc n) * z ^ n)" by (subst summable_powser_split_head)
-
+  from assms show "summable (\<lambda>n. f (Suc n) * z ^ n)"
+    by (subst summable_powser_split_head)
   from suminf_mult2[OF this, of z]
     have "(\<Sum>n. f (Suc n) * z ^ n) * z = (\<Sum>n. f (Suc n) * z ^ Suc n)"
     by (simp add: power_commutes algebra_simps)
   also from assms have "\<dots> = suminf (\<lambda>n. f n * z ^ n) - f 0"
     by (subst suminf_split_head) simp_all
-  finally show "suminf (\<lambda>n. f n * z ^ n) = f 0 + suminf (\<lambda>n. f (Suc n) * z ^ n) * z" by simp
-  thus "suminf (\<lambda>n. f (Suc n) * z ^ n) * z = suminf (\<lambda>n. f n * z ^ n) - f 0" by simp
+  finally show "suminf (\<lambda>n. f n * z ^ n) = f 0 + suminf (\<lambda>n. f (Suc n) * z ^ n) * z"
+    by simp
+  then show "suminf (\<lambda>n. f (Suc n) * z ^ n) * z = suminf (\<lambda>n. f n * z ^ n) - f 0"
+    by simp
 qed
 
 lemma summable_partial_sum_bound:
   fixes f :: "nat \<Rightarrow> 'a :: banach"
-  assumes summable: "summable f" and e: "e > (0::real)"
+    and e :: real
+  assumes summable: "summable f"
+    and e: "e > 0"
   obtains N where "\<And>m n. m \<ge> N \<Longrightarrow> norm (\<Sum>k=m..n. f k) < e"
 proof -
   from summable have "Cauchy (\<lambda>n. \<Sum>k<n. f k)"
     by (simp add: Cauchy_convergent_iff summable_iff_convergent)
-  from CauchyD[OF this e] obtain N
-    where N: "\<And>m n. m \<ge> N \<Longrightarrow> n \<ge> N \<Longrightarrow> norm ((\<Sum>k<m. f k) - (\<Sum>k<n. f k)) < e" by blast
-  {
-    fix m n :: nat assume m: "m \<ge> N"
-    have "norm (\<Sum>k=m..n. f k) < e"
-    proof (cases "n \<ge> m")
-      assume n: "n \<ge> m"
-      with m have "norm ((\<Sum>k<Suc n. f k) - (\<Sum>k<m. f k)) < e" by (intro N) simp_all
-      also from n have "(\<Sum>k<Suc n. f k) - (\<Sum>k<m. f k) = (\<Sum>k=m..n. f k)"
-        by (subst setsum_diff [symmetric]) (simp_all add: setsum_last_plus)
-      finally show ?thesis .
-    qed (insert e, simp_all)
-  }
-  thus ?thesis by (rule that)
+  from CauchyD [OF this e] obtain N
+    where N: "\<And>m n. m \<ge> N \<Longrightarrow> n \<ge> N \<Longrightarrow> norm ((\<Sum>k<m. f k) - (\<Sum>k<n. f k)) < e"
+    by blast
+  have "norm (\<Sum>k=m..n. f k) < e" if m: "m \<ge> N" for m n
+  proof (cases "n \<ge> m")
+    case True
+    with m have "norm ((\<Sum>k<Suc n. f k) - (\<Sum>k<m. f k)) < e"
+      by (intro N) simp_all
+    also from True have "(\<Sum>k<Suc n. f k) - (\<Sum>k<m. f k) = (\<Sum>k=m..n. f k)"
+      by (subst setsum_diff [symmetric]) (simp_all add: setsum_last_plus)
+    finally show ?thesis .
+  next
+    case False
+    with e show ?thesis by simp_all
+  qed
+  then show ?thesis by (rule that)
 qed
 
 lemma powser_sums_if:
-  "(\<lambda>n. (if n = m then (1 :: 'a :: {ring_1,topological_space}) else 0) * z^n) sums z^m"
+  "(\<lambda>n. (if n = m then (1 :: 'a::{ring_1,topological_space}) else 0) * z^n) sums z^m"
 proof -
   have "(\<lambda>n. (if n = m then 1 else 0) * z^n) = (\<lambda>n. if n = m then z^n else 0)"
     by (intro ext) auto
-  thus ?thesis by (simp add: sums_single)
+  then show ?thesis
+    by (simp add: sums_single)
 qed
 
 lemma
-   fixes f :: "nat \<Rightarrow> real"
-   assumes "summable f"
-   and "inj g"
-   and pos: "\<And>x. 0 \<le> f x"
-   shows summable_reindex: "summable (f o g)"
-   and suminf_reindex_mono: "suminf (f o g) \<le> suminf f"
-   and suminf_reindex: "(\<And>x. x \<notin> range g \<Longrightarrow> f x = 0) \<Longrightarrow> suminf (f \<circ> g) = suminf f"
+  fixes f :: "nat \<Rightarrow> real"
+  assumes "summable f"
+    and "inj g"
+    and pos: "\<And>x. 0 \<le> f x"
+  shows summable_reindex: "summable (f \<circ> g)"
+    and suminf_reindex_mono: "suminf (f \<circ> g) \<le> suminf f"
+    and suminf_reindex: "(\<And>x. x \<notin> range g \<Longrightarrow> f x = 0) \<Longrightarrow> suminf (f \<circ> g) = suminf f"
 proof -
-  from \<open>inj g\<close> have [simp]: "\<And>A. inj_on g A" by(rule subset_inj_on) simp
+  from \<open>inj g\<close> have [simp]: "\<And>A. inj_on g A"
+    by (rule subset_inj_on) simp
 
   have smaller: "\<forall>n. (\<Sum>i<n. (f \<circ> g) i) \<le> suminf f"
   proof
     fix n
     have "\<forall> n' \<in> (g ` {..<n}). n' < Suc (Max (g ` {..<n}))"
-      by(metis Max_ge finite_imageI finite_lessThan not_le not_less_eq)
-    then obtain m where n: "\<And>n'. n' < n \<Longrightarrow> g n' < m" by blast
+      by (metis Max_ge finite_imageI finite_lessThan not_le not_less_eq)
+    then obtain m where n: "\<And>n'. n' < n \<Longrightarrow> g n' < m"
+      by blast
 
     have "(\<Sum>i<n. f (g i)) = setsum f (g ` {..<n})"
       by (simp add: setsum.reindex)
     also have "\<dots> \<le> (\<Sum>i<m. f i)"
       by (rule setsum_mono3) (auto simp add: pos n[rule_format])
     also have "\<dots> \<le> suminf f"
-      using \<open>summable f\<close>
-      by (rule setsum_le_suminf) (simp add: pos)
-    finally show "(\<Sum>i<n. (f \<circ>  g) i) \<le> suminf f" by simp
+      using \<open>summable f\<close> by (rule setsum_le_suminf) (simp add: pos)
+    finally show "(\<Sum>i<n. (f \<circ>  g) i) \<le> suminf f"
+      by simp
   qed
 
   have "incseq (\<lambda>n. \<Sum>i<n. (f \<circ> g) i)"
     by (rule incseq_SucI) (auto simp add: pos)
   then obtain  L where L: "(\<lambda> n. \<Sum>i<n. (f \<circ> g) i) \<longlonglongrightarrow> L"
     using smaller by(rule incseq_convergent)
-  hence "(f \<circ> g) sums L" by (simp add: sums_def)
-  thus "summable (f o g)" by (auto simp add: sums_iff)
+  then have "(f \<circ> g) sums L"
+    by (simp add: sums_def)
+  then show "summable (f \<circ> g)"
+    by (auto simp add: sums_iff)
 
-  hence "(\<lambda>n. \<Sum>i<n. (f \<circ> g) i) \<longlonglongrightarrow> suminf (f \<circ> g)"
-    by(rule summable_LIMSEQ)
-  thus le: "suminf (f \<circ> g) \<le> suminf f"
+  then have "(\<lambda>n. \<Sum>i<n. (f \<circ> g) i) \<longlonglongrightarrow> suminf (f \<circ> g)"
+    by (rule summable_LIMSEQ)
+  then show le: "suminf (f \<circ> g) \<le> suminf f"
     by(rule LIMSEQ_le_const2)(blast intro: smaller[rule_format])
 
   assume f: "\<And>x. x \<notin> range g \<Longrightarrow> f x = 0"
 
   from \<open>summable f\<close> have "suminf f \<le> suminf (f \<circ> g)"
-  proof(rule suminf_le_const)
+  proof (rule suminf_le_const)
     fix n
     have "\<forall> n' \<in> (g -` {..<n}). n' < Suc (Max (g -` {..<n}))"
       by(auto intro: Max_ge simp add: finite_vimageI less_Suc_eq_le)
-    then obtain m where n: "\<And>n'. g n' < n \<Longrightarrow> n' < m" by blast
-
+    then obtain m where n: "\<And>n'. g n' < n \<Longrightarrow> n' < m"
+      by blast
     have "(\<Sum>i<n. f i) = (\<Sum>i\<in>{..<n} \<inter> range g. f i)"
       using f by(auto intro: setsum.mono_neutral_cong_right)
     also have "\<dots> = (\<Sum>i\<in>g -` {..<n}. (f \<circ> g) i)"
-      by(rule setsum.reindex_cong[where l=g])(auto)
+      by (rule setsum.reindex_cong[where l=g])(auto)
     also have "\<dots> \<le> (\<Sum>i<m. (f \<circ> g) i)"
-      by(rule setsum_mono3)(auto simp add: pos n)
+      by (rule setsum_mono3)(auto simp add: pos n)
     also have "\<dots> \<le> suminf (f \<circ> g)"
-      using \<open>summable (f o g)\<close>
-      by(rule setsum_le_suminf)(simp add: pos)
+      using \<open>summable (f \<circ> g)\<close> by (rule setsum_le_suminf) (simp add: pos)
     finally show "setsum f {..<n} \<le> suminf (f \<circ> g)" .
   qed
-  with le show "suminf (f \<circ> g) = suminf f" by(rule antisym)
+  with le show "suminf (f \<circ> g) = suminf f"
+    by (rule antisym)
 qed
 
 lemma sums_mono_reindex:
-  assumes subseq: "subseq g" and zero: "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
-  shows   "(\<lambda>n. f (g n)) sums c \<longleftrightarrow> f sums c"
-unfolding sums_def
+  assumes subseq: "subseq g"
+    and zero: "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
+  shows "(\<lambda>n. f (g n)) sums c \<longleftrightarrow> f sums c"
+  unfolding sums_def
 proof
   assume lim: "(\<lambda>n. \<Sum>k<n. f k) \<longlonglongrightarrow> c"
   have "(\<lambda>n. \<Sum>k<n. f (g k)) = (\<lambda>n. \<Sum>k<g n. f k)"
@@ -1039,69 +1116,93 @@ proof
       by (subst setsum.reindex) (auto intro: subseq_imp_inj_on)
     also from subseq have "\<dots> = (\<Sum>k<g n. f k)"
       by (intro setsum.mono_neutral_left ballI zero)
-         (auto dest: subseq_strict_mono simp: strict_mono_less strict_mono_less_eq)
+        (auto dest: subseq_strict_mono simp: strict_mono_less strict_mono_less_eq)
     finally show "(\<Sum>k<n. f (g k)) = (\<Sum>k<g n. f k)" .
   qed
-  also from LIMSEQ_subseq_LIMSEQ[OF lim subseq] have "\<dots> \<longlonglongrightarrow> c" unfolding o_def .
+  also from LIMSEQ_subseq_LIMSEQ[OF lim subseq] have "\<dots> \<longlonglongrightarrow> c"
+    by (simp only: o_def)
   finally show "(\<lambda>n. \<Sum>k<n. f (g k)) \<longlonglongrightarrow> c" .
 next
   assume lim: "(\<lambda>n. \<Sum>k<n. f (g k)) \<longlonglongrightarrow> c"
   define g_inv where "g_inv n = (LEAST m. g m \<ge> n)" for n
   from filterlim_subseq[OF subseq] have g_inv_ex: "\<exists>m. g m \<ge> n" for n
     by (auto simp: filterlim_at_top eventually_at_top_linorder)
-  hence g_inv: "g (g_inv n) \<ge> n" for n unfolding g_inv_def by (rule LeastI_ex)
-  have g_inv_least: "m \<ge> g_inv n" if "g m \<ge> n" for m n using that
-    unfolding g_inv_def by (rule Least_le)
-  have g_inv_least': "g m < n" if "m < g_inv n" for m n using that g_inv_least[of n m] by linarith
+  then have g_inv: "g (g_inv n) \<ge> n" for n
+    unfolding g_inv_def by (rule LeastI_ex)
+  have g_inv_least: "m \<ge> g_inv n" if "g m \<ge> n" for m n
+    using that unfolding g_inv_def by (rule Least_le)
+  have g_inv_least': "g m < n" if "m < g_inv n" for m n
+    using that g_inv_least[of n m] by linarith
   have "(\<lambda>n. \<Sum>k<n. f k) = (\<lambda>n. \<Sum>k<g_inv n. f (g k))"
   proof
     fix n :: nat
     {
-      fix k assume k: "k \<in> {..<n} - g`{..<g_inv n}"
+      fix k
+      assume k: "k \<in> {..<n} - g`{..<g_inv n}"
       have "k \<notin> range g"
       proof (rule notI, elim imageE)
-        fix l assume l: "k = g l"
-        have "g l < g (g_inv n)" by (rule less_le_trans[OF _ g_inv]) (insert k l, simp_all)
-        with subseq have "l < g_inv n" by (simp add: subseq_strict_mono strict_mono_less)
-        with k l show False by simp
+        fix l
+        assume l: "k = g l"
+        have "g l < g (g_inv n)"
+          by (rule less_le_trans[OF _ g_inv]) (use k l in simp_all)
+        with subseq have "l < g_inv n"
+          by (simp add: subseq_strict_mono strict_mono_less)
+        with k l show False
+          by simp
       qed
-      hence "f k = 0" by (rule zero)
+      then have "f k = 0"
+        by (rule zero)
     }
     with g_inv_least' g_inv have "(\<Sum>k<n. f k) = (\<Sum>k\<in>g`{..<g_inv n}. f k)"
       by (intro setsum.mono_neutral_right) auto
-    also from subseq have "\<dots> = (\<Sum>k<g_inv n. f (g k))" using subseq_imp_inj_on
-      by (subst setsum.reindex) simp_all
+    also from subseq have "\<dots> = (\<Sum>k<g_inv n. f (g k))"
+      using subseq_imp_inj_on by (subst setsum.reindex) simp_all
     finally show "(\<Sum>k<n. f k) = (\<Sum>k<g_inv n. f (g k))" .
   qed
   also {
-    fix K n :: nat assume "g K \<le> n"
-    also have "n \<le> g (g_inv n)" by (rule g_inv)
-    finally have "K \<le> g_inv n" using subseq by (simp add: strict_mono_less_eq subseq_strict_mono)
+    fix K n :: nat
+    assume "g K \<le> n"
+    also have "n \<le> g (g_inv n)"
+      by (rule g_inv)
+    finally have "K \<le> g_inv n"
+      using subseq by (simp add: strict_mono_less_eq subseq_strict_mono)
   }
-  hence "filterlim g_inv at_top sequentially"
+  then have "filterlim g_inv at_top sequentially"
     by (auto simp: filterlim_at_top eventually_at_top_linorder)
-  from lim and this have "(\<lambda>n. \<Sum>k<g_inv n. f (g k)) \<longlonglongrightarrow> c" by (rule filterlim_compose)
+  with lim have "(\<lambda>n. \<Sum>k<g_inv n. f (g k)) \<longlonglongrightarrow> c"
+    by (rule filterlim_compose)
   finally show "(\<lambda>n. \<Sum>k<n. f k) \<longlonglongrightarrow> c" .
 qed
 
 lemma summable_mono_reindex:
-  assumes subseq: "subseq g" and zero: "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
-  shows   "summable (\<lambda>n. f (g n)) \<longleftrightarrow> summable f"
+  assumes subseq: "subseq g"
+    and zero: "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
+  shows "summable (\<lambda>n. f (g n)) \<longleftrightarrow> summable f"
   using sums_mono_reindex[of g f, OF assms] by (simp add: summable_def)
 
 lemma suminf_mono_reindex:
-  assumes "subseq g" "\<And>n. n \<notin> range g \<Longrightarrow> f n = (0 :: 'a :: {t2_space,comm_monoid_add})"
+  fixes f :: "nat \<Rightarrow> 'a::{t2_space,comm_monoid_add}"
+  assumes "subseq g" "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
   shows   "suminf (\<lambda>n. f (g n)) = suminf f"
 proof (cases "summable f")
+  case True
+  with sums_mono_reindex [of g f, OF assms]
+    and summable_mono_reindex [of g f, OF assms]
+  show ?thesis
+    by (simp add: sums_iff)
+next
   case False
-  hence "\<not>(\<exists>c. f sums c)" unfolding summable_def by blast
-  hence "suminf f = The (\<lambda>_. False)" by (simp add: suminf_def)
-  moreover from False have "\<not>summable (\<lambda>n. f (g n))"
+  then have "\<not>(\<exists>c. f sums c)"
+    unfolding summable_def by blast
+  then have "suminf f = The (\<lambda>_. False)"
+    by (simp add: suminf_def)
+  moreover from False have "\<not> summable (\<lambda>n. f (g n))"
     using summable_mono_reindex[of g f, OF assms] by simp
-  hence "\<not>(\<exists>c. (\<lambda>n. f (g n)) sums c)" unfolding summable_def by blast
-  hence "suminf (\<lambda>n. f (g n)) = The (\<lambda>_. False)" by (simp add: suminf_def)
+  then have "\<not>(\<exists>c. (\<lambda>n. f (g n)) sums c)"
+    unfolding summable_def by blast
+  then have "suminf (\<lambda>n. f (g n)) = The (\<lambda>_. False)"
+    by (simp add: suminf_def)
   ultimately show ?thesis by simp
-qed (insert sums_mono_reindex[of g f, OF assms] summable_mono_reindex[of g f, OF assms],
-     simp_all add: sums_iff)
+qed
 
 end
