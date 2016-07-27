@@ -17,11 +17,18 @@ Contributions to this Isabelle version
   Reasoning support for monotonicity, continuity and
   admissibility in chain-complete partial orders.
 
+* May 2016: Manuel Eberl
+  Code generation for Probability Mass Functions.
+
 * June 2016: Andreas Lochbihler
   Formalisation of discrete subprobability distributions.
 
 * July 2016: Daniel Stuewe
   Height-size proofs in HOL/Data_Structures
+
+* July 2016: Manuel Eberl
+  Algebraic foundation for primes; generalization from nat
+  to general factorial rings
 
 Contributions to Isabelle2016
 -----------------------------

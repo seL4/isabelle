@@ -173,6 +173,14 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* Number_Theory: algebraic foundation for primes: Introduction of 
+predicates "is_prime", "irreducible", a "prime_factorization" 
+function, the "factorial_ring" typeclass with instance proofs for 
+nat, int, poly.
+
+* Probability: Code generation and QuickCheck for Probability Mass 
+Functions.
+
 * Theory Set_Interval.thy: substantial new theorems on indexed sums
 and products.
 
