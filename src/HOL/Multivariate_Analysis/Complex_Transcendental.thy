@@ -2397,6 +2397,47 @@ lemma arctan_le_self: "0 \<le> x \<Longrightarrow> arctan x \<le> x"
 lemma abs_tan_ge: "\<bar>x\<bar> < pi/2 \<Longrightarrow> \<bar>x\<bar> \<le> \<bar>tan x\<bar>"
   by (metis abs_arctan_le abs_less_iff arctan_tan minus_less_iff)
 
+lemma arctan_bounds:
+  assumes "0 \<le> x" "x < 1"
+  shows arctan_lower_bound:
+    "(\<Sum>k<2 * n. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1))) \<le> arctan x"
+    (is "(\<Sum>k<_. (- 1)^ k * ?a k) \<le> _")
+    and arctan_upper_bound:
+    "arctan x \<le> (\<Sum>k<2 * n + 1. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1)))"
+proof -
+  have tendsto_zero: "?a \<longlonglongrightarrow> 0"
+    using assms
+    apply -
+    apply (rule tendsto_eq_rhs[where x="0 * 0"])
+    subgoal by (intro tendsto_mult real_tendsto_divide_at_top)
+        (auto simp: filterlim_real_sequentially filterlim_sequentially_iff_filterlim_real
+          intro!: real_tendsto_divide_at_top tendsto_power_zero filterlim_real_sequentially
+           tendsto_eq_intros filterlim_at_top_mult_tendsto_pos filterlim_tendsto_add_at_top)
+    subgoal by simp
+    done
+  have nonneg: "0 \<le> ?a n" for n
+    by (force intro!: divide_nonneg_nonneg mult_nonneg_nonneg zero_le_power assms)
+  have le: "?a (Suc n) \<le> ?a n" for n
+    by (rule mult_mono[OF _ power_decreasing]) (auto simp: divide_simps assms less_imp_le)
+  from summable_Leibniz'(4)[of ?a, OF tendsto_zero nonneg le, of n]
+    summable_Leibniz'(2)[of ?a, OF tendsto_zero nonneg le, of n]
+    assms
+  show "(\<Sum>k<2*n. (- 1)^ k * ?a k) \<le> arctan x" "arctan x \<le> (\<Sum>k<2 * n + 1. (- 1)^ k * ?a k)"
+    by (auto simp: arctan_series)
+qed
+
+subsection \<open>Bounds on pi using real arctangent\<close>
+
+lemma pi_machin: "pi = 16 * arctan (1 / 5) - 4 * arctan (1 / 239)"
+  using machin
+  by simp
+
+lemma pi_approx: "3.141592653588 \<le> pi" "pi \<le> 3.1415926535899"
+  unfolding pi_machin
+  using arctan_bounds[of "1/5"   4]
+        arctan_bounds[of "1/239" 4]
+  by (simp_all add: eval_nat_numeral)
+
 
 subsection\<open>Inverse Sine\<close>
 

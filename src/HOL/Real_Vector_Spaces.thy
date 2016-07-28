@@ -1766,6 +1766,31 @@ lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
   apply linarith
   done
 
+lemma filterlim_nat_sequentially: "filterlim nat sequentially at_top"
+  unfolding filterlim_at_top
+  apply (rule allI)
+  subgoal for Z by (auto intro!: eventually_at_top_linorderI[where c="int Z"])
+  done
+
+lemma filterlim_floor_sequentially: "filterlim floor at_top at_top"
+  unfolding filterlim_at_top
+  apply (rule allI)
+  subgoal for Z by (auto simp: le_floor_iff intro!: eventually_at_top_linorderI[where c="of_int Z"])
+  done
+
+lemma filterlim_sequentially_iff_filterlim_real:
+  "filterlim f sequentially F \<longleftrightarrow> filterlim (\<lambda>x. real (f x)) at_top F"
+  apply (rule iffI)
+  subgoal using filterlim_compose filterlim_real_sequentially by blast
+  subgoal premises prems
+  proof -
+    have "filterlim (\<lambda>x. nat (floor (real (f x)))) sequentially F"
+      by (intro filterlim_compose[OF filterlim_nat_sequentially]
+          filterlim_compose[OF filterlim_floor_sequentially] prems)
+    then show ?thesis by simp
+  qed
+  done
+
 
 subsubsection \<open>Limits of Sequences\<close>
 

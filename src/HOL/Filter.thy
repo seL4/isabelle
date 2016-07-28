@@ -618,6 +618,12 @@ lemma eventually_at_top_linorder: "eventually P at_top \<longleftrightarrow> (\<
   unfolding at_top_def
   by (subst eventually_INF_base) (auto simp: eventually_principal intro: max.cobounded1 max.cobounded2)
 
+lemma eventually_at_top_linorderI:
+  fixes c::"'a::linorder"
+  assumes "\<And>x. c \<le> x \<Longrightarrow> P x"
+  shows "eventually P at_top"
+  using assms by (auto simp: eventually_at_top_linorder)
+
 lemma eventually_ge_at_top:
   "eventually (\<lambda>x. (c::_::linorder) \<le> x) at_top"
   unfolding eventually_at_top_linorder by auto

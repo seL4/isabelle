@@ -1401,6 +1401,14 @@ qed
 lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) \<longlongrightarrow> 0) F"
  by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
 
+lemma real_tendsto_divide_at_top:
+  fixes c::"real"
+  assumes "(f \<longlongrightarrow> c) F"
+  assumes "filterlim g at_top F"
+  shows "((\<lambda>x. f x / g x) \<longlongrightarrow> 0) F"
+  by (auto simp: divide_inverse_commute
+      intro!: tendsto_mult[THEN tendsto_eq_rhs] tendsto_inverse_0_at_top assms)
+
 lemma mult_nat_left_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. c * x) at_top sequentially"
   for c :: nat
   by (rule filterlim_subseq) (auto simp: subseq_def)
@@ -1488,6 +1496,13 @@ proof safe
        by simp
   qed
 qed
+
+lemma filterlim_at_top_mult_tendsto_pos:
+  assumes f: "(f \<longlongrightarrow> c) F"
+    and c: "0 < c"
+    and g: "LIM x F. g x :> at_top"
+  shows "LIM x F. (g x * f x:: real) :> at_top"
+  by (auto simp: mult.commute intro!: filterlim_tendsto_pos_mult_at_top f c g)
 
 lemma filterlim_tendsto_pos_mult_at_bot:
   fixes c :: real
@@ -2138,6 +2153,26 @@ lemma LIMSEQ_power_zero: "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) \<lon
 
 lemma LIMSEQ_divide_realpow_zero: "1 < x \<Longrightarrow> (\<lambda>n. a / (x ^ n) :: real) \<longlonglongrightarrow> 0"
   by (rule tendsto_divide_0 [OF tendsto_const filterlim_realpow_sequentially_gt1]) simp
+
+lemma
+  tendsto_power_zero:
+  fixes x::"'a::real_normed_algebra_1"
+  assumes "filterlim f at_top F"
+  assumes "norm x < 1"
+  shows "((\<lambda>y. x ^ (f y)) \<longlongrightarrow> 0) F"
+proof (rule tendstoI)
+  fix e::real assume "0 < e"
+  from tendstoD[OF LIMSEQ_power_zero[OF \<open>norm x < 1\<close>] \<open>0 < e\<close>]
+  have "\<forall>\<^sub>F xa in sequentially. norm (x ^ xa) < e"
+    by simp
+  then obtain N where N: "norm (x ^ n) < e" if "n \<ge> N" for n
+    by (auto simp: eventually_sequentially)
+  have "\<forall>\<^sub>F i in F. f i \<ge> N"
+    using \<open>filterlim f sequentially F\<close>
+    by (simp add: filterlim_at_top)
+  then show "\<forall>\<^sub>F i in F. dist (x ^ f i) 0 < e"
+    by (eventually_elim) (auto simp: N)
+qed
 
 text \<open>Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}.\<close>
 
