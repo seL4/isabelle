@@ -110,10 +110,14 @@ next
 qed
 
 lemma split_root: "P (root n x) \<longleftrightarrow> (n = 0 \<longrightarrow> P 0) \<and> (0 < n \<longrightarrow> (\<forall>y. sgn y * \<bar>y\<bar>^n = x \<longrightarrow> P y))"
-  apply (cases "n = 0")
-  apply simp_all
-  apply (metis root_sgn_power sgn_power_root)
-  done
+proof (cases "n = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then show ?thesis
+    by simp (metis root_sgn_power sgn_power_root)
+qed
 
 lemma real_root_zero [simp]: "root n 0 = 0"
   by (simp split: split_root add: sgn_zero_iff)
@@ -176,16 +180,10 @@ lemma real_root_le_mono: "0 < n \<Longrightarrow> x \<le> y \<Longrightarrow> ro
   by (auto simp add: order_le_less real_root_less_mono)
 
 lemma real_root_less_iff [simp]: "0 < n \<Longrightarrow> root n x < root n y \<longleftrightarrow> x < y"
-  apply (cases "x < y")
-  apply (simp add: real_root_less_mono)
-  apply (simp add: linorder_not_less real_root_le_mono)
-  done
+  by (cases "x < y") (simp_all add: real_root_less_mono linorder_not_less real_root_le_mono)
 
 lemma real_root_le_iff [simp]: "0 < n \<Longrightarrow> root n x \<le> root n y \<longleftrightarrow> x \<le> y"
-  apply (cases "x \<le> y")
-  apply (simp add: real_root_le_mono)
-  apply (simp add: linorder_not_le real_root_less_mono)
-  done
+  by (cases "x \<le> y") (simp_all add: real_root_le_mono linorder_not_le real_root_less_mono)
 
 lemma real_root_eq_iff [simp]: "0 < n \<Longrightarrow> root n x = root n y \<longleftrightarrow> x = y"
   by (simp add: order_eq_iff)
@@ -248,17 +246,23 @@ lemma real_root_commute: "root m (root n x) = root n (root m x)"
 
 text \<open>Monotonicity in first argument.\<close>
 
-lemma real_root_strict_decreasing: "0 < n \<Longrightarrow> n < N \<Longrightarrow> 1 < x \<Longrightarrow> root N x < root n x"
-  apply (subgoal_tac "root n (root N x) ^ n < root N (root n x) ^ N")
-  apply simp
-  apply (simp add: real_root_commute power_strict_increasing del: real_root_pow_pos2)
-  done
+lemma real_root_strict_decreasing:
+  assumes "0 < n" "n < N" "1 < x"
+  shows "root N x < root n x"
+proof -
+  from assms have "root n (root N x) ^ n < root N (root n x) ^ N"
+    by (simp add: real_root_commute power_strict_increasing del: real_root_pow_pos2)
+  with assms show ?thesis by simp
+qed
 
-lemma real_root_strict_increasing: "0 < n \<Longrightarrow> n < N \<Longrightarrow> 0 < x \<Longrightarrow> x < 1 \<Longrightarrow> root n x < root N x"
-  apply (subgoal_tac "root N (root n x) ^ N < root n (root N x) ^ n")
-  apply simp
-  apply (simp add: real_root_commute power_strict_decreasing del: real_root_pow_pos2)
-  done
+lemma real_root_strict_increasing:
+  assumes "0 < n" "n < N" "0 < x" "x < 1"
+  shows "root n x < root N x"
+proof -
+  from assms have "root N (root n x) ^ N < root n (root N x) ^ n"
+    by (simp add: real_root_commute power_strict_decreasing del: real_root_pow_pos2)
+  with assms show ?thesis by simp
+qed
 
 lemma real_root_decreasing: "0 < n \<Longrightarrow> n < N \<Longrightarrow> 1 \<le> x \<Longrightarrow> root N x \<le> root n x"
   by (auto simp add: order_le_less real_root_strict_decreasing)
@@ -365,16 +369,17 @@ proof (rule DERIV_inverse_function)
 qed
 
 lemma DERIV_real_root_generic:
-  assumes "0 < n" and "x \<noteq> 0"
-    and "\<lbrakk> even n ; 0 < x \<rbrakk> \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
-    and "\<lbrakk> even n ; x < 0 \<rbrakk> \<Longrightarrow> D = - inverse (real n * root n x ^ (n - Suc 0))"
+  assumes "0 < n"
+    and "x \<noteq> 0"
+    and "even n \<Longrightarrow> 0 < x \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
+    and "even n \<Longrightarrow> x < 0 \<Longrightarrow> D = - inverse (real n * root n x ^ (n - Suc 0))"
     and "odd n \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
   shows "DERIV (root n) x :> D"
   using assms
-  by (cases "even n", cases "0 < x",
-      auto intro: DERIV_real_root[THEN DERIV_cong]
-              DERIV_odd_real_root[THEN DERIV_cong]
-              DERIV_even_real_root[THEN DERIV_cong])
+  by (cases "even n", cases "0 < x")
+    (auto intro: DERIV_real_root[THEN DERIV_cong]
+      DERIV_odd_real_root[THEN DERIV_cong]
+      DERIV_even_real_root[THEN DERIV_cong])
 
 
 subsection \<open>Square Root\<close>
@@ -390,17 +395,17 @@ lemma real_sqrt_unique: "y\<^sup>2 = x \<Longrightarrow> 0 \<le> y \<Longrightar
 
 lemma real_sqrt_abs [simp]: "sqrt (x\<^sup>2) = \<bar>x\<bar>"
   apply (rule real_sqrt_unique)
-  apply (rule power2_abs)
+   apply (rule power2_abs)
   apply (rule abs_ge_zero)
   done
 
 lemma real_sqrt_pow2 [simp]: "0 \<le> x \<Longrightarrow> (sqrt x)\<^sup>2 = x"
   unfolding sqrt_def by (rule real_root_pow_pos2 [OF pos2])
 
-lemma real_sqrt_pow2_iff [simp]: "((sqrt x)\<^sup>2 = x) = (0 \<le> x)"
+lemma real_sqrt_pow2_iff [simp]: "(sqrt x)\<^sup>2 = x \<longleftrightarrow> 0 \<le> x"
   apply (rule iffI)
-  apply (erule subst)
-  apply (rule zero_le_power2)
+   apply (erule subst)
+   apply (rule zero_le_power2)
   apply (erule real_sqrt_pow2)
   done
 
@@ -443,13 +448,13 @@ lemma real_sqrt_less_mono: "x < y \<Longrightarrow> sqrt x < sqrt y"
 lemma real_sqrt_le_mono: "x \<le> y \<Longrightarrow> sqrt x \<le> sqrt y"
   unfolding sqrt_def by (rule real_root_le_mono [OF pos2])
 
-lemma real_sqrt_less_iff [simp]: "(sqrt x < sqrt y) = (x < y)"
+lemma real_sqrt_less_iff [simp]: "sqrt x < sqrt y \<longleftrightarrow> x < y"
   unfolding sqrt_def by (rule real_root_less_iff [OF pos2])
 
-lemma real_sqrt_le_iff [simp]: "(sqrt x \<le> sqrt y) = (x \<le> y)"
+lemma real_sqrt_le_iff [simp]: "sqrt x \<le> sqrt y \<longleftrightarrow> x \<le> y"
   unfolding sqrt_def by (rule real_root_le_iff [OF pos2])
 
-lemma real_sqrt_eq_iff [simp]: "(sqrt x = sqrt y) = (x = y)"
+lemma real_sqrt_eq_iff [simp]: "sqrt x = sqrt y \<longleftrightarrow> x = y"
   unfolding sqrt_def by (rule real_root_eq_iff [OF pos2])
 
 lemma real_less_lsqrt: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x < y\<^sup>2 \<Longrightarrow> sqrt x < y"
@@ -525,9 +530,10 @@ declare
   DERIV_real_sqrt_generic[THEN DERIV_chain2, derivative_intros]
   DERIV_real_root_generic[THEN DERIV_chain2, derivative_intros]
 
-lemma not_real_square_gt_zero [simp]: "\<not> 0 < x * x \<longleftrightarrow> x = 0" for x :: real
+lemma not_real_square_gt_zero [simp]: "\<not> 0 < x * x \<longleftrightarrow> x = 0"
+  for x :: real
   apply auto
-  apply (cut_tac x = x and y = 0 in linorder_less_linear)
+  using linorder_less_linear [where x = x and y = 0]
   apply (simp add: zero_less_mult_iff)
   done
 
@@ -566,22 +572,17 @@ next
 qed
 
 lemma real_div_sqrt: "0 \<le> x \<Longrightarrow> x / sqrt x = sqrt x"
-  apply (cases "x = 0")
-  apply simp_all
-  using sqrt_divide_self_eq[of x]
-  apply (simp add: field_simps)
-  done
+  by (cases "x = 0") (simp_all add: sqrt_divide_self_eq [of x] field_simps)
 
-lemma real_divide_square_eq [simp]: "(r * a) / (r * r) = a / r" for a r :: real
-  apply (simp add: divide_inverse)
-  apply (case_tac "r = 0")
-  apply (auto simp add: ac_simps)
-  done
+lemma real_divide_square_eq [simp]: "(r * a) / (r * r) = a / r"
+  for a r :: real
+  by (cases "r = 0") (simp_all add: divide_inverse ac_simps)
 
 lemma lemma_real_divide_sqrt_less: "0 < u \<Longrightarrow> u / sqrt 2 < u"
   by (simp add: divide_less_eq)
 
-lemma four_x_squared: "4 * x\<^sup>2 = (2 * x)\<^sup>2" for x :: real
+lemma four_x_squared: "4 * x\<^sup>2 = (2 * x)\<^sup>2"
+  for x :: real
   by (simp add: power2_eq_square)
 
 lemma sqrt_at_top: "LIM x at_top. sqrt x :: real :> at_top"
@@ -591,7 +592,8 @@ lemma sqrt_at_top: "LIM x at_top. sqrt x :: real :> at_top"
 
 subsection \<open>Square Root of Sum of Squares\<close>
 
-lemma sum_squares_bound: "2 * x * y \<le> x\<^sup>2 + y\<^sup>2" for x y :: "'a::linordered_field"
+lemma sum_squares_bound: "2 * x * y \<le> x\<^sup>2 + y\<^sup>2"
+  for x y :: "'a::linordered_field"
 proof -
   have "(x - y)\<^sup>2 = x * x - 2 * x * y + y * y"
     by algebra
@@ -612,13 +614,15 @@ lemma arith_geo_mean:
   done
 
 lemma arith_geo_mean_sqrt:
-  fixes x::real assumes "x\<ge>0" "y\<ge>0" shows "sqrt(x*y) \<le> (x + y)/2"
+  fixes x :: real
+  assumes "x \<ge> 0" "y \<ge> 0"
+  shows "sqrt (x * y) \<le> (x + y)/2"
   apply (rule arith_geo_mean)
   using assms
   apply (auto simp: zero_le_mult_iff)
   done
 
-lemma real_sqrt_sum_squares_mult_ge_zero [simp]: "0 \<le> sqrt ((x\<^sup>2 + y\<^sup>2)*(xa\<^sup>2 + ya\<^sup>2))"
+lemma real_sqrt_sum_squares_mult_ge_zero [simp]: "0 \<le> sqrt ((x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2))"
   by (metis real_sqrt_ge_0_iff split_mult_pos_le sum_power2_ge_zero)
 
 lemma real_sqrt_sum_squares_mult_squared_eq [simp]:
@@ -649,29 +653,29 @@ lemma le_real_sqrt_sumsq [simp]: "x \<le> sqrt (x * x + y * y)"
 lemma real_sqrt_sum_squares_triangle_ineq:
   "sqrt ((a + c)\<^sup>2 + (b + d)\<^sup>2) \<le> sqrt (a\<^sup>2 + b\<^sup>2) + sqrt (c\<^sup>2 + d\<^sup>2)"
   apply (rule power2_le_imp_le)
-  apply simp
-  apply (simp add: power2_sum)
-  apply (simp only: mult.assoc distrib_left [symmetric])
-  apply (rule mult_left_mono)
-  apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum power_mult_distrib)
-  apply (simp add: ring_distribs)
-  apply (subgoal_tac "0 \<le> b\<^sup>2 * c\<^sup>2 + a\<^sup>2 * d\<^sup>2 - 2 * (a * c) * (b * d)")
-  apply simp
-  apply (rule_tac b="(a * d - b * c)\<^sup>2" in ord_le_eq_trans)
-  apply (rule zero_le_power2)
-  apply (simp add: power2_diff power_mult_distrib)
-  apply simp
-  apply simp
+   apply simp
+   apply (simp add: power2_sum)
+   apply (simp only: mult.assoc distrib_left [symmetric])
+   apply (rule mult_left_mono)
+    apply (rule power2_le_imp_le)
+     apply (simp add: power2_sum power_mult_distrib)
+     apply (simp add: ring_distribs)
+     apply (subgoal_tac "0 \<le> b\<^sup>2 * c\<^sup>2 + a\<^sup>2 * d\<^sup>2 - 2 * (a * c) * (b * d)")
+      apply simp
+     apply (rule_tac b="(a * d - b * c)\<^sup>2" in ord_le_eq_trans)
+      apply (rule zero_le_power2)
+     apply (simp add: power2_diff power_mult_distrib)
+    apply simp
+   apply simp
   apply (simp add: add_increasing)
   done
 
 lemma real_sqrt_sum_squares_less: "\<bar>x\<bar> < u / sqrt 2 \<Longrightarrow> \<bar>y\<bar> < u / sqrt 2 \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) < u"
   apply (rule power2_less_imp_less)
-  apply simp
-  apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
-  apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
-  apply (simp add: power_divide)
+   apply simp
+   apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
+   apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
+   apply (simp add: power_divide)
   apply (drule order_le_less_trans [OF abs_ge_zero])
   apply (simp add: zero_less_divide_iff)
   done
@@ -685,14 +689,14 @@ text \<open>Needed for the infinitely close relation over the nonstandard comple
 lemma lemma_sqrt_hcomplex_capprox:
   "0 < u \<Longrightarrow> x < u/2 \<Longrightarrow> y < u/2 \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) < u"
   apply (rule real_sqrt_sum_squares_less)
-  apply (auto simp add: abs_if field_simps)
-  apply (rule le_less_trans [where y = "x*2"])
+   apply (auto simp add: abs_if field_simps)
+   apply (rule le_less_trans [where y = "x*2"])
   using less_eq_real_def sqrt2_less_2
-  apply force
-  apply assumption
+    apply force
+   apply assumption
   apply (rule le_less_trans [where y = "y*2"])
   using less_eq_real_def sqrt2_less_2 mult_le_cancel_left
-  apply auto
+   apply auto
   done
 
 lemma LIMSEQ_root: "(\<lambda>n. root n n) \<longlonglongrightarrow> 1"
