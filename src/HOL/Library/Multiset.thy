@@ -469,8 +469,11 @@ lemma mset_subset_eq_exists_conv: "(A::'a multiset) \<subseteq># B \<longleftrig
    apply (auto intro: multiset_eq_iff [THEN iffD2])
   done
 
-interpretation subset_mset: ordered_cancel_comm_monoid_diff  "op +" 0 "op \<le>#" "op <#" "op -"
+interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<le>#" "op <#" "op -"
   by standard (simp, fact mset_subset_eq_exists_conv)
+
+interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "op +" 0 "op -" "op \<le>#" "op <#"
+  by standard
 
 lemma mset_subset_eq_mono_add_right_cancel [simp]: "(A::'a multiset) + C \<subseteq># B + C \<longleftrightarrow> A \<subseteq># B"
    by (fact subset_mset.add_le_cancel_right)
@@ -481,11 +484,11 @@ lemma mset_subset_eq_mono_add_left_cancel [simp]: "C + (A::'a multiset) \<subset
 lemma mset_subset_eq_mono_add: "(A::'a multiset) \<subseteq># B \<Longrightarrow> C \<subseteq># D \<Longrightarrow> A + C \<subseteq># B + D"
    by (fact subset_mset.add_mono)
  
-lemma mset_subset_eq_add_left [simp]: "(A::'a multiset) \<subseteq># A + B"
-   unfolding subseteq_mset_def by auto
+lemma mset_subset_eq_add_left: "(A::'a multiset) \<subseteq># A + B"
+   by simp
  
-lemma mset_subset_eq_add_right [simp]: "B \<subseteq># (A::'a multiset) + B"
-   unfolding subseteq_mset_def by auto
+lemma mset_subset_eq_add_right: "B \<subseteq># (A::'a multiset) + B"
+   by simp
  
 lemma single_subset_iff [simp]:
   "{#a#} \<subseteq># M \<longleftrightarrow> a \<in># M"

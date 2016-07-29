@@ -433,8 +433,12 @@ no_top, ordered_ab_semigroup_add_imp_le, ordered_cancel_comm_monoid_add,
 linordered_cancel_ab_semigroup_add, and ordered_ab_semigroup_monoid_add_imp_le.
 INCOMPATIBILITY.
 
-* There are some new simplification rules about multisets and the multiset
-ordering.
+* There are some new simplification rules about multisets, the multiset
+ordering, and the subset ordering on multisets.
+INCOMPATIBILITY.
+
+* The subset ordering on multisets has now the interpretation
+ordered_ab_semigroup_monoid_add_imp_le.
 INCOMPATIBILITY.
 
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
