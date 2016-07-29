@@ -37,9 +37,6 @@ lemma underS_E: "i \<in> underS R j \<Longrightarrow> i \<noteq> j \<and> (i, j)
 lemma underS_Field: "i \<in> underS R j \<Longrightarrow> i \<in> Field R"
   unfolding underS_def Field_def by auto
 
-lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
-  unfolding Field_def by auto
-
 lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B"
   unfolding bij_betw_def by auto
 

@@ -300,6 +300,65 @@ lemma lfp_while:
   shows "lfp f = while (\<lambda>A. f A \<noteq> A) f {}"
 unfolding while_def using assms by (rule lfp_the_while_option) blast
 
+lemma wf_finite_less:
+  assumes "finite (C :: 'a::order set)"
+  shows "wf {(x, y). {x, y} \<subseteq> C \<and> x < y}"
+by (rule wf_measure[where f="\<lambda>b. card {a. a \<in> C \<and> a < b}", THEN wf_subset])
+   (fastforce simp: less_eq assms intro: psubset_card_mono)
+
+lemma wf_finite_greater:
+  assumes "finite (C :: 'a::order set)"
+  shows "wf {(x, y). {x, y} \<subseteq> C \<and> y < x}"
+by (rule wf_measure[where f="\<lambda>b. card {a. a \<in> C \<and> b < a}", THEN wf_subset])
+   (fastforce simp: less_eq assms intro: psubset_card_mono)
+
+lemma while_option_finite_increasing_Some:
+  fixes f :: "'a::order \<Rightarrow> 'a"
+  assumes "mono f" and "finite (UNIV :: 'a set)" and "s \<le> f s"
+  shows "\<exists>P. while_option (\<lambda>A. f A \<noteq> A) f s = Some P"
+by (rule wf_rel_while_option_Some[where R="{(x, y). y < x}" and P="\<lambda>A. A \<le> f A" and s="s"])
+   (auto simp: assms monoD intro: wf_finite_greater[where C="UNIV::'a set", simplified])
+
+lemma lfp_the_while_option_lattice:
+  fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
+  assumes "mono f" and "finite (UNIV :: 'a set)"
+  shows "lfp f = the (while_option (\<lambda>A. f A \<noteq> A) f bot)"
+proof -
+  obtain P where "while_option (\<lambda>A. f A \<noteq> A) f bot = Some P"
+    using while_option_finite_increasing_Some[OF assms, where s=bot] by simp blast
+  with while_option_stop2[OF this] lfp_Kleene_iter[OF assms(1)]
+  show ?thesis by auto
+qed
+
+lemma lfp_while_lattice:
+  fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
+  assumes "mono f" and "finite (UNIV :: 'a set)"
+  shows "lfp f = while (\<lambda>A. f A \<noteq> A) f bot"
+unfolding while_def using assms by (rule lfp_the_while_option_lattice)
+
+lemma while_option_finite_decreasing_Some:
+  fixes f :: "'a::order \<Rightarrow> 'a"
+  assumes "mono f" and "finite (UNIV :: 'a set)" and "f s \<le> s"
+  shows "\<exists>P. while_option (\<lambda>A. f A \<noteq> A) f s = Some P"
+by (rule wf_rel_while_option_Some[where R="{(x, y). x < y}" and P="\<lambda>A. f A \<le> A" and s="s"])
+   (auto simp add: assms monoD intro: wf_finite_less[where C="UNIV::'a set", simplified])
+
+lemma gfp_the_while_option_lattice:
+  fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
+  assumes "mono f" and "finite (UNIV :: 'a set)"
+  shows "gfp f = the(while_option (\<lambda>A. f A \<noteq> A) f top)"
+proof -
+  obtain P where "while_option (\<lambda>A. f A \<noteq> A) f top = Some P"
+    using while_option_finite_decreasing_Some[OF assms, where s=top] by simp blast
+  with while_option_stop2[OF this] gfp_Kleene_iter[OF assms(1)]
+  show ?thesis by auto
+qed
+
+lemma gfp_while_lattice:
+  fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
+  assumes "mono f" and "finite (UNIV :: 'a set)"
+  shows "gfp f = while (\<lambda>A. f A \<noteq> A) f top"
+unfolding while_def using assms by (rule gfp_the_while_option_lattice)
 
 text\<open>Computing the reflexive, transitive closure by iterating a successor
 function. Stops when an element is found that dos not satisfy the test.

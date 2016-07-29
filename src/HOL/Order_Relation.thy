@@ -55,6 +55,21 @@ lemma strict_linear_order_on_diff_Id:
   "linear_order_on A r \<Longrightarrow> strict_linear_order_on A (r-Id)"
 by(simp add: order_on_defs trans_diff_Id)
 
+lemma linear_order_on_singleton [iff]: "linear_order_on {x} {(x, x)}"
+unfolding order_on_defs by simp
+
+lemma linear_order_on_acyclic:
+  assumes "linear_order_on A r"
+  shows "acyclic (r - Id)"
+using strict_linear_order_on_diff_Id[OF assms] 
+by(auto simp add: acyclic_irrefl strict_linear_order_on_def)
+
+lemma linear_order_on_well_order_on:
+  assumes "finite r"
+  shows "linear_order_on A r \<longleftrightarrow> well_order_on A r"
+unfolding well_order_on_def
+using assms finite_acyclic_wf[OF _ linear_order_on_acyclic, of r] by blast
+
 
 subsection\<open>Orders on the field\<close>
 
@@ -304,6 +319,22 @@ next
   ultimately
   show "(a,b) \<in> r" using assms
   order_on_defs[of "Field r" r] total_on_def[of "Field r" r] by blast
+qed
+
+lemma finite_Linear_order_induct[consumes 3, case_names step]:
+  assumes "Linear_order r"
+  and "x \<in> Field r"
+  and "finite r"
+  and step: "\<And>x. \<lbrakk>x \<in> Field r; \<And>y. y \<in> aboveS r x \<Longrightarrow> P y\<rbrakk> \<Longrightarrow> P x"
+  shows "P x"
+using assms(2)
+proof(induct rule: wf_induct[of "r\<inverse> - Id"])
+  from assms(1,3) show "wf (r\<inverse> - Id)"
+    using linear_order_on_well_order_on linear_order_on_converse
+    unfolding well_order_on_def by blast
+next
+  case (2 x) then show ?case
+    by - (rule step; auto simp: aboveS_def intro: FieldI2)
 qed
 
 

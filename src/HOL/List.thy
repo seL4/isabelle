@@ -4443,6 +4443,23 @@ proof (rule set_eqI)
   qed
 qed
 
+lemma sublists_refl: "xs \<in> set (sublists xs)"
+by (induct xs) (simp_all add: Let_def)
+
+lemma subset_sublists: "X \<subseteq> set xs \<Longrightarrow> X \<in> set ` set (sublists xs)"
+unfolding sublists_powset by simp
+
+lemma Cons_in_sublistsD:
+  "y # ys \<in> set (sublists xs) \<Longrightarrow> ys \<in> set (sublists xs)"
+by (induct xs) (auto simp: Let_def)
+
+lemma sublists_distinctD: "\<lbrakk> ys \<in> set (sublists xs); distinct xs \<rbrakk> \<Longrightarrow> distinct ys"
+proof(induct xs arbitrary: ys)
+  case (Cons x xs ys)
+  then show ?case
+    by (auto simp: Let_def) (metis Pow_iff contra_subsetD image_eqI sublists_powset)
+qed simp
+
 
 subsubsection \<open>@{const splice}\<close>
 

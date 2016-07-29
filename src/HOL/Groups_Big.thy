@@ -602,6 +602,21 @@ proof-
   finally show ?thesis by (auto simp add: add_right_mono add_strict_left_mono)
 qed
 
+lemma setsum_mono_inv:
+  fixes f g :: "'i \<Rightarrow> 'a :: ordered_cancel_comm_monoid_add"
+  assumes eq: "setsum f I = setsum g I"
+  assumes le: "\<And>i. i \<in> I \<Longrightarrow> f i \<le> g i"
+  assumes i: "i \<in> I"
+  assumes I: "finite I"
+  shows "f i = g i"
+proof(rule ccontr)
+  assume "f i \<noteq> g i"
+  with le[OF i] have "f i < g i" by simp
+  hence "\<exists>i\<in>I. f i < g i" using i ..
+  from setsum_strict_mono_ex1[OF I _ this] le have "setsum f I < setsum g I" by blast
+  with eq show False by simp
+qed
+
 lemma setsum_negf: "(\<Sum>x\<in>A. - f x::'a::ab_group_add) = - (\<Sum>x\<in>A. f x)"
 proof (cases "finite A")
   case True thus ?thesis by (induct set: finite) auto

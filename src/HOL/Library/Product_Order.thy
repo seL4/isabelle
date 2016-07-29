@@ -5,7 +5,7 @@
 section \<open>Pointwise order on product types\<close>
 
 theory Product_Order
-imports Product_plus Conditionally_Complete_Lattices
+imports Product_plus
 begin
 
 subsection \<open>Pointwise ordering\<close>
@@ -243,5 +243,74 @@ next
     by (auto simp: inf_prod_def Sup_prod_def SUP_prod_alt_def inf_Sup inf_SUP comp_def)
 qed
 
-end
+subsection \<open>Bekic's Theorem\<close>
+text \<open>
+  Simultaneous fixed points over pairs can be written in terms of separate fixed points.
+  Transliterated from HOLCF.Fix by Peter Gammie
+\<close>
 
+lemma lfp_prod:
+  fixes F :: "'a::complete_lattice \<times> 'b::complete_lattice \<Rightarrow> 'a \<times> 'b"
+  assumes "mono F"
+  shows "lfp F = (lfp (\<lambda>x. fst (F (x, lfp (\<lambda>y. snd (F (x, y)))))),
+                 (lfp (\<lambda>y. snd (F (lfp (\<lambda>x. fst (F (x, lfp (\<lambda>y. snd (F (x, y)))))), y)))))"
+  (is "lfp F = (?x, ?y)")
+proof(rule lfp_eqI[OF assms])
+  have 1: "fst (F (?x, ?y)) = ?x"
+    by (rule trans [symmetric, OF lfp_unfold])
+       (blast intro!: monoI monoD[OF assms(1)] fst_mono snd_mono Pair_mono lfp_mono)+
+  have 2: "snd (F (?x, ?y)) = ?y"
+    by (rule trans [symmetric, OF lfp_unfold])
+       (blast intro!: monoI monoD[OF assms(1)] fst_mono snd_mono Pair_mono lfp_mono)+
+  from 1 2 show "F (?x, ?y) = (?x, ?y)" by (simp add: prod_eq_iff)
+next
+  fix z assume F_z: "F z = z"
+  obtain x y where z: "z = (x, y)" by (rule prod.exhaust)
+  from F_z z have F_x: "fst (F (x, y)) = x" by simp
+  from F_z z have F_y: "snd (F (x, y)) = y" by simp
+  let ?y1 = "lfp (\<lambda>y. snd (F (x, y)))"
+  have "?y1 \<le> y" by (rule lfp_lowerbound, simp add: F_y)
+  hence "fst (F (x, ?y1)) \<le> fst (F (x, y))"
+    by (simp add: assms fst_mono monoD)
+  hence "fst (F (x, ?y1)) \<le> x" using F_x by simp
+  hence 1: "?x \<le> x" by (simp add: lfp_lowerbound)
+  hence "snd (F (?x, y)) \<le> snd (F (x, y))"
+    by (simp add: assms snd_mono monoD)
+  hence "snd (F (?x, y)) \<le> y" using F_y by simp
+  hence 2: "?y \<le> y" by (simp add: lfp_lowerbound)
+  show "(?x, ?y) \<le> z" using z 1 2 by simp
+qed
+
+lemma gfp_prod:
+  fixes F :: "'a::complete_lattice \<times> 'b::complete_lattice \<Rightarrow> 'a \<times> 'b"
+  assumes "mono F"
+  shows "gfp F = (gfp (\<lambda>x. fst (F (x, gfp (\<lambda>y. snd (F (x, y)))))),
+                 (gfp (\<lambda>y. snd (F (gfp (\<lambda>x. fst (F (x, gfp (\<lambda>y. snd (F (x, y)))))), y)))))"
+  (is "gfp F = (?x, ?y)")
+proof(rule gfp_eqI[OF assms])
+  have 1: "fst (F (?x, ?y)) = ?x"
+    by (rule trans [symmetric, OF gfp_unfold])
+       (blast intro!: monoI monoD[OF assms(1)] fst_mono snd_mono Pair_mono gfp_mono)+
+  have 2: "snd (F (?x, ?y)) = ?y"
+    by (rule trans [symmetric, OF gfp_unfold])
+       (blast intro!: monoI monoD[OF assms(1)] fst_mono snd_mono Pair_mono gfp_mono)+
+  from 1 2 show "F (?x, ?y) = (?x, ?y)" by (simp add: prod_eq_iff)
+next
+  fix z assume F_z: "F z = z"
+  obtain x y where z: "z = (x, y)" by (rule prod.exhaust)
+  from F_z z have F_x: "fst (F (x, y)) = x" by simp
+  from F_z z have F_y: "snd (F (x, y)) = y" by simp
+  let ?y1 = "gfp (\<lambda>y. snd (F (x, y)))"
+  have "y \<le> ?y1" by (rule gfp_upperbound, simp add: F_y)
+  hence "fst (F (x, y)) \<le> fst (F (x, ?y1))"
+    by (simp add: assms fst_mono monoD)
+  hence "x \<le> fst (F (x, ?y1))" using F_x by simp
+  hence 1: "x \<le> ?x" by (simp add: gfp_upperbound)
+  hence "snd (F (x, y)) \<le> snd (F (?x, y))"
+    by (simp add: assms snd_mono monoD)
+  hence "y \<le> snd (F (?x, y))" using F_y by simp
+  hence 2: "y \<le> ?y" by (simp add: gfp_upperbound)
+  show "z \<le> (?x, ?y)" using z 1 2 by simp
+qed
+
+end

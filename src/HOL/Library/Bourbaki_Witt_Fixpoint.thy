@@ -8,7 +8,7 @@
 section \<open>The Bourbaki-Witt tower construction for transfinite iteration\<close>
 
 theory Bourbaki_Witt_Fixpoint
-  imports Main
+  imports While_Combinator
 begin
 
 lemma ChainsI [intro?]:
@@ -18,8 +18,8 @@ unfolding Chains_def by blast
 lemma in_Chains_subset: "\<lbrakk> M \<in> Chains r; M' \<subseteq> M \<rbrakk> \<Longrightarrow> M' \<in> Chains r"
 by(auto simp add: Chains_def)
 
-lemma FieldI1: "(i, j) \<in> R \<Longrightarrow> i \<in> Field R"
-  unfolding Field_def by auto
+lemma in_ChainsD: "\<lbrakk> M \<in> Chains r; x \<in> M; y \<in> M \<rbrakk> \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r"
+unfolding Chains_def by fast
 
 lemma Chains_FieldD: "\<lbrakk> M \<in> Chains r; x \<in> M \<rbrakk> \<Longrightarrow> x \<in> Field r"
 by(auto simp add: Chains_def intro: FieldI1 FieldI2)
@@ -245,7 +245,7 @@ qed
 
 end
 
-lemma fixp_induct [case_names adm base step]:
+lemma fixp_above_induct [case_names adm base step]:
   assumes adm: "ccpo.admissible lub (\<lambda>x y. (x, y) \<in> leq) P"
   and base: "P a"
   and step: "\<And>x. P x \<Longrightarrow> P (f x)"
@@ -263,5 +263,143 @@ proof(cases "a \<in> Field leq")
 qed(simp add: fixp_above_outside base)
 
 end
+
+subsection \<open>Connect with the while combinator for executability on chain-finite lattices.\<close>
+
+context bourbaki_witt_fixpoint begin
+
+lemma in_Chains_finite: -- \<open>Translation from @{thm in_chain_finite}. }\<close>
+  assumes "M \<in> Chains leq"
+  and "M \<noteq> {}"
+  and "finite M"
+  shows "lub M \<in> M"
+using assms(3,1,2)
+proof induction
+  case empty thus ?case by simp
+next
+  case (insert x M)
+  note chain = \<open>insert x M \<in> Chains leq\<close>
+  show ?case
+  proof(cases "M = {}")
+    case True thus ?thesis
+      using chain in_ChainsD leq_antisym lub_least lub_upper by fastforce
+  next
+    case False
+    from chain have chain': "M \<in> Chains leq"
+      using in_Chains_subset subset_insertI by blast
+    hence "lub M \<in> M" using False by(rule insert.IH)
+    show ?thesis
+    proof(cases "(x, lub M) \<in> leq")
+      case True
+      have "(lub (insert x M), lub M) \<in> leq" using chain
+        by (rule lub_least) (auto simp: True intro: lub_upper[OF chain'])
+      with False have "lub (insert x M) = lub M"
+        using lub_upper[OF chain] lub_least[OF chain'] by (blast intro: leq_antisym)
+      with \<open>lub M \<in> M\<close> show ?thesis by simp
+    next
+      case False
+      with in_ChainsD[OF chain, of x "lub M"] \<open>lub M \<in> M\<close>
+      have "lub (insert x M) = x"
+        by - (rule leq_antisym, (blast intro: FieldI2 chain chain' insert.prems(2) leq_refl leq_trans lub_least lub_upper)+)
+      thus ?thesis by simp
+    qed
+  qed
+qed
+
+lemma fun_pow_iterates_above: "(f ^^ k) a \<in> iterates_above a"
+using iterates_above.base iterates_above.step by (induct k) simp_all
+
+lemma chfin_iterates_above_fun_pow:
+  assumes "x \<in> iterates_above a"
+  assumes "\<forall>M \<in> Chains leq. finite M"
+  shows "\<exists>j. x = (f ^^ j) a"
+using assms(1)
+proof induct
+  case base then show ?case by (simp add: exI[where x=0])
+next
+  case (step x) then obtain j where "x = (f ^^ j) a" by blast
+  with step(1) show ?case by (simp add: exI[where x="Suc j"])
+next
+  case (Sup M) with in_Chains_finite assms(2) show ?case by blast
+qed
+
+lemma Chain_finite_iterates_above_fun_pow_iff:
+  assumes "\<forall>M \<in> Chains leq. finite M"
+  shows "x \<in> iterates_above a \<longleftrightarrow> (\<exists>j. x = (f ^^ j) a)"
+using chfin_iterates_above_fun_pow fun_pow_iterates_above assms by blast
+
+lemma fixp_above_Kleene_iter_ex:
+  assumes "(\<forall>M \<in> Chains leq. finite M)"
+  obtains k where "fixp_above a = (f ^^ k) a"
+using assms by atomize_elim (simp add: chfin_iterates_above_fun_pow fixp_iterates_above)
+
+context fixes a assumes a: "a \<in> Field leq" begin
+
+lemma funpow_Field_leq: "(f ^^ k) a \<in> Field leq"
+using a by (induct k) (auto intro: increasing FieldI2)
+
+lemma funpow_prefix: "j < k \<Longrightarrow> ((f ^^ j) a, (f ^^ k) a) \<in> leq"
+proof(induct k)
+  case (Suc k)
+  with leq_trans[OF _ increasing[OF funpow_Field_leq]] funpow_Field_leq increasing a
+  show ?case by simp (metis less_antisym)
+qed simp
+
+lemma funpow_suffix: "(f ^^ Suc k) a = (f ^^ k) a \<Longrightarrow> ((f ^^ (j + k)) a, (f ^^ k) a) \<in> leq"
+using funpow_Field_leq
+by (induct j) (simp_all del: funpow.simps add: funpow_Suc_right funpow_add leq_refl)
+
+lemma funpow_stability: "(f ^^ Suc k) a = (f ^^ k) a \<Longrightarrow> ((f ^^ j) a, (f ^^ k) a) \<in> leq"
+using funpow_prefix funpow_suffix[where j="j - k" and k=k] by (cases "j < k") simp_all
+
+lemma funpow_in_Chains: "{(f ^^ k) a |k. True} \<in> Chains leq"
+using chain_iterates_above[OF a] fun_pow_iterates_above
+by (blast intro: ChainsI dest: in_ChainsD)
+
+lemma fixp_above_Kleene_iter:
+  assumes "\<forall>M \<in> Chains leq. finite M" (* convenient but surely not necessary *)
+  assumes "(f ^^ Suc k) a = (f ^^ k) a"
+  shows "fixp_above a = (f ^^ k) a"
+proof(rule leq_antisym)
+  show "(fixp_above a, (f ^^ k) a) \<in> leq" using assms a
+    by(auto simp add: fixp_above_def chain_iterates_above Chain_finite_iterates_above_fun_pow_iff funpow_stability[OF assms(2)] intro!: lub_least intro: iterates_above.base)
+  show "((f ^^ k) a, fixp_above a) \<in> leq" using a
+    by(auto simp add: fixp_above_def chain_iterates_above fun_pow_iterates_above intro!: lub_upper)
+qed
+
+context assumes chfin: "\<forall>M \<in> Chains leq. finite M" begin
+
+lemma Chain_finite_wf: "wf {(f ((f ^^ k) a), (f ^^ k) a) |k. f ((f ^^ k) a) \<noteq> (f ^^ k) a}"
+apply(rule wf_measure[where f="\<lambda>b. card {(f ^^ j) a |j. (b, (f ^^ j) a) \<in> leq}", THEN wf_subset])
+apply(auto simp: set_eq_iff intro!: psubset_card_mono[OF finite_subset[OF _ bspec[OF chfin funpow_in_Chains]]])
+apply(metis funpow_Field_leq increasing leq_antisym leq_trans leq_refl)+
+done
+
+lemma while_option_finite_increasing: "\<exists>P. while_option (\<lambda>A. f A \<noteq> A) f a = Some P"
+by(rule wf_rel_while_option_Some[OF Chain_finite_wf, where P="\<lambda>A. (\<exists>k. A = (f ^^ k) a) \<and> (A, f A) \<in> leq" and s="a"])
+  (auto simp: a increasing chfin FieldI2 chfin_iterates_above_fun_pow fun_pow_iterates_above iterates_above.step intro: exI[where x=0])
+
+lemma fixp_above_the_while_option: "fixp_above a = the (while_option (\<lambda>A. f A \<noteq> A) f a)"
+proof -
+  obtain P where "while_option (\<lambda>A. f A \<noteq> A) f a = Some P"
+    using while_option_finite_increasing by blast
+  with while_option_stop2[OF this] fixp_above_Kleene_iter[OF chfin]
+  show ?thesis by fastforce
+qed
+
+lemma fixp_above_conv_while: "fixp_above a = while (\<lambda>A. f A \<noteq> A) f a"
+unfolding while_def by (rule fixp_above_the_while_option)
+
+end
+
+end
+
+end
+
+lemma bourbaki_witt_fixpoint_complete_latticeI:
+  fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
+  assumes "\<And>x. x \<le> f x"
+  shows "bourbaki_witt_fixpoint Sup {(x, y). x \<le> y} f"
+by unfold_locales (auto simp: assms Sup_upper order_on_defs Field_def intro: refl_onI transI antisymI Sup_least)
 
 end

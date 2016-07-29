@@ -36,6 +36,10 @@ unfolding Field_def by auto
 lemma Refl_Restr: "Refl r \<Longrightarrow> Refl(Restr r A)"
 unfolding refl_on_def Field_def by auto
 
+lemma linear_order_on_Restr:
+  "linear_order_on A r \<Longrightarrow> linear_order_on (A \<inter> above r x) (Restr r (above r x))"
+by(simp add: order_on_defs refl_on_def trans_def antisym_def total_on_def)(safe; blast)
+
 lemma antisym_Restr:
 "antisym r \<Longrightarrow> antisym(Restr r A)"
 unfolding antisym_def Field_def by auto

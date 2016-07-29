@@ -50,6 +50,9 @@ lemma lfp_unfold: "mono f \<Longrightarrow> lfp f = f (lfp f)"
 lemma lfp_const: "lfp (\<lambda>x. t) = t"
   by (rule lfp_unfold) (simp add: mono_def)
 
+lemma lfp_eqI: "\<lbrakk> mono F; F x = x; \<And>z. F z = z \<Longrightarrow> x \<le> z \<rbrakk> \<Longrightarrow> lfp F = x"
+by (rule antisym) (simp_all add: lfp_lowerbound lfp_unfold[symmetric])
+
 
 subsection \<open>General induction rules for least fixed points\<close>
 
@@ -139,6 +142,12 @@ lemma gfp_lemma3: "mono f \<Longrightarrow> f (gfp f) \<le> gfp f"
 
 lemma gfp_unfold: "mono f \<Longrightarrow> gfp f = f (gfp f)"
   by (iprover intro: order_antisym gfp_lemma2 gfp_lemma3)
+
+lemma gfp_const: "gfp (\<lambda>x. t) = t"
+by (rule gfp_unfold) (simp add: mono_def)
+
+lemma gfp_eqI: "\<lbrakk> mono F; F x = x; \<And>z. F z = z \<Longrightarrow> z \<le> x \<rbrakk> \<Longrightarrow> gfp F = x"
+by (rule antisym) (simp_all add: gfp_upperbound gfp_unfold[symmetric])
 
 
 subsection \<open>Coinduction rules for greatest fixed points\<close>

@@ -1336,9 +1336,31 @@ lemma id_funpow[simp]: "id ^^ n = id"
   by (induct n) simp_all
 
 lemma funpow_mono: "mono f \<Longrightarrow> A \<le> B \<Longrightarrow> (f ^^ n) A \<le> (f ^^ n) B"
-  for f :: "'a \<Rightarrow> ('a::lattice)"
+  for f :: "'a \<Rightarrow> ('a::order)"
   by (induct n arbitrary: A B)
      (auto simp del: funpow.simps(2) simp add: funpow_Suc_right mono_def)
+
+lemma funpow_mono2:
+  assumes "mono f"
+  assumes "i \<le> j"
+  assumes "x \<le> y"
+  assumes "x \<le> f x"
+  shows "(f ^^ i) x \<le> (f ^^ j) y"
+using assms(2,3)
+proof(induct j arbitrary: y)
+  case (Suc j)
+  show ?case
+  proof(cases "i = Suc j")
+    case True
+    with assms(1) Suc show ?thesis
+      by (simp del: funpow.simps add: funpow_simps_right monoD funpow_mono)
+  next
+    case False
+    with assms(1,4) Suc show ?thesis
+      by (simp del: funpow.simps add: funpow_simps_right le_eq_less_or_eq less_Suc_eq_le)
+         (simp add: Suc.hyps monoD order_subst1)
+  qed
+qed simp
 
 
 subsection \<open>Kleene iteration\<close>
@@ -1404,6 +1426,30 @@ proof (rule antisym)
     by (induct n) (auto intro: f gfp_unfold[symmetric])
   then show "gfp (f^^Suc n) \<ge> gfp f"
     by (intro gfp_upperbound) (simp del: funpow.simps)
+qed
+
+lemma Kleene_iter_gpfp:
+  assumes "mono f"
+  and "p \<le> f p"
+  shows "p \<le> (f ^^ k) (top::'a::order_top)"
+proof(induction k)
+  case 0 show ?case by simp
+next
+  case Suc
+  from monoD[OF assms(1) Suc] assms(2)
+  show ?case by simp
+qed
+
+lemma gfp_Kleene_iter:
+  assumes "mono f"
+  and "(f ^^ Suc k) top = (f ^^ k) top"
+  shows "gfp f = (f ^^ k) top" (is "?lhs = ?rhs")
+proof(rule antisym)
+  have "?rhs \<le> f ?rhs" using assms(2) by simp
+  then show "?rhs \<le> ?lhs" by(rule gfp_upperbound)
+
+  show "?lhs \<le> ?rhs"
+    using Kleene_iter_gpfp[OF assms(1)] gfp_unfold[OF assms(1)] by simp
 qed
 
 
