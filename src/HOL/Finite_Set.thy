@@ -602,6 +602,33 @@ next
   then show ?case by simp
 qed
 
+lemma finite_subset_induct' [consumes 2, case_names empty insert]:
+  assumes "finite F" and "F \<subseteq> A"
+  and empty: "P {}"
+  and insert: "\<And>a F. \<lbrakk>finite F; a \<in> A; F \<subseteq> A; a \<notin> F; P F \<rbrakk> \<Longrightarrow> P (insert a F)"
+  shows "P F"
+proof -
+  from \<open>finite F\<close>
+  have "F \<subseteq> A \<Longrightarrow> ?thesis"
+  proof induct
+    show "P {}" by fact
+  next
+    fix x F
+    assume "finite F" and "x \<notin> F" and
+      P: "F \<subseteq> A \<Longrightarrow> P F" and i: "insert x F \<subseteq> A"
+    show "P (insert x F)"
+    proof (rule insert)
+      from i show "x \<in> A" by blast
+      from i have "F \<subseteq> A" by blast
+      with P show "P F" .
+      show "finite F" by fact
+      show "x \<notin> F" by fact
+      show "F \<subseteq> A" by fact
+    qed
+  qed
+  with \<open>F \<subseteq> A\<close> show ?thesis by blast
+qed
+
 
 subsection \<open>Class \<open>finite\<close>\<close>
 

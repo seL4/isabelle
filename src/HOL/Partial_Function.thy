@@ -47,6 +47,11 @@ next
   qed
 qed
 
+lemma (in ccpo) admissible_chfin:
+  "(\<forall>S. Complete_Partial_Order.chain op \<le> S \<longrightarrow> finite S)
+  \<Longrightarrow> ccpo.admissible Sup op \<le> P"
+using in_chain_finite by (blast intro: ccpo.admissibleI)
+
 subsection \<open>Axiomatic setup\<close>
 
 text \<open>This techical locale constains the requirements for function

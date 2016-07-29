@@ -206,6 +206,9 @@ lemma refl_on_UNION: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> re
 lemma refl_on_empty [simp]: "refl_on {} {}"
   by (simp add: refl_on_def)
 
+lemma refl_on_singleton [simp]: "refl_on {x} {(x, x)}"
+by (blast intro: refl_onI)
+
 lemma refl_on_def' [nitpick_unfold, code]:
   "refl_on A r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<in> A \<and> y \<in> A) \<and> (\<forall>x \<in> A. (x, x) \<in> r)"
   by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
@@ -335,6 +338,9 @@ lemma antisym_empty [simp]: "antisym {}"
 lemma antisymP_equality [simp]: "antisymP op ="
   by (auto intro: antisymI)
 
+lemma antisym_singleton [simp]: "antisym {x}"
+by (blast intro: antisymI)
+
 
 subsubsection \<open>Transitivity\<close>
 
@@ -393,17 +399,34 @@ lemma transp_trans: "transp r \<longleftrightarrow> trans {(x, y). r x y}"
 lemma transp_equality [simp]: "transp op ="
   by (auto intro: transpI)
 
+lemma trans_empty [simp]: "trans {}"
+by (blast intro: transI)
+
+lemma transp_empty [simp]: "transp (\<lambda>x y. False)"
+using trans_empty[to_pred] by(simp add: bot_fun_def)
+
+lemma trans_singleton [simp]: "trans {(a, a)}"
+by (blast intro: transI)
+
+lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
+by(simp add: transp_def)
 
 subsubsection \<open>Totality\<close>
 
 definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
   where "total_on A r \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x \<noteq> y \<longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r)"
 
+lemma total_onI [intro?]:
+  "(\<And>x y. \<lbrakk>x \<in> A; y \<in> A; x \<noteq> y\<rbrakk> \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total_on A r"
+unfolding total_on_def by blast
+
 abbreviation "total \<equiv> total_on UNIV"
 
 lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
 
+lemma total_on_singleton [simp]: "total_on {x} {(x, x)}"
+unfolding total_on_def by blast
 
 subsubsection \<open>Single valued relations\<close>
 
@@ -776,6 +799,12 @@ inductive_cases RangepE [elim!]: "Rangep r b"
 definition Field :: "'a rel \<Rightarrow> 'a set"
   where "Field r = Domain r \<union> Range r"
 
+lemma FieldI1: "(i, j) \<in> R \<Longrightarrow> i \<in> Field R"
+unfolding Field_def by blast
+
+lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
+  unfolding Field_def by auto
+
 lemma Domain_fst [code]: "Domain r = fst ` r"
   by force
 
@@ -901,6 +930,9 @@ lemma mono_Field: "r \<subseteq> s \<Longrightarrow> Field r \<subseteq> Field s
 
 lemma Domain_unfold: "Domain r = {x. \<exists>y. (x, y) \<in> r}"
   by blast
+
+lemma Field_square [simp]: "Field (x \<times> x) = x"
+unfolding Field_def by blast
 
 
 subsubsection \<open>Image of a set under a relation\<close>

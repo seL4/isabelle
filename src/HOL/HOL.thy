@@ -989,6 +989,7 @@ lemma disj_not1: "(\<not> P \<or> Q) = (P \<longrightarrow> Q)" by blast
 lemma disj_not2: "(P \<or> \<not> Q) = (Q \<longrightarrow> P)"  \<comment> \<open>changes orientation :-(\<close>
   by blast
 lemma imp_conv_disj: "(P \<longrightarrow> Q) = ((\<not> P) \<or> Q)" by blast
+lemma disj_imp: "P \<or> Q \<longleftrightarrow> \<not> P \<longrightarrow> Q" by blast
 
 lemma iff_conv_conj_imp: "(P = Q) = ((P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P))" by iprover
 

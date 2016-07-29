@@ -666,6 +666,12 @@ lemma override_on_apply_notin[simp]: "a \<notin> A \<Longrightarrow> (override_o
 lemma override_on_apply_in[simp]: "a \<in> A \<Longrightarrow> (override_on f g A) a = g a"
   by (simp add:override_on_def)
 
+lemma override_on_insert: "override_on f g (insert x X) = (override_on f g X)(x:=g x)"
+unfolding override_on_def by (simp add: fun_eq_iff)
+
+lemma override_on_insert': "override_on f g (insert x X) = (override_on (f(x:=g x)) g X)"
+unfolding override_on_def by (simp add: fun_eq_iff)
+
 
 subsection \<open>\<open>swap\<close>\<close>
 
