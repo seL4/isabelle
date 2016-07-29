@@ -261,7 +261,7 @@ proof -
   from this[unfolded sums_def, THEN LIMSEQ_Suc]
   have "(\<lambda>n. if even n then f (n div 2) else 0) sums y"
     by (simp add: lessThan_Suc_eq_insert_0 setsum_atLeast1_atMost_eq image_Suc_lessThan
-        if_eq sums_def cong del: if_cong)
+        if_eq sums_def cong del: if_weak_cong)
   from sums_add[OF g_sums this] show ?thesis
     by (simp only: if_sum)
 qed

@@ -514,11 +514,12 @@ proof -
         foldseq f (\<lambda>k. if k < m then s k else foldseq f (\<lambda>k. s (k + m)) (Suc na - m)) m"
         apply (simp add: subd)
         apply (cases "m = 0")
-        apply (simp)
+         apply simp
         apply (drule sube)
-        apply (auto)
+        apply auto
         apply (rule a)
-        by (simp add: subc cong del: if_cong)
+        apply (simp add: subc cong del: if_weak_cong)
+        done
     qed
   then show ?thesis using assms by simp
 qed

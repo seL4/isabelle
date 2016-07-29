@@ -519,9 +519,9 @@ apply (simp add: oconf_def)
 apply safe
 apply (rule lconf_upd)
 apply auto
-apply (simp only: obj_ty_cong) 
+apply (simp only: obj_ty_cong)
 apply (force dest: conforms_globsD intro!: lconf_upd 
-       simp add: oconf_def cong del: sum.case_cong_weak)
+       simp add: oconf_def cong del: old.sum.case_cong_weak)
 done
 
 lemma conforms_set_locals: 

@@ -11551,7 +11551,8 @@ proof -
       done
     moreover have "(\<Sum>x\<in>(s \<union> t). f x *\<^sub>R x) = 0"
       apply (simp add: f_def setsum_Un scaleR_left_diff_distrib setsum_subtractf)
-      apply (simp add: if_smult setsum.inter_restrict [symmetric] Int_commute eq cong del: if_cong)
+      apply (simp add: if_smult setsum.inter_restrict [symmetric] Int_commute eq
+          cong del: if_weak_cong)
       done
     ultimately have "\<And>v. v \<in> s \<union> t \<Longrightarrow> f v = 0"
       using aff_independent_finite assms unfolding affine_dependent_explicit

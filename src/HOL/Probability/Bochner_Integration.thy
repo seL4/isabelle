@@ -953,7 +953,7 @@ lemma integrable_cong_AE:
 
 lemma integral_cong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> f x = g x) \<Longrightarrow> integral\<^sup>L M f = integral\<^sup>L N g"
-  by (simp cong: has_bochner_integral_cong cong del: if_cong add: lebesgue_integral_def)
+  by (simp cong: has_bochner_integral_cong cong del: if_weak_cong add: lebesgue_integral_def)
 
 lemma integral_cong_AE:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> AE x in M. f x = g x \<Longrightarrow>
