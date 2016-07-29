@@ -87,12 +87,16 @@ fun mk_goal lthy f =
       |> mk_TFrees' (map snd skematic_Ts)
       ||>> mk_TFrees' (map snd skematic_Ts);
 
-    val (Rs, names_lthy) = mk_Frees "R" (map2 mk_pred2T As Bs) names_lthy;
+    val ((Rs, Rs'), names_lthy) = mk_Frees' "R" (map2 mk_pred2T As Bs) names_lthy;
 
     val fA = Term.subst_TVars (map fst skematic_Ts ~~ As) f;
     val fB = Term.subst_TVars (map fst skematic_Ts ~~ Bs) f;
+
+    val goal = mk_parametricity_goal lthy Rs fA fB;
+    val used_Rs = Term.add_frees goal [];
+    val subst = map (dest_pred2T o snd) (filter_out (member (op =) used_Rs) Rs');
   in
-    (mk_parametricity_goal lthy Rs fA fB, names_lthy)
+    (goal |> Term.subst_atomic_types subst, names_lthy)
   end;
 
 fun fp_rec_sugar_transfer_interpretation prove {transfers, fun_names, funs, fun_defs, fpTs} =
