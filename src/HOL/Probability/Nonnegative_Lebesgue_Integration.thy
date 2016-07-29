@@ -1510,7 +1510,7 @@ next
   show "\<And>x. g x \<le> (\<lambda>s. integral\<^sup>N (M s) (f top))"
     by (subst step)
        (auto simp add: top_fun_def less_le non_zero le_fun_def ennreal_top_mult
-             cong del: if_cong intro!: monoD[OF inf_continuous_mono[OF g], THEN le_funD])
+             cong del: if_weak_cong intro!: monoD[OF inf_continuous_mono[OF g], THEN le_funD])
 next
   fix C assume "\<And>i::nat. C i \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (C i) < \<infinity>)" "decseq C"
   with bound show "INFIMUM UNIV C \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (INFIMUM UNIV C) < \<infinity>)"

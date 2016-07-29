@@ -1177,7 +1177,7 @@ proof -
              intro: has_field_derivative_subset[OF f(1)] \<open>a \<le> b\<close>)
   then have i: "((\<lambda>x. f x * indicator {a .. b} x) has_integral F b - F a) UNIV"
     unfolding indicator_def if_distrib[where f="\<lambda>x. a * x" for a]
-    by (simp cong del: if_cong del: atLeastAtMost_iff)
+    by (simp cong del: if_weak_cong del: atLeastAtMost_iff)
   then have nn: "(\<integral>\<^sup>+x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
     by (rule nn_integral_has_integral_lborel[OF *])
   then show ?has
@@ -1207,7 +1207,7 @@ proof -
   have "(f has_integral integral\<^sup>L lborel ?f) {a..b}"
     using has_integral_integral_lborel[OF int]
     unfolding indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a]
-    by (simp cong del: if_cong del: atLeastAtMost_iff)
+    by (simp cong del: if_weak_cong del: atLeastAtMost_iff)
   ultimately show ?eq
     by (auto dest: has_integral_unique)
   then show ?has

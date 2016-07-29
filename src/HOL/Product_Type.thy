@@ -264,7 +264,7 @@ lemmas simps = prod.inject prod.case prod.rec
 setup \<open>Sign.parent_path\<close>
 
 declare prod.case [nitpick_simp del]
-declare prod.case_cong_weak [cong del]
+declare old.prod.case_cong_weak [cong del]
 declare prod.case_eq_if [mono]
 declare prod.split [no_atp]
 declare prod.split_asm [no_atp]
