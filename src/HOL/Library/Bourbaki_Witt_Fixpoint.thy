@@ -268,7 +268,7 @@ subsection \<open>Connect with the while combinator for executability on chain-f
 
 context bourbaki_witt_fixpoint begin
 
-lemma in_Chains_finite: -- \<open>Translation from @{thm in_chain_finite}. }\<close>
+lemma in_Chains_finite: -- \<open>Translation from @{thm in_chain_finite}.\<close>
   assumes "M \<in> Chains leq"
   and "M \<noteq> {}"
   and "finite M"
