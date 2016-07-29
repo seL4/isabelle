@@ -206,7 +206,7 @@ lemma refl_on_UNION: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> re
 lemma refl_on_empty [simp]: "refl_on {} {}"
   by (simp add: refl_on_def)
 
-lemma refl_on_singleton [iff]: "refl_on {x} {(x, x)}"
+lemma refl_on_singleton [simp]: "refl_on {x} {(x, x)}"
 by (blast intro: refl_onI)
 
 lemma refl_on_def' [nitpick_unfold, code]:
@@ -338,7 +338,7 @@ lemma antisym_empty [simp]: "antisym {}"
 lemma antisymP_equality [simp]: "antisymP op ="
   by (auto intro: antisymI)
 
-lemma antisym_singleton [iff]: "antisym {x}"
+lemma antisym_singleton [simp]: "antisym {x}"
 by (blast intro: antisymI)
 
 
@@ -399,16 +399,16 @@ lemma transp_trans: "transp r \<longleftrightarrow> trans {(x, y). r x y}"
 lemma transp_equality [simp]: "transp op ="
   by (auto intro: transpI)
 
-lemma trans_empty [iff]: "trans {}"
+lemma trans_empty [simp]: "trans {}"
 by (blast intro: transI)
 
-lemma transp_empty [iff]: "transp (\<lambda>x y. False)"
+lemma transp_empty [simp]: "transp (\<lambda>x y. False)"
 using trans_empty[to_pred] by(simp add: bot_fun_def)
 
-lemma trans_singleton [iff]: "trans {(a, a)}"
+lemma trans_singleton [simp]: "trans {(a, a)}"
 by (blast intro: transI)
 
-lemma transp_singleton [iff]: "transp (\<lambda>x y. x = a \<and> y = a)"
+lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
 by(simp add: transp_def)
 
 subsubsection \<open>Totality\<close>
@@ -425,7 +425,7 @@ abbreviation "total \<equiv> total_on UNIV"
 lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
 
-lemma total_on_singleton [iff]: "total_on {x} {(x, x)}"
+lemma total_on_singleton [simp]: "total_on {x} {(x, x)}"
 unfolding total_on_def by blast
 
 subsubsection \<open>Single valued relations\<close>
@@ -931,7 +931,7 @@ lemma mono_Field: "r \<subseteq> s \<Longrightarrow> Field r \<subseteq> Field s
 lemma Domain_unfold: "Domain r = {x. \<exists>y. (x, y) \<in> r}"
   by blast
 
-lemma Field_square [iff]: "Field (x \<times> x) = x"
+lemma Field_square [simp]: "Field (x \<times> x) = x"
 unfolding Field_def by blast
 
 

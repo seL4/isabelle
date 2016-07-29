@@ -55,7 +55,7 @@ lemma strict_linear_order_on_diff_Id:
   "linear_order_on A r \<Longrightarrow> strict_linear_order_on A (r-Id)"
 by(simp add: order_on_defs trans_diff_Id)
 
-lemma linear_order_on_singleton [iff]: "linear_order_on {x} {(x, x)}"
+lemma linear_order_on_singleton [simp]: "linear_order_on {x} {(x, x)}"
 unfolding order_on_defs by simp
 
 lemma linear_order_on_acyclic:
