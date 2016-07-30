@@ -190,7 +190,7 @@ fun analyze_mapper ctxt input_mapper =
         (Variable.export_terms (Variable.auto_fixes input_mapper ctxt) ctxt) input_mapper) [])
       then ()
       else error ("Illegal locally free variable(s) in term: "
-        ^ Syntax.string_of_term ctxt input_mapper);;
+        ^ Syntax.string_of_term ctxt input_mapper);
     val mapper = singleton (Variable.polymorphic ctxt) input_mapper;
     val _ =
       if null (Term.add_tfreesT (fastype_of mapper) []) then ()

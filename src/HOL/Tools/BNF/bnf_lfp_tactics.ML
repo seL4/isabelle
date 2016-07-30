@@ -433,7 +433,7 @@ fun mk_mor_Abs_tac ctxt cts defs Abs_inverses map_comp_ids map_congLs =
           EVERY' [rtac ctxt (o_apply RS trans RS ballI), etac ctxt (set_mp RS Abs_inverse),
             assume_tac ctxt])
         Abs_inverses)])
-    (cts ~~ map2 mk_trans map_comp_ids map_congLs)] 1;;
+    (cts ~~ map2 mk_trans map_comp_ids map_congLs)] 1;
 
 fun mk_mor_fold_tac ctxt cT ct fold_defs ex_mor mor =
   (EVERY' (map (stac ctxt) fold_defs) THEN' EVERY' [rtac ctxt rev_mp, rtac ctxt ex_mor, rtac ctxt impI] THEN'
