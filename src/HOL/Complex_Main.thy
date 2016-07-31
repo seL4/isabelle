@@ -6,7 +6,7 @@ imports
   Real
   Complex
   Transcendental
-  Taylor
+  MacLaurin
   Deriv
 begin
 
