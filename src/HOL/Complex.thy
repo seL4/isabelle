@@ -1,7 +1,6 @@
 (*  Title:       HOL/Complex.thy
-    Author:      Jacques D. Fleuriot
-    Copyright:   2001 University of Edinburgh
-    Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
+    Author:      Jacques D. Fleuriot, 2001 University of Edinburgh
+    Author:      Lawrence C Paulson, 2003/4
 *)
 
 section \<open>Complex Numbers: Rectangular and Polar Representations\<close>
@@ -11,9 +10,9 @@ imports Transcendental
 begin
 
 text \<open>
-We use the \<open>codatatype\<close> command to define the type of complex numbers. This allows us to use
-\<open>primcorec\<close> to define complex functions by defining their real and imaginary result
-separately.
+  We use the \<^theory_text>\<open>codatatype\<close> command to define the type of complex numbers. This
+  allows us to use \<^theory_text>\<open>primcorec\<close> to define complex functions by defining their
+  real and imaginary result separately.
 \<close>
 
 codatatype complex = Complex (Re: real) (Im: real)
@@ -21,59 +20,68 @@ codatatype complex = Complex (Re: real) (Im: real)
 lemma complex_surj: "Complex (Re z) (Im z) = z"
   by (rule complex.collapse)
 
-lemma complex_eqI [intro?]: "\<lbrakk>Re x = Re y; Im x = Im y\<rbrakk> \<Longrightarrow> x = y"
+lemma complex_eqI [intro?]: "Re x = Re y \<Longrightarrow> Im x = Im y \<Longrightarrow> x = y"
   by (rule complex.expand) simp
 
 lemma complex_eq_iff: "x = y \<longleftrightarrow> Re x = Re y \<and> Im x = Im y"
   by (auto intro: complex.expand)
+
 
 subsection \<open>Addition and Subtraction\<close>
 
 instantiation complex :: ab_group_add
 begin
 
-primcorec zero_complex where
-  "Re 0 = 0"
-| "Im 0 = 0"
+primcorec zero_complex
+  where
+    "Re 0 = 0"
+  | "Im 0 = 0"
 
-primcorec plus_complex where
-  "Re (x + y) = Re x + Re y"
-| "Im (x + y) = Im x + Im y"
+primcorec plus_complex
+  where
+    "Re (x + y) = Re x + Re y"
+  | "Im (x + y) = Im x + Im y"
 
-primcorec uminus_complex where
-  "Re (- x) = - Re x"
-| "Im (- x) = - Im x"
+primcorec uminus_complex
+  where
+    "Re (- x) = - Re x"
+  | "Im (- x) = - Im x"
 
-primcorec minus_complex where
-  "Re (x - y) = Re x - Re y"
-| "Im (x - y) = Im x - Im y"
+primcorec minus_complex
+  where
+    "Re (x - y) = Re x - Re y"
+  | "Im (x - y) = Im x - Im y"
 
 instance
-  by intro_classes (simp_all add: complex_eq_iff)
+  by standard (simp_all add: complex_eq_iff)
 
 end
+
 
 subsection \<open>Multiplication and Division\<close>
 
 instantiation complex :: field
 begin
 
-primcorec one_complex where
-  "Re 1 = 1"
-| "Im 1 = 0"
+primcorec one_complex
+  where
+    "Re 1 = 1"
+  | "Im 1 = 0"
 
-primcorec times_complex where
-  "Re (x * y) = Re x * Re y - Im x * Im y"
-| "Im (x * y) = Re x * Im y + Im x * Re y"
+primcorec times_complex
+  where
+    "Re (x * y) = Re x * Re y - Im x * Im y"
+  | "Im (x * y) = Re x * Im y + Im x * Re y"
 
-primcorec inverse_complex where
-  "Re (inverse x) = Re x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
-| "Im (inverse x) = - Im x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
+primcorec inverse_complex
+  where
+    "Re (inverse x) = Re x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
+  | "Im (inverse x) = - Im x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
 
-definition "x div (y::complex) = x * inverse y"
+definition "x div y = x * inverse y" for x y :: complex
 
 instance
-  by intro_classes
+  by standard
      (simp_all add: complex_eq_iff divide_complex_def
       distrib_left distrib_right right_diff_distrib left_diff_distrib
       power2_eq_square add_divide_distrib [symmetric])
@@ -81,11 +89,11 @@ instance
 end
 
 lemma Re_divide: "Re (x / y) = (Re x * Re y + Im x * Im y) / ((Re y)\<^sup>2 + (Im y)\<^sup>2)"
-  unfolding divide_complex_def by (simp add: add_divide_distrib)
+  by (simp add: divide_complex_def add_divide_distrib)
 
 lemma Im_divide: "Im (x / y) = (Im x * Re y - Re x * Im y) / ((Re y)\<^sup>2 + (Im y)\<^sup>2)"
   unfolding divide_complex_def times_complex.sel inverse_complex.sel
-  by (simp_all add: divide_simps)
+  by (simp add: divide_simps)
 
 lemma Re_power2: "Re (x ^ 2) = (Re x)^2 - (Im x)^2"
   by (simp add: power2_eq_square)
@@ -99,14 +107,16 @@ lemma Re_power_real [simp]: "Im x = 0 \<Longrightarrow> Re (x ^ n) = Re x ^ n "
 lemma Im_power_real [simp]: "Im x = 0 \<Longrightarrow> Im (x ^ n) = 0"
   by (induct n) simp_all
 
+
 subsection \<open>Scalar Multiplication\<close>
 
 instantiation complex :: real_field
 begin
 
-primcorec scaleR_complex where
-  "Re (scaleR r x) = r * Re x"
-| "Im (scaleR r x) = r * Im x"
+primcorec scaleR_complex
+  where
+    "Re (scaleR r x) = r * Re x"
+  | "Im (scaleR r x) = r * Im x"
 
 instance
 proof
@@ -126,6 +136,7 @@ proof
 qed
 
 end
+
 
 subsection \<open>Numerals, Arithmetic, and Embedding from Reals\<close>
 
@@ -173,14 +184,15 @@ lemma Re_divide_of_nat [simp]: "Re (z / of_nat n) = Re z / of_nat n"
 lemma Im_divide_of_nat [simp]: "Im (z / of_nat n) = Im z / of_nat n"
   by (cases n) (simp_all add: Im_divide divide_simps power2_eq_square del: of_nat_Suc)
 
-lemma of_real_Re [simp]:
-    "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"
+lemma of_real_Re [simp]: "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"
   by (auto simp: Reals_def)
 
 lemma complex_Re_fact [simp]: "Re (fact n) = fact n"
 proof -
-  have "(fact n :: complex) = of_real (fact n)" by simp
-  also have "Re \<dots> = fact n" by (subst Re_complex_of_real) simp_all
+  have "(fact n :: complex) = of_real (fact n)"
+    by simp
+  also have "Re \<dots> = fact n"
+    by (subst Re_complex_of_real) simp_all
   finally show ?thesis .
 qed
 
@@ -190,9 +202,10 @@ lemma complex_Im_fact [simp]: "Im (fact n) = 0"
 
 subsection \<open>The Complex Number $i$\<close>
 
-primcorec "ii" :: complex  ("\<i>") where
-  "Re ii = 0"
-| "Im ii = 1"
+primcorec "ii" :: complex  ("\<i>")
+  where
+    "Re \<i> = 0"
+  | "Im \<i> = 1"
 
 lemma Complex_eq[simp]: "Complex a b = a + \<i> * b"
   by (simp add: complex_eq_iff)
@@ -203,31 +216,31 @@ lemma complex_eq: "a = Re a + \<i> * Im a"
 lemma fun_complex_eq: "f = (\<lambda>x. Re (f x) + \<i> * Im (f x))"
   by (simp add: fun_eq_iff complex_eq)
 
-lemma i_squared [simp]: "ii * ii = -1"
+lemma i_squared [simp]: "\<i> * \<i> = -1"
   by (simp add: complex_eq_iff)
 
-lemma power2_i [simp]: "ii\<^sup>2 = -1"
+lemma power2_i [simp]: "\<i>\<^sup>2 = -1"
   by (simp add: power2_eq_square)
 
-lemma inverse_i [simp]: "inverse ii = - ii"
+lemma inverse_i [simp]: "inverse \<i> = - \<i>"
   by (rule inverse_unique) simp
 
-lemma divide_i [simp]: "x / ii = - ii * x"
+lemma divide_i [simp]: "x / \<i> = - \<i> * x"
   by (simp add: divide_complex_def)
 
-lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
+lemma complex_i_mult_minus [simp]: "\<i> * (\<i> * x) = - x"
   by (simp add: mult.assoc [symmetric])
 
-lemma complex_i_not_zero [simp]: "ii \<noteq> 0"
+lemma complex_i_not_zero [simp]: "\<i> \<noteq> 0"
   by (simp add: complex_eq_iff)
 
-lemma complex_i_not_one [simp]: "ii \<noteq> 1"
+lemma complex_i_not_one [simp]: "\<i> \<noteq> 1"
   by (simp add: complex_eq_iff)
 
-lemma complex_i_not_numeral [simp]: "ii \<noteq> numeral w"
+lemma complex_i_not_numeral [simp]: "\<i> \<noteq> numeral w"
   by (simp add: complex_eq_iff)
 
-lemma complex_i_not_neg_numeral [simp]: "ii \<noteq> - numeral w"
+lemma complex_i_not_neg_numeral [simp]: "\<i> \<noteq> - numeral w"
   by (simp add: complex_eq_iff)
 
 lemma complex_split_polar: "\<exists>r a. z = complex_of_real r * (cos a + \<i> * sin a)"
@@ -236,17 +249,18 @@ lemma complex_split_polar: "\<exists>r a. z = complex_of_real r * (cos a + \<i> 
 lemma i_even_power [simp]: "\<i> ^ (n * 2) = (-1) ^ n"
   by (metis mult.commute power2_i power_mult)
 
-lemma Re_ii_times [simp]: "Re (ii*z) = - Im z"
+lemma Re_ii_times [simp]: "Re (\<i> * z) = - Im z"
   by simp
 
-lemma Im_ii_times [simp]: "Im (ii*z) = Re z"
+lemma Im_ii_times [simp]: "Im (\<i> * z) = Re z"
   by simp
 
-lemma ii_times_eq_iff: "ii*w = z \<longleftrightarrow> w = -(ii*z)"
+lemma ii_times_eq_iff: "\<i> * w = z \<longleftrightarrow> w = - (\<i> * z)"
   by auto
 
-lemma divide_numeral_i [simp]: "z / (numeral n * ii) = -(ii*z) / numeral n"
+lemma divide_numeral_i [simp]: "z / (numeral n * \<i>) = - (\<i> * z) / numeral n"
   by (metis divide_divide_eq_left divide_i mult.commute mult_minus_right)
+
 
 subsection \<open>Vector Norm\<close>
 
@@ -258,11 +272,9 @@ definition "norm z = sqrt ((Re z)\<^sup>2 + (Im z)\<^sup>2)"
 abbreviation cmod :: "complex \<Rightarrow> real"
   where "cmod \<equiv> norm"
 
-definition complex_sgn_def:
-  "sgn x = x /\<^sub>R cmod x"
+definition complex_sgn_def: "sgn x = x /\<^sub>R cmod x"
 
-definition dist_complex_def:
-  "dist x y = cmod (x - y)"
+definition dist_complex_def: "dist x y = cmod (x - y)"
 
 definition uniformity_complex_def [code del]:
   "(uniformity :: (complex \<times> complex) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
@@ -270,23 +282,26 @@ definition uniformity_complex_def [code del]:
 definition open_complex_def [code del]:
   "open (U :: complex set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
-instance proof
+instance
+proof
   fix r :: real and x y :: complex and S :: "complex set"
   show "(norm x = 0) = (x = 0)"
     by (simp add: norm_complex_def complex_eq_iff)
   show "norm (x + y) \<le> norm x + norm y"
     by (simp add: norm_complex_def complex_eq_iff real_sqrt_sum_squares_triangle_ineq)
   show "norm (scaleR r x) = \<bar>r\<bar> * norm x"
-    by (simp add: norm_complex_def complex_eq_iff power_mult_distrib distrib_left [symmetric] real_sqrt_mult)
+    by (simp add: norm_complex_def complex_eq_iff power_mult_distrib distrib_left [symmetric]
+        real_sqrt_mult)
   show "norm (x * y) = norm x * norm y"
-    by (simp add: norm_complex_def complex_eq_iff real_sqrt_mult [symmetric] power2_eq_square algebra_simps)
+    by (simp add: norm_complex_def complex_eq_iff real_sqrt_mult [symmetric]
+        power2_eq_square algebra_simps)
 qed (rule complex_sgn_def dist_complex_def open_complex_def uniformity_complex_def)+
 
 end
 
-declare uniformity_Abort[where 'a=complex, code]
+declare uniformity_Abort[where 'a = complex, code]
 
-lemma norm_ii [simp]: "norm ii = 1"
+lemma norm_ii [simp]: "norm \<i> = 1"
   by (simp add: norm_complex_def)
 
 lemma cmod_unit_one: "cmod (cos a + \<i> * sin a) = 1"
@@ -296,8 +311,7 @@ lemma cmod_complex_polar: "cmod (r * (cos a + \<i> * sin a)) = \<bar>r\<bar>"
   by (simp add: norm_mult cmod_unit_one)
 
 lemma complex_Re_le_cmod: "Re x \<le> cmod x"
-  unfolding norm_complex_def
-  by (rule real_sqrt_sum_squares_ge1)
+  unfolding norm_complex_def by (rule real_sqrt_sum_squares_ge1)
 
 lemma complex_mod_minus_le_complex_mod: "- cmod x \<le> cmod x"
   by (rule order_trans [OF _ norm_ge_zero]) simp
@@ -314,7 +328,7 @@ lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
 lemma cmod_le: "cmod z \<le> \<bar>Re z\<bar> + \<bar>Im z\<bar>"
   apply (subst complex_eq)
   apply (rule order_trans)
-  apply (rule norm_triangle_ineq)
+   apply (rule norm_triangle_ineq)
   apply (simp add: norm_mult)
   done
 
@@ -324,33 +338,31 @@ lemma cmod_eq_Re: "Im z = 0 \<Longrightarrow> cmod z = \<bar>Re z\<bar>"
 lemma cmod_eq_Im: "Re z = 0 \<Longrightarrow> cmod z = \<bar>Im z\<bar>"
   by (simp add: norm_complex_def)
 
-lemma cmod_power2: "cmod z ^ 2 = (Re z)^2 + (Im z)^2"
+lemma cmod_power2: "(cmod z)\<^sup>2 = (Re z)\<^sup>2 + (Im z)\<^sup>2"
   by (simp add: norm_complex_def)
 
 lemma cmod_plus_Re_le_0_iff: "cmod z + Re z \<le> 0 \<longleftrightarrow> Re z = - cmod z"
   using abs_Re_le_cmod[of z] by auto
 
-lemma cmod_Re_le_iff: "Im x = Im y \<Longrightarrow> cmod x \<le> cmod y \<longleftrightarrow> abs (Re x) \<le> abs (Re y)"
+lemma cmod_Re_le_iff: "Im x = Im y \<Longrightarrow> cmod x \<le> cmod y \<longleftrightarrow> \<bar>Re x\<bar> \<le> \<bar>Re y\<bar>"
   by (metis add.commute add_le_cancel_left norm_complex_def real_sqrt_abs real_sqrt_le_iff)
 
-lemma cmod_Im_le_iff: "Re x = Re y \<Longrightarrow> cmod x \<le> cmod y \<longleftrightarrow> abs (Im x) \<le> abs (Im y)"
+lemma cmod_Im_le_iff: "Re x = Re y \<Longrightarrow> cmod x \<le> cmod y \<longleftrightarrow> \<bar>Im x\<bar> \<le> \<bar>Im y\<bar>"
   by (metis add_le_cancel_left norm_complex_def real_sqrt_abs real_sqrt_le_iff)
 
 lemma Im_eq_0: "\<bar>Re z\<bar> = cmod z \<Longrightarrow> Im z = 0"
-  by (subst (asm) power_eq_iff_eq_base[symmetric, where n=2])
-     (auto simp add: norm_complex_def)
+  by (subst (asm) power_eq_iff_eq_base[symmetric, where n=2]) (auto simp add: norm_complex_def)
 
-lemma abs_sqrt_wlog:
-  fixes x::"'a::linordered_idom"
-  assumes "\<And>x::'a. x \<ge> 0 \<Longrightarrow> P x (x\<^sup>2)" shows "P \<bar>x\<bar> (x\<^sup>2)"
-by (metis abs_ge_zero assms power2_abs)
+lemma abs_sqrt_wlog: "(\<And>x. x \<ge> 0 \<Longrightarrow> P x (x\<^sup>2)) \<Longrightarrow> P \<bar>x\<bar> (x\<^sup>2)"
+  for x::"'a::linordered_idom"
+  by (metis abs_ge_zero power2_abs)
 
 lemma complex_abs_le_norm: "\<bar>Re z\<bar> + \<bar>Im z\<bar> \<le> sqrt 2 * norm z"
   unfolding norm_complex_def
   apply (rule abs_sqrt_wlog [where x="Re z"])
   apply (rule abs_sqrt_wlog [where x="Im z"])
   apply (rule power2_le_imp_le)
-  apply (simp_all add: power2_sum add.commute sum_squares_bound real_sqrt_mult [symmetric])
+   apply (simp_all add: power2_sum add.commute sum_squares_bound real_sqrt_mult [symmetric])
   done
 
 lemma complex_unit_circle: "z \<noteq> 0 \<Longrightarrow> (Re z / cmod z)\<^sup>2 + (Im z / cmod z)\<^sup>2 = 1"
@@ -372,10 +384,10 @@ lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
 subsection \<open>Completeness of the Complexes\<close>
 
 lemma bounded_linear_Re: "bounded_linear Re"
-  by (rule bounded_linear_intro [where K=1], simp_all add: norm_complex_def)
+  by (rule bounded_linear_intro [where K=1]) (simp_all add: norm_complex_def)
 
 lemma bounded_linear_Im: "bounded_linear Im"
-  by (rule bounded_linear_intro [where K=1], simp_all add: norm_complex_def)
+  by (rule bounded_linear_intro [where K=1]) (simp_all add: norm_complex_def)
 
 lemmas Cauchy_Re = bounded_linear.Cauchy [OF bounded_linear_Re]
 lemmas Cauchy_Im = bounded_linear.Cauchy [OF bounded_linear_Im]
@@ -404,15 +416,15 @@ proof safe
     unfolding complex.collapse .
 qed (auto intro: tendsto_intros)
 
-lemma continuous_complex_iff: "continuous F f \<longleftrightarrow>
-    continuous F (\<lambda>x. Re (f x)) \<and> continuous F (\<lambda>x. Im (f x))"
-  unfolding continuous_def tendsto_complex_iff ..
+lemma continuous_complex_iff:
+  "continuous F f \<longleftrightarrow> continuous F (\<lambda>x. Re (f x)) \<and> continuous F (\<lambda>x. Im (f x))"
+  by (simp only: continuous_def tendsto_complex_iff)
 
 lemma has_vector_derivative_complex_iff: "(f has_vector_derivative x) F \<longleftrightarrow>
     ((\<lambda>x. Re (f x)) has_field_derivative (Re x)) F \<and>
     ((\<lambda>x. Im (f x)) has_field_derivative (Im x)) F"
-  unfolding has_vector_derivative_def has_field_derivative_def has_derivative_def tendsto_complex_iff
-  by (simp add: field_simps bounded_linear_scaleR_left bounded_linear_mult_right)
+  by (simp add: has_vector_derivative_def has_field_derivative_def has_derivative_def
+      tendsto_complex_iff field_simps bounded_linear_scaleR_left bounded_linear_mult_right)
 
 lemma has_field_derivative_Re[derivative_intros]:
   "(f has_vector_derivative D) F \<Longrightarrow> ((\<lambda>x. Re (f x)) has_field_derivative (Re D)) F"
@@ -426,22 +438,25 @@ instance complex :: banach
 proof
   fix X :: "nat \<Rightarrow> complex"
   assume X: "Cauchy X"
-  then have "(\<lambda>n. Complex (Re (X n)) (Im (X n))) \<longlonglongrightarrow> Complex (lim (\<lambda>n. Re (X n))) (lim (\<lambda>n. Im (X n)))"
-    by (intro tendsto_Complex convergent_LIMSEQ_iff[THEN iffD1] Cauchy_convergent_iff[THEN iffD1] Cauchy_Re Cauchy_Im)
+  then have "(\<lambda>n. Complex (Re (X n)) (Im (X n))) \<longlonglongrightarrow>
+    Complex (lim (\<lambda>n. Re (X n))) (lim (\<lambda>n. Im (X n)))"
+    by (intro tendsto_Complex convergent_LIMSEQ_iff[THEN iffD1]
+        Cauchy_convergent_iff[THEN iffD1] Cauchy_Re Cauchy_Im)
   then show "convergent X"
     unfolding complex.collapse by (rule convergentI)
 qed
 
-declare
-  DERIV_power[where 'a=complex, unfolded of_nat_def[symmetric], derivative_intros]
+declare DERIV_power[where 'a=complex, unfolded of_nat_def[symmetric], derivative_intros]
+
 
 subsection \<open>Complex Conjugation\<close>
 
-primcorec cnj :: "complex \<Rightarrow> complex" where
-  "Re (cnj z) = Re z"
-| "Im (cnj z) = - Im z"
+primcorec cnj :: "complex \<Rightarrow> complex"
+  where
+    "Re (cnj z) = Re z"
+  | "Im (cnj z) = - Im z"
 
-lemma complex_cnj_cancel_iff [simp]: "(cnj x = cnj y) = (x = y)"
+lemma complex_cnj_cancel_iff [simp]: "cnj x = cnj y \<longleftrightarrow> x = y"
   by (simp add: complex_eq_iff)
 
 lemma complex_cnj_cnj [simp]: "cnj (cnj z) = z"
@@ -450,7 +465,7 @@ lemma complex_cnj_cnj [simp]: "cnj (cnj z) = z"
 lemma complex_cnj_zero [simp]: "cnj 0 = 0"
   by (simp add: complex_eq_iff)
 
-lemma complex_cnj_zero_iff [iff]: "(cnj z = 0) = (z = 0)"
+lemma complex_cnj_zero_iff [iff]: "cnj z = 0 \<longleftrightarrow> z = 0"
   by (simp add: complex_eq_iff)
 
 lemma complex_cnj_add [simp]: "cnj (x + y) = cnj x + cnj y"
@@ -504,13 +519,13 @@ lemma complex_mod_cnj [simp]: "cmod (cnj z) = cmod z"
 lemma complex_cnj_complex_of_real [simp]: "cnj (of_real x) = of_real x"
   by (simp add: complex_eq_iff)
 
-lemma complex_cnj_i [simp]: "cnj ii = - ii"
+lemma complex_cnj_i [simp]: "cnj \<i> = - \<i>"
   by (simp add: complex_eq_iff)
 
 lemma complex_add_cnj: "z + cnj z = complex_of_real (2 * Re z)"
   by (simp add: complex_eq_iff)
 
-lemma complex_diff_cnj: "z - cnj z = complex_of_real (2 * Im z) * ii"
+lemma complex_diff_cnj: "z - cnj z = complex_of_real (2 * Im z) * \<i>"
   by (simp add: complex_eq_iff)
 
 lemma complex_mult_cnj: "z * cnj z = complex_of_real ((Re z)\<^sup>2 + (Im z)\<^sup>2)"
@@ -529,17 +544,16 @@ lemma complex_cnj_fact [simp]: "cnj (fact n) = fact n"
   by (subst of_nat_fact [symmetric], subst complex_cnj_of_nat) simp
 
 lemma complex_cnj_pochhammer [simp]: "cnj (pochhammer z n) = pochhammer (cnj z) n"
-  by (induction n arbitrary: z) (simp_all add: pochhammer_rec)
+  by (induct n arbitrary: z) (simp_all add: pochhammer_rec)
 
 lemma bounded_linear_cnj: "bounded_linear cnj"
-  using complex_cnj_add complex_cnj_scaleR
-  by (rule bounded_linear_intro [where K=1], simp)
+  using complex_cnj_add complex_cnj_scaleR by (rule bounded_linear_intro [where K=1]) simp
 
 lemmas tendsto_cnj [tendsto_intros] = bounded_linear.tendsto [OF bounded_linear_cnj]
-lemmas isCont_cnj [simp] = bounded_linear.isCont [OF bounded_linear_cnj]
-lemmas continuous_cnj [simp, continuous_intros] = bounded_linear.continuous [OF bounded_linear_cnj]
-lemmas continuous_on_cnj [simp, continuous_intros] = bounded_linear.continuous_on [OF bounded_linear_cnj]
-lemmas has_derivative_cnj [simp, derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_cnj]
+  and isCont_cnj [simp] = bounded_linear.isCont [OF bounded_linear_cnj]
+  and continuous_cnj [simp, continuous_intros] = bounded_linear.continuous [OF bounded_linear_cnj]
+  and continuous_on_cnj [simp, continuous_intros] = bounded_linear.continuous_on [OF bounded_linear_cnj]
+  and has_derivative_cnj [simp, derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_cnj]
 
 lemma lim_cnj: "((\<lambda>x. cnj(f x)) \<longlongrightarrow> cnj l) F \<longleftrightarrow> (f \<longlongrightarrow> l) F"
   by (simp add: tendsto_iff dist_complex_def complex_cnj_diff [symmetric] del: complex_cnj_diff)
@@ -548,7 +562,7 @@ lemma sums_cnj: "((\<lambda>x. cnj(f x)) sums cnj l) \<longleftrightarrow> (f su
   by (simp add: sums_def lim_cnj cnj_setsum [symmetric] del: cnj_setsum)
 
 
-subsection\<open>Basic Lemmas\<close>
+subsection \<open>Basic Lemmas\<close>
 
 lemma complex_eq_0: "z=0 \<longleftrightarrow> (Re z)\<^sup>2 + (Im z)\<^sup>2 = 0"
   by (metis zero_complex.sel complex_eqI sum_power2_eq_zero_iff)
@@ -557,11 +571,11 @@ lemma complex_neq_0: "z\<noteq>0 \<longleftrightarrow> (Re z)\<^sup>2 + (Im z)\<
   by (metis complex_eq_0 less_numeral_extra(3) sum_power2_gt_zero_iff)
 
 lemma complex_norm_square: "of_real ((norm z)\<^sup>2) = z * cnj z"
-by (cases z)
-   (auto simp: complex_eq_iff norm_complex_def power2_eq_square[symmetric] of_real_power[symmetric]
-         simp del: of_real_power)
+  by (cases z)
+    (auto simp: complex_eq_iff norm_complex_def power2_eq_square[symmetric] of_real_power[symmetric]
+      simp del: of_real_power)
 
-lemma complex_div_cnj: "a / b = (a * cnj b) / (norm b)^2"
+lemma complex_div_cnj: "a / b = (a * cnj b) / (norm b)\<^sup>2"
   using complex_norm_square by auto
 
 lemma Re_complex_div_eq_0: "Re (a / b) = 0 \<longleftrightarrow> Re (a * cnj b) = 0"
@@ -570,12 +584,12 @@ lemma Re_complex_div_eq_0: "Re (a / b) = 0 \<longleftrightarrow> Re (a * cnj b) 
 lemma Im_complex_div_eq_0: "Im (a / b) = 0 \<longleftrightarrow> Im (a * cnj b) = 0"
   by (auto simp add: Im_divide)
 
-lemma complex_div_gt_0:
-  "(Re (a / b) > 0 \<longleftrightarrow> Re (a * cnj b) > 0) \<and> (Im (a / b) > 0 \<longleftrightarrow> Im (a * cnj b) > 0)"
-proof cases
-  assume "b = 0" then show ?thesis by auto
+lemma complex_div_gt_0: "(Re (a / b) > 0 \<longleftrightarrow> Re (a * cnj b) > 0) \<and> (Im (a / b) > 0 \<longleftrightarrow> Im (a * cnj b) > 0)"
+proof (cases "b = 0")
+  case True
+  then show ?thesis by auto
 next
-  assume "b \<noteq> 0"
+  case False
   then have "0 < (Re b)\<^sup>2 + (Im b)\<^sup>2"
     by (simp add: complex_eq_iff sum_power2_gt_zero_iff)
   then show ?thesis
@@ -586,22 +600,22 @@ lemma Re_complex_div_gt_0: "Re (a / b) > 0 \<longleftrightarrow> Re (a * cnj b) 
   and Im_complex_div_gt_0: "Im (a / b) > 0 \<longleftrightarrow> Im (a * cnj b) > 0"
   using complex_div_gt_0 by auto
 
-lemma Re_complex_div_ge_0: "Re(a / b) \<ge> 0 \<longleftrightarrow> Re(a * cnj b) \<ge> 0"
+lemma Re_complex_div_ge_0: "Re (a / b) \<ge> 0 \<longleftrightarrow> Re (a * cnj b) \<ge> 0"
   by (metis le_less Re_complex_div_eq_0 Re_complex_div_gt_0)
 
-lemma Im_complex_div_ge_0: "Im(a / b) \<ge> 0 \<longleftrightarrow> Im(a * cnj b) \<ge> 0"
+lemma Im_complex_div_ge_0: "Im (a / b) \<ge> 0 \<longleftrightarrow> Im (a * cnj b) \<ge> 0"
   by (metis Im_complex_div_eq_0 Im_complex_div_gt_0 le_less)
 
-lemma Re_complex_div_lt_0: "Re(a / b) < 0 \<longleftrightarrow> Re(a * cnj b) < 0"
+lemma Re_complex_div_lt_0: "Re (a / b) < 0 \<longleftrightarrow> Re (a * cnj b) < 0"
   by (metis less_asym neq_iff Re_complex_div_eq_0 Re_complex_div_gt_0)
 
-lemma Im_complex_div_lt_0: "Im(a / b) < 0 \<longleftrightarrow> Im(a * cnj b) < 0"
+lemma Im_complex_div_lt_0: "Im (a / b) < 0 \<longleftrightarrow> Im (a * cnj b) < 0"
   by (metis Im_complex_div_eq_0 Im_complex_div_gt_0 less_asym neq_iff)
 
-lemma Re_complex_div_le_0: "Re(a / b) \<le> 0 \<longleftrightarrow> Re(a * cnj b) \<le> 0"
+lemma Re_complex_div_le_0: "Re (a / b) \<le> 0 \<longleftrightarrow> Re (a * cnj b) \<le> 0"
   by (metis not_le Re_complex_div_gt_0)
 
-lemma Im_complex_div_le_0: "Im(a / b) \<le> 0 \<longleftrightarrow> Im(a * cnj b) \<le> 0"
+lemma Im_complex_div_le_0: "Im (a / b) \<le> 0 \<longleftrightarrow> Im (a * cnj b) \<le> 0"
   by (metis Im_complex_div_gt_0 not_le)
 
 lemma Re_divide_of_real [simp]: "Re (z / of_real r) = Re z / r"
@@ -655,34 +669,37 @@ lemma in_Reals_norm: "z \<in> \<real> \<Longrightarrow> norm z = \<bar>Re z\<bar
 lemma series_comparison_complex:
   fixes f:: "nat \<Rightarrow> 'a::banach"
   assumes sg: "summable g"
-     and "\<And>n. g n \<in> \<real>" "\<And>n. Re (g n) \<ge> 0"
-     and fg: "\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> norm(g n)"
+    and "\<And>n. g n \<in> \<real>" "\<And>n. Re (g n) \<ge> 0"
+    and fg: "\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> norm(g n)"
   shows "summable f"
 proof -
-  have g: "\<And>n. cmod (g n) = Re (g n)" using assms
-    by (metis abs_of_nonneg in_Reals_norm)
+  have g: "\<And>n. cmod (g n) = Re (g n)"
+    using assms by (metis abs_of_nonneg in_Reals_norm)
   show ?thesis
     apply (rule summable_comparison_test' [where g = "\<lambda>n. norm (g n)" and N=N])
     using sg
-    apply (auto simp: summable_def)
-    apply (rule_tac x="Re s" in exI)
-    apply (auto simp: g sums_Re)
+     apply (auto simp: summable_def)
+     apply (rule_tac x = "Re s" in exI)
+     apply (auto simp: g sums_Re)
     apply (metis fg g)
     done
 qed
 
-subsection\<open>Polar Form for Complex Numbers\<close>
+
+subsection \<open>Polar Form for Complex Numbers\<close>
 
 lemma complex_unimodular_polar:
-  assumes "(norm z = 1)"
-  obtains t where "0 \<le> t" "t < 2*pi" "z = Complex (cos t) (sin t)"
-by (metis cmod_power2 one_power2 complex_surj sincos_total_2pi [of "Re z" "Im z"] assms)
+  assumes "norm z = 1"
+  obtains t where "0 \<le> t" "t < 2 * pi" "z = Complex (cos t) (sin t)"
+  by (metis cmod_power2 one_power2 complex_surj sincos_total_2pi [of "Re z" "Im z"] assms)
+
 
 subsubsection \<open>$\cos \theta + i \sin \theta$\<close>
 
-primcorec cis :: "real \<Rightarrow> complex" where
-  "Re (cis a) = cos a"
-| "Im (cis a) = sin a"
+primcorec cis :: "real \<Rightarrow> complex"
+  where
+    "Re (cis a) = cos a"
+  | "Im (cis a) = sin a"
 
 lemma cis_zero [simp]: "cis 0 = 1"
   by (simp add: complex_eq_iff)
@@ -700,27 +717,28 @@ lemma cis_mult: "cis a * cis b = cis (a + b)"
   by (simp add: complex_eq_iff cos_add sin_add)
 
 lemma DeMoivre: "(cis a) ^ n = cis (real n * a)"
-  by (induct n, simp_all add: of_nat_Suc algebra_simps cis_mult)
+  by (induct n) (simp_all add: algebra_simps cis_mult)
 
-lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
+lemma cis_inverse [simp]: "inverse (cis a) = cis (- a)"
   by (simp add: complex_eq_iff)
 
 lemma cis_divide: "cis a / cis b = cis (a - b)"
   by (simp add: divide_complex_def cis_mult)
 
-lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re(cis a ^ n)"
+lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re (cis a ^ n)"
   by (auto simp add: DeMoivre)
 
-lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im(cis a ^ n)"
+lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im (cis a ^ n)"
   by (auto simp add: DeMoivre)
 
 lemma cis_pi: "cis pi = -1"
   by (simp add: complex_eq_iff)
 
+
 subsubsection \<open>$r(\cos \theta + i \sin \theta)$\<close>
 
-definition rcis :: "real \<Rightarrow> real \<Rightarrow> complex" where
-  "rcis r a = complex_of_real r * cis a"
+definition rcis :: "real \<Rightarrow> real \<Rightarrow> complex"
+  where "rcis r a = complex_of_real r * cis a"
 
 lemma Re_rcis [simp]: "Re(rcis r a) = r * cos a"
   by (simp add: rcis_def)
@@ -737,7 +755,7 @@ lemma complex_mod_rcis [simp]: "cmod (rcis r a) = \<bar>r\<bar>"
 lemma cis_rcis_eq: "cis a = rcis 1 a"
   by (simp add: rcis_def)
 
-lemma rcis_mult: "rcis r1 a * rcis r2 b = rcis (r1*r2) (a + b)"
+lemma rcis_mult: "rcis r1 a * rcis r2 b = rcis (r1 * r2) (a + b)"
   by (simp add: rcis_def cis_mult)
 
 lemma rcis_zero_mod [simp]: "rcis 0 a = 0"
@@ -752,31 +770,37 @@ lemma rcis_eq_zero_iff [simp]: "rcis r a = 0 \<longleftrightarrow> r = 0"
 lemma DeMoivre2: "(rcis r a) ^ n = rcis (r ^ n) (real n * a)"
   by (simp add: rcis_def power_mult_distrib DeMoivre)
 
-lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
+lemma rcis_inverse: "inverse(rcis r a) = rcis (1 / r) (- a)"
   by (simp add: divide_inverse rcis_def)
 
-lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
+lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1 / r2) (a - b)"
   by (simp add: rcis_def cis_divide [symmetric])
+
 
 subsubsection \<open>Complex exponential\<close>
 
 lemma cis_conv_exp: "cis b = exp (\<i> * b)"
 proof -
-  { fix n :: nat
+  have "(\<i> * complex_of_real b) ^ n /\<^sub>R fact n =
+      of_real (cos_coeff n * b^n) + \<i> * of_real (sin_coeff n * b^n)"
+    for n :: nat
+  proof -
     have "\<i> ^ n = fact n *\<^sub>R (cos_coeff n + \<i> * sin_coeff n)"
       by (induct n)
-         (simp_all add: sin_coeff_Suc cos_coeff_Suc complex_eq_iff Re_divide Im_divide field_simps
-                        power2_eq_square of_nat_Suc add_nonneg_eq_0_iff)
-    then have "(\<i> * complex_of_real b) ^ n /\<^sub>R fact n =
-        of_real (cos_coeff n * b^n) + \<i> * of_real (sin_coeff n * b^n)"
-      by (simp add: field_simps) }
-  then show ?thesis using sin_converges [of b] cos_converges [of b]
+        (simp_all add: sin_coeff_Suc cos_coeff_Suc complex_eq_iff Re_divide Im_divide field_simps
+          power2_eq_square add_nonneg_eq_0_iff)
+    then show ?thesis
+      by (simp add: field_simps)
+  qed
+  then show ?thesis
+    using sin_converges [of b] cos_converges [of b]
     by (auto simp add: cis.ctr exp_def simp del: of_real_mult
-             intro!: sums_unique sums_add sums_mult sums_of_real)
+        intro!: sums_unique sums_add sums_mult sums_of_real)
 qed
 
 lemma exp_eq_polar: "exp z = exp (Re z) * cis (Im z)"
-  unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp by (cases z) simp
+  unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp
+  by (cases z) simp
 
 lemma Re_exp: "Re (exp z) = exp (Re z) * cos (Im z)"
   unfolding exp_eq_polar by simp
@@ -793,25 +817,27 @@ lemma norm_exp_eq_Re [simp]: "norm (exp z) = exp (Re z)"
 lemma complex_exp_exists: "\<exists>a r. z = complex_of_real r * exp a"
   apply (insert rcis_Ex [of z])
   apply (auto simp add: exp_eq_polar rcis_def mult.assoc [symmetric])
-  apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
+  apply (rule_tac x = "\<i> * complex_of_real a" in exI)
+  apply auto
   done
 
-lemma exp_pi_i [simp]: "exp(of_real pi * ii) = -1"
+lemma exp_pi_i [simp]: "exp (of_real pi * \<i>) = -1"
   by (metis cis_conv_exp cis_pi mult.commute)
 
-lemma exp_pi_i' [simp]: "exp(ii * of_real pi) = -1"
+lemma exp_pi_i' [simp]: "exp (\<i> * of_real pi) = -1"
   using cis_conv_exp cis_pi by auto
 
-lemma exp_two_pi_i [simp]: "exp(2 * of_real pi * ii) = 1"
+lemma exp_two_pi_i [simp]: "exp (2 * of_real pi * \<i>) = 1"
   by (simp add: exp_eq_polar complex_eq_iff)
 
 lemma exp_two_pi_i' [simp]: "exp (\<i> * (of_real pi * 2)) = 1"
   by (metis exp_two_pi_i mult.commute)
 
+
 subsubsection \<open>Complex argument\<close>
 
-definition arg :: "complex \<Rightarrow> real" where
-  "arg z = (if z = 0 then 0 else (SOME a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi))"
+definition arg :: "complex \<Rightarrow> real"
+  where "arg z = (if z = 0 then 0 else (SOME a. sgn z = cis a \<and> - pi < a \<and> a \<le> pi))"
 
 lemma arg_zero: "arg 0 = 0"
   by (simp add: arg_def)
@@ -828,41 +854,45 @@ proof -
     assume a: "sgn z = cis a \<and> - pi < a \<and> a \<le> pi"
     from a assms have "- (2*pi) < d \<and> d < 2*pi"
       unfolding d_def by simp
-    moreover from a assms have "cos a = cos x" and "sin a = sin x"
+    moreover
+    from a assms have "cos a = cos x" and "sin a = sin x"
       by (simp_all add: complex_eq_iff)
-    hence cos: "cos d = 1" unfolding d_def cos_diff by simp
-    moreover from cos have "sin d = 0" by (rule cos_one_sin_zero)
+    then have cos: "cos d = 1"
+      by (simp add: d_def cos_diff)
+    moreover from cos have "sin d = 0"
+      by (rule cos_one_sin_zero)
     ultimately have "d = 0"
-      unfolding sin_zero_iff
-      by (auto elim!: evenE dest!: less_2_cases)
-    thus "a = x" unfolding d_def by simp
+      by (auto simp: sin_zero_iff elim!: evenE dest!: less_2_cases)
+    then show "a = x"
+      by (simp add: d_def)
   qed (simp add: assms del: Re_sgn Im_sgn)
   with \<open>z \<noteq> 0\<close> show "arg z = x"
-    unfolding arg_def by simp
+    by (simp add: arg_def)
 qed
 
 lemma arg_correct:
-  assumes "z \<noteq> 0" shows "sgn z = cis (arg z) \<and> -pi < arg z \<and> arg z \<le> pi"
+  assumes "z \<noteq> 0"
+  shows "sgn z = cis (arg z) \<and> -pi < arg z \<and> arg z \<le> pi"
 proof (simp add: arg_def assms, rule someI_ex)
-  obtain r a where z: "z = rcis r a" using rcis_Ex by fast
+  obtain r a where z: "z = rcis r a"
+    using rcis_Ex by fast
   with assms have "r \<noteq> 0" by auto
   define b where "b = (if 0 < r then a else a + pi)"
   have b: "sgn z = cis b"
-    unfolding z b_def rcis_def using \<open>r \<noteq> 0\<close>
-    by (simp add: of_real_def sgn_scaleR sgn_if complex_eq_iff)
-  have cis_2pi_nat: "\<And>n. cis (2 * pi * real_of_nat n) = 1"
-    by (induct_tac n) (simp_all add: distrib_left cis_mult [symmetric] complex_eq_iff)
-  have cis_2pi_int: "\<And>x. cis (2 * pi * real_of_int x) = 1"
-    by (case_tac x rule: int_diff_cases)
-       (simp add: right_diff_distrib cis_divide [symmetric] cis_2pi_nat)
+    using \<open>r \<noteq> 0\<close> by (simp add: z b_def rcis_def of_real_def sgn_scaleR sgn_if complex_eq_iff)
+  have cis_2pi_nat: "cis (2 * pi * real_of_nat n) = 1" for n
+    by (induct n) (simp_all add: distrib_left cis_mult [symmetric] complex_eq_iff)
+  have cis_2pi_int: "cis (2 * pi * real_of_int x) = 1" for x
+    by (cases x rule: int_diff_cases)
+      (simp add: right_diff_distrib cis_divide [symmetric] cis_2pi_nat)
   define c where "c = b - 2 * pi * of_int \<lceil>(b - pi) / (2 * pi)\<rceil>"
   have "sgn z = cis c"
-    unfolding b c_def
-    by (simp add: cis_divide [symmetric] cis_2pi_int)
+    by (simp add: b c_def cis_divide [symmetric] cis_2pi_int)
   moreover have "- pi < c \<and> c \<le> pi"
     using ceiling_correct [of "(b - pi) / (2*pi)"]
     by (simp add: c_def less_divide_eq divide_le_eq algebra_simps del: le_of_int_ceiling)
-  ultimately show "\<exists>a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi" by fast
+  ultimately show "\<exists>a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi"
+    by fast
 qed
 
 lemma arg_bounded: "- pi < arg z \<and> arg z \<le> pi"
@@ -877,11 +907,13 @@ lemma rcis_cmod_arg: "rcis (cmod z) (arg z) = z"
 lemma cos_arg_i_mult_zero [simp]: "y \<noteq> 0 \<Longrightarrow> Re y = 0 \<Longrightarrow> cos (arg y) = 0"
   using cis_arg [of y] by (simp add: complex_eq_iff)
 
+
 subsection \<open>Square root of complex numbers\<close>
 
-primcorec csqrt :: "complex \<Rightarrow> complex" where
-  "Re (csqrt z) = sqrt ((cmod z + Re z) / 2)"
-| "Im (csqrt z) = (if Im z = 0 then 1 else sgn (Im z)) * sqrt ((cmod z - Re z) / 2)"
+primcorec csqrt :: "complex \<Rightarrow> complex"
+  where
+    "Re (csqrt z) = sqrt ((cmod z + Re z) / 2)"
+  | "Im (csqrt z) = (if Im z = 0 then 1 else sgn (Im z)) * sqrt ((cmod z - Re z) / 2)"
 
 lemma csqrt_of_real_nonneg [simp]: "Im x = 0 \<Longrightarrow> Re x \<ge> 0 \<Longrightarrow> csqrt x = sqrt (Re x)"
   by (simp add: complex_eq_iff norm_complex_def)
@@ -902,22 +934,21 @@ lemma csqrt_ii [simp]: "csqrt \<i> = (1 + \<i>) / sqrt 2"
   by (simp add: complex_eq_iff Re_divide Im_divide real_sqrt_divide real_div_sqrt)
 
 lemma power2_csqrt[simp,algebra]: "(csqrt z)\<^sup>2 = z"
-proof cases
-  assume "Im z = 0" then show ?thesis
+proof (cases "Im z = 0")
+  case True
+  then show ?thesis
     using real_sqrt_pow2[of "Re z"] real_sqrt_pow2[of "- Re z"]
     by (cases "0::real" "Re z" rule: linorder_cases)
-       (simp_all add: complex_eq_iff Re_power2 Im_power2 power2_eq_square cmod_eq_Re)
+      (simp_all add: complex_eq_iff Re_power2 Im_power2 power2_eq_square cmod_eq_Re)
 next
-  assume "Im z \<noteq> 0"
-  moreover
-  have "cmod z * cmod z - Re z * Re z = Im z * Im z"
+  case False
+  moreover have "cmod z * cmod z - Re z * Re z = Im z * Im z"
     by (simp add: norm_complex_def power2_eq_square)
-  moreover
-  have "\<bar>Re z\<bar> \<le> cmod z"
+  moreover have "\<bar>Re z\<bar> \<le> cmod z"
     by (simp add: norm_complex_def)
   ultimately show ?thesis
     by (simp add: Re_power2 Im_power2 complex_eq_iff real_sgn_eq
-                  field_simps real_sqrt_mult[symmetric] real_sqrt_divide)
+        field_simps real_sqrt_mult[symmetric] real_sqrt_divide)
 qed
 
 lemma csqrt_eq_0 [simp]: "csqrt z = 0 \<longleftrightarrow> z = 0"
@@ -937,15 +968,15 @@ lemma csqrt_square:
   shows "csqrt (b^2) = b"
 proof -
   have "csqrt (b^2) = b \<or> csqrt (b^2) = - b"
-    unfolding power2_eq_iff[symmetric] by (simp add: power2_csqrt)
+    by (simp add: power2_eq_iff[symmetric])
   moreover have "csqrt (b^2) \<noteq> -b \<or> b = 0"
-    using csqrt_principal[of "b ^ 2"] assms by (intro disjCI notI) (auto simp: complex_eq_iff)
+    using csqrt_principal[of "b ^ 2"] assms
+    by (intro disjCI notI) (auto simp: complex_eq_iff)
   ultimately show ?thesis
     by auto
 qed
 
-lemma csqrt_unique:
-    "w^2 = z \<Longrightarrow> (0 < Re w \<or> Re w = 0 \<and> 0 \<le> Im w) \<Longrightarrow> csqrt z = w"
+lemma csqrt_unique: "w\<^sup>2 = z \<Longrightarrow> 0 < Re w \<or> Re w = 0 \<and> 0 \<le> Im w \<Longrightarrow> csqrt z = w"
   by (auto simp: csqrt_square)
 
 lemma csqrt_minus [simp]:
@@ -963,6 +994,7 @@ proof -
     by (simp add: power_mult_distrib)
   finally show ?thesis .
 qed
+
 
 text \<open>Legacy theorem names\<close>
 
@@ -985,19 +1017,19 @@ lemma legacy_Complex_simps:
     and Complex_eq_numeral: "Complex a b = numeral w \<longleftrightarrow> a = numeral w \<and> b = 0"
     and Complex_eq_neg_numeral: "Complex a b = - numeral w \<longleftrightarrow> a = - numeral w \<and> b = 0"
     and complex_scaleR: "scaleR r (Complex a b) = Complex (r * a) (r * b)"
-    and Complex_eq_i: "(Complex x y = ii) = (x = 0 \<and> y = 1)"
-    and i_mult_Complex: "ii * Complex a b = Complex (- b) a"
-    and Complex_mult_i: "Complex a b * ii = Complex (- b) a"
-    and i_complex_of_real: "ii * complex_of_real r = Complex 0 r"
-    and complex_of_real_i: "complex_of_real r * ii = Complex 0 r"
+    and Complex_eq_i: "Complex x y = \<i> \<longleftrightarrow> x = 0 \<and> y = 1"
+    and i_mult_Complex: "\<i> * Complex a b = Complex (- b) a"
+    and Complex_mult_i: "Complex a b * \<i> = Complex (- b) a"
+    and i_complex_of_real: "\<i> * complex_of_real r = Complex 0 r"
+    and complex_of_real_i: "complex_of_real r * \<i> = Complex 0 r"
     and Complex_add_complex_of_real: "Complex x y + complex_of_real r = Complex (x+r) y"
     and complex_of_real_add_Complex: "complex_of_real r + Complex x y = Complex (r+x) y"
     and Complex_mult_complex_of_real: "Complex x y * complex_of_real r = Complex (x*r) (y*r)"
     and complex_of_real_mult_Complex: "complex_of_real r * Complex x y = Complex (r*x) (r*y)"
-    and complex_eq_cancel_iff2: "(Complex x y = complex_of_real xa) = (x = xa & y = 0)"
+    and complex_eq_cancel_iff2: "(Complex x y = complex_of_real xa) = (x = xa \<and> y = 0)"
     and complex_cn: "cnj (Complex a b) = Complex a (- b)"
-    and Complex_setsum': "setsum (%x. Complex (f x) 0) s = Complex (setsum f s) 0"
-    and Complex_setsum: "Complex (setsum f s) 0 = setsum (%x. Complex (f x) 0) s"
+    and Complex_setsum': "setsum (\<lambda>x. Complex (f x) 0) s = Complex (setsum f s) 0"
+    and Complex_setsum: "Complex (setsum f s) 0 = setsum (\<lambda>x. Complex (f x) 0) s"
     and complex_of_real_def: "complex_of_real r = Complex r 0"
     and complex_norm: "cmod (Complex x y) = sqrt (x\<^sup>2 + y\<^sup>2)"
   by (simp_all add: norm_complex_def field_simps complex_eq_iff Re_divide Im_divide del: Complex_eq)
