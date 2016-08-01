@@ -1293,25 +1293,25 @@ lemma bij_betw_UNION_chain:
     and bij: "\<And>i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
   shows "bij_betw f (\<Union>i \<in> I. A i) (\<Union>i \<in> I. A' i)"
   unfolding bij_betw_def
-proof auto  (* slow *)
+proof safe
   have "\<And>i. i \<in> I \<Longrightarrow> inj_on f (A i)"
     using bij bij_betw_def[of f] by auto
-  then show "inj_on f (\<Union>i \<in> I. A i)"
+  then show "inj_on f (UNION I A)"
     using chain inj_on_UNION_chain[of I A f] by auto
 next
   fix i x
   assume *: "i \<in> I" "x \<in> A i"
-  then have "f x \<in> A' i"
-    using bij bij_betw_def[of f] by auto
-  with * show "\<exists>j \<in> I. f x \<in> A' j" by blast
+  with bij have "f x \<in> A' i"
+    by (auto simp: bij_betw_def)
+  with * show "f x \<in> UNION I A'" by blast
 next
   fix i x'
   assume *: "i \<in> I" "x' \<in> A' i"
-  then have "\<exists>x \<in> A i. x' = f x"
-    using bij bij_betw_def[of f] by blast
+  with bij have "\<exists>x \<in> A i. x' = f x"
+    unfolding bij_betw_def by blast
   with * have "\<exists>j \<in> I. \<exists>x \<in> A j. x' = f x"
     by blast
-  then show "x' \<in> f ` (\<Union>x\<in>I. A x)"
+  then show "x' \<in> f ` UNION I A"
     by blast
 qed
 
