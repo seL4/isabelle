@@ -84,7 +84,7 @@ fun update_abbrevs mode abbrs =
 
 fun retrieve_abbrevs (Consts {rev_abbrevs, ...}) modes =
   let val nets = map_filter (Symtab.lookup rev_abbrevs) modes
-  in fn t => maps (fn net => Item_Net.retrieve net t) nets end;
+  in fn t => maps (fn net => Item_Net.retrieve_matching net t) nets end;
 
 
 (* dest consts *)
