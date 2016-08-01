@@ -6,8 +6,8 @@
 section \<open>Cartesian products\<close>
 
 theory Product_Type
-imports Typedef Inductive Fun
-keywords "inductive_set" "coinductive_set" :: thy_decl
+  imports Typedef Inductive Fun
+  keywords "inductive_set" "coinductive_set" :: thy_decl
 begin
 
 subsection \<open>@{typ bool} is a datatype\<close>
@@ -38,7 +38,7 @@ declare case_split [cases type: bool]
   \<comment> "prefer plain propositional version"
 
 lemma [code]: "HOL.equal False P \<longleftrightarrow> \<not> P"
-  and [code]: "HOL.equal True P \<longleftrightarrow> P" 
+  and [code]: "HOL.equal True P \<longleftrightarrow> P"
   and [code]: "HOL.equal P False \<longleftrightarrow> \<not> P"
   and [code]: "HOL.equal P True \<longleftrightarrow> P"
   and [code nbe]: "HOL.equal P P \<longleftrightarrow> True"
@@ -317,7 +317,7 @@ typed_print_translation \<open>
           (case (head_of t) of
             Const (@{const_syntax case_prod}, _) => raise Match
           | _ =>
-            let 
+            let
               val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
               val (y, t') = Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
               val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, xT, t');
@@ -618,7 +618,7 @@ declare mem_case_prodI [intro!] \<comment> \<open>postponed to maintain traditio
 declare case_prodI2' [intro!] \<comment> \<open>postponed to maintain traditional declaration order!\<close>
 declare case_prodI2 [intro!] \<comment> \<open>postponed to maintain traditional declaration order!\<close>
 declare case_prodI [intro!] \<comment> \<open>postponed to maintain traditional declaration order!\<close>
-  
+
 lemma mem_case_prodE [elim!]:
   assumes "z \<in> case_prod c p"
   obtains x y where "p = (x, y)" and "z \<in> c x y"
@@ -631,10 +631,10 @@ local (* filtering with exists_p_split is an essential optimization *)
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
 in
-fun split_conv_tac ctxt = SUBGOAL (fn (t, i) =>
-  if exists_p_split t
-  then safe_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms case_prod_conv}) i
-  else no_tac);
+  fun split_conv_tac ctxt = SUBGOAL (fn (t, i) =>
+    if exists_p_split t
+    then safe_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms case_prod_conv}) i
+    else no_tac);
 end;
 \<close>
 
@@ -656,7 +656,7 @@ lemma split_part [simp]: "(\<lambda>(a,b). P \<and> Q a b) = (\<lambda>ab. P \<a
    a) only helps in special situations
    b) can lead to nontermination in the presence of split_def
 *)
-lemma split_comp_eq: 
+lemma split_comp_eq:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c"
     and g :: "'d \<Rightarrow> 'a"
   shows "(\<lambda>u. f (g (fst u)) (snd u)) = case_prod (\<lambda>x. f (g x))"
@@ -836,7 +836,7 @@ lemma prod_fun_imageE [elim!]:
   apply (rule major [THEN imageE])
   apply (case_tac x)
   apply (rule cases)
-  apply simp_all
+   apply simp_all
   done
 
 definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
@@ -845,10 +845,10 @@ definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Righta
 definition apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
   where "apsnd f = map_prod id f"
 
-lemma apfst_conv [simp, code]: "apfst f (x, y) = (f x, y)" 
+lemma apfst_conv [simp, code]: "apfst f (x, y) = (f x, y)"
   by (simp add: apfst_def)
 
-lemma apsnd_conv [simp, code]: "apsnd f (x, y) = (x, f y)" 
+lemma apsnd_conv [simp, code]: "apsnd f (x, y) = (x, f y)"
   by (simp add: apsnd_def)
 
 lemma fst_apfst [simp]: "fst (apfst f x) = f (fst x)"
@@ -1029,11 +1029,11 @@ lemma Collect_case_prodD: "x \<in> Collect (case_prod A) \<Longrightarrow> A (fs
 lemma Collect_case_prod_mono: "A \<le> B \<Longrightarrow> Collect (case_prod A) \<subseteq> Collect (case_prod B)"
   by auto (auto elim!: le_funE)
 
-lemma Collect_split_mono_strong: 
+lemma Collect_split_mono_strong:
   "X = fst ` A \<Longrightarrow> Y = snd ` A \<Longrightarrow> \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b
     \<Longrightarrow> A \<subseteq> Collect (case_prod P) \<Longrightarrow> A \<subseteq> Collect (case_prod Q)"
   by fastforce
-  
+
 lemma UN_Times_distrib: "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = UNION A E \<times> UNION B F"
   \<comment> \<open>Suggested by Pierre Chartier\<close>
   by blast
@@ -1151,18 +1151,19 @@ lemma inj_apsnd [simp]: "inj (apsnd f) \<longleftrightarrow> inj f"
 context
 begin
 
-qualified definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
-  [code_abbrev]: "product A B = A \<times> B"
+qualified definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"
+  where [code_abbrev]: "product A B = A \<times> B"
 
 lemma member_product: "x \<in> Product_Type.product A B \<longleftrightarrow> x \<in> A \<times> B"
   by (simp add: product_def)
 
 end
-  
+
 text \<open>The following @{const map_prod} lemmas are due to Joachim Breitner:\<close>
 
 lemma map_prod_inj_on:
-  assumes "inj_on f A" and "inj_on g B"
+  assumes "inj_on f A"
+    and "inj_on g B"
   shows "inj_on (map_prod f g) (A \<times> B)"
 proof (rule inj_onI)
   fix x :: "'a \<times> 'c"

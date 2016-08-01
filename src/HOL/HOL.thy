@@ -218,20 +218,20 @@ lemma trans_sym [Pure.elim?]: "r = s \<Longrightarrow> t = s \<Longrightarrow> r
   by (rule trans [OF _ sym])
 
 lemma meta_eq_to_obj_eq:
-  assumes meq: "A \<equiv> B"
+  assumes "A \<equiv> B"
   shows "A = B"
-  by (unfold meq) (rule refl)
+  unfolding assms by (rule refl)
 
 text \<open>Useful with \<open>erule\<close> for proving equalities from known equalities.\<close>
      (* a = b
         |   |
         c = d   *)
 lemma box_equals: "\<lbrakk>a = b; a = c; b = d\<rbrakk> \<Longrightarrow> c = d"
-apply (rule trans)
-apply (rule trans)
-apply (rule sym)
-apply assumption+
-done
+  apply (rule trans)
+   apply (rule trans)
+    apply (rule sym)
+    apply assumption+
+  done
 
 text \<open>For calculational reasoning:\<close>
 
@@ -246,25 +246,25 @@ subsubsection \<open>Congruence rules for application\<close>
 
 text \<open>Similar to \<open>AP_THM\<close> in Gordon's HOL.\<close>
 lemma fun_cong: "(f :: 'a \<Rightarrow> 'b) = g \<Longrightarrow> f x = g x"
-apply (erule subst)
-apply (rule refl)
-done
+  apply (erule subst)
+  apply (rule refl)
+  done
 
 text \<open>Similar to \<open>AP_TERM\<close> in Gordon's HOL and FOL's \<open>subst_context\<close>.\<close>
 lemma arg_cong: "x = y \<Longrightarrow> f x = f y"
-apply (erule subst)
-apply (rule refl)
-done
+  apply (erule subst)
+  apply (rule refl)
+  done
 
 lemma arg_cong2: "\<lbrakk>a = b; c = d\<rbrakk> \<Longrightarrow> f a c = f b d"
-apply (erule ssubst)+
-apply (rule refl)
-done
+  apply (erule ssubst)+
+  apply (rule refl)
+  done
 
 lemma cong: "\<lbrakk>f = g; (x::'a) = y\<rbrakk> \<Longrightarrow> f x = g y"
-apply (erule subst)+
-apply (rule refl)
-done
+  apply (erule subst)+
+  apply (rule refl)
+  done
 
 ML \<open>fun cong_tac ctxt = Cong_Tac.cong_tac ctxt @{thm cong}\<close>
 
@@ -295,7 +295,7 @@ lemma iffE:
 
 subsubsection \<open>True\<close>
 
-lemma TrueI: "True"
+lemma TrueI: True
   unfolding True_def by (rule refl)
 
 lemma eqTrueI: "P \<Longrightarrow> P = True"
@@ -307,14 +307,16 @@ lemma eqTrueE: "P = True \<Longrightarrow> P"
 
 subsubsection \<open>Universal quantifier\<close>
 
-lemma allI: assumes "\<And>x::'a. P x" shows "\<forall>x. P x"
+lemma allI:
+  assumes "\<And>x::'a. P x"
+  shows "\<forall>x. P x"
   unfolding All_def by (iprover intro: ext eqTrueI assms)
 
 lemma spec: "\<forall>x::'a. P x \<Longrightarrow> P x"
-apply (unfold All_def)
-apply (rule eqTrueE)
-apply (erule fun_cong)
-done
+  apply (unfold All_def)
+  apply (rule eqTrueE)
+  apply (erule fun_cong)
+  done
 
 lemma allE:
   assumes major: "\<forall>x. P x"
@@ -380,24 +382,24 @@ subsubsection \<open>Implication\<close>
 lemma impE:
   assumes "P \<longrightarrow> Q" P "Q \<Longrightarrow> R"
   shows R
-by (iprover intro: assms mp)
+  by (iprover intro: assms mp)
 
-(* Reduces Q to P \<longrightarrow> Q, allowing substitution in P. *)
+text \<open>Reduces \<open>Q\<close> to \<open>P \<longrightarrow> Q\<close>, allowing substitution in \<open>P\<close>.\<close>
 lemma rev_mp: "\<lbrakk>P; P \<longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-by (iprover intro: mp)
+  by (iprover intro: mp)
 
 lemma contrapos_nn:
   assumes major: "\<not> Q"
-      and minor: "P \<Longrightarrow> Q"
+    and minor: "P \<Longrightarrow> Q"
   shows "\<not> P"
-by (iprover intro: notI minor major [THEN notE])
+  by (iprover intro: notI minor major [THEN notE])
 
-(*not used at all, but we already have the other 3 combinations *)
+text \<open>Not used at all, but we already have the other 3 combinations.\<close>
 lemma contrapos_pn:
   assumes major: "Q"
-      and minor: "P \<Longrightarrow> \<not> Q"
+    and minor: "P \<Longrightarrow> \<not> Q"
   shows "\<not> P"
-by (iprover intro: notI minor major notE)
+  by (iprover intro: notI minor major notE)
 
 lemma not_sym: "t \<noteq> s \<Longrightarrow> s \<noteq> t"
   by (erule contrapos_nn) (erule sym)
@@ -409,69 +411,56 @@ lemma eq_neq_eq_imp_neq: "\<lbrakk>x = a; a \<noteq> b; b = y\<rbrakk> \<Longrig
 subsubsection \<open>Existential quantifier\<close>
 
 lemma exI: "P x \<Longrightarrow> \<exists>x::'a. P x"
-apply (unfold Ex_def)
-apply (iprover intro: allI allE impI mp)
-done
+  unfolding Ex_def by (iprover intro: allI allE impI mp)
 
 lemma exE:
   assumes major: "\<exists>x::'a. P x"
-      and minor: "\<And>x. P x \<Longrightarrow> Q"
+    and minor: "\<And>x. P x \<Longrightarrow> Q"
   shows "Q"
-apply (rule major [unfolded Ex_def, THEN spec, THEN mp])
-apply (iprover intro: impI [THEN allI] minor)
-done
+  by (rule major [unfolded Ex_def, THEN spec, THEN mp]) (iprover intro: impI [THEN allI] minor)
 
 
 subsubsection \<open>Conjunction\<close>
 
 lemma conjI: "\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> P \<and> Q"
-apply (unfold and_def)
-apply (iprover intro: impI [THEN allI] mp)
-done
+  unfolding and_def by (iprover intro: impI [THEN allI] mp)
 
 lemma conjunct1: "\<lbrakk>P \<and> Q\<rbrakk> \<Longrightarrow> P"
-apply (unfold and_def)
-apply (iprover intro: impI dest: spec mp)
-done
+  unfolding and_def by (iprover intro: impI dest: spec mp)
 
 lemma conjunct2: "\<lbrakk>P \<and> Q\<rbrakk> \<Longrightarrow> Q"
-apply (unfold and_def)
-apply (iprover intro: impI dest: spec mp)
-done
+  unfolding and_def by (iprover intro: impI dest: spec mp)
 
 lemma conjE:
   assumes major: "P \<and> Q"
-      and minor: "\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R"
+    and minor: "\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R"
   shows R
-apply (rule minor)
-apply (rule major [THEN conjunct1])
-apply (rule major [THEN conjunct2])
-done
+  apply (rule minor)
+   apply (rule major [THEN conjunct1])
+  apply (rule major [THEN conjunct2])
+  done
 
 lemma context_conjI:
-  assumes P "P \<Longrightarrow> Q" shows "P \<and> Q"
-by (iprover intro: conjI assms)
+  assumes P "P \<Longrightarrow> Q"
+  shows "P \<and> Q"
+  by (iprover intro: conjI assms)
 
 
 subsubsection \<open>Disjunction\<close>
 
 lemma disjI1: "P \<Longrightarrow> P \<or> Q"
-apply (unfold or_def)
-apply (iprover intro: allI impI mp)
-done
+  unfolding or_def by (iprover intro: allI impI mp)
 
 lemma disjI2: "Q \<Longrightarrow> P \<or> Q"
-apply (unfold or_def)
-apply (iprover intro: allI impI mp)
-done
+  unfolding or_def by (iprover intro: allI impI mp)
 
 lemma disjE:
   assumes major: "P \<or> Q"
-      and minorP: "P \<Longrightarrow> R"
-      and minorQ: "Q \<Longrightarrow> R"
+    and minorP: "P \<Longrightarrow> R"
+    and minorQ: "Q \<Longrightarrow> R"
   shows R
-by (iprover intro: minorP minorQ impI
-                 major [unfolded or_def, THEN spec, THEN mp, THEN mp])
+  by (iprover intro: minorP minorQ impI
+      major [unfolded or_def, THEN spec, THEN mp, THEN mp])
 
 
 subsubsection \<open>Classical logic\<close>
@@ -479,37 +468,37 @@ subsubsection \<open>Classical logic\<close>
 lemma classical:
   assumes prem: "\<not> P \<Longrightarrow> P"
   shows P
-apply (rule True_or_False [THEN disjE, THEN eqTrueE])
-apply assumption
-apply (rule notI [THEN prem, THEN eqTrueI])
-apply (erule subst)
-apply assumption
-done
+  apply (rule True_or_False [THEN disjE, THEN eqTrueE])
+   apply assumption
+  apply (rule notI [THEN prem, THEN eqTrueI])
+  apply (erule subst)
+  apply assumption
+  done
 
 lemmas ccontr = FalseE [THEN classical]
 
-(*notE with premises exchanged; it discharges \<not> R so that it can be used to
-  make elimination rules*)
+text \<open>\<open>notE\<close> with premises exchanged; it discharges \<open>\<not> R\<close> so that it can be used to
+  make elimination rules.\<close>
 lemma rev_notE:
   assumes premp: P
-      and premnot: "\<not> R \<Longrightarrow> \<not> P"
+    and premnot: "\<not> R \<Longrightarrow> \<not> P"
   shows R
-apply (rule ccontr)
-apply (erule notE [OF premnot premp])
-done
+  apply (rule ccontr)
+  apply (erule notE [OF premnot premp])
+  done
 
-(*Double negation law*)
+text \<open>Double negation law.\<close>
 lemma notnotD: "\<not>\<not> P \<Longrightarrow> P"
-apply (rule classical)
-apply (erule notE)
-apply assumption
-done
+  apply (rule classical)
+  apply (erule notE)
+  apply assumption
+  done
 
 lemma contrapos_pp:
   assumes p1: Q
-      and p2: "\<not> P \<Longrightarrow> \<not> Q"
+    and p2: "\<not> P \<Longrightarrow> \<not> Q"
   shows P
-by (iprover intro: classical p1 p2 notE)
+  by (iprover intro: classical p1 p2 notE)
 
 
 subsubsection \<open>Unique existence\<close>
@@ -517,90 +506,87 @@ subsubsection \<open>Unique existence\<close>
 lemma ex1I:
   assumes "P a" "\<And>x. P x \<Longrightarrow> x = a"
   shows "\<exists>!x. P x"
-by (unfold Ex1_def, iprover intro: assms exI conjI allI impI)
+  unfolding Ex1_def by (iprover intro: assms exI conjI allI impI)
 
-text\<open>Sometimes easier to use: the premises have no shared variables.  Safe!\<close>
+text \<open>Sometimes easier to use: the premises have no shared variables. Safe!\<close>
 lemma ex_ex1I:
   assumes ex_prem: "\<exists>x. P x"
-      and eq: "\<And>x y. \<lbrakk>P x; P y\<rbrakk> \<Longrightarrow> x = y"
+    and eq: "\<And>x y. \<lbrakk>P x; P y\<rbrakk> \<Longrightarrow> x = y"
   shows "\<exists>!x. P x"
-by (iprover intro: ex_prem [THEN exE] ex1I eq)
+  by (iprover intro: ex_prem [THEN exE] ex1I eq)
 
 lemma ex1E:
   assumes major: "\<exists>!x. P x"
-      and minor: "\<And>x. \<lbrakk>P x; \<forall>y. P y \<longrightarrow> y = x\<rbrakk> \<Longrightarrow> R"
+    and minor: "\<And>x. \<lbrakk>P x; \<forall>y. P y \<longrightarrow> y = x\<rbrakk> \<Longrightarrow> R"
   shows R
-apply (rule major [unfolded Ex1_def, THEN exE])
-apply (erule conjE)
-apply (iprover intro: minor)
-done
+  apply (rule major [unfolded Ex1_def, THEN exE])
+  apply (erule conjE)
+  apply (iprover intro: minor)
+  done
 
 lemma ex1_implies_ex: "\<exists>!x. P x \<Longrightarrow> \<exists>x. P x"
-apply (erule ex1E)
-apply (rule exI)
-apply assumption
-done
+  apply (erule ex1E)
+  apply (rule exI)
+  apply assumption
+  done
 
 
 subsubsection \<open>Classical intro rules for disjunction and existential quantifiers\<close>
 
 lemma disjCI:
-  assumes "\<not> Q \<Longrightarrow> P" shows "P \<or> Q"
-apply (rule classical)
-apply (iprover intro: assms disjI1 disjI2 notI elim: notE)
-done
+  assumes "\<not> Q \<Longrightarrow> P"
+  shows "P \<or> Q"
+  by (rule classical) (iprover intro: assms disjI1 disjI2 notI elim: notE)
 
 lemma excluded_middle: "\<not> P \<or> P"
-by (iprover intro: disjCI)
+  by (iprover intro: disjCI)
 
 text \<open>
   case distinction as a natural deduction rule.
-  Note that @{term "\<not> P"} is the second case, not the first
+  Note that \<open>\<not> P\<close> is the second case, not the first.
 \<close>
 lemma case_split [case_names True False]:
   assumes prem1: "P \<Longrightarrow> Q"
-      and prem2: "\<not> P \<Longrightarrow> Q"
+    and prem2: "\<not> P \<Longrightarrow> Q"
   shows Q
-apply (rule excluded_middle [THEN disjE])
-apply (erule prem2)
-apply (erule prem1)
-done
+  apply (rule excluded_middle [THEN disjE])
+   apply (erule prem2)
+  apply (erule prem1)
+  done
 
-(*Classical implies (\<longrightarrow>) elimination. *)
+text \<open>Classical implies (\<open>\<longrightarrow>\<close>) elimination.\<close>
 lemma impCE:
   assumes major: "P \<longrightarrow> Q"
-      and minor: "\<not> P \<Longrightarrow> R" "Q \<Longrightarrow> R"
+    and minor: "\<not> P \<Longrightarrow> R" "Q \<Longrightarrow> R"
   shows R
-apply (rule excluded_middle [of P, THEN disjE])
-apply (iprover intro: minor major [THEN mp])+
-done
+  apply (rule excluded_middle [of P, THEN disjE])
+   apply (iprover intro: minor major [THEN mp])+
+  done
 
-(*This version of \<longrightarrow> elimination works on Q before P.  It works best for
-  those cases in which P holds "almost everywhere".  Can't install as
-  default: would break old proofs.*)
+text \<open>
+  This version of \<open>\<longrightarrow>\<close> elimination works on \<open>Q\<close> before \<open>P\<close>.  It works best for
+  those cases in which \<open>P\<close> holds "almost everywhere".  Can't install as
+  default: would break old proofs.
+\<close>
 lemma impCE':
   assumes major: "P \<longrightarrow> Q"
-      and minor: "Q \<Longrightarrow> R" "\<not> P \<Longrightarrow> R"
+    and minor: "Q \<Longrightarrow> R" "\<not> P \<Longrightarrow> R"
   shows R
-apply (rule excluded_middle [of P, THEN disjE])
-apply (iprover intro: minor major [THEN mp])+
-done
+  apply (rule excluded_middle [of P, THEN disjE])
+   apply (iprover intro: minor major [THEN mp])+
+  done
 
-(*Classical <-> elimination. *)
+text \<open>Classical \<open>\<longleftrightarrow>\<close> elimination.\<close>
 lemma iffCE:
   assumes major: "P = Q"
-      and minor: "\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R" "\<lbrakk>\<not> P; \<not> Q\<rbrakk> \<Longrightarrow> R"
+    and minor: "\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R" "\<lbrakk>\<not> P; \<not> Q\<rbrakk> \<Longrightarrow> R"
   shows R
-apply (rule major [THEN iffE])
-apply (iprover intro: minor elim: impCE notE)
-done
+  by (rule major [THEN iffE]) (iprover intro: minor elim: impCE notE)
 
 lemma exCI:
   assumes "\<forall>x. \<not> P x \<Longrightarrow> P a"
   shows "\<exists>x. P x"
-apply (rule ccontr)
-apply (iprover intro: assms exI allI notI notE [of "\<exists>x. P x"])
-done
+  by (rule ccontr) (iprover intro: assms exI allI notI notE [of "\<exists>x. P x"])
 
 
 subsubsection \<open>Intuitionistic Reasoning\<close>
@@ -650,7 +636,7 @@ lemmas [trans] = trans
 subsubsection \<open>Atomizing meta-level connectives\<close>
 
 axiomatization where
-  eq_reflection: "x = y \<Longrightarrow> x \<equiv> y" (*admissible axiom*)
+  eq_reflection: "x = y \<Longrightarrow> x \<equiv> y"  \<comment> \<open>admissible axiom\<close>
 
 lemma atomize_all [atomize]: "(\<And>x. P x) \<equiv> Trueprop (\<forall>x. P x)"
 proof
@@ -731,9 +717,9 @@ ML_file "Tools/hologic.ML"
 subsubsection \<open>Sledgehammer setup\<close>
 
 text \<open>
-Theorems blacklisted to Sledgehammer. These theorems typically produce clauses
-that are prolific (match too many equality or membership literals) and relate to
-seldom-used facts. Some duplicate other rules.
+  Theorems blacklisted to Sledgehammer. These theorems typically produce clauses
+  that are prolific (match too many equality or membership literals) and relate to
+  seldom-used facts. Some duplicate other rules.
 \<close>
 
 named_theorems no_atp "theorems that should be filtered out by Sledgehammer"
@@ -830,18 +816,18 @@ declare ext [intro]
 lemmas [intro?] = ext
   and [elim?] = ex1_implies_ex
 
-(*Better then ex1E for classical reasoner: needs no quantifier duplication!*)
+text \<open>Better than \<open>ex1E\<close> for classical reasoner: needs no quantifier duplication!\<close>
 lemma alt_ex1E [elim!]:
   assumes major: "\<exists>!x. P x"
-      and prem: "\<And>x. \<lbrakk> P x; \<forall>y y'. P y \<and> P y' \<longrightarrow> y = y' \<rbrakk> \<Longrightarrow> R"
+    and prem: "\<And>x. \<lbrakk>P x; \<forall>y y'. P y \<and> P y' \<longrightarrow> y = y'\<rbrakk> \<Longrightarrow> R"
   shows R
-apply (rule ex1E [OF major])
-apply (rule prem)
-apply assumption
-apply (rule allI)+
-apply (tactic \<open>eresolve_tac @{context} [Classical.dup_elim @{context} @{thm allE}] 1\<close>)
-apply iprover
-done
+  apply (rule ex1E [OF major])
+  apply (rule prem)
+   apply assumption
+  apply (rule allI)+
+  apply (tactic \<open>eresolve_tac @{context} [Classical.dup_elim @{context} @{thm allE}] 1\<close>)
+  apply iprover
+  done
 
 ML \<open>
   structure Blast = Blast
@@ -862,27 +848,29 @@ subsubsection \<open>THE: definite description operator\<close>
 
 lemma the_equality [intro]:
   assumes "P a"
-      and "\<And>x. P x \<Longrightarrow> x = a"
+    and "\<And>x. P x \<Longrightarrow> x = a"
   shows "(THE x. P x) = a"
   by (blast intro: assms trans [OF arg_cong [where f=The] the_eq_trivial])
 
 lemma theI:
-  assumes "P a" and "\<And>x. P x \<Longrightarrow> x = a"
+  assumes "P a"
+    and "\<And>x. P x \<Longrightarrow> x = a"
   shows "P (THE x. P x)"
-by (iprover intro: assms the_equality [THEN ssubst])
+  by (iprover intro: assms the_equality [THEN ssubst])
 
 lemma theI': "\<exists>!x. P x \<Longrightarrow> P (THE x. P x)"
   by (blast intro: theI)
 
-(*Easier to apply than theI: only one occurrence of P*)
+text \<open>Easier to apply than \<open>theI\<close>: only one occurrence of \<open>P\<close>.\<close>
 lemma theI2:
   assumes "P a" "\<And>x. P x \<Longrightarrow> x = a" "\<And>x. P x \<Longrightarrow> Q x"
   shows "Q (THE x. P x)"
-by (iprover intro: assms theI)
+  by (iprover intro: assms theI)
 
-lemma the1I2: assumes "\<exists>!x. P x" "\<And>x. P x \<Longrightarrow> Q x" shows "Q (THE x. P x)"
-by(iprover intro:assms(2) theI2[where P=P and Q=Q] ex1E[OF assms(1)]
-           elim:allE impE)
+lemma the1I2:
+  assumes "\<exists>!x. P x" "\<And>x. P x \<Longrightarrow> Q x"
+  shows "Q (THE x. P x)"
+  by (iprover intro: assms(2) theI2[where P=P and Q=Q] ex1E[OF assms(1)] elim: allE impE)
 
 lemma the1_equality [elim?]: "\<lbrakk>\<exists>!x. P x; P a\<rbrakk> \<Longrightarrow> (THE x. P x) = a"
   by blast
@@ -929,136 +917,136 @@ lemma simp_thms:
     "\<And>P. (\<forall>x. t = x \<longrightarrow> P x) = P t"
   by (blast, blast, blast, blast, blast, iprover+)
 
-lemma disj_absorb: "(A \<or> A) = A"
+lemma disj_absorb: "A \<or> A \<longleftrightarrow> A"
   by blast
 
-lemma disj_left_absorb: "(A \<or> (A \<or> B)) = (A \<or> B)"
+lemma disj_left_absorb: "A \<or> (A \<or> B) \<longleftrightarrow> A \<or> B"
   by blast
 
-lemma conj_absorb: "(A \<and> A) = A"
+lemma conj_absorb: "A \<and> A \<longleftrightarrow> A"
   by blast
 
-lemma conj_left_absorb: "(A \<and> (A \<and> B)) = (A \<and> B)"
+lemma conj_left_absorb: "A \<and> (A \<and> B) \<longleftrightarrow> A \<and> B"
   by blast
 
 lemma eq_ac:
   shows eq_commute: "a = b \<longleftrightarrow> b = a"
     and iff_left_commute: "(P \<longleftrightarrow> (Q \<longleftrightarrow> R)) \<longleftrightarrow> (Q \<longleftrightarrow> (P \<longleftrightarrow> R))"
-    and iff_assoc: "((P \<longleftrightarrow> Q) \<longleftrightarrow> R) \<longleftrightarrow> (P \<longleftrightarrow> (Q \<longleftrightarrow> R))" by (iprover, blast+)
+    and iff_assoc: "((P \<longleftrightarrow> Q) \<longleftrightarrow> R) \<longleftrightarrow> (P \<longleftrightarrow> (Q \<longleftrightarrow> R))"
+  by (iprover, blast+)
+
 lemma neq_commute: "a \<noteq> b \<longleftrightarrow> b \<noteq> a" by iprover
 
 lemma conj_comms:
-  shows conj_commute: "(P \<and> Q) = (Q \<and> P)"
-    and conj_left_commute: "(P \<and> (Q \<and> R)) = (Q \<and> (P \<and> R))" by iprover+
-lemma conj_assoc: "((P \<and> Q) \<and> R) = (P \<and> (Q \<and> R))" by iprover
+  shows conj_commute: "P \<and> Q \<longleftrightarrow> Q \<and> P"
+    and conj_left_commute: "P \<and> (Q \<and> R) \<longleftrightarrow> Q \<and> (P \<and> R)" by iprover+
+lemma conj_assoc: "(P \<and> Q) \<and> R \<longleftrightarrow> P \<and> (Q \<and> R)" by iprover
 
 lemmas conj_ac = conj_commute conj_left_commute conj_assoc
 
 lemma disj_comms:
-  shows disj_commute: "(P \<or> Q) = (Q \<or> P)"
-    and disj_left_commute: "(P \<or> (Q \<or> R)) = (Q \<or> (P \<or> R))" by iprover+
-lemma disj_assoc: "((P \<or> Q) \<or> R) = (P \<or> (Q \<or> R))" by iprover
+  shows disj_commute: "P \<or> Q \<longleftrightarrow> Q \<or> P"
+    and disj_left_commute: "P \<or> (Q \<or> R) \<longleftrightarrow> Q \<or> (P \<or> R)" by iprover+
+lemma disj_assoc: "(P \<or> Q) \<or> R \<longleftrightarrow> P \<or> (Q \<or> R)" by iprover
 
 lemmas disj_ac = disj_commute disj_left_commute disj_assoc
 
-lemma conj_disj_distribL: "(P \<and> (Q \<or> R)) = (P \<and> Q \<or> P \<and> R)" by iprover
-lemma conj_disj_distribR: "((P \<or> Q) \<and> R) = (P \<and> R \<or> Q \<and> R)" by iprover
+lemma conj_disj_distribL: "P \<and> (Q \<or> R) \<longleftrightarrow> P \<and> Q \<or> P \<and> R" by iprover
+lemma conj_disj_distribR: "(P \<or> Q) \<and> R \<longleftrightarrow> P \<and> R \<or> Q \<and> R" by iprover
 
-lemma disj_conj_distribL: "(P \<or> (Q \<and> R)) = ((P \<or> Q) \<and> (P \<or> R))" by iprover
-lemma disj_conj_distribR: "((P \<and> Q) \<or> R) = ((P \<or> R) \<and> (Q \<or> R))" by iprover
+lemma disj_conj_distribL: "P \<or> (Q \<and> R) \<longleftrightarrow> (P \<or> Q) \<and> (P \<or> R)" by iprover
+lemma disj_conj_distribR: "(P \<and> Q) \<or> R \<longleftrightarrow> (P \<or> R) \<and> (Q \<or> R)" by iprover
 
 lemma imp_conjR: "(P \<longrightarrow> (Q \<and> R)) = ((P \<longrightarrow> Q) \<and> (P \<longrightarrow> R))" by iprover
 lemma imp_conjL: "((P \<and> Q) \<longrightarrow> R) = (P \<longrightarrow> (Q \<longrightarrow> R))" by iprover
 lemma imp_disjL: "((P \<or> Q) \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (Q \<longrightarrow> R))" by iprover
 
 text \<open>These two are specialized, but \<open>imp_disj_not1\<close> is useful in \<open>Auth/Yahalom\<close>.\<close>
-lemma imp_disj_not1: "(P \<longrightarrow> Q \<or> R) = (\<not> Q \<longrightarrow> P \<longrightarrow> R)" by blast
-lemma imp_disj_not2: "(P \<longrightarrow> Q \<or> R) = (\<not> R \<longrightarrow> P \<longrightarrow> Q)" by blast
+lemma imp_disj_not1: "(P \<longrightarrow> Q \<or> R) \<longleftrightarrow> (\<not> Q \<longrightarrow> P \<longrightarrow> R)" by blast
+lemma imp_disj_not2: "(P \<longrightarrow> Q \<or> R) \<longleftrightarrow> (\<not> R \<longrightarrow> P \<longrightarrow> Q)" by blast
 
-lemma imp_disj1: "((P \<longrightarrow> Q) \<or> R) = (P \<longrightarrow> Q \<or> R)" by blast
-lemma imp_disj2: "(Q \<or> (P \<longrightarrow> R)) = (P \<longrightarrow> Q \<or> R)" by blast
+lemma imp_disj1: "((P \<longrightarrow> Q) \<or> R) \<longleftrightarrow> (P \<longrightarrow> Q \<or> R)" by blast
+lemma imp_disj2: "(Q \<or> (P \<longrightarrow> R)) \<longleftrightarrow> (P \<longrightarrow> Q \<or> R)" by blast
 
-lemma imp_cong: "(P = P') \<Longrightarrow> (P' \<Longrightarrow> (Q = Q')) \<Longrightarrow> ((P \<longrightarrow> Q) = (P' \<longrightarrow> Q'))"
+lemma imp_cong: "(P = P') \<Longrightarrow> (P' \<Longrightarrow> (Q = Q')) \<Longrightarrow> ((P \<longrightarrow> Q) \<longleftrightarrow> (P' \<longrightarrow> Q'))"
   by iprover
 
-lemma de_Morgan_disj: "(\<not> (P \<or> Q)) = (\<not> P \<and> \<not> Q)" by iprover
-lemma de_Morgan_conj: "(\<not> (P \<and> Q)) = (\<not> P \<or> \<not> Q)" by blast
-lemma not_imp: "(\<not> (P \<longrightarrow> Q)) = (P \<and> \<not> Q)" by blast
-lemma not_iff: "(P \<noteq> Q) = (P = (\<not> Q))" by blast
-lemma disj_not1: "(\<not> P \<or> Q) = (P \<longrightarrow> Q)" by blast
-lemma disj_not2: "(P \<or> \<not> Q) = (Q \<longrightarrow> P)"  \<comment> \<open>changes orientation :-(\<close>
-  by blast
-lemma imp_conv_disj: "(P \<longrightarrow> Q) = ((\<not> P) \<or> Q)" by blast
+lemma de_Morgan_disj: "\<not> (P \<or> Q) \<longleftrightarrow> \<not> P \<and> \<not> Q" by iprover
+lemma de_Morgan_conj: "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q" by blast
+lemma not_imp: "\<not> (P \<longrightarrow> Q) \<longleftrightarrow> P \<and> \<not> Q" by blast
+lemma not_iff: "P \<noteq> Q \<longleftrightarrow> (P \<longleftrightarrow> \<not> Q)" by blast
+lemma disj_not1: "\<not> P \<or> Q \<longleftrightarrow> (P \<longrightarrow> Q)" by blast
+lemma disj_not2: "P \<or> \<not> Q \<longleftrightarrow> (Q \<longrightarrow> P)" by blast  \<comment> \<open>changes orientation :-(\<close>
+lemma imp_conv_disj: "(P \<longrightarrow> Q) \<longleftrightarrow> (\<not> P) \<or> Q" by blast
 lemma disj_imp: "P \<or> Q \<longleftrightarrow> \<not> P \<longrightarrow> Q" by blast
 
-lemma iff_conv_conj_imp: "(P = Q) = ((P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P))" by iprover
+lemma iff_conv_conj_imp: "(P \<longleftrightarrow> Q) \<longleftrightarrow> (P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P)" by iprover
 
 
-lemma cases_simp: "((P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> Q)) = Q"
+lemma cases_simp: "(P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> Q) \<longleftrightarrow> Q"
   \<comment> \<open>Avoids duplication of subgoals after \<open>if_split\<close>, when the true and false\<close>
   \<comment> \<open>cases boil down to the same thing.\<close>
   by blast
 
-lemma not_all: "(\<not> (\<forall>x. P x)) = (\<exists>x. \<not> P x)" by blast
-lemma imp_all: "((\<forall>x. P x) \<longrightarrow> Q) = (\<exists>x. P x \<longrightarrow> Q)" by blast
-lemma not_ex: "(\<not> (\<exists>x. P x)) = (\<forall>x. \<not> P x)" by iprover
-lemma imp_ex: "((\<exists>x. P x) \<longrightarrow> Q) = (\<forall>x. P x \<longrightarrow> Q)" by iprover
-lemma all_not_ex: "(\<forall>x. P x) = (\<not> (\<exists>x. \<not> P x ))" by blast
+lemma not_all: "\<not> (\<forall>x. P x) \<longleftrightarrow> (\<exists>x. \<not> P x)" by blast
+lemma imp_all: "((\<forall>x. P x) \<longrightarrow> Q) \<longleftrightarrow> (\<exists>x. P x \<longrightarrow> Q)" by blast
+lemma not_ex: "\<not> (\<exists>x. P x) \<longleftrightarrow> (\<forall>x. \<not> P x)" by iprover
+lemma imp_ex: "((\<exists>x. P x) \<longrightarrow> Q) \<longleftrightarrow> (\<forall>x. P x \<longrightarrow> Q)" by iprover
+lemma all_not_ex: "(\<forall>x. P x) \<longleftrightarrow> \<not> (\<exists>x. \<not> P x)" by blast
 
 declare All_def [no_atp]
 
-lemma ex_disj_distrib: "(\<exists>x. P x \<or> Q x) = ((\<exists>x. P x) \<or> (\<exists>x. Q x))" by iprover
-lemma all_conj_distrib: "(\<forall>x. P x \<and> Q x) = ((\<forall>x. P x) \<and> (\<forall>x. Q x))" by iprover
+lemma ex_disj_distrib: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>x. P x) \<or> (\<exists>x. Q x)" by iprover
+lemma all_conj_distrib: "(\<forall>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>x. P x) \<and> (\<forall>x. Q x)" by iprover
 
 text \<open>
-  \medskip The \<open>\<and>\<close> congruence rule: not included by default!
+  \<^medskip> The \<open>\<and>\<close> congruence rule: not included by default!
   May slow rewrite proofs down by as much as 50\%\<close>
 
-lemma conj_cong:
-    "(P = P') \<Longrightarrow> (P' \<Longrightarrow> (Q = Q')) \<Longrightarrow> ((P \<and> Q) = (P' \<and> Q'))"
+lemma conj_cong: "P = P' \<Longrightarrow> (P' \<Longrightarrow> Q = Q') \<Longrightarrow> (P \<and> Q) = (P' \<and> Q')"
   by iprover
 
-lemma rev_conj_cong:
-    "(Q = Q') \<Longrightarrow> (Q' \<Longrightarrow> (P = P')) \<Longrightarrow> ((P \<and> Q) = (P' \<and> Q'))"
+lemma rev_conj_cong: "Q = Q' \<Longrightarrow> (Q' \<Longrightarrow> P = P') \<Longrightarrow> (P \<and> Q) = (P' \<and> Q')"
   by iprover
 
 text \<open>The \<open>|\<close> congruence rule: not included by default!\<close>
 
-lemma disj_cong:
-    "(P = P') \<Longrightarrow> (\<not> P' \<Longrightarrow> (Q = Q')) \<Longrightarrow> ((P \<or> Q) = (P' \<or> Q'))"
+lemma disj_cong: "P = P' \<Longrightarrow> (\<not> P' \<Longrightarrow> Q = Q') \<Longrightarrow> (P \<or> Q) = (P' \<or> Q')"
   by blast
 
 
-text \<open>\medskip if-then-else rules\<close>
+text \<open>\<^medskip> if-then-else rules\<close>
 
 lemma if_True [code]: "(if True then x else y) = x"
-  by (unfold If_def) blast
+  unfolding If_def by blast
 
 lemma if_False [code]: "(if False then x else y) = y"
-  by (unfold If_def) blast
+  unfolding If_def by blast
 
 lemma if_P: "P \<Longrightarrow> (if P then x else y) = x"
-  by (unfold If_def) blast
+  unfolding If_def by blast
 
 lemma if_not_P: "\<not> P \<Longrightarrow> (if P then x else y) = y"
-  by (unfold If_def) blast
+  unfolding If_def by blast
 
 lemma if_split: "P (if Q then x else y) = ((Q \<longrightarrow> P x) \<and> (\<not> Q \<longrightarrow> P y))"
   apply (rule case_split [of Q])
    apply (simplesubst if_P)
-    prefer 3 apply (simplesubst if_not_P, blast+)
+    prefer 3
+    apply (simplesubst if_not_P)
+     apply blast+
   done
 
 lemma if_split_asm: "P (if Q then x else y) = (\<not> ((Q \<and> \<not> P x) \<or> (\<not> Q \<and> \<not> P y)))"
-by (simplesubst if_split, blast)
+  by (simplesubst if_split) blast
 
 lemmas if_splits [no_atp] = if_split if_split_asm
 
 lemma if_cancel: "(if c then x else x) = x"
-by (simplesubst if_split, blast)
+  by (simplesubst if_split) blast
 
 lemma if_eq_cancel: "(if x = y then y else x) = x"
-by (simplesubst if_split, blast)
+  by (simplesubst if_split) blast
 
 lemma if_bool_eq_conj: "(if P then Q else R) = ((P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> R))"
   \<comment> \<open>This form is useful for expanding \<open>if\<close>s on the RIGHT of the \<open>\<Longrightarrow>\<close> symbol.\<close>
@@ -1068,10 +1056,10 @@ lemma if_bool_eq_disj: "(if P then Q else R) = ((P \<and> Q) \<or> (\<not> P \<a
   \<comment> \<open>And this form is useful for expanding \<open>if\<close>s on the LEFT.\<close>
   by (simplesubst if_split) blast
 
-lemma Eq_TrueI: "P \<Longrightarrow> P \<equiv> True" by (unfold atomize_eq) iprover
-lemma Eq_FalseI: "\<not> P \<Longrightarrow> P \<equiv> False" by (unfold atomize_eq) iprover
+lemma Eq_TrueI: "P \<Longrightarrow> P \<equiv> True" unfolding atomize_eq by iprover
+lemma Eq_FalseI: "\<not> P \<Longrightarrow> P \<equiv> False" unfolding atomize_eq by iprover
 
-text \<open>\medskip let rules for simproc\<close>
+text \<open>\<^medskip> let rules for simproc\<close>
 
 lemma Let_folded: "f x \<equiv> g x \<Longrightarrow> Let x f \<equiv> Let x g"
   by (unfold Let_def)
@@ -1085,8 +1073,8 @@ text \<open>
   its premise.
 \<close>
 
-definition simp_implies :: "[prop, prop] \<Rightarrow> prop"  (infixr "=simp=>" 1) where
-  "simp_implies \<equiv> op \<Longrightarrow>"
+definition simp_implies :: "prop \<Rightarrow> prop \<Rightarrow> prop"  (infixr "=simp=>" 1)
+  where "simp_implies \<equiv> op \<Longrightarrow>"
 
 lemma simp_impliesI:
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"
@@ -1098,8 +1086,8 @@ lemma simp_impliesI:
 
 lemma simp_impliesE:
   assumes PQ: "PROP P =simp=> PROP Q"
-  and P: "PROP P"
-  and QR: "PROP Q \<Longrightarrow> PROP R"
+    and P: "PROP P"
+    and QR: "PROP Q \<Longrightarrow> PROP R"
   shows "PROP R"
   apply (rule QR)
   apply (rule PQ [unfolded simp_implies_def])
@@ -1108,18 +1096,19 @@ lemma simp_impliesE:
 
 lemma simp_implies_cong:
   assumes PP' :"PROP P \<equiv> PROP P'"
-  and P'QQ': "PROP P' \<Longrightarrow> (PROP Q \<equiv> PROP Q')"
+    and P'QQ': "PROP P' \<Longrightarrow> (PROP Q \<equiv> PROP Q')"
   shows "(PROP P =simp=> PROP Q) \<equiv> (PROP P' =simp=> PROP Q')"
-proof (unfold simp_implies_def, rule equal_intr_rule)
+  unfolding simp_implies_def
+proof (rule equal_intr_rule)
   assume PQ: "PROP P \<Longrightarrow> PROP Q"
-  and P': "PROP P'"
+    and P': "PROP P'"
   from PP' [symmetric] and P' have "PROP P"
     by (rule equal_elim_rule1)
   then have "PROP Q" by (rule PQ)
   with P'QQ' [OF P'] show "PROP Q'" by (rule equal_elim_rule1)
 next
   assume P'Q': "PROP P' \<Longrightarrow> PROP Q'"
-  and P: "PROP P"
+    and P: "PROP P"
   from PP' and P have P': "PROP P'" by (rule equal_elim_rule1)
   then have "PROP Q'" by (rule P'Q')
   with P'QQ' [OF P', symmetric] show "PROP Q"
@@ -1141,12 +1130,10 @@ lemma iff_exI:
   shows "(\<exists>x. P x) = (\<exists>x. Q x)"
   using assms by blast
 
-lemma all_comm:
-  "(\<forall>x y. P x y) = (\<forall>y x. P x y)"
+lemma all_comm: "(\<forall>x y. P x y) = (\<forall>y x. P x y)"
   by blast
 
-lemma ex_comm:
-  "(\<exists>x y. P x y) = (\<exists>y x. P x y)"
+lemma ex_comm: "(\<exists>x y. P x y) = (\<exists>y x. P x y)"
   by blast
 
 ML_file "Tools/simpdata.ML"
@@ -1163,79 +1150,80 @@ simproc_setup defined_All ("\<forall>x. P x") = \<open>fn _ => Quantifier1.rearr
 text \<open>Simproc for proving \<open>(y = x) \<equiv> False\<close> from premise \<open>\<not> (x = y)\<close>:\<close>
 
 simproc_setup neq ("x = y") = \<open>fn _ =>
-let
-  val neq_to_EQ_False = @{thm not_sym} RS @{thm Eq_FalseI};
-  fun is_neq eq lhs rhs thm =
-    (case Thm.prop_of thm of
-      _ $ (Not $ (eq' $ l' $ r')) =>
-        Not = HOLogic.Not andalso eq' = eq andalso
-        r' aconv lhs andalso l' aconv rhs
-    | _ => false);
-  fun proc ss ct =
-    (case Thm.term_of ct of
-      eq $ lhs $ rhs =>
-        (case find_first (is_neq eq lhs rhs) (Simplifier.prems_of ss) of
-          SOME thm => SOME (thm RS neq_to_EQ_False)
-        | NONE => NONE)
-     | _ => NONE);
-in proc end;
+  let
+    val neq_to_EQ_False = @{thm not_sym} RS @{thm Eq_FalseI};
+    fun is_neq eq lhs rhs thm =
+      (case Thm.prop_of thm of
+        _ $ (Not $ (eq' $ l' $ r')) =>
+          Not = HOLogic.Not andalso eq' = eq andalso
+          r' aconv lhs andalso l' aconv rhs
+      | _ => false);
+    fun proc ss ct =
+      (case Thm.term_of ct of
+        eq $ lhs $ rhs =>
+          (case find_first (is_neq eq lhs rhs) (Simplifier.prems_of ss) of
+            SOME thm => SOME (thm RS neq_to_EQ_False)
+          | NONE => NONE)
+       | _ => NONE);
+  in proc end;
 \<close>
 
 simproc_setup let_simp ("Let x f") = \<open>
-let
-  fun count_loose (Bound i) k = if i >= k then 1 else 0
-    | count_loose (s $ t) k = count_loose s k + count_loose t k
-    | count_loose (Abs (_, _, t)) k = count_loose  t (k + 1)
-    | count_loose _ _ = 0;
-  fun is_trivial_let (Const (@{const_name Let}, _) $ x $ t) =
-    (case t of
-      Abs (_, _, t') => count_loose t' 0 <= 1
-    | _ => true);
-in
-  fn _ => fn ctxt => fn ct =>
-    if is_trivial_let (Thm.term_of ct)
-    then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
-    else
-      let (*Norbert Schirmer's case*)
-        val t = Thm.term_of ct;
-        val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
-      in
-        Option.map (hd o Variable.export ctxt' ctxt o single)
-          (case t' of Const (@{const_name Let},_) $ x $ f => (* x and f are already in normal form *)
-            if is_Free x orelse is_Bound x orelse is_Const x
-            then SOME @{thm Let_def}
-            else
-              let
-                val n = case f of (Abs (x, _, _)) => x | _ => "x";
-                val cx = Thm.cterm_of ctxt x;
-                val xT = Thm.typ_of_cterm cx;
-                val cf = Thm.cterm_of ctxt f;
-                val fx_g = Simplifier.rewrite ctxt (Thm.apply cf cx);
-                val (_ $ _ $ g) = Thm.prop_of fx_g;
-                val g' = abstract_over (x, g);
-                val abs_g'= Abs (n, xT, g');
-              in
-                if g aconv g' then
-                  let
-                    val rl =
-                      infer_instantiate ctxt [(("f", 0), cf), (("x", 0), cx)] @{thm Let_unfold};
-                  in SOME (rl OF [fx_g]) end
-                else if (Envir.beta_eta_contract f) aconv (Envir.beta_eta_contract abs_g')
-                then NONE (*avoid identity conversion*)
-                else
-                  let
-                    val g'x = abs_g' $ x;
-                    val g_g'x = Thm.symmetric (Thm.beta_conversion false (Thm.cterm_of ctxt g'x));
-                    val rl =
-                      @{thm Let_folded} |> infer_instantiate ctxt
-                        [(("f", 0), Thm.cterm_of ctxt f),
-                         (("x", 0), cx),
-                         (("g", 0), Thm.cterm_of ctxt abs_g')];
-                  in SOME (rl OF [Thm.transitive fx_g g_g'x]) end
-              end
-          | _ => NONE)
-      end
-end\<close>
+  let
+    fun count_loose (Bound i) k = if i >= k then 1 else 0
+      | count_loose (s $ t) k = count_loose s k + count_loose t k
+      | count_loose (Abs (_, _, t)) k = count_loose  t (k + 1)
+      | count_loose _ _ = 0;
+    fun is_trivial_let (Const (@{const_name Let}, _) $ x $ t) =
+      (case t of
+        Abs (_, _, t') => count_loose t' 0 <= 1
+      | _ => true);
+  in
+    fn _ => fn ctxt => fn ct =>
+      if is_trivial_let (Thm.term_of ct)
+      then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
+      else
+        let (*Norbert Schirmer's case*)
+          val t = Thm.term_of ct;
+          val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
+        in
+          Option.map (hd o Variable.export ctxt' ctxt o single)
+            (case t' of Const (@{const_name Let},_) $ x $ f => (* x and f are already in normal form *)
+              if is_Free x orelse is_Bound x orelse is_Const x
+              then SOME @{thm Let_def}
+              else
+                let
+                  val n = case f of (Abs (x, _, _)) => x | _ => "x";
+                  val cx = Thm.cterm_of ctxt x;
+                  val xT = Thm.typ_of_cterm cx;
+                  val cf = Thm.cterm_of ctxt f;
+                  val fx_g = Simplifier.rewrite ctxt (Thm.apply cf cx);
+                  val (_ $ _ $ g) = Thm.prop_of fx_g;
+                  val g' = abstract_over (x, g);
+                  val abs_g'= Abs (n, xT, g');
+                in
+                  if g aconv g' then
+                    let
+                      val rl =
+                        infer_instantiate ctxt [(("f", 0), cf), (("x", 0), cx)] @{thm Let_unfold};
+                    in SOME (rl OF [fx_g]) end
+                  else if (Envir.beta_eta_contract f) aconv (Envir.beta_eta_contract abs_g')
+                  then NONE (*avoid identity conversion*)
+                  else
+                    let
+                      val g'x = abs_g' $ x;
+                      val g_g'x = Thm.symmetric (Thm.beta_conversion false (Thm.cterm_of ctxt g'x));
+                      val rl =
+                        @{thm Let_folded} |> infer_instantiate ctxt
+                          [(("f", 0), Thm.cterm_of ctxt f),
+                           (("x", 0), cx),
+                           (("g", 0), Thm.cterm_of ctxt abs_g')];
+                    in SOME (rl OF [Thm.transitive fx_g g_g'x]) end
+                end
+            | _ => NONE)
+        end
+  end
+\<close>
 
 lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
 proof
@@ -1254,9 +1242,10 @@ lemma False_implies_equals: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
 
 (* This is not made a simp rule because it does not improve any proofs
    but slows some AFP entries down by 5% (cpu time). May 2015 *)
-lemma implies_False_swap: "NO_MATCH (Trueprop False) P \<Longrightarrow>
-  (False \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> False \<Longrightarrow> PROP Q)"
-by(rule swap_prems_eq)
+lemma implies_False_swap:
+  "NO_MATCH (Trueprop False) P \<Longrightarrow>
+    (False \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> False \<Longrightarrow> PROP Q)"
+  by (rule swap_prems_eq)
 
 lemma ex_simps:
   "\<And>P Q. (\<exists>x. P x \<and> Q)   = ((\<exists>x. P x) \<and> Q)"
@@ -1279,19 +1268,19 @@ lemma all_simps:
   by (iprover | blast)+
 
 lemmas [simp] =
-  triv_forall_equality (*prunes params*)
-  True_implies_equals implies_True_equals (*prune True in asms*)
-  False_implies_equals (*prune False in asms*)
+  triv_forall_equality  \<comment> \<open>prunes params\<close>
+  True_implies_equals implies_True_equals  \<comment> \<open>prune \<open>True\<close> in asms\<close>
+  False_implies_equals  \<comment> \<open>prune \<open>False\<close> in asms\<close>
   if_True
   if_False
   if_cancel
   if_eq_cancel
-  imp_disjL
-  (*In general it seems wrong to add distributive laws by default: they
-    might cause exponential blow-up.  But imp_disjL has been in for a while
+  imp_disjL \<comment>
+   \<open>In general it seems wrong to add distributive laws by default: they
+    might cause exponential blow-up.  But \<open>imp_disjL\<close> has been in for a while
     and cannot be removed without affecting existing proofs.  Moreover,
-    rewriting by "(P \<or> Q \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (Q \<longrightarrow> R))" might be justified on the
-    grounds that it allows simplification of R in the two cases.*)
+    rewriting by \<open>(P \<or> Q \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (Q \<longrightarrow> R))\<close> might be justified on the
+    grounds that it allows simplification of \<open>R\<close> in the two cases.\<close>
   conj_assoc
   disj_assoc
   de_Morgan_conj
@@ -1314,15 +1303,15 @@ lemmas [split] = if_split
 
 ML \<open>val HOL_ss = simpset_of @{context}\<close>
 
-text \<open>Simplifies @{term x} assuming @{prop c} and @{term y} assuming @{prop "\<not> c"}\<close>
+text \<open>Simplifies \<open>x\<close> assuming \<open>c\<close> and \<open>y\<close> assuming \<open>\<not> c\<close>.\<close>
 lemma if_cong:
   assumes "b = c"
-      and "c \<Longrightarrow> x = u"
-      and "\<not> c \<Longrightarrow> y = v"
+    and "c \<Longrightarrow> x = u"
+    and "\<not> c \<Longrightarrow> y = v"
   shows "(if b then x else y) = (if c then u else v)"
   using assms by simp
 
-text \<open>Prevents simplification of x and y:
+text \<open>Prevents simplification of \<open>x\<close> and \<open>y\<close>:
   faster and allows the execution of functional programs.\<close>
 lemma if_weak_cong [cong]:
   assumes "b = c"
@@ -1341,11 +1330,10 @@ lemma eq_cong2:
   shows "(t \<equiv> u) \<equiv> (t \<equiv> u')"
   using assms by simp
 
-lemma if_distrib:
-  "f (if c then x else y) = (if c then f x else f y)"
+lemma if_distrib: "f (if c then x else y) = (if c then f x else f y)"
   by simp
 
-text\<open>As a simplification rule, it replaces all function equalities by
+text \<open>As a simplification rule, it replaces all function equalities by
   first-order equalities.\<close>
 lemma fun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
   by auto
@@ -1578,27 +1566,32 @@ lemma ex1_eq [iff]: "\<exists>!x. x = t" "\<exists>!x. t = x"
 
 lemma choice_eq: "(\<forall>x. \<exists>!y. P x y) = (\<exists>!f. \<forall>x. P x (f x))"
   apply (rule iffI)
-  apply (rule_tac a = "\<lambda>x. THE y. P x y" in ex1I)
-  apply (fast dest!: theI')
-  apply (fast intro: the1_equality [symmetric])
+   apply (rule_tac a = "\<lambda>x. THE y. P x y" in ex1I)
+    apply (fast dest!: theI')
+   apply (fast intro: the1_equality [symmetric])
   apply (erule ex1E)
   apply (rule allI)
   apply (rule ex1I)
-  apply (erule spec)
+   apply (erule spec)
   apply (erule_tac x = "\<lambda>z. if z = x then y else f z" in allE)
   apply (erule impE)
-  apply (rule allI)
-  apply (case_tac "xa = x")
-  apply (drule_tac [3] x = x in fun_cong, simp_all)
+   apply (rule allI)
+   apply (case_tac "xa = x")
+    apply (drule_tac [3] x = x in fun_cong)
+    apply simp_all
   done
 
 lemmas eq_sym_conv = eq_commute
 
 lemma nnf_simps:
-  "(\<not>(P \<and> Q)) = (\<not> P \<or> \<not> Q)" "(\<not> (P \<or> Q)) = (\<not> P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
-  "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not>(P = Q)) = ((P \<and> \<not> Q) \<or> (\<not>P \<and> Q))"
-  "(\<not> \<not>(P)) = P"
-by blast+
+  "(\<not> (P \<and> Q)) = (\<not> P \<or> \<not> Q)"
+  "(\<not> (P \<or> Q)) = (\<not> P \<and> \<not> Q)"
+  "(P \<longrightarrow> Q) = (\<not> P \<or> Q)"
+  "(P = Q) = ((P \<and> Q) \<or> (\<not> P \<and> \<not> Q))"
+  "(\<not> (P = Q)) = ((P \<and> \<not> Q) \<or> (\<not> P \<and> Q))"
+  "(\<not> \<not> P) = P"
+  by blast+
+
 
 subsection \<open>Basic ML bindings\<close>
 
@@ -1659,12 +1652,15 @@ ML_file "Tools/cnf.ML"
 section \<open>\<open>NO_MATCH\<close> simproc\<close>
 
 text \<open>
- The simplification procedure can be used to avoid simplification of terms of a certain form
+  The simplification procedure can be used to avoid simplification of terms
+  of a certain form.
 \<close>
 
-definition NO_MATCH :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where "NO_MATCH pat val \<equiv> True"
+definition NO_MATCH :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
+  where "NO_MATCH pat val \<equiv> True"
 
-lemma NO_MATCH_cong[cong]: "NO_MATCH pat val = NO_MATCH pat val" by (rule refl)
+lemma NO_MATCH_cong[cong]: "NO_MATCH pat val = NO_MATCH pat val"
+  by (rule refl)
 
 declare [[coercion_args NO_MATCH - -]]
 
@@ -1678,24 +1674,26 @@ simproc_setup NO_MATCH ("NO_MATCH pat val") = \<open>fn _ => fn ctxt => fn ct =>
 
 text \<open>
   This setup ensures that a rewrite rule of the form @{term "NO_MATCH pat val \<Longrightarrow> t"}
-  is only applied, if the pattern @{term pat} does not match the value @{term val}.
+  is only applied, if the pattern \<open>pat\<close> does not match the value \<open>val\<close>.
 \<close>
 
 
-text\<open>Tagging a premise of a simp rule with ASSUMPTION forces the simplifier
-not to simplify the argument and to solve it by an assumption.\<close>
+text\<open>
+  Tagging a premise of a simp rule with ASSUMPTION forces the simplifier
+  not to simplify the argument and to solve it by an assumption.
+\<close>
 
-definition ASSUMPTION :: "bool \<Rightarrow> bool" where
-"ASSUMPTION A \<equiv> A"
+definition ASSUMPTION :: "bool \<Rightarrow> bool"
+  where "ASSUMPTION A \<equiv> A"
 
 lemma ASSUMPTION_cong[cong]: "ASSUMPTION A = ASSUMPTION A"
-by (rule refl)
+  by (rule refl)
 
 lemma ASSUMPTION_I: "A \<Longrightarrow> ASSUMPTION A"
-by(simp add: ASSUMPTION_def)
+  by (simp add: ASSUMPTION_def)
 
 lemma ASSUMPTION_D: "ASSUMPTION A \<Longrightarrow> A"
-by(simp add: ASSUMPTION_def)
+  by (simp add: ASSUMPTION_def)
 
 setup \<open>
 let
@@ -1712,12 +1710,10 @@ subsection \<open>Code generator setup\<close>
 
 subsubsection \<open>Generic code generator preprocessor setup\<close>
 
-lemma conj_left_cong:
-  "P \<longleftrightarrow> Q \<Longrightarrow> P \<and> R \<longleftrightarrow> Q \<and> R"
+lemma conj_left_cong: "P \<longleftrightarrow> Q \<Longrightarrow> P \<and> R \<longleftrightarrow> Q \<and> R"
   by (fact arg_cong)
 
-lemma disj_left_cong:
-  "P \<longleftrightarrow> Q \<Longrightarrow> P \<or> R \<longleftrightarrow> Q \<or> R"
+lemma disj_left_cong: "P \<longleftrightarrow> Q \<Longrightarrow> P \<or> R \<longleftrightarrow> Q \<or> R"
   by (fact arg_cong)
 
 setup \<open>
@@ -1772,29 +1768,32 @@ lemma [code]:
   shows "False \<and> P \<longleftrightarrow> False"
     and "True \<and> P \<longleftrightarrow> P"
     and "P \<and> False \<longleftrightarrow> False"
-    and "P \<and> True \<longleftrightarrow> P" by simp_all
+    and "P \<and> True \<longleftrightarrow> P"
+  by simp_all
 
 lemma [code]:
   shows "False \<or> P \<longleftrightarrow> P"
     and "True \<or> P \<longleftrightarrow> True"
     and "P \<or> False \<longleftrightarrow> P"
-    and "P \<or> True \<longleftrightarrow> True" by simp_all
+    and "P \<or> True \<longleftrightarrow> True"
+  by simp_all
 
 lemma [code]:
   shows "(False \<longrightarrow> P) \<longleftrightarrow> True"
     and "(True \<longrightarrow> P) \<longleftrightarrow> P"
     and "(P \<longrightarrow> False) \<longleftrightarrow> \<not> P"
-    and "(P \<longrightarrow> True) \<longleftrightarrow> True" by simp_all
+    and "(P \<longrightarrow> True) \<longleftrightarrow> True"
+  by simp_all
 
 text \<open>More about @{typ prop}\<close>
 
 lemma [code nbe]:
   shows "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q"
     and "(PROP Q \<Longrightarrow> True) \<equiv> Trueprop True"
-    and "(P \<Longrightarrow> R) \<equiv> Trueprop (P \<longrightarrow> R)" by (auto intro!: equal_intr_rule)
+    and "(P \<Longrightarrow> R) \<equiv> Trueprop (P \<longrightarrow> R)"
+  by (auto intro!: equal_intr_rule)
 
-lemma Trueprop_code [code]:
-  "Trueprop True \<equiv> Code_Generator.holds"
+lemma Trueprop_code [code]: "Trueprop True \<equiv> Code_Generator.holds"
   by (auto intro!: equal_intr_rule holds)
 
 declare Trueprop_code [symmetric, code_post]
@@ -1806,21 +1805,21 @@ declare simp_thms(6) [code nbe]
 instantiation itself :: (type) equal
 begin
 
-definition equal_itself :: "'a itself \<Rightarrow> 'a itself \<Rightarrow> bool" where
-  "equal_itself x y \<longleftrightarrow> x = y"
+definition equal_itself :: "'a itself \<Rightarrow> 'a itself \<Rightarrow> bool"
+  where "equal_itself x y \<longleftrightarrow> x = y"
 
-instance proof
-qed (fact equal_itself_def)
+instance
+  by standard (fact equal_itself_def)
 
 end
 
-lemma equal_itself_code [code]:
-  "equal TYPE('a) TYPE('a) \<longleftrightarrow> True"
+lemma equal_itself_code [code]: "equal TYPE('a) TYPE('a) \<longleftrightarrow> True"
   by (simp add: equal)
 
 setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a::type \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
 
-lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)" (is "?ofclass \<equiv> ?equal")
+lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)"
+  (is "?ofclass \<equiv> ?equal")
 proof
   assume "PROP ?ofclass"
   show "PROP ?equal"
@@ -1900,15 +1899,13 @@ code_identifier
   code_module Pure \<rightharpoonup>
     (SML) HOL and (OCaml) HOL and (Haskell) HOL and (Scala) HOL
 
-text \<open>using built-in Haskell equality\<close>
-
+text \<open>Using built-in Haskell equality.\<close>
 code_printing
   type_class equal \<rightharpoonup> (Haskell) "Eq"
 | constant HOL.equal \<rightharpoonup> (Haskell) infix 4 "=="
 | constant HOL.eq \<rightharpoonup> (Haskell) infix 4 "=="
 
-text \<open>undefined\<close>
-
+text \<open>\<open>undefined\<close>\<close>
 code_printing
   constant undefined \<rightharpoonup>
     (SML) "!(raise/ Fail/ \"undefined\")"
@@ -1956,7 +1953,7 @@ named_theorems nitpick_unfold "alternative definitions of constants as needed by
   and nitpick_choice_spec "choice specification of constants as needed by Nitpick"
 
 declare if_bool_eq_conj [nitpick_unfold, no_atp]
-        if_bool_eq_disj [no_atp]
+  and if_bool_eq_disj [no_atp]
 
 
 subsection \<open>Preprocessing for the predicate compiler\<close>

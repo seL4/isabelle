@@ -3,10 +3,10 @@
     Copyright   1992  University of Cambridge
 *)
 
-section\<open>The Disjoint Sum of Two Types\<close>
+section \<open>The Disjoint Sum of Two Types\<close>
 
 theory Sum_Type
-imports Typedef Inductive Fun
+  imports Typedef Inductive Fun
 begin
 
 subsection \<open>Construction of the sum type and its basic abstract operations\<close>
@@ -85,7 +85,8 @@ lemma sumE:
 proof (rule Abs_sum_cases [of s])
   fix f
   assume "s = Abs_sum f" and "f \<in> sum"
-  with assms show P by (auto simp add: sum_def Inl_def Inr_def)
+  with assms show P
+    by (auto simp add: sum_def Inl_def Inr_def)
 qed
 
 free_constructors case_sum for
@@ -123,9 +124,9 @@ lemmas simps = sum.inject sum.distinct sum.case sum.rec
 setup \<open>Sign.parent_path\<close>
 
 primrec map_sum :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd"
-where
-  "map_sum f1 f2 (Inl a) = Inl (f1 a)"
-| "map_sum f1 f2 (Inr a) = Inr (f2 a)"
+  where
+    "map_sum f1 f2 (Inl a) = Inl (f1 a)"
+  | "map_sum f1 f2 (Inr a) = Inr (f2 a)"
 
 functor map_sum: map_sum
 proof -

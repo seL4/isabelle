@@ -7,8 +7,8 @@
 section \<open>Notions about functions\<close>
 
 theory Fun
-imports Set
-keywords "functor" :: thy_goal
+  imports Set
+  keywords "functor" :: thy_goal
 begin
 
 lemma apply_inverse: "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
@@ -63,12 +63,10 @@ lemma id_comp [simp]: "id \<circ> g = g"
 lemma comp_id [simp]: "f \<circ> id = f"
   by (simp add: fun_eq_iff)
 
-lemma comp_eq_dest:
-  "a \<circ> b = c \<circ> d \<Longrightarrow> a (b v) = c (d v)"
+lemma comp_eq_dest: "a \<circ> b = c \<circ> d \<Longrightarrow> a (b v) = c (d v)"
   by (simp add: fun_eq_iff)
 
-lemma comp_eq_elim:
-  "a \<circ> b = c \<circ> d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
+lemma comp_eq_elim: "a \<circ> b = c \<circ> d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
   by (simp add: fun_eq_iff)
 
 lemma comp_eq_dest_lhs: "a \<circ> b = c \<Longrightarrow> a (b v) = c v"
@@ -104,7 +102,7 @@ code_printing
 
 subsection \<open>The Forward Composition Operator \<open>fcomp\<close>\<close>
 
-definition fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "\<circ>>" 60)
+definition fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"  (infixl "\<circ>>" 60)
   where "f \<circ>> g = (\<lambda>x. g (f x))"
 
 lemma fcomp_apply [simp]:  "(f \<circ>> g) x = g (f x)"
@@ -145,8 +143,10 @@ definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> b
 definition bij_betw :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool"  \<comment> \<open>bijective\<close>
   where "bij_betw f A B \<longleftrightarrow> inj_on f A \<and> f ` A = B"
 
-text \<open>A common special case: functions injective, surjective or bijective over
-  the entire domain type.\<close>
+text \<open>
+  A common special case: functions injective, surjective or bijective over
+  the entire domain type.
+\<close>
 
 abbreviation "inj f \<equiv> inj_on f UNIV"
 
@@ -212,7 +212,7 @@ lemma inj_onD: "inj_on f A \<Longrightarrow> f x = f y \<Longrightarrow> x \<in>
 
 lemma inj_on_subset:
   assumes "inj_on f A"
-  assumes "B \<subseteq> A"
+    and "B \<subseteq> A"
   shows "inj_on f B"
 proof (rule inj_onI)
   fix a b
@@ -296,7 +296,7 @@ lemma surjD: "surj f \<Longrightarrow> \<exists>x. y = f x"
   by (simp add: surj_def)
 
 lemma surjE: "surj f \<Longrightarrow> (\<And>x. y = f x \<Longrightarrow> C) \<Longrightarrow> C"
-  by (simp add: surj_def, blast)
+  by (simp add: surj_def) blast
 
 lemma comp_surj: "surj f \<Longrightarrow> surj g \<Longrightarrow> surj (g \<circ> f)"
   by (simp add: image_comp [symmetric])
@@ -354,18 +354,19 @@ proof (auto simp add: bij_betw_comp_iff)
     using img
   proof (auto simp add: bij_betw_def)
     assume "inj_on (f' \<circ> f) A"
-    then show "inj_on f A" using inj_on_imageI2 by blast
+    then show "inj_on f A"
+      using inj_on_imageI2 by blast
   next
     fix a'
     assume **: "a' \<in> A'"
-    then have "f' a' \<in> A''" using bij unfolding bij_betw_def by auto
-    then obtain a where 1: "a \<in> A \<and> f'(f a) = f' a'"
-      using * unfolding bij_betw_def by force
-    then have "f a \<in> A'" using img by auto
-    then have "f a = a'"
-      using bij ** 1 unfolding bij_betw_def inj_on_def by auto
-    then show "a' \<in> f ` A"
-      using 1 by auto
+    with bij have "f' a' \<in> A''"
+      unfolding bij_betw_def by auto
+    with * obtain a where 1: "a \<in> A \<and> f' (f a) = f' a'"
+      unfolding bij_betw_def by force
+    with img have "f a \<in> A'" by auto
+    with bij ** 1 have "f a = a'"
+      unfolding bij_betw_def inj_on_def by auto
+    with 1 show "a' \<in> f ` A" by auto
   qed
 qed
 
@@ -379,9 +380,10 @@ proof -
   let ?g = "\<lambda>b. The (?P b)"
   have g: "?g b = a" if P: "?P b a" for a b
   proof -
-    from that have ex1: "\<exists>a. ?P b a" using s by blast
+    from that s have ex1: "\<exists>a. ?P b a" by blast
     then have uex1: "\<exists>!a. ?P b a" by (blast dest:inj_onD[OF i])
-    then show ?thesis using the1_equality[OF uex1, OF P] P by simp
+    then show ?thesis
+      using the1_equality[OF uex1, OF P] P by simp
   qed
   have "inj_on ?g B"
   proof (rule inj_onI)
@@ -396,15 +398,16 @@ proof -
     fix b
     assume "b \<in> B"
     with s obtain a where P: "?P b a" by blast
-    then show "?g b \<in> A" using g[OF P] by auto
+    with g[OF P] show "?g b \<in> A" by auto
   next
     fix a
     assume "a \<in> A"
-    then obtain b where P: "?P b a" using s by blast
-    then have "b \<in> B" using s by blast
+    with s obtain b where P: "?P b a" by blast
+    with s have "b \<in> B" by blast
     with g[OF P] show "\<exists>b\<in>B. a = ?g b" by blast
   qed
-  ultimately show ?thesis by (auto simp: bij_betw_def)
+  ultimately show ?thesis
+    by (auto simp: bij_betw_def)
 qed
 
 lemma bij_betw_cong: "(\<And> a. a \<in> A \<Longrightarrow> f a = g a) \<Longrightarrow> bij_betw f A A' = bij_betw g A A'"
@@ -500,9 +503,7 @@ lemma bij_image_Compl_eq: "bij f \<Longrightarrow> f ` (- A) = - (f ` A)"
 
 lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x. f x = a}"
   \<comment> \<open>The inverse image of a singleton under an injective function is included in a singleton.\<close>
-  apply (auto simp add: inj_on_def)
-  apply (blast intro: the_equality [symmetric])
-  done
+  by (simp add: inj_on_def) (blast intro: the_equality [symmetric])
 
 lemma inj_on_vimage_singleton: "inj_on f A \<Longrightarrow> f -` {a} \<inter> A \<subseteq> {THE x. x \<in> A \<and> f x = a}"
   by (auto simp add: inj_on_def intro: the_equality [symmetric])
@@ -516,21 +517,21 @@ lemma (in linorder) strict_mono_imp_inj_on: "strict_mono f \<Longrightarrow> inj
 lemma bij_betw_byWitness:
   assumes left: "\<forall>a \<in> A. f' (f a) = a"
     and right: "\<forall>a' \<in> A'. f (f' a') = a'"
-    and "f ` A \<le> A'"
-    and img2: "f' ` A' \<le> A"
+    and "f ` A \<subseteq> A'"
+    and img2: "f' ` A' \<subseteq> A"
   shows "bij_betw f A A'"
   using assms
   unfolding bij_betw_def inj_on_def
 proof safe
   fix a b
-  assume *: "a \<in> A" "b \<in> A" and **: "f a = f b"
-  have "a = f' (f a) \<and> b = f'(f b)" using * left by simp
-  with ** show "a = b" by simp
+  assume "a \<in> A" "b \<in> A"
+  with left have "a = f' (f a) \<and> b = f' (f b)" by simp
+  moreover assume "f a = f b"
+  ultimately show "a = b" by simp
 next
   fix a' assume *: "a' \<in> A'"
-  then have "f' a' \<in> A" using img2 by blast
-  moreover
-  have "a' = f (f' a')" using * right by simp
+  with img2 have "f' a' \<in> A" by blast
+  moreover from * right have "a' = f (f' a')" by simp
   ultimately show "a' \<in> f ` A" by blast
 qed
 
@@ -565,7 +566,8 @@ next
     moreover
     have False if "f a = f b"
     proof -
-      have "a = b" using * ** that unfolding bij_betw_def inj_on_def by blast
+      have "a = b"
+        using * ** that unfolding bij_betw_def inj_on_def by blast
       with \<open>b \<notin> A\<close> ** show ?thesis by blast
     qed
     ultimately show "f a \<in> A'" by blast
@@ -611,9 +613,9 @@ notation
 lemma fun_upd_idem_iff: "f(x:=y) = f \<longleftrightarrow> f x = y"
   unfolding fun_upd_def
   apply safe
-  apply (erule subst)
-  apply (rule_tac [2] ext)
-  apply auto
+   apply (erule subst)
+   apply (rule_tac [2] ext)
+   apply auto
   done
 
 lemma fun_upd_idem: "f x = y \<Longrightarrow> f(x := y) = f"
@@ -667,10 +669,10 @@ lemma override_on_apply_in[simp]: "a \<in> A \<Longrightarrow> (override_on f g 
   by (simp add:override_on_def)
 
 lemma override_on_insert: "override_on f g (insert x X) = (override_on f g X)(x:=g x)"
-unfolding override_on_def by (simp add: fun_eq_iff)
+  unfolding override_on_def by (simp add: fun_eq_iff)
 
 lemma override_on_insert': "override_on f g (insert x X) = (override_on (f(x:=g x)) g X)"
-unfolding override_on_def by (simp add: fun_eq_iff)
+  unfolding override_on_def by (simp add: fun_eq_iff)
 
 
 subsection \<open>\<open>swap\<close>\<close>
@@ -691,7 +693,7 @@ lemma swap_commute: "swap a b f = swap b a f"
   by (simp add: fun_upd_def swap_def fun_eq_iff)
 
 lemma swap_nilpotent [simp]: "swap a b (swap a b f) = f"
-  by (rule ext, simp add: fun_upd_def swap_def)
+  by (rule ext) (simp add: fun_upd_def swap_def)
 
 lemma swap_comp_involutory [simp]: "swap a b \<circ> swap a b = id"
   by (rule ext) simp
@@ -757,14 +759,14 @@ lemma the_inv_into_f_f: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow
 lemma f_the_inv_into_f: "inj_on f A \<Longrightarrow> y \<in> f ` A  \<Longrightarrow> f (the_inv_into A f y) = y"
   apply (simp add: the_inv_into_def)
   apply (rule the1I2)
-   apply(blast dest: inj_onD)
+   apply (blast dest: inj_onD)
   apply blast
   done
 
 lemma the_inv_into_into: "inj_on f A \<Longrightarrow> x \<in> f ` A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> the_inv_into A f x \<in> B"
   apply (simp add: the_inv_into_def)
   apply (rule the1I2)
-   apply(blast dest: inj_onD)
+   apply (blast dest: inj_onD)
   apply blast
   done
 
