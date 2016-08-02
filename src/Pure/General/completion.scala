@@ -249,7 +249,7 @@ object Completion
 
   /* word parsers */
 
-  private object Word_Parsers extends RegexParsers
+  object Word_Parsers extends RegexParsers
   {
     override val whiteSpace = "".r
 

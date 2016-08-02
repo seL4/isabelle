@@ -89,10 +89,11 @@ final class Outer_Syntax private(
   {
     val keywords1 = keywords + (name, kind, tags)
     val completion1 =
-      completion.add_keyword(name).add_abbrevs(
-        if (Keyword.theory_block.contains(kind))
-          List((name, name + "\nbegin\n\u0007\nend"), (name, name))
-        else List((name, name)))
+      completion.add_keyword(name).
+        add_abbrevs(
+          (if (Keyword.theory_block.contains(kind)) List((name, name + "\nbegin\n\u0007\nend"))
+           else Nil) :::
+          (if (Completion.Word_Parsers.is_word(name)) List((name, name)) else Nil))
     new Outer_Syntax(keywords1, completion1, language_context, true)
   }
 
