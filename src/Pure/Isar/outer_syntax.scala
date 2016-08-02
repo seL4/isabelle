@@ -76,7 +76,7 @@ final class Outer_Syntax private(
   val keywords: Keyword.Keywords = Keyword.Keywords.empty,
   val completion: Completion = Completion.empty,
   val language_context: Completion.Language_Context = Completion.Language_Context.outer,
-  val has_tokens: Boolean = true) extends Prover.Syntax
+  val has_tokens: Boolean = true)
 {
   /** syntax content **/
 
@@ -119,7 +119,7 @@ final class Outer_Syntax private(
 
   /* merge */
 
-  def ++ (other: Prover.Syntax): Prover.Syntax =
+  def ++ (other: Outer_Syntax): Outer_Syntax =
     if (this eq other) this
     else {
       val keywords1 = keywords ++ other.asInstanceOf[Outer_Syntax].keywords

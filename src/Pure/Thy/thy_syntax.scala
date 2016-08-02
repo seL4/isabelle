@@ -158,7 +158,7 @@ object Thy_Syntax
 
   private def reparse_spans(
     resources: Resources,
-    syntax: Prover.Syntax,
+    syntax: Outer_Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
@@ -204,7 +204,7 @@ object Thy_Syntax
 
   private def text_edit(
     resources: Resources,
-    syntax: Prover.Syntax,
+    syntax: Outer_Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     reparse_limit: Int,

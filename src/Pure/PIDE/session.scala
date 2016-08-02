@@ -237,7 +237,7 @@ class Session(val resources: Resources)
   private val global_state = Synchronized(Document.State.init)
   def current_state(): Document.State = global_state.value
 
-  def recent_syntax(name: Document.Node.Name): Prover.Syntax =
+  def recent_syntax(name: Document.Node.Name): Outer_Syntax =
     global_state.value.recent_finished.version.get_finished.nodes(name).syntax getOrElse
     resources.base_syntax
 

@@ -245,7 +245,7 @@ object Document
   final class Node private(
     val get_blob: Option[Document.Blob] = None,
     val header: Node.Header = Node.no_header,
-    val syntax: Option[Prover.Syntax] = None,
+    val syntax: Option[Outer_Syntax] = None,
     val text_perspective: Text.Perspective = Text.Perspective.empty,
     val perspective: Node.Perspective_Command = Node.no_perspective_command,
     _commands: Node.Commands = Node.Commands.empty)
@@ -269,7 +269,7 @@ object Document
     def update_header(new_header: Node.Header): Node =
       new Node(get_blob, new_header, syntax, text_perspective, perspective, _commands)
 
-    def update_syntax(new_syntax: Option[Prover.Syntax]): Node =
+    def update_syntax(new_syntax: Option[Outer_Syntax]): Node =
       new Node(get_blob, header, new_syntax, text_perspective, perspective, _commands)
 
     def update_perspective(

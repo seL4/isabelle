@@ -82,7 +82,7 @@ class Thy_Info(resources: Resources)
       header_errors ::: import_errors
     }
 
-    lazy val syntax: Prover.Syntax =
+    lazy val syntax: Outer_Syntax =
       resources.base_syntax.add_keywords(keywords).add_abbrevs(abbrevs)
 
     def loaded_theories: Set[String] =
