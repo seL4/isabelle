@@ -411,7 +411,7 @@ proof -
 qed
 
 lemma bij_betw_cong: "(\<And>a. a \<in> A \<Longrightarrow> f a = g a) \<Longrightarrow> bij_betw f A A' = bij_betw g A A'"
-  unfolding bij_betw_def inj_on_def by force  (* slow *)
+  unfolding bij_betw_def inj_on_def by safe force+  (* somewhat slow *)
 
 lemma bij_betw_id[intro, simp]: "bij_betw id A A"
   unfolding bij_betw_def id_def by auto
