@@ -1,9 +1,13 @@
-(*  Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel *)
+(*  Title:      HOL/Set.thy
+    Author:     Tobias Nipkow
+    Author:     Lawrence C Paulson
+    Author:     Markus Wenzel
+*)
 
 section \<open>Set theory for higher-order logic\<close>
 
 theory Set
-imports Lattices
+  imports Lattices
 begin
 
 subsection \<open>Sets as predicates\<close>
@@ -12,8 +16,8 @@ typedecl 'a set
 
 axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comment> "comprehension"
   and member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" \<comment> "membership"
-where mem_Collect_eq [iff, code_unfold]: "member a (Collect P) = P a"
-  and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
+  where mem_Collect_eq [iff, code_unfold]: "member a (Collect P) = P a"
+    and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
 
 notation
   member  ("op \<in>") and
@@ -76,7 +80,8 @@ lemma set_eqI:
   assumes "\<And>x. x \<in> A \<longleftrightarrow> x \<in> B"
   shows "A = B"
 proof -
-  from assms have "{x. x \<in> A} = {x. x \<in> B}" by simp
+  from assms have "{x. x \<in> A} = {x. x \<in> B}"
+    by simp
   then show ?thesis by simp
 qed
 
@@ -347,7 +352,6 @@ lemma bspec [dest?]: "\<forall>x\<in>A. P x \<Longrightarrow> x \<in> A \<Longri
   by (simp add: Ball_def)
 
 text \<open>Gives better instantiation for bound:\<close>
-
 setup \<open>
   map_theory_claset (fn ctxt =>
     ctxt addbefore ("bspec", fn ctxt' => dresolve_tac ctxt' @{thms bspec} THEN' assume_tac ctxt'))
@@ -459,7 +463,7 @@ lemma subsetD [elim, intro?]: "A \<subseteq> B \<Longrightarrow> c \<in> A \<Lon
   \<comment> \<open>Rule in Modus Ponens style.\<close>
 
 lemma rev_subsetD [intro?]: "c \<in> A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> c \<in> B"
-  \<comment> \<open>The same, with reversed premises for use with \<open>erule\<close> -- cf. \<open>rev_mp\<close>.\<close>
+  \<comment> \<open>The same, with reversed premises for use with @{method erule} -- cf. @{thm rev_mp}.\<close>
   by (rule subsetD)
 
 lemma subsetCE [elim]: "A \<subseteq> B \<Longrightarrow> (c \<notin> A \<Longrightarrow> P) \<Longrightarrow> (c \<in> B \<Longrightarrow> P) \<Longrightarrow> P"
@@ -696,8 +700,7 @@ lemma UnI1 [elim?]: "c \<in> A \<Longrightarrow> c \<in> A \<union> B"
 lemma UnI2 [elim?]: "c \<in> B \<Longrightarrow> c \<in> A \<union> B"
   by simp
 
-text \<open>\<^medskip> Classical introduction rule: no commitment to @{prop A} vs @{prop B}.\<close>
-
+text \<open>\<^medskip> Classical introduction rule: no commitment to \<open>A\<close> vs. \<open>B\<close>.\<close>
 lemma UnCI [intro!]: "(c \<notin> B \<Longrightarrow> c \<in> A) \<Longrightarrow> c \<in> A \<union> B"
   by auto
 
@@ -960,7 +963,7 @@ lemma image_add_0 [simp]: "op + (0::'a::comm_monoid_add) ` S = S"
 
 text \<open>\<^medskip> Range of a function -- just an abbreviation for image!\<close>
 
-abbreviation range :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set"  \<comment> "of function"
+abbreviation range :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set"  \<comment> \<open>of function\<close>
   where "range f \<equiv> f ` UNIV"
 
 lemma range_eqI: "b = f x \<Longrightarrow> b \<in> range f"
@@ -1387,7 +1390,8 @@ lemma Compl_empty_eq: "- {} = UNIV"
 lemma Compl_subset_Compl_iff [iff]: "- A \<subseteq> - B \<longleftrightarrow> B \<subseteq> A"
   by (fact compl_le_compl_iff) (* FIXME: already simp *)
 
-lemma Compl_eq_Compl_iff [iff]: "- A = - B \<longleftrightarrow> A = B" for A B :: "'a set"
+lemma Compl_eq_Compl_iff [iff]: "- A = - B \<longleftrightarrow> A = B"
+  for A B :: "'a set"
   by (fact compl_eq_compl_iff) (* FIXME: already simp *)
 
 lemma Compl_insert: "- insert x A = (- A) - {x}"
@@ -1417,7 +1421,8 @@ lemma Diff_eq_empty_iff [simp]: "A - B = {} \<longleftrightarrow> A \<subseteq> 
 lemma Diff_cancel [simp]: "A - A = {}"
   by blast
 
-lemma Diff_idemp [simp]: "(A - B) - B = A - B" for A B :: "'a set"
+lemma Diff_idemp [simp]: "(A - B) - B = A - B"
+  for A B :: "'a set"
   by blast
 
 lemma Diff_triv: "A \<inter> B = {} \<Longrightarrow> A - B = A"
@@ -1526,7 +1531,7 @@ lemma Pow_empty [simp]: "Pow {} = {{}}"
   by (auto simp add: Pow_def)
 
 lemma Pow_singleton_iff [simp]: "Pow X = {Y} \<longleftrightarrow> X = {} \<and> Y = {}"
-  by blast
+  by blast  (* somewhat slow *)
 
 lemma Pow_insert: "Pow (insert a A) = Pow A \<union> (insert a ` Pow A)"
   by (blast intro: image_eqI [where ?x = "u - {a}" for u])
@@ -1612,9 +1617,7 @@ lemma Compl_anti_mono: "A \<subseteq> B \<Longrightarrow> - B \<subseteq> - A"
 text \<open>\<^medskip> Monotonicity of implications.\<close>
 
 lemma in_mono: "A \<subseteq> B \<Longrightarrow> x \<in> A \<longrightarrow> x \<in> B"
-  apply (rule impI)
-  apply (erule subsetD, assumption)
-  done
+  by (rule impI) (erule subsetD)
 
 lemma conj_mono: "P1 \<longrightarrow> Q1 \<Longrightarrow> P2 \<longrightarrow> Q2 \<Longrightarrow> (P1 \<and> P2) \<longrightarrow> (Q1 \<and> Q2)"
   by iprover
@@ -1730,7 +1733,7 @@ lemma vimage_inter_cong: "(\<And> w. w \<in> S \<Longrightarrow> f w = g w) \<Lo
 lemma vimage_ident [simp]: "(\<lambda>x. x) -` Y = Y"
   by blast
 
-  
+
 subsubsection \<open>Singleton sets\<close>
 
 definition is_singleton :: "'a set \<Rightarrow> bool"
@@ -1778,9 +1781,9 @@ lemma Least_mono: "mono f \<Longrightarrow> \<exists>x\<in>S. \<forall>y\<in>S. 
   \<comment> \<open>Courtesy of Stephan Merz\<close>
   apply clarify
   apply (erule_tac P = "\<lambda>x. x : S" in LeastI2_order)
-  apply fast
+   apply fast
   apply (rule LeastI2_order)
-  apply (auto elim: monoD intro!: order_antisym)
+    apply (auto elim: monoD intro!: order_antisym)
   done
 
 
@@ -1791,20 +1794,21 @@ definition bind :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow>
 
 hide_const (open) bind
 
-lemma bind_bind: "Set.bind (Set.bind A B) C = Set.bind A (\<lambda>x. Set.bind (B x) C)" for A :: "'a set"
-  by (auto simp add: bind_def)
+lemma bind_bind: "Set.bind (Set.bind A B) C = Set.bind A (\<lambda>x. Set.bind (B x) C)"
+  for A :: "'a set"
+  by (auto simp: bind_def)
 
 lemma empty_bind [simp]: "Set.bind {} f = {}"
   by (simp add: bind_def)
 
 lemma nonempty_bind_const: "A \<noteq> {} \<Longrightarrow> Set.bind A (\<lambda>_. B) = B"
-  by (auto simp add: bind_def)
+  by (auto simp: bind_def)
 
 lemma bind_const: "Set.bind A (\<lambda>_. B) = (if A = {} then {} else B)"
-  by (auto simp add: bind_def)
+  by (auto simp: bind_def)
 
 lemma bind_singleton_conv_image: "Set.bind A (\<lambda>x. {f x}) = f ` A"
-  by(auto simp add: bind_def)
+  by (auto simp: bind_def)
 
 
 subsubsection \<open>Operations for execution\<close>
@@ -1842,12 +1846,14 @@ end
 
 text \<open>Misc\<close>
 
-definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x \<noteq> y \<longrightarrow> R x y)"
+definition pairwise :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
+  where "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x \<noteq> y \<longrightarrow> R x y)"
 
 lemma pairwise_subset: "pairwise P S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> pairwise P T"
   by (force simp: pairwise_def)
 
-definition disjnt where "disjnt A B \<longleftrightarrow> A \<inter> B = {}"
+definition disjnt :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  where "disjnt A B \<longleftrightarrow> A \<inter> B = {}"
 
 lemma disjnt_iff: "disjnt A B \<longleftrightarrow> (\<forall>x. \<not> (x \<in> A \<and> x \<in> B))"
   by (force simp: disjnt_def)

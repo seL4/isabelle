@@ -1,48 +1,46 @@
-(*  Title:   HOL/Groups.thy
-    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, Markus Wenzel, Jeremy Avigad
+(*  Title:      HOL/Groups.thy
+    Author:     Gertrud Bauer
+    Author:     Steven Obua
+    Author:     Lawrence C Paulson
+    Author:     Markus Wenzel
+    Author:     Jeremy Avigad
 *)
 
 section \<open>Groups, also combined with orderings\<close>
 
 theory Groups
-imports Orderings
+  imports Orderings
 begin
 
 subsection \<open>Dynamic facts\<close>
 
 named_theorems ac_simps "associativity and commutativity simplification rules"
-
-
-text \<open>
-  The rewrites accumulated in \<open>algebra_simps\<close> deal with the
-  classical algebraic structures of groups, rings and family. They simplify
-  terms by multiplying everything out (in case of a ring) and bringing sums and
-  products into a canonical form (by ordered rewriting). As a result it decides
-  group and ring equalities but also helps with inequalities.
-
-  Of course it also works for fields, but it knows nothing about multiplicative
-  inverses or division. This is catered for by \<open>field_simps\<close>.
-\<close>
-
-named_theorems algebra_simps "algebra simplification rules"
-
+  and algebra_simps "algebra simplification rules"
+  and field_simps "algebra simplification rules for fields"
 
 text \<open>
-  Lemmas \<open>field_simps\<close> multiply with denominators in (in)equations
-  if they can be proved to be non-zero (for equations) or positive/negative
-  (for inequations). Can be too aggressive and is therefore separate from the
-  more benign \<open>algebra_simps\<close>.
-\<close>
+  The rewrites accumulated in \<open>algebra_simps\<close> deal with the classical
+  algebraic structures of groups, rings and family. They simplify terms by
+  multiplying everything out (in case of a ring) and bringing sums and
+  products into a canonical form (by ordered rewriting). As a result it
+  decides group and ring equalities but also helps with inequalities.
 
-named_theorems field_simps "algebra simplification rules for fields"
+  Of course it also works for fields, but it knows nothing about
+  multiplicative inverses or division. This is catered for by \<open>field_simps\<close>.
+
+  Facts in \<open>field_simps\<close> multiply with denominators in (in)equations if they
+  can be proved to be non-zero (for equations) or positive/negative (for
+  inequalities). Can be too aggressive and is therefore separate from the more
+  benign \<open>algebra_simps\<close>.
+\<close>
 
 
 subsection \<open>Abstract structures\<close>
 
 text \<open>
-  These locales provide basic structures for interpretation into
-  bigger structures;  extensions require careful thinking, otherwise
-  undesired effects may occur due to interpretation.
+  These locales provide basic structures for interpretation into bigger
+  structures; extensions require careful thinking, otherwise undesired effects
+  may occur due to interpretation.
 \<close>
 
 locale semigroup =
@@ -114,16 +112,13 @@ proof -
     by (simp add: assoc [symmetric])
 qed
 
-lemma inverse_neutral [simp]:
-  "inverse \<^bold>1 = \<^bold>1"
+lemma inverse_neutral [simp]: "inverse \<^bold>1 = \<^bold>1"
   by (rule inverse_unique) simp
 
-lemma inverse_inverse [simp]:
-  "inverse (inverse a) = a"
+lemma inverse_inverse [simp]: "inverse (inverse a) = a"
   by (rule inverse_unique) simp
 
-lemma right_inverse [simp]:
-  "a \<^bold>* inverse a = \<^bold>1"
+lemma right_inverse [simp]: "a \<^bold>* inverse a = \<^bold>1"
 proof -
   have "a \<^bold>* inverse a = inverse (inverse a) \<^bold>* inverse a"
     by simp
@@ -132,8 +127,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma inverse_distrib_swap:
-  "inverse (a \<^bold>* b) = inverse b \<^bold>* inverse a"
+lemma inverse_distrib_swap: "inverse (a \<^bold>* b) = inverse b \<^bold>* inverse a"
 proof (rule inverse_unique)
   have "a \<^bold>* b \<^bold>* (inverse b \<^bold>* inverse a) =
     a \<^bold>* (b \<^bold>* inverse b) \<^bold>* inverse a"
@@ -143,8 +137,7 @@ proof (rule inverse_unique)
   finally show "a \<^bold>* b \<^bold>* (inverse b \<^bold>* inverse a) = \<^bold>1" .
 qed
 
-lemma right_cancel:
-  "b \<^bold>* a = c \<^bold>* a \<longleftrightarrow> b = c"
+lemma right_cancel: "b \<^bold>* a = c \<^bold>* a \<longleftrightarrow> b = c"
 proof
   assume "b \<^bold>* a = c \<^bold>* a"
   then have "b \<^bold>* a \<^bold>* inverse a= c \<^bold>* a \<^bold>* inverse a"
@@ -435,10 +428,8 @@ lemma diff_conv_add_uminus: "a - b = a + (- b)"
 sublocale add: group plus 0 uminus
   by standard (simp_all add: left_minus)
 
-lemma minus_unique:
-  assumes "a + b = 0"
-  shows "- a = b"
-  using assms by (fact add.inverse_unique)
+lemma minus_unique: "a + b = 0 \<Longrightarrow> - a = b"
+  by (fact add.inverse_unique)
 
 lemma minus_zero: "- 0 = 0"
   by (fact add.inverse_neutral)
@@ -701,8 +692,8 @@ lemma add_less_cancel_right [simp]: "a + c < b + c \<longleftrightarrow> a < b"
 
 lemma add_le_cancel_left [simp]: "c + a \<le> c + b \<longleftrightarrow> a \<le> b"
   apply auto
-  apply (drule add_le_imp_le_left)
-  apply (simp_all add: add_left_mono)
+   apply (drule add_le_imp_le_left)
+   apply (simp_all add: add_left_mono)
   done
 
 lemma add_le_cancel_right [simp]: "a + c \<le> b + c \<longleftrightarrow> a \<le> b"
@@ -803,36 +794,28 @@ end
 class ordered_ab_semigroup_monoid_add_imp_le = monoid_add + ordered_ab_semigroup_add_imp_le
 begin
 
-lemma add_less_same_cancel1 [simp]:
-  "b + a < b \<longleftrightarrow> a < 0"
+lemma add_less_same_cancel1 [simp]: "b + a < b \<longleftrightarrow> a < 0"
   using add_less_cancel_left [of _ _ 0] by simp
 
-lemma add_less_same_cancel2 [simp]:
-  "a + b < b \<longleftrightarrow> a < 0"
+lemma add_less_same_cancel2 [simp]: "a + b < b \<longleftrightarrow> a < 0"
   using add_less_cancel_right [of _ _ 0] by simp
 
-lemma less_add_same_cancel1 [simp]:
-  "a < a + b \<longleftrightarrow> 0 < b"
+lemma less_add_same_cancel1 [simp]: "a < a + b \<longleftrightarrow> 0 < b"
   using add_less_cancel_left [of _ 0] by simp
 
-lemma less_add_same_cancel2 [simp]:
-  "a < b + a \<longleftrightarrow> 0 < b"
+lemma less_add_same_cancel2 [simp]: "a < b + a \<longleftrightarrow> 0 < b"
   using add_less_cancel_right [of 0] by simp
 
-lemma add_le_same_cancel1 [simp]:
-  "b + a \<le> b \<longleftrightarrow> a \<le> 0"
+lemma add_le_same_cancel1 [simp]: "b + a \<le> b \<longleftrightarrow> a \<le> 0"
   using add_le_cancel_left [of _ _ 0] by simp
 
-lemma add_le_same_cancel2 [simp]:
-  "a + b \<le> b \<longleftrightarrow> a \<le> 0"
+lemma add_le_same_cancel2 [simp]: "a + b \<le> b \<longleftrightarrow> a \<le> 0"
   using add_le_cancel_right [of _ _ 0] by simp
 
-lemma le_add_same_cancel1 [simp]:
-  "a \<le> a + b \<longleftrightarrow> 0 \<le> b"
+lemma le_add_same_cancel1 [simp]: "a \<le> a + b \<longleftrightarrow> 0 \<le> b"
   using add_le_cancel_left [of _ 0] by simp
 
-lemma le_add_same_cancel2 [simp]:
-  "a \<le> b + a \<longleftrightarrow> 0 \<le> b"
+lemma le_add_same_cancel2 [simp]: "a \<le> b + a \<longleftrightarrow> 0 \<le> b"
   using add_le_cancel_right [of 0] by simp
 
 subclass cancel_comm_monoid_add
@@ -911,7 +894,7 @@ text \<open>The next several equations can make the simplifier loop!\<close>
 
 lemma less_minus_iff: "a < - b \<longleftrightarrow> b < - a"
 proof -
-  have "- (-a) < - b \<longleftrightarrow> b < - a"
+  have "- (- a) < - b \<longleftrightarrow> b < - a"
     by (rule neg_less_iff_less)
   then show ?thesis by simp
 qed
@@ -925,12 +908,12 @@ qed
 
 lemma le_minus_iff: "a \<le> - b \<longleftrightarrow> b \<le> - a"
 proof -
-  have mm: "- (- a) < -b \<Longrightarrow> - (- b) < -a" for a b :: 'a
+  have mm: "- (- a) < - b \<Longrightarrow> - (- b) < -a" for a b :: 'a
     by (simp only: minus_less_iff)
-  have "- (- a) \<le> -b \<longleftrightarrow> b \<le> - a"
+  have "- (- a) \<le> - b \<longleftrightarrow> b \<le> - a"
     apply (auto simp only: le_less)
-    apply (drule mm)
-    apply (simp_all)
+      apply (drule mm)
+      apply (simp_all)
     apply (drule mm[simplified], assumption)
     done
   then show ?thesis by simp
@@ -1039,11 +1022,11 @@ proof
   proof (rule ccontr)
     assume *: "\<not> ?thesis"
     then have "b \<le> a" by (simp add: linorder_not_le)
-    then have le2: "c + b \<le> c + a" by (rule add_left_mono)
-    have "a = b"
-      apply (insert le1 le2)
+    then have "c + b \<le> c + a" by (rule add_left_mono)
+    with le1 have "a = b"
+      apply -
       apply (drule antisym)
-      apply simp_all
+       apply simp_all
       done
     with * show False
       by (simp add: linorder_not_le [symmetric])
@@ -1117,8 +1100,8 @@ qed
 
 lemma double_zero_sym [simp]: "0 = a + a \<longleftrightarrow> a = 0"
   apply (rule iffI)
-  apply (drule sym)
-  apply simp_all
+   apply (drule sym)
+   apply simp_all
   done
 
 lemma zero_less_double_add_iff_zero_less_single_add [simp]: "0 < a + a \<longleftrightarrow> 0 < a"
@@ -1342,7 +1325,7 @@ lemma dense_eq0_I:
   fixes x::"'a::{dense_linorder,ordered_ab_group_add_abs}"
   shows "(\<And>e. 0 < e \<Longrightarrow> \<bar>x\<bar> \<le> e) \<Longrightarrow> x = 0"
   apply (cases "\<bar>x\<bar> = 0")
-  apply simp
+   apply simp
   apply (simp only: zero_less_abs_iff [symmetric])
   apply (drule dense)
   apply (auto simp add: not_less [symmetric])
@@ -1402,7 +1385,7 @@ class ordered_cancel_comm_monoid_diff =
 begin
 
 context
-  fixes a b
+  fixes a b :: 'a
   assumes le: "a \<le> b"
 begin
 

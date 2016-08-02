@@ -10,7 +10,7 @@
 section \<open>Rings\<close>
 
 theory Rings
-imports Groups Set
+  imports Groups Set
 begin
 
 class semiring = ab_semigroup_add + semigroup_mult +
@@ -42,10 +42,14 @@ begin
 subclass semiring_0
 proof
   fix a :: 'a
-  have "0 * a + 0 * a = 0 * a + 0" by (simp add: distrib_right [symmetric])
-  then show "0 * a = 0" by (simp only: add_left_cancel)
-  have "a * 0 + a * 0 = a * 0 + 0" by (simp add: distrib_left [symmetric])
-  then show "a * 0 = 0" by (simp only: add_left_cancel)
+  have "0 * a + 0 * a = 0 * a + 0"
+    by (simp add: distrib_right [symmetric])
+  then show "0 * a = 0"
+    by (simp only: add_left_cancel)
+  have "a * 0 + a * 0 = a * 0 + 0"
+    by (simp add: distrib_left [symmetric])
+  then show "a * 0 = 0"
+    by (simp only: add_left_cancel)
 qed
 
 end
@@ -57,11 +61,16 @@ begin
 subclass semiring
 proof
   fix a b c :: 'a
-  show "(a + b) * c = a * c + b * c" by (simp add: distrib)
-  have "a * (b + c) = (b + c) * a" by (simp add: ac_simps)
-  also have "\<dots> = b * a + c * a" by (simp only: distrib)
-  also have "\<dots> = a * b + a * c" by (simp add: ac_simps)
-  finally show "a * (b + c) = a * b + a * c" by blast
+  show "(a + b) * c = a * c + b * c"
+    by (simp add: distrib)
+  have "a * (b + c) = (b + c) * a"
+    by (simp add: ac_simps)
+  also have "\<dots> = b * a + c * a"
+    by (simp only: distrib)
+  also have "\<dots> = a * b + a * c"
+    by (simp add: ac_simps)
+  finally show "a * (b + c) = a * b + a * c"
+    by blast
 qed
 
 end
@@ -140,9 +149,12 @@ lemma dvd_trans [trans]:
   assumes "a dvd b" and "b dvd c"
   shows "a dvd c"
 proof -
-  from assms obtain v where "b = a * v" by (auto elim!: dvdE)
-  moreover from assms obtain w where "c = b * w" by (auto elim!: dvdE)
-  ultimately have "c = a * (v * w)" by (simp add: mult.assoc)
+  from assms obtain v where "b = a * v"
+    by (auto elim!: dvdE)
+  moreover from assms obtain w where "c = b * w"
+    by (auto elim!: dvdE)
+  ultimately have "c = a * (v * w)"
+    by (simp add: mult.assoc)
   then show ?thesis ..
 qed
 
@@ -174,7 +186,8 @@ lemma mult_dvd_mono:
 proof -
   from \<open>a dvd b\<close> obtain b' where "b = a * b'" ..
   moreover from \<open>c dvd d\<close> obtain d' where "d = c * d'" ..
-  ultimately have "b * d = (a * c) * (b' * d')" by (simp add: ac_simps)
+  ultimately have "b * d = (a * c) * (b' * d')"
+    by (simp add: ac_simps)
   then show ?thesis ..
 qed
 
@@ -208,7 +221,8 @@ lemma dvd_add [simp]:
 proof -
   from \<open>a dvd b\<close> obtain b' where "b = a * b'" ..
   moreover from \<open>a dvd c\<close> obtain c' where "c = a * c'" ..
-  ultimately have "b + c = a * (b' + c')" by (simp add: distrib_left)
+  ultimately have "b + c = a * (b' + c')"
+    by (simp add: distrib_left)
   then show ?thesis ..
 qed
 
@@ -571,13 +585,13 @@ proof
     then show ?thesis by simp
   next
     case False
-    {
-      assume "a * c = b * c"
-      then have "a * c div c = b * c div c"
+    have "a = b" if "a * c = b * c"
+    proof -
+      from that have "a * c div c = b * c div c"
         by simp
-      with False have "a = b"
+      with False show ?thesis
         by simp
-    }
+    qed
     then show ?thesis by auto
   qed
   show "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b" for a b c
@@ -617,22 +631,23 @@ text \<open>
 
 lemma dvd_times_left_cancel_iff [simp]:
   assumes "a \<noteq> 0"
-  shows "a * b dvd a * c \<longleftrightarrow> b dvd c" (is "?P \<longleftrightarrow> ?Q")
+  shows "a * b dvd a * c \<longleftrightarrow> b dvd c"
+    (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?P
+  assume ?lhs
   then obtain d where "a * c = a * b * d" ..
   with assms have "c = b * d" by (simp add: ac_simps)
-  then show ?Q ..
+  then show ?rhs ..
 next
-  assume ?Q
+  assume ?rhs
   then obtain d where "c = b * d" ..
   then have "a * c = a * b * d" by (simp add: ac_simps)
-  then show ?P ..
+  then show ?lhs ..
 qed
 
 lemma dvd_times_right_cancel_iff [simp]:
   assumes "a \<noteq> 0"
-  shows "b * a dvd c * a \<longleftrightarrow> b dvd c" (is "?P \<longleftrightarrow> ?Q")
+  shows "b * a dvd c * a \<longleftrightarrow> b dvd c"
   using dvd_times_left_cancel_iff [of a b c] assms by (simp add: ac_simps)
 
 lemma div_dvd_iff_mult:
@@ -698,15 +713,16 @@ qed
 lemma dvd_div_eq_mult:
   assumes "a \<noteq> 0" and "a dvd b"
   shows "b div a = c \<longleftrightarrow> b = c * a"
+    (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume "b = c * a"
-  then show "b div a = c" by (simp add: assms)
+  assume ?rhs
+  then show ?lhs by (simp add: assms)
 next
-  assume "b div a = c"
+  assume ?lhs
   then have "b div a * a = c * a" by simp
   moreover from assms have "b div a * a = b"
     by (auto elim!: dvdE simp add: ac_simps)
-  ultimately show "b = c * a" by simp
+  ultimately show ?rhs by simp
 qed
 
 lemma dvd_div_mult_self [simp]: "a dvd b \<Longrightarrow> b div a * a = b"
@@ -743,16 +759,17 @@ qed
 
 lemma dvd_div_div_eq_mult:
   assumes "a \<noteq> 0" "c \<noteq> 0" and "a dvd b" "c dvd d"
-  shows "b div a = d div c \<longleftrightarrow> b * c = a * d" (is "?P \<longleftrightarrow> ?Q")
+  shows "b div a = d div c \<longleftrightarrow> b * c = a * d"
+    (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   from assms have "a * c \<noteq> 0" by simp
-  then have "?P \<longleftrightarrow> b div a * (a * c) = d div c * (a * c)"
+  then have "?lhs \<longleftrightarrow> b div a * (a * c) = d div c * (a * c)"
     by simp
   also have "\<dots> \<longleftrightarrow> (a * (b div a)) * c = (c * (d div c)) * a"
     by (simp add: ac_simps)
   also have "\<dots> \<longleftrightarrow> (a * b div a) * c = (c * d div c) * a"
     using assms by (simp add: div_mult_swap)
-  also have "\<dots> \<longleftrightarrow> ?Q"
+  also have "\<dots> \<longleftrightarrow> ?rhs"
     using assms by (simp add: ac_simps)
   finally show ?thesis .
 qed
@@ -765,7 +782,8 @@ proof (cases "c = 0")
 next
   case False
   from \<open>a * c dvd b\<close> obtain d where "b = a * c * d" ..
-  with False show ?thesis by (simp add: mult.commute [of a] mult.assoc)
+  with False show ?thesis
+    by (simp add: mult.commute [of a] mult.assoc)
 qed
 
 
@@ -943,23 +961,20 @@ class normalization_semidom = algebraic_semidom +
   fixes normalize :: "'a \<Rightarrow> 'a"
     and unit_factor :: "'a \<Rightarrow> 'a"
   assumes unit_factor_mult_normalize [simp]: "unit_factor a * normalize a = a"
-  assumes normalize_0 [simp]: "normalize 0 = 0"
+    and normalize_0 [simp]: "normalize 0 = 0"
     and unit_factor_0 [simp]: "unit_factor 0 = 0"
-  assumes is_unit_normalize:
-    "is_unit a  \<Longrightarrow> normalize a = 1"
-  assumes unit_factor_is_unit [iff]:
-    "a \<noteq> 0 \<Longrightarrow> is_unit (unit_factor a)"
-  assumes unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
+    and is_unit_normalize: "is_unit a  \<Longrightarrow> normalize a = 1"
+    and unit_factor_is_unit [iff]: "a \<noteq> 0 \<Longrightarrow> is_unit (unit_factor a)"
+    and unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
 begin
 
 text \<open>
-  Class @{class normalization_semidom} cultivates the idea that
-  each integral domain can be split into equivalence classes
-  whose representants are associated, i.e. divide each other.
-  @{const normalize} specifies a canonical representant for each equivalence
-  class.  The rationale behind this is that it is easier to reason about equality
-  than equivalences, hence we prefer to think about equality of normalized
-  values rather than associated elements.
+  Class @{class normalization_semidom} cultivates the idea that each integral
+  domain can be split into equivalence classes whose representants are
+  associated, i.e. divide each other. @{const normalize} specifies a canonical
+  representant for each equivalence class. The rationale behind this is that
+  it is easier to reason about equality than equivalences, hence we prefer to
+  think about equality of normalized values rather than associated elements.
 \<close>
 
 lemma unit_factor_dvd [simp]: "a \<noteq> 0 \<Longrightarrow> unit_factor a dvd b"
@@ -972,25 +987,25 @@ lemma normalize_mult_unit_factor [simp]: "normalize a * unit_factor a = a"
   using unit_factor_mult_normalize [of a] by (simp add: ac_simps)
 
 lemma normalize_eq_0_iff [simp]: "normalize a = 0 \<longleftrightarrow> a = 0"
-  (is "?P \<longleftrightarrow> ?Q")
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?P
+  assume ?lhs
   moreover have "unit_factor a * normalize a = a" by simp
-  ultimately show ?Q by simp
+  ultimately show ?rhs by simp
 next
-  assume ?Q
-  then show ?P by simp
+  assume ?rhs
+  then show ?lhs by simp
 qed
 
 lemma unit_factor_eq_0_iff [simp]: "unit_factor a = 0 \<longleftrightarrow> a = 0"
-  (is "?P \<longleftrightarrow> ?Q")
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?P
+  assume ?lhs
   moreover have "unit_factor a * normalize a = a" by simp
-  ultimately show ?Q by simp
+  ultimately show ?rhs by simp
 next
-  assume ?Q
-  then show ?P by simp
+  assume ?rhs
+  then show ?lhs by simp
 qed
 
 lemma is_unit_unit_factor:
@@ -1009,20 +1024,20 @@ lemma normalize_1 [simp]: "normalize 1 = 1"
   by (rule is_unit_normalize) simp
 
 lemma normalize_1_iff: "normalize a = 1 \<longleftrightarrow> is_unit a"
-  (is "?P \<longleftrightarrow> ?Q")
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?Q
-  then show ?P by (rule is_unit_normalize)
+  assume ?rhs
+  then show ?lhs by (rule is_unit_normalize)
 next
-  assume ?P
-  then have "a \<noteq> 0" by auto
-  from \<open>?P\<close> have "unit_factor a * normalize a = unit_factor a * 1"
+  assume ?lhs
+  then have "unit_factor a * normalize a = unit_factor a * 1"
     by simp
   then have "unit_factor a = a"
     by simp
-  moreover have "is_unit (unit_factor a)"
-    using \<open>a \<noteq> 0\<close> by simp
-  ultimately show ?Q by simp
+  moreover
+  from \<open>?lhs\<close> have "a \<noteq> 0" by auto
+  then have "is_unit (unit_factor a)" by simp
+  ultimately show ?rhs by simp
 qed
 
 lemma div_normalize [simp]: "a div normalize a = unit_factor a"
@@ -1045,7 +1060,8 @@ next
   case False
   then have "unit_factor a \<noteq> 0" by simp
   with nonzero_mult_divide_cancel_left
-  have "unit_factor a * normalize a div unit_factor a = normalize a" by blast
+  have "unit_factor a * normalize a div unit_factor a = normalize a"
+    by blast
   then show ?thesis by simp
 qed
 
@@ -1071,7 +1087,8 @@ proof (cases "a = 0 \<or> b = 0")
   then show ?thesis by auto
 next
   case False
-  from unit_factor_mult_normalize have "unit_factor (a * b) * normalize (a * b) = a * b" .
+  have "unit_factor (a * b) * normalize (a * b) = a * b"
+    by (rule unit_factor_mult_normalize)
   then have "normalize (a * b) = a * b div unit_factor (a * b)"
     by simp
   also have "\<dots> = a * b div unit_factor (b * a)"
@@ -1163,11 +1180,11 @@ proof -
 qed
 
 text \<open>
-  We avoid an explicit definition of associated elements but prefer
-  explicit normalisation instead.  In theory we could define an abbreviation
-  like @{prop "associated a b \<longleftrightarrow> normalize a = normalize b"} but this is
-  counterproductive without suggestive infix syntax, which we do not want
-  to sacrifice for this purpose here.
+  We avoid an explicit definition of associated elements but prefer explicit
+  normalisation instead. In theory we could define an abbreviation like @{prop
+  "associated a b \<longleftrightarrow> normalize a = normalize b"} but this is counterproductive
+  without suggestive infix syntax, which we do not want to sacrifice for this
+  purpose here.
 \<close>
 
 lemma associatedI:
@@ -1202,20 +1219,20 @@ lemma associated_unit: "normalize a = normalize b \<Longrightarrow> is_unit a \<
   using dvd_unit_imp_unit by (auto dest!: associatedD1 associatedD2)
 
 lemma associated_iff_dvd: "normalize a = normalize b \<longleftrightarrow> a dvd b \<and> b dvd a"
-  (is "?P \<longleftrightarrow> ?Q")
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?Q
-  then show ?P by (auto intro!: associatedI)
+  assume ?rhs
+  then show ?lhs by (auto intro!: associatedI)
 next
-  assume ?P
+  assume ?lhs
   then have "unit_factor a * normalize a = unit_factor a * normalize b"
     by simp
   then have *: "normalize b * unit_factor a = a"
     by (simp add: ac_simps)
-  show ?Q
+  show ?rhs
   proof (cases "a = 0 \<or> b = 0")
     case True
-    with \<open>?P\<close> show ?thesis by auto
+    with \<open>?lhs\<close> show ?thesis by auto
   next
     case False
     then have "b dvd normalize b * unit_factor a" and "normalize b * unit_factor a dvd b"
@@ -1231,8 +1248,10 @@ lemma associated_eqI:
 proof -
   from assms have "normalize a = normalize b"
     unfolding associated_iff_dvd by simp
-  with \<open>normalize a = a\<close> have "a = normalize b" by simp
-  with \<open>normalize b = b\<close> show "a = b" by simp
+  with \<open>normalize a = a\<close> have "a = normalize b"
+    by simp
+  with \<open>normalize b = b\<close> show "a = b"
+    by simp
 qed
 
 end
@@ -1248,9 +1267,7 @@ lemma mult_mono: "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le
   done
 
 lemma mult_mono': "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * d"
-  apply (rule mult_mono)
-  apply (fast intro: order_trans)+
-  done
+  by (rule mult_mono) (fast intro: order_trans)+
 
 end
 
@@ -1266,11 +1283,9 @@ lemma mult_nonneg_nonpos: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarro
 lemma mult_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> b \<Longrightarrow> a * b \<le> 0"
   using mult_right_mono [of a 0 b] by simp
 
-text \<open>Legacy - use \<open>mult_nonpos_nonneg\<close>\<close>
+text \<open>Legacy -- use @{thm [source] mult_nonpos_nonneg}.\<close>
 lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0"
-  apply (drule mult_right_mono [of b 0])
-  apply auto
-  done
+  by (drule mult_right_mono [of b 0]) auto
 
 lemma split_mult_neg_le: "(0 \<le> a \<and> b \<le> 0) \<or> (a \<le> 0 \<and> 0 \<le> b) \<Longrightarrow> a * b \<le> 0"
   by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
@@ -1281,6 +1296,7 @@ class ordered_cancel_semiring = ordered_semiring + cancel_comm_monoid_add
 begin
 
 subclass semiring_0_cancel ..
+
 subclass ordered_semiring_0 ..
 
 end
@@ -1327,11 +1343,11 @@ subclass semiring_0_cancel ..
 subclass linordered_semiring
 proof
   fix a b c :: 'a
-  assume A: "a \<le> b" "0 \<le> c"
-  from A show "c * a \<le> c * b"
+  assume *: "a \<le> b" "0 \<le> c"
+  then show "c * a \<le> c * b"
     unfolding le_less
     using mult_strict_left_mono by (cases "c = 0") auto
-  from A show "a * c \<le> b * c"
+  from * show "a * c \<le> b * c"
     unfolding le_less
     using mult_strict_right_mono by (cases "c = 0") auto
 qed
@@ -1351,11 +1367,9 @@ lemma mult_pos_neg: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
 lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
   using mult_strict_right_mono [of a 0 b] by simp
 
-text \<open>Legacy - use \<open>mult_neg_pos\<close>\<close>
+text \<open>Legacy -- use @{thm [source] mult_neg_pos}.\<close>
 lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0"
-  apply (drule mult_strict_right_mono [of b 0])
-  apply auto
-  done
+  by (drule mult_strict_right_mono [of b 0]) auto
 
 lemma zero_less_mult_pos: "0 < a * b \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
   apply (cases "b \<le> 0")
@@ -1377,9 +1391,9 @@ lemma mult_strict_mono:
   shows "a * c < b * d"
   using assms
   apply (cases "c = 0")
-  apply simp
+   apply simp
   apply (erule mult_strict_right_mono [THEN less_trans])
-  apply (auto simp add: le_less)
+   apply (auto simp add: le_less)
   apply (erule (1) mult_strict_left_mono)
   done
 
@@ -1394,9 +1408,9 @@ lemma mult_less_le_imp_less:
   shows "a * c < b * d"
   using assms
   apply (subgoal_tac "a * c < b * c")
-  apply (erule less_le_trans)
-  apply (erule mult_left_mono)
-  apply simp
+   apply (erule less_le_trans)
+   apply (erule mult_left_mono)
+   apply simp
   apply (erule (1) mult_strict_right_mono)
   done
 
@@ -1405,9 +1419,9 @@ lemma mult_le_less_imp_less:
   shows "a * c < b * d"
   using assms
   apply (subgoal_tac "a * c \<le> b * c")
-  apply (erule le_less_trans)
-  apply (erule mult_strict_left_mono)
-  apply simp
+   apply (erule le_less_trans)
+   apply (erule mult_strict_left_mono)
+   apply simp
   apply (erule (1) mult_right_mono)
   done
 
@@ -1461,8 +1475,10 @@ subclass linordered_semiring_strict
 proof
   fix a b c :: 'a
   assume "a < b" "0 < c"
-  then show "c * a < c * b" by (rule comm_mult_strict_left_mono)
-  then show "a * c < b * c" by (simp only: mult.commute)
+  then show "c * a < c * b"
+    by (rule comm_mult_strict_left_mono)
+  then show "a * c < b * c"
+    by (simp only: mult.commute)
 qed
 
 subclass ordered_cancel_comm_semiring
@@ -1522,7 +1538,7 @@ proof
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
     by (auto simp add: abs_if not_le not_less algebra_simps
         simp del: add.commute dest: add_neg_neg add_nonneg_nonneg)
-qed (auto simp add: abs_if)
+qed (auto simp: abs_if)
 
 lemma zero_le_square [simp]: "0 \<le> a * a"
   using linear [of 0 a] by (auto simp add: mult_nonpos_nonpos)
@@ -1560,33 +1576,33 @@ subclass ring_no_zero_divisors
 proof
   fix a b
   assume "a \<noteq> 0"
-  then have A: "a < 0 \<or> 0 < a" by (simp add: neq_iff)
+  then have a: "a < 0 \<or> 0 < a" by (simp add: neq_iff)
   assume "b \<noteq> 0"
-  then have B: "b < 0 \<or> 0 < b" by (simp add: neq_iff)
+  then have b: "b < 0 \<or> 0 < b" by (simp add: neq_iff)
   have "a * b < 0 \<or> 0 < a * b"
   proof (cases "a < 0")
-    case A': True
+    case True
     show ?thesis
     proof (cases "b < 0")
       case True
-      with A' show ?thesis by (auto dest: mult_neg_neg)
+      with \<open>a < 0\<close> show ?thesis by (auto dest: mult_neg_neg)
     next
       case False
-      with B have "0 < b" by auto
-      with A' show ?thesis by (auto dest: mult_strict_right_mono)
+      with b have "0 < b" by auto
+      with \<open>a < 0\<close> show ?thesis by (auto dest: mult_strict_right_mono)
     qed
   next
     case False
-    with A have A': "0 < a" by auto
+    with a have "0 < a" by auto
     show ?thesis
     proof (cases "b < 0")
       case True
-      with A' show ?thesis
+      with \<open>0 < a\<close> show ?thesis
         by (auto dest: mult_strict_right_mono_neg)
     next
       case False
-      with B have "0 < b" by auto
-      with A' show ?thesis by auto
+      with b have "0 < b" by auto
+      with \<open>0 < a\<close> show ?thesis by auto
     qed
   qed
   then show "a * b \<noteq> 0"
@@ -1618,18 +1634,18 @@ text \<open>
 
 lemma mult_less_cancel_right_disj: "a * c < b * c \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
   apply (cases "c = 0")
-  apply (auto simp add: neq_iff mult_strict_right_mono mult_strict_right_mono_neg)
-  apply (auto simp add: not_less not_le [symmetric, of "a*c"] not_le [symmetric, of a])
-  apply (erule_tac [!] notE)
-  apply (auto simp add: less_imp_le mult_right_mono mult_right_mono_neg)
+   apply (auto simp add: neq_iff mult_strict_right_mono mult_strict_right_mono_neg)
+     apply (auto simp add: not_less not_le [symmetric, of "a*c"] not_le [symmetric, of a])
+     apply (erule_tac [!] notE)
+     apply (auto simp add: less_imp_le mult_right_mono mult_right_mono_neg)
   done
 
 lemma mult_less_cancel_left_disj: "c * a < c * b \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
   apply (cases "c = 0")
-  apply (auto simp add: neq_iff mult_strict_left_mono mult_strict_left_mono_neg)
-  apply (auto simp add: not_less not_le [symmetric, of "c * a"] not_le [symmetric, of a])
-  apply (erule_tac [!] notE)
-  apply (auto simp add: less_imp_le mult_left_mono mult_left_mono_neg)
+   apply (auto simp add: neq_iff mult_strict_left_mono mult_strict_left_mono_neg)
+     apply (auto simp add: not_less not_le [symmetric, of "c * a"] not_le [symmetric, of a])
+     apply (erule_tac [!] notE)
+     apply (auto simp add: less_imp_le mult_left_mono mult_left_mono_neg)
   done
 
 text \<open>
@@ -1727,7 +1743,8 @@ lemma add_le_imp_le_diff: "i + k \<le> n \<Longrightarrow> i \<le> n - k"
   apply (subst add_le_cancel_right [where c=k, symmetric])
   apply (frule le_add_diff_inverse2)
   apply (simp only: add.assoc [symmetric])
-  using add_implies_diff apply fastforce
+  using add_implies_diff
+  apply fastforce
   done
 
 lemma add_le_add_imp_diff_le:
@@ -1765,8 +1782,7 @@ subclass linordered_semidom
 proof
   have "0 \<le> 1 * 1" by (rule zero_le_square)
   then show "0 < 1" by (simp add: le_less)
-  show "b \<le> a \<Longrightarrow> a - b + b = a" for a b
-    by simp
+  show "b \<le> a \<Longrightarrow> a - b + b = a" for a b by simp
 qed
 
 lemma linorder_neqE_linordered_idom:
@@ -1774,7 +1790,7 @@ lemma linorder_neqE_linordered_idom:
   obtains "x < y" | "y < x"
   using assms by (rule neqE)
 
-text \<open>These cancellation simprules also produce two cases when the comparison is a goal.\<close>
+text \<open>These cancellation simp rules also produce two cases when the comparison is a goal.\<close>
 
 lemma mult_le_cancel_right1: "c \<le> b * c \<longleftrightarrow> (0 < c \<longrightarrow> 1 \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> 1)"
   using mult_le_cancel_right [of 1 c b] by simp
@@ -1928,7 +1944,7 @@ context linordered_idom
 begin
 
 subclass ordered_ring_abs
-  by standard (auto simp add: abs_if not_less mult_less_0_iff)
+  by standard (auto simp: abs_if not_less mult_less_0_iff)
 
 lemma abs_mult: "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>"
   by (rule abs_eq_mult) auto

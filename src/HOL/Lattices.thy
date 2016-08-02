@@ -47,12 +47,10 @@ lemma orderE:
 
 sublocale ordering less_eq less
 proof
-  fix a b
   show "a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b" for a b
     by (simp add: order_iff strict_order_iff)
 next
-  fix a
-  show "a \<^bold>\<le> a"
+  show "a \<^bold>\<le> a" for a
     by (simp add: order_iff)
 next
   fix a b
@@ -83,8 +81,10 @@ lemma boundedI:
   assumes "a \<^bold>\<le> b" and "a \<^bold>\<le> c"
   shows "a \<^bold>\<le> b \<^bold>* c"
 proof (rule orderI)
-  from assms obtain "a \<^bold>* b = a" and "a \<^bold>* c = a" by (auto elim!: orderE)
-  then show "a = a \<^bold>* (b \<^bold>* c)" by (simp add: assoc [symmetric])
+  from assms obtain "a \<^bold>* b = a" and "a \<^bold>* c = a"
+    by (auto elim!: orderE)
+  then show "a = a \<^bold>* (b \<^bold>* c)"
+    by (simp add: assoc [symmetric])
 qed
 
 lemma boundedE:
@@ -108,7 +108,8 @@ lemma coboundedI2: "b \<^bold>\<le> c \<Longrightarrow> a \<^bold>* b \<^bold>\<
 
 lemma strict_coboundedI1: "a \<^bold>< c \<Longrightarrow> a \<^bold>* b \<^bold>< c"
   using irrefl
-    by (auto intro: not_eq_order_implies_strict coboundedI1 strict_implies_order elim: strict_boundedE)
+  by (auto intro: not_eq_order_implies_strict coboundedI1 strict_implies_order
+      elim: strict_boundedE)
 
 lemma strict_coboundedI2: "b \<^bold>< c \<Longrightarrow> a \<^bold>* b \<^bold>< c"
   using strict_coboundedI1 [of b c a] by (simp add: commute)
@@ -117,10 +118,10 @@ lemma mono: "a \<^bold>\<le> c \<Longrightarrow> b \<^bold>\<le> d \<Longrightar
   by (blast intro: boundedI coboundedI1 coboundedI2)
 
 lemma absorb1: "a \<^bold>\<le> b \<Longrightarrow> a \<^bold>* b = a"
-  by (rule antisym) (auto simp add: refl)
+  by (rule antisym) (auto simp: refl)
 
 lemma absorb2: "b \<^bold>\<le> a \<Longrightarrow> a \<^bold>* b = b"
-  by (rule antisym) (auto simp add: refl)
+  by (rule antisym) (auto simp: refl)
 
 lemma absorb_iff1: "a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>* b = a"
   using order_iff by auto
@@ -165,8 +166,7 @@ class semilattice_sup = order + sup +
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
 begin
 
-text \<open>Dual lattice\<close>
-
+text \<open>Dual lattice.\<close>
 lemma dual_semilattice: "class.semilattice_inf sup greater_eq greater"
   by (rule class.semilattice_inf.intro, rule dual_order)
     (unfold_locales, simp_all add: sup_least)
@@ -330,7 +330,10 @@ context lattice
 begin
 
 lemma dual_lattice: "class.lattice sup (op \<ge>) (op >) inf"
-  by (rule class.lattice.intro, rule dual_semilattice, rule class.semilattice_sup.intro, rule dual_order)
+  by (rule class.lattice.intro,
+      rule dual_semilattice,
+      rule class.semilattice_sup.intro,
+      rule dual_order)
     (unfold_locales, auto)
 
 lemma inf_sup_absorb [simp]: "x \<sqinter> (x \<squnion> y) = x"
@@ -343,7 +346,7 @@ lemmas inf_sup_aci = inf_aci sup_aci
 
 lemmas inf_sup_ord = inf_le1 inf_le2 sup_ge1 sup_ge2
 
-text\<open>Towards distributivity\<close>
+text \<open>Towards distributivity.\<close>
 
 lemma distrib_sup_le: "x \<squnion> (y \<sqinter> z) \<sqsubseteq> (x \<squnion> y) \<sqinter> (x \<squnion> z)"
   by (auto intro: le_infI1 le_infI2 le_supI1 le_supI2)
@@ -533,7 +536,9 @@ begin
 
 lemma dual_boolean_algebra:
   "class.boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus sup greater_eq greater inf \<top> \<bottom>"
-  by (rule class.boolean_algebra.intro, rule dual_bounded_lattice, rule dual_distrib_lattice)
+  by (rule class.boolean_algebra.intro,
+      rule dual_bounded_lattice,
+      rule dual_distrib_lattice)
     (unfold_locales, auto simp add: inf_compl_bot sup_compl_top diff_eq)
 
 lemma compl_inf_bot [simp]: "- x \<sqinter> x = \<bottom>"
@@ -645,7 +650,8 @@ lemma compl_less_swap2:
   assumes "- y \<sqsubset> x"
   shows "- x \<sqsubset> y"
 proof -
-  from assms have "- x \<sqsubset> - (- y)" by (simp only: compl_less_compl_iff)
+  from assms have "- x \<sqsubset> - (- y)"
+    by (simp only: compl_less_compl_iff)
   then show ?thesis by simp
 qed
 
@@ -661,7 +667,8 @@ lemma inf_cancel_left1: "inf (inf x a) (inf (- x) b) = bot"
 lemma inf_cancel_left2: "inf (inf (- x) a) (inf x b) = bot"
   by (simp add: inf_sup_aci inf_compl_bot)
 
-declare inf_compl_bot [simp] and sup_compl_top [simp]
+declare inf_compl_bot [simp]
+  and sup_compl_top [simp]
 
 lemma sup_compl_top_left1 [simp]: "sup (- x) (sup x y) = top"
   by (simp add: sup_assoc[symmetric])
@@ -821,7 +828,8 @@ definition "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 lemma sup_apply [simp, code]: "(f \<squnion> g) x = f x \<squnion> g x"
   by (simp add: sup_fun_def)
 
-instance by standard (simp_all add: le_fun_def)
+instance
+  by standard (simp_all add: le_fun_def)
 
 end
 

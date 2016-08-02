@@ -5,13 +5,13 @@
 section \<open>Knaster-Tarski Fixpoint Theorem and inductive definitions\<close>
 
 theory Inductive
-imports Complete_Lattices Ctr_Sugar
-keywords
-  "inductive" "coinductive" "inductive_cases" "inductive_simps" :: thy_decl and
-  "monos" and
-  "print_inductives" :: diag and
-  "old_rep_datatype" :: thy_goal and
-  "primrec" :: thy_decl
+  imports Complete_Lattices Ctr_Sugar
+  keywords
+    "inductive" "coinductive" "inductive_cases" "inductive_simps" :: thy_decl and
+    "monos" and
+    "print_inductives" :: diag and
+    "old_rep_datatype" :: thy_goal and
+    "primrec" :: thy_decl
 begin
 
 subsection \<open>Least and greatest fixed points\<close>
@@ -50,8 +50,8 @@ lemma lfp_unfold: "mono f \<Longrightarrow> lfp f = f (lfp f)"
 lemma lfp_const: "lfp (\<lambda>x. t) = t"
   by (rule lfp_unfold) (simp add: mono_def)
 
-lemma lfp_eqI: "\<lbrakk> mono F; F x = x; \<And>z. F z = z \<Longrightarrow> x \<le> z \<rbrakk> \<Longrightarrow> lfp F = x"
-by (rule antisym) (simp_all add: lfp_lowerbound lfp_unfold[symmetric])
+lemma lfp_eqI: "mono F \<Longrightarrow> F x = x \<Longrightarrow> (\<And>z. F z = z \<Longrightarrow> x \<le> z) \<Longrightarrow> lfp F = x"
+  by (rule antisym) (simp_all add: lfp_lowerbound lfp_unfold[symmetric])
 
 
 subsection \<open>General induction rules for least fixed points\<close>
@@ -64,10 +64,11 @@ lemma lfp_ordinal_induct [case_names mono step union]:
   shows "P (lfp f)"
 proof -
   let ?M = "{S. S \<le> lfp f \<and> P S}"
-  have "P (Sup ?M)" using P_Union by simp
+  from P_Union have "P (Sup ?M)" by simp
   also have "Sup ?M = lfp f"
   proof (rule antisym)
-    show "Sup ?M \<le> lfp f" by (blast intro: Sup_least)
+    show "Sup ?M \<le> lfp f"
+      by (blast intro: Sup_least)
     then have "f (Sup ?M) \<le> f (lfp f)"
       by (rule mono [THEN monoD])
     then have "f (Sup ?M) \<le> lfp f"
@@ -86,11 +87,18 @@ theorem lfp_induct:
   assumes mono: "mono f"
     and ind: "f (inf (lfp f) P) \<le> P"
   shows "lfp f \<le> P"
-proof (induction rule: lfp_ordinal_induct)
+proof (induct rule: lfp_ordinal_induct)
+  case mono
+  show ?case by fact
+next
   case (step S)
   then show ?case
     by (intro order_trans[OF _ ind] monoD[OF mono]) auto
-qed (auto intro: mono Sup_least)
+next
+  case (union M)
+  then show ?case
+    by (auto intro: Sup_least)
+qed
 
 lemma lfp_induct_set:
   assumes lfp: "a \<in> lfp f"
@@ -144,10 +152,10 @@ lemma gfp_unfold: "mono f \<Longrightarrow> gfp f = f (gfp f)"
   by (iprover intro: order_antisym gfp_lemma2 gfp_lemma3)
 
 lemma gfp_const: "gfp (\<lambda>x. t) = t"
-by (rule gfp_unfold) (simp add: mono_def)
+  by (rule gfp_unfold) (simp add: mono_def)
 
-lemma gfp_eqI: "\<lbrakk> mono F; F x = x; \<And>z. F z = z \<Longrightarrow> z \<le> x \<rbrakk> \<Longrightarrow> gfp F = x"
-by (rule antisym) (simp_all add: gfp_upperbound gfp_unfold[symmetric])
+lemma gfp_eqI: "mono F \<Longrightarrow> F x = x \<Longrightarrow> (\<And>z. F z = z \<Longrightarrow> z \<le> x) \<Longrightarrow> gfp F = x"
+  by (rule antisym) (simp_all add: gfp_upperbound gfp_unfold[symmetric])
 
 
 subsection \<open>Coinduction rules for greatest fixed points\<close>
@@ -165,11 +173,11 @@ lemma coinduct_lemma: "X \<le> f (sup X (gfp f)) \<Longrightarrow> mono f \<Long
   apply (frule gfp_lemma2)
   apply (drule mono_sup)
   apply (rule le_supI)
-  apply assumption
+   apply assumption
   apply (rule order_trans)
-  apply (rule order_trans)
-  apply assumption
-  apply (rule sup_ge2)
+   apply (rule order_trans)
+    apply assumption
+   apply (rule sup_ge2)
   apply assumption
   done
 
@@ -188,7 +196,7 @@ lemma gfp_ordinal_induct[case_names mono step union]:
   shows "P (gfp f)"
 proof -
   let ?M = "{S. gfp f \<le> S \<and> P S}"
-  have "P (Inf ?M)" using P_Union by simp
+  from P_Union have "P (Inf ?M)" by simp
   also have "Inf ?M = gfp f"
   proof (rule antisym)
     show "gfp f \<le> Inf ?M"
@@ -211,10 +219,18 @@ lemma coinduct:
   assumes mono: "mono f"
     and ind: "X \<le> f (sup X (gfp f))"
   shows "X \<le> gfp f"
-proof (induction rule: gfp_ordinal_induct)
-  case (step S) then show ?case
+proof (induct rule: gfp_ordinal_induct)
+  case mono
+  then show ?case by fact
+next
+  case (step S)
+  then show ?case
     by (intro order_trans[OF ind _] monoD[OF mono]) auto
-qed (auto intro: mono Inf_greatest)
+next
+  case (union M)
+  then show ?case
+    by (auto intro: mono Inf_greatest)
+qed
 
 
 subsection \<open>Even Stronger Coinduction Rule, by Martin Coen\<close>
@@ -228,9 +244,9 @@ lemma coinduct3_lemma:
   "X \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> gfp f)) \<Longrightarrow> mono f \<Longrightarrow>
     lfp (\<lambda>x. f x \<union> X \<union> gfp f) \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> gfp f))"
   apply (rule subset_trans)
-  apply (erule coinduct3_mono_lemma [THEN lfp_lemma3])
+   apply (erule coinduct3_mono_lemma [THEN lfp_lemma3])
   apply (rule Un_least [THEN Un_least])
-  apply (rule subset_refl, assumption)
+    apply (rule subset_refl, assumption)
   apply (rule gfp_unfold [THEN equalityD1, THEN subset_trans], assumption)
   apply (rule monoD, assumption)
   apply (subst coinduct3_mono_lemma [THEN lfp_unfold], auto)
@@ -238,8 +254,8 @@ lemma coinduct3_lemma:
 
 lemma coinduct3: "mono f \<Longrightarrow> a \<in> X \<Longrightarrow> X \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> gfp f)) \<Longrightarrow> a \<in> gfp f"
   apply (rule coinduct3_lemma [THEN [2] weak_coinduct])
-  apply (rule coinduct3_mono_lemma [THEN lfp_unfold, THEN ssubst])
-  apply simp_all
+    apply (rule coinduct3_mono_lemma [THEN lfp_unfold, THEN ssubst])
+     apply simp_all
   done
 
 text  \<open>Definition forms of \<open>gfp_unfold\<close> and \<open>coinduct\<close>, to control unfolding.\<close>
