@@ -5,7 +5,7 @@
 section \<open>The Drinker's Principle\<close>
 
 theory Drinker
-imports Main
+  imports Main
 begin
 
 text \<open>

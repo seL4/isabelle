@@ -5,7 +5,7 @@
 section \<open>Some algebraic identities derived from group axioms -- theory context version\<close>
 
 theory Group_Context
-imports Main
+  imports Main
 begin
 
 text \<open>hypothetical group axiomatization\<close>

@@ -5,7 +5,7 @@
 section \<open>Foundations of HOL\<close>
 
 theory Higher_Order_Logic
-imports Pure
+  imports Pure
 begin
 
 text \<open>
@@ -76,7 +76,8 @@ theorem iff2 [elim]: "A \<longleftrightarrow> B \<Longrightarrow> B \<Longrighta
 
 subsubsection \<open>Derived connectives\<close>
 
-definition false :: o  ("\<bottom>") where "\<bottom> \<equiv> \<forall>A. A"
+definition false :: o  ("\<bottom>")
+  where "\<bottom> \<equiv> \<forall>A. A"
 
 theorem falseE [elim]:
   assumes "\<bottom>"
@@ -87,7 +88,8 @@ proof -
 qed
 
 
-definition true :: o  ("\<top>") where "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
+definition true :: o  ("\<top>")
+  where "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
 
 theorem trueI [intro]: \<top>
   unfolding true_def ..

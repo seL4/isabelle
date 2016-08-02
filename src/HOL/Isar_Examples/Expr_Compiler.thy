@@ -7,7 +7,7 @@ Correctness of a simple expression/stack-machine compiler.
 section \<open>Correctness of a simple expression compiler\<close>
 
 theory Expr_Compiler
-imports Main
+  imports Main
 begin
 
 text \<open>
@@ -46,10 +46,10 @@ text \<open>
 \<close>
 
 primrec eval :: "('adr, 'val) expr \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val"
-where
-  "eval (Variable x) env = env x"
-| "eval (Constant c) env = c"
-| "eval (Binop f e1 e2) env = f (eval e1 env) (eval e2 env)"
+  where
+    "eval (Variable x) env = env x"
+  | "eval (Constant c) env = c"
+  | "eval (Binop f e1 e2) env = f (eval e1 env) (eval e2 env)"
 
 
 subsection \<open>Machine\<close>
@@ -69,14 +69,13 @@ text \<open>
 \<close>
 
 primrec exec :: "(('adr, 'val) instr) list \<Rightarrow> 'val list \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val list"
-where
-  "exec [] stack env = stack"
-| "exec (instr # instrs) stack env =
-    (case instr of
-      Const c \<Rightarrow> exec instrs (c # stack) env
-    | Load x \<Rightarrow> exec instrs (env x # stack) env
-    | Apply f \<Rightarrow> exec instrs (f (hd stack) (hd (tl stack))
-                   # (tl (tl stack))) env)"
+  where
+    "exec [] stack env = stack"
+  | "exec (instr # instrs) stack env =
+      (case instr of
+        Const c \<Rightarrow> exec instrs (c # stack) env
+      | Load x \<Rightarrow> exec instrs (env x # stack) env
+      | Apply f \<Rightarrow> exec instrs (f (hd stack) (hd (tl stack)) # (tl (tl stack))) env)"
 
 definition execute :: "(('adr, 'val) instr) list \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val"
   where "execute instrs env = hd (exec instrs [] env)"
@@ -90,10 +89,10 @@ text \<open>
 \<close>
 
 primrec compile :: "('adr, 'val) expr \<Rightarrow> (('adr, 'val) instr) list"
-where
-  "compile (Variable x) = [Load x]"
-| "compile (Constant c) = [Const c]"
-| "compile (Binop f e1 e2) = compile e2 @ compile e1 @ [Apply f]"
+  where
+    "compile (Variable x) = [Load x]"
+  | "compile (Constant c) = [Const c]"
+  | "compile (Binop f e1 e2) = compile e2 @ compile e1 @ [Apply f]"
 
 
 text \<open>

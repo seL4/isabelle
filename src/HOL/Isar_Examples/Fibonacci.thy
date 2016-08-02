@@ -15,7 +15,7 @@ Fibonacci numbers: proofs of laws taken from
 section \<open>Fib and Gcd commute\<close>
 
 theory Fibonacci
-imports "../Number_Theory/Primes"
+  imports "../Number_Theory/Primes"
 begin
 
 text_raw \<open>\<^footnote>\<open>Isar version by Gertrud Bauer. Original tactic script by Larry
@@ -28,10 +28,10 @@ declare One_nat_def [simp]
 subsection \<open>Fibonacci numbers\<close>
 
 fun fib :: "nat \<Rightarrow> nat"
-where
-  "fib 0 = 0"
-| "fib (Suc 0) = 1"
-| "fib (Suc (Suc x)) = fib x + fib (Suc x)"
+  where
+    "fib 0 = 0"
+  | "fib (Suc 0) = 1"
+  | "fib (Suc (Suc x)) = fib x + fib (Suc x)"
 
 lemma [simp]: "fib (Suc n) > 0"
   by (induct n rule: fib.induct) simp_all

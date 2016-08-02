@@ -5,7 +5,7 @@
 section \<open>Cantor's Theorem\<close>
 
 theory Cantor
-imports Main
+  imports Main
 begin
 
 subsection \<open>Mathematical statement and proof\<close>

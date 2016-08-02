@@ -5,7 +5,7 @@
 section \<open>Peirce's Law\<close>
 
 theory Peirce
-imports Main
+  imports Main
 begin
 
 text \<open>
