@@ -14,29 +14,37 @@ text \<open>Auxiliary type that is instantiated to @{class polish_space}, needed
   @{const Pi\<^sub>M}.\<close>
 
 typedef ('i, 'a) finmap ("(_ \<Rightarrow>\<^sub>F /_)" [22, 21] 21) =
-  "{(I::'i set, f::'i \<Rightarrow> 'a). finite I \<and> f \<in> extensional I}" by auto
+  "{f::'i \<Rightarrow> 'a option. finite (dom f)}"
+  by (auto intro!: exI[where x="\<lambda>_. None"])
+
+setup_lifting type_definition_finmap
+
 
 subsection \<open>Domain and Application\<close>
 
-definition domain where "domain P = fst (Rep_finmap P)"
+lift_definition domain::"('i, 'a) finmap \<Rightarrow> 'i set" is dom .
 
 lemma finite_domain[simp, intro]: "finite (domain P)"
-  by (cases P) (auto simp: domain_def Abs_finmap_inverse)
+  by transfer simp
 
-definition proj ("'((_)')\<^sub>F" [0] 1000) where "proj P i = snd (Rep_finmap P) i"
+lift_definition proj :: "('i, 'a) finmap \<Rightarrow> 'i \<Rightarrow> 'a" ("'((_)')\<^sub>F" [0] 1000) is
+  "\<lambda>f x. if x \<in> dom f then the (f x) else undefined" .
 
 declare [[coercion proj]]
 
 lemma extensional_proj[simp, intro]: "(P)\<^sub>F \<in> extensional (domain P)"
-  by (cases P) (auto simp: domain_def Abs_finmap_inverse proj_def[abs_def])
+  by transfer (auto simp: extensional_def)
 
 lemma proj_undefined[simp, intro]: "i \<notin> domain P \<Longrightarrow> P i = undefined"
   using extensional_proj[of P] unfolding extensional_def by auto
 
 lemma finmap_eq_iff: "P = Q \<longleftrightarrow> (domain P = domain Q \<and> (\<forall>i\<in>domain P. P i = Q i))"
-  by (cases P, cases Q)
-     (auto simp add: Abs_finmap_inject extensional_def domain_def proj_def Abs_finmap_inverse
-              intro: extensionalityI)
+  apply transfer
+  apply (safe intro!: ext)
+  subgoal for P Q x
+    by (cases "x \<in> dom P"; cases "P x") (auto dest!: bspec[where x=x])
+  done
+
 
 subsection \<open>Countable Finite Maps\<close>
 
@@ -60,19 +68,21 @@ qed
 
 subsection \<open>Constructor of Finite Maps\<close>
 
-definition "finmap_of inds f = Abs_finmap (inds, restrict f inds)"
+lift_definition finmap_of::"'i set \<Rightarrow> ('i \<Rightarrow> 'a) \<Rightarrow> ('i, 'a) finmap" is
+  "\<lambda>I f x. if x \<in> I \<and> finite I then Some (f x) else None"
+  by (simp add: dom_def)
 
 lemma proj_finmap_of[simp]:
   assumes "finite inds"
   shows "(finmap_of inds f)\<^sub>F = restrict f inds"
   using assms
-  by (auto simp: Abs_finmap_inverse finmap_of_def proj_def)
+  by transfer force
 
 lemma domain_finmap_of[simp]:
   assumes "finite inds"
   shows "domain (finmap_of inds f) = inds"
   using assms
-  by (auto simp: Abs_finmap_inverse finmap_of_def domain_def)
+  by transfer (auto split: if_splits)
 
 lemma finmap_of_eq_iff[simp]:
   assumes "finite i" "finite j"
