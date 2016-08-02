@@ -4457,7 +4457,7 @@ qed
 
 text \<open>Connection to E c over the complex numbers --- Euler and de Moivre.\<close>
 
-lemma Eii_sin_cos: "E (ii * c) = fps_cos c + fps_const ii * fps_sin c"
+lemma Eii_sin_cos: "E (\<i> * c) = fps_cos c + fps_const \<i> * fps_sin c"
   (is "?l = ?r")
 proof -
   have "?l $ n = ?r $ n" for n
@@ -4477,7 +4477,7 @@ proof -
     by (simp add: fps_eq_iff)
 qed
 
-lemma E_minus_ii_sin_cos: "E (- (ii * c)) = fps_cos c - fps_const ii * fps_sin c"
+lemma E_minus_ii_sin_cos: "E (- (\<i> * c)) = fps_cos c - fps_const \<i> * fps_sin c"
   unfolding minus_mult_right Eii_sin_cos by (simp add: fps_sin_even fps_cos_odd)
 
 lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (c - d)"
@@ -4490,7 +4490,7 @@ lemma fps_of_int: "fps_const (of_int c) = of_int c"
 lemma fps_numeral_fps_const: "numeral i = fps_const (numeral i :: 'a::comm_ring_1)"
   by (fact numeral_fps_const) (* FIXME: duplicate *)
 
-lemma fps_cos_Eii: "fps_cos c = (E (ii * c) + E (- ii * c)) / fps_const 2"
+lemma fps_cos_Eii: "fps_cos c = (E (\<i> * c) + E (- \<i> * c)) / fps_const 2"
 proof -
   have th: "fps_cos c + fps_cos c = fps_cos c * fps_const 2"
     by (simp add: numeral_fps_const)
@@ -4499,9 +4499,9 @@ proof -
     by (simp add: fps_sin_even fps_cos_odd numeral_fps_const fps_divide_unit fps_const_inverse th)
 qed
 
-lemma fps_sin_Eii: "fps_sin c = (E (ii * c) - E (- ii * c)) / fps_const (2*ii)"
+lemma fps_sin_Eii: "fps_sin c = (E (\<i> * c) - E (- \<i> * c)) / fps_const (2*\<i>)"
 proof -
-  have th: "fps_const \<i> * fps_sin c + fps_const \<i> * fps_sin c = fps_sin c * fps_const (2 * ii)"
+  have th: "fps_const \<i> * fps_sin c + fps_const \<i> * fps_sin c = fps_sin c * fps_const (2 * \<i>)"
     by (simp add: fps_eq_iff numeral_fps_const)
   show ?thesis
     unfolding Eii_sin_cos minus_mult_commute
@@ -4509,15 +4509,15 @@ proof -
 qed
 
 lemma fps_tan_Eii:
-  "fps_tan c = (E (ii * c) - E (- ii * c)) / (fps_const ii * (E (ii * c) + E (- ii * c)))"
+  "fps_tan c = (E (\<i> * c) - E (- \<i> * c)) / (fps_const \<i> * (E (\<i> * c) + E (- \<i> * c)))"
   unfolding fps_tan_def fps_sin_Eii fps_cos_Eii mult_minus_left E_neg
   apply (simp add: fps_divide_unit fps_inverse_mult fps_const_mult[symmetric] fps_const_inverse del: fps_const_mult)
   apply simp
   done
 
 lemma fps_demoivre:
-  "(fps_cos a + fps_const ii * fps_sin a)^n =
-    fps_cos (of_nat n * a) + fps_const ii * fps_sin (of_nat n * a)"
+  "(fps_cos a + fps_const \<i> * fps_sin a)^n =
+    fps_cos (of_nat n * a) + fps_const \<i> * fps_sin (of_nat n * a)"
   unfolding Eii_sin_cos[symmetric] E_power_mult
   by (simp add: ac_simps)
 

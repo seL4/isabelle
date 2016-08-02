@@ -35,7 +35,7 @@ definition
 
 definition
   iii :: hcomplex where
-  "iii = star_of ii"
+  "iii = star_of \<i>"
 
   (*------- complex conjugate ------*)
 
@@ -602,7 +602,7 @@ by transfer (rule exp_add)
 subsection\<open>@{term hcomplex_of_complex}: the Injection from
   type @{typ complex} to to @{typ hcomplex}\<close>
 
-lemma hcomplex_of_complex_i: "iii = hcomplex_of_complex ii"
+lemma hcomplex_of_complex_i: "iii = hcomplex_of_complex \<i>"
 by (rule iii_def)
 
 lemma hRe_hcomplex_of_complex:

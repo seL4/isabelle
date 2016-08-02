@@ -750,22 +750,22 @@ by linarith
 
 subsection\<open>Complex Arithmetic\<close>
 
-lemma "(1359 + 93746*ii) - (2468 + 46375*ii) = -1109 + 47371*ii"
+lemma "(1359 + 93746*\<i>) - (2468 + 46375*\<i>) = -1109 + 47371*\<i>"
 by simp
 
-lemma "- (65745 + -47371*ii) = -65745 + 47371*ii"
+lemma "- (65745 + -47371*\<i>) = -65745 + 47371*\<i>"
 by simp
 
 text\<open>Multiplication requires distributive laws.  Perhaps versions instantiated
 to literal constants should be added to the simpset.\<close>
 
-lemma "(1 + ii) * (1 - ii) = 2"
+lemma "(1 + \<i>) * (1 - \<i>) = 2"
 by (simp add: ring_distribs)
 
-lemma "(1 + 2*ii) * (1 + 3*ii) = -5 + 5*ii"
+lemma "(1 + 2*\<i>) * (1 + 3*\<i>) = -5 + 5*\<i>"
 by (simp add: ring_distribs)
 
-lemma "(-84 + 255*ii) + (51 * 255*ii) = -84 + 13260 * ii"
+lemma "(-84 + 255*\<i>) + (51 * 255*\<i>) = -84 + 13260 * \<i>"
 by (simp add: ring_distribs)
 
 text\<open>No inequalities or linear arithmetic: the complex numbers are unordered!\<close>

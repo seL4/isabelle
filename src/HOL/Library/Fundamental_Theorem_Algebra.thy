@@ -126,13 +126,13 @@ subsection \<open>Fundamental theorem of algebra\<close>
 
 lemma unimodular_reduce_norm:
   assumes md: "cmod z = 1"
-  shows "cmod (z + 1) < 1 \<or> cmod (z - 1) < 1 \<or> cmod (z + ii) < 1 \<or> cmod (z - ii) < 1"
+  shows "cmod (z + 1) < 1 \<or> cmod (z - 1) < 1 \<or> cmod (z + \<i>) < 1 \<or> cmod (z - \<i>) < 1"
 proof -
   obtain x y where z: "z = Complex x y "
     by (cases z) auto
   from md z have xy: "x\<^sup>2 + y\<^sup>2 = 1"
     by (simp add: cmod_def)
-  have False if "cmod (z + 1) \<ge> 1" "cmod (z - 1) \<ge> 1" "cmod (z + ii) \<ge> 1" "cmod (z - ii) \<ge> 1"
+  have False if "cmod (z + 1) \<ge> 1" "cmod (z - 1) \<ge> 1" "cmod (z + \<i>) \<ge> 1" "cmod (z - \<i>) \<ge> 1"
   proof -
     from that z xy have "2 * x \<le> 1" "2 * x \<ge> -1" "2 * y \<le> 1" "2 * y \<ge> -1"
       by (simp_all add: cmod_def power2_eq_square algebra_simps)
@@ -190,17 +190,17 @@ proof (induct n rule: nat_less_induct)
       apply (cases "cmod (complex_of_real (cmod b) / b - 1) < 1")
       apply (rule_tac x="-1" in exI)
       apply simp
-      apply (cases "cmod (complex_of_real (cmod b) / b + ii) < 1")
+      apply (cases "cmod (complex_of_real (cmod b) / b + \<i>) < 1")
       apply (cases "even m")
-      apply (rule_tac x="ii" in exI)
+      apply (rule_tac x="\<i>" in exI)
       apply (simp add: m power_mult)
-      apply (rule_tac x="- ii" in exI)
+      apply (rule_tac x="- \<i>" in exI)
       apply (simp add: m power_mult)
       apply (cases "even m")
-      apply (rule_tac x="- ii" in exI)
+      apply (rule_tac x="- \<i>" in exI)
       apply (simp add: m power_mult)
       apply (auto simp add: m power_mult)
-      apply (rule_tac x="ii" in exI)
+      apply (rule_tac x="\<i>" in exI)
       apply (auto simp add: m power_mult)
       done
     then obtain v where v: "cmod (complex_of_real (cmod b) / b + v^n) < 1"

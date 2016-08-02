@@ -48,8 +48,8 @@ lemma has_vector_derivative_iexp[derivative_intros]:
 
 lemma interval_integral_iexp:
   fixes a b :: real
-  shows "(CLBINT x=a..b. iexp x) = ii * iexp a - ii * iexp b"
-  by (subst interval_integral_FTC_finite [where F = "\<lambda>x. -ii * iexp x"])
+  shows "(CLBINT x=a..b. iexp x) = \<i> * iexp a - \<i> * iexp b"
+  by (subst interval_integral_FTC_finite [where F = "\<lambda>x. -\<i> * iexp x"])
      (auto intro!: derivative_eq_intros continuous_intros)
 
 subsection \<open>The Characteristic Function of a Real Measure.\<close>
@@ -64,7 +64,7 @@ lemma (in real_distribution) char_zero: "char M 0 = 1"
 
 lemma (in prob_space) integrable_iexp:
   assumes f: "f \<in> borel_measurable M" "\<And>x. Im (f x) = 0"
-  shows "integrable M (\<lambda>x. exp (ii * (f x)))"
+  shows "integrable M (\<lambda>x. exp (\<i> * (f x)))"
 proof (intro integrable_const_bound [of _ 1])
   from f have "\<And>x. of_real (Re (f x)) = f x"
     by (simp add: complex_eq_iff)
@@ -133,18 +133,18 @@ lemma CLBINT_I0c_power_mirror_iexp:
   fixes x :: real and n :: nat
   defines "f s m \<equiv> complex_of_real ((x - s) ^ m)"
   shows "(CLBINT s=0..x. f s n * iexp s) =
-    x^Suc n / Suc n + (ii / Suc n) * (CLBINT s=0..x. f s (Suc n) * iexp s)"
+    x^Suc n / Suc n + (\<i> / Suc n) * (CLBINT s=0..x. f s (Suc n) * iexp s)"
 proof -
   have 1:
     "((\<lambda>s. complex_of_real(-((x - s) ^ (Suc n) / (Suc n))) * iexp s)
-      has_vector_derivative complex_of_real((x - s)^n) * iexp s + (ii * iexp s) * complex_of_real(-((x - s) ^ (Suc n) / (Suc n))))
+      has_vector_derivative complex_of_real((x - s)^n) * iexp s + (\<i> * iexp s) * complex_of_real(-((x - s) ^ (Suc n) / (Suc n))))
       (at s within A)" for s A
     by (intro derivative_eq_intros) auto
 
   let ?F = "\<lambda>s. complex_of_real(-((x - s) ^ (Suc n) / (Suc n))) * iexp s"
-  have "x^(Suc n) / (Suc n) = (CLBINT s=0..x. (f s n * iexp s + (ii * iexp s) * -(f s (Suc n) / (Suc n))))" (is "?LHS = ?RHS")
+  have "x^(Suc n) / (Suc n) = (CLBINT s=0..x. (f s n * iexp s + (\<i> * iexp s) * -(f s (Suc n) / (Suc n))))" (is "?LHS = ?RHS")
   proof -
-    have "?RHS = (CLBINT s=0..x. (f s n * iexp s + (ii * iexp s) *
+    have "?RHS = (CLBINT s=0..x. (f s n * iexp s + (\<i> * iexp s) *
       complex_of_real(-((x - s) ^ (Suc n) / (Suc n)))))"
       by (cases "0 \<le> x") (auto intro!: simp: f_def[abs_def])
     also have "... = ?F x - ?F 0"
@@ -165,7 +165,7 @@ lemma iexp_eq1:
   fixes x :: real
   defines "f s m \<equiv> complex_of_real ((x - s) ^ m)"
   shows "iexp x =
-    (\<Sum>k \<le> n. (ii * x)^k / (fact k)) + ((ii ^ (Suc n)) / (fact n)) * (CLBINT s=0..x. (f s n) * (iexp s))" (is "?P n")
+    (\<Sum>k \<le> n. (\<i> * x)^k / (fact k)) + ((\<i> ^ (Suc n)) / (fact n)) * (CLBINT s=0..x. (f s n) * (iexp s))" (is "?P n")
 proof (induction n)
   show "?P 0"
     by (auto simp add: field_simps interval_integral_iexp f_def zero_ereal_def)
@@ -184,7 +184,7 @@ qed
 lemma iexp_eq2:
   fixes x :: real
   defines "f s m \<equiv> complex_of_real ((x - s) ^ m)"
-  shows "iexp x = (\<Sum>k\<le>Suc n. (ii*x)^k/fact k) + ii^Suc n/fact n * (CLBINT s=0..x. f s n*(iexp s - 1))"
+  shows "iexp x = (\<Sum>k\<le>Suc n. (\<i>*x)^k/fact k) + \<i>^Suc n/fact n * (CLBINT s=0..x. f s n*(iexp s - 1))"
 proof -
   have isCont_f: "isCont (\<lambda>s. f s n) x" for n x
     by (auto simp: f_def)
@@ -204,7 +204,7 @@ proof -
          (auto intro!: derivative_eq_intros simp del: power_Suc simp add: add_nonneg_eq_0_iff)
   qed (auto intro: continuous_at_imp_continuous_on isCont_f)
 
-  have calc3: "ii ^ (Suc (Suc n)) / (fact (Suc n)) = (ii ^ (Suc n) / (fact n)) * (ii / (Suc n))"
+  have calc3: "\<i> ^ (Suc (Suc n)) / (fact (Suc n)) = (\<i> ^ (Suc n) / (fact n)) * (\<i> / (Suc n))"
     by (simp add: field_simps)
 
   show ?thesis
@@ -246,10 +246,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma iexp_approx1: "cmod (iexp x - (\<Sum>k \<le> n. (ii * x)^k / fact k)) \<le> \<bar>x\<bar>^(Suc n) / fact (Suc n)"
+lemma iexp_approx1: "cmod (iexp x - (\<Sum>k \<le> n. (\<i> * x)^k / fact k)) \<le> \<bar>x\<bar>^(Suc n) / fact (Suc n)"
 proof -
-  have "iexp x - (\<Sum>k \<le> n. (ii * x)^k / fact k) =
-      ((ii ^ (Suc n)) / (fact n)) * (CLBINT s=0..x. (x - s)^n * (iexp s))" (is "?t1 = ?t2")
+  have "iexp x - (\<Sum>k \<le> n. (\<i> * x)^k / fact k) =
+      ((\<i> ^ (Suc n)) / (fact n)) * (CLBINT s=0..x. (x - s)^n * (iexp s))" (is "?t1 = ?t2")
     by (subst iexp_eq1 [of _ n], simp add: field_simps)
   then have "cmod (?t1) = cmod (?t2)"
     by simp
@@ -268,7 +268,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma iexp_approx2: "cmod (iexp x - (\<Sum>k \<le> n. (ii * x)^k / fact k)) \<le> 2 * \<bar>x\<bar>^n / fact n"
+lemma iexp_approx2: "cmod (iexp x - (\<Sum>k \<le> n. (\<i> * x)^k / fact k)) \<le> 2 * \<bar>x\<bar>^n / fact n"
 proof (induction n) \<comment> \<open>really cases\<close>
   case (Suc n)
   have *: "\<And>a b. interval_lebesgue_integrable lborel a b f \<Longrightarrow> interval_lebesgue_integrable lborel a b g \<Longrightarrow>
@@ -277,8 +277,8 @@ proof (induction n) \<comment> \<open>really cases\<close>
     using order_trans[OF f g] f g unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def
     by (auto simp: integral_nonneg_AE[OF AE_I2] intro!: integral_mono mult_mono)
 
-  have "iexp x - (\<Sum>k \<le> Suc n. (ii * x)^k / fact k) =
-      ((ii ^ (Suc n)) / (fact n)) * (CLBINT s=0..x. (x - s)^n * (iexp s - 1))" (is "?t1 = ?t2")
+  have "iexp x - (\<Sum>k \<le> Suc n. (\<i> * x)^k / fact k) =
+      ((\<i> ^ (Suc n)) / (fact n)) * (CLBINT s=0..x. (x - s)^n * (iexp s - 1))" (is "?t1 = ?t2")
     unfolding iexp_eq2 [of x n] by (simp add: field_simps)
   then have "cmod (?t1) = cmod (?t2)"
     by simp
@@ -301,13 +301,13 @@ qed (insert norm_triangle_ineq4[of "iexp x" 1], simp)
 
 lemma (in real_distribution) char_approx1:
   assumes integrable_moments: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. x^k)"
-  shows "cmod (char M t - (\<Sum>k \<le> n. ((ii * t)^k / fact k) * expectation (\<lambda>x. x^k))) \<le>
+  shows "cmod (char M t - (\<Sum>k \<le> n. ((\<i> * t)^k / fact k) * expectation (\<lambda>x. x^k))) \<le>
     (2*\<bar>t\<bar>^n / fact n) * expectation (\<lambda>x. \<bar>x\<bar>^n)" (is "cmod (char M t - ?t1) \<le> _")
 proof -
   have integ_iexp: "integrable M (\<lambda>x. iexp (t * x))"
     by (intro integrable_const_bound) auto
 
-  define c where [abs_def]: "c k x = (ii * t)^k / fact k * complex_of_real (x^k)" for k x
+  define c where [abs_def]: "c k x = (\<i> * t)^k / fact k * complex_of_real (x^k)" for k x
   have integ_c: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. c k x)"
     unfolding c_def by (intro integrable_mult_right integrable_of_real integrable_moments)
 
@@ -335,14 +335,14 @@ qed
 
 lemma (in real_distribution) char_approx2:
   assumes integrable_moments: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. x ^ k)"
-  shows "cmod (char M t - (\<Sum>k \<le> n. ((ii * t)^k / fact k) * expectation (\<lambda>x. x^k))) \<le>
+  shows "cmod (char M t - (\<Sum>k \<le> n. ((\<i> * t)^k / fact k) * expectation (\<lambda>x. x^k))) \<le>
     (\<bar>t\<bar>^n / fact (Suc n)) * expectation (\<lambda>x. min (2 * \<bar>x\<bar>^n * Suc n) (\<bar>t\<bar> * \<bar>x\<bar>^Suc n))"
     (is "cmod (char M t - ?t1) \<le> _")
 proof -
   have integ_iexp: "integrable M (\<lambda>x. iexp (t * x))"
     by (intro integrable_const_bound) auto
 
-  define c where [abs_def]: "c k x = (ii * t)^k / fact k * complex_of_real (x^k)" for k x
+  define c where [abs_def]: "c k x = (\<i> * t)^k / fact k * complex_of_real (x^k)" for k x
   have integ_c: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. c k x)"
     unfolding c_def by (intro integrable_mult_right integrable_of_real integrable_moments)
 
@@ -445,7 +445,7 @@ lemma (in prob_space) char_approx1':
   assumes integrable_moments : "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. X x ^ k)"
     and rv_X[measurable]: "random_variable borel X"
     and \<mu>_distr : "distr M borel X = \<mu>"
-  shows "cmod (char \<mu> t - (\<Sum>k \<le> n. ((ii * t)^k / fact k) * expectation (\<lambda>x. (X x)^k))) \<le>
+  shows "cmod (char \<mu> t - (\<Sum>k \<le> n. ((\<i> * t)^k / fact k) * expectation (\<lambda>x. (X x)^k))) \<le>
     (2 * \<bar>t\<bar>^n / fact n) * expectation (\<lambda>x. \<bar>X x\<bar>^n)"
   unfolding \<mu>_distr[symmetric]
   apply (subst (1 2) integral_distr [symmetric, OF rv_X], simp, simp)
@@ -495,7 +495,7 @@ theorem char_std_normal_distribution:
   "char std_normal_distribution = (\<lambda>t. complex_of_real (exp (- (t^2) / 2)))"
 proof (intro ext LIMSEQ_unique)
   fix t :: real
-  let ?f' = "\<lambda>k. (ii * t)^k / fact k * (LINT x | std_normal_distribution. x^k)"
+  let ?f' = "\<lambda>k. (\<i> * t)^k / fact k * (LINT x | std_normal_distribution. x^k)"
   let ?f = "\<lambda>n. (\<Sum>k \<le> n. ?f' k)"
   show "?f \<longlonglongrightarrow> exp (-(t^2) / 2)"
   proof (rule limseq_even_odd)

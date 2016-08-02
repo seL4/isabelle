@@ -75,44 +75,44 @@ lemma holomorphic_on_exp [holomorphic_intros]: "exp holomorphic_on s"
 subsection\<open>Euler and de Moivre formulas.\<close>
 
 text\<open>The sine series times @{term i}\<close>
-lemma sin_ii_eq: "(\<lambda>n. (ii * sin_coeff n) * z^n) sums (ii * sin z)"
+lemma sin_ii_eq: "(\<lambda>n. (\<i> * sin_coeff n) * z^n) sums (\<i> * sin z)"
 proof -
-  have "(\<lambda>n. ii * sin_coeff n *\<^sub>R z^n) sums (ii * sin z)"
+  have "(\<lambda>n. \<i> * sin_coeff n *\<^sub>R z^n) sums (\<i> * sin z)"
     using sin_converges sums_mult by blast
   then show ?thesis
     by (simp add: scaleR_conv_of_real field_simps)
 qed
 
-theorem exp_Euler: "exp(ii * z) = cos(z) + ii * sin(z)"
+theorem exp_Euler: "exp(\<i> * z) = cos(z) + \<i> * sin(z)"
 proof -
-  have "(\<lambda>n. (cos_coeff n + ii * sin_coeff n) * z^n)
-        = (\<lambda>n. (ii * z) ^ n /\<^sub>R (fact n))"
+  have "(\<lambda>n. (cos_coeff n + \<i> * sin_coeff n) * z^n)
+        = (\<lambda>n. (\<i> * z) ^ n /\<^sub>R (fact n))"
   proof
     fix n
-    show "(cos_coeff n + ii * sin_coeff n) * z^n = (ii * z) ^ n /\<^sub>R (fact n)"
+    show "(cos_coeff n + \<i> * sin_coeff n) * z^n = (\<i> * z) ^ n /\<^sub>R (fact n)"
       by (auto simp: cos_coeff_def sin_coeff_def scaleR_conv_of_real field_simps elim!: evenE oddE)
   qed
-  also have "... sums (exp (ii * z))"
+  also have "... sums (exp (\<i> * z))"
     by (rule exp_converges)
-  finally have "(\<lambda>n. (cos_coeff n + ii * sin_coeff n) * z^n) sums (exp (ii * z))" .
-  moreover have "(\<lambda>n. (cos_coeff n + ii * sin_coeff n) * z^n) sums (cos z + ii * sin z)"
+  finally have "(\<lambda>n. (cos_coeff n + \<i> * sin_coeff n) * z^n) sums (exp (\<i> * z))" .
+  moreover have "(\<lambda>n. (cos_coeff n + \<i> * sin_coeff n) * z^n) sums (cos z + \<i> * sin z)"
     using sums_add [OF cos_converges [of z] sin_ii_eq [of z]]
     by (simp add: field_simps scaleR_conv_of_real)
   ultimately show ?thesis
     using sums_unique2 by blast
 qed
 
-corollary exp_minus_Euler: "exp(-(ii * z)) = cos(z) - ii * sin(z)"
+corollary exp_minus_Euler: "exp(-(\<i> * z)) = cos(z) - \<i> * sin(z)"
   using exp_Euler [of "-z"]
   by simp
 
-lemma sin_exp_eq: "sin z = (exp(ii * z) - exp(-(ii * z))) / (2*ii)"
+lemma sin_exp_eq: "sin z = (exp(\<i> * z) - exp(-(\<i> * z))) / (2*\<i>)"
   by (simp add: exp_Euler exp_minus_Euler)
 
-lemma sin_exp_eq': "sin z = ii * (exp(-(ii * z)) - exp(ii * z)) / 2"
+lemma sin_exp_eq': "sin z = \<i> * (exp(-(\<i> * z)) - exp(\<i> * z)) / 2"
   by (simp add: exp_Euler exp_minus_Euler)
 
-lemma cos_exp_eq:  "cos z = (exp(ii * z) + exp(-(ii * z))) / 2"
+lemma cos_exp_eq:  "cos z = (exp(\<i> * z) + exp(-(\<i> * z))) / 2"
   by (simp add: exp_Euler exp_minus_Euler)
 
 subsection\<open>Relationships between real and complex trig functions\<close>
@@ -127,7 +127,7 @@ lemma real_cos_eq [simp]:
   shows "Re(cos(of_real x)) = cos x"
   by (simp add: cos_of_real)
 
-lemma DeMoivre: "(cos z + ii * sin z) ^ n = cos(n * z) + ii * sin(n * z)"
+lemma DeMoivre: "(cos z + \<i> * sin z) ^ n = cos(n * z) + \<i> * sin(n * z)"
   apply (simp add: exp_Euler [symmetric])
   by (metis exp_of_nat_mult mult.left_commute)
 
@@ -174,7 +174,7 @@ lemma holomorphic_on_cos: "cos holomorphic_on s"
 subsection\<open>Get a nice real/imaginary separation in Euler's formula.\<close>
 
 lemma Euler: "exp(z) = of_real(exp(Re z)) *
-              (of_real(cos(Im z)) + ii * of_real(sin(Im z)))"
+              (of_real(cos(Im z)) + \<i> * of_real(sin(Im z)))"
 by (cases z) (simp add: exp_add exp_Euler cos_of_real exp_of_real sin_of_real)
 
 lemma Re_sin: "Re(sin z) = sin(Re z) * (exp(Im z) + exp(-(Im z))) / 2"
@@ -209,7 +209,7 @@ apply (metis exp_eq_one_iff norm_exp_eq_Re norm_one)
 apply (metis Re_exp cos_one_2pi_int mult.commute mult.left_neutral norm_exp_eq_Re norm_one one_complex.simps(1))
 by (metis Im_exp Re_exp complex_Re_Im_cancel_iff cos_one_2pi_int sin_double Re_complex_of_real complex_Re_numeral exp_zero mult.assoc mult.left_commute mult_eq_0_iff mult_numeral_1 numeral_One of_real_0 sin_zero_iff_int2)
 
-lemma exp_eq: "exp w = exp z \<longleftrightarrow> (\<exists>n::int. w = z + (of_int (2 * n) * pi) * ii)"
+lemma exp_eq: "exp w = exp z \<longleftrightarrow> (\<exists>n::int. w = z + (of_int (2 * n) * pi) * \<i>)"
                 (is "?lhs = ?rhs")
 proof -
   have "exp w = exp z \<longleftrightarrow> exp (w-z) = 1"
@@ -226,9 +226,9 @@ lemma exp_complex_eqI: "\<bar>Im w - Im z\<bar> < 2*pi \<Longrightarrow> exp w =
 
 lemma exp_integer_2pi:
   assumes "n \<in> \<int>"
-  shows "exp((2 * n * pi) * ii) = 1"
+  shows "exp((2 * n * pi) * \<i>) = 1"
 proof -
-  have "exp((2 * n * pi) * ii) = exp 0"
+  have "exp((2 * n * pi) * \<i>) = exp 0"
     using assms
     by (simp only: Ints_def exp_eq) auto
   also have "... = 1"
@@ -377,7 +377,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma dist_exp_ii_1: "norm(exp(ii * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>"
+lemma dist_exp_ii_1: "norm(exp(\<i> * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>"
   apply (simp add: exp_Euler cmod_def power2_diff sin_of_real cos_of_real algebra_simps)
   using cos_double_sin [of "t/2"]
   apply (simp add: real_sqrt_mult)
@@ -385,27 +385,27 @@ lemma dist_exp_ii_1: "norm(exp(ii * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>
 
 lemma sinh_complex:
   fixes z :: complex
-  shows "(exp z - inverse (exp z)) / 2 = -ii * sin(ii * z)"
+  shows "(exp z - inverse (exp z)) / 2 = -\<i> * sin(\<i> * z)"
   by (simp add: sin_exp_eq divide_simps exp_minus of_real_numeral)
 
 lemma sin_ii_times:
   fixes z :: complex
-  shows "sin(ii * z) = ii * ((exp z - inverse (exp z)) / 2)"
+  shows "sin(\<i> * z) = \<i> * ((exp z - inverse (exp z)) / 2)"
   using sinh_complex by auto
 
 lemma sinh_real:
   fixes x :: real
-  shows "of_real((exp x - inverse (exp x)) / 2) = -ii * sin(ii * of_real x)"
+  shows "of_real((exp x - inverse (exp x)) / 2) = -\<i> * sin(\<i> * of_real x)"
   by (simp add: exp_of_real sin_ii_times of_real_numeral)
 
 lemma cosh_complex:
   fixes z :: complex
-  shows "(exp z + inverse (exp z)) / 2 = cos(ii * z)"
+  shows "(exp z + inverse (exp z)) / 2 = cos(\<i> * z)"
   by (simp add: cos_exp_eq divide_simps exp_minus of_real_numeral exp_of_real)
 
 lemma cosh_real:
   fixes x :: real
-  shows "of_real((exp x + inverse (exp x)) / 2) = cos(ii * of_real x)"
+  shows "of_real((exp x + inverse (exp x)) / 2) = cos(\<i> * of_real x)"
   by (simp add: cos_exp_eq divide_simps exp_minus of_real_numeral exp_of_real)
 
 lemmas cos_ii_times = cosh_complex [symmetric]
@@ -614,14 +614,14 @@ subsection\<open>The argument of a complex number\<close>
 definition Arg :: "complex \<Rightarrow> real" where
  "Arg z \<equiv> if z = 0 then 0
            else THE t. 0 \<le> t \<and> t < 2*pi \<and>
-                    z = of_real(norm z) * exp(ii * of_real t)"
+                    z = of_real(norm z) * exp(\<i> * of_real t)"
 
 lemma Arg_0 [simp]: "Arg(0) = 0"
   by (simp add: Arg_def)
 
 lemma Arg_unique_lemma:
-  assumes z:  "z = of_real(norm z) * exp(ii * of_real t)"
-      and z': "z = of_real(norm z) * exp(ii * of_real t')"
+  assumes z:  "z = of_real(norm z) * exp(\<i> * of_real t)"
+      and z': "z = of_real(norm z) * exp(\<i> * of_real t')"
       and t:  "0 \<le> t"  "t < 2*pi"
       and t': "0 \<le> t'" "t' < 2*pi"
       and nz: "z \<noteq> 0"
@@ -647,7 +647,7 @@ proof -
       by (simp add: n)
 qed
 
-lemma Arg: "0 \<le> Arg z & Arg z < 2*pi & z = of_real(norm z) * exp(ii * of_real(Arg z))"
+lemma Arg: "0 \<le> Arg z & Arg z < 2*pi & z = of_real(norm z) * exp(\<i> * of_real(Arg z))"
 proof (cases "z=0")
   case True then show ?thesis
     by (simp add: Arg_def)
@@ -657,7 +657,7 @@ next
              and ReIm: "Re z / cmod z = cos t" "Im z / cmod z = sin t"
     using sincos_total_2pi [OF complex_unit_circle [OF False]]
     by blast
-  have z: "z = of_real(norm z) * exp(ii * of_real t)"
+  have z: "z = of_real(norm z) * exp(\<i> * of_real t)"
     apply (rule complex_eqI)
     using t False ReIm
     apply (auto simp: exp_Euler sin_of_real cos_of_real divide_simps)
@@ -673,13 +673,13 @@ qed
 corollary
   shows Arg_ge_0: "0 \<le> Arg z"
     and Arg_lt_2pi: "Arg z < 2*pi"
-    and Arg_eq: "z = of_real(norm z) * exp(ii * of_real(Arg z))"
+    and Arg_eq: "z = of_real(norm z) * exp(\<i> * of_real(Arg z))"
   using Arg by auto
 
-lemma complex_norm_eq_1_exp: "norm z = 1 \<longleftrightarrow> (\<exists>t. z = exp(ii * of_real t))"
+lemma complex_norm_eq_1_exp: "norm z = 1 \<longleftrightarrow> (\<exists>t. z = exp(\<i> * of_real t))"
   using Arg [of z] by auto
 
-lemma Arg_unique: "\<lbrakk>of_real r * exp(ii * of_real a) = z; 0 < r; 0 \<le> a; a < 2*pi\<rbrakk> \<Longrightarrow> Arg z = a"
+lemma Arg_unique: "\<lbrakk>of_real r * exp(\<i> * of_real a) = z; 0 < r; 0 \<le> a; a < 2*pi\<rbrakk> \<Longrightarrow> Arg z = a"
   apply (rule Arg_unique_lemma [OF _ Arg_eq])
   using Arg [of z]
   apply (auto simp: norm_mult)
@@ -1012,13 +1012,13 @@ subsection\<open>The Unwinding Number and the Ln-product Formula\<close>
 text\<open>Note that in this special case the unwinding number is -1, 0 or 1.\<close>
 
 definition unwinding :: "complex \<Rightarrow> complex" where
-   "unwinding(z) = (z - Ln(exp z)) / (of_real(2*pi) * ii)"
+   "unwinding(z) = (z - Ln(exp z)) / (of_real(2*pi) * \<i>)"
 
-lemma unwinding_2pi: "(2*pi) * ii * unwinding(z) = z - Ln(exp z)"
+lemma unwinding_2pi: "(2*pi) * \<i> * unwinding(z) = z - Ln(exp z)"
   by (simp add: unwinding_def)
 
 lemma Ln_times_unwinding:
-    "w \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z) - (2*pi) * ii * unwinding(Ln w + Ln z)"
+    "w \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z) - (2*pi) * \<i> * unwinding(Ln w + Ln z)"
   using unwinding_2pi by (simp add: exp_add)
 
 
@@ -1192,22 +1192,22 @@ lemma Ln_inverse: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln(i
   apply (metis Im_Ln_less_pi Im_Ln_le_pi add.commute add_mono_thms_linordered_field(3) inverse_nonzero_iff_nonzero mult_2)
   done
 
-lemma Ln_minus1 [simp]: "Ln(-1) = ii * pi"
+lemma Ln_minus1 [simp]: "Ln(-1) = \<i> * pi"
   apply (rule exp_complex_eqI)
   using Im_Ln_le_pi [of "-1"] mpi_less_Im_Ln [of "-1"] cis_conv_exp cis_pi
   apply (auto simp: abs_if)
   done
 
-lemma Ln_ii [simp]: "Ln ii = ii * of_real pi/2"
-  using Ln_exp [of "ii * (of_real pi/2)"]
+lemma Ln_ii [simp]: "Ln \<i> = \<i> * of_real pi/2"
+  using Ln_exp [of "\<i> * (of_real pi/2)"]
   unfolding exp_Euler
   by simp
 
-lemma Ln_minus_ii [simp]: "Ln(-ii) = - (ii * pi/2)"
+lemma Ln_minus_ii [simp]: "Ln(-\<i>) = - (\<i> * pi/2)"
 proof -
-  have  "Ln(-ii) = Ln(inverse ii)"    by simp
-  also have "... = - (Ln ii)"         using Ln_inverse by blast
-  also have "... = - (ii * pi/2)"     by simp
+  have  "Ln(-\<i>) = Ln(inverse \<i>)"    by simp
+  also have "... = - (Ln \<i>)"         using Ln_inverse by blast
+  also have "... = - (\<i> * pi/2)"     by simp
   finally show ?thesis .
 qed
 
@@ -1215,9 +1215,9 @@ lemma Ln_times:
   assumes "w \<noteq> 0" "z \<noteq> 0"
     shows "Ln(w * z) =
                 (if Im(Ln w + Ln z) \<le> -pi then
-                  (Ln(w) + Ln(z)) + ii * of_real(2*pi)
+                  (Ln(w) + Ln(z)) + \<i> * of_real(2*pi)
                 else if Im(Ln w + Ln z) > pi then
-                  (Ln(w) + Ln(z)) - ii * of_real(2*pi)
+                  (Ln(w) + Ln(z)) - \<i> * of_real(2*pi)
                 else Ln(w) + Ln(z))"
   using pi_ge_zero Im_Ln_le_pi [of w] Im_Ln_le_pi [of z]
   using assms mpi_less_Im_Ln [of w] mpi_less_Im_Ln [of z]
@@ -1242,8 +1242,8 @@ by (simp add: ln_inverse Ln_of_real mult.commute divide_inverse of_real_inverse 
 lemma Ln_minus:
   assumes "z \<noteq> 0"
     shows "Ln(-z) = (if Im(z) \<le> 0 \<and> ~(Re(z) < 0 \<and> Im(z) = 0)
-                     then Ln(z) + ii * pi
-                     else Ln(z) - ii * pi)" (is "_ = ?rhs")
+                     then Ln(z) + \<i> * pi
+                     else Ln(z) - \<i> * pi)" (is "_ = ?rhs")
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z]
     by (fastforce simp: exp_add exp_diff exp_Euler intro!: Ln_unique)
@@ -1280,9 +1280,9 @@ qed
 
 lemma Ln_times_ii:
   assumes "z \<noteq> 0"
-    shows  "Ln(ii * z) = (if 0 \<le> Re(z) | Im(z) < 0
-                          then Ln(z) + ii * of_real pi/2
-                          else Ln(z) - ii * of_real(3 * pi/2))"
+    shows  "Ln(\<i> * z) = (if 0 \<le> Re(z) | Im(z) < 0
+                          then Ln(z) + \<i> * of_real pi/2
+                          else Ln(z) - \<i> * of_real(3 * pi/2))"
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z] Re_Ln_pos_le [of z]
   by (auto simp: Ln_times)
@@ -1313,7 +1313,7 @@ proof (cases "z = 0")
     by simp
 next
   case False
-  then have "z / of_real(norm z) = exp(ii * of_real(Arg z))"
+  then have "z / of_real(norm z) = exp(\<i> * of_real(Arg z))"
     using Arg [of z]
     by (metis abs_norm_cancel nonzero_mult_divide_cancel_left norm_of_real zero_less_norm_iff)
   then have "- z / of_real(norm z) = exp (\<i> * (of_real (Arg z) - pi))"

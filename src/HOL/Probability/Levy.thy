@@ -19,21 +19,21 @@ subsection \<open>The Levy inversion theorem\<close>
 lemma Levy_Inversion_aux1:
   fixes a b :: real
   assumes "a \<le> b"
-  shows "((\<lambda>t. (iexp (-(t * a)) - iexp (-(t * b))) / (ii * t)) \<longlongrightarrow> b - a) (at 0)"
+  shows "((\<lambda>t. (iexp (-(t * a)) - iexp (-(t * b))) / (\<i> * t)) \<longlongrightarrow> b - a) (at 0)"
     (is "(?F \<longlongrightarrow> _) (at _)")
 proof -
   have 1: "cmod (?F t - (b - a)) \<le> a^2 / 2 * abs t + b^2 / 2 * abs t" if "t \<noteq> 0" for t
   proof -
     have "cmod (?F t - (b - a)) = cmod (
-        (iexp (-(t * a)) - (1 + ii * -(t * a))) / (ii * t) -
-        (iexp (-(t * b)) - (1 + ii * -(t * b))) / (ii * t))"
-           (is "_ = cmod (?one / (ii * t) - ?two / (ii * t))")
+        (iexp (-(t * a)) - (1 + \<i> * -(t * a))) / (\<i> * t) -
+        (iexp (-(t * b)) - (1 + \<i> * -(t * b))) / (\<i> * t))"
+           (is "_ = cmod (?one / (\<i> * t) - ?two / (\<i> * t))")
       using \<open>t \<noteq> 0\<close> by (intro arg_cong[where f=norm]) (simp add: field_simps)
-    also have "\<dots> \<le> cmod (?one / (ii * t)) + cmod (?two / (ii * t))"
+    also have "\<dots> \<le> cmod (?one / (\<i> * t)) + cmod (?two / (\<i> * t))"
       by (rule norm_triangle_ineq4)
-    also have "cmod (?one / (ii * t)) = cmod ?one / abs t"
+    also have "cmod (?one / (\<i> * t)) = cmod ?one / abs t"
       by (simp add: norm_divide norm_mult)
-    also have "cmod (?two / (ii * t)) = cmod ?two / abs t"
+    also have "cmod (?two / (\<i> * t)) = cmod ?two / abs t"
       by (simp add: norm_divide norm_mult)
     also have "cmod ?one / abs t + cmod ?two / abs t \<le>
         ((- (a * t))^2 / 2) / abs t + ((- (b * t))^2 / 2) / abs t"
@@ -60,9 +60,9 @@ qed
 lemma Levy_Inversion_aux2:
   fixes a b t :: real
   assumes "a \<le> b" and "t \<noteq> 0"
-  shows "cmod ((iexp (t * b) - iexp (t * a)) / (ii * t)) \<le> b - a" (is "?F \<le> _")
+  shows "cmod ((iexp (t * b) - iexp (t * a)) / (\<i> * t)) \<le> b - a" (is "?F \<le> _")
 proof -
-  have "?F = cmod (iexp (t * a) * (iexp (t * (b - a)) - 1) / (ii * t))"
+  have "?F = cmod (iexp (t * a) * (iexp (t * (b - a)) - 1) / (\<i> * t))"
     using \<open>t \<noteq> 0\<close> by (intro arg_cong[where f=norm]) (simp add: field_simps exp_diff exp_minus)
   also have "\<dots> = cmod (iexp (t * (b - a)) - 1) / abs t"
     unfolding norm_divide norm_mult norm_exp_ii_times using \<open>t \<noteq> 0\<close>
@@ -81,14 +81,14 @@ theorem (in real_distribution) Levy_Inversion:
   assumes "a \<le> b"
   defines "\<mu> \<equiv> measure M" and "\<phi> \<equiv> char M"
   assumes "\<mu> {a} = 0" and "\<mu> {b} = 0"
-  shows "(\<lambda>T. 1 / (2 * pi) * (CLBINT t=-T..T. (iexp (-(t * a)) - iexp (-(t * b))) / (ii * t) * \<phi> t))
+  shows "(\<lambda>T. 1 / (2 * pi) * (CLBINT t=-T..T. (iexp (-(t * a)) - iexp (-(t * b))) / (\<i> * t) * \<phi> t))
     \<longlonglongrightarrow> \<mu> {a<..b}"
     (is "(\<lambda>T. 1 / (2 * pi) * (CLBINT t=-T..T. ?F t * \<phi> t)) \<longlonglongrightarrow> of_real (\<mu> {a<..b})")
 proof -
   interpret P: pair_sigma_finite lborel M ..
   from bounded_Si obtain B where Bprop: "\<And>T. abs (Si T) \<le> B" by auto
   from Bprop [of 0] have [simp]: "B \<ge> 0" by auto
-  let ?f = "\<lambda>t x :: real. (iexp (t * (x - a)) - iexp(t * (x - b))) / (ii * t)"
+  let ?f = "\<lambda>t x :: real. (iexp (t * (x - a)) - iexp(t * (x - b))) / (\<i> * t)"
   { fix T :: real
     assume "T \<ge> 0"
     let ?f' = "\<lambda>(t, x). indicator {-T<..<T} t *\<^sub>R ?f t x"
@@ -110,7 +110,7 @@ proof -
         using 1
         by (intro interval_lebesgue_integral_add(2) [symmetric] interval_integrable_mirror[THEN iffD2]) simp_all
       also have "\<dots> = (CLBINT t=(0::real)..T. ((iexp(t * (x - a)) - iexp (-(t * (x - a)))) -
-          (iexp(t * (x - b)) - iexp (-(t * (x - b))))) / (ii * t))"
+          (iexp(t * (x - b)) - iexp (-(t * (x - b))))) / (\<i> * t))"
         using \<open>T \<ge> 0\<close> by (intro interval_integral_cong) (auto simp add: divide_simps)
       also have "\<dots> = (CLBINT t=(0::real)..T. complex_of_real(
           2 * (sin (t * (x - a)) / t) - 2 * (sin (t * (x - b)) / t)))"

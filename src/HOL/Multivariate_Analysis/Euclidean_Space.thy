@@ -167,8 +167,7 @@ subsubsection \<open>Type @{typ complex}\<close>
 instantiation complex :: euclidean_space
 begin
 
-definition Basis_complex_def:
-  "Basis = {1, ii}"
+definition Basis_complex_def: "Basis = {1, \<i>}"
 
 instance
   by standard (auto simp add: Basis_complex_def intro: complex_eqI split: if_split_asm)

@@ -3453,7 +3453,7 @@ definition winding_number:: "[real \<Rightarrow> complex, complex] \<Rightarrow>
                     pathstart p = pathstart \<gamma> \<and>
                     pathfinish p = pathfinish \<gamma> \<and>
                     (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
-                    contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+                    contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
 
 lemma winding_number:
   assumes "path \<gamma>" "z \<notin> path_image \<gamma>" "0 < e"
@@ -3461,7 +3461,7 @@ lemma winding_number:
                pathstart p = pathstart \<gamma> \<and>
                pathfinish p = pathfinish \<gamma> \<and>
                (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-               contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * winding_number \<gamma> z"
+               contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * winding_number \<gamma> z"
 proof -
   have "path_image \<gamma> \<subseteq> UNIV - {z}"
     using assms by blast
@@ -3476,11 +3476,11 @@ proof -
   then obtain h where h: "polynomial_function h \<and> pathstart h = pathstart \<gamma> \<and> pathfinish h = pathfinish \<gamma> \<and>
                           (\<forall>t \<in> {0..1}. norm(h t - \<gamma> t) < d/2)"
     using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "d/2"] d by auto
-  define nn where "nn = 1/(2* pi*ii) * contour_integral h (\<lambda>w. 1/(w - z))"
+  define nn where "nn = 1/(2* pi*\<i>) * contour_integral h (\<lambda>w. 1/(w - z))"
   have "\<exists>n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
                         pathstart p = pathstart \<gamma> \<and>  pathfinish p = pathfinish \<gamma> \<and>
                         (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
-                        contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+                        contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
                     (is "\<exists>n. \<forall>e > 0. ?PP e n")
     proof (rule_tac x=nn in exI, clarify)
       fix e::real
@@ -3509,7 +3509,7 @@ lemma winding_number_unique:
         "\<And>e. e>0 \<Longrightarrow> \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
                           pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and>
                           (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-                          contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+                          contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
    shows "winding_number \<gamma> z = n"
 proof -
   have "path_image \<gamma> \<subseteq> UNIV - {z}"
@@ -3525,7 +3525,7 @@ proof -
      "valid_path p \<and> z \<notin> path_image p \<and>
       pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and>
       (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-      contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+      contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
     using pi [OF e] by blast
   obtain q where q:
      "valid_path q \<and> z \<notin> path_image q \<and>
@@ -3552,7 +3552,7 @@ lemma winding_number_unique_loop:
         "\<And>e. e>0 \<Longrightarrow> \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
                            pathfinish p = pathstart p \<and>
                            (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-                           contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+                           contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
    shows "winding_number \<gamma> z = n"
 proof -
   have "path_image \<gamma> \<subseteq> UNIV - {z}"
@@ -3568,7 +3568,7 @@ proof -
      "valid_path p \<and> z \<notin> path_image p \<and>
       pathfinish p = pathstart p \<and>
       (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-      contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+      contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
     using pi [OF e] by blast
   obtain q where q:
      "valid_path q \<and> z \<notin> path_image q \<and>
@@ -3590,12 +3590,12 @@ qed
 
 lemma winding_number_valid_path:
   assumes "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
-    shows "winding_number \<gamma> z = 1/(2*pi*ii) * contour_integral \<gamma> (\<lambda>w. 1/(w - z))"
+    shows "winding_number \<gamma> z = 1/(2*pi*\<i>) * contour_integral \<gamma> (\<lambda>w. 1/(w - z))"
   using assms by (auto simp: valid_path_imp_path intro!: winding_number_unique)
 
 lemma has_contour_integral_winding_number:
   assumes \<gamma>: "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
-    shows "((\<lambda>w. 1/(w - z)) has_contour_integral (2*pi*ii*winding_number \<gamma> z)) \<gamma>"
+    shows "((\<lambda>w. 1/(w - z)) has_contour_integral (2*pi*\<i>*winding_number \<gamma> z)) \<gamma>"
 by (simp add: winding_number_valid_path has_contour_integral_integral contour_integrable_inversediff assms)
 
 lemma winding_number_trivial [simp]: "z \<noteq> a \<Longrightarrow> winding_number(linepath a a) z = 0"
@@ -3697,7 +3697,7 @@ proof -
   show ?thesis
     apply (simp add: Re_winding_number [OF \<gamma>] field_simps)
     apply (rule has_integral_component_nonneg
-             [of ii "\<lambda>x. if x \<in> {0<..<1}
+             [of \<i> "\<lambda>x. if x \<in> {0<..<1}
                          then 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x) else 0", simplified])
       prefer 3 apply (force simp: *)
      apply (simp add: Basis_complex_def)
@@ -3718,8 +3718,8 @@ lemma winding_number_pos_lt_lemma:
 proof -
   have "e \<le> Im (contour_integral \<gamma> (\<lambda>w. 1 / (w - z)))"
     apply (rule has_integral_component_le
-             [of ii "\<lambda>x. ii*e" "ii*e" "{0..1}"
-                    "\<lambda>x. if x \<in> {0<..<1} then 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x) else ii*e"
+             [of \<i> "\<lambda>x. \<i>*e" "\<i>*e" "{0..1}"
+                    "\<lambda>x. if x \<in> {0<..<1} then 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x) else \<i>*e"
                     "contour_integral \<gamma> (\<lambda>w. 1/(w - z))", simplified])
     using e
     apply (simp_all add: Basis_complex_def)
@@ -3874,7 +3874,7 @@ qed
 
 corollary winding_number_exp_2pi:
     "\<lbrakk>path p; z \<notin> path_image p\<rbrakk>
-     \<Longrightarrow> pathfinish p - z = exp (2 * pi * ii * winding_number p z) * (pathstart p - z)"
+     \<Longrightarrow> pathfinish p - z = exp (2 * pi * \<i> * winding_number p z) * (pathstart p - z)"
 using winding_number [of p z 1] unfolding valid_path_def path_image_def pathstart_def pathfinish_def
   by (force dest: winding_number_exp_integral(2) [of _ 0 1 z] simp: field_simps contour_integral_integral exp_minus)
 
@@ -4330,7 +4330,7 @@ proof -
          if x: "0 \<le> x" "x \<le> 1" for x
   proof -
     have "integral {0..x} (\<lambda>t. vector_derivative \<gamma> (at t) / (\<gamma> t - z)) / (2 * of_real pi * \<i>) =
-          1 / (2*pi*ii) * contour_integral (subpath 0 x \<gamma>) (\<lambda>w. 1/(w - z))"
+          1 / (2*pi*\<i>) * contour_integral (subpath 0 x \<gamma>) (\<lambda>w. 1/(w - z))"
       using assms x
       apply (simp add: contour_integral_subcontour_integral [OF contour_integrable_inversediff])
       done
@@ -4343,7 +4343,7 @@ proof -
   qed
   show ?thesis
     apply (rule continuous_on_eq
-                 [where f = "\<lambda>x. 1 / (2*pi*ii) *
+                 [where f = "\<lambda>x. 1 / (2*pi*\<i>) *
                                  integral {0..x} (\<lambda>t. 1/(\<gamma> t - z) * vector_derivative \<gamma> (at t))"])
     apply (rule continuous_intros)+
     apply (rule indefinite_integral_continuous)
@@ -4491,7 +4491,7 @@ lemma Cauchy_integral_formula_weak:
         and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x)"
         and z: "z \<in> interior s - k" and vpg: "valid_path \<gamma>"
         and pasz: "path_image \<gamma> \<subseteq> s - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
-      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
+      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * \<i> * winding_number \<gamma> z * f z)) \<gamma>"
 proof -
   obtain f' where f': "(f has_field_derivative f') (at z)"
     using fcd [OF z] by (auto simp: field_differentiable_def)
@@ -4536,7 +4536,7 @@ qed
 theorem Cauchy_integral_formula_convex_simple:
     "\<lbrakk>convex s; f holomorphic_on s; z \<in> interior s; valid_path \<gamma>; path_image \<gamma> \<subseteq> s - {z};
       pathfinish \<gamma> = pathstart \<gamma>\<rbrakk>
-     \<Longrightarrow> ((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
+     \<Longrightarrow> ((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * \<i> * winding_number \<gamma> z * f z)) \<gamma>"
   apply (rule Cauchy_integral_formula_weak [where k = "{}"])
   using holomorphic_on_imp_continuous_on
   by auto (metis at_within_interior holomorphic_on_def interiorE subsetCE)
@@ -4856,19 +4856,19 @@ done
 subsection\<open>Partial circle path\<close>
 
 definition part_circlepath :: "[complex, real, real, real, real] \<Rightarrow> complex"
-  where "part_circlepath z r s t \<equiv> \<lambda>x. z + of_real r * exp (ii * of_real (linepath s t x))"
+  where "part_circlepath z r s t \<equiv> \<lambda>x. z + of_real r * exp (\<i> * of_real (linepath s t x))"
 
 lemma pathstart_part_circlepath [simp]:
-     "pathstart(part_circlepath z r s t) = z + r*exp(ii * s)"
+     "pathstart(part_circlepath z r s t) = z + r*exp(\<i> * s)"
 by (metis part_circlepath_def pathstart_def pathstart_linepath)
 
 lemma pathfinish_part_circlepath [simp]:
-     "pathfinish(part_circlepath z r s t) = z + r*exp(ii*t)"
+     "pathfinish(part_circlepath z r s t) = z + r*exp(\<i>*t)"
 by (metis part_circlepath_def pathfinish_def pathfinish_linepath)
 
 proposition has_vector_derivative_part_circlepath [derivative_intros]:
     "((part_circlepath z r s t) has_vector_derivative
-      (ii * r * (of_real t - of_real s) * exp(ii * linepath s t x)))
+      (\<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)))
      (at x within X)"
   apply (simp add: part_circlepath_def linepath_def scaleR_conv_of_real)
   apply (rule has_vector_derivative_real_complex)
@@ -4877,13 +4877,13 @@ proposition has_vector_derivative_part_circlepath [derivative_intros]:
 
 corollary vector_derivative_part_circlepath:
     "vector_derivative (part_circlepath z r s t) (at x) =
-       ii * r * (of_real t - of_real s) * exp(ii * linepath s t x)"
+       \<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)"
   using has_vector_derivative_part_circlepath vector_derivative_at by blast
 
 corollary vector_derivative_part_circlepath01:
     "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk>
      \<Longrightarrow> vector_derivative (part_circlepath z r s t) (at x within {0..1}) =
-          ii * r * (of_real t - of_real s) * exp(ii * linepath s t x)"
+          \<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)"
   using has_vector_derivative_part_circlepath
   by (auto simp: vector_derivative_at_within_ivl)
 
@@ -4899,7 +4899,7 @@ lemma path_part_circlepath [simp]: "path (part_circlepath z r s t)"
 
 proposition path_image_part_circlepath:
   assumes "s \<le> t"
-    shows "path_image (part_circlepath z r s t) = {z + r * exp(ii * of_real x) | x. s \<le> x \<and> x \<le> t}"
+    shows "path_image (part_circlepath z r s t) = {z + r * exp(\<i> * of_real x) | x. s \<le> x \<and> x \<le> t}"
 proof -
   { fix z::real
     assume "0 \<le> z" "z \<le> 1"
@@ -4986,7 +4986,7 @@ proof -
       by (metis "2" abs_of_pos diff_gt_0_iff_gt norm_of_real of_real_diff)
     have "finite (part_circlepath z r s t -` {y} \<inter> {0..1})" if "y \<in> k" for y
     proof -
-      define w where "w = (y - z)/of_real r / exp(ii * of_real s)"
+      define w where "w = (y - z)/of_real r / exp(\<i> * of_real s)"
       have fin: "finite (of_real -` {z. cmod z \<le> 1 \<and> exp (\<i> * complex_of_real (t - s) * z) = w})"
         apply (rule finite_vimageI [OF finite_bounded_log2])
         using \<open>s < t\<close> apply (auto simp: inj_of_real)
@@ -5063,7 +5063,7 @@ proof (cases "r = 0 \<or> s = t")
     done
 next
   case False then have "r \<noteq> 0" "s \<noteq> t" by auto
-  have *: "\<And>x y z s t. ii*((1 - x) * s + x * t) = ii*(((1 - y) * s + y * t)) + z  \<longleftrightarrow> ii*(x - y) * (t - s) = z"
+  have *: "\<And>x y z s t. \<i>*((1 - x) * s + x * t) = \<i>*(((1 - y) * s + y * t)) + z  \<longleftrightarrow> \<i>*(x - y) * (t - s) = z"
     by (simp add: algebra_simps)
   have abs01: "\<And>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1
                       \<Longrightarrow> (x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0 \<longleftrightarrow> \<bar>x - y\<bar> \<in> {0,1})"
@@ -5134,7 +5134,7 @@ subsection\<open>Special case of one complete circle\<close>
 definition circlepath :: "[complex, real, real] \<Rightarrow> complex"
   where "circlepath z r \<equiv> part_circlepath z r 0 (2*pi)"
 
-lemma circlepath: "circlepath z r = (\<lambda>x. z + r * exp(2 * of_real pi * ii * of_real x))"
+lemma circlepath: "circlepath z r = (\<lambda>x. z + r * exp(2 * of_real pi * \<i> * of_real x))"
   by (simp add: circlepath_def part_circlepath_def linepath_def algebra_simps)
 
 lemma pathstart_circlepath [simp]: "pathstart (circlepath z r) = z + r"
@@ -5173,7 +5173,7 @@ lemma path_image_circlepath_minus: "path_image (circlepath z (-r)) = path_image 
   using path_image_circlepath_minus_subset by fastforce
 
 proposition has_vector_derivative_circlepath [derivative_intros]:
- "((circlepath z r) has_vector_derivative (2 * pi * ii * r * exp (2 * of_real pi * ii * of_real x)))
+ "((circlepath z r) has_vector_derivative (2 * pi * \<i> * r * exp (2 * of_real pi * \<i> * of_real x)))
    (at x within X)"
   apply (simp add: circlepath_def scaleR_conv_of_real)
   apply (rule derivative_eq_intros)
@@ -5182,13 +5182,13 @@ proposition has_vector_derivative_circlepath [derivative_intros]:
 
 corollary vector_derivative_circlepath:
    "vector_derivative (circlepath z r) (at x) =
-    2 * pi * ii * r * exp(2 * of_real pi * ii * x)"
+    2 * pi * \<i> * r * exp(2 * of_real pi * \<i> * x)"
 using has_vector_derivative_circlepath vector_derivative_at by blast
 
 corollary vector_derivative_circlepath01:
     "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk>
      \<Longrightarrow> vector_derivative (circlepath z r) (at x within {0..1}) =
-          2 * pi * ii * r * exp(2 * of_real pi * ii * x)"
+          2 * pi * \<i> * r * exp(2 * of_real pi * \<i> * x)"
   using has_vector_derivative_circlepath
   by (auto simp: vector_derivative_at_within_ivl)
 
@@ -5300,7 +5300,7 @@ text\<open> Hence the Cauchy formula for points inside a circle.\<close>
 
 theorem Cauchy_integral_circlepath:
   assumes "continuous_on (cball z r) f" "f holomorphic_on (ball z r)" "norm(w - z) < r"
-  shows "((\<lambda>u. f u/(u - w)) has_contour_integral (2 * of_real pi * ii * f w))
+  shows "((\<lambda>u. f u/(u - w)) has_contour_integral (2 * of_real pi * \<i> * f w))
          (circlepath z r)"
 proof -
   have "r > 0"
@@ -5320,7 +5320,7 @@ qed
 
 corollary Cauchy_integral_circlepath_simple:
   assumes "f holomorphic_on cball z r" "norm(w - z) < r"
-  shows "((\<lambda>u. f u/(u - w)) has_contour_integral (2 * of_real pi * ii * f w))
+  shows "((\<lambda>u. f u/(u - w)) has_contour_integral (2 * of_real pi * \<i> * f w))
          (circlepath z r)"
 using assms by (force simp: holomorphic_on_imp_continuous_on holomorphic_on_subset Cauchy_integral_circlepath)
 
@@ -5634,7 +5634,7 @@ proposition Cauchy_derivative_integral_circlepath:
       and w: "w \<in> ball z r"
     shows "(\<lambda>u. f u/(u - w)^2) contour_integrable_on (circlepath z r)"
            (is "?thes1")
-      and "(f has_field_derivative (1 / (2 * of_real pi * ii) * contour_integral(circlepath z r) (\<lambda>u. f u / (u - w)^2))) (at w)"
+      and "(f has_field_derivative (1 / (2 * of_real pi * \<i>) * contour_integral(circlepath z r) (\<lambda>u. f u / (u - w)^2))) (at w)"
            (is "?thes2")
 proof -
   have [simp]: "r \<ge> 0" using w
@@ -5642,7 +5642,7 @@ proof -
   have f: "continuous_on (path_image (circlepath z r)) f"
     by (rule continuous_on_subset [OF contf]) (force simp add: cball_def sphere_def)
   have int: "\<And>w. dist z w < r \<Longrightarrow>
-                 ((\<lambda>u. f u / (u - w)) has_contour_integral (\<lambda>x. 2 * of_real pi * ii * f x) w) (circlepath z r)"
+                 ((\<lambda>u. f u / (u - w)) has_contour_integral (\<lambda>x. 2 * of_real pi * \<i> * f x) w) (circlepath z r)"
     by (rule Cauchy_integral_circlepath [OF contf holf]) (simp add: dist_norm norm_minus_commute)
   show ?thes1
     apply (simp add: power2_eq_square)
@@ -5651,7 +5651,7 @@ proof -
     done
   have "((\<lambda>x. 2 * of_real pi * \<i> * f x) has_field_derivative contour_integral (circlepath z r) (\<lambda>u. f u / (u - w)^2)) (at w)"
     apply (simp add: power2_eq_square)
-    apply (rule Cauchy_next_derivative_circlepath [OF f _ _ w, where k=1 and g = "\<lambda>x. 2 * of_real pi * ii * f x", simplified])
+    apply (rule Cauchy_next_derivative_circlepath [OF f _ _ w, where k=1 and g = "\<lambda>x. 2 * of_real pi * \<i> * f x", simplified])
     apply (blast intro: int)
     done
   then have fder: "(f has_field_derivative contour_integral (circlepath z r) (\<lambda>u. f u / (u - w)^2) / (2 * of_real pi * \<i>)) (at w)"
@@ -5676,7 +5676,7 @@ proof -
       using field_differentiable_at_within field_differentiable_def fder by blast
     then have "continuous_on (path_image (circlepath z r)) f"
       using \<open>r > 0\<close> by (force elim: holomorphic_on_subset [THEN holomorphic_on_imp_continuous_on])
-    then have contfpi: "continuous_on (path_image (circlepath z r)) (\<lambda>x. 1/(2 * of_real pi*ii) * f x)"
+    then have contfpi: "continuous_on (path_image (circlepath z r)) (\<lambda>x. 1/(2 * of_real pi*\<i>) * f x)"
       by (auto intro: continuous_intros)+
     have contf_cball: "continuous_on (cball z r) f" using holf_cball
       by (simp add: holomorphic_on_imp_continuous_on holomorphic_on_subset)
@@ -6079,7 +6079,7 @@ proposition Cauchy_integral_formula_convex:
         and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x)"
         and z: "z \<in> interior s" and vpg: "valid_path \<gamma>"
         and pasz: "path_image \<gamma> \<subseteq> s - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
-      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
+      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * \<i> * winding_number \<gamma> z * f z)) \<gamma>"
   apply (rule Cauchy_integral_formula_weak [OF s finite.emptyI contf])
   apply (simp add: holomorphic_on_open [symmetric] field_differentiable_def)
   using no_isolated_singularity [where s = "interior s"]
@@ -6096,7 +6096,7 @@ proposition Cauchy_has_contour_integral_higher_derivative_circlepath:
   assumes contf: "continuous_on (cball z r) f"
       and holf: "f holomorphic_on ball z r"
       and w: "w \<in> ball z r"
-    shows "((\<lambda>u. f u / (u - w) ^ (Suc k)) has_contour_integral ((2 * pi * ii) / (fact k) * (deriv ^^ k) f w))
+    shows "((\<lambda>u. f u / (u - w) ^ (Suc k)) has_contour_integral ((2 * pi * \<i>) / (fact k) * (deriv ^^ k) f w))
            (circlepath z r)"
 using w
 proof (induction k arbitrary: w)
@@ -6137,7 +6137,7 @@ proposition Cauchy_higher_derivative_integral_circlepath:
       and w: "w \<in> ball z r"
     shows "(\<lambda>u. f u / (u - w)^(Suc k)) contour_integrable_on (circlepath z r)"
            (is "?thes1")
-      and "(deriv ^^ k) f w = (fact k) / (2 * pi * ii) * contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^(Suc k))"
+      and "(deriv ^^ k) f w = (fact k) / (2 * pi * \<i>) * contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^(Suc k))"
            (is "?thes2")
 proof -
   have *: "((\<lambda>u. f u / (u - w) ^ Suc k) has_contour_integral (2 * pi) * \<i> / (fact k) * (deriv ^^ k) f w)
@@ -6152,12 +6152,12 @@ qed
 
 corollary Cauchy_contour_integral_circlepath:
   assumes "continuous_on (cball z r) f" "f holomorphic_on ball z r" "w \<in> ball z r"
-    shows "contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^(Suc k)) = (2 * pi * ii) * (deriv ^^ k) f w / (fact k)"
+    shows "contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^(Suc k)) = (2 * pi * \<i>) * (deriv ^^ k) f w / (fact k)"
 by (simp add: Cauchy_higher_derivative_integral_circlepath [OF assms])
 
 corollary Cauchy_contour_integral_circlepath_2:
   assumes "continuous_on (cball z r) f" "f holomorphic_on ball z r" "w \<in> ball z r"
-    shows "contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^2) = (2 * pi * ii) * deriv f w"
+    shows "contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^2) = (2 * pi * \<i>) * deriv f w"
   using Cauchy_contour_integral_circlepath [OF assms, of 1]
   by (simp add: power2_eq_square)
 
@@ -6263,10 +6263,10 @@ proof -
     apply auto
     done
   then have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u/(u - z)^(Suc k)) * (w - z)^k)
-             sums (2 * of_real pi * ii * f w)"
+             sums (2 * of_real pi * \<i> * f w)"
     using w by (auto simp: dist_commute dist_norm contour_integral_unique [OF Cauchy_integral_circlepath_simple [OF holfc]])
   then have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u / (u - z) ^ Suc k) * (w - z)^k / (\<i> * (of_real pi * 2)))
-            sums ((2 * of_real pi * ii * f w) / (\<i> * (complex_of_real pi * 2)))"
+            sums ((2 * of_real pi * \<i> * f w) / (\<i> * (complex_of_real pi * 2)))"
     by (rule sums_divide)
   then have "(\<lambda>n. (w - z) ^ n * contour_integral (circlepath z r) (\<lambda>u. f u / (u - z) ^ Suc n) / (\<i> * (of_real pi * 2)))
             sums f w"
@@ -6407,7 +6407,7 @@ next
       by (rule contour_integral_uniform_limit_circlepath [OF ev_int ev_less F \<open>0 < r\<close>])
     have cif_tends_cig: "((\<lambda>n. contour_integral(circlepath z r) (\<lambda>u. f n u / (u - w))) \<longlongrightarrow> contour_integral(circlepath z r) (\<lambda>u. g u/(u - w))) F"
       by (rule contour_integral_uniform_limit_circlepath [OF ev_int ev_less F \<open>0 < r\<close>])
-    have f_tends_cig: "((\<lambda>n. 2 * of_real pi * ii * f n w) \<longlongrightarrow> contour_integral (circlepath z r) (\<lambda>u. g u / (u - w))) F"
+    have f_tends_cig: "((\<lambda>n. 2 * of_real pi * \<i> * f n w) \<longlongrightarrow> contour_integral (circlepath z r) (\<lambda>u. g u / (u - w))) F"
       apply (rule Lim_transform_eventually [where f = "\<lambda>n. contour_integral (circlepath z r) (\<lambda>u. f n u/(u - w))"])
       apply (rule eventually_mono [OF cont])
       apply (rule contour_integral_unique [OF Cauchy_integral_circlepath])
@@ -7077,7 +7077,7 @@ lemma Cauchy_integral_formula_global_weak:
         and z: "z \<in> u" and \<gamma>: "polynomial_function \<gamma>"
         and pasz: "path_image \<gamma> \<subseteq> u - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
         and zero: "\<And>w. w \<notin> u \<Longrightarrow> winding_number \<gamma> w = 0"
-      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
+      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * \<i> * winding_number \<gamma> z * f z)) \<gamma>"
 proof -
   obtain \<gamma>' where pf\<gamma>': "polynomial_function \<gamma>'" and \<gamma>': "\<And>x. (\<gamma> has_vector_derivative (\<gamma>' x)) (at x)"
     using has_vector_derivative_polynomial_function [OF \<gamma>] by blast
@@ -7468,7 +7468,7 @@ theorem Cauchy_integral_formula_global:
         and z: "z \<in> s" and vpg: "valid_path \<gamma>"
         and pasz: "path_image \<gamma> \<subseteq> s - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
         and zero: "\<And>w. w \<notin> s \<Longrightarrow> winding_number \<gamma> w = 0"
-      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
+      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * \<i> * winding_number \<gamma> z * f z)) \<gamma>"
 proof -
   have "path \<gamma>" using vpg by (blast intro: valid_path_imp_path)
   have hols: "(\<lambda>w. f w / (w - z)) holomorphic_on s - {z}" "(\<lambda>w. 1 / (w - z)) holomorphic_on s - {z}"

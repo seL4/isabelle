@@ -42,7 +42,7 @@ proof -
   have der_dif: "(deriv ^^ n) (\<lambda>w. f w - y) z = (deriv ^^ n) f z"
     using \<open>0 < r\<close> \<open>0 < n\<close>
     by (auto simp: higher_deriv_diff [OF holf holomorphic_on_const])
-  have "norm ((2 * of_real pi * ii)/(fact n) * (deriv ^^ n) (\<lambda>w. f w - y) z)
+  have "norm ((2 * of_real pi * \<i>)/(fact n) * (deriv ^^ n) (\<lambda>w. f w - y) z)
         \<le> (B0/r^(Suc n)) * (2 * pi * r)"
     apply (rule has_contour_integral_bound_circlepath [of "(\<lambda>u. (f u - y)/(u - z)^(Suc n))" _ z])
     using Cauchy_has_contour_integral_higher_derivative_circlepath [OF contf' holf']
@@ -70,7 +70,7 @@ proof -
          (circlepath \<xi> r)"
     apply (rule Cauchy_has_contour_integral_higher_derivative_circlepath [OF contf holf])
     using \<open>0 < r\<close> by simp
-  then have "norm ((2 * pi * ii)/(fact n) * (deriv ^^ n) f \<xi>) \<le> (B / r^(Suc n)) * (2 * pi * r)"
+  then have "norm ((2 * pi * \<i>)/(fact n) * (deriv ^^ n) f \<xi>) \<le> (B / r^(Suc n)) * (2 * pi * r)"
     apply (rule has_contour_integral_bound_circlepath)
     using \<open>0 \<le> B\<close> \<open>0 < r\<close>
     apply (simp_all add: norm_divide norm_power nof frac_le norm_minus_commute del: power_Suc)
@@ -1229,13 +1229,13 @@ proof -
         done
       then obtain \<epsilon> where "\<epsilon>>0" and \<epsilon>: "cball 0 \<epsilon> \<subseteq> U"
         using \<open>open U\<close> open_contains_cball by blast
-      then have "\<epsilon> * exp(2 * of_real pi * ii * (0/n)) \<in> cball 0 \<epsilon>"
-                "\<epsilon> * exp(2 * of_real pi * ii * (1/n)) \<in> cball 0 \<epsilon>"
+      then have "\<epsilon> * exp(2 * of_real pi * \<i> * (0/n)) \<in> cball 0 \<epsilon>"
+                "\<epsilon> * exp(2 * of_real pi * \<i> * (1/n)) \<in> cball 0 \<epsilon>"
         by (auto simp: norm_mult)
-      with \<epsilon> have "\<epsilon> * exp(2 * of_real pi * ii * (0/n)) \<in> U"
-                  "\<epsilon> * exp(2 * of_real pi * ii * (1/n)) \<in> U" by blast+
-      then obtain y0 y1 where "y0 \<in> T" and y0: "(y0 - \<xi>) * g y0 = \<epsilon> * exp(2 * of_real pi * ii * (0/n))"
-                          and "y1 \<in> T" and y1: "(y1 - \<xi>) * g y1 = \<epsilon> * exp(2 * of_real pi * ii * (1/n))"
+      with \<epsilon> have "\<epsilon> * exp(2 * of_real pi * \<i> * (0/n)) \<in> U"
+                  "\<epsilon> * exp(2 * of_real pi * \<i> * (1/n)) \<in> U" by blast+
+      then obtain y0 y1 where "y0 \<in> T" and y0: "(y0 - \<xi>) * g y0 = \<epsilon> * exp(2 * of_real pi * \<i> * (0/n))"
+                          and "y1 \<in> T" and y1: "(y1 - \<xi>) * g y1 = \<epsilon> * exp(2 * of_real pi * \<i> * (1/n))"
         by (auto simp: U_def)
       then have "y0 \<in> ball \<xi> \<delta>" "y1 \<in> ball \<xi> \<delta>" using Tsb by auto
       moreover have "y0 \<noteq> y1"
@@ -1720,7 +1720,7 @@ proof -
   then have 3: "continuous_on S (\<lambda>z. if 0 \<le> Im z then f z else cnj (f (cnj z)))"
     by force
   show ?thesis
-    apply (rule holomorphic_on_paste_across_line [OF \<open>open S\<close>, of "-ii" _ 0])
+    apply (rule holomorphic_on_paste_across_line [OF \<open>open S\<close>, of "- \<i>" _ 0])
     using 1 2 3
     apply auto
     done
@@ -2141,7 +2141,7 @@ text\<open>Wenda Li and LC Paulson (2016). A Formal Proof of Cauchy's Residue Th
 
 definition residue :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
   "residue f z = (SOME int. \<exists>e>0. \<forall>\<epsilon>>0. \<epsilon><e 
-    \<longrightarrow> (f has_contour_integral 2*pi* ii *int) (circlepath z \<epsilon>))"
+    \<longrightarrow> (f has_contour_integral 2*pi* \<i> *int) (circlepath z \<epsilon>))"
 
 lemma contour_integral_circlepath_eq:
   assumes "open s" and f_holo:"f holomorphic_on (s-{z})" and "0<e1" "e1\<le>e2" 
@@ -2253,11 +2253,11 @@ qed
 lemma base_residue:
   assumes "open s" "z\<in>s" "r>0" and f_holo:"f holomorphic_on (s - {z})" 
     and r_cball:"cball z r \<subseteq> s"
-  shows "(f has_contour_integral 2*pi*ii* (residue f z)) (circlepath z r)"
+  shows "(f has_contour_integral 2 * pi * \<i> * (residue f z)) (circlepath z r)"
 proof -
   obtain e where "e>0" and e_cball:"cball z e \<subseteq> s" 
     using open_contains_cball[of s] \<open>open s\<close> \<open>z\<in>s\<close> by auto
-  define c where "c \<equiv> 2*pi*ii"
+  define c where "c \<equiv> 2 * pi * \<i>"
   define i where "i \<equiv> contour_integral (circlepath z e) f / c"
   have "(f has_contour_integral c*i) (circlepath z \<epsilon>)" when "\<epsilon>>0" "\<epsilon><e" for \<epsilon> 
     proof -

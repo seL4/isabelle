@@ -93,8 +93,8 @@ lemma cubic:
       q = (9 * a * b * c - 2 * b^3 - 27 * a^2 * d) / (54 * a^3);
       s = csqrt(q^2 + p^3);
       s1 = (if p = 0 then ccbrt(2 * q) else ccbrt(q + s));
-      s2 = -s1 * (1 + ii * csqrt 3) / 2;
-      s3 = -s1 * (1 - ii * csqrt 3) / 2
+      s2 = -s1 * (1 + \<i> * csqrt 3) / 2;
+      s3 = -s1 * (1 - \<i> * csqrt 3) / 2
      in
       if p = 0 then
         a * x^3 + b * x^2 + c * x + d = 0 \<longleftrightarrow>
@@ -112,8 +112,8 @@ proof -
   let ?q = "(9 * a * b * c - 2 * b^3 - 27 * a^2 * d) / (54 * a^3)"
   let ?s = "csqrt (?q^2 + ?p^3)"
   let ?s1 = "if ?p = 0 then ccbrt(2 * ?q) else ccbrt(?q + ?s)"
-  let ?s2 = "- ?s1 * (1 + ii * csqrt 3) / 2"
-  let ?s3 = "- ?s1 * (1 - ii * csqrt 3) / 2"
+  let ?s2 = "- ?s1 * (1 + \<i> * csqrt 3) / 2"
+  let ?s3 = "- ?s1 * (1 - \<i> * csqrt 3) / 2"
   let ?y = "x + b / (3 * a)"
   from a0 have zero: "9 * a^2 \<noteq> 0" "a^3 * 54 \<noteq> 0" "(a * 3) \<noteq> 0"
     by auto
@@ -122,9 +122,9 @@ proof -
   have "csqrt 3^2 = 3" by (rule power2_csqrt)
   then have th0:
     "?s^2 = ?q^2 + ?p ^ 3 \<and> ?s1^ 3 = (if ?p = 0 then 2 * ?q else ?q + ?s) \<and>
-      ?s2 = - ?s1 * (1 + ii * csqrt 3) / 2 \<and>
-      ?s3 = - ?s1 * (1 - ii * csqrt 3) / 2 \<and>
-      ii^2 + 1 = 0 \<and> csqrt 3^2 = 3"
+      ?s2 = - ?s1 * (1 + \<i> * csqrt 3) / 2 \<and>
+      ?s3 = - ?s1 * (1 - \<i> * csqrt 3) / 2 \<and>
+      \<i>^2 + 1 = 0 \<and> csqrt 3^2 = 3"
     using zero by (simp add: field_simps ccbrt)
   from cubic_basic[OF th0, of ?y]
   show ?thesis
