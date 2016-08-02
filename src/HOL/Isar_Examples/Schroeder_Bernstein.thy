@@ -5,7 +5,7 @@
 section \<open>Schröder-Bernstein Theorem\<close>
 
 theory Schroeder_Bernstein
-imports Main
+  imports Main
 begin
 
 text \<open>

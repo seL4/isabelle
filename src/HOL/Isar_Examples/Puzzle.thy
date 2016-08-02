@@ -1,7 +1,7 @@
 section \<open>An old chestnut\<close>
 
 theory Puzzle
-imports Main
+  imports Main
 begin
 
 text_raw \<open>\<^footnote>\<open>A question from ``Bundeswettbewerb Mathematik''. Original
