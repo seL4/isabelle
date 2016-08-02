@@ -1,7 +1,7 @@
 section \<open>Using Hoare Logic\<close>
 
 theory Hoare_Ex
-imports Hoare
+  imports Hoare
 begin
 
 subsection \<open>State spaces\<close>
@@ -276,11 +276,11 @@ record tstate = time :: nat
 type_synonym 'a time = "\<lparr>time :: nat, \<dots> :: 'a\<rparr>"
 
 primrec timeit :: "'a time com \<Rightarrow> 'a time com"
-where
-  "timeit (Basic f) = (Basic f; Basic(\<lambda>s. s\<lparr>time := Suc (time s)\<rparr>))"
-| "timeit (c1; c2) = (timeit c1; timeit c2)"
-| "timeit (Cond b c1 c2) = Cond b (timeit c1) (timeit c2)"
-| "timeit (While b iv c) = While b iv (timeit c)"
+  where
+    "timeit (Basic f) = (Basic f; Basic(\<lambda>s. s\<lparr>time := Suc (time s)\<rparr>))"
+  | "timeit (c1; c2) = (timeit c1; timeit c2)"
+  | "timeit (Cond b c1 c2) = Cond b (timeit c1) (timeit c2)"
+  | "timeit (While b iv c) = While b iv (timeit c)"
 
 record tvars = tstate +
   I :: nat

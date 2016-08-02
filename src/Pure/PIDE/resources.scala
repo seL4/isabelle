@@ -23,7 +23,7 @@ object Resources
 class Resources(
   val loaded_theories: Set[String],
   val known_theories: Map[String, Document.Node.Name],
-  val base_syntax: Prover.Syntax)
+  val base_syntax: Outer_Syntax)
 {
   /* document node names */
 
@@ -55,7 +55,7 @@ class Resources(
 
   /* theory files */
 
-  def loaded_files(syntax: Prover.Syntax, text: String): List[String] =
+  def loaded_files(syntax: Outer_Syntax, text: String): List[String] =
     if (syntax.load_commands_in(text)) {
       val spans = syntax.parse_spans(text)
       spans.iterator.map(Command.span_files(syntax, _)._1).flatten.toList
@@ -103,7 +103,7 @@ class Resources(
 
         val imports =
           header.imports.map({ case (s, pos) => (import_name(qualifier, node_name, s), pos) })
-        Document.Node.Header(imports, header.keywords)
+        Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
     }

@@ -5,7 +5,7 @@
 section \<open>Summing natural numbers\<close>
 
 theory Summation
-imports Main
+  imports Main
 begin
 
 text \<open>

@@ -6,7 +6,7 @@
 section \<open>The Mutilated Checker Board Problem\<close>
 
 theory Mutilated_Checkerboard
-imports Main
+  imports Main
 begin
 
 text \<open>
@@ -16,11 +16,10 @@ text \<open>
 
 subsection \<open>Tilings\<close>
 
-inductive_set tiling :: "'a set set \<Rightarrow> 'a set set"
-  for A :: "'a set set"
-where
-  empty: "{} \<in> tiling A"
-| Un: "a \<union> t \<in> tiling A" if "a \<in> A" and "t \<in> tiling A" and "a \<subseteq> - t"
+inductive_set tiling :: "'a set set \<Rightarrow> 'a set set" for A :: "'a set set"
+  where
+    empty: "{} \<in> tiling A"
+  | Un: "a \<union> t \<in> tiling A" if "a \<in> A" and "t \<in> tiling A" and "a \<subseteq> - t"
 
 
 text \<open>The union of two disjoint tilings is a tiling.\<close>
@@ -114,9 +113,9 @@ lemma evnodd_insert: "evnodd (insert (i, j) C) b =
 subsection \<open>Dominoes\<close>
 
 inductive_set domino :: "(nat \<times> nat) set set"
-where
-  horiz: "{(i, j), (i, j + 1)} \<in> domino"
-| vertl: "{(i, j), (i + 1, j)} \<in> domino"
+  where
+    horiz: "{(i, j), (i, j + 1)} \<in> domino"
+  | vertl: "{(i, j), (i + 1, j)} \<in> domino"
 
 lemma dominoes_tile_row:
   "{i} \<times> below (2 * n) \<in> tiling domino"
@@ -242,10 +241,8 @@ qed
 subsection \<open>Main theorem\<close>
 
 definition mutilated_board :: "nat \<Rightarrow> nat \<Rightarrow> (nat \<times> nat) set"
-  where
-    "mutilated_board m n =
-      below (2 * (m + 1)) \<times> below (2 * (n + 1))
-        - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"
+  where "mutilated_board m n =
+    below (2 * (m + 1)) \<times> below (2 * (n + 1)) - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"
 
 theorem mutil_not_tiling: "mutilated_board m n \<notin> tiling domino"
 proof (unfold mutilated_board_def)

@@ -10,7 +10,7 @@ text \<open>
 \<close>
 
 theory First_Order_Logic
-imports Pure
+  imports Pure
 begin
 
 subsection \<open>Abstract syntax\<close>

@@ -5,7 +5,7 @@
 section \<open>Structured statements within Isar proofs\<close>
 
 theory Structured_Statements
-imports Main
+  imports Main
 begin
 
 subsection \<open>Introduction steps\<close>

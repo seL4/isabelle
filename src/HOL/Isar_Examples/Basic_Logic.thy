@@ -7,7 +7,7 @@ Basic propositional and quantifier reasoning.
 section \<open>Basic logical reasoning\<close>
 
 theory Basic_Logic
-imports Main
+  imports Main
 begin
 
 

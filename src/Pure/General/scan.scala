@@ -8,7 +8,7 @@ package isabelle
 
 
 import scala.annotation.tailrec
-import scala.collection.{IndexedSeq, TraversableOnce}
+import scala.collection.{IndexedSeq, Traversable, TraversableOnce}
 import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
@@ -392,6 +392,11 @@ object Scan
       if (this eq other) this
       else if (is_empty) other
       else this ++ other.raw_iterator
+
+    def -- (remove: Traversable[String]): Lexicon =
+      if (remove.exists(contains(_)))
+        Lexicon.empty ++ iterator.filterNot(a => remove.exists(b => a == b))
+      else this
 
 
     /* scan */

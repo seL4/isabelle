@@ -5,7 +5,7 @@
 section \<open>Basic group theory\<close>
 
 theory Group
-imports Main
+  imports Main
 begin
 
 subsection \<open>Groups and calculational reasoning\<close> 

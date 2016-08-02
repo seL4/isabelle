@@ -326,7 +326,7 @@ object Command
     }
     else None
 
-  def span_files(syntax: Prover.Syntax, span: Command_Span.Span): (List[String], Int) =
+  def span_files(syntax: Outer_Syntax, span: Command_Span.Span): (List[String], Int) =
     syntax.load_command(span.name) match {
       case Some(exts) =>
         find_file(clean_tokens(span.content)) match {
@@ -340,7 +340,7 @@ object Command
 
   def blobs_info(
     resources: Resources,
-    syntax: Prover.Syntax,
+    syntax: Outer_Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,

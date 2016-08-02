@@ -7,7 +7,7 @@ A formulation of Hoare logic suitable for Isar.
 section \<open>Hoare Logic\<close>
 
 theory Hoare
-imports Main
+  imports Main
 begin
 
 subsection \<open>Abstract syntax and semantics\<close>
@@ -34,28 +34,24 @@ abbreviation Skip  ("SKIP")
 type_synonym 'a sem = "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 primrec iter :: "nat \<Rightarrow> 'a bexp \<Rightarrow> 'a sem \<Rightarrow> 'a sem"
-where
-  "iter 0 b S s s' \<longleftrightarrow> s \<notin> b \<and> s = s'"
-| "iter (Suc n) b S s s' \<longleftrightarrow> s \<in> b \<and> (\<exists>s''. S s s'' \<and> iter n b S s'' s')"
+  where
+    "iter 0 b S s s' \<longleftrightarrow> s \<notin> b \<and> s = s'"
+  | "iter (Suc n) b S s s' \<longleftrightarrow> s \<in> b \<and> (\<exists>s''. S s s'' \<and> iter n b S s'' s')"
 
 primrec Sem :: "'a com \<Rightarrow> 'a sem"
-where
-  "Sem (Basic f) s s' \<longleftrightarrow> s' = f s"
-| "Sem (c1; c2) s s' \<longleftrightarrow> (\<exists>s''. Sem c1 s s'' \<and> Sem c2 s'' s')"
-| "Sem (Cond b c1 c2) s s' \<longleftrightarrow>
-    (if s \<in> b then Sem c1 s s' else Sem c2 s s')"
-| "Sem (While b x c) s s' \<longleftrightarrow> (\<exists>n. iter n b (Sem c) s s')"
+  where
+    "Sem (Basic f) s s' \<longleftrightarrow> s' = f s"
+  | "Sem (c1; c2) s s' \<longleftrightarrow> (\<exists>s''. Sem c1 s s'' \<and> Sem c2 s'' s')"
+  | "Sem (Cond b c1 c2) s s' \<longleftrightarrow> (if s \<in> b then Sem c1 s s' else Sem c2 s s')"
+  | "Sem (While b x c) s s' \<longleftrightarrow> (\<exists>n. iter n b (Sem c) s s')"
 
-definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
-    ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
+definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"  ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
   where "\<turnstile> P c Q \<longleftrightarrow> (\<forall>s s'. Sem c s s' \<longrightarrow> s \<in> P \<longrightarrow> s' \<in> Q)"
 
-lemma ValidI [intro?]:
-    "(\<And>s s'. Sem c s s' \<Longrightarrow> s \<in> P \<Longrightarrow> s' \<in> Q) \<Longrightarrow> \<turnstile> P c Q"
+lemma ValidI [intro?]: "(\<And>s s'. Sem c s s' \<Longrightarrow> s \<in> P \<Longrightarrow> s' \<in> Q) \<Longrightarrow> \<turnstile> P c Q"
   by (simp add: Valid_def)
 
-lemma ValidD [dest?]:
-    "\<turnstile> P c Q \<Longrightarrow> Sem c s s' \<Longrightarrow> s \<in> P \<Longrightarrow> s' \<in> Q"
+lemma ValidD [dest?]: "\<turnstile> P c Q \<Longrightarrow> Sem c s s' \<Longrightarrow> s \<in> P \<Longrightarrow> s' \<in> Q"
   by (simp add: Valid_def)
 
 
