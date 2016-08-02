@@ -111,6 +111,12 @@ e.g. for proof methods "cases", "induct", "goal_cases".
 * Completion templates for commands involving "begin ... end" blocks,
 e.g. 'context', 'notepad'.
 
+* Additional abbreviations for syntactic completion may be specified in
+within the theory header as 'abbrevs', in addition to global
+$ISABELLE_HOME/etc/abbrevs and $ISABELLE_HOME_USER/etc/abbrevs. The
+theory syntax for 'keywords' has been simplified accordingly: optional
+abbrevs need to go into the new 'abbrevs' section.
+
 
 *** Isar ***
 

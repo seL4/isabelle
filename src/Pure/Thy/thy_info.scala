@@ -38,24 +38,26 @@ class Thy_Info(resources: Resources)
 
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Nil, Set.empty, Multi_Map.empty, Multi_Map.empty)
+    val empty = new Dependencies(Nil, Nil, Nil, Set.empty, Multi_Map.empty, Multi_Map.empty)
   }
 
   final class Dependencies private(
     rev_deps: List[Thy_Info.Dep],
     val keywords: Thy_Header.Keywords,
+    val abbrevs: Thy_Header.Abbrevs,
     val seen: Set[Document.Node.Name],
     val seen_names: Multi_Map[String, Document.Node.Name],
     val seen_positions: Multi_Map[String, Position.T])
   {
     def :: (dep: Thy_Info.Dep): Dependencies =
-      new Dependencies(dep :: rev_deps, dep.header.keywords ::: keywords,
+      new Dependencies(
+        dep :: rev_deps, dep.header.keywords ::: keywords, dep.header.abbrevs ::: abbrevs,
         seen, seen_names, seen_positions)
 
     def + (thy: (Document.Node.Name, Position.T)): Dependencies =
     {
       val (name, pos) = thy
-      new Dependencies(rev_deps, keywords,
+      new Dependencies(rev_deps, keywords, abbrevs,
         seen + name,
         seen_names + (name.theory -> name),
         seen_positions + (name.theory -> pos))
@@ -80,7 +82,8 @@ class Thy_Info(resources: Resources)
       header_errors ::: import_errors
     }
 
-    lazy val syntax: Prover.Syntax = resources.base_syntax.add_keywords(keywords)
+    lazy val syntax: Prover.Syntax =
+      resources.base_syntax.add_keywords(keywords).add_abbrevs(abbrevs)
 
     def loaded_theories: Set[String] =
       (resources.loaded_theories /: rev_deps) { case (loaded, dep) => loaded + dep.name.theory }

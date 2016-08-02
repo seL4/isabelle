@@ -17,7 +17,8 @@ object Thy_Header extends Parse.Parser
 {
   /* bootstrap keywords */
 
-  type Keywords = List[(String, Keyword.Spec, Option[String])]
+  type Keywords = List[(String, Keyword.Spec)]
+  type Abbrevs = List[(String, String)]
 
   val CHAPTER = "chapter"
   val SECTION = "section"
@@ -32,32 +33,34 @@ object Thy_Header extends Parse.Parser
   val THEORY = "theory"
   val IMPORTS = "imports"
   val KEYWORDS = "keywords"
+  val ABBREVS = "abbrevs"
   val AND = "and"
   val BEGIN = "begin"
 
   private val bootstrap_header: Keywords =
     List(
-      ("%", Keyword.no_spec, None),
-      ("(", Keyword.no_spec, None),
-      (")", Keyword.no_spec, None),
-      (",", Keyword.no_spec, None),
-      ("::", Keyword.no_spec, None),
-      ("==", Keyword.no_spec, None),
-      (AND, Keyword.no_spec, None),
-      (BEGIN, Keyword.quasi_command_spec, None),
-      (IMPORTS, Keyword.quasi_command_spec, None),
-      (KEYWORDS, Keyword.quasi_command_spec, None),
-      (CHAPTER, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SUBSUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (PARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (SUBPARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
-      (TEXT, (((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
-      (TXT, (((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
-      (TEXT_RAW, (((Keyword.DOCUMENT_RAW, Nil), Nil)), None),
-      (THEORY, ((Keyword.THY_BEGIN, Nil), List("theory")), None),
-      ("ML", ((Keyword.THY_DECL, Nil), List("ML")), None))
+      ("%", Keyword.no_spec),
+      ("(", Keyword.no_spec),
+      (")", Keyword.no_spec),
+      (",", Keyword.no_spec),
+      ("::", Keyword.no_spec),
+      ("=", Keyword.no_spec),
+      (AND, Keyword.no_spec),
+      (BEGIN, Keyword.quasi_command_spec),
+      (IMPORTS, Keyword.quasi_command_spec),
+      (KEYWORDS, Keyword.quasi_command_spec),
+      (ABBREVS, Keyword.quasi_command_spec),
+      (CHAPTER, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
+      (SECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
+      (SUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
+      (SUBSUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
+      (PARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
+      (SUBPARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
+      (TEXT, (((Keyword.DOCUMENT_BODY, Nil), Nil))),
+      (TXT, (((Keyword.DOCUMENT_BODY, Nil), Nil))),
+      (TEXT_RAW, (((Keyword.DOCUMENT_RAW, Nil), Nil))),
+      (THEORY, ((Keyword.THY_BEGIN, Nil), List("theory"))),
+      ("ML", ((Keyword.THY_DECL, Nil), List("ML"))))
 
   private val bootstrap_keywords =
     Keyword.Keywords.empty.add_keywords(bootstrap_header)
@@ -106,13 +109,15 @@ object Thy_Header extends Parse.Parser
 
     val keyword_decl =
       rep1(string) ~
-      opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
-      opt($$$("==") ~! name ^^ { case _ ~ x => x }) ^^
-      { case xs ~ y ~ z => xs.map((_, y.getOrElse(Keyword.no_spec), z)) }
+      opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ^^
+      { case xs ~ y => xs.map((_, y.getOrElse(Keyword.no_spec))) }
 
     val keyword_decls =
       keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
       { case xs ~ yss => (xs :: yss).flatten }
+
+    val abbrevs =
+      rep1(text ~ ($$$("=") ~! text) ^^ { case a ~ (_ ~ b) => (a, b) })
 
     val args =
       position(theory_name) ~
@@ -120,8 +125,10 @@ object Thy_Header extends Parse.Parser
         { case None => Nil case Some(_ ~ xs) => xs }) ~
       (opt($$$(KEYWORDS) ~! keyword_decls) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
+      (opt($$$(ABBREVS) ~! abbrevs) ^^
+        { case None => Nil case Some(_ ~ xs) => xs }) ~
       $$$(BEGIN) ^^
-      { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
+      { case x ~ ys ~ zs ~ ws ~ _ => Thy_Header(x, ys, zs, ws) }
 
     val heading =
       (command(CHAPTER) |
@@ -171,13 +178,15 @@ object Thy_Header extends Parse.Parser
 sealed case class Thy_Header(
   name: (String, Position.T),
   imports: List[(String, Position.T)],
-  keywords: Thy_Header.Keywords)
+  keywords: Thy_Header.Keywords,
+  abbrevs: Thy_Header.Abbrevs)
 {
   def decode_symbols: Thy_Header =
   {
     val f = Symbol.decode _
-    Thy_Header((f(name._1), name._2), imports.map({ case (a, b) => (f(a), b) }),
-      keywords.map({ case (a, ((x, y), z), c) =>
-        (f(a), ((f(x), y.map(f)), z.map(f)), c.map(f)) }))
+    Thy_Header((f(name._1), name._2),
+      imports.map({ case (a, b) => (f(a), b) }),
+      keywords.map({ case (a, ((b, c), d)) => (f(a), ((f(b), c.map(f)), d.map(f))) }),
+      abbrevs.map({ case (a, b) => (f(a), f(b)) }))
   }
 }

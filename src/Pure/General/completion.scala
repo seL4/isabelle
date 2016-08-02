@@ -344,7 +344,7 @@ object Completion
 }
 
 final class Completion private(
-  protected val keywords: Map[String, Boolean] = Map.empty,
+  protected val keywords: Set[String] = Set.empty,
   protected val words_lex: Scan.Lexicon = Scan.Lexicon.empty,
   protected val words_map: Multi_Map[String, String] = Multi_Map.empty,
   protected val abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
@@ -363,8 +363,7 @@ final class Completion private(
     if (this eq other) this
     else if (is_empty) other
     else {
-      val keywords1 =
-        (keywords /: other.keywords) { case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
+      val keywords1 = (keywords /: other.keywords) { case (ks, k) => if (ks(k)) ks else ks + k }
       val words_lex1 = words_lex ++ other.words_lex
       val words_map1 = words_map ++ other.words_map
       val abbrevs_lex1 = abbrevs_lex ++ other.abbrevs_lex
@@ -376,19 +375,12 @@ final class Completion private(
   /* keywords */
 
   private def is_symbol(name: String): Boolean = Symbol.names.isDefinedAt(name)
-  private def is_keyword(name: String): Boolean = !is_symbol(name) && keywords.isDefinedAt(name)
+  private def is_keyword(name: String): Boolean = !is_symbol(name) && keywords(name)
   private def is_keyword_template(name: String, template: Boolean): Boolean =
-    is_keyword(name) && keywords(name) == template
+    is_keyword(name) && (words_map.getOrElse(name, name) != name) == template
 
-  def + (keyword: String, template: String): Completion =
-    new Completion(
-      keywords + (keyword -> (keyword != template)),
-      words_lex + keyword,
-      words_map + (keyword -> template),
-      abbrevs_lex,
-      abbrevs_map)
-
-  def + (keyword: String): Completion = this + (keyword, keyword)
+  def add_keyword(keyword: String): Completion =
+    new Completion(keywords + keyword, words_lex, words_map, abbrevs_lex, abbrevs_map)
 
 
   /* symbols and abbrevs */
@@ -408,21 +400,23 @@ final class Completion private(
   }
 
   def add_abbrevs(abbrevs: List[(String, String)]): Completion =
-  {
-    val words =
-      for ((abbr, text) <- abbrevs if Completion.Word_Parsers.is_word(abbr))
-        yield (abbr, text)
-    val abbrs =
-      for ((abbr, text) <- abbrevs if !Completion.Word_Parsers.is_word(abbr))
-        yield (abbr.reverse, (abbr, text))
+    if (abbrevs.isEmpty) this
+    else {
+      val words =
+        for ((abbr, text) <- abbrevs if text != "" && Completion.Word_Parsers.is_word(abbr))
+          yield (abbr, text)
+      val abbrs =
+        for ((abbr, text) <- abbrevs if text != "" && !Completion.Word_Parsers.is_word(abbr))
+          yield (abbr.reverse, (abbr, text))
+      val remove = (for ((abbr, "") <- abbrevs.iterator) yield abbr).toSet
 
-    new Completion(
-      keywords,
-      words_lex ++ words.map(_._1),
-      words_map ++ words,
-      abbrevs_lex ++ abbrs.map(_._1),
-      abbrevs_map ++ abbrs)
-  }
+      new Completion(
+        keywords,
+        words_lex ++ words.map(_._1) -- remove,
+        words_map ++ words -- remove,
+        abbrevs_lex ++ abbrs.map(_._1) -- remove,
+        abbrevs_map ++ abbrs -- remove)
+    }
 
   private def load(): Completion =
     add_symbols().add_abbrevs(Completion.load_abbrevs() ::: Completion.default_abbrevs)

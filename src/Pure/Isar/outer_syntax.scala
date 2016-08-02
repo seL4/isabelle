@@ -85,24 +85,35 @@ final class Outer_Syntax private(
 
   /* add keywords */
 
-  def + (name: String, kind: String = "", tags: List[String] = Nil, replace: Option[String] = None)
-    : Outer_Syntax =
+  def + (name: String, kind: String = "", tags: List[String] = Nil): Outer_Syntax =
   {
     val keywords1 = keywords + (name, kind, tags)
     val completion1 =
-      if (replace == Some("")) completion
-      else if (replace.isEmpty && Keyword.theory_block.contains(kind))
-        completion + (name, name + "\nbegin\n\u0007\nend") + (name, name)
-      else completion + (name, replace getOrElse name)
+      completion.add_keyword(name).add_abbrevs(
+        if (Keyword.theory_block.contains(kind))
+          List((name, name + "\nbegin\n\u0007\nend"), (name, name))
+        else List((name, name)))
     new Outer_Syntax(keywords1, completion1, language_context, true)
   }
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, (name, ((kind, tags), _), replace)) =>
-        syntax +
-          (Symbol.decode(name), kind, tags, replace) +
-          (Symbol.encode(name), kind, tags, replace)
+      case (syntax, (name, ((kind, tags), _))) =>
+        syntax + (Symbol.decode(name), kind, tags) + (Symbol.encode(name), kind, tags)
+    }
+
+  def add_abbrevs(abbrevs: Thy_Header.Abbrevs): Outer_Syntax =
+    if (abbrevs.isEmpty) this
+    else {
+      val completion1 =
+        completion.add_abbrevs(
+          (for ((a, b) <- abbrevs) yield {
+            val a1 = Symbol.decode(a)
+            val a2 = Symbol.encode(a)
+            val b1 = Symbol.decode(b)
+            List((a1, b1), (a2, b1))
+          }).flatten)
+      new Outer_Syntax(keywords, completion1, language_context, has_tokens)
     }
 
 

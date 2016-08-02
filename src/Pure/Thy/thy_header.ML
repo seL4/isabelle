@@ -58,6 +58,7 @@ val text_rawN = "text_raw";
 val theoryN = "theory";
 val importsN = "imports";
 val keywordsN = "keywords";
+val abbrevsN = "abbrevs";
 val beginN = "begin";
 
 val bootstrap_keywords =
@@ -68,11 +69,12 @@ val bootstrap_keywords =
      ((")", @{here}), Keyword.no_spec),
      ((",", @{here}), Keyword.no_spec),
      (("::", @{here}), Keyword.no_spec),
-     (("==", @{here}), Keyword.no_spec),
+     (("=", @{here}), Keyword.no_spec),
      (("and", @{here}), Keyword.no_spec),
      ((beginN, @{here}), Keyword.quasi_command_spec),
      ((importsN, @{here}), Keyword.quasi_command_spec),
      ((keywordsN, @{here}), Keyword.quasi_command_spec),
+     ((abbrevsN, @{here}), Keyword.quasi_command_spec),
      ((chapterN, @{here}), ((Keyword.document_heading, []), [])),
      ((sectionN, @{here}), ((Keyword.document_heading, []), [])),
      ((subsectionN, @{here}), ((Keyword.document_heading, []), [])),
@@ -128,14 +130,12 @@ val keyword_spec =
   Parse.group (fn () => "outer syntax keyword specification")
     (Parse.name -- opt_files -- Parse.tags);
 
-val keyword_compl =
-  Parse.group (fn () => "outer syntax keyword completion") Parse.name;
-
 val keyword_decl =
   Scan.repeat1 (Parse.position Parse.string) --
-  Scan.optional (Parse.$$$ "::" |-- Parse.!!! keyword_spec) Keyword.no_spec --
-  Scan.option (Parse.$$$ "==" |-- Parse.!!! keyword_compl)
-  >> (fn ((names, spec), _) => map (rpair spec) names);
+  Scan.optional (Parse.$$$ "::" |-- Parse.!!! keyword_spec) Keyword.no_spec
+  >> (fn (names, spec) => map (rpair spec) names);
+
+val abbrevs = Scan.repeat1 (Parse.text -- (Parse.$$$ "=" |-- Parse.!!! Parse.text));
 
 val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 
@@ -145,7 +145,8 @@ val args =
   Parse.position Parse.theory_name :|-- (fn (name, pos) =>
     imports name --
     Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --|
-    Parse.$$$ beginN >> (fn (imports, keywords) => make (name, pos) imports keywords));
+    (Scan.optional (Parse.$$$ abbrevsN |-- Parse.!!! abbrevs) [] -- Parse.$$$ beginN)
+    >> (fn (imports, keywords) => make (name, pos) imports keywords));
 
 end;
 

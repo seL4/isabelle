@@ -6,7 +6,7 @@ The Pure theory, with definitions of Isar commands and some lemmas.
 
 theory Pure
 keywords
-    "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
+    "!!" "!" "+" "--" ":" ";" "<" "<=" "==" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "attach" "binder" "for" "if" "in" "infix" "infixl" "infixr" "is"
     "open" "output" "overloaded" "pervasive" "premises" "structure" "unchecked" "when"
   and "private" "qualified" :: before_command
@@ -14,7 +14,7 @@ keywords
     "obtains" "shows" "where" "|" :: quasi_command
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
-  and "default_sort" :: thy_decl == ""
+  and "default_sort" :: thy_decl
   and "typedecl" "type_synonym" "nonterminal" "judgment"
     "consts" "syntax" "no_syntax" "translations" "no_translations"
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
@@ -25,7 +25,7 @@ keywords
   and "SML_import" "SML_export" :: thy_decl % "ML"
   and "ML_prf" :: prf_decl % "proof"  (* FIXME % "ML" ?? *)
   and "ML_val" "ML_command" :: diag % "ML"
-  and "simproc_setup" :: thy_decl % "ML" == ""
+  and "simproc_setup" :: thy_decl % "ML"
   and "setup" "local_setup" "attribute_setup" "method_setup"
     "declaration" "syntax_declaration"
     "parse_ast_translation" "parse_translation" "print_translation"
@@ -47,9 +47,9 @@ keywords
   and "schematic_goal" :: thy_goal
   and "notepad" :: thy_decl_block
   and "have" :: prf_goal % "proof"
-  and "hence" :: prf_goal % "proof" == "then have"
+  and "hence" :: prf_goal % "proof"
   and "show" :: prf_asm_goal % "proof"
-  and "thus" :: prf_asm_goal % "proof" == "then show"
+  and "thus" :: prf_asm_goal % "proof"
   and "then" "from" "with" :: prf_chain % "proof"
   and "note" :: prf_decl % "proof"
   and "supply" :: prf_script % "proof"
@@ -68,7 +68,7 @@ keywords
   and "done" :: "qed_script" % "proof"
   and "oops" :: qed_global % "proof"
   and "defer" "prefer" "apply" :: prf_script % "proof"
-  and "apply_end" :: prf_script % "proof" == ""
+  and "apply_end" :: prf_script % "proof"
   and "subgoal" :: prf_script_goal % "proof"
   and "proof" :: prf_block % "proof"
   and "also" "moreover" :: prf_decl % "proof"
@@ -86,11 +86,19 @@ keywords
   and "display_drafts" "print_state" :: diag
   and "welcome" :: diag
   and "end" :: thy_end % "theory"
-  and "realizers" :: thy_decl == ""
-  and "realizability" :: thy_decl == ""
+  and "realizers" :: thy_decl
+  and "realizability" :: thy_decl
   and "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
   and "named_theorems" :: thy_decl
+abbrevs
+  "default_sort" = ""
+  "simproc_setup" = ""
+  "hence" = "then have"
+  "thus" = "then show"
+  "apply_end" = ""
+  "realizers" = ""
+  "realizability" = ""
 begin
 
 section \<open>Isar commands\<close>

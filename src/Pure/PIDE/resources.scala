@@ -103,7 +103,7 @@ class Resources(
 
         val imports =
           header.imports.map({ case (s, pos) => (import_name(qualifier, node_name, s), pos) })
-        Document.Node.Header(imports, header.keywords)
+        Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
     }

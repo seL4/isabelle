@@ -163,7 +163,7 @@ object Keyword
 
     def add_keywords(header: Thy_Header.Keywords): Keywords =
       (this /: header) {
-        case (keywords, (name, ((kind, exts), _), _)) =>
+        case (keywords, (name, ((kind, exts), _))) =>
           if (kind == "") keywords + Symbol.decode(name) + Symbol.encode(name)
           else keywords + (Symbol.decode(name), kind, exts) + (Symbol.encode(name), kind, exts)
       }

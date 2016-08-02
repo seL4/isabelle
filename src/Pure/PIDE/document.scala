@@ -83,6 +83,7 @@ object Document
     sealed case class Header(
       imports: List[(Name, Position.T)] = Nil,
       keywords: Thy_Header.Keywords = Nil,
+      abbrevs: Thy_Header.Abbrevs = Nil,
       errors: List[String] = Nil)
     {
       def error(msg: String): Header = copy(errors = errors ::: List(msg))

@@ -58,14 +58,15 @@ text \<open>
   such a global @{command (global) "end"}.
 
   @{rail \<open>
-    @@{command theory} @{syntax name} imports? keywords? \<newline> @'begin'
+    @@{command theory} @{syntax name} imports? \<newline> keywords? abbrevs? @'begin'
     ;
     imports: @'imports' (@{syntax name} +)
     ;
     keywords: @'keywords' (keyword_decls + @'and')
     ;
-    keyword_decls: (@{syntax string} +)
-      ('::' @{syntax name} @{syntax tags})? ('==' @{syntax name})?
+    keyword_decls: (@{syntax string} +) ('::' @{syntax name} @{syntax tags})?
+    ;
+    abbrevs: @'abbrevs' ((text '=' text) +)
     ;
     @@{command thy_deps} (thy_bounds thy_bounds?)?
     ;
@@ -85,7 +86,7 @@ text \<open>
   based on Isabelle. Regular user theories usually refer to some more complex
   entry point, such as theory @{theory Main} in Isabelle/HOL.
 
-  The optional @{keyword_def "keywords"} specification declares outer syntax
+  The @{keyword_def "keywords"} specification declares outer syntax
   (\chref{ch:outer-syntax}) that is introduced in this theory later on (rare
   in end-user applications). Both minor keywords and major keywords of the
   Isar command language need to be specified, in order to make parsing of
@@ -97,8 +98,10 @@ text \<open>
   @{syntax tags} provide defaults for document preparation
   (\secref{sec:tags}).
 
-  It is possible to specify an alternative completion via \<^verbatim>\<open>==\<close>~\<open>text\<close>, while
-  the default is the corresponding keyword name.
+  The @{keyword_def "abbrevs"} specification declares additional abbreviations
+  for syntactic completion. The default for a new keyword is just its name,
+  but completion may be avoided by defining @{keyword "abbrevs"} with empty
+  text.
   
   \<^descr> @{command (global) "end"} concludes the current theory definition. Note
   that some other commands, e.g.\ local theory targets \<^theory_text>\<open>locale\<close> or \<^theory_text>\<open>class\<close>

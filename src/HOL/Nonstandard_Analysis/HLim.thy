@@ -6,7 +6,8 @@
 section\<open>Limits and Continuity (Nonstandard)\<close>
 
 theory HLim
-imports Star
+  imports Star
+  abbrevs "--->" = "\<midarrow>\<rightarrow>\<^sub>N\<^sub>S"
 begin
 
 text\<open>Nonstandard Definitions\<close>

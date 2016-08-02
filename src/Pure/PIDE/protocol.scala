@@ -374,13 +374,12 @@ trait Protocol
               val master_dir = File.standard_url(name.master_dir)
               val theory = Long_Name.base_name(name.theory)
               val imports = header.imports.map({ case (a, _) => a.node })
-              val keywords = header.keywords.map({ case (a, b, _) => (a, b) })
               (Nil,
                 pair(Encode.string, pair(Encode.string, pair(list(Encode.string),
                   pair(list(pair(Encode.string,
                     pair(pair(Encode.string, list(Encode.string)), list(Encode.string)))),
                   list(Encode.string)))))(
-                (master_dir, (theory, (imports, (keywords, header.errors)))))) },
+                (master_dir, (theory, (imports, (header.keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
                 list(pair(id, pair(Encode.string, list(Encode.string))))(c.dest)) }))

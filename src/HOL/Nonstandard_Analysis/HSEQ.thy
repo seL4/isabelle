@@ -11,7 +11,8 @@ Additional contributions by Jeremy Avigad and Brian Huffman.
 section \<open>Sequences and Convergence (Nonstandard)\<close>
 
 theory HSEQ
-imports Limits NatStar
+  imports Limits NatStar
+  abbrevs "--->" = "\<longlonglongrightarrow>\<^sub>N\<^sub>S"
 begin
 
 definition
