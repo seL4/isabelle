@@ -58,9 +58,8 @@ text \<open>
   such a global @{command (global) "end"}.
 
   @{rail \<open>
-    @@{command theory} @{syntax name} imports? \<newline> keywords? abbrevs? @'begin'
-    ;
-    imports: @'imports' (@{syntax name} +)
+    @@{command theory} @{syntax name} @'imports' (@{syntax name} +) \<newline>
+      keywords? abbrevs? @'begin'
     ;
     keywords: @'keywords' (keyword_decls + @'and')
     ;
