@@ -330,7 +330,7 @@ object Completion
   private val caret_indicator = '\u0007'
   private val antiquote = "@{"
 
-  private val default_abbrs =
+  private val default_abbrevs =
     List("@{" -> "@{\u0007}",
       "`" -> "\\<close>",
       "`" -> "\\<open>",
@@ -340,7 +340,7 @@ object Completion
       "\"" -> "\\<open>\u0007\\<close>")
 
   private def default_frequency(name: String): Option[Int] =
-    default_abbrs.iterator.map(_._2).zipWithIndex.find(_._1 == name).map(_._2)
+    default_abbrevs.iterator.map(_._2).zipWithIndex.find(_._1 == name).map(_._2)
 }
 
 final class Completion private(
@@ -391,23 +391,29 @@ final class Completion private(
   def + (keyword: String): Completion = this + (keyword, keyword)
 
 
-  /* load symbols and abbrevs */
+  /* symbols and abbrevs */
 
-  private def load(): Completion =
+  def add_symbols(): Completion =
   {
-    val abbrevs = Completion.load_abbrevs()
-
     val words =
       (for ((sym, _) <- Symbol.names.toList) yield (sym, sym)) :::
-      (for ((sym, name) <- Symbol.names.toList) yield ("\\" + name, sym)) :::
-      (for ((abbr, text) <- abbrevs if Completion.Word_Parsers.is_word(abbr)) yield (abbr, text))
+      (for ((sym, name) <- Symbol.names.toList) yield ("\\" + name, sym))
 
-    val non_word_abbrs =
-      (for ((abbr, text) <- abbrevs if !Completion.Word_Parsers.is_word(abbr))
-        yield (abbr, text)).toList
+    new Completion(
+      keywords,
+      words_lex ++ words.map(_._1),
+      words_map ++ words,
+      abbrevs_lex,
+      abbrevs_map)
+  }
 
+  def add_abbrevs(abbrevs: List[(String, String)]): Completion =
+  {
+    val words =
+      for ((abbr, text) <- abbrevs if Completion.Word_Parsers.is_word(abbr))
+        yield (abbr, text)
     val abbrs =
-      for ((abbr, text) <- non_word_abbrs ::: Completion.default_abbrs)
+      for ((abbr, text) <- abbrevs if !Completion.Word_Parsers.is_word(abbr))
         yield (abbr.reverse, (abbr, text))
 
     new Completion(
@@ -417,6 +423,9 @@ final class Completion private(
       abbrevs_lex ++ abbrs.map(_._1),
       abbrevs_map ++ abbrs)
   }
+
+  private def load(): Completion =
+    add_symbols().add_abbrevs(Completion.load_abbrevs() ::: Completion.default_abbrevs)
 
 
   /* complete */
@@ -444,7 +453,7 @@ final class Completion private(
             case (abbr, _) :: _ =>
               val ok =
                 if (abbr == Completion.antiquote) language_context.antiquotes
-                else language_context.symbols || Completion.default_abbrs.exists(_._1 == abbr)
+                else language_context.symbols || Completion.default_abbrevs.exists(_._1 == abbr)
               if (ok) Some((abbr, abbrevs))
               else None
           }
