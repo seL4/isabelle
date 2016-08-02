@@ -45,7 +45,8 @@ local
 
 val char_table =
   Symtab.make
-   [("!", "{\\isacharbang}"),
+   [("\007", "{\\isacharbell}"),
+    ("!", "{\\isacharbang}"),
     ("\"", "{\\isachardoublequote}"),
     ("#", "{\\isacharhash}"),
     ("$", "{\\isachardollar}"),
