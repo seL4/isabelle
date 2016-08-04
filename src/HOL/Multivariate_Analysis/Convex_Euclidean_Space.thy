@@ -18,14 +18,13 @@ lemma convex_supp_setsum:
     shows "supp_setsum (\<lambda>i. u i *\<^sub>R f i) I \<in> S"
 proof -
   have fin: "finite {i \<in> I. u i \<noteq> 0}"
-    using 1 setsum.infinite by (force simp: supp_setsum_def support_def)
-  then have eq: "supp_setsum(\<lambda>i. u i *\<^sub>R f i) I =
-            setsum (\<lambda>i. u i *\<^sub>R f i) {i \<in> I. u i \<noteq> 0}"
-    by (force intro: setsum.mono_neutral_left simp: supp_setsum_def support_def)
+    using 1 setsum.infinite by (force simp: supp_setsum_def support_on_def)
+  then have eq: "supp_setsum (\<lambda>i. u i *\<^sub>R f i) I = setsum (\<lambda>i. u i *\<^sub>R f i) {i \<in> I. u i \<noteq> 0}"
+    by (force intro: setsum.mono_neutral_left simp: supp_setsum_def support_on_def)
   show ?thesis
     apply (simp add: eq)
     apply (rule convex_setsum [OF fin \<open>convex S\<close>])
-    using 1 assms apply (auto simp: supp_setsum_def support_def)
+    using 1 assms apply (auto simp: supp_setsum_def support_on_def)
     done
 qed
 
@@ -7906,7 +7905,7 @@ lemma rel_frontier_eq_empty:
   apply (simp add: rel_frontier_def)
   apply (simp add: rel_interior_eq_closure [symmetric])
   using rel_interior_subset_closure by blast
-  
+
 lemma rel_frontier_sing [simp]:
     fixes a :: "'n::euclidean_space"
     shows "rel_frontier {a} = {}"

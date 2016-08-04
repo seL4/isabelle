@@ -27,7 +27,7 @@ proof (cases "\<exists>W. W \<in> \<C> \<and> S \<subseteq> W")
     then obtain W where "W \<in> \<C>" "S \<subseteq> W" by metis
     then show ?thesis
       apply (rule_tac F = "\<lambda>V x. if V = W then 1 else 0" in that)
-      apply (auto simp: continuous_on_const supp_setsum_def support_def)
+      apply (auto simp: continuous_on_const supp_setsum_def support_on_def)
       done
 next
   case False
@@ -52,7 +52,7 @@ next
       have "x \<notin> closure (S - U)"
         by (metis \<open>U \<in> \<C>\<close> \<open>x \<in> U\<close> less_irrefl sd_pos setdist_eq_0_sing_1 that)
       then show ?thesis
-        apply (simp add: setdist_eq_0_sing_1 supp_setsum_def support_def)
+        apply (simp add: setdist_eq_0_sing_1 supp_setsum_def support_on_def)
         apply (rule ordered_comm_monoid_add_class.setsum_pos2 [OF *, of U])
         using \<open>U \<in> \<C>\<close> \<open>x \<in> U\<close> False
         apply (auto simp: setdist_pos_le sd_pos that)
@@ -76,7 +76,7 @@ next
                      = supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>"
             apply (simp add: supp_setsum_def)
             apply (rule setsum.mono_neutral_right [OF finX])
-            apply (auto simp: setdist_eq_0_sing_1 support_def subset_iff)
+            apply (auto simp: setdist_eq_0_sing_1 support_on_def subset_iff)
             apply (meson DiffI closure_subset disjoint_iff_not_equal subsetCE)
             done
           show "continuous (at x within S) (\<lambda>x. supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>)"
@@ -461,7 +461,7 @@ next
             show "\<And>x. x \<in> (U - S) \<inter> N \<Longrightarrow>
                          (\<Sum>T \<in> {U \<in> \<C>. \<exists>x\<in>N. H U x \<noteq> 0}. H T x *\<^sub>R f (\<A> T))
                          = supp_setsum (\<lambda>T. H T x *\<^sub>R f (\<A> T)) \<C>"
-              by (auto simp: supp_setsum_def support_def
+              by (auto simp: supp_setsum_def support_on_def
                        intro: setsum.mono_neutral_right [OF finN])
           qed
         next

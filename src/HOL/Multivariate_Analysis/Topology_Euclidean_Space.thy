@@ -16,155 +16,55 @@ imports
 begin
 
 
-(*FIXME: move elsewhere and use the existing locales*)
+(* FIXME: move elsewhere *)
+definition (in monoid_add) support_on :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'b set"
+where
+  "support_on s f = {x\<in>s. f x \<noteq> 0}"
 
-subsection \<open>Using additivity of lifted function to encode definedness.\<close>
+lemma in_support_on: "x \<in> support_on s f \<longleftrightarrow> x \<in> s \<and> f x \<noteq> 0"
+  by (simp add: support_on_def)
 
-definition "neutral opp = (SOME x. \<forall>y. opp x y = y \<and> opp y x = y)"
+lemma support_on_simps[simp]:
+  "support_on {} f = {}"
+  "support_on (insert x s) f =
+    (if f x = 0 then support_on s f else insert x (support_on s f))"
+  "support_on (s \<union> t) f = support_on s f \<union> support_on t f"
+  "support_on (s \<inter> t) f = support_on s f \<inter> support_on t f"
+  "support_on (s - t) f = support_on s f - support_on t f"
+  "support_on (f ` s) g = f ` (support_on s (g \<circ> f))"
+  unfolding support_on_def by auto
 
-fun lifted where
-  "lifted (opp :: 'a \<Rightarrow> 'a \<Rightarrow> 'b) (Some x) (Some y) = Some (opp x y)"
-| "lifted opp None _ = (None::'b option)"
-| "lifted opp _ None = None"
+lemma support_on_cong:
+  "(\<And>x. x \<in> s \<Longrightarrow> f x = 0 \<longleftrightarrow> g x = 0) \<Longrightarrow> support_on s f = support_on s g"
+  by (auto simp: support_on_def)
 
-lemma lifted_simp_1[simp]: "lifted opp v None = None"
-  by (induct v) auto
+lemma support_on_if: "a \<noteq> 0 \<Longrightarrow> support_on A (\<lambda>x. if P x then a else 0) = {x\<in>A. P x}"
+  by (auto simp: support_on_def)
 
-definition "monoidal opp \<longleftrightarrow>
-  (\<forall>x y. opp x y = opp y x) \<and>
-  (\<forall>x y z. opp x (opp y z) = opp (opp x y) z) \<and>
-  (\<forall>x. opp (neutral opp) x = x)"
+lemma support_on_if_subset: "support_on A (\<lambda>x. if P x then a else 0) \<subseteq> {x \<in> A. P x}"
+  by (auto simp: support_on_def)
 
-lemma monoidalI:
-  assumes "\<And>x y. opp x y = opp y x"
-    and "\<And>x y z. opp x (opp y z) = opp (opp x y) z"
-    and "\<And>x. opp (neutral opp) x = x"
-  shows "monoidal opp"
-  unfolding monoidal_def using assms by fastforce
+lemma finite_support[intro]: "finite s \<Longrightarrow> finite (support_on s f)"
+  unfolding support_on_def by auto
 
-lemma monoidal_ac:
-  assumes "monoidal opp"
-  shows [simp]: "opp (neutral opp) a = a"
-    and [simp]: "opp a (neutral opp) = a"
-    and "opp a b = opp b a"
-    and "opp (opp a b) c = opp a (opp b c)"
-    and "opp a (opp b c) = opp b (opp a c)"
-  using assms unfolding monoidal_def by metis+
+(* TODO: is supp_setsum really needed? TODO: Generalize to Finite_Set.fold *)
+definition (in comm_monoid_add) supp_setsum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
+where
+  "supp_setsum f s = (\<Sum>x\<in>support_on s f. f x)"
 
-lemma neutral_lifted [cong]:
-  assumes "monoidal opp"
-  shows "neutral (lifted opp) = Some (neutral opp)"
-proof -
-  { fix x
-    assume "\<forall>y. lifted opp x y = y \<and> lifted opp y x = y"
-    then have "Some (neutral opp) = x"
-      apply (induct x)
-      apply force
-      by (metis assms lifted.simps(1) monoidal_ac(2) option.inject) }
-  note [simp] = this
-  show ?thesis
-    apply (subst neutral_def)
-    apply (intro some_equality allI)
-    apply (induct_tac y)
-    apply (auto simp add:monoidal_ac[OF assms])
-    done
-qed
+lemma supp_setsum_empty[simp]: "supp_setsum f {} = 0"
+  unfolding supp_setsum_def by auto
 
-lemma monoidal_lifted[intro]:
-  assumes "monoidal opp"
-  shows "monoidal (lifted opp)"
-  unfolding monoidal_def split_option_all neutral_lifted[OF assms]
-  using monoidal_ac[OF assms]
-  by auto
+lemma supp_setsum_insert[simp]:
+  "finite (support_on s f) \<Longrightarrow>
+    supp_setsum f (insert x s) = (if x \<in> s then supp_setsum f s else f x + supp_setsum f s)"
+  by (simp add: supp_setsum_def in_support_on insert_absorb)
 
-definition "support opp f s = {x. x\<in>s \<and> f x \<noteq> neutral opp}"
-definition "fold' opp e s = (if finite s then Finite_Set.fold opp e s else e)"
-definition "iterate opp s f = fold' (\<lambda>x a. opp (f x) a) (neutral opp) (support opp f s)"
-
-lemma support_subset[intro]: "support opp f s \<subseteq> s"
-  unfolding support_def by auto
-
-lemma support_empty[simp]: "support opp f {} = {}"
-  using support_subset[of opp f "{}"] by auto
-
-lemma comp_fun_commute_monoidal[intro]:
-  assumes "monoidal opp"
-  shows "comp_fun_commute opp"
-  unfolding comp_fun_commute_def
-  using monoidal_ac[OF assms]
-  by auto
-
-lemma support_clauses:
-  "\<And>f g s. support opp f {} = {}"
-  "\<And>f g s. support opp f (insert x s) =
-    (if f(x) = neutral opp then support opp f s else insert x (support opp f s))"
-  "\<And>f g s. support opp f (s - {x}) = (support opp f s) - {x}"
-  "\<And>f g s. support opp f (s \<union> t) = (support opp f s) \<union> (support opp f t)"
-  "\<And>f g s. support opp f (s \<inter> t) = (support opp f s) \<inter> (support opp f t)"
-  "\<And>f g s. support opp f (s - t) = (support opp f s) - (support opp f t)"
-  "\<And>f g s. support opp g (f ` s) = f ` (support opp (g \<circ> f) s)"
-  unfolding support_def by auto
-
-lemma finite_support[intro]: "finite s \<Longrightarrow> finite (support opp f s)"
-  unfolding support_def by auto
-
-lemma iterate_empty[simp]: "iterate opp {} f = neutral opp"
-  unfolding iterate_def fold'_def by auto
-
-lemma iterate_insert[simp]:
-  assumes "monoidal opp"
-    and "finite s"
-  shows "iterate opp (insert x s) f =
-         (if x \<in> s then iterate opp s f else opp (f x) (iterate opp s f))"
-proof (cases "x \<in> s")
-  case True
-  then show ?thesis by (auto simp: insert_absorb iterate_def)
-next
-  case False
-  note * = comp_fun_commute.comp_comp_fun_commute [OF comp_fun_commute_monoidal[OF assms(1)]]
-  show ?thesis
-  proof (cases "f x = neutral opp")
-    case True
-    then show ?thesis
-      using assms \<open>x \<notin> s\<close>
-      by (auto simp: iterate_def support_clauses)
-  next
-    case False
-    with \<open>x \<notin> s\<close> \<open>finite s\<close> support_subset show ?thesis
-      apply (simp add: iterate_def fold'_def support_clauses)
-      apply (subst comp_fun_commute.fold_insert[OF * finite_support, simplified comp_def])
-      apply (force simp add: )+
-      done
-  qed
-qed
-
-lemma iterate_some:
-    "\<lbrakk>monoidal opp; finite s\<rbrakk> \<Longrightarrow> iterate (lifted opp) s (\<lambda>x. Some(f x)) = Some (iterate opp s f)"
-  by (erule finite_induct) (auto simp: monoidal_lifted)
-
-lemma neutral_add[simp]: "neutral op + = (0::'a::comm_monoid_add)"
-  unfolding neutral_def
-  by (force elim: allE [where x=0])
-
-lemma support_if: "a \<noteq> neutral opp \<Longrightarrow> support opp (\<lambda>x. if P x then a else neutral opp) A = {x \<in> A. P x}"
-unfolding support_def
-by (force intro: Collect_cong)
-
-lemma support_if_subset: "support opp (\<lambda>x. if P x then a else neutral opp) A \<subseteq> {x \<in> A. P x}"
-by (simp add: subset_iff support_def)
-
-definition supp_setsum where "supp_setsum f A \<equiv> setsum f (support op+ f A)"
-
-lemma supp_setsum_divide_distrib:
-    "supp_setsum f A / (r::'a::field) = supp_setsum (\<lambda>n. f n / r) A"
-apply (cases "r = 0")
-apply (simp add: supp_setsum_def)
-apply (simp add: supp_setsum_def setsum_divide_distrib support_def)
-done
+lemma supp_setsum_divide_distrib: "supp_setsum f A / (r::'a::field) = supp_setsum (\<lambda>n. f n / r) A"
+  by (cases "r = 0")
+     (auto simp: supp_setsum_def setsum_divide_distrib intro!: setsum.cong support_on_cong)
 
 (*END OF SUPPORT, ETC.*)
-
-
 
 lemma image_affinity_interval:
   fixes c :: "'a::ordered_real_vector"

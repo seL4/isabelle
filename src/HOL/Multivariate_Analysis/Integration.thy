@@ -603,6 +603,63 @@ lemma content_0_subset: "\<lbrakk>content(cbox a b) = 0; s \<subseteq> cbox a b\
   by (simp add: content_0_subset_gen bounded_cbox)
 
 
+lemma interval_split:
+  fixes a :: "'a::euclidean_space"
+  assumes "k \<in> Basis"
+  shows
+    "cbox a b \<inter> {x. x\<bullet>k \<le> c} = cbox a (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i) *\<^sub>R i)"
+    "cbox a b \<inter> {x. x\<bullet>k \<ge> c} = cbox (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i) *\<^sub>R i) b"
+  apply (rule_tac[!] set_eqI)
+  unfolding Int_iff mem_box mem_Collect_eq
+  using assms
+  apply auto
+  done
+
+lemma content_split:
+  fixes a :: "'a::euclidean_space"
+  assumes "k \<in> Basis"
+  shows "content (cbox a b) = content(cbox a b \<inter> {x. x\<bullet>k \<le> c}) + content(cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+proof cases
+  note simps = interval_split[OF assms] content_cbox_cases
+  have *: "Basis = insert k (Basis - {k})" "\<And>x. finite (Basis-{x})" "\<And>x. x\<notin>Basis-{x}"
+    using assms by auto
+  have *: "\<And>X Y Z. (\<Prod>i\<in>Basis. Z i (if i = k then X else Y i)) = Z k X * (\<Prod>i\<in>Basis-{k}. Z i (Y i))"
+    "(\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i) = (\<Prod>i\<in>Basis-{k}. b\<bullet>i - a\<bullet>i) * (b\<bullet>k - a\<bullet>k)"
+    apply (subst *(1))
+    defer
+    apply (subst *(1))
+    unfolding setprod.insert[OF *(2-)]
+    apply auto
+    done
+  assume as: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
+  moreover
+  have "\<And>x. min (b \<bullet> k) c = max (a \<bullet> k) c \<Longrightarrow>
+    x * (b\<bullet>k - a\<bullet>k) = x * (max (a \<bullet> k) c - a \<bullet> k) + x * (b \<bullet> k - max (a \<bullet> k) c)"
+    by  (auto simp add: field_simps)
+  moreover
+  have **: "(\<Prod>i\<in>Basis. ((\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) *\<^sub>R i) \<bullet> i - a \<bullet> i)) =
+      (\<Prod>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) - a \<bullet> i)"
+    "(\<Prod>i\<in>Basis. b \<bullet> i - ((\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i)) =
+      (\<Prod>i\<in>Basis. b \<bullet> i - (if i = k then max (a \<bullet> k) c else a \<bullet> i))"
+    by (auto intro!: setprod.cong)
+  have "\<not> a \<bullet> k \<le> c \<Longrightarrow> \<not> c \<le> b \<bullet> k \<Longrightarrow> False"
+    unfolding not_le
+    using as[unfolded ,rule_format,of k] assms
+    by auto
+  ultimately show ?thesis
+    using assms
+    unfolding simps **
+    unfolding *(1)[of "\<lambda>i x. b\<bullet>i - x"] *(1)[of "\<lambda>i x. x - a\<bullet>i"]
+    unfolding *(2)
+    by auto
+next
+  assume "\<not> (\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  then have "cbox a b = {}"
+    unfolding box_eq_empty by (auto simp: not_le)
+  then show ?thesis
+    by (auto simp: not_le)
+qed
+
 subsection \<open>The notion of a gauge --- simply an open set containing the point.\<close>
 
 definition "gauge d \<longleftrightarrow> (\<forall>x. x \<in> d x \<and> open (d x))"
@@ -1391,6 +1448,114 @@ proof -
   qed auto
 qed
 
+lemma division_split_left_inj:
+  fixes type :: "'a::euclidean_space"
+  assumes "d division_of i"
+    and "k1 \<in> d"
+    and "k2 \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x::'a. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
+    and k: "k\<in>Basis"
+  shows "content(k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
+proof -
+  note d=division_ofD[OF assms(1)]
+  have *: "\<And>(a::'a) b c. content (cbox a b \<inter> {x. x\<bullet>k \<le> c}) = 0 \<longleftrightarrow>
+    interior(cbox a b \<inter> {x. x\<bullet>k \<le> c}) = {}"
+    unfolding  interval_split[OF k] content_eq_0_interior by auto
+  guess u1 v1 using d(4)[OF assms(2)] by (elim exE) note uv1=this
+  guess u2 v2 using d(4)[OF assms(3)] by (elim exE) note uv2=this
+  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
+    by auto
+  show ?thesis
+    unfolding uv1 uv2 *
+    apply (rule **[OF d(5)[OF assms(2-4)]])
+    apply (simp add: uv1)
+    using assms(5) uv1 by auto
+qed
+
+lemma division_split_right_inj:
+  fixes type :: "'a::euclidean_space"
+  assumes "d division_of i"
+    and "k1 \<in> d"
+    and "k2 \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x::'a. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
+    and k: "k \<in> Basis"
+  shows "content (k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
+proof -
+  note d=division_ofD[OF assms(1)]
+  have *: "\<And>a b::'a. \<And>c. content(cbox a b \<inter> {x. x\<bullet>k \<ge> c}) = 0 \<longleftrightarrow>
+    interior(cbox a b \<inter> {x. x\<bullet>k \<ge> c}) = {}"
+    unfolding interval_split[OF k] content_eq_0_interior by auto
+  guess u1 v1 using d(4)[OF assms(2)] by (elim exE) note uv1=this
+  guess u2 v2 using d(4)[OF assms(3)] by (elim exE) note uv2=this
+  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
+    by auto
+  show ?thesis
+    unfolding uv1 uv2 *
+    apply (rule **[OF d(5)[OF assms(2-4)]])
+    apply (simp add: uv1)
+    using assms(5) uv1 by auto
+qed
+
+
+lemma division_split:
+  fixes a :: "'a::euclidean_space"
+  assumes "p division_of (cbox a b)"
+    and k: "k\<in>Basis"
+  shows "{l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> p \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} division_of(cbox a b \<inter> {x. x\<bullet>k \<le> c})"
+      (is "?p1 division_of ?I1")
+    and "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> p \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}} division_of (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+      (is "?p2 division_of ?I2")
+proof (rule_tac[!] division_ofI)
+  note p = division_ofD[OF assms(1)]
+  show "finite ?p1" "finite ?p2"
+    using p(1) by auto
+  show "\<Union>?p1 = ?I1" "\<Union>?p2 = ?I2"
+    unfolding p(6)[symmetric] by auto
+  {
+    fix k
+    assume "k \<in> ?p1"
+    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
+    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
+    show "k \<subseteq> ?I1"
+      using l p(2) uv by force
+    show  "k \<noteq> {}"
+      by (simp add: l)
+    show  "\<exists>a b. k = cbox a b"
+      apply (simp add: l uv p(2-3)[OF l(2)])
+      apply (subst interval_split[OF k])
+      apply (auto intro: order.trans)
+      done
+    fix k'
+    assume "k' \<in> ?p1"
+    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
+    assume "k \<noteq> k'"
+    then show "interior k \<inter> interior k' = {}"
+      unfolding l l' using p(5)[OF l(2) l'(2)] by auto
+  }
+  {
+    fix k
+    assume "k \<in> ?p2"
+    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
+    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
+    show "k \<subseteq> ?I2"
+      using l p(2) uv by force
+    show  "k \<noteq> {}"
+      by (simp add: l)
+    show  "\<exists>a b. k = cbox a b"
+      apply (simp add: l uv p(2-3)[OF l(2)])
+      apply (subst interval_split[OF k])
+      apply (auto intro: order.trans)
+      done
+    fix k'
+    assume "k' \<in> ?p2"
+    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
+    assume "k \<noteq> k'"
+    then show "interior k \<inter> interior k' = {}"
+      unfolding l l' using p(5)[OF l(2) l'(2)] by auto
+  }
+qed
 
 subsection \<open>Tagged (partial) divisions.\<close>
 
@@ -1503,17 +1668,17 @@ lemma tagged_partial_division_subset:
   using finite_subset[OF assms(2)]
   by blast
 
-lemma setsum_over_tagged_division_lemma:
+lemma (in comm_monoid_set) over_tagged_division_lemma:
   assumes "p tagged_division_of i"
-    and "\<And>u v. cbox u v \<noteq> {} \<Longrightarrow> content (cbox u v) = 0 \<Longrightarrow> d (cbox u v) = 0"
-  shows "setsum (\<lambda>(x,k). d k) p = setsum d (snd ` p)"
+    and "\<And>u v. cbox u v \<noteq> {} \<Longrightarrow> content (cbox u v) = 0 \<Longrightarrow> d (cbox u v) = \<^bold>1"
+  shows "F (\<lambda>(x,k). d k) p = F d (snd ` p)"
 proof -
   have *: "(\<lambda>(x,k). d k) = d \<circ> snd"
     unfolding o_def by (rule ext) auto
   note assm = tagged_division_ofD[OF assms(1)]
   show ?thesis
     unfolding *
-  proof (rule setsum.reindex_nontrivial[symmetric])
+  proof (rule reindex_nontrivial[symmetric])
     show "finite p"
       using assm by auto
     fix x y
@@ -1526,9 +1691,9 @@ proof -
       by (intro assm(5)[of "fst x" _ "fst y"]) auto
     then have "content (cbox a b) = 0"
       unfolding \<open>snd x = snd y\<close>[symmetric] ab content_eq_0_interior by auto
-    then have "d (cbox a b) = 0"
+    then have "d (cbox a b) = \<^bold>1"
       using assm(2)[of "fst x" "snd x"] \<open>x\<in>p\<close> ab[symmetric] by (intro assms(2)) auto
-    then show "d (snd x) = 0"
+    then show "d (snd x) = \<^bold>1"
       unfolding ab by auto
   qed
 qed
@@ -1633,6 +1798,468 @@ lemma tagged_division_of_union_self:
   apply auto
   done
 
+subsection \<open>Functions closed on boxes: morphisms from boxes to monoids\<close>
+
+text \<open>This auxiliary structure is used to sum up over the elements of a division. Main theorem is
+  @{text operative_division}. Instances for the monoid are @{typ "'a option"}, @{typ real}, and
+  @{typ bool}.\<close>
+
+lemma property_empty_interval: "\<forall>a b. content (cbox a b) = 0 \<longrightarrow> P (cbox a b) \<Longrightarrow> P {}"
+  using content_empty unfolding empty_as_interval by auto
+
+paragraph \<open>Using additivity of lifted function to encode definedness.\<close>
+
+definition lift_option :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> 'c option"
+where
+  "lift_option f a' b' = Option.bind a' (\<lambda>a. Option.bind b' (\<lambda>b. Some (f a b)))"
+
+lemma lift_option_simps[simp]:
+  "lift_option f (Some a) (Some b) = Some (f a b)"
+  "lift_option f None b' = None"
+  "lift_option f a' None = None"
+  by (auto simp: lift_option_def)
+
+lemma (in comm_monoid) comm_monoid_lift_option: "comm_monoid (lift_option op \<^bold>*) (Some \<^bold>1)"
+  proof qed (auto simp: lift_option_def ac_simps split: bind_split)
+
+lemma (in comm_monoid) comm_monoid_set_lift_option: "comm_monoid_set (lift_option op \<^bold>*) (Some \<^bold>1)"
+  proof qed (auto simp: lift_option_def ac_simps split: bind_split)
+
+lemma comm_monoid_and: "comm_monoid op \<and> True"
+  proof qed auto
+
+lemma comm_monoid_set_and: "comm_monoid_set op \<and> True"
+  proof qed auto
+
+paragraph \<open>Operative\<close>
+
+definition (in comm_monoid) operative :: "('b::euclidean_space set \<Rightarrow> 'a) \<Rightarrow> bool"
+  where "operative g \<longleftrightarrow>
+    (\<forall>a b. content (cbox a b) = 0 \<longrightarrow> g (cbox a b) = \<^bold>1) \<and>
+    (\<forall>a b c. \<forall>k\<in>Basis. g (cbox a b) = g (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<^bold>* g (cbox a b \<inter> {x. x\<bullet>k \<ge> c}))"
+
+lemma (in comm_monoid) operativeD[dest]:
+  assumes "operative g"
+  shows "\<And>a b. content (cbox a b) = 0 \<Longrightarrow> g (cbox a b) = \<^bold>1"
+    and "\<And>a b c k. k \<in> Basis \<Longrightarrow> g (cbox a b) = g (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<^bold>* g (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+  using assms unfolding operative_def by auto
+
+lemma (in comm_monoid) operative_empty: "operative g \<Longrightarrow> g {} = \<^bold>1"
+  unfolding operative_def by (rule property_empty_interval) auto
+
+lemma operative_content[intro]: "add.operative content"
+  by (force simp add: add.operative_def content_split[symmetric])
+
+definition "division_points (k::('a::euclidean_space) set) d =
+   {(j,x). j \<in> Basis \<and> (interval_lowerbound k)\<bullet>j < x \<and> x < (interval_upperbound k)\<bullet>j \<and>
+     (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
+
+lemma division_points_finite:
+  fixes i :: "'a::euclidean_space set"
+  assumes "d division_of i"
+  shows "finite (division_points i d)"
+proof -
+  note assm = division_ofD[OF assms]
+  let ?M = "\<lambda>j. {(j,x)|x. (interval_lowerbound i)\<bullet>j < x \<and> x < (interval_upperbound i)\<bullet>j \<and>
+    (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
+  have *: "division_points i d = \<Union>(?M ` Basis)"
+    unfolding division_points_def by auto
+  show ?thesis
+    unfolding * using assm by auto
+qed
+
+lemma division_points_subset:
+  fixes a :: "'a::euclidean_space"
+  assumes "d division_of (cbox a b)"
+    and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
+    and k: "k \<in> Basis"
+  shows "division_points (cbox a b \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l . l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subseteq>
+      division_points (cbox a b) d" (is ?t1)
+    and "division_points (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) {l \<inter> {x. x\<bullet>k \<ge> c} | l . l \<in> d \<and> ~(l \<inter> {x. x\<bullet>k \<ge> c} = {})} \<subseteq>
+      division_points (cbox a b) d" (is ?t2)
+proof -
+  note assm = division_ofD[OF assms(1)]
+  have *: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
+    "\<forall>i\<in>Basis. a\<bullet>i \<le> (\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else  b \<bullet> i) *\<^sub>R i) \<bullet> i"
+    "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i \<le> b\<bullet>i"
+    "min (b \<bullet> k) c = c" "max (a \<bullet> k) c = c"
+    using assms using less_imp_le by auto
+  show ?t1 (*FIXME a horrible mess*)
+    unfolding division_points_def interval_split[OF k, of a b]
+    unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
+    unfolding *
+    apply (rule subsetI)
+    unfolding mem_Collect_eq split_beta
+    apply (erule bexE conjE)+
+    apply (simp add: )
+    apply (erule exE conjE)+
+  proof
+    fix i l x
+    assume as:
+      "a \<bullet> fst x < snd x" "snd x < (if fst x = k then c else b \<bullet> fst x)"
+      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+      "i = l \<inter> {x. x \<bullet> k \<le> c}" "l \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}"
+      and fstx: "fst x \<in> Basis"
+    from assm(4)[OF this(5)] guess u v apply-by(erule exE)+ note l=this
+    have *: "\<forall>i\<in>Basis. u \<bullet> i \<le> (\<Sum>i\<in>Basis. (if i = k then min (v \<bullet> k) c else v \<bullet> i) *\<^sub>R i) \<bullet> i"
+      using as(6) unfolding l interval_split[OF k] box_ne_empty as .
+    have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
+      using l using as(6) unfolding box_ne_empty[symmetric] by auto
+    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
+      using as(1-3,5) fstx
+      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
+      apply (auto split: if_split_asm)
+      done
+    show "snd x < b \<bullet> fst x"
+      using as(2) \<open>c < b\<bullet>k\<close> by (auto split: if_split_asm)
+  qed
+  show ?t2
+    unfolding division_points_def interval_split[OF k, of a b]
+    unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
+    unfolding *
+    unfolding subset_eq
+    apply rule
+    unfolding mem_Collect_eq split_beta
+    apply (erule bexE conjE)+
+    apply (simp only: mem_Collect_eq inner_setsum_left_Basis simp_thms)
+    apply (erule exE conjE)+
+  proof
+    fix i l x
+    assume as:
+      "(if fst x = k then c else a \<bullet> fst x) < snd x" "snd x < b \<bullet> fst x"
+      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+      "i = l \<inter> {x. c \<le> x \<bullet> k}" "l \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}"
+      and fstx: "fst x \<in> Basis"
+    from assm(4)[OF this(5)] guess u v by (elim exE) note l=this
+    have *: "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (u \<bullet> k) c else u \<bullet> i) *\<^sub>R i) \<bullet> i \<le> v \<bullet> i"
+      using as(6) unfolding l interval_split[OF k] box_ne_empty as .
+    have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
+      using l using as(6) unfolding box_ne_empty[symmetric] by auto
+    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
+      using as(1-3,5) fstx
+      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
+      apply (auto split: if_split_asm)
+      done
+    show "a \<bullet> fst x < snd x"
+      using as(1) \<open>a\<bullet>k < c\<close> by (auto split: if_split_asm)
+   qed
+qed
+
+lemma division_points_psubset:
+  fixes a :: "'a::euclidean_space"
+  assumes "d division_of (cbox a b)"
+      and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
+      and "l \<in> d"
+      and "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
+      and k: "k \<in> Basis"
+  shows "division_points (cbox a b \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subset>
+         division_points (cbox a b) d" (is "?D1 \<subset> ?D")
+    and "division_points (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) {l \<inter> {x. x\<bullet>k \<ge> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}} \<subset>
+         division_points (cbox a b) d" (is "?D2 \<subset> ?D")
+proof -
+  have ab: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
+    using assms(2) by (auto intro!:less_imp_le)
+  guess u v using division_ofD(4)[OF assms(1,5)] by (elim exE) note l=this
+  have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "\<forall>i\<in>Basis. a\<bullet>i \<le> u\<bullet>i \<and> v\<bullet>i \<le> b\<bullet>i"
+    using division_ofD(2,2,3)[OF assms(1,5)] unfolding l box_ne_empty
+    using subset_box(1)
+    apply auto
+    apply blast+
+    done
+  have *: "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
+          "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
+    unfolding l interval_split[OF k] interval_bounds[OF uv(1)]
+    using uv[rule_format, of k] ab k
+    by auto
+  have "\<exists>x. x \<in> ?D - ?D1"
+    using assms(3-)
+    unfolding division_points_def interval_bounds[OF ab]
+    apply -
+    apply (erule disjE)
+    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI, force simp add: *)
+    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI, force simp add: *)
+    done
+  moreover have "?D1 \<subseteq> ?D"
+    by (auto simp add: assms division_points_subset)
+  ultimately show "?D1 \<subset> ?D"
+    by blast
+  have *: "interval_lowerbound (cbox a b \<inter> {x. x \<bullet> k \<ge> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
+    "interval_lowerbound (cbox a b \<inter> {x. x \<bullet> k \<ge> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
+    unfolding l interval_split[OF k] interval_bounds[OF uv(1)]
+    using uv[rule_format, of k] ab k
+    by auto
+  have "\<exists>x. x \<in> ?D - ?D2"
+    using assms(3-)
+    unfolding division_points_def interval_bounds[OF ab]
+    apply -
+    apply (erule disjE)
+    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI, force simp add: *)
+    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI, force simp add: *)
+    done
+  moreover have "?D2 \<subseteq> ?D"
+    by (auto simp add: assms division_points_subset)
+  ultimately show "?D2 \<subset> ?D"
+    by blast
+qed
+
+lemma (in comm_monoid_set) operative_division:
+  fixes g :: "'b::euclidean_space set \<Rightarrow> 'a"
+  assumes g: "operative g" and d: "d division_of (cbox a b)" shows "F g d = g (cbox a b)"
+proof -
+  define C where [abs_def]: "C = card (division_points (cbox a b) d)"
+  then show ?thesis
+    using d
+  proof (induction C arbitrary: a b d rule: less_induct)
+    case (less a b d)
+    show ?case
+    proof cases
+      show "content (cbox a b) = 0 \<Longrightarrow> F g d = g (cbox a b)"
+        using division_of_content_0[OF _ less.prems] operativeD(1)[OF  g] division_ofD(4)[OF less.prems]
+        by (fastforce intro!: neutral)
+    next
+      assume "content (cbox a b) \<noteq> 0"
+      note ab = this[unfolded content_lt_nz[symmetric] content_pos_lt_eq]
+      then have ab': "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
+        by (auto intro!: less_imp_le)
+      show "F g d = g (cbox a b)"
+      proof (cases "division_points (cbox a b) d = {}")
+        case True
+        { fix u v and j :: 'b
+          assume j: "j \<in> Basis" and as: "cbox u v \<in> d"
+          then have "cbox u v \<noteq> {}"
+            using less.prems by blast
+          then have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "u\<bullet>j \<le> v\<bullet>j"
+            using j unfolding box_ne_empty by auto
+          have *: "\<And>p r Q. \<not> j\<in>Basis \<or> p \<or> r \<or> (\<forall>x\<in>d. Q x) \<Longrightarrow> p \<or> r \<or> Q (cbox u v)"
+            using as j by auto
+          have "(j, u\<bullet>j) \<notin> division_points (cbox a b) d"
+               "(j, v\<bullet>j) \<notin> division_points (cbox a b) d" using True by auto
+          note this[unfolded de_Morgan_conj division_points_def mem_Collect_eq split_conv interval_bounds[OF ab'] bex_simps]
+          note *[OF this(1)] *[OF this(2)] note this[unfolded interval_bounds[OF uv(1)]]
+          moreover
+          have "a\<bullet>j \<le> u\<bullet>j" "v\<bullet>j \<le> b\<bullet>j"
+            using division_ofD(2,2,3)[OF \<open>d division_of cbox a b\<close> as]
+            apply (metis j subset_box(1) uv(1))
+            by (metis \<open>cbox u v \<subseteq> cbox a b\<close> j subset_box(1) uv(1))
+          ultimately have "u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j"
+            unfolding not_less de_Morgan_disj using ab[rule_format,of j] uv(2) j by force }
+        then have d': "\<forall>i\<in>d. \<exists>u v. i = cbox u v \<and>
+          (\<forall>j\<in>Basis. u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j)"
+          unfolding forall_in_division[OF less.prems] by blast
+        have "(1/2) *\<^sub>R (a+b) \<in> cbox a b"
+          unfolding mem_box using ab by(auto intro!: less_imp_le simp: inner_simps)
+        note this[unfolded division_ofD(6)[OF \<open>d division_of cbox a b\<close>,symmetric] Union_iff]
+        then guess i .. note i=this
+        guess u v using d'[rule_format,OF i(1)] by (elim exE conjE) note uv=this
+        have "cbox a b \<in> d"
+        proof -
+          have "u = a" "v = b"
+            unfolding euclidean_eq_iff[where 'a='b]
+          proof safe
+            fix j :: 'b
+            assume j: "j \<in> Basis"
+            note i(2)[unfolded uv mem_box,rule_format,of j]
+            then show "u \<bullet> j = a \<bullet> j" and "v \<bullet> j = b \<bullet> j"
+              using uv(2)[rule_format,of j] j by (auto simp: inner_simps)
+          qed
+          then have "i = cbox a b" using uv by auto
+          then show ?thesis using i by auto
+        qed
+        then have deq: "d = insert (cbox a b) (d - {cbox a b})"
+          by auto
+        have "F g (d - {cbox a b}) = \<^bold>1"
+        proof (intro neutral ballI)
+          fix x
+          assume x: "x \<in> d - {cbox a b}"
+          then have "x\<in>d"
+            by auto note d'[rule_format,OF this]
+          then guess u v by (elim exE conjE) note uv=this
+          have "u \<noteq> a \<or> v \<noteq> b"
+            using x[unfolded uv] by auto
+          then obtain j where "u\<bullet>j \<noteq> a\<bullet>j \<or> v\<bullet>j \<noteq> b\<bullet>j" and j: "j \<in> Basis"
+            unfolding euclidean_eq_iff[where 'a='b] by auto
+          then have "u\<bullet>j = v\<bullet>j"
+            using uv(2)[rule_format,OF j] by auto
+          then have "content (cbox u v) = 0"
+            unfolding content_eq_0 using j
+            by force
+          then show "g x = \<^bold>1"
+            unfolding uv(1) by (rule operativeD(1)[OF g])
+        qed
+        then show "F g d = g (cbox a b)"
+          using division_ofD[OF less.prems]
+          apply (subst deq)
+          apply (subst insert)
+          apply auto
+          done
+      next
+        case False
+        then have "\<exists>x. x \<in> division_points (cbox a b) d"
+          by auto
+        then guess k c
+          unfolding split_paired_Ex division_points_def mem_Collect_eq split_conv
+          apply (elim exE conjE)
+          done
+        note this(2-4,1) note kc=this[unfolded interval_bounds[OF ab']]
+        from this(3) guess j .. note j=this
+        define d1 where "d1 = {l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
+        define d2 where "d2 = {l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
+        define cb where "cb = (\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)"
+        define ca where "ca = (\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)"
+        note division_points_psubset[OF \<open>d division_of cbox a b\<close> ab kc(1-2) j]
+        note psubset_card_mono[OF _ this(1)] psubset_card_mono[OF _ this(2)]
+        then have *: "F g d1 = g (cbox a b \<inter> {x. x\<bullet>k \<le> c})" "F g d2 = g (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+          unfolding interval_split[OF kc(4)]
+          apply (rule_tac[!] "less.hyps"[rule_format])
+          using division_split[OF \<open>d division_of cbox a b\<close>, where k=k and c=c]
+          apply (simp_all add: interval_split kc d1_def d2_def division_points_finite[OF \<open>d division_of cbox a b\<close>])
+          done
+        { fix l y
+          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} = y \<inter> {x. x \<bullet> k \<le> c}" "l \<noteq> y"
+          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
+          have "g (l \<inter> {x. x \<bullet> k \<le> c}) = \<^bold>1"
+            unfolding leq interval_split[OF kc(4)]
+            apply (rule operativeD[OF g])
+            unfolding interval_split[symmetric, OF kc(4)]
+            using division_split_left_inj less as kc leq by blast
+        } note fxk_le = this
+        { fix l y
+          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} = y \<inter> {x. c \<le> x \<bullet> k}" "l \<noteq> y"
+          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
+          have "g (l \<inter> {x. x \<bullet> k \<ge> c}) = \<^bold>1"
+            unfolding leq interval_split[OF kc(4)]
+            apply (rule operativeD(1)[OF g])
+            unfolding interval_split[symmetric,OF kc(4)]
+            using division_split_right_inj less leq as kc by blast
+        } note fxk_ge = this
+        have d1_alt: "d1 = (\<lambda>l. l \<inter> {x. x\<bullet>k \<le> c}) ` {l \<in> d. l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
+          using d1_def by auto
+        have d2_alt: "d2 = (\<lambda>l. l \<inter> {x. x\<bullet>k \<ge> c}) ` {l \<in> d. l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
+          using d2_def by auto
+        have "g (cbox a b) = F g d1 \<^bold>* F g d2" (is "_ = ?prev")
+          unfolding * using g kc(4) by blast
+        also have "F g d1 = F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<le> c})) d"
+          unfolding d1_alt using division_of_finite[OF less.prems] fxk_le
+          by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left simp: operative_empty[OF g])
+        also have "F g d2 = F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<ge> c})) d"
+          unfolding d2_alt using division_of_finite[OF less.prems] fxk_ge
+          by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left simp: operative_empty[OF g])
+        also have *: "\<forall>x\<in>d. g x = g (x \<inter> {x. x \<bullet> k \<le> c}) \<^bold>* g (x \<inter> {x. c \<le> x \<bullet> k})"
+          unfolding forall_in_division[OF \<open>d division_of cbox a b\<close>]
+          using g kc(4) by blast
+        have "F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<le> c})) d \<^bold>* F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<ge> c})) d = F g d"
+          using * by (simp add: distrib)
+        finally show ?thesis by auto
+      qed
+    qed
+  qed
+qed
+
+lemma (in comm_monoid_set) operative_tagged_division:
+  assumes f: "operative g" and d: "d tagged_division_of (cbox a b)"
+  shows "F (\<lambda>(x, l). g l) d = g (cbox a b)"
+  unfolding d[THEN division_of_tagged_division, THEN operative_division[OF f], symmetric]
+  by (simp add: f[THEN operativeD(1)] over_tagged_division_lemma[OF d])
+
+lemma additive_content_division: "d division_of (cbox a b) \<Longrightarrow> setsum content d = content (cbox a b)"
+  by (metis operative_content setsum.operative_division)
+
+lemma additive_content_tagged_division:
+  "d tagged_division_of (cbox a b) \<Longrightarrow> setsum (\<lambda>(x,l). content l) d = content (cbox a b)"
+  unfolding setsum.operative_tagged_division[OF operative_content, symmetric] by blast
+
+lemma
+  shows real_inner_1_left: "inner 1 x = x"
+  and real_inner_1_right: "inner x 1 = x"
+  by simp_all
+
+lemma content_real_eq_0: "content {a .. b::real} = 0 \<longleftrightarrow> a \<ge> b"
+  by (metis atLeastatMost_empty_iff2 content_empty content_real diff_self eq_iff le_cases le_iff_diff_le_0)
+
+lemma interval_real_split:
+  "{a .. b::real} \<inter> {x. x \<le> c} = {a .. min b c}"
+  "{a .. b} \<inter> {x. c \<le> x} = {max a c .. b}"
+  apply (metis Int_atLeastAtMostL1 atMost_def)
+  apply (metis Int_atLeastAtMostL2 atLeast_def)
+  done
+
+lemma (in comm_monoid) operative_1_lt:
+  "operative (g :: real set \<Rightarrow> 'a) \<longleftrightarrow>
+    ((\<forall>a b. b \<le> a \<longrightarrow> g {a .. b} = \<^bold>1) \<and> (\<forall>a b c. a < c \<and> c < b \<longrightarrow> g {a .. c} \<^bold>* g {c .. b} = g {a .. b}))"
+  apply (simp add: operative_def content_real_eq_0 atMost_def[symmetric] atLeast_def[symmetric]
+              del: content_real_if)
+proof safe
+  fix a b c :: real
+  assume *: "\<forall>a b c. g {a..b} = g {a..min b c} \<^bold>* g {max a c..b}"
+  assume "a < c" "c < b"
+  with *[rule_format, of a b c] show "g {a..c} \<^bold>* g {c..b} = g {a..b}"
+    by (simp add: less_imp_le min.absorb2 max.absorb2)
+next
+  fix a b c :: real
+  assume as: "\<forall>a b. b \<le> a \<longrightarrow> g {a..b} = \<^bold>1"
+    "\<forall>a b c. a < c \<and> c < b \<longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
+  from as(1)[rule_format, of 0 1] as(1)[rule_format, of a a for a] as(2)
+  have [simp]: "g {} = \<^bold>1" "\<And>a. g {a} = \<^bold>1"
+    "\<And>a b c. a < c \<Longrightarrow> c < b \<Longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
+    by auto
+  show "g {a..b} = g {a..min b c} \<^bold>* g {max a c..b}"
+    by (auto simp: min_def max_def le_less)
+qed
+
+lemma (in comm_monoid) operative_1_le:
+  "operative (g :: real set \<Rightarrow> 'a) \<longleftrightarrow>
+    ((\<forall>a b. b \<le> a \<longrightarrow> g {a..b} = \<^bold>1) \<and> (\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> g {a .. c} \<^bold>* g {c .. b} = g {a .. b}))"
+  unfolding operative_1_lt
+proof safe
+  fix a b c :: real
+  assume as: "\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}" "a < c" "c < b"
+  show "g {a..c} \<^bold>* g {c..b} = g {a..b}"
+    apply (rule as(1)[rule_format])
+    using as(2-)
+    apply auto
+    done
+next
+  fix a b c :: real
+  assume "\<forall>a b. b \<le> a \<longrightarrow> g {a .. b} = \<^bold>1"
+    and "\<forall>a b c. a < c \<and> c < b \<longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
+    and "a \<le> c"
+    and "c \<le> b"
+  note as = this[rule_format]
+  show "g {a..c} \<^bold>* g {c..b} = g {a..b}"
+  proof (cases "c = a \<or> c = b")
+    case False
+    then show ?thesis
+      apply -
+      apply (subst as(2))
+      using as(3-)
+      apply auto
+      done
+  next
+    case True
+    then show ?thesis
+    proof
+      assume *: "c = a"
+      then have "g {a .. c} = \<^bold>1"
+        apply -
+        apply (rule as(1)[rule_format])
+        apply auto
+        done
+      then show ?thesis
+        unfolding * by auto
+    next
+      assume *: "c = b"
+      then have "g {c .. b} = \<^bold>1"
+        apply -
+        apply (rule as(1)[rule_format])
+        apply auto
+        done
+      then show ?thesis
+        unfolding * by auto
+    qed
+  qed
+qed
 
 subsection \<open>Fine-ness of a partition w.r.t. a gauge.\<close>
 
@@ -2993,113 +3620,6 @@ qed
 
 subsection \<open>Additivity of integral on abutting intervals.\<close>
 
-lemma interval_split:
-  fixes a :: "'a::euclidean_space"
-  assumes "k \<in> Basis"
-  shows
-    "cbox a b \<inter> {x. x\<bullet>k \<le> c} = cbox a (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i) *\<^sub>R i)"
-    "cbox a b \<inter> {x. x\<bullet>k \<ge> c} = cbox (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i) *\<^sub>R i) b"
-  apply (rule_tac[!] set_eqI)
-  unfolding Int_iff mem_box mem_Collect_eq
-  using assms
-  apply auto
-  done
-
-lemma content_split:
-  fixes a :: "'a::euclidean_space"
-  assumes "k \<in> Basis"
-  shows "content (cbox a b) = content(cbox a b \<inter> {x. x\<bullet>k \<le> c}) + content(cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-proof cases
-  note simps = interval_split[OF assms] content_cbox_cases
-  have *: "Basis = insert k (Basis - {k})" "\<And>x. finite (Basis-{x})" "\<And>x. x\<notin>Basis-{x}"
-    using assms by auto
-  have *: "\<And>X Y Z. (\<Prod>i\<in>Basis. Z i (if i = k then X else Y i)) = Z k X * (\<Prod>i\<in>Basis-{k}. Z i (Y i))"
-    "(\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i) = (\<Prod>i\<in>Basis-{k}. b\<bullet>i - a\<bullet>i) * (b\<bullet>k - a\<bullet>k)"
-    apply (subst *(1))
-    defer
-    apply (subst *(1))
-    unfolding setprod.insert[OF *(2-)]
-    apply auto
-    done
-  assume as: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
-  moreover
-  have "\<And>x. min (b \<bullet> k) c = max (a \<bullet> k) c \<Longrightarrow>
-    x * (b\<bullet>k - a\<bullet>k) = x * (max (a \<bullet> k) c - a \<bullet> k) + x * (b \<bullet> k - max (a \<bullet> k) c)"
-    by  (auto simp add: field_simps)
-  moreover
-  have **: "(\<Prod>i\<in>Basis. ((\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) *\<^sub>R i) \<bullet> i - a \<bullet> i)) =
-      (\<Prod>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) - a \<bullet> i)"
-    "(\<Prod>i\<in>Basis. b \<bullet> i - ((\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i)) =
-      (\<Prod>i\<in>Basis. b \<bullet> i - (if i = k then max (a \<bullet> k) c else a \<bullet> i))"
-    by (auto intro!: setprod.cong)
-  have "\<not> a \<bullet> k \<le> c \<Longrightarrow> \<not> c \<le> b \<bullet> k \<Longrightarrow> False"
-    unfolding not_le
-    using as[unfolded ,rule_format,of k] assms
-    by auto
-  ultimately show ?thesis
-    using assms
-    unfolding simps **
-    unfolding *(1)[of "\<lambda>i x. b\<bullet>i - x"] *(1)[of "\<lambda>i x. x - a\<bullet>i"]
-    unfolding *(2)
-    by auto
-next
-  assume "\<not> (\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
-  then have "cbox a b = {}"
-    unfolding box_eq_empty by (auto simp: not_le)
-  then show ?thesis
-    by (auto simp: not_le)
-qed
-
-lemma division_split_left_inj:
-  fixes type :: "'a::euclidean_space"
-  assumes "d division_of i"
-    and "k1 \<in> d"
-    and "k2 \<in> d"
-    and "k1 \<noteq> k2"
-    and "k1 \<inter> {x::'a. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
-    and k: "k\<in>Basis"
-  shows "content(k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
-proof -
-  note d=division_ofD[OF assms(1)]
-  have *: "\<And>(a::'a) b c. content (cbox a b \<inter> {x. x\<bullet>k \<le> c}) = 0 \<longleftrightarrow>
-    interior(cbox a b \<inter> {x. x\<bullet>k \<le> c}) = {}"
-    unfolding  interval_split[OF k] content_eq_0_interior by auto
-  guess u1 v1 using d(4)[OF assms(2)] by (elim exE) note uv1=this
-  guess u2 v2 using d(4)[OF assms(3)] by (elim exE) note uv2=this
-  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
-    by auto
-  show ?thesis
-    unfolding uv1 uv2 *
-    apply (rule **[OF d(5)[OF assms(2-4)]])
-    apply (simp add: uv1)
-    using assms(5) uv1 by auto
-qed
-
-lemma division_split_right_inj:
-  fixes type :: "'a::euclidean_space"
-  assumes "d division_of i"
-    and "k1 \<in> d"
-    and "k2 \<in> d"
-    and "k1 \<noteq> k2"
-    and "k1 \<inter> {x::'a. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
-    and k: "k \<in> Basis"
-  shows "content (k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
-proof -
-  note d=division_ofD[OF assms(1)]
-  have *: "\<And>a b::'a. \<And>c. content(cbox a b \<inter> {x. x\<bullet>k \<ge> c}) = 0 \<longleftrightarrow>
-    interior(cbox a b \<inter> {x. x\<bullet>k \<ge> c}) = {}"
-    unfolding interval_split[OF k] content_eq_0_interior by auto
-  guess u1 v1 using d(4)[OF assms(2)] by (elim exE) note uv1=this
-  guess u2 v2 using d(4)[OF assms(3)] by (elim exE) note uv2=this
-  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
-    by auto
-  show ?thesis
-    unfolding uv1 uv2 *
-    apply (rule **[OF d(5)[OF assms(2-4)]])
-    apply (simp add: uv1)
-    using assms(5) uv1 by auto
-qed
-
 lemma tagged_division_split_left_inj:
   fixes x1 :: "'a::euclidean_space"
   assumes d: "d tagged_division_of i"
@@ -3132,64 +3652,6 @@ proof -
   show ?thesis
     using k12
     by (fastforce intro!:  division_split_right_inj[OF division_of_tagged_division[OF d]] *)
-qed
-
-lemma division_split:
-  fixes a :: "'a::euclidean_space"
-  assumes "p division_of (cbox a b)"
-    and k: "k\<in>Basis"
-  shows "{l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> p \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} division_of(cbox a b \<inter> {x. x\<bullet>k \<le> c})"
-      (is "?p1 division_of ?I1")
-    and "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> p \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}} division_of (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-      (is "?p2 division_of ?I2")
-proof (rule_tac[!] division_ofI)
-  note p = division_ofD[OF assms(1)]
-  show "finite ?p1" "finite ?p2"
-    using p(1) by auto
-  show "\<Union>?p1 = ?I1" "\<Union>?p2 = ?I2"
-    unfolding p(6)[symmetric] by auto
-  {
-    fix k
-    assume "k \<in> ?p1"
-    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
-    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
-    show "k \<subseteq> ?I1"
-      using l p(2) uv by force
-    show  "k \<noteq> {}"
-      by (simp add: l)
-    show  "\<exists>a b. k = cbox a b"
-      apply (simp add: l uv p(2-3)[OF l(2)])
-      apply (subst interval_split[OF k])
-      apply (auto intro: order.trans)
-      done
-    fix k'
-    assume "k' \<in> ?p1"
-    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
-    assume "k \<noteq> k'"
-    then show "interior k \<inter> interior k' = {}"
-      unfolding l l' using p(5)[OF l(2) l'(2)] by auto
-  }
-  {
-    fix k
-    assume "k \<in> ?p2"
-    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
-    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
-    show "k \<subseteq> ?I2"
-      using l p(2) uv by force
-    show  "k \<noteq> {}"
-      by (simp add: l)
-    show  "\<exists>a b. k = cbox a b"
-      apply (simp add: l uv p(2-3)[OF l(2)])
-      apply (subst interval_split[OF k])
-      apply (auto intro: order.trans)
-      done
-    fix k'
-    assume "k' \<in> ?p2"
-    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
-    assume "k \<noteq> k'"
-    then show "interior k \<inter> interior k' = {}"
-      unfolding l l' using p(5)[OF l(2) l'(2)] by auto
-  }
 qed
 
 lemma has_integral_split:
@@ -3562,48 +4024,16 @@ proof -
   qed
 qed
 
-
-subsection \<open>Generalized notion of additivity.\<close>
-
-definition operative :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> (('b::euclidean_space) set \<Rightarrow> 'a) \<Rightarrow> bool"
-  where "operative opp f \<longleftrightarrow>
-    (\<forall>a b. content (cbox a b) = 0 \<longrightarrow> f (cbox a b) = neutral opp) \<and>
-    (\<forall>a b c. \<forall>k\<in>Basis. f (cbox a b) = opp (f(cbox a b \<inter> {x. x\<bullet>k \<le> c})) (f (cbox a b \<inter> {x. x\<bullet>k \<ge> c})))"
-
-lemma operativeD[dest]:
-  fixes type :: "'a::euclidean_space"
-  assumes "operative opp f"
-  shows "\<And>a b::'a. content (cbox a b) = 0 \<Longrightarrow> f (cbox a b) = neutral opp"
-    and "\<And>a b c k. k \<in> Basis \<Longrightarrow> f (cbox a b) =
-      opp (f (cbox a b \<inter> {x. x\<bullet>k \<le> c})) (f (cbox a b \<inter> {x. x\<bullet>k \<ge> c}))"
-  using assms unfolding operative_def by auto
-
-lemma property_empty_interval: "\<forall>a b. content (cbox a b) = 0 \<longrightarrow> P (cbox a b) \<Longrightarrow> P {}"
-  using content_empty unfolding empty_as_interval by auto
-
-lemma operative_empty: "operative opp f \<Longrightarrow> f {} = neutral opp"
-  unfolding operative_def by (rule property_empty_interval) auto
-
-
-subsection \<open>Two key instances of additivity.\<close>
-
-lemma operative_content[intro]: "operative (op +) content"
-  by (force simp add: operative_def content_split[symmetric])
-
-lemma monoidal_monoid[intro]: "monoidal ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a)"
-  unfolding monoidal_def neutral_add
-  by (auto simp add: algebra_simps)
-
 lemma operative_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  shows "operative (lifted(op +)) (\<lambda>i. if f integrable_on i then Some(integral i f) else None)"
-  unfolding operative_def neutral_lifted[OF monoidal_monoid] neutral_add
+  shows "comm_monoid.operative (lift_option op +) (Some 0) (\<lambda>i. if f integrable_on i then Some (integral i f) else None)"
+  unfolding comm_monoid.operative_def[OF add.comm_monoid_lift_option]
 proof safe
   fix a b c
   fix k :: 'a
   assume k: "k \<in> Basis"
   show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) =
-        lifted op + (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
+        lift_option op + (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
         (if f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k} then Some (integral (cbox a b \<inter> {x. c \<le> x \<bullet> k}) f) else None)"
   proof (cases "f integrable_on cbox a b")
     case True
@@ -3636,498 +4066,6 @@ next
     using has_integral_null_eq
     by (auto simp: integrable_on_null)
 qed
-
-
-subsection \<open>Points of division of a partition.\<close>
-
-definition "division_points (k::('a::euclidean_space) set) d =
-   {(j,x). j \<in> Basis \<and> (interval_lowerbound k)\<bullet>j < x \<and> x < (interval_upperbound k)\<bullet>j \<and>
-     (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
-
-lemma division_points_finite:
-  fixes i :: "'a::euclidean_space set"
-  assumes "d division_of i"
-  shows "finite (division_points i d)"
-proof -
-  note assm = division_ofD[OF assms]
-  let ?M = "\<lambda>j. {(j,x)|x. (interval_lowerbound i)\<bullet>j < x \<and> x < (interval_upperbound i)\<bullet>j \<and>
-    (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
-  have *: "division_points i d = \<Union>(?M ` Basis)"
-    unfolding division_points_def by auto
-  show ?thesis
-    unfolding * using assm by auto
-qed
-
-lemma division_points_subset:
-  fixes a :: "'a::euclidean_space"
-  assumes "d division_of (cbox a b)"
-    and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
-    and k: "k \<in> Basis"
-  shows "division_points (cbox a b \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l . l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subseteq>
-      division_points (cbox a b) d" (is ?t1)
-    and "division_points (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) {l \<inter> {x. x\<bullet>k \<ge> c} | l . l \<in> d \<and> ~(l \<inter> {x. x\<bullet>k \<ge> c} = {})} \<subseteq>
-      division_points (cbox a b) d" (is ?t2)
-proof -
-  note assm = division_ofD[OF assms(1)]
-  have *: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
-    "\<forall>i\<in>Basis. a\<bullet>i \<le> (\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else  b \<bullet> i) *\<^sub>R i) \<bullet> i"
-    "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i \<le> b\<bullet>i"
-    "min (b \<bullet> k) c = c" "max (a \<bullet> k) c = c"
-    using assms using less_imp_le by auto
-  show ?t1 (*FIXME a horrible mess*)
-    unfolding division_points_def interval_split[OF k, of a b]
-    unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
-    unfolding *
-    apply (rule subsetI)
-    unfolding mem_Collect_eq split_beta
-    apply (erule bexE conjE)+
-    apply (simp add: )
-    apply (erule exE conjE)+
-  proof
-    fix i l x
-    assume as:
-      "a \<bullet> fst x < snd x" "snd x < (if fst x = k then c else b \<bullet> fst x)"
-      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      "i = l \<inter> {x. x \<bullet> k \<le> c}" "l \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}"
-      and fstx: "fst x \<in> Basis"
-    from assm(4)[OF this(5)] guess u v apply-by(erule exE)+ note l=this
-    have *: "\<forall>i\<in>Basis. u \<bullet> i \<le> (\<Sum>i\<in>Basis. (if i = k then min (v \<bullet> k) c else v \<bullet> i) *\<^sub>R i) \<bullet> i"
-      using as(6) unfolding l interval_split[OF k] box_ne_empty as .
-    have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
-      using l using as(6) unfolding box_ne_empty[symmetric] by auto
-    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
-      using as(1-3,5) fstx
-      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
-      apply (auto split: if_split_asm)
-      done
-    show "snd x < b \<bullet> fst x"
-      using as(2) \<open>c < b\<bullet>k\<close> by (auto split: if_split_asm)
-  qed
-  show ?t2
-    unfolding division_points_def interval_split[OF k, of a b]
-    unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
-    unfolding *
-    unfolding subset_eq
-    apply rule
-    unfolding mem_Collect_eq split_beta
-    apply (erule bexE conjE)+
-    apply (simp only: mem_Collect_eq inner_setsum_left_Basis simp_thms)
-    apply (erule exE conjE)+
-  proof
-    fix i l x
-    assume as:
-      "(if fst x = k then c else a \<bullet> fst x) < snd x" "snd x < b \<bullet> fst x"
-      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      "i = l \<inter> {x. c \<le> x \<bullet> k}" "l \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}"
-      and fstx: "fst x \<in> Basis"
-    from assm(4)[OF this(5)] guess u v by (elim exE) note l=this
-    have *: "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (u \<bullet> k) c else u \<bullet> i) *\<^sub>R i) \<bullet> i \<le> v \<bullet> i"
-      using as(6) unfolding l interval_split[OF k] box_ne_empty as .
-    have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
-      using l using as(6) unfolding box_ne_empty[symmetric] by auto
-    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
-      using as(1-3,5) fstx
-      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
-      apply (auto split: if_split_asm)
-      done
-    show "a \<bullet> fst x < snd x"
-      using as(1) \<open>a\<bullet>k < c\<close> by (auto split: if_split_asm)
-   qed
-qed
-
-lemma division_points_psubset:
-  fixes a :: "'a::euclidean_space"
-  assumes "d division_of (cbox a b)"
-      and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
-      and "l \<in> d"
-      and "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
-      and k: "k \<in> Basis"
-  shows "division_points (cbox a b \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subset>
-         division_points (cbox a b) d" (is "?D1 \<subset> ?D")
-    and "division_points (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) {l \<inter> {x. x\<bullet>k \<ge> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}} \<subset>
-         division_points (cbox a b) d" (is "?D2 \<subset> ?D")
-proof -
-  have ab: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
-    using assms(2) by (auto intro!:less_imp_le)
-  guess u v using division_ofD(4)[OF assms(1,5)] by (elim exE) note l=this
-  have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "\<forall>i\<in>Basis. a\<bullet>i \<le> u\<bullet>i \<and> v\<bullet>i \<le> b\<bullet>i"
-    using division_ofD(2,2,3)[OF assms(1,5)] unfolding l box_ne_empty
-    using subset_box(1)
-    apply auto
-    apply blast+
-    done
-  have *: "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
-          "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
-    unfolding l interval_split[OF k] interval_bounds[OF uv(1)]
-    using uv[rule_format, of k] ab k
-    by auto
-  have "\<exists>x. x \<in> ?D - ?D1"
-    using assms(3-)
-    unfolding division_points_def interval_bounds[OF ab]
-    apply -
-    apply (erule disjE)
-    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI, force simp add: *)
-    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI, force simp add: *)
-    done
-  moreover have "?D1 \<subseteq> ?D"
-    by (auto simp add: assms division_points_subset)
-  ultimately show "?D1 \<subset> ?D"
-    by blast
-  have *: "interval_lowerbound (cbox a b \<inter> {x. x \<bullet> k \<ge> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
-    "interval_lowerbound (cbox a b \<inter> {x. x \<bullet> k \<ge> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
-    unfolding l interval_split[OF k] interval_bounds[OF uv(1)]
-    using uv[rule_format, of k] ab k
-    by auto
-  have "\<exists>x. x \<in> ?D - ?D2"
-    using assms(3-)
-    unfolding division_points_def interval_bounds[OF ab]
-    apply -
-    apply (erule disjE)
-    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI, force simp add: *)
-    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI, force simp add: *)
-    done
-  moreover have "?D2 \<subseteq> ?D"
-    by (auto simp add: assms division_points_subset)
-  ultimately show "?D2 \<subset> ?D"
-    by blast
-qed
-
-
-subsection \<open>Preservation by divisions and tagged divisions.\<close>
-
-lemma support_support[simp]:"support opp f (support opp f s) = support opp f s"
-  unfolding support_def by auto
-
-lemma iterate_support[simp]: "iterate opp (support opp f s) f = iterate opp s f"
-  unfolding iterate_def support_support by auto
-
-lemma iterate_expand_cases:
-  "iterate opp s f = (if finite(support opp f s) then iterate opp (support opp f s) f else neutral opp)"
-    by (simp add: iterate_def fold'_def)
-
-lemma iterate_image:
-  assumes "monoidal opp"
-    and "inj_on f s"
-  shows "iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
-proof -
-  have *: "iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
-    if "finite s" "\<forall>x\<in>s. \<forall>y\<in>s. f x = f y \<longrightarrow> x = y" for s
-    using that
-  proof (induct s)
-    case empty
-    then show ?case by simp
-  next
-    case insert
-    with assms(1) show ?case by auto
-  qed
-  show ?thesis
-    apply (cases "finite (support opp g (f ` s))")
-    prefer 2
-      apply (metis finite_imageI iterate_expand_cases support_clauses(7))
-    apply (subst (1) iterate_support[symmetric], subst (2) iterate_support[symmetric])
-    unfolding support_clauses
-    apply (rule *)
-    apply (meson assms(2) finite_imageD subset_inj_on support_subset)
-    apply (meson assms(2) inj_on_contraD rev_subsetD support_subset)
-    done
-qed
-
-
-(* This lemma about iterations comes up in a few places. *)
-lemma iterate_nonzero_image_lemma:
-  assumes "monoidal opp"
-    and "finite s" "g(a) = neutral opp"
-    and "\<forall>x\<in>s. \<forall>y\<in>s. f x = f y \<and> x \<noteq> y \<longrightarrow> g(f x) = neutral opp"
-  shows "iterate opp {f x | x. x \<in> s \<and> f x \<noteq> a} g = iterate opp s (g \<circ> f)"
-proof -
-  have *: "{f x |x. x \<in> s \<and> f x \<noteq> a} = f ` {x. x \<in> s \<and> f x \<noteq> a}"
-    by auto
-  have **: "support opp (g \<circ> f) {x \<in> s. f x \<noteq> a} = support opp (g \<circ> f) s"
-    unfolding support_def using assms(3) by auto
-  have inj: "inj_on f (support opp (g \<circ> f) {x \<in> s. f x \<noteq> a})"
-    apply (simp add: inj_on_def)
-    apply (metis (mono_tags, lifting) assms(4) comp_def mem_Collect_eq support_def)
-    done
-  show ?thesis
-    apply (subst iterate_support[symmetric])
-    apply (simp add: * support_clauses iterate_image[OF assms(1) inj])
-    apply (simp add: iterate_def **)
-    done
-qed
-
-lemma iterate_eq_neutral:
-  assumes "monoidal opp"
-      and "\<And>x. x \<in> s \<Longrightarrow> f x = neutral opp"
-    shows "iterate opp s f = neutral opp"
-proof -
-  have [simp]: "support opp f s = {}"
-    unfolding support_def using assms(2) by auto
-  show ?thesis
-    by (subst iterate_support[symmetric]) simp
-qed
-
-lemma iterate_op:
-   "\<lbrakk>monoidal opp; finite s\<rbrakk>
-    \<Longrightarrow> iterate opp s (\<lambda>x. opp (f x) (g x)) = opp (iterate opp s f) (iterate opp s g)"
-by (erule finite_induct) (auto simp: monoidal_ac(4) monoidal_ac(5))
-
-lemma iterate_eq:
-  assumes "monoidal opp"
-    and "\<And>x. x \<in> s \<Longrightarrow> f x = g x"
-  shows "iterate opp s f = iterate opp s g"
-proof -
-  have *: "support opp g s = support opp f s"
-    unfolding support_def using assms(2) by auto
-  show ?thesis
-  proof (cases "finite (support opp f s)")
-    case False
-    then show ?thesis
-      by (simp add: "*" iterate_expand_cases)
-  next
-    case True
-    define su where "su = support opp f s"
-    have fsu: "finite su"
-      using True by (simp add: su_def)
-    moreover
-    { assume "finite su" "su \<subseteq> s"
-      then have "iterate opp su f = iterate opp su g"
-        by (induct su) (auto simp: assms)
-    }
-    ultimately have "iterate opp (support opp f s) f = iterate opp (support opp g s) g"
-      by (simp add: "*" su_def support_subset)
-    then show ?thesis
-      by simp
-  qed
-qed
-
-lemma operative_division:
-  fixes f :: "'a::euclidean_space set \<Rightarrow> 'b"
-  assumes "monoidal opp"
-      and "operative opp f"
-      and "d division_of (cbox a b)"
-    shows "iterate opp d f = f (cbox a b)"
-proof -
-  define C where [abs_def]: "C = card (division_points (cbox a b) d)"
-  then show ?thesis
-    using assms
-  proof (induct C arbitrary: a b d rule: full_nat_induct)
-    case (1 a b d)
-    show ?case
-    proof (cases "content (cbox a b) = 0")
-      case True
-      show "iterate opp d f = f (cbox a b)"
-        unfolding operativeD(1)[OF assms(2) True]
-      proof (rule iterate_eq_neutral[OF \<open>monoidal opp\<close>])
-        fix x
-        assume x: "x \<in> d"
-        then show "f x = neutral opp"
-          by (metis division_ofD(4) 1(4) division_of_content_0[OF True] operativeD(1)[OF assms(2)] x)
-      qed
-    next
-      case False
-      note ab = this[unfolded content_lt_nz[symmetric] content_pos_lt_eq]
-      then have ab': "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
-        by (auto intro!: less_imp_le)
-        show "iterate opp d f = f (cbox a b)"
-      proof (cases "division_points (cbox a b) d = {}")
-        case True
-        { fix u v and j :: 'a
-          assume j: "j \<in> Basis" and as: "cbox u v \<in> d"
-          then have "cbox u v \<noteq> {}"
-            using "1.prems"(3) by blast
-          then have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "u\<bullet>j \<le> v\<bullet>j"
-            using j unfolding box_ne_empty by auto
-          have *: "\<And>p r Q. \<not> j\<in>Basis \<or> p \<or> r \<or> (\<forall>x\<in>d. Q x) \<Longrightarrow> p \<or> r \<or> Q (cbox u v)"
-            using as j by auto
-          have "(j, u\<bullet>j) \<notin> division_points (cbox a b) d"
-               "(j, v\<bullet>j) \<notin> division_points (cbox a b) d" using True by auto
-          note this[unfolded de_Morgan_conj division_points_def mem_Collect_eq split_conv interval_bounds[OF ab'] bex_simps]
-          note *[OF this(1)] *[OF this(2)] note this[unfolded interval_bounds[OF uv(1)]]
-          moreover
-          have "a\<bullet>j \<le> u\<bullet>j" "v\<bullet>j \<le> b\<bullet>j"
-            using division_ofD(2,2,3)[OF \<open>d division_of cbox a b\<close> as]
-            apply (metis j subset_box(1) uv(1))
-            by (metis \<open>cbox u v \<subseteq> cbox a b\<close> j subset_box(1) uv(1))
-          ultimately have "u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j"
-            unfolding not_less de_Morgan_disj using ab[rule_format,of j] uv(2) j by force }
-        then have d': "\<forall>i\<in>d. \<exists>u v. i = cbox u v \<and>
-          (\<forall>j\<in>Basis. u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j)"
-          unfolding forall_in_division[OF 1(4)]
-          by blast
-        have "(1/2) *\<^sub>R (a+b) \<in> cbox a b"
-          unfolding mem_box using ab by(auto intro!: less_imp_le simp: inner_simps)
-        note this[unfolded division_ofD(6)[OF \<open>d division_of cbox a b\<close>,symmetric] Union_iff]
-        then guess i .. note i=this
-        guess u v using d'[rule_format,OF i(1)] by (elim exE conjE) note uv=this
-        have "cbox a b \<in> d"
-        proof -
-          have "u = a" "v = b"
-            unfolding euclidean_eq_iff[where 'a='a]
-          proof safe
-            fix j :: 'a
-            assume j: "j \<in> Basis"
-            note i(2)[unfolded uv mem_box,rule_format,of j]
-            then show "u \<bullet> j = a \<bullet> j" and "v \<bullet> j = b \<bullet> j"
-              using uv(2)[rule_format,of j] j by (auto simp: inner_simps)
-          qed
-          then have "i = cbox a b" using uv by auto
-          then show ?thesis using i by auto
-        qed
-        then have deq: "d = insert (cbox a b) (d - {cbox a b})"
-          by auto
-        have "iterate opp (d - {cbox a b}) f = neutral opp"
-        proof (rule iterate_eq_neutral[OF 1(2)])
-          fix x
-          assume x: "x \<in> d - {cbox a b}"
-          then have "x\<in>d"
-            by auto note d'[rule_format,OF this]
-          then guess u v by (elim exE conjE) note uv=this
-          have "u \<noteq> a \<or> v \<noteq> b"
-            using x[unfolded uv] by auto
-          then obtain j where "u\<bullet>j \<noteq> a\<bullet>j \<or> v\<bullet>j \<noteq> b\<bullet>j" and j: "j \<in> Basis"
-            unfolding euclidean_eq_iff[where 'a='a] by auto
-          then have "u\<bullet>j = v\<bullet>j"
-            using uv(2)[rule_format,OF j] by auto
-          then have "content (cbox u v) = 0"
-            unfolding content_eq_0 using j
-            by force
-          then show "f x = neutral opp"
-            unfolding uv(1) by (rule operativeD(1)[OF 1(3)])
-        qed
-        then show "iterate opp d f = f (cbox a b)"
-          apply (subst deq)
-          apply (subst iterate_insert[OF 1(2)])
-          using 1
-          apply auto
-          done
-      next
-        case False
-        then have "\<exists>x. x \<in> division_points (cbox a b) d"
-          by auto
-        then guess k c
-          unfolding split_paired_Ex division_points_def mem_Collect_eq split_conv
-          apply (elim exE conjE)
-          done
-        note this(2-4,1) note kc=this[unfolded interval_bounds[OF ab']]
-        from this(3) guess j .. note j=this
-        define d1 where "d1 = {l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
-        define d2 where "d2 = {l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
-        define cb where "cb = (\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)"
-        define ca where "ca = (\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)"
-        note division_points_psubset[OF \<open>d division_of cbox a b\<close> ab kc(1-2) j]
-        note psubset_card_mono[OF _ this(1)] psubset_card_mono[OF _ this(2)]
-        then have *: "(iterate opp d1 f) = f (cbox a b \<inter> {x. x\<bullet>k \<le> c})"
-          "(iterate opp d2 f) = f (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-          unfolding interval_split[OF kc(4)]
-          apply (rule_tac[!] "1.hyps"[rule_format])
-          using division_split[OF \<open>d division_of cbox a b\<close>, where k=k and c=c]
-          apply (simp_all add: interval_split 1 kc d1_def d2_def division_points_finite[OF \<open>d division_of cbox a b\<close>])
-          done
-        { fix l y
-          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} = y \<inter> {x. x \<bullet> k \<le> c}" "l \<noteq> y"
-          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
-          have "f (l \<inter> {x. x \<bullet> k \<le> c}) = neutral opp"
-            unfolding leq interval_split[OF kc(4)]
-            apply (rule operativeD(1) 1)+
-            unfolding interval_split[symmetric,OF kc(4)]
-            using division_split_left_inj 1 as kc leq by blast
-        } note fxk_le = this
-        { fix l y
-          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} = y \<inter> {x. c \<le> x \<bullet> k}" "l \<noteq> y"
-          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
-          have "f (l \<inter> {x. x \<bullet> k \<ge> c}) = neutral opp"
-            unfolding leq interval_split[OF kc(4)]
-            apply (rule operativeD(1) 1)+
-            unfolding interval_split[symmetric,OF kc(4)]
-            using division_split_right_inj 1 leq as kc by blast
-        } note fxk_ge = this
-        have "f (cbox a b) = opp (iterate opp d1 f) (iterate opp d2 f)" (is "_ = ?prev")
-          unfolding *
-          using assms(2) kc(4) by blast
-        also have "iterate opp d1 f = iterate opp d (\<lambda>l. f(l \<inter> {x. x\<bullet>k \<le> c}))"
-          unfolding d1_def empty_as_interval
-          apply (rule iterate_nonzero_image_lemma[unfolded o_def])
-          apply (rule 1 division_of_finite operativeD[OF 1(3)])+
-          apply (force simp add: empty_as_interval[symmetric] fxk_le)+
-          done
-        also have "iterate opp d2 f = iterate opp d (\<lambda>l. f(l \<inter> {x. x\<bullet>k \<ge> c}))"
-          unfolding d2_def empty_as_interval
-          apply (rule iterate_nonzero_image_lemma[unfolded o_def])
-          apply (rule 1 division_of_finite operativeD[OF 1(3)])+
-          apply (force simp add: empty_as_interval[symmetric] fxk_ge)+
-          done
-        also have *: "\<forall>x\<in>d. f x = opp (f (x \<inter> {x. x \<bullet> k \<le> c})) (f (x \<inter> {x. c \<le> x \<bullet> k}))"
-          unfolding forall_in_division[OF \<open>d division_of cbox a b\<close>]
-          using assms(2) kc(4) by blast
-        have "opp (iterate opp d (\<lambda>l. f (l \<inter> {x. x \<bullet> k \<le> c}))) (iterate opp d (\<lambda>l. f (l \<inter> {x. c \<le> x \<bullet> k}))) =
-          iterate opp d f"
-          apply (subst(3) iterate_eq[OF _ *[rule_format]])
-          using 1
-          apply (auto simp: iterate_op[symmetric])
-          done
-        finally show ?thesis by auto
-      qed
-    qed
-  qed
-qed
-
-lemma iterate_image_nonzero:
-  assumes "monoidal opp"
-      and "finite s"
-      and "\<And>x y. \<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<and> f x = f y \<longrightarrow> g (f x) = neutral opp"
-    shows "iterate opp (f ` s) g = iterate opp s (g \<circ> f)"
-using assms
-by (induct rule: finite_subset_induct[OF assms(2) subset_refl]) auto
-
-lemma operative_tagged_division:
-  assumes "monoidal opp"
-      and "operative opp f"
-      and "d tagged_division_of (cbox a b)"
-    shows "iterate opp d (\<lambda>(x,l). f l) = f (cbox a b)"
-proof -
-  have *: "(\<lambda>(x,l). f l) = f \<circ> snd"
-    unfolding o_def by rule auto note tagged = tagged_division_ofD[OF assms(3)]
-  { fix a b a'
-    assume as: "(a, b) \<in> d" "(a', b) \<in> d" "(a, b) \<noteq> (a', b)"
-    have "f b = neutral opp"
-      using tagged(4)[OF as(1)]
-      apply clarify
-      apply (rule operativeD(1)[OF assms(2)])
-      by (metis content_eq_0_interior inf.idem tagged_division_ofD(5)[OF assms(3) as(1-3)])
-  }
-  then have "iterate opp d (\<lambda>(x,l). f l) = iterate opp (snd ` d) f"
-    unfolding *
-    by (force intro!: assms iterate_image_nonzero[symmetric, OF _ tagged_division_of_finite])
-  also have "\<dots> = f (cbox a b)"
-    using operative_division[OF assms(1-2) division_of_tagged_division[OF assms(3)]] .
-  finally show ?thesis .
-qed
-
-
-subsection \<open>Additivity of content.\<close>
-
-lemma setsum_iterate:
-  assumes "finite s"
-  shows "setsum f s = iterate op + s f"
-proof -
-  have "setsum f s = setsum f (support op + f s)"
-    using assms
-    by (auto simp: support_def intro: setsum.mono_neutral_right)
-  then show ?thesis unfolding iterate_def fold'_def setsum.eq_fold
-    by (simp add: comp_def)
-qed
-
-lemma additive_content_division:
-    "d division_of (cbox a b) \<Longrightarrow> setsum content d = content (cbox a b)"
-  by (metis division_ofD(1) monoidal_monoid operative_content operative_division setsum_iterate)
-
-lemma additive_content_tagged_division:
-    "d tagged_division_of (cbox a b) \<Longrightarrow> setsum (\<lambda>(x,l). content l) d = content (cbox a b)"
-  unfolding operative_tagged_division[OF monoidal_monoid operative_content,symmetric]
-  using setsum_iterate by blast
-
 
 subsection \<open>Finally, the integral of a constant\<close>
 
@@ -4598,17 +4536,6 @@ definition "negligible (s:: 'a::euclidean_space set) \<longleftrightarrow>
 
 subsection \<open>Negligibility of hyperplane.\<close>
 
-lemma setsum_nonzero_image_lemma:
-  assumes "finite s"
-    and "g a = 0"
-    and "\<forall>x\<in>s. \<forall>y\<in>s. f x = f y \<and> x \<noteq> y \<longrightarrow> g (f x) = 0"
-  shows "setsum g {f x |x. x \<in> s \<and> f x \<noteq> a} = setsum (g \<circ> f) s"
-  apply (subst setsum_iterate)
-  using assms monoidal_monoid
-  unfolding setsum_iterate[OF assms(1)]
-  apply (auto intro!: iterate_nonzero_image_lemma)
-  done
-
 lemma interval_doublesplit:
   fixes a :: "'a::euclidean_space"
   assumes "k \<in> Basis"
@@ -4628,7 +4555,7 @@ lemma division_doublesplit:
   fixes a :: "'a::euclidean_space"
   assumes "p division_of (cbox a b)"
     and k: "k \<in> Basis"
-  shows "{l \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e} |l. l \<in> p \<and> l \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e} \<noteq> {}}
+  shows "(\<lambda>l. l \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e}) ` {l\<in>p. l \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e} \<noteq> {}}
          division_of  (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e})"
 proof -
   have *: "\<And>x c. \<bar>x - c\<bar> \<le> e \<longleftrightarrow> x \<ge> c - e \<and> x \<le> c + e"
@@ -4639,14 +4566,15 @@ proof -
   note division_split(2)[OF this, where c="c-e" and k=k,OF k]
   then show ?thesis
     apply (rule **)
-    unfolding interval_doublesplit [OF k]
-    using k
-    apply (simp_all add: * interval_split)
-    apply (rule equalityI, blast)
-    apply clarsimp
-    apply (rule_tac x="l \<inter> {x. c + e \<ge> x \<bullet> k}" in exI)
-    apply auto
-    done
+    subgoal
+      apply (simp add: abs_diff_le_iff field_simps Collect_conj_eq setcompr_eq_image[symmetric])
+      apply (rule equalityI)
+      apply blast
+      apply clarsimp
+      apply (rule_tac x="l \<inter> {x. c + e \<ge> x \<bullet> k}" in exI)
+      apply auto
+      done
+    by (simp add: interval_split k interval_doublesplit)
 qed
 
 lemma content_doublesplit:
@@ -4794,7 +4722,7 @@ proof (clarify, goal_cases)
         apply (auto simp add:interval_doublesplit[OF k])
         done
       also have "\<dots> < e"
-      proof (subst setsum_over_tagged_division_lemma[OF p[THEN conjunct1]], goal_cases)
+      proof (subst setsum.over_tagged_division_lemma[OF p[THEN conjunct1]], goal_cases)
         case prems: (1 u v)
         have "content (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<le> content (cbox u v)"
           unfolding interval_doublesplit[OF k]
@@ -4806,45 +4734,30 @@ proof (clarify, goal_cases)
           unfolding prems interval_doublesplit[OF k]
           by (blast intro: antisym)
       next
-        have *: "setsum content {l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} |l. l \<in> snd ` p \<and> l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}} \<ge> 0"
-          apply (rule setsum_nonneg)
-          apply rule
-          unfolding mem_Collect_eq image_iff
-          apply (erule exE bexE conjE)+
-          unfolding split_paired_all
-        proof -
-          fix x l a b
-          assume as: "x = l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}" "(a, b) \<in> p" "l = snd (a, b)"
-          guess u v using p'(4)[OF as(2)] by (elim exE) note * = this
-          show "content x \<ge> 0"
-            unfolding as snd_conv * interval_doublesplit[OF k]
-            by (rule content_pos_le)
-        qed
-        have **: "norm (1::real) \<le> 1"
-          by auto
-        note division_doublesplit[OF p'' k,unfolded interval_doublesplit[OF k]]
-        note dsum_bound[OF this **,unfolded interval_doublesplit[symmetric,OF k]]
-        note this[unfolded real_scaleR_def real_norm_def mult_1_right mult_1, of c d]
-        note le_less_trans[OF this d(2)]
-        from this[unfolded abs_of_nonneg[OF *]]
-        show "(\<Sum>ka\<in>snd ` p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) < e"
-          apply (subst setsum_nonzero_image_lemma[of "snd ` p" content "{}", unfolded o_def,symmetric])
-          apply (rule finite_imageI p' content_empty)+
-          unfolding forall_in_division[OF p'']
-        proof (rule,rule,rule,rule,rule,rule,rule,erule conjE)
-          fix m n u v
-          assume as:
-            "cbox m n \<in> snd ` p" "cbox u v \<in> snd ` p"
-            "cbox m n \<noteq> cbox u v"
-            "cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} = cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}"
-          have "(cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<inter> (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<subseteq> cbox m n \<inter> cbox u v"
-            by blast
-          note interior_mono[OF this, unfolded division_ofD(5)[OF p'' as(1-3)] interior_Int[of "cbox m n"]]
-          then have "interior (cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = {}"
-            unfolding as Int_absorb by auto
-          then show "content (cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = 0"
-            unfolding interval_doublesplit[OF k] content_eq_0_interior[symmetric] .
-        qed
+        have "(\<Sum>l\<in>snd ` p. content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) =
+          setsum content ((\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}})"
+        proof (subst (2) setsum.reindex_nontrivial)
+          fix x y assume "x \<in> {l \<in> snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}" "y \<in> {l \<in> snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}"
+            "x \<noteq> y" and eq: "x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} = y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}"
+          then obtain x' y' where "(x', x) \<in> p" "x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}" "(y', y) \<in> p" "y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}"
+            by (auto)
+          from p'(5)[OF \<open>(x', x) \<in> p\<close> \<open>(y', y) \<in> p\<close>] \<open>x \<noteq> y\<close> have "interior (x \<inter> y) = {}"
+            by auto
+          moreover have "interior ((x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<inter> (y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) \<subseteq> interior (x \<inter> y)"
+            by (auto intro: interior_mono)
+          ultimately have "interior (x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = {}"
+            by (auto simp: eq)
+          then show "content (x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = 0"
+            using p'(4)[OF \<open>(x', x) \<in> p\<close>] by (auto simp: interval_doublesplit[OF k] content_eq_0_interior simp del: interior_Int)
+        qed (insert p'(1), auto intro!: setsum.mono_neutral_right)
+        also have "\<dots> \<le> norm (\<Sum>l\<in>(\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}. content l *\<^sub>R 1::real)"
+          by simp
+        also have "\<dots> \<le> 1 * content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})"
+          using division_doublesplit[OF p'' k, unfolded interval_doublesplit[OF k]]
+          unfolding interval_doublesplit[OF k] by (intro dsum_bound) auto
+        also have "\<dots> < e"
+          using d(2) by simp
+        finally show "(\<Sum>ka\<in>snd ` p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) < e" .
       qed
       finally show "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) < e" .
     qed
@@ -5491,33 +5404,11 @@ lemma integrable_spike_interior:
 
 subsection \<open>Integrability of continuous functions.\<close>
 
-lemma neutral_and[simp]: "neutral op \<and> = True"
-  unfolding neutral_def by (rule some_equality) auto
-
-lemma monoidal_and[intro]: "monoidal op \<and>"
-  unfolding monoidal_def by auto
-
-lemma iterate_and[simp]:
-  assumes "finite s"
-  shows "(iterate op \<and>) s p \<longleftrightarrow> (\<forall>x\<in>s. p x)"
-  using assms
-  apply induct
-  unfolding iterate_insert[OF monoidal_and]
-  apply auto
-  done
-
-lemma operative_division_and:
-  assumes "operative op \<and> P"
-    and "d division_of (cbox a b)"
-  shows "(\<forall>i\<in>d. P i) \<longleftrightarrow> P (cbox a b)"
-  using operative_division[OF monoidal_and assms] division_of_finite[OF assms(2)]
-  by auto
-
 lemma operative_approximable:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
   assumes "0 \<le> e"
-  shows "operative op \<and> (\<lambda>i. \<exists>g. (\<forall>x\<in>i. norm (f x - g (x::'b)) \<le> e) \<and> g integrable_on i)"
-  unfolding operative_def neutral_and
+  shows "comm_monoid.operative op \<and> True (\<lambda>i. \<exists>g. (\<forall>x\<in>i. norm (f x - g (x::'b)) \<le> e) \<and> g integrable_on i)"
+  unfolding comm_monoid.operative_def[OF comm_monoid_and]
 proof safe
   fix a b :: 'b
   show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
@@ -5571,6 +5462,14 @@ proof safe
   qed
 qed
 
+lemma comm_monoid_set_F_and: "comm_monoid_set.F op \<and> True f s \<longleftrightarrow> (finite s \<longrightarrow> (\<forall>x\<in>s. f x))"
+proof -
+  interpret bool: comm_monoid_set "op \<and>" True
+    proof qed auto
+  show ?thesis
+    by (induction s rule: infinite_finite_induct) auto
+qed
+
 lemma approximable_on_division:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
   assumes "0 \<le> e"
@@ -5578,9 +5477,9 @@ lemma approximable_on_division:
     and "\<forall>i\<in>d. \<exists>g. (\<forall>x\<in>i. norm (f x - g x) \<le> e) \<and> g integrable_on i"
   obtains g where "\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e" "g integrable_on cbox a b"
 proof -
-  note * = operative_division[OF monoidal_and operative_approximable[OF assms(1)] assms(2)]
-  note this[unfolded iterate_and[OF division_of_finite[OF assms(2)]]]
-  from assms(3)[unfolded this[of f]] guess g ..
+  note * = comm_monoid_set.operative_division[OF comm_monoid_set_and operative_approximable[OF assms(1)] assms(2)]
+  from assms(3) this[unfolded comm_monoid_set_F_and, of f] division_of_finite[OF assms(2)]
+  guess g by auto
   then show thesis
     apply -
     apply (rule that[of g])
@@ -5633,172 +5532,9 @@ lemma integrable_continuous_real:
   shows "f integrable_on {a .. b}"
   by (metis assms box_real(2) integrable_continuous)
 
-
 subsection \<open>Specialization of additivity to one dimension.\<close>
 
-lemma
-  shows real_inner_1_left: "inner 1 x = x"
-  and real_inner_1_right: "inner x 1 = x"
-  by simp_all
-
-lemma content_real_eq_0: "content {a .. b::real} = 0 \<longleftrightarrow> a \<ge> b"
-  by (metis atLeastatMost_empty_iff2 content_empty content_real diff_self eq_iff le_cases le_iff_diff_le_0)
-
-lemma interval_real_split:
-  "{a .. b::real} \<inter> {x. x \<le> c} = {a .. min b c}"
-  "{a .. b} \<inter> {x. c \<le> x} = {max a c .. b}"
-  apply (metis Int_atLeastAtMostL1 atMost_def)
-  apply (metis Int_atLeastAtMostL2 atLeast_def)
-  done
-
-lemma operative_1_lt:
-  assumes "monoidal opp"
-  shows "operative opp f \<longleftrightarrow> ((\<forall>a b. b \<le> a \<longrightarrow> f {a .. b::real} = neutral opp) \<and>
-    (\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a .. c}) (f {c .. b}) = f {a .. b}))"
-  apply (simp add: operative_def content_real_eq_0 del: content_real_if)
-proof safe
-  fix a b c :: real
-  assume as:
-    "\<forall>a b c. f {a..b} = opp (f ({a..b} \<inter> {x. x \<le> c})) (f ({a..b} \<inter> Collect (op \<le> c)))"
-    "a < c"
-    "c < b"
-    from this(2-) have "cbox a b \<inter> {x. x \<le> c} = cbox a c" "cbox a b \<inter> {x. x \<ge> c} = cbox c b"
-      by (auto simp: mem_box)
-    then show "opp (f {a..c}) (f {c..b}) = f {a..b}"
-      unfolding as(1)[rule_format,of a b "c"] by auto
-next
-  fix a b c :: real
-  assume as: "\<forall>a b. b \<le> a \<longrightarrow> f {a..b} = neutral opp"
-    "\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}"
-  show " f {a..b} = opp (f ({a..b} \<inter> {x. x \<le> c})) (f ({a..b} \<inter> Collect (op \<le> c)))"
-  proof (cases "c \<in> {a..b}")
-    case False
-    then have "c < a \<or> c > b" by auto
-    then show ?thesis
-    proof
-      assume "c < a"
-      then have *: "{a..b} \<inter> {x. x \<le> c} = {1..0}" "{a..b} \<inter> {x. c \<le> x} = {a..b}"
-        by auto
-      show ?thesis
-        unfolding *
-        apply (subst as(1)[rule_format,of 0 1])
-        using assms
-        apply auto
-        done
-    next
-      assume "b < c"
-      then have *: "{a..b} \<inter> {x. x \<le> c} = {a..b}" "{a..b} \<inter> {x. c \<le> x} = {1 .. 0}"
-        by auto
-      show ?thesis
-        unfolding *
-        apply (subst as(1)[rule_format,of 0 1])
-        using assms
-        apply auto
-        done
-    qed
-  next
-    case True
-    then have *: "min (b) c = c" "max a c = c"
-      by auto
-    have **: "(1::real) \<in> Basis"
-      by simp
-    have ***: "\<And>P Q. (\<Sum>i\<in>Basis. (if i = 1 then P i else Q i) *\<^sub>R i) = (P 1::real)"
-      by simp
-    show ?thesis
-      unfolding interval_real_split unfolding *
-    proof (cases "c = a \<or> c = b")
-      case False
-      then show "f {a..b} = opp (f {a..c}) (f {c..b})"
-        apply -
-        apply (subst as(2)[rule_format])
-        using True
-        apply auto
-        done
-    next
-      case True
-      then show "f {a..b} = opp (f {a..c}) (f {c..b})"
-      proof
-        assume *: "c = a"
-        then have "f {a .. c} = neutral opp"
-          apply -
-          apply (rule as(1)[rule_format])
-          apply auto
-          done
-        then show ?thesis
-          using assms unfolding * by auto
-      next
-        assume *: "c = b"
-        then have "f {c .. b} = neutral opp"
-          apply -
-          apply (rule as(1)[rule_format])
-          apply auto
-          done
-        then show ?thesis
-          using assms unfolding * by auto
-      qed
-    qed
-  qed
-qed
-
-lemma operative_1_le:
-  assumes "monoidal opp"
-  shows "operative opp f \<longleftrightarrow> ((\<forall>a b. b \<le> a \<longrightarrow> f {a .. b::real} = neutral opp) \<and>
-    (\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> opp (f {a .. c}) (f {c .. b}) = f {a .. b}))"
-  unfolding operative_1_lt[OF assms]
-proof safe
-  fix a b c :: real
-  assume as:
-    "\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}"
-    "a < c"
-    "c < b"
-  show "opp (f {a..c}) (f {c..b}) = f {a..b}"
-    apply (rule as(1)[rule_format])
-    using as(2-)
-    apply auto
-    done
-next
-  fix a b c :: real
-  assume "\<forall>a b. b \<le> a \<longrightarrow> f {a .. b} = neutral opp"
-    and "\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}"
-    and "a \<le> c"
-    and "c \<le> b"
-  note as = this[rule_format]
-  show "opp (f {a..c}) (f {c..b}) = f {a..b}"
-  proof (cases "c = a \<or> c = b")
-    case False
-    then show ?thesis
-      apply -
-      apply (subst as(2))
-      using as(3-)
-      apply auto
-      done
-  next
-    case True
-    then show ?thesis
-    proof
-      assume *: "c = a"
-      then have "f {a .. c} = neutral opp"
-        apply -
-        apply (rule as(1)[rule_format])
-        apply auto
-        done
-      then show ?thesis
-        using assms unfolding * by auto
-    next
-      assume *: "c = b"
-      then have "f {c .. b} = neutral opp"
-        apply -
-        apply (rule as(1)[rule_format])
-        apply auto
-        done
-      then show ?thesis
-        using assms unfolding * by auto
-    qed
-  qed
-qed
-
-
-subsection \<open>Special case of additivity we need for the FCT.\<close>
+subsection \<open>Special case of additivity we need for the FTC.\<close>
 
 lemma additive_tagged_division_1:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
@@ -5809,17 +5545,15 @@ proof -
   let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
   have ***: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
     using assms by auto
-  have *: "operative op + ?f"
-    unfolding operative_1_lt[OF monoidal_monoid] box_eq_empty
+  have *: "add.operative ?f"
+    unfolding add.operative_1_lt box_eq_empty
     by auto
   have **: "cbox a b \<noteq> {}"
     using assms(1) by auto
-  note operative_tagged_division[OF monoidal_monoid * assms(2)[simplified box_real[symmetric]]]
+  note setsum.operative_tagged_division[OF * assms(2)[simplified box_real[symmetric]]]
   note * = this[unfolded if_not_P[OF **] interval_bounds[OF ***],symmetric]
   show ?thesis
     unfolding *
-    apply (subst setsum_iterate[symmetric])
-    defer
     apply (rule setsum.cong)
     unfolding split_paired_all split_conv
     using assms(2)
@@ -6261,8 +5995,8 @@ subsection \<open>Integrability on subintervals.\<close>
 
 lemma operative_integrable:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
-  shows "operative op \<and> (\<lambda>i. f integrable_on i)"
-  unfolding operative_def neutral_and
+  shows "comm_monoid.operative op \<and> True (\<lambda>i. f integrable_on i)"
+  unfolding comm_monoid.operative_def[OF comm_monoid_and]
   apply safe
   apply (subst integrable_on_def)
   unfolding has_integral_null_eq
@@ -6279,8 +6013,8 @@ lemma integrable_subinterval:
   apply (cases "cbox c d = {}")
   defer
   apply (rule partial_division_extend_1[OF assms(2)],assumption)
-  using operative_division_and[OF operative_integrable,symmetric,of _ _ _ f] assms(1)
-  apply auto
+  using comm_monoid_set.operative_division[OF comm_monoid_set_and operative_integrable,symmetric,of _ _ _ f] assms(1)
+  apply (auto simp: comm_monoid_set_F_and)
   done
 
 lemma integrable_subinterval_real:
@@ -6301,7 +6035,7 @@ lemma has_integral_combine:
     and "(f has_integral (j::'a::banach)) {c .. b}"
   shows "(f has_integral (i + j)) {a .. b}"
 proof -
-  note operative_integral[of f, unfolded operative_1_le[OF monoidal_lifted[OF monoidal_monoid]]]
+  note operative_integral[of f, unfolded comm_monoid.operative_1_le[OF add.comm_monoid_lift_option]]
   note conjunctD2[OF this,rule_format]
   note * = this(2)[OF conjI[OF assms(1-2)],unfolded if_P[OF assms(3)]]
   then have "f integrable_on cbox a b"
@@ -6321,7 +6055,6 @@ proof -
     apply (subst(asm) if_P)
     defer
     apply (subst(asm) if_P)
-    unfolding lifted.simps
     using assms(3-)
     apply (auto simp add: integrable_on_def integral_unique)
     done
@@ -6369,9 +6102,9 @@ proof -
     by auto
   note p=this(1-2)
   note division_of_tagged_division[OF this(1)]
-  note * = operative_division_and[OF operative_integrable,OF this,symmetric,of f]
+  note * = comm_monoid_set.operative_division[OF comm_monoid_set_and operative_integrable, OF this, symmetric, of f]
   show ?thesis
-    unfolding *
+    unfolding * comm_monoid_set_F_and
     apply safe
     unfolding snd_conv
   proof -
@@ -6387,7 +6120,7 @@ proof -
 qed
 
 
-subsection \<open>Second FCT or existence of antiderivative.\<close>
+subsection \<open>Second FTC or existence of antiderivative.\<close>
 
 lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
   unfolding integrable_on_def
@@ -8026,8 +7759,7 @@ proof -
   }
   assume "cbox c d \<noteq> {}"
   from partial_division_extend_1[OF assms(2) this] guess p . note p=this
-  note mon = monoidal_lifted[OF monoidal_monoid]
-  note operat = operative_division[OF this operative_integral p(1), symmetric]
+  note operat = comm_monoid_set.operative_division[OF add.comm_monoid_set_lift_option operative_integral p(1), symmetric]
   let ?P = "(if g integrable_on cbox a b then Some (integral (cbox a b) g) else None) = Some i"
   {
     presume "?P"
@@ -8043,12 +7775,9 @@ proof -
       unfolding g_def
       by auto
   }
-
-  note iterate_eq_neutral[OF mon,unfolded neutral_lifted[OF monoidal_monoid]]
-  note * = this[unfolded neutral_add]
-  have iterate:"iterate (lifted op +) (p - {cbox c d})
-    (\<lambda>i. if g integrable_on i then Some (integral i g) else None) = Some 0"
-  proof (rule *)
+  let ?F = "comm_monoid_set.F (lift_option op +) (Some 0)"
+  have iterate:"?F (\<lambda>i. if g integrable_on i then Some (integral i g) else None) (p - {cbox c d}) = Some 0"
+  proof (intro comm_monoid_set.neutral[OF add.comm_monoid_set_lift_option] ballI)
     fix x
     assume x: "x \<in> p - {cbox c d}"
     then have "x \<in> p"
@@ -8086,15 +7815,10 @@ proof -
     done
   ultimately show ?P
     unfolding operat
-    apply (subst *)
-    apply (subst iterate_insert)
-    apply rule+
-    unfolding iterate
-    defer
-    apply (subst if_not_P)
-    defer
     using p
-    apply auto
+    apply (subst *)
+    apply (subst comm_monoid_set.insert[OF add.comm_monoid_set_lift_option])
+    apply (simp_all add: division_of_finite iterate)
     done
 qed
 
@@ -9193,7 +8917,7 @@ proof -
     apply assumption
     apply (rule trans[of _ "setsum (\<lambda>(x,k). integral k f) p"])
     apply (subst eq_commute)
-    apply (rule setsum_over_tagged_division_lemma[OF assms(1)])
+    apply (rule setsum.over_tagged_division_lemma[OF assms(1)])
     apply (rule integral_null)
     apply assumption
     apply (rule setsum.cong)
@@ -10652,7 +10376,7 @@ proof -
           done
       qed
       have sum_p': "(\<Sum>(x, k)\<in>p'. norm (integral k f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
-        apply (subst setsum_over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
+        apply (subst setsum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
         unfolding norm_eq_zero
         apply (rule integral_null)
         apply assumption
@@ -10823,7 +10547,7 @@ proof -
         let ?S = "{(x, i \<inter> l) |x i l. (x, l) \<in> p \<and> i \<in> d}"
         have Sigma_alt: "\<And>s t. s \<times> t = {(i, j) |i j. i \<in> s \<and> j \<in> t}"
           by auto
-        have *: "?S = (\<lambda>(xl,i). (fst xl, snd xl \<inter> i)) ` (p \<times> d)" (*{(xl,i)|xl i. xl\<in>p \<and> i\<in>d}"**)
+        have *: "?S = (\<lambda>(xl,i). (fst xl, snd xl \<inter> i)) ` (p \<times> d)"
           apply safe
           unfolding image_iff
           apply (rule_tac x="((x,l),i)" in bexI)
@@ -11101,7 +10825,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
             done
           show "(\<Sum>(x, k)\<in>p. norm (integral k f)) \<le> ?S"
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
-            apply (subst setsum_over_tagged_division_lemma[OF p(1)])
+            apply (subst setsum.over_tagged_division_lemma[OF p(1)])
             apply (simp add: integral_null)
             apply (intro cSUP_upper2[OF D(2), of "snd ` p"])
             apply (auto simp: tagged_partial_division_of_def)
@@ -11569,7 +11293,7 @@ proof -
   then obtain c where c: "\<And>C. C \<in> CC \<Longrightarrow> c C \<in> K \<and> C = Y (c C)"
     by (force intro!: choice)
   with * CC show ?thesis
-    by (force intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"])
+    by (force intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"]) (* SLOW *)
 qed
 
 lemma continuous_on_prod_compactE:
@@ -12484,13 +12208,13 @@ lemma integral_split:
 lemma integral_swap_operative:
   fixes f :: "('a::euclidean_space * 'b::euclidean_space) \<Rightarrow> 'c::banach"
   assumes f: "continuous_on s f" and e: "0 < e"
-    shows "operative(op \<and>)
+    shows "comm_monoid.operative (op \<and>) True
            (\<lambda>k. \<forall>a b c d.
                 cbox (a,c) (b,d) \<subseteq> k \<and> cbox (a,c) (b,d) \<subseteq> s
                 \<longrightarrow> norm(integral (cbox (a,c) (b,d)) f -
                          integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f((x,y)))))
                     \<le> e * content (cbox (a,c) (b,d)))"
-proof (auto simp: operative_def)
+proof (auto simp: comm_monoid.operative_def[OF comm_monoid_and])
   fix a::'a and c::'b and b::'a and d::'b and u::'a and v::'a and w::'b and z::'b
   assume c0: "content (cbox (a, c) (b, d)) = 0"
      and cb1: "cbox (u, w) (v, z) \<subseteq> cbox (a, c) (b, d)"
@@ -12604,7 +12328,7 @@ next
       by (rule integrable_continuous [OF assms])
     { fix p
       assume p: "p division_of cbox (a,c) (b,d)"
-      note opd1 = operative_division_and [OF integral_swap_operative [OF assms e'], THEN iffD1,
+      note opd1 = comm_monoid_set.operative_division [OF comm_monoid_set_and integral_swap_operative [OF assms e'], THEN iffD1,
                        THEN spec, THEN spec, THEN spec, THEN spec, of p "(a,c)" "(b,d)" a c b d]
       have "(\<And>t u v w z.
               \<lbrakk>t \<in> p; cbox (u,w) (v,z) \<subseteq> t;  cbox (u,w) (v,z) \<subseteq> cbox (a,c) (b,d)\<rbrakk> \<Longrightarrow>
@@ -12612,7 +12336,7 @@ next
               \<le> e * content (cbox (u,w) (v,z)) / content?CBOX)
             \<Longrightarrow>
             norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x,y)))) \<le> e"
-        using opd1 [OF p] False  by simp
+        using opd1 [OF p] False  by (simp add: comm_monoid_set_F_and)
     } note op_acbd = this
     { fix k::real and p and u::'a and v w and z::'b and t1 t2 l
       assume k: "0 < k"
