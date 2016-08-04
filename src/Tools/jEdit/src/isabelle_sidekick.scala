@@ -138,7 +138,7 @@ class Isabelle_Sidekick_Structure(
     node_name(buffer) match {
       case Some(name) =>
         make_tree(data.root, 0,
-          Document_Structure.parse_document(syntax, name, JEdit_Lib.buffer_text(buffer)))
+          Document_Structure.parse_sections(syntax, name, JEdit_Lib.buffer_text(buffer)))
         true
       case None => false
     }

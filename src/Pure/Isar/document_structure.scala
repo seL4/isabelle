@@ -13,13 +13,16 @@ import scala.annotation.tailrec
 
 object Document_Structure
 {
-  /** section headings etc. **/
+  /* general structure */
 
   sealed abstract class Document { def length: Int }
   case class Block(name: String, text: String, body: List[Document]) extends Document
   { val length: Int = (0 /: body)(_ + _.length) }
   case class Atom(command: Command) extends Document
   { def length: Int = command.length }
+
+
+  /* section headings etc. */
 
   def heading_level(keywords: Keyword.Keywords, command: Command): Option[Int] =
   {
@@ -39,7 +42,7 @@ object Document_Structure
     }
   }
 
-  def parse_document(
+  def parse_sections(
     syntax: Outer_Syntax,
     node_name: Document.Node.Name,
     text: CharSequence): List[Document] =
