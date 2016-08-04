@@ -85,6 +85,9 @@ dependencies of the above files are only observed for batch build.
 are treated as delimiters for fold structure; 'begin' and 'end'
 structure of theory specifications is treated as well.
 
+* Sidekick parser "isabelle-context" shows nesting of context blocks
+according to 'begin' and 'end' structure.
+
 * Syntactic indentation according to Isabelle outer syntax. Action
 "indent-lines" (shortcut C+i) indents the current line according to
 command keywords and some command substructure. Action
