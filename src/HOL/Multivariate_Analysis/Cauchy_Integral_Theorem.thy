@@ -2,8 +2,8 @@ section \<open>Complex path integrals and Cauchy's integral theorem\<close>
 
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
 
-theory Cauchy_Integral_Thm
-imports Complex_Transcendental Weierstrass Ordered_Euclidean_Space
+theory Cauchy_Integral_Theorem
+imports Complex_Transcendental Weierstrass_Theorems Ordered_Euclidean_Space
 begin
 
 subsection\<open>Homeomorphisms of arc images\<close>
@@ -1042,7 +1042,7 @@ proof -
                     integral {0..a} (\<lambda>x. f (g x) * vector_derivative g (at x))"
     apply (rule has_integral_unique)
     apply (subst add.commute)
-    apply (subst Integration.integral_combine)
+    apply (subst integral_combine)
     using assms * integral_unique by auto
   { fix x
     have "0 \<le> x \<Longrightarrow> x + a < 1 \<Longrightarrow> x \<notin> (\<lambda>x. x - a) ` s \<Longrightarrow>
@@ -1708,8 +1708,8 @@ next
       apply -
       apply (drule has_integral_affinity [of _ _ 0 "1::real" "inverse k" "0", simplified])
       apply (simp_all add: divide_simps mult.commute [of _ "k"] image_affinity_atLeastAtMost ** c)
-      apply (drule Integration.has_integral_cmul [where c = "inverse k"])
-      apply (simp add: Integration.has_integral_cmul)
+      apply (drule has_integral_cmul [where c = "inverse k"])
+      apply (simp add: has_integral_cmul)
       done
   } note fi = this
   { assume *: "((\<lambda>x. f ((1 - x) *\<^sub>R c + x *\<^sub>R b) * (b - c)) has_integral j) {0..1}"
@@ -1724,8 +1724,8 @@ next
       apply -
       apply (drule has_integral_affinity [of _ _ 0 "1::real" "inverse(1 - k)" "-(k/(1 - k))", simplified])
       apply (simp_all add: divide_simps mult.commute [of _ "1-k"] image_affinity_atLeastAtMost ** bc)
-      apply (drule Integration.has_integral_cmul [where k = "(1 - k) *\<^sub>R j" and c = "inverse (1 - k)"])
-      apply (simp add: Integration.has_integral_cmul)
+      apply (drule has_integral_cmul [where k = "(1 - k) *\<^sub>R j" and c = "inverse (1 - k)"])
+      apply (simp add: has_integral_cmul)
       done
   } note fj = this
   show ?thesis
@@ -3932,14 +3932,14 @@ proof -
     by (simp add: Arg less_eq_real_def)
   also have "... \<le> Im (integral {0..1} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))"
     using 1
-    apply (simp add: winding_number_valid_path [OF \<gamma> z] Cauchy_Integral_Thm.contour_integral_integral)
+    apply (simp add: winding_number_valid_path [OF \<gamma> z] contour_integral_integral)
     apply (simp add: Complex.Re_divide field_simps power2_eq_square)
     done
   finally have "Arg r \<le> Im (integral {0..1} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))" .
   then have "\<exists>t. t \<in> {0..1} \<and> Im(integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg r"
     apply (simp add:)
-    apply (rule Topological_Spaces.IVT')
-    apply (simp_all add: Complex_Transcendental.Arg_ge_0)
+    apply (rule IVT')
+    apply (simp_all add: Arg_ge_0)
     apply (intro continuous_intros indefinite_integral_continuous winding_number_exp_integral [OF gpd]; simp)
     done
   then obtain t where t:     "t \<in> {0..1}"
@@ -3991,7 +3991,7 @@ proof -
   }
   then show ?thesis
     using assms
-    by (simp add: Groups.abs_if_class.abs_if winding_number_pos_meets split: if_split_asm)
+    by (simp add: abs_if winding_number_pos_meets split: if_split_asm)
 qed
 
 lemma winding_number_less_1:
@@ -5693,7 +5693,7 @@ proof -
       have "((\<lambda>u. f u / (u - w)\<^sup>2 / (2 * of_real pi * \<i>)) has_contour_integral
                 contour_integral (circlepath z r) (\<lambda>u. f u / (u - w)\<^sup>2) / (2 * of_real pi * \<i>))
                 (circlepath z r)"
-        by (rule Cauchy_Integral_Thm.has_contour_integral_div [OF has_contour_integral_integral [OF intf]])
+        by (rule has_contour_integral_div [OF has_contour_integral_integral [OF intf]])
       then have "((\<lambda>u. f u / (2 * of_real pi * \<i> * (u - w)\<^sup>2)) has_contour_integral
                 contour_integral (circlepath z r) (\<lambda>u. f u / (u - w)\<^sup>2) / (2 * of_real pi * \<i>))
                 (circlepath z r)"
@@ -6491,7 +6491,7 @@ proof -
       done
     have "((\<lambda>n. contour_integral (circlepath z r) (\<lambda>x. f n x / (x - w)\<^sup>2))
              \<longlongrightarrow> contour_integral (circlepath z r) ((\<lambda>x. g x / (x - w)\<^sup>2))) F"
-      by (rule Cauchy_Integral_Thm.contour_integral_uniform_limit_circlepath [OF 1 2 F \<open>0 < r\<close>])
+      by (rule contour_integral_uniform_limit_circlepath [OF 1 2 F \<open>0 < r\<close>])
     then have tendsto_0: "((\<lambda>n. 1 / (2 * of_real pi * \<i>) * (?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2))) \<longlongrightarrow> 0) F"
       using Lim_null by (force intro!: tendsto_mult_right_zero)
     have "((\<lambda>n. f' n w - g' w) \<longlongrightarrow> 0) F"

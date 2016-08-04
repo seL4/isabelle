@@ -5,15 +5,15 @@
 section \<open>Harmonic Numbers\<close>
 
 theory Harmonic_Numbers
-imports 
+imports
   Complex_Transcendental
-  Summation
+  Summation_Tests
   Integral_Test
 begin
 
 text \<open>
   The definition of the Harmonic Numbers and the Euler-Mascheroni constant.
-  Also provides a reasonably accurate approximation of @{term "ln 2 :: real"} 
+  Also provides a reasonably accurate approximation of @{term "ln 2 :: real"}
   and the Euler-Mascheroni constant.
 \<close>
 
@@ -51,11 +51,11 @@ lemma harm_pos: "n > 0 \<Longrightarrow> harm n > (0 :: 'a :: {real_normed_field
 
 lemma of_real_harm: "of_real (harm n) = harm n"
   unfolding harm_def by simp
-  
+
 lemma norm_harm: "norm (harm n) = harm n"
   by (subst of_real_harm [symmetric]) (simp add: harm_nonneg)
 
-lemma harm_expand: 
+lemma harm_expand:
   "harm 0 = 0"
   "harm (Suc 0) = 1"
   "harm (numeral n) = harm (pred_numeral n) + inverse (numeral n)"
@@ -134,7 +134,7 @@ proof -
            has_field_derivative_iff_has_vector_derivative[symmetric])
   hence "integral {0..of_nat n} (\<lambda>x. inverse (x + 1) :: real) = ln (of_nat (Suc n))"
     by (auto dest!: integral_unique)
-  ultimately show ?thesis 
+  ultimately show ?thesis
     by (simp add: euler_mascheroni.sum_integral_diff_series_def atLeast0AtMost)
 qed
 
@@ -151,7 +151,7 @@ lemma euler_mascheroni_sequence_nonneg:
 
 lemma euler_mascheroni_convergent: "convergent (\<lambda>n. harm n - ln (of_nat n) :: real)"
 proof -
-  have A: "(\<lambda>n. harm (Suc n) - ln (of_nat (Suc n))) = 
+  have A: "(\<lambda>n. harm (Suc n) - ln (of_nat (Suc n))) =
              euler_mascheroni.sum_integral_diff_series"
     by (subst euler_mascheroni_sum_integral_diff_series [symmetric]) (rule refl)
   have "convergent (\<lambda>n. harm (Suc n) - ln (of_nat (Suc n) :: real))"
@@ -159,13 +159,13 @@ proof -
   thus ?thesis by (subst (asm) convergent_Suc_iff)
 qed
 
-lemma euler_mascheroni_LIMSEQ: 
+lemma euler_mascheroni_LIMSEQ:
   "(\<lambda>n. harm n - ln (of_nat n) :: real) \<longlonglongrightarrow> euler_mascheroni"
   unfolding euler_mascheroni_def
   by (simp add: convergent_LIMSEQ_iff [symmetric] euler_mascheroni_convergent)
 
-lemma euler_mascheroni_LIMSEQ_of_real: 
-  "(\<lambda>n. of_real (harm n - ln (of_nat n))) \<longlonglongrightarrow> 
+lemma euler_mascheroni_LIMSEQ_of_real:
+  "(\<lambda>n. of_real (harm n - ln (of_nat n))) \<longlonglongrightarrow>
       (euler_mascheroni :: 'a :: {real_normed_algebra_1, topological_space})"
 proof -
   have "(\<lambda>n. of_real (harm n - ln (of_nat n))) \<longlonglongrightarrow> (of_real (euler_mascheroni) :: 'a)"
@@ -175,7 +175,7 @@ qed
 
 lemma euler_mascheroni_sum:
   "(\<lambda>n. inverse (of_nat (n+1)) + ln (of_nat (n+1)) - ln (of_nat (n+2)) :: real)
-       sums euler_mascheroni" 
+       sums euler_mascheroni"
  using sums_add[OF telescope_sums[OF LIMSEQ_Suc[OF euler_mascheroni_LIMSEQ]]
                    telescope_sums'[OF LIMSEQ_inverse_real_of_nat]]
   by (simp_all add: harm_def algebra_simps)
@@ -198,21 +198,21 @@ proof -
       by (intro setsum.mono_neutral_right) auto
     also have "\<dots> = (\<Sum>k|k<2*n \<and> odd k. 2 / (real_of_nat (Suc k)))"
       by (intro setsum.cong) auto
-    also have "(\<Sum>k|k<2*n \<and> odd k. 2 / (real_of_nat (Suc k))) = harm n" 
+    also have "(\<Sum>k|k<2*n \<and> odd k. 2 / (real_of_nat (Suc k))) = harm n"
       unfolding harm_altdef
       by (intro setsum.reindex_cong[of "\<lambda>n. 2*n+1"]) (auto simp: inj_on_def field_simps elim!: oddE)
     also have "harm (2*n) - harm n = ?em (2*n) - ?em n + ln 2" using n
       by (simp_all add: algebra_simps ln_mult)
     finally show "?em (2*n) - ?em n + ln 2 = (\<Sum>k<2*n. (-1)^k / real_of_nat (Suc k))" ..
   qed
-  moreover have "(\<lambda>n. ?em (2*n) - ?em n + ln (2::real)) 
+  moreover have "(\<lambda>n. ?em (2*n) - ?em n + ln (2::real))
                      \<longlonglongrightarrow> euler_mascheroni - euler_mascheroni + ln 2"
     by (intro tendsto_intros euler_mascheroni_LIMSEQ filterlim_compose[OF euler_mascheroni_LIMSEQ]
               filterlim_subseq) (auto simp: subseq_def)
   hence "(\<lambda>n. ?em (2*n) - ?em n + ln (2::real)) \<longlonglongrightarrow> ln 2" by simp
   ultimately have "(\<lambda>n. (\<Sum>k<2*n. (-1)^k / real_of_nat (Suc k))) \<longlonglongrightarrow> ln 2"
     by (rule Lim_transform_eventually)
-  
+
   moreover have "summable (\<lambda>k. (-1)^k * inverse (real_of_nat (Suc k)))"
     using LIMSEQ_inverse_real_of_nat
     by (intro summable_Leibniz(1) decseq_imp_monoseq decseq_SucI) simp_all
@@ -225,12 +225,12 @@ proof -
   with A show ?thesis by (simp add: sums_def)
 qed
 
-lemma alternating_harmonic_series_sums': 
+lemma alternating_harmonic_series_sums':
   "(\<lambda>k. inverse (real_of_nat (2*k+1)) - inverse (real_of_nat (2*k+2))) sums ln 2"
 unfolding sums_def
 proof (rule Lim_transform_eventually)
   show "(\<lambda>n. \<Sum>k<2*n. (-1)^k / (real_of_nat (Suc k))) \<longlonglongrightarrow> ln 2"
-    using alternating_harmonic_series_sums unfolding sums_def 
+    using alternating_harmonic_series_sums unfolding sums_def
     by (rule filterlim_compose) (rule mult_nat_left_at_top, simp)
   show "eventually (\<lambda>n. (\<Sum>k<2*n. (-1)^k / (real_of_nat (Suc k))) =
             (\<Sum>k<n. inverse (real_of_nat (2*k+1)) - inverse (real_of_nat (2*k+2)))) sequentially"
@@ -240,7 +240,7 @@ proof (rule Lim_transform_eventually)
               (\<Sum>k<n. inverse (real_of_nat (2*k+1)) - inverse (real_of_nat (2*k+2)))"
       by (induction n) (simp_all add: inverse_eq_divide)
   qed
-qed               
+qed
 
 
 subsection \<open>Bounds on the Euler--Mascheroni constant\<close>
@@ -254,16 +254,16 @@ proof -
   have f'_nonpos: "f' \<le> 0" using assms by (simp add: f'_def divide_simps)
   let ?f = "\<lambda>t. (t - x) * f' + inverse x"
   let ?F = "\<lambda>t. (t - x)^2 * f' / 2 + t * inverse x"
-  have diff: "\<forall>t\<in>{x..x+a}. (?F has_vector_derivative ?f t) 
+  have diff: "\<forall>t\<in>{x..x+a}. (?F has_vector_derivative ?f t)
                                (at t within {x..x+a})" using assms
-    by (auto intro!: derivative_eq_intros 
+    by (auto intro!: derivative_eq_intros
              simp: has_field_derivative_iff_has_vector_derivative[symmetric])
   from assms have "(?f has_integral (?F (x+a) - ?F x)) {x..x+a}"
     by (intro fundamental_theorem_of_calculus[OF _ diff])
        (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_simps
              intro!: derivative_eq_intros)
   also have "?F (x+a) - ?F x = (a*2 + f'*a\<^sup>2*x) / (2*x)" using assms by (simp add: field_simps)
-  also have "f'*a^2 = - (a^2) / (x*(x + a))" using assms 
+  also have "f'*a^2 = - (a^2) / (x*(x + a))" using assms
     by (simp add: divide_simps f'_def power2_eq_square)
   also have "(a*2 + - a\<^sup>2/(x*(x+a))*x) / (2*x) = ?A" using assms
     by (simp add: divide_simps power2_eq_square) (simp add: algebra_simps)
@@ -281,7 +281,7 @@ proof -
     have "inverse t = inverse ((1 - (t - x) / a) *\<^sub>R x + ((t - x) / a) *\<^sub>R (x + a))" (is "_ = ?A")
       using assms t' by (simp add: field_simps)
     also from assms have "convex_on {x..x+a} inverse" by (intro convex_on_inverse) auto
-    from convex_onD_Icc[OF this _ t] assms 
+    from convex_onD_Icc[OF this _ t] assms
       have "?A \<le> (1 - (t - x) / a) * inverse x + (t - x) / a * inverse (x + a)" by simp
     also have "\<dots> = (t - x) * f' + inverse x" using assms
       by (simp add: f'_def divide_simps) (simp add: f'_def field_simps)
@@ -305,7 +305,7 @@ proof -
     by (intro fundamental_theorem_of_calculus)
        (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] divide_simps
              intro!: derivative_eq_intros)
-  also from m have "?F y - ?F x = ((y - m)^2 - (x - m)^2) * f' / 2 + (y - x) / m" 
+  also from m have "?F y - ?F x = ((y - m)^2 - (x - m)^2) * f' / 2 + (y - x) / m"
     by (simp add: field_simps)
   also have "((y - m)^2 - (x - m)^2) = 0" by (simp add: m_def power2_eq_square field_simps)
   also have "0 * f' / 2 + (y - x) / m = ?A" by (simp add: m_def)
@@ -332,7 +332,7 @@ proof -
 qed
 
 
-lemma euler_mascheroni_lower: 
+lemma euler_mascheroni_lower:
         "euler_mascheroni \<ge> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 2))"
   and euler_mascheroni_upper:
         "euler_mascheroni \<le> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 1))"
@@ -370,11 +370,11 @@ proof -
     also have "\<dots> = D k" unfolding D_def inv_def ..
     finally show "D (k' + Suc n) \<ge> (inv (k' + Suc n + 1) - inv (k' + Suc n + 2)) / 2"
       by (simp add: k_def)
-    from sums_summable[OF sums] 
+    from sums_summable[OF sums]
       show "summable (\<lambda>k. (inv (k + Suc n + 1) - inv (k + Suc n + 2))/2)" by simp
   qed
   also from sums have "\<dots> = -inv (n+2) / 2" by (simp add: sums_iff)
-  finally have "euler_mascheroni \<ge> (\<Sum>k\<le>n. D k) + 1 / (of_nat (2 * (n+2)))" 
+  finally have "euler_mascheroni \<ge> (\<Sum>k\<le>n. D k) + 1 / (of_nat (2 * (n+2)))"
     by (simp add: inv_def field_simps)
   also have "(\<Sum>k\<le>n. D k) = harm (Suc n) - (\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1)))"
     unfolding harm_altdef D_def by (subst lessThan_Suc_atMost) (simp add:  setsum.distrib setsum_subtractf)
@@ -382,7 +382,7 @@ proof -
     by (subst atLeast0AtMost [symmetric], subst setsum_Suc_diff) simp_all
   finally show "euler_mascheroni \<ge> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 2))"
     by simp
-  
+
   note sum
   also have "-(\<Sum>k. D (k + Suc n)) \<ge> -(\<Sum>k. (inv (Suc (k + n)) - inv (Suc (Suc k + n)))/2)"
   proof (intro le_imp_neg_le suminf_le allI summable_ignore_initial_segment[OF summable])
@@ -393,22 +393,22 @@ proof -
     from ln_inverse_approx_ge[of "of_nat k + 1" "of_nat k + 2"]
       have "2 / (2 * real_of_nat k + 3) \<le> ln (of_nat (k+2)) - ln (real_of_nat (k+1))"
       by (simp add: add_ac)
-    hence "D k \<le> 1 / real_of_nat (k+1) - 2 / (2 * real_of_nat k + 3)" 
+    hence "D k \<le> 1 / real_of_nat (k+1) - 2 / (2 * real_of_nat k + 3)"
       by (simp add: D_def inverse_eq_divide inv_def)
     also have "\<dots> = inv ((k+1)*(2*k+3))" unfolding inv_def by (simp add: field_simps)
     also have "\<dots> \<le> inv (2*k*(k+1))" unfolding inv_def using k
-      by (intro le_imp_inverse_le) 
+      by (intro le_imp_inverse_le)
          (simp add: algebra_simps, simp del: of_nat_add)
     also have "\<dots> = (inv k - inv (k+1))/2" unfolding inv_def using k
       by (simp add: divide_simps del: of_nat_mult) (simp add: algebra_simps)
     finally show "D k \<le> (inv (Suc (k' + n)) - inv (Suc (Suc k' + n)))/2" unfolding k_def by simp
   next
-    from sums_summable[OF sums'] 
+    from sums_summable[OF sums']
       show "summable (\<lambda>k. (inv (Suc (k + n)) - inv (Suc (Suc k + n)))/2)" by simp
   qed
   also from sums' have "(\<Sum>k. (inv (Suc (k + n)) - inv (Suc (Suc k + n)))/2) = inv (n+1)/2"
     by (simp add: sums_iff)
-  finally have "euler_mascheroni \<le> (\<Sum>k\<le>n. D k) + 1 / of_nat (2 * (n+1))" 
+  finally have "euler_mascheroni \<le> (\<Sum>k\<le>n. D k) + 1 / of_nat (2 * (n+1))"
     by (simp add: inv_def field_simps)
   also have "(\<Sum>k\<le>n. D k) = harm (Suc n) - (\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1)))"
     unfolding harm_altdef D_def by (subst lessThan_Suc_atMost) (simp add:  setsum.distrib setsum_subtractf)
@@ -428,7 +428,7 @@ private lemma ln_approx_aux:
   fixes n :: nat and x :: real
   defines "y \<equiv> (x-1)/(x+1)"
   assumes x: "x > 0" "x \<noteq> 1"
-  shows "inverse (2*y^(2*n+1)) * (ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))) \<in> 
+  shows "inverse (2*y^(2*n+1)) * (ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))) \<in>
             {0..(1 / (1 - y^2) / of_nat (2*n+1))}"
 proof -
   from x have norm_y: "norm y < 1" unfolding y_def by simp
@@ -468,21 +468,21 @@ lemma
   and     ln_approx_abs:    "abs (ln x - (approx + d)) \<le> d"
 proof -
   define c where "c = 2*y^(2*n+1)"
-  from x have c_pos: "c > 0" unfolding c_def y_def 
+  from x have c_pos: "c > 0" unfolding c_def y_def
     by (intro mult_pos_pos zero_less_power) simp_all
   have A: "inverse c * (ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))) \<in>
               {0.. (1 / (1 - y^2) / of_nat (2*n+1))}" using assms unfolding y_def c_def
     by (intro ln_approx_aux) simp_all
   hence "inverse c * (ln x - (\<Sum>k<n. 2*y^(2*k+1)/of_nat (2*k+1))) \<le> (1 / (1-y^2) / of_nat (2*n+1))"
     by simp
-  hence "(ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))) / c \<le> (1 / (1 - y^2) / of_nat (2*n+1))" 
+  hence "(ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))) / c \<le> (1 / (1 - y^2) / of_nat (2*n+1))"
     by (auto simp add: divide_simps)
   with c_pos have "ln x \<le> c / (1 - y^2) / of_nat (2*n+1) + approx"
     by (subst (asm) pos_divide_le_eq) (simp_all add: mult_ac approx_def)
   moreover {
     from A c_pos have "0 \<le> c * (inverse c * (ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))))"
       by (intro mult_nonneg_nonneg[of c]) simp_all
-    also have "\<dots> = (c * inverse c) * (ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1)))"  
+    also have "\<dots> = (c * inverse c) * (ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1)))"
       by (simp add: mult_ac)
     also from c_pos have "c * inverse c = 1" by simp
     finally have "ln x \<ge> approx" by (simp add: approx_def)
@@ -501,7 +501,7 @@ lemma euler_mascheroni_bounds:
 
 lemma euler_mascheroni_bounds':
   fixes n :: nat assumes "n \<ge> 1" "ln (real_of_nat (Suc n)) \<in> {l<..<u}"
-  shows "euler_mascheroni \<in> 
+  shows "euler_mascheroni \<in>
            {harm n - u + inverse (of_nat (2*(n+1)))<..<harm n - l + inverse (of_nat (2*n))}"
   using euler_mascheroni_bounds[OF assms(1)] assms(2) by auto
 
@@ -510,13 +510,13 @@ text \<open>
   Approximation of @{term "ln 2"}. The lower bound is accurate to about 0.03; the upper
   bound is accurate to about 0.0015.
 \<close>
-lemma ln2_ge_two_thirds: "2/3 \<le> ln (2::real)" 
+lemma ln2_ge_two_thirds: "2/3 \<le> ln (2::real)"
   and ln2_le_25_over_36: "ln (2::real) \<le> 25/36"
   using ln_approx_bounds[of 2 1, simplified, simplified eval_nat_numeral, simplified] by simp_all
 
 
 text \<open>
-  Approximation of the Euler--Mascheroni constant. The lower bound is accurate to about 0.0015; 
+  Approximation of the Euler--Mascheroni constant. The lower bound is accurate to about 0.0015;
   the upper bound is accurate to about 0.015.
 \<close>
 lemma euler_mascheroni_gt_19_over_33: "(euler_mascheroni :: real) > 19/33" (is ?th1)

@@ -5,7 +5,7 @@
 section \<open>Continuous paths and path-connected sets\<close>
 
 theory Path_Connected
-imports Extension
+imports Continuous_Extension
 begin
 
 subsection \<open>Paths and Arcs\<close>
@@ -558,9 +558,9 @@ lemma reversepath_joinpaths:
 
 subsection\<open>Some reversed and "if and only if" versions of joining theorems\<close>
 
-lemma path_join_path_ends: 
+lemma path_join_path_ends:
   fixes g1 :: "real \<Rightarrow> 'a::metric_space"
-  assumes "path(g1 +++ g2)" "path g2" 
+  assumes "path(g1 +++ g2)" "path g2"
     shows "pathfinish g1 = pathstart g2"
 proof (rule ccontr)
   define e where "e = dist (g1 1) (g2 0)"
@@ -568,14 +568,14 @@ proof (rule ccontr)
   then have "0 < dist (pathfinish g1) (pathstart g2)"
     by auto
   then have "e > 0"
-    by (metis e_def pathfinish_def pathstart_def) 
-  then obtain d1 where "d1 > 0" 
+    by (metis e_def pathfinish_def pathstart_def)
+  then obtain d1 where "d1 > 0"
        and d1: "\<And>x'. \<lbrakk>x'\<in>{0..1}; norm x' < d1\<rbrakk> \<Longrightarrow> dist (g2 x') (g2 0) < e/2"
     using assms(2) unfolding path_def continuous_on_iff
     apply (drule_tac x=0 in bspec, simp)
     by (metis half_gt_zero_iff norm_conv_dist)
-  obtain d2 where "d2 > 0" 
-       and d2: "\<And>x'. \<lbrakk>x'\<in>{0..1}; dist x' (1/2) < d2\<rbrakk> 
+  obtain d2 where "d2 > 0"
+       and d2: "\<And>x'. \<lbrakk>x'\<in>{0..1}; dist x' (1/2) < d2\<rbrakk>
                       \<Longrightarrow> dist ((g1 +++ g2) x') (g1 1) < e/2"
     using assms(1) \<open>e > 0\<close> unfolding path_def continuous_on_iff
     apply (drule_tac x="1/2" in bspec, simp)
@@ -597,25 +597,25 @@ proof (rule ccontr)
     using d1 [OF int01_1 dist1] d2 [OF int01_2 dist2] by (simp_all add: joinpaths_def)
   then have "dist (g1 1) (g2 0) < e/2 + e/2"
     using dist_triangle_half_r e_def by blast
-  then show False 
+  then show False
     by (simp add: e_def [symmetric])
 qed
 
-lemma path_join_eq [simp]:  
+lemma path_join_eq [simp]:
   fixes g1 :: "real \<Rightarrow> 'a::metric_space"
   assumes "path g1" "path g2"
     shows "path(g1 +++ g2) \<longleftrightarrow> pathfinish g1 = pathstart g2"
   using assms by (metis path_join_path_ends path_join_imp)
 
-lemma simple_path_joinE: 
+lemma simple_path_joinE:
   assumes "simple_path(g1 +++ g2)" and "pathfinish g1 = pathstart g2"
-  obtains "arc g1" "arc g2" 
+  obtains "arc g1" "arc g2"
           "path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
 proof -
-  have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk> 
+  have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk>
                \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
     using assms by (simp add: simple_path_def)
-  have "path g1" 
+  have "path g1"
     using assms path_join simple_path_imp_path by blast
   moreover have "inj_on g1 {0..1}"
   proof (clarsimp simp: inj_on_def)
@@ -627,7 +627,7 @@ proof -
   ultimately have "arc g1"
     using assms  by (simp add: arc_def)
   have [simp]: "g2 0 = g1 1"
-    using assms by (metis pathfinish_def pathstart_def) 
+    using assms by (metis pathfinish_def pathstart_def)
   have "path g2"
     using assms path_join simple_path_imp_path by blast
   moreover have "inj_on g2 {0..1}"
@@ -640,7 +640,7 @@ proof -
   qed
   ultimately have "arc g2"
     using assms  by (simp add: arc_def)
-  have "g2 y = g1 0 \<or> g2 y = g1 1" 
+  have "g2 y = g1 0 \<or> g2 y = g1 1"
        if "g1 x = g2 y" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1" for x y
       using * [of "x / 2" "(y + 1) / 2"] that
       by (auto simp: joinpaths_def split_ifs divide_simps)
@@ -650,20 +650,20 @@ proof -
 qed
 
 lemma simple_path_join_loop_eq:
-  assumes "pathfinish g2 = pathstart g1" "pathfinish g1 = pathstart g2" 
+  assumes "pathfinish g2 = pathstart g1" "pathfinish g1 = pathstart g2"
     shows "simple_path(g1 +++ g2) \<longleftrightarrow>
              arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
 by (metis assms simple_path_joinE simple_path_join_loop)
 
 lemma arc_join_eq:
-  assumes "pathfinish g1 = pathstart g2" 
+  assumes "pathfinish g1 = pathstart g2"
     shows "arc(g1 +++ g2) \<longleftrightarrow>
            arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g2}"
            (is "?lhs = ?rhs")
-proof 
+proof
   assume ?lhs
   then have "simple_path(g1 +++ g2)" by (rule arc_imp_simple_path)
-  then have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk> 
+  then have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk>
                \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
     using assms by (simp add: simple_path_def)
   have False if "g1 0 = g2 u" "0 \<le> u" "u \<le> 1" for u
@@ -681,7 +681,7 @@ next
     by (fastforce simp: pathfinish_def pathstart_def intro!: arc_join)
 qed
 
-lemma arc_join_eq_alt: 
+lemma arc_join_eq_alt:
         "pathfinish g1 = pathstart g2
         \<Longrightarrow> (arc(g1 +++ g2) \<longleftrightarrow>
              arc g1 \<and> arc g2 \<and>
@@ -696,27 +696,27 @@ lemma path_assoc:
      \<Longrightarrow> path(p +++ (q +++ r)) \<longleftrightarrow> path((p +++ q) +++ r)"
 by simp
 
-lemma simple_path_assoc: 
-  assumes "pathfinish p = pathstart q" "pathfinish q = pathstart r" 
+lemma simple_path_assoc:
+  assumes "pathfinish p = pathstart q" "pathfinish q = pathstart r"
     shows "simple_path (p +++ (q +++ r)) \<longleftrightarrow> simple_path ((p +++ q) +++ r)"
 proof (cases "pathstart p = pathfinish r")
   case True show ?thesis
   proof
     assume "simple_path (p +++ q +++ r)"
     with assms True show "simple_path ((p +++ q) +++ r)"
-      by (fastforce simp add: simple_path_join_loop_eq arc_join_eq path_image_join 
+      by (fastforce simp add: simple_path_join_loop_eq arc_join_eq path_image_join
                     dest: arc_distinct_ends [of r])
   next
     assume 0: "simple_path ((p +++ q) +++ r)"
     with assms True have q: "pathfinish r \<notin> path_image q"
-      using arc_distinct_ends  
+      using arc_distinct_ends
       by (fastforce simp add: simple_path_join_loop_eq arc_join_eq path_image_join)
     have "pathstart r \<notin> path_image p"
       using assms
-      by (metis 0 IntI arc_distinct_ends arc_join_eq_alt empty_iff insert_iff 
+      by (metis 0 IntI arc_distinct_ends arc_join_eq_alt empty_iff insert_iff
               pathfinish_in_path_image pathfinish_join simple_path_joinE)
     with assms 0 q True show "simple_path (p +++ q +++ r)"
-      by (auto simp: simple_path_join_loop_eq arc_join_eq path_image_join 
+      by (auto simp: simple_path_join_loop_eq arc_join_eq path_image_join
                dest!: subsetD [OF _ IntI])
   qed
 next
@@ -730,11 +730,11 @@ next
     with a have "x = pathstart q"
       by blast
   }
-  with False assms show ?thesis 
+  with False assms show ?thesis
     by (auto simp: simple_path_eq_arc simple_path_join_loop_eq arc_join_eq path_image_join)
 qed
 
-lemma arc_assoc: 
+lemma arc_assoc:
      "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
       \<Longrightarrow> arc(p +++ (q +++ r)) \<longleftrightarrow> arc((p +++ q) +++ r)"
 by (simp add: arc_simple_path simple_path_assoc)
@@ -1262,7 +1262,7 @@ lemma not_on_path_ball:
   shows "\<exists>e > 0. ball z e \<inter> path_image g = {}"
 proof -
   obtain a where "a \<in> path_image g" "\<forall>y \<in> path_image g. dist z a \<le> dist z y"
-    apply (rule distance_attains_inf[OF _ path_image_nonempty, of g z]) 
+    apply (rule distance_attains_inf[OF _ path_image_nonempty, of g z])
     using compact_path_image[THEN compact_imp_closed, OF assms(1)] by auto
   then show ?thesis
     apply (rule_tac x="dist z a" in exI)
@@ -2080,8 +2080,8 @@ by (simp add: connected_open_delete)
 corollary connected_open_delete_finite:
   fixes S T::"'a::euclidean_space set"
   assumes S: "open S" "connected S" and 2: "2 \<le> DIM('a)" and "finite T"
-  shows "connected(S - T)" 
-  using \<open>finite T\<close> S 
+  shows "connected(S - T)"
+  using \<open>finite T\<close> S
 proof (induct T)
   case empty
   show ?case using \<open>connected S\<close> by simp
@@ -3068,12 +3068,12 @@ next
       by (force simp: imageI image_mono interiorI interior_subset frontier_def y)
     have **: "(~(b \<inter> (- S) = {}) \<and> ~(b - (- S) = {}) \<Longrightarrow> (b \<inter> f \<noteq> {}))
               \<Longrightarrow> (b \<inter> S \<noteq> {}) \<Longrightarrow> b \<inter> f = {} \<Longrightarrow>
-              b \<subseteq> S" for b f and S :: "'b set" 
+              b \<subseteq> S" for b f and S :: "'b set"
       by blast
     show ?thesis
       apply (rule **)   (*such a horrible mess*)
       apply (rule connected_Int_frontier [where t = "f`S", OF connected_ball])
-      using \<open>a \<in> S\<close> \<open>0 < r\<close> 
+      using \<open>a \<in> S\<close> \<open>0 < r\<close>
       apply (auto simp: disjoint_iff_not_equal  dist_norm)
       by (metis dw_le norm_minus_commute not_less order_trans rle wy)
 qed
@@ -4003,7 +4003,7 @@ done
 lemma homotopic_points_eq_path_component:
    "homotopic_loops S (linepath a a) (linepath b b) \<longleftrightarrow>
         path_component S a b"
-by (auto simp: path_component_imp_homotopic_points 
+by (auto simp: path_component_imp_homotopic_points
          dest: homotopic_loops_imp_path_component_value [where t=1])
 
 lemma path_connected_eq_homotopic_points:
@@ -4058,11 +4058,11 @@ apply (rule iffI)
  apply (fastforce simp: simply_connected_imp_path_connected simply_connected_eq_contractible_loop_any)
 apply (clarsimp simp add: simply_connected_eq_contractible_loop_any)
 apply (drule_tac x=p in spec)
-using homotopic_loops_trans path_connected_eq_homotopic_points 
+using homotopic_loops_trans path_connected_eq_homotopic_points
   apply blast
 done
 
-lemma simply_connected_eq_contractible_loop_all: 
+lemma simply_connected_eq_contractible_loop_all:
   fixes S :: "_::real_normed_vector set"
   shows "simply_connected S \<longleftrightarrow>
          S = {} \<or>
@@ -4075,21 +4075,21 @@ next
   case False
   then obtain a where "a \<in> S" by blast
   show ?thesis
-  proof  
+  proof
     assume "simply_connected S"
     then show ?rhs
-      using \<open>a \<in> S\<close> \<open>simply_connected S\<close> simply_connected_eq_contractible_loop_any 
+      using \<open>a \<in> S\<close> \<open>simply_connected S\<close> simply_connected_eq_contractible_loop_any
       by blast
-  next     
+  next
     assume ?rhs
     then show "simply_connected S"
       apply (simp add: simply_connected_eq_contractible_loop_any False)
-      by (meson homotopic_loops_refl homotopic_loops_sym homotopic_loops_trans 
+      by (meson homotopic_loops_refl homotopic_loops_sym homotopic_loops_trans
              path_component_imp_homotopic_points path_component_refl)
   qed
 qed
 
-lemma simply_connected_eq_contractible_path: 
+lemma simply_connected_eq_contractible_path:
   fixes S :: "_::real_normed_vector set"
   shows "simply_connected S \<longleftrightarrow>
            path_connected S \<and>
@@ -4098,7 +4098,7 @@ lemma simply_connected_eq_contractible_path:
 apply (rule iffI)
  apply (simp add: simply_connected_imp_path_connected)
  apply (metis simply_connected_eq_contractible_loop_some homotopic_loops_imp_homotopic_paths_null)
-by (meson homotopic_paths_imp_homotopic_loops pathfinish_linepath pathstart_in_path_image 
+by (meson homotopic_paths_imp_homotopic_loops pathfinish_linepath pathstart_in_path_image
          simply_connected_eq_contractible_loop_some subset_iff)
 
 lemma simply_connected_eq_homotopic_paths:
@@ -4112,23 +4112,23 @@ lemma simply_connected_eq_homotopic_paths:
          (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then have pc: "path_connected S" 
+  then have pc: "path_connected S"
         and *:  "\<And>p. \<lbrakk>path p; path_image p \<subseteq> S;
-                       pathfinish p = pathstart p\<rbrakk> 
+                       pathfinish p = pathstart p\<rbrakk>
                       \<Longrightarrow> homotopic_paths S p (linepath (pathstart p) (pathstart p))"
     by (auto simp: simply_connected_eq_contractible_path)
-  have "homotopic_paths S p q" 
+  have "homotopic_paths S p q"
         if "path p" "path_image p \<subseteq> S" "path q"
            "path_image q \<subseteq> S" "pathstart q = pathstart p"
            "pathfinish q = pathfinish p" for p q
   proof -
-    have "homotopic_paths S p (p +++ linepath (pathfinish p) (pathfinish p))" 
+    have "homotopic_paths S p (p +++ linepath (pathfinish p) (pathfinish p))"
       by (simp add: homotopic_paths_rid homotopic_paths_sym that)
     also have "homotopic_paths S (p +++ linepath (pathfinish p) (pathfinish p))
                                  (p +++ reversepath q +++ q)"
       using that
       by (metis homotopic_paths_join homotopic_paths_linv homotopic_paths_refl homotopic_paths_sym_eq pathstart_linepath)
-    also have "homotopic_paths S (p +++ reversepath q +++ q) 
+    also have "homotopic_paths S (p +++ reversepath q +++ q)
                                  ((p +++ reversepath q) +++ q)"
       by (simp add: that homotopic_paths_assoc)
     also have "homotopic_paths S ((p +++ reversepath q) +++ q)
@@ -4142,7 +4142,7 @@ proof
   then show ?rhs
     by (blast intro: pc *)
 next
-  assume ?rhs 
+  assume ?rhs
   then show ?lhs
     by (force simp: simply_connected_eq_contractible_path)
 qed
@@ -4408,7 +4408,7 @@ by (rule convex_imp_contractible [OF convex_singleton])
 lemma is_interval_contractible_1:
   fixes S :: "real set"
   shows  "is_interval S \<longleftrightarrow> contractible S"
-using contractible_imp_simply_connected convex_imp_contractible is_interval_convex_1 
+using contractible_imp_simply_connected convex_imp_contractible is_interval_convex_1
       is_interval_simply_connected_1 by auto
 
 lemma contractible_Times:
@@ -4416,14 +4416,14 @@ lemma contractible_Times:
   assumes S: "contractible S" and T: "contractible T"
   shows "contractible (S \<times> T)"
 proof -
-  obtain a h where conth: "continuous_on ({0..1} \<times> S) h" 
+  obtain a h where conth: "continuous_on ({0..1} \<times> S) h"
              and hsub: "h ` ({0..1} \<times> S) \<subseteq> S"
-             and [simp]: "\<And>x. x \<in> S \<Longrightarrow> h (0, x) = x" 
+             and [simp]: "\<And>x. x \<in> S \<Longrightarrow> h (0, x) = x"
              and [simp]: "\<And>x. x \<in> S \<Longrightarrow>  h (1::real, x) = a"
     using S by (auto simp add: contractible_def homotopic_with)
-  obtain b k where contk: "continuous_on ({0..1} \<times> T) k" 
+  obtain b k where contk: "continuous_on ({0..1} \<times> T) k"
              and ksub: "k ` ({0..1} \<times> T) \<subseteq> T"
-             and [simp]: "\<And>x. x \<in> T \<Longrightarrow> k (0, x) = x" 
+             and [simp]: "\<And>x. x \<in> T \<Longrightarrow> k (0, x) = x"
              and [simp]: "\<And>x. x \<in> T \<Longrightarrow>  k (1::real, x) = b"
     using T by (auto simp add: contractible_def homotopic_with)
   show ?thesis
@@ -4432,16 +4432,16 @@ proof -
     apply (rule exI [where x=b])
     apply (rule exI [where x = "\<lambda>z. (h (fst z, fst(snd z)), k (fst z, snd(snd z)))"])
     apply (intro conjI ballI continuous_intros continuous_on_compose2 [OF conth] continuous_on_compose2 [OF contk])
-    using hsub ksub 
+    using hsub ksub
     apply (auto simp: )
     done
 qed
 
-lemma homotopy_dominated_contractibility: 
+lemma homotopy_dominated_contractibility:
   fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
   assumes S: "contractible S"
-      and f: "continuous_on S f" "image f S \<subseteq> T" 
-      and g: "continuous_on T g" "image g T \<subseteq> S" 
+      and f: "continuous_on S f" "image f S \<subseteq> T"
+      and g: "continuous_on T g" "image g T \<subseteq> S"
       and hom: "homotopic_with (\<lambda>x. True) T T (f o g) id"
     shows "contractible T"
 proof -

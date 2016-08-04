@@ -1,18 +1,18 @@
 (*  Title:    HOL/Multivariate_Analysis/Summation.thy
     Author:   Manuel Eberl, TU München
 *)
-  
+
 section \<open>Radius of Convergence and Summation Tests\<close>
 
-theory Summation
+theory Summation_Tests
 imports
   Complex_Main
-  "~~/src/HOL/Library/Extended_Real" 
+  "~~/src/HOL/Library/Extended_Real"
   "~~/src/HOL/Library/Liminf_Limsup"
 begin
 
 text \<open>
-  The definition of the radius of convergence of a power series, 
+  The definition of the radius of convergence of a power series,
   various summability tests, lemmas to compute the radius of convergence etc.
 \<close>
 
@@ -48,7 +48,7 @@ lemma pow_natlog2_gt: "n > 0 \<Longrightarrow> 2 * 2 ^ natlog2 n > n"
 proof -
   assume n: "n > 0"
   from n have "of_nat n = 2 powr log 2 (real_of_nat n)" by simp
-  also have "\<dots> < 2 powr (1 + of_int \<lfloor>log 2 (real_of_nat n)\<rfloor>)" 
+  also have "\<dots> < 2 powr (1 + of_int \<lfloor>log 2 (real_of_nat n)\<rfloor>)"
     by (intro powr_less_mono) (linarith, simp_all)
   also from n have "\<dots> = 2 powr (1 + real_of_nat (nat \<lfloor>log 2 (real_of_nat n)\<rfloor>))" by simp
   also from n have "\<dots> = of_nat (2 * 2 ^ natlog2 n)"
@@ -71,19 +71,19 @@ proof -
   with assms show ?thesis by (simp add: natlog2_def)
 qed
 
-lemma natlog2_rec: 
+lemma natlog2_rec:
   assumes "n \<ge> 2"
   shows   "natlog2 n = 1 + natlog2 (n div 2)"
 proof (rule natlog2_eqI)
-  from assms have "2 ^ (1 + natlog2 (n div 2)) \<le> 2 * (n div 2)" 
+  from assms have "2 ^ (1 + natlog2 (n div 2)) \<le> 2 * (n div 2)"
     by (simp add: pow_natlog2_le)
   also have "\<dots> \<le> n" by simp
   finally show "2 ^ (1 + natlog2 (n div 2)) \<le> n" .
 next
-  from assms have "n < 2 * (n div 2 + 1)" by simp 
-  also from assms have "(n div 2) < 2 ^ (1 + natlog2 (n div 2))" 
+  from assms have "n < 2 * (n div 2 + 1)" by simp
+  also from assms have "(n div 2) < 2 ^ (1 + natlog2 (n div 2))"
     by (simp add: pow_natlog2_gt)
-  hence "2 * (n div 2 + 1) \<le> 2 * (2 ^ (1 + natlog2 (n div 2)))" 
+  hence "2 * (n div 2 + 1) \<le> 2 * (2 ^ (1 + natlog2 (n div 2)))"
     by (intro mult_left_mono) simp_all
   finally show "n < 2 * 2 ^ (1 + natlog2 (n div 2))" .
 qed (insert assms, simp_all)
@@ -94,7 +94,7 @@ fun natlog2_aux where
 lemma natlog2_aux_correct:
   "natlog2_aux n acc = acc + natlog2 n"
   by (induction n acc rule: natlog2_aux.induct) (auto simp: natlog2_rec natlog2_eq_0_iff)
-  
+
 lemma natlog2_code [code]: "natlog2 n = natlog2_aux n 0"
   by (subst natlog2_aux_correct) simp
 
@@ -105,10 +105,10 @@ subsubsection \<open>Root test\<close>
 
 lemma limsup_root_powser:
   fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
-  shows "limsup (\<lambda>n. ereal (root n (norm (f n * z ^ n)))) = 
+  shows "limsup (\<lambda>n. ereal (root n (norm (f n * z ^ n)))) =
              limsup (\<lambda>n. ereal (root n (norm (f n)))) * ereal (norm z)"
 proof -
-  have A: "(\<lambda>n. ereal (root n (norm (f n * z ^ n)))) = 
+  have A: "(\<lambda>n. ereal (root n (norm (f n * z ^ n)))) =
               (\<lambda>n. ereal (root n (norm (f n))) * ereal (norm z))" (is "?g = ?h")
   proof
     fix n show "?g n = ?h n"
@@ -143,7 +143,7 @@ proof -
   with l obtain l' where l': "l = ereal l'" by (cases l) simp_all
 
   define c where "c = (1 - l') / 2"
-  from l and \<open>l \<ge> 0\<close> have c: "l + c > l" "l' + c \<ge> 0" "l' + c < 1" unfolding c_def 
+  from l and \<open>l \<ge> 0\<close> have c: "l + c > l" "l' + c \<ge> 0" "l' + c < 1" unfolding c_def
     by (simp_all add: field_simps l')
   have "\<forall>C>l. eventually (\<lambda>n. ereal (root n (norm (f n))) < C) sequentially"
     by (subst Limsup_le_iff[symmetric]) (simp add: l_def)
@@ -151,7 +151,7 @@ proof -
   with eventually_gt_at_top[of "0::nat"]
     have "eventually (\<lambda>n. norm (f n) \<le> (l' + c) ^ n) sequentially"
   proof eventually_elim
-    fix n :: nat assume n: "n > 0" 
+    fix n :: nat assume n: "n > 0"
     assume "ereal (root n (norm (f n))) < l + ereal c"
     hence "root n (norm (f n)) \<le> l' + c" by (simp add: l')
     with c n have "root n (norm (f n)) ^ n \<le> (l' + c) ^ n"
@@ -191,7 +191,7 @@ proof
     hence "l \<le> c" unfolding l_def by (intro Limsup_bounded) simp_all
     with c show False by auto
   qed
-  
+
   from bounded obtain K where K: "K > 0" "\<And>n. norm (f n) \<le> K" using BseqE by blast
   define n where "n = nat \<lceil>log c K\<rceil>"
   from unbounded have "\<exists>m>n. c < root m (norm (f m))" unfolding bdd_above_def
@@ -223,9 +223,9 @@ private lemma condensation_inequality:
 private lemma condensation_condense1: "(\<Sum>k=1..<2^n. f (2 ^ natlog2 k)) = (\<Sum>k<n. 2^k * f (2 ^ k))"
 proof (induction n)
   case (Suc n)
-  have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto  
-  also have "(\<Sum>k\<in>\<dots>. f (2 ^ natlog2 k)) = 
-                 (\<Sum>k<n. 2^k * f (2^k)) + (\<Sum>k = 2^n..<2^Suc n. f (2^natlog2 k))" 
+  have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
+  also have "(\<Sum>k\<in>\<dots>. f (2 ^ natlog2 k)) =
+                 (\<Sum>k<n. 2^k * f (2^k)) + (\<Sum>k = 2^n..<2^Suc n. f (2^natlog2 k))"
     by (subst setsum.union_disjoint) (insert Suc, auto)
   also have "natlog2 k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro natlog2_eqI) simp_all
   hence "(\<Sum>k = 2^n..<2^Suc n. f (2^natlog2 k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^n))"
@@ -237,9 +237,9 @@ qed simp
 private lemma condensation_condense2: "(\<Sum>k=1..<2^n. f (2 * 2 ^ natlog2 k)) = (\<Sum>k<n. 2^k * f (2 ^ Suc k))"
 proof (induction n)
   case (Suc n)
-  have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto  
-  also have "(\<Sum>k\<in>\<dots>. f (2 * 2 ^ natlog2 k)) = 
-                 (\<Sum>k<n. 2^k * f (2^Suc k)) + (\<Sum>k = 2^n..<2^Suc n. f (2 * 2^natlog2 k))" 
+  have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
+  also have "(\<Sum>k\<in>\<dots>. f (2 * 2 ^ natlog2 k)) =
+                 (\<Sum>k<n. 2^k * f (2^Suc k)) + (\<Sum>k = 2^n..<2^Suc n. f (2 * 2^natlog2 k))"
     by (subst setsum.union_disjoint) (insert Suc, auto)
   also have "natlog2 k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro natlog2_eqI) simp_all
   hence "(\<Sum>k = 2^n..<2^Suc n. f (2*2^natlog2 k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^Suc n))"
@@ -255,9 +255,9 @@ lemma condensation_test:
 proof -
   define f' where "f' n = (if n = 0 then 0 else f n)" for n
   from mono have mono': "decseq (\<lambda>n. f (Suc n))" by (intro decseq_SucI) simp
-  hence mono': "f n \<le> f m" if "m \<le> n" "m > 0" for m n 
+  hence mono': "f n \<le> f m" if "m \<le> n" "m > 0" for m n
     using that decseqD[OF mono', of "m - 1" "n - 1"] by simp
-  
+
   have "(\<lambda>n. f (Suc n)) = (\<lambda>n. f' (Suc n))" by (intro ext) (simp add: f'_def)
   hence "summable f \<longleftrightarrow> summable f'"
     by (subst (1 2) summable_Suc_iff [symmetric]) (simp only:)
@@ -293,7 +293,7 @@ proof -
       by (intro Bseq_add, subst setsum_shift_bounds_Suc_ivl) (simp add: atLeast0LessThan)
     hence "Bseq (\<lambda>n. (\<Sum>k=0..<Suc n. 2^k * f (2^k)))"
       by (subst setsum_head_upt_Suc) (simp_all add: add_ac)
-    thus "Bseq (\<lambda>n. (\<Sum>k<n. 2^k * f (2^k)))" 
+    thus "Bseq (\<lambda>n. (\<Sum>k<n. 2^k * f (2^k)))"
       by (subst (asm) Bseq_Suc_iff) (simp add: atLeast0LessThan)
   next
     assume A: "Bseq (\<lambda>n. (\<Sum>k<n. 2^k * f (2^k)))"
@@ -323,13 +323,13 @@ end
 
 subsubsection \<open>Summability of powers\<close>
 
-lemma abs_summable_complex_powr_iff: 
+lemma abs_summable_complex_powr_iff:
     "summable (\<lambda>n. norm (exp (of_real (ln (of_nat n)) * s))) \<longleftrightarrow> Re s < -1"
 proof (cases "Re s \<le> 0")
   let ?l = "\<lambda>n. complex_of_real (ln (of_nat n))"
   case False
   with eventually_gt_at_top[of "0::nat"]
-    have "eventually (\<lambda>n. norm (1 :: real) \<le> norm (exp (?l n * s))) sequentially" 
+    have "eventually (\<lambda>n. norm (1 :: real) \<le> norm (exp (?l n * s))) sequentially"
     by (auto intro!: ge_one_powr_ge_zero elim!: eventually_mono)
   from summable_comparison_test_ev[OF this] False show ?thesis by (auto simp: summable_const_iff)
 next
@@ -341,7 +341,7 @@ next
   proof
     fix n :: nat
     have "2^n * norm (exp (?l (2^n) * s)) = exp (real n * ln 2) * exp (real n * ln 2 * Re s)"
-      using True by (subst exp_of_nat_mult) (simp add: ln_realpow algebra_simps) 
+      using True by (subst exp_of_nat_mult) (simp add: ln_realpow algebra_simps)
     also have "\<dots> = exp (real n * (ln 2 * (Re s + 1)))"
       by (simp add: algebra_simps exp_add)
     also have "\<dots> = exp (ln 2 * (Re s + 1)) ^ n" by (subst exp_of_nat_mult) simp
@@ -354,7 +354,7 @@ next
   finally show ?thesis .
 qed
 
-lemma summable_complex_powr_iff: 
+lemma summable_complex_powr_iff:
   assumes "Re s < -1"
   shows   "summable (\<lambda>n. exp (of_real (ln (of_nat n)) * s))"
   by (rule summable_norm_cancel, subst abs_summable_complex_powr_iff) fact
@@ -380,7 +380,7 @@ qed (insert s summable_real_powr_iff[of "-s"], simp_all)
 lemma not_summable_harmonic: "\<not>summable (\<lambda>n. inverse (of_nat n) :: 'a :: real_normed_field)"
 proof
   assume "summable (\<lambda>n. inverse (of_nat n) :: 'a)"
-  hence "convergent (\<lambda>n. norm (of_real (\<Sum>k<n. inverse (of_nat k)) :: 'a))" 
+  hence "convergent (\<lambda>n. norm (of_real (\<Sum>k<n. inverse (of_nat k)) :: 'a))"
     by (simp add: summable_iff_convergent convergent_norm)
   hence "convergent (\<lambda>n. abs (\<Sum>k<n. inverse (of_nat k)) :: real)" by (simp only: norm_of_real)
   also have "(\<lambda>n. abs (\<Sum>k<n. inverse (of_nat k)) :: real) = (\<lambda>n. \<Sum>k<n. inverse (of_nat k))"
@@ -395,7 +395,7 @@ subsubsection \<open>Kummer's test\<close>
 
 lemma kummers_test_convergence:
   fixes f p :: "nat \<Rightarrow> real"
-  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially" 
+  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   assumes nonneg_p: "eventually (\<lambda>n. p n \<ge> 0) sequentially"
   defines "l \<equiv> liminf (\<lambda>n. ereal (p n * f n / f (Suc n) - p (Suc n)))"
   assumes l: "l > 0"
@@ -407,7 +407,7 @@ proof -
   hence r: "r > 0" "of_real r < l" by simp_all
   hence "eventually (\<lambda>n. p n * f n / f (Suc n) - p (Suc n) > r) sequentially"
     unfolding l_def by (force dest: less_LiminfD)
-  moreover from pos_f have "eventually (\<lambda>n. f (Suc n) > 0) sequentially" 
+  moreover from pos_f have "eventually (\<lambda>n. f (Suc n) > 0) sequentially"
     by (subst eventually_sequentially_Suc)
   ultimately have "eventually (\<lambda>n. p n * f n - p (Suc n) * f (Suc n) > r * f (Suc n)) sequentially"
     by eventually_elim (simp add: field_simps)
@@ -431,7 +431,7 @@ proof -
       by (subst setsum.union_disjoint) auto
     also have "norm \<dots> \<le> norm (\<Sum>k\<le>m. r * f k) + norm (\<Sum>k=Suc m..n. r * f k)"
       by (rule norm_triangle_ineq)
-    also from r less_imp_le[OF m(1)] have "(\<Sum>k=Suc m..n. r * f k) \<ge> 0" 
+    also from r less_imp_le[OF m(1)] have "(\<Sum>k=Suc m..n. r * f k) \<ge> 0"
       by (intro setsum_nonneg) auto
     hence "norm (\<Sum>k=Suc m..n. r * f k) = (\<Sum>k=Suc m..n. r * f k)" by simp
     also have "(\<Sum>k=Suc m..n. r * f k) = (\<Sum>k=m..<n. r * f (Suc k))"
@@ -455,7 +455,7 @@ qed
 
 lemma kummers_test_divergence:
   fixes f p :: "nat \<Rightarrow> real"
-  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially" 
+  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   assumes pos_p: "eventually (\<lambda>n. p n > 0) sequentially"
   assumes divergent_p: "\<not>summable (\<lambda>n. inverse (p n))"
   defines "l \<equiv> limsup (\<lambda>n. ereal (p n * f n / f (Suc n) - p (Suc n)))"
@@ -467,7 +467,7 @@ proof
     obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> p n > 0" "\<And>n. n \<ge> N \<Longrightarrow> f n > 0"
                       "\<And>n. n \<ge> N \<Longrightarrow> p n * f n / f (Suc n) - p (Suc n) < 0"
     by (auto simp: eventually_at_top_linorder)
-  hence A: "p n * f n < p (Suc n) * f (Suc n)" if "n \<ge> N" for n using that N[of n] N[of "Suc n"] 
+  hence A: "p n * f n < p (Suc n) * f (Suc n)" if "n \<ge> N" for n using that N[of n] N[of "Suc n"]
     by (simp add: field_simps)
   have "p n * f n \<ge> p N * f N" if "n \<ge> N" for n using that and A
       by (induction n rule: dec_induct) (auto intro!: less_imp_le elim!: order.trans)
@@ -476,7 +476,7 @@ proof
     by (auto elim!: eventually_mono simp: field_simps abs_of_pos)
   from this and \<open>summable f\<close> have "summable (\<lambda>n. p N * f N * inverse (p n))"
     by (rule summable_comparison_test_ev)
-  from summable_mult[OF this, of "inverse (p N * f N)"] N[OF le_refl] 
+  from summable_mult[OF this, of "inverse (p N * f N)"] N[OF le_refl]
     have "summable (\<lambda>n. inverse (p n))" by (simp add: divide_simps)
   with divergent_p show False by contradiction
 qed
@@ -486,13 +486,13 @@ subsubsection \<open>Ratio test\<close>
 
 lemma ratio_test_convergence:
   fixes f :: "nat \<Rightarrow> real"
-  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially" 
+  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   defines "l \<equiv> liminf (\<lambda>n. ereal (f n / f (Suc n)))"
   assumes l: "l > 1"
   shows   "summable f"
 proof (rule kummers_test_convergence[OF pos_f])
   note l
-  also have "l = liminf (\<lambda>n. ereal (f n / f (Suc n) - 1)) + 1" 
+  also have "l = liminf (\<lambda>n. ereal (f n / f (Suc n) - 1)) + 1"
     by (subst Liminf_add_ereal_right[symmetric]) (simp_all add: minus_ereal_def l_def one_ereal_def)
   finally show "liminf (\<lambda>n. ereal (1 * f n / f (Suc n) - 1)) > 0"
     by (cases "liminf (\<lambda>n. ereal (1 * f n / f (Suc n) - 1))") simp_all
@@ -500,12 +500,12 @@ qed simp
 
 lemma ratio_test_divergence:
   fixes f :: "nat \<Rightarrow> real"
-  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially" 
+  assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   defines "l \<equiv> limsup (\<lambda>n. ereal (f n / f (Suc n)))"
   assumes l: "l < 1"
   shows   "\<not>summable f"
 proof (rule kummers_test_divergence[OF pos_f])
-  have "limsup (\<lambda>n. ereal (f n / f (Suc n) - 1)) + 1 = l" 
+  have "limsup (\<lambda>n. ereal (f n / f (Suc n) - 1)) + 1 = l"
     by (subst Limsup_add_ereal_right[symmetric]) (simp_all add: minus_ereal_def l_def one_ereal_def)
   also note l
   finally show "limsup (\<lambda>n. ereal (1 * f n / f (Suc n) - 1)) < 0"
@@ -551,9 +551,9 @@ subsection \<open>Radius of convergence\<close>
 
 text \<open>
   The radius of convergence of a power series. This value always exists, ranges from
-  @{term "0::ereal"} to @{term "\<infinity>::ereal"}, and the power series is guaranteed to converge for 
+  @{term "0::ereal"} to @{term "\<infinity>::ereal"}, and the power series is guaranteed to converge for
   all inputs with a norm that is smaller than that radius and to diverge for all inputs with a
-  norm that is greater. 
+  norm that is greater.
 \<close>
 definition conv_radius :: "(nat \<Rightarrow> 'a :: banach) \<Rightarrow> ereal" where
   "conv_radius f = inverse (limsup (\<lambda>n. ereal (root n (norm (f n)))))"
@@ -642,7 +642,7 @@ proof (rule root_test_divergence)
   next
     fix l' assume l': "l = ereal l'"
     from l_nonneg l_nz have "1 = l * inverse l" by (auto simp: l' field_simps)
-    also from l_nz have "inverse l = conv_radius f" 
+    also from l_nz have "inverse l = conv_radius f"
       unfolding l_def conv_radius_def by auto
     also from l' l_nz l_nonneg assms have "l * \<dots> < l * ereal (norm z)"
       by (intro ereal_mult_strict_left_mono) (auto simp: l')
@@ -673,11 +673,11 @@ lemma conv_radius_geI_ex:
   shows   "conv_radius f \<ge> R"
 proof (rule linorder_cases[of "conv_radius f" R])
   assume R: "conv_radius f < R"
-  with conv_radius_nonneg[of f] obtain conv_radius' 
+  with conv_radius_nonneg[of f] obtain conv_radius'
     where [simp]: "conv_radius f = ereal conv_radius'"
     by (cases "conv_radius f") simp_all
   define r where "r = (if R = \<infinity> then conv_radius' + 1 else (real_of_ereal R + conv_radius') / 2)"
-  from R conv_radius_nonneg[of f] have "0 < r \<and> ereal r < R \<and> ereal r > conv_radius f" 
+  from R conv_radius_nonneg[of f] have "0 < r \<and> ereal r < R \<and> ereal r > conv_radius f"
     unfolding r_def by (cases R) (auto simp: r_def field_simps)
   with assms(1)[of r] obtain z where "norm z > conv_radius f" "summable (\<lambda>n. f n * z^n)" by auto
   with not_summable_outside_conv_radius[of f z] show ?thesis by simp
@@ -705,7 +705,7 @@ proof (rule linorder_cases[of "conv_radius f" R])
     "r = (if conv_radius f = \<infinity> then R' + 1 else (R' + real_of_ereal (conv_radius f)) / 2)"
   from R conv_radius_nonneg[of f] have "r > R \<and> r < conv_radius f" unfolding r_def
     by (cases "conv_radius f") (auto simp: r_def field_simps R')
-  with assms(1) assms(2)[of r] R' 
+  with assms(1) assms(2)[of r] R'
     obtain z where "norm z < conv_radius f" "\<not>summable (\<lambda>n. norm (f n * z^n))" by auto
   with abs_summable_in_conv_radius[of z f] show ?thesis by auto
 qed simp_all
@@ -736,11 +736,11 @@ lemma conv_radius_eqI':
   assumes "\<And>r. 0 < r \<Longrightarrow> ereal r > R \<Longrightarrow> \<not>summable (\<lambda>n. norm (f n * (of_real r)^n))"
   shows   "conv_radius f = R"
 proof (intro conv_radius_eqI[OF assms(1)])
-  fix r assume "0 < r" "ereal r < R" with assms(2)[OF this] 
+  fix r assume "0 < r" "ereal r < R" with assms(2)[OF this]
     show "\<exists>z. norm z = r \<and> summable (\<lambda>n. f n * z ^ n)" by force
 next
-  fix r assume "0 < r" "ereal r > R" with assms(3)[OF this] 
-    show "\<exists>z. norm z = r \<and> \<not>summable (\<lambda>n. norm (f n * z ^ n))" by force  
+  fix r assume "0 < r" "ereal r > R" with assms(3)[OF this]
+    show "\<exists>z. norm z = r \<and> \<not>summable (\<lambda>n. norm (f n * z ^ n))" by force
 qed
 
 lemma conv_radius_zeroI:
@@ -751,7 +751,7 @@ proof (rule ccontr)
   assume "conv_radius f \<noteq> 0"
   with conv_radius_nonneg[of f] have pos: "conv_radius f > 0" by simp
   define r where "r = (if conv_radius f = \<infinity> then 1 else real_of_ereal (conv_radius f) / 2)"
-  from pos have r: "ereal r > 0 \<and> ereal r < conv_radius f" 
+  from pos have r: "ereal r > 0 \<and> ereal r < conv_radius f"
     by (cases "conv_radius f") (simp_all add: r_def)
   hence "summable (\<lambda>n. f n * of_real r ^ n)" by (intro summable_in_conv_radius) simp
   moreover from r and assms[of "of_real r"] have "\<not>summable (\<lambda>n. f n * of_real r ^ n)" by simp
@@ -837,7 +837,7 @@ proof (rule conv_radius_ratio_limit_ereal[OF _ lim], rule ccontr)
     by (force elim!: frequently_elim1)
   hence "c = 0" by (intro limit_frequently_eq[OF _ _ lim]) auto
   with nz show False by contradiction
-qed 
+qed
 
 lemma conv_radius_ratio_limit:
   fixes f :: "nat \<Rightarrow> 'a :: {banach,real_normed_div_algebra}"
@@ -846,7 +846,7 @@ lemma conv_radius_ratio_limit:
   assumes lim: "(\<lambda>n. norm (f n) / norm (f (Suc n))) \<longlonglongrightarrow> c"
   shows   "conv_radius f = c'"
   using assms by (intro conv_radius_ratio_limit_ereal) simp_all
-  
+
 lemma conv_radius_ratio_limit_nonzero:
   fixes f :: "nat \<Rightarrow> 'a :: {banach,real_normed_div_algebra}"
   assumes "c' = ereal c"
@@ -855,18 +855,18 @@ lemma conv_radius_ratio_limit_nonzero:
   shows   "conv_radius f = c'"
   using assms by (intro conv_radius_ratio_limit_ereal_nonzero) simp_all
 
-lemma conv_radius_mult_power: 
+lemma conv_radius_mult_power:
   assumes "c \<noteq> (0 :: 'a :: {real_normed_div_algebra,banach})"
   shows   "conv_radius (\<lambda>n. c ^ n * f n) = conv_radius f / ereal (norm c)"
-proof - 
+proof -
   have "limsup (\<lambda>n. ereal (root n (norm (c ^ n * f n)))) =
-          limsup (\<lambda>n. ereal (norm c) * ereal (root n (norm (f n))))" 
+          limsup (\<lambda>n. ereal (norm c) * ereal (root n (norm (f n))))"
     using eventually_gt_at_top[of "0::nat"]
-    by (intro Limsup_eq) 
+    by (intro Limsup_eq)
        (auto elim!: eventually_mono simp: norm_mult norm_power real_root_mult real_root_power)
   also have "\<dots> = ereal (norm c) * limsup (\<lambda>n. ereal (root n (norm (f n))))"
     using assms by (subst Limsup_ereal_mult_left[symmetric]) simp_all
-  finally have A: "limsup (\<lambda>n. ereal (root n (norm (c ^ n * f n)))) = 
+  finally have A: "limsup (\<lambda>n. ereal (root n (norm (c ^ n * f n)))) =
                        ereal (norm c) * limsup (\<lambda>n. ereal (root n (norm (f n))))" .
   show ?thesis using assms
     apply (cases "limsup (\<lambda>n. ereal (root n (norm (f n)))) = 0")
@@ -875,24 +875,24 @@ proof -
     done
 qed
 
-lemma conv_radius_mult_power_right: 
+lemma conv_radius_mult_power_right:
   assumes "c \<noteq> (0 :: 'a :: {real_normed_div_algebra,banach})"
   shows   "conv_radius (\<lambda>n. f n * c ^ n) = conv_radius f / ereal (norm c)"
   using conv_radius_mult_power[OF assms, of f]
   unfolding conv_radius_def by (simp add: mult.commute norm_mult)
 
-lemma conv_radius_divide_power: 
+lemma conv_radius_divide_power:
   assumes "c \<noteq> (0 :: 'a :: {real_normed_div_algebra,banach})"
   shows   "conv_radius (\<lambda>n. f n / c^n) = conv_radius f * ereal (norm c)"
-proof - 
+proof -
   from assms have "inverse c \<noteq> 0" by simp
   from conv_radius_mult_power_right[OF this, of f] show ?thesis
     by (simp add: divide_inverse divide_ereal_def assms norm_inverse power_inverse)
 qed
 
 
-lemma conv_radius_add_ge: 
-  "min (conv_radius f) (conv_radius g) \<le> 
+lemma conv_radius_add_ge:
+  "min (conv_radius f) (conv_radius g) \<le>
        conv_radius (\<lambda>x. f x + g x :: 'a :: {banach,real_normed_div_algebra})"
   by (rule conv_radius_geI_ex')
      (auto simp: algebra_simps intro!: summable_add summable_in_conv_radius)

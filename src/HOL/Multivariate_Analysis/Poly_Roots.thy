@@ -4,7 +4,7 @@
 
 section \<open>polynomial functions: extremal behaviour and root counts\<close>
 
-theory PolyRoots
+theory Poly_Roots
 imports Complex_Main
 begin
 

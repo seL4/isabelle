@@ -4,7 +4,7 @@
 
 section \<open>Fashoda meet theorem\<close>
 
-theory Fashoda
+theory Fashoda_Theorem
 imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space
 begin
 
@@ -65,7 +65,7 @@ lemma interval_bij_bij:
     interval_bij (a, b) (u, v) (interval_bij (u, v) (a, b) x) = x"
   by (auto simp: interval_bij_def euclidean_eq_iff[where 'a='a])
 
-lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \<and> u$i < v$i" 
+lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \<and> u$i < v$i"
   shows "interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
   using assms by (intro interval_bij_bij) (auto simp: Basis_vec_def inner_axis)
 
@@ -161,7 +161,7 @@ proof (rule ccontr)
         apply -
         apply (case_tac[!] "i\<noteq>1")
         prefer 3
-        apply (drule_tac[1-2] 21) 
+        apply (drule_tac[1-2] 21)
         unfolding negatex_def
         apply (auto simp add:vector_2)
         done
@@ -249,10 +249,10 @@ proof (rule ccontr)
     apply auto
     done
   have "x $ 1 = -1 \<or> x $ 1 = 1 \<or> x $ 2 = -1 \<or> x $ 2 = 1"
-    using nx unfolding infnorm_eq_1_2 by auto 
+    using nx unfolding infnorm_eq_1_2 by auto
   then show False
   proof -
-    fix P Q R S 
+    fix P Q R S
     presume "P \<or> Q \<or> R \<or> S"
       and "P \<Longrightarrow> False"
       and "Q \<Longrightarrow> False"
@@ -274,7 +274,7 @@ proof (rule ccontr)
       apply auto
       done
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart 
+      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart
       apply (erule_tac x=1 in allE)
       apply auto
       done
@@ -293,7 +293,7 @@ proof (rule ccontr)
       apply auto
       done
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart 
+      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart
       apply (erule_tac x=1 in allE)
       apply auto
       done
@@ -487,7 +487,7 @@ next
   obtain z :: "real^2" where z:
       "z \<in> (interval_bij (a, b) (- 1, 1) \<circ> f) ` {0..1}"
       "z \<in> (interval_bij (a, b) (- 1, 1) \<circ> g) ` {0..1}"
-    apply (rule fashoda_unit_path[of "interval_bij (a,b) (- 1,1) \<circ> f" "interval_bij (a,b) (- 1,1) \<circ> g"]) 
+    apply (rule fashoda_unit_path[of "interval_bij (a,b) (- 1,1) \<circ> f" "interval_bij (a,b) (- 1,1) \<circ> g"])
     unfolding path_def path_image_def pathstart_def pathfinish_def
     apply (rule_tac[1-2] continuous_on_compose)
     apply (rule assms[unfolded path_def] continuous_on_interval_bij)+
@@ -590,7 +590,7 @@ proof -
         done
       then have "u * a \<le> u * b"
         apply -
-        apply (rule mult_left_mono[OF _ u(3)]) 
+        apply (rule mult_left_mono[OF _ u(3)])
         using u(3-4)
         apply (auto simp add: field_simps)
         done
@@ -749,7 +749,7 @@ proof -
   let ?P1 = "linepath (vector[a$1 - 2, a$2 - 2]) (vector[(pathstart f)$1,a$2 - 2]) +++
      linepath(vector[(pathstart f)$1,a$2 - 2])(pathstart f) +++ f +++
      linepath(pathfinish f)(vector[(pathfinish f)$1,a$2 - 2]) +++
-     linepath(vector[(pathfinish f)$1,a$2 - 2])(vector[b$1 + 2,a$2 - 2])" 
+     linepath(vector[(pathfinish f)$1,a$2 - 2])(vector[b$1 + 2,a$2 - 2])"
   let ?P2 = "linepath(vector[(pathstart g)$1, (pathstart g)$2 - 3])(pathstart g) +++ g +++
      linepath(pathfinish g)(vector[(pathfinish g)$1,a$2 - 1]) +++
      linepath(vector[(pathfinish g)$1,a$2 - 1])(vector[b$1 + 1,a$2 - 1]) +++
@@ -831,7 +831,7 @@ proof -
     proof (simp only: segment_vertical segment_horizontal vector_2, goal_cases)
       case prems: 1
       have "pathfinish f \<in> cbox a b"
-        using assms(3) pathfinish_in_path_image[of f] by auto 
+        using assms(3) pathfinish_in_path_image[of f] by auto
       then have "1 + b $ 1 \<le> pathfinish f $ 1 \<Longrightarrow> False"
         unfolding mem_interval_cart forall_2 by auto
       then have "z$1 \<noteq> pathfinish f$1"
@@ -856,7 +856,7 @@ proof -
         by (auto simp add: field_simps *)
       moreover have "pathstart g \<in> cbox a b"
         using assms(4) pathstart_in_path_image[of g]
-        by auto 
+        by auto
       note this[unfolded mem_interval_cart forall_2]
       then have "z$1 \<noteq> pathstart g$1"
         using prems(1)

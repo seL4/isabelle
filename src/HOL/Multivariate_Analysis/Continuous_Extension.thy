@@ -4,7 +4,7 @@
 
 section \<open>Continuous extensions of functions: Urysohn's lemma, Dugundji extension theorem, Tietze\<close>
 
-theory Extension
+theory Continuous_Extension
 imports Convex_Euclidean_Space
 begin
 

@@ -5,7 +5,7 @@ text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\
 theory Complex_Transcendental
 imports
   Complex_Analysis_Basics
-  Summation
+  Summation_Tests
 begin
 
 (* TODO: Figure out what to do with Möbius transformations *)
@@ -1647,7 +1647,7 @@ by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
 
 lemma norm_powr_real_powr:
   "w \<in> \<real> \<Longrightarrow> 0 \<le> Re w \<Longrightarrow> cmod (w powr z) = Re w powr Re z"
-  by (cases "w = 0") (auto simp add: norm_powr_real powr_def Im_Ln_eq_0 
+  by (cases "w = 0") (auto simp add: norm_powr_real powr_def Im_Ln_eq_0
                                      complex_is_Real_iff in_Reals_norm complex_eq_iff)
 
 lemma tendsto_ln_complex [tendsto_intros]:

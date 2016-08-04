@@ -2,7 +2,7 @@ section \<open>The Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
 
 text\<open>By L C Paulson (2015)\<close>
 
-theory Weierstrass
+theory Weierstrass_Theorems
 imports Uniform_Limit Path_Connected
 begin
 

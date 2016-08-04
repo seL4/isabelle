@@ -1,7 +1,7 @@
 section \<open>Bounded Continuous Functions\<close>
 
 theory Bounded_Continuous_Function
-imports Integration
+imports Henstock_Kurzweil_Integration
 begin
 
 subsection \<open>Definition\<close>

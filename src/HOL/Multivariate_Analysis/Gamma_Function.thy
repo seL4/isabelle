@@ -4,10 +4,10 @@
 
 section \<open>The Gamma Function\<close>
 
-theory Gamma
+theory Gamma_Function
 imports
   Complex_Transcendental
-  Summation
+  Summation_Tests
   Harmonic_Numbers
   "~~/src/HOL/Library/Nonpos_Ints"
   "~~/src/HOL/Library/Periodic_Fun"
@@ -1084,11 +1084,11 @@ lemma Gamma_0 [simp]: "Gamma 0 = 0"
 lemma Gamma_1 [simp]: "Gamma 1 = 1" unfolding Gamma_def by simp
 
 lemma Gamma_fact: "Gamma (1 + of_nat n) = fact n"
-  by (simp add: pochhammer_fact pochhammer_Gamma of_nat_in_nonpos_Ints_iff 
+  by (simp add: pochhammer_fact pochhammer_Gamma of_nat_in_nonpos_Ints_iff
         of_nat_Suc [symmetric] del: of_nat_Suc)
 
 lemma Gamma_numeral: "Gamma (numeral n) = fact (pred_numeral n)"
-  by (subst of_nat_numeral[symmetric], subst numeral_eq_Suc, 
+  by (subst of_nat_numeral[symmetric], subst numeral_eq_Suc,
       subst of_nat_Suc, subst Gamma_fact) (rule refl)
 
 lemma Gamma_of_int: "Gamma (of_int n) = (if n > 0 then fact (nat (n - 1)) else 0)"
@@ -1700,10 +1700,10 @@ lemma Beta_pole1: "x \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Beta x y
 
 lemma Beta_pole2: "y \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Beta x y = 0"
   by (auto simp add: Beta_def elim!: nonpos_Ints_cases')
-  
+
 lemma Beta_zero: "x + y \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Beta x y = 0"
   by (auto simp add: Beta_def elim!: nonpos_Ints_cases')
-  
+
 lemma has_field_derivative_Beta2 [derivative_intros]:
   assumes "y \<notin> \<int>\<^sub>\<le>\<^sub>0" "x + y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "((\<lambda>y. Beta x y) has_field_derivative (Beta x y * (Digamma y - Digamma (x + y))))
@@ -2537,9 +2537,9 @@ lemma gbinomial_minus': "(a + of_nat b) gchoose b = (- 1) ^ b * (- (a + 1) gchoo
 
 lemma gbinomial_asymptotic:
   fixes z :: "'a :: Gamma"
-  shows "(\<lambda>n. (z gchoose n) / ((-1)^n / exp ((z+1) * of_real (ln (real n))))) \<longlonglongrightarrow> 
+  shows "(\<lambda>n. (z gchoose n) / ((-1)^n / exp ((z+1) * of_real (ln (real n))))) \<longlonglongrightarrow>
            inverse (Gamma (- z))"
-  unfolding rGamma_inverse_Gamma [symmetric] using Gamma_gbinomial[of "-z-1"] 
+  unfolding rGamma_inverse_Gamma [symmetric] using Gamma_gbinomial[of "-z-1"]
   by (subst (asm) gbinomial_minus')
      (simp add: add_ac mult_ac divide_inverse power_inverse [symmetric])
 
@@ -2599,7 +2599,7 @@ next
     have "(z gchoose (Suc n)) = ((z - 1 + 1) gchoose (Suc n))" by simp
     also have "\<dots> = (z - 1 gchoose n) * ((z - 1) + 1) / of_nat (Suc n)"
       by (subst gbinomial_factors) (simp add: field_simps)
-    also from False have "\<dots> = inverse (of_nat (Suc n) * Beta (z - of_nat n) (of_nat (Suc n)))" 
+    also from False have "\<dots> = inverse (of_nat (Suc n) * Beta (z - of_nat n) (of_nat (Suc n)))"
       (is "_ = inverse ?x") by (subst Suc.IH) (simp_all add: field_simps Beta_pole1)
     also have "of_nat (Suc n) \<notin> (\<int>\<^sub>\<le>\<^sub>0 :: 'a set)" by (subst of_nat_in_nonpos_Ints_iff) simp_all
     hence "?x = (z + 1) * Beta (z - of_nat (Suc n) + 1) (of_nat (Suc n) + 1)"
@@ -2635,9 +2635,9 @@ proof -
     using integrable_on_exp_minus_to_infinity[of "1/2"] by simp
   have "f integrable_on {c..}"
     by (rule integrable_spike_finite[of "{c}", OF _ _ A]) (simp_all add: f_def)
-  ultimately show "f integrable_on {0..}" 
+  ultimately show "f integrable_on {0..}"
     by (rule integrable_union') (insert c, auto simp: max_def)
-qed  
+qed
 
 lemma Gamma_integral_complex:
   assumes z: "Re z > 0"
@@ -2804,7 +2804,7 @@ proof -
     also from x have "\<dots> \<le> h x" by (rule le_h)
     finally show "?f x \<le> h x" .
   qed
-  
+
   have F: "h integrable_on {0..}" unfolding h_def
     by (rule integrable_Gamma_integral_bound) (insert assms x0(1), simp_all)
   show ?thesis

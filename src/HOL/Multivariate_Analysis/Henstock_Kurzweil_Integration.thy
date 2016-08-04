@@ -2,9 +2,9 @@
     Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light); proofs reworked by LCP
 *)
 
-section \<open>Kurzweil-Henstock Gauge Integration in many dimensions.\<close>
+section \<open>Henstock-Kurzweil gauge integration in many dimensions.\<close>
 
-theory Integration
+theory Henstock_Kurzweil_Integration
 imports
   Derivative
   Uniform_Limit

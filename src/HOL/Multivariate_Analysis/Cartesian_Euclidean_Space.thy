@@ -1,7 +1,7 @@
 section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space.\<close>
 
 theory Cartesian_Euclidean_Space
-imports Finite_Cartesian_Product Integration
+imports Finite_Cartesian_Product Henstock_Kurzweil_Integration
 begin
 
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
