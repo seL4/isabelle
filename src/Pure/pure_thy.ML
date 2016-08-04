@@ -223,7 +223,6 @@ val _ = Theory.setup
       \ (CONST Pure.term :: 'a itself => prop) (CONST Pure.type :: 'a itself)"),
     (Binding.make ("conjunction_def", @{here}),
       prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
-  #> Global_Theory.add_thmss [((Binding.make ("nothing", @{here}), []), [])] #> snd
   #> fold (fn (a, prop) =>
       snd o Thm.add_axiom_global (Binding.make (a, @{here}), prop)) Proofterm.equality_axms);
 
