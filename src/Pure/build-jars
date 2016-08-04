@@ -49,6 +49,7 @@ declare -a SOURCES=(
   General/url.scala
   General/word.scala
   General/xz_file.scala
+  Isar/document_structure.scala
   Isar/keyword.scala
   Isar/line_structure.scala
   Isar/outer_syntax.scala

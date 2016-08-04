@@ -118,11 +118,11 @@ class Isabelle_Sidekick_Structure(
     def make_tree(
       parent: DefaultMutableTreeNode,
       offset: Text.Offset,
-      documents: List[Outer_Syntax.Document])
+      documents: List[Document_Structure.Document])
     {
       (offset /: documents) { case (i, document) =>
         document match {
-          case Outer_Syntax.Document_Block(name, text, body) =>
+          case Document_Structure.Block(name, text, body) =>
             val range = Text.Range(i, i + document.length)
             val node =
               new DefaultMutableTreeNode(
@@ -137,7 +137,8 @@ class Isabelle_Sidekick_Structure(
 
     node_name(buffer) match {
       case Some(name) =>
-        make_tree(data.root, 0, syntax.parse_document(name, JEdit_Lib.buffer_text(buffer)))
+        make_tree(data.root, 0,
+          Document_Structure.parse_document(syntax, name, JEdit_Lib.buffer_text(buffer)))
         true
       case None => false
     }
