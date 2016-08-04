@@ -51,12 +51,19 @@ object Document_Structure
     node_name: Document.Node.Name,
     text: CharSequence): List[Document] =
   {
+    def is_plain_theory(command: Command): Boolean =
+      is_theory_command(syntax.keywords, command.span.name) &&
+      !command.span.is_begin && !command.span.is_end
+
+
     /* stack operations */
 
     def buffer(): mutable.ListBuffer[Document] = new mutable.ListBuffer[Document]
 
     var stack: List[(Command, mutable.ListBuffer[Document])] =
       List((Command.empty, buffer()))
+
+    def open(command: Command) { stack = (command, buffer()) :: stack }
 
     def close(): Boolean =
       stack match {
@@ -68,6 +75,8 @@ object Document_Structure
           false
       }
 
+    def flush() { if (is_plain_theory(stack.head._1)) close() }
+
     def result(): List[Document] =
     {
       while (close()) { }
@@ -76,8 +85,8 @@ object Document_Structure
 
     def add(command: Command)
     {
-      if (command.span.is_begin) stack = (command, buffer()) :: stack
-      else if (command.span.is_end) close()
+      if (command.span.is_begin || is_plain_theory(command)) { flush(); open(command) }
+      else if (command.span.is_end) { flush(); close() }
 
       stack.head._2 += Atom(command)
     }
