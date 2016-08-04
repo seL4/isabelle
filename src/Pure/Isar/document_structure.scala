@@ -22,9 +22,13 @@ object Document_Structure
   { def length: Int = command.length }
 
 
-  /* section headings etc. */
+  private def is_theory_command(keywords: Keyword.Keywords, name: String): Boolean =
+    keywords.kinds.get(name) match {
+      case Some(kind) => Keyword.theory(kind) && !Keyword.theory_end(kind)
+      case None => false
+    }
 
-  def heading_level(keywords: Keyword.Keywords, command: Command): Option[Int] =
+  private def heading_level(keywords: Keyword.Keywords, command: Command): Option[Int] =
   {
     val name = command.span.name
     name match {
@@ -34,13 +38,60 @@ object Document_Structure
       case Thy_Header.SUBSUBSECTION => Some(3)
       case Thy_Header.PARAGRAPH => Some(4)
       case Thy_Header.SUBPARAGRAPH => Some(5)
-      case _ =>
-        keywords.kinds.get(name) match {
-          case Some(kind) if Keyword.theory(kind) && !Keyword.theory_end(kind) => Some(6)
-          case _ => None
-        }
+      case _ if is_theory_command(keywords, name) => Some(6)
+      case _ => None
     }
   }
+
+
+  /* context blocks */
+
+  def parse_blocks(
+    syntax: Outer_Syntax,
+    node_name: Document.Node.Name,
+    text: CharSequence): List[Document] =
+  {
+    /* stack operations */
+
+    def buffer(): mutable.ListBuffer[Document] = new mutable.ListBuffer[Document]
+
+    var stack: List[(Command, mutable.ListBuffer[Document])] =
+      List((Command.empty, buffer()))
+
+    def close(): Boolean =
+      stack match {
+        case (command, body) :: (_, body2) :: _ =>
+          body2 += Block(command.span.name, command.source, body.toList)
+          stack = stack.tail
+          true
+        case _ =>
+          false
+      }
+
+    def result(): List[Document] =
+    {
+      while (close()) { }
+      stack.head._2.toList
+    }
+
+    def add(command: Command)
+    {
+      if (command.span.is_begin) stack = (command, buffer()) :: stack
+      else if (command.span.is_end) close()
+
+      stack.head._2 += Atom(command)
+    }
+
+
+    /* result structure */
+
+    val spans = syntax.parse_spans(text)
+    spans.foreach(span => add(Command(Document_ID.none, node_name, Command.no_blobs, span)))
+    result()
+  }
+
+
+  /* section headings etc. */
 
   def parse_sections(
     syntax: Outer_Syntax,
@@ -49,8 +100,7 @@ object Document_Structure
   {
     /* stack operations */
 
-    def buffer(): mutable.ListBuffer[Document] =
-      new mutable.ListBuffer[Document]
+    def buffer(): mutable.ListBuffer[Document] = new mutable.ListBuffer[Document]
 
     var stack: List[(Int, Command, mutable.ListBuffer[Document])] =
       List((0, Command.empty, buffer()))
@@ -58,7 +108,7 @@ object Document_Structure
     @tailrec def close(level: Int => Boolean)
     {
       stack match {
-        case (lev, command, body) :: (_, _, body2) :: rest if level(lev) =>
+        case (lev, command, body) :: (_, _, body2) :: _ if level(lev) =>
           body2 += Block(command.span.name, command.source, body.toList)
           stack = stack.tail
           close(level)

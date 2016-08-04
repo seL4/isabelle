@@ -110,7 +110,8 @@ class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
 class Isabelle_Sidekick_Structure(
     name: String,
-    node_name: Buffer => Option[Document.Node.Name])
+    node_name: Buffer => Option[Document.Node.Name],
+    parse: (Outer_Syntax, Document.Node.Name, CharSequence) => List[Document_Structure.Document])
   extends Isabelle_Sidekick(name)
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
@@ -137,25 +138,33 @@ class Isabelle_Sidekick_Structure(
 
     node_name(buffer) match {
       case Some(name) =>
-        make_tree(data.root, 0,
-          Document_Structure.parse_sections(syntax, name, JEdit_Lib.buffer_text(buffer)))
+        make_tree(data.root, 0, parse(syntax, name, JEdit_Lib.buffer_text(buffer)))
         true
-      case None => false
+      case None =>
+        false
     }
   }
 }
 
 
 class Isabelle_Sidekick_Default extends
-  Isabelle_Sidekick_Structure("isabelle", PIDE.resources.theory_node_name)
+  Isabelle_Sidekick_Structure("isabelle",
+    PIDE.resources.theory_node_name, Document_Structure.parse_sections _)
+
+
+class Isabelle_Sidekick_Context extends
+  Isabelle_Sidekick_Structure("isabelle-context",
+    PIDE.resources.theory_node_name, Document_Structure.parse_blocks _)
 
 
 class Isabelle_Sidekick_Options extends
-  Isabelle_Sidekick_Structure("isabelle-options", _ => Some(Document.Node.Name("options")))
+  Isabelle_Sidekick_Structure("isabelle-options",
+    _ => Some(Document.Node.Name("options")), Document_Structure.parse_sections _)
 
 
 class Isabelle_Sidekick_Root extends
-  Isabelle_Sidekick_Structure("isabelle-root", _ => Some(Document.Node.Name("ROOT")))
+  Isabelle_Sidekick_Structure("isabelle-root",
+    _ => Some(Document.Node.Name("ROOT")), Document_Structure.parse_sections _)
 
 
 class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
