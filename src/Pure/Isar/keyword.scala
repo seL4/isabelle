@@ -87,6 +87,8 @@ object Keyword
   val proof_close = qed + PRF_CLOSE
   val proof_enclose = Set(PRF_BLOCK, NEXT_BLOCK, QED_BLOCK, PRF_CLOSE)
 
+  val close_structure = Set(NEXT_BLOCK, QED_BLOCK, PRF_CLOSE, THY_END)
+
 
 
   /** keyword tables **/

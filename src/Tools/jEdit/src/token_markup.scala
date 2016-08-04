@@ -178,7 +178,7 @@ object Token_Markup
   object Line_Context
   {
     def init(mode: String): Line_Context =
-      new Line_Context(mode, Some(Scan.Finished), Outer_Syntax.Line_Structure.init)
+      new Line_Context(mode, Some(Scan.Finished), Line_Structure.init)
 
     def prev(buffer: JEditBuffer, line: Int): Line_Context =
       if (line == 0) init(JEdit_Lib.buffer_mode(buffer))
@@ -202,7 +202,7 @@ object Token_Markup
   class Line_Context(
       val mode: String,
       val context: Option[Scan.Line_Context],
-      val structure: Outer_Syntax.Line_Structure)
+      val structure: Line_Structure)
     extends TokenMarker.LineContext(new ParserRuleSet(mode, "MAIN"), null)
   {
     def get_context: Scan.Line_Context = context.getOrElse(Scan.Finished)
@@ -406,7 +406,7 @@ object Token_Markup
 
             case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
               val (tokens, ctxt1) = Token.explode_line(syntax.keywords, line, ctxt)
-              val structure1 = syntax.line_structure(tokens, structure)
+              val structure1 = structure.update(syntax.keywords, tokens)
               val styled_tokens =
                 tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
               (styled_tokens, new Line_Context(line_context.mode, Some(ctxt1), structure1))
