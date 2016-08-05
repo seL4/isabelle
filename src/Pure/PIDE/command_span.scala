@@ -32,6 +32,9 @@ object Command_Span
     def position: Position.T =
       kind match { case Command_Span(_, pos) => pos case _ => Position.none }
 
+    def is_begin: Boolean = content.exists(_.is_begin)
+    def is_end: Boolean = content.exists(_.is_end)
+
     def length: Int = (0 /: content)(_ + _.source.length)
 
     def compact_source: (String, Span) =

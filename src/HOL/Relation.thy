@@ -1,11 +1,12 @@
 (*  Title:      HOL/Relation.thy
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory; Stefan Berghofer, TU Muenchen
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Stefan Berghofer, TU Muenchen
 *)
 
 section \<open>Relations -- as sets of pairs, and binary predicates\<close>
 
 theory Relation
-imports Finite_Set
+  imports Finite_Set
 begin
 
 text \<open>A preliminary: classical rules for reasoning on predicates\<close>
@@ -400,16 +401,17 @@ lemma transp_equality [simp]: "transp op ="
   by (auto intro: transpI)
 
 lemma trans_empty [simp]: "trans {}"
-by (blast intro: transI)
+  by (blast intro: transI)
 
 lemma transp_empty [simp]: "transp (\<lambda>x y. False)"
-using trans_empty[to_pred] by(simp add: bot_fun_def)
+  using trans_empty[to_pred] by (simp add: bot_fun_def)
 
 lemma trans_singleton [simp]: "trans {(a, a)}"
-by (blast intro: transI)
+  by (blast intro: transI)
 
 lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
-by(simp add: transp_def)
+  by (simp add: transp_def)
+
 
 subsubsection \<open>Totality\<close>
 
@@ -418,7 +420,7 @@ definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
 
 lemma total_onI [intro?]:
   "(\<And>x y. \<lbrakk>x \<in> A; y \<in> A; x \<noteq> y\<rbrakk> \<Longrightarrow> (x, y) \<in> r \<or> (y, x) \<in> r) \<Longrightarrow> total_on A r"
-unfolding total_on_def by blast
+  unfolding total_on_def by blast
 
 abbreviation "total \<equiv> total_on UNIV"
 
@@ -426,7 +428,8 @@ lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
 
 lemma total_on_singleton [simp]: "total_on {x} {(x, x)}"
-unfolding total_on_def by blast
+  unfolding total_on_def by blast
+
 
 subsubsection \<open>Single valued relations\<close>
 
@@ -496,7 +499,7 @@ lemma Id_fstsnd_eq: "Id = {x. fst x = snd x}"
 
 subsubsection \<open>Diagonal: identity over a set\<close>
 
-definition Id_on  :: "'a set \<Rightarrow> 'a rel"
+definition Id_on :: "'a set \<Rightarrow> 'a rel"
   where "Id_on A = (\<Union>x\<in>A. {(x, x)})"
 
 lemma Id_on_empty [simp]: "Id_on {} = {}"
@@ -633,7 +636,7 @@ lemma relcomp_unfold: "r O s = {(x, z). \<exists>y. (x, y) \<in> r \<and> (y, z)
 lemma relcompp_apply: "(R OO S) a c \<longleftrightarrow> (\<exists>b. R a b \<and> S b c)"
   unfolding relcomp_unfold [to_pred] ..
 
-lemma eq_OO: "op= OO R = R"
+lemma eq_OO: "op = OO R = R"
   by blast
 
 lemma OO_eq: "R OO op = = R"
@@ -728,10 +731,10 @@ lemma converse_inject[simp]: "r\<inverse> = s \<inverse> \<longleftrightarrow> r
 lemma conversep_inject[simp]: "r\<inverse>\<inverse> = s \<inverse>\<inverse> \<longleftrightarrow> r = s"
   by (fact converse_inject[to_pred])
 
-lemma converse_subset_swap: "r \<subseteq> s \<inverse> = (r \<inverse> \<subseteq> s)"
+lemma converse_subset_swap: "r \<subseteq> s \<inverse> \<longleftrightarrow> r \<inverse> \<subseteq> s"
   by auto
 
-lemma conversep_le_swap: "r \<le> s \<inverse>\<inverse> = (r \<inverse>\<inverse> \<le> s)"
+lemma conversep_le_swap: "r \<le> s \<inverse>\<inverse> \<longleftrightarrow> r \<inverse>\<inverse> \<le> s"
   by (fact converse_subset_swap[to_pred])
 
 lemma converse_Id [simp]: "Id\<inverse> = Id"
@@ -800,7 +803,7 @@ definition Field :: "'a rel \<Rightarrow> 'a set"
   where "Field r = Domain r \<union> Range r"
 
 lemma FieldI1: "(i, j) \<in> R \<Longrightarrow> i \<in> Field R"
-unfolding Field_def by blast
+  unfolding Field_def by blast
 
 lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
   unfolding Field_def by auto
@@ -932,7 +935,7 @@ lemma Domain_unfold: "Domain r = {x. \<exists>y. (x, y) \<in> r}"
   by blast
 
 lemma Field_square [simp]: "Field (x \<times> x) = x"
-unfolding Field_def by blast
+  unfolding Field_def by blast
 
 
 subsubsection \<open>Image of a set under a relation\<close>
@@ -972,7 +975,7 @@ lemma Image_Int_subset: "R `` (A \<inter> B) \<subseteq> R `` A \<inter> R `` B"
   by blast
 
 lemma Image_Int_eq: "single_valued (converse R) \<Longrightarrow> R `` (A \<inter> B) = R `` A \<inter> R `` B"
-  by (simp add: single_valued_def, blast)
+  by (auto simp: single_valued_def)
 
 lemma Image_Un: "R `` (A \<union> B) = R `` A \<union> R `` B"
   by blast
@@ -1079,7 +1082,7 @@ proof -
   interpret comp_fun_idem Set.insert
     by (fact comp_fun_idem_insert)
   show ?thesis
-    by standard (auto simp add: fun_eq_iff comp_fun_commute split: prod.split)
+    by standard (auto simp: fun_eq_iff comp_fun_commute split: prod.split)
 qed
 
 lemma Image_fold:

@@ -66,6 +66,8 @@ object ML_Lex
   {
     def is_keyword: Boolean = kind == Kind.KEYWORD
     def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
+    def is_space: Boolean = kind == Kind.SPACE
+    def is_comment: Boolean = kind == Kind.COMMENT
   }
 
 

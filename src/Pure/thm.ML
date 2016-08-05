@@ -1319,7 +1319,7 @@ fun unconstrainT (thm as Thm (der, args)) =
       prop = prop'})
   end;
 
-(* Replace all TFrees not fixed or in the hyps by new TVars *)
+(*Replace all TFrees not fixed or in the hyps by new TVars*)
 fun varifyT_global' fixed (Thm (der, {cert, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
     val tfrees = fold Term.add_tfrees hyps fixed;
@@ -1339,7 +1339,7 @@ fun varifyT_global' fixed (Thm (der, {cert, maxidx, shyps, hyps, tpairs, prop, .
 
 val varifyT_global = #2 o varifyT_global' [];
 
-(* Replace all TVars by TFrees that are often new *)
+(*Replace all TVars by TFrees that are often new*)
 fun legacy_freezeT (Thm (der, {cert, shyps, hyps, tpairs, prop, ...})) =
   let
     val prop1 = attach_tpairs tpairs prop;
@@ -1635,7 +1635,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
      and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
      val cert = join_certificate2 (state, orule);
      val context = make_context [state, orule] opt_ctxt cert;
-     (** Add new theorem with prop = '[| Bs; As |] ==> C' to thq **)
+     (*Add new theorem with prop = '[| Bs; As |] ==> C' to thq*)
      fun addth A (As, oldAs, rder', n) ((env, tpairs), thq) =
        let val normt = Envir.norm_term env;
            (*perform minimal copying here by examining env*)

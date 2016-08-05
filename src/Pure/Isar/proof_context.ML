@@ -1013,11 +1013,12 @@ fun retrieve pick context (Facts.Fact s) =
   | retrieve pick context (Facts.Named ((xname, pos), sel)) =
       let
         val thy = Context.theory_of context;
-        fun immediate thm = {name = xname, dynamic = false, thms = [Thm.transfer thy thm]};
+        fun immediate thms = {name = xname, dynamic = false, thms = map (Thm.transfer thy) thms};
         val {name, dynamic, thms} =
           (case xname of
-            "" => immediate Drule.dummy_thm
-          | "_" => immediate Drule.asm_rl
+            "" => immediate [Drule.dummy_thm]
+          | "_" => immediate [Drule.asm_rl]
+          | "nothing" => immediate []
           | _ => retrieve_generic context (xname, pos));
         val thms' =
           if dynamic andalso Config.get_generic context dynamic_facts_dummy

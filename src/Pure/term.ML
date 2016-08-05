@@ -181,12 +181,12 @@ struct
   for resolution.*)
 type indexname = string * int;
 
-(* Types are classified by sorts. *)
+(*Types are classified by sorts.*)
 type class = string;
 type sort  = class list;
 type arity = string * sort list * sort;
 
-(* The sorts attached to TFrees and TVars specify the sort of that variable *)
+(*The sorts attached to TFrees and TVars specify the sort of that variable.*)
 datatype typ = Type  of string * typ list
              | TFree of string * sort
              | TVar  of indexname * sort;
@@ -293,15 +293,15 @@ fun dest_funT (Type ("fun", [T, U])) = (T, U)
   | dest_funT T = raise TYPE ("dest_funT", [T], []);
 
 
-(* maps  [T1,...,Tn]--->T  to the list  [T1,T2,...,Tn]*)
+(*maps  [T1,...,Tn]--->T  to the list  [T1,T2,...,Tn]*)
 fun binder_types (Type ("fun", [T, U])) = T :: binder_types U
   | binder_types _ = [];
 
-(* maps  [T1,...,Tn]--->T  to T*)
+(*maps  [T1,...,Tn]--->T  to T*)
 fun body_type (Type ("fun", [_, U])) = body_type U
   | body_type T = T;
 
-(* maps  [T1,...,Tn]--->T  to   ([T1,T2,...,Tn], T)  *)
+(*maps  [T1,...,Tn]--->T  to   ([T1,T2,...,Tn], T)*)
 fun strip_type T = (binder_types T, body_type T);
 
 
@@ -361,11 +361,11 @@ fun strip_abs (Abs (a, T, t)) =
       in ((a, T) :: a', t') end
   | strip_abs t = ([], t);
 
-(* maps  (x1,...,xn)t   to   t  *)
+(*maps  (x1,...,xn)t   to   t*)
 fun strip_abs_body (Abs(_,_,t))  =  strip_abs_body t
   | strip_abs_body u  =  u;
 
-(* maps  (x1,...,xn)t   to   [x1, ..., xn]  *)
+(*maps  (x1,...,xn)t   to   [x1, ..., xn]*)
 fun strip_abs_vars (Abs(a,T,t))  =  (a,T) :: strip_abs_vars t
   | strip_abs_vars u  =  [] : (string*typ) list;
 
@@ -381,18 +381,18 @@ let fun strip(Const(c,_)$Abs(a,T,t)) = if c=qnt then (a,T)::strip t else []
 in strip end;
 
 
-(* maps   (f, [t1,...,tn])  to  f(t1,...,tn) *)
+(*maps   (f, [t1,...,tn])  to  f(t1,...,tn)*)
 val list_comb : term * term list -> term = Library.foldl (op $);
 
 
-(* maps   f(t1,...,tn)  to  (f, [t1,...,tn]) ; naturally tail-recursive*)
+(*maps   f(t1,...,tn)  to  (f, [t1,...,tn]) ; naturally tail-recursive*)
 fun strip_comb u : term * term list =
     let fun stripc (f$t, ts) = stripc (f, t::ts)
         |   stripc  x =  x
     in  stripc(u,[])  end;
 
 
-(* maps   f(t1,...,tn)  to  f , which is never a combination *)
+(*maps   f(t1,...,tn)  to  f , which is never a combination*)
 fun head_of (f$t) = head_of f
   | head_of u = u;
 
@@ -580,11 +580,11 @@ val a_itselfT = itselfT (TFree (Name.aT, []));
 
 val propT : typ = Type ("prop",[]);
 
-(* maps  !!x1...xn. t   to   t  *)
+(*maps  !!x1...xn. t   to   t*)
 fun strip_all_body (Const ("Pure.all", _) $ Abs (_, _, t)) = strip_all_body t
   | strip_all_body t = t;
 
-(* maps  !!x1...xn. t   to   [x1, ..., xn]  *)
+(*maps  !!x1...xn. t   to   [x1, ..., xn]*)
 fun strip_all_vars (Const ("Pure.all", _) $ Abs (a, T, t)) = (a, T) :: strip_all_vars t
   | strip_all_vars t = [];
 

@@ -63,6 +63,10 @@ is relevant to avoid confusion of Pure.simp vs. HOL.simp.
 * Cartouche abbreviations work both for " and ` to accomodate typical
 situations where old ASCII notation may be updated.
 
+* Isabelle/ML and Standard ML files are presented in Sidekick with the
+tree structure of section headings: this special comment format is
+described in "implementation" chapter 0, e.g. (*** section ***).
+
 * IDE support for the Isabelle/Pure bootstrap process, with the
 following independent stages:
 
@@ -84,6 +88,9 @@ dependencies of the above files are only observed for batch build.
 * Refined folding mode "isabelle" based on Isar syntax: 'next' and 'qed'
 are treated as delimiters for fold structure; 'begin' and 'end'
 structure of theory specifications is treated as well.
+
+* Sidekick parser "isabelle-context" shows nesting of context blocks
+according to 'begin' and 'end' structure.
 
 * Syntactic indentation according to Isabelle outer syntax. Action
 "indent-lines" (shortcut C+i) indents the current line according to
