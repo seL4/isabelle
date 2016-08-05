@@ -1503,9 +1503,6 @@ lemma real_of_int_floor_add_one_gt [simp]: "r < real_of_int \<lfloor>r\<rfloor> 
 lemma floor_eq_iff: "\<lfloor>x\<rfloor> = b \<longleftrightarrow> of_int b \<le> x \<and> x < of_int (b + 1)"
   by (simp add: floor_unique_iff)
 
-lemma floor_add2[simp]: "\<lfloor>of_int a + x\<rfloor> = a + \<lfloor>x\<rfloor>"
-  by (simp add: add.commute)
-
 lemma floor_divide_real_eq_div:
   assumes "0 \<le> b"
   shows "\<lfloor>a / real_of_int b\<rfloor> = \<lfloor>a\<rfloor> div b"
@@ -1526,27 +1523,25 @@ next
     proof -
       have "real_of_int (j * b) < real_of_int i + 1"
         using \<open>a < 1 + real_of_int i\<close> \<open>real_of_int j * real_of_int b \<le> a\<close> by force
-      then show "j * b < 1 + i"
-        by linarith
+      then show "j * b < 1 + i" by linarith
     qed
     ultimately have "(j - i div b) * b \<le> i mod b" "i mod b < ((j - i div b) + 1) * b"
       by (auto simp: field_simps)
     then have "(j - i div b) * b < 1 * b" "0 * b < ((j - i div b) + 1) * b"
       using pos_mod_bound [OF b, of i] pos_mod_sign [OF b, of i]
       by linarith+
-    then show ?thesis
-      using b unfolding mult_less_cancel_right by auto
+    then show ?thesis using b unfolding mult_less_cancel_right by auto
   qed
-  with b show ?thesis
-    by (auto split: floor_split simp: field_simps)
+  with b show ?thesis by (auto split: floor_split simp: field_simps)
 qed
 
-lemma floor_divide_eq_div_numeral [simp]: "\<lfloor>numeral a / numeral b::real\<rfloor> = numeral a div numeral b"
-  by (metis floor_divide_of_int_eq of_int_numeral)
+lemma floor_divide_eq_div_numeral [simp]:
+  "\<lfloor>numeral a / numeral b::real\<rfloor> = numeral a div numeral b"
+by (metis floor_divide_of_int_eq of_int_numeral)
 
 lemma floor_minus_divide_eq_div_numeral [simp]:
   "\<lfloor>- (numeral a / numeral b)::real\<rfloor> = - numeral a div numeral b"
-  by (metis divide_minus_left floor_divide_of_int_eq of_int_neg_numeral of_int_numeral)
+by (metis divide_minus_left floor_divide_of_int_eq of_int_neg_numeral of_int_numeral)
 
 lemma of_int_ceiling_cancel [simp]: "of_int \<lceil>x\<rceil> = x \<longleftrightarrow> (\<exists>n::int. x = of_int n)"
   using ceiling_of_int by metis
