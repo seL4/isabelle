@@ -21,7 +21,7 @@ fun first_order_matchers thy pairs (Envir.Envir {maxidx, tenv, tyenv}) =
   handle Pattern.MATCH => Seq.empty;
 
 (*General matching -- keep variables disjoint*)
-fun matchers _ [] = Seq.single (Envir.empty ~1)
+fun matchers _ [] = Seq.single Envir.init
   | matchers context pairs =
       let
         val thy = Context.theory_of context;

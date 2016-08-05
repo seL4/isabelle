@@ -607,7 +607,7 @@ fun match_facts ctxt fixes prop_pats get =
           in fold (fn seq => Seq.append (Seq.map_filter just_one seq)) thmenvs Seq.empty end);
 
     val all_matches =
-      Seq.EVERY (map proc_multi_match all_matches) ([], Envir.empty ~1);
+      Seq.EVERY (map proc_multi_match all_matches) ([], Envir.init);
   in
     all_matches
     |> Seq.map (apsnd (morphism_env morphism))

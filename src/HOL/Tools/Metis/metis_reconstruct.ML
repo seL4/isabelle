@@ -207,7 +207,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
           |> fold (Term.add_vars o Thm.prop_of) [tha, thb]
           |> AList.group (op =)
           |> maps (fn ((s, _), T :: Ts) => map (fn T' => (Free (s, T), Free (s, T'))) Ts)
-          |> rpair (Envir.empty ~1)
+          |> rpair Envir.init
           |-> fold (Pattern.unify (Context.Proof ctxt))
           |> Envir.type_env |> Vartab.dest
           |> map (fn (x, (S, T)) => ((x, S), Thm.ctyp_of ctxt T))

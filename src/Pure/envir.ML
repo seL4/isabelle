@@ -15,6 +15,7 @@ sig
   val type_env: env -> Type.tyenv
   val is_empty: env -> bool
   val empty: int -> env
+  val init: env
   val merge: env * env -> env
   val insert_sorts: env -> sort list -> sort list
   val genvars: string -> env * typ list -> env * term list
@@ -82,6 +83,7 @@ fun is_empty env =
 (* build env *)
 
 fun empty maxidx = make_env (maxidx, Vartab.empty, Vartab.empty);
+val init = empty ~1;
 
 fun merge
    (Envir {maxidx = maxidx1, tenv = tenv1, tyenv = tyenv1},
