@@ -881,19 +881,8 @@ end
 definition floorlog :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   where "floorlog b a = (if a > 0 \<and> b > 1 then nat \<lfloor>log b a\<rfloor> + 1 else 0)"
 
-lemma floorlog_nonneg: "0 \<le> floorlog b x"
-proof -
-  have "-1 < log b (-x)" if "0 > x" "b > 1"
-  proof -
-    have "-1 = log b (inverse b)" using that
-      by (subst log_inverse) simp_all
-    also have "\<dots> < log b (-x)"
-      using \<open>0 > x\<close> by auto
-    finally show ?thesis .
-  qed
-  then show ?thesis
-    unfolding floorlog_def by (auto intro!: add_nonneg_nonneg)
-qed
+lemma floorlog_mono: "x \<le> y \<Longrightarrow> floorlog b x \<le> floorlog b y"
+by(auto simp: floorlog_def floor_mono nat_mono)
 
 lemma floorlog_bounds:
   assumes "x > 0" "b > 1"
@@ -944,11 +933,9 @@ proof -
     by (auto simp: floorlog_def log_mult powr_realpow[symmetric] nat_add_distrib)
 qed
 
-lemma
-  floor_log_add_eqI:
+lemma floor_log_add_eqI:
   fixes a::nat and b::nat and r::real
-  assumes "b > 1"
-  assumes "a \<ge> 1" "0 \<le> r" "r < 1"
+  assumes "b > 1" "a \<ge> 1" "0 \<le> r" "r < 1"
   shows "\<lfloor>log b (a + r)\<rfloor> = \<lfloor>log b a\<rfloor>"
 proof (rule floor_eq2)
   have "log (real b) (real a) \<le> log (real b) (real a + r)"
@@ -977,37 +964,56 @@ next
   finally show "log b (a + r) < real_of_int \<lfloor>log b a\<rfloor> + 1" .
 qed
 
-lemma
-  divide_nat_diff_div_nat_less_one:
+lemma divide_nat_diff_div_nat_less_one:
   fixes x b::nat shows "x / b - x div b < 1"
-  by (metis One_nat_def add_diff_cancel_left' divide_1 divide_self_if floor_divide_of_nat_eq
-    less_eq_real_def mod_div_trivial nat.simps(3) of_nat_eq_0_iff real_of_nat_div3 real_of_nat_div_aux)
-
-context
-begin
-
-qualified lemma compute_floorlog[code]:
-  "floorlog b x = (if x > 0 \<and> b > 1 then floorlog b (x div b) + 1 else 0)"
 proof -
-  {
-    assume prems: "x > 0" "b > 1" "0 < x div b"
-    have "\<lfloor>log (real b) (real x)\<rfloor> = \<lfloor>log (real b) (x / b * b)\<rfloor>"
-      using prems by simp
-    also have "\<dots> = \<lfloor>log b (x / b) + log b b\<rfloor>"
-      using prems
-      by (subst log_mult) auto
-    also have "\<dots> = \<lfloor>log b (x / b)\<rfloor> + 1" using prems by simp
-    also have "\<lfloor>log b (x / b)\<rfloor> = \<lfloor>log b (x div b + (x / b - x div b))\<rfloor>"
-      by simp
-    also have "\<dots> = \<lfloor>log b (x div b)\<rfloor>"
-      using prems real_of_nat_div4 divide_nat_diff_div_nat_less_one
-      by (intro floor_log_add_eqI) auto
-    finally have ?thesis using prems by (simp add: floorlog_def nat_add_distrib)
-  } then show ?thesis
-    by (auto simp: floorlog_def div_eq_0_iff intro!: floor_eq2)
+  have "int 0 \<noteq> \<lfloor>1::real\<rfloor>" by simp
+  thus ?thesis
+    by (metis add_diff_cancel_left' floor_divide_of_nat_eq less_eq_real_def
+        mod_div_trivial real_of_nat_div3 real_of_nat_div_aux)
 qed
 
-end
+lemma floor_log_div:
+  fixes b x :: nat assumes "b > 1" "x > 0" "x div b > 0"
+  shows "\<lfloor>log b x\<rfloor> = \<lfloor>log b (x div b)\<rfloor> + 1"
+proof-
+  have "\<lfloor>log (real b) (real x)\<rfloor> = \<lfloor>log (real b) (x / b * b)\<rfloor>"
+    using assms by simp
+  also have "\<dots> = \<lfloor>log b (x / b) + log b b\<rfloor>"
+    using assms by (subst log_mult) auto
+  also have "\<dots> = \<lfloor>log b (x / b)\<rfloor> + 1" using assms by simp
+  also have "\<lfloor>log b (x / b)\<rfloor> = \<lfloor>log b (x div b + (x / b - x div b))\<rfloor>"
+    by simp
+  also have "\<dots> = \<lfloor>log b (x div b)\<rfloor>"
+    using assms real_of_nat_div4 divide_nat_diff_div_nat_less_one
+    by (intro floor_log_add_eqI) auto
+  finally show ?thesis .
+qed
+
+lemma compute_floorlog[code]:
+  "floorlog b x = (if x > 0 \<and> b > 1 then floorlog b (x div b) + 1 else 0)"
+by (auto simp: floorlog_def floor_log_div[of b x] div_eq_0_iff nat_add_distrib
+    intro!: floor_eq2)
+
+lemma floor_log_eq_if:
+  fixes b x y :: nat
+  assumes "x div b = y div b" "b > 1" "x > 0" "x div b \<ge> 1"
+  shows "floor(log b x) = floor(log b y)"
+proof -
+  have "y > 0" using assms by(auto intro: ccontr)
+  thus ?thesis using assms by (simp add: floor_log_div)
+qed
+
+lemma floorlog_eq_if:
+  fixes b x y :: nat
+  assumes "x div b = y div b" "b > 1" "x > 0" "x div b \<ge> 1"
+  shows "floorlog b x = floorlog b y"
+proof -
+  have "y > 0" using assms by(auto intro: ccontr)
+  thus ?thesis using assms
+    by(auto simp add: floorlog_def eq_nat_nat_iff intro: floor_log_eq_if)
+qed
+
 
 definition bitlen :: "int \<Rightarrow> int" where "bitlen a = floorlog 2 (nat a)"
 
@@ -1015,7 +1021,7 @@ lemma bitlen_alt_def: "bitlen a = (if a > 0 then \<lfloor>log 2 a\<rfloor> + 1 e
   by (simp add: bitlen_def floorlog_def)
 
 lemma bitlen_nonneg: "0 \<le> bitlen x"
-  using floorlog_nonneg by (simp add: bitlen_def)
+by (simp add: bitlen_def)
 
 lemma bitlen_bounds:
   assumes "x > 0"
