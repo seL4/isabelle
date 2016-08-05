@@ -187,9 +187,7 @@ lemma wf_converse_trancl: "wf (r\<inverse>) \<Longrightarrow> wf ((r\<^sup>+)\<i
 text \<open>Well-foundedness of subsets\<close>
 
 lemma wf_subset: "wf r \<Longrightarrow> p \<subseteq> r \<Longrightarrow> wf p"
-  apply (simp add: wf_eq_minimal)
-  apply fast
-  done
+  by (simp add: wf_eq_minimal) fast
 
 lemmas wfP_subset = wf_subset [to_pred]
 
@@ -198,11 +196,12 @@ text \<open>Well-foundedness of the empty relation\<close>
 lemma wf_empty [iff]: "wf {}"
   by (simp add: wf_def)
 
-lemma wfP_empty [iff]:
-  "wfP (\<lambda>x y. False)"
+lemma wfP_empty [iff]: "wfP (\<lambda>x y. False)"
 proof -
-  have "wfP bot" by (fact wf_empty [to_pred bot_empty_eq2])
-  then show ?thesis by (simp add: bot_fun_def)
+  have "wfP bot"
+    by (fact wf_empty [to_pred bot_empty_eq2])
+  then show ?thesis
+    by (simp add: bot_fun_def)
 qed
 
 lemma wf_Int1: "wf r \<Longrightarrow> wf (r \<inter> r')"
@@ -217,9 +216,10 @@ lemma wf_exp:
   shows "wf R"
 proof (rule wfI_pf)
   fix A assume "A \<subseteq> R `` A"
-  then have "A \<subseteq> (R ^^ n) `` A" by (induct n) force+
-  with \<open>wf (R ^^ n)\<close>
-  show "A = {}" by (rule wfE_pf)
+  then have "A \<subseteq> (R ^^ n) `` A"
+    by (induct n) force+
+  with \<open>wf (R ^^ n)\<close> show "A = {}"
+    by (rule wfE_pf)
 qed
 
 text \<open>Well-foundedness of \<open>insert\<close>.\<close>
@@ -257,7 +257,7 @@ lemma wf_map_prod_image: "wf r \<Longrightarrow> inj f \<Longrightarrow> wf (map
   apply (case_tac "\<exists>p. f p \<in> Q")
    apply (erule_tac x = "{p. f p \<in> Q}" in allE)
    apply (fast dest: inj_onD)
-apply blast
+  apply blast
   done
 
 
@@ -379,7 +379,7 @@ next
   qed
 qed
 
-lemma wf_comp_self: "wf R = wf (R O R)"  \<comment> \<open>special case\<close>
+lemma wf_comp_self: "wf R \<longleftrightarrow> wf (R O R)"  \<comment> \<open>special case\<close>
   by (rule wf_union_merge [where S = "{}", simplified])
 
 
@@ -390,12 +390,13 @@ text \<open>Bachmair and Dershowitz 1986, Lemma 2. [Provided by Tjark Weber]\<cl
 lemma qc_wf_relto_iff:
   assumes "R O S \<subseteq> (R \<union> S)\<^sup>* O R" \<comment> \<open>R quasi-commutes over S\<close>
   shows "wf (S\<^sup>* O R O S\<^sup>*) \<longleftrightarrow> wf R"
-  (is "wf ?S \<longleftrightarrow> _")
+    (is "wf ?S \<longleftrightarrow> _")
 proof
   show "wf R" if "wf ?S"
   proof -
     have "R \<subseteq> ?S" by auto
-    with that show "wf R" using wf_subset by auto
+    with wf_subset [of ?S] that show "wf R"
+      by auto
   qed
 next
   show "wf ?S" if "wf R"
@@ -607,10 +608,7 @@ proof -
 qed
 
 lemma accp_downwards_aux: "r\<^sup>*\<^sup>* b a \<Longrightarrow> accp r a \<longrightarrow> accp r b"
-  apply (erule rtranclp_induct)
-   apply blast
-  apply (blast dest: accp_downward)
-  done
+  by (erule rtranclp_induct) (blast dest: accp_downward)+
 
 theorem accp_downwards: "accp r a \<Longrightarrow> r\<^sup>*\<^sup>* b a \<Longrightarrow> accp r b"
   by (blast dest: accp_downwards_aux)
@@ -691,7 +689,7 @@ subsection \<open>Tools for building wellfounded relations\<close>
 text \<open>Inverse Image\<close>
 
 lemma wf_inv_image [simp,intro!]: "wf r \<Longrightarrow> wf (inv_image r f)"
- for f :: "'a \<Rightarrow> 'b"
+  for f :: "'a \<Rightarrow> 'b"
   apply (simp add: inv_image_def wf_eq_minimal)
   apply clarify
   apply (subgoal_tac "\<exists>w::'b. w \<in> {w. \<exists>x::'a. x \<in> Q \<and> f x = w}")
@@ -776,7 +774,7 @@ lemma wf_finite_psubset[simp]: "wf finite_psubset"
   done
 
 lemma trans_finite_psubset: "trans finite_psubset"
-  by (auto simp add: finite_psubset_def less_le trans_def)
+  by (auto simp: finite_psubset_def less_le trans_def)
 
 lemma in_finite_psubset[simp]: "(A, B) \<in> finite_psubset \<longleftrightarrow> A \<subset> B \<and> finite B"
   unfolding finite_psubset_def by auto

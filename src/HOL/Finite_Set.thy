@@ -1,24 +1,26 @@
 (*  Title:      HOL/Finite_Set.thy
-    Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
-                with contributions by Jeremy Avigad and Andrei Popescu
+    Author:     Tobias Nipkow
+    Author:     Lawrence C Paulson
+    Author:     Markus Wenzel
+    Author:     Jeremy Avigad
+    Author:     Andrei Popescu
 *)
 
 section \<open>Finite sets\<close>
 
 theory Finite_Set
-imports Product_Type Sum_Type Fields
+  imports Product_Type Sum_Type Fields
 begin
 
 subsection \<open>Predicate for finite sets\<close>
 
-context
-  notes [[inductive_internals]]
+context notes [[inductive_internals]]
 begin
 
 inductive finite :: "'a set \<Rightarrow> bool"
-where
-  emptyI [simp, intro!]: "finite {}"
-| insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
+  where
+    emptyI [simp, intro!]: "finite {}"
+  | insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
 
 end
 
@@ -145,7 +147,7 @@ lemma finite_imp_inj_to_nat_seg:
   shows "\<exists>f n::nat. f ` A = {i. i < n} \<and> inj_on f A"
 proof -
   from finite_imp_nat_seg_image_inj_on [OF \<open>finite A\<close>]
-  obtain f and n::nat where bij: "bij_betw f {i. i<n} A"
+  obtain f and n :: nat where bij: "bij_betw f {i. i<n} A"
     by (auto simp: bij_betw_def)
   let ?f = "the_inv_into {i. i<n} f"
   have "inj_on ?f A \<and> ?f ` A = {i. i<n}"
@@ -317,7 +319,7 @@ proof induct
 next
   case insert
   then show ?case
-    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast
+    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast  (* slow *)
 qed
 
 lemma finite_vimage_IntI: "finite F \<Longrightarrow> inj_on h A \<Longrightarrow> finite (h -` F \<inter> A)"
@@ -328,7 +330,8 @@ lemma finite_vimage_IntI: "finite F \<Longrightarrow> inj_on h A \<Longrightarro
   done
 
 lemma finite_finite_vimage_IntI:
-  assumes "finite F" and "\<And>y. y \<in> F \<Longrightarrow> finite ((h -` {y}) \<inter> A)"
+  assumes "finite F"
+    and "\<And>y. y \<in> F \<Longrightarrow> finite ((h -` {y}) \<inter> A)"
   shows "finite (h -` F \<inter> A)"
 proof -
   have *: "h -` F \<inter> A = (\<Union> y\<in>F. (h -` {y}) \<inter> A)"
@@ -464,7 +467,7 @@ lemma finite_Pow_iff [iff]: "finite (Pow A) \<longleftrightarrow> finite A"
 proof
   assume "finite (Pow A)"
   then have "finite ((\<lambda>x. {x}) ` A)"
-    by (blast intro: finite_subset)
+    by (blast intro: finite_subset)  (* somewhat slow *)
   then show "finite A"
     by (rule finite_imageD [unfolded inj_on_def]) simp
 next
@@ -492,7 +495,7 @@ proof -
   from finite_subset[OF this] assms have 1: "finite (?F ` ?S)"
     by simp
   have 2: "inj_on ?F ?S"
-    by (fastforce simp add: inj_on_def set_eq_iff fun_eq_iff)
+    by (fastforce simp add: inj_on_def set_eq_iff fun_eq_iff)  (* somewhat slow *)
   show ?thesis
     by (rule finite_imageD [OF 1 2])
 qed
@@ -524,7 +527,7 @@ qed
 
 lemma finite_subset_induct [consumes 2, case_names empty insert]:
   assumes "finite F" and "F \<subseteq> A"
-  assumes empty: "P {}"
+    and empty: "P {}"
     and insert: "\<And>a F. finite F \<Longrightarrow> a \<in> A \<Longrightarrow> a \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert a F)"
   shows "P F"
   using \<open>finite F\<close> \<open>F \<subseteq> A\<close>
@@ -545,7 +548,7 @@ qed
 
 lemma finite_empty_induct:
   assumes "finite A"
-  assumes "P A"
+    and "P A"
     and remove: "\<And>a A. finite A \<Longrightarrow> a \<in> A \<Longrightarrow> P A \<Longrightarrow> P (A - {a})"
   shows "P {}"
 proof -
@@ -604,8 +607,8 @@ qed
 
 lemma finite_subset_induct' [consumes 2, case_names empty insert]:
   assumes "finite F" and "F \<subseteq> A"
-  and empty: "P {}"
-  and insert: "\<And>a F. \<lbrakk>finite F; a \<in> A; F \<subseteq> A; a \<notin> F; P F \<rbrakk> \<Longrightarrow> P (insert a F)"
+    and empty: "P {}"
+    and insert: "\<And>a F. \<lbrakk>finite F; a \<in> A; F \<subseteq> A; a \<notin> F; P F \<rbrakk> \<Longrightarrow> P (insert a F)"
   shows "P F"
 proof -
   from \<open>finite F\<close>
@@ -632,7 +635,8 @@ qed
 
 subsection \<open>Class \<open>finite\<close>\<close>
 
-class finite = assumes finite_UNIV: "finite (UNIV :: 'a set)"
+class finite =
+  assumes finite_UNIV: "finite (UNIV :: 'a set)"
 begin
 
 lemma finite [simp]: "finite (A :: 'a set)"
@@ -700,9 +704,9 @@ end
 
 inductive fold_graph :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> bool"
   for f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and z :: 'b
-where
-  emptyI [intro]: "fold_graph f z {} z"
-| insertI [intro]: "x \<notin> A \<Longrightarrow> fold_graph f z A y \<Longrightarrow> fold_graph f z (insert x A) (f x y)"
+  where
+    emptyI [intro]: "fold_graph f z {} z"
+  | insertI [intro]: "x \<notin> A \<Longrightarrow> fold_graph f z A y \<Longrightarrow> fold_graph f z (insert x A) (f x y)"
 
 inductive_cases empty_fold_graphE [elim!]: "fold_graph f z {} x"
 
@@ -1069,7 +1073,7 @@ proof -
   interpret comp_fun_idem Set.remove
     by (fact comp_fun_idem_remove)
   from \<open>finite A\<close> have "fold Set.remove B A = B - A"
-    by (induct A arbitrary: B) auto
+    by (induct A arbitrary: B) auto  (* slow *)
   then show ?thesis ..
 qed
 
@@ -1124,7 +1128,7 @@ proof -
 qed
 
 lemma comp_fun_commute_Pow_fold: "comp_fun_commute (\<lambda>x A. A \<union> Set.insert x ` A)"
-  by (clarsimp simp: fun_eq_iff comp_fun_commute_def) blast
+  by (clarsimp simp: fun_eq_iff comp_fun_commute_def) blast  (* somewhat slow *)
 
 lemma Pow_fold:
   assumes "finite A"
@@ -1222,13 +1226,12 @@ subsection \<open>Locales as mini-packages for fold operations\<close>
 subsubsection \<open>The natural case\<close>
 
 locale folding =
-  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
-  fixes z :: "'b"
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and z :: "'b"
   assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
 begin
 
 interpretation fold?: comp_fun_commute f
-  by standard (insert comp_fun_commute, simp add: fun_eq_iff)
+  by standard (use comp_fun_commute in \<open>simp add: fun_eq_iff\<close>)
 
 definition F :: "'a set \<Rightarrow> 'b"
   where eq_fold: "F A = fold f z A"
@@ -1332,14 +1335,14 @@ lemma card_gt_0_iff: "0 < card A \<longleftrightarrow> A \<noteq> {} \<and> fini
 
 lemma card_Suc_Diff1: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> Suc (card (A - {x})) = card A"
   apply (rule insert_Diff [THEN subst, where t = A])
-  apply assumption
+   apply assumption
   apply (simp del: insert_Diff_single)
   done
 
 lemma card_insert_le_m1: "n > 0 \<Longrightarrow> card y \<le> n - 1 \<Longrightarrow> card (insert x y) \<le> n"
   apply (cases "finite y")
-  apply (cases "x \<in> y")
-  apply (auto simp: insert_absorb)
+   apply (cases "x \<in> y")
+    apply (auto simp: insert_absorb)
   done
 
 lemma card_Diff_singleton: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> card (A - {x}) = card A - 1"
@@ -1397,7 +1400,7 @@ qed
 
 lemma card_seteq: "finite B \<Longrightarrow> (\<And>A. A \<subseteq> B \<Longrightarrow> card B \<le> card A \<Longrightarrow> A = B)"
   apply (induct rule: finite_induct)
-  apply simp
+   apply simp
   apply clarify
   apply (subgoal_tac "finite A \<and> A - {x} \<subseteq> F")
    prefer 2 apply (blast intro: finite_subset, atomize)
@@ -1430,7 +1433,7 @@ lemma card_Un_disjoint: "finite A \<Longrightarrow> finite B \<Longrightarrow> A
 lemma card_Un_le: "card (A \<union> B) \<le> card A + card B"
   apply (cases "finite A")
    apply (cases "finite B")
-    using le_iff_add card_Un_Int apply blast
+    apply (use le_iff_add card_Un_Int in blast)
    apply simp
   apply simp
   done
@@ -1539,7 +1542,7 @@ qed
 
 lemma insert_partition:
   "x \<notin> F \<Longrightarrow> \<forall>c1 \<in> insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {} \<Longrightarrow> x \<inter> \<Union>F = {}"
-  by auto
+  by auto  (* somewhat slow *)
 
 lemma finite_psubset_induct [consumes 1, case_names psubset]:
   assumes finite: "finite A"
@@ -1597,13 +1600,13 @@ lemma remove_induct [case_names empty infinite remove]:
     and remove: "\<And>A. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> P (A - {x})) \<Longrightarrow> P A"
   shows "P B"
 proof (cases "finite B")
-  assume "\<not>finite B"
+  case False
   then show ?thesis by (rule infinite)
 next
+  case True
   define A where "A = B"
-  assume "finite B"
-  then have "finite A" "A \<subseteq> B"
-    by (simp_all add: A_def)
+  with True have "finite A" "A \<subseteq> B"
+    by simp_all
   then show "P A"
   proof (induct "card A" arbitrary: A)
     case 0
@@ -1623,9 +1626,9 @@ qed
 
 lemma finite_remove_induct [consumes 1, case_names empty remove]:
   fixes P :: "'a set \<Rightarrow> bool"
-  assumes finite: "finite B"
-    and empty: "P {}"
-    and rm: "\<And>A. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> P (A - {x})) \<Longrightarrow> P A"
+  assumes "finite B"
+    and "P {}"
+    and "\<And>A. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> P (A - {x})) \<Longrightarrow> P A"
   defines "B' \<equiv> B"
   shows "P B'"
   by (induct B' rule: remove_induct) (simp_all add: assms)
@@ -1636,10 +1639,14 @@ lemma card_partition [rule_format]:
   "finite C \<Longrightarrow> finite (\<Union>C) \<Longrightarrow> (\<forall>c\<in>C. card c = k) \<Longrightarrow>
     (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {}) \<Longrightarrow>
     k * card C = card (\<Union>C)"
-  apply (induct rule: finite_induct)
-  apply simp
-  apply (simp add: card_Un_disjoint insert_partition finite_subset [of _ "\<Union>(insert x F)"])
-  done
+proof (induct rule: finite_induct)
+  case empty
+  then show ?case by simp
+next
+  case (insert x F)
+  then show ?case
+    by (simp add: card_Un_disjoint insert_partition finite_subset [of _ "\<Union>(insert _ _)"])
+qed
 
 lemma card_eq_UNIV_imp_eq_UNIV:
   assumes fin: "finite (UNIV :: 'a set)"
@@ -1679,7 +1686,7 @@ proof -
     show "b \<notin> A - {b}"
       by blast
     show "card (A - {b}) = k" and "k = 0 \<longrightarrow> A - {b} = {}"
-      using assms b fin by(fastforce dest:mk_disjoint_insert)+
+      using assms b fin by (fastforce dest: mk_disjoint_insert)+
   qed
 qed
 
@@ -1688,7 +1695,7 @@ lemma card_Suc_eq:
     (\<exists>b B. A = insert b B \<and> b \<notin> B \<and> card B = k \<and> (k = 0 \<longrightarrow> B = {}))"
   apply (auto elim!: card_eq_SucD)
   apply (subst card.insert)
-  apply (auto simp add: intro:ccontr)
+    apply (auto simp add: intro:ccontr)
   done
 
 lemma card_1_singletonE:
@@ -1761,7 +1768,7 @@ next
 qed
 
 lemma bij_betw_same_card: "bij_betw f A B \<Longrightarrow> card A = card B"
-  by(auto simp: card_image bij_betw_def)
+  by (auto simp: card_image bij_betw_def)
 
 lemma endo_inj_surj: "finite A \<Longrightarrow> f ` A \<subseteq> A \<Longrightarrow> inj_on f A \<Longrightarrow> f ` A = A"
   by (simp add: card_seteq card_image)
@@ -1852,12 +1859,12 @@ proof -
   from finite_Pow_iff[THEN iffD2, OF \<open>finite B\<close>] have "finite (?F ` A)"
     by (blast intro: rev_finite_subset)
   from pigeonhole_infinite [where f = ?F, OF assms(1) this]
-  obtain a0 where "a0 \<in> A" and 1: "\<not> finite {a\<in>A. ?F a = ?F a0}" ..
+  obtain a0 where "a0 \<in> A" and infinite: "\<not> finite {a\<in>A. ?F a = ?F a0}" ..
   obtain b0 where "b0 \<in> B" and "R a0 b0"
     using \<open>a0 \<in> A\<close> assms(3) by blast
-  have "finite {a\<in>A. ?F a = ?F a0}" if "finite{a:A. R a b0}"
+  have "finite {a\<in>A. ?F a = ?F a0}" if "finite {a\<in>A. R a b0}"
     using \<open>b0 \<in> B\<close> \<open>R a0 b0\<close> that by (blast intro: rev_finite_subset)
-  with 1 \<open>b0 : B\<close> show ?thesis
+  with infinite \<open>b0 \<in> B\<close> show ?thesis
     by blast
 qed
 
@@ -1896,7 +1903,7 @@ proof -
     then show ?case
       apply simp
       apply (subst card_Un_disjoint)
-      apply (auto simp add: disjoint_eq_subset_Compl)
+         apply (auto simp add: disjoint_eq_subset_Compl)
       done
   qed
 qed
@@ -1914,10 +1921,12 @@ proof -
     by (simp add: eq_card_imp_inj_on)
 qed
 
-lemma finite_UNIV_surj_inj: "finite(UNIV:: 'a set) \<Longrightarrow> surj f \<Longrightarrow> inj f" for f :: "'a \<Rightarrow> 'a"
+lemma finite_UNIV_surj_inj: "finite(UNIV:: 'a set) \<Longrightarrow> surj f \<Longrightarrow> inj f"
+  for f :: "'a \<Rightarrow> 'a"
   by (blast intro: finite_surj_inj subset_UNIV)
 
-lemma finite_UNIV_inj_surj: "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Longrightarrow> surj f" for f :: "'a \<Rightarrow> 'a"
+lemma finite_UNIV_inj_surj: "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Longrightarrow> surj f"
+  for f :: "'a \<Rightarrow> 'a"
   by (fastforce simp:surj_def dest!: endo_inj_surj)
 
 corollary infinite_UNIV_nat [iff]: "\<not> finite (UNIV :: nat set)"
@@ -2013,7 +2022,7 @@ proof
       using psubset.hyps by blast
     show False
       apply (rule psubset.IH [where B = "A - {x}"])
-      using \<open>x \<in> A\<close> apply blast
+       apply (use \<open>x \<in> A\<close> in blast)
       apply (simp add: \<open>X (A - {x})\<close>)
       done
   qed
