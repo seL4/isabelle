@@ -1526,7 +1526,7 @@ next
   also have "\<dots> = real_of_int \<lfloor>real_of_int ?nt * real_of_int x + ?I x ?at\<rfloor>" by simp
   also have "\<dots> = real_of_int \<lfloor>?I x ?at + real_of_int (?nt * x)\<rfloor>" by (simp add: ac_simps)
   also have "\<dots> = real_of_int (\<lfloor>?I x ?at\<rfloor> + (?nt * x))"
-    using floor_add_of_int[of "?I x ?at" "?nt * x"] by simp
+    by (simp add: of_int_mult[symmetric] del: of_int_mult)
   also have "\<dots> = real_of_int (?nt)*(real_of_int x) + real_of_int \<lfloor>?I x ?at\<rfloor>" by (simp add: ac_simps)
   finally have "?I x (Floor t) = ?I x (CN 0 n a)" using th by simp
   with na show ?case by simp

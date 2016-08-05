@@ -83,11 +83,37 @@ proof(induction t)
 qed simp
 
 
+fun min_height :: "'a tree \<Rightarrow> nat" where
+"min_height Leaf = 0" |
+"min_height (Node l _ r) = min (min_height l) (min_height r) + 1"
+
+lemma min_hight_le_height: "min_height t \<le> height t"
+by(induction t) auto
+
+lemma min_height_map_tree[simp]: "min_height (map_tree f t) = min_height t"
+by (induction t) auto
+
+lemma min_height_le_size1: "2 ^ min_height t \<le> size t + 1"
+proof(induction t)
+  case (Node l a r)
+  have "(2::nat) ^ min_height (Node l a r) \<le> 2 ^ min_height l + 2 ^ min_height r"
+    by (simp add: min_def)
+  also have "\<dots> \<le> size(Node l a r) + 1" using Node.IH by simp
+  finally show ?case .
+qed simp
+
+
 subsection "Balanced"
 
 fun balanced :: "'a tree \<Rightarrow> bool" where
 "balanced Leaf = True" |
 "balanced (Node l x r) = (balanced l \<and> balanced r \<and> height l = height r)"
+
+lemma balanced_iff_min_height: "balanced t \<longleftrightarrow> (min_height t = height t)"
+apply(induction t)
+ apply simp
+apply (simp add: min_def max_def)
+by (metis le_antisym le_trans min_hight_le_height)
 
 lemma balanced_size1: "balanced t \<Longrightarrow> size1 t = 2 ^ height t"
 by (induction t) auto
