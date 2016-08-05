@@ -152,7 +152,7 @@ fun map_default f xs =
   end;
 
 fun subst_termify_app (Const (@{const_name termify}, _), [t]) =
-      if not (Term.has_abs t)
+      if not (Term.exists_subterm (fn Abs _ => true | _ => false) t)
       then if fold_aterms (fn Const _ => I | _ => K false) t true
         then SOME (HOLogic.reflect_term t)
         else error "Cannot termify expression containing variable"

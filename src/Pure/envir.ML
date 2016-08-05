@@ -221,7 +221,9 @@ fun norm_term_same (envir as Envir {tenv, tyenv, ...}) =
   else norm_term2 envir;
 
 fun norm_term envir t = norm_term_same envir t handle Same.SAME => t;
-fun beta_norm t = if Term.has_abs t then norm_term init t else t;
+
+fun beta_norm t =
+  if Term.could_beta_contract t then norm_term init t else t;
 
 end;
 
@@ -289,7 +291,7 @@ fun eta (Abs (a, T, body)) =
 in
 
 fun eta_contract t =
-  if Term.has_abs t then Same.commit eta t else t;
+  if Term.could_eta_contract t then Same.commit eta t else t;
 
 end;
 

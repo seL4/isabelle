@@ -160,7 +160,9 @@ sig
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
-  val has_abs: term -> bool
+  val could_beta_contract: term -> bool
+  val could_eta_contract: term -> bool
+  val could_beta_eta_contract: term -> bool
   val dest_abs: string * typ * term -> string * term
   val dummy_pattern: typ -> term
   val dummy: term
@@ -913,9 +915,24 @@ fun exists_subterm P =
 
 fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
 
-fun has_abs (Abs _) = true
-  | has_abs (t $ u) = has_abs t orelse has_abs u
-  | has_abs _ = false;
+
+(* contraction *)
+
+fun could_beta_contract (Abs _ $ _) = true
+  | could_beta_contract (t $ u) = could_beta_contract t orelse could_beta_contract u
+  | could_beta_contract (Abs (_, _, b)) = could_beta_contract b
+  | could_beta_contract _ = false;
+
+fun could_eta_contract (Abs (_, _, _ $ Bound 0)) = true
+  | could_eta_contract (Abs (_, _, b)) = could_eta_contract b
+  | could_eta_contract (t $ u) = could_eta_contract t orelse could_eta_contract u
+  | could_eta_contract _ = false;
+
+fun could_beta_eta_contract (Abs _ $ _) = true
+  | could_beta_eta_contract (Abs (_, _, _ $ Bound 0)) = true
+  | could_beta_eta_contract (Abs (_, _, b)) = could_beta_eta_contract b
+  | could_beta_eta_contract (t $ u) = could_beta_eta_contract t orelse could_beta_eta_contract u
+  | could_beta_eta_contract _ = false;
 
 
 (* dest abstraction *)
