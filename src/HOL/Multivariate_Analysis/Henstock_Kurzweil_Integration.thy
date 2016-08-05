@@ -168,178 +168,45 @@ proof -
       by auto (metis IntI UnE empty_iff interior_maximal open_box subsetCE subsetI)
 qed
 
-lemma inter_interior_unions_intervals:
-  fixes f::"('a::euclidean_space) set set"
+lemma interior_Union_subset_cbox:
   assumes "finite f"
-    and "open s"
-    and "\<forall>t\<in>f. \<exists>a b. t = cbox a b"
-    and "\<forall>t\<in>f. s \<inter> (interior t) = {}"
-  shows "s \<inter> interior (\<Union>f) = {}"
-proof (clarsimp simp only: all_not_in_conv [symmetric])
-  fix x
-  assume x: "x \<in> s" "x \<in> interior (\<Union>f)"
-  have lem1: "\<And>x e s U. ball x e \<subseteq> s \<inter> interior U \<longleftrightarrow> ball x e \<subseteq> s \<inter> U"
-    using interior_subset
-    by auto (meson Topology_Euclidean_Space.open_ball contra_subsetD interior_maximal mem_ball)
-  have "\<exists>t\<in>f. \<exists>x. \<exists>e>0. ball x e \<subseteq> s \<inter> t"
-    if "finite f" and "\<forall>t\<in>f. \<exists>a b. t = cbox a b" and "\<exists>x. x \<in> s \<inter> interior (\<Union>f)" for f
-    using that
-  proof (induct rule: finite_induct)
-    case empty
-    obtain x where "x \<in> s \<inter> interior (\<Union>{})"
-      using empty(2) ..
-    then have False
-      unfolding Union_empty interior_empty by auto
-    then show ?case by auto
-  next
-    case (insert i f)
-    obtain x where x: "x \<in> s \<inter> interior (\<Union>insert i f)"
-      using insert(5) ..
-    then obtain e where e: "0 < e \<and> ball x e \<subseteq> s \<inter> interior (\<Union>insert i f)"
-      unfolding open_contains_ball_eq[OF open_Int[OF assms(2) open_interior], rule_format] ..
-    obtain a where "\<exists>b. i = cbox a b"
-      using insert(4)[rule_format,OF insertI1] ..
-    then obtain b where ab: "i = cbox a b" ..
-    show ?case
-    proof (cases "x \<in> i")
-      case False
-      then have "x \<in> UNIV - cbox a b"
-        unfolding ab by auto
-      then obtain d where "0 < d \<and> ball x d \<subseteq> UNIV - cbox a b"
-        unfolding open_contains_ball_eq[OF open_Diff[OF open_UNIV closed_cbox],rule_format] ..
-      then have "0 < d" "ball x (min d e) \<subseteq> UNIV - i"
-        unfolding ab ball_min_Int by auto
-      then have "ball x (min d e) \<subseteq> s \<inter> interior (\<Union>f)"
-        using e unfolding lem1 unfolding  ball_min_Int by auto
-      then have "x \<in> s \<inter> interior (\<Union>f)" using \<open>d>0\<close> e by auto
-      then have "\<exists>t\<in>f. \<exists>x e. 0 < e \<and> ball x e \<subseteq> s \<inter> t"
-        using insert.hyps(3) insert.prems(1) by blast
-      then show ?thesis by auto
-    next
-      case True show ?thesis
-      proof (cases "x\<in>box a b")
-        case True
-        then obtain d where "0 < d \<and> ball x d \<subseteq> box a b"
-          unfolding open_contains_ball_eq[OF open_box,rule_format] ..
-        then show ?thesis
-          apply (rule_tac x=i in bexI, rule_tac x=x in exI, rule_tac x="min d e" in exI)
-          unfolding ab
-          using box_subset_cbox[of a b] and e
-          apply fastforce+
-          done
-      next
-        case False
-        then obtain k where "x\<bullet>k \<le> a\<bullet>k \<or> x\<bullet>k \<ge> b\<bullet>k" and k: "k \<in> Basis"
-          unfolding mem_box by (auto simp add: not_less)
-        then have "x\<bullet>k = a\<bullet>k \<or> x\<bullet>k = b\<bullet>k"
-          using True unfolding ab and mem_box
-            apply (erule_tac x = k in ballE)
-            apply auto
-            done
-        then have "\<exists>x. ball x (e/2) \<subseteq> s \<inter> (\<Union>f)"
-        proof (rule disjE)
-          let ?z = "x - (e/2) *\<^sub>R k"
-          assume as: "x\<bullet>k = a\<bullet>k"
-          have "ball ?z (e / 2) \<inter> i = {}"
-          proof (clarsimp simp only: all_not_in_conv [symmetric])
-            fix y
-            assume "y \<in> ball ?z (e / 2)" and yi: "y \<in> i"
-            then have "dist ?z y < e/2" by auto
-            then have "\<bar>(?z - y) \<bullet> k\<bar> < e/2"
-              using Basis_le_norm[OF k, of "?z - y"] unfolding dist_norm by auto
-            then have "y\<bullet>k < a\<bullet>k"
-              using e k
-              by (auto simp add: field_simps abs_less_iff as inner_simps)
-            then have "y \<notin> i"
-              unfolding ab mem_box by (auto intro!: bexI[OF _ k])
-            then show False using yi by auto
-          qed
-          moreover
-          have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)"
-            apply (rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]])
-          proof
-            fix y
-            assume as: "y \<in> ball ?z (e/2)"
-            have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R k)"
-              apply (rule order_trans,rule norm_triangle_sub[of "x - y" "(e/2) *\<^sub>R k"])
-              unfolding norm_scaleR norm_Basis[OF k]
-              apply auto
-              done
-            also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2"
-              apply (rule add_strict_left_mono)
-              using as e
-              apply (auto simp add: field_simps dist_norm)
-              done
-            finally show "y \<in> ball x e"
-              unfolding mem_ball dist_norm using e by (auto simp add:field_simps)
-          qed
-          ultimately show ?thesis
-            apply (rule_tac x="?z" in exI)
-            unfolding Union_insert
-            apply auto
-            done
-        next
-          let ?z = "x + (e/2) *\<^sub>R k"
-          assume as: "x\<bullet>k = b\<bullet>k"
-          have "ball ?z (e / 2) \<inter> i = {}"
-          proof (clarsimp simp only: all_not_in_conv [symmetric])
-            fix y
-            assume "y \<in> ball ?z (e / 2)" and yi: "y \<in> i"
-            then have "dist ?z y < e/2"
-              by auto
-            then have "\<bar>(?z - y) \<bullet> k\<bar> < e/2"
-              using Basis_le_norm[OF k, of "?z - y"]
-              unfolding dist_norm by auto
-            then have "y\<bullet>k > b\<bullet>k"
-              using e k
-              by (auto simp add:field_simps inner_simps inner_Basis as)
-            then have "y \<notin> i"
-              unfolding ab mem_box by (auto intro!: bexI[OF _ k])
-            then show False using yi by auto
-          qed
-          moreover
-          have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)"
-            apply (rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]])
-          proof
-            fix y
-            assume as: "y\<in> ball ?z (e/2)"
-            have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y + (e / 2) *\<^sub>R k)"
-              apply (rule order_trans,rule norm_triangle_sub[of "x - y" "- (e/2) *\<^sub>R k"])
-              unfolding norm_scaleR
-              apply (auto simp: k)
-              done
-            also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2"
-              apply (rule add_strict_left_mono)
-              using as unfolding mem_ball dist_norm
-              using e apply (auto simp add: field_simps)
-              done
-            finally show "y \<in> ball x e"
-              unfolding mem_ball dist_norm using e by (auto simp add:field_simps)
-          qed
-          ultimately show ?thesis
-            apply (rule_tac x="?z" in exI)
-            unfolding Union_insert
-            apply auto
-            done
-        qed
-        then obtain x where "ball x (e / 2) \<subseteq> s \<inter> \<Union>f" ..
-        then have "x \<in> s \<inter> interior (\<Union>f)"
-          unfolding lem1[where U="\<Union>f", symmetric]
-          using centre_in_ball e by auto
-        then show ?thesis
-          using insert.hyps(3) insert.prems(1) by blast
-      qed
-    qed
+  assumes f: "\<And>s. s \<in> f \<Longrightarrow> \<exists>a b. s = cbox a b" "\<And>s. s \<in> f \<Longrightarrow> interior s \<subseteq> t"
+    and t: "closed t"
+  shows "interior (\<Union>f) \<subseteq> t"
+proof -
+  have [simp]: "s \<in> f \<Longrightarrow> closed s" for s
+    using f by auto
+  define E where "E = {s\<in>f. interior s = {}}"
+  then have "finite E" "E \<subseteq> {s\<in>f. interior s = {}}"
+    using \<open>finite f\<close> by auto
+  then have "interior (\<Union>f) = interior (\<Union>(f - E))"
+  proof (induction E rule: finite_subset_induct')
+    case (insert s f')
+    have "interior (\<Union>(f - insert s f') \<union> s) = interior (\<Union>(f - insert s f'))"
+      using insert.hyps \<open>finite f\<close> by (intro interior_closed_Un_empty_interior) auto
+    also have "\<Union>(f - insert s f') \<union> s = \<Union>(f - f')"
+      using insert.hyps by auto
+    finally show ?case
+      by (simp add: insert.IH)
+  qed simp
+  also have "\<dots> \<subseteq> \<Union>(f - E)"
+    by (rule interior_subset)
+  also have "\<dots> \<subseteq> t"
+  proof (rule Union_least)
+    fix s assume "s \<in> f - E"
+    with f[of s] obtain a b where s: "s \<in> f" "s = cbox a b" "box a b \<noteq> {}"
+      by (fastforce simp: E_def)
+    have "closure (interior s) \<subseteq> closure t"
+      by (intro closure_mono f \<open>s \<in> f\<close>)
+    with s \<open>closed t\<close> show "s \<subseteq> t"
+      by (simp add: closure_box)
   qed
-  from this[OF assms(1,3)] x
-  obtain t x e where "t \<in> f" "0 < e" "ball x e \<subseteq> s \<inter> t"
-    by blast
-  then have "x \<in> s" "x \<in> interior t"
-    using open_subset_interior[OF open_ball, of x e t]
-    by auto
-  then show False
-    using \<open>t \<in> f\<close> assms(4) by auto
+  finally show ?thesis .
 qed
+
+lemma inter_interior_unions_intervals:
+    "finite f \<Longrightarrow> open s \<Longrightarrow> \<forall>t\<in>f. \<exists>a b. t = cbox a b \<Longrightarrow> \<forall>t\<in>f. s \<inter> (interior t) = {} \<Longrightarrow> s \<inter> interior (\<Union>f) = {}"
+  using interior_Union_subset_cbox[of f "UNIV - s"] by auto
 
 subsection \<open>Bounds on intervals where they exist.\<close>
 
@@ -827,7 +694,7 @@ lemma division_inter:
   fixes s1 s2 :: "'a::euclidean_space set"
   assumes "p1 division_of s1"
     and "p2 division_of s2"
-  shows "{k1 \<inter> k2 | k1 k2 .k1 \<in> p1 \<and> k2 \<in> p2 \<and> k1 \<inter> k2 \<noteq> {}} division_of (s1 \<inter> s2)"
+  shows "{k1 \<inter> k2 | k1 k2. k1 \<in> p1 \<and> k2 \<in> p2 \<and> k1 \<inter> k2 \<noteq> {}} division_of (s1 \<inter> s2)"
   (is "?A' division_of _")
 proof -
   let ?A = "{s. s \<in>  (\<lambda>(k1,k2). k1 \<inter> k2) ` (p1 \<times> p2) \<and> s \<noteq> {}}"
