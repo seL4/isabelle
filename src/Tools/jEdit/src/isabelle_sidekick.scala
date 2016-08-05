@@ -146,25 +146,31 @@ class Isabelle_Sidekick_Structure(
   }
 }
 
-
 class Isabelle_Sidekick_Default extends
   Isabelle_Sidekick_Structure("isabelle",
     PIDE.resources.theory_node_name, Document_Structure.parse_sections _)
-
 
 class Isabelle_Sidekick_Context extends
   Isabelle_Sidekick_Structure("isabelle-context",
     PIDE.resources.theory_node_name, Document_Structure.parse_blocks _)
 
-
 class Isabelle_Sidekick_Options extends
   Isabelle_Sidekick_Structure("isabelle-options",
     _ => Some(Document.Node.Name("options")), Document_Structure.parse_sections _)
 
-
 class Isabelle_Sidekick_Root extends
   Isabelle_Sidekick_Structure("isabelle-root",
     _ => Some(Document.Node.Name("ROOT")), Document_Structure.parse_sections _)
+
+class Isabelle_Sidekick_ML extends
+  Isabelle_Sidekick_Structure("isabelle-ml",
+    buffer => Some(PIDE.resources.node_name(buffer)),
+    (_, _, text) => Document_Structure.parse_ml_sections(false, text))
+
+class Isabelle_Sidekick_SML extends
+  Isabelle_Sidekick_Structure("isabelle-sml",
+    buffer => Some(PIDE.resources.node_name(buffer)),
+    (_, _, text) => Document_Structure.parse_ml_sections(true, text))
 
 
 class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")

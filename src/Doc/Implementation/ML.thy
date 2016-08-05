@@ -70,11 +70,14 @@ text \<open>
   prose description of the purpose of the module. The latter can range from a
   single line to several paragraphs of explanations.
 
-  The rest of the file is divided into sections, subsections, subsubsections,
-  paragraphs etc.\ using a simple layout via ML comments as follows.
+  The rest of the file is divided into chapters, sections, subsections,
+  subsubsections, paragraphs etc.\ using a simple layout via ML comments as
+  follows.
 
   @{verbatim [display]
-\<open>  (*** section ***)
+\<open>  (**** chapter ****)
+ 
+  (*** section ***)
 
   (** subsection **)
 

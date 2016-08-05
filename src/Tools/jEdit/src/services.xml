@@ -23,6 +23,12 @@
   <SERVICE NAME="isabelle-markup" CLASS="sidekick.SideKickParser">
     new isabelle.jedit.Isabelle_Sidekick_Markup();
   </SERVICE>
+  <SERVICE NAME="isabelle-ml" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_ML();
+  </SERVICE>
+  <SERVICE NAME="isabelle-sml" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_SML();
+  </SERVICE>
   <SERVICE NAME="isabelle-news" CLASS="sidekick.SideKickParser">
     new isabelle.jedit.Isabelle_Sidekick_News();
   </SERVICE>
