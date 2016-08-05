@@ -307,7 +307,7 @@ fun prop_of_atom prop Ts = subst_atomic_types
   (map TVar (Term.add_tvars prop [] |> rev) @ map TFree (Term.add_tfrees prop [] |> rev) ~~ Ts)
   (forall_intr_vfs prop);
 
-val head_norm = Envir.head_norm (Envir.empty 0);
+val head_norm = Envir.head_norm Envir.init;
 
 fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 Hs (Abst (s, SOME T, prf)) =

@@ -221,7 +221,7 @@ fun norm_term_same (envir as Envir {tenv, tyenv, ...}) =
   else norm_term2 envir;
 
 fun norm_term envir t = norm_term_same envir t handle Same.SAME => t;
-fun beta_norm t = if Term.has_abs t then norm_term (empty 0) t else t;
+fun beta_norm t = if Term.has_abs t then norm_term init t else t;
 
 end;
 
