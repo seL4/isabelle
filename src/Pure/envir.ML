@@ -101,7 +101,7 @@ val insert_sorts = Vartab.fold (fn (_, (_, T)) => Sorts.insert_typ T) o type_env
 fun genvars name (Envir {maxidx, tenv, tyenv}, Ts) : env * term list =
   let
     fun genvs (_, [] : typ list) : term list = []
-      | genvs (n, [T]) = [Var ((name, maxidx + 1), T)]
+      | genvs (_, [T]) = [Var ((name, maxidx + 1), T)]
       | genvs (n, T :: Ts) =
           Var ((name ^ radixstring (26, "a" , n), maxidx + 1), T)
             :: genvs (n + 1, Ts);
@@ -137,16 +137,16 @@ fun above (Envir {tenv, tyenv, ...}) lim =
   (case Vartab.min tyenv of SOME ((_, i), _) => i > lim | NONE => true);
 
 (*Update, checking Var-Var assignments: try to suppress higher indexes*)
-fun vupdate (aU as (a, U), t) (env as Envir {tyenv, ...}) =
+fun vupdate ((a, U), t) env =
   (case t of
     Var (nT as (name', T)) =>
       if a = name' then env     (*cycle!*)
       else if Term_Ord.indexname_ord (a, name') = LESS then
         (case lookup env nT of  (*if already assigned, chase*)
           NONE => update (nT, Var (a, T)) env
-        | SOME u => vupdate (aU, u) env)
-      else update (aU, t) env
-  | _ => update (aU, t) env);
+        | SOME u => vupdate ((a, U), u) env)
+      else update ((a, U), t) env
+  | _ => update ((a, U), t) env);
 
 
 
@@ -183,7 +183,7 @@ fun norm_term1 tenv : term Same.operation =
       | norm _ = raise Same.SAME;
   in norm end;
 
-fun norm_term2 (envir as Envir {tenv, tyenv, ...}) : term Same.operation =
+fun norm_term2 (envir as Envir {tyenv, ...}) : term Same.operation =
   let
     val normT = norm_type0 tyenv;
     fun norm (Const (a, T)) = Const (a, normT T)
@@ -322,13 +322,13 @@ fun fastype (Envir {tyenv, ...}) =
     fun fast Ts (f $ u) =
           (case Type.devar tyenv (fast Ts f) of
             Type ("fun", [_, T]) => T
-          | TVar v => raise TERM (funerr, [f $ u])
+          | TVar _ => raise TERM (funerr, [f $ u])
           | _ => raise TERM (funerr, [f $ u]))
-      | fast Ts (Const (_, T)) = T
-      | fast Ts (Free (_, T)) = T
+      | fast _ (Const (_, T)) = T
+      | fast _ (Free (_, T)) = T
       | fast Ts (Bound i) =
           (nth Ts i handle General.Subscript => raise TERM ("fastype: Bound", [Bound i]))
-      | fast Ts (Var (_, T)) = T
+      | fast _ (Var (_, T)) = T
       | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u;
   in fast end;
 
