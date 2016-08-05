@@ -342,17 +342,17 @@ lemma floor_less_neg_numeral [simp]: "\<lfloor>x\<rfloor> < - numeral v \<longle
 
 text \<open>Addition and subtraction of integers.\<close>
 
-lemma floor_add_of_int [simp]: "\<lfloor>x + of_int z\<rfloor> = \<lfloor>x\<rfloor> + z"
-  using floor_correct [of x] by (simp add: floor_unique)
+lemma floor_add_int: "\<lfloor>x\<rfloor> + z = \<lfloor>x + of_int z\<rfloor>"
+  using floor_correct [of x] by (simp add: floor_unique[symmetric])
 
-lemma floor_add_numeral [simp]: "\<lfloor>x + numeral v\<rfloor> = \<lfloor>x\<rfloor> + numeral v"
-  using floor_add_of_int [of x "numeral v"] by simp
+lemma int_add_floor: "z + \<lfloor>x\<rfloor> = \<lfloor>of_int z + x\<rfloor>"
+  using floor_correct [of x] by (simp add: floor_unique[symmetric])
 
-lemma floor_add_one [simp]: "\<lfloor>x + 1\<rfloor> = \<lfloor>x\<rfloor> + 1"
-  using floor_add_of_int [of x 1] by simp
+lemma one_add_floor: "\<lfloor>x\<rfloor> + 1 = \<lfloor>x + 1\<rfloor>"
+  using floor_add_int [of x 1] by simp
 
 lemma floor_diff_of_int [simp]: "\<lfloor>x - of_int z\<rfloor> = \<lfloor>x\<rfloor> - z"
-  using floor_add_of_int [of x "- z"] by (simp add: algebra_simps)
+  using floor_add_int [of x "- z"] by (simp add: algebra_simps)
 
 lemma floor_uminus_of_int [simp]: "\<lfloor>- (of_int z)\<rfloor> = - z"
   by (metis floor_diff_of_int [of 0] diff_0 floor_zero)
@@ -414,7 +414,7 @@ next
   then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l + of_int (k div l) :: 'a\<rfloor>"
     by (simp add: ac_simps)
   then have "\<lfloor>of_int k / of_int l :: 'a\<rfloor> = \<lfloor>of_int (k mod l) / of_int l :: 'a\<rfloor> + k div l"
-    by simp
+    by (simp add: floor_add_int)
   with * show ?thesis
     by simp
 qed
@@ -444,7 +444,7 @@ next
     by simp
   ultimately have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> =
       \<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> + of_nat (m div n)"
-    by (simp only: floor_add_of_int)
+    by (simp only: floor_add_int)
   with * show ?thesis
     by simp
 qed
@@ -629,17 +629,15 @@ lemma frac_of_int [simp]: "frac (of_int z) = 0"
 
 lemma floor_add: "\<lfloor>x + y\<rfloor> = (if frac x + frac y < 1 then \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> else (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>) + 1)"
 proof -
-  have "\<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>" if "x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
-    using that by (metis add.commute floor_unique le_floor_add le_floor_iff of_int_add)
+  have "x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>) \<Longrightarrow> \<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"
+    by (metis add.commute floor_unique le_floor_add le_floor_iff of_int_add)
   moreover
-  have "\<lfloor>x + y\<rfloor> = 1 + (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>)" if "\<not> x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>)"
-    using that
+  have "\<not> x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>) \<Longrightarrow> \<lfloor>x + y\<rfloor> = 1 + (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>)"
     apply (simp add: floor_unique_iff)
     apply (auto simp add: algebra_simps)
     apply linarith
     done
-  ultimately show ?thesis
-    by (auto simp add: frac_def algebra_simps)
+  ultimately show ?thesis by (auto simp add: frac_def algebra_simps)
 qed
 
 lemma floor_add2[simp]: "frac x = 0 \<or> frac y = 0 \<Longrightarrow> \<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"

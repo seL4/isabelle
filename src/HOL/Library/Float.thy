@@ -1425,8 +1425,8 @@ proof -
     by (simp add: log_mult)
   then have "bitlen (int x) < bitlen (int y)"
     using assms
-    by (simp add: bitlen_alt_def del: floor_add_one)
-      (auto intro!: floor_mono simp add: floor_add_one[symmetric] simp del: floor_add floor_add_one)
+    by (simp add: bitlen_alt_def)
+      (auto intro!: floor_mono simp add: one_add_floor)
   then show ?thesis
     using assms
     by (auto intro!: pos_add_strict simp add: field_simps rat_precision_def)
@@ -1812,9 +1812,9 @@ next
     have "\<dots> = \<lfloor>log 2 (1 + (r + sgn (sgn ai * b) / 2) / 2 powr k)\<rfloor>"
       by (subst floor_eq) (auto simp: sgn_if)
     also have "k + \<dots> = \<lfloor>log 2 (2 powr k * (1 + (r + sgn (sgn ai * b) / 2) / 2 powr k))\<rfloor>"
-      unfolding floor_add2[symmetric]
+      unfolding int_add_floor
       using pos[OF less'] \<open>\<bar>b\<bar> \<le> _\<close>
-      by (simp add: field_simps add_log_eq_powr)
+      by (simp add: field_simps add_log_eq_powr del: floor_add2)
     also have "2 powr k * (1 + (r + sgn (sgn ai * b) / 2) / 2 powr k) =
         2 powr k + r + sgn (sgn ai * b) / 2"
       by (simp add: sgn_if field_simps)
@@ -1899,8 +1899,8 @@ proof -
     by (auto simp: field_simps powr_minus[symmetric] powr_divide2[symmetric] powr_mult_base)
   then have "\<lfloor>log 2 \<bar>?m1 + ?m2'\<bar>\<rfloor> + ?e = \<lfloor>log 2 \<bar>real_of_float (Float (?m1 * 2 + sgn m2) (?e - 1))\<bar>\<rfloor>"
     using \<open>?m1 + ?m2' \<noteq> 0\<close>
-    unfolding floor_add_of_int[symmetric]
-    by (simp add: log_add_eq_powr abs_mult_pos)
+    unfolding floor_add_int
+    by (simp add: log_add_eq_powr abs_mult_pos del: floor_add2)
   finally
   have "\<lfloor>log 2 \<bar>?sum\<bar>\<rfloor> = \<lfloor>log 2 \<bar>real_of_float (Float (?m1*2 + sgn m2) (?e - 1))\<bar>\<rfloor>" .
   then have "plus_down p (Float m1 e1) (Float m2 e2) =
@@ -1919,7 +1919,7 @@ proof -
     next
       have "e1 + \<lfloor>log 2 \<bar>real_of_int m1\<bar>\<rfloor> - 1 = \<lfloor>log 2 \<bar>?a\<bar>\<rfloor> - 1"
         using \<open>m1 \<noteq> 0\<close>
-        by (simp add: floor_add2[symmetric] algebra_simps log_mult abs_mult del: floor_add2)
+        by (simp add: int_add_floor algebra_simps log_mult abs_mult del: floor_add2)
       also have "\<dots> \<le> \<lfloor>log 2 \<bar>?a + ?b\<bar>\<rfloor>"
         using a_half_less_sum \<open>m1 \<noteq> 0\<close> \<open>?sum \<noteq> 0\<close>
         unfolding floor_diff_of_int[symmetric]
