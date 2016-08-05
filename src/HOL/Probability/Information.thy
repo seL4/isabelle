@@ -8,7 +8,6 @@ section \<open>Information theory\<close>
 theory Information
 imports
   Independent_Family
-  "~~/src/HOL/Library/Convex"
 begin
 
 lemma log_le: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"

@@ -6,50 +6,8 @@
 section \<open>Probability measure\<close>
 
 theory Probability_Measure
-  imports Lebesgue_Measure Radon_Nikodym
+  imports "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
-
-lemma (in finite_measure) countable_support:
-  "countable {x. measure M {x} \<noteq> 0}"
-proof cases
-  assume "measure M (space M) = 0"
-  with bounded_measure measure_le_0_iff have "{x. measure M {x} \<noteq> 0} = {}"
-    by auto
-  then show ?thesis
-    by simp
-next
-  let ?M = "measure M (space M)" and ?m = "\<lambda>x. measure M {x}"
-  assume "?M \<noteq> 0"
-  then have *: "{x. ?m x \<noteq> 0} = (\<Union>n. {x. ?M / Suc n < ?m x})"
-    using reals_Archimedean[of "?m x / ?M" for x]
-    by (auto simp: field_simps not_le[symmetric] measure_nonneg divide_le_0_iff measure_le_0_iff)
-  have **: "\<And>n. finite {x. ?M / Suc n < ?m x}"
-  proof (rule ccontr)
-    fix n assume "infinite {x. ?M / Suc n < ?m x}" (is "infinite ?X")
-    then obtain X where "finite X" "card X = Suc (Suc n)" "X \<subseteq> ?X"
-      by (metis infinite_arbitrarily_large)
-    from this(3) have *: "\<And>x. x \<in> X \<Longrightarrow> ?M / Suc n \<le> ?m x"
-      by auto
-    { fix x assume "x \<in> X"
-      from \<open>?M \<noteq> 0\<close> *[OF this] have "?m x \<noteq> 0" by (auto simp: field_simps measure_le_0_iff)
-      then have "{x} \<in> sets M" by (auto dest: measure_notin_sets) }
-    note singleton_sets = this
-    have "?M < (\<Sum>x\<in>X. ?M / Suc n)"
-      using \<open>?M \<noteq> 0\<close>
-      by (simp add: \<open>card X = Suc (Suc n)\<close> of_nat_Suc field_simps less_le measure_nonneg)
-    also have "\<dots> \<le> (\<Sum>x\<in>X. ?m x)"
-      by (rule setsum_mono) fact
-    also have "\<dots> = measure M (\<Union>x\<in>X. {x})"
-      using singleton_sets \<open>finite X\<close>
-      by (intro finite_measure_finite_Union[symmetric]) (auto simp: disjoint_family_on_def)
-    finally have "?M < measure M (\<Union>x\<in>X. {x})" .
-    moreover have "measure M (\<Union>x\<in>X. {x}) \<le> ?M"
-      using singleton_sets[THEN sets.sets_into_space] by (intro finite_measure_mono) auto
-    ultimately show False by simp
-  qed
-  show ?thesis
-    unfolding * by (intro countable_UN countableI_type countable_finite[OF **])
-qed
 
 locale prob_space = finite_measure +
   assumes emeasure_space_1: "emeasure M (space M) = 1"
@@ -129,7 +87,7 @@ lemma (in prob_space) measure_le_1: "emeasure M X \<le> 1"
   using emeasure_space[of M X] by (simp add: emeasure_space_1)
 
 lemma (in prob_space) measure_ge_1_iff: "measure M A \<ge> 1 \<longleftrightarrow> measure M A = 1"
-  by (auto intro!: antisym)  
+  by (auto intro!: antisym)
 
 lemma (in prob_space) AE_I_eq_1:
   assumes "emeasure M {x\<in>space M. P x} = 1" "{x\<in>space M. P x} \<in> sets M"
@@ -1266,5 +1224,8 @@ lemma emeasure_distr_restrict:
   using \<open>I\<subseteq>K\<close> sets_eq_imp_space_eq[OF Q]
   by (subst emeasure_distr)
      (auto simp: measurable_cong_sets[OF Q] prod_emb_def space_PiM[symmetric] intro!: measurable_restrict)
+
+lemma (in prob_space) prob_space_completion: "prob_space (completion M)"
+  by (rule prob_spaceI) (simp add: emeasure_space_1)
 
 end

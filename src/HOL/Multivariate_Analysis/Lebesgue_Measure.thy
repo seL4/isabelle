@@ -1379,4 +1379,3 @@ proof -
 qed
 
 end
-

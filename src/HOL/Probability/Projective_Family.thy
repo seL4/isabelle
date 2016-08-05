@@ -6,7 +6,7 @@
 section \<open>Projective Family\<close>
 
 theory Projective_Family
-imports Finite_Product_Measure Giry_Monad
+imports Giry_Monad
 begin
 
 lemma vimage_restrict_preseve_mono:

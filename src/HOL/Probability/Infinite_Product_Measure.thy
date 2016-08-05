@@ -5,7 +5,7 @@
 section \<open>Infinite Product Measure\<close>
 
 theory Infinite_Product_Measure
-  imports Probability_Measure Caratheodory Projective_Family
+  imports Probability_Measure Projective_Family
 begin
 
 lemma (in product_prob_space) distr_PiM_restrict_finite:

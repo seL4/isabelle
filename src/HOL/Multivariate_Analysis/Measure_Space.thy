@@ -8,7 +8,7 @@ section \<open>Measure spaces and their properties\<close>
 
 theory Measure_Space
 imports
-  Measurable "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
+  Measurable "~~/src/HOL/Library/Extended_Nonnegative_Real"
 begin
 
 subsection "Relate extended reals and the indicator function"
@@ -1812,7 +1812,7 @@ proof (rule emeasure_measure_of_sigma)
       then have eq: "(\<Union>i. F i) = F i"
         by auto
       with i show ?thesis
-        by (auto intro!: Lim_eventually eventually_sequentiallyI[where c=i])
+        by (auto intro!: Lim_transform_eventually[OF _ tendsto_const] eventually_sequentiallyI[where c=i])
     next
       assume "\<not> (\<exists>i. \<forall>j\<ge>i. F i = F j)"
       then obtain f where f: "\<And>i. i \<le> f i" "\<And>i. F i \<noteq> F (f i)" by metis
@@ -3279,5 +3279,48 @@ lemma sets_eq_bot: "sets M = {{}} \<longleftrightarrow> M = bot"
 
 lemma sets_eq_bot2: "{{}} = sets M \<longleftrightarrow> M = bot"
   using sets_eq_bot[of M] by blast
+
+
+lemma (in finite_measure) countable_support:
+  "countable {x. measure M {x} \<noteq> 0}"
+proof cases
+  assume "measure M (space M) = 0"
+  with bounded_measure measure_le_0_iff have "{x. measure M {x} \<noteq> 0} = {}"
+    by auto
+  then show ?thesis
+    by simp
+next
+  let ?M = "measure M (space M)" and ?m = "\<lambda>x. measure M {x}"
+  assume "?M \<noteq> 0"
+  then have *: "{x. ?m x \<noteq> 0} = (\<Union>n. {x. ?M / Suc n < ?m x})"
+    using reals_Archimedean[of "?m x / ?M" for x]
+    by (auto simp: field_simps not_le[symmetric] measure_nonneg divide_le_0_iff measure_le_0_iff)
+  have **: "\<And>n. finite {x. ?M / Suc n < ?m x}"
+  proof (rule ccontr)
+    fix n assume "infinite {x. ?M / Suc n < ?m x}" (is "infinite ?X")
+    then obtain X where "finite X" "card X = Suc (Suc n)" "X \<subseteq> ?X"
+      by (metis infinite_arbitrarily_large)
+    from this(3) have *: "\<And>x. x \<in> X \<Longrightarrow> ?M / Suc n \<le> ?m x"
+      by auto
+    { fix x assume "x \<in> X"
+      from \<open>?M \<noteq> 0\<close> *[OF this] have "?m x \<noteq> 0" by (auto simp: field_simps measure_le_0_iff)
+      then have "{x} \<in> sets M" by (auto dest: measure_notin_sets) }
+    note singleton_sets = this
+    have "?M < (\<Sum>x\<in>X. ?M / Suc n)"
+      using \<open>?M \<noteq> 0\<close>
+      by (simp add: \<open>card X = Suc (Suc n)\<close> of_nat_Suc field_simps less_le measure_nonneg)
+    also have "\<dots> \<le> (\<Sum>x\<in>X. ?m x)"
+      by (rule setsum_mono) fact
+    also have "\<dots> = measure M (\<Union>x\<in>X. {x})"
+      using singleton_sets \<open>finite X\<close>
+      by (intro finite_measure_finite_Union[symmetric]) (auto simp: disjoint_family_on_def)
+    finally have "?M < measure M (\<Union>x\<in>X. {x})" .
+    moreover have "measure M (\<Union>x\<in>X. {x}) \<le> ?M"
+      using singleton_sets[THEN sets.sets_into_space] by (intro finite_measure_mono) auto
+    ultimately show False by simp
+  qed
+  show ?thesis
+    unfolding * by (intro countable_UN countableI_type countable_finite[OF **])
+qed
 
 end

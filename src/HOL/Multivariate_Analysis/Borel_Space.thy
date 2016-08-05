@@ -7,8 +7,7 @@ section \<open>Borel spaces\<close>
 
 theory Borel_Space
 imports
-  Measurable
-  "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
+  Measurable Derivative Ordered_Euclidean_Space Extended_Real_Limits
 begin
 
 lemma sets_Collect_eventually_sequentially[measurable]:

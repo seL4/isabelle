@@ -5,7 +5,7 @@
 section \<open>Characteristic Functions\<close>
 
 theory Characteristic_Functions
-  imports Weak_Convergence Interval_Integral Independent_Family Distributions
+  imports Weak_Convergence Independent_Family Distributions
 begin
 
 lemma mult_min_right: "a \<ge> 0 \<Longrightarrow> (a :: real) * min b c = min (a * b) (a * c)"

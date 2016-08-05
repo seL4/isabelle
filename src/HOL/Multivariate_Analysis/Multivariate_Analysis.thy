@@ -1,10 +1,13 @@
 theory Multivariate_Analysis
 imports
+  Regularity
+  Lebesgue_Integral_Substitution
+  Embed_Measure
+  Complete_Measure
+  Radon_Nikodym
   Fashoda_Theorem
-  Extended_Real_Limits
   Determinants
   Homeomorphism
-  Ordered_Euclidean_Space
   Bounded_Continuous_Function
   Weierstrass_Theorems
   Polytope

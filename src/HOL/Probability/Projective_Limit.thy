@@ -5,13 +5,10 @@
 section \<open>Projective Limit\<close>
 
 theory Projective_Limit
-  imports
-    Caratheodory
-    Fin_Map
-    Regularity
-    Projective_Family
-    Infinite_Product_Measure
-    "~~/src/HOL/Library/Diagonal_Subsequence"
+imports
+  Fin_Map
+  Infinite_Product_Measure
+  "~~/src/HOL/Library/Diagonal_Subsequence"
 begin
 
 subsection \<open>Sequences of Finite Maps in Compact Sets\<close>

@@ -6,7 +6,7 @@
 section \<open>Independent families of events, event sets, and random variables\<close>
 
 theory Independent_Family
-  imports Probability_Measure Infinite_Product_Measure
+  imports Infinite_Product_Measure
 begin
 
 definition (in prob_space)

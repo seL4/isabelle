@@ -4,7 +4,6 @@ section \<open>Discrete subprobability distribution\<close>
 
 theory SPMF imports
   Probability_Mass_Function
-  Embed_Measure
   "~~/src/HOL/Library/Complete_Partial_Order2"
   "~~/src/HOL/Library/Rewrite"
 begin

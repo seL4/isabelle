@@ -3,7 +3,7 @@
 *)
 
 theory Complete_Measure
-  imports Bochner_Integration Probability_Measure
+  imports Bochner_Integration
 begin
 
 definition
@@ -291,9 +291,6 @@ proof -
       using sf[THEN borel_measurable_simple_function] by auto
   qed
 qed
-
-lemma (in prob_space) prob_space_completion: "prob_space (completion M)"
-  by (rule prob_spaceI) (simp add: emeasure_space_1)
 
 lemma null_sets_completionI: "N \<in> null_sets M \<Longrightarrow> N \<in> null_sets (completion M)"
   by (auto simp: null_sets_def)
