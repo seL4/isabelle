@@ -84,7 +84,7 @@ fun specialise_intros black_list (pred, intros) pats thy =
       (let
         val (prems, concl) = Logic.strip_horn (Thm.prop_of intro)
         val env = Pattern.unify (Context.Theory thy)
-          (HOLogic.mk_Trueprop (list_comb (pred, pats)), concl) (Envir.empty 0)
+          (HOLogic.mk_Trueprop (list_comb (pred, pats)), concl) Envir.init
         val prems = map (Envir.norm_term env) prems
         val args = map (Envir.norm_term env) result_pats
         val concl = HOLogic.mk_Trueprop (list_comb (specialised_const, args))
