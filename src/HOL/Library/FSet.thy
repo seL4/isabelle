@@ -202,6 +202,8 @@ lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightar
 
 lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold .
 
+lift_definition fset_of_list :: "'a list \<Rightarrow> 'a fset" is set by (rule finite_set)
+
 
 subsection \<open>Transferred lemmas from Set.thy\<close>
 
@@ -441,6 +443,10 @@ lemmas nonfempty_fbind_const = nonempty_bind_const[Transfer.transferred]
 lemmas fbind_const = bind_const[Transfer.transferred]
 lemmas ffmember_filter[simp] = member_filter[Transfer.transferred]
 lemmas fequalityI = equalityI[Transfer.transferred]
+lemmas fset_of_list_simps[simp] = set_simps[Transfer.transferred]
+lemmas fset_of_list_append[simp] = set_append[Transfer.transferred]
+lemmas fset_of_list_rev[simp] = set_rev[Transfer.transferred]
+lemmas fset_of_list_map[simp] = set_map[Transfer.transferred]
 
 
 subsection \<open>Additional lemmas\<close>
@@ -483,7 +489,7 @@ lemmas union_fset[simp] = sup_fset.rep_eq
 lemmas minus_fset[simp] = minus_fset.rep_eq
 
 
-subsubsection \<open>\<open>filter_fset\<close>\<close>
+subsubsection \<open>\<open>ffilter\<close>\<close>
 
 lemma subset_ffilter:
   "ffilter P A |\<subseteq>| ffilter Q A = (\<forall> x. x |\<in>| A \<longrightarrow> P x \<longrightarrow> Q x)"
@@ -497,6 +503,20 @@ lemma pfsubset_ffilter:
   "(\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| A & \<not> P x & Q x) \<Longrightarrow>
     ffilter P A |\<subset>| ffilter Q A"
   unfolding less_fset_def by (auto simp add: subset_ffilter eq_ffilter)
+
+
+subsubsection \<open>\<open>fset_of_list\<close>\<close>
+
+lemma fset_of_list_filter[simp]:
+  "fset_of_list (filter P xs) = ffilter P (fset_of_list xs)"
+  by transfer (auto simp: Set.filter_def)
+
+lemma fset_of_list_subset[intro]:
+  "set xs \<subseteq> set ys \<Longrightarrow> fset_of_list xs |\<subseteq>| fset_of_list ys"
+  by transfer simp
+
+lemma fset_of_list_elem: "(x |\<in>| fset_of_list xs) \<longleftrightarrow> (x \<in> set xs)"
+  by transfer simp
 
 
 subsubsection \<open>\<open>finsert\<close>\<close>
@@ -543,7 +563,11 @@ lemma atomize_fBall:
     "(\<And>x. x |\<in>| A ==> P x) == Trueprop (fBall A (\<lambda>x. P x))"
 apply (simp only: atomize_all atomize_imp)
 apply (rule equal_intr_rule)
-by (transfer, simp)+
+  by (transfer, simp)+
+
+lemma fBall_mono[mono]: "P \<le> Q \<Longrightarrow> fBall S P \<le> fBall S Q"
+by auto
+
 
 end
 
