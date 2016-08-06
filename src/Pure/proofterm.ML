@@ -130,6 +130,7 @@ sig
     arity_proof: theory -> string * sort list * class -> proof} -> theory -> theory
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
+  val shrink_proof: proof -> proof
 
   (** rewriting on proof terms **)
   val add_prf_rrule: proof * proof -> theory -> theory
@@ -1151,7 +1152,7 @@ fun oracle_proof name prop =
   if ! proofs = 0 then ((name, Term.dummy), Oracle (name, Term.dummy, NONE))
   else ((name, prop), gen_axm_proof Oracle name prop);
 
-fun shrink_proof thy =
+val shrink_proof =
   let
     fun shrink ls lev (prf as Abst (a, T, body)) =
           let val (b, is, ch, body') = shrink ls (lev+1) body
@@ -1208,7 +1209,7 @@ fun shrink_proof thy =
           union (op =) (if b then map (fst o dest_Var) (vars_of t) else []) (needed u ts prfs)
       | needed (Var (ixn, _)) (_::_) _ = [ixn]
       | needed _ _ _ = [];
-  in shrink end;
+  in fn prf => #4 (shrink [] 0 prf) end;
 
 
 (**** Simple first order matching functions for terms and proofs ****)
@@ -1561,8 +1562,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
           {name = "Proofterm.prepare_thm_proof", group = NONE,
             deps = [], pri = 0, interrupts = true}
           (fn () =>
-            make_body0
-              (#4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))));
+            make_body0 (shrink_proof (rew_proof thy (fold_rev implies_intr_proof hyps prf))));
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
