@@ -258,9 +258,24 @@ fun string_of_prfs full state arg =
             (if full then Reconstruct.reconstruct_proof ctxt prop prf' else prf')
         end
     | SOME srcs =>
-        let val ctxt = Toplevel.context_of state
-        in map (Proof_Syntax.pretty_proof_of ctxt full) (Attrib.eval_thms ctxt srcs) end
-        |> Pretty.chunks);
+        let
+          val ctxt = Toplevel.context_of state;
+          val thy = Proof_Context.theory_of ctxt;
+          fun pretty_proof thm =
+            let
+              val (_, prop) =
+                Logic.unconstrainT (Thm.shyps_of thm)
+                  (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
+            in
+              Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm))
+              |> Reconstruct.reconstruct_proof ctxt prop
+              |> Reconstruct.expand_proof ctxt [("", NONE)]
+              |> Proofterm.rew_proof thy
+              |> Proofterm.no_thm_proofs
+              |> not full ? Proofterm.shrink_proof
+              |> Proof_Syntax.pretty_proof ctxt
+            end;
+        in Pretty.chunks (map pretty_proof (Attrib.eval_thms ctxt srcs)) end);
 
 fun string_of_prop ctxt s =
   let

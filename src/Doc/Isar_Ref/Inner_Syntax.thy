@@ -84,10 +84,8 @@ text \<open>
     \<open>a\<^sub>1, \<dots>, a\<^sub>n\<close> do not have any permanent effect.
 
     \<^descr> @{command "prf"} displays the (compact) proof term of the current proof
-    state (if present), or of the given theorems. Note that this requires
-    proof terms to be switched on for the current object logic (see the
-    ``Proof terms'' section of the Isabelle reference manual for information
-    on how to do this).
+    state (if present), or of the given theorems. Note that this requires an
+    underlying logic image with proof terms enabled, e.g. \<open>HOL-Proofs\<close>.
 
     \<^descr> @{command "full_prf"} is like @{command "prf"}, but displays the full
     proof term, i.e.\ also displays information omitted in the compact proof

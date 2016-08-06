@@ -57,6 +57,9 @@ that only know about meta-equality (==). Potential INCOMPATIBILITY in
 theory imports that merge Pure with e.g. Main of Isabelle/HOL: the order
 is relevant to avoid confusion of Pure.simp vs. HOL.simp.
 
+* Commands 'prf' and 'full_prf' are somewhat more informative (again):
+proof terms are reconstructed and cleaned from administrative thm nodes.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
