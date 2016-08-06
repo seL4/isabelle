@@ -640,8 +640,8 @@ proof -
   ultimately show ?thesis by (auto simp add: frac_def algebra_simps)
 qed
 
-lemma floor_add2[simp]: "frac x = 0 \<or> frac y = 0 \<Longrightarrow> \<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"
-by (metis add.commute add.left_neutral frac_lt_1 floor_add)
+lemma floor_add2[simp]: "x \<in> \<int> \<or> y \<in> \<int> \<Longrightarrow> \<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"
+by (metis add.commute add.left_neutral frac_lt_1 floor_add frac_eq_0_iff)
 
 lemma frac_add:
   "frac (x + y) = (if frac x + frac y < 1 then frac x + frac y else (frac x + frac y) - 1)"
