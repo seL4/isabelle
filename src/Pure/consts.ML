@@ -83,8 +83,15 @@ fun update_abbrevs mode abbrs =
   Symtab.map_default (mode, empty_abbrevs) (Item_Net.update abbrs);
 
 fun retrieve_abbrevs (Consts {rev_abbrevs, ...}) modes =
-  let val nets = map_filter (Symtab.lookup rev_abbrevs) modes
-  in fn t => maps (fn net => Item_Net.retrieve_matching net t) nets end;
+  let val nets = map_filter (Symtab.lookup rev_abbrevs) modes in
+    fn t =>
+      let
+        val retrieve =
+          if Term.could_beta_eta_contract t
+          then Item_Net.retrieve
+          else Item_Net.retrieve_matching
+      in maps (fn net => retrieve net t) nets end
+  end;
 
 
 (* dest consts *)
