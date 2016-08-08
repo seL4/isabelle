@@ -12,7 +12,7 @@ subsection\<open>Lemmas about previously defined terms\<close>
 
 lemma prime: 
   "prime (p::nat) \<longleftrightarrow> p \<noteq> 0 \<and> p \<noteq> 1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
-  unfolding is_prime_nat_iff
+  unfolding prime_nat_iff
 proof safe
   fix m assume p: "p > 0" "p \<noteq> 1" and m: "m dvd p" "m \<noteq> p" 
            and *: "\<forall>m. m > 0 \<and> m < p \<longrightarrow> coprime p m"
@@ -20,8 +20,8 @@ proof safe
   moreover from p m have "m < p" by (auto dest: dvd_imp_le)
   ultimately have "coprime p m" using * by blast
   with m show "m = 1" by simp
-qed (auto simp: is_prime_nat_iff simp del: One_nat_def 
-          intro!: is_prime_imp_coprime dest: dvd_imp_le)
+qed (auto simp: prime_nat_iff simp del: One_nat_def 
+          intro!: prime_imp_coprime dest: dvd_imp_le)
 
 lemma finite_number_segment: "card { m. 0 < m \<and> m < n } = n - 1"
 proof-
@@ -85,7 +85,7 @@ proof-
     with y(2) have th: "p dvd a"
       by (auto dest: cong_dvd_eq_nat)
     have False
-      by (metis gcd_nat.absorb1 not_is_prime_1 p pa th)}
+      by (metis gcd_nat.absorb1 not_prime_1 p pa th)}
   with y show ?thesis unfolding Ex1_def using neq0_conv by blast
 qed
 
@@ -428,18 +428,18 @@ lemma prime_prime_factor:
 proof (cases "n=0 \<or> n=1")
   case True
   then show ?thesis
-     by (metis bigger_prime dvd_0_right not_is_prime_1 not_is_prime_0)
+     by (metis bigger_prime dvd_0_right not_prime_1 not_prime_0)
 next
   case False
   show ?thesis
   proof
     assume "prime n"
     then show ?rhs
-      by (metis  not_is_prime_1 is_prime_nat_iff)
+      by (metis  not_prime_1 prime_nat_iff)
   next
     assume ?rhs
     with False show "prime n"
-      by (auto simp: is_prime_nat_iff) (metis One_nat_def prime_factor_nat is_prime_nat_iff)
+      by (auto simp: prime_nat_iff) (metis One_nat_def prime_factor_nat prime_nat_iff)
   qed
 qed
 
@@ -475,7 +475,7 @@ proof -
         with H[rule_format, of e] h have "e=1" by simp
         with e have "d = n" by simp}
       ultimately have "d=1 \<or> d=n"  by blast}
-    ultimately have ?thesis unfolding is_prime_nat_iff using np n(2) by blast}
+    ultimately have ?thesis unfolding prime_nat_iff using np n(2) by blast}
   ultimately show ?thesis by auto
 qed
 
@@ -485,7 +485,7 @@ lemma prime_prime_factor_sqrt:
 proof-
   {assume "n=0 \<or> n=1" 
    hence ?thesis
-     by (metis not_is_prime_0 not_is_prime_1)}
+     by (metis not_prime_0 not_prime_1)}
   moreover
   {assume n: "n\<noteq>0" "n\<noteq>1"
     {assume H: ?lhs
@@ -539,7 +539,7 @@ proof -
     from aq P(1) Pq have caP:"coprime (a^ ((n - 1) div P) - 1) n" by blast
     from Pq obtain s where s: "q = P*s" unfolding dvd_def by blast
     have P0: "P \<noteq> 0" using P(1)
-      by (metis not_is_prime_0) 
+      by (metis not_prime_0) 
     from P(2) obtain t where t: "d = P*t" unfolding dvd_def by blast
     from d s t P0  have s': "ord p (a^r) * t = s"
       by (metis mult.commute mult_cancel1 mult.assoc) 
@@ -559,7 +559,7 @@ proof -
   hence o: "ord p (a^r) = q" using d by simp
   from pp phi_prime[of p] have phip: "phi p = p - 1" by simp
   {fix d assume d: "d dvd p" "d dvd a" "d \<noteq> 1"
-    from pp[unfolded is_prime_nat_iff] d have dp: "d = p" by blast
+    from pp[unfolded prime_nat_iff] d have dp: "d = p" by blast
     from n have "n \<noteq> 0" by simp
     then have False using d dp pn
       by auto (metis One_nat_def Suc_pred an dvd_1_iff_1 gcd_greatest_iff lucas_coprime_lemma)} 
@@ -675,7 +675,7 @@ next
   from Cons.prems[unfolded primefact_def]
   have q: "prime q" "q * foldr op * qs 1 = n" "\<forall>p \<in>set qs. prime p"  and p: "prime p" "p dvd q * foldr op * qs 1" by simp_all
   {assume "p dvd q"
-    with p(1) q(1) have "p = q" unfolding is_prime_nat_iff by auto
+    with p(1) q(1) have "p = q" unfolding prime_nat_iff by auto
     hence ?case by simp}
   moreover
   { assume h: "p dvd foldr op * qs 1"
@@ -730,7 +730,7 @@ proof-
     from psp primefact_contains[OF pfpsq p]
     have p': "coprime (a ^ (r * (q div p)) mod n - 1) n"
       by (simp add: list_all_iff)
-    from p is_prime_nat_iff have p01: "p \<noteq> 0" "p \<noteq> 1" "p =Suc(p - 1)" 
+    from p prime_nat_iff have p01: "p \<noteq> 0" "p \<noteq> 1" "p =Suc(p - 1)" 
       by auto
     from div_mult1_eq[of r q p] p(2)
     have eq1: "r* (q div p) = (n - 1) div p"

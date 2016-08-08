@@ -28,7 +28,7 @@ lemma prod_mn_less_k: "0 < n \<Longrightarrow> 0 < k \<Longrightarrow> Suc 0 < m
   by (induct m) auto
 
 lemma prime_eq: "prime (p::nat) \<longleftrightarrow> 1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p)"
-  apply (simp add: is_prime_nat_iff)
+  apply (simp add: prime_nat_iff)
   apply (rule iffI)
   apply blast
   apply (erule conjE)

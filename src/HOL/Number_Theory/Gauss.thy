@@ -112,7 +112,7 @@ proof -
     from p_a_relprime have "\<not>p dvd a"
       by (simp add: cong_altdef_int)
     with p_prime have "coprime a (int p)" 
-       by (subst gcd.commute, intro is_prime_imp_coprime) auto
+       by (subst gcd.commute, intro prime_imp_coprime) auto
     with a cong_mult_rcancel_int [of a "int p" x y]
       have "[x = y] (mod p)" by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
@@ -144,7 +144,7 @@ proof -
   from p_a_relprime have "\<not>p dvd a"
     by (simp add: cong_altdef_int)
   with p_prime have "coprime a (int p)" 
-     by (subst gcd.commute, intro is_prime_imp_coprime) auto
+     by (subst gcd.commute, intro prime_imp_coprime) auto
   with a' cong_mult_rcancel_int [of a "int p" x y]
     have "[x = y] (mod p)" by simp
   with cong_less_imp_eq_int [of x y p] p_minus_one_l
@@ -207,7 +207,7 @@ lemma D_eq: "D = {x. \<exists>y \<in> A. ( x = (y*a) mod p & (y*a) mod p \<le> (
 
 lemma all_A_relprime: assumes "x \<in> A" shows "gcd x p = 1"
   using p_prime A_ncong_p [OF assms]
-  by (auto simp: cong_altdef_int gcd.commute[of _ "int p"] intro!: is_prime_imp_coprime)
+  by (auto simp: cong_altdef_int gcd.commute[of _ "int p"] intro!: prime_imp_coprime)
 
 lemma A_prod_relprime: "gcd (setprod id A) p = 1"
   by (metis id_def all_A_relprime setprod_coprime)

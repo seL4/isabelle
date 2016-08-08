@@ -812,9 +812,9 @@ qed
 subsection \<open>More properties of content and primitive part\<close>
 
 lemma lift_prime_elem_poly:
-  assumes "is_prime_elem (c :: 'a :: semidom)"
-  shows   "is_prime_elem [:c:]"
-proof (rule is_prime_elemI)
+  assumes "prime_elem (c :: 'a :: semidom)"
+  shows   "prime_elem [:c:]"
+proof (rule prime_elemI)
   fix a b assume *: "[:c:] dvd a * b"
   from * have dvd: "c dvd coeff (a * b) n" for n
     by (subst (asm) const_poly_dvd_iff) blast
@@ -862,25 +862,25 @@ proof (rule is_prime_elemI)
       ultimately have "c dvd coeff a i * coeff b m"
         by (simp add: dvd_add_left_iff)
       with assms coeff_m show "c dvd coeff a i"
-        by (simp add: prime_dvd_mult_iff)
+        by (simp add: prime_elem_dvd_mult_iff)
     qed
     hence "[:c:] dvd a" by (subst const_poly_dvd_iff) blast
   }
   thus "[:c:] dvd a \<or> [:c:] dvd b" by blast
-qed (insert assms, simp_all add: is_prime_elem_def one_poly_def)
+qed (insert assms, simp_all add: prime_elem_def one_poly_def)
 
 lemma prime_elem_const_poly_iff:
   fixes c :: "'a :: semidom"
-  shows   "is_prime_elem [:c:] \<longleftrightarrow> is_prime_elem c"
+  shows   "prime_elem [:c:] \<longleftrightarrow> prime_elem c"
 proof
-  assume A: "is_prime_elem [:c:]"
-  show "is_prime_elem c"
-  proof (rule is_prime_elemI)
+  assume A: "prime_elem [:c:]"
+  show "prime_elem c"
+  proof (rule prime_elemI)
     fix a b assume "c dvd a * b"
     hence "[:c:] dvd [:a:] * [:b:]" by (simp add: mult_ac)
-    from A and this have "[:c:] dvd [:a:] \<or> [:c:] dvd [:b:]" by (rule prime_divides_productD)
+    from A and this have "[:c:] dvd [:a:] \<or> [:c:] dvd [:b:]" by (rule prime_elem_dvd_multD)
     thus "c dvd a \<or> c dvd b" by simp
-  qed (insert A, auto simp: is_prime_elem_def is_unit_poly_iff)
+  qed (insert A, auto simp: prime_elem_def is_unit_poly_iff)
 qed (auto intro: lift_prime_elem_poly)
 
 context
@@ -897,16 +897,16 @@ proof (cases "f * g = 0")
   hence "f * g \<noteq> 0" by auto
   {
     assume "\<not>is_unit (content (f * g))"
-    with False have "\<exists>p. p dvd content (f * g) \<and> is_prime p"
+    with False have "\<exists>p. p dvd content (f * g) \<and> prime p"
       by (intro prime_divisor_exists) simp_all
-    then obtain p where "p dvd content (f * g)" "is_prime p" by blast
+    then obtain p where "p dvd content (f * g)" "prime p" by blast
     from \<open>p dvd content (f * g)\<close> have "[:p:] dvd f * g"
       by (simp add: const_poly_dvd_iff_dvd_content)
-    moreover from \<open>is_prime p\<close> have "is_prime_elem [:p:]" by (simp add: lift_prime_elem_poly)
+    moreover from \<open>prime p\<close> have "prime_elem [:p:]" by (simp add: lift_prime_elem_poly)
     ultimately have "[:p:] dvd f \<or> [:p:] dvd g"
-      by (simp add: prime_dvd_mult_iff)
+      by (simp add: prime_elem_dvd_mult_iff)
     with assms have "is_unit p" by (simp add: const_poly_dvd_iff_dvd_content)
-    with \<open>is_prime p\<close> have False by simp
+    with \<open>prime p\<close> have False by simp
   }
   hence "is_unit (content (f * g))" by blast
   hence "normalize (content (f * g)) = 1" by (simp add: is_unit_normalize del: normalize_content)
@@ -1033,12 +1033,12 @@ qed (auto simp: unit_factor_field_poly_def normalize_field_poly_def lead_coeff_m
 
 private lemma field_poly_irreducible_imp_prime:
   assumes "irreducible (p :: 'a :: field poly)"
-  shows   "is_prime_elem p"
+  shows   "prime_elem p"
 proof -
   have A: "class.comm_semiring_1 op * 1 op + (0 :: 'a poly)" ..
-  from field_poly.irreducible_imp_prime[of p] assms
-    show ?thesis unfolding irreducible_def is_prime_elem_def dvd_field_poly
-      comm_semiring_1.irreducible_def[OF A] comm_semiring_1.is_prime_elem_def[OF A] by blast
+  from field_poly.irreducible_imp_prime_elem[of p] assms
+    show ?thesis unfolding irreducible_def prime_elem_def dvd_field_poly
+      comm_semiring_1.irreducible_def[OF A] comm_semiring_1.prime_elem_def[OF A] by blast
 qed
 
 private lemma field_poly_msetprod_prime_factorization:
@@ -1053,14 +1053,14 @@ qed
 
 private lemma field_poly_in_prime_factorization_imp_prime:
   assumes "(p :: 'a :: field poly) \<in># field_poly.prime_factorization x"
-  shows   "is_prime_elem p"
+  shows   "prime_elem p"
 proof -
   have A: "class.comm_semiring_1 op * 1 op + (0 :: 'a poly)" ..
   have B: "class.normalization_semidom op div op + op - (0 :: 'a poly) op * 1 
              normalize_field_poly unit_factor_field_poly" ..
   from field_poly.in_prime_factorization_imp_prime[of p x] assms
-    show ?thesis unfolding is_prime_elem_def dvd_field_poly
-      comm_semiring_1.is_prime_elem_def[OF A] normalization_semidom.is_prime_def[OF B] by blast
+    show ?thesis unfolding prime_elem_def dvd_field_poly
+      comm_semiring_1.prime_elem_def[OF A] normalization_semidom.prime_def[OF B] by blast
 qed
 
 
@@ -1144,24 +1144,24 @@ qed
 private lemma irreducible_imp_prime_poly:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "irreducible p"
-  shows   "is_prime_elem p"
+  shows   "prime_elem p"
 proof (cases "degree p = 0")
   case True
   with assms show ?thesis
     by (auto simp: prime_elem_const_poly_iff irreducible_const_poly_iff
-             intro!: irreducible_imp_prime elim!: degree_eq_zeroE)
+             intro!: irreducible_imp_prime_elem elim!: degree_eq_zeroE)
 next
   case False
   from assms False have irred: "irreducible (fract_poly p)" and primitive: "content p = 1"
     by (simp_all add: nonconst_poly_irreducible_iff)
-  from irred have prime: "is_prime_elem (fract_poly p)" by (rule field_poly_irreducible_imp_prime)
+  from irred have prime: "prime_elem (fract_poly p)" by (rule field_poly_irreducible_imp_prime)
   show ?thesis
-  proof (rule is_prime_elemI)
+  proof (rule prime_elemI)
     fix q r assume "p dvd q * r"
     hence "fract_poly p dvd fract_poly (q * r)" by (rule fract_poly_dvd)
     hence "fract_poly p dvd fract_poly q * fract_poly r" by simp
     from prime and this have "fract_poly p dvd fract_poly q \<or> fract_poly p dvd fract_poly r"
-      by (rule prime_divides_productD)
+      by (rule prime_elem_dvd_multD)
     with primitive show "p dvd q \<or> p dvd r" by (auto dest: fract_poly_dvdD)
   qed (insert assms, auto simp: irreducible_def)
 qed
@@ -1196,9 +1196,9 @@ proof -
     by (simp add: nonconst_poly_irreducible_iff)
 qed
 
-lemma is_prime_elem_primitive_part_fract:
+lemma prime_elem_primitive_part_fract:
   fixes p :: "'a :: {idom_divide, ring_gcd, factorial_semiring, semiring_Gcd} fract poly"
-  shows "irreducible p \<Longrightarrow> is_prime_elem (primitive_part_fract p)"
+  shows "irreducible p \<Longrightarrow> prime_elem (primitive_part_fract p)"
   by (intro irreducible_imp_prime_poly irreducible_primitive_part_fract)
 
 lemma irreducible_linear_field_poly:
@@ -1214,8 +1214,8 @@ proof (rule irreducibleI)
     by (auto simp: is_unit_const_poly_iff dvd_field_iff elim!: degree_eq_zeroE)
 qed (insert assms, auto simp: is_unit_poly_iff)
 
-lemma is_prime_elem_linear_field_poly:
-  "(b :: 'a :: field) \<noteq> 0 \<Longrightarrow> is_prime_elem [:a,b:]"
+lemma prime_elem_linear_field_poly:
+  "(b :: 'a :: field) \<noteq> 0 \<Longrightarrow> prime_elem [:a,b:]"
   by (rule field_poly_irreducible_imp_prime, rule irreducible_linear_field_poly)
 
 lemma irreducible_linear_poly:
@@ -1224,9 +1224,9 @@ lemma irreducible_linear_poly:
   by (auto intro!: irreducible_linear_field_poly 
            simp:   nonconst_poly_irreducible_iff content_def map_poly_pCons)
 
-lemma is_prime_elem_linear_poly:
+lemma prime_elem_linear_poly:
   fixes a b :: "'a::{idom_divide,ring_gcd,factorial_semiring,semiring_Gcd}"
-  shows "b \<noteq> 0 \<Longrightarrow> coprime a b \<Longrightarrow> is_prime_elem [:a,b:]"
+  shows "b \<noteq> 0 \<Longrightarrow> coprime a b \<Longrightarrow> prime_elem [:a,b:]"
   by (rule irreducible_imp_prime_poly, rule irreducible_linear_poly)
 
   
@@ -1235,7 +1235,7 @@ subsection \<open>Prime factorisation of polynomials\<close>
 private lemma poly_prime_factorization_exists_content_1:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "p \<noteq> 0" "content p = 1"
-  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> is_prime_elem p) \<and> msetprod A = normalize p"
+  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> msetprod A = normalize p"
 proof -
   let ?P = "field_poly.prime_factorization (fract_poly p)"
   define c where "c = msetprod (image_mset fract_content ?P)"
@@ -1282,8 +1282,8 @@ proof -
     by (simp add: multiset.map_comp e_def A_def normalize_msetprod)
   finally have "msetprod A = normalize p" ..
   
-  have "is_prime_elem p" if "p \<in># A" for p
-    using that by (auto simp: A_def is_prime_elem_primitive_part_fract prime_imp_irreducible 
+  have "prime_elem p" if "p \<in># A" for p
+    using that by (auto simp: A_def prime_elem_primitive_part_fract prime_elem_imp_irreducible 
                         dest!: field_poly_in_prime_factorization_imp_prime )
   from this and \<open>msetprod A = normalize p\<close> show ?thesis
     by (intro exI[of _ A]) blast
@@ -1292,15 +1292,15 @@ qed
 lemma poly_prime_factorization_exists:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "p \<noteq> 0"
-  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> is_prime_elem p) \<and> msetprod A = normalize p"
+  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> msetprod A = normalize p"
 proof -
   define B where "B = image_mset (\<lambda>x. [:x:]) (prime_factorization (content p))"
-  have "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> is_prime_elem p) \<and> msetprod A = normalize (primitive_part p)"
+  have "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> msetprod A = normalize (primitive_part p)"
     by (rule poly_prime_factorization_exists_content_1) (insert assms, simp_all)
   then guess A by (elim exE conjE) note A = this
   moreover from assms have "msetprod B = [:content p:]"
     by (simp add: B_def msetprod_const_poly msetprod_prime_factorization)
-  moreover have "\<forall>p. p \<in># B \<longrightarrow> is_prime_elem p"
+  moreover have "\<forall>p. p \<in># B \<longrightarrow> prime_elem p"
     by (auto simp: B_def intro: lift_prime_elem_poly dest: in_prime_factorization_imp_prime)
   ultimately show ?thesis by (intro exI[of _ "B + A"]) auto
 qed
