@@ -190,6 +190,13 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* Renamed session HOL-Multivariate_Analysis to HOL-Analysis.
+
+* Moved measure theory from HOL-Probability to HOL-Analysis. When importing
+HOL-Analysis some theorems need additional name spaces prefixes due to name
+clashes.
+INCOMPATIBILITY.
+
 * Number_Theory: algebraic foundation for primes: Introduction of 
 predicates "is_prime", "irreducible", a "prime_factorization" 
 function, the "factorial_ring" typeclass with instance proofs for 

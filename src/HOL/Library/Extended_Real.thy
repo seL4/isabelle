@@ -220,7 +220,7 @@ qed
 text \<open>
 
 For more lemmas about the extended real numbers go to
-  @{file "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
+  @{file "~~/src/HOL/Analysis/Extended_Real_Limits.thy"}
 
 \<close>
 

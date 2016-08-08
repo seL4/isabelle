@@ -475,7 +475,7 @@ subsection \<open>Uniqueness\<close>
 
 text \<open>
 This can not generally shown for @{const has_derivative}, as we need to approach the point from
-all directions. There is a proof in \<open>Multivariate_Analysis\<close> for \<open>euclidean_space\<close>.
+all directions. There is a proof in \<open>Analysis\<close> for \<open>euclidean_space\<close>.
 \<close>
 
 lemma has_derivative_zero_unique:

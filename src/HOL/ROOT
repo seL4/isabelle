@@ -716,17 +716,17 @@ session "HOL-TPTP" in TPTP = HOL +
   theories
     ATP_Problem_Import
 
-session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
+session "HOL-Analysis" (main) in Analysis = HOL +
   theories
-    Multivariate_Analysis
+    Analysis
   document_files
     "root.tex"
 
-session "HOL-Multivariate_Analysis-ex" in "Multivariate_Analysis/ex" = "HOL-Multivariate_Analysis" +
+session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories
     Approximations
 
-session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
+session "HOL-Probability" in "Probability" = "HOL-Analysis" +
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Permutation"

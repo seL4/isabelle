@@ -6,7 +6,7 @@
 section \<open>Probability measure\<close>
 
 theory Probability_Measure
-  imports "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
+  imports "~~/src/HOL/Analysis/Analysis"
 begin
 
 locale prob_space = finite_measure +

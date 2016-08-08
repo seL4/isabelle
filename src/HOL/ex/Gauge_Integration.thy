@@ -1,7 +1,8 @@
 (*  Author:     Jacques D. Fleuriot, University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 
-    Replaced by ~~/src/HOL/Multivariate_Analysis/Real_Integral.thy .
+    Replaced by ~~/src/HOL/Analysis/Henstock_Kurzweil_Integration and
+    Bochner_Integration.
 *)
 
 section\<open>Theory of Integration on real intervals\<close>
