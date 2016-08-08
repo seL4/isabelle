@@ -68,7 +68,7 @@ lemma someI2_bex: "\<exists>a\<in>A. P a \<Longrightarrow> (\<And>x. x \<in> A \
 lemma some_equality [intro]: "P a \<Longrightarrow> (\<And>x. P x \<Longrightarrow> x = a) \<Longrightarrow> (SOME x. P x) = a"
   by (blast intro: someI2)
 
-lemma some1_equality: "EX!x. P x \<Longrightarrow> P a \<Longrightarrow> (SOME x. P x) = a"
+lemma some1_equality: "\<exists>!x. P x \<Longrightarrow> P a \<Longrightarrow> (SOME x. P x) = a"
   by blast
 
 lemma some_eq_ex: "P (SOME x. P x) \<longleftrightarrow> (\<exists>x. P x)"
@@ -275,8 +275,8 @@ proof -
     by (cases "card (UNIV :: 'b set)") (auto simp add: card_eq_0_iff)
   then obtain n where "card (UNIV :: 'b set) = Suc (Suc n)" "n = card (UNIV :: 'b set) - Suc (Suc 0)"
     by auto
-  then obtain b1 b2 where b1b2: "(b1 :: 'b) \<noteq> (b2 :: 'b)"
-    by (auto simp add: card_Suc_eq)
+  then obtain b1 b2 :: 'b where b1b2: "b1 \<noteq> b2"
+    by (auto simp: card_Suc_eq)
   from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1))"
     by (rule finite_imageI)
   moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1)"
@@ -304,8 +304,8 @@ text \<open>
 \<close>
 
 lemma infinite_countable_subset:
-  assumes inf: "\<not> finite (S::'a set)"
-  shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
+  assumes inf: "\<not> finite S"
+  shows "\<exists>f::nat \<Rightarrow> 'a. inj f \<and> range f \<subseteq> S"
   \<comment> \<open>Courtesy of Stephan Merz\<close>
 proof -
   define Sseq where "Sseq = rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
@@ -326,7 +326,7 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-lemma infinite_iff_countable_subset: "\<not> finite S \<longleftrightarrow> (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
+lemma infinite_iff_countable_subset: "\<not> finite S \<longleftrightarrow> (\<exists>f::nat \<Rightarrow> 'a. inj f \<and> range f \<subseteq> S)"
   \<comment> \<open>Courtesy of Stephan Merz\<close>
   using finite_imageD finite_subset infinite_UNIV_char_0 infinite_countable_subset by auto
 
@@ -365,7 +365,7 @@ qed
 
 lemma inj_on_iff_surj:
   assumes "A \<noteq> {}"
-  shows "(\<exists>f. inj_on f A \<and> f ` A \<le> A') \<longleftrightarrow> (\<exists>g. g ` A' = A)"
+  shows "(\<exists>f. inj_on f A \<and> f ` A \<subseteq> A') \<longleftrightarrow> (\<exists>g. g ` A' = A)"
 proof safe
   fix f
   assume inj: "inj_on f A" and incl: "f ` A \<subseteq> A'"
@@ -429,7 +429,7 @@ next
 qed
 
 lemma Ex_inj_on_UNION_Sigma:
-  "\<exists>f. (inj_on f (\<Union>i \<in> I. A i) \<and> f ` (\<Union>i \<in> I. A i) \<le> (SIGMA i : I. A i))"
+  "\<exists>f. (inj_on f (\<Union>i \<in> I. A i) \<and> f ` (\<Union>i \<in> I. A i) \<subseteq> (SIGMA i : I. A i))"
 proof
   let ?phi = "\<lambda>a i. i \<in> I \<and> a \<in> A i"
   let ?sm = "\<lambda>a. SOME i. ?phi a i"
@@ -439,9 +439,9 @@ proof
   moreover
   have "?sm a \<in> I \<and> a \<in> A(?sm a)" if "i \<in> I" and "a \<in> A i" for i a
     using that someI[of "?phi a" i] by auto
-  then have "?f ` (\<Union>i \<in> I. A i) \<le> (SIGMA i : I. A i)"
+  then have "?f ` (\<Union>i \<in> I. A i) \<subseteq> (SIGMA i : I. A i)"
     by auto
-  ultimately show "inj_on ?f (\<Union>i \<in> I. A i) \<and> ?f ` (\<Union>i \<in> I. A i) \<le> (SIGMA i : I. A i)"
+  ultimately show "inj_on ?f (\<Union>i \<in> I. A i) \<and> ?f ` (\<Union>i \<in> I. A i) \<subseteq> (SIGMA i : I. A i)"
     by auto
 qed
 
@@ -625,8 +625,8 @@ lemma LeastMI2:
   apply blast
   done
 
-lemma LeastM_equality:
-  "P k \<Longrightarrow> (\<And>x. P x \<Longrightarrow> m k \<le> m x) \<Longrightarrow> m (LEAST x WRT m. P x) = (m k :: 'a::order)"
+lemma LeastM_equality: "P k \<Longrightarrow> (\<And>x. P x \<Longrightarrow> m k \<le> m x) \<Longrightarrow> m (LEAST x WRT m. P x) = m k"
+  for m :: "_ \<Rightarrow> 'a::order"
   apply (rule LeastMI2)
     apply assumption
    apply blast
@@ -640,14 +640,16 @@ lemma wf_linord_ex_has_least:
   apply force
   done
 
-lemma ex_has_least_nat: "P k \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> m x \<le> (m y :: nat))"
+lemma ex_has_least_nat: "P k \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> m x \<le> m y)"
+  for m :: "'a \<Rightarrow> nat"
   apply (simp only: pred_nat_trancl_eq_le [symmetric])
   apply (rule wf_pred_nat [THEN wf_linord_ex_has_least])
    apply (simp add: less_eq linorder_not_le pred_nat_trancl_eq_le)
   apply assumption
   done
 
-lemma LeastM_nat_lemma: "P k \<Longrightarrow> P (LeastM m P) \<and> (\<forall>y. P y \<longrightarrow> m (LeastM m P) \<le> (m y :: nat))"
+lemma LeastM_nat_lemma: "P k \<Longrightarrow> P (LeastM m P) \<and> (\<forall>y. P y \<longrightarrow> m (LeastM m P) \<le> m y)"
+  for m :: "'a \<Rightarrow> nat"
   apply (simp add: LeastM_def)
   apply (rule someI_ex)
   apply (erule ex_has_least_nat)
@@ -655,7 +657,8 @@ lemma LeastM_nat_lemma: "P k \<Longrightarrow> P (LeastM m P) \<and> (\<forall>y
 
 lemmas LeastM_natI = LeastM_nat_lemma [THEN conjunct1]
 
-lemma LeastM_nat_le: "P x \<Longrightarrow> m (LeastM m P) \<le> (m x :: nat)"
+lemma LeastM_nat_le: "P x \<Longrightarrow> m (LeastM m P) \<le> m x"
+  for m :: "'a \<Rightarrow> nat"
   by (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp])
 
 
@@ -683,10 +686,8 @@ lemma GreatestMI2:
   apply blast
   done
 
-lemma GreatestM_equality:
-  "P k \<Longrightarrow>
-    (\<And>x. P x \<Longrightarrow> m x \<le> m k) \<Longrightarrow>
-    m (GREATEST x WRT m. P x) = (m k :: 'a::order)"
+lemma GreatestM_equality: "P k \<Longrightarrow> (\<And>x. P x \<Longrightarrow> m x \<le> m k) \<Longrightarrow> m (GREATEST x WRT m. P x) = m k"
+  for m :: "_ \<Rightarrow> 'a::order"
   apply (rule GreatestMI2 [where m = m])
     apply assumption
    apply blast
@@ -701,11 +702,13 @@ lemma Greatest_equality: "P k \<Longrightarrow> (\<And>x. P x \<Longrightarrow> 
   done
 
 lemma ex_has_greatest_nat_lemma:
-  "P k \<Longrightarrow> \<forall>x. P x \<longrightarrow> (\<exists>y. P y \<and> \<not> m y \<le> (m x :: nat)) \<Longrightarrow> \<exists>y. P y \<and> \<not> m y < m k + n"
+  "P k \<Longrightarrow> \<forall>x. P x \<longrightarrow> (\<exists>y. P y \<and> \<not> m y \<le> m x) \<Longrightarrow> \<exists>y. P y \<and> \<not> m y < m k + n"
+  for m :: "'a \<Rightarrow> nat"
   by (induct n) (force simp: le_Suc_eq)+
 
 lemma ex_has_greatest_nat:
-  "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> m y < b \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> m y \<le> (m x :: nat))"
+  "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> m y < b \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> m y \<le> m x)"
+  for m :: "'a \<Rightarrow> nat"
   apply (rule ccontr)
   apply (cut_tac P = P and n = "b - m k" in ex_has_greatest_nat_lemma)
     apply (subgoal_tac [3] "m k \<le> b")
@@ -713,8 +716,8 @@ lemma ex_has_greatest_nat:
   done
 
 lemma GreatestM_nat_lemma:
-  "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> m y < b \<Longrightarrow>
-    P (GreatestM m P) \<and> (\<forall>y. P y \<longrightarrow> (m y :: nat) \<le> m (GreatestM m P))"
+  "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> m y < b \<Longrightarrow> P (GreatestM m P) \<and> (\<forall>y. P y \<longrightarrow> m y \<le> m (GreatestM m P))"
+  for m :: "'a \<Rightarrow> nat"
   apply (simp add: GreatestM_def)
   apply (rule someI_ex)
   apply (erule ex_has_greatest_nat)
@@ -723,7 +726,8 @@ lemma GreatestM_nat_lemma:
 
 lemmas GreatestM_natI = GreatestM_nat_lemma [THEN conjunct1]
 
-lemma GreatestM_nat_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> m y < b \<Longrightarrow> (m x :: nat) \<le> m (GreatestM m P)"
+lemma GreatestM_nat_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> m y < b \<Longrightarrow> m x \<le> m (GreatestM m P)"
+  for m :: "'a \<Rightarrow> nat"
   by (blast dest: GreatestM_nat_lemma [THEN conjunct2, THEN spec, of P])
 
 
