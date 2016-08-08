@@ -269,17 +269,18 @@ lemma finite_fun_UNIVD1:
     and card: "card (UNIV :: 'b set) \<noteq> Suc 0"
   shows "finite (UNIV :: 'a set)"
 proof -
-  from fin have finb: "finite (UNIV :: 'b set)"
+  let ?UNIV_b = "UNIV :: 'b set"
+  from fin have "finite ?UNIV_b"
     by (rule finite_fun_UNIVD2)
-  with card have "card (UNIV :: 'b set) \<ge> Suc (Suc 0)"
-    by (cases "card (UNIV :: 'b set)") (auto simp add: card_eq_0_iff)
-  then obtain n where "card (UNIV :: 'b set) = Suc (Suc n)" "n = card (UNIV :: 'b set) - Suc (Suc 0)"
-    by auto
+  with card have "card ?UNIV_b \<ge> Suc (Suc 0)"
+    by (cases "card ?UNIV_b") (auto simp: card_eq_0_iff)
+  then have "card ?UNIV_b = Suc (Suc (card ?UNIV_b - Suc (Suc 0)))"
+    by simp
   then obtain b1 b2 :: 'b where b1b2: "b1 \<noteq> b2"
     by (auto simp: card_Suc_eq)
-  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1))"
+  from fin have fin': "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1))"
     by (rule finite_imageI)
-  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1)"
+  have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1)"
   proof (rule UNIV_eq_I)
     fix x :: 'a
     from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1"
@@ -287,7 +288,7 @@ proof -
     then show "x \<in> range (\<lambda>f::'a \<Rightarrow> 'b. inv f b1)"
       by blast
   qed
-  ultimately show "finite (UNIV :: 'a set)"
+  with fin' show ?thesis
     by simp
 qed
 
