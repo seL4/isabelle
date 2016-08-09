@@ -91,6 +91,7 @@ sig
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   val read_cartouche: Symbol_Pos.T list -> T
   val explode: Keyword.keywords -> Position.T -> string -> T list
+  val print_name: Keyword.keywords -> string -> string
   val make: (int * int) * string -> Position.T -> T * Position.T
   val make_string: string * Position.T -> T
   val make_int: int -> T list
@@ -653,6 +654,14 @@ fun explode keywords pos =
   Symbol.source #>
   source keywords pos #>
   Source.exhaust;
+
+
+(* print name in parsable form *)
+
+fun print_name keywords name =
+  ((case explode keywords Position.none name of
+    [tok] => not (member (op =) [Ident, Long_Ident, Sym_Ident, Nat] (kind_of tok))
+  | _ => true) ? Symbol_Pos.quote_string_qq) name;
 
 
 (* make *)
