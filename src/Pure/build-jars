@@ -32,6 +32,7 @@ declare -a SOURCES=(
   General/graph.scala
   General/graph_display.scala
   General/graphics_file.scala
+  General/json.scala
   General/linear_set.scala
   General/long_name.scala
   General/multi_map.scala
@@ -103,6 +104,7 @@ declare -a SOURCES=(
   Tools/build_doc.scala
   Tools/check_keywords.scala
   Tools/check_sources.scala
+  Tools/ci_api.scala
   Tools/ci_profile.scala
   Tools/debugger.scala
   Tools/doc.scala
