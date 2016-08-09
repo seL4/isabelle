@@ -16,7 +16,7 @@ text \<open>
   It is formalised in the Isabelle/Isar theorem proving system.
 
   \<^bold>\<open>Theorem:\<close> The Continuum \<open>\<real>\<close> is not denumerable. In other words, there does
-  not exist a function \<open>f: \<nat> \<Rightarrow> \<real>\<close> such that f is surjective.
+  not exist a function \<open>f: \<nat> \<Rightarrow> \<real>\<close> such that \<open>f\<close> is surjective.
 
   \<^bold>\<open>Outline:\<close> An elegant informal proof of this result uses Cantor's
   Diagonalisation argument. The proof presented here is not this one.
@@ -28,7 +28,7 @@ text \<open>
   interval is a subset of the last) is non-empty. We then assume a surjective
   function \<open>f: \<nat> \<Rightarrow> \<real>\<close> exists and find a real \<open>x\<close> such that \<open>x\<close> is not in the
   range of \<open>f\<close> by generating a sequence of closed intervals then using the
-  NIP.
+  Nested Interval Property.
 \<close>
 
 theorem real_non_denum: "\<nexists>f :: nat \<Rightarrow> real. surj f"
