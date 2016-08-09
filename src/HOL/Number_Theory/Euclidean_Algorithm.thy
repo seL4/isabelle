@@ -411,7 +411,7 @@ next
   interpret semiring_gcd 1 0 "op *" gcd_eucl lcm_eucl "op div" "op +" "op -" normalize unit_factor
     by standard (rule lcm_gcd_eucl_facts; assumption)+
   fix p assume p: "irreducible p"
-  thus "is_prime_elem p" by (rule irreducible_imp_prime_gcd)
+  thus "prime_elem p" by (rule irreducible_imp_prime_elem_gcd)
 qed
 
 lemma gcd_eucl_eq_gcd_factorial: "gcd_eucl = gcd_factorial"

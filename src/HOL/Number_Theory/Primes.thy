@@ -55,57 +55,55 @@ begin
 declare [[coercion int]]
 declare [[coercion_enabled]]
 
-abbreviation (input) "prime \<equiv> is_prime"
-
-lemma is_prime_elem_nat_iff:
-  "is_prime_elem (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
+lemma prime_elem_nat_iff:
+  "prime_elem (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
 proof safe
-  assume *: "is_prime_elem n"
+  assume *: "prime_elem n"
   from * have "n \<noteq> 0" "n \<noteq> 1" by (intro notI, simp del: One_nat_def)+
   thus "n > 1" by (cases n) simp_all
   fix m assume m: "m dvd n" "m \<noteq> n"
   from * \<open>m dvd n\<close> have "n dvd m \<or> is_unit m"
-    by (intro irreducibleD' prime_imp_irreducible)
+    by (intro irreducibleD' prime_elem_imp_irreducible)
   with m show "m = 1" by (auto dest: dvd_antisym)
 next
   assume "n > 1" "\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n"
-  thus "is_prime_elem n"
-    by (auto simp: prime_iff_irreducible irreducible_altdef)
+  thus "prime_elem n"
+    by (auto simp: prime_elem_iff_irreducible irreducible_altdef)
 qed
 
-lemma is_prime_nat_iff_is_prime_elem: "is_prime (n :: nat) \<longleftrightarrow> is_prime_elem n"
-  by (simp add: is_prime_def)
+lemma prime_nat_iff_prime_elem: "prime (n :: nat) \<longleftrightarrow> prime_elem n"
+  by (simp add: prime_def)
 
-lemma is_prime_nat_iff:
-  "is_prime (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
-  by (simp add: is_prime_nat_iff_is_prime_elem is_prime_elem_nat_iff)
+lemma prime_nat_iff:
+  "prime (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
+  by (simp add: prime_nat_iff_prime_elem prime_elem_nat_iff)
 
-lemma is_prime_elem_int_nat_transfer: "is_prime_elem (n::int) \<longleftrightarrow> is_prime_elem (nat (abs n))"
+lemma prime_elem_int_nat_transfer: "prime_elem (n::int) \<longleftrightarrow> prime_elem (nat (abs n))"
 proof
-  assume "is_prime_elem n"
-  thus "is_prime_elem (nat (abs n))" by (auto simp: is_prime_elem_def nat_dvd_iff)
+  assume "prime_elem n"
+  thus "prime_elem (nat (abs n))" by (auto simp: prime_elem_def nat_dvd_iff)
 next
-  assume "is_prime_elem (nat (abs n))"
-  thus "is_prime_elem n"
-    by (auto simp: dvd_int_unfold_dvd_nat is_prime_elem_def abs_mult nat_mult_distrib)
+  assume "prime_elem (nat (abs n))"
+  thus "prime_elem n"
+    by (auto simp: dvd_int_unfold_dvd_nat prime_elem_def abs_mult nat_mult_distrib)
 qed
 
-lemma is_prime_elem_nat_int_transfer [simp]: "is_prime_elem (int n) \<longleftrightarrow> is_prime_elem n"
-  by (auto simp: is_prime_elem_int_nat_transfer)
+lemma prime_elem_nat_int_transfer [simp]: "prime_elem (int n) \<longleftrightarrow> prime_elem n"
+  by (auto simp: prime_elem_int_nat_transfer)
 
-lemma is_prime_nat_int_transfer [simp]: "is_prime (int n) \<longleftrightarrow> is_prime n"
-  by (auto simp: is_prime_elem_int_nat_transfer is_prime_def)
+lemma prime_nat_int_transfer [simp]: "prime (int n) \<longleftrightarrow> prime n"
+  by (auto simp: prime_elem_int_nat_transfer prime_def)
 
-lemma is_prime_int_nat_transfer: "is_prime (n::int) \<longleftrightarrow> n \<ge> 0 \<and> is_prime (nat n)"
-  by (auto simp: is_prime_elem_int_nat_transfer is_prime_def)
+lemma prime_int_nat_transfer: "prime (n::int) \<longleftrightarrow> n \<ge> 0 \<and> prime (nat n)"
+  by (auto simp: prime_elem_int_nat_transfer prime_def)
 
-lemma is_prime_int_iff:
-  "is_prime (n::int) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m \<ge> 0 \<and> m dvd n \<longrightarrow> m = 1 \<or> m = n))"
+lemma prime_int_iff:
+  "prime (n::int) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m \<ge> 0 \<and> m dvd n \<longrightarrow> m = 1 \<or> m = n))"
 proof (intro iffI conjI allI impI; (elim conjE)?)
-  assume *: "is_prime n"
-  hence irred: "irreducible n" by (simp add: prime_imp_irreducible)
+  assume *: "prime n"
+  hence irred: "irreducible n" by (simp add: prime_elem_imp_irreducible)
   from * have "n \<ge> 0" "n \<noteq> 0" "n \<noteq> 1" 
-    by (auto simp: is_prime_def zabs_def not_less split: if_splits)
+    by (auto simp: prime_def zabs_def not_less split: if_splits)
   thus "n > 1" by presburger
   fix m assume "m dvd n" \<open>m \<ge> 0\<close>
   with irred have "m dvd 1 \<or> n dvd m" by (auto simp: irreducible_altdef)
@@ -121,8 +119,8 @@ next
     with n(2) have "int m = 1 \<or> int m = n" by auto
     thus "m = 1 \<or> m = nat n" by auto
   qed
-  ultimately show "is_prime n" 
-    unfolding is_prime_int_nat_transfer is_prime_nat_iff by auto
+  ultimately show "prime n" 
+    unfolding prime_int_nat_transfer prime_nat_iff by auto
 qed
 
 
@@ -131,7 +129,7 @@ lemma prime_nat_not_dvd:
   shows   "\<not>n dvd p"
 proof
   assume "n dvd p"
-  from assms(1) have "irreducible p" by (simp add: prime_imp_irreducible)
+  from assms(1) have "irreducible p" by (simp add: prime_elem_imp_irreducible)
   from irreducibleD'[OF this \<open>n dvd p\<close>] \<open>n dvd p\<close> \<open>p > n\<close> assms show False
     by (cases "n = 0") (auto dest!: dvd_imp_le)
 qed
@@ -141,7 +139,7 @@ lemma prime_int_not_dvd:
   shows   "\<not>n dvd p"
 proof
   assume "n dvd p"
-  from assms(1) have "irreducible p" by (simp add: prime_imp_irreducible)
+  from assms(1) have "irreducible p" by (simp add: prime_elem_imp_irreducible)
   from irreducibleD'[OF this \<open>n dvd p\<close>] \<open>n dvd p\<close> \<open>p > n\<close> assms show False
     by (auto dest!: zdvd_imp_le)
 qed
@@ -153,60 +151,60 @@ lemma prime_odd_int: "prime p \<Longrightarrow> p > (2::int) \<Longrightarrow> o
   by (intro prime_int_not_dvd) auto
 
 lemma prime_ge_0_int: "prime p \<Longrightarrow> p \<ge> (0::int)"
-  unfolding is_prime_int_iff by auto
+  unfolding prime_int_iff by auto
 
 lemma prime_gt_0_nat: "prime p \<Longrightarrow> p > (0::nat)"
-  unfolding is_prime_nat_iff by auto
+  unfolding prime_nat_iff by auto
 
 lemma prime_gt_0_int: "prime p \<Longrightarrow> p > (0::int)"
-  unfolding is_prime_int_iff by auto
+  unfolding prime_int_iff by auto
 
 lemma prime_ge_1_nat: "prime p \<Longrightarrow> p \<ge> (1::nat)"
-  unfolding is_prime_nat_iff by auto
+  unfolding prime_nat_iff by auto
 
 lemma prime_ge_Suc_0_nat: "prime p \<Longrightarrow> p \<ge> Suc 0"
-  unfolding is_prime_nat_iff by auto
+  unfolding prime_nat_iff by auto
 
 lemma prime_ge_1_int: "prime p \<Longrightarrow> p \<ge> (1::int)"
-  unfolding is_prime_int_iff by auto
+  unfolding prime_int_iff by auto
 
 lemma prime_gt_1_nat: "prime p \<Longrightarrow> p > (1::nat)"
-  unfolding is_prime_nat_iff by auto
+  unfolding prime_nat_iff by auto
 
 lemma prime_gt_Suc_0_nat: "prime p \<Longrightarrow> p > Suc 0"
-  unfolding is_prime_nat_iff by auto
+  unfolding prime_nat_iff by auto
 
 lemma prime_gt_1_int: "prime p \<Longrightarrow> p > (1::int)"
-  unfolding is_prime_int_iff by auto
+  unfolding prime_int_iff by auto
 
 lemma prime_ge_2_nat: "prime p \<Longrightarrow> p \<ge> (2::nat)"
-  unfolding is_prime_nat_iff by auto
+  unfolding prime_nat_iff by auto
 
 lemma prime_ge_2_int: "prime p \<Longrightarrow> p \<ge> (2::int)"
-  unfolding is_prime_int_iff by auto
+  unfolding prime_int_iff by auto
 
 lemma prime_int_altdef:
   "prime p = (1 < p \<and> (\<forall>m::int. m \<ge> 0 \<longrightarrow> m dvd p \<longrightarrow>
     m = 1 \<or> m = p))"
-  unfolding is_prime_int_iff by blast
+  unfolding prime_int_iff by blast
 
 lemma not_prime_eq_prod_nat:
   assumes "m > 1" "\<not>prime (m::nat)"
   shows   "\<exists>n k. n = m * k \<and> 1 < m \<and> m < n \<and> 1 < k \<and> k < n"
   using assms irreducible_altdef[of m]
-  by (auto simp: prime_iff_irreducible is_prime_def irreducible_altdef)
+  by (auto simp: prime_elem_iff_irreducible prime_def irreducible_altdef)
 
 
 subsubsection \<open>Make prime naively executable\<close>
 
 lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
-  unfolding One_nat_def [symmetric] by (rule not_is_prime_1)
+  unfolding One_nat_def [symmetric] by (rule not_prime_1)
 
-lemma is_prime_nat_iff':
+lemma prime_nat_iff':
   "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
 proof safe
   assume "p > 1" and *: "\<forall>n\<in>{1<..<p}. \<not>n dvd p"
-  show "is_prime p" unfolding is_prime_nat_iff
+  show "prime p" unfolding prime_nat_iff
   proof (intro conjI allI impI)
     fix m assume "m dvd p"
     with \<open>p > 1\<close> have "m \<noteq> 0" by (intro notI) auto
@@ -215,25 +213,25 @@ proof safe
     with \<open>m dvd p\<close> and \<open>p > 1\<close> have "m \<le> 1 \<or> m = p" by (auto dest: dvd_imp_le)
     ultimately show "m = 1 \<or> m = p" by simp
   qed fact+
-qed (auto simp: is_prime_nat_iff)
+qed (auto simp: prime_nat_iff)
 
 lemma prime_nat_code [code_unfold]:
   "(prime :: nat \<Rightarrow> bool) = (\<lambda>p. p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p))"
-  by (rule ext, rule is_prime_nat_iff')
+  by (rule ext, rule prime_nat_iff')
 
-lemma is_prime_int_iff':
+lemma prime_int_iff':
   "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
-  thus "?rhs" by (auto simp: is_prime_int_nat_transfer dvd_int_unfold_dvd_nat prime_nat_code)
+  thus "?rhs" by (auto simp: prime_int_nat_transfer dvd_int_unfold_dvd_nat prime_nat_code)
 next
   assume "?rhs"
-  thus "?lhs" by (auto simp: is_prime_int_nat_transfer zdvd_int prime_nat_code)
+  thus "?lhs" by (auto simp: prime_int_nat_transfer zdvd_int prime_nat_code)
 qed
 
 lemma prime_int_code [code_unfold]:
   "(prime :: int \<Rightarrow> bool) = (\<lambda>p. p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p))" 
-  by (rule ext, rule is_prime_int_iff')
+  by (rule ext, rule prime_int_iff')
 
 lemma prime_nat_simp:
     "prime p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..<p]. \<not> n dvd p)"
@@ -248,7 +246,7 @@ lemmas prime_nat_simp_numeral [simp] = prime_nat_simp [of "numeral m"] for m
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
   by simp
 
-declare is_prime_int_nat_transfer[of "numeral m" for m, simp]
+declare prime_int_nat_transfer[of "numeral m" for m, simp]
 
 
 text\<open>A bit of regression testing:\<close>
@@ -282,7 +280,7 @@ proof-
     then have "p dvd 1" by simp
     then have "p <= 1" by auto
     moreover from \<open>prime p\<close> have "p > 1"
-      using is_prime_nat_iff by blast
+      using prime_nat_iff by blast
     ultimately have False by auto}
   then have "n < p" by presburger
   with \<open>prime p\<close> and \<open>p <= fact n + 1\<close> show ?thesis by auto
@@ -313,7 +311,7 @@ lemma prime_product:
 proof -
   from assms have
     "1 < p * q" and P: "\<And>m. m dvd p * q \<Longrightarrow> m = 1 \<or> m = p * q"
-    unfolding is_prime_nat_iff by auto
+    unfolding prime_nat_iff by auto
   from \<open>1 < p * q\<close> have "p \<noteq> 0" by (cases p) auto
   then have Q: "p = p * q \<longleftrightarrow> q = 1" by auto
   have "p dvd p * q" by simp
@@ -332,7 +330,7 @@ proof(induct k arbitrary: x y)
 next
   case (Suc k x y)
   from Suc.prems have pxy: "p dvd x*y" by auto
-  from is_prime_dvd_multD [OF p pxy] have pxyc: "p dvd x \<or> p dvd y" .
+  from prime_dvd_multD [OF p pxy] have pxyc: "p dvd x \<or> p dvd y" .
   from p have p0: "p \<noteq> 0" by - (rule ccontr, simp)
   {assume px: "p dvd x"
     then obtain d where d: "x = p*d" unfolding dvd_def by blast
@@ -446,7 +444,7 @@ lemma bezout_prime:
   shows "\<exists>x y. a*x = Suc (p*y)"
 proof -
   have ap: "coprime a p"
-    by (metis gcd.commute p pa is_prime_imp_coprime)
+    by (metis gcd.commute p pa prime_imp_coprime)
   moreover from p have "p \<noteq> 1" by auto
   ultimately have "\<exists>x y. a * x = p * y + 1"
     by (rule coprime_bezout_strong)
@@ -470,7 +468,7 @@ lemma prime_factors_ge_0_int [elim]:
   fixes n :: int
   shows "p \<in> prime_factors n \<Longrightarrow> p \<ge> 0"
   unfolding prime_factors_def 
-  by (auto split: if_splits simp: is_prime_def dest!: in_prime_factorization_imp_prime)
+  by (auto split: if_splits simp: prime_def dest!: in_prime_factorization_imp_prime)
 
 lemma msetprod_prime_factorization_int:
   fixes n :: int
@@ -480,7 +478,7 @@ lemma msetprod_prime_factorization_int:
 
 lemma prime_factorization_exists_nat:
   "n > 0 \<Longrightarrow> (\<exists>M. (\<forall>p::nat \<in> set_mset M. prime p) \<and> n = (\<Prod>i \<in># M. i))"
-  using prime_factorization_exists[of n] by (auto simp: is_prime_def)
+  using prime_factorization_exists[of n] by (auto simp: prime_def)
 
 lemma msetprod_prime_factorization_nat [simp]: 
   "(n::nat) > 0 \<Longrightarrow> msetprod (prime_factorization n) = n"
@@ -499,7 +497,7 @@ lemma prime_factorization_unique_nat:
   assumes S_eq: "S = {p. 0 < f p}"
     and "finite S"
     and S: "\<forall>p\<in>S. prime p" "n = (\<Prod>p\<in>S. p ^ f p)"
-  shows "S = prime_factors n \<and> (\<forall>p. is_prime p \<longrightarrow> f p = multiplicity p n)"
+  shows "S = prime_factors n \<and> (\<forall>p. prime p \<longrightarrow> f p = multiplicity p n)"
   using assms by (intro prime_factorization_unique'') auto
 
 lemma prime_factorization_unique_int:
@@ -507,7 +505,7 @@ lemma prime_factorization_unique_int:
   assumes S_eq: "S = {p. 0 < f p}"
     and "finite S"
     and S: "\<forall>p\<in>S. prime p" "abs n = (\<Prod>p\<in>S. p ^ f p)"
-  shows "S = prime_factors n \<and> (\<forall>p. is_prime p \<longrightarrow> f p = multiplicity p n)"
+  shows "S = prime_factors n \<and> (\<forall>p. prime p \<longrightarrow> f p = multiplicity p n)"
   using assms by (intro prime_factorization_unique'') auto
 
 lemma prime_factors_characterization_nat:
@@ -536,23 +534,23 @@ lemma primes_characterization'_int [rule_format]:
   by (rule prime_factors_characterization_int) (auto simp: abs_setprod prime_ge_0_int)
 
 lemma multiplicity_characterization_nat:
-  "S = {p. 0 < f (p::nat)} \<Longrightarrow> finite S \<Longrightarrow> \<forall>p\<in>S. prime p \<Longrightarrow> is_prime p \<Longrightarrow>
+  "S = {p. 0 < f (p::nat)} \<Longrightarrow> finite S \<Longrightarrow> \<forall>p\<in>S. prime p \<Longrightarrow> prime p \<Longrightarrow>
     n = (\<Prod>p\<in>S. p ^ f p) \<Longrightarrow> multiplicity p n = f p"
   by (frule prime_factorization_unique_nat [of S f n, THEN conjunct2, rule_format, symmetric]) auto
 
 lemma multiplicity_characterization'_nat: "finite {p. 0 < f (p::nat)} \<longrightarrow>
-    (\<forall>p. 0 < f p \<longrightarrow> prime p) \<longrightarrow> is_prime p \<longrightarrow>
+    (\<forall>p. 0 < f p \<longrightarrow> prime p) \<longrightarrow> prime p \<longrightarrow>
       multiplicity p (\<Prod>p | 0 < f p. p ^ f p) = f p"
   by (intro impI, rule multiplicity_characterization_nat) auto
 
 lemma multiplicity_characterization_int: "S = {p. 0 < f (p::int)} \<Longrightarrow>
-    finite S \<Longrightarrow> \<forall>p\<in>S. prime p \<Longrightarrow> is_prime p \<Longrightarrow> n = (\<Prod>p\<in>S. p ^ f p) \<Longrightarrow> multiplicity p n = f p"
+    finite S \<Longrightarrow> \<forall>p\<in>S. prime p \<Longrightarrow> prime p \<Longrightarrow> n = (\<Prod>p\<in>S. p ^ f p) \<Longrightarrow> multiplicity p n = f p"
   by (frule prime_factorization_unique_int [of S f n, THEN conjunct2, rule_format, symmetric]) 
      (auto simp: abs_setprod power_abs prime_ge_0_int intro!: setprod.cong)
 
 lemma multiplicity_characterization'_int [rule_format]:
   "finite {p. p \<ge> 0 \<and> 0 < f (p::int)} \<Longrightarrow>
-    (\<forall>p. 0 < f p \<longrightarrow> prime p) \<Longrightarrow> is_prime p \<Longrightarrow>
+    (\<forall>p. 0 < f p \<longrightarrow> prime p) \<Longrightarrow> prime p \<Longrightarrow>
       multiplicity p (\<Prod>p | p \<ge> 0 \<and> 0 < f p. p ^ f p) = f p"
   by (rule multiplicity_characterization_int) (auto simp: prime_ge_0_int)
 
@@ -561,18 +559,18 @@ lemma multiplicity_one_nat [simp]: "multiplicity p (Suc 0) = 0"
 
 lemma multiplicity_eq_nat:
   fixes x and y::nat
-  assumes "x > 0" "y > 0" "\<And>p. is_prime p \<Longrightarrow> multiplicity p x = multiplicity p y"
+  assumes "x > 0" "y > 0" "\<And>p. prime p \<Longrightarrow> multiplicity p x = multiplicity p y"
   shows "x = y"
   using multiplicity_eq_imp_eq[of x y] assms by simp
 
 lemma multiplicity_eq_int:
   fixes x y :: int
-  assumes "x > 0" "y > 0" "\<And>p. is_prime p \<Longrightarrow> multiplicity p x = multiplicity p y"
+  assumes "x > 0" "y > 0" "\<And>p. prime p \<Longrightarrow> multiplicity p x = multiplicity p y"
   shows "x = y"
   using multiplicity_eq_imp_eq[of x y] assms by simp
 
 lemma multiplicity_prod_prime_powers:
-  assumes "finite S" "\<And>x. x \<in> S \<Longrightarrow> is_prime x" "is_prime p"
+  assumes "finite S" "\<And>x. x \<in> S \<Longrightarrow> prime x" "prime p"
   shows   "multiplicity p (\<Prod>p \<in> S. p ^ f p) = (if p \<in> S then f p else 0)"
 proof -
   define g where "g = (\<lambda>x. if x \<in> S then f x else 0)"
@@ -592,7 +590,7 @@ proof -
   also have "\<dots> = msetprod A"
     by (auto simp: msetprod_multiplicity count_A set_mset_A intro!: setprod.cong)
   also from assms have "multiplicity p \<dots> = msetsum (image_mset (multiplicity p) A)"
-    by (subst prime_multiplicity_msetprod_distrib) (auto dest: prime)
+    by (subst prime_elem_multiplicity_msetprod_distrib) (auto dest: prime)
   also from assms have "image_mset (multiplicity p) A = image_mset (\<lambda>x. if x = p then 1 else 0) A"
     by (intro image_mset_cong) (auto simp: prime_multiplicity_other dest: prime)
   also have "msetsum \<dots> = (if p \<in> S then f p else 0)" by (simp add: msetsum_delta count_A g_def)
@@ -600,21 +598,21 @@ proof -
 qed
 
 (* TODO Legacy names *)
-lemmas prime_imp_coprime_nat = is_prime_imp_coprime[where ?'a = nat]
-lemmas prime_imp_coprime_int = is_prime_imp_coprime[where ?'a = int]
-lemmas prime_dvd_mult_nat = is_prime_dvd_mult_iff[where ?'a = nat]
-lemmas prime_dvd_mult_int = is_prime_dvd_mult_iff[where ?'a = int]
-lemmas prime_dvd_mult_eq_nat = is_prime_dvd_mult_iff[where ?'a = nat]
-lemmas prime_dvd_mult_eq_int = is_prime_dvd_mult_iff[where ?'a = int]
-lemmas prime_dvd_power_nat = is_prime_dvd_power[where ?'a = nat]
-lemmas prime_dvd_power_int = is_prime_dvd_power[where ?'a = int]
-lemmas prime_dvd_power_nat_iff = is_prime_dvd_power_iff[where ?'a = nat]
-lemmas prime_dvd_power_int_iff = is_prime_dvd_power_iff[where ?'a = int]
-lemmas prime_imp_power_coprime_nat = is_prime_imp_power_coprime[where ?'a = nat]
-lemmas prime_imp_power_coprime_int = is_prime_imp_power_coprime[where ?'a = int]
+lemmas prime_imp_coprime_nat = prime_imp_coprime[where ?'a = nat]
+lemmas prime_imp_coprime_int = prime_imp_coprime[where ?'a = int]
+lemmas prime_dvd_mult_nat = prime_dvd_mult_iff[where ?'a = nat]
+lemmas prime_dvd_mult_int = prime_dvd_mult_iff[where ?'a = int]
+lemmas prime_dvd_mult_eq_nat = prime_dvd_mult_iff[where ?'a = nat]
+lemmas prime_dvd_mult_eq_int = prime_dvd_mult_iff[where ?'a = int]
+lemmas prime_dvd_power_nat = prime_dvd_power[where ?'a = nat]
+lemmas prime_dvd_power_int = prime_dvd_power[where ?'a = int]
+lemmas prime_dvd_power_nat_iff = prime_dvd_power_iff[where ?'a = nat]
+lemmas prime_dvd_power_int_iff = prime_dvd_power_iff[where ?'a = int]
+lemmas prime_imp_power_coprime_nat = prime_imp_power_coprime[where ?'a = nat]
+lemmas prime_imp_power_coprime_int = prime_imp_power_coprime[where ?'a = int]
 lemmas primes_coprime_nat = primes_coprime[where ?'a = nat]
 lemmas primes_coprime_int = primes_coprime[where ?'a = nat]
-lemmas prime_divprod_pow_nat = prime_divprod_pow[where ?'a = nat]
-lemmas prime_exp = is_prime_elem_power_iff[where ?'a = nat]
+lemmas prime_divprod_pow_nat = prime_elem_divprod_pow[where ?'a = nat]
+lemmas prime_exp = prime_elem_power_iff[where ?'a = nat]
 
 end

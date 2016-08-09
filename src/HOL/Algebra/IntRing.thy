@@ -251,7 +251,7 @@ next
   then obtain x where "1 = x * p" by best
   then have "\<bar>p * x\<bar> = 1" by (simp add: mult.commute)
   then show False using prime
-    by (auto dest!: abs_zmult_eq_1 simp: is_prime_def)
+    by (auto dest!: abs_zmult_eq_1 simp: prime_def)
 qed
 
 

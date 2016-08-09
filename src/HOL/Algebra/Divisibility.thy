@@ -2250,7 +2250,7 @@ done
 
 subsection \<open>Irreducible Elements are Prime\<close>
 
-lemma (in factorial_monoid) irreducible_is_prime:
+lemma (in factorial_monoid) irreducible_prime:
   assumes pirr: "irreducible G p"
     and pcarr: "p \<in> carrier G"
   shows "prime G p"
@@ -2340,7 +2340,7 @@ qed
 
 
 \<comment>"A version using @{const factors}, more complicated"
-lemma (in factorial_monoid) factors_irreducible_is_prime:
+lemma (in factorial_monoid) factors_irreducible_prime:
   assumes pirr: "irreducible G p"
     and pcarr: "p \<in> carrier G"
   shows "prime G p"
@@ -3638,7 +3638,7 @@ apply (metis properfactor_fcount)
 done
 
 sublocale factorial_monoid \<subseteq> primeness_condition_monoid
-  by standard (rule irreducible_is_prime)
+  by standard (rule irreducible_prime)
 
 
 lemma (in factorial_monoid) primeness_condition:

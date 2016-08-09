@@ -67,7 +67,7 @@ those hypernaturals exceeding 1 that have no nontrivial factors\<close>
 (* Goldblatt: Exercise 5.11(3a) - p 57  *)
 lemma starprime:
   "starprime = {p. 1 < p & (\<forall>m. m dvd p --> m = 1 | m = p)}"
-by (transfer, auto simp add: is_prime_nat_iff)
+by (transfer, auto simp add: prime_nat_iff)
 
 (* Goldblatt Exercise 5.11(3b) - p 57  *)
 lemma hyperprime_factor_exists [rule_format]:
@@ -277,7 +277,7 @@ apply clarify
 apply (subgoal_tac "k \<notin> hypnat_of_nat ` {p. prime p}")
 apply (force simp add: starprime_def)
   apply (metis Compl_iff add.commute dvd_add_left_iff empty_iff hdvd_one_eq_one hypnat_one_not_prime 
-           imageE insert_iff mem_Collect_eq not_is_prime_0)
+           imageE insert_iff mem_Collect_eq not_prime_0)
 done
 
 end

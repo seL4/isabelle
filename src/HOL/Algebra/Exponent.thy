@@ -15,8 +15,8 @@ text \<open>The Combinatorial Argument Underlying the First Sylow Theorem\<close
 
 text\<open>needed in this form to prove Sylow's theorem\<close>
 corollary (in algebraic_semidom) div_combine: 
-  "\<lbrakk>is_prime_elem p; \<not> p ^ Suc r dvd n; p ^ (a + r) dvd n * k\<rbrakk> \<Longrightarrow> p ^ a dvd k"
-  by (metis add_Suc_right mult.commute prime_power_dvd_cases)
+  "\<lbrakk>prime_elem p; \<not> p ^ Suc r dvd n; p ^ (a + r) dvd n * k\<rbrakk> \<Longrightarrow> p ^ a dvd k"
+  by (metis add_Suc_right mult.commute prime_elem_power_dvd_cases)
 
 lemma exponent_p_a_m_k_equation: 
   fixes p :: nat
@@ -61,16 +61,16 @@ next
   case (Suc k)
   then have *: "(Suc (j+k) choose Suc k) > 0" by simp
   then have "multiplicity p ((Suc (j+k) choose Suc k) * Suc k) = multiplicity p (Suc k)"
-    by (subst Suc_times_binomial_eq [symmetric], subst prime_multiplicity_mult_distrib)
+    by (subst Suc_times_binomial_eq [symmetric], subst prime_elem_multiplicity_mult_distrib)
        (insert p Suc.prems, simp_all add: eeq [symmetric] Suc.IH)
   with p * show ?case
-    by (subst (asm) prime_multiplicity_mult_distrib) simp_all
+    by (subst (asm) prime_elem_multiplicity_mult_distrib) simp_all
 qed
 
 text\<open>The lemma above, with two changes of variables\<close>
 lemma p_not_div_choose:
   assumes "k < K" and "k \<le> n" 
-      and eeq: "\<And>j. \<lbrakk>0<j; j<K\<rbrakk> \<Longrightarrow> multiplicity p (n - k + (K - j)) = multiplicity p (K - j)" "is_prime p"
+      and eeq: "\<And>j. \<lbrakk>0<j; j<K\<rbrakk> \<Longrightarrow> multiplicity p (n - k + (K - j)) = multiplicity p (K - j)" "prime p"
     shows "multiplicity p (n choose k) = 0"
 apply (rule p_not_div_choose_lemma [of K p "n-k" k, simplified assms nat_minus_add_max max_absorb1])
 apply (metis add_Suc_right eeq diff_diff_cancel order_less_imp_le zero_less_Suc zero_less_diff)
@@ -78,7 +78,7 @@ apply (rule TrueI)+
 done
 
 proposition const_p_fac:
-  assumes "m>0" and prime: "is_prime p"
+  assumes "m>0" and prime: "prime p"
   shows "multiplicity p (p^a * m choose p^a) = multiplicity p m"
 proof-
   from assms have p: "0 < p ^ a" "0 < p^a * m" "p^a \<le> p^a * m"
@@ -93,13 +93,13 @@ proof-
       by (subst times_binomial_minus1_eq [symmetric]) (auto simp: prime_gt_0_nat)
     also from p have "p ^ a - Suc 0 \<le> p ^ a * m - Suc 0" by linarith
     with prime * p have "multiplicity p ?rhs = multiplicity p (p ^ a * m)"
-      by (subst prime_multiplicity_mult_distrib) auto
+      by (subst prime_elem_multiplicity_mult_distrib) auto
     also have "\<dots> = a + multiplicity p m" 
-      using prime p by (subst prime_multiplicity_mult_distrib) simp_all
+      using prime p by (subst prime_elem_multiplicity_mult_distrib) simp_all
     finally show ?thesis .
   qed
   then show ?thesis
-    using prime p by (subst (asm) prime_multiplicity_mult_distrib) simp_all
+    using prime p by (subst (asm) prime_elem_multiplicity_mult_distrib) simp_all
 qed
 
 end

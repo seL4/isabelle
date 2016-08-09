@@ -99,7 +99,7 @@ locale primeideal = ideal + cring +
   assumes I_notcarr: "carrier R \<noteq> I"
     and I_prime: "\<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I"
 
-lemma (in primeideal) is_primeideal: "primeideal I R"
+lemma (in primeideal) primeideal: "primeideal I R"
   by (rule primeideal_axioms)
 
 lemma primeidealI:
@@ -769,7 +769,7 @@ proof -
 qed
 
 text \<open>In a cring every maximal ideal is prime\<close>
-lemma (in cring) maximalideal_is_prime:
+lemma (in cring) maximalideal_prime:
   assumes "maximalideal I R"
   shows "primeideal I R"
 proof -

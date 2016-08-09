@@ -206,14 +206,14 @@ lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t)
 by (induction t) (auto simp: elems_simps1 ball_Un)
 
 lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps2)
+by (induction t) (auto simp: elems_simps2 split!: if_splits)
 
 
 subsubsection \<open>Functional correctness of insert:\<close>
 
 lemma inorder_ins:
   "sorted(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(ins x t)) = ins_list x (inorder t)"
-by(induction t) (auto, auto simp: ins_list_simps split: up\<^sub>i.splits)
+by(induction t) (auto, auto simp: ins_list_simps split!: if_splits up\<^sub>i.splits)
 
 lemma inorder_insert:
   "sorted(inorder t) \<Longrightarrow> inorder(insert a t) = ins_list a (inorder t)"
@@ -271,8 +271,8 @@ by(induction t arbitrary: t' rule: del_min.induct)
 lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: inorder_nodes del_list_simps del_minD split: prod.splits)
-  (* 150 secs (2015) *)
+  (auto simp: inorder_nodes del_list_simps del_minD split!: if_split prod.splits)
+  (* 30 secs (2016) *)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -297,7 +297,7 @@ instance ..
 end
 
 lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
-by (induct t) (auto, auto split: up\<^sub>i.split) (* 20 secs (2015) *)
+by (induct t) (auto split!: if_split up\<^sub>i.split)
 
 
 text{* Now an alternative proof (by Brian Huffman) that runs faster because
@@ -486,7 +486,7 @@ by(induct t arbitrary: x t' rule: del_min.induct)
 
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
-  (auto simp add: heights height_del_min split: prod.split)
+  (auto simp add: heights height_del_min split!: if_split prod.split)
 
 lemma bal_del_min:
   "\<lbrakk> del_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
@@ -495,8 +495,7 @@ by(induct t arbitrary: x t' rule: del_min.induct)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_del_min height_del height_del_min split: prod.split)
-(* 60 secs (2015) *)
+  (auto simp: bals bal_del_min height_del height_del_min split!: if_split prod.split)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)

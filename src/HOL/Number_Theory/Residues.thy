@@ -280,7 +280,7 @@ proof -
   qed
   then show ?thesis
     using \<open>2 \<le> p\<close>
-    by (simp add: is_prime_nat_iff)
+    by (simp add: prime_nat_iff)
        (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0
               not_numeral_le_zero one_dvd)
 qed
