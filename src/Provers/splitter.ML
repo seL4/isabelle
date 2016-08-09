@@ -19,6 +19,7 @@ sig
   val contrapos     : thm (* "[| ~ Q; P ==> Q |] ==> ~ P"            *)
   val contrapos2    : thm (* "[| Q; ~ P ==> ~ Q |] ==> P"            *)
   val notnotD       : thm (* "~ ~ P ==> P"                           *)
+  val safe_tac      : Proof.context -> tactic
 end
 
 signature SPLITTER =
@@ -33,9 +34,8 @@ sig
   val split_inside_tac: Proof.context -> thm list -> int -> tactic
   val split_asm_tac   : Proof.context -> thm list -> int -> tactic
   val add_split: thm -> Proof.context -> Proof.context
+  val add_split_bang: thm -> Proof.context -> Proof.context
   val del_split: thm -> Proof.context -> Proof.context
-  val split_add: attribute
-  val split_del: attribute
   val split_modifiers : Method.modifier parser list
 end;
 
@@ -435,11 +435,19 @@ fun string_of_typ (Type (s, Ts)) =
 fun split_name (name, T) asm = "split " ^
   (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;
 
-fun add_split split ctxt =
+fun gen_add_split bang split ctxt =
   let
     val (name, asm) = split_thm_info split
-    fun tac ctxt' = (if asm then split_asm_tac else split_tac) ctxt' [split]
+    fun tac ctxt' =
+      (if asm then split_asm_tac ctxt' [split]
+       else if bang
+            then split_tac ctxt' [split] THEN_ALL_NEW
+                 TRY o (SELECT_GOAL (Data.safe_tac ctxt'))
+            else split_tac ctxt' [split])
   in Simplifier.addloop (ctxt, (split_name name asm, tac)) end;
+
+val add_split = gen_add_split false;
+val add_split_bang = gen_add_split true;
 
 fun del_split split ctxt =
   let val (name, asm) = split_thm_info split
@@ -450,20 +458,26 @@ fun del_split split ctxt =
 
 val splitN = "split";
 
-val split_add = Simplifier.attrib add_split;
+fun split_add bang = Simplifier.attrib (gen_add_split bang);
 val split_del = Simplifier.attrib del_split;
 
-val _ =
-  Theory.setup
-    (Attrib.setup @{binding split}
-      (Attrib.add_del split_add split_del) "declare case split rule");
+val opt_bang = Scan.optional (Args.bang >> K true) false;
+
+val add_del =
+  Scan.lift (Args.add |-- opt_bang >> split_add
+    || Args.del >> K split_del || opt_bang >> split_add);
+
+val _ = Theory.setup
+  (Attrib.setup @{binding split} add_del "declare case split rule");
 
 
 (* methods *)
 
 val split_modifiers =
- [Args.$$$ splitN -- Args.colon >> K (Method.modifier split_add @{here}),
-  Args.$$$ splitN -- Args.add -- Args.colon >> K (Method.modifier split_add @{here}),
+ [Args.$$$ splitN -- Args.colon >> K (Method.modifier (split_add false) @{here}),
+  Args.$$$ splitN -- Args.bang_colon >> K (Method.modifier (split_add true) @{here}),
+  Args.$$$ splitN -- Args.add -- Args.colon >> K (Method.modifier (split_add false) @{here}),
+  Args.$$$ splitN -- Args.add -- Args.bang_colon >> K (Method.modifier (split_add true) @{here}),
   Args.$$$ splitN -- Args.del -- Args.colon >> K (Method.modifier split_del @{here})];
 
 val _ =

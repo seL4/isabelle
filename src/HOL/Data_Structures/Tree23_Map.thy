@@ -89,7 +89,7 @@ by(simp add: update_def inorder_upd)
 lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: del_list_simps inorder_nodes del_minD split: prod.splits)
+  (auto simp: del_list_simps inorder_nodes del_minD split!: if_split prod.splits)
 
 corollary inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -99,7 +99,7 @@ by(simp add: delete_def inorder_del)
 subsection \<open>Balancedness\<close>
 
 lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd x y t)) \<and> height(upd x y t) = height t"
-by (induct t) (auto split: up\<^sub>i.split)(* 16 secs in 2015 *)
+by (induct t) (auto split!: if_split up\<^sub>i.split)(* 16 secs in 2015 *)
 
 corollary bal_update: "bal t \<Longrightarrow> bal (update x y t)"
 by (simp add: update_def bal_upd)
