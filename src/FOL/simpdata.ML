@@ -97,6 +97,7 @@ structure Splitter = Splitter
   val contrapos = @{thm contrapos}
   val contrapos2 = @{thm contrapos2}
   val notnotD = @{thm notnotD}
+  val safe_tac = Cla.safe_tac
 );
 
 val split_tac = Splitter.split_tac;
