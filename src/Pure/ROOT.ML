@@ -186,6 +186,12 @@ ML_file "ML/ml_compiler.ML";
 ML_file "skip_proof.ML";
 ML_file "goal.ML";
 
+(*outer syntax*)
+ML_file "Isar/keyword.ML";
+ML_file "Isar/token.ML";
+ML_file "Isar/parse.ML";
+ML_file "Thy/thy_header.ML";
+
 (*proof context*)
 ML_file "Isar/object_logic.ML";
 ML_file "Isar/rule_cases.ML";
@@ -195,18 +201,12 @@ ML_file "Syntax/local_syntax.ML";
 ML_file "Isar/proof_context.ML";
 ML_file "type_infer_context.ML";
 ML_file "Syntax/syntax_phases.ML";
-ML_file "Isar/local_defs.ML";
-
-(*outer syntax*)
-ML_file "Isar/keyword.ML";
-ML_file "Isar/token.ML";
-ML_file "Isar/parse.ML";
 ML_file "Isar/args.ML";
 
 (*theory specifications*)
+ML_file "Isar/local_defs.ML";
 ML_file "Isar/local_theory.ML";
 ML_file "Isar/entity.ML";
-ML_file "Thy/thy_header.ML";
 ML_file "PIDE/command_span.ML";
 ML_file "Thy/thy_syntax.ML";
 ML_file "Thy/markdown.ML";
