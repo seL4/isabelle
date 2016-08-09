@@ -197,10 +197,12 @@ HOL-Analysis some theorems need additional name spaces prefixes due to name
 clashes.
 INCOMPATIBILITY.
 
-* Number_Theory: algebraic foundation for primes: Introduction of 
-predicates "is_prime", "irreducible", a "prime_factorization" 
-function, the "factorial_ring" typeclass with instance proofs for 
-nat, int, poly.
+* Number_Theory: algebraic foundation for primes: Generalisation of 
+predicate "prime" and introduction of predicates "prime_elem",
+"irreducible", a "prime_factorization" function, and the "factorial_ring" 
+typeclass with instance proofs for nat, int, poly. Some theorems now have 
+different names, most notably "prime_def" is now "prime_nat_iff".
+INCOMPATIBILITY.
 
 * Probability: Code generation and QuickCheck for Probability Mass 
 Functions.

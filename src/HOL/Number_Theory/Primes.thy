@@ -243,7 +243,7 @@ lemma prime_int_simp:
 
 lemmas prime_nat_simp_numeral [simp] = prime_nat_simp [of "numeral m"] for m
 
-lemma two_prime_nat [simp]: "prime (2::nat)"
+lemma two_is_prime_nat [simp]: "prime (2::nat)"
   by simp
 
 declare prime_int_nat_transfer[of "numeral m" for m, simp]
