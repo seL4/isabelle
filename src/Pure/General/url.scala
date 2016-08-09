@@ -8,6 +8,7 @@ package isabelle
 
 
 import java.net.{URL, MalformedURLException}
+import java.util.zip.GZIPInputStream
 
 
 object Url
@@ -29,11 +30,16 @@ object Url
     try { Url(name).openStream.close; true }
     catch { case ERROR(_) => false }
 
-  def read(name: String): String =
+
+  /* read */
+
+  private def gen_read(name: String, gzip: Boolean): String =
   {
     val stream = Url(name).openStream
-    try { File.read_stream(stream) }
+    try { File.read_stream(if (gzip) new GZIPInputStream(stream) else stream) }
     finally { stream.close }
   }
-}
 
+  def read(name: String): String = gen_read(name, false)
+  def read_gzip(name: String): String = gen_read(name, true)
+}
