@@ -191,7 +191,7 @@ by(induction t arbitrary: t' rule: del_min.induct)
 lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: del_list_simps inorder_nodes del_minD split: prod.splits)
+  (auto simp: del_list_simps inorder_nodes del_minD split!: if_split prod.splits)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -217,7 +217,7 @@ instance ..
 end
 
 lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
-by (induct t) (auto split: up\<^sub>i.split) (* 15 secs in 2015 *)
+by (induct t) (auto split!: if_split up\<^sub>i.split) (* 15 secs in 2015 *)
 
 text{* Now an alternative proof (by Brian Huffman) that runs faster because
 two properties (balance and height) are combined in one predicate. *}

@@ -329,7 +329,7 @@ next
   from lDown_tDouble and r obtain rrlv rrr rra rrl where
     rr :"rr = Node rrlv rrr rra rrl" by (cases rr) auto
   from  lDown_tDouble show ?thesis unfolding adjust_def r rr
-    apply (cases rl) apply (auto simp add: invar.simps(2))
+    apply (cases rl) apply (auto simp add: invar.simps(2) split!: if_split)
     using lDown_tDouble by (auto simp: split_case lvl_0_iff  elim:lvl.elims split: tree.split)
 qed (auto simp: split_case invar.simps(2) adjust_def split: tree.splits)
 

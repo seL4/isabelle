@@ -127,12 +127,11 @@ lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update a b t) = upd_list a b (inorder t)"
 by(simp add: update_def inorder_upd)
 
-
 lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  ((auto simp: del_list_simps inorder_nodes del_minD split: prod.splits)[1])+
-(* 200 secs (2015) *)
+  (auto simp: del_list_simps inorder_nodes del_minD split!: if_splits prod.splits)
+(* 30 secs (2016) *)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -142,21 +141,18 @@ by(simp add: delete_def inorder_del)
 subsection \<open>Balancedness\<close>
 
 lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd x y t)) \<and> height(upd x y t) = height t"
-by (induct t) (auto, auto split: up\<^sub>i.split) (* 20 secs (2015) *)
+by (induct t) (auto, auto split!: if_split up\<^sub>i.split) (* 20 secs (2015) *)
 
 lemma bal_update: "bal t \<Longrightarrow> bal (update x y t)"
 by (simp add: update_def bal_upd)
 
-
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
-  (auto simp add: heights height_del_min split: prod.split)
-(* 20 secs (2015) *)
+  (auto simp add: heights height_del_min split!: if_split prod.split)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_del_min height_del height_del_min split: prod.split)
-(* 100 secs (2015) *)
+  (auto simp: bals bal_del_min height_del height_del_min split!: if_split prod.split)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)
