@@ -176,7 +176,9 @@ session "HOL-Data_Structures" in Data_Structures = HOL +
   theories [document = false]
     "Less_False"
     "~~/src/HOL/Library/Multiset"
+    "~~/src/HOL/Library/Float"
   theories
+    Balance_List
     Tree_Map
     AVL_Map
     RBT_Map
