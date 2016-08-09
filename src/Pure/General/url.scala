@@ -33,13 +33,16 @@ object Url
 
   /* read */
 
-  private def gen_read(name: String, gzip: Boolean): String =
+  private def read(url: URL, gzip: Boolean): String =
   {
-    val stream = Url(name).openStream
+    val stream = url.openStream
     try { File.read_stream(if (gzip) new GZIPInputStream(stream) else stream) }
     finally { stream.close }
   }
 
-  def read(name: String): String = gen_read(name, false)
-  def read_gzip(name: String): String = gen_read(name, true)
+  def read(url: URL): String = read(url, false)
+  def read_gzip(url: URL): String = read(url, true)
+
+  def read(name: String): String = read(Url(name), false)
+  def read_gzip(name: String): String = read(Url(name), true)
 }
