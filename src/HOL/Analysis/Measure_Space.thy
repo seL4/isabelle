@@ -2641,8 +2641,11 @@ next
     by (simp add: A(3))
 qed
 
+instantiation measure :: (type) complete_lattice
+begin
+
 interpretation sup_measure: comm_monoid_set sup "bot :: 'a measure"
-  proof qed (auto intro!: antisym)
+  by standard (auto intro!: antisym)
 
 lemma sup_measure_F_mono':
   "finite J \<Longrightarrow> finite I \<Longrightarrow> sup_measure.F id I \<le> sup_measure.F id (I \<union> J)"
@@ -2743,9 +2746,6 @@ proof (rule emeasure_measure_of)
   show "X \<in> sets (Sup_measure' M)"
     using assms * by auto
 qed (rule UN_space_closed)
-
-instantiation measure :: (type) complete_lattice
-begin
 
 definition Sup_measure :: "'a measure set \<Rightarrow> 'a measure"
 where
@@ -2947,11 +2947,12 @@ lemma emeasure_SUP:
   assumes sets: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets N" "X \<in> sets N" "I \<noteq> {}"
   shows "emeasure (SUP i:I. M i) X = (SUP J:{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. emeasure (SUP i:J. M i) X)"
 proof -
+  interpret sup_measure: comm_monoid_set sup "bot :: 'b measure"
+    by standard (auto intro!: antisym)
   have eq: "finite J \<Longrightarrow> sup_measure.F id J = (SUP i:J. i)" for J :: "'b measure set"
     by (induction J rule: finite_induct) auto
   have 1: "J \<noteq> {} \<Longrightarrow> J \<subseteq> I \<Longrightarrow> sets (SUP x:J. M x) = sets N" for J
     by (intro sets_SUP sets) (auto )
-
   from \<open>I \<noteq> {}\<close> obtain i where "i\<in>I" by auto
   have "Sup_measure' (M`I) X = (SUP P:{P. finite P \<and> P \<subseteq> M`I}. sup_measure.F id P X)"
     using sets by (intro emeasure_Sup_measure') auto
@@ -3308,7 +3309,7 @@ next
     note singleton_sets = this
     have "?M < (\<Sum>x\<in>X. ?M / Suc n)"
       using \<open>?M \<noteq> 0\<close>
-      by (simp add: \<open>card X = Suc (Suc n)\<close> of_nat_Suc field_simps less_le measure_nonneg)
+      by (simp add: \<open>card X = Suc (Suc n)\<close> field_simps less_le)
     also have "\<dots> \<le> (\<Sum>x\<in>X. ?m x)"
       by (rule setsum_mono) fact
     also have "\<dots> = measure M (\<Union>x\<in>X. {x})"
