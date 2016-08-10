@@ -100,13 +100,13 @@ lemma map_option_case: "map_option f y = (case y of None \<Rightarrow> None | So
   by (auto split: option.split)
 
 lemma map_option_is_None [iff]: "(map_option f opt = None) = (opt = None)"
-  by (simp add: map_option_case split add: option.split)
+  by (simp add: map_option_case split: option.split)
 
 lemma None_eq_map_option_iff [iff]: "None = map_option f x \<longleftrightarrow> x = None"
 by(cases x) simp_all
 
 lemma map_option_eq_Some [iff]: "(map_option f xo = Some y) = (\<exists>z. xo = Some z \<and> f z = y)"
-  by (simp add: map_option_case split add: option.split)
+  by (simp add: map_option_case split: option.split)
 
 lemma map_option_o_case_sum [simp]:
     "map_option f o case_sum g h = case_sum (map_option f o g) (map_option f o h)"

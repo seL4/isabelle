@@ -207,7 +207,7 @@ lemma lconf_map_sum [simp]:
 apply (unfold lconf_def)
 apply safe
 apply (case_tac [3] "n")
-apply (force split add: sum.split)+
+apply (force split: sum.split)+
 done
 
 lemma lconf_ext_list [rule_format (no_asm)]: "
@@ -288,7 +288,7 @@ lemma wlconf_map_sum [simp]:
 apply (unfold wlconf_def)
 apply safe
 apply (case_tac [3] "n")
-apply (force split add: sum.split)+
+apply (force split: sum.split)+
 done
 
 lemma wlconf_ext_list [rule_format (no_asm)]: "
@@ -370,7 +370,7 @@ apply (auto simp add: oconf_def)
 apply (drule_tac var_tys_Some_eq [THEN iffD1]) 
 defer
 apply (subst obj_ty_cong)
-apply (auto dest!: fields_table_SomeD split add: sum.split_asm obj_tag.split_asm)
+apply (auto dest!: fields_table_SomeD split: sum.split_asm obj_tag.split_asm)
 done
 
 subsubsection "state conformance"

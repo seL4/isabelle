@@ -69,22 +69,22 @@ instance
 proof
   fix x y z::acc_modi
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
-    by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split) 
+    by (auto simp add: le_acc_def less_acc_def split: acc_modi.split) 
   show "x \<le> x"                       \<comment> reflexivity
     by (auto simp add: le_acc_def)
   {
     assume "x \<le> y" "y \<le> z"           \<comment> transitivity 
     then show "x \<le> z"
-      by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split)
+      by (auto simp add: le_acc_def less_acc_def split: acc_modi.split)
   next
     assume "x \<le> y" "y \<le> x"           \<comment> antisymmetry
     moreover have "\<forall> x y. x < (y::acc_modi) \<and> y < x \<longrightarrow> False"
-      by (auto simp add: less_acc_def split add: acc_modi.split)
+      by (auto simp add: less_acc_def split: acc_modi.split)
     ultimately show "x = y" by (unfold le_acc_def) iprover
   next
     fix x y:: acc_modi
     show "x \<le> y \<or> y \<le> x"   
-      by (auto simp add: less_acc_def le_acc_def split add: acc_modi.split)
+      by (auto simp add: less_acc_def le_acc_def split: acc_modi.split)
   }
 qed
   

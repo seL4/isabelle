@@ -82,7 +82,7 @@ lemma nodeOrder_eq:
      "[| i<N; j<N |] ==> ((next i, i) \<in> nodeOrder j) = (i \<noteq> j)"
 apply (unfold nodeOrder_def next_def)
 apply (auto simp add: mod_Suc mod_geq)
-apply (auto split add: nat_diff_split simp add: linorder_neq_iff mod_geq)
+apply (auto split: nat_diff_split simp add: linorder_neq_iff mod_geq)
 done
 
 text\<open>From "A Logic for Concurrent Programming", but not used in Chapter 4.

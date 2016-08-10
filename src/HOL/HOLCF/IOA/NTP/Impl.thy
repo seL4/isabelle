@@ -155,14 +155,14 @@ apply (tactic "tac_ren @{context} 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp (no_asm_simp) add: hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
-  split add: if_split)
+  split: if_split)
 txt \<open>detour 2\<close>
 apply (tactic "tac @{context} 1")
 apply (tactic "tac_ren @{context} 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp add: Impl.hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
-  Multiset.delm_nonempty_def split add: if_split)
+  Multiset.delm_nonempty_def split: if_split)
 apply (rule allI)
 apply (rule conjI)
 apply (rule impI)

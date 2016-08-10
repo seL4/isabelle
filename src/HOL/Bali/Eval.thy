@@ -1166,12 +1166,12 @@ apply (tactic \<open>ALLGOALS (EVERY'
       [strip_tac @{context}, rotate_tac ~1, eresolve_tac @{context} @{thms eval_elim_cases}])\<close>)
 (* 31 subgoals *)
 prefer 28 (* Try *) 
-apply (simp (no_asm_use) only: split add: if_split_asm)
+apply (simp (no_asm_use) only: split: if_split_asm)
 (* 34 subgoals *)
 prefer 30 (* Init *)
 apply (case_tac "inited C (globs s0)", (simp only: if_True if_False simp_thms)+)
 prefer 26 (* While *)
-apply (simp (no_asm_use) only: split add: if_split_asm, blast)
+apply (simp (no_asm_use) only: split: if_split_asm, blast)
 (* 36 subgoals *)
 apply (blast dest: unique_sxalloc unique_halloc split_pairD)+
 done

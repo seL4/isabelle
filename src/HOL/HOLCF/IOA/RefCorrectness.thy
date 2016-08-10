@@ -189,7 +189,7 @@ lemma lemma_1:
   apply (auto simp add: mk_traceConc)
   apply (frule reachable.reachable_n)
   apply assumption
-  apply (auto simp add: move_subprop4 split add: if_split)
+  apply (auto simp add: move_subprop4 split: if_split)
   done
 
 

@@ -517,7 +517,7 @@ apply (simp add: ordertype_pred_Inr_eq well_ord_Memrel lt_pred_Memrel
 done
 
 lemma oadd_lt_cancel2: "[| i++j < i++k;  Ord(j) |] ==> j<k"
-apply (simp (asm_lr) add: oadd_eq_if_raw_oadd split add: split_if_asm)
+apply (simp (asm_lr) add: oadd_eq_if_raw_oadd split: split_if_asm)
  prefer 2
  apply (frule_tac i = i and j = j in oadd_le_self)
  apply (simp (asm_lr) add: oadd_def ordify_def lt_Ord not_lt_iff_le [THEN iff_sym])
@@ -530,7 +530,7 @@ lemma oadd_lt_iff2: "Ord(j) ==> i++j < i++k \<longleftrightarrow> j<k"
 by (blast intro!: oadd_lt_mono2 dest!: oadd_lt_cancel2)
 
 lemma oadd_inject: "[| i++j = i++k;  Ord(j); Ord(k) |] ==> j=k"
-apply (simp add: oadd_eq_if_raw_oadd split add: split_if_asm)
+apply (simp add: oadd_eq_if_raw_oadd split: split_if_asm)
 apply (simp add: raw_oadd_eq_oadd)
 apply (rule Ord_linear_lt, auto)
 apply (force dest: oadd_lt_mono2 [of concl: i] simp add: lt_not_refl)+
@@ -538,7 +538,7 @@ done
 
 lemma lt_oadd_disj: "k < i++j ==> k<i | (\<exists>l\<in>j. k = i++l )"
 apply (simp add: Ord_in_Ord' [of _ j] oadd_eq_if_raw_oadd
-            split add: split_if_asm)
+            split: split_if_asm)
  prefer 2
  apply (simp add: Ord_in_Ord' [of _ j] lt_def)
 apply (simp add: ordertype_pred_unfold well_ord_radd well_ord_Memrel raw_oadd_def)

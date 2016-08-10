@@ -531,7 +531,7 @@ apply (rule_tac u = "a" and v = "b" in posDivAlg_induct)
 apply assumption+
 apply (case_tac "#0 $< ba")
  apply (simp add: posDivAlg_eqn adjust_def integ_of_type
-             split add: split_if_asm)
+             split: split_if_asm)
  apply clarify
  apply (simp add: int_0_less_mult_iff not_zle_iff_zless)
 apply (simp add: not_zless_iff_zle)
@@ -625,7 +625,7 @@ apply (rule_tac u = "a" and v = "b" in negDivAlg_induct)
 apply assumption+
 apply (case_tac "#0 $< ba")
  apply (simp add: negDivAlg_eqn adjust_def integ_of_type
-             split add: split_if_asm)
+             split: split_if_asm)
  apply clarify
  apply (simp add: int_0_less_mult_iff not_zle_iff_zless)
 apply (simp add: not_zless_iff_zle)

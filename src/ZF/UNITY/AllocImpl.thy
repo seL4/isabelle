@@ -314,7 +314,7 @@ apply (auto dest!: not_lt_imp_le)
 apply (rule LeadsTo_weaken)
 apply (rule_tac n = "s0`NbR" in alloc_prog_NbR_LeadsTo_lemma2, safe)
 prefer 3 apply assumption
-apply (auto split add: nat_diff_split simp add: greater_than_def not_lt_imp_le not_le_iff_lt)
+apply (auto split: nat_diff_split simp add: greater_than_def not_lt_imp_le not_le_iff_lt)
 apply (blast dest: lt_asym)
 apply (force dest: add_lt_elim2)
 done
@@ -416,7 +416,7 @@ apply (subgoal_tac "0 \<le> tokens(take (x ` NbR, x ` rel)) #- tokens(x`giv) ")
 apply (subgoal_tac "x`available_tok =
                     NbT #+ (tokens(take(x`NbR,x`rel)) #- tokens(x`giv))")
 apply (simp add: )
-apply (auto split add: nat_diff_split dest: lt_trans2)
+apply (auto split: nat_diff_split dest: lt_trans2)
 done
 
 

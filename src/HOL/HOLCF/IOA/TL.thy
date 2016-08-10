@@ -128,7 +128,7 @@ lemma LTL1: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstil
   apply (erule_tac x = "s" in allE)
   apply (simp add: tsuffix_def suffix_refl)
   text \<open>\<open>\<box>F \<^bold>\<longrightarrow> \<circle>\<box>F\<close>\<close>
-  apply (simp split add: if_split)
+  apply (simp split: if_split)
   apply auto
   apply (drule tsuffix_TL2)
   apply assumption+

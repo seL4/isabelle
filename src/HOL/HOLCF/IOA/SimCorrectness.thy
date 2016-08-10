@@ -173,7 +173,7 @@ lemma traces_coincide_sim [rule_format (no_asm)]:
   apply (erule_tac x = "t" in allE)
   apply (erule_tac x = "SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'" in allE)
   apply (simp add: move_subprop5_sim [unfolded Let_def]
-    move_subprop4_sim [unfolded Let_def] split add: if_split)
+    move_subprop4_sim [unfolded Let_def] split: if_split)
   done
 
 text \<open>Lemma 2: \<open>corresp_ex_sim\<close> is execution\<close>

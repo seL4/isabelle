@@ -41,7 +41,7 @@ by (rule ext, simp)
 
 lemma insert_map_delete_map_eq: "(insert_map i x (delete_map i g)) = g(i:=x)"
 apply (rule ext)
-apply (auto split add: nat_diff_split)
+apply (auto split: nat_diff_split)
 done
 
 subsection\<open>Injectiveness proof\<close>
@@ -120,7 +120,7 @@ lemma insert_map_upd:
        else if i<j then insert_map j t (f(i:=s))  
        else insert_map j t (f(i - Suc 0 := s)))"
 apply (rule ext) 
-apply (simp split add: nat_diff_split)
+apply (simp split: nat_diff_split)
  txt\<open>This simplification is VERY slow\<close>
 done
 

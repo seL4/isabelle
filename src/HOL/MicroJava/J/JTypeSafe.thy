@@ -234,7 +234,7 @@ apply( rule conjI, erule (1) hext_trans)
 apply( erule conjI)
 apply( clarsimp)
 apply( drule eval_no_xcpt)
-apply( simp split add: binop.split)
+apply( simp split: binop.split)
 
 \<comment> "12 LAcc"
 apply simp

@@ -317,7 +317,7 @@ lemma binomial_Suc_Suc_eq_times: "(Suc n choose Suc k) = (Suc n * (n choose k)) 
 text \<open>Another version of absorption, with \<open>-1\<close> instead of \<open>Suc\<close>.\<close>
 lemma times_binomial_minus1_eq: "0 < k \<Longrightarrow> k * (n choose k) = n * ((n - 1) choose (k - 1))"
   using Suc_times_binomial_eq [where n = "n - 1" and k = "k - 1"]
-  by (auto split add: nat_diff_split)
+  by (auto split: nat_diff_split)
 
 
 subsection \<open>The binomial theorem (courtesy of Tobias Nipkow):\<close>

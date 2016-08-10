@@ -1095,7 +1095,7 @@ proof -
     fix h :: real
     assume "0 < h" "h < s" "x - h \<in> S"
     with all [of "x - h"] show "f x < f (x-h)"
-    proof (simp add: abs_if pos_less_divide_eq dist_real_def split add: if_split_asm)
+    proof (simp add: abs_if pos_less_divide_eq dist_real_def split: if_split_asm)
       assume "- ((f (x-h) - f x) / h) < l" and h: "0 < h"
       with l have "0 < (f (x-h) - f x) / h"
         by arith

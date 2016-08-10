@@ -312,7 +312,7 @@ unfolding map_add_def
 apply (induct xs)
  apply simp
 apply (rule ext)
-apply (simp split add: option.split)
+apply (simp split: option.split)
 done
 
 lemma finite_range_map_of_map_add:

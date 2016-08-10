@@ -124,13 +124,13 @@ text\<open>Spy sees what is sent on the traffic\<close>
 lemma Says_imp_knows_Spy [rule_format]:
      "Says A B X \<in> set evs --> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 lemma Notes_imp_knows_Spy [rule_format]:
      "Notes A X \<in> set evs --> A: bad --> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 
@@ -164,14 +164,14 @@ by (simp add: subset_insertI)
 text\<open>Agents know what they say\<close>
 lemma Says_imp_knows [rule_format]: "Says A B X \<in> set evs --> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
 text\<open>Agents know what they note\<close>
 lemma Notes_imp_knows [rule_format]: "Notes A X \<in> set evs --> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
@@ -179,7 +179,7 @@ text\<open>Agents know what they receive\<close>
 lemma Gets_imp_knows_agents [rule_format]:
      "A \<noteq> Spy --> Gets A X \<in> set evs --> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 
@@ -190,7 +190,7 @@ lemma knows_imp_Says_Gets_Notes_initState [rule_format]:
   Says A B X \<in> set evs | Gets A X \<in> set evs | Notes A X \<in> set evs | X \<in> initState A"
 apply (erule rev_mp)
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
@@ -201,7 +201,7 @@ lemma knows_Spy_imp_Says_Notes_initState [rule_format]:
   Says A B X \<in> set evs | Notes A X \<in> set evs | X \<in> initState Spy"
 apply (erule rev_mp)
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
@@ -214,7 +214,7 @@ lemmas usedI = parts_knows_Spy_subset_used [THEN subsetD, intro]
 
 lemma initState_into_used: "X \<in> parts (initState B) ==> X \<in> used evs"
 apply (induct_tac "evs")
-apply (simp_all add: parts_insert_knows_A split add: event.split, blast)
+apply (simp_all add: parts_insert_knows_A split: event.split, blast)
 done
 
 lemma used_Says [simp]: "used (Says A B X # evs) = parts{X} \<union> used evs"

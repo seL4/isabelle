@@ -493,7 +493,7 @@ text\<open>A fresh K cannot be associated with any other.  The assumption that
 lemma K_fresh_not_KeyCryptKey:
      "[|\<forall>C. DK \<noteq> priEK C; Key K \<notin> used evs|] ==> ~ KeyCryptKey DK K evs"
 apply (induct evs)
-apply (auto simp add: parts_insert2 split add: event.split)
+apply (auto simp add: parts_insert2 split: event.split)
 done
 
 
@@ -513,7 +513,7 @@ by (erule set_cr.induct, analz_mono_contra, auto)
 text\<open>Lemma for message 5: pubSK C is never used to encrypt Keys.\<close>
 lemma pubSK_not_KeyCryptKey [simp]: "~ KeyCryptKey (pubSK C) K evs"
 apply (induct_tac "evs")
-apply (auto simp add: parts_insert2 split add: event.split)
+apply (auto simp add: parts_insert2 split: event.split)
 done
 
 text\<open>Lemma for message 6: either cardSK is compromised (when we don't care)
@@ -690,7 +690,7 @@ subsubsection\<open>Lemmas for message 5 and 6:
 text\<open>Lemma for message 5: pubSK C is never used to encrypt Nonces.\<close>
 lemma pubSK_not_KeyCryptNonce [simp]: "~ KeyCryptNonce (pubSK C) N evs"
 apply (induct_tac "evs")
-apply (auto simp add: parts_insert2 split add: event.split)
+apply (auto simp add: parts_insert2 split: event.split)
 done
 
 text\<open>Lemma for message 6: either cardSK is compromised (when we don't care)

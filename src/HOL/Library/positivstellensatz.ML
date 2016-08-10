@@ -266,7 +266,7 @@ val real_abs_thms1 = @{lemma
   by auto};
 
 val abs_split' = @{lemma "P \<bar>x::'a::linordered_idom\<bar> == (x >= 0 & P x | x < 0 & P (-x))"
-  by (atomize (full)) (auto split add: abs_split)};
+  by (atomize (full)) (auto split: abs_split)};
 
 val max_split = @{lemma "P (max x y) == ((x::'a::linorder) <= y & P y | x > y & P x)"
   by (atomize (full)) (cases "x <= y", auto simp add: max_def)};

@@ -25,7 +25,7 @@ lemma set_lemmas:
 subsection \<open>Arithmetic\<close>
 
 lemma pred_suc: "0<x ==> (x - 1 = y) = (x = Suc(y))"
-  by (simp add: diff_Suc split add: nat.split)
+  by (simp add: diff_Suc split: nat.split)
 
 lemmas [simp] = hd_append set_lemmas
 

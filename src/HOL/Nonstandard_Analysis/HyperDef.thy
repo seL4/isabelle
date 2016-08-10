@@ -285,7 +285,7 @@ lemma hrabs_disj: "\<bar>x\<bar> = (x::'a::abs_if) \<or> \<bar>x\<bar> = -x"
 by (simp add: abs_if)
 
 lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = \<bar>x + - z\<bar> ==> y = z | x = y"
-by (simp add: abs_if split add: if_split_asm)
+by (simp add: abs_if split: if_split_asm)
 
 
 subsection\<open>Embedding the Naturals into the Hyperreals\<close>

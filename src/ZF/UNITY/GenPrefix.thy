@@ -489,7 +489,7 @@ apply (drule_tac i = "length (zs) " in leI)
 apply (force simp add: le_subset_iff, safe)
 apply (subgoal_tac "length (xs) #+ (i #- length (xs)) = i")
 apply (subst nth_drop)
-apply (simp_all (no_asm_simp) add: leI split add: nat_diff_split)
+apply (simp_all (no_asm_simp) add: leI split: nat_diff_split)
 done
 
 lemma prefix_snoc:

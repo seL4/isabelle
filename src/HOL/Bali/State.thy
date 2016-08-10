@@ -97,7 +97,7 @@ by (simp add: obj_ty_def)
 lemma obj_ty_widenD: 
  "G\<turnstile>obj_ty obj\<preceq>RefT t \<Longrightarrow> (\<exists>C. tag obj = CInst C) \<or> (\<exists>T k. tag obj = Arr T k)"
 apply (unfold obj_ty_def)
-apply (auto split add: obj_tag.split_asm)
+apply (auto split: obj_tag.split_asm)
 done
 
 definition
@@ -207,7 +207,7 @@ lemma var_tys_Some_eq:
                  fields_table G C (\<lambda>fn f. declclassf fn = C \<and> static f) nt 
                   = Some T))"
 apply (unfold var_tys_def arr_comps_def)
-apply (force split add: sum.split_asm sum.split obj_tag.split)
+apply (force split: sum.split_asm sum.split obj_tag.split)
 done
 
 
@@ -704,7 +704,7 @@ done
 
 lemma inited_gupdate [simp]: "inited C (g(r\<mapsto>obj)) = (inited C g \<or> r = Stat C)"
 apply (unfold inited_def)
-apply (auto split add: st.split)
+apply (auto split: st.split)
 done
 
 lemma inited_init_class_obj [intro!]: "inited C (globs (init_class_obj G C s))"

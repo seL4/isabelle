@@ -191,7 +191,7 @@ done
 lemma class_tprgD: 
 "class tprg C = Some z ==> C=Object \<or> C=Base \<or> C=Ext \<or> C=Xcpt NP \<or> C=Xcpt ClassCast \<or> C=Xcpt OutOfMemory"
 apply (unfold ObjectC_def ClassCastC_def NullPointerC_def OutOfMemoryC_def BaseC_def ExtC_def class_def)
-apply (auto split add: if_split_asm simp add: map_of_Cons)
+apply (auto split: if_split_asm simp add: map_of_Cons)
 done
 
 lemma not_class_subcls_class [elim!]: "(C, C) \<in> (subcls1 tprg)^+ ==> R"

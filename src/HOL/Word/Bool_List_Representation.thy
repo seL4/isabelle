@@ -300,7 +300,7 @@ lemma nth_rev:
   "n < length xs \<Longrightarrow> rev xs ! n = xs ! (length xs - 1 - n)"
   apply (induct xs)
    apply simp
-  apply (clarsimp simp add : nth_append nth.simps split add : nat.split)
+  apply (clarsimp simp add : nth_append nth.simps split: nat.split)
   apply (rule_tac f = "\<lambda>n. xs ! n" in arg_cong)
   apply arith
   done
@@ -577,11 +577,11 @@ lemma length_takefill [simp]: "length (takefill fill n l) = n"
 
 lemma take_takefill':
   "!!w n.  n = k + m ==> take k (takefill fill n w) = takefill fill k w"
-  by (induct k) (auto split add : list.split) 
+  by (induct k) (auto split: list.split) 
 
 lemma drop_takefill:
   "!!w. drop k (takefill fill (m + k) w) = takefill fill m (drop k w)"
-  by (induct k) (auto split add : list.split) 
+  by (induct k) (auto split: list.split) 
 
 lemma takefill_le [simp]:
   "m \<le> n \<Longrightarrow> takefill x m (takefill x n l) = takefill x m l"

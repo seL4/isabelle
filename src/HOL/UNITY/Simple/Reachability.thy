@@ -94,7 +94,7 @@ done
 
 lemma Detects_part1: "F \<in> {s. (root,v) \<in> REACHABLE} LeadsTo reachable v"
 apply (rule single_LeadsTo_I)
-apply (simp split add: if_split_asm)
+apply (simp split: if_split_asm)
 apply (rule MA1 [THEN Always_LeadsToI])
 apply (erule REACHABLE_LeadsTo_reachable [THEN LeadsTo_weaken_L], auto)
 done
@@ -147,7 +147,7 @@ lemma final_lemma2:
   ==> (\<Inter>v \<in> V. \<Inter>e \<in> E. {s. ((s \<in> reachable v) = ((root,v) \<in> REACHABLE))}  
                            \<inter> nmsg_eq 0 e)    \<subseteq>  final"
 apply (unfold final_def Equality_def)
-apply (auto split add: if_split_asm)
+apply (auto split!: if_split)
 apply (frule E_imp_in_V_L, blast)
 done
 
@@ -197,7 +197,7 @@ lemma final_lemma7:
        (-{s. (v,w) \<in> E} \<union> (nmsg_eq 0 (v,w))))"
 apply (unfold final_def)
 apply (rule subset_antisym, blast)
-apply (auto split add: if_split_asm)
+apply (auto split: if_split_asm)
 apply (blast dest: E_imp_in_V_L E_imp_in_V_R)+
 done
 

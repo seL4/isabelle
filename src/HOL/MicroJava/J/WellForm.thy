@@ -146,7 +146,7 @@ done
 lemma wf_cdecl_supD: 
 "!!r. \<lbrakk>ws_cdecl G (C,D,r); C \<noteq> Object\<rbrakk> \<Longrightarrow> is_class G D"
 apply (unfold ws_cdecl_def)
-apply (auto split add: option.split_asm)
+apply (auto split: option.split_asm)
 done
 
 lemma subcls_asym: "[|ws_prog G; (C, D) \<in> (subcls1 G)^+|] ==> (D, C) \<notin> (subcls1 G)^+"
@@ -534,7 +534,7 @@ apply (clarsimp)
  apply (simp add: map_of_map)
  apply (clarify)
  apply (subst method_rec, assumption+)
- apply (simp add: map_add_def map_of_map split add: option.split)
+ apply (simp add: map_add_def map_of_map split: option.split)
 done
 
 
@@ -554,7 +554,7 @@ apply (clarsimp)
  apply (simp add: map_of_map)
  apply (clarify)
  apply (subst method_rec, assumption+)
- apply (simp add: map_add_def map_of_map split add: option.split)
+ apply (simp add: map_add_def map_of_map split: option.split)
 done
 
 lemma fields_in_fd [rule_format (no_asm)]: "\<lbrakk> wf_prog wf_mb G; is_class G C\<rbrakk>

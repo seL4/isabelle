@@ -264,7 +264,7 @@ v"} and @{term"drop i v"} are shorter than @{term w}:
 *}
 
   apply(force simp add: min_less_iff_disj)
- apply(force split add: nat_diff_split)
+ apply(force split: nat_diff_split)
 
 txt{*
 The case @{prop"w = b#v"} is proved analogously:
@@ -278,7 +278,7 @@ apply(drule part2[of "\<lambda>x. x=b", simplified])
 apply(rule_tac n1=i and t=v in subst[OF append_take_drop_id])
 apply(rule S_A_B.intros)
  apply(force simp add: min_less_iff_disj)
-by(force simp add: min_less_iff_disj split add: nat_diff_split)
+by(force simp add: min_less_iff_disj split: nat_diff_split)
 
 text{*
 We conclude this section with a comparison of our proof with 

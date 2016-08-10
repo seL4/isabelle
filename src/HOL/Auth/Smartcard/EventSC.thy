@@ -196,13 +196,13 @@ text\<open>Spy sees what is sent on the traffic\<close>
 lemma Says_imp_knows_Spy [rule_format]:
      "Says A B X \<in> set evs \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 lemma Notes_imp_knows_Spy [rule_format]:
      "Notes A X \<in> set evs \<longrightarrow> A\<in> bad \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 (*Nothing can be stated on a Gets event*)
@@ -210,13 +210,13 @@ done
 lemma Inputs_imp_knows_Spy_secureM [rule_format (no_asm)]: 
      "Inputs Spy C X \<in> set evs \<longrightarrow> secureM \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 lemma Inputs_imp_knows_Spy_insecureM [rule_format (no_asm)]:
      "Inputs A C X \<in> set evs \<longrightarrow> insecureM \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 (*Nothing can be stated on a C_Gets event*)
@@ -224,13 +224,13 @@ done
 lemma Outpts_imp_knows_Spy_secureM [rule_format (no_asm)]: 
      "Outpts C Spy X \<in> set evs \<longrightarrow> secureM \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 lemma Outpts_imp_knows_Spy_insecureM [rule_format (no_asm)]:
      "Outpts C A X \<in> set evs \<longrightarrow> insecureM \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 (*Nothing can be stated on an A_Gets event*)
@@ -290,14 +290,14 @@ by (simp add: subset_insertI)
 text\<open>Agents know what they say\<close>
 lemma Says_imp_knows [rule_format]: "Says A B X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
 text\<open>Agents know what they note\<close>
 lemma Notes_imp_knows [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
@@ -305,14 +305,14 @@ text\<open>Agents know what they receive\<close>
 lemma Gets_imp_knows_agents [rule_format]:
      "A \<noteq> Spy \<longrightarrow> Gets A X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 (*Agents know what they input to their smart card*)
 lemma Inputs_imp_knows_agents [rule_format (no_asm)]: 
      "Inputs A (Card A) X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
@@ -323,14 +323,14 @@ done
 lemma Outpts_imp_knows_agents_secureM [rule_format (no_asm)]: 
      "secureM \<longrightarrow> Outpts (Card A) A X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 (*otherwise only the spy knows the outputs*)
 lemma Outpts_imp_knows_agents_insecureM [rule_format (no_asm)]: 
       "insecureM \<longrightarrow> Outpts (Card A) A X \<in> set evs \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 done
 
 (*end lemmas about agents' knowledge*)
@@ -346,7 +346,7 @@ lemmas usedI = parts_knows_Spy_subset_used [THEN subsetD, intro]
 
 lemma initState_into_used: "X \<in> parts (initState B) \<Longrightarrow> X \<in> used evs"
 apply (induct_tac "evs")
-apply (simp_all add: parts_insert_knows_A split add: event.split, blast)
+apply (simp_all add: parts_insert_knows_A split: event.split, blast)
 done
 
 simps_of_case used_Cons_simps[simp]: used_Cons
@@ -362,28 +362,28 @@ done
 lemma Says_parts_used [rule_format (no_asm)]: 
      "Says A B X \<in> set evs \<longrightarrow> (parts  {X}) \<subseteq> used evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
 lemma Notes_parts_used [rule_format (no_asm)]: 
      "Notes A X \<in> set evs \<longrightarrow> (parts  {X}) \<subseteq> used evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
 lemma Outpts_parts_used [rule_format (no_asm)]: 
      "Outpts C A X \<in> set evs \<longrightarrow> (parts  {X}) \<subseteq> used evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
 lemma Inputs_parts_used [rule_format (no_asm)]: 
      "Inputs A C X \<in> set evs \<longrightarrow> (parts  {X}) \<subseteq> used evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) split add: event.split)
+apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 

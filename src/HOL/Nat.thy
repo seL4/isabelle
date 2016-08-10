@@ -1940,19 +1940,19 @@ text \<open>(Anti)Monotonicity of subtraction -- by Stephan Merz\<close>
 
 lemma diff_le_mono: "m \<le> n \<Longrightarrow> m - l \<le> n - l"
   for m n l :: nat
-  by (auto dest: less_imp_le less_imp_Suc_add split add: nat_diff_split)
+  by (auto dest: less_imp_le less_imp_Suc_add split: nat_diff_split)
 
 lemma diff_le_mono2: "m \<le> n \<Longrightarrow> l - n \<le> l - m"
   for m n l :: nat
-  by (auto dest: less_imp_le le_Suc_ex less_imp_Suc_add less_le_trans split add: nat_diff_split)
+  by (auto dest: less_imp_le le_Suc_ex less_imp_Suc_add less_le_trans split: nat_diff_split)
 
 lemma diff_less_mono2: "m < n \<Longrightarrow> m < l \<Longrightarrow> l - n < l - m"
   for m n l :: nat
-  by (auto dest: less_imp_Suc_add split add: nat_diff_split)
+  by (auto dest: less_imp_Suc_add split: nat_diff_split)
 
 lemma diffs0_imp_equal: "m - n = 0 \<Longrightarrow> n - m = 0 \<Longrightarrow> m = n"
   for m n :: nat
-  by (simp split add: nat_diff_split)
+  by (simp split: nat_diff_split)
 
 lemma min_diff: "min (m - i) (n - i) = min m n - i"
   for m n i :: nat

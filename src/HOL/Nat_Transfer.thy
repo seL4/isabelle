@@ -1,4 +1,3 @@
-
 (* Authors: Jeremy Avigad and Amine Chaieb *)
 
 section \<open>Generic transfer machinery;  specific transfer from nats to ints and back.\<close>
@@ -82,7 +81,7 @@ lemma transfer_nat_int_relations [transfer key: transfer_morphism_nat_int]:
 text \<open>first-order quantifiers\<close>
 
 lemma all_nat: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x\<ge>0. P (nat x))"
-  by (simp split add: split_nat)
+  by (simp split: split_nat)
 
 lemma ex_nat: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> P (nat x))"
 proof

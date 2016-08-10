@@ -300,7 +300,7 @@ by auto
 text\<open>Spy knows all public keys\<close>
 lemma knows_Spy_pubEK_i [iff]: "Key (publicKey b A) \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all add: imageI knows_Cons split add: event.split)
+apply (simp_all add: imageI knows_Cons split: event.split)
 done
 
 declare knows_Spy_pubEK_i [THEN analz.Inj, iff]
@@ -324,7 +324,7 @@ text\<open>In any trace, there is an upper bound N on the greatest nonce in use.
 lemma Nonce_supply_lemma: "\<exists>N. \<forall>n. N<=n --> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
-apply (simp_all add: used_Cons split add: event.split, safe)
+apply (simp_all add: used_Cons split: event.split, safe)
 apply (rule msg_Nonce_supply [THEN exE], blast elim!: add_leE)+
 done
 

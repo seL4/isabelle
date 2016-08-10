@@ -184,7 +184,7 @@ apply  (rule AxSem.Conseq)
 apply   rule
 apply   (rule hoare_ehoare.Asm) (* 20 *)
 apply   (rule_tac a = "((case n of 0 \<Rightarrow> 0 | Suc m \<Rightarrow> m),m+1)" in UN_I, rule+)
-apply  (clarsimp split add: nat.split_asm dest!: Nat_atleast_mono)
+apply  (clarsimp split: nat.split_asm dest!: Nat_atleast_mono)
 apply rule
 apply (rule hoare_ehoare.Call) (* 21 *)
 apply   (rule hoare_ehoare.LAcc)

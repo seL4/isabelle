@@ -78,7 +78,7 @@ subsection\<open>Function "knows"\<close>
 (*Spy sees shared keys of agents!*)
 lemma Spy_knows_Spy_bad [intro!]: "A: bad ==> Key (shrK A) \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: imageI knows_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 (*For case analysis on whether or not an agent is compromised*)
@@ -123,7 +123,7 @@ subsection\<open>Supply fresh nonces for possibility theorems.\<close>
 lemma Nonce_supply_lemma: "\<exists>N. ALL n. N<=n --> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
-apply (simp_all (no_asm_simp) add: used_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: used_Cons split: event.split)
 apply (metis le_sup_iff msg_Nonce_supply)
 done
 

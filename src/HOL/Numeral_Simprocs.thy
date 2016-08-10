@@ -32,35 +32,35 @@ text \<open>For \<open>cancel_numerals\<close>\<close>
 
 lemma nat_diff_add_eq1:
      "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)"
-by (simp split add: nat_diff_split add: add_mult_distrib)
+by (simp split: nat_diff_split add: add_mult_distrib)
 
 lemma nat_diff_add_eq2:
      "i <= (j::nat) ==> ((i*u + m) - (j*u + n)) = (m - ((j-i)*u + n))"
-by (simp split add: nat_diff_split add: add_mult_distrib)
+by (simp split: nat_diff_split add: add_mult_distrib)
 
 lemma nat_eq_add_iff1:
      "j <= (i::nat) ==> (i*u + m = j*u + n) = ((i-j)*u + m = n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
+by (auto split: nat_diff_split simp add: add_mult_distrib)
 
 lemma nat_eq_add_iff2:
      "i <= (j::nat) ==> (i*u + m = j*u + n) = (m = (j-i)*u + n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
+by (auto split: nat_diff_split simp add: add_mult_distrib)
 
 lemma nat_less_add_iff1:
      "j <= (i::nat) ==> (i*u + m < j*u + n) = ((i-j)*u + m < n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
+by (auto split: nat_diff_split simp add: add_mult_distrib)
 
 lemma nat_less_add_iff2:
      "i <= (j::nat) ==> (i*u + m < j*u + n) = (m < (j-i)*u + n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
+by (auto split: nat_diff_split simp add: add_mult_distrib)
 
 lemma nat_le_add_iff1:
      "j <= (i::nat) ==> (i*u + m <= j*u + n) = ((i-j)*u + m <= n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
+by (auto split: nat_diff_split simp add: add_mult_distrib)
 
 lemma nat_le_add_iff2:
      "i <= (j::nat) ==> (i*u + m <= j*u + n) = (m <= (j-i)*u + n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
+by (auto split: nat_diff_split simp add: add_mult_distrib)
 
 text \<open>For \<open>cancel_numeral_factors\<close>\<close>
 

@@ -112,7 +112,7 @@ qed simp
 
 lemma power_minus_mult:
   "0 < n \<Longrightarrow> a ^ (n - 1) * a = a ^ n"
-  by (simp add: power_commutes split add: nat_diff_split)
+  by (simp add: power_commutes split: nat_diff_split)
 
 end
 

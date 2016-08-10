@@ -140,7 +140,7 @@ lemma TL_TLS:
               \<^bold>\<longrightarrow> (\<circle>(Init (\<lambda>(s, a, t). Q s))))"
   apply (unfold Init_def Next_def temp_sat_def satisfies_def IMPLIES_def AND_def)
   apply clarify
-  apply (simp split add: if_split)
+  apply (simp split: if_split)
   text \<open>\<open>TL = UU\<close>\<close>
   apply (rule conjI)
   apply (pair ex)

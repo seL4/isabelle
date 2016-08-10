@@ -130,7 +130,7 @@ lemma Nonce_notin_used_empty[simp]: "Nonce N ~: used []"
 lemma Nonce_supply_lemma: "EX N. ALL n. N<=n --> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
-apply (simp_all (no_asm_simp) add: used_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: used_Cons split: event.split)
 apply safe
 apply (rule msg_Nonce_supply [THEN exE], blast elim!: add_leE)+
 done

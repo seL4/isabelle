@@ -86,7 +86,7 @@ lemma comp1_reachable: "[| reachable (C1||C2) s |] ==> reachable C1 (fst s)"
   apply (simp cong del: if_weak_cong
     add: executions_def is_execution_fragment_def par_def starts_of_def
       trans_of_def filter_oseq_def
-    split add: option.split)
+    split: option.split)
   done
 
 
@@ -103,7 +103,7 @@ lemma comp2_reachable: "[| reachable (C1||C2) s|] ==> reachable C2 (snd s)"
   apply (simp cong del: if_weak_cong
     add: executions_def is_execution_fragment_def par_def starts_of_def
     trans_of_def filter_oseq_def
-    split add: option.split)
+    split: option.split)
   done
 
 declare if_split [split del] if_weak_cong [cong del]
@@ -143,7 +143,7 @@ lemma fxg_is_weak_pmap_of_product_IOA:
 (* delete auxiliary subgoal *)
   prefer 2
   apply force
-  apply (simp (no_asm) add: conj_disj_distribR cong add: conj_cong split add: if_split)
+  apply (simp (no_asm) add: conj_disj_distribR cong add: conj_cong split: if_split)
   apply (tactic \<open>
     REPEAT((resolve_tac @{context} [conjI, impI] 1 ORELSE eresolve_tac @{context} [conjE] 1) THEN
       asm_full_simp_tac(@{context} addsimps [@{thm comp1_reachable}, @{thm comp2_reachable}]) 1)\<close>)
@@ -157,7 +157,7 @@ lemma reachable_rename_ioa: "[| reachable (rename C g) s |] ==> reachable C s"
   apply (simp (no_asm))
 (* execution is indeed an execution of C *)
   apply (simp add: executions_def is_execution_fragment_def par_def
-    starts_of_def trans_of_def rename_def split add: option.split)
+    starts_of_def trans_of_def rename_def split: option.split)
   apply force
   done
 
@@ -197,7 +197,7 @@ lemma rename_through_pmap: "[| is_weak_pmap f C A |]
   apply assumption
   apply simp
 (* x is internal *)
-  apply (simp (no_asm) add: de_Morgan_disj de_Morgan_conj not_ex cong add: conj_cong)
+  apply (simp (no_asm) cong add: conj_cong)
   apply (rule impI)
   apply (erule conjE)
   apply (cut_tac C = "C" and g = "g" and s = "s" in reachable_rename_ioa)

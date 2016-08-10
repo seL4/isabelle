@@ -137,7 +137,7 @@ subsection\<open>Function "knows"\<close>
 (*Spy knows the pins of bad agents!*)
 lemma Spy_knows_bad [intro!]: "A \<in> bad \<Longrightarrow> Key (pin A) \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: imageI knows_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 (*Spy knows the long-term keys of cloned cards!*)
@@ -147,24 +147,24 @@ lemma Spy_knows_cloned [intro!]:
                            Key (pin A)  \<in> knows Spy evs &  
                           (\<forall> B. Key (pairK(B,A)) \<in> knows Spy evs)"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: imageI knows_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 lemma Spy_knows_cloned1 [intro!]: "C \<in> cloned \<Longrightarrow> Key (crdK C) \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: imageI knows_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 lemma Spy_knows_cloned2 [intro!]: "\<lbrakk> Card A \<in> cloned; Card B \<in> cloned \<rbrakk>  
    \<Longrightarrow> Nonce (Pairkey(A,B))\<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: imageI knows_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 (*Spy only knows pins of bad agents!*)
 lemma Spy_knows_Spy_bad [intro!]: "A\<in> bad \<Longrightarrow> Key (pin A) \<in> knows Spy evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: imageI knows_Cons split add: event.split)
+apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 

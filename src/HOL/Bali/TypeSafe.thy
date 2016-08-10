@@ -213,7 +213,7 @@ prefer 26
 apply (auto del: conjI  dest!: not_initedD gext_new sxalloc_gext halloc_gext
  simp  add: lvar_def fvar_def2 avar_def2 init_lvars_def2 
             check_field_access_def check_method_access_def Let_def
- split del: if_split_asm split add: sum3.split)
+ split del: if_split_asm split: sum3.split)
 (* 6 subgoals *)
 apply force+
 done
@@ -632,7 +632,7 @@ lemma DynT_conf: "\<lbrakk>G\<turnstile>invocation_class mode s a' statT \<prece
 apply (case_tac "mode = IntVir")
 apply (drule conf_RefTD)
 apply (force intro!: conf_AddrI 
-            simp add: obj_class_def split add: obj_tag.split_asm)
+            simp add: obj_class_def split: obj_tag.split_asm)
 apply  clarsimp
 apply  safe
 apply    (erule (1) widen.subcls [THEN conf_widen])
@@ -655,7 +655,7 @@ done
 
 lemma Throw_lemma: "\<lbrakk>G\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable; wf_prog G; (x1,s1)\<Colon>\<preceq>(G, L);  
     x1 = None \<longrightarrow> G,s1\<turnstile>a'\<Colon>\<preceq> Class tn\<rbrakk> \<Longrightarrow> (throw a' x1, s1)\<Colon>\<preceq>(G, L)"
-apply (auto split add: split_abrupt_if simp add: throw_def2)
+apply (auto split: split_abrupt_if simp add: throw_def2)
 apply (erule conforms_xconf)
 apply (frule conf_RefTD)
 apply (auto elim: widen.subcls [THEN conf_widen])
@@ -674,7 +674,7 @@ lemma Fin_lemma:
 "\<lbrakk>G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> (x2,s2); wf_prog G; (Some a, s1)\<Colon>\<preceq>(G, L); (x2,s2)\<Colon>\<preceq>(G, L);
   dom (locals s1) \<subseteq> dom (locals s2)\<rbrakk> 
 \<Longrightarrow>  (abrupt_if True (Some a) x2, s2)\<Colon>\<preceq>(G, L)"
-apply (auto elim: eval_gext' conforms_xgext split add: split_abrupt_if)
+apply (auto elim: eval_gext' conforms_xgext split: split_abrupt_if)
 done
 
 lemma FVar_lemma1: 
@@ -700,7 +700,7 @@ apply  clarsimp
 apply  (erule fields_table_SomeI, simp (no_asm))
 apply clarsimp
 apply (drule conf_RefTD, clarsimp, rule var_tys_Some_eq [THEN iffD2])
-apply (auto dest!: widen_Array split add: obj_tag.split)
+apply (auto dest!: widen_Array split: obj_tag.split)
 apply (rule fields_table_SomeI)
 apply (auto elim!: fields_mono subcls_is_class2)
 done
@@ -829,7 +829,7 @@ lemma lconf_map_lname [simp]:
    =
   (G,s\<turnstile>l1[\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit . l2)[\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold lconf_def)
-apply (auto split add: lname.splits)
+apply (auto split: lname.splits)
 done
 
 lemma wlconf_map_lname [simp]: 
@@ -837,7 +837,7 @@ lemma wlconf_map_lname [simp]:
    =
   (G,s\<turnstile>l1[\<sim>\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit . l2)[\<sim>\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold wlconf_def)
-apply (auto split add: lname.splits)
+apply (auto split: lname.splits)
 done
 
 lemma lconf_map_ename [simp]:
@@ -845,7 +845,7 @@ lemma lconf_map_ename [simp]:
    =
   (G,s\<turnstile>l1[\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit. l2)[\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold lconf_def)
-apply (auto split add: ename.splits)
+apply (auto split: ename.splits)
 done
 
 lemma wlconf_map_ename [simp]:
@@ -853,7 +853,7 @@ lemma wlconf_map_ename [simp]:
    =
   (G,s\<turnstile>l1[\<sim>\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit. l2)[\<sim>\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold wlconf_def)
-apply (auto split add: ename.splits)
+apply (auto split: ename.splits)
 done
 
 
@@ -902,7 +902,7 @@ lemma conforms_init_lvars:
                               then None else Some (Class declC)))"
 apply (simp add: init_lvars_def2)
 apply (rule conforms_set_locals)
-apply  (simp (no_asm_simp) split add: if_split)
+apply  (simp (no_asm_simp) split: if_split)
 apply (drule  (4) DynT_conf)
 apply clarsimp
 (* apply intro *)

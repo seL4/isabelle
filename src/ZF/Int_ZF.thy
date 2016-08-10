@@ -283,7 +283,7 @@ lemma nat_of_intify [simp]: "nat_of(intify(z)) = nat_of(z)"
 by (simp add: nat_of_def)
 
 lemma nat_of_congruent: "(\<lambda>x. (\<lambda>\<langle>x,y\<rangle>. x #- y)(x)) respects intrel"
-by (auto simp add: congruent_def split add: nat_diff_split)
+by (auto simp add: congruent_def split: nat_diff_split)
 
 lemma raw_nat_of:
     "[| x\<in>nat;  y\<in>nat |] ==> raw_nat_of(intrel``{<x,y>}) = x#-y"
@@ -367,7 +367,7 @@ lemma zneg_nat_of [simp]: "znegative(intify(z)) ==> nat_of(z) = 0"
 apply (subgoal_tac "intify(z) \<in> int")
 apply (simp add: int_def)
 apply (auto simp add: znegative nat_of_def raw_nat_of
-            split add: nat_diff_split)
+            split: nat_diff_split)
 done
 
 
