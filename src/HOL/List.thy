@@ -928,11 +928,20 @@ in K list_neq end;
 
 subsubsection \<open>\<open>@\<close> -- append\<close>
 
-lemma append_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)"
-by (induct xs) auto
+global_interpretation append: monoid append Nil
+proof
+  fix xs ys zs :: "'a list"
+  show "(xs @ ys) @ zs = xs @ (ys @ zs)"
+    by (induct xs) simp_all
+  show "xs @ [] = xs"
+    by (induct xs) simp_all
+qed simp
 
-lemma append_Nil2 [simp]: "xs @ [] = xs"
-by (induct xs) auto
+lemma append_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)"
+  by (fact append.assoc)
+
+lemma append_Nil2: "xs @ [] = xs"
+  by (fact append.right_neutral)
 
 lemma append_is_Nil_conv [iff]: "(xs @ ys = []) = (xs = [] \<and> ys = [])"
 by (induct xs) auto
@@ -978,8 +987,8 @@ using append_same_eq [of _ _ "[]"] by auto
 lemma self_append_conv2 [iff]: "(ys = xs @ ys) = (xs = [])"
 using append_same_eq [of "[]"] by auto
 
-lemma hd_Cons_tl [simp]: "xs \<noteq> [] ==> hd xs # tl xs = xs"
-by (induct xs) auto
+lemma hd_Cons_tl: "xs \<noteq> [] ==> hd xs # tl xs = xs"
+  by (fact list.collapse)
 
 lemma hd_append: "hd (xs @ ys) = (if xs = [] then hd ys else hd xs)"
 by (induct xs) auto
