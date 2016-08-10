@@ -528,7 +528,7 @@ lemma set_finsert:
 using assms by transfer (metis Set.set_insert finite_insert)
 
 lemma mk_disjoint_finsert: "a |\<in>| A \<Longrightarrow> \<exists>B. A = finsert a B \<and> a |\<notin>| B"
-  by (rule_tac x = "A |-| {|a|}" in exI, blast)
+  by (rule exI [where x = "A |-| {|a|}"]) blast
 
 
 subsubsection \<open>\<open>fimage\<close>\<close>

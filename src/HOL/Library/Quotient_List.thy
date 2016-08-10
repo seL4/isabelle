@@ -145,7 +145,6 @@ lemma foldl_prs [quot_preserve]:
   shows "((abs1 ---> abs2 ---> rep1) ---> rep1 ---> (map rep2) ---> abs1) foldl = foldl"
   by (simp add: fun_eq_iff foldl_prs_aux [OF a b])
 
-(* induct_tac doesn't accept 'arbitrary', so we manually 'spec' *)
 lemma foldl_rsp[quot_respect]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"

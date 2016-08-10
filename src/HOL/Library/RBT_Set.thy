@@ -273,12 +273,14 @@ lemma rbt_min_opt_induct [case_names empty left_empty left_non_empty]:
   assumes "\<And>color t1 a b t2. P t1 \<Longrightarrow> P t2 \<Longrightarrow> t1 = rbt.Empty \<Longrightarrow> P (Branch color t1 a b t2)"
   assumes "\<And>color t1 a b t2. P t1 \<Longrightarrow> P t2 \<Longrightarrow> t1 \<noteq> rbt.Empty \<Longrightarrow> P (Branch color t1 a b t2)"
   shows "P t"
-using assms
-  apply (induction t)
-  apply simp
-  apply (case_tac "t1 = rbt.Empty")
-  apply simp_all
-done
+  using assms
+proof (induct t)
+  case Empty
+  then show ?case by simp
+next
+  case (Branch x1 t1 x3 x4 t2)
+  then show ?case by (cases "t1 = rbt.Empty") simp_all
+qed
 
 lemma rbt_min_opt_in_set: 
   fixes t :: "('a :: linorder, unit) RBT_Impl.rbt"
@@ -372,12 +374,14 @@ lemma rbt_max_opt_induct [case_names empty right_empty right_non_empty]:
   assumes "\<And>color t1 a b t2. P t1 \<Longrightarrow> P t2 \<Longrightarrow> t2 = rbt.Empty \<Longrightarrow> P (Branch color t1 a b t2)"
   assumes "\<And>color t1 a b t2. P t1 \<Longrightarrow> P t2 \<Longrightarrow> t2 \<noteq> rbt.Empty \<Longrightarrow> P (Branch color t1 a b t2)"
   shows "P t"
-using assms
-  apply (induction t)
-  apply simp
-  apply (case_tac "t2 = rbt.Empty")
-  apply simp_all
-done
+  using assms
+proof (induct t)
+  case Empty
+  then show ?case by simp
+next
+  case (Branch x1 t1 x3 x4 t2)
+  then show ?case by (cases "t2 = rbt.Empty") simp_all
+qed
 
 lemma rbt_max_opt_in_set: 
   fixes t :: "('a :: linorder, unit) RBT_Impl.rbt"
@@ -468,27 +472,26 @@ lemma r_min_eq_r_min_opt:
 using assms unfolding is_empty_empty by transfer (auto intro: rbt_min_eq_rbt_min_opt)
 
 lemma fold_keys_min_top_eq:
-  fixes t :: "('a :: {linorder, bounded_lattice_top}, unit) rbt"
+  fixes t :: "('a::{linorder,bounded_lattice_top}, unit) rbt"
   assumes "\<not> (RBT.is_empty t)"
   shows "fold_keys min t top = fold1_keys min t"
 proof -
   have *: "\<And>t. RBT_Impl.keys t \<noteq> [] \<Longrightarrow> List.fold min (RBT_Impl.keys t) top = 
-    List.fold min (hd(RBT_Impl.keys t) # tl(RBT_Impl.keys t)) top"
+      List.fold min (hd (RBT_Impl.keys t) # tl (RBT_Impl.keys t)) top"
     by (simp add: hd_Cons_tl[symmetric])
-  { fix x :: "_ :: {linorder, bounded_lattice_top}" and xs
-    have "List.fold min (x#xs) top = List.fold min xs x"
+  have **: "List.fold min (x # xs) top = List.fold min xs x" for x :: 'a and xs
     by (simp add: inf_min[symmetric])
-  } note ** = this
-  show ?thesis using assms
+  show ?thesis
+    using assms
     unfolding fold_keys_def_alt fold1_keys_def_alt is_empty_empty
     apply transfer 
     apply (case_tac t) 
-    apply simp 
+     apply simp 
     apply (subst *)
-    apply simp
+     apply simp
     apply (subst **)
     apply simp
-  done
+    done
 qed
 
 (* maximum *)
@@ -506,27 +509,26 @@ lemma r_max_eq_r_max_opt:
 using assms unfolding is_empty_empty by transfer (auto intro: rbt_max_eq_rbt_max_opt)
 
 lemma fold_keys_max_bot_eq:
-  fixes t :: "('a :: {linorder, bounded_lattice_bot}, unit) rbt"
+  fixes t :: "('a::{linorder,bounded_lattice_bot}, unit) rbt"
   assumes "\<not> (RBT.is_empty t)"
   shows "fold_keys max t bot = fold1_keys max t"
 proof -
   have *: "\<And>t. RBT_Impl.keys t \<noteq> [] \<Longrightarrow> List.fold max (RBT_Impl.keys t) bot = 
-    List.fold max (hd(RBT_Impl.keys t) # tl(RBT_Impl.keys t)) bot"
+      List.fold max (hd(RBT_Impl.keys t) # tl(RBT_Impl.keys t)) bot"
     by (simp add: hd_Cons_tl[symmetric])
-  { fix x :: "_ :: {linorder, bounded_lattice_bot}" and xs
-    have "List.fold max (x#xs) bot = List.fold max xs x"
+  have **: "List.fold max (x # xs) bot = List.fold max xs x" for x :: 'a and xs
     by (simp add: sup_max[symmetric])
-  } note ** = this
-  show ?thesis using assms
+  show ?thesis
+    using assms
     unfolding fold_keys_def_alt fold1_keys_def_alt is_empty_empty
     apply transfer 
     apply (case_tac t) 
-    apply simp 
+     apply simp 
     apply (subst *)
-    apply simp
+     apply simp
     apply (subst **)
     apply simp
-  done
+    done
 qed
 
 end

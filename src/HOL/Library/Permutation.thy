@@ -95,7 +95,7 @@ proposition remove_hd [simp]: "remove1 z (z # xs) = xs"
   by auto
 
 proposition cons_perm_imp_perm: "z # xs <~~> z # ys \<Longrightarrow> xs <~~> ys"
-  by (drule_tac z = z in perm_remove_perm) auto
+  by (drule perm_remove_perm [where z = z]) auto
 
 proposition cons_perm_eq [iff]: "z#xs <~~> z#ys \<longleftrightarrow> xs <~~> ys"
   by (blast intro: cons_perm_imp_perm)

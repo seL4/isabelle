@@ -97,12 +97,12 @@ proof (cases "\<exists>i. x \<in> A i")
   case True
   then obtain i where "x \<in> A i"
     by auto
-  then have
+  then have *:
     "\<And>n. (indicator (A (n + i)) x :: 'a) = 1"
     "(indicator (\<Union>i. A i) x :: 'a) = 1"
     using incseqD[OF \<open>incseq A\<close>, of i "n + i" for n] \<open>x \<in> A i\<close> by (auto simp: indicator_def)
-  then show ?thesis
-    by (rule_tac LIMSEQ_offset[of _ i]) simp
+  show ?thesis
+    by (rule LIMSEQ_offset[of _ i]) (use * in simp)
 next
   case False
   then show ?thesis by (simp add: indicator_def)
@@ -125,12 +125,12 @@ proof (cases "\<exists>i. x \<notin> A i")
   case True
   then obtain i where "x \<notin> A i"
     by auto
-  then have
+  then have *:
     "\<And>n. (indicator (A (n + i)) x :: 'a) = 0"
     "(indicator (\<Inter>i. A i) x :: 'a) = 0"
     using decseqD[OF \<open>decseq A\<close>, of i "n + i" for n] \<open>x \<notin> A i\<close> by (auto simp: indicator_def)
-  then show ?thesis
-    by (rule_tac LIMSEQ_offset[of _ i]) simp
+  show ?thesis
+    by (rule LIMSEQ_offset[of _ i]) (use * in simp)
 next
   case False
   then show ?thesis by (simp add: indicator_def)

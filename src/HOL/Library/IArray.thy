@@ -71,15 +71,15 @@ lemma [code]:
 
 lemma [code]:
   "set_iarray as = set (IArray.list_of as)"
-  by (case_tac as) auto
+  by (cases as) auto
 
 lemma [code]:
   "map_iarray f as = IArray (map f (IArray.list_of as))"
-  by (case_tac as) auto
+  by (cases as) auto
 
 lemma [code]:
   "rel_iarray r as bs = list_all2 r (IArray.list_of as) (IArray.list_of bs)"
-  by (case_tac as) (case_tac bs, auto)
+  by (cases as, cases bs) auto
 
 lemma [code]:
   "HOL.equal as bs \<longleftrightarrow> HOL.equal (IArray.list_of as) (IArray.list_of bs)"

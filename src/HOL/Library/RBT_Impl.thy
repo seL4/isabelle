@@ -531,23 +531,18 @@ theorem rbt_insertw_is_rbt: "is_rbt t \<Longrightarrow> is_rbt (rbt_insert_with 
   by (simp add: rbt_insertwk_is_rbt rbt_insertw_def)
 
 lemma rbt_lookup_rbt_insertw:
-  assumes "is_rbt t"
-  shows "rbt_lookup (rbt_insert_with f k v t) = (rbt_lookup t)(k \<mapsto> (if k:dom (rbt_lookup t) then f (the (rbt_lookup t k)) v else v))"
-using assms
-unfolding rbt_insertw_def
-by (rule_tac ext) (cases "rbt_lookup t k", auto simp:rbt_lookup_rbt_insertwk dom_def)
+  "is_rbt t \<Longrightarrow>
+    rbt_lookup (rbt_insert_with f k v t) =
+      (rbt_lookup t)(k \<mapsto> (if k \<in> dom (rbt_lookup t) then f (the (rbt_lookup t k)) v else v))"
+  by (rule ext, cases "rbt_lookup t k") (auto simp: rbt_lookup_rbt_insertwk dom_def rbt_insertw_def)
 
 lemma rbt_insert_rbt_sorted: "rbt_sorted t \<Longrightarrow> rbt_sorted (rbt_insert k v t)"
   by (simp add: rbt_insertwk_rbt_sorted rbt_insert_def)
 theorem rbt_insert_is_rbt [simp]: "is_rbt t \<Longrightarrow> is_rbt (rbt_insert k v t)"
   by (simp add: rbt_insertwk_is_rbt rbt_insert_def)
 
-lemma rbt_lookup_rbt_insert: 
-  assumes "is_rbt t"
-  shows "rbt_lookup (rbt_insert k v t) = (rbt_lookup t)(k\<mapsto>v)"
-unfolding rbt_insert_def
-using assms
-by (rule_tac ext) (simp add: rbt_lookup_rbt_insertwk split:option.split)
+lemma rbt_lookup_rbt_insert: "is_rbt t \<Longrightarrow> rbt_lookup (rbt_insert k v t) = (rbt_lookup t)(k\<mapsto>v)"
+  by (rule ext) (simp add: rbt_insert_def rbt_lookup_rbt_insertwk split: option.split)
 
 end
 

@@ -58,11 +58,17 @@ by(fast intro: order_trans[OF ccpo_Sup_upper] ccpo_Sup_least)
 lemma Sup_minus_bot: 
   assumes chain: "Complete_Partial_Order.chain op \<le> A"
   shows "\<Squnion>(A - {\<Squnion>{}}) = \<Squnion>A"
-apply(rule antisym)
- apply(blast intro: ccpo_Sup_least chain_Diff[OF chain] ccpo_Sup_upper[OF chain])
-apply(rule ccpo_Sup_least[OF chain])
-apply(case_tac "x = \<Squnion>{}")
-by(blast intro: ccpo_Sup_least chain_empty ccpo_Sup_upper[OF chain_Diff[OF chain]])+
+    (is "?lhs = ?rhs")
+proof (rule antisym)
+  show "?lhs \<le> ?rhs"
+    by (blast intro: ccpo_Sup_least chain_Diff[OF chain] ccpo_Sup_upper[OF chain])
+  show "?rhs \<le> ?lhs"
+  proof (rule ccpo_Sup_least [OF chain])
+    show "x \<in> A \<Longrightarrow> x \<le> ?lhs" for x
+      by (cases "x = \<Squnion>{}")
+        (blast intro: ccpo_Sup_least chain_empty ccpo_Sup_upper[OF chain_Diff[OF chain]])+
+  qed
+qed
 
 lemma mono_lub:
   fixes le_b (infix "\<sqsubseteq>" 60)

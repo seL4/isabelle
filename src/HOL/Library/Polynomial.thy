@@ -1330,11 +1330,17 @@ lemma synthetic_div_pCons [simp]:
 
 lemma synthetic_div_eq_0_iff:
   "synthetic_div p c = 0 \<longleftrightarrow> degree p = 0"
-  by (induct p, simp, case_tac p, simp)
+proof (induct p)
+  case 0
+  then show ?case by simp
+next
+  case (pCons a p)
+  then show ?case by (cases p) simp
+qed
 
 lemma degree_synthetic_div:
   "degree (synthetic_div p c) = degree p - 1"
-  by (induct p, simp, simp add: synthetic_div_eq_0_iff)
+  by (induct p) (simp_all add: synthetic_div_eq_0_iff)
 
 lemma synthetic_div_correct:
   "p + smult c (synthetic_div p c) = pCons (poly p c) (synthetic_div p c)"
@@ -3479,35 +3485,40 @@ next
 qed (insert assms, auto)
 
 lemma poly_pinfty_gt_lc:
-  fixes p:: "real poly"
-  assumes  "lead_coeff p > 0" 
-  shows "\<exists> n. \<forall> x \<ge> n. poly p x \<ge> lead_coeff p" using assms
+  fixes p :: "real poly"
+  assumes "lead_coeff p > 0" 
+  shows "\<exists> n. \<forall> x \<ge> n. poly p x \<ge> lead_coeff p"
+  using assms
 proof (induct p)
   case 0
-  thus ?case by auto
+  then show ?case by auto
 next
   case (pCons a p)
-  have "\<lbrakk>a\<noteq>0;p=0\<rbrakk> \<Longrightarrow> ?case" by auto
-  moreover have "p\<noteq>0 \<Longrightarrow> ?case"
+  from this(1) consider "a \<noteq> 0" "p = 0" | "p \<noteq> 0" by auto
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis by auto
+  next
+    case 2
+    with pCons obtain n1 where gte_lcoeff: "\<forall>x\<ge>n1. lead_coeff p \<le> poly p x"
+      by auto
+    from pCons(3) \<open>p \<noteq> 0\<close> have gt_0: "lead_coeff p > 0" by auto
+    define n where "n = max n1 (1 + \<bar>a\<bar> / lead_coeff p)"
+    have "lead_coeff (pCons a p) \<le> poly (pCons a p) x" if "n \<le> x" for x
     proof -
-      assume "p\<noteq>0"
-      then obtain n1 where gte_lcoeff:"\<forall>x\<ge>n1. lead_coeff p \<le> poly p x" using that pCons by auto
-      have gt_0:"lead_coeff p >0" using pCons(3) \<open>p\<noteq>0\<close> by auto
-      define n where "n = max n1 (1+ \<bar>a\<bar>/(lead_coeff p))"
-      show ?thesis 
-        proof (rule_tac x=n in exI,rule,rule) 
-          fix x assume "n \<le> x"
-          hence "lead_coeff p \<le> poly p x" 
-            using gte_lcoeff unfolding n_def by auto
-          hence " \<bar>a\<bar>/(lead_coeff p) \<ge> \<bar>a\<bar>/(poly p x)" and "poly p x>0" using gt_0
-            by (intro frac_le,auto)
-          hence "x\<ge>1+ \<bar>a\<bar>/(poly p x)" using \<open>n\<le>x\<close>[unfolded n_def] by auto
-          thus "lead_coeff (pCons a p) \<le> poly (pCons a p) x"
-            using \<open>lead_coeff p \<le> poly p x\<close> \<open>poly p x>0\<close> \<open>p\<noteq>0\<close>
-            by (auto simp add:field_simps)
-        qed
+      from gte_lcoeff that have "lead_coeff p \<le> poly p x"
+        by (auto simp: n_def)
+      with gt_0 have "\<bar>a\<bar> / lead_coeff p \<ge> \<bar>a\<bar> / poly p x" and "poly p x > 0"
+        by (auto intro: frac_le)
+      with \<open>n\<le>x\<close>[unfolded n_def] have "x \<ge> 1 + \<bar>a\<bar> / poly p x"
+        by auto
+      with \<open>lead_coeff p \<le> poly p x\<close> \<open>poly p x > 0\<close> \<open>p \<noteq> 0\<close>
+      show "lead_coeff (pCons a p) \<le> poly (pCons a p) x"
+        by (auto simp: field_simps)
     qed
-  ultimately show ?case by fastforce
+    then show ?thesis by blast
+  qed
 qed
 
 
@@ -3831,9 +3842,7 @@ definition
   "rsquarefree p = (p \<noteq> 0 & (\<forall>a. (order a p = 0) | (order a p = 1)))"
 
 lemma pderiv_iszero: "pderiv p = 0 \<Longrightarrow> \<exists>h. p = [:h :: 'a :: {semidom,semiring_char_0}:]"
-apply (simp add: pderiv_eq_0_iff)
-apply (case_tac p, auto split: if_splits)
-done
+  by (cases p) (auto simp: pderiv_eq_0_iff split: if_splits)
 
 lemma rsquarefree_roots:
   fixes p :: "'a :: field_char_0 poly"

@@ -287,18 +287,20 @@ lemma convex_finite:
   assumes "finite s"
   shows "convex s \<longleftrightarrow> (\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<longrightarrow> setsum (\<lambda>x. u x *\<^sub>R x) s \<in> s)"
   unfolding convex_explicit
-proof safe
-  fix t u
-  assume sum: "\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> s"
-    and as: "finite t" "t \<subseteq> s" "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = (1::real)"
-  have *: "s \<inter> t = t"
-    using as(2) by auto
-  have if_distrib_arg: "\<And>P f g x. (if P then f else g) x = (if P then f x else g x)"
-    by simp
-  show "(\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s"
-    using sum[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]] as *
-    by (auto simp: assms setsum.If_cases if_distrib if_distrib_arg)
-qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
+  apply safe
+  subgoal for u by (erule allE [where x=s], erule allE [where x=u]) auto
+  subgoal for t u
+  proof -
+    have if_distrib_arg: "\<And>P f g x. (if P then f else g) x = (if P then f x else g x)"
+      by simp
+    assume sum: "\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> s"
+    assume *: "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = 1"
+    assume "t \<subseteq> s"
+    then have "s \<inter> t = t" by auto
+    with sum[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]] * show "(\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s"
+      by (auto simp: assms setsum.If_cases if_distrib if_distrib_arg)
+  qed
+  done 
 
 
 subsection \<open>Functions that are convex on a set\<close>

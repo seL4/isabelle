@@ -156,10 +156,13 @@ lemma strict_prefix_simps [simp, code]:
   by (simp_all add: strict_prefix_def cong: conj_cong)
 
 lemma take_strict_prefix: "strict_prefix xs ys \<Longrightarrow> strict_prefix (take n xs) ys"
-  apply (induct n arbitrary: xs ys)
-   apply (case_tac ys; simp)
-  apply (metis prefix_order.less_trans strict_prefixI take_is_prefix)
-  done
+proof (induct n arbitrary: xs ys)
+  case 0
+  then show ?case by (cases ys) simp_all
+next
+  case (Suc n)
+  then show ?case by (metis prefix_order.less_trans strict_prefixI take_is_prefix)
+qed
 
 lemma not_prefix_cases:
   assumes pfx: "\<not> prefix ps ls"
@@ -197,7 +200,8 @@ lemma not_prefix_induct [consumes 1, case_names Nil Neq Eq]:
     and r2: "\<And>x xs y ys. \<lbrakk> x = y; \<not> prefix xs ys; P xs ys \<rbrakk> \<Longrightarrow> P (x#xs) (y#ys)"
   shows "P ps ls" using np
 proof (induct ls arbitrary: ps)
-  case Nil then show ?case
+  case Nil
+  then show ?case
     by (auto simp: neq_Nil_conv elim!: not_prefix_cases intro!: base)
 next
   case (Cons y ys)
@@ -215,7 +219,13 @@ fun prefixes where
 "prefixes (x#xs) = [] # map (op # x) (prefixes xs)"
 
 lemma in_set_prefixes[simp]: "xs \<in> set (prefixes ys) \<longleftrightarrow> prefix xs ys"
-by (induction "xs" arbitrary: "ys"; rename_tac "ys", case_tac "ys"; auto)
+proof (induct xs arbitrary: ys)
+  case Nil
+  then show ?case by (cases ys) auto
+next
+  case (Cons a xs)
+  then show ?case by (cases ys) auto
+qed
 
 lemma length_prefixes[simp]: "length (prefixes xs) = length xs+1"
 by (induction xs) auto

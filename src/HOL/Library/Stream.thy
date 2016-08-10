@@ -393,7 +393,7 @@ proof
   then show "s = sconst x"
   proof (coinduction arbitrary: s)
     case Eq_stream
-    then have "shd s = x" "sset (stl s) \<subseteq> {x}" by (case_tac [!] s) auto
+    then have "shd s = x" "sset (stl s) \<subseteq> {x}" by (cases s; auto)+
     then have "sset (stl s) = {x}" by (cases "stl s") auto
     with \<open>shd s = x\<close> show ?case by auto
   qed

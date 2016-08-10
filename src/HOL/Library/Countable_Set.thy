@@ -304,10 +304,9 @@ lemma countable_subset_image:
    (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then show ?rhs
-    apply (rule_tac x="inv_into A f ` B" in exI)
-    apply (auto simp: f_inv_into_f subset_iff image_inv_into_cancel inv_into_into)
-    done
+  show ?rhs
+    by (rule exI [where x="inv_into A f ` B"])
+      (use \<open>?lhs\<close> in \<open>auto simp: f_inv_into_f subset_iff image_inv_into_cancel inv_into_into\<close>)
 next
   assume ?rhs
   then show ?lhs by force
