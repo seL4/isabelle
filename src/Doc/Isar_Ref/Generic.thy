@@ -270,7 +270,7 @@ text \<open>
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
     ;
-    @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') |
+    @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | '!' | 'del') |
       'cong' (() | 'add' | 'del')) ':' @{syntax thms}
   \<close>}
 
@@ -300,6 +300,12 @@ text \<open>
   \secref{sec:simp-strategies} on the looper). This works only if the
   Simplifier method has been properly setup to include the Splitter (all major
   object logics such HOL, HOLCF, FOL, ZF do this already).
+  The \<open>!\<close> option causes the split rules to be used aggressively:
+  after each application of a split rule in the conclusion, the \<open>safe\<close>
+  tactic of the classical reasoner (see \secref{sec:classical:partial})
+  is applied to the new goal. The net effect is that the goal is split into
+  the different cases. This option can speed up simplification of goals
+  with many nested conditional or case expressions significantly.
 
   There is also a separate @{method_ref split} method available for
   single-step case splitting. The effect of repeatedly applying \<open>(split thms)\<close>
@@ -468,8 +474,8 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    (@@{attribute simp} | @@{attribute split} | @@{attribute cong})
-      (() | 'add' | 'del')
+    (@@{attribute simp} | @@{attribute cong}) (() | 'add' | 'del') |
+    @@{attribute split} (() | '!' | 'del')
     ;
     @@{command print_simpset} ('!'?)
   \<close>}
@@ -985,6 +991,9 @@ text \<open>
   -> Proof.context"} \\
   @{index_ML_op delloop: "Proof.context * string -> Proof.context"} \\
   @{index_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
+  @{index_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
+  @{index_ML Splitter.add_split_bang: "
+  thm -> Proof.context -> Proof.context"} \\
   @{index_ML Splitter.del_split: "thm -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
@@ -1007,8 +1016,14 @@ text \<open>
     \<^descr> \<open>ctxt delloop name\<close> deletes the looper tactic that was associated with
     \<open>name\<close> from \<open>ctxt\<close>.
 
-    \<^descr> @{ML Splitter.add_split}~\<open>thm ctxt\<close> adds split tactics for \<open>thm\<close> as
-    additional looper tactics of \<open>ctxt\<close>.
+    \<^descr> @{ML Splitter.add_split}~\<open>thm ctxt\<close> adds split tactic
+    for \<open>thm\<close> as additional looper tactic of \<open>ctxt\<close>
+    (overwriting previous split tactic for the same constant).
+
+    \<^descr> @{ML Splitter.add_split_bang}~\<open>thm ctxt\<close> adds aggressive
+    (see \S\ref{sec:simp-meth})
+    split tactic for \<open>thm\<close> as additional looper tactic of \<open>ctxt\<close>
+    (overwriting previous split tactic for the same constant).
 
     \<^descr> @{ML Splitter.del_split}~\<open>thm ctxt\<close> deletes the split tactic
     corresponding to \<open>thm\<close> from the looper tactics of \<open>ctxt\<close>.
@@ -1430,7 +1445,8 @@ text \<open>
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thms}
     ;
     @{syntax_def clasimpmod}: ('simp' (() | 'add' | 'del' | 'only') |
-      ('cong' | 'split') (() | 'add' | 'del') |
+      'cong' (() | 'add' | 'del') |
+      'split' (() | '!' | 'del') |
       'iff' (((() | 'add') '?'?) | 'del') |
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thms}
   \<close>}
@@ -1524,7 +1540,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>Partially automated methods\<close>
+subsection \<open>Partially automated methods\label{sec:classical:partial}\<close>
 
 text \<open>These proof methods may help in situations when the
   fully-automated tools fail.  The result is a simpler subgoal that

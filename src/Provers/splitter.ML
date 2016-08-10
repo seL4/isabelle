@@ -461,11 +461,10 @@ val splitN = "split";
 fun split_add bang = Simplifier.attrib (gen_add_split bang);
 val split_del = Simplifier.attrib del_split;
 
-val opt_bang = Scan.optional (Args.bang >> K true) false;
-
-val add_del =
-  Scan.lift (Args.add |-- opt_bang >> split_add
-    || Args.del >> K split_del || opt_bang >> split_add);
+val add_del = Scan.lift
+  (Args.bang >> K (split_add true)
+   || Args.del >> K split_del
+   || Scan.succeed (split_add false));
 
 val _ = Theory.setup
   (Attrib.setup @{binding split} add_del "declare case split rule");
@@ -476,8 +475,6 @@ val _ = Theory.setup
 val split_modifiers =
  [Args.$$$ splitN -- Args.colon >> K (Method.modifier (split_add false) @{here}),
   Args.$$$ splitN -- Args.bang_colon >> K (Method.modifier (split_add true) @{here}),
-  Args.$$$ splitN -- Args.add -- Args.colon >> K (Method.modifier (split_add false) @{here}),
-  Args.$$$ splitN -- Args.add -- Args.bang_colon >> K (Method.modifier (split_add true) @{here}),
   Args.$$$ splitN -- Args.del -- Args.colon >> K (Method.modifier split_del @{here})];
 
 val _ =
