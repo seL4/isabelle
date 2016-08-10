@@ -1686,17 +1686,20 @@ lemma lift_option_simps[simp]:
   "lift_option f a' None = None"
   by (auto simp: lift_option_def)
 
-lemma (in comm_monoid) comm_monoid_lift_option: "comm_monoid (lift_option op \<^bold>*) (Some \<^bold>1)"
-  proof qed (auto simp: lift_option_def ac_simps split: bind_split)
+lemma comm_monoid_lift_option:
+  assumes "comm_monoid f z"
+  shows "comm_monoid (lift_option f) (Some z)"
+proof -
+  from assms interpret comm_monoid f z .
+  show ?thesis
+    by standard (auto simp: lift_option_def ac_simps split: bind_split)
+qed
 
-lemma (in comm_monoid) comm_monoid_set_lift_option: "comm_monoid_set (lift_option op \<^bold>*) (Some \<^bold>1)"
-  proof qed (auto simp: lift_option_def ac_simps split: bind_split)
+lemma comm_monoid_and: "comm_monoid HOL.conj True"
+  by standard auto
 
-lemma comm_monoid_and: "comm_monoid op \<and> True"
-  proof qed auto
-
-lemma comm_monoid_set_and: "comm_monoid_set op \<and> True"
-  proof qed auto
+lemma comm_monoid_set_and: "comm_monoid_set HOL.conj True"
+  by (rule comm_monoid_set.intro) (fact comm_monoid_and)
 
 paragraph \<open>Operative\<close>
 
@@ -3893,45 +3896,51 @@ qed
 
 lemma operative_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  shows "comm_monoid.operative (lift_option op +) (Some 0) (\<lambda>i. if f integrable_on i then Some (integral i f) else None)"
-  unfolding comm_monoid.operative_def[OF add.comm_monoid_lift_option]
-proof safe
-  fix a b c
-  fix k :: 'a
-  assume k: "k \<in> Basis"
-  show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) =
-        lift_option op + (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
-        (if f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k} then Some (integral (cbox a b \<inter> {x. c \<le> x \<bullet> k}) f) else None)"
-  proof (cases "f integrable_on cbox a b")
-    case True
-    with k show ?thesis
-      apply (simp add: integrable_split)
-      apply (rule integral_unique [OF has_integral_split[OF _ _ k]])
-      apply (auto intro: integrable_integral)
-      done
-  next
-    case False
-    have "\<not> (f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}) \<or> \<not> ( f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k})"
-    proof (rule ccontr)
-      assume "\<not> ?thesis"
-      then have "f integrable_on cbox a b"
-        unfolding integrable_on_def
-        apply (rule_tac x="integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f + integral (cbox a b \<inter> {x. x \<bullet> k \<ge> c}) f" in exI)
-        apply (rule has_integral_split[OF _ _ k])
+  shows "comm_monoid.operative (lift_option op +) (Some 0)
+    (\<lambda>i. if f integrable_on i then Some (integral i f) else None)"
+proof -
+  interpret comm_monoid "lift_option plus" "Some (0::'b)"
+    by (rule comm_monoid_lift_option)
+      (rule add.comm_monoid_axioms)
+  show ?thesis
+  proof (unfold operative_def, safe)
+    fix a b c
+    fix k :: 'a
+    assume k: "k \<in> Basis"
+    show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) =
+          lift_option op + (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
+          (if f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k} then Some (integral (cbox a b \<inter> {x. c \<le> x \<bullet> k}) f) else None)"
+    proof (cases "f integrable_on cbox a b")
+      case True
+      with k show ?thesis
+        apply (simp add: integrable_split)
+        apply (rule integral_unique [OF has_integral_split[OF _ _ k]])
         apply (auto intro: integrable_integral)
         done
-      then show False
+    next
+    case False
+      have "\<not> (f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}) \<or> \<not> ( f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k})"
+      proof (rule ccontr)
+        assume "\<not> ?thesis"
+        then have "f integrable_on cbox a b"
+          unfolding integrable_on_def
+          apply (rule_tac x="integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f + integral (cbox a b \<inter> {x. x \<bullet> k \<ge> c}) f" in exI)
+          apply (rule has_integral_split[OF _ _ k])
+          apply (auto intro: integrable_integral)
+          done
+        then show False
+          using False by auto
+      qed
+      then show ?thesis
         using False by auto
     qed
-    then show ?thesis
-      using False by auto
+  next
+    fix a b :: 'a
+    assume "content (cbox a b) = 0"
+    then show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) = Some 0"
+      using has_integral_null_eq
+      by (auto simp: integrable_on_null)
   qed
-next
-  fix a b :: 'a
-  assume "content (cbox a b) = 0"
-  then show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) = Some 0"
-    using has_integral_null_eq
-    by (auto simp: integrable_on_null)
 qed
 
 subsection \<open>Finally, the integral of a constant\<close>
@@ -5902,9 +5911,13 @@ lemma has_integral_combine:
     and "(f has_integral (j::'a::banach)) {c .. b}"
   shows "(f has_integral (i + j)) {a .. b}"
 proof -
-  note operative_integral[of f, unfolded comm_monoid.operative_1_le[OF add.comm_monoid_lift_option]]
-  note conjunctD2[OF this,rule_format]
-  note * = this(2)[OF conjI[OF assms(1-2)],unfolded if_P[OF assms(3)]]
+  interpret comm_monoid "lift_option plus" "Some (0::'a)"
+    by (rule comm_monoid_lift_option)
+      (rule add.comm_monoid_axioms)
+  note operative_integral [of f, unfolded operative_1_le]
+  note conjunctD2 [OF this, rule_format]
+  note * = this(2) [OF conjI [OF assms(1-2)],
+    unfolded if_P [OF assms(3)]]
   then have "f integrable_on cbox a b"
     apply -
     apply (rule ccontr)
@@ -7625,8 +7638,14 @@ proof -
     qed
   }
   assume "cbox c d \<noteq> {}"
-  from partial_division_extend_1[OF assms(2) this] guess p . note p=this
-  note operat = comm_monoid_set.operative_division[OF add.comm_monoid_set_lift_option operative_integral p(1), symmetric]
+  from partial_division_extend_1 [OF assms(2) this] guess p . note p=this
+  interpret comm_monoid_set "lift_option plus" "Some (0 :: 'b)"
+    apply (rule comm_monoid_set.intro)
+    apply (rule comm_monoid_lift_option)
+    apply (rule add.comm_monoid_axioms)
+    done
+  note operat = operative_division
+    [OF operative_integral p(1), symmetric]
   let ?P = "(if g integrable_on cbox a b then Some (integral (cbox a b) g) else None) = Some i"
   {
     presume "?P"
@@ -7642,9 +7661,9 @@ proof -
       unfolding g_def
       by auto
   }
-  let ?F = "comm_monoid_set.F (lift_option op +) (Some 0)"
+  let ?F = F
   have iterate:"?F (\<lambda>i. if g integrable_on i then Some (integral i g) else None) (p - {cbox c d}) = Some 0"
-  proof (intro comm_monoid_set.neutral[OF add.comm_monoid_set_lift_option] ballI)
+  proof (intro neutral ballI)
     fix x
     assume x: "x \<in> p - {cbox c d}"
     then have "x \<in> p"
@@ -7666,6 +7685,11 @@ proof -
 
   have *: "p = insert (cbox c d) (p - {cbox c d})"
     using p by auto
+  interpret comm_monoid_set "lift_option plus" "Some (0 :: 'b)"
+    apply (rule comm_monoid_set.intro)
+    apply (rule comm_monoid_lift_option)
+    apply (rule add.comm_monoid_axioms)
+    done
   have **: "g integrable_on cbox c d"
     apply (rule integrable_spike_interior[where f=f])
     unfolding g_def  using assms(1)
@@ -7684,7 +7708,7 @@ proof -
     unfolding operat
     using p
     apply (subst *)
-    apply (subst comm_monoid_set.insert[OF add.comm_monoid_set_lift_option])
+    apply (subst insert)
     apply (simp_all add: division_of_finite iterate)
     done
 qed
