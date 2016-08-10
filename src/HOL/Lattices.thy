@@ -139,6 +139,16 @@ sublocale ordering_top less_eq less "\<^bold>1"
 
 end
 
+text \<open>Passive interpretations for boolean operators\<close>
+
+lemma semilattice_neutr_and:
+  "semilattice_neutr HOL.conj True"
+  by standard auto
+
+lemma semilattice_neutr_or:
+  "semilattice_neutr HOL.disj False"
+  by standard auto
+
 
 subsection \<open>Syntactic infimum and supremum operations\<close>
 
