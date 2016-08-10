@@ -2599,6 +2599,48 @@ end
 lemma space_empty_eq_bot: "space a = {} \<longleftrightarrow> a = bot"
   using space_empty[of a] by (auto intro!: measure_eqI)
 
+lemma sets_eq_iff_bounded: "A \<le> B \<Longrightarrow> B \<le> C \<Longrightarrow> sets A = sets C \<Longrightarrow> sets B = sets A"
+  by (auto dest: sets_eq_imp_space_eq simp add: le_measure_iff split: if_split_asm)
+
+lemma sets_sup: "sets A = sets M \<Longrightarrow> sets B = sets M \<Longrightarrow> sets (sup A B) = sets M"
+  by (auto simp add: sup_measure_def sup_lexord_def dest: sets_eq_imp_space_eq)
+
+lemma le_measureD1: "A \<le> B \<Longrightarrow> space A \<le> space B"
+  by (auto simp: le_measure_iff split: if_split_asm)
+
+lemma le_measureD2: "A \<le> B \<Longrightarrow> space A = space B \<Longrightarrow> sets A \<le> sets B"
+  by (auto simp: le_measure_iff split: if_split_asm)
+
+lemma le_measureD3: "A \<le> B \<Longrightarrow> sets A = sets B \<Longrightarrow> emeasure A X \<le> emeasure B X"
+  by (auto simp: le_measure_iff le_fun_def dest: sets_eq_imp_space_eq split: if_split_asm)
+
+lemma UN_space_closed: "UNION S sets \<subseteq> Pow (UNION S space)"
+  using sets.space_closed by auto
+
+definition Sup_lexord :: "('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> 'a"
+where
+  "Sup_lexord k c s A = (let U = (SUP a:A. k a) in if \<exists>a\<in>A. k a = U then c {a\<in>A. k a = U} else s A)"
+
+lemma Sup_lexord:
+  "(\<And>a S. a \<in> A \<Longrightarrow> k a = (SUP a:A. k a) \<Longrightarrow> S = {a'\<in>A. k a' = k a} \<Longrightarrow> P (c S)) \<Longrightarrow> ((\<And>a. a \<in> A \<Longrightarrow> k a \<noteq> (SUP a:A. k a)) \<Longrightarrow> P (s A)) \<Longrightarrow>
+    P (Sup_lexord k c s A)"
+  by (auto simp: Sup_lexord_def Let_def)
+
+lemma Sup_lexord1:
+  assumes A: "A \<noteq> {}" "(\<And>a. a \<in> A \<Longrightarrow> k a = (\<Union>a\<in>A. k a))" "P (c A)"
+  shows "P (Sup_lexord k c s A)"
+  unfolding Sup_lexord_def Let_def
+proof (clarsimp, safe)
+  show "\<forall>a\<in>A. k a \<noteq> (\<Union>x\<in>A. k x) \<Longrightarrow> P (s A)"
+    by (metis assms(1,2) ex_in_conv)
+next
+  fix a assume "a \<in> A" "k a = (\<Union>x\<in>A. k x)"
+  then have "{a \<in> A. k a = (\<Union>x\<in>A. k x)} = {a \<in> A. k a = k a}"
+    by (metis A(2)[symmetric])
+  then show "P (c {a \<in> A. k a = (\<Union>x\<in>A. k x)})"
+    by (simp add: A(3))
+qed
+
 interpretation sup_measure: comm_monoid_set sup "bot :: 'a measure"
   proof qed (auto intro!: antisym)
 
@@ -2627,32 +2669,14 @@ qed
 lemma sup_measure_F_mono: "finite I \<Longrightarrow> J \<subseteq> I \<Longrightarrow> sup_measure.F id J \<le> sup_measure.F id I"
   using sup_measure_F_mono'[of I J] by (auto simp: finite_subset Un_absorb1)
 
-lemma sets_eq_iff_bounded: "A \<le> B \<Longrightarrow> B \<le> C \<Longrightarrow> sets A = sets C \<Longrightarrow> sets B = sets A"
-  by (auto dest: sets_eq_imp_space_eq simp add: le_measure_iff split: if_split_asm)
-
-lemma sets_sup: "sets A = sets M \<Longrightarrow> sets B = sets M \<Longrightarrow> sets (sup A B) = sets M"
-  by (auto simp add: sup_measure_def sup_lexord_def dest: sets_eq_imp_space_eq)
-
 lemma sets_sup_measure_F:
   "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> sets i = sets M) \<Longrightarrow> sets (sup_measure.F id I) = sets M"
   by (induction I rule: finite_ne_induct) (simp_all add: sets_sup)
-
-lemma le_measureD1: "A \<le> B \<Longrightarrow> space A \<le> space B"
-  by (auto simp: le_measure_iff split: if_split_asm)
-
-lemma le_measureD2: "A \<le> B \<Longrightarrow> space A = space B \<Longrightarrow> sets A \<le> sets B"
-  by (auto simp: le_measure_iff split: if_split_asm)
-
-lemma le_measureD3: "A \<le> B \<Longrightarrow> sets A = sets B \<Longrightarrow> emeasure A X \<le> emeasure B X"
-  by (auto simp: le_measure_iff le_fun_def dest: sets_eq_imp_space_eq split: if_split_asm)
 
 definition Sup_measure' :: "'a measure set \<Rightarrow> 'a measure"
 where
   "Sup_measure' M = measure_of (\<Union>a\<in>M. space a) (\<Union>a\<in>M. sets a)
     (\<lambda>X. (SUP P:{P. finite P \<and> P \<subseteq> M }. sup_measure.F id P X))"
-
-lemma UN_space_closed: "UNION S sets \<subseteq> Pow (UNION S space)"
-  using sets.space_closed by auto
 
 lemma space_Sup_measure'2: "space (Sup_measure' M) = (\<Union>m\<in>M. space m)"
   unfolding Sup_measure'_def by (intro space_measure_of[OF UN_space_closed])
@@ -2719,30 +2743,6 @@ proof (rule emeasure_measure_of)
   show "X \<in> sets (Sup_measure' M)"
     using assms * by auto
 qed (rule UN_space_closed)
-
-definition Sup_lexord :: "('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> 'a"
-where
-  "Sup_lexord k c s A = (let U = (SUP a:A. k a) in if \<exists>a\<in>A. k a = U then c {a\<in>A. k a = U} else s A)"
-
-lemma Sup_lexord:
-  "(\<And>a S. a \<in> A \<Longrightarrow> k a = (SUP a:A. k a) \<Longrightarrow> S = {a'\<in>A. k a' = k a} \<Longrightarrow> P (c S)) \<Longrightarrow> ((\<And>a. a \<in> A \<Longrightarrow> k a \<noteq> (SUP a:A. k a)) \<Longrightarrow> P (s A)) \<Longrightarrow>
-    P (Sup_lexord k c s A)"
-  by (auto simp: Sup_lexord_def Let_def)
-
-lemma Sup_lexord1:
-  assumes A: "A \<noteq> {}" "(\<And>a. a \<in> A \<Longrightarrow> k a = (\<Union>a\<in>A. k a))" "P (c A)"
-  shows "P (Sup_lexord k c s A)"
-  unfolding Sup_lexord_def Let_def
-proof (clarsimp, safe)
-  show "\<forall>a\<in>A. k a \<noteq> (\<Union>x\<in>A. k x) \<Longrightarrow> P (s A)"
-    by (metis assms(1,2) ex_in_conv)
-next
-  fix a assume "a \<in> A" "k a = (\<Union>x\<in>A. k x)"
-  then have "{a \<in> A. k a = (\<Union>x\<in>A. k x)} = {a \<in> A. k a = k a}"
-    by (metis A(2)[symmetric])
-  then show "P (c {a \<in> A. k a = (\<Union>x\<in>A. k x)})"
-    by (simp add: A(3))
-qed
 
 instantiation measure :: (type) complete_lattice
 begin
