@@ -137,6 +137,18 @@ before. The theory syntax for 'keywords' has been simplified
 accordingly: optional abbrevs need to go into the new 'abbrevs' section.
 
 
+*** Document preparation ***
+
+* Document antiquotations for file-systems paths are more specific and
+diverse:
+
+  @{path NAME}   -- no check (formerly @{file_unchecked})
+  @{file NAME}   -- plain file (formerly file or directory)
+  @{dir NAME}    -- directory (formerly subsumed by @{file})
+
+Minor INCOMPATIBILITY.
+
+
 *** Isar ***
 
 * The defining position of a literal fact \<open>prop\<close> is maintained more
@@ -623,6 +635,9 @@ INCOMPATIBILITY.
 
 
 *** ML ***
+
+* ML antiquotation @{path} is superseded by @{file}, which ensures that
+the argument is a plain file. Minor INCOMPATIBILITY.
 
 * Integer.gcd and Integer.lcm use efficient operations from the Poly/ML
 library (notably for big integers). Subtle change of semantics:

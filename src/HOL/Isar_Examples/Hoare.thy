@@ -16,7 +16,7 @@ text \<open>
   The following abstract syntax and semantics of Hoare Logic over \<^verbatim>\<open>WHILE\<close>
   programs closely follows the existing tradition in Isabelle/HOL of
   formalizing the presentation given in @{cite \<open>\S6\<close> "Winskel:1993"}. See also
-  @{file "~~/src/HOL/Hoare"} and @{cite "Nipkow:1998:Winskel"}.
+  @{dir "~~/src/HOL/Hoare"} and @{cite "Nipkow:1998:Winskel"}.
 \<close>
 
 type_synonym 'a bexp = "'a set"
@@ -358,7 +358,7 @@ subsection \<open>Verification conditions \label{sec:hoare-vcg}\<close>
 
 text \<open>
   We now load the \<^emph>\<open>original\<close> ML file for proof scripts and tactic definition
-  for the Hoare Verification Condition Generator (see @{file
+  for the Hoare Verification Condition Generator (see @{dir
   "~~/src/HOL/Hoare/"}). As far as we are concerned here, the result is a
   proof method \<open>hoare\<close>, which may be applied to a Hoare Logic assertion to
   extract purely logical verification conditions. It is important to note that

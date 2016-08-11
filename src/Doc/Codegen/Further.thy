@@ -148,7 +148,7 @@ text %quotetypewriter \<open>
 subsection \<open>Parallel computation\<close>
 
 text \<open>
-  Theory @{text Parallel} in @{file "~~/src/HOL/Library"} contains
+  Theory @{text Parallel} in @{dir "~~/src/HOL/Library"} contains
   operations to exploit parallelism inside the Isabelle/ML
   runtime engine.
 \<close>

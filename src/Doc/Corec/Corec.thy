@@ -127,7 +127,7 @@ section \<open>Introductory Examples
 text \<open>
 The package is illustrated through concrete examples featuring different flavors
 of corecursion. More examples can be found in the directory
-@{file "~~/src/HOL/Corec_Examples"}.
+@{dir "~~/src/HOL/Corec_Examples"}.
 \<close>
 
 

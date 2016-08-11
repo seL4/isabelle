@@ -163,7 +163,7 @@ subsection \<open>Introductory Examples
 text \<open>
 Datatypes are illustrated through concrete examples featuring different flavors
 of recursion. More examples can be found in the directory
-@{file "~~/src/HOL/Datatype_Examples"}.
+@{dir "~~/src/HOL/Datatype_Examples"}.
 \<close>
 
 
@@ -1247,7 +1247,7 @@ subsection \<open>Introductory Examples
 text \<open>
 Primitive recursion is illustrated through concrete examples based on the
 datatypes defined in Section~\ref{ssec:datatype-introductory-examples}. More
-examples can be found in the directory @{file "~~/src/HOL/Datatype_Examples"}.
+examples can be found in the directory @{dir "~~/src/HOL/Datatype_Examples"}.
 \<close>
 
 
@@ -1760,7 +1760,7 @@ text \<open>
 Codatatypes can be specified using the @{command codatatype} command. The
 command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
-@{file "~~/src/HOL/Datatype_Examples"}. The \emph{Archive of Formal Proofs} also
+@{dir "~~/src/HOL/Datatype_Examples"}. The \emph{Archive of Formal Proofs} also
 includes some useful codatatypes, notably for lazy lists @{cite
 "lochbihler-2010"}.
 \<close>
@@ -2038,7 +2038,7 @@ and topologies @{cite "lochbihler-hoelzl-2014"}. In this tutorial, the focus is
 on @{command primcorec} and @{command primcorecursive}; \keyw{corec} and
 \keyw{corecursive} are described in a separate tutorial
 @{cite "isabelle-corec"}. More examples can be found in the directories
-@{file "~~/src/HOL/Datatype_Examples"} and @{file "~~/src/HOL/Corec_Examples"}.
+@{dir "~~/src/HOL/Datatype_Examples"} and @{dir "~~/src/HOL/Corec_Examples"}.
 
 Whereas recursive functions consume datatypes one constructor at a time,
 corecursive functions construct codatatypes one constructor at a time.
@@ -2082,7 +2082,7 @@ subsection \<open>Introductory Examples
 text \<open>
 Primitive corecursion is illustrated through concrete examples based on the
 codatatypes defined in Section~\ref{ssec:codatatype-introductory-examples}. More
-examples can be found in the directory @{file "~~/src/HOL/Datatype_Examples"}.
+examples can be found in the directory @{dir "~~/src/HOL/Datatype_Examples"}.
 The code view is favored in the examples below. Sections
 \ref{ssec:primrec-constructor-view} and \ref{ssec:primrec-destructor-view}
 present the same examples expressed using the constructor and destructor views.

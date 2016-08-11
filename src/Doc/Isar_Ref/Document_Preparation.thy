@@ -195,8 +195,9 @@ text \<open>
       @@{antiquotation emph} options @{syntax text} |
       @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
+      @@{antiquotation path} options @{syntax name} |
       @@{antiquotation "file"} options @{syntax name} |
-      @@{antiquotation file_unchecked} options @{syntax name} |
+      @@{antiquotation dir} options @{syntax name} |
       @@{antiquotation url} options @{syntax embedded} |
       @@{antiquotation cite} options @{syntax cartouche}? (@{syntax name} + @'and')
     ;
@@ -283,11 +284,13 @@ text \<open>
   \<^descr> \<open>@{verbatim s}\<close> prints uninterpreted source text literally as ASCII
   characters, using some type-writer font style.
 
-  \<^descr> \<open>@{file path}\<close> checks that \<open>path\<close> refers to a file (or directory) and
-  prints it verbatim.
+  \<^descr> \<open>@{path name}\<close> prints the file-system path name verbatim.
 
-  \<^descr> \<open>@{file_unchecked path}\<close> is like \<open>@{file path}\<close>, but does not check the
-  existence of the \<open>path\<close> within the file-system.
+  \<^descr> \<open>@{file name}\<close> is like \<open>@{path name}\<close>, but ensures that \<open>name\<close> refers to a
+  plain file.
+
+  \<^descr> \<open>@{dir name}\<close> is like \<open>@{path name}\<close>, but ensures that \<open>name\<close> refers to a
+  directory.
 
   \<^descr> \<open>@{url name}\<close> produces markup for the given URL, which results in an
   active hyperlink within the text.

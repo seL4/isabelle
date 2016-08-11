@@ -89,7 +89,7 @@ qed\<close>}
   \<^medskip>
   Concrete applications require another intermediate layer: an object-logic.
   Isabelle/HOL @{cite "isa-tutorial"} (simply-typed set-theory) is most
-  commonly used; elementary examples are given in the directory @{file
+  commonly used; elementary examples are given in the directory @{dir
   "~~/src/HOL/Isar_Examples"}. Some examples demonstrate how to start a fresh
   object-logic from Isabelle/Pure, and use Isar proofs from the very start,
   despite the lack of advanced proof tools at such an early stage (e.g.\ see
@@ -524,7 +524,7 @@ text \<open>
   may be populated later. The command \<^theory_text>\<open>method_setup\<close> allows to define proof
   methods semantically in Isabelle/ML. The Eisbach language allows to define
   proof methods symbolically, as recursive expressions over existing methods
-  @{cite "Matichuk-et-al:2014"}; see also @{file "~~/src/HOL/Eisbach"}.
+  @{cite "Matichuk-et-al:2014"}; see also @{dir "~~/src/HOL/Eisbach"}.
 
   Methods use the facts indicated by \<^theory_text>\<open>then\<close> or \<^theory_text>\<open>using\<close>, and then operate on
   the goal state. Some basic methods are predefined in Pure: ``@{method "-"}''

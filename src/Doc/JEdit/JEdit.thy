@@ -166,12 +166,12 @@ text \<open>
 
   Regular jEdit options are accessible via the dialogs \<^emph>\<open>Utilities~/ Global
   Options\<close> or \<^emph>\<open>Plugins~/ Plugin Options\<close>, with a second chance to flip the
-  two within the central options dialog. Changes are stored in
-  @{file_unchecked "$ISABELLE_HOME_USER/jedit/properties"} and
-  @{file_unchecked "$ISABELLE_HOME_USER/jedit/keymaps"}.
+  two within the central options dialog. Changes are stored in @{path
+  "$ISABELLE_HOME_USER/jedit/properties"} and @{path
+  "$ISABELLE_HOME_USER/jedit/keymaps"}.
 
   Isabelle system options are managed by Isabelle/Scala and changes are stored
-  in @{file_unchecked "$ISABELLE_HOME_USER/etc/preferences"}, independently of
+  in @{path "$ISABELLE_HOME_USER/etc/preferences"}, independently of
   other jEdit properties. See also @{cite "isabelle-system"}, especially the
   coverage of sessions and command-line tools like @{tool build} or @{tool
   options}.
@@ -193,8 +193,8 @@ text \<open>
 
   \<^medskip>
   Options are usually loaded on startup and saved on shutdown of
-  Isabelle/jEdit. Editing the machine-generated @{file_unchecked
-  "$ISABELLE_HOME_USER/jedit/properties"} or @{file_unchecked
+  Isabelle/jEdit. Editing the machine-generated @{path
+  "$ISABELLE_HOME_USER/jedit/properties"} or @{path
   "$ISABELLE_HOME_USER/etc/preferences"} manually while the application is
   running is likely to cause surprise due to lost update!
 \<close>
@@ -213,9 +213,8 @@ text \<open>
   Isabelle/jEdit due to various fine-tuning of global defaults, with
   additional keyboard shortcuts for Isabelle-specific functionality. Users may
   change their keymap later, but need to copy some keyboard shortcuts manually
-  (see also @{file_unchecked "$ISABELLE_HOME_USER/jedit/keymaps"} versus
-  \<^verbatim>\<open>shortcut\<close> properties in @{file
-  "$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props"}).
+  (see also @{path "$ISABELLE_HOME_USER/jedit/keymaps"} versus \<^verbatim>\<open>shortcut\<close>
+  properties in @{file "$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props"}).
 \<close>
 
 
@@ -470,7 +469,7 @@ text \<open>
   physically via Unicode glyphs, in order to show ``\<^verbatim>\<open>\<alpha>\<close>'' as ``\<open>\<alpha>\<close>'', for
   example. This symbol interpretation is specified by the Isabelle system
   distribution in @{file "$ISABELLE_HOME/etc/symbols"} and may be augmented by
-  the user in @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"}.
+  the user in @{path "$ISABELLE_HOME_USER/etc/symbols"}.
 
   The appendix of @{cite "isabelle-isar-ref"} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
@@ -660,9 +659,9 @@ text \<open>
   platforms. Isabelle/ML on Windows uses Unix-style path notation, too, and
   driver letter representation as in Cygwin (e.g.\ \<^verbatim>\<open>/cygdrive/c\<close>). Moreover,
   environment variables from the Isabelle process may be used freely, e.g.\
-  @{file "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked
-  "$POLYML_HOME/README"}. There are special shortcuts: @{file "~"} for @{file
-  "$USER_HOME"} and @{file "~~"} for @{file "$ISABELLE_HOME"}.
+  @{file "$ISABELLE_HOME/etc/symbols"} or @{file "$POLYML_HOME/README"}. There
+  are special shortcuts: @{dir "~"} for @{dir "$USER_HOME"} and @{dir "~~"}
+  for @{dir "$ISABELLE_HOME"}.
 
   \<^medskip>
   Since jEdit happens to support environment variables within file
@@ -1242,7 +1241,7 @@ subsubsection \<open>Isabelle symbols\<close>
 text \<open>
   The completion tables for Isabelle symbols (\secref{sec:symbols}) are
   determined statically from @{file "$ISABELLE_HOME/etc/symbols"} and
-  @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"} for each symbol
+  @{path "$ISABELLE_HOME_USER/etc/symbols"} for each symbol
   specification as follows:
 
   \<^medskip>
@@ -1274,12 +1273,12 @@ text \<open>
 
   \<^medskip>
   Additional abbreviations may be specified in @{file
-  "$ISABELLE_HOME/etc/abbrevs"} and @{file_unchecked
-  "$ISABELLE_HOME_USER/etc/abbrevs"}. The file content follows general Isar
-  outer syntax @{cite "isabelle-isar-ref"}. Abbreviations are specified as
+  "$ISABELLE_HOME/etc/abbrevs"} and @{path "$ISABELLE_HOME_USER/etc/abbrevs"}.
+  The file content follows general Isar outer syntax @{cite
+  "isabelle-isar-ref"}. Abbreviations are specified as
   ``\<open>abbrev\<close>~\<^verbatim>\<open>=\<close>~\<open>text\<close>'' pairs. The replacement \<open>text\<close> may consist of more
   than just one symbol; otherwise the meaning is the same as a symbol
-  specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{file_unchecked
+  specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{path
   "etc/symbols"}.
 \<close>
 
@@ -1544,7 +1543,7 @@ text \<open>
   dictionary, taken from the colon-separated list in the settings variable
   @{setting_def JORTHO_DICTIONARIES}. There are jEdit actions to specify local
   updates to a dictionary, by including or excluding words. The result of
-  permanent dictionary updates is stored in the directory @{file_unchecked
+  permanent dictionary updates is stored in the directory @{path
   "$ISABELLE_HOME_USER/dictionaries"}, in a separate file for each dictionary.
 
   \<^item> @{system_option_def spell_checker_elements} specifies a comma-separated
@@ -2003,7 +2002,7 @@ text \<open>
 
   \<^bold>\<open>Workaround:\<close> Install \<^verbatim>\<open>IsabelleText\<close> and \<^verbatim>\<open>IsabelleTextBold\<close> on the system
   with \<^emph>\<open>Font Book\<close>, despite the warnings in \secref{sec:symbols} against
-  that! The \<^verbatim>\<open>.ttf\<close> font files reside in some directory @{file_unchecked
+  that! The \<^verbatim>\<open>.ttf\<close> font files reside in some directory @{path
   "$ISABELLE_HOME/contrib/isabelle_fonts-XYZ"}.
 
   \<^item> \<^bold>\<open>Problem:\<close> Some Linux/X11 input methods such as IBus tend to disrupt key

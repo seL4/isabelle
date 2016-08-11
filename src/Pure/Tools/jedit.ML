@@ -24,13 +24,13 @@ fun parse_named a (XML.Elem ((b, props), _)) =
 
 val isabelle_jedit_actions =
   Lazy.lazy (fn () =>
-    (case XML.parse (File.read @{path "~~/src/Tools/jEdit/src/actions.xml"}) of
+    (case XML.parse (File.read @{file "~~/src/Tools/jEdit/src/actions.xml"}) of
       XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
     | _ => []));
 
 val isabelle_jedit_dockables =
   Lazy.lazy (fn () =>
-    (case XML.parse (File.read @{path "~~/src/Tools/jEdit/src/dockables.xml"}) of
+    (case XML.parse (File.read @{file "~~/src/Tools/jEdit/src/dockables.xml"}) of
       XML.Elem (("DOCKABLES", _), body) => maps (parse_named "DOCKABLE") body
     | _ => []));
 

@@ -2088,7 +2088,7 @@ text \<open>
   \<^descr> @{method (HOL) metis} combines ordered resolution and ordered
   paramodulation to find first-order (or mildly higher-order) proofs. The
   first optional argument specifies a type encoding; see the Sledgehammer
-  manual @{cite "isabelle-sledgehammer"} for details. The directory @{file
+  manual @{cite "isabelle-sledgehammer"} for details. The directory @{dir
   "~~/src/HOL/Metis_Examples"} contains several small theories developed to a
   large extent using @{method (HOL) metis}.
 \<close>

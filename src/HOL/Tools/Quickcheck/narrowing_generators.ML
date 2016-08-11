@@ -199,10 +199,10 @@ val target = "Haskell_Quickcheck"
 (** invocation of Haskell interpreter **)
 
 val narrowing_engine =
-  File.read @{path "~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs"}
+  File.read @{"file" "~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs"}
 
 val pnf_narrowing_engine =
-  File.read @{path "~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs"}
+  File.read @{"file" "~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs"}
 
 fun exec verbose code =
   ML_Context.exec (fn () =>

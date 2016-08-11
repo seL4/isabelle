@@ -44,7 +44,7 @@ text \<open>
     that the Isabelle executables either have to be run from their original
     location in the distribution directory, or via the executable objects
     created by the @{tool install} tool. Symbolic links are admissible, but a
-    plain copy of the @{file "$ISABELLE_HOME/bin"} files will not work!
+    plain copy of the @{dir "$ISABELLE_HOME/bin"} files will not work!
 
     \<^enum> The file @{file "$ISABELLE_HOME/etc/settings"} is run as a
     @{executable_ref bash} shell script with the auto-export option for
@@ -56,7 +56,7 @@ text \<open>
     variables. When installing the system, only a few of these may have to be
     adapted (probably @{setting ML_SYSTEM} etc.).
 
-    \<^enum> The file @{file_unchecked "$ISABELLE_HOME_USER/etc/settings"} (if it
+    \<^enum> The file @{path "$ISABELLE_HOME_USER/etc/settings"} (if it
     exists) is run in the same way as the site default settings. Note that the
     variable @{setting ISABELLE_HOME_USER} has already been set before ---
     usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/IsabelleXXXX\<close>.
@@ -101,8 +101,8 @@ text \<open>
   On Unix systems this is usually the same as @{setting HOME}, but on Windows
   it is the regular home directory of the user, not the one of within the
   Cygwin root file-system.\<^footnote>\<open>Cygwin itself offers another choice whether its
-  HOME should point to the @{file_unchecked "/home"} directory tree or the
-  Windows user home.\<close>
+  HOME should point to the @{path "/home"} directory tree or the Windows user
+  home.\<close>
 
   \<^descr>[@{setting_def ISABELLE_HOME}\<open>\<^sup>*\<close>] is the location of the top-level
   Isabelle distribution directory. This is automatically determined from the
@@ -110,7 +110,7 @@ text \<open>
   ISABELLE_HOME} yourself from the shell!
 
   \<^descr>[@{setting_def ISABELLE_HOME_USER}] is the user-specific counterpart of
-  @{setting ISABELLE_HOME}. The default value is relative to @{file_unchecked
+  @{setting ISABELLE_HOME}. The default value is relative to @{path
   "$USER_HOME/.isabelle"}, under rare circumstances this may be changed in the
   global setting file. Typically, the @{setting ISABELLE_HOME_USER} directory
   mimics @{setting ISABELLE_HOME} to some extend. In particular, site-wide
@@ -138,7 +138,7 @@ text \<open>
 
   \<^descr>[@{setting ISABELLE_TOOL}\<open>\<^sup>*\<close>] is automatically set to the full path name
   of the @{executable isabelle} executable. Thus other tools and scripts need
-  not assume that the @{file "$ISABELLE_HOME/bin"} directory is on the current
+  not assume that the @{dir "$ISABELLE_HOME/bin"} directory is on the current
   search path of the shell.
 
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers to the name of this
@@ -175,7 +175,7 @@ text \<open>
 
   \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where theory
   browser information is stored as HTML and PDF (see also \secref{sec:info}).
-  The default value is @{file_unchecked "$ISABELLE_HOME_USER/browser_info"}.
+  The default value is @{path "$ISABELLE_HOME_USER/browser_info"}.
 
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
   is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.
@@ -234,12 +234,12 @@ text \<open>
   The root of component initialization is @{setting ISABELLE_HOME} itself.
   After initializing all of its sub-components recursively, @{setting
   ISABELLE_HOME_USER} is included in the same manner (if that directory
-  exists). This allows to install private components via @{file_unchecked
+  exists). This allows to install private components via @{path
   "$ISABELLE_HOME_USER/etc/components"}, although it is often more convenient
   to do that programmatically via the \<^verbatim>\<open>init_component\<close> shell function in the
   \<^verbatim>\<open>etc/settings\<close> script of \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> (or any other component
-  directory). For example:
-  @{verbatim [display] \<open>init_component "$HOME/screwdriver-2.0"\<close>}
+  directory). For example: @{verbatim [display] \<open>init_component
+  "$HOME/screwdriver-2.0"\<close>}
 
   This is tolerant wrt.\ missing component directories, but might produce a
   warning.
