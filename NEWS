@@ -51,7 +51,7 @@ on the target context persists, until different declarations are given.
 
 * Splitter in simp, auto and friends:
 - The syntax "split add" has been discontinued, use plain "split".
-- For situations with many nested conditional or case expressions,
+- For situations with many conditional or case expressions,
 there is an alternative splitting strategy that can be much faster.
 It is selected by writing "split!" instead of "split". It applies
 safe introduction and elimination rules after each split rule.
