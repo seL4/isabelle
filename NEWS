@@ -136,17 +136,15 @@ $ISABELLE_HOME/etc/abbrevs and $ISABELLE_HOME_USER/etc/abbrevs as
 before. The theory syntax for 'keywords' has been simplified
 accordingly: optional abbrevs need to go into the new 'abbrevs' section.
 
+* ML and document antiquotations for file-systems paths are more uniform
+and diverse:
 
-*** Document preparation ***
+  @{path NAME}   -- no file-system check
+  @{file NAME}   -- check for plain file
+  @{dir NAME}    -- check for directory
 
-* Document antiquotations for file-systems paths are more specific and
-diverse:
-
-  @{path NAME}   -- no check (formerly @{file_unchecked})
-  @{file NAME}   -- plain file (formerly file or directory)
-  @{dir NAME}    -- directory (formerly subsumed by @{file})
-
-Minor INCOMPATIBILITY.
+Minor INCOMPATIBILITY, former uses of @{file} and @{file_unchecked} may
+have to be changed.
 
 
 *** Isar ***
