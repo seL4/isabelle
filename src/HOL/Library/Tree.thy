@@ -58,6 +58,9 @@ instance ..
 
 end
 
+lemma height_0_iff_Leaf: "height t = 0 \<longleftrightarrow> t = Leaf"
+by(cases t) auto
+
 lemma height_map_tree[simp]: "height (map_tree f t) = height t"
 by (induction t) auto
 
