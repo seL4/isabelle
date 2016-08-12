@@ -9,10 +9,9 @@ imports Main
 begin
 
 text \<open>
-  This theory tests the various simprocs defined in @{file
-  "~~/src/HOL/Nat.thy"} and @{file "~~/src/HOL/Numeral_Simprocs.thy"}.
-  Many of the tests are derived from commented-out code originally
-  found in @{file "~~/src/HOL/Tools/numeral_simprocs.ML"}.
+  This theory tests the various simprocs defined in \<^file>\<open>~~/src/HOL/Nat.thy\<close> and
+  \<^file>\<open>~~/src/HOL/Numeral_Simprocs.thy\<close>. Many of the tests are derived from commented-out code
+  originally found in \<^file>\<open>~~/src/HOL/Tools/numeral_simprocs.ML\<close>.
 \<close>
 
 subsection \<open>ML bindings\<close>

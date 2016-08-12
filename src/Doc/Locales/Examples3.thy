@@ -525,7 +525,7 @@ text \<open>More information on locales and their interpretation is
 
   The sources of this tutorial, which include all proofs, are
   available with the Isabelle distribution at
-  @{url "http://isabelle.in.tum.de"}.
+  \<^url>\<open>http://isabelle.in.tum.de\<close>.
 \<close>
 
 text \<open>

@@ -53,9 +53,10 @@ code_printing type_constructor yxml_of_term
   and (Scala) "_.mkString(\"\")"
 
 text \<open>
-  Stripped-down implementations of Isabelle's XML tree with YXML encoding
-  as defined in @{file "~~/src/Pure/PIDE/xml.ML"}, @{file "~~/src/Pure/PIDE/yxml.ML"}
-  sufficient to encode @{typ "Code_Evaluation.term"} as in @{file "~~/src/Pure/term_xml.ML"}.
+  Stripped-down implementations of Isabelle's XML tree with YXML encoding as
+  defined in \<^file>\<open>~~/src/Pure/PIDE/xml.ML\<close>, \<^file>\<open>~~/src/Pure/PIDE/yxml.ML\<close>
+  sufficient to encode @{typ "Code_Evaluation.term"} as in
+  \<^file>\<open>~~/src/Pure/term_xml.ML\<close>.
 \<close>
 
 datatype (plugins del: code size "quickcheck") xml_tree = XML_Tree
@@ -113,8 +114,8 @@ definition yxml_string_of_body :: "xml.body \<Rightarrow> yxml_of_term"
 where "yxml_string_of_body ts = foldr yxml_string_of_xml_tree ts yot_empty"
 
 text \<open>
-  Encoding @{typ Code_Evaluation.term} into XML trees
-  as defined in @{file "~~/src/Pure/term_xml.ML"}
+  Encoding @{typ Code_Evaluation.term} into XML trees as defined in
+  \<^file>\<open>~~/src/Pure/term_xml.ML\<close>.
 \<close>
 
 definition xml_of_typ :: "Typerep.typerep \<Rightarrow> xml.body"

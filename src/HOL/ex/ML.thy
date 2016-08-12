@@ -94,7 +94,7 @@ ML \<open>
 ML \<open>factorial 42\<close>
 ML \<open>factorial 10000 div factorial 9999\<close>
 
-text \<open>See @{url "http://mathworld.wolfram.com/AckermannFunction.html"}\<close>
+text \<open>See \<^url>\<open>http://mathworld.wolfram.com/AckermannFunction.html\<close>.\<close>
 
 ML \<open>
   fun ackermann 0 n = n + 1

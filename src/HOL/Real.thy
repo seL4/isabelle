@@ -14,10 +14,10 @@ imports Rat
 begin
 
 text \<open>
-  This theory contains a formalization of the real numbers as
-  equivalence classes of Cauchy sequences of rationals.  See
-  @{file "~~/src/HOL/ex/Dedekind_Real.thy"} for an alternative
-  construction using Dedekind cuts.
+  This theory contains a formalization of the real numbers as equivalence
+  classes of Cauchy sequences of rationals. See
+  \<^file>\<open>~~/src/HOL/ex/Dedekind_Real.thy\<close> for an alternative construction using
+  Dedekind cuts.
 \<close>
 
 

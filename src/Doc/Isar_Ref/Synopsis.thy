@@ -214,7 +214,7 @@ end
 section \<open>Calculational reasoning \label{sec:calculations-synopsis}\<close>
 
 text \<open>
-  For example, see @{file "~~/src/HOL/Isar_Examples/Group.thy"}.
+  For example, see \<^file>\<open>~~/src/HOL/Isar_Examples/Group.thy\<close>.
 \<close>
 
 

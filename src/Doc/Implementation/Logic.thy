@@ -1248,11 +1248,11 @@ text %mlref \<open>
 \<close>
 
 text %mlex \<open>
-  \<^item> @{file "~~/src/HOL/Proofs/ex/Proof_Terms.thy"} provides basic examples
-  involving proof terms.
+  \<^item> \<^file>\<open>~~/src/HOL/Proofs/ex/Proof_Terms.thy\<close> provides basic examples involving
+  proof terms.
 
-  \<^item> @{file "~~/src/HOL/Proofs/ex/XML_Data.thy"} demonstrates export and import
-  of proof terms via XML/ML data representation.
+  \<^item> \<^file>\<open>~~/src/HOL/Proofs/ex/XML_Data.thy\<close> demonstrates export and import of
+  proof terms via XML/ML data representation.
 \<close>
 
 end

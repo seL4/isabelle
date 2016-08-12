@@ -13,7 +13,7 @@ begin
 text \<open>
   This library lifts operations like addition and multiplication to sets. It
   was designed to support asymptotic calculations. See the comments at the top
-  of @{file "BigO.thy"}.
+  of \<^file>\<open>BigO.thy\<close>.
 \<close>
 
 instantiation set :: (plus) plus

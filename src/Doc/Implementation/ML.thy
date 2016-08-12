@@ -22,8 +22,8 @@ text \<open>
   The main aspects of Isabelle/ML are introduced below. These first-hand
   explanations should help to understand how proper Isabelle/ML is to be read
   and written, and to get access to the wealth of experience that is expressed
-  in the source text and its history of changes.\<^footnote>\<open>See @{url
-  "http://isabelle.in.tum.de/repos/isabelle"} for the full Mercurial history.
+  in the source text and its history of changes.\<^footnote>\<open>See
+  \<^url>\<open>http://isabelle.in.tum.de/repos/isabelle\<close> for the full Mercurial history.
   There are symbolic tags to refer to official Isabelle releases, as opposed
   to arbitrary \<^emph>\<open>tip\<close> versions that merely reflect snapshots that are never
   really up-to-date.\<close>
@@ -38,9 +38,8 @@ text \<open>
   really going on and how things really work. This is a non-trivial aim, but
   it is supported by a certain style of writing Isabelle/ML that has emerged
   from long years of system development.\<^footnote>\<open>See also the interesting style guide
-  for OCaml @{url
-  "http://caml.inria.fr/resources/doc/guides/guidelines.en.html"} which shares
-  many of our means and ends.\<close>
+  for OCaml \<^url>\<open>http://caml.inria.fr/resources/doc/guides/guidelines.en.html\<close>
+  which shares many of our means and ends.\<close>
 
   The main principle behind any coding style is \<^emph>\<open>consistency\<close>. For a single
   author of a small program this merely means ``choose your style and stick to
@@ -63,8 +62,8 @@ subsection \<open>Header and sectioning\<close>
 text \<open>
   Isabelle source files have a certain standardized header format (with
   precise spacing) that follows ancient traditions reaching back to the
-  earliest versions of the system by Larry Paulson. See @{file
-  "~~/src/Pure/thm.ML"}, for example.
+  earliest versions of the system by Larry Paulson. See
+  \<^file>\<open>~~/src/Pure/thm.ML\<close>, for example.
 
   The header includes at least \<^verbatim>\<open>Title\<close> and \<^verbatim>\<open>Author\<close> entries, followed by a
   prose description of the purpose of the module. The latter can range from a
@@ -1385,8 +1384,8 @@ text %mlref \<open>
   32-bit Poly/ML, and much higher for 64-bit systems.\<close>
 
   Structure @{ML_structure IntInf} of SML97 is obsolete and superseded by
-  @{ML_structure Int}. Structure @{ML_structure Integer} in @{file
-  "~~/src/Pure/General/integer.ML"} provides some additional operations.
+  @{ML_structure Int}. Structure @{ML_structure Integer} in
+  \<^file>\<open>~~/src/Pure/General/integer.ML\<close> provides some additional operations.
 \<close>
 
 
@@ -1445,8 +1444,7 @@ text %mlref \<open>
 text \<open>
   Apart from @{ML Option.map} most other operations defined in structure
   @{ML_structure Option} are alien to Isabelle/ML and never used. The
-  operations shown above are defined in @{file
-  "~~/src/Pure/General/basics.ML"}.
+  operations shown above are defined in \<^file>\<open>~~/src/Pure/General/basics.ML\<close>.
 \<close>
 
 
@@ -1474,9 +1472,9 @@ text %mlref \<open>
   is required.
 
   \<^descr> @{ML member}, @{ML insert}, @{ML remove}, @{ML update} treat lists as a
-  set-like container that maintains the order of elements. See @{file
-  "~~/src/Pure/library.ML"} for the full specifications (written in ML). There
-  are some further derived operations like @{ML union} or @{ML inter}.
+  set-like container that maintains the order of elements. See
+  \<^file>\<open>~~/src/Pure/library.ML\<close> for the full specifications (written in ML).
+  There are some further derived operations like @{ML union} or @{ML inter}.
 
   Note that @{ML insert} is conservative about elements that are already a
   @{ML member} of the list, while @{ML update} ensures that the latest entry
@@ -1518,8 +1516,8 @@ text \<open>
   fold_rev} attempts to preserve the order of elements in the result.
 
   This way of merging lists is typical for context data
-  (\secref{sec:context-data}). See also @{ML merge} as defined in @{file
-  "~~/src/Pure/library.ML"}.
+  (\secref{sec:context-data}). See also @{ML merge} as defined in
+  \<^file>\<open>~~/src/Pure/library.ML\<close>.
 \<close>
 
 
@@ -1555,8 +1553,8 @@ text \<open>
 
   Association lists are adequate as simple implementation of finite mappings
   in many practical situations. A more advanced table structure is defined in
-  @{file "~~/src/Pure/General/table.ML"}; that version scales easily to
-  thousands or millions of elements.
+  \<^file>\<open>~~/src/Pure/General/table.ML\<close>; that version scales easily to thousands or
+  millions of elements.
 \<close>
 
 
@@ -1782,8 +1780,7 @@ text %mlref \<open>
     on the associated condition variable, and returns the result \<open>y\<close>.
 
   There are some further variants of the @{ML Synchronized.guarded_access}
-  combinator, see @{file "~~/src/Pure/Concurrent/synchronized.ML"} for
-  details.
+  combinator, see \<^file>\<open>~~/src/Pure/Concurrent/synchronized.ML\<close> for details.
 \<close>
 
 text %mlex \<open>
@@ -1809,8 +1806,8 @@ ML_val \<open>
 
 text \<open>
   \<^medskip>
-  See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how to implement a mailbox
-  as synchronized variable over a purely functional list.
+  See \<^file>\<open>~~/src/Pure/Concurrent/mailbox.ML\<close> how to implement a mailbox as
+  synchronized variable over a purely functional list.
 \<close>
 
 

@@ -69,9 +69,9 @@ text \<open>
   The presentation output will appear in \<^verbatim>\<open>$ISABELLE_BROWSER_INFO/FOL/FOL\<close> as
   reported by the above verbose invocation of the build process.
 
-  Many Isabelle sessions (such as \<^verbatim>\<open>HOL-Library\<close> in @{dir
-  "~~/src/HOL/Library"}) also provide printable documents in PDF. These are
-  prepared automatically as well if enabled like this:
+  Many Isabelle sessions (such as \<^verbatim>\<open>HOL-Library\<close> in \<^dir>\<open>~~/src/HOL/Library\<close>)
+  also provide printable documents in PDF. These are prepared automatically as
+  well if enabled like this:
   @{verbatim [display] \<open>isabelle build -o browser_info -o document=pdf -v -c HOL-Library\<close>}
 
   Enabling both browser info and document preparation simultaneously causes an
@@ -177,8 +177,8 @@ text \<open>
   drop, and ``\<^verbatim>\<open>/\<close>\<open>foo\<close>'' to fold text tagged as \<open>foo\<close>. The builtin default is
   equivalent to the tag specification
   ``\<^verbatim>\<open>+theory,+proof,+ML,+visible,-invisible\<close>''; see also the {\LaTeX} macros
-  \<^verbatim>\<open>\isakeeptag\<close>, \<^verbatim>\<open>\isadroptag\<close>, and \<^verbatim>\<open>\isafoldtag\<close>, in @{file
-  "~~/lib/texinputs/isabelle.sty"}.
+  \<^verbatim>\<open>\isakeeptag\<close>, \<^verbatim>\<open>\isadroptag\<close>, and \<^verbatim>\<open>\isafoldtag\<close>, in
+  \<^file>\<open>~~/lib/texinputs/isabelle.sty\<close>.
 
   \<^medskip>
   Document preparation requires a \<^verbatim>\<open>document\<close> directory within the session
@@ -211,8 +211,8 @@ text \<open>
   user would include \<^verbatim>\<open>session.tex\<close> to get a document containing all the
   theories.
 
-  The {\LaTeX} versions of the theories require some macros defined in @{file
-  "~~/lib/texinputs/isabelle.sty"}. Doing \<^verbatim>\<open>\usepackage{isabelle}\<close> in
+  The {\LaTeX} versions of the theories require some macros defined in
+  \<^file>\<open>~~/lib/texinputs/isabelle.sty\<close>. Doing \<^verbatim>\<open>\usepackage{isabelle}\<close> in
   \<^verbatim>\<open>root.tex\<close> should be fine; the underlying @{tool latex} already includes an
   appropriate path specification for {\TeX} inputs.
 
@@ -221,11 +221,11 @@ text \<open>
   standard set of {\LaTeX} macro definitions \<^verbatim>\<open>\isasym\<close>\<open>foo\<close> corresponding to
   \<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>foo\<close>\<^verbatim>\<open>>\<close>, see @{cite "isabelle-implementation"} for a complete list
   of predefined Isabelle symbols. Users may invent further symbols as well,
-  just by providing {\LaTeX} macros in a similar fashion as in @{file
-  "~~/lib/texinputs/isabellesym.sty"} of the Isabelle distribution.
+  just by providing {\LaTeX} macros in a similar fashion as in
+  \<^file>\<open>~~/lib/texinputs/isabellesym.sty\<close> of the Isabelle distribution.
 
   For proper setup of DVI and PDF documents (with hyperlinks and bookmarks),
-  we recommend to include @{file "~~/lib/texinputs/pdfsetup.sty"} as well.
+  we recommend to include \<^file>\<open>~~/lib/texinputs/pdfsetup.sty\<close> as well.
 
   \<^medskip>
   As a final step of Isabelle document preparation, @{tool document}~\<^verbatim>\<open>-c\<close> is

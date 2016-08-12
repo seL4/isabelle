@@ -84,7 +84,7 @@ text \<open>
   else branch prohibits it. However they can be \<open>sfair\<close> in the case when all
   \<open>W\<close> are only finitely often enabled: Is this the right model?
 
-  See @{file "LiveIOA.thy"} for solution conforming with the literature and
+  See \<^file>\<open>LiveIOA.thy\<close> for solution conforming with the literature and
   superseding this one.
 \<close>
 

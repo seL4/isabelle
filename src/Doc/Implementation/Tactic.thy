@@ -168,9 +168,8 @@ text %mlref \<open>
   \end{mldecls}
 
   \<^descr> Type @{ML_type tactic} represents tactics. The well-formedness conditions
-  described above need to be observed. See also @{file
-  "~~/src/Pure/General/seq.ML"} for the underlying implementation of lazy
-  sequences.
+  described above need to be observed. See also \<^file>\<open>~~/src/Pure/General/seq.ML\<close>
+  for the underlying implementation of lazy sequences.
 
   \<^descr> Type @{ML_type "int -> tactic"} represents tactics with explicit subgoal
   addressing, with well-formedness conditions as described above.

@@ -64,10 +64,10 @@ text %mlref \<open>
   @{index_ML Thm.equal_elim: "thm -> thm -> thm"} \\
   \end{mldecls}
 
-  See also @{file "~~/src/Pure/thm.ML" } for further description of these
-  inference rules, and a few more for primitive \<open>\<beta>\<close> and \<open>\<eta>\<close> conversions. Note
-  that \<open>\<alpha>\<close> conversion is implicit due to the representation of terms with
-  de-Bruijn indices (\secref{sec:terms}).
+  See also \<^file>\<open>~~/src/Pure/thm.ML\<close> for further description of these inference
+  rules, and a few more for primitive \<open>\<beta>\<close> and \<open>\<eta>\<close> conversions. Note that \<open>\<alpha>\<close>
+  conversion is implicit due to the representation of terms with de-Bruijn
+  indices (\secref{sec:terms}).
 \<close>
 
 

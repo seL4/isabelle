@@ -9152,8 +9152,8 @@ qed
 
 subsection \<open>Geometric progression\<close>
 
-text \<open>FIXME: Should one or more of these theorems be moved to @{file
-"~~/src/HOL/Set_Interval.thy"}, alongside \<open>geometric_sum\<close>?\<close>
+text \<open>FIXME: Should one or more of these theorems be moved to
+  \<^file>\<open>~~/src/HOL/Set_Interval.thy\<close>, alongside \<open>geometric_sum\<close>?\<close>
 
 lemma sum_gp_basic:
   fixes x :: "'a::ring_1"

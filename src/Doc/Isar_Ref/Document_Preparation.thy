@@ -40,7 +40,7 @@ text \<open>
   Markup commands provide a structured way to insert text into the document
   generated from a theory. Each markup command takes a single @{syntax text}
   argument, which is passed as argument to a corresponding {\LaTeX} macro. The
-  default macros provided by @{file "~~/lib/texinputs/isabelle.sty"} can be
+  default macros provided by \<^file>\<open>~~/lib/texinputs/isabelle.sty\<close> can be
   redefined according to the needs of the underlying document and {\LaTeX}
   styles.
 
@@ -420,8 +420,8 @@ text \<open>
   text_raw} (\secref{sec:markup}) consist of plain text. Its internal
   structure consists of paragraphs and (nested) lists, using special Isabelle
   symbols and some rules for indentation and blank lines. This quasi-visual
-  format resembles \<^emph>\<open>Markdown\<close>\<^footnote>\<open>@{url "http://commonmark.org"}\<close>, but the
-  full complexity of that notation is avoided.
+  format resembles \<^emph>\<open>Markdown\<close>\<^footnote>\<open>\<^url>\<open>http://commonmark.org\<close>\<close>, but the full
+  complexity of that notation is avoided.
 
   This is a summary of the main principles of minimal Markdown in Isabelle:
 
@@ -495,8 +495,8 @@ text \<open>
 
   \<^medskip>
   Command tags merely produce certain markup environments for type-setting.
-  The meaning of these is determined by {\LaTeX} macros, as defined in @{file
-  "~~/lib/texinputs/isabelle.sty"} or by the document author. The Isabelle
+  The meaning of these is determined by {\LaTeX} macros, as defined in
+  \<^file>\<open>~~/lib/texinputs/isabelle.sty\<close> or by the document author. The Isabelle
   document preparation tools also provide some high-level options to specify
   the meaning of arbitrary tags to ``keep'', ``drop'', or ``fold'' the
   corresponding parts of the text. Logic sessions may also specify ``document
@@ -517,8 +517,8 @@ text \<open>
   \<close>}
 
   The @{antiquotation rail} antiquotation allows to include syntax diagrams
-  into Isabelle documents. {\LaTeX} requires the style file @{file
-  "~~/lib/texinputs/railsetup.sty"}, which can be used via
+  into Isabelle documents. {\LaTeX} requires the style file
+  \<^file>\<open>~~/lib/texinputs/railsetup.sty\<close>, which can be used via
   \<^verbatim>\<open>\usepackage{railsetup}\<close> in \<^verbatim>\<open>root.tex\<close>, for example.
 
   The rail specification language is quoted here as Isabelle @{syntax string}

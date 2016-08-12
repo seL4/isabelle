@@ -37,11 +37,10 @@ text \<open>
     given up; instead there is direct support for editing of source text, with
     rich formal markup for GUI rendering.
 
-    \<^descr>[jEdit] is a sophisticated text editor\<^footnote>\<open>@{url "http://www.jedit.org"}\<close>
-    implemented in Java\<^footnote>\<open>@{url "http://www.java.com"}\<close>. It is easily
-    extensible by plugins written in any language that works on the JVM. In
-    the context of Isabelle this is always Scala\<^footnote>\<open>@{url
-    "http://www.scala-lang.org"}\<close>.
+    \<^descr>[jEdit] is a sophisticated text editor\<^footnote>\<open>\<^url>\<open>http://www.jedit.org\<close>\<close>
+    implemented in Java\<^footnote>\<open>\<^url>\<open>http://www.java.com\<close>\<close>. It is easily extensible by
+    plugins written in any language that works on the JVM. In the context of
+    Isabelle this is always Scala\<^footnote>\<open>\<^url>\<open>http://www.scala-lang.org\<close>\<close>.
 
     \<^descr>[Isabelle/jEdit] is the main application of the PIDE framework and the
     default user-interface for Isabelle. It targets both beginners and
@@ -214,7 +213,7 @@ text \<open>
   additional keyboard shortcuts for Isabelle-specific functionality. Users may
   change their keymap later, but need to copy some keyboard shortcuts manually
   (see also @{path "$ISABELLE_HOME_USER/jedit/keymaps"} versus \<^verbatim>\<open>shortcut\<close>
-  properties in @{file "$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props"}).
+  properties in \<^file>\<open>$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props\<close>).
 \<close>
 
 
@@ -271,8 +270,8 @@ text \<open>
 
   The \<^verbatim>\<open>-b\<close> and \<^verbatim>\<open>-f\<close> options control the self-build mechanism of
   Isabelle/jEdit. This is only relevant for building from sources, which also
-  requires an auxiliary \<^verbatim>\<open>jedit_build\<close> component from @{url
-  "http://isabelle.in.tum.de/components"}. The official Isabelle release
+  requires an auxiliary \<^verbatim>\<open>jedit_build\<close> component from
+  \<^url>\<open>http://isabelle.in.tum.de/components\<close>. The official Isabelle release
   already includes a pre-built version of Isabelle/jEdit.
 
   \<^bigskip>
@@ -468,8 +467,8 @@ text \<open>
   ``\<^verbatim>\<open>\<alpha>\<close>''. For the editor front-end, a certain subset of symbols is rendered
   physically via Unicode glyphs, in order to show ``\<^verbatim>\<open>\<alpha>\<close>'' as ``\<open>\<alpha>\<close>'', for
   example. This symbol interpretation is specified by the Isabelle system
-  distribution in @{file "$ISABELLE_HOME/etc/symbols"} and may be augmented by
-  the user in @{path "$ISABELLE_HOME_USER/etc/symbols"}.
+  distribution in \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and may be augmented by the
+  user in @{path "$ISABELLE_HOME_USER/etc/symbols"}.
 
   The appendix of @{cite "isabelle-isar-ref"} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
@@ -550,7 +549,7 @@ text \<open>In principle, Isabelle/jEdit could delegate the problem to produce
   \<^verbatim>\<open>\lambda\<close>, or its ASCII abbreviation \<^verbatim>\<open>%\<close> by the Unicode rendering.
 
   The following table is an extract of the information provided by the
-  standard @{file "$ISABELLE_HOME/etc/symbols"} file:
+  standard \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> file:
 
   \<^medskip>
   \begin{tabular}{lll}
@@ -659,9 +658,8 @@ text \<open>
   platforms. Isabelle/ML on Windows uses Unix-style path notation, too, and
   driver letter representation as in Cygwin (e.g.\ \<^verbatim>\<open>/cygdrive/c\<close>). Moreover,
   environment variables from the Isabelle process may be used freely, e.g.\
-  @{file "$ISABELLE_HOME/etc/symbols"} or @{file "$POLYML_HOME/README"}. There
-  are special shortcuts: @{dir "~"} for @{dir "$USER_HOME"} and @{dir "~~"}
-  for @{dir "$ISABELLE_HOME"}.
+  \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> or \<^file>\<open>$POLYML_HOME/README\<close>. There are special
+  shortcuts: \<^dir>\<open>~\<close> for \<^dir>\<open>$USER_HOME\<close> and \<^dir>\<open>~~\<close> for \<^dir>\<open>$ISABELLE_HOME\<close>.
 
   \<^medskip>
   Since jEdit happens to support environment variables within file
@@ -848,8 +846,8 @@ text \<open>
   further tricks to manage markup of ML files, such that Isabelle/HOL may be
   edited conveniently in the Prover IDE on small machines with only 8\,GB of
   main memory. Using \<^verbatim>\<open>Pure\<close> as logic session image, the exploration may start
-  at the top @{file "$ISABELLE_HOME/src/HOL/Main.thy"} or the bottom @{file
-  "$ISABELLE_HOME/src/HOL/HOL.thy"}, for example.
+  at the top \<^file>\<open>$ISABELLE_HOME/src/HOL/Main.thy\<close> or the bottom
+  \<^file>\<open>$ISABELLE_HOME/src/HOL/HOL.thy\<close>, for example.
 
   Initially, before an auxiliary file is opened in the editor, the prover
   reads its content from the physical file-system. After the file is opened
@@ -874,8 +872,8 @@ text \<open>
 
   Warnings, errors, and other useful markup is attached directly to the
   positions in the auxiliary file buffer, in the manner of standard IDEs. By
-  using the load command @{command SML_file} as explained in @{file
-  "$ISABELLE_HOME/src/Tools/SML/Examples.thy"}, Isabelle/jEdit may be used as
+  using the load command @{command SML_file} as explained in
+  \<^file>\<open>$ISABELLE_HOME/src/Tools/SML/Examples.thy\<close>, Isabelle/jEdit may be used as
   fully-featured IDE for Standard ML, independently of theory or proof
   development: the required theory merely serves as some kind of project file
   for a collection of SML source modules.
@@ -1044,8 +1042,7 @@ text \<open>
 
     \<^item> The \<^emph>\<open>Search\<close> field allows to highlight query output according to some
     regular expression, in the notation that is commonly used on the Java
-    platform.\<^footnote>\<open>@{url
-    "https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html"}\<close>
+    platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html\<close>\<close>
     This may serve as an additional visual filter of the result.
 
     \<^item> The \<^emph>\<open>Zoom\<close> box controls the font size of the output area.
@@ -1240,9 +1237,8 @@ subsubsection \<open>Isabelle symbols\<close>
 
 text \<open>
   The completion tables for Isabelle symbols (\secref{sec:symbols}) are
-  determined statically from @{file "$ISABELLE_HOME/etc/symbols"} and
-  @{path "$ISABELLE_HOME_USER/etc/symbols"} for each symbol
-  specification as follows:
+  determined statically from \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and @{path
+  "$ISABELLE_HOME_USER/etc/symbols"} for each symbol specification as follows:
 
   \<^medskip>
   \begin{tabular}{ll}
@@ -1272,13 +1268,12 @@ text \<open>
   which do not allow arbitrary backslash sequences.
 
   \<^medskip>
-  Additional abbreviations may be specified in @{file
-  "$ISABELLE_HOME/etc/abbrevs"} and @{path "$ISABELLE_HOME_USER/etc/abbrevs"}.
-  The file content follows general Isar outer syntax @{cite
-  "isabelle-isar-ref"}. Abbreviations are specified as
-  ``\<open>abbrev\<close>~\<^verbatim>\<open>=\<close>~\<open>text\<close>'' pairs. The replacement \<open>text\<close> may consist of more
-  than just one symbol; otherwise the meaning is the same as a symbol
-  specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{path
+  Additional abbreviations may be specified in \<^file>\<open>$ISABELLE_HOME/etc/abbrevs\<close>
+  and @{path "$ISABELLE_HOME_USER/etc/abbrevs"}. The file content follows
+  general Isar outer syntax @{cite "isabelle-isar-ref"}. Abbreviations are
+  specified as ``\<open>abbrev\<close>~\<^verbatim>\<open>=\<close>~\<open>text\<close>'' pairs. The replacement \<open>text\<close> may
+  consist of more than just one symbol; otherwise the meaning is the same as a
+  symbol specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{path
   "etc/symbols"}.
 \<close>
 
@@ -1718,10 +1713,10 @@ section \<open>Markdown structure\<close>
 
 text \<open>
   Document text is internally structured in paragraphs and nested lists, using
-  notation that is similar to Markdown\<^footnote>\<open>@{url "http://commonmark.org"}\<close>. There
-  are special control symbols for items of different kinds of lists,
-  corresponding to \<^verbatim>\<open>itemize\<close>, \<^verbatim>\<open>enumerate\<close>, \<^verbatim>\<open>description\<close> in {\LaTeX}. This
-  is illustrated in for \<^verbatim>\<open>itemize\<close> in \figref{fig:markdown-document}.
+  notation that is similar to Markdown\<^footnote>\<open>\<^url>\<open>http://commonmark.org\<close>\<close>. There are
+  special control symbols for items of different kinds of lists, corresponding
+  to \<^verbatim>\<open>itemize\<close>, \<^verbatim>\<open>enumerate\<close>, \<^verbatim>\<open>description\<close> in {\LaTeX}. This is illustrated
+  in for \<^verbatim>\<open>itemize\<close> in \figref{fig:markdown-document}.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1781,7 +1776,7 @@ text \<open>
 chapter \<open>ML debugging within the Prover IDE\<close>
 
 text \<open>
-  Isabelle/ML is based on Poly/ML\<^footnote>\<open>@{url "http://www.polyml.org"}\<close> and thus
+  Isabelle/ML is based on Poly/ML\<^footnote>\<open>\<^url>\<open>http://www.polyml.org\<close>\<close> and thus
   benefits from the source-level debugger of that implementation of Standard
   ML. The Prover IDE provides the \<^emph>\<open>Debugger\<close> dockable to connect to running
   ML threads, inspect the stack frame with local ML bindings, and evaluate ML

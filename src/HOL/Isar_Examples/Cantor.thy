@@ -13,8 +13,8 @@ subsection \<open>Mathematical statement and proof\<close>
 text \<open>
   Cantor's Theorem states that there is no surjection from
   a set to its powerset.  The proof works by diagonalization.  E.g.\ see
-  \<^item> @{url "http://mathworld.wolfram.com/CantorDiagonalMethod.html"}
-  \<^item> @{url "https://en.wikipedia.org/wiki/Cantor's_diagonal_argument"}
+  \<^item> \<^url>\<open>http://mathworld.wolfram.com/CantorDiagonalMethod.html\<close>
+  \<^item> \<^url>\<open>https://en.wikipedia.org/wiki/Cantor's_diagonal_argument\<close>
 \<close>
 
 theorem Cantor: "\<nexists>f :: 'a \<Rightarrow> 'a set. \<forall>A. \<exists>x. A = f x"

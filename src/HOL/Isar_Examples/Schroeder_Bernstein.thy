@@ -10,8 +10,8 @@ begin
 
 text \<open>
   See also:
-  \<^item> @{file "$ISABELLE_HOME/src/HOL/ex/Set_Theory.thy"}
-  \<^item> @{url "http://planetmath.org/proofofschroederbernsteintheoremusingtarskiknastertheorem"}
+  \<^item> \<^file>\<open>$ISABELLE_HOME/src/HOL/ex/Set_Theory.thy\<close>
+  \<^item> \<^url>\<open>http://planetmath.org/proofofschroederbernsteintheoremusingtarskiknastertheorem\<close>
   \<^item> Springer LNCS 828 (cover page)
 \<close>
 

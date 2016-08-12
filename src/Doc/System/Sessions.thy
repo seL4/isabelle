@@ -140,19 +140,18 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  See @{file "~~/src/HOL/ROOT"} for a diversity of practically relevant
-  situations, although it uses relatively complex quasi-hierarchic naming
-  conventions like \<^verbatim>\<open>HOL-SPARK\<close>, \<^verbatim>\<open>HOL-SPARK-Examples\<close>. An alternative is to
-  use unqualified names that are relatively long and descriptive, as in the
-  Archive of Formal Proofs (@{url "http://afp.sourceforge.net"}), for
-  example.
+  See \<^file>\<open>~~/src/HOL/ROOT\<close> for a diversity of practically relevant situations,
+  although it uses relatively complex quasi-hierarchic naming conventions like
+  \<^verbatim>\<open>HOL-SPARK\<close>, \<^verbatim>\<open>HOL-SPARK-Examples\<close>. An alternative is to use unqualified
+  names that are relatively long and descriptive, as in the Archive of Formal
+  Proofs (\<^url>\<open>http://afp.sourceforge.net\<close>), for example.
 \<close>
 
 
 section \<open>System build options \label{sec:system-options}\<close>
 
 text \<open>
-  See @{file "~~/etc/options"} for the main defaults provided by the Isabelle
+  See \<^file>\<open>~~/etc/options\<close> for the main defaults provided by the Isabelle
   distribution. Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple
   editing mode \<^verbatim>\<open>isabelle-options\<close> for this file-format.
 

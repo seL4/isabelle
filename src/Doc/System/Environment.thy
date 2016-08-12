@@ -44,11 +44,10 @@ text \<open>
     that the Isabelle executables either have to be run from their original
     location in the distribution directory, or via the executable objects
     created by the @{tool install} tool. Symbolic links are admissible, but a
-    plain copy of the @{dir "$ISABELLE_HOME/bin"} files will not work!
+    plain copy of the \<^dir>\<open>$ISABELLE_HOME/bin\<close> files will not work!
 
-    \<^enum> The file @{file "$ISABELLE_HOME/etc/settings"} is run as a
-    @{executable_ref bash} shell script with the auto-export option for
-    variables enabled.
+    \<^enum> The file \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> is run as a @{executable_ref
+    bash} shell script with the auto-export option for variables enabled.
 
     This file holds a rather long list of shell variable assignments, thus
     providing the site-wide default settings. The Isabelle distribution
@@ -63,8 +62,8 @@ text \<open>
 
     Thus individual users may override the site-wide defaults. Typically, a
     user settings file contains only a few lines, with some assignments that
-    are actually changed. Never copy the central @{file
-    "$ISABELLE_HOME/etc/settings"} file!
+    are actually changed. Never copy the central
+    \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> file!
 
   Since settings files are regular GNU @{executable_def bash} scripts, one may
   use complex shell commands, such as \<^verbatim>\<open>if\<close> or \<^verbatim>\<open>case\<close> statements to set
@@ -138,7 +137,7 @@ text \<open>
 
   \<^descr>[@{setting ISABELLE_TOOL}\<open>\<^sup>*\<close>] is automatically set to the full path name
   of the @{executable isabelle} executable. Thus other tools and scripts need
-  not assume that the @{dir "$ISABELLE_HOME/bin"} directory is on the current
+  not assume that the \<^dir>\<open>$ISABELLE_HOME/bin\<close> directory is on the current
   search path of the shell.
 
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers to the name of this
@@ -147,8 +146,8 @@ text \<open>
   \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME}, @{setting_def
   ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def ML_IDENTIFIER}\<open>\<^sup>*\<close>]
   specify the underlying ML system to be used for Isabelle. There is only a
-  fixed set of admissable @{setting ML_SYSTEM} names (see the @{file
-  "$ISABELLE_HOME/etc/settings"} file of the distribution).
+  fixed set of admissable @{setting ML_SYSTEM} names (see the
+  \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> file of the distribution).
 
   The actual compiler binary will be run from the directory @{setting
   ML_HOME}, with @{setting ML_OPTIONS} as first arguments on the command line.
@@ -429,8 +428,8 @@ text \<open>
   separated by \<open>\<^bold>X\<close>, then split each chunk into sub-chunks separated by \<open>\<^bold>Y\<close>.
   Markup chunks start with an empty sub-chunk, and a second empty sub-chunk
   indicates close of an element. Any other non-empty chunk consists of plain
-  text. For example, see @{file "~~/src/Pure/PIDE/yxml.ML"} or @{file
-  "~~/src/Pure/PIDE/yxml.scala"}.
+  text. For example, see \<^file>\<open>~~/src/Pure/PIDE/yxml.ML\<close> or
+  \<^file>\<open>~~/src/Pure/PIDE/yxml.scala\<close>.
 
   YXML documents may be detected quickly by checking that the first two
   characters are \<open>\<^bold>X\<^bold>Y\<close>.

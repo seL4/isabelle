@@ -538,7 +538,7 @@ text \<open>
     \<^item> \<^emph>\<open>Partially Ordered Algebraic Systems\<close>, Pergamon Press, 1963
 
   Most of the used notions can also be looked up in
-    \<^item> @{url "http://www.mathworld.com"} by Eric Weisstein et. al.
+    \<^item> \<^url>\<open>http://www.mathworld.com\<close> by Eric Weisstein et. al.
     \<^item> \<^emph>\<open>Algebra I\<close> by van der Waerden, Springer
 \<close>
 

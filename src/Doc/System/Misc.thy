@@ -34,8 +34,8 @@ text \<open>
   Components are initialized as described in \secref{sec:components} in a
   permissive manner, which can mark components as ``missing''. This state is
   amended by letting @{tool "components"} download and unpack components that
-  are published on the default component repository @{url
-  "http://isabelle.in.tum.de/components/"} in particular.
+  are published on the default component repository
+  \<^url>\<open>http://isabelle.in.tum.de/components\<close> in particular.
 
   Option \<^verbatim>\<open>-R\<close> specifies an alternative component repository. Note that
   \<^verbatim>\<open>file:///\<close> URLs can be used for local directories.
