@@ -158,4 +158,36 @@ lemma compute_bitlen[code]:
   "bitlen x = (if x > 0 then bitlen (x div 2) + 1 else 0)"
 by (simp add: bitlen_def nat_div_distrib compute_floorlog)
 
+lemma bitlen_eq_zero_iff: "bitlen x = 0 \<longleftrightarrow> x \<le> 0"
+by (auto simp add: bitlen_alt_def)
+   (metis compute_bitlen add.commute bitlen_alt_def bitlen_nonneg less_add_same_cancel2
+      not_less zero_less_one)
+
+lemma bitlen_div:
+  assumes "0 < m"
+  shows "1 \<le> real_of_int m / 2^nat (bitlen m - 1)"
+    and "real_of_int m / 2^nat (bitlen m - 1) < 2"
+proof -
+  let ?B = "2^nat (bitlen m - 1)"
+
+  have "?B \<le> m" using bitlen_bounds[OF \<open>0 <m\<close>] ..
+  then have "1 * ?B \<le> real_of_int m"
+    unfolding of_int_le_iff[symmetric] by auto
+  then show "1 \<le> real_of_int m / ?B" by auto
+
+  from assms have "m \<noteq> 0" by auto
+  from assms have "0 \<le> bitlen m - 1" by (auto simp: bitlen_alt_def)
+
+  have "m < 2^nat(bitlen m)" using bitlen_bounds[OF assms] ..
+  also from assms have "\<dots> = 2^nat(bitlen m - 1 + 1)"
+    by (auto simp: bitlen_def)
+  also have "\<dots> = ?B * 2"
+    unfolding nat_add_distrib[OF \<open>0 \<le> bitlen m - 1\<close> zero_le_one] by auto
+  finally have "real_of_int m < 2 * ?B"
+    by (metis (full_types) mult.commute power.simps(2) real_of_int_less_numeral_power_cancel_iff)
+  then have "real_of_int m / ?B < 2 * ?B / ?B"
+    by (rule divide_strict_right_mono) auto
+  then show "real_of_int m / ?B < 2" by auto
+qed
+
 end
