@@ -195,7 +195,7 @@ text \<open>
       @@{antiquotation emph} options @{syntax text} |
       @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
-      @@{antiquotation path} options @{syntax name} |
+      @@{antiquotation path} options @{syntax embedded} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation dir} options @{syntax name} |
       @@{antiquotation url} options @{syntax embedded} |
