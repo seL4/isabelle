@@ -220,8 +220,10 @@ val _ = Theory.setup
   Thy_Output.antiquotation @{binding dir} (Scan.lift (Parse.position Parse.path))
     (path_antiq (SOME File.check_dir) o #context) #>
   ML_Antiquotation.value @{binding file}
-    (Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, arg) =>
-      let val path = check_path ctxt Path.current arg |> File.check_file
+    (Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
+      let
+        val path = check_path ctxt Path.current (name, pos);
+        val _ = File.check_file path handle ERROR msg => err msg pos;
       in "Path.explode " ^ ML_Syntax.print_string (Path.implode path) end)));
 
 end;
