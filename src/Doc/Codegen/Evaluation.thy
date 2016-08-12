@@ -340,7 +340,7 @@ text \<open>
   For technical reasons it is sometimes necessary to separate
   generation and compilation of code which is supposed to be used in
   the system runtime.  For this @{command code_reflect} with an
-  optional @{text "file"} argument can be used:
+  optional \<^theory_text>\<open>file\<close> argument can be used:
 \<close>
 
 code_reflect %quote Rat
