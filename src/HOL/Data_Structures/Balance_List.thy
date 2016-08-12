@@ -5,7 +5,7 @@ section \<open>Creating a Balanced Tree from a List\<close>
 theory Balance_List
 imports
   "~~/src/HOL/Library/Tree"
-  "~~/src/HOL/Library/Float"
+  "~~/src/HOL/Library/Log_Nat"
 begin
 
 fun bal :: "'a list \<Rightarrow> nat \<Rightarrow> 'a tree * 'a list" where
@@ -73,7 +73,7 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
     hence le: "?log2 \<le> ?log1" by(simp add:floorlog_mono)
     have "height t = max ?log1 ?log2 + 1" by (simp add: t IH1 IH2)
     also have "\<dots> = ?log1 + 1" using le by (simp add: max_absorb1)
-    also have "\<dots> = floorlog 2 n" by (simp add: Float.compute_floorlog)
+    also have "\<dots> = floorlog 2 n" by (simp add: compute_floorlog)
     finally show ?thesis .
   qed
 qed
@@ -106,7 +106,7 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
     also have "\<dots> = floorlog 2 (n - n div 2)" by(simp add: floorlog_def)
     also have "n - n div 2 = (n+1) div 2" by arith
     also have "floorlog 2 \<dots> = floorlog 2 (n+1) - 1"
-      by (simp add: Float.compute_floorlog)
+      by (simp add: compute_floorlog)
     finally show ?thesis .
   qed
 qed
