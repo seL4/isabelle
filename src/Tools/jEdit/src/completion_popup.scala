@@ -222,11 +222,16 @@ object Completion_Popup
         catch { case ERROR(_) => Nil }
       }
 
+      def is_wrapped(s: String): Boolean =
+        s.startsWith("\"") && s.endsWith("\"") ||
+        s.startsWith(Symbol.open_decoded) && s.endsWith(Symbol.close_decoded)
+
       for {
         r1 <- rendering.language_path(JEdit_Lib.before_caret_range(text_area, rendering))
         s1 <- JEdit_Lib.try_get_text(text_area.getBuffer, r1)
-        s2 <- Library.try_unquote(s1)
+        if is_wrapped(s1)
         r2 = Text.Range(r1.start + 1, r1.stop - 1)
+        s2 = s1.substring(1, s1.length - 1)
         if Path.is_valid(s2)
         paths = complete(s2)
         if paths.nonEmpty
