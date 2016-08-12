@@ -11,6 +11,11 @@
   font-weight: bold;
 }
 
+@font-face {
+  font-family: 'Vacuous';
+  src: url('Vacuous.ttf') format('truetype');
+}
+
 body { background-color: #FFFFFF; }
 
 .head     { background-color: #FFFFFF; }
@@ -31,7 +36,7 @@ body { background-color: #FFFFFF; }
 
 /* basic syntax markup */
 
-.hidden         { font-size: 1px; visibility: hidden; }
+.hidden         { font-family: Vacuous; font-size: 1%; color: rgba(255,255,255,0); }
 
 .binding        { color: #336655; }
 .tfree          { color: #A020F0; }

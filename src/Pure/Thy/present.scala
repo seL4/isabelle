@@ -112,6 +112,8 @@ object Present
 
       for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS")))
         File.copy(font, session_prefix)
+      for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS_HTML")))
+        File.copy(font, session_prefix)
     }
   }
 }
