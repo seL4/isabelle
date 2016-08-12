@@ -189,6 +189,7 @@ sig
   val padding_line: Properties.entry
   val padding_command: Properties.entry
   val dialogN: string val dialog: serial -> string -> T
+  val jedit_actionN: string
   val functionN: string
   val assign_update: Properties.T
   val removed_versions: Properties.T
@@ -635,6 +636,8 @@ val padding_command = (paddingN, "command");
 
 val dialogN = "dialog";
 fun dialog i result = (dialogN, [(serialN, print_int i), (resultN, result)]);
+
+val jedit_actionN = "jedit_action";
 
 
 (* protocol message functions *)

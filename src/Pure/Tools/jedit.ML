@@ -53,7 +53,13 @@ val all_actions =
 in
 
 fun check_action (name, pos) =
-  if member (op =) (Lazy.force all_actions) name then name
+  if member (op =) (Lazy.force all_actions) name then
+    let
+      val ((bg1, bg2), en) =
+        YXML.output_markup_elem
+          (Active.make_markup Markup.jedit_actionN {implicit = false, properties = []});
+      val msg = "Invoke " ^ bg1 ^ name ^ bg2 ^ name ^ en ^ " jEdit action";
+    in writeln (msg ^ Position.here pos); name end
   else
     let
       val completion =
@@ -65,6 +71,13 @@ fun check_action (name, pos) =
             |> map (fn a => (a, ("action", a))));
       val report = Markup.markup_report (Completion.reported_text completion);
     in error ("Bad jEdit action " ^ quote name ^ Position.here pos ^ report) end
+
+val _ =
+  Theory.setup
+    (Thy_Output.antiquotation @{binding action} (Scan.lift (Parse.position Parse.embedded))
+      (fn {context = ctxt, ...} => fn (name, pos) =>
+       (if Context_Position.is_reported ctxt pos then ignore (check_action (name, pos)) else ();
+        Thy_Output.verbatim_text ctxt name)));
 
 end;
 
