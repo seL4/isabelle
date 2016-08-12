@@ -204,7 +204,7 @@ val _ = Theory.setup
 (* doc entries *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding doc} (Scan.lift (Parse.position Parse.name))
+  (Thy_Output.antiquotation @{binding doc} (Scan.lift (Parse.position Parse.embedded))
     (fn {context = ctxt, ...} => fn (name, pos) =>
       (Context_Position.report ctxt pos (Markup.doc name);
         Thy_Output.output ctxt [Thy_Output.pretty_text ctxt name])));
