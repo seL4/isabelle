@@ -98,11 +98,11 @@ fun is_dir path =
 
 fun check_dir path =
   if exists path andalso is_dir path then path
-  else error ("No such directory: " ^ Path.print path);
+  else error ("No such directory: " ^ Path.print (Path.expand path));
 
 fun check_file path =
   if exists path andalso not (is_dir path) then path
-  else error ("No such file: " ^ Path.print path);
+  else error ("No such file: " ^ Path.print (Path.expand path));
 
 
 (* open streams *)

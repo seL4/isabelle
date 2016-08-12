@@ -43,6 +43,11 @@ object Active
                   GUI_Thread.later { Graphview_Dockable(view, snapshot, graph) }
                 }
 
+              case XML.Elem(Markup(Markup.JEDIT_ACTION, _), body) =>
+                GUI_Thread.later {
+                  view.getInputHandler.invokeAction(XML.content(body))
+                }
+
               case XML.Elem(Markup(Markup.SIMP_TRACE_PANEL, props), _) =>
                 val link =
                   props match {

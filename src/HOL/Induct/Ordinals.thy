@@ -11,7 +11,7 @@ begin
 text \<open>
   Some basic definitions of ordinal numbers.  Draws an Agda
   development (in Martin-L\"of type theory) by Peter Hancock (see
-  @{url "http://www.dcs.ed.ac.uk/home/pgh/chat.html"}).
+  \<^url>\<open>http://www.dcs.ed.ac.uk/home/pgh/chat.html\<close>).
 \<close>
 
 datatype ordinal =

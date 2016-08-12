@@ -16,9 +16,8 @@ text \<open>
   by Roshan James (Indiana University) and also by the lecture notes 
   written by Andy Pitts for his semantics course. See
   
-     @{url "http://www.cs.indiana.edu/~rpjames/lm.pdf"}
-     @{url "http://www.cl.cam.ac.uk/teaching/2001/Semantics/"}
-
+     \<^url>\<open>http://www.cs.indiana.edu/~rpjames/lm.pdf\<close>
+     \<^url>\<open>http://www.cl.cam.ac.uk/teaching/2001/Semantics\<close>
 \<close>
 
 atom_decl name

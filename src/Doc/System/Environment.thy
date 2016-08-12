@@ -44,11 +44,10 @@ text \<open>
     that the Isabelle executables either have to be run from their original
     location in the distribution directory, or via the executable objects
     created by the @{tool install} tool. Symbolic links are admissible, but a
-    plain copy of the @{file "$ISABELLE_HOME/bin"} files will not work!
+    plain copy of the \<^dir>\<open>$ISABELLE_HOME/bin\<close> files will not work!
 
-    \<^enum> The file @{file "$ISABELLE_HOME/etc/settings"} is run as a
-    @{executable_ref bash} shell script with the auto-export option for
-    variables enabled.
+    \<^enum> The file \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> is run as a @{executable_ref
+    bash} shell script with the auto-export option for variables enabled.
 
     This file holds a rather long list of shell variable assignments, thus
     providing the site-wide default settings. The Isabelle distribution
@@ -56,15 +55,15 @@ text \<open>
     variables. When installing the system, only a few of these may have to be
     adapted (probably @{setting ML_SYSTEM} etc.).
 
-    \<^enum> The file @{file_unchecked "$ISABELLE_HOME_USER/etc/settings"} (if it
+    \<^enum> The file @{path "$ISABELLE_HOME_USER/etc/settings"} (if it
     exists) is run in the same way as the site default settings. Note that the
     variable @{setting ISABELLE_HOME_USER} has already been set before ---
     usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/IsabelleXXXX\<close>.
 
     Thus individual users may override the site-wide defaults. Typically, a
     user settings file contains only a few lines, with some assignments that
-    are actually changed. Never copy the central @{file
-    "$ISABELLE_HOME/etc/settings"} file!
+    are actually changed. Never copy the central
+    \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> file!
 
   Since settings files are regular GNU @{executable_def bash} scripts, one may
   use complex shell commands, such as \<^verbatim>\<open>if\<close> or \<^verbatim>\<open>case\<close> statements to set
@@ -101,8 +100,8 @@ text \<open>
   On Unix systems this is usually the same as @{setting HOME}, but on Windows
   it is the regular home directory of the user, not the one of within the
   Cygwin root file-system.\<^footnote>\<open>Cygwin itself offers another choice whether its
-  HOME should point to the @{file_unchecked "/home"} directory tree or the
-  Windows user home.\<close>
+  HOME should point to the @{path "/home"} directory tree or the Windows user
+  home.\<close>
 
   \<^descr>[@{setting_def ISABELLE_HOME}\<open>\<^sup>*\<close>] is the location of the top-level
   Isabelle distribution directory. This is automatically determined from the
@@ -110,7 +109,7 @@ text \<open>
   ISABELLE_HOME} yourself from the shell!
 
   \<^descr>[@{setting_def ISABELLE_HOME_USER}] is the user-specific counterpart of
-  @{setting ISABELLE_HOME}. The default value is relative to @{file_unchecked
+  @{setting ISABELLE_HOME}. The default value is relative to @{path
   "$USER_HOME/.isabelle"}, under rare circumstances this may be changed in the
   global setting file. Typically, the @{setting ISABELLE_HOME_USER} directory
   mimics @{setting ISABELLE_HOME} to some extend. In particular, site-wide
@@ -138,7 +137,7 @@ text \<open>
 
   \<^descr>[@{setting ISABELLE_TOOL}\<open>\<^sup>*\<close>] is automatically set to the full path name
   of the @{executable isabelle} executable. Thus other tools and scripts need
-  not assume that the @{file "$ISABELLE_HOME/bin"} directory is on the current
+  not assume that the \<^dir>\<open>$ISABELLE_HOME/bin\<close> directory is on the current
   search path of the shell.
 
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers to the name of this
@@ -147,8 +146,8 @@ text \<open>
   \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME}, @{setting_def
   ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def ML_IDENTIFIER}\<open>\<^sup>*\<close>]
   specify the underlying ML system to be used for Isabelle. There is only a
-  fixed set of admissable @{setting ML_SYSTEM} names (see the @{file
-  "$ISABELLE_HOME/etc/settings"} file of the distribution).
+  fixed set of admissable @{setting ML_SYSTEM} names (see the
+  \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> file of the distribution).
 
   The actual compiler binary will be run from the directory @{setting
   ML_HOME}, with @{setting ML_OPTIONS} as first arguments on the command line.
@@ -175,7 +174,7 @@ text \<open>
 
   \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where theory
   browser information is stored as HTML and PDF (see also \secref{sec:info}).
-  The default value is @{file_unchecked "$ISABELLE_HOME_USER/browser_info"}.
+  The default value is @{path "$ISABELLE_HOME_USER/browser_info"}.
 
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
   is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.
@@ -234,12 +233,12 @@ text \<open>
   The root of component initialization is @{setting ISABELLE_HOME} itself.
   After initializing all of its sub-components recursively, @{setting
   ISABELLE_HOME_USER} is included in the same manner (if that directory
-  exists). This allows to install private components via @{file_unchecked
+  exists). This allows to install private components via @{path
   "$ISABELLE_HOME_USER/etc/components"}, although it is often more convenient
   to do that programmatically via the \<^verbatim>\<open>init_component\<close> shell function in the
   \<^verbatim>\<open>etc/settings\<close> script of \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> (or any other component
-  directory). For example:
-  @{verbatim [display] \<open>init_component "$HOME/screwdriver-2.0"\<close>}
+  directory). For example: @{verbatim [display] \<open>init_component
+  "$HOME/screwdriver-2.0"\<close>}
 
   This is tolerant wrt.\ missing component directories, but might produce a
   warning.
@@ -429,8 +428,8 @@ text \<open>
   separated by \<open>\<^bold>X\<close>, then split each chunk into sub-chunks separated by \<open>\<^bold>Y\<close>.
   Markup chunks start with an empty sub-chunk, and a second empty sub-chunk
   indicates close of an element. Any other non-empty chunk consists of plain
-  text. For example, see @{file "~~/src/Pure/PIDE/yxml.ML"} or @{file
-  "~~/src/Pure/PIDE/yxml.scala"}.
+  text. For example, see \<^file>\<open>~~/src/Pure/PIDE/yxml.ML\<close> or
+  \<^file>\<open>~~/src/Pure/PIDE/yxml.scala\<close>.
 
   YXML documents may be detected quickly by checking that the first two
   characters are \<open>\<^bold>X\<^bold>Y\<close>.

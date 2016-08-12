@@ -14,7 +14,7 @@ imports
   Word_Miscellaneous
 begin
 
-text \<open>See @{file "Examples/WordExamples.thy"} for examples.\<close>
+text \<open>See \<^file>\<open>Examples/WordExamples.thy\<close> for examples.\<close>
 
 subsection \<open>Type definition\<close>
 

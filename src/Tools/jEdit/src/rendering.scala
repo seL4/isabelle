@@ -169,7 +169,7 @@ object Rendering
 
   private val active_elements =
     Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
-      Markup.SENDBACK, Markup.SIMP_TRACE_PANEL)
+      Markup.SENDBACK, Markup.JEDIT_ACTION, Markup.SIMP_TRACE_PANEL)
 
   private val tooltip_message_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,

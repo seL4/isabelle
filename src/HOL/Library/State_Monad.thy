@@ -20,7 +20,7 @@ text \<open>
   monads}, since a state is transformed single-threadedly).
 
   To enter from the Haskell world,
-  @{url "http://www.engr.mun.ca/~theo/Misc/haskell_and_monads.htm"} makes
+  \<^url>\<open>http://www.engr.mun.ca/~theo/Misc/haskell_and_monads.htm\<close> makes
   a good motivating start.  Here we just sketch briefly how those
   monads enter the game of Isabelle/HOL.
 \<close>
@@ -145,7 +145,7 @@ translations
   "_sdo_block (_sdo_final e)" => "e"
 
 text \<open>
-  For an example, see @{file "~~/src/HOL/Proofs/Extraction/Higman_Extraction.thy"}.
+  For an example, see \<^file>\<open>~~/src/HOL/Proofs/Extraction/Higman_Extraction.thy\<close>.
 \<close>
 
 end

@@ -2084,7 +2084,7 @@ subsection \<open>The set of real numbers is a complete metric space\<close>
 
 text \<open>
   Proof that Cauchy sequences converge based on the one from
-  @{url "http://pirate.shu.edu/~wachsmut/ira/numseq/proofs/cauconv.html"}
+  \<^url>\<open>http://pirate.shu.edu/~wachsmut/ira/numseq/proofs/cauconv.html\<close>
 \<close>
 
 text \<open>

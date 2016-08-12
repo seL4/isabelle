@@ -32,7 +32,7 @@ text \<open>
   Axioms for fair trace inclusion proof support, not for the correctness proof
   of refinement mappings!
 
-  Note: Everything is superseded by @{file "LiveIOA.thy"}.
+  Note: Everything is superseded by \<^file>\<open>LiveIOA.thy\<close>.
 \<close>
 
 axiomatization where

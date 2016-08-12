@@ -190,10 +190,15 @@ object Document_Structure
         toks.filterNot(_.is_space) match {
           case List(tok) if tok.is_comment =>
             val s = tok.source
-            if (s.startsWith("(**** ") && s.endsWith(" ****)")) Some(0)
-            else if (s.startsWith("(*** ") && s.endsWith(" ***)")) Some(1)
-            else if (s.startsWith("(** ") && s.endsWith(" **)")) Some(2)
-            else if (s.startsWith("(* ") && s.endsWith(" *)")) Some(3)
+            if (Word.codepoint_iterator(s).exists(c =>
+                  Character.isLetter(c) || Character.isDigit(c)))
+            {
+              if (s.startsWith("(**** ") && s.endsWith(" ****)")) Some(0)
+              else if (s.startsWith("(*** ") && s.endsWith(" ***)")) Some(1)
+              else if (s.startsWith("(** ") && s.endsWith(" **)")) Some(2)
+              else if (s.startsWith("(* ") && s.endsWith(" *)")) Some(3)
+              else None
+            }
             else None
           case _ => None
         }

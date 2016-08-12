@@ -270,7 +270,7 @@ val embedded =
 
 val text = group (fn () => "text") (embedded || verbatim);
 
-val path = group (fn () => "file name/path specification") name;
+val path = group (fn () => "file name/path specification") embedded;
 
 val theory_name = group (fn () => "theory name") name;
 

@@ -571,8 +571,8 @@ text \<open>
   float_token}, @{syntax (inner) str_token}, @{syntax (inner) string_token},
   and @{syntax (inner) cartouche} are not used in Pure. Object-logics may
   implement numerals and string literals by adding appropriate syntax
-  declarations, together with some translation functions (e.g.\ see @{file
-  "~~/src/HOL/Tools/string_syntax.ML"}).
+  declarations, together with some translation functions (e.g.\ see
+  \<^file>\<open>~~/src/HOL/Tools/string_syntax.ML\<close>).
 
   The derived categories @{syntax_def (inner) num_const}, and @{syntax_def
   (inner) float_const}, provide robust access to the respective tokens: the

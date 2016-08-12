@@ -136,6 +136,16 @@ $ISABELLE_HOME/etc/abbrevs and $ISABELLE_HOME_USER/etc/abbrevs as
 before. The theory syntax for 'keywords' has been simplified
 accordingly: optional abbrevs need to go into the new 'abbrevs' section.
 
+* ML and document antiquotations for file-systems paths are more uniform
+and diverse:
+
+  @{path NAME}   -- no file-system check
+  @{file NAME}   -- check for plain file
+  @{dir NAME}    -- check for directory
+
+Minor INCOMPATIBILITY, former uses of @{file} and @{file_unchecked} may
+have to be changed.
+
 
 *** Isar ***
 
@@ -623,6 +633,9 @@ INCOMPATIBILITY.
 
 
 *** ML ***
+
+* ML antiquotation @{path} is superseded by @{file}, which ensures that
+the argument is a plain file. Minor INCOMPATIBILITY.
 
 * Integer.gcd and Integer.lcm use efficient operations from the Poly/ML
 library (notably for big integers). Subtle change of semantics:

@@ -88,8 +88,8 @@ Console.println("document = " + options.string("document"))\<close>}
   This assumes that the executable may be found via the @{setting PATH} from
   the process environment: this is the case when Isabelle settings are active,
   e.g.\ in the context of the main Isabelle tool wrapper
-  \secref{sec:isabelle-tool}. Alternatively, the full @{file
-  "$ISABELLE_HOME/bin/isabelle_scala_script"} may be specified in expanded
+  \secref{sec:isabelle-tool}. Alternatively, the full
+  \<^file>\<open>$ISABELLE_HOME/bin/isabelle_scala_script\<close> may be specified in expanded
   form.
 \<close>
 

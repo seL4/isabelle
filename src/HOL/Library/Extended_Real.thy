@@ -218,10 +218,8 @@ proof
 qed
 
 text \<open>
-
-For more lemmas about the extended real numbers go to
-  @{file "~~/src/HOL/Analysis/Extended_Real_Limits.thy"}
-
+  For more lemmas about the extended real numbers see
+  \<^file>\<open>~~/src/HOL/Analysis/Extended_Real_Limits.thy\<close>.
 \<close>
 
 subsection \<open>Definition and basic properties\<close>

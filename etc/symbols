@@ -381,3 +381,7 @@
 \<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
 \<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(
 \<^esup>                code: 0x0021d6  group: control_block  font: IsabelleText  abbrev: =^)
+\<^file>                code: 0x01F5CF  group: icon  font: IsabelleText
+\<^dir>                 code: 0x01F5C0  group: icon  font: IsabelleText
+\<^url>                 code: 0x01F310  group: icon  font: IsabelleText
+\<^doc>                 code: 0x01F4D3  group: icon  font: IsabelleText

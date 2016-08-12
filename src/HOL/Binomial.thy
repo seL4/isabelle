@@ -502,7 +502,7 @@ qed
 
 subsection \<open>Pochhammer's symbol: generalized rising factorial\<close>
 
-text \<open>See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"}\<close>
+text \<open>See \<^url>\<open>http://en.wikipedia.org/wiki/Pochhammer_symbol\<close>.\<close>
 
 context comm_semiring_1
 begin

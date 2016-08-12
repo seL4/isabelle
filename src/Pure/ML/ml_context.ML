@@ -96,7 +96,7 @@ fun apply_antiquotation src ctxt =
 local
 
 val antiq =
-  Parse.!!! ((Parse.token Parse.name ::: Parse.args) --| Scan.ahead Parse.eof);
+  Parse.!!! ((Parse.token Parse.liberal_name ::: Parse.args) --| Scan.ahead Parse.eof);
 
 fun make_env name visible =
   (ML_Lex.tokenize

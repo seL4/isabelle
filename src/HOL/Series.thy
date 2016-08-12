@@ -817,7 +817,7 @@ subsection \<open>Cauchy Product Formula\<close>
 
 text \<open>
   Proof based on Analysis WebNotes: Chapter 07, Class 41
-  @{url "http://www.math.unl.edu/~webnotes/classes/class41/prp77.htm"}
+  \<^url>\<open>http://www.math.unl.edu/~webnotes/classes/class41/prp77.htm\<close>
 \<close>
 
 lemma Cauchy_product_sums:

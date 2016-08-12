@@ -184,33 +184,25 @@ fun load_thy document symbols last_timing update_time master_dir header text_pos
 
 local
 
-fun check_path strict ctxt dir (name, pos) =
+fun err msg pos = error (msg ^ Position.here pos);
+
+fun check_path check_file ctxt dir (name, pos) =
   let
     val _ = Context_Position.report ctxt pos Markup.language_path;
 
-    val path = Path.append dir (Path.explode name)
-      handle ERROR msg => error (msg ^ Position.here pos);
-
+    val path = Path.append dir (Path.explode name) handle ERROR msg => err msg pos;
+    val _ = Path.expand path handle ERROR msg => err msg pos;
     val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
     val _ =
-      if can Path.expand path andalso File.exists path then ()
-      else
-        let
-          val path' = perhaps (try Path.expand) path;
-          val msg = "Bad file: " ^ Path.print path' ^ Position.here pos;
-        in
-          if strict then error msg
-          else if Context_Position.is_visible ctxt then
-            Output.report
-              [Markup.markup (Markup.bad |> Markup.properties (Position.properties_of pos)) msg]
-          else ()
-        end;
+      (case check_file of
+        NONE => path
+      | SOME check => (check path handle ERROR msg => err msg pos));
   in path end;
 
-fun file_antiq strict ctxt (name, pos) =
+fun document_antiq check_file ctxt (name, pos) =
   let
     val dir = master_directory (Proof_Context.theory_of ctxt);
-    val _ = check_path strict ctxt dir (name, pos);
+    val _ = check_path check_file ctxt dir (name, pos);
   in
     space_explode "/" name
     |> map Latex.output_ascii
@@ -218,17 +210,28 @@ fun file_antiq strict ctxt (name, pos) =
     |> enclose "\\isatt{" "}"
   end;
 
+fun ML_antiq check_file ctxt (name, pos) =
+  let val path = check_path check_file ctxt Path.current (name, pos);
+  in "Path.explode " ^ ML_Syntax.print_string (Path.implode path) end;
+
 in
 
 val _ = Theory.setup
- (Thy_Output.antiquotation @{binding file} (Scan.lift (Parse.position Parse.path))
-    (file_antiq true o #context) #>
-  Thy_Output.antiquotation @{binding file_unchecked} (Scan.lift (Parse.position Parse.path))
-    (file_antiq false o #context) #>
+ (Thy_Output.antiquotation @{binding path} (Scan.lift (Parse.position Parse.path))
+    (document_antiq NONE o #context) #>
+  Thy_Output.antiquotation @{binding file} (Scan.lift (Parse.position Parse.path))
+    (document_antiq (SOME File.check_file) o #context) #>
+  Thy_Output.antiquotation @{binding dir} (Scan.lift (Parse.position Parse.path))
+    (document_antiq (SOME File.check_dir) o #context) #>
   ML_Antiquotation.value @{binding path}
-    (Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, arg) =>
-      let val path = check_path true ctxt Path.current arg
-      in "Path.explode " ^ ML_Syntax.print_string (Path.implode path) end)));
+    (Args.context -- Scan.lift (Parse.position Parse.path)
+      >> uncurry (ML_antiq NONE)) #>
+  ML_Antiquotation.value @{binding file}
+    (Args.context -- Scan.lift (Parse.position Parse.path)
+      >> uncurry (ML_antiq (SOME File.check_file))) #>
+  ML_Antiquotation.value @{binding dir}
+    (Args.context -- Scan.lift (Parse.position Parse.path)
+      >> uncurry (ML_antiq (SOME File.check_dir))));
 
 end;
 

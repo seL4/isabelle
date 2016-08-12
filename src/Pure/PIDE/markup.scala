@@ -472,6 +472,8 @@ object Markup
   val DIALOG = "dialog"
   val Result = new Properties.String(RESULT)
 
+  val JEDIT_ACTION = "jedit_action"
+
 
   /* protocol message functions */
 

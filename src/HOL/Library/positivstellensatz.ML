@@ -495,7 +495,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         val P = Thm.lhs_of PQ
       in Thm.implies_intr P (Thm.equal_elim PQ (Thm.assume P))
       end
-    (* FIXME!!! Copied from groebner.ml *)
+    (*FIXME!!! Copied from groebner.ml*)
     val strip_exists =
       let
         fun h (acc, t) =

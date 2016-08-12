@@ -22,7 +22,7 @@ section \<open>Introduction
 text \<open>
 Isabelle's (co)datatype package @{cite "isabelle-datatypes"} offers a convenient
 syntax for introducing codatatypes. For example, the type of (infinite) streams
-can be defined as follows (cf. @{file "~~/src/HOL/Library/Stream.thy"}):
+can be defined as follows (cf. \<^file>\<open>~~/src/HOL/Library/Stream.thy\<close>):
 \<close>
 
     codatatype 'a stream =
@@ -38,7 +38,7 @@ primitive corecursion. It describes @{command corec} and related commands:\
 @{command corecursive}, @{command friend_of_corec}, and @{command coinduction_upto}.
 It also covers the @{method corec_unique} proof method.
 The package is not part of @{theory Main}; it is located in
-@{file "~~/src/HOL/Library/BNF_Corec.thy"}.
+\<^file>\<open>~~/src/HOL/Library/BNF_Corec.thy\<close>.
 
 The @{command corec} command generalizes \keyw{primcorec} in three main
 respects. First, it allows multiple constructors around corecursive calls, where
@@ -127,7 +127,7 @@ section \<open>Introductory Examples
 text \<open>
 The package is illustrated through concrete examples featuring different flavors
 of corecursion. More examples can be found in the directory
-@{file "~~/src/HOL/Corec_Examples"}.
+\<^dir>\<open>~~/src/HOL/Corec_Examples\<close>.
 \<close>
 
 
@@ -368,7 +368,7 @@ text \<open>\blankline\<close>
 
 text \<open>
 A more elaborate case study, revolving around the filter function on lazy lists,
-is presented in @{file "~~/src/HOL/Corec_Examples/LFilter.thy"}.
+is presented in \<^file>\<open>~~/src/HOL/Corec_Examples/LFilter.thy\<close>.
 \<close>
 
 

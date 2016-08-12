@@ -16,7 +16,7 @@ text \<open>
   The following abstract syntax and semantics of Hoare Logic over \<^verbatim>\<open>WHILE\<close>
   programs closely follows the existing tradition in Isabelle/HOL of
   formalizing the presentation given in @{cite \<open>\S6\<close> "Winskel:1993"}. See also
-  @{file "~~/src/HOL/Hoare"} and @{cite "Nipkow:1998:Winskel"}.
+  \<^dir>\<open>~~/src/HOL/Hoare\<close> and @{cite "Nipkow:1998:Winskel"}.
 \<close>
 
 type_synonym 'a bexp = "'a set"
@@ -358,14 +358,14 @@ subsection \<open>Verification conditions \label{sec:hoare-vcg}\<close>
 
 text \<open>
   We now load the \<^emph>\<open>original\<close> ML file for proof scripts and tactic definition
-  for the Hoare Verification Condition Generator (see @{file
-  "~~/src/HOL/Hoare/"}). As far as we are concerned here, the result is a
-  proof method \<open>hoare\<close>, which may be applied to a Hoare Logic assertion to
-  extract purely logical verification conditions. It is important to note that
-  the method requires \<^verbatim>\<open>WHILE\<close> loops to be fully annotated with invariants
-  beforehand. Furthermore, only \<^emph>\<open>concrete\<close> pieces of code are handled --- the
-  underlying tactic fails ungracefully if supplied with meta-variables or
-  parameters, for example.
+  for the Hoare Verification Condition Generator (see \<^dir>\<open>~~/src/HOL/Hoare\<close>).
+  As far as we are concerned here, the result is a proof method \<open>hoare\<close>, which
+  may be applied to a Hoare Logic assertion to extract purely logical
+  verification conditions. It is important to note that the method requires
+  \<^verbatim>\<open>WHILE\<close> loops to be fully annotated with invariants beforehand.
+  Furthermore, only \<^emph>\<open>concrete\<close> pieces of code are handled --- the underlying
+  tactic fails ungracefully if supplied with meta-variables or parameters, for
+  example.
 \<close>
 
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"

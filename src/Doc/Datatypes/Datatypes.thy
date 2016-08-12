@@ -78,7 +78,7 @@ finitely many direct subtrees, whereas those of the second and fourth may have
 infinite branching.
 
 The package is part of @{theory Main}. Additional functionality is provided by
-the theory @{file "~~/src/HOL/Library/BNF_Axiomatization.thy"}.
+the theory \<^file>\<open>~~/src/HOL/Library/BNF_Axiomatization.thy\<close>.
 
 The package, like its predecessor, fully adheres to the LCF philosophy
 @{cite mgordon79}: The characteristic theorems associated with the specified
@@ -163,7 +163,7 @@ subsection \<open>Introductory Examples
 text \<open>
 Datatypes are illustrated through concrete examples featuring different flavors
 of recursion. More examples can be found in the directory
-@{file "~~/src/HOL/Datatype_Examples"}.
+\<^dir>\<open>~~/src/HOL/Datatype_Examples\<close>.
 \<close>
 
 
@@ -1138,7 +1138,7 @@ subsubsection \<open>\textit{countable_datatype}
   \label{sssec:datatype-compat}\<close>
 
 text \<open>
-The theory @{file "~~/src/HOL/Library/Countable.thy"} provides a
+The theory \<^file>\<open>~~/src/HOL/Library/Countable.thy\<close> provides a
 proof method called @{method countable_datatype} that can be used to prove the
 countability of many datatypes, building on the countability of the types
 appearing in their definitions and of any type arguments. For example:
@@ -1218,7 +1218,7 @@ rarely an issue, except in proof texts that refer to variable names in the
 \end{itemize}
 
 The old command is still available as \keyw{old_datatype} in theory
-@{file "~~/src/HOL/Library/Old_Datatype.thy"}. However, there is no general
+\<^file>\<open>~~/src/HOL/Library/Old_Datatype.thy\<close>. However, there is no general
 way to register old-style datatypes as new-style datatypes. If the objective
 is to define new-style datatypes with nested recursion through old-style
 datatypes, the old-style datatypes can be registered as a BNF
@@ -1247,7 +1247,7 @@ subsection \<open>Introductory Examples
 text \<open>
 Primitive recursion is illustrated through concrete examples based on the
 datatypes defined in Section~\ref{ssec:datatype-introductory-examples}. More
-examples can be found in the directory @{file "~~/src/HOL/Datatype_Examples"}.
+examples can be found in the directory \<^dir>\<open>~~/src/HOL/Datatype_Examples\<close>.
 \<close>
 
 
@@ -1320,7 +1320,7 @@ text \<open>
 Pattern matching is only available for the argument on which the recursion takes
 place. Fortunately, it is easy to generate pattern-maching equations using the
 @{command simps_of_case} command provided by the theory
-@{file "~~/src/HOL/Library/Simps_Case_Conv.thy"}.
+\<^file>\<open>~~/src/HOL/Library/Simps_Case_Conv.thy\<close>.
 \<close>
 
     simps_of_case at_simps_alt: at.simps
@@ -1760,7 +1760,7 @@ text \<open>
 Codatatypes can be specified using the @{command codatatype} command. The
 command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
-@{file "~~/src/HOL/Datatype_Examples"}. The \emph{Archive of Formal Proofs} also
+\<^dir>\<open>~~/src/HOL/Datatype_Examples\<close>. The \emph{Archive of Formal Proofs} also
 includes some useful codatatypes, notably for lazy lists @{cite
 "lochbihler-2010"}.
 \<close>
@@ -2038,7 +2038,7 @@ and topologies @{cite "lochbihler-hoelzl-2014"}. In this tutorial, the focus is
 on @{command primcorec} and @{command primcorecursive}; \keyw{corec} and
 \keyw{corecursive} are described in a separate tutorial
 @{cite "isabelle-corec"}. More examples can be found in the directories
-@{file "~~/src/HOL/Datatype_Examples"} and @{file "~~/src/HOL/Corec_Examples"}.
+\<^dir>\<open>~~/src/HOL/Datatype_Examples\<close> and \<^dir>\<open>~~/src/HOL/Corec_Examples\<close>.
 
 Whereas recursive functions consume datatypes one constructor at a time,
 corecursive functions construct codatatypes one constructor at a time.
@@ -2082,7 +2082,7 @@ subsection \<open>Introductory Examples
 text \<open>
 Primitive corecursion is illustrated through concrete examples based on the
 codatatypes defined in Section~\ref{ssec:codatatype-introductory-examples}. More
-examples can be found in the directory @{file "~~/src/HOL/Datatype_Examples"}.
+examples can be found in the directory \<^dir>\<open>~~/src/HOL/Datatype_Examples\<close>.
 The code view is favored in the examples below. Sections
 \ref{ssec:primrec-constructor-view} and \ref{ssec:primrec-destructor-view}
 present the same examples expressed using the constructor and destructor views.
@@ -2143,7 +2143,7 @@ case distinctions on (co)datatypes that provide discriminators and selectors.
 
 Pattern matching is not supported by @{command primcorec}. Fortunately, it is
 easy to generate pattern-maching equations using the @{command simps_of_case}
-command provided by the theory @{file "~~/src/HOL/Library/Simps_Case_Conv.thy"}.
+command provided by the theory \<^file>\<open>~~/src/HOL/Library/Simps_Case_Conv.thy\<close>.
 \<close>
 
     simps_of_case lapp_simps: lapp.code
@@ -2776,7 +2776,7 @@ subsection \<open>Introductory Examples
 text \<open>
 The example below shows how to register a type as a BNF using the @{command bnf}
 command. Some of the proof obligations are best viewed with the theory
-@{file "~~/src/HOL/Library/Cardinal_Notations.thy"} imported.
+\<^file>\<open>~~/src/HOL/Library/Cardinal_Notations.thy\<close> imported.
 
 The type is simply a copy of the function space @{typ "'d \<Rightarrow> 'a"}, where @{typ 'a}
 is live and @{typ 'd} is dead. We introduce it together with its map function,
@@ -2875,10 +2875,10 @@ show the world what we have achieved.
 
 This particular example does not need any nonemptiness witness, because the
 one generated by default is good enough, but in general this would be
-necessary. See @{file "~~/src/HOL/Basic_BNFs.thy"},
-@{file "~~/src/HOL/Library/Countable_Set_Type.thy"},
-@{file "~~/src/HOL/Library/FSet.thy"}, and
-@{file "~~/src/HOL/Library/Multiset.thy"} for further examples of BNF
+necessary. See \<^file>\<open>~~/src/HOL/Basic_BNFs.thy\<close>,
+\<^file>\<open>~~/src/HOL/Library/Countable_Set_Type.thy\<close>,
+\<^file>\<open>~~/src/HOL/Library/FSet.thy\<close>, and
+\<^file>\<open>~~/src/HOL/Library/Multiset.thy\<close> for further examples of BNF
 registration, some of which feature custom witnesses.
 
 For many typedefs, lifting the BNF structure from the raw type to the abstract
@@ -3107,7 +3107,7 @@ is identical to the left-hand side of a @{command datatype} or
 
 The command is useful to reason abstractly about BNFs. The axioms are safe
 because there exist BNFs of arbitrary large arities. Applications must import
-the @{file "~~/src/HOL/Library/BNF_Axiomatization.thy"} theory
+the \<^file>\<open>~~/src/HOL/Library/BNF_Axiomatization.thy\<close> theory
 to use this functionality.
 \<close>
 
@@ -3210,7 +3210,7 @@ text \<open>
 
 \noindent
 The @{command simps_of_case} command provided by theory
-@{file "~~/src/HOL/Library/Simps_Case_Conv.thy"} converts a single equation with
+\<^file>\<open>~~/src/HOL/Library/Simps_Case_Conv.thy\<close> converts a single equation with
 a complex case expression on the right-hand side into a set of pattern-matching
 equations. For example,
 \<close>
@@ -3249,7 +3249,7 @@ text \<open>
 
 \noindent
 The \keyw{case_of_simps} command provided by theory
-@{file "~~/src/HOL/Library/Simps_Case_Conv.thy"} converts a set of
+\<^file>\<open>~~/src/HOL/Library/Simps_Case_Conv.thy\<close> converts a set of
 pattern-matching equations into single equation with a complex case expression
 on the right-hand side (cf.\ @{command simps_of_case}). For example,
 \<close>
@@ -3386,7 +3386,7 @@ can be improved upon by registering a custom size function of type
 @{text "('a\<^sub>1 \<Rightarrow> nat) \<Rightarrow> \<dots> \<Rightarrow> ('a\<^sub>m \<Rightarrow> nat) \<Rightarrow> u \<Rightarrow> nat"} using
 the ML function @{ML BNF_LFP_Size.register_size} or
 @{ML BNF_LFP_Size.register_size_global}. See theory
-@{file "~~/src/HOL/Library/Multiset.thy"} for an example.
+\<^file>\<open>~~/src/HOL/Library/Multiset.thy\<close> for an example.
 \<close>
 
 

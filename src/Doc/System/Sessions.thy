@@ -140,19 +140,18 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  See @{file "~~/src/HOL/ROOT"} for a diversity of practically relevant
-  situations, although it uses relatively complex quasi-hierarchic naming
-  conventions like \<^verbatim>\<open>HOL-SPARK\<close>, \<^verbatim>\<open>HOL-SPARK-Examples\<close>. An alternative is to
-  use unqualified names that are relatively long and descriptive, as in the
-  Archive of Formal Proofs (@{url "http://afp.sourceforge.net"}), for
-  example.
+  See \<^file>\<open>~~/src/HOL/ROOT\<close> for a diversity of practically relevant situations,
+  although it uses relatively complex quasi-hierarchic naming conventions like
+  \<^verbatim>\<open>HOL-SPARK\<close>, \<^verbatim>\<open>HOL-SPARK-Examples\<close>. An alternative is to use unqualified
+  names that are relatively long and descriptive, as in the Archive of Formal
+  Proofs (\<^url>\<open>http://afp.sourceforge.net\<close>), for example.
 \<close>
 
 
 section \<open>System build options \label{sec:system-options}\<close>
 
 text \<open>
-  See @{file "~~/etc/options"} for the main defaults provided by the Isabelle
+  See \<^file>\<open>~~/etc/options\<close> for the main defaults provided by the Isabelle
   distribution. Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple
   editing mode \<^verbatim>\<open>isabelle-options\<close> for this file-format.
 
@@ -344,9 +343,9 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close>, which means that resulting heap images
-  and log files are stored in @{file_unchecked "$ISABELLE_HOME/heaps"} instead
-  of the default location @{setting ISABELLE_OUTPUT} (which is normally in
-  @{setting ISABELLE_HOME_USER}, i.e.\ the user's home directory).
+  and log files are stored in @{path "$ISABELLE_HOME/heaps"} instead of the
+  default location @{setting ISABELLE_OUTPUT} (which is normally in @{setting
+  ISABELLE_HOME_USER}, i.e.\ the user's home directory).
 
   \<^medskip>
   Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity. Option \<^verbatim>\<open>-l\<close> lists

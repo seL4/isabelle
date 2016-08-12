@@ -538,8 +538,8 @@ text \<open>
   \<^descr> @{method (HOL) induction_schema} derives user-specified induction rules
   from well-founded induction and completeness of patterns. This factors out
   some operations that are done internally by the function package and makes
-  them available separately. See @{file "~~/src/HOL/ex/Induction_Schema.thy"}
-  for examples.
+  them available separately. See \<^file>\<open>~~/src/HOL/ex/Induction_Schema.thy\<close> for
+  examples.
 \<close>
 
 
@@ -659,8 +659,8 @@ text \<open>
   Adhoc overloading allows to overload a constant depending on its type.
   Typically this involves the introduction of an uninterpreted constant (used
   for input and output) and the addition of some variants (used internally).
-  For examples see @{file "~~/src/HOL/ex/Adhoc_Overloading_Examples.thy"} and
-  @{file "~~/src/HOL/Library/Monad_Syntax.thy"}.
+  For examples see \<^file>\<open>~~/src/HOL/ex/Adhoc_Overloading_Examples.thy\<close> and
+  \<^file>\<open>~~/src/HOL/Library/Monad_Syntax.thy\<close>.
 
   @{rail \<open>
     (@@{command adhoc_overloading} | @@{command no_adhoc_overloading})
@@ -1013,7 +1013,7 @@ text \<open>
 
 subsubsection \<open>Examples\<close>
 
-text \<open>See @{file "~~/src/HOL/ex/Records.thy"}, for example.\<close>
+text \<open>See \<^file>\<open>~~/src/HOL/ex/Records.thy\<close>, for example.\<close>
 
 
 section \<open>Semantic subtype definitions \label{sec:hol-typedef}\<close>
@@ -1411,28 +1411,26 @@ text \<open>
   \<^descr> @{attribute (HOL) quot_map} registers a quotient map theorem, a theorem
   showing how to ``lift'' quotients over type constructors. E.g.\ @{term
   "Quotient R Abs Rep T \<Longrightarrow> Quotient (rel_set R) (image Abs) (image Rep)
-  (rel_set T)"}. For examples see @{file "~~/src/HOL/Lifting_Set.thy"} or
-  @{file "~~/src/HOL/Lifting.thy"}. This property is proved automatically if
-  the involved type is BNF without dead variables.
+  (rel_set T)"}. For examples see \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or
+  \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property is proved automatically if the
+  involved type is BNF without dead variables.
 
   \<^descr> @{attribute (HOL) relator_eq_onp} registers a theorem that shows that a
   relator applied to an equality restricted by a predicate @{term P} (i.e.\
   @{term "eq_onp P"}) is equal to a predicator applied to the @{term P}. The
   combinator @{const eq_onp} is used for internal encoding of proper subtypes.
   Such theorems allows the package to hide \<open>eq_onp\<close> from a user in a
-  user-readable form of a respectfulness theorem. For examples see @{file
-  "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}. This
-  property is proved automatically if the involved type is BNF without dead
-  variables.
+  user-readable form of a respectfulness theorem. For examples see
+  \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
+  is proved automatically if the involved type is BNF without dead variables.
 
   \<^descr> @{attribute (HOL) "relator_mono"} registers a property describing a
   monotonicity of a relator. E.g.\ @{prop "A \<le> B \<Longrightarrow> rel_set A \<le> rel_set B"}.
   This property is needed for proving a stronger transfer rule in
   @{command_def (HOL) "lift_definition"} when a parametricity theorem for the
   raw term is specified and also for the reflexivity prover. For examples see
-  @{file "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
-  This property is proved automatically if the involved type is BNF without
-  dead variables.
+  \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
+  is proved automatically if the involved type is BNF without dead variables.
 
   \<^descr> @{attribute (HOL) "relator_distr"} registers a property describing a
   distributivity of the relation composition and a relator. E.g.\ \<open>rel_set R
@@ -1443,9 +1441,9 @@ text \<open>
   specified each direction separately and also register multiple theorems with
   different set of assumptions. This attribute can be used only after the
   monotonicity property was already registered by @{attribute (HOL)
-  "relator_mono"}. For examples see @{file "~~/src/HOL/Lifting_Set.thy"} or
-  @{file "~~/src/HOL/Lifting.thy"}. This property is proved automatically if
-  the involved type is BNF without dead variables.
+  "relator_mono"}. For examples see \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or
+  \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property is proved automatically if the
+  involved type is BNF without dead variables.
 
   \<^descr> @{attribute (HOL) quot_del} deletes a corresponding Quotient theorem from
   the Lifting infrastructure and thus de-register the corresponding quotient.
@@ -1524,7 +1522,7 @@ text \<open>
   "transfer_step"}+, @{method (HOL) "transfer_end"}) and @{method (HOL)
   "transfer_prover"} = (@{method (HOL) "transfer_prover_start"}, @{method
   (HOL) "transfer_step"}+, @{method (HOL) "transfer_prover_end"}). For usage
-  examples see @{file "~~/src/HOL/ex/Transfer_Debug.thy"}
+  examples see \<^file>\<open>~~/src/HOL/ex/Transfer_Debug.thy\<close>.
 
   \<^descr> @{attribute (HOL) "untransferred"} proves the same equivalent theorem as
   @{method (HOL) "transfer"} internally does.
@@ -1566,17 +1564,15 @@ text \<open>
   relators of various type constructors, e.g. @{term "rel_set (op =) = (op
   =)"}. The @{method (HOL) transfer} method uses these lemmas to infer
   transfer rules for non-polymorphic constants on the fly. For examples see
-  @{file "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
-  This property is proved automatically if the involved type is BNF without
-  dead variables.
+  \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
+  is proved automatically if the involved type is BNF without dead variables.
 
   \<^descr> @{attribute_def (HOL) "relator_domain"} attribute collects rules
   describing domains of relators by predicators. E.g.\ @{term "Domainp
   (rel_set T) = (\<lambda>A. Ball A (Domainp T))"}. This allows the package to lift
-  transfer domain rules through type constructors. For examples see @{file
-  "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}. This
-  property is proved automatically if the involved type is BNF without dead
-  variables.
+  transfer domain rules through type constructors. For examples see
+  \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
+  is proved automatically if the involved type is BNF without dead variables.
 
 
   Theoretical background can be found in @{cite
@@ -2082,14 +2078,13 @@ text \<open>
   \<close>}
 
   \<^descr> @{method (HOL) meson} implements Loveland's model elimination procedure
-  @{cite "loveland-78"}. See @{file "~~/src/HOL/ex/Meson_Test.thy"} for
-  examples.
+  @{cite "loveland-78"}. See \<^file>\<open>~~/src/HOL/ex/Meson_Test.thy\<close> for examples.
 
   \<^descr> @{method (HOL) metis} combines ordered resolution and ordered
   paramodulation to find first-order (or mildly higher-order) proofs. The
   first optional argument specifies a type encoding; see the Sledgehammer
-  manual @{cite "isabelle-sledgehammer"} for details. The directory @{file
-  "~~/src/HOL/Metis_Examples"} contains several small theories developed to a
+  manual @{cite "isabelle-sledgehammer"} for details. The directory
+  \<^dir>\<open>~~/src/HOL/Metis_Examples\<close> contains several small theories developed to a
   large extent using @{method (HOL) metis}.
 \<close>
 
@@ -2168,7 +2163,7 @@ lemma collinear_inv_rotation:
 (*<*)end(*>*)
 
 text \<open>
- See also @{file "~~/src/HOL/ex/Groebner_Examples.thy"}.
+  See also \<^file>\<open>~~/src/HOL/ex/Groebner_Examples.thy\<close>.
 \<close>
 
 
@@ -2185,8 +2180,8 @@ text \<open>
 
   \<^descr> @{method (HOL) coherent} solves problems of \<^emph>\<open>Coherent Logic\<close> @{cite
   "Bezem-Coquand:2005"}, which covers applications in confluence theory,
-  lattice theory and projective geometry. See @{file
-  "~~/src/HOL/ex/Coherent.thy"} for some examples.
+  lattice theory and projective geometry. See \<^file>\<open>~~/src/HOL/ex/Coherent.thy\<close>
+  for some examples.
 \<close>
 
 
