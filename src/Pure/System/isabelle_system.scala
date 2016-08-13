@@ -191,7 +191,7 @@ object Isabelle_System
     File.platform_file(path)
   }
 
-  def tmp_file[A](name: String, ext: String = ""): JFile =
+  def tmp_file(name: String, ext: String = ""): JFile =
   {
     val suffix = if (ext == "") "" else "." + ext
     val file = Files.createTempFile(isabelle_tmp_prefix().toPath, name, suffix).toFile
