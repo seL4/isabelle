@@ -132,6 +132,8 @@ ISABELLE_ABBREVS="$ISABELLE_HOME/etc/abbrevs:$ISABELLE_HOME_USER/etc/abbrevs"
 ### Misc settings
 ###
 
+ISABELLE_GNUPLOT="gnuplot"
+
 #ISABELLE_GHC="/usr/bin/ghc"
 #ISABELLE_OCAML="/usr/bin/ocaml"
 #ISABELLE_SWIPL="/usr/bin/swipl"

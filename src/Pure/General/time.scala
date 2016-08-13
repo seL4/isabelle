@@ -29,6 +29,7 @@ object Time
 final class Time private(val ms: Long) extends AnyVal
 {
   def seconds: Double = ms / 1000.0
+  def minutes: Double = ms / 60000.0
 
   def + (t: Time): Time = new Time(ms + t.ms)
   def - (t: Time): Time = new Time(ms - t.ms)
