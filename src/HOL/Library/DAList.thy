@@ -77,7 +77,23 @@ subsection \<open>Abstract operation properties\<close>
 (* FIXME: to be completed *)
 
 lemma lookup_empty [simp]: "lookup empty k = None"
-  by (simp add: empty_def lookup_def Alist_inverse)
+by (simp add: empty_def lookup_def Alist_inverse)
+
+lemma lookup_update:
+  "lookup (update k1 v xs) k2 = (if k1 = k2 then Some v else lookup xs k2)"
+by(transfer)(simp add: update_conv')
+
+lemma lookup_update_eq [simp]:
+  "k1 = k2 \<Longrightarrow> lookup (update k1 v xs) k2 = Some v"
+by(simp add: lookup_update)
+
+lemma lookup_update_neq [simp]:
+  "k1 \<noteq> k2 \<Longrightarrow> lookup (update k1 v xs) k2 = lookup xs k2"
+by(simp add: lookup_update)
+
+lemma update_update_eq [simp]:
+  "k1 = k2 \<Longrightarrow> update k2 v2 (update k1 v1 xs) = update k2 v2 xs"
+by(transfer)(simp add: update_conv')
 
 lemma lookup_delete [simp]: "lookup (delete k al) = (lookup al)(k := None)"
   by (simp add: lookup_def delete_def Alist_inverse distinct_delete delete_conv')
