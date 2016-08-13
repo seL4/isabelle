@@ -14,13 +14,6 @@ import java.util.{Properties => JProperties}
 
 abstract class CI_Profile extends Isabelle_Tool.Body
 {
-
-  private def print_variable(name: String): Unit =
-  {
-    val value = Isabelle_System.getenv_strict(name)
-    println(name + "=" + Outer_Syntax.quote_string(value))
-  }
-
   private def build(options: Options): (Build.Results, Time) =
   {
     val progress = new Console_Progress(true)
@@ -82,7 +75,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   override final def apply(args: List[String]): Unit =
   {
     print_section("CONFIGURATION")
-    List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS").foreach(print_variable)
+    Build.ml_options.foreach(opt => println(opt + "=" + quote(Isabelle_System.getenv(opt))))
     val props = load_properties()
     System.getProperties().putAll(props)
 
@@ -143,5 +136,4 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   def post_hook(results: Build.Results): Unit
 
   def select_sessions(tree: Sessions.Tree): (List[String], Sessions.Tree)
-
 }
