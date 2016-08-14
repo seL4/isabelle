@@ -135,7 +135,7 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
-      |> curry (op ^) ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
+      |> prefix ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
         " proof (of " ^ string_of_int (length facts) ^ "): ")
       |> writeln
 

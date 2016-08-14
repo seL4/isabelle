@@ -1029,8 +1029,7 @@ fun unaliased_uncurried (s, s') =
 fun raw_mangled_const_name type_name ty_args (s, s') =
   let
     fun type_suffix f g =
-      fold_rev (curry (op ^) o g o prefix mangled_type_sep o type_name f)
-               ty_args ""
+      fold_rev (prefix o g o prefix mangled_type_sep o type_name f) ty_args ""
   in (s ^ type_suffix fst ascii_of, s' ^ type_suffix snd I) end
 fun mangled_const_name type_enc =
   map_filter (atp_type_of_type_arg type_enc)

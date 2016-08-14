@@ -2136,7 +2136,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         val G = Int_Graph.make (map (apfst (rpair ())) deps);
         val sccs = map (sort int_ord) (Int_Graph.strong_conn G);
 
-        val str_of_scc = curry (op ^) (co_prefix fp ^ "datatype ") o
+        val str_of_scc = prefix (co_prefix fp ^ "datatype ") o
           space_implode " and " o map (suffix " = \<dots>" o Long_Name.base_name);
 
         fun warn [_] = ()
