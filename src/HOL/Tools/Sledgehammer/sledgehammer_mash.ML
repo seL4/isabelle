@@ -75,6 +75,7 @@ sig
     raw_fact list -> string
   val mash_learn : Proof.context -> params -> fact_override -> thm list -> bool -> unit
   val mash_can_suggest_facts : Proof.context -> bool
+  val mash_can_suggest_facts_fast : unit -> bool
 
   val generous_max_suggestions : int -> int
   val mepo_weight : real
@@ -653,6 +654,13 @@ fun extract_node line =
     | _ => NONE)
   | _ => NONE)
 
+fun would_load_state (memory_time, _) =
+  let val path = state_file () in
+    (case try OS.FileSys.modTime (File.platform_path path) of
+      NONE => false
+    | SOME disk_time => memory_time < disk_time)
+  end;
+
 fun load_state ctxt (time_state as (memory_time, _)) =
   let val path = state_file () in
     (case try OS.FileSys.modTime (File.platform_path path) of
@@ -729,7 +737,12 @@ fun map_state ctxt f =
   Synchronized.change global_state (load_state ctxt ##> f #> save_state ctxt)
   handle FILE_VERSION_TOO_NEW () => ()
 
-fun peek_state ctxt =
+fun peek_state () =
+  let val state = Synchronized.value global_state in
+    if would_load_state state then NONE else SOME state
+  end
+
+fun get_state ctxt =
   Synchronized.change_result global_state (perhaps (try (load_state ctxt)) #> `snd)
 
 fun clear_state () =
@@ -1195,7 +1208,7 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
       |> map (rpair (weight * factor))
 
     val {access_G, xtabs = ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs, ...} =
-      peek_state ctxt
+      get_state ctxt
 
     val goal_feats0 =
       features_of ctxt thy_name (Local, General) (concl_t :: hyp_ts)
@@ -1333,7 +1346,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
     val timer = Timer.startRealTimer ()
     fun next_commit_time () = Timer.checkRealTimer timer + commit_timeout
 
-    val {access_G, ...} = peek_state ctxt
+    val {access_G, ...} = get_state ctxt
     val is_in_access_G = is_fact_in_graph access_G o snd
     val no_new_facts = forall is_in_access_G facts
   in
@@ -1520,7 +1533,13 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
        learn 0 false)
   end
 
-fun mash_can_suggest_facts ctxt = not (Graph.is_empty (#access_G (peek_state ctxt)))
+fun mash_can_suggest_facts ctxt =
+  not (Graph.is_empty (#access_G (get_state ctxt)))
+
+fun mash_can_suggest_facts_fast () =
+  (case peek_state () of
+    NONE => false
+  | SOME (_, {access_G, ...}) => not (Graph.is_empty access_G));
 
 (* Generate more suggestions than requested, because some might be thrown out later for various
    reasons (e.g., duplicates). *)
@@ -1531,9 +1550,8 @@ val mash_weight = 0.5
 
 val max_facts_to_learn_before_query = 100
 
-(* The threshold should be large enough so that MaSh does not get activated for Auto Sledgehammer
-   and Try. *)
-val min_secs_for_learning = 15
+(* The threshold should be large enough so that MaSh does not get activated for Auto Sledgehammer. *)
+val min_secs_for_learning = 10
 
 fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) prover
     max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
@@ -1553,7 +1571,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
           let val timeout = time_mult learn_timeout_slack timeout in
             (if verbose then
                writeln ("Started MaShing through " ^
-                 (if exact then "" else "at least ") ^ string_of_int min_num_facts_to_learn ^
+                 (if exact then "" else "up to ") ^ string_of_int min_num_facts_to_learn ^
                  " fact" ^ plural_s min_num_facts_to_learn ^ " in the background")
              else
                ());
@@ -1563,33 +1581,38 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
         else
           ()
 
-      fun please_learn () =
-        let
-          val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt
-          val is_in_access_G = is_fact_in_graph access_G o snd
-          val min_num_facts_to_learn = length facts - num_facts0
-        in
-          if min_num_facts_to_learn <= max_facts_to_learn_before_query then
-            (case length (filter_out is_in_access_G facts) of
-              0 => ()
-            | num_facts_to_learn =>
-              if num_facts_to_learn <= max_facts_to_learn_before_query then
-                mash_learn_facts ctxt params prover 2 false timeout facts
-                |> (fn "" => () | s => writeln (MaShN ^ ": " ^ s))
-              else
-                maybe_launch_thread true num_facts_to_learn)
-          else
-            maybe_launch_thread false min_num_facts_to_learn
-        end
-
       val mash_enabled = is_mash_enabled ()
+      val mash_fast = mash_can_suggest_facts_fast ()
+
+      fun please_learn () =
+        if mash_fast then
+          let
+            val {access_G, xtabs = ((num_facts0, _), _), ...} = get_state ctxt
+            val is_in_access_G = is_fact_in_graph access_G o snd
+            val min_num_facts_to_learn = length facts - num_facts0
+          in
+            if min_num_facts_to_learn <= max_facts_to_learn_before_query then
+              (case length (filter_out is_in_access_G facts) of
+                0 => ()
+              | num_facts_to_learn =>
+                if num_facts_to_learn <= max_facts_to_learn_before_query then
+                  mash_learn_facts ctxt params prover 2 false timeout facts
+                  |> (fn "" => () | s => writeln (MaShN ^ ": " ^ s))
+                else
+                  maybe_launch_thread true num_facts_to_learn)
+            else
+              maybe_launch_thread false min_num_facts_to_learn
+          end
+        else
+          maybe_launch_thread false (length facts)
+
       val _ =
         if learn andalso mash_enabled andalso fact_filter <> SOME mepoN then please_learn () else ()
 
       val effective_fact_filter =
         (case fact_filter of
           SOME ff => ff
-        | NONE => if mash_enabled andalso mash_can_suggest_facts ctxt then meshN else mepoN)
+        | NONE => if mash_enabled andalso mash_fast then meshN else mepoN)
 
       val unique_facts = drop_duplicate_facts facts
       val add_ths = Attrib.eval_thms ctxt add

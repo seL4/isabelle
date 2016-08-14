@@ -289,13 +289,11 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
               "Filtering " ^ string_of_int (length all_facts) ^ " facts (MaSh algorithm: " ^
               str_of_mash_algorithm (the_mash_algorithm ()) ^ ")"));
           in
-timeit (fn () =>
             all_facts
             |> relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t
             |> tap (fn factss => if verbose then print (string_of_factss factss) else ())
             |> spy ? tap (fn factss => spying spy (fn () =>
               (state, i, "All", "Selected facts: " ^ spying_str_of_factss factss)))
-) (*###*)
           end
 
         fun launch_provers () =
