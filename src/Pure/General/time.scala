@@ -14,8 +14,9 @@ import java.util.Locale
 object Time
 {
   def seconds(s: Double): Time = new Time((s * 1000.0).round)
+  def minutes(s: Double): Time = new Time((s * 60000.0).round)
   def ms(m: Long): Time = new Time(m)
-  def hours_minutes_seconds(h: Int, m: Int, s: Double): Time = seconds(s + 60 * m + 3600 * h)
+  def hms(h: Int, m: Int, s: Double): Time = seconds(s + 60 * m + 3600 * h)
 
   def now(): Time = ms(System.currentTimeMillis())
 

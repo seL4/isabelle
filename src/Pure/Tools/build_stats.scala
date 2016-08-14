@@ -48,8 +48,8 @@ object Build_Stats
         case Session_Finished(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3),
             Value.Int(c1), Value.Int(c2), Value.Int(c3)) =>
-          val elapsed = Time.hours_minutes_seconds(e1, e2, e3)
-          val cpu = Time.hours_minutes_seconds(c1, c2, c3)
+          val elapsed = Time.hms(e1, e2, e3)
+          val cpu = Time.hms(c1, c2, c3)
           finished += (name -> Timing(elapsed, cpu, Time.zero))
         case Session_Timing(name,
             Value.Int(t), Value.Double(e), Value.Double(c), Value.Double(g)) =>
@@ -69,7 +69,18 @@ object Build_Stats
 
   /* presentation */
 
-  def present(job: String, history_length: Int, target_dir: Path)
+  private val default_target_dir = Path.explode("stats")
+  private val default_history_length = 100
+  private val default_size = (800, 600)
+  private val default_only_sessions = Set.empty[String]
+  private val default_elapsed_threshold = Time.zero
+
+  def present(job: String,
+    target_dir: Path = default_target_dir,
+    history_length: Int = default_history_length,
+    size: (Int, Int) = default_size,
+    only_sessions: Set[String] = default_only_sessions,
+    elapsed_threshold: Time = default_elapsed_threshold)
   {
     val build_infos = CI_API.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
     if (build_infos.isEmpty) error("No build infos for job " + quote(job))
@@ -84,13 +95,18 @@ object Build_Stats
       (Set.empty[String] /: all_build_stats)(
         { case (s, (_, stats)) => s ++ stats.sessions })
 
+    def check_threshold(stats: Build_Stats, session: String): Boolean =
+      stats.finished.get(session) match {
+        case Some(t) => t.elapsed >= elapsed_threshold
+        case None => false
+      }
+
     for {
-      session <- all_sessions
-      if all_build_stats.filter({ case (_, stats) => stats.finished.isDefinedAt(session) }).length > 3
+      session <- (if (only_sessions.isEmpty) all_sessions else all_sessions & only_sessions)
+      if all_build_stats.filter({ case (_, stats) => check_threshold(stats, session) }).length >= 3
     } {
       Isabelle_System.with_tmp_file(session, "png") { data_file =>
         Isabelle_System.with_tmp_file(session, "gnuplot") { plot_file =>
-          val data_file_name = File.standard_path(data_file.getAbsolutePath)
           val data =
             for { (t, stats) <- all_build_stats if stats.finished.isDefinedAt(session) }
             yield {
@@ -99,8 +115,9 @@ object Build_Stats
             }
           File.write(data_file, cat_lines(data))
 
+          val data_file_name = quote(File.standard_path(data_file.getAbsolutePath))
           File.write(plot_file, """
-set terminal png size 1024,768
+set terminal png size """ + size._1 + "," + size._2 + """
 set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) + """
 set xdata time
 set timefmt "%s"
@@ -108,10 +125,10 @@ set format x "%d-%b"
 set xlabel """ + quote(session) + """
 set key left top
 plot [] [0:] """ +
-  quote(data_file_name) + """ using 1:2 smooth sbezier title "interpolated cpu time",""" +
-  quote(data_file_name) + """ using 1:2 smooth csplines title "cpu time", """ +
-  quote(data_file_name) + """ using 1:3 smooth sbezier title "interpolated elapsed time",""" +
-  quote(data_file_name) + """ using 1:3 smooth csplines title "elapsed time"
+  data_file_name + """ using 1:2 smooth sbezier title "interpolated cpu time",""" +
+  data_file_name + """ using 1:2 smooth csplines title "cpu time", """ +
+  data_file_name + """ using 1:3 smooth sbezier title "interpolated elapsed time",""" +
+  data_file_name + """ using 1:3 smooth csplines title "elapsed time"
 """)
           val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(plot_file))
           if (result.rc != 0) {
@@ -129,42 +146,49 @@ plot [] [0:] """ +
   val isabelle_tool =
     Isabelle_Tool("build_stats", "present statistics from session build output", args =>
     {
-      var target_dir = Path.explode("stats")
-      var only_jobs = Set.empty[String]
-      var history_length = 100
+      var target_dir = default_target_dir
+      var only_sessions = default_only_sessions
+      var elapsed_threshold = default_elapsed_threshold
+      var history_length = default_history_length
+      var size = default_size
 
       val getopts = Getopts("""
-Usage: isabelle build_stats [OPTIONS]
+Usage: isabelle build_stats [OPTIONS] [JOBS ...]
 
   Options are:
     -D DIR       target directory (default "stats")
-    -J JOB       select named JOB (default: all jobs, multiple -J options possible)
+    -S SESSIONS  only given SESSIONS (comma separated)
+    -T THRESHOLD only sessions with elapsed time >= THRESHOLD (minutes)
     -l LENGTH    length of history (default 100)
+    -s WxH       size of PNG image (default 800x600)
 
-  Present statistics from session build output, from Jenkins continuous build
-  service specified as URL via ISABELLE_JENKINS_ROOT.
+  Present statistics from session build output of the given JOBS, from Jenkins
+  continuous build service specified as URL via ISABELLE_JENKINS_ROOT.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "J:" -> (arg => only_jobs += arg),
-        "l:" -> (arg => history_length = Properties.Value.Int.parse(arg)))
+        "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
+        "T:" -> (arg => elapsed_threshold = Time.minutes(Properties.Value.Double.parse(arg))),
+        "l:" -> (arg => history_length = Properties.Value.Int.parse(arg)),
+        "s:" -> (arg =>
+          space_explode('x', arg).map(Properties.Value.Int.parse(_)) match {
+            case List(w, h) if w > 0 && h > 0 => size = (w, h)
+            case _ => error("Error bad PNG image size: " + quote(arg))
+          }))
 
-      val more_args = getopts(args)
-      if (!more_args.isEmpty) getopts.usage()
-
+      val jobs = getopts(args)
       val all_jobs = CI_API.build_jobs()
-      val jobs =
-        if (only_jobs.isEmpty) all_jobs
-        else {
-          val bad = (only_jobs -- all_jobs).toList.sorted
-          if (bad.isEmpty) only_jobs.toList
-          else
-            error("Unknown build jobs: " + commas_quote(bad) +
-              "\nPossible jobs: " + commas_quote(all_jobs.sorted))
-        }
+      val bad_jobs = jobs.filterNot(all_jobs.contains(_)).sorted
+
+      if (jobs.isEmpty)
+        error("No build jobs given. Available jobs: " + commas(all_jobs))
+
+      if (bad_jobs.nonEmpty)
+        error("Unknown build jobs: " + commas(bad_jobs) +
+          "\nAvailable jobs: " + commas(all_jobs.sorted))
 
       for (job <- jobs) {
         Output.writeln((target_dir + Path.basic(job)).implode)
-        present(job, history_length, target_dir)
+        present(job, target_dir, history_length, size, only_sessions, elapsed_threshold)
       }
     })
 }
