@@ -666,7 +666,7 @@ fun type_enc_of_string strictness s =
         | ("erased", (NONE, All_Types (* naja *))) =>
           Guards (Raw_Polymorphic With_Phantom_Type_Vars, No_Types)
         | _ => raise Same.SAME))
-  handle Same.SAME => error ("Unknown type encoding: " ^ quote s ^ ".")
+  handle Same.SAME => error ("Unknown type encoding: " ^ quote s)
 
 fun adjust_order THF_Without_Choice (Higher_Order _) =
     Higher_Order THF_Without_Choice
@@ -1803,7 +1803,7 @@ fun trans_lams_of_string ctxt type_enc lam_trans =
   else if lam_trans = keep_lamsN then
     map (Envir.eta_contract) #> rpair []
   else
-    error ("Unknown lambda translation scheme: " ^ quote lam_trans ^ ".")
+    error ("Unknown lambda translation scheme: " ^ quote lam_trans)
 
 val pull_and_reorder_definitions =
   let

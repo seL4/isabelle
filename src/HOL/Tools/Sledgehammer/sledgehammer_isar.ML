@@ -454,7 +454,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
         SOME s => s
       | NONE =>
         one_line_proof_text ctxt 0 one_line_params ^
-        (if isar_proofs = SOME true then "\nWarning: Isar proof construction failed." else ""))
+        (if isar_proofs = SOME true then "\nWarning: Isar proof construction failed" else ""))
   end
 
 fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =

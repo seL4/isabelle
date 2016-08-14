@@ -61,7 +61,7 @@ fun parse_bool_option option name s =
   handle Option.Option =>
     let val ss = map quote ((option ? cons "smart") ["true", "false"]) in
       error ("Parameter " ^ quote name ^ " must be assigned " ^
-       space_implode " " (serial_commas "or" ss) ^ ".")
+       space_implode " " (serial_commas "or" ss))
     end
 
 val has_junk =
@@ -71,7 +71,7 @@ fun parse_time name s =
   let val secs = if has_junk s then NONE else Real.fromString s in
     if is_none secs orelse the secs < 0.0 then
       error ("Parameter " ^ quote name ^ " must be assigned a nonnegative number of seconds \
-        \(e.g., \"60\", \"0.5\") or \"none\".")
+        \(e.g., \"60\", \"0.5\") or \"none\"")
     else
       seconds (the secs)
   end

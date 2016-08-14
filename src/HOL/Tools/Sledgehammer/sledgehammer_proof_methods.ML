@@ -181,7 +181,7 @@ fun proof_method_command ctxt meth i n used_chaineds _(*num_chained*) extras =
 fun try_command_line banner play command =
   let val s = string_of_play_outcome play in
     banner ^ ": " ^ Active.sendback_markup_command command ^
-    (s |> s <> "" ? enclose " (" ")") ^ "."
+    (s |> s <> "" ? enclose " (" ")")
   end
 
 fun one_line_proof_text ctxt num_chained
@@ -189,7 +189,7 @@ fun one_line_proof_text ctxt num_chained
   let val (chained, extra) = List.partition (fn (_, (sc, _)) => sc = Chained) used_facts in
     map fst extra
     |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained
-    |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."
+    |> (if play = Play_Failed then prefix "One-line proof reconstruction failed: "
         else try_command_line banner play)
   end
 

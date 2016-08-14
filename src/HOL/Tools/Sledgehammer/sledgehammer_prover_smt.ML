@@ -60,7 +60,7 @@ fun failure_of_smt_failure (SMT_Failure.Counterexample genuine) =
   | failure_of_smt_failure (SMT_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt_failures code of
       SOME failure => failure
-    | NONE => UnknownError ("Abnormal termination with exit code " ^ string_of_int code ^ "."))
+    | NONE => UnknownError ("Abnormal termination with exit code " ^ string_of_int code))
   | failure_of_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_of_smt_failure (SMT_Failure.Other_Failure s) = UnknownError s
 

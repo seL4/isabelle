@@ -161,7 +161,7 @@ fun run_atp mode name
       else if File.exists (Path.explode dest_dir) then
         Path.append (Path.explode dest_dir) problem_file_name
       else
-        error ("No such directory: " ^ quote dest_dir ^ ".")
+        error ("No such directory: " ^ quote dest_dir)
     val exec = exec full_proofs
     val command0 =
       (case find_first (fn var => getenv var <> "") (fst exec) of
@@ -176,9 +176,9 @@ fun run_atp mode name
         in
           (case find_first File.exists paths of
             SOME path => path
-          | NONE => error ("Bad executable: " ^ Path.print (hd paths) ^ "."))
+          | NONE => error ("Bad executable: " ^ Path.print (hd paths)))
         end
-      | NONE => error ("The environment variable " ^ quote (List.last (fst exec)) ^ " is not set."))
+      | NONE => error ("The environment variable " ^ quote (List.last (fst exec)) ^ " is not set"))
 
     fun split_time s =
       let

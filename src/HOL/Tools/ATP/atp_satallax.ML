@@ -122,7 +122,7 @@ fun create_grouped_goal_assumption rule new_goals generated_assumptions =
         group_by_pair new_goals generated_assumptions
       end
     else
-      raise Fail ("the rule " ^ rule ^" is not supported in the reconstruction.")
+      raise Fail ("the rule " ^ rule ^" is not supported in the reconstruction")
   end
 fun to_satallax_step (((id, role), formula), (SOME (_,((rule, l), used_rules)))) =
     let

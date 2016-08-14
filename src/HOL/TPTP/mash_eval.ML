@@ -88,11 +88,11 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
           val name =
             (case names |> filter (curry (op <>) "") |> distinct (op =) of
               [name] => name
-            | names => error ("Input files out of sync: facts " ^ commas (map quote names) ^ "."))
+            | names => error ("Input files out of sync: facts " ^ commas (map quote names)))
           val th =
             case find_first (fn (_, th) => nickname_of_thm th = name) facts of
               SOME (_, th) => th
-            | NONE => error ("No fact called \"" ^ name ^ "\".")
+            | NONE => error ("No fact called \"" ^ name)
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
           val isar_deps = these (isar_dependencies_of name_tabs th)

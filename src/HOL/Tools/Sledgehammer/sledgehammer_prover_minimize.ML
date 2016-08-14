@@ -58,14 +58,14 @@ fun default_max_facts_of_prover ctxt name =
     else if is_smt_prover ctxt name then
       SMT_Solver.default_max_relevant ctxt name
     else
-      error ("No such prover: " ^ name ^ ".")
+      error ("No such prover: " ^ name)
   end
 
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp thy name then run_atp mode name
     else if is_smt_prover ctxt name then run_smt_solver mode name
-    else error ("No such prover: " ^ name ^ ".")
+    else error ("No such prover: " ^ name)
   end
 
 (* wrapper for calling external prover *)
@@ -116,7 +116,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
       | NONE =>
         "Found proof" ^
          (if length used_facts = length facts then "" else " with " ^ n_facts used_facts) ^
-         " (" ^ string_of_time run_time ^ ")."));
+         " (" ^ string_of_time run_time ^ ")"));
     result
   end
 
@@ -206,7 +206,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
     fun test timeout non_chained =
       test_facts params silent prover timeout i n state goal (chained @ non_chained)
   in
-    (print silent (fn () => "Sledgehammer minimizer: " ^ quote prover_name ^ ".");
+    (print silent (fn () => "Sledgehammer minimizer: " ^ quote prover_name);
      (case test timeout non_chained of
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let
@@ -222,14 +222,14 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
            ["Minimized to " ^ n_facts (map fst min_facts)] ^
             (case length chained of
               0 => ""
-            | n => " (plus " ^ string_of_int n ^ " chained)") ^ ".");
+            | n => " (plus " ^ string_of_int n ^ " chained)"));
          (if learn then do_learn (maps snd min_facts_and_chained) else ());
          (SOME min_facts_and_chained, message)
        end
      | {outcome = SOME TimedOut, ...} =>
        (NONE, fn _ =>
           "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
-          \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").")
+          \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\")")
      | {message, ...} => (NONE, (prefix "Prover error: " o message))))
     handle ERROR msg => (NONE, fn _ => "Error: " ^ msg)
   end

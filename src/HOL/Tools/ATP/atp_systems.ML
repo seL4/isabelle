@@ -139,7 +139,7 @@ structure Data = Theory_Data
   val extend = I
   fun merge data : T =
     Symtab.merge (eq_snd (op =)) data
-    handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
+    handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name)
 )
 
 fun to_secs min time = Int.max (min, (Time.toMilliseconds time + 999) div 1000)
@@ -640,7 +640,7 @@ fun get_remote_systems () =
       (warning
          (case extract_known_atp_failure known_perl_failures output of
            SOME failure => string_of_atp_failure failure
-         | NONE => trim_line output ^ "."); []))) ()
+         | NONE => trim_line output); []))) ()
   handle Timeout.TIMEOUT _ => []
 
 fun find_remote_system name [] systems =
@@ -658,11 +658,11 @@ fun get_remote_system name versions =
 fun the_remote_system name versions =
   (case get_remote_system name versions of
     (SOME sys, _) => sys
-  | (NONE, []) => error "SystemOnTPTP is not available."
+  | (NONE, []) => error "SystemOnTPTP is currently not available"
   | (NONE, syss) =>
     (case syss |> filter_out (String.isPrefix "%") |> filter_out (curry (op =) "") of
-      [] => error "SystemOnTPTP is currently not available."
-    | [msg] => error ("SystemOnTPTP is currently not available: " ^ msg ^ ".")
+      [] => error "SystemOnTPTP is currently not available"
+    | [msg] => error ("SystemOnTPTP is currently not available: " ^ msg)
     | syss =>
       error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n(Available systems: " ^
         commas_quote syss ^ ".)")))
@@ -744,11 +744,11 @@ val remote_waldmeister_new = gen_remote_waldmeister waldmeister_newN "mono_args"
 
 fun add_atp (name, config) thy =
   Data.map (Symtab.update_new (name, (config, stamp ()))) thy
-  handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
+  handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name)
 
 fun get_atp thy name =
   fst (the (Symtab.lookup (Data.get thy) name))
-  handle Option.Option => error ("Unknown ATP: " ^ name ^ ".")
+  handle Option.Option => error ("Unknown ATP: " ^ name)
 
 val supported_atps = Symtab.keys o Data.get
 

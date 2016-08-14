@@ -112,7 +112,7 @@ fun unalias_raw_param (name, value) =
     if value <> ["false"] then
       param'
     else
-      error ("Parameter " ^ quote name ^ " cannot be set to \"false\" (cf. " ^ quote name' ^ ").")
+      error ("Parameter " ^ quote name ^ " cannot be set to \"false\" (cf. " ^ quote name' ^ ")")
   | NONE =>
     (case AList.lookup (op =) negated_alias_params name of
       SOME name' => (name',
@@ -144,9 +144,9 @@ fun normalize_raw_param ctxt =
            else if is_some (Int.fromString name) then
              ("max_facts", [name])
            else
-             error ("Unknown parameter: " ^ quote name ^ ".")
+             error ("Unknown parameter: " ^ quote name)
          else
-           error ("Unknown parameter: " ^ quote name ^ "."))
+           error ("Unknown parameter: " ^ quote name))
 
 (* Ensures that type encodings such as "mono_native?" and "poly_guards!!" are
    read correctly. *)
@@ -218,14 +218,14 @@ fun extract_params mode default_params override_params =
       | SOME s =>
         (case Int.fromString s of
           SOME n => n
-        | NONE => error ("Parameter " ^ quote name ^ " must be assigned an integer value.")))
+        | NONE => error ("Parameter " ^ quote name ^ " must be assigned an integer value")))
     fun lookup_real name =
       (case lookup name of
         NONE => 0.0
       | SOME s =>
         (case Real.fromString s of
           SOME n => n
-        | NONE => error ("Parameter " ^ quote name ^ " must be assigned a real value.")))
+        | NONE => error ("Parameter " ^ quote name ^ " must be assigned a real value")))
     fun lookup_real_pair name =
       (case lookup name of
         NONE => (0.0, 0.0)
@@ -341,7 +341,7 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
     else if subcommand = refresh_tptpN then
       refresh_systems_on_tptp ()
     else
-      error ("Unknown subcommand: " ^ quote subcommand ^ ".")
+      error ("Unknown subcommand: " ^ quote subcommand)
   end
 
 fun string_of_raw_param (key, values) =

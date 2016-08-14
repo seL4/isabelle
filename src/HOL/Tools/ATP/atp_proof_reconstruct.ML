@@ -271,7 +271,7 @@ fun term_of_atp_ho ctxt sym_tab =
       | ATerm ((s, tys), us) =>
         if s = ""
         then error "Isar proof reconstruction failed because the ATP proof \
-                     \contains unparsable material."
+                     \contains unparsable material"
         else if s = tptp_equal then
           list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}),
             map (do_term NONE) us)
@@ -349,7 +349,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
         ATerm ((s, tys), us) =>
         if s = "" then
           error "Isar proof reconstruction failed because the ATP proof contains unparsable \
-            \material."
+            \material"
         else if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information (needed?) *)
         else if s = tptp_equal then
@@ -428,10 +428,10 @@ fun term_of_atp_fo ctxt textual sym_tab =
 
 fun term_of_atp ctxt (ATP_Problem.THF _) type_enc =
     if ATP_Problem_Generate.is_type_enc_higher_order type_enc then K (term_of_atp_ho ctxt)
-    else error "Unsupported Isar reconstruction."
+    else error "Unsupported Isar reconstruction"
   | term_of_atp ctxt _ type_enc =
     if not (ATP_Problem_Generate.is_type_enc_higher_order type_enc) then term_of_atp_fo ctxt
-    else error "Unsupported Isar reconstruction."
+    else error "Unsupported Isar reconstruction"
 
 fun term_of_atom ctxt format type_enc textual sym_tab pos (u as ATerm ((s, _), _)) =
   if String.isPrefix class_prefix s then

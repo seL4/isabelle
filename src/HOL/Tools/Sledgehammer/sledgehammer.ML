@@ -135,8 +135,8 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
-      |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
-                  " proof (of " ^ string_of_int (length facts) ^ "): ") "."
+      |> curry (op ^) ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
+        " proof (of " ^ string_of_int (length facts) ^ "): ")
       |> writeln
 
     fun spying_str_of_res ({outcome = NONE, used_facts, used_from, ...} : prover_result) =
@@ -206,7 +206,7 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
              not (is_prover_installed ctxt name) then
             ()
           else
-            error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+            error ("Unexpected outcome: " ^ quote outcome_code)
       in (outcome_code, message) end
   in
     if mode = Auto_Try then
@@ -228,11 +228,11 @@ val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
 fun string_of_facts facts =
   "Including " ^ string_of_int (length facts) ^ " relevant fact" ^ plural_s (length facts) ^ ": " ^
-  (facts |> map (fst o fst) |> space_implode " ") ^ "."
+  (facts |> map (fst o fst) |> space_implode " ")
 
 fun string_of_factss factss =
   if forall (null o snd) factss then
-    "Found no relevant facts."
+    "Found no relevant facts"
   else
     cat_lines (map (fn (filter, facts) =>
       (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
@@ -240,7 +240,7 @@ fun string_of_factss factss =
 fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode writeln_result i
     (fact_override as {only, ...}) state =
   if null provers then
-    error "No prover is set."
+    error "No prover is set"
   else
     (case subgoal_count state of
       0 => (error "No subgoal!"; (false, (noneN, [])))
@@ -269,7 +269,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
           nearly_all_facts ctxt ho_atp fact_override keywords css chained hyp_ts concl_t
         val _ =
           (case find_first (not o is_prover_supported ctxt) provers of
-            SOME name => error ("No such prover: " ^ name ^ ".")
+            SOME name => error ("No such prover: " ^ name)
           | NONE => ())
         val _ = print "Sledgehammering..."
         val _ = spying spy (fn () => (state, i, "***", "Starting " ^ str_of_mode mode ^ " mode"))
@@ -319,7 +319,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
       in
         launch_provers ()
         handle Timeout.TIMEOUT _ =>
-          (print "Sledgehammer ran out of time."; (unknownN, []))
+          (print "Sledgehammer ran out of time"; (unknownN, []))
       end
       |> `(fn (outcome_code, _) => outcome_code = someN))
 

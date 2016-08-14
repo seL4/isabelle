@@ -301,7 +301,7 @@ fun get_prover_name thy args =
   let
     fun default_prover_name () =
       hd (#provers (Sledgehammer_Commands.default_params thy []))
-      handle List.Empty => error "No ATP available."
+      handle List.Empty => error "No ATP available"
   in
     (case AList.lookup (op =) args proverK of
       SOME name => name

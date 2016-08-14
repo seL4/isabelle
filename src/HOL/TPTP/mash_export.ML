@@ -310,7 +310,7 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_
         val (name', mepo_suggs) =
           extract_suggestions mepo_line
           ||> (map fst #> weight_facts_steeply)
-        val _ = if name = name' then () else error "Input files out of sync."
+        val _ = if name = name' then () else error "Input files out of sync"
         val mess =
           [(mepo_weight, (mepo_suggs, [])),
            (mash_weight, (mash_suggs, []))]
@@ -322,7 +322,7 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_
     val mepo_lines = Path.explode mepo_file_name |> File.read_lines
   in
     if length mash_lines = length mepo_lines then List.app do_fact (mash_lines ~~ mepo_lines)
-    else warning "Skipped: MaSh file missing or out of sync with MePo file."
+    else warning "Skipped: MaSh file missing or out of sync with MePo file"
   end
 
 end;

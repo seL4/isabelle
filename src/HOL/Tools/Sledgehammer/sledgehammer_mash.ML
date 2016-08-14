@@ -149,7 +149,7 @@ fun mash_algorithm () =
   | "knn_ext" => SOME MaSh_kNN_Ext
   | "none" => NONE
   | "" => NONE
-  | algorithm => (warning ("Unknown MaSh algorithm: " ^ quote algorithm ^ "."); NONE))
+  | algorithm => (warning ("Unknown MaSh algorithm: " ^ quote algorithm); NONE))
 
 val is_mash_enabled = is_some o mash_algorithm
 val the_mash_algorithm = the_default MaSh_NB_kNN o mash_algorithm
@@ -1038,7 +1038,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover aut
       if verbose andalso auto_level = 0 then
         writeln ("MaSh: " ^ quote prover ^ " on " ^ quote name ^ " with " ^
           string_of_int num_isar_deps ^ " + " ^ string_of_int (length facts - num_isar_deps) ^
-          " facts.")
+          " facts")
       else
         ();
       (case run_prover_for_mash ctxt params prover name facts goal of
@@ -1046,7 +1046,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover aut
         (if verbose andalso auto_level = 0 then
            let val num_facts = length used_facts in
              writeln ("Found proof with " ^ string_of_int num_facts ^ " fact" ^
-               plural_s num_facts ^ ".")
+               plural_s num_facts)
            end
          else
            ();
@@ -1237,7 +1237,7 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
     |> apply2 (map fact_of_raw_fact)
   end
 
-fun mash_unlearn () = (clear_state (); writeln "Reset MaSh.")
+fun mash_unlearn () = (clear_state (); writeln "Reset MaSh")
 
 fun learn_wrt_access_graph ctxt (name, parents, feats, deps)
     (accum as (access_G, (fact_xtab, feat_xtab))) =
@@ -1336,9 +1336,9 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
   in
     if no_new_facts andalso not run_prover then
       if auto_level < 2 then
-        "No new " ^ (if run_prover then "automatic" else "Isar") ^ " proofs to learn." ^
+        "No new " ^ (if run_prover then "automatic" else "Isar") ^ " proofs to learn" ^
         (if auto_level = 0 andalso not run_prover then
-           "\n\nHint: Try " ^ sendback learn_proverN ^ " to learn from an automatic prover."
+           "\n\nHint: Try " ^ sendback learn_proverN ^ " to learn from an automatic prover"
          else
            "")
       else
@@ -1393,7 +1393,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
              let val num_proofs = length learns + length relearns in
                writeln ("Learned " ^ string_of_int num_proofs ^ " " ^
                  (if run_prover then "automatic" else "Isar") ^ " proof" ^
-                 plural_s num_proofs ^ " in the last " ^ string_of_time commit_timeout ^ ".")
+                 plural_s num_proofs ^ " in the last " ^ string_of_time commit_timeout)
              end
            else
              ())
@@ -1483,7 +1483,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
           "Learned " ^ string_of_int num_new_facts ^ " fact" ^ plural_s num_new_facts ^ " and " ^
           string_of_int num_nontrivial ^ " nontrivial " ^
           (if run_prover then "automatic and " else "") ^ "Isar proof" ^ plural_s num_nontrivial ^
-          (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer) else "") ^ "."
+          (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer) else "")
         else
           ""
       end
@@ -1508,8 +1508,8 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
          plural_s num_facts ^ " for automatic proofs (" ^ quote prover ^ " timeout: " ^
          string_of_time timeout ^ ").\n\nCollecting Isar proofs first...");
        learn 1 false;
-       writeln "Now collecting automatic proofs. This may take several hours. You \
-         \can safely stop the learning process at any point.";
+       writeln "Now collecting automatic proofs\n\
+         \This may take several hours; you can safely stop the learning process at any point";
        learn 0 true)
     else
       (writeln ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
@@ -1535,7 +1535,7 @@ val min_secs_for_learning = 15
 fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) prover
     max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
-    error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
+    error ("Unknown fact filter: " ^ quote (the fact_filter))
   else if only then
     [("", map fact_of_raw_fact facts)]
   else if max_facts <= 0 orelse null facts then
@@ -1551,7 +1551,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
             (if verbose then
                writeln ("Started MaShing through " ^
                  (if exact then "" else "at least ") ^ string_of_int min_num_facts_to_learn ^
-                 " fact" ^ plural_s min_num_facts_to_learn ^ " in the background.")
+                 " fact" ^ plural_s min_num_facts_to_learn ^ " in the background")
              else
                ());
             launch_thread timeout
