@@ -3120,7 +3120,8 @@ fun prepare_friend_corec friend_name friend_T lthy =
     val k_As = fold Term.add_tfreesT k_Ts0 [];
     val _ = (case filter_out (member (op =) As o TFree) k_As of [] => ()
       | k_A :: _ => error ("Cannot have type variable " ^
-          quote (Syntax.string_of_typ lthy (TFree k_A)) ^ " used like that in friend"));
+          quote (Syntax.string_of_typ lthy (TFree k_A)) ^
+          " in the argument types when it does not occur in the result type"));
 
     val substDT = Term.typ_subst_atomic (Ds ~~ res_Ds);
 
