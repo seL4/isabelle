@@ -533,10 +533,13 @@ fun unmeta_chars accum [] = String.implode (rev accum)
   | unmeta_chars accum (c :: cs) = unmeta_chars (c :: accum) cs
 
 val encode_str = String.translate meta_char
-val decode_str = String.explode #> unmeta_chars []
-
 val encode_strs = map encode_str #> space_implode " "
-val decode_strs = space_explode " " #> map decode_str
+
+fun decode_str s =
+  if String.isSubstring "%" s then unmeta_chars [] (String.explode s) else s;
+
+fun decode_strs s =
+  space_explode " " s |> String.isSubstring "%" s ? map decode_str;
 
 datatype proof_kind = Isar_Proof | Automatic_Proof | Isar_Proof_wegen_Prover_Flop
 
