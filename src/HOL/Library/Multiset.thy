@@ -1027,9 +1027,9 @@ is "\<lambda>P M. \<lambda>x. if P x then M x else 0"
 by (rule filter_preserves_multiset)
 
 syntax (ASCII)
-  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ :# _./ _#})")
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{#_ :# _./ _#})")
 syntax
-  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ \<in># _./ _#})")
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{#_ \<in># _./ _#})")
 translations
   "{#x \<in># M. P#}" == "CONST filter_mset (\<lambda>x. P) M"
 
