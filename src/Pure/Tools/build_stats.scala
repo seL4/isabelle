@@ -15,8 +15,10 @@ object Build_Stats
 {
   /* parse build output */
 
-  private val Session_Finished =
+  private val Session_Finished1 =
     new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time.*$""")
+  private val Session_Finished2 =
+    new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
   private val Session_Timing =
     new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
 
@@ -45,12 +47,16 @@ object Build_Stats
 
     for (line <- split_lines(text)) {
       line match {
-        case Session_Finished(name,
+        case Session_Finished1(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3),
             Value.Int(c1), Value.Int(c2), Value.Int(c3)) =>
           val elapsed = Time.hms(e1, e2, e3)
           val cpu = Time.hms(c1, c2, c3)
           finished += (name -> Timing(elapsed, cpu, Time.zero))
+        case Session_Finished2(name,
+            Value.Int(e1), Value.Int(e2), Value.Int(e3)) =>
+          val elapsed = Time.hms(e1, e2, e3)
+          finished += (name -> Timing(elapsed, Time.zero, Time.zero))
         case Session_Timing(name,
             Value.Int(t), Value.Double(e), Value.Double(c), Value.Double(g)) =>
           val elapsed = Time.seconds(e)
