@@ -169,19 +169,18 @@ fun pretties_for_formulas _ _ [] = []
      Pretty.indent indent_size (Pretty.chunks
          (map2 (fn j => fn t =>
                    Pretty.block [t |> shorten_names_in_term
-                                   |> Syntax.pretty_term ctxt,
-                                 Pretty.str (if j = 1 then "." else ";")])
+                                   |> Syntax.pretty_term ctxt])
                (length ts downto 1) ts))]
 
 val isabelle_wrong_message =
-  "Something appears to be wrong with your Isabelle installation."
+  "something appears to be wrong with your Isabelle installation"
 val java_not_found_message =
-  "Java could not be launched. " ^ isabelle_wrong_message
+  "Java could not be launched -- " ^ isabelle_wrong_message
 val java_too_old_message =
-  "The Java version is too old. " ^ isabelle_wrong_message
+  "The Java version is too old -- " ^ isabelle_wrong_message
 val kodkodi_not_installed_message =
-  "Nitpick requires the external Java program Kodkodi."
-val kodkodi_too_old_message = "The installed Kodkodi version is too old."
+  "Nitpick requires the external Java program Kodkodi"
+val kodkodi_too_old_message = "The installed Kodkodi version is too old"
 
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
@@ -269,7 +268,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                  else
                    "goal")) [Logic.list_implies (nondef_assm_ts, orig_t)]))
     val _ = spying spy (fn () => (state, i, "starting " ^ @{make_string} mode ^ " mode"))
-    val _ = print_v (enclose "Timestamp: " "." o Date.fmt "%H:%M:%S"
+    val _ = print_v (prefix "Timestamp: " o Date.fmt "%H:%M:%S"
                      o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
@@ -317,7 +316,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val pseudo_frees = []
     val real_frees = fold Term.add_frees conj_ts []
     val _ = null (fold Term.add_tvars conj_ts []) orelse
-            error "Nitpick cannot handle goals with schematic type variables."
+            error "Nitpick cannot handle goals with schematic type variables"
     val (nondef_ts, def_ts, need_ts, got_all_mono_user_axioms,
          no_poly_user_axioms, binarize) =
       preprocess_formulas hol_ctxt nondef_assm_ts neg_t
@@ -329,11 +328,11 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           Pretty.text ("The " ^ (if gfp then "co" else "") ^ "inductive predicate") @
           [Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt (Const x)), Pretty.brk 1] @
           Pretty.text (if wf then
-                   "was proved well-founded. Nitpick can compute it \
-                   \efficiently."
+                   "was proved well-founded; Nitpick can compute it \
+                   \efficiently"
                  else
-                   "could not be proved well-founded. Nitpick might need to \
-                   \unroll it.")))
+                   "could not be proved well-founded; Nitpick might need to \
+                   \unroll it")))
     val _ = if verbose then List.app print_wf (!wf_cache) else ()
     val das_wort_formula = if falsify then "Negated conjecture" else "Formula"
     val _ =
@@ -371,7 +370,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                   else
                     (if length pretties = 1 then "is" else "are") ^
                     " considered monotonic") ^
-                 ". " ^ extra))
+                 "; " ^ extra))
       end
     fun is_type_fundamentally_monotonic T =
       (is_data_type ctxt T andalso not (is_quot_type ctxt T) andalso
@@ -409,7 +408,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
          exists (member (op =) [nat_T, int_T]) all_Ts then
         print_v (K "The option \"binary_ints\" will be ignored because of the \
                    \presence of rationals, reals, \"Suc\", \"gcd\", or \"lcm\" \
-                   \in the problem.")
+                   \in the problem")
       else
         ()
     val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic all_Ts
@@ -419,7 +418,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           [] => ()
         | interesting_mono_Ts =>
           pprint_v (K (monotonicity_message interesting_mono_Ts
-                          "Nitpick might be able to skip some scopes."))
+                          "Nitpick might be able to skip some scopes"))
       else
         ()
     val (deep_dataTs, shallow_dataTs) =
@@ -433,7 +432,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val _ =
       if verbose andalso not (null finitizable_dataTs) then
         pprint_v (K (monotonicity_message finitizable_dataTs
-                         "Nitpick can use a more precise finite encoding."))
+                         "Nitpick can use a more precise finite encoding"))
       else
         ()
 (*
@@ -450,7 +449,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
            not (member (op =) (Kodkod_SAT.configured_sat_solvers true)
                        sat_solver) then
           (print_nt (K ("An incremental SAT solver is required: \"SAT4J\" will \
-                        \be used instead of " ^ quote sat_solver ^ "."));
+                        \be used instead of " ^ quote sat_solver));
            "SAT4J")
         else
           sat_solver
@@ -459,10 +458,10 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val _ =
       if sat_solver = "smart" then
         print_v (fn () =>
-            "Using SAT solver " ^ quote actual_sat_solver ^ ". The following" ^
+            "Using SAT solver " ^ quote actual_sat_solver ^ "\nThe following" ^
             (if incremental then " incremental " else " ") ^
             "solvers are configured: " ^
-            commas_quote (Kodkod_SAT.configured_sat_solvers incremental) ^ ".")
+            commas_quote (Kodkod_SAT.configured_sat_solvers incremental))
       else
         ()
 
@@ -601,15 +600,15 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
              else
                (Unsynchronized.change too_big_scopes (cons scope);
                 print_v (fn () =>
-                    "Limit reached: " ^ msg ^ ". Skipping " ^
+                    "Limit reached: " ^ msg ^ "; skipping " ^
                     (if unsound then "potential component of " else "") ^
-                    "scope.");
+                    "scope");
                 NONE)
            | TOO_SMALL (_, msg) =>
              (print_v (fn () =>
-                  "Limit reached: " ^ msg ^ ". Skipping " ^
+                  "Limit reached: " ^ msg ^ "; skipping " ^
                   (if unsound then "potential component of " else "") ^
-                  "scope.");
+                  "scope");
               NONE)
 
     val das_wort_model = if falsify then "counterexample" else "model"
@@ -624,7 +623,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       List.app (Unsynchronized.change checked_problems o Option.map o cons
                 o nth problems)
     fun show_kodkod_warning "" = ()
-      | show_kodkod_warning s = print_nt (fn () => "Kodkod warning: " ^ s ^ ".")
+      | show_kodkod_warning s = print_nt (fn () => "Kodkod warning: " ^ s)
 
     fun print_and_check_model genuine bounds
             ({free_names, sel_names, nonsel_names, rel_table, scope, ...}
@@ -692,12 +691,12 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                   print ("Try again with " ^
                          space_implode " " (serial_commas "and" ss) ^
                          " to confirm that the " ^ das_wort_model ^
-                         " is genuine.")
+                         " is genuine")
                 end
               else
                 print ("Nitpick is unable to guarantee the authenticity of \
                        \the " ^ das_wort_model ^ " in the presence of \
-                       \polymorphic axioms.")
+                       \polymorphic axioms")
             else
               ();
             NONE)
@@ -811,7 +810,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             (update_checked_problems problems unsat_js; raise Timeout.TIMEOUT Time.zeroTime)
           | KK.Error (s, unsat_js) =>
             (update_checked_problems problems unsat_js;
-             print_v (K ("Kodkod error: " ^ s ^ "."));
+             print_v (K ("Kodkod error: " ^ s));
              (found_really_genuine, max_potential, max_genuine, donno + 1))
       end
 
@@ -820,7 +819,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       let
         val _ =
           if null scopes then
-            print_nt (K "The scope specification is inconsistent.")
+            print_nt (K "The scope specification is inconsistent")
           else if verbose then
             pprint_nt (fn () => Pretty.chunks
                 [Pretty.blk (0,
@@ -837,8 +836,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                               Pretty.block (
                                   (case pretties_for_scope scope true of
                                      [] => [Pretty.str "Empty"]
-                                   | pretties => pretties) @
-                                  [Pretty.str (if j = 1 then "." else ";")]))
+                                   | pretties => pretties)))
                           (length scopes downto 1) scopes))])
           else
             ()
@@ -873,11 +871,11 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                     (if falsify then "either trivially holds"
                      else "is either trivially unsatisfiable") ^
                     " for the given scopes or lies outside Nitpick's supported \
-                    \fragment." ^
+                    \fragment" ^
                     (if exists (not o KK.is_problem_trivially_false o fst)
                                unsound_problems then
-                       " Only potentially spurious " ^ das_wort_model ^
-                       "s may be found."
+                       "; only potentially spurious " ^ das_wort_model ^
+                       "s may be found"
                      else
                        ""))
               else
@@ -913,7 +911,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
            " " ^ string_of_int unsat ^ " of " ^ string_of_int total ^ " scope"
            ^ plural_s total
          else
-           "") ^ "."
+           "")
       end
 
     val (skipped, the_scopes) =
@@ -936,16 +934,16 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
             (print_t (K "% SZS status GaveUp");
-             print_nt (fn () => "Nitpick found no " ^ das_wort_model ^ ".");
+             print_nt (fn () => "Nitpick found no " ^ das_wort_model);
              if skipped > 0 then unknownN else noneN)
           else
             (print_nt (fn () =>
                  excipit ("could not find a" ^
                           (if max_genuine = 1 then
-                             " better " ^ das_wort_model ^ "."
+                             " better " ^ das_wort_model
                            else
-                             "ny better " ^ das_wort_model ^ "s.") ^
-                          " It checked"));
+                             "ny better " ^ das_wort_model ^ "s") ^
+                          "\nIt checked"));
              potentialN)
         else if found_really_genuine then
           genuineN
@@ -964,8 +962,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
              (print_nt (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then potentialN else unknownN)
     val _ = print_v (fn () =>
-                "Total time: " ^ string_of_time (Timer.checkRealTimer timer) ^
-                ".")
+                "Total time: " ^ string_of_time (Timer.checkRealTimer timer))
     val _ = spying spy (fn () => (state, i, "outcome: " ^ outcome_code))
   in (outcome_code, Queue.content (Synchronized.value outcome)) end
 
@@ -993,20 +990,20 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
                                       def_assm_ts nondef_assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
                  (print_t "% SZS status GaveUp";
-                  print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                  print_nt ("Limit reached: " ^ details); unknown_outcome)
                | TOO_SMALL (_, details) =>
                  (print_t "% SZS status GaveUp";
-                  print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                  print_nt ("Limit reached: " ^ details); unknown_outcome)
                | Kodkod.SYNTAX (_, details) =>
                  (print_t "% SZS status GaveUp";
-                  print_nt ("Malformed Kodkodi output: " ^ details ^ ".");
+                  print_nt ("Malformed Kodkodi output: " ^ details);
                   unknown_outcome)
                | Timeout.TIMEOUT _ =>
                  (print_t "% SZS status TimedOut";
-                  print_nt "Nitpick ran out of time."; unknown_outcome)
+                  print_nt "Nitpick ran out of time"; unknown_outcome)
       in
         if expect = "" orelse outcome_code = expect then outcome
-        else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+        else error ("Unexpected outcome: " ^ quote outcome_code)
       end
   end
 

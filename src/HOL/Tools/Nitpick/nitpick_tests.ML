@@ -217,7 +217,7 @@ fun run_all_tests () =
     case Kodkod.solve_any_problem debug overlord timeout max_threads max_solutions
                                   (map (problem_for_nut @{context}) tests) of
       Kodkod.Normal ([], _, _) => ()
-    | _ => error "Tests failed."
+    | _ => error "Tests failed"
   end
 
 end;

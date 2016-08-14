@@ -117,10 +117,10 @@ fun sat_solver_spec name =
            error (if AList.defined (op =) static_list name then
                     "The SAT solver " ^ quote name ^ " is not configured. The \
                     \following solvers are configured:\n" ^
-                    enum_solvers dyns ^ "."
+                    enum_solvers dyns
                   else
-                    "Unknown SAT solver " ^ quote name ^ ". The following \
-                    \solvers are supported:\n" ^ enum_solvers static_list ^ ".")
+                    "Unknown SAT solver " ^ quote name ^ "\nThe following \
+                    \solvers are supported:\n" ^ enum_solvers static_list)
   end
 
 end;

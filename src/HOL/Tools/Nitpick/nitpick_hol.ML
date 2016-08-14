@@ -1908,7 +1908,7 @@ fun equationalize_term ctxt tag t =
         | Const (@{const_name Pure.eq}, Type (_, [T, _])) $ t1 $ t2 =>
           @{const Trueprop} $ extensional_equal j T t1 t2
         | _ => (warning ("Ignoring " ^ quote tag ^ " for non-equation " ^
-                         quote (Syntax.string_of_term ctxt t) ^ ".");
+                         quote (Syntax.string_of_term ctxt t));
                 raise SAME ()))
     |> SOME
   end
@@ -2132,7 +2132,7 @@ fun uncached_is_well_founded_inductive_pred
                     map (wf_constraint_for_triple rel) triples
                     |> foldr1 s_conj |> HOLogic.mk_Trueprop
          val _ = if debug then
-                   writeln ("Wellfoundedness goal: " ^ Syntax.string_of_term ctxt prop ^ ".")
+                   writeln ("Wellfoundedness goal: " ^ Syntax.string_of_term ctxt prop)
                  else
                    ()
        in

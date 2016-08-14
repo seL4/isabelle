@@ -104,7 +104,7 @@ fun is_known_raw_param s =
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
-  else error ("Unknown parameter: " ^ quote s ^ ".")
+  else error ("Unknown parameter: " ^ quote s)
 
 fun unnegate_param_name name =
   case AList.lookup (op =) negated_params name of
@@ -166,7 +166,7 @@ fun extract_params ctxt mode default_params override_params =
         SOME s => (case Int.fromString s of
                      SOME i => i
                    | NONE => error ("Parameter " ^ quote name ^
-                                    " must be assigned an integer value."))
+                                    " must be assigned an integer value"))
       | NONE => 0
     fun lookup_int name = do_int name (lookup name)
     fun lookup_int_option name =
@@ -185,7 +185,7 @@ fun extract_params ctxt mode default_params override_params =
       in if k1 <= k2 then k1 upto k2 else k1 downto k2 end
       handle Option.Option =>
              error ("Parameter " ^ quote name ^
-                    " must be assigned a sequence of integers.")
+                    " must be assigned a sequence of integers")
     fun int_seq_from_string name min_int s =
       maps (int_range_from_string name min_int) (space_explode "," s)
     fun lookup_int_seq name min_int =
@@ -305,22 +305,22 @@ val parse_params =
 fun handle_exceptions ctxt f x =
   f x
   handle ARG (loc, details) =>
-         error ("Bad argument(s) to " ^ quote loc ^ ": " ^ details ^ ".")
+         error ("Bad argument(s) to " ^ quote loc ^ ": " ^ details)
        | BAD (loc, details) =>
-         error ("Internal error (" ^ quote loc ^ "): " ^ details ^ ".")
+         error ("Internal error (" ^ quote loc ^ "): " ^ details)
        | NOT_SUPPORTED details =>
-         (warning ("Unsupported case: " ^ details ^ "."); x)
+         (warning ("Unsupported case: " ^ details); x)
        | NUT (loc, us) =>
          error ("Invalid intermediate term" ^ plural_s_for_list us ^
                 " (" ^ quote loc ^ "): " ^
-                commas (map (string_for_nut ctxt) us) ^ ".")
+                commas (map (string_for_nut ctxt) us))
        | REP (loc, Rs) =>
          error ("Invalid representation" ^ plural_s_for_list Rs ^
-                " (" ^ quote loc ^ "): " ^ commas (map string_for_rep Rs) ^ ".")
+                " (" ^ quote loc ^ "): " ^ commas (map string_for_rep Rs))
        | TERM (loc, ts) =>
          error ("Invalid term" ^ plural_s_for_list ts ^
                 " (" ^ quote loc ^ "): " ^
-                commas (map (Syntax.string_of_term ctxt) ts) ^ ".")
+                commas (map (Syntax.string_of_term ctxt) ts))
        | TYPE (loc, Ts, ts) =>
          error ("Invalid type" ^ plural_s_for_list Ts ^
                 (if null ts then
@@ -329,7 +329,7 @@ fun handle_exceptions ctxt f x =
                    " for term" ^ plural_s_for_list ts ^ " " ^
                    commas (map (quote o Syntax.string_of_term ctxt) ts)) ^
                 " (" ^ quote loc ^ "): " ^
-                commas (map (Syntax.string_of_typ ctxt) Ts) ^ ".")
+                commas (map (Syntax.string_of_typ ctxt) Ts))
 
 fun pick_nits override_params mode i step state =
   let
