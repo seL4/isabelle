@@ -122,7 +122,7 @@ set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) +
 set xdata time
 set timefmt "%s"
 set format x "%d-%b"
-set xlabel """ + quote(session) + """
+set xlabel """ + quote(session) + """ noenhanced
 set key left top
 plot [] [0:] """ +
   data_file_name + """ using 1:2 smooth sbezier title "interpolated cpu time",""" +
