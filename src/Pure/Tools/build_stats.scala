@@ -75,24 +75,19 @@ object Build_Stats
 
   /* presentation */
 
-  private val default_target_dir = Path.explode("stats")
   private val default_history_length = 100
   private val default_size = (800, 600)
   private val default_only_sessions = Set.empty[String]
   private val default_elapsed_threshold = Time.zero
 
-  def present(job: String,
-    target_dir: Path = default_target_dir,
+  def present_job(job: String, dir: Path,
     history_length: Int = default_history_length,
     size: (Int, Int) = default_size,
     only_sessions: Set[String] = default_only_sessions,
-    elapsed_threshold: Time = default_elapsed_threshold)
+    elapsed_threshold: Time = default_elapsed_threshold): List[String] =
   {
     val build_infos = CI_API.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
     if (build_infos.isEmpty) error("No build infos for job " + quote(job))
-
-    val dir = target_dir + Path.basic(job)
-    Isabelle_System.mkdirs(dir)
 
     val all_build_stats =
       Par_List.map((info: CI_API.Build_Info) =>
@@ -107,10 +102,14 @@ object Build_Stats
         case None => false
       }
 
-    for {
-      session <- (if (only_sessions.isEmpty) all_sessions else all_sessions & only_sessions)
-      if all_build_stats.filter({ case (_, stats) => check_threshold(stats, session) }).length >= 3
-    } {
+    val sessions =
+      for {
+        session <- (if (only_sessions.isEmpty) all_sessions else all_sessions & only_sessions)
+        if all_build_stats.filter({ case (_, stats) => check_threshold(stats, session) }).length >= 3
+      } yield session
+
+    Isabelle_System.mkdirs(dir)
+    for (session <- sessions) {
       Isabelle_System.with_tmp_file(session, "png") { data_file =>
         Isabelle_System.with_tmp_file(session, "gnuplot") { plot_file =>
           val data =
@@ -144,15 +143,27 @@ plot [] [0:] """ +
         }
       }
     }
+
+    sessions.toList.sorted
   }
 
 
   /* Isabelle tool wrapper */
 
+  private val html_header = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head><title>Performance statistics from session build output</title></head>
+<body>
+"""
+  private val html_footer = """
+</body>
+</html>
+"""
+
   val isabelle_tool =
     Isabelle_Tool("build_stats", "present statistics from session build output", args =>
     {
-      var target_dir = default_target_dir
+      var target_dir = Path.explode("stats")
       var only_sessions = default_only_sessions
       var elapsed_threshold = default_elapsed_threshold
       var history_length = default_history_length
@@ -193,10 +204,24 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
           "\nAvailable jobs: " + commas(all_jobs.sorted))
 
       for (job <- jobs) {
-        Output.writeln((target_dir + Path.basic(job)).implode)
-        present(job, target_dir, history_length, size, only_sessions, elapsed_threshold)
+        val dir = target_dir + Path.basic(job)
+        Output.writeln(dir.implode)
+        val sessions = present_job(job, dir, history_length, size, only_sessions, elapsed_threshold)
+        File.write(dir + Path.basic("index.html"),
+          html_header + "\n<h1>" + HTML.output(job) + "</h1>\n" +
+          cat_lines(
+            sessions.map(session =>
+              """<br/><img src=""" + quote(HTML.output(session + ".png")) + """><br/>""")) +
+          "\n" + html_footer)
       }
-    })
+
+      File.write(target_dir + Path.basic("index.html"),
+        html_header + "\n<ul>\n" +
+        cat_lines(
+          jobs.map(job => """<li> <a href=""" + quote(HTML.output(job + "/index.html")) + """>""" +
+            HTML.output(job) + """</a> </li>""")) +
+        "\n</ul>\n" + html_footer)
+  })
 }
 
 sealed case class Build_Stats(
