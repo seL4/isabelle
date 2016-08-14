@@ -518,7 +518,7 @@ end;
 
 fun meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse c = #")" orelse
-     c = #"," then
+     c = #"," orelse c = #"'" then
     String.str c
   else
     (* fixed width, in case more digits follow *)
@@ -639,7 +639,7 @@ fun recompute_ffds_freqs_from_access_G access_G (xtabs as (fact_xtab, _)) =
 
 local
 
-val version = "*** MaSh version 20151004 ***"
+val version = "*** MaSh version 20160805 ***"
 
 exception FILE_VERSION_TOO_NEW of unit
 
@@ -850,7 +850,7 @@ val pat_var_prefix = "_"
 (* try "Long_Name.base_name" for shorter names *)
 fun massage_long_name s = s
 
-val crude_str_of_sort = space_implode ":" o map massage_long_name o subtract (op =) @{sort type}
+val crude_str_of_sort = space_implode "," o map massage_long_name o subtract (op =) @{sort type}
 
 fun crude_str_of_typ (Type (s, [])) = massage_long_name s
   | crude_str_of_typ (Type (s, Ts)) = massage_long_name s ^ implode (map crude_str_of_typ Ts)
