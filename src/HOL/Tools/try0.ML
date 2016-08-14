@@ -132,12 +132,12 @@ fun generic_try0 mode timeout_opt quad st =
       ();
     (case par_map (fn f => f mode timeout_opt quad st) apply_methods of
       [] =>
-      (if mode = Normal then writeln "No proof found." else (); (false, (noneN, [])))
+      (if mode = Normal then writeln "No proof found" else (); (false, (noneN, [])))
     | xs as (name, command, _) :: _ =>
       let
         val xs = xs |> map (fn (name, _, n) => (n, name))
                     |> AList.coalesce (op =)
-                    |> map (swap o apsnd commas)
+                    |> map (swap o apsnd commas);
         val message =
           (case mode of
              Auto_Try => "Auto Try0 found a proof"
@@ -147,8 +147,8 @@ fun generic_try0 mode timeout_opt quad st =
               ((if Thm.nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ command) ^
           (case xs of
-            [(_, ms)] => " (" ^ time_string ms ^ ")."
-          | xs => "\n(" ^ space_implode "; " (map tool_time_string xs) ^ ").")
+            [(_, ms)] => " (" ^ time_string ms ^ ")"
+          | xs => "\n(" ^ space_implode "; " (map tool_time_string xs) ^ ")");
       in
         (true, (name, if mode = Auto_Try then [message] else (writeln message; [])))
       end)
