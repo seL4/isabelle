@@ -1156,11 +1156,29 @@ fun maximal_wrt_graph _ [] = []
           G |> Graph.restrict (not o String.isPrefix anonymous_proof_prefix) |> Graph.maximals)
       end
 
+val max_facts_for_shuffle_cleanup = 20
+
 fun maximal_wrt_access_graph _ [] = []
-  | maximal_wrt_access_graph access_G ((fact as (_, th)) :: facts) =
-    let val thy_id = Thm.theory_id_of_thm th in
-      fact :: filter_out (fn (_, th') =>
-        Context.proper_subthy_id (Thm.theory_id_of_thm th', thy_id)) facts
+  | maximal_wrt_access_graph access_G (fact :: facts) =
+    let
+      fun cleanup_wrt (fact as (_, th)) =
+        let val thy_id = Thm.theory_id_of_thm th in
+          filter_out (fn (_, th') =>
+            Context.proper_subthy_id (Thm.theory_id_of_thm th', thy_id))
+        end
+
+      fun shuffle_cleanup accum [] = accum
+        | shuffle_cleanup accum (fact :: facts) =
+          let
+            val accum' = accum |> cleanup_wrt fact
+            val facts' = facts |> cleanup_wrt fact
+          in
+            shuffle_cleanup accum' facts'
+          end
+    in
+      fact :: cleanup_wrt fact facts
+      |> (fn facts => facts
+        |> length facts <= max_facts_for_shuffle_cleanup ? shuffle_cleanup [])
       |> map (nickname_of_thm o snd)
       |> maximal_wrt_graph access_G
     end
