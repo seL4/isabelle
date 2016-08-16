@@ -126,16 +126,16 @@ object Build_Stats
 
           val plots1 =
             List(
-              """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-              """ using 1:2 smooth csplines title "elapsed time" """,
               """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-              """ using 1:3 smooth csplines title "cpu time" """)
+              """ using 1:3 smooth csplines title "cpu time" """,
+              """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+              """ using 1:2 smooth csplines title "elapsed time" """)
           val plots2 =
             List(
-              """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-              """ using 1:4 smooth csplines title "ML elapsed time" """,
               """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
               """ using 1:5 smooth csplines title "ML cpu time" """,
+              """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+              """ using 1:4 smooth csplines title "ML elapsed time" """,
               """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
               """ using 1:6 smooth csplines title "ML gc time" """)
           val plots =
