@@ -1,7 +1,7 @@
 theory Polynomial_Factorial
 imports 
   Complex_Main
-  Euclidean_Algorithm 
+  "~~/src/HOL/Number_Theory/Euclidean_Algorithm"
   "~~/src/HOL/Library/Polynomial"
   "~~/src/HOL/Library/Normalized_Fraction"
 begin
