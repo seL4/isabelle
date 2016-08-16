@@ -79,12 +79,14 @@ object Build_Stats
   private val default_size = (800, 600)
   private val default_only_sessions = Set.empty[String]
   private val default_elapsed_threshold = Time.zero
+  private val default_ml_timing: Option[Boolean] = None
 
   def present_job(job: String, dir: Path,
     history_length: Int = default_history_length,
     size: (Int, Int) = default_size,
     only_sessions: Set[String] = default_only_sessions,
-    elapsed_threshold: Time = default_elapsed_threshold): List[String] =
+    elapsed_threshold: Time = default_elapsed_threshold,
+    ml_timing: Option[Boolean] = default_ml_timing): List[String] =
   {
     val build_infos = CI_API.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
     if (build_infos.isEmpty) error("No build infos for job " + quote(job))
@@ -116,11 +118,34 @@ object Build_Stats
             for { (t, stats) <- all_build_stats if stats.finished.isDefinedAt(session) }
             yield {
               val finished = stats.finished(session)
-              t.toString + " " + finished.cpu.minutes + " " + finished.elapsed.minutes
+              val timing = stats.timing(session)
+              List(t.toString, finished.elapsed.minutes, finished.cpu.minutes,
+                timing.elapsed.minutes, timing.cpu.minutes, timing.gc.minutes).mkString(" ")
             }
           File.write(data_file, cat_lines(data))
 
-          val data_file_name = quote(File.standard_path(data_file.getAbsolutePath))
+          val plots1 =
+            List(
+              """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+              """ using 1:2 smooth csplines title "elapsed time" """,
+              """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+              """ using 1:3 smooth csplines title "cpu time" """)
+          val plots2 =
+            List(
+              """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+              """ using 1:4 smooth csplines title "ML elapsed time" """,
+              """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+              """ using 1:5 smooth csplines title "ML cpu time" """,
+              """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
+              """ using 1:6 smooth csplines title "ML gc time" """)
+          val plots =
+            ml_timing match {
+              case None => plots1
+              case Some(false) => plots1 ::: plots2
+              case Some(true) => plots2
+            }
+
+          val data_file_name = File.standard_path(data_file.getAbsolutePath)
           File.write(plot_file, """
 set terminal png size """ + size._1 + "," + size._2 + """
 set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) + """
@@ -129,12 +154,7 @@ set timefmt "%s"
 set format x "%d-%b"
 set xlabel """ + quote(session) + """ noenhanced
 set key left top
-plot [] [0:] """ +
-  data_file_name + """ using 1:2 smooth sbezier title "interpolated cpu time",""" +
-  data_file_name + """ using 1:2 smooth csplines title "cpu time", """ +
-  data_file_name + """ using 1:3 smooth sbezier title "interpolated elapsed time",""" +
-  data_file_name + """ using 1:3 smooth csplines title "elapsed time"
-""")
+plot [] [0:] """ + plots.map(s => quote(data_file_name) + " " + s).mkString(", ") + "\n")
           val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(plot_file))
           if (result.rc != 0) {
             Output.error_message("Session " + session + ": gnuplot error")
@@ -164,6 +184,7 @@ plot [] [0:] """ +
     Isabelle_Tool("build_stats", "present statistics from session build output", args =>
     {
       var target_dir = Path.explode("stats")
+      var ml_timing = default_ml_timing
       var only_sessions = default_only_sessions
       var elapsed_threshold = default_elapsed_threshold
       var history_length = default_history_length
@@ -174,18 +195,22 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
 
   Options are:
     -D DIR       target directory (default "stats")
+    -M           only ML timing
     -S SESSIONS  only given SESSIONS (comma separated)
     -T THRESHOLD only sessions with elapsed time >= THRESHOLD (minutes)
     -l LENGTH    length of history (default 100)
+    -m           include ML timing
     -s WxH       size of PNG image (default 800x600)
 
   Present statistics from session build output of the given JOBS, from Jenkins
   continuous build service specified as URL via ISABELLE_JENKINS_ROOT.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
+        "M" -> (_ => ml_timing = Some(true)),
         "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
         "T:" -> (arg => elapsed_threshold = Time.minutes(Properties.Value.Double.parse(arg))),
         "l:" -> (arg => history_length = Properties.Value.Int.parse(arg)),
+        "m" -> (_ => ml_timing = Some(false)),
         "s:" -> (arg =>
           space_explode('x', arg).map(Properties.Value.Int.parse(_)) match {
             case List(w, h) if w > 0 && h > 0 => size = (w, h)
@@ -206,7 +231,8 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
       for (job <- jobs) {
         val dir = target_dir + Path.basic(job)
         Output.writeln(dir.implode)
-        val sessions = present_job(job, dir, history_length, size, only_sessions, elapsed_threshold)
+        val sessions =
+          present_job(job, dir, history_length, size, only_sessions, elapsed_threshold, ml_timing)
         File.write(dir + Path.basic("index.html"),
           html_header + "\n<h1>" + HTML.output(job) + "</h1>\n" +
           cat_lines(
