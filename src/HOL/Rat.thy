@@ -655,6 +655,7 @@ declaration \<open>
       @{thm divide_1}, @{thm divide_zero_left},
       @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
       @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
+      @{thm add_divide_distrib}, @{thm diff_divide_distrib},
       @{thm of_int_minus}, @{thm of_int_diff},
       @{thm of_int_of_nat_eq}]
   #> Lin_Arith.add_simprocs [Numeral_Simprocs.field_divide_cancel_numeral_factor]
