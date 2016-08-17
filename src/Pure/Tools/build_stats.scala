@@ -117,8 +117,8 @@ object Build_Stats
           val data =
             for { (t, stats) <- all_build_stats if stats.finished.isDefinedAt(session) }
             yield {
-              val finished = stats.finished(session)
-              val timing = stats.timing(session)
+              val finished = stats.finished.getOrElse(session, Timing.zero)
+              val timing = stats.timing.getOrElse(session, Timing.zero)
               List(t.toString, finished.elapsed.minutes, finished.cpu.minutes,
                 timing.elapsed.minutes, timing.cpu.minutes, timing.gc.minutes).mkString(" ")
             }
