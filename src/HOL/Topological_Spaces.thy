@@ -647,6 +647,16 @@ lemma eventually_at_split:
   for x :: "'a::linorder_topology"
   by (subst at_eq_sup_left_right) (simp add: eventually_sup)
 
+lemma eventually_at_leftI:
+  assumes "\<And>x. x \<in> {a<..<b} \<Longrightarrow> P x" "a < b"
+  shows   "eventually P (at_left b)"
+  using assms unfolding eventually_at_topological by (intro exI[of _ "{a<..}"]) auto
+
+lemma eventually_at_rightI:
+  assumes "\<And>x. x \<in> {a<..<b} \<Longrightarrow> P x" "a < b"
+  shows   "eventually P (at_right a)"
+  using assms unfolding eventually_at_topological by (intro exI[of _ "{..<b}"]) auto
+
 
 subsubsection \<open>Tendsto\<close>
 
@@ -684,6 +694,18 @@ lemma tendsto_within_subset: "(f \<longlongrightarrow> l) (at x within S) \<Long
 lemma filterlim_at:
   "(LIM x F. f x :> at b within s) \<longleftrightarrow> eventually (\<lambda>x. f x \<in> s \<and> f x \<noteq> b) F \<and> (f \<longlongrightarrow> b) F"
   by (simp add: at_within_def filterlim_inf filterlim_principal conj_commute)
+
+lemma filterlim_at_withinI:
+  assumes "filterlim f (nhds c) F"
+  assumes "eventually (\<lambda>x. f x \<in> A - {c}) F"
+  shows   "filterlim f (at c within A) F"
+  using assms by (simp add: filterlim_at) 
+
+lemma filterlim_atI:
+  assumes "filterlim f (nhds c) F"
+  assumes "eventually (\<lambda>x. f x \<noteq> c) F"
+  shows   "filterlim f (at c) F"
+  using assms by (intro filterlim_at_withinI) simp_all
 
 lemma (in topological_space) topological_tendstoI:
   "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F) \<Longrightarrow> (f \<longlongrightarrow> l) F"

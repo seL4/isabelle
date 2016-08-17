@@ -1744,8 +1744,8 @@ lemma lhopital_right_0:
       "eventually (\<lambda>x. g' x \<noteq> 0) (at_right 0)"
       "eventually (\<lambda>x. DERIV f0 x :> f' x) (at_right 0)"
       "eventually (\<lambda>x. DERIV g0 x :> g' x) (at_right 0)"
-    and lim: "((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> x) (at_right 0)"
-  shows "((\<lambda> x. f0 x / g0 x) \<longlongrightarrow> x) (at_right 0)"
+    and lim: "filterlim (\<lambda> x. (f' x / g' x)) F (at_right 0)"
+  shows "filterlim (\<lambda> x. f0 x / g0 x) F (at_right 0)"
 proof -
   define f where [abs_def]: "f x = (if x \<le> 0 then 0 else f0 x)" for x
   then have "f 0 = 0" by simp
@@ -1815,9 +1815,9 @@ proof -
     by (rule tendsto_norm_zero_cancel)
   with \<zeta> have "filterlim \<zeta> (at_right 0) (at_right 0)"
     by (auto elim!: eventually_mono simp: filterlim_at)
-  from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) \<longlongrightarrow> x) (at_right 0)"
+  from this lim have "filterlim (\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) F (at_right 0)"
     by (rule_tac filterlim_compose[of _ _ _ \<zeta>])
-  ultimately have "((\<lambda>t. f t / g t) \<longlongrightarrow> x) (at_right 0)" (is ?P)
+  ultimately have "filterlim (\<lambda>t. f t / g t) F (at_right 0)" (is ?P)
     by (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
        (auto elim: eventually_mono)
   also have "?P \<longleftrightarrow> ?thesis"
@@ -1831,8 +1831,8 @@ lemma lhopital_right:
     eventually (\<lambda>x. g' x \<noteq> 0) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at_right x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at_right x) \<Longrightarrow>
-  ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at_right x)"
+    filterlim (\<lambda> x. (f' x / g' x)) F (at_right x) \<Longrightarrow>
+  filterlim (\<lambda> x. f x / g x) F (at_right x)"
   for x :: real
   unfolding eventually_at_right_to_0[of _ x] filterlim_at_right_to_0[of _ _ x] DERIV_shift
   by (rule lhopital_right_0)
@@ -1843,8 +1843,8 @@ lemma lhopital_left:
     eventually (\<lambda>x. g' x \<noteq> 0) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at_left x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at_left x) \<Longrightarrow>
-  ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at_left x)"
+    filterlim (\<lambda> x. (f' x / g' x)) F (at_left x) \<Longrightarrow>
+  filterlim (\<lambda> x. f x / g x) F (at_left x)"
   for x :: real
   unfolding eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror
   by (rule lhopital_right[where f'="\<lambda>x. - f' (- x)"]) (auto simp: DERIV_mirror)
@@ -1855,11 +1855,12 @@ lemma lhopital:
     eventually (\<lambda>x. g' x \<noteq> 0) (at x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at x) \<Longrightarrow>
-  ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at x)"
+    filterlim (\<lambda> x. (f' x / g' x)) F (at x) \<Longrightarrow>
+  filterlim (\<lambda> x. f x / g x) F (at x)"
   for x :: real
   unfolding eventually_at_split filterlim_at_split
   by (auto intro!: lhopital_right[of f x g g' f'] lhopital_left[of f x g g' f'])
+
 
 lemma lhopital_right_0_at_top:
   fixes f g :: "real \<Rightarrow> real"
@@ -2014,5 +2015,103 @@ proof (rule lhopital_right_0_at_top)
     using eventually_ge_at_top[where c=1]
     by eventually_elim simp
 qed
+
+lemma lhopital_right_at_top_at_top:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes f_0: "LIM x at_right a. f x :> at_top"
+  assumes g_0: "LIM x at_right a. g x :> at_top"
+    and ev:
+      "eventually (\<lambda>x. DERIV f x :> f' x) (at_right a)"
+      "eventually (\<lambda>x. DERIV g x :> g' x) (at_right a)"
+    and lim: "filterlim (\<lambda> x. (f' x / g' x)) at_top (at_right a)"
+  shows "filterlim (\<lambda> x. f x / g x) at_top (at_right a)"
+proof -
+  from lim have pos: "eventually (\<lambda>x. f' x / g' x > 0) (at_right a)"
+    unfolding filterlim_at_top_dense by blast
+  have "((\<lambda>x. g x / f x) \<longlongrightarrow> 0) (at_right a)"
+  proof (rule lhopital_right_at_top)
+    from pos show "eventually (\<lambda>x. f' x \<noteq> 0) (at_right a)" by eventually_elim auto
+    from tendsto_inverse_0_at_top[OF lim]
+      show "((\<lambda>x. g' x / f' x) \<longlongrightarrow> 0) (at_right a)" by simp
+  qed fact+
+  moreover from f_0 g_0 
+    have "eventually (\<lambda>x. f x > 0) (at_right a)" "eventually (\<lambda>x. g x > 0) (at_right a)"
+    unfolding filterlim_at_top_dense by blast+
+  hence "eventually (\<lambda>x. g x / f x > 0) (at_right a)" by eventually_elim simp
+  ultimately have "filterlim (\<lambda>x. inverse (g x / f x)) at_top (at_right a)"
+    by (rule filterlim_inverse_at_top)
+  thus ?thesis by simp
+qed
+find_theorems at_top at_bot uminus
+lemma lhopital_right_at_top_at_bot:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes f_0: "LIM x at_right a. f x :> at_top"
+  assumes g_0: "LIM x at_right a. g x :> at_bot"
+    and ev:
+      "eventually (\<lambda>x. DERIV f x :> f' x) (at_right a)"
+      "eventually (\<lambda>x. DERIV g x :> g' x) (at_right a)"
+    and lim: "filterlim (\<lambda> x. (f' x / g' x)) at_bot (at_right a)"
+  shows "filterlim (\<lambda> x. f x / g x) at_bot (at_right a)"
+proof -
+  from ev(2) have ev': "eventually (\<lambda>x. DERIV (\<lambda>x. -g x) x :> -g' x) (at_right a)"
+    by eventually_elim (auto intro: derivative_intros)
+  have "filterlim (\<lambda>x. f x / (-g x)) at_top (at_right a)"
+    by (rule lhopital_right_at_top_at_top[where f' = f' and g' = "\<lambda>x. -g' x"])
+       (insert assms ev', auto simp: filterlim_uminus_at_bot)
+  hence "filterlim (\<lambda>x. -(f x / g x)) at_top (at_right a)" by simp
+  thus ?thesis by (simp add: filterlim_uminus_at_bot)
+qed
+
+lemma lhopital_left_at_top_at_top:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes f_0: "LIM x at_left a. f x :> at_top"
+  assumes g_0: "LIM x at_left a. g x :> at_top"
+    and ev:
+      "eventually (\<lambda>x. DERIV f x :> f' x) (at_left a)"
+      "eventually (\<lambda>x. DERIV g x :> g' x) (at_left a)"
+    and lim: "filterlim (\<lambda> x. (f' x / g' x)) at_top (at_left a)"
+  shows "filterlim (\<lambda> x. f x / g x) at_top (at_left a)"
+  by (insert assms, unfold eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror,
+      rule lhopital_right_at_top_at_top[where f'="\<lambda>x. - f' (- x)"]) 
+     (insert assms, auto simp: DERIV_mirror)
+
+lemma lhopital_left_at_top_at_bot:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes f_0: "LIM x at_left a. f x :> at_top"
+  assumes g_0: "LIM x at_left a. g x :> at_bot"
+    and ev:
+      "eventually (\<lambda>x. DERIV f x :> f' x) (at_left a)"
+      "eventually (\<lambda>x. DERIV g x :> g' x) (at_left a)"
+    and lim: "filterlim (\<lambda> x. (f' x / g' x)) at_bot (at_left a)"
+  shows "filterlim (\<lambda> x. f x / g x) at_bot (at_left a)"
+  by (insert assms, unfold eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror,
+      rule lhopital_right_at_top_at_bot[where f'="\<lambda>x. - f' (- x)"]) 
+     (insert assms, auto simp: DERIV_mirror)
+
+lemma lhopital_at_top_at_top:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes f_0: "LIM x at a. f x :> at_top"
+  assumes g_0: "LIM x at a. g x :> at_top"
+    and ev:
+      "eventually (\<lambda>x. DERIV f x :> f' x) (at a)"
+      "eventually (\<lambda>x. DERIV g x :> g' x) (at a)"
+    and lim: "filterlim (\<lambda> x. (f' x / g' x)) at_top (at a)"
+  shows "filterlim (\<lambda> x. f x / g x) at_top (at a)"
+  using assms unfolding eventually_at_split filterlim_at_split
+  by (auto intro!: lhopital_right_at_top_at_top[of f a g f' g'] 
+                   lhopital_left_at_top_at_top[of f a g f' g'])
+
+lemma lhopital_at_top_at_bot:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes f_0: "LIM x at a. f x :> at_top"
+  assumes g_0: "LIM x at a. g x :> at_bot"
+    and ev:
+      "eventually (\<lambda>x. DERIV f x :> f' x) (at a)"
+      "eventually (\<lambda>x. DERIV g x :> g' x) (at a)"
+    and lim: "filterlim (\<lambda> x. (f' x / g' x)) at_bot (at a)"
+  shows "filterlim (\<lambda> x. f x / g x) at_bot (at a)"
+  using assms unfolding eventually_at_split filterlim_at_split
+  by (auto intro!: lhopital_right_at_top_at_bot[of f a g f' g'] 
+                   lhopital_left_at_top_at_bot[of f a g f' g'])
 
 end
