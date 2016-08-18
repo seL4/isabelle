@@ -269,6 +269,9 @@ lemma rel_fun_Collect_case_prodD:
   "rel_fun A B f g \<Longrightarrow> X \<subseteq> Collect (case_prod A) \<Longrightarrow> x \<in> X \<Longrightarrow> B ((f o fst) x) ((g o snd) x)"
   unfolding rel_fun_def by auto
 
+lemma eq_onp_mono_iff: "eq_onp P \<le> eq_onp Q \<longleftrightarrow> P \<le> Q"
+  unfolding eq_onp_def by auto
+
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"
 ML_file "Tools/BNF/bnf_def_tactics.ML"

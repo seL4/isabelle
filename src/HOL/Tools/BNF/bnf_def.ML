@@ -83,6 +83,7 @@ sig
   val pred_map_of_bnf: bnf -> thm
   val pred_mono_strong0_of_bnf: bnf -> thm
   val pred_mono_strong_of_bnf: bnf -> thm
+  val pred_mono_of_bnf: bnf -> thm
   val pred_set_of_bnf: bnf -> thm
   val pred_rel_of_bnf: bnf -> thm
   val pred_transfer_of_bnf: bnf -> thm
@@ -298,6 +299,7 @@ type facts = {
   pred_rel: thm lazy,
   pred_mono_strong0: thm lazy,
   pred_mono_strong: thm lazy,
+  pred_mono: thm lazy,
   pred_cong0: thm lazy,
   pred_cong: thm lazy,
   pred_cong_simp: thm lazy
@@ -308,7 +310,8 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
     map_transfer rel_eq rel_flip set_map rel_cong0 rel_cong rel_cong_simp rel_map rel_mono
     rel_mono_strong0 rel_mono_strong set_transfer rel_Grp rel_conversep rel_OO rel_refl
     rel_refl_strong rel_reflp rel_symp rel_transp rel_transfer rel_eq_onp pred_transfer pred_True
-    pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_cong0 pred_cong pred_cong_simp = {
+    pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_mono pred_cong0 pred_cong
+    pred_cong_simp = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
@@ -354,6 +357,7 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
   pred_rel = pred_rel,
   pred_mono_strong0 = pred_mono_strong0,
   pred_mono_strong = pred_mono_strong,
+  pred_mono = pred_mono,
   pred_cong0 = pred_cong0,
   pred_cong = pred_cong,
   pred_cong_simp = pred_cong_simp};
@@ -404,6 +408,7 @@ fun map_facts f {
   pred_rel,
   pred_mono_strong0,
   pred_mono_strong,
+  pred_mono,
   pred_cong0,
   pred_cong,
   pred_cong_simp} =
@@ -452,6 +457,7 @@ fun map_facts f {
     pred_rel = Lazy.map f pred_rel,
     pred_mono_strong0 = Lazy.map f pred_mono_strong0,
     pred_mono_strong = Lazy.map f pred_mono_strong,
+    pred_mono = Lazy.map f pred_mono,
     pred_cong0 = Lazy.map f pred_cong0,
     pred_cong = Lazy.map f pred_cong,
     pred_cong_simp = Lazy.map f pred_cong_simp};
@@ -587,6 +593,7 @@ val pred_def_of_bnf = #pred_def o #defs o rep_bnf;
 val pred_map_of_bnf = Lazy.force o #pred_map o #facts o rep_bnf;
 val pred_mono_strong0_of_bnf = Lazy.force o #pred_mono_strong0 o #facts o rep_bnf;
 val pred_mono_strong_of_bnf = Lazy.force o #pred_mono_strong o #facts o rep_bnf;
+val pred_mono_of_bnf = Lazy.force o #pred_mono o #facts o rep_bnf;
 val pred_cong0_of_bnf = Lazy.force o #pred_cong0 o #facts o rep_bnf;
 val pred_cong_of_bnf = Lazy.force o #pred_cong o #facts o rep_bnf;
 val pred_cong_simp_of_bnf = Lazy.force o #pred_cong_simp o #facts o rep_bnf;
@@ -809,6 +816,7 @@ val map_identN = "map_ident";
 val map_transferN = "map_transfer";
 val pred_mono_strong0N = "pred_mono_strong0";
 val pred_mono_strongN = "pred_mono_strong";
+val pred_monoN = "pred_mono";
 val pred_transferN = "pred_transfer";
 val pred_TrueN = "pred_True";
 val pred_mapN = "pred_map";
@@ -901,6 +909,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (map_transferN, [Lazy.force (#map_transfer facts)], []),
            (map_identN, [Lazy.force (#map_ident facts)], []),
            (pred_mono_strongN, [Lazy.force (#pred_mono_strong facts)], []),
+           (pred_monoN, [Lazy.force (#pred_mono facts)], []),
            (pred_congN, [Lazy.force (#pred_cong facts)], fundefcong_attrs),
            (pred_cong_simpN, [Lazy.force (#pred_cong_simp facts)], []),
            (pred_mapN, [Lazy.force (#pred_map facts)], []),
@@ -1699,6 +1708,20 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val pred_mono_strong = Lazy.map (Object_Logic.rulify lthy) pred_mono_strong0;
 
+        fun mk_pred_mono () =
+          let
+            val mono_prems = mk_pred_prems mk_leq;
+            val mono_concl = mk_pred_concl (uncurry mk_leq);
+          in
+            Goal.prove_sorry lthy [] []
+              (fold_rev Logic.all (Ps @ Ps_copy) (Logic.list_implies (mono_prems, mono_concl)))
+              (fn {context = ctxt, prems = _} =>
+                mk_pred_mono_tac ctxt (Lazy.force rel_eq_onp) (Lazy.force rel_mono))
+            |> Thm.close_derivation
+          end;
+
+        val pred_mono = Lazy.lazy mk_pred_mono;
+
         fun mk_pred_cong_prem mk_implies x z set P P_copy =
           Logic.all z
             (mk_implies (mk_Trueprop_mem (z, set $ x), mk_Trueprop_eq (P $ z, P_copy $ z)));
@@ -1946,8 +1969,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           map_ident0 map_ident map_transfer rel_eq rel_flip set_map rel_cong0 rel_cong rel_cong_simp
           rel_map rel_mono rel_mono_strong0 rel_mono_strong set_transfer rel_Grp rel_conversep
           rel_OO rel_refl rel_refl_strong rel_reflp rel_symp rel_transp rel_transfer rel_eq_onp
-          pred_transfer pred_True pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_cong0
-          pred_cong pred_cong_simp;
+          pred_transfer pred_True pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_mono
+          pred_cong0 pred_cong pred_cong_simp;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
 

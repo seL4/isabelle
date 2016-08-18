@@ -31,6 +31,7 @@ sig
   val mk_rel_cong_tac: Proof.context -> thm list * thm list -> thm -> tactic
   val mk_rel_eq_onp_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_pred_mono_strong0_tac: Proof.context -> thm -> thm -> tactic
+  val mk_pred_mono_tac: Proof.context -> thm -> thm -> tactic
 
   val mk_map_transfer_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> tactic
   val mk_pred_transfer_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
@@ -395,6 +396,10 @@ fun mk_rel_eq_onp_tac ctxt pred_def map_id0 rel_Grp =
 fun mk_pred_mono_strong0_tac ctxt pred_rel rel_mono_strong0 =
    unfold_thms_tac ctxt [pred_rel] THEN
    HEADGOAL (etac ctxt rel_mono_strong0 THEN_ALL_NEW etac ctxt @{thm eq_onp_mono0});
+
+fun mk_pred_mono_tac ctxt rel_eq_onp rel_mono =
+  unfold_thms_tac ctxt (map mk_sym [@{thm eq_onp_mono_iff}, rel_eq_onp]) THEN
+  HEADGOAL (rtac ctxt rel_mono THEN_ALL_NEW assume_tac ctxt);
 
 fun mk_pred_transfer_tac ctxt n in_rel pred_map pred_cong =
   HEADGOAL (EVERY' [REPEAT_DETERM_N (n + 1) o rtac ctxt rel_funI, dtac ctxt (in_rel RS iffD1),
