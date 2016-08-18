@@ -50,7 +50,7 @@ fun coinduction_context_tactic raw_vars opt_raw_thms prems =
           SOME raw_thms => raw_thms
         | NONE => goal |> Logic.strip_assums_concl |> find_coinduct);
       val thy = Proof_Context.theory_of ctxt;
-      val concl = Variable.focus NONE goal ctxt |> fst |> snd |> Logic.strip_imp_concl |> @{print};
+      val concl = Variable.focus NONE goal ctxt |> fst |> snd |> Logic.strip_imp_concl;
       val raw_thm = (case find_first (fn thm =>
             Pattern.matches thy (Thm.concl_of thm, concl)) raw_thms of
           SOME thm => thm
