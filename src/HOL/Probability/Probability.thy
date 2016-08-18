@@ -4,12 +4,13 @@
 
 theory Probability
 imports
-  Discrete_Topology
-  SPMF
-  PMF_Impl
-  Stream_Space
-  Random_Permutations
   Central_Limit_Theorem
+  Discrete_Topology
+  PMF_Impl
+  Projective_Limit
+  Random_Permutations
+  SPMF
+  Stream_Space
 begin
 
 end
