@@ -2042,7 +2042,7 @@ proof -
     by (rule filterlim_inverse_at_top)
   thus ?thesis by simp
 qed
-find_theorems at_top at_bot uminus
+
 lemma lhopital_right_at_top_at_bot:
   fixes f g :: "real \<Rightarrow> real"
   assumes f_0: "LIM x at_right a. f x :> at_top"
