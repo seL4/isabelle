@@ -290,12 +290,16 @@ fun typ_match thy TU tyenv = Sign.typ_match thy TU tyenv
   Instantiation does not affect the object, so matching ?a with ?a+1 works.
   Object is eta-contracted on the fly (by eta-expanding the pattern).
   Precondition: the pattern is already eta-contracted!
-  Types are matched on the fly*)
+  Types are matched on the fly.
+  The parameter inAbs is an optimization to avoid calling is_open;
+  it has the funny consequence that outside abstractions
+  ?x matches terms containing loose Bounds.
+*)
 fun first_order_match thy =
   let
-    fun mtch k (instsp as (tyinsts,insts)) = fn
+    fun mtch inAbs (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
-          if k > 0 andalso Term.is_open t then raise MATCH
+          if inAbs andalso Term.is_open t then raise MATCH
           else (case Envir.lookup1 insts (ixn, T) of
                   NONE => (typ_match thy (T, fastype_of t) tyinsts,
                            Vartab.update_new (ixn, (T, t)) insts)
@@ -306,11 +310,11 @@ fun first_order_match thy =
           if a=b then (typ_match thy (T,U) tyinsts, insts) else raise MATCH
       | (Bound i, Bound j)  =>  if  i=j  then  instsp  else raise MATCH
       | (Abs(_,T,t), Abs(_,U,u))  =>
-          mtch (k + 1) (typ_match thy (T,U) tyinsts, insts) (t,u)
-      | (f$t, g$u) => mtch k (mtch k instsp (f,g)) (t, u)
-      | (t, Abs(_,U,u))  =>  mtch (k + 1) instsp ((incr t)$(Bound 0), u)
+          mtch true (typ_match thy (T,U) tyinsts, insts) (t,u)
+      | (f$t, g$u) => mtch inAbs (mtch inAbs instsp (f,g)) (t, u)
+      | (t, Abs(_,U,u))  =>  mtch true instsp ((incr t)$(Bound 0), u)
       | _ => raise MATCH
-  in fn tu => fn env => mtch 0 env tu end;
+  in fn tu => fn env => mtch false env tu end;
 
 
 (* Matching of higher-order patterns *)
