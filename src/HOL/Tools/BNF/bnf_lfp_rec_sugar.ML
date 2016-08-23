@@ -62,17 +62,19 @@ sig
   val lfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val primrec: (binding * typ option * mixfix) list -> Specification.multi_specs ->
-    local_theory -> (term list * thm list * thm list list) * local_theory
+  val primrec: rec_option list -> (binding * typ option * mixfix) list ->
+    Specification.multi_specs -> local_theory ->
+    (term list * thm list * thm list list) * local_theory
   val primrec_cmd: rec_option list -> (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> local_theory ->
     (term list * thm list * thm list list) * local_theory
-  val primrec_global: (binding * typ option * mixfix) list ->
+  val primrec_global: rec_option list -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
-  val primrec_overloaded: (string * (string * typ) * bool) list ->
+  val primrec_overloaded: rec_option list -> (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
-  val primrec_simple: ((binding * typ) * mixfix) list -> term list -> local_theory ->
+  val primrec_simple: ((binding * typ) * mixfix) list -> term list ->
+    local_theory ->
     ((string list * (binding -> binding) list) *
     (term list * thm list * (int list list * thm list list))) * local_theory
 end;
@@ -666,17 +668,17 @@ fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
     old_primrec raw_fixes raw_specs lthy
     |>> (fn (ts, thms) => (ts, [], [thms]));
 
-val primrec = gen_primrec Old_Primrec.primrec Specification.check_multi_specs [];
+val primrec = gen_primrec Old_Primrec.primrec Specification.check_multi_specs;
 val primrec_cmd = gen_primrec Old_Primrec.primrec_cmd Specification.read_multi_specs;
 
-fun primrec_global fixes specs =
+fun primrec_global opts fixes specs =
   Named_Target.theory_init
-  #> primrec fixes specs
+  #> primrec opts fixes specs
   ##> Local_Theory.exit_global;
 
-fun primrec_overloaded ops fixes specs =
+fun primrec_overloaded opts ops fixes specs =
   Overloading.overloading ops
-  #> primrec fixes specs
+  #> primrec opts fixes specs
   ##> Local_Theory.exit_global;
 
 val rec_option_parser = Parse.group (K "option")

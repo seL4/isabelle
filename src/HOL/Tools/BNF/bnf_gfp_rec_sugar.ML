@@ -82,6 +82,9 @@ sig
   val gfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
+  val primcorec_ursive: bool -> corec_option list -> ((binding * typ) * mixfix) list ->
+    ((binding * Token.T list list) * term) list -> term option list ->  Proof.context ->
+    (term * 'a list) list list * (thm list list -> local_theory -> local_theory) * local_theory
   val primcorec_ursive_cmd: bool -> corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context ->
