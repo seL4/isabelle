@@ -2766,6 +2766,10 @@ by(subst zip_commute)(simp add: zip_replicate1)
 
 subsubsection \<open>@{const List.product} and @{const product_lists}\<close>
 
+lemma product_concat_map:
+  "List.product xs ys = concat (map (\<lambda>x. map (\<lambda>y. (x,y)) ys) xs)"
+by(induction xs) (simp)+
+
 lemma set_product[simp]: "set (List.product xs ys) = set xs \<times> set ys"
 by (induct xs) auto
 
