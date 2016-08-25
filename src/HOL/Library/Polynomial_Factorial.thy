@@ -997,19 +997,16 @@ end
 
 subsection \<open>Polynomials over a field are a Euclidean ring\<close>
 
-context
-begin
-
-private definition unit_factor_field_poly :: "'a :: field poly \<Rightarrow> 'a poly" where
+definition unit_factor_field_poly :: "'a :: field poly \<Rightarrow> 'a poly" where
   "unit_factor_field_poly p = [:lead_coeff p:]"
 
-private definition normalize_field_poly :: "'a :: field poly \<Rightarrow> 'a poly" where
+definition normalize_field_poly :: "'a :: field poly \<Rightarrow> 'a poly" where
   "normalize_field_poly p = smult (inverse (lead_coeff p)) p"
 
-private definition euclidean_size_field_poly :: "'a :: field poly \<Rightarrow> nat" where
+definition euclidean_size_field_poly :: "'a :: field poly \<Rightarrow> nat" where
   "euclidean_size_field_poly p = (if p = 0 then 0 else 2 ^ degree p)" 
 
-private lemma dvd_field_poly: "dvd.dvd (op * :: 'a :: field poly \<Rightarrow> _) = op dvd"
+lemma dvd_field_poly: "dvd.dvd (op * :: 'a :: field poly \<Rightarrow> _) = op dvd"
     by (intro ext) (simp_all add: dvd.dvd_def dvd_def)
 
 interpretation field_poly: 
@@ -1031,7 +1028,7 @@ next
 qed (auto simp: unit_factor_field_poly_def normalize_field_poly_def lead_coeff_mult 
        euclidean_size_field_poly_def intro!: degree_mod_less' degree_mult_right_le)
 
-private lemma field_poly_irreducible_imp_prime:
+lemma field_poly_irreducible_imp_prime:
   assumes "irreducible (p :: 'a :: field poly)"
   shows   "prime_elem p"
 proof -
@@ -1041,7 +1038,7 @@ proof -
       comm_semiring_1.irreducible_def[OF A] comm_semiring_1.prime_elem_def[OF A] by blast
 qed
 
-private lemma field_poly_msetprod_prime_factorization:
+lemma field_poly_msetprod_prime_factorization:
   assumes "(x :: 'a :: field poly) \<noteq> 0"
   shows   "msetprod (field_poly.prime_factorization x) = normalize_field_poly x"
 proof -
@@ -1051,7 +1048,7 @@ proof -
   with field_poly.msetprod_prime_factorization[OF assms] show ?thesis by simp
 qed
 
-private lemma field_poly_in_prime_factorization_imp_prime:
+lemma field_poly_in_prime_factorization_imp_prime:
   assumes "(p :: 'a :: field poly) \<in># field_poly.prime_factorization x"
   shows   "prime_elem p"
 proof -
@@ -1141,6 +1138,9 @@ next
   qed
 qed
 
+context
+begin
+
 private lemma irreducible_imp_prime_poly:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "irreducible p"
@@ -1229,8 +1229,13 @@ lemma prime_elem_linear_poly:
   shows "b \<noteq> 0 \<Longrightarrow> coprime a b \<Longrightarrow> prime_elem [:a,b:]"
   by (rule irreducible_imp_prime_poly, rule irreducible_linear_poly)
 
+end
+
   
 subsection \<open>Prime factorisation of polynomials\<close>   
+
+context
+begin 
 
 private lemma poly_prime_factorization_exists_content_1:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
