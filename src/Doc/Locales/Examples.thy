@@ -320,7 +320,8 @@ text \<open>
 
 text \<open>These assumptions refer to the predicates for infimum
   and supremum defined for @{text partial_order} in the previous
-  section.  We now introduce the notions of meet and join.\<close>
+  section.  We now introduce the notions of meet and join,
+  together with an example theorem.\<close>
 
   definition
     meet (infixl "\<sqinter>" 70) where "x \<sqinter> y = (THE inf. is_inf x y inf)"
@@ -345,8 +346,7 @@ text \<open>These assumptions refer to the predicates for infimum
       by (rule theI) (rule is_inf_uniq [OF _ \<open>is_inf x y i\<close>])
   qed
 
-  lemma %invisible meet_left [intro?]:
-    "x \<sqinter> y \<sqsubseteq> x"
+  lemma meet_left(*<*)[intro?](*>*): "x \<sqinter> y \<sqsubseteq> x"
     by (rule is_inf_lower) (rule is_inf_meet)
 
   lemma %invisible meet_right [intro?]:
@@ -568,8 +568,7 @@ text \<open>These assumptions refer to the predicates for infimum
 
 text \<open>Locales for total orders and distributive lattices follow to
   establish a sufficiently rich landscape of locales for
-  further examples in this tutorial.  Each comes with an example
-  theorem.\<close>
+  further examples in this tutorial.\<close>
 
   locale total_order = partial_order +
     assumes total: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
