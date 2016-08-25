@@ -794,6 +794,44 @@ lemma termdiffs_strong_converges_everywhere:
   using termdiffs_strong[OF assms[of "of_real (norm x + 1)"], of x]
   by (force simp del: of_real_add)
 
+lemma termdiffs_strong':
+  fixes z :: "'a :: {real_normed_field,banach}"
+  assumes "\<And>z. norm z < K \<Longrightarrow> summable (\<lambda>n. c n * z ^ n)"
+  assumes "norm z < K"
+  shows   "((\<lambda>z. \<Sum>n. c n * z^n) has_field_derivative (\<Sum>n. diffs c n * z^n)) (at z)"
+proof (rule termdiffs_strong)
+  define L :: real where "L =  (norm z + K) / 2"
+  have "0 \<le> norm z" by simp
+  also note \<open>norm z < K\<close>
+  finally have K: "K \<ge> 0" by simp
+  from assms K have L: "L \<ge> 0" "norm z < L" "L < K" by (simp_all add: L_def)
+  from L show "norm z < norm (of_real L :: 'a)" by simp
+  from L show "summable (\<lambda>n. c n * of_real L ^ n)" by (intro assms(1)) simp_all
+qed
+
+lemma termdiffs_sums_strong:
+  fixes z :: "'a :: {banach,real_normed_field}"
+  assumes sums: "\<And>z. norm z < K \<Longrightarrow> (\<lambda>n. c n * z ^ n) sums f z"
+  assumes deriv: "(f has_field_derivative f') (at z)"
+  assumes norm: "norm z < K"
+  shows   "(\<lambda>n. diffs c n * z ^ n) sums f'"
+proof -
+  have summable: "summable (\<lambda>n. diffs c n * z^n)"
+    by (intro termdiff_converges[OF norm] sums_summable[OF sums])
+  from norm have "eventually (\<lambda>z. z \<in> norm -` {..<K}) (nhds z)"
+    by (intro eventually_nhds_in_open open_vimage) 
+       (simp_all add: continuous_on_norm continuous_on_id)
+  hence eq: "eventually (\<lambda>z. (\<Sum>n. c n * z^n) = f z) (nhds z)"
+    by eventually_elim (insert sums, simp add: sums_iff)
+
+  have "((\<lambda>z. \<Sum>n. c n * z^n) has_field_derivative (\<Sum>n. diffs c n * z^n)) (at z)"
+    by (intro termdiffs_strong'[OF _ norm] sums_summable[OF sums])
+  hence "(f has_field_derivative (\<Sum>n. diffs c n * z^n)) (at z)"
+    by (subst (asm) DERIV_cong_ev[OF refl eq refl])
+  from this and deriv have "(\<Sum>n. diffs c n * z^n) = f'" by (rule DERIV_unique)
+  with summable show ?thesis by (simp add: sums_iff)
+qed
+
 lemma isCont_powser:
   fixes K x :: "'a::{real_normed_field,banach}"
   assumes "summable (\<lambda>n. c n * K ^ n)"
@@ -1114,6 +1152,18 @@ proof -
   from for_subinterval[OF this] show ?thesis .
 qed
 
+lemma geometric_deriv_sums:
+  fixes z :: "'a :: {real_normed_field,banach}"
+  assumes "norm z < 1"
+  shows   "(\<lambda>n. of_nat (Suc n) * z ^ n) sums (1 / (1 - z)^2)"
+proof -
+  have "(\<lambda>n. diffs (\<lambda>n. 1) n * z^n) sums (1 / (1 - z)^2)"
+  proof (rule termdiffs_sums_strong)
+    fix z :: 'a assume "norm z < 1"
+    thus "(\<lambda>n. 1 * z^n) sums (1 / (1 - z))" by (simp add: geometric_sums)
+  qed (insert assms, auto intro!: derivative_eq_intros simp: power2_eq_square)
+  thus ?thesis unfolding diffs_def by simp
+qed
 
 lemma isCont_pochhammer [continuous_intros]: "isCont (\<lambda>z. pochhammer z n) z"
   for z :: "'a::real_normed_field"

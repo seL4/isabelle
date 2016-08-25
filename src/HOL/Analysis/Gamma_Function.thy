@@ -709,6 +709,37 @@ lemma Polygamma_converges':
   using uniformly_convergent_imp_convergent[OF Polygamma_converges[OF assms, of 1], of z]
   by (simp add: summable_iff_convergent)
 
+lemma Digamma_LIMSEQ:
+  fixes z :: "'a :: {banach,real_normed_field}"
+  assumes z: "z \<noteq> 0"
+  shows   "(\<lambda>m. of_real (ln (real m)) - (\<Sum>n<m. inverse (z + of_nat n))) \<longlonglongrightarrow> Digamma z"
+proof -
+  have "(\<lambda>n. of_real (ln (real n / (real (Suc n))))) \<longlonglongrightarrow> (of_real (ln 1) :: 'a)"
+    by (intro tendsto_intros LIMSEQ_n_over_Suc_n) simp_all
+  hence "(\<lambda>n. of_real (ln (real n / (real n + 1)))) \<longlonglongrightarrow> (0 :: 'a)" by (simp add: add_ac)
+  hence lim: "(\<lambda>n. of_real (ln (real n)) - of_real (ln (real n + 1))) \<longlonglongrightarrow> (0::'a)"
+  proof (rule Lim_transform_eventually [rotated])
+    show "eventually (\<lambda>n. of_real (ln (real n / (real n + 1))) = 
+            of_real (ln (real n)) - (of_real (ln (real n + 1)) :: 'a)) at_top"
+      using eventually_gt_at_top[of "0::nat"] by eventually_elim (simp add: ln_div)
+  qed
+
+  from summable_Digamma[OF z]
+    have "(\<lambda>n. inverse (of_nat (n+1)) - inverse (z + of_nat n)) 
+              sums (Digamma z + euler_mascheroni)"
+    by (simp add: Digamma_def summable_sums)
+  from sums_diff[OF this euler_mascheroni_sum]
+    have "(\<lambda>n. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1)) - inverse (z + of_nat n))
+            sums Digamma z" by (simp add: add_ac)
+  hence "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1))) - 
+              (\<Sum>n<m. inverse (z + of_nat n))) \<longlonglongrightarrow> Digamma z"
+    by (simp add: sums_def setsum_subtractf)
+  also have "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1)))) = 
+                 (\<lambda>m. of_real (ln (m + 1)) :: 'a)"
+    by (subst setsum_lessThan_telescope) simp_all
+  finally show ?thesis by (rule Lim_transform) (insert lim, simp)
+qed
+
 lemma has_field_derivative_ln_Gamma_complex [derivative_intros]:
   fixes z :: complex
   assumes z: "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
@@ -1640,6 +1671,12 @@ lemma Polygamma_real_mono:
   shows   "Polygamma n x \<le> Polygamma n y"
   using Polygamma_real_strict_mono[OF assms(1) _ assms(3), of y] assms(2)
   by (cases "x = y") simp_all
+
+lemma Digamma_real_strict_mono: "(0::real) < x \<Longrightarrow> x < y \<Longrightarrow> Digamma x < Digamma y"
+  by (rule Polygamma_real_strict_mono) simp_all
+
+lemma Digamma_real_mono: "(0::real) < x \<Longrightarrow> x \<le> y \<Longrightarrow> Digamma x \<le> Digamma y"
+  by (rule Polygamma_real_mono) simp_all
 
 lemma Digamma_real_ge_three_halves_pos:
   assumes "x \<ge> 3/2"
@@ -2870,6 +2907,18 @@ lemma sin_product_formula_real':
   shows   "(\<lambda>n. (\<Prod>k=1..n. 1 - x^2 / of_nat k^2)) \<longlonglongrightarrow> sin (pi * x) / (pi * x)"
   using tendsto_divide[OF sin_product_formula_real[of x] tendsto_const[of "pi * x"]] assms
   by simp
+
+theorem wallis: "(\<lambda>n. \<Prod>k=1..n. (4*real k^2) / (4*real k^2 - 1)) \<longlonglongrightarrow> pi / 2"
+proof -
+  from tendsto_inverse[OF tendsto_mult[OF 
+         sin_product_formula_real[of "1/2"] tendsto_const[of "2/pi"]]]
+    have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) \<longlonglongrightarrow> pi/2" 
+    by (simp add: setprod_inversef [symmetric])
+  also have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) =
+               (\<lambda>n. (\<Prod>k=1..n. (4*real k^2)/(4*real k^2 - 1)))"
+    by (intro ext setprod.cong refl) (simp add: divide_simps)
+  finally show ?thesis .
+qed
 
 
 subsection \<open>The Solution to the Basel problem\<close>

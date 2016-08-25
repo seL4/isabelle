@@ -1396,6 +1396,22 @@ proof -
   ultimately show ?thesis by (simp add: sums_iff)
 qed
 
+lemma Ln_series': "cmod z < 1 \<Longrightarrow> (\<lambda>n. - ((-z)^n) / of_nat n) sums ln (1 + z)"
+  by (drule Ln_series) (simp add: power_minus')
+
+lemma ln_series': 
+  assumes "abs (x::real) < 1"
+  shows   "(\<lambda>n. - ((-x)^n) / of_nat n) sums ln (1 + x)"
+proof -
+  from assms have "(\<lambda>n. - ((-of_real x)^n) / of_nat n) sums ln (1 + complex_of_real x)"
+    by (intro Ln_series') simp_all
+  also have "(\<lambda>n. - ((-of_real x)^n) / of_nat n) = (\<lambda>n. complex_of_real (- ((-x)^n) / of_nat n))"
+    by (rule ext) simp
+  also from assms have "ln (1 + complex_of_real x) = of_real (ln (1 + x))" 
+    by (subst Ln_of_real [symmetric]) simp_all
+  finally show ?thesis by (subst (asm) sums_of_real_iff)
+qed
+
 lemma Ln_approx_linear:
   fixes z :: complex
   assumes "norm z < 1"

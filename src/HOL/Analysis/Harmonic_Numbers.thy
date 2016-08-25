@@ -173,12 +173,22 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma euler_mascheroni_sum:
+lemma euler_mascheroni_sum_real:
   "(\<lambda>n. inverse (of_nat (n+1)) + ln (of_nat (n+1)) - ln (of_nat (n+2)) :: real)
        sums euler_mascheroni"
  using sums_add[OF telescope_sums[OF LIMSEQ_Suc[OF euler_mascheroni_LIMSEQ]]
                    telescope_sums'[OF LIMSEQ_inverse_real_of_nat]]
   by (simp_all add: harm_def algebra_simps)
+
+lemma euler_mascheroni_sum:
+  "(\<lambda>n. inverse (of_nat (n+1)) + of_real (ln (of_nat (n+1))) - of_real (ln (of_nat (n+2))))
+       sums (euler_mascheroni :: 'a :: {banach, real_normed_field})"
+proof -
+  have "(\<lambda>n. of_real (inverse (of_nat (n+1)) + ln (of_nat (n+1)) - ln (of_nat (n+2))))
+       sums (of_real euler_mascheroni :: 'a :: {banach, real_normed_field})"
+    by (subst sums_of_real_iff) (rule euler_mascheroni_sum_real)
+  thus ?thesis by simp
+qed
 
 lemma alternating_harmonic_series_sums: "(\<lambda>k. (-1)^k / real_of_nat (Suc k)) sums ln 2"
 proof -
@@ -342,17 +352,18 @@ proof -
   let ?g = "\<lambda>n. ln (of_nat (n+2)) - ln (of_nat (n+1)) - inverse (of_nat (n+1)) :: real"
   define inv where [abs_def]: "inv n = inverse (real_of_nat n)" for n
   fix n :: nat
-  note summable = sums_summable[OF euler_mascheroni_sum, folded D_def]
+  note summable = sums_summable[OF euler_mascheroni_sum_real, folded D_def]
   have sums: "(\<lambda>k. (inv (Suc (k + (n+1))) - inv (Suc (Suc k + (n+1))))/2) sums ((inv (Suc (0 + (n+1))) - 0)/2)"
     unfolding inv_def
     by (intro sums_divide telescope_sums' LIMSEQ_ignore_initial_segment LIMSEQ_inverse_real_of_nat)
   have sums': "(\<lambda>k. (inv (Suc (k + n)) - inv (Suc (Suc k + n)))/2) sums ((inv (Suc (0 + n)) - 0)/2)"
     unfolding inv_def
     by (intro sums_divide telescope_sums' LIMSEQ_ignore_initial_segment LIMSEQ_inverse_real_of_nat)
-  from euler_mascheroni_sum have "euler_mascheroni = (\<Sum>k. D k)"
+  from euler_mascheroni_sum_real have "euler_mascheroni = (\<Sum>k. D k)"
     by (simp add: sums_iff D_def)
   also have "\<dots> = (\<Sum>k. D (k + Suc n)) + (\<Sum>k\<le>n. D k)"
-    by (subst suminf_split_initial_segment[OF summable, of "Suc n"], subst lessThan_Suc_atMost) simp
+    by (subst suminf_split_initial_segment[OF summable, of "Suc n"], 
+        subst lessThan_Suc_atMost) simp
   finally have sum: "(\<Sum>k\<le>n. D k) - euler_mascheroni = -(\<Sum>k. D (k + Suc n))" by simp
 
   note sum

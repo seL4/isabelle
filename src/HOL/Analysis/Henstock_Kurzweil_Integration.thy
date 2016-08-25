@@ -12533,4 +12533,101 @@ lemma integrable_on_powr_from_0:
   shows   "(\<lambda>x. x powr a) integrable_on {0..c}"
   using has_integral_powr_from_0[OF assms] unfolding integrable_on_def by blast
 
+lemma has_integral_powr_to_inf:
+  fixes a e :: real
+  assumes "e < -1" "a > 0"
+  shows   "((\<lambda>x. x powr e) has_integral -(a powr (e + 1)) / (e + 1)) {a..}"
+proof -
+  define f :: "nat \<Rightarrow> real \<Rightarrow> real" where "f = (\<lambda>n x. if x \<in> {a..n} then x powr e else 0)"
+  define F where "F = (\<lambda>x. x powr (e + 1) / (e + 1))"
+
+  have has_integral_f: "(f n has_integral (F n - F a)) {a..}" 
+    if n: "n \<ge> a" for n :: nat
+  proof -
+    from n assms have "((\<lambda>x. x powr e) has_integral (F n - F a)) {a..n}"
+      by (intro fundamental_theorem_of_calculus) (auto intro!: derivative_eq_intros 
+            simp: has_field_derivative_iff_has_vector_derivative [symmetric] F_def)
+    hence "(f n has_integral (F n - F a)) {a..n}"
+      by (rule has_integral_eq [rotated]) (simp add: f_def)
+    thus "(f n has_integral (F n - F a)) {a..}"
+      by (rule has_integral_on_superset [rotated 2]) (auto simp: f_def)
+  qed
+  have integral_f: "integral {a..} (f n) = (if n \<ge> a then F n - F a else 0)" for n :: nat
+  proof (cases "n \<ge> a")
+    case True
+    with has_integral_f[OF this] show ?thesis by (simp add: integral_unique)
+  next
+    case False
+    have "(f n has_integral 0) {a}" by (rule has_integral_refl)
+    hence "(f n has_integral 0) {a..}" 
+      by (rule has_integral_on_superset [rotated 2]) (insert False, simp_all add: f_def)
+    with False show ?thesis by (simp add: integral_unique)
+  qed
+  
+  have *: "(\<lambda>x. x powr e) integrable_on {a..} \<and> 
+           (\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> integral {a..} (\<lambda>x. x powr e)"
+  proof (intro monotone_convergence_increasing allI ballI)
+    fix n :: nat
+    from assms have "(\<lambda>x. x powr e) integrable_on {a..n}"
+      by (auto intro!: integrable_continuous_real continuous_intros)
+    hence "f n integrable_on {a..n}"
+      by (rule integrable_eq [rotated]) (auto simp: f_def)
+    thus "f n integrable_on {a..}"
+      by (rule integrable_on_superset [rotated 2]) (auto simp: f_def)
+  next
+    fix n :: nat and x :: real
+    show "f n x \<le> f (Suc n) x" by (auto simp: f_def)
+  next
+    fix x :: real assume x: "x \<in> {a..}"
+    from filterlim_real_sequentially
+      have "eventually (\<lambda>n. real n \<ge> x) at_top"
+      by (simp add: filterlim_at_top)
+    with x have "eventually (\<lambda>n. f n x = x powr e) at_top" 
+      by (auto elim!: eventually_mono simp: f_def)
+    thus "(\<lambda>n. f n x) \<longlonglongrightarrow> x powr e" by (simp add: Lim_eventually)
+  next
+    have "norm (integral {a..} (f n)) \<le> -F a" for n :: nat
+    proof (cases "n \<ge> a")
+      case True
+      with assms have "a powr (e + 1) \<ge> n powr (e + 1)"
+        by (intro powr_mono2') simp_all
+      with assms show ?thesis by (auto simp: divide_simps F_def integral_f)
+    qed (insert assms, simp add: integral_f F_def divide_simps)
+    thus "bounded {integral {a..} (f n) |n. True}"
+      unfolding bounded_iff by (intro exI[of _ "-F a"]) auto
+  qed
+
+  from filterlim_real_sequentially
+    have "eventually (\<lambda>n. real n \<ge> a) at_top"
+    by (simp add: filterlim_at_top)
+  hence "eventually (\<lambda>n. F n - F a = integral {a..} (f n)) at_top"
+    by eventually_elim (simp add: integral_f)
+  moreover have "(\<lambda>n. F n - F a) \<longlonglongrightarrow> 0 / (e + 1) - F a" unfolding F_def
+    by (insert assms, (rule tendsto_intros filterlim_compose[OF tendsto_neg_powr] 
+          filterlim_ident filterlim_real_sequentially | simp)+)
+  hence "(\<lambda>n. F n - F a) \<longlonglongrightarrow> -F a" by simp
+  ultimately have "(\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> -F a" by (rule Lim_transform_eventually)
+  from conjunct2[OF *] and this 
+    have "integral {a..} (\<lambda>x. x powr e) = -F a" by (rule LIMSEQ_unique)
+  with conjunct1[OF *] show ?thesis
+    by (simp add: has_integral_integral F_def)
+qed
+
+lemma has_integral_inverse_power_to_inf:
+  fixes a :: real and n :: nat
+  assumes "n > 1" "a > 0"
+  shows   "((\<lambda>x. 1 / x ^ n) has_integral 1 / (real (n - 1) * a ^ (n - 1))) {a..}"
+proof -
+  from assms have "real_of_int (-int n) < -1" by simp
+  note has_integral_powr_to_inf[OF this \<open>a > 0\<close>]
+  also have "- (a powr (real_of_int (- int n) + 1)) / (real_of_int (- int n) + 1) = 
+                 1 / (real (n - 1) * a powr (real (n - 1)))" using assms
+    by (simp add: divide_simps powr_add [symmetric] of_nat_diff)
+  also from assms have "a powr (real (n - 1)) = a ^ (n - 1)"
+    by (intro powr_realpow)
+  finally show ?thesis
+    by (rule has_integral_eq [rotated])
+       (insert assms, simp_all add: powr_minus powr_realpow divide_simps)
+qed
+
 end

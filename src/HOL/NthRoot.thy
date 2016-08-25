@@ -469,6 +469,14 @@ lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"
 lemma real_less_rsqrt: "x\<^sup>2 < y \<Longrightarrow> x < sqrt y"
   using real_sqrt_less_mono[of "x\<^sup>2" y] by simp
 
+lemma real_sqrt_power_even: 
+  assumes "even n" "x \<ge> 0"
+  shows   "sqrt x ^ n = x ^ (n div 2)"
+proof -
+  from assms obtain k where "n = 2*k" by (auto elim!: evenE)
+  with assms show ?thesis by (simp add: power_mult)
+qed
+
 lemma sqrt_le_D: "sqrt x \<le> y \<Longrightarrow> x \<le> y\<^sup>2"
   by (meson not_le real_less_rsqrt)
 

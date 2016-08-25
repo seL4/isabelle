@@ -1519,7 +1519,7 @@ lemma filterlim_tendsto_neg_mult_at_bot:
   unfolding filterlim_uminus_at_bot tendsto_minus_cancel_left by simp
 
 lemma filterlim_pow_at_top:
-  fixes f :: "real \<Rightarrow> real"
+  fixes f :: "'a \<Rightarrow> real"
   assumes "0 < n"
     and f: "LIM x F. f x :> at_top"
   shows "LIM x F. (f x)^n :: real :> at_top"

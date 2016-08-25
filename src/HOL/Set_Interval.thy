@@ -1846,6 +1846,14 @@ lemma setsum_telescope'':
   shows   "(\<Sum>k\<in>{Suc m..n}. f k - f (k - 1)) = f n - (f m :: 'a :: ab_group_add)"
   by (rule dec_induct[OF assms]) (simp_all add: algebra_simps)
 
+lemma setsum_lessThan_telescope:
+  "(\<Sum>n<m. f (Suc n) - f n :: 'a :: ab_group_add) = f m - f 0"
+  by (induction m) (simp_all add: algebra_simps)
+
+lemma setsum_lessThan_telescope':
+  "(\<Sum>n<m. f n - f (Suc n) :: 'a :: ab_group_add) = f 0 - f m"
+  by (induction m) (simp_all add: algebra_simps)
+
 
 subsubsection \<open>The formula for geometric sums\<close>
 
