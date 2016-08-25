@@ -403,6 +403,11 @@ fun all_registrations_of context = get_registrations context I;
 
 (*** Activate context elements of locale ***)
 
+fun activate_err msg (name, morph) context =
+  cat_error msg ("The above error(s) occurred while activating locale instance\n" ^
+    (pretty_reg (Context.proof_of context) Morphism.identity (name, morph) |>
+      Pretty.string_of));
+
 (* Declarations, facts and entire locale content *)
 
 fun activate_syntax_decls (name, morph) context =
@@ -412,6 +417,7 @@ fun activate_syntax_decls (name, morph) context =
   in
     context
     |> fold_rev (fn (decl, _) => decl morph) syntax_decls
+      handle ERROR msg => activate_err msg (name, morph) context
   end;
 
 fun activate_notes activ_elem transfer context export' (name, morph) input =
