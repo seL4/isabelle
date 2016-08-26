@@ -534,6 +534,16 @@ lemma pochhammer_Suc: "pochhammer a (Suc n) = pochhammer a n * (a + of_nat n)"
 
 end
 
+lemma pochhammer_nonneg: 
+  fixes x :: "'a :: linordered_semidom"
+  shows "x > 0 \<Longrightarrow> pochhammer x n \<ge> 0"
+  by (induction n) (auto simp: pochhammer_Suc intro!: mult_nonneg_nonneg add_nonneg_nonneg)
+
+lemma pochhammer_pos: 
+  fixes x :: "'a :: linordered_semidom"
+  shows "x > 0 \<Longrightarrow> pochhammer x n > 0"
+  by (induction n) (auto simp: pochhammer_Suc intro!: mult_pos_pos add_pos_nonneg)
+
 lemma pochhammer_of_nat: "pochhammer (of_nat x) n = of_nat (pochhammer x n)"
   by (simp add: pochhammer_setprod)
 

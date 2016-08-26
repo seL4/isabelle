@@ -1716,6 +1716,151 @@ lemma log_convex_Gamma_real: "convex_on {0<..} (ln \<circ> Gamma :: real \<Right
            simp: o_def Gamma_eq_zero_iff elim!: nonpos_Ints_cases')
 
 
+subsection \<open>The uniqueness of the real Gamma function\<close>
+
+text \<open>
+  The following is a proof of the Bohr--Mollerup theorem, which states that 
+  any log-convex function $G$ on the positive reals that fulfils $G(1) = 1$ and
+  satisfies the functional equation $G(x+1) = x G(x)$ must be equal to the 
+  Gamma function.
+  In principle, if $G$ is a holomorphic complex function, one could then extend 
+  this from the positive reals to the entire complex plane (minus the non-positive 
+  integers, where the Gamma function is not defined).
+\<close>
+
+context
+  fixes G :: "real \<Rightarrow> real"
+  assumes G_1: "G 1 = 1"
+  assumes G_plus1: "x > 0 \<Longrightarrow> G (x + 1) = x * G x"
+  assumes G_pos: "x > 0 \<Longrightarrow> G x > 0"
+  assumes log_convex_G: "convex_on {0<..} (ln \<circ> G)"
+begin
+
+private lemma G_fact: "G (of_nat n + 1) = fact n"
+  using G_plus1[of "real n + 1" for n]
+  by (induction n) (simp_all add: G_1 G_plus1)
+
+private definition S :: "real \<Rightarrow> real \<Rightarrow> real" where
+  "S x y = (ln (G y) - ln (G x)) / (y - x)"
+
+private lemma S_eq: 
+  "n \<ge> 2 \<Longrightarrow> S (of_nat n) (of_nat n + x) = (ln (G (real n + x)) - ln (fact (n - 1))) / x"
+  by (subst G_fact [symmetric]) (simp add: S_def add_ac of_nat_diff)
+
+private lemma G_lower:
+  assumes x: "x > 0" and n: "n \<ge> 1"
+  shows  "Gamma_series x n \<le> G x"
+proof -
+  have "(ln \<circ> G) (real (Suc n)) \<le> ((ln \<circ> G) (real (Suc n) + x) -
+          (ln \<circ> G) (real (Suc n) - 1)) / (real (Suc n) + x - (real (Suc n) - 1)) *
+           (real (Suc n) - (real (Suc n) - 1)) + (ln \<circ> G) (real (Suc n) - 1)"
+    using x n by (intro convex_onD_Icc' convex_on_subset[OF log_convex_G]) auto
+  hence "S (of_nat n) (of_nat (Suc n)) \<le> S (of_nat (Suc n)) (of_nat (Suc n) + x)" 
+    unfolding S_def using x by (simp add: field_simps)
+  also have "S (of_nat n) (of_nat (Suc n)) = ln (fact n) - ln (fact (n-1))"
+    unfolding S_def using n 
+    by (subst (1 2) G_fact [symmetric]) (simp_all add: add_ac of_nat_diff)
+  also have "\<dots> = ln (fact n / fact (n-1))" by (subst ln_div) simp_all
+  also from n have "fact n / fact (n - 1) = n" by (cases n) simp_all
+  finally have "x * ln (real n) + ln (fact n) \<le> ln (G (real (Suc n) + x))"
+    using x n by (subst (asm) S_eq) (simp_all add: field_simps)
+  also have "x * ln (real n) + ln (fact n) = ln (exp (x * ln (real n)) * fact n)" 
+    using x by (simp add: ln_mult)
+  finally have "exp (x * ln (real n)) * fact n \<le> G (real (Suc n) + x)" using x
+    by (subst (asm) ln_le_cancel_iff) (simp_all add: G_pos)
+  also have "G (real (Suc n) + x) = pochhammer x (Suc n) * G x"
+    using G_plus1[of "real (Suc n) + x" for n] G_plus1[of x] x
+    by (induction n) (simp_all add: pochhammer_Suc add_ac)
+  finally show "Gamma_series x n \<le> G x"
+    using x by (simp add: field_simps pochhammer_pos Gamma_series_def)
+qed
+
+private lemma G_upper:
+  assumes x: "x > 0" "x \<le> 1" and n: "n \<ge> 2"
+  shows  "G x \<le> Gamma_series x n * (1 + x / real n)"
+proof -
+  have "(ln \<circ> G) (real n + x) \<le> ((ln \<circ> G) (real n + 1) -
+          (ln \<circ> G) (real n)) / (real n + 1 - (real n)) *
+           ((real n + x) - real n) + (ln \<circ> G) (real n)" 
+    using x n by (intro convex_onD_Icc' convex_on_subset[OF log_convex_G]) auto
+  hence "S (of_nat n) (of_nat n + x) \<le> S (of_nat n) (of_nat n + 1)" 
+    unfolding S_def using x by (simp add: field_simps)
+  also from n have "S (of_nat n) (of_nat n + 1) = ln (fact n) - ln (fact (n-1))"
+    by (subst (1 2) G_fact [symmetric]) (simp add: S_def add_ac of_nat_diff)
+  also have "\<dots> = ln (fact n / (fact (n-1)))" using n by (subst ln_div) simp_all
+  also from n have "fact n / fact (n - 1) = n" by (cases n) simp_all
+  finally have "ln (G (real n + x)) \<le> x * ln (real n) + ln (fact (n - 1))" 
+    using x n by (subst (asm) S_eq) (simp_all add: field_simps)
+  also have "\<dots> = ln (exp (x * ln (real n)) * fact (n - 1))" using x
+    by (simp add: ln_mult)
+  finally have "G (real n + x) \<le> exp (x * ln (real n)) * fact (n - 1)" using x
+    by (subst (asm) ln_le_cancel_iff) (simp_all add: G_pos)
+  also have "G (real n + x) = pochhammer x n * G x"
+    using G_plus1[of "real n + x" for n] x
+    by (induction n) (simp_all add: pochhammer_Suc add_ac)
+  finally have "G x \<le> exp (x * ln (real n)) * fact (n- 1) / pochhammer x n"
+    using x by (simp add: field_simps pochhammer_pos)
+  also from n have "fact (n - 1) = fact n / n" by (cases n) simp_all
+  also have "exp (x * ln (real n)) * \<dots> / pochhammer x n = 
+               Gamma_series x n * (1 + x / real n)" using n x
+    by (simp add: Gamma_series_def divide_simps pochhammer_Suc)
+  finally show ?thesis .
+qed
+
+private lemma G_eq_Gamma_aux:
+  assumes x: "x > 0" "x \<le> 1"
+  shows   "G x = Gamma x"
+proof (rule antisym)
+  show "G x \<ge> Gamma x"
+  proof (rule tendsto_ge_const)
+    from G_lower[of x] show "eventually (\<lambda>n. Gamma_series x n \<le> G x) sequentially"
+      using eventually_ge_at_top[of "1::nat"] x by (auto elim!: eventually_mono)
+  qed (simp_all add: Gamma_series_LIMSEQ)
+next
+  show "G x \<le> Gamma x"
+  proof (rule tendsto_le_const)
+    have "(\<lambda>n. Gamma_series x n * (1 + x / real n)) \<longlonglongrightarrow> Gamma x * (1 + 0)"
+      by (rule tendsto_intros real_tendsto_divide_at_top 
+               Gamma_series_LIMSEQ filterlim_real_sequentially)+
+    thus "(\<lambda>n. Gamma_series x n * (1 + x / real n)) \<longlonglongrightarrow> Gamma x" by simp
+  next
+    from G_upper[of x] show "eventually (\<lambda>n. Gamma_series x n * (1 + x / real n) \<ge> G x) sequentially"
+      using eventually_ge_at_top[of "2::nat"] x by (auto elim!: eventually_mono)
+  qed simp_all
+qed
+
+theorem Gamma_pos_real_unique:
+  assumes x: "x > 0"
+  shows   "G x = Gamma x"
+proof -
+  have G_eq: "G (real n + x) = Gamma (real n + x)" if "x \<in> {0<..1}" for n x using that
+  proof (induction n)
+    case (Suc n)
+    from Suc have "x + real n > 0" by simp
+    hence "x + real n \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
+    with Suc show ?case using G_plus1[of "real n + x"] Gamma_plus1[of "real n + x"]
+      by (auto simp: add_ac)
+  qed (simp_all add: G_eq_Gamma_aux)
+  
+  show ?thesis
+  proof (cases "frac x = 0")
+    case True
+    hence "x = of_int (floor x)" by (simp add: frac_def)
+    with x have x_eq: "x = of_nat (nat (floor x) - 1) + 1" by simp
+    show ?thesis by (subst (1 2) x_eq, rule G_eq) simp_all
+  next
+    case False
+    from assms have x_eq: "x = of_nat (nat (floor x)) + frac x"
+      by (simp add: frac_def)
+    have frac_le_1: "frac x \<le> 1" unfolding frac_def by linarith
+    show ?thesis
+      by (subst (1 2) x_eq, rule G_eq, insert False frac_le_1) simp_all
+  qed
+qed
+
+end
+
+
 subsection \<open>Beta function\<close>
 
 definition Beta where "Beta a b = Gamma a * Gamma b / Gamma (a + b)"
