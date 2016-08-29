@@ -255,6 +255,7 @@ plugin.MacOSXPlugin.altDispatcher=false
 plugin.MacOSXPlugin.disableOption=true
 prev-bracket.shortcut2=C+e C+8
 print.font=IsabelleText
+print.glyphVector=true
 recent-buffer.shortcut2=C+CIRCUMFLEX
 restore.remote=false
 restore=false
