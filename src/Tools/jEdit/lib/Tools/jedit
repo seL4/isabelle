@@ -42,6 +42,7 @@ declare -a SOURCES=(
   "src/jedit_options.scala"
   "src/jedit_resources.scala"
   "src/jedit_sessions.scala"
+  "src/keymap_merge.scala"
   "src/monitor_dockable.scala"
   "src/output_dockable.scala"
   "src/pide_docking_framework.scala"
