@@ -272,12 +272,12 @@ Trying 10 scopes: \nopagebreak \\
 \hbox{}\qquad \textit{card}~$'a$~= 1; \\
 \hbox{}\qquad \textit{card}~$'a$~= 2; \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
-\hbox{}\qquad \textit{card}~$'a$~= 10. \\[2\smallskipamount]
+\hbox{}\qquad \textit{card}~$'a$~= 10 \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $A = \{a_2,\, a_3\}$ \\
 \hbox{}\qquad\qquad $x = a_3$ \\[2\smallskipamount]
-Total time: 963 ms.
+Total time: 963 ms
 \postw
 
 Nitpick found a counterexample in which $'a$ has cardinality 3. (For
@@ -334,7 +334,7 @@ The fix appears to work:
 
 \prew
 \textbf{nitpick} \\[2\smallskipamount]
-\slshape Nitpick found no counterexample.
+\slshape Nitpick found no counterexample
 \postw
 
 We can further increase our confidence in the formula by exhausting all
@@ -351,7 +351,7 @@ Let's see if Sledgehammer can find a proof:
 \prew
 \textbf{sledgehammer} \\[2\smallskipamount]
 {\slshape Sledgehammer: ``$e$'' on goal \\
-Try this: \textbf{by}~(\textit{metis~theI}) (42 ms).} \\
+Try this: \textbf{by}~(\textit{metis~theI}) (42 ms)} \\
 \hbox{}\qquad\vdots \\[2\smallskipamount]
 \textbf{by}~(\textit{metis~theI\/})
 \postw
@@ -469,7 +469,7 @@ For example:
 \textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
 \textbf{nitpick} [\textit{card~nat}~= 50] \\[2\smallskipamount]
 \slshape Warning: The conjecture either trivially holds for the given scopes or lies outside Nitpick's supported
-fragment. Only potentially spurious counterexamples may be found. \\[2\smallskipamount]
+fragment; only potentially spurious counterexamples may be found \\[2\smallskipamount]
 Nitpick found a potentially spurious counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $P = \textit{False}$
@@ -490,7 +490,7 @@ giant with feet of clay:
 \textbf{lemma} ``$P~\textit{Suc\/}$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
 \slshape
-Nitpick found no counterexample.
+Nitpick found no counterexample
 \postw
 
 On any finite set $N$, \textit{Suc} is a partial function; for example, if $N =
@@ -780,15 +780,16 @@ Let's try an example:
 \prew
 \textbf{lemma} ``$\exists n.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
 \textbf{nitpick}~[\textit{card nat}~= 50, \textit{unary\_ints}, \textit{verbose}] \\[2\smallskipamount]
-\slshape The inductive predicate ``\textit{even}'' was proved well-founded.
-Nitpick can compute it efficiently. \\[2\smallskipamount]
+\slshape The inductive predicate ``\textit{even}'' was proved well-founded;
+Nitpick can compute it efficiently \\[2\smallskipamount]
 Trying 1 scope: \\
 \hbox{}\qquad \textit{card nat}~= 50. \\[2\smallskipamount]
-Warning: The conjecture either trivially holds for the given scopes or lies outside Nitpick's supported fragment. Only
-potentially spurious counterexamples may be found. \\[2\smallskipamount]
+Warning: The conjecture either trivially holds for the given scopes or lies outside Nitpick's supported fragment; only
+potentially spurious counterexamples may be found \\[2\smallskipamount]
 Nitpick found a potentially spurious counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment \\[2\smallskipamount]
-Nitpick could not find a better counterexample. It checked 1 of 1 scope. \\[2\smallskipamount]
+Nitpick could not find a better counterexample
+It checked 1 of 1 scope \\[2\smallskipamount]
 Total time: 1.62 s.
 \postw
 
@@ -827,15 +828,14 @@ foreseeable computational hurdles entailed by non-wellfoundedness, we decrease
 \lnot\;\textit{even}'~n$'' \\
 \textbf{nitpick}~[\textit{card nat}~= 10,\, \textit{verbose},\, \textit{show\_consts}] \\[2\smallskipamount]
 \slshape
-The inductive predicate ``$\textit{even}'\!$'' could not be proved well-founded.
-Nitpick might need to unroll it. \\[2\smallskipamount]
+The inductive predicate ``$\textit{even}'\!$'' could not be proved well-founded; Nitpick might need to unroll it \\[2\smallskipamount]
 Trying 6 scopes: \\
 \hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 0; \\
 \hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 1; \\
 \hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 2; \\
 \hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 4; \\
 \hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 8; \\
-\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 9. \\[2\smallskipamount]
+\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 9 \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 2: \\[2\smallskipamount]
 \hbox{}\qquad Constant: \nopagebreak \\
 \hbox{}\qquad\qquad $\lambda i.\; \textit{even}'$ = $\unkef(\!\begin{aligned}[t]
@@ -984,14 +984,14 @@ The next example is more interesting:
 \textbf{lemma}~``$\lbrakk\textit{xs} = \textit{LCons}~a~\textit{xs};\>\,
 \textit{ys} = \textit{iterates}~(\lambda b.\> a)~b\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys\/}$'' \\
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
-\slshape The type $'a$ passed the monotonicity test. Nitpick might be able to skip
-some scopes. \\[2\smallskipamount]
+\slshape The type $'a$ passed the monotonicity test; Nitpick might be able to skip
+some scopes \\[2\smallskipamount]
 Trying 10 scopes: \\
 \hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 1,
-and \textit{bisim\_depth}~= 0. \\
+and \textit{bisim\_depth}~= 0; \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
 \hbox{}\qquad \textit{card} $'a$~= 10, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 10,
-and \textit{bisim\_depth}~= 9. \\[2\smallskipamount]
+and \textit{bisim\_depth}~= 9 \\[2\smallskipamount]
 Nitpick found a counterexample for {\itshape card}~$'a$ = 2,
 \textit{card}~``\kern1pt$'a~\textit{llist\/}$''~= 2, and \textit{bisim\_\allowbreak
 depth}~= 1:
@@ -1001,7 +1001,7 @@ depth}~= 1:
 \hbox{}\qquad\qquad $\textit{b} = a_2$ \\
 \hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$ \\
 \hbox{}\qquad\qquad $\textit{ys} = \textit{LCons}~a_2~(\textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega)$ \\[2\smallskipamount]
-Total time: 1.11 s.
+Total time: 1.11 s
 \postw
 
 The lazy list $\textit{xs}$ is simply $[a_1, a_1, a_1, \ldots]$, whereas
@@ -1054,9 +1054,9 @@ predicate or as an after-the-fact check) to prevent spurious counterexamples:
   & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega,\> \unr\}\end{aligned}$
 \\[2\smallskipamount]
 Try again with ``\textit{bisim\_depth}'' set to a nonnegative value to confirm
-that the counterexample is genuine. \\[2\smallskipamount]
+that the counterexample is genuine \\[2\smallskipamount]
 {\upshape\textbf{nitpick}} \\[2\smallskipamount]
-\slshape Nitpick found no counterexample.
+\slshape Nitpick found no counterexample
 \postw
 
 In the first \textbf{nitpick} invocation, the after-the-fact check discovered
@@ -1139,7 +1139,7 @@ Trying 10 scopes: \nopagebreak \\
 \hbox{}\qquad \textit{card~nat}~= 1, \textit{card tm}~= 1, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm\/}$'' = 1; \\
 \hbox{}\qquad \textit{card~nat}~= 2, \textit{card tm}~= 2, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm\/}$'' = 2; \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
-\hbox{}\qquad \textit{card~nat}~= 10, \textit{card tm}~= 10, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm\/}$'' = 10. \\[2\smallskipamount]
+\hbox{}\qquad \textit{card~nat}~= 10, \textit{card tm}~= 10, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm\/}$'' = 10 \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card~nat}~= 6, \textit{card~tm}~= 6,
 and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm\/}$''~= 6: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
@@ -1151,7 +1151,7 @@ and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm\/}$''~= 6: \\[2\smallsk
   4 := \textit{Var}~0,\>
   5 := \textit{Lam}~(\textit{Lam}~(\textit{Var}~0)))\end{aligned}$ \\
 \hbox{}\qquad\qquad $t = \textit{Lam}~(\textit{Lam}~(\textit{Var}~1))$ \\[2\smallskipamount]
-Total time: 3.08 s.
+Total time: 3.08 s
 \postw
 
 Using \textit{eval}, we find out that $\textit{subst}~\sigma~t =
@@ -1170,7 +1170,7 @@ considered, a hopeless undertaking:
 
 \prew
 \textbf{nitpick} [\textit{dont\_box}] \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 3 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 3 of 10 scopes}
 \postw
 
 Boxing can be enabled or disabled globally or on a per-type basis using the
@@ -1216,26 +1216,25 @@ definitions:
 \prew
 \textbf{nitpick}~[\textit{verbose}] \\[2\smallskipamount]
 \slshape
-The types $'a$ and $'b$ passed the monotonicity test.
-Nitpick might be able to skip some scopes.
+The types $'a$ and $'b$ passed the monotonicity test; Nitpick might be able to skip some scopes.
  \\[2\smallskipamount]
 Trying 10 scopes: \\
 \hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} $'b$~= 1,
 \textit{card} \textit{nat}~= 1, \textit{card} ``$('a \times {'}b)$
 \textit{list\/}''~= 1, \\
 \hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 1, and
-\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 1. \\
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 1; \\
 \hbox{}\qquad \textit{card} $'a$~= 2, \textit{card} $'b$~= 2,
 \textit{card} \textit{nat}~= 2, \textit{card} ``$('a \times {'}b)$
 \textit{list\/}''~= 2, \\
 \hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 2, and
-\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 2. \\
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 2; \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
 \hbox{}\qquad \textit{card} $'a$~= 10, \textit{card} $'b$~= 10,
 \textit{card} \textit{nat}~= 10, \textit{card} ``$('a \times {'}b)$
 \textit{list\/}''~= 10, \\
 \hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 10, and
-\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 10.
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 10
 \\[2\smallskipamount]
 Nitpick found a counterexample for
 \textit{card} $'a$~= 5, \textit{card} $'b$~= 5,
@@ -1267,7 +1266,7 @@ simply consider this example from \S\ref{skolemization}:
 \textbf{lemma} ``$\exists g.\; \forall x\Colon 'b.~g~(f~x) = x
  \,\Longrightarrow\, \forall y\Colon {'}a.\; \exists x.~y = f~x$'' \\
 \textbf{nitpick} [\textit{mono}] \\[2\smallskipamount]
-{\slshape Nitpick found no counterexample.} \\[2\smallskipamount]
+{\slshape Nitpick found no counterexample} \\[2\smallskipamount]
 \textbf{nitpick} \\[2\smallskipamount]
 \slshape
 Nitpick found a counterexample for \textit{card} $'a$~= 2 and \textit{card} $'b$~=~1: \\
@@ -1518,7 +1517,7 @@ $B$ as well:
 ``$w \in A \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] + 1$'' \\
 ``$w \in B \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] + 1$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-\slshape Nitpick found no counterexample.
+\slshape Nitpick found no counterexample
 \postw
 
 \subsection{AA Trees}
@@ -1627,7 +1626,7 @@ of elements stored in the tree:
 ``$\textit{dataset}~(\textit{skew}~t) = \textit{dataset}~t$'' \\
 ``$\textit{dataset}~(\textit{split}~t) = \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 9 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 9 of 10 scopes}
 \postw
 
 Furthermore, applying \textit{skew} or \textit{split} on a well-formed tree
@@ -1638,7 +1637,7 @@ should not alter the tree:
 ``$\textit{wf}~t\,\Longrightarrow\, \textit{skew}~t = t$'' \\
 ``$\textit{wf}~t\,\Longrightarrow\, \textit{split}~t = t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick found no counterexample.}
+{\slshape Nitpick found no counterexample}
 \postw
 
 Insertion is implemented recursively. It preserves the sort order:
@@ -1689,7 +1688,7 @@ rebalancing code. Reintroducing the code seems to solve the problem:
 \prew
 \textbf{theorem}~\textit{wf\_insort\/}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 8 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 8 of 10 scopes}
 \postw
 
 Insertion should transform the set of elements represented by the tree in the
@@ -1699,7 +1698,7 @@ obvious way:
 \textbf{theorem} \textit{dataset\_insort\/}:\kern.4em
 ``$\textit{dataset}~(\textit{insort}~t~x) = \{x\} \cup \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 7 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 7 of 10 scopes}
 \postw
 
 We could continue like this and sketch a full-blown theory of AA trees. Once the
