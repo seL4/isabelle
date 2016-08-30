@@ -79,11 +79,11 @@ fun do_solve_direct mode state =
           let val msg = Pretty.string_of (Pretty.chunks (message results))
           in if mode = Auto_Try then [msg] else (writeln msg; []) end)
     | SOME NONE =>
-        (if mode = Normal then writeln "No proof found."
+        (if mode = Normal then writeln "No proof found"
          else ();
          (noneN, []))
     | NONE =>
-        (if mode = Normal then writeln "An error occurred."
+        (if mode = Normal then writeln "An error occurred"
          else ();
          (unknownN, [])))
   end
