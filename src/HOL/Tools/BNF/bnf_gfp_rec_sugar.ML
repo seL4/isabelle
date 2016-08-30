@@ -1454,6 +1454,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                     val ms = map (Logic.count_prems o Thm.prop_of) ctr_thms;
                     val (raw_goal, goal) = (raw_rhs, rhs)
                       |> apply2 (curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
+                        #> abstract_over_list fun_args
                         #> curry Logic.list_all (map dest_Free fun_args));
                     val (distincts, discIs, _, split_sels, split_sel_asms) =
                       case_thms_of_term lthy raw_rhs;
