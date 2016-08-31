@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.lang.Class
-import java.awt.Dimension
+import java.awt.{Color, Dimension}
 import java.awt.event.WindowEvent
 import javax.swing.{WindowConstants, JDialog, JTable, JScrollPane}
 import javax.swing.table.AbstractTableModel
@@ -122,13 +122,16 @@ object Keymap_Merge
 
   /** table model **/
 
+  private def conflict_color: Color =
+    PIDE.options.color_value("error_color")
+
   private sealed case class Table_Entry(shortcut: Shortcut, head: Boolean)
   {
     override def toString: String =
       if (head) "<html>" + HTML.output(shortcut.toString) + "</html>"
       else
-        "<html><font style='color: #B22222;'>" +
-          HTML.output(" -- " + shortcut.toString) +
+        "<html><font style='color: #" + Color_Value.print(conflict_color) + ";'>" +
+          HTML.output("--- " + shortcut.toString) +
         "</font></html>"
   }
 
@@ -170,11 +173,25 @@ object Keymap_Merge
         case Some(entry) if column == 0 =>
           selected_status(row) match {
             case None => null
-            case Some(true) => java.lang.Boolean.TRUE
-            case Some(false) => java.lang.Boolean.FALSE
+            case Some(b) => java.lang.Boolean.valueOf(b)
           }
         case Some(entry) if column == 1 => entry
         case _ => null
+      }
+    }
+
+    override def isCellEditable(row: Int, column: Int): Boolean =
+      get_entry(row) match {
+        case Some(entry) => entry.head && column == 0
+        case None => false
+      }
+
+    override def setValueAt(value: AnyRef, row: Int, column: Int)
+    {
+      (get_entry(row), value) match {
+        case (Some(entry), b: java.lang.Boolean) if entry.head && column == 0 =>
+          select(row, b.booleanValue)
+        case _ =>
       }
     }
   }
