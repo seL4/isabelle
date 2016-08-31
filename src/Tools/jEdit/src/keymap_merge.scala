@@ -124,7 +124,12 @@ object Keymap_Merge
 
   private sealed case class Table_Entry(shortcut: Shortcut, head: Boolean)
   {
-    override def toString: String = shortcut.toString
+    override def toString: String =
+      if (head) "<html>" + HTML.output(shortcut.toString) + "</html>"
+      else
+        "<html><font style='color: #B22222;'>" +
+          HTML.output(" -- " + shortcut.toString) +
+        "</font></html>"
   }
 
   private class Table_Model(entries: List[Table_Entry]) extends AbstractTableModel
@@ -168,7 +173,7 @@ object Keymap_Merge
             case Some(true) => java.lang.Boolean.TRUE
             case Some(false) => java.lang.Boolean.FALSE
           }
-        case Some(entry) if column == 1 => entry.shortcut
+        case Some(entry) if column == 1 => entry
         case _ => null
       }
     }
