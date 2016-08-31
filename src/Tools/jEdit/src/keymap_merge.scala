@@ -9,8 +9,11 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.lang.Class
+import java.awt.Dimension
 import java.awt.event.WindowEvent
 import javax.swing.{WindowConstants, JDialog, JTable, JScrollPane}
+import javax.swing.table.AbstractTableModel
 
 import scala.collection.JavaConversions
 import scala.swing.{FlowPanel, BorderPanel, Component, Button}
@@ -100,18 +103,13 @@ object Keymap_Merge
     keymap.setShortcut(shortcut.property, shortcut.binding)
   }
 
-  def shortcut_conflicts(show_all: Boolean = false): List[(Shortcut, List[Shortcut])] =
+  def get_shortcut_conflicts(keymap: Keymap): List[(Shortcut, List[Shortcut])] =
   {
-    val (keymap_name, keymap) = get_keymap()
     val keymap_shortcuts =
       if (keymap == null) Nil
       else convert_properties(Untyped.get[java.util.Properties](keymap, "props"))
 
-    for {
-      s <- convert_properties(jEdit.getProperties)
-      if show_all || !s.is_ignored(keymap_name)
-    }
-    yield {
+    for (s <- convert_properties(jEdit.getProperties)) yield {
       val conflicts =
         keymap_shortcuts.filter(s1 =>
           s.property == s1.property && s.binding != s1.binding ||
@@ -122,46 +120,110 @@ object Keymap_Merge
 
 
 
-  /** dialog **/
+  /** table model **/
 
-  def dialog(view: View)
+  private sealed case class Table_Entry(shortcut: Shortcut, head: Boolean)
   {
-    GUI_Thread.require {}
-    new Dialog(view)
+    override def toString: String = shortcut.toString
   }
 
-  private class Dialog(view: View) extends JDialog(view)
+  private class Table_Model(entries: List[Table_Entry]) extends AbstractTableModel
+  {
+    private val entries_count = entries.length
+    private def get_entry(row: Int): Option[Table_Entry] =
+      if (0 <= row && row <= entries_count) Some(entries(row)) else None
+
+    private val ignored = Synchronized(Set.empty[Shortcut])
+
+    def select(row: Int, b: Boolean)
+    {
+      for (entry <- get_entry(row) if entry.head) {
+        ignored.change(set => if (b) set - entry.shortcut else set + entry.shortcut)
+      }
+    }
+
+    def selected_status(row: Int): Option[Boolean] =
+      get_entry(row) match {
+        case Some(entry) if entry.head => Some(!ignored.value.contains(entry.shortcut))
+        case _ => None
+      }
+
+    override def getColumnCount: Int = 2
+
+    override def getColumnClass(i: Int): Class[_ <: Object] =
+      if (i == 0) classOf[java.lang.Boolean]
+      else classOf[java.lang.Object]
+
+    override def getColumnName(i: Int): String =
+      if (i == 0) " " else if (i == 1) "Keyboard shortcut" else "???"
+
+    override def getRowCount: Int = entries_count
+
+    override def getValueAt(row: Int, column: Int): AnyRef =
+    {
+      get_entry(row) match {
+        case Some(entry) if column == 0 =>
+          selected_status(row) match {
+            case None => null
+            case Some(true) => java.lang.Boolean.TRUE
+            case Some(false) => java.lang.Boolean.FALSE
+          }
+        case Some(entry) if column == 1 => entry.shortcut
+        case _ => null
+      }
+    }
+  }
+
+
+
+  /** dialog **/
+
+  def check_dialog(view: View)
+  {
+    GUI_Thread.require {}
+
+    val (keymap_name, keymap) = get_keymap()
+    val shortcut_conflicts = get_shortcut_conflicts(keymap)
+
+    val pending_conflicts =
+      shortcut_conflicts.filter({ case (s, cs) => !s.is_ignored(keymap_name) && cs.nonEmpty })
+    if (pending_conflicts.nonEmpty) new Dialog(view, pending_conflicts)
+    // FIXME else silent change
+  }
+
+  private class Dialog(view: View, shortcut_conflicts: List[(Shortcut, List[Shortcut])])
+    extends JDialog(view)
   {
     /* table */
 
-    val shortcuts = List.empty[Shortcut]
+    val table_entries =
+      for {
+        (shortcut, conflicts) <- shortcut_conflicts
+        entry <- Table_Entry(shortcut, true) :: conflicts.map(Table_Entry(_, false))
+      } yield entry
 
-    def get_label(action: String): String =
-      shortcuts.collectFirst(
-        { case s if s.action == action && s.label != "" => s.label }).getOrElse(action)
+    val table_model = new Table_Model(table_entries)
 
-    def get_binding(action: String, primary: Boolean): String =
-      shortcuts.collectFirst(
-        { case s if s.action == action && s.primary == primary => s.binding }).getOrElse("")
+    val table = new JTable(table_model)
+    table.setShowGrid(false)
+    table.setIntercellSpacing(new Dimension(0, 0))
+    table.setRowHeight(GUIUtilities.defaultRowHeight() + 2)
+    table.setPreferredScrollableViewportSize(new Dimension(500, 300))
+    table.getTableHeader.setReorderingAllowed(false)
 
-    val column_names: Array[AnyRef] =
-      Array(jEdit.getProperty("options.shortcuts.name"),
-        jEdit.getProperty("options.shortcuts.shortcut1"),
-        jEdit.getProperty("options.shortcuts.shortcut2"))
+		val col0 = table.getColumnModel.getColumn(0)
+		val col1 = table.getColumnModel.getColumn(1)
 
-    val table_rows: Array[Array[AnyRef]] =
-      shortcuts.map(s =>
-        Array[AnyRef](s.label, get_binding(s.action, true), get_binding(s.action, false))).toArray
+		col0.setPreferredWidth(30)
+		col0.setMinWidth(30)
+		col0.setMaxWidth(30)
+		col0.setResizable(false)
 
-    val table = new JTable(table_rows, column_names)
-    table.setRowHeight(GUIUtilities.defaultRowHeight())
-    table.getTableHeader().setReorderingAllowed(false)  // FIXME !?
-
-    val table_size = table.getPreferredSize()
-    table_size.height = table_size.height min 200
+		col1.setPreferredWidth(300)
 
     val table_scroller = new JScrollPane(table)
-    table_scroller.setPreferredSize(table_size)
+		table_scroller.getViewport.setBackground(table.getBackground)
+		table_scroller.setPreferredSize(new Dimension(400, 400))
 
 
     /* buttons */
