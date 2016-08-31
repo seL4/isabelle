@@ -125,10 +125,10 @@ object Keymap_Merge
   private def conflict_color: Color =
     PIDE.options.color_value("error_color")
 
-  private sealed case class Table_Entry(shortcut: Shortcut, head: Boolean)
+  private sealed case class Table_Entry(shortcut: Shortcut, head: Option[Int], tail: List[Int])
   {
     override def toString: String =
-      if (head) "<html>" + HTML.output(shortcut.toString) + "</html>"
+      if (head.isEmpty) "<html>" + HTML.output(shortcut.toString) + "</html>"
       else
         "<html><font style='color: #" + Color_Value.print(conflict_color) + ";'>" +
           HTML.output("--- " + shortcut.toString) +
@@ -141,20 +141,18 @@ object Keymap_Merge
     private def get_entry(row: Int): Option[Table_Entry] =
       if (0 <= row && row <= entries_count) Some(entries(row)) else None
 
-    private val ignored = Synchronized(Set.empty[Shortcut])
+    private val selected =
+      Synchronized[Set[Int]](
+        (for ((e, i) <- entries.iterator.zipWithIndex if e.head.isEmpty) yield i).toSet)
 
     def select(row: Int, b: Boolean)
     {
-      for (entry <- get_entry(row) if entry.head) {
-        ignored.change(set => if (b) set - entry.shortcut else set + entry.shortcut)
-      }
+      if (get_entry(row).isDefined)
+        selected.change(set => if (b) set + row else set - row)
     }
 
     def selected_status(row: Int): Option[Boolean] =
-      get_entry(row) match {
-        case Some(entry) if entry.head => Some(!ignored.value.contains(entry.shortcut))
-        case _ => None
-      }
+      if (get_entry(row).isDefined) Some(selected.value.contains(row)) else None
 
     override def getColumnCount: Int = 2
 
@@ -182,15 +180,20 @@ object Keymap_Merge
 
     override def isCellEditable(row: Int, column: Int): Boolean =
       get_entry(row) match {
-        case Some(entry) => entry.head && column == 0
+        case Some(entry) => column == 0
         case None => false
       }
 
     override def setValueAt(value: AnyRef, row: Int, column: Int)
     {
       (get_entry(row), value) match {
-        case (Some(entry), b: java.lang.Boolean) if entry.head && column == 0 =>
-          select(row, b.booleanValue)
+        case (Some(entry), obj: java.lang.Boolean) if entry.head.isEmpty && column == 0 =>
+          val b = obj.booleanValue
+          select(row, b)
+          if (entry.tail.nonEmpty) {
+            entry.tail.foreach(select(_, !b))
+            GUI_Thread.later { fireTableDataChanged() }
+          }
         case _ =>
       }
     }
@@ -220,8 +223,11 @@ object Keymap_Merge
 
     val table_entries =
       for {
-        (shortcut, conflicts) <- shortcut_conflicts
-        entry <- Table_Entry(shortcut, true) :: conflicts.map(Table_Entry(_, false))
+        ((shortcut, conflicts), i) <- shortcut_conflicts zip
+          shortcut_conflicts.scanLeft(0)({ case (i, (_, conflicts)) => i + 1 + conflicts.length })
+        entry <-
+          Table_Entry(shortcut, None, ((i + 1) to (i + conflicts.length)).toList) ::
+          conflicts.map(Table_Entry(_, Some(i), Nil))
       } yield entry
 
     val table_model = new Table_Model(table_entries)
