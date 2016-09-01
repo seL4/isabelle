@@ -247,7 +247,7 @@ object Keymap_Merge
           "Pending Isabelle/jEdit keymap changes",
           JOptionPane.OK_CANCEL_OPTION,
           "The following Isabelle keymap changes are in conflict with the current",
-          "jEdit keymap " + quote(keymap_name) + ".",
+          "jEdit keymap " + quote(keymap_name) + ":",
           new Table(table_model),
           "Selected shortcuts will be applied, unselected changes will be ignored.",
           "Results are stored in $JEDIT_SETTINGS/properties and $JEDIT_SETTINGS/keymaps/.") == 0)
