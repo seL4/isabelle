@@ -177,6 +177,7 @@ encoding.opt-out.x-windows-iso2022jp=true
 encodingDetectors=BOM XML-PI buffer-local-property
 end.shortcut=
 expand-abbrev.shortcut2=CA+SPACE
+expand-folds.shortcut=
 fallbackEncodings=UTF-8 ISO-8859-15 US-ASCII
 firstTime=false
 focus-buffer-switcher.shortcut2=A+CIRCUMFLEX
