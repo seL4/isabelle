@@ -86,21 +86,14 @@ object Keymap_Merge
 
   def get_keymap(): (String, Keymap) =
   {
-    val manager = jEdit.getKeymapManager
+    val keymap_manager = jEdit.getKeymapManager
     val keymap_name = jEdit.getProperty("keymap.current", KeymapManager.DEFAULT_KEYMAP_NAME)
     val keymap =
-      manager.getKeymap(keymap_name) match {
-        case null => manager.getKeymap(KeymapManager.DEFAULT_KEYMAP_NAME)
+      keymap_manager.getKeymap(keymap_name) match {
+        case null => keymap_manager.getKeymap(KeymapManager.DEFAULT_KEYMAP_NAME)
         case keymap => keymap
       }
     (keymap_name, keymap)
-  }
-
-  def change_keymap(keymap: Keymap, entry: (Shortcut, List[Shortcut]))
-  {
-    val (shortcut, conflicts) = entry
-    conflicts.foreach(s => keymap.setShortcut(s.property, ""))
-    keymap.setShortcut(shortcut.property, shortcut.binding)
   }
 
   def get_shortcut_conflicts(keymap: Keymap): List[(Shortcut, List[Shortcut])] =
@@ -146,9 +139,28 @@ object Keymap_Merge
       Synchronized[Set[Int]](
         (for ((e, i) <- entries.iterator.zipWithIndex if e.head.isEmpty) yield i).toSet)
 
-    private def select(head: Int, tail: List[Int], b: Boolean)
+    def is_selected(row: Int): Boolean = selected.value.contains(row)
+
+    def select(head: Int, tail: List[Int], b: Boolean)
     {
       selected.change(set => if (b) set + head -- tail else set - head ++ tail)
+    }
+
+    def apply(keymap_name: String, keymap: Keymap)
+    {
+      GUI_Thread.require {}
+
+      for ((entry, row) <- entries.iterator.zipWithIndex if entry.head.isEmpty) {
+        val b = is_selected(row)
+        if (b) {
+          entry.tail.foreach(i => keymap.setShortcut(entries(i).shortcut.property, null))
+          keymap.setShortcut(entry.shortcut.property, entry.shortcut.binding)
+        }
+        entry.shortcut.update_ignored(keymap_name, !b)
+      }
+
+      jEdit.getKeymapManager.reload()
+      jEdit.saveSettings()
     }
 
     override def getColumnCount: Int = 2
@@ -164,7 +176,7 @@ object Keymap_Merge
     override def getValueAt(row: Int, column: Int): AnyRef =
     {
       get_entry(row) match {
-        case Some(entry) if column == 0 => JBoolean.valueOf(selected.value.contains(row))
+        case Some(entry) if column == 0 => JBoolean.valueOf(is_selected(row))
         case Some(entry) if column == 1 => entry
         case _ => null
       }
@@ -204,12 +216,15 @@ object Keymap_Merge
 
     val pending_conflicts =
       shortcut_conflicts.filter({ case (s, cs) => !s.is_ignored(keymap_name) && cs.nonEmpty })
-    if (pending_conflicts.nonEmpty) new Dialog(view, pending_conflicts)
+    if (pending_conflicts.nonEmpty) new Dialog(view, keymap_name, keymap, pending_conflicts)
     // FIXME else silent change
   }
 
-  private class Dialog(view: View, shortcut_conflicts: List[(Shortcut, List[Shortcut])])
-    extends JDialog(view)
+  private class Dialog(
+    view: View,
+    keymap_name: String,
+    keymap: Keymap,
+    shortcut_conflicts: List[(Shortcut, List[Shortcut])]) extends JDialog(view)
   {
     /* table */
 
@@ -253,11 +268,11 @@ object Keymap_Merge
     /* buttons */
 
     val ok_button = new Button("OK") {
-      reactions += { case ButtonClicked(_) => close() }  // FIXME
+      reactions += { case ButtonClicked(_) => table_model.apply(keymap_name, keymap); close() }
     }
 
     val cancel_button = new Button("Cancel") {
-      reactions += { case ButtonClicked(_) => close() }  // FIXME
+      reactions += { case ButtonClicked(_) => close() }
     }
 
     private def close()
