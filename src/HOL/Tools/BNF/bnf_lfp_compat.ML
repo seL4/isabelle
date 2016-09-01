@@ -221,7 +221,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val fpTs0 as Type (_, var_As) :: _ =
       map (#T o checked_fp_sugar_of o fst o dest_Type)
         (#Ts (#fp_res (checked_fp_sugar_of (hd fpT_names0))));
-    val fpT_names = map (fst o dest_Type) fpTs0;
+    val fpT_names as fpT_name1 :: _ = map (fst o dest_Type) fpTs0;
 
     val _ = check_names (op =) (fpT_names0, fpT_names) orelse not_mutually_recursive fpT_names0;
 
@@ -237,7 +237,8 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     fun mk_typ_descr index (Type (T_name, Ts)) ({ctrs, ...} : ctr_sugar) =
       (index, (T_name, map mk_dtyp Ts, map (mk_ctr_descr Ts) ctrs));
 
-    val fp_ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar o checked_fp_sugar_of) fpT_names;
+    val fp_sugars as {fp, ...} :: _ = map checked_fp_sugar_of fpT_names;
+    val fp_ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar) fp_sugars;
     val orig_descr = @{map 3} mk_typ_descr (0 upto nn_fp - 1) fpTs fp_ctr_sugars;
     val all_infos = Old_Datatype_Data.get_all thy;
     val (orig_descr' :: nested_descrs) =
@@ -310,11 +311,13 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
       if member (op =) prefs Keep_Nesting orelse
          not (exists (exists (exists is_nested_rec_type)) ctrXs_Tsss') then
         ((lfp_sugar_thms', (inducts, induct, recs, rec_thmss)), lthy')
-      else
+      else if fp = Least_FP then
         define_split_rec_derive_induct_rec_thms Xs' fpTs' ctrXs_Tsss' ctrss' inducts induct recs
           rec_thmss lthy'
         |>> `(fn (inducts', induct', _, rec'_thmss) =>
-          SOME ((inducts', induct', mk_induct_attrs ctrss'), (rec'_thmss, [])));
+          SOME ((inducts', induct', mk_induct_attrs ctrss'), (rec'_thmss, [])))
+      else
+        not_datatype fpT_name1;
 
     val rec'_names = map (fst o dest_Const) recs';
     val rec'_thms = flat rec'_thmss;
