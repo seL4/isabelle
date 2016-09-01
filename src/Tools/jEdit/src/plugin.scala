@@ -333,9 +333,9 @@ class Plugin extends EBPlugin
               "It is for testing only, not for production use.")
           }
 
-          Keymap_Merge.check_dialog(jEdit.getActiveView())
-
           Session_Build.session_build(jEdit.getActiveView())
+
+          Keymap_Merge.check_dialog(jEdit.getActiveView())
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED ||
