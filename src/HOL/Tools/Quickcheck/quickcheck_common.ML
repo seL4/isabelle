@@ -49,7 +49,7 @@ struct
 
 (* static options *)
 
-val compat_prefs = [BNF_LFP_Compat.Keep_Nesting, BNF_LFP_Compat.Include_GFPs]
+val compat_prefs = [BNF_LFP_Compat.Include_GFPs]
 
 val define_foundationally = false
 
