@@ -978,6 +978,7 @@ session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
     Quickcheck_Lattice_Examples
     Completeness
     Quickcheck_Interfaces
+    Quickcheck_Nesting_Example
   theories [condition = ISABELLE_GHC]
     Hotel_Example
     Quickcheck_Narrowing_Examples
