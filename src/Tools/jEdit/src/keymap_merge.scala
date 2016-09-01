@@ -10,16 +10,13 @@ package isabelle.jedit
 import isabelle._
 
 import java.lang.{Class, Boolean => JBoolean}
-import java.awt.{Color, Dimension}
-import java.awt.event.WindowEvent
-import javax.swing.{WindowConstants, JDialog, JTable, JScrollPane}
+import java.awt.{Color, Dimension, BorderLayout}
+import javax.swing.{JPanel, JTable, JScrollPane, JOptionPane}
 import javax.swing.table.AbstractTableModel
 
 import scala.collection.JavaConversions
-import scala.swing.{FlowPanel, BorderPanel, Component, Button}
-import scala.swing.event.ButtonClicked
 
-import org.gjt.sp.jedit.{jEdit, View, GUIUtilities}
+import org.gjt.sp.jedit.{jEdit, GUIUtilities}
 import org.jedit.keymap.{KeymapManager, Keymap}
 
 
@@ -46,7 +43,7 @@ object Keymap_Merge
       GUIUtilities.prettifyMenuLabel(jEdit.getProperty(action + ".label", ""))
 
 
-    /* ignore wrt. keymaps */
+    /* ignore wrt. keymap */
 
     private def prop_ignore: String = property + ".ignore"
 
@@ -56,16 +53,22 @@ object Keymap_Merge
     def is_ignored(keymap_name: String): Boolean =
       ignored_keymaps().contains(keymap_name)
 
-    def update_ignored(keymap_name: String, ignore: Boolean)
+    def ignore(keymap_name: String, b: Boolean)
     {
       val keymaps1 =
-        if (ignore) Library.insert(keymap_name)(ignored_keymaps()).sorted
+        if (b) Library.insert(keymap_name)(ignored_keymaps()).sorted
         else Library.remove(keymap_name)(ignored_keymaps())
 
       if (keymaps1.isEmpty) jEdit.resetProperty(prop_ignore)
       else jEdit.setProperty(prop_ignore, keymaps1.mkString(","))
     }
+
+    def set(keymap: Keymap): Unit = keymap.setShortcut(property, binding)
+    def reset(keymap: Keymap): Unit = keymap.setShortcut(property, null)
   }
+
+
+  /* content wrt. keymap */
 
   def convert_properties(props: java.util.Properties): List[Shortcut] =
     if (props == null) Nil
@@ -81,28 +84,13 @@ object Keymap_Merge
       result.sortBy(_.property)
     }
 
-
-  /* keymap */
-
-  def get_keymap(): (String, Keymap) =
-  {
-    val keymap_manager = jEdit.getKeymapManager
-    val keymap_name = jEdit.getProperty("keymap.current", KeymapManager.DEFAULT_KEYMAP_NAME)
-    val keymap =
-      keymap_manager.getKeymap(keymap_name) match {
-        case null => keymap_manager.getKeymap(KeymapManager.DEFAULT_KEYMAP_NAME)
-        case keymap => keymap
-      }
-    (keymap_name, keymap)
-  }
-
-  def get_shortcut_conflicts(keymap: Keymap): List[(Shortcut, List[Shortcut])] =
+  def get_shortcut_conflicts(keymap_name: String, keymap: Keymap): List[(Shortcut, List[Shortcut])] =
   {
     val keymap_shortcuts =
       if (keymap == null) Nil
       else convert_properties(Untyped.get[java.util.Properties](keymap, "props"))
 
-    for (s <- convert_properties(jEdit.getProperties)) yield {
+    for (s <- convert_properties(jEdit.getProperties) if !s.is_ignored(keymap_name)) yield {
       val conflicts =
         keymap_shortcuts.filter(s1 =>
           s.property == s1.property && s.binding != s1.binding ||
@@ -113,7 +101,7 @@ object Keymap_Merge
 
 
 
-  /** table model **/
+  /** table **/
 
   private def conflict_color: Color =
     PIDE.options.color_value("error_color")
@@ -139,12 +127,11 @@ object Keymap_Merge
       Synchronized[Set[Int]](
         (for ((e, i) <- entries.iterator.zipWithIndex if e.head.isEmpty) yield i).toSet)
 
-    def is_selected(row: Int): Boolean = selected.value.contains(row)
+    private def is_selected(row: Int): Boolean =
+      selected.value.contains(row)
 
-    def select(head: Int, tail: List[Int], b: Boolean)
-    {
+    private def select(head: Int, tail: List[Int], b: Boolean): Unit =
       selected.change(set => if (b) set + head -- tail else set - head ++ tail)
-    }
 
     def apply(keymap_name: String, keymap: Keymap)
     {
@@ -153,14 +140,11 @@ object Keymap_Merge
       for ((entry, row) <- entries.iterator.zipWithIndex if entry.head.isEmpty) {
         val b = is_selected(row)
         if (b) {
-          entry.tail.foreach(i => keymap.setShortcut(entries(i).shortcut.property, null))
-          keymap.setShortcut(entry.shortcut.property, entry.shortcut.binding)
+          entry.tail.foreach(i => entries(i).shortcut.reset(keymap))
+          entry.shortcut.set(keymap)
         }
-        entry.shortcut.update_ignored(keymap_name, !b)
+        entry.shortcut.ignore(keymap_name, !b)
       }
-
-      jEdit.getKeymapManager.reload()
-      jEdit.saveSettings()
     }
 
     override def getColumnCount: Int = 2
@@ -203,44 +187,10 @@ object Keymap_Merge
     }
   }
 
-
-
-  /** dialog **/
-
-  def check_dialog(view: View)
+  private class Table(table_model: Table_Model) extends JPanel(new BorderLayout)
   {
-    GUI_Thread.require {}
-
-    val (keymap_name, keymap) = get_keymap()
-    val shortcut_conflicts = get_shortcut_conflicts(keymap)
-
-    val pending_conflicts =
-      shortcut_conflicts.filter({ case (s, cs) => !s.is_ignored(keymap_name) && cs.nonEmpty })
-    if (pending_conflicts.nonEmpty) new Dialog(view, keymap_name, keymap, pending_conflicts)
-    // FIXME else silent change
-  }
-
-  private class Dialog(
-    view: View,
-    keymap_name: String,
-    keymap: Keymap,
-    shortcut_conflicts: List[(Shortcut, List[Shortcut])]) extends JDialog(view)
-  {
-    /* table */
-
-    val table_entries =
-      for {
-        ((shortcut, conflicts), i) <- shortcut_conflicts zip
-          shortcut_conflicts.scanLeft(0)({ case (i, (_, conflicts)) => i + 1 + conflicts.length })
-        entry <-
-          Table_Entry(shortcut, None, ((i + 1) to (i + conflicts.length)).toList) ::
-          conflicts.map(Table_Entry(_, Some(i), Nil))
-      } yield entry
-
-    val table_model = new Table_Model(table_entries)
-
-    val cell_size = GUIUtilities.defaultTableCellSize()
-    val table_size = new Dimension(cell_size.width * 2, cell_size.height * 20)
+    private val cell_size = GUIUtilities.defaultTableCellSize()
+    private val table_size = new Dimension(cell_size.width * 2, cell_size.height * 15)
 
     val table = new JTable(table_model)
     table.setShowGrid(false)
@@ -250,56 +200,73 @@ object Keymap_Merge
     table.setFillsViewportHeight(true)
     table.getTableHeader.setReorderingAllowed(false)
 
-		val col0 = table.getColumnModel.getColumn(0)
-		val col1 = table.getColumnModel.getColumn(1)
+		table.getColumnModel.getColumn(0).setPreferredWidth(30)
+		table.getColumnModel.getColumn(0).setMinWidth(30)
+		table.getColumnModel.getColumn(0).setMaxWidth(30)
+		table.getColumnModel.getColumn(0).setResizable(false)
+		table.getColumnModel.getColumn(1).setPreferredWidth(table_size.width - 30)
 
-		col0.setPreferredWidth(30)
-		col0.setMinWidth(30)
-		col0.setMaxWidth(30)
-		col0.setResizable(false)
+    val scroller = new JScrollPane(table)
+		scroller.getViewport.setBackground(table.getBackground)
+		scroller.setPreferredSize(table_size)
 
-		col1.setPreferredWidth(table_size.width)
-
-    val table_scroller = new JScrollPane(table)
-		table_scroller.getViewport.setBackground(table.getBackground)
-		table_scroller.setPreferredSize(table_size)
+    add(scroller, BorderLayout.CENTER)
+  }
 
 
-    /* buttons */
 
-    val ok_button = new Button("OK") {
-      reactions += { case ButtonClicked(_) => table_model.apply(keymap_name, keymap); close() }
-    }
+  /** check with optional dialog **/
 
-    val cancel_button = new Button("Cancel") {
-      reactions += { case ButtonClicked(_) => close() }
-    }
+  def check_dialog()
+  {
+    GUI_Thread.require {}
 
-    private def close()
+    val keymap_manager = jEdit.getKeymapManager
+    val keymap_name = jEdit.getProperty("keymap.current", KeymapManager.DEFAULT_KEYMAP_NAME)
+    val keymap =
+      keymap_manager.getKeymap(keymap_name) match {
+        case null => keymap_manager.getKeymap(KeymapManager.DEFAULT_KEYMAP_NAME)
+        case keymap => keymap
+      }
+
+    var save = false
+
+    val all_shortcut_conflicts = get_shortcut_conflicts(keymap_name, keymap)
+    val no_shortcut_conflicts = for ((s, cs) <- all_shortcut_conflicts if cs.isEmpty) yield s
+    val shortcut_conflicts = all_shortcut_conflicts.filter(_._2.nonEmpty)
+
+    val table_entries =
+      for {
+        ((shortcut, conflicts), i) <- shortcut_conflicts zip
+          shortcut_conflicts.scanLeft(0)({ case (i, (_, cs)) => i + 1 + cs.length })
+        entry <-
+          Table_Entry(shortcut, None, ((i + 1) to (i + conflicts.length)).toList) ::
+          conflicts.map(Table_Entry(_, Some(i), Nil))
+      } yield entry
+
+    val table_model = new Table_Model(table_entries)
+
+    if (table_entries.nonEmpty &&
+        GUI.confirm_dialog(jEdit.getActiveView,
+          "Pending Isabelle/jEdit keymap changes",
+          JOptionPane.OK_CANCEL_OPTION,
+          "The following Isabelle keymap shortcuts are in conflict with",
+          "the current jEdit keymap " + quote(keymap_name) + ".",
+          new Table(table_model),
+          "Selected changes will be applied, unselected changes will be ignored.") == 0)
     {
-      setVisible(false)
-      dispose()
+      table_model.apply(keymap_name, keymap)
+      save = true
     }
 
+    if (no_shortcut_conflicts.nonEmpty) {
+      no_shortcut_conflicts.foreach(_.set(keymap))
+      save = true
+    }
 
-    /* layout */
-
-    private val action_panel = new FlowPanel(FlowPanel.Alignment.Right)(ok_button, cancel_button)
-    private val layout_panel = new BorderPanel
-    layout_panel.layout(Component.wrap(table_scroller)) = BorderPanel.Position.Center
-    layout_panel.layout(action_panel) = BorderPanel.Position.South
-
-    setContentPane(layout_panel.peer)
-
-
-    /* main */
-
-    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-
-    setTitle("Isabelle/jEdit keymap changes")
-
-    pack()
-    setLocationRelativeTo(view)
-    setVisible(true)
+    if (save) {
+      keymap_manager.reload()
+      jEdit.saveSettings()
+    }
   }
 }
