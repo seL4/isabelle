@@ -597,6 +597,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma prime_dvd_fact_iff:
+  assumes "prime p"
+  shows   "p dvd fact n \<longleftrightarrow> p \<le> n"
+proof (induction n)
+  case 0
+  with assms show ?case by auto
+next
+  case (Suc n)
+  have "p dvd fact (Suc n) \<longleftrightarrow> p dvd (Suc n) * fact n" by simp
+  also from assms have "\<dots> \<longleftrightarrow> p dvd Suc n \<or> p dvd fact n"
+    by (rule prime_dvd_mult_iff)
+  also note Suc.IH
+  also have "p dvd Suc n \<or> p \<le> n \<longleftrightarrow> p \<le> Suc n"
+    by (auto dest: dvd_imp_le simp: le_Suc_eq)
+  finally show ?case .
+qed
+
 (* TODO Legacy names *)
 lemmas prime_imp_coprime_nat = prime_imp_coprime[where ?'a = nat]
 lemmas prime_imp_coprime_int = prime_imp_coprime[where ?'a = int]

@@ -132,7 +132,23 @@ proof -
   then show *: "{m. m\<^sup>2 \<le> n} \<noteq> {}" by blast
 qed
 
-lemma [code]: "sqrt n = Max (Set.filter (\<lambda>m. m\<^sup>2 \<le> n) {0..n})"
+lemma sqrt_unique:
+  assumes "m^2 \<le> n" "n < (Suc m)^2"
+  shows   "Discrete.sqrt n = m"
+proof -
+  have "m' \<le> m" if "m'^2 \<le> n" for m'
+  proof -
+    note that
+    also note assms(2)
+    finally have "m' < Suc m" by (rule power_less_imp_less_base) simp_all
+    thus "m' \<le> m" by simp
+  qed
+  with \<open>m^2 \<le> n\<close> sqrt_aux[of n] show ?thesis unfolding Discrete.sqrt_def
+    by (intro antisym Max.boundedI Max.coboundedI) simp_all
+qed
+
+
+lemma sqrt_code[code]: "sqrt n = Max (Set.filter (\<lambda>m. m\<^sup>2 \<le> n) {0..n})"
 proof -
   from power2_nat_le_imp_le [of _ n] have "{m. m \<le> n \<and> m\<^sup>2 \<le> n} = {m. m\<^sup>2 \<le> n}" by auto
   then show ?thesis by (simp add: sqrt_def Set.filter_def)
@@ -160,6 +176,9 @@ proof
   then show "sqrt m \<le> sqrt n"
     by (auto intro!: Max_mono \<open>0 * 0 \<le> m\<close> finite_less_ub simp add: power2_eq_square sqrt_def)
 qed
+
+lemma mono_sqrt': "m \<le> n \<Longrightarrow> Discrete.sqrt m \<le> Discrete.sqrt n"
+  using mono_sqrt unfolding mono_def by auto
 
 lemma sqrt_greater_zero_iff [simp]: "sqrt n > 0 \<longleftrightarrow> n > 0"
 proof -
