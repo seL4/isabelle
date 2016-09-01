@@ -16,7 +16,7 @@ import javax.swing.table.AbstractTableModel
 
 import scala.collection.JavaConversions
 
-import org.gjt.sp.jedit.{jEdit, GUIUtilities}
+import org.gjt.sp.jedit.{jEdit, View, GUIUtilities}
 import org.jedit.keymap.{KeymapManager, Keymap}
 
 
@@ -217,7 +217,7 @@ object Keymap_Merge
 
   /** check with optional dialog **/
 
-  def check_dialog()
+  def check_dialog(view: View)
   {
     GUI_Thread.require {}
 
@@ -247,13 +247,14 @@ object Keymap_Merge
     val table_model = new Table_Model(table_entries)
 
     if (table_entries.nonEmpty &&
-        GUI.confirm_dialog(jEdit.getActiveView,
+        GUI.confirm_dialog(view,
           "Pending Isabelle/jEdit keymap changes",
           JOptionPane.OK_CANCEL_OPTION,
           "The following Isabelle keymap changes are in conflict with",
           "the current jEdit keymap " + quote(keymap_name) + ".",
           new Table(table_model),
-          "Selected shortcuts will be applied, unselected changes will be ignored.") == 0)
+          "Selected shortcuts will be applied, unselected changes will be ignored.",
+          "Results are made persistent in $JEDIT_SETTINGS/properties.") == 0)
     {
       table_model.apply(keymap_name, keymap)
       save = true
