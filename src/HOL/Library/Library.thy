@@ -83,6 +83,7 @@ imports
   Sum_of_Squares
   Transitive_Closure_Table
   Tree_Multiset
+  Type_Length
   While_Combinator
 begin
 end

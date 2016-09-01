@@ -7,7 +7,7 @@
 section \<open>Saturated arithmetic\<close>
 
 theory Saturated
-imports Numeral_Type "~~/src/HOL/Word/Type_Length"
+imports Numeral_Type Type_Length
 begin
 
 subsection \<open>The type of saturated naturals\<close>
