@@ -20,7 +20,8 @@ declare bal.simps[simp del]
 definition "balance xs = fst (bal xs (length xs))"
 
 lemma bal_inorder:
-  "bal xs n = (t,ys) \<Longrightarrow> n \<le> length xs \<Longrightarrow> inorder t = take n xs \<and> ys = drop n xs"
+  "\<lbrakk> bal xs n = (t,ys); n \<le> length xs \<rbrakk>
+  \<Longrightarrow> inorder t = take n xs \<and> ys = drop n xs"
 proof(induction xs n arbitrary: t ys rule: bal.induct)
   case (1 xs n) show ?case
   proof cases
@@ -112,14 +113,14 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
 qed
 
 lemma balanced_bal:
-  assumes "bal xs n = (t,ys)" shows "height t - min_height t \<le> 1"
+  assumes "bal xs n = (t,ys)" shows "balanced t"
 proof -
   have "floorlog 2 n \<le> floorlog 2 (n+1)" by (rule floorlog_mono) auto
   thus ?thesis
     using bal_height[OF assms] bal_min_height[OF assms] by arith
 qed
 
-corollary balanced_balance: "height(balance xs) - min_height(balance xs) \<le> 1"
+corollary balanced_balance: "balanced (balance xs)"
 by (metis balance_def balanced_bal prod.collapse)
 
 end
