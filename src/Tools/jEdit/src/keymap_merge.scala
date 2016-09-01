@@ -250,10 +250,10 @@ object Keymap_Merge
         GUI.confirm_dialog(jEdit.getActiveView,
           "Pending Isabelle/jEdit keymap changes",
           JOptionPane.OK_CANCEL_OPTION,
-          "The following Isabelle keymap shortcuts are in conflict with",
+          "The following Isabelle keymap changes are in conflict with",
           "the current jEdit keymap " + quote(keymap_name) + ".",
           new Table(table_model),
-          "Selected changes will be applied, unselected changes will be ignored.") == 0)
+          "Selected shortcuts will be applied, unselected changes will be ignored.") == 0)
     {
       table_model.apply(keymap_name, keymap)
       save = true
