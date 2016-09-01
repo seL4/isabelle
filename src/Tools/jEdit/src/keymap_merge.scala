@@ -53,12 +53,9 @@ object Keymap_Merge
     def is_ignored(keymap_name: String): Boolean =
       ignored_keymaps().contains(keymap_name)
 
-    def ignore(keymap_name: String, b: Boolean)
+    def ignore(keymap_name: String)
     {
-      val keymaps1 =
-        if (b) Library.insert(keymap_name)(ignored_keymaps()).sorted
-        else Library.remove(keymap_name)(ignored_keymaps())
-
+      val keymaps1 = Library.insert(keymap_name)(ignored_keymaps()).sorted
       if (keymaps1.isEmpty) jEdit.resetProperty(prop_ignore)
       else jEdit.setProperty(prop_ignore, keymaps1.mkString(","))
     }
@@ -143,7 +140,8 @@ object Keymap_Merge
           entry.tail.foreach(i => entries(i).shortcut.reset(keymap))
           entry.shortcut.set(keymap)
         }
-        entry.shortcut.ignore(keymap_name, !b)
+        else
+          entry.shortcut.ignore(keymap_name)
       }
     }
 
@@ -229,8 +227,6 @@ object Keymap_Merge
         case keymap => keymap
       }
 
-    var save = false
-
     val all_shortcut_conflicts = get_shortcut_conflicts(keymap_name, keymap)
     val no_shortcut_conflicts = for ((s, cs) <- all_shortcut_conflicts if cs.isEmpty) yield s
     val shortcut_conflicts = all_shortcut_conflicts.filter(_._2.nonEmpty)
@@ -255,19 +251,12 @@ object Keymap_Merge
           new Table(table_model),
           "Selected shortcuts will be applied, unselected changes will be ignored.",
           "Results are made persistent in $JEDIT_SETTINGS/properties.") == 0)
-    {
-      table_model.apply(keymap_name, keymap)
-      save = true
-    }
+    { table_model.apply(keymap_name, keymap) }
 
-    if (no_shortcut_conflicts.nonEmpty) {
-      no_shortcut_conflicts.foreach(_.set(keymap))
-      save = true
-    }
+    no_shortcut_conflicts.foreach(_.set(keymap))
 
-    if (save) {
-      keymap_manager.reload()
-      jEdit.saveSettings()
-    }
+    keymap.save()
+    keymap_manager.reload()
+    jEdit.saveSettings()
   }
 }
