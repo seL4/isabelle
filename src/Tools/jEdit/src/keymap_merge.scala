@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.lang.Class
+import java.lang.{Class, Boolean => JBoolean}
 import java.awt.{Color, Dimension}
 import java.awt.event.WindowEvent
 import javax.swing.{WindowConstants, JDialog, JTable, JScrollPane}
@@ -138,27 +138,23 @@ object Keymap_Merge
   private class Table_Model(entries: List[Table_Entry]) extends AbstractTableModel
   {
     private val entries_count = entries.length
+    private def has_entry(row: Int): Boolean = 0 <= row && row <= entries_count
     private def get_entry(row: Int): Option[Table_Entry] =
-      if (0 <= row && row <= entries_count) Some(entries(row)) else None
+      if (has_entry(row)) Some(entries(row)) else None
 
     private val selected =
       Synchronized[Set[Int]](
         (for ((e, i) <- entries.iterator.zipWithIndex if e.head.isEmpty) yield i).toSet)
 
-    def select(row: Int, b: Boolean)
+    private def select(head: Int, tail: List[Int], b: Boolean)
     {
-      if (get_entry(row).isDefined)
-        selected.change(set => if (b) set + row else set - row)
+      selected.change(set => if (b) set + head -- tail else set - head ++ tail)
     }
-
-    def selected_status(row: Int): Option[Boolean] =
-      if (get_entry(row).isDefined) Some(selected.value.contains(row)) else None
 
     override def getColumnCount: Int = 2
 
     override def getColumnClass(i: Int): Class[_ <: Object] =
-      if (i == 0) classOf[java.lang.Boolean]
-      else classOf[java.lang.Object]
+      if (i == 0) classOf[JBoolean] else classOf[Object]
 
     override def getColumnName(i: Int): String =
       if (i == 0) " " else if (i == 1) "Keyboard shortcut" else "???"
@@ -168,32 +164,28 @@ object Keymap_Merge
     override def getValueAt(row: Int, column: Int): AnyRef =
     {
       get_entry(row) match {
-        case Some(entry) if column == 0 =>
-          selected_status(row) match {
-            case None => null
-            case Some(b) => java.lang.Boolean.valueOf(b)
-          }
+        case Some(entry) if column == 0 => JBoolean.valueOf(selected.value.contains(row))
         case Some(entry) if column == 1 => entry
         case _ => null
       }
     }
 
     override def isCellEditable(row: Int, column: Int): Boolean =
-      get_entry(row) match {
-        case Some(entry) => column == 0
-        case None => false
-      }
+      has_entry(row) && column == 0
 
     override def setValueAt(value: AnyRef, row: Int, column: Int)
     {
-      (get_entry(row), value) match {
-        case (Some(entry), obj: java.lang.Boolean) if entry.head.isEmpty && column == 0 =>
+      value match {
+        case obj: JBoolean if has_entry(row) && column == 0 =>
           val b = obj.booleanValue
-          select(row, b)
-          if (entry.tail.nonEmpty) {
-            entry.tail.foreach(select(_, !b))
-            GUI_Thread.later { fireTableDataChanged() }
+          val entry = entries(row)
+          entry.head match {
+            case None => select(row, entry.tail, b)
+            case Some(head_row) =>
+              val head_entry = entries(head_row)
+              select(head_row, head_entry.tail, !b)
           }
+          GUI_Thread.later { fireTableDataChanged() }
         case _ =>
       }
     }
