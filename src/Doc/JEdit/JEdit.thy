@@ -166,8 +166,7 @@ text \<open>
   Regular jEdit options are accessible via the dialogs \<^emph>\<open>Utilities~/ Global
   Options\<close> or \<^emph>\<open>Plugins~/ Plugin Options\<close>, with a second chance to flip the
   two within the central options dialog. Changes are stored in @{path
-  "$ISABELLE_HOME_USER/jedit/properties"} and @{path
-  "$ISABELLE_HOME_USER/jedit/keymaps"}.
+  "$JEDIT_SETTINGS/properties"} and @{path "$JEDIT_SETTINGS/keymaps"}.
 
   Isabelle system options are managed by Isabelle/Scala and changes are stored
   in @{path "$ISABELLE_HOME_USER/etc/preferences"}, independently of
@@ -193,7 +192,7 @@ text \<open>
   \<^medskip>
   Options are usually loaded on startup and saved on shutdown of
   Isabelle/jEdit. Editing the machine-generated @{path
-  "$ISABELLE_HOME_USER/jedit/properties"} or @{path
+  "$JEDIT_SETTINGS/properties"} or @{path
   "$ISABELLE_HOME_USER/etc/preferences"} manually while the application is
   running is likely to cause surprise due to lost update!
 \<close>
@@ -212,8 +211,8 @@ text \<open>
   Isabelle/jEdit due to various fine-tuning of global defaults, with
   additional keyboard shortcuts for Isabelle-specific functionality. Users may
   change their keymap later, but need to copy some keyboard shortcuts manually
-  (see also @{path "$ISABELLE_HOME_USER/jedit/keymaps"} versus \<^verbatim>\<open>shortcut\<close>
-  properties in \<^file>\<open>$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props\<close>).
+  (see also @{path "$JEDIT_SETTINGS/keymaps"} versus \<^verbatim>\<open>shortcut\<close> properties in
+  \<^file>\<open>$JEDIT_HOME/src/jEdit.props\<close>).
 \<close>
 
 
@@ -671,10 +670,11 @@ text \<open>
   wrapper, in contrast to @{tool jedit} run from the command line
   (\secref{sec:command-line}).
 
-  Isabelle/jEdit imitates \<^verbatim>\<open>$ISABELLE_HOME\<close> and \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> within
-  the Java process environment, in order to allow easy access to these
-  important places from the editor. The file browser of jEdit also includes
-  \<^emph>\<open>Favorites\<close> for these two important locations.
+  Isabelle/jEdit imitates important system settings within the Java process
+  environment, in order to allow easy access to these important places from
+  the editor: \<^verbatim>\<open>$ISABELLE_HOME\<close>, \<^verbatim>\<open>$ISABELLE_HOME_USER\<close>, \<^verbatim>\<open>$JEDIT_HOME\<close>,
+  \<^verbatim>\<open>$JEDIT_SETTINGS\<close>. The file browser of jEdit also includes \<^emph>\<open>Favorites\<close> for
+  these two important locations.
 
   \<^medskip>
   Path specifications in prover input or output usually include formal markup

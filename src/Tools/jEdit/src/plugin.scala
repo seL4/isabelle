@@ -333,6 +333,8 @@ class Plugin extends EBPlugin
               "It is for testing only, not for production use.")
           }
 
+          Keymap_Merge.check_dialog(jEdit.getActiveView())
+
           Session_Build.session_build(jEdit.getActiveView())
 
         case msg: BufferUpdate

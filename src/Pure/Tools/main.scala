@@ -100,11 +100,15 @@ object Main
     {
       val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
       val isabelle_home_user = Isabelle_System.getenv("ISABELLE_HOME_USER")
+      val jedit_home = Isabelle_System.getenv("JEDIT_HOME")
+      val jedit_settings = Isabelle_System.getenv("JEDIT_SETTINGS")
 
       (env0: Any) => {
         val env = env0.asInstanceOf[java.util.Map[String, String]]
         env.put("ISABELLE_HOME", File.platform_path(isabelle_home))
         env.put("ISABELLE_HOME_USER", File.platform_path(isabelle_home_user))
+        env.put("JEDIT_HOME", File.platform_path(jedit_home))
+        env.put("JEDIT_SETTINGS", File.platform_path(jedit_settings))
         env.remove("ISABELLE_ROOT")
       }
     }
