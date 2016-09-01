@@ -232,11 +232,15 @@ object Keymap_Merge
 
     val table_model = new Table_Model(table_entries)
 
+    val cell_size = GUIUtilities.defaultTableCellSize()
+    val table_size = new Dimension(cell_size.width * 2, cell_size.height * 20)
+
     val table = new JTable(table_model)
     table.setShowGrid(false)
     table.setIntercellSpacing(new Dimension(0, 0))
-    table.setRowHeight(GUIUtilities.defaultRowHeight() + 2)
-    table.setPreferredScrollableViewportSize(new Dimension(500, 300))
+    table.setRowHeight(cell_size.height + 2)
+    table.setPreferredScrollableViewportSize(table_size)
+    table.setFillsViewportHeight(true)
     table.getTableHeader.setReorderingAllowed(false)
 
 		val col0 = table.getColumnModel.getColumn(0)
@@ -247,11 +251,11 @@ object Keymap_Merge
 		col0.setMaxWidth(30)
 		col0.setResizable(false)
 
-		col1.setPreferredWidth(300)
+		col1.setPreferredWidth(table_size.width)
 
     val table_scroller = new JScrollPane(table)
 		table_scroller.getViewport.setBackground(table.getBackground)
-		table_scroller.setPreferredSize(new Dimension(400, 400))
+		table_scroller.setPreferredSize(table_size)
 
 
     /* buttons */
