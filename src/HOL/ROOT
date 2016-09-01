@@ -31,8 +31,12 @@ session "HOL-Library" (main) in Library = HOL +
   *}
   theories
     Library
-    Rewrite
     Nonpos_Ints
+    Periodic_Fun
+    Polynomial_Factorial
+    Predicate_Compile_Quickcheck
+    Prefix_Order
+    Rewrite
     (*conflicting type class instantiations*)
     List_lexord
     Sublist_Order
