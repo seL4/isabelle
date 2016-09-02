@@ -1,5 +1,9 @@
+(*  Title:      HOL/Library/Predicate_Compile_Alternative_Defs.thy
+    Author:     Lukas Bulwahn, TU Muenchen
+*)
+
 theory Predicate_Compile_Alternative_Defs
-imports Main
+  imports Main
 begin
 
 section \<open>Common constants\<close>

@@ -31,8 +31,12 @@ session "HOL-Library" (main) in Library = HOL +
   *}
   theories
     Library
-    Rewrite
     Nonpos_Ints
+    Periodic_Fun
+    Polynomial_Factorial
+    Predicate_Compile_Quickcheck
+    Prefix_Order
+    Rewrite
     (*conflicting type class instantiations*)
     List_lexord
     Sublist_Order
@@ -978,6 +982,7 @@ session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
     Quickcheck_Lattice_Examples
     Completeness
     Quickcheck_Interfaces
+    Quickcheck_Nesting_Example
   theories [condition = ISABELLE_GHC]
     Hotel_Example
     Quickcheck_Narrowing_Examples

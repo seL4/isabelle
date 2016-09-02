@@ -187,4 +187,11 @@ object Library
   def insert[A](x: A)(xs: List[A]): List[A] = if (xs.contains(x)) xs else x :: xs
   def remove[A, B](x: B)(xs: List[A]): List[A] = if (member(xs)(x)) xs.filterNot(_ == x) else xs
   def update[A](x: A)(xs: List[A]): List[A] = x :: remove(x)(xs)
+
+  def distinct[A](xs: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[A] =
+  {
+    val result = new mutable.ListBuffer[A]
+    for (x <- xs if !result.exists(y => eq(x, y))) result += x
+    result.toList
+  }
 }

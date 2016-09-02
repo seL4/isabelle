@@ -335,6 +335,8 @@ class Plugin extends EBPlugin
 
           Session_Build.session_build(jEdit.getActiveView())
 
+          Keymap_Merge.check_dialog(jEdit.getActiveView())
+
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED ||
           msg.getWhat == BufferUpdate.PROPERTIES_CHANGED ||

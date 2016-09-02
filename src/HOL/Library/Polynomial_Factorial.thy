@@ -1,3 +1,11 @@
+(*  Title:      HOL/Library/Polynomial_Factorial.thy
+    Author:     Brian Huffman
+    Author:     Clemens Ballarin
+    Author:     Amine Chaieb
+    Author:     Florian Haftmann
+    Author:     Manuel Eberl
+*)
+
 theory Polynomial_Factorial
 imports 
   Complex_Main

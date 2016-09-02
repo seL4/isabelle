@@ -385,3 +385,4 @@
 \<^dir>                 code: 0x01F5C0  group: icon  font: IsabelleText
 \<^url>                 code: 0x01F310  group: icon  font: IsabelleText
 \<^doc>                 code: 0x01F4D3  group: icon  font: IsabelleText
+\<^action>              code: 0x00261b  group: icon  font: IsabelleText

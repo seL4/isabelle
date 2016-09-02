@@ -6,7 +6,7 @@ section \<open>A type of finite bit strings\<close>
 
 theory Word
 imports
-  Type_Length
+  "~~/src/HOL/Library/Type_Length"
   "~~/src/HOL/Library/Boolean_Algebra"
   Bits_Bit
   Bool_List_Representation

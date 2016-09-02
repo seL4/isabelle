@@ -208,8 +208,10 @@ object Completion
         } yield {
           val description = List(xname1, "(" + descr_name + ")")
           val replacement =
-            Token.explode(Keyword.Keywords.empty, xname1) match {
-              case List(tok) if tok.is_name => xname1
+            List(original, xname1).map(Token.explode(Keyword.Keywords.empty, _)) match {
+              case List(List(tok), _) if tok.kind == Token.Kind.CARTOUCHE =>
+                Symbol.open_decoded + xname1 + Symbol.close_decoded
+              case List(_, List(tok)) if tok.is_name => xname1
               case _ => quote(xname1)
             }
           Item(range, original, full_name, description, replacement, 0, true)

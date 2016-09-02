@@ -1,4 +1,8 @@
 (* Author: Tobias Nipkow *)
+(* Todo:
+ size t = 2^h - 1 \<Longrightarrow> complete t
+ (min_)height of balanced trees via floorlog
+*)
 
 section \<open>Binary Tree\<close>
 
@@ -85,6 +89,9 @@ proof(induction t)
   qed
 qed simp
 
+corollary size_height: "size t \<le> 2 ^ height (t::'a tree) - 1"
+using size1_height[of t] by(arith)
+
 
 fun min_height :: "'a tree \<Rightarrow> nat" where
 "min_height Leaf = 0" |
@@ -106,23 +113,114 @@ proof(induction t)
 qed simp
 
 
-subsection "Balanced"
+subsection \<open>Complete\<close>
 
-fun balanced :: "'a tree \<Rightarrow> bool" where
-"balanced Leaf = True" |
-"balanced (Node l x r) = (balanced l \<and> balanced r \<and> height l = height r)"
+fun complete :: "'a tree \<Rightarrow> bool" where
+"complete Leaf = True" |
+"complete (Node l x r) = (complete l \<and> complete r \<and> height l = height r)"
 
-lemma balanced_iff_min_height: "balanced t \<longleftrightarrow> (min_height t = height t)"
+lemma complete_iff_height: "complete t \<longleftrightarrow> (min_height t = height t)"
 apply(induction t)
  apply simp
 apply (simp add: min_def max_def)
 by (metis le_antisym le_trans min_hight_le_height)
 
-lemma balanced_size1: "balanced t \<Longrightarrow> size1 t = 2 ^ height t"
+lemma complete_size1: "complete t \<Longrightarrow> size1 t = 2 ^ height t"
 by (induction t) auto
 
-lemma balanced_size: "balanced t \<Longrightarrow> size t = 2 ^ height t - 1"
-using balanced_size1[simplified size1_def] by fastforce
+lemma size_if_complete: "complete t \<Longrightarrow> size t = 2 ^ height t - 1"
+using complete_size1[simplified size1_def] by fastforce
+
+text\<open>A better lower bound for incomplete trees:\<close>
+
+lemma min_height_le_size_if_incomplete:
+  "\<not> complete t \<Longrightarrow> 2 ^ min_height t \<le> size t"
+proof(induction t)
+  case Leaf thus ?case by simp
+next
+  case (Node l a r)
+  show ?case (is "?l \<le> ?r")
+  proof (cases "complete l")
+    case l: True thus ?thesis
+    proof (cases "complete r")
+      case r: True
+      have "height l \<noteq> height r" using Node.prems l r by simp
+      hence "?l < 2 ^ min_height l + 2 ^ min_height r"
+        using l r by (simp add: min_def complete_iff_height)
+      also have "\<dots> = (size l + 1) + (size r + 1)"
+        using l r size_if_complete[where ?'a = 'a]
+        by (simp add: complete_iff_height)
+      also have "\<dots> \<le> ?r + 1" by simp
+      finally show ?thesis by arith
+    next
+      case r: False
+      have "?l \<le> 2 ^ min_height l + 2 ^ min_height r" by (simp add: min_def)
+      also have "\<dots> \<le> size l + 1 + size r"
+        using Node.IH(2)[OF r] l size_if_complete[where ?'a = 'a]
+        by (simp add: complete_iff_height)
+      also have "\<dots> = ?r" by simp
+      finally show ?thesis .
+    qed
+  next
+    case l: False thus ?thesis
+    proof (cases "complete r")
+      case r: True
+      have "?l \<le> 2 ^ min_height l + 2 ^ min_height r" by (simp add: min_def)
+      also have "\<dots> \<le> size l + (size r + 1)"
+        using Node.IH(1)[OF l] r size_if_complete[where ?'a = 'a]
+        by (simp add: complete_iff_height)
+      also have "\<dots> = ?r" by simp
+      finally show ?thesis .
+    next
+      case r: False
+      have "?l \<le> 2 ^ min_height l + 2 ^ min_height r"
+        by (simp add: min_def)
+      also have "\<dots> \<le> size l + size r"
+        using Node.IH(1)[OF l] Node.IH(2)[OF r] by (simp)
+      also have "\<dots> \<le> ?r" by simp
+      finally show ?thesis .
+    qed
+  qed
+qed
+
+
+subsection \<open>Balanced\<close>
+
+abbreviation "balanced t \<equiv> (height t - min_height t \<le> 1)"
+
+text\<open>Balanced trees have optimal height:\<close>
+
+lemma balanced_optimal:
+fixes t :: "'a tree" and t' :: "'b tree"
+assumes "balanced t" "size t \<le> size t'" shows "height t \<le> height t'"
+proof (cases "complete t")
+  case True
+  have "(2::nat) ^ height t - 1 \<le> 2 ^ height t' - 1"
+  proof -
+    have "(2::nat) ^ height t - 1 = size t"
+      using True by (simp add: complete_iff_height size_if_complete)
+    also note assms(2)
+    also have "size t' \<le> 2 ^ height t' - 1" by (rule size_height)
+    finally show ?thesis .
+  qed
+  thus ?thesis by (simp add: le_diff_iff)
+next
+  case False
+  have "(2::nat) ^ min_height t < 2 ^ height t'"
+  proof -
+    have "(2::nat) ^ min_height t \<le> size t"
+      by(rule min_height_le_size_if_incomplete[OF False])
+    also note assms(2)
+    also have "size t' \<le> 2 ^ height t' - 1"  by(rule size_height)
+    finally show ?thesis
+      using power_eq_0_iff[of "2::nat" "height t'"] by linarith
+  qed
+  hence *: "min_height t < height t'" by simp
+  have "min_height t + 1 = height t"
+    using min_hight_le_height[of t] assms(1) False
+    by (simp add: complete_iff_height)
+  with * show ?thesis by arith
+qed
 
 
 subsection \<open>Path length\<close>
@@ -133,7 +231,7 @@ fun path_len :: "'a tree \<Rightarrow> nat" where
 "path_len Leaf = 0 " |
 "path_len (Node l _ r) = path_len l + size l + path_len r + size r"
 
-lemma path_len_if_bal: "balanced t
+lemma path_len_if_bal: "complete t
   \<Longrightarrow> path_len t = (let n = height t in 2 + n*2^n - 2^(n+1))"
 proof(induction t)
   case (Node l x r)
@@ -141,7 +239,7 @@ proof(induction t)
     by(induction n) auto
   have **: "(0::nat) < 2^n" for n :: nat by simp
   let ?h = "height r"
-  show ?case using Node *[of ?h] **[of ?h] by (simp add: balanced_size Let_def)
+  show ?case using Node *[of ?h] **[of ?h] by (simp add: size_if_complete Let_def)
 qed simp
 
 
@@ -171,6 +269,12 @@ fun inorder :: "'a tree \<Rightarrow> 'a list" where
 "inorder \<langle>\<rangle> = []" |
 "inorder \<langle>l, x, r\<rangle> = inorder l @ [x] @ inorder r"
 
+text\<open>A linear version avoiding append:\<close>
+fun inorder2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"inorder2 \<langle>\<rangle> xs = xs" |
+"inorder2 \<langle>l, x, r\<rangle> xs = inorder2 l (x # inorder2 r xs)"
+
+
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
 by (induction t) auto
 
@@ -188,6 +292,9 @@ by (induction t) auto
 
 lemma inorder_map: "inorder (map_tree f t) = map f (inorder t)"
 by (induction t) auto
+
+lemma inorder2_inorder: "inorder2 t xs = inorder t @ xs"
+by (induction t arbitrary: xs) auto
 
 
 subsection \<open>Binary Search Tree predicate\<close>
