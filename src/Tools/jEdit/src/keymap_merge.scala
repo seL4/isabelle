@@ -53,12 +53,9 @@ object Keymap_Merge
     def is_ignored(keymap_name: String): Boolean =
       ignored_keymaps().contains(keymap_name)
 
-    def ignore(keymap_name: String)
-    {
-      val keymaps1 = Library.insert(keymap_name)(ignored_keymaps()).sorted
-      if (keymaps1.isEmpty) jEdit.resetProperty(prop_ignore)
-      else jEdit.setProperty(prop_ignore, keymaps1.mkString(","))
-    }
+    def ignore(keymap_name: String): Unit =
+      jEdit.setProperty(prop_ignore,
+        Library.insert(keymap_name)(ignored_keymaps()).sorted.mkString(","))
 
     def set(keymap: Keymap): Unit = keymap.setShortcut(property, binding)
     def reset(keymap: Keymap): Unit = keymap.setShortcut(property, null)
