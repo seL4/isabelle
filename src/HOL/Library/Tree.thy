@@ -269,6 +269,12 @@ fun inorder :: "'a tree \<Rightarrow> 'a list" where
 "inorder \<langle>\<rangle> = []" |
 "inorder \<langle>l, x, r\<rangle> = inorder l @ [x] @ inorder r"
 
+text\<open>A linear version avoiding append:\<close>
+fun inorder2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"inorder2 \<langle>\<rangle> xs = xs" |
+"inorder2 \<langle>l, x, r\<rangle> xs = inorder2 l (x # inorder2 r xs)"
+
+
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
 by (induction t) auto
 
@@ -286,6 +292,9 @@ by (induction t) auto
 
 lemma inorder_map: "inorder (map_tree f t) = map f (inorder t)"
 by (induction t) auto
+
+lemma inorder2_inorder: "inorder2 t xs = inorder t @ xs"
+by (induction t arbitrary: xs) auto
 
 
 subsection \<open>Binary Search Tree predicate\<close>
