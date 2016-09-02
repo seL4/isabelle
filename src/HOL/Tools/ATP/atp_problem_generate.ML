@@ -2172,34 +2172,45 @@ fun default_mono level completish =
 
 (* This inference is described in section 4 of Blanchette et al., "Encoding
    monomorphic and polymorphic types", TACAS 2013. *)
-fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
-  | add_iterm_mononotonicity_info ctxt level _
-        (IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2))
-        (mono as {maybe_finite_Ts, surely_infinite_Ts, maybe_nonmono_Ts}) =
-    let val thy = Proof_Context.theory_of ctxt in
-      if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
-        (case level of
-          Nonmono_Types (strictness, _) =>
-          if exists (type_instance thy T) surely_infinite_Ts orelse
-             member (type_equiv thy) maybe_finite_Ts T then
-            mono
-          else if is_type_kind_of_surely_infinite ctxt strictness
-                                                  surely_infinite_Ts T then
-            {maybe_finite_Ts = maybe_finite_Ts,
-             surely_infinite_Ts = surely_infinite_Ts |> insert_type thy I T,
-             maybe_nonmono_Ts = maybe_nonmono_Ts}
-          else
-            {maybe_finite_Ts = maybe_finite_Ts |> insert (type_equiv thy) T,
-             surely_infinite_Ts = surely_infinite_Ts,
-             maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
-        | _ => mono)
-      else
-        mono
-    end
-  | add_iterm_mononotonicity_info _ _ _ _ mono = mono
+fun add_iterm_mononotonicity_info ctxt level polarity tm
+      (mono as {maybe_finite_Ts, surely_infinite_Ts, maybe_nonmono_Ts}) =
+  let
+    val thy = Proof_Context.theory_of ctxt
+
+    fun update_mono T mono =
+      (case level of
+        Nonmono_Types (strictness, _) =>
+        if exists (type_instance thy T) surely_infinite_Ts orelse
+           member (type_equiv thy) maybe_finite_Ts T then
+          mono
+        else if is_type_kind_of_surely_infinite ctxt strictness
+                                                surely_infinite_Ts T then
+          {maybe_finite_Ts = maybe_finite_Ts,
+           surely_infinite_Ts = surely_infinite_Ts |> insert_type thy I T,
+           maybe_nonmono_Ts = maybe_nonmono_Ts}
+        else
+          {maybe_finite_Ts = maybe_finite_Ts |> insert (type_equiv thy) T,
+           surely_infinite_Ts = surely_infinite_Ts,
+           maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
+      | _ => mono)
+
+    fun update_mono_rec (IConst ((_, s'), Type (_, [T, _]), _)) =
+        if String.isPrefix @{const_name fequal} s' then update_mono T else I
+      | update_mono_rec (IApp (tm1, tm2)) = fold update_mono_rec [tm1, tm2]
+      | update_mono_rec (IAbs (_, tm)) = update_mono_rec tm
+      | update_mono_rec _ = I
+  in
+    mono |>
+    (case tm of
+      IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2) =>
+      ((polarity <> SOME false andalso is_tptp_equal s
+          andalso exists is_maybe_universal_var [tm1, tm2])
+         ? update_mono T)
+      #> fold update_mono_rec [tm1, tm2]
+    | _ => update_mono_rec tm)
+  end
 fun add_fact_mononotonicity_info ctxt level ({role, iformula, ...} : ifact) =
-  formula_fold (SOME (role <> Conjecture))
-               (add_iterm_mononotonicity_info ctxt level) iformula
+  formula_fold (SOME (role <> Conjecture)) (add_iterm_mononotonicity_info ctxt level) iformula
 fun mononotonicity_info_of_facts ctxt type_enc completish facts =
   let val level = level_of_type_enc type_enc in
     default_mono level completish
