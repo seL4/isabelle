@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 (* Todo:
- size t = 2^h - 1 \<Longrightarrow> complete t
  (min_)height of balanced trees via floorlog
+ minimal path_len of balanced trees
 *)
 
 section \<open>Binary Tree\<close>
@@ -125,11 +125,55 @@ apply(induction t)
 apply (simp add: min_def max_def)
 by (metis le_antisym le_trans min_hight_le_height)
 
-lemma complete_size1: "complete t \<Longrightarrow> size1 t = 2 ^ height t"
+lemma size1_if_complete: "complete t \<Longrightarrow> size1 t = 2 ^ height t"
 by (induction t) auto
 
 lemma size_if_complete: "complete t \<Longrightarrow> size t = 2 ^ height t - 1"
-using complete_size1[simplified size1_def] by fastforce
+using size1_if_complete[simplified size1_def] by fastforce
+
+lemma complete_if_size: "size t = 2 ^ height t - 1 \<Longrightarrow> complete t"
+proof (induct "height t" arbitrary: t)
+  case 0 thus ?case by (simp add: size_0_iff_Leaf)
+next
+  case (Suc h)
+  hence "t \<noteq> Leaf" by auto
+  then obtain l a r where [simp]: "t = Node l a r"
+    by (auto simp: neq_Leaf_iff)
+  have 1: "height l \<le> h" and 2: "height r \<le> h" using Suc(2) by(auto)
+  have 3: "~ height l < h"
+  proof
+    assume 0: "height l < h"
+    have "size t = size l + (size r + 1)" by simp
+    also note size_height[of l]
+    also note size1_height[of r]
+    also have "(2::nat) ^ height l - 1 < 2 ^ h - 1"
+        using 0 by (simp add: diff_less_mono)
+    also have "(2::nat) ^ height r \<le> 2 ^ h" using 2 by simp
+    also have "(2::nat) ^ h - 1 + 2 ^ h = 2 ^ (Suc h) - 1" by (simp)
+    also have "\<dots> = size t" using Suc(2,3) by simp
+    finally show False by (simp add: diff_le_mono)
+  qed
+  have 4: "~ height r < h"
+  proof
+    assume 0: "height r < h"
+    have "size t = (size l + 1) + size r" by simp
+    also note size_height[of r]
+    also note size1_height[of l]
+    also have "(2::nat) ^ height r - 1 < 2 ^ h - 1"
+        using 0 by (simp add: diff_less_mono)
+    also have "(2::nat) ^ height l \<le> 2 ^ h" using 1 by simp
+    also have "(2::nat) ^ h + (2 ^ h - 1) = 2 ^ (Suc h) - 1" by (simp)
+    also have "\<dots> = size t" using Suc(2,3) by simp
+    finally show False by (simp add: diff_le_mono)
+  qed
+  from 1 2 3 4 have *: "height l = h" "height r = h" by linarith+
+  hence "size l = 2 ^ height l - 1" "size r = 2 ^ height r - 1"
+    using Suc(3) size_height[of l] size_height[of r] by (auto)
+  with * Suc(1) show ?case by simp
+qed
+
+lemma complete_iff_size: "complete t \<longleftrightarrow> size t = 2 ^ height t - 1"
+using complete_if_size size_if_complete by blast
 
 text\<open>A better lower bound for incomplete trees:\<close>
 
