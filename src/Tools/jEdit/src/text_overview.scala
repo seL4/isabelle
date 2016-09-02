@@ -86,6 +86,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
         val overview = get_overview()
 
         if (rendering.snapshot.is_outdated || overview != current_overview) {
+          invoke()
           delay_repaint.invoke()
 
           gfx.setColor(rendering.outdated_color)
