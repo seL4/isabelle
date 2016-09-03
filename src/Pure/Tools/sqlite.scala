@@ -1,6 +1,5 @@
 /*  Title:      Pure/Tools/sqlite.scala
     Author:     Makarius
-    Options:    :folding=explicit:
 
 Support for SQLite databases.
 */
