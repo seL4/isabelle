@@ -116,6 +116,7 @@ declare -a SOURCES=(
   Tools/news.scala
   Tools/print_operation.scala
   Tools/simplifier_trace.scala
+  Tools/sqlite.scala
   Tools/task_statistics.scala
   Tools/update_cartouches.scala
   Tools/update_header.scala
