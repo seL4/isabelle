@@ -19,6 +19,21 @@ object SQLite
     override def toString: String = path.toString
 
     def close { connection.close }
+
+    def transaction[A](body: => A): A =
+    {
+      val auto_commit = connection.getAutoCommit
+      val savepoint = connection.setSavepoint
+
+      try {
+        connection.setAutoCommit(false)
+        val result = body
+        connection.commit
+        result
+      }
+      catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
+      finally { connection.setAutoCommit(auto_commit) }
+    }
   }
 
   def open_database(path: Path): Database =

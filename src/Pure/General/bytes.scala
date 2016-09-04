@@ -25,6 +25,8 @@ object Bytes
     }
   }
 
+  def apply(a: Array[Byte]): Bytes = apply(a, 0, a.length)
+
   def apply(a: Array[Byte], offset: Int, length: Int): Bytes =
     if (length == 0) empty
     else {
