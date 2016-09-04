@@ -7,12 +7,12 @@ Support for SQLite databases.
 package isabelle
 
 
-import java.sql.{Connection, DriverManager}
+import java.sql.{DriverManager, Connection, PreparedStatement}
 
 
 object SQLite
 {
-  /* database connection */
+  /** database connection **/
 
   class Database private [SQLite](path: Path, val connection: Connection)
   {
@@ -34,7 +34,25 @@ object SQLite
       catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
       finally { connection.setAutoCommit(auto_commit) }
     }
+
+    def with_statement[A](sql: String)(body: PreparedStatement => A): A =
+    {
+      val stmt = connection.prepareStatement(sql)
+      try { body(stmt) } finally { stmt.close }
+    }
+
+
+    /* tables */
+
+    def create_table(table: SQL.Table, strict: Boolean = true, rowid: Boolean = true): Unit =
+      with_statement(table.sql_create(strict, rowid))(_.execute())
+
+    def drop_table(table: SQL.Table, strict: Boolean = true): Unit =
+      with_statement(table.sql_drop(strict))(_.execute())
   }
+
+
+  /* open database */
 
   def open_database(path: Path): Database =
   {

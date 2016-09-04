@@ -49,13 +49,22 @@ object SQL
     def bytes(name: String, strict: Boolean = true): Column[Bytes] = new Column_Bytes(name, strict)
   }
 
-  abstract class Column[A] private[SQL](val name: String, val strict: Boolean)
+  abstract class Column[+A] private[SQL](val name: String, val strict: Boolean)
   {
     def sql_name: String = quote_ident(name)
     def sql_type: String
     def sql_decl: String = sql_name + " " + sql_type + (if (strict) " NOT NULL" else "")
-    def result(rs: ResultSet): A
-    def result_string(rs: ResultSet): String = rs.getString(name)
+    def string(rs: ResultSet): String =
+    {
+      val s = rs.getString(name)
+      if (s == null) "" else s
+    }
+    def apply(rs: ResultSet): A
+    def get(rs: ResultSet): Option[A] =
+    {
+      val x = apply(rs)
+      if (rs.wasNull) None else Some(x)
+    }
 
     override def toString: String = sql_decl
   }
@@ -64,38 +73,56 @@ object SQL
     extends Column[Int](name, strict)
   {
     def sql_type: String = "INTEGER"
-    def result(rs: ResultSet): Int = rs.getInt(name)
+    def apply(rs: ResultSet): Int = rs.getInt(name)
   }
 
   class Column_Long private[SQL](name: String, strict: Boolean)
     extends Column[Long](name, strict)
   {
     def sql_type: String = "INTEGER"
-    def result(rs: ResultSet): Long = rs.getLong(name)
+    def apply(rs: ResultSet): Long = rs.getLong(name)
   }
 
   class Column_Double private[SQL](name: String, strict: Boolean)
     extends Column[Double](name, strict)
   {
     def sql_type: String = "REAL"
-    def result(rs: ResultSet): Double = rs.getDouble(name)
+    def apply(rs: ResultSet): Double = rs.getDouble(name)
   }
 
   class Column_String private[SQL](name: String, strict: Boolean)
     extends Column[String](name, strict)
   {
     def sql_type: String = "TEXT"
-    def result(rs: ResultSet): String = rs.getString(name)
+    def apply(rs: ResultSet): String =
+    {
+      val s = rs.getString(name)
+      if (s == null) "" else s
+    }
   }
 
   class Column_Bytes private[SQL](name: String, strict: Boolean)
     extends Column[Bytes](name, strict)
   {
     def sql_type: String = "BLOB"
-    def result(rs: ResultSet): Bytes =
+    def apply(rs: ResultSet): Bytes =
     {
       val bs = rs.getBytes(name)
-      if (bs == null) null else Bytes(bs)
+      if (bs == null) Bytes.empty else Bytes(bs)
     }
+  }
+
+
+  /* tables */
+
+  sealed case class Table(name: String, columns: Column[Any]*)
+  {
+    def sql_create(strict: Boolean, rowid: Boolean): String =
+      "CREATE TABLE " + (if (strict) "" else " IF NOT EXISTS ") +
+        quote_ident(name) + " " + columns.map(_.sql_decl).mkString("(", ", ", ")") +
+        (if (rowid) "" else " WITHOUT ROWID")
+
+    def sql_drop(strict: Boolean): String =
+      "DROP TABLE " + (if (strict) "" else " IF EXISTS ") + quote_ident(name)
   }
 }
