@@ -8,6 +8,7 @@ Basic library.
 package isabelle
 
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -192,6 +193,20 @@ object Library
   {
     val result = new mutable.ListBuffer[A]
     xs.foreach(x => if (!result.contains(x)) result += x)
+    result.toList
+  }
+
+  def duplicates[A](lst: List[A]): List[A] =
+  {
+    val result = new mutable.ListBuffer[A]
+    @tailrec def dups(rest: List[A]): Unit =
+      rest match {
+        case Nil =>
+        case x :: xs =>
+          if (!result.contains(x) && xs.contains(x)) result += x
+          dups(xs)
+      }
+    dups(lst)
     result.toList
   }
 }
