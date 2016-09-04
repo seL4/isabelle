@@ -124,6 +124,11 @@ object Exn
       val msg = exn.getMessage
       Some(if (msg == null || msg == "") "Error" else msg)
     }
+    else if (exn.isInstanceOf[java.sql.SQLException])
+    {
+      val msg = exn.getMessage
+      Some(if (msg == null || msg == "") "SQL error" else msg)
+    }
     else if (exn.isInstanceOf[java.io.IOException])
     {
       val msg = exn.getMessage
