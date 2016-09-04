@@ -141,12 +141,12 @@ object SQL
     }
 
     def sql_create(strict: Boolean, rowid: Boolean): String =
-      "CREATE TABLE " + (if (strict) "" else " IF NOT EXISTS ") +
+      "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
         quote_ident(name) + " " + columns.map(_.sql_decl).mkString("(", ", ", ")") +
         (if (rowid) "" else " WITHOUT ROWID")
 
     def sql_drop(strict: Boolean): String =
-      "DROP TABLE " + (if (strict) "" else " IF EXISTS ") + quote_ident(name)
+      "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + quote_ident(name)
 
     override def toString: String =
       "TABLE " + quote_ident(name) + " " + columns.map(_.toString).mkString("(", ", ", ")")
