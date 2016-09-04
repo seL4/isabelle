@@ -125,7 +125,9 @@ object SQL
 
   /* tables */
 
-  sealed case class Table(name: String, columns: List[Column[Any]])
+  def table(name: String, columns: Column[Any]*): Table = new Table(name, columns.toList)
+
+  class Table private[SQL](name: String, columns: List[Column[Any]])
   {
     Library.duplicates(columns.map(_.name)) match {
       case Nil =>
@@ -145,5 +147,8 @@ object SQL
 
     def sql_drop(strict: Boolean): String =
       "DROP TABLE " + (if (strict) "" else " IF EXISTS ") + quote_ident(name)
+
+    override def toString: String =
+      "TABLE " + quote_ident(name) + " " + columns.map(_.toString).mkString("(", ", ", ")")
   }
 }
