@@ -204,6 +204,7 @@ sig
     (BNF_Comp.absT_info * BNF_Comp.absT_info) option list ->
     local_theory ->
     (term list * (thm list * thm * thm list * thm list)) * local_theory
+  val raw_qualify: (binding -> binding) -> binding -> binding -> binding
 
   val fixpoint_bnf: (binding -> binding) ->
       (binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
@@ -914,6 +915,16 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
       lthy)
   end;
 
+fun raw_qualify extra_qualify base_b =
+  let
+    val qs = Binding.path_of base_b;
+    val n = Binding.name_of base_b;
+  in
+    Binding.prefix_name rawN
+    #> fold_rev (fn (s, mand) => Binding.qualify mand s) (qs @ [(n, true)])
+    #> extra_qualify #> Binding.concealed
+  end;
+
 fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
   let
     val time = time lthy;
@@ -925,21 +936,11 @@ fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy
     fun flatten_tyargs Ass =
       subtract (op =) Xs (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ Xs;
 
-    fun raw_qualify base_b =
-      let
-        val qs = Binding.path_of base_b;
-        val n = Binding.name_of base_b;
-      in
-        Binding.prefix_name rawN
-        #> fold_rev (fn (s, mand) => Binding.qualify mand s) (qs @ [(n, true)])
-        #> extra_qualify #> Binding.concealed
-      end;
-
-    val ((bnfs, (deadss, livess)), (comp_cache, unfold_set)) =
+    val ((bnfs, (deadss, livess)), (comp_cache_unfold_set, lthy')) =
       apfst (apsnd split_list o split_list)
         (@{fold_map 2}
-          (fn b => bnf_of_typ true Smart_Inline (raw_qualify b) flatten_tyargs Xs Ds0) bs rhsXs
-          ((comp_cache0, empty_unfolds), lthy));
+          (fn b => bnf_of_typ true Smart_Inline (raw_qualify extra_qualify b) flatten_tyargs Xs Ds0)
+          bs rhsXs ((comp_cache0, empty_unfolds), lthy));
 
     fun norm_qualify i =
       Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
@@ -954,25 +955,25 @@ fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy
 
     val timer = time (timer "Construction of BNFs");
 
-    val ((kill_poss, _), (bnfs', ((comp_cache', unfold_set'), lthy'))) =
-      normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs (comp_cache, unfold_set);
+    val ((kill_poss, _), (bnfs', ((comp_cache', unfold_set'), lthy''))) =
+      normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs (comp_cache_unfold_set, lthy');
 
     val Dss = @{map 3} (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
 
     fun pre_qualify b =
       Binding.qualify false (Binding.name_of b)
       #> extra_qualify
-      #> not (Config.get lthy' bnf_internals) ? Binding.concealed;
+      #> not (Config.get lthy'' bnf_internals) ? Binding.concealed;
 
-    val ((pre_bnfs, (deadss, absT_infos)), lthy'') =
+    val ((pre_bnfs, (deadss, absT_infos)), lthy''') =
       @{fold_map 4} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
-        bs (not (null live_phantoms) :: replicate (nn - 1) false) Dss bnfs' lthy'
+        bs (not (null live_phantoms) :: replicate (nn - 1) false) Dss bnfs' lthy''
       |>> split_list
       |>> apsnd split_list;
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct_fp bs resBs (map TFree dead_phantoms, deadss) pre_bnfs absT_infos lthy'';
+    val res = construct_fp bs resBs (map TFree dead_phantoms, deadss) pre_bnfs absT_infos lthy''';
 
     val timer = time (timer "FP construction in total");
   in

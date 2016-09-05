@@ -2066,14 +2066,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val set_boss = map (map fst o type_args_named_constrained_of_spec) specs;
     val set_bss = map (map (the_default Binding.empty)) set_boss;
 
-    val ((((Bs0, Cs), Es), Xs), _) =
-      no_defs_lthy
-      |> fold (Variable.declare_typ o resort_tfree_or_tvar dummyS) unsorted_As
-      |> mk_TFrees num_As
-      ||>> mk_TFrees nn
-      ||>> mk_TFrees nn
-      ||>> variant_tfrees fp_b_names;
-
     fun add_fake_type spec =
       Typedecl.basic_typedecl {final = true}
         (type_binding_of_spec spec, num_As, Mixfix.reset_pos (mixfix_of_spec spec));
@@ -2122,6 +2114,14 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           commas (map (qsoty o TFree) extras)));
 
     val fake_Ts = map (fn s => Type (s, As)) fake_T_names;
+
+    val ((((Bs0, Cs), Es), Xs), _) =
+      no_defs_lthy
+      |> fold (Variable.declare_typ o resort_tfree_or_tvar dummyS) unsorted_As
+      |> mk_TFrees num_As
+      ||>> mk_TFrees nn
+      ||>> mk_TFrees nn
+      ||>> variant_tfrees fp_b_names;
 
     fun eq_fpT_check (T as Type (s, Ts)) (T' as Type (s', Ts')) =
         s = s' andalso (Ts = Ts' orelse
