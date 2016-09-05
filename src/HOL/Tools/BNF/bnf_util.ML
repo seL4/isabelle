@@ -10,6 +10,9 @@ sig
   include CTR_SUGAR_UTIL
   include BNF_FP_REC_SUGAR_UTIL
 
+  val unflatt: 'a list list list -> 'b list -> 'b list list list
+  val unflattt: 'a list list list list -> 'b list -> 'b list list list list
+
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
     term list list list * Proof.context
@@ -116,6 +119,14 @@ open Ctr_Sugar_Util
 open BNF_FP_Rec_Sugar_Util
 
 (* Library proper *)
+
+fun unfla0 xs = fold_map (fn _ => fn (c :: cs) => (c, cs)) xs;
+fun unflat0 xss = fold_map unfla0 xss;
+fun unflatt0 xsss = fold_map unflat0 xsss;
+fun unflattt0 xssss = fold_map unflatt0 xssss;
+
+fun unflatt xsss = fst o unflatt0 xsss;
+fun unflattt xssss = fst o unflattt0 xssss;
 
 val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);

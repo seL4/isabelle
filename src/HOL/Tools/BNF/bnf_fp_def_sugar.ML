@@ -473,11 +473,6 @@ fun zipper_map f =
       | zed xs (y :: ys) = f (xs, y, ys) :: zed (xs @ [y]) ys;
   in zed [] end;
 
-fun unfla xs = fold_map (fn _ => fn (c :: cs) => (c, cs)) xs;
-fun unflat xss = fold_map unfla xss;
-fun unflatt xsss = fold_map unflat xsss;
-fun unflattt xssss = fold_map unflatt xssss;
-
 fun cannot_merge_types fp =
   error ("Mutually " ^ co_prefix fp ^ "recursive types must have the same type parameters");
 
@@ -894,7 +889,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 end) setAs lthy;
             val goals = flat (flat (flat goalssss));
           in
-            `(fst o unflattt goalssss)
+            `(unflattt goalssss)
               (if null goals then []
                else
                  let
@@ -1043,7 +1038,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             val goalss = @{map 3} (map2 o mk_goal) discAs selAss selBss;
             val goals = flat goalss;
           in
-            `(fst o unflat goalss)
+            `(unflat goalss)
               (if null goals then []
               else
                 let
@@ -1106,7 +1101,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 setAs names_lthy;
             val goals = flat (flat (flat goalssss));
           in
-            `(fst o unflattt goalssss)
+            `(unflattt goalssss)
               (if null goals then []
               else
                 let
