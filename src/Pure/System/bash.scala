@@ -124,7 +124,7 @@ object Bash
           if (timing_file.isFile) {
             val t =
               Word.explode(File.read(timing_file)) match {
-                case List(Properties.Value.Long(elapsed), Properties.Value.Long(cpu)) =>
+                case List(Value.Long(elapsed), Value.Long(cpu)) =>
                   Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
                 case _ => Timing.zero
               }

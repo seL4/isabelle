@@ -14,8 +14,8 @@ object ML_Syntax
   private def signed_int(s: String): String =
     if (s(0) == '-') "~" + s.substring(1) else s
 
-  def print_int(i: Int): String = signed_int(Properties.Value.Int(i))
-  def print_long(i: Long): String = signed_int(Properties.Value.Long(i))
+  def print_int(i: Int): String = signed_int(Value.Int(i))
+  def print_long(i: Long): String = signed_int(Value.Long(i))
 
 
   /* string */

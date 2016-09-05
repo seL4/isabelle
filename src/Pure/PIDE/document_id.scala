@@ -20,7 +20,7 @@ object Document_ID
   val none: Generic = 0
   val make = Counter.make()
 
-  def apply(id: Generic): String = Properties.Value.Long.apply(id)
-  def unapply(s: String): Option[Generic] = Properties.Value.Long.unapply(s)
+  def apply(id: Generic): String = Value.Long.apply(id)
+  def unapply(s: String): Option[Generic] = Value.Long.unapply(s)
 }
 

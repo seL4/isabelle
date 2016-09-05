@@ -50,6 +50,7 @@ declare -a SOURCES=(
   General/timing.scala
   General/untyped.scala
   General/url.scala
+  General/value.scala
   General/word.scala
   General/xz_file.scala
   Isar/document_structure.scala
