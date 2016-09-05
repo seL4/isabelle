@@ -108,7 +108,7 @@ theorem Schroeder_Bernstein:
     apply (rule_tac [2] inj_on_inv_into)
     apply (erule subset_inj_on [OF _ subset_UNIV])
    apply blast
-  apply (erule ssubst, subst double_complement, erule inv_image_comp [symmetric])
+  apply (erule ssubst, subst double_complement, erule image_inv_f_f [symmetric])
   done
 
 
