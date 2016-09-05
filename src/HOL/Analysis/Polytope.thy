@@ -2386,7 +2386,7 @@ proof -
   have *: "{f. P f} = (image h) ` {f. P (h ` f)}" for P
     apply safe
     apply (rule_tac x="inv h ` x" in image_eqI)
-    apply (auto simp: \<open>bij h\<close> bij_is_surj image_surj_f_inv_f)
+    apply (auto simp: \<open>bij h\<close> bij_is_surj image_f_inv_f)
     done
   have "inj h" using bij_is_inj assms by blast
   then have injim: "inj_on (op ` h) A" for A
