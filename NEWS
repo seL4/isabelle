@@ -493,8 +493,8 @@ INCOMPATIBILITY.
 ordering, and the subset ordering on multisets.
 INCOMPATIBILITY.
 
-* The subset ordering on multisets has now the interpretation
-ordered_ab_semigroup_monoid_add_imp_le.
+* The subset ordering on multisets has now the interpretations
+ordered_ab_semigroup_monoid_add_imp_le and bounded_lattice_bot.
 INCOMPATIBILITY.
 
 * Multiset: single has been removed in favor of add_mset that roughly
@@ -577,6 +577,10 @@ been changed:
   mset_subset_eq_mono_add_left_cancel [simp] ~> []
   fold_mset_single [simp] ~> []
   subset_eq_empty [simp] ~> []
+  empty_sup [simp] ~> []
+  sup_empty [simp] ~> []
+  inter_empty [simp] ~> []
+  empty_inter [simp] ~> []
 INCOMPATIBILITY.
 
 * The order of the variables in the second cases of multiset_induct,
@@ -585,6 +589,10 @@ INCOMPATIBILITY.
 
 * There is now a simplification procedure on multisets. It mimics the behavior
 of the procedure on natural numbers.
+INCOMPATIBILITY.
+
+* The lemma one_step_implies_mult_aux on multisets has been removed, use
+one_step_implies_mult instead.
 INCOMPATIBILITY.
 
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.

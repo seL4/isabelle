@@ -557,7 +557,7 @@ lemma single_subset_iff [simp]:
   by (auto simp add: subseteq_mset_def Suc_le_eq)
 
 lemma mset_subset_eq_single: "a \<in># B \<Longrightarrow> {#a#} \<subseteq># B"
-  by (simp add: subseteq_mset_def Suc_le_eq)
+  by simp
 
 lemma mset_subset_eq_add_mset_cancel: \<open>add_mset a A \<subseteq># add_mset a B \<longleftrightarrow> A \<subseteq># B\<close>
   unfolding add_mset_add_single[of _ A] add_mset_add_single[of _ B]
@@ -609,11 +609,11 @@ lemma mset_subset_insertD:
   "add_mset x A \<subset># B \<Longrightarrow> x \<in># B \<and> A \<subset># B"
   by (rule mset_subset_eq_insertD) simp
 
-lemma mset_subset_of_empty[simp]: "A \<subset># {#} \<longleftrightarrow> False"
-  by (auto simp add: subseteq_mset_def subset_mset_def multiset_eq_iff)
+lemma mset_subset_of_empty: "A \<subset># {#} \<longleftrightarrow> False"
+  by (simp only: subset_mset.not_less_zero)
 
-lemma empty_le [simp]: "{#} \<subseteq># A"
-  unfolding mset_subset_eq_exists_conv by auto
+lemma empty_le: "{#} \<subseteq># A"
+  by (fact subset_mset.zero_le)
 
 lemma insert_subset_eq_iff:
   "add_mset a A \<subseteq># B \<longleftrightarrow> a \<in># B \<and> A \<subseteq># B - {#a#}"
@@ -739,10 +739,10 @@ lemma disjoint_add_mset [simp]:
   "{#} = A #\<inter> add_mset b B \<longleftrightarrow> b \<notin># A \<and> {#} = A #\<inter> B"
   by (auto simp: disjunct_not_in)
 
-lemma empty_inter [simp]: "{#} #\<inter> M = {#}"
+lemma empty_inter: "{#} #\<inter> M = {#}"
   by (simp add: multiset_eq_iff)
 
-lemma inter_empty [simp]: "M #\<inter> {#} = {#}"
+lemma inter_empty: "M #\<inter> {#} = {#}"
   by (simp add: multiset_eq_iff)
 
 lemma inter_add_left1: "\<not> x \<in># N \<Longrightarrow> (add_mset x M) #\<inter> N = M #\<inter> N"
@@ -814,6 +814,10 @@ proof -
 qed
   \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
+interpretation subset_mset: bounded_lattice_bot "op #\<inter>" "op \<subseteq>#" "op \<subset>#"
+  "op #\<union>" "{#}"
+  by standard auto
+
 lemma sup_subset_mset_count [simp]: \<comment> \<open>FIXME irregular fact name\<close>
   "count (A #\<union> B) x = max (count A x) (count B x)"
   by (simp add: sup_subset_mset_def)
@@ -823,11 +827,11 @@ lemma set_mset_sup [simp]:
   by (simp only: set_eq_iff count_greater_zero_iff [symmetric] sup_subset_mset_count)
     (auto simp add: not_in_iff elim: mset_add)
 
-lemma empty_sup [simp]: "{#} #\<union> M = M"
-  by (simp add: multiset_eq_iff)
+lemma empty_sup: "{#} #\<union> M = M"
+  by (fact subset_mset.sup_bot.left_neutral)
 
-lemma sup_empty [simp]: "M #\<union> {#} = M"
-  by (simp add: multiset_eq_iff)
+lemma sup_empty: "M #\<union> {#} = M"
+  by (fact subset_mset.sup_bot.right_neutral)
 
 lemma sup_union_left1 [simp]: "\<not> x \<in># N \<Longrightarrow> (add_mset x M) #\<union> N = add_mset x (M #\<union> N)"
   by (simp add: multiset_eq_iff not_in_iff)
@@ -1231,9 +1235,12 @@ lemma filter_diff_mset [simp]: "filter_mset P (M - N) = filter_mset P M - filter
 lemma filter_inter_mset [simp]: "filter_mset P (M #\<inter> N) = filter_mset P M #\<inter> filter_mset P N"
   by (rule multiset_eqI) simp
 
+lemma filter_sup_mset[simp]: "filter_mset P (A #\<union> B) = filter_mset P A #\<union> filter_mset P B"
+  by (rule multiset_eqI) simp
+
 lemma filter_mset_add_mset [simp]:
    "filter_mset P (add_mset x A) =
-     (if P x then add_mset x (filter_mset P A) else (filter_mset P A))"
+     (if P x then add_mset x (filter_mset P A) else filter_mset P A)"
    by (auto simp: multiset_eq_iff)
 
 lemma multiset_filter_subset[simp]: "filter_mset f M \<subseteq># M"
@@ -1623,6 +1630,9 @@ next
   ultimately show ?case
     by (auto simp: setsum.distrib setsum.delta' intro!: setsum.mono_neutral_left)
 qed
+
+lemma image_mset_subseteq_mono: "A \<subseteq># B \<Longrightarrow> image_mset f A \<subseteq># image_mset f B"
+  by (metis image_mset_union subset_mset.le_iff_add)
 
 syntax (ASCII)
   "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ :# _#})")
@@ -2097,6 +2107,9 @@ lemma setsum_eq_empty_iff:
   shows "setsum f A = {#} \<longleftrightarrow> (\<forall>a\<in>A. f a = {#})"
   using assms by induct simp_all
 
+lemma Union_mset_empty_conv[simp]: "\<Union># M = {#} \<longleftrightarrow> (\<forall>i\<in>#M. i = {#})"
+  by (induction M) auto
+
 context comm_monoid_mult
 begin
 
@@ -2529,76 +2542,73 @@ subsubsection \<open>Closure-free presentation\<close>
 
 text \<open>One direction.\<close>
 lemma mult_implies_one_step:
-  "trans r \<Longrightarrow> (M, N) \<in> mult r \<Longrightarrow>
-    \<exists>I J K. N = I + J \<and> M = I + K \<and> J \<noteq> {#} \<and>
-    (\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r)"
-apply (unfold mult_def mult1_def)
-apply (erule converse_trancl_induct, clarify)
- apply (rule_tac x = M0 in exI, simp)
-apply clarify
-apply (case_tac "a \<in># K")
- apply (rule_tac x = I in exI)
- apply (simp (no_asm))
- apply (rule_tac x = "(K - {#a#}) + Ka" in exI)
- apply (simp (no_asm_simp) add: add.assoc [symmetric])
- apply (drule union_single_eq_diff)
- apply (auto simp: subset_mset.add_diff_assoc dest: in_diffD)[]
- apply (meson transD)
-apply (subgoal_tac "a \<in># I")
- apply (rule_tac x = "I - {#a#}" in exI)
- apply (rule_tac x = "add_mset a J" in exI)
- apply (rule_tac x = "K + Ka" in exI)
- apply (rule conjI)
-  apply (simp add: multiset_eq_iff union_single_eq_diff split: nat_diff_split)
- apply (rule conjI)
- apply (drule union_single_eq_diff)
- apply (simp add: add.assoc subset_mset.add_diff_assoc2)
-  apply (simp)
-  apply (simp add: multiset_eq_iff split: nat_diff_split)
- apply (simp (no_asm_use) add: trans_def)
-apply (subgoal_tac "a \<in># add_mset a M0")
- apply (simp_all add: not_in_iff)
- apply blast
-by (metis (no_types, lifting) not_in_iff union_iff union_single_eq_member)
-
-lemma one_step_implies_mult_aux:
-  "\<forall>I J K. size J = n \<and> J \<noteq> {#} \<and> (\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r)
-    \<longrightarrow> (I + K, I + J) \<in> mult r"
-apply (induct n)
- apply auto
-apply (frule size_eq_Suc_imp_eq_union, clarify)
-apply (rename_tac "J'", simp)
-apply (case_tac "J' = {#}")
- apply (simp add: mult_def)
- apply (rule r_into_trancl)
- apply (simp add: mult1_def, blast)
-txt \<open>Now we know @{term "J' \<noteq> {#}"}.\<close>
-apply (cut_tac M = K and P = "\<lambda>x. (x, a) \<in> r" in multiset_partition)
-apply (erule_tac P = "\<forall>k \<in> set_mset K. P k" for P in rev_mp)
-apply (simp add: Ball_def, auto)
-apply (subgoal_tac
-  "((I + {# x \<in># K. (x, a) \<in> r #}) + {# x \<in># K. (x, a) \<notin> r #},
-    (I + {# x \<in># K. (x, a) \<in> r #}) + J') \<in> mult r")
-prefer 2
-  apply (drule_tac x = "I + {# x \<in># K. (x, a) \<in> r#}" in spec)
-  apply (drule_tac x = "J'" in spec)
-  apply (drule_tac x = "{# x \<in># K. (x, a) \<notin> r#}" in spec)
-  apply auto[]
-apply (simp (no_asm_use) add: add.assoc [symmetric] mult_def)
-apply (subst (asm)(1) add.assoc)
-apply (subst (asm)(2) multiset_partition[symmetric])
-apply (erule trancl_trans)
-apply (rule r_into_trancl)
-apply (simp add: mult1_def)
-apply (rule_tac x = a in exI)
-apply (rule_tac x = "I + J'" in exI)
-apply simp
-done
+  assumes
+    trans: "trans r" and
+    MN: "(M, N) \<in> mult r"
+  shows "\<exists>I J K. N = I + J \<and> M = I + K \<and> J \<noteq> {#} \<and> (\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r)"
+  using MN unfolding mult_def mult1_def
+proof (induction rule: converse_trancl_induct)
+  case (base y)
+  then show ?case by force
+next
+  case (step y z) note yz = this(1) and zN = this(2) and N_decomp = this(3)
+  obtain I J K where
+    N: "N = I + J" "z = I + K" "J \<noteq> {#}" "\<forall>k\<in>#K. \<exists>j\<in>#J. (k, j) \<in> r"
+    using N_decomp by blast
+  obtain a M0 K' where
+    z: "z = add_mset a M0" and y: "y = M0 + K'" and K: "\<forall>b. b \<in># K' \<longrightarrow> (b, a) \<in> r"
+    using yz by blast
+  show ?case
+  proof (cases "a \<in># K")
+    case True
+    moreover have "\<exists>j\<in>#J. (k, j) \<in> r" if "k \<in># K'" for k
+      using K N trans True by (meson that transE)
+    ultimately show ?thesis
+      by (rule_tac x = I in exI, rule_tac x = J in exI, rule_tac x = "(K - {#a#}) + K'" in exI)
+        (use z y N in \<open>auto simp: subset_mset.add_diff_assoc dest: in_diffD\<close>)
+  next
+    case False
+    then have "a \<in># I" by (metis N(2) union_iff union_single_eq_member z)
+    moreover have "M0 = I + K - {#a#}"
+      using N(2) z by force
+    ultimately show ?thesis
+      by (rule_tac x = "I - {#a#}" in exI, rule_tac x = "add_mset a J" in exI,
+          rule_tac x = "K + K'" in exI)
+        (use z y N False K in \<open>auto simp: subset_mset.diff_add_assoc2\<close>)
+  qed
+qed
 
 lemma one_step_implies_mult:
-  "J \<noteq> {#} \<Longrightarrow> \<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r
-    \<Longrightarrow> (I + K, I + J) \<in> mult r"
-using one_step_implies_mult_aux by blast
+  assumes
+    "J \<noteq> {#}" and
+    "\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r"
+  shows "(I + K, I + J) \<in> mult r"
+  using assms
+proof (induction "size J" arbitrary: I J K)
+  case 0
+  then show ?case by auto
+next
+  case (Suc n) note IH = this(1) and size_J = this(2)[THEN sym]
+  obtain J' a where J: "J = add_mset a J'"
+    using size_J by (blast dest: size_eq_Suc_imp_eq_union)
+  show ?case
+  proof (cases "J' = {#}")
+    case True
+    then show ?thesis
+      using J Suc by (fastforce simp add: mult_def mult1_def)
+  next
+    case [simp]: False
+    have K: "K = {#x \<in># K. (x, a) \<in> r#} + {#x \<in># K. (x, a) \<notin> r#}"
+      by (rule multiset_partition)
+    have "(I + K, (I + {# x \<in># K. (x, a) \<in> r #}) + J') \<in> mult r"
+      using IH[of J' "{# x \<in># K. (x, a) \<notin> r#}" "I + {# x \<in># K. (x, a) \<in> r#}"]
+        J Suc.prems K size_J by (auto simp: ac_simps)
+    moreover have "(I + {#x \<in># K. (x, a) \<in> r#} + J', I + J) \<in> mult r"
+      by (fastforce simp: J mult1_def mult_def)
+    ultimately show ?thesis
+      unfolding mult_def by simp
+  qed
+qed
 
 
 subsection \<open>The multiset extension is cancellative for multiset union\<close>
