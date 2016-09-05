@@ -45,11 +45,15 @@ object SQLite
     }
 
 
-    /* prepared statements */
+    /* statements */
 
     def statement(sql: String): PreparedStatement = connection.prepareStatement(sql)
 
     def insert_statement(table: SQL.Table): PreparedStatement = statement(table.sql_insert)
+
+    def select_statement(table: SQL.Table, columns: List[SQL.Column[Any]],
+        sql: String = "", distinct: Boolean = false): PreparedStatement =
+      statement(table.sql_select(columns, distinct) + (if (sql == "") "" else " " + sql))
 
 
     /* tables */
@@ -62,5 +66,12 @@ object SQLite
 
     def drop_table(table: SQL.Table, strict: Boolean = true): Unit =
       using(statement(table.sql_drop(strict)))(_.execute())
+
+    def create_index(table: SQL.Table, name: String, columns: List[SQL.Column[Any]],
+        strict: Boolean = true, unique: Boolean = false): Unit =
+      using(statement(table.sql_create_index(name, columns, strict, unique)))(_.execute())
+
+    def drop_index(table: SQL.Table, name: String, strict: Boolean = true): Unit =
+      using(statement(table.sql_drop_index(name, strict)))(_.execute())
   }
 }
