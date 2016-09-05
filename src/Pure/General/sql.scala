@@ -55,7 +55,8 @@ object SQL
   }
 
   abstract class Column[+A] private[SQL](
-    val name: String, val strict: Boolean, val primary_key: Boolean)
+      val name: String, val strict: Boolean, val primary_key: Boolean)
+    extends Function[ResultSet, A]
   {
     def sql_name: String = quote_ident(name)
     def sql_type: String
@@ -129,6 +130,9 @@ object SQL
 
   class Table private[SQL](name: String, columns: List[Column[Any]])
   {
+    private val columns_index: Map[String, Int] =
+      columns.iterator.map(_.name).zipWithIndex.toMap
+
     Library.duplicates(columns.map(_.name)) match {
       case Nil =>
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
@@ -148,7 +152,21 @@ object SQL
     def sql_drop(strict: Boolean): String =
       "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + quote_ident(name)
 
+    def sql_insert: String =
+      "INSERT INTO " + quote_ident(name) +
+      " VALUES " + columns.map(_ => "?").mkString("(", ", ", ")")
+
     override def toString: String =
       "TABLE " + quote_ident(name) + " " + columns.map(_.toString).mkString("(", ", ", ")")
+  }
+
+
+  /* results */
+
+  def iterator[A](rs: ResultSet)(get: ResultSet => A): Iterator[A] = new Iterator[A]
+  {
+    private var _next: Boolean = rs.next()
+    def hasNext: Boolean = _next
+    def next: A = { val x = get(rs); _next = rs.next(); x }
   }
 }

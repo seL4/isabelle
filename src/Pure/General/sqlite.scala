@@ -14,6 +14,15 @@ object SQLite
 {
   /** database connection **/
 
+  def open_database(path: Path): Database =
+  {
+    val path0 = path.expand
+    val s0 = File.platform_path(path0)
+    val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
+    val connection = DriverManager.getConnection("jdbc:sqlite:" + s1)
+    new Database(path0, connection)
+  }
+
   class Database private [SQLite](path: Path, val connection: Connection)
   {
     override def toString: String = path.toString
@@ -35,37 +44,23 @@ object SQLite
       finally { connection.setAutoCommit(auto_commit) }
     }
 
-    def with_statement[A](sql: String)(body: PreparedStatement => A): A =
-    {
-      val stmt = connection.prepareStatement(sql)
-      try { body(stmt) } finally { stmt.close }
-    }
+
+    /* prepared statements */
+
+    def statement(sql: String): PreparedStatement = connection.prepareStatement(sql)
+
+    def insert_statement(table: SQL.Table): PreparedStatement = statement(table.sql_insert)
 
 
     /* tables */
 
+    def tables: List[String] =
+      SQL.iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
+
     def create_table(table: SQL.Table, strict: Boolean = true, rowid: Boolean = true): Unit =
-      with_statement(table.sql_create(strict, rowid))(_.execute())
+      using(statement(table.sql_create(strict, rowid)))(_.execute())
 
     def drop_table(table: SQL.Table, strict: Boolean = true): Unit =
-      with_statement(table.sql_drop(strict))(_.execute())
-  }
-
-
-  /* open database */
-
-  def open_database(path: Path): Database =
-  {
-    val path0 = path.expand
-    val s0 = File.platform_path(path0)
-    val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
-    val connection = DriverManager.getConnection("jdbc:sqlite:" + s1)
-    new Database(path0, connection)
-  }
-
-  def with_database[A](path: Path)(body: Database => A): A =
-  {
-    val db = open_database(path)
-    try { body(db) } finally { db.close }
+      using(statement(table.sql_drop(strict)))(_.execute())
   }
 }
