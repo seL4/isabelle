@@ -170,6 +170,17 @@ sig
          * ((binding, binding * string) Ctr_Sugar.ctr_spec * mixfix) list)
         * (binding * binding * binding)) * string list) list ->
     Proof.context -> local_theory
+
+  val parse_ctr_arg: (binding * string) parser
+  val parse_ctr_specs: ((binding, binding * string) Ctr_Sugar.ctr_spec * mixfix) list parser
+  val parse_spec: ((((((binding option * (string * string option)) list * binding) * mixfix)
+      * ((binding, binding * string) Ctr_Sugar.ctr_spec * mixfix) list)
+    * (binding * binding * binding)) * string list) parser
+  val parse_co_datatype: (Ctr_Sugar.ctr_options_cmd
+        * ((((((binding option * (string * string option)) list * binding) * mixfix)
+      * ((binding, binding * string) Ctr_Sugar.ctr_spec * mixfix) list)
+    * (binding * binding * binding)) * string list) list) parser
+
   val parse_co_datatype_cmd: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list -> binding list list -> binding list -> (string * sort) list ->
       typ list * typ list list -> BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
@@ -2741,8 +2752,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) (K I) x;
 
 fun co_datatype_cmd x =
-  define_co_datatypes Plugin_Name.make_filter Typedecl.read_constraint
-    Syntax.parse_typ Syntax.parse_term x;
+  define_co_datatypes Plugin_Name.make_filter Typedecl.read_constraint Syntax.parse_typ
+    Syntax.parse_term x;
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"}
@@ -2757,6 +2768,7 @@ val parse_spec =
 
 val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 
-fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
+fun parse_co_datatype_cmd fp construct_fp =
+  parse_co_datatype >> co_datatype_cmd fp construct_fp;
 
 end;
