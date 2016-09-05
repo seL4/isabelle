@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/sql.scala
+/*  Title:      Pure/General/sql.scala
     Author:     Makarius
 
 Generic support for SQL.

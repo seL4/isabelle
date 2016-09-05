@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/sqlite.scala
+/*  Title:      Pure/General/sqlite.scala
     Author:     Makarius
 
 Support for SQLite databases.
