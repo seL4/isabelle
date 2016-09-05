@@ -15,6 +15,15 @@ import scala.util.matching.Regex
 
 object Library
 {
+  /* resource management */
+
+  def using[A <: { def close() }, B](x: A)(f: A => B): B =
+  {
+    try { f(x) }
+    finally { if (x != null) x.close() }
+  }
+
+
   /* integers */
 
   private val small_int = 10000
