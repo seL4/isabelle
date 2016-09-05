@@ -527,6 +527,8 @@ definition "equal_pmf p q = (mapping_of_pmf p = mapping_of_pmf (q :: 'a pmf))"
 instance by standard (simp add: equal_pmf_def)
 end
 
+definition single :: "'a \<Rightarrow> 'a multiset" where
+"single s = {#s#}"
 
 definition (in term_syntax)
   pmfify :: "('a::typerep multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<Rightarrow>

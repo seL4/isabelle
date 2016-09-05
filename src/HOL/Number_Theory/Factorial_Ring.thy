@@ -211,8 +211,8 @@ proof -
     case empty then show ?case
     using \<open>prime_elem p\<close> by (simp add: prime_elem_not_unit)
   next
-    case (add A a)
-    then have "p dvd msetprod A * a" by simp
+    case (add a A)
+    then have "p dvd a * msetprod A" by simp
     with \<open>prime_elem p\<close> consider (A) "p dvd msetprod A" | (B) "p dvd a"
       by (blast dest: prime_elem_dvd_multD)
     then show ?case proof cases
@@ -484,10 +484,10 @@ proof (induction A arbitrary: B)
   case empty
   thus ?case by simp
 next
-  case (add A p B)
+  case (add p A B)
   hence p: "prime p" by simp
   define B' where "B' = B - {#p#}"
-  from add.prems have "p dvd msetprod B" by (simp add: dvd_mult_right)
+  from add.prems have "p dvd msetprod B" by (simp add: dvd_mult_left)
   with add.prems have "p \<in># B"
     by (subst (asm) (2) prime_dvd_msetprod_primes_iff) simp_all
   hence B: "B = B' + {#p#}" by (simp add: B'_def)
@@ -498,7 +498,7 @@ qed
 lemma normalize_msetprod_primes:
   "(\<And>p. p \<in># A \<Longrightarrow> prime p) \<Longrightarrow> normalize (msetprod A) = msetprod A"
 proof (induction A)
-  case (add A p)
+  case (add p A)
   hence "prime p" by simp
   hence "normalize p = p" by simp
   with add show ?case by (simp add: normalize_mult)
@@ -746,7 +746,7 @@ proof (cases "x = 0")
   from prime_factorization_exists'[OF this] guess A . note A = this
   from A(1) have "P (unit_factor x * msetprod A)"
   proof (induction A)
-    case (add A p)
+    case (add p A)
     from add.prems have "prime p" by simp
     moreover from add.prems have "P (unit_factor x * msetprod A)" by (intro add.IH) simp_all
     ultimately have "P (p * (unit_factor x * msetprod A))" by (rule assms(3))
@@ -1127,7 +1127,7 @@ lemma prime_factorization_msetprod_primes:
   shows   "prime_factorization (msetprod A) = A"
   using assms
 proof (induction A)
-  case (add A p)
+  case (add p A)
   from add.prems[of 0] have "0 \<notin># A" by auto
   hence "msetprod A \<noteq> 0" by auto
   with add show ?case

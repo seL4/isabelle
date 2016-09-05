@@ -480,6 +480,7 @@ INCOMPATIBILITY.
     le_multiset_plus_plus_left_iff ~> add_less_cancel_right
     le_multiset_plus_plus_right_iff ~> add_less_cancel_left
     add_eq_self_empty_iff ~> add_cancel_left_right
+    mset_subset_add_bothsides ~> subset_mset.add_less_cancel_right
 INCOMPATIBILITY.
 
 * Some typeclass constraints about multisets have been reduced from ordered or
@@ -494,6 +495,96 @@ INCOMPATIBILITY.
 
 * The subset ordering on multisets has now the interpretation
 ordered_ab_semigroup_monoid_add_imp_le.
+INCOMPATIBILITY.
+
+* Multiset: single has been removed in favor of add_mset that roughly
+corresponds to Set.insert. Some theorems have removed or changed:
+  single_not_empty ~> add_mset_not_empty or empty_not_add_mset
+  fold_mset_insert ~> fold_mset_add_mset
+  image_mset_insert ~> image_mset_add_mset
+  union_single_eq_diff
+  multi_self_add_other_not_self
+  diff_single_eq_union
+INCOMPATIBILITY.
+
+* Multiset: some theorems have been changed to use add_mset instead of single:
+  mset_add
+  multi_self_add_other_not_self
+  diff_single_eq_union
+  union_single_eq_diff
+  union_single_eq_member
+  add_eq_conv_diff
+  insert_noteq_member
+  add_eq_conv_ex
+  multi_member_split
+  multiset_add_sub_el_shuffle
+  mset_subset_eq_insertD
+  mset_subset_insertD
+  insert_subset_eq_iff
+  insert_union_subset_iff
+  multi_psub_of_add_self
+  inter_add_left1
+  inter_add_left2
+  inter_add_right1
+  inter_add_right2
+  sup_union_left1
+  sup_union_left2
+  sup_union_right1
+  sup_union_right2
+  size_eq_Suc_imp_eq_union
+  multi_nonempty_split
+  mset_insort
+  mset_update
+  mult1I
+  less_add
+  mset_zip_take_Cons_drop_twice
+  rel_mset_Zero
+  msed_map_invL
+  msed_map_invR
+  msed_rel_invL
+  msed_rel_invR
+  le_multiset_right_total
+  multiset_induct
+  multiset_induct2_size
+  multiset_induct2
+INCOMPATIBILITY.
+
+* Multiset: the definitions of some constants have changed to use add_mset instead
+of adding a single element:
+  image_mset
+  mset
+  replicate_mset
+  mult1
+  pred_mset
+  rel_mset'
+  mset_insort
+INCOMPATIBILITY.
+
+* Due to the above changes, the attributes of some multiset theorems have
+been changed:
+  insert_DiffM  [] ~> [simp]
+  insert_DiffM2 [simp] ~> []
+  diff_add_mset_swap [simp]
+  fold_mset_add_mset [simp]
+  diff_diff_add [simp] (for multisets only)
+  diff_cancel [simp] ~> []
+  count_single [simp] ~> []
+  set_mset_single [simp] ~> []
+  size_multiset_single [simp] ~> []
+  size_single [simp] ~> []
+  image_mset_single [simp] ~> []
+  mset_subset_eq_mono_add_right_cancel [simp] ~> []
+  mset_subset_eq_mono_add_left_cancel [simp] ~> []
+  fold_mset_single [simp] ~> []
+  subset_eq_empty [simp] ~> []
+INCOMPATIBILITY.
+
+* The order of the variables in the second cases of multiset_induct,
+multiset_induct2_size, multiset_induct2 has been changed (e.g. Add A a ~> Add a A).
+INCOMPATIBILITY.
+
+* There is now a simplification procedure on multisets. It mimics the behavior
+of the procedure on natural numbers.
 INCOMPATIBILITY.
 
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.

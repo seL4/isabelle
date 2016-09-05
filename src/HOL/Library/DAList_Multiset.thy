@@ -14,7 +14,7 @@ lemma [code, code del]: "{#} = {#}" ..
 
 lemma [code, code del]: "Multiset.is_empty = Multiset.is_empty" ..
 
-lemma [code, code del]: "single = single" ..
+lemma [code, code del]: "add_mset = add_mset" ..
 
 lemma [code, code del]: "plus = (plus :: 'a multiset \<Rightarrow> _)" ..
 
@@ -210,12 +210,14 @@ proof -
   finally show ?thesis by (simp add: is_empty_Bag_impl.rep_eq)
 qed
 
-lemma single_Bag [code]: "{#x#} = Bag (DAList.update x 1 DAList.empty)"
-  by (simp add: multiset_eq_iff alist.Alist_inverse update.rep_eq empty.rep_eq)
-
 lemma union_Bag [code]: "Bag xs + Bag ys = Bag (join (\<lambda>x (n1, n2). n1 + n2) xs ys)"
   by (rule multiset_eqI)
     (simp add: count_of_join_raw alist.Alist_inverse distinct_join_raw join_def)
+
+lemma add_mset_Bag [code]: "add_mset x (Bag xs) =
+    Bag (join (\<lambda>x (n1, n2). n1 + n2) (DAList.update x 1 DAList.empty) xs)"
+  unfolding add_mset_add_single[of x "Bag xs"] union_Bag[symmetric]
+  by (simp add: multiset_eq_iff update.rep_eq empty.rep_eq)
 
 lemma minus_Bag [code]: "Bag xs - Bag ys = Bag (subtract_entries xs ys)"
   by (rule multiset_eqI)
@@ -386,7 +388,7 @@ lemma image_mset_Bag [code]:
   unfolding image_mset_def
 proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, (auto simp: ac_simps)[1])
   fix a n m
-  show "Bag (single_alist_entry (f a) n) + m = ((op + \<circ> single \<circ> f) a ^^ n) m" (is "?l = ?r")
+  show "Bag (single_alist_entry (f a) n) + m = ((add_mset \<circ> f) a ^^ n) m" (is "?l = ?r")
   proof (rule multiset_eqI)
     fix x
     have "count ?r x = (if x = f a then n + count m x else count m x)"

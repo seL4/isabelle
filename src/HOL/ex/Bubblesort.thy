@@ -58,7 +58,6 @@ apply(induction xs rule: bubblesort.induct)
   apply simp
  apply simp
 by(auto split: list.splits if_splits dest: bubble_minD_mset)
-  (metis add_eq_conv_ex mset_bubble_min mset.simps(2))
 
 lemma set_bubblesort: "set (bubblesort xs) = set xs"
 by(rule mset_bubblesort[THEN mset_eq_setD])

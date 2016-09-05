@@ -69,7 +69,7 @@ next
     **: "\<And>y. count N y < count M y \<Longrightarrow> (\<exists>x>y. count M x < count N x)"
     by (simp_all add: less_multiset\<^sub>H\<^sub>O_def)
   from step(2) obtain M0 a K where
-    *: "P = M0 + {#a#}" "N = M0 + K" "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
+    *: "P = add_mset a M0" "N = M0 + K" "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
     by (blast elim: mult1_lessE)
   from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P" by (force dest: *(4) elim!: less_asym split: if_splits )
   moreover
@@ -180,7 +180,7 @@ lemma subset_eq_imp_le_multiset:
   by (simp add: less_le_not_le subseteq_mset_def)
 
 lemma le_multiset_right_total:
-  shows "M < M + {#x#}"
+  shows "M < add_mset x M"
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O by simp
 
 lemma less_eq_multiset_empty_left[simp]:
@@ -228,6 +228,52 @@ lemma
     by simp_all
 
 end
+
+
+subsection \<open>Simprocs\<close>
+
+lemma mset_le_add_iff1:
+  "j \<le> (i::nat) \<Longrightarrow> (repeat_mset i u + m \<le> repeat_mset j u + n) = (repeat_mset (i-j) u + m \<le> n)"
+proof -
+  assume "j \<le> i"
+  then have "j + (i - j) = i"
+    using le_add_diff_inverse by blast
+  then show ?thesis
+    by (metis (no_types) add_le_cancel_left left_add_mult_distrib_mset)
+qed
+
+lemma mset_le_add_iff2:
+  "i \<le> (j::nat) \<Longrightarrow> (repeat_mset i u + m \<le> repeat_mset j u + n) = (m \<le> repeat_mset (j-i) u + n)"
+proof -
+  assume "i \<le> j"
+  then have "i + (j - i) = j"
+    using le_add_diff_inverse by blast
+  then show ?thesis
+    by (metis (no_types) add_le_cancel_left left_add_mult_distrib_mset)
+qed
+
+lemma mset_less_add_iff1:
+  "j \<le> (i::nat) \<Longrightarrow> (repeat_mset i u + m < repeat_mset j u + n) = (repeat_mset (i-j) u + m < n)"
+  by (simp add: less_le_not_le mset_le_add_iff1 mset_le_add_iff2)
+
+lemma mset_less_add_iff2:
+     "i \<le> (j::nat) \<Longrightarrow> (repeat_mset i u + m < repeat_mset j u + n) = (m < repeat_mset (j-i) u + n)"
+  by (simp add: less_le_not_le mset_le_add_iff1 mset_le_add_iff2)
+
+ML_file "multiset_order_simprocs.ML"
+
+simproc_setup msetless_cancel_numerals
+  ("(l::'a::preorder multiset) + m < n" | "(l::'a multiset) < m + n" |
+   "add_mset a m < n" | "m < add_mset a n") =
+  \<open>fn phi => Multiset_Order_Simprocs.less_cancel_msets\<close>
+
+simproc_setup msetle_cancel_numerals
+  ("(l::'a::preorder multiset) + m \<le> n" | "(l::'a multiset) \<le> m + n" |
+   "add_mset a m \<le> n" | "m \<le> add_mset a n") =
+  \<open>fn phi => Multiset_Order_Simprocs.le_cancel_msets\<close>
+
+
+subsection \<open>Additional facts and instantiations\<close>
 
 lemma ex_gt_count_imp_le_multiset:
   "(\<forall>y :: 'a :: order. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M < N"

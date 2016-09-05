@@ -2051,11 +2051,11 @@ proof -
     from cP csP
         have tP: "\<forall>x\<in>set (c#cs). P x" by simp
     from mset a
-    have "mset (map (assocs G) (c#cs)) = mset Cs' + {#a#}" by simp
+    have "mset (map (assocs G) (c#cs)) = add_mset a (mset Cs')" by simp
     from tP this
     show "\<exists>cs. (\<forall>x\<in>set cs. P x) \<and>
                mset (map (assocs G) cs) =
-               mset Cs' + {#a#}" by fast
+               add_mset a (mset Cs')" by fast
   qed
   thus ?thesis by (simp add: fmset_def)
 qed
