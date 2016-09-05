@@ -137,7 +137,7 @@ fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
 fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
 fun put_id id (Pos (count, props)) = Pos (count, norm_props (Properties.put (Markup.idN, id) props));
 
-fun parse_id pos = Option.map Markup.parse_int (get_id pos);
+fun parse_id pos = Option.map Value.parse_int (get_id pos);
 
 
 (* markup properties *)
@@ -145,7 +145,7 @@ fun parse_id pos = Option.map Markup.parse_int (get_id pos);
 fun get props name =
   (case Properties.get props name of
     NONE => 0
-  | SOME s => Markup.parse_int s);
+  | SOME s => Value.parse_int s);
 
 fun of_properties props =
   make {line = get props Markup.lineN,
@@ -153,7 +153,7 @@ fun of_properties props =
     end_offset = get props Markup.end_offsetN,
     props = props};
 
-fun value k i = if valid i then [(k, Markup.print_int i)] else [];
+fun value k i = if valid i then [(k, Value.print_int i)] else [];
 
 fun properties_of (Pos ((i, j, k), props)) =
   value Markup.lineN i @ value Markup.offsetN j @ value Markup.end_offsetN k @ props;
@@ -161,8 +161,8 @@ fun properties_of (Pos ((i, j, k), props)) =
 val def_properties_of = properties_of #> map (fn (x, y) => ("def_" ^ x, y));
 
 fun entity_properties_of def serial pos =
-  if def then (Markup.defN, Markup.print_int serial) :: properties_of pos
-  else (Markup.refN, Markup.print_int serial) :: def_properties_of pos;
+  if def then (Markup.defN, Value.print_int serial) :: properties_of pos
+  else (Markup.refN, Value.print_int serial) :: def_properties_of pos;
 
 fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props
@@ -205,8 +205,8 @@ fun here pos =
     val props = properties_of pos;
     val (s1, s2) =
       (case (line_of pos, file_of pos) of
-        (SOME i, NONE) => (" ", "(line " ^ Markup.print_int i ^ ")")
-      | (SOME i, SOME name) => (" ", "(line " ^ Markup.print_int i ^ " of " ^ quote name ^ ")")
+        (SOME i, NONE) => (" ", "(line " ^ Value.print_int i ^ ")")
+      | (SOME i, SOME name) => (" ", "(line " ^ Value.print_int i ^ " of " ^ quote name ^ ")")
       | (NONE, SOME name) => (" ", "(file " ^ quote name ^ ")")
       | _ => if is_reported pos then ("", "\<here>") else ("", ""));
   in

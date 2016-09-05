@@ -6,13 +6,6 @@ Quasi-abstract markup elements.
 
 signature MARKUP =
 sig
-  val parse_bool: string -> bool
-  val print_bool: bool -> string
-  val parse_nat: string -> int
-  val parse_int: string -> int
-  val print_int: int -> string
-  val parse_real: string -> real
-  val print_real: real -> string
   type T = string * Properties.T
   val empty: T
   val is_empty: T -> bool
@@ -228,45 +221,6 @@ struct
 
 (** markup elements **)
 
-(* misc values *)
-
-fun parse_bool "true" = true
-  | parse_bool "false" = false
-  | parse_bool s = raise Fail ("Bad boolean " ^ quote s);
-
-val print_bool = Bool.toString;
-
-
-fun parse_nat s =
-  let val i = Int.fromString s in
-    if is_none i orelse the i < 0
-    then raise Fail ("Bad natural number " ^ quote s)
-    else the i
-  end;
-
-fun parse_int s =
-  let val i = Int.fromString s in
-    if is_none i orelse String.isPrefix "~" s
-    then raise Fail ("Bad integer " ^ quote s)
-    else the i
-  end;
-
-val print_int = signed_string_of_int;
-
-
-fun parse_real s =
-  (case Real.fromString s of
-    SOME x => x
-  | NONE => raise Fail ("Bad real " ^ quote s));
-
-fun print_real x =
-  let val s = signed_string_of_real x in
-    (case space_explode "." s of
-      [a, b] => if forall_string (fn c => c = "0") b then a else s
-    | _ => s)
-  end;
-
-
 (* basic markup *)
 
 type T = string * Properties.T;
@@ -282,7 +236,7 @@ fun properties more_props ((elem, props): T) =
 
 fun markup_elem name = (name, (name, []): T);
 fun markup_string name prop = (name, fn s => (name, [(prop, s)]): T);
-fun markup_int name prop = (name, fn i => (name, [(prop, print_int i)]): T);
+fun markup_int name prop = (name, fn i => (name, [(prop, Value.print_int i)]): T);
 
 
 (* misc properties *)
@@ -293,7 +247,7 @@ fun name a = properties [(nameN, a)];
 val kindN = "kind";
 
 val serialN = "serial";
-fun serial_properties i = [(serialN, print_int i)];
+fun serial_properties i = [(serialN, Value.print_int i)];
 
 val instanceN = "instance";
 
@@ -311,9 +265,9 @@ fun is_delimited props =
 fun language {name, symbols, antiquotes, delimited} =
   (languageN,
    [(nameN, name),
-    (symbolsN, print_bool symbols),
-    (antiquotesN, print_bool antiquotes),
-    (delimitedN, print_bool delimited)]);
+    (symbolsN, Value.print_bool symbols),
+    (antiquotesN, Value.print_bool antiquotes),
+    (delimitedN, Value.print_bool delimited)]);
 
 fun language' {name, symbols, antiquotes} delimited =
   language {name = name, symbols = symbols, antiquotes = antiquotes, delimited = delimited};
@@ -412,14 +366,14 @@ val widthN = "width";
 val blockN = "block";
 fun block c i =
   (blockN,
-    (if c then [(consistentN, print_bool c)] else []) @
-    (if i <> 0 then [(indentN, print_int i)] else []));
+    (if c then [(consistentN, Value.print_bool c)] else []) @
+    (if i <> 0 then [(indentN, Value.print_int i)] else []));
 
 val breakN = "break";
 fun break w i =
   (breakN,
-    (if w <> 0 then [(widthN, print_int w)] else []) @
-    (if i <> 0 then [(indentN, print_int i)] else []));
+    (if w <> 0 then [(widthN, Value.print_int w)] else []) @
+    (if i <> 0 then [(indentN, Value.print_int i)] else []));
 
 val (fbreakN, fbreak) = markup_elem "fbreak";
 
@@ -520,7 +474,7 @@ val (markdown_itemN, markdown_item) = markup_int "markdown_item" "depth";
 (* formal input *)
 
 val inputN = "input";
-fun input delimited props = (inputN, (delimitedN, print_bool delimited) :: props);
+fun input delimited props = (inputN, (delimitedN, Value.print_bool delimited) :: props);
 
 
 (* outer syntax *)
@@ -565,13 +519,13 @@ fun timing t = (timingN, timing_properties t);
 val command_timingN = "command_timing";
 
 fun command_timing_properties {file, offset, name} elapsed =
- [(fileN, file), (offsetN, print_int offset),
+ [(fileN, file), (offsetN, Value.print_int offset),
   (nameN, name), (elapsedN, Time.toString elapsed)];
 
 fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
     (SOME file, SOME offset, SOME name) =>
-      SOME ({file = file, offset = parse_int offset, name = name},
+      SOME ({file = file, offset = Value.parse_int offset, name = name},
         Properties.seconds props elapsedN)
   | _ => NONE);
 
@@ -635,7 +589,7 @@ val padding_line = (paddingN, "line");
 val padding_command = (paddingN, "command");
 
 val dialogN = "dialog";
-fun dialog i result = (dialogN, [(serialN, print_int i), (resultN, result)]);
+fun dialog i result = (dialogN, [(serialN, Value.print_int i), (resultN, result)]);
 
 val jedit_actionN = "jedit_action";
 
@@ -685,7 +639,7 @@ val simp_trace_recurseN = "simp_trace_recurse";
 val simp_trace_hintN = "simp_trace_hint";
 val simp_trace_ignoreN = "simp_trace_ignore";
 
-fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, print_int i)];
+fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, Value.print_int i)];
 
 
 

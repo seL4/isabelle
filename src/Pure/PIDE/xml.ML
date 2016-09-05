@@ -339,7 +339,7 @@ type 'a V = string list * body -> 'a;
 (* atomic values *)
 
 fun int_atom s =
-  Markup.parse_int s
+  Value.parse_int s
     handle Fail _ => raise XML_ATOM s;
 
 fun bool_atom "0" = false

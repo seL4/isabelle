@@ -217,10 +217,10 @@ fun debugger_command thread_name =
   | ["step_out"] => (step_out (); false)
   | ["eval", index, SML, txt1, txt2] =>
      (error_wrapper (fn () =>
-        eval thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt1 txt2); true)
+        eval thread_name (Value.parse_int index) (Value.parse_bool SML) txt1 txt2); true)
   | ["print_vals", index, SML, txt] =>
      (error_wrapper (fn () =>
-        print_vals thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt); true)
+        print_vals thread_name (Value.parse_int index) (Value.parse_bool SML) txt); true)
   | bad =>
      (Output.system_message
         ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad); true));
@@ -261,17 +261,17 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.break"
-    (fn [b] => set_break (Markup.parse_bool b));
+    (fn [b] => set_break (Value.parse_bool b));
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.breakpoint"
     (fn [node_name, id0, breakpoint0, breakpoint_state0] =>
       let
-        val id = Markup.parse_int id0;
-        val breakpoint = Markup.parse_int breakpoint0;
-        val breakpoint_state = Markup.parse_bool breakpoint_state0;
+        val id = Value.parse_int id0;
+        val breakpoint = Value.parse_int breakpoint0;
+        val breakpoint_state = Value.parse_bool breakpoint_state0;
 
-        fun err () = error ("Bad exec for command " ^ Markup.print_int id);
+        fun err () = error ("Bad exec for command " ^ Value.print_int id);
       in
         (case Document.command_exec (Document.state ()) node_name id of
           SOME (eval, _) =>

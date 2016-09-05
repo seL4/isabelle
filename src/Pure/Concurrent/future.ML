@@ -171,15 +171,15 @@ fun report_status () = (*requires SYNCHRONIZED*)
       val active = count_workers Working;
       val waiting = count_workers Waiting;
       val stats =
-       [("now", Markup.print_real (Time.toReal (Time.now ()))),
-        ("tasks_ready", Markup.print_int ready),
-        ("tasks_pending", Markup.print_int pending),
-        ("tasks_running", Markup.print_int running),
-        ("tasks_passive", Markup.print_int passive),
-        ("tasks_urgent", Markup.print_int urgent),
-        ("workers_total", Markup.print_int total),
-        ("workers_active", Markup.print_int active),
-        ("workers_waiting", Markup.print_int waiting)] @
+       [("now", Value.print_real (Time.toReal (Time.now ()))),
+        ("tasks_ready", Value.print_int ready),
+        ("tasks_pending", Value.print_int pending),
+        ("tasks_running", Value.print_int running),
+        ("tasks_passive", Value.print_int passive),
+        ("tasks_urgent", Value.print_int urgent),
+        ("workers_total", Value.print_int total),
+        ("workers_active", Value.print_int active),
+        ("workers_waiting", Value.print_int waiting)] @
         ML_Statistics.get ();
     in Output.try_protocol_message (Markup.ML_statistics :: stats) [] end
   else ();

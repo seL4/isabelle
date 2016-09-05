@@ -44,7 +44,7 @@ fun breakpoint_position loc =
     | SOME 1 => pos
     | SOME j =>
         Position.properties_of pos
-        |> Properties.put (Markup.offsetN, Markup.print_int (j - 1))
+        |> Properties.put (Markup.offsetN, Value.print_int (j - 1))
         |> Position.of_properties)
   end;
 
@@ -89,7 +89,7 @@ fun report_parse_tree redirect depth name_space parse_tree =
         is_reported pos ?
           let
             fun markup () =
-              (Markup.entityN, [(if def then Markup.defN else Markup.refN, Markup.print_int id)]);
+              (Markup.entityN, [(if def then Markup.defN else Markup.refN, Value.print_int id)]);
           in cons (pos, markup, fn () => "") end
       end;
 
