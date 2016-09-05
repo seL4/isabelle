@@ -483,7 +483,7 @@ proof -
     by (blast dest: multi_member_split)
   have "add_mset b A = add_mset c (add_mset b A) - {#c#}" by simp
   then have "add_mset b A = add_mset b (add_mset c A) - {#c#}"
-    by (simp add: ac_simps \<open>b \<noteq> c\<close>)
+    by (simp add: \<open>b \<noteq> c\<close>)
   then show ?thesis using B by simp
 qed
 
@@ -1563,7 +1563,7 @@ definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Righ
 
 lemma comp_fun_commute_mset_image: "comp_fun_commute (add_mset \<circ> f)"
 proof
-qed (simp add: ac_simps fun_eq_iff)
+qed (simp add: fun_eq_iff)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"
   by (simp add: image_mset_def)
@@ -1579,7 +1579,7 @@ lemma image_mset_union [simp]: "image_mset f (M + N) = image_mset f M + image_ms
 proof -
   interpret comp_fun_commute "add_mset \<circ> f"
     by (fact comp_fun_commute_mset_image)
-  show ?thesis by (induct N) (simp_all add: image_mset_def ac_simps)
+  show ?thesis by (induct N) (simp_all add: image_mset_def)
 qed
 
 corollary image_mset_add_mset [simp]:
@@ -1598,7 +1598,7 @@ lemma image_mset_is_empty_iff [simp]: "image_mset f M = {#} \<longleftrightarrow
 lemma image_mset_If:
   "image_mset (\<lambda>x. if P x then f x else g x) A =
      image_mset f (filter_mset P A) + image_mset g (filter_mset (\<lambda>x. \<not>P x) A)"
-  by (induction A) (auto simp: add_ac)
+  by (induction A) auto
 
 lemma image_mset_Diff:
   assumes "B \<subseteq># A"
@@ -1709,7 +1709,7 @@ lemma size_mset [simp]: "size (mset xs) = length xs"
   by (induct xs) simp_all
 
 lemma mset_append [simp]: "mset (xs @ ys) = mset xs + mset ys"
-  by (induct xs arbitrary: ys) (auto simp: ac_simps)
+  by (induct xs arbitrary: ys) auto
 
 lemma mset_filter: "mset (filter P xs) = {#x \<in># mset xs. P x #}"
   by (induct xs) simp_all
@@ -1769,7 +1769,7 @@ apply simp
 done
 
 lemma mset_compl_union [simp]: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
-  by (induct xs) (auto simp: ac_simps)
+  by (induct xs) auto
 
 lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) \<in># mset ls"
 proof (induct ls arbitrary: i)
@@ -1824,7 +1824,7 @@ lemma mset_map[simp]: "mset (map f xs) = image_mset f (mset xs)"
 
 global_interpretation mset_set: folding add_mset "{#}"
   defines mset_set = "folding.F add_mset {#}"
-  by standard (simp add: fun_eq_iff ac_simps)
+  by standard (simp add: fun_eq_iff)
 
 lemma count_mset_set [simp]:
   "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> count (mset_set A) x = 1" (is "PROP ?P")
@@ -1846,7 +1846,7 @@ lemma elem_mset_set[simp, intro]: "finite A \<Longrightarrow> x \<in># mset_set 
 
 lemma mset_set_Union:
   "finite A \<Longrightarrow> finite B \<Longrightarrow> A \<inter> B = {} \<Longrightarrow> mset_set (A \<union> B) = mset_set A + mset_set B"
-  by (induction A rule: finite_induct) (auto simp: add_ac)
+  by (induction A rule: finite_induct) auto
 
 lemma filter_mset_mset_set [simp]:
   "finite A \<Longrightarrow> filter_mset P (mset_set A) = mset_set {x\<in>A. P x}"
@@ -1854,7 +1854,7 @@ proof (induction A rule: finite_induct)
   case (insert x A)
   from insert.hyps have "filter_mset P (mset_set (insert x A)) =
       filter_mset P (mset_set A) + mset_set (if P x then {x} else {})"
-    by (simp add: add_ac)
+    by simp
   also have "filter_mset P (mset_set A) = mset_set {x\<in>A. P x}"
     by (rule insert.IH)
   also from insert.hyps
@@ -1876,7 +1876,7 @@ proof -
 qed
 
 lemma mset_set_set: "distinct xs \<Longrightarrow> mset_set (set xs) = mset xs"
-  by (induction xs) (simp_all add: add_ac)
+  by (induction xs) simp_all
 
 context linorder
 begin
@@ -1930,10 +1930,10 @@ by (induct M) (simp_all add: set_insort)
 
 lemma sorted_list_of_mset_set [simp]:
   "sorted_list_of_multiset (mset_set A) = sorted_list_of_set A"
-by (cases "finite A") (induct A rule: finite_induct, simp_all add: ac_simps)
+by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
 lemma mset_upt [simp]: "mset [m..<n] = mset_set {m..<n}"
-  by (induction n) (simp_all add: atLeastLessThanSuc add_ac)
+  by (induction n) (simp_all add: atLeastLessThanSuc)
 
 lemma image_mset_map_of:
   "distinct (map fst xs) \<Longrightarrow> {#the (map_of xs i). i \<in># mset (map fst xs)#} = mset (map snd xs)"
@@ -2117,7 +2117,7 @@ lemma msetprod_Un:
 
 lemma msetprod_replicate_mset [simp]:
   "msetprod (replicate_mset n a) = a ^ n"
-  by (induct n) (simp_all add: ac_simps)
+  by (induct n) simp_all
 
 lemma setprod_unfold_msetprod:
   "setprod f A = msetprod (image_mset f (mset_set A))"
@@ -2128,10 +2128,10 @@ lemma msetprod_multiplicity:
   by (simp add: fold_mset_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
 
 lemma msetprod_delta: "msetprod (image_mset (\<lambda>x. if x = y then c else 1) A) = c ^ count A y"
-  by (induction A) (simp_all add: mult_ac)
+  by (induction A) simp_all
 
 lemma msetprod_delta': "msetprod (image_mset (\<lambda>x. if y = x then c else 1) A) = c ^ count A y"
-  by (induction A) (simp_all add: mult_ac)
+  by (induction A) simp_all
 
 end
 
@@ -2188,7 +2188,7 @@ lemma mset_insort [simp]:
 
 lemma mset_sort [simp]:
   "mset (sort_key k xs) = mset xs"
-  by (induct xs) (simp_all add: ac_simps)
+  by (induct xs) simp_all
 
 text \<open>
   This lemma shows which properties suffice to show that a function
@@ -2443,7 +2443,7 @@ proof -
       then show ?thesis ..
     next
       case 2
-      from N 2(2) have n: "N = add_mset a (K' + K)" by (simp add: ac_simps)
+      from N 2(2) have n: "N = add_mset a (K' + K)" by simp
       with r 2(1) have "?R (K' + K) M0" by blast
       with n have ?case1 by (simp add: mult1_def)
       then show ?thesis ..
@@ -2592,7 +2592,7 @@ apply (rule r_into_trancl)
 apply (simp add: mult1_def)
 apply (rule_tac x = a in exI)
 apply (rule_tac x = "I + J'" in exI)
-apply (simp add: ac_simps)
+apply simp
 done
 
 lemma one_step_implies_mult:
@@ -2681,7 +2681,7 @@ proof -
     } note [dest!] = this
     assume ?R thus ?L
       using mult_implies_one_step[OF assms(2), of "N - M #\<inter> N" "M - M #\<inter> N"]
-        mult_cancel_max[OF assms(2,1), of "N" "M"] * by (auto simp: multp_def ac_simps)
+        mult_cancel_max[OF assms(2,1), of "N" "M"] * by (auto simp: multp_def)
   qed
 qed
 
@@ -2844,14 +2844,14 @@ next
     case [simp]: 1
     have "{#x#} + X = A + ({#y#}+Z) \<and> {#y#} + Y = B + ({#y#}+Z) \<and>
       ((set_mset A, set_mset B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
-      by (auto simp: ac_simps)
+      by auto
     thus ?thesis by blast
   next
     case 2
     let ?A' = "{#x#} + A" and ?B' = "{#y#} + B"
     have "{#x#} + X = ?A' + Z"
       "{#y#} + Y = ?B' + Z"
-      by (auto simp add: ac_simps)
+      by auto
     moreover have
       "(set_mset ?A', set_mset ?B') \<in> max_strict"
       using 1 2 unfolding max_strict_def
@@ -2889,7 +2889,7 @@ proof -
   }
   from mx_or_empty
   have "(Z'' + A', Z'' + B') \<in> ms_weak" by (rule wmsI)
-  thus "(Z + {#}, Z' + {#}) \<in> ms_weak" by (simp add:ac_simps)
+  thus "(Z + {#}, Z' + {#}) \<in> ms_weak" by (simp add: ac_simps)
 qed
 
 lemma empty_neutral: "{#} + x = x" "x + {#} = x"
@@ -3088,7 +3088,7 @@ lemma [code]: \<comment> \<open>not very efficient, but representation-ignorant!
   apply (cases "finite A")
   apply simp_all
   apply (induct A rule: finite_induct)
-  apply (simp_all add: add.commute)
+  apply simp_all
   done
 
 declare size_mset [code]
@@ -3128,7 +3128,7 @@ next
     note Some = Some[unfolded res]
     from extract_SomeE[OF Some] have "ys = ys1 @ x # ys2" by simp
     hence id: "mset ys = add_mset x (mset (ys1 @ ys2))"
-      by (auto simp: ac_simps)
+      by auto
     show ?thesis unfolding subset_eq_mset_impl.simps
       unfolding Some option.simps split
       unfolding id
@@ -3158,7 +3158,7 @@ instance
 end
 
 lemma [code]: "msetsum (mset xs) = listsum xs"
-  by (induct xs) (simp_all add: add.commute)
+  by (induct xs) simp_all
 
 lemma [code]: "msetprod (mset xs) = fold times xs 1"
 proof -
@@ -3240,7 +3240,7 @@ next
       add_mset (x,y) (mset (zip xs ys))"
       by (rule Cons.hyps(2))
     thus ?thesis
-      unfolding k by (auto simp: add.commute union_lcomm)
+      unfolding k by auto
   qed
 qed
 
@@ -3282,7 +3282,7 @@ next
   moreover have "mset (zip xs' ys') = mset (zip (x # xs) (y # ys))"
     unfolding xs' ys'_def
     by (rule trans[OF mset_zip_take_Cons_drop_twice])
-      (auto simp: len_a ms_a j_len' add.commute)
+      (auto simp: len_a ms_a j_len')
   ultimately show ?case
     by blast
 qed
