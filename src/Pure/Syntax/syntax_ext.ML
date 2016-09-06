@@ -183,8 +183,8 @@ fun read_properties ss =
   in props end;
 
 val get_string = get_property "" I;
-val get_bool = get_property false Markup.parse_bool;
-val get_nat = get_property 0 Markup.parse_nat;
+val get_bool = get_property false Value.parse_bool;
+val get_nat = get_property 0 Value.parse_nat;
 
 end;
 

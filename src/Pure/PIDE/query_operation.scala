@@ -105,8 +105,8 @@ class Query_Operation[Editor_Context](
               case XML.Elem(Markup(Markup.SENDBACK, props), b) =>
                 val props1 =
                   props.map({
-                    case (Markup.ID, Properties.Value.Long(id)) if id == state0.exec_id =>
-                      (Markup.ID, Properties.Value.Long(command.id))
+                    case (Markup.ID, Value.Long(id)) if id == state0.exec_id =>
+                      (Markup.ID, Value.Long(command.id))
                     case p => p
                   })
                 XML.Elem(Markup(Markup.SENDBACK, props1), resolve(b))

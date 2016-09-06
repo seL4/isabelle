@@ -244,14 +244,11 @@ lemma inv_into_comp:
 lemma o_inv_distrib: "bij f \<Longrightarrow> bij g \<Longrightarrow> inv (f \<circ> g) = inv g \<circ> inv f"
   by (rule inv_equality) (auto simp add: bij_def surj_f_inv_f)
 
-lemma image_surj_f_inv_f: "surj f \<Longrightarrow> f ` (inv f ` A) = A"
+lemma image_f_inv_f: "surj f \<Longrightarrow> f ` (inv f ` A) = A"
   by (simp add: surj_f_inv_f image_comp comp_def)
 
 lemma image_inv_f_f: "inj f \<Longrightarrow> inv f ` (f ` A) = A"
   by simp
-
-lemma inv_image_comp: "inj f \<Longrightarrow> inv f ` (f ` X) = X"
-  by (fact image_inv_f_f)
 
 lemma bij_image_Collect_eq: "bij f \<Longrightarrow> f ` Collect P = {y. P (inv f y)}"
   apply auto

@@ -37,7 +37,7 @@ with
 fun make_symbols codes =
   let
     val mapping =
-      map (apsnd (fn c => "&#" ^ Markup.print_int c ^ ";")) codes @
+      map (apsnd (fn c => "&#" ^ Value.print_int c ^ ";")) codes @
        [("'", "&#39;"),
         ("\<^bsub>", hidden "&#8664;" ^ "<sub>"),
         ("\<^esub>", hidden "&#8665;" ^ "</sub>"),

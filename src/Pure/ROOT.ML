@@ -33,6 +33,7 @@ ML_file "General/alist.ML";
 ML_file "General/table.ML";
 
 ML_file "General/random.ML";
+ML_file "General/value.ML";
 ML_file "General/properties.ML";
 ML_file "General/output.ML";
 ML_file "PIDE/markup.ML";

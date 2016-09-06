@@ -250,25 +250,25 @@ final class Options private(
 
   class Bool_Access
   {
-    def apply(name: String): Boolean = get(name, Options.Bool, Properties.Value.Boolean.unapply)
+    def apply(name: String): Boolean = get(name, Options.Bool, Value.Boolean.unapply)
     def update(name: String, x: Boolean): Options =
-      put(name, Options.Bool, Properties.Value.Boolean(x))
+      put(name, Options.Bool, Value.Boolean(x))
   }
   val bool = new Bool_Access
 
   class Int_Access
   {
-    def apply(name: String): Int = get(name, Options.Int, Properties.Value.Int.unapply)
+    def apply(name: String): Int = get(name, Options.Int, Value.Int.unapply)
     def update(name: String, x: Int): Options =
-      put(name, Options.Int, Properties.Value.Int(x))
+      put(name, Options.Int, Value.Int(x))
   }
   val int = new Int_Access
 
   class Real_Access
   {
-    def apply(name: String): Double = get(name, Options.Real, Properties.Value.Double.unapply)
+    def apply(name: String): Double = get(name, Options.Real, Value.Double.unapply)
     def update(name: String, x: Double): Options =
-      put(name, Options.Real, Properties.Value.Double(x))
+      put(name, Options.Real, Value.Double(x))
   }
   val real = new Real_Access
 

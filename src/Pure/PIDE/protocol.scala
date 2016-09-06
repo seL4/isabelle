@@ -404,7 +404,7 @@ trait Protocol
   /* dialog via document content */
 
   def dialog_result(serial: Long, result: String): Unit =
-    protocol_command("Document.dialog_result", Properties.Value.Long(serial), result)
+    protocol_command("Document.dialog_result", Value.Long(serial), result)
 
 
   /* build_theories */

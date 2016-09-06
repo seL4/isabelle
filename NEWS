@@ -334,8 +334,12 @@ break existing proofs. INCOMPATIBILITY.
     INCOMPATIBILITY.
   - The "size" plugin has been made compatible again with locales.
 
-* Removed obsolete theorem nat_less_cases. INCOMPATIBILITY, use
-linorder_cases instead.
+* Some old / obsolete theorems have been renamed / removed, potential
+INCOMPATIBILITY.
+
+  nat_less_cases  --  removed, use linorder_cases instead
+  inv_image_comp  --  removed, use image_inv_f_f instead
+  image_surj_f_inv_f  ~>  image_f_inv_f
 
 * Some theorems about groups and orders have been generalised from
   groups to semi-groups that are also monoids:

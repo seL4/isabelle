@@ -44,7 +44,7 @@ datatype value =
 fun print_value (Bool true) = "true"
   | print_value (Bool false) = "false"
   | print_value (Int i) = signed_string_of_int i
-  | print_value (Real x) = Markup.print_real x
+  | print_value (Real x) = Value.print_real x
   | print_value (String s) = quote s;
 
 fun print_type (Bool _) = "bool"
@@ -103,7 +103,7 @@ fun put_global config value = map_global config (K value);
 
 (* context information *)
 
-structure Value = Generic_Data
+structure Data = Generic_Data
 (
   type T = value Inttab.table;
   val empty = Inttab.empty;
@@ -116,12 +116,12 @@ fun declare (name, pos) default =
     val id = serial ();
 
     fun get_value context =
-      (case Inttab.lookup (Value.get context) id of
+      (case Inttab.lookup (Data.get context) id of
         SOME value => value
       | NONE => default context);
 
     fun map_value f context =
-      Value.map (Inttab.update (id, type_check (name, pos) f (get_value context))) context;
+      Data.map (Inttab.update (id, type_check (name, pos) f (get_value context))) context;
   in
     Config {name = name, pos = pos, get_value = get_value, map_value = map_value}
   end;

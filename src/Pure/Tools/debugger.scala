@@ -234,8 +234,8 @@ object Debugger
         "Debugger.breakpoint",
         Symbol.encode(command.node_name.node),
         Document_ID(command.id),
-        Properties.Value.Long(breakpoint),
-        Properties.Value.Boolean(breakpoint_state))
+        Value.Long(breakpoint),
+        Value.Boolean(breakpoint_state))
       state1
     })
   }

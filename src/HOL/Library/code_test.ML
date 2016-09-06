@@ -579,7 +579,7 @@ val _ = Theory.setup (fold add_driver
    (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
    (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
    (scalaN, (evaluate_in_scala, Code_Scala.target))]
-  #> fold (fn target => Value.add_evaluator (target, eval_term target))
+  #> fold (fn target => Value_Command.add_evaluator (target, eval_term target))
     [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN]);
 
 end

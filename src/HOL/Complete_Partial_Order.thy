@@ -80,7 +80,7 @@ lemma chain_singleton: "Complete_Partial_Order.chain op \<le> {x}"
   by (rule chainI) simp
 
 lemma ccpo_Sup_singleton [simp]: "\<Squnion>{x} = x"
-  by (rule antisym)(auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singleton)
+  by (rule antisym) (auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singleton)
 
 
 subsection \<open>Transfinite iteration of a function\<close>
@@ -282,26 +282,6 @@ lemma chain_compr: "chain ord A \<Longrightarrow> chain ord {x \<in> A. P x}"
 context ccpo
 begin
 
-lemma admissible_disj_lemma:
-  assumes A: "chain (op \<le>)A"
-  assumes P: "\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y"
-  shows "Sup A = Sup {x \<in> A. P x}"
-proof (rule antisym)
-  have *: "chain (op \<le>) {x \<in> A. P x}"
-    by (rule chain_compr [OF A])
-  show "Sup A \<le> Sup {x \<in> A. P x}"
-    apply (rule ccpo_Sup_least [OF A])
-    apply (drule P [rule_format], clarify)
-    apply (erule order_trans)
-    apply (simp add: ccpo_Sup_upper [OF *])
-    done
-  show "Sup {x \<in> A. P x} \<le> Sup A"
-    apply (rule ccpo_Sup_least [OF *])
-    apply clarify
-    apply (simp add: ccpo_Sup_upper [OF A])
-    done
-qed
-
 lemma admissible_disj:
   fixes P Q :: "'a \<Rightarrow> bool"
   assumes P: "ccpo.admissible Sup (op \<le>) (\<lambda>x. P x)"
@@ -309,23 +289,73 @@ lemma admissible_disj:
   shows "ccpo.admissible Sup (op \<le>) (\<lambda>x. P x \<or> Q x)"
 proof (rule ccpo.admissibleI)
   fix A :: "'a set"
-  assume A: "chain (op \<le>) A"
-  assume "A \<noteq> {}" and "\<forall>x\<in>A. P x \<or> Q x"
-  then have "(\<exists>x\<in>A. P x) \<and> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y) \<or> (\<exists>x\<in>A. Q x) \<and> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> Q y)"
-    using chainD[OF A] by blast  (* slow *)
-  then have "(\<exists>x. x \<in> A \<and> P x) \<and> Sup A = Sup {x \<in> A. P x} \<or> (\<exists>x. x \<in> A \<and> Q x) \<and> Sup A = Sup {x \<in> A. Q x}"
-    using admissible_disj_lemma [OF A] by blast
+  assume chain: "chain (op \<le>) A"
+  assume A: "A \<noteq> {}" and P_Q: "\<forall>x\<in>A. P x \<or> Q x"
+  have "(\<exists>x\<in>A. P x) \<and> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y) \<or> (\<exists>x\<in>A. Q x) \<and> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> Q y)"
+    (is "?P \<or> ?Q" is "?P1 \<and> ?P2 \<or> _")
+  proof (rule disjCI)
+    assume "\<not> ?Q"
+    then consider "\<forall>x\<in>A. \<not> Q x" | a where "a \<in> A" "\<forall>y\<in>A. a \<le> y \<longrightarrow> \<not> Q y"
+      by blast
+    then show ?P
+    proof cases
+      case 1
+      with P_Q have "\<forall>x\<in>A. P x" by blast
+      with A show ?P by blast
+    next
+      case 2
+      note a = \<open>a \<in> A\<close>
+      show ?P
+      proof
+        from P_Q 2 have *: "\<forall>y\<in>A. a \<le> y \<longrightarrow> P y" by blast
+        with a have "P a" by blast
+        with a show ?P1 by blast
+        show ?P2
+        proof
+          fix x
+          assume x: "x \<in> A"
+          with chain a show "\<exists>y\<in>A. x \<le> y \<and> P y"
+          proof (rule chainE)
+            assume le: "a \<le> x"
+            with * a x have "P x" by blast
+            with x le show ?thesis by blast
+          next
+            assume "a \<ge> x"
+            with a \<open>P a\<close> show ?thesis by blast
+          qed
+        qed
+      qed
+    qed
+  qed
+  moreover
+  have "Sup A = Sup {x \<in> A. P x}" if "\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y" for P
+  proof (rule antisym)
+    have chain_P: "chain (op \<le>) {x \<in> A. P x}"
+      by (rule chain_compr [OF chain])
+    show "Sup A \<le> Sup {x \<in> A. P x}"
+      apply (rule ccpo_Sup_least [OF chain])
+      apply (drule that [rule_format])
+      apply clarify
+      apply (erule order_trans)
+      apply (simp add: ccpo_Sup_upper [OF chain_P])
+      done
+    show "Sup {x \<in> A. P x} \<le> Sup A"
+      apply (rule ccpo_Sup_least [OF chain_P])
+      apply clarify
+      apply (simp add: ccpo_Sup_upper [OF chain])
+      done
+  qed
+  ultimately
+  consider "\<exists>x. x \<in> A \<and> P x" "Sup A = Sup {x \<in> A. P x}"
+    | "\<exists>x. x \<in> A \<and> Q x" "Sup A = Sup {x \<in> A. Q x}"
+    by blast
   then show "P (Sup A) \<or> Q (Sup A)"
-    apply (rule disjE)
+    apply cases
      apply simp_all
      apply (rule disjI1)
-     apply (rule ccpo.admissibleD [OF P chain_compr [OF A]])
-      apply simp
-     apply simp
+     apply (rule ccpo.admissibleD [OF P chain_compr [OF chain]]; simp)
     apply (rule disjI2)
-    apply (rule ccpo.admissibleD [OF Q chain_compr [OF A]])
-     apply simp
-    apply simp
+    apply (rule ccpo.admissibleD [OF Q chain_compr [OF chain]]; simp)
     done
 qed
 

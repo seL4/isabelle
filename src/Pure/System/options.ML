@@ -114,15 +114,15 @@ fun get T parse options name =
 
 (* internal lookup and update *)
 
-val bool = get boolT (try Markup.parse_bool);
-val int = get intT (try Markup.parse_int);
-val real = get realT (try Markup.parse_real);
+val bool = get boolT (try Value.parse_bool);
+val int = get intT (try Value.parse_int);
+val real = get realT (try Value.parse_real);
 val seconds = Time.fromReal oo real;
 val string = get stringT SOME;
 
-val put_bool = put boolT Markup.print_bool;
-val put_int = put intT Markup.print_int;
-val put_real = put realT Markup.print_real;
+val put_bool = put boolT Value.print_bool;
+val put_int = put intT Value.print_int;
+val put_real = put realT Value.print_real;
 val put_string = put stringT I;
 
 

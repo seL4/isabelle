@@ -626,7 +626,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
             Unsynchronized.ref (NONE : ((string * stature) * thm list) list option)
           val trivial =
             if AList.lookup (op =) args check_trivialK |> the_default trivial_default
-                            |> Markup.parse_bool then
+                            |> Value.parse_bool then
               Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle Timeout.TIMEOUT _ => false
             else false

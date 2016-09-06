@@ -790,7 +790,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "c" -> (_ => clean_build = true),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-      "j:" -> (arg => max_jobs = Properties.Value.Int.parse(arg)),
+      "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
       "k:" -> (arg => check_keywords = check_keywords + arg),
       "l" -> (_ => list_files = true),
       "n" -> (_ => no_build = true),

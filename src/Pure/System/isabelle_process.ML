@@ -81,7 +81,7 @@ fun update_tracing () =
             val _ =
               writeln ("Tracing paused.  " ^ text "Stop" ^ ", or continue with next " ^
                 text "100" ^ ", " ^ text "1000" ^ ", " ^ text "10000" ^ " messages?")
-            val m = Markup.parse_int (Future.join promise)
+            val m = Value.parse_int (Future.join promise)
               handle Fail _ => error "Stopped";
           in
             Synchronized.change tracing_messages

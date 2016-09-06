@@ -98,7 +98,7 @@ ML_file "Tools/code_evaluation.ML"
 
 code_reserved Eval Code_Evaluation
 
-ML_file "~~/src/HOL/Tools/value.ML"
+ML_file "~~/src/HOL/Tools/value_command.ML"
 
 
 subsection \<open>\<open>term_of\<close> instances\<close>

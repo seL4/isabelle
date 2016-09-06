@@ -180,8 +180,8 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
         val {props = more_props, pretty} = payload ()
         val props =
           [(textN, text),
-           (memoryN, Markup.print_bool memory),
-           (parentN, Markup.print_int parent)]
+           (memoryN, Value.print_bool memory),
+           (parentN, Value.print_int parent)]
         val data =
           Pretty.string_of (Pretty.markup (markup', props @ more_props) [pretty])
       in
@@ -405,7 +405,7 @@ val _ =
   Isabelle_Process.protocol_command "Simplifier_Trace.reply"
     (fn [serial_string, reply] =>
       let
-        val serial = Markup.parse_int serial_string
+        val serial = Value.parse_int serial_string
         val result =
           Synchronized.change_result futures
             (fn tab => (Inttab.lookup tab serial, Inttab.delete_safe serial tab))

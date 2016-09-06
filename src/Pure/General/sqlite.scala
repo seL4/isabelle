@@ -29,6 +29,8 @@ object SQLite
 
     def close { connection.close }
 
+    def rebuild { using(statement("VACUUM"))(_.execute()) }
+
     def transaction[A](body: => A): A =
     {
       val auto_commit = connection.getAutoCommit

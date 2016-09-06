@@ -102,7 +102,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
       tooltip = "Limit of displayed results"
       verifier = (s: String) =>
-        s match { case Properties.Value.Int(x) => x >= 0 case _ => false }
+        s match { case Value.Int(x) => x >= 0 case _ => false }
       listenTo(keys)
       reactions += { case KeyPressed(_, Key.Enter, 0, _) => apply_query() }
     }

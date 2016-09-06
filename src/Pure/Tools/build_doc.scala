@@ -88,7 +88,7 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
   suitable document_variants entry.
 """,
       "a" -> (_ => all_docs = true),
-      "j:" -> (arg => max_jobs = Properties.Value.Int.parse(arg)),
+      "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
       "s" -> (_ => system_mode = true))
 
     val docs = getopts(args)

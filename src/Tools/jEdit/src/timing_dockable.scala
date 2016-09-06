@@ -132,14 +132,14 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     reactions += {
       case _: ValueChanged =>
         text match {
-          case Properties.Value.Double(x) if x >= 0.0 => timing_threshold = x
+          case Value.Double(x) if x >= 0.0 => timing_threshold = x
           case _ =>
         }
         handle_update()
     }
     tooltip = threshold_tooltip
     verifier = ((s: String) =>
-      s match { case Properties.Value.Double(x) => x >= 0.0 case _ => false })
+      s match { case Value.Double(x) => x >= 0.0 case _ => false })
   }
 
   private val controls =

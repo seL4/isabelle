@@ -31,7 +31,7 @@ object Standard_Thread
 
   lazy val pool: ThreadPoolExecutor =
     {
-      val m = Properties.Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
+      val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
       val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
       val executor =
         new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])

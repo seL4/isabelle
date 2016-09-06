@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/value.ML
+(*  Title:      HOL/Tools/value_command.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Generic value command for arbitrary evaluators, with default using nbe or SML.
 *)
 
-signature VALUE =
+signature VALUE_COMMAND =
 sig
   val value: Proof.context -> term -> term
   val value_select: string -> Proof.context -> term -> term
@@ -12,7 +12,7 @@ sig
   val add_evaluator: string * (Proof.context -> term -> term) -> theory -> theory
 end;
 
-structure Value : VALUE =
+structure Value_Command : VALUE_COMMAND =
 struct
 
 fun default_value ctxt t =

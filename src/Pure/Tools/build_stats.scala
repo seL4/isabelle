@@ -38,8 +38,6 @@ object Build_Stats
 
   def parse(text: String): Build_Stats =
   {
-    import Properties.Value
-
     val ml_options = new mutable.ListBuffer[(String, String)]
     var finished = Map.empty[String, Timing]
     var timing = Map.empty[String, Timing]
@@ -208,11 +206,11 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "M" -> (_ => ml_timing = Some(true)),
         "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
-        "T:" -> (arg => elapsed_threshold = Time.minutes(Properties.Value.Double.parse(arg))),
-        "l:" -> (arg => history_length = Properties.Value.Int.parse(arg)),
+        "T:" -> (arg => elapsed_threshold = Time.minutes(Value.Double.parse(arg))),
+        "l:" -> (arg => history_length = Value.Int.parse(arg)),
         "m" -> (_ => ml_timing = Some(false)),
         "s:" -> (arg =>
-          space_explode('x', arg).map(Properties.Value.Int.parse(_)) match {
+          space_explode('x', arg).map(Value.Int.parse(_)) match {
             case List(w, h) if w > 0 && h > 0 => size = (w, h)
             case _ => error("Error bad PNG image size: " + quote(arg))
           }))
