@@ -42,8 +42,9 @@ open BNF_Comp
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
-open BNF_GFP_Rec_Sugar
 open BNF_GFP_Util
+open BNF_GFP_Rec_Sugar
+open BNF_FP_Rec_Sugar_Transfer
 open BNF_GFP_Grec
 open BNF_GFP_Grec_Sugar_Util
 open BNF_GFP_Grec_Sugar_Tactics
@@ -75,7 +76,6 @@ val inner_fp_suffix = "_inner_fp";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val transfer_rule_attrs = @{attributes [transfer_rule]};
 
 val unfold_id_thms1 =
   map (fn thm => thm RS eq_reflection) @{thms id_bnf_o o_id_bnf id_apply o_apply} @
@@ -283,9 +283,6 @@ fun derive_case_trivial ctxt fpT_name =
 fun mk_abs_rep_transfers ctxt fpT_name =
   [mk_abs_transfer ctxt fpT_name, mk_rep_transfer ctxt fpT_name]
   handle Fail _ => [];
-
-fun set_transfer_rule_attrs thms =
-  snd o Local_Theory.notes [(Binding.empty_atts, [(thms, transfer_rule_attrs)])];
 
 fun ensure_codatatype_extra fpT_name ctxt =
   (case codatatype_extra_of ctxt fpT_name of

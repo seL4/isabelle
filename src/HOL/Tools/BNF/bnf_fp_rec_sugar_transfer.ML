@@ -7,6 +7,8 @@ Parametricity of primitively (co)recursive functions.
 
 signature BNF_FP_REC_SUGAR_TRANSFER =
 sig
+  val set_transfer_rule_attrs: thm list -> local_theory -> local_theory
+
   val lfp_rec_sugar_transfer_interpretation: BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> Proof.context ->
     Proof.context
   val gfp_rec_sugar_transfer_interpretation: BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> Proof.context ->
@@ -26,6 +28,11 @@ open BNF_FP_Rec_Sugar_Util
 open BNF_LFP_Rec_Sugar
 
 val transferN = "transfer";
+
+val transfer_rule_attrs = @{attributes [transfer_rule]};
+
+fun set_transfer_rule_attrs thms =
+  snd o Local_Theory.notes [(Binding.empty_atts, [(thms, transfer_rule_attrs)])];
 
 fun mk_lfp_rec_sugar_transfer_tac ctxt def =
   unfold_thms_tac ctxt [def] THEN HEADGOAL (Transfer.transfer_prover_tac ctxt);
@@ -150,11 +157,11 @@ val gfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
      in
        Goal.prove lthy vars [] goal (fn {context = ctxt, prems = _} =>
          mk_gfp_rec_sugar_transfer_tac ctxt def
-         (#co_rec_def (#fp_co_induct_sugar (nth fp_sugars kk)))
-         (map (#type_definition o #absT_info) fp_sugars)
-         (maps (#xtor_co_rec_transfers o #fp_res) fp_sugars)
-         (map (rel_def_of_bnf o #pre_bnf) fp_sugars)
-         disc_eq_cases case_thms case_distribs case_congs)
+           (#co_rec_def (#fp_co_induct_sugar (nth fp_sugars kk)))
+           (map (#type_definition o #absT_info) fp_sugars)
+           (maps (#xtor_co_rec_transfers o #fp_res) fp_sugars)
+           (map (rel_def_of_bnf o #pre_bnf) fp_sugars)
+           disc_eq_cases case_thms case_distribs case_congs)
        |> Thm.close_derivation
      end);
 
