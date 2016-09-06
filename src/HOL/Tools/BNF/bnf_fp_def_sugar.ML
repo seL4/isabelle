@@ -2162,8 +2162,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         warn (order_strong_conn (op =) Int_Graph.make Int_Graph.topological_order deps sccs)
       end;
 
-    val fp_eqs = map dest_TFree Xs ~~ ctrXs_repTs;
-
     val killed_As =
       map_filter (fn (A, set_bos) => if exists is_none set_bos then SOME A else NONE)
         (As ~~ transpose set_boss);
@@ -2174,8 +2172,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
              xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
              xtor_co_rec_transfers, xtor_co_rec_o_maps, ...},
            lthy)) =
-      fixpoint_bnf I (construct_fp mixfixes map_bs rel_bs pred_bs set_bss) fp_bs
-        (map dest_TFree As) (map dest_TFree killed_As) fp_eqs empty_comp_cache no_defs_lthy
+      fixpoint_bnf I (construct_fp mixfixes map_bs rel_bs pred_bs set_bss) fp_bs (map dest_TFree As)
+        (map dest_TFree killed_As) (map dest_TFree Xs) ctrXs_repTs empty_comp_cache no_defs_lthy
       handle BAD_DEAD (X, X_backdrop) =>
         (case X_backdrop of
           Type (bad_tc, _) =>

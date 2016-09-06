@@ -209,8 +209,8 @@ sig
   val fixpoint_bnf: (binding -> binding) ->
       (binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
       BNF_Comp.absT_info list -> local_theory -> 'a) ->
-    binding list -> (string * sort) list -> (string * sort) list -> ((string * sort) * typ) list ->
-    BNF_Comp.comp_cache -> local_theory ->
+    binding list -> (string * sort) list -> (string * sort) list -> (string * sort) list ->
+    typ list -> BNF_Comp.comp_cache -> local_theory ->
     ((BNF_Def.bnf list * BNF_Comp.absT_info list) * BNF_Comp.comp_cache) * 'a
   val fp_antiquote_setup: binding -> theory -> theory
 end;
@@ -925,13 +925,12 @@ fun raw_qualify extra_qualify base_b =
     #> extra_qualify #> Binding.concealed
   end;
 
-fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
+fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 Xs rhsXs comp_cache0 lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
 
-    val nn = length fp_eqs;
-    val (Xs, rhsXs) = split_list fp_eqs;
+    val nn = length Xs;
 
     fun flatten_tyargs Ass =
       subtract (op =) Xs (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ Xs;

@@ -109,8 +109,8 @@ fun map_partition f xs =
       case f x of SOME y => (y :: ys, (x :: good, bad)) | NONE => (ys, (good, x :: bad)))
     xs ([], ([], []));
 
-fun key_of_fp_eqs fp As fpTs fp_eqs =
-  Type (case_fp fp "l" "g", fpTs @ maps (fn (x, T) => [TFree x, T]) fp_eqs)
+fun key_of_fp_eqs fp As fpTs Xs ctrXs_repTs =
+  Type (case_fp fp "l" "g", fpTs @ Xs @ ctrXs_repTs)
   |> Term.map_atyps (fn T as TFree (_, S) =>
     (case find_index (curry (op =) T) As of
       ~1 => T
@@ -212,8 +212,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
 
-    val fp_eqs = map dest_TFree Xs ~~ ctrXs_repTs;
-    val key = key_of_fp_eqs fp As fpTs fp_eqs;
+    val key = key_of_fp_eqs fp As fpTs Xs ctrXs_repTs;
   in
     (case n2m_sugar_of no_defs_lthy key of
       SOME n2m_sugar => (n2m_sugar, no_defs_lthy)
@@ -242,7 +241,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         val (((pre_bnfs, absT_infos), _), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
           fixpoint_bnf I (construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress)
-            fp_bs As' killed_As' fp_eqs empty_comp_cache no_defs_lthy;
+            fp_bs As' killed_As' (map dest_TFree Xs) ctrXs_repTs empty_comp_cache no_defs_lthy;
 
         val time = time lthy;
         val timer = time (Timer.startRealTimer ());
