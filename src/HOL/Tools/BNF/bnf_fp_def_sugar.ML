@@ -71,6 +71,9 @@ sig
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
 
+  val morph_fp_bnf_sugar: morphism -> fp_bnf_sugar -> fp_bnf_sugar
+  val morph_fp_co_induct_sugar: morphism -> fp_co_induct_sugar -> fp_co_induct_sugar
+  val morph_fp_ctr_sugar: morphism -> fp_ctr_sugar -> fp_ctr_sugar
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val transfer_fp_sugar: theory -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
