@@ -94,7 +94,9 @@ keywords
 abbrevs
   "default_sort" = ""
   "simproc_setup" = ""
+  "hence" = ""
   "hence" = "then have"
+  "thus" = ""
   "thus" = "then show"
   "apply_end" = ""
   "realizers" = ""
