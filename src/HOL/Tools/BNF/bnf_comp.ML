@@ -9,6 +9,10 @@ Composition of bounded natural functors.
 signature BNF_COMP =
 sig
   val typedef_threshold: int Config.T
+  val with_typedef_threshold: int -> (Proof.context -> Proof.context) -> Proof.context ->
+    Proof.context
+  val with_typedef_threshold_yield: int -> (Proof.context -> 'a * Proof.context) -> Proof.context ->
+    'a * Proof.context
 
   val ID_bnf: BNF_Def.bnf
   val DEADID_bnf: BNF_Def.bnf
@@ -77,6 +81,18 @@ open BNF_Tactics
 open BNF_Comp_Tactics
 
 val typedef_threshold = Attrib.setup_config_int @{binding bnf_typedef_threshold} (K 6);
+
+fun with_typedef_threshold threshold f lthy =
+  lthy
+  |> Config.put typedef_threshold threshold
+  |> f
+  |> Config.put typedef_threshold (Config.get lthy typedef_threshold);
+
+fun with_typedef_threshold_yield threshold f lthy =
+  lthy
+  |> Config.put typedef_threshold threshold
+  |> f
+  ||> Config.put typedef_threshold (Config.get lthy typedef_threshold);
 
 val ID_bnf = the (bnf_of @{context} "BNF_Composition.ID");
 val DEADID_bnf = the (bnf_of @{context} "BNF_Composition.DEADID");

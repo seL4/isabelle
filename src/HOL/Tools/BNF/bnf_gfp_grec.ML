@@ -494,12 +494,6 @@ fun checked_fp_sugar_of ctxt fpT_name =
     fp_sugar
   end;
 
-fun inline_pre_bnfs f lthy =
-  lthy
-  |> Config.put typedef_threshold ~1
-  |> f
-  |> Config.put typedef_threshold (Config.get lthy typedef_threshold);
-
 fun bnf_kill_all_but nn bnf lthy =
   ((empty_comp_cache, empty_unfolds), lthy)
   |> kill_bnf I (live_of_bnf bnf - nn) bnf
@@ -567,7 +561,8 @@ fun define_sig_type fp_b version fp_alives Es Y rhsT lthy =
 
     val lthy = lthy
       |> Local_Theory.map_background_naming (mk_internal true lthy Name_Space.concealed) (*TODO check*)
-      |> inline_pre_bnfs (co_datatypes Least_FP construct_lfp ((plugins, discs_sels), [spec]))
+      |> with_typedef_threshold ~1
+        (co_datatypes Least_FP construct_lfp ((plugins, discs_sels), [spec]))
       |> Local_Theory.close_target;
 
     val SOME fp_sugar = fp_sugar_of lthy T_name;
@@ -606,7 +601,8 @@ fun define_ssig_type fp_b version fp_alives Es Y fpT lthy =
 
     val lthy = lthy
       |> Local_Theory.map_background_naming (mk_internal true lthy Name_Space.concealed) (*TODO check*)
-      |> inline_pre_bnfs (co_datatypes Least_FP construct_lfp ((plugins, discs_sels), [spec]))
+      |> with_typedef_threshold ~1
+        (co_datatypes Least_FP construct_lfp ((plugins, discs_sels), [spec]))
       |> Local_Theory.close_target;
 
     val SOME fp_sugar = fp_sugar_of lthy T_name;
