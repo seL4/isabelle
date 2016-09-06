@@ -807,29 +807,29 @@ fun mk_abs_or_rep _ absU (Const (@{const_name id_bnf}, _)) =
 val mk_abs = mk_abs_or_rep range_type;
 val mk_rep = mk_abs_or_rep domain_type;
 
-fun maybe_typedef ctxt force_out_of_line (b, As, mx) set opt_morphs tac =
+fun maybe_typedef force_out_of_line (b, As, mx) set opt_morphs tac lthy =
   let
-    val threshold = Config.get ctxt typedef_threshold;
+    val threshold = Config.get lthy typedef_threshold;
     val repT = HOLogic.dest_setT (fastype_of set);
     val out_of_line = force_out_of_line orelse
       (threshold >= 0 andalso Term.size_of_typ repT >= threshold);
   in
     if out_of_line then
-      typedef (b, As, mx) set opt_morphs tac
-      #>> (fn (T_name, ({Rep_name, Abs_name, ...},
+      typedef (b, As, mx) set opt_morphs tac lthy
+      |>> (fn (T_name, ({Rep_name, Abs_name, ...},
           {type_definition, Abs_inverse, Abs_inject, Abs_cases, ...}) : Typedef.info) =>
         (Type (T_name, map TFree As),
           (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, Abs_cases)))
     else
-      pair (repT,
+      ((repT,
         (@{const_name id_bnf}, @{const_name id_bnf},
          @{thm type_definition_id_bnf_UNIV},
          @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_UNIV]},
          @{thm type_definition.Abs_inject[OF type_definition_id_bnf_UNIV]},
-         @{thm type_definition.Abs_cases[OF type_definition_id_bnf_UNIV]}))
+         @{thm type_definition.Abs_cases[OF type_definition_id_bnf_UNIV]})), lthy)
   end;
 
-fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
+fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds bnf lthy =
   let
     val live = live_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
@@ -847,10 +847,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
     val T_bind = qualify b;
     val all_TA_params_in_order = Term.add_tfreesT repTA As';
     val TA_params =
-      (if has_live_phantoms then all_TA_params_in_order
+      (if force_out_of_line then all_TA_params_in_order
        else inter (op =) (Term.add_tfreesT repTA []) all_TA_params_in_order);
     val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, _)), lthy) =
-      maybe_typedef lthy has_live_phantoms (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
+      maybe_typedef force_out_of_line (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
         (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
 
     val repTB = mk_T_of_bnf Ds Bs bnf;
@@ -882,8 +882,8 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
     val all_deads = map TFree (fold Term.add_tfreesT Ds []);
 
     val ((bdT, (_, Abs_bd_name, _, _, Abs_bdT_inject, Abs_bdT_cases)), lthy) =
-      maybe_typedef lthy false (bdT_bind, params, NoSyn)
-        (HOLogic.mk_UNIV bd_repT) NONE (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
+      maybe_typedef false (bdT_bind, params, NoSyn) (HOLogic.mk_UNIV bd_repT) NONE
+        (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
 
     val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite) =
       if bdT = bd_repT then (bnf_bd, bd_Card_order_of_bnf bnf RS @{thm ordIso_refl},
@@ -920,7 +920,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
       rtac ctxt (le_rel_OO_of_bnf bnf RS @{thm vimage2p_relcompp_mono}) 1;
     fun rel_OO_Grp_tac ctxt =
       (rtac ctxt (rel_OO_Grp_of_bnf bnf RS @{thm vimage2p_cong} RS trans) THEN'
-       (if has_live_phantoms then subst_tac ctxt NONE else SELECT_GOAL o unfold_thms_tac ctxt)
+       (if force_out_of_line then subst_tac ctxt NONE else SELECT_GOAL o unfold_thms_tac ctxt)
          [type_definition RS @{thm vimage2p_relcompp_converse}] THEN'
        SELECT_GOAL (unfold_thms_tac ctxt [o_apply,
          type_definition RS @{thm type_copy_vimage2p_Grp_Rep},

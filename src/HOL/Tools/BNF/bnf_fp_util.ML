@@ -206,7 +206,7 @@ sig
     (term list * (thm list * thm * thm list * thm list)) * local_theory
   val raw_qualify: (binding -> binding) -> binding -> binding -> binding
 
-  val fixpoint_bnf: (binding -> binding) ->
+  val fixpoint_bnf: bool -> (binding -> binding) ->
       (binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
       BNF_Comp.absT_info list -> local_theory -> 'a) ->
     binding list -> (string * sort) list -> (string * sort) list -> (string * sort) list ->
@@ -925,7 +925,8 @@ fun raw_qualify extra_qualify base_b =
     #> extra_qualify #> Binding.concealed
   end;
 
-fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 Xs rhsXs comp_cache0 lthy =
+fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rhsXs comp_cache0
+    lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -962,9 +963,9 @@ fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 Xs rhsXs comp_cache0 lt
       #> extra_qualify
       #> not (Config.get lthy'' bnf_internals) ? Binding.concealed;
 
-    val ((pre_bnfs, (deadss, absT_infos)), lthy''') =
-      @{fold_map 4} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
-        bs (not (null live_phantoms) :: replicate (length rhsXs - 1) false) Dss bnfs' lthy''
+    val ((pre_bnfs, (deadss, absT_infos)), lthy''') = lthy''
+      |> @{fold_map 4} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
+        bs (replicate (length rhsXs) (force_out_of_line orelse not (null live_phantoms))) Dss bnfs'
       |>> split_list
       |>> apsnd split_list;
 

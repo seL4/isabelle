@@ -240,7 +240,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
 
         val (((pre_bnfs, absT_infos), _), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
-          fixpoint_bnf I (construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress)
+          fixpoint_bnf false I (construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress)
             fp_bs As' killed_As' (map dest_TFree Xs) ctrXs_repTs empty_comp_cache no_defs_lthy;
 
         val time = time lthy;
