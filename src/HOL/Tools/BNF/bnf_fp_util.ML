@@ -930,8 +930,6 @@ fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 Xs rhsXs comp_cache0 lt
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
 
-    val nn = length Xs;
-
     fun flatten_tyargs Ass =
       subtract (op =) Xs (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ Xs;
 
@@ -966,7 +964,7 @@ fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 Xs rhsXs comp_cache0 lt
 
     val ((pre_bnfs, (deadss, absT_infos)), lthy''') =
       @{fold_map 4} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
-        bs (not (null live_phantoms) :: replicate (nn - 1) false) Dss bnfs' lthy''
+        bs (not (null live_phantoms) :: replicate (length rhsXs - 1) false) Dss bnfs' lthy''
       |>> split_list
       |>> apsnd split_list;
 
