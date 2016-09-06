@@ -183,6 +183,9 @@ object Keyword
     def is_quasi_command(token: Token): Boolean =
       token.is_keyword && kinds.get(token.source) == Some(QUASI_COMMAND)
 
+    def is_indent_command(token: Token): Boolean =
+      token.is_begin_or_command || is_quasi_command(token)
+
 
     /* load commands */
 
