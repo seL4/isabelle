@@ -84,6 +84,11 @@ text \<open>
   fold back) the given definitions throughout all goals; any chained facts
   provided are inserted into the goal and subject to rewriting as well.
 
+  Unfolding works in two stages: first, the given equations are used directly
+  for rewriting; second, the equations are passed through the attribute
+  @{attribute_ref abs_def} before rewriting --- to ensure that definitions are
+  fully expanded, regardless of the actual parameters that are provided.
+
   \<^descr> @{method insert}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> inserts theorems as facts into all goals of
   the proof state. Note that current facts indicated for forward chaining are
   ignored.
@@ -155,8 +160,8 @@ text \<open>
   expand and fold back again the given definitions throughout a rule.
 
   \<^descr> @{attribute abs_def} turns an equation of the form @{prop "f x y \<equiv> t"}
-  into @{prop "f \<equiv> \<lambda>x y. t"}, which ensures that @{method simp} or @{method
-  unfold} steps always expand it. This also works for object-logic equality.
+  into @{prop "f \<equiv> \<lambda>x y. t"}, which ensures that @{method simp} steps always
+  expand it. This also works for object-logic equality.
 
   \<^descr> @{attribute rotated}~\<open>n\<close> rotate the premises of a theorem by \<open>n\<close> (default
   1).

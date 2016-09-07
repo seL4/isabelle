@@ -207,7 +207,7 @@ fun abs_def_rule ctxt = meta_rewrite_rule ctxt #> Drule.abs_def;
 
 (* unfold object-level rules *)
 
-val unfold_abs_def_raw = Config.declare ("unfold_abs_def", @{here}) (K (Config.Bool false));
+val unfold_abs_def_raw = Config.declare ("unfold_abs_def", @{here}) (K (Config.Bool true));
 val unfold_abs_def = Config.bool unfold_abs_def_raw;
 
 local
