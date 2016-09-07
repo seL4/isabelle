@@ -105,6 +105,21 @@ sig
   val liveness_of_fp_bnf: int -> BNF_Def.bnf -> bool list
   val nesting_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
 
+  val define_ctrs_dtrs_for_type: string -> typ -> term -> term -> thm -> thm -> int -> int list ->
+    term -> binding list -> mixfix list -> typ list list -> local_theory ->
+    (term list list * term list * thm * thm list) * local_theory
+  val wrap_ctrs: BNF_Util.fp_kind -> (string -> bool) -> bool -> string -> thm -> int -> int list ->
+    thm -> thm -> binding list -> binding list list -> term list -> term list -> thm -> thm list ->
+    local_theory -> Ctr_Sugar.ctr_sugar * local_theory
+  val derive_map_set_rel_pred_thms: (string -> bool) -> BNF_Util.fp_kind -> int -> typ list ->
+    typ list -> typ -> typ -> thm list -> thm list -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> thm list -> string -> BNF_Def.bnf -> BNF_Def.bnf list -> typ -> term ->
+    thm -> thm -> thm -> thm list -> thm -> thm -> thm list -> thm -> typ list list -> term ->
+    Ctr_Sugar.ctr_sugar -> Proof.context ->
+    (thm list * thm list * thm list list * thm list * thm list * thm list * thm list * thm list
+     * thm list * thm list * thm list list list list * thm list list list list * thm list
+     * thm list * thm list * thm list * thm list) * local_theory
+
   type lfp_sugar_thms = (thm list * thm * Token.src list) * (thm list list * Token.src list)
 
   val morph_lfp_sugar_thms: morphism -> lfp_sugar_thms -> lfp_sugar_thms
@@ -2345,7 +2360,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     val (xtor_co_recs, recs_args_types, corecs_args_types) =
       mk_co_recs_prelims lthy fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0;
-    val lthy' = lthy;
 
     fun define_ctrs_dtrs_for_type_etc fp_bnf fp_b fpT C E ctor dtor xtor_co_rec ctor_dtor dtor_ctor
         ctor_inject pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm n ks ms
@@ -2391,8 +2405,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
          #>> apfst massage_res, lthy)
       end;
 
-    fun wrap_ctrs_derive_map_set_rel_pred_thms_define_co_rec_for_types (wrap_one_etc, lthy) =
-      fold_map I wrap_one_etc lthy
+    fun wrap_ctrs_derive_map_set_rel_pred_thms_define_co_rec_for_types (wrap_one_etcs, lthy) =
+      fold_map I wrap_one_etcs lthy
       |>> apsnd split_list o apfst (apsnd @{split_list 5} o apfst @{split_list 17} o split_list)
         o split_list;
 
@@ -2749,7 +2763,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           sel_transferss map_o_corec_thmss
       end;
 
-    val lthy'' = lthy'
+    val lthy = lthy
       |> live > 0 ? fold2 (fn Type (s, _) => fn bnf => register_bnf_raw s bnf) fpTs fp_bnfs
       |> @{fold_map 29} define_ctrs_dtrs_for_type_etc fp_bnfs fp_bs fpTs Cs Es ctors dtors
         xtor_co_recs ctor_dtors dtor_ctors ctor_injects pre_map_defs pre_set_defss pre_rel_defs
@@ -2762,7 +2776,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       co_prefix fp ^ "datatype"));
   in
-    lthy''
+    lthy
   end;
 
 fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) (K I) x;
