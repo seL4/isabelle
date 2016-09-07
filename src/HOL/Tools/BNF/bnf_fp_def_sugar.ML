@@ -594,6 +594,91 @@ fun massage_multi_notes b_names Ts =
       b_names Ts thmss)
   #> filter_out (null o fst o hd o snd);
 
+fun define_ctrs_dtrs_for_type fp_b_name fpT ctor dtor ctor_dtor dtor_ctor n ks abs ctr_bindings
+    ctr_mixfixes ctr_Tss lthy =
+  let
+    val ctr_absT = domain_type (fastype_of ctor);
+
+    val (((w, xss), u'), _) = lthy
+      |> yield_singleton (mk_Frees "w") ctr_absT
+      ||>> mk_Freess "x" ctr_Tss
+      ||>> yield_singleton Variable.variant_fixes fp_b_name;
+
+    val u = Free (u', fpT);
+
+    val ctor_iff_dtor_thm =
+      let
+        val goal =
+          fold_rev Logic.all [w, u]
+            (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
+        val vars = Variable.add_free_names lthy goal [];
+      in
+        Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
+          mk_ctor_iff_dtor_tac ctxt (map (SOME o Thm.ctyp_of lthy) [ctr_absT, fpT])
+            (Thm.cterm_of lthy ctor) (Thm.cterm_of lthy dtor) ctor_dtor dtor_ctor)
+        |> Thm.close_derivation
+      end;
+
+    val ctr_rhss =
+      map2 (fn k => fn xs => fold_rev Term.lambda xs (ctor $ mk_absumprod ctr_absT abs n k xs))
+        ks xss;
+
+    val ((raw_ctrs, raw_ctr_defs), (lthy, lthy_old)) = lthy
+      |> Local_Theory.open_target |> snd
+      |> apfst split_list o @{fold_map 3} (fn b => fn mx => fn rhs =>
+          Local_Theory.define ((b, mx),
+            ((Thm.make_def_binding (Config.get lthy bnf_internals) b, []), rhs))
+          #>> apsnd snd) ctr_bindings ctr_mixfixes ctr_rhss
+      ||> `Local_Theory.close_target;
+
+    val phi = Proof_Context.export_morphism lthy_old lthy;
+
+    val ctr_defs = map (Morphism.thm phi) raw_ctr_defs;
+    val ctrs0 = map (Morphism.term phi) raw_ctrs;
+  in
+    ((xss, ctrs0, ctor_iff_dtor_thm, ctr_defs), lthy)
+  end;
+
+fun wrap_ctrs fp plugins discs_sels fp_b_name ctor_inject n ms abs_inject type_definition
+    disc_bindings sel_bindingss sel_default_eqs ctrs0 ctor_iff_dtor_thm ctr_defs lthy =
+  let
+    val sumEN_thm' = unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms);
+
+    fun exhaust_tac {context = ctxt, prems = _} =
+      mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor_thm sumEN_thm';
+
+    val inject_tacss =
+      map2 (fn ctr_def => fn 0 => [] | _ => [fn {context = ctxt, ...} =>
+        mk_inject_tac ctxt ctr_def ctor_inject abs_inject]) ctr_defs ms;
+
+    val half_distinct_tacss =
+      map (map (fn (def, def') => fn {context = ctxt, ...} =>
+          mk_half_distinct_tac ctxt ctor_inject abs_inject [def, def']))
+        (mk_half_pairss (`I ctr_defs));
+
+    val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss;
+
+    fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
+    val ctr_specs = @{map 3} ctr_spec_of disc_bindings ctrs0 sel_bindingss;
+
+    val (ctr_sugar as {case_cong, ...}, lthy) =
+      free_constructors (ctr_sugar_kind_of_fp_kind fp) tacss
+        ((((plugins, discs_sels), standard_binding), ctr_specs), sel_default_eqs) lthy
+
+    val anonymous_notes =
+      [([case_cong], fundefcong_attrs)]
+      |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
+
+    val notes =
+      if Config.get lthy bnf_internals then
+        [(ctor_iff_dtorN, [ctor_iff_dtor_thm], K [])]
+        |> massage_simple_notes fp_b_name
+      else
+        [];
+  in
+    (ctr_sugar, lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd)
+  end;
+
 fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs fp_nesting_set_maps
     fp_nesting_rel_eq_onps live_nesting_map_id0s live_nesting_set_maps live_nesting_rel_eqs
     live_nesting_rel_eq_onps fp_b_name fp_bnf fp_bnfs fpT ctor ctor_dtor dtor_ctor pre_map_def
@@ -2262,100 +2347,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       mk_co_recs_prelims lthy fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0;
     val lthy' = lthy;
 
-    fun define_ctrs_dtrs_for_type fp_b_name fpT ctor dtor ctor_dtor dtor_ctor n ks abs ctr_bindings
-        ctr_mixfixes ctr_Tss no_defs_lthy =
-      let
-        val ctr_absT = domain_type (fastype_of ctor);
-
-        val (((w, xss), u'), _) = no_defs_lthy
-          |> yield_singleton (mk_Frees "w") ctr_absT
-          ||>> mk_Freess "x" ctr_Tss
-          ||>> yield_singleton Variable.variant_fixes fp_b_name;
-
-        val u = Free (u', fpT);
-
-        val ctor_iff_dtor_thm =
-          let
-            val goal =
-              fold_rev Logic.all [w, u]
-                (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
-            val vars = Variable.add_free_names lthy goal [];
-          in
-            Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
-              mk_ctor_iff_dtor_tac ctxt (map (SOME o Thm.ctyp_of lthy) [ctr_absT, fpT])
-                (Thm.cterm_of lthy ctor) (Thm.cterm_of lthy dtor) ctor_dtor dtor_ctor)
-            |> Thm.close_derivation
-          end;
-
-        val ctr_rhss =
-          map2 (fn k => fn xs => fold_rev Term.lambda xs (ctor $ mk_absumprod ctr_absT abs n k xs))
-            ks xss;
-
-        val ((raw_ctrs, raw_ctr_defs), (lthy, lthy_old)) = no_defs_lthy
-          |> Local_Theory.open_target |> snd
-          |> apfst split_list o @{fold_map 3} (fn b => fn mx => fn rhs =>
-              Local_Theory.define ((b, mx),
-                ((Thm.make_def_binding (Config.get no_defs_lthy bnf_internals) b, []), rhs))
-              #>> apsnd snd) ctr_bindings ctr_mixfixes ctr_rhss
-          ||> `Local_Theory.close_target;
-
-        val phi = Proof_Context.export_morphism lthy_old lthy;
-
-        val ctr_defs = map (Morphism.thm phi) raw_ctr_defs;
-        val ctrs0 = map (Morphism.term phi) raw_ctrs;
-      in
-        ((xss, ctrs0, ctor_iff_dtor_thm, ctr_defs), lthy)
-      end;
-
-    fun wrap_ctrs fp_b_name fpT ctor_inject n ms abs_inject type_definition ctr_Tss disc_bindings
-        sel_bindingss raw_sel_default_eqs ctrs0 ctor_iff_dtor_thm ctr_defs lthy =
-      let
-        val sumEN_thm' = unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms);
-
-        fun exhaust_tac {context = ctxt, prems = _} =
-          mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor_thm sumEN_thm';
-
-        val inject_tacss =
-          map2 (fn ctr_def => fn 0 => [] | _ => [fn {context = ctxt, ...} =>
-            mk_inject_tac ctxt ctr_def ctor_inject abs_inject]) ctr_defs ms;
-
-        val half_distinct_tacss =
-          map (map (fn (def, def') => fn {context = ctxt, ...} =>
-              mk_half_distinct_tac ctxt ctor_inject abs_inject [def, def']))
-            (mk_half_pairss (`I ctr_defs));
-
-        val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss;
-
-        val sel_Tss = map (map (curry (op -->) fpT)) ctr_Tss;
-        val sel_bTs =
-          flat sel_bindingss ~~ flat sel_Tss
-          |> filter_out (Binding.is_empty o fst)
-          |> distinct (Binding.eq_name o apply2 fst);
-        val sel_default_lthy = fake_local_theory_for_sel_defaults sel_bTs lthy;
-
-        val sel_default_eqs = map (prepare_term sel_default_lthy) raw_sel_default_eqs;
-
-        fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
-        val ctr_specs = @{map 3} ctr_spec_of disc_bindings ctrs0 sel_bindingss;
-
-        val (ctr_sugar as {case_cong, ...}, lthy) =
-          free_constructors (ctr_sugar_kind_of_fp_kind fp) tacss
-            ((((plugins, discs_sels), standard_binding), ctr_specs), sel_default_eqs) lthy
-
-        val anonymous_notes =
-          [([case_cong], fundefcong_attrs)]
-          |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
-
-        val notes =
-          if Config.get lthy bnf_internals then
-            [(ctor_iff_dtorN, [ctor_iff_dtor_thm], K [])]
-            |> massage_simple_notes fp_b_name
-          else
-            [];
-      in
-        (ctr_sugar, lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd)
-      end;
-
     fun define_ctrs_dtrs_for_type_etc fp_bnf fp_b fpT C E ctor dtor xtor_co_rec ctor_dtor dtor_ctor
         ctor_inject pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm n ks ms
         abs abs_inject type_definition ctr_bindings ctr_mixfixes ctr_Tss disc_bindings sel_bindingss
@@ -2369,14 +2360,24 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
         val ctrs = map (mk_ctr As) ctrs0;
 
-        fun mk_binding pre = Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
+        val sel_Tss = map (map (curry (op -->) fpT)) ctr_Tss;
+        val sel_bTs =
+          flat sel_bindingss ~~ flat sel_Tss
+          |> filter_out (Binding.is_empty o fst)
+          |> distinct (Binding.eq_name o apply2 fst);
 
-        fun massage_res (((ctr_sugar, maps_sets_rels), co_rec_res), lthy) =
-          (((maps_sets_rels, (ctrs, xss, ctor_iff_dtor_thm, ctr_defs, ctr_sugar)), co_rec_res),
-           lthy);
+        val sel_default_lthy = fake_local_theory_for_sel_defaults sel_bTs lthy;
+
+        val sel_default_eqs = map (prepare_term sel_default_lthy) raw_sel_default_eqs;
+
+        fun mk_binding pre =
+          Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
+
+        fun massage_res (ctr_sugar, maps_sets_rels) =
+          (maps_sets_rels, (ctrs, xss, ctor_iff_dtor_thm, ctr_defs, ctr_sugar));
       in
-        (wrap_ctrs fp_b_name fpT ctor_inject n ms abs_inject type_definition ctr_Tss disc_bindings
-           sel_bindingss raw_sel_default_eqs ctrs0 ctor_iff_dtor_thm ctr_defs
+        (wrap_ctrs fp plugins discs_sels fp_b_name ctor_inject n ms abs_inject type_definition
+           disc_bindings sel_bindingss sel_default_eqs ctrs0 ctor_iff_dtor_thm ctr_defs
          #> (fn (ctr_sugar, lthy) =>
            derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
              fp_nesting_set_maps fp_nesting_rel_eq_onps live_nesting_map_id0s live_nesting_set_maps
@@ -2387,7 +2388,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
          ##>>
            (if fp = Least_FP then define_rec (the recs_args_types) mk_binding fpTs Cs reps
             else define_corec (the corecs_args_types) mk_binding fpTs Cs abss) xtor_co_rec
-         #> massage_res, lthy)
+         #>> apfst massage_res, lthy)
       end;
 
     fun wrap_ctrs_derive_map_set_rel_pred_thms_define_co_rec_for_types (wrap_one_etc, lthy) =
