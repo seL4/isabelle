@@ -66,7 +66,15 @@ theory imports that merge Pure with e.g. Main of Isabelle/HOL: the order
 is relevant to avoid confusion of Pure.simp vs. HOL.simp.
 
 * Commands 'prf' and 'full_prf' are somewhat more informative (again):
-proof terms are reconstructed and cleaned from administrative thm nodes.
+proof terms are reconstructed and cleaned from administrative thm
+nodes.
+
+* The command 'unfolding' and proof method "unfold" include a second
+stage where given equations are passed through the attribute "abs_def"
+before rewriting. This ensures that definitions are fully expanded,
+regardless of the actual parameters that are provided. Rare
+INCOMPATIBILITY in some corner cases: use proof method (simp only:)
+instead, or declare [[unfold_abs_def = false]] in the proof context.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***

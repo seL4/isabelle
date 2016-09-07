@@ -332,8 +332,8 @@ text \<open>
   "proof"}).
 
   \<^descr> @{command "unfolding"}~\<open>b\<^sub>1 \<dots> b\<^sub>n\<close> is structurally similar to @{command
-  "using"}, but unfolds definitional equations \<open>b\<^sub>1 \<dots> b\<^sub>n\<close> throughout the
-  goal state and facts.
+  "using"}, but unfolds definitional equations \<open>b\<^sub>1 \<dots> b\<^sub>n\<close> throughout the goal
+  state and facts. See also the proof method @{method_ref unfold}.
 
   \<^descr> \<^theory_text>\<open>(use b\<^sub>1 \<dots> b\<^sub>n in method)\<close> uses the facts in the given method
   expression. The facts provided by the proof state (via @{command "using"}
