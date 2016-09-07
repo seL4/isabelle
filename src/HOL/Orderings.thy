@@ -61,6 +61,45 @@ lemma strict_trans:
 
 end
 
+text \<open>Alternative introduction rule with bias towards strict order\<close>
+
+lemma ordering_strictI:
+  fixes less_eq (infix "\<^bold>\<le>" 50)
+    and less (infix "\<^bold><" 50)
+  assumes less_eq_less: "\<And>a b. a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b"
+    assumes asym: "\<And>a b. a \<^bold>< b \<Longrightarrow> \<not> b \<^bold>< a"
+  assumes irrefl: "\<And>a. \<not> a \<^bold>< a"
+  assumes trans: "\<And>a b c. a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
+  shows "ordering less_eq less"
+proof
+  fix a b
+  show "a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b"
+    by (auto simp add: less_eq_less asym irrefl)
+next
+  fix a
+  show "a \<^bold>\<le> a"
+    by (auto simp add: less_eq_less)
+next
+  fix a b c
+  assume "a \<^bold>\<le> b" and "b \<^bold>\<le> c" then show "a \<^bold>\<le> c"
+    by (auto simp add: less_eq_less intro: trans)
+next
+  fix a b
+  assume "a \<^bold>\<le> b" and "b \<^bold>\<le> a" then show "a = b"
+    by (auto simp add: less_eq_less asym)
+qed
+
+lemma ordering_dualI:
+  fixes less_eq (infix "\<^bold>\<le>" 50)
+    and less (infix "\<^bold><" 50)
+  assumes "ordering (\<lambda>a b. b \<^bold>\<le> a) (\<lambda>a b. b \<^bold>< a)"
+  shows "ordering less_eq less"
+proof -
+  from assms interpret ordering "\<lambda>a b. b \<^bold>\<le> a" "\<lambda>a b. b \<^bold>< a" .
+  show ?thesis
+    by standard (auto simp: strict_iff_order refl intro: antisym trans)
+qed
+
 locale ordering_top = ordering +
   fixes top :: "'a"  ("\<^bold>\<top>")
   assumes extremum [simp]: "a \<^bold>\<le> \<^bold>\<top>"
@@ -177,7 +216,7 @@ text \<open>Dual order\<close>
 
 lemma dual_preorder:
   "class.preorder (op \<ge>) (op >)"
-proof qed (auto simp add: less_le_not_le intro: order_trans)
+  by standard (auto simp add: less_le_not_le intro: order_trans)
 
 end
 
@@ -191,9 +230,15 @@ begin
 lemma less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
   by (auto simp add: less_le_not_le intro: antisym)
 
-sublocale order: ordering less_eq less +  dual_order: ordering greater_eq greater
-  by standard (auto intro: antisym order_trans simp add: less_le)
-
+sublocale order: ordering less_eq less + dual_order: ordering greater_eq greater
+proof -
+  interpret ordering less_eq less
+    by standard (auto intro: antisym order_trans simp add: less_le)
+  show "ordering less_eq less"
+    by (fact ordering_axioms)
+  then show "ordering greater_eq greater"
+    by (rule ordering_dualI)
+qed
 
 text \<open>Reflexivity.\<close>
 
@@ -256,42 +301,39 @@ lemma LeastI2_order:
 unfolding Least_def by (rule theI2)
   (blast intro: assms antisym)+
 
-text \<open>Dual order\<close>
-
-lemma dual_order:
-  "class.order (op \<ge>) (op >)"
-by (intro_locales, rule dual_preorder) (unfold_locales, rule antisym)
-
 end
 
-
-text \<open>Alternative introduction rule with bias towards strict order\<close>
+lemma ordering_orderI:
+  fixes less_eq (infix "\<^bold>\<le>" 50)
+    and less (infix "\<^bold><" 50)
+  assumes "ordering less_eq less"
+  shows "class.order less_eq less"
+proof -
+  from assms interpret ordering less_eq less .
+  show ?thesis
+    by standard (auto intro: antisym trans simp add: refl strict_iff_order)
+qed
 
 lemma order_strictI:
   fixes less (infix "\<sqsubset>" 50)
     and less_eq (infix "\<sqsubseteq>" 50)
-  assumes less_eq_less: "\<And>a b. a \<sqsubseteq> b \<longleftrightarrow> a \<sqsubset> b \<or> a = b"
-    assumes asym: "\<And>a b. a \<sqsubset> b \<Longrightarrow> \<not> b \<sqsubset> a"
-  assumes irrefl: "\<And>a. \<not> a \<sqsubset> a"
-  assumes trans: "\<And>a b c. a \<sqsubset> b \<Longrightarrow> b \<sqsubset> c \<Longrightarrow> a \<sqsubset> c"
+  assumes "\<And>a b. a \<sqsubseteq> b \<longleftrightarrow> a \<sqsubset> b \<or> a = b"
+    assumes "\<And>a b. a \<sqsubset> b \<Longrightarrow> \<not> b \<sqsubset> a"
+  assumes "\<And>a. \<not> a \<sqsubset> a"
+  assumes "\<And>a b c. a \<sqsubset> b \<Longrightarrow> b \<sqsubset> c \<Longrightarrow> a \<sqsubset> c"
   shows "class.order less_eq less"
-proof
-  fix a b
-  show "a \<sqsubset> b \<longleftrightarrow> a \<sqsubseteq> b \<and> \<not> b \<sqsubseteq> a"
-    by (auto simp add: less_eq_less asym irrefl)
-next
-  fix a
-  show "a \<sqsubseteq> a"
-    by (auto simp add: less_eq_less)
-next
-  fix a b c
-  assume "a \<sqsubseteq> b" and "b \<sqsubseteq> c" then show "a \<sqsubseteq> c"
-    by (auto simp add: less_eq_less intro: trans)
-next
-  fix a b
-  assume "a \<sqsubseteq> b" and "b \<sqsubseteq> a" then show "a = b"
-    by (auto simp add: less_eq_less asym)
-qed
+  by (rule ordering_orderI) (rule ordering_strictI, (fact assms)+)
+
+context order
+begin
+
+text \<open>Dual order\<close>
+
+lemma dual_order:
+  "class.order (op \<ge>) (op >)"
+  using dual_order.ordering_axioms by (rule ordering_orderI)
+
+end
 
 
 subsection \<open>Linear (total) orders\<close>
@@ -375,10 +417,10 @@ end
 text \<open>Alternative introduction rule with bias towards strict order\<close>
 
 lemma linorder_strictI:
-  fixes less (infix "\<sqsubset>" 50)
-    and less_eq (infix "\<sqsubseteq>" 50)
+  fixes less_eq (infix "\<^bold>\<le>" 50)
+    and less (infix "\<^bold><" 50)
   assumes "class.order less_eq less"
-  assumes trichotomy: "\<And>a b. a \<sqsubset> b \<or> a = b \<or> b \<sqsubset> a"
+  assumes trichotomy: "\<And>a b. a \<^bold>< b \<or> a = b \<or> b \<^bold>< a"
   shows "class.linorder less_eq less"
 proof -
   interpret order less_eq less
@@ -386,7 +428,7 @@ proof -
   show ?thesis
   proof
     fix a b
-    show "a \<sqsubseteq> b \<or> b \<sqsubseteq> a"
+    show "a \<^bold>\<le> b \<or> b \<^bold>\<le> a"
       using trichotomy by (auto simp add: le_less)
   qed
 qed
