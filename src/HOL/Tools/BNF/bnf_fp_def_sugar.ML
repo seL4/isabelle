@@ -2140,9 +2140,9 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
   end;
 
 fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_term fp construct_fp
-    ((raw_plugins, discs_sels0), specs) no_defs_lthy =
+    ((raw_plugins, discs_sels0), specs) lthy =
   let
-    val plugins = prepare_plugins no_defs_lthy raw_plugins;
+    val plugins = prepare_plugins lthy raw_plugins;
     val discs_sels = discs_sels0 orelse fp = Greatest_FP;
 
     val nn = length specs;
@@ -2154,8 +2154,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val pred_bs = map pred_binding_of_spec specs;
 
     fun prepare_type_arg (_, (ty, c)) =
-      let val TFree (s, _) = prepare_typ no_defs_lthy ty in
-        TFree (s, prepare_constraint no_defs_lthy c)
+      let val TFree (s, _) = prepare_typ lthy ty in
+        TFree (s, prepare_constraint lthy c)
       end;
 
     val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of_spec) specs;
@@ -2170,7 +2170,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       Typedecl.basic_typedecl {final = true}
         (type_binding_of_spec spec, num_As, Mixfix.reset_pos (mixfix_of_spec spec));
 
-    val (fake_T_names, fake_lthy) = fold_map add_fake_type specs no_defs_lthy;
+    val (fake_T_names, fake_lthy) = fold_map add_fake_type specs lthy;
 
     val qsoty = quote o Syntax.string_of_typ fake_lthy;
 
@@ -2179,7 +2179,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           "datatype specification"));
 
     val bad_args =
-      map (Logic.type_map (singleton (Variable.polymorphic no_defs_lthy))) unsorted_As
+      map (Logic.type_map (singleton (Variable.polymorphic lthy))) unsorted_As
       |> filter_out Term.is_TVar;
     val _ = null bad_args orelse
       error ("Locally fixed type argument " ^ qsoty (hd bad_args) ^ " in " ^ co_prefix fp ^
@@ -2215,7 +2215,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     val fake_Ts = map (fn s => Type (s, As)) fake_T_names;
 
-    val ((((Bs0, Cs), Es), Xs), _) = no_defs_lthy
+    val ((((Bs0, Cs), Es), Xs), _) = lthy
       |> fold (Variable.declare_typ o resort_tfree_or_tvar dummyS) unsorted_As
       |> mk_TFrees num_As
       ||>> mk_TFrees nn
@@ -2277,7 +2277,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
            lthy)) =
       fixpoint_bnf false I (construct_fp mixfixes map_bs rel_bs pred_bs set_bss) fp_bs
         (map dest_TFree As) (map dest_TFree killed_As) (map dest_TFree Xs) ctrXs_repTs
-        empty_comp_cache no_defs_lthy
+        empty_comp_cache lthy
       handle BAD_DEAD (X, X_backdrop) =>
         (case X_backdrop of
           Type (bad_tc, _) =>
@@ -2289,11 +2289,10 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
               quote bad_tc ^ " as a bounded natural functor to allow nested (co)recursion through \
               \it";
           in
-            if is_some (bnf_of no_defs_lthy bad_tc) orelse
-               is_some (fp_sugar_of no_defs_lthy bad_tc) then
+            if is_some (bnf_of lthy bad_tc) orelse is_some (fp_sugar_of lthy bad_tc) then
               error ("Inadmissible " ^ co_prefix fp ^ "recursive occurrence of type " ^ fake_T ^
                 " in type expression " ^ fake_T_backdrop)
-            else if is_some (Old_Datatype_Data.get_info (Proof_Context.theory_of no_defs_lthy)
+            else if is_some (Old_Datatype_Data.get_info (Proof_Context.theory_of lthy)
                 bad_tc) then
               error ("Unsupported " ^ co_prefix fp ^ "recursive occurrence of type " ^ fake_T ^
                 " via the old-style datatype " ^ quote bad_tc ^ " in type expression " ^
@@ -2353,7 +2352,9 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val code_attrs =
       if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
-    val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctrXs_Tsss;
+    val real_unfreeze_fp = Term.typ_subst_atomic (Xs ~~ fpTs);
+
+    val ctr_Tsss = map (map (map real_unfreeze_fp)) ctrXs_Tsss;
     val ns = map length ctr_Tsss;
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
@@ -2364,25 +2365,27 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     fun define_ctrs_dtrs_for_type_etc fp_bnf fp_b fpT C E ctor dtor xtor_co_rec ctor_dtor dtor_ctor
         ctor_inject pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm n ks ms
         abs abs_inject type_definition ctr_bindings ctr_mixfixes ctr_Tss disc_bindings sel_bindingss
-        raw_sel_default_eqs no_defs_lthy =
+        raw_sel_default_eqs lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
 
         val ((xss, ctrs0, ctor_iff_dtor_thm, ctr_defs), lthy) =
           define_ctrs_dtrs_for_type fp_b_name fpT ctor dtor ctor_dtor dtor_ctor n ks abs
-            ctr_bindings ctr_mixfixes ctr_Tss no_defs_lthy;
+            ctr_bindings ctr_mixfixes ctr_Tss lthy;
 
         val ctrs = map (mk_ctr As) ctrs0;
 
-        val sel_Tss = map (map (curry (op -->) fpT)) ctr_Tss;
-        val sel_bTs =
-          flat sel_bindingss ~~ flat sel_Tss
-          |> filter_out (Binding.is_empty o fst)
-          |> distinct (Binding.eq_name o apply2 fst);
-
-        val sel_default_lthy = fake_local_theory_for_sel_defaults sel_bTs lthy;
-
-        val sel_default_eqs = map (prepare_term sel_default_lthy) raw_sel_default_eqs;
+        val sel_default_eqs =
+          let
+            val sel_Tss = map (map (curry (op -->) fpT)) ctr_Tss;
+            val sel_bTs =
+              flat sel_bindingss ~~ flat sel_Tss
+              |> filter_out (Binding.is_empty o fst)
+              |> distinct (Binding.eq_name o apply2 fst);
+            val sel_default_lthy = fake_local_theory_for_sel_defaults sel_bTs lthy
+          in
+            map (prepare_term sel_default_lthy) raw_sel_default_eqs
+          end;
 
         fun mk_binding pre =
           Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
