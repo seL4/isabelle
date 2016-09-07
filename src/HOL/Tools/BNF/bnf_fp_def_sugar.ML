@@ -2113,8 +2113,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     val fake_Ts = map (fn s => Type (s, As)) fake_T_names;
 
-    val ((((Bs0, Cs), Es), Xs), _) =
-      no_defs_lthy
+    val ((((Bs0, Cs), Es), Xs), _) = no_defs_lthy
       |> fold (Variable.declare_typ o resort_tfree_or_tvar dummyS) unsorted_As
       |> mk_TFrees num_As
       ||>> mk_TFrees nn
@@ -2170,10 +2169,9 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         (As ~~ transpose set_boss);
 
     val (((pre_bnfs, absT_infos), _), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
-             dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
-             ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_setss, xtor_rels,
-             xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
-             xtor_co_rec_transfers, xtor_co_rec_o_maps, ...},
+             dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors, ctor_dtors,
+             ctor_injects, dtor_injects, xtor_maps, xtor_setss, xtor_rels, xtor_co_rec_thms,
+             xtor_rel_co_induct, dtor_set_inducts, xtor_co_rec_transfers, xtor_co_rec_o_maps, ...},
            lthy)) =
       fixpoint_bnf false I (construct_fp mixfixes map_bs rel_bs pred_bs set_bss) fp_bs
         (map dest_TFree As) (map dest_TFree killed_As) (map dest_TFree Xs) ctrXs_repTs

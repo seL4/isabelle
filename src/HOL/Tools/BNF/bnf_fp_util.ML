@@ -668,7 +668,7 @@ fun mk_xtor_un_fold_xtor_thms ctxt fp un_folds xtors xtor_un_fold_unique map_id0
         val T = range_type (fastype_of rhs);
       in
         HOLogic.mk_eq (HOLogic.id_const T, rhs)
-      end; 
+      end;
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map mk_goal un_folds));
     fun mk_inverses NONE = []
       | mk_inverses (SOME (src, dst)) =
@@ -883,10 +883,10 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
               #> case_fp fp (fst o dest_comb #> snd o dest_comb) (snd o dest_comb) #> head_of
               #> force_typ names_lthy (ABphiTs ---> mk_pred2T T T'))
             Ts Us xtor_un_fold_transfers;
-      
+
           fun tac {context = ctxt, prems = _} = mk_xtor_co_rec_transfer_tac ctxt fp n m co_rec_defs
             xtor_un_fold_transfers map_transfers xtor_rels;
-      
+
           val mk_rel_co_product = case_fp fp mk_rel_prod mk_rel_sum;
           val rec_phis =
             map2 (fn rel => mk_rel_co_product (Term.list_comb (rel, ABphis))) rels XYphis;

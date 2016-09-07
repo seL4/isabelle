@@ -325,9 +325,9 @@ fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (res
             (case find_first (fn f => body_fun_type (fastype_of f) = TU) un_folds of
               NONE => force_fold i TU (nth fp_un_folds i)
             | SOME f => f);
-  
+
           val TUs = binder_fun_types (fastype_of TUfold);
-  
+
           fun mk_s TU' cache_lthy =
             let
               val i = find_index (fn T => co_alg_argT TU' = T) Xs;

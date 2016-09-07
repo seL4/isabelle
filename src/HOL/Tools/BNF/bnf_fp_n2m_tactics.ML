@@ -26,7 +26,7 @@ open BNF_FP_Util
 
 val vimage2p_unfolds = o_apply :: @{thms vimage2p_def};
 
-fun unfold_at_most_once_tac ctxt thms = 
+fun unfold_at_most_once_tac ctxt thms =
   CONVERSION (Conv.top_sweep_conv (K (Conv.rewrs_conv thms)) ctxt);
 val unfold_once_tac = CHANGED ooo unfold_at_most_once_tac;
 
