@@ -105,6 +105,12 @@ sig
   val liveness_of_fp_bnf: int -> BNF_Def.bnf -> bool list
   val nesting_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
 
+  val massage_simple_notes: string -> (bstring * 'a list * (int -> 'b)) list ->
+    ((binding * 'c list) * ('a list * 'b) list) list
+  val massage_multi_notes: string list -> typ list ->
+    (string * 'a list list * (string -> 'b)) list ->
+    ((binding * 'b) * ('a list * 'c list) list) list
+
   val define_ctrs_dtrs_for_type: string -> typ -> term -> term -> thm -> thm -> int -> int list ->
     term -> binding list -> mixfix list -> typ list list -> local_theory ->
     (term list list * term list * thm * thm list) * local_theory
