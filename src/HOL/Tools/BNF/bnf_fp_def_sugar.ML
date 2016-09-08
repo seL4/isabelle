@@ -2785,11 +2785,12 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     lthy
   end;
 
-fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) (K I) x;
+fun co_datatypes fp = define_co_datatypes (K I) (K I) (K I) (K I) fp;
 
-fun co_datatype_cmd x =
+fun co_datatype_cmd fp construct_fp options lthy =
   define_co_datatypes Plugin_Name.make_filter Typedecl.read_constraint Syntax.parse_typ
-    Syntax.parse_term x;
+    Syntax.parse_term fp construct_fp options lthy
+  handle EMPTY_DATATYPE s => error ("Cannot define empty datatype " ^ quote s);
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"}

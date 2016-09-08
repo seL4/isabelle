@@ -10,6 +10,8 @@ Shared library for the datatype and codatatype constructions.
 
 signature BNF_FP_UTIL =
 sig
+  exception EMPTY_DATATYPE of string
+
   type fp_result =
     {Ts: typ list,
      bnfs: BNF_Def.bnf list,
@@ -223,6 +225,8 @@ open BNF_Comp
 open BNF_Def
 open BNF_Util
 open BNF_FP_Util_Tactics
+
+exception EMPTY_DATATYPE of string;
 
 type fp_result =
   {Ts: typ list,
