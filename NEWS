@@ -864,6 +864,11 @@ been discontinued.
 * Poly/ML heaps now follow the hierarchy of sessions, and thus require
 much less disk space.
 
+* System option "checkpoint" helps to fine-tune the global heap space
+management of isabelle build. This is relevant for big sessions that may
+exhaust the small 32-bit address space of the ML process (which is used
+by default).
+
 
 
 New in Isabelle2016 (February 2016)

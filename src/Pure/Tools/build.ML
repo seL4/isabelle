@@ -106,7 +106,8 @@ fun build_theories symbols last_timing master_dir (options, thys) =
     val conds = filter_out (can getenv_strict) condition;
   in
     if null conds then
-      (Options.set_default options;
+      (if Options.bool options "checkpoint" then ML_Heap.share_common_data () else ();
+        Options.set_default options;
         Isabelle_Process.init_options ();
         (Thy_Info.use_theories {
           document = Present.document_enabled (Options.string options "document"),
