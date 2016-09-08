@@ -13,7 +13,6 @@ sig
   val substT: typ -> typ -> term -> term
   val freeze_types: Proof.context -> (indexname * sort) list -> typ list -> typ list
   val dummify_atomic_types: term -> term
-  val enforce_type: Proof.context -> (typ -> typ) -> typ -> term -> term
   val define_const: bool -> binding -> int -> string -> term -> local_theory ->
     (term * thm) * local_theory
 
@@ -212,9 +211,6 @@ fun typ_unify_disjointly thy (T, T') =
     end;
 
 val dummify_atomic_types = Term.map_types (Term.map_atyps (K Term.dummyT));
-
-fun enforce_type ctxt get_T T t =
-  Term.subst_TVars (tvar_subst (Proof_Context.theory_of ctxt) [get_T (fastype_of t)] [T]) t;
 
 fun mk_internal internal ctxt f =
   if internal andalso not (Config.get ctxt bnf_internals) then f else I

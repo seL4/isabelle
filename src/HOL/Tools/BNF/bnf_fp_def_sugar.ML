@@ -2303,14 +2303,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
                 register_hint ())
           end);
 
-    val abss = map #abs absT_infos;
-    val reps = map #rep absT_infos;
-    val absTs = map #absT absT_infos;
-    val repTs = map #repT absT_infos;
-    val abs_injects = map #abs_inject absT_infos;
-    val abs_inverses = map #abs_inverse absT_infos;
-    val type_definitions = map #type_definition absT_infos;
-
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
 
@@ -2328,6 +2320,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
     val live_nesting_rel_eq_onps = map rel_eq_onp_of_bnf live_nesting_bnfs;
 
+    val liveness = liveness_of_fp_bnf num_As any_fp_bnf;
     val live = live_of_bnf any_fp_bnf;
     val _ =
       if live = 0 andalso exists (not o Binding.is_empty) (map_bs @ rel_bs @ pred_bs) then
@@ -2335,13 +2328,20 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       else
         ();
 
-    val Bs =
-      @{map 3} (fn alive => fn A as TFree (_, S) => fn B =>
-          if alive then resort_tfree_or_tvar S B else A)
-        (liveness_of_fp_bnf num_As any_fp_bnf) As Bs0;
+    val Bs = @{map 3} (fn alive => fn A as TFree (_, S) => fn B =>
+        if alive then resort_tfree_or_tvar S B else A)
+      liveness As Bs0;
 
     val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
     val live_AsBs = filter (op <>) (As ~~ Bs);
+
+    val abss = map #abs absT_infos;
+    val reps = map #rep absT_infos;
+    val absTs = map #absT absT_infos;
+    val repTs = map #repT absT_infos;
+    val abs_injects = map #abs_inject absT_infos;
+    val abs_inverses = map #abs_inverse absT_infos;
+    val type_definitions = map #type_definition absT_infos;
 
     val ctors = map (mk_ctor As) ctors0;
     val dtors = map (mk_dtor As) dtors0;
@@ -2454,10 +2454,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           fun variant_names n pre = fst (Variable.variant_fixes (replicate n pre) lthy);
 
           val maps0 = map map_of_bnf fp_bnfs;
-          val ABs = As ~~ Bs
-          val liveness = map (op <>) ABs;
           val f_names = variant_names num_As "f";
-          val fs = map2 (curry Free) f_names (map (op -->) ABs);
+          val fs = map2 (curry Free) f_names (map (op -->) (As ~~ Bs));
           val live_gs = AList.find (op =) (fs ~~ liveness) true;
 
           val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
@@ -2474,7 +2472,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
           val rec_o_map_lhss = map2 (curry HOLogic.mk_comp) grecs gmaps;
 
-          val ABfs = ABs ~~ fs;
+          val ABfs = (As ~~ Bs) ~~ fs;
 
           fun mk_rec_arg_arg (x as Free (_, T)) =
             let val U = B_ify_T T in
@@ -2607,11 +2605,10 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       else
         let
           fun variant_names n pre = fst (Variable.variant_fixes (replicate n pre) lthy0);
+
           val maps0 = map map_of_bnf fp_bnfs;
-          val ABs = As ~~ Bs
-          val liveness = map (op <>) ABs;
           val f_names = variant_names num_As "f";
-          val fs = map2 (curry Free) f_names (map (op -->) ABs);
+          val fs = map2 (curry Free) f_names (map (op -->) (As ~~ Bs));
           val live_fs = AList.find (op =) (fs ~~ liveness) true;
 
           val fmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_fs)) maps0;
@@ -2628,7 +2625,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
           val map_o_corec_lhss = map2 (curry HOLogic.mk_comp) fmaps gcorecs;
 
-          val ABgs = ABs ~~ fs;
+          val ABfs = (As ~~ Bs) ~~ fs;
 
           fun mk_map_o_corec_arg corec_argB_T g =
             let
@@ -2636,7 +2633,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
               val U = range_type corec_argB_T;
             in
               if T = U then g
-              else HOLogic.mk_comp (build_map lthy2 [] (the o AList.lookup (op =) ABgs) (T, U), g)
+              else HOLogic.mk_comp (build_map lthy2 [] (the o AList.lookup (op =) ABfs) (T, U), g)
             end;
 
           fun mk_map_o_corec_rhs corecx =

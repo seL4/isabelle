@@ -306,7 +306,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
             (fn {context = ctxt, prems = _} =>
               mk_comp_set_alt_tac ctxt (collect_set_map_of_bnf outer))
           |> Thm.close_derivation)
-        (map2 (curry (HOLogic.mk_Trueprop o HOLogic.mk_eq)) sets sets_alt);
+        (map2 (curry mk_Trueprop_eq) sets sets_alt);
 
     fun map_cong0_tac ctxt =
       mk_comp_map_cong0_tac ctxt set'_eq_sets set_alt_thms (map_cong0_of_bnf outer)

@@ -36,6 +36,8 @@ sig
   val snd_const: typ -> term
   val Id_const: typ -> term
 
+  val enforce_type: Proof.context -> (typ -> typ) -> typ -> term -> term
+
   val mk_Ball: term -> term -> term
   val mk_Bex: term -> term -> term
   val mk_Card_order: term -> term
@@ -220,6 +222,9 @@ fun Id_const T = Const (@{const_name Id}, mk_relT (T, T));
 
 
 (** Operators **)
+
+fun enforce_type ctxt get_T T t =
+  Term.subst_TVars (tvar_subst (Proof_Context.theory_of ctxt) [get_T (fastype_of t)] [T]) t;
 
 fun mk_converse R =
   let
