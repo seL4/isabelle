@@ -688,6 +688,12 @@ lemma map_add_le_mapE: "f ++ g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subse
 lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h \<rbrakk> \<Longrightarrow> f ++ g \<subseteq>\<^sub>m h"
   by (auto simp: map_le_def map_add_def dom_def split: option.splits)
 
+lemma map_add_subsumed1: "f \<subseteq>\<^sub>m g \<Longrightarrow> f++g = g"
+by (simp add: map_add_le_mapI map_le_antisym)
+
+lemma map_add_subsumed2: "f \<subseteq>\<^sub>m g \<Longrightarrow> g++f = g"
+by (metis map_add_subsumed1 map_le_iff_map_add_commute)
+
 lemma dom_eq_singleton_conv: "dom f = {x} \<longleftrightarrow> (\<exists>v. f = [x \<mapsto> v])"
 proof(rule iffI)
   assume "\<exists>v. f = [x \<mapsto> v]"
