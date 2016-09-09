@@ -470,19 +470,19 @@ lemma prime_factors_ge_0_int [elim]:
   unfolding prime_factors_def 
   by (auto split: if_splits simp: prime_def dest!: in_prime_factorization_imp_prime)
 
-lemma msetprod_prime_factorization_int:
+lemma prod_mset_prime_factorization_int:
   fixes n :: int
   assumes "n > 0"
-  shows   "msetprod (prime_factorization n) = n"
-  using assms by (simp add: msetprod_prime_factorization)
+  shows   "prod_mset (prime_factorization n) = n"
+  using assms by (simp add: prod_mset_prime_factorization)
 
 lemma prime_factorization_exists_nat:
   "n > 0 \<Longrightarrow> (\<exists>M. (\<forall>p::nat \<in> set_mset M. prime p) \<and> n = (\<Prod>i \<in># M. i))"
   using prime_factorization_exists[of n] by (auto simp: prime_def)
 
-lemma msetprod_prime_factorization_nat [simp]: 
-  "(n::nat) > 0 \<Longrightarrow> msetprod (prime_factorization n) = n"
-  by (subst msetprod_prime_factorization) simp_all
+lemma prod_mset_prime_factorization_nat [simp]: 
+  "(n::nat) > 0 \<Longrightarrow> prod_mset (prime_factorization n) = n"
+  by (subst prod_mset_prime_factorization) simp_all
 
 lemma prime_factorization_nat:
     "n > (0::nat) \<Longrightarrow> n = (\<Prod>p \<in> prime_factors n. p ^ multiplicity p n)"
@@ -587,13 +587,13 @@ proof -
     by (intro setprod.cong) (auto simp: g_def)
   also from set_mset_A assms have "\<dots> = (\<Prod>p \<in> set_mset A. p ^ g p)"
     by (intro setprod.mono_neutral_right) (auto simp: g_def set_mset_A)
-  also have "\<dots> = msetprod A"
-    by (auto simp: msetprod_multiplicity count_A set_mset_A intro!: setprod.cong)
-  also from assms have "multiplicity p \<dots> = msetsum (image_mset (multiplicity p) A)"
-    by (subst prime_elem_multiplicity_msetprod_distrib) (auto dest: prime)
+  also have "\<dots> = prod_mset A"
+    by (auto simp: prod_mset_multiplicity count_A set_mset_A intro!: setprod.cong)
+  also from assms have "multiplicity p \<dots> = sum_mset (image_mset (multiplicity p) A)"
+    by (subst prime_elem_multiplicity_prod_mset_distrib) (auto dest: prime)
   also from assms have "image_mset (multiplicity p) A = image_mset (\<lambda>x. if x = p then 1 else 0) A"
     by (intro image_mset_cong) (auto simp: prime_multiplicity_other dest: prime)
-  also have "msetsum \<dots> = (if p \<in> S then f p else 0)" by (simp add: msetsum_delta count_A g_def)
+  also have "sum_mset \<dots> = (if p \<in> S then f p else 0)" by (simp add: sum_mset_delta count_A g_def)
   finally show ?thesis .
 qed
 

@@ -2044,31 +2044,31 @@ lemma in_mset_fold_plus_iff[iff]: "x \<in># fold_mset (op +) M NN \<longleftrigh
 context comm_monoid_add
 begin
 
-sublocale msetsum: comm_monoid_mset plus 0
-  defines msetsum = msetsum.F ..
+sublocale sum_mset: comm_monoid_mset plus 0
+  defines sum_mset = sum_mset.F ..
 
-lemma (in semiring_1) msetsum_replicate_mset [simp]:
-  "msetsum (replicate_mset n a) = of_nat n * a"
+lemma (in semiring_1) sum_mset_replicate_mset [simp]:
+  "sum_mset (replicate_mset n a) = of_nat n * a"
   by (induct n) (simp_all add: algebra_simps)
 
-lemma setsum_unfold_msetsum:
-  "setsum f A = msetsum (image_mset f (mset_set A))"
+lemma setsum_unfold_sum_mset:
+  "setsum f A = sum_mset (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
-lemma msetsum_delta: "msetsum (image_mset (\<lambda>x. if x = y then c else 0) A) = c * count A y"
+lemma sum_mset_delta: "sum_mset (image_mset (\<lambda>x. if x = y then c else 0) A) = c * count A y"
   by (induction A) simp_all
 
-lemma msetsum_delta': "msetsum (image_mset (\<lambda>x. if y = x then c else 0) A) = c * count A y"
+lemma sum_mset_delta': "sum_mset (image_mset (\<lambda>x. if y = x then c else 0) A) = c * count A y"
   by (induction A) simp_all
 
 end
 
-lemma msetsum_diff:
+lemma sum_mset_diff:
   fixes M N :: "('a :: ordered_cancel_comm_monoid_diff) multiset"
-  shows "N \<subseteq># M \<Longrightarrow> msetsum (M - N) = msetsum M - msetsum N"
-  by (metis add_diff_cancel_right' msetsum.union subset_mset.diff_add)
+  shows "N \<subseteq># M \<Longrightarrow> sum_mset (M - N) = sum_mset M - sum_mset N"
+  by (metis add_diff_cancel_right' sum_mset.union subset_mset.diff_add)
 
-lemma size_eq_msetsum: "size M = msetsum (image_mset (\<lambda>_. 1) M)"
+lemma size_eq_sum_mset: "size M = sum_mset (image_mset (\<lambda>_. 1) M)"
 proof (induct M)
   case empty then show ?case by simp
 next
@@ -2079,17 +2079,17 @@ next
 qed
 
 lemma size_mset_set [simp]: "size (mset_set A) = card A"
-  by (simp only: size_eq_msetsum card_eq_setsum setsum_unfold_msetsum)
+  by (simp only: size_eq_sum_mset card_eq_setsum setsum_unfold_sum_mset)
 
 syntax (ASCII)
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
+  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
 syntax
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
+  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
 translations
-  "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
+  "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST sum_mset (CONST image_mset (\<lambda>i. b) A)"
 
 abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#_" [900] 900)
-  where "\<Union># MM \<equiv> msetsum MM" \<comment> \<open>FIXME ambiguous notation --
+  where "\<Union># MM \<equiv> sum_mset MM" \<comment> \<open>FIXME ambiguous notation --
     could likewise refer to \<open>\<Squnion>#\<close>\<close>
 
 lemma set_mset_Union_mset[simp]: "set_mset (\<Union># MM) = (\<Union>M \<in> set_mset MM. set_mset M)"
@@ -2113,78 +2113,78 @@ lemma Union_mset_empty_conv[simp]: "\<Union># M = {#} \<longleftrightarrow> (\<f
 context comm_monoid_mult
 begin
 
-sublocale msetprod: comm_monoid_mset times 1
-  defines msetprod = msetprod.F ..
+sublocale prod_mset: comm_monoid_mset times 1
+  defines prod_mset = prod_mset.F ..
 
-lemma msetprod_empty:
-  "msetprod {#} = 1"
-  by (fact msetprod.empty)
+lemma prod_mset_empty:
+  "prod_mset {#} = 1"
+  by (fact prod_mset.empty)
 
-lemma msetprod_singleton:
-  "msetprod {#x#} = x"
-  by (fact msetprod.singleton)
+lemma prod_mset_singleton:
+  "prod_mset {#x#} = x"
+  by (fact prod_mset.singleton)
 
-lemma msetprod_Un:
-  "msetprod (A + B) = msetprod A * msetprod B"
-  by (fact msetprod.union)
+lemma prod_mset_Un:
+  "prod_mset (A + B) = prod_mset A * prod_mset B"
+  by (fact prod_mset.union)
 
-lemma msetprod_replicate_mset [simp]:
-  "msetprod (replicate_mset n a) = a ^ n"
+lemma prod_mset_replicate_mset [simp]:
+  "prod_mset (replicate_mset n a) = a ^ n"
   by (induct n) simp_all
 
-lemma setprod_unfold_msetprod:
-  "setprod f A = msetprod (image_mset f (mset_set A))"
+lemma setprod_unfold_prod_mset:
+  "setprod f A = prod_mset (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
-lemma msetprod_multiplicity:
-  "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_mset M)"
-  by (simp add: fold_mset_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
+lemma prod_mset_multiplicity:
+  "prod_mset M = setprod (\<lambda>x. x ^ count M x) (set_mset M)"
+  by (simp add: fold_mset_def setprod.eq_fold prod_mset.eq_fold funpow_times_power comp_def)
 
-lemma msetprod_delta: "msetprod (image_mset (\<lambda>x. if x = y then c else 1) A) = c ^ count A y"
+lemma prod_mset_delta: "prod_mset (image_mset (\<lambda>x. if x = y then c else 1) A) = c ^ count A y"
   by (induction A) simp_all
 
-lemma msetprod_delta': "msetprod (image_mset (\<lambda>x. if y = x then c else 1) A) = c ^ count A y"
+lemma prod_mset_delta': "prod_mset (image_mset (\<lambda>x. if y = x then c else 1) A) = c ^ count A y"
   by (induction A) simp_all
 
 end
 
 syntax (ASCII)
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3PROD _:#_. _)" [0, 51, 10] 10)
+  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3PROD _:#_. _)" [0, 51, 10] 10)
 syntax
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
+  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
 translations
-  "\<Prod>i \<in># A. b" \<rightleftharpoons> "CONST msetprod (CONST image_mset (\<lambda>i. b) A)"
+  "\<Prod>i \<in># A. b" \<rightleftharpoons> "CONST prod_mset (CONST image_mset (\<lambda>i. b) A)"
 
-lemma (in comm_semiring_1) dvd_msetprod:
+lemma (in comm_semiring_1) dvd_prod_mset:
   assumes "x \<in># A"
-  shows "x dvd msetprod A"
+  shows "x dvd prod_mset A"
 proof -
   from assms have "A = add_mset x (A - {#x#})" by simp
   then obtain B where "A = add_mset x B" ..
   then show ?thesis by simp
 qed
 
-lemma (in semidom) msetprod_zero_iff [iff]:
-  "msetprod A = 0 \<longleftrightarrow> 0 \<in># A"
+lemma (in semidom) prod_mset_zero_iff [iff]:
+  "prod_mset A = 0 \<longleftrightarrow> 0 \<in># A"
   by (induct A) auto
 
-lemma (in semidom_divide) msetprod_diff:
+lemma (in semidom_divide) prod_mset_diff:
   assumes "B \<subseteq># A" and "0 \<notin># B"
-  shows "msetprod (A - B) = msetprod A div msetprod B"
+  shows "prod_mset (A - B) = prod_mset A div prod_mset B"
 proof -
   from assms obtain C where "A = B + C"
     by (metis subset_mset.add_diff_inverse)
   with assms show ?thesis by simp
 qed
 
-lemma (in semidom_divide) msetprod_minus:
+lemma (in semidom_divide) prod_mset_minus:
   assumes "a \<in># A" and "a \<noteq> 0"
-  shows "msetprod (A - {#a#}) = msetprod A div a"
-  using assms msetprod_diff [of "{#a#}" A] by auto
+  shows "prod_mset (A - {#a#}) = prod_mset A div a"
+  using assms prod_mset_diff [of "{#a#}" A] by auto
 
-lemma (in normalization_semidom) normalized_msetprodI:
+lemma (in normalization_semidom) normalized_prod_msetI:
   assumes "\<And>a. a \<in># A \<Longrightarrow> normalize a = a"
-  shows "normalize (msetprod A) = msetprod A"
+  shows "normalize (prod_mset A) = prod_mset A"
   using assms by (induct A) (simp_all add: normalize_mult)
 
 
@@ -3167,12 +3167,12 @@ instance
 
 end
 
-lemma [code]: "msetsum (mset xs) = listsum xs"
+lemma [code]: "sum_mset (mset xs) = listsum xs"
   by (induct xs) simp_all
 
-lemma [code]: "msetprod (mset xs) = fold times xs 1"
+lemma [code]: "prod_mset (mset xs) = fold times xs 1"
 proof -
-  have "\<And>x. fold times xs x = msetprod (mset xs) * x"
+  have "\<And>x. fold times xs x = prod_mset (mset xs) * x"
     by (induct xs) (simp_all add: ac_simps)
   then show ?thesis by simp
 qed
@@ -3537,10 +3537,11 @@ lemmas rel_mset_induct[case_names empty add, induct pred: rel_mset] =
 
 subsection \<open>Size setup\<close>
 
-lemma multiset_size_o_map: "size_multiset g \<circ> image_mset f = size_multiset (g \<circ> f)"
-  apply (rule ext)
-  subgoal for x by (induct x) auto
-  done
+lemma multiset_size_o_map:
+  "size_multiset g \<circ> image_mset f = size_multiset (g \<circ> f)"
+apply (rule ext)
+subgoal for x by (induct x) auto
+done
 
 setup \<open>
   BNF_LFP_Size.register_size_global @{type_name multiset} @{const_name size_multiset}

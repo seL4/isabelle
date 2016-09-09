@@ -16,11 +16,11 @@ begin
 
 subsection \<open>Prelude\<close>
 
-lemma msetprod_mult: 
-  "msetprod (image_mset (\<lambda>x. f x * g x) A) = msetprod (image_mset f A) * msetprod (image_mset g A)"
+lemma prod_mset_mult: 
+  "prod_mset (image_mset (\<lambda>x. f x * g x) A) = prod_mset (image_mset f A) * prod_mset (image_mset g A)"
   by (induction A) (simp_all add: mult_ac)
   
-lemma msetprod_const: "msetprod (image_mset (\<lambda>_. c) A) = c ^ size A"
+lemma prod_mset_const: "prod_mset (image_mset (\<lambda>_. c) A) = c ^ size A"
   by (induction A) (simp_all add: mult_ac)
   
 lemma dvd_field_iff: "x dvd y \<longleftrightarrow> (x = 0 \<longrightarrow> y = (0::'a::field))"
@@ -341,7 +341,7 @@ qed (auto intro!: poly_eqI simp: coeff_map_poly)
 
 subsection \<open>Various facts about polynomials\<close>
 
-lemma msetprod_const_poly: "msetprod (image_mset (\<lambda>x. [:f x:]) A) = [:msetprod (image_mset f A):]"
+lemma prod_mset_const_poly: "prod_mset (image_mset (\<lambda>x. [:f x:]) A) = [:prod_mset (image_mset f A):]"
   by (induction A) (simp_all add: one_poly_def mult_ac)
 
 lemma degree_mod_less': "b \<noteq> 0 \<Longrightarrow> a mod b \<noteq> 0 \<Longrightarrow> degree (a mod b) < degree b"
@@ -679,8 +679,8 @@ lemma fract_poly_eq_0_iff [simp]: "fract_poly p = 0 \<longleftrightarrow> p = 0"
 lemma fract_poly_dvd: "p dvd q \<Longrightarrow> fract_poly p dvd fract_poly q"
   by (auto elim!: dvdE)
 
-lemma msetprod_fract_poly: 
-  "msetprod (image_mset (\<lambda>x. fract_poly (f x)) A) = fract_poly (msetprod (image_mset f A))"
+lemma prod_mset_fract_poly: 
+  "prod_mset (image_mset (\<lambda>x. fract_poly (f x)) A) = fract_poly (prod_mset (image_mset f A))"
   by (induction A) (simp_all add: mult_ac)
   
 lemma is_unit_fract_poly_iff:
@@ -961,9 +961,9 @@ lemma primitive_part_dvd_primitive_partI [intro]:
   shows "p dvd q \<Longrightarrow> primitive_part p dvd primitive_part q"
   by (auto elim!: dvdE simp: primitive_part_mult)
 
-lemma content_msetprod: 
+lemma content_prod_mset: 
   fixes A :: "'a :: {factorial_semiring, semiring_Gcd} poly multiset"
-  shows "content (msetprod A) = msetprod (image_mset content A)"
+  shows "content (prod_mset A) = prod_mset (image_mset content A)"
   by (induction A) (simp_all add: content_mult mult_ac)
 
 lemma fract_poly_dvdD:
@@ -1046,14 +1046,14 @@ proof -
       comm_semiring_1.irreducible_def[OF A] comm_semiring_1.prime_elem_def[OF A] by blast
 qed
 
-lemma field_poly_msetprod_prime_factorization:
+lemma field_poly_prod_mset_prime_factorization:
   assumes "(x :: 'a :: field poly) \<noteq> 0"
-  shows   "msetprod (field_poly.prime_factorization x) = normalize_field_poly x"
+  shows   "prod_mset (field_poly.prime_factorization x) = normalize_field_poly x"
 proof -
   have A: "class.comm_monoid_mult op * (1 :: 'a poly)" ..
-  have "comm_monoid_mult.msetprod op * (1 :: 'a poly) = msetprod"
-    by (intro ext) (simp add: comm_monoid_mult.msetprod_def[OF A] msetprod_def)
-  with field_poly.msetprod_prime_factorization[OF assms] show ?thesis by simp
+  have "comm_monoid_mult.prod_mset op * (1 :: 'a poly) = prod_mset"
+    by (intro ext) (simp add: comm_monoid_mult.prod_mset_def[OF A] prod_mset_def)
+  with field_poly.prod_mset_prime_factorization[OF assms] show ?thesis by simp
 qed
 
 lemma field_poly_in_prime_factorization_imp_prime:
@@ -1248,32 +1248,32 @@ begin
 private lemma poly_prime_factorization_exists_content_1:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "p \<noteq> 0" "content p = 1"
-  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> msetprod A = normalize p"
+  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize p"
 proof -
   let ?P = "field_poly.prime_factorization (fract_poly p)"
-  define c where "c = msetprod (image_mset fract_content ?P)"
+  define c where "c = prod_mset (image_mset fract_content ?P)"
   define c' where "c' = c * to_fract (lead_coeff p)"
-  define e where "e = msetprod (image_mset primitive_part_fract ?P)"
+  define e where "e = prod_mset (image_mset primitive_part_fract ?P)"
   define A where "A = image_mset (normalize \<circ> primitive_part_fract) ?P"
   have "content e = (\<Prod>x\<in>#field_poly.prime_factorization (map_poly to_fract p). 
                       content (primitive_part_fract x))"
-    by (simp add: e_def content_msetprod multiset.map_comp o_def)
+    by (simp add: e_def content_prod_mset multiset.map_comp o_def)
   also have "image_mset (\<lambda>x. content (primitive_part_fract x)) ?P = image_mset (\<lambda>_. 1) ?P"
     by (intro image_mset_cong content_primitive_part_fract) auto
-  finally have content_e: "content e = 1" by (simp add: msetprod_const)    
+  finally have content_e: "content e = 1" by (simp add: prod_mset_const)    
   
   have "fract_poly p = unit_factor_field_poly (fract_poly p) * 
           normalize_field_poly (fract_poly p)" by simp
   also have "unit_factor_field_poly (fract_poly p) = [:to_fract (lead_coeff p):]" 
     by (simp add: unit_factor_field_poly_def lead_coeff_def monom_0 degree_map_poly coeff_map_poly)
-  also from assms have "normalize_field_poly (fract_poly p) = msetprod ?P" 
-    by (subst field_poly_msetprod_prime_factorization) simp_all
-  also have "\<dots> = msetprod (image_mset id ?P)" by simp
+  also from assms have "normalize_field_poly (fract_poly p) = prod_mset ?P" 
+    by (subst field_poly_prod_mset_prime_factorization) simp_all
+  also have "\<dots> = prod_mset (image_mset id ?P)" by simp
   also have "image_mset id ?P = 
                image_mset (\<lambda>x. [:fract_content x:] * fract_poly (primitive_part_fract x)) ?P"
     by (intro image_mset_cong) (auto simp: content_times_primitive_part_fract)
-  also have "msetprod \<dots> = smult c (fract_poly e)"
-    by (subst msetprod_mult) (simp_all add: msetprod_fract_poly msetprod_const_poly c_def e_def)
+  also have "prod_mset \<dots> = smult c (fract_poly e)"
+    by (subst prod_mset_mult) (simp_all add: prod_mset_fract_poly prod_mset_const_poly c_def e_def)
   also have "[:to_fract (lead_coeff p):] * \<dots> = smult c' (fract_poly e)"
     by (simp add: c'_def)
   finally have eq: "fract_poly p = smult c' (fract_poly e)" .
@@ -1291,28 +1291,28 @@ proof -
   hence "p = [:b:] * e" by simp
   with b have "normalize p = normalize e" 
     by (simp only: normalize_mult) (simp add: is_unit_normalize is_unit_poly_iff)
-  also have "normalize e = msetprod A"
-    by (simp add: multiset.map_comp e_def A_def normalize_msetprod)
-  finally have "msetprod A = normalize p" ..
+  also have "normalize e = prod_mset A"
+    by (simp add: multiset.map_comp e_def A_def normalize_prod_mset)
+  finally have "prod_mset A = normalize p" ..
   
   have "prime_elem p" if "p \<in># A" for p
     using that by (auto simp: A_def prime_elem_primitive_part_fract prime_elem_imp_irreducible 
                         dest!: field_poly_in_prime_factorization_imp_prime )
-  from this and \<open>msetprod A = normalize p\<close> show ?thesis
+  from this and \<open>prod_mset A = normalize p\<close> show ?thesis
     by (intro exI[of _ A]) blast
 qed
 
 lemma poly_prime_factorization_exists:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "p \<noteq> 0"
-  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> msetprod A = normalize p"
+  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize p"
 proof -
   define B where "B = image_mset (\<lambda>x. [:x:]) (prime_factorization (content p))"
-  have "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> msetprod A = normalize (primitive_part p)"
+  have "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize (primitive_part p)"
     by (rule poly_prime_factorization_exists_content_1) (insert assms, simp_all)
   then guess A by (elim exE conjE) note A = this
-  moreover from assms have "msetprod B = [:content p:]"
-    by (simp add: B_def msetprod_const_poly msetprod_prime_factorization)
+  moreover from assms have "prod_mset B = [:content p:]"
+    by (simp add: B_def prod_mset_const_poly prod_mset_prime_factorization)
   moreover have "\<forall>p. p \<in># B \<longrightarrow> prime_elem p"
     by (auto simp: B_def intro: lift_prime_elem_poly dest: in_prime_factorization_imp_prime)
   ultimately show ?thesis by (intro exI[of _ "B + A"]) auto

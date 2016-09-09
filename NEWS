@@ -603,6 +603,10 @@ INCOMPATIBILITY.
 of the procedure on natural numbers.
 INCOMPATIBILITY.
 
+* Renamed sums and products of multisets:
+  msetsum ~> sum_mset
+  msetprod ~> prod_mset
+
 * The lemma one_step_implies_mult_aux on multisets has been removed, use
 one_step_implies_mult instead.
 INCOMPATIBILITY.

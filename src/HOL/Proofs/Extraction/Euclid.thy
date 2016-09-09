@@ -119,7 +119,7 @@ next
 qed
 
 lemma dvd_prod [iff]: "n dvd (\<Prod>m::nat \<in># mset (n # ns). m)"
-  by (simp add: msetprod_Un)
+  by (simp add: prod_mset_Un)
 
 definition all_prime :: "nat list \<Rightarrow> bool"
   where "all_prime ps \<longleftrightarrow> (\<forall>p\<in>set ps. prime p)"
@@ -142,7 +142,7 @@ proof -
     by (simp add: all_prime_append)
   moreover
   have "(\<Prod>m::nat \<in># mset (ms @ ns). m) = (\<Prod>m::nat \<in># mset ms. m) * (\<Prod>m::nat \<in># mset ns. m)"
-    using assms by (simp add: msetprod_Un)
+    using assms by (simp add: prod_mset_Un)
   ultimately have "?P (ms @ ns) \<and> ?Q (ms @ ns)" ..
   then show ?thesis ..
 qed
@@ -153,7 +153,7 @@ lemma all_prime_nempty_g_one:
   using \<open>ps \<noteq> []\<close> \<open>all_prime ps\<close>
   unfolding One_nat_def [symmetric]
   by (induct ps rule: list_nonempty_induct)
-    (simp_all add: all_prime_simps msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
+    (simp_all add: all_prime_simps prod_mset_Un prime_gt_1_nat less_1_mult del: One_nat_def)
 
 lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = n)"
 proof (induct n rule: nat_wf_ind)
@@ -182,7 +182,7 @@ proof (induct n rule: nat_wf_ind)
     with prod_ps1_m prod_ps2_k nmk show ?thesis by simp
   next
     assume "prime n" then have "all_prime [n]" by (simp add: all_prime_simps)
-    moreover have "(\<Prod>m::nat \<in># mset [n]. m) = n" by (simp add: msetprod_singleton)
+    moreover have "(\<Prod>m::nat \<in># mset [n]. m) = n" by (simp)
     ultimately have "all_prime [n] \<and> (\<Prod>m::nat \<in># mset [n]. m) = n" ..
     then show ?thesis ..
   qed

@@ -32,9 +32,9 @@ lemma [code, code del]: "count = count" ..
 
 lemma [code, code del]: "size = (size :: _ multiset \<Rightarrow> nat)" ..
 
-lemma [code, code del]: "msetsum = msetsum" ..
+lemma [code, code del]: "sum_mset = sum_mset" ..
 
-lemma [code, code del]: "msetprod = msetprod" ..
+lemma [code, code del]: "prod_mset = prod_mset" ..
 
 lemma [code, code del]: "set_mset = set_mset" ..
 
@@ -403,8 +403,8 @@ end
 
 (* we cannot use (\<lambda>a n. op + (a * n)) for folding, since * is not defined
    in comm_monoid_add *)
-lemma msetsum_Bag[code]: "msetsum (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((op + a) ^^ n)) 0 ms"
-  unfolding msetsum.eq_fold
+lemma sum_mset_Bag[code]: "sum_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((op + a) ^^ n)) 0 ms"
+  unfolding sum_mset.eq_fold
   apply (rule comp_fun_commute.DAList_Multiset_fold)
   apply unfold_locales
   apply (auto simp: ac_simps)
@@ -412,8 +412,8 @@ lemma msetsum_Bag[code]: "msetsum (Bag ms) = DAList_Multiset.fold (\<lambda>a n.
 
 (* we cannot use (\<lambda>a n. op * (a ^ n)) for folding, since ^ is not defined
    in comm_monoid_mult *)
-lemma msetprod_Bag[code]: "msetprod (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((op * a) ^^ n)) 1 ms"
-  unfolding msetprod.eq_fold
+lemma prod_mset_Bag[code]: "prod_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((op * a) ^^ n)) 1 ms"
+  unfolding prod_mset.eq_fold
   apply (rule comp_fun_commute.DAList_Multiset_fold)
   apply unfold_locales
   apply (auto simp: ac_simps)

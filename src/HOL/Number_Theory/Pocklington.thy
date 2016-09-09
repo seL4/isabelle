@@ -653,9 +653,9 @@ lemma primefact:
 proof -
   have "\<exists>xs. mset xs = prime_factorization n" by (rule ex_mset)
   then guess xs .. note xs = this
-  from assms have "n = msetprod (prime_factorization n)" 
-    by (simp add: msetprod_prime_factorization)
-  also have "\<dots> = msetprod (mset xs)" by (simp add: xs)
+  from assms have "n = prod_mset (prime_factorization n)" 
+    by (simp add: prod_mset_prime_factorization)
+  also have "\<dots> = prod_mset (mset xs)" by (simp add: xs)
   also have "\<dots> = foldr op * xs 1" by (induction xs) simp_all
   finally have "foldr op * xs 1 = n" ..
   moreover have "\<forall>p\<in>#mset xs. prime p"
