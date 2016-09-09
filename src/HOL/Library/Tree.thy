@@ -230,7 +230,8 @@ qed
 
 subsection \<open>Balanced\<close>
 
-abbreviation "balanced t \<equiv> (height t - min_height t \<le> 1)"
+definition balanced :: "'a tree \<Rightarrow> bool" where
+"balanced t = (height t - min_height t \<le> 1)"
 
 text\<open>Balanced trees have optimal height:\<close>
 
@@ -262,7 +263,7 @@ next
   hence *: "min_height t < height t'" by simp
   have "min_height t + 1 = height t"
     using min_hight_le_height[of t] assms(1) False
-    by (simp add: complete_iff_height)
+    by (simp add: complete_iff_height balanced_def)
   with * show ?thesis by arith
 qed
 

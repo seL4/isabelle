@@ -1,8 +1,8 @@
-(* Tobias Nipkow *)
+(* Author: Tobias Nipkow *)
 
-section \<open>Creating a Balanced Tree from a List\<close>
+section \<open>Creating Balanced Trees\<close>
 
-theory Balance_List
+theory Balance
 imports
   "~~/src/HOL/Library/Tree"
   "~~/src/HOL/Library/Log_Nat"
@@ -17,7 +17,12 @@ fun bal :: "'a list \<Rightarrow> nat \<Rightarrow> 'a tree * 'a list" where
 
 declare bal.simps[simp del]
 
-definition "balance xs = fst (bal xs (length xs))"
+definition balance_list :: "'a list \<Rightarrow> 'a tree" where
+"balance_list xs = fst (bal xs (length xs))"
+
+definition balance_tree :: "'a tree \<Rightarrow> 'a tree" where
+"balance_tree = balance_list o inorder"
+
 
 lemma bal_inorder:
   "\<lbrakk> bal xs n = (t,ys); n \<le> length xs \<rbrakk>
@@ -49,9 +54,9 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
   qed
 qed
 
-corollary balance_inorder: "inorder(balance xs) = xs"
+corollary inorder_balance_list: "inorder(balance_list xs) = xs"
 using bal_inorder[of xs "length xs"]
-by (metis balance_def order_refl prod.collapse take_all)
+by (metis balance_list_def order_refl prod.collapse take_all)
 
 lemma bal_height: "bal xs n = (t,ys) \<Longrightarrow> height t = floorlog 2 n"
 proof(induction xs n arbitrary: t ys rule: bal.induct)
@@ -116,11 +121,31 @@ lemma balanced_bal:
   assumes "bal xs n = (t,ys)" shows "balanced t"
 proof -
   have "floorlog 2 n \<le> floorlog 2 (n+1)" by (rule floorlog_mono) auto
-  thus ?thesis
-    using bal_height[OF assms] bal_min_height[OF assms] by arith
+  thus ?thesis unfolding balanced_def
+    using bal_height[OF assms] bal_min_height[OF assms] by linarith
 qed
 
-corollary balanced_balance: "balanced (balance xs)"
-by (metis balance_def balanced_bal prod.collapse)
+corollary size_balance_list[simp]: "size(balance_list xs) = length xs"
+by (metis inorder_balance_list length_inorder)
+
+corollary balanced_balance_list[simp]: "balanced (balance_list xs)"
+by (metis balance_list_def balanced_bal prod.collapse)
+
+lemma height_balance_list: "height(balance_list xs) = floorlog 2 (length xs)"
+by (metis bal_height balance_list_def prod.collapse)
+
+lemma inorder_balance_tree[simp]: "inorder(balance_tree t) = inorder t"
+by(simp add: balance_tree_def inorder_balance_list)
+
+lemma size_balance_tree[simp]: "size(balance_tree t) = size t"
+by(simp add: balance_tree_def inorder_balance_list)
+
+corollary balanced_balance_tree[simp]: "balanced (balance_tree t)"
+by (simp add: balance_tree_def)
+
+lemma height_balance_tree: "height(balance_tree t) = floorlog 2 (size t)"
+by(simp add: balance_tree_def height_balance_list)
+
+hide_const (open) bal
 
 end
