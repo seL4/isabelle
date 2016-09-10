@@ -492,8 +492,8 @@ proof-
       {fix m assume m: "0 < m" "m < n" "\<not> coprime m n"
         hence mS': "m \<notin> ?S'" by auto
         have "insert m ?S' \<le> ?S" using m by auto
-        from m have "card (insert m ?S') \<le> card ?S"
-          by - (rule card_mono[of ?S "insert m ?S'"], auto)
+        have "card (insert m ?S') \<le> card ?S"
+          by (rule card_mono[of ?S "insert m ?S'"]) (use m in auto)
         hence False
           unfolding card_insert_disjoint[of "?S'" m, OF fS' mS'] ceq
           by simp }
@@ -767,7 +767,7 @@ proof-
     hence "(n - 1) mod m = 0" by auto
     then have mn: "m dvd n - 1" by presburger
     then obtain r where r: "n - 1 = m*r" unfolding dvd_def by blast
-    from n01 r m(2) have r01: "r\<noteq>0" "r\<noteq>1" by - (rule ccontr, simp)+
+    from n01 r m(2) have r01: "r\<noteq>0" "r\<noteq>1" by auto
     from prime_factor[OF r01(2)] obtain p where p: "prime p" "p dvd r" by blast
     hence th: "prime p \<and> p dvd n - 1" unfolding r by (auto intro: dvd_mult)
     have "(a ^ ((n - 1) div p)) mod n = (a^(m*r div p)) mod n" using r
@@ -800,8 +800,8 @@ proof-
   moreover
   {assume "n\<noteq>0 \<and> n\<noteq>1" hence n2:"n \<ge> 2" by arith
     from na have na': "coprime a n" by (simp add: coprime_commute)
-    from phi_lowerbound_1[OF n2] fermat_little[OF na']
-    have ex: "\<exists>m>0. ?P m" by - (rule exI[where x="\<phi> n"], auto) }
+    have ex: "\<exists>m>0. ?P m"
+      by (rule exI[where x="\<phi> n"]) (use phi_lowerbound_1[OF n2] fermat_little[OF na'] in auto) }
   ultimately have ex: "\<exists>m>0. ?P m" by blast
   from nat_exists_least_iff'[of ?P] ex na show ?thesis
     unfolding o[symmetric] by auto
@@ -992,7 +992,7 @@ proof-
         from prime_factor[OF d(3)]
         obtain p where p: "prime p" "p dvd d" by blast
         from n have np: "n > 0" by arith
-        from d(1) n have "d \<noteq> 0" by - (rule ccontr, auto)
+        have "d \<noteq> 0" by (rule ccontr) (use d(1) n in auto)
         hence dp: "d > 0" by arith
         from mult_mono[OF dvd_imp_le[OF p(2) dp] dvd_imp_le[OF p(2) dp]] d(2)
         have "p\<^sup>2 \<le> n" unfolding power2_eq_square by arith
@@ -1029,7 +1029,7 @@ proof-
     from d dvd_mult[OF P(2), of "ord p (a^r)"] have Pq: "P dvd q" by simp
     from aq P(1) Pq have caP:"coprime (a^ ((n - 1) div P) - 1) n" by blast
     from Pq obtain s where s: "q = P*s" unfolding dvd_def by blast
-    have P0: "P \<noteq> 0" using P(1) prime_0 by - (rule ccontr, simp)
+    have P0: "P \<noteq> 0" by (rule ccontr) (use P(1) prime_0 in simp)
     from P(2) obtain t where t: "d = P*t" unfolding dvd_def by blast
     from d s t P0  have s': "ord p (a^r) * t = s" by algebra
     have "ord p (a^r) * t*r = r * ord p (a^r) * t" by algebra
@@ -1052,8 +1052,8 @@ proof-
     with divides_rexp[OF d(2)[unfolded dp], of "n - 2"]
     have th0: "p dvd a ^ (n - 1)" by simp
     from n have n0: "n \<noteq> 0" by simp
-    from d(2) an n12[symmetric] have a0: "a \<noteq> 0"
-      by - (rule ccontr, simp add: modeq_def)
+    have a0: "a \<noteq> 0"
+      by (rule ccontr) (use d(2) an n12[symmetric] in \<open>simp add: modeq_def\<close>)
     have th1: "a^ (n - 1) \<noteq> 0" using n d(2) dp a0 by auto
     from coprime_minus1[OF th1, unfolded coprime]
       dvd_trans[OF pn cong_1_divides[OF an]] th0 d(3) dp
@@ -1064,7 +1064,7 @@ proof-
   from fermat_little[OF arp, simplified ord_divides] o phip
   have "q dvd (p - 1)" by simp
   then obtain d where d:"p - 1 = q * d" unfolding dvd_def by blast
-  from prime_0 pp have p0:"p \<noteq> 0" by -  (rule ccontr, auto)
+  have p0: "p \<noteq> 0" by (rule ccontr) (use prime_0 pp in auto)
   from p0 d have "p + q * 0 = 1 + q * d" by simp
   with nat_mod[of p 1 q, symmetric]
   show ?thesis by blast

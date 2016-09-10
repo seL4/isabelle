@@ -406,37 +406,44 @@ lemma prime_1[simp]: "~ prime 1"  by (simp add: prime_def)
 lemma prime_Suc0[simp]: "~ prime (Suc 0)"  by (simp add: prime_def)
 
 lemma prime_ge_2: "prime p ==> p \<ge> 2" by (simp add: prime_def)
-lemma prime_factor: assumes n: "n \<noteq> 1" shows "\<exists> p. prime p \<and> p dvd n"
-using n
-proof(induct n rule: nat_less_induct)
+
+lemma prime_factor: "n \<noteq> 1 \<Longrightarrow> \<exists>p. prime p \<and> p dvd n"
+proof (induct n rule: nat_less_induct)
   fix n
   assume H: "\<forall>m<n. m \<noteq> 1 \<longrightarrow> (\<exists>p. prime p \<and> p dvd m)" "n \<noteq> 1"
-  let ?ths = "\<exists>p. prime p \<and> p dvd n"
-  {assume "n=0" hence ?ths using two_is_prime by auto}
-  moreover
-  {assume nz: "n\<noteq>0" 
-    {assume "prime n" hence ?ths by - (rule exI[where x="n"], simp)}
-    moreover
-    {assume n: "\<not> prime n"
-      with nz H(2) 
-      obtain k where k:"k dvd n" "k \<noteq> 1" "k \<noteq> n" by (auto simp add: prime_def) 
+  show "\<exists>p. prime p \<and> p dvd n"
+  proof (cases "n = 0")
+    case True
+    with two_is_prime show ?thesis by auto
+  next
+    case nz: False
+    show ?thesis
+    proof (cases "prime n")
+      case True
+      then have "prime n \<and> n dvd n" by simp
+      then show ?thesis ..
+    next
+      case n: False
+      with nz H(2) obtain k where k: "k dvd n" "k \<noteq> 1" "k \<noteq> n"
+        by (auto simp: prime_def) 
       from dvd_imp_le[OF k(1)] nz k(3) have kn: "k < n" by simp
       from H(1)[rule_format, OF kn k(2)] obtain p where p: "prime p" "p dvd k" by blast
-      from dvd_trans[OF p(2) k(1)] p(1) have ?ths by blast}
-    ultimately have ?ths by blast}
-  ultimately show ?ths by blast
+      from dvd_trans[OF p(2) k(1)] p(1) show ?thesis by blast
+    qed
+  qed
 qed
 
-lemma prime_factor_lt: assumes p: "prime p" and n: "n \<noteq> 0" and npm:"n = p * m"
+lemma prime_factor_lt:
+  assumes p: "prime p" and n: "n \<noteq> 0" and npm:"n = p * m"
   shows "m < n"
-proof-
-  {assume "m=0" with n have ?thesis by simp}
-  moreover
-  {assume m: "m \<noteq> 0"
-    from npm have mn: "m dvd n" unfolding dvd_def by auto
-    from npm m have "n \<noteq> m" using p by auto
-    with dvd_imp_le[OF mn] n have ?thesis by simp}
-  ultimately show ?thesis by blast
+proof (cases "m = 0")
+  case True
+  with n show ?thesis by simp
+next
+  case m: False
+  from npm have mn: "m dvd n" unfolding dvd_def by auto
+  from npm m have "n \<noteq> m" using p by auto
+  with dvd_imp_le[OF mn] n show ?thesis by simp
 qed
 
 lemma euclid_bound: "\<exists>p. prime p \<and> n < p \<and>  p <= Suc (fact n)"
@@ -491,7 +498,7 @@ lemma coprime_0'[simp]: "coprime 0 d \<longleftrightarrow> d = 1" by (simp add: 
 lemma coprime_bezout_strong: assumes ab: "coprime a b" and b: "b \<noteq> 1"
   shows "\<exists>x y. a * x = b * y + 1"
 proof-
-  from ab b have az: "a \<noteq> 0" by - (rule ccontr, auto)
+  have az: "a \<noteq> 0" by (rule ccontr) (use ab b in auto)
   from bezout_gcd_strong[OF az, of b] ab[unfolded coprime_def]
   show ?thesis by auto
 qed
@@ -577,15 +584,15 @@ qed
 lemma distinct_prime_coprime: "prime p \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
   unfolding prime_def coprime_prime_eq by blast
 
-lemma prime_coprime_lt: assumes p: "prime p" and x: "0 < x" and xp: "x < p"
+lemma prime_coprime_lt:
+  assumes p: "prime p" and x: "0 < x" and xp: "x < p"
   shows "coprime x p"
-proof-
-  {assume c: "\<not> coprime x p"
-    then obtain g where g: "g \<noteq> 1" "g dvd x" "g dvd p" unfolding coprime_def by blast
+proof (rule ccontr)
+  assume c: "\<not> ?thesis"
+  then obtain g where g: "g \<noteq> 1" "g dvd x" "g dvd p" unfolding coprime_def by blast
   from dvd_imp_le[OF g(2)] x xp have gp: "g < p" by arith
-  from g(2) x have "g \<noteq> 0" by - (rule ccontr, simp)
-  with g gp p[unfolded prime_def] have False by blast}
-thus ?thesis by blast
+  have "g \<noteq> 0" by (rule ccontr) (use g(2) x in simp)
+  with g gp p[unfolded prime_def] show False by blast
 qed
 
 lemma prime_odd: "prime p \<Longrightarrow> p = 2 \<or> odd p" unfolding prime_def by auto
@@ -755,28 +762,30 @@ lemma prime_power_mult:
   shows "\<exists>i j. x = p ^i \<and> y = p^ j"
   using xy
 proof(induct k arbitrary: x y)
-  case 0 thus ?case apply simp by (rule exI[where x="0"], simp)
+  case 0
+  thus ?case apply simp by (rule exI[where x="0"], simp)
 next
   case (Suc k x y)
+  have p0: "p \<noteq> 0" by (rule ccontr) (use p in simp) 
   from Suc.prems have pxy: "p dvd x*y" by auto
-  from prime_divprod[OF p pxy] have pxyc: "p dvd x \<or> p dvd y" .
-  from p have p0: "p \<noteq> 0" by - (rule ccontr, simp) 
-  {assume px: "p dvd x"
+  from prime_divprod[OF p pxy] show ?case
+  proof
+    assume px: "p dvd x"
     then obtain d where d: "x = p*d" unfolding dvd_def by blast
     from Suc.prems d  have "p*d*y = p^Suc k" by simp
     hence th: "d*y = p^k" using p0 by simp
     from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "y = p^j" by blast
     with d have "x = p^Suc i" by simp 
-    with ij(2) have ?case by blast}
-  moreover 
-  {assume px: "p dvd y"
+    with ij(2) show ?thesis by blast
+  next
+    assume px: "p dvd y"
     then obtain d where d: "y = p*d" unfolding dvd_def by blast
     from Suc.prems d  have "p*d*x = p^Suc k" by (simp add: mult.commute)
     hence th: "d*x = p^k" using p0 by simp
     from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "x = p^j" by blast
     with d have "y = p^Suc i" by simp 
-    with ij(2) have ?case by blast}
-  ultimately show ?case  using pxyc by blast
+    with ij(2) show ?thesis by blast
+  qed
 qed
 
 lemma prime_power_exp: assumes p: "prime p" and n:"n \<noteq> 0" 
