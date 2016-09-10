@@ -695,17 +695,23 @@ lemma map_add_subsumed2: "f \<subseteq>\<^sub>m g \<Longrightarrow> g++f = g"
 by (metis map_add_subsumed1 map_le_iff_map_add_commute)
 
 lemma dom_eq_singleton_conv: "dom f = {x} \<longleftrightarrow> (\<exists>v. f = [x \<mapsto> v])"
-proof(rule iffI)
-  assume "\<exists>v. f = [x \<mapsto> v]"
-  thus "dom f = {x}" by(auto split: if_split_asm)
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?rhs
+  then show ?lhs by (auto split: if_split_asm)
 next
-  assume "dom f = {x}"
-  then obtain v where "f x = Some v" by auto
-  hence "[x \<mapsto> v] \<subseteq>\<^sub>m f" by(auto simp add: map_le_def)
-  moreover have "f \<subseteq>\<^sub>m [x \<mapsto> v]" using \<open>dom f = {x}\<close> \<open>f x = Some v\<close>
-    by(auto simp add: map_le_def)
-  ultimately have "f = [x \<mapsto> v]" by-(rule map_le_antisym)
-  thus "\<exists>v. f = [x \<mapsto> v]" by blast
+  assume ?lhs
+  then obtain v where v: "f x = Some v" by auto
+  show ?rhs
+  proof
+    show "f = [x \<mapsto> v]"
+    proof (rule map_le_antisym)
+      show "[x \<mapsto> v] \<subseteq>\<^sub>m f"
+        using v by (auto simp add: map_le_def)
+      show "f \<subseteq>\<^sub>m [x \<mapsto> v]"
+        using \<open>dom f = {x}\<close> \<open>f x = Some v\<close> by (auto simp add: map_le_def)
+    qed
+  qed
 qed
 
 

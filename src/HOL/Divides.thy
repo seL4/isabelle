@@ -1793,13 +1793,14 @@ next
     by (rule div_int_unique)
 next
   fix a b c :: int
-  assume "c \<noteq> 0"
-  hence "\<And>q r. divmod_int_rel a b (q, r)
+  assume c: "c \<noteq> 0"
+  have "\<And>q r. divmod_int_rel a b (q, r)
     \<Longrightarrow> divmod_int_rel (c * a) (c * b) (q, c * r)"
     unfolding divmod_int_rel_def
-    by - (rule linorder_cases [of 0 b], auto simp: algebra_simps
+    by (rule linorder_cases [of 0 b])
+      (use c in \<open>auto simp: algebra_simps
       mult_less_0_iff zero_less_mult_iff mult_strict_right_mono
-      mult_strict_right_mono_neg zero_le_mult_iff mult_le_0_iff)
+      mult_strict_right_mono_neg zero_le_mult_iff mult_le_0_iff\<close>)
   hence "divmod_int_rel (c * a) (c * b) (a div b, c * (a mod b))"
     using divmod_int_rel [of a b] .
   thus "(c * a) div (c * b) = a div b"

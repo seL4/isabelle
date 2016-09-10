@@ -205,7 +205,7 @@ proof -
   also have "card {0<..<2*n} \<le> 2*n - 1" by (cases n) simp_all
   also have "(2 * n - 1) * (2 * n choose n) + (2 * n choose n) = ((2*n) choose n) * (2*n)"
     using assms by (simp add: algebra_simps)
-  finally have "4 ^ n \<le> (2 * n choose n) * (2 * n)" by - simp_all
+  finally have "4 ^ n \<le> (2 * n choose n) * (2 * n)" by simp_all
   hence "real (4 ^ n) \<le> real ((2 * n choose n) * (2 * n))"
     by (subst of_nat_le_iff)
   with assms show ?thesis by (simp add: field_simps)

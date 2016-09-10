@@ -4661,8 +4661,7 @@ next
   from Suc have "k < card A" by simp
   moreover have "finite A" using assms by (simp add: card_ge_0_finite)
   moreover have "finite {xs. ?k_list k xs}"
-    using finite_lists_length_eq[OF \<open>finite A\<close>, of k]
-    by - (rule finite_subset, auto)
+    by (rule finite_subset) (use finite_lists_length_eq[OF \<open>finite A\<close>, of k] in auto)
   moreover have "\<And>i j. i \<noteq> j \<longrightarrow> {i} \<times> (A - set i) \<inter> {j} \<times> (A - set j) = {}"
     by auto
   moreover have "\<And>i. i \<in>Collect (?k_list k) \<Longrightarrow> card (A - set i) = card A - k"

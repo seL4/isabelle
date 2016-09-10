@@ -200,7 +200,7 @@ lemma the_inv_f_o_f_id: "inj f \<Longrightarrow> (the_inv f \<circ> f) z = id z"
   by (simp add: the_inv_f_f)
 
 lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
-  unfolding vimage2p_def by -
+  unfolding vimage2p_def .
 
 lemma rel_fun_iff_leq_vimage2p: "(rel_fun R S) f g = (R \<le> vimage2p f g S)"
   unfolding rel_fun_def vimage2p_def by auto
