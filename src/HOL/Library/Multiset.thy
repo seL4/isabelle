@@ -609,8 +609,11 @@ lemma mset_subset_insertD:
   "add_mset x A \<subset># B \<Longrightarrow> x \<in># B \<and> A \<subset># B"
   by (rule mset_subset_eq_insertD) simp
 
-lemma mset_subset_of_empty: "A \<subset># {#} \<longleftrightarrow> False"
+lemma mset_subset_of_empty[simp]: "A \<subset># {#} \<longleftrightarrow> False"
   by (simp only: subset_mset.not_less_zero)
+
+lemma empty_subset_add_mset[simp]: "{#} <# add_mset x M"
+by(auto intro: subset_mset.gr_zeroI)
 
 lemma empty_le: "{#} \<subseteq># A"
   by (fact subset_mset.zero_le)
@@ -631,7 +634,7 @@ lemma subset_eq_diff_conv:
   "A - C \<subseteq># B \<longleftrightarrow> A \<subseteq># B + C"
   by (simp add: subseteq_mset_def le_diff_conv)
 
-lemma subset_eq_empty: "M \<subseteq># {#} \<longleftrightarrow> M = {#}"
+lemma subset_eq_empty[simp]: "M \<subseteq># {#} \<longleftrightarrow> M = {#}"
   by auto
 
 lemma multi_psub_of_add_self [simp]: "A \<subset># add_mset x A"
@@ -682,7 +685,7 @@ lemma diff_intersect_right_idem [simp]:
   "M - N #\<inter> M = M - N"
   by (simp add: multiset_eq_iff min_def)
 
-lemma multiset_inter_single: "a \<noteq> b \<Longrightarrow> {#a#} #\<inter> {#b#} = {#}"
+lemma multiset_inter_single[simp]: "a \<noteq> b \<Longrightarrow> {#a#} #\<inter> {#b#} = {#}"
   by (rule multiset_eqI) auto
 
 lemma multiset_union_diff_commute:
@@ -724,7 +727,7 @@ next
   qed
 qed
 
-lemma add_mset_inter_add_mset:
+lemma add_mset_inter_add_mset[simp]:
   "add_mset a A #\<inter> add_mset a B = add_mset a (A #\<inter> B)"
   by (metis add_mset_add_single add_mset_diff_bothsides diff_subset_eq_self multiset_inter_def
       subset_mset.diff_add_assoc2)
@@ -739,10 +742,10 @@ lemma disjoint_add_mset [simp]:
   "{#} = A #\<inter> add_mset b B \<longleftrightarrow> b \<notin># A \<and> {#} = A #\<inter> B"
   by (auto simp: disjunct_not_in)
 
-lemma empty_inter: "{#} #\<inter> M = {#}"
+lemma empty_inter[simp]: "{#} #\<inter> M = {#}"
   by (simp add: multiset_eq_iff)
 
-lemma inter_empty: "M #\<inter> {#} = {#}"
+lemma inter_empty[simp]: "M #\<inter> {#} = {#}"
   by (simp add: multiset_eq_iff)
 
 lemma inter_add_left1: "\<not> x \<in># N \<Longrightarrow> (add_mset x M) #\<inter> N = M #\<inter> N"
