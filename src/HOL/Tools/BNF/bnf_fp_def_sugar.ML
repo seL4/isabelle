@@ -119,9 +119,9 @@ sig
     local_theory -> Ctr_Sugar.ctr_sugar * local_theory
   val derive_map_set_rel_pred_thms: (string -> bool) -> BNF_Util.fp_kind -> int -> typ list ->
     typ list -> typ -> typ -> thm list -> thm list -> thm list -> thm list -> thm list ->
-    thm list -> thm list -> thm list -> string -> BNF_Def.bnf -> BNF_Def.bnf list -> typ -> term ->
-    thm -> thm -> thm -> thm list -> thm -> thm -> thm list -> thm -> typ list list -> term ->
-    Ctr_Sugar.ctr_sugar -> Proof.context ->
+    thm list -> thm list -> thm list -> thm list -> string -> BNF_Def.bnf -> BNF_Def.bnf list ->
+    typ -> term -> thm -> thm -> thm -> thm list -> thm -> thm -> thm list -> thm ->
+    typ list list -> term -> Ctr_Sugar.ctr_sugar -> local_theory ->
     (thm list * thm list * thm list list * thm list * thm list * thm list * thm list * thm list
      * thm list * thm list * thm list list list list * thm list list list list * thm list
      * thm list * thm list * thm list * thm list) * local_theory
@@ -701,9 +701,9 @@ fun wrap_ctrs plugins fp discs_sels fp_b_name ctor_inject n ms abs_inject type_d
   end;
 
 fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs fp_nesting_set_maps
-    fp_nesting_rel_eq_onps live_nesting_map_id0s live_nesting_set_maps live_nesting_rel_eqs
-    live_nesting_rel_eq_onps fp_b_name fp_bnf fp_bnfs fpT ctor ctor_dtor dtor_ctor pre_map_def
-    pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm ctr_Tss abs
+    fp_nesting_rel_eq_onps live_nesting_map_id0s live_nesting_map_ident0s live_nesting_set_maps
+    live_nesting_rel_eqs live_nesting_rel_eq_onps fp_b_name fp_bnf fp_bnfs fpT ctor ctor_dtor
+    dtor_ctor pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm ctr_Tss abs
     ({casex, case_thms, discs, selss, sel_defs, ctrs, exhaust, exhaust_discs, disc_thmss, sel_thmss,
       injects, distincts, distinct_discsss, ...} : ctr_sugar)
     lthy =
@@ -871,7 +871,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
               else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans);
           in
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
-               mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map_thm' ctr_defs')
+              mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map_thm'
+                live_nesting_map_ident0s ctr_defs')
             |> Thm.close_derivation
             |> Conjunction.elim_balanced (length goals)
           end;
@@ -896,7 +897,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             val vars = Variable.add_free_names lthy goal [];
           in
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
-               mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm ctr_defs')
+              mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm live_nesting_rel_eqs
+                ctr_defs')
             |> Thm.close_derivation
             |> Conjunction.elim_balanced (length goals)
           end;
@@ -925,7 +927,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                    val vars = Variable.add_free_names lthy goal [];
                  in
                    Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
-                     mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm ctr_defs')
+                     mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm
+                       live_nesting_rel_eqs ctr_defs')
                    |> Thm.close_derivation
                    |> Conjunction.elim_balanced (length goals)
                  end)
@@ -2462,10 +2465,11 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
            disc_bindings sel_bindingss sel_default_eqs ctrs0 ctor_iff_dtor_thm ctr_defs
          #> (fn (ctr_sugar, lthy) =>
            derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
-             fp_nesting_set_maps fp_nesting_rel_eq_onps live_nesting_map_id0s live_nesting_set_maps
-             live_nesting_rel_eqs live_nesting_rel_eq_onps fp_b_name fp_bnf fp_bnfs fpT ctor
-             ctor_dtor dtor_ctor pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms
-             fp_rel_thm ctr_Tss abs ctr_sugar lthy
+             fp_nesting_set_maps fp_nesting_rel_eq_onps live_nesting_map_id0s
+             live_nesting_map_ident0s live_nesting_set_maps live_nesting_rel_eqs
+             live_nesting_rel_eq_onps fp_b_name fp_bnf fp_bnfs fpT ctor ctor_dtor dtor_ctor
+             pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm ctr_Tss abs
+             ctr_sugar lthy
            |>> pair ctr_sugar)
          ##>>
            (if fp = Least_FP then define_rec (the recs_args_types) mk_binding fpTs Cs reps
