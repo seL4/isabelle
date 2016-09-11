@@ -983,20 +983,19 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                   apfst flat (fold_map (fn set => fn ctxt =>
                     let
                       val T = HOLogic.dest_setT (range_type (fastype_of set));
-                      val (x, ctxt') = yield_singleton (mk_Frees "x") T ctxt;
-                      val assm = mk_Trueprop_mem (x, set $ t);
+                      val (y, ctxt') = yield_singleton (mk_Frees "y") T ctxt;
+                      val assm = mk_Trueprop_mem (y, set $ t);
                     in
-                      apfst (map (Logic.mk_implies o pair assm)) (mk_goals A setA ctr_args x ctxt')
+                      apfst (map (Logic.mk_implies o pair assm)) (mk_goals A setA ctr_args y ctxt')
                     end) (map (mk_set innerTs) (sets_of_bnf bnf)) ctxt))
               | T => (if T = A then [mk_Trueprop_mem (t, setA $ ctr_args)] else [], ctxt));
 
             val (goalssss, _) =
               fold_map (fn set =>
                 let val A = HOLogic.dest_setT (range_type (fastype_of set)) in
-                  fold_map (fn ctr => fn ctxt =>
-                    let val (args, ctxt') = mk_Frees "a" (binder_types (fastype_of ctr)) ctxt in
-                      fold_map (mk_goals A set (Term.list_comb (ctr, args))) args ctxt'
-                    end) ctrAs
+                  @{fold_map 2} (fn ctr => fn xs =>
+                      fold_map (mk_goals A set (Term.list_comb (ctr, xs))) xs)
+                    ctrAs xss
                 end) setAs lthy;
             val goals = flat (flat (flat goalssss));
           in
