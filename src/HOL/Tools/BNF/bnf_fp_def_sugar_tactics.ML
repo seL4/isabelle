@@ -8,7 +8,6 @@ Tactics for datatype and codatatype sugar.
 
 signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
-  val sumprod_thms_map: thm list
   val sumprod_thms_set: thm list
   val basic_sumprod_thms_set: thm list
   val sumprod_thms_rel: thm list
@@ -33,6 +32,7 @@ sig
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
     thm list -> thm -> thm list -> thm list -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
+  val mk_map_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> tactic
   val mk_map_disc_iff_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_map_sel_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> tactic
@@ -388,6 +388,12 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
     EVERY' (@{map 10} (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
+
+fun mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map' ctr_defs' =
+  TRYALL Goal.conjunction_tac THEN
+  unfold_thms_tac ctxt (pre_map_def :: dtor_ctor :: fp_map' :: abs_inverses @ ctr_defs' @ o_apply ::
+    sumprod_thms_map) THEN
+  ALLGOALS (rtac ctxt refl);
 
 fun mk_map_disc_iff_tac ctxt ct exhaust discs maps =
   TRYALL Goal.conjunction_tac THEN

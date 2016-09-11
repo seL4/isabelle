@@ -736,6 +736,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
 
     val ctr_defs' = map2 (fn m => fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) ms ctr_defs;
 
+    val ABfs = live_AsBs ~~ fs;
+
     fun derive_rel_case relAsBs rel_inject_thms rel_distinct_thms =
       let
         val rel_Rs_a_b = list_comb (relAsBs, Rs) $ ta $ tb;
@@ -830,15 +832,6 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         val cxIns = map2 (mk_cIn ctor) ks xss;
         val cyIns = map2 (mk_cIn (B_ify ctor)) ks yss;
 
-        fun mk_map_thm ctr_def' cxIn =
-          Local_Defs.fold lthy [ctr_def']
-            (unfold_thms lthy (o_apply :: pre_map_def ::
-                 (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_map @ abs_inverses)
-               (infer_instantiate' lthy (map (SOME o Thm.cterm_of lthy) fs @ [SOME cxIn])
-                  (if fp = Least_FP then fp_map_thm
-                   else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans))))
-          |> singleton (Proof_Context.export names_lthy lthy);
-
         fun mk_set0_thm fp_set_thm ctr_def' cxIn =
           Local_Defs.fold lthy [ctr_def']
             (unfold_thms lthy (pre_set_defs @ fp_nesting_set_maps @ live_nesting_set_maps @
@@ -849,13 +842,40 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
 
         fun mk_set0_thms fp_set_thm = map2 (mk_set0_thm fp_set_thm) ctr_defs' cxIns;
 
-        val map_thms = map2 mk_map_thm ctr_defs' cxIns;
         val set0_thmss = map mk_set0_thms fp_set_thms;
         val set0_thms = flat set0_thmss;
         val set_thms = set0_thms
           |> map (unfold_thms lthy @{thms insert_is_Un[THEN sym] Un_empty_left Un_insert_left});
 
-        val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
+        val map_thms =
+          let
+            fun mk_goal ctrA ctrB xs ys =
+              let
+                val mapx = mk_map live As Bs (map_of_bnf fp_bnf);
+                val fmap = list_comb (mapx, fs);
+
+                fun mk_arg (x as Free (_, T)) (Free (_, U)) =
+                  if T = U then x
+                  else build_map lthy [] (the o AList.lookup (op =) ABfs) (T, U) $ x;
+
+                val xs' = map2 mk_arg xs ys;
+              in
+                mk_Trueprop_eq (fmap $ list_comb (ctrA, xs), list_comb (ctrB, xs'))
+              end;
+
+            val goals = @{map 4} mk_goal ctrAs ctrBs xss yss;
+            val goal = Logic.mk_conjunction_balanced goals;
+            val vars = Variable.add_free_names lthy goal [];
+
+            val fp_map_thm' =
+              if fp = Least_FP then fp_map_thm
+              else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans);
+          in
+            Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
+               mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map_thm' ctr_defs')
+            |> Thm.close_derivation
+            |> Conjunction.elim_balanced (length goals)
+          end;
 
         fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
           Local_Defs.fold lthy ctr_defs'
@@ -870,17 +890,19 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
           mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
 
-        fun mk_rel_intro_thm m thm =
-          uncurry_thm m (thm RS iffD2) handle THM _ => thm;
-
         fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
           mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
             cxIn cyIn;
+
+        fun mk_rel_intro_thm m thm =
+          uncurry_thm m (thm RS iffD2) handle THM _ => thm;
 
         val rel_flip = rel_flip_of_bnf fp_bnf;
 
         fun mk_other_half_rel_distinct_thm thm =
           flip_rels lthy live thm RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
+
+        val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
 
         val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
         val rel_intro_thms = map2 mk_rel_intro_thm ms rel_inject_thms;
