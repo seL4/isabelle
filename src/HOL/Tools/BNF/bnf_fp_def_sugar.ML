@@ -830,7 +830,6 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           end;
 
         val cxIns = map2 (mk_cIn ctor) ks xss;
-        val cyIns = map2 (mk_cIn (B_ify ctor)) ks yss;
 
         fun mk_set0_thm fp_set_thm ctr_def' cxIn =
           Local_Defs.fold lthy [ctr_def']
@@ -877,41 +876,75 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             |> Conjunction.elim_balanced (length goals)
           end;
 
-        fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
-          Local_Defs.fold lthy ctr_defs'
-            (unfold_thms lthy (pre_rel_def :: abs_inverses @
-                 (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
-                 @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})
-               (infer_instantiate' lthy (map (SOME o Thm.cterm_of lthy) Rs @ [SOME cxIn, SOME cyIn])
-                  fp_rel_thm))
-          |> postproc
-          |> singleton (Proof_Context.export names_lthy lthy);
+        val rel_inject_thms =
+          let
+            fun mk_goal ctrA ctrB xs ys =
+              let
+                val rel = mk_rel live As Bs (rel_of_bnf fp_bnf);
+                val Rrel = list_comb (rel, Rs);
 
-        fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
-          mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
+                val lhs = Rrel $ list_comb (ctrA, xs) $ list_comb (ctrB, ys);
+                val conjuncts = map2 (build_rel_app lthy Rs []) xs ys;
+              in
+                HOLogic.mk_Trueprop
+                  (if null conjuncts then lhs
+                   else HOLogic.mk_eq (lhs, Library.foldr1 HOLogic.mk_conj conjuncts))
+              end;
 
-        fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
-          mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
-            cxIn cyIn;
+            val goals = @{map 4} mk_goal ctrAs ctrBs xss yss;
+            val goal = Logic.mk_conjunction_balanced goals;
+            val vars = Variable.add_free_names lthy goal [];
+          in
+            Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
+               mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm ctr_defs')
+            |> Thm.close_derivation
+            |> Conjunction.elim_balanced (length goals)
+          end;
 
-        fun mk_rel_intro_thm m thm =
-          uncurry_thm m (thm RS iffD2) handle THM _ => thm;
+        val half_rel_distinct_thmss =
+          let
+            fun mk_goal ((ctrA, xs), (ctrB, ys)) =
+              let
+                val rel = mk_rel live As Bs (rel_of_bnf fp_bnf);
+                val Rrel = list_comb (rel, Rs);
+              in
+                HOLogic.mk_Trueprop (HOLogic.mk_not
+                  (Rrel $ list_comb (ctrA, xs) $ list_comb (ctrB, ys)))
+              end;
+
+            val rel_infos = (ctrAs ~~ xss, ctrBs ~~ yss);
+
+            val goalss = map (map mk_goal) (mk_half_pairss rel_infos);
+            val goals = flat goalss;
+          in
+            unflat goalss
+              (if null goals then []
+               else
+                 let
+                   val goal = Logic.mk_conjunction_balanced goals;
+                   val vars = Variable.add_free_names lthy goal [];
+                 in
+                   Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
+                     mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm ctr_defs')
+                   |> Thm.close_derivation
+                   |> Conjunction.elim_balanced (length goals)
+                 end)
+          end;
 
         val rel_flip = rel_flip_of_bnf fp_bnf;
 
         fun mk_other_half_rel_distinct_thm thm =
           flip_rels lthy live thm RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
 
-        val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
-
-        val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
-        val rel_intro_thms = map2 mk_rel_intro_thm ms rel_inject_thms;
-
-        val half_rel_distinct_thmss = map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
         val other_half_rel_distinct_thmss =
           map (map mk_other_half_rel_distinct_thm) half_rel_distinct_thmss;
         val (rel_distinct_thms, _) =
           join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
+
+        fun mk_rel_intro_thm m thm =
+          uncurry_thm m (thm RS iffD2) handle THM _ => thm;
+
+        val rel_intro_thms = map2 mk_rel_intro_thm ms rel_inject_thms;
 
         val rel_code_thms =
           map (fn thm => thm RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms @

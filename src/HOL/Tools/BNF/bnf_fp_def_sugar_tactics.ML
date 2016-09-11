@@ -10,7 +10,6 @@ signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
   val sumprod_thms_set: thm list
   val basic_sumprod_thms_set: thm list
-  val sumprod_thms_rel: thm list
 
   val mk_case_transfer_tac: Proof.context -> thm -> thm list -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
@@ -40,6 +39,7 @@ sig
     tactic
   val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
     term list list list list -> thm list -> thm list -> thm list -> thm list -> tactic
+  val mk_rel_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> tactic
   val mk_rel_case_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
@@ -75,11 +75,11 @@ val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
 val simp_thms' = @{thms simp_thms(6,7,8,11,12,15,16,22,24)};
 
 val sumprod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
+val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_inject prod.inject id_apply conj_assoc};
 val basic_sumprod_thms_set =
   @{thms UN_empty UN_insert  UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib
       o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
 val sumprod_thms_set = @{thms UN_simps(10) image_iff} @ basic_sumprod_thms_set;
-val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_inject prod.inject id_apply conj_assoc};
 
 fun is_def_looping def =
   (case Thm.prop_of def of
@@ -406,13 +406,20 @@ fun mk_map_disc_iff_tac ctxt ct exhaust discs maps =
 
 fun mk_map_sel_tac ctxt ct exhaust discs maps sels map_id0s =
   TRYALL Goal.conjunction_tac THEN
-    ALLGOALS (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust) THEN_ALL_NEW
-      REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-    unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @
-      @{thms not_True_eq_False not_False_eq_True}) THEN
-    TRYALL (etac ctxt FalseE ORELSE' etac ctxt @{thm TrueE}) THEN
-    unfold_thms_tac ctxt (@{thm id_apply} :: maps @ sels @ map_id0s) THEN
-    ALLGOALS (rtac ctxt refl);
+  ALLGOALS (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust) THEN_ALL_NEW
+    REPEAT_DETERM o hyp_subst_tac ctxt) THEN
+  unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @
+    @{thms not_True_eq_False not_False_eq_True}) THEN
+  TRYALL (etac ctxt FalseE ORELSE' etac ctxt @{thm TrueE}) THEN
+  unfold_thms_tac ctxt (@{thm id_apply} :: maps @ sels @ map_id0s) THEN
+  ALLGOALS (rtac ctxt refl);
+
+fun mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel ctr_defs' =
+  TRYALL Goal.conjunction_tac THEN
+  unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: fp_rel :: abs_inverses @ ctr_defs' @ o_apply ::
+    sumprod_thms_rel @ @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]
+      not_False_eq_True}) THEN
+  ALLGOALS (resolve_tac ctxt [TrueI, refl]);
 
 fun mk_rel_case_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts rel_eqs =
   HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct1] exhaust) THEN_ALL_NEW
@@ -483,16 +490,16 @@ fun mk_sel_transfer_tac ctxt n sel_defs case_transfer =
 
 fun mk_set_sel_tac ctxt ct exhaust discs sels sets =
   TRYALL Goal.conjunction_tac THEN
-    ALLGOALS (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust) THEN_ALL_NEW
-      REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-    unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @
-      @{thms not_True_eq_False not_False_eq_True}) THEN
-    TRYALL (etac ctxt FalseE ORELSE' etac ctxt @{thm TrueE}) THEN
-    unfold_thms_tac ctxt (sels @ sets) THEN
-    ALLGOALS (REPEAT o (resolve_tac ctxt @{thms UnI1 UnI2 imageI} ORELSE'
-        eresolve_tac ctxt @{thms UN_I UN_I[rotated] imageE} ORELSE'
-        hyp_subst_tac ctxt) THEN'
-      (rtac ctxt @{thm singletonI} ORELSE' assume_tac ctxt));
+  ALLGOALS (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust) THEN_ALL_NEW
+    REPEAT_DETERM o hyp_subst_tac ctxt) THEN
+  unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @
+    @{thms not_True_eq_False not_False_eq_True}) THEN
+  TRYALL (etac ctxt FalseE ORELSE' etac ctxt @{thm TrueE}) THEN
+  unfold_thms_tac ctxt (sels @ sets) THEN
+  ALLGOALS (REPEAT o (resolve_tac ctxt @{thms UnI1 UnI2 imageI} ORELSE'
+      eresolve_tac ctxt @{thms UN_I UN_I[rotated] imageE} ORELSE'
+      hyp_subst_tac ctxt) THEN'
+    (rtac ctxt @{thm singletonI} ORELSE' assume_tac ctxt));
 
 fun mk_set_cases_tac ctxt ct assms exhaust sets =
   HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust)
