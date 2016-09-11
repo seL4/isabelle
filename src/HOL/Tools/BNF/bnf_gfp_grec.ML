@@ -505,9 +505,9 @@ fun bnf_with_deads_and_lives dead_Es live_As Y fpT T lthy =
       map dest_TFree live_As
       |> filter (fn T => exists (fn Ts => member (op =) Ts T) Ass);
 
-     val ((bnf, _), (_, lthy)) =
-      bnf_of_typ false Do_Inline I flatten_tyargs [Term.dest_TFree Y]
-        (map Term.dest_TFree dead_Es) T ((empty_comp_cache, empty_unfolds), lthy)
+    val ((bnf, _), (_, lthy)) =
+      bnf_of_typ false Do_Inline I flatten_tyargs [Term.dest_TFree Y] (map Term.dest_TFree dead_Es)
+        T ((empty_comp_cache, empty_unfolds), lthy)
       handle BAD_DEAD (Y, Y_backdrop) =>
         (case Y_backdrop of
           Type (bad_tc, _) =>
@@ -1668,8 +1668,7 @@ fun derive_Sig_natural_etc ctxt live live_AsBs Y Z preT fpT k_or_fpT sig_T ssig_
     cutSsig_def algLam_def corecU_def live_pre_bnf pre_bnf dead_pre_bnf fp_bnf sig_bnf ssig_bnf
     dead_ssig_bnf =
   let
-    val SOME prod_fp_sugar = fp_sugar_of ctxt @{type_name prod};
-    val prod_bnf = #fp_bnf prod_fp_sugar;
+    val SOME prod_bnf = bnf_of ctxt @{type_name prod};
 
     val f' = substT Z fpT f;
     val dead_ssig_map' = substT Z fpT dead_ssig_map;
