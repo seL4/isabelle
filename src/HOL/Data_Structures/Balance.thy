@@ -23,6 +23,16 @@ definition balance_list :: "'a list \<Rightarrow> 'a tree" where
 definition balance_tree :: "'a tree \<Rightarrow> 'a tree" where
 "balance_tree = balance_list o inorder"
 
+  
+lemma bal_simps:
+  "bal xs 0 = (Leaf, xs)"
+  "n > 0 \<Longrightarrow>
+   bal xs n =
+  (let m = n div 2;
+      (l, ys) = Balance.bal xs m;
+      (r, zs) = Balance.bal (tl ys) (n-1-m)
+  in (Node l (hd ys) r, zs))"
+by(simp_all add: bal.simps)
 
 lemma bal_inorder:
   "\<lbrakk> bal xs n = (t,ys); n \<le> length xs \<rbrakk>
@@ -30,7 +40,7 @@ lemma bal_inorder:
 proof(induction xs n arbitrary: t ys rule: bal.induct)
   case (1 xs n) show ?case
   proof cases
-    assume "n = 0" thus ?thesis using 1 by (simp add: bal.simps)
+    assume "n = 0" thus ?thesis using 1 by (simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     let ?n1 = "n div 2" let ?n2 = "n - 1 - ?n1"
@@ -38,7 +48,7 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
       b1: "bal xs ?n1 = (l,xs')" and
       b2: "bal (tl xs') ?n2 = (r,ys)" and
       t: "t = \<langle>l, hd xs', r\<rangle>"
-      using bal.simps[of xs n] by(auto simp: Let_def split: prod.splits)
+      by(auto simp: Let_def bal_simps split: prod.splits)
     have IH1: "inorder l = take ?n1 xs \<and> xs' = drop ?n1 xs"
       using b1 "1.prems" by(intro "1.IH"(1)) auto
     have IH2: "inorder r = take ?n2 (tl xs') \<and> ys = drop ?n2 (tl xs')"
@@ -63,14 +73,14 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
   case (1 xs n) show ?case
   proof cases
     assume "n = 0" thus ?thesis
-      using "1.prems" by (simp add: floorlog_def bal.simps)
+      using "1.prems" by (simp add: floorlog_def bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     from "1.prems" obtain l r xs' where
       b1: "bal xs (n div 2) = (l,xs')" and
       b2: "bal (tl xs') (n - 1 - n div 2) = (r,ys)" and
       t: "t = \<langle>l, hd xs', r\<rangle>"
-      using bal.simps[of xs n] by(auto simp: Let_def split: prod.splits)
+      by(auto simp: bal_simps Let_def split: prod.splits)
     let ?log1 = "floorlog 2 (n div 2)"
     let ?log2 = "floorlog 2 (n - 1 - n div 2)"
     have IH1: "height l = ?log1" using "1.IH"(1) b1 by simp
@@ -90,14 +100,14 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
   case (1 xs n) show ?case
   proof cases
     assume "n = 0" thus ?thesis
-      using "1.prems" by (simp add: floorlog_def bal.simps)
+      using "1.prems" by (simp add: floorlog_def bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     from "1.prems" obtain l r xs' where
       b1: "bal xs (n div 2) = (l,xs')" and
       b2: "bal (tl xs') (n - 1 - n div 2) = (r,ys)" and
       t: "t = \<langle>l, hd xs', r\<rangle>"
-      using bal.simps[of xs n] by(auto simp: Let_def split: prod.splits)
+      by(auto simp: bal_simps Let_def split: prod.splits)
     let ?log1 = "floorlog 2 (n div 2 + 1) - 1"
     let ?log2 = "floorlog 2 (n - 1 - n div 2 + 1) - 1"
     let ?log2' = "floorlog 2 (n - n div 2) - 1"
