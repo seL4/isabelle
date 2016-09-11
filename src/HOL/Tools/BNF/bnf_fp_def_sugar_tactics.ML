@@ -77,13 +77,13 @@ val simp_thms' = @{thms simp_thms(6,7,8,11,12,15,16,22,24)};
 val sumprod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
 val basic_sumprod_thms_set =
   @{thms UN_empty UN_insert  UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib
-       o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
+      o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
 val sumprod_thms_set = @{thms UN_simps(10) image_iff} @ basic_sumprod_thms_set;
 val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_inject prod.inject id_apply conj_assoc};
 
 fun is_def_looping def =
   (case Thm.prop_of def of
-    Const (@{const_name Pure.eq}, _) $ lhs $ rhs => Term.exists_subterm (curry (op =) lhs) rhs
+    Const (@{const_name Pure.eq}, _) $ lhs $ rhs => Term.exists_subterm (curry (op aconv) lhs) rhs
   | _ => false);
 
 fun hhf_concl_conv cv ctxt ct =
