@@ -845,10 +845,11 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds bnf lthy =
 
     val repTA = mk_T_of_bnf Ds As bnf;
     val T_bind = qualify b;
-    val all_TA_params_in_order = Term.add_tfreesT repTA As';
+    val repTA_tfrees = Term.add_tfreesT repTA [];
+    val all_TA_params_in_order = fold_rev Term.add_tfreesT Ds As';
     val TA_params =
       (if force_out_of_line then all_TA_params_in_order
-       else inter (op =) (Term.add_tfreesT repTA []) all_TA_params_in_order);
+       else inter (op =) repTA_tfrees all_TA_params_in_order);
     val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, _)), lthy) =
       maybe_typedef force_out_of_line (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
         (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
