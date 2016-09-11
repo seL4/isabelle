@@ -114,7 +114,7 @@ sig
   val define_ctrs_dtrs_for_type: string -> typ -> term -> term -> thm -> thm -> int -> int list ->
     term -> binding list -> mixfix list -> typ list list -> local_theory ->
     (term list list * term list * thm * thm list) * local_theory
-  val wrap_ctrs: BNF_Util.fp_kind -> (string -> bool) -> bool -> string -> thm -> int -> int list ->
+  val wrap_ctrs: (string -> bool) -> BNF_Util.fp_kind -> bool -> string -> thm -> int -> int list ->
     thm -> thm -> binding list -> binding list list -> term list -> term list -> thm -> thm list ->
     local_theory -> Ctr_Sugar.ctr_sugar * local_theory
   val derive_map_set_rel_pred_thms: (string -> bool) -> BNF_Util.fp_kind -> int -> typ list ->
@@ -660,7 +660,7 @@ fun define_ctrs_dtrs_for_type fp_b_name fpT ctor dtor ctor_dtor dtor_ctor n ks a
     ((xss, ctrs0, ctor_iff_dtor_thm, ctr_defs), lthy)
   end;
 
-fun wrap_ctrs fp plugins discs_sels fp_b_name ctor_inject n ms abs_inject type_definition
+fun wrap_ctrs plugins fp discs_sels fp_b_name ctor_inject n ms abs_inject type_definition
     disc_bindings sel_bindingss sel_default_eqs ctrs0 ctor_iff_dtor_thm ctr_defs lthy =
   let
     val sumEN_thm' = unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms);
@@ -713,6 +713,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
     val ms = map length ctr_Tss;
 
     val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
+    val B_ify = Term.map_types B_ify_T;
 
     val fpBT = B_ify_T fpT;
     val live_AsBs = filter (op <>) (As ~~ Bs);
@@ -827,7 +828,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           end;
 
         val cxIns = map2 (mk_cIn ctor) ks xss;
-        val cyIns = map2 (mk_cIn (Term.map_types B_ify_T ctor)) ks yss;
+        val cyIns = map2 (mk_cIn (B_ify ctor)) ks yss;
 
         fun mk_map_thm ctr_def' cxIn =
           Local_Defs.fold lthy [ctr_def']
@@ -1272,7 +1273,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             |> Proof_Context.export names_lthy lthy
           end;
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
+        val code_attrs =
+          if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
         val anonymous_notes =
           [(rel_code_thms, code_attrs @ nitpicksimp_attrs)]
@@ -1523,7 +1525,7 @@ fun derive_rel_induct_thms_for_types lthy nn fpA_Ts As Bs ctrAss ctrAs_Tsss exha
     ctor_defss ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs =
   let
     val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
-    val B_ify = Term.subst_atomic_types (As ~~ Bs);
+    val B_ify = Term.map_types B_ify_T;
 
     val fpB_Ts = map B_ify_T fpA_Ts;
     val ctrBs_Tsss = map (map (map B_ify_T)) ctrAs_Tsss;
@@ -1703,7 +1705,8 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
 
     val rec_thmss = mk_rec_thmss (the rec_args_typess) recs rec_defs ctor_rec_thms;
 
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
+    val code_attrs =
+      if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
   in
     ((induct_thms, induct_thm, mk_induct_attrs ctrss),
      (rec_thmss, code_attrs @ nitpicksimp_attrs @ simp_attrs))
@@ -2338,6 +2341,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       liveness As Bs0;
 
     val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
+    val B_ify = Term.map_types B_ify_T;
+
     val live_AsBs = filter (op <>) (As ~~ Bs);
 
     val abss = map #abs absT_infos;
@@ -2398,7 +2403,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         fun massage_res (ctr_sugar, maps_sets_rels) =
           (maps_sets_rels, (ctrs, xss, ctor_iff_dtor_thm, ctr_defs, ctr_sugar));
       in
-        (wrap_ctrs fp plugins discs_sels fp_b_name ctor_inject n ms abs_inject type_definition
+        (wrap_ctrs plugins fp discs_sels fp_b_name ctor_inject n ms abs_inject type_definition
            disc_bindings sel_bindingss sel_default_eqs ctrs0 ctor_iff_dtor_thm ctr_defs
          #> (fn (ctr_sugar, lthy) =>
            derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
@@ -2425,13 +2430,13 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     fun mk_co_rec_transfer_goals lthy co_recs =
       let
-        val B_ify = Term.subst_atomic_types (live_AsBs @ (Cs ~~ Es));
+        val BE_ify = Term.subst_atomic_types (live_AsBs @ (Cs ~~ Es));
 
         val ((Rs, Ss), names_lthy) = lthy
           |> mk_Frees "R" (map (uncurry mk_pred2T) live_AsBs)
           ||>> mk_Frees "S" (map2 mk_pred2T Cs Es);
 
-        val co_recBs = map B_ify co_recs;
+        val co_recBs = map BE_ify co_recs;
       in
         (Rs, Ss, map2 (mk_parametricity_goal lthy (Rs @ Ss)) co_recs co_recBs, names_lthy)
       end;
@@ -2466,8 +2471,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
 
           val rec_arg_Ts = binder_fun_types (hd (map fastype_of recs));
-
-          val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
 
           val num_rec_args = length rec_arg_Ts;
           val g_Ts = map B_ify_T rec_arg_Ts;
@@ -2619,9 +2622,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           val fmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_fs)) maps0;
 
           val corec_arg_Ts = binder_fun_types (hd (map fastype_of corecs));
-
-          val B_ify = Term.subst_atomic_types (As ~~ Bs);
-          val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
 
           val num_rec_args = length corec_arg_Ts;
           val g_names = variant_names num_rec_args "g";
