@@ -187,8 +187,7 @@ lemma dividesE [elim]:
     and elim: "\<And>c. \<lbrakk>b = a \<otimes> c; c \<in> carrier G\<rbrakk> \<Longrightarrow> P"
   shows "P"
 proof -
-  from dividesD[OF d]
-  obtain c where "c \<in> carrier G" and "b = a \<otimes> c" by auto
+  from dividesD[OF d] obtain c where "c \<in> carrier G" and "b = a \<otimes> c" by auto
   then show P by (elim elim)
 qed
 
@@ -319,14 +318,12 @@ lemma (in monoid_cancel) associatedD2:
   unfolding associated_def
 proof clarify
   assume "b divides a"
-  then have "\<exists>u\<in>carrier G. a = b \<otimes> u" by (rule dividesD)
   then obtain u where ucarr: "u \<in> carrier G" and a: "a = b \<otimes> u"
-    by auto
+    by (rule dividesE)
 
   assume "a divides b"
-  then have "\<exists>u'\<in>carrier G. b = a \<otimes> u'" by (rule dividesD)
   then obtain u' where u'carr: "u' \<in> carrier G" and b: "b = a \<otimes> u'"
-    by auto
+    by (rule dividesE)
   note carr = carr ucarr u'carr
 
   from carr have "a \<otimes> \<one> = a" by simp
@@ -559,8 +556,7 @@ lemma properfactorI2:
   assumes advdb: "a divides b"
     and neq: "\<not>(a \<sim> b)"
   shows "properfactor G a b"
-  apply (rule properfactorI, rule advdb)
-proof (rule ccontr, simp)
+proof (rule properfactorI, rule advdb, rule notI)
   assume "b divides a"
   with advdb have "a \<sim> b" by (rule associatedI)
   with neq show "False" by fast
@@ -784,8 +780,7 @@ proof (elim irreducibleE)
   proof (cases "a \<in> Units G")
     case aunit: True
     have "irreducible G b"
-      apply (rule irreducibleI)
-    proof (rule ccontr, simp)
+    proof (rule irreducibleI, rule notI)
       assume "b \<in> Units G"
       with aunit have "(a \<otimes> b) \<in> Units G" by fast
       with abnunit show "False" ..
@@ -804,8 +799,7 @@ proof (elim irreducibleE)
     then have bunit: "b \<in> Units G" by (intro isunit, simp)
 
     have "irreducible G a"
-      apply (rule irreducibleI)
-    proof (rule ccontr, simp)
+    proof (rule irreducibleI, rule notI)
       assume "a \<in> Units G"
       with bunit have "(a \<otimes> b) \<in> Units G" by fast
       with abnunit show "False" ..
@@ -1184,10 +1178,11 @@ lemma (in comm_monoid_cancel) unit_wfactors_empty:
     and wf: "wfactors G fs a"
     and carr[simp]: "set fs \<subseteq> carrier G"
   shows "fs = []"
-proof (rule ccontr, cases fs, simp)
-  fix f fs'
-  assume fs: "fs = f # fs'"
-
+proof (cases fs)
+  case Nil
+  then show ?thesis .
+next
+  case fs: (Cons f fs')
   from carr have fcarr[simp]: "f \<in> carrier G" and carr'[simp]: "set fs' \<subseteq> carrier G"
     by (simp_all add: fs)
 
@@ -1203,7 +1198,7 @@ proof (rule ccontr, cases fs, simp)
     by (simp add: Units_closed[OF aunit] a[symmetric])
   finally have "f \<otimes> foldr (op \<otimes>) fs' \<one> \<in> Units G" by simp
   then have "f \<in> Units G" by (intro unit_factor[of f], simp+)
-  with fnunit show "False" by simp
+  with fnunit show ?thesis by contradiction
 qed
 
 
@@ -2181,7 +2176,7 @@ proof -
     next
       case bnunit: False
       have cnunit: "c \<notin> Units G"
-      proof (rule ccontr, simp)
+      proof
         assume cunit: "c \<in> Units G"
         from bnunit have "properfactor G a (a \<otimes> b)"
           by (intro properfactorI3[of _ _ b], simp+)
@@ -2840,7 +2835,7 @@ proof -
          apply (clarsimp simp add: Unit_eq_dividesone[symmetric])
          apply (rule r, rule, assumption)
          apply (rule properfactorI, assumption)
-    proof (rule ccontr, simp)
+    proof
       fix y
       assume ycarr: "y \<in> carrier G"
       assume "p divides y"
@@ -2860,7 +2855,7 @@ proof -
          apply (clarsimp simp add: Unit_eq_dividesone[symmetric])
          apply (rule r, rule, assumption)
          apply (rule properfactorI, assumption)
-    proof (rule ccontr, simp)
+    proof
       fix y
       assume ycarr: "y \<in> carrier G"
       assume "p divides y"
@@ -3311,7 +3306,7 @@ proof (rule properfactorE[OF pf], elim dividesE)
 
   assume nbdvda: "\<not> b divides a"
   have "c \<notin> Units G"
-  proof (rule ccontr, simp)
+  proof
     assume cunit:"c \<in> Units G"
     have "b \<otimes> inv c = a \<otimes> c \<otimes> inv c"
       by (simp add: b)
