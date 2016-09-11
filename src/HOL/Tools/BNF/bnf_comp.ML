@@ -68,8 +68,8 @@ sig
   val mk_repT: typ -> typ -> typ -> typ
   val mk_abs: typ -> term -> term
   val mk_rep: typ -> term -> term
-  val seal_bnf: (binding -> binding) -> unfold_set -> binding -> bool -> typ list -> BNF_Def.bnf ->
-    local_theory -> (BNF_Def.bnf * (typ list * absT_info)) * local_theory
+  val seal_bnf: (binding -> binding) -> unfold_set -> binding -> bool -> typ list -> typ list ->
+    BNF_Def.bnf -> local_theory -> (BNF_Def.bnf * (typ list * absT_info)) * local_theory
 end;
 
 structure BNF_Comp : BNF_COMP =
@@ -829,13 +829,13 @@ fun maybe_typedef force_out_of_line (b, As, mx) set opt_morphs tac lthy =
          @{thm type_definition.Abs_cases[OF type_definition_id_bnf_UNIV]})), lthy)
   end;
 
-fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds bnf lthy =
+fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf lthy =
   let
     val live = live_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
 
     val ((As, As'), lthy1) = apfst (`(map TFree))
-      (Variable.invent_types (replicate live @{sort type}) (fold Variable.declare_typ Ds lthy));
+      (Variable.invent_types (replicate live @{sort type}) (fold Variable.declare_typ all_Ds lthy));
     val (Bs, _) = apfst (map TFree) (Variable.invent_types (replicate live @{sort type}) lthy1);
 
     val ((((fs, fs'), (Rs, Rs')), (Ps, Ps')), _(*names_lthy*)) = lthy
@@ -846,7 +846,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds bnf lthy =
     val repTA = mk_T_of_bnf Ds As bnf;
     val T_bind = qualify b;
     val repTA_tfrees = Term.add_tfreesT repTA [];
-    val all_TA_params_in_order = fold_rev Term.add_tfreesT Ds As';
+    val all_TA_params_in_order = fold_rev Term.add_tfreesT all_Ds As';
     val TA_params =
       (if force_out_of_line then all_TA_params_in_order
        else inter (op =) repTA_tfrees all_TA_params_in_order);
@@ -880,7 +880,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds bnf lthy =
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
     val bdT_bind = qualify (Binding.suffix_name ("_" ^ bdTN) b);
     val params = Term.add_tfreesT bd_repT [];
-    val all_deads = map TFree (fold Term.add_tfreesT Ds []);
+    val all_deads = map TFree (fold_rev Term.add_tfreesT all_Ds []);
 
     val ((bdT, (_, Abs_bd_name, _, _, Abs_bdT_inject, Abs_bdT_cases)), lthy) =
       maybe_typedef false (bdT_bind, params, NoSyn) (HOLogic.mk_UNIV bd_repT) NONE

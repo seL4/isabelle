@@ -957,10 +957,12 @@ fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rh
 
     val timer = time (timer "Construction of BNFs");
 
-    val ((kill_poss, _), (bnfs', ((comp_cache', unfold_set'), lthy''))) =
+    val ((kill_posss, _), (bnfs', ((comp_cache', unfold_set'), lthy''))) =
       normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs (comp_cache_unfold_set, lthy');
 
-    val Dss = @{map 3} (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
+    val Dss = @{map 3} (fn lives => fn kill_posss => fn deads => deads @ map (nth lives) kill_posss)
+      livess kill_posss deadss;
+    val all_Dss = Dss |> force_out_of_line ? map (fn Ds' => union (op =) Ds' (map TFree Ds0));
 
     fun pre_qualify b =
       Binding.qualify false (Binding.name_of b)
@@ -968,8 +970,9 @@ fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rh
       #> not (Config.get lthy'' bnf_internals) ? Binding.concealed;
 
     val ((pre_bnfs, (deadss, absT_infos)), lthy''') = lthy''
-      |> @{fold_map 4} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
-        bs (replicate (length rhsXs) (force_out_of_line orelse not (null live_phantoms))) Dss bnfs'
+      |> @{fold_map 5} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
+        bs (replicate (length rhsXs) (force_out_of_line orelse not (null live_phantoms))) Dss
+        all_Dss bnfs'
       |>> split_list
       |>> apsnd split_list;
 
