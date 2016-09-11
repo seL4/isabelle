@@ -754,7 +754,7 @@ lemma (in monoid) irreducible_prod_rI:
   apply (elim irreducibleE, intro irreducibleI, clarify)
    apply (subgoal_tac "a \<in> Units G", simp)
    apply (intro prod_unit_r[of a b] carr bunit, assumption)
-  apply (metis assms associatedI2 m_closed properfactor_cong_r)
+  apply (metis assms(2,3) associatedI2 m_closed properfactor_cong_r)
   done
 
 lemma (in comm_monoid) irreducible_prod_lI:
@@ -1004,10 +1004,8 @@ lemma (in monoid) ee_sym [sym]:
 proof (elim essentially_equalE)
   fix fs
   assume "as <~~> fs"  "fs [\<sim>] bs"
-  then have "\<exists>fs'. as [\<sim>] fs' \<and> fs' <~~> bs"
-    by (rule perm_assoc_switch_r)
-  then obtain fs' where a: "as [\<sim>] fs'" and p: "fs' <~~> bs"
-    by auto
+  from perm_assoc_switch_r [OF this] obtain fs' where a: "as [\<sim>] fs'" and p: "fs' <~~> bs"
+    by blast
   from p have "bs <~~> fs'" by (rule perm_sym)
   with a[symmetric] carr show ?thesis
     by (iprover intro: essentially_equalI perm_closed)
@@ -1022,11 +1020,9 @@ lemma (in monoid) ee_trans [trans]:
   using ab bc
 proof (elim essentially_equalE)
   fix abs bcs
-  assume  "abs [\<sim>] bs" and pb: "bs <~~> bcs"
-  then have "\<exists>bs'. abs <~~> bs' \<and> bs' [\<sim>] bcs"
-    by (rule perm_assoc_switch)
-  then obtain bs' where p: "abs <~~> bs'" and a: "bs' [\<sim>] bcs"
-    by auto
+  assume "abs [\<sim>] bs" and pb: "bs <~~> bcs"
+  from perm_assoc_switch [OF this] obtain bs' where p: "abs <~~> bs'" and a: "bs' [\<sim>] bcs"
+    by blast
 
   assume "as <~~> abs"
   with p have pp: "as <~~> bs'" by fast
@@ -1361,10 +1357,8 @@ proof -
   note carr[simp] = factors_closed[OF afs ascarr] ascarr[THEN subsetD]
     factors_closed[OF bfs bscarr] bscarr[THEN subsetD]
 
-  from ab carr have "\<exists>u\<in>Units G. a = b \<otimes> u"
-    by (fast elim: associatedE2)
-  then obtain u where uunit: "u \<in> Units G" and a: "a = b \<otimes> u"
-    by auto
+  from ab carr obtain u where uunit: "u \<in> Units G" and a: "a = b \<otimes> u"
+    by (elim associatedE2)
 
   from uunit bscarr have ee: "essentially_equal G (bs[0 := (bs!0 \<otimes> u)]) bs"
     (is "essentially_equal G ?bs' bs")
@@ -1415,10 +1409,8 @@ next
     with anunit show False ..
   qed
 
-  have "\<exists>a'. factors G as a' \<and> a' \<sim> a"
-    by (rule wfactors_factors[OF asf ascarr])
-  then obtain a' where fa': "factors G as a'" and a': "a' \<sim> a"
-    by auto
+  from wfactors_factors[OF asf ascarr] obtain a' where fa': "factors G as a'" and a': "a' \<sim> a"
+    by blast
   from fa' ascarr have a'carr[simp]: "a' \<in> carrier G"
     by fast
 
@@ -1431,10 +1423,8 @@ next
     show "False" ..
   qed
 
-  have "\<exists>b'. factors G bs b' \<and> b' \<sim> b"
-    by (rule wfactors_factors[OF bsf bscarr])
-  then obtain b' where fb': "factors G bs b'" and b': "b' \<sim> b"
-    by auto
+  from wfactors_factors[OF bsf bscarr] obtain b' where fb': "factors G bs b'" and b': "b' \<sim> b"
+    by blast
   from fb' bscarr have b'carr[simp]: "b' \<in> carrier G"
     by fast
 
@@ -1471,10 +1461,8 @@ proof (cases "a \<in> Units G")
   then show ?thesis by (intro exI) force
 next
   case False
-  then have "\<exists>fs. set fs \<subseteq> carrier G \<and> factors G fs a"
-    by (intro factors_exist acarr)
-  then obtain fs where fscarr: "set fs \<subseteq> carrier G" and f: "factors G fs a"
-    by auto
+  with factors_exist [OF acarr] obtain fs where fscarr: "set fs \<subseteq> carrier G" and f: "factors G fs a"
+    by blast
   from f have "wfactors G fs a" by (rule factors_wfactors) fact
   with fscarr show ?thesis by fast
 qed
@@ -1588,11 +1576,9 @@ proof
 
   from wfactors_exists[OF acarr]
   obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
-    by auto
-  from afs ascarr have "\<exists>a'. factors G as a' \<and> a' \<sim> a"
-    by (rule wfactors_factors)
-  then obtain a' where afs': "factors G as a'" and a'a: "a' \<sim> a"
-    by auto
+    by blast
+  from wfactors_factors [OF afs ascarr] obtain a' where afs': "factors G as a'" and a'a: "a' \<sim> a"
+    by blast
   from afs' ascarr have a'carr: "a' \<in> carrier G"
     by fast
   have a'nunit: "a' \<notin> Units G"
@@ -1603,10 +1589,8 @@ proof
     with anunit show False ..
   qed
 
-  from a'carr acarr a'a have "\<exists>u. u \<in> Units G \<and> a' = a \<otimes> u"
+  from a'carr acarr a'a obtain u where uunit: "u \<in> Units G" and a': "a' = a \<otimes> u"
     by (blast elim: associatedE2)
-  then obtain u where uunit: "u \<in> Units G" and a': "a' = a \<otimes> u"
-    by auto
 
   note [simp] = acarr Units_closed[OF uunit] Units_inv_closed[OF uunit]
 
@@ -1759,16 +1743,19 @@ proof -
   have "set (map (assocs G) as) = {assocs G x | x. x \<in> set as}" by auto
   with setys have "set ys \<subseteq> { assocs G x | x. x \<in> set as}" by simp
   then have "\<exists>yy. ys = map (assocs G) yy"
-    apply (induct ys)
-     apply simp
-    apply clarsimp
-  proof -
-    fix yy x
-    show "\<exists>yya. (assocs G x) # map (assocs G) yy = map (assocs G) yya"
-      by (rule exI[of _ "x#yy"]) simp
+  proof (induct ys)
+    case Nil
+    then show ?case by simp
+  next
+    case Cons
+    then show ?case
+    proof clarsimp
+      fix yy x
+      show "\<exists>yya. assocs G x # map (assocs G) yy = map (assocs G) yya"
+        by (rule exI[of _ "x#yy"]) simp
+    qed
   qed
-  then obtain yy where ys: "ys = map (assocs G) yy"
-    by auto
+  then obtain yy where ys: "ys = map (assocs G) yy" ..
 
   from p1 ys have "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) yy"
     by (intro r1) simp
@@ -1780,14 +1767,16 @@ proof -
   then obtain as'' where yyas'': "yy <~~> as''" and as''bs: "map (assocs G) as'' = map (assocs G) bs"
     by auto
 
-  from as'yy and yyas'' have "\<exists>cs. as' <~~> cs \<and> map (assocs G) cs = map (assocs G) as''"
-    by (rule perm_map_switch)
-  then obtain cs where as'cs: "as' <~~> cs" and csas'': "map (assocs G) cs = map (assocs G) as''"
-    by auto
+  from perm_map_switch [OF as'yy yyas'']
+  obtain cs where as'cs: "as' <~~> cs" and csas'': "map (assocs G) cs = map (assocs G) as''"
+    by blast
 
-  from asas' and as'cs have ascs: "as <~~> cs" by fast
-  from csas'' and as''bs have "map (assocs G) cs = map (assocs G) bs" by simp
-  with ascs show "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) bs" by fast
+  from asas' and as'cs have ascs: "as <~~> cs"
+    by fast
+  from csas'' and as''bs have "map (assocs G) cs = map (assocs G) bs"
+    by simp
+  with ascs show "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) bs"
+    by fast
 qed
 
 lemma (in comm_monoid_cancel) fmset_ee:
@@ -1798,17 +1787,14 @@ proof -
   from mset have mpp: "map (assocs G) as <~~> map (assocs G) bs"
     by (simp add: fmset_def mset_eq_perm del: mset_map)
 
-  have "\<exists>cas. cas = map (assocs G) as" by simp
-  then obtain cas where cas: "cas = map (assocs G) as" by simp
+  define cas where "cas = map (assocs G) as"
+  define cbs where "cbs = map (assocs G) bs"
 
-  have "\<exists>cbs. cbs = map (assocs G) bs" by simp
-  then obtain cbs where cbs: "cbs = map (assocs G) bs" by simp
-
-  from cas cbs mpp have [rule_format]:
+  from cas_def cbs_def mpp have [rule_format]:
     "\<forall>as bs. (cas <~~> cbs \<and> cas = map (assocs G) as \<and> cbs = map (assocs G) bs)
       \<longrightarrow> (\<exists>as'. as <~~> as' \<and> map (assocs G) as' = cbs)"
     by (intro fmset_ee__hlp_induct, simp+)
-  with mpp cas cbs have "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) bs"
+  with mpp cas_def cbs_def have "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) bs"
     by simp
 
   then obtain as' where tp: "as <~~> as'" and tm: "map (assocs G) as' = map (assocs G) bs"
@@ -1820,8 +1806,7 @@ proof -
   with ascarr have as'carr: "set as' \<subseteq> carrier G"
     by simp
 
-  from tm as'carr[THEN subsetD] bscarr[THEN subsetD]
-  have "as' [\<sim>] bs"
+  from tm as'carr[THEN subsetD] bscarr[THEN subsetD] have "as' [\<sim>] bs"
     by (induct as' arbitrary: bs) (simp, fastforce dest: assocs_eqD[THEN associated_sym])
   with tp show "essentially_equal G as bs"
     by (fast intro: essentially_equalI)
@@ -1839,11 +1824,8 @@ lemma (in monoid) mset_fmsetEx:
   assumes elems: "\<And>X. X \<in> set_mset Cs \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
   shows "\<exists>cs. (\<forall>c \<in> set cs. P c) \<and> fmset G cs = Cs"
 proof -
-  have "\<exists>Cs'. Cs = mset Cs'"
-    by (rule surjE[OF surj_mset], fast)
-  then obtain Cs' where Cs: "Cs = mset Cs'"
-    by auto
-
+  from surjE[OF surj_mset] obtain Cs' where Cs: "Cs = mset Cs'"
+    by blast
   have "\<exists>cs. (\<forall>c \<in> set cs. P c) \<and> mset (map (assocs G) cs) = Cs"
     using elems
     unfolding Cs
@@ -1853,11 +1835,14 @@ proof -
     assume ih: "\<And>X. X = a \<or> X \<in> set Cs' \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
       and csP: "\<forall>x\<in>set cs. P x"
       and mset: "mset (map (assocs G) cs) = mset Cs'"
-    from ih have "\<exists>x. P x \<and> a = assocs G x" by fast
-    then obtain c where cP: "P c" and a: "a = assocs G c" by auto
-    from cP csP have tP: "\<forall>x\<in>set (c#cs). P x" by simp
-    from mset a have "mset (map (assocs G) (c#cs)) = add_mset a (mset Cs')" by simp
-    with tP show "\<exists>cs. (\<forall>x\<in>set cs. P x) \<and> mset (map (assocs G) cs) = add_mset a (mset Cs')" by fast
+    from ih obtain c where cP: "P c" and a: "a = assocs G c"
+      by auto
+    from cP csP have tP: "\<forall>x\<in>set (c#cs). P x"
+      by simp
+    from mset a have "mset (map (assocs G) (c#cs)) = add_mset a (mset Cs')"
+      by simp
+    with tP show "\<exists>cs. (\<forall>x\<in>set cs. P x) \<and> mset (map (assocs G) cs) = add_mset a (mset Cs')"
+      by fast
   qed
   then show ?thesis by (simp add: fmset_def)
 qed
@@ -1870,7 +1855,6 @@ proof -
     by (intro mset_fmsetEx, rule elems)
   then obtain cs where p[rule_format]: "\<forall>c\<in>set cs. c \<in> carrier G \<and> irreducible G c"
     and Cs[symmetric]: "fmset G cs = Cs" by auto
-
   from p have cscarr: "set cs \<subseteq> carrier G" by fast
   from p have "\<exists>c. c \<in> carrier G \<and> wfactors G cs c"
     by (intro wfactors_prod_exists) auto
@@ -1939,10 +1923,9 @@ lemma (in factorial_monoid) divides_fmsubset:
 proof (elim dividesE)
   fix c
   assume ccarr: "c \<in> carrier G"
-  then have "\<exists>cs. set cs \<subseteq> carrier G \<and> wfactors G cs c"
-    by (rule wfactors_exist)
-  then obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfs: "wfactors G cs c"
-    by auto
+  from wfactors_exist [OF this]
+  obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfs: "wfactors G cs c"
+    by blast
   note carr = carr ccarr cscarr
 
   assume "b = a \<otimes> c"
@@ -2065,24 +2048,19 @@ proof (elim irreducibleE, intro primeI)
     and pnunit: "p \<notin> Units G"
   assume irreduc[rule_format]:
     "\<forall>b. b \<in> carrier G \<and> properfactor G b p \<longrightarrow> b \<in> Units G"
-  from pdvdab
-  have "\<exists>c\<in>carrier G. a \<otimes> b = p \<otimes> c" by (rule dividesD)
-  then obtain c where ccarr: "c \<in> carrier G" and abpc: "a \<otimes> b = p \<otimes> c"
+  from pdvdab obtain c where ccarr: "c \<in> carrier G" and abpc: "a \<otimes> b = p \<otimes> c"
+    by (rule dividesE)
+
+  from wfactors_exist [OF acarr]
+  obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
+    by blast
+
+  from wfactors_exist [OF bcarr]
+  obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfs: "wfactors G bs b"
     by auto
 
-  from acarr have "\<exists>fs. set fs \<subseteq> carrier G \<and> wfactors G fs a"
-    by (rule wfactors_exist)
-  then obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
-    by auto
-
-  from bcarr have "\<exists>fs. set fs \<subseteq> carrier G \<and> wfactors G fs b"
-    by (rule wfactors_exist)
-  then obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfs: "wfactors G bs b"
-    by auto
-
-  from ccarr have "\<exists>fs. set fs \<subseteq> carrier G \<and> wfactors G fs c"
-    by (rule wfactors_exist)
-  then obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfs: "wfactors G cs c"
+  from wfactors_exist [OF ccarr]
+  obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfs: "wfactors G cs c"
     by auto
 
   note carr[simp] = pcarr acarr bcarr ccarr ascarr bscarr cscarr
@@ -2098,16 +2076,12 @@ proof (elim irreducibleE, intro primeI)
   from abfs' abfs have "essentially_equal G (p # cs) (as @ bs)"
     by (rule wfactors_unique) simp+
 
-  then have "\<exists>ds. p # cs <~~> ds \<and> ds [\<sim>] (as @ bs)"
-    by (fast elim: essentially_equalE)
   then obtain ds where "p # cs <~~> ds" and dsassoc: "ds [\<sim>] (as @ bs)"
-    by auto
+    by (fast elim: essentially_equalE)
   then have "p \<in> set ds"
     by (simp add: perm_set_eq[symmetric])
-  with dsassoc have "\<exists>p'. p' \<in> set (as@bs) \<and> p \<sim> p'"
+  with dsassoc obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
     unfolding list_all2_conv_all_nth set_conv_nth by force
-  then obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
-    by auto
   then consider "p' \<in> set as" | "p' \<in> set bs" by auto
   then show "p divides a \<or> p divides b"
   proof cases
@@ -2146,10 +2120,8 @@ proof -
     and bcarr: "b \<in> carrier G"
     and pdvdab: "p divides (a \<otimes> b)"
   assume irreduc[rule_format]: "\<forall>b. b \<in> carrier G \<and> properfactor G b p \<longrightarrow> b \<in> Units G"
-  from pdvdab have "\<exists>c\<in>carrier G. a \<otimes> b = p \<otimes> c"
-    by (rule dividesD)
-  then obtain c where ccarr: "c \<in> carrier G" and abpc: "a \<otimes> b = p \<otimes> c"
-    by auto
+  from pdvdab obtain c where ccarr: "c \<in> carrier G" and abpc: "a \<otimes> b = p \<otimes> c"
+    by (rule dividesE)
   note [simp] = pcarr acarr bcarr ccarr
 
   show "p divides a \<or> p divides b"
@@ -2195,19 +2167,16 @@ proof -
         with anunit show False ..
       qed
 
-      from acarr anunit have "\<exists>fs. set fs \<subseteq> carrier G \<and> factors G fs a"
-        by (rule factors_exist)
-      then obtain as where ascarr: "set as \<subseteq> carrier G" and afac: "factors G as a"
-        by auto
+      from factors_exist [OF acarr anunit]
+      obtain as where ascarr: "set as \<subseteq> carrier G" and afac: "factors G as a"
+        by blast
 
-      from bcarr bnunit have "\<exists>fs. set fs \<subseteq> carrier G \<and> factors G fs b"
-        by (rule factors_exist)
-      then obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfac: "factors G bs b"
-        by auto
+      from factors_exist [OF bcarr bnunit]
+      obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfac: "factors G bs b"
+        by blast
 
-      from ccarr cnunit have "\<exists>fs. set fs \<subseteq> carrier G \<and> factors G fs c"
-        by (rule factors_exist)
-      then obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfac: "factors G cs c"
+      from factors_exist [OF ccarr cnunit]
+      obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfac: "factors G cs c"
         by auto
 
       note [simp] = ascarr bscarr cscarr
@@ -2222,16 +2191,12 @@ proof -
 
       from abfac' abfac have "essentially_equal G (p # cs) (as @ bs)"
         by (rule factors_unique) (fact | simp)+
-      then have "\<exists>ds. p # cs <~~> ds \<and> ds [\<sim>] (as @ bs)"
-        by (fast elim: essentially_equalE)
       then obtain ds where "p # cs <~~> ds" and dsassoc: "ds [\<sim>] (as @ bs)"
-        by auto
+        by (fast elim: essentially_equalE)
       then have "p \<in> set ds"
         by (simp add: perm_set_eq[symmetric])
-      with dsassoc have "\<exists>p'. p' \<in> set (as@bs) \<and> p \<sim> p'"
+      with dsassoc obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
         unfolding list_all2_conv_all_nth set_conv_nth by force
-      then obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
-        by auto
       then consider "p' \<in> set as" | "p' \<in> set bs" by auto
       then show "p divides a \<or> p divides b"
       proof cases
@@ -2328,16 +2293,15 @@ lemma (in factorial_monoid) gcdof_exists:
     and bcarr: "b \<in> carrier G"
   shows "\<exists>c. c \<in> carrier G \<and> c gcdof a b"
 proof -
-  from acarr have "\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as a" by (rule wfactors_exist)
-  then obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
-    by auto
+  from wfactors_exist [OF acarr]
+  obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
+    by blast
   from afs have airr: "\<forall>a \<in> set as. irreducible G a"
     by (fast elim: wfactorsE)
 
-  from bcarr have "\<exists>bs. set bs \<subseteq> carrier G \<and> wfactors G bs b"
-    by (rule wfactors_exist)
-  then obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfs: "wfactors G bs b"
-    by auto
+  from wfactors_exist [OF bcarr]
+  obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfs: "wfactors G bs b"
+    by blast
   from bfs have birr: "\<forall>b \<in> set bs. irreducible G b"
     by (fast elim: wfactorsE)
 
@@ -2352,13 +2316,13 @@ proof -
     then have "\<exists>x. X = assocs G x \<and> x \<in> set as"
       by (induct as) auto
     then obtain x where X: "X = assocs G x" and xas: "x \<in> set as"
-      by auto
+      by blast
     with ascarr have xcarr: "x \<in> carrier G"
-      by fast
+      by blast
     from xas airr have xirr: "irreducible G x"
       by simp
     from xcarr and xirr and X show "\<exists>x. (x \<in> carrier G \<and> irreducible G x) \<and> X = assocs G x"
-      by fast
+      by blast
   qed
   then obtain c cs
     where ccarr: "c \<in> carrier G"
@@ -2380,11 +2344,10 @@ proof -
       by (rule fmsubset_divides) fact+
   next
     fix y
-    assume ycarr: "y \<in> carrier G"
-    then have "\<exists>ys. set ys \<subseteq> carrier G \<and> wfactors G ys y"
-      by (rule wfactors_exist)
-    then obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
-      by auto
+    assume "y \<in> carrier G"
+    from wfactors_exist [OF this]
+    obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
+      by blast
 
     assume "y divides a"
     then have ya: "fmset G ys \<le># fmset G as"
@@ -2408,17 +2371,15 @@ lemma (in factorial_monoid) lcmof_exists:
     and bcarr: "b \<in> carrier G"
   shows "\<exists>c. c \<in> carrier G \<and> c lcmof a b"
 proof -
-  from acarr have "\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as a"
-    by (rule wfactors_exist)
-  then obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
-    by auto
+  from wfactors_exist [OF acarr]
+  obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
+    by blast
   from afs have airr: "\<forall>a \<in> set as. irreducible G a"
     by (fast elim: wfactorsE)
 
-  from bcarr have "\<exists>bs. set bs \<subseteq> carrier G \<and> wfactors G bs b"
-    by (rule wfactors_exist)
-  then obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfs: "wfactors G bs b"
-    by auto
+  from wfactors_exist [OF bcarr]
+  obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfs: "wfactors G bs b"
+    by blast
   from bfs have birr: "\<forall>b \<in> set bs. irreducible G b"
     by (fast elim: wfactorsE)
 
@@ -2470,11 +2431,10 @@ proof -
       by (rule fmsubset_divides) fact+
   next
     fix y
-    assume ycarr: "y \<in> carrier G"
-    then have "\<exists>ys. set ys \<subseteq> carrier G \<and> wfactors G ys y"
-      by (rule wfactors_exist)
-    then obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
-      by auto
+    assume "y \<in> carrier G"
+    from wfactors_exist [OF this]
+    obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
+      by blast
 
     assume "a divides y"
     then have ya: "fmset G as \<le># fmset G ys"
@@ -2511,9 +2471,8 @@ proof -
   proof -
     fix x y
     assume carr: "x \<in> carrier G"  "y \<in> carrier G"
-    then have "\<exists>z. z \<in> carrier G \<and> z gcdof x y" by (rule gcdof_exists)
-    then obtain z where zcarr: "z \<in> carrier G" and isgcd: "z gcdof x y"
-      by auto
+    from gcdof_exists [OF this] obtain z where zcarr: "z \<in> carrier G" and isgcd: "z gcdof x y"
+      by blast
     with carr have "greatest (division_rel G) z (Lower (division_rel G) {x, y})"
       by (subst gcdof_greatestLower[symmetric], simp+)
     then show "\<exists>z. greatest (division_rel G) z (Lower (division_rel G) {x, y})"
@@ -2714,18 +2673,14 @@ proof - (* following Jacobson, Basic Algebra, p.140 *)
 
   from cd'ca cd'cb have cd'e: "c \<otimes> ?d divides ?e"
     by (rule gcd_divides) simp_all
-  then have "\<exists>u. u \<in> carrier G \<and> ?e = c \<otimes> ?d \<otimes> u"
-    by (elim dividesE) fast
   then obtain u where ucarr[simp]: "u \<in> carrier G" and e_cdu: "?e = c \<otimes> ?d \<otimes> u"
-    by auto
+    by blast
 
   note carr = carr ucarr
 
   have "?e divides c \<otimes> a" by (rule gcd_divides_l) simp_all
-  then have "\<exists>x. x \<in> carrier G \<and> c \<otimes> a = ?e \<otimes> x"
-    by (elim dividesE) fast
   then obtain x where xcarr: "x \<in> carrier G" and ca_ex: "c \<otimes> a = ?e \<otimes> x"
-    by auto
+    by blast
   with e_cdu have ca_cdux: "c \<otimes> a = c \<otimes> ?d \<otimes> u \<otimes> x"
     by simp
 
@@ -2737,10 +2692,8 @@ proof - (* following Jacobson, Basic Algebra, p.140 *)
     by (rule dividesI[OF xcarr])
 
   have "?e divides c \<otimes> b" by (intro gcd_divides_r) simp_all
-  then have "\<exists>x. x \<in> carrier G \<and> c \<otimes> b = ?e \<otimes> x"
-    by (elim dividesE) fast
   then obtain x where xcarr: "x \<in> carrier G" and cb_ex: "c \<otimes> b = ?e \<otimes> x"
-    by auto
+    by blast
   with e_cdu have cb_cdux: "c \<otimes> b = c \<otimes> ?d \<otimes> u \<otimes> x"
     by simp
 
@@ -2916,23 +2869,20 @@ proof -
         done
       then obtain y where ycarr: "y \<in> carrier G" and ynunit: "y \<notin> Units G"
         and pfyx: "properfactor G y x"
-        by auto
+        by blast
 
       have ih': "\<And>y. \<lbrakk>y \<in> carrier G; properfactor G y x\<rbrakk>
           \<Longrightarrow> \<exists>as. set as \<subseteq> carrier G \<and> wfactors G as y"
         by (rule ih[rule_format, simplified]) (simp add: xcarr)+
 
-      from ycarr pfyx have "\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as y"
-        by (rule ih')
-      then obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
-        by auto
+      from ih' [OF ycarr pfyx]
+      obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
+        by blast
 
       from pfyx have "y divides x" and nyx: "\<not> y \<sim> x"
         by (fast elim: properfactorE2)+
-      then have "\<exists>z. z \<in> carrier G \<and> x = y \<otimes> z"
-        by fast
       then obtain z where zcarr: "z \<in> carrier G" and x: "x = y \<otimes> z"
-        by auto
+        by blast
 
       from zcarr ycarr have "properfactor G z x"
         apply (subst x)
@@ -2940,11 +2890,9 @@ proof -
             apply (simp add: m_comm)
            apply (simp add: ynunit)+
         done
-      with zcarr have "\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as z"
-        by (rule ih')
-      then obtain zs where zscarr: "set zs \<subseteq> carrier G" and zfs: "wfactors G zs z"
-        by auto
-
+      from ih' [OF zcarr this]
+      obtain zs where zscarr: "set zs \<subseteq> carrier G" and zfs: "wfactors G zs z"
+        by blast
       from yscarr zscarr have xscarr: "set (ys@zs) \<subseteq> carrier G"
         by simp
       from yfs zfs ycarr zcarr yscarr zscarr have "wfactors G (ys@zs) (y\<otimes>z)"
@@ -2993,8 +2941,7 @@ proof -
       with p1 show ?thesis by fast
     next
       assume "a divides foldr op \<otimes> as \<one>"
-      then have "\<exists>i. i < length as \<and> a divides as ! i" by (rule ih)
-      then obtain i where "a divides as ! i" and len: "i < length as" by auto
+      from ih [OF this] obtain i where "a divides as ! i" and len: "i < length as" by auto
       then have p1: "a divides (aa#as) ! (Suc i)" by simp
       from len have "Suc i < Suc (length as)" by simp
       with p1 show ?thesis by force
@@ -3034,13 +2981,13 @@ next
       and afs: "wfactors G (ah # as) a"
       and afs': "wfactors G as' a"
     then have ahdvda: "ah divides a"
-      by (intro wfactors_dividesI[of "ah#as" "a"], simp+)
-    then have "\<exists>a'\<in> carrier G. a = ah \<otimes> a'" by fast
+      by (intro wfactors_dividesI[of "ah#as" "a"]) simp_all
     then obtain a' where a'carr: "a' \<in> carrier G" and a: "a = ah \<otimes> a'"
-      by auto
+      by blast
     have a'fs: "wfactors G as a'"
       apply (rule wfactorsE[OF afs], rule wfactorsI, simp)
-      apply (simp add: a, insert ascarr a'carr)
+      apply (simp add: a)
+      apply (insert ascarr a'carr)
       apply (intro assoc_l_cancel[of ah _ a'] multlist_closed ahcarr, assumption+)
       done
     from afs have ahirr: "irreducible G ah"
@@ -3056,19 +3003,17 @@ next
     finally have "ah divides (foldr (op \<otimes>) as' \<one>)"
       by simp
     with ahprime have "\<exists>i<length as'. ah divides as'!i"
-      by (intro multlist_prime_pos, simp+)
+      by (intro multlist_prime_pos) simp_all
     then obtain i where len: "i<length as'" and ahdvd: "ah divides as'!i"
-      by auto
+      by blast
     from afs' carr have irrasi: "irreducible G (as'!i)"
       by (fast intro: nth_mem[OF len] elim: wfactorsE)
     from len carr have asicarr[simp]: "as'!i \<in> carrier G"
       unfolding set_conv_nth by force
     note carr = carr asicarr
 
-    from ahdvd have "\<exists>x \<in> carrier G. as'!i = ah \<otimes> x"
-      by fast
-    then obtain x where "x \<in> carrier G" and asi: "as'!i = ah \<otimes> x"
-      by auto
+    from ahdvd obtain x where "x \<in> carrier G" and asi: "as'!i = ah \<otimes> x"
+      by blast
     with carr irrasi[simplified asi] have asiah: "as'!i \<sim> ah"
       apply -
       apply (elim irreducible_prodE[of "ah" "x"], assumption+)
@@ -3236,17 +3181,17 @@ lemma (in factorial_monoid) divides_fcount:
 proof (rule dividesE[OF dvd])
   fix c
   from assms have "\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as a"
-    by fast
+    by blast
   then obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
-    by auto
+    by blast
   with acarr have fca: "factorcount G a = length as"
     by (intro factorcount_unique)
 
   assume ccarr: "c \<in> carrier G"
   then have "\<exists>cs. set cs \<subseteq> carrier G \<and> wfactors G cs c"
-    by fast
+    by blast
   then obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfs: "wfactors G cs c"
-    by auto
+    by blast
 
   note [simp] = acarr bcarr ccarr ascarr cscarr
 
@@ -3281,17 +3226,17 @@ lemma (in factorial_monoid) properfactor_fcount:
 proof (rule properfactorE[OF pf], elim dividesE)
   fix c
   from assms have "\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as a"
-    by fast
+    by blast
   then obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
-    by auto
+    by blast
   with acarr have fca: "factorcount G a = length as"
     by (intro factorcount_unique)
 
   assume ccarr: "c \<in> carrier G"
   then have "\<exists>cs. set cs \<subseteq> carrier G \<and> wfactors G cs c"
-    by fast
+    by blast
   then obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfs: "wfactors G cs c"
-    by auto
+    by blast
 
   assume b: "b = a \<otimes> c"
 
@@ -3356,14 +3301,12 @@ proof -
   proof (unfold_locales, simp_all)
     fix x y
     assume carr: "x \<in> carrier G"  "y \<in> carrier G"
-    then have "\<exists>z. z \<in> carrier G \<and> z lcmof x y"
-      by (rule lcmof_exists)
-    then obtain z where zcarr: "z \<in> carrier G" and isgcd: "z lcmof x y"
-      by auto
+    from lcmof_exists [OF this] obtain z where zcarr: "z \<in> carrier G" and isgcd: "z lcmof x y"
+      by blast
     with carr have "least (division_rel G) z (Upper (division_rel G) {x, y})"
       by (simp add: lcmof_leastUpper[symmetric])
     then show "\<exists>z. least (division_rel G) z (Upper (division_rel G) {x, y})"
-      by fast
+      by blast
   qed
 qed
 
@@ -3371,9 +3314,8 @@ qed
 subsection \<open>Factoriality Theorems\<close>
 
 theorem factorial_condition_one: (* Jacobson theorem 2.21 *)
-  "(divisor_chain_condition_monoid G \<and> primeness_condition_monoid G) = factorial_monoid G"
-  apply rule
-proof clarify
+  "divisor_chain_condition_monoid G \<and> primeness_condition_monoid G \<longleftrightarrow> factorial_monoid G"
+proof (rule iffI, clarify)
   assume dcc: "divisor_chain_condition_monoid G"
     and pc: "primeness_condition_monoid G"
   interpret divisor_chain_condition_monoid "G" by (rule dcc)
@@ -3381,16 +3323,15 @@ proof clarify
   show "factorial_monoid G"
     by (fast intro: factorial_monoidI wfactors_exist wfactors_unique)
 next
-  assume fm: "factorial_monoid G"
-  interpret factorial_monoid "G" by (rule fm)
+  assume "factorial_monoid G"
+  then interpret factorial_monoid "G" .
   show "divisor_chain_condition_monoid G \<and> primeness_condition_monoid G"
     by rule unfold_locales
 qed
 
 theorem factorial_condition_two: (* Jacobson theorem 2.22 *)
-  shows "(divisor_chain_condition_monoid G \<and> gcd_condition_monoid G) = factorial_monoid G"
-  apply rule
-proof clarify
+  "divisor_chain_condition_monoid G \<and> gcd_condition_monoid G \<longleftrightarrow> factorial_monoid G"
+proof (rule iffI, clarify)
   assume dcc: "divisor_chain_condition_monoid G"
     and gc: "gcd_condition_monoid G"
   interpret divisor_chain_condition_monoid "G" by (rule dcc)
@@ -3398,8 +3339,8 @@ proof clarify
   show "factorial_monoid G"
     by (simp add: factorial_condition_one[symmetric], rule, unfold_locales)
 next
-  assume fm: "factorial_monoid G"
-  interpret factorial_monoid "G" by (rule fm)
+  assume "factorial_monoid G"
+  then interpret factorial_monoid "G" .
   show "divisor_chain_condition_monoid G \<and> gcd_condition_monoid G"
     by rule unfold_locales
 qed
