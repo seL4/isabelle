@@ -15,8 +15,8 @@ sig
    | PBound of int
    | Abst of string * typ option * proof
    | AbsP of string * term option * proof
-   | op % of proof * term option
-   | op %% of proof * proof
+   | % of proof * term option
+   | %% of proof * proof
    | Hyp of term
    | PAxm of string * term * typ list option
    | OfClass of typ * class
@@ -378,7 +378,7 @@ fun strip_thm (body as PBody {proof, ...}) =
     (PThm (_, (_, body')), _) => Future.join body'
   | _ => body);
 
-val mk_Abst = fold_rev (fn (s, T:typ) => fn prf => Abst (s, NONE, prf));
+val mk_Abst = fold_rev (fn (s, _: typ) => fn prf => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
 fun map_proof_same term typ ofclass =
@@ -434,7 +434,7 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
 fun maxidx_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf;
 
 fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
-  | size_of_proof (AbsP (_, t, prf)) = 1 + size_of_proof prf
+  | size_of_proof (AbsP (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof (prf % _) = 1 + size_of_proof prf
   | size_of_proof (prf1 %% prf2) = size_of_proof prf1 + size_of_proof prf2
   | size_of_proof _ = 1;
@@ -442,7 +442,7 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
-  | change_type opTs (Promise _) = raise Fail "change_type: unexpected promise"
+  | change_type _ (Promise _) = raise Fail "change_type: unexpected promise"
   | change_type opTs (PThm (i, ((name, prop, _), body))) =
       PThm (i, ((name, prop, opTs), body))
   | change_type _ prf = prf;
@@ -490,7 +490,7 @@ fun prf_abstract_over v =
 
 fun incr_bv' inct tlev t = incr_bv (inct, tlev, t);
 
-fun prf_incr_bv' incP inct Plev tlev (PBound i) =
+fun prf_incr_bv' incP _ Plev _ (PBound i) =
       if i >= Plev then PBound (i+incP) else raise Same.SAME
   | prf_incr_bv' incP inct Plev tlev (AbsP (a, t, body)) =
       (AbsP (a, Same.map_option (same (op =) (incr_bv' inct tlev)) t,
@@ -516,7 +516,7 @@ fun prf_loose_bvar1 (prf1 %% prf2) k = prf_loose_bvar1 prf1 k orelse prf_loose_b
   | prf_loose_bvar1 (prf % SOME t) k = prf_loose_bvar1 prf k orelse loose_bvar1 (t, k)
   | prf_loose_bvar1 (_ % NONE) _ = true
   | prf_loose_bvar1 (AbsP (_, SOME t, prf)) k = loose_bvar1 (t, k) orelse prf_loose_bvar1 prf k
-  | prf_loose_bvar1 (AbsP (_, NONE, _)) k = true
+  | prf_loose_bvar1 (AbsP (_, NONE, _)) _ = true
   | prf_loose_bvar1 (Abst (_, _, prf)) k = prf_loose_bvar1 prf (k+1)
   | prf_loose_bvar1 _ _ = false;
 
@@ -527,7 +527,7 @@ fun prf_loose_Pbvar1 (PBound i) k = i = k
   | prf_loose_Pbvar1 (Abst (_, _, prf)) k = prf_loose_Pbvar1 prf k
   | prf_loose_Pbvar1 _ _ = false;
 
-fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
+fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
       if i < plev then (is, js) else (insert (op =) (i-plev) is, js)
   | prf_add_loose_bnos plev tlev (prf1 %% prf2) p =
       prf_add_loose_bnos plev tlev prf2
@@ -649,7 +649,7 @@ fun prf_subst_pbounds args prf =
       | subst (prf %% prf') Plev tlev = (subst prf Plev tlev %% substh prf' Plev tlev
           handle Same.SAME => prf %% subst prf' Plev tlev)
       | subst (prf % t) Plev tlev = subst prf Plev tlev % t
-      | subst  prf _ _ = raise Same.SAME
+      | subst  _ _ _ = raise Same.SAME
     and substh prf Plev tlev = (subst prf Plev tlev handle Same.SAME => prf)
   in case args of [] => prf | _ => substh prf 0 0 end;
 
@@ -671,25 +671,25 @@ fun freeze names names' (t $ u) =
       freeze names names' t $ freeze names names' u
   | freeze names names' (Abs (s, T, t)) =
       Abs (s, frzT names' T, freeze names names' t)
-  | freeze names names' (Const (s, T)) = Const (s, frzT names' T)
-  | freeze names names' (Free (s, T)) = Free (s, frzT names' T)
+  | freeze _ names' (Const (s, T)) = Const (s, frzT names' T)
+  | freeze _ names' (Free (s, T)) = Free (s, frzT names' T)
   | freeze names names' (Var (ixn, T)) =
       Free (the (AList.lookup (op =) names ixn), frzT names' T)
-  | freeze names names' t = t;
+  | freeze _ _ t = t;
 
 fun thaw names names' (t $ u) =
       thaw names names' t $ thaw names names' u
   | thaw names names' (Abs (s, T, t)) =
       Abs (s, thawT names' T, thaw names names' t)
-  | thaw names names' (Const (s, T)) = Const (s, thawT names' T)
+  | thaw _ names' (Const (s, T)) = Const (s, thawT names' T)
   | thaw names names' (Free (s, T)) =
       let val T' = thawT names' T in
         (case AList.lookup (op =) names s of
           NONE => Free (s, T')
         | SOME ixn => Var (ixn, T'))
       end
-  | thaw names names' (Var (ixn, T)) = Var (ixn, thawT names' T)
-  | thaw names names' t = t;
+  | thaw _ names' (Var (ixn, T)) = Var (ixn, thawT names' T)
+  | thaw _ _ t = t;
 
 in
 
@@ -754,9 +754,9 @@ fun varify_proof t fixed prf =
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
     val fmap = fs ~~ #1 (fold_map Name.variant (map fst fs) used);
-    fun thaw (f as (a, S)) =
-      (case AList.lookup (op =) fmap f of
-        NONE => TFree f
+    fun thaw (a, S) =
+      (case AList.lookup (op =) fmap (a, S) of
+        NONE => TFree (a, S)
       | SOME b => TVar ((b, 0), S));
   in map_proof_terms (map_types (map_type_tfree thaw)) (map_type_tfree thaw) prf end;
 
@@ -960,13 +960,12 @@ fun transitive _ _ (PAxm ("Pure.reflexive", _, _) % _) prf2 = prf2
   | transitive _ _ prf1 (PAxm ("Pure.reflexive", _, _) % _) = prf1
   | transitive u (Type ("prop", [])) prf1 prf2 =
       transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
-  | transitive u T prf1 prf2 =
-      transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
+  | transitive _ _ prf1 prf2 = transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
 
 fun abstract_rule x a prf =
   abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
 
-fun check_comb (PAxm ("Pure.combination", _, _) % f % g % _ % _ %% prf %% _) =
+fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
       is_some f orelse check_comb prf
   | check_comb (PAxm ("Pure.transitive", _, _) % _ % _ % _ %% prf1 %% prf2) =
       check_comb prf1 andalso check_comb prf2
@@ -1122,7 +1121,7 @@ fun prop_vars (Const ("Pure.imp", _) $ P $ Q) = union (op =) (prop_vars P) (prop
 fun is_proj t =
   let
     fun is_p i t = (case strip_comb t of
-        (Bound j, []) => false
+        (Bound _, []) => false
       | (Bound j, ts) => j >= i orelse exists (is_p i) ts
       | (Abs (_, _, u), _) => is_p (i+1) u
       | (_, ts) => exists (is_p i) ts)
@@ -1181,10 +1180,10 @@ val shrink_proof =
              orelse has_duplicates (op =)
                (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))
              orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
-      | shrink' ls lev ts prfs (Hyp t) = ([], false, map (pair false) ts, Hyp t)
-      | shrink' ls lev ts prfs (prf as MinProof) = ([], false, map (pair false) ts, prf)
-      | shrink' ls lev ts prfs (prf as OfClass _) = ([], false, map (pair false) ts, prf)
-      | shrink' ls lev ts prfs prf =
+      | shrink' _ _ ts _ (Hyp t) = ([], false, map (pair false) ts, Hyp t)
+      | shrink' _ _ ts _ (prf as MinProof) = ([], false, map (pair false) ts, prf)
+      | shrink' _ _ ts _ (prf as OfClass _) = ([], false, map (pair false) ts, prf)
+      | shrink' _ _ ts prfs prf =
           let
             val prop =
               (case prf of
