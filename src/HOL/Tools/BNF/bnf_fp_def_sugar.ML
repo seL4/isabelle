@@ -685,7 +685,7 @@ fun wrap_ctrs plugins fp discs_sels fp_b_name ctor_inject n ms abs_inject type_d
 
     val (ctr_sugar as {case_cong, ...}, lthy) =
       free_constructors (ctr_sugar_kind_of_fp_kind fp) tacss
-        ((((plugins, discs_sels), standard_binding), ctr_specs), sel_default_eqs) lthy
+        ((((plugins, discs_sels), standard_binding), ctr_specs), sel_default_eqs) lthy;
 
     val anonymous_notes =
       [([case_cong], fundefcong_attrs)]

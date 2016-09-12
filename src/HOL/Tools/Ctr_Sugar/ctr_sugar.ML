@@ -872,7 +872,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 exists (fn def => Thm.eq_thm_prop (def, alternate_disc_no_def)) disc_defs;
 
               val nontriv_disc_defs = disc_defs
-                |> filter_out (member Thm.eq_thm_prop [unique_disc_no_def, alternate_disc_no_def]);
+                |> filter_out (member Thm.eq_thm_prop [unique_disc_no_def, alternate_disc_no_def,
+                  refl]);
 
               val disc_defs' =
                 map2 (fn k => fn def =>
