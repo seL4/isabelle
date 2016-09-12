@@ -9,8 +9,6 @@ Tactics for datatype and codatatype sugar.
 signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
   val sumprod_thms_rel: thm list
-  val sumprod_thms_set: thm list (* FIXME *)
-  val basic_sumprod_thms_set: thm list
 
   val mk_case_transfer_tac: Proof.context -> thm -> thm list -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
@@ -82,8 +80,8 @@ val simp_thms' = @{thms simp_thms(6,7,8,11,12,15,16,22,24)};
 val sumprod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
 val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_inject prod.inject id_apply conj_assoc};
 val basic_sumprod_thms_set =
-  @{thms UN_empty UN_insert  UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib
-      o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
+  @{thms UN_empty UN_insert UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib o_apply
+      map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
 val sumprod_thms_set = @{thms UN_simps(10) image_iff} @ basic_sumprod_thms_set;
 
 fun is_def_looping def =
@@ -498,10 +496,14 @@ fun mk_sel_transfer_tac ctxt n sel_defs case_transfer =
 fun mk_set0_tac ctxt abs_inverses pre_set_defs dtor_ctor fp_sets fp_nesting_set_maps
     live_nesting_set_maps ctr_defs' extra_unfolds =
   TRYALL Goal.conjunction_tac THEN
-  unfold_thms_tac ctxt (dtor_ctor :: abs_inverses @ pre_set_defs @ fp_sets @ fp_nesting_set_maps @
-    live_nesting_set_maps @ ctr_defs' @ extra_unfolds @ basic_sumprod_thms_set @
+  unfold_thms_tac ctxt ctr_defs' THEN
+  ALLGOALS (subst_tac ctxt NONE fp_sets) THEN
+  unfold_thms_tac ctxt (dtor_ctor :: abs_inverses @ pre_set_defs @ fp_nesting_set_maps @
+    live_nesting_set_maps @ extra_unfolds @ basic_sumprod_thms_set @
     @{thms UN_UN_flatten UN_Un sup_assoc[THEN sym]}) THEN
-  ALLGOALS (rtac ctxt refl);
+  ALLGOALS (rtac ctxt @{thm set_eqI[OF iffI]}) THEN
+  ALLGOALS (REPEAT_DETERM o etac ctxt UnE) THEN
+  ALLGOALS (REPEAT o resolve_tac ctxt @{thms UnI1 UnI2} THEN' assume_tac ctxt);
 
 fun mk_set_sel_tac ctxt ct exhaust discs sels sets =
   TRYALL Goal.conjunction_tac THEN
