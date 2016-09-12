@@ -304,7 +304,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               fp_bnf_sugar = {map_disc_iffs, map_selss, rel_injects, rel_distincts, rel_sels,
                 rel_intros, rel_cases, pred_injects, set_thms, set_selssss, set_introssss,
                 set_cases, ...},
-              fp_co_induct_sugar = {co_rec_disc_iffs, co_rec_codes, co_rec_transfers,
+              fp_co_induct_sugar = SOME {co_rec_disc_iffs, co_rec_codes, co_rec_transfers,
                 co_rec_o_maps, common_rel_co_inducts, rel_co_inducts, common_set_inducts,
                 set_inducts, ...},
               ...} : fp_sugar) =
@@ -334,7 +334,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               set_selssss = set_selssss,
               set_introssss = set_introssss,
               set_cases = set_cases},
-           fp_co_induct_sugar =
+           fp_co_induct_sugar = SOME
              {co_rec = co_rec,
               common_co_inducts = common_co_inducts,
               co_inducts = co_inducts,
@@ -421,8 +421,9 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
 
     fun the_fp_sugar_of (T as Type (T_name, _)) =
       (case fp_sugar_of lthy T_name of
-        SOME (fp_sugar as {fp = fp', ...}) => if fp = fp' then fp_sugar else not_co_datatype T
-      | NONE => not_co_datatype T);
+        SOME (fp_sugar as {fp = fp', fp_co_induct_sugar = SOME _, ...}) =>
+        if fp = fp' then fp_sugar else not_co_datatype T
+      | _ => not_co_datatype T);
 
     fun gather_types _ _ rev_seens gen_seen [] = (rev rev_seens, gen_seen)
       | gather_types lthy rho rev_seens gen_seen ((T as Type (_, tyargs)) :: Ts) =

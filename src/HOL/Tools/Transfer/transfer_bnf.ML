@@ -248,7 +248,7 @@ fun fp_sugar_transfer_rules (fp_sugar:fp_sugar) =
     val fp_ctr_sugar = #fp_ctr_sugar fp_sugar
     val transfer_rules = #ctr_transfers fp_ctr_sugar @ #case_transfers fp_ctr_sugar
       @ #disc_transfers fp_ctr_sugar @ #sel_transfers fp_ctr_sugar
-      @ (#co_rec_transfers o #fp_co_induct_sugar) fp_sugar
+      @ these (Option.map #co_rec_transfers (#fp_co_induct_sugar fp_sugar))
     val transfer_attr = @{attributes [transfer_rule]}
   in
     map (fn thm => (Binding.empty_atts, [([thm], transfer_attr)])) transfer_rules

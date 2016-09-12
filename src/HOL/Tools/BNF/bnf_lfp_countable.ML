@@ -132,7 +132,7 @@ fun derive_encode_injectives_thms _ [] = []
 
       fun lfp_sugar_of s =
         (case fp_sugar_of ctxt s of
-          SOME (fp_sugar as {fp = Least_FP, ...}) => fp_sugar
+          SOME (fp_sugar as {fp = Least_FP, fp_co_induct_sugar = SOME _, ...}) => fp_sugar
         | _ => not_datatype s);
 
       val fpTs0 as Type (_, var_As) :: _ =
@@ -153,16 +153,17 @@ fun derive_encode_injectives_thms _ [] = []
             HOLogic.eq_const fpT $ x $ Bound 0));
 
       val fp_sugars as
-          {fp_nesting_bnfs, fp_co_induct_sugar = {common_co_inducts = induct :: _, ...}, ...} :: _ =
+          {fp_nesting_bnfs, fp_co_induct_sugar = SOME {common_co_inducts = induct :: _, ...},
+           ...} :: _ =
         map (the o fp_sugar_of ctxt o fst o dest_Type) fpTs0;
       val ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar) fp_sugars;
 
       val ctrss0 = map #ctrs ctr_sugars;
       val ns = map length ctrss0;
-      val recs0 = map (#co_rec o #fp_co_induct_sugar) fp_sugars;
+      val recs0 = map (#co_rec o the o #fp_co_induct_sugar) fp_sugars;
       val nchotomys = map #nchotomy ctr_sugars;
       val injectss = map #injects ctr_sugars;
-      val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars;
+      val rec_thmss = map (#co_rec_thms o the o #fp_co_induct_sugar) fp_sugars;
       val map_comps' = map (unfold_thms ctxt @{thms comp_def} o map_comp_of_bnf) fp_nesting_bnfs;
       val inj_map_strongs' = map (Thm.permute_prems 0 ~1 o inj_map_strong_of_bnf) fp_nesting_bnfs;
 

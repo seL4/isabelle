@@ -2110,7 +2110,7 @@ fun derive_corecUU_base fpT_name lthy =
 
     val sig_fp_bnf_sugar = #fp_bnf_sugar sig_fp_sugar;
     val ssig_fp_bnf_sugar = #fp_bnf_sugar ssig_fp_sugar;
-    val ssig_fp_induct_sugar = #fp_co_induct_sugar ssig_fp_sugar;
+    val ssig_fp_induct_sugar = the (#fp_co_induct_sugar ssig_fp_sugar);
 
     val sig_ctr_sugar = #ctr_sugar sig_fp_ctr_sugar;
     val ssig_ctr_sugar = #ctr_sugar ssig_fp_ctr_sugar;
@@ -2331,8 +2331,8 @@ fun derive_corecUU_step (fpT as Type (fpT_name, res_Ds))
     val sig_fp_bnf_sugar = #fp_bnf_sugar sig_fp_sugar;
     val old_ssig_fp_bnf_sugar = #fp_bnf_sugar old_ssig_fp_sugar;
     val ssig_fp_bnf_sugar = #fp_bnf_sugar ssig_fp_sugar;
-    val old_ssig_fp_induct_sugar = #fp_co_induct_sugar old_ssig_fp_sugar;
-    val ssig_fp_induct_sugar = #fp_co_induct_sugar ssig_fp_sugar;
+    val old_ssig_fp_induct_sugar = the (#fp_co_induct_sugar old_ssig_fp_sugar);
+    val ssig_fp_induct_sugar = the (#fp_co_induct_sugar ssig_fp_sugar);
 
     val old_ssig_ctr_sugar = #ctr_sugar old_ssig_fp_ctr_sugar;
     val sig_ctr_sugar = #ctr_sugar sig_fp_ctr_sugar;
@@ -2683,9 +2683,9 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
     val old1_ssig_fp_bnf_sugar = #fp_bnf_sugar old1_ssig_fp_sugar;
     val old2_ssig_fp_bnf_sugar = #fp_bnf_sugar old2_ssig_fp_sugar;
     val ssig_fp_bnf_sugar = #fp_bnf_sugar ssig_fp_sugar;
-    val old1_ssig_fp_induct_sugar = #fp_co_induct_sugar old1_ssig_fp_sugar;
-    val old2_ssig_fp_induct_sugar = #fp_co_induct_sugar old2_ssig_fp_sugar;
-    val ssig_fp_induct_sugar = #fp_co_induct_sugar ssig_fp_sugar;
+    val old1_ssig_fp_induct_sugar = the (#fp_co_induct_sugar old1_ssig_fp_sugar);
+    val old2_ssig_fp_induct_sugar = the (#fp_co_induct_sugar old2_ssig_fp_sugar);
+    val ssig_fp_induct_sugar = the (#fp_co_induct_sugar ssig_fp_sugar);
 
     val old1_ssig_ctr_sugar = #ctr_sugar old1_ssig_fp_ctr_sugar;
     val old2_ssig_ctr_sugar = #ctr_sugar old2_ssig_fp_ctr_sugar;

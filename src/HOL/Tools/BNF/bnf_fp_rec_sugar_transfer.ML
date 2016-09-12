@@ -157,7 +157,7 @@ val gfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
      in
        Goal.prove lthy vars [] goal (fn {context = ctxt, prems = _} =>
          mk_gfp_rec_sugar_transfer_tac ctxt def
-           (#co_rec_def (#fp_co_induct_sugar (nth fp_sugars kk)))
+           (#co_rec_def (the (#fp_co_induct_sugar (nth fp_sugars kk))))
            (map (#type_definition o #absT_info) fp_sugars)
            (maps (#xtor_co_rec_transfers o #fp_res) fp_sugars)
            (map (rel_def_of_bnf o #pre_bnf) fp_sugars)

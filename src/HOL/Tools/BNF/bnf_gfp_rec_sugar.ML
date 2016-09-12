@@ -501,7 +501,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val thy = Proof_Context.theory_of lthy0;
 
     val ((missing_res_Ts, perm0_kks, fp_sugars as {fp_nesting_bnfs,
-          fp_co_induct_sugar = {common_co_inducts = common_coinduct_thms, ...}, ...} :: _,
+          fp_co_induct_sugar = SOME {common_co_inducts = common_coinduct_thms, ...}, ...} :: _,
           (_, gfp_sugar_thms)), lthy) =
       nested_to_mutual_fps (K true) Greatest_FP bs res_Ts callers callssss0 lthy0;
 
@@ -525,7 +525,8 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val perm_Ts = map #T perm_fp_sugars;
     val perm_Xs = map #X perm_fp_sugars;
     val perm_Cs =
-      map (domain_type o body_fun_type o fastype_of o #co_rec o #fp_co_induct_sugar) perm_fp_sugars;
+      map (domain_type o body_fun_type o fastype_of o #co_rec o the o #fp_co_induct_sugar)
+        perm_fp_sugars;
     val Xs_TCs = perm_Xs ~~ (perm_Ts ~~ perm_Cs);
 
     fun zip_corecT (Type (s, Us)) = [Type (s, map (mk_sumTN o zip_corecT) Us)]
@@ -592,8 +593,9 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
       end;
 
     fun mk_spec ({T, fp_ctr_sugar = {ctr_sugar as {exhaust_discs, sel_defs, ...}, ...},
-        fp_co_induct_sugar = {co_rec = corec, co_rec_thms = corec_thms, co_rec_discs = corec_discs,
-        co_rec_selss = corec_selss, ...}, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
+        fp_co_induct_sugar = SOME {co_rec = corec, co_rec_thms = corec_thms,
+        co_rec_discs = corec_discs, co_rec_selss = corec_selss, ...}, ...} : fp_sugar) p_is q_isss
+        f_isss f_Tsss =
       {T = T, corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec,
        exhaust_discs = exhaust_discs, sel_defs = sel_defs,
        fp_nesting_maps = maps (map_thms_of_type lthy o T_of_bnf) fp_nesting_bnfs,

@@ -28,12 +28,14 @@ val nested_simps = @{thms o_def[abs_def] id_def split fst_conv snd_conv};
 
 fun is_new_datatype _ @{type_name nat} = true
   | is_new_datatype ctxt s =
-    (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
+    (case fp_sugar_of ctxt s of
+      SOME {fp = Least_FP, fp_co_induct_sugar = SOME _, ...} => true
+    | _ => false);
 
 fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, fp_ctr_sugar = {ctr_sugar, ...},
-    fp_co_induct_sugar = {co_rec = recx, co_rec_thms = rec_thms, ...}, ...} : fp_sugar) =
-  {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
-   recx = recx, rec_thms = rec_thms};
+    fp_co_induct_sugar = SOME {co_rec = recx, co_rec_thms = rec_thms, ...}, ...} : fp_sugar) =
+    {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
+     recx = recx, rec_thms = rec_thms};
 
 fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
     ([], [0], [nat_basic_lfp_sugar], [], [], [], TrueI (*dummy*), [], false, lthy)
@@ -41,7 +43,7 @@ fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
     let
       val ((missing_arg_Ts, perm0_kks,
             fp_sugars as {fp_nesting_bnfs,
-              fp_co_induct_sugar = {common_co_inducts = [common_induct], ...}, ...} :: _,
+              fp_co_induct_sugar = SOME {common_co_inducts = [common_induct], ...}, ...} :: _,
             (lfp_sugar_thms, _)), lthy) =
         nested_to_mutual_fps (K true) Least_FP bs arg_Ts callers callssss0 lthy0;
 
@@ -49,7 +51,7 @@ fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
 
       val Ts = map #T fp_sugars;
       val Xs = map #X fp_sugars;
-      val Cs = map (body_type o fastype_of o #co_rec o #fp_co_induct_sugar) fp_sugars;
+      val Cs = map (body_type o fastype_of o #co_rec o the o #fp_co_induct_sugar) fp_sugars;
       val Xs_TCs = Xs ~~ (Ts ~~ Cs);
 
       fun zip_XrecT (Type (s, Us)) = [Type (s, map (HOLogic.mk_tupleT o zip_XrecT) Us)]

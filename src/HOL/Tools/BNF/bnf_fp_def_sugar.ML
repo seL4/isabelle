@@ -64,7 +64,7 @@ sig
      live_nesting_bnfs: BNF_Def.bnf list,
      fp_ctr_sugar: fp_ctr_sugar,
      fp_bnf_sugar: fp_bnf_sugar,
-     fp_co_induct_sugar: fp_co_induct_sugar}
+     fp_co_induct_sugar: fp_co_induct_sugar option}
 
   val transfer_plugin: string
 
@@ -311,7 +311,7 @@ type fp_sugar =
    live_nesting_bnfs: bnf list,
    fp_ctr_sugar: fp_ctr_sugar,
    fp_bnf_sugar: fp_bnf_sugar,
-   fp_co_induct_sugar: fp_co_induct_sugar};
+   fp_co_induct_sugar: fp_co_induct_sugar option};
 
 val transfer_plugin = Plugin_Name.declare_setup @{binding transfer};
 
@@ -381,7 +381,7 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, fp_bnf, ab
    live_nesting_bnfs = map (morph_bnf phi) live_nesting_bnfs,
    fp_ctr_sugar = morph_fp_ctr_sugar phi fp_ctr_sugar,
    fp_bnf_sugar = morph_fp_bnf_sugar phi fp_bnf_sugar,
-   fp_co_induct_sugar = morph_fp_co_induct_sugar phi fp_co_induct_sugar};
+   fp_co_induct_sugar = Option.map (morph_fp_co_induct_sugar phi) fp_co_induct_sugar};
 
 val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism;
 
@@ -426,8 +426,8 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
     map_thmss common_co_inducts co_inductss co_rec_thmss co_rec_discss co_rec_selsss rel_injectss
     rel_distinctss map_disc_iffss map_selsss rel_selss rel_intross rel_casess pred_injectss
     set_thmss set_selsssss set_introsssss set_casess ctr_transferss case_transferss disc_transferss
-    co_rec_disc_iffss co_rec_codess co_rec_transferss common_rel_co_inducts rel_co_inductss
-    common_set_inducts set_inductss sel_transferss co_rec_o_mapss noted =
+    sel_transferss co_rec_disc_iffss co_rec_codess co_rec_transferss common_rel_co_inducts
+    rel_co_inductss common_set_inducts set_inductss co_rec_o_mapss noted =
   let
     val fp_sugars =
       map_index (fn (kk, T) =>
@@ -458,7 +458,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
             set_selssss = nth set_selsssss kk,
             set_introssss = nth set_introsssss kk,
             set_cases = nth set_casess kk},
-         fp_co_induct_sugar =
+         fp_co_induct_sugar = SOME
            {co_rec = nth co_recs kk,
             common_co_inducts = common_co_inducts,
             co_inducts = nth co_inductss kk,
@@ -2653,9 +2653,9 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           recs rec_defs map_thmss [induct_thm] (map single induct_thms) rec_thmss (replicate nn [])
           (replicate nn []) rel_injectss rel_distinctss map_disc_iffss map_selsss rel_selss
           rel_intross rel_casess pred_injectss set_thmss set_selsssss set_introsssss set_casess
-          ctr_transferss case_transferss disc_transferss (replicate nn []) (replicate nn [])
-          rec_transfer_thmss common_rel_induct_thms rel_induct_thmss [] (replicate nn [])
-          sel_transferss rec_o_map_thmss
+          ctr_transferss case_transferss disc_transferss sel_transferss (replicate nn [])
+          (replicate nn []) rec_transfer_thmss common_rel_induct_thms rel_induct_thmss []
+          (replicate nn []) rec_o_map_thmss
       end;
 
     fun derive_corec_transfer_thms lthy corecs corec_defs =
@@ -2829,10 +2829,10 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           (transpose [coinduct_thms, coinduct_strong_thms]) corec_thmss corec_disc_thmss
           corec_sel_thmsss rel_injectss rel_distinctss map_disc_iffss map_selsss rel_selss
           rel_intross rel_casess pred_injectss set_thmss set_selsssss set_introsssss set_casess
-          ctr_transferss case_transferss disc_transferss corec_disc_iff_thmss
+          ctr_transferss case_transferss disc_transferss sel_transferss corec_disc_iff_thmss
           (map single corec_code_thms) corec_transfer_thmss common_rel_coinduct_thms
           rel_coinduct_thmss set_induct_thms (replicate nn (if nn = 1 then set_induct_thms else []))
-          sel_transferss map_o_corec_thmss
+          map_o_corec_thmss
       end;
 
     val lthy = lthy

@@ -97,7 +97,8 @@ fun mk_size_neq ctxt cts exhaust sizes =
     rtac ctxt @{thm trans_less_add2}));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
-        fp_res = {bnfs = fp_bnfs, ...}, fp_nesting_bnfs, live_nesting_bnfs, ...} : fp_sugar) :: _)
+        fp_res = {bnfs = fp_bnfs, ...}, fp_nesting_bnfs, live_nesting_bnfs,
+        fp_co_induct_sugar = SOME _, ...} : fp_sugar) :: _)
       lthy0 =
     let
       val data = Data.get (Context.Proof lthy0);
@@ -108,8 +109,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val B_ify = Term.typ_subst_atomic (As ~~ Bs);
 
-      val recs = map (#co_rec o #fp_co_induct_sugar) fp_sugars;
-      val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars;
+      val recs = map (#co_rec o the o #fp_co_induct_sugar) fp_sugars;
+      val rec_thmss = map (#co_rec_thms o the o #fp_co_induct_sugar) fp_sugars;
       val rec_Ts as rec_T1 :: _ = map fastype_of recs;
       val rec_arg_Ts = binder_fun_types rec_T1;
       val Cs = map body_type rec_Ts;
@@ -337,7 +338,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                 curry HOLogic.mk_eq) size_gen_o_map_lhss size_gen_o_map_rhss;
 
             val rec_o_maps =
-              fold_rev (curry (op @) o #co_rec_o_maps o #fp_co_induct_sugar) fp_sugars [];
+              fold_rev (curry (op @) o #co_rec_o_maps o the o #fp_co_induct_sugar) fp_sugars [];
 
             val size_gen_o_map_thmss =
               if nested_size_gen_o_maps_complete then

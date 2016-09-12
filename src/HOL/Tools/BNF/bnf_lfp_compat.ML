@@ -214,9 +214,9 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
 
     fun checked_fp_sugar_of s =
       (case fp_sugar_of lthy s of
-        SOME (fp_sugar as {fp, ...}) =>
+        SOME (fp_sugar as {fp, fp_co_induct_sugar = SOME _, ...}) =>
         if member (op =) prefs Include_GFPs orelse fp = Least_FP then fp_sugar else not_datatype s
-      | NONE => not_datatype s);
+      | _ => not_datatype s);
 
     val fpTs0 as Type (_, var_As) :: _ =
       map (#T o checked_fp_sugar_of o fst o dest_Type)
@@ -299,10 +299,10 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val Xs' = map #X fp_sugars';
     val ctrXs_Tsss' = map (map (map substAT) o #ctrXs_Tss o #fp_ctr_sugar) fp_sugars';
     val ctrss' = map2 mk_ctr_of fp_sugars' fpTs';
-    val {fp_co_induct_sugar = {common_co_inducts = induct :: _, ...}, ...} :: _ = fp_sugars';
-    val inducts = map (hd o #co_inducts o #fp_co_induct_sugar) fp_sugars';
-    val recs = map (#co_rec o #fp_co_induct_sugar) fp_sugars';
-    val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars';
+    val {fp_co_induct_sugar = SOME {common_co_inducts = induct :: _, ...}, ...} :: _ = fp_sugars';
+    val inducts = map (hd o #co_inducts o the o #fp_co_induct_sugar) fp_sugars';
+    val recs = map (#co_rec o the o #fp_co_induct_sugar) fp_sugars';
+    val rec_thmss = map (#co_rec_thms o the o #fp_co_induct_sugar) fp_sugars';
 
     fun is_nested_rec_type (Type (@{type_name fun}, [_, T])) = member (op =) Xs' (body_type T)
       | is_nested_rec_type _ = false;
