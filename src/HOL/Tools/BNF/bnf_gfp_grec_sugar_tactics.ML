@@ -111,8 +111,6 @@ fun mk_eq_algrho_tac ctxt fpsig_nesting_maps abs rep ctor ssig_map eval pre_map_
     rho_def dtor_algrho corecUU_unique eq_corecUU all_sig_maps ssig_map_thms
     all_algLam_alg_pointfuls all_algrho_eqs eval_simps =
   let
-    fun mk_abs_def thm = Drule.abs_def (thm RS eq_reflection);
-
     val nullary_disc_defs' = nullary_disc_defs
       |> map (fn thm => thm RS sym)
       |> maps (fn thm => [thm, thm RS @{thm subst[OF eq_commute, of "%e. e = z" for z]}]);

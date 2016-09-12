@@ -46,6 +46,7 @@ sig
 
   val mk_disjIN: int -> int -> thm
 
+  val mk_abs_def: thm -> thm
   val mk_unabs_def: int -> thm -> thm
 
   val mk_IfN: typ -> term list -> term list -> term
@@ -193,6 +194,7 @@ fun mk_disjIN 1 1 = @{thm TrueE[OF TrueI]}
   | mk_disjIN 2 2 = disjI2
   | mk_disjIN n m = (mk_disjIN (n - 1) (m - 1)) RS disjI2;
 
+fun mk_abs_def thm = Drule.abs_def (thm RS eq_reflection handle THM _ => thm);
 fun mk_unabs_def n = funpow n (fn thm => thm RS fun_cong);
 
 fun mk_IfN _ _ [t] = t
