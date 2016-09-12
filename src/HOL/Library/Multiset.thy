@@ -935,10 +935,6 @@ lemma repeat_mset_distrib [simp]:
   "repeat_mset n (A + B) = repeat_mset n A + repeat_mset n B"
   by (auto simp: multiset_eq_iff add_mult_distrib2)
 
-lemma repeat_mset_distrib_add_mset [simp]:
-  "repeat_mset n (add_mset a A) = repeat_mset n {#a#} + repeat_mset n A"
-  by (auto simp: multiset_eq_iff)
-
 ML_file "multiset_simprocs_util.ML"
 ML_file "multiset_simprocs.ML"
 
@@ -2003,6 +1999,14 @@ lemma replicate_mset_eq_iff:
   "replicate_mset m a = replicate_mset n b \<longleftrightarrow>
     m = 0 \<and> n = 0 \<or> m = n \<and> a = b"
   by (auto simp add: multiset_eq_iff)
+
+lemma repeat_mset_replicate_mset[simp]:
+  "repeat_mset n {#a#} = replicate_mset n a"
+  by (auto simp: multiset_eq_iff)
+
+lemma repeat_mset_distrib_add_mset[simp]:
+  "repeat_mset n (add_mset a A) = replicate_mset n a + repeat_mset n A"
+  by (auto simp: multiset_eq_iff)
 
 
 subsection \<open>Big operators\<close>
