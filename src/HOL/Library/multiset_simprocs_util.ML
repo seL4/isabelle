@@ -27,11 +27,16 @@ struct
 
 (*** Utilities ***)
 
+(*repeat_mset is not symmetric, unlike multiplication over natural numbers.*)
 fun mk_repeat_mset (t, u) =
   let
     val T = fastype_of t;
     val U = fastype_of u;
-  in Const (@{const_name "repeat_mset"}, T --> U --> U) $ t $ u end;
+  in
+    if T = @{typ nat}
+    then Const (@{const_name "repeat_mset"}, T --> U --> U) $ t $ u
+    else Const (@{const_name "repeat_mset"}, U --> T --> T) $ u $ t
+  end;
 
 (*Maps n to #n for n = 1, 2*)
 val numeral_syms = [@{thm numeral_One} RS sym, @{thm numeral_2_eq_2} RS sym,
