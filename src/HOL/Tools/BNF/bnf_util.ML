@@ -70,6 +70,7 @@ sig
   val mk_reflp: term -> term
   val mk_symp: term -> term
   val mk_transp: term -> term
+  val mk_union: term * term -> term
 
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
@@ -280,6 +281,8 @@ fun mk_UNION X f =
 
 fun mk_Union T =
   Const (@{const_name Sup}, HOLogic.mk_setT (HOLogic.mk_setT T) --> HOLogic.mk_setT T);
+
+val mk_union = HOLogic.mk_binop @{const_name sup};
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));

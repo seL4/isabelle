@@ -9,7 +9,7 @@ Tactics for datatype and codatatype sugar.
 signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
   val sumprod_thms_rel: thm list
-  val sumprod_thms_set: thm list
+  val sumprod_thms_set: thm list (* FIXME *)
   val basic_sumprod_thms_set: thm list
 
   val mk_case_transfer_tac: Proof.context -> thm -> thm list -> tactic
@@ -53,6 +53,8 @@ sig
   val mk_rel_sel_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
   val mk_sel_transfer_tac: Proof.context -> int -> thm list -> thm -> tactic
+  val mk_set0_tac: Proof.context -> thm list -> thm list -> thm -> thm list -> thm list ->
+    thm list -> thm list -> thm list -> tactic
   val mk_set_cases_tac: Proof.context -> cterm -> thm list -> thm -> thm list -> tactic
   val mk_set_induct0_tac: Proof.context -> cterm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm list -> tactic
@@ -481,8 +483,7 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
 
 fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_distincts rel_eqs =
   HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct1] exhaust) THEN_ALL_NEW
-    rtac ctxt (infer_instantiate' ctxt [SOME ct2] exhaust) THEN_ALL_NEW
-      hyp_subst_tac ctxt) THEN
+    rtac ctxt (infer_instantiate' ctxt [SOME ct2] exhaust) THEN_ALL_NEW hyp_subst_tac ctxt) THEN
   unfold_thms_tac ctxt (sels @ rel_injects @ rel_eqs @
     @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @ ((discs @ distincts) RL [eqTrueI, eqFalseI]) @
     (rel_injects RL [eqTrueI]) @ (rel_distincts RL [eqFalseI])) THEN
@@ -493,6 +494,14 @@ fun mk_sel_transfer_tac ctxt n sel_defs case_transfer =
   unfold_thms_tac ctxt (map (Local_Defs.abs_def_rule ctxt) sel_defs) THEN
   ALLGOALS (rtac ctxt (mk_rel_funDN n case_transfer) THEN_ALL_NEW
     REPEAT_DETERM o (assume_tac ctxt ORELSE' rtac ctxt rel_funI));
+
+fun mk_set0_tac ctxt abs_inverses pre_set_defs dtor_ctor fp_sets fp_nesting_set_maps
+    live_nesting_set_maps ctr_defs' extra_unfolds =
+  TRYALL Goal.conjunction_tac THEN
+  unfold_thms_tac ctxt (dtor_ctor :: abs_inverses @ pre_set_defs @ fp_sets @ fp_nesting_set_maps @
+    live_nesting_set_maps @ ctr_defs' @ extra_unfolds @ basic_sumprod_thms_set @
+    @{thms UN_UN_flatten UN_Un sup_assoc[THEN sym]}) THEN
+  ALLGOALS (rtac ctxt refl);
 
 fun mk_set_sel_tac ctxt ct exhaust discs sels sets =
   TRYALL Goal.conjunction_tac THEN

@@ -120,9 +120,11 @@ sig
   val mk_map: int -> typ list -> typ list -> term -> term
   val mk_pred: typ list -> term -> term
   val mk_rel: int -> typ list -> typ list -> term -> term
+  val mk_set: typ list -> term -> term
   val build_map: Proof.context -> typ list -> (typ * typ -> term) -> typ * typ -> term
   val build_rel: (string * (int * term)) list -> Proof.context -> typ list -> (typ * typ -> term) ->
     typ * typ -> term
+  val build_set: Proof.context -> typ -> typ -> term
   val flatten_type_args_of_bnf: bnf -> 'a -> 'a list -> 'a list
   val map_flattened_map_args: Proof.context -> string -> (term list -> 'a list) -> term list ->
     'a list
@@ -732,6 +734,7 @@ fun mk_pred Ts t =
   let val Type (_, Ts0) = domain_type (body_fun_type (fastype_of t)) in
     Term.subst_atomic_types (Ts0 ~~ Ts) t
   end;
+val mk_set = mk_pred;
 
 fun mk_rel live Ts Us t =
   let val [Type (_, Ts0), Type (_, Us0)] = binder_types (snd (strip_typeN live (fastype_of t))) in
@@ -772,6 +775,31 @@ val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT
   [(@{type_name set}, (1, @{term image}))];
 val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T o append
   [(@{type_name set}, (1, @{term rel_set})), (@{type_name fun}, (2, @{term rel_fun}))];
+
+fun build_set ctxt A =
+  let
+    fun build T =
+      Abs (Name.uu, T,
+        if T = A then
+          HOLogic.mk_set A [Bound 0]
+        else
+          (case T of
+            Type (s, Ts) =>
+            let
+              val sets = map (mk_set Ts) (sets_of_bnf (the (bnf_of ctxt s)))
+                |> filter (exists_subtype_in [A] o range_type o fastype_of);
+              val set_apps = map (fn set => Term.betapply (set, Bound 0)) sets;
+
+              fun recurse set_app =
+                let val Type (@{type_name set}, [elemT]) = fastype_of set_app in
+                  if elemT = A then set_app else mk_UNION set_app (build elemT)
+                end;
+            in
+              if null set_apps then HOLogic.mk_set A []
+              else Library.foldr1 mk_union (map recurse set_apps)
+            end
+          | _ => HOLogic.mk_set A []));
+  in build end;
 
 fun map_flattened_map_args ctxt s map_args fs =
   let

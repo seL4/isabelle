@@ -180,7 +180,6 @@ sig
 
   val mk_Field: term -> term
   val mk_If: term -> term -> term -> term
-  val mk_union: term * term -> term
 
   val mk_absumprodE: thm -> int list -> thm
 
@@ -494,8 +493,6 @@ fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));
   in Const (@{const_name Field}, mk_relT (T, T) --> HOLogic.mk_setT T) $ r end;
-
-val mk_union = HOLogic.mk_binop @{const_name sup};
 
 (*dangerous; use with monotonic, converging functions only!*)
 fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);
