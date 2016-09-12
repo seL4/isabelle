@@ -1410,7 +1410,7 @@ fun assumption opt_ctxt i state =
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env, tpairs) =
       Thm (deriv_rule1
-          ((if Envir.is_empty env then I else (Proofterm.norm_proof' env)) o
+          ((if Envir.is_empty env then I else Proofterm.norm_proof' env) o
             Proofterm.assumption_proof Bs Bi n) der,
        {tags = [],
         maxidx = Envir.maxidx_of env,
