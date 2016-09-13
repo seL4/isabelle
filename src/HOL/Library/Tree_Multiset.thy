@@ -14,6 +14,11 @@ fun mset_tree :: "'a tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |
 "mset_tree (Node l a r) = {#a#} + mset_tree l + mset_tree r"
 
+fun subtrees_mset :: "'a tree \<Rightarrow> 'a tree multiset" where
+"subtrees_mset Leaf = {#Leaf#}" |
+"subtrees_mset (Node l x r) = add_mset (Node l x r) (subtrees_mset l + subtrees_mset r)"
+
+
 lemma set_mset_tree[simp]: "set_mset (mset_tree t) = set_tree t"
 by(induction t) auto
 
@@ -34,5 +39,9 @@ by (induction t) (auto simp: ac_simps)
 
 lemma map_mirror: "mset_tree (mirror t) = mset_tree t"
 by (induction t) (simp_all add: ac_simps)
+
+
+lemma in_subtrees_mset_iff[simp]: "s \<in># subtrees_mset t \<longleftrightarrow> s \<in> subtrees t"
+by(induction t) auto
 
 end

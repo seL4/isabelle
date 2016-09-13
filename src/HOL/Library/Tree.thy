@@ -23,6 +23,80 @@ text\<open>Can be seen as counting the number of leaves rather than nodes:\<clos
 definition size1 :: "'a tree \<Rightarrow> nat" where
 "size1 t = size t + 1"
 
+fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
+"subtrees \<langle>\<rangle> = {\<langle>\<rangle>}" |
+"subtrees (\<langle>l, a, r\<rangle>) = insert \<langle>l, a, r\<rangle> (subtrees l \<union> subtrees r)"
+
+fun mirror :: "'a tree \<Rightarrow> 'a tree" where
+"mirror \<langle>\<rangle> = Leaf" |
+"mirror \<langle>l,x,r\<rangle> = \<langle>mirror r, x, mirror l\<rangle>"
+
+class height = fixes height :: "'a \<Rightarrow> nat"
+
+instantiation tree :: (type)height
+begin
+
+fun height_tree :: "'a tree => nat" where
+"height Leaf = 0" |
+"height (Node t1 a t2) = max (height t1) (height t2) + 1"
+
+instance ..
+
+end
+
+fun min_height :: "'a tree \<Rightarrow> nat" where
+"min_height Leaf = 0" |
+"min_height (Node l _ r) = min (min_height l) (min_height r) + 1"
+
+fun complete :: "'a tree \<Rightarrow> bool" where
+"complete Leaf = True" |
+"complete (Node l x r) = (complete l \<and> complete r \<and> height l = height r)"
+
+definition balanced :: "'a tree \<Rightarrow> bool" where
+"balanced t = (height t - min_height t \<le> 1)"
+
+text \<open>Weight balanced:\<close>
+fun wbalanced :: "'a tree \<Rightarrow> bool" where
+"wbalanced Leaf = True" |
+"wbalanced (Node l x r) = (abs(int(size l) - int(size r)) \<le> 1 \<and> wbalanced l \<and> wbalanced r)"
+
+text \<open>Internal path length:\<close>
+fun path_len :: "'a tree \<Rightarrow> nat" where
+"path_len Leaf = 0 " |
+"path_len (Node l _ r) = path_len l + size l + path_len r + size r"
+
+fun preorder :: "'a tree \<Rightarrow> 'a list" where
+"preorder \<langle>\<rangle> = []" |
+"preorder \<langle>l, x, r\<rangle> = x # preorder l @ preorder r"
+
+fun inorder :: "'a tree \<Rightarrow> 'a list" where
+"inorder \<langle>\<rangle> = []" |
+"inorder \<langle>l, x, r\<rangle> = inorder l @ [x] @ inorder r"
+
+text\<open>A linear version avoiding append:\<close>
+fun inorder2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"inorder2 \<langle>\<rangle> xs = xs" |
+"inorder2 \<langle>l, x, r\<rangle> xs = inorder2 l (x # inorder2 r xs)"
+
+text\<open>Binary Search Tree:\<close>
+fun (in linorder) bst :: "'a tree \<Rightarrow> bool" where
+"bst \<langle>\<rangle> \<longleftrightarrow> True" |
+"bst \<langle>l, a, r\<rangle> \<longleftrightarrow> bst l \<and> bst r \<and> (\<forall>x\<in>set_tree l. x < a) \<and> (\<forall>x\<in>set_tree r. a < x)"
+
+text\<open>Binary Search Tree with duplicates:\<close>
+fun (in linorder) bst_eq :: "'a tree \<Rightarrow> bool" where
+"bst_eq \<langle>\<rangle> \<longleftrightarrow> True" |
+"bst_eq \<langle>l,a,r\<rangle> \<longleftrightarrow>
+ bst_eq l \<and> bst_eq r \<and> (\<forall>x\<in>set_tree l. x \<le> a) \<and> (\<forall>x\<in>set_tree r. a \<le> x)"
+
+fun (in linorder) heap :: "'a tree \<Rightarrow> bool" where
+"heap Leaf = True" |
+"heap (Node l m r) =
+  (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
+
+
+subsection \<open>@{const size}\<close>
+
 lemma size1_simps[simp]:
   "size1 \<langle>\<rangle> = 1"
   "size1 \<langle>l, x, r\<rangle> = size1 l + size1 r"
@@ -47,20 +121,19 @@ lemma size1_map_tree[simp]: "size1 (map_tree f t) = size1 t"
 by (simp add: size1_def)
 
 
-subsection "The Height"
+subsection \<open>@{const subtrees}\<close>
 
-class height = fixes height :: "'a \<Rightarrow> nat"
+lemma set_treeE: "a \<in> set_tree t \<Longrightarrow> \<exists>l r. \<langle>l, a, r\<rangle> \<in> subtrees t"
+by (induction t)(auto)
 
-instantiation tree :: (type)height
-begin
+lemma Node_notin_subtrees_if[simp]: "a \<notin> set_tree t \<Longrightarrow> Node l a r \<notin> subtrees t"
+by (induction t) auto
 
-fun height_tree :: "'a tree => nat" where
-"height Leaf = 0" |
-"height (Node t1 a t2) = max (height t1) (height t2) + 1"
+lemma in_set_tree_if: "\<langle>l, a, r\<rangle> \<in> subtrees t \<Longrightarrow> a \<in> set_tree t"
+by (metis Node_notin_subtrees_if)
 
-instance ..
 
-end
+subsection \<open>@{const height} and @{const min_height}\<close>
 
 lemma height_0_iff_Leaf: "height t = 0 \<longleftrightarrow> t = Leaf"
 by(cases t) auto
@@ -92,10 +165,9 @@ qed simp
 corollary size_height: "size t \<le> 2 ^ height (t::'a tree) - 1"
 using size1_height[of t] by(arith)
 
+lemma height_subtrees: "s \<in> subtrees t \<Longrightarrow> height s \<le> height t"
+by (induction t) auto
 
-fun min_height :: "'a tree \<Rightarrow> nat" where
-"min_height Leaf = 0" |
-"min_height (Node l _ r) = min (min_height l) (min_height r) + 1"
 
 lemma min_hight_le_height: "min_height t \<le> height t"
 by(induction t) auto
@@ -113,11 +185,7 @@ proof(induction t)
 qed simp
 
 
-subsection \<open>Complete\<close>
-
-fun complete :: "'a tree \<Rightarrow> bool" where
-"complete Leaf = True" |
-"complete (Node l x r) = (complete l \<and> complete r \<and> height l = height r)"
+subsection \<open>@{const complete}\<close>
 
 lemma complete_iff_height: "complete t \<longleftrightarrow> (min_height t = height t)"
 apply(induction t)
@@ -228,10 +296,18 @@ next
 qed
 
 
-subsection \<open>Balanced\<close>
+subsection \<open>@{const balanced}\<close>
 
-definition balanced :: "'a tree \<Rightarrow> bool" where
-"balanced t = (height t - min_height t \<le> 1)"
+lemma balanced_subtreeL: "balanced (Node l x r) \<Longrightarrow> balanced l"
+by(simp add: balanced_def)
+
+lemma balanced_subtreeR: "balanced (Node l x r) \<Longrightarrow> balanced r"
+by(simp add: balanced_def)
+
+lemma balanced_subtrees: "\<lbrakk> balanced t; s \<in> subtrees t \<rbrakk> \<Longrightarrow> balanced s"
+using [[simp_depth_limit=1]]
+by(induction t arbitrary: s)
+  (auto simp add: balanced_subtreeL balanced_subtreeR)
 
 text\<open>Balanced trees have optimal height:\<close>
 
@@ -268,13 +344,17 @@ next
 qed
 
 
-subsection \<open>Path length\<close>
+subsection \<open>@{const wbalanced}\<close>
+
+lemma wbalanced_subtrees: "\<lbrakk> wbalanced t; s \<in> subtrees t \<rbrakk> \<Longrightarrow> wbalanced s"
+using [[simp_depth_limit=1]] by(induction t arbitrary: s) auto
+
+(* show wbalanced \<Longrightarrow> balanced and use that in Balanced.thy *)
+
+
+subsection \<open>@{const path_len}\<close>
 
 text \<open>The internal path length of a tree:\<close>
-
-fun path_len :: "'a tree \<Rightarrow> nat" where
-"path_len Leaf = 0 " |
-"path_len (Node l _ r) = path_len l + size l + path_len r + size r"
 
 lemma path_len_if_bal: "complete t
   \<Longrightarrow> path_len t = (let n = height t in 2 + n*2^n - 2^(n+1))"
@@ -288,37 +368,7 @@ proof(induction t)
 qed simp
 
 
-subsection "The set of subtrees"
-
-fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
-"subtrees \<langle>\<rangle> = {\<langle>\<rangle>}" |
-"subtrees (\<langle>l, a, r\<rangle>) = insert \<langle>l, a, r\<rangle> (subtrees l \<union> subtrees r)"
-
-lemma set_treeE: "a \<in> set_tree t \<Longrightarrow> \<exists>l r. \<langle>l, a, r\<rangle> \<in> subtrees t"
-by (induction t)(auto)
-
-lemma Node_notin_subtrees_if[simp]: "a \<notin> set_tree t \<Longrightarrow> Node l a r \<notin> subtrees t"
-by (induction t) auto
-
-lemma in_set_tree_if: "\<langle>l, a, r\<rangle> \<in> subtrees t \<Longrightarrow> a \<in> set_tree t"
-by (metis Node_notin_subtrees_if)
-
-
 subsection "List of entries"
-
-fun preorder :: "'a tree \<Rightarrow> 'a list" where
-"preorder \<langle>\<rangle> = []" |
-"preorder \<langle>l, x, r\<rangle> = x # preorder l @ preorder r"
-
-fun inorder :: "'a tree \<Rightarrow> 'a list" where
-"inorder \<langle>\<rangle> = []" |
-"inorder \<langle>l, x, r\<rangle> = inorder l @ [x] @ inorder r"
-
-text\<open>A linear version avoiding append:\<close>
-fun inorder2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"inorder2 \<langle>\<rangle> xs = xs" |
-"inorder2 \<langle>l, x, r\<rangle> xs = inorder2 l (x # inorder2 r xs)"
-
 
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
 by (induction t) auto
@@ -342,18 +392,7 @@ lemma inorder2_inorder: "inorder2 t xs = inorder t @ xs"
 by (induction t arbitrary: xs) auto
 
 
-subsection \<open>Binary Search Tree predicate\<close>
-
-fun (in linorder) bst :: "'a tree \<Rightarrow> bool" where
-"bst \<langle>\<rangle> \<longleftrightarrow> True" |
-"bst \<langle>l, a, r\<rangle> \<longleftrightarrow> bst l \<and> bst r \<and> (\<forall>x\<in>set_tree l. x < a) \<and> (\<forall>x\<in>set_tree r. a < x)"
-
-text\<open>In case there are duplicates:\<close>
-
-fun (in linorder) bst_eq :: "'a tree \<Rightarrow> bool" where
-"bst_eq \<langle>\<rangle> \<longleftrightarrow> True" |
-"bst_eq \<langle>l,a,r\<rangle> \<longleftrightarrow>
- bst_eq l \<and> bst_eq r \<and> (\<forall>x\<in>set_tree l. x \<le> a) \<and> (\<forall>x\<in>set_tree r. a \<le> x)"
+subsection \<open>Binary Search Tree\<close>
 
 lemma (in linorder) bst_eq_if_bst: "bst t \<Longrightarrow> bst_eq t"
 by (induction t) (auto)
@@ -376,19 +415,10 @@ apply(fastforce elim: order.asym)
 done
 
 
-subsection "The heap predicate"
-
-fun heap :: "'a::linorder tree \<Rightarrow> bool" where
-"heap Leaf = True" |
-"heap (Node l m r) =
-  (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
+subsection \<open>@{const heap}\<close>
 
 
-subsection "Function \<open>mirror\<close>"
-
-fun mirror :: "'a tree \<Rightarrow> 'a tree" where
-"mirror \<langle>\<rangle> = Leaf" |
-"mirror \<langle>l,x,r\<rangle> = \<langle>mirror r, x, mirror l\<rangle>"
+subsection \<open>@{const mirror}\<close>
 
 lemma mirror_Leaf[simp]: "mirror t = \<langle>\<rangle> \<longleftrightarrow> t = \<langle>\<rangle>"
 by (induction t) simp_all

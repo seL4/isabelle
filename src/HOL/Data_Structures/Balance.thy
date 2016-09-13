@@ -23,7 +23,6 @@ definition balance_list :: "'a list \<Rightarrow> 'a tree" where
 definition balance_tree :: "'a tree \<Rightarrow> 'a tree" where
 "balance_tree = balance_list o inorder"
 
-  
 lemma bal_simps:
   "bal xs 0 = (Leaf, xs)"
   "n > 0 \<Longrightarrow>
@@ -33,6 +32,17 @@ lemma bal_simps:
       (r, zs) = Balance.bal (tl ys) (n-1-m)
   in (Node l (hd ys) r, zs))"
 by(simp_all add: bal.simps)
+
+text\<open>The following lemmas take advantage of the fact
+that \<open>bal xs n\<close> yields a result even if \<open>n > length xs\<close>.\<close>
+  
+lemma size_bal: "bal xs n = (t,ys) \<Longrightarrow> size t = n"
+proof(induction xs n arbitrary: t ys rule: bal.induct)
+  case (1 xs n)
+  thus ?case
+    by(cases "n=0")
+      (auto simp add: bal_simps Let_def split: prod.splits)
+qed
 
 lemma bal_inorder:
   "\<lbrakk> bal xs n = (t,ys); n \<le> length xs \<rbrakk>
@@ -155,6 +165,32 @@ by (simp add: balance_tree_def)
 
 lemma height_balance_tree: "height(balance_tree t) = floorlog 2 (size t)"
 by(simp add: balance_tree_def height_balance_list)
+
+lemma wbalanced_bal: "bal xs n = (t,ys) \<Longrightarrow> wbalanced t"
+proof(induction xs n arbitrary: t ys rule: bal.induct)
+  case (1 xs n)
+  show ?case
+  proof cases
+    assume "n = 0"
+    thus ?thesis
+      using "1.prems" by(simp add: bal_simps)
+  next
+    assume "n \<noteq> 0"
+    with "1.prems" obtain l ys r zs where
+      rec1: "bal xs (n div 2) = (l, ys)" and
+      rec2: "bal (tl ys) (n - 1 - n div 2) = (r, zs)" and
+      t: "t = \<langle>l, hd ys, r\<rangle>"
+      by(auto simp add: bal_simps Let_def split: prod.splits)
+    have l: "wbalanced l" using "1.IH"(1)[OF \<open>n\<noteq>0\<close> refl rec1] .
+    have "wbalanced r" using "1.IH"(2)[OF \<open>n\<noteq>0\<close> refl rec1[symmetric] refl rec2] .
+    with l t size_bal[OF rec1] size_bal[OF rec2]
+    show ?thesis by auto
+  qed
+qed
+
+lemma wbalanced_balance_tree: "wbalanced (balance_tree t)"
+by(simp add: balance_tree_def balance_list_def)
+  (metis prod.collapse wbalanced_bal)
 
 hide_const (open) bal
 
