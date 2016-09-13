@@ -369,6 +369,15 @@ lemmas basic_monos =
   subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   Collect_mono in_mono vimage_mono
 
+lemma le_rel_bool_arg_iff: "X \<le> Y \<longleftrightarrow> X False \<le> Y False \<and> X True \<le> Y True"
+  unfolding le_fun_def le_bool_def using bool_induct by auto
+
+lemma imp_conj_iff: "((P \<longrightarrow> Q) \<and> P) = (P \<and> Q)"
+  by blast
+
+lemma meta_fun_cong: "P \<equiv> Q \<Longrightarrow> P a \<equiv> Q a"
+  by auto
+
 ML_file "Tools/inductive.ML"
 
 lemmas [mono] =

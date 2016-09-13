@@ -116,7 +116,9 @@ val simp_thms2 =
   map mk_meta_eq [@{thm inf_fun_def}, @{thm inf_bool_def}] @ simp_thms1;
 
 val simp_thms3 =
-  map mk_meta_eq [@{thm le_fun_def}, @{thm le_bool_def}, @{thm sup_fun_def}, @{thm sup_bool_def}];
+  @{thms le_rel_bool_arg_iff if_False if_True conj_ac
+    le_fun_def le_bool_def sup_fun_def sup_bool_def simp_thms
+    if_bool_eq_disj all_simps ex_simps imp_conjL};
 
 
 
@@ -775,6 +777,119 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
 
   in singleton (Proof_Context.export ctxt'' ctxt''') (induct RS lemma) end;
 
+(* prove coinduction rule *)
+
+fun If_const T = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
+fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;
+
+fun prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono
+    fp_def rec_preds_defs ctxt ctxt''' =  (* FIXME ctxt''' ?? *)
+  let
+    val _ = clean_message ctxt quiet_mode "  Proving the coinduction rule ...";
+    val n = length cs;
+    val (ns, xss) = map_split (fn pred =>
+      make_args' argTs xs (arg_types_of (length params) pred) |> `length) preds;
+    val xTss = map (map fastype_of) xss;
+    val (Rs_names, names_ctxt) = Variable.variant_fixes (mk_names "X" n) ctxt;
+    val Rs = map2 (fn name => fn Ts => Free (name, Ts ---> @{typ bool})) Rs_names xTss;
+    val Rs_applied = map2 (curry list_comb) Rs xss;
+    val preds_applied = map2 (curry list_comb) (map (fn p => list_comb (p, params)) preds) xss;
+    val abstract_list = fold_rev (absfree o dest_Free);
+    val bss = map (make_bool_args
+      (fn b => HOLogic.mk_eq (b, @{term False}))
+      (fn b => HOLogic.mk_eq (b, @{term True})) bs) (0 upto n - 1);
+    val eq_undefinedss = map (fn ys => map (fn x =>
+        HOLogic.mk_eq (x, Const (@{const_name undefined}, fastype_of x)))
+      (subtract (op =) ys xs)) xss;
+    val R =
+      @{fold 3} (fn bs => fn eqs => fn R => fn t => if null bs andalso null eqs then R else
+        mk_If (Library.foldr1 HOLogic.mk_conj (bs @ eqs)) R t)
+      bss eq_undefinedss Rs_applied @{term False}
+      |> abstract_list (bs @ xs);
+
+    fun subst t =
+      (case dest_predicate cs params t of
+        SOME (_, i, ts, (_, Us)) =>
+          let
+            val l = length Us;
+            val bs = map Bound (l - 1 downto 0);
+            val args = map (incr_boundvars l) ts @ bs
+          in
+            HOLogic.mk_disj (list_comb (nth Rs i, args),
+              list_comb (nth preds i, params @ args))
+            |> fold_rev absdummy Us
+          end
+      | NONE =>
+          (case t of
+            t1 $ t2 => subst t1 $ subst t2
+          | Abs (x, T, u) => Abs (x, T, subst u)
+          | _ => t));
+
+    fun mk_coind_prem r =
+      let
+        val SOME (_, i, ts, (Ts, _)) =
+          dest_predicate cs params (HOLogic.dest_Trueprop (Logic.strip_assums_concl r));
+        val ps =
+          map HOLogic.mk_eq (make_args' argTs xs Ts ~~ ts) @
+          map (subst o HOLogic.dest_Trueprop) (Logic.strip_assums_hyp r);
+      in
+        (i, fold_rev (fn (x, T) => fn P => HOLogic.exists_const T $ Abs (x, T, P))
+          (Logic.strip_params r)
+          (if null ps then @{term True} else foldr1 HOLogic.mk_conj ps))
+      end;
+
+    fun mk_prem i Ps = Logic.mk_implies
+        ((nth Rs_applied i, Library.foldr1 HOLogic.mk_disj Ps) |> @{apply 2} HOLogic.mk_Trueprop)
+      |> fold_rev Logic.all (nth xss i);
+
+    val prems = map mk_coind_prem intr_ts |> AList.group (op =) |> sort (int_ord o apply2 fst)
+      |> map (uncurry mk_prem);
+
+    val concl = @{map 3} (fn xs =>
+        Ctr_Sugar_Util.list_all_free xs oo curry HOLogic.mk_imp) xss Rs_applied preds_applied
+      |> Library.foldr1 HOLogic.mk_conj |> HOLogic.mk_Trueprop;
+
+
+    val pred_defs_sym = if null rec_preds_defs then [] else map2 (fn n => fn thm =>
+        funpow n (fn thm => thm RS @{thm meta_fun_cong}) thm RS @{thm Pure.symmetric})
+      ns rec_preds_defs;
+    val simps = simp_thms3 @ pred_defs_sym;
+    val simprocs = [Simplifier.the_simproc ctxt "HOL.defined_All"];
+    val simplify = asm_full_simplify (Ctr_Sugar_Util.ss_only simps ctxt addsimprocs simprocs);
+    val coind = (mono RS (fp_def RS @{thm def_coinduct}))
+      |> infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt R)]
+      |> simplify;
+    fun idx_of t = find_index (fn R =>
+      R = the_single (subtract (op =) (preds @ params) (map Free (Term.add_frees t [])))) Rs;
+    val coind_concls = HOLogic.dest_Trueprop (Thm.concl_of coind) |> HOLogic.dest_conj
+      |> map (fn t => (idx_of t, t)) |> sort (int_ord o @{apply 2} fst) |> map snd;
+    val reorder_bound_goals = map_filter (fn (t, u) => if t aconv u then NONE else
+      SOME (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))))
+      ((HOLogic.dest_Trueprop concl |> HOLogic.dest_conj) ~~ coind_concls);
+    val reorder_bound_thms = map (fn goal => Goal.prove_sorry ctxt [] [] goal
+      (fn {context = ctxt, prems = _} =>
+        HEADGOAL (EVERY' [resolve_tac ctxt [iffI],
+          REPEAT_DETERM o resolve_tac ctxt [allI, impI],
+          REPEAT_DETERM o dresolve_tac ctxt [spec], eresolve_tac ctxt [mp], assume_tac ctxt,
+          REPEAT_DETERM o resolve_tac ctxt [allI, impI],
+          REPEAT_DETERM o dresolve_tac ctxt [spec], eresolve_tac ctxt [mp], assume_tac ctxt])))
+      reorder_bound_goals;
+    val coinduction = Goal.prove_sorry ctxt [] prems concl (fn {context = ctxt, prems = CIH} =>
+      HEADGOAL (full_simp_tac
+        (Ctr_Sugar_Util.ss_only (simps @ reorder_bound_thms) ctxt addsimprocs simprocs) THEN'
+        resolve_tac ctxt [coind]) THEN
+      ALLGOALS (REPEAT_ALL_NEW (REPEAT_DETERM o resolve_tac ctxt [allI, impI, conjI] THEN'
+        REPEAT_DETERM o eresolve_tac ctxt [exE, conjE] THEN'
+        dresolve_tac ctxt (map simplify CIH) THEN'
+        REPEAT_DETERM o (assume_tac ctxt ORELSE'
+          eresolve_tac ctxt [conjE] ORELSE' dresolve_tac ctxt [spec, mp]))))
+  in
+    coinduction
+    |> length cs = 1 ? (Object_Logic.rulify ctxt #> rotate_prems ~1)
+    |> singleton (Proof_Context.export names_ctxt ctxt''')
+  end
+
+
 
 
 (** specification of (co)inductive predicates **)
@@ -990,14 +1105,12 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val raw_induct = zero_var_indexes
       (if no_ind then Drule.asm_rl
        else if coind then
-         singleton (Proof_Context.export lthy2 lthy1)
-           (rotate_prems ~1 (Object_Logic.rulify lthy2
-             (fold_rule lthy2 rec_preds_defs
-               (rewrite_rule lthy2 simp_thms3
-                (mono RS (fp_def RS @{thm def_coinduct}))))))
+         prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono fp_def
+           rec_preds_defs lthy2 lthy1
        else
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
            rec_preds_defs lthy2 lthy1);
+
     val eqs =
       if no_elim then [] else prove_eqs quiet_mode cs params intr_ts intrs elims lthy2 lthy1;
 
