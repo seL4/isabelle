@@ -2070,6 +2070,15 @@ lemma sum_mset_delta': "sum_mset (image_mset (\<lambda>x. if y = x then c else 0
 
 end
 
+lemma of_nat_sum_mset [simp]:
+  "of_nat (sum_mset M) = sum_mset (image_mset of_nat M)"
+by (induction M) auto
+
+lemma sum_mset_0_iff [simp]:
+  "sum_mset M = (0::'a::canonically_ordered_monoid_add)
+   \<longleftrightarrow> (\<forall>x \<in> set_mset M. x = 0)"
+by(induction M) (auto simp: add_eq_0_iff_both_eq_0)
+
 lemma sum_mset_diff:
   fixes M N :: "('a :: ordered_cancel_comm_monoid_diff) multiset"
   shows "N \<subseteq># M \<Longrightarrow> sum_mset (M - N) = sum_mset M - sum_mset N"
@@ -2086,7 +2095,7 @@ next
 qed
 
 lemma size_mset_set [simp]: "size (mset_set A) = card A"
-  by (simp only: size_eq_sum_mset card_eq_setsum setsum_unfold_sum_mset)
+by (simp only: size_eq_sum_mset card_eq_setsum setsum_unfold_sum_mset)
 
 syntax (ASCII)
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
@@ -2094,6 +2103,11 @@ syntax
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
 translations
   "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST sum_mset (CONST image_mset (\<lambda>i. b) A)"
+
+lemma sum_mset_distrib_left:
+  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
+  shows "c * (\<Sum>x \<in># M. f x) = (\<Sum>x \<in># M. c * f(x))"
+by (induction M) (simp_all add: distrib_left)
 
 abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#_" [900] 900)
   where "\<Union># MM \<equiv> sum_mset MM" \<comment> \<open>FIXME ambiguous notation --
