@@ -860,7 +860,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                   (filter (exists_subtype_in [A] o fastype_of) xs);
               in
                 mk_Trueprop_eq (setA $ list_comb (ctrA, xs),
-                  (if null sets then HOLogic.mk_set A [] else Library.foldr1 mk_union sets))
+                  (if null sets then HOLogic.mk_set A [] else Library.foldl1 mk_union sets))
               end;
 
             val goals =

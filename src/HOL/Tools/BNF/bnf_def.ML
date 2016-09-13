@@ -796,7 +796,7 @@ fun build_set ctxt A =
                 end;
             in
               if null set_apps then HOLogic.mk_set A []
-              else Library.foldr1 mk_union (map recurse set_apps)
+              else Library.foldl1 mk_union (map recurse set_apps)
             end
           | _ => HOLogic.mk_set A []));
   in build end;
