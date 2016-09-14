@@ -329,7 +329,13 @@ object Completion
     (symbol_abbrevs ::: more_abbrevs).filterNot({ case (a, _) => remove_abbrevs.contains(a) })
   }
 
-  private val caret_indicator = '\u0007'
+  val caret_indicator = '\u0007'
+  def split_template(s: String): (String, String) =
+    space_explode(caret_indicator, s) match {
+      case List(s1, s2) => (s1, s2)
+      case _ => (s, "")
+    }
+
   private val antiquote = "@{"
 
   private val default_abbrevs =
@@ -505,11 +511,7 @@ final class Completion private(
             (complete_word, name0) <- completions
             name1 = decode(name0)
             if name1 != original
-            (s1, s2) =
-              space_explode(Completion.caret_indicator, name1) match {
-                case List(s1, s2) => (s1, s2)
-                case _ => (name1, "")
-              }
+            (s1, s2) = Completion.split_template(name1)
             move = - s2.length
             description =
               if (is_symbol(name0)) {
