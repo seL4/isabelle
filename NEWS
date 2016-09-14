@@ -79,6 +79,11 @@ instead, or declare [[unfold_abs_def = false]] in the proof context.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Dockable window "Symbols" also provides access to 'abbrevs' from the
+outer syntax of the current theory buffer. This provides clickable
+syntax templates, including entries with empty abbrevs name (which are
+inaccessible via keyboard completion).
+
 * Cartouche abbreviations work both for " and ` to accomodate typical
 situations where old ASCII notation may be updated.
 
