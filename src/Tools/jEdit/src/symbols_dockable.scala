@@ -17,10 +17,52 @@ import org.gjt.sp.jedit.View
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
+  private def font_size: Int =
+    Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
+
+  private class Abbrev_Component(val abbrev: (String, String)) extends Button
+  {
+    text = Symbol.decode(abbrev._2)
+    font = GUI.font(size = font_size)
+    action =
+      Action(text) {
+        val text_area = view.getTextArea
+        val (s1, s2) = Completion.split_template(text)
+        text_area.setSelectedText(Isabelle_Encoding.maybe_decode(text_area.getBuffer, s1 + s2))
+        text_area.moveCaretPosition(text_area.getCaretPosition - s2.length)
+        text_area.requestFocus
+      }
+    tooltip =
+      GUI.tooltip_lines(cat_lines(List(abbrev._2, "abbrev: " + abbrev._1)))
+  }
+
+  private class Abbrevs_Panel extends Wrap_Panel
+  {
+    private var abbrevs: Thy_Header.Abbrevs = Nil
+
+    def refresh
+    {
+      val abbrevs1 =
+        Isabelle.buffer_syntax(view.getBuffer).getOrElse(Outer_Syntax.empty).abbrevs
+      if (abbrevs != abbrevs1) {
+        abbrevs = abbrevs1
+
+        contents.clear
+        for {
+          abbrev <- abbrevs
+          if !Symbol.iterator(Symbol.encode(abbrev._2)).
+            forall(s => s.length == 1 && s(0) != Completion.caret_indicator)
+        } { contents += new Abbrev_Component(abbrev) }
+
+        revalidate
+        repaint
+      }
+    }
+    refresh
+  }
+
   private class Symbol_Component(val symbol: String, is_control: Boolean) extends Button
   {
-    private val font_size = Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
-
     font =
       Symbol.fonts.get(symbol) match {
         case None => GUI.font(size = font_size)
@@ -50,7 +92,11 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     tooltip = "Reset control symbols within text"
   }
 
+  private val abbrevs_panel = new Abbrevs_Panel
+
   private val group_tabs: TabbedPane = new TabbedPane {
+    pages += new TabbedPane.Page("abbrevs", abbrevs_panel)
+
     pages ++=
       Symbol.groups.map({ case (group, symbols) =>
         new TabbedPane.Page(group,
