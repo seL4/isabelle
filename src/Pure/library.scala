@@ -198,6 +198,11 @@ object Library
   def remove[A, B](x: B)(xs: List[A]): List[A] = if (member(xs)(x)) xs.filterNot(_ == x) else xs
   def update[A](x: A)(xs: List[A]): List[A] = x :: remove(x)(xs)
 
+  def merge[A](xs: List[A], ys: List[A]): List[A] =
+    if (xs.eq(ys)) xs
+    else if (xs.isEmpty) ys
+    else ys.foldRight(xs)(Library.insert(_)(_))
+
   def distinct[A](xs: List[A]): List[A] =
   {
     val result = new mutable.ListBuffer[A]

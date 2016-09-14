@@ -46,6 +46,7 @@ object Outer_Syntax
 final class Outer_Syntax private(
   val keywords: Keyword.Keywords = Keyword.Keywords.empty,
   val completion: Completion = Completion.empty,
+  val rev_abbrevs: Thy_Header.Abbrevs = Nil,
   val language_context: Completion.Language_Context = Completion.Language_Context.outer,
   val has_tokens: Boolean = true)
 {
@@ -54,7 +55,7 @@ final class Outer_Syntax private(
   override def toString: String = keywords.toString
 
 
-  /* add keywords */
+  /* keywords */
 
   def + (name: String, kind: String = "", tags: List[String] = Nil): Outer_Syntax =
   {
@@ -65,7 +66,7 @@ final class Outer_Syntax private(
           (if (Keyword.theory_block.contains(kind)) List((name, name + "\nbegin\n\u0007\nend"))
            else Nil) :::
           (if (Completion.Word_Parsers.is_word(name)) List((name, name)) else Nil))
-    new Outer_Syntax(keywords1, completion1, language_context, true)
+    new Outer_Syntax(keywords1, completion1, rev_abbrevs, language_context, true)
   }
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
@@ -74,18 +75,24 @@ final class Outer_Syntax private(
         syntax + (Symbol.decode(name), kind, tags) + (Symbol.encode(name), kind, tags)
     }
 
-  def add_abbrevs(abbrevs: Thy_Header.Abbrevs): Outer_Syntax =
-    if (abbrevs.isEmpty) this
+
+  /* abbrevs */
+
+  def abbrevs: Thy_Header.Abbrevs = rev_abbrevs.reverse
+
+  def add_abbrevs(new_abbrevs: Thy_Header.Abbrevs): Outer_Syntax =
+    if (new_abbrevs.isEmpty) this
     else {
       val completion1 =
         completion.add_abbrevs(
-          (for ((a, b) <- abbrevs) yield {
+          (for ((a, b) <- new_abbrevs) yield {
             val a1 = Symbol.decode(a)
             val a2 = Symbol.encode(a)
             val b1 = Symbol.decode(b)
             List((a1, b1), (a2, b1))
           }).flatten)
-      new Outer_Syntax(keywords, completion1, language_context, has_tokens)
+      val rev_abbrevs1 = Library.distinct(new_abbrevs) reverse_::: rev_abbrevs
+      new Outer_Syntax(keywords, completion1, rev_abbrevs1, language_context, has_tokens)
     }
 
 
@@ -96,8 +103,9 @@ final class Outer_Syntax private(
     else {
       val keywords1 = keywords ++ other.keywords
       val completion1 = completion ++ other.completion
+      val rev_abbrevs1 = Library.merge(rev_abbrevs, other.rev_abbrevs)
       if ((keywords eq keywords1) && (completion eq completion1)) this
-      else new Outer_Syntax(keywords1, completion1, language_context, has_tokens)
+      else new Outer_Syntax(keywords1, completion1, rev_abbrevs1, language_context, has_tokens)
     }
 
 
@@ -110,13 +118,14 @@ final class Outer_Syntax private(
   /* language context */
 
   def set_language_context(context: Completion.Language_Context): Outer_Syntax =
-    new Outer_Syntax(keywords, completion, context, has_tokens)
+    new Outer_Syntax(keywords, completion, rev_abbrevs, context, has_tokens)
 
   def no_tokens: Outer_Syntax =
   {
     require(keywords.is_empty)
     new Outer_Syntax(
       completion = completion,
+      rev_abbrevs = rev_abbrevs,
       language_context = language_context,
       has_tokens = false)
   }
