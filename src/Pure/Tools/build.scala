@@ -170,7 +170,7 @@ object Build
 
             val loaded_theories = thy_deps.loaded_theories
             val keywords = thy_deps.keywords
-            val syntax = thy_deps.syntax.asInstanceOf[Outer_Syntax]
+            val syntax = thy_deps.syntax
 
             val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
             val loaded_files =

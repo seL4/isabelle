@@ -50,7 +50,7 @@ object Isabelle
 
   def mode_syntax(mode: String): Option[Outer_Syntax] =
     mode match {
-      case "isabelle" => Some(PIDE.resources.base_syntax.asInstanceOf[Outer_Syntax])
+      case "isabelle" => Some(PIDE.resources.base_syntax)
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Sessions.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
@@ -63,7 +63,7 @@ object Isabelle
   def buffer_syntax(buffer: JEditBuffer): Option[Outer_Syntax] =
     (JEdit_Lib.buffer_mode(buffer), PIDE.document_model(buffer)) match {
       case ("isabelle", Some(model)) =>
-        Some(PIDE.session.recent_syntax(model.node_name).asInstanceOf[Outer_Syntax])
+        Some(PIDE.session.recent_syntax(model.node_name))
       case (mode, _) => mode_syntax(mode)
     }
 
