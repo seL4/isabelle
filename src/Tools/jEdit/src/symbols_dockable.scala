@@ -12,13 +12,21 @@ import isabelle._
 import scala.swing.event.{SelectionChanged, ValueChanged}
 import scala.swing.{Action, Button, TabbedPane, TextField, BorderPanel, Label, ScrollPane}
 
-import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.{EditBus, EBComponent, EBMessage, View}
 
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   private def font_size: Int =
     Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
+
+
+  /* abbreviations */
+
+  private val abbrevs_panel = new Abbrevs_Panel
+
+  private val abbrevs_refresh_delay =
+    GUI_Thread.delay_last(PIDE.options.seconds("editor_update_delay")) { abbrevs_panel.refresh }
 
   private class Abbrev_Component(val abbrev: (String, String)) extends Button
   {
@@ -40,8 +48,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   {
     private var abbrevs: Thy_Header.Abbrevs = Nil
 
-    def refresh
-    {
+    def refresh: Unit = GUI_Thread.require {
       val abbrevs1 =
         Isabelle.buffer_syntax(view.getBuffer).getOrElse(Outer_Syntax.empty).abbrevs
       if (abbrevs != abbrevs1) {
@@ -58,8 +65,12 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         repaint
       }
     }
+
     refresh
   }
+
+
+  /* symbols */
 
   private class Symbol_Component(val symbol: String, is_control: Boolean) extends Button
   {
@@ -92,7 +103,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     tooltip = "Reset control symbols within text"
   }
 
-  private val abbrevs_panel = new Abbrevs_Panel
+
+  /* tabs */
 
   private val group_tabs: TabbedPane = new TabbedPane {
     pages += new TabbedPane.Page("abbrevs", abbrevs_panel)
@@ -145,4 +157,28 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       page.title = Word.implode(Word.explode('_', page.title).map(Word.perhaps_capitalize(_)))
   }
   set_content(group_tabs)
+
+
+
+  /* main */
+
+  private val edit_bus_handler: EBComponent =
+    new EBComponent { def handleMessage(msg: EBMessage) { abbrevs_refresh_delay.invoke() } }
+
+  private val main =
+    Session.Consumer[Any](getClass.getName) {
+      case _: Session.Commands_Changed => abbrevs_refresh_delay.invoke()
+    }
+
+  override def init()
+  {
+    EditBus.addToBus(edit_bus_handler)
+    PIDE.session.commands_changed += main
+  }
+
+  override def exit()
+  {
+    EditBus.removeFromBus(edit_bus_handler)
+    PIDE.session.commands_changed -= main
+  }
 }
