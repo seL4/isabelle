@@ -1266,15 +1266,6 @@ text \<open>
   Backslash sequences also help when input is broken, and thus escapes its
   normal semantic context: e.g.\ antiquotations or string literals in ML,
   which do not allow arbitrary backslash sequences.
-
-  \<^medskip>
-  Additional abbreviations may be specified in \<^file>\<open>$ISABELLE_HOME/etc/abbrevs\<close>
-  and @{path "$ISABELLE_HOME_USER/etc/abbrevs"}. The file content follows
-  general Isar outer syntax @{cite "isabelle-isar-ref"}. Abbreviations are
-  specified as ``\<open>abbrev\<close>~\<^verbatim>\<open>=\<close>~\<open>text\<close>'' pairs. The replacement \<open>text\<close> may
-  consist of more than just one symbol; otherwise the meaning is the same as a
-  symbol specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{path
-  "etc/symbols"}.
 \<close>
 
 
