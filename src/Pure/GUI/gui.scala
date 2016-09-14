@@ -211,6 +211,21 @@ object GUI
       case _ => None
     }
 
+  def traverse_components(component: Component, apply: Component => Unit)
+  {
+    def traverse(comp: Component)
+    {
+      apply(comp)
+      comp match {
+        case cont: Container =>
+          for (i <- 0 until cont.getComponentCount)
+            traverse(cont.getComponent(i))
+        case _ =>
+      }
+    }
+    traverse(component)
+  }
+
 
   /* font operations */
 
