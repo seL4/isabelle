@@ -146,10 +146,13 @@ e.g. for proof methods "cases", "induct", "goal_cases".
 e.g. 'context', 'notepad'.
 
 * Additional abbreviations for syntactic completion may be specified
-within the theory header as 'abbrevs', in addition to global
-$ISABELLE_HOME/etc/abbrevs and $ISABELLE_HOME_USER/etc/abbrevs as
-before. The theory syntax for 'keywords' has been simplified
-accordingly: optional abbrevs need to go into the new 'abbrevs' section.
+within the theory header as 'abbrevs'. The theory syntax for 'keywords'
+has been simplified accordingly: optional abbrevs need to go into the
+new 'abbrevs' section.
+
+* Global abbreviations via $ISABELLE_HOME/etc/abbrevs and
+$ISABELLE_HOME_USER/etc/abbrevs are no longer supported. Minor
+INCOMPATIBILITY, use 'abbrevs' within theory header instead.
 
 * ML and document antiquotations for file-systems paths are more uniform
 and diverse:

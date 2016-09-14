@@ -246,7 +246,8 @@ object Completion
   /* init */
 
   val empty: Completion = new Completion()
-  def init(): Completion = empty.load()
+  def init(): Completion =
+    empty.add_symbols.add_abbrevs(Completion.symbol_abbrevs ::: Completion.default_abbrevs)
 
 
   /* word parsers */
@@ -295,46 +296,21 @@ object Completion
   }
 
 
-  /* abbreviations */
-
-  private object Abbrevs_Parser extends Parse.Parser
-  {
-    private val syntax = Outer_Syntax.empty + "="
-
-    private val entry: Parser[(String, String)] =
-      text ~ ($$$("=") ~! text) ^^ { case a ~ (_ ~ b) => (a, b) }
-
-    def parse_file(file: Path): List[(String, String)] =
-    {
-      val toks = Token.explode(syntax.keywords, File.read(file))
-      parse_all(rep(entry), Token.reader(toks, Token.Pos.file(file.implode))) match {
-        case Success(result, _) => result
-        case bad => error(bad.toString)
-      }
-    }
-  }
-
-  def load_abbrevs(): List[(String, String)] =
-  {
-    val symbol_abbrevs =
-      for ((sym, abbr) <- Symbol.abbrevs.toList) yield (abbr, sym)
-    val more_abbrevs =
-      for {
-        path <- Path.split(Isabelle_System.getenv("ISABELLE_ABBREVS"))
-        if path.is_file
-        entry <- Abbrevs_Parser.parse_file(path)
-      } yield entry
-    val remove_abbrevs = (for { (a, b) <- more_abbrevs if b == "" } yield a).toSet
-
-    (symbol_abbrevs ::: more_abbrevs).filterNot({ case (a, _) => remove_abbrevs.contains(a) })
-  }
+  /* templates */
 
   val caret_indicator = '\u0007'
+
   def split_template(s: String): (String, String) =
     space_explode(caret_indicator, s) match {
       case List(s1, s2) => (s1, s2)
       case _ => (s, "")
     }
+
+
+  /* abbreviations */
+
+  private def symbol_abbrevs: Thy_Header.Abbrevs =
+    for ((sym, abbr) <- Symbol.abbrevs.toList) yield (abbr, sym)
 
   private val antiquote = "@{"
 
@@ -393,7 +369,7 @@ final class Completion private(
 
   /* symbols and abbrevs */
 
-  def add_symbols(): Completion =
+  def add_symbols: Completion =
   {
     val words =
       (for ((sym, _) <- Symbol.names.toList) yield (sym, sym)) :::
@@ -428,9 +404,6 @@ final class Completion private(
 
     new Completion(keywords, words_lex1, words_map1, abbrevs_lex1, abbrevs_map1)
   }
-
-  private def load(): Completion =
-    add_symbols().add_abbrevs(Completion.load_abbrevs() ::: Completion.default_abbrevs)
 
 
   /* complete */

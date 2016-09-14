@@ -92,6 +92,8 @@ keywords
   and "find_theorems" "find_consts" :: diag
   and "named_theorems" :: thy_decl
 abbrevs
+  "===>" = "===>"  (*prevent replacement of very long arrows*)
+  "--->" = "\<midarrow>\<rightarrow>"
   "default_sort" = ""
   "simproc_setup" = ""
   "hence" = ""

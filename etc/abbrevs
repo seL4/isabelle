@@ -1,6 +1,0 @@
-(* additional abbreviations for syntactic completion *)
-
-(*prevent replacement of very long arrows*)
-"===>" = "===>"
-
-"--->" = "\<midarrow>\<rightarrow>"
