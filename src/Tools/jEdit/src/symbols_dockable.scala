@@ -28,20 +28,20 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private val abbrevs_refresh_delay =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_update_delay")) { abbrevs_panel.refresh }
 
-  private class Abbrev_Component(val abbrev: (String, String)) extends Button
+  private class Abbrev_Component(txt: String, abbrs: List[String]) extends Button
   {
-    text = Symbol.decode(abbrev._2)
+    text = "<html>" + HTML.output(Symbol.decode(txt)) + "</html>"
     font = GUI.font(size = font_size)
     action =
       Action(text) {
         val text_area = view.getTextArea
-        val (s1, s2) = Completion.split_template(text)
-        text_area.setSelectedText(Isabelle_Encoding.maybe_decode(text_area.getBuffer, s1 + s2))
+        val (s1, s2) =
+          Completion.split_template(Isabelle_Encoding.maybe_decode(text_area.getBuffer, txt))
+        text_area.setSelectedText(s1 + s2)
         text_area.moveCaretPosition(text_area.getCaretPosition - s2.length)
         text_area.requestFocus
       }
-    tooltip =
-      GUI.tooltip_lines(cat_lines(List(abbrev._2, "abbrev: " + abbrev._1)))
+    tooltip = GUI.tooltip_lines(cat_lines(txt :: abbrs.map(a => "abbrev: " + a)))
   }
 
   private class Abbrevs_Panel extends Wrap_Panel
@@ -49,17 +49,23 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     private var abbrevs: Thy_Header.Abbrevs = Nil
 
     def refresh: Unit = GUI_Thread.require {
-      val abbrevs1 =
-        Isabelle.buffer_syntax(view.getBuffer).getOrElse(Outer_Syntax.empty).abbrevs
+      val abbrevs1 = Isabelle.buffer_syntax(view.getBuffer).getOrElse(Outer_Syntax.empty).abbrevs
+
       if (abbrevs != abbrevs1) {
         abbrevs = abbrevs1
 
+        val entries: List[(String, List[String])] =
+          Multi_Map(
+            (for {
+              (abbr, txt0) <- abbrevs
+              val txt = Symbol.encode(txt0)
+              if !Symbol.iterator(txt).
+                forall(s => s.length == 1 && s(0) != Completion.caret_indicator)
+            } yield (txt, abbr)): _*).iterator_list.toList
+
         contents.clear
-        for {
-          abbrev <- abbrevs
-          if !Symbol.iterator(Symbol.encode(abbrev._2)).
-            forall(s => s.length == 1 && s(0) != Completion.caret_indicator)
-        } { contents += new Abbrev_Component(abbrev) }
+        for ((txt, abbrs) <- entries.sortBy(_._1))
+          contents += new Abbrev_Component(txt, abbrs.filterNot(_ == "").sorted)
 
         revalidate
         repaint

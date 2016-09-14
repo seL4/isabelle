@@ -387,23 +387,24 @@ final class Completion private(
     (this /: abbrevs)(_.add_abbrev(_))
 
   private def add_abbrev(abbrev: (String, String)): Completion =
-  {
-    val (abbr, text) = abbrev
-    val rev_abbr = abbr.reverse
-    val is_word = Completion.Word_Parsers.is_word(abbr)
+    abbrev match {
+      case ("", _) => this
+      case (abbr, text) =>
+        val rev_abbr = abbr.reverse
+        val is_word = Completion.Word_Parsers.is_word(abbr)
 
-    val (words_lex1, words_map1) =
-      if (!is_word) (words_lex, words_map)
-      else if (text != "") (words_lex + abbr, words_map + abbrev)
-      else (words_lex -- List(abbr), words_map - abbr)
+        val (words_lex1, words_map1) =
+          if (!is_word) (words_lex, words_map)
+          else if (text != "") (words_lex + abbr, words_map + abbrev)
+          else (words_lex -- List(abbr), words_map - abbr)
 
-    val (abbrevs_lex1, abbrevs_map1) =
-      if (is_word) (abbrevs_lex, abbrevs_map)
-      else if (text != "") (abbrevs_lex + rev_abbr, abbrevs_map + (rev_abbr -> abbrev))
-      else (abbrevs_lex -- List(rev_abbr), abbrevs_map - rev_abbr)
+        val (abbrevs_lex1, abbrevs_map1) =
+          if (is_word) (abbrevs_lex, abbrevs_map)
+          else if (text != "") (abbrevs_lex + rev_abbr, abbrevs_map + (rev_abbr -> abbrev))
+          else (abbrevs_lex -- List(rev_abbr), abbrevs_map - rev_abbr)
 
-    new Completion(keywords, words_lex1, words_map1, abbrevs_lex1, abbrevs_map1)
-  }
+        new Completion(keywords, words_lex1, words_map1, abbrevs_lex1, abbrevs_map1)
+    }
 
 
   /* complete */
