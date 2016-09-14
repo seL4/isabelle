@@ -61,11 +61,13 @@ object Isabelle
     }
 
   def buffer_syntax(buffer: JEditBuffer): Option[Outer_Syntax] =
-    (JEdit_Lib.buffer_mode(buffer), PIDE.document_model(buffer)) match {
-      case ("isabelle", Some(model)) =>
-        Some(PIDE.session.recent_syntax(model.node_name))
-      case (mode, _) => mode_syntax(mode)
-    }
+    if (buffer == null) None
+    else
+      (JEdit_Lib.buffer_mode(buffer), PIDE.document_model(buffer)) match {
+        case ("isabelle", Some(model)) =>
+          Some(PIDE.session.recent_syntax(model.node_name))
+        case (mode, _) => mode_syntax(mode)
+      }
 
 
   /* token markers */
