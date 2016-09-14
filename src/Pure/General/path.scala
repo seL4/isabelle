@@ -96,7 +96,7 @@ object Path
       else (List(root_elem(es.head)), es.tail)
     val elems = raw_elems.filterNot(s => s.isEmpty || s == ".").map(explode_elem)
 
-    new Path(norm_elems(elems.reverse ::: roots))
+    new Path(norm_elems(elems reverse_::: roots))
   }
 
   def is_wellformed(str: String): Boolean =

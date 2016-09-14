@@ -198,7 +198,7 @@ object Thy_Syntax
     val removed = old_cmds.iterator.filter(!new_cmds.contains(_)).toList
     val inserted = new_cmds.iterator.filter(!old_cmds.contains(_)).toList
 
-    removed.reverse.map(cmd => (old_cmds.prev(cmd), None)) :::
+    removed.map(cmd => (old_cmds.prev(cmd), None)) reverse_:::
     inserted.map(cmd => (new_cmds.prev(cmd), Some(cmd)))
   }
 
