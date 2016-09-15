@@ -167,6 +167,11 @@ proof -
     by auto
 qed
 
+lemma uncountable_closed_interval: "uncountable {a..b} \<longleftrightarrow> a < b" for a b :: real
+  apply (rule iffI)
+   apply (metis atLeastAtMost_singleton atLeastatMost_empty countable_finite finite.emptyI finite_insert linorder_neqE_linordered_idom)
+  using real_interval_avoid_countable_set by fastforce
+
 lemma open_minus_countable:
   fixes S A :: "real set"
   assumes "countable A" "S \<noteq> {}" "open S"

@@ -1214,6 +1214,17 @@ lemma linepath_of_real: "(linepath (of_real a) (of_real b) x) = of_real ((1 - x)
 lemma of_real_linepath: "of_real (linepath a b x) = linepath (of_real a) (of_real b) x"
   by (metis linepath_of_real mult.right_neutral of_real_def real_scaleR_def)
 
+lemma inj_on_linepath:
+  assumes "a \<noteq> b" shows "inj_on (linepath a b) {0..1}"
+proof (clarsimp simp: inj_on_def linepath_def)
+  fix x y
+  assume "(1 - x) *\<^sub>R a + x *\<^sub>R b = (1 - y) *\<^sub>R a + y *\<^sub>R b" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1"
+  then have "x *\<^sub>R (a - b) = y *\<^sub>R (a - b)"
+    by (auto simp: algebra_simps)
+  then show "x=y"
+    using assms by auto
+qed
+
 
 subsection\<open>Segments via convex hulls\<close>
 

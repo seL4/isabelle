@@ -763,10 +763,6 @@ lemma closedin_closed: "closedin (subtopology euclidean U) S \<longleftrightarro
 lemma closedin_closed_Int: "closed S \<Longrightarrow> closedin (subtopology euclidean U) (U \<inter> S)"
   by (metis closedin_closed)
 
-lemma closed_closedin_trans:
-  "closed S \<Longrightarrow> closed T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> closedin (subtopology euclidean S) T"
-  by (metis closedin_closed inf.absorb2)
-
 lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
   by (auto simp add: closedin_closed)
 
@@ -929,6 +925,11 @@ lemma mem_sphere_0 [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "x \<in> sphere 0 e \<longleftrightarrow> norm x = e"
   by (simp add: dist_norm)
+
+lemma sphere_empty [simp]:
+  fixes a :: "'a::metric_space"
+  shows "r < 0 \<Longrightarrow> sphere a r = {}"
+by auto
 
 lemma centre_in_ball [simp]: "x \<in> ball x e \<longleftrightarrow> 0 < e"
   by simp
@@ -7312,6 +7313,13 @@ text \<open>We can state this in terms of diameter of a set.\<close>
 definition diameter :: "'a::metric_space set \<Rightarrow> real" where
   "diameter S = (if S = {} then 0 else SUP (x,y):S\<times>S. dist x y)"
 
+lemma diameter_le:
+  assumes "S \<noteq> {} \<or> 0 \<le> d"
+      and no: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> norm(x - y) \<le> d"
+    shows "diameter S \<le> d"
+using assms
+  by (auto simp: dist_norm diameter_def intro: cSUP_least)
+
 lemma diameter_bounded_bound:
   fixes s :: "'a :: metric_space set"
   assumes s: "bounded s" "x \<in> s" "y \<in> s"
@@ -8058,7 +8066,10 @@ proof -
     unfolding mem_box by auto
 qed
 
-lemma closure_box:
+lemma closure_cbox [simp]: "closure (cbox a b) = cbox a b"
+  by (simp add: closed_cbox)
+
+lemma closure_box [simp]:
   fixes a :: "'a::euclidean_space"
    assumes "box a b \<noteq> {}"
   shows "closure (box a b) = cbox a b"

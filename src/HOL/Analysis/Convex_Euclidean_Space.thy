@@ -665,6 +665,7 @@ subsubsection \<open>Stepping theorems and hence small special cases\<close>
 lemma affine_hull_empty[simp]: "affine hull {} = {}"
   by (rule hull_unique) auto
 
+(*could delete: it simply rewrites setsum expressions, but it's used twice*)
 lemma affine_hull_finite_step:
   fixes y :: "'a::real_vector"
   shows
@@ -2808,6 +2809,16 @@ lemma aff_dim_sing [simp]:
   shows "aff_dim {a} = 0"
   using aff_dim_affine_independent[of "{a}"] affine_independent_1 by auto
 
+lemma aff_dim_2 [simp]: "aff_dim {a,b} = (if a = b then 0 else 1)"
+proof (clarsimp)
+  assume "a \<noteq> b"
+  then have "aff_dim{a,b} = card{a,b} - 1"
+    using affine_independent_2 [of a b] aff_dim_affine_independent by fastforce
+  also have "... = 1"
+    using \<open>a \<noteq> b\<close> by simp
+  finally show "aff_dim {a, b} = 1" .
+qed
+
 lemma aff_dim_inner_basis_exists:
   fixes V :: "('n::euclidean_space) set"
   shows "\<exists>B. B \<subseteq> V \<and> affine hull B = affine hull V \<and>
@@ -3079,6 +3090,26 @@ proof -
   ultimately show ?thesis by auto
 qed
 
+lemma aff_dim_eq_0:
+  fixes S :: "'a::euclidean_space set"
+  shows "aff_dim S = 0 \<longleftrightarrow> (\<exists>a. S = {a})"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by auto
+next
+  case False
+  then obtain a where "a \<in> S" by auto
+  show ?thesis
+  proof safe
+    assume 0: "aff_dim S = 0"
+    have "~ {a,b} \<subseteq> S" if "b \<noteq> a" for b
+      by (metis "0" aff_dim_2 aff_dim_subset not_one_le_zero that)
+    then show "\<exists>a. S = {a}"
+      using \<open>a \<in> S\<close> by blast
+  qed auto
+qed
+
 lemma affine_hull_UNIV:
   fixes S :: "'n::euclidean_space set"
   assumes "aff_dim S = int(DIM('n))"
@@ -3193,6 +3224,7 @@ corollary aff_dim_nonempty_interior:
   fixes S :: "'a::euclidean_space set"
   shows "interior S \<noteq> {} \<Longrightarrow> aff_dim S = DIM('a)"
 by (metis low_dim_interior)
+
 
 subsection \<open>Caratheodory's theorem.\<close>
 
@@ -4656,6 +4688,49 @@ lemma continuous_on_closest_point:
     and "s \<noteq> {}"
   shows "continuous_on t (closest_point s)"
   by (metis continuous_at_imp_continuous_on continuous_at_closest_point[OF assms])
+
+proposition closest_point_in_rel_interior:
+  assumes "closed S" "S \<noteq> {}" and x: "x \<in> affine hull S"
+    shows "closest_point S x \<in> rel_interior S \<longleftrightarrow> x \<in> rel_interior S"
+proof (cases "x \<in> S")
+  case True
+  then show ?thesis
+    by (simp add: closest_point_self)
+next
+  case False
+  then have "False" if asm: "closest_point S x \<in> rel_interior S"
+  proof -
+    obtain e where "e > 0" and clox: "closest_point S x \<in> S"
+               and e: "cball (closest_point S x) e \<inter> affine hull S \<subseteq> S"
+      using asm mem_rel_interior_cball by blast
+    then have clo_notx: "closest_point S x \<noteq> x"
+      using \<open>x \<notin> S\<close> by auto
+    define y where "y \<equiv> closest_point S x -
+                        (min 1 (e / norm(closest_point S x - x))) *\<^sub>R (closest_point S x - x)"
+    have "x - y = (1 - min 1 (e / norm (closest_point S x - x))) *\<^sub>R (x - closest_point S x)"
+      by (simp add: y_def algebra_simps)
+    then have "norm (x - y) = abs ((1 - min 1 (e / norm (closest_point S x - x)))) * norm(x - closest_point S x)"
+      by simp
+    also have "... < norm(x - closest_point S x)"
+      using clo_notx \<open>e > 0\<close>
+      by (auto simp: mult_less_cancel_right2 divide_simps)
+    finally have no_less: "norm (x - y) < norm (x - closest_point S x)" .
+    have "y \<in> affine hull S"
+      unfolding y_def
+      by (meson affine_affine_hull clox hull_subset mem_affine_3_minus2 subsetD x)
+    moreover have "dist (closest_point S x) y \<le> e"
+      using \<open>e > 0\<close> by (auto simp: y_def min_mult_distrib_right)
+    ultimately have "y \<in> S"
+      using subsetD [OF e] by simp
+    then have "dist x (closest_point S x) \<le> dist x y"
+      by (simp add: closest_point_le \<open>closed S\<close>)
+    with no_less show False
+      by (simp add: dist_norm)
+  qed
+  moreover have "x \<notin> rel_interior S"
+    using rel_interior_subset False by blast
+  ultimately show ?thesis by blast
+qed
 
 
 subsubsection \<open>Various point-to-set separating/supporting hyperplane theorems.\<close>
@@ -6198,14 +6273,7 @@ lemma open_segment_translation_eq [simp]:
     "d + x \<in> open_segment (d + a) (d + b) \<longleftrightarrow> x \<in> open_segment a b"
   by (simp add: open_segment_def)
 
-definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
-
-definition "starlike s \<longleftrightarrow> (\<exists>a\<in>s. \<forall>x\<in>s. closed_segment a x \<subseteq> s)"
-
-lemma starlike_UNIV [simp]: "starlike UNIV"
-  by (simp add: starlike_def)
-
-lemma midpoint_refl: "midpoint x x = x"
+lemma midpoint_idem [simp]: "midpoint x x = x"
   unfolding midpoint_def
   unfolding scaleR_right_distrib
   unfolding scaleR_left_distrib[symmetric]
@@ -6265,19 +6333,33 @@ lemma midpoint_eq_endpoint [simp]:
   "midpoint a b = b \<longleftrightarrow> a = b"
   unfolding midpoint_eq_iff by auto
 
+lemma midpoint_plus_self [simp]: "midpoint a b + midpoint a b = a + b"
+  using midpoint_eq_iff by metis
+
+lemma midpoint_linear_image:
+   "linear f \<Longrightarrow> midpoint(f a)(f b) = f(midpoint a b)"
+by (simp add: linear_iff midpoint_def)
+
+subsection\<open>Starlike sets\<close>
+
+definition "starlike S \<longleftrightarrow> (\<exists>a\<in>S. \<forall>x\<in>S. closed_segment a x \<subseteq> S)"
+
+lemma starlike_UNIV [simp]: "starlike UNIV"
+  by (simp add: starlike_def)
+
 lemma convex_contains_segment:
-  "convex s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. closed_segment a b \<subseteq> s)"
+  "convex S \<longleftrightarrow> (\<forall>a\<in>S. \<forall>b\<in>S. closed_segment a b \<subseteq> S)"
   unfolding convex_alt closed_segment_def by auto
 
-lemma closed_segment_subset: "\<lbrakk>x \<in> s; y \<in> s; convex s\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> s"
+lemma closed_segment_subset: "\<lbrakk>x \<in> S; y \<in> S; convex S\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> S"
   by (simp add: convex_contains_segment)
 
 lemma closed_segment_subset_convex_hull:
-    "\<lbrakk>x \<in> convex hull s; y \<in> convex hull s\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> convex hull s"
+    "\<lbrakk>x \<in> convex hull S; y \<in> convex hull S\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> convex hull S"
   using convex_contains_segment by blast
 
 lemma convex_imp_starlike:
-  "convex s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> starlike s"
+  "convex S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> starlike S"
   unfolding convex_contains_segment starlike_def by auto
 
 lemma segment_convex_hull:
@@ -6862,6 +6944,8 @@ lemmas subset_segment = subset_closed_segment subset_co_segment subset_oc_segmen
 
 subsection\<open>Betweenness\<close>
 
+definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
+
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
   unfolding between_def by auto
 
@@ -6944,6 +7028,35 @@ qed
 lemma between_mem_convex_hull:
   "between (a,b) x \<longleftrightarrow> x \<in> convex hull {a,b}"
   unfolding between_mem_segment segment_convex_hull ..
+
+lemma between_triv_iff [simp]: "between (a,a) b \<longleftrightarrow> a=b"
+  by (auto simp: between_def)
+
+lemma between_triv1 [simp]: "between (a,b) a"
+  by (auto simp: between_def)
+
+lemma between_triv2 [simp]: "between (a,b) b"
+  by (auto simp: between_def)
+
+lemma between_commute:
+   "between (a,b) = between (b,a)"
+by (auto simp: between_def closed_segment_commute)
+
+lemma between_antisym:
+  fixes a :: "'a :: euclidean_space"
+  shows "\<lbrakk>between (b,c) a; between (a,c) b\<rbrakk> \<Longrightarrow> a = b"
+by (auto simp: between dist_commute)
+
+lemma between_trans:
+    fixes a :: "'a :: euclidean_space"
+    shows "\<lbrakk>between (b,c) a; between (a,c) d\<rbrakk> \<Longrightarrow> between (b,c) d"
+  using dist_triangle2 [of b c d] dist_triangle3 [of b d a]
+  by (auto simp: between dist_commute)
+
+lemma between_norm:
+    fixes a :: "'a :: euclidean_space"
+    shows "between (a,b) x \<longleftrightarrow> norm(x - a) *\<^sub>R (b - x) = norm(b - x) *\<^sub>R (x - a)"
+  by (auto simp: between dist_triangle_eq norm_minus_commute algebra_simps)
 
 
 subsection \<open>Shrinking towards the interior of a convex set\<close>
@@ -7950,16 +8063,17 @@ lemma rel_frontier_frontier:
   shows "affine hull S = UNIV \<Longrightarrow> rel_frontier S = frontier S"
 by (simp add: frontier_def rel_frontier_def rel_interior_interior)
 
+lemma closest_point_in_rel_frontier:
+   "\<lbrakk>closed S; S \<noteq> {}; x \<in> affine hull S - rel_interior S\<rbrakk>
+   \<Longrightarrow> closest_point S x \<in> rel_frontier S"
+  by (simp add: closest_point_in_rel_interior closest_point_in_set rel_frontier_def)
+
 lemma closed_rel_frontier [iff]:
   fixes S :: "'n::euclidean_space set"
   shows "closed (rel_frontier S)"
 proof -
   have *: "closedin (subtopology euclidean (affine hull S)) (closure S - rel_interior S)"
-    apply (rule closedin_diff[of "subtopology euclidean (affine hull S)""closure S" "rel_interior S"])
-    using closed_closedin_trans[of "affine hull S" "closure S"] closed_affine_hull[of S]
-      closure_affine_hull[of S] openin_rel_interior[of S]
-    apply auto
-    done
+    by (simp add: closed_subset closedin_diff closure_affine_hull openin_rel_interior)
   show ?thesis
     apply (rule closedin_closed_trans[of "affine hull S" "rel_frontier S"])
     unfolding rel_frontier_def
@@ -8054,7 +8168,6 @@ proof -
   ultimately show ?thesis
     using less_le by auto
 qed
-
 
 lemma convex_rel_interior_if:
   fixes S ::  "'n::euclidean_space set"
@@ -10291,9 +10404,83 @@ by (simp add: collinear_3_eq_affine_dependent)
 lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftrightarrow> collinear {0, x-y, z-y}"
   by (auto simp add: collinear_def)
 
+lemma collinear_3_expand:
+   "collinear{a,b,c} \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
+proof -
+  have "collinear{a,b,c} = collinear{a,c,b}"
+    by (simp add: insert_commute)
+  also have "... = collinear {0, a - c, b - c}"
+    by (simp add: collinear_3)
+  also have "... \<longleftrightarrow> (a = c \<or> b = c \<or> (\<exists>ca. b - c = ca *\<^sub>R (a - c)))"
+    by (simp add: collinear_lemma)
+  also have "... \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
+    by (cases "a = c \<or> b = c") (auto simp: algebra_simps)
+  finally show ?thesis .
+qed
 
-thm affine_hull_nonempty
-corollary affine_hull_eq_empty [simp]: "affine hull S = {} \<longleftrightarrow> S = {}"
+lemma collinear_midpoint: "collinear{a,midpoint a b,b}"
+  apply (auto simp: collinear_3 collinear_lemma)
+  apply (drule_tac x="-1" in spec)
+  apply (simp add: algebra_simps)
+  done
+
+lemma midpoint_collinear:
+  fixes a b c :: "'a::real_normed_vector"
+  assumes "a \<noteq> c"
+    shows "b = midpoint a c \<longleftrightarrow> collinear{a,b,c} \<and> dist a b = dist b c"
+proof -
+  have *: "a - (u *\<^sub>R a + (1 - u) *\<^sub>R c) = (1 - u) *\<^sub>R (a - c)"
+          "u *\<^sub>R a + (1 - u) *\<^sub>R c - c = u *\<^sub>R (a - c)"
+          "\<bar>1 - u\<bar> = \<bar>u\<bar> \<longleftrightarrow> u = 1/2" for u::real
+    by (auto simp: algebra_simps)
+  have "b = midpoint a c \<Longrightarrow> collinear{a,b,c} "
+    using collinear_midpoint by blast
+  moreover have "collinear{a,b,c} \<Longrightarrow> b = midpoint a c \<longleftrightarrow> dist a b = dist b c"
+    apply (auto simp: collinear_3_expand assms dist_midpoint)
+    apply (simp add: dist_norm * assms midpoint_def del: divide_const_simps)
+    apply (simp add: algebra_simps)
+    done
+  ultimately show ?thesis by blast
+qed
+
+lemma collinear_triples:
+  assumes "a \<noteq> b"
+    shows "collinear(insert a (insert b S)) \<longleftrightarrow> (\<forall>x \<in> S. collinear{a,b,x})"
+          (is "?lhs = ?rhs")
+proof safe
+  fix x
+  assume ?lhs and "x \<in> S"
+  then show "collinear {a, b, x}"
+    using collinear_subset by force
+next
+  assume ?rhs
+  then have "\<forall>x \<in> S. collinear{a,x,b}"
+    by (simp add: insert_commute)
+  then have *: "\<exists>u. x = u *\<^sub>R a + (1 - u) *\<^sub>R b" if "x \<in> (insert a (insert b S))" for x
+    using that assms collinear_3_expand by fastforce+
+  show ?lhs
+    unfolding collinear_def
+    apply (rule_tac x="b-a" in exI)
+    apply (clarify dest!: *)
+    by (metis (no_types, hide_lams) add.commute diff_add_cancel diff_diff_eq2 real_vector.scale_right_diff_distrib scaleR_left.diff)
+qed
+
+lemma collinear_4_3:
+  assumes "a \<noteq> b"
+    shows "collinear {a,b,c,d} \<longleftrightarrow> collinear{a,b,c} \<and> collinear{a,b,d}"
+  using collinear_triples [OF assms, of "{c,d}"] by (force simp:)
+
+lemma collinear_3_trans:
+  assumes "collinear{a,b,c}" "collinear{b,c,d}" "b \<noteq> c"
+    shows "collinear{a,b,d}"
+proof -
+  have "collinear{b,c,a,d}"
+    by (metis (full_types) assms collinear_4_3 insert_commute)
+  then show ?thesis
+    by (simp add: collinear_subset)
+qed
+
+lemma affine_hull_eq_empty [simp]: "affine hull S = {} \<longleftrightarrow> S = {}"
   using affine_hull_nonempty by blast
 
 lemma affine_hull_2_alt:
@@ -11527,7 +11714,8 @@ lemma supporting_hyperplane_relative_frontier:
 using supporting_hyperplane_rel_boundary [of "closure S" x]
 by (metis assms convex_closure convex_rel_interior_closure)
 
-subsection\<open> Some results on decomposing convex hulls, e.g. simplicial subdivision\<close>
+
+subsection\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
 
 lemma
   fixes s :: "'a::euclidean_space set"
@@ -11617,6 +11805,163 @@ proof -
   then show "?A" "?C"
     by auto
 qed
+
+proposition in_convex_hull_exchange_unique:
+  fixes S :: "'a::euclidean_space set"
+  assumes naff: "~ affine_dependent S" and a: "a \<in> convex hull S"
+      and S: "T \<subseteq> S" "T' \<subseteq> S"
+      and x:  "x \<in> convex hull (insert a T)"
+      and x': "x \<in> convex hull (insert a T')"
+    shows "x \<in> convex hull (insert a (T \<inter> T'))"
+proof (cases "a \<in> S")
+  case True
+  then have "\<not> affine_dependent (insert a T \<union> insert a T')"
+    using affine_dependent_subset assms by auto
+  then have "x \<in> convex hull (insert a T \<inter> insert a T')"
+    by (metis IntI convex_hull_Int x x')
+  then show ?thesis
+    by simp
+next
+  case False
+  then have anot: "a \<notin> T" "a \<notin> T'"
+    using assms by auto
+  have [simp]: "finite S"
+    by (simp add: aff_independent_finite assms)
+  then obtain b where b0: "\<And>s. s \<in> S \<Longrightarrow> 0 \<le> b s"
+                  and b1: "setsum b S = 1" and aeq: "a = (\<Sum>s\<in>S. b s *\<^sub>R s)"
+    using a by (auto simp: convex_hull_finite)
+  have fin [simp]: "finite T" "finite T'"
+    using assms infinite_super \<open>finite S\<close> by blast+
+  then obtain c c' where c0: "\<And>t. t \<in> insert a T \<Longrightarrow> 0 \<le> c t"
+                     and c1: "setsum c (insert a T) = 1"
+                     and xeq: "x = (\<Sum>t \<in> insert a T. c t *\<^sub>R t)"
+                     and c'0: "\<And>t. t \<in> insert a T' \<Longrightarrow> 0 \<le> c' t"
+                     and c'1: "setsum c' (insert a T') = 1"
+                     and x'eq: "x = (\<Sum>t \<in> insert a T'. c' t *\<^sub>R t)"
+    using x x' by (auto simp: convex_hull_finite)
+  with fin anot
+  have sumTT': "setsum c T = 1 - c a" "setsum c' T' = 1 - c' a"
+   and wsumT: "(\<Sum>t \<in> T. c t *\<^sub>R t) = x - c a *\<^sub>R a"
+    by simp_all
+  have wsumT': "(\<Sum>t \<in> T'. c' t *\<^sub>R t) = x - c' a *\<^sub>R a"
+    using x'eq fin anot by simp
+  define cc  where "cc \<equiv> \<lambda>x. if x \<in> T then c x else 0"
+  define cc' where "cc' \<equiv> \<lambda>x. if x \<in> T' then c' x else 0"
+  define dd  where "dd \<equiv> \<lambda>x. cc x - cc' x + (c a - c' a) * b x"
+  have sumSS': "setsum cc S = 1 - c a" "setsum cc' S = 1 - c' a"
+    unfolding cc_def cc'_def  using S
+    by (simp_all add: Int_absorb1 Int_absorb2 setsum_subtractf setsum.inter_restrict [symmetric] sumTT')
+  have wsumSS: "(\<Sum>t \<in> S. cc t *\<^sub>R t) = x - c a *\<^sub>R a" "(\<Sum>t \<in> S. cc' t *\<^sub>R t) = x - c' a *\<^sub>R a"
+    unfolding cc_def cc'_def  using S
+    by (simp_all add: Int_absorb1 Int_absorb2 if_smult setsum.inter_restrict [symmetric] wsumT wsumT' cong: if_cong)
+  have sum_dd0: "setsum dd S = 0"
+    unfolding dd_def  using S
+    by (simp add: sumSS' comm_monoid_add_class.setsum.distrib setsum_subtractf
+                  algebra_simps setsum_left_distrib [symmetric] b1)
+  have "(\<Sum>v\<in>S. (b v * x) *\<^sub>R v) = x *\<^sub>R (\<Sum>v\<in>S. b v *\<^sub>R v)" for x
+    by (simp add: pth_5 real_vector.scale_setsum_right mult.commute)
+  then have *: "(\<Sum>v\<in>S. (b v * x) *\<^sub>R v) = x *\<^sub>R a" for x
+    using aeq by blast
+  have "(\<Sum>v \<in> S. dd v *\<^sub>R v) = 0"
+    unfolding dd_def using S
+    by (simp add: * wsumSS setsum.distrib setsum_subtractf algebra_simps)
+  then have dd0: "dd v = 0" if "v \<in> S" for v
+    using naff that \<open>finite S\<close> sum_dd0 unfolding affine_dependent_explicit
+    apply (simp only: not_ex)
+    apply (drule_tac x=S in spec)
+    apply (drule_tac x=dd in spec, simp)
+    done
+  consider "c' a \<le> c a" | "c a \<le> c' a" by linarith
+  then show ?thesis
+  proof cases
+    case 1
+    then have "setsum cc S \<le> setsum cc' S"
+      by (simp add: sumSS')
+    then have le: "cc x \<le> cc' x" if "x \<in> S" for x
+      using dd0 [OF that] 1 b0 mult_left_mono that
+      by (fastforce simp add: dd_def algebra_simps)
+    have cc0: "cc x = 0" if "x \<in> S" "x \<notin> T \<inter> T'" for x
+      using le [OF \<open>x \<in> S\<close>] that c0
+      by (force simp: cc_def cc'_def split: if_split_asm)
+    show ?thesis
+    proof (simp add: convex_hull_finite, intro exI conjI)
+      show "\<forall>x\<in>T \<inter> T'. 0 \<le> (cc(a := c a)) x"
+        by (simp add: c0 cc_def)
+      show "0 \<le> (cc(a := c a)) a"
+        by (simp add: c0)
+      have "setsum (cc(a := c a)) (insert a (T \<inter> T')) = c a + setsum (cc(a := c a)) (T \<inter> T')"
+        by (simp add: anot)
+      also have "... = c a + setsum (cc(a := c a)) S"
+        apply simp
+        apply (rule setsum.mono_neutral_left)
+        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
+        done
+      also have "... = c a + (1 - c a)"
+        by (metis \<open>a \<notin> S\<close> fun_upd_other setsum.cong sumSS')
+      finally show "setsum (cc(a := c a)) (insert a (T \<inter> T')) = 1"
+        by simp
+      have "(\<Sum>x\<in>insert a (T \<inter> T'). (cc(a := c a)) x *\<^sub>R x) = c a *\<^sub>R a + (\<Sum>x \<in> T \<inter> T'. (cc(a := c a)) x *\<^sub>R x)"
+        by (simp add: anot)
+      also have "... = c a *\<^sub>R a + (\<Sum>x \<in> S. (cc(a := c a)) x *\<^sub>R x)"
+        apply simp
+        apply (rule setsum.mono_neutral_left)
+        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
+        done
+      also have "... = c a *\<^sub>R a + x - c a *\<^sub>R a"
+        by (simp add: wsumSS \<open>a \<notin> S\<close> if_smult setsum_delta_notmem)
+      finally show "(\<Sum>x\<in>insert a (T \<inter> T'). (cc(a := c a)) x *\<^sub>R x) = x"
+        by simp
+    qed
+  next
+    case 2
+    then have "setsum cc' S \<le> setsum cc S"
+      by (simp add: sumSS')
+    then have le: "cc' x \<le> cc x" if "x \<in> S" for x
+      using dd0 [OF that] 2 b0 mult_left_mono that
+      by (fastforce simp add: dd_def algebra_simps)
+    have cc0: "cc' x = 0" if "x \<in> S" "x \<notin> T \<inter> T'" for x
+      using le [OF \<open>x \<in> S\<close>] that c'0
+      by (force simp: cc_def cc'_def split: if_split_asm)
+    show ?thesis
+    proof (simp add: convex_hull_finite, intro exI conjI)
+      show "\<forall>x\<in>T \<inter> T'. 0 \<le> (cc'(a := c' a)) x"
+        by (simp add: c'0 cc'_def)
+      show "0 \<le> (cc'(a := c' a)) a"
+        by (simp add: c'0)
+      have "setsum (cc'(a := c' a)) (insert a (T \<inter> T')) = c' a + setsum (cc'(a := c' a)) (T \<inter> T')"
+        by (simp add: anot)
+      also have "... = c' a + setsum (cc'(a := c' a)) S"
+        apply simp
+        apply (rule setsum.mono_neutral_left)
+        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
+        done
+      also have "... = c' a + (1 - c' a)"
+        by (metis \<open>a \<notin> S\<close> fun_upd_other setsum.cong sumSS')
+      finally show "setsum (cc'(a := c' a)) (insert a (T \<inter> T')) = 1"
+        by simp
+      have "(\<Sum>x\<in>insert a (T \<inter> T'). (cc'(a := c' a)) x *\<^sub>R x) = c' a *\<^sub>R a + (\<Sum>x \<in> T \<inter> T'. (cc'(a := c' a)) x *\<^sub>R x)"
+        by (simp add: anot)
+      also have "... = c' a *\<^sub>R a + (\<Sum>x \<in> S. (cc'(a := c' a)) x *\<^sub>R x)"
+        apply simp
+        apply (rule setsum.mono_neutral_left)
+        using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
+        done
+      also have "... = c a *\<^sub>R a + x - c a *\<^sub>R a"
+        by (simp add: wsumSS \<open>a \<notin> S\<close> if_smult setsum_delta_notmem)
+      finally show "(\<Sum>x\<in>insert a (T \<inter> T'). (cc'(a := c' a)) x *\<^sub>R x) = x"
+        by simp
+    qed
+  qed
+qed
+
+corollary convex_hull_exchange_Int:
+  fixes a  :: "'a::euclidean_space"
+  assumes "~ affine_dependent S" "a \<in> convex hull S" "T \<subseteq> S" "T' \<subseteq> S"
+  shows "(convex hull (insert a T)) \<inter> (convex hull (insert a T')) =
+         convex hull (insert a (T \<inter> T'))"
+apply (rule subset_antisym)
+  using in_convex_hull_exchange_unique assms apply blast
+  by (metis hull_mono inf_le1 inf_le2 insert_inter_insert le_inf_iff)
 
 lemma affine_hull_finite_intersection_hyperplanes:
   fixes s :: "'a::euclidean_space set"

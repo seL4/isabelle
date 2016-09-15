@@ -3125,6 +3125,9 @@ subsection \<open>Collinearity\<close>
 definition collinear :: "'a::real_vector set \<Rightarrow> bool"
   where "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u)"
 
+lemma collinear_subset: "\<lbrakk>collinear T; S \<subseteq> T\<rbrakk> \<Longrightarrow> collinear S"
+  by (meson collinear_def subsetCE)
+
 lemma collinear_empty [iff]: "collinear {}"
   by (simp add: collinear_def)
 
