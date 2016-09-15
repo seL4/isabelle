@@ -1369,11 +1369,14 @@ lemma not_gr_zero[simp]: "\<not> 0 < n \<longleftrightarrow> n = 0"
 subclass ordered_comm_monoid_add
   proof qed (auto simp: le_iff_add add_ac)
 
-lemma add_eq_0_iff_both_eq_0: "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+lemma gr_implies_not_zero: "m < n \<Longrightarrow> n \<noteq> 0"
+  by auto
+
+lemma add_eq_0_iff_both_eq_0[simp]: "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
   by (intro add_nonneg_eq_0_iff zero_le)
 
-lemma gr_implies_not_zero: "m < n \<Longrightarrow> n \<noteq> 0"
-  using add_eq_0_iff_both_eq_0[of m] by (auto simp: le_iff_add less_le)
+lemma zero_eq_add_iff_both_eq_0[simp]: "0 = x + y \<longleftrightarrow> x = 0 \<and> y = 0"
+  using add_eq_0_iff_both_eq_0[of x y] unfolding eq_commute[of 0] .
 
 lemmas zero_order = zero_le le_zero_eq not_less_zero zero_less_iff_neq_zero not_gr_zero
   \<comment> \<open>This should be attributed with \<open>[iff]\<close>, but then \<open>blast\<close> fails in \<open>Set\<close>.\<close>
