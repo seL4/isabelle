@@ -22,7 +22,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
 
 
-  /* abbreviations */
+  /* abbrevs */
 
   private val abbrevs_panel = new Abbrevs_Panel
 
@@ -118,6 +118,36 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   }
 
 
+  /* search */
+
+  private class Search_Panel extends BorderPanel {
+    val search_field = new TextField(10)
+    val results_panel = new Wrap_Panel
+    layout(search_field) = BorderPanel.Position.North
+    layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
+
+    val search_space =
+      (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
+    val search_delay =
+      GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+        val search_words = Word.explode(Word.lowercase(search_field.text))
+        val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
+        val results =
+          for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym
+
+        results_panel.contents.clear
+        for (sym <- results.take(search_limit))
+          results_panel.contents += new Symbol_Component(sym, false)
+        if (results.length > search_limit)
+          results_panel.contents +=
+            new Label("...") { tooltip = "(" + (results.length - search_limit) + " more)" }
+        revalidate
+        repaint
+      }
+      search_field.reactions += { case ValueChanged(_) => search_delay.invoke() }
+  }
+
+
   /* tabs */
 
   private val group_tabs: TabbedPane = new TabbedPane {
@@ -133,38 +163,14 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           }), null)
       })
 
-    val search_field = new TextField(10)
-    val search_page =
-      new TabbedPane.Page("search", new BorderPanel {
-        val results_panel = new Wrap_Panel
-        layout(search_field) = BorderPanel.Position.North
-        layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
-
-        val search_space =
-          (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
-        val search_delay =
-          GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
-            val search_words = Word.explode(Word.lowercase(search_field.text))
-            val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
-            val results =
-              for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym
-
-            results_panel.contents.clear
-            for (sym <- results.take(search_limit))
-              results_panel.contents += new Symbol_Component(sym, false)
-            if (results.length > search_limit)
-              results_panel.contents +=
-                new Label("...") { tooltip = "(" + (results.length - search_limit) + " more)" }
-            revalidate
-            repaint
-          }
-          search_field.reactions += { case ValueChanged(_) => search_delay.invoke() }
-      }, "Search Symbols")
+    val search_panel = new Search_Panel
+    val search_page = new TabbedPane.Page("search", search_panel, "Search Symbols")
     pages += search_page
 
     listenTo(selection)
     reactions += {
-      case SelectionChanged(_) if selection.page == search_page => search_field.requestFocus
+      case SelectionChanged(_) if selection.page == search_page =>
+        search_panel.search_field.requestFocus
     }
 
     for (page <- pages)
