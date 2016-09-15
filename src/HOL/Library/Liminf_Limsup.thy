@@ -159,6 +159,14 @@ lemma Limsup_eq:
   shows "Limsup net f = Limsup net g"
   by (intro antisym Limsup_mono eventually_mono[OF assms]) auto
 
+lemma Liminf_bot[simp]: "Liminf bot f = top"
+  unfolding Liminf_def top_unique[symmetric]
+  by (rule SUP_upper2[where i="\<lambda>x. False"]) simp_all
+
+lemma Limsup_bot[simp]: "Limsup bot f = bot"
+  unfolding Limsup_def bot_unique[symmetric]
+  by (rule INF_lower2[where i="\<lambda>x. False"]) simp_all
+
 lemma Liminf_le_Limsup:
   assumes ntriv: "\<not> trivial_limit F"
   shows "Liminf F f \<le> Limsup F f"
@@ -180,27 +188,26 @@ proof safe
 qed
 
 lemma Liminf_bounded:
-  assumes ntriv: "\<not> trivial_limit F"
   assumes le: "eventually (\<lambda>n. C \<le> X n) F"
   shows "C \<le> Liminf F X"
-  using Liminf_mono[OF le] Liminf_const[OF ntriv, of C] by simp
+  using Liminf_mono[OF le] Liminf_const[of F C]
+  by (cases "F = bot") simp_all
 
 lemma Limsup_bounded:
-  assumes ntriv: "\<not> trivial_limit F"
   assumes le: "eventually (\<lambda>n. X n \<le> C) F"
   shows "Limsup F X \<le> C"
-  using Limsup_mono[OF le] Limsup_const[OF ntriv, of C] by simp
+  using Limsup_mono[OF le] Limsup_const[of F C]
+  by (cases "F = bot") simp_all
 
 lemma le_Limsup:
   assumes F: "F \<noteq> bot" and x: "\<forall>\<^sub>F x in F. l \<le> f x"
   shows "l \<le> Limsup F f"
-proof -
-  have "l = Limsup F (\<lambda>x. l)"
-    using F by (simp add: Limsup_const)
-  also have "\<dots> \<le> Limsup F f"
-    by (intro Limsup_mono x)
-  finally show ?thesis .
-qed
+  using F Liminf_bounded Liminf_le_Limsup order.trans x by blast
+
+lemma Liminf_le:
+  assumes F: "F \<noteq> bot" and x: "\<forall>\<^sub>F x in F. f x \<le> l"
+  shows "Liminf F f \<le> l"
+  using F Liminf_le_Limsup Limsup_bounded order.trans x by blast
 
 lemma le_Liminf_iff:
   fixes X :: "_ \<Rightarrow> _ :: complete_linorder"
@@ -504,6 +511,46 @@ proof -
   finally show ?thesis
     by (auto simp: Limsup_def)
 qed
+
+lemma Liminf_filtermap_le: "Liminf (filtermap f F) g \<le> Liminf F (\<lambda>x. g (f x))"
+  apply (cases "F = bot", simp)
+  by (subst Liminf_def)
+    (auto simp add: INF_lower Liminf_bounded eventually_filtermap eventually_mono intro!: SUP_least)
+
+lemma Limsup_filtermap_ge: "Limsup (filtermap f F) g \<ge> Limsup F (\<lambda>x. g (f x))"
+  apply (cases "F = bot", simp)
+  by (subst Limsup_def)
+    (auto simp add: SUP_upper Limsup_bounded eventually_filtermap eventually_mono intro!: INF_greatest)
+
+lemma Liminf_least: "(\<And>P. eventually P F \<Longrightarrow> (INF x:Collect P. f x) \<le> x) \<Longrightarrow> Liminf F f \<le> x"
+  by (auto intro!: SUP_least simp: Liminf_def)
+
+lemma Limsup_greatest: "(\<And>P. eventually P F \<Longrightarrow> x \<le> (SUP x:Collect P. f x)) \<Longrightarrow> Limsup F f \<ge> x"
+  by (auto intro!: INF_greatest simp: Limsup_def)
+
+lemma Liminf_filtermap_ge: "inj f \<Longrightarrow> Liminf (filtermap f F) g \<ge> Liminf F (\<lambda>x. g (f x))"
+  apply (cases "F = bot", simp)
+  apply (rule Liminf_least)
+  subgoal for P
+    by (auto simp: eventually_filtermap the_inv_f_f
+        intro!: Liminf_bounded INF_lower2 eventually_mono[of P])
+  done
+
+lemma Limsup_filtermap_le: "inj f \<Longrightarrow> Limsup (filtermap f F) g \<le> Limsup F (\<lambda>x. g (f x))"
+  apply (cases "F = bot", simp)
+  apply (rule Limsup_greatest)
+  subgoal for P
+    by (auto simp: eventually_filtermap the_inv_f_f
+        intro!: Limsup_bounded SUP_upper2 eventually_mono[of P])
+  done
+
+lemma Liminf_filtermap_eq: "inj f \<Longrightarrow> Liminf (filtermap f F) g = Liminf F (\<lambda>x. g (f x))"
+  using Liminf_filtermap_le[of f F g] Liminf_filtermap_ge[of f F g]
+  by simp
+
+lemma Limsup_filtermap_eq: "inj f \<Longrightarrow> Limsup (filtermap f F) g = Limsup F (\<lambda>x. g (f x))"
+  using Limsup_filtermap_le[of f F g] Limsup_filtermap_ge[of F g f]
+  by simp
 
 
 subsection \<open>More Limits\<close>
