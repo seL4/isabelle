@@ -5,29 +5,27 @@
 section \<open>Finite Maps\<close>
 
 theory Fin_Map
-imports Finite_Product_Measure
+  imports Finite_Product_Measure "~~/src/HOL/Library/Finite_Map"
 begin
 
-text \<open>Auxiliary type that is instantiated to @{class polish_space}, needed for the proof of
+text \<open>The @{type fmap} type can be instantiated to @{class polish_space}, needed for the proof of
   projective limit. @{const extensional} functions are used for the representation in order to
   stay close to the developments of (finite) products @{const Pi\<^sub>E} and their sigma-algebra
   @{const Pi\<^sub>M}.\<close>
 
-typedef ('i, 'a) finmap ("(_ \<Rightarrow>\<^sub>F /_)" [22, 21] 21) =
-  "{f::'i \<Rightarrow> 'a option. finite (dom f)}"
-  by (auto intro!: exI[where x="\<lambda>_. None"])
+type_notation fmap ("(_ \<Rightarrow>\<^sub>F /_)" [22, 21] 21)
 
-setup_lifting type_definition_finmap
+unbundle fmap.lifting
 
 
 subsection \<open>Domain and Application\<close>
 
-lift_definition domain::"('i, 'a) finmap \<Rightarrow> 'i set" is dom .
+lift_definition domain::"('i \<Rightarrow>\<^sub>F 'a) \<Rightarrow> 'i set" is dom .
 
 lemma finite_domain[simp, intro]: "finite (domain P)"
   by transfer simp
 
-lift_definition proj :: "('i, 'a) finmap \<Rightarrow> 'i \<Rightarrow> 'a" ("'((_)')\<^sub>F" [0] 1000) is
+lift_definition proj :: "('i \<Rightarrow>\<^sub>F 'a) \<Rightarrow> 'i \<Rightarrow> 'a" ("'((_)')\<^sub>F" [0] 1000) is
   "\<lambda>f x. if x \<in> dom f then the (f x) else undefined" .
 
 declare [[coercion proj]]
@@ -48,7 +46,7 @@ lemma finmap_eq_iff: "P = Q \<longleftrightarrow> (domain P = domain Q \<and> (\
 
 subsection \<open>Countable Finite Maps\<close>
 
-instance finmap :: (countable, countable) countable
+instance fmap :: (countable, countable) countable
 proof
   obtain mapper where mapper: "\<And>fm :: 'a \<Rightarrow>\<^sub>F 'b. set (mapper fm) = domain fm"
     by (metis finite_list[OF finite_domain])
@@ -68,7 +66,7 @@ qed
 
 subsection \<open>Constructor of Finite Maps\<close>
 
-lift_definition finmap_of::"'i set \<Rightarrow> ('i \<Rightarrow> 'a) \<Rightarrow> ('i, 'a) finmap" is
+lift_definition finmap_of::"'i set \<Rightarrow> ('i \<Rightarrow> 'a) \<Rightarrow> ('i \<Rightarrow>\<^sub>F 'a)" is
   "\<lambda>I f x. if x \<in> I \<and> finite I then Some (f x) else None"
   by (simp add: dom_def)
 
@@ -156,17 +154,17 @@ lemma Pi_Pi': "finite A \<Longrightarrow> (Pi\<^sub>E A B) = proj ` Pi' A B"
 
 subsection \<open>Topological Space of Finite Maps\<close>
 
-instantiation finmap :: (type, topological_space) topological_space
+instantiation fmap :: (type, topological_space) topological_space
 begin
 
-definition open_finmap :: "('a \<Rightarrow>\<^sub>F 'b) set \<Rightarrow> bool" where
-   [code del]: "open_finmap = generate_topology {Pi' a b|a b. \<forall>i\<in>a. open (b i)}"
+definition open_fmap :: "('a \<Rightarrow>\<^sub>F 'b) set \<Rightarrow> bool" where
+   [code del]: "open_fmap = generate_topology {Pi' a b|a b. \<forall>i\<in>a. open (b i)}"
 
 lemma open_Pi'I: "(\<And>i. i \<in> I \<Longrightarrow> open (A i)) \<Longrightarrow> open (Pi' I A)"
-  by (auto intro: generate_topology.Basis simp: open_finmap_def)
+  by (auto intro: generate_topology.Basis simp: open_fmap_def)
 
 instance using topological_space_generate_topology
-  by intro_classes (auto simp: open_finmap_def class.topological_space_def)
+  by intro_classes (auto simp: open_fmap_def class.topological_space_def)
 
 end
 
@@ -211,7 +209,7 @@ lemma continuous_proj:
   shows "continuous_on s (\<lambda>x. (x)\<^sub>F i)"
   unfolding continuous_on_def by (safe intro!: tendsto_proj tendsto_ident_at)
 
-instance finmap :: (type, first_countable_topology) first_countable_topology
+instance fmap :: (type, first_countable_topology) first_countable_topology
 proof
   fix x::"'a\<Rightarrow>\<^sub>F'b"
   have "\<forall>i. \<exists>A. countable A \<and> (\<forall>a\<in>A. x i \<in> a) \<and> (\<forall>a\<in>A. open a) \<and>
@@ -229,7 +227,7 @@ proof
     show "countable ?A" using A by (simp add: countable_PiE)
   next
     fix S::"('a \<Rightarrow>\<^sub>F 'b) set" assume "open S" "x \<in> S"
-    thus "\<exists>a\<in>?A. a \<subseteq> S" unfolding open_finmap_def
+    thus "\<exists>a\<in>?A. a \<subseteq> S" unfolding open_fmap_def
     proof (induct rule: generate_topology.induct)
       case UNIV thus ?case by (auto simp add: ex_in_conv PiE_eq_empty_iff A_notempty)
     next
@@ -266,29 +264,29 @@ subsection \<open>Metric Space of Finite Maps\<close>
 
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation finmap :: (type, metric_space) dist
+instantiation fmap :: (type, metric_space) dist
 begin
 
-definition dist_finmap where
+definition dist_fmap where
   "dist P Q = Max (range (\<lambda>i. dist ((P)\<^sub>F i) ((Q)\<^sub>F i))) + (if domain P = domain Q then 0 else 1)"
 
 instance ..
 end
 
-instantiation finmap :: (type, metric_space) uniformity_dist
+instantiation fmap :: (type, metric_space) uniformity_dist
 begin
 
 definition [code del]:
-  "(uniformity :: (('a, 'b) finmap \<times> ('a, 'b) finmap) filter) =
+  "(uniformity :: (('a, 'b) fmap \<times> ('a \<Rightarrow>\<^sub>F 'b)) filter) =
     (INF e:{0 <..}. principal {(x, y). dist x y < e})"
 
 instance
-  by standard (rule uniformity_finmap_def)
+  by standard (rule uniformity_fmap_def)
 end
 
-declare uniformity_Abort[where 'a="('a, 'b::metric_space) finmap", code]
+declare uniformity_Abort[where 'a="('a \<Rightarrow>\<^sub>F 'b::metric_space)", code]
 
-instantiation finmap :: (type, metric_space) metric_space
+instantiation fmap :: (type, metric_space) metric_space
 begin
 
 lemma finite_proj_image': "x \<notin> domain P \<Longrightarrow> finite ((P)\<^sub>F ` S)"
@@ -308,14 +306,14 @@ qed
 
 lemma dist_le_1_imp_domain_eq:
   shows "dist P Q < 1 \<Longrightarrow> domain P = domain Q"
-  by (simp add: dist_finmap_def finite_proj_diag split: if_split_asm)
+  by (simp add: dist_fmap_def finite_proj_diag split: if_split_asm)
 
 lemma dist_proj:
   shows "dist ((x)\<^sub>F i) ((y)\<^sub>F i) \<le> dist x y"
 proof -
   have "dist (x i) (y i) \<le> Max (range (\<lambda>i. dist (x i) (y i)))"
     by (simp add: Max_ge_iff finite_proj_diag)
-  also have "\<dots> \<le> dist x y" by (simp add: dist_finmap_def)
+  also have "\<dots> \<le> dist x y" by (simp add: dist_fmap_def)
   finally show ?thesis .
 qed
 
@@ -326,7 +324,7 @@ lemma dist_finmap_lessI:
   shows "dist P Q < e"
 proof -
   have "dist P Q = Max (range (\<lambda>i. dist (P i) (Q i)))"
-    using assms by (simp add: dist_finmap_def finite_proj_diag)
+    using assms by (simp add: dist_fmap_def finite_proj_diag)
   also have "\<dots> < e"
   proof (subst Max_less_iff, safe)
     fix i
@@ -343,7 +341,7 @@ proof
   proof
     assume "open S"
     thus ?od
-      unfolding open_finmap_def
+      unfolding open_fmap_def
     proof (induct rule: generate_topology.induct)
       case UNIV thus ?case by (auto intro: zero_less_one)
     next
@@ -383,7 +381,7 @@ proof
             show "domain y = a" using d s \<open>a \<noteq> {}\<close> by (auto simp: dist_le_1_imp_domain_eq a_dom)
             fix i assume i: "i \<in> a"
             hence "dist ((y)\<^sub>F i) ((x)\<^sub>F i) < es i" using d
-              by (auto simp: dist_finmap_def \<open>a \<noteq> {}\<close> intro!: le_less_trans[OF dist_proj])
+              by (auto simp: dist_fmap_def \<open>a \<noteq> {}\<close> intro!: le_less_trans[OF dist_proj])
             with i show "y i \<in> b i" by (rule in_b)
           qed
         next
@@ -410,23 +408,23 @@ proof
       moreover
       assume "x \<in> (\<Pi>' i\<in>domain y. ball (y i) (e y))"
       hence "dist x y < e y" using e_pos \<open>y \<in> S\<close>
-        by (auto simp: dist_finmap_def Pi'_iff finite_proj_diag dist_commute)
+        by (auto simp: dist_fmap_def Pi'_iff finite_proj_diag dist_commute)
       ultimately show "x \<in> S" by (rule e_in)
     qed
     also have "open \<dots>"
-      unfolding open_finmap_def
+      unfolding open_fmap_def
       by (intro generate_topology.UN) (auto intro: generate_topology.Basis)
     finally show "open S" .
   qed
   show "open S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
     unfolding * eventually_uniformity_metric
-    by (simp del: split_paired_All add: dist_finmap_def dist_commute eq_commute)
+    by (simp del: split_paired_All add: dist_fmap_def dist_commute eq_commute)
 next
   fix P Q::"'a \<Rightarrow>\<^sub>F 'b"
   have Max_eq_iff: "\<And>A m. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (Max A = m) = (m \<in> A \<and> (\<forall>a\<in>A. a \<le> m))"
     by (auto intro: Max_in Max_eqI)
   show "dist P Q = 0 \<longleftrightarrow> P = Q"
-    by (auto simp: finmap_eq_iff dist_finmap_def Max_ge_iff finite_proj_diag Max_eq_iff
+    by (auto simp: finmap_eq_iff dist_fmap_def Max_ge_iff finite_proj_diag Max_eq_iff
         add_nonneg_eq_0_iff
       intro!: Max_eqI image_eqI[where x=undefined])
 next
@@ -435,14 +433,14 @@ next
   let ?dpq = "?dists P Q" and ?dpr = "?dists P R" and ?dqr = "?dists Q R"
   let ?dom = "\<lambda>P Q. (if domain P = domain Q then 0 else 1::real)"
   have "dist P Q = Max (range ?dpq) + ?dom P Q"
-    by (simp add: dist_finmap_def)
+    by (simp add: dist_fmap_def)
   also obtain t where "t \<in> range ?dpq" "t = Max (range ?dpq)" by (simp add: finite_proj_diag)
   then obtain i where "Max (range ?dpq) = ?dpq i" by auto
   also have "?dpq i \<le> ?dpr i + ?dqr i" by (rule dist_triangle2)
   also have "?dpr i \<le> Max (range ?dpr)" by (simp add: finite_proj_diag)
   also have "?dqr i \<le> Max (range ?dqr)" by (simp add: finite_proj_diag)
   also have "?dom P Q \<le> ?dom P R + ?dom Q R" by simp
-  finally show "dist P Q \<le> dist P R + dist Q R" by (simp add: dist_finmap_def ac_simps)
+  finally show "dist P Q \<le> dist P R + dist Q R" by (simp add: dist_fmap_def ac_simps)
 qed
 
 end
@@ -468,10 +466,10 @@ proof safe
     ultimately show ?case by eventually_elim auto
   qed simp
   thus "eventually (\<lambda>x. dist (f x) g < e) sequentially"
-    by eventually_elim (auto simp add: dist_finmap_def finite_proj_diag ind_f \<open>0 < e\<close>)
+    by eventually_elim (auto simp add: dist_fmap_def finite_proj_diag ind_f \<open>0 < e\<close>)
 qed
 
-instance finmap :: (type, complete_space) complete_space
+instance fmap :: (type, complete_space) complete_space
 proof
   fix P::"nat \<Rightarrow> 'a \<Rightarrow>\<^sub>F 'b"
   assume "Cauchy P"
@@ -483,7 +481,7 @@ proof
   define p where "p i n = P n i" for i n
   define q where "q i = lim (p i)" for i
   define Q where "Q = finmap_of d q"
-  have q: "\<And>i. i \<in> d \<Longrightarrow> q i = Q i" by (auto simp add: Q_def Abs_finmap_inverse)
+  have q: "\<And>i. i \<in> d \<Longrightarrow> q i = Q i" by (auto simp add: Q_def Abs_fmap_inverse)
   {
     fix i assume "i \<in> d"
     have "Cauchy (p i)" unfolding cauchy p_def
@@ -520,7 +518,7 @@ proof
     proof (safe intro!: exI[where x="N"])
       fix n assume "N \<le> n"
       hence dom: "domain (P n) = d" "domain Q = d" "domain (P n) = domain Q"
-        using dim by (simp_all add: N_def Q_def dim_def Abs_finmap_inverse)
+        using dim by (simp_all add: N_def Q_def dim_def Abs_fmap_inverse)
       show "dist (P n) Q < e"
       proof (rule dist_finmap_lessI[OF dom(3) \<open>0 < e\<close>])
         fix i
@@ -537,7 +535,7 @@ qed
 
 subsection \<open>Second Countable Space of Finite Maps\<close>
 
-instantiation finmap :: (countable, second_countable_topology) second_countable_topology
+instantiation fmap :: (countable, second_countable_topology) second_countable_topology
 begin
 
 definition basis_proj::"'b set set"
@@ -590,7 +588,7 @@ next
   assume O': "open O'" "x \<in> O'"
   then obtain a where a:
     "x \<in> Pi' (domain x) a" "Pi' (domain x) a \<subseteq> O'" "\<And>i. i\<in>domain x \<Longrightarrow> open (a i)"
-    unfolding open_finmap_def
+    unfolding open_fmap_def
   proof (atomize_elim, induct rule: generate_topology.induct)
     case (Int a b)
     let ?p="\<lambda>a f. x \<in> Pi' (domain x) f \<and> Pi' (domain x) f \<subseteq> a \<and> (\<forall>i. i \<in> domain x \<longrightarrow> open (f i))"
@@ -630,7 +628,7 @@ end
 
 subsection \<open>Polish Space of Finite Maps\<close>
 
-instance finmap :: (countable, polish_space) polish_space proof qed
+instance fmap :: (countable, polish_space) polish_space proof qed
 
 
 subsection \<open>Product Measurable Space of Finite Maps\<close>

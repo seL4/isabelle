@@ -455,8 +455,6 @@ end
 hide_const (open) PiF
 hide_const (open) Pi\<^sub>F
 hide_const (open) Pi'
-hide_const (open) Abs_finmap
-hide_const (open) Rep_finmap
 hide_const (open) finmap_of
 hide_const (open) proj
 hide_const (open) domain
@@ -477,7 +475,7 @@ locale polish_product_prob_space =
   product_prob_space "\<lambda>_. borel::('a::polish_space) measure" I for I::"'i set"
 
 sublocale polish_product_prob_space \<subseteq> P: polish_projective I "\<lambda>J. PiM J (\<lambda>_. borel::('a) measure)"
-proof qed
+  ..
 
 lemma (in polish_product_prob_space) limP_eq_PiM: "lim = PiM I (\<lambda>_. borel)"
   by (rule PiM_eq) (auto simp: emeasure_PiM emeasure_lim_emb)

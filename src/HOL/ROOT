@@ -739,6 +739,7 @@ session "HOL-Probability" in "Probability" = "HOL-Analysis" +
     "~~/src/HOL/Library/Permutation"
     "~~/src/HOL/Library/Order_Continuity"
     "~~/src/HOL/Library/Diagonal_Subsequence"
+    "~~/src/HOL/Library/Finite_Map"
   theories
     Probability
   document_files "root.tex"
