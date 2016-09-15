@@ -1055,6 +1055,11 @@ lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Uni
 lemma Union_subsetI: "(\<And>x. x \<in> A \<Longrightarrow> \<exists>y. y \<in> B \<and> x \<subseteq> y) \<Longrightarrow> \<Union>A \<subseteq> \<Union>B"
   by blast
 
+lemma disjnt_inj_on_iff:
+     "\<lbrakk>inj_on f (\<Union>\<A>); X \<in> \<A>; Y \<in> \<A>\<rbrakk> \<Longrightarrow> disjnt (f ` X) (f ` Y) \<longleftrightarrow> disjnt X Y"
+  apply (auto simp: disjnt_def)
+  using inj_on_eq_iff by fastforce
+
 
 subsubsection \<open>Unions of families\<close>
 

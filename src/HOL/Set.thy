@@ -1858,6 +1858,24 @@ definition disjnt :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
 lemma disjnt_iff: "disjnt A B \<longleftrightarrow> (\<forall>x. \<not> (x \<in> A \<and> x \<in> B))"
   by (force simp: disjnt_def)
 
+lemma disjnt_sym: "disjnt A B \<Longrightarrow> disjnt B A"
+  using disjnt_iff by blast
+
+lemma disjnt_empty1 [simp]: "disjnt {} A" and disjnt_empty2 [simp]: "disjnt A {}"
+  by (auto simp: disjnt_def)
+
+lemma disjnt_insert1 [simp]: "disjnt (insert a X) Y \<longleftrightarrow> a \<notin> Y \<and> disjnt X Y"
+  by (simp add: disjnt_def)
+
+lemma disjnt_insert2 [simp]: "disjnt Y (insert a X) \<longleftrightarrow> a \<notin> Y \<and> disjnt Y X"
+  by (simp add: disjnt_def)
+
+lemma disjnt_subset1 : "\<lbrakk>disjnt X Y; Z \<subseteq> X\<rbrakk> \<Longrightarrow> disjnt Z Y"
+  by (auto simp: disjnt_def)
+
+lemma disjnt_subset2 : "\<lbrakk>disjnt X Y; Z \<subseteq> Y\<rbrakk> \<Longrightarrow> disjnt X Z"
+  by (auto simp: disjnt_def)
+
 lemma pairwise_empty [simp]: "pairwise P {}"
   by (simp add: pairwise_def)
 
@@ -1870,6 +1888,9 @@ lemma pairwise_insert:
 
 lemma pairwise_image: "pairwise r (f ` s) \<longleftrightarrow> pairwise (\<lambda>x y. (f x \<noteq> f y) \<longrightarrow> r (f x) (f y)) s"
   by (force simp: pairwise_def)
+
+lemma disjoint_image_subset: "\<lbrakk>pairwise disjnt \<A>; \<And>X. X \<in> \<A> \<Longrightarrow> f X \<subseteq> X\<rbrakk> \<Longrightarrow> pairwise disjnt (f `\<A>)"
+  unfolding disjnt_def pairwise_def by fast
 
 lemma Int_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> False) \<Longrightarrow> A \<inter> B = {}"
   by blast

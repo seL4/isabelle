@@ -130,6 +130,12 @@ lemma (in linorder) greaterThan_Int_greaterThan: "{..< a} \<inter> {..< b} = {..
 
 subsection \<open>Logical Equivalences for Set Inclusion and Equality\<close>
 
+lemma atLeast_empty_triv [simp]: "{{}..} = UNIV"
+  by auto
+
+lemma atMost_UNIV_triv [simp]: "{..UNIV} = UNIV"
+  by auto
+
 lemma atLeast_subset_iff [iff]:
      "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::order))"
 by (blast intro: order_trans)

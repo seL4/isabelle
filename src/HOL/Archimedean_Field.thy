@@ -492,6 +492,18 @@ lemma ceiling_of_nat [simp]: "\<lceil>of_nat n\<rceil> = int n"
 lemma ceiling_add_le: "\<lceil>x + y\<rceil> \<le> \<lceil>x\<rceil> + \<lceil>y\<rceil>"
   by (simp only: ceiling_le_iff of_int_add add_mono le_of_int_ceiling)
 
+lemma finite_int_segment:
+  fixes a :: "'a::floor_ceiling"
+  shows "finite {x \<in> \<int>. a \<le> x \<and> x \<le> b}"
+proof -
+  have "finite {ceiling a..floor b}"
+    by simp
+  moreover have "{x \<in> \<int>. a \<le> x \<and> x \<le> b} = of_int ` {ceiling a..floor b}"
+    by (auto simp: le_floor_iff ceiling_le_iff elim!: Ints_cases)
+  ultimately show ?thesis
+    by simp
+qed
+
 
 text \<open>Ceiling with numerals.\<close>
 
