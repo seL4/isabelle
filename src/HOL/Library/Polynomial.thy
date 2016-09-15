@@ -2946,7 +2946,7 @@ unfolding lead_coeff_def by auto
 lemma lead_coeff_0[simp]:"lead_coeff 0 =0" 
   unfolding lead_coeff_def by auto
 
-lemma coeff_0_listprod: "coeff (listprod xs) 0 = listprod (map (\<lambda>p. coeff p 0) xs)"
+lemma coeff_0_prod_list: "coeff (prod_list xs) 0 = prod_list (map (\<lambda>p. coeff p 0) xs)"
   by (induction xs) (simp_all add: coeff_mult)
 
 lemma coeff_0_power: "coeff (p ^ n) 0 = coeff p 0 ^ n"
@@ -3214,9 +3214,9 @@ lemma reflect_poly_setprod:
      setprod (\<lambda>x. reflect_poly (f x)) A"
   by (cases "finite A", induction rule: finite_induct) (simp_all add: reflect_poly_mult)
 
-lemma reflect_poly_listprod:
-  "reflect_poly (listprod (xs :: _ :: {comm_semiring_0,semiring_no_zero_divisors} poly list)) = 
-     listprod (map reflect_poly xs)"
+lemma reflect_poly_prod_list:
+  "reflect_poly (prod_list (xs :: _ :: {comm_semiring_0,semiring_no_zero_divisors} poly list)) = 
+     prod_list (map reflect_poly xs)"
   by (induction xs) (simp_all add: reflect_poly_mult)
 
 lemma reflect_poly_Poly_nz: 
@@ -3225,7 +3225,7 @@ lemma reflect_poly_Poly_nz:
 
 lemmas reflect_poly_simps = 
   reflect_poly_0 reflect_poly_1 reflect_poly_const reflect_poly_smult reflect_poly_mult
-  reflect_poly_power reflect_poly_setprod reflect_poly_listprod
+  reflect_poly_power reflect_poly_setprod reflect_poly_prod_list
 
 
 subsection \<open>Derivatives of univariate polynomials\<close>

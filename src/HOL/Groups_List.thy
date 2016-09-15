@@ -55,32 +55,32 @@ subsection \<open>List summation\<close>
 context monoid_add
 begin
 
-sublocale listsum: monoid_list plus 0
+sublocale sum_list: monoid_list plus 0
 defines
-  listsum = listsum.F ..
+  sum_list = sum_list.F ..
  
 end
 
 context comm_monoid_add
 begin
 
-sublocale listsum: comm_monoid_list plus 0
+sublocale sum_list: comm_monoid_list plus 0
 rewrites
-  "monoid_list.F plus 0 = listsum"
+  "monoid_list.F plus 0 = sum_list"
 proof -
   show "comm_monoid_list plus 0" ..
-  then interpret listsum: comm_monoid_list plus 0 .
-  from listsum_def show "monoid_list.F plus 0 = listsum" by simp
+  then interpret sum_list: comm_monoid_list plus 0 .
+  from sum_list_def show "monoid_list.F plus 0 = sum_list" by simp
 qed
 
 sublocale setsum: comm_monoid_list_set plus 0
 rewrites
-  "monoid_list.F plus 0 = listsum"
+  "monoid_list.F plus 0 = sum_list"
   and "comm_monoid_set.F plus 0 = setsum"
 proof -
   show "comm_monoid_list_set plus 0" ..
   then interpret setsum: comm_monoid_list_set plus 0 .
-  from listsum_def show "monoid_list.F plus 0 = listsum" by simp
+  from sum_list_def show "monoid_list.F plus 0 = sum_list" by simp
   from setsum_def show "comm_monoid_set.F plus 0 = setsum" by (auto intro: sym)
 qed
 
@@ -88,39 +88,39 @@ end
 
 text \<open>Some syntactic sugar for summing a function over a list:\<close>
 syntax (ASCII)
-  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
+  "_sum_list" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
 syntax
-  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
+  "_sum_list" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (\<lambda>x. b) xs)"
+  "\<Sum>x\<leftarrow>xs. b" == "CONST sum_list (CONST map (\<lambda>x. b) xs)"
 
 text \<open>TODO duplicates\<close>
-lemmas listsum_simps = listsum.Nil listsum.Cons
-lemmas listsum_append = listsum.append
-lemmas listsum_rev = listsum.rev
+lemmas sum_list_simps = sum_list.Nil sum_list.Cons
+lemmas sum_list_append = sum_list.append
+lemmas sum_list_rev = sum_list.rev
 
-lemma (in monoid_add) fold_plus_listsum_rev:
-  "fold plus xs = plus (listsum (rev xs))"
+lemma (in monoid_add) fold_plus_sum_list_rev:
+  "fold plus xs = plus (sum_list (rev xs))"
 proof
   fix x
-  have "fold plus xs x = listsum (rev xs @ [x])"
-    by (simp add: foldr_conv_fold listsum.eq_foldr)
-  also have "\<dots> = listsum (rev xs) + x"
+  have "fold plus xs x = sum_list (rev xs @ [x])"
+    by (simp add: foldr_conv_fold sum_list.eq_foldr)
+  also have "\<dots> = sum_list (rev xs) + x"
     by simp
-  finally show "fold plus xs x = listsum (rev xs) + x"
+  finally show "fold plus xs x = sum_list (rev xs) + x"
     .
 qed
 
-lemma (in comm_monoid_add) listsum_map_remove1:
-  "x \<in> set xs \<Longrightarrow> listsum (map f xs) = f x + listsum (map f (remove1 x xs))"
+lemma (in comm_monoid_add) sum_list_map_remove1:
+  "x \<in> set xs \<Longrightarrow> sum_list (map f xs) = f x + sum_list (map f (remove1 x xs))"
   by (induct xs) (auto simp add: ac_simps)
 
-lemma (in monoid_add) size_list_conv_listsum:
-  "size_list f xs = listsum (map f xs) + size xs"
+lemma (in monoid_add) size_list_conv_sum_list:
+  "size_list f xs = sum_list (map f xs) + size xs"
   by (induct xs) auto
 
 lemma (in monoid_add) length_concat:
-  "length (concat xss) = listsum (map length xss)"
+  "length (concat xss) = sum_list (map length xss)"
   by (induct xss) simp_all
 
 lemma (in monoid_add) length_product_lists:
@@ -129,96 +129,96 @@ proof (induct xss)
   case (Cons xs xss) then show ?case by (induct xs) (auto simp: length_concat o_def)
 qed simp
 
-lemma (in monoid_add) listsum_map_filter:
+lemma (in monoid_add) sum_list_map_filter:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> \<not> P x \<Longrightarrow> f x = 0"
-  shows "listsum (map f (filter P xs)) = listsum (map f xs)"
+  shows "sum_list (map f (filter P xs)) = sum_list (map f xs)"
   using assms by (induct xs) auto
 
-lemma (in comm_monoid_add) distinct_listsum_conv_Setsum:
-  "distinct xs \<Longrightarrow> listsum xs = Setsum (set xs)"
+lemma (in comm_monoid_add) distinct_sum_list_conv_Setsum:
+  "distinct xs \<Longrightarrow> sum_list xs = Setsum (set xs)"
   by (induct xs) simp_all
 
-lemma listsum_upt[simp]:
-  "m \<le> n \<Longrightarrow> listsum [m..<n] = \<Sum> {m..<n}"
-by(simp add: distinct_listsum_conv_Setsum)
+lemma sum_list_upt[simp]:
+  "m \<le> n \<Longrightarrow> sum_list [m..<n] = \<Sum> {m..<n}"
+by(simp add: distinct_sum_list_conv_Setsum)
 
-lemma listsum_eq_0_nat_iff_nat [simp]:
-  "listsum ns = (0::nat) \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
+lemma sum_list_eq_0_nat_iff_nat [simp]:
+  "sum_list ns = (0::nat) \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
   by (induct ns) simp_all
 
-lemma member_le_listsum_nat:
-  "(n :: nat) \<in> set ns \<Longrightarrow> n \<le> listsum ns"
+lemma member_le_sum_list_nat:
+  "(n :: nat) \<in> set ns \<Longrightarrow> n \<le> sum_list ns"
   by (induct ns) auto
 
-lemma elem_le_listsum_nat:
-  "k < size ns \<Longrightarrow> ns ! k \<le> listsum (ns::nat list)"
-  by (rule member_le_listsum_nat) simp
+lemma elem_le_sum_list_nat:
+  "k < size ns \<Longrightarrow> ns ! k \<le> sum_list (ns::nat list)"
+  by (rule member_le_sum_list_nat) simp
 
-lemma listsum_update_nat:
-  "k < size ns \<Longrightarrow> listsum (ns[k := (n::nat)]) = listsum ns + n - ns ! k"
+lemma sum_list_update_nat:
+  "k < size ns \<Longrightarrow> sum_list (ns[k := (n::nat)]) = sum_list ns + n - ns ! k"
 apply(induct ns arbitrary:k)
  apply (auto split:nat.split)
-apply(drule elem_le_listsum_nat)
+apply(drule elem_le_sum_list_nat)
 apply arith
 done
 
-lemma (in monoid_add) listsum_triv:
+lemma (in monoid_add) sum_list_triv:
   "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
   by (induct xs) (simp_all add: distrib_right)
 
-lemma (in monoid_add) listsum_0 [simp]:
+lemma (in monoid_add) sum_list_0 [simp]:
   "(\<Sum>x\<leftarrow>xs. 0) = 0"
   by (induct xs) (simp_all add: distrib_right)
 
 text\<open>For non-Abelian groups \<open>xs\<close> needs to be reversed on one side:\<close>
-lemma (in ab_group_add) uminus_listsum_map:
-  "- listsum (map f xs) = listsum (map (uminus \<circ> f) xs)"
+lemma (in ab_group_add) uminus_sum_list_map:
+  "- sum_list (map f xs) = sum_list (map (uminus \<circ> f) xs)"
   by (induct xs) simp_all
 
-lemma (in comm_monoid_add) listsum_addf:
-  "(\<Sum>x\<leftarrow>xs. f x + g x) = listsum (map f xs) + listsum (map g xs)"
+lemma (in comm_monoid_add) sum_list_addf:
+  "(\<Sum>x\<leftarrow>xs. f x + g x) = sum_list (map f xs) + sum_list (map g xs)"
   by (induct xs) (simp_all add: algebra_simps)
 
-lemma (in ab_group_add) listsum_subtractf:
-  "(\<Sum>x\<leftarrow>xs. f x - g x) = listsum (map f xs) - listsum (map g xs)"
+lemma (in ab_group_add) sum_list_subtractf:
+  "(\<Sum>x\<leftarrow>xs. f x - g x) = sum_list (map f xs) - sum_list (map g xs)"
   by (induct xs) (simp_all add: algebra_simps)
 
-lemma (in semiring_0) listsum_const_mult:
+lemma (in semiring_0) sum_list_const_mult:
   "(\<Sum>x\<leftarrow>xs. c * f x) = c * (\<Sum>x\<leftarrow>xs. f x)"
   by (induct xs) (simp_all add: algebra_simps)
 
-lemma (in semiring_0) listsum_mult_const:
+lemma (in semiring_0) sum_list_mult_const:
   "(\<Sum>x\<leftarrow>xs. f x * c) = (\<Sum>x\<leftarrow>xs. f x) * c"
   by (induct xs) (simp_all add: algebra_simps)
 
-lemma (in ordered_ab_group_add_abs) listsum_abs:
-  "\<bar>listsum xs\<bar> \<le> listsum (map abs xs)"
+lemma (in ordered_ab_group_add_abs) sum_list_abs:
+  "\<bar>sum_list xs\<bar> \<le> sum_list (map abs xs)"
   by (induct xs) (simp_all add: order_trans [OF abs_triangle_ineq])
 
-lemma listsum_mono:
+lemma sum_list_mono:
   fixes f g :: "'a \<Rightarrow> 'b::{monoid_add, ordered_ab_semigroup_add}"
   shows "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sum>x\<leftarrow>xs. f x) \<le> (\<Sum>x\<leftarrow>xs. g x)"
   by (induct xs) (simp, simp add: add_mono)
 
-lemma (in monoid_add) listsum_distinct_conv_setsum_set:
-  "distinct xs \<Longrightarrow> listsum (map f xs) = setsum f (set xs)"
+lemma (in monoid_add) sum_list_distinct_conv_setsum_set:
+  "distinct xs \<Longrightarrow> sum_list (map f xs) = setsum f (set xs)"
   by (induct xs) simp_all
 
-lemma (in monoid_add) interv_listsum_conv_setsum_set_nat:
-  "listsum (map f [m..<n]) = setsum f (set [m..<n])"
-  by (simp add: listsum_distinct_conv_setsum_set)
+lemma (in monoid_add) interv_sum_list_conv_setsum_set_nat:
+  "sum_list (map f [m..<n]) = setsum f (set [m..<n])"
+  by (simp add: sum_list_distinct_conv_setsum_set)
 
-lemma (in monoid_add) interv_listsum_conv_setsum_set_int:
-  "listsum (map f [k..l]) = setsum f (set [k..l])"
-  by (simp add: listsum_distinct_conv_setsum_set)
+lemma (in monoid_add) interv_sum_list_conv_setsum_set_int:
+  "sum_list (map f [k..l]) = setsum f (set [k..l])"
+  by (simp add: sum_list_distinct_conv_setsum_set)
 
-text \<open>General equivalence between @{const listsum} and @{const setsum}\<close>
-lemma (in monoid_add) listsum_setsum_nth:
-  "listsum xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
-  using interv_listsum_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
+text \<open>General equivalence between @{const sum_list} and @{const setsum}\<close>
+lemma (in monoid_add) sum_list_setsum_nth:
+  "sum_list xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
+  using interv_sum_list_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
 
-lemma listsum_map_eq_setsum_count:
-  "listsum (map f xs) = setsum (\<lambda>x. count_list xs x * f x) (set xs)"
+lemma sum_list_map_eq_setsum_count:
+  "sum_list (map f xs) = setsum (\<lambda>x. count_list xs x * f x) (set xs)"
 proof(induction xs)
   case (Cons x xs)
   show ?case (is "?l = ?r")
@@ -236,9 +236,9 @@ proof(induction xs)
   qed
 qed simp
 
-lemma listsum_map_eq_setsum_count2:
+lemma sum_list_map_eq_setsum_count2:
 assumes "set xs \<subseteq> X" "finite X"
-shows "listsum (map f xs) = setsum (\<lambda>x. count_list xs x * f x) X"
+shows "sum_list (map f xs) = setsum (\<lambda>x. count_list xs x * f x) X"
 proof-
   let ?F = "\<lambda>x. count_list xs x * f x"
   have "setsum ?F X = setsum ?F (set xs \<union> (X - set xs))"
@@ -246,23 +246,23 @@ proof-
   also have "\<dots> = setsum ?F (set xs)"
     using assms(2)
     by(simp add: setsum.union_disjoint[OF _ _ Diff_disjoint] del: Un_Diff_cancel)
-  finally show ?thesis by(simp add:listsum_map_eq_setsum_count)
+  finally show ?thesis by(simp add:sum_list_map_eq_setsum_count)
 qed
 
-lemma listsum_nonneg: 
-    "(\<And>x. x \<in> set xs \<Longrightarrow> (x :: 'a :: ordered_comm_monoid_add) \<ge> 0) \<Longrightarrow> listsum xs \<ge> 0"
+lemma sum_list_nonneg: 
+    "(\<And>x. x \<in> set xs \<Longrightarrow> (x :: 'a :: ordered_comm_monoid_add) \<ge> 0) \<Longrightarrow> sum_list xs \<ge> 0"
   by (induction xs) simp_all
 
-lemma (in monoid_add) listsum_map_filter':
-  "listsum (map f (filter P xs)) = listsum (map (\<lambda>x. if P x then f x else 0) xs)"
+lemma (in monoid_add) sum_list_map_filter':
+  "sum_list (map f (filter P xs)) = sum_list (map (\<lambda>x. if P x then f x else 0) xs)"
   by (induction xs) simp_all
 
-lemma listsum_cong [fundef_cong]:
+lemma sum_list_cong [fundef_cong]:
   assumes "xs = ys"
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = g x"
-  shows    "listsum (map f xs) = listsum (map g ys)"
+  shows    "sum_list (map f xs) = sum_list (map g ys)"
 proof -
-  from assms(2) have "listsum (map f xs) = listsum (map g xs)"
+  from assms(2) have "sum_list (map f xs) = sum_list (map g xs)"
     by (induction xs) simp_all
   with assms(1) show ?thesis by simp
 qed
@@ -271,7 +271,7 @@ qed
 subsection \<open>Further facts about @{const List.n_lists}\<close>
 
 lemma length_n_lists: "length (List.n_lists n xs) = length xs ^ n"
-  by (induct n) (auto simp add: comp_def length_concat listsum_triv)
+  by (induct n) (auto simp add: comp_def length_concat sum_list_triv)
 
 lemma distinct_n_lists:
   assumes "distinct xs"
@@ -300,20 +300,20 @@ subsection \<open>Tools setup\<close>
 
 lemmas setsum_code = setsum.set_conv_list
 
-lemma setsum_set_upto_conv_listsum_int [code_unfold]:
-  "setsum f (set [i..j::int]) = listsum (map f [i..j])"
-  by (simp add: interv_listsum_conv_setsum_set_int)
+lemma setsum_set_upto_conv_sum_list_int [code_unfold]:
+  "setsum f (set [i..j::int]) = sum_list (map f [i..j])"
+  by (simp add: interv_sum_list_conv_setsum_set_int)
 
-lemma setsum_set_upt_conv_listsum_nat [code_unfold]:
-  "setsum f (set [m..<n]) = listsum (map f [m..<n])"
-  by (simp add: interv_listsum_conv_setsum_set_nat)
+lemma setsum_set_upt_conv_sum_list_nat [code_unfold]:
+  "setsum f (set [m..<n]) = sum_list (map f [m..<n])"
+  by (simp add: interv_sum_list_conv_setsum_set_nat)
 
-lemma listsum_transfer[transfer_rule]:
+lemma sum_list_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "A 0 0"
   assumes [transfer_rule]: "(A ===> A ===> A) op + op +"
-  shows "(list_all2 A ===> A) listsum listsum"
-  unfolding listsum.eq_foldr [abs_def]
+  shows "(list_all2 A ===> A) sum_list sum_list"
+  unfolding sum_list.eq_foldr [abs_def]
   by transfer_prover
 
 
@@ -322,58 +322,58 @@ subsection \<open>List product\<close>
 context monoid_mult
 begin
 
-sublocale listprod: monoid_list times 1
+sublocale prod_list: monoid_list times 1
 defines
-  listprod = listprod.F ..
+  prod_list = prod_list.F ..
 
 end
 
 context comm_monoid_mult
 begin
 
-sublocale listprod: comm_monoid_list times 1
+sublocale prod_list: comm_monoid_list times 1
 rewrites
-  "monoid_list.F times 1 = listprod"
+  "monoid_list.F times 1 = prod_list"
 proof -
   show "comm_monoid_list times 1" ..
-  then interpret listprod: comm_monoid_list times 1 .
-  from listprod_def show "monoid_list.F times 1 = listprod" by simp
+  then interpret prod_list: comm_monoid_list times 1 .
+  from prod_list_def show "monoid_list.F times 1 = prod_list" by simp
 qed
 
 sublocale setprod: comm_monoid_list_set times 1
 rewrites
-  "monoid_list.F times 1 = listprod"
+  "monoid_list.F times 1 = prod_list"
   and "comm_monoid_set.F times 1 = setprod"
 proof -
   show "comm_monoid_list_set times 1" ..
   then interpret setprod: comm_monoid_list_set times 1 .
-  from listprod_def show "monoid_list.F times 1 = listprod" by simp
+  from prod_list_def show "monoid_list.F times 1 = prod_list" by simp
   from setprod_def show "comm_monoid_set.F times 1 = setprod" by (auto intro: sym)
 qed
 
 end
 
-lemma listprod_cong [fundef_cong]:
+lemma prod_list_cong [fundef_cong]:
   assumes "xs = ys"
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = g x"
-  shows    "listprod (map f xs) = listprod (map g ys)"
+  shows    "prod_list (map f xs) = prod_list (map g ys)"
 proof -
-  from assms(2) have "listprod (map f xs) = listprod (map g xs)"
+  from assms(2) have "prod_list (map f xs) = prod_list (map g xs)"
     by (induction xs) simp_all
   with assms(1) show ?thesis by simp
 qed
 
-lemma listprod_zero_iff: 
-  "listprod xs = 0 \<longleftrightarrow> (0 :: 'a :: {semiring_no_zero_divisors, semiring_1}) \<in> set xs"
+lemma prod_list_zero_iff: 
+  "prod_list xs = 0 \<longleftrightarrow> (0 :: 'a :: {semiring_no_zero_divisors, semiring_1}) \<in> set xs"
   by (induction xs) simp_all
 
 text \<open>Some syntactic sugar:\<close>
 
 syntax (ASCII)
-  "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
+  "_prod_list" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
 syntax
-  "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
+  "_prod_list" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "\<Prod>x\<leftarrow>xs. b" \<rightleftharpoons> "CONST listprod (CONST map (\<lambda>x. b) xs)"
+  "\<Prod>x\<leftarrow>xs. b" \<rightleftharpoons> "CONST prod_list (CONST map (\<lambda>x. b) xs)"
 
 end

@@ -1521,28 +1521,28 @@ proof -
 qed
 
 text \<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is @{term "(N + m - 1) choose N"}:\<close>
-lemma card_length_listsum_rec:
+lemma card_length_sum_list_rec:
   assumes "m \<ge> 1"
-  shows "card {l::nat list. length l = m \<and> listsum l = N} =
-      card {l. length l = (m - 1) \<and> listsum l = N} +
-      card {l. length l = m \<and> listsum l + 1 = N}"
+  shows "card {l::nat list. length l = m \<and> sum_list l = N} =
+      card {l. length l = (m - 1) \<and> sum_list l = N} +
+      card {l. length l = m \<and> sum_list l + 1 = N}"
     (is "card ?C = card ?A + card ?B")
 proof -
-  let ?A' = "{l. length l = m \<and> listsum l = N \<and> hd l = 0}"
-  let ?B' = "{l. length l = m \<and> listsum l = N \<and> hd l \<noteq> 0}"
+  let ?A' = "{l. length l = m \<and> sum_list l = N \<and> hd l = 0}"
+  let ?B' = "{l. length l = m \<and> sum_list l = N \<and> hd l \<noteq> 0}"
   let ?f = "\<lambda>l. 0 # l"
   let ?g = "\<lambda>l. (hd l + 1) # tl l"
   have 1: "xs \<noteq> [] \<Longrightarrow> x = hd xs \<Longrightarrow> x # tl xs = xs" for x xs
     by simp
-  have 2: "xs \<noteq> [] \<Longrightarrow> listsum(tl xs) = listsum xs - hd xs" for xs :: "nat list"
+  have 2: "xs \<noteq> [] \<Longrightarrow> sum_list(tl xs) = sum_list xs - hd xs" for xs :: "nat list"
     by (auto simp add: neq_Nil_conv)
   have f: "bij_betw ?f ?A ?A'"
     apply (rule bij_betw_byWitness[where f' = tl])
     using assms
     apply (auto simp: 2 length_0_conv[symmetric] 1 simp del: length_0_conv)
     done
-  have 3: "xs \<noteq> [] \<Longrightarrow> hd xs + (listsum xs - hd xs) = listsum xs" for xs :: "nat list"
-    by (metis 1 listsum_simps(2) 2)
+  have 3: "xs \<noteq> [] \<Longrightarrow> hd xs + (sum_list xs - hd xs) = sum_list xs" for xs :: "nat list"
+    by (metis 1 sum_list_simps(2) 2)
   have g: "bij_betw ?g ?B ?B'"
     apply (rule bij_betw_byWitness[where f' = "\<lambda>l. (hd l - 1) # tl l"])
     using assms
@@ -1552,10 +1552,10 @@ proof -
     using finite_lists_length_eq[OF finite_atLeastLessThan] conj_commute by auto
   have fin_A: "finite ?A" using fin[of _ "N+1"]
     by (intro finite_subset[where ?A = "?A" and ?B = "{xs. size xs = m - 1 \<and> set xs \<subseteq> {0..<N+1}}"])
-      (auto simp: member_le_listsum_nat less_Suc_eq_le)
+      (auto simp: member_le_sum_list_nat less_Suc_eq_le)
   have fin_B: "finite ?B"
     by (intro finite_subset[where ?A = "?B" and ?B = "{xs. size xs = m \<and> set xs \<subseteq> {0..<N}}"])
-      (auto simp: member_le_listsum_nat less_Suc_eq_le fin)
+      (auto simp: member_le_sum_list_nat less_Suc_eq_le fin)
   have uni: "?C = ?A' \<union> ?B'"
     by auto
   have disj: "?A' \<inter> ?B' = {}"
@@ -1569,7 +1569,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma card_length_listsum: "card {l::nat list. size l = m \<and> listsum l = N} = (N + m - 1) choose N"
+lemma card_length_sum_list: "card {l::nat list. size l = m \<and> sum_list l = N} = (N + m - 1) choose N"
   \<comment> "by Holden Lee, tidied by Tobias Nipkow"
 proof (cases m)
   case 0
@@ -1590,7 +1590,7 @@ next
       by simp
   next
     case (Suc k)
-    have c1: "card {l::nat list. size l = (m - 1) \<and> listsum l =  N} = (N + (m - 1) - 1) choose N"
+    have c1: "card {l::nat list. size l = (m - 1) \<and> sum_list l =  N} = (N + (m - 1) - 1) choose N"
     proof (cases "m = 1")
       case True
       with Suc.hyps have "N \<ge> 1"
@@ -1602,23 +1602,23 @@ next
       then show ?thesis
         using Suc by fastforce
     qed
-    from Suc have c2: "card {l::nat list. size l = m \<and> listsum l + 1 = N} =
+    from Suc have c2: "card {l::nat list. size l = m \<and> sum_list l + 1 = N} =
       (if N > 0 then ((N - 1) + m - 1) choose (N - 1) else 0)"
     proof -
       have *: "n > 0 \<Longrightarrow> Suc m = n \<longleftrightarrow> m = n - 1" for m n
         by arith
       from Suc have "N > 0 \<Longrightarrow>
-        card {l::nat list. size l = m \<and> listsum l + 1 = N} =
+        card {l::nat list. size l = m \<and> sum_list l + 1 = N} =
           ((N - 1) + m - 1) choose (N - 1)"
         by (simp add: *)
       then show ?thesis
         by auto
     qed
-    from Suc.prems have "(card {l::nat list. size l = (m - 1) \<and> listsum l = N} +
-          card {l::nat list. size l = m \<and> listsum l + 1 = N}) = (N + m - 1) choose N"
+    from Suc.prems have "(card {l::nat list. size l = (m - 1) \<and> sum_list l = N} +
+          card {l::nat list. size l = m \<and> sum_list l + 1 = N}) = (N + m - 1) choose N"
       by (auto simp: c1 c2 choose_reduce_nat[of "N + m - 1" N] simp del: One_nat_def)
     then show ?case
-      using card_length_listsum_rec[OF Suc.prems] by auto
+      using card_length_sum_list_rec[OF Suc.prems] by auto
   qed
 qed
 

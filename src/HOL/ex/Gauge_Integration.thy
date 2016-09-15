@@ -204,7 +204,7 @@ using assms proof induct
   ultimately show ?case by simp
 qed auto
 
-lemma fine_listsum_eq_diff:
+lemma fine_sum_list_eq_diff:
   fixes f :: "real \<Rightarrow> real"
   shows "fine \<delta> (a, b) D \<Longrightarrow> (\<Sum>(u, x, v)\<leftarrow>D. f v - f u) = f b - f a"
 by (induct set: fine) simp_all
@@ -249,7 +249,7 @@ lemma rsum_add: "rsum D (\<lambda>x. f x + g x) =  rsum D f + rsum D g"
 by (induct D, auto simp add: algebra_simps)
 
 lemma rsum_append: "rsum (D1 @ D2) f = rsum D1 f + rsum D2 f"
-unfolding rsum_def map_append listsum_append ..
+unfolding rsum_def map_append sum_list_append ..
 
 
 subsection \<open>Gauge integrability (definite)\<close>
@@ -594,22 +594,22 @@ next
     proof (clarify)
       fix D assume D: "fine \<delta> (a, b) D"
       hence "(\<Sum>(u, x, v)\<leftarrow>D. f v - f u) = f b - f a"
-        by (rule fine_listsum_eq_diff)
+        by (rule fine_sum_list_eq_diff)
       hence "\<bar>rsum D f' - (f b - f a)\<bar> = \<bar>rsum D f' - (\<Sum>(u, x, v)\<leftarrow>D. f v - f u)\<bar>"
         by simp
       also have "\<dots> = \<bar>(\<Sum>(u, x, v)\<leftarrow>D. f v - f u) - rsum D f'\<bar>"
         by (rule abs_minus_commute)
       also have "\<dots> = \<bar>\<Sum>(u, x, v)\<leftarrow>D. (f v - f u) - f' x * (v - u)\<bar>"
-        by (simp only: rsum_def listsum_subtractf split_def)
+        by (simp only: rsum_def sum_list_subtractf split_def)
       also have "\<dots> \<le> (\<Sum>(u, x, v)\<leftarrow>D. \<bar>(f v - f u) - f' x * (v - u)\<bar>)"
-        by (rule ord_le_eq_trans [OF listsum_abs], simp add: o_def split_def)
+        by (rule ord_le_eq_trans [OF sum_list_abs], simp add: o_def split_def)
       also have "\<dots> \<le> (\<Sum>(u, x, v)\<leftarrow>D. (e / (b - a)) * (v - u))"
-        apply (rule listsum_mono, clarify, rename_tac u x v)
+        apply (rule sum_list_mono, clarify, rename_tac u x v)
         using D apply (simp add: \<delta> mem_fine mem_fine2 mem_fine3)
         done
       also have "\<dots> = e"
-        using fine_listsum_eq_diff [OF D, where f="\<lambda>x. x"]
-        unfolding split_def listsum_const_mult
+        using fine_sum_list_eq_diff [OF D, where f="\<lambda>x. x"]
+        unfolding split_def sum_list_const_mult
         using \<open>a < b\<close> by simp
       finally show "\<bar>rsum D f' - (f b - f a)\<bar> \<le> e" .
     qed

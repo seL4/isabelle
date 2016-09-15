@@ -14,7 +14,7 @@ axiomatization NbT :: nat  (*Number of tokens in system*)
 
 abbreviation (input) tokens :: "nat list \<Rightarrow> nat"
 where
-  "tokens \<equiv> listsum"
+  "tokens \<equiv> sum_list"
 
 abbreviation (input)
   "bag_of \<equiv> mset"

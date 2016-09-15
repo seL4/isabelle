@@ -9,7 +9,7 @@ subsection \<open>Compute-intensive examples.\<close>
 subsubsection \<open>Fragments of the harmonic series\<close>
 
 definition harmonic :: "nat \<Rightarrow> rat" where
-  "harmonic n = listsum (map (\<lambda>n. 1 / of_nat n) [1..<n])"
+  "harmonic n = sum_list (map (\<lambda>n. 1 / of_nat n) [1..<n])"
 
 
 subsubsection \<open>The sieve of Erathostenes\<close>

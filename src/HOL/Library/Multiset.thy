@@ -3188,7 +3188,7 @@ instance
 
 end
 
-lemma [code]: "sum_mset (mset xs) = listsum xs"
+lemma [code]: "sum_mset (mset xs) = sum_list xs"
   by (induct xs) simp_all
 
 lemma [code]: "prod_mset (mset xs) = fold times xs 1"

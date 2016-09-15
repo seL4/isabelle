@@ -116,7 +116,7 @@ lemma ZN_setsum [transfer_rule]:
 text \<open>For derived operations, we can use the \<open>transfer_prover\<close>
   method to help generate transfer rules.\<close>
 
-lemma ZN_listsum [transfer_rule]: "(list_all2 ZN ===> ZN) listsum listsum"
+lemma ZN_sum_list [transfer_rule]: "(list_all2 ZN ===> ZN) sum_list sum_list"
   by transfer_prover
 
 end
@@ -178,8 +178,8 @@ done
 
 lemma
   assumes "\<And>x y z::int. \<lbrakk>0 \<le> x; 0 \<le> y; 0 \<le> z\<rbrakk> \<Longrightarrow> 
-    listsum [x, y, z] = 0 \<longleftrightarrow> list_all (\<lambda>x. x = 0) [x, y, z]"
-  shows "listsum [x, y, z] = (0::nat) \<longleftrightarrow> list_all (\<lambda>x. x = 0) [x, y, z]"
+    sum_list [x, y, z] = 0 \<longleftrightarrow> list_all (\<lambda>x. x = 0) [x, y, z]"
+  shows "sum_list [x, y, z] = (0::nat) \<longleftrightarrow> list_all (\<lambda>x. x = 0) [x, y, z]"
 apply transfer
 apply fact
 done
@@ -189,8 +189,8 @@ text \<open>Quantifiers over higher types (e.g. \<open>nat list\<close>) are
 
 lemma
   assumes "\<And>xs::int list. list_all (\<lambda>x. x \<ge> 0) xs \<Longrightarrow>
-    (listsum xs = 0) = list_all (\<lambda>x. x = 0) xs"
-  shows "listsum xs = (0::nat) \<longleftrightarrow> list_all (\<lambda>x. x = 0) xs"
+    (sum_list xs = 0) = list_all (\<lambda>x. x = 0) xs"
+  shows "sum_list xs = (0::nat) \<longleftrightarrow> list_all (\<lambda>x. x = 0) xs"
 apply transfer
 apply fact
 done
@@ -200,8 +200,8 @@ text \<open>Equality on a higher type can be transferred if the relations
 
 lemma
   assumes "\<And>xs::int list. \<lbrakk>list_all (\<lambda>x. x \<ge> 0) xs; xs \<noteq> []\<rbrakk> \<Longrightarrow>
-    listsum xs < listsum (map (\<lambda>x. x + 1) xs)"
-  shows "xs \<noteq> [] \<Longrightarrow> listsum xs < listsum (map Suc xs)"
+    sum_list xs < sum_list (map (\<lambda>x. x + 1) xs)"
+  shows "xs \<noteq> [] \<Longrightarrow> sum_list xs < sum_list (map Suc xs)"
 apply transfer
 apply fact
 done

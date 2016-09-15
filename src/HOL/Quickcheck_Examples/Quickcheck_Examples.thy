@@ -204,7 +204,7 @@ quickcheck[exhaustive, finite_types = false, expect = counterexample]
 oops
 
 lemma
-  "ns ! k < length ns ==> k <= listsum ns"
+  "ns ! k < length ns ==> k <= sum_list ns"
 quickcheck[random, iterations = 10000, finite_types = false, quiet]
 quickcheck[exhaustive, finite_types = false, expect = counterexample]
 oops

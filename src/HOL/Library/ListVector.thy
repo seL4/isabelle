@@ -119,7 +119,7 @@ apply auto
 done
 
 lemma iprod_uminus[simp]: "\<langle>-xs,ys\<rangle> = -\<langle>xs,ys\<rangle>"
-by(simp add: iprod_def uminus_listsum_map o_def split_def map_zip_map list_uminus_def)
+by(simp add: iprod_def uminus_sum_list_map o_def split_def map_zip_map list_uminus_def)
 
 lemma iprod_left_add_distrib: "\<langle>xs + ys,zs\<rangle> = \<langle>xs,zs\<rangle> + \<langle>ys,zs\<rangle>"
 apply(induct xs arbitrary: ys zs)

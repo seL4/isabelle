@@ -306,14 +306,14 @@ definition "sparsify xs = [i \<leftarrow> zip [0..<length xs] xs. snd i \<noteq>
 lemma sparsify_length: "(i, x) \<in> set (sparsify xs) \<Longrightarrow> i < length xs"
   by (auto simp: sparsify_def set_zip)
 
-lemma listsum_sparsify[simp]:
+lemma sum_list_sparsify[simp]:
   fixes v :: "('a :: semiring_0) list"
   assumes "length w = length v"
   shows "(\<Sum>x\<leftarrow>sparsify w. (\<lambda>(i, x). v ! i) x * snd x) = scalar_product v w"
     (is "(\<Sum>x\<leftarrow>_. ?f x) = _")
   unfolding sparsify_def scalar_product_def
-  using assms listsum_map_filter[where f="?f" and P="\<lambda> i. snd i \<noteq> (0::'a)"]
-  by (simp add: listsum_setsum)
+  using assms sum_list_map_filter[where f="?f" and P="\<lambda> i. snd i \<noteq> (0::'a)"]
+  by (simp add: sum_list_setsum)
 *)
 definition [simp]: "unzip w = (map fst w, map snd w)"
 
@@ -338,7 +338,7 @@ definition
   "jad = apsnd transpose o length_permutate o map sparsify"
 
 definition
-  "jad_mv v = inflate o case_prod zip o apsnd (map listsum o transpose o map (map (\<lambda> (i, x). v ! i * x)))"
+  "jad_mv v = inflate o case_prod zip o apsnd (map sum_list o transpose o map (map (\<lambda> (i, x). v ! i * x)))"
 
 lemma "matrix (M::int list list) rs cs \<Longrightarrow> False"
 quickcheck[tester = smart_exhaustive, size = 6]

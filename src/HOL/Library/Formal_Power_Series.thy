@@ -2107,7 +2107,7 @@ qed
 subsubsection \<open>Rule 4 in its more general form: generalizes Rule 3 for an arbitrary
   finite product of FPS, also the relvant instance of powers of a FPS\<close>
 
-definition "natpermute n k = {l :: nat list. length l = k \<and> listsum l = n}"
+definition "natpermute n k = {l :: nat list. length l = k \<and> sum_list l = n}"
 
 lemma natlist_trivial_1: "natpermute n 1 = {[n]}"
   apply (auto simp add: natpermute_def)
@@ -2117,14 +2117,14 @@ lemma natlist_trivial_1: "natpermute n 1 = {[n]}"
 
 lemma append_natpermute_less_eq:
   assumes "xs @ ys \<in> natpermute n k"
-  shows "listsum xs \<le> n"
-    and "listsum ys \<le> n"
+  shows "sum_list xs \<le> n"
+    and "sum_list ys \<le> n"
 proof -
-  from assms have "listsum (xs @ ys) = n"
+  from assms have "sum_list (xs @ ys) = n"
     by (simp add: natpermute_def)
-  then have "listsum xs + listsum ys = n"
+  then have "sum_list xs + sum_list ys = n"
     by simp
-  then show "listsum xs \<le> n" and "listsum ys \<le> n"
+  then show "sum_list xs \<le> n" and "sum_list ys \<le> n"
     by simp_all
 qed
 
@@ -2142,9 +2142,9 @@ proof
       and xs: "xs \<in> natpermute m h"
       and ys: "ys \<in> natpermute (n - m) (k - h)"
       and leq: "l = xs@ys" by blast
-    from xs have xs': "listsum xs = m"
+    from xs have xs': "sum_list xs = m"
       by (simp add: natpermute_def)
-    from ys have ys': "listsum ys = n - m"
+    from ys have ys': "sum_list ys = n - m"
       by (simp add: natpermute_def)
     show "l \<in> ?L" using leq xs ys h
       apply (clarsimp simp add: natpermute_def)
@@ -2160,12 +2160,12 @@ proof
     assume l: "l \<in> natpermute n k"
     let ?xs = "take h l"
     let ?ys = "drop h l"
-    let ?m = "listsum ?xs"
-    from l have ls: "listsum (?xs @ ?ys) = n"
+    let ?m = "sum_list ?xs"
+    from l have ls: "sum_list (?xs @ ?ys) = n"
       by (simp add: natpermute_def)
     have xs: "?xs \<in> natpermute ?m h" using l assms
       by (simp add: natpermute_def)
-    have l_take_drop: "listsum l = listsum (take h l @ drop h l)"
+    have l_take_drop: "sum_list l = sum_list (take h l @ drop h l)"
       by simp
     then have ys: "?ys \<in> natpermute (n - ?m) (k - h)"
       using l assms ls by (auto simp add: natpermute_def simp del: append_take_drop_id)
@@ -2230,7 +2230,7 @@ proof
       using i by auto
     from H have "n = setsum (nth xs) {0..k}"
       apply (simp add: natpermute_def)
-      apply (auto simp add: atLeastLessThanSuc_atLeastAtMost listsum_setsum_nth)
+      apply (auto simp add: atLeastLessThanSuc_atLeastAtMost sum_list_setsum_nth)
       done
     also have "\<dots> = n + setsum (nth xs) ({0..k} - {i})"
       unfolding setsum.union_disjoint[OF f d, unfolded eqs] using i by simp
@@ -2265,8 +2265,8 @@ proof
       done
     have xsl: "length xs = k + 1"
       by (simp only: xs length_replicate length_list_update)
-    have "listsum xs = setsum (nth xs) {0..<k+1}"
-      unfolding listsum_setsum_nth xsl ..
+    have "sum_list xs = setsum (nth xs) {0..<k+1}"
+      unfolding sum_list_setsum_nth xsl ..
     also have "\<dots> = setsum (\<lambda>j. if j = i then n else 0) {0..< k+1}"
       by (rule setsum.cong) (simp_all add: xs del: replicate.simps)
     also have "\<dots> = n" using i by (simp add: setsum.delta)
@@ -2421,9 +2421,9 @@ proof -
       by (auto simp: set_conv_nth A_def natpermute_def less_Suc_eq_le)
     then guess j by (elim exE conjE) note j = this
     
-    from v have "k = listsum v" by (simp add: A_def natpermute_def)
+    from v have "k = sum_list v" by (simp add: A_def natpermute_def)
     also have "\<dots> = (\<Sum>i=0..m. v ! i)"
-      by (simp add: listsum_setsum_nth atLeastLessThanSuc_atLeastAtMost del: setsum_op_ivl_Suc)
+      by (simp add: sum_list_setsum_nth atLeastLessThanSuc_atLeastAtMost del: setsum_op_ivl_Suc)
     also from j have "{0..m} = insert j ({0..m}-{j})" by auto
     also from j have "(\<Sum>i\<in>\<dots>. v ! i) = k + (\<Sum>i\<in>{0..m}-{j}. v ! i)"
       by (subst setsum.insert) simp_all
@@ -2469,7 +2469,7 @@ proof (rule fps_ext)
                 g $ k * (of_nat (Suc m) * (f $ 0) ^ m) + ?h g" using assms 
         by (simp add: mult_ac del: power_Suc of_nat_Suc)
       also have "v ! i < k" if "v \<in> {v\<in>natpermute k (m+1). k \<notin> set v}" "i \<le> m" for v i
-        using that elem_le_listsum_nat[of i v] unfolding natpermute_def
+        using that elem_le_sum_list_nat[of i v] unfolding natpermute_def
         by (auto simp: set_conv_nth dest!: spec[of _ i])
       hence "?h f = ?h g"
         by (intro setsum.cong refl setprod.cong less lessI) (auto simp: natpermute_def)
@@ -2599,10 +2599,10 @@ proof
         by auto
       have eqs: "{0..<Suc k} = {0 ..< i} \<union> ({i} \<union> {i+1 ..< Suc k})"
         using i by auto
-      from xs have "Suc n = listsum xs"
+      from xs have "Suc n = sum_list xs"
         by (simp add: natpermute_def)
       also have "\<dots> = setsum (nth xs) {0..<Suc k}" using xs
-        by (simp add: natpermute_def listsum_setsum_nth)
+        by (simp add: natpermute_def sum_list_setsum_nth)
       also have "\<dots> = xs!i + setsum (nth xs) {0..<i} + setsum (nth xs) {i+1..<Suc k}"
         unfolding eqs  setsum.union_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
         unfolding setsum.union_disjoint[OF fths(2) fths(3) d(2)]
@@ -2853,10 +2853,10 @@ proof
               by auto
             have eqs: "{0..<Suc k} = {0 ..< i} \<union> ({i} \<union> {i+1 ..< Suc k})"
               using i by auto
-            from xs have "n = listsum xs"
+            from xs have "n = sum_list xs"
               by (simp add: natpermute_def)
             also have "\<dots> = setsum (nth xs) {0..<Suc k}"
-              using xs by (simp add: natpermute_def listsum_setsum_nth)
+              using xs by (simp add: natpermute_def sum_list_setsum_nth)
             also have "\<dots> = xs!i + setsum (nth xs) {0..<i} + setsum (nth xs) {i+1..<Suc k}"
               unfolding eqs  setsum.union_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
               unfolding setsum.union_disjoint[OF fths(2) fths(3) d(2)]

@@ -118,14 +118,14 @@ lemma m_o_h: "finite X \<Longrightarrow> m_o opt X \<le> (h*card X + 1)"
 by(auto simp add: m_o_def m_s_h le_SucI split: option.split dest:m_s_h)
 
 definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^sub>c") where
-"m_c C = listsum (map (\<lambda>a. m_o a (vars C)) (annos C))"
+"m_c C = sum_list (map (\<lambda>a. m_o a (vars C)) (annos C))"
 
 text{* Upper complexity bound: *}
 lemma m_c_h: "m_c C \<le> size(annos C) * (h * card(vars C) + 1)"
 proof-
   let ?X = "vars C" let ?n = "card ?X" let ?a = "size(annos C)"
   have "m_c C = (\<Sum>i<?a. m_o (annos C ! i) ?X)"
-    by(simp add: m_c_def listsum_setsum_nth atLeast0LessThan)
+    by(simp add: m_c_def sum_list_setsum_nth atLeast0LessThan)
   also have "\<dots> \<le> (\<Sum>i<?a. h * ?n + 1)"
     apply(rule setsum_mono) using m_o_h[OF finite_Cvars] by simp
   also have "\<dots> = ?a * (h * ?n + 1)" by simp
@@ -239,7 +239,7 @@ proof(auto simp add: le_iff_le_annos size_annos_same[of C1 C2] vars_acom_def les
          < (\<Sum>i<size(annos C2). m_o (annos C1 ! i) ?X)"
     apply(rule setsum_strict_mono_ex1) using 1 2 by (auto)
   thus ?thesis
-    by(simp add: m_c_def vars_acom_def strip_eq listsum_setsum_nth atLeast0LessThan size_annos_same[OF strip_eq])
+    by(simp add: m_c_def vars_acom_def strip_eq sum_list_setsum_nth atLeast0LessThan size_annos_same[OF strip_eq])
 qed
 
 end
