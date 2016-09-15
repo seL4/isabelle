@@ -11,8 +11,8 @@ unbundle permutation_syntax
 
 text \<open>On cycles\<close>
 
-lemma cycle_listprod:
-  "\<langle>a # as\<rangle> = listprod (map (\<lambda>b. \<langle>a\<leftrightarrow>b\<rangle>) (rev as))"
+lemma cycle_prod_list:
+  "\<langle>a # as\<rangle> = prod_list (map (\<lambda>b. \<langle>a\<leftrightarrow>b\<rangle>) (rev as))"
   by (induct as) simp_all
 
 lemma cycle_append [simp]:

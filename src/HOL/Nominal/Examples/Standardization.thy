@@ -213,8 +213,8 @@ lemma lem:
     prefer 2
     apply (erule allE, erule impE, rule refl, erule spec)
     apply simp
-    apply (simp only: foldl_conv_fold add.commute fold_plus_listsum_rev)
-    apply (fastforce simp add: listsum_map_remove1)
+    apply (simp only: foldl_conv_fold add.commute fold_plus_sum_list_rev)
+    apply (fastforce simp add: sum_list_map_remove1)
   apply clarify
   apply (subgoal_tac "\<exists>y::name. y \<sharp> (x, u, z)")
    prefer 2
@@ -235,8 +235,8 @@ lemma lem:
    prefer 2
    apply blast
   apply simp
-  apply (simp only: foldl_conv_fold add.commute fold_plus_listsum_rev)
-  apply (fastforce simp add: listsum_map_remove1)
+  apply (simp only: foldl_conv_fold add.commute fold_plus_sum_list_rev)
+  apply (fastforce simp add: sum_list_map_remove1)
   done
 
 theorem Apps_lam_induct:

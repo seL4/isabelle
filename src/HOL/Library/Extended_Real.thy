@@ -771,7 +771,7 @@ next
   then show ?thesis by simp
 qed
 
-lemma listsum_ereal [simp]: "listsum (map (\<lambda>x. ereal (f x)) xs) = ereal (listsum (map f xs))"
+lemma sum_list_ereal [simp]: "sum_list (map (\<lambda>x. ereal (f x)) xs) = ereal (sum_list (map f xs))"
   by (induction xs) simp_all
 
 lemma setsum_Pinfty:

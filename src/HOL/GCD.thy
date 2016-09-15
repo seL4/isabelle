@@ -865,7 +865,7 @@ lemma setprod_coprime [rule_format]: "(\<forall>i\<in>A. gcd (f i) a = 1) \<long
     apply (auto simp add: gcd_mult_cancel)
   done
 
-lemma listprod_coprime: "(\<And>x. x \<in> set xs \<Longrightarrow> coprime x y) \<Longrightarrow> coprime (listprod xs) y"
+lemma prod_list_coprime: "(\<And>x. x \<in> set xs \<Longrightarrow> coprime x y) \<Longrightarrow> coprime (prod_list xs) y"
   by (induct xs) (simp_all add: gcd_mult_cancel)
 
 lemma coprime_divisors:

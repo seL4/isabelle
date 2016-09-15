@@ -73,7 +73,7 @@ definition card' :: "'a set \<Rightarrow> nat" where
   "card' A \<equiv> if finite A then length (SOME xs. set xs = A \<and> distinct xs) else 0"
 
 definition setsum' :: "('a \<Rightarrow> 'b::comm_monoid_add) \<Rightarrow> 'a set \<Rightarrow> 'b" where
-  "setsum' f A \<equiv> if finite A then listsum (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
+  "setsum' f A \<equiv> if finite A then sum_list (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
 
 inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> bool" where
   "fold_graph' f z {} z" |

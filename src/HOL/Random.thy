@@ -79,7 +79,7 @@ primrec pick :: "(natural \<times> 'a) list \<Rightarrow> natural \<Rightarrow> 
   "pick (x # xs) i = (if i < fst x then snd x else pick xs (i - fst x))"
 
 lemma pick_member:
-  "i < listsum (map fst xs) \<Longrightarrow> pick xs i \<in> set (map snd xs)"
+  "i < sum_list (map fst xs) \<Longrightarrow> pick xs i \<in> set (map snd xs)"
   by (induct xs arbitrary: i) (simp_all add: less_natural_def)
 
 lemma pick_drop_zero:
@@ -95,17 +95,17 @@ next
 qed
 
 definition select_weight :: "(natural \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
-  "select_weight xs = range (listsum (map fst xs))
+  "select_weight xs = range (sum_list (map fst xs))
    \<circ>\<rightarrow> (\<lambda>k. Pair (pick xs k))"
 
 lemma select_weight_member:
-  assumes "0 < listsum (map fst xs)"
+  assumes "0 < sum_list (map fst xs)"
   shows "fst (select_weight xs s) \<in> set (map snd xs)"
 proof -
   from range assms
-    have "fst (range (listsum (map fst xs)) s) < listsum (map fst xs)" .
+    have "fst (range (sum_list (map fst xs)) s) < sum_list (map fst xs)" .
   with pick_member
-    have "pick xs (fst (range (listsum (map fst xs)) s)) \<in> set (map snd xs)" .
+    have "pick xs (fst (range (sum_list (map fst xs)) s)) \<in> set (map snd xs)" .
   then show ?thesis by (simp add: select_weight_def scomp_def split_def) 
 qed
 
@@ -116,7 +116,7 @@ lemma select_weight_cons_zero:
 lemma select_weight_drop_zero:
   "select_weight (filter (\<lambda>(k, _). k > 0) xs) = select_weight xs"
 proof -
-  have "listsum (map fst [(k, _)\<leftarrow>xs . 0 < k]) = listsum (map fst xs)"
+  have "sum_list (map fst [(k, _)\<leftarrow>xs . 0 < k]) = sum_list (map fst xs)"
     by (induct xs) (auto simp add: less_natural_def natural_eq_iff)
   then show ?thesis by (simp only: select_weight_def pick_drop_zero)
 qed
@@ -127,7 +127,7 @@ lemma select_weight_select:
 proof -
   have less: "\<And>s. fst (range (natural_of_nat (length xs)) s) < natural_of_nat (length xs)"
     using assms by (intro range) (simp add: less_natural_def)
-  moreover have "listsum (map fst (map (Pair 1) xs)) = natural_of_nat (length xs)"
+  moreover have "sum_list (map fst (map (Pair 1) xs)) = natural_of_nat (length xs)"
     by (induct xs) simp_all
   ultimately show ?thesis
     by (auto simp add: select_weight_def select_def scomp_def split_def

@@ -396,10 +396,10 @@ lemma pred_pmf_code [code]:
 
 
 lemma mapping_of_pmf_pmf_of_list:
-  assumes "\<And>x. x \<in> snd ` set xs \<Longrightarrow> x > 0" "listsum (map snd xs) = 1"
+  assumes "\<And>x. x \<in> snd ` set xs \<Longrightarrow> x > 0" "sum_list (map snd xs) = 1"
   shows   "mapping_of_pmf (pmf_of_list xs) = 
              Mapping.tabulate (remdups (map fst xs)) 
-               (\<lambda>x. listsum (map snd (filter (\<lambda>z. fst z = x) xs)))"
+               (\<lambda>x. sum_list (map snd (filter (\<lambda>z. fst z = x) xs)))"
 proof -
   from assms have wf: "pmf_of_list_wf xs" by (intro pmf_of_list_wfI) force
   with assms have "set_pmf (pmf_of_list xs) = fst ` set xs"
@@ -413,7 +413,7 @@ lemma mapping_of_pmf_pmf_of_list':
   defines "xs' \<equiv> filter (\<lambda>z. snd z \<noteq> 0) xs"
   shows   "mapping_of_pmf (pmf_of_list xs) = 
              Mapping.tabulate (remdups (map fst xs')) 
-               (\<lambda>x. listsum (map snd (filter (\<lambda>z. fst z = x) xs')))" (is "_ = ?rhs") 
+               (\<lambda>x. sum_list (map snd (filter (\<lambda>z. fst z = x) xs')))" (is "_ = ?rhs") 
 proof -
   have wf: "pmf_of_list_wf xs'" unfolding xs'_def by (rule pmf_of_list_remove_zeros) fact
   have pos: "\<forall>x\<in>snd`set xs'. x > 0" using assms(1) unfolding xs'_def
@@ -426,7 +426,7 @@ proof -
 qed
 
 lemma pmf_of_list_wf_code [code]:
-  "pmf_of_list_wf xs \<longleftrightarrow> list_all (\<lambda>z. snd z \<ge> 0) xs \<and> listsum (map snd xs) = 1"
+  "pmf_of_list_wf xs \<longleftrightarrow> list_all (\<lambda>z. snd z \<ge> 0) xs \<and> sum_list (map snd xs) = 1"
   by (auto simp add: pmf_of_list_wf_def list_all_def)
 
 lemma pmf_of_list_code [code abstract]:
@@ -434,7 +434,7 @@ lemma pmf_of_list_code [code abstract]:
      if pmf_of_list_wf xs then
        let xs' = filter (\<lambda>z. snd z \<noteq> 0) xs
        in  Mapping.tabulate (remdups (map fst xs')) 
-             (\<lambda>x. listsum (map snd (filter (\<lambda>z. fst z = x) xs')))
+             (\<lambda>x. sum_list (map snd (filter (\<lambda>z. fst z = x) xs')))
      else
        Code.abort (STR ''Invalid list for pmf_of_list'') (\<lambda>_. mapping_of_pmf (pmf_of_list xs)))"
   using mapping_of_pmf_pmf_of_list'[of xs] by (simp add: Let_def)

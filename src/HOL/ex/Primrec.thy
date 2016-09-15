@@ -224,16 +224,16 @@ by (simp add: PREC_def)
 
 text \<open>MAIN RESULT\<close>
 
-lemma SC_case: "SC l < ack 1 (listsum l)"
+lemma SC_case: "SC l < ack 1 (sum_list l)"
 apply (unfold SC_def)
 apply (induct l)
 apply (simp_all add: le_add1 le_imp_less_Suc)
 done
 
-lemma CONSTANT_case: "CONSTANT k l < ack k (listsum l)"
+lemma CONSTANT_case: "CONSTANT k l < ack k (sum_list l)"
 by simp
 
-lemma PROJ_case: "PROJ i l < ack 0 (listsum l)"
+lemma PROJ_case: "PROJ i l < ack 0 (sum_list l)"
 apply (simp add: PROJ_def)
 apply (induct l arbitrary:i)
  apply (auto simp add: drop_Cons split: nat.split)
@@ -243,8 +243,8 @@ done
 
 text \<open>@{term COMP} case\<close>
 
-lemma COMP_map_aux: "\<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack kf (listsum l))
-  ==> \<exists>k. \<forall>l. listsum (map (\<lambda>f. f l) fs) < ack k (listsum l)"
+lemma COMP_map_aux: "\<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack kf (sum_list l))
+  ==> \<exists>k. \<forall>l. sum_list (map (\<lambda>f. f l) fs) < ack k (sum_list l)"
 apply (induct fs)
  apply (rule_tac x = 0 in exI)
  apply simp
@@ -253,9 +253,9 @@ apply (blast intro: add_less_mono ack_add_bound less_trans)
 done
 
 lemma COMP_case:
-  "\<forall>l. g l < ack kg (listsum l) ==>
-  \<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack kf (listsum l))
-  ==> \<exists>k. \<forall>l. COMP g fs  l < ack k (listsum l)"
+  "\<forall>l. g l < ack kg (sum_list l) ==>
+  \<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack kf (sum_list l))
+  ==> \<exists>k. \<forall>l. COMP g fs  l < ack k (sum_list l)"
 apply (unfold COMP_def)
 apply (drule COMP_map_aux)
 apply (meson ack_less_mono2 ack_nest_bound less_trans)
@@ -265,9 +265,9 @@ done
 text \<open>@{term PREC} case\<close>
 
 lemma PREC_case_aux:
-  "\<forall>l. f l + listsum l < ack kf (listsum l) ==>
-    \<forall>l. g l + listsum l < ack kg (listsum l) ==>
-    PREC f g l + listsum l < ack (Suc (kf + kg)) (listsum l)"
+  "\<forall>l. f l + sum_list l < ack kf (sum_list l) ==>
+    \<forall>l. g l + sum_list l < ack kg (sum_list l) ==>
+    PREC f g l + sum_list l < ack (Suc (kf + kg)) (sum_list l)"
 apply (unfold PREC_def)
 apply (case_tac l)
  apply simp_all
@@ -290,12 +290,12 @@ apply (erule ack_less_mono2)
 done
 
 lemma PREC_case:
-  "\<forall>l. f l < ack kf (listsum l) ==>
-    \<forall>l. g l < ack kg (listsum l) ==>
-    \<exists>k. \<forall>l. PREC f g l < ack k (listsum l)"
+  "\<forall>l. f l < ack kf (sum_list l) ==>
+    \<forall>l. g l < ack kg (sum_list l) ==>
+    \<exists>k. \<forall>l. PREC f g l < ack k (sum_list l)"
 by (metis le_less_trans [OF le_add1 PREC_case_aux] ack_add_bound2)
 
-lemma ack_bounds_PRIMREC: "PRIMREC f ==> \<exists>k. \<forall>l. f l < ack k (listsum l)"
+lemma ack_bounds_PRIMREC: "PRIMREC f ==> \<exists>k. \<forall>l. f l < ack k (sum_list l)"
 apply (erule PRIMREC.induct)
     apply (blast intro: SC_case CONSTANT_case PROJ_case COMP_case PREC_case)+
 done
