@@ -59,6 +59,17 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     (Timing.zero /: timings)(_ + _)
   }
 
+  private def with_documents(options: Options): Options =
+  {
+    if (documents)
+      options
+        .bool.update("browser_info", true)
+        .string.update("document", "pdf")
+        .string.update("document_variants", "document:outline=/proof,/ML")
+    else
+      options
+  }
+
 
   final def hg_id(path: Path): String =
     Isabelle_System.hg("id -i", path.file).out
@@ -80,10 +91,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     System.getProperties().putAll(props)
 
     val options =
-      Options.init()
-        .bool.update("browser_info", true)
-        .string.update("document", "pdf")
-        .string.update("document_variants", "document:outline=/proof,/ML")
+      with_documents(Options.init())
         .int.update("parallel_proofs", 2)
         .int.update("threads", threads)
 
@@ -126,6 +134,8 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 
 
   /* profile */
+
+  def documents: Boolean = true
 
   def threads: Int
   def jobs: Int
