@@ -597,22 +597,41 @@ proof -
   finally show ?thesis .
 qed
 
+lemma prime_factorization_prod_mset:
+  assumes "0 \<notin># A"
+  shows "prime_factorization (prod_mset A) = \<Union>#(image_mset prime_factorization A)"
+  using assms by (induct A) (auto simp add: prime_factorization_mult)
+
+lemma prime_factors_setprod:
+  assumes "finite A" and "0 \<notin> f ` A"
+  shows "prime_factors (setprod f A) = UNION A (prime_factors \<circ> f)"
+  using assms by (simp add: prime_factors_def setprod_unfold_prod_mset prime_factorization_prod_mset)
+
+lemma prime_factors_fact:
+  "prime_factors (fact n) = {p \<in> {2..n}. prime p}" (is "?M = ?N")
+proof (rule set_eqI)
+  fix p
+  { fix m :: nat
+    assume "p \<in> prime_factors m"
+    then have "prime p" and "p dvd m" by auto
+    moreover assume "m > 0" 
+    ultimately have "2 \<le> p" and "p \<le> m"
+      by (auto intro: prime_ge_2_nat dest: dvd_imp_le)
+    moreover assume "m \<le> n"
+    ultimately have "2 \<le> p" and "p \<le> n"
+      by (auto intro: order_trans)
+  } note * = this
+  show "p \<in> ?M \<longleftrightarrow> p \<in> ?N"
+    by (auto simp add: fact_setprod prime_factors_setprod Suc_le_eq dest!: prime_prime_factors intro: *)
+qed
+
 lemma prime_dvd_fact_iff:
   assumes "prime p"
-  shows   "p dvd fact n \<longleftrightarrow> p \<le> n"
-proof (induction n)
-  case 0
-  with assms show ?case by auto
-next
-  case (Suc n)
-  have "p dvd fact (Suc n) \<longleftrightarrow> p dvd (Suc n) * fact n" by simp
-  also from assms have "\<dots> \<longleftrightarrow> p dvd Suc n \<or> p dvd fact n"
-    by (rule prime_dvd_mult_iff)
-  also note Suc.IH
-  also have "p dvd Suc n \<or> p \<le> n \<longleftrightarrow> p \<le> Suc n"
-    by (auto dest: dvd_imp_le simp: le_Suc_eq)
-  finally show ?case .
-qed
+  shows "p dvd fact n \<longleftrightarrow> p \<le> n"
+  using assms
+  by (auto simp add: prime_factorization_subset_iff_dvd [symmetric]
+    prime_factorization_prime prime_factors_def [symmetric]
+    prime_factors_fact prime_ge_2_nat)
 
 (* TODO Legacy names *)
 lemmas prime_imp_coprime_nat = prime_imp_coprime[where ?'a = nat]

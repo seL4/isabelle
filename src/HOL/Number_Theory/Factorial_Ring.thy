@@ -1299,6 +1299,12 @@ lemma prime_factorsI:
 lemma prime_factors_prime [intro]: "p \<in> prime_factors x \<Longrightarrow> prime p"
   by (auto simp: prime_factors_def dest: in_prime_factorization_imp_prime)
 
+lemma prime_prime_factors:
+  assumes "prime p"
+  shows "prime_factors p = {p}"
+  using assms by (simp add: prime_factors_def)
+    (drule prime_factorization_prime, simp)
+
 lemma prime_factors_dvd [dest]: "p \<in> prime_factors x \<Longrightarrow> p dvd x"
   by (auto simp: prime_factors_def dest: in_prime_factorization_imp_dvd)
 
