@@ -62,9 +62,7 @@ ARCHIVE_FULL="$ARCHIVE_DIR/$ARCHIVE_BASE"
 ## main
 
 #GNU tar (notably on Mac OS X)
-if [ -x /usr/bin/gnutar ]; then
-  function tar() { /usr/bin/gnutar "$@"; }
-fi
+type -p gnutar >/dev/null && function tar() { gnutar "$@"; }
 
 TMP="/var/tmp/isabelle-makedist$$"
 mkdir "$TMP" || fail "Cannot create directory: \"$TMP\""

@@ -47,6 +47,9 @@ ISABELLE_NAME="$(basename "$ARCHIVE" .tar.gz)"
 
 ## main
 
+#GNU tar (notably on Mac OS X)
+type -p gnutar >/dev/null && function tar() { gnutar "$@"; }
+
 TMP="/var/tmp/isabelle-makedist$$"
 mkdir "$TMP" || fail "Cannot create directory $TMP"
 
