@@ -14,7 +14,7 @@ session HOL (main) = Pure +
     "root.bib"
     "root.tex"
 
-session "HOL-Proofs" = Pure +
+session "HOL-Proofs" (timing) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
@@ -26,7 +26,7 @@ session "HOL-Proofs" = Pure +
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 
-session "HOL-Library" (main) in Library = HOL +
+session "HOL-Library" (main timing) in Library = HOL +
   description {*
     Classical Higher-order Logic -- batteries included.
   *}
@@ -119,7 +119,7 @@ session "HOL-Induct" in Induct = HOL +
     Com
   document_files "root.tex"
 
-session "HOL-IMP" in IMP = HOL +
+session "HOL-IMP" (timing) in IMP = HOL +
   options [document_variants = document]
   theories [document = false]
     "~~/src/HOL/Library/While_Combinator"
@@ -176,7 +176,7 @@ session "HOL-IMPP" in IMPP = HOL +
   options [document = false]
   theories EvenOdd
 
-session "HOL-Data_Structures" in Data_Structures = HOL +
+session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
   options [document_variants = document]
   theories [document = false]
     "Less_False"
@@ -199,7 +199,7 @@ session "HOL-Import" in Import = HOL +
   theories HOL_Light_Maps
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
-session "HOL-Number_Theory" in Number_Theory = HOL +
+session "HOL-Number_Theory" (timing) in Number_Theory = HOL +
   description {*
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
@@ -247,7 +247,7 @@ session "HOL-Hoare" in Hoare = HOL +
   theories Hoare
   document_files "root.bib" "root.tex"
 
-session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
+session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
   description {*
     Verification of shared-variable imperative programs a la Owicki-Gries.
     (verification conditions are generated automatically).
@@ -276,7 +276,7 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
   theories [condition = "ISABELLE_SMLNJ"]
     Code_Test_SMLNJ
 
-session "HOL-Metis_Examples" in Metis_Examples = HOL +
+session "HOL-Metis_Examples" (timing) in Metis_Examples = HOL +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -303,7 +303,7 @@ session "HOL-Nitpick_Examples" in Nitpick_Examples = HOL +
   options [document = false]
   theories [quick_and_dirty] Nitpick_Examples
 
-session "HOL-Algebra" (main) in Algebra = HOL +
+session "HOL-Algebra" (main timing) in Algebra = HOL +
   description {*
     Author: Clemens Ballarin, started 24 September 1999
 
@@ -327,7 +327,7 @@ session "HOL-Algebra" (main) in Algebra = HOL +
     UnivPoly             (* Polynomials *)
   document_files "root.bib" "root.tex"
 
-session "HOL-Auth" in Auth = HOL +
+session "HOL-Auth" (timing) in Auth = HOL +
   description {*
     A new approach to verifying authentication protocols.
   *}
@@ -339,7 +339,7 @@ session "HOL-Auth" in Auth = HOL +
     "Guard/Auth_Guard_Public"
   document_files "root.tex"
 
-session "HOL-UNITY" in UNITY = "HOL-Auth" +
+session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -401,7 +401,7 @@ session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
 
-session "HOL-Decision_Procs" in Decision_Procs = HOL +
+session "HOL-Decision_Procs" (timing) in Decision_Procs = HOL +
   description {*
     Various decision procedures, typically involving reflection.
   *}
@@ -415,7 +415,7 @@ session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
     Proof_Terms
     XML_Data
 
-session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
+session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
   description {*
     Examples for program extraction in Higher-Order Logic.
   *}
@@ -433,7 +433,7 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
     Euclid
   document_files "root.bib" "root.tex"
 
-session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
+session "HOL-Proofs-Lambda" (timing) in "Proofs/Lambda" = "HOL-Proofs" +
   description {*
     Lambda Calculus in de Bruijn's Notation.
 
@@ -467,7 +467,7 @@ session "HOL-Prolog" in Prolog = HOL +
   options [document = false]
   theories Test Type
 
-session "HOL-MicroJava" in MicroJava = HOL +
+session "HOL-MicroJava" (timing) in MicroJava = HOL +
   description {*
     Formalization of a fragment of Java, together with a corresponding virtual
     machine and a specification of its bytecode verifier and a lightweight
@@ -489,7 +489,7 @@ session "HOL-NanoJava" in NanoJava = HOL +
   theories Example
   document_files "root.bib" "root.tex"
 
-session "HOL-Bali" in Bali = HOL +
+session "HOL-Bali" (timing) in Bali = HOL +
   theories
     AxExample
     AxSound
@@ -671,7 +671,7 @@ session "HOL-Eisbach" in Eisbach = HOL +
     Examples
     Examples_FOL
 
-session "HOL-SET_Protocol" in SET_Protocol = HOL +
+session "HOL-SET_Protocol" (timing) in SET_Protocol = HOL +
   description {*
     Verification of the SET Protocol.
   *}
@@ -723,7 +723,7 @@ session "HOL-TPTP" in TPTP = HOL +
   theories
     ATP_Problem_Import
 
-session "HOL-Analysis" (main) in Analysis = HOL +
+session "HOL-Analysis" (main timing) in Analysis = HOL +
   theories
     Analysis
   document_files
@@ -733,7 +733,7 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories
     Approximations
 
-session "HOL-Probability" in "Probability" = "HOL-Analysis" +
+session "HOL-Probability" (timing) in "Probability" = "HOL-Analysis" +
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Permutation"
@@ -744,7 +744,7 @@ session "HOL-Probability" in "Probability" = "HOL-Analysis" +
     Probability
   document_files "root.tex"
 
-session "HOL-Probability-ex" in "Probability/ex" = "HOL-Probability" +
+session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
   theories
     "Dining_Cryptographers"
     "Koepf_Duermuth_Countermeasure"
@@ -754,7 +754,7 @@ session "HOL-Nominal" in Nominal = HOL +
   options [document = false]
   theories Nominal
 
-session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
+session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
   options [document = false]
   theories
     Class3
@@ -780,7 +780,7 @@ session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   theories [quick_and_dirty]
     VC_Condition
 
-session "HOL-Cardinals" in Cardinals = HOL +
+session "HOL-Cardinals" (timing) in Cardinals = HOL +
   description {*
     Ordinals and Cardinals, Full Theories.
   *}
@@ -793,7 +793,7 @@ session "HOL-Cardinals" in Cardinals = HOL +
     "root.tex"
     "root.bib"
 
-session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
+session "HOL-Datatype_Examples" (timing) in Datatype_Examples = HOL +
   description {*
     (Co)datatype Examples.
   *}
@@ -814,7 +814,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_Primcorec
     Misc_Primrec
 
-session "HOL-Corec_Examples" in Corec_Examples = HOL +
+session "HOL-Corec_Examples" (timing) in Corec_Examples = HOL +
   description {*
     Corecursion Examples.
   *}
@@ -835,7 +835,7 @@ session "HOL-Corec_Examples" in Corec_Examples = HOL +
     "Tests/TLList_Friends"
     "Tests/Type_Class"
 
-session "HOL-Word" (main) in Word = HOL +
+session "HOL-Word" (main timing) in Word = HOL +
   theories Word
   document_files "root.bib" "root.tex"
 
@@ -848,7 +848,7 @@ session "HOL-Statespace" in Statespace = HOL +
     StateSpaceEx
   document_files "root.tex"
 
-session "HOL-Nonstandard_Analysis" in Nonstandard_Analysis = HOL +
+session "HOL-Nonstandard_Analysis" (timing) in Nonstandard_Analysis = HOL +
   description {*
     Nonstandard analysis.
   *}
@@ -856,7 +856,7 @@ session "HOL-Nonstandard_Analysis" in Nonstandard_Analysis = HOL +
     Nonstandard_Analysis
   document_files "root.tex"
 
-session "HOL-Nonstandard_Analysis-Examples" in "Nonstandard_Analysis/Examples" = "HOL-Nonstandard_Analysis" +
+session "HOL-Nonstandard_Analysis-Examples" (timing) in "Nonstandard_Analysis/Examples" = "HOL-Nonstandard_Analysis" +
   options [document = false]
   theories NSPrimes
 
@@ -868,7 +868,7 @@ session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
   options [document = false, timeout = 60]
   theories Ex
 
-session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
+session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
   options [document = false, quick_and_dirty]
   theories
     Boogie
@@ -977,7 +977,7 @@ session "HOL-Mutabelle" in Mutabelle = HOL +
   options [document = false]
   theories MutabelleExtra
 
-session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
+session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = HOL +
   options [document = false]
   theories
     Quickcheck_Examples
@@ -989,7 +989,7 @@ session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
     Hotel_Example
     Quickcheck_Narrowing_Examples
 
-session "HOL-Quotient_Examples" in Quotient_Examples = HOL +
+session "HOL-Quotient_Examples" (timing) in Quotient_Examples = HOL +
   description {*
     Author:     Cezary Kaliszyk and Christian Urban
   *}
@@ -1007,7 +1007,7 @@ session "HOL-Quotient_Examples" in Quotient_Examples = HOL +
     Int_Pow
     Lifting_Code_Dt_Test
 
-session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
+session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples = HOL +
   options [document = false]
   theories
     Examples
@@ -1029,7 +1029,7 @@ session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
   theories [condition = ISABELLE_SWIPL, quick_and_dirty]
     Reg_Exp_Example
 
-session HOLCF (main) in HOLCF = HOL +
+session HOLCF (main timing) in HOLCF = HOL +
   description {*
     Author:     Franz Regensburger
     Author:     Brian Huffman
@@ -1105,7 +1105,7 @@ session "HOLCF-FOCUS" in "HOLCF/FOCUS" = HOLCF +
     FOCUS
     Buffer_adm
 
-session IOA in "HOLCF/IOA" = HOLCF +
+session IOA (timing) in "HOLCF/IOA" = HOLCF +
   description {*
     Author:     Olaf Mueller
     Copyright   1997 TU München
