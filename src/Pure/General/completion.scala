@@ -264,8 +264,7 @@ object Completion
     private def reverse_escape: Parser[String] = """[a-zA-Z0-9_']+\\""".r
 
     private val word_regex = "[a-zA-Z0-9_'.]+".r
-    private def word: Parser[String] = word_regex
-    private def word3: Parser[String] = "[a-zA-Z0-9_'.]{3,}".r
+    private def word2: Parser[String] = "[a-zA-Z0-9_'.]{2,}".r
     private def underscores: Parser[String] = "_*".r
 
     def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
@@ -280,13 +279,12 @@ object Completion
       }
     }
 
-    def read_word(explicit: Boolean, in: CharSequence): Option[(String, String)] =
+    def read_word(in: CharSequence): Option[(String, String)] =
     {
-      val parse_word = if (explicit) word else word3
       val reverse_in = new Library.Reverse(in)
       val parser =
         (reverse_symbol | reverse_symb | reverse_escape) ^^ (x => (x.reverse, "")) |
-        underscores ~ parse_word ~ opt("?") ^^
+        underscores ~ word2 ~ opt("?") ^^
         { case x ~ y ~ z => (z.getOrElse("") + y.reverse, x) }
       parse(parser, reverse_in) match {
         case Success(result, _) => Some(result)
@@ -448,7 +446,7 @@ final class Completion private(
         val result =
           Completion.Word_Parsers.read_symbol(text.subSequence(0, caret)) match {
             case Some(symbol) => Some((symbol, ""))
-            case None => Completion.Word_Parsers.read_word(explicit, text.subSequence(0, caret))
+            case None => Completion.Word_Parsers.read_word(text.subSequence(0, caret))
           }
         result.map(
           {

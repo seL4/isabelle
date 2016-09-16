@@ -1,6 +1,6 @@
 chapter ZF
 
-session ZF (main ZF) = Pure +
+session ZF (main timing ZF) = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -198,7 +198,7 @@ session "ZF-Resid" (ZF) in Resid = ZF +
   options [document = false]
   theories Confluence
 
-session "ZF-UNITY" (ZF) in UNITY = ZF +
+session "ZF-UNITY" (timing ZF) in UNITY = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
