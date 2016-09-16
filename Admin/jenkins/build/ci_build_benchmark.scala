@@ -3,7 +3,7 @@ object profile extends isabelle.CI_Profile
 
   import isabelle._
 
-  def threads = 8
+  def threads = 6
   def jobs = 1
   def include = Nil
   def select = List(Path.explode("$ISABELLE_HOME/src/Benchmarks"))
