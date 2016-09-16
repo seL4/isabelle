@@ -458,18 +458,17 @@ subsection \<open>Multiplicity and primality for natural numbers and integers\<c
 
 lemma prime_factors_gt_0_nat:
   "p \<in> prime_factors x \<Longrightarrow> p > (0::nat)"
-  by (simp add: prime_factors_prime prime_gt_0_nat)
+  by (simp add: in_prime_factors_imp_prime prime_gt_0_nat)
 
 lemma prime_factors_gt_0_int:
   "p \<in> prime_factors x \<Longrightarrow> p > (0::int)"
-  by (simp add: prime_factors_prime prime_gt_0_int)
+  by (simp add: in_prime_factors_imp_prime prime_gt_0_int)
 
-lemma prime_factors_ge_0_int [elim]:
+lemma prime_factors_ge_0_int [elim]: (* FIXME !? *)
   fixes n :: int
   shows "p \<in> prime_factors n \<Longrightarrow> p \<ge> 0"
-  unfolding prime_factors_def 
-  by (auto split: if_splits simp: prime_def dest!: in_prime_factorization_imp_prime)
-
+  by (drule prime_factors_gt_0_int) simp
+  
 lemma prod_mset_prime_factorization_int:
   fixes n :: int
   assumes "n > 0"
@@ -605,7 +604,7 @@ lemma prime_factorization_prod_mset:
 lemma prime_factors_setprod:
   assumes "finite A" and "0 \<notin> f ` A"
   shows "prime_factors (setprod f A) = UNION A (prime_factors \<circ> f)"
-  using assms by (simp add: prime_factors_def setprod_unfold_prod_mset prime_factorization_prod_mset)
+  using assms by (simp add: setprod_unfold_prod_mset prime_factorization_prod_mset)
 
 lemma prime_factors_fact:
   "prime_factors (fact n) = {p \<in> {2..n}. prime p}" (is "?M = ?N")
@@ -630,8 +629,7 @@ lemma prime_dvd_fact_iff:
   shows "p dvd fact n \<longleftrightarrow> p \<le> n"
   using assms
   by (auto simp add: prime_factorization_subset_iff_dvd [symmetric]
-    prime_factorization_prime prime_factors_def [symmetric]
-    prime_factors_fact prime_ge_2_nat)
+    prime_factorization_prime prime_factors_fact prime_ge_2_nat)
 
 (* TODO Legacy names *)
 lemmas prime_imp_coprime_nat = prime_imp_coprime[where ?'a = nat]

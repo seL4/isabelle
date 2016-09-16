@@ -658,8 +658,8 @@ proof -
   also have "\<dots> = prod_mset (mset xs)" by (simp add: xs)
   also have "\<dots> = foldr op * xs 1" by (induction xs) simp_all
   finally have "foldr op * xs 1 = n" ..
-  moreover have "\<forall>p\<in>#mset xs. prime p"
-    by (subst xs) (auto dest: in_prime_factorization_imp_prime)
+  moreover from xs have "\<forall>p\<in>#mset xs. prime p"
+    by auto
   ultimately have "primefact xs n" by (auto simp: primefact_def)
   thus ?thesis ..
 qed

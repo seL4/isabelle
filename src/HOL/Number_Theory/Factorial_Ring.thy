@@ -1,4 +1,3 @@
-
 (*  Title:      HOL/Number_Theory/Factorial_Ring.thy
     Author:     Florian Haftmann, TU Muenchen
 *)
@@ -982,6 +981,9 @@ proof clarify
   qed simp_all
 qed
 
+abbreviation prime_factors :: "'a \<Rightarrow> 'a set" where
+  "prime_factors a \<equiv> set_mset (prime_factorization a)"
+
 lemma count_prime_factorization_nonprime:
   "\<not>prime p \<Longrightarrow> count (prime_factorization x) p = 0"
   by transfer simp
@@ -1080,23 +1082,23 @@ lemma prod_mset_prime_factorization:
      (simp_all add: prime_factorization_unit prime_factorization_times_prime
                     is_unit_normalize normalize_mult)
 
-lemma in_prime_factorization_iff:
-  "p \<in># prime_factorization x \<longleftrightarrow> x \<noteq> 0 \<and> p dvd x \<and> prime p"
+lemma in_prime_factors_iff:
+  "p \<in> prime_factors x \<longleftrightarrow> x \<noteq> 0 \<and> p dvd x \<and> prime p"
 proof -
-  have "p \<in># prime_factorization x \<longleftrightarrow> count (prime_factorization x) p > 0" by simp
+  have "p \<in> prime_factors x \<longleftrightarrow> count (prime_factorization x) p > 0" by simp
   also have "\<dots> \<longleftrightarrow> x \<noteq> 0 \<and> p dvd x \<and> prime p"
    by (subst count_prime_factorization, cases "x = 0")
       (auto simp: multiplicity_eq_zero_iff multiplicity_gt_zero_iff)
   finally show ?thesis .
 qed
 
-lemma in_prime_factorization_imp_prime:
-  "p \<in># prime_factorization x \<Longrightarrow> prime p"
-  by (simp add: in_prime_factorization_iff)
+lemma in_prime_factors_imp_prime [intro]:
+  "p \<in> prime_factors x \<Longrightarrow> prime p"
+  by (simp add: in_prime_factors_iff)
 
-lemma in_prime_factorization_imp_dvd:
-  "p \<in># prime_factorization x \<Longrightarrow> p dvd x"
-  by (simp add: in_prime_factorization_iff)
+lemma in_prime_factors_imp_dvd [dest]:
+  "p \<in> prime_factors x \<Longrightarrow> p dvd x"
+  by (simp add: in_prime_factors_iff)
 
 lemma multiplicity_self:
   assumes "p \<noteq> 0" "\<not>is_unit p"
@@ -1197,10 +1199,10 @@ proof -
     by (simp add: prod_mset_prime_factorization assms normalize_mult)
   also have "prime_factorization (prod_mset (prime_factorization (x * y))) =
                prime_factorization (x * y)"
-    by (rule prime_factorization_prod_mset_primes) (simp_all add: in_prime_factorization_imp_prime)
+    by (rule prime_factorization_prod_mset_primes) (simp_all add: in_prime_factors_imp_prime)
   also have "prime_factorization (prod_mset (prime_factorization x + prime_factorization y)) =
                prime_factorization x + prime_factorization y"
-    by (rule prime_factorization_prod_mset_primes) (auto simp: in_prime_factorization_imp_prime)
+    by (rule prime_factorization_prod_mset_primes) (auto simp: in_prime_factors_imp_prime)
   finally show ?thesis .
 qed
 
@@ -1219,8 +1221,7 @@ proof -
   have "x dvd y \<longleftrightarrow> prod_mset (prime_factorization x) dvd prod_mset (prime_factorization y)"
     by (simp add: prod_mset_prime_factorization)
   also have "\<dots> \<longleftrightarrow> prime_factorization x \<subseteq># prime_factorization y"
-    by (auto intro!: prod_mset_primes_dvd_imp_subset prod_mset_subset_imp_dvd
-                     in_prime_factorization_imp_prime)
+    by (auto intro!: prod_mset_primes_dvd_imp_subset prod_mset_subset_imp_dvd)
   finally show ?thesis ..
 qed
 
@@ -1239,8 +1240,8 @@ proof (cases "a = 0")
   with assms show ?thesis by simp
 qed simp_all
 
-lemma zero_not_in_prime_factorization [simp]: "0 \<notin># prime_factorization x"
-  by (auto dest: in_prime_factorization_imp_prime)
+lemma zero_not_in_prime_factors [simp]: "0 \<notin> prime_factors x"
+  by (auto dest: in_prime_factors_imp_prime)
 
 
 lemma prime_elem_multiplicity_mult_distrib:
@@ -1283,40 +1284,18 @@ proof -
   finally show ?thesis .
 qed
 
-
-
-definition prime_factors where
-  "prime_factors x = set_mset (prime_factorization x)"
-
-lemma set_mset_prime_factorization:
-  "set_mset (prime_factorization x) = prime_factors x"
-  by (simp add: prime_factors_def)
-
 lemma prime_factorsI:
   "x \<noteq> 0 \<Longrightarrow> prime p \<Longrightarrow> p dvd x \<Longrightarrow> p \<in> prime_factors x"
-  by (auto simp: prime_factors_def in_prime_factorization_iff)
-
-lemma prime_factors_prime [intro]: "p \<in> prime_factors x \<Longrightarrow> prime p"
-  by (auto simp: prime_factors_def dest: in_prime_factorization_imp_prime)
+  by (auto simp: in_prime_factors_iff)
 
 lemma prime_prime_factors:
-  assumes "prime p"
-  shows "prime_factors p = {p}"
-  using assms by (simp add: prime_factors_def)
-    (drule prime_factorization_prime, simp)
-
-lemma prime_factors_dvd [dest]: "p \<in> prime_factors x \<Longrightarrow> p dvd x"
-  by (auto simp: prime_factors_def dest: in_prime_factorization_imp_dvd)
-
-lemma prime_factors_finite [iff]:
-  "finite (prime_factors n)"
-  unfolding prime_factors_def by simp
+  "prime p \<Longrightarrow> prime_factors p = {p}"
+  by (drule prime_factorization_prime) simp
 
 lemma prime_factors_altdef_multiplicity:
   "prime_factors n = {p. prime p \<and> multiplicity p n > 0}"
   by (cases "n = 0")
-     (auto simp: prime_factors_def prime_multiplicity_gt_zero_iff 
-        prime_imp_prime_elem in_prime_factorization_iff)
+     (auto simp: prime_multiplicity_gt_zero_iff in_prime_factors_iff)
 
 lemma setprod_prime_factors:
   assumes "x \<noteq> 0"
@@ -1325,10 +1304,10 @@ proof -
   have "normalize x = prod_mset (prime_factorization x)"
     by (simp add: prod_mset_prime_factorization assms)
   also have "\<dots> = (\<Prod>p \<in> prime_factors x. p ^ count (prime_factorization x) p)"
-    by (subst prod_mset_multiplicity) (simp_all add: prime_factors_def)
+    by (subst prod_mset_multiplicity) simp_all
   also have "\<dots> = (\<Prod>p \<in> prime_factors x. p ^ multiplicity p x)"
     by (intro setprod.cong) 
-      (simp_all add: assms count_prime_factorization_prime prime_factors_prime)
+      (simp_all add: assms count_prime_factorization_prime in_prime_factors_imp_prime)
   finally show ?thesis ..
 qed
 
@@ -1361,8 +1340,8 @@ proof
   also from S(1) have "prime_factorization (prod_mset A) = A"
     by (intro prime_factorization_prod_mset_primes) (auto simp: set_mset_A)
   also have "prime_factorization (prod_mset (prime_factorization n)) = prime_factorization n"
-    by (intro prime_factorization_prod_mset_primes) (auto dest: in_prime_factorization_imp_prime)
-  finally show "S = prime_factors n" by (simp add: prime_factors_def set_mset_A [symmetric])
+    by (intro prime_factorization_prod_mset_primes) auto
+  finally show "S = prime_factors n" by (simp add: set_mset_A [symmetric])
   
   show "(\<forall>p. prime p \<longrightarrow> f p = multiplicity p n)"
   proof safe
@@ -1389,7 +1368,7 @@ lemma multiplicity_prime_power [simp]: "prime_elem p \<Longrightarrow> multiplic
 
 lemma prime_factors_product: 
   "x \<noteq> 0 \<Longrightarrow> y \<noteq> 0 \<Longrightarrow> prime_factors (x * y) = prime_factors x \<union> prime_factors y"
-  by (simp add: prime_factors_def prime_factorization_mult)
+  by (simp add: prime_factorization_mult)
 
 lemma multiplicity_distinct_prime_power:
   "prime p \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> multiplicity p (q ^ n) = 0"
@@ -1406,7 +1385,6 @@ qed (insert assms, auto simp: multiplicity_unit_left)
 
 lemma dvd_prime_factors [intro]:
   "y \<noteq> 0 \<Longrightarrow> x dvd y \<Longrightarrow> prime_factors x \<subseteq> prime_factors y"
-  unfolding prime_factors_def
   by (intro set_mset_mono, subst prime_factorization_subset_iff_dvd) auto
 
 (* RENAMED multiplicity_dvd *)
@@ -1485,7 +1463,7 @@ proof -
           prime_factorization (prod_mset (prime_factorization a #\<inter> prime_factorization b))"
     by (simp add: gcd_factorial_def)
   also have "\<dots> = prime_factorization a #\<inter> prime_factorization b"
-    by (subst prime_factorization_prod_mset_primes) (auto simp add: in_prime_factorization_imp_prime)
+    by (subst prime_factorization_prod_mset_primes) auto
   finally show ?thesis .
 qed
 
@@ -1497,7 +1475,7 @@ proof -
           prime_factorization (prod_mset (prime_factorization a #\<union> prime_factorization b))"
     by (simp add: lcm_factorial_def)
   also have "\<dots> = prime_factorization a #\<union> prime_factorization b"
-    by (subst prime_factorization_prod_mset_primes) (auto simp add: in_prime_factorization_imp_prime)
+    by (subst prime_factorization_prod_mset_primes) auto
   finally show ?thesis .
 qed
 
@@ -1508,9 +1486,9 @@ proof -
   from assms obtain x where x: "x \<in> A - {0}" by auto
   hence "Inf (prime_factorization ` (A - {0})) \<subseteq># prime_factorization x"
     by (intro subset_mset.cInf_lower) simp_all
-  hence "\<forall>y. y \<in># Inf (prime_factorization ` (A - {0})) \<longrightarrow> y \<in># prime_factorization x"
+  hence "\<forall>y. y \<in># Inf (prime_factorization ` (A - {0})) \<longrightarrow> y \<in> prime_factors x"
     by (auto dest: mset_subset_eqD)
-  with in_prime_factorization_imp_prime[of _ x]
+  with in_prime_factors_imp_prime[of _ x]
     have "\<forall>p. p \<in># Inf (prime_factorization ` (A - {0})) \<longrightarrow> prime p" by blast
   with assms show ?thesis
     by (simp add: Gcd_factorial_def prime_factorization_prod_mset_primes)
@@ -1527,7 +1505,7 @@ proof (cases "A = {}")
 next
   case False
   have "\<forall>y. y \<in># Sup (prime_factorization ` A) \<longrightarrow> prime y"
-    by (auto simp: in_Sup_multiset_iff assms in_prime_factorization_imp_prime)
+    by (auto simp: in_Sup_multiset_iff assms)
   with assms False show ?thesis
     by (simp add: Lcm_factorial_def prime_factorization_prod_mset_primes)
 qed
@@ -1551,7 +1529,7 @@ lemma normalize_gcd_factorial: "normalize (gcd_factorial a b) = gcd_factorial a 
 proof -
   have "normalize (prod_mset (prime_factorization a #\<inter> prime_factorization b)) =
           prod_mset (prime_factorization a #\<inter> prime_factorization b)"
-    by (intro normalize_prod_mset_primes) (auto simp: in_prime_factorization_imp_prime)
+    by (intro normalize_prod_mset_primes) auto
   thus ?thesis by (simp add: gcd_factorial_def)
 qed
 
@@ -1564,8 +1542,7 @@ proof (cases "a = 0 \<or> b = 0")
     by (simp_all add: prime_factorization_subset_iff_dvd)
   hence "prime_factorization c \<subseteq>#
            prime_factorization (prod_mset (prime_factorization a #\<inter> prime_factorization b))"
-    using False by (subst prime_factorization_prod_mset_primes)
-                   (auto simp: in_prime_factorization_imp_prime)
+    using False by (subst prime_factorization_prod_mset_primes) auto
   with False show ?thesis
     by (auto simp: gcd_factorial_def prime_factorization_subset_iff_dvd [symmetric])
 qed (auto simp: gcd_factorial_def that)
@@ -1594,7 +1571,7 @@ proof (cases "A \<subseteq> {0}")
   hence "Inf (prime_factorization ` (A - {0})) \<subseteq># prime_factorization x"
     by (intro subset_mset.cInf_lower) auto
   hence "prime p" if "p \<in># Inf (prime_factorization ` (A - {0}))" for p
-    using that by (auto dest: mset_subset_eqD intro: in_prime_factorization_imp_prime)
+    using that by (auto dest: mset_subset_eqD)
   with False show ?thesis
     by (auto simp add: Gcd_factorial_def normalize_prod_mset_primes)
 qed (simp_all add: Gcd_factorial_def)
@@ -1643,7 +1620,7 @@ proof (cases "subset_mset.bdd_above (prime_factorization ` A)")
   hence "normalize (prod_mset (Sup (prime_factorization ` A))) =
            prod_mset (Sup (prime_factorization ` A))"
     by (intro normalize_prod_mset_primes)
-       (auto simp: in_Sup_multiset_iff in_prime_factorization_imp_prime)
+       (auto simp: in_Sup_multiset_iff)
   with True show ?thesis by (simp add: Lcm_factorial_def)
 qed (auto simp: Lcm_factorial_def)
 
@@ -1812,13 +1789,13 @@ lemma
 proof -
   have "gcd x y = gcd_factorial x y" by (rule gcd_eq_gcd_factorial)
   also have "\<dots> = ?rhs1"
-    by (auto simp: gcd_factorial_def assms prod_mset_multiplicity set_mset_prime_factorization
-          count_prime_factorization_prime dest: prime_factors_prime intro!: setprod.cong)
+    by (auto simp: gcd_factorial_def assms prod_mset_multiplicity
+          count_prime_factorization_prime dest: in_prime_factors_imp_prime intro!: setprod.cong)
   finally show "gcd x y = ?rhs1" .
   have "lcm x y = lcm_factorial x y" by (rule lcm_eq_lcm_factorial)
   also have "\<dots> = ?rhs2"
-    by (auto simp: lcm_factorial_def assms prod_mset_multiplicity set_mset_prime_factorization
-          count_prime_factorization_prime dest: prime_factors_prime intro!: setprod.cong)
+    by (auto simp: lcm_factorial_def assms prod_mset_multiplicity
+          count_prime_factorization_prime dest: in_prime_factors_imp_prime intro!: setprod.cong)
   finally show "lcm x y = ?rhs2" .
 qed
 
@@ -1880,4 +1857,3 @@ subclass idom_divide ..
 end
 
 end
-

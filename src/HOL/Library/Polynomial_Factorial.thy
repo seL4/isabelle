@@ -794,7 +794,7 @@ qed
 lemma fract_content_fract_poly [simp]: "fract_content (fract_poly p) = to_fract (content p)"
 proof -
   have "Lcm_coeff_denoms (fract_poly p) = 1"
-    by (auto simp: Lcm_1_iff set_coeffs_map_poly)
+    by (auto simp: set_coeffs_map_poly)
   hence "fract_content (fract_poly p) = 
            to_fract (content (map_poly (fst \<circ> quot_of_fract \<circ> to_fract) p))"
     by (simp add: fract_content_def to_fract_def fract_collapse map_poly_map_poly del: Lcm_1_iff)
@@ -1063,7 +1063,7 @@ proof -
   have A: "class.comm_semiring_1 op * 1 op + (0 :: 'a poly)" ..
   have B: "class.normalization_semidom op div op + op - (0 :: 'a poly) op * 1 
              normalize_field_poly unit_factor_field_poly" ..
-  from field_poly.in_prime_factorization_imp_prime[of p x] assms
+  from field_poly.in_prime_factors_imp_prime [of p x] assms
     show ?thesis unfolding prime_elem_def dvd_field_poly
       comm_semiring_1.prime_elem_def[OF A] normalization_semidom.prime_def[OF B] by blast
 qed
@@ -1314,7 +1314,7 @@ proof -
   moreover from assms have "prod_mset B = [:content p:]"
     by (simp add: B_def prod_mset_const_poly prod_mset_prime_factorization)
   moreover have "\<forall>p. p \<in># B \<longrightarrow> prime_elem p"
-    by (auto simp: B_def intro: lift_prime_elem_poly dest: in_prime_factorization_imp_prime)
+    by (auto simp: B_def intro!: lift_prime_elem_poly dest: in_prime_factors_imp_prime)
   ultimately show ?thesis by (intro exI[of _ "B + A"]) auto
 qed
 
