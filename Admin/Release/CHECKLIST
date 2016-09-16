@@ -69,11 +69,14 @@ Repository fork
 Packaging
 =========
 
+- Mac OS X: provide "gnutar" executable via shell PATH
+  (e.g. copy of /usr/bin/gnutar from Mountain Lion)
+
 - fully-automated packaging:
 
   hg up -r DISTNAME && Admin/Release/build -O -l -r DISTNAME /home/isabelle/dist
 
-  Mac OS X: requires gnutar, avoid Mavericks (problems with hdiutil?)
+  Mac OS X: avoid Mavericks (problems with hdiutil?)
   Linux: avoid Debian (bitmap fonts for prog-prove)
 
 

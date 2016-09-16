@@ -53,9 +53,7 @@ cp "$THIS/settings" "$DIR/etc/settings"
 # content
 
 #GNU tar (notably on Mac OS X)
-if [ -x /usr/bin/gnutar ]; then
-  function tar() { /usr/bin/gnutar "$@"; }
-fi
+type -p gnutar >/dev/null && function tar() { gnutar "$@"; }
 
 mkdir "$DIR/x86-linux" "$DIR/x86_64-linux" "$DIR/x86-windows" "$DIR/x86_64-windows" "$DIR/x86_64-darwin"
 
