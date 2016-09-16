@@ -332,6 +332,11 @@ break existing proofs. INCOMPATIBILITY.
   - The MaSh relevance filter has been sped up.
   - Produce syntactically correct Vampire 4.0 problem files.
 
+* The 'coinductive' command produces a proper coinduction rule for
+mutual coinductive predicates. This new rule replaces the old rule,
+which exposed details of the internal fixpoint construction and was
+hard to use. INCOMPATIBILITY.
+
 * (Co)datatype package:
   - New commands for defining corecursive functions and reasoning about
     them in "~~/src/HOL/Library/BNF_Corec.thy": 'corec', 'corecursive',
