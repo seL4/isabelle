@@ -311,7 +311,7 @@ next
                    ereal_uminus_le_reorder ereal_uminus_less_reorder not_less
                    uminus_ereal.simps[symmetric]
              simp del: uminus_ereal.simps
-             intro!: integral_cong
+             intro!: Bochner_Integration.integral_cong
              split: split_indicator)
 qed
 

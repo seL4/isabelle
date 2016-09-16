@@ -554,11 +554,11 @@ proof -
   have "?lhs = \<integral> x. ?f x \<partial>measure_pmf p"
     by(simp add: bind_spmf_def pmf_bind)
   also have "\<dots> = \<integral> x. ?f None * indicator {None} x + ?f x * indicator (range Some) x \<partial>measure_pmf p"
-    by(rule integral_cong)(auto simp add: indicator_def)
+    by(rule Bochner_Integration.integral_cong)(auto simp add: indicator_def)
   also have "\<dots> = (\<integral> x. ?f None * indicator {None} x \<partial>measure_pmf p) + (\<integral> x. ?f x * indicator (range Some) x \<partial>measure_pmf p)"
-    by(rule integral_add)(auto 4 3 intro: integrable_real_mult_indicator measure_pmf.integrable_const_bound[where B=1] simp add: AE_measure_pmf_iff pmf_le_1)
+    by(rule Bochner_Integration.integral_add)(auto 4 3 intro: integrable_real_mult_indicator measure_pmf.integrable_const_bound[where B=1] simp add: AE_measure_pmf_iff pmf_le_1)
   also have "\<dots> = pmf p None + \<integral> x. indicator (range Some) x * pmf (f (the x)) None \<partial>measure_pmf p"
-    by(auto simp add: measure_measure_pmf_finite indicator_eq_0_iff intro!: integral_cong)
+    by(auto simp add: measure_measure_pmf_finite indicator_eq_0_iff intro!: Bochner_Integration.integral_cong)
   also have "\<dots> = ?rhs" unfolding measure_spmf_def
     by(subst integral_distr)(auto simp add: integral_restrict_space)
   finally show ?thesis .
@@ -566,7 +566,7 @@ qed
 
 lemma spmf_bind: "spmf (p \<bind> f) y = \<integral> x. spmf (f x) y \<partial>measure_spmf p"
 unfolding measure_spmf_def
-by(subst integral_distr)(auto simp add: bind_spmf_def pmf_bind integral_restrict_space indicator_eq_0_iff intro!: integral_cong split: option.split)
+by(subst integral_distr)(auto simp add: bind_spmf_def pmf_bind integral_restrict_space indicator_eq_0_iff intro!: Bochner_Integration.integral_cong split: option.split)
 
 lemma ennreal_spmf_bind: "ennreal (spmf (p \<bind> f) x) = \<integral>\<^sup>+ y. spmf (f y) x \<partial>measure_spmf p"
 by(auto simp add: bind_spmf_def ennreal_pmf_bind nn_integral_measure_spmf_conv_measure_pmf nn_integral_restrict_space intro: nn_integral_cong split: split_indicator option.split)
@@ -2688,7 +2688,7 @@ by(rule spmf_eqI)(auto simp add: spmf_try_spmf spmf_scale_spmf pmf_scale_spmf_No
 lemma pmf_try_spmf_None [simp]: "pmf (TRY p ELSE q) None = pmf p None * pmf q None" (is "?lhs = ?rhs")
 proof -
   have "?lhs = \<integral> x. pmf q None * indicator {None} x \<partial>measure_pmf p"
-    unfolding try_spmf_def pmf_bind by(rule integral_cong)(simp_all split: option.split)
+    unfolding try_spmf_def pmf_bind by(rule Bochner_Integration.integral_cong)(simp_all split: option.split)
   also have "\<dots> = ?rhs" by(simp add: measure_pmf_single)
   finally show ?thesis .
 qed

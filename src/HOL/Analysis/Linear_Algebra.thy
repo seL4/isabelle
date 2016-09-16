@@ -10,6 +10,30 @@ imports
   "~~/src/HOL/Library/Infinite_Set"
 begin
 
+lemma linear_simps:
+  assumes "bounded_linear f"
+  shows
+    "f (a + b) = f a + f b"
+    "f (a - b) = f a - f b"
+    "f 0 = 0"
+    "f (- a) = - f a"
+    "f (s *\<^sub>R v) = s *\<^sub>R (f v)"
+proof -
+  interpret f: bounded_linear f by fact
+  show "f (a + b) = f a + f b" by (rule f.add)
+  show "f (a - b) = f a - f b" by (rule f.diff)
+  show "f 0 = 0" by (rule f.zero)
+  show "f (- a) = - f a" by (rule f.minus)
+  show "f (s *\<^sub>R v) = s *\<^sub>R (f v)" by (rule f.scaleR)
+qed
+
+lemma bounded_linearI:
+  assumes "\<And>x y. f (x + y) = f x + f y"
+    and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x"
+    and "\<And>x. norm (f x) \<le> norm x * K"
+  shows "bounded_linear f"
+  using assms by (rule bounded_linear_intro) (* FIXME: duplicate *)
+
 subsection \<open>A generic notion of "hull" (convex, affine, conic hull and closure).\<close>
 
 definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "hull" 75)

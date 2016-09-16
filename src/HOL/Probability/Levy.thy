@@ -136,9 +136,9 @@ proof -
     have "(CLBINT t=-T..T. ?F t * \<phi> t) =
       (CLBINT t. (CLINT x | M. ?F t * iexp (t * x) * indicator {-T<..<T} t))"
       using \<open>T \<ge> 0\<close> unfolding \<phi>_def char_def interval_lebesgue_integral_def
-      by (auto split: split_indicator intro!: integral_cong)
+      by (auto split: split_indicator intro!: Bochner_Integration.integral_cong)
     also have "\<dots> = (CLBINT t. (CLINT x | M. ?f' (t, x)))"
-      by (auto intro!: integral_cong simp: field_simps exp_diff exp_minus split: split_indicator)
+      by (auto intro!: Bochner_Integration.integral_cong simp: field_simps exp_diff exp_minus split: split_indicator)
     also have "\<dots> = (CLINT x | M. (CLBINT t. ?f' (t, x)))"
     proof (intro P.Fubini_integral [symmetric] integrableI_bounded_set [where B="b - a"])
       show "emeasure (lborel \<Otimes>\<^sub>M M) ({- T<..<T} \<times> space M) < \<infinity>"
@@ -151,7 +151,7 @@ proof -
     qed (auto split: split_indicator split_indicator_asm)
     also have "\<dots> = (CLINT x | M. (complex_of_real (2 * (sgn (x - a) *
          Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b))))))"
-       using main_eq by (intro integral_cong, auto)
+       using main_eq by (intro Bochner_Integration.integral_cong, auto)
     also have "\<dots> = complex_of_real (LINT x | M. (2 * (sgn (x - a) *
          Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b)))))"
        by (rule integral_complex_of_real)
@@ -336,11 +336,11 @@ proof -
         (CLBINT t:{-u..u}. (CLINT x | M n. 1 - iexp (t * x)))"
       unfolding char_def by (rule set_lebesgue_integral_cong, auto simp del: of_real_mult)
     also have "\<dots> = (CLBINT t. (CLINT x | M n. indicator {-u..u} t *\<^sub>R (1 - iexp (t * x))))"
-      by (rule integral_cong) (auto split: split_indicator)
+      by (rule Bochner_Integration.integral_cong) (auto split: split_indicator)
     also have "\<dots> = (CLINT x | M n. (CLBINT t:{-u..u}. 1 - iexp (t * x)))"
       using Mn3 by (subst P.Fubini_integral) (auto simp: indicator_times split_beta')
     also have "\<dots> = (CLINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))"
-      using \<open>u > 0\<close> by (intro integral_cong, auto simp add: * simp del: of_real_mult)
+      using \<open>u > 0\<close> by (intro Bochner_Integration.integral_cong, auto simp add: * simp del: of_real_mult)
     also have "\<dots> = (LINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))"
       by (rule integral_complex_of_real)
     finally have "Re (CLBINT t:{-u..u}. 1 - char (M n) t) =

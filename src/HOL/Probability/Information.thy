@@ -840,7 +840,7 @@ proof -
   also have "- log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX) = - log b (\<integral> x. 1 / Px x \<partial>distr M MX X)"
     unfolding distributed_distr_eq_density[OF X] using Px Px_nn
     apply (intro arg_cong[where f="log b"] arg_cong[where f=uminus])
-    by (subst integral_density) (auto simp del: integral_indicator intro!: integral_cong)
+    by (subst integral_density) (auto simp del: integral_indicator intro!: Bochner_Integration.integral_cong)
   also have "\<dots> \<le> (\<integral> x. - log b (1 / Px x) \<partial>distr M MX X)"
   proof (rule X.jensens_inequality[of "\<lambda>x. 1 / Px x" "{0<..}" 0 1 "\<lambda>x. - log b x"])
     show "AE x in distr M MX X. 1 / Px x \<in> {0<..}"
@@ -901,11 +901,11 @@ proof (subst entropy_distr[OF X])
   have eq: "(\<integral> x. indicator A x / measure MX A * log b (indicator A x / measure MX A) \<partial>MX) =
     (\<integral> x. (- log b (measure MX A) / measure MX A) * indicator A x \<partial>MX)"
     using uniform_distributed_params[OF X]
-    by (intro integral_cong) (auto split: split_indicator simp: log_divide_eq zero_less_measure_iff)
+    by (intro Bochner_Integration.integral_cong) (auto split: split_indicator simp: log_divide_eq zero_less_measure_iff)
   show "- (\<integral> x. indicator A x / measure MX A * log b (indicator A x / measure MX A) \<partial>MX) =
     log b (measure MX A)"
     unfolding eq using uniform_distributed_params[OF X]
-    by (subst integral_mult_right) (auto simp: measure_def less_top[symmetric] intro!: integrable_real_indicator)
+    by (subst Bochner_Integration.integral_mult_right) (auto simp: measure_def less_top[symmetric] intro!: integrable_real_indicator)
 qed simp
 
 lemma (in information_space) entropy_simple_distributed:
@@ -1038,8 +1038,8 @@ proof -
     apply (subst mi_eq)
     apply (subst mutual_information_distr[OF S TP Px Px_nn Pyz _ Pxyz])
     apply (auto simp: space_pair_measure)
-    apply (subst integral_diff[symmetric])
-    apply (auto intro!: integral_cong_AE simp: split_beta' simp del: integral_diff)
+    apply (subst Bochner_Integration.integral_diff[symmetric])
+    apply (auto intro!: integral_cong_AE simp: split_beta' simp del: Bochner_Integration.integral_diff)
     done
 
   let ?P = "density (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) Pxyz"
@@ -1112,7 +1112,7 @@ proof -
     done
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
-    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ integrable_diff[OF I1 I2]])
+    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ Bochner_Integration.integrable_diff[OF I1 I2]])
     using ae
     apply (auto simp: split_beta')
     done
@@ -1297,8 +1297,8 @@ proof -
     apply simp
     apply simp
     apply (simp add: space_pair_measure)
-    apply (subst integral_diff[symmetric])
-    apply (auto intro!: integral_cong_AE simp: split_beta' simp del: integral_diff)
+    apply (subst Bochner_Integration.integral_diff[symmetric])
+    apply (auto intro!: integral_cong_AE simp: split_beta' simp del: Bochner_Integration.integral_diff)
     done
 
   let ?P = "density (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) Pxyz"
@@ -1373,7 +1373,7 @@ proof -
        (auto simp: split_beta' AE_density space_pair_measure intro!: AE_I2 ennreal_neg)
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
-    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ integrable_diff[OF I1 I2]])
+    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ Bochner_Integration.integrable_diff[OF I1 I2]])
     using ae
     apply (auto simp: split_beta')
     done
@@ -1593,7 +1593,7 @@ proof -
   also have "\<dots> = - (\<integral>(x,y). Pxy (x,y) * log b (Py y) \<partial>(S \<Otimes>\<^sub>M T))"
     using b_gt_1
     by (subst distributed_transform_integral[OF Pxy _ Py, where T=snd])
-       (auto intro!: integral_cong simp: space_pair_measure)
+       (auto intro!: Bochner_Integration.integral_cong simp: space_pair_measure)
   finally have e_eq: "entropy b T Y = - (\<integral>(x,y). Pxy (x,y) * log b (Py y) \<partial>(S \<Otimes>\<^sub>M T))" .
 
   have **: "\<And>x. x \<in> space (S \<Otimes>\<^sub>M T) \<Longrightarrow> 0 \<le> Pxy x"
@@ -1618,7 +1618,7 @@ proof -
     apply auto
     done
   also have "\<dots> = - (\<integral>x. Pxy x * log b (Pxy x) \<partial>(S \<Otimes>\<^sub>M T)) - - (\<integral>x.  Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^sub>M T))"
-    by (simp add: integral_diff[OF I1 I2])
+    by (simp add: Bochner_Integration.integral_diff[OF I1 I2])
   finally show ?thesis
     using conditional_entropy_generic_eq[OF S T Py Py_nn Pxy Pxy_nn, simplified]
       entropy_distr[OF Pxy **, simplified] e_eq
@@ -1785,9 +1785,9 @@ proof -
 
   have "entropy b S X + entropy b T Y - entropy b (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) = integral\<^sup>L (S \<Otimes>\<^sub>M T) ?f"
     unfolding X Y XY
-    apply (subst integral_diff)
-    apply (intro integrable_diff Ixy Ix Iy)+
-    apply (subst integral_diff)
+    apply (subst Bochner_Integration.integral_diff)
+    apply (intro Bochner_Integration.integrable_diff Ixy Ix Iy)+
+    apply (subst Bochner_Integration.integral_diff)
     apply (intro Ixy Ix Iy)+
     apply (simp add: field_simps)
     done

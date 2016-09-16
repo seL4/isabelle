@@ -243,27 +243,6 @@ no_notation
 lemma One_nonneg: "0 \<le> (\<Sum>Basis::'a::ordered_euclidean_space)"
   by (auto intro: setsum_nonneg)
 
-lemma content_closed_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  assumes "a \<le> b"
-  shows "content {a .. b} = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
-  using content_cbox[of a b] assms
-  by (simp add: cbox_interval eucl_le[where 'a='a])
-
-lemma integrable_const_ivl[intro]:
-  fixes a::"'a::ordered_euclidean_space"
-  shows "(\<lambda>x. c) integrable_on {a .. b}"
-  unfolding cbox_interval[symmetric]
-  by (rule integrable_const)
-
-lemma integrable_on_subinterval:
-  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on s"
-    and "{a .. b} \<subseteq> s"
-  shows "f integrable_on {a .. b}"
-  using integrable_on_subcbox[of f s a b] assms
-  by (simp add: cbox_interval)
-
 lemma
   fixes a b::"'a::ordered_euclidean_space"
   shows bdd_above_cbox[intro, simp]: "bdd_above (cbox a b)"

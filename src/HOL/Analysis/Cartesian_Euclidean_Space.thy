@@ -1,7 +1,7 @@
 section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space.\<close>
 
 theory Cartesian_Euclidean_Space
-imports Finite_Cartesian_Product Henstock_Kurzweil_Integration
+imports Finite_Cartesian_Product Derivative (* Henstock_Kurzweil_Integration *)
 begin
 
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
@@ -927,7 +927,6 @@ lemma dot_matrix_vector_mul:
   unfolding dot_matrix_product transpose_columnvector[symmetric]
     dot_rowvector_columnvector matrix_transpose_mul matrix_mul_assoc ..
 
-
 lemma infnorm_cart:"infnorm (x::real^'n) = Sup {\<bar>x$i\<bar> |i. i\<in>UNIV}"
   by (simp add: infnorm_def inner_axis Basis_vec_def) (metis (lifting) inner_axis real_inner_1_right)
 
@@ -1408,12 +1407,6 @@ lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<f
 lemma bounded_linear_component_cart[intro]: "bounded_linear (\<lambda>x::real^'n. x $ k)"
   apply (rule bounded_linearI[where K=1])
   using component_le_norm_cart[of _ k] unfolding real_norm_def by auto
-
-lemma integral_component_eq_cart[simp]:
-  fixes f :: "'n::euclidean_space \<Rightarrow> real^'m"
-  assumes "f integrable_on s"
-  shows "integral s (\<lambda>x. f x $ k) = integral s f $ k"
-  using integral_linear[OF assms(1) bounded_linear_component_cart,unfolded o_def] .
 
 lemma interval_split_cart:
   "{a..b::real^'n} \<inter> {x. x$k \<le> c} = {a .. (\<chi> i. if i = k then min (b$k) c else b$i)}"

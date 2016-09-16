@@ -263,7 +263,7 @@ next
   from lborel_integrable_real_affine[OF this, of t 0]
   show ?thesis
     unfolding interval_lebesgue_integral_0_infty
-    by (rule integrable_bound) (auto simp: field_simps * split: split_indicator)
+    by (rule Bochner_Integration.integrable_bound) (auto simp: field_simps * split: split_indicator)
 qed
 
 lemma Si_at_top: "(Si \<longlongrightarrow> pi / 2) at_top"
@@ -291,7 +291,7 @@ proof -
         fix x :: real assume x: "x \<noteq> 0" "x \<noteq> t"
         have "LBINT y. \<bar>indicator ({0<..} \<times> {0<..<t}) (y, x) *\<^sub>R (sin x * exp (- (y * x)))\<bar> =
             LBINT y. \<bar>sin x\<bar> * exp (- (y * x)) * indicator {0<..} y * indicator {0<..<t} x"
-          by (intro integral_cong) (auto split: split_indicator simp: abs_mult)
+          by (intro Bochner_Integration.integral_cong) (auto split: split_indicator simp: abs_mult)
         also have "\<dots> = \<bar>sin x\<bar> * indicator {0<..<t} x * (LBINT y=0..\<infinity>.  exp (- (y * x)))"
           by (cases "x > 0")
              (auto simp: field_simps interval_lebesgue_integral_0_infty split: split_indicator)
@@ -315,7 +315,7 @@ proof -
     also have "... = LBINT u=0..\<infinity>. (LBINT x=0..t. exp (-(u * x)) * sin x)"
       using \<open>0\<le>t\<close>
       by (auto simp: interval_lebesgue_integral_def zero_ereal_def ac_simps
-               split: split_indicator intro!: integral_cong)
+               split: split_indicator intro!: Bochner_Integration.integral_cong)
     also have "\<dots> = LBINT u=0..\<infinity>. 1 / (1 + u\<^sup>2) - 1 / (1 + u\<^sup>2) * (exp (- (u * t)) * (u * sin t + cos t))"
       by (auto simp: divide_simps LBINT_I0c_exp_mscale_sin intro!: interval_integral_cong)
     also have "... = pi / 2 - (LBINT u=0..\<infinity>. exp (- (u * t)) * (u * sin t + cos t) / (1 + u^2))"

@@ -187,7 +187,7 @@ proof -
       using U by (auto
           intro: borel_measurable_simple_function
           intro!: borel_measurable_enn2real borel_measurable_times
-          simp: U'_def zero_le_mult_iff enn2real_nonneg)
+          simp: U'_def zero_le_mult_iff)
     show "incseq U'"
       using U(2,3)
       by (auto simp: incseq_def le_fun_def image_iff eq_commute U'_def indicator_def enn2real_mono)
@@ -212,7 +212,7 @@ proof -
     ultimately have U': "(\<lambda>z. \<Sum>y\<in>U' i`space M. y * indicator {x\<in>space M. U' i x = y} z) = U' i"
       by (simp add: U'_def fun_eq_iff)
     have "\<And>x. x \<in> U' i ` space M \<Longrightarrow> 0 \<le> x"
-      by (auto simp: U'_def enn2real_nonneg)
+      by (auto simp: U'_def)
     with fin have "P (\<lambda>z. \<Sum>y\<in>U' i`space M. y * indicator {x\<in>space M. U' i x = y} z)"
     proof induct
       case empty from set[of "{}"] show ?case
@@ -866,7 +866,7 @@ lemma simple_bochner_integrable_restrict_space:
     simple_bochner_integrable M (\<lambda>x. indicator \<Omega> x *\<^sub>R f x)"
   by (simp add: simple_bochner_integrable.simps space_restrict_space
     simple_function_restrict_space[OF \<Omega>] emeasure_restrict_space[OF \<Omega>] Collect_restrict
-    indicator_eq_0_iff conj_ac)
+    indicator_eq_0_iff conj_left_commute)
 
 lemma simple_bochner_integral_restrict_space:
   fixes f :: "_ \<Rightarrow> 'b::real_normed_vector"
@@ -1624,7 +1624,7 @@ proof cases
       with seq show "\<exists>N. \<forall>n\<ge>N. 0 \<le> integral\<^sup>L M (U n)"
         by auto
     qed
-  qed (auto simp: measure_nonneg integrable_mult_left_iff)
+  qed (auto simp: integrable_mult_left_iff)
   also have "\<dots> = integral\<^sup>L M f"
     using nonneg by (auto intro!: integral_cong_AE)
   finally show ?thesis .
@@ -2466,10 +2466,10 @@ lemma (in finite_measure) ennreal_integral_real:
   shows "ennreal (\<integral>x. enn2real (f x) \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M)"
 proof (subst nn_integral_eq_integral[symmetric])
   show "integrable M (\<lambda>x. enn2real (f x))"
-    using ae by (intro integrable_const_bound[where B=B]) (auto simp: enn2real_leI enn2real_nonneg)
+    using ae by (intro integrable_const_bound[where B=B]) (auto simp: enn2real_leI)
   show "(\<integral>\<^sup>+ x. ennreal (enn2real (f x)) \<partial>M) = integral\<^sup>N M f"
     using ae by (intro nn_integral_cong_AE) (auto simp: le_less_trans[OF _ ennreal_less_top])
-qed (auto simp: enn2real_nonneg)
+qed auto
 
 lemma (in finite_measure) integral_less_AE:
   fixes X Y :: "'a \<Rightarrow> real"

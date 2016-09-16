@@ -7,7 +7,7 @@ TODO: keep all these? Need unicode translations as well.
 *)
 
 theory Set_Integral
-  imports Bochner_Integration Lebesgue_Measure
+  imports Equivalence_Lebesgue_Henstock_Integration
 begin
 
 (*
@@ -85,7 +85,7 @@ qed
 lemma set_lebesgue_integral_cong:
   assumes "A \<in> sets M" and "\<forall>x. x \<in> A \<longrightarrow> f x = g x"
   shows "(LINT x:A|M. f x) = (LINT x:A|M. g x)"
-  using assms by (auto intro!: integral_cong split: split_indicator simp add: sets.sets_into_space)
+  using assms by (auto intro!: Bochner_Integration.integral_cong split: split_indicator simp add: sets.sets_into_space)
 
 lemma set_lebesgue_integral_cong_AE:
   assumes [measurable]: "A \<in> sets M" "f \<in> borel_measurable M" "g \<in> borel_measurable M"
@@ -118,22 +118,22 @@ qed
 (* TODO: borel_integrable_atLeastAtMost should be named something like set_integrable_Icc_isCont *)
 
 lemma set_integral_scaleR_right [simp]: "LINT t:A|M. a *\<^sub>R f t = a *\<^sub>R (LINT t:A|M. f t)"
-  by (subst integral_scaleR_right[symmetric]) (auto intro!: integral_cong)
+  by (subst integral_scaleR_right[symmetric]) (auto intro!: Bochner_Integration.integral_cong)
 
 lemma set_integral_mult_right [simp]:
   fixes a :: "'a::{real_normed_field, second_countable_topology}"
   shows "LINT t:A|M. a * f t = a * (LINT t:A|M. f t)"
-  by (subst integral_mult_right_zero[symmetric]) (auto intro!: integral_cong)
+  by (subst integral_mult_right_zero[symmetric]) auto
 
 lemma set_integral_mult_left [simp]:
   fixes a :: "'a::{real_normed_field, second_countable_topology}"
   shows "LINT t:A|M. f t * a = (LINT t:A|M. f t) * a"
-  by (subst integral_mult_left_zero[symmetric]) (auto intro!: integral_cong)
+  by (subst integral_mult_left_zero[symmetric]) auto
 
 lemma set_integral_divide_zero [simp]:
   fixes a :: "'a::{real_normed_field, field, second_countable_topology}"
   shows "LINT t:A|M. f t / a = (LINT t:A|M. f t) / a"
-  by (subst integral_divide_zero[symmetric], intro integral_cong)
+  by (subst integral_divide_zero[symmetric], intro Bochner_Integration.integral_cong)
      (auto split: split_indicator)
 
 lemma set_integrable_scaleR_right [simp, intro]:
@@ -184,7 +184,7 @@ lemma set_integral_reflect:
   fixes S and f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
   shows "(LBINT x : S. f x) = (LBINT x : {x. - x \<in> S}. f (- x))"
   by (subst lborel_integral_real_affine[where c="-1" and t=0])
-     (auto intro!: integral_cong split: split_indicator)
+     (auto intro!: Bochner_Integration.integral_cong split: split_indicator)
 
 (* question: why do we have this for negation, but multiplication by a constant
    requires an integrability assumption? *)
@@ -194,7 +194,7 @@ lemma set_integral_uminus: "set_integrable M A f \<Longrightarrow> LINT x:A|M. -
 lemma set_integral_complex_of_real:
   "LINT x:A|M. complex_of_real (f x) = of_real (LINT x:A|M. f x)"
   by (subst integral_complex_of_real[symmetric])
-     (auto intro!: integral_cong split: split_indicator)
+     (auto intro!: Bochner_Integration.integral_cong split: split_indicator)
 
 lemma set_integral_mono:
   fixes f g :: "_ \<Rightarrow> real"
@@ -254,7 +254,7 @@ lemma set_integrable_Un:
 proof -
   have "set_integrable M (A - B) f"
     using f_A by (rule set_integrable_subset) auto
-  from integrable_add[OF this f_B] show ?thesis
+  from Bochner_Integration.integrable_add[OF this f_B] show ?thesis
     by (rule integrable_cong[THEN iffD1, rotated 2]) (auto split: split_indicator)
 qed
 
@@ -410,7 +410,7 @@ proof (subst integral_suminf[symmetric])
       by simp
   qed
   show "set_lebesgue_integral M (UNION UNIV A) f = LINT x|M. (\<Sum>i. indicator (A i) x *\<^sub>R f x)"
-    apply (rule integral_cong[OF refl])
+    apply (rule Bochner_Integration.integral_cong[OF refl])
     apply (subst suminf_scaleR_left[OF sums_summable[OF indicator_sums, OF disj], symmetric])
     using sums_unique[OF indicator_sums[OF disj]]
     apply auto

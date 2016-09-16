@@ -260,6 +260,11 @@ qed
 
 end
 
+lemma
+  shows real_inner_1_left[simp]: "inner 1 x = x"
+    and real_inner_1_right[simp]: "inner x 1 = x"
+  by simp_all
+
 instantiation complex :: real_inner
 begin
 

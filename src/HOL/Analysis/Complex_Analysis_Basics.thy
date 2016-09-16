@@ -5,7 +5,7 @@
 section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
-imports Cartesian_Euclidean_Space "~~/src/HOL/Library/Nonpos_Ints"
+imports Henstock_Kurzweil_Integration "~~/src/HOL/Library/Nonpos_Ints"
 begin
 
 

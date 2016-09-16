@@ -862,15 +862,15 @@ proof(case_tac [!] "space N = {}")
   show ?integrable
     using M * by(simp add: real_integrable_def measurable_def nn_integral_empty)
   have "(\<integral> M'. integral\<^sup>L M' f \<partial>M) = (\<integral> M'. 0 \<partial>M)"
-  proof(rule integral_cong)
+  proof(rule Bochner_Integration.integral_cong)
     fix M'
     assume "M' \<in> space M"
     with sets_eq_imp_space_eq[OF M] have "space M' = space N"
       by(auto simp add: space_subprob_algebra dest: sets_eq_imp_space_eq)
-    with * show "(\<integral> x. f x \<partial>M') = 0" by(simp add: integral_empty)
+    with * show "(\<integral> x. f x \<partial>M') = 0" by(simp add: Bochner_Integration.integral_empty)
   qed simp
   then show ?integral
-    using M * by(simp add: integral_empty)
+    using M * by(simp add: Bochner_Integration.integral_empty)
 next
   assume *: "space N \<noteq> {}"
 
@@ -1213,7 +1213,7 @@ proof(case_tac [!] "space M = {}")
   also have "\<dots> = \<integral> x. integral\<^sup>L (N x) f \<partial>M"
     by(rule integral_distr)(simp_all add: integral_measurable_subprob_algebra[OF _])
   finally show ?integral by(simp add: bind_nonempty''[where N=K])
-qed(simp_all add: bind_def integrable_count_space lebesgue_integral_count_space_finite integral_empty)
+qed(simp_all add: bind_def integrable_count_space lebesgue_integral_count_space_finite Bochner_Integration.integral_empty)
 
 lemma (in prob_space) prob_space_bind:
   assumes ae: "AE x in M. prob_space (N x)"

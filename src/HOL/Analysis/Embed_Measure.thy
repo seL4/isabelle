@@ -47,7 +47,7 @@ lemma the_inv_into_vimage:
 lemma sets_embed_eq_vimage_algebra:
   assumes "inj_on f (space M)"
   shows "sets (embed_measure M f) = sets (vimage_algebra (f`space M) (the_inv_into (space M) f) M)"
-  by (auto simp: sets_embed_measure'[OF assms] Pi_iff the_inv_into_f_f assms sets_vimage_algebra2 simple_image
+  by (auto simp: sets_embed_measure'[OF assms] Pi_iff the_inv_into_f_f assms sets_vimage_algebra2 Setcompr_eq_image
            dest: sets.sets_into_space
            intro!: image_cong the_inv_into_vimage[symmetric])
 

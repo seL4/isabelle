@@ -167,7 +167,7 @@ lemma pmf_positive: "x \<in> set_pmf p \<Longrightarrow> 0 < pmf p x"
 
 lemma pmf_nonneg[simp]: "0 \<le> pmf p x"
   by transfer simp
-  
+
 lemma pmf_not_neg [simp]: "\<not>pmf p x < 0"
   by (simp add: not_less pmf_nonneg)
 
@@ -546,7 +546,7 @@ lemma emeasure_return_pmf[simp]: "emeasure (return_pmf x) X = indicator X x"
 
 lemma measure_return_pmf [simp]: "measure_pmf.prob (return_pmf x) A = indicator A x"
 proof -
-  have "ennreal (measure_pmf.prob (return_pmf x) A) = 
+  have "ennreal (measure_pmf.prob (return_pmf x) A) =
           emeasure (measure_pmf (return_pmf x)) A"
     by (simp add: measure_pmf.emeasure_eq_measure)
   also have "\<dots> = ennreal (indicator A x)" by (simp add: ennreal_indicator)
@@ -778,10 +778,10 @@ proof (rule ccontr)
   have "1 = measure (measure_pmf M) UNIV" by simp
   also have "\<dots> = measure (measure_pmf N) {x} + measure (measure_pmf N) (UNIV - {x})"
     by (subst measure_pmf.finite_measure_Union [symmetric]) simp_all
-  also from gt have "measure (measure_pmf N) {x} < measure (measure_pmf M) {x}" 
+  also from gt have "measure (measure_pmf N) {x} < measure (measure_pmf M) {x}"
     by (simp add: measure_pmf_single)
   also have "measure (measure_pmf N) (UNIV - {x}) \<le> measure (measure_pmf M) (UNIV - {x})"
-    by (subst (1 2) integral_pmf [symmetric]) 
+    by (subst (1 2) integral_pmf [symmetric])
        (intro integral_mono integrable_pmf, simp_all add: ge)
   also have "measure (measure_pmf M) {x} + \<dots> = 1"
     by (subst measure_pmf.finite_measure_Union [symmetric]) simp_all
@@ -803,7 +803,7 @@ proof
     by unfold_locales
 
   have "(\<integral> x. \<integral> y. pmf (C x y) i \<partial>B \<partial>A) = (\<integral> x. (\<integral> y. pmf (C x y) i \<partial>restrict_space B B) \<partial>A)"
-    by (rule integral_cong) (auto intro!: integral_pmf_restrict)
+    by (rule Bochner_Integration.integral_cong) (auto intro!: integral_pmf_restrict)
   also have "\<dots> = (\<integral> x. (\<integral> y. pmf (C x y) i \<partial>restrict_space B B) \<partial>restrict_space A A)"
     by (intro integral_pmf_restrict B.borel_measurable_lebesgue_integral measurable_pair_restrict_pmf2
               countable_set_pmf borel_measurable_count_space)
@@ -815,7 +815,7 @@ proof
     by (intro integral_pmf_restrict[symmetric] A.borel_measurable_lebesgue_integral measurable_pair_restrict_pmf2
               countable_set_pmf borel_measurable_count_space)
   also have "\<dots> = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>A \<partial>B)"
-    by (rule integral_cong) (auto intro!: integral_pmf_restrict[symmetric])
+    by (rule Bochner_Integration.integral_cong) (auto intro!: integral_pmf_restrict[symmetric])
   finally show "(\<integral> x. \<integral> y. pmf (C x y) i \<partial>B \<partial>A) = (\<integral> y. \<integral> x. pmf (C x y) i \<partial>A \<partial>B)" .
 qed
 
@@ -1629,7 +1629,7 @@ end
 
 lemma map_pmf_of_set:
   assumes "finite A" "A \<noteq> {}"
-  shows   "map_pmf f (pmf_of_set A) = pmf_of_multiset (image_mset f (mset_set A))" 
+  shows   "map_pmf f (pmf_of_set A) = pmf_of_multiset (image_mset f (mset_set A))"
     (is "?lhs = ?rhs")
 proof (intro pmf_eqI)
   fix x
@@ -1641,13 +1641,13 @@ qed
 
 lemma pmf_bind_pmf_of_set:
   assumes "A \<noteq> {}" "finite A"
-  shows   "pmf (bind_pmf (pmf_of_set A) f) x = 
+  shows   "pmf (bind_pmf (pmf_of_set A) f) x =
              (\<Sum>xa\<in>A. pmf (f xa) x) / real_of_nat (card A)" (is "?lhs = ?rhs")
 proof -
   from assms have "card A > 0" by auto
   with assms have "ennreal ?lhs = ennreal ?rhs"
-    by (subst ennreal_pmf_bind) 
-       (simp_all add: nn_integral_pmf_of_set max_def pmf_nonneg divide_ennreal [symmetric] 
+    by (subst ennreal_pmf_bind)
+       (simp_all add: nn_integral_pmf_of_set max_def pmf_nonneg divide_ennreal [symmetric]
         setsum_nonneg ennreal_of_nat_eq_real_of_nat)
   thus ?thesis by (subst (asm) ennreal_inj) (auto intro!: setsum_nonneg divide_nonneg_nonneg)
 qed
@@ -1675,10 +1675,10 @@ proof(rule pmf_eqI)
 qed
 
 text \<open>
-  Choosing an element uniformly at random from the union of a disjoint family 
-  of finite non-empty sets with the same size is the same as first choosing a set 
-  from the family uniformly at random and then choosing an element from the chosen set 
-  uniformly at random.  
+  Choosing an element uniformly at random from the union of a disjoint family
+  of finite non-empty sets with the same size is the same as first choosing a set
+  from the family uniformly at random and then choosing an element from the chosen set
+  uniformly at random.
 \<close>
 lemma pmf_of_set_UN:
   assumes "finite (UNION A f)" "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> {}"
@@ -1694,8 +1694,8 @@ proof (intro pmf_eqI)
     by (subst pmf_of_set) auto
   also from assms have "card (\<Union>x\<in>A. f x) = card A * n"
     by (subst card_UN_disjoint) (auto simp: disjoint_family_on_def)
-  also from assms 
-    have "indicator (\<Union>x\<in>A. f x) x / real \<dots> = 
+  also from assms
+    have "indicator (\<Union>x\<in>A. f x) x / real \<dots> =
               indicator (\<Union>x\<in>A. f x) x / (n * real (card A))"
       by (simp add: setsum_divide_distrib [symmetric] mult_ac)
   also from assms have "indicator (\<Union>x\<in>A. f x) x = (\<Sum>y\<in>A. indicator (f y) x)"
@@ -1794,17 +1794,17 @@ primrec replicate_pmf :: "nat \<Rightarrow> 'a pmf \<Rightarrow> 'a list pmf" wh
 
 lemma replicate_pmf_1: "replicate_pmf 1 p = map_pmf (\<lambda>x. [x]) p"
   by (simp add: map_pmf_def bind_return_pmf)
-  
-lemma set_replicate_pmf: 
+
+lemma set_replicate_pmf:
   "set_pmf (replicate_pmf n p) = {xs\<in>lists (set_pmf p). length xs = n}"
   by (induction n) (auto simp: length_Suc_conv)
 
 lemma replicate_pmf_distrib:
-  "replicate_pmf (m + n) p = 
+  "replicate_pmf (m + n) p =
      do {xs \<leftarrow> replicate_pmf m p; ys \<leftarrow> replicate_pmf n p; return_pmf (xs @ ys)}"
   by (induction m) (simp_all add: bind_return_pmf bind_return_pmf' bind_assoc_pmf)
 
-lemma power_diff': 
+lemma power_diff':
   assumes "b \<le> a"
   shows   "x ^ (a - b) = (if x = 0 \<and> a = b then 1 else x ^ a / (x::'a::field) ^ b)"
 proof (cases "x = 0")
@@ -1812,12 +1812,12 @@ proof (cases "x = 0")
   with assms show ?thesis by (cases "a - b") simp_all
 qed (insert assms, simp_all add: power_diff)
 
-  
+
 lemma binomial_pmf_Suc:
   assumes "p \<in> {0..1}"
-  shows   "binomial_pmf (Suc n) p = 
-             do {b \<leftarrow> bernoulli_pmf p; 
-                 k \<leftarrow> binomial_pmf n p; 
+  shows   "binomial_pmf (Suc n) p =
+             do {b \<leftarrow> bernoulli_pmf p;
+                 k \<leftarrow> binomial_pmf n p;
                  return_pmf ((if b then 1 else 0) + k)}" (is "_ = ?rhs")
 proof (intro pmf_eqI)
   fix k
@@ -1835,14 +1835,14 @@ lemma binomial_pmf_0: "p \<in> {0..1} \<Longrightarrow> binomial_pmf 0 p = retur
 lemma binomial_pmf_altdef:
   assumes "p \<in> {0..1}"
   shows   "binomial_pmf n p = map_pmf (length \<circ> filter id) (replicate_pmf n (bernoulli_pmf p))"
-  by (induction n) 
-     (insert assms, auto simp: binomial_pmf_Suc map_pmf_def bind_return_pmf bind_assoc_pmf 
+  by (induction n)
+     (insert assms, auto simp: binomial_pmf_Suc map_pmf_def bind_return_pmf bind_assoc_pmf
         bind_return_pmf' binomial_pmf_0 intro!: bind_pmf_cong)
 
 
 subsection \<open>PMFs from assiciation lists\<close>
 
-definition pmf_of_list ::" ('a \<times> real) list \<Rightarrow> 'a pmf" where 
+definition pmf_of_list ::" ('a \<times> real) list \<Rightarrow> 'a pmf" where
   "pmf_of_list xs = embed_pmf (\<lambda>x. sum_list (map snd (filter (\<lambda>z. fst z = x) xs)))"
 
 definition pmf_of_list_wf where
@@ -1870,12 +1870,12 @@ proof -
     from Cons.prems have "snd x \<ge> 0" by simp
     moreover have "b \<ge> 0" if "(a,b) \<in> set xs" for a b
       using Cons.prems[of b] that by force
-    ultimately have "(\<integral>\<^sup>+ y. ennreal (\<Sum>(x', p)\<leftarrow>x # xs. indicator {x'} y * p) \<partial>count_space UNIV) = 
-            (\<integral>\<^sup>+ y. ennreal (indicator {fst x} y * snd x) + 
+    ultimately have "(\<integral>\<^sup>+ y. ennreal (\<Sum>(x', p)\<leftarrow>x # xs. indicator {x'} y * p) \<partial>count_space UNIV) =
+            (\<integral>\<^sup>+ y. ennreal (indicator {fst x} y * snd x) +
             ennreal (\<Sum>(x', p)\<leftarrow>xs. indicator {x'} y * p) \<partial>count_space UNIV)"
-      by (intro nn_integral_cong, subst ennreal_plus [symmetric]) 
+      by (intro nn_integral_cong, subst ennreal_plus [symmetric])
          (auto simp: case_prod_unfold indicator_def intro!: sum_list_nonneg)
-    also have "\<dots> = (\<integral>\<^sup>+ y. ennreal (indicator {fst x} y * snd x) \<partial>count_space UNIV) + 
+    also have "\<dots> = (\<integral>\<^sup>+ y. ennreal (indicator {fst x} y * snd x) \<partial>count_space UNIV) +
                       (\<integral>\<^sup>+ y. ennreal (\<Sum>(x', p)\<leftarrow>xs. indicator {x'} y * p) \<partial>count_space UNIV)"
       by (intro nn_integral_add)
          (force intro!: sum_list_nonneg AE_I2 intro: Cons simp: indicator_def)+
@@ -1934,20 +1934,20 @@ lemma emeasure_pmf_of_list:
 proof -
   have "emeasure (pmf_of_list xs) A = nn_integral (measure_pmf (pmf_of_list xs)) (indicator A)"
     by simp
-  also from assms 
+  also from assms
     have "\<dots> = (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. ennreal (sum_list (map snd [z\<leftarrow>xs . fst z = x])))"
     by (subst nn_integral_measure_pmf_finite) (simp_all add: finite_set_pmf_of_list pmf_pmf_of_list)
-  also from assms 
+  also from assms
     have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. sum_list (map snd [z\<leftarrow>xs . fst z = x]))"
     by (subst setsum_ennreal) (auto simp: pmf_of_list_wf_def intro!: sum_list_nonneg)
-  also have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. 
+  also have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A.
       indicator A x * pmf (pmf_of_list xs) x)" (is "_ = ennreal ?S")
     using assms by (intro ennreal_cong setsum.cong) (auto simp: pmf_pmf_of_list)
   also have "?S = (\<Sum>x\<in>set_pmf (pmf_of_list xs). indicator A x * pmf (pmf_of_list xs) x)"
     using assms by (intro setsum.mono_neutral_left set_pmf_of_list finite_set_pmf_of_list) auto
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). indicator A x * pmf (pmf_of_list xs) x)"
     using assms by (intro setsum.mono_neutral_left set_pmf_of_list) (auto simp: set_pmf_eq)
-  also have "\<dots> = (\<Sum>x\<in>set (map fst xs). indicator A x * 
+  also have "\<dots> = (\<Sum>x\<in>set (map fst xs). indicator A x *
                       sum_list (map snd (filter (\<lambda>z. fst z = x) xs)))"
     using assms by (simp add: pmf_pmf_of_list)
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). sum_list (map snd (filter (\<lambda>z. fst z = x \<and> x \<in> A) xs)))"
@@ -1955,17 +1955,17 @@ proof -
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). (\<Sum>xa = 0..<length xs.
                      if fst (xs ! xa) = x \<and> x \<in> A then snd (xs ! xa) else 0))"
     by (intro setsum.cong refl, subst sum_list_map_filter', subst sum_list_setsum_nth) simp
-  also have "\<dots> = (\<Sum>xa = 0..<length xs. (\<Sum>x\<in>set (map fst xs). 
+  also have "\<dots> = (\<Sum>xa = 0..<length xs. (\<Sum>x\<in>set (map fst xs).
                      if fst (xs ! xa) = x \<and> x \<in> A then snd (xs ! xa) else 0))"
     by (rule setsum.commute)
-  also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then 
+  also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then
                      (\<Sum>x\<in>set (map fst xs). if x = fst (xs ! xa) then snd (xs ! xa) else 0) else 0)"
     by (auto intro!: setsum.cong setsum.neutral)
   also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then snd (xs ! xa) else 0)"
     by (intro setsum.cong refl) (simp_all add: setsum.delta)
   also have "\<dots> = sum_list (map snd (filter (\<lambda>x. fst x \<in> A) xs))"
     by (subst sum_list_map_filter', subst sum_list_setsum_nth) simp_all
-  finally show ?thesis . 
+  finally show ?thesis .
 qed
 
 lemma measure_pmf_of_list:
@@ -1989,7 +1989,7 @@ lemma sum_list_filter_nonzero:
   "sum_list (filter (\<lambda>x. x \<noteq> 0) xs) = sum_list xs"
   by (induction xs) simp_all
 (* END MOVE *)
-  
+
 lemma set_pmf_of_list_eq:
   assumes "pmf_of_list_wf xs" "\<And>x. x \<in> snd ` set xs \<Longrightarrow> x > 0"
   shows   "set_pmf (pmf_of_list xs) = fst ` set xs"
@@ -2000,13 +2000,13 @@ proof
     from B have "sum_list (map snd [z\<leftarrow>xs. fst z = x]) = 0"
       by (simp add: pmf_pmf_of_list[OF assms(1)] set_pmf_eq)
     moreover from y have "y \<in> snd ` {xa \<in> set xs. fst xa = x}" by force
-    ultimately have "y = 0" using assms(1) 
+    ultimately have "y = 0" using assms(1)
       by (subst (asm) sum_list_nonneg_eq_zero_iff) (auto simp: pmf_of_list_wf_def)
     with assms(2) y have False by force
   }
   thus "fst ` set xs \<subseteq> set_pmf (pmf_of_list xs)" by blast
 qed (insert set_pmf_of_list[OF assms(1)], simp_all)
-  
+
 lemma pmf_of_list_remove_zeros:
   assumes "pmf_of_list_wf xs"
   defines "xs' \<equiv> filter (\<lambda>z. snd z \<noteq> 0) xs"

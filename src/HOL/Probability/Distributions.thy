@@ -608,7 +608,7 @@ proof -
     using D by (rule entropy_distr) simp
   also have "(\<integral> x. exponential_density l x * log b (exponential_density l x) \<partial>lborel) =
     (\<integral> x. (ln l * exponential_density l x - l * (exponential_density l x * x)) / ln b \<partial>lborel)"
-    by (intro integral_cong) (auto simp: log_def ln_mult exponential_density_def field_simps)
+    by (intro Bochner_Integration.integral_cong) (auto simp: log_def ln_mult exponential_density_def field_simps)
   also have "\<dots> = (ln l - 1) / ln b"
     by simp
   finally show ?thesis
@@ -750,7 +750,7 @@ lemma (in prob_space) uniform_distributed_iff:
     uniform_distributed_bounds[of X a b]
     uniform_distributed_measure[of X a b]
     distributed_measurable[of M lborel X]
-  by (auto intro!: uniform_distrI_borel_atLeastAtMost)
+  by (auto intro!: uniform_distrI_borel_atLeastAtMost simp del: content_real_if)
 
 lemma (in prob_space) uniform_distributed_expectation:
   fixes a b :: real
@@ -762,13 +762,13 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
 
   have "(\<integral> x. indicator {a .. b} x / measure lborel {a .. b} * x \<partial>lborel) =
     (\<integral> x. (x / measure lborel {a .. b}) * indicator {a .. b} x \<partial>lborel)"
-    by (intro integral_cong) auto
+    by (intro Bochner_Integration.integral_cong) auto
   also have "(\<integral> x. (x / measure lborel {a .. b}) * indicator {a .. b} x \<partial>lborel) = (a + b) / 2"
   proof (subst integral_FTC_Icc_real)
     fix x
     show "DERIV (\<lambda>x. x\<^sup>2 / (2 * measure lborel {a..b})) x :> x / measure lborel {a..b}"
       using uniform_distributed_params[OF D]
-      by (auto intro!: derivative_eq_intros)
+      by (auto intro!: derivative_eq_intros simp del: content_real_if)
     show "isCont (\<lambda>x. x / Sigma_Algebra.measure lborel {a..b}) x"
       using uniform_distributed_params[OF D]
       by (auto intro!: isCont_divide)
@@ -791,12 +791,12 @@ proof (subst distributed_variance)
   have [arith]: "a < b" using uniform_distributed_bounds[OF D] .
   let ?\<mu> = "expectation X" let ?D = "\<lambda>x. indicator {a..b} (x + ?\<mu>) / measure lborel {a..b}"
   have "(\<integral>x. x\<^sup>2 * (?D x) \<partial>lborel) = (\<integral>x. x\<^sup>2 * (indicator {a - ?\<mu> .. b - ?\<mu>} x) / measure lborel {a .. b} \<partial>lborel)"
-    by (intro integral_cong) (auto split: split_indicator)
+    by (intro Bochner_Integration.integral_cong) (auto split: split_indicator)
   also have "\<dots> = (b - a)\<^sup>2 / 12"
     by (simp add: integral_power uniform_distributed_expectation[OF D])
        (simp add: eval_nat_numeral field_simps )
   finally show "(\<integral>x. x\<^sup>2 * ?D x \<partial>lborel) = (b - a)\<^sup>2 / 12" .
-qed (auto intro: D simp: measure_nonneg)
+qed (auto intro: D simp del: content_real_if)
 
 subsection \<open>Normal distribution\<close>
 
@@ -949,7 +949,7 @@ proof -
     proof (intro filterlim_cong refl eventually_at_top_linorder[THEN iffD2] exI[of _ 0] allI impI)
       fix b :: real assume b: "0 \<le> b"
       have "Suc k * (\<integral>x. indicator {0..b} x *\<^sub>R ?M k x \<partial>lborel) = (\<integral>x. indicator {0..b} x *\<^sub>R (exp (- x\<^sup>2) * ((Suc k) * x ^ k)) \<partial>lborel)"
-        unfolding integral_mult_right_zero[symmetric] by (intro integral_cong) auto
+        unfolding integral_mult_right_zero[symmetric] by (intro Bochner_Integration.integral_cong) auto
       also have "\<dots> = exp (- b\<^sup>2) * b ^ (Suc k) - exp (- 0\<^sup>2) * 0 ^ (Suc k) -
           (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * x * exp (- x\<^sup>2) * x ^ (Suc k)) \<partial>lborel)"
         by (rule integral_by_parts')
@@ -957,7 +957,7 @@ proof -
                  simp: diff_Suc of_nat_Suc field_simps split: nat.split)
       also have "(\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * x * exp (- x\<^sup>2) * x ^ (Suc k)) \<partial>lborel) =
         (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * (exp (- x\<^sup>2) * x ^ (k + 2))) \<partial>lborel)"
-        by (intro integral_cong) auto
+        by (intro Bochner_Integration.integral_cong) auto
       finally have "Suc k * (\<integral>x. indicator {0..b} x *\<^sub>R ?M k x \<partial>lborel) =
         exp (- b\<^sup>2) * b ^ (Suc k) + 2 * (\<integral>x. indicator {0..b} x *\<^sub>R ?M (k + 2) x \<partial>lborel)"
         by (simp del: real_scaleR_def integral_mult_right add: integral_mult_right[symmetric])
@@ -1361,10 +1361,10 @@ proof -
   have "entropy b lborel X = - (\<integral> x. normal_density \<mu> \<sigma> x * log b (normal_density \<mu> \<sigma> x) \<partial>lborel)"
     using D by (rule entropy_distr) simp
   also have "\<dots> = - (\<integral> x. normal_density \<mu> \<sigma> x * (- ln (2 * pi * \<sigma>\<^sup>2) - (x - \<mu>)\<^sup>2 / \<sigma>\<^sup>2) / (2 * ln b) \<partial>lborel)"
-    by (intro arg_cong[where f="uminus"] integral_cong)
+    by (intro arg_cong[where f="uminus"] Bochner_Integration.integral_cong)
        (auto simp: normal_density_def field_simps ln_mult log_def ln_div ln_sqrt)
   also have "\<dots> = - (\<integral>x. - (normal_density \<mu> \<sigma> x * (ln (2 * pi * \<sigma>\<^sup>2)) + (normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2) / \<sigma>\<^sup>2) / (2 * ln b) \<partial>lborel)"
-    by (intro arg_cong[where f="uminus"] integral_cong) (auto simp: divide_simps field_simps)
+    by (intro arg_cong[where f="uminus"] Bochner_Integration.integral_cong) (auto simp: divide_simps field_simps)
   also have "\<dots> = (\<integral>x. normal_density \<mu> \<sigma> x * (ln (2 * pi * \<sigma>\<^sup>2)) + (normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2) / \<sigma>\<^sup>2 \<partial>lborel) / (2 * ln b)"
     by (simp del: minus_add_distrib)
   also have "\<dots> = (ln (2 * pi * \<sigma>\<^sup>2) + 1) / (2 * ln b)"

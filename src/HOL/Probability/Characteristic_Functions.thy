@@ -316,13 +316,13 @@ proof -
   then have "norm (char M t - ?t1) = norm (char M t - (CLINT x | M. (\<Sum>k \<le> n. c k x)))"
     by (simp add: integ_c)
   also have "\<dots> = norm ((CLINT x | M. iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    unfolding char_def by (subst integral_diff[OF integ_iexp]) (auto intro!: integ_c)
+    unfolding char_def by (subst Bochner_Integration.integral_diff[OF integ_iexp]) (auto intro!: integ_c)
   also have "\<dots> \<le> expectation (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    by (intro integral_norm_bound integrable_diff integ_iexp integrable_setsum integ_c) simp
+    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
   also have "\<dots> \<le> expectation (\<lambda>x. 2 * \<bar>t\<bar> ^ n / fact n * \<bar>x\<bar> ^ n)"
   proof (rule integral_mono)
     show "integrable M (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k\<le>n. c k x)))"
-      by (intro integrable_norm integrable_diff integ_iexp integrable_setsum integ_c) simp
+      by (intro integrable_norm Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
     show "integrable M (\<lambda>x. 2 * \<bar>t\<bar> ^ n / fact n * \<bar>x\<bar> ^ n)"
       unfolding power_abs[symmetric]
       by (intro integrable_mult_right integrable_abs integrable_moments) simp
@@ -360,16 +360,16 @@ proof -
   then have "norm (char M t - ?t1) = norm (char M t - (CLINT x | M. (\<Sum>k \<le> n. c k x)))"
     by (simp add: integ_c)
   also have "\<dots> = norm ((CLINT x | M. iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    unfolding char_def by (subst integral_diff[OF integ_iexp]) (auto intro!: integ_c)
+    unfolding char_def by (subst Bochner_Integration.integral_diff[OF integ_iexp]) (auto intro!: integ_c)
   also have "\<dots> \<le> expectation (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    by (intro integral_norm_bound integrable_diff integ_iexp integrable_setsum integ_c) simp
+    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
   also have "\<dots> \<le> expectation (\<lambda>x. min (2 * \<bar>t * x\<bar>^n / fact n) (\<bar>t * x\<bar>^(Suc n) / fact (Suc n)))"
     (is "_ \<le> expectation ?f")
   proof (rule integral_mono)
     show "integrable M (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k\<le>n. c k x)))"
-      by (intro integrable_norm integrable_diff integ_iexp integrable_setsum integ_c) simp
+      by (intro integrable_norm Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
     show "integrable M ?f"
-      by (rule integrable_bound[where f="\<lambda>x. 2 * \<bar>t * x\<bar> ^ n / fact n"])
+      by (rule Bochner_Integration.integrable_bound[where f="\<lambda>x. 2 * \<bar>t * x\<bar> ^ n / fact n"])
          (auto simp: integrable_moments power_abs[symmetric] power_mult_distrib)
     show "cmod (iexp (t * x) - (\<Sum>k\<le>n. c k x)) \<le> ?f x" for x
       using iexp_approx1[of "t * x" n] iexp_approx2[of "t * x" n]
@@ -377,9 +377,9 @@ proof -
   qed
   also have "\<dots> = (\<bar>t\<bar>^n / fact (Suc n)) * expectation (\<lambda>x. min (2 * \<bar>x\<bar>^n * Suc n) (\<bar>t\<bar> * \<bar>x\<bar>^Suc n))"
     unfolding *
-  proof (rule integral_mult_right)
+  proof (rule Bochner_Integration.integral_mult_right)
     show "integrable M (\<lambda>x. min (2 * \<bar>x\<bar> ^ n * real (Suc n)) (\<bar>t\<bar> * \<bar>x\<bar> ^ Suc n))"
-      by (rule integrable_bound[where f="\<lambda>x. 2 * \<bar>x\<bar> ^ n * real (Suc n)"])
+      by (rule Bochner_Integration.integrable_bound[where f="\<lambda>x. 2 * \<bar>x\<bar> ^ n * real (Suc n)"])
          (auto simp: integrable_moments power_abs[symmetric] power_mult_distrib)
   qed
   finally show ?thesis

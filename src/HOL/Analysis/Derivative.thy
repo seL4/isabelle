@@ -9,6 +9,9 @@ theory Derivative
 imports Brouwer_Fixpoint Operator_Norm Uniform_Limit Bounded_Linear_Function
 begin
 
+lemma bounded_linear_component [intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x \<bullet> k)"
+  by (rule bounded_linear_inner_left)
+
 lemma onorm_inner_left:
   assumes "bounded_linear r"
   shows "onorm (\<lambda>x. r x \<bullet> f) \<le> onorm r * norm f"
@@ -2905,6 +2908,5 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
   then show ?case
     by eventually_elim (auto simp: dist_norm field_simps)
 qed (auto intro!: bounded_linear_intros simp: split_beta')
-
 
 end

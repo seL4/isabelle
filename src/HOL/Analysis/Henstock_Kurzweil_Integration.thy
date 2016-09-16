@@ -6,9 +6,7 @@ section \<open>Henstock-Kurzweil gauge integration in many dimensions.\<close>
 
 theory Henstock_Kurzweil_Integration
 imports
-  Derivative
-  Uniform_Limit
-  "~~/src/HOL/Library/Indicator_Function"
+  Lebesgue_Measure
 begin
 
 lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distrib
@@ -22,122 +20,19 @@ lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 lemma conjunctD3: assumes "a \<and> b \<and> c" shows a b c using assms by auto
 lemma conjunctD4: assumes "a \<and> b \<and> c \<and> d" shows a b c d using assms by auto
 
+lemma cond_cases: "(P \<Longrightarrow> Q x) \<Longrightarrow> (\<not> P \<Longrightarrow> Q y) \<Longrightarrow> Q (if P then x else y)"
+  by auto
+
 declare norm_triangle_ineq4[intro]
 
-lemma simple_image: "{f x |x . x \<in> s} = f ` s"
-  by blast
-
-lemma linear_simps:
-  assumes "bounded_linear f"
-  shows
-    "f (a + b) = f a + f b"
-    "f (a - b) = f a - f b"
-    "f 0 = 0"
-    "f (- a) = - f a"
-    "f (s *\<^sub>R v) = s *\<^sub>R (f v)"
-proof -
-  interpret f: bounded_linear f by fact
-  show "f (a + b) = f a + f b" by (rule f.add)
-  show "f (a - b) = f a - f b" by (rule f.diff)
-  show "f 0 = 0" by (rule f.zero)
-  show "f (- a) = - f a" by (rule f.minus)
-  show "f (s *\<^sub>R v) = s *\<^sub>R (f v)" by (rule f.scaleR)
-qed
-
-lemma bounded_linearI:
-  assumes "\<And>x y. f (x + y) = f x + f y"
-    and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x"
-    and "\<And>x. norm (f x) \<le> norm x * K"
-  shows "bounded_linear f"
-  using assms by (rule bounded_linear_intro) (* FIXME: duplicate *)
-
-lemma bounded_linear_component [intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x \<bullet> k)"
-  by (rule bounded_linear_inner_left)
-
-lemma transitive_stepwise_lt_eq:
-  assumes "(\<And>x y z::nat. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z)"
-  shows "((\<forall>m. \<forall>n>m. R m n) \<longleftrightarrow> (\<forall>n. R n (Suc n)))"
-  (is "?l = ?r")
-proof safe
-  assume ?r
-  fix n m :: nat
-  assume "m < n"
-  then show "R m n"
-  proof (induct n arbitrary: m)
-    case 0
-    then show ?case by auto
-  next
-    case (Suc n)
-    show ?case
-    proof (cases "m < n")
-      case True
-      show ?thesis
-        apply (rule assms[OF Suc(1)[OF True]])
-        using \<open>?r\<close>
-        apply auto
-        done
-    next
-      case False
-      then have "m = n"
-        using Suc(2) by auto
-      then show ?thesis
-        using \<open>?r\<close> by auto
-    qed
-  qed
-qed auto
-
-lemma transitive_stepwise_gt:
-  assumes "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z" "\<And>n. R n (Suc n)"
-  shows "\<forall>n>m. R m n"
-proof -
-  have "\<forall>m. \<forall>n>m. R m n"
-    apply (subst transitive_stepwise_lt_eq)
-    apply (blast intro: assms)+
-    done
-  then show ?thesis by auto
-qed
-
-lemma transitive_stepwise_le_eq:
-  assumes "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
-  shows "(\<forall>m. \<forall>n\<ge>m. R m n) \<longleftrightarrow> (\<forall>n. R n (Suc n))"
-  (is "?l = ?r")
-proof safe
-  assume ?r
-  fix m n :: nat
-  assume "m \<le> n"
-  then show "R m n"
-  proof (induct n arbitrary: m)
-    case 0
-    with assms show ?case by auto
-  next
-    case (Suc n)
-    show ?case
-    proof (cases "m \<le> n")
-      case True
-      with Suc.hyps \<open>\<forall>n. R n (Suc n)\<close> assms show ?thesis
-        by blast
-    next
-      case False
-      then have "m = Suc n"
-        using Suc(2) by auto
-      then show ?thesis
-        using assms(1) by auto
-    qed
-  qed
-qed auto
-
 lemma transitive_stepwise_le:
-  assumes "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
-    and "\<And>n. R n (Suc n)"
+  assumes "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z" and "\<And>n. R n (Suc n)"
   shows "\<forall>n\<ge>m. R m n"
-proof -
-  have "\<forall>m. \<forall>n\<ge>m. R m n"
-    apply (subst transitive_stepwise_le_eq)
-    apply (blast intro: assms)+
-    done
-  then show ?thesis by auto
+proof (intro allI impI)
+  show "m \<le> n \<Longrightarrow> R m n" for n
+    by (induction rule: dec_induct)
+       (use assms in blast)+
 qed
-
 
 subsection \<open>Some useful lemmas about intervals.\<close>
 
@@ -208,13 +103,28 @@ lemma inter_interior_unions_intervals:
     "finite f \<Longrightarrow> open s \<Longrightarrow> \<forall>t\<in>f. \<exists>a b. t = cbox a b \<Longrightarrow> \<forall>t\<in>f. s \<inter> (interior t) = {} \<Longrightarrow> s \<inter> interior (\<Union>f) = {}"
   using interior_Union_subset_cbox[of f "UNIV - s"] by auto
 
+lemma interval_split:
+  fixes a :: "'a::euclidean_space"
+  assumes "k \<in> Basis"
+  shows
+    "cbox a b \<inter> {x. x\<bullet>k \<le> c} = cbox a (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i) *\<^sub>R i)"
+    "cbox a b \<inter> {x. x\<bullet>k \<ge> c} = cbox (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i) *\<^sub>R i) b"
+  apply (rule_tac[!] set_eqI)
+  unfolding Int_iff mem_box mem_Collect_eq
+  using assms
+  apply auto
+  done
+
+lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> cbox a b \<noteq> {}"
+  by (simp add: box_ne_empty)
+
 subsection \<open>Bounds on intervals where they exist.\<close>
 
 definition interval_upperbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
   where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x:s. x\<bullet>i) *\<^sub>R i)"
 
 definition interval_lowerbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
-   where "interval_lowerbound s = (\<Sum>i\<in>Basis. (INF x:s. x\<bullet>i) *\<^sub>R i)"
+  where "interval_lowerbound s = (\<Sum>i\<in>Basis. (INF x:s. x\<bullet>i) *\<^sub>R i)"
 
 lemma interval_upperbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
@@ -241,7 +151,6 @@ lemma interval_bounds'[simp]:
   shows "interval_upperbound (cbox a b) = b"
     and "interval_lowerbound (cbox a b) = a"
   using assms unfolding box_ne_empty by auto
-
 
 lemma interval_upperbound_Times:
   assumes "A \<noteq> {}" and "B \<noteq> {}"
@@ -273,219 +182,83 @@ qed
 
 subsection \<open>Content (length, area, volume...) of an interval.\<close>
 
-definition "content (s::('a::euclidean_space) set) =
-  (if s = {} then 0 else (\<Prod>i\<in>Basis. (interval_upperbound s)\<bullet>i - (interval_lowerbound s)\<bullet>i))"
+abbreviation content :: "'a::euclidean_space set \<Rightarrow> real"
+  where "content s \<equiv> measure lborel s"
 
-lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> cbox a b \<noteq> {}"
-  unfolding box_eq_empty unfolding not_ex not_less by auto
+lemma content_cbox_cases:
+  "content (cbox a b) = (if \<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i then setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis else 0)"
+  by (simp add: measure_lborel_cbox_eq inner_diff)
 
-lemma content_cbox:
-  fixes a :: "'a::euclidean_space"
-  assumes "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
-  shows "content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
-  using interval_not_empty[OF assms]
-  unfolding content_def
-  by auto
+lemma content_cbox: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
+  unfolding content_cbox_cases by simp
 
-lemma content_cbox':
-  fixes a :: "'a::euclidean_space"
-  assumes "cbox a b \<noteq> {}"
-  shows "content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
-    using assms box_ne_empty(1) content_cbox by blast
+lemma content_cbox': "cbox a b \<noteq> {} \<Longrightarrow> content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
+  by (simp add: box_ne_empty inner_diff)
 
 lemma content_real: "a \<le> b \<Longrightarrow> content {a..b} = b - a"
-  by (auto simp: interval_upperbound_def interval_lowerbound_def content_def)
+  by simp
 
 lemma abs_eq_content: "\<bar>y - x\<bar> = (if x\<le>y then content {x .. y} else content {y..x})"
   by (auto simp: content_real)
 
-lemma content_singleton[simp]: "content {a} = 0"
-proof -
-  have "content (cbox a a) = 0"
-    by (subst content_cbox) (auto simp: ex_in_conv)
-  then show ?thesis by (simp add: cbox_sing)
-qed
+lemma content_singleton: "content {a} = 0"
+  by simp
 
-lemma content_unit[iff]: "content(cbox 0 (One::'a::euclidean_space)) = 1"
- proof -
-   have *: "\<forall>i\<in>Basis. (0::'a)\<bullet>i \<le> (One::'a)\<bullet>i"
-    by auto
-  have "0 \<in> cbox 0 (One::'a)"
-    unfolding mem_box by auto
-  then show ?thesis
-     unfolding content_def interval_bounds[OF *] using setprod.neutral_const by auto
- qed
+lemma content_unit[iff]: "content (cbox 0 (One::'a::euclidean_space)) = 1"
+  by simp
 
-lemma content_pos_le[intro]:
-  fixes a::"'a::euclidean_space"
-  shows "0 \<le> content (cbox a b)"
-proof (cases "cbox a b = {}")
-  case False
-  then have *: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
-    unfolding box_ne_empty .
-  have "0 \<le> (\<Prod>i\<in>Basis. interval_upperbound (cbox a b) \<bullet> i - interval_lowerbound (cbox a b) \<bullet> i)"
-    apply (rule setprod_nonneg)
-    unfolding interval_bounds[OF *]
-    using *
-    apply auto
-    done
-  also have "\<dots> = content (cbox a b)" using False by (simp add: content_def)
-  finally show ?thesis .
-qed (simp add: content_def)
+lemma content_pos_le[intro]: "0 \<le> content (cbox a b)"
+  by simp
 
-corollary content_nonneg [simp]:
-  fixes a::"'a::euclidean_space"
-  shows "~ content (cbox a b) < 0"
-using not_le by blast
+corollary content_nonneg [simp]: "~ content (cbox a b) < 0"
+  using not_le by blast
 
-lemma content_pos_lt:
-  fixes a :: "'a::euclidean_space"
-  assumes "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"
-  shows "0 < content (cbox a b)"
-  using assms
-  by (auto simp: content_def box_eq_empty intro!: setprod_pos)
+lemma content_pos_lt: "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i \<Longrightarrow> 0 < content (cbox a b)"
+  by (auto simp: less_imp_le inner_diff box_eq_empty intro!: setprod_pos)
 
-lemma content_eq_0:
-  "content (cbox a b) = 0 \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i)"
-  by (auto simp: content_def box_eq_empty intro!: setprod_pos bexI)
-
-lemma cond_cases: "(P \<Longrightarrow> Q x) \<Longrightarrow> (\<not> P \<Longrightarrow> Q y) \<Longrightarrow> Q (if P then x else y)"
-  by auto
-
-lemma content_cbox_cases:
-  "content (cbox a (b::'a::euclidean_space)) =
-    (if \<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i then setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis else 0)"
-  by (auto simp: not_le content_eq_0 intro: less_imp_le content_cbox)
+lemma content_eq_0: "content (cbox a b) = 0 \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i)"
+  by (auto simp: content_cbox_cases not_le intro: less_imp_le antisym eq_refl)
 
 lemma content_eq_0_interior: "content (cbox a b) = 0 \<longleftrightarrow> interior(cbox a b) = {}"
-  unfolding content_eq_0 interior_cbox box_eq_empty
-  by auto
+  unfolding content_eq_0 interior_cbox box_eq_empty by auto
 
-lemma content_pos_lt_eq:
-  "0 < content (cbox a (b::'a::euclidean_space)) \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i)"
-proof (rule iffI)
-  assume "0 < content (cbox a b)"
-  then have "content (cbox a b) \<noteq> 0" by auto
-  then show "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"
-    unfolding content_eq_0 not_ex not_le by fastforce
-next
-  assume "\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i"
-  then show "0 < content (cbox a b)"
-    by (metis content_pos_lt)
-qed
+lemma content_pos_lt_eq: "0 < content (cbox a (b::'a::euclidean_space)) \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i)"
+  by (auto simp add: content_cbox_cases less_le setprod_nonneg)
 
 lemma content_empty [simp]: "content {} = 0"
-  unfolding content_def by auto
+  by simp
 
 lemma content_real_if [simp]: "content {a..b} = (if a \<le> b then b - a else 0)"
   by (simp add: content_real)
 
-lemma content_subset:
-  assumes "cbox a b \<subseteq> cbox c d"
-  shows "content (cbox a b) \<le> content (cbox c d)"
-proof (cases "cbox a b = {}")
-  case True
-  then show ?thesis
-    using content_pos_le[of c d] by auto
-next
-  case False
-  then have ab_ne: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
-    unfolding box_ne_empty by auto
-  then have ab_ab: "a\<in>cbox a b" "b\<in>cbox a b"
-    unfolding mem_box by auto
-  have "cbox c d \<noteq> {}" using assms False by auto
-  then have cd_ne: "\<forall>i\<in>Basis. c \<bullet> i \<le> d \<bullet> i"
-    using assms unfolding box_ne_empty by auto
-  have "\<And>i. i \<in> Basis \<Longrightarrow> 0 \<le> b \<bullet> i - a \<bullet> i"
-    using ab_ne by auto
-  moreover
-  have "\<And>i. i \<in> Basis \<Longrightarrow> b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
-    using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(2)]
-          assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(1)]
-      by (metis diff_mono)
-  ultimately show ?thesis
-    unfolding content_def interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
-    by (simp add: setprod_mono if_not_P[OF False] if_not_P[OF \<open>cbox c d \<noteq> {}\<close>])
-qed
+lemma content_subset: "cbox a b \<subseteq> cbox c d \<Longrightarrow> content (cbox a b) \<le> content (cbox c d)"
+  unfolding measure_def
+  by (intro enn2real_mono emeasure_mono) (auto simp: emeasure_lborel_cbox_eq)
 
 lemma content_lt_nz: "0 < content (cbox a b) \<longleftrightarrow> content (cbox a b) \<noteq> 0"
   unfolding content_pos_lt_eq content_eq_0 unfolding not_ex not_le by fastforce
 
-lemma content_times[simp]: "content (A \<times> B) = content A * content B"
-proof (cases "A \<times> B = {}")
-  let ?ub1 = "interval_upperbound" and ?lb1 = "interval_lowerbound"
-  let ?ub2 = "interval_upperbound" and ?lb2 = "interval_lowerbound"
-  assume nonempty: "A \<times> B \<noteq> {}"
-  hence "content (A \<times> B) = (\<Prod>i\<in>Basis. (?ub1 A, ?ub2 B) \<bullet> i - (?lb1 A, ?lb2 B) \<bullet> i)"
-      unfolding content_def by (simp add: interval_upperbound_Times interval_lowerbound_Times)
-  also have "... = content A * content B" unfolding content_def using nonempty
-    apply (subst Basis_prod_def, subst setprod.union_disjoint, force, force, force, simp)
-    apply (subst (1 2) setprod.reindex, auto intro: inj_onI)
-    done
-  finally show ?thesis .
-qed (auto simp: content_def)
-
 lemma content_Pair: "content (cbox (a,c) (b,d)) = content (cbox a b) * content (cbox c d)"
-  by (simp add: cbox_Pair_eq)
+  unfolding measure_lborel_cbox_eq Basis_prod_def
+  apply (subst setprod.union_disjoint)
+  apply (auto simp: bex_Un ball_Un)
+  apply (subst (1 2) setprod.reindex_nontrivial)
+  apply auto
+  done
 
 lemma content_cbox_pair_eq0_D:
    "content (cbox (a,c) (b,d)) = 0 \<Longrightarrow> content (cbox a b) = 0 \<or> content (cbox c d) = 0"
   by (simp add: content_Pair)
 
-lemma content_eq_0_gen:
-  fixes s :: "'a::euclidean_space set"
-  assumes "bounded s"
-  shows "content s = 0 \<longleftrightarrow> (\<exists>i\<in>Basis. \<exists>v. \<forall>x \<in> s. x \<bullet> i = v)"  (is "_ = ?rhs")
-proof safe
-  assume "content s = 0" then show ?rhs
-    apply (clarsimp simp: ex_in_conv content_def split: if_split_asm)
-    apply (rule_tac x=a in bexI)
-    apply (rule_tac x="interval_lowerbound s \<bullet> a" in exI)
-    apply (clarsimp simp: interval_upperbound_def interval_lowerbound_def)
-    apply (drule cSUP_eq_cINF_D)
-    apply (auto simp: bounded_inner_imp_bdd_above [OF assms]  bounded_inner_imp_bdd_below [OF assms])
-    done
-next
-  fix i a
-  assume "i \<in> Basis" "\<forall>x\<in>s. x \<bullet> i = a"
-  then show "content s = 0"
-    apply (clarsimp simp: content_def)
-    apply (rule_tac x=i in bexI)
-    apply (auto simp: interval_upperbound_def interval_lowerbound_def)
-    done
-qed
-
-lemma content_0_subset_gen:
-  fixes a :: "'a::euclidean_space"
-  assumes "content t = 0" "s \<subseteq> t" "bounded t" shows "content s = 0"
-proof -
-  have "bounded s"
-    using assms by (metis bounded_subset)
-  then show ?thesis
-    using assms
-    by (auto simp: content_eq_0_gen)
-qed
-
-lemma content_0_subset: "\<lbrakk>content(cbox a b) = 0; s \<subseteq> cbox a b\<rbrakk> \<Longrightarrow> content s = 0"
-  by (simp add: content_0_subset_gen bounded_cbox)
-
-
-lemma interval_split:
-  fixes a :: "'a::euclidean_space"
-  assumes "k \<in> Basis"
-  shows
-    "cbox a b \<inter> {x. x\<bullet>k \<le> c} = cbox a (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i) *\<^sub>R i)"
-    "cbox a b \<inter> {x. x\<bullet>k \<ge> c} = cbox (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i) *\<^sub>R i) b"
-  apply (rule_tac[!] set_eqI)
-  unfolding Int_iff mem_box mem_Collect_eq
-  using assms
-  apply auto
-  done
+lemma content_0_subset: "content(cbox a b) = 0 \<Longrightarrow> s \<subseteq> cbox a b \<Longrightarrow> content s = 0"
+  using emeasure_mono[of s "cbox a b" lborel]
+  by (auto simp: measure_def enn2real_eq_0_iff emeasure_lborel_cbox_eq)
 
 lemma content_split:
   fixes a :: "'a::euclidean_space"
   assumes "k \<in> Basis"
   shows "content (cbox a b) = content(cbox a b \<inter> {x. x\<bullet>k \<le> c}) + content(cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+  -- \<open>Prove using measure theory\<close>
 proof cases
   note simps = interval_split[OF assms] content_cbox_cases
   have *: "Basis = insert k (Basis - {k})" "\<And>x. finite (Basis-{x})" "\<And>x. x\<notin>Basis-{x}"
@@ -2039,11 +1812,6 @@ lemma additive_content_division: "d division_of (cbox a b) \<Longrightarrow> set
 lemma additive_content_tagged_division:
   "d tagged_division_of (cbox a b) \<Longrightarrow> setsum (\<lambda>(x,l). content l) d = content (cbox a b)"
   unfolding setsum.operative_tagged_division[OF operative_content, symmetric] by blast
-
-lemma
-  shows real_inner_1_left: "inner 1 x = x"
-  and real_inner_1_right: "inner x 1 = x"
-  by simp_all
 
 lemma content_real_eq_0: "content {a .. b::real} = 0 \<longleftrightarrow> a \<ge> b"
   by (metis atLeastatMost_empty_iff2 content_empty content_real diff_self eq_iff le_cases le_iff_diff_le_0)
@@ -3988,8 +3756,7 @@ proof -
   have "norm (setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> (\<Sum>i\<in>p. norm (content i *\<^sub>R c))"
     using norm_setsum by blast
   also have "...  \<le> e * (\<Sum>i\<in>p. \<bar>content i\<bar>)"
-    apply (simp add: setsum_right_distrib[symmetric] mult.commute)
-    using assms(2) mult_right_mono by blast
+    by (simp add: setsum_right_distrib[symmetric] mult.commute assms(2) mult_right_mono setsum_nonneg)
   also have "... \<le> e * content (cbox a b)"
     apply (rule mult_left_mono [OF _ e])
     apply (simp add: sumeq)
@@ -4458,65 +4225,70 @@ lemma content_doublesplit:
   assumes "0 < e"
     and k: "k \<in> Basis"
   obtains d where "0 < d" and "content (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) < e"
-proof (cases "content (cbox a b) = 0")
-  case True
-  then have ce: "content (cbox a b) < e"
-    by (metis \<open>0 < e\<close>)
+proof cases
+  assume *: "a \<bullet> k \<le> c \<and> c \<le> b \<bullet> k \<and> (\<forall>j\<in>Basis. a \<bullet> j \<le> b \<bullet> j)"
+  define a' where "a' d = (\<Sum>j\<in>Basis. (if j = k then max (a\<bullet>j) (c - d) else a\<bullet>j) *\<^sub>R j)" for d
+  define b' where "b' d = (\<Sum>j\<in>Basis. (if j = k then min (b\<bullet>j) (c + d) else b\<bullet>j) *\<^sub>R j)" for d
+
+  have "((\<lambda>d. \<Prod>j\<in>Basis. (b' d - a' d) \<bullet> j) \<longlongrightarrow> (\<Prod>j\<in>Basis. (b' 0 - a' 0) \<bullet> j)) (at_right 0)"
+    by (auto simp: b'_def a'_def intro!: tendsto_min tendsto_max tendsto_eq_intros)
+  also have "(\<Prod>j\<in>Basis. (b' 0 - a' 0) \<bullet> j) = 0"
+    using k *
+    by (intro setprod_zero bexI[OF _ k])
+       (auto simp: b'_def a'_def inner_diff inner_setsum_left inner_not_same_Basis intro!: setsum.cong)
+  also have "((\<lambda>d. \<Prod>j\<in>Basis. (b' d - a' d) \<bullet> j) \<longlongrightarrow> 0) (at_right 0) =
+    ((\<lambda>d. content (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d})) \<longlongrightarrow> 0) (at_right 0)"
+  proof (intro tendsto_cong eventually_at_rightI)
+    fix d :: real assume d: "d \<in> {0<..<1}"
+    have "cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d} = cbox (a' d) (b' d)" for d
+      using * d k by (auto simp add: cbox_def set_eq_iff Int_def ball_conj_distrib abs_diff_le_iff a'_def b'_def)
+    moreover have "j \<in> Basis \<Longrightarrow> a' d \<bullet> j \<le> b' d \<bullet> j" for j
+      using * d k by (auto simp: a'_def b'_def)
+    ultimately show "(\<Prod>j\<in>Basis. (b' d - a' d) \<bullet> j) = content (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d})"
+      by simp
+  qed simp
+  finally have "((\<lambda>d. content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) \<longlongrightarrow> 0) (at_right 0)" .
+  from order_tendstoD(2)[OF this \<open>0<e\<close>]
+  obtain d' where "0 < d'" and d': "\<And>y. y > 0 \<Longrightarrow> y < d' \<Longrightarrow> content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> y}) < e"
+    by (subst (asm) eventually_at_right[of _ 1]) auto
   show ?thesis
-    apply (rule that[of 1])
-    apply simp
-    unfolding interval_doublesplit[OF k]
-    apply (rule le_less_trans[OF content_subset ce])
-    apply (auto simp: interval_doublesplit[symmetric] k)
-    done
+    by (rule that[of "d'/2"], insert \<open>0<d'\<close> d'[of "d'/2"], auto)
 next
-  case False
-  define d where "d = e / 3 / setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) (Basis - {k})"
-  note False[unfolded content_eq_0 not_ex not_le, rule_format]
-  then have "\<And>x. x \<in> Basis \<Longrightarrow> b\<bullet>x > a\<bullet>x"
-    by (auto simp add:not_le)
-  then have prod0: "0 < setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) (Basis - {k})"
-    by (force simp add: setprod_pos field_simps)
-  then have "d > 0"
-    using assms
-    by (auto simp add: d_def field_simps)
-  then show ?thesis
-  proof (rule that[of d])
-    have *: "Basis = insert k (Basis - {k})"
-      using k by auto
-    have less_e: "(min (b \<bullet> k) (c + d) - max (a \<bullet> k) (c - d)) * (\<Prod>i\<in>Basis - {k}. b \<bullet> i - a \<bullet> i) < e"
-    proof -
-      have "(min (b \<bullet> k) (c + d) - max (a \<bullet> k) (c - d)) \<le> 2 * d"
+  assume *: "\<not> (a \<bullet> k \<le> c \<and> c \<le> b \<bullet> k \<and> (\<forall>j\<in>Basis. a \<bullet> j \<le> b \<bullet> j))"
+  then have "(\<exists>j\<in>Basis. b \<bullet> j < a \<bullet> j) \<or> (c < a \<bullet> k \<or> b \<bullet> k < c)"
+    by (auto simp: not_le)
+  show thesis
+  proof cases
+    assume "\<exists>j\<in>Basis. b \<bullet> j < a \<bullet> j"
+    then have [simp]: "cbox a b = {}"
+      using box_ne_empty(1)[of a b] by auto
+    show ?thesis
+      by (rule that[of 1]) (simp_all add: \<open>0<e\<close>)
+  next
+    assume "\<not> (\<exists>j\<in>Basis. b \<bullet> j < a \<bullet> j)"
+    with * have "c < a \<bullet> k \<or> b \<bullet> k < c"
+      by auto
+    then show thesis
+    proof
+      assume c: "c < a \<bullet> k"
+      moreover have "x \<in> cbox a b \<Longrightarrow> c \<le> x \<bullet> k" for x
+        using k c by (auto simp: cbox_def)
+      ultimately have "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> (a \<bullet> k - c) / 2} = {}"
+        using k by (auto simp: cbox_def)
+      with \<open>0<e\<close> c that[of "(a \<bullet> k - c) / 2"] show ?thesis
         by auto
-      also have "\<dots> < e / (\<Prod>i\<in>Basis - {k}. b \<bullet> i - a \<bullet> i)"
-        unfolding d_def
-        using assms prod0
-        by (auto simp add: field_simps)
-      finally show "(min (b \<bullet> k) (c + d) - max (a \<bullet> k) (c - d)) * (\<Prod>i\<in>Basis - {k}. b \<bullet> i - a \<bullet> i) < e"
-        unfolding pos_less_divide_eq[OF prod0] .
-    qed
-    show "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
-    proof (cases "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} = {}")
-      case True
-      then show ?thesis
-        using assms by simp
     next
-      case False
-      then have
-          "(\<Prod>i\<in>Basis - {k}. interval_upperbound (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i -
-                interval_lowerbound (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i)
-           = (\<Prod>i\<in>Basis - {k}. b\<bullet>i - a\<bullet>i)"
-        by (simp add: box_eq_empty interval_doublesplit[OF k])
-      then show "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
-        unfolding content_def
-        using assms False
-        apply (subst *)
-        apply (subst setprod.insert)
-        apply (simp_all add: interval_doublesplit[OF k] box_eq_empty not_less less_e)
-        done
+      assume c: "b \<bullet> k < c"
+      moreover have "x \<in> cbox a b \<Longrightarrow> x \<bullet> k \<le> c" for x
+        using k c by (auto simp: cbox_def)
+      ultimately have "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> (c - b \<bullet> k) / 2} = {}"
+        using k by (auto simp: cbox_def)
+      with \<open>0<e\<close> c that[of "(c - b \<bullet> k) / 2"] show ?thesis
+        by auto
     qed
   qed
 qed
+
 
 lemma negligible_standard_hyperplane[intro]:
   fixes k :: "'a::euclidean_space"
@@ -5695,6 +5467,7 @@ proof goal_cases
     by auto
   from fundamental_theorem_of_calculus[rule_format, OF \<open>a \<le> b\<close> deriv]
   have "(i has_integral ?sum b - ?sum a) {a .. b}"
+    using atLeastatMost_empty'[simp del]
     by (simp add: i_def g_def Dg_def)
   also
   have one: "(- 1) ^ p' * (- 1) ^ p' = (1::real)"
@@ -6036,7 +5809,7 @@ proof -
         done
       show ?thesis
         using False
-        apply (simp add: abs_eq_content del: content_real_if)
+        apply (simp add: abs_eq_content del: content_real_if measure_lborel_Icc)
         apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
         using yx False d x y \<open>e>0\<close> apply (auto simp add: Idiff fux_int)
         done
@@ -6054,7 +5827,7 @@ proof -
         done
       have "norm (integral {a..x} f - integral {a..y} f - (x - y) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
         using True
-        apply (simp add: abs_eq_content del: content_real_if)
+        apply (simp add: abs_eq_content del: content_real_if measure_lborel_Icc)
         apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
         using yx True d x y \<open>e>0\<close> apply (auto simp add: Idiff fux_int)
         done
@@ -6274,6 +6047,62 @@ qed
 
 subsection \<open>Special case of a basic affine transformation.\<close>
 
+lemma AE_lborel_inner_neq:
+  assumes k: "k \<in> Basis"
+  shows "AE x in lborel. x \<bullet> k \<noteq> c"
+proof -
+  interpret finite_product_sigma_finite "\<lambda>_. lborel" Basis
+    proof qed simp
+
+  have "emeasure lborel {x\<in>space lborel. x \<bullet> k = c} = emeasure (\<Pi>\<^sub>M j::'a\<in>Basis. lborel) (\<Pi>\<^sub>E j\<in>Basis. if j = k then {c} else UNIV)"
+    using k
+    by (auto simp add: lborel_eq[where 'a='a] emeasure_distr intro!: arg_cong2[where f=emeasure])
+       (auto simp: space_PiM PiE_iff extensional_def split: if_split_asm)
+  also have "\<dots> = (\<Prod>j\<in>Basis. emeasure lborel (if j = k then {c} else UNIV))"
+    by (intro measure_times) auto
+  also have "\<dots> = 0"
+    by (intro setprod_zero bexI[OF _ k]) auto
+  finally show ?thesis
+    by (subst AE_iff_measurable[OF _ refl]) auto
+qed
+
+lemma content_image_stretch_interval:
+  fixes m :: "'a::euclidean_space \<Rightarrow> real"
+  defines "s f x \<equiv> (\<Sum>k::'a\<in>Basis. (f k * (x\<bullet>k)) *\<^sub>R k)"
+  shows "content (s m ` cbox a b) = \<bar>\<Prod>k\<in>Basis. m k\<bar> * content (cbox a b)"
+proof cases
+  have s[measurable]: "s f \<in> borel \<rightarrow>\<^sub>M borel" for f
+    by (auto simp: s_def[abs_def])
+  assume m: "\<forall>k\<in>Basis. m k \<noteq> 0"
+  then have s_comp_s: "s (\<lambda>k. 1 / m k) \<circ> s m = id" "s m \<circ> s (\<lambda>k. 1 / m k) = id"
+    by (auto simp: s_def[abs_def] fun_eq_iff euclidean_representation)
+  then have "inv (s (\<lambda>k. 1 / m k)) = s m" "bij (s (\<lambda>k. 1 / m k))"
+    by (auto intro: inv_unique_comp o_bij)
+  then have eq: "s m ` cbox a b = s (\<lambda>k. 1 / m k) -` cbox a b"
+    using bij_vimage_eq_inv_image[OF \<open>bij (s (\<lambda>k. 1 / m k))\<close>, of "cbox a b"] by auto
+  show ?thesis
+    using m unfolding eq measure_def
+    by (subst lborel_affine_euclidean[where c=m and t=0])
+       (simp_all add: emeasure_density measurable_sets_borel[OF s] abs_setprod nn_integral_cmult
+                      s_def[symmetric] emeasure_distr vimage_comp s_comp_s enn2real_mult setprod_nonneg)
+next
+  assume "\<not> (\<forall>k\<in>Basis. m k \<noteq> 0)"
+  then obtain k where k: "k \<in> Basis" "m k = 0" by auto
+  then have [simp]: "(\<Prod>k\<in>Basis. m k) = 0"
+    by (intro setprod_zero) auto
+  have "emeasure lborel {x\<in>space lborel. x \<in> s m ` cbox a b} = 0"
+  proof (rule emeasure_eq_0_AE)
+    show "AE x in lborel. x \<notin> s m ` cbox a b"
+      using AE_lborel_inner_neq[OF \<open>k\<in>Basis\<close>]
+    proof eventually_elim
+      show "x \<bullet> k \<noteq> 0 \<Longrightarrow> x \<notin> s m ` cbox a b " for x
+        using k by (auto simp: s_def[abs_def] cbox_def)
+    qed
+  qed
+  then show ?thesis
+    by (simp add: measure_def)
+qed
+
 lemma interval_image_affinity_interval:
   "\<exists>u v. (\<lambda>x. m *\<^sub>R (x::'a::euclidean_space) + c) ` cbox a b = cbox u v"
   unfolding image_affinity_cbox
@@ -6343,43 +6172,6 @@ lemma integrable_affinity:
 lemmas has_integral_affinity01 = has_integral_affinity [of _ _ 0 "1::real", simplified]
 
 subsection \<open>Special case of stretching coordinate axes separately.\<close>
-
-lemma content_image_stretch_interval:
-  "content ((\<lambda>x::'a::euclidean_space. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)::'a) ` cbox a b) =
-    \<bar>setprod m Basis\<bar> * content (cbox a b)"
-proof (cases "cbox a b = {}")
-  case True
-  then show ?thesis
-    unfolding content_def image_is_empty image_stretch_interval if_P[OF True] by auto
-next
-  case False
-  then have "(\<lambda>x. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b \<noteq> {}"
-    by auto
-  then show ?thesis
-    using False
-    unfolding content_def image_stretch_interval
-    apply -
-    unfolding interval_bounds' if_not_P
-    unfolding abs_setprod setprod.distrib[symmetric]
-    apply (rule setprod.cong)
-    apply (rule refl)
-    unfolding lessThan_iff
-    apply (simp only: inner_setsum_left_Basis)
-  proof -
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    have "(m i < 0 \<or> m i > 0) \<or> m i = 0"
-      by auto
-    then show "max (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) - min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) =
-      \<bar>m i\<bar> * (b \<bullet> i - a \<bullet> i)"
-      apply -
-      apply (erule disjE)+
-      unfolding min_def max_def
-      using False[unfolded box_ne_empty,rule_format,of i] i
-      apply (auto simp add:field_simps not_le mult_le_cancel_left_neg mult_le_cancel_left_pos)
-      done
-  qed
-qed
 
 lemma has_integral_stretch:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -9324,7 +9116,7 @@ next
     proof (rule, goal_cases)
       case prems: (1 x)
       have "e / (4 * content (cbox a b)) > 0"
-        using \<open>e>0\<close> False content_pos_le[of a b] by auto
+        using \<open>e>0\<close> False content_pos_le[of a b] by (simp add: less_le)
       from assms(3)[rule_format, OF prems, THEN LIMSEQ_D, OF this]
       guess n .. note n=this
       then show ?case
@@ -10314,7 +10106,7 @@ proof -
             done
           also have "\<dots> = (\<Sum>k\<in>{k \<inter> l |l. l \<in> snd ` p}. norm (integral k f))"
             apply (rule setsum.mono_neutral_left)
-            apply (subst simple_image)
+            apply (subst Setcompr_eq_image)
             apply (rule finite_imageI)+
             apply fact
             unfolding d'_def uv
@@ -10330,7 +10122,7 @@ proof -
               using l by auto
           qed
           also have "\<dots> = (\<Sum>l\<in>snd ` p. norm (integral (k \<inter> l) f))"
-            unfolding simple_image
+            unfolding Setcompr_eq_image
             apply (rule setsum.reindex_nontrivial [unfolded o_def])
             apply (rule finite_imageI)
             apply (rule p')
@@ -10518,7 +10310,7 @@ proof -
             apply auto
             done
           also have "\<dots> = setsum content {k \<inter> cbox u v| k. k \<in> d}"
-            unfolding simple_image
+            unfolding Setcompr_eq_image
             apply (rule setsum.reindex_nontrivial [unfolded o_def, symmetric])
             apply (rule d')
           proof goal_cases
@@ -10539,7 +10331,7 @@ proof -
           qed
           also have "\<dots> = setsum content {cbox u v \<inter> k |k. k \<in> d \<and> cbox u v \<inter> k \<noteq> {}}"
             apply (rule setsum.mono_neutral_right)
-            unfolding simple_image
+            unfolding Setcompr_eq_image
             apply (rule finite_imageI)
             apply (rule d')
             apply blast
@@ -11394,7 +11186,7 @@ proof cases
       also have "\<dots> < e' * norm (x - x0)"
         using \<open>e' > 0\<close> content_pos_le[of a b]
         by (intro mult_strict_right_mono[OF _ \<open>0 < norm (x - x0)\<close>])
-          (auto simp: divide_simps e_def)
+           (auto simp: divide_simps e_def simp del: measure_nonneg)
       finally have "norm (?F x - ?F x0 - ?dF (x - x0)) < e' * norm (x - x0)" .
       then show ?case
         by (auto simp: divide_simps)
@@ -11509,7 +11301,7 @@ proof -
       with \<open>e > 0\<close> have "e' > 0" by simp
       then have "\<forall>\<^sub>F n in F. \<forall>x\<in>cbox a b. norm (f n x - g x) < e' / content (cbox a b)"
         using u content_nonzero content_pos_le[of a b]
-        by (auto simp: uniform_limit_iff dist_norm)
+        by (auto simp: uniform_limit_iff dist_norm simp del: measure_nonneg)
       then show "\<forall>\<^sub>F n in F. dist (I n) J < e"
       proof eventually_elim
         case (elim n)
@@ -11568,7 +11360,7 @@ proof
       fix k :: nat
       show "norm (integral s (\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}})) \<le> integral s h"
         apply (rule integral_norm_bound_integral)
-        unfolding simple_image
+        unfolding Setcompr_eq_image
         apply (rule absolutely_integrable_onD)
         apply (rule absolutely_integrable_inf_real)
         prefer 5
@@ -11585,7 +11377,7 @@ proof
     qed
     fix k :: nat
     show "(\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}}) integrable_on s"
-      unfolding simple_image
+      unfolding Setcompr_eq_image
       apply (rule absolutely_integrable_onD)
       apply (rule absolutely_integrable_inf_real)
       prefer 3
@@ -11638,7 +11430,7 @@ proof
     proof safe
       fix k :: nat
       show "norm (integral s (\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}})) \<le> integral s h"
-        apply (rule integral_norm_bound_integral) unfolding simple_image
+        apply (rule integral_norm_bound_integral) unfolding Setcompr_eq_image
         apply (rule absolutely_integrable_onD)
         apply(rule absolutely_integrable_sup_real)
         prefer 5 unfolding real_norm_def
@@ -11656,7 +11448,7 @@ proof
     qed
     fix k :: nat
     show "(\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}}) integrable_on s"
-      unfolding simple_image
+      unfolding Setcompr_eq_image
       apply (rule absolutely_integrable_onD)
       apply (rule absolutely_integrable_sup_real)
       prefer 3
@@ -12541,11 +12333,11 @@ proof -
   define f :: "nat \<Rightarrow> real \<Rightarrow> real" where "f = (\<lambda>n x. if x \<in> {a..n} then x powr e else 0)"
   define F where "F = (\<lambda>x. x powr (e + 1) / (e + 1))"
 
-  have has_integral_f: "(f n has_integral (F n - F a)) {a..}" 
+  have has_integral_f: "(f n has_integral (F n - F a)) {a..}"
     if n: "n \<ge> a" for n :: nat
   proof -
     from n assms have "((\<lambda>x. x powr e) has_integral (F n - F a)) {a..n}"
-      by (intro fundamental_theorem_of_calculus) (auto intro!: derivative_eq_intros 
+      by (intro fundamental_theorem_of_calculus) (auto intro!: derivative_eq_intros
             simp: has_field_derivative_iff_has_vector_derivative [symmetric] F_def)
     hence "(f n has_integral (F n - F a)) {a..n}"
       by (rule has_integral_eq [rotated]) (simp add: f_def)
@@ -12559,12 +12351,12 @@ proof -
   next
     case False
     have "(f n has_integral 0) {a}" by (rule has_integral_refl)
-    hence "(f n has_integral 0) {a..}" 
+    hence "(f n has_integral 0) {a..}"
       by (rule has_integral_on_superset [rotated 2]) (insert False, simp_all add: f_def)
     with False show ?thesis by (simp add: integral_unique)
   qed
-  
-  have *: "(\<lambda>x. x powr e) integrable_on {a..} \<and> 
+
+  have *: "(\<lambda>x. x powr e) integrable_on {a..} \<and>
            (\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> integral {a..} (\<lambda>x. x powr e)"
   proof (intro monotone_convergence_increasing allI ballI)
     fix n :: nat
@@ -12582,7 +12374,7 @@ proof -
     from filterlim_real_sequentially
       have "eventually (\<lambda>n. real n \<ge> x) at_top"
       by (simp add: filterlim_at_top)
-    with x have "eventually (\<lambda>n. f n x = x powr e) at_top" 
+    with x have "eventually (\<lambda>n. f n x = x powr e) at_top"
       by (auto elim!: eventually_mono simp: f_def)
     thus "(\<lambda>n. f n x) \<longlonglongrightarrow> x powr e" by (simp add: Lim_eventually)
   next
@@ -12603,11 +12395,11 @@ proof -
   hence "eventually (\<lambda>n. F n - F a = integral {a..} (f n)) at_top"
     by eventually_elim (simp add: integral_f)
   moreover have "(\<lambda>n. F n - F a) \<longlonglongrightarrow> 0 / (e + 1) - F a" unfolding F_def
-    by (insert assms, (rule tendsto_intros filterlim_compose[OF tendsto_neg_powr] 
+    by (insert assms, (rule tendsto_intros filterlim_compose[OF tendsto_neg_powr]
           filterlim_ident filterlim_real_sequentially | simp)+)
   hence "(\<lambda>n. F n - F a) \<longlonglongrightarrow> -F a" by simp
   ultimately have "(\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> -F a" by (rule Lim_transform_eventually)
-  from conjunct2[OF *] and this 
+  from conjunct2[OF *] and this
     have "integral {a..} (\<lambda>x. x powr e) = -F a" by (rule LIMSEQ_unique)
   with conjunct1[OF *] show ?thesis
     by (simp add: has_integral_integral F_def)
@@ -12620,7 +12412,7 @@ lemma has_integral_inverse_power_to_inf:
 proof -
   from assms have "real_of_int (-int n) < -1" by simp
   note has_integral_powr_to_inf[OF this \<open>a > 0\<close>]
-  also have "- (a powr (real_of_int (- int n) + 1)) / (real_of_int (- int n) + 1) = 
+  also have "- (a powr (real_of_int (- int n) + 1)) / (real_of_int (- int n) + 1) =
                  1 / (real (n - 1) * a powr (real (n - 1)))" using assms
     by (simp add: divide_simps powr_add [symmetric] of_nat_diff)
   also from assms have "a powr (real (n - 1)) = a ^ (n - 1)"
@@ -12629,5 +12421,34 @@ proof -
     by (rule has_integral_eq [rotated])
        (insert assms, simp_all add: powr_minus powr_realpow divide_simps)
 qed
+
+subsubsection \<open>Adaption to ordered Euclidean spaces and the Cartesian Euclidean space\<close>
+
+lemma integral_component_eq_cart[simp]:
+  fixes f :: "'n::euclidean_space \<Rightarrow> real^'m"
+  assumes "f integrable_on s"
+  shows "integral s (\<lambda>x. f x $ k) = integral s f $ k"
+  using integral_linear[OF assms(1) bounded_linear_component_cart,unfolded o_def] .
+
+lemma content_closed_interval:
+  fixes a :: "'a::ordered_euclidean_space"
+  assumes "a \<le> b"
+  shows "content {a .. b} = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
+  using content_cbox[of a b] assms
+  by (simp add: cbox_interval eucl_le[where 'a='a])
+
+lemma integrable_const_ivl[intro]:
+  fixes a::"'a::ordered_euclidean_space"
+  shows "(\<lambda>x. c) integrable_on {a .. b}"
+  unfolding cbox_interval[symmetric]
+  by (rule integrable_const)
+
+lemma integrable_on_subinterval:
+  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::banach"
+  assumes "f integrable_on s"
+    and "{a .. b} \<subseteq> s"
+  shows "f integrable_on {a .. b}"
+  using integrable_on_subcbox[of f s a b] assms
+  by (simp add: cbox_interval)
 
 end
