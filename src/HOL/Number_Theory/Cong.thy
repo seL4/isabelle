@@ -698,7 +698,7 @@ lemma cong_less_modulus_unique_nat:
 lemma binary_chinese_remainder_unique_nat:
   assumes a: "coprime (m1::nat) m2"
     and nz: "m1 \<noteq> 0" "m2 \<noteq> 0"
-  shows "EX! x. x < m1 * m2 \<and> [x = u1] (mod m1) \<and> [x = u2] (mod m2)"
+  shows "\<exists>!x. x < m1 * m2 \<and> [x = u1] (mod m1) \<and> [x = u2] (mod m2)"
 proof -
   from binary_chinese_remainder_nat [OF a] obtain y where
       "[y = u1] (mod m1)" and "[y = u2] (mod m2)"
@@ -834,7 +834,7 @@ lemma chinese_remainder_unique_nat:
   assumes fin: "finite A"
     and nz: "\<forall>i\<in>A. m i \<noteq> 0"
     and cop: "\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))"
-  shows "EX! x. x < (\<Prod>i\<in>A. m i) \<and> (\<forall>i\<in>A. [x = u i] (mod m i))"
+  shows "\<exists>!x. x < (\<Prod>i\<in>A. m i) \<and> (\<forall>i\<in>A. [x = u i] (mod m i))"
 proof -
   from chinese_remainder_nat [OF fin cop]
   obtain y where one: "(ALL i:A. [y = u i] (mod m i))"

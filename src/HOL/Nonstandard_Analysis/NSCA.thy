@@ -350,7 +350,7 @@ apply (simp add: st_approx_self [THEN approx_sym])
 apply (simp add: Standard_HComplex st_SReal [unfolded Reals_eq_Standard])
 done
 
-lemma stc_part_Ex1: "x:HFinite ==> EX! t. t \<in> SComplex &  x \<approx> t"
+lemma stc_part_Ex1: "x:HFinite ==> \<exists>!t. t \<in> SComplex &  x \<approx> t"
 apply (drule stc_part_Ex, safe)
 apply (drule_tac [2] approx_sym, drule_tac [2] approx_sym, drule_tac [2] approx_sym)
 apply (auto intro!: approx_unique_complex)

@@ -1268,7 +1268,7 @@ apply (drule lemma_st_part_Ex, auto)
 done
 
 text\<open>There is a unique real infinitely close\<close>
-lemma st_part_Ex1: "x \<in> HFinite ==> EX! t::hypreal. t \<in> \<real> & x \<approx> t"
+lemma st_part_Ex1: "x \<in> HFinite ==> \<exists>!t::hypreal. t \<in> \<real> & x \<approx> t"
 apply (drule st_part_Ex, safe)
 apply (drule_tac [2] approx_sym, drule_tac [2] approx_sym, drule_tac [2] approx_sym)
 apply (auto intro!: approx_unique_real)

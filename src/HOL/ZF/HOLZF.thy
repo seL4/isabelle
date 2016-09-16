@@ -270,7 +270,7 @@ lemma Fun_total: "\<lbrakk>Elem F (Fun U V); Elem a U\<rbrakk> \<Longrightarrow>
   by (auto simp add: Fun_def Sep Domain)
 
 
-lemma unique_fun_value: "\<lbrakk>isFun f; Elem x (Domain f)\<rbrakk> \<Longrightarrow> ?! y. Elem (Opair x y) f"
+lemma unique_fun_value: "\<lbrakk>isFun f; Elem x (Domain f)\<rbrakk> \<Longrightarrow> \<exists>!y. Elem (Opair x y) f"
   by (auto simp add: Domain isFun_def)
 
 lemma fun_value_in_range: "\<lbrakk>isFun f; Elem x (Domain f)\<rbrakk> \<Longrightarrow> Elem (f\<acute>x) (Range f)"

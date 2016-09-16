@@ -156,11 +156,11 @@ apply (unfold the_def)
 apply (fast dest: subst)
 done
 
-(* Only use this if you already know EX!x. P(x) *)
-lemma the_equality2: "[| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
+(* Only use this if you already know \<exists>!x. P(x) *)
+lemma the_equality2: "[| \<exists>!x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
 by blast
 
-lemma theI: "EX! x. P(x) ==> P(THE x. P(x))"
+lemma theI: "\<exists>!x. P(x) ==> P(THE x. P(x))"
 apply (erule ex1E)
 apply (subst the_equality)
 apply (blast+)
@@ -170,14 +170,14 @@ done
   @{term "THE x.P(x)"}  rewrites to @{term "THE x.Q(x)"} *)
 
 (*If it's "undefined", it's zero!*)
-lemma the_0: "~ (EX! x. P(x)) ==> (THE x. P(x))=0"
+lemma the_0: "~ (\<exists>!x. P(x)) ==> (THE x. P(x))=0"
 apply (unfold the_def)
 apply (blast elim!: ReplaceE)
 done
 
 (*Easier to apply than theI: conclusion has only one occurrence of P*)
 lemma theI2:
-    assumes p1: "~ Q(0) ==> EX! x. P(x)"
+    assumes p1: "~ Q(0) ==> \<exists>!x. P(x)"
         and p2: "!!x. P(x) ==> Q(x)"
     shows "Q(THE x. P(x))"
 apply (rule classical)

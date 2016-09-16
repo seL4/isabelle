@@ -4913,7 +4913,7 @@ proof -
 qed
 
 lemma finite_sorted_distinct_unique:
-shows "finite A \<Longrightarrow> EX! xs. set xs = A & sorted xs & distinct xs"
+shows "finite A \<Longrightarrow> \<exists>!xs. set xs = A \<and> sorted xs \<and> distinct xs"
 apply(drule finite_distinct_list)
 apply clarify
 apply(rule_tac a="sort xs" in ex1I)

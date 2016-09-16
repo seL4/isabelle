@@ -641,7 +641,7 @@ lemma first_is_elem: "first(b,B,r) ==> b \<in> B"
 by (unfold first_def, blast)
 
 lemma well_ord_imp_ex1_first:
-        "[| well_ord(A,r); B<=A; B\<noteq>0 |] ==> (EX! b. first(b,B,r))"
+        "[| well_ord(A,r); B<=A; B\<noteq>0 |] ==> (\<exists>!b. first(b,B,r))"
 apply (unfold well_ord_def wf_on_def wf_def first_def)
 apply (elim conjE allE disjE, blast)
 apply (erule bexE)
