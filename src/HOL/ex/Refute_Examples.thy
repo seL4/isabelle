@@ -128,7 +128,7 @@ lemma "\<forall>x. P x"
 refute [expect = genuine]
 oops
 
-lemma "EX! x. P x"
+lemma "\<exists>!x. P x"
 refute [expect = genuine]
 oops
 
@@ -152,7 +152,7 @@ lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>y. \<forall>x
 refute [expect = genuine]
 oops
 
-lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
+lemma "(\<exists>x. P x) \<longrightarrow> (\<exists>!x. P x)"
 refute [expect = genuine]
 oops
 
@@ -220,11 +220,11 @@ lemma "\<forall>P. P"
 refute [expect = genuine]
 oops
 
-lemma "EX! P. P"
+lemma "\<exists>!P. P"
 refute [expect = none]
 by auto
 
-lemma "EX! P. P x"
+lemma "\<exists>!P. P x"
 refute [expect = genuine]
 oops
 
@@ -280,7 +280,7 @@ by simp
 
 text \<open>Axiom of Choice: first an incorrect version ...\<close>
 
-lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
+lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>!f. \<forall>x. P x (f x))"
 refute [expect = genuine]
 oops
 
@@ -290,7 +290,7 @@ lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x
 refute [maxsize = 4, expect = none]
 by (simp add: choice)
 
-lemma "(\<forall>x. EX!y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
+lemma "(\<forall>x. \<exists>!y. P x y) \<longrightarrow> (\<exists>!f. \<forall>x. P x (f x))"
 refute [maxsize = 2, expect = none]
 apply auto
   apply (simp add: ex1_implies_ex choice)

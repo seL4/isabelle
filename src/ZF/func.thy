@@ -25,7 +25,7 @@ by (unfold Pi_def, blast)
 
 (*For upward compatibility with the former definition*)
 lemma Pi_iff_old:
-    "f \<in> Pi(A,B) \<longleftrightarrow> f<=Sigma(A,B) & (\<forall>x\<in>A. EX! y. <x,y>: f)"
+    "f \<in> Pi(A,B) \<longleftrightarrow> f<=Sigma(A,B) & (\<forall>x\<in>A. \<exists>!y. <x,y>: f)"
 by (unfold Pi_def function_def, blast)
 
 lemma fun_is_function: "f \<in> Pi(A,B) ==> function(f)"
@@ -175,7 +175,7 @@ lemma lam_cong [cong]:
 by (simp only: lam_def cong add: RepFun_cong)
 
 lemma lam_theI:
-    "(!!x. x \<in> A ==> EX! y. Q(x,y)) ==> \<exists>f. \<forall>x\<in>A. Q(x, f`x)"
+    "(!!x. x \<in> A ==> \<exists>!y. Q(x,y)) ==> \<exists>f. \<forall>x\<in>A. Q(x, f`x)"
 apply (rule_tac x = "\<lambda>x\<in>A. THE y. Q (x,y)" in exI)
 apply simp
 apply (blast intro: theI)

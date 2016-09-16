@@ -1429,7 +1429,7 @@ lemma ring_homD:
 
 theorem UP_universal_property:
   assumes S: "s \<in> carrier S"
-  shows "EX! Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) &
+  shows "\<exists>!Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) &
     Phi (monom P \<one> 1) = s &
     (ALL r : carrier R. Phi (monom P r 0) = h r)"
   using S eval_monom1

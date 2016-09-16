@@ -305,7 +305,7 @@ done
 (*Not clear how to remove the P(a) condition, since the "then" part
   must refer to "a"*)
 lemma the_equality_if:
-     "P(a) ==> (THE x. P(x)) = (if (EX!x. P(x)) then a else 0)"
+     "P(a) ==> (THE x. P(x)) = (if (\<exists>!x. P(x)) then a else 0)"
 by (simp add: the_0 the_equality2)
 
 (*The first premise not only fixs i but ensures @{term"f\<noteq>0"}.

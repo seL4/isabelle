@@ -49,7 +49,7 @@ subsection \<open>Variations on Replacement\<close>
    The resulting set (for functional P) is the same as with
    PrimReplace, but the rules are simpler. *)
 definition Replace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
-  where "Replace(A,P) == PrimReplace(A, %x y. (EX!z. P(x,z)) & P(x,y))"
+  where "Replace(A,P) == PrimReplace(A, %x y. (\<exists>!z. P(x,z)) & P(x,y))"
 
 syntax
   "_Replace"  :: "[pttrn, pttrn, i, o] => i"  ("(1{_ ./ _ \<in> _, _})")

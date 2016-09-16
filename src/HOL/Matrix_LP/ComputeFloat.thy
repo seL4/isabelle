@@ -46,7 +46,7 @@ apply (subst real_is_int_def2)
 apply (simp add: int_of_real_sub real_int_of_real)
 done
 
-lemma real_is_int_rep: "real_is_int x \<Longrightarrow> ?! (a::int). real_of_int a = x"
+lemma real_is_int_rep: "real_is_int x \<Longrightarrow> \<exists>!(a::int). real_of_int a = x"
 by (auto simp add: real_is_int_def)
 
 lemma int_of_real_mult:

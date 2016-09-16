@@ -137,7 +137,7 @@ apply (unfold bij_def)
 apply (blast intro!: lam_injective lam_surjective)
 done
 
-lemma RepFun_bijective: "(\<forall>y\<in>x. EX! y'. f(y') = f(y))
+lemma RepFun_bijective: "(\<forall>y\<in>x. \<exists>!y'. f(y') = f(y))
       ==> (\<lambda>z\<in>{f(y). y \<in> x}. THE y. f(y) = z) \<in> bij({f(y). y \<in> x}, x)"
 apply (rule_tac d = f in lam_bijective)
 apply (auto simp add: the_equality2)

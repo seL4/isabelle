@@ -31,7 +31,9 @@ This document lists the main types, functions and syntax provided by theory @{th
 
 \section*{HOL}
 
-The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"}, @{prop"P & Q"}, @{prop "P | Q"}, @{prop "P --> Q"}, @{prop"ALL x. P"}, @{prop"EX x. P"}, @{prop"EX! x. P"}, @{term"THE x. P"}.
+The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop "\<not> P"}, @{prop"P \<and> Q"},
+@{prop "P \<or> Q"}, @{prop "P \<longrightarrow> Q"}, @{prop "\<forall>x. P"}, @{prop "\<exists>x. P"}, @{prop"\<exists>! x. P"},
+@{term"THE x. P"}.
 \<^smallskip>
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
@@ -42,10 +44,10 @@ The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"},
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term"~(x = y)"} & @{term[source]"\<not> (x = y)"} & (\<^verbatim>\<open>~=\<close>)\\
+@{term"\<not> (x = y)"} & @{term[source]"\<not> (x = y)"} & (\<^verbatim>\<open>~=\<close>)\\
 @{term[source]"P \<longleftrightarrow> Q"} & @{term"P \<longleftrightarrow> Q"} \\
 @{term"If x y z"} & @{term[source]"If x y z"}\\
-@{term"Let e\<^sub>1 (%x. e\<^sub>2)"} & @{term[source]"Let e\<^sub>1 (\<lambda>x. e\<^sub>2)"}\\
+@{term"Let e\<^sub>1 (\<lambda>x. e\<^sub>2)"} & @{term[source]"Let e\<^sub>1 (\<lambda>x. e\<^sub>2)"}\\
 \end{supertabular}
 
 
@@ -72,10 +74,10 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 @{term[source]"x \<ge> y"} & @{term"x \<ge> y"} & (\<^verbatim>\<open>>=\<close>)\\
 @{term[source]"x > y"} & @{term"x > y"}\\
-@{term"ALL x<=y. P"} & @{term[source]"\<forall>x. x \<le> y \<longrightarrow> P"}\\
-@{term"EX x<=y. P"} & @{term[source]"\<exists>x. x \<le> y \<and> P"}\\
+@{term "\<forall>x\<le>y. P"} & @{term[source]"\<forall>x. x \<le> y \<longrightarrow> P"}\\
+@{term "\<exists>x\<le>y. P"} & @{term[source]"\<exists>x. x \<le> y \<and> P"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$}\\
-@{term"LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
+@{term "LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
 \end{supertabular}
 
 
@@ -131,20 +133,20 @@ Available by loading theory \<open>Lattice_Syntax\<close> in directory \<open>Li
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 \<open>{a\<^sub>1,\<dots>,a\<^sub>n}\<close> & \<open>insert a\<^sub>1 (\<dots> (insert a\<^sub>n {})\<dots>)\<close>\\
-@{term"a ~: A"} & @{term[source]"\<not>(x \<in> A)"}\\
-@{term"A \<subseteq> B"} & @{term[source]"A \<le> B"}\\
-@{term"A \<subset> B"} & @{term[source]"A < B"}\\
+@{term "a \<notin> A"} & @{term[source]"\<not>(x \<in> A)"}\\
+@{term "A \<subseteq> B"} & @{term[source]"A \<le> B"}\\
+@{term "A \<subset> B"} & @{term[source]"A < B"}\\
 @{term[source]"A \<supseteq> B"} & @{term[source]"B \<le> A"}\\
 @{term[source]"A \<supset> B"} & @{term[source]"B < A"}\\
-@{term"{x. P}"} & @{term[source]"Collect (\<lambda>x. P)"}\\
+@{term "{x. P}"} & @{term[source]"Collect (\<lambda>x. P)"}\\
 \<open>{t | x\<^sub>1 \<dots> x\<^sub>n. P}\<close> & \<open>{v. \<exists>x\<^sub>1 \<dots> x\<^sub>n. v = t \<and> P}\<close>\\
 @{term[source]"\<Union>x\<in>I. A"} & @{term[source]"UNION I (\<lambda>x. A)"} & (\texttt{UN})\\
 @{term[source]"\<Union>x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
 @{term[source]"\<Inter>x\<in>I. A"} & @{term[source]"INTER I (\<lambda>x. A)"} & (\texttt{INT})\\
 @{term[source]"\<Inter>x. A"} & @{term[source]"INTER UNIV (\<lambda>x. A)"}\\
-@{term"ALL x:A. P"} & @{term[source]"Ball A (\<lambda>x. P)"}\\
-@{term"EX x:A. P"} & @{term[source]"Bex A (\<lambda>x. P)"}\\
-@{term"range f"} & @{term[source]"f ` UNIV"}\\
+@{term "\<forall>x\<in>A. P"} & @{term[source]"Ball A (\<lambda>x. P)"}\\
+@{term "\<exists>x\<in>A. P"} & @{term[source]"Bex A (\<lambda>x. P)"}\\
+@{term "range f"} & @{term[source]"f ` UNIV"}\\
 \end{supertabular}
 
 
@@ -225,15 +227,15 @@ Types @{typ unit} and \<open>\<times>\<close>.
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} ll @ {}}
-@{term"Pair a b"} & @{term[source]"Pair a b"}\\
-@{term"case_prod (\<lambda>x y. t)"} & @{term[source]"case_prod (\<lambda>x y. t)"}\\
-@{term"A \<times> B"} &  \<open>Sigma A (\<lambda>\<^raw:\_>. B)\<close>
+@{term "Pair a b"} & @{term[source]"Pair a b"}\\
+@{term "case_prod (\<lambda>x y. t)"} & @{term[source]"case_prod (\<lambda>x y. t)"}\\
+@{term "A \<times> B"} &  \<open>Sigma A (\<lambda>\<^raw:\_>. B)\<close>
 \end{tabular}
 
 Pairs may be nested. Nesting to the right is printed as a tuple,
-e.g.\ \mbox{@{term"(a,b,c)"}} is really \mbox{\<open>(a, (b, c))\<close>.}
+e.g.\ \mbox{@{term "(a,b,c)"}} is really \mbox{\<open>(a, (b, c))\<close>.}
 Pattern matching with pairs and tuples extends to all binders,
-e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
+e.g.\ \mbox{@{prop "\<forall>(x,y)\<in>A. P"},} @{term "{(x,y). P}"}, etc.
 
 
 \section*{Relation}
@@ -331,7 +333,7 @@ overloaded operators:
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
-@{term"abs x"} & @{term[source]"abs x"}
+@{term "\<bar>x\<bar>"} & @{term[source] "abs x"}
 \end{tabular}
 
 
@@ -404,19 +406,19 @@ Type @{typ int}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const Finite_Set.finite} & @{term_type_only Finite_Set.finite "'a set\<Rightarrow>bool"}\\
-@{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set => nat"}\\
+@{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set \<Rightarrow> nat"}\\
 @{const Finite_Set.fold} & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
-@{const Groups_Big.setsum} & @{term_type_only Groups_Big.setsum "('a => 'b) => 'a set => 'b::comm_monoid_add"}\\
-@{const Groups_Big.setprod} & @{term_type_only Groups_Big.setprod "('a => 'b) => 'a set => 'b::comm_monoid_mult"}\\
+@{const Groups_Big.setsum} & @{term_type_only Groups_Big.setsum "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_add"}\\
+@{const Groups_Big.setprod} & @{term_type_only Groups_Big.setprod "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_mult"}\\
 \end{supertabular}
 
 
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term"setsum (%x. x) A"} & @{term[source]"setsum (\<lambda>x. x) A"} & (\<^verbatim>\<open>SUM\<close>)\\
-@{term"setsum (%x. t) A"} & @{term[source]"setsum (\<lambda>x. t) A"}\\
-@{term[source]"\<Sum>x|P. t"} & @{term"\<Sum>x|P. t"}\\
+@{term "setsum (\<lambda>x. x) A"} & @{term[source]"setsum (\<lambda>x. x) A"} & (\<^verbatim>\<open>SUM\<close>)\\
+@{term "setsum (\<lambda>x. t) A"} & @{term[source]"setsum (\<lambda>x. t) A"}\\
+@{term[source] "\<Sum>x|P. t"} & @{term"\<Sum>x|P. t"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>} & (\<^verbatim>\<open>PROD\<close>)\\
 \end{supertabular}
 
@@ -461,10 +463,10 @@ Type @{typ int}
 @{term[source] "\<Union>i\<le>n. A"} & @{term[source] "\<Union>i \<in> {..n}. A"}\\
 @{term[source] "\<Union>i<n. A"} & @{term[source] "\<Union>i \<in> {..<n}. A"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Inter>\<close> instead of \<open>\<Union>\<close>}\\
-@{term "setsum (%x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
-@{term "setsum (%x. t) {a..<b}"} & @{term[source] "setsum (\<lambda>x. t) {a..<b}"}\\
-@{term "setsum (%x. t) {..b}"} & @{term[source] "setsum (\<lambda>x. t) {..b}"}\\
-@{term "setsum (%x. t) {..<b}"} & @{term[source] "setsum (\<lambda>x. t) {..<b}"}\\
+@{term "setsum (\<lambda>x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
+@{term "setsum (\<lambda>x. t) {a..<b}"} & @{term[source] "setsum (\<lambda>x. t) {a..<b}"}\\
+@{term "setsum (\<lambda>x. t) {..b}"} & @{term[source] "setsum (\<lambda>x. t) {..b}"}\\
+@{term "setsum (\<lambda>x. t) {..<b}"} & @{term[source] "setsum (\<lambda>x. t) {..<b}"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>}\\
 \end{supertabular}
 

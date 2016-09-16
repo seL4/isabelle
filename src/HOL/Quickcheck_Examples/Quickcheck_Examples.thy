@@ -270,7 +270,7 @@ lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>y. \<forall>x
   quickcheck[expect = counterexample]
 oops
 
-lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
+lemma "(\<exists>x. P x) \<longrightarrow> (\<exists>!x. P x)"
   quickcheck[random, expect = counterexample]
   quickcheck[expect = counterexample]
 oops
