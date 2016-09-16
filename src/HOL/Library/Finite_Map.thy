@@ -196,6 +196,7 @@ lift_definition fmdom :: "('a, 'b) fmap \<Rightarrow> 'a fset"
 
 lemma fmdom_notI: "fmlookup m x = None \<Longrightarrow> x |\<notin>| fmdom m" by transfer' auto
 lemma fmdomI: "fmlookup m x = Some y \<Longrightarrow> x |\<in>| fmdom m" by transfer' auto
+lemma fmdom_notD: "x |\<notin>| fmdom m \<Longrightarrow> fmlookup m x = None" by transfer' auto
 
 lift_definition fmdom' :: "('a, 'b) fmap \<Rightarrow> 'a set"
   is dom
@@ -204,6 +205,7 @@ lift_definition fmdom' :: "('a, 'b) fmap \<Rightarrow> 'a set"
 
 lemma fmdom'_notI: "fmlookup m x = None \<Longrightarrow> x \<notin> fmdom' m" by transfer' auto
 lemma fmdom'I: "fmlookup m x = Some y \<Longrightarrow> x \<in> fmdom' m" by transfer' auto
+lemma fmdom'_notD: "x \<notin> fmdom' m \<Longrightarrow> fmlookup m x = None" by transfer' auto
 
 lemma fmdom'_alt_def: "fmdom' = fset \<circ> fmdom"
 by transfer' force
@@ -251,22 +253,20 @@ by transfer' (auto simp: map_filter_def)
 lemma fmfilter_empty[simp]: "fmfilter P fmempty = fmempty"
 by transfer' (auto simp: map_filter_def)
 
-lemma fmfilter_true[simp]: "(\<And>x. x |\<in>| fmdom m \<Longrightarrow> P x) \<Longrightarrow> fmfilter P m = m"
-apply transfer'
-apply (rule ext)
-apply (auto simp: map_filter_def)
-apply (case_tac "m x")
-apply simp
-apply simp
-apply (drule_tac m = m in domI)
-apply auto
-done
+lemma fmfilter_true[simp]:
+  assumes "\<And>x. x |\<in>| fmdom m \<Longrightarrow> P x"
+  shows "fmfilter P m = m"
+proof (rule fmap_ext)
+  fix x
+  have "fmlookup m x = None" if "\<not> P x"
+    using that assms
+    unfolding fmlookup_dom_iff by fastforce
+  thus "fmlookup (fmfilter P m) x = fmlookup m x"
+    by simp
+qed
 
 lemma fmfilter_false[simp]: "(\<And>x. x |\<in>| fmdom m \<Longrightarrow> \<not> P x) \<Longrightarrow> fmfilter P m = fmempty"
-apply transfer'
-apply (rule ext)
-apply (auto simp: map_filter_def)
-done
+by transfer' (auto simp: map_filter_def fun_eq_iff)
 
 lemma fmfilter_comp[simp]: "fmfilter P (fmfilter Q m) = fmfilter (\<lambda>x. P x \<and> Q x) m"
 by transfer' (auto simp: map_filter_def)
@@ -277,26 +277,29 @@ unfolding fmfilter_comp by meson
 lemma fmfilter_cong[cong]:
   assumes "\<And>x. x |\<in>| fmdom m \<Longrightarrow> P x = Q x"
   shows "fmfilter P m = fmfilter Q m"
-using assms
-apply transfer'
-apply (rule ext)
-apply (auto simp: map_filter_def split: if_splits)
-apply (case_tac "m x")
-apply simp
-apply simp
-apply (drule_tac m = m in domI)
-apply auto
-done
+proof (rule fmap_ext)
+  fix x
+  have "fmlookup m x = None" if "P x \<noteq> Q x"
+    using that assms
+    unfolding fmlookup_dom_iff by fastforce
+  thus "fmlookup (fmfilter P m) x = fmlookup (fmfilter Q m) x"
+    by auto
+qed
 
 lemma fmfilter_cong'[fundef_cong]:
   assumes "\<And>x. x \<in> fmdom' m \<Longrightarrow> P x = Q x"
   shows "fmfilter P m = fmfilter Q m"
-apply (rule fmfilter_cong)
-using assms
-unfolding fmdom'_alt_def fmember.rep_eq
-by auto
+proof (rule fmfilter_cong)
+  fix x
+  assume "x |\<in>| fmdom m"
+  thus "P x = Q x"
+    using assms
+    unfolding fmdom'_alt_def fmember.rep_eq
+    by auto
+qed
 
-lemma fmfilter_upd[simp]: "fmfilter P (fmupd x y m) = (if P x then fmupd x y (fmfilter P m) else fmfilter P m)"
+lemma fmfilter_upd[simp]:
+  "fmfilter P (fmupd x y m) = (if P x then fmupd x y (fmfilter P m) else fmfilter P m)"
 by transfer' (auto simp: map_upd_def map_filter_def)
 
 lift_definition fmdrop :: "'a \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap"
@@ -322,24 +325,10 @@ lift_definition fmrestrict_set :: "'a set \<Rightarrow> ('a, 'b) fmap \<Rightarr
   parametric map_restrict_set_transfer
 unfolding map_restrict_set_def by auto
 
-lemma fmrestrict_set_dom[simp]: "fmrestrict_set (fmdom' m) m = m"
-apply transfer'
-apply (auto simp: map_restrict_set_def map_filter_def)
-apply (rule ext)
-apply (auto split: if_splits)
-by (metis option.collapse)
-
 lift_definition fmrestrict_fset :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap"
   is map_restrict_set
   parametric map_restrict_set_transfer
 unfolding map_restrict_set_def by auto
-
-lemma fmrestrict_fset_dom[simp]: "fmrestrict_fset (fmdom m) m = m"
-apply transfer'
-apply (auto simp: map_restrict_set_def map_filter_def)
-apply (rule ext)
-apply (auto split: if_splits)
-by (metis option.collapse)
 
 lemma fmfilter_alt_defs:
   "fmdrop a = fmfilter (\<lambda>a'. a' \<noteq> a)"
@@ -382,6 +371,12 @@ lemma fmlookup_restrict_fset[simp]:
   "fmlookup (fmrestrict_fset A m) x = (if x |\<in>| A then fmlookup m x else None)"
 unfolding fmfilter_alt_defs by simp
 
+lemma fmrestrict_set_dom[simp]: "fmrestrict_set (fmdom' m) m = m"
+  by (rule fmap_ext) (auto dest: fmdom'_notD)
+
+lemma fmrestrict_fset_dom[simp]: "fmrestrict_fset (fmdom m) m = m"
+  by (rule fmap_ext) (auto dest: fmdom_notD)
+
 lemma fmdrop_empty[simp]: "fmdrop a fmempty = fmempty"
   unfolding fmfilter_alt_defs by simp
 
@@ -420,18 +415,18 @@ lift_definition fmadd :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow
   parametric map_add_transfer
 by simp
 
+lemma fmlookup_add[simp]:
+  "fmlookup (m ++\<^sub>f n) x = (if x |\<in>| fmdom n then fmlookup n x else fmlookup m x)"
+  by transfer' (auto simp: map_add_def split: option.splits)
+
 lemma fmdom_add[simp]: "fmdom (m ++\<^sub>f n) = fmdom m |\<union>| fmdom n" by transfer' auto
 lemma fmdom'_add[simp]: "fmdom' (m ++\<^sub>f n) = fmdom' m \<union> fmdom' n" by transfer' auto
 
 lemma fmadd_drop_left_dom: "fmdrop_fset (fmdom n) m ++\<^sub>f n = m ++\<^sub>f n"
-apply transfer'
-unfolding map_add_def dom_def map_drop_set_def map_filter_def
-by (rule ext) auto
+  by (rule fmap_ext) auto
 
 lemma fmadd_restrict_right_dom: "fmrestrict_fset (fmdom n) (m ++\<^sub>f n) = n"
-apply transfer'
-unfolding map_add_def dom_def map_restrict_set_def map_filter_def
-by (rule ext) auto
+  by (rule fmap_ext) (auto dest: fmdom_notD)
 
 lemma fmfilter_add_distrib[simp]: "fmfilter P (m ++\<^sub>f n) = fmfilter P m ++\<^sub>f fmfilter P n"
 by transfer' (auto simp: map_filter_def map_add_def)
@@ -462,10 +457,6 @@ by transfer' (auto simp: map_add_def split: option.splits)
 lemma fmadd_assoc[simp]: "m ++\<^sub>f (n ++\<^sub>f p) = m ++\<^sub>f n ++\<^sub>f p"
 by transfer' simp
 
-lemma fmlookup_add[simp]:
-  "fmlookup (m ++\<^sub>f n) x = (if x |\<in>| fmdom n then fmlookup n x else fmlookup m x)"
-  by transfer' (auto simp: map_add_def split: option.splits)
-
 lift_definition fmpred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool"
   is map_pred
   parametric map_pred_transfer
@@ -488,6 +479,7 @@ unfolding fmpred_iff
 apply auto
 apply (subst (asm) fmlookup_dom_iff)
 apply simp
+apply (rename_tac x y)
 apply (erule_tac x = x in fBallE)
 apply simp
 by (simp add: fmlookup_dom_iff)
