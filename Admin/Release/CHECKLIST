@@ -32,7 +32,9 @@ Checklist for official releases
     ROOTS
     lib/html/library_index_content.template
 
-- check HTML header of library;
+- HTML library: check HTML header;
+
+- HTML library: check theory dependencies (PDF);
 
 - test separate compilation of Isabelle/Scala PIDE sources:
     Admin/build jars_test
@@ -72,12 +74,11 @@ Packaging
 - Mac OS X: provide "gnutar" executable via shell PATH
   (e.g. copy of /usr/bin/gnutar from Mountain Lion)
 
+- Linux: avoid some versions of Debian / Ubuntu (bitmap fonts for prog-prove);
+
 - fully-automated packaging:
 
   hg up -r DISTNAME && Admin/Release/build -O -l -r DISTNAME /home/isabelle/dist
-
-  Mac OS X: avoid Mavericks (problems with hdiutil?)
-  Linux: avoid Debian (bitmap fonts for prog-prove)
 
 
 Final release stage
