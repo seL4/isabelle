@@ -275,10 +275,10 @@ subsection \<open>Unique existence\<close>
 text \<open>
   NOTE THAT the following 2 quantifications:
 
-    \<^item> \<exists>!x such that [\<exists>!y such that P(x,y)]     (sequential)
-    \<^item> \<exists>!x,y such that P(x,y)                   (simultaneous)
+    \<^item> \<open>\<exists>!x\<close> such that [\<open>\<exists>!y\<close> such that P(x,y)]   (sequential)
+    \<^item> \<open>\<exists>!x,y\<close> such that P(x,y)                   (simultaneous)
 
-  do NOT mean the same thing. The parser treats \<exists>!x y.P(x,y) as sequential.
+  do NOT mean the same thing. The parser treats \<open>\<exists>!x y.P(x,y)\<close> as sequential.
 \<close>
 
 lemma ex1I: "P(a) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> x = a) \<Longrightarrow> \<exists>!x. P(x)"
