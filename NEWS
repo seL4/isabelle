@@ -231,6 +231,14 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* The unique existence quantifier no longer provides 'binder' syntax,
+but uses syntax translations (as for bounded unique existence). Thus
+iterated quantification \<exists>!x y. P x y with its slightly confusing
+sequential meaning \<exists>!x. \<exists>!y. P x y is no longer possible. Instead,
+pattern abstraction admits simultaneous unique existence \<exists>!(x, y). P x y
+(analogous existing notation \<exists>!(x, y)\<in>A. P x y). Potential
+INCOMPATIBILITY in rare situations.
+
 * Renamed session HOL-Multivariate_Analysis to HOL-Analysis.
 
 * Moved measure theory from HOL-Probability to HOL-Analysis. When importing

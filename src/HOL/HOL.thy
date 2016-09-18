@@ -99,11 +99,23 @@ definition conj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<and>" 35)
 definition disj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<or>" 30)
   where or_def: "P \<or> Q \<equiv> \<forall>R. (P \<longrightarrow> R) \<longrightarrow> (Q \<longrightarrow> R) \<longrightarrow> R"
 
-definition Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<exists>!" 10)
+definition Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
   where "Ex1 P \<equiv> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x)"
 
 
 subsubsection \<open>Additional concrete syntax\<close>
+
+syntax (ASCII)
+  "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3EX! _./ _)" [0, 10] 10)
+syntax (input)
+  "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3?! _./ _)" [0, 10] 10)
+syntax "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<exists>!_./ _)" [0, 10] 10)
+translations "\<exists>!x. P" \<rightleftharpoons> "CONST Ex1 (\<lambda>x. P)"
+
+print_translation \<open>
+ [Syntax_Trans.preserve_binder_abs_tr' @{const_syntax Ex1} @{syntax_const "_Ex1"}]
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
+
 
 abbreviation Not_Ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<nexists>" 10)
   where "\<nexists>x. P x \<equiv> \<not> (\<exists>x. P x)"
@@ -158,13 +170,11 @@ syntax (ASCII)
 
 notation (ASCII)
   All  (binder "ALL " 10) and
-  Ex  (binder "EX " 10) and
-  Ex1  (binder "EX! " 10)
+  Ex  (binder "EX " 10)
 
 notation (input)
   All  (binder "! " 10) and
-  Ex  (binder "? " 10) and
-  Ex1  (binder "?! " 10)
+  Ex  (binder "? " 10)
 
 
 subsubsection \<open>Axioms and basic definitions\<close>
