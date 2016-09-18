@@ -939,6 +939,25 @@ qed
 lemma lcm_proj2_iff: "lcm m n = normalize n \<longleftrightarrow> m dvd n"
   using lcm_proj1_iff [of n m] by (simp add: ac_simps)
 
+lemma dvd_productE:
+  assumes "p dvd (a * b)"
+  obtains x y where "p = x * y" "x dvd a" "y dvd b"
+proof (cases "a = 0")
+  case True
+  thus ?thesis by (intro that[of p 1]) simp_all
+next
+  case False
+  define x y where "x = gcd a p" and "y = p div x"
+  have "p = x * y" by (simp add: x_def y_def)
+  moreover have "x dvd a" by (simp add: x_def)
+  moreover from assms have "p dvd gcd (b * a) (b * p)"
+    by (intro gcd_greatest) (simp_all add: mult.commute)
+  hence "p dvd b * gcd a p" by (simp add: gcd_mult_distrib)
+  with False have "y dvd b" 
+    by (simp add: x_def y_def div_dvd_iff_mult assms)
+  ultimately show ?thesis by (rule that)
+qed
+
 end
 
 class ring_gcd = comm_ring_1 + semiring_gcd

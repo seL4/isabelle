@@ -1,4 +1,5 @@
 (*  Title:      HOL/Number_Theory/Factorial_Ring.thy
+    Author:     Manuel Eberl, TU Muenchen
     Author:     Florian Haftmann, TU Muenchen
 *)
 
@@ -7,29 +8,11 @@ section \<open>Factorial (semi)rings\<close>
 theory Factorial_Ring
 imports 
   Main
-  "../GCD"
+  "~~/src/HOL/GCD"
   "~~/src/HOL/Library/Multiset"
 begin
 
-lemma (in semiring_gcd) dvd_productE:
-  assumes "p dvd (a * b)"
-  obtains x y where "p = x * y" "x dvd a" "y dvd b"
-proof (cases "a = 0")
-  case True
-  thus ?thesis by (intro that[of p 1]) simp_all
-next
-  case False
-  define x y where "x = gcd a p" and "y = p div x"
-  have "p = x * y" by (simp add: x_def y_def)
-  moreover have "x dvd a" by (simp add: x_def)
-  moreover from assms have "p dvd gcd (b * a) (b * p)"
-    by (intro gcd_greatest) (simp_all add: mult.commute)
-  hence "p dvd b * gcd a p" by (simp add: gcd_mult_distrib)
-  with False have "y dvd b" 
-    by (simp add: x_def y_def div_dvd_iff_mult assms)
-  ultimately show ?thesis by (rule that)
-qed
-
+subsection \<open>Irreducible and prime elements\<close>
 
 context comm_semiring_1
 begin
@@ -83,7 +66,6 @@ lemma prime_elem_not_zeroI:
   shows "p \<noteq> 0"
   using assms by (auto intro: ccontr)
 
-
 lemma prime_elem_dvd_power: 
   "prime_elem p \<Longrightarrow> p dvd x ^ n \<Longrightarrow> p dvd x"
   by (induction n) (auto dest: prime_elem_dvd_multD intro: dvd_trans[of _ 1])
@@ -105,10 +87,6 @@ end
 context algebraic_semidom
 begin
 
-(* TODO Move *)
-lemma mult_unit_dvd_iff': "is_unit a \<Longrightarrow> (a * b) dvd c \<longleftrightarrow> b dvd c"
-  by (subst mult.commute) (rule mult_unit_dvd_iff)
-
 lemma prime_elem_imp_irreducible:
   assumes "prime_elem p"
   shows   "irreducible p"
@@ -122,6 +100,22 @@ proof (rule irreducibleI)
   thus "a dvd 1 \<or> b dvd 1"
     by (simp only: dvd_times_left_cancel_iff[OF nz(1)] dvd_times_right_cancel_iff[OF nz(2)])
 qed (insert assms, simp_all add: prime_elem_def)
+
+lemma (in algebraic_semidom) unit_imp_no_irreducible_divisors:
+  assumes "is_unit x" "irreducible p"
+  shows   "\<not>p dvd x"
+proof (rule notI)
+  assume "p dvd x"
+  with \<open>is_unit x\<close> have "is_unit p"
+    by (auto intro: dvd_trans)
+  with \<open>irreducible p\<close> show False
+    by (simp add: irreducible_not_unit)
+qed
+   
+lemma unit_imp_no_prime_divisors:
+  assumes "is_unit x" "prime_elem p"
+  shows   "\<not>p dvd x"
+  using unit_imp_no_irreducible_divisors[OF assms(1) prime_elem_imp_irreducible[OF assms(2)]] .
 
 lemma prime_elem_mono:
   assumes "prime_elem p" "\<not>q dvd 1" "q dvd p"
@@ -306,12 +300,17 @@ next
   qed
 qed
 
-lemma add_eq_Suc_lem: "a+b = Suc (x+y) \<Longrightarrow> a \<le> x \<or> b \<le> y"
-  by arith
-
 lemma prime_elem_power_dvd_cases:
-     "\<lbrakk>p^c dvd m * n; a + b = Suc c; prime_elem p\<rbrakk> \<Longrightarrow> p ^ a dvd m \<or> p ^ b dvd n"
-  using power_le_dvd by (blast dest: prime_elem_power_dvd_prod add_eq_Suc_lem)
+  assumes "p ^ c dvd m * n" and "a + b = Suc c" and "prime_elem p"
+  shows "p ^ a dvd m \<or> p ^ b dvd n"
+proof -
+  from assms obtain r s
+    where "r + s = c \<and> p ^ r dvd m \<and> p ^ s dvd n"
+    by (blast dest: prime_elem_power_dvd_prod)
+  moreover with assms have
+    "a \<le> r \<or> b \<le> s" by arith
+  ultimately show ?thesis by (auto intro: power_le_dvd)
+qed
 
 lemma prime_elem_not_unit' [simp]:
   "ASSUMPTION (prime_elem x) \<Longrightarrow> \<not>is_unit x"
@@ -358,8 +357,28 @@ qed
 
 end
 
+
+subsection \<open>Generalized primes: normalized prime elements\<close>
+
 context normalization_semidom
 begin
+
+lemma irreducible_normalized_divisors:
+  assumes "irreducible x" "y dvd x" "normalize y = y"
+  shows   "y = 1 \<or> y = normalize x"
+proof -
+  from assms have "is_unit y \<or> x dvd y" by (auto simp: irreducible_altdef)
+  thus ?thesis
+  proof (elim disjE)
+    assume "is_unit y"
+    hence "normalize y = 1" by (simp add: is_unit_normalize)
+    with assms show ?thesis by simp
+  next
+    assume "x dvd y"
+    with \<open>y dvd x\<close> have "normalize y = normalize x" by (rule associatedI)
+    with assms show ?thesis by simp
+  qed
+qed
 
 lemma irreducible_normalize_iff [simp]: "irreducible (normalize x) = irreducible x"
   using irreducible_mult_unit_left[of "1 div unit_factor x" x]
@@ -443,16 +462,6 @@ lemma prime_dvd_power_iff:
   "prime p \<Longrightarrow> n > 0 \<Longrightarrow> p dvd x ^ n \<longleftrightarrow> p dvd x"
   by (subst prime_elem_dvd_power_iff) simp_all
 
-lemma prod_mset_subset_imp_dvd:
-  assumes "A \<subseteq># B"
-  shows   "prod_mset A dvd prod_mset B"
-proof -
-  from assms have "B = (B - A) + A" by (simp add: subset_mset.diff_add)
-  also have "prod_mset \<dots> = prod_mset (B - A) * prod_mset A" by simp
-  also have "prod_mset A dvd \<dots>" by simp
-  finally show ?thesis .
-qed
-
 lemma prime_dvd_prod_mset_iff: "prime p \<Longrightarrow> p dvd prod_mset A \<longleftrightarrow> (\<exists>x. x \<in># A \<and> p dvd x)"
   by (induction A) (simp_all add: prime_elem_dvd_mult_iff prime_imp_prime_elem, blast+)
 
@@ -508,26 +517,11 @@ lemma prod_mset_dvd_prod_mset_primes_iff:
   shows   "prod_mset A dvd prod_mset B \<longleftrightarrow> A \<subseteq># B"
   using assms by (auto intro: prod_mset_subset_imp_dvd prod_mset_primes_dvd_imp_subset)
 
-lemma is_unit_prod_mset_iff:
-  "is_unit (prod_mset A) \<longleftrightarrow> (\<forall>x. x \<in># A \<longrightarrow> is_unit x)"
-  by (induction A) (auto simp: is_unit_mult_iff)
-
-lemma multiset_emptyI: "(\<And>x. x \<notin># A) \<Longrightarrow> A = {#}"
-  by (intro multiset_eqI) (simp_all add: count_eq_zero_iff)
-
 lemma is_unit_prod_mset_primes_iff:
   assumes "\<And>x. x \<in># A \<Longrightarrow> prime x"
   shows   "is_unit (prod_mset A) \<longleftrightarrow> A = {#}"
-proof
-  assume unit: "is_unit (prod_mset A)"
-  show "A = {#}"
-  proof (intro multiset_emptyI notI)
-    fix x assume "x \<in># A"
-    with unit have "is_unit x" by (subst (asm) is_unit_prod_mset_iff) blast
-    moreover from \<open>x \<in># A\<close> have "prime x" by (rule assms)
-    ultimately show False by simp
-  qed
-qed simp_all
+  by (auto simp add: is_unit_prod_mset_iff)
+    (meson all_not_in_conv assms not_prime_unit set_mset_eq_empty_iff)
 
 lemma prod_mset_primes_irreducible_imp_prime:
   assumes irred: "irreducible (prod_mset A)"
@@ -555,14 +549,6 @@ proof -
     by (auto intro: prod_mset_subset_imp_dvd)
 qed
 
-lemma multiset_nonemptyE [elim]:
-  assumes "A \<noteq> {#}"
-  obtains x where "x \<in># A"
-proof -
-  have "\<exists>x. x \<in># A" by (rule ccontr) (insert assms, auto)
-  with that show ?thesis by blast
-qed
-
 lemma prod_mset_primes_finite_divisor_powers:
   assumes A: "\<And>x. x \<in># A \<Longrightarrow> prime x"
   assumes B: "\<And>x. x \<in># B \<Longrightarrow> prime x"
@@ -585,11 +571,10 @@ proof -
   ultimately show ?thesis by (rule finite_subset)
 qed
 
-lemma normalize_prod_mset:
-  "normalize (prod_mset A) = prod_mset (image_mset normalize A)"
-  by (induction A) (simp_all add: normalize_mult mult_ac)
-
 end
+
+
+subsection \<open>In a semiring with GCD, each irreducible element is a prime elements\<close>
 
 context semiring_gcd
 begin
@@ -652,9 +637,83 @@ lemma primes_coprime:
 end
 
 
+subsection \<open>Factorial semirings: algebraic structures with unique prime factorizations\<close>
+
 class factorial_semiring = normalization_semidom +
   assumes prime_factorization_exists:
-            "x \<noteq> 0 \<Longrightarrow> \<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize x"
+    "x \<noteq> 0 \<Longrightarrow> \<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize x"
+
+text \<open>Alternative characterization\<close>
+  
+lemma (in normalization_semidom) factorial_semiring_altI_aux:
+  assumes finite_divisors: "\<And>x. x \<noteq> 0 \<Longrightarrow> finite {y. y dvd x \<and> normalize y = y}"
+  assumes irreducible_imp_prime_elem: "\<And>x. irreducible x \<Longrightarrow> prime_elem x"
+  assumes "x \<noteq> 0"
+  shows   "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize x"
+using \<open>x \<noteq> 0\<close>
+proof (induction "card {b. b dvd x \<and> normalize b = b}" arbitrary: x rule: less_induct)
+  case (less a)
+  let ?fctrs = "\<lambda>a. {b. b dvd a \<and> normalize b = b}"
+  show ?case
+  proof (cases "is_unit a")
+    case True
+    thus ?thesis by (intro exI[of _ "{#}"]) (auto simp: is_unit_normalize)
+  next
+    case False
+    show ?thesis
+    proof (cases "\<exists>b. b dvd a \<and> \<not>is_unit b \<and> \<not>a dvd b")
+      case False
+      with \<open>\<not>is_unit a\<close> less.prems have "irreducible a" by (auto simp: irreducible_altdef)
+      hence "prime_elem a" by (rule irreducible_imp_prime_elem)
+      thus ?thesis by (intro exI[of _ "{#normalize a#}"]) auto
+    next
+      case True
+      then guess b by (elim exE conjE) note b = this
+
+      from b have "?fctrs b \<subseteq> ?fctrs a" by (auto intro: dvd_trans)
+      moreover from b have "normalize a \<notin> ?fctrs b" "normalize a \<in> ?fctrs a" by simp_all
+      hence "?fctrs b \<noteq> ?fctrs a" by blast
+      ultimately have "?fctrs b \<subset> ?fctrs a" by (subst subset_not_subset_eq) blast
+      with finite_divisors[OF \<open>a \<noteq> 0\<close>] have "card (?fctrs b) < card (?fctrs a)"
+        by (rule psubset_card_mono)
+      moreover from \<open>a \<noteq> 0\<close> b have "b \<noteq> 0" by auto
+      ultimately have "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize b"
+        by (intro less) auto
+      then guess A .. note A = this
+
+      define c where "c = a div b"
+      from b have c: "a = b * c" by (simp add: c_def)
+      from less.prems c have "c \<noteq> 0" by auto
+      from b c have "?fctrs c \<subseteq> ?fctrs a" by (auto intro: dvd_trans)
+      moreover have "normalize a \<notin> ?fctrs c"
+      proof safe
+        assume "normalize a dvd c"
+        hence "b * c dvd 1 * c" by (simp add: c)
+        hence "b dvd 1" by (subst (asm) dvd_times_right_cancel_iff) fact+
+        with b show False by simp
+      qed
+      with \<open>normalize a \<in> ?fctrs a\<close> have "?fctrs a \<noteq> ?fctrs c" by blast
+      ultimately have "?fctrs c \<subset> ?fctrs a" by (subst subset_not_subset_eq) blast
+      with finite_divisors[OF \<open>a \<noteq> 0\<close>] have "card (?fctrs c) < card (?fctrs a)"
+        by (rule psubset_card_mono)
+      with \<open>c \<noteq> 0\<close> have "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize c"
+        by (intro less) auto
+      then guess B .. note B = this
+
+      from A B show ?thesis by (intro exI[of _ "A + B"]) (auto simp: c normalize_mult)
+    qed
+  qed
+qed 
+
+lemma factorial_semiring_altI:
+  assumes finite_divisors: "\<And>x::'a. x \<noteq> 0 \<Longrightarrow> finite {y. y dvd x \<and> normalize y = y}"
+  assumes irreducible_imp_prime: "\<And>x::'a. irreducible x \<Longrightarrow> prime_elem x"
+  shows   "OFCLASS('a :: normalization_semidom, factorial_semiring_class)"
+  by intro_classes (rule factorial_semiring_altI_aux[OF assms])
+  
+text \<open>Properties\<close>
+
+context factorial_semiring
 begin
 
 lemma prime_factorization_exists':
@@ -783,24 +842,6 @@ qed (simp add: multiplicity_def)
 
 lemma multiplicity_dvd': "n \<le> multiplicity p x \<Longrightarrow> p ^ n dvd x"
   by (rule dvd_trans[OF le_imp_power_dvd multiplicity_dvd])
-
-lemma dvd_power_iff:
-  assumes "x \<noteq> 0"
-  shows   "x ^ m dvd x ^ n \<longleftrightarrow> is_unit x \<or> m \<le> n"
-proof
-  assume *: "x ^ m dvd x ^ n"
-  {
-    assume "m > n"
-    note *
-    also have "x ^ n = x ^ n * 1" by simp
-    also from \<open>m > n\<close> have "m = n + (m - n)" by simp
-    also have "x ^ \<dots> = x ^ n * x ^ (m - n)" by (rule power_add)
-    finally have "x ^ (m - n) dvd 1"
-      by (subst (asm) dvd_times_left_cancel_iff) (insert assms, simp_all)
-    with \<open>m > n\<close> have "is_unit x" by (simp add: is_unit_power_iff)
-  }
-  thus "is_unit x \<or> m \<le> n" by force
-qed (auto intro: unit_imp_dvd simp: is_unit_power_iff le_imp_power_dvd)
 
 context
   fixes x p :: 'a
@@ -965,6 +1006,65 @@ proof (cases "x = 0")
   qed
 qed simp_all
 
+lemma multiplicity_self:
+  assumes "p \<noteq> 0" "\<not>is_unit p"
+  shows   "multiplicity p p = 1"
+proof -
+  from assms have "multiplicity p p = Max {n. p ^ n dvd p}"
+    by (simp add: multiplicity_eq_Max)
+  also from assms have "p ^ n dvd p \<longleftrightarrow> n \<le> 1" for n
+    using dvd_power_iff[of p n 1] by auto
+  hence "{n. p ^ n dvd p} = {..1}" by auto
+  also have "\<dots> = {0,1}" by auto
+  finally show ?thesis by simp
+qed
+
+lemma multiplicity_times_unit_left:
+  assumes "is_unit c"
+  shows   "multiplicity (c * p) x = multiplicity p x"
+proof -
+  from assms have "{n. (c * p) ^ n dvd x} = {n. p ^ n dvd x}"
+    by (subst mult.commute) (simp add: mult_unit_dvd_iff power_mult_distrib is_unit_power_iff)
+  thus ?thesis by (simp add: multiplicity_def)
+qed
+
+lemma multiplicity_times_unit_right:
+  assumes "is_unit c"
+  shows   "multiplicity p (c * x) = multiplicity p x"
+proof -
+  from assms have "{n. p ^ n dvd c * x} = {n. p ^ n dvd x}"
+    by (subst mult.commute) (simp add: dvd_mult_unit_iff)
+  thus ?thesis by (simp add: multiplicity_def)
+qed
+
+lemma multiplicity_normalize_left [simp]:
+  "multiplicity (normalize p) x = multiplicity p x"
+proof (cases "p = 0")
+  case [simp]: False
+  have "normalize p = (1 div unit_factor p) * p"
+    by (simp add: unit_div_commute is_unit_unit_factor)
+  also have "multiplicity \<dots> x = multiplicity p x"
+    by (rule multiplicity_times_unit_left) (simp add: is_unit_unit_factor)
+  finally show ?thesis .
+qed simp_all
+
+lemma multiplicity_normalize_right [simp]:
+  "multiplicity p (normalize x) = multiplicity p x"
+proof (cases "x = 0")
+  case [simp]: False
+  have "normalize x = (1 div unit_factor x) * x"
+    by (simp add: unit_div_commute is_unit_unit_factor)
+  also have "multiplicity p \<dots> = multiplicity p x"
+    by (rule multiplicity_times_unit_right) (simp add: is_unit_unit_factor)
+  finally show ?thesis .
+qed simp_all   
+
+lemma multiplicity_prime [simp]: "prime_elem p \<Longrightarrow> multiplicity p p = 1"
+  by (rule multiplicity_self) auto
+
+lemma multiplicity_prime_power [simp]: "prime_elem p \<Longrightarrow> multiplicity p (p ^ n) = n"
+  by (subst multiplicity_same_power') auto
+
 lift_definition prime_factorization :: "'a \<Rightarrow> 'a multiset" is
   "\<lambda>x p. if prime p then multiplicity p x else 0"
   unfolding multiset_def
@@ -996,15 +1096,14 @@ lemma count_prime_factorization:
   "count (prime_factorization x) p = (if prime p then multiplicity p x else 0)"
   by transfer simp
 
-lemma unit_imp_no_irreducible_divisors:
-  assumes "is_unit x" "irreducible p"
-  shows   "\<not>p dvd x"
-  using assms dvd_unit_imp_unit irreducible_not_unit by blast
-
-lemma unit_imp_no_prime_divisors:
-  assumes "is_unit x" "prime_elem p"
-  shows   "\<not>p dvd x"
-  using unit_imp_no_irreducible_divisors[OF assms(1) prime_elem_imp_irreducible[OF assms(2)]] .
+lemma dvd_imp_multiplicity_le:
+  assumes "a dvd b" "b \<noteq> 0"
+  shows   "multiplicity p a \<le> multiplicity p b"
+proof (cases "is_unit p")
+  case False
+  with assms show ?thesis
+    by (intro multiplicity_geI ) (auto intro: dvd_trans[OF multiplicity_dvd' assms(1)])
+qed (insert assms, auto simp: multiplicity_unit_left)
 
 lemma prime_factorization_0 [simp]: "prime_factorization 0 = {#}"
   by (simp add: multiset_eq_iff count_prime_factorization)
@@ -1100,18 +1199,17 @@ lemma in_prime_factors_imp_dvd [dest]:
   "p \<in> prime_factors x \<Longrightarrow> p dvd x"
   by (simp add: in_prime_factors_iff)
 
-lemma multiplicity_self:
-  assumes "p \<noteq> 0" "\<not>is_unit p"
-  shows   "multiplicity p p = 1"
-proof -
-  from assms have "multiplicity p p = Max {n. p ^ n dvd p}"
-    by (simp add: multiplicity_eq_Max)
-  also from assms have "p ^ n dvd p \<longleftrightarrow> n \<le> 1" for n
-    using dvd_power_iff[of p n 1] by auto
-  hence "{n. p ^ n dvd p} = {..1}" by auto
-  also have "\<dots> = {0,1}" by auto
-  finally show ?thesis by simp
-qed
+lemma prime_factorsI:
+  "x \<noteq> 0 \<Longrightarrow> prime p \<Longrightarrow> p dvd x \<Longrightarrow> p \<in> prime_factors x"
+  by (auto simp: in_prime_factors_iff)
+
+lemma prime_factors_dvd:
+  "x \<noteq> 0 \<Longrightarrow> prime_factors x = {p. prime p \<and> p dvd x}"
+  by (auto intro: prime_factorsI)
+
+lemma prime_factors_multiplicity:
+  "prime_factors n = {p. prime p \<and> multiplicity p n > 0}"
+  by (cases "n = 0") (auto simp add: prime_factors_dvd prime_multiplicity_gt_zero_iff)
 
 lemma prime_factorization_prime:
   assumes "prime p"
@@ -1135,44 +1233,6 @@ proof (induction A)
   with add show ?case
     by (simp_all add: mult_ac prime_factorization_times_prime Multiset.union_commute)
 qed simp_all
-
-lemma multiplicity_times_unit_left:
-  assumes "is_unit c"
-  shows   "multiplicity (c * p) x = multiplicity p x"
-proof -
-  from assms have "{n. (c * p) ^ n dvd x} = {n. p ^ n dvd x}"
-    by (subst mult.commute) (simp add: mult_unit_dvd_iff power_mult_distrib is_unit_power_iff)
-  thus ?thesis by (simp add: multiplicity_def)
-qed
-
-lemma multiplicity_times_unit_right:
-  assumes "is_unit c"
-  shows   "multiplicity p (c * x) = multiplicity p x"
-proof -
-  from assms have "{n. p ^ n dvd c * x} = {n. p ^ n dvd x}"
-    by (subst mult.commute) (simp add: dvd_mult_unit_iff)
-  thus ?thesis by (simp add: multiplicity_def)
-qed
-
-lemma multiplicity_normalize_left [simp]: "multiplicity (normalize p) x = multiplicity p x"
-proof (cases "p = 0")
-  case [simp]: False
-  have "normalize p = (1 div unit_factor p) * p"
-    by (simp add: unit_div_commute is_unit_unit_factor)
-  also have "multiplicity \<dots> x = multiplicity p x"
-    by (rule multiplicity_times_unit_left) (simp add: is_unit_unit_factor)
-  finally show ?thesis .
-qed simp_all
-
-lemma multiplicity_normalize_right [simp]: "multiplicity p (normalize x) = multiplicity p x"
-proof (cases "x = 0")
-  case [simp]: False
-  have "normalize x = (1 div unit_factor x) * x"
-    by (simp add: unit_div_commute is_unit_unit_factor)
-  also have "multiplicity p \<dots> = multiplicity p x"
-    by (rule multiplicity_times_unit_right) (simp add: is_unit_unit_factor)
-  finally show ?thesis .
-qed simp_all   
 
 lemma prime_factorization_cong:
   "normalize x = normalize y \<Longrightarrow> prime_factorization x = prime_factorization y"
@@ -1205,6 +1265,51 @@ proof -
     by (rule prime_factorization_prod_mset_primes) (auto simp: in_prime_factors_imp_prime)
   finally show ?thesis .
 qed
+
+lemma prime_elem_multiplicity_mult_distrib:
+  assumes "prime_elem p" "x \<noteq> 0" "y \<noteq> 0"
+  shows   "multiplicity p (x * y) = multiplicity p x + multiplicity p y"
+proof -
+  have "multiplicity p (x * y) = count (prime_factorization (x * y)) (normalize p)"
+    by (subst count_prime_factorization_prime) (simp_all add: assms)
+  also from assms 
+    have "prime_factorization (x * y) = prime_factorization x + prime_factorization y"
+      by (intro prime_factorization_mult)
+  also have "count \<dots> (normalize p) = 
+    count (prime_factorization x) (normalize p) + count (prime_factorization y) (normalize p)"
+    by simp
+  also have "\<dots> = multiplicity p x + multiplicity p y" 
+    by (subst (1 2) count_prime_factorization_prime) (simp_all add: assms)
+  finally show ?thesis .
+qed
+
+lemma prime_elem_multiplicity_prod_mset_distrib:
+  assumes "prime_elem p" "0 \<notin># A"
+  shows   "multiplicity p (prod_mset A) = sum_mset (image_mset (multiplicity p) A)"
+  using assms by (induction A) (auto simp: prime_elem_multiplicity_mult_distrib)
+
+lemma prime_elem_multiplicity_power_distrib:
+  assumes "prime_elem p" "x \<noteq> 0"
+  shows   "multiplicity p (x ^ n) = n * multiplicity p x"
+  using assms prime_elem_multiplicity_prod_mset_distrib [of p "replicate_mset n x"]
+  by simp
+
+lemma prime_elem_multiplicity_setprod_distrib:
+  assumes "prime_elem p" "0 \<notin> f ` A" "finite A"
+  shows   "multiplicity p (setprod f A) = (\<Sum>x\<in>A. multiplicity p (f x))"
+proof -
+  have "multiplicity p (setprod f A) = (\<Sum>x\<in>#mset_set A. multiplicity p (f x))"
+    using assms by (subst setprod_unfold_prod_mset)
+                   (simp_all add: prime_elem_multiplicity_prod_mset_distrib setsum_unfold_sum_mset 
+                      multiset.map_comp o_def)
+  also from \<open>finite A\<close> have "\<dots> = (\<Sum>x\<in>A. multiplicity p (f x))"
+    by (induction A rule: finite_induct) simp_all
+  finally show ?thesis .
+qed
+
+lemma multiplicity_distinct_prime_power:
+  "prime p \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> multiplicity p (q ^ n) = 0"
+  by (subst prime_elem_multiplicity_power_distrib) (auto simp: prime_multiplicity_other)
 
 lemma prime_factorization_prime_power:
   "prime p \<Longrightarrow> prime_factorization (p ^ n) = replicate_mset n p"
@@ -1243,59 +1348,9 @@ qed simp_all
 lemma zero_not_in_prime_factors [simp]: "0 \<notin> prime_factors x"
   by (auto dest: in_prime_factors_imp_prime)
 
-
-lemma prime_elem_multiplicity_mult_distrib:
-  assumes "prime_elem p" "x \<noteq> 0" "y \<noteq> 0"
-  shows   "multiplicity p (x * y) = multiplicity p x + multiplicity p y"
-proof -
-  have "multiplicity p (x * y) = count (prime_factorization (x * y)) (normalize p)"
-    by (subst count_prime_factorization_prime) (simp_all add: assms)
-  also from assms 
-    have "prime_factorization (x * y) = prime_factorization x + prime_factorization y"
-      by (intro prime_factorization_mult)
-  also have "count \<dots> (normalize p) = 
-    count (prime_factorization x) (normalize p) + count (prime_factorization y) (normalize p)"
-    by simp
-  also have "\<dots> = multiplicity p x + multiplicity p y" 
-    by (subst (1 2) count_prime_factorization_prime) (simp_all add: assms)
-  finally show ?thesis .
-qed
-
-lemma prime_elem_multiplicity_power_distrib:
-  assumes "prime_elem p" "x \<noteq> 0"
-  shows   "multiplicity p (x ^ n) = n * multiplicity p x"
-  by (induction n) (simp_all add: assms prime_elem_multiplicity_mult_distrib)
-
-lemma prime_elem_multiplicity_prod_mset_distrib:
-  assumes "prime_elem p" "0 \<notin># A"
-  shows   "multiplicity p (prod_mset A) = sum_mset (image_mset (multiplicity p) A)"
-  using assms by (induction A) (auto simp: prime_elem_multiplicity_mult_distrib)
-
-lemma prime_elem_multiplicity_setprod_distrib:
-  assumes "prime_elem p" "0 \<notin> f ` A" "finite A"
-  shows   "multiplicity p (setprod f A) = (\<Sum>x\<in>A. multiplicity p (f x))"
-proof -
-  have "multiplicity p (setprod f A) = (\<Sum>x\<in>#mset_set A. multiplicity p (f x))"
-    using assms by (subst setprod_unfold_prod_mset)
-                   (simp_all add: prime_elem_multiplicity_prod_mset_distrib setsum_unfold_sum_mset 
-                      multiset.map_comp o_def)
-  also from \<open>finite A\<close> have "\<dots> = (\<Sum>x\<in>A. multiplicity p (f x))"
-    by (induction A rule: finite_induct) simp_all
-  finally show ?thesis .
-qed
-
-lemma prime_factorsI:
-  "x \<noteq> 0 \<Longrightarrow> prime p \<Longrightarrow> p dvd x \<Longrightarrow> p \<in> prime_factors x"
-  by (auto simp: in_prime_factors_iff)
-
 lemma prime_prime_factors:
   "prime p \<Longrightarrow> prime_factors p = {p}"
   by (drule prime_factorization_prime) simp
-
-lemma prime_factors_altdef_multiplicity:
-  "prime_factors n = {p. prime p \<and> multiplicity p n > 0}"
-  by (cases "n = 0")
-     (auto simp: prime_multiplicity_gt_zero_iff in_prime_factors_iff)
 
 lemma setprod_prime_factors:
   assumes "x \<noteq> 0"
@@ -1310,13 +1365,6 @@ proof -
       (simp_all add: assms count_prime_factorization_prime in_prime_factors_imp_prime)
   finally show ?thesis ..
 qed
-
-(* TODO Move *)
-lemma (in semidom) setprod_zero_iff [simp]:
-  assumes "finite A"
-  shows "setprod f A = 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = 0)"
-  using assms by (induct A) (auto simp: no_zero_divisors)
-(* END TODO *)
 
 lemma prime_factorization_unique'':
   assumes S_eq: "S = {p. 0 < f p}"
@@ -1360,28 +1408,9 @@ proof
   qed
 qed
 
-lemma multiplicity_prime [simp]: "prime_elem p \<Longrightarrow> multiplicity p p = 1"
-  by (rule multiplicity_self) auto
-
-lemma multiplicity_prime_power [simp]: "prime_elem p \<Longrightarrow> multiplicity p (p ^ n) = n"
-  by (subst multiplicity_same_power') auto
-
 lemma prime_factors_product: 
   "x \<noteq> 0 \<Longrightarrow> y \<noteq> 0 \<Longrightarrow> prime_factors (x * y) = prime_factors x \<union> prime_factors y"
   by (simp add: prime_factorization_mult)
-
-lemma multiplicity_distinct_prime_power:
-  "prime p \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> multiplicity p (q ^ n) = 0"
-  by (subst prime_elem_multiplicity_power_distrib) (auto simp: prime_multiplicity_other)
-
-lemma dvd_imp_multiplicity_le:
-  assumes "a dvd b" "b \<noteq> 0"
-  shows   "multiplicity p a \<le> multiplicity p b"
-proof (cases "is_unit p")
-  case False
-  with assms show ?thesis
-    by (intro multiplicity_geI ) (auto intro: dvd_trans[OF multiplicity_dvd' assms(1)])
-qed (insert assms, auto simp: multiplicity_unit_left)
 
 lemma dvd_prime_factors [intro]:
   "y \<noteq> 0 \<Longrightarrow> x dvd y \<Longrightarrow> prime_factors x \<subseteq> prime_factors y"
@@ -1401,9 +1430,6 @@ qed auto
 lemma dvd_multiplicity_eq:
   "x \<noteq> 0 \<Longrightarrow> y \<noteq> 0 \<Longrightarrow> x dvd y \<longleftrightarrow> (\<forall>p. multiplicity p x \<le> multiplicity p y)"
   by (auto intro: dvd_imp_multiplicity_le multiplicity_le_imp_dvd)
-
-lemma prime_factors_altdef: "x \<noteq> 0 \<Longrightarrow> prime_factors x = {p. prime p \<and> p dvd x}"
-  by (auto intro: prime_factorsI)
 
 lemma multiplicity_eq_imp_eq:
   assumes "x \<noteq> 0" "y \<noteq> 0"
@@ -1437,6 +1463,8 @@ proof -
   thus ?thesis by simp
 qed
 
+
+subsection \<open>GCD and LCM computation with unique factorizations\<close>
 
 definition "gcd_factorial a b = (if a = 0 then normalize b
      else if b = 0 then normalize a
@@ -1674,73 +1702,6 @@ lemmas gcd_lcm_factorial =
 
 end
 
-lemma (in normalization_semidom) factorial_semiring_altI_aux:
-  assumes finite_divisors: "\<And>x::'a. x \<noteq> 0 \<Longrightarrow> finite {y. y dvd x \<and> normalize y = y}"
-  assumes irreducible_imp_prime_elem: "\<And>x::'a. irreducible x \<Longrightarrow> prime_elem x"
-  assumes "(x::'a) \<noteq> 0"
-  shows   "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize x"
-using \<open>x \<noteq> 0\<close>
-proof (induction "card {b. b dvd x \<and> normalize b = b}" arbitrary: x rule: less_induct)
-  case (less a)
-  let ?fctrs = "\<lambda>a. {b. b dvd a \<and> normalize b = b}"
-  show ?case
-  proof (cases "is_unit a")
-    case True
-    thus ?thesis by (intro exI[of _ "{#}"]) (auto simp: is_unit_normalize)
-  next
-    case False
-    show ?thesis
-    proof (cases "\<exists>b. b dvd a \<and> \<not>is_unit b \<and> \<not>a dvd b")
-      case False
-      with \<open>\<not>is_unit a\<close> less.prems have "irreducible a" by (auto simp: irreducible_altdef)
-      hence "prime_elem a" by (rule irreducible_imp_prime_elem)
-      thus ?thesis by (intro exI[of _ "{#normalize a#}"]) auto
-    next
-      case True
-      then guess b by (elim exE conjE) note b = this
-
-      from b have "?fctrs b \<subseteq> ?fctrs a" by (auto intro: dvd_trans)
-      moreover from b have "normalize a \<notin> ?fctrs b" "normalize a \<in> ?fctrs a" by simp_all
-      hence "?fctrs b \<noteq> ?fctrs a" by blast
-      ultimately have "?fctrs b \<subset> ?fctrs a" by (subst subset_not_subset_eq) blast
-      with finite_divisors[OF \<open>a \<noteq> 0\<close>] have "card (?fctrs b) < card (?fctrs a)"
-        by (rule psubset_card_mono)
-      moreover from \<open>a \<noteq> 0\<close> b have "b \<noteq> 0" by auto
-      ultimately have "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize b"
-        by (intro less) auto
-      then guess A .. note A = this
-
-      define c where "c = a div b"
-      from b have c: "a = b * c" by (simp add: c_def)
-      from less.prems c have "c \<noteq> 0" by auto
-      from b c have "?fctrs c \<subseteq> ?fctrs a" by (auto intro: dvd_trans)
-      moreover have "normalize a \<notin> ?fctrs c"
-      proof safe
-        assume "normalize a dvd c"
-        hence "b * c dvd 1 * c" by (simp add: c)
-        hence "b dvd 1" by (subst (asm) dvd_times_right_cancel_iff) fact+
-        with b show False by simp
-      qed
-      with \<open>normalize a \<in> ?fctrs a\<close> have "?fctrs a \<noteq> ?fctrs c" by blast
-      ultimately have "?fctrs c \<subset> ?fctrs a" by (subst subset_not_subset_eq) blast
-      with finite_divisors[OF \<open>a \<noteq> 0\<close>] have "card (?fctrs c) < card (?fctrs a)"
-        by (rule psubset_card_mono)
-      with \<open>c \<noteq> 0\<close> have "\<exists>A. (\<forall>x. x \<in># A \<longrightarrow> prime_elem x) \<and> prod_mset A = normalize c"
-        by (intro less) auto
-      then guess B .. note B = this
-
-      from A B show ?thesis by (intro exI[of _ "A + B"]) (auto simp: c normalize_mult)
-    qed
-  qed
-qed 
-
-lemma factorial_semiring_altI:
-  assumes finite_divisors: "\<And>x::'a. x \<noteq> 0 \<Longrightarrow> finite {y. y dvd x \<and> normalize y = y}"
-  assumes irreducible_imp_prime: "\<And>x::'a. irreducible x \<Longrightarrow> prime_elem x"
-  shows   "OFCLASS('a :: normalization_semidom, factorial_semiring_class)"
-  by intro_classes (rule factorial_semiring_altI_aux[OF assms])
-
-
 class factorial_semiring_gcd = factorial_semiring + gcd + Gcd +
   assumes gcd_eq_gcd_factorial: "gcd a b = gcd_factorial a b"
   and     lcm_eq_lcm_factorial: "lcm a b = lcm_factorial a b"
@@ -1845,7 +1806,6 @@ next
 qed
 
 end
-
 
 class factorial_ring_gcd = factorial_semiring_gcd + idom
 begin

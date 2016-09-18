@@ -247,6 +247,14 @@ lemma set_mset_add_mset_insert [simp]: \<open>set_mset (add_mset a A) = insert a
   by (auto simp del: count_greater_eq_Suc_zero_iff
       simp: count_greater_eq_Suc_zero_iff[symmetric] split: if_splits)
 
+lemma multiset_nonemptyE [elim]:
+  assumes "A \<noteq> {#}"
+  obtains x where "x \<in># A"
+proof -
+  have "\<exists>x. x \<in># A" by (rule ccontr) (insert assms, auto)
+  with that show ?thesis by blast
+qed
+
 
 subsubsection \<open>Union\<close>
 
@@ -2041,6 +2049,10 @@ lemma repeat_mset_cancel1: "repeat_mset a A = repeat_mset a B \<longleftrightarr
 lemma repeat_mset_cancel2: "repeat_mset a A = repeat_mset b A \<longleftrightarrow> a = b \<or> A = {#}"
   by (auto simp: multiset_eq_iff)
 
+lemma image_replicate_mset [simp]:
+  "image_mset f (replicate_mset n a) = replicate_mset n (f a)"
+  by (induct n) simp_all
+
 
 subsection \<open>Big operators\<close>
 
@@ -2209,14 +2221,20 @@ syntax
 translations
   "\<Prod>i \<in># A. b" \<rightleftharpoons> "CONST prod_mset (CONST image_mset (\<lambda>i. b) A)"
 
-lemma (in comm_semiring_1) dvd_prod_mset:
+lemma (in comm_monoid_mult) prod_mset_subset_imp_dvd:
+  assumes "A \<subseteq># B"
+  shows   "prod_mset A dvd prod_mset B"
+proof -
+  from assms have "B = (B - A) + A" by (simp add: subset_mset.diff_add)
+  also have "prod_mset \<dots> = prod_mset (B - A) * prod_mset A" by simp
+  also have "prod_mset A dvd \<dots>" by simp
+  finally show ?thesis .
+qed
+
+lemma (in comm_monoid_mult) dvd_prod_mset:
   assumes "x \<in># A"
   shows "x dvd prod_mset A"
-proof -
-  from assms have "A = add_mset x (A - {#x#})" by simp
-  then obtain B where "A = add_mset x B" ..
-  then show ?thesis by simp
-qed
+  using assms prod_mset_subset_imp_dvd [of "{#x#}" A] by simp
 
 lemma (in semidom) prod_mset_zero_iff [iff]:
   "prod_mset A = 0 \<longleftrightarrow> 0 \<in># A"
@@ -2236,10 +2254,22 @@ lemma (in semidom_divide) prod_mset_minus:
   shows "prod_mset (A - {#a#}) = prod_mset A div a"
   using assms prod_mset_diff [of "{#a#}" A] by auto
 
+lemma (in algebraic_semidom) is_unit_prod_mset_iff:
+  "is_unit (prod_mset A) \<longleftrightarrow> (\<forall>x \<in># A. is_unit x)"
+  by (induct A) (auto simp: is_unit_mult_iff)
+
+lemma (in normalization_semidom) normalize_prod_mset:
+  "normalize (prod_mset A) = prod_mset (image_mset normalize A)"
+  by (induct A) (simp_all add: normalize_mult)
+
 lemma (in normalization_semidom) normalized_prod_msetI:
   assumes "\<And>a. a \<in># A \<Longrightarrow> normalize a = a"
   shows "normalize (prod_mset A) = prod_mset A"
-  using assms by (induct A) (simp_all add: normalize_mult)
+proof -
+  from assms have "image_mset normalize A = A"
+    by (induct A) simp_all
+  then show ?thesis by (simp add: normalize_prod_mset)
+qed
 
 
 subsection \<open>Alternative representations\<close>

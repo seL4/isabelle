@@ -1130,8 +1130,8 @@ qed
 
 end
 
-lemma setprod_zero_iff [simp]:
-  fixes f :: "'b \<Rightarrow> 'a::semidom"
+lemma (in semidom) setprod_zero_iff [simp]:
+  fixes f :: "'b \<Rightarrow> 'a"
   assumes "finite A"
   shows "setprod f A = 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = 0)"
   using assms by (induct A) (auto simp: no_zero_divisors)

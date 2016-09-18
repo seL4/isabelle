@@ -297,6 +297,25 @@ lemma div_power: "b dvd a \<Longrightarrow> (a div b) ^ n = a ^ n div b ^ n"
 lemma is_unit_power_iff: "is_unit (a ^ n) \<longleftrightarrow> is_unit a \<or> n = 0"
   by (induct n) (auto simp add: is_unit_mult_iff)
 
+lemma dvd_power_iff:
+  assumes "x \<noteq> 0"
+  shows   "x ^ m dvd x ^ n \<longleftrightarrow> is_unit x \<or> m \<le> n"
+proof
+  assume *: "x ^ m dvd x ^ n"
+  {
+    assume "m > n"
+    note *
+    also have "x ^ n = x ^ n * 1" by simp
+    also from \<open>m > n\<close> have "m = n + (m - n)" by simp
+    also have "x ^ \<dots> = x ^ n * x ^ (m - n)" by (rule power_add)
+    finally have "x ^ (m - n) dvd 1"
+      by (subst (asm) dvd_times_left_cancel_iff) (insert assms, simp_all)
+    with \<open>m > n\<close> have "is_unit x" by (simp add: is_unit_power_iff)
+  }
+  thus "is_unit x \<or> m \<le> n" by force
+qed (auto intro: unit_imp_dvd simp: is_unit_power_iff le_imp_power_dvd)
+
+
 end
 
 context normalization_semidom

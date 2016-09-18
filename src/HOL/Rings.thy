@@ -862,6 +862,9 @@ next
   then show "a * b dvd c" by (rule dvdI)
 qed
 
+lemma mult_unit_dvd_iff': "is_unit a \<Longrightarrow> (a * b) dvd c \<longleftrightarrow> b dvd c"
+  using mult_unit_dvd_iff [of a b c] by (simp add: ac_simps)
+
 lemma dvd_mult_unit_iff:
   assumes "is_unit b"
   shows "a dvd c * b \<longleftrightarrow> a dvd c"
@@ -878,14 +881,18 @@ next
   then show "a dvd c * b" by simp
 qed
 
+lemma dvd_mult_unit_iff': "is_unit b \<Longrightarrow> a dvd b * c \<longleftrightarrow> a dvd c"
+  using dvd_mult_unit_iff [of b a c] by (simp add: ac_simps)
+
 lemma div_unit_dvd_iff: "is_unit b \<Longrightarrow> a div b dvd c \<longleftrightarrow> a dvd c"
   by (erule is_unitE [of _ a]) (auto simp add: mult_unit_dvd_iff)
 
 lemma dvd_div_unit_iff: "is_unit b \<Longrightarrow> a dvd c div b \<longleftrightarrow> a dvd c"
   by (erule is_unitE [of _ c]) (simp add: dvd_mult_unit_iff)
 
-lemmas unit_dvd_iff = mult_unit_dvd_iff div_unit_dvd_iff
-  dvd_mult_unit_iff dvd_div_unit_iff  (* FIXME consider named_theorems *)
+lemmas unit_dvd_iff = mult_unit_dvd_iff mult_unit_dvd_iff'
+  dvd_mult_unit_iff dvd_mult_unit_iff' 
+  div_unit_dvd_iff dvd_div_unit_iff (* FIXME consider named_theorems *)
 
 lemma unit_mult_div_div [simp]: "is_unit a \<Longrightarrow> b * (1 div a) = b div a"
   by (erule is_unitE [of _ b]) simp

@@ -112,23 +112,6 @@ proof -
     by (auto intro!: euclidean_size_times_nonunit simp: )
 qed
 
-lemma irreducible_normalized_divisors:
-  assumes "irreducible x" "y dvd x" "normalize y = y"
-  shows   "y = 1 \<or> y = normalize x"
-proof -
-  from assms have "is_unit y \<or> x dvd y" by (auto simp: irreducible_altdef)
-  thus ?thesis
-  proof (elim disjE)
-    assume "is_unit y"
-    hence "normalize y = 1" by (simp add: is_unit_normalize)
-    with assms show ?thesis by simp
-  next
-    assume "x dvd y"
-    with \<open>y dvd x\<close> have "normalize y = normalize x" by (rule associatedI)
-    with assms show ?thesis by simp
-  qed
-qed
-
 function gcd_eucl :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where
   "gcd_eucl a b = (if b = 0 then normalize a else gcd_eucl b (a mod b))"
