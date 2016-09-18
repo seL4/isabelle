@@ -117,11 +117,13 @@ print_translation \<open>
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 
-abbreviation Not_Ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<nexists>" 10)
-  where "\<nexists>x. P x \<equiv> \<not> (\<exists>x. P x)"
+syntax
+  "_Not_Ex" :: "idts \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<nexists>_./ _)" [0, 10] 10)
+  "_Not_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<nexists>!_./ _)" [0, 10] 10)
+translations
+  "\<nexists>x. P" \<rightleftharpoons> "\<not> (\<exists>x. P)"
+  "\<nexists>!x. P" \<rightleftharpoons> "\<not> (\<exists>!x. P)"
 
-abbreviation Not_Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<nexists>!" 10)
-  where "\<nexists>!x. P x \<equiv> \<not> (\<exists>!x. P x)"
 
 abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infixl "\<noteq>" 50)
   where "x \<noteq> y \<equiv> \<not> (x = y)"
