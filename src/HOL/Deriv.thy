@@ -119,16 +119,9 @@ proof safe
 qed (blast intro: bounded_linear_add f g has_derivative_bounded_linear)
 
 lemma has_derivative_setsum[simp, derivative_intros]:
-  assumes f: "\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) F"
-  shows "((\<lambda>x. \<Sum>i\<in>I. f i x) has_derivative (\<lambda>x. \<Sum>i\<in>I. f' i x)) F"
-proof (cases "finite I")
-  case True
-  from this f show ?thesis
-    by induct (simp_all add: f)
-next
-  case False
-  then show ?thesis by simp
-qed
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) F) \<Longrightarrow>
+    ((\<lambda>x. \<Sum>i\<in>I. f i x) has_derivative (\<lambda>x. \<Sum>i\<in>I. f' i x)) F"
+  by (induct I rule: infinite_finite_induct) simp_all
 
 lemma has_derivative_minus[simp, derivative_intros]:
   "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. - f x) has_derivative (\<lambda>x. - f' x)) F"
@@ -360,28 +353,24 @@ lemmas has_derivative_scaleR[simp, derivative_intros] = bounded_bilinear.FDERIV[
 
 lemma has_derivative_setprod[simp, derivative_intros]:
   fixes f :: "'i \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_field"
-  assumes f: "\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) (at x within s)"
-  shows "((\<lambda>x. \<Prod>i\<in>I. f i x) has_derivative (\<lambda>y. \<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x))) (at x within s)"
-proof (cases "finite I")
-  case True
-  from this f show ?thesis
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case (insert i I)
-    let ?P = "\<lambda>y. f i x * (\<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x)) + (f' i y) * (\<Prod>i\<in>I. f i x)"
-    have "((\<lambda>x. f i x * (\<Prod>i\<in>I. f i x)) has_derivative ?P) (at x within s)"
-      using insert by (intro has_derivative_mult) auto
-    also have "?P = (\<lambda>y. \<Sum>i'\<in>insert i I. f' i' y * (\<Prod>j\<in>insert i I - {i'}. f j x))"
-      using insert(1,2)
-      by (auto simp add: setsum_right_distrib insert_Diff_if intro!: ext setsum.cong)
-    finally show ?case
-      using insert by simp
-  qed
+  shows "(\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) (at x within s)) \<Longrightarrow>
+    ((\<lambda>x. \<Prod>i\<in>I. f i x) has_derivative (\<lambda>y. \<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x))) (at x within s)"
+proof (induct I rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False
-  then show ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case (insert i I)
+  let ?P = "\<lambda>y. f i x * (\<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x)) + (f' i y) * (\<Prod>i\<in>I. f i x)"
+  have "((\<lambda>x. f i x * (\<Prod>i\<in>I. f i x)) has_derivative ?P) (at x within s)"
+    using insert by (intro has_derivative_mult) auto
+  also have "?P = (\<lambda>y. \<Sum>i'\<in>insert i I. f' i' y * (\<Prod>j\<in>insert i I - {i'}. f j x))"
+    using insert(1,2)
+    by (auto simp add: setsum_right_distrib insert_Diff_if intro!: ext setsum.cong)
+  finally show ?case
+    using insert by simp
 qed
 
 lemma has_derivative_power[simp, derivative_intros]:

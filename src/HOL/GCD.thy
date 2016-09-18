@@ -860,10 +860,7 @@ lemma coprime_plus_one [simp]: "gcd (n + 1) n = 1"
   by (subst add_commute) simp
 
 lemma setprod_coprime [rule_format]: "(\<forall>i\<in>A. gcd (f i) a = 1) \<longrightarrow> gcd (\<Prod>i\<in>A. f i) a = 1"
-  apply (cases "finite A")
-   apply (induct set: finite)
-    apply (auto simp add: gcd_mult_cancel)
-  done
+  by (induct A rule: infinite_finite_induct) (auto simp add: gcd_mult_cancel)
 
 lemma prod_list_coprime: "(\<And>x. x \<in> set xs \<Longrightarrow> coprime x y) \<Longrightarrow> coprime (prod_list xs) y"
   by (induct xs) (simp_all add: gcd_mult_cancel)

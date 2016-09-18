@@ -643,17 +643,8 @@ lemma tendsto_add_zero:
 
 lemma tendsto_setsum [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::topological_comm_monoid_add"
-  assumes "\<And>i. i \<in> I \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
-  shows "((\<lambda>x. \<Sum>i\<in>I. f i x) \<longlongrightarrow> (\<Sum>i\<in>I. a i)) F"
-proof (cases "finite I")
-  case True
-  then show ?thesis
-    using assms by induct (simp_all add: tendsto_add)
-next
-  case False
-  then show ?thesis
-    by simp
-qed
+  shows "(\<And>i. i \<in> I \<Longrightarrow> (f i \<longlongrightarrow> a i) F) \<Longrightarrow> ((\<lambda>x. \<Sum>i\<in>I. f i x) \<longlongrightarrow> (\<Sum>i\<in>I. a i)) F"
+  by (induct I rule: infinite_finite_induct) (simp_all add: tendsto_add)
 
 lemma continuous_setsum [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_add"
@@ -844,16 +835,8 @@ lemma continuous_on_power [continuous_intros]:
 
 lemma tendsto_setprod [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> L i) F"
-  shows "((\<lambda>x. \<Prod>i\<in>S. f i x) \<longlongrightarrow> (\<Prod>i\<in>S. L i)) F"
-proof (cases "finite S")
-  case True
-  then show ?thesis using assms
-    by induct (simp_all add: tendsto_mult)
-next
-  case False
-  then show ?thesis by simp
-qed
+  shows "(\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> L i) F) \<Longrightarrow> ((\<lambda>x. \<Prod>i\<in>S. f i x) \<longlongrightarrow> (\<Prod>i\<in>S. L i)) F"
+  by (induct S rule: infinite_finite_induct) (simp_all add: tendsto_mult)
 
 lemma continuous_setprod [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
@@ -1905,17 +1888,8 @@ lemma convergent_add:
 
 lemma convergent_setsum:
   fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::real_normed_vector"
-  assumes "\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)"
-  shows "convergent (\<lambda>n. \<Sum>i\<in>A. X i n)"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-    using assms by (induct A set: finite) (simp_all add: convergent_const convergent_add)
-next
-  case False
-  then show ?thesis
-    by (simp add: convergent_const)
-qed
+  shows "(\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)) \<Longrightarrow> convergent (\<lambda>n. \<Sum>i\<in>A. X i n)"
+  by (induct A rule: infinite_finite_induct) (simp_all add: convergent_const convergent_add)
 
 lemma (in bounded_linear) convergent:
   assumes "convergent (\<lambda>n. X n)"

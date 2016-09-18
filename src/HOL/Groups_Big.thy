@@ -570,22 +570,8 @@ proof -
 qed
 
 lemma (in ordered_comm_monoid_add) setsum_mono:
-  assumes le: "\<And>i. i\<in>K \<Longrightarrow> f i \<le> g i"
-  shows "(\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
-proof (cases "finite K")
-  case True
-  from this le show ?thesis
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case insert
-    then show ?case using add_mono by fastforce
-  qed
-next
-  case False
-  then show ?thesis by simp
-qed
+  "(\<And>i. i\<in>K \<Longrightarrow> f i \<le> g i) \<Longrightarrow> (\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
+  by (induct K rule: infinite_finite_induct) (use add_mono in auto)
 
 lemma (in strict_ordered_comm_monoid_add) setsum_strict_mono:
   assumes "finite A" "A \<noteq> {}"
@@ -640,13 +626,7 @@ qed
 
 lemma setsum_negf: "(\<Sum>x\<in>A. - f x) = - (\<Sum>x\<in>A. f x)"
   for f :: "'b \<Rightarrow> 'a::ab_group_add"
-proof (cases "finite A")
-  case True
-  then show ?thesis by (induct set: finite) auto
-next
-  case False
-  then show ?thesis by simp
-qed
+  by (induct A rule: infinite_finite_induct) auto
 
 lemma setsum_subtractf: "(\<Sum>x\<in>A. f x - g x) = (\<Sum>x\<in>A. f x) - (\<Sum>x\<in>A. g x)"
   for f g :: "'b \<Rightarrow>'a::ab_group_add"
@@ -660,43 +640,30 @@ lemma setsum_subtractf_nat:
 context ordered_comm_monoid_add
 begin
 
-lemma setsum_nonneg:
-  assumes nn: "\<forall>x\<in>A. 0 \<le> f x"
-  shows "0 \<le> setsum f A"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-    using nn
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case (insert x F)
-    then have "0 + 0 \<le> f x + setsum f F" by (blast intro: add_mono)
-    with insert show ?case by simp
-  qed
+lemma setsum_nonneg: "\<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> 0 \<le> setsum f A"
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False
-  then show ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case (insert x F)
+  then have "0 + 0 \<le> f x + setsum f F" by (blast intro: add_mono)
+  with insert show ?case by simp
 qed
 
-lemma setsum_nonpos:
-  assumes np: "\<forall>x\<in>A. f x \<le> 0"
-  shows "setsum f A \<le> 0"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-    using np
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case (insert x F)
-    then have "f x + setsum f F \<le> 0 + 0" by (blast intro: add_mono)
-    with insert show ?case by simp
-  qed
+lemma setsum_nonpos: "\<forall>x\<in>A. f x \<le> 0 \<Longrightarrow> setsum f A \<le> 0"
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False thus ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case (insert x F)
+  then have "f x + setsum f F \<le> 0 + 0" by (blast intro: add_mono)
+  with insert show ?case by simp
 qed
 
 lemma setsum_nonneg_eq_0_iff:
@@ -762,73 +729,56 @@ lemma (in canonically_ordered_monoid_add) setsum_eq_0_iff [simp]:
   "finite F \<Longrightarrow> (setsum f F = 0) = (\<forall>a\<in>F. f a = 0)"
   by (intro ballI setsum_nonneg_eq_0_iff zero_le)
 
-lemma setsum_right_distrib:
-  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "r * setsum f A = setsum (\<lambda>n. r * f n) A"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case insert
-    then show ?case by (simp add: distrib_left)
-  qed
+lemma setsum_right_distrib: "r * setsum f A = setsum (\<lambda>n. r * f n) A"
+  for f :: "'a \<Rightarrow> 'b::semiring_0"
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False
-  then show ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case insert
+  then show ?case by (simp add: distrib_left)
 qed
 
 lemma setsum_left_distrib: "setsum f A * r = (\<Sum>n\<in>A. f n * r)"
   for r :: "'a::semiring_0"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case insert
-    then show ?case by (simp add: distrib_right)
-  qed
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False
-  then show ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case insert
+  then show ?case by (simp add: distrib_right)
 qed
 
 lemma setsum_divide_distrib: "setsum f A / r = (\<Sum>n\<in>A. f n / r)"
   for r :: "'a::field"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case insert
-    then show ?case by (simp add: add_divide_distrib)
-  qed
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False
-  then show ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case insert
+  then show ?case by (simp add: add_divide_distrib)
 qed
 
 lemma setsum_abs[iff]: "\<bar>setsum f A\<bar> \<le> setsum (\<lambda>i. \<bar>f i\<bar>) A"
   for f :: "'a \<Rightarrow> 'b::ordered_ab_group_add_abs"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case insert
-    then show ?case by (auto intro: abs_triangle_ineq order_trans)
-  qed
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False
-  then show ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case insert
+  then show ?case by (auto intro: abs_triangle_ineq order_trans)
 qed
 
 lemma setsum_abs_ge_zero[iff]: "0 \<le> setsum (\<lambda>i. \<bar>f i\<bar>) A"
@@ -837,23 +787,19 @@ lemma setsum_abs_ge_zero[iff]: "0 \<le> setsum (\<lambda>i. \<bar>f i\<bar>) A"
 
 lemma abs_setsum_abs[simp]: "\<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar> = (\<Sum>a\<in>A. \<bar>f a\<bar>)"
   for f :: "'a \<Rightarrow> 'b::ordered_ab_group_add_abs"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-  proof induct
-    case empty
-    then show ?case by simp
-  next
-    case (insert a A)
-    then have "\<bar>\<Sum>a\<in>insert a A. \<bar>f a\<bar>\<bar> = \<bar>\<bar>f a\<bar> + (\<Sum>a\<in>A. \<bar>f a\<bar>)\<bar>" by simp
-    also from insert have "\<dots> = \<bar>\<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>\<bar>" by simp
-    also have "\<dots> = \<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>" by (simp del: abs_of_nonneg)
-    also from insert have "\<dots> = (\<Sum>a\<in>insert a A. \<bar>f a\<bar>)" by simp
-    finally show ?case .
-  qed
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
 next
-  case False
-  then show ?thesis by simp
+  case empty
+  then show ?case by simp
+next
+  case (insert a A)
+  then have "\<bar>\<Sum>a\<in>insert a A. \<bar>f a\<bar>\<bar> = \<bar>\<bar>f a\<bar> + (\<Sum>a\<in>A. \<bar>f a\<bar>)\<bar>" by simp
+  also from insert have "\<dots> = \<bar>\<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>\<bar>" by simp
+  also have "\<dots> = \<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>" by (simp del: abs_of_nonneg)
+  also from insert have "\<dots> = (\<Sum>a\<in>insert a A. \<bar>f a\<bar>)" by simp
+  finally show ?case .
 qed
 
 lemma setsum_diff1_ring:
@@ -873,21 +819,12 @@ lemma setsum_mult_setsum_if_inj:
     setsum f A * setsum g B = setsum id {f a * g b |a b. a \<in> A \<and> b \<in> B}"
   by(auto simp: setsum_product setsum.cartesian_product intro!: setsum.reindex_cong[symmetric])
 
-lemma setsum_SucD:
-  assumes "setsum f A = Suc n"
-  shows "\<exists>a\<in>A. 0 < f a"
-proof (cases "finite A")
-  case True
-  from this assms show ?thesis by induct auto
-next
-  case False
-  with assms show ?thesis by simp
-qed
+lemma setsum_SucD: "setsum f A = Suc n \<Longrightarrow> \<exists>a\<in>A. 0 < f a"
+  by (induct A rule: infinite_finite_induct) auto
 
 lemma setsum_eq_Suc0_iff:
-  assumes "finite A"
-  shows "setsum f A = Suc 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = Suc 0 \<and> (\<forall>b\<in>A. a \<noteq> b \<longrightarrow> f b = 0))"
-  using assms by induct (auto simp add:add_is_1)
+  "finite A \<Longrightarrow> setsum f A = Suc 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = Suc 0 \<and> (\<forall>b\<in>A. a \<noteq> b \<longrightarrow> f b = 0))"
+  by (induct A rule: finite_induct) (auto simp add: add_is_1)
 
 lemmas setsum_eq_1_iff = setsum_eq_Suc0_iff[simplified One_nat_def[symmetric]]
 
@@ -899,17 +836,19 @@ lemma setsum_Un_nat:
 
 lemma setsum_diff1_nat: "setsum f (A - {a}) = (if a \<in> A then setsum f A - f a else setsum f A)"
   for f :: "'a \<Rightarrow> nat"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-    apply induct
-     apply (auto simp: insert_Diff_if)
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
+next
+  case empty
+  then show ?case by simp
+next
+  case insert
+  then show ?case
+    apply (auto simp: insert_Diff_if)
     apply (drule mk_disjoint_insert)
     apply auto
     done
-next
-  case False
-  then show ?thesis by simp
 qed
 
 lemma setsum_diff_nat:
@@ -941,15 +880,8 @@ next
 qed
 
 lemma setsum_comp_morphism:
-  assumes "h 0 = 0" and "\<And>x y. h (x + y) = h x + h y"
-  shows "setsum (h \<circ> g) A = h (setsum g A)"
-proof (cases "finite A")
-  case False
-  then show ?thesis by (simp add: assms)
-next
-  case True
-  then show ?thesis by (induct A) (simp_all add: assms)
-qed
+  "h 0 = 0 \<Longrightarrow> (\<And>x y. h (x + y) = h x + h y) \<Longrightarrow> setsum (h \<circ> g) A = h (setsum g A)"
+  by (induct A rule: infinite_finite_induct) simp_all
 
 lemma (in comm_semiring_1) dvd_setsum: "(\<And>a. a \<in> A \<Longrightarrow> d dvd f a) \<Longrightarrow> d dvd setsum f A"
   by (induct A rule: infinite_finite_induct) simp_all
@@ -995,13 +927,7 @@ proof -
 qed
 
 lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat (card A) * y"
-proof (cases "finite A")
-  case True
-  then show ?thesis by induct (auto simp: algebra_simps)
-next
-  case False
-  then show ?thesis by simp
-qed
+  by (induct A rule: infinite_finite_induct) (auto simp: algebra_simps)
 
 lemma setsum_Suc: "setsum (\<lambda>x. Suc(f x)) A = setsum f A + card A"
   using setsum.distrib[of f "\<lambda>_. 1" A] by simp
@@ -1033,7 +959,7 @@ lemma setsum_bounded_below:
 proof (cases "finite A")
   case True
   then show ?thesis
-    using le setsum_mono[where K=A and f = "%x. K"] by simp
+    using le setsum_mono[where K=A and f = "\<lambda>x. K"] by simp
 next
   case False
   then show ?thesis by simp
