@@ -522,9 +522,11 @@ lemma Min_insert2:
   assumes "finite A" and min: "\<And>b. b \<in> A \<Longrightarrow> a \<le> b"
   shows "Min (insert a A) = a"
 proof (cases "A = {}")
-  case True then show ?thesis by simp
+  case True
+  then show ?thesis by simp
 next
-  case False with \<open>finite A\<close> have "Min (insert a A) = min a (Min A)"
+  case False
+  with \<open>finite A\<close> have "Min (insert a A) = min a (Min A)"
     by simp
   moreover from \<open>finite A\<close> \<open>A \<noteq> {}\<close> min have "a \<le> Min A" by simp
   ultimately show ?thesis by (simp add: min.absorb1)
@@ -534,9 +536,11 @@ lemma Max_insert2:
   assumes "finite A" and max: "\<And>b. b \<in> A \<Longrightarrow> b \<le> a"
   shows "Max (insert a A) = a"
 proof (cases "A = {}")
-  case True then show ?thesis by simp
+  case True
+  then show ?thesis by simp
 next
-  case False with \<open>finite A\<close> have "Max (insert a A) = max a (Max A)"
+  case False
+  with \<open>finite A\<close> have "Max (insert a A) = max a (Max A)"
     by simp
   moreover from \<open>finite A\<close> \<open>A \<noteq> {}\<close> max have "Max A \<le> a" by simp
   ultimately show ?thesis by (simp add: max.absorb1)

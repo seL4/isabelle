@@ -34,12 +34,7 @@ lemma diff: "f (x - y) = f x - f y"
   using add [of x "- y"] by (simp add: minus)
 
 lemma setsum: "f (setsum g A) = (\<Sum>x\<in>A. f (g x))"
-  apply (cases "finite A")
-   apply (induct set: finite)
-    apply (simp add: zero)
-   apply (simp add: add)
-  apply (simp add: zero)
-  done
+  by (induct A rule: infinite_finite_induct) (simp_all add: zero add)
 
 end
 
@@ -223,10 +218,7 @@ lemma inverse_scaleR_distrib: "inverse (scaleR a x) = scaleR (inverse a) (invers
 
 lemma setsum_constant_scaleR: "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
   for y :: "'a::real_vector"
-  apply (cases "finite A")
-   apply (induct set: finite)
-    apply (simp_all add: algebra_simps)
-  done
+  by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
 
 lemma vector_add_divide_simps:
   "v + (b / z) *\<^sub>R w = (if z = 0 then v else (z *\<^sub>R v + b *\<^sub>R w) /\<^sub>R z)"
@@ -475,31 +467,17 @@ proof -
   then show thesis ..
 qed
 
-lemma setsum_in_Reals [intro,simp]:
-  assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>"
-  shows "setsum f s \<in> \<real>"
-proof (cases "finite s")
-  case True
-  then show ?thesis
-    using assms by (induct s rule: finite_induct) auto
-next
-  case False
-  then show ?thesis
-    using assms by (metis Reals_0 setsum.infinite)
-qed
+lemma setsum_in_Reals [intro,simp]: "(\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>) \<Longrightarrow> setsum f s \<in> \<real>"
+proof (induct s rule: infinite_finite_induct)
+  case infinite
+  then show ?case by (metis Reals_0 setsum.infinite)
+qed simp_all
 
-lemma setprod_in_Reals [intro,simp]:
-  assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>"
-  shows "setprod f s \<in> \<real>"
-proof (cases "finite s")
-  case True
-  then show ?thesis
-    using assms by (induct s rule: finite_induct) auto
-next
-  case False
-  then show ?thesis
-    using assms by (metis Reals_1 setprod.infinite)
-qed
+lemma setprod_in_Reals [intro,simp]: "(\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>) \<Longrightarrow> setprod f s \<in> \<real>"
+proof (induct s rule: infinite_finite_induct)
+  case infinite
+  then show ?case by (metis Reals_1 setprod.infinite)
+qed simp_all
 
 lemma Reals_induct [case_names of_real, induct set: Reals]:
   "q \<in> \<real> \<Longrightarrow> (\<And>r. P (of_real r)) \<Longrightarrow> P q"
@@ -1572,16 +1550,8 @@ lemma bounded_linear_sub: "bounded_linear f \<Longrightarrow> bounded_linear g \
 
 lemma bounded_linear_setsum:
   fixes f :: "'i \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes "\<And>i. i \<in> I \<Longrightarrow> bounded_linear (f i)"
-  shows "bounded_linear (\<lambda>x. \<Sum>i\<in>I. f i x)"
-proof (cases "finite I")
-  case True
-  then show ?thesis
-    using assms by induct (auto intro!: bounded_linear_add)
-next
-  case False
-  then show ?thesis by simp
-qed
+  shows "(\<And>i. i \<in> I \<Longrightarrow> bounded_linear (f i)) \<Longrightarrow> bounded_linear (\<lambda>x. \<Sum>i\<in>I. f i x)"
+  by (induct I rule: infinite_finite_induct) (auto intro!: bounded_linear_add)
 
 lemma bounded_linear_compose:
   assumes "bounded_linear f"

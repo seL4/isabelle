@@ -790,61 +790,55 @@ lemma max_ext_wf:
   assumes wf: "wf r"
   shows "wf (max_ext r)"
 proof (rule acc_wfI, intro allI)
-  fix M
-  show "M \<in> acc (max_ext r)" (is "_ \<in> ?W")
-  proof (cases "finite M")
-    case True
-    then show ?thesis
-    proof (induct M)
-      case empty
-      show ?case
-        by (rule accI) (auto elim: max_ext.cases)
-    next
-      case (insert a M)
-      from wf \<open>M \<in> ?W\<close> \<open>finite M\<close> show "insert a M \<in> ?W"
-      proof (induct arbitrary: M)
-        fix M a
-        assume "M \<in> ?W"
-        assume [intro]: "finite M"
-        assume hyp: "\<And>b M. (b, a) \<in> r \<Longrightarrow> M \<in> ?W \<Longrightarrow> finite M \<Longrightarrow> insert b M \<in> ?W"
-        have add_less: "M \<in> ?W \<Longrightarrow> (\<And>y. y \<in> N \<Longrightarrow> (y, a) \<in> r) \<Longrightarrow> N \<union> M \<in> ?W"
-          if "finite N" "finite M" for N M :: "'a set"
-          using that by (induct N arbitrary: M) (auto simp: hyp)
-        show "insert a M \<in> ?W"
-        proof (rule accI)
-          fix N
-          assume Nless: "(N, insert a M) \<in> max_ext r"
-          then have *: "\<And>x. x \<in> N \<Longrightarrow> (x, a) \<in> r \<or> (\<exists>y \<in> M. (x, y) \<in> r)"
-            by (auto elim!: max_ext.cases)
+  show "M \<in> acc (max_ext r)" (is "_ \<in> ?W") for M
+  proof (induct M rule: infinite_finite_induct)
+    case empty
+    show ?case
+      by (rule accI) (auto elim: max_ext.cases)
+  next
+    case (insert a M)
+    from wf \<open>M \<in> ?W\<close> \<open>finite M\<close> show "insert a M \<in> ?W"
+    proof (induct arbitrary: M)
+      fix M a
+      assume "M \<in> ?W"
+      assume [intro]: "finite M"
+      assume hyp: "\<And>b M. (b, a) \<in> r \<Longrightarrow> M \<in> ?W \<Longrightarrow> finite M \<Longrightarrow> insert b M \<in> ?W"
+      have add_less: "M \<in> ?W \<Longrightarrow> (\<And>y. y \<in> N \<Longrightarrow> (y, a) \<in> r) \<Longrightarrow> N \<union> M \<in> ?W"
+        if "finite N" "finite M" for N M :: "'a set"
+        using that by (induct N arbitrary: M) (auto simp: hyp)
+      show "insert a M \<in> ?W"
+      proof (rule accI)
+        fix N
+        assume Nless: "(N, insert a M) \<in> max_ext r"
+        then have *: "\<And>x. x \<in> N \<Longrightarrow> (x, a) \<in> r \<or> (\<exists>y \<in> M. (x, y) \<in> r)"
+          by (auto elim!: max_ext.cases)
 
-          let ?N1 = "{n \<in> N. (n, a) \<in> r}"
-          let ?N2 = "{n \<in> N. (n, a) \<notin> r}"
-          have N: "?N1 \<union> ?N2 = N" by (rule set_eqI) auto
-          from Nless have "finite N" by (auto elim: max_ext.cases)
-          then have finites: "finite ?N1" "finite ?N2" by auto
+        let ?N1 = "{n \<in> N. (n, a) \<in> r}"
+        let ?N2 = "{n \<in> N. (n, a) \<notin> r}"
+        have N: "?N1 \<union> ?N2 = N" by (rule set_eqI) auto
+        from Nless have "finite N" by (auto elim: max_ext.cases)
+        then have finites: "finite ?N1" "finite ?N2" by auto
 
-          have "?N2 \<in> ?W"
-          proof (cases "M = {}")
-            case [simp]: True
-            have Mw: "{} \<in> ?W" by (rule accI) (auto elim: max_ext.cases)
-            from * have "?N2 = {}" by auto
-            with Mw show "?N2 \<in> ?W" by (simp only:)
-          next
-            case False
-            from * finites have N2: "(?N2, M) \<in> max_ext r"
-              by (rule_tac max_extI[OF _ _ \<open>M \<noteq> {}\<close>]) auto
-            with \<open>M \<in> ?W\<close> show "?N2 \<in> ?W" by (rule acc_downward)
-          qed
-          with finites have "?N1 \<union> ?N2 \<in> ?W"
-            by (rule add_less) simp
-          then show "N \<in> ?W" by (simp only: N)
+        have "?N2 \<in> ?W"
+        proof (cases "M = {}")
+          case [simp]: True
+          have Mw: "{} \<in> ?W" by (rule accI) (auto elim: max_ext.cases)
+          from * have "?N2 = {}" by auto
+          with Mw show "?N2 \<in> ?W" by (simp only:)
+        next
+          case False
+          from * finites have N2: "(?N2, M) \<in> max_ext r"
+            by (rule_tac max_extI[OF _ _ \<open>M \<noteq> {}\<close>]) auto
+          with \<open>M \<in> ?W\<close> show "?N2 \<in> ?W" by (rule acc_downward)
         qed
+        with finites have "?N1 \<union> ?N2 \<in> ?W"
+          by (rule add_less) simp
+        then show "N \<in> ?W" by (simp only: N)
       qed
     qed
   next
-    case [simp]: False
-    show ?thesis
-      by (rule accI) (auto elim: max_ext.cases)
+    case [simp]: infinite
+    show ?case by (rule accI) (auto elim: max_ext.cases)
   qed
 qed
 

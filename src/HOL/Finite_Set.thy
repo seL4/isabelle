@@ -610,26 +610,22 @@ lemma finite_subset_induct' [consumes 2, case_names empty insert]:
     and empty: "P {}"
     and insert: "\<And>a F. \<lbrakk>finite F; a \<in> A; F \<subseteq> A; a \<notin> F; P F \<rbrakk> \<Longrightarrow> P (insert a F)"
   shows "P F"
-proof -
-  from \<open>finite F\<close>
-  have "F \<subseteq> A \<Longrightarrow> ?thesis"
-  proof induct
-    show "P {}" by fact
-  next
-    fix x F
-    assume "finite F" and "x \<notin> F" and
-      P: "F \<subseteq> A \<Longrightarrow> P F" and i: "insert x F \<subseteq> A"
-    show "P (insert x F)"
-    proof (rule insert)
-      from i show "x \<in> A" by blast
-      from i have "F \<subseteq> A" by blast
-      with P show "P F" .
-      show "finite F" by fact
-      show "x \<notin> F" by fact
-      show "F \<subseteq> A" by fact
-    qed
+  using assms(1,2)
+proof induct
+  show "P {}" by fact
+next
+  fix x F
+  assume "finite F" and "x \<notin> F" and
+    P: "F \<subseteq> A \<Longrightarrow> P F" and i: "insert x F \<subseteq> A"
+  show "P (insert x F)"
+  proof (rule insert)
+    from i show "x \<in> A" by blast
+    from i have "F \<subseteq> A" by blast
+    with P show "P F" .
+    show "finite F" by fact
+    show "x \<notin> F" by fact
+    show "F \<subseteq> A" by fact
   qed
-  with \<open>F \<subseteq> A\<close> show ?thesis by blast
 qed
 
 
@@ -1442,6 +1438,7 @@ lemma card_Diff_subset:
   assumes "finite B"
     and "B \<subseteq> A"
   shows "card (A - B) = card A - card B"
+  using assms
 proof (cases "finite A")
   case False
   with assms show ?thesis
@@ -1752,20 +1749,12 @@ subsubsection \<open>Cardinality of image\<close>
 lemma card_image_le: "finite A \<Longrightarrow> card (f ` A) \<le> card A"
   by (induct rule: finite_induct) (simp_all add: le_SucI card_insert_if)
 
-lemma card_image:
-  assumes "inj_on f A"
-  shows "card (f ` A) = card A"
-proof (cases "finite A")
-  case True
-  then show ?thesis
-    using assms by (induct A) simp_all
-next
-  case False
-  then have "\<not> finite (f ` A)"
-    using assms by (auto dest: finite_imageD)
-  with False show ?thesis
-    by simp
-qed
+lemma card_image: "inj_on f A \<Longrightarrow> card (f ` A) = card A"
+proof (induct A rule: infinite_finite_induct)
+  case (infinite A)
+  then have "\<not> finite (f ` A)" by (auto dest: finite_imageD)
+  with infinite show ?case by simp
+qed simp_all
 
 lemma bij_betw_same_card: "bij_betw f A B \<Longrightarrow> card A = card B"
   by (auto simp: card_image bij_betw_def)

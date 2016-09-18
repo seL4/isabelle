@@ -936,7 +936,7 @@ corollary image_Suc_lessThan:
   "Suc ` {..<n} = {1..n}"
   using image_add_atLeastLessThan [of 1 0 n]
   by (auto simp add: lessThan_Suc_atMost atLeast0LessThan)
-  
+
 corollary image_Suc_atMost:
   "Suc ` {..n} = {1..Suc n}"
   using image_add_atLeastLessThan [of 1 0 "Suc n"]
@@ -1198,13 +1198,13 @@ lemma card_greaterThanLessThan [simp]: "card {l<..<u} = u - Suc l"
 lemma subset_eq_atLeast0_lessThan_finite:
   fixes n :: nat
   assumes "N \<subseteq> {0..<n}"
-  shows "finite N" 
+  shows "finite N"
   using assms finite_atLeastLessThan by (rule finite_subset)
 
 lemma subset_eq_atLeast0_atMost_finite:
   fixes n :: nat
   assumes "N \<subseteq> {0..n}"
-  shows "finite N" 
+  shows "finite N"
   using assms finite_atLeastAtMost by (rule finite_subset)
 
 lemma ex_bij_betw_nat_finite:
@@ -1992,7 +1992,7 @@ proof (rule set_eqI)
   proof
     assume "m \<in> ?A"
     with assms show "m \<in> ?B"
-      by auto 
+      by auto
   next
     assume "m \<in> ?B"
     moreover have "m mod n \<in> ?A"
