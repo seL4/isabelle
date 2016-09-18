@@ -994,6 +994,8 @@ lemma Suc_nat_number_of_add: "Suc (numeral v + n) = numeral (v + One) + n"
 lemma numerals: "Numeral1 = (1::nat)" "2 = Suc (Suc 0)"
   by (rule numeral_One) (rule numeral_2_eq_2)
 
+lemmas numeral_nat = eval_nat_numeral BitM.simps One_nat_def
+
 text \<open>Comparisons involving @{term Suc}.\<close>
 
 lemma eq_numeral_Suc [simp]: "numeral k = Suc n \<longleftrightarrow> pred_numeral k = n"

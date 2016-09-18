@@ -129,7 +129,7 @@ done
 text \<open>PROPERTY A 10\<close>
 
 lemma ack_nest_bound: "ack i1 (ack i2 j) < ack (2 + (i1 + i2)) j"
-apply (simp add: numerals)
+apply simp
 apply (rule ack2_le_ack1 [THEN [2] less_le_trans])
 apply simp
 apply (rule le_add1 [THEN ack_le_mono1, THEN le_less_trans])
