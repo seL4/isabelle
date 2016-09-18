@@ -874,7 +874,19 @@ subsubsection \<open>Subset is an order\<close>
 interpretation subset_mset: order "op \<le>#" "op <#" by unfold_locales auto
 
 
-subsubsection \<open>Simprocs\<close>
+subsection \<open>Replicate and repeat operations\<close>
+
+definition replicate_mset :: "nat \<Rightarrow> 'a \<Rightarrow> 'a multiset" where
+  "replicate_mset n x = (add_mset x ^^ n) {#}"
+
+lemma replicate_mset_0[simp]: "replicate_mset 0 x = {#}"
+  unfolding replicate_mset_def by simp
+
+lemma replicate_mset_Suc [simp]: "replicate_mset (Suc n) x = add_mset x (replicate_mset n x)"
+  unfolding replicate_mset_def by (induct n) (auto intro: add.commute)
+
+lemma count_replicate_mset[simp]: "count (replicate_mset n x) y = (if y = x then n else 0)"
+  unfolding replicate_mset_def by (induct n) auto
 
 fun repeat_mset :: "nat \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
   "repeat_mset 0 _ = {#}" |
@@ -888,6 +900,32 @@ lemma repeat_mset_right [simp]: "repeat_mset a (repeat_mset b A) = repeat_mset (
 
 lemma left_diff_repeat_mset_distrib': \<open>repeat_mset (i - j) u = repeat_mset i u - repeat_mset j u\<close>
   by (auto simp: multiset_eq_iff left_diff_distrib')
+
+lemma left_add_mult_distrib_mset:
+  "repeat_mset i u + (repeat_mset j u + k) = repeat_mset (i+j) u + k"
+  by (auto simp: multiset_eq_iff add_mult_distrib)
+
+lemma repeat_mset_distrib:
+  "repeat_mset (m + n) A = repeat_mset m A + repeat_mset n A"
+  by (auto simp: multiset_eq_iff Nat.add_mult_distrib)
+
+lemma repeat_mset_distrib2[simp]:
+  "repeat_mset n (A + B) = repeat_mset n A + repeat_mset n B"
+  by (auto simp: multiset_eq_iff add_mult_distrib2)
+
+lemma repeat_mset_replicate_mset[simp]:
+  "repeat_mset n {#a#} = replicate_mset n a"
+  by (auto simp: multiset_eq_iff)
+
+lemma repeat_mset_distrib_add_mset[simp]:
+  "repeat_mset n (add_mset a A) = replicate_mset n a + repeat_mset n A"
+  by (auto simp: multiset_eq_iff)
+
+lemma repeat_mset_empty[simp]: "repeat_mset n {#} = {#}"
+  by (induction n) simp_all
+
+
+subsubsection \<open>Simprocs\<close>
 
 lemma mset_diff_add_eq1:
   "j \<le> (i::nat) \<Longrightarrow> ((repeat_mset i u + m) - (repeat_mset j u + n)) = ((repeat_mset (i-j) u + m) - n)"
@@ -921,41 +959,35 @@ lemma mset_subset_add_iff2:
   "i \<le> (j::nat) \<Longrightarrow> (repeat_mset i u + m \<subset># repeat_mset j u + n) = (m \<subset># repeat_mset (j-i) u + n)"
   unfolding subset_mset_def by (simp add: mset_eq_add_iff2 mset_subseteq_add_iff2)
 
-lemma left_add_mult_distrib_mset:
-  "repeat_mset i u + (repeat_mset j u + k) = repeat_mset (i+j) u + k"
-  by (auto simp: multiset_eq_iff add_mult_distrib)
-
-lemma repeat_mset_cancel1: "repeat_mset a A = repeat_mset a B \<longleftrightarrow> A = B \<or> a = 0"
-  by (auto simp: multiset_eq_iff)
-
-lemma repeat_mset_cancel2: "repeat_mset a A = repeat_mset b A \<longleftrightarrow> a = b \<or> A = {#}"
-  by (auto simp: multiset_eq_iff)
-
-lemma repeat_mset_distrib [simp]:
-  "repeat_mset n (A + B) = repeat_mset n A + repeat_mset n B"
-  by (auto simp: multiset_eq_iff add_mult_distrib2)
-
 ML_file "multiset_simprocs_util.ML"
 ML_file "multiset_simprocs.ML"
 
 simproc_setup mseteq_cancel_numerals
   ("(l::'a multiset) + m = n" | "(l::'a multiset) = m + n" |
-   "add_mset a m = n" | "m = add_mset a n") =
+   "add_mset a m = n" | "m = add_mset a n" |
+   "replicate_mset p a = n" | "m = replicate_mset p a" |
+   "repeat_mset p m = n" | "m = repeat_mset p m") =
   \<open>fn phi => Multiset_Simprocs.eq_cancel_msets\<close>
 
 simproc_setup msetless_cancel_numerals
   ("(l::'a multiset) + m \<subset># n" | "(l::'a multiset) \<subset># m + n" |
-   "add_mset a m \<subset># n" | "m \<subset># add_mset a n") =
+   "add_mset a m \<subset># n" | "m \<subset># add_mset a n" |
+   "replicate_mset p r \<subset># n" | "m \<subset># replicate_mset p r" |
+   "repeat_mset p m \<subset># n" | "m \<subset># repeat_mset p m") =
   \<open>fn phi => Multiset_Simprocs.subset_cancel_msets\<close>
 
 simproc_setup msetle_cancel_numerals
   ("(l::'a multiset) + m \<subseteq># n" | "(l::'a multiset) \<subseteq># m + n" |
-   "add_mset a m \<subseteq># n" | "m \<subseteq># add_mset a n") =
+   "add_mset a m \<subseteq># n" | "m \<subseteq># add_mset a n" |
+   "replicate_mset p r \<subseteq># n" | "m \<subseteq># replicate_mset p r" |
+   "repeat_mset p m \<subseteq># n" | "m \<subseteq># repeat_mset p m") =
   \<open>fn phi => Multiset_Simprocs.subseteq_cancel_msets\<close>
 
 simproc_setup msetdiff_cancel_numerals
   ("((l::'a multiset) + m) - n" | "(l::'a multiset) - (m + n)" |
-   "add_mset a m - n" | "m - add_mset a n") =
+   "add_mset a m - n" | "m - add_mset a n" |
+   "replicate_mset p r - n" | "m - replicate_mset p r" |
+   "repeat_mset p m - n" | "m - repeat_mset p m") =
   \<open>fn phi => Multiset_Simprocs.diff_cancel_msets\<close>
 
 
@@ -1958,21 +1990,9 @@ proof (induction xs)
 qed simp_all
 
 
-subsection \<open>Replicate operation\<close>
-
-definition replicate_mset :: "nat \<Rightarrow> 'a \<Rightarrow> 'a multiset" where
-  "replicate_mset n x = (add_mset x ^^ n) {#}"
-
-lemma replicate_mset_0[simp]: "replicate_mset 0 x = {#}"
-  unfolding replicate_mset_def by simp
-
-lemma replicate_mset_Suc [simp]: "replicate_mset (Suc n) x = add_mset x (replicate_mset n x)"
-  unfolding replicate_mset_def by (induct n) (auto intro: add.commute)
+subsection \<open>More properties of the replicate and repeat operations\<close>
 
 lemma in_replicate_mset[simp]: "x \<in># replicate_mset n y \<longleftrightarrow> n > 0 \<and> x = y"
-  unfolding replicate_mset_def by (induct n) auto
-
-lemma count_replicate_mset[simp]: "count (replicate_mset n x) y = (if y = x then n else 0)"
   unfolding replicate_mset_def by (induct n) auto
 
 lemma set_mset_replicate_mset_subset[simp]: "set_mset (replicate_mset n x) = (if n = 0 then {} else {x})"
@@ -2000,12 +2020,10 @@ lemma replicate_mset_eq_iff:
     m = 0 \<and> n = 0 \<or> m = n \<and> a = b"
   by (auto simp add: multiset_eq_iff)
 
-lemma repeat_mset_replicate_mset[simp]:
-  "repeat_mset n {#a#} = replicate_mset n a"
+lemma repeat_mset_cancel1: "repeat_mset a A = repeat_mset a B \<longleftrightarrow> A = B \<or> a = 0"
   by (auto simp: multiset_eq_iff)
 
-lemma repeat_mset_distrib_add_mset[simp]:
-  "repeat_mset n (add_mset a A) = replicate_mset n a + repeat_mset n A"
+lemma repeat_mset_cancel2: "repeat_mset a A = repeat_mset b A \<longleftrightarrow> a = b \<or> A = {#}"
   by (auto simp: multiset_eq_iff)
 
 

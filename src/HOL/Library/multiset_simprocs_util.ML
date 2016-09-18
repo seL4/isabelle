@@ -72,6 +72,7 @@ val bin_simps =
   @{thms add_numeral_left diff_nat_numeral diff_0_eq_0 mult_numeral_left(1)
       if_True if_False not_False_eq_True
       nat_0 nat_numeral nat_neg_numeral add_mset_commute repeat_mset.simps(1)
+      replicate_mset_0 repeat_mset_empty
       arith_simps rel_simps};
 
 
@@ -108,14 +109,21 @@ fun find_first_coeff _ _ [] = raise TERM("find_first_coeff", [])
       if u aconv u' then (n, rev past @ terms) else find_first_coeff (t::past) u terms end
     handle TERM _ => find_first_coeff (t::past) u terms;
 
-(*Split up a sum into the list of its constituent terms, on the way replace all the
-\<open>add_mset a C\<close> by \<open>add_mset a {#}\<close> and \<open>C\<close>, iff C was not already the empty set*)
+(*
+  Split up a sum into the list of its constituent terms, on the way replace:
+  * the \<open>add_mset a C\<close> by \<open>add_mset a {#}\<close> and \<open>C\<close>, iff C was not already the empty set;
+  * the \<open>replicate_mset n a\<close> by \<open>repeat_mset n {#a#}\<close>.
+*)
 fun dest_add_mset (Const (@{const_name add_mset}, T) $ a $
       Const (@{const_name "Groups.zero_class.zero"}, U), ts) =
     Const (@{const_name add_mset}, T) $ a $ typed_zero U :: ts
   | dest_add_mset (Const (@{const_name add_mset}, T) $ a $ mset, ts) =
     dest_add_mset (mset, Const (@{const_name add_mset}, T) $ a $
       typed_zero (fastype_of mset) :: ts)
+  | dest_add_mset (Const (@{const_name replicate_mset},
+      Type (_, [_, Type (_, [T, U])])) $ n $ a, ts) =
+    let val single_a = Const (@{const_name add_mset}, T --> U --> U) $ a $ typed_zero U in
+      fast_mk_repeat_mset (n, single_a) :: ts end
   | dest_add_mset (t, ts) =
     let val (t1,t2) = dest_plus t in
       dest_add_mset (t1, dest_add_mset (t2, ts)) end
@@ -156,7 +164,9 @@ val norm_ss1 =
 
 val norm_ss2 =
   simpset_of (put_simpset Numeral_Simprocs.num_ss @{context} addsimps
-    bin_simps @ @{thms union_mset_add_mset_left union_mset_add_mset_right ac_simps});
+    bin_simps @
+    @{thms union_mset_add_mset_left union_mset_add_mset_right
+        repeat_mset_replicate_mset ac_simps});
 
 fun norm_tac ctxt =
   ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
