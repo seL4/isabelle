@@ -479,7 +479,7 @@ proof -
   interpret vectorspace E by fact
   interpret subspace H E by fact
   from x y x' have "x \<in> H + lin x'" by auto
-  have "\<exists>!p. (\<lambda>(y, a). x = y + a \<cdot> x' \<and> y \<in> H) p" (is "\<exists>!p. ?P p")
+  have "\<exists>!(y, a). x = y + a \<cdot> x' \<and> y \<in> H" (is "\<exists>!p. ?P p")
   proof (rule ex_ex1I)
     from x y show "\<exists>p. ?P p" by blast
     fix p q assume p: "?P p" and q: "?P q"

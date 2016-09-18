@@ -339,12 +339,11 @@ proof (cases r)
   then show ?thesis
   proof (rule ex1I)
     fix p
-    obtain c d :: int where p: "p = (c, d)"
-      by (cases p)
-    assume "r = Fract (fst p) (snd p) \<and> snd p > 0 \<and> coprime (fst p) (snd p)"
-    with p have Fract': "r = Fract c d" "d > 0" "coprime c d"
+    assume r: "r = Fract (fst p) (snd p) \<and> snd p > 0 \<and> coprime (fst p) (snd p)"
+    obtain c d where p: "p = (c, d)" by (cases p)
+    with r have Fract': "r = Fract c d" "d > 0" "coprime c d"
       by simp_all
-    have "c = a \<and> d = b"
+    have "(c, d) = (a, b)"
     proof (cases "a = 0")
       case True
       with Fract Fract' show ?thesis
@@ -382,9 +381,9 @@ proof -
   moreover have "coprime (fst (normalize (a, b))) (snd (normalize (a, b)))" (is ?coprime)
     by (rule normalize_coprime) simp
   ultimately have "?Fract \<and> ?denom_pos \<and> ?coprime" by blast
-  with quotient_of_unique
-  have "(THE p. Fract a b = Fract (fst p) (snd p) \<and> 0 < snd p \<and>
-    coprime (fst p) (snd p)) = normalize (a, b)" by (rule the1_equality)
+  then have "(THE p. Fract a b = Fract (fst p) (snd p) \<and> 0 < snd p \<and>
+    coprime (fst p) (snd p)) = normalize (a, b)"
+    by (rule the1_equality [OF quotient_of_unique])
   then show ?thesis by (simp add: quotient_of_def)
 qed
 
