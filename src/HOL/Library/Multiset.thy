@@ -1989,6 +1989,21 @@ proof (induction xs)
   finally show ?case by simp
 qed simp_all
 
+(* Contributed by Lukas Bulwahn *)
+lemma image_mset_mset_set:
+  assumes "inj_on f A"
+  shows "image_mset f (mset_set A) = mset_set (f ` A)"
+proof cases
+  assume "finite A"
+  from this \<open>inj_on f A\<close> show ?thesis
+    by (induct A) auto
+next
+  assume "infinite A"
+  from this \<open>inj_on f A\<close> have "infinite (f ` A)"
+    using finite_imageD by blast
+  from \<open>infinite A\<close> \<open>infinite (f ` A)\<close> show ?thesis by simp
+qed
+
 
 subsection \<open>More properties of the replicate and repeat operations\<close>
 

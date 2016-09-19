@@ -105,6 +105,48 @@ lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow>
 lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
   by (simp add: Ball_def permutes_def) metis
 
+(* Next three lemmas contributed by Lukas Bulwahn *)
+lemma permutes_bij_inv_into:
+  fixes A :: "'a set" and B :: "'b set" 
+  assumes "p permutes A"
+  assumes "bij_betw f A B"
+  shows "(\<lambda>x. if x \<in> B then f (p (inv_into A f x)) else x) permutes B"
+proof (rule bij_imp_permutes)
+  have "bij_betw p A A" "bij_betw f A B" "bij_betw (inv_into A f) B A"
+    using assms by (auto simp add: permutes_imp_bij bij_betw_inv_into)
+  from this have "bij_betw (f o p o inv_into A f) B B" by (simp add: bij_betw_trans)
+  from this show "bij_betw (\<lambda>x. if x \<in> B then f (p (inv_into A f x)) else x) B B"
+    by (subst bij_betw_cong[where g="f o p o inv_into A f"]) auto
+next
+  fix x
+  assume "x \<notin> B"
+  from this show "(if x \<in> B then f (p (inv_into A f x)) else x) = x" by auto
+qed
+
+lemma permutes_image_mset:
+  assumes "p permutes A"
+  shows "image_mset p (mset_set A) = mset_set A"
+using assms by (metis image_mset_mset_set bij_betw_imp_inj_on permutes_imp_bij permutes_image)
+
+lemma permutes_implies_image_mset_eq:
+  assumes "p permutes A" "\<And>x. x \<in> A \<Longrightarrow> f x = f' (p x)"
+  shows "image_mset f' (mset_set A) = image_mset f (mset_set A)"
+proof -
+  have "f x = f' (p x)" if x: "x \<in># mset_set A" for x
+    using assms(2)[of x] x by (cases "finite A") auto
+  from this have "image_mset f (mset_set A) = image_mset (f' o p) (mset_set A)"
+    using assms by (auto intro!: image_mset_cong)
+  also have "\<dots> = image_mset f' (image_mset p (mset_set A))"
+    by (simp add: image_mset.compositionality)
+  also have "\<dots> = image_mset f' (mset_set A)"
+  proof -
+    from assms have "image_mset p (mset_set A) = mset_set A"
+      using permutes_image_mset by blast
+    from this show ?thesis by simp
+  qed
+  finally show ?thesis ..
+qed
+
 
 subsection \<open>Group properties\<close>
 
@@ -893,7 +935,7 @@ proof (rule multiset_eqI)
   finally show "count (mset (permute_list f xs)) y = count (mset xs) y" by simp
 qed
 
-lemma set_permute_list [simp]:
+lemma set_permute_list [simp]:                   
   assumes "f permutes {..<length xs}"
   shows   "set (permute_list f xs) = set xs"
   by (rule mset_eq_setD[OF mset_permute_list]) fact
@@ -933,69 +975,111 @@ qed
 subsection \<open>More lemmas about permutations\<close>
 
 text \<open>
-  If two lists correspond to the same multiset, there exists a permutation 
-  on the list indices that maps one to the other.
+  The following few lemmas were contributed by Lukas Bulwahn.
 \<close>
-lemma mset_eq_permutation:
-  assumes mset_eq: "mset (xs::'a list) = mset ys"
-  defines [simp]: "n \<equiv> length xs"
-  obtains f where "f permutes {..<length ys}" "permute_list f ys = xs"
-proof -
-  from mset_eq have [simp]: "length xs = length ys"
-    by (rule mset_eq_length)
-  define indices_of :: "'a \<Rightarrow> 'a list \<Rightarrow> nat set"
-    where "indices_of x xs = {i. i < length xs \<and> x = xs ! i}" for x xs
-  have indices_of_subset: "indices_of x xs \<subseteq> {..<length xs}" for x xs
-    unfolding indices_of_def by blast
-  have [simp]: "finite (indices_of x xs)" for x xs
-    by (rule finite_subset[OF indices_of_subset]) simp_all
 
-  have "\<forall>x\<in>set xs. \<exists>f. bij_betw f (indices_of x xs) (indices_of x ys)"
+lemma count_image_mset_eq_card_vimage:
+  assumes "finite A"
+  shows "count (image_mset f (mset_set A)) b = card {a \<in> A. f a = b}"
+  using assms
+proof (induct A)
+  case empty
+  show ?case by simp
+next
+  case (insert x F)
+  show ?case
+  proof cases
+    assume "f x = b"
+    from this have "count (image_mset f (mset_set (insert x F))) b = Suc (card {a \<in> F. f a = f x})"
+      using insert.hyps by auto
+    also have "\<dots> = card (insert x {a \<in> F. f a = f x})"
+      using insert.hyps(1,2) by simp  
+    also have "card (insert x {a \<in> F. f a = f x}) = card {a \<in> insert x F. f a = b}"
+      using \<open>f x = b\<close> by (auto intro: arg_cong[where f="card"])
+    finally show ?thesis using insert by auto
+  next
+    assume A: "f x \<noteq> b"
+    hence "{a \<in> F. f a = b} = {a \<in> insert x F. f a = b}" by auto
+    with insert A show ?thesis by simp
+  qed
+qed
+  
+(* Prove image_mset_eq_implies_permutes *)
+lemma image_mset_eq_implies_permutes:
+  fixes f :: "'a \<Rightarrow> 'b"
+  assumes "finite A"
+  assumes mset_eq: "image_mset f (mset_set A) = image_mset f' (mset_set A)"
+  obtains p where "p permutes A" and "\<forall>x\<in>A. f x = f' (p x)"
+proof -
+  from \<open>finite A\<close> have [simp]: "finite {a \<in> A. f a = (b::'b)}" for f b by auto
+  have "f ` A = f' ` A"
+  proof -
+    have "f ` A = f ` (set_mset (mset_set A))" using \<open>finite A\<close> by simp
+    also have "\<dots> = f' ` (set_mset (mset_set A))"
+      by (metis mset_eq multiset.set_map)
+    also have "\<dots> = f' ` A" using \<open>finite A\<close> by simp
+    finally show ?thesis .
+  qed
+  have "\<forall>b\<in>(f ` A). \<exists>p. bij_betw p {a \<in> A. f a = b} {a \<in> A. f' a = b}"
   proof
-    fix x
-    from mset_eq have "count (mset xs) x = count (mset ys) x" by simp
-    hence "card (indices_of x xs) = card (indices_of x ys)"
-      by (simp add: count_mset length_filter_conv_card indices_of_def)
-    thus "\<exists>f. bij_betw f (indices_of x xs) (indices_of x ys)"
+    fix b
+    from mset_eq have
+      "count (image_mset f (mset_set A)) b = count (image_mset f' (mset_set A)) b" by simp
+    from this  have "card {a \<in> A. f a = b} = card {a \<in> A. f' a = b}"
+      using \<open>finite A\<close>
+      by (simp add: count_image_mset_eq_card_vimage)
+    from this show "\<exists>p. bij_betw p {a\<in>A. f a = b} {a \<in> A. f' a = b}"
       by (intro finite_same_card_bij) simp_all
   qed
-  hence "\<exists>f. \<forall>x\<in>set xs. bij_betw (f x) (indices_of x xs) (indices_of x ys)"
+  hence "\<exists>p. \<forall>b\<in>f ` A. bij_betw (p b) {a \<in> A. f a = b} {a \<in> A. f' a = b}"
     by (rule bchoice)
-  then guess f .. note f = this
-  define g where "g i = (if i < n then f (xs ! i) i else i)" for i
-
-  have bij_f: "bij_betw (\<lambda>i. f (xs ! i) i) (indices_of x xs) (indices_of x ys)"
-    if x: "x \<in> set xs" for x
-  proof (subst bij_betw_cong)
-    from f x show "bij_betw (f x) (indices_of x xs) (indices_of x ys)" by blast
-    fix i assume "i \<in> indices_of x xs"
-    thus "f (xs ! i) i = f x i" by (simp add: indices_of_def)
+  then guess p .. note p = this
+  define p' where "p' = (\<lambda>a. if a \<in> A then p (f a) a else a)"
+  have "p' permutes A"
+  proof (rule bij_imp_permutes)
+    have "disjoint_family_on (\<lambda>i. {a \<in> A. f' a = i}) (f ` A)"
+      unfolding disjoint_family_on_def by auto
+    moreover have "bij_betw (\<lambda>a. p (f a) a) {a \<in> A. f a = b} {a \<in> A. f' a = b}" if b: "b \<in> f ` A" for b
+      using p b by (subst bij_betw_cong[where g="p b"]) auto
+    ultimately have "bij_betw (\<lambda>a. p (f a) a) (\<Union>b\<in>f ` A. {a \<in> A. f a = b}) (\<Union>b\<in>f ` A. {a \<in> A. f' a = b})"
+      by (rule bij_betw_UNION_disjoint)
+    moreover have "(\<Union>b\<in>f ` A. {a \<in> A. f a = b}) = A" by auto
+    moreover have "(\<Union>b\<in>f ` A. {a \<in> A. f' a = b}) = A" using \<open>f ` A = f' ` A\<close> by auto
+    ultimately show "bij_betw p' A A"
+      unfolding p'_def by (subst bij_betw_cong[where g="(\<lambda>a. p (f a) a)"]) auto
+  next
+    fix x
+    assume "x \<notin> A"
+    from this show "p' x = x"
+      unfolding p'_def by simp
   qed
-
-  hence "bij_betw (\<lambda>i. f (xs ! i) i) (\<Union>x\<in>set xs. indices_of x xs) (\<Union>x\<in>set xs. indices_of x ys)"
-    by (intro bij_betw_UNION_disjoint) (auto simp add: disjoint_family_on_def indices_of_def)
-  also have "(\<Union>x\<in>set xs. indices_of x xs) = {..<n}" by (auto simp: indices_of_def)
-  also from mset_eq have "set xs = set ys" by (rule mset_eq_setD) 
-  also have "(\<Union>x\<in>set ys. indices_of x ys) = {..<n}"
-    by (auto simp: indices_of_def set_conv_nth)
-  also have "bij_betw (\<lambda>i. f (xs ! i) i) {..<n} {..<n} \<longleftrightarrow> bij_betw g {..<n} {..<n}"
-    by (intro bij_betw_cong) (simp_all add: g_def)
-  finally have "g permutes {..<length ys}"
-    by (intro bij_imp_permutes refl) (simp_all add: g_def)
-
-  moreover have "permute_list g ys = xs" 
-  proof (rule sym, intro nth_equalityI allI impI)
-    fix i assume i: "i < length xs"
-    from i have "permute_list g ys ! i = ys ! f (xs ! i) i"
-      by (simp add: permute_list_def g_def)
-    also from i have "i \<in> indices_of (xs ! i) xs" by (simp add: indices_of_def)
-    with bij_f[of "xs ! i"] i have "f (xs ! i) i \<in> indices_of (xs ! i) ys"
-      by (auto simp: bij_betw_def)
-    hence "ys ! f (xs ! i) i = xs ! i" by (simp add: indices_of_def)
-    finally show "xs ! i = permute_list g ys ! i" ..
-  qed simp_all
-
+  moreover from p have "\<forall>x\<in>A. f x = f' (p' x)"
+    unfolding p'_def using bij_betwE by fastforce
   ultimately show ?thesis by (rule that)
+qed
+
+lemma mset_set_upto_eq_mset_upto:
+  "mset_set {..<n} = mset [0..<n]"
+  by (induct n) (auto simp add: add.commute lessThan_Suc)
+
+(* and derive the existing property: *)
+lemma mset_eq_permutation:
+  assumes mset_eq: "mset (xs::'a list) = mset ys"
+  obtains p where "p permutes {..<length ys}" "permute_list p ys = xs"
+proof -
+  from mset_eq have length_eq: "length xs = length ys"
+    using mset_eq_length by blast
+  have "mset_set {..<length ys} = mset [0..<length ys]"
+    using mset_set_upto_eq_mset_upto by blast
+  from mset_eq length_eq this have
+    "image_mset (\<lambda>i. xs ! i) (mset_set {..<length ys}) = image_mset (\<lambda>i. ys ! i) (mset_set {..<length ys})"
+    by (metis map_nth mset_map)
+  from image_mset_eq_implies_permutes[OF _ this]
+    obtain p where "p permutes {..<length ys}"
+    and "\<forall>i\<in>{..<length ys}. xs ! i = ys ! (p i)" by auto
+  moreover from this length_eq have "permute_list p ys = xs"
+    by (auto intro!: nth_equalityI simp add: permute_list_nth)
+  ultimately show thesis using that by blast
 qed
 
 lemma permutes_natset_le:
