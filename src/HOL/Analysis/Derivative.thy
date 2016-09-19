@@ -2244,7 +2244,7 @@ proof (rule has_derivative_series)
     {
       fix n :: nat and x h :: 'a assume nx: "n \<ge> N" "x \<in> s"
       have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) = norm ((\<Sum>i<n. f' i x) - g' x) * norm h"
-        by (simp add: norm_mult [symmetric] ring_distribs setsum_left_distrib)
+        by (simp add: norm_mult [symmetric] ring_distribs setsum_distrib_right)
       also from N[OF nx] have "norm ((\<Sum>i<n. f' i x) - g' x) \<le> e" by simp
       hence "norm ((\<Sum>i<n. f' i x) - g' x) * norm h \<le> e * norm h"
         by (intro mult_right_mono) simp_all

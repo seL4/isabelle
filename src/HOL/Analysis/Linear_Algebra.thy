@@ -1960,7 +1960,7 @@ proof
     qed
     from setsum_norm_le[of _ ?g, OF th]
     show "norm (f x) \<le> ?B * norm x"
-      unfolding th0 setsum_left_distrib by metis
+      unfolding th0 setsum_distrib_right by metis
   qed
 qed
 
@@ -2021,7 +2021,7 @@ proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i
     unfolding bilinear_setsum[OF bh finite_Basis finite_Basis] ..
   finally have th: "norm (h x y) = \<dots>" .
   show "norm (h x y) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)) * norm x * norm y"
-    apply (auto simp add: setsum_left_distrib th setsum.cartesian_product)
+    apply (auto simp add: setsum_distrib_right th setsum.cartesian_product)
     apply (rule setsum_norm_le)
     apply simp
     apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]

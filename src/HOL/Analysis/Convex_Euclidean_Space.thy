@@ -523,7 +523,7 @@ next
         qed auto
         then show ?thesis
           apply (rule_tac IA[of "s - {x}" "\<lambda>y. (inverse (1 - u x) * u y)"])
-          unfolding setsum_right_distrib[symmetric]
+          unfolding setsum_distrib_left[symmetric]
           using as and *** and True
           apply auto
           done
@@ -536,7 +536,7 @@ next
         then show ?thesis
           using as(3)[THEN bspec[where x=a], THEN bspec[where x=b]]
           using *** *(2) and \<open>s \<subseteq> V\<close>
-          unfolding setsum_right_distrib
+          unfolding setsum_distrib_left
           by (auto simp add: setsum_clauses(2))
       qed
       then have "u x + (1 - u x) = 1 \<Longrightarrow>
@@ -619,7 +619,7 @@ next
       unfolding scaleR_left_distrib setsum.distrib if_smult scaleR_zero_left
         ** setsum.inter_restrict[OF xy, symmetric]
       unfolding scaleR_scaleR[symmetric] Real_Vector_Spaces.scaleR_right.setsum [symmetric]
-        and setsum_right_distrib[symmetric]
+        and setsum_distrib_left[symmetric]
       unfolding x y
       using x(1-3) y(1-3) uv
       apply simp
@@ -1323,7 +1323,7 @@ next
     apply (rule_tac x="s - {v}" in exI)
     apply (rule_tac x="\<lambda>x. - (1 / u v) * u x" in exI)
     unfolding scaleR_scaleR[symmetric] and scaleR_right.setsum [symmetric]
-    unfolding setsum_right_distrib[symmetric] and setsum_diff1[OF as(1)]
+    unfolding setsum_distrib_left[symmetric] and setsum_diff1[OF as(1)]
     using as
     apply auto
     done
@@ -1793,7 +1793,7 @@ next
     apply rule
     unfolding * and setsum.If_cases[OF finite_atLeastAtMost[of 1 "k1 + k2"]] and
       setsum.reindex[OF inj] and o_def Collect_mem_eq
-    unfolding scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] setsum_right_distrib[symmetric]
+    unfolding scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] setsum_distrib_left[symmetric]
   proof -
     fix i
     assume i: "i \<in> {1..k1+k2}"
@@ -1844,7 +1844,7 @@ next
   }
   moreover
   have "(\<Sum>x\<in>s. u * ux x + v * uy x) = 1"
-    unfolding setsum.distrib and setsum_right_distrib[symmetric] and ux(2) uy(2)
+    unfolding setsum.distrib and setsum_distrib_left[symmetric] and ux(2) uy(2)
     using uv(3) by auto
   moreover
   have "(\<Sum>x\<in>s. (u * ux x + v * uy x) *\<^sub>R x) = u *\<^sub>R (\<Sum>x\<in>s. ux x *\<^sub>R x) + v *\<^sub>R (\<Sum>x\<in>s. uy x *\<^sub>R x)"
@@ -3306,7 +3306,7 @@ proof (intro allI iffI)
     have *: "\<And>f. setsum f (s - {a}) = setsum f s - ((f a)::'b::ab_group_add)"
       unfolding setsum.remove[OF obt(1) \<open>a\<in>s\<close>] by auto
     have "(\<Sum>v\<in>s. u v + t * w v) = 1"
-      unfolding setsum.distrib wv(1) setsum_right_distrib[symmetric] obt(5) by auto
+      unfolding setsum.distrib wv(1) setsum_distrib_left[symmetric] obt(5) by auto
     moreover have "(\<Sum>v\<in>s. u v *\<^sub>R v + (t * w v) *\<^sub>R v) - (u a *\<^sub>R a + (t * w a) *\<^sub>R a) = y"
       unfolding setsum.distrib obt(6) scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] wv(4)
       using a(2) [THEN eq_neg_iff_add_eq_0 [THEN iffD2]] by simp
@@ -5279,7 +5279,7 @@ proof -
     apply (rule_tac x="{v \<in> c. u v < 0}" in exI)
     apply (rule_tac x="\<lambda>y. inverse (setsum u {x\<in>c. u x > 0}) * - u y" in exI)
     using assms(1) unfolding scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] and z_def
-    apply (auto simp add: setsum_negf setsum_right_distrib[symmetric])
+    apply (auto simp add: setsum_negf setsum_distrib_left[symmetric])
     done
   moreover have "\<forall>x\<in>{v \<in> c. 0 < u v}. 0 \<le> inverse (setsum u {x \<in> c. 0 < u x}) * u x"
     apply rule
@@ -5294,7 +5294,7 @@ proof -
     using assms(1)
     unfolding scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] and z_def
     using *
-    apply (auto simp add: setsum_negf setsum_right_distrib[symmetric])
+    apply (auto simp add: setsum_negf setsum_distrib_left[symmetric])
     done
   ultimately show ?thesis
     apply (rule_tac x="{v\<in>c. u v \<le> 0}" in exI)
@@ -5683,7 +5683,7 @@ proof
     unfolding convex_hull_indexed mem_Collect_eq by auto
   have "(\<Sum>i = 1..k. u i * f (v i)) \<le> b"
     using setsum_mono[of "{1..k}" "\<lambda>i. u i * f (v i)" "\<lambda>i. u i * b"]
-    unfolding setsum_left_distrib[symmetric] obt(2) mult_1
+    unfolding setsum_distrib_right[symmetric] obt(2) mult_1
     apply (drule_tac meta_mp)
     apply (rule mult_left_mono)
     using assms(2) obt(1)
@@ -9200,9 +9200,9 @@ proof -
     have ge0: "\<forall>i\<in>I. e i \<ge> 0"
       using e_def xc yc uv by simp
     have "setsum (\<lambda>i. u * c i) I = u * setsum c I"
-      by (simp add: setsum_right_distrib)
+      by (simp add: setsum_distrib_left)
     moreover have "setsum (\<lambda>i. v * d i) I = v * setsum d I"
-      by (simp add: setsum_right_distrib)
+      by (simp add: setsum_distrib_left)
     ultimately have sum1: "setsum e I = 1"
       using e_def xc yc uv by (simp add: setsum.distrib)
     define q where "q i = (if e i = 0 then p i else (u * c i / e i) *\<^sub>R s i + (v * d i / e i) *\<^sub>R t i)"
@@ -11857,7 +11857,7 @@ next
   have sum_dd0: "setsum dd S = 0"
     unfolding dd_def  using S
     by (simp add: sumSS' comm_monoid_add_class.setsum.distrib setsum_subtractf
-                  algebra_simps setsum_left_distrib [symmetric] b1)
+                  algebra_simps setsum_distrib_right [symmetric] b1)
   have "(\<Sum>v\<in>S. (b v * x) *\<^sub>R v) = x *\<^sub>R (\<Sum>v\<in>S. b v *\<^sub>R v)" for x
     by (simp add: pth_5 real_vector.scale_setsum_right mult.commute)
   then have *: "(\<Sum>v\<in>S. (b v * x) *\<^sub>R v) = x *\<^sub>R a" for x

@@ -240,7 +240,7 @@ proof -
   note assms
   moreover have "{a. g a * r \<noteq> 0} \<subseteq> {a. g a \<noteq> 0}" by auto
   ultimately show ?thesis
-    by (simp add: setsum_left_distrib Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
+    by (simp add: setsum_distrib_right Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
 qed  
 
 lemma Sum_any_right_distrib:
@@ -251,7 +251,7 @@ proof -
   note assms
   moreover have "{a. r * g a \<noteq> 0} \<subseteq> {a. g a \<noteq> 0}" by auto
   ultimately show ?thesis
-    by (simp add: setsum_right_distrib Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
+    by (simp add: setsum_distrib_left Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
 qed
 
 lemma Sum_any_product:

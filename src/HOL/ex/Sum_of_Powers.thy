@@ -110,7 +110,7 @@ proof -
     unfolding bernpoly_def by (rule DERIV_cong) (fast intro!: derivative_intros, simp)
   moreover have "(\<Sum>k\<le>n. real (Suc n - k) * x ^ (n - k) * (real (Suc n choose k) * bernoulli k)) = (n + 1) * bernpoly n x"
     unfolding bernpoly_def
-    by (auto intro: setsum.cong simp add: setsum_right_distrib real_binomial_eq_mult_binomial_Suc[of _ n] Suc_eq_plus1 of_nat_diff)
+    by (auto intro: setsum.cong simp add: setsum_distrib_left real_binomial_eq_mult_binomial_Suc[of _ n] Suc_eq_plus1 of_nat_diff)
   ultimately show ?thesis by auto
 qed
 
@@ -135,7 +135,7 @@ qed
 lemma sum_of_powers: "(\<Sum>k\<le>n::nat. (real k) ^ m) = (bernpoly (Suc m) (n + 1) - bernpoly (Suc m) 0) / (m + 1)"
 proof -
   from diff_bernpoly[of "Suc m", simplified] have "(m + (1::real)) * (\<Sum>k\<le>n. (real k) ^ m) = (\<Sum>k\<le>n. bernpoly (Suc m) (real k + 1) - bernpoly (Suc m) (real k))"
-    by (auto simp add: setsum_right_distrib intro!: setsum.cong)
+    by (auto simp add: setsum_distrib_left intro!: setsum.cong)
   also have "... = (\<Sum>k\<le>n. bernpoly (Suc m) (real (k + 1)) - bernpoly (Suc m) (real k))"
     by simp
   also have "... = bernpoly (Suc m) (n + 1) - bernpoly (Suc m) 0"

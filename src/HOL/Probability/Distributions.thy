@@ -149,7 +149,7 @@ proof (clarsimp simp: not_less)
   assume "0 \<le> x"
   have "(\<Sum>n\<le>k. (l * x) ^ n * exp (- (l * x)) / fact n) =
     exp (- (l * x)) * (\<Sum>n\<le>k. (l * x) ^ n / fact n)"
-    unfolding setsum_right_distrib by (intro setsum.cong) (auto simp: field_simps)
+    unfolding setsum_distrib_left by (intro setsum.cong) (auto simp: field_simps)
   also have "\<dots> = (\<Sum>n\<le>k. (l * x) ^ n / fact n) / exp (l * x)"
     by (simp add: exp_minus field_simps)
   also have "\<dots> \<le> 1"

@@ -507,7 +507,7 @@ proof (induction p rule: pCons_induct)
       also note pCons.IH
       also have "a + x * (\<Sum>i\<le>degree p. coeff p i * x ^ i) =
                  coeff ?p' 0 * x^0 + (\<Sum>i\<le>degree p. coeff ?p' (Suc i) * x^Suc i)"
-          by (simp add: field_simps setsum_right_distrib coeff_pCons)
+          by (simp add: field_simps setsum_distrib_left coeff_pCons)
       also note setsum_atMost_Suc_shift[symmetric]
       also note degree_pCons_eq[OF \<open>p \<noteq> 0\<close>, of a, symmetric]
       finally show ?thesis .
@@ -3412,7 +3412,7 @@ proof (induct as rule: infinite_finite_induct)
       by (subst setprod.insert, insert insert, auto)
   } note id2 = this
   show ?case
-    unfolding id pderiv_mult insert(3) setsum_right_distrib
+    unfolding id pderiv_mult insert(3) setsum_distrib_left
     by (auto simp add: ac_simps id2 intro!: setsum.cong)
 qed auto
 

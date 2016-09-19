@@ -368,7 +368,7 @@ next
     using insert by (intro has_derivative_mult) auto
   also have "?P = (\<lambda>y. \<Sum>i'\<in>insert i I. f' i' y * (\<Prod>j\<in>insert i I - {i'}. f j x))"
     using insert(1,2)
-    by (auto simp add: setsum_right_distrib insert_Diff_if intro!: ext setsum.cong)
+    by (auto simp add: setsum_distrib_left insert_Diff_if intro!: ext setsum.cong)
   finally show ?case
     using insert by simp
 qed
@@ -845,7 +845,7 @@ lemma DERIV_setsum[derivative_intros]:
   "(\<And> n. n \<in> S \<Longrightarrow> ((\<lambda>x. f x n) has_field_derivative (f' x n)) F) \<Longrightarrow>
     ((\<lambda>x. setsum (f x) S) has_field_derivative setsum (f' x) S) F"
   by (rule has_derivative_imp_has_field_derivative [OF has_derivative_setsum])
-     (auto simp: setsum_right_distrib mult_commute_abs dest: has_field_derivative_imp_has_derivative)
+     (auto simp: setsum_distrib_left mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 
 lemma DERIV_inverse'[derivative_intros]:
   assumes "(f has_field_derivative D) (at x within s)"

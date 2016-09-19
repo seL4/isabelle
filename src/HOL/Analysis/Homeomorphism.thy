@@ -1007,7 +1007,7 @@ proof -
   have gf[simp]: "g (f x) = x" for x
     apply (rule euclidean_eqI)
     apply (simp add: f_def g_def inner_setsum_left scaleR_setsum_left algebra_simps)
-    apply (simp add: Groups_Big.setsum_right_distrib [symmetric] *)
+    apply (simp add: Groups_Big.setsum_distrib_left [symmetric] *)
     done
   then have "inj f" by (metis injI)
   have gfU: "g ` f ` U = U"

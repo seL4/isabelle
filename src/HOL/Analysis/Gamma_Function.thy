@@ -450,7 +450,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
       (\<Sum>k=Suc m..n. 2 * (norm t + (norm t)\<^sup>2) / (real_of_nat k)\<^sup>2)" using t_nz N(2) mn norm_t
       by (intro order.trans[OF norm_setsum setsum_mono[OF ln_Gamma_series_complex_converges_aux]]) simp_all
     also have "... \<le> 2 * (norm t + norm t^2) * (\<Sum>k=Suc m..n. 1 / (of_nat k)\<^sup>2)"
-      by (simp add: setsum_right_distrib)
+      by (simp add: setsum_distrib_left)
     also have "... < 2 * (norm t + norm t^2) * e'" using mn z t_nz
       by (intro mult_strict_left_mono N mult_pos_pos add_pos_pos) simp_all
     also from e''_pos have "... = e * ((cmod t + (cmod t)\<^sup>2) / e'')"
@@ -543,7 +543,7 @@ proof (rule Lim_transform)
       by (subst atLeast0LessThan [symmetric], subst setsum_shift_bounds_Suc_ivl [symmetric],
           subst atLeastLessThanSuc_atLeastAtMost) simp_all
     also have "\<dots> = z * of_real (harm n) - (\<Sum>k=1..n. ln (1 + z / of_nat k))"
-      by (simp add: harm_def setsum_subtractf setsum_right_distrib divide_inverse)
+      by (simp add: harm_def setsum_subtractf setsum_distrib_left divide_inverse)
     also from n have "\<dots> - ?g n = 0"
       by (simp add: ln_Gamma_series_def setsum_subtractf algebra_simps Ln_of_nat)
     finally show "(\<Sum>k<n. ?f k) - ?g n = 0" .
@@ -944,7 +944,7 @@ next
       using z' n by (intro uniformly_convergent_mult Polygamma_converges) (simp_all add: n'_def)
     thus "uniformly_convergent_on (ball z d)
               (\<lambda>k z. \<Sum>i<k. - of_nat n' * inverse ((z + of_nat i :: 'a) ^ (n'+1)))"
-      by (subst (asm) setsum_right_distrib) simp
+      by (subst (asm) setsum_distrib_left) simp
   qed (insert Polygamma_converges'[OF z' n'] d, simp_all)
   also have "(\<Sum>k. - of_nat n' * inverse ((z + of_nat k) ^ (n' + 1))) =
                (- of_nat n') * (\<Sum>k. inverse ((z + of_nat k) ^ (n' + 1)))"
@@ -2573,7 +2573,7 @@ private lemma Gamma_euler'_aux1:
 proof -
   have "(\<Prod>k=1..n. exp (z * of_real (ln (1 + 1 / of_nat k)))) =
           exp (z * of_real (\<Sum>k = 1..n. ln (1 + 1 / real_of_nat k)))"
-    by (subst exp_setsum [symmetric]) (simp_all add: setsum_right_distrib)
+    by (subst exp_setsum [symmetric]) (simp_all add: setsum_distrib_left)
   also have "(\<Sum>k=1..n. ln (1 + 1 / of_nat k) :: real) = ln (\<Prod>k=1..n. 1 + 1 / real_of_nat k)"
     by (subst ln_setprod [symmetric]) (auto intro!: add_pos_nonneg)
   also have "(\<Prod>k=1..n. 1 + 1 / of_nat k :: real) = (\<Prod>k=1..n. (of_nat k + 1) / of_nat k)"

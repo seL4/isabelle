@@ -303,7 +303,7 @@ proof -
     have cge0: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> c i"
       using a b u01 by (simp add: c_def)
     have sumc1: "setsum c S = 1"
-      by (simp add: c_def setsum.distrib setsum_right_distrib [symmetric] asum bsum)
+      by (simp add: c_def setsum.distrib setsum_distrib_left [symmetric] asum bsum)
     have sumci_xy: "(\<Sum>i\<in>S. c i *\<^sub>R i) = (1 - u) *\<^sub>R x + u *\<^sub>R y"
       apply (simp add: c_def setsum.distrib scaleR_left_distrib)
       by (simp only: scaleR_scaleR [symmetric] Real_Vector_Spaces.scaleR_right.setsum [symmetric] aeqx beqy)
@@ -357,7 +357,7 @@ proof -
           apply (rule_tac x="\<lambda>i. inverse (1-k) * c i" in exI)
           apply auto
           apply (metis sumcf cge0 inverse_nonnegative_iff_nonnegative mult_nonneg_nonneg S(2) setsum_nonneg subsetCE)
-          apply (metis False mult.commute right_inverse right_minus_eq setsum_right_distrib sumcf)
+          apply (metis False mult.commute right_inverse right_minus_eq setsum_distrib_left sumcf)
           by (metis (mono_tags, lifting) scaleR_right.setsum scaleR_scaleR setsum.cong)
         with \<open>0 < k\<close>  have "inverse(k) *\<^sub>R (w - setsum (\<lambda>i. c i *\<^sub>R i) T) \<in> affine hull T"
           by (simp add: affine_diff_divide [OF affine_affine_hull] False waff convex_hull_subset_affine_hull [THEN subsetD])
@@ -365,7 +365,7 @@ proof -
           apply (simp add: weq_sumsum convex_hull_finite fin)
           apply (rule_tac x="\<lambda>i. inverse k * c i" in exI)
           using \<open>k > 0\<close> cge0
-          apply (auto simp: scaleR_right.setsum setsum_right_distrib [symmetric] k_def [symmetric])
+          apply (auto simp: scaleR_right.setsum setsum_distrib_left [symmetric] k_def [symmetric])
           done
         ultimately show ?thesis
           using disj by blast

@@ -352,7 +352,7 @@ lemma norm_blinfun_euclidean_le:
   apply (rule norm_blinfun_bound)
    apply (simp add: setsum_nonneg)
   apply (subst euclidean_representation[symmetric, where 'a='a])
-  apply (simp only: blinfun.bilinear_simps setsum_left_distrib)
+  apply (simp only: blinfun.bilinear_simps setsum_distrib_right)
   apply (rule order.trans[OF norm_setsum setsum_mono])
   apply (simp add: abs_mult mult_right_mono ac_simps Basis_le_norm)
   done
@@ -406,7 +406,7 @@ lemma norm_blinfun_of_matrix:
   "norm (blinfun_of_matrix a) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. \<bar>a i j\<bar>)"
   apply (rule norm_blinfun_bound)
    apply (simp add: setsum_nonneg)
-  apply (simp only: blinfun_of_matrix_apply setsum_left_distrib)
+  apply (simp only: blinfun_of_matrix_apply setsum_distrib_right)
   apply (rule order_trans[OF norm_setsum setsum_mono])
   apply (rule order_trans[OF norm_setsum setsum_mono])
   apply (simp add: abs_mult mult_right_mono ac_simps Basis_le_norm)

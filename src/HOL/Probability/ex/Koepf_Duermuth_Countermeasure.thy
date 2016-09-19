@@ -100,7 +100,7 @@ next
   show ?case unfolding *
     using Suc[of "\<lambda>i. P (Suc i)"]
     by (simp add: setsum.reindex split_conv setsum_cartesian_product'
-      lessThan_Suc_eq_insert_0 setprod.reindex setsum_left_distrib[symmetric] setsum_right_distrib[symmetric])
+      lessThan_Suc_eq_insert_0 setprod.reindex setsum_distrib_right[symmetric] setsum_distrib_left[symmetric])
 qed
 
 declare space_point_measure[simp]
@@ -158,8 +158,8 @@ proof
 
   have [simp]: "\<And>A. inj_on (\<lambda>(xs, n). n # xs) A" by (force intro!: inj_onI)
 
-  note setsum_right_distrib[symmetric, simp]
-  note setsum_left_distrib[symmetric, simp]
+  note setsum_distrib_left[symmetric, simp]
+  note setsum_distrib_right[symmetric, simp]
   note setsum_cartesian_product'[simp]
 
   have "(\<Sum>ms | set ms \<subseteq> messages \<and> length ms = n. \<Prod>x<length ms. M (ms ! x)) = 1"
@@ -256,7 +256,7 @@ proof -
     apply (simp add: * P_def)
     apply (simp add: setsum_cartesian_product')
     using setprod_setsum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] \<open>k \<in> keys\<close>
-    by (auto simp add: setsum_right_distrib[symmetric] subset_eq setprod.neutral_const)
+    by (auto simp add: setsum_distrib_left[symmetric] subset_eq setprod.neutral_const)
 qed
 
 lemma fst_image_msgs[simp]: "fst`msgs = keys"
@@ -323,7 +323,7 @@ proof -
   also have "\<dots> = - (\<Sum>y\<in>Y`msgs. (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))))"
     by (subst setsum.commute) rule
   also have "\<dots> = -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))"
-    by (auto simp add: setsum_right_distrib vimage_def intro!: setsum.cong prob_conj_imp1)
+    by (auto simp add: setsum_distrib_left vimage_def intro!: setsum.cong prob_conj_imp1)
   finally show "- (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))) =
     -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))" .
 qed simp_all
@@ -402,7 +402,7 @@ proof -
     also have "\<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'}) =
       \<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'})"
       using CP_t_K[OF \<open>k\<in>keys\<close> obs] CP_t_K[OF _ obs] \<open>real (card ?S) \<noteq> 0\<close>
-      by (simp only: setsum_right_distrib[symmetric] ac_simps
+      by (simp only: setsum_distrib_left[symmetric] ac_simps
           mult_divide_mult_cancel_left[OF \<open>real (card ?S) \<noteq> 0\<close>]
         cong: setsum.cong)
     also have "(\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'}) = \<P>(OB) {obs}"
@@ -450,7 +450,7 @@ proof -
     apply (safe intro!: setsum.cong)
     using P_t_sum_P_O
     by (simp add: setsum_divide_distrib[symmetric] field_simps **
-                  setsum_right_distrib[symmetric] setsum_left_distrib[symmetric])
+                  setsum_distrib_left[symmetric] setsum_distrib_right[symmetric])
   also have "\<dots> = \<H>(fst | t\<circ>OB)"
     unfolding conditional_entropy_eq_ce_with_hypothesis
     by (simp add: comp_def image_image[symmetric])

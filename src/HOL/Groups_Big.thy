@@ -729,7 +729,7 @@ lemma (in canonically_ordered_monoid_add) setsum_eq_0_iff [simp]:
   "finite F \<Longrightarrow> (setsum f F = 0) = (\<forall>a\<in>F. f a = 0)"
   by (intro ballI setsum_nonneg_eq_0_iff zero_le)
 
-lemma setsum_right_distrib: "r * setsum f A = setsum (\<lambda>n. r * f n) A"
+lemma setsum_distrib_left: "r * setsum f A = setsum (\<lambda>n. r * f n) A"
   for f :: "'a \<Rightarrow> 'b::semiring_0"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -742,7 +742,7 @@ next
   then show ?case by (simp add: distrib_left)
 qed
 
-lemma setsum_left_distrib: "setsum f A * r = (\<Sum>n\<in>A. f n * r)"
+lemma setsum_distrib_right: "setsum f A * r = (\<Sum>n\<in>A. f n * r)"
   for r :: "'a::semiring_0"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -811,7 +811,7 @@ lemma setsum_diff1_ring:
 lemma setsum_product:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"
   shows "setsum f A * setsum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"
-  by (simp add: setsum_right_distrib setsum_left_distrib) (rule setsum.commute)
+  by (simp add: setsum_distrib_left setsum_distrib_right) (rule setsum.commute)
 
 lemma setsum_mult_setsum_if_inj:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"

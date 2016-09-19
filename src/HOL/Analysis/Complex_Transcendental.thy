@@ -597,7 +597,7 @@ declare power_Suc [simp]
 text\<open>32-bit Approximation to e\<close>
 lemma e_approx_32: "\<bar>exp(1) - 5837465777 / 2147483648\<bar> \<le> (inverse(2 ^ 32)::real)"
   using Taylor_exp [of 1 14] exp_le
-  apply (simp add: setsum_left_distrib in_Reals_norm Re_exp atMost_nat_numeral fact_numeral)
+  apply (simp add: setsum_distrib_right in_Reals_norm Re_exp atMost_nat_numeral fact_numeral)
   apply (simp only: pos_le_divide_eq [symmetric], linarith)
   done
 

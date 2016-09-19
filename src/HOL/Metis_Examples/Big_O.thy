@@ -499,7 +499,7 @@ apply (rule_tac x = "\<bar>c\<bar>" in exI)
 apply (subst abs_of_nonneg) back back
  apply (rule setsum_nonneg)
  apply force
-apply (subst setsum_right_distrib)
+apply (subst setsum_distrib_left)
 apply (rule allI)
 apply (rule order_trans)
  apply (rule setsum_abs)

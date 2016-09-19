@@ -3756,7 +3756,7 @@ proof -
   have "norm (setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> (\<Sum>i\<in>p. norm (content i *\<^sub>R c))"
     using norm_setsum by blast
   also have "...  \<le> e * (\<Sum>i\<in>p. \<bar>content i\<bar>)"
-    by (simp add: setsum_right_distrib[symmetric] mult.commute assms(2) mult_right_mono setsum_nonneg)
+    by (simp add: setsum_distrib_left[symmetric] mult.commute assms(2) mult_right_mono setsum_nonneg)
   also have "... \<le> e * content (cbox a b)"
     apply (rule mult_left_mono [OF _ e])
     apply (simp add: sumeq)
@@ -3792,7 +3792,7 @@ next
     apply (rule order_trans[OF setsum_mono])
     apply (rule mult_left_mono[OF _ abs_ge_zero, of _ e])
     apply (metis norm)
-    unfolding setsum_left_distrib[symmetric]
+    unfolding setsum_distrib_right[symmetric]
     using con setsum_le
     apply (auto simp: mult.commute intro: mult_left_mono [OF _ e])
     done
@@ -4697,7 +4697,7 @@ next
         done
       have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> setsum (\<lambda>i. (real i + 1) *
         norm (setsum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {..N+1}"
-        unfolding real_norm_def setsum_right_distrib abs_of_nonneg[OF *] diff_0_right
+        unfolding real_norm_def setsum_distrib_left abs_of_nonneg[OF *] diff_0_right
         apply (rule order_trans)
         apply (rule norm_setsum)
         apply (subst sum_sum_product)
@@ -4775,7 +4775,7 @@ next
           done
       qed
       also have "\<dots> < e * inverse 2 * 2"
-        unfolding divide_inverse setsum_right_distrib[symmetric]
+        unfolding divide_inverse setsum_distrib_left[symmetric]
         apply (rule mult_strict_left_mono)
         unfolding power_inverse [symmetric] lessThan_Suc_atMost[symmetric]
         apply (subst geometric_sum)
@@ -5313,7 +5313,7 @@ proof safe
     show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content (cbox a b)"
       unfolding content_real[OF assms(1), simplified box_real[symmetric]] additive_tagged_division_1[OF assms(1) as(1)[simplified box_real],of f,symmetric]
       unfolding additive_tagged_division_1[OF assms(1) as(1)[simplified box_real],of "\<lambda>x. x",symmetric]
-      unfolding setsum_right_distrib
+      unfolding setsum_distrib_left
       defer
       unfolding setsum_subtractf[symmetric]
     proof (rule setsum_norm_le,safe)
@@ -6479,7 +6479,7 @@ proof -
       by arith
     show ?case
       unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] setsum_subtractf[symmetric] split_minus
-      unfolding setsum_right_distrib
+      unfolding setsum_distrib_left
       apply (subst(2) pA)
       apply (subst pA)
       unfolding setsum.union_disjoint[OF pA(2-)]
@@ -6548,7 +6548,7 @@ proof -
         apply (unfold split_paired_all split_conv)
         defer
         unfolding setsum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
-        unfolding setsum_right_distrib[symmetric]
+        unfolding setsum_distrib_left[symmetric]
         apply (subst additive_tagged_division_1[OF _ as(1)])
         apply (rule assms)
       proof -
@@ -8856,7 +8856,7 @@ proof -
       apply rule
       apply (drule qq)
       defer
-      unfolding divide_inverse setsum_left_distrib[symmetric]
+      unfolding divide_inverse setsum_distrib_right[symmetric]
       unfolding divide_inverse[symmetric]
       using * apply (auto simp add: field_simps)
       done
@@ -8976,7 +8976,7 @@ proof -
     done
   have th: "op ^ x \<circ> op + m = (\<lambda>i. x^m * x^i)"
     by (rule ext) (simp add: power_add power_mult)
-  from setsum.reindex[OF i, of "op ^ x", unfolded f th setsum_right_distrib[symmetric]]
+  from setsum.reindex[OF i, of "op ^ x", unfolded f th setsum_distrib_left[symmetric]]
   have "?lhs = x^m * ((1 - x) * setsum (op ^ x) {0..n - m})"
     by simp
   then show ?thesis
@@ -9164,7 +9164,7 @@ next
           apply (rule norm_setsum)
           apply (rule setsum_mono)
           unfolding split_paired_all split_conv
-          unfolding split_def setsum_left_distrib[symmetric] scaleR_diff_right[symmetric]
+          unfolding split_def setsum_distrib_right[symmetric] scaleR_diff_right[symmetric]
           unfolding additive_content_tagged_division[OF p(1), unfolded split_def]
         proof -
           fix x k
@@ -9201,7 +9201,7 @@ next
           proof
             show "(\<Sum>i = 0..s. e / 2 ^ (i + 2)) < e / 2"
               unfolding power_add divide_inverse inverse_mult_distrib
-              unfolding setsum_right_distrib[symmetric] setsum_left_distrib[symmetric]
+              unfolding setsum_distrib_left[symmetric] setsum_distrib_right[symmetric]
               unfolding power_inverse [symmetric] sum_gp
               apply(rule mult_strict_left_mono[OF _ e])
               unfolding power2_eq_square
@@ -10350,7 +10350,7 @@ proof -
               by auto
           qed
           finally show "(\<Sum>i\<in>d. \<bar>content (l \<inter> i)\<bar> * norm (f x)) = content l *\<^sub>R norm (f x)"
-            unfolding setsum_left_distrib[symmetric] real_scaleR_def
+            unfolding setsum_distrib_right[symmetric] real_scaleR_def
             apply (subst(asm) additive_content_division[OF division_inter_1[OF d(1)]])
             using xl(2)[unfolded uv]
             unfolding uv
@@ -10614,7 +10614,7 @@ proof -
   proof goal_cases
     case prems: (2 d)
     have "(\<Sum>k\<in>d. norm (integral k (h \<circ> f))) \<le> setsum (\<lambda>k. norm(integral k f)) d * b"
-      unfolding setsum_left_distrib
+      unfolding setsum_distrib_right
       apply (rule setsum_mono)
     proof goal_cases
       case (1 k)

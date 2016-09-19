@@ -550,7 +550,7 @@ proof -
   qed
   also have "\<dots> = (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M.
       if \<exists>x\<in>space M. y = f x \<and> z = g x then y * emeasure M {x\<in>space M. g x = z} else 0))"
-    by (auto intro!: setsum.cong simp: setsum_right_distrib)
+    by (auto intro!: setsum.cong simp: setsum_distrib_left)
   also have "\<dots> = ?r"
     by (subst setsum.commute)
        (auto intro!: setsum.cong simp: setsum.If_cases scaleR_setsum_right[symmetric] eq)
@@ -592,7 +592,7 @@ proof -
     using f by (intro simple_function_partition) auto
   also have "\<dots> = c * integral\<^sup>S M f"
     using f unfolding simple_integral_def
-    by (subst setsum_right_distrib) (auto simp: mult.assoc Int_def conj_commute)
+    by (subst setsum_distrib_left) (auto simp: mult.assoc Int_def conj_commute)
   finally show ?thesis .
 qed
 

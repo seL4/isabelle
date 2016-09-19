@@ -639,6 +639,11 @@ INCOMPATIBILITY.
 one_step_implies_mult instead.
 INCOMPATIBILITY.
 
+* The following theorems have been renamed:
+  setsum_left_distrib ~> setsum_distrib_right
+  setsum_right_distrib ~> setsum_distrib_left
+INCOMPATIBILITY.
+
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
 
