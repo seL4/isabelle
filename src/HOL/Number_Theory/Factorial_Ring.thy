@@ -541,7 +541,7 @@ proof -
     by simp
   with A B C have subset: "A \<subseteq># B + C"
     by (subst (asm) prod_mset_dvd_prod_mset_primes_iff) auto
-  define A1 and A2 where "A1 = A #\<inter> B" and "A2 = A - A1"
+  define A1 and A2 where "A1 = A \<inter># B" and "A2 = A - A1"
   have "A = A1 + A2" unfolding A1_def A2_def
     by (rule sym, intro subset_mset.add_diff_inverse) simp_all
   from subset have "A1 \<subseteq># B" "A2 \<subseteq># C"
@@ -1440,10 +1440,10 @@ qed
 
 definition "gcd_factorial a b = (if a = 0 then normalize b
      else if b = 0 then normalize a
-     else prod_mset (prime_factorization a #\<inter> prime_factorization b))"
+     else prod_mset (prime_factorization a \<inter># prime_factorization b))"
 
 definition "lcm_factorial a b = (if a = 0 \<or> b = 0 then 0
-     else prod_mset (prime_factorization a #\<union> prime_factorization b))"
+     else prod_mset (prime_factorization a \<union># prime_factorization b))"
 
 definition "Gcd_factorial A =
   (if A \<subseteq> {0} then 0 else prod_mset (Inf (prime_factorization ` (A - {0}))))"
@@ -1457,24 +1457,24 @@ definition "Lcm_factorial A =
 
 lemma prime_factorization_gcd_factorial:
   assumes [simp]: "a \<noteq> 0" "b \<noteq> 0"
-  shows   "prime_factorization (gcd_factorial a b) = prime_factorization a #\<inter> prime_factorization b"
+  shows   "prime_factorization (gcd_factorial a b) = prime_factorization a \<inter># prime_factorization b"
 proof -
   have "prime_factorization (gcd_factorial a b) =
-          prime_factorization (prod_mset (prime_factorization a #\<inter> prime_factorization b))"
+          prime_factorization (prod_mset (prime_factorization a \<inter># prime_factorization b))"
     by (simp add: gcd_factorial_def)
-  also have "\<dots> = prime_factorization a #\<inter> prime_factorization b"
+  also have "\<dots> = prime_factorization a \<inter># prime_factorization b"
     by (subst prime_factorization_prod_mset_primes) auto
   finally show ?thesis .
 qed
 
 lemma prime_factorization_lcm_factorial:
   assumes [simp]: "a \<noteq> 0" "b \<noteq> 0"
-  shows   "prime_factorization (lcm_factorial a b) = prime_factorization a #\<union> prime_factorization b"
+  shows   "prime_factorization (lcm_factorial a b) = prime_factorization a \<union># prime_factorization b"
 proof -
   have "prime_factorization (lcm_factorial a b) =
-          prime_factorization (prod_mset (prime_factorization a #\<union> prime_factorization b))"
+          prime_factorization (prod_mset (prime_factorization a \<union># prime_factorization b))"
     by (simp add: lcm_factorial_def)
-  also have "\<dots> = prime_factorization a #\<union> prime_factorization b"
+  also have "\<dots> = prime_factorization a \<union># prime_factorization b"
     by (subst prime_factorization_prod_mset_primes) auto
   finally show ?thesis .
 qed
@@ -1527,8 +1527,8 @@ lemma gcd_factorial_dvd2: "gcd_factorial a b dvd b"
 
 lemma normalize_gcd_factorial: "normalize (gcd_factorial a b) = gcd_factorial a b"
 proof -
-  have "normalize (prod_mset (prime_factorization a #\<inter> prime_factorization b)) =
-          prod_mset (prime_factorization a #\<inter> prime_factorization b)"
+  have "normalize (prod_mset (prime_factorization a \<inter># prime_factorization b)) =
+          prod_mset (prime_factorization a \<inter># prime_factorization b)"
     by (intro normalize_prod_mset_primes) auto
   thus ?thesis by (simp add: gcd_factorial_def)
 qed
@@ -1541,7 +1541,7 @@ proof (cases "a = 0 \<or> b = 0")
   from that False have "?p c \<subseteq># ?p a" "?p c \<subseteq># ?p b"
     by (simp_all add: prime_factorization_subset_iff_dvd)
   hence "prime_factorization c \<subseteq>#
-           prime_factorization (prod_mset (prime_factorization a #\<inter> prime_factorization b))"
+           prime_factorization (prod_mset (prime_factorization a \<inter># prime_factorization b))"
     using False by (subst prime_factorization_prod_mset_primes) auto
   with False show ?thesis
     by (auto simp: gcd_factorial_def prime_factorization_subset_iff_dvd [symmetric])
@@ -1553,12 +1553,12 @@ proof (cases "a = 0 \<or> b = 0")
   case False
   let ?p = "prime_factorization"
   from False have "prod_mset (?p (a * b)) div gcd_factorial a b =
-                     prod_mset (?p a + ?p b - ?p a #\<inter> ?p b)"
+                     prod_mset (?p a + ?p b - ?p a \<inter># ?p b)"
     by (subst prod_mset_diff) (auto simp: lcm_factorial_def gcd_factorial_def
                                 prime_factorization_mult subset_mset.le_infI1)
   also from False have "prod_mset (?p (a * b)) = normalize (a * b)"
     by (intro prod_mset_prime_factorization) simp_all
-  also from False have "prod_mset (?p a + ?p b - ?p a #\<inter> ?p b) = lcm_factorial a b"
+  also from False have "prod_mset (?p a + ?p b - ?p a \<inter># ?p b) = lcm_factorial a b"
     by (simp add: union_diff_inter_eq_sup lcm_factorial_def)
   finally show ?thesis ..
 qed (auto simp: lcm_factorial_def)
@@ -1750,12 +1750,12 @@ begin
 
 lemma prime_factorization_gcd:
   assumes [simp]: "a \<noteq> 0" "b \<noteq> 0"
-  shows   "prime_factorization (gcd a b) = prime_factorization a #\<inter> prime_factorization b"
+  shows   "prime_factorization (gcd a b) = prime_factorization a \<inter># prime_factorization b"
   by (simp add: gcd_eq_gcd_factorial prime_factorization_gcd_factorial)
 
 lemma prime_factorization_lcm:
   assumes [simp]: "a \<noteq> 0" "b \<noteq> 0"
-  shows   "prime_factorization (lcm a b) = prime_factorization a #\<union> prime_factorization b"
+  shows   "prime_factorization (lcm a b) = prime_factorization a \<union># prime_factorization b"
   by (simp add: lcm_eq_lcm_factorial prime_factorization_lcm_factorial)
 
 lemma prime_factorization_Gcd:

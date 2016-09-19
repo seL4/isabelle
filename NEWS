@@ -635,6 +635,11 @@ INCOMPATIBILITY.
   msetsum ~> sum_mset
   msetprod ~> prod_mset
 
+* The symbols for intersection and union of multisets have been changed:
+  #\<inter> ~> \<inter>#
+  #\<union> ~> \<union>#
+INCOMPATIBILITY.
+
 * The lemma one_step_implies_mult_aux on multisets has been removed, use
 one_step_implies_mult instead.
 INCOMPATIBILITY.
