@@ -996,7 +996,7 @@ session "HOL-Quotient_Examples" (timing) in Quotient_Examples = HOL +
   options [document = false]
   theories
     DList
-    FSet
+    Quotient_FSet
     Quotient_Int
     Quotient_Message
     Lift_FSet

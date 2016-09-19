@@ -1,4 +1,4 @@
-(*  Title:      HOL/Quotient_Examples/FSet.thy
+(*  Title:      HOL/Quotient_Examples/Quotient_FSet.thy
     Author:     Cezary Kaliszyk, TU Munich
     Author:     Christian Urban, TU Munich
 
@@ -12,7 +12,7 @@ Type of finite sets.
   reasons.
 *********************************************************************)
 
-theory FSet
+theory Quotient_FSet
 imports "~~/src/HOL/Library/Multiset" "~~/src/HOL/Library/Quotient_List"
 begin
 

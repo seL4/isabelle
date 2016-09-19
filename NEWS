@@ -795,6 +795,9 @@ from ereal to ennreal:
   nn_integral :: 'a measure => ('a => ennreal) => ennreal
 INCOMPATIBILITY.
 
+* Renamed HOL/Quotient_Examples/FSet.thy to 
+HOL/Quotient_Examples/Quotient_FSet.thy 
+INCOMPATIBILITY.
 
 *** ML ***
 
