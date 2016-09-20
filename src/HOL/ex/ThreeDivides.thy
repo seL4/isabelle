@@ -193,7 +193,7 @@ next
       "m = 10*(\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x) + c" by simp
     also have
       "\<dots> = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^(x+1)) + c"
-      by (subst setsum_right_distrib) (simp add: ac_simps)
+      by (subst setsum_distrib_left) (simp add: ac_simps)
     also have
       "\<dots> = (\<Sum>x<nd. m div 10^(Suc x) mod 10 * 10^(Suc x)) + c"
       by (simp add: div_mult2_eq[symmetric])

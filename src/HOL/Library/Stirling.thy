@@ -110,7 +110,7 @@ next
     also have "\<dots> = Suc n * (\<Sum>k=1..n. fact n div k) + Suc n * fact n div Suc n"
       by (metis nat.distinct(1) nonzero_mult_divide_cancel_left)
     also have "\<dots> = (\<Sum>k=1..n. fact (Suc n) div k) + fact (Suc n) div Suc n"
-      by (simp add: setsum_right_distrib div_mult_swap dvd_fact)
+      by (simp add: setsum_distrib_left div_mult_swap dvd_fact)
     also have "\<dots> = (\<Sum>k=1..Suc n. fact (Suc n) div k)"
       by simp
     finally show ?thesis .
@@ -162,7 +162,7 @@ next
   also have "\<dots> = (\<Sum>k\<le>n. n * stirling n (Suc k) + stirling n k)"
     by simp
   also have "\<dots> = n * (\<Sum>k\<le>n. stirling n (Suc k)) + (\<Sum>k\<le>n. stirling n k)"
-    by (simp add: setsum.distrib setsum_right_distrib)
+    by (simp add: setsum.distrib setsum_distrib_left)
   also have "\<dots> = n * fact n + fact n"
   proof -
     have "n * (\<Sum>k\<le>n. stirling n (Suc k)) = n * ((\<Sum>k\<le>Suc n. stirling n k) - stirling n 0)"
@@ -195,7 +195,7 @@ next
     by (subst setsum_atMost_Suc_shift) (simp add: setsum.distrib ring_distribs)
   also have "\<dots> = pochhammer x (Suc n)"
     by (subst setsum_atMost_Suc_shift [symmetric])
-      (simp add: algebra_simps setsum.distrib setsum_right_distrib pochhammer_Suc Suc [symmetric])
+      (simp add: algebra_simps setsum.distrib setsum_distrib_left pochhammer_Suc Suc [symmetric])
   finally show ?case .
 qed
 

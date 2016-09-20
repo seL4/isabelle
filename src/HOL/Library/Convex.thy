@@ -633,7 +633,7 @@ next
             OF asum_le less_imp_le[OF i0]], of "a i * f (y i)"]
       by simp
     also have "\<dots> = (\<Sum> j \<in> s. (1 - a i) * ?a j * f (y j)) + a i * f (y i)"
-      unfolding setsum_right_distrib[of "1 - a i" "\<lambda> j. ?a j * f (y j)"]
+      unfolding setsum_distrib_left[of "1 - a i" "\<lambda> j. ?a j * f (y j)"]
       using i0 by auto
     also have "\<dots> = (\<Sum> j \<in> s. a j * f (y j)) + a i * f (y i)"
       using i0 by auto

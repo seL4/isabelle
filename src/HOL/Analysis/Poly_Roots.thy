@@ -24,7 +24,7 @@ lemma setsum_gp0:
 lemma setsum_power_add:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "(\<Sum>i\<in>I. x^(m+i)) = x^m * (\<Sum>i\<in>I. x^i)"
-  by (simp add: setsum_right_distrib power_add)
+  by (simp add: setsum_distrib_left power_add)
 
 lemma setsum_power_shift:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -32,7 +32,7 @@ lemma setsum_power_shift:
   shows "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i\<le>n-m. x^i)"
 proof -
   have "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i=m..n. x^(i-m))"
-    by (simp add: setsum_right_distrib power_add [symmetric])
+    by (simp add: setsum_distrib_left power_add [symmetric])
   also have "(\<Sum>i=m..n. x^(i-m)) = (\<Sum>i\<le>n-m. x^i)"
     using \<open>m \<le> n\<close> by (intro setsum.reindex_bij_witness[where j="\<lambda>i. i - m" and i="\<lambda>i. i + m"]) auto
   finally show ?thesis .
@@ -88,7 +88,7 @@ proof -
   also have "... = (\<Sum>i\<le>n. a i * (x - y) * (\<Sum>j<i. y^(i - Suc j) * x^j))"
     by (simp add: power_diff_sumr2 ac_simps)
   also have "... = (x - y) * (\<Sum>i\<le>n. (\<Sum>j<i. a i * y^(i - Suc j) * x^j))"
-    by (simp add: setsum_right_distrib ac_simps)
+    by (simp add: setsum_distrib_left ac_simps)
   also have "... = (x - y) * (\<Sum>j<n. (\<Sum>i=Suc j..n. a i * y^(i - Suc j) * x^j))"
     by (simp add: nested_setsum_swap')
   finally show ?thesis .
@@ -115,7 +115,7 @@ proof -
   { fix z
     have "(\<Sum>i\<le>n. c i * z^i) - (\<Sum>i\<le>n. c i * a^i) =
           (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)"
-      by (simp add: sub_polyfun setsum_left_distrib)
+      by (simp add: sub_polyfun setsum_distrib_right)
     then have "(\<Sum>i\<le>n. c i * z^i) =
           (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)
           + (\<Sum>i\<le>n. c i * a^i)"

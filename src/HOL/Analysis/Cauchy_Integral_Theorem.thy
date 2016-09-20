@@ -6215,7 +6215,7 @@ proof -
         by (metis (no_types) dist_norm divide_eq_1_iff less_irrefl mem_ball norm_minus_commute r w)
       have "norm ((\<Sum>k<N. (w - z) ^ k * f u / (u - z) ^ Suc k) * (u - w) - f u)
             = norm ((\<Sum>k<N. (((w - z) / (u - z)) ^ k)) * f u * (u - w) / (u - z) - f u)"
-        unfolding setsum_left_distrib setsum_divide_distrib power_divide by (simp add: algebra_simps)
+        unfolding setsum_distrib_right setsum_divide_distrib power_divide by (simp add: algebra_simps)
       also have "... = norm ((((w - z) / (u - z)) ^ N - 1) * (u - w) / (((w - z) / (u - z) - 1) * (u - z)) - 1) * norm (f u)"
         using \<open>0 < B\<close>
         apply (auto simp: geometric_sum [OF wzu_not1])

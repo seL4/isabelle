@@ -226,7 +226,7 @@ lemma det_permute_rows:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes p: "p permutes (UNIV :: 'n::finite set)"
   shows "det (\<chi> i. A$p i :: 'a^'n^'n) = of_int (sign p) * det A"
-  apply (simp add: det_def setsum_right_distrib mult.assoc[symmetric])
+  apply (simp add: det_def setsum_distrib_left mult.assoc[symmetric])
   apply (subst sum_permutations_compose_right[OF p])
 proof (rule setsum.cong)
   let ?U = "UNIV :: 'n set"
@@ -372,7 +372,7 @@ lemma det_row_mul:
   fixes a b :: "'n::finite \<Rightarrow> _ ^ 'n"
   shows "det((\<chi> i. if i = k then c *s a i else b i)::'a::comm_ring_1^'n^'n) =
     c * det((\<chi> i. if i = k then a i else b i)::'a::comm_ring_1^'n^'n)"
-  unfolding det_def vec_lambda_beta setsum_right_distrib
+  unfolding det_def vec_lambda_beta setsum_distrib_left
 proof (rule setsum.cong)
   let ?U = "UNIV :: 'n set"
   let ?pU = "{p. p permutes ?U}"
@@ -645,7 +645,7 @@ lemma matrix_mul_setsum_alt:
 lemma det_rows_mul:
   "det((\<chi> i. c i *s a i)::'a::comm_ring_1^'n^'n) =
     setprod (\<lambda>i. c i) (UNIV:: 'n set) * det((\<chi> i. a i)::'a^'n^'n)"
-proof (simp add: det_def setsum_right_distrib cong add: setprod.cong, rule setsum.cong)
+proof (simp add: det_def setsum_distrib_left cong add: setprod.cong, rule setsum.cong)
   let ?U = "UNIV :: 'n set"
   let ?PU = "{p. p permutes ?U}"
   fix p

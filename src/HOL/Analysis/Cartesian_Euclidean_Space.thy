@@ -119,8 +119,8 @@ let
   val ss1 =
     simpset_of (put_simpset HOL_basic_ss @{context}
       addsimps [@{thm setsum.distrib} RS sym,
-      @{thm setsum_subtractf} RS sym, @{thm setsum_right_distrib},
-      @{thm setsum_left_distrib}, @{thm setsum_negf} RS sym])
+      @{thm setsum_subtractf} RS sym, @{thm setsum_distrib_left},
+      @{thm setsum_distrib_right}, @{thm setsum_negf} RS sym])
   val ss2 =
     simpset_of (@{context} addsimps
              [@{thm plus_vec_def}, @{thm times_vec_def},
@@ -326,7 +326,7 @@ lemma setsum_eq: "setsum f S = (\<chi> i. setsum (\<lambda>x. (f x)$i ) S)"
 lemma setsum_cmul:
   fixes f:: "'c \<Rightarrow> ('a::semiring_1)^'n"
   shows "setsum (\<lambda>x. c *s f x) S = c *s setsum f S"
-  by (simp add: vec_eq_iff setsum_right_distrib)
+  by (simp add: vec_eq_iff setsum_distrib_left)
 
 lemma setsum_norm_allsubsets_bound_cart:
   fixes f:: "'a \<Rightarrow> real ^'n"
@@ -517,14 +517,14 @@ lemma matrix_mul_rid:
   done
 
 lemma matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
-  apply (vector matrix_matrix_mult_def setsum_right_distrib setsum_left_distrib mult.assoc)
+  apply (vector matrix_matrix_mult_def setsum_distrib_left setsum_distrib_right mult.assoc)
   apply (subst setsum.commute)
   apply simp
   done
 
 lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply (vector matrix_matrix_mult_def matrix_vector_mult_def
-    setsum_right_distrib setsum_left_distrib mult.assoc)
+    setsum_distrib_left setsum_distrib_right mult.assoc)
   apply (subst setsum.commute)
   apply simp
   done
@@ -555,7 +555,7 @@ lemma matrix_vector_mul_component: "((A::real^_^_) *v x)$k = (A$k) \<bullet> x"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
-  apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def setsum_left_distrib setsum_right_distrib ac_simps)
+  apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def setsum_distrib_right setsum_distrib_left ac_simps)
   apply (subst setsum.commute)
   apply simp
   done
@@ -630,7 +630,7 @@ definition matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<R
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
   by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
-      field_simps setsum_right_distrib setsum.distrib)
+      field_simps setsum_distrib_left setsum.distrib)
 
 lemma matrix_works:
   assumes lf: "linear f"
@@ -660,7 +660,7 @@ lemma matrix_vector_column:
 lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
   apply (rule adjoint_unique)
   apply (simp add: transpose_def inner_vec_def matrix_vector_mult_def
-    setsum_left_distrib setsum_right_distrib)
+    setsum_distrib_right setsum_distrib_left)
   apply (subst setsum.commute)
   apply (auto simp add: ac_simps)
   done

@@ -58,7 +58,7 @@ lemma setL2_right_distrib:
   "0 \<le> r \<Longrightarrow> r * setL2 f A = setL2 (\<lambda>x. r * f x) A"
   unfolding setL2_def
   apply (simp add: power_mult_distrib)
-  apply (simp add: setsum_right_distrib [symmetric])
+  apply (simp add: setsum_distrib_left [symmetric])
   apply (simp add: real_sqrt_mult setsum_nonneg)
   done
 
@@ -66,7 +66,7 @@ lemma setL2_left_distrib:
   "0 \<le> r \<Longrightarrow> setL2 f A * r = setL2 (\<lambda>x. f x * r) A"
   unfolding setL2_def
   apply (simp add: power_mult_distrib)
-  apply (simp add: setsum_left_distrib [symmetric])
+  apply (simp add: setsum_distrib_right [symmetric])
   apply (simp add: real_sqrt_mult setsum_nonneg)
   done
 

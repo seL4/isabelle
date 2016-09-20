@@ -635,8 +635,18 @@ INCOMPATIBILITY.
   msetsum ~> sum_mset
   msetprod ~> prod_mset
 
+* The symbols for intersection and union of multisets have been changed:
+  #\<inter> ~> \<inter>#
+  #\<union> ~> \<union>#
+INCOMPATIBILITY.
+
 * The lemma one_step_implies_mult_aux on multisets has been removed, use
 one_step_implies_mult instead.
+INCOMPATIBILITY.
+
+* The following theorems have been renamed:
+  setsum_left_distrib ~> setsum_distrib_right
+  setsum_right_distrib ~> setsum_distrib_left
 INCOMPATIBILITY.
 
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
@@ -785,6 +795,9 @@ from ereal to ennreal:
   nn_integral :: 'a measure => ('a => ennreal) => ennreal
 INCOMPATIBILITY.
 
+* Renamed HOL/Quotient_Examples/FSet.thy to 
+HOL/Quotient_Examples/Quotient_FSet.thy 
+INCOMPATIBILITY.
 
 *** ML ***
 

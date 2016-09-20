@@ -639,11 +639,11 @@ lemma lemma_termdiff2:
   apply (subst lemma_realpow_rev_sumr)
   apply (subst sumr_diff_mult_const2)
   apply simp
-  apply (simp only: lemma_termdiff1 setsum_right_distrib)
+  apply (simp only: lemma_termdiff1 setsum_distrib_left)
   apply (rule setsum.cong [OF refl])
   apply (simp add: less_iff_Suc_add)
   apply clarify
-  apply (simp add: setsum_right_distrib diff_power_eq_setsum ac_simps
+  apply (simp add: setsum_distrib_left diff_power_eq_setsum ac_simps
       del: setsum_lessThan_Suc power_Suc)
   apply (subst mult.assoc [symmetric], subst power_add [symmetric])
   apply (simp add: ac_simps)
@@ -1448,7 +1448,7 @@ next
   also have "\<dots> = x * (\<Sum>i\<le>n. S x i * S y (n - i)) + y * (\<Sum>i\<le>n. S x i * S y (n - i))"
     by (rule distrib_right)
   also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n - i)) + (\<Sum>i\<le>n. S x i * y * S y (n - i))"
-    by (simp add: setsum_right_distrib ac_simps S_comm)
+    by (simp add: setsum_distrib_left ac_simps S_comm)
   also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n - i)) + (\<Sum>i\<le>n. S x i * (y * S y (n - i)))"
     by (simp add: ac_simps)
   also have "\<dots> = (\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i))) +
@@ -3340,7 +3340,7 @@ proof -
        (if even p
         then of_real ((-1) ^ (p div 2) / (fact p)) * (\<Sum>n\<le>p. (p choose n) *\<^sub>R (x^n) * y^(p-n))
         else 0)"
-      by (auto simp: setsum_right_distrib field_simps scaleR_conv_of_real nonzero_of_real_divide)
+      by (auto simp: setsum_distrib_left field_simps scaleR_conv_of_real nonzero_of_real_divide)
     also have "\<dots> = cos_coeff p *\<^sub>R ((x + y) ^ p)"
       by (simp add: cos_coeff_def binomial_ring [of x y]  scaleR_conv_of_real atLeast0AtMost)
     finally show ?thesis .
@@ -5835,7 +5835,7 @@ proof -
     by (auto simp: pairs_le_eq_Sigma setsum.Sigma)
   also have "\<dots> = (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
     apply (subst setsum_triangle_reindex_eq)
-    apply (auto simp: algebra_simps setsum_right_distrib intro!: setsum.cong)
+    apply (auto simp: algebra_simps setsum_distrib_left intro!: setsum.cong)
     apply (metis le_add_diff_inverse power_add)
     done
   finally show ?thesis .
@@ -5864,7 +5864,7 @@ proof -
   also have "\<dots> = (\<Sum>i\<le>n. a i * (x - y) * (\<Sum>j<i. y^(i - Suc j) * x^j))"
     by (simp add: power_diff_sumr2 mult.assoc)
   also have "\<dots> = (\<Sum>i\<le>n. \<Sum>j<i. a i * (x - y) * (y^(i - Suc j) * x^j))"
-    by (simp add: setsum_right_distrib)
+    by (simp add: setsum_distrib_left)
   also have "\<dots> = (\<Sum>(i,j) \<in> (SIGMA i : atMost n. lessThan i). a i * (x - y) * (y^(i - Suc j) * x^j))"
     by (simp add: setsum.Sigma)
   also have "\<dots> = (\<Sum>(j,i) \<in> (SIGMA j : lessThan n. {Suc j..n}). a i * (x - y) * (y^(i - Suc j) * x^j))"
@@ -5872,7 +5872,7 @@ proof -
   also have "\<dots> = (\<Sum>j<n. \<Sum>i=Suc j..n. a i * (x - y) * (y^(i - Suc j) * x^j))"
     by (simp add: setsum.Sigma)
   also have "\<dots> = (x - y) * (\<Sum>j<n. (\<Sum>i=Suc j..n. a i * y^(i - j - 1)) * x^j)"
-    by (simp add: setsum_right_distrib mult_ac)
+    by (simp add: setsum_distrib_left mult_ac)
   finally show ?thesis .
 qed
 
@@ -5894,7 +5894,7 @@ proof -
       by (auto simp add: setsum.reindex_bij_betw [OF h, symmetric] intro: setsum.strong_cong)
   qed
   then show ?thesis
-    by (simp add: polyfun_diff [OF assms] setsum_left_distrib)
+    by (simp add: polyfun_diff [OF assms] setsum_distrib_right)
 qed
 
 lemma polyfun_linear_factor:  (*COMPLEX_POLYFUN_LINEAR_FACTOR in HOL Light*)
@@ -5949,7 +5949,7 @@ next
       unfolding Set_Interval.setsum_atMost_Suc_shift
       by simp
     also have "\<dots> = w * (\<Sum>i\<le>n. c (Suc i) * w^i)"
-      by (simp add: setsum_right_distrib ac_simps)
+      by (simp add: setsum_distrib_left ac_simps)
     finally show ?thesis .
   qed
   then have w: "\<And>w. w \<noteq> 0 \<Longrightarrow> (\<Sum>i\<le>n. c (Suc i) * w^i) = 0"

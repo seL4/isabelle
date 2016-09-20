@@ -951,7 +951,7 @@ proof -
       then have "cmod h * cmod ((\<Sum>i<n. f' i y) - g' y) \<le> cmod h * e"
         by (auto simp: antisym_conv2 mult_le_cancel_left norm_triangle_ineq2)
       then show "cmod ((\<Sum>i<n. h * f' i y) - g' y * h) \<le> e * cmod h"
-        by (simp add: norm_mult [symmetric] field_simps setsum_right_distrib)
+        by (simp add: norm_mult [symmetric] field_simps setsum_distrib_left)
     qed
   } note ** = this
   show ?thesis

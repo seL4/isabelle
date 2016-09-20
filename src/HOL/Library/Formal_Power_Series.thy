@@ -141,7 +141,7 @@ proof
           (\<Sum>j=0..n. \<Sum>i=0..n - j. a$j * b$i * c$(n - j - i))"
       by (rule fps_mult_assoc_lemma)
     then show "((a * b) * c) $ n = (a * (b * c)) $ n"
-      by (simp add: fps_mult_nth setsum_right_distrib setsum_left_distrib mult.assoc)
+      by (simp add: fps_mult_nth setsum_distrib_left setsum_distrib_right mult.assoc)
   qed
 qed
 
@@ -1562,7 +1562,7 @@ proof -
     also have "\<dots> = (fps_deriv (f * g)) $ n"
       apply (simp only: fps_deriv_nth fps_mult_nth setsum.distrib)
       unfolding s0 s1
-      unfolding setsum.distrib[symmetric] setsum_right_distrib
+      unfolding setsum.distrib[symmetric] setsum_distrib_left
       apply (rule setsum.cong)
       apply (auto simp add: of_nat_diff field_simps)
       done
@@ -2320,7 +2320,7 @@ proof (induct m arbitrary: n rule: nat_less_induct)
       apply auto
       apply (rule setsum.cong)
       apply (rule refl)
-      unfolding setsum_left_distrib
+      unfolding setsum_distrib_right
       apply (rule sym)
       apply (rule_tac l = "\<lambda>xs. xs @ [n - x]" in setsum.reindex_cong)
       apply (simp add: inj_on_def)
@@ -3082,7 +3082,7 @@ proof -
   have "(fps_deriv (a oo b))$n = (((fps_deriv a) oo b) * (fps_deriv b)) $n" for n
   proof -
     have "(fps_deriv (a oo b))$n = setsum (\<lambda>i. a $ i * (fps_deriv (b^i))$n) {0.. Suc n}"
-      by (simp add: fps_compose_def field_simps setsum_right_distrib del: of_nat_Suc)
+      by (simp add: fps_compose_def field_simps setsum_distrib_left del: of_nat_Suc)
     also have "\<dots> = setsum (\<lambda>i. a$i * ((fps_const (of_nat i)) * (fps_deriv b * (b^(i - 1))))$n) {0.. Suc n}"
       by (simp add: field_simps fps_deriv_power del: fps_mult_left_const_nth of_nat_Suc)
     also have "\<dots> = setsum (\<lambda>i. of_nat i * a$i * (((b^(i - 1)) * fps_deriv b))$n) {0.. Suc n}"
@@ -3102,7 +3102,7 @@ proof -
     have "(((fps_deriv a) oo b) * (fps_deriv b))$n = setsum (\<lambda>i. (fps_deriv b)$ (n - i) * ((fps_deriv a) oo b)$i) {0..n}"
       unfolding fps_mult_nth by (simp add: ac_simps)
     also have "\<dots> = setsum (\<lambda>i. setsum (\<lambda>j. of_nat (n - i +1) * b$(n - i + 1) * of_nat (j + 1) * a$(j+1) * (b^j)$i) {0..n}) {0..n}"
-      unfolding fps_deriv_nth fps_compose_nth setsum_right_distrib mult.assoc
+      unfolding fps_deriv_nth fps_compose_nth setsum_distrib_left mult.assoc
       apply (rule setsum.cong)
       apply (rule refl)
       apply (rule setsum.mono_neutral_left)
@@ -3114,7 +3114,7 @@ proof -
       apply simp
       done
     also have "\<dots> = setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
-      unfolding setsum_right_distrib
+      unfolding setsum_distrib_left
       apply (subst setsum.commute)
       apply (rule setsum.cong, rule refl)+
       apply simp
@@ -3295,7 +3295,7 @@ proof -
     apply auto
     done
   have "?r =  setsum (\<lambda>i. setsum (\<lambda>(k,m). a$k * (c^k)$i * b$m * (d^m) $ (n - i)) {(k,m). k + m \<le> n}) {0..n}"
-    apply (simp add: fps_mult_nth setsum_right_distrib)
+    apply (simp add: fps_mult_nth setsum_distrib_left)
     apply (subst setsum.commute)
     apply (rule setsum.cong)
     apply (auto simp add: field_simps)
@@ -3377,7 +3377,7 @@ lemma fps_compose_mult_distrib:
   assumes c0: "c $ 0 = (0::'a::idom)"
   shows "(a * b) oo c = (a oo c) * (b oo c)"
   apply (simp add: fps_eq_iff fps_compose_mult_distrib_lemma [OF c0])
-  apply (simp add: fps_compose_nth fps_mult_nth setsum_left_distrib)
+  apply (simp add: fps_compose_nth fps_mult_nth setsum_distrib_right)
   done
 
 lemma fps_compose_setprod_distrib:
@@ -3498,7 +3498,7 @@ proof -
 qed
 
 lemma fps_const_mult_apply_left: "fps_const c * (a oo b) = (fps_const c * a) oo b"
-  by (simp add: fps_eq_iff fps_compose_nth setsum_right_distrib mult.assoc)
+  by (simp add: fps_eq_iff fps_compose_nth setsum_distrib_left mult.assoc)
 
 lemma fps_const_mult_apply_right:
   "(a oo b) * fps_const (c::'a::comm_semiring_1) = (fps_const c * a) oo b"
@@ -3513,11 +3513,11 @@ proof -
   proof -
     have "?l$n = (setsum (\<lambda>i. (fps_const (a$i) * b^i) oo c) {0..n})$n"
       by (simp add: fps_compose_nth fps_compose_power[OF c0] fps_const_mult_apply_left
-        setsum_right_distrib mult.assoc fps_setsum_nth)
+        setsum_distrib_left mult.assoc fps_setsum_nth)
     also have "\<dots> = ((setsum (\<lambda>i. fps_const (a$i) * b^i) {0..n}) oo c)$n"
       by (simp add: fps_compose_setsum_distrib)
     also have "\<dots> = ?r$n"
-      apply (simp add: fps_compose_nth fps_setsum_nth setsum_left_distrib mult.assoc)
+      apply (simp add: fps_compose_nth fps_setsum_nth setsum_distrib_right mult.assoc)
       apply (rule setsum.cong)
       apply (rule refl)
       apply (rule setsum.mono_neutral_right)
@@ -4224,7 +4224,7 @@ proof -
     apply (simp add: th00)
     unfolding gbinomial_pochhammer
     using bn0
-    apply (simp add: setsum_left_distrib setsum_right_distrib field_simps)
+    apply (simp add: setsum_distrib_right setsum_distrib_left field_simps)
     done
   finally show ?thesis by simp
 qed
@@ -4253,7 +4253,7 @@ proof -
     by (simp add: pochhammer_eq_0_iff)
   from Vandermonde_pochhammer_lemma[where a = "?a" and b="?b" and n=n, OF h, unfolded th0 th1]
   show ?thesis
-    using nz by (simp add: field_simps setsum_right_distrib)
+    using nz by (simp add: field_simps setsum_distrib_left)
 qed
 
 

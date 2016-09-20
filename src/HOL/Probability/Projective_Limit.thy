@@ -290,7 +290,7 @@ proof (rule emeasure_lim)
       finally show "\<mu>G (Z i - Z' i) \<le> (2 powr - real i) * ?a" .
     qed
     also have "\<dots> = ennreal ((\<Sum> i\<in>{1..n}. (2 powr -enn2real i)) * enn2real ?a)"
-      using r by (simp add: setsum_left_distrib ennreal_mult[symmetric])
+      using r by (simp add: setsum_distrib_right ennreal_mult[symmetric])
     also have "\<dots> < ennreal (1 * enn2real ?a)"
     proof (intro ennreal_lessI mult_strict_right_mono)
       have "(\<Sum>i = 1..n. 2 powr - real i) = (\<Sum>i = 1..<Suc n. (1/2) ^ i)"

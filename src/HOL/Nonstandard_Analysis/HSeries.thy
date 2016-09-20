@@ -59,7 +59,7 @@ unfolding sumhr_app by transfer (rule setsum.distrib [symmetric])
 
 lemma sumhr_mult:
   "!!m n. hypreal_of_real r * sumhr(m,n,f) = sumhr(m,n,%n. r * f n)"
-unfolding sumhr_app by transfer (rule setsum_right_distrib)
+unfolding sumhr_app by transfer (rule setsum_distrib_left)
 
 lemma sumhr_split_add:
   "!!n p. n < p ==> sumhr(0,n,f) + sumhr(n,p,f) = sumhr(0,p,f)"

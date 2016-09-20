@@ -1889,7 +1889,7 @@ proof (induct n)
   also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
     by (simp only: mult.left_commute)
   also have "... = (x - y) * (\<Sum>p<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
-    by (simp add: field_simps Suc_diff_le setsum_left_distrib setsum_right_distrib)
+    by (simp add: field_simps Suc_diff_le setsum_distrib_right setsum_distrib_left)
   finally show ?case .
 qed simp
 
@@ -1944,7 +1944,7 @@ proof cases
   also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
   also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
     unfolding One_nat_def
-    by (simp add: setsum_right_distrib atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt ac_simps)
+    by (simp add: setsum_distrib_left atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt ac_simps)
   also have "2*\<dots> = 2*?n*a + d*2*(\<Sum>i\<in>{1..<n}. ?I i)"
     by (simp add: algebra_simps)
   also from ngt1 have "{1..<n} = {1..n - 1}"

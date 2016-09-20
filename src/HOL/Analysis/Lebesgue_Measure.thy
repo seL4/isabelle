@@ -235,7 +235,7 @@ next
       by auto
     also have "... = (\<Sum>i \<in> S. F(r i) - F(l i)) +
         (epsilon / 4) * (\<Sum>i \<in> S. (1 / 2)^i)" (is "_ = ?t + _")
-      by (subst setsum.distrib) (simp add: field_simps setsum_right_distrib)
+      by (subst setsum.distrib) (simp add: field_simps setsum_distrib_left)
     also have "... \<le> ?t + (epsilon / 4) * (\<Sum> i < Suc n. (1 / 2)^i)"
       apply (rule add_left_mono)
       apply (rule mult_left_mono)

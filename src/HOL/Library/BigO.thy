@@ -556,7 +556,7 @@ lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 \<le> h x y \<Longr
   apply (subst abs_of_nonneg) back back
    apply (rule setsum_nonneg)
    apply force
-  apply (subst setsum_right_distrib)
+  apply (subst setsum_distrib_left)
   apply (rule allI)
   apply (rule order_trans)
    apply (rule setsum_abs)

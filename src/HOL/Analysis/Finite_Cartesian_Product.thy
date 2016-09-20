@@ -461,7 +461,7 @@ instance proof
     by (simp add: inner_add_left setsum.distrib)
   show "inner (scaleR r x) y = r * inner x y"
     unfolding inner_vec_def
-    by (simp add: setsum_right_distrib)
+    by (simp add: setsum_distrib_left)
   show "0 \<le> inner x x"
     unfolding inner_vec_def
     by (simp add: setsum_nonneg)

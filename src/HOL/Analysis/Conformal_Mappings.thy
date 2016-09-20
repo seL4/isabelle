@@ -2846,7 +2846,7 @@ proof -
         qed
     qed
   also have "... = c * (\<Sum>p\<in>pts. winding_number g p * residue f p)"
-    by (simp add: setsum_right_distrib algebra_simps)
+    by (simp add: setsum_distrib_left algebra_simps)
   finally show ?thesis unfolding c_def .
 qed
 
@@ -3459,7 +3459,7 @@ proof -
             qed
         qed
       then have "(\<Sum>p\<in>zeros. w p * cont p) = c * (\<Sum>p\<in>zeros.  w p *  h p * zorder f p)"
-        apply (subst setsum_right_distrib)
+        apply (subst setsum_distrib_left)
         by (simp add:algebra_simps)
       moreover have "(\<Sum>p\<in>poles. w p * cont p) = (\<Sum>p\<in>poles.  - c * w p *  h p * porder f p)"
         proof (rule setsum.cong[of poles poles,simplified])
@@ -3479,7 +3479,7 @@ proof -
             qed
         qed
       then have "(\<Sum>p\<in>poles. w p * cont p) = - c * (\<Sum>p\<in>poles. w p *  h p * porder f p)"
-        apply (subst setsum_right_distrib)
+        apply (subst setsum_distrib_left)
         by (simp add:algebra_simps)
       ultimately show ?thesis by (simp add: right_diff_distrib)
     qed

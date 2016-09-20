@@ -288,7 +288,7 @@ proof -
     qed
     from this and A have "Bseq (\<lambda>n. \<Sum>k<n. 2^k * f (2^Suc k))" by (rule Bseq_eventually_mono)
     from Bseq_mult[OF Bfun_const[of 2] this] have "Bseq (\<lambda>n. \<Sum>k<n. 2^Suc k * f (2^Suc k))"
-      by (simp add: setsum_right_distrib setsum_left_distrib mult_ac)
+      by (simp add: setsum_distrib_left setsum_distrib_right mult_ac)
     hence "Bseq (\<lambda>n. (\<Sum>k=Suc 0..<Suc n. 2^k * f (2^k)) + f 1)"
       by (intro Bseq_add, subst setsum_shift_bounds_Suc_ivl) (simp add: atLeast0LessThan)
     hence "Bseq (\<lambda>n. (\<Sum>k=0..<Suc n. 2^k * f (2^k)))"
@@ -424,7 +424,7 @@ proof -
     have n: "n > m" by (simp add: n_def)
 
     from r have "r * norm (\<Sum>k\<le>n. f k) = norm (\<Sum>k\<le>n. r * f k)"
-      by (simp add: setsum_right_distrib[symmetric] abs_mult)
+      by (simp add: setsum_distrib_left[symmetric] abs_mult)
     also from n have "{..n} = {..m} \<union> {Suc m..n}" by auto
     hence "(\<Sum>k\<le>n. r * f k) = (\<Sum>k\<in>{..m} \<union> {Suc m..n}. r * f k)" by (simp only:)
     also have "\<dots> = (\<Sum>k\<le>m. r * f k) + (\<Sum>k=Suc m..n. r * f k)"

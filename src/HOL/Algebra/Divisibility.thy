@@ -2306,10 +2306,10 @@ proof -
     by (fast elim: wfactorsE)
 
   have "\<exists>c cs. c \<in> carrier G \<and> set cs \<subseteq> carrier G \<and> wfactors G cs c \<and>
-    fmset G cs = fmset G as #\<inter> fmset G bs"
+    fmset G cs = fmset G as \<inter># fmset G bs"
   proof (intro mset_wfactorsEx)
     fix X
-    assume "X \<in># fmset G as #\<inter> fmset G bs"
+    assume "X \<in># fmset G as \<inter># fmset G bs"
     then have "X \<in># fmset G as" by simp
     then have "X \<in> set (map (assocs G) as)"
       by (simp add: fmset_def)
@@ -2328,7 +2328,7 @@ proof -
     where ccarr: "c \<in> carrier G"
       and cscarr: "set cs \<subseteq> carrier G"
       and csirr: "wfactors G cs c"
-      and csmset: "fmset G cs = fmset G as #\<inter> fmset G bs"
+      and csmset: "fmset G cs = fmset G as \<inter># fmset G bs"
     by auto
 
   have "c gcdof a b"

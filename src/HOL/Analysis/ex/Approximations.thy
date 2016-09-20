@@ -30,7 +30,7 @@ proof -
       by (subst atLeast0LessThan [symmetric], subst setsum_head_upt_Suc) simp_all
     also have "(\<Sum>k=Suc 0..<Suc m. f k * x^k) = (\<Sum>k<m. f (k+1) * x^k) * x"
       by (subst setsum_shift_bounds_Suc_ivl)
-         (simp add: setsum_left_distrib algebra_simps atLeast0LessThan power_commutes)
+         (simp add: setsum_distrib_right algebra_simps atLeast0LessThan power_commutes)
     finally have "(\<Sum>k<Suc m. f k * x ^ k) = f 0 + (\<Sum>k<m. f (k + 1) * x ^ k) * x" .
   }
   from this[of "pred_numeral n"]
@@ -199,7 +199,7 @@ qed
 lemma euler_approx_aux_Suc:
   "euler_approx_aux (Suc m) = 1 + Suc m * euler_approx_aux m"
   unfolding euler_approx_aux_def
-  by (subst setsum_right_distrib) (simp add: atLeastAtMostSuc_conv)
+  by (subst setsum_distrib_left) (simp add: atLeastAtMostSuc_conv)
 
 lemma eval_euler_approx_aux:
   "euler_approx_aux 0 = 1"
@@ -209,7 +209,7 @@ lemma eval_euler_approx_aux:
 proof -
   have A: "euler_approx_aux (Suc m) = 1 + Suc m * euler_approx_aux m" for m :: nat
     unfolding euler_approx_aux_def
-    by (subst setsum_right_distrib) (simp add: atLeastAtMostSuc_conv)
+    by (subst setsum_distrib_left) (simp add: atLeastAtMostSuc_conv)
   show ?th by (subst numeral_eq_Suc, subst A, subst numeral_eq_Suc [symmetric]) simp
 qed (simp_all add: euler_approx_aux_def)
 
@@ -281,7 +281,7 @@ proof (rule approx_coarsen[OF ln_approx_abs[OF x, of n]], goal_cases)
                    y_def [symmetric] d_def [symmetric])
   also have "2 * y * (\<Sum>k<n. inverse (real (2 * k + 1)) * y\<^sup>2 ^ k) = 
                (\<Sum>k<n. 2 * y^(2*k+1) / (real (2 * k + 1)))"
-    by (subst setsum_right_distrib, simp, subst power_mult) 
+    by (subst setsum_distrib_left, simp, subst power_mult) 
        (simp_all add: divide_simps mult_ac power_mult)
   finally show ?case by (simp only: d_def y_def approx_def) 
 qed
@@ -380,7 +380,7 @@ proof -
   from sums_split_initial_segment[OF this, of n]
     have "(\<lambda>i. x * ((- x\<^sup>2) ^ (i + n) / real (2 * (i + n) + 1))) sums
             (arctan x - arctan_approx n x)"
-    by (simp add: arctan_approx_def setsum_right_distrib)
+    by (simp add: arctan_approx_def setsum_distrib_left)
   from sums_group[OF this, of 2] assms
     have sums: "(\<lambda>k. x * (x\<^sup>2)^n * (x^4)^k * c k) sums (arctan x - arctan_approx n x)"
     by (simp add: algebra_simps power_add power_mult [symmetric] c_def)
@@ -423,7 +423,7 @@ proof -
       by (subst atLeast0LessThan [symmetric], subst setsum_head_upt_Suc) simp_all
     also have "(\<Sum>k=Suc 0..<Suc m. inverse (f k * x^k)) = (\<Sum>k<m. inverse (f (k+1) * x^k)) / x"
       by (subst setsum_shift_bounds_Suc_ivl)
-         (simp add: setsum_right_distrib divide_inverse algebra_simps
+         (simp add: setsum_distrib_left divide_inverse algebra_simps
                     atLeast0LessThan power_commutes)
     finally have "(\<Sum>k<Suc m. inverse (f k) * inverse (x ^ k)) =
                       inverse (f 0) + (\<Sum>k<m. inverse (f (k + 1)) * inverse (x ^ k)) / x" by simp

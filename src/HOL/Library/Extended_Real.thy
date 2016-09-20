@@ -1098,7 +1098,7 @@ lemma setsum_ereal_left_distrib:
   "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> setsum f A * r = (\<Sum>n\<in>A. f n * r :: ereal)"
   using setsum_ereal_right_distrib[of A f r] by (simp add: mult_ac)
 
-lemma setsum_left_distrib_ereal:
+lemma setsum_distrib_right_ereal:
   "c \<ge> 0 \<Longrightarrow> setsum f A * ereal c = (\<Sum>x\<in>A. f x * c :: ereal)"
 by(subst setsum_comp_morphism[where h="\<lambda>x. x * ereal c", symmetric])(simp_all add: distrib_left_ereal_nn)
 

@@ -1610,7 +1610,7 @@ lemma emeasure_pmf_of_set_space[simp]: "emeasure pmf_of_set S = 1"
 
 lemma nn_integral_pmf_of_set: "nn_integral (measure_pmf pmf_of_set) f = setsum f S / card S"
   by (subst nn_integral_measure_pmf_finite)
-     (simp_all add: setsum_left_distrib[symmetric] card_gt_0_iff S_not_empty S_finite divide_ennreal_def
+     (simp_all add: setsum_distrib_right[symmetric] card_gt_0_iff S_not_empty S_finite divide_ennreal_def
                 divide_ennreal[symmetric] ennreal_of_nat_eq_real_of_nat[symmetric] ennreal_times_divide)
 
 lemma integral_pmf_of_set: "integral\<^sup>L (measure_pmf pmf_of_set) f = setsum f S / card S"

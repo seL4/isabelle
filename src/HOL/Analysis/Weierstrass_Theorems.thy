@@ -38,7 +38,7 @@ lemma binomial_deriv2:
 
 lemma sum_k_Bernstein [simp]: "(\<Sum>k = 0..n. real k * Bernstein n k x) = of_nat n * x"
   apply (subst binomial_deriv1 [of n x "1-x", simplified, symmetric])
-  apply (simp add: setsum_left_distrib)
+  apply (simp add: setsum_distrib_right)
   apply (auto simp: Bernstein_def algebra_simps realpow_num_eq_if intro!: setsum.cong)
   done
 
@@ -46,7 +46,7 @@ lemma sum_kk_Bernstein [simp]: "(\<Sum> k = 0..n. real k * (real k - 1) * Bernst
 proof -
   have "(\<Sum> k = 0..n. real k * (real k - 1) * Bernstein n k x) = real_of_nat n * real_of_nat (n - Suc 0) * x\<^sup>2"
     apply (subst binomial_deriv2 [of n x "1-x", simplified, symmetric])
-    apply (simp add: setsum_left_distrib)
+    apply (simp add: setsum_distrib_right)
     apply (rule setsum.cong [OF refl])
     apply (simp add: Bernstein_def power2_eq_square algebra_simps)
     apply (rename_tac k)
@@ -98,7 +98,7 @@ proof -
         by (simp add: algebra_simps power2_eq_square)
       have "(\<Sum> k = 0..n. (k - n * x)\<^sup>2 * Bernstein n k x) = n * x * (1 - x)"
         apply (simp add: * setsum.distrib)
-        apply (simp add: setsum_right_distrib [symmetric] mult.assoc)
+        apply (simp add: setsum_distrib_left [symmetric] mult.assoc)
         apply (simp add: algebra_simps power2_eq_square)
         done
       then have "(\<Sum> k = 0..n. (k - n * x)\<^sup>2 * Bernstein n k x)/n^2 = x * (1 - x) / n"
@@ -138,14 +138,14 @@ proof -
         qed
     } note * = this
     have "\<bar>f x - (\<Sum> k = 0..n. f(k / n) * Bernstein n k x)\<bar> \<le> \<bar>\<Sum> k = 0..n. (f x - f(k / n)) * Bernstein n k x\<bar>"
-      by (simp add: setsum_subtractf setsum_right_distrib [symmetric] algebra_simps)
+      by (simp add: setsum_subtractf setsum_distrib_left [symmetric] algebra_simps)
     also have "... \<le> (\<Sum> k = 0..n. (e/2 + (2 * M / d\<^sup>2) * (x - k / n)\<^sup>2) * Bernstein n k x)"
       apply (rule order_trans [OF setsum_abs setsum_mono])
       using *
       apply (simp add: abs_mult Bernstein_nonneg x mult_right_mono)
       done
     also have "... \<le> e/2 + (2 * M) / (d\<^sup>2 * n)"
-      apply (simp only: setsum.distrib Rings.semiring_class.distrib_right setsum_right_distrib [symmetric] mult.assoc sum_bern)
+      apply (simp only: setsum.distrib Rings.semiring_class.distrib_right setsum_distrib_left [symmetric] mult.assoc sum_bern)
       using \<open>d>0\<close> x
       apply (simp add: divide_simps Mge0 mult_le_one mult_left_le)
       done
