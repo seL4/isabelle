@@ -276,6 +276,11 @@ equivalence relations from a predicate and an equivalence relation.
 * Theory Library/Perm.thy: basic facts about almost everywhere fix
 bijections.
 
+* Theory Library/Normalized_Fraction.thy: allows viewing an element 
+of a field of fractions as a normalized fraction (i.e. a pair of 
+numerator and denominator such that the two are coprime and the 
+denominator is normalized w.r.t. unit factors)
+
 * Locale bijection establishes convenient default simp rules
 like "inv f (f a) = a" for total bijections.
 
