@@ -85,7 +85,7 @@ fun map_exn f (Res x) = Res x
 
 (* interrupts *)
 
-exception Interrupt = SML90.Interrupt;
+exception Interrupt = Thread.Thread.Interrupt;
 
 fun interrupt () = raise Interrupt;
 

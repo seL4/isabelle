@@ -19,7 +19,7 @@ val _ =
 val ord = SML90.ord;
 val chr = SML90.chr;
 val raw_explode = SML90.explode;
-val implode = SML90.implode;
+val implode = String.concat;
 
 val pointer_eq = PolyML.pointerEq;
 
