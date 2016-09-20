@@ -62,7 +62,7 @@ object Build_Stats
           val gc = Time.seconds(g)
           timing += (name -> Timing(elapsed, cpu, gc))
           threads += (name -> t)
-        case ML_Option(option) => ml_options += option
+        case ML_Option(a, b) => ml_options += (a -> b)
         case _ =>
       }
     }

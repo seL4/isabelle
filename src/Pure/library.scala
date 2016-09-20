@@ -19,6 +19,8 @@ object Library
 
   def using[A <: { def close() }, B](x: A)(f: A => B): B =
   {
+    import scala.language.reflectiveCalls
+
     try { f(x) }
     finally { if (x != null) x.close() }
   }

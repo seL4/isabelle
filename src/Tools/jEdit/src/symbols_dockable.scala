@@ -61,7 +61,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           Multi_Map(
             (for {
               (abbr, txt0) <- abbrevs
-              val txt = Symbol.encode(txt0)
+              txt = Symbol.encode(txt0)
               if !Symbol.iterator(txt).
                 forall(s => s.length == 1 && s(0) != Completion.caret_indicator)
             } yield (txt, abbr)): _*).iterator_list.toList
