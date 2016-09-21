@@ -220,7 +220,9 @@ lemma setsum_constant_scaleR: "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
   for y :: "'a::real_vector"
   by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
 
-lemma vector_add_divide_simps:
+named_theorems vector_add_divide_simps "to simplify sums of scaled vectors"
+
+lemma [vector_add_divide_simps]:
   "v + (b / z) *\<^sub>R w = (if z = 0 then v else (z *\<^sub>R v + b *\<^sub>R w) /\<^sub>R z)"
   "a *\<^sub>R v + (b / z) *\<^sub>R w = (if z = 0 then a *\<^sub>R v else ((a * z) *\<^sub>R v + b *\<^sub>R w) /\<^sub>R z)"
   "(a / z) *\<^sub>R v + w = (if z = 0 then w else (a *\<^sub>R v + z *\<^sub>R w) /\<^sub>R z)"
@@ -231,6 +233,17 @@ lemma vector_add_divide_simps:
   "(a / z) *\<^sub>R v - b *\<^sub>R w = (if z = 0 then -b *\<^sub>R w else (a *\<^sub>R v - (b * z) *\<^sub>R w) /\<^sub>R z)"
   for v :: "'a :: real_vector"
   by (simp_all add: divide_inverse_commute scaleR_add_right real_vector.scale_right_diff_distrib)
+
+
+lemma eq_vector_fraction_iff [vector_add_divide_simps]:
+  fixes x :: "'a :: real_vector"
+  shows "(x = (u / v) *\<^sub>R a) \<longleftrightarrow> (if v=0 then x = 0 else v *\<^sub>R x = u *\<^sub>R a)"
+by auto (metis (no_types) divide_eq_1_iff divide_inverse_commute scaleR_one scaleR_scaleR)
+
+lemma vector_fraction_eq_iff [vector_add_divide_simps]:
+  fixes x :: "'a :: real_vector"
+  shows "((u / v) *\<^sub>R a = x) \<longleftrightarrow> (if v=0 then x = 0 else u *\<^sub>R a = v *\<^sub>R x)"
+by (metis eq_vector_fraction_iff)
 
 lemma real_vector_affinity_eq:
   fixes x :: "'a :: real_vector"
