@@ -8,6 +8,11 @@ theory Norm_Arith
 imports "~~/src/HOL/Library/Sum_of_Squares"
 begin
 
+(* FIXME: move elsewhere *)
+lemma sum_sqs_eq:
+  fixes x::"'a::idom" shows "x * x + y * y = x * (y * 2) \<Longrightarrow> y = x"
+  by algebra
+
 lemma norm_cmul_rule_thm:
   fixes x :: "'a::real_normed_vector"
   shows "b \<ge> norm x \<Longrightarrow> \<bar>c\<bar> * b \<ge> norm (scaleR c x)"

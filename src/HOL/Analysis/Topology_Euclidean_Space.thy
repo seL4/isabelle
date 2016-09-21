@@ -17,6 +17,7 @@ begin
 
 
 (* FIXME: move elsewhere *)
+
 definition (in monoid_add) support_on :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'b set"
 where
   "support_on s f = {x\<in>s. f x \<noteq> 0}"
@@ -765,6 +766,11 @@ lemma closedin_closed_Int: "closed S \<Longrightarrow> closedin (subtopology euc
 
 lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
   by (auto simp add: closedin_closed)
+
+lemma finite_imp_closedin:
+  fixes S :: "'a::t1_space set"
+  shows "\<lbrakk>finite S; S \<subseteq> T\<rbrakk> \<Longrightarrow> closedin (subtopology euclidean T) S"
+    by (simp add: finite_imp_closed closed_subset)
 
 lemma closedin_singleton [simp]:
   fixes a :: "'a::t1_space"
@@ -3611,6 +3617,9 @@ proof -
     unfolding bounded_def by auto
 qed
 
+lemma bounded_closure_image: "bounded (f ` closure S) \<Longrightarrow> bounded (f ` S)"
+  by (simp add: bounded_subset closure_subset image_mono)
+
 lemma bounded_cball[simp,intro]: "bounded (cball x e)"
   apply (simp add: bounded_def)
   apply (rule_tac x=x in exI)
@@ -3749,7 +3758,8 @@ lemma bounded_uminus [simp]:
   shows "bounded (uminus ` X) \<longleftrightarrow> bounded X"
 by (auto simp: bounded_def dist_norm; rule_tac x="-x" in exI; force simp add: add.commute norm_minus_commute)
 
-text\<open>Some theorems on sups and infs using the notion "bounded".\<close>
+
+subsection\<open>Some theorems on sups and infs using the notion "bounded".\<close>
 
 lemma bounded_real: "bounded (S::real set) \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. \<bar>x\<bar> \<le> a)"
   by (simp add: bounded_iff)
@@ -6122,22 +6132,21 @@ proof-
 qed
 
 lemma continuous_open_preimage_univ:
-  "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open {x. f x \<in> s}"
+  "open s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> open {x. f x \<in> s}"
   using continuous_open_preimage[of UNIV f s] open_UNIV continuous_at_imp_continuous_on by auto
 
 lemma continuous_closed_preimage_univ:
-  "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s \<Longrightarrow> closed {x. f x \<in> s}"
+  "closed s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> closed {x. f x \<in> s}"
   using continuous_closed_preimage[of UNIV f s] closed_UNIV continuous_at_imp_continuous_on by auto
 
-lemma continuous_open_vimage: "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open (f -` s)"
+lemma continuous_open_vimage: "open s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> open (f -` s)"
   unfolding vimage_def by (rule continuous_open_preimage_univ)
 
-lemma continuous_closed_vimage: "\<forall>x. continuous (at x) f \<Longrightarrow> closed s \<Longrightarrow> closed (f -` s)"
+lemma continuous_closed_vimage: "closed s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> closed (f -` s)"
   unfolding vimage_def by (rule continuous_closed_preimage_univ)
 
 lemma interior_image_subset:
-  assumes "\<forall>x. continuous (at x) f"
-    and "inj f"
+  assumes "inj f" "\<And>x. continuous (at x) f"
   shows "interior (f ` s) \<subseteq> f ` (interior s)"
 proof
   fix x assume "x \<in> interior (f ` s)"
@@ -6145,7 +6154,7 @@ proof
   then have "x \<in> f ` s" by auto
   then obtain y where y: "y \<in> s" "x = f y" by auto
   have "open (vimage f T)"
-    using assms(1) \<open>open T\<close> by (rule continuous_open_vimage)
+    using assms \<open>open T\<close> by (metis continuous_open_vimage)
   moreover have "y \<in> vimage f T"
     using \<open>x = f y\<close> \<open>x \<in> T\<close> by simp
   moreover have "vimage f T \<subseteq> s"
@@ -6774,53 +6783,53 @@ lemma minus_image_eq_vimage:
   by (auto intro!: image_eqI [where f="\<lambda>x. - x"])
 
 lemma open_negations:
-  fixes s :: "'a::real_normed_vector set"
-  shows "open s \<Longrightarrow> open ((\<lambda>x. - x) ` s)"
-  using open_scaling [of "- 1" s] by simp
+  fixes S :: "'a::real_normed_vector set"
+  shows "open S \<Longrightarrow> open ((\<lambda>x. - x) ` S)"
+  using open_scaling [of "- 1" S] by simp
 
 lemma open_translation:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "open s"
-  shows "open((\<lambda>x. a + x) ` s)"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+  shows "open((\<lambda>x. a + x) ` S)"
 proof -
   {
     fix x
     have "continuous (at x) (\<lambda>x. x - a)"
       by (intro continuous_diff continuous_ident continuous_const)
   }
-  moreover have "{x. x - a \<in> s} = op + a ` s"
+  moreover have "{x. x - a \<in> S} = op + a ` S"
     by force
-  ultimately show ?thesis using continuous_open_preimage_univ[of "\<lambda>x. x - a" s]
-    using assms by auto
+  ultimately show ?thesis
+    by (metis assms continuous_open_vimage vimage_def)
 qed
 
 lemma open_affinity:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "open s"  "c \<noteq> 0"
-  shows "open ((\<lambda>x. a + c *\<^sub>R x) ` s)"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"  "c \<noteq> 0"
+  shows "open ((\<lambda>x. a + c *\<^sub>R x) ` S)"
 proof -
   have *: "(\<lambda>x. a + c *\<^sub>R x) = (\<lambda>x. a + x) \<circ> (\<lambda>x. c *\<^sub>R x)"
     unfolding o_def ..
-  have "op + a ` op *\<^sub>R c ` s = (op + a \<circ> op *\<^sub>R c) ` s"
+  have "op + a ` op *\<^sub>R c ` S = (op + a \<circ> op *\<^sub>R c) ` S"
     by auto
   then show ?thesis
-    using assms open_translation[of "op *\<^sub>R c ` s" a]
+    using assms open_translation[of "op *\<^sub>R c ` S" a]
     unfolding *
     by auto
 qed
 
 lemma interior_translation:
-  fixes s :: "'a::real_normed_vector set"
-  shows "interior ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (interior s)"
+  fixes S :: "'a::real_normed_vector set"
+  shows "interior ((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (interior S)"
 proof (rule set_eqI, rule)
   fix x
-  assume "x \<in> interior (op + a ` s)"
-  then obtain e where "e > 0" and e: "ball x e \<subseteq> op + a ` s"
+  assume "x \<in> interior (op + a ` S)"
+  then obtain e where "e > 0" and e: "ball x e \<subseteq> op + a ` S"
     unfolding mem_interior by auto
-  then have "ball (x - a) e \<subseteq> s"
+  then have "ball (x - a) e \<subseteq> S"
     unfolding subset_eq Ball_def mem_ball dist_norm
     by (auto simp add: diff_diff_eq)
-  then show "x \<in> op + a ` interior s"
+  then show "x \<in> op + a ` interior S"
     unfolding image_iff
     apply (rule_tac x="x - a" in bexI)
     unfolding mem_interior
@@ -6829,27 +6838,27 @@ proof (rule set_eqI, rule)
     done
 next
   fix x
-  assume "x \<in> op + a ` interior s"
-  then obtain y e where "e > 0" and e: "ball y e \<subseteq> s" and y: "x = a + y"
+  assume "x \<in> op + a ` interior S"
+  then obtain y e where "e > 0" and e: "ball y e \<subseteq> S" and y: "x = a + y"
     unfolding image_iff Bex_def mem_interior by auto
   {
     fix z
     have *: "a + y - z = y + a - z" by auto
     assume "z \<in> ball x e"
-    then have "z - a \<in> s"
+    then have "z - a \<in> S"
       using e[unfolded subset_eq, THEN bspec[where x="z - a"]]
       unfolding mem_ball dist_norm y group_add_class.diff_diff_eq2 *
       by auto
-    then have "z \<in> op + a ` s"
+    then have "z \<in> op + a ` S"
       unfolding image_iff by (auto intro!: bexI[where x="z - a"])
   }
-  then have "ball x e \<subseteq> op + a ` s"
+  then have "ball x e \<subseteq> op + a ` S"
     unfolding subset_eq by auto
-  then show "x \<in> interior (op + a ` s)"
+  then show "x \<in> interior (op + a ` S)"
     unfolding mem_interior using \<open>e > 0\<close> by auto
 qed
 
-text \<open>Topological properties of linear functions.\<close>
+subsection \<open>Topological properties of linear functions.\<close>
 
 lemma linear_lim_0:
   assumes "bounded_linear f"
@@ -6876,6 +6885,73 @@ lemma linear_continuous_within:
 lemma linear_continuous_on:
   "bounded_linear f \<Longrightarrow> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
+
+subsubsection\<open>Relating linear images to open/closed/interior/closure.\<close>
+
+proposition open_surjective_linear_image:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
+  assumes "open A" "linear f" "surj f"
+    shows "open(f ` A)"
+unfolding open_dist
+proof clarify
+  fix x
+  assume "x \<in> A"
+  have "bounded (inv f ` Basis)"
+    by (simp add: finite_imp_bounded)
+  with bounded_pos obtain B where "B > 0" and B: "\<And>x. x \<in> inv f ` Basis \<Longrightarrow> norm x \<le> B"
+    by metis
+  obtain e where "e > 0" and e: "\<And>z. dist z x < e \<Longrightarrow> z \<in> A"
+    by (metis open_dist \<open>x \<in> A\<close> \<open>open A\<close>)
+  define \<delta> where "\<delta> \<equiv> e / B / DIM('b)"
+  show "\<exists>e>0. \<forall>y. dist y (f x) < e \<longrightarrow> y \<in> f ` A"
+  proof (intro exI conjI)
+    show "\<delta> > 0"
+      using \<open>e > 0\<close> \<open>B > 0\<close>  by (simp add: \<delta>_def divide_simps) (simp add: mult_less_0_iff)
+    have "y \<in> f ` A" if "dist y (f x) * (B * real DIM('b)) < e" for y
+    proof -
+      define u where "u \<equiv> y - f x"
+      show ?thesis
+      proof (rule image_eqI)
+        show "y = f (x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i))"
+          apply (simp add: linear_add linear_setsum linear.scaleR \<open>linear f\<close> surj_f_inv_f \<open>surj f\<close>)
+          apply (simp add: euclidean_representation u_def)
+          done
+        have "dist (x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i)) x \<le> (\<Sum>i\<in>Basis. norm ((u \<bullet> i) *\<^sub>R inv f i))"
+          by (simp add: dist_norm setsum_norm_le)
+        also have "... = (\<Sum>i\<in>Basis. \<bar>u \<bullet> i\<bar> * norm (inv f i))"
+          by (simp add: )
+        also have "... \<le> (\<Sum>i\<in>Basis. \<bar>u \<bullet> i\<bar>) * B"
+          by (simp add: B setsum_distrib_right setsum_mono mult_left_mono)
+        also have "... \<le> DIM('b) * dist y (f x) * B"
+          apply (rule mult_right_mono [OF setsum_bounded_above])
+          using \<open>0 < B\<close> by (auto simp add: Basis_le_norm dist_norm u_def)
+        also have "... < e"
+          by (metis mult.commute mult.left_commute that)
+        finally show "x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i) \<in> A"
+          by (rule e)
+      qed
+    qed
+    then show "\<forall>y. dist y (f x) < \<delta> \<longrightarrow> y \<in> f ` A"
+      using \<open>e > 0\<close> \<open>B > 0\<close>
+      by (auto simp: \<delta>_def divide_simps mult_less_0_iff)
+  qed
+qed
+
+corollary open_bijective_linear_image_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "bij f"
+    shows "open(f ` A) \<longleftrightarrow> open A"
+proof
+  assume "open(f ` A)"
+  then have "open(f -` (f ` A))"
+    using assms by (force simp add: linear_continuous_at linear_conv_bounded_linear continuous_open_vimage)
+  then show "open A"
+    by (simp add: assms bij_is_inj inj_vimage_image_eq)
+next
+  assume "open A"
+  then show "open(f ` A)"
+    by (simp add: assms bij_is_surj open_surjective_linear_image)
+qed
 
 text \<open>Also bilinear functions, in composition form.\<close>
 
@@ -7957,7 +8033,7 @@ proof(rule subset_antisym)
   then show "?L \<subseteq> ?R" ..
 qed
 
-lemma bounded_cbox:
+lemma bounded_cbox [simp]:
   fixes a :: "'a::euclidean_space"
   shows "bounded (cbox a b)"
 proof -
@@ -8384,10 +8460,26 @@ definition "homeomorphism s t f g \<longleftrightarrow>
   (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
   (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
+lemma homeomorphismI [intro?]:
+  assumes "continuous_on S f" "continuous_on T g"
+          "f ` S \<subseteq> T" "g ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x" "\<And>y. y \<in> T \<Longrightarrow> f(g y) = y"
+    shows "homeomorphism S T f g"
+  using assms by (force simp: homeomorphism_def)
+
 lemma homeomorphism_translation:
   fixes a :: "'a :: real_normed_vector"
   shows "homeomorphism (op + a ` S) S (op + (- a)) (op + a)"
 unfolding homeomorphism_def by (auto simp: algebra_simps continuous_intros)
+
+lemma homeomorphism_ident: "homeomorphism T T (\<lambda>a. a) (\<lambda>a. a)"
+  by (rule homeomorphismI) (auto simp: continuous_on_id)
+
+lemma homeomorphism_compose:
+  assumes "homeomorphism S T f g" "homeomorphism T U h k"
+    shows "homeomorphism S U (h o f) (g o k)"
+  using assms
+  unfolding homeomorphism_def
+  by (intro conjI ballI continuous_on_compose) (auto simp: image_comp [symmetric])
 
 lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism t S g f"
   by (simp add: homeomorphism_def)
@@ -8416,47 +8508,12 @@ lemma homeomorphic_sym: "s homeomorphic t \<longleftrightarrow> t homeomorphic s
   by blast
 
 lemma homeomorphic_trans [trans]:
-  assumes "s homeomorphic t"
-      and "t homeomorphic u"
-    shows "s homeomorphic u"
-proof -
-  obtain f1 g1 where fg1: "\<forall>x\<in>s. g1 (f1 x) = x"  "f1 ` s = t"
-    "continuous_on s f1" "\<forall>y\<in>t. f1 (g1 y) = y" "g1 ` t = s" "continuous_on t g1"
-    using assms(1) unfolding homeomorphic_def homeomorphism_def by auto
-  obtain f2 g2 where fg2: "\<forall>x\<in>t. g2 (f2 x) = x"  "f2 ` t = u" "continuous_on t f2"
-    "\<forall>y\<in>u. f2 (g2 y) = y" "g2 ` u = t" "continuous_on u g2"
-    using assms(2) unfolding homeomorphic_def homeomorphism_def by auto
-  {
-    fix x
-    assume "x\<in>s"
-    then have "(g1 \<circ> g2) ((f2 \<circ> f1) x) = x"
-      using fg1(1)[THEN bspec[where x=x]] and fg2(1)[THEN bspec[where x="f1 x"]] and fg1(2)
-      by auto
-  }
-  moreover have "(f2 \<circ> f1) ` s = u"
-    using fg1(2) fg2(2) by auto
-  moreover have "continuous_on s (f2 \<circ> f1)"
-    using continuous_on_compose[OF fg1(3)] and fg2(3) unfolding fg1(2) by auto
-  moreover
-  {
-    fix y
-    assume "y\<in>u"
-    then have "(f2 \<circ> f1) ((g1 \<circ> g2) y) = y"
-      using fg2(4)[THEN bspec[where x=y]] and fg1(4)[THEN bspec[where x="g2 y"]] and fg2(5)
-      by auto
-  }
-  moreover have "(g1 \<circ> g2) ` u = s" using fg1(5) fg2(5) by auto
-  moreover have "continuous_on u (g1 \<circ> g2)"
-    using continuous_on_compose[OF fg2(6)] and fg1(6)
-    unfolding fg2(5)
-    by auto
-  ultimately show ?thesis
-    unfolding homeomorphic_def homeomorphism_def
-    apply (rule_tac x="f2 \<circ> f1" in exI)
-    apply (rule_tac x="g1 \<circ> g2" in exI)
-    apply auto
-    done
-qed
+  assumes "S homeomorphic T"
+      and "T homeomorphic U"
+    shows "S homeomorphic U"
+  using assms
+  unfolding homeomorphic_def
+by (metis homeomorphism_compose)
 
 lemma homeomorphic_minimal:
   "s homeomorphic t \<longleftrightarrow>

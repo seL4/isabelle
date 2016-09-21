@@ -5420,10 +5420,6 @@ by (auto simp: vector_derivative_circlepath norm_mult intro: contour_integral_un
 
 subsection\<open> General stepping result for derivative formulas.\<close>
 
-lemma sum_sqs_eq:
-  fixes x::"'a::idom" shows "x * x + y * y = x * (y * 2) \<Longrightarrow> y = x"
-  by algebra
-
 proposition Cauchy_next_derivative:
   assumes "continuous_on (path_image \<gamma>) f'"
       and leB: "\<And>t. t \<in> {0..1} \<Longrightarrow> norm (vector_derivative \<gamma> (at t)) \<le> B"

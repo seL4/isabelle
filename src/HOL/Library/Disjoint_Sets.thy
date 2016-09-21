@@ -65,6 +65,26 @@ definition disjoint_family_on :: "('i \<Rightarrow> 'a set) \<Rightarrow> 'i set
 
 abbreviation "disjoint_family A \<equiv> disjoint_family_on A UNIV"
 
+lemma disjoint_family_elem_disjnt:
+  assumes "infinite A" "finite C"
+      and df: "disjoint_family_on B A"
+  obtains x where "x \<in> A" "disjnt C (B x)"
+proof -
+  have "False" if *: "\<forall>x \<in> A. \<exists>y. y \<in> C \<and> y \<in> B x"
+  proof -
+    obtain g where g: "\<forall>x \<in> A. g x \<in> C \<and> g x \<in> B x"
+      using * by metis
+    with df have "inj_on g A"
+      by (fastforce simp add: inj_on_def disjoint_family_on_def)
+    then have "infinite (g ` A)"
+      using \<open>infinite A\<close> finite_image_iff by blast
+    then show False
+      by (meson \<open>finite C\<close> finite_subset g image_subset_iff)
+  qed
+  then show ?thesis
+    by (force simp: disjnt_iff intro: that)
+qed
+
 lemma disjoint_family_onD:
   "disjoint_family_on A I \<Longrightarrow> i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
   by (auto simp: disjoint_family_on_def)

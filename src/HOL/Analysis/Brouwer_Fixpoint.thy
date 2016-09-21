@@ -2794,6 +2794,14 @@ corollary ANR_imp_absolute_neighbourhood_retract_UNIV:
   using ANR_imp_absolute_neighbourhood_retract [OF \<open>ANR S\<close> hom]
 by (metis clo closed_closedin open_openin subtopology_UNIV)
 
+corollary neighbourhood_extension_into_ANR:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> T" and "ANR T" "closed S"
+  obtains V g where "S \<subseteq> V" "open V" "continuous_on V g"
+                    "g ` V \<subseteq> T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+  using ANR_imp_absolute_neighbourhood_extensor [OF  \<open>ANR T\<close> contf fim]
+  by (metis \<open>closed S\<close> closed_closedin open_openin subtopology_UNIV)
+
 lemma absolute_neighbourhood_extensor_imp_ANR:
   fixes S :: "'a::euclidean_space set"
   assumes "\<And>f :: 'a * real \<Rightarrow> 'a.
@@ -3739,8 +3747,9 @@ proof -
     apply (rule homeomorphic_closedin_convex [of S])
     using aff_dim_le_DIM [of S] apply auto
     done
-  have "locally path_connected T"
-    by (meson ANR_imp_absolute_neighbourhood_retract \<open>S homeomorphic T\<close> \<open>closedin (subtopology euclidean U) T\<close> \<open>convex U\<close> assms convex_imp_locally_path_connected locally_open_subset retract_of_locally_path_connected)
+  then have "locally path_connected T"
+    by (meson ANR_imp_absolute_neighbourhood_retract
+        assms convex_imp_locally_path_connected locally_open_subset retract_of_locally_path_connected)
   then have S: "locally path_connected S"
       if "openin (subtopology euclidean U) V" "T retract_of V" "U \<noteq> {}" for V
     using \<open>S homeomorphic T\<close> homeomorphic_locally homeomorphic_path_connectedness by blast

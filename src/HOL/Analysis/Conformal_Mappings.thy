@@ -1027,7 +1027,7 @@ proof -
     using polyfun_extremal [where c=c and B="B+1", OF c]
     by (auto simp: bounded_pos eventually_at_infinity_pos *)
   moreover have "closed {z. (\<Sum>i\<le>n. c i * z ^ i) \<in> K}"
-    apply (rule allI continuous_closed_preimage_univ continuous_intros)+
+    apply (intro allI continuous_closed_preimage_univ continuous_intros)
     using \<open>compact K\<close> compact_eq_bounded_closed by blast
   ultimately show ?thesis
     using closed_Int_compact [OF \<open>closed S\<close>] compact_eq_bounded_closed by blast

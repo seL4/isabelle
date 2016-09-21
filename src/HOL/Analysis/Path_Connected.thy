@@ -4746,18 +4746,16 @@ done
 lemma connected_equivalence_relation:
   assumes "connected S"
       and etc: "a \<in> S" "b \<in> S"
-      and sym: "\<And>x y z. R x y \<Longrightarrow> R y x"
-      and trans: "\<And>x y z. R x y \<and> R y z \<Longrightarrow> R x z"
-      and opI: "\<And>a. a \<in> S
-             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. R a x)"
+      and sym: "\<And>x y. \<lbrakk>R x y; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> R y x"
+      and trans: "\<And>x y z. \<lbrakk>R x y; R y z; x \<in> S; y \<in> S; z \<in> S\<rbrakk> \<Longrightarrow> R x z"
+      and opI: "\<And>a. a \<in> S \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. R a x)"
     shows "R a b"
 proof -
   have "\<And>a b c. \<lbrakk>a \<in> S; b \<in> S; c \<in> S; R a b\<rbrakk> \<Longrightarrow> R a c"
     apply (rule connected_induction_simple [OF \<open>connected S\<close>], simp_all)
-    by (meson local.sym local.trans opI)
+    by (meson local.sym local.trans opI openin_imp_subset subsetCE)
   then show ?thesis by (metis etc opI)
 qed
-
 
 lemma locally_constant_imp_constant:
   assumes "connected S"
@@ -5270,6 +5268,12 @@ apply (rule_tac x = "S \<inter> ball x e" in exI)
 apply (force simp: convex_Int convex_imp_path_connected)
 done
 
+lemma convex_imp_locally_connected:
+  fixes S :: "'a:: real_normed_vector set"
+  shows "convex S \<Longrightarrow> locally connected S"
+  by (simp add: locally_path_connected_imp_locally_connected convex_imp_locally_path_connected)
+
+
 subsection\<open>Relations between components and path components\<close>
 
 lemma path_component_eq_connected_component:
@@ -5741,7 +5745,7 @@ proof -
     done
 qed
 
-lemma isometry_subspaces:
+corollary isometry_subspaces:
   fixes S :: "'a::euclidean_space set"
     and T :: "'b::euclidean_space set"
   assumes S: "subspace S"
@@ -5750,6 +5754,14 @@ lemma isometry_subspaces:
   obtains f where "linear f" "f ` S = T" "\<And>x. x \<in> S \<Longrightarrow> norm(f x) = norm x"
 using isometries_subspaces [OF assms]
 by metis
+
+corollary isomorphisms_UNIV_UNIV:
+  assumes "DIM('M) = DIM('N)"
+  obtains f::"'M::euclidean_space \<Rightarrow>'N::euclidean_space" and g
+  where "linear f" "linear g"
+                    "\<And>x. norm(f x) = norm x" "\<And>y. norm(g y) = norm y"
+                    "\<And>x. g(f x) = x" "\<And>y. f(g y) = y"
+  using assms by (auto simp: dim_UNIV intro: isometries_subspaces [of "UNIV::'M set" "UNIV::'N set"])
 
 lemma homeomorphic_subspaces:
   fixes S :: "'a::euclidean_space set"

@@ -5554,6 +5554,31 @@ lemma convex_box [simp]: "convex (cbox a b)" "convex (box a (b::'a::euclidean_sp
   apply auto
   done
 
+text\<open>A non-singleton connected set is perfect (i.e. has no isolated points). \<close>
+lemma connected_imp_perfect:
+  fixes a :: "'a::metric_space"
+  assumes "connected S" "a \<in> S" and S: "\<And>x. S \<noteq> {x}"
+  shows "a islimpt S"
+proof -
+  have False if "a \<in> T" "open T" "\<And>y. \<lbrakk>y \<in> S; y \<in> T\<rbrakk> \<Longrightarrow> y = a" for T
+  proof -
+    obtain e where "e > 0" and e: "cball a e \<subseteq> T"
+      using \<open>open T\<close> \<open>a \<in> T\<close> by (auto simp: open_contains_cball)
+    have "openin (subtopology euclidean S) {a}"
+      unfolding openin_open using that \<open>a \<in> S\<close> by blast
+    moreover have "closedin (subtopology euclidean S) {a}"
+      by (simp add: assms)
+    ultimately show "False"
+      using \<open>connected S\<close> connected_clopen S by blast
+  qed
+  then show ?thesis
+    unfolding islimpt_def by blast
+qed
+
+lemma connected_imp_perfect_aff_dim:
+     "\<lbrakk>connected S; aff_dim S \<noteq> 0; a \<in> S\<rbrakk> \<Longrightarrow> a islimpt S"
+  using aff_dim_sing connected_imp_perfect by blast
+
 subsection \<open>On \<open>real\<close>, \<open>is_interval\<close>, \<open>convex\<close> and \<open>connected\<close> are all equivalent.\<close>
 
 lemma is_interval_1:
@@ -10406,7 +10431,7 @@ lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftr
 
 lemma collinear_3_expand:
    "collinear{a,b,c} \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
-proof -
+proof -                          
   have "collinear{a,b,c} = collinear{a,c,b}"
     by (simp add: insert_commute)
   also have "... = collinear {0, a - c, b - c}"
@@ -10416,6 +10441,27 @@ proof -
   also have "... \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
     by (cases "a = c \<or> b = c") (auto simp: algebra_simps)
   finally show ?thesis .
+qed
+
+lemma collinear_aff_dim: "collinear S \<longleftrightarrow> aff_dim S \<le> 1"
+proof
+  assume "collinear S"
+  then obtain u and v :: "'a" where "aff_dim S \<le> aff_dim {u,v}"
+    by (metis \<open>collinear S\<close> aff_dim_affine_hull aff_dim_subset collinear_affine_hull)
+  then show "aff_dim S \<le> 1"
+    using order_trans by fastforce
+next
+  assume "aff_dim S \<le> 1"
+  then have le1: "aff_dim (affine hull S) \<le> 1"
+    by simp
+  obtain B where "B \<subseteq> S" and B: "\<not> affine_dependent B" "affine hull S = affine hull B"
+    using affine_basis_exists [of S] by auto
+  then have "finite B" "card B \<le> 2"
+    using B le1 by (auto simp: affine_independent_iff_card)
+  then have "collinear B"
+    by (rule collinear_small)
+  then show "collinear S"
+    by (metis \<open>affine hull S = affine hull B\<close> collinear_affine_hull_collinear)
 qed
 
 lemma collinear_midpoint: "collinear{a,midpoint a b,b}"
@@ -10441,6 +10487,35 @@ proof -
     apply (simp add: algebra_simps)
     done
   ultimately show ?thesis by blast
+qed
+
+lemma between_imp_collinear:
+  fixes x :: "'a :: euclidean_space"
+  assumes "between (a,b) x"
+    shows "collinear {a,x,b}"
+proof (cases "x = a \<or> x = b \<or> a = b")
+  case True with assms show ?thesis
+    by (auto simp: dist_commute)
+next
+  case False with assms show ?thesis
+    apply (auto simp: collinear_3 collinear_lemma between_norm)
+    apply (drule_tac x="-(norm(b - x) / norm(x - a))" in spec)
+    apply (simp add: vector_add_divide_simps eq_vector_fraction_iff real_vector.scale_minus_right [symmetric])
+    done
+qed
+
+lemma midpoint_between:
+  fixes a b :: "'a::euclidean_space"
+  shows "b = midpoint a c \<longleftrightarrow> between (a,c) b \<and> dist a b = dist b c"
+proof (cases "a = c")
+  case True then show ?thesis
+    by (auto simp: dist_commute)
+next
+  case False
+  show ?thesis
+    apply (rule iffI)
+    apply (simp add: between_midpoint(1) dist_midpoint)
+    using False between_imp_collinear midpoint_collinear by blast
 qed
 
 lemma collinear_triples:
@@ -11157,7 +11232,7 @@ corollary affine_hull_convex_Int_openin:
 using assms unfolding openin_open
 by (metis affine_hull_convex_Int_open hull_subset inf.orderE inf_assoc)
 
-corollary affine_hull_open_in:
+corollary affine_hull_openin:
   fixes S :: "'a::real_normed_vector set"
   assumes "openin (subtopology euclidean (affine hull T)) S" "S \<noteq> {}"
     shows "affine hull S = affine hull T"
@@ -11179,6 +11254,19 @@ lemma aff_dim_convex_Int_open:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>convex S; open T; S \<inter> T \<noteq> {}\<rbrakk> \<Longrightarrow>  aff_dim(S \<inter> T) = aff_dim S"
 using aff_dim_convex_Int_nonempty_interior interior_eq by blast
+
+lemma affine_hull_Diff:
+  fixes S:: "'a::real_normed_vector set"
+  assumes ope: "openin (subtopology euclidean (affine hull S)) S" and "finite F" "F \<subset> S"
+    shows "affine hull (S - F) = affine hull S"
+proof -
+  have clo: "closedin (subtopology euclidean S) F"
+    using assms finite_imp_closedin by auto
+  moreover have "S - F \<noteq> {}"
+    using assms by auto
+  ultimately show ?thesis
+    by (metis ope closedin_def topspace_euclidean_subtopology affine_hull_openin openin_trans)
+qed
 
 lemma affine_hull_halfspace_lt:
   fixes a :: "'a::euclidean_space"
@@ -11962,6 +12050,44 @@ corollary convex_hull_exchange_Int:
 apply (rule subset_antisym)
   using in_convex_hull_exchange_unique assms apply blast
   by (metis hull_mono inf_le1 inf_le2 insert_inter_insert le_inf_iff)
+
+lemma Int_closed_segment:
+  fixes b :: "'a::euclidean_space"
+  assumes "b \<in> closed_segment a c \<or> ~collinear{a,b,c}"
+    shows "closed_segment a b \<inter> closed_segment b c = {b}"
+proof (cases "c = a")
+  case True
+  then show ?thesis
+    using assms collinear_3_eq_affine_dependent by fastforce
+next
+  case False
+  from assms show ?thesis
+  proof
+    assume "b \<in> closed_segment a c"
+    moreover have "\<not> affine_dependent {a, c}"
+      by (simp add: affine_independent_2)
+    ultimately show ?thesis
+      using False convex_hull_exchange_Int [of "{a,c}" b "{a}" "{c}"]
+      by (simp add: segment_convex_hull insert_commute)
+  next
+    assume ncoll: "\<not> collinear {a, b, c}"
+    have False if "closed_segment a b \<inter> closed_segment b c \<noteq> {b}"
+    proof -
+      have "b \<in> closed_segment a b" and "b \<in> closed_segment b c"
+        by auto
+      with that obtain d where "b \<noteq> d" "d \<in> closed_segment a b" "d \<in> closed_segment b c"
+        by force
+      then have d: "collinear {a, d, b}"  "collinear {b, d, c}"
+        by (auto simp:  between_mem_segment between_imp_collinear)
+      have "collinear {a, b, c}"
+        apply (rule collinear_3_trans [OF _ _ \<open>b \<noteq> d\<close>])
+        using d  by (auto simp: insert_commute)
+      with ncoll show False ..
+    qed
+    then show ?thesis
+      by blast
+  qed
+qed
 
 lemma affine_hull_finite_intersection_hyperplanes:
   fixes s :: "'a::euclidean_space set"
@@ -12811,6 +12937,7 @@ next
     by (simp add: \<open>linear g\<close> aff_dim_linear_image_le)
   finally show "aff_dim S \<le> aff_dim (f ` S)" .
 qed
+
 
 text\<open>Choosing a subspace of a given dimension\<close>
 proposition choose_subspace_of_subspace:

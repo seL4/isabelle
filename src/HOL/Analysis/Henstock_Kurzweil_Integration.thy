@@ -5894,7 +5894,7 @@ lemma has_integral_twiddle:
   assumes "0 < r"
     and "\<forall>x. h(g x) = x"
     and "\<forall>x. g(h x) = x"
-    and "\<forall>x. continuous (at x) g"
+    and contg: "\<And>x. continuous (at x) g"
     and "\<forall>u v. \<exists>w z. g ` cbox u v = cbox w z"
     and "\<forall>u v. \<exists>w z. h ` cbox u v = cbox w z"
     and "\<forall>u v. content(g ` cbox u v) = r * content (cbox u v)"
@@ -5947,7 +5947,7 @@ proof -
       show "gauge d'"
         using d(1)
         unfolding gauge_def d'
-        using continuous_open_preimage_univ[OF assms(4)]
+        using continuous_open_preimage_univ[OF _ contg]
         by auto
       fix p
       assume as: "p tagged_division_of h ` cbox a b" "d' fine p"
@@ -5985,7 +5985,7 @@ proof -
         proof -
           assume as: "interior k \<inter> interior k' = {}"
           have "z \<in> g ` (interior k \<inter> interior k')"
-            using interior_image_subset[OF assms(4) inj(1)] z
+            using interior_image_subset[OF \<open>inj g\<close> contg] z
             unfolding image_Int[OF inj(1)] by blast
           then show False
             using as by blast
@@ -6178,20 +6178,13 @@ lemma has_integral_stretch:
   assumes "(f has_integral i) (cbox a b)"
     and "\<forall>k\<in>Basis. m k \<noteq> 0"
   shows "((\<lambda>x. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) has_integral
-    ((1/ \<bar>setprod m Basis\<bar>) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b)"
-  apply (rule has_integral_twiddle[where f=f])
-  unfolding zero_less_abs_iff content_image_stretch_interval
-  unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a]
-  using assms
-proof -
-  show "\<forall>y::'a. continuous (at y) (\<lambda>x. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k))"
-    apply rule
-    apply (rule linear_continuous_at)
-    unfolding linear_linear
-    unfolding linear_iff inner_simps euclidean_eq_iff[where 'a='a]
-    apply (auto simp add: field_simps)
-    done
-qed auto
+         ((1/ \<bar>setprod m Basis\<bar>) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b)"
+apply (rule has_integral_twiddle[where f=f])
+unfolding zero_less_abs_iff content_image_stretch_interval
+unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a]
+using assms
+by auto
+ 
 
 lemma integrable_stretch:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -6199,14 +6192,9 @@ lemma integrable_stretch:
     and "\<forall>k\<in>Basis. m k \<noteq> 0"
   shows "(\<lambda>x::'a. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) integrable_on
     ((\<lambda>x. \<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k) ` cbox a b)"
-  using assms
-  unfolding integrable_on_def
-  apply -
-  apply (erule exE)
-  apply (drule has_integral_stretch)
-  apply assumption
-  apply auto
-  done
+  using assms unfolding integrable_on_def
+  by (force dest: has_integral_stretch)
+
 
 subsection \<open>even more special cases.\<close>
 
