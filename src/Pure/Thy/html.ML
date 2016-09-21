@@ -48,11 +48,9 @@ fun make_symbols codes =
 val no_symbols = make_symbols [];
 
 fun output_sym (Symbols tab) s =
-  if Symbol.is_raw s then Symbol.decode_raw s
-  else
-    (case Symtab.lookup tab s of
-      SOME x => x
-    | NONE => XML.text s);
+  (case Symtab.lookup tab s of
+    SOME x => x
+  | NONE => XML.text s);
 
 end;
 
