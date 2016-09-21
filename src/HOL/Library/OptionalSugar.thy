@@ -27,7 +27,7 @@ translations
 
 (* append *)
 syntax (latex output)
-  "_appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "\<^raw:\isacharat>" 65)
+  "_appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "\<^latex>\<open>\\isacharat\<close>" 65)
 translations
   "_appendL xs ys" <= "xs @ ys" 
   "_appendL (_appendL xs ys) zs" <= "_appendL xs (_appendL ys zs)"
@@ -36,8 +36,8 @@ translations
 (* deprecated, use thm with style instead, will be removed *)
 (* aligning equations *)
 notation (tab output)
-  "HOL.eq"  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50) and
-  "Pure.eq"  ("(_) \<^raw:}\putisatab\isa{\ >\<equiv>\<^raw:}\putisatab\isa{> (_)")
+  "HOL.eq"  ("(_) \<^latex>\<open>}\\putisatab\\isa{\\ \<close>=\<^latex>\<open>}\\putisatab\\isa{\<close> (_)" [50,49] 50) and
+  "Pure.eq"  ("(_) \<^latex>\<open>}\\putisatab\\isa{\\ \<close>\<equiv>\<^latex>\<open>}\\putisatab\\isa{\<close> (_)")
 
 (* Let *)
 translations 

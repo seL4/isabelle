@@ -69,7 +69,7 @@ and prove all subgoals automatically, essentially by simplifying them.
 Because both subgoals are easy, Isabelle can do it.
 The base case @{prop"add 0 0 = 0"} holds by definition of @{const add},
 and the induction step is almost as simple:
-@{text"add\<^raw:~>(Suc m) 0 = Suc(add m 0) = Suc m"}
+@{text"add\<^latex>\<open>~\<close>(Suc m) 0 = Suc(add m 0) = Suc m"}
 using first the definition of @{const add} and then the induction hypothesis.
 In summary, both subproofs rely on simplification with function definitions and
 the induction hypothesis.
