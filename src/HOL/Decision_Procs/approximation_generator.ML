@@ -154,19 +154,12 @@ val preproc_form_eqs =
     "a = b \<longleftrightarrow> a \<le> b \<and> b \<le> a"
     "(p \<longrightarrow> q) \<longleftrightarrow> \<not>p \<or> q"
     "(p \<longleftrightarrow> q) \<longleftrightarrow> (p \<longrightarrow> q) \<and> (q \<longrightarrow> p)"
-    "\<not> (a < b) \<longleftrightarrow> b \<le> a"
-    "\<not> (a \<le> b) \<longleftrightarrow> b < a"
-    "\<not> (p \<and> q) \<longleftrightarrow> \<not> p \<or> \<not> q"
-    "\<not> (p \<or> q) \<longleftrightarrow> \<not> p \<and> \<not> q"
-    "\<not> \<not> q \<longleftrightarrow> q"
     by auto}
-
-val form_equations = @{thms interpret_form_equations};
 
 fun reify_goal ctxt t =
   HOLogic.mk_not t
     |> conv_term ctxt (rewrite_with ctxt preproc_form_eqs)
-    |> conv_term ctxt (Reification.conv ctxt form_equations)
+    |> Approximation.reify_form ctxt
     |> dest_interpret_form
     ||> HOLogic.dest_list
 

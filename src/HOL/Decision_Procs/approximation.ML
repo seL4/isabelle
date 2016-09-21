@@ -4,6 +4,7 @@
 
 signature APPROXIMATION =
 sig
+  val reify_form: Proof.context -> term -> term
   val approx: int -> Proof.context -> term -> term
   val approximate: Proof.context -> term -> term
   val approximation_tac : int -> (string * int) list -> int option -> Proof.context -> int -> tactic
@@ -53,8 +54,6 @@ fun gen_eval_tac conv ctxt =
   CONVERSION
     (Object_Logic.judgment_conv ctxt (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
   THEN' resolve_tac ctxt [TrueI]
-
-val form_equations = @{thms interpret_form_equations};
 
 fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
     fun lookup_splitting (Free (name, _))
@@ -190,21 +189,39 @@ fun apply_tactic ctxt term tactic =
   |> SINGLE tactic
   |> the |> Thm.prems_of |> hd
 
-fun prepare_form ctxt term = apply_tactic ctxt term (
-    REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
-      eresolve_tac ctxt @{thms meta_eqE},
-      resolve_tac ctxt @{thms impI}] 1)
-    THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems 1) ctxt 1
-    THEN DETERM (TRY (filter_prems_tac ctxt (K false) 1)))
+fun preproc_form_conv ctxt =
+  Simplifier.rewrite
+   (put_simpset HOL_basic_ss ctxt addsimps
+     (Named_Theorems.get ctxt @{named_theorems approximation_preproc}))
 
-fun reify_form ctxt term = apply_tactic ctxt term
-   (Reification.tac ctxt form_equations NONE 1)
+fun reify_form_conv ctxt =
+  (Reification.conv ctxt @{thms interpret_form.simps interpret_floatarith.simps})
+
+fun reify_form_tac ctxt i = CONVERSION (Conv.arg_conv (reify_form_conv ctxt)) i
+
+fun prepare_form_tac ctxt i =
+  REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
+    eresolve_tac ctxt @{thms meta_eqE},
+    resolve_tac ctxt @{thms impI}] i)
+  THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems i) ctxt i
+  THEN DETERM (TRY (filter_prems_tac ctxt (K false) i))
+  THEN CONVERSION (Conv.arg_conv (preproc_form_conv ctxt)) i
+
+fun prepare_form ctxt term = apply_tactic ctxt term (prepare_form_tac ctxt 1)
+
+fun apply_reify_form ctxt t = apply_tactic ctxt t (reify_form_tac ctxt 1)
+
+fun reify_form ctxt t = HOLogic.mk_Trueprop t
+  |> prepare_form ctxt
+  |> apply_reify_form ctxt
+  |> HOLogic.dest_Trueprop
 
 fun approx_form prec ctxt t =
         realify t
      |> prepare_form ctxt
-     |> (fn arith_term => reify_form ctxt arith_term
-         |> HOLogic.dest_Trueprop |> dest_interpret_form
+     |> (fn arith_term => apply_reify_form ctxt arith_term
+         |> HOLogic.dest_Trueprop
+         |> dest_interpret_form
          |> (fn (data, xs) =>
             mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
               (map (fn _ => @{term "None :: (float * float) option"}) (HOLogic.dest_list xs)))
@@ -216,7 +233,7 @@ fun approx_form prec ctxt t =
 
 fun approx_arith prec ctxt t = realify t
      |> Thm.cterm_of ctxt
-     |> Reification.conv ctxt form_equations
+     |> (preproc_form_conv ctxt then_conv reify_form_conv ctxt)
      |> Thm.prop_of
      |> Logic.dest_equals |> snd
      |> dest_interpret |> fst
@@ -252,13 +269,9 @@ val _ =
       >> (fn (modes, t) => Toplevel.keep (approximate_cmd modes t)));
 
 fun approximation_tac prec splitting taylor ctxt i =
-  REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
-                  eresolve_tac ctxt @{thms meta_eqE},
-                  resolve_tac ctxt @{thms impI}] i)
-  THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems i) ctxt i
-  THEN DETERM (TRY (filter_prems_tac ctxt (K false) i))
-  THEN DETERM (Reification.tac ctxt form_equations NONE i)
+  prepare_form_tac ctxt i
+  THEN reify_form_tac ctxt i
   THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
   THEN gen_eval_tac (approximation_conv ctxt) ctxt i
-    
+
 end;

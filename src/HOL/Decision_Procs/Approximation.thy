@@ -2863,29 +2863,6 @@ lemma interpret_floatarith_sin:
     interpret_floatarith_divide interpret_floatarith_diff
   by auto
 
-lemma interpret_floatarith_tan:
-  "interpret_floatarith (Mult (Cos (Add (Mult Pi (Num (Float 1 (- 1)))) (Minus a))) (Inverse (Cos a))) vs =
-     tan (interpret_floatarith a vs)"
-  unfolding interpret_floatarith.simps(3,4) interpret_floatarith_sin tan_def divide_inverse
-  by auto
-
-lemma interpret_floatarith_log:
-  "interpret_floatarith ((Mult (Ln x) (Inverse (Ln b)))) vs =
-    log (interpret_floatarith b vs) (interpret_floatarith x vs)"
-  unfolding log_def interpret_floatarith.simps divide_inverse ..
-
-lemma interpret_floatarith_num:
-  shows "interpret_floatarith (Num (Float 0 0)) vs = 0"
-    and "interpret_floatarith (Num (Float 1 0)) vs = 1"
-    and "interpret_floatarith (Num (Float (- 1) 0)) vs = - 1"
-    and "interpret_floatarith (Num (Float (numeral a) 0)) vs = numeral a"
-    and "interpret_floatarith (Num (Float (- numeral a) 0)) vs = - numeral a"
-  by auto
-
-lemma interpret_floatarith_ceiling:
-  "interpret_floatarith (Minus (Floor (Minus a))) vs = ceiling (interpret_floatarith a vs)"
-  unfolding ceiling_def interpret_floatarith.simps of_int_minus ..
-
 
 subsection "Implement approximation function"
 
@@ -4289,10 +4266,6 @@ fun approx_form_eval :: "nat \<Rightarrow> form \<Rightarrow> (float * float) op
 
 subsection \<open>Implement proof method \texttt{approximation}\<close>
 
-lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simps interpret_floatarith_num
-  interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_log
-  interpret_floatarith_sin interpret_floatarith_ceiling
-
 oracle approximation_oracle = \<open>fn (thy, t) =>
 let
   fun bad t = error ("Bad term: " ^ Syntax.string_of_term_global thy t);
@@ -4400,6 +4373,24 @@ lemma intervalE: "a \<le> x \<and> x \<le> b \<Longrightarrow> \<lbrakk> x \<in>
 lemma meta_eqE: "x \<equiv> a \<Longrightarrow> \<lbrakk> x = a \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by auto
 
+named_theorems approximation_preproc
+
+lemma approximation_preproc_floatarith[approximation_preproc]:
+  "0 = real_of_float 0"
+  "1 = real_of_float 1"
+  "0 = Float 0 0"
+  "1 = Float 1 0"
+  "numeral a = Float (numeral a) 0"
+  "numeral a = real_of_float (numeral a)"
+  "x - y = x + - y"
+  "x / y = x * inverse y"
+  "ceiling x = - floor (- x)"
+  "log x y = ln y * inverse (ln x)"
+  "sin x = cos (pi / 2 - x)"
+  "tan x = sin x / cos x"
+  "real_of_int (- i) = - real_of_int i"
+  by (simp_all add: inverse_eq_divide ceiling_def log_def sin_cos_eq tan_def real_of_float_eq)
+
 ML_file "approximation.ML"
 
 method_setup approximation = \<open>
@@ -4420,6 +4411,17 @@ method_setup approximation = \<open>
 
 
 section "Quickcheck Generator"
+
+lemma approximation_preproc_push_neg[approximation_preproc]:
+  fixes a b::real
+  shows
+    "\<not> (a < b) \<longleftrightarrow> b \<le> a"
+    "\<not> (a \<le> b) \<longleftrightarrow> b < a"
+    "\<not> (a = b) \<longleftrightarrow> b < a \<or> a < b"
+    "\<not> (p \<and> q) \<longleftrightarrow> \<not> p \<or> \<not> q"
+    "\<not> (p \<or> q) \<longleftrightarrow> \<not> p \<and> \<not> q"
+    "\<not> \<not> q \<longleftrightarrow> q"
+  by auto
 
 ML_file "approximation_generator.ML"
 setup "Approximation_Generator.setup"
