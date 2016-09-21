@@ -4388,8 +4388,45 @@ lemma approximation_preproc_floatarith[approximation_preproc]:
   "log x y = ln y * inverse (ln x)"
   "sin x = cos (pi / 2 - x)"
   "tan x = sin x / cos x"
-  "real_of_int (- i) = - real_of_int i"
   by (simp_all add: inverse_eq_divide ceiling_def log_def sin_cos_eq tan_def real_of_float_eq)
+
+lemma approximation_preproc_int[approximation_preproc]:
+  "real_of_int 0 = real_of_float 0"
+  "real_of_int 1 = real_of_float 1"
+  "real_of_int (i + j) = real_of_int i + real_of_int j"
+  "real_of_int (- i) = - real_of_int i"
+  "real_of_int (i - j) = real_of_int i - real_of_int j"
+  "real_of_int (i * j) = real_of_int i * real_of_int j"
+  "real_of_int (i div j) = real_of_int (floor (real_of_int i / real_of_int j))"
+  "real_of_int (min i j) = min (real_of_int i) (real_of_int j)"
+  "real_of_int (max i j) = max (real_of_int i) (real_of_int j)"
+  "real_of_int (abs i) = abs (real_of_int i)"
+  "real_of_int (i ^ n) = (real_of_int i) ^ n"
+  "real_of_int (numeral a) = real_of_float (numeral a)"
+  "i mod j = i - i div j * j"
+  "i = j \<longleftrightarrow> real_of_int i = real_of_int j"
+  "i \<le> j \<longleftrightarrow> real_of_int i \<le> real_of_int j"
+  "i < j \<longleftrightarrow> real_of_int i < real_of_int j"
+  "i \<in> {j .. k} \<longleftrightarrow> real_of_int i \<in> {real_of_int j .. real_of_int k}"
+  by (simp_all add: floor_divide_of_int_eq zmod_zdiv_equality')
+
+lemma approximation_preproc_nat[approximation_preproc]:
+  "real 0 = real_of_float 0"
+  "real 1 = real_of_float 1"
+  "real (i + j) = real i + real j"
+  "real (i - j) = max (real i - real j) 0"
+  "real (i * j) = real i * real j"
+  "real (i div j) = real_of_int (floor (real i / real j))"
+  "real (min i j) = min (real i) (real j)"
+  "real (max i j) = max (real i) (real j)"
+  "real (i ^ n) = (real i) ^ n"
+  "real (numeral a) = real_of_float (numeral a)"
+  "i mod j = i - i div j * j"
+  "n = m \<longleftrightarrow> real n = real m"
+  "n \<le> m \<longleftrightarrow> real n \<le> real m"
+  "n < m \<longleftrightarrow> real n < real m"
+  "n \<in> {m .. l} \<longleftrightarrow> real n \<in> {real m .. real l}"
+  by (simp_all add: real_div_nat_eq_floor_of_divide mod_div_equality')
 
 ML_file "approximation.ML"
 
