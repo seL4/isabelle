@@ -56,10 +56,11 @@ fun gen_eval_tac conv ctxt =
   THEN' resolve_tac ctxt [TrueI]
 
 fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
-    fun lookup_splitting (Free (name, _))
-      = case AList.lookup (op =) splitting name
-        of SOME s => HOLogic.mk_number @{typ nat} s
-         | NONE => @{term "0 :: nat"}
+    fun lookup_splitting (Free (name, _)) =
+        (case AList.lookup (op =) splitting name
+          of SOME s => HOLogic.mk_number @{typ nat} s
+           | NONE => @{term "0 :: nat"})
+      | lookup_splitting t = raise TERM ("lookup_splitting", [t])
     val vs = nth (Thm.prems_of st) (i - 1)
              |> Logic.strip_imp_concl
              |> HOLogic.dest_Trueprop
@@ -116,9 +117,13 @@ fun dest_interpret_form (@{const "interpret_form"} $ b $ xs) = (b, xs)
 fun dest_interpret (@{const "interpret_floatarith"} $ b $ xs) = (b, xs)
   | dest_interpret t = raise TERM ("dest_interpret", [t])
 
+fun dest_interpret_env (@{const "interpret_form"} $ _ $ xs) = xs
+  | dest_interpret_env (@{const "interpret_floatarith"} $ _ $ xs) = xs
+  | dest_interpret_env t = raise TERM ("dest_interpret_env", [t])
 
-fun dest_float (@{const "Float"} $ m $ e) =
-  (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+fun dest_float (@{const "Float"} $ m $ e) = (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+  | dest_float t = raise TERM ("dest_float", [t])
+
 
 fun dest_ivl (Const (@{const_name "Some"}, _) $
               (Const (@{const_name Pair}, _) $ u $ l)) = SOME (dest_float u, dest_float l)
@@ -137,8 +142,8 @@ fun float2_float10 prec round_down (m, e) = (
   let
     val (m, e) = (if e < 0 then (m,e) else (m * Integer.pow e 2, 0))
 
-    fun frac c p 0 digits cnt = (digits, cnt, 0)
-      | frac c 0 r digits cnt = (digits, cnt, r)
+    fun frac _ _ 0 digits cnt = (digits, cnt, 0)
+      | frac _ 0 r digits cnt = (digits, cnt, r)
       | frac c p r digits cnt = (let
         val (d, r) = Integer.div_mod (r * 10) (Integer.pow (~e) 2)
       in frac (c orelse d <> 0) (if d <> 0 orelse c then p - 1 else p) r
@@ -194,8 +199,21 @@ fun preproc_form_conv ctxt =
    (put_simpset HOL_basic_ss ctxt addsimps
      (Named_Theorems.get ctxt @{named_theorems approximation_preproc}))
 
-fun reify_form_conv ctxt =
-  (Reification.conv ctxt @{thms interpret_form.simps interpret_floatarith.simps})
+fun reify_form_conv ctxt ct =
+  let
+    val thm =
+       Reification.conv ctxt @{thms interpret_form.simps interpret_floatarith.simps} ct
+       handle ERROR msg =>
+        cat_error ("Reification failed: " ^ msg)
+          ("Approximation does not support " ^
+            quote (Syntax.string_of_term ctxt (Thm.term_of ct)))
+    fun check_env (Free _) = ()
+      | check_env (Var _) = ()
+      | check_env t =
+          cat_error "Term not supported by approximation:" (Syntax.string_of_term ctxt t)
+    val _ = Thm.rhs_of thm |> Thm.term_of |> dest_interpret_env |> HOLogic.dest_list |> map check_env
+  in thm end
+
 
 fun reify_form_tac ctxt i = CONVERSION (Conv.arg_conv (reify_form_conv ctxt)) i
 
