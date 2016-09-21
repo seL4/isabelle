@@ -30,6 +30,9 @@ discontinued.
 to "(\<open>indent=DIGITS\<close>". The former notation "(00" for unbreakable blocks
 is superseded by "(\<open>unbreabable\<close>" --- rare INCOMPATIBILITY.
 
+* Mixfix annotations support delimiters like \<^control>\<open>cartouche\<close> --
+this allows special forms of document output.
+
 * New symbol \<circle>, e.g. for temporal operator.
 
 * Old 'header' command is no longer supported (legacy since
