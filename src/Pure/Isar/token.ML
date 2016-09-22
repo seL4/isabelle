@@ -650,8 +650,8 @@ end;
 (* explode *)
 
 fun explode keywords pos =
-  Source.of_string #>
-  Symbol.source #>
+  Symbol.explode #>
+  Source.of_list #>
   source keywords pos #>
   Source.exhaust;
 

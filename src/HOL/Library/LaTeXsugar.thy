@@ -10,15 +10,15 @@ begin
 
 (* LOGIC *)
 notation (latex output)
-  If  ("(\<^raw:\textsf{>if\<^raw:}> (_)/ \<^raw:\textsf{>then\<^raw:}> (_)/ \<^raw:\textsf{>else\<^raw:}> (_))" 10)
+  If  ("(\<^latex>\<open>\\textsf{\<close>if\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>then\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>else\<^latex>\<open>}\<close> (_))" 10)
 
 syntax (latex output)
 
   "_Let"        :: "[letbinds, 'a] => 'a"
-  ("(\<^raw:\textsf{>let\<^raw:}> (_)/ \<^raw:\textsf{>in\<^raw:}> (_))" 10)
+  ("(\<^latex>\<open>\\textsf{\<close>let\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>in\<^latex>\<open>}\<close> (_))" 10)
 
   "_case_syntax":: "['a, cases_syn] => 'b"
-  ("(\<^raw:\textsf{>case\<^raw:}> _ \<^raw:\textsf{>of\<^raw:}>/ _)" 10)
+  ("(\<^latex>\<open>\\textsf{\<close>case\<^latex>\<open>}\<close> _ \<^latex>\<open>\\textsf{\<close>of\<^latex>\<open>}\<close>/ _)" 10)
 
 
 (* SETS *)
@@ -59,41 +59,41 @@ notation (latex output)
 
 (* nth *)
 notation (latex output)
-  nth  ("_\<^raw:\ensuremath{_{[\mathit{>_\<^raw:}]}}>" [1000,0] 1000)
+  nth  ("_\<^latex>\<open>\\ensuremath{_{[\\mathit{\<close>_\<^latex>\<open>}]}}\<close>" [1000,0] 1000)
 
 (* DUMMY *)
-consts DUMMY :: 'a ("\<^raw:\_>")
+consts DUMMY :: 'a ("\<^latex>\<open>\\_\<close>")
 
 (* THEOREMS *)
 notation (Rule output)
-  Pure.imp  ("\<^raw:\mbox{}\inferrule{\mbox{>_\<^raw:}}>\<^raw:{\mbox{>_\<^raw:}}>")
+  Pure.imp  ("\<^latex>\<open>\\mbox{}\\inferrule{\\mbox{\<close>_\<^latex>\<open>}}\<close>\<^latex>\<open>{\\mbox{\<close>_\<^latex>\<open>}}\<close>")
 
 syntax (Rule output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:\mbox{}\inferrule{>_\<^raw:}>\<^raw:{\mbox{>_\<^raw:}}>")
+  ("\<^latex>\<open>\\mbox{}\\inferrule{\<close>_\<^latex>\<open>}\<close>\<^latex>\<open>{\\mbox{\<close>_\<^latex>\<open>}}\<close>")
 
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" 
-  ("\<^raw:\mbox{>_\<^raw:}\\>/ _")
+  ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\\\\\<close>/ _")
 
-  "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
+  "_asm" :: "prop \<Rightarrow> asms" ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>")
 
 notation (Axiom output)
-  "Trueprop"  ("\<^raw:\mbox{}\inferrule{\mbox{}}{\mbox{>_\<^raw:}}>")
+  "Trueprop"  ("\<^latex>\<open>\\mbox{}\\inferrule{\\mbox{}}{\\mbox{\<close>_\<^latex>\<open>}}\<close>")
 
 notation (IfThen output)
-  Pure.imp  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
+  Pure.imp  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _/ \<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
 syntax (IfThen output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
-  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}> /\<^raw:{\normalsize \,>and\<^raw:\,}>/ _")
-  "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
+  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _ /\<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
+  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close> /\<^latex>\<open>{\\normalsize \\,\<close>and\<^latex>\<open>\\,}\<close>/ _")
+  "_asm" :: "prop \<Rightarrow> asms" ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>")
 
 notation (IfThenNoBox output)
-  Pure.imp  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
+  Pure.imp  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _/ \<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
 syntax (IfThenNoBox output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
-  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("_ /\<^raw:{\normalsize \,>and\<^raw:\,}>/ _")
+  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _ /\<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
+  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("_ /\<^latex>\<open>{\\normalsize \\,\<close>and\<^latex>\<open>\\,}\<close>/ _")
   "_asm" :: "prop \<Rightarrow> asms" ("_")
 
 setup\<open>

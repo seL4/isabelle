@@ -10,6 +10,7 @@ ML_file "ML/ml_system.ML";
 ML_file "System/distribution.ML";
 
 ML_file "General/basics.ML";
+ML_file "General/symbol_explode.ML";
 
 ML_file "Concurrent/multithreading.ML";
 ML_file "Concurrent/unsynchronized.ML";

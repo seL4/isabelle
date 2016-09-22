@@ -64,9 +64,7 @@ object Symbol
   /* symbol matching */
 
   private val symbol_total = new Regex("""(?xs)
-    [\ud800-\udbff][\udc00-\udfff] | \r\n |
-    \\ < (?: \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* | \^? ([A-Za-z][A-Za-z0-9_']*)? ) >? |
-    .""")
+    [\ud800-\udbff][\udc00-\udfff] | \r\n | \\ < \^? ([A-Za-z][A-Za-z0-9_']*)? >? | .""")
 
   private def is_plain(c: Char): Boolean =
     !(c == '\r' || c == '\\' || Character.isHighSurrogate(c))

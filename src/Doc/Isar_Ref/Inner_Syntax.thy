@@ -329,20 +329,21 @@ text \<open>
   printing, notably spaces, blocks, and breaks. The general template format is
   a sequence over any of the following entities.
 
-  \<^descr> \<open>d\<close> is a delimiter, namely a non-empty sequence of characters other than
-  the following special characters:
-
-  \<^medskip>
-  \begin{tabular}{ll}
-    \<^verbatim>\<open>'\<close> & single quote \\
-    \<^verbatim>\<open>_\<close> & underscore \\
-    \<open>\<index>\<close> & index symbol \\
-    \<^verbatim>\<open>(\<close> & open parenthesis \\
-    \<^verbatim>\<open>)\<close> & close parenthesis \\
-    \<^verbatim>\<open>/\<close> & slash \\
-    \<open>\<open> \<close>\<close> & cartouche delimiters \\
-  \end{tabular}
-  \<^medskip>
+  \<^descr> \<open>d\<close> is a delimiter, namely a non-empty sequence delimiter items of the
+  following form:
+    \<^enum> a control symbol followed by a cartouche
+    \<^enum> a single symbol, excluding the following special characters:
+      \<^medskip>
+      \begin{tabular}{ll}
+        \<^verbatim>\<open>'\<close> & single quote \\
+        \<^verbatim>\<open>_\<close> & underscore \\
+        \<open>\<index>\<close> & index symbol \\
+        \<^verbatim>\<open>(\<close> & open parenthesis \\
+        \<^verbatim>\<open>)\<close> & close parenthesis \\
+        \<^verbatim>\<open>/\<close> & slash \\
+        \<open>\<open> \<close>\<close> & cartouche delimiters \\
+      \end{tabular}
+      \<^medskip>
 
   \<^descr> \<^verbatim>\<open>'\<close> escapes the special meaning of these meta-characters, producing a
   literal version of the following character, unless that is a blank.

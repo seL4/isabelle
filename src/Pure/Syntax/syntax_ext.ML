@@ -251,9 +251,10 @@ val read_block_indent =
 
 val is_meta = member (op =) ["(", ")", "/", "_", "\<index>", Symbol.open_, Symbol.close];
 
-val scan_delim_char =
-  $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
-  scan_one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
+val scan_delim =
+  scan_one Symbol.is_control ::: Symbol_Pos.scan_cartouche "Mixfix error: " ||
+  $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) >> single ||
+  scan_one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof) >> single;
 
 val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
@@ -265,7 +266,7 @@ val scan_sym =
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
   $$ "/" |-- scan_many Symbol.is_space >> (Brk o length) ||
   scan_many1 Symbol.is_space >> (Space o Symbol_Pos.content) ||
-  Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
+  Scan.repeat1 scan_delim >> (Delim o Symbol_Pos.content o flat);
 
 val scan_symb =
   Scan.trace scan_sym >> (fn (syms, trace) => SOME (syms, #1 (Symbol_Pos.range trace))) ||

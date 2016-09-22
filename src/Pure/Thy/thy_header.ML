@@ -168,11 +168,10 @@ val heading =
 val header =
   (Scan.repeat heading -- Parse.command theoryN -- Parse.tags) |-- Parse.!!! args;
 
-fun token_source pos str =
-  str
-  |> Source.of_string_limited 8000
-  |> Symbol.source
-  |> Token.source_strict bootstrap_keywords pos;
+fun token_source pos =
+  Symbol.explode
+  #> Source.of_list
+  #> Token.source_strict bootstrap_keywords pos;
 
 fun read_source pos source =
   let val res =

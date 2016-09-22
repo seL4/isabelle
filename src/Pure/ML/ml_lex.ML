@@ -351,7 +351,7 @@ fun source src =
   Symbol_Pos.source (Position.line 1) src
   |> Source.source Symbol_Pos.stopper (Scan.recover (Scan.bulk (!!! "bad input" scan_ml)) recover);
 
-val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
+val tokenize = Symbol.explode #> Source.of_list #> source #> Source.exhaust;
 
 val read_pos = gen_read false;
 
