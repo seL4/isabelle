@@ -37,6 +37,8 @@ this allows special forms of document output.
 symbol \<^raw:...>. INCOMPATIBILITY, notably for LaTeXsugar.thy and its
 derivatives.
 
+* \<^raw:...> symbols are no longer supported.
+
 * New symbol \<circle>, e.g. for temporal operator.
 
 * Old 'header' command is no longer supported (legacy since

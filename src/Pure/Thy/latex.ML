@@ -103,7 +103,6 @@ fun output_known_sym (known_sym, known_ctrl) sym =
   | Symbol.UTF8 s => s
   | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
   | Symbol.Control s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
-  | Symbol.Raw _ => error "Bad raw symbol"
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
