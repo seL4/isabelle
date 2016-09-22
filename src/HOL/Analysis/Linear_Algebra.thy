@@ -457,7 +457,7 @@ lemma (in real_vector) span_mul: "x \<in> span S \<Longrightarrow> c *\<^sub>R x
 lemma span_neg: "x \<in> span S \<Longrightarrow> - x \<in> span S"
   by (metis subspace_neg subspace_span)
 
-lemma span_sub: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x - y \<in> span S"
+lemma span_diff: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x - y \<in> span S"
   by (metis subspace_span subspace_diff)
 
 lemma (in real_vector) span_setsum: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> span S) \<Longrightarrow> setsum f A \<in> span S"
@@ -2615,7 +2615,7 @@ proof -
     from gxy have th0: "g (x - y) = 0"
       by (simp add: linear_diff[OF g(1)])
     have th1: "x - y \<in> span B"
-      using x' y' by (metis span_sub)
+      using x' y' by (metis span_diff)
     have "x = y"
       using g0[OF th1 th0] by simp
   }

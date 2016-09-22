@@ -2902,7 +2902,7 @@ lemma integral_component_eq[simp]:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "f integrable_on s"
   shows "integral s (\<lambda>x. f x \<bullet> k) = integral s f \<bullet> k"
-  unfolding integral_linear[OF assms(1) bounded_linear_component,unfolded o_def] ..
+  unfolding integral_linear[OF assms(1) bounded_linear_inner_left,unfolded o_def] ..
 
 lemma has_integral_setsum:
   assumes "finite t"
@@ -3090,7 +3090,7 @@ lemma has_integral_componentwise_iff:
   shows "(f has_integral y) A \<longleftrightarrow> (\<forall>b\<in>Basis. ((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A)"
 proof safe
   fix b :: 'b assume "(f has_integral y) A"
-  from has_integral_linear[OF this(1) bounded_linear_component, of b]
+  from has_integral_linear[OF this(1) bounded_linear_inner_left, of b]
     show "((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A" by (simp add: o_def)
 next
   assume "(\<forall>b\<in>Basis. ((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A)"
@@ -3148,7 +3148,7 @@ qed
 
 lemma integrable_component:
   "f integrable_on A \<Longrightarrow> (\<lambda>x. f x \<bullet> (y :: 'b :: euclidean_space)) integrable_on A"
-  by (drule integrable_linear[OF _ bounded_linear_component[of y]]) (simp add: o_def)
+  by (drule integrable_linear[OF _ bounded_linear_inner_left[of y]]) (simp add: o_def)
 
 
 

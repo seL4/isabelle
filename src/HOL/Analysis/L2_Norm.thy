@@ -165,12 +165,7 @@ lemma setL2_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le>
   done
 
 lemma member_le_setL2: "\<lbrakk>finite A; i \<in> A\<rbrakk> \<Longrightarrow> f i \<le> setL2 f A"
-  apply (rule_tac s="insert i (A - {i})" and t="A" in subst)
-  apply fast
-  apply (subst setL2_insert)
-  apply simp
-  apply simp
-  apply simp
-  done
+  unfolding setL2_def
+  by (auto intro!: member_le_setsum real_le_rsqrt)
 
 end

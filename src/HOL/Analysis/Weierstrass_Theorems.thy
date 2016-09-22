@@ -3,7 +3,7 @@ section \<open>The Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
 text\<open>By L C Paulson (2015)\<close>
 
 theory Weierstrass_Theorems
-imports Uniform_Limit Path_Connected
+imports Uniform_Limit Path_Connected Derivative
 begin
 
 subsection \<open>Bernstein polynomials\<close>
@@ -171,13 +171,13 @@ Volume 81, Number 1, January 1981.
 DOI: 10.2307/2043993  http://www.jstor.org/stable/2043993\<close>
 
 locale function_ring_on =
-  fixes R :: "('a::t2_space \<Rightarrow> real) set" and s :: "'a set"
-  assumes compact: "compact s"
-  assumes continuous: "f \<in> R \<Longrightarrow> continuous_on s f"
+  fixes R :: "('a::t2_space \<Rightarrow> real) set" and S :: "'a set"
+  assumes compact: "compact S"
+  assumes continuous: "f \<in> R \<Longrightarrow> continuous_on S f"
   assumes add: "f \<in> R \<Longrightarrow> g \<in> R \<Longrightarrow> (\<lambda>x. f x + g x) \<in> R"
   assumes mult: "f \<in> R \<Longrightarrow> g \<in> R \<Longrightarrow> (\<lambda>x. f x * g x) \<in> R"
   assumes const: "(\<lambda>_. c) \<in> R"
-  assumes separable: "x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x \<noteq> y \<Longrightarrow> \<exists>f\<in>R. f x \<noteq> f y"
+  assumes separable: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> \<exists>f\<in>R. f x \<noteq> f y"
 
 begin
   lemma minus: "f \<in> R \<Longrightarrow> (\<lambda>x. - f x) \<in> R"
@@ -196,24 +196,24 @@ begin
     by (induct I rule: finite_induct; simp add: const mult)
 
   definition normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
-    where "normf f \<equiv> SUP x:s. \<bar>f x\<bar>"
+    where "normf f \<equiv> SUP x:S. \<bar>f x\<bar>"
 
-  lemma normf_upper: "\<lbrakk>continuous_on s f; x \<in> s\<rbrakk> \<Longrightarrow> \<bar>f x\<bar> \<le> normf f"
+  lemma normf_upper: "\<lbrakk>continuous_on S f; x \<in> S\<rbrakk> \<Longrightarrow> \<bar>f x\<bar> \<le> normf f"
     apply (simp add: normf_def)
     apply (rule cSUP_upper, assumption)
     by (simp add: bounded_imp_bdd_above compact compact_continuous_image compact_imp_bounded continuous_on_rabs)
 
-  lemma normf_least: "s \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> s \<Longrightarrow> \<bar>f x\<bar> \<le> M) \<Longrightarrow> normf f \<le> M"
+  lemma normf_least: "S \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<le> M) \<Longrightarrow> normf f \<le> M"
     by (simp add: normf_def cSUP_least)
 
 end
 
 lemma (in function_ring_on) one:
-  assumes U: "open U" and t0: "t0 \<in> s" "t0 \<in> U" and t1: "t1 \<in> s-U"
-    shows "\<exists>V. open V \<and> t0 \<in> V \<and> s \<inter> V \<subseteq> U \<and>
-               (\<forall>e>0. \<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>t \<in> s \<inter> V. f t < e) \<and> (\<forall>t \<in> s - U. f t > 1 - e))"
+  assumes U: "open U" and t0: "t0 \<in> S" "t0 \<in> U" and t1: "t1 \<in> S-U"
+    shows "\<exists>V. open V \<and> t0 \<in> V \<and> S \<inter> V \<subseteq> U \<and>
+               (\<forall>e>0. \<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>t \<in> S \<inter> V. f t < e) \<and> (\<forall>t \<in> S - U. f t > 1 - e))"
 proof -
-  have "\<exists>pt \<in> R. pt t0 = 0 \<and> pt t > 0 \<and> pt ` s \<subseteq> {0..1}" if t: "t \<in> s - U" for t
+  have "\<exists>pt \<in> R. pt t0 = 0 \<and> pt t > 0 \<and> pt ` S \<subseteq> {0..1}" if t: "t \<in> S - U" for t
   proof -
     have "t \<noteq> t0" using t t0 by auto
     then obtain g where g: "g \<in> R" "g t \<noteq> g t0"
@@ -239,28 +239,28 @@ proof -
       by (simp add: p_def h_def)
     moreover have "p t > 0"
       using nfp ht2 by (simp add: p_def)
-    moreover have "\<And>x. x \<in> s \<Longrightarrow> p x \<in> {0..1}"
+    moreover have "\<And>x. x \<in> S \<Longrightarrow> p x \<in> {0..1}"
       using nfp normf_upper [OF continuous [OF hsq] ] by (auto simp: p_def)
-    ultimately show "\<exists>pt \<in> R. pt t0 = 0 \<and> pt t > 0 \<and> pt ` s \<subseteq> {0..1}"
+    ultimately show "\<exists>pt \<in> R. pt t0 = 0 \<and> pt t > 0 \<and> pt ` S \<subseteq> {0..1}"
       by auto
   qed
-  then obtain pf where pf: "\<And>t. t \<in> s-U \<Longrightarrow> pf t \<in> R \<and> pf t t0 = 0 \<and> pf t t > 0"
-                   and pf01: "\<And>t. t \<in> s-U \<Longrightarrow> pf t ` s \<subseteq> {0..1}"
+  then obtain pf where pf: "\<And>t. t \<in> S-U \<Longrightarrow> pf t \<in> R \<and> pf t t0 = 0 \<and> pf t t > 0"
+                   and pf01: "\<And>t. t \<in> S-U \<Longrightarrow> pf t ` S \<subseteq> {0..1}"
     by metis
-  have com_sU: "compact (s-U)"
+  have com_sU: "compact (S-U)"
     using compact closed_Int_compact U by (simp add: Diff_eq compact_Int_closed open_closed)
-  have "\<And>t. t \<in> s-U \<Longrightarrow> \<exists>A. open A \<and> A \<inter> s = {x\<in>s. 0 < pf t x}"
+  have "\<And>t. t \<in> S-U \<Longrightarrow> \<exists>A. open A \<and> A \<inter> S = {x\<in>S. 0 < pf t x}"
     apply (rule open_Collect_positive)
     by (metis pf continuous)
-  then obtain Uf where Uf: "\<And>t. t \<in> s-U \<Longrightarrow> open (Uf t) \<and> (Uf t) \<inter> s = {x\<in>s. 0 < pf t x}"
+  then obtain Uf where Uf: "\<And>t. t \<in> S-U \<Longrightarrow> open (Uf t) \<and> (Uf t) \<inter> S = {x\<in>S. 0 < pf t x}"
     by metis
-  then have open_Uf: "\<And>t. t \<in> s-U \<Longrightarrow> open (Uf t)"
+  then have open_Uf: "\<And>t. t \<in> S-U \<Longrightarrow> open (Uf t)"
     by blast
-  have tUft: "\<And>t. t \<in> s-U \<Longrightarrow> t \<in> Uf t"
+  have tUft: "\<And>t. t \<in> S-U \<Longrightarrow> t \<in> Uf t"
     using pf Uf by blast
-  then have *: "s-U \<subseteq> (\<Union>x \<in> s-U. Uf x)"
+  then have *: "S-U \<subseteq> (\<Union>x \<in> S-U. Uf x)"
     by blast
-  obtain subU where subU: "subU \<subseteq> s - U" "finite subU" "s - U \<subseteq> (\<Union>x \<in> subU. Uf x)"
+  obtain subU where subU: "subU \<subseteq> S - U" "finite subU" "S - U \<subseteq> (\<Union>x \<in> subU. Uf x)"
     by (blast intro: that open_Uf compactE_image [OF com_sU _ *])
   then have [simp]: "subU \<noteq> {}"
     using t1 by auto
@@ -271,7 +271,7 @@ proof -
     unfolding p_def using subU pf by (fast intro: pf const mult setsum)
   have pt0 [simp]: "p t0 = 0"
     using subU pf by (auto simp: p_def intro: setsum.neutral)
-  have pt_pos: "p t > 0" if t: "t \<in> s-U" for t
+  have pt_pos: "p t > 0" if t: "t \<in> S-U" for t
   proof -
     obtain i where i: "i \<in> subU" "t \<in> Uf i" using subU t by blast
     show ?thesis
@@ -282,7 +282,7 @@ proof -
       apply (force elim!: subsetCE)
       done
   qed
-  have p01: "p x \<in> {0..1}" if t: "x \<in> s" for x
+  have p01: "p x \<in> {0..1}" if t: "x \<in> S" for x
   proof -
     have "0 \<le> p x"
       using subU cardp t
@@ -297,26 +297,26 @@ proof -
     ultimately show ?thesis
       by auto
   qed
-  have "compact (p ` (s-U))"
+  have "compact (p ` (S-U))"
     by (meson Diff_subset com_sU compact_continuous_image continuous continuous_on_subset pR)
-  then have "open (- (p ` (s-U)))"
+  then have "open (- (p ` (S-U)))"
     by (simp add: compact_imp_closed open_Compl)
-  moreover have "0 \<in> - (p ` (s-U))"
+  moreover have "0 \<in> - (p ` (S-U))"
     by (metis (no_types) ComplI image_iff not_less_iff_gr_or_eq pt_pos)
-  ultimately obtain delta0 where delta0: "delta0 > 0" "ball 0 delta0 \<subseteq> - (p ` (s-U))"
+  ultimately obtain delta0 where delta0: "delta0 > 0" "ball 0 delta0 \<subseteq> - (p ` (S-U))"
     by (auto simp: elim!: openE)
-  then have pt_delta: "\<And>x. x \<in> s-U \<Longrightarrow> p x \<ge> delta0"
+  then have pt_delta: "\<And>x. x \<in> S-U \<Longrightarrow> p x \<ge> delta0"
     by (force simp: ball_def dist_norm dest: p01)
   define \<delta> where "\<delta> = delta0/2"
   have "delta0 \<le> 1" using delta0 p01 [of t1] t1
       by (force simp: ball_def dist_norm dest: p01)
   with delta0 have \<delta>01: "0 < \<delta>" "\<delta> < 1"
     by (auto simp: \<delta>_def)
-  have pt_\<delta>: "\<And>x. x \<in> s-U \<Longrightarrow> p x \<ge> \<delta>"
+  have pt_\<delta>: "\<And>x. x \<in> S-U \<Longrightarrow> p x \<ge> \<delta>"
     using pt_delta delta0 by (force simp: \<delta>_def)
-  have "\<exists>A. open A \<and> A \<inter> s = {x\<in>s. p x < \<delta>/2}"
+  have "\<exists>A. open A \<and> A \<inter> S = {x\<in>S. p x < \<delta>/2}"
     by (rule open_Collect_less_Int [OF continuous [OF pR] continuous_on_const])
-  then obtain V where V: "open V" "V \<inter> s = {x\<in>s. p x < \<delta>/2}"
+  then obtain V where V: "open V" "V \<inter> S = {x\<in>S. p x < \<delta>/2}"
     by blast
   define k where "k = nat\<lfloor>1/\<delta>\<rfloor> + 1"
   have "k>0"  by (simp add: k_def)
@@ -334,12 +334,12 @@ proof -
   define q where [abs_def]: "q n t = (1 - p t ^ n) ^ (k^n)" for n t
   have qR: "q n \<in> R" for n
     by (simp add: q_def const diff power pR)
-  have q01: "\<And>n t. t \<in> s \<Longrightarrow> q n t \<in> {0..1}"
+  have q01: "\<And>n t. t \<in> S \<Longrightarrow> q n t \<in> {0..1}"
     using p01 by (simp add: q_def power_le_one algebra_simps)
   have qt0 [simp]: "\<And>n. n>0 \<Longrightarrow> q n t0 = 1"
     using t0 pf by (simp add: q_def power_0_left)
   { fix t and n::nat
-    assume t: "t \<in> s \<inter> V"
+    assume t: "t \<in> S \<inter> V"
     with \<open>k>0\<close> V have "k * p t < k * \<delta> / 2"
        by force
     then have "1 - (k * \<delta> / 2)^n \<le> 1 - (k * p t)^n"
@@ -351,7 +351,7 @@ proof -
     finally have "1 - (k * \<delta> / 2) ^ n \<le> q n t" .
   } note limitV = this
   { fix t and n::nat
-    assume t: "t \<in> s - U"
+    assume t: "t \<in> S - U"
     with \<open>k>0\<close> U have "k * \<delta> \<le> k * p t"
       by (simp add: pt_\<delta>)
     with k\<delta> have kpt: "1 < k * p t"
@@ -406,20 +406,20 @@ proof -
     done
   { fix t and e::real
     assume "e>0"
-    have "t \<in> s \<inter> V \<Longrightarrow> 1 - q (NN e) t < e" "t \<in> s - U \<Longrightarrow> q (NN e) t < e"
+    have "t \<in> S \<inter> V \<Longrightarrow> 1 - q (NN e) t < e" "t \<in> S - U \<Longrightarrow> q (NN e) t < e"
     proof -
-      assume t: "t \<in> s \<inter> V"
+      assume t: "t \<in> S \<inter> V"
       show "1 - q (NN e) t < e"
         by (metis add.commute diff_le_eq not_le limitV [OF t] less_le_trans [OF NN1 [OF \<open>e>0\<close>]])
     next
-      assume t: "t \<in> s - U"
+      assume t: "t \<in> S - U"
       show "q (NN e) t < e"
       using  limitNonU [OF t] less_le_trans [OF NN0 [OF \<open>e>0\<close>]] not_le by blast
     qed
-  } then have "\<And>e. e > 0 \<Longrightarrow> \<exists>f\<in>R. f ` s \<subseteq> {0..1} \<and> (\<forall>t \<in> s \<inter> V. f t < e) \<and> (\<forall>t \<in> s - U. 1 - e < f t)"
+  } then have "\<And>e. e > 0 \<Longrightarrow> \<exists>f\<in>R. f ` S \<subseteq> {0..1} \<and> (\<forall>t \<in> S \<inter> V. f t < e) \<and> (\<forall>t \<in> S - U. 1 - e < f t)"
     using q01
     by (rule_tac x="\<lambda>x. 1 - q (NN e) x" in bexI) (auto simp: algebra_simps intro: diff const qR)
-  moreover have t0V: "t0 \<in> V"  "s \<inter> V \<subseteq> U"
+  moreover have t0V: "t0 \<in> V"  "S \<inter> V \<subseteq> U"
     using pt_\<delta> t0 U V \<delta>01  by fastforce+
   ultimately show ?thesis using V t0V
     by blast
@@ -427,23 +427,23 @@ qed
 
 text\<open>Non-trivial case, with @{term A} and @{term B} both non-empty\<close>
 lemma (in function_ring_on) two_special:
-  assumes A: "closed A" "A \<subseteq> s" "a \<in> A"
-      and B: "closed B" "B \<subseteq> s" "b \<in> B"
+  assumes A: "closed A" "A \<subseteq> S" "a \<in> A"
+      and B: "closed B" "B \<subseteq> S" "b \<in> B"
       and disj: "A \<inter> B = {}"
       and e: "0 < e" "e < 1"
-    shows "\<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> A. f x < e) \<and> (\<forall>x \<in> B. f x > 1 - e)"
+    shows "\<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> A. f x < e) \<and> (\<forall>x \<in> B. f x > 1 - e)"
 proof -
   { fix w
     assume "w \<in> A"
-    then have "open ( - B)" "b \<in> s" "w \<notin> B" "w \<in> s"
+    then have "open ( - B)" "b \<in> S" "w \<notin> B" "w \<in> S"
       using assms by auto
-    then have "\<exists>V. open V \<and> w \<in> V \<and> s \<inter> V \<subseteq> -B \<and>
-               (\<forall>e>0. \<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> s \<inter> V. f x < e) \<and> (\<forall>x \<in> s \<inter> B. f x > 1 - e))"
+    then have "\<exists>V. open V \<and> w \<in> V \<and> S \<inter> V \<subseteq> -B \<and>
+               (\<forall>e>0. \<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> S \<inter> V. f x < e) \<and> (\<forall>x \<in> S \<inter> B. f x > 1 - e))"
       using one [of "-B" w b] assms \<open>w \<in> A\<close> by simp
   }
   then obtain Vf where Vf:
-         "\<And>w. w \<in> A \<Longrightarrow> open (Vf w) \<and> w \<in> Vf w \<and> s \<inter> Vf w \<subseteq> -B \<and>
-                         (\<forall>e>0. \<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> s \<inter> Vf w. f x < e) \<and> (\<forall>x \<in> s \<inter> B. f x > 1 - e))"
+         "\<And>w. w \<in> A \<Longrightarrow> open (Vf w) \<and> w \<in> Vf w \<and> S \<inter> Vf w \<subseteq> -B \<and>
+                         (\<forall>e>0. \<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> S \<inter> Vf w. f x < e) \<and> (\<forall>x \<in> S \<inter> B. f x > 1 - e))"
     by metis
   then have open_Vf: "\<And>w. w \<in> A \<Longrightarrow> open (Vf w)"
     by blast
@@ -459,17 +459,17 @@ proof -
     using \<open>a \<in> A\<close> by auto
   then have cardp: "card subA > 0" using subA
     by (simp add: card_gt_0_iff)
-  have "\<And>w. w \<in> A \<Longrightarrow> \<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> s \<inter> Vf w. f x < e / card subA) \<and> (\<forall>x \<in> s \<inter> B. f x > 1 - e / card subA)"
+  have "\<And>w. w \<in> A \<Longrightarrow> \<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> S \<inter> Vf w. f x < e / card subA) \<and> (\<forall>x \<in> S \<inter> B. f x > 1 - e / card subA)"
     using Vf e cardp by simp
   then obtain ff where ff:
-         "\<And>w. w \<in> A \<Longrightarrow> ff w \<in> R \<and> ff w ` s \<subseteq> {0..1} \<and>
-                         (\<forall>x \<in> s \<inter> Vf w. ff w x < e / card subA) \<and> (\<forall>x \<in> s \<inter> B. ff w x > 1 - e / card subA)"
+         "\<And>w. w \<in> A \<Longrightarrow> ff w \<in> R \<and> ff w ` S \<subseteq> {0..1} \<and>
+                         (\<forall>x \<in> S \<inter> Vf w. ff w x < e / card subA) \<and> (\<forall>x \<in> S \<inter> B. ff w x > 1 - e / card subA)"
     by metis
   define pff where [abs_def]: "pff x = (\<Prod>w \<in> subA. ff w x)" for x
   have pffR: "pff \<in> R"
     unfolding pff_def using subA ff by (auto simp: intro: setprod)
   moreover
-  have pff01: "pff x \<in> {0..1}" if t: "x \<in> s" for x
+  have pff01: "pff x \<in> {0..1}" if t: "x \<in> S" for x
   proof -
     have "0 \<le> pff x"
       using subA cardp t
@@ -486,7 +486,7 @@ proof -
   qed
   moreover
   { fix v x
-    assume v: "v \<in> subA" and x: "x \<in> Vf v" "x \<in> s"
+    assume v: "v \<in> subA" and x: "x \<in> Vf v" "x \<in> S"
     from subA v have "pff x = ff v x * (\<Prod>w \<in> subA - {v}. ff w x)"
       unfolding pff_def  by (metis setprod.remove)
     also have "... \<le> ff v x * 1"
@@ -509,7 +509,7 @@ proof -
   moreover
   { fix x
     assume x: "x \<in> B"
-    then have "x \<in> s"
+    then have "x \<in> S"
       using B by auto
     have "1 - e \<le> (1 - e / card subA) ^ card subA"
       using Bernoulli_inequality [of "-e / card subA" "card subA"] e cardp
@@ -532,11 +532,11 @@ proof -
 qed
 
 lemma (in function_ring_on) two:
-  assumes A: "closed A" "A \<subseteq> s"
-      and B: "closed B" "B \<subseteq> s"
+  assumes A: "closed A" "A \<subseteq> S"
+      and B: "closed B" "B \<subseteq> S"
       and disj: "A \<inter> B = {}"
       and e: "0 < e" "e < 1"
-    shows "\<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> A. f x < e) \<and> (\<forall>x \<in> B. f x > 1 - e)"
+    shows "\<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> A. f x < e) \<and> (\<forall>x \<in> B. f x > 1 - e)"
 proof (cases "A \<noteq> {} \<and> B \<noteq> {}")
   case True then show ?thesis
     apply (simp add: ex_in_conv [symmetric])
@@ -556,57 +556,57 @@ qed
 
 text\<open>The special case where @{term f} is non-negative and @{term"e<1/3"}\<close>
 lemma (in function_ring_on) Stone_Weierstrass_special:
-  assumes f: "continuous_on s f" and fpos: "\<And>x. x \<in> s \<Longrightarrow> f x \<ge> 0"
+  assumes f: "continuous_on S f" and fpos: "\<And>x. x \<in> S \<Longrightarrow> f x \<ge> 0"
       and e: "0 < e" "e < 1/3"
-  shows "\<exists>g \<in> R. \<forall>x\<in>s. \<bar>f x - g x\<bar> < 2*e"
+  shows "\<exists>g \<in> R. \<forall>x\<in>S. \<bar>f x - g x\<bar> < 2*e"
 proof -
   define n where "n = 1 + nat \<lceil>normf f / e\<rceil>"
-  define A where "A j = {x \<in> s. f x \<le> (j - 1/3)*e}" for j :: nat
-  define B where "B j = {x \<in> s. f x \<ge> (j + 1/3)*e}" for j :: nat
+  define A where "A j = {x \<in> S. f x \<le> (j - 1/3)*e}" for j :: nat
+  define B where "B j = {x \<in> S. f x \<ge> (j + 1/3)*e}" for j :: nat
   have ngt: "(n-1) * e \<ge> normf f" "n\<ge>1"
     using e
     apply (simp_all add: n_def field_simps of_nat_Suc)
     by (metis real_nat_ceiling_ge mult.commute not_less pos_less_divide_eq)
-  then have ge_fx: "(n-1) * e \<ge> f x" if "x \<in> s" for x
+  then have ge_fx: "(n-1) * e \<ge> f x" if "x \<in> S" for x
     using f normf_upper that by fastforce
   { fix j
-    have A: "closed (A j)" "A j \<subseteq> s"
+    have A: "closed (A j)" "A j \<subseteq> S"
       apply (simp_all add: A_def Collect_restrict)
       apply (rule continuous_on_closed_Collect_le [OF f continuous_on_const])
       apply (simp add: compact compact_imp_closed)
       done
-    have B: "closed (B j)" "B j \<subseteq> s"
+    have B: "closed (B j)" "B j \<subseteq> S"
       apply (simp_all add: B_def Collect_restrict)
       apply (rule continuous_on_closed_Collect_le [OF continuous_on_const f])
       apply (simp add: compact compact_imp_closed)
       done
     have disj: "(A j) \<inter> (B j) = {}"
       using e by (auto simp: A_def B_def field_simps)
-    have "\<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> A j. f x < e/n) \<and> (\<forall>x \<in> B j. f x > 1 - e/n)"
+    have "\<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> A j. f x < e/n) \<and> (\<forall>x \<in> B j. f x > 1 - e/n)"
       apply (rule two)
       using e A B disj ngt
       apply simp_all
       done
   }
-  then obtain xf where xfR: "\<And>j. xf j \<in> R" and xf01: "\<And>j. xf j ` s \<subseteq> {0..1}"
+  then obtain xf where xfR: "\<And>j. xf j \<in> R" and xf01: "\<And>j. xf j ` S \<subseteq> {0..1}"
                    and xfA: "\<And>x j. x \<in> A j \<Longrightarrow> xf j x < e/n"
                    and xfB: "\<And>x j. x \<in> B j \<Longrightarrow> xf j x > 1 - e/n"
     by metis
   define g where [abs_def]: "g x = e * (\<Sum>i\<le>n. xf i x)" for x
   have gR: "g \<in> R"
     unfolding g_def by (fast intro: mult const setsum xfR)
-  have gge0: "\<And>x. x \<in> s \<Longrightarrow> g x \<ge> 0"
+  have gge0: "\<And>x. x \<in> S \<Longrightarrow> g x \<ge> 0"
     using e xf01 by (simp add: g_def zero_le_mult_iff image_subset_iff setsum_nonneg)
   have A0: "A 0 = {}"
     using fpos e by (fastforce simp: A_def)
-  have An: "A n = s"
+  have An: "A n = S"
     using e ngt f normf_upper by (fastforce simp: A_def field_simps of_nat_diff)
   have Asub: "A j \<subseteq> A i" if "i\<ge>j" for i j
     using e that apply (clarsimp simp: A_def)
     apply (erule order_trans, simp)
     done
   { fix t
-    assume t: "t \<in> s"
+    assume t: "t \<in> S"
     define j where "j = (LEAST j. t \<in> A j)"
     have jn: "j \<le> n"
       using t An by (simp add: Least_le j_def)
@@ -701,16 +701,16 @@ qed
 
 text\<open>The ``unpretentious'' formulation\<close>
 lemma (in function_ring_on) Stone_Weierstrass_basic:
-  assumes f: "continuous_on s f" and e: "e > 0"
-  shows "\<exists>g \<in> R. \<forall>x\<in>s. \<bar>f x - g x\<bar> < e"
+  assumes f: "continuous_on S f" and e: "e > 0"
+  shows "\<exists>g \<in> R. \<forall>x\<in>S. \<bar>f x - g x\<bar> < e"
 proof -
-  have "\<exists>g \<in> R. \<forall>x\<in>s. \<bar>(f x + normf f) - g x\<bar> < 2 * min (e/2) (1/4)"
+  have "\<exists>g \<in> R. \<forall>x\<in>S. \<bar>(f x + normf f) - g x\<bar> < 2 * min (e/2) (1/4)"
     apply (rule Stone_Weierstrass_special)
     apply (rule Limits.continuous_on_add [OF f Topological_Spaces.continuous_on_const])
     using normf_upper [OF f] apply force
     apply (simp add: e, linarith)
     done
-  then obtain g where "g \<in> R" "\<forall>x\<in>s. \<bar>g x - (f x + normf f)\<bar> < e"
+  then obtain g where "g \<in> R" "\<forall>x\<in>S. \<bar>g x - (f x + normf f)\<bar> < e"
     by force
   then show ?thesis
     apply (rule_tac x="\<lambda>x. g x - normf f" in bexI)
@@ -720,16 +720,16 @@ qed
 
 
 theorem (in function_ring_on) Stone_Weierstrass:
-  assumes f: "continuous_on s f"
-  shows "\<exists>F\<in>UNIV \<rightarrow> R. LIM n sequentially. F n :> uniformly_on s f"
+  assumes f: "continuous_on S f"
+  shows "\<exists>F\<in>UNIV \<rightarrow> R. LIM n sequentially. F n :> uniformly_on S f"
 proof -
   { fix e::real
     assume e: "0 < e"
     then obtain N::nat where N: "0 < N" "0 < inverse N" "inverse N < e"
       by (auto simp: real_arch_inverse [of e])
     { fix n :: nat and x :: 'a and g :: "'a \<Rightarrow> real"
-      assume n: "N \<le> n"  "\<forall>x\<in>s. \<bar>f x - g x\<bar> < 1 / (1 + real n)"
-      assume x: "x \<in> s"
+      assume n: "N \<le> n"  "\<forall>x\<in>S. \<bar>f x - g x\<bar> < 1 / (1 + real n)"
+      assume x: "x \<in> S"
       have "\<not> real (Suc n) < inverse e"
         using \<open>N \<le> n\<close> N using less_imp_inverse_less by force
       then have "1 / (1 + real n) \<le> e"
@@ -737,13 +737,13 @@ proof -
       then have "\<bar>f x - g x\<bar> < e"
         using n(2) x by auto
     } note * = this
-    have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>s. \<bar>f x - (SOME g. g \<in> R \<and> (\<forall>x\<in>s. \<bar>f x - g x\<bar> < 1 / (1 + real n))) x\<bar> < e"
+    have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>S. \<bar>f x - (SOME g. g \<in> R \<and> (\<forall>x\<in>S. \<bar>f x - g x\<bar> < 1 / (1 + real n))) x\<bar> < e"
       apply (rule eventually_sequentiallyI [of N])
       apply (auto intro: someI2_bex [OF Stone_Weierstrass_basic [OF f]] *)
       done
   } then
   show ?thesis
-    apply (rule_tac x="\<lambda>n::nat. SOME g. g \<in> R \<and> (\<forall>x\<in>s. \<bar>f x - g x\<bar> < 1 / (1 + n))" in bexI)
+    apply (rule_tac x="\<lambda>n::nat. SOME g. g \<in> R \<and> (\<forall>x\<in>S. \<bar>f x - g x\<bar> < 1 / (1 + n))" in bexI)
     prefer 2  apply (force intro: someI2_bex [OF Stone_Weierstrass_basic [OF f]])
     unfolding uniform_limit_iff
     apply (auto simp: dist_norm abs_minus_commute)
@@ -752,21 +752,21 @@ qed
 
 text\<open>A HOL Light formulation\<close>
 corollary Stone_Weierstrass_HOL:
-  fixes R :: "('a::t2_space \<Rightarrow> real) set" and s :: "'a set"
-  assumes "compact s"  "\<And>c. P(\<lambda>x. c::real)"
-          "\<And>f. P f \<Longrightarrow> continuous_on s f"
+  fixes R :: "('a::t2_space \<Rightarrow> real) set" and S :: "'a set"
+  assumes "compact S"  "\<And>c. P(\<lambda>x. c::real)"
+          "\<And>f. P f \<Longrightarrow> continuous_on S f"
           "\<And>f g. P(f) \<and> P(g) \<Longrightarrow> P(\<lambda>x. f x + g x)"  "\<And>f g. P(f) \<and> P(g) \<Longrightarrow> P(\<lambda>x. f x * g x)"
-          "\<And>x y. x \<in> s \<and> y \<in> s \<and> ~(x = y) \<Longrightarrow> \<exists>f. P(f) \<and> ~(f x = f y)"
-          "continuous_on s f"
+          "\<And>x y. x \<in> S \<and> y \<in> S \<and> ~(x = y) \<Longrightarrow> \<exists>f. P(f) \<and> ~(f x = f y)"
+          "continuous_on S f"
        "0 < e"
-    shows "\<exists>g. P(g) \<and> (\<forall>x \<in> s. \<bar>f x - g x\<bar> < e)"
+    shows "\<exists>g. P(g) \<and> (\<forall>x \<in> S. \<bar>f x - g x\<bar> < e)"
 proof -
   interpret PR: function_ring_on "Collect P"
     apply unfold_locales
     using assms
     by auto
   show ?thesis
-    using PR.Stone_Weierstrass_basic [OF \<open>continuous_on s f\<close> \<open>0 < e\<close>]
+    using PR.Stone_Weierstrass_basic [OF \<open>continuous_on S f\<close> \<open>0 < e\<close>]
     by blast
 qed
 
@@ -994,7 +994,7 @@ lemma continuous_polymonial_function:
 lemma continuous_on_polymonial_function:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
   assumes "polynomial_function f"
-    shows "continuous_on s f"
+    shows "continuous_on S f"
   using continuous_polymonial_function [OF assms] continuous_at_imp_continuous_on
   by blast
 
@@ -1035,8 +1035,7 @@ qed
 lemma has_vector_derivative_polynomial_function:
   fixes p :: "real \<Rightarrow> 'a::euclidean_space"
   assumes "polynomial_function p"
-    shows "\<exists>p'. polynomial_function p' \<and>
-                 (\<forall>x. (p has_vector_derivative (p' x)) (at x))"
+  obtains p' where "polynomial_function p'" "\<And>x. (p has_vector_derivative (p' x)) (at x)"
 proof -
   { fix b :: 'a
     assume "b \<in> Basis"
@@ -1057,9 +1056,10 @@ proof -
       "\<And>b x. b \<in> Basis \<Longrightarrow> ((\<lambda>u. (p u \<bullet> b) *\<^sub>R b) has_vector_derivative qf b x) (at x)"
     by metis
   show ?thesis
+    apply (rule_tac p'="\<lambda>x. \<Sum>b\<in>Basis. qf b x" in that)
+     apply (force intro: qf)
     apply (subst euclidean_representation_setsum_fun [of p, symmetric])
-    apply (rule_tac x="\<lambda>x. \<Sum>b\<in>Basis. qf b x" in exI)
-    apply (auto intro: has_vector_derivative_setsum qf)
+     apply (auto intro: has_vector_derivative_setsum qf)
     done
 qed
 
@@ -1081,8 +1081,8 @@ qed
 
 lemma Stone_Weierstrass_real_polynomial_function:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
-  assumes "compact s" "continuous_on s f" "0 < e"
-    shows "\<exists>g. real_polynomial_function g \<and> (\<forall>x \<in> s. \<bar>f x - g x\<bar> < e)"
+  assumes "compact S" "continuous_on S f" "0 < e"
+  obtains g where "real_polynomial_function g" "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x - g x\<bar> < e"
 proof -
   interpret PR: function_ring_on "Collect real_polynomial_function"
     apply unfold_locales
@@ -1090,27 +1090,27 @@ proof -
     apply (auto intro: real_polynomial_function_separable)
     done
   show ?thesis
-    using PR.Stone_Weierstrass_basic [OF \<open>continuous_on s f\<close> \<open>0 < e\<close>]
+    using PR.Stone_Weierstrass_basic [OF \<open>continuous_on S f\<close> \<open>0 < e\<close>] that
     by blast
 qed
 
 lemma Stone_Weierstrass_polynomial_function:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes s: "compact s"
-      and f: "continuous_on s f"
+  assumes S: "compact S"
+      and f: "continuous_on S f"
       and e: "0 < e"
-    shows "\<exists>g. polynomial_function g \<and> (\<forall>x \<in> s. norm(f x - g x) < e)"
+    shows "\<exists>g. polynomial_function g \<and> (\<forall>x \<in> S. norm(f x - g x) < e)"
 proof -
   { fix b :: 'b
     assume "b \<in> Basis"
-    have "\<exists>p. real_polynomial_function p \<and> (\<forall>x \<in> s. \<bar>f x \<bullet> b - p x\<bar> < e / DIM('b))"
-      apply (rule exE [OF Stone_Weierstrass_real_polynomial_function [OF s _, of "\<lambda>x. f x \<bullet> b" "e / card Basis"]])
+    have "\<exists>p. real_polynomial_function p \<and> (\<forall>x \<in> S. \<bar>f x \<bullet> b - p x\<bar> < e / DIM('b))"
+      apply (rule exE [OF Stone_Weierstrass_real_polynomial_function [OF S _, of "\<lambda>x. f x \<bullet> b" "e / card Basis"]])
       using e f
       apply (auto simp: Euclidean_Space.DIM_positive intro: continuous_intros)
       done
   }
   then obtain pf where pf:
-      "\<And>b. b \<in> Basis \<Longrightarrow> real_polynomial_function (pf b) \<and> (\<forall>x \<in> s. \<bar>f x \<bullet> b - pf b x\<bar> < e / DIM('b))"
+      "\<And>b. b \<in> Basis \<Longrightarrow> real_polynomial_function (pf b) \<and> (\<forall>x \<in> S. \<bar>f x \<bullet> b - pf b x\<bar> < e / DIM('b))"
       apply (rule bchoice [rule_format, THEN exE])
       apply assumption
       apply (force simp add: intro: that)
@@ -1120,12 +1120,12 @@ proof -
     by (simp add: polynomial_function_setsum polynomial_function_mult real_polynomial_function_eq)
   moreover
   { fix x
-    assume "x \<in> s"
+    assume "x \<in> S"
     have "norm (\<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b - pf b x *\<^sub>R b) \<le> (\<Sum>b\<in>Basis. norm ((f x \<bullet> b) *\<^sub>R b - pf b x *\<^sub>R b))"
       by (rule norm_setsum)
     also have "... < of_nat DIM('b) * (e / DIM('b))"
       apply (rule setsum_bounded_above_strict)
-      apply (simp add: Real_Vector_Spaces.scaleR_diff_left [symmetric] pf \<open>x \<in> s\<close>)
+      apply (simp add: Real_Vector_Spaces.scaleR_diff_left [symmetric] pf \<open>x \<in> S\<close>)
       apply (rule DIM_positive)
       done
     also have "... = e"
@@ -1178,31 +1178,31 @@ proof -
 qed
 
 lemma connected_open_polynomial_connected:
-  fixes s :: "'a::euclidean_space set"
-  assumes s: "open s" "connected s"
-      and "x \<in> s" "y \<in> s"
-    shows "\<exists>g. polynomial_function g \<and> path_image g \<subseteq> s \<and>
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "open S" "connected S"
+      and "x \<in> S" "y \<in> S"
+    shows "\<exists>g. polynomial_function g \<and> path_image g \<subseteq> S \<and>
                pathstart g = x \<and> pathfinish g = y"
 proof -
-  have "path_connected s" using assms
+  have "path_connected S" using assms
     by (simp add: connected_open_path_connected)
-  with \<open>x \<in> s\<close> \<open>y \<in> s\<close> obtain p where p: "path p" "path_image p \<subseteq> s" "pathstart p = x" "pathfinish p = y"
+  with \<open>x \<in> S\<close> \<open>y \<in> S\<close> obtain p where p: "path p" "path_image p \<subseteq> S" "pathstart p = x" "pathfinish p = y"
     by (force simp: path_connected_def)
-  have "\<exists>e. 0 < e \<and> (\<forall>x \<in> path_image p. ball x e \<subseteq> s)"
-  proof (cases "s = UNIV")
+  have "\<exists>e. 0 < e \<and> (\<forall>x \<in> path_image p. ball x e \<subseteq> S)"
+  proof (cases "S = UNIV")
     case True then show ?thesis
       by (simp add: gt_ex)
   next
     case False
-    then have "- s \<noteq> {}" by blast
+    then have "- S \<noteq> {}" by blast
     then show ?thesis
-      apply (rule_tac x="setdist (path_image p) (-s)" in exI)
-      using s p
+      apply (rule_tac x="setdist (path_image p) (-S)" in exI)
+      using S p
       apply (simp add: setdist_gt_0_compact_closed compact_path_image open_closed)
-      using setdist_le_dist [of _ "path_image p" _ "-s"]
+      using setdist_le_dist [of _ "path_image p" _ "-S"]
       by fastforce
   qed
-  then obtain e where "0 < e"and eb: "\<And>x. x \<in> path_image p \<Longrightarrow> ball x e \<subseteq> s"
+  then obtain e where "0 < e"and eb: "\<And>x. x \<in> path_image p \<Longrightarrow> ball x e \<subseteq> S"
     by auto
   show ?thesis
     using path_approx_polynomial_function [OF \<open>path p\<close> \<open>0 < e\<close>]
@@ -1212,6 +1212,179 @@ proof -
     apply (fastforce simp add: dist_norm path_image_def norm_minus_commute intro: eb [THEN subsetD])+
     done
 qed
+
+lemma has_derivative_componentwise_within:
+   "(f has_derivative f') (at a within S) \<longleftrightarrow>
+    (\<forall>i \<in> Basis. ((\<lambda>x. f x \<bullet> i) has_derivative (\<lambda>x. f' x \<bullet> i)) (at a within S))"
+  apply (simp add: has_derivative_within)
+  apply (subst tendsto_componentwise_iff)
+  apply (simp add: bounded_linear_componentwise_iff [symmetric] ball_conj_distrib)
+  apply (simp add: algebra_simps)
+  done
+
+lemma differentiable_componentwise_within:
+   "f differentiable (at a within S) \<longleftrightarrow>
+    (\<forall>i \<in> Basis. (\<lambda>x. f x \<bullet> i) differentiable at a within S)"
+proof -
+  { assume "\<forall>i\<in>Basis. \<exists>D. ((\<lambda>x. f x \<bullet> i) has_derivative D) (at a within S)"
+    then obtain f' where f':
+           "\<And>i. i \<in> Basis \<Longrightarrow> ((\<lambda>x. f x \<bullet> i) has_derivative f' i) (at a within S)"
+      by metis
+    have eq: "(\<lambda>x. (\<Sum>j\<in>Basis. f' j x *\<^sub>R j) \<bullet> i) = f' i" if "i \<in> Basis" for i
+      using that by (simp add: inner_add_left inner_add_right)
+    have "\<exists>D. \<forall>i\<in>Basis. ((\<lambda>x. f x \<bullet> i) has_derivative (\<lambda>x. D x \<bullet> i)) (at a within S)"
+      apply (rule_tac x="\<lambda>x::'a. (\<Sum>j\<in>Basis. f' j x *\<^sub>R j) :: 'b" in exI)
+      apply (simp add: eq f')
+      done
+  }
+  then show ?thesis
+    apply (simp add: differentiable_def)
+    using has_derivative_componentwise_within
+    by blast
+qed
+
+lemma polynomial_function_inner [intro]:
+  fixes i :: "'a::euclidean_space"
+  shows "polynomial_function g \<Longrightarrow> polynomial_function (\<lambda>x. g x \<bullet> i)"
+  apply (subst euclidean_representation [where x=i, symmetric])
+  apply (force simp: inner_setsum_right polynomial_function_iff_Basis_inner polynomial_function_setsum)
+  done
+
+text\<open> Differentiability of real and vector polynomial functions.\<close>
+
+lemma differentiable_at_real_polynomial_function:
+   "real_polynomial_function f \<Longrightarrow> f differentiable (at a within S)"
+  by (induction f rule: real_polynomial_function.induct)
+     (simp_all add: bounded_linear_imp_differentiable)
+
+lemma differentiable_on_real_polynomial_function:
+   "real_polynomial_function p \<Longrightarrow> p differentiable_on S"
+by (simp add: differentiable_at_imp_differentiable_on differentiable_at_real_polynomial_function)
+
+lemma differentiable_at_polynomial_function:
+  fixes f :: "_ \<Rightarrow> 'a::euclidean_space"
+  shows "polynomial_function f \<Longrightarrow> f differentiable (at a within S)"
+  by (metis differentiable_at_real_polynomial_function polynomial_function_iff_Basis_inner differentiable_componentwise_within)
+
+lemma differentiable_on_polynomial_function:
+  fixes f :: "_ \<Rightarrow> 'a::euclidean_space"
+  shows "polynomial_function f \<Longrightarrow> f differentiable_on S"
+by (simp add: differentiable_at_polynomial_function differentiable_on_def)
+
+lemma vector_eq_dot_span:
+  assumes "x \<in> span B" "y \<in> span B" and i: "\<And>i. i \<in> B \<Longrightarrow> i \<bullet> x = i \<bullet> y"
+  shows "x = y"
+proof -
+  have "\<And>i. i \<in> B \<Longrightarrow> orthogonal (x - y) i"
+    by (simp add: i inner_commute inner_diff_right orthogonal_def)
+  moreover have "x - y \<in> span B"
+    by (simp add: assms span_diff)
+  ultimately have "x - y = 0"
+    using orthogonal_to_span orthogonal_self by blast
+    then show ?thesis by simp
+qed
+
+lemma orthonormal_basis_expand:
+  assumes B: "pairwise orthogonal B"
+      and 1: "\<And>i. i \<in> B \<Longrightarrow> norm i = 1"
+      and "x \<in> span B"
+      and "finite B"
+    shows "(\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) = x"
+proof (rule vector_eq_dot_span [OF _ \<open>x \<in> span B\<close>])
+  show "(\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) \<in> span B"
+    by (simp add: span_clauses span_setsum)
+  show "i \<bullet> (\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) = i \<bullet> x" if "i \<in> B" for i
+  proof -
+    have [simp]: "i \<bullet> j = (if j = i then 1 else 0)" if "j \<in> B" for j
+      using B 1 that \<open>i \<in> B\<close>
+      by (force simp: norm_eq_1 orthogonal_def pairwise_def)
+    have "i \<bullet> (\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) = (\<Sum>j\<in>B. x \<bullet> j * (i \<bullet> j))"
+      by (simp add: inner_setsum_right)
+    also have "... = (\<Sum>j\<in>B. if j = i then x \<bullet> i else 0)"
+      by (rule setsum.cong; simp)
+    also have "... = i \<bullet> x"
+      by (simp add: \<open>finite B\<close> that inner_commute setsum.delta)
+    finally show ?thesis .
+  qed
+qed
+
+
+lemma Stone_Weierstrass_polynomial_function_subspace:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "compact S"
+      and contf: "continuous_on S f"
+      and "0 < e"
+      and "subspace T" "f ` S \<subseteq> T"
+    obtains g where "polynomial_function g" "g ` S \<subseteq> T"
+                    "\<And>x. x \<in> S \<Longrightarrow> norm(f x - g x) < e"
+proof -
+  obtain B where "B \<subseteq> T" and orthB: "pairwise orthogonal B"
+             and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
+             and "independent B" and cardB: "card B = dim T"
+             and spanB: "span B = T"
+    using orthonormal_basis_subspace \<open>subspace T\<close> by metis
+  then have "finite B"
+    by (simp add: independent_imp_finite)
+  then obtain n::nat and b where "B = b ` {i. i < n}" "inj_on b {i. i < n}"
+    using finite_imp_nat_seg_image_inj_on by metis
+  with cardB have "n = card B" "dim T = n"
+    by (auto simp: card_image)
+  have fx: "(\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i) = f x" if "x \<in> S" for x
+    apply (rule orthonormal_basis_expand [OF orthB B1 _ \<open>finite B\<close>])
+    using \<open>f ` S \<subseteq> T\<close> spanB that by auto
+  have cont: "continuous_on S (\<lambda>x. \<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i)"
+    by (intro continuous_intros contf)
+  obtain g where "polynomial_function g"
+             and g: "\<And>x. x \<in> S \<Longrightarrow> norm ((\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i) - g x) < e / (n+2)"
+    using Stone_Weierstrass_polynomial_function [OF \<open>compact S\<close> cont, of "e / real (n + 2)"] \<open>0 < e\<close>
+    by auto
+  with fx have g: "\<And>x. x \<in> S \<Longrightarrow> norm (f x - g x) < e / (n+2)"
+    by auto
+  show ?thesis
+  proof
+    show "polynomial_function (\<lambda>x. \<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i)"
+      apply (rule polynomial_function_setsum)
+       apply (simp add: \<open>finite B\<close>)
+      using \<open>polynomial_function g\<close>  by auto
+    show "(\<lambda>x. \<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i) ` S \<subseteq> T"
+      using \<open>B \<subseteq> T\<close> by (blast intro: subspace_setsum subspace_mul \<open>subspace T\<close>)
+    show "norm (f x - (\<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i)) < e" if "x \<in> S" for x
+    proof -
+      have orth': "pairwise (\<lambda>i j. orthogonal ((f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i)
+                                              ((f x \<bullet> j) *\<^sub>R j - (g x \<bullet> j) *\<^sub>R j)) B"
+        apply (rule pairwise_mono [OF orthB])
+        apply (auto simp: orthogonal_def inner_diff_right inner_diff_left)
+        done
+      then have "(norm (\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i))\<^sup>2 =
+                 (\<Sum>i\<in>B. (norm ((f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i))\<^sup>2)"
+        by (simp add:  norm_setsum_Pythagorean [OF \<open>finite B\<close> orth'])
+      also have "... = (\<Sum>i\<in>B. (norm (((f x - g x) \<bullet> i) *\<^sub>R i))\<^sup>2)"
+        by (simp add: algebra_simps)
+      also have "... \<le> (\<Sum>i\<in>B. (norm (f x - g x))\<^sup>2)"
+        apply (rule setsum_mono)
+        apply (simp add: B1)
+        apply (rule order_trans [OF Cauchy_Schwarz_ineq])
+        by (simp add: B1 dot_square_norm)
+      also have "... = n * norm (f x - g x)^2"
+        by (simp add: \<open>n = card B\<close>)
+      also have "... \<le> n * (e / (n+2))^2"
+        apply (rule mult_left_mono)
+         apply (meson dual_order.order_iff_strict g norm_ge_zero power_mono that, simp)
+        done
+      also have "... \<le> e^2 / (n+2)"
+        using \<open>0 < e\<close> by (simp add: divide_simps power2_eq_square)
+      also have "... < e^2"
+        using \<open>0 < e\<close> by (simp add: divide_simps)
+      finally have "(norm (\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i))\<^sup>2 < e^2" .
+      then have "(norm (\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i)) < e"
+        apply (rule power2_less_imp_less)
+        using  \<open>0 < e\<close> by auto
+      then show ?thesis
+        using fx that by (simp add: setsum_subtractf)
+    qed
+  qed
+qed
+
 
 hide_fact linear add mult const
 

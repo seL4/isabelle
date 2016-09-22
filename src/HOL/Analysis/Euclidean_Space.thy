@@ -105,10 +105,10 @@ lemma euclidean_isCont:
   apply (blast intro: assms)
   done
 
-lemma DIM_positive: "0 < DIM('a::euclidean_space)"
+lemma DIM_positive [simp]: "0 < DIM('a::euclidean_space)"
   by (simp add: card_gt_0_iff)
 
-lemma DIM_ge_Suc0 [iff]: "Suc 0 \<le> card Basis"
+lemma DIM_ge_Suc0 [simp]: "Suc 0 \<le> card Basis"
   by (meson DIM_positive Suc_leI)
 
 

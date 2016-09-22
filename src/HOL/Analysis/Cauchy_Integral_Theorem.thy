@@ -2163,7 +2163,7 @@ proof -
     { fix x y z n
       assume At: "At x y z n"
       then have contf': "continuous_on (convex hull {x,y,z}) f"
-        using contf At_def continuous_on_subset by blast
+        using contf At_def continuous_on_subset by metis
       have "\<exists>x' y' z'. At x' y' z' (Suc n) \<and> convex hull {x',y',z'} \<subseteq> convex hull {x,y,z}"
         using At
         apply (simp add: At_def)
@@ -3213,11 +3213,6 @@ lemma
   using contour_integral_nearby [OF assms, where atends=False]
   unfolding linked_paths_def by simp_all
 
-corollary differentiable_polynomial_function:
-  fixes p :: "real \<Rightarrow> 'a::euclidean_space"
-  shows "polynomial_function p \<Longrightarrow> p differentiable_on s"
-by (meson has_vector_derivative_polynomial_function differentiable_at_imp_differentiable_on differentiable_def has_vector_derivative_def)
-
 lemma C1_differentiable_polynomial_function:
   fixes p :: "real \<Rightarrow> 'a::euclidean_space"
   shows "polynomial_function p \<Longrightarrow> p C1_differentiable_on s"
@@ -3255,7 +3250,7 @@ then obtain d::real and p
   done
 then obtain p' where p': "polynomial_function p'"
          "\<And>x. (p has_vector_derivative (p' x)) (at x)"
-  using has_vector_derivative_polynomial_function by force
+  by (blast intro: has_vector_derivative_polynomial_function that elim: )
 then have "bounded(p' ` {0..1})"
   using continuous_on_polymonial_function
   by (force simp: intro!: compact_imp_bounded compact_continuous_image)

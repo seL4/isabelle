@@ -9,29 +9,7 @@ theory Derivative
 imports Brouwer_Fixpoint Operator_Norm Uniform_Limit Bounded_Linear_Function
 begin
 
-lemma bounded_linear_component [intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x \<bullet> k)"
-  by (rule bounded_linear_inner_left)
-
-lemma onorm_inner_left:
-  assumes "bounded_linear r"
-  shows "onorm (\<lambda>x. r x \<bullet> f) \<le> onorm r * norm f"
-proof (rule onorm_bound)
-  fix x
-  have "norm (r x \<bullet> f) \<le> norm (r x) * norm f"
-    by (simp add: Cauchy_Schwarz_ineq2)
-  also have "\<dots> \<le> onorm r * norm x * norm f"
-    by (intro mult_right_mono onorm assms norm_ge_zero)
-  finally show "norm (r x \<bullet> f) \<le> onorm r * norm f * norm x"
-    by (simp add: ac_simps)
-qed (intro mult_nonneg_nonneg norm_ge_zero onorm_pos_le assms)
-
-lemma onorm_inner_right:
-  assumes "bounded_linear r"
-  shows "onorm (\<lambda>x. f \<bullet> r x) \<le> norm f * onorm r"
-  apply (subst inner_commute)
-  apply (rule onorm_inner_left[OF assms, THEN order_trans])
-  apply simp
-  done
+declare bounded_linear_inner_left [intro]
 
 declare has_derivative_bounded_linear[dest]
 

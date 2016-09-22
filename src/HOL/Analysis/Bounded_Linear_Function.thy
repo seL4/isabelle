@@ -391,7 +391,7 @@ proof (transfer, rule,  rule euclidean_eqI)
   also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> b)))"
     using b by (simp add: setsum.delta)
   also have "\<dots> = f x \<bullet> b"
-    by (subst linear_componentwise[symmetric]) (unfold_locales, rule)
+    by (metis (mono_tags, lifting) Linear_Algebra.linear_componentwise linear_axioms)
   finally show "(\<Sum>j\<in>Basis. \<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> j)) *\<^sub>R j) \<bullet> b = f x \<bullet> b" .
 qed
 

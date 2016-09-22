@@ -1,4 +1,4 @@
-(*  title:      HOL/Library/Topology_Euclidian_Space.thy
+(*  Author:     L C Paulson, University of Cambridge
     Author:     Amine Chaieb, University of Cambridge
     Author:     Robert Himmelmann, TU Muenchen
     Author:     Brian Huffman, Portland State University
@@ -4040,6 +4040,11 @@ next
     by auto
 qed
 
+corollary infinite_openin:
+  fixes S :: "'a :: t1_space set"
+  shows "\<lbrakk>openin (subtopology euclidean U) S; x \<in> S; x islimpt U\<rbrakk> \<Longrightarrow> infinite S"
+  by (clarsimp simp add: openin_open islimpt_eq_acc_point inf_commute)
+
 lemma islimpt_range_imp_convergent_subsequence:
   fixes l :: "'a :: {t1_space, first_countable_topology}"
   assumes l: "l islimpt (range f)"
@@ -6906,7 +6911,7 @@ proof clarify
   show "\<exists>e>0. \<forall>y. dist y (f x) < e \<longrightarrow> y \<in> f ` A"
   proof (intro exI conjI)
     show "\<delta> > 0"
-      using \<open>e > 0\<close> \<open>B > 0\<close>  by (simp add: \<delta>_def divide_simps) (simp add: mult_less_0_iff)
+      using \<open>e > 0\<close> \<open>B > 0\<close>  by (simp add: \<delta>_def divide_simps)
     have "y \<in> f ` A" if "dist y (f x) * (B * real DIM('b)) < e" for y
     proof -
       define u where "u \<equiv> y - f x"
@@ -9711,6 +9716,126 @@ lemma compact_sequence_with_limit:
 apply (simp add: compact_eq_bounded_closed, auto)
 apply (simp add: convergent_imp_bounded)
 by (simp add: closed_limpt islimpt_insert sequence_unique_limpt)
+
+
+subsection\<open>Componentwise limits and continuity\<close>
+
+text\<open>But is the premise really necessary? Need to generalise @{thm euclidean_dist_l2}\<close>
+lemma Euclidean_dist_upper: "i \<in> Basis \<Longrightarrow> dist (x \<bullet> i) (y \<bullet> i) \<le> dist x y"
+  by (metis (no_types) member_le_setL2 euclidean_dist_l2 finite_Basis)
+
+text\<open>But is the premise @{term \<open>i \<in> Basis\<close>} really necessary?\<close>
+lemma open_preimage_inner:
+  assumes "open S" "i \<in> Basis"
+    shows "open {x. x \<bullet> i \<in> S}"
+proof (rule openI, simp)
+  fix x
+  assume x: "x \<bullet> i \<in> S"
+  with assms obtain e where "0 < e" and e: "ball (x \<bullet> i) e \<subseteq> S"
+    by (auto simp: open_contains_ball_eq)
+  have "\<exists>e>0. ball (y \<bullet> i) e \<subseteq> S" if dxy: "dist x y < e / 2" for y
+  proof (intro exI conjI)
+    have "dist (x \<bullet> i) (y \<bullet> i) < e / 2"
+      by (meson \<open>i \<in> Basis\<close> dual_order.trans Euclidean_dist_upper not_le that)
+    then have "dist (x \<bullet> i) z < e" if "dist (y \<bullet> i) z < e / 2" for z
+      by (metis dist_commute dist_triangle_half_l that)
+    then have "ball (y \<bullet> i) (e / 2) \<subseteq> ball (x \<bullet> i) e"
+      using mem_ball by blast
+      with e show "ball (y \<bullet> i) (e / 2) \<subseteq> S"
+        by (metis order_trans)
+  qed (simp add: \<open>0 < e\<close>)
+  then show "\<exists>e>0. ball x e \<subseteq> {s. s \<bullet> i \<in> S}"
+    by (metis (no_types, lifting) \<open>0 < e\<close> \<open>open S\<close> half_gt_zero_iff mem_Collect_eq mem_ball open_contains_ball_eq subsetI)
+qed
+
+proposition tendsto_componentwise_iff:
+  fixes f :: "_ \<Rightarrow> 'b::euclidean_space"
+  shows "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>i \<in> Basis. ((\<lambda>x. (f x \<bullet> i)) \<longlongrightarrow> (l \<bullet> i)) F)"
+         (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    unfolding tendsto_def
+    apply clarify
+    apply (drule_tac x="{s. s \<bullet> i \<in> S}" in spec)
+    apply (auto simp: open_preimage_inner)
+    done
+next
+  assume R: ?rhs
+  then have "\<And>e. e > 0 \<Longrightarrow> \<forall>i\<in>Basis. \<forall>\<^sub>F x in F. dist (f x \<bullet> i) (l \<bullet> i) < e"
+    unfolding tendsto_iff by blast
+  then have R': "\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F x in F. \<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e"
+      by (simp add: eventually_ball_finite_distrib [symmetric])
+  show ?lhs
+  unfolding tendsto_iff
+  proof clarify
+    fix e::real
+    assume "0 < e"
+    have *: "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e"
+             if "\<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / real DIM('b)" for x
+    proof -
+      have "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis \<le> setsum (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis"
+        by (simp add: setL2_le_setsum)
+      also have "... < DIM('b) * (e / real DIM('b))"
+        apply (rule setsum_bounded_above_strict)
+        using that by auto
+      also have "... = e"
+        by (simp add: field_simps)
+      finally show "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e" .
+    qed
+    have "\<forall>\<^sub>F x in F. \<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / DIM('b)"
+      apply (rule R')
+      using \<open>0 < e\<close> by simp
+    then show "\<forall>\<^sub>F x in F. dist (f x) l < e"
+      apply (rule eventually_mono)
+      apply (subst euclidean_dist_l2)
+      using * by blast
+  qed
+qed
+
+
+corollary continuous_componentwise:
+   "continuous F f \<longleftrightarrow> (\<forall>i \<in> Basis. continuous F (\<lambda>x. (f x \<bullet> i)))"
+by (simp add: continuous_def tendsto_componentwise_iff [symmetric])
+
+corollary continuous_on_componentwise:
+  fixes S :: "'a :: t2_space set"
+  shows "continuous_on S f \<longleftrightarrow> (\<forall>i \<in> Basis. continuous_on S (\<lambda>x. (f x \<bullet> i)))"
+  apply (simp add: continuous_on_eq_continuous_within)
+  using continuous_componentwise by blast
+
+lemma linear_componentwise_iff:
+     "(linear f') \<longleftrightarrow> (\<forall>i\<in>Basis. linear (\<lambda>x. f' x \<bullet> i))"
+  apply (auto simp: linear_iff inner_left_distrib)
+   apply (metis inner_left_distrib euclidean_eq_iff)
+  by (metis euclidean_eqI inner_scaleR_left)
+
+lemma bounded_linear_componentwise_iff:
+     "(bounded_linear f') \<longleftrightarrow> (\<forall>i\<in>Basis. bounded_linear (\<lambda>x. f' x \<bullet> i))"
+     (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (simp add: bounded_linear_inner_left_comp)
+next
+  assume ?rhs
+  then have "(\<forall>i\<in>Basis. \<exists>K. \<forall>x. \<bar>f' x \<bullet> i\<bar> \<le> norm x * K)" "linear f'"
+    by (auto simp: bounded_linear_def bounded_linear_axioms_def linear_componentwise_iff [symmetric] ball_conj_distrib)
+  then obtain F where F: "\<And>i x. i \<in> Basis \<Longrightarrow> \<bar>f' x \<bullet> i\<bar> \<le> norm x * F i"
+    by metis
+  have "norm (f' x) \<le> norm x * setsum F Basis" for x
+  proof -
+    have "norm (f' x) \<le> (\<Sum>i\<in>Basis. \<bar>f' x \<bullet> i\<bar>)"
+      by (rule norm_le_l1)
+    also have "... \<le> (\<Sum>i\<in>Basis. norm x * F i)"
+      by (metis F setsum_mono)
+    also have "... = norm x * setsum F Basis"
+      by (simp add: setsum_distrib_left)
+    finally show ?thesis .
+  qed
+  then show ?lhs
+    by (force simp: bounded_linear_def bounded_linear_axioms_def \<open>linear f'\<close>)
+qed
+
 
 no_notation
   eucl_less (infix "<e" 50)

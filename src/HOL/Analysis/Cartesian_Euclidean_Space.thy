@@ -1,7 +1,7 @@
 section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space.\<close>
 
 theory Cartesian_Euclidean_Space
-imports Finite_Cartesian_Product Derivative (* Henstock_Kurzweil_Integration *)
+imports Finite_Cartesian_Product Derivative 
 begin
 
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
@@ -11,6 +11,7 @@ lemma delta_mult_idempotent:
   "(if k=a then 1 else (0::'a::semiring_1)) * (if k=a then 1 else 0) = (if k=a then 1 else 0)"
   by simp
 
+(*move up?*)
 lemma setsum_UNIV_sum:
   fixes g :: "'a::finite + 'b::finite \<Rightarrow> _"
   shows "(\<Sum>x\<in>UNIV. g x) = (\<Sum>x\<in>UNIV. g (Inl x)) + (\<Sum>x\<in>UNIV. g (Inr x))"
@@ -32,7 +33,6 @@ proof (rule setsum.cong, simp, rule setsum.reindex_cong)
       by (auto intro!: image_eqI[of _ _ "j - i * B"])
   qed simp
 qed simp
-
 
 subsection\<open>Basic componentwise operations on vectors.\<close>
 
@@ -598,7 +598,7 @@ lemma vector_componentwise:
 lemma basis_expansion: "setsum (\<lambda>i. (x$i) *s axis i 1) UNIV = (x::('a::ring_1) ^'n)"
   by (auto simp add: axis_def vec_eq_iff if_distrib setsum.If_cases cong del: if_weak_cong)
 
-lemma linear_componentwise:
+lemma linear_componentwise_expansion:
   fixes f:: "real ^'m \<Rightarrow> real ^ _"
   assumes lf: "linear f"
   shows "(f x)$j = setsum (\<lambda>i. (x$i) * (f (axis i 1)$j)) (UNIV :: 'm set)" (is "?lhs = ?rhs")
@@ -636,9 +636,7 @@ lemma matrix_works:
   assumes lf: "linear f"
   shows "matrix f *v x = f (x::real ^ 'n)"
   apply (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult.commute)
-  apply clarify
-  apply (rule linear_componentwise[OF lf, symmetric])
-  done
+  by (simp add: linear_componentwise_expansion lf)
 
 lemma matrix_vector_mul: "linear f ==> f = (\<lambda>x. matrix f *v (x::real ^ 'n))"
   by (simp add: ext matrix_works)

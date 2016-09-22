@@ -624,6 +624,24 @@ proof (rule ccontr)
   with eq show False by simp
 qed
 
+lemma member_le_setsum:
+  fixes f :: "_ \<Rightarrow> 'b::{semiring_1, ordered_comm_monoid_add}"
+  assumes le: "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x"
+    and "i \<in> A"
+    and "finite A"
+  shows "f i \<le> setsum f A"
+proof -
+  have "f i \<le> setsum f (A \<inter> {i})"
+    by (simp add: assms)
+  also have "... = (\<Sum>x\<in>A. if x \<in> {i} then f x else 0)"
+    using assms setsum.inter_restrict by blast
+  also have "... \<le> setsum f A"
+    apply (rule setsum_mono)
+    apply (auto simp: le)
+    done
+  finally show ?thesis .
+qed
+
 lemma setsum_negf: "(\<Sum>x\<in>A. - f x) = - (\<Sum>x\<in>A. f x)"
   for f :: "'b \<Rightarrow> 'a::ab_group_add"
   by (induct A rule: infinite_finite_induct) auto

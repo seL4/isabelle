@@ -1,5 +1,5 @@
-(*  Title:      HOL/Analysis/Convex_Euclidean_Space.thy
-    Authors: Robert Himmelmann, TU Muenchen; Bogdan Grechuk, University of Edinburgh; LCP
+(*  Author:     L C Paulson, University of Cambridge
+    Authors: Robert Himmelmann, TU Muenchen; Bogdan Grechuk, University of Edinburgh
 *)
 
 section \<open>Convex sets, functions and related things\<close>
@@ -219,7 +219,7 @@ proof -
     from gxy have th0: "g (x - y) = 0"
       by (simp add: linear_diff[OF g(1)])
     have th1: "x - y \<in> span B" using x' y'
-      by (metis span_sub)
+      by (metis span_diff)
     have "x = y" using g0[OF th1 th0] by simp
   }
   then have giS: "inj_on g S" unfolding inj_on_def by blast
@@ -2267,7 +2267,7 @@ proof -
     apply (rule subset_le_dim)
     unfolding subset_eq
     using \<open>a\<in>s\<close>
-    apply (auto simp add:span_superset span_sub)
+    apply (auto simp add:span_superset span_diff)
     done
   also have "\<dots> < dim s + 1" by auto
   also have "\<dots> \<le> card (s - {a})"

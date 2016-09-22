@@ -1852,6 +1852,9 @@ definition pairwise :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> '
 lemma pairwise_subset: "pairwise P S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> pairwise P T"
   by (force simp: pairwise_def)
 
+lemma pairwise_mono: "\<lbrakk>pairwise P A; \<And>x y. P x y \<Longrightarrow> Q x y\<rbrakk> \<Longrightarrow> pairwise Q A"
+  by (auto simp: pairwise_def)
+
 definition disjnt :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
   where "disjnt A B \<longleftrightarrow> A \<inter> B = {}"
 
