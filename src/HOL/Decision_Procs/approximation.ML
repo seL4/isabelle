@@ -4,6 +4,7 @@
 
 signature APPROXIMATION =
 sig
+  val reify_form: Proof.context -> term -> term
   val approx: int -> Proof.context -> term -> term
   val approximate: Proof.context -> term -> term
   val approximation_tac : int -> (string * int) list -> int option -> Proof.context -> int -> tactic
@@ -54,13 +55,12 @@ fun gen_eval_tac conv ctxt =
     (Object_Logic.judgment_conv ctxt (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
   THEN' resolve_tac ctxt [TrueI]
 
-val form_equations = @{thms interpret_form_equations};
-
 fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
-    fun lookup_splitting (Free (name, _))
-      = case AList.lookup (op =) splitting name
-        of SOME s => HOLogic.mk_number @{typ nat} s
-         | NONE => @{term "0 :: nat"}
+    fun lookup_splitting (Free (name, _)) =
+        (case AList.lookup (op =) splitting name
+          of SOME s => HOLogic.mk_number @{typ nat} s
+           | NONE => @{term "0 :: nat"})
+      | lookup_splitting t = raise TERM ("lookup_splitting", [t])
     val vs = nth (Thm.prems_of st) (i - 1)
              |> Logic.strip_imp_concl
              |> HOLogic.dest_Trueprop
@@ -117,9 +117,13 @@ fun dest_interpret_form (@{const "interpret_form"} $ b $ xs) = (b, xs)
 fun dest_interpret (@{const "interpret_floatarith"} $ b $ xs) = (b, xs)
   | dest_interpret t = raise TERM ("dest_interpret", [t])
 
+fun dest_interpret_env (@{const "interpret_form"} $ _ $ xs) = xs
+  | dest_interpret_env (@{const "interpret_floatarith"} $ _ $ xs) = xs
+  | dest_interpret_env t = raise TERM ("dest_interpret_env", [t])
 
-fun dest_float (@{const "Float"} $ m $ e) =
-  (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+fun dest_float (@{const "Float"} $ m $ e) = (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+  | dest_float t = raise TERM ("dest_float", [t])
+
 
 fun dest_ivl (Const (@{const_name "Some"}, _) $
               (Const (@{const_name Pair}, _) $ u $ l)) = SOME (dest_float u, dest_float l)
@@ -138,8 +142,8 @@ fun float2_float10 prec round_down (m, e) = (
   let
     val (m, e) = (if e < 0 then (m,e) else (m * Integer.pow e 2, 0))
 
-    fun frac c p 0 digits cnt = (digits, cnt, 0)
-      | frac c 0 r digits cnt = (digits, cnt, r)
+    fun frac _ _ 0 digits cnt = (digits, cnt, 0)
+      | frac _ 0 r digits cnt = (digits, cnt, r)
       | frac c p r digits cnt = (let
         val (d, r) = Integer.div_mod (r * 10) (Integer.pow (~e) 2)
       in frac (c orelse d <> 0) (if d <> 0 orelse c then p - 1 else p) r
@@ -190,21 +194,52 @@ fun apply_tactic ctxt term tactic =
   |> SINGLE tactic
   |> the |> Thm.prems_of |> hd
 
-fun prepare_form ctxt term = apply_tactic ctxt term (
-    REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
-      eresolve_tac ctxt @{thms meta_eqE},
-      resolve_tac ctxt @{thms impI}] 1)
-    THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems 1) ctxt 1
-    THEN DETERM (TRY (filter_prems_tac ctxt (K false) 1)))
+fun preproc_form_conv ctxt =
+  Simplifier.rewrite
+   (put_simpset HOL_basic_ss ctxt addsimps
+     (Named_Theorems.get ctxt @{named_theorems approximation_preproc}))
 
-fun reify_form ctxt term = apply_tactic ctxt term
-   (Reification.tac ctxt form_equations NONE 1)
+fun reify_form_conv ctxt ct =
+  let
+    val thm =
+       Reification.conv ctxt @{thms interpret_form.simps interpret_floatarith.simps} ct
+       handle ERROR msg =>
+        cat_error ("Reification failed: " ^ msg)
+          ("Approximation does not support " ^
+            quote (Syntax.string_of_term ctxt (Thm.term_of ct)))
+    fun check_env (Free _) = ()
+      | check_env (Var _) = ()
+      | check_env t =
+          cat_error "Term not supported by approximation:" (Syntax.string_of_term ctxt t)
+    val _ = Thm.rhs_of thm |> Thm.term_of |> dest_interpret_env |> HOLogic.dest_list |> map check_env
+  in thm end
+
+
+fun reify_form_tac ctxt i = CONVERSION (Conv.arg_conv (reify_form_conv ctxt)) i
+
+fun prepare_form_tac ctxt i =
+  REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
+    eresolve_tac ctxt @{thms meta_eqE},
+    resolve_tac ctxt @{thms impI}] i)
+  THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems i) ctxt i
+  THEN DETERM (TRY (filter_prems_tac ctxt (K false) i))
+  THEN CONVERSION (Conv.arg_conv (preproc_form_conv ctxt)) i
+
+fun prepare_form ctxt term = apply_tactic ctxt term (prepare_form_tac ctxt 1)
+
+fun apply_reify_form ctxt t = apply_tactic ctxt t (reify_form_tac ctxt 1)
+
+fun reify_form ctxt t = HOLogic.mk_Trueprop t
+  |> prepare_form ctxt
+  |> apply_reify_form ctxt
+  |> HOLogic.dest_Trueprop
 
 fun approx_form prec ctxt t =
         realify t
      |> prepare_form ctxt
-     |> (fn arith_term => reify_form ctxt arith_term
-         |> HOLogic.dest_Trueprop |> dest_interpret_form
+     |> (fn arith_term => apply_reify_form ctxt arith_term
+         |> HOLogic.dest_Trueprop
+         |> dest_interpret_form
          |> (fn (data, xs) =>
             mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
               (map (fn _ => @{term "None :: (float * float) option"}) (HOLogic.dest_list xs)))
@@ -216,7 +251,7 @@ fun approx_form prec ctxt t =
 
 fun approx_arith prec ctxt t = realify t
      |> Thm.cterm_of ctxt
-     |> Reification.conv ctxt form_equations
+     |> (preproc_form_conv ctxt then_conv reify_form_conv ctxt)
      |> Thm.prop_of
      |> Logic.dest_equals |> snd
      |> dest_interpret |> fst
@@ -252,13 +287,9 @@ val _ =
       >> (fn (modes, t) => Toplevel.keep (approximate_cmd modes t)));
 
 fun approximation_tac prec splitting taylor ctxt i =
-  REPEAT (FIRST' [eresolve_tac ctxt @{thms intervalE},
-                  eresolve_tac ctxt @{thms meta_eqE},
-                  resolve_tac ctxt @{thms impI}] i)
-  THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} => reorder_bounds_tac ctxt' prems i) ctxt i
-  THEN DETERM (TRY (filter_prems_tac ctxt (K false) i))
-  THEN DETERM (Reification.tac ctxt form_equations NONE i)
+  prepare_form_tac ctxt i
+  THEN reify_form_tac ctxt i
   THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
   THEN gen_eval_tac (approximation_conv ctxt) ctxt i
-    
+
 end;

@@ -1217,13 +1217,6 @@ text \<open>
 
     \<^enum> a control symbol ``\<^verbatim>\<open>\<^ident>\<close>'', for example ``\<^verbatim>\<open>\<^bold>\<close>'',
 
-    \<^enum> a raw symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw:\<close>\<open>text\<close>\<^verbatim>\<open>>\<close>'' where \<open>text\<close> consists of
-    printable characters excluding ``\<^verbatim>\<open>.\<close>'' and ``\<^verbatim>\<open>>\<close>'', for example
-    ``\<^verbatim>\<open>\<^raw:$\sum_{i = 1}^n$>\<close>'',
-
-    \<^enum> a numbered raw control symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw\<close>\<open>n\<close>\<^verbatim>\<open>>\<close>, where \<open>n\<close> consists
-    of digits, for example ``\<^verbatim>\<open>\<^raw42>\<close>''.
-
   The \<open>ident\<close> syntax for symbol names is \<open>letter (letter | digit)\<^sup>*\<close>, where
   \<open>letter = A..Za..z\<close> and \<open>digit = 0..9\<close>. There are infinitely many regular
   symbols and control symbols, but a fixed collection of standard symbols is
@@ -1275,7 +1268,7 @@ text %mlref \<open>
   \<^descr> Type @{ML_type "Symbol.sym"} is a concrete datatype that represents the
   different kinds of symbols explicitly, with constructors @{ML
   "Symbol.Char"}, @{ML "Symbol.UTF8"}, @{ML "Symbol.Sym"}, @{ML
-  "Symbol.Control"}, @{ML "Symbol.Raw"}, @{ML "Symbol.Malformed"}.
+  "Symbol.Control"}, @{ML "Symbol.Malformed"}.
 
   \<^descr> @{ML "Symbol.decode"} converts the string representation of a symbol into
   the datatype version.

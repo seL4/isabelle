@@ -340,7 +340,7 @@ These unknowns can later be instantiated explicitly or implicitly:
 The expression @{text"conjI[of \"a=b\" \"False\"]"}
 instantiates the unknowns in @{thm[source] conjI} from left to right with the
 two formulas @{text"a=b"} and @{text False}, yielding the rule
-@{thm[display,mode=Rule]conjI[of "a=b" False]}
+@{thm[display,mode=Rule,margin=100]conjI[of "a=b" False]}
 
 In general, @{text"th[of string\<^sub>1 \<dots> string\<^sub>n]"} instantiates
 the unknowns in the theorem @{text th} from left to right with the terms

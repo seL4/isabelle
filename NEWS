@@ -30,6 +30,15 @@ discontinued.
 to "(\<open>indent=DIGITS\<close>". The former notation "(00" for unbreakable blocks
 is superseded by "(\<open>unbreabable\<close>" --- rare INCOMPATIBILITY.
 
+* Mixfix annotations support delimiters like \<^control>\<open>cartouche\<close> --
+this allows special forms of document output.
+
+* Raw LaTeX output now works via \<^latex>\<open>...\<close> instead of raw control
+symbol \<^raw:...>. INCOMPATIBILITY, notably for LaTeXsugar.thy and its
+derivatives.
+
+* \<^raw:...> symbols are no longer supported.
+
 * New symbol \<circle>, e.g. for temporal operator.
 
 * Old 'header' command is no longer supported (legacy since

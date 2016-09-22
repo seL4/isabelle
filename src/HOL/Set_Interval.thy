@@ -1609,13 +1609,13 @@ syntax (ASCII)
 
 syntax (latex_sum output)
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\sum_{>_ = _\<^raw:}^{>_\<^raw:}$> _)" [0,0,0,10] 10)
+ ("(3\<^latex>\<open>$\\sum_{\<close>_ = _\<^latex>\<open>}^{\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
   "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\sum_{>_ = _\<^raw:}^{<>_\<^raw:}$> _)" [0,0,0,10] 10)
+ ("(3\<^latex>\<open>$\\sum_{\<close>_ = _\<^latex>\<open>}^{<\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
   "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\sum_{>_ < _\<^raw:}$> _)" [0,0,10] 10)
+ ("(3\<^latex>\<open>$\\sum_{\<close>_ < _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
   "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\sum_{>_ \<le> _\<^raw:}$> _)" [0,0,10] 10)
+ ("(3\<^latex>\<open>$\\sum_{\<close>_ \<le> _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
 
 syntax
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
@@ -2013,13 +2013,13 @@ syntax (ASCII)
 
 syntax (latex_prod output)
   "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\prod_{>_ = _\<^raw:}^{>_\<^raw:}$> _)" [0,0,0,10] 10)
+ ("(3\<^latex>\<open>$\\prod_{\<close>_ = _\<^latex>\<open>}^{\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
   "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\prod_{>_ = _\<^raw:}^{<>_\<^raw:}$> _)" [0,0,0,10] 10)
+ ("(3\<^latex>\<open>$\\prod_{\<close>_ = _\<^latex>\<open>}^{<\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
   "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\prod_{>_ < _\<^raw:}$> _)" [0,0,10] 10)
+ ("(3\<^latex>\<open>$\\prod_{\<close>_ < _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
   "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
- ("(3\<^raw:$\prod_{>_ \<le> _\<^raw:}$> _)" [0,0,10] 10)
+ ("(3\<^latex>\<open>$\\prod_{\<close>_ \<le> _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
 
 syntax
   "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _.._./ _)" [0,0,0,10] 10)

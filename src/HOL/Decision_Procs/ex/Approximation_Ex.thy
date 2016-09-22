@@ -78,6 +78,10 @@ lemma
 lemma "x \<in> { 0 .. 1 :: real } \<longrightarrow> x\<^sup>2 \<le> x"
   by (approximation 30 splitting: x=1 taylor: x = 3)
 
-approximate "10"
+lemma "(n::real) \<in> {32 .. 62} \<Longrightarrow> \<lceil>log 2 (2 * (\<lfloor>n\<rfloor> div 2) + 1)\<rceil> = \<lceil>log 2 (\<lfloor>n\<rfloor> + 1)\<rceil>"
+  unfolding eq_iff
+  by (approximation 20)
+
+approximate 10
 
 end

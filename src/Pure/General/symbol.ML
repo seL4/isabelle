@@ -1,5 +1,5 @@
 (*  Title:      Pure/General/symbol.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
 Generalized characters with infinitely many named symbols.
 *)
@@ -7,6 +7,7 @@ Generalized characters with infinitely many named symbols.
 signature SYMBOL =
 sig
   type symbol = string
+  val explode: string -> symbol list
   val spaces: int -> string
   val STX: symbol
   val DEL: symbol
@@ -41,12 +42,8 @@ sig
   val to_ascii_upper: symbol -> symbol
   val is_ascii_identifier: string -> bool
   val scan_ascii_id: string list -> string * string list
-  val is_raw: symbol -> bool
-  val decode_raw: symbol -> string
-  val encode_raw: string -> string
   datatype sym =
-    Char of string | UTF8 of string | Sym of string | Control of string | Raw of string |
-    Malformed of string | EOF
+    Char of string | UTF8 of string | Sym of string | Control of string | Malformed of string | EOF
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
@@ -58,8 +55,6 @@ sig
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
   val beginning: int -> symbol list -> string
-  val source: (string, 'a) Source.source -> (symbol, (string, 'a) Source.source) Source.source
-  val explode: string -> symbol list
   val esc: symbol -> string
   val escape: string -> string
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
@@ -81,11 +76,10 @@ struct
 (*Symbols, which are considered the smallest entities of any Isabelle
   string, may be of the following form:
 
-    (1) ASCII symbols: a
+    (1) ASCII: a
+    (2) UTF-8: ä
     (2) regular symbols: \<ident>
     (3) control symbols: \<^ident>
-    (4) raw control symbols: \<^raw:...>, where "..." may be any printable
-        character (excluding ".", ">"), or \<^raw000>
 
   Output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools.
@@ -191,31 +185,6 @@ fun is_ascii_identifier s =
 val scan_ascii_id = Scan.one is_ascii_letter ^^ (Scan.many is_ascii_letdig >> implode);
 
 
-(* encode_raw *)
-
-fun raw_chr c =
-  is_char c andalso
-    (ord space <= ord c andalso ord c <= ord "~" andalso c <> "." andalso c <> ">"
-      orelse ord c >= 128);
-
-fun encode_raw "" = ""
-  | encode_raw str =
-      let
-        val raw0 = enclose "\092<^raw:" ">";
-        val raw1 = raw0 o implode;
-        val raw2 = enclose "\092<^raw" ">" o string_of_int o ord;
-
-        fun encode cs = enc (take_prefix raw_chr cs)
-        and enc ([], []) = []
-          | enc (cs, []) = [raw1 cs]
-          | enc ([], d :: ds) = raw2 d :: encode ds
-          | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
-      in
-        if exists_string (not o raw_chr) str then implode (encode (raw_explode str))
-        else raw0 str
-      end;
-
-
 (* diagnostics *)
 
 fun beginning n cs =
@@ -230,28 +199,15 @@ fun beginning n cs =
   end;
 
 
-(* decode_raw *)
-
-fun is_raw s =
-  String.isPrefix "\092<^raw" s andalso String.isSuffix ">" s;
-
-fun decode_raw s =
-  if not (is_raw s) then error (malformed_msg s)
-  else if String.isPrefix "\092<^raw:" s then String.substring (s, 7, size s - 8)
-  else chr (#1 (Library.read_int (raw_explode (String.substring (s, 6, size s - 7)))));
-
-
 (* symbol variants *)
 
 datatype sym =
-  Char of string | UTF8 of string | Sym of string | Control of string | Raw of string |
-  Malformed of string | EOF;
+  Char of string | UTF8 of string | Sym of string | Control of string | Malformed of string | EOF;
 
 fun decode s =
   if s = "" then EOF
   else if is_char s then Char s
   else if is_utf8 s then UTF8 s
-  else if is_raw s then Raw (decode_raw s)
   else if is_malformed s then Malformed s
   else if is_control s then Control (String.substring (s, 3, size s - 4))
   else Sym (String.substring (s, 2, size s - 3));
@@ -429,65 +385,6 @@ fun is_quasi_letter s = let val k = kind s in k = Letter orelse k = Quasi end;
 fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Quasi end;
 
 
-
-(** symbol input **)
-
-(* source *)
-
-local
-
-fun is_plain s = is_ascii s andalso s <> "\^M" andalso s <> "\\";
-
-fun is_utf8_trailer s = is_char s andalso 128 <= ord s andalso ord s < 192;
-
-fun implode_pseudo_utf8 (cs as ["\192", c]) =
-      if ord c < 160 then chr (ord c - 128) else implode cs
-  | implode_pseudo_utf8 cs = implode cs;
-
-val scan_encoded_newline =
-  $$ "\^M" -- $$ "\n" >> K "\n" ||
-  $$ "\^M" >> K "\n";
-
-val scan_raw =
-  Scan.this_string "raw:" ^^ (Scan.many raw_chr >> implode) ||
-  Scan.this_string "raw" ^^ (Scan.many1 is_ascii_digit >> implode);
-
-val scan_total =
-  Scan.one is_plain ||
-  Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode_pseudo_utf8 ||
-  scan_encoded_newline ||
-  ($$ "\\" ^^ $$ "<" ^^
-    (($$ "^" ^^ Scan.optional (scan_raw || scan_ascii_id) "" || Scan.optional scan_ascii_id "") ^^
-      Scan.optional ($$ ">") "")) ||
-  Scan.one not_eof;
-
-in
-
-fun source src = Source.source stopper (Scan.bulk scan_total) src;
-
-end;
-
-
-(* explode *)
-
-local
-
-fun no_explode [] = true
-  | no_explode ("\\" :: "<" :: _) = false
-  | no_explode ("\^M" :: _) = false
-  | no_explode (c :: cs) = is_ascii c andalso no_explode cs;
-
-in
-
-fun sym_explode str =
-  let val chs = raw_explode str in
-    if no_explode chs then chs
-    else Source.exhaust (source (Source.of_list chs))
-  end;
-
-end;
-
-
 (* escape *)
 
 val esc = fn s =>
@@ -495,7 +392,7 @@ val esc = fn s =>
   else if is_utf8 s then translate_string (fn c => "\\" ^ string_of_int (ord c)) s
   else "\\" ^ s;
 
-val escape = implode o map esc o sym_explode;
+val escape = implode o map esc o Symbol.explode;
 
 
 
@@ -523,12 +420,12 @@ val scan_word =
 
 val split_words = scanner "Bad text" (Scan.repeat scan_word >> map_filter I);
 
-val explode_words = split_words o sym_explode;
+val explode_words = split_words o Symbol.explode;
 
 
 (* blanks *)
 
-val trim_blanks = sym_explode #> trim is_blank #> implode;
+val trim_blanks = Symbol.explode #> trim is_blank #> implode;
 
 
 (* bump string -- treat as base 26 or base 1 numbers *)
@@ -539,7 +436,7 @@ fun symbolic_end (_ :: "\<^sub>" :: _) = true
   | symbolic_end [] = false;
 
 fun bump_init str =
-  if symbolic_end (rev (sym_explode str)) then str ^ "'"
+  if symbolic_end (rev (Symbol.explode str)) then str ^ "'"
   else str ^ "a";
 
 fun bump_string str =
@@ -551,7 +448,7 @@ fun bump_string str =
           then chr (ord s + 1) :: ss
           else "a" :: s :: ss;
 
-    val (ss, qs) = apfst rev (take_suffix is_quasi (sym_explode str));
+    val (ss, qs) = apfst rev (take_suffix is_quasi (Symbol.explode str));
     val ss' = if symbolic_end ss then "'" :: ss else bump ss;
   in implode (rev ss' @ qs) end;
 
@@ -574,11 +471,11 @@ fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;
 
 val xsymbolsN = "xsymbols";
 
-fun output s = (s, sym_length (sym_explode s));
+fun output s = (s, sym_length (Symbol.explode s));
 
 
 (*final declarations of this structure!*)
-val explode = sym_explode;
+val explode = Symbol.explode;
 val length = sym_length;
 
 end;

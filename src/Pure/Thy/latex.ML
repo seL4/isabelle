@@ -7,6 +7,9 @@ LaTeX presentation elements -- based on outer lexical syntax.
 signature LATEX =
 sig
   val output_ascii: string -> string
+  val latex_control: Symbol.symbol
+  val is_latex_control: Symbol.symbol -> bool
+  val embed_raw: string -> string
   val output_known_symbols: (string -> bool) * (string -> bool) ->
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
@@ -40,6 +43,11 @@ val output_ascii =
 
 
 (* output symbols *)
+
+val latex_control = "\<^latex>";
+fun is_latex_control s = s = latex_control;
+
+val embed_raw = prefix latex_control o cartouche;
 
 local
 
@@ -95,13 +103,26 @@ fun output_known_sym (known_sym, known_ctrl) sym =
   | Symbol.UTF8 s => s
   | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
   | Symbol.Control s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
-  | Symbol.Raw s => s
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
+fun scan_latex known =
+  Scan.one (is_latex_control o Symbol_Pos.symbol) |--
+    Symbol_Pos.scan_cartouche_content "Embedded LaTeX: " >> (implode o map Symbol_Pos.symbol) ||
+  Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> (output_known_sym known o Symbol_Pos.symbol);
+
+fun read_latex known syms =
+  (case Scan.read Symbol_Pos.stopper (Scan.repeat (scan_latex known))
+      (map (rpair Position.none) syms) of
+    SOME ss => implode ss
+  | NONE => error ("Malformed embedded LaTeX: " ^ quote (Symbol.beginning 10 syms)));
+
 in
 
-val output_known_symbols = implode oo (map o output_known_sym);
+fun output_known_symbols known syms =
+  if exists is_latex_control syms then read_latex known syms
+  else implode (map (output_known_sym known) syms);
+
 val output_symbols = output_known_symbols (K true, K true);
 val output_syms = output_symbols o Symbol.explode;
 
@@ -192,7 +213,7 @@ fun latex_markup (s, _) =
 fun latex_indent "" _ = ""
   | latex_indent s _ = enclose "\\isaindent{" "}" s;
 
-val _ = Output.add_mode latexN latex_output Symbol.encode_raw;
+val _ = Output.add_mode latexN latex_output embed_raw;
 val _ = Markup.add_mode latexN latex_markup;
 val _ = Pretty.add_mode latexN latex_indent;
 

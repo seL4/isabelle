@@ -229,7 +229,7 @@ Types @{typ unit} and \<open>\<times>\<close>.
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} ll @ {}}
 @{term "Pair a b"} & @{term[source]"Pair a b"}\\
 @{term "case_prod (\<lambda>x y. t)"} & @{term[source]"case_prod (\<lambda>x y. t)"}\\
-@{term "A \<times> B"} &  \<open>Sigma A (\<lambda>\<^raw:\_>. B)\<close>
+@{term "A \<times> B"} &  \<open>Sigma A (\<lambda>\<^latex>\<open>\_\<close>. B)\<close>
 \end{tabular}
 
 Pairs may be nested. Nesting to the right is printed as a tuple,

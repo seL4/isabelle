@@ -55,6 +55,7 @@ fun mapprox_floatarith (@{term Add} $ a $ b) xs = mapprox_floatarith a xs + mapp
   | mapprox_floatarith (@{term Ln} $ a) xs = Math.ln (mapprox_floatarith a xs)
   | mapprox_floatarith (@{term Power} $ a $ n) xs =
       Math.pow (mapprox_floatarith a xs, Real.fromInt (nat_of_term n))
+  | mapprox_floatarith (@{term Floor} $ a) xs = Real.fromInt (floor (mapprox_floatarith a xs))
   | mapprox_floatarith (@{term Var} $ n) xs = nth xs (nat_of_term n)
   | mapprox_floatarith (@{term Num} $ m) _ = mapprox_float m
   | mapprox_floatarith t _ = raise TERM ("mapprox_floatarith", [t])
@@ -130,7 +131,13 @@ fun approx_random ctxt prec eps frees e xs genuine_only size seed =
           (map (fn t => mk_Some @{typ "float * float"} $ HOLogic.mk_prod (t, t)) ts)) $
         @{term "[] :: nat list"}
   in
-    (if mapprox_form eps e (map (real_of_Float o fst) rs)
+    (if
+      mapprox_form eps e (map (real_of_Float o fst) rs)
+      handle
+        General.Overflow => false
+      | General.Domain => false
+      | General.Div => false
+      | IEEEReal.Unordered => false
     then
       let
         val ts = map (fn x => snd x ()) rs
@@ -154,19 +161,12 @@ val preproc_form_eqs =
     "a = b \<longleftrightarrow> a \<le> b \<and> b \<le> a"
     "(p \<longrightarrow> q) \<longleftrightarrow> \<not>p \<or> q"
     "(p \<longleftrightarrow> q) \<longleftrightarrow> (p \<longrightarrow> q) \<and> (q \<longrightarrow> p)"
-    "\<not> (a < b) \<longleftrightarrow> b \<le> a"
-    "\<not> (a \<le> b) \<longleftrightarrow> b < a"
-    "\<not> (p \<and> q) \<longleftrightarrow> \<not> p \<or> \<not> q"
-    "\<not> (p \<or> q) \<longleftrightarrow> \<not> p \<and> \<not> q"
-    "\<not> \<not> q \<longleftrightarrow> q"
     by auto}
-
-val form_equations = @{thms interpret_form_equations};
 
 fun reify_goal ctxt t =
   HOLogic.mk_not t
     |> conv_term ctxt (rewrite_with ctxt preproc_form_eqs)
-    |> conv_term ctxt (Reification.conv ctxt form_equations)
+    |> Approximation.reify_form ctxt
     |> dest_interpret_form
     ||> HOLogic.dest_list
 

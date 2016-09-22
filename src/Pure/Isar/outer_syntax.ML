@@ -220,17 +220,17 @@ fun commands_source thy =
 
 in
 
-fun parse thy pos str =
-  Source.of_string str
-  |> Symbol.source
-  |> Token.source (Thy_Header.get_keywords thy) pos
-  |> commands_source thy
-  |> Source.exhaust;
+fun parse thy pos =
+  Symbol.explode
+  #> Source.of_list
+  #> Token.source (Thy_Header.get_keywords thy) pos
+  #> commands_source thy
+  #> Source.exhaust;
 
-fun parse_tokens thy toks =
-  Source.of_list toks
-  |> commands_source thy
-  |> Source.exhaust;
+fun parse_tokens thy =
+  Source.of_list
+  #> commands_source thy
+  #> Source.exhaust;
 
 end;
 
