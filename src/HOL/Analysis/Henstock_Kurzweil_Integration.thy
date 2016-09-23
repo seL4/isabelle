@@ -1393,10 +1393,7 @@ lemma tagged_division_unions:
 proof (rule tagged_division_ofI)
   note assm = tagged_division_ofD[OF assms(2)[rule_format]]
   show "finite (\<Union>(pfn ` iset))"
-    apply (rule finite_Union)
-    using assms
-    apply auto
-    done
+    using assms by auto
   have "\<Union>{k. \<exists>x. (x, k) \<in> \<Union>(pfn ` iset)} = \<Union>((\<lambda>i. \<Union>{k. \<exists>x. (x, k) \<in> pfn i}) ` iset)"
     by blast
   also have "\<dots> = \<Union>iset"
@@ -1936,8 +1933,7 @@ subsection \<open>Gauge integral. Define on compact intervals first, then use a 
 definition has_integral_compact_interval (infixr "has'_integral'_compact'_interval" 46)
   where "(f has_integral_compact_interval y) i \<longleftrightarrow>
     (\<forall>e>0. \<exists>d. gauge d \<and>
-      (\<forall>p. p tagged_division_of i \<and> d fine p \<longrightarrow>
-        norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - y) < e))"
+      (\<forall>p. p tagged_division_of i \<and> d fine p \<longrightarrow> norm ((\<Sum>(x,k)\<in>p. content k *\<^sub>R f x) - y) < e))"
 
 definition has_integral ::
     "('n::euclidean_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'b \<Rightarrow> 'n set \<Rightarrow> bool"

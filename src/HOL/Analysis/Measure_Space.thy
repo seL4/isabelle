@@ -551,6 +551,28 @@ proof -
        (insert finite A, auto intro: INF_lower emeasure_mono)
 qed
 
+lemma INF_emeasure_decseq':
+  assumes A: "\<And>i. A i \<in> sets M" and "decseq A"
+  and finite: "\<exists>i. emeasure M (A i) \<noteq> \<infinity>"
+  shows "(INF n. emeasure M (A n)) = emeasure M (\<Inter>i. A i)"
+proof -
+  from finite obtain i where i: "emeasure M (A i) < \<infinity>"
+    by (auto simp: less_top)
+  have fin: "i \<le> j \<Longrightarrow> emeasure M (A j) < \<infinity>" for j
+    by (rule le_less_trans[OF emeasure_mono i]) (auto intro!: decseqD[OF \<open>decseq A\<close>] A)
+
+  have "(INF n. emeasure M (A n)) = (INF n. emeasure M (A (n + i)))"
+  proof (rule INF_eq)
+    show "\<exists>j\<in>UNIV. emeasure M (A (j + i)) \<le> emeasure M (A i')" for i'
+      by (intro bexI[of _ i'] emeasure_mono decseqD[OF \<open>decseq A\<close>] A) auto
+  qed auto
+  also have "\<dots> = emeasure M (INF n. (A (n + i)))"
+    using A \<open>decseq A\<close> fin by (intro INF_emeasure_decseq) (auto simp: decseq_def less_top)
+  also have "(INF n. (A (n + i))) = (INF n. A n)"
+    by (meson INF_eq UNIV_I assms(2) decseqD le_add1)
+  finally show ?thesis .
+qed
+
 lemma emeasure_INT_decseq_subset:
   fixes F :: "nat \<Rightarrow> 'a set"
   assumes I: "I \<noteq> {}" and F: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> i \<le> j \<Longrightarrow> F j \<subseteq> F i"

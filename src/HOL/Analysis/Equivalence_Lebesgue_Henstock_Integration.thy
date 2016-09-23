@@ -1,6 +1,339 @@
 theory Equivalence_Lebesgue_Henstock_Integration
-  imports Lebesgue_Measure Henstock_Kurzweil_Integration
+  imports Lebesgue_Measure Henstock_Kurzweil_Integration Complete_Measure
 begin
+
+lemma le_left_mono: "x \<le> y \<Longrightarrow> y \<le> a \<longrightarrow> x \<le> (a::'a::preorder)"
+  by (auto intro: order_trans)
+
+lemma ball_trans:
+  assumes "y \<in> ball z q" "r + q \<le> s" shows "ball y r \<subseteq> ball z s"
+proof safe
+  fix x assume x: "x \<in> ball y r"
+  have "dist z x \<le> dist z y + dist y x"
+    by (rule dist_triangle)
+  also have "\<dots> < s"
+    using assms x by auto
+  finally show "x \<in> ball z s"
+    by simp
+qed
+
+abbreviation lebesgue :: "'a::euclidean_space measure"
+  where "lebesgue \<equiv> completion lborel"
+
+abbreviation lebesgue_on :: "'a set \<Rightarrow> 'a::euclidean_space measure"
+  where "lebesgue_on \<Omega> \<equiv> restrict_space (completion lborel) \<Omega>"
+
+lemma has_integral_implies_lebesgue_measurable_cbox:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
+  assumes f: "(f has_integral I) (cbox x y)"
+  shows "f \<in> lebesgue_on (cbox x y) \<rightarrow>\<^sub>M borel"
+proof (rule cld_measure.borel_measurable_cld)
+  let ?L = "lebesgue_on (cbox x y)"
+  let ?\<mu> = "emeasure ?L"
+  let ?\<mu>' = "outer_measure_of ?L"
+  interpret L: finite_measure ?L
+  proof
+    show "?\<mu> (space ?L) \<noteq> \<infinity>"
+      by (simp add: emeasure_restrict_space space_restrict_space emeasure_lborel_cbox_eq)
+  qed
+
+  show "cld_measure ?L"
+  proof
+    fix B A assume "B \<subseteq> A" "A \<in> null_sets ?L"
+    then show "B \<in> sets ?L"
+      using null_sets_completion_subset[OF \<open>B \<subseteq> A\<close>, of lborel]
+      by (auto simp add: null_sets_restrict_space sets_restrict_space_iff intro: )
+  next
+    fix A assume "A \<subseteq> space ?L" "\<And>B. B \<in> sets ?L \<Longrightarrow> ?\<mu> B < \<infinity> \<Longrightarrow> A \<inter> B \<in> sets ?L"
+    from this(1) this(2)[of "space ?L"] show "A \<in> sets ?L"
+      by (auto simp: Int_absorb2 less_top[symmetric])
+  qed auto
+  then interpret cld_measure ?L
+    .
+
+  have content_eq_L: "A \<in> sets borel \<Longrightarrow> A \<subseteq> cbox x y \<Longrightarrow> content A = measure ?L A" for A
+    by (subst measure_restrict_space) (auto simp: measure_def)
+
+  fix E and a b :: real assume "E \<in> sets ?L" "a < b" "0 < ?\<mu> E" "?\<mu> E < \<infinity>"
+  then obtain M :: real where "?\<mu> E = M" "0 < M"
+    by (cases "?\<mu> E") auto
+  define e where "e = M / (4 + 2 / (b - a))"
+  from \<open>a < b\<close> \<open>0<M\<close> have "0 < e"
+    by (auto intro!: divide_pos_pos simp: field_simps e_def)
+
+  have "e < M / (3 + 2 / (b - a))"
+    using \<open>a < b\<close> \<open>0 < M\<close>
+    unfolding e_def by (intro divide_strict_left_mono add_strict_right_mono mult_pos_pos) (auto simp: field_simps)
+  then have "2 * e < (b - a) * (M - e * 3)"
+    using \<open>0<M\<close> \<open>0 < e\<close> \<open>a < b\<close> by (simp add: field_simps)
+
+  have e_less_M: "e < M / 1"
+    unfolding e_def using \<open>a < b\<close> \<open>0<M\<close> by (intro divide_strict_left_mono) (auto simp: field_simps)
+
+  obtain d
+    where "gauge d"
+      and integral_f: "\<forall>p. p tagged_division_of cbox x y \<and> d fine p \<longrightarrow>
+        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - I) < e"
+    using \<open>0<e\<close> f unfolding has_integral by auto
+
+  define C where "C X m = X \<inter> {x. ball x (1/Suc m) \<subseteq> d x}" for X m
+  have "incseq (C X)" for X
+    unfolding C_def [abs_def]
+    by (intro monoI Collect_mono conj_mono imp_refl le_left_mono subset_ball divide_left_mono Int_mono) auto
+
+  { fix X assume "X \<subseteq> space ?L" and eq: "?\<mu>' X = ?\<mu> E"
+    have "(SUP m. outer_measure_of ?L (C X m)) = outer_measure_of ?L (\<Union>m. C X m)"
+      using \<open>X \<subseteq> space ?L\<close> by (intro SUP_outer_measure_of_incseq \<open>incseq (C X)\<close>) (auto simp: C_def)
+    also have "(\<Union>m. C X m) = X"
+    proof -
+      { fix x
+        obtain e where "0 < e" "ball x e \<subseteq> d x"
+          using gaugeD[OF \<open>gauge d\<close>, of x] unfolding open_contains_ball by auto
+        moreover
+        obtain n where "1 / (1 + real n) < e"
+          using reals_Archimedean[OF \<open>0<e\<close>] by (auto simp: inverse_eq_divide)
+        then have "ball x (1 / (1 + real n)) \<subseteq> ball x e"
+          by (intro subset_ball) auto
+        ultimately have "\<exists>n. ball x (1 / (1 + real n)) \<subseteq> d x"
+          by blast }
+      then show ?thesis
+        by (auto simp: C_def)
+    qed
+    finally have "(SUP m. outer_measure_of ?L (C X m)) = ?\<mu> E"
+      using eq by auto
+    also have "\<dots> > M - e"
+      using \<open>0 < M\<close> \<open>?\<mu> E = M\<close> \<open>0<e\<close> by (auto intro!: ennreal_lessI)
+    finally have "\<exists>m. M - e < outer_measure_of ?L (C X m)"
+      unfolding less_SUP_iff by auto }
+  note C = this
+
+  let ?E = "{x\<in>E. f x \<le> a}" and ?F = "{x\<in>E. b \<le> f x}"
+
+  have "\<not> (?\<mu>' ?E = ?\<mu> E \<and> ?\<mu>' ?F = ?\<mu> E)"
+  proof
+    assume eq: "?\<mu>' ?E = ?\<mu> E \<and> ?\<mu>' ?F = ?\<mu> E"
+    with C[of ?E] C[of ?F] \<open>E \<in> sets ?L\<close>[THEN sets.sets_into_space] obtain ma mb
+      where "M - e < outer_measure_of ?L (C ?E ma)" "M - e < outer_measure_of ?L (C ?F mb)"
+      by auto
+    moreover define m where "m = max ma mb"
+    ultimately have M_minus_e: "M - e < outer_measure_of ?L (C ?E m)" "M - e < outer_measure_of ?L (C ?F m)"
+      using
+        incseqD[OF \<open>incseq (C ?E)\<close>, of ma m, THEN outer_measure_of_mono]
+        incseqD[OF \<open>incseq (C ?F)\<close>, of mb m, THEN outer_measure_of_mono]
+      by (auto intro: less_le_trans)
+    define d' where "d' x = d x \<inter> ball x (1 / (3 * Suc m))" for x
+    have "gauge d'"
+      unfolding d'_def by (intro gauge_inter \<open>gauge d\<close> gauge_ball) auto
+    then obtain p where p: "p tagged_division_of cbox x y" "d' fine p"
+      by (rule fine_division_exists)
+    then have "d fine p"
+      unfolding d'_def[abs_def] fine_def by auto
+
+    define s where "s = {(x::'a, k). k \<inter> (C ?E m) \<noteq> {} \<and> k \<inter> (C ?F m) \<noteq> {}}"
+    define T where "T E k = (SOME x. x \<in> k \<inter> C E m)" for E k
+    let ?A = "(\<lambda>(x, k). (T ?E k, k)) ` (p \<inter> s) \<union> (p - s)"
+    let ?B = "(\<lambda>(x, k). (T ?F k, k)) ` (p \<inter> s) \<union> (p - s)"
+
+    { fix X assume X_eq: "X = ?E \<or> X = ?F"
+      let ?T = "(\<lambda>(x, k). (T X k, k))"
+      let ?p = "?T ` (p \<inter> s) \<union> (p - s)"
+
+      have in_s: "(x, k) \<in> s \<Longrightarrow> T X k \<in> k \<inter> C X m" for x k
+        using someI_ex[of "\<lambda>x. x \<in> k \<inter> C X m"] X_eq unfolding ex_in_conv by (auto simp: T_def s_def)
+
+      { fix x k assume "(x, k) \<in> p" "(x, k) \<in> s"
+        have k: "k \<subseteq> ball x (1 / (3 * Suc m))"
+          using \<open>d' fine p\<close>[THEN fineD, OF \<open>(x, k) \<in> p\<close>] by (auto simp: d'_def)
+        then have "x \<in> ball (T X k) (1 / (3 * Suc m))"
+          using in_s[OF \<open>(x, k) \<in> s\<close>] by (auto simp: C_def subset_eq dist_commute)
+        then have "ball x (1 / (3 * Suc m)) \<subseteq> ball (T X k) (1 / Suc m)"
+          by (rule ball_trans) (auto simp: divide_simps)
+        with k in_s[OF \<open>(x, k) \<in> s\<close>] have "k \<subseteq> d (T X k)"
+          by (auto simp: C_def) }
+      then have "d fine ?p"
+        using \<open>d fine p\<close> by (auto intro!: fineI)
+      moreover
+      have "?p tagged_division_of cbox x y"
+      proof (rule tagged_division_ofI)
+        show "finite ?p"
+          using p(1) by auto
+      next
+        fix z k assume *: "(z, k) \<in> ?p"
+        then consider "(z, k) \<in> p" "(z, k) \<notin> s"
+          | x' where "(x', k) \<in> p" "(x', k) \<in> s" "z = T X k"
+          by (auto simp: T_def)
+        then have "z \<in> k \<and> k \<subseteq> cbox x y \<and> (\<exists>a b. k = cbox a b)"
+          using p(1) by cases (auto dest: in_s)
+        then show "z \<in> k" "k \<subseteq> cbox x y" "\<exists>a b. k = cbox a b"
+          by auto
+      next
+        fix z k z' k' assume "(z, k) \<in> ?p" "(z', k') \<in> ?p" "(z, k) \<noteq> (z', k')"
+        with tagged_division_ofD(5)[OF p(1), of _ k _ k']
+        show "interior k \<inter> interior k' = {}"
+          by (auto simp: T_def dest: in_s)
+      next
+        have "{k. \<exists>x. (x, k) \<in> ?p} = {k. \<exists>x. (x, k) \<in> p}"
+          by (auto simp: T_def image_iff Bex_def)
+        then show "\<Union>{k. \<exists>x. (x, k) \<in> ?p} = cbox x y"
+          using p(1) by auto
+      qed
+      ultimately have I: "norm ((\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) - I) < e"
+        using integral_f by auto
+
+      have "(\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) =
+        (\<Sum>(x, k)\<in>?T ` (p \<inter> s). content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p - s. content k *\<^sub>R f x)"
+        using p(1)[THEN tagged_division_ofD(1)]
+        by (safe intro!: setsum.union_inter_neutral) (auto simp: s_def T_def)
+      also have "(\<Sum>(x, k)\<in>?T ` (p \<inter> s). content k *\<^sub>R f x) = (\<Sum>(x, k)\<in>p \<inter> s. content k *\<^sub>R f (T X k))"
+      proof (subst setsum.reindex_nontrivial, safe)
+        fix x1 x2 k assume 1: "(x1, k) \<in> p" "(x1, k) \<in> s" and 2: "(x2, k) \<in> p" "(x2, k) \<in> s"
+          and eq: "content k *\<^sub>R f (T X k) \<noteq> 0"
+        with tagged_division_ofD(5)[OF p(1), of x1 k x2 k] tagged_division_ofD(4)[OF p(1), of x1 k]
+        show "x1 = x2"
+          by (auto simp: content_eq_0_interior)
+      qed (use p in \<open>auto intro!: setsum.cong\<close>)
+      finally have eq: "(\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) =
+        (\<Sum>(x, k)\<in>p \<inter> s. content k *\<^sub>R f (T X k)) + (\<Sum>(x, k)\<in>p - s. content k *\<^sub>R f x)" .
+
+      have in_T: "(x, k) \<in> s \<Longrightarrow> T X k \<in> X" for x k
+        using in_s[of x k] by (auto simp: C_def)
+
+      note I eq in_T }
+    note parts = this
+
+    have p_in_L: "(x, k) \<in> p \<Longrightarrow> k \<in> sets ?L" for x k
+      using tagged_division_ofD(3, 4)[OF p(1), of x k] by (auto simp: sets_restrict_space)
+
+    have [simp]: "finite p"
+      using tagged_division_ofD(1)[OF p(1)] .
+
+    have "(M - 3*e) * (b - a) \<le> (\<Sum>(x, k)\<in>p \<inter> s. content k) * (b - a)"
+    proof (intro mult_right_mono)
+      have fin: "?\<mu> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C X m = {}}) < \<infinity>" for X
+        using \<open>?\<mu> E < \<infinity>\<close> by (rule le_less_trans[rotated]) (auto intro!: emeasure_mono \<open>E \<in> sets ?L\<close>)
+      have sets: "(E \<inter> \<Union>{k\<in>snd`p. k \<inter> C X m = {}}) \<in> sets ?L" for X
+        using tagged_division_ofD(1)[OF p(1)] by (intro sets.Diff \<open>E \<in> sets ?L\<close> sets.finite_Union sets.Int) (auto intro: p_in_L)
+      { fix X assume "X \<subseteq> E" "M - e < ?\<mu>' (C X m)"
+        have "M - e \<le> ?\<mu>' (C X m)"
+          by (rule less_imp_le) fact
+        also have "\<dots> \<le> ?\<mu>' (E - (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C X m = {}}))"
+        proof (intro outer_measure_of_mono subsetI)
+          fix v assume "v \<in> C X m"
+          then have "v \<in> cbox x y" "v \<in> E"
+            using \<open>E \<subseteq> space ?L\<close> \<open>X \<subseteq> E\<close> by (auto simp: space_restrict_space C_def)
+          then obtain z k where "(z, k) \<in> p" "v \<in> k"
+            using tagged_division_ofD(6)[OF p(1), symmetric] by auto
+          then show "v \<in> E - E \<inter> (\<Union>{k\<in>snd`p. k \<inter> C X m = {}})"
+            using \<open>v \<in> C X m\<close> \<open>v \<in> E\<close> by auto
+        qed
+        also have "\<dots> = ?\<mu> E - ?\<mu> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C X m = {}})"
+          using \<open>E \<in> sets ?L\<close> fin[of X] sets[of X] by (auto intro!: emeasure_Diff)
+        finally have "?\<mu> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C X m = {}}) \<le> e"
+          using \<open>0 < e\<close> e_less_M apply (cases "?\<mu> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C X m = {}})")
+          by (auto simp add: \<open>?\<mu> E = M\<close> ennreal_minus ennreal_le_iff2)
+        note this }
+      note upper_bound = this
+
+      have "?\<mu> (E \<inter> \<Union>(snd`(p - s))) =
+        ?\<mu> ((E \<inter> \<Union>{k\<in>snd`p. k \<inter> C ?E m = {}}) \<union> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C ?F m = {}}))"
+        by (intro arg_cong[where f="?\<mu>"]) (auto simp: s_def image_def Bex_def)
+      also have "\<dots> \<le> ?\<mu> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C ?E m = {}}) + ?\<mu> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C ?F m = {}})"
+        using sets[of ?E] sets[of ?F] M_minus_e by (intro emeasure_subadditive) auto
+      also have "\<dots> \<le> e + ennreal e"
+        using upper_bound[of ?E] upper_bound[of ?F] M_minus_e by (intro add_mono) auto
+      finally have "?\<mu> E - 2*e \<le> ?\<mu> (E - (E \<inter> \<Union>(snd`(p - s))))"
+        using \<open>0 < e\<close> \<open>E \<in> sets ?L\<close> tagged_division_ofD(1)[OF p(1)]
+        by (subst emeasure_Diff)
+           (auto simp: ennreal_plus[symmetric] top_unique simp del: ennreal_plus
+                 intro!: sets.Int sets.finite_UN ennreal_mono_minus intro: p_in_L)
+      also have "\<dots> \<le> ?\<mu> (\<Union>x\<in>p \<inter> s. snd x)"
+      proof (safe intro!: emeasure_mono subsetI)
+        fix v assume "v \<in> E" and not: "v \<notin> (\<Union>x\<in>p \<inter> s. snd x)"
+        then have "v \<in> cbox x y"
+          using \<open>E \<subseteq> space ?L\<close> by (auto simp: space_restrict_space)
+        then obtain z k where "(z, k) \<in> p" "v \<in> k"
+          using tagged_division_ofD(6)[OF p(1), symmetric] by auto
+        with not show "v \<in> UNION (p - s) snd"
+          by (auto intro!: bexI[of _ "(z, k)"] elim: ballE[of _ _ "(z, k)"])
+      qed (auto intro!: sets.Int sets.finite_UN ennreal_mono_minus intro: p_in_L)
+      also have "\<dots> = measure ?L (\<Union>x\<in>p \<inter> s. snd x)"
+        by (auto intro!: emeasure_eq_ennreal_measure)
+      finally have "M - 2 * e \<le> measure ?L (\<Union>x\<in>p \<inter> s. snd x)"
+        unfolding \<open>?\<mu> E = M\<close> using \<open>0 < e\<close> by (simp add: ennreal_minus)
+      also have "measure ?L (\<Union>x\<in>p \<inter> s. snd x) = content (\<Union>x\<in>p \<inter> s. snd x)"
+        using tagged_division_ofD(1,3,4) [OF p(1)]
+        by (intro content_eq_L[symmetric])
+           (fastforce intro!: sets.finite_UN UN_least del: subsetI)+
+      also have "content (\<Union>x\<in>p \<inter> s. snd x) \<le> (\<Sum>k\<in>p \<inter> s. content (snd k))"
+        using p(1) by (auto simp: emeasure_lborel_cbox_eq intro!: measure_subadditive_finite
+                            dest!: p(1)[THEN tagged_division_ofD(4)])
+      finally show "M - 3 * e \<le> (\<Sum>(x, y)\<in>p \<inter> s. content y)"
+        using \<open>0 < e\<close> by (simp add: split_beta)
+    qed (use \<open>a < b\<close> in auto)
+    also have "\<dots> = (\<Sum>(x, k)\<in>p \<inter> s. content k * (b - a))"
+      by (simp add: setsum_distrib_right split_beta')
+    also have "\<dots> \<le> (\<Sum>(x, k)\<in>p \<inter> s. content k * (f (T ?F k) - f (T ?E k)))"
+      using parts(3) by (auto intro!: setsum_mono mult_left_mono diff_mono)
+    also have "\<dots> = (\<Sum>(x, k)\<in>p \<inter> s. content k * f (T ?F k)) - (\<Sum>(x, k)\<in>p \<inter> s. content k * f (T ?E k))"
+      by (auto intro!: setsum.cong simp: field_simps setsum_subtractf[symmetric])
+    also have "\<dots> = (\<Sum>(x, k)\<in>?B. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>?A. content k *\<^sub>R f x)"
+      by (subst (1 2) parts) auto
+    also have "\<dots> \<le> norm ((\<Sum>(x, k)\<in>?B. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>?A. content k *\<^sub>R f x))"
+      by auto
+    also have "\<dots> \<le> e + e"
+      using parts(1)[of ?E] parts(1)[of ?F] by (intro norm_diff_triangle_le[of _ I]) auto
+    finally show False
+      using \<open>2 * e < (b - a) * (M - e * 3)\<close> by (auto simp: field_simps)
+  qed
+  moreover have "?\<mu>' ?E \<le> ?\<mu> E" "?\<mu>' ?F \<le> ?\<mu> E"
+    unfolding outer_measure_of_eq[OF \<open>E \<in> sets ?L\<close>, symmetric] by (auto intro!: outer_measure_of_mono)
+  ultimately show "min (?\<mu>' ?E) (?\<mu>' ?F) < ?\<mu> E"
+    unfolding min_less_iff_disj by (auto simp: less_le)
+qed
+
+lemma has_integral_implies_lebesgue_measurable_real:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
+  assumes f: "(f has_integral I) \<Omega>"
+  shows "(\<lambda>x. f x * indicator \<Omega> x) \<in> lebesgue \<rightarrow>\<^sub>M borel"
+proof -
+  define B :: "nat \<Rightarrow> 'a set" where "B n = cbox (- real n *\<^sub>R One) (real n *\<^sub>R One)" for n
+  show "(\<lambda>x. f x * indicator \<Omega> x) \<in> lebesgue \<rightarrow>\<^sub>M borel"
+  proof (rule measurable_piecewise_restrict)
+    have "(\<Union>n. box (- real n *\<^sub>R One) (real n *\<^sub>R One)) \<subseteq> UNION UNIV B"
+      unfolding B_def by (intro UN_mono box_subset_cbox order_refl)
+    then show "countable (range B)" "space lebesgue \<subseteq> UNION UNIV B"
+      by (auto simp: B_def UN_box_eq_UNIV)
+  next
+    fix \<Omega>' assume "\<Omega>' \<in> range B"
+    then obtain n where \<Omega>': "\<Omega>' = B n" by auto
+    then show "\<Omega>' \<inter> space lebesgue \<in> sets lebesgue"
+      by (auto simp: B_def)
+
+    have "f integrable_on \<Omega>"
+      using f by auto
+    then have "(\<lambda>x. f x * indicator \<Omega> x) integrable_on \<Omega>"
+      by (auto simp: integrable_on_def cong: has_integral_cong)
+    then have "(\<lambda>x. f x * indicator \<Omega> x) integrable_on (\<Omega> \<union> B n)"
+      by (rule integrable_on_superset[rotated 2]) auto
+    then have "(\<lambda>x. f x * indicator \<Omega> x) integrable_on B n"
+      unfolding B_def by (rule integrable_on_subcbox) auto
+    then show "(\<lambda>x. f x * indicator \<Omega> x) \<in> lebesgue_on \<Omega>' \<rightarrow>\<^sub>M borel"
+      unfolding B_def \<Omega>' by (auto intro: has_integral_implies_lebesgue_measurable_cbox simp: integrable_on_def)
+  qed
+qed
+
+lemma has_integral_implies_lebesgue_measurable:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes f: "(f has_integral I) \<Omega>"
+  shows "(\<lambda>x. indicator \<Omega> x *\<^sub>R f x) \<in> lebesgue \<rightarrow>\<^sub>M borel"
+proof (intro borel_measurable_euclidean_space[where 'c='b, THEN iffD2] ballI)
+  fix i :: "'b" assume "i \<in> Basis"
+  have "(\<lambda>x. (f x \<bullet> i) * indicator \<Omega> x) \<in> borel_measurable (completion lborel)"
+    using has_integral_linear[OF f bounded_linear_inner_left, of i]
+    by (intro has_integral_implies_lebesgue_measurable_real) (auto simp: comp_def)
+  then show "(\<lambda>x. indicator \<Omega> x *\<^sub>R f x \<bullet> i) \<in> borel_measurable (completion lborel)"
+    by (simp add: ac_simps)
+qed
 
 subsection \<open>Equivalence Lebesgue integral on @{const lborel} and HK-integral\<close>
 
@@ -345,6 +678,82 @@ next
       using lim lim(1)[THEN borel_measurable_integrable]
       by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]) auto
   qed
+qed
+
+lemma has_integral_AE:
+  assumes ae: "AE x in lborel. x \<in> \<Omega> \<longrightarrow> f x = g x"
+  shows "(f has_integral x) \<Omega> = (g has_integral x) \<Omega>"
+proof -
+  from ae obtain N
+    where N: "N \<in> sets borel" "emeasure lborel N = 0" "{x. \<not> (x \<in> \<Omega> \<longrightarrow> f x = g x)} \<subseteq> N"
+    by (auto elim!: AE_E)
+  then have not_N: "AE x in lborel. x \<notin> N"
+    by (simp add: AE_iff_measurable)
+  show ?thesis
+  proof (rule has_integral_spike_eq[symmetric])
+    show "\<forall>x\<in>\<Omega> - N. f x = g x" using N(3) by auto
+    show "negligible N"
+      unfolding negligible_def
+    proof (intro allI)
+      fix a b :: "'a"
+      let ?F = "\<lambda>x::'a. if x \<in> cbox a b then indicator N x else 0 :: real"
+      have "integrable lborel ?F = integrable lborel (\<lambda>x::'a. 0::real)"
+        using not_N N(1) by (intro integrable_cong_AE) auto
+      moreover have "(LINT x|lborel. ?F x) = (LINT x::'a|lborel. 0::real)"
+        using not_N N(1) by (intro integral_cong_AE) auto
+      ultimately have "(?F has_integral 0) UNIV"
+        using has_integral_integral_real[of ?F] by simp
+      then show "(indicator N has_integral (0::real)) (cbox a b)"
+        unfolding has_integral_restrict_univ .
+    qed
+  qed
+qed
+
+lemma nn_integral_has_integral_lebesgue:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes nonneg: "\<And>x. 0 \<le> f x" and I: "(f has_integral I) \<Omega>"
+  shows "integral\<^sup>N lborel (\<lambda>x. indicator \<Omega> x * f x) = I"
+proof -
+  from I have "(\<lambda>x. indicator \<Omega> x *\<^sub>R f x) \<in> lebesgue \<rightarrow>\<^sub>M borel"
+    by (rule has_integral_implies_lebesgue_measurable)
+  then obtain f' :: "'a \<Rightarrow> real"
+    where [measurable]: "f' \<in> borel \<rightarrow>\<^sub>M borel" and eq: "AE x in lborel. indicator \<Omega> x * f x = f' x"
+    by (auto dest: completion_ex_borel_measurable_real)
+
+  from I have "((\<lambda>x. abs (indicator \<Omega> x * f x)) has_integral I) UNIV"
+    using nonneg by (simp add: indicator_def if_distrib[of "\<lambda>x. x * f y" for y] cong: if_cong)
+  also have "((\<lambda>x. abs (indicator \<Omega> x * f x)) has_integral I) UNIV \<longleftrightarrow> ((\<lambda>x. abs (f' x)) has_integral I) UNIV"
+    using eq by (intro has_integral_AE) auto
+  finally have "integral\<^sup>N lborel (\<lambda>x. abs (f' x)) = I"
+    by (rule nn_integral_has_integral_lborel[rotated 2]) auto
+  also have "integral\<^sup>N lborel (\<lambda>x. abs (f' x)) = integral\<^sup>N lborel (\<lambda>x. abs (indicator \<Omega> x * f x))"
+    using eq by (intro nn_integral_cong_AE) auto
+  finally show ?thesis
+    using nonneg by auto
+qed
+
+lemma has_integral_iff_nn_integral_lebesgue:
+  assumes f: "\<And>x. 0 \<le> f x"
+  shows "(f has_integral r) UNIV \<longleftrightarrow> (f \<in> lebesgue \<rightarrow>\<^sub>M borel \<and> integral\<^sup>N lebesgue f = r \<and> 0 \<le> r)" (is "?I = ?N")
+proof
+  assume ?I
+  have "0 \<le> r"
+    using has_integral_nonneg[OF \<open>?I\<close>] f by auto
+  then show ?N
+    using nn_integral_has_integral_lebesgue[OF f \<open>?I\<close>]
+      has_integral_implies_lebesgue_measurable[OF \<open>?I\<close>]
+    by (auto simp: nn_integral_completion)
+next
+  assume ?N
+  then obtain f' where f': "f' \<in> borel \<rightarrow>\<^sub>M borel" "AE x in lborel. f x = f' x"
+    by (auto dest: completion_ex_borel_measurable_real)
+  moreover have "(\<integral>\<^sup>+ x. ennreal \<bar>f' x\<bar> \<partial>lborel) = (\<integral>\<^sup>+ x. ennreal \<bar>f x\<bar> \<partial>lborel)"
+    using f' by (intro nn_integral_cong_AE) auto
+  moreover have "((\<lambda>x. \<bar>f' x\<bar>) has_integral r) UNIV \<longleftrightarrow> ((\<lambda>x. \<bar>f x\<bar>) has_integral r) UNIV"
+    using f' by (intro has_integral_AE) auto
+  moreover note nn_integral_has_integral[of "\<lambda>x. \<bar>f' x\<bar>" r] \<open>?N\<close>
+  ultimately show ?I
+    using f by (auto simp: nn_integral_completion)
 qed
 
 context

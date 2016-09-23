@@ -2228,6 +2228,16 @@ next
     by auto
 qed
 
+lemma Inf_countable_INF:
+  assumes "A \<noteq> {}" shows "\<exists>f::nat \<Rightarrow> ereal. decseq f \<and> range f \<subseteq> A \<and> Inf A = (INF i. f i)"
+proof -
+  obtain f where "incseq f" "range f \<subseteq> uminus`A" "Sup (uminus`A) = (SUP i. f i)"
+    using Sup_countable_SUP[of "uminus ` A"] \<open>A \<noteq> {}\<close> by auto
+  then show ?thesis
+    by (intro exI[of _ "\<lambda>x. - f x"])
+       (auto simp: ereal_Sup_uminus_image_eq ereal_INF_uminus_eq eq_commute[of "- _"])
+qed
+
 lemma SUP_countable_SUP:
   "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> SUPREMUM A g = SUPREMUM UNIV f"
   using Sup_countable_SUP [of "g`A"] by auto

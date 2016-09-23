@@ -1574,6 +1574,19 @@ lemma ennreal_Sup_countable_SUP:
     done
   done
 
+lemma ennreal_Inf_countable_INF:
+  "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ennreal. decseq f \<and> range f \<subseteq> A \<and> Inf A = (INF i. f i)"
+  including ennreal.lifting
+  unfolding decseq_def
+  apply transfer
+  subgoal for A
+    using Inf_countable_INF[of A]
+    apply (clarsimp simp add: decseq_def[symmetric])
+    subgoal for f
+      by (intro exI[of _ f]) auto
+    done
+  done
+
 lemma ennreal_SUP_countable_SUP:
   "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ennreal. range f \<subseteq> g`A \<and> SUPREMUM A g = SUPREMUM UNIV f"
   using ennreal_Sup_countable_SUP [of "g`A"] by auto
