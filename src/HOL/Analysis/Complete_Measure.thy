@@ -342,6 +342,7 @@ lemma null_sets_completion_subset:
 lemma null_sets_restrict_space:
   "\<Omega> \<in> sets M \<Longrightarrow> A \<in> null_sets (restrict_space M \<Omega>) \<longleftrightarrow> A \<subseteq> \<Omega> \<and> A \<in> null_sets M"
   by (auto simp: null_sets_def emeasure_restrict_space sets_restrict_space)
+
 lemma completion_ex_borel_measurable_real:
   fixes g :: "'a \<Rightarrow> real"
   assumes g: "g \<in> borel_measurable (completion M)"

@@ -5,7 +5,7 @@ Lebesgue integral over an interval (with endpoints possibly +-\<infinity>)
 *)
 
 theory Interval_Integral
-  imports Set_Integral
+  imports Equivalence_Lebesgue_Henstock_Integration
 begin
 
 lemma continuous_on_vector_derivative:
@@ -1062,19 +1062,16 @@ proof -
 qed
 
 
-syntax
-"_complex_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> complex"
-("(2CLBINT _. _)" [0,60] 60)
+syntax "_complex_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> complex"
+  ("(2CLBINT _. _)" [0,60] 60)
+
+translations "CLBINT x. f" == "CONST complex_lebesgue_integral CONST lborel (\<lambda>x. f)"
+
+syntax "_complex_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> complex"
+  ("(3CLBINT _:_. _)" [0,60,61] 60)
 
 translations
-"CLBINT x. f" == "CONST complex_lebesgue_integral CONST lborel (\<lambda>x. f)"
-
-syntax
-"_complex_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> complex"
-("(3CLBINT _:_. _)" [0,60,61] 60)
-
-translations
-"CLBINT x:A. f" == "CONST complex_set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
+  "CLBINT x:A. f" == "CONST complex_set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
 
 abbreviation complex_interval_lebesgue_integral ::
     "real measure \<Rightarrow> ereal \<Rightarrow> ereal \<Rightarrow> (real \<Rightarrow> complex) \<Rightarrow> complex" where

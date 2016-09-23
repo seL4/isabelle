@@ -2311,7 +2311,7 @@ lemma integrableD[dest]:
 
 lemma integrableE:
   assumes "integrable M f"
-  obtains r q where
+  obtains r q where "0 \<le> r" "0 \<le> q"
     "(\<integral>\<^sup>+x. ennreal (f x)\<partial>M) = ennreal r"
     "(\<integral>\<^sup>+x. ennreal (-f x)\<partial>M) = ennreal q"
     "f \<in> borel_measurable M" "integral\<^sup>L M f = r - q"

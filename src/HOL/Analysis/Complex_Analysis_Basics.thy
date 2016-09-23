@@ -5,7 +5,7 @@
 section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
-imports Henstock_Kurzweil_Integration "~~/src/HOL/Library/Nonpos_Ints"
+imports Equivalence_Lebesgue_Henstock_Integration "~~/src/HOL/Library/Nonpos_Ints"
 begin
 
 

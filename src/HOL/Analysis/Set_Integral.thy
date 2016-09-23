@@ -7,7 +7,7 @@ TODO: keep all these? Need unicode translations as well.
 *)
 
 theory Set_Integral
-  imports Equivalence_Lebesgue_Henstock_Integration
+  imports Bochner_Integration
 begin
 
 (*
@@ -50,15 +50,9 @@ syntax
 "_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real"
 ("(2LBINT _./ _)" [0,60] 60)
 
-translations
-"LBINT x. f" == "CONST lebesgue_integral CONST lborel (\<lambda>x. f)"
-
 syntax
 "_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> real"
 ("(3LBINT _:_./ _)" [0,60,61] 60)
-
-translations
-"LBINT x:A. f" == "CONST set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
 
 (*
     Basic properties
@@ -179,12 +173,6 @@ lemma set_integral_diff [simp, intro]:
   shows "set_integrable M A (\<lambda>x. f x - g x)" and "LINT x:A|M. f x - g x =
     (LINT x:A|M. f x) - (LINT x:A|M. g x)"
   using assms by (simp_all add: scaleR_diff_right)
-
-lemma set_integral_reflect:
-  fixes S and f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
-  shows "(LBINT x : S. f x) = (LBINT x : {x. - x \<in> S}. f (- x))"
-  by (subst lborel_integral_real_affine[where c="-1" and t=0])
-     (auto intro!: Bochner_Integration.integral_cong split: split_indicator)
 
 (* question: why do we have this for negation, but multiplication by a constant
    requires an integrability assumption? *)
@@ -527,59 +515,6 @@ syntax
 
 translations
 "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
-
-(*
-lemma cmod_mult: "cmod ((a :: real) * (x :: complex)) = \<bar>a\<bar> * cmod x"
-  apply (simp add: norm_mult)
-  by (subst norm_mult, auto)
-*)
-
-lemma borel_integrable_atLeastAtMost':
-  fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
-  assumes f: "continuous_on {a..b} f"
-  shows "set_integrable lborel {a..b} f" (is "integrable _ ?f")
-  by (intro borel_integrable_compact compact_Icc f)
-
-lemma integral_FTC_atLeastAtMost:
-  fixes f :: "real \<Rightarrow> 'a :: euclidean_space"
-  assumes "a \<le> b"
-    and F: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> (F has_vector_derivative f x) (at x within {a .. b})"
-    and f: "continuous_on {a .. b} f"
-  shows "integral\<^sup>L lborel (\<lambda>x. indicator {a .. b} x *\<^sub>R f x) = F b - F a"
-proof -
-  let ?f = "\<lambda>x. indicator {a .. b} x *\<^sub>R f x"
-  have "(?f has_integral (\<integral>x. ?f x \<partial>lborel)) UNIV"
-    using borel_integrable_atLeastAtMost'[OF f] by (rule has_integral_integral_lborel)
-  moreover
-  have "(f has_integral F b - F a) {a .. b}"
-    by (intro fundamental_theorem_of_calculus ballI assms) auto
-  then have "(?f has_integral F b - F a) {a .. b}"
-    by (subst has_integral_cong[where g=f]) auto
-  then have "(?f has_integral F b - F a) UNIV"
-    by (intro has_integral_on_superset[where t=UNIV and s="{a..b}"]) auto
-  ultimately show "integral\<^sup>L lborel ?f = F b - F a"
-    by (rule has_integral_unique)
-qed
-
-lemma set_borel_integral_eq_integral:
-  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
-  assumes "set_integrable lborel S f"
-  shows "f integrable_on S" "LINT x : S | lborel. f x = integral S f"
-proof -
-  let ?f = "\<lambda>x. indicator S x *\<^sub>R f x"
-  have "(?f has_integral LINT x : S | lborel. f x) UNIV"
-    by (rule has_integral_integral_lborel) fact
-  hence 1: "(f has_integral (set_lebesgue_integral lborel S f)) S"
-    apply (subst has_integral_restrict_univ [symmetric])
-    apply (rule has_integral_eq)
-    by auto
-  thus "f integrable_on S"
-    by (auto simp add: integrable_on_def)
-  with 1 have "(f has_integral (integral S f)) S"
-    by (intro integrable_integral, auto simp add: integrable_on_def)
-  thus "LINT x : S | lborel. f x = integral S f"
-    by (intro has_integral_unique [OF 1])
-qed
 
 lemma set_borel_measurable_continuous:
   fixes f :: "_ \<Rightarrow> _::real_normed_vector"
