@@ -1,14 +1,20 @@
 object stats extends isabelle.Isabelle_Tool.Body {
 
   import isabelle._
+  import java.time._
+  import java.time.format.DateTimeFormatter
+
+
+  val start_time = Instant.now().atZone(ZoneId.systemDefault).format(DateTimeFormatter.RFC_1123_DATE_TIME)
 
   val target_dir = Path.explode("stats")
   val jobs = List("isabelle-nightly-benchmark", "isabelle-nightly-slow")
 
-  val html_header = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+  val html_header = s"""<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
 <head><title>Performance statistics from session build output</title></head>
 <body>
+  <p>Generated at $start_time</p>
 """
 
   val html_footer = """
