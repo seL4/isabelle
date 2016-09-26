@@ -299,7 +299,7 @@ fun is_split_thm ctxt thm =
           @{const_name Groups.abs},
           @{const_name Groups.minus},
           "Int.nat" (*DYNAMIC BINDING!*),
-          "Divides.div_class.mod" (*DYNAMIC BINDING!*),
+          @{const_name Rings.modulo},
           @{const_name Rings.divide}] a
     | _ =>
       (if Context_Position.is_visible ctxt then
@@ -467,7 +467,7 @@ in
     (* ?P ((?n::nat) mod (numeral ?k)) =
          ((numeral ?k = 0 --> ?P ?n) & (~ (numeral ?k = 0) -->
            (ALL i j. j < numeral ?k --> ?n = numeral ?k * i + j --> ?P j))) *)
-    | (Const ("Divides.div_class.mod", Type ("fun", [@{typ nat}, _])), (*DYNAMIC BINDING!*) [t1, t2]) =>
+    | (Const (@{const_name Rings.modulo}, Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)
@@ -536,7 +536,7 @@ in
           (numeral ?k < 0 -->
             (ALL i j.
               numeral ?k < j & j <= 0 & ?n = numeral ?k * i + j --> ?P j))) *)
-    | (Const ("Divides.div_class.mod",
+    | (Const (@{const_name Rings.modulo},
         Type ("fun", [Type ("Int.int", []), _])), (*DYNAMIC BINDING!*) [t1, t2]) =>
       let
         val rev_terms               = rev terms

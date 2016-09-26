@@ -16,7 +16,7 @@ Constant & Type & Syntax \\
 @{term [source] times} & @{typeof [show_sorts] "times"} & (infixl $*$ 70) \\
 @{term [source] inverse_divide} & @{typeof [show_sorts] "inverse_divide"} & (infixl $/$ 70) \\
 @{term [source] divide} & @{typeof [show_sorts] "divide"} & (infixl $div$ 70) \\
-@{term [source] Divides.mod} & @{typeof [show_sorts] "Divides.mod"} & (infixl $mod$ 70) \\
+@{term [source] modulo} & @{typeof [show_sorts] "modulo"} & (infixl $mod$ 70) \\
 @{term [source] abs} & @{typeof [show_sorts] "abs"} & ${\mid} x {\mid}$ \\
 @{term [source] sgn} & @{typeof [show_sorts] "sgn"} \\
 @{term [source] less_eq} & @{typeof [show_sorts] "less_eq"} & (infixl $\le$ 50) \\

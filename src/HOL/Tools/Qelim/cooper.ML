@@ -757,7 +757,7 @@ local
  | Const(@{const_name Groups.times},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name Groups.minus},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name Power.power},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Divides.mod},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Rings.modulo},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name Rings.divide},_)$l$r => isnum l andalso isnum r
  | _ => is_number t orelse can HOLogic.dest_nat t
 

@@ -147,7 +147,7 @@ lemma integer_of_char_zero [simp, code]:
 lemma integer_of_char_Char [simp]:
   "integer_of_char (Char k) = numeral k mod 256"
   by (simp only: integer_of_char_def integer_of_nat_def comp_apply nat_of_char_Char map_fun_def
-    id_apply zmod_int mod_integer.abs_eq [symmetric]) simp
+    id_apply zmod_int modulo_integer.abs_eq [symmetric]) simp
 
 lemma less_256_integer_of_char_Char:
   assumes "numeral k < (256 :: integer)"

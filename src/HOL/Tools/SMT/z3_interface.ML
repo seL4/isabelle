@@ -35,7 +35,7 @@ local
      serialize = #serialize (SMTLIB_Interface.translate_config ctxt)}
 
   fun is_div_mod @{const divide (int)} = true
-    | is_div_mod @{const mod (int)} = true
+    | is_div_mod @{const modulo (int)} = true
     | is_div_mod _ = false
 
   val have_int_div_mod = exists (Term.exists_subterm is_div_mod o Thm.prop_of)

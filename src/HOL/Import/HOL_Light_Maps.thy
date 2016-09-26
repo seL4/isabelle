@@ -197,7 +197,7 @@ lemma FACT[import_const "FACT" : fact]:
   "fact (id 0) = id (bit1 0) \<and> (\<forall>n. fact (Suc n) = Suc n * fact n)"
   by simp
 
-import_const_map MOD : mod
+import_const_map MOD : modulo
 import_const_map DIV : divide
 
 lemma DIVISION_0:

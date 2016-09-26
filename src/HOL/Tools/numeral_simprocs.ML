@@ -551,8 +551,8 @@ structure DivCancelFactor = ExtractCommonTermFun
 
 structure ModCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val mk_bal   = HOLogic.mk_binop @{const_name Divides.mod}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name modulo}
+  val dest_bal = HOLogic.dest_bin @{const_name modulo} dummyT
   fun simp_conv _ _ = SOME @{thm mod_mult_mult1}
 );
 

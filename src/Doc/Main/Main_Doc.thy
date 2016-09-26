@@ -325,9 +325,9 @@ overloaded operators:
 @{const divide} & @{typeof divide}\\
 @{const abs} & @{typeof abs}\\
 @{const sgn} & @{typeof sgn}\\
-@{const dvd_class.dvd} & @{typeof "dvd_class.dvd"}\\
-@{const Rings.divide} & @{typeof Rings.divide}\\
-@{const div_class.mod} & @{typeof "div_class.mod"}\\
+@{const Rings.dvd} & @{typeof Rings.dvd}\\
+@{const divide} & @{typeof divide}\\
+@{const modulo} & @{typeof modulo}\\
 \end{supertabular}
 
 \subsubsection*{Syntax}

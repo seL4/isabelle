@@ -240,6 +240,11 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* Type class "div" with operation "mod" renamed to type class "modulo" with
+operation "modulo", analogously to type class "divide".  This eliminates the
+need to qualify any of those names in the presence of infix "mod" syntax.
+INCOMPATIBILITY.
+
 * The unique existence quantifier no longer provides 'binder' syntax,
 but uses syntax translations (as for bounded unique existence). Thus
 iterated quantification \<exists>!x y. P x y with its slightly confusing

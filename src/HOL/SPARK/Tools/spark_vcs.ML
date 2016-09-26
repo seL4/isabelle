@@ -441,7 +441,7 @@ fun term_of_expr thy prfx types pfuns =
       | tm_of vs (Funct ("div", [e, e'])) = (HOLogic.mk_binop @{const_name sdiv}
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
-      | tm_of vs (Funct ("mod", [e, e'])) = (HOLogic.mk_binop @{const_name mod}
+      | tm_of vs (Funct ("mod", [e, e'])) = (HOLogic.mk_binop @{const_name modulo}
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
       | tm_of vs (Funct ("-", [e])) =

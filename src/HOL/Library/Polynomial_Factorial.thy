@@ -67,7 +67,7 @@ begin
 definition [simp]: "normalize_real = (normalize_field :: real \<Rightarrow> _)"
 definition [simp]: "unit_factor_real = (unit_factor_field :: real \<Rightarrow> _)"
 definition [simp]: "euclidean_size_real = (euclidean_size_field :: real \<Rightarrow> _)"
-definition [simp]: "mod_real = (mod_field :: real \<Rightarrow> _)"
+definition [simp]: "modulo_real = (mod_field :: real \<Rightarrow> _)"
 
 instance by standard (simp_all add: dvd_field_iff divide_simps)
 end
@@ -94,7 +94,7 @@ begin
 definition [simp]: "normalize_rat = (normalize_field :: rat \<Rightarrow> _)"
 definition [simp]: "unit_factor_rat = (unit_factor_field :: rat \<Rightarrow> _)"
 definition [simp]: "euclidean_size_rat = (euclidean_size_field :: rat \<Rightarrow> _)"
-definition [simp]: "mod_rat = (mod_field :: rat \<Rightarrow> _)"
+definition [simp]: "modulo_rat = (mod_field :: rat \<Rightarrow> _)"
 
 instance by standard (simp_all add: dvd_field_iff divide_simps)
 end
@@ -121,7 +121,7 @@ begin
 definition [simp]: "normalize_complex = (normalize_field :: complex \<Rightarrow> _)"
 definition [simp]: "unit_factor_complex = (unit_factor_field :: complex \<Rightarrow> _)"
 definition [simp]: "euclidean_size_complex = (euclidean_size_field :: complex \<Rightarrow> _)"
-definition [simp]: "mod_complex = (mod_field :: complex \<Rightarrow> _)"
+definition [simp]: "modulo_complex = (mod_field :: complex \<Rightarrow> _)"
 
 instance by standard (simp_all add: dvd_field_iff divide_simps)
 end

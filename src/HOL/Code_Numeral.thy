@@ -175,11 +175,11 @@ lift_definition divide_integer :: "integer \<Rightarrow> integer \<Rightarrow> i
 
 declare divide_integer.rep_eq [simp]
 
-lift_definition mod_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
-  is "Divides.mod :: int \<Rightarrow> int \<Rightarrow> int"
+lift_definition modulo_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "modulo :: int \<Rightarrow> int \<Rightarrow> int"
   .
 
-declare mod_integer.rep_eq [simp]
+declare modulo_integer.rep_eq [simp]
 
 lift_definition abs_integer :: "integer \<Rightarrow> integer"
   is "abs :: int \<Rightarrow> int"
@@ -534,7 +534,7 @@ proof -
   moreover have "2 * (j div 2) = j - j mod 2"
     by (simp add: zmult_div_cancel mult.commute)
   ultimately show ?thesis
-    by (auto simp add: split_def Let_def mod_integer_def nat_of_integer_def not_le
+    by (auto simp add: split_def Let_def modulo_integer_def nat_of_integer_def not_le
       nat_add_distrib [symmetric] Suc_nat_eq_nat_zadd1)
       (auto simp add: mult_2 [symmetric])
 qed
@@ -761,11 +761,11 @@ lift_definition divide_natural :: "natural \<Rightarrow> natural \<Rightarrow> n
 
 declare divide_natural.rep_eq [simp]
 
-lift_definition mod_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
-  is "Divides.mod :: nat \<Rightarrow> nat \<Rightarrow> nat"
+lift_definition modulo_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "modulo :: nat \<Rightarrow> nat \<Rightarrow> nat"
   .
 
-declare mod_natural.rep_eq [simp]
+declare modulo_natural.rep_eq [simp]
 
 lift_definition less_eq_natural :: "natural \<Rightarrow> natural \<Rightarrow> bool"
   is "less_eq :: nat \<Rightarrow> nat \<Rightarrow> bool"
@@ -973,7 +973,7 @@ code_reflect Code_Numeral
   functions "Code_Numeral.Suc" "0 :: natural" "1 :: natural"
     "plus :: natural \<Rightarrow> _" "minus :: natural \<Rightarrow> _"
     "times :: natural \<Rightarrow> _" "divide :: natural \<Rightarrow> _"
-    "Divides.mod :: natural \<Rightarrow> _"
+    "modulo :: natural \<Rightarrow> _"
     integer_of_natural natural_of_integer
 
 end

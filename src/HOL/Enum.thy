@@ -580,7 +580,7 @@ end
 instantiation finite_1 :: 
   "{linordered_ring_strict, linordered_comm_semiring_strict, ordered_comm_ring,
     ordered_cancel_comm_monoid_diff, comm_monoid_mult, ordered_ring_abs,
-    one, Divides.div, sgn_if, inverse}"
+    one, modulo, sgn_if, inverse}"
 begin
 definition [simp]: "Groups.zero = a\<^sub>1"
 definition [simp]: "Groups.one = a\<^sub>1"
@@ -698,7 +698,7 @@ definition "sgn = (\<lambda>x :: finite_2. x)"
 instance
 by intro_classes
   (simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def times_finite_2_def
-       inverse_finite_2_def divide_finite_2_def abs_finite_2_def mod_finite_2_def sgn_finite_2_def
+       inverse_finite_2_def divide_finite_2_def abs_finite_2_def modulo_finite_2_def sgn_finite_2_def
      split: finite_2.splits)
 end
 
@@ -825,7 +825,7 @@ definition "sgn = (\<lambda>x. case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | _ \
 instance
 by intro_classes
   (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def times_finite_3_def
-       inverse_finite_3_def divide_finite_3_def abs_finite_3_def mod_finite_3_def sgn_finite_3_def
+       inverse_finite_3_def divide_finite_3_def abs_finite_3_def modulo_finite_3_def sgn_finite_3_def
        less_finite_3_def
      split: finite_3.splits)
 end

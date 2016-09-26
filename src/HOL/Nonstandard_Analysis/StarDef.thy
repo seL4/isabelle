@@ -527,7 +527,7 @@ end
 
 instance star :: (Rings.dvd) Rings.dvd ..
 
-instantiation star :: (Divides.div) Divides.div
+instantiation star :: (modulo) modulo
 begin
 
 definition

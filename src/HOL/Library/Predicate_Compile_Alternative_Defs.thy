@@ -59,7 +59,7 @@ setup \<open>Predicate_Compile_Data.keep_functions [@{const_name numeral}]\<clos
 setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Char}]\<close>
 setup \<open>Predicate_Compile_Data.keep_functions [@{const_name Char}]\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name divide}, @{const_name mod}, @{const_name times}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name divide}, @{const_name modulo}, @{const_name times}]\<close>
 
 section \<open>Arithmetic operations\<close>
 

@@ -542,6 +542,8 @@ text \<open>
     \<^item> \<^emph>\<open>Algebra I\<close> by van der Waerden, Springer
 \<close>
 
+text \<open>Syntactic division operator\<close>
+
 class divide =
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "div" 70)
 
@@ -569,6 +571,13 @@ end
 
 setup \<open>Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a::divide \<Rightarrow> 'a \<Rightarrow> 'a"})\<close>
 
+text \<open>Syntactic division remainder operator\<close>
+
+class modulo = dvd + divide +
+  fixes modulo :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "mod" 70)
+
+text \<open>Algebraic classes with division\<close>
+  
 class semidom_divide = semidom + divide +
   assumes nonzero_mult_divide_cancel_right [simp]: "b \<noteq> 0 \<Longrightarrow> (a * b) div b = a"
   assumes divide_zero [simp]: "a div 0 = 0"

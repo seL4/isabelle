@@ -11,13 +11,10 @@ begin
 
 subsection \<open>Abstract division in commutative semirings.\<close>
 
-class div = dvd + divide +
-  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "mod" 70)
-
-class semiring_div = semidom + div +
+class semiring_div = semidom + modulo +
   assumes mod_div_equality: "a div b * b + a mod b = a"
-    and div_by_0 [simp]: "a div 0 = 0"
-    and div_0 [simp]: "0 div a = 0"
+    and div_by_0: "a div 0 = 0"
+    and div_0: "0 div a = 0"
     and div_mult_self1 [simp]: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
     and div_mult_mult1 [simp]: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
 begin
@@ -27,8 +24,8 @@ proof
   fix b a
   assume "b \<noteq> 0"
   then show "a * b div b = a"
-    using div_mult_self1 [of b 0 a] by (simp add: ac_simps)
-qed simp
+    using div_mult_self1 [of b 0 a] by (simp add: ac_simps div_0)
+qed (simp add: div_by_0)
 
 lemma div_by_1:
   "a div 1 = a"
@@ -42,7 +39,7 @@ lemma div_mult_self2_is_id:
   "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
   by (fact nonzero_mult_divide_cancel_right)
 
-text \<open>@{const divide} and @{const mod}\<close>
+text \<open>@{const divide} and @{const modulo}\<close>
 
 lemma mod_div_equality2: "b * (a div b) + a mod b = a"
   unfolding mult.commute [of b]
@@ -836,7 +833,7 @@ context
 begin
 
 text \<open>
-  We define @{const divide} and @{const mod} on @{typ nat} by means
+  We define @{const divide} and @{const modulo} on @{typ nat} by means
   of a characteristic relation with two input arguments
   @{term "m::nat"}, @{term "n::nat"} and two output arguments
   @{term "q::nat"}(uotient) and @{term "r::nat"}(emainder).
@@ -953,8 +950,8 @@ begin
 definition divide_nat where
   div_nat_def: "m div n = fst (Divides.divmod_nat m n)"
 
-definition mod_nat where
-  "m mod n = snd (Divides.divmod_nat m n)"
+definition modulo_nat where
+  mod_nat_def: "m mod n = snd (Divides.divmod_nat m n)"
 
 lemma fst_divmod_nat [simp]:
   "fst (Divides.divmod_nat m n) = m div n"
@@ -981,7 +978,7 @@ lemma mod_nat_unique:
 lemma divmod_nat_rel: "divmod_nat_rel m n (m div n, m mod n)"
   using Divides.divmod_nat_rel_divmod_nat by (simp add: divmod_nat_div_mod)
 
-text \<open>The ''recursion'' equations for @{const divide} and @{const mod}\<close>
+text \<open>The ''recursion'' equations for @{const divide} and @{const modulo}\<close>
 
 lemma div_less [simp]:
   fixes m n :: nat
@@ -1059,7 +1056,7 @@ lemma divmod_nat_if [code]:
     let (q, r) = Divides.divmod_nat (m - n) n in (Suc q, r))"
   by (simp add: prod_eq_iff case_prod_beta not_less le_div_geq le_mod_geq)
 
-text \<open>Simproc for cancelling @{const divide} and @{const mod}\<close>
+text \<open>Simproc for cancelling @{const divide} and @{const modulo}\<close>
 
 ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
 
@@ -1067,7 +1064,7 @@ ML \<open>
 structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
 (
   val div_name = @{const_name divide};
-  val mod_name = @{const_name mod};
+  val mod_name = @{const_name modulo};
   val mk_binop = HOLogic.mk_binop;
   val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
   val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
@@ -1732,7 +1729,7 @@ apply (subgoal_tac "q = q'")
 apply (blast intro: unique_quotient)
 done
 
-instantiation int :: Divides.div
+instantiation int :: modulo
 begin
 
 definition divide_int
@@ -1743,7 +1740,7 @@ definition divide_int
         if l dvd k then - int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)
         else - int (Suc (nat \<bar>k\<bar> div nat \<bar>l\<bar>)))"
 
-definition mod_int
+definition modulo_int
   where "k mod l = (if l = 0 then k else if l dvd k then 0
     else if k > 0 \<and> l > 0 \<or> k < 0 \<and> l < 0
       then sgn l * int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)
@@ -1755,7 +1752,7 @@ end
 
 lemma divmod_int_rel:
   "divmod_int_rel k l (k div l, k mod l)"
-  unfolding divmod_int_rel_def divide_int_def mod_int_def
+  unfolding divmod_int_rel_def divide_int_def modulo_int_def
   apply (cases k rule: int_cases3)
   apply (simp add: mod_greater_zero_iff_not_dvd not_le algebra_simps)
   apply (cases l rule: int_cases3)
@@ -1849,15 +1846,15 @@ lemma zdiv_int: "int (a div b) = int a div int b"
   by (simp add: divide_int_def)
 
 lemma zmod_int: "int (a mod b) = int a mod int b"
-  by (simp add: mod_int_def int_dvd_iff)
+  by (simp add: modulo_int_def int_dvd_iff)
   
 text \<open>Tool setup\<close>
 
 ML \<open>
 structure Cancel_Div_Mod_Int = Cancel_Div_Mod
 (
-  val div_name = @{const_name Rings.divide};
-  val mod_name = @{const_name mod};
+  val div_name = @{const_name divide};
+  val mod_name = @{const_name modulo};
   val mk_binop = HOLogic.mk_binop;
   val mk_sum = Arith_Data.mk_sum HOLogic.intT;
   val dest_sum = Arith_Data.dest_sum;
@@ -2223,7 +2220,7 @@ apply (erule disjE)
                       split_neg_lemma [of concl: "%x y. P y"])
 done
 
-text \<open>Enable (lin)arith to deal with @{const divide} and @{const mod}
+text \<open>Enable (lin)arith to deal with @{const divide} and @{const modulo}
   when these are applied to some constant that is of the form
   @{term "numeral k"}:\<close>
 declare split_zdiv [of _ _ "numeral k", arith_split] for k
@@ -2327,7 +2324,7 @@ lemma div_eq_minus1: "(0::int) < b ==> -1 div b = -1"
 by (simp add: divide_int_def)
 
 lemma zmod_minus1: "(0::int) < b ==> -1 mod b = b - 1"
-by (simp add: mod_int_def)
+by (simp add: modulo_int_def)
 
 lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
 apply (subgoal_tac "a div b \<le> -1", force)
@@ -2445,9 +2442,9 @@ lemma minus_numeral_mod_numeral [simp]:
   "- numeral m mod numeral n = adjust_mod (numeral n) (snd (divmod m n) :: int)"
 proof -
   have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
-    using that by (simp only: snd_divmod mod_int_def) auto
+    using that by (simp only: snd_divmod modulo_int_def) auto
   then show ?thesis
-    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def mod_int_def)
+    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def modulo_int_def)
 qed
 
 lemma numeral_div_minus_numeral [simp]:
@@ -2463,9 +2460,9 @@ lemma numeral_mod_minus_numeral [simp]:
   "numeral m mod - numeral n = - adjust_mod (numeral n) (snd (divmod m n) :: int)"
 proof -
   have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
-    using that by (simp only: snd_divmod mod_int_def) auto
+    using that by (simp only: snd_divmod modulo_int_def) auto
   then show ?thesis
-    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def mod_int_def)
+    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def modulo_int_def)
 qed
 
 lemma minus_one_div_numeral [simp]:

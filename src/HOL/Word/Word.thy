@@ -287,7 +287,7 @@ lift_definition word_succ :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>
 lift_definition word_pred :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x. x - 1"
   by (metis bintr_ariths(7))
 
-instantiation word :: (len0) "{neg_numeral, Divides.div, comm_monoid_mult, comm_ring}"
+instantiation word :: (len0) "{neg_numeral, modulo, comm_monoid_mult, comm_ring}"
 begin
 
 lift_definition zero_word :: "'a word" is "0" .

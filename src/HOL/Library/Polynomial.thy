@@ -1894,8 +1894,8 @@ qed
 instantiation poly :: (field) ring_div
 begin
 
-definition mod_poly where
-  "f mod g \<equiv>
+definition modulo_poly where
+  mod_poly_def: "f mod g \<equiv>
     if g = 0 then f
     else pseudo_mod (smult ((1/coeff g (degree g)) ^ (Suc (degree f) - degree g)) f) g"
 

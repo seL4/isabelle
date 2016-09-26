@@ -42,7 +42,7 @@ local
     end
 
   fun is_div_mod @{const divide (int)} = true
-    | is_div_mod @{const mod (int)} = true
+    | is_div_mod @{const modulo (int)} = true
     | is_div_mod _ = false
 
   val div_by_z3div = @{lemma
