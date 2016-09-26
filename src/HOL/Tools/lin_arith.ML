@@ -207,7 +207,7 @@ let
         pi
     | poly (Const (@{const_name Groups.one}, _), m, (p, i)) =
         (p, Rat.add i m)
-    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) (*DYNAMIC BINDING!*) $ t, m, pi as (p, i)) =
+    | poly (all as Const ("Num.numeral_class.numeral", _) (*DYNAMIC BINDING!*) $ t, m, pi as (p, i)) =
         (let val k = HOLogic.dest_numeral t
         in (p, Rat.add i (Rat.mult m (Rat.of_int k))) end
         handle TERM _ => add_atom all m pi)
