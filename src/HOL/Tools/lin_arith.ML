@@ -178,7 +178,7 @@ let
       in which case dest_numeral raises TERM; hence all the handles below.
       Same for Suc-terms that turn out not to be numerals -
       although the simplifier should eliminate those anyway ...*)
-    | demult (t as Const ("Num.numeral_class.numeral", _) $ n, m) =
+    | demult (t as Const ("Num.numeral_class.numeral", _) (*DYNAMIC BINDING!*) $ n, m) =
       ((NONE, Rat.mult m (Rat.of_int (HOLogic.dest_numeral n)))
         handle TERM _ => (SOME t, m))
     | demult (t as Const (@{const_name Suc}, _) $ _, m) =
@@ -207,7 +207,7 @@ let
         pi
     | poly (Const (@{const_name Groups.one}, _), m, (p, i)) =
         (p, Rat.add i m)
-    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
+    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) (*DYNAMIC BINDING!*) $ t, m, pi as (p, i)) =
         (let val k = HOLogic.dest_numeral t
         in (p, Rat.add i (Rat.mult m (Rat.of_int k))) end
         handle TERM _ => add_atom all m pi)
@@ -444,7 +444,7 @@ in
         SOME [(Ts, subgoal1), (split_type :: Ts, subgoal2)]
       end
     (* ?P (nat ?i) = ((ALL n. ?i = of_nat n --> ?P n) & (?i < 0 --> ?P 0)) *)
-    | (Const ("Int.nat", _), [t1]) =>
+    | (Const ("Int.nat", _), (*DYNAMIC BINDING!*) [t1]) =>
       let
         val rev_terms   = rev terms
         val zero_int    = Const (@{const_name Groups.zero}, HOLogic.intT)
@@ -467,7 +467,7 @@ in
     (* ?P ((?n::nat) mod (numeral ?k)) =
          ((numeral ?k = 0 --> ?P ?n) & (~ (numeral ?k = 0) -->
            (ALL i j. j < numeral ?k --> ?n = numeral ?k * i + j --> ?P j))) *)
-    | (Const ("Divides.div_class.mod", Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
+    | (Const ("Divides.div_class.mod", Type ("fun", [@{typ nat}, _])), (*DYNAMIC BINDING!*) [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)
@@ -537,7 +537,7 @@ in
             (ALL i j.
               numeral ?k < j & j <= 0 & ?n = numeral ?k * i + j --> ?P j))) *)
     | (Const ("Divides.div_class.mod",
-        Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
+        Type ("fun", [Type ("Int.int", []), _])), (*DYNAMIC BINDING!*) [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)
@@ -591,7 +591,7 @@ in
             (ALL i j.
               numeral ?k < j & j <= 0 & ?n = numeral ?k * i + j --> ?P i))) *)
     | (Const (@{const_name Rings.divide},
-        Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
+        Type ("fun", [Type ("Int.int", []), _])), (*DYNAMIC BINDING!*) [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)
