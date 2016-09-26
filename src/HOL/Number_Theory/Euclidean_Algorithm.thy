@@ -26,6 +26,22 @@ class euclidean_semiring = semiring_div + normalization_semidom +
     "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (a * b)"
 begin
 
+lemma euclidean_size_normalize [simp]:
+  "euclidean_size (normalize a) = euclidean_size a"
+proof (cases "a = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case [simp]: False
+  have "euclidean_size (normalize a) \<le> euclidean_size (normalize a * unit_factor a)"
+    by (rule size_mult_mono) simp
+  moreover have "euclidean_size a \<le> euclidean_size (a * (1 div unit_factor a))"
+    by (rule size_mult_mono) simp
+  ultimately show ?thesis
+    by simp
+qed
+
 lemma euclidean_division:
   fixes a :: 'a and b :: 'a
   assumes "b \<noteq> 0"

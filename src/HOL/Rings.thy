@@ -1088,6 +1088,20 @@ qed
 lemma mult_one_div_unit_factor [simp]: "a * (1 div unit_factor b) = a div unit_factor b"
   by (cases "b = 0") simp_all
 
+lemma inv_unit_factor_eq_0_iff [simp]:
+  "1 div unit_factor a = 0 \<longleftrightarrow> a = 0"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  then have "a * (1 div unit_factor a) = a * 0"
+    by simp
+  then show ?rhs
+    by simp
+next
+  assume ?rhs
+  then show ?lhs by simp
+qed
+
 lemma normalize_mult: "normalize (a * b) = normalize a * normalize b"
 proof (cases "a = 0 \<or> b = 0")
   case True

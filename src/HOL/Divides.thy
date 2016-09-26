@@ -2310,6 +2310,16 @@ next
     by(auto simp: div_pos_pos_trivial div_neg_neg_trivial)
 qed
 
+lemma zmod_trival_iff:
+  fixes i k :: int
+  shows "i mod k = i \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i"
+proof -
+  have "i mod k = i \<longleftrightarrow> i div k = 0"
+    by safe (insert mod_div_equality [of i k], auto)
+  with zdiv_eq_0_iff
+  show ?thesis
+    by simp
+qed
 
 subsubsection \<open>Quotients of Signs\<close>
 
