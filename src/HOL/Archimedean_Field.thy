@@ -619,6 +619,15 @@ lemma ceiling_minus: "\<lceil>- x\<rceil> = - \<lfloor>x\<rfloor>"
   unfolding ceiling_def by simp
 
 
+subsection \<open>Natural numbers\<close>
+
+lemma of_nat_floor: "r\<ge>0 \<Longrightarrow> of_nat (nat \<lfloor>r\<rfloor>) \<le> r"
+  by simp
+
+lemma of_nat_ceiling: "of_nat (nat \<lceil>r\<rceil>) \<ge> r"
+  by (cases "r\<ge>0") auto
+
+
 subsection \<open>Frac Function\<close>
 
 definition frac :: "'a \<Rightarrow> 'a::floor_ceiling"

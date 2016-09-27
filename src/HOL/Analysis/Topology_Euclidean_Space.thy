@@ -1388,7 +1388,59 @@ proof -
     done
 qed
 
-lemma inter_interval:
+lemma eq_cbox: "cbox a b = cbox c d \<longleftrightarrow> cbox a b = {} \<and> cbox c d = {} \<or> a = c \<and> b = d"
+      (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "cbox a b \<subseteq> cbox c d" "cbox c d \<subseteq> cbox a b"
+    by auto
+  then show ?rhs
+    by (force simp add: subset_box box_eq_empty intro: antisym euclidean_eqI)
+next
+  assume ?rhs
+  then show ?lhs
+    by force
+qed
+
+lemma eq_cbox_box [simp]: "cbox a b = box c d \<longleftrightarrow> cbox a b = {} \<and> box c d = {}"
+      (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "cbox a b \<subseteq> box c d" "box c d \<subseteq>cbox a b"
+    by auto
+  then show ?rhs
+    apply (simp add: subset_box) 
+    using \<open>cbox a b = box c d\<close> box_ne_empty box_sing
+    apply (fastforce simp add:)
+    done
+next
+  assume ?rhs
+  then show ?lhs
+    by force
+qed
+
+lemma eq_box_cbox [simp]: "box a b = cbox c d \<longleftrightarrow> box a b = {} \<and> cbox c d = {}"
+  by (metis eq_cbox_box)
+
+lemma eq_box: "box a b = box c d \<longleftrightarrow> box a b = {} \<and> box c d = {} \<or> a = c \<and> b = d"
+      (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "box a b \<subseteq> box c d" "box c d \<subseteq> box a b"
+    by auto
+  then show ?rhs
+    apply (simp add: subset_box)
+    using box_ne_empty(2) \<open>box a b = box c d\<close> 
+    apply auto
+     apply (meson euclidean_eqI less_eq_real_def not_less)+
+    done
+next
+  assume ?rhs
+  then show ?lhs
+    by force
+qed
+
+lemma Int_interval:
   fixes a :: "'a::euclidean_space"
   shows "cbox a b \<inter> cbox c d =
     cbox (\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)"
@@ -8077,6 +8129,11 @@ lemma not_interval_UNIV [simp]:
   shows "cbox a b \<noteq> UNIV" "box a b \<noteq> UNIV"
   using bounded_box[of a b] bounded_cbox[of a b] by force+
 
+lemma not_interval_UNIV2 [simp]:
+  fixes a :: "'a::euclidean_space"
+  shows "UNIV \<noteq> cbox a b" "UNIV \<noteq> box a b"
+  using bounded_box[of a b] bounded_cbox[of a b] by force+
+
 lemma compact_cbox [simp]:
   fixes a :: "'a::euclidean_space"
   shows "compact (cbox a b)"
@@ -9057,7 +9114,7 @@ lemma closed_span [iff]:
   shows "closed (span s)"
 by (simp add: closed_subspace subspace_span)
 
-lemma dim_closure:
+lemma dim_closure [simp]:
   fixes s :: "('a::euclidean_space) set"
   shows "dim(closure s) = dim s" (is "?dc = ?d")
 proof -

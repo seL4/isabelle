@@ -1108,7 +1108,7 @@ proof -
         show "\<exists>a b. k = cbox a b"
           unfolding il using p'(4)[OF il(3)] d'(4)[OF il(2)]
           apply safe
-          unfolding inter_interval
+          unfolding Int_interval
           apply auto
           done
       next
@@ -1288,7 +1288,7 @@ proof -
             from d'(4)[OF k] snd_p(4)[OF prems(1)] guess u1 v1 u2 v2 by (elim exE) note uv=this
             show ?case
               using *
-              unfolding uv inter_interval content_eq_0_interior[symmetric]
+              unfolding uv Int_interval content_eq_0_interior[symmetric]
               by auto
           qed
           finally show ?case .
@@ -1338,7 +1338,7 @@ proof -
           ultimately have "interior(l1 \<inter> k1) = {}"
             by auto
           then show "norm (integral (l1 \<inter> k1) f) = 0"
-            unfolding uv inter_interval
+            unfolding uv Int_interval
             unfolding content_eq_0_interior[symmetric]
             by auto
         qed
@@ -1429,7 +1429,7 @@ proof -
           ultimately have "interior (l1 \<inter> k1) = {}"
             by auto
           then show "\<bar>content (l1 \<inter> k1)\<bar> * norm (f x1) = 0"
-            unfolding uv inter_interval
+            unfolding uv Int_interval
             unfolding content_eq_0_interior[symmetric]
             by auto
         qed safe
@@ -1453,7 +1453,7 @@ proof -
             apply (drule d'(4))
             apply safe
             apply (subst Int_commute)
-            unfolding inter_interval uv
+            unfolding Int_interval uv
             apply (subst abs_of_nonneg)
             apply auto
             done
@@ -1475,7 +1475,7 @@ proof -
             also have "\<dots> = interior (k \<inter> cbox u v)"
               unfolding prems(4) by auto
             finally show ?case
-              unfolding uv inter_interval content_eq_0_interior ..
+              unfolding uv Int_interval content_eq_0_interior ..
           qed
           also have "\<dots> = setsum content {cbox u v \<inter> k |k. k \<in> d \<and> cbox u v \<inter> k \<noteq> {}}"
             apply (rule setsum.mono_neutral_right)
@@ -1490,7 +1490,7 @@ proof -
             from d'(4)[OF this(1)] guess a b by (elim exE) note ab=this
             have "interior (k \<inter> cbox u v) \<noteq> {}"
               using prems(2)
-              unfolding ab inter_interval content_eq_0_interior
+              unfolding ab Int_interval content_eq_0_interior
               by auto
             then show ?case
               using prems(1)

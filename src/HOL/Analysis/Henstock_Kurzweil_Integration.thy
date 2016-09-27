@@ -503,7 +503,7 @@ proof -
       obtain a2 b2 where k2: "k2 = cbox a2 b2"
         using division_ofD(4)[OF assms(2) k(3)] by blast
       show "\<exists>a b. k = cbox a b"
-        unfolding k k1 k2 unfolding inter_interval by auto
+        unfolding k k1 k2 unfolding Int_interval by auto
     }
     fix k1 k2
     assume "k1 \<in> ?A"
@@ -826,7 +826,7 @@ next
   next
     case False
     obtain u v where uv: "cbox a b \<inter> cbox c d = cbox u v"
-      unfolding inter_interval by auto
+      unfolding Int_interval by auto
     have uv_sub: "cbox u v \<subseteq> cbox c d" using uv by auto
     obtain p where "p division_of cbox c d" "cbox u v \<in> p"
       by (rule partial_division_extend_1[OF uv_sub False[unfolded uv]])
@@ -4733,34 +4733,21 @@ lemma integral_spike:
 
 subsection \<open>Some other trivialities about negligible sets.\<close>
 
-lemma negligible_subset[intro]:
-  assumes "negligible s"
-    and "t \<subseteq> s"
+lemma negligible_subset:
+  assumes "negligible s" "t \<subseteq> s"
   shows "negligible t"
   unfolding negligible_def
-proof (safe, goal_cases)
-  case (1 a b)
-  show ?case
-    using assms(1)[unfolded negligible_def,rule_format,of a b]
-    apply -
-    apply (rule has_integral_spike[OF assms(1)])
-    defer
-    apply assumption
-    using assms(2)
-    unfolding indicator_def
-    apply auto
-    done
-qed
+    by (metis (no_types) Diff_iff assms contra_subsetD has_integral_negligible indicator_simps(2))
 
 lemma negligible_diff[intro?]:
   assumes "negligible s"
   shows "negligible (s - t)"
-  using assms by auto
+  using assms by (meson Diff_subset negligible_subset)
 
 lemma negligible_Int:
   assumes "negligible s \<or> negligible t"
   shows "negligible (s \<inter> t)"
-  using assms by auto
+  using assms negligible_subset by force
 
 lemma negligible_Un:
   assumes "negligible s"
@@ -4780,10 +4767,10 @@ proof (safe, goal_cases)
 qed
 
 lemma negligible_Un_eq[simp]: "negligible (s \<union> t) \<longleftrightarrow> negligible s \<and> negligible t"
-  using negligible_Un by auto
+  using negligible_Un negligible_subset by blast 
 
 lemma negligible_sing[intro]: "negligible {a::'a::euclidean_space}"
-  using negligible_standard_hyperplane[OF SOME_Basis, of "a \<bullet> (SOME i. i \<in> Basis)"] by auto
+  using negligible_standard_hyperplane[OF SOME_Basis, of "a \<bullet> (SOME i. i \<in> Basis)"] negligible_subset by blast
 
 lemma negligible_insert[simp]: "negligible (insert a s) \<longleftrightarrow> negligible s"
   apply (subst insert_is_Un)
@@ -4792,7 +4779,7 @@ lemma negligible_insert[simp]: "negligible (insert a s) \<longleftrightarrow> ne
   done
 
 lemma negligible_empty[iff]: "negligible {}"
-  by auto
+  using negligible_insert by blast
 
 lemma negligible_finite[intro]:
   assumes "finite s"
@@ -7652,7 +7639,7 @@ proof
       apply auto
       done
   qed
-qed auto
+qed (simp add: negligible_Int)
 
 lemma negligible_translation:
   assumes "negligible S"
@@ -7689,32 +7676,24 @@ lemma has_integral_spike_set_eq:
   apply (rule has_integral_spike_eq[OF assms])
   by (auto split: if_split_asm)
 
-lemma has_integral_spike_set[dest]:
+lemma has_integral_spike_set:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "negligible ((s - t) \<union> (t - s))"
-    and "(f has_integral y) s"
+  assumes "(f has_integral y) s" "negligible ((s - t) \<union> (t - s))"
   shows "(f has_integral y) t"
   using assms has_integral_spike_set_eq
   by auto
 
-lemma integrable_spike_set[dest]:
+lemma integrable_spike_set:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "negligible ((s - t) \<union> (t - s))"
-    and "f integrable_on s"
-  shows "f integrable_on t"
-  using assms(2)
-  unfolding integrable_on_def
-  unfolding has_integral_spike_set_eq[OF assms(1)] .
+  assumes "f integrable_on s" and "negligible ((s - t) \<union> (t - s))"
+    shows "f integrable_on t"
+  using assms by (simp add: integrable_on_def has_integral_spike_set_eq)
 
 lemma integrable_spike_set_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "negligible ((s - t) \<union> (t - s))"
   shows "f integrable_on s \<longleftrightarrow> f integrable_on t"
-  apply rule
-  apply (rule_tac[!] integrable_spike_set)
-  using assms
-  apply auto
-  done
+by (blast intro: integrable_spike_set assms negligible_subset)
 
 (*lemma integral_spike_set:
  "\<forall>f:real^M->real^N g s t.

@@ -973,6 +973,52 @@ lemma locally_compact_closed_Int_open:
 by (metis closed_closure closed_imp_locally_compact inf_commute locally_compact_Int locally_compact_open_Int_closure open_imp_locally_compact)
 
 
+lemma lowerdim_embeddings:
+  assumes  "DIM('a) < DIM('b)"
+  obtains f :: "'a::euclidean_space*real \<Rightarrow> 'b::euclidean_space" 
+      and g :: "'b \<Rightarrow> 'a*real"
+      and j :: 'b
+  where "linear f" "linear g" "\<And>z. g (f z) = z" "j \<in> Basis" "\<And>x. f(x,0) \<bullet> j = 0"
+proof -
+  let ?B = "Basis :: ('a*real) set"
+  have b01: "(0,1) \<in> ?B"
+    by (simp add: Basis_prod_def)
+  have "DIM('a * real) \<le> DIM('b)"
+    by (simp add: Suc_leI assms)
+  then obtain basf :: "'a*real \<Rightarrow> 'b" where sbf: "basf ` ?B \<subseteq> Basis" and injbf: "inj_on basf Basis"
+    by (metis finite_Basis card_le_inj)
+  define basg:: "'b \<Rightarrow> 'a * real" where
+    "basg \<equiv> \<lambda>i. if i \<in> basf ` Basis then inv_into Basis basf i else (0,1)"
+  have bgf[simp]: "basg (basf i) = i" if "i \<in> Basis" for i
+    using inv_into_f_f injbf that by (force simp: basg_def)
+  have sbg: "basg ` Basis \<subseteq> ?B" 
+    by (force simp: basg_def injbf b01)
+  define f :: "'a*real \<Rightarrow> 'b" where "f \<equiv> \<lambda>u. \<Sum>j\<in>Basis. (u \<bullet> basg j) *\<^sub>R j"
+  define g :: "'b \<Rightarrow> 'a*real" where "g \<equiv> \<lambda>z. (\<Sum>i\<in>Basis. (z \<bullet> basf i) *\<^sub>R i)" 
+  show ?thesis
+  proof
+    show "linear f"
+      unfolding f_def
+      by (intro linear_compose_setsum linearI ballI) (auto simp: algebra_simps)
+    show "linear g"
+      unfolding g_def
+      by (intro linear_compose_setsum linearI ballI) (auto simp: algebra_simps)
+    have *: "(\<Sum>a \<in> Basis. a \<bullet> basf b * (x \<bullet> basg a)) = x \<bullet> b" if "b \<in> Basis" for x b
+      using sbf that by auto
+    show gf: "g (f x) = x" for x
+      apply (rule euclidean_eqI)
+      apply (simp add: f_def g_def inner_setsum_left scaleR_setsum_left algebra_simps)
+      apply (simp add: Groups_Big.setsum_distrib_left [symmetric] *)
+      done
+    show "basf(0,1) \<in> Basis"
+      using b01 sbf by auto
+    then show "f(x,0) \<bullet> basf(0,1) = 0" for x
+      apply (simp add: f_def inner_setsum_left)
+      apply (rule comm_monoid_add_class.setsum.neutral)
+      using b01 inner_not_same_Basis by fastforce
+  qed
+qed
+
 proposition locally_compact_homeomorphic_closed:
   fixes S :: "'a::euclidean_space set"
   assumes "locally compact S" and dimlt: "DIM('a) < DIM('b)"
@@ -981,45 +1027,21 @@ proof -
   obtain U:: "('a*real)set" and h
     where "closed U" and homU: "homeomorphism S U h fst"
     using locally_compact_homeomorphism_projection_closed assms by metis
-  let ?BP = "Basis :: ('a*real) set"
-  have "DIM('a * real) \<le> DIM('b)"
-    by (simp add: Suc_leI dimlt)
-  then obtain basf :: "'a*real \<Rightarrow> 'b" where surbf: "basf ` ?BP \<subseteq> Basis" and injbf: "inj_on basf Basis"
-    by (metis finite_Basis card_le_inj)
-  define basg:: "'b \<Rightarrow> 'a * real" where
-    "basg \<equiv> \<lambda>i. inv_into Basis basf i"
-  have bgf[simp]: "basg (basf i) = i" if "i \<in> Basis" for i
-    using inv_into_f_f injbf that by (force simp: basg_def)
-  define f :: "'a*real \<Rightarrow> 'b" where "f \<equiv> \<lambda>u. \<Sum>j\<in>Basis. (u \<bullet> basg j) *\<^sub>R j"
-  have "linear f"
-    unfolding f_def
-    apply (intro linear_compose_setsum linearI ballI)
-    apply (auto simp: algebra_simps)
-    done
-  define g :: "'b \<Rightarrow> 'a*real" where "g \<equiv> \<lambda>z. (\<Sum>i\<in>Basis. (z \<bullet> basf i) *\<^sub>R i)"
-  have "linear g"
-    unfolding g_def
-    apply (intro linear_compose_setsum linearI ballI)
-    apply (auto simp: algebra_simps)
-    done
-  have *: "(\<Sum>a \<in> Basis. a \<bullet> basf b * (x \<bullet> basg a)) = x \<bullet> b" if "b \<in> Basis" for x b
-    using surbf that by auto
-  have gf[simp]: "g (f x) = x" for x
-    apply (rule euclidean_eqI)
-    apply (simp add: f_def g_def inner_setsum_left scaleR_setsum_left algebra_simps)
-    apply (simp add: Groups_Big.setsum_distrib_left [symmetric] *)
-    done
-  then have "inj f" by (metis injI)
+  obtain f :: "'a*real \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'a*real"
+    where "linear f" "linear g" and gf [simp]: "\<And>z. g (f z) = z"
+    using lowerdim_embeddings [OF dimlt] by metis 
+  then have "inj f"
+    by (metis injI)
   have gfU: "g ` f ` U = U"
-    by (rule set_eqI) (auto simp: image_def)
+    by (simp add: image_comp o_def)
   have "S homeomorphic U"
     using homU homeomorphic_def by blast
   also have "... homeomorphic f ` U"
     apply (rule homeomorphicI [OF refl gfU])
        apply (meson \<open>inj f\<close> \<open>linear f\<close> homeomorphism_cont2 linear_homeomorphism_image)
-      using \<open>linear g\<close> linear_continuous_on linear_conv_bounded_linear apply blast
-     apply auto
-     done
+    using \<open>linear g\<close> linear_continuous_on linear_conv_bounded_linear apply blast
+    apply (auto simp: o_def)
+    done
   finally show ?thesis
     apply (rule_tac T = "f ` U" in that)
     apply (rule closed_injective_linear_image [OF \<open>closed U\<close> \<open>linear f\<close> \<open>inj f\<close>], assumption)

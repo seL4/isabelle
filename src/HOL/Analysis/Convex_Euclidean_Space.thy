@@ -7748,6 +7748,22 @@ proof -
     using rel_interior_empty by auto
 qed
 
+lemma interior_simplex_nonempty:
+  fixes S :: "'N :: euclidean_space set"
+  assumes "independent S" "finite S" "card S = DIM('N)"
+  obtains a where "a \<in> interior (convex hull (insert 0 S))"
+proof -
+  have "affine hull (insert 0 S) = UNIV"
+    apply (simp add: hull_inc affine_hull_span_0)
+    using assms dim_eq_full indep_card_eq_dim_span by fastforce
+  moreover have "rel_interior (convex hull insert 0 S) \<noteq> {}"
+    using rel_interior_eq_empty [of "convex hull (insert 0 S)"] by auto
+  ultimately have "interior (convex hull insert 0 S) \<noteq> {}"
+    by (simp add: rel_interior_interior)
+  with that show ?thesis
+    by auto
+qed
+
 lemma convex_rel_interior:
   fixes S :: "'n::euclidean_space set"
   assumes "convex S"

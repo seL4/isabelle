@@ -1085,7 +1085,7 @@ lemma disjoint_interval_cart:
 lemma inter_interval_cart:
   fixes a :: "real^'n"
   shows "cbox a b \<inter> cbox c d =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
-  unfolding inter_interval
+  unfolding Int_interval
   by (auto simp: mem_box less_eq_vec_def)
     (auto simp: Basis_vec_def inner_axis)
 
