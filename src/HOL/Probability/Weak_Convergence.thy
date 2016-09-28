@@ -200,7 +200,7 @@ proof -
       using \<omega>(2) by (auto intro: tendsto_within_subset simp: continuous_at)
     show "limsup (\<lambda>n. \<mu>.I n \<omega>) \<le> M.I \<omega>"
       using \<omega>
-      by (intro tendsto_le_const[OF trivial_limit_at_right_real **])
+      by (intro tendsto_lowerbound[OF **])
          (auto intro!: exI[of _ 1] * simp: eventually_at_right[of _ 1])
   qed
 
@@ -391,12 +391,12 @@ proof (clarsimp)
   } note ** = this
 
   have "limsup (\<lambda>n. cdf (M_seq n) x) \<le> cdf M x"
-  proof (rule tendsto_le_const)
+  proof (rule tendsto_lowerbound)
     show "\<forall>\<^sub>F i in at_right x. limsup (\<lambda>xa. ereal (cdf (M_seq xa) x)) \<le> ereal (cdf M i)"
       by (subst eventually_at_right[of _ "x + 1"]) (auto simp: * intro: exI [of _ "x+1"])
   qed (insert cdf_is_right_cont, auto simp: continuous_within)
   moreover have "cdf M x \<le> liminf (\<lambda>n. cdf (M_seq n) x)"
-  proof (rule tendsto_ge_const)
+  proof (rule tendsto_upperbound)
     show "\<forall>\<^sub>F i in at_left x. ereal (cdf M i) \<le> liminf (\<lambda>xa. ereal (cdf (M_seq xa) x))"
       by (subst eventually_at_left[of "x - 1"]) (auto simp: ** intro: exI [of _ "x-1"])
   qed (insert left_cont, auto simp: continuous_within)

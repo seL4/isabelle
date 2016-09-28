@@ -397,6 +397,18 @@ proof -
   ultimately show ?thesis unfolding R_def by blast
 qed
 
+text\<open>A transitive relation is well-founded if all initial segments are finite.\<close>
+corollary wf_finite_segments:
+  assumes "irrefl r" and "trans r" and "\<And>x. finite {y. (y, x) \<in> r}"
+  shows "wf (r)"
+proof (clarsimp simp: trans_wf_iff wf_iff_acyclic_if_finite converse_def assms)
+  fix a
+  have "trans (r \<inter> ({x. (x, a) \<in> r} \<times> {x. (x, a) \<in> r}))"
+    using assms unfolding trans_def Field_def by blast
+  then show "acyclic (r \<inter> {x. (x, a) \<in> r} \<times> {x. (x, a) \<in> r})"
+    using assms acyclic_def assms irrefl_def by fastforce
+qed
+
 text \<open>The next lemma is a variation of \<open>wf_eq_minimal\<close> from Wellfounded,
   allowing one to assume the set included in the field.\<close>
 

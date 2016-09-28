@@ -26,11 +26,15 @@ definition suminf :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add
     (binder "\<Sum>" 10)
   where "suminf f = (THE s. f sums s)"
 
+text\<open>Variants of the definition\<close>
 lemma sums_def': "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i = 0..n. f i) \<longlonglongrightarrow> s"
   apply (simp add: sums_def)
   apply (subst LIMSEQ_Suc_iff [symmetric])
   apply (simp only: lessThan_Suc_atMost atLeast0AtMost)
   done
+
+lemma sums_def_le: "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i\<le>n. f i) \<longlonglongrightarrow> s"
+  by (simp add: sums_def' atMost_atLeast0)
 
 
 subsection \<open>Infinite summability on topological monoids\<close>

@@ -1563,12 +1563,12 @@ lemma DERIV_pos_imp_increasing_at_bot:
     and lim: "(f \<longlongrightarrow> flim) at_bot"
   shows "flim < f b"
 proof -
-  have "flim \<le> f (b - 1)"
-    apply (rule tendsto_ge_const [OF _ lim])
-     apply (auto simp: trivial_limit_at_bot_linorder eventually_at_bot_linorder)
+  have "\<exists>N. \<forall>n\<le>N. f n \<le> f (b - 1)"
     apply (rule_tac x="b - 2" in exI)
     apply (force intro: order.strict_implies_order DERIV_pos_imp_increasing [where f=f] assms)
     done
+  then have "flim \<le> f (b - 1)"
+     by (auto simp: trivial_limit_at_bot_linorder eventually_at_bot_linorder tendsto_upperbound [OF lim])
   also have "\<dots> < f b"
     by (force intro: DERIV_pos_imp_increasing [where f=f] assms)
   finally show ?thesis .

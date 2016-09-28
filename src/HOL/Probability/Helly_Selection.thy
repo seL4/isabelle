@@ -108,7 +108,7 @@ proof -
   moreover have "(\<lambda>n. f (d n) x) \<longlonglongrightarrow> F x" if cts: "continuous (at x) F" for x
   proof (rule limsup_le_liminf_real)
     show "limsup (\<lambda>n. f (d n) x) \<le> F x"
-    proof (rule tendsto_le_const)
+    proof (rule tendsto_lowerbound)
       show "(F \<longlongrightarrow> ereal (F x)) (at_right x)"
         using cts unfolding continuous_at_split by (auto simp: continuous_within)
       show "\<forall>\<^sub>F i in at_right x. limsup (\<lambda>n. f (d n) x) \<le> F i"
@@ -128,7 +128,7 @@ proof -
       qed
     qed simp
     show "F x \<le> liminf (\<lambda>n. f (d n) x)"
-    proof (rule tendsto_ge_const)
+    proof (rule tendsto_upperbound)
       show "(F \<longlongrightarrow> ereal (F x)) (at_left x)"
         using cts unfolding continuous_at_split by (auto simp: continuous_within)
       show "\<forall>\<^sub>F i in at_left x. F i \<le> liminf (\<lambda>n. f (d n) x)"
@@ -214,7 +214,7 @@ proof -
     have "(\<lambda>k. ?\<mu> k {..b}) \<longlonglongrightarrow> F b"
       using b(2) lim_F unfolding f_def cdf_def o_def by auto
     then have "1 - \<epsilon> \<le> F b"
-    proof (rule tendsto_le_const[OF sequentially_bot], intro always_eventually allI)
+    proof (rule tendsto_lowerbound, intro always_eventually allI)
       fix k
       have "1 - \<epsilon> < ?\<mu> k {a<..b}"
         using ab by auto
@@ -222,20 +222,20 @@ proof -
         by (auto intro!: \<mu>.finite_measure_mono)
       finally show "1 - \<epsilon> \<le> ?\<mu> k {..b}"
         by (rule less_imp_le)
-    qed
+    qed (rule sequentially_bot)
     then show "\<exists>b. \<forall>x\<ge>b. 1 - \<epsilon> \<le> F x"
       using F unfolding mono_def by (metis order.trans)
 
     have "(\<lambda>k. ?\<mu> k {..a}) \<longlonglongrightarrow> F a"
       using a(2) lim_F unfolding f_def cdf_def o_def by auto
     then have Fa: "F a \<le> \<epsilon>"
-    proof (rule tendsto_ge_const[OF sequentially_bot], intro always_eventually allI)
+    proof (rule tendsto_upperbound, intro always_eventually allI)
       fix k
       have "?\<mu> k {..a} + ?\<mu> k {a<..b} \<le> 1"
         by (subst \<mu>.finite_measure_Union[symmetric]) auto
       then show "?\<mu> k {..a} \<le> \<epsilon>"
         using ab[of k] by simp
-    qed
+    qed (rule sequentially_bot)
     then show "\<exists>a. \<forall>x\<le>a. F x \<le> \<epsilon>"
       using F unfolding mono_def by (metis order.trans)
   qed

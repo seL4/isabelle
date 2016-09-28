@@ -1870,7 +1870,7 @@ proof -
   have F_mono: "a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> F x \<le> F y" for x y
     using f nonneg by (intro DERIV_nonneg_imp_nondecreasing[of x y F]) (auto intro: order_trans)
   then have F_le_T: "a \<le> x \<Longrightarrow> F x \<le> T" for x
-    by (intro tendsto_le_const[OF _ lim])
+    by (intro tendsto_lowerbound[OF lim])
        (auto simp: trivial_limit_at_top_linorder eventually_at_top_linorder)
 
   have "(SUP i::nat. ?f i x) = ?fR x" for x

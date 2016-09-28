@@ -101,7 +101,7 @@ lemma mono_on_imp_deriv_nonneg:
   assumes mono: "mono_on f A" and deriv: "(f has_real_derivative D) (at x)"
   assumes "x \<in> interior A"
   shows "D \<ge> 0"
-proof (rule tendsto_le_const)
+proof (rule tendsto_lowerbound)
   let ?A' = "(\<lambda>y. y - x) ` interior A"
   from deriv show "((\<lambda>h. (f (x + h) - f x) / h) \<longlongrightarrow> D) (at 0)"
       by (simp add: field_has_derivative_at has_field_derivative_def)

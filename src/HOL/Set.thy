@@ -1858,6 +1858,9 @@ lemma pairwise_mono: "\<lbrakk>pairwise P A; \<And>x y. P x y \<Longrightarrow> 
 definition disjnt :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
   where "disjnt A B \<longleftrightarrow> A \<inter> B = {}"
 
+lemma disjnt_self_iff_empty [simp]: "disjnt S S \<longleftrightarrow> S = {}"
+  by (auto simp: disjnt_def)
+
 lemma disjnt_iff: "disjnt A B \<longleftrightarrow> (\<forall>x. \<not> (x \<in> A \<and> x \<in> B))"
   by (force simp: disjnt_def)
 

@@ -1192,6 +1192,20 @@ next
   finally show ?thesis .
 qed
 
+text\<open>For creating values between @{term u} and @{term v}.\<close>
+lemma scaling_mono:
+  assumes "u \<le> v" "0 \<le> r" "r \<le> s"
+    shows "u + r * (v - u) / s \<le> v"
+proof -
+  have "r/s \<le> 1" using assms
+    using divide_le_eq_1 by fastforce
+  then have "(r/s) * (v - u) \<le> 1 * (v - u)"
+    apply (rule mult_right_mono)
+    using assms by simp
+  then show ?thesis
+    by (simp add: field_simps)
+qed
+
 end
 
 text \<open>Min/max Simplification Rules\<close>

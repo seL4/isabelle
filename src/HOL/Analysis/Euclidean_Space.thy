@@ -93,6 +93,11 @@ proof safe
     by (auto intro!: exI[of _ "\<Sum>i\<in>Basis. f i *\<^sub>R i"])
 qed auto
 
+lemma (in euclidean_space) bchoice_Basis_iff:
+  fixes P :: "'a \<Rightarrow> real \<Rightarrow> bool"
+  shows "(\<forall>i\<in>Basis. \<exists>x\<in>A. P i x) \<longleftrightarrow> (\<exists>x. \<forall>i\<in>Basis. inner x i \<in> A \<and> P i (inner x i))"
+by (simp add: choice_Basis_iff Bex_def)
+
 lemma (in euclidean_space) euclidean_representation_setsum_fun:
     "(\<lambda>x. \<Sum>b\<in>Basis. inner (f x) b *\<^sub>R b) = f"
   by (rule ext) (simp add: euclidean_representation_setsum)

@@ -328,7 +328,7 @@ proof
         have tendsto_v: "(\<lambda>m. norm (X n x - X m x)) \<longlonglongrightarrow> norm (X n x - Blinfun v x)"
           by (auto intro!: tendsto_intros Bv)
         show "norm ((X n - Blinfun v) x) \<le> r' * norm x"
-          by (auto intro!: tendsto_ge_const tendsto_v ev_le simp: blinfun.bilinear_simps)
+          by (auto intro!: tendsto_upperbound tendsto_v ev_le simp: blinfun.bilinear_simps)
       qed (simp add: \<open>0 < r'\<close> less_imp_le)
       thus "norm (X n - Blinfun v) < r"
         by (metis \<open>r' < r\<close> le_less_trans)

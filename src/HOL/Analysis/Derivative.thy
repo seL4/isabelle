@@ -1998,7 +1998,7 @@ proof -
           by (auto simp add: algebra_simps)
       qed
       ultimately show "norm (f n x - f n y - (g x - g y)) \<le> e * norm (x - y)"
-        by (rule tendsto_ge_const[OF trivial_limit_sequentially])
+        by (simp add: tendsto_upperbound)
     qed
   qed
   have "\<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and> (g has_derivative g' x) (at x within s)"
@@ -2667,7 +2667,7 @@ proof (cases x c rule: linorder_cases)
   qed
   hence "eventually (\<lambda>y. (f y - f c) / (y - c) \<le> (f x - f c) / (x - c)) (at c within ?A')"
     by (blast intro: filter_leD at_le)
-  ultimately have "f' \<le> (f x - f c) / (x - c)" by (rule tendsto_ge_const)
+  ultimately have "f' \<le> (f x - f c) / (x - c)" by (simp add: tendsto_upperbound)
   thus ?thesis using xc by (simp add: field_simps)
 next
   assume xc: "x < c"
@@ -2691,7 +2691,7 @@ next
   qed
   hence "eventually (\<lambda>y. (f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)) (at c within ?A')"
     by (blast intro: filter_leD at_le)
-  ultimately have "f' \<ge> (f x - f c) / (x - c)" by (rule tendsto_le_const)
+  ultimately have "f' \<ge> (f x - f c) / (x - c)" by (simp add: tendsto_lowerbound)
   thus ?thesis using xc by (simp add: field_simps)
 qed simp_all
 

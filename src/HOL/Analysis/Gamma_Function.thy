@@ -1812,13 +1812,13 @@ private lemma G_eq_Gamma_aux:
   shows   "G x = Gamma x"
 proof (rule antisym)
   show "G x \<ge> Gamma x"
-  proof (rule tendsto_ge_const)
+  proof (rule tendsto_upperbound)
     from G_lower[of x] show "eventually (\<lambda>n. Gamma_series x n \<le> G x) sequentially"
       using eventually_ge_at_top[of "1::nat"] x by (auto elim!: eventually_mono)
   qed (simp_all add: Gamma_series_LIMSEQ)
 next
   show "G x \<le> Gamma x"
-  proof (rule tendsto_le_const)
+  proof (rule tendsto_lowerbound)
     have "(\<lambda>n. Gamma_series x n * (1 + x / real n)) \<longlonglongrightarrow> Gamma x * (1 + 0)"
       by (rule tendsto_intros real_tendsto_divide_at_top 
                Gamma_series_LIMSEQ filterlim_real_sequentially)+

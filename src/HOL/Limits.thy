@@ -2368,7 +2368,7 @@ lemma LIM_less_bound:
   fixes f :: "real \<Rightarrow> real"
   assumes ev: "b < x" "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and "isCont f x"
   shows "0 \<le> f x"
-proof (rule tendsto_le_const)
+proof (rule tendsto_lowerbound)
   show "(f \<longlongrightarrow> f x) (at_left x)"
     using \<open>isCont f x\<close> by (simp add: filterlim_at_split isCont_def)
   show "eventually (\<lambda>x. 0 \<le> f x) (at_left x)"

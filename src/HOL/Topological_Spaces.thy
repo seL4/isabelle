@@ -884,19 +884,19 @@ proof (rule ccontr)
     by (simp add: eventually_False)
 qed
 
-lemma tendsto_le_const:
+lemma tendsto_lowerbound:
   fixes f :: "'a \<Rightarrow> 'b::linorder_topology"
-  assumes F: "\<not> trivial_limit F"
-    and x: "(f \<longlongrightarrow> x) F"
-    and ev: "eventually (\<lambda>i. a \<le> f i) F"
+  assumes x: "(f \<longlongrightarrow> x) F"
+      and ev: "eventually (\<lambda>i. a \<le> f i) F"
+      and F: "\<not> trivial_limit F"
   shows "a \<le> x"
   using F x tendsto_const ev by (rule tendsto_le)
 
-lemma tendsto_ge_const:
+lemma tendsto_upperbound:
   fixes f :: "'a \<Rightarrow> 'b::linorder_topology"
-  assumes F: "\<not> trivial_limit F"
-    and x: "(f \<longlongrightarrow> x) F"
-    and ev: "eventually (\<lambda>i. a \<ge> f i) F"
+  assumes x: "(f \<longlongrightarrow> x) F"
+      and ev: "eventually (\<lambda>i. a \<ge> f i) F"
+      and F: "\<not> trivial_limit F"
   shows "a \<ge> x"
   by (rule tendsto_le [OF F tendsto_const x ev])
 
@@ -1256,7 +1256,7 @@ lemma LIMSEQ_unique: "X \<longlonglongrightarrow> a \<Longrightarrow> X \<longlo
 
 lemma LIMSEQ_le_const: "X \<longlonglongrightarrow> x \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. a \<le> X n \<Longrightarrow> a \<le> x"
   for a x :: "'a::linorder_topology"
-  using tendsto_le_const[of sequentially X x a] by (simp add: eventually_sequentially)
+  by (simp add: eventually_at_top_linorder tendsto_lowerbound)
 
 lemma LIMSEQ_le: "X \<longlonglongrightarrow> x \<Longrightarrow> Y \<longlonglongrightarrow> y \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. X n \<le> Y n \<Longrightarrow> x \<le> y"
   for x y :: "'a::linorder_topology"

@@ -3856,7 +3856,7 @@ lemma tendsto_inverse_ereal:
   assumes "eventually (\<lambda>x. f x \<ge> 0) F"
   shows   "((\<lambda>x. inverse (f x)) \<longlongrightarrow> inverse c) F"
   by (cases "F = bot")
-     (auto intro!: tendsto_le_const[of F] assms
+     (auto intro!: tendsto_lowerbound assms
                    continuous_on_tendsto_compose[OF continuous_on_inverse_ereal])
 
 

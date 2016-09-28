@@ -47,6 +47,9 @@ qed
 lemma insert_remove: "finite A \<Longrightarrow> F g (insert x A) = g x \<^bold>* F g (A - {x})"
   by (cases "x \<in> A") (simp_all add: remove insert_absorb)
 
+lemma insert_if: "finite A \<Longrightarrow> F g (insert x A) = (if x \<in> A then F g A else g x \<^bold>* F g A)"
+  by (cases "x \<in> A") (simp_all add: insert_absorb)
+
 lemma neutral: "\<forall>x\<in>A. g x = \<^bold>1 \<Longrightarrow> F g A = \<^bold>1"
   by (induct A rule: infinite_finite_induct) simp_all
 
@@ -1288,4 +1291,22 @@ proof -
   qed
 qed
 
+lemma setsum_image_le:
+  fixes g :: "'a \<Rightarrow> 'b::ordered_ab_group_add"
+  assumes "finite I" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> g(f i)"
+    shows "setsum g (f ` I) \<le> setsum (g \<circ> f) I"
+  using assms
+proof induction
+  case empty
+  then show ?case by auto
+next
+  case (insert x F) then
+  have "setsum g (f ` insert x F) = setsum g (insert (f x) (f ` F))" by simp
+  also have "\<dots> \<le> g (f x) + setsum g (f ` F)"
+    by (simp add: insert setsum.insert_if)
+  also have "\<dots>  \<le> setsum (g \<circ> f) (insert x F)"
+    using insert by auto
+  finally show ?case .
+qed
+ 
 end
