@@ -76,6 +76,9 @@ lemma [code, code del]:
 lemma [code, code del]:
   "permutations_of_set = permutations_of_set" ..
 
+lemma [code, code del]:
+  "permutations_of_multiset = permutations_of_multiset" ..
+
 (*
   If the code generation ends with an exception with the following message:
   '"List.set" is not a constructor, on left hand side of equation: ...',

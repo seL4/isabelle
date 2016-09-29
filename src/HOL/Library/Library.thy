@@ -51,6 +51,7 @@ imports
   Monad_Syntax
   More_List
   Multiset_Order
+  Multiset_Permutations
   Numeral_Type
   Omega_Words_Fun
   OptionalSugar
@@ -76,7 +77,6 @@ imports
   Reflection
   Saturated
   Set_Algebras
-  Set_Permutations
   State_Monad
   Stirling
   Stream

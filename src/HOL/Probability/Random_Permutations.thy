@@ -11,7 +11,9 @@
 section \<open>Random Permutations\<close>
 
 theory Random_Permutations
-imports "~~/src/HOL/Probability/Probability_Mass_Function" "~~/src/HOL/Library/Set_Permutations"
+imports 
+  "~~/src/HOL/Probability/Probability_Mass_Function" 
+  "~~/src/HOL/Library/Multiset_Permutations"
 begin
 
 text \<open>
