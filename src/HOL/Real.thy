@@ -10,7 +10,7 @@
 section \<open>Development of the Reals using Cauchy Sequences\<close>
 
 theory Real
-imports Rat
+imports Rat Argo
 begin
 
 text \<open>
@@ -1806,5 +1806,10 @@ lemma [z3_rule]:
   "x + y = y + x"
   for x y :: real
   by auto
+
+
+subsection \<open>Setup for Argo\<close>
+
+ML_file "Tools/Argo/argo_real.ML"
 
 end
