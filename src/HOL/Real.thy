@@ -10,7 +10,7 @@
 section \<open>Development of the Reals using Cauchy Sequences\<close>
 
 theory Real
-imports Rat Argo
+imports Rat
 begin
 
 text \<open>

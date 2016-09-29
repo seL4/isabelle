@@ -5,7 +5,7 @@
 section \<open>Decision Procedure for Presburger Arithmetic\<close>
 
 theory Presburger
-imports Groebner_Basis Set_Interval
+imports Groebner_Basis Set_Interval Argo
 keywords "try0" :: diag
 begin
 
