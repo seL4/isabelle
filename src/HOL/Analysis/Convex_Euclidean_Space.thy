@@ -6417,6 +6417,26 @@ lemma ends_in_segment [iff]: "a \<in> closed_segment a b" "b \<in> closed_segmen
   unfolding segment_convex_hull
   by (auto intro!: hull_subset[unfolded subset_eq, rule_format])
 
+lemma eventually_closed_segment:
+  fixes x0::"'a::real_normed_vector"
+  assumes "open X0" "x0 \<in> X0"
+  shows "\<forall>\<^sub>F x in at x0 within U. closed_segment x0 x \<subseteq> X0"
+proof -
+  from openE[OF assms]
+  obtain e where e: "0 < e" "ball x0 e \<subseteq> X0" .
+  then have "\<forall>\<^sub>F x in at x0 within U. x \<in> ball x0 e"
+    by (auto simp: dist_commute eventually_at)
+  then show ?thesis
+  proof eventually_elim
+    case (elim x)
+    have "x0 \<in> ball x0 e" using \<open>e > 0\<close> by simp
+    from convex_ball[unfolded convex_contains_segment, rule_format, OF this elim]
+    have "closed_segment x0 x \<subseteq> ball x0 e" .
+    also note \<open>\<dots> \<subseteq> X0\<close>
+    finally show ?case .
+  qed
+qed
+
 lemma segment_furthest_le:
   fixes a b x y :: "'a::euclidean_space"
   assumes "x \<in> closed_segment a b"
@@ -10500,7 +10520,7 @@ lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftr
 
 lemma collinear_3_expand:
    "collinear{a,b,c} \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
-proof -                          
+proof -
   have "collinear{a,b,c} = collinear{a,c,b}"
     by (simp add: insert_commute)
   also have "... = collinear {0, a - c, b - c}"

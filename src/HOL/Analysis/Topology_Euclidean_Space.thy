@@ -1414,7 +1414,7 @@ proof
   then have "cbox a b \<subseteq> box c d" "box c d \<subseteq>cbox a b"
     by auto
   then show ?rhs
-    apply (simp add: subset_box) 
+    apply (simp add: subset_box)
     using \<open>cbox a b = box c d\<close> box_ne_empty box_sing
     apply (fastforce simp add:)
     done
@@ -1435,7 +1435,7 @@ proof
     by auto
   then show ?rhs
     apply (simp add: subset_box)
-    using box_ne_empty(2) \<open>box a b = box c d\<close> 
+    using box_ne_empty(2) \<open>box a b = box c d\<close>
     apply auto
      apply (meson euclidean_eqI less_eq_real_def not_less)+
     done
@@ -10009,6 +10009,83 @@ next
     by (metis (no_types, lifting) IntD2 IntI f someI_ex)
 qed
 
+lemma tube_lemma:
+  assumes "compact K"
+  assumes "open W"
+  assumes "{x0} \<times> K \<subseteq> W"
+  shows "\<exists>X0. x0 \<in> X0 \<and> open X0 \<and> X0 \<times> K \<subseteq> W"
+proof -
+  {
+    fix y assume "y \<in> K"
+    then have "(x0, y) \<in> W" using assms by auto
+    with \<open>open W\<close>
+    have "\<exists>X0 Y. open X0 \<and> open Y \<and> x0 \<in> X0 \<and> y \<in> Y \<and> X0 \<times> Y \<subseteq> W"
+      by (rule open_prod_elim) blast
+  }
+  then obtain X0 Y where
+    *: "\<forall>y \<in> K. open (X0 y) \<and> open (Y y) \<and> x0 \<in> X0 y \<and> y \<in> Y y \<and> X0 y \<times> Y y \<subseteq> W"
+    by metis
+  from * have "\<forall>t\<in>Y ` K. open t" "K \<subseteq> \<Union>(Y ` K)" by auto
+  with \<open>compact K\<close> obtain CC where CC: "CC \<subseteq> Y ` K" "finite CC" "K \<subseteq> \<Union>CC"
+    by (rule compactE)
+  then obtain c where c: "\<And>C. C \<in> CC \<Longrightarrow> c C \<in> K \<and> C = Y (c C)"
+    by (force intro!: choice)
+  with * CC show ?thesis
+    by (force intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"]) (* SLOW *)
+qed
+
+lemma continuous_on_prod_compactE:
+  fixes fx::"'a::topological_space \<times> 'b::topological_space \<Rightarrow> 'c::metric_space"
+    and e::real
+  assumes cont_fx: "continuous_on (U \<times> C) fx"
+  assumes "compact C"
+  assumes [intro]: "x0 \<in> U"
+  notes [continuous_intros] = continuous_on_compose2[OF cont_fx]
+  assumes "e > 0"
+  obtains X0 where "x0 \<in> X0" "open X0"
+    "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
+proof -
+  define psi where "psi = (\<lambda>(x, t). dist (fx (x, t)) (fx (x0, t)))"
+  define W0 where "W0 = {(x, t) \<in> U \<times> C. psi (x, t) < e}"
+  have W0_eq: "W0 = psi -` {..<e} \<inter> U \<times> C"
+    by (auto simp: vimage_def W0_def)
+  have "open {..<e}" by simp
+  have "continuous_on (U \<times> C) psi"
+    by (auto intro!: continuous_intros simp: psi_def split_beta')
+  from this[unfolded continuous_on_open_invariant, rule_format, OF \<open>open {..<e}\<close>]
+  obtain W where W: "open W" "W \<inter> U \<times> C = W0 \<inter> U \<times> C"
+    unfolding W0_eq by blast
+  have "{x0} \<times> C \<subseteq> W \<inter> U \<times> C"
+    unfolding W
+    by (auto simp: W0_def psi_def \<open>0 < e\<close>)
+  then have "{x0} \<times> C \<subseteq> W" by blast
+  from tube_lemma[OF \<open>compact C\<close> \<open>open W\<close> this]
+  obtain X0 where X0: "x0 \<in> X0" "open X0" "X0 \<times> C \<subseteq> W"
+    by blast
+
+  have "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
+  proof safe
+    fix x assume x: "x \<in> X0" "x \<in> U"
+    fix t assume t: "t \<in> C"
+    have "dist (fx (x, t)) (fx (x0, t)) = psi (x, t)"
+      by (auto simp: psi_def)
+    also
+    {
+      have "(x, t) \<in> X0 \<times> C"
+        using t x
+        by auto
+      also note \<open>\<dots> \<subseteq> W\<close>
+      finally have "(x, t) \<in> W" .
+      with t x have "(x, t) \<in> W \<inter> U \<times> C"
+        by blast
+      also note \<open>W \<inter> U \<times> C = W0 \<inter> U \<times> C\<close>
+      finally  have "psi (x, t) < e"
+        by (auto simp: W0_def)
+    }
+    finally show "dist (fx (x, t)) (fx (x0, t)) \<le> e" by simp
+  qed
+  from X0(1,2) this show ?thesis ..
+qed
 
 no_notation
   eucl_less (infix "<e" 50)

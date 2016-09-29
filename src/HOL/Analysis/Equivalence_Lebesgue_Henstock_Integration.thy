@@ -1209,8 +1209,8 @@ proof -
       have sum_p': "(\<Sum>(x, k)\<in>p'. norm (integral k f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
         apply (subst setsum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
         unfolding norm_eq_zero
-        apply (rule integral_null)
-        apply assumption
+         apply (rule integral_null)
+        apply (simp add: content_eq_0_interior)
         apply rule
         done
       note snd_p = division_ofD[OF division_of_tagged_division[OF p(1)]]
@@ -1657,7 +1657,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
           show "(\<Sum>(x, k)\<in>p. norm (integral k f)) \<le> ?S"
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
             apply (subst setsum.over_tagged_division_lemma[OF p(1)])
-            apply (simp add: integral_null)
+            apply (simp add: content_eq_0_interior)
             apply (intro cSUP_upper2[OF D(2), of "snd ` p"])
             apply (auto simp: tagged_partial_division_of_def)
             done
