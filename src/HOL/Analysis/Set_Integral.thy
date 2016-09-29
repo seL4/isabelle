@@ -27,16 +27,6 @@ syntax
 translations
 "LINT x:A|M. f" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
 
-abbreviation
-  "set_almost_everywhere A M P \<equiv> AE x in M. x \<in> A \<longrightarrow> P x"
-
-syntax
-  "_set_almost_everywhere" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool"
-("AE _\<in>_ in _./ _" [0,0,0,10] 10)
-
-translations
-  "AE x\<in>A in M. P" == "CONST set_almost_everywhere A M (\<lambda>x. P)"
-
 (*
     Notation for integration wrt lebesgue measure on the reals:
 

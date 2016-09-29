@@ -85,6 +85,9 @@ lemma sets_completionI_sets[intro, simp]:
   "A \<in> sets M \<Longrightarrow> A \<in> sets (completion M)"
   unfolding sets_completion by force
 
+lemma measurable_completion: "f \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> f \<in> completion M \<rightarrow>\<^sub>M N"
+  by (auto simp: measurable_def)
+
 lemma null_sets_completion:
   assumes "N' \<in> null_sets M" "N \<subseteq> N'" shows "N \<in> sets (completion M)"
   using assms by (intro sets_completionI[of N "{}" N N']) auto
@@ -305,9 +308,6 @@ lemma AE_completion: "(AE x in M. P x) \<Longrightarrow> (AE x in completion M. 
 lemma null_sets_completion_iff: "N \<in> sets M \<Longrightarrow> N \<in> null_sets (completion M) \<longleftrightarrow> N \<in> null_sets M"
   by (auto simp: null_sets_def)
 
-lemma AE_completion_iff: "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> (AE x in completion M. P x)"
-  by (simp add: AE_iff_null null_sets_completion_iff)
-
 lemma sets_completion_AE: "(AE x in M. \<not> P x) \<Longrightarrow> Measurable.pred (completion M) P"
   unfolding pred_def sets_completion eventually_ae_filter
   by auto
@@ -338,6 +338,12 @@ qed
 lemma null_sets_completion_subset:
   "B \<subseteq> A \<Longrightarrow> A \<in> null_sets (completion M) \<Longrightarrow> B \<in> null_sets (completion M)"
   unfolding null_sets_completion_iff2 by auto
+
+interpretation completion: complete_measure "completion M" for M
+proof
+  show "B \<subseteq> A \<Longrightarrow> A \<in> null_sets (completion M) \<Longrightarrow> B \<in> sets (completion M)" for B A
+    using null_sets_completion_subset[of B A M] by (simp add: null_sets_def)
+qed
 
 lemma null_sets_restrict_space:
   "\<Omega> \<in> sets M \<Longrightarrow> A \<in> null_sets (restrict_space M \<Omega>) \<longleftrightarrow> A \<subseteq> \<Omega> \<and> A \<in> null_sets M"
@@ -415,6 +421,16 @@ next
   then show "\<exists>j\<in>{g. simple_function (completion M) g \<and> g \<le> f}. integral\<^sup>S M s \<le> integral\<^sup>S (completion M) j"
     by (intro bexI[of _ s]) (auto simp: simple_integral_completion simple_function_completion)
 qed
+
+lemma integrable_completion:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> integrable (completion M) f \<longleftrightarrow> integrable M f"
+  by (rule integrable_subalgebra[symmetric]) auto
+
+lemma integral_completion:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M borel" shows "integral\<^sup>L (completion M) f = integral\<^sup>L M f"
+  by (rule integral_subalgebra[symmetric]) (auto intro: f)
 
 locale semifinite_measure =
   fixes M :: "'a measure"
@@ -684,6 +700,260 @@ proof -
     using \<open>A \<subseteq> B\<close> by auto
   finally show ?thesis .
 qed
+
+lemma (in complete_measure) complete_sets_sandwich_fmeasurable:
+  assumes [measurable]: "A \<in> fmeasurable M" "C \<in> fmeasurable M" and subset: "A \<subseteq> B" "B \<subseteq> C"
+    and measure: "measure M A = measure M C"
+  shows "B \<in> fmeasurable M"
+proof (rule fmeasurableI2)
+  show "B \<subseteq> C" "C \<in> fmeasurable M" by fact+
+  show "B \<in> sets M"
+  proof (rule complete_sets_sandwich)
+    show "A \<in> sets M" "C \<in> sets M" "A \<subseteq> B" "B \<subseteq> C"
+      using assms by auto
+    show "emeasure M A < \<infinity>"
+      using \<open>A \<in> fmeasurable M\<close> by (auto simp: fmeasurable_def)
+    show "emeasure M A = emeasure M C"
+      using assms by (simp add: emeasure_eq_measure2)
+  qed
+qed
+
+lemma AE_completion_iff: "(AE x in completion M. P x) \<longleftrightarrow> (AE x in M. P x)"
+proof
+  assume "AE x in completion M. P x"
+  then obtain N where "N \<in> null_sets (completion M)" and P: "{x\<in>space M. \<not> P x} \<subseteq> N"
+    unfolding eventually_ae_filter by auto
+  then obtain N' where N': "N' \<in> null_sets M" and "N \<subseteq> N'"
+    unfolding null_sets_completion_iff2 by auto
+  from P \<open>N \<subseteq> N'\<close> have "{x\<in>space M. \<not> P x} \<subseteq> N'"
+    by auto
+  with N' show "AE x in M. P x"
+    unfolding eventually_ae_filter by auto
+qed (rule AE_completion)
+
+lemma null_part_null_sets: "S \<in> completion M \<Longrightarrow> null_part M S \<in> null_sets (completion M)"
+  by (auto dest!: null_part intro: null_sets_completionI null_sets_completion_subset)
+
+lemma AE_notin_null_part: "S \<in> completion M \<Longrightarrow> (AE x in M. x \<notin> null_part M S)"
+  by (auto dest!: null_part_null_sets AE_not_in simp: AE_completion_iff)
+
+lemma completion_upper:
+  assumes A: "A \<in> sets (completion M)"
+  shows "\<exists>A'\<in>sets M. A \<subseteq> A' \<and> emeasure (completion M) A = emeasure M A'"
+proof -
+  from AE_notin_null_part[OF A] obtain N where N: "N \<in> null_sets M" "null_part M A \<subseteq> N"
+    unfolding eventually_ae_filter using null_part_null_sets[OF A, THEN null_setsD2, THEN sets.sets_into_space] by auto
+  show ?thesis
+  proof (intro bexI conjI)
+    show "A \<subseteq> main_part M A \<union> N"
+      using \<open>null_part M A \<subseteq> N\<close> by (subst main_part_null_part_Un[symmetric, OF A]) auto
+    show "emeasure (completion M) A = emeasure M (main_part M A \<union> N)"
+      using A \<open>N \<in> null_sets M\<close> by (simp add: emeasure_Un_null_set)
+  qed (use A N in auto)
+qed
+
+lemma AE_in_main_part:
+  assumes A: "A \<in> completion M" shows "AE x in M. x \<in> main_part M A \<longleftrightarrow> x \<in> A"
+  using AE_notin_null_part[OF A]
+  by (subst (2) main_part_null_part_Un[symmetric, OF A]) auto
+
+lemma completion_density_eq:
+  assumes ae: "AE x in M. 0 < f x" and [measurable]: "f \<in> M \<rightarrow>\<^sub>M borel"
+  shows "completion (density M f) = density (completion M) f"
+proof (intro measure_eqI)
+  have "N' \<in> sets M \<and> (AE x\<in>N' in M. f x = 0) \<longleftrightarrow> N' \<in> null_sets M" for N'
+  proof safe
+    assume N': "N' \<in> sets M" and ae_N': "AE x\<in>N' in M. f x = 0"
+    from ae_N' ae have "AE x in M. x \<notin> N'"
+      by eventually_elim auto
+    then show "N' \<in> null_sets M"
+      using N' by (simp add: AE_iff_null_sets)
+  next
+    assume N': "N' \<in> null_sets M" then show "N' \<in> sets M" "AE x\<in>N' in M. f x = 0"
+      using ae AE_not_in[OF N'] by (auto simp: less_le)
+  qed
+  then show sets_eq: "sets (completion (density M f)) = sets (density (completion M) f)"
+    by (simp add: sets_completion null_sets_density_iff)
+
+  fix A assume A: \<open>A \<in> completion (density M f)\<close>
+  moreover
+  have "A \<in> completion M"
+    using A unfolding sets_eq by simp
+  moreover
+  have "main_part (density M f) A \<in> M"
+    using A main_part_sets[of A "density M f"] unfolding sets_density sets_eq by simp
+  moreover have "AE x in M. x \<in> main_part (density M f) A \<longleftrightarrow> x \<in> A"
+    using AE_in_main_part[OF \<open>A \<in> completion (density M f)\<close>] ae by (auto simp add: AE_density)
+  ultimately show "emeasure (completion (density M f)) A = emeasure (density (completion M) f) A"
+    by (auto simp add: emeasure_density measurable_completion nn_integral_completion intro!: nn_integral_cong_AE)
+qed
+
+lemma null_sets_subset: "A \<subseteq> B \<Longrightarrow> A \<in> sets M \<Longrightarrow> B \<in> null_sets M \<Longrightarrow> A \<in> null_sets M"
+  using emeasure_mono[of A B M] by (simp add: null_sets_def)
+
+lemma (in complete_measure) complete2: "A \<subseteq> B \<Longrightarrow> B \<in> null_sets M \<Longrightarrow> A \<in> null_sets M"
+  using complete[of A B] null_sets_subset[of A B M] by simp
+
+lemma (in complete_measure) vimage_null_part_null_sets:
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M N" and eq: "null_sets N \<subseteq> null_sets (distr M N f)"
+    and A: "A \<in> completion N"
+  shows "f -` null_part N A \<inter> space M \<in> null_sets M"
+proof -
+  obtain N' where "N' \<in> null_sets N" "null_part N A \<subseteq> N'"
+    using null_part[OF A] by auto
+  then have N': "N' \<in> null_sets (distr M N f)"
+    using eq by auto
+  show ?thesis
+  proof (rule complete2)
+    show "f -` null_part N A \<inter> space M \<subseteq> f -` N' \<inter> space M"
+      using \<open>null_part N A \<subseteq> N'\<close> by auto
+    show "f -` N' \<inter> space M \<in> null_sets M"
+      using f N' by (auto simp: null_sets_def emeasure_distr)
+  qed
+qed
+
+lemma (in complete_measure) vimage_null_part_sets:
+  "f \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> null_sets N \<subseteq> null_sets (distr M N f) \<Longrightarrow> A \<in> completion N \<Longrightarrow>
+  f -` null_part N A \<inter> space M \<in> sets M"
+  using vimage_null_part_null_sets[of f N A] by auto
+
+lemma (in complete_measure) measurable_completion2:
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M N" and null_sets: "null_sets N \<subseteq> null_sets (distr M N f)"
+  shows "f \<in> M \<rightarrow>\<^sub>M completion N"
+proof (rule measurableI)
+  show "x \<in> space M \<Longrightarrow> f x \<in> space (completion N)" for x
+    using f[THEN measurable_space] by auto
+  fix A assume A: "A \<in> sets (completion N)"
+  have "f -` A \<inter> space M = (f -` main_part N A \<inter> space M) \<union> (f -` null_part N A \<inter> space M)"
+    using main_part_null_part_Un[OF A] by auto
+  then show "f -` A \<inter> space M \<in> sets M"
+    using f A null_sets by (auto intro: vimage_null_part_sets measurable_sets)
+qed
+
+lemma (in complete_measure) completion_distr_eq:
+  assumes X: "X \<in> M \<rightarrow>\<^sub>M N" and null_sets: "null_sets (distr M N X) = null_sets N"
+  shows "completion (distr M N X) = distr M (completion N) X"
+proof (rule measure_eqI)
+  show eq: "sets (completion (distr M N X)) = sets (distr M (completion N) X)"
+    by (simp add: sets_completion null_sets)
+
+  fix A assume A: "A \<in> completion (distr M N X)"
+  moreover have A': "A \<in> completion N"
+    using A by (simp add: eq)
+  moreover have "main_part (distr M N X) A \<in> sets N"
+    using main_part_sets[OF A] by simp
+  moreover have "X -` A \<inter> space M = (X -` main_part (distr M N X) A \<inter> space M) \<union> (X -` null_part (distr M N X) A \<inter> space M)"
+    using main_part_null_part_Un[OF A] by auto
+  moreover have "X -` null_part (distr M N X) A \<inter> space M \<in> null_sets M"
+    using X A by (intro vimage_null_part_null_sets) (auto cong: distr_cong)
+  ultimately show "emeasure (completion (distr M N X)) A = emeasure (distr M (completion N) X) A"
+    using X by (auto simp: emeasure_distr measurable_completion null_sets measurable_completion2
+                     intro!: emeasure_Un_null_set[symmetric])
+qed
+
+lemma distr_completion: "X \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> distr (completion M) N X = distr M N X"
+  by (intro measure_eqI) (auto simp: emeasure_distr measurable_completion)
+
+proposition (in complete_measure) fmeasurable_inner_outer:
+  "S \<in> fmeasurable M \<longleftrightarrow>
+    (\<forall>e>0. \<exists>T\<in>fmeasurable M. \<exists>U\<in>fmeasurable M. T \<subseteq> S \<and> S \<subseteq> U \<and> \<bar>measure M T - measure M U\<bar> < e)"
+  (is "_ \<longleftrightarrow> ?approx")
+proof safe
+  let ?\<mu> = "measure M" let ?D = "\<lambda>T U . \<bar>?\<mu> T - ?\<mu> U\<bar>"
+  assume ?approx
+  have "\<exists>A. \<forall>n. (fst (A n) \<in> fmeasurable M \<and> snd (A n) \<in> fmeasurable M \<and> fst (A n) \<subseteq> S \<and> S \<subseteq> snd (A n) \<and>
+    ?D (fst (A n)) (snd (A n)) < 1/Suc n) \<and> (fst (A n) \<subseteq> fst (A (Suc n)) \<and> snd (A (Suc n)) \<subseteq> snd (A n))"
+    (is "\<exists>A. \<forall>n. ?P n (A n) \<and> ?Q (A n) (A (Suc n))")
+  proof (intro dependent_nat_choice)
+    show "\<exists>A. ?P 0 A"
+      using \<open>?approx\<close>[THEN spec, of 1] by auto
+  next
+    fix A n assume "?P n A"
+    moreover
+    from \<open>?approx\<close>[THEN spec, of "1/Suc (Suc n)"]
+    obtain T U where *: "T \<in> fmeasurable M" "U \<in> fmeasurable M" "T \<subseteq> S" "S \<subseteq> U" "?D T U < 1 / Suc (Suc n)"
+      by auto
+    ultimately have "?\<mu> T \<le> ?\<mu> (T \<union> fst A)" "?\<mu> (U \<inter> snd A) \<le> ?\<mu> U"
+      "?\<mu> T \<le> ?\<mu> U" "?\<mu> (T \<union> fst A) \<le> ?\<mu> (U \<inter> snd A)"
+      by (auto intro!: measure_mono_fmeasurable)
+    then have "?D (T \<union> fst A) (U \<inter> snd A) \<le> ?D T U"
+      by auto
+    also have "?D T U < 1/Suc (Suc n)" by fact
+    finally show "\<exists>B. ?P (Suc n) B \<and> ?Q A B"
+      using \<open>?P n A\<close> *
+      by (intro exI[of _ "(T \<union> fst A, U \<inter> snd A)"] conjI) auto
+  qed
+  then obtain A
+    where lm: "\<And>n. fst (A n) \<in> fmeasurable M" "\<And>n. snd (A n) \<in> fmeasurable M"
+      and set_bound: "\<And>n. fst (A n) \<subseteq> S" "\<And>n. S \<subseteq> snd (A n)"
+      and mono: "\<And>n. fst (A n) \<subseteq> fst (A (Suc n))" "\<And>n. snd (A (Suc n)) \<subseteq> snd (A n)"
+      and bound: "\<And>n. ?D (fst (A n)) (snd (A n)) < 1/Suc n"
+    by metis
+
+  have INT_sA: "(\<Inter>n. snd (A n)) \<in> fmeasurable M"
+    using lm by (intro fmeasurable_INT[of _ 0]) auto
+  have UN_fA: "(\<Union>n. fst (A n)) \<in> fmeasurable M"
+    using lm order_trans[OF set_bound(1) set_bound(2)[of 0]] by (intro fmeasurable_UN[of _ _ "snd (A 0)"]) auto
+
+  have "(\<lambda>n. ?\<mu> (fst (A n)) - ?\<mu> (snd (A n))) \<longlonglongrightarrow> 0"
+    using bound
+    by (subst tendsto_rabs_zero_iff[symmetric])
+       (intro tendsto_sandwich[OF _ _ tendsto_const LIMSEQ_inverse_real_of_nat];
+        auto intro!: always_eventually less_imp_le simp: divide_inverse)
+  moreover
+  have "(\<lambda>n. ?\<mu> (fst (A n)) - ?\<mu> (snd (A n))) \<longlonglongrightarrow> ?\<mu> (\<Union>n. fst (A n)) - ?\<mu> (\<Inter>n. snd (A n))"
+  proof (intro tendsto_diff Lim_measure_incseq Lim_measure_decseq)
+    show "range (\<lambda>i. fst (A i)) \<subseteq> sets M" "range (\<lambda>i. snd (A i)) \<subseteq> sets M"
+      "incseq (\<lambda>i. fst (A i))" "decseq (\<lambda>n. snd (A n))"
+      using mono lm by (auto simp: incseq_Suc_iff decseq_Suc_iff intro!: measure_mono_fmeasurable)
+    show "emeasure M (\<Union>x. fst (A x)) \<noteq> \<infinity>" "emeasure M (snd (A n)) \<noteq> \<infinity>" for n
+      using lm(2)[of n] UN_fA by (auto simp: fmeasurable_def)
+  qed
+  ultimately have eq: "0 = ?\<mu> (\<Union>n. fst (A n)) - ?\<mu> (\<Inter>n. snd (A n))"
+    by (rule LIMSEQ_unique)
+
+  show "S \<in> fmeasurable M"
+    using UN_fA INT_sA
+  proof (rule complete_sets_sandwich_fmeasurable)
+    show "(\<Union>n. fst (A n)) \<subseteq> S" "S \<subseteq> (\<Inter>n. snd (A n))"
+      using set_bound by auto
+    show "?\<mu> (\<Union>n. fst (A n)) = ?\<mu> (\<Inter>n. snd (A n))"
+      using eq by auto
+  qed
+qed (auto intro!: bexI[of _ S])
+
+lemma (in complete_measure) fmeasurable_measure_inner_outer:
+   "(S \<in> fmeasurable M \<and> m = measure M S) \<longleftrightarrow>
+      (\<forall>e>0. \<exists>T\<in>fmeasurable M. T \<subseteq> S \<and> m - e < measure M T) \<and>
+      (\<forall>e>0. \<exists>U\<in>fmeasurable M. S \<subseteq> U \<and> measure M U < m + e)"
+    (is "?lhs = ?rhs")
+proof
+  assume RHS: ?rhs
+  then have T: "\<And>e. 0 < e \<longrightarrow> (\<exists>T\<in>fmeasurable M. T \<subseteq> S \<and> m - e < measure M T)"
+        and U: "\<And>e. 0 < e \<longrightarrow> (\<exists>U\<in>fmeasurable M. S \<subseteq> U \<and> measure M U < m + e)"
+    by auto
+  have "S \<in> fmeasurable M"
+  proof (subst fmeasurable_inner_outer, safe)
+    fix e::real assume "0 < e"
+    with RHS obtain T U where T: "T \<in> fmeasurable M" "T \<subseteq> S" "m - e/2 < measure M T"
+                          and U: "U \<in> fmeasurable M" "S \<subseteq> U" "measure M U < m + e/2"
+      by (meson half_gt_zero)+
+    moreover have "measure M U - measure M T < (m + e/2) - (m - e/2)"
+      by (intro diff_strict_mono) fact+
+    moreover have "measure M T \<le> measure M U"
+      using T U by (intro measure_mono_fmeasurable) auto
+    ultimately show "\<exists>T\<in>fmeasurable M. \<exists>U\<in>fmeasurable M. T \<subseteq> S \<and> S \<subseteq> U \<and> \<bar>measure M T - measure M U\<bar> < e"
+      apply (rule_tac bexI[OF _ \<open>T \<in> fmeasurable M\<close>])
+      apply (rule_tac bexI[OF _ \<open>U \<in> fmeasurable M\<close>])
+      by auto
+  qed
+  moreover have "m = measure M S"
+    using \<open>S \<in> fmeasurable M\<close> U[of "measure M S - m"] T[of "m - measure M S"]
+    by (cases m "measure M S" rule: linorder_cases)
+       (auto simp: not_le[symmetric] measure_mono_fmeasurable)
+  ultimately show ?lhs
+    by simp
+qed (auto intro!: bexI[of _ S])
 
 lemma (in cld_measure) notin_sets_outer_measure_of_cover:
   assumes E: "E \<subseteq> space M" "E \<notin> sets M"

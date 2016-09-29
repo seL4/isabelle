@@ -965,6 +965,16 @@ syntax
 translations
   "AE x in M. P" \<rightleftharpoons> "CONST almost_everywhere M (\<lambda>x. P)"
 
+abbreviation
+  "set_almost_everywhere A M P \<equiv> AE x in M. x \<in> A \<longrightarrow> P x"
+
+syntax
+  "_set_almost_everywhere" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool"
+  ("AE _\<in>_ in _./ _" [0,0,0,10] 10)
+
+translations
+  "AE x\<in>A in M. P" \<rightleftharpoons> "CONST set_almost_everywhere A M (\<lambda>x. P)"
+
 lemma eventually_ae_filter: "eventually P (ae_filter M) \<longleftrightarrow> (\<exists>N\<in>null_sets M. {x \<in> space M. \<not> P x} \<subseteq> N)"
   unfolding ae_filter_def by (subst eventually_INF_base) (auto simp: eventually_principal subset_eq)
 
@@ -1576,6 +1586,68 @@ proof (rule tendsto_ennrealD)
     using fin A by (auto intro!: Lim_emeasure_decseq)
 qed auto
 
+subsection \<open>Set of measurable sets with finite measure\<close>
+
+definition fmeasurable :: "'a measure \<Rightarrow> 'a set set"
+where
+  "fmeasurable M = {A\<in>sets M. emeasure M A < \<infinity>}"
+
+lemma fmeasurableD[dest, measurable_dest]: "A \<in> fmeasurable M \<Longrightarrow> A \<in> sets M"
+  by (auto simp: fmeasurable_def)
+
+lemma fmeasurableI: "A \<in> sets M \<Longrightarrow> emeasure M A < \<infinity> \<Longrightarrow> A \<in> fmeasurable M"
+  by (auto simp: fmeasurable_def)
+
+lemma fmeasurableI_null_sets: "A \<in> null_sets M \<Longrightarrow> A \<in> fmeasurable M"
+  by (auto simp: fmeasurable_def)
+
+lemma fmeasurableI2: "A \<in> fmeasurable M \<Longrightarrow> B \<subseteq> A \<Longrightarrow> B \<in> sets M \<Longrightarrow> B \<in> fmeasurable M"
+  using emeasure_mono[of B A M] by (auto simp: fmeasurable_def)
+
+lemma measure_mono_fmeasurable:
+  "A \<subseteq> B \<Longrightarrow> A \<in> sets M \<Longrightarrow> B \<in> fmeasurable M \<Longrightarrow> measure M A \<le> measure M B"
+  by (auto simp: measure_def fmeasurable_def intro!: emeasure_mono enn2real_mono)
+
+lemma emeasure_eq_measure2: "A \<in> fmeasurable M \<Longrightarrow> emeasure M A = measure M A"
+  by (simp add: emeasure_eq_ennreal_measure fmeasurable_def less_top)
+
+interpretation fmeasurable: ring_of_sets "space M" "fmeasurable M"
+proof (rule ring_of_setsI)
+  show "fmeasurable M \<subseteq> Pow (space M)" "{} \<in> fmeasurable M"
+    by (auto simp: fmeasurable_def dest: sets.sets_into_space)
+  fix a b assume *: "a \<in> fmeasurable M" "b \<in> fmeasurable M"
+  then have "emeasure M (a \<union> b) \<le> emeasure M a + emeasure M b"
+    by (intro emeasure_subadditive) auto
+  also have "\<dots> < top"
+    using * by (auto simp: fmeasurable_def)
+  finally show  "a \<union> b \<in> fmeasurable M"
+    using * by (auto intro: fmeasurableI)
+  show "a - b \<in> fmeasurable M"
+    using emeasure_mono[of "a - b" a M] * by (auto simp: fmeasurable_def Diff_subset)
+qed
+
+lemma fmeasurable_Diff: "A \<in> fmeasurable M \<Longrightarrow> B \<in> sets M \<Longrightarrow> A - B \<in> fmeasurable M"
+  using fmeasurableI2[of A M "A - B"] by auto
+
+lemma fmeasurable_UN:
+  assumes "countable I" "\<And>i. i \<in> I \<Longrightarrow> F i \<subseteq> A" "\<And>i. i \<in> I \<Longrightarrow> F i \<in> sets M" "A \<in> fmeasurable M"
+  shows "(\<Union>i\<in>I. F i) \<in> fmeasurable M"
+proof (rule fmeasurableI2)
+  show "A \<in> fmeasurable M" "(\<Union>i\<in>I. F i) \<subseteq> A" using assms by auto
+  show "(\<Union>i\<in>I. F i) \<in> sets M"
+    using assms by (intro sets.countable_UN') auto
+qed
+
+lemma fmeasurable_INT:
+  assumes "countable I" "i \<in> I" "\<And>i. i \<in> I \<Longrightarrow> F i \<in> sets M" "F i \<in> fmeasurable M"
+  shows "(\<Inter>i\<in>I. F i) \<in> fmeasurable M"
+proof (rule fmeasurableI2)
+  show "F i \<in> fmeasurable M" "(\<Inter>i\<in>I. F i) \<subseteq> F i"
+    using assms by auto
+  show "(\<Inter>i\<in>I. F i) \<in> sets M"
+    using assms by (intro sets.countable_INT') auto
+qed
+
 subsection \<open>Measure spaces with @{term "emeasure M (space M) < \<infinity>"}\<close>
 
 locale finite_measure = sigma_finite_measure M for M +
@@ -1587,6 +1659,9 @@ lemma finite_measureI[Pure.intro!]:
 
 lemma (in finite_measure) emeasure_finite[simp, intro]: "emeasure M A \<noteq> top"
   using finite_emeasure_space emeasure_space[of M A] by (auto simp: top_unique)
+
+lemma (in finite_measure) fmeasurable_eq_sets: "fmeasurable M = sets M"
+  by (auto simp: fmeasurable_def less_top[symmetric])
 
 lemma (in finite_measure) emeasure_eq_measure: "emeasure M A = ennreal (measure M A)"
   by (intro emeasure_eq_ennreal_measure) simp
@@ -3135,7 +3210,7 @@ lemma sets_Sup_sigma:
 proof -
   { fix a m assume "a \<in> sigma_sets \<Omega> m" "m \<in> M"
     then have "a \<in> sigma_sets \<Omega> (\<Union>M)"
-     by induction (auto intro: sigma_sets.intros) }
+     by induction (auto intro: sigma_sets.intros(2-)) }
   then show "sets (SUP m:M. sigma \<Omega> m) = sets (sigma \<Omega> (\<Union>M))"
     apply (subst sets_Sup_eq[where X="\<Omega>"])
     apply (auto simp add: M) []
@@ -3317,7 +3392,7 @@ next
   assume "?M \<noteq> 0"
   then have *: "{x. ?m x \<noteq> 0} = (\<Union>n. {x. ?M / Suc n < ?m x})"
     using reals_Archimedean[of "?m x / ?M" for x]
-    by (auto simp: field_simps not_le[symmetric] measure_nonneg divide_le_0_iff measure_le_0_iff)
+    by (auto simp: field_simps not_le[symmetric] divide_le_0_iff measure_le_0_iff)
   have **: "\<And>n. finite {x. ?M / Suc n < ?m x}"
   proof (rule ccontr)
     fix n assume "infinite {x. ?M / Suc n < ?m x}" (is "infinite ?X")

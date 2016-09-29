@@ -22,12 +22,6 @@ proof safe
     by simp
 qed
 
-abbreviation lebesgue :: "'a::euclidean_space measure"
-  where "lebesgue \<equiv> completion lborel"
-
-abbreviation lebesgue_on :: "'a set \<Rightarrow> 'a::euclidean_space measure"
-  where "lebesgue_on \<Omega> \<equiv> restrict_space (completion lborel) \<Omega>"
-
 lemma has_integral_implies_lebesgue_measurable_cbox:
   fixes f :: "'a :: euclidean_space \<Rightarrow> real"
   assumes f: "(f has_integral I) (cbox x y)"
@@ -779,19 +773,6 @@ lemma integral_lborel: "integrable lborel f \<Longrightarrow> integral UNIV f = 
 
 end
 
-lemma measurable_completion: "f \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> f \<in> completion M \<rightarrow>\<^sub>M N"
-  by (auto simp: measurable_def)
-
-lemma integrable_completion:
-  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> integrable (completion M) f \<longleftrightarrow> integrable M f"
-  by (rule integrable_subalgebra[symmetric]) auto
-
-lemma integral_completion:
-  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  assumes f: "f \<in> M \<rightarrow>\<^sub>M borel" shows "integral\<^sup>L (completion M) f = integral\<^sup>L M f"
-  by (rule integral_subalgebra[symmetric]) (auto intro: f)
-
 context
 begin
 
@@ -917,6 +898,11 @@ lemma set_lebesgue_integral_eq_integral:
   shows "f integrable_on S" "LINT x:S | lebesgue. f x = integral S f"
   using has_integral_set_lebesgue[OF f] by (auto simp: integral_unique integrable_on_def)
 
+lemma lmeasurable_iff_has_integral:
+  "S \<in> lmeasurable \<longleftrightarrow> ((indicator S) has_integral measure lebesgue S) UNIV"
+  by (subst has_integral_iff_nn_integral_lebesgue)
+     (auto simp: ennreal_indicator emeasure_eq_measure2 borel_measurable_indicator_iff intro!: fmeasurableI)
+
 abbreviation
   absolutely_integrable_on :: "('a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool"
   (infixr "absolutely'_integrable'_on" 46)
@@ -948,10 +934,62 @@ next
   qed
 qed
 
+lemma absolutely_integrable_on_iff_nonneg:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
+  assumes "\<And>x. 0 \<le> f x" shows "f absolutely_integrable_on s \<longleftrightarrow> f integrable_on s"
+proof -
+  from assms have "(\<lambda>x. \<bar>f x\<bar>) = f"
+    by (intro ext) auto
+  then show ?thesis
+    unfolding absolutely_integrable_on_def by simp
+qed
+
 lemma absolutely_integrable_onI:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f integrable_on s \<Longrightarrow> (\<lambda>x. norm (f x)) integrable_on s \<Longrightarrow> f absolutely_integrable_on s"
   unfolding absolutely_integrable_on_def by auto
+
+lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
+  by (subst absolutely_integrable_on_iff_nonneg[symmetric])
+     (simp_all add: lmeasurable_iff_integrable)
+
+lemma lmeasure_integral_UNIV: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral UNIV (indicator S)"
+  by (simp add: lmeasurable_iff_has_integral integral_unique)
+
+lemma lmeasure_integral: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral S (\<lambda>x. 1::real)"
+  by (auto simp add: lmeasure_integral_UNIV indicator_def[abs_def] lmeasurable_iff_integrable_on)
+
+text \<open>This should be an abbreviation for negligible.\<close>
+lemma negligible_iff_null_sets: "negligible S \<longleftrightarrow> S \<in> null_sets lebesgue"
+proof
+  assume "negligible S"
+  then have "(indicator S has_integral (0::real)) UNIV"
+    by (auto simp: negligible)
+  then show "S \<in> null_sets lebesgue"
+    by (subst (asm) has_integral_iff_nn_integral_lebesgue)
+        (auto simp: borel_measurable_indicator_iff nn_integral_0_iff_AE AE_iff_null_sets indicator_eq_0_iff)
+next
+  assume S: "S \<in> null_sets lebesgue"
+  show "negligible S"
+    unfolding negligible_def
+  proof (safe intro!: has_integral_iff_nn_integral_lebesgue[THEN iffD2]
+                      has_integral_restrict_univ[where s="cbox _ _", THEN iffD1])
+    fix a b
+    show "(\<lambda>x. if x \<in> cbox a b then indicator S x else 0) \<in> lebesgue \<rightarrow>\<^sub>M borel"
+      using S by (auto intro!: measurable_If)
+    then show "(\<integral>\<^sup>+ x. ennreal (if x \<in> cbox a b then indicator S x else 0) \<partial>lebesgue) = ennreal 0"
+      using S[THEN AE_not_in] by (auto intro!: nn_integral_0_iff_AE[THEN iffD2])
+  qed auto
+qed
+
+lemma non_negligible_UNIV [simp]: "\<not> negligible UNIV"
+  unfolding negligible_iff_null_sets by (auto simp: null_sets_def emeasure_lborel_UNIV)
+
+lemma negligible_interval:
+  "negligible (cbox a b) \<longleftrightarrow> box a b = {}" "negligible (box a b) \<longleftrightarrow> box a b = {}"
+   by (auto simp: negligible_iff_null_sets null_sets_def setprod_nonneg inner_diff_left box_eq_empty
+                  not_le emeasure_lborel_cbox_eq emeasure_lborel_box_eq
+            intro: eq_refl antisym less_imp_le)
 
 lemma set_integral_norm_bound:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
