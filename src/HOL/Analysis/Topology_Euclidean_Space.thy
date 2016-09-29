@@ -550,6 +550,11 @@ lemma closedin_Un[intro]: "closedin U S \<Longrightarrow> closedin U T \<Longrig
 lemma Diff_Inter[intro]: "A - \<Inter>S = \<Union>{A - s|s. s\<in>S}"
   by auto
 
+lemma closedin_Union:
+  assumes "finite S" "\<And>T. T \<in> S \<Longrightarrow> closedin U T"
+    shows "closedin U (\<Union>S)"
+  using assms by induction auto
+
 lemma closedin_Inter[intro]:
   assumes Ke: "K \<noteq> {}"
     and Kc: "\<And>S. S \<in>K \<Longrightarrow> closedin U S"
@@ -6164,6 +6169,22 @@ proof -
     using * by auto
 qed
 
+lemma continuous_openin_preimage_eq:
+   "continuous_on S f \<longleftrightarrow>
+    (\<forall>t. open t \<longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
+apply safe
+apply (simp add: continuous_openin_preimage_gen)
+apply (fastforce simp add: continuous_on_open openin_open)
+done
+
+lemma continuous_closedin_preimage_eq:
+   "continuous_on S f \<longleftrightarrow>
+    (\<forall>t. closed t \<longrightarrow> closedin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
+apply safe
+apply (simp add: continuous_closedin_preimage)
+apply (fastforce simp add: continuous_on_closed closedin_closed)
+done
+
 lemma continuous_open_preimage:
   assumes "continuous_on s f"
     and "open s"
@@ -9891,6 +9912,101 @@ next
   qed
   then show ?lhs
     by (force simp: bounded_linear_def bounded_linear_axioms_def \<open>linear f'\<close>)
+qed
+
+subsection\<open>Pasting functions together\<close>
+
+subsubsection\<open>on open sets\<close>
+
+lemma pasting_lemma:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes clo: "\<And>i. i \<in> I \<Longrightarrow> openin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+      and g: "\<And>x. x \<in> S \<Longrightarrow> \<exists>j. j \<in> I \<and> x \<in> T j \<and> g x = f j x"
+    shows "continuous_on S g"
+proof (clarsimp simp: continuous_openin_preimage_eq)
+  fix U :: "'b set"
+  assume "open U"
+  have S: "\<And>i. i \<in> I \<Longrightarrow> (T i) \<subseteq> S"
+    using clo openin_imp_subset by blast
+  have *: "{x \<in> S. g x \<in> U} = \<Union>{{x. x \<in> (T i) \<and> (f i x) \<in> U} |i. i \<in> I}"
+    apply (auto simp: dest: S)
+      apply (metis (no_types, lifting) g mem_Collect_eq)
+    using clo f g openin_imp_subset by fastforce
+  show "openin (subtopology euclidean S) {x \<in> S. g x \<in> U}"
+    apply (subst *)
+    apply (rule openin_Union, clarify)
+    apply (metis (full_types) \<open>open U\<close> cont clo openin_trans continuous_openin_preimage_gen)
+    done
+qed 
+
+lemma pasting_lemma_exists:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes S: "S \<subseteq> (\<Union>i \<in> I. T i)"
+      and clo: "\<And>i. i \<in> I \<Longrightarrow> openin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+    obtains g where "continuous_on S g" "\<And>x i. \<lbrakk>i \<in> I; x \<in> S \<inter> T i\<rbrakk> \<Longrightarrow> g x = f i x"
+proof
+  show "continuous_on S (\<lambda>x. f (SOME i. i \<in> I \<and> x \<in> T i) x)"
+    apply (rule pasting_lemma [OF clo cont])
+     apply (blast intro: f)+
+    apply (metis (mono_tags, lifting) S UN_iff subsetCE someI)
+    done
+next
+  fix x i
+  assume "i \<in> I" "x \<in> S \<inter> T i"
+  then show "f (SOME i. i \<in> I \<and> x \<in> T i) x = f i x"
+    by (metis (no_types, lifting) IntD2 IntI f someI_ex)
+qed
+
+subsubsection\<open>Likewise on closed sets, with a finiteness assumption\<close>
+
+lemma pasting_lemma_closed:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes "finite I"
+      and clo: "\<And>i. i \<in> I \<Longrightarrow> closedin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+      and g: "\<And>x. x \<in> S \<Longrightarrow> \<exists>j. j \<in> I \<and> x \<in> T j \<and> g x = f j x"
+    shows "continuous_on S g"
+proof (clarsimp simp: continuous_closedin_preimage_eq)
+  fix U :: "'b set"
+  assume "closed U"
+  have *: "{x \<in> S. g x \<in> U} = \<Union>{{x. x \<in> (T i) \<and> (f i x) \<in> U} |i. i \<in> I}"
+    apply auto
+    apply (metis (no_types, lifting) g mem_Collect_eq)
+    using clo closedin_closed apply blast
+    apply (metis Int_iff f g clo closedin_limpt inf.absorb_iff2)
+    done
+  show "closedin (subtopology euclidean S) {x \<in> S. g x \<in> U}"
+    apply (subst *)
+    apply (rule closedin_Union)
+    using \<open>finite I\<close> apply simp
+    apply (blast intro: \<open>closed U\<close> continuous_closedin_preimage cont clo closedin_trans)
+    done
+qed
+
+lemma pasting_lemma_exists_closed:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes "finite I"
+      and S: "S \<subseteq> (\<Union>i \<in> I. T i)"
+      and clo: "\<And>i. i \<in> I \<Longrightarrow> closedin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+    obtains g where "continuous_on S g" "\<And>x i. \<lbrakk>i \<in> I; x \<in> S \<inter> T i\<rbrakk> \<Longrightarrow> g x = f i x"
+proof
+  show "continuous_on S (\<lambda>x. f (SOME i. i \<in> I \<and> x \<in> T i) x)"
+    apply (rule pasting_lemma_closed [OF \<open>finite I\<close> clo cont])
+     apply (blast intro: f)+
+    apply (metis (mono_tags, lifting) S UN_iff subsetCE someI)
+    done
+next
+  fix x i
+  assume "i \<in> I" "x \<in> S \<inter> T i"
+  then show "f (SOME i. i \<in> I \<and> x \<in> T i) x = f i x"
+    by (metis (no_types, lifting) IntD2 IntI f someI_ex)
 qed
 
 

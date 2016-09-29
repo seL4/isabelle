@@ -2315,10 +2315,10 @@ lemma outside_no_overlap [simp]:
    "outside s \<inter> s = {}"
   by (auto simp: outside_def)
 
-lemma inside_inter_outside [simp]: "inside s \<inter> outside s = {}"
+lemma inside_Int_outside [simp]: "inside s \<inter> outside s = {}"
   by (auto simp: inside_def outside_def)
 
-lemma inside_union_outside [simp]: "inside s \<union> outside s = (- s)"
+lemma inside_Un_outside [simp]: "inside s \<union> outside s = (- s)"
   by (auto simp: inside_def outside_def)
 
 lemma inside_eq_outside:
@@ -2606,7 +2606,7 @@ lemma inside_empty [simp]: "inside {} = ({} :: 'a :: {real_normed_vector, perfec
   by (simp add: inside_def connected_component_UNIV)
 
 lemma outside_empty [simp]: "outside {} = (UNIV :: 'a :: {real_normed_vector, perfect_space} set)"
-using inside_empty inside_union_outside by blast
+using inside_empty inside_Un_outside by blast
 
 lemma inside_same_component:
    "\<lbrakk>connected_component (- s) x y; x \<in> inside s\<rbrakk> \<Longrightarrow> y \<in> inside s"
@@ -2666,7 +2666,7 @@ lemma outside_convex:
   fixes s :: "'a :: {real_normed_vector, perfect_space} set"
   assumes "convex s"
     shows "outside s = - s"
-  by (metis ComplD assms convex_in_outside equalityI inside_union_outside subsetI sup.cobounded2)
+  by (metis ComplD assms convex_in_outside equalityI inside_Un_outside subsetI sup.cobounded2)
 
 lemma inside_convex:
   fixes s :: "'a :: {real_normed_vector, perfect_space} set"
@@ -2761,7 +2761,7 @@ proof -
   have "closure (inside s) \<inter> - inside s = closure (inside s) - interior (inside s)"
     by (metis (no_types) Diff_Compl assms closure_closed interior_closure open_closed open_inside)
   moreover have "- inside s \<inter> - outside s = s"
-    by (metis (no_types) compl_sup double_compl inside_union_outside)
+    by (metis (no_types) compl_sup double_compl inside_Un_outside)
   moreover have "closure (inside s) \<subseteq> - outside s"
     by (metis (no_types) assms closure_inside_subset union_with_inside)
   ultimately have "closure (inside s) - interior (inside s) \<subseteq> s"
@@ -5460,21 +5460,6 @@ qed
 
 subsection\<open>Components, continuity, openin, closedin\<close>
 
-lemma continuous_openin_preimage_eq:
-   "continuous_on S f \<longleftrightarrow>
-    (\<forall>t. open t \<longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
-apply (auto simp: continuous_openin_preimage_gen)
-apply (fastforce simp add: continuous_on_open openin_open)
-done
-
-lemma continuous_closedin_preimage_eq:
-   "continuous_on S f \<longleftrightarrow>
-    (\<forall>t. closed t \<longrightarrow> closedin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
-apply safe
-apply (simp add: continuous_closedin_preimage)
-apply (fastforce simp add: continuous_on_closed closedin_closed)
-done
-
 lemma continuous_on_components_gen:
  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   assumes "\<And>c. c \<in> components S \<Longrightarrow>
@@ -6108,7 +6093,6 @@ apply (rule iffI)
 apply (metis assms homotopy_eqv_homotopic_triviality_imp)
 by (metis (no_types) assms homotopy_eqv_homotopic_triviality_imp homotopy_eqv_sym)
 
-
 lemma homotopy_eqv_cohomotopic_triviality_null_imp:
   fixes S :: "'a::real_normed_vector set"
     and T :: "'b::real_normed_vector set"
@@ -6155,7 +6139,6 @@ lemma homotopy_eqv_cohomotopic_triviality_null:
 apply (rule iffI)
 apply (metis assms homotopy_eqv_cohomotopic_triviality_null_imp)
 by (metis assms homotopy_eqv_cohomotopic_triviality_null_imp homotopy_eqv_sym)
-
 
 lemma homotopy_eqv_contractible_sets:
   fixes S :: "'a::real_normed_vector set"
@@ -6215,6 +6198,50 @@ by (simp add: homeomorphic_imp_homotopy_eqv homotopy_eqv_contractibility)
 lemma homeomorphic_contractible:
   fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
   shows "\<lbrakk>contractible S; S homeomorphic T\<rbrakk> \<Longrightarrow> contractible T"
-by (metis homeomorphic_contractible_eq)
+  by (metis homeomorphic_contractible_eq)
+
+subsection\<open>Misc other results\<close>
+
+lemma bounded_connected_Compl_real:
+  fixes S :: "real set"
+  assumes "bounded S" and conn: "connected(- S)"
+    shows "S = {}"
+proof -
+  obtain a b where "S \<subseteq> box a b"
+    by (meson assms bounded_subset_open_interval)
+  then have "a \<notin> S" "b \<notin> S"
+    by auto
+  then have "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> x \<in> - S"
+    by (meson Compl_iff conn connected_iff_interval)
+  then show ?thesis
+    using \<open>S \<subseteq> box a b\<close> by auto
+qed
+
+lemma bounded_connected_Compl_1:
+  fixes S :: "'a::{euclidean_space} set"
+  assumes "bounded S" and conn: "connected(- S)" and 1: "DIM('a) = 1"
+    shows "S = {}"
+proof -
+  have "DIM('a) = DIM(real)"
+    by (simp add: "1")
+  then obtain f::"'a \<Rightarrow> real" and g
+  where "linear f" "\<And>x. norm(f x) = norm x" "\<And>x. g(f x) = x" "\<And>y. f(g y) = y"
+    by (rule isomorphisms_UNIV_UNIV) blast
+  with \<open>bounded S\<close> have "bounded (f ` S)"
+    using bounded_linear_image linear_linear by blast
+  have "connected (f ` (-S))"
+    using connected_linear_image assms \<open>linear f\<close> by blast
+  moreover have "f ` (-S) = - (f ` S)"
+    apply (rule bij_image_Compl_eq)
+    apply (auto simp: bij_def)
+     apply (metis \<open>\<And>x. g (f x) = x\<close> injI)
+    by (metis UNIV_I \<open>\<And>y. f (g y) = y\<close> image_iff)
+  finally have "connected (- (f ` S))"
+    by simp
+  then have "f ` S = {}"
+    using \<open>bounded (f ` S)\<close> bounded_connected_Compl_real by blast
+  then show ?thesis
+    by blast
+qed
 
 end
