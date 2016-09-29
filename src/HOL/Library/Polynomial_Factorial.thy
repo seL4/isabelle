@@ -223,7 +223,7 @@ lemma normalize_snd_quot_of_fract: "normalize (snd (quot_of_fract x)) = snd (quo
 subsection \<open>Mapping polynomials\<close>
 
 definition map_poly 
-     :: "('a :: comm_semiring_0 \<Rightarrow> 'b :: comm_semiring_0) \<Rightarrow> 'a poly \<Rightarrow> 'b poly" where
+     :: "('a :: zero \<Rightarrow> 'b :: zero) \<Rightarrow> 'a poly \<Rightarrow> 'b poly" where
   "map_poly f p = Poly (map f (coeffs p))"
 
 lemma map_poly_0 [simp]: "map_poly f 0 = 0"
