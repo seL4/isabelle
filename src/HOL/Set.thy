@@ -1847,7 +1847,7 @@ end
 text \<open>Misc\<close>
 
 definition pairwise :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
-  where "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x \<noteq> y \<longrightarrow> R x y)"
+  where "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. x \<noteq> y \<longrightarrow> R x y)"
 
 lemma pairwise_subset: "pairwise P S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> pairwise P T"
   by (force simp: pairwise_def)

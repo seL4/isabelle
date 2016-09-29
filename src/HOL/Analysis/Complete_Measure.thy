@@ -794,6 +794,27 @@ lemma null_sets_subset: "A \<subseteq> B \<Longrightarrow> A \<in> sets M \<Long
 lemma (in complete_measure) complete2: "A \<subseteq> B \<Longrightarrow> B \<in> null_sets M \<Longrightarrow> A \<in> null_sets M"
   using complete[of A B] null_sets_subset[of A B M] by simp
 
+lemma (in complete_measure) AE_iff_null_sets: "(AE x in M. P x) \<longleftrightarrow> {x\<in>space M. \<not> P x} \<in> null_sets M"
+  unfolding eventually_ae_filter by (auto intro: complete2)
+
+lemma (in complete_measure) null_sets_iff_AE: "A \<in> null_sets M \<longleftrightarrow> ((AE x in M. x \<notin> A) \<and> A \<subseteq> space M)"
+  unfolding AE_iff_null_sets by (auto cong: rev_conj_cong dest: sets.sets_into_space simp: subset_eq)
+
+lemma (in complete_measure) in_sets_AE:
+  assumes ae: "AE x in M. x \<in> A \<longleftrightarrow> x \<in> B" and A: "A \<in> sets M" and B: "B \<subseteq> space M"
+  shows "B \<in> sets M"
+proof -
+  have "(AE x in M. x \<notin> B - A \<and> x \<notin> A - B)"
+    using ae by eventually_elim auto
+  then have "B - A \<in> null_sets M" "A - B \<in> null_sets M"
+    using A B unfolding null_sets_iff_AE by (auto dest: sets.sets_into_space)
+  then have "A \<union> (B - A) - (A - B) \<in> sets M"
+    using A by blast
+  also have "A \<union> (B - A) - (A - B) = B"
+    by auto
+  finally show "B \<in> sets M" .
+qed
+
 lemma (in complete_measure) vimage_null_part_null_sets:
   assumes f: "f \<in> M \<rightarrow>\<^sub>M N" and eq: "null_sets N \<subseteq> null_sets (distr M N f)"
     and A: "A \<in> completion N"
@@ -954,6 +975,16 @@ proof
   ultimately show ?lhs
     by simp
 qed (auto intro!: bexI[of _ S])
+
+lemma (in complete_measure) null_sets_outer:
+  "S \<in> null_sets M \<longleftrightarrow> (\<forall>e>0. \<exists>T\<in>fmeasurable M. S \<subseteq> T \<and> measure M T < e)"
+proof -
+  have "S \<in> null_sets M \<longleftrightarrow> (S \<in> fmeasurable M \<and> 0 = measure M S)"
+    by (auto simp: null_sets_def emeasure_eq_measure2 intro: fmeasurableI) (simp add: measure_def)
+  also have "\<dots> = (\<forall>e>0. \<exists>T\<in>fmeasurable M. S \<subseteq> T \<and> measure M T < e)"
+    unfolding fmeasurable_measure_inner_outer by auto
+  finally show ?thesis .
+qed
 
 lemma (in cld_measure) notin_sets_outer_measure_of_cover:
   assumes E: "E \<subseteq> space M" "E \<notin> sets M"
