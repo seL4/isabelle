@@ -137,7 +137,7 @@ proof -
         moreover have "open ({a<..<c} - s)"
           by (blast intro: open_greaterThanLessThan \<open>finite s\<close> finite_imp_closed)
         ultimately show "f differentiable at x within {a..b}"
-          using x le by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI) 
+          using x le by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI)
       qed (use x le st dist_real_def in auto)
     next
       case ge show ?diff_fg
@@ -149,7 +149,7 @@ proof -
         moreover have "open ({c<..<b} - t)"
           by (blast intro: open_greaterThanLessThan \<open>finite t\<close> finite_imp_closed)
         ultimately show "g differentiable at x within {a..b}"
-          using x ge by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI) 
+          using x ge by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI)
       qed (use x ge st dist_real_def in auto)
     qed
   }
@@ -1753,7 +1753,7 @@ proof -
     apply (simp add: segment_convex_hull)
     apply (rule convex_hull_subset)
     using assms
-    apply (auto simp: hull_inc c' Convex.convexD_alt)
+    apply (auto simp: hull_inc c' convexD_alt)
     done
 qed
 
@@ -1770,7 +1770,7 @@ proof -
     apply (simp_all add: segment_convex_hull)
     apply (rule_tac [!] convex_hull_subset)
     using assms
-    apply (auto simp: hull_inc c' Convex.convexD_alt)
+    apply (auto simp: hull_inc c' convexD_alt)
     done
   show ?thesis
     apply (rule contour_integral_unique)
