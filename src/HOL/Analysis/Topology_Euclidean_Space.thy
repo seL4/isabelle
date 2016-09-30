@@ -18,6 +18,11 @@ begin
 
 (* FIXME: move elsewhere *)
 
+lemma halfspace_Int_eq:
+     "{x. a \<bullet> x \<le> b} \<inter> {x. b \<le> a \<bullet> x} = {x. a \<bullet> x = b}"
+     "{x. b \<le> a \<bullet> x} \<inter> {x. a \<bullet> x \<le> b} = {x. a \<bullet> x = b}"
+  by auto
+
 definition (in monoid_add) support_on :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'b set"
 where
   "support_on s f = {x\<in>s. f x \<noteq> 0}"
@@ -8603,27 +8608,19 @@ lemma homeomorphic_minimal:
     (\<exists>f g. (\<forall>x\<in>s. f(x) \<in> t \<and> (g(f(x)) = x)) \<and>
            (\<forall>y\<in>t. g(y) \<in> s \<and> (f(g(y)) = y)) \<and>
            continuous_on s f \<and> continuous_on t g)"
-  unfolding homeomorphic_def homeomorphism_def
-  apply auto
-  apply (rule_tac x=f in exI)
-  apply (rule_tac x=g in exI)
-  apply auto
-  apply (rule_tac x=f in exI)
-  apply (rule_tac x=g in exI)
-  apply auto
-  unfolding image_iff
-  apply (erule_tac x="g x" in ballE)
-  apply (erule_tac x="x" in ballE)
-  apply auto
-  apply (rule_tac x="g x" in bexI)
-  apply auto
-  apply (erule_tac x="f x" in ballE)
-  apply (erule_tac x="x" in ballE)
-  apply auto
-  apply (rule_tac x="f x" in bexI)
-  apply auto
-  done
-
+   (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    by (fastforce simp: homeomorphic_def homeomorphism_def)
+next
+  assume ?rhs
+  then show ?lhs
+    apply clarify
+    unfolding homeomorphic_def homeomorphism_def
+    by (metis equalityI image_subset_iff subsetI)
+ qed
+ 
 lemma homeomorphicI [intro?]:
    "\<lbrakk>f ` S = T; g ` T = S;
      continuous_on S f; continuous_on T g;
@@ -8635,7 +8632,7 @@ lemma homeomorphism_of_subsets:
    "\<lbrakk>homeomorphism S T f g; S' \<subseteq> S; T'' \<subseteq> T; f ` S' = T'\<rbrakk>
     \<Longrightarrow> homeomorphism S' T' f g"
 apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
-by (metis contra_subsetD imageI)
+by (metis subsetD imageI)
 
 lemma homeomorphism_apply1: "\<lbrakk>homeomorphism S T f g; x \<in> S\<rbrakk> \<Longrightarrow> g(f x) = x"
   by (simp add: homeomorphism_def)
@@ -8654,6 +8651,39 @@ lemma homeomorphism_cont1: "homeomorphism S T f g \<Longrightarrow> continuous_o
 
 lemma homeomorphism_cont2: "homeomorphism S T f g \<Longrightarrow> continuous_on T g"
   by (simp add: homeomorphism_def)
+
+lemma continuous_on_no_limpt:
+   "(\<And>x. \<not> x islimpt S) \<Longrightarrow> continuous_on S f"
+  unfolding continuous_on_def
+  by (metis UNIV_I empty_iff eventually_at_topological islimptE open_UNIV tendsto_def trivial_limit_within)
+
+lemma continuous_on_finite:
+  fixes S :: "'a::t1_space set"
+  shows "finite S \<Longrightarrow> continuous_on S f"
+by (metis continuous_on_no_limpt islimpt_finite)
+
+lemma homeomorphic_finite:
+  fixes S :: "'a::t1_space set" and T :: "'b::t1_space set"
+  assumes "finite T"
+  shows "S homeomorphic T \<longleftrightarrow> finite S \<and> finite T \<and> card S = card T" (is "?lhs = ?rhs")
+proof
+  assume "S homeomorphic T"
+  with assms show ?rhs
+    apply (auto simp: homeomorphic_def homeomorphism_def)
+     apply (metis finite_imageI)
+    by (metis card_image_le finite_imageI le_antisym)
+next
+  assume R: ?rhs
+  with finite_same_card_bij obtain h where "bij_betw h S T"
+    by (auto simp: )
+  with R show ?lhs
+    apply (auto simp: homeomorphic_def homeomorphism_def continuous_on_finite)
+    apply (rule_tac x="h" in exI)
+    apply (rule_tac x="inv_into S h" in exI)
+    apply (auto simp:  bij_betw_inv_into_left bij_betw_inv_into_right bij_betw_imp_surj_on inv_into_into bij_betwE)
+    apply (metis bij_betw_def bij_betw_inv_into)
+    done
+qed
 
 text \<open>Relatively weak hypotheses if a set is compact.\<close>
 

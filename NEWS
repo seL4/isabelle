@@ -267,14 +267,29 @@ HOL-Analysis some theorems need additional name spaces prefixes due to name
 clashes.
 INCOMPATIBILITY.
 
-* Number_Theory: algebraic foundation for primes: Generalisation of 
+* In HOL-Probability the type of emeasure and nn_integral was changed
+from ereal to ennreal:
+  emeasure :: 'a measure => 'a set => ennreal
+  nn_integral :: 'a measure => ('a => ennreal) => ennreal
+INCOMPATIBILITY.
+
+* HOL-Analysis: more complex analysis including Cauchy's inequality, Liouville theorem,
+open mapping theorem, maximum modulus principle, Residue theorem, Schwarz Lemma.
+
+* HOL-Analysis: Theory of polyhedra: faces, extreme points, polytopes, and the Krein–Milman
+Minkowski theorem.
+
+* HOL-Analysis: Numerous results ported from the HOL Light libraries: homeomorphisms,
+continuous function extensions and other advanced topics in topology
+
+* Number_Theory: algebraic foundation for primes: Generalisation of
 predicate "prime" and introduction of predicates "prime_elem",
-"irreducible", a "prime_factorization" function, and the "factorial_ring" 
-typeclass with instance proofs for nat, int, poly. Some theorems now have 
+"irreducible", a "prime_factorization" function, and the "factorial_ring"
+typeclass with instance proofs for nat, int, poly. Some theorems now have
 different names, most notably "prime_def" is now "prime_nat_iff".
 INCOMPATIBILITY.
 
-* Probability: Code generation and QuickCheck for Probability Mass 
+* Probability: Code generation and QuickCheck for Probability Mass
 Functions.
 
 * Theory Set_Interval.thy: substantial new theorems on indexed sums
@@ -297,9 +312,9 @@ equivalence relations from a predicate and an equivalence relation.
 * Theory Library/Perm.thy: basic facts about almost everywhere fix
 bijections.
 
-* Theory Library/Normalized_Fraction.thy: allows viewing an element 
-of a field of fractions as a normalized fraction (i.e. a pair of 
-numerator and denominator such that the two are coprime and the 
+* Theory Library/Normalized_Fraction.thy: allows viewing an element
+of a field of fractions as a normalized fraction (i.e. a pair of
+numerator and denominator such that the two are coprime and the
 denominator is normalized w.r.t. unit factors)
 
 * Locale bijection establishes convenient default simp rules
@@ -330,8 +345,8 @@ which renders those abstract effectively.
 a small guarantee that given constants specify a safe interface for the
 generated code.
 
-* Probability/Random_Permutations.thy contains some theory about 
-choosing a permutation of a set uniformly at random and folding over a 
+* Probability/Random_Permutations.thy contains some theory about
+choosing a permutation of a set uniformly at random and folding over a
 list in random order.
 
 * Probability/SPMF formalises discrete subprobability distributions.
@@ -341,8 +356,8 @@ allow to control optional syntax in local contexts; this supersedes
 former Library/FinFun_Syntax.thy. INCOMPATIBILITY, e.g. use "unbundle
 finfun_syntax" to imitate import of "~~/src/HOL/Library/FinFun_Syntax".
 
-* Library/Set_Permutations.thy (executably) defines the set of 
-permutations of a set, i.e. the set of all lists that contain every 
+* Library/Set_Permutations.thy (executably) defines the set of
+permutations of a set, i.e. the set of all lists that contain every
 element of the carrier set exactly once.
 
 * Static evaluators (Code_Evaluation.static_* in Isabelle/ML) rely on
@@ -363,7 +378,7 @@ eliminated altogether.
 break existing proofs. INCOMPATIBILITY.
 
 * Sledgehammer:
-  - The MaSh relevance filter has been sped up.
+  - The MaSh relevance filter is now faster than before.
   - Produce syntactically correct Vampire 4.0 problem files.
 
 * The 'coinductive' command produces a proper coinduction rule for
@@ -678,12 +693,6 @@ INCOMPATIBILITY.
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
 
-* More complex analysis including Cauchy's inequality, Liouville theorem,
-open mapping theorem, maximum modulus principle, Residue theorem, Schwarz Lemma.
-
-* Theory of polyhedra: faces, extreme points, polytopes, and the Krein–Milman
-Minkowski theorem.
-
 * "Gcd (f ` A)" and "Lcm (f ` A)" are printed with optional
 comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f ` A)".
 
@@ -815,14 +824,8 @@ INCOMPATIBILITY.
 
 * Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
 
-* In HOL-Probability the type of emeasure and nn_integral was changed
-from ereal to ennreal:
-  emeasure :: 'a measure => 'a set => ennreal
-  nn_integral :: 'a measure => ('a => ennreal) => ennreal
-INCOMPATIBILITY.
-
-* Renamed HOL/Quotient_Examples/FSet.thy to 
-HOL/Quotient_Examples/Quotient_FSet.thy 
+* Renamed HOL/Quotient_Examples/FSet.thy to
+HOL/Quotient_Examples/Quotient_FSet.thy
 INCOMPATIBILITY.
 
 *** ML ***

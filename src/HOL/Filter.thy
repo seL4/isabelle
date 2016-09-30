@@ -685,11 +685,11 @@ lemma eventually_gt_at_bot:
   "eventually (\<lambda>x. x < (c::_::unbounded_dense_linorder)) at_bot"
   unfolding eventually_at_bot_dense by auto
 
-lemma trivial_limit_at_bot_linorder: "\<not> trivial_limit (at_bot ::('a::linorder) filter)"
+lemma trivial_limit_at_bot_linorder [simp]: "\<not> trivial_limit (at_bot ::('a::linorder) filter)"
   unfolding trivial_limit_def
   by (metis eventually_at_bot_linorder order_refl)
 
-lemma trivial_limit_at_top_linorder: "\<not> trivial_limit (at_top ::('a::linorder) filter)"
+lemma trivial_limit_at_top_linorder [simp]: "\<not> trivial_limit (at_top ::('a::linorder) filter)"
   unfolding trivial_limit_def
   by (metis eventually_at_top_linorder order_refl)
 
@@ -720,10 +720,10 @@ lemma eventually_sequentiallyI [intro?]:
   shows "eventually P sequentially"
 using assms by (auto simp: eventually_sequentially)
 
-lemma eventually_sequentially_Suc: "eventually (\<lambda>i. P (Suc i)) sequentially \<longleftrightarrow> eventually P sequentially"
+lemma eventually_sequentially_Suc [simp]: "eventually (\<lambda>i. P (Suc i)) sequentially \<longleftrightarrow> eventually P sequentially"
   unfolding eventually_sequentially by (metis Suc_le_D Suc_le_mono le_Suc_eq)
 
-lemma eventually_sequentially_seg: "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
+lemma eventually_sequentially_seg [simp]: "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
   using eventually_sequentially_Suc[of "\<lambda>n. P (n + k)" for k] by (induction k) auto
 
 
@@ -1103,7 +1103,7 @@ lemma filterlim_sequentially_Suc:
   unfolding filterlim_iff by (subst eventually_sequentially_Suc) simp
 
 lemma filterlim_Suc: "filterlim Suc sequentially sequentially"
-  by (simp add: filterlim_iff eventually_sequentially) (metis le_Suc_eq)
+  by (simp add: filterlim_iff eventually_sequentially)
 
 lemma filterlim_If:
   "LIM x inf F (principal {x. P x}). f x :> G \<Longrightarrow>

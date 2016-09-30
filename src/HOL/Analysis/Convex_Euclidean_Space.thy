@@ -8764,12 +8764,6 @@ next
   qed
 qed
 
-lemma rel_frontier_convex_Int_affine:
-  fixes S :: "'a::euclidean_space set"
-  assumes "convex S" "affine T" "interior S \<inter> T \<noteq> {}"
-    shows "rel_frontier(S \<inter> T) = frontier S \<inter> T"
-by (simp add: assms convex_affine_rel_frontier_Int)
-
 lemma subset_rel_interior_convex:
   fixes S T :: "'n::euclidean_space set"
   assumes "convex S"

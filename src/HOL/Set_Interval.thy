@@ -551,6 +551,18 @@ lemma infinite_Ioc: "a < b \<Longrightarrow> \<not> finite {a <.. b}"
   using greaterThanLessThan_subseteq_greaterThanAtMost_iff[of a b a b] infinite_Ioo[of a b]
   by (auto dest: finite_subset)
 
+lemma infinite_Ioo_iff [simp]: "infinite {a<..<b} \<longleftrightarrow> a < b"
+  using not_less_iff_gr_or_eq by (fastforce simp: infinite_Ioo)
+
+lemma infinite_Icc_iff [simp]: "infinite {a .. b} \<longleftrightarrow> a < b"
+  using not_less_iff_gr_or_eq by (fastforce simp: infinite_Icc)
+
+lemma infinite_Ico_iff [simp]: "infinite {a..<b} \<longleftrightarrow> a < b"
+  using not_less_iff_gr_or_eq by (fastforce simp: infinite_Ico)
+
+lemma infinite_Ioc_iff [simp]: "infinite {a<..b} \<longleftrightarrow> a < b"
+  using not_less_iff_gr_or_eq by (fastforce simp: infinite_Ioc)
+
 end
 
 lemma infinite_Iio: "\<not> finite {..< a :: 'a :: {no_bot, linorder}}"

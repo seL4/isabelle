@@ -5,7 +5,7 @@
 section \<open>Continuous paths and path-connected sets\<close>
 
 theory Path_Connected
-imports Continuous_Extension
+imports Continuous_Extension "~~/src/HOL/Library/Continuum_Not_Denumerable"
 begin
 
 subsection \<open>Paths and Arcs\<close>
@@ -6242,6 +6242,1424 @@ proof -
     using \<open>bounded (f ` S)\<close> bounded_connected_Compl_real by blast
   then show ?thesis
     by blast
+qed
+
+subsection\<open>Some Uncountable Sets\<close>
+
+lemma uncountable_closed_segment:
+  fixes a :: "'a::real_normed_vector"
+  assumes "a \<noteq> b" shows "uncountable (closed_segment a b)"
+unfolding path_image_linepath [symmetric] path_image_def
+  using inj_on_linepath [OF assms] uncountable_closed_interval [of 0 1]
+        countable_image_inj_on by auto
+
+lemma uncountable_open_segment:
+  fixes a :: "'a::real_normed_vector"
+  assumes "a \<noteq> b" shows "uncountable (open_segment a b)"
+  by (simp add: assms open_segment_def uncountable_closed_segment uncountable_minus_countable)
+
+lemma uncountable_convex:
+  fixes a :: "'a::real_normed_vector"
+  assumes "convex S" "a \<in> S" "b \<in> S" "a \<noteq> b"
+    shows "uncountable S"
+proof -
+  have "uncountable (closed_segment a b)"
+    by (simp add: uncountable_closed_segment assms)
+  then show ?thesis
+    by (meson assms convex_contains_segment countable_subset)
+qed
+
+lemma uncountable_ball:
+  fixes a :: "'a::euclidean_space"
+  assumes "r > 0"
+    shows "uncountable (ball a r)"
+proof -
+  have "uncountable (open_segment a (a + r *\<^sub>R (SOME i. i \<in> Basis)))"
+    by (metis Basis_zero SOME_Basis add_cancel_right_right assms less_le real_vector.scale_eq_0_iff uncountable_open_segment)
+  moreover have "open_segment a (a + r *\<^sub>R (SOME i. i \<in> Basis)) \<subseteq> ball a r"
+    using assms by (auto simp: in_segment algebra_simps dist_norm SOME_Basis)
+  ultimately show ?thesis
+    by (metis countable_subset)
+qed
+
+lemma uncountable_cball:
+  fixes a :: "'a::euclidean_space"
+  assumes "r > 0"
+  shows "uncountable (cball a r)"
+  using assms countable_subset uncountable_ball by auto
+
+lemma pairwise_disjnt_countable:
+  fixes \<N> :: "nat set set"
+  assumes "pairwise disjnt \<N>"
+    shows "countable \<N>"
+proof -
+  have "inj_on (\<lambda>X. SOME n. n \<in> X) (\<N> - {{}})"
+    apply (clarsimp simp add: inj_on_def)
+    by (metis assms disjnt_insert2 insert_absorb pairwise_def subsetI subset_empty tfl_some)
+  then show ?thesis
+    by (metis countable_Diff_eq countable_def)
+qed
+
+lemma pairwise_disjnt_countable_Union:
+    assumes "countable (\<Union>\<N>)" and pwd: "pairwise disjnt \<N>"
+    shows "countable \<N>"
+proof -
+  obtain f :: "_ \<Rightarrow> nat" where f: "inj_on f (\<Union>\<N>)"
+    using assms by blast
+  then have "pairwise disjnt (\<Union> X \<in> \<N>. {f ` X})"
+    using assms by (force simp: pairwise_def disjnt_inj_on_iff [OF f])
+  then have "countable (\<Union> X \<in> \<N>. {f ` X})"
+    using pairwise_disjnt_countable by blast
+  then show ?thesis
+    by (meson pwd countable_image_inj_on disjoint_image f inj_on_image pairwise_disjnt_countable)
+qed
+
+
+subsection\<open> Some simple positive connection theorems\<close>
+
+proposition path_connected_convex_diff_countable:
+  fixes U :: "'a::euclidean_space set"
+  assumes "convex U" "~ collinear U" "countable S"
+    shows "path_connected(U - S)"
+proof (clarsimp simp add: path_connected_def)
+  fix a b
+  assume "a \<in> U" "a \<notin> S" "b \<in> U" "b \<notin> S"
+  let ?m = "midpoint a b"
+  show "\<exists>g. path g \<and> path_image g \<subseteq> U - S \<and> pathstart g = a \<and> pathfinish g = b"
+  proof (cases "a = b")
+    case True
+    then show ?thesis
+      by (metis DiffI \<open>a \<in> U\<close> \<open>a \<notin> S\<close> path_component_def path_component_refl)
+  next
+    case False
+    then have "a \<noteq> ?m" "b \<noteq> ?m"
+      using midpoint_eq_endpoint by fastforce+
+    have "?m \<in> U"
+      using \<open>a \<in> U\<close> \<open>b \<in> U\<close> \<open>convex U\<close> convex_contains_segment by force
+    obtain c where "c \<in> U" and nc_abc: "\<not> collinear {a,b,c}"
+      by (metis False \<open>a \<in> U\<close> \<open>b \<in> U\<close> \<open>~ collinear U\<close> collinear_triples insert_absorb)
+    have ncoll_mca: "\<not> collinear {?m,c,a}"
+      by (metis (full_types) \<open>a \<noteq> ?m\<close> collinear_3_trans collinear_midpoint insert_commute nc_abc)
+    have ncoll_mcb: "\<not> collinear {?m,c,b}"
+      by (metis (full_types) \<open>b \<noteq> ?m\<close> collinear_3_trans collinear_midpoint insert_commute nc_abc)
+    have "c \<noteq> ?m"
+      by (metis collinear_midpoint insert_commute nc_abc)
+    then have "closed_segment ?m c \<subseteq> U"
+      by (simp add: \<open>c \<in> U\<close> \<open>?m \<in> U\<close> \<open>convex U\<close> closed_segment_subset)
+    then obtain z where z: "z \<in> closed_segment ?m c"
+                    and disjS: "(closed_segment a z \<union> closed_segment z b) \<inter> S = {}"
+    proof -
+      have False if "closed_segment ?m c \<subseteq> {z. (closed_segment a z \<union> closed_segment z b) \<inter> S \<noteq> {}}"
+      proof -
+        have closb: "closed_segment ?m c \<subseteq>
+                 {z \<in> closed_segment ?m c. closed_segment a z \<inter> S \<noteq> {}} \<union> {z \<in> closed_segment ?m c. closed_segment z b \<inter> S \<noteq> {}}"
+          using that by blast
+        have *: "countable {z \<in> closed_segment ?m c. closed_segment z u \<inter> S \<noteq> {}}"
+          if "u \<in> U" "u \<notin> S" and ncoll: "\<not> collinear {?m, c, u}" for u
+        proof -
+          have **: False if x1: "x1 \<in> closed_segment ?m c" and x2: "x2 \<in> closed_segment ?m c"
+                            and "x1 \<noteq> x2" "x1 \<noteq> u"
+                            and w: "w \<in> closed_segment x1 u" "w \<in> closed_segment x2 u"
+                            and "w \<in> S" for x1 x2 w
+          proof -
+            have "x1 \<in> affine hull {?m,c}" "x2 \<in> affine hull {?m,c}"
+              using segment_as_ball x1 x2 by auto
+            then have coll_x1: "collinear {x1, ?m, c}" and coll_x2: "collinear {?m, c, x2}"
+              by (simp_all add: affine_hull_3_imp_collinear) (metis affine_hull_3_imp_collinear insert_commute)
+            have "\<not> collinear {x1, u, x2}"
+            proof
+              assume "collinear {x1, u, x2}"
+              then have "collinear {?m, c, u}"
+                by (metis (full_types) \<open>c \<noteq> ?m\<close> coll_x1 coll_x2 collinear_3_trans insert_commute ncoll \<open>x1 \<noteq> x2\<close>)
+              with ncoll show False ..
+            qed
+            then have "closed_segment x1 u \<inter> closed_segment u x2 = {u}"
+              by (blast intro!: Int_closed_segment)
+            then have "w = u"
+              using closed_segment_commute w by auto
+            show ?thesis
+              using \<open>u \<notin> S\<close> \<open>w = u\<close> that(7) by auto
+          qed
+          then have disj: "disjoint ((\<Union>z\<in>closed_segment ?m c. {closed_segment z u \<inter> S}))"
+            by (fastforce simp: pairwise_def disjnt_def)
+          have cou: "countable ((\<Union>z \<in> closed_segment ?m c. {closed_segment z u \<inter> S}) - {{}})"
+            apply (rule pairwise_disjnt_countable_Union [OF _ pairwise_subset [OF disj]])
+             apply (rule countable_subset [OF _ \<open>countable S\<close>], auto)
+            done
+          define f where "f \<equiv> \<lambda>X. (THE z. z \<in> closed_segment ?m c \<and> X = closed_segment z u \<inter> S)"
+          show ?thesis
+          proof (rule countable_subset [OF _ countable_image [OF cou, where f=f]], clarify)
+            fix x
+            assume x: "x \<in> closed_segment ?m c" "closed_segment x u \<inter> S \<noteq> {}"
+            show "x \<in> f ` ((\<Union>z\<in>closed_segment ?m c. {closed_segment z u \<inter> S}) - {{}})"
+            proof (rule_tac x="closed_segment x u \<inter> S" in image_eqI)
+              show "x = f (closed_segment x u \<inter> S)"
+                unfolding f_def
+                apply (rule the_equality [symmetric])
+                using x  apply (auto simp: dest: **)
+                done
+            qed (use x in auto)
+          qed
+        qed
+        have "uncountable (closed_segment ?m c)"
+          by (metis \<open>c \<noteq> ?m\<close> uncountable_closed_segment)
+        then show False
+          using closb * [OF \<open>a \<in> U\<close> \<open>a \<notin> S\<close> ncoll_mca] * [OF \<open>b \<in> U\<close> \<open>b \<notin> S\<close> ncoll_mcb]
+          apply (simp add: closed_segment_commute)
+          by (simp add: countable_subset)
+      qed
+      then show ?thesis
+        by (force intro: that)
+    qed
+    show ?thesis
+    proof (intro exI conjI)
+      have "path_image (linepath a z +++ linepath z b) \<subseteq> U"
+        by (metis \<open>a \<in> U\<close> \<open>b \<in> U\<close> \<open>closed_segment ?m c \<subseteq> U\<close> z \<open>convex U\<close> closed_segment_subset contra_subsetD path_image_linepath subset_path_image_join)
+      with disjS show "path_image (linepath a z +++ linepath z b) \<subseteq> U - S"
+        by (force simp: path_image_join)
+    qed auto
+  qed
+qed
+
+
+corollary connected_convex_diff_countable:
+  fixes U :: "'a::euclidean_space set"
+  assumes "convex U" "~ collinear U" "countable S"
+  shows "connected(U - S)"
+  by (simp add: assms path_connected_convex_diff_countable path_connected_imp_connected)
+
+lemma path_connected_punctured_convex:
+  assumes "convex S" and aff: "aff_dim S \<noteq> 1"
+    shows "path_connected(S - {a})"
+proof -
+  consider "aff_dim S = -1" | "aff_dim S = 0" | "aff_dim S \<ge> 2"
+    using assms aff_dim_geq [of S] by linarith
+  then show ?thesis
+  proof cases
+    assume "aff_dim S = -1"
+    then show ?thesis
+      by (metis aff_dim_empty empty_Diff path_connected_empty)
+  next
+    assume "aff_dim S = 0"
+    then show ?thesis
+      by (metis aff_dim_eq_0 Diff_cancel Diff_empty Diff_insert0 convex_empty convex_imp_path_connected path_connected_singleton singletonD)
+  next
+    assume ge2: "aff_dim S \<ge> 2"
+    then have "\<not> collinear S"
+    proof (clarsimp simp add: collinear_affine_hull)
+      fix u v
+      assume "S \<subseteq> affine hull {u, v}"
+      then have "aff_dim S \<le> aff_dim {u, v}"
+        by (metis (no_types) aff_dim_affine_hull aff_dim_subset)
+      with ge2 show False
+        by (metis (no_types) aff_dim_2 antisym aff not_numeral_le_zero one_le_numeral order_trans)
+    qed
+    then show ?thesis
+      apply (rule path_connected_convex_diff_countable [OF \<open>convex S\<close>])
+      by simp
+  qed
+qed
+
+lemma connected_punctured_convex:
+  shows "\<lbrakk>convex S; aff_dim S \<noteq> 1\<rbrakk> \<Longrightarrow> connected(S - {a})"
+  using path_connected_imp_connected path_connected_punctured_convex by blast
+
+lemma path_connected_complement_countable:
+  fixes S :: "'a::euclidean_space set"
+  assumes "2 \<le> DIM('a)" "countable S"
+  shows "path_connected(- S)"
+proof -
+  have "path_connected(UNIV - S)"
+    apply (rule path_connected_convex_diff_countable)
+    using assms by (auto simp: collinear_aff_dim [of "UNIV :: 'a set"])
+  then show ?thesis
+    by (simp add: Compl_eq_Diff_UNIV)
+qed
+
+proposition path_connected_openin_diff_countable:
+  fixes S :: "'a::euclidean_space set"
+  assumes "connected S" and ope: "openin (subtopology euclidean (affine hull S)) S"
+      and "~ collinear S" "countable T"
+    shows "path_connected(S - T)"
+proof (clarsimp simp add: path_connected_component)
+  fix x y
+  assume xy: "x \<in> S" "x \<notin> T" "y \<in> S" "y \<notin> T"
+  show "path_component (S - T) x y"
+  proof (rule connected_equivalence_relation_gen [OF \<open>connected S\<close>, where P = "\<lambda>x. x \<notin> T"])
+    show "\<exists>z. z \<in> U \<and> z \<notin> T" if opeU: "openin (subtopology euclidean S) U" and "x \<in> U" for U x
+    proof -
+      have "openin (subtopology euclidean (affine hull S)) U"
+        using opeU ope openin_trans by blast
+      with \<open>x \<in> U\<close> obtain r where Usub: "U \<subseteq> affine hull S" and "r > 0"
+                              and subU: "ball x r \<inter> affine hull S \<subseteq> U"
+        by (auto simp: openin_contains_ball)
+      with \<open>x \<in> U\<close> have x: "x \<in> ball x r \<inter> affine hull S"
+        by auto
+      have "~ S \<subseteq> {x}"
+        using \<open>~ collinear S\<close>  collinear_subset by blast
+      then obtain x' where "x' \<noteq> x" "x' \<in> S"
+        by blast
+      obtain y where y: "y \<noteq> x" "y \<in> ball x r \<inter> affine hull S"
+      proof
+        show "x + (r / 2 / norm(x' - x)) *\<^sub>R (x' - x) \<noteq> x"
+          using \<open>x' \<noteq> x\<close> \<open>r > 0\<close> by auto
+        show "x + (r / 2 / norm (x' - x)) *\<^sub>R (x' - x) \<in> ball x r \<inter> affine hull S"
+          using \<open>x' \<noteq> x\<close> \<open>r > 0\<close> \<open>x' \<in> S\<close> x
+          by (simp add: dist_norm mem_affine_3_minus hull_inc)
+      qed
+      have "convex (ball x r \<inter> affine hull S)"
+        by (simp add: affine_imp_convex convex_Int)
+      with x y subU have "uncountable U"
+        by (meson countable_subset uncountable_convex)
+      then have "\<not> U \<subseteq> T"
+        using \<open>countable T\<close> countable_subset by blast
+      then show ?thesis by blast
+    qed
+    show "\<exists>U. openin (subtopology euclidean S) U \<and> x \<in> U \<and>
+              (\<forall>x\<in>U. \<forall>y\<in>U. x \<notin> T \<and> y \<notin> T \<longrightarrow> path_component (S - T) x y)"
+          if "x \<in> S" for x
+    proof -
+      obtain r where Ssub: "S \<subseteq> affine hull S" and "r > 0"
+                 and subS: "ball x r \<inter> affine hull S \<subseteq> S"
+        using ope \<open>x \<in> S\<close> by (auto simp: openin_contains_ball)
+      then have conv: "convex (ball x r \<inter> affine hull S)"
+        by (simp add: affine_imp_convex convex_Int)
+      have "\<not> aff_dim (affine hull S) \<le> 1"
+        using \<open>\<not> collinear S\<close> collinear_aff_dim by auto
+      then have "\<not> collinear (ball x r \<inter> affine hull S)"
+        apply (simp add: collinear_aff_dim)
+        by (metis (no_types, hide_lams) aff_dim_convex_Int_open IntI Topology_Euclidean_Space.open_ball \<open>0 < r\<close> aff_dim_affine_hull affine_affine_hull affine_imp_convex centre_in_ball empty_iff hull_subset inf_commute subsetCE that)
+      then have *: "path_connected ((ball x r \<inter> affine hull S) - T)"
+        by (rule path_connected_convex_diff_countable [OF conv _ \<open>countable T\<close>])
+      have ST: "ball x r \<inter> affine hull S - T \<subseteq> S - T"
+        using subS by auto
+      show ?thesis
+      proof (intro exI conjI)
+        show "x \<in> ball x r \<inter> affine hull S"
+          using \<open>x \<in> S\<close> \<open>r > 0\<close> by (simp add: hull_inc)
+        have "openin (subtopology euclidean (affine hull S)) (ball x r \<inter> affine hull S)"
+          by (simp add: inf.commute openin_Int_open)
+        then show "openin (subtopology euclidean S) (ball x r \<inter> affine hull S)"
+          by (rule openin_subset_trans [OF _ subS Ssub])
+      qed (use * path_component_trans in \<open>auto simp: path_connected_component path_component_of_subset [OF ST]\<close>)
+    qed
+  qed (use xy path_component_trans in auto)
+qed
+
+corollary connected_openin_diff_countable:
+  fixes S :: "'a::euclidean_space set"
+  assumes "connected S" and ope: "openin (subtopology euclidean (affine hull S)) S"
+      and "~ collinear S" "countable T"
+    shows "connected(S - T)"
+  by (metis path_connected_imp_connected path_connected_openin_diff_countable [OF assms])
+
+corollary path_connected_open_diff_countable:
+  fixes S :: "'a::euclidean_space set"
+  assumes "2 \<le> DIM('a)" "open S" "connected S" "countable T"
+  shows "path_connected(S - T)"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by (simp add: path_connected_empty)
+next
+  case False
+  show ?thesis
+  proof (rule path_connected_openin_diff_countable)
+    show "openin (subtopology euclidean (affine hull S)) S"
+      by (simp add: assms hull_subset open_subset)
+    show "\<not> collinear S"
+      using assms False by (simp add: collinear_aff_dim aff_dim_open)
+  qed (simp_all add: assms)
+qed
+
+corollary connected_open_diff_countable:
+  fixes S :: "'a::euclidean_space set"
+  assumes "2 \<le> DIM('a)" "open S" "connected S" "countable T"
+  shows "connected(S - T)"
+by (simp add: assms path_connected_imp_connected path_connected_open_diff_countable)
+
+
+
+subsection\<open> Self-homeomorphisms shuffling points about in various ways.\<close>
+
+subsubsection\<open>The theorem @{text homeomorphism_moving_points_exists}}\<close>
+
+lemma homeomorphism_moving_point_1:
+  fixes a :: "'a::euclidean_space"
+  assumes "affine T" "a \<in> T" and u: "u \<in> ball a r \<inter> T"
+  obtains f g where "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
+                    "f a = u" "\<And>x. x \<in> sphere a r \<Longrightarrow> f x = x"
+proof -
+  have nou: "norm (u - a) < r" and "u \<in> T"
+    using u by (auto simp: dist_norm norm_minus_commute)
+  then have "0 < r"
+    by (metis DiffD1 Diff_Diff_Int ball_eq_empty centre_in_ball not_le u)
+  define f where "f \<equiv> \<lambda>x. (1 - norm(x - a) / r) *\<^sub>R (u - a) + x"
+  have *: "False" if eq: "x + (norm y / r) *\<^sub>R u = y + (norm x / r) *\<^sub>R u"
+                  and nou: "norm u < r" and yx: "norm y < norm x" for x y and u::'a
+  proof -
+    have "x = y + (norm x / r - (norm y / r)) *\<^sub>R u"
+      using eq by (simp add: algebra_simps)
+    then have "norm x = norm (y + ((norm x - norm y) / r) *\<^sub>R u)"
+      by (metis diff_divide_distrib)
+    also have "... \<le> norm y + norm(((norm x - norm y) / r) *\<^sub>R u)"
+      using norm_triangle_ineq by blast
+    also have "... = norm y + (norm x - norm y) * (norm u / r)"
+      using yx \<open>r > 0\<close>
+      by (simp add: divide_simps)
+    also have "... < norm y + (norm x - norm y) * 1"
+      apply (subst add_less_cancel_left)
+      apply (rule mult_strict_left_mono)
+      using nou \<open>0 < r\<close> yx
+       apply (simp_all add: field_simps)
+      done
+    also have "... = norm x"
+      by simp
+    finally show False by simp
+  qed
+  have "inj f"
+    unfolding f_def
+  proof (clarsimp simp: inj_on_def)
+    fix x y
+    assume "(1 - norm (x - a) / r) *\<^sub>R (u - a) + x =
+            (1 - norm (y - a) / r) *\<^sub>R (u - a) + y"
+    then have eq: "(x - a) + (norm (y - a) / r) *\<^sub>R (u - a) = (y - a) + (norm (x - a) / r) *\<^sub>R (u - a)"
+      by (auto simp: algebra_simps)
+    show "x=y"
+    proof (cases "norm (x - a) = norm (y - a)")
+      case True
+      then show ?thesis
+        using eq by auto
+    next
+      case False
+      then consider "norm (x - a) < norm (y - a)" | "norm (x - a) > norm (y - a)"
+        by linarith
+      then have "False"
+      proof cases
+        case 1 show False
+          using * [OF _ nou 1] eq by simp
+      next
+        case 2 with * [OF eq nou] show False
+          by auto
+      qed
+      then show "x=y" ..
+    qed
+  qed
+  then have inj_onf: "inj_on f (cball a r \<inter> T)"
+    using inj_on_Int by fastforce
+  have contf: "continuous_on (cball a r \<inter> T) f"
+    unfolding f_def using \<open>0 < r\<close>  by (intro continuous_intros) blast
+  have fim: "f ` (cball a r \<inter> T) = cball a r \<inter> T"
+  proof
+    have *: "norm (y + (1 - norm y / r) *\<^sub>R u) \<le> r" if "norm y \<le> r" "norm u < r" for y u::'a
+    proof -
+      have "norm (y + (1 - norm y / r) *\<^sub>R u) \<le> norm y + norm((1 - norm y / r) *\<^sub>R u)"
+        using norm_triangle_ineq by blast
+      also have "... = norm y + abs(1 - norm y / r) * norm u"
+        by simp
+      also have "... \<le> r"
+      proof -
+        have "(r - norm u) * (r - norm y) \<ge> 0"
+          using that by auto
+        then have "r * norm u + r * norm y \<le> r * r + norm u * norm y"
+          by (simp add: algebra_simps)
+        then show ?thesis
+        using that \<open>0 < r\<close> by (simp add: abs_if field_simps)
+      qed
+      finally show ?thesis .
+    qed
+    have "f ` (cball a r) \<subseteq> cball a r"
+      apply (clarsimp simp add: dist_norm norm_minus_commute f_def)
+      using * by (metis diff_add_eq diff_diff_add diff_diff_eq2 norm_minus_commute nou)
+    moreover have "f ` T \<subseteq> T"
+      unfolding f_def using \<open>affine T\<close> \<open>a \<in> T\<close> \<open>u \<in> T\<close>
+      by (force simp: add.commute mem_affine_3_minus)
+    ultimately show "f ` (cball a r \<inter> T) \<subseteq> cball a r \<inter> T"
+      by blast
+  next
+    show "cball a r \<inter> T \<subseteq> f ` (cball a r \<inter> T)"
+    proof (clarsimp simp add: dist_norm norm_minus_commute)
+      fix x
+      assume x: "norm (x - a) \<le> r" and "x \<in> T"
+      have "\<exists>v \<in> {0..1}. ((1 - v) * r - norm ((x - a) - v *\<^sub>R (u - a))) \<bullet> 1 = 0"
+        by (rule ivt_decreasing_component_on_1) (auto simp: x continuous_intros)
+      then obtain v where "0\<le>v" "v\<le>1" and v: "(1 - v) * r = norm ((x - a) - v *\<^sub>R (u - a))"
+        by auto
+      show "x \<in> f ` (cball a r \<inter> T)"
+      proof (rule image_eqI)
+        show "x = f (x - v *\<^sub>R (u - a))"
+          using \<open>r > 0\<close> v by (simp add: f_def field_simps)
+        have "x - v *\<^sub>R (u - a) \<in> cball a r"
+          using \<open>r > 0\<close> v \<open>0 \<le> v\<close>
+          apply (simp add: field_simps dist_norm norm_minus_commute)
+          by (metis le_add_same_cancel2 order.order_iff_strict zero_le_mult_iff)
+        moreover have "x - v *\<^sub>R (u - a) \<in> T"
+          by (simp add: f_def \<open>affine T\<close> \<open>u \<in> T\<close> \<open>x \<in> T\<close> assms mem_affine_3_minus2)
+        ultimately show "x - v *\<^sub>R (u - a) \<in> cball a r \<inter> T"
+          by blast
+      qed
+    qed
+  qed
+  have "\<exists>g. homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
+    apply (rule homeomorphism_compact [OF _ contf fim inj_onf])
+    apply (simp add: affine_closed compact_Int_closed \<open>affine T\<close>)
+    done
+  then show ?thesis
+    apply (rule exE)
+    apply (erule_tac f=f in that)
+    using \<open>r > 0\<close>
+     apply (simp_all add: f_def dist_norm norm_minus_commute)
+    done
+qed
+
+corollary homeomorphism_moving_point_2:
+  fixes a :: "'a::euclidean_space"
+  assumes "affine T" "a \<in> T" and u: "u \<in> ball a r \<inter> T" and v: "v \<in> ball a r \<inter> T"
+  obtains f g where "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
+                    "f u = v" "\<And>x. \<lbrakk>x \<in> sphere a r; x \<in> T\<rbrakk> \<Longrightarrow> f x = x"
+proof -
+  have "0 < r"
+    by (metis DiffD1 Diff_Diff_Int ball_eq_empty centre_in_ball not_le u)
+  obtain f1 g1 where hom1: "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f1 g1"
+                 and "f1 a = u" and f1: "\<And>x. x \<in> sphere a r \<Longrightarrow> f1 x = x"
+    using homeomorphism_moving_point_1 [OF \<open>affine T\<close> \<open>a \<in> T\<close> u] by blast
+  obtain f2 g2 where hom2: "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f2 g2"
+                 and "f2 a = v" and f2: "\<And>x. x \<in> sphere a r \<Longrightarrow> f2 x = x"
+    using homeomorphism_moving_point_1 [OF \<open>affine T\<close> \<open>a \<in> T\<close> v] by blast
+  show ?thesis
+  proof
+    show "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) (f2 \<circ> g1) (f1 \<circ> g2)"
+      by (metis homeomorphism_compose homeomorphism_symD hom1 hom2)
+    have "g1 u = a"
+      using \<open>0 < r\<close> \<open>f1 a = u\<close> assms hom1 homeomorphism_apply1 by fastforce
+    then show "(f2 \<circ> g1) u = v"
+      by (simp add: \<open>f2 a = v\<close>)
+    show "\<And>x. \<lbrakk>x \<in> sphere a r; x \<in> T\<rbrakk> \<Longrightarrow> (f2 \<circ> g1) x = x"
+      using f1 f2 hom1 homeomorphism_apply1 by fastforce
+  qed
+qed
+
+
+corollary homeomorphism_moving_point_3:
+  fixes a :: "'a::euclidean_space"
+  assumes "affine T" "a \<in> T" and ST: "ball a r \<inter> T \<subseteq> S" "S \<subseteq> T"
+      and u: "u \<in> ball a r \<inter> T" and v: "v \<in> ball a r \<inter> T"
+  obtains f g where "homeomorphism S S f g"
+                    "f u = v" "{x. ~ (f x = x \<and> g x = x)} \<subseteq> ball a r \<inter> T"
+proof -
+  obtain f g where hom: "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
+               and "f u = v" and fid: "\<And>x. \<lbrakk>x \<in> sphere a r; x \<in> T\<rbrakk> \<Longrightarrow> f x = x"
+    using homeomorphism_moving_point_2 [OF \<open>affine T\<close> \<open>a \<in> T\<close> u v] by blast
+  have gid: "\<And>x. \<lbrakk>x \<in> sphere a r; x \<in> T\<rbrakk> \<Longrightarrow> g x = x"
+    using fid hom homeomorphism_apply1 by fastforce
+  define ff where "ff \<equiv> \<lambda>x. if x \<in> ball a r \<inter> T then f x else x"
+  define gg where "gg \<equiv> \<lambda>x. if x \<in> ball a r \<inter> T then g x else x"
+  show ?thesis
+  proof
+    show "homeomorphism S S ff gg"
+    proof (rule homeomorphismI)
+      have "continuous_on ((cball a r \<inter> T) \<union> (T - ball a r)) ff"
+        apply (simp add: ff_def)
+        apply (rule continuous_on_cases)
+        using homeomorphism_cont1 [OF hom]
+            apply (auto simp: affine_closed \<open>affine T\<close> continuous_on_id fid)
+        done
+      then show "continuous_on S ff"
+        apply (rule continuous_on_subset)
+        using ST by auto
+      have "continuous_on ((cball a r \<inter> T) \<union> (T - ball a r)) gg"
+        apply (simp add: gg_def)
+        apply (rule continuous_on_cases)
+        using homeomorphism_cont2 [OF hom]
+            apply (auto simp: affine_closed \<open>affine T\<close> continuous_on_id gid)
+        done
+      then show "continuous_on S gg"
+        apply (rule continuous_on_subset)
+        using ST by auto
+      show "ff ` S \<subseteq> S"
+      proof (clarsimp simp add: ff_def)
+        fix x
+        assume "x \<in> S" and x: "dist a x < r" and "x \<in> T"
+        then have "f x \<in> cball a r \<inter> T"
+          using homeomorphism_image1 [OF hom] by force
+        then show "f x \<in> S"
+          using ST(1) \<open>x \<in> T\<close> gid hom homeomorphism_def x by fastforce
+      qed
+      show "gg ` S \<subseteq> S"
+      proof (clarsimp simp add: gg_def)
+        fix x
+        assume "x \<in> S" and x: "dist a x < r" and "x \<in> T"
+        then have "g x \<in> cball a r \<inter> T"
+          using homeomorphism_image2 [OF hom] by force
+        then have "g x \<in> ball a r"
+          using homeomorphism_apply2 [OF hom]
+            by (metis Diff_Diff_Int Diff_iff  \<open>x \<in> T\<close> cball_def fid le_less mem_Collect_eq mem_ball mem_sphere x)
+        then show "g x \<in> S"
+          using ST(1) \<open>g x \<in> cball a r \<inter> T\<close> by force
+        qed
+      show "\<And>x. x \<in> S \<Longrightarrow> gg (ff x) = x"
+        apply (simp add: ff_def gg_def)
+        using homeomorphism_apply1 [OF hom] homeomorphism_image1 [OF hom]
+        apply auto
+        apply (metis Int_iff homeomorphism_apply1 [OF hom] fid image_eqI less_eq_real_def mem_cball mem_sphere)
+        done
+      show "\<And>x. x \<in> S \<Longrightarrow> ff (gg x) = x"
+        apply (simp add: ff_def gg_def)
+        using homeomorphism_apply2 [OF hom] homeomorphism_image2 [OF hom]
+        apply auto
+        apply (metis Int_iff fid image_eqI less_eq_real_def mem_cball mem_sphere)
+        done
+    qed
+    show "ff u = v"
+      using u by (auto simp: ff_def \<open>f u = v\<close>)
+    show "{x. \<not> (ff x = x \<and> gg x = x)} \<subseteq> ball a r \<inter> T"
+      by (auto simp: ff_def gg_def)
+  qed
+qed
+
+
+proposition homeomorphism_moving_point:
+  fixes a :: "'a::euclidean_space"
+  assumes ope: "openin (subtopology euclidean (affine hull S)) S"
+      and "S \<subseteq> T"
+      and TS: "T \<subseteq> affine hull S"
+      and S: "connected S" "a \<in> S" "b \<in> S"
+  obtains f g where "homeomorphism T T f g" "f a = b"
+                    "{x. ~ (f x = x \<and> g x = x)} \<subseteq> S"
+                    "bounded {x. ~ (f x = x \<and> g x = x)}"
+proof -
+  have 1: "\<exists>h k. homeomorphism T T h k \<and> h (f d) = d \<and>
+              {x. ~ (h x = x \<and> k x = x)} \<subseteq> S \<and> bounded {x. ~ (h x = x \<and> k x = x)}"
+        if "d \<in> S" "f d \<in> S" and homfg: "homeomorphism T T f g"
+        and S: "{x. ~ (f x = x \<and> g x = x)} \<subseteq> S"
+        and bo: "bounded {x. ~ (f x = x \<and> g x = x)}" for d f g
+  proof (intro exI conjI)
+    show homgf: "homeomorphism T T g f"
+      by (metis homeomorphism_symD homfg)
+    then show "g (f d) = d"
+      by (meson \<open>S \<subseteq> T\<close> homeomorphism_def subsetD \<open>d \<in> S\<close>)
+    show "{x. \<not> (g x = x \<and> f x = x)} \<subseteq> S"
+      using S by blast
+    show "bounded {x. \<not> (g x = x \<and> f x = x)}"
+      using bo by (simp add: conj_commute)
+  qed
+  have 2: "\<exists>f g. homeomorphism T T f g \<and> f x = f2 (f1 x) \<and>
+                 {x. \<not> (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. \<not> (f x = x \<and> g x = x)}"
+             if "x \<in> S" "f1 x \<in> S" "f2 (f1 x) \<in> S"
+                and hom: "homeomorphism T T f1 g1" "homeomorphism T T f2 g2"
+                and sub: "{x. \<not> (f1 x = x \<and> g1 x = x)} \<subseteq> S"   "{x. \<not> (f2 x = x \<and> g2 x = x)} \<subseteq> S"
+                and bo: "bounded {x. \<not> (f1 x = x \<and> g1 x = x)}"  "bounded {x. \<not> (f2 x = x \<and> g2 x = x)}"
+             for x f1 f2 g1 g2
+  proof (intro exI conjI)
+    show homgf: "homeomorphism T T (f2 \<circ> f1) (g1 \<circ> g2)"
+      by (metis homeomorphism_compose hom)
+    then show "(f2 \<circ> f1) x = f2 (f1 x)"
+      by force
+    show "{x. \<not> ((f2 \<circ> f1) x = x \<and> (g1 \<circ> g2) x = x)} \<subseteq> S"
+      using sub by force
+    have "bounded ({x. ~(f1 x = x \<and> g1 x = x)} \<union> {x. ~(f2 x = x \<and> g2 x = x)})"
+      using bo by simp
+    then show "bounded {x. \<not> ((f2 \<circ> f1) x = x \<and> (g1 \<circ> g2) x = x)}"
+      by (rule bounded_subset) auto
+  qed
+  have 3: "\<exists>U. openin (subtopology euclidean S) U \<and>
+              d \<in> U \<and>
+              (\<forall>x\<in>U.
+                  \<exists>f g. homeomorphism T T f g \<and> f d = x \<and>
+                        {x. \<not> (f x = x \<and> g x = x)} \<subseteq> S \<and>
+                        bounded {x. \<not> (f x = x \<and> g x = x)})"
+           if "d \<in> S" for d
+  proof -
+    obtain r where "r > 0" and r: "ball d r \<inter> affine hull S \<subseteq> S"
+      by (metis \<open>d \<in> S\<close> ope openin_contains_ball)
+    have *: "\<exists>f g. homeomorphism T T f g \<and> f d = e \<and>
+                   {x. \<not> (f x = x \<and> g x = x)} \<subseteq> S \<and>
+                   bounded {x. \<not> (f x = x \<and> g x = x)}" if "e \<in> S" "e \<in> ball d r" for e
+      apply (rule homeomorphism_moving_point_3 [of "affine hull S" d r T d e])
+      using r \<open>S \<subseteq> T\<close> TS that
+            apply (auto simp: \<open>d \<in> S\<close> \<open>0 < r\<close> hull_inc)
+      using bounded_subset by blast
+    show ?thesis
+      apply (rule_tac x="S \<inter> ball d r" in exI)
+      apply (intro conjI)
+        apply (simp add: openin_open_Int)
+       apply (simp add: \<open>0 < r\<close> that)
+      apply (blast intro: *)
+      done
+  qed
+  have "\<exists>f g. homeomorphism T T f g \<and> f a = b \<and>
+              {x. ~ (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. ~ (f x = x \<and> g x = x)}"
+    apply (rule connected_equivalence_relation [OF S], safe)
+      apply (blast intro: 1 2 3)+
+    done
+  then show ?thesis
+    using that by auto
+qed
+
+
+lemma homeomorphism_moving_points_exists_gen:
+  assumes K: "finite K" "\<And>i. i \<in> K \<Longrightarrow> x i \<in> S \<and> y i \<in> S"
+             "pairwise (\<lambda>i j. (x i \<noteq> x j) \<and> (y i \<noteq> y j)) K"
+      and "2 \<le> aff_dim S"
+      and ope: "openin (subtopology euclidean (affine hull S)) S"
+      and "S \<subseteq> T" "T \<subseteq> affine hull S" "connected S"
+  shows "\<exists>f g. homeomorphism T T f g \<and> (\<forall>i \<in> K. f(x i) = y i) \<and>
+               {x. ~ (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. ~ (f x = x \<and> g x = x)}"
+  using assms
+proof (induction K)
+  case empty
+  then show ?case
+    by (force simp: homeomorphism_ident)
+next
+  case (insert i K)
+  then have xney: "\<And>j. \<lbrakk>j \<in> K; j \<noteq> i\<rbrakk> \<Longrightarrow> x i \<noteq> x j \<and> y i \<noteq> y j"
+       and pw: "pairwise (\<lambda>i j. x i \<noteq> x j \<and> y i \<noteq> y j) K"
+       and "x i \<in> S" "y i \<in> S"
+       and xyS: "\<And>i. i \<in> K \<Longrightarrow> x i \<in> S \<and> y i \<in> S"
+    by (simp_all add: pairwise_insert)
+  obtain f g where homfg: "homeomorphism T T f g" and feq: "\<And>i. i \<in> K \<Longrightarrow> f(x i) = y i"
+               and fg_sub: "{x. ~ (f x = x \<and> g x = x)} \<subseteq> S"
+               and bo_fg: "bounded {x. ~ (f x = x \<and> g x = x)}"
+    using insert.IH [OF xyS pw] insert.prems by (blast intro: that)
+  then have "\<exists>f g. homeomorphism T T f g \<and> (\<forall>i \<in> K. f(x i) = y i) \<and>
+                   {x. ~ (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. ~ (f x = x \<and> g x = x)}"
+    using insert by blast
+  have aff_eq: "affine hull (S - y ` K) = affine hull S"
+    apply (rule affine_hull_Diff)
+    apply (auto simp: insert)
+    using \<open>y i \<in> S\<close> insert.hyps(2) xney xyS by fastforce
+  have f_in_S: "f x \<in> S" if "x \<in> S" for x
+    using homfg fg_sub homeomorphism_apply1 \<open>S \<subseteq> T\<close>
+  proof -
+    have "(f (f x) \<noteq> f x \<or> g (f x) \<noteq> f x) \<or> f x \<in> S"
+      by (metis \<open>S \<subseteq> T\<close> homfg subsetD homeomorphism_apply1 that)
+    then show ?thesis
+      using fg_sub by force
+  qed
+  obtain h k where homhk: "homeomorphism T T h k" and heq: "h (f (x i)) = y i"
+               and hk_sub: "{x. \<not> (h x = x \<and> k x = x)} \<subseteq> S - y ` K"
+               and bo_hk:  "bounded {x. \<not> (h x = x \<and> k x = x)}"
+  proof (rule homeomorphism_moving_point [of "S - y`K" T "f(x i)" "y i"])
+    show "openin (subtopology euclidean (affine hull (S - y ` K))) (S - y ` K)"
+      by (simp add: aff_eq openin_diff finite_imp_closedin image_subset_iff hull_inc insert xyS)
+    show "S - y ` K \<subseteq> T"
+      using \<open>S \<subseteq> T\<close> by auto
+    show "T \<subseteq> affine hull (S - y ` K)"
+      using insert by (simp add: aff_eq)
+    show "connected (S - y ` K)"
+    proof (rule connected_openin_diff_countable [OF \<open>connected S\<close> ope])
+      show "\<not> collinear S"
+        using collinear_aff_dim \<open>2 \<le> aff_dim S\<close> by force
+      show "countable (y ` K)"
+        using countable_finite insert.hyps(1) by blast
+    qed
+    show "f (x i) \<in> S - y ` K"
+      apply (auto simp: f_in_S \<open>x i \<in> S\<close>)
+        by (metis feq homfg \<open>x i \<in> S\<close> homeomorphism_def \<open>S \<subseteq> T\<close> \<open>i \<notin> K\<close> subsetCE xney xyS)
+    show "y i \<in> S - y ` K"
+      using insert.hyps xney by (auto simp: \<open>y i \<in> S\<close>)
+  qed blast
+  show ?case
+  proof (intro exI conjI)
+    show "homeomorphism T T (h \<circ> f) (g \<circ> k)"
+      using homfg homhk homeomorphism_compose by blast
+    show "\<forall>i \<in> insert i K. (h \<circ> f) (x i) = y i"
+      using feq hk_sub by (auto simp: heq)
+    show "{x. \<not> ((h \<circ> f) x = x \<and> (g \<circ> k) x = x)} \<subseteq> S"
+      using fg_sub hk_sub by force
+    have "bounded ({x. ~(f x = x \<and> g x = x)} \<union> {x. ~(h x = x \<and> k x = x)})"
+      using bo_fg bo_hk bounded_Un by blast
+    then show "bounded {x. \<not> ((h \<circ> f) x = x \<and> (g \<circ> k) x = x)}"
+      by (rule bounded_subset) auto
+  qed
+qed
+
+proposition homeomorphism_moving_points_exists:
+  fixes S :: "'a::euclidean_space set"
+  assumes 2: "2 \<le> DIM('a)" "open S" "connected S" "S \<subseteq> T" "finite K"
+      and KS: "\<And>i. i \<in> K \<Longrightarrow> x i \<in> S \<and> y i \<in> S"
+      and pw: "pairwise (\<lambda>i j. (x i \<noteq> x j) \<and> (y i \<noteq> y j)) K"
+      and S: "S \<subseteq> T" "T \<subseteq> affine hull S" "connected S"
+  obtains f g where "homeomorphism T T f g" "\<And>i. i \<in> K \<Longrightarrow> f(x i) = y i"
+                    "{x. ~ (f x = x \<and> g x = x)} \<subseteq> S" "bounded {x. (~ (f x = x \<and> g x = x))}"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    using KS homeomorphism_ident that by fastforce
+next
+  case False
+  then have affS: "affine hull S = UNIV"
+    by (simp add: affine_hull_open \<open>open S\<close>)
+  then have ope: "openin (subtopology euclidean (affine hull S)) S"
+    using \<open>open S\<close> open_openin by auto
+  have "2 \<le> DIM('a)" by (rule 2)
+  also have "... = aff_dim (UNIV :: 'a set)"
+    by simp
+  also have "... \<le> aff_dim S"
+    by (metis aff_dim_UNIV aff_dim_affine_hull aff_dim_le_DIM affS)
+  finally have "2 \<le> aff_dim S"
+    by linarith
+  then show ?thesis
+    using homeomorphism_moving_points_exists_gen [OF \<open>finite K\<close> KS pw _ ope S] that by fastforce
+qed
+
+
+subsubsection\<open>The theorem @{text homeomorphism_grouping_points_exists}}\<close>
+
+lemma homeomorphism_grouping_point_1:
+  fixes a::real and c::real
+  assumes "a < b" "c < d"
+  obtains f g where "homeomorphism (cbox a b) (cbox c d) f g" "f a = c" "f b = d"
+proof -
+  define f where "f \<equiv> \<lambda>x. ((d - c) / (b - a)) * x + (c - a * ((d - c) / (b - a)))"
+  have "\<exists>g. homeomorphism (cbox a b) (cbox c d) f g"
+  proof (rule homeomorphism_compact)
+    show "continuous_on (cbox a b) f"
+      apply (simp add: f_def)
+      apply (intro continuous_intros)
+      using assms by auto
+    have "f ` {a..b} = {c..d}"
+      unfolding f_def image_affinity_atLeastAtMost
+      using assms sum_sqs_eq by (auto simp: divide_simps algebra_simps)
+    then show "f ` cbox a b = cbox c d"
+      by auto
+    show "inj_on f (cbox a b)"
+      unfolding f_def inj_on_def using assms by auto
+  qed auto
+  then obtain g where "homeomorphism (cbox a b) (cbox c d) f g" ..
+  then show ?thesis
+  proof
+    show "f a = c"
+      by (simp add: f_def)
+    show "f b = d"
+      using assms sum_sqs_eq [of a b] by (auto simp: f_def divide_simps algebra_simps)
+  qed
+qed
+
+lemma homeomorphism_grouping_point_2:
+  fixes a::real and w::real
+  assumes hom_ab: "homeomorphism (cbox a b) (cbox u v) f1 g1"
+      and hom_bc: "homeomorphism (cbox b c) (cbox v w) f2 g2"
+      and "b \<in> cbox a c" "v \<in> cbox u w"
+      and eq: "f1 a = u" "f1 b = v" "f2 b = v" "f2 c = w"
+ obtains f g where "homeomorphism (cbox a c) (cbox u w) f g" "f a = u" "f c = w"
+                   "\<And>x. x \<in> cbox a b \<Longrightarrow> f x = f1 x" "\<And>x. x \<in> cbox b c \<Longrightarrow> f x = f2 x"
+proof -
+  have le: "a \<le> b" "b \<le> c" "u \<le> v" "v \<le> w"
+    using assms by simp_all
+  then have ac: "cbox a c = cbox a b \<union> cbox b c" and uw: "cbox u w = cbox u v \<union> cbox v w"
+    by auto
+  define f where "f \<equiv> \<lambda>x. if x \<le> b then f1 x else f2 x"
+  have "\<exists>g. homeomorphism (cbox a c) (cbox u w) f g"
+  proof (rule homeomorphism_compact)
+    have cf1: "continuous_on (cbox a b) f1"
+      using hom_ab homeomorphism_cont1 by blast
+    have cf2: "continuous_on (cbox b c) f2"
+      using hom_bc homeomorphism_cont1 by blast
+    show "continuous_on (cbox a c) f"
+      apply (simp add: f_def)
+      apply (rule continuous_on_cases_le [OF continuous_on_subset [OF cf1] continuous_on_subset [OF cf2]])
+      using le eq apply (force simp: continuous_on_id)+
+      done
+    have "f ` cbox a b = f1 ` cbox a b" "f ` cbox b c = f2 ` cbox b c"
+      unfolding f_def using eq by force+
+    then show "f ` cbox a c = cbox u w"
+      apply (simp only: ac uw image_Un)
+      by (metis hom_ab hom_bc homeomorphism_def)
+    have neq12: "f1 x \<noteq> f2 y" if x: "a \<le> x" "x \<le> b" and y: "b < y" "y \<le> c" for x y
+    proof -
+      have "f1 x \<in> cbox u v"
+        by (metis hom_ab homeomorphism_def image_eqI mem_box_real(2) x)
+      moreover have "f2 y \<in> cbox v w"
+        by (metis (full_types) hom_bc homeomorphism_def image_subset_iff mem_box_real(2) not_le not_less_iff_gr_or_eq order_refl y)
+      moreover have "f2 y \<noteq> f2 b"
+        by (metis cancel_comm_monoid_add_class.diff_cancel diff_gt_0_iff_gt hom_bc homeomorphism_def le(2) less_imp_le less_numeral_extra(3) mem_box_real(2) order_refl y)
+      ultimately show ?thesis
+        using le eq by simp
+    qed
+    have "inj_on f1 (cbox a b)"
+      by (metis (full_types) hom_ab homeomorphism_def inj_onI)
+    moreover have "inj_on f2 (cbox b c)"
+      by (metis (full_types) hom_bc homeomorphism_def inj_onI)
+    ultimately show "inj_on f (cbox a c)"
+      apply (simp (no_asm) add: inj_on_def)
+      apply (simp add: f_def inj_on_eq_iff)
+      using neq12  apply force
+      done
+  qed auto
+  then obtain g where "homeomorphism (cbox a c) (cbox u w) f g" ..
+  then show ?thesis
+    apply (rule that)
+    using eq le by (auto simp: f_def)
+qed
+
+lemma homeomorphism_grouping_point_3:
+  fixes a::real
+  assumes cbox_sub: "cbox c d \<subseteq> box a b" "cbox u v \<subseteq> box a b"
+      and box_ne: "box c d \<noteq> {}" "box u v \<noteq> {}"
+  obtains f g where "homeomorphism (cbox a b) (cbox a b) f g" "f a = a" "f b = b"
+                    "\<And>x. x \<in> cbox c d \<Longrightarrow> f x \<in> cbox u v"
+proof -
+  have less: "a < c" "a < u" "d < b" "v < b" "c < d" "u < v" "cbox c d \<noteq> {}"
+    using assms
+    by (simp_all add: cbox_sub subset_eq)
+  obtain f1 g1 where 1: "homeomorphism (cbox a c) (cbox a u) f1 g1"
+                   and f1_eq: "f1 a = a" "f1 c = u"
+    using homeomorphism_grouping_point_1 [OF \<open>a < c\<close> \<open>a < u\<close>] .
+  obtain f2 g2 where 2: "homeomorphism (cbox c d) (cbox u v) f2 g2"
+                   and f2_eq: "f2 c = u" "f2 d = v"
+    using homeomorphism_grouping_point_1 [OF \<open>c < d\<close> \<open>u < v\<close>] .
+  obtain f3 g3 where 3: "homeomorphism (cbox d b) (cbox v b) f3 g3"
+                   and f3_eq: "f3 d = v" "f3 b = b"
+    using homeomorphism_grouping_point_1 [OF \<open>d < b\<close> \<open>v < b\<close>] .
+  obtain f4 g4 where 4: "homeomorphism (cbox a d) (cbox a v) f4 g4" and "f4 a = a" "f4 d = v"
+                 and f4_eq: "\<And>x. x \<in> cbox a c \<Longrightarrow> f4 x = f1 x" "\<And>x. x \<in> cbox c d \<Longrightarrow> f4 x = f2 x"
+    using homeomorphism_grouping_point_2 [OF 1 2] less  by (auto simp: f1_eq f2_eq)
+  obtain f g where fg: "homeomorphism (cbox a b) (cbox a b) f g" "f a = a" "f b = b"
+               and f_eq: "\<And>x. x \<in> cbox a d \<Longrightarrow> f x = f4 x" "\<And>x. x \<in> cbox d b \<Longrightarrow> f x = f3 x"
+    using homeomorphism_grouping_point_2 [OF 4 3] less by (auto simp: f4_eq f3_eq f2_eq f1_eq)
+  show ?thesis
+    apply (rule that [OF fg])
+    using f4_eq f_eq homeomorphism_image1 [OF 2]
+    apply simp
+    by (metis atLeastAtMost_iff box_real(1) box_real(2) cbox_sub(1) greaterThanLessThan_iff imageI less_eq_real_def subset_eq)
+qed
+
+
+lemma homeomorphism_grouping_point_4:
+  fixes T :: "real set"
+  assumes "open U" "open S" "connected S" "U \<noteq> {}" "finite K" "K \<subseteq> S" "U \<subseteq> S" "S \<subseteq> T"
+  obtains f g where "homeomorphism T T f g"
+                    "\<And>x. x \<in> K \<Longrightarrow> f x \<in> U" "{x. (~ (f x = x \<and> g x = x))} \<subseteq> S"
+                    "bounded {x. (~ (f x = x \<and> g x = x))}"
+proof -
+  obtain c d where "box c d \<noteq> {}" "cbox c d \<subseteq> U"
+  proof -
+    obtain u where "u \<in> U"
+      using \<open>U \<noteq> {}\<close> by blast
+    then obtain e where "e > 0" "cball u e \<subseteq> U"
+      using \<open>open U\<close> open_contains_cball by blast
+    then show ?thesis
+      by (rule_tac c=u and d="u+e" in that) (auto simp: dist_norm subset_iff)
+  qed
+  have "compact K"
+    by (simp add: \<open>finite K\<close> finite_imp_compact)
+  obtain a b where "box a b \<noteq> {}" "K \<subseteq> cbox a b" "cbox a b \<subseteq> S"
+  proof (cases "K = {}")
+    case True then show ?thesis
+      using \<open>box c d \<noteq> {}\<close> \<open>cbox c d \<subseteq> U\<close> \<open>U \<subseteq> S\<close> that by blast
+  next
+    case False
+    then obtain a b where "a \<in> K" "b \<in> K"
+            and a: "\<And>x. x \<in> K \<Longrightarrow> a \<le> x" and b: "\<And>x. x \<in> K \<Longrightarrow> x \<le> b"
+      using compact_attains_inf compact_attains_sup by (metis \<open>compact K\<close>)+
+    obtain e where "e > 0" "cball b e \<subseteq> S"
+      using \<open>open S\<close> open_contains_cball
+      by (metis \<open>b \<in> K\<close> \<open>K \<subseteq> S\<close> subsetD)
+    show ?thesis
+    proof
+      show "box a (b + e) \<noteq> {}"
+        using \<open>0 < e\<close> \<open>b \<in> K\<close> a by force
+      show "K \<subseteq> cbox a (b + e)"
+        using \<open>0 < e\<close> a b by fastforce
+      have "a \<in> S"
+        using \<open>a \<in> K\<close> assms(6) by blast
+      have "b + e \<in> S"
+        using \<open>0 < e\<close> \<open>cball b e \<subseteq> S\<close>  by (force simp: dist_norm)
+      show "cbox a (b + e) \<subseteq> S"
+        using \<open>a \<in> S\<close> \<open>b + e \<in> S\<close> \<open>connected S\<close> connected_contains_Icc by auto
+    qed
+  qed
+  obtain w z where "cbox w z \<subseteq> S" and sub_wz: "cbox a b \<union> cbox c d \<subseteq> box w z"
+  proof -
+    have "a \<in> S" "b \<in> S"
+      using \<open>box a b \<noteq> {}\<close> \<open>cbox a b \<subseteq> S\<close> by auto
+    moreover have "c \<in> S" "d \<in> S"
+      using \<open>box c d \<noteq> {}\<close> \<open>cbox c d \<subseteq> U\<close> \<open>U \<subseteq> S\<close> by force+
+    ultimately have "min a c \<in> S" "max b d \<in> S"
+      by linarith+
+    then obtain e1 e2 where "e1 > 0" "cball (min a c) e1 \<subseteq> S" "e2 > 0" "cball (max b d) e2 \<subseteq> S"
+      using \<open>open S\<close> open_contains_cball by metis
+    then have *: "min a c - e1 \<in> S" "max b d + e2 \<in> S"
+      by (auto simp: dist_norm)
+    show ?thesis
+    proof
+      show "cbox (min a c - e1) (max b d+ e2) \<subseteq> S"
+        using * \<open>connected S\<close> connected_contains_Icc by auto
+      show "cbox a b \<union> cbox c d \<subseteq> box (min a c - e1) (max b d + e2)"
+        using \<open>0 < e1\<close> \<open>0 < e2\<close> by auto
+    qed
+  qed
+  then
+  obtain f g where hom: "homeomorphism (cbox w z) (cbox w z) f g"
+               and "f w = w" "f z = z"
+               and fin: "\<And>x. x \<in> cbox a b \<Longrightarrow> f x \<in> cbox c d"
+    using homeomorphism_grouping_point_3 [of a b w z c d]
+    using \<open>box a b \<noteq> {}\<close> \<open>box c d \<noteq> {}\<close> by blast
+  have contfg: "continuous_on (cbox w z) f" "continuous_on (cbox w z) g"
+    using hom homeomorphism_def by blast+
+  define f' where "f' \<equiv> \<lambda>x. if x \<in> cbox w z then f x else x"
+  define g' where "g' \<equiv> \<lambda>x. if x \<in> cbox w z then g x else x"
+  show ?thesis
+  proof
+    have T: "cbox w z \<union> (T - box w z) = T"
+      using \<open>cbox w z \<subseteq> S\<close> \<open>S \<subseteq> T\<close> by auto
+    show "homeomorphism T T f' g'"
+    proof
+      have clo: "closedin (subtopology euclidean (cbox w z \<union> (T - box w z))) (T - box w z)"
+        by (metis Diff_Diff_Int Diff_subset T closedin_def open_box openin_open_Int topspace_euclidean_subtopology)
+      have "continuous_on (cbox w z \<union> (T - box w z)) f'" "continuous_on (cbox w z \<union> (T - box w z)) g'"
+        unfolding f'_def g'_def
+         apply (safe intro!: continuous_on_cases_local contfg continuous_on_id clo)
+         apply (simp_all add: closed_subset)
+        using \<open>f w = w\<close> \<open>f z = z\<close> apply force
+        by (metis \<open>f w = w\<close> \<open>f z = z\<close> hom homeomorphism_def less_eq_real_def mem_box_real(2))
+      then show "continuous_on T f'" "continuous_on T g'"
+        by (simp_all only: T)
+      show "f' ` T \<subseteq> T"
+        unfolding f'_def
+        by clarsimp (metis \<open>cbox w z \<subseteq> S\<close> \<open>S \<subseteq> T\<close> subsetD hom homeomorphism_def imageI mem_box_real(2))
+      show "g' ` T \<subseteq> T"
+        unfolding g'_def
+        by clarsimp (metis \<open>cbox w z \<subseteq> S\<close> \<open>S \<subseteq> T\<close> subsetD hom homeomorphism_def imageI mem_box_real(2))
+      show "\<And>x. x \<in> T \<Longrightarrow> g' (f' x) = x"
+        unfolding f'_def g'_def
+        using homeomorphism_apply1 [OF hom]  homeomorphism_image1 [OF hom] by fastforce
+      show "\<And>y. y \<in> T \<Longrightarrow> f' (g' y) = y"
+        unfolding f'_def g'_def
+        using homeomorphism_apply2 [OF hom]  homeomorphism_image2 [OF hom] by fastforce
+    qed
+    show "\<And>x. x \<in> K \<Longrightarrow> f' x \<in> U"
+      using fin sub_wz \<open>K \<subseteq> cbox a b\<close> \<open>cbox c d \<subseteq> U\<close> by (force simp: f'_def)
+    show "{x. \<not> (f' x = x \<and> g' x = x)} \<subseteq> S"
+      using \<open>cbox w z \<subseteq> S\<close> by (auto simp: f'_def g'_def)
+    show "bounded {x. \<not> (f' x = x \<and> g' x = x)}"
+      apply (rule bounded_subset [of "cbox w z"])
+      using bounded_cbox apply blast
+      apply (auto simp: f'_def g'_def)
+      done
+  qed
+qed
+
+proposition homeomorphism_grouping_points_exists:
+  fixes S :: "'a::euclidean_space set"
+  assumes "open U" "open S" "connected S" "U \<noteq> {}" "finite K" "K \<subseteq> S" "U \<subseteq> S" "S \<subseteq> T"
+  obtains f g where "homeomorphism T T f g" "{x. (~ (f x = x \<and> g x = x))} \<subseteq> S"
+                    "bounded {x. (~ (f x = x \<and> g x = x))}" "\<And>x. x \<in> K \<Longrightarrow> f x \<in> U"
+proof (cases "2 \<le> DIM('a)")
+  case True
+  have TS: "T \<subseteq> affine hull S"
+    using affine_hull_open assms by blast
+  have "infinite U"
+    using \<open>open U\<close> \<open>U \<noteq> {}\<close> finite_imp_not_open by blast
+  then obtain P where "P \<subseteq> U" "finite P" "card K = card P"
+    using infinite_arbitrarily_large by metis
+  then obtain \<gamma> where \<gamma>: "bij_betw \<gamma> K P"
+    using \<open>finite K\<close> finite_same_card_bij by blast
+  obtain f g where "homeomorphism T T f g" "\<And>i. i \<in> K \<Longrightarrow> f (id i) = \<gamma> i" "{x. \<not> (f x = x \<and> g x = x)} \<subseteq> S" "bounded {x. \<not> (f x = x \<and> g x = x)}"
+  proof (rule homeomorphism_moving_points_exists [OF True \<open>open S\<close> \<open>connected S\<close> \<open>S \<subseteq> T\<close> \<open>finite K\<close>])
+    show "\<And>i. i \<in> K \<Longrightarrow> id i \<in> S \<and> \<gamma> i \<in> S"
+      using \<open>P \<subseteq> U\<close> \<open>bij_betw \<gamma> K P\<close> \<open>K \<subseteq> S\<close> \<open>U \<subseteq> S\<close> bij_betwE by blast
+    show "pairwise (\<lambda>i j. id i \<noteq> id j \<and> \<gamma> i \<noteq> \<gamma> j) K"
+      using \<gamma> by (auto simp: pairwise_def bij_betw_def inj_on_def)
+  qed (use affine_hull_open assms that in auto)
+  then show ?thesis
+    using \<gamma> \<open>P \<subseteq> U\<close> bij_betwE by (fastforce simp add: intro!: that)
+next
+  case False
+  with DIM_positive have "DIM('a) = 1"
+    by (simp add: dual_order.antisym)
+  then obtain h::"'a \<Rightarrow>real" and j
+  where "linear h" "linear j"
+    and noh: "\<And>x. norm(h x) = norm x" and noj: "\<And>y. norm(j y) = norm y"
+    and hj:  "\<And>x. j(h x) = x" "\<And>y. h(j y) = y"
+    and ranh: "surj h"
+    using isomorphisms_UNIV_UNIV
+    by (metis (mono_tags, hide_lams) DIM_real UNIV_eq_I range_eqI)
+  obtain f g where hom: "homeomorphism (h ` T) (h ` T) f g"
+               and f: "\<And>x. x \<in> h ` K \<Longrightarrow> f x \<in> h ` U"
+               and sub: "{x. \<not> (f x = x \<and> g x = x)} \<subseteq> h ` S"
+               and bou: "bounded {x. \<not> (f x = x \<and> g x = x)}"
+    apply (rule homeomorphism_grouping_point_4 [of "h ` U" "h ` S" "h ` K" "h ` T"])
+    by (simp_all add: assms image_mono  \<open>linear h\<close> open_surjective_linear_image connected_linear_image ranh)
+  have jf: "j (f (h x)) = x \<longleftrightarrow> f (h x) = h x" for x
+    by (metis hj)
+  have jg: "j (g (h x)) = x \<longleftrightarrow> g (h x) = h x" for x
+    by (metis hj)
+  have cont_hj: "continuous_on X h"  "continuous_on Y j" for X Y
+    by (simp_all add: \<open>linear h\<close> \<open>linear j\<close> linear_linear linear_continuous_on)
+  show ?thesis
+  proof
+    show "homeomorphism T T (j \<circ> f \<circ> h) (j \<circ> g \<circ> h)"
+    proof
+      show "continuous_on T (j \<circ> f \<circ> h)"
+        apply (intro continuous_on_compose cont_hj)
+        using hom homeomorphism_def by blast
+      show "continuous_on T (j \<circ> g \<circ> h)"
+        apply (intro continuous_on_compose cont_hj)
+        using hom homeomorphism_def by blast
+      show "(j \<circ> f \<circ> h) ` T \<subseteq> T"
+        by clarsimp (metis (mono_tags, hide_lams) hj(1) hom homeomorphism_def imageE imageI)
+      show "(j \<circ> g \<circ> h) ` T \<subseteq> T"
+        by clarsimp (metis (mono_tags, hide_lams) hj(1) hom homeomorphism_def imageE imageI)
+      show "\<And>x. x \<in> T \<Longrightarrow> (j \<circ> g \<circ> h) ((j \<circ> f \<circ> h) x) = x"
+        using hj hom homeomorphism_apply1 by fastforce
+      show "\<And>y. y \<in> T \<Longrightarrow> (j \<circ> f \<circ> h) ((j \<circ> g \<circ> h) y) = y"
+        using hj hom homeomorphism_apply2 by fastforce
+    qed
+    show "{x. \<not> ((j \<circ> f \<circ> h) x = x \<and> (j \<circ> g \<circ> h) x = x)} \<subseteq> S"
+      apply (clarsimp simp: jf jg hj)
+      using sub hj
+      apply (drule_tac c="h x" in subsetD, force)
+      by (metis imageE)
+    have "bounded (j ` {x. (~ (f x = x \<and> g x = x))})"
+      apply (rule bounded_linear_image [OF bou])
+      using \<open>linear j\<close> linear_conv_bounded_linear by auto
+    moreover
+    have *: "{x. ~((j \<circ> f \<circ> h) x = x \<and> (j \<circ> g \<circ> h) x = x)} = j ` {x. (~ (f x = x \<and> g x = x))}"
+      using hj apply (auto simp: jf jg image_iff, metis+)
+      done
+    ultimately show "bounded {x. \<not> ((j \<circ> f \<circ> h) x = x \<and> (j \<circ> g \<circ> h) x = x)}"
+      by metis
+    show "\<And>x. x \<in> K \<Longrightarrow> (j \<circ> f \<circ> h) x \<in> U"
+      using f hj by fastforce
+  qed
+qed
+
+
+proposition homeomorphism_grouping_points_exists_gen:
+  fixes S :: "'a::euclidean_space set"
+  assumes opeU: "openin (subtopology euclidean S) U"
+      and opeS: "openin (subtopology euclidean (affine hull S)) S"
+      and "U \<noteq> {}" "finite K" "K \<subseteq> S" and S: "S \<subseteq> T" "T \<subseteq> affine hull S" "connected S"
+  obtains f g where "homeomorphism T T f g" "{x. (~ (f x = x \<and> g x = x))} \<subseteq> S"
+                    "bounded {x. (~ (f x = x \<and> g x = x))}" "\<And>x. x \<in> K \<Longrightarrow> f x \<in> U"
+proof (cases "2 \<le> aff_dim S")
+  case True
+  have opeU': "openin (subtopology euclidean (affine hull S)) U"
+    using opeS opeU openin_trans by blast
+  obtain u where "u \<in> U" "u \<in> S"
+    using \<open>U \<noteq> {}\<close> opeU openin_imp_subset by fastforce+
+  have "infinite U"
+    apply (rule infinite_openin [OF opeU \<open>u \<in> U\<close>])
+    apply (rule connected_imp_perfect_aff_dim [OF \<open>connected S\<close> _ \<open>u \<in> S\<close>])
+    using True apply simp
+    done
+  then obtain P where "P \<subseteq> U" "finite P" "card K = card P"
+    using infinite_arbitrarily_large by metis
+  then obtain \<gamma> where \<gamma>: "bij_betw \<gamma> K P"
+    using \<open>finite K\<close> finite_same_card_bij by blast
+  have "\<exists>f g. homeomorphism T T f g \<and> (\<forall>i \<in> K. f(id i) = \<gamma> i) \<and>
+               {x. ~ (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. ~ (f x = x \<and> g x = x)}"
+  proof (rule homeomorphism_moving_points_exists_gen [OF \<open>finite K\<close> _ _ True opeS S])
+    show "\<And>i. i \<in> K \<Longrightarrow> id i \<in> S \<and> \<gamma> i \<in> S"
+      by (metis id_apply opeU openin_contains_cball subsetCE \<open>P \<subseteq> U\<close> \<open>bij_betw \<gamma> K P\<close> \<open>K \<subseteq> S\<close> bij_betwE)
+    show "pairwise (\<lambda>i j. id i \<noteq> id j \<and> \<gamma> i \<noteq> \<gamma> j) K"
+      using \<gamma> by (auto simp: pairwise_def bij_betw_def inj_on_def)
+  qed
+  then show ?thesis
+    using \<gamma> \<open>P \<subseteq> U\<close> bij_betwE by (fastforce simp add: intro!: that)
+next
+  case False
+  with aff_dim_geq [of S] consider "aff_dim S = -1" | "aff_dim S = 0" | "aff_dim S = 1" by linarith
+  then show ?thesis
+  proof cases
+    assume "aff_dim S = -1"
+    then have "S = {}"
+      using aff_dim_empty by blast
+    then have "False"
+      using \<open>U \<noteq> {}\<close> \<open>K \<subseteq> S\<close> openin_imp_subset [OF opeU] by blast
+    then show ?thesis ..
+  next
+    assume "aff_dim S = 0"
+    then obtain a where "S = {a}"
+      using aff_dim_eq_0 by blast
+    then have "K \<subseteq> U"
+      using \<open>U \<noteq> {}\<close> \<open>K \<subseteq> S\<close> openin_imp_subset [OF opeU] by blast
+    show ?thesis
+      apply (rule that [of id id])
+      using \<open>K \<subseteq> U\<close> by (auto simp: continuous_on_id intro: homeomorphismI)
+  next
+    assume "aff_dim S = 1"
+    then have "affine hull S homeomorphic (UNIV :: real set)"
+      by (auto simp: homeomorphic_affine_sets)
+    then obtain h::"'a\<Rightarrow>real" and j where homhj: "homeomorphism (affine hull S) UNIV h j"
+      using homeomorphic_def by blast
+    then have h: "\<And>x. x \<in> affine hull S \<Longrightarrow> j(h(x)) = x" and j: "\<And>y. j y \<in> affine hull S \<and> h(j y) = y"
+      by (auto simp: homeomorphism_def)
+    have connh: "connected (h ` S)"
+      by (meson Topological_Spaces.connected_continuous_image \<open>connected S\<close> homeomorphism_cont1 homeomorphism_of_subsets homhj hull_subset top_greatest)
+    have hUS: "h ` U \<subseteq> h ` S"
+      by (meson homeomorphism_imp_open_map homeomorphism_of_subsets homhj hull_subset opeS opeU open_UNIV openin_open_eq)
+    have op: "openin (subtopology euclidean (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
+      using homeomorphism_imp_open_map [OF homhj]  by (simp add: open_openin)
+    have "open (h ` U)" "open (h ` S)"
+      by (auto intro: opeS opeU openin_trans op)
+    then obtain f g where hom: "homeomorphism (h ` T) (h ` T) f g"
+                 and f: "\<And>x. x \<in> h ` K \<Longrightarrow> f x \<in> h ` U"
+                 and sub: "{x. \<not> (f x = x \<and> g x = x)} \<subseteq> h ` S"
+                 and bou: "bounded {x. \<not> (f x = x \<and> g x = x)}"
+      apply (rule homeomorphism_grouping_points_exists [of "h ` U" "h ` S" "h ` K" "h ` T"])
+      using assms by (auto simp: connh hUS)
+    have jf: "\<And>x. x \<in> affine hull S \<Longrightarrow> j (f (h x)) = x \<longleftrightarrow> f (h x) = h x"
+      by (metis h j)
+    have jg: "\<And>x. x \<in> affine hull S \<Longrightarrow> j (g (h x)) = x \<longleftrightarrow> g (h x) = h x"
+      by (metis h j)
+    have cont_hj: "continuous_on T h"  "continuous_on Y j" for Y
+      apply (rule continuous_on_subset [OF _ \<open>T \<subseteq> affine hull S\<close>])
+      using homeomorphism_def homhj apply blast
+      by (meson continuous_on_subset homeomorphism_def homhj top_greatest)
+    define f' where "f' \<equiv> \<lambda>x. if x \<in> affine hull S then (j \<circ> f \<circ> h) x else x"
+    define g' where "g' \<equiv> \<lambda>x. if x \<in> affine hull S then (j \<circ> g \<circ> h) x else x"
+    show ?thesis
+    proof
+      show "homeomorphism T T f' g'"
+      proof
+        have "continuous_on T (j \<circ> f \<circ> h)"
+          apply (intro continuous_on_compose cont_hj)
+          using hom homeomorphism_def by blast
+        then show "continuous_on T f'"
+          apply (rule continuous_on_eq)
+          using \<open>T \<subseteq> affine hull S\<close> f'_def by auto
+        have "continuous_on T (j \<circ> g \<circ> h)"
+          apply (intro continuous_on_compose cont_hj)
+          using hom homeomorphism_def by blast
+        then show "continuous_on T g'"
+          apply (rule continuous_on_eq)
+          using \<open>T \<subseteq> affine hull S\<close> g'_def by auto
+        show "f' ` T \<subseteq> T"
+        proof (clarsimp simp: f'_def)
+          fix x assume "x \<in> T"
+          then have "f (h x) \<in> h ` T"
+            by (metis (no_types) hom homeomorphism_def image_subset_iff subset_refl)
+          then show "j (f (h x)) \<in> T"
+            using \<open>T \<subseteq> affine hull S\<close> h by auto
+        qed
+        show "g' ` T \<subseteq> T"
+        proof (clarsimp simp: g'_def)
+          fix x assume "x \<in> T"
+          then have "g (h x) \<in> h ` T"
+            by (metis (no_types) hom homeomorphism_def image_subset_iff subset_refl)
+          then show "j (g (h x)) \<in> T"
+            using \<open>T \<subseteq> affine hull S\<close> h by auto
+        qed
+        show "\<And>x. x \<in> T \<Longrightarrow> g' (f' x) = x"
+          using h j hom homeomorphism_apply1 by (fastforce simp add: f'_def g'_def)
+        show "\<And>y. y \<in> T \<Longrightarrow> f' (g' y) = y"
+          using h j hom homeomorphism_apply2 by (fastforce simp add: f'_def g'_def)
+      qed
+    next
+      show "{x. \<not> (f' x = x \<and> g' x = x)} \<subseteq> S"
+        apply (clarsimp simp: f'_def g'_def jf jg)
+        apply (rule imageE [OF subsetD [OF sub]], force)
+        by (metis h hull_inc)
+    next
+      have "bounded (j ` {x. (~ (f x = x \<and> g x = x))})"
+        apply (rule bounded_closure_image)
+        apply (rule compact_imp_bounded)
+        using bou by (auto simp: compact_continuous_image cont_hj)
+      moreover
+      have *: "{x \<in> affine hull S. j (f (h x)) \<noteq> x \<or> j (g (h x)) \<noteq> x} = j ` {x. (~ (f x = x \<and> g x = x))}"
+        using h j by (auto simp: image_iff; metis)
+      ultimately have "bounded {x \<in> affine hull S. j (f (h x)) \<noteq> x \<or> j (g (h x)) \<noteq> x}"
+        by metis
+      then show "bounded {x. \<not> (f' x = x \<and> g' x = x)}"
+        by (simp add: f'_def g'_def Collect_mono bounded_subset)
+    next
+      show "f' x \<in> U" if "x \<in> K" for x
+      proof -
+        have "U \<subseteq> S"
+          using opeU openin_imp_subset by blast
+        then have "j (f (h x)) \<in> U"
+          using f h hull_subset that by fastforce
+        then show "f' x \<in> U"
+          using \<open>K \<subseteq> S\<close> S f'_def that by auto
+      qed
+    qed
+  qed
+qed
+
+subsection\<open>nullhomotopic mappings\<close>
+
+text\<open> A mapping out of a sphere is nullhomotopic iff it extends to the ball.
+This even works out in the degenerate cases when the radius is \<le> 0, and
+we also don't need to explicitly assume continuity since it's already implicit
+in both sides of the equivalence.\<close>
+
+lemma nullhomotopic_from_lemma:
+  assumes contg: "continuous_on (cball a r - {a}) g"
+      and fa: "\<And>e. 0 < e
+               \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>x. x \<noteq> a \<and> norm(x - a) < d \<longrightarrow> norm(g x - f a) < e)"
+      and r: "\<And>x. x \<in> cball a r \<and> x \<noteq> a \<Longrightarrow> f x = g x"
+    shows "continuous_on (cball a r) f"
+proof (clarsimp simp: continuous_on_eq_continuous_within Ball_def)
+  fix x
+  assume x: "dist a x \<le> r"
+  show "continuous (at x within cball a r) f"
+  proof (cases "x=a")
+    case True
+    then show ?thesis
+      by (metis continuous_within_eps_delta fa dist_norm dist_self r)
+  next
+    case False
+    show ?thesis
+    proof (rule continuous_transform_within [where f=g and d = "norm(x-a)"])
+      have "\<exists>d>0. \<forall>x'\<in>cball a r.
+                      dist x' x < d \<longrightarrow> dist (g x') (g x) < e" if "e>0" for e
+      proof -
+        obtain d where "d > 0"
+           and d: "\<And>x'. \<lbrakk>dist x' a \<le> r; x' \<noteq> a; dist x' x < d\<rbrakk> \<Longrightarrow>
+                                 dist (g x') (g x) < e"
+          using contg False x \<open>e>0\<close>
+          unfolding continuous_on_iff by (fastforce simp add: dist_commute intro: that)
+        show ?thesis
+          using \<open>d > 0\<close> \<open>x \<noteq> a\<close>
+          by (rule_tac x="min d (norm(x - a))" in exI)
+             (auto simp: dist_commute dist_norm [symmetric]  intro!: d)
+      qed
+      then show "continuous (at x within cball a r) g"
+        using contg False by (auto simp: continuous_within_eps_delta)
+      show "0 < norm (x - a)"
+        using False by force
+      show "x \<in> cball a r"
+        by (simp add: x)
+      show "\<And>x'. \<lbrakk>x' \<in> cball a r; dist x' x < norm (x - a)\<rbrakk>
+        \<Longrightarrow> g x' = f x'"
+        by (metis dist_commute dist_norm less_le r)
+    qed
+  qed
+qed
+
+proposition nullhomotopic_from_sphere_extension:
+  fixes f :: "'M::euclidean_space \<Rightarrow> 'a::real_normed_vector"
+  shows  "(\<exists>c. homotopic_with (\<lambda>x. True) (sphere a r) S f (\<lambda>x. c)) \<longleftrightarrow>
+          (\<exists>g. continuous_on (cball a r) g \<and> g ` (cball a r) \<subseteq> S \<and>
+               (\<forall>x \<in> sphere a r. g x = f x))"
+         (is "?lhs = ?rhs")
+proof (cases r "0::real" rule: linorder_cases)
+  case less
+  then show ?thesis by simp
+next
+  case equal
+  with continuous_on_const show ?thesis
+    apply (auto simp: homotopic_with)
+    apply (rule_tac x="\<lambda>x. h (0, a)" in exI)
+    apply (fastforce simp add:)
+    done
+next
+  case greater
+  let ?P = "continuous_on {x. norm(x - a) = r} f \<and> f ` {x. norm(x - a) = r} \<subseteq> S"
+  have ?P if ?lhs using that
+  proof
+    fix c
+    assume c: "homotopic_with (\<lambda>x. True) (sphere a r) S f (\<lambda>x. c)"
+    then have contf: "continuous_on (sphere a r) f" and fim: "f ` sphere a r \<subseteq> S"
+      by (auto simp: homotopic_with_imp_subset1 homotopic_with_imp_continuous)
+    show ?P
+      using contf fim by (auto simp: sphere_def dist_norm norm_minus_commute)
+  qed
+  moreover have ?P if ?rhs using that
+  proof
+    fix g
+    assume g: "continuous_on (cball a r) g \<and> g ` cball a r \<subseteq> S \<and> (\<forall>xa\<in>sphere a r. g xa = f xa)"
+    then
+    show ?P
+      apply (safe elim!: continuous_on_eq [OF continuous_on_subset])
+      apply (auto simp: dist_norm norm_minus_commute)
+      by (metis dist_norm image_subset_iff mem_sphere norm_minus_commute sphere_cball subsetCE)
+  qed
+  moreover have ?thesis if ?P
+  proof
+    assume ?lhs
+    then obtain c where "homotopic_with (\<lambda>x. True) (sphere a r) S (\<lambda>x. c) f"
+      using homotopic_with_sym by blast
+    then obtain h where conth: "continuous_on ({0..1::real} \<times> sphere a r) h"
+                    and him: "h ` ({0..1} \<times> sphere a r) \<subseteq> S"
+                    and h: "\<And>x. h(0, x) = c" "\<And>x. h(1, x) = f x"
+      by (auto simp: homotopic_with_def)
+    obtain b1::'M where "b1 \<in> Basis"
+      using SOME_Basis by auto
+    have "c \<in> S"
+      apply (rule him [THEN subsetD])
+      apply (rule_tac x = "(0, a + r *\<^sub>R b1)" in image_eqI)
+      using h greater \<open>b1 \<in> Basis\<close>
+       apply (auto simp: dist_norm)
+      done
+    have uconth: "uniformly_continuous_on ({0..1::real} \<times> (sphere a r)) h"
+      by (force intro: compact_Times conth compact_uniformly_continuous)
+    let ?g = "\<lambda>x. h (norm (x - a)/r,
+                     a + (if x = a then r *\<^sub>R b1 else (r / norm(x - a)) *\<^sub>R (x - a)))"
+    let ?g' = "\<lambda>x. h (norm (x - a)/r, a + (r / norm(x - a)) *\<^sub>R (x - a))"
+    show ?rhs
+    proof (intro exI conjI)
+      have "continuous_on (cball a r - {a}) ?g'"
+        apply (rule continuous_on_compose2 [OF conth])
+         apply (intro continuous_intros)
+        using greater apply (auto simp: dist_norm norm_minus_commute)
+        done
+      then show "continuous_on (cball a r) ?g"
+      proof (rule nullhomotopic_from_lemma)
+        show "\<exists>d>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < d \<longrightarrow> norm (?g' x - ?g a) < e" if "0 < e" for e
+        proof -
+          obtain d where "0 < d"
+             and d: "\<And>x x'. \<lbrakk>x \<in> {0..1} \<times> sphere a r; x' \<in> {0..1} \<times> sphere a r; dist x' x < d\<rbrakk>
+                        \<Longrightarrow> dist (h x') (h x) < e"
+            using uniformly_continuous_onE [OF uconth \<open>0 < e\<close>] by auto
+          have *: "norm (h (norm (x - a) / r,
+                         a + (r / norm (x - a)) *\<^sub>R (x - a)) - h (0, a + r *\<^sub>R b1)) < e"
+                   if "x \<noteq> a" "norm (x - a) < r" "norm (x - a) < d * r" for x
+          proof -
+            have "norm (h (norm (x - a) / r, a + (r / norm (x - a)) *\<^sub>R (x - a)) - h (0, a + r *\<^sub>R b1)) =
+                  norm (h (norm (x - a) / r, a + (r / norm (x - a)) *\<^sub>R (x - a)) - h (0, a + (r / norm (x - a)) *\<^sub>R (x - a)))"
+              by (simp add: h)
+            also have "... < e"
+              apply (rule d [unfolded dist_norm])
+              using greater \<open>0 < d\<close> \<open>b1 \<in> Basis\<close> that
+                by (auto simp: dist_norm divide_simps)
+            finally show ?thesis .
+          qed
+          show ?thesis
+            apply (rule_tac x = "min r (d * r)" in exI)
+            using greater \<open>0 < d\<close> by (auto simp: *)
+        qed
+        show "\<And>x. x \<in> cball a r \<and> x \<noteq> a \<Longrightarrow> ?g x = ?g' x"
+          by auto
+      qed
+    next
+      show "?g ` cball a r \<subseteq> S"
+        using greater him \<open>c \<in> S\<close>
+        by (force simp: h dist_norm norm_minus_commute)
+    next
+      show "\<forall>x\<in>sphere a r. ?g x = f x"
+        using greater by (auto simp: h dist_norm norm_minus_commute)
+    qed
+  next
+    assume ?rhs
+    then obtain g where contg: "continuous_on (cball a r) g"
+                    and gim: "g ` cball a r \<subseteq> S"
+                    and gf: "\<forall>x \<in> sphere a r. g x = f x"
+      by auto
+    let ?h = "\<lambda>y. g (a + (fst y) *\<^sub>R (snd y - a))"
+    have "continuous_on ({0..1} \<times> sphere a r) ?h"
+      apply (rule continuous_on_compose2 [OF contg])
+       apply (intro continuous_intros)
+      apply (auto simp: dist_norm norm_minus_commute mult_left_le_one_le)
+      done
+    moreover
+    have "?h ` ({0..1} \<times> sphere a r) \<subseteq> S"
+      by (auto simp: dist_norm norm_minus_commute mult_left_le_one_le gim [THEN subsetD])
+    moreover
+    have "\<forall>x\<in>sphere a r. ?h (0, x) = g a" "\<forall>x\<in>sphere a r. ?h (1, x) = f x"
+      by (auto simp: dist_norm norm_minus_commute mult_left_le_one_le gf)
+    ultimately
+    show ?lhs
+      apply (subst homotopic_with_sym)
+      apply (rule_tac x="g a" in exI)
+      apply (auto simp: homotopic_with)
+      done
+  qed
+  ultimately
+  show ?thesis by meson
 qed
 
 end

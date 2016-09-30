@@ -2586,4 +2586,196 @@ corollary interior_of_triangle:
   using interior_subset
   by (force simp: frontier_of_triangle [OF assms, symmetric] frontier_def Diff_Diff_Int)
 
+subsection\<open>Subdividing a cell complex\<close>
+
+lemma subdivide_interval:
+  fixes x::real
+  assumes "a < \<bar>x - y\<bar>" "0 < a"
+  obtains n where "n \<in> \<int>" "x < n * a \<and> n * a < y \<or> y <  n * a \<and> n * a < x"
+proof -
+  consider "a + x < y" | "a + y < x"
+    using assms by linarith
+  then show ?thesis
+  proof cases
+    case 1
+    let ?n = "of_int (floor (x/a)) + 1"
+    have x: "x < ?n * a"
+      by (meson \<open>0 < a\<close> divide_less_eq floor_unique_iff)
+    have "?n * a \<le> a + x"
+      apply (simp add: algebra_simps)
+      by (metis \<open>0 < a\<close> floor_correct less_irrefl nonzero_mult_divide_cancel_left real_mult_le_cancel_iff2 times_divide_eq_right)
+    also have "... < y"
+      by (rule 1)
+    finally have "?n * a < y" .
+    with x show ?thesis
+      using Ints_1 Ints_add Ints_of_int that by blast
+  next
+    case 2
+    let ?n = "of_int (floor (y/a)) + 1"
+    have y: "y < ?n * a"
+      by (meson \<open>0 < a\<close> divide_less_eq floor_unique_iff)
+    have "?n * a \<le> a + y"
+      apply (simp add: algebra_simps)
+      by (metis \<open>0 < a\<close> floor_correct less_irrefl nonzero_mult_divide_cancel_left real_mult_le_cancel_iff2 times_divide_eq_right)
+    also have "... < x"
+      by (rule 2)
+    finally have "?n * a < x" .
+    then show ?thesis
+      using Ints_1 Ints_add Ints_of_int that y by blast
+  qed
+qed
+
+
+lemma cell_subdivision_lemma:
+  assumes "finite \<F>"
+      and "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
+      and "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> d"
+      and "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X \<and> (X \<inter> Y) face_of Y"
+      and "finite I"
+    shows "\<exists>\<F>'. \<Union>\<F>' = \<Union>\<F> \<and>
+                 finite \<F>' \<and>
+                 (\<forall>X \<in> \<F>'. polytope X) \<and>
+                 (\<forall>X \<in> \<F>'. aff_dim X \<le> d) \<and>
+                 (\<forall>X \<in> \<F>'. \<forall>Y \<in> \<F>'. X \<inter> Y face_of X \<and> X \<inter> Y face_of Y) \<and>
+                 (\<forall>X \<in> \<F>'. \<forall>x \<in> X. \<forall>y \<in> X. \<forall>a b.
+                          (a,b) \<in> I \<longrightarrow> a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or>
+                                        a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b)"
+  using \<open>finite I\<close>
+proof induction
+  case empty
+  then show ?case
+    by (rule_tac x="\<F>" in exI) (simp add: assms)
+next
+  case (insert ab I)
+  then obtain \<F>' where eq: "\<Union>\<F>' = \<Union>\<F>" and "finite \<F>'"
+                   and poly: "\<And>X. X \<in> \<F>' \<Longrightarrow> polytope X"
+                   and aff: "\<And>X. X \<in> \<F>' \<Longrightarrow> aff_dim X \<le> d"
+                   and face: "\<And>X Y. \<lbrakk>X \<in> \<F>'; Y \<in> \<F>'\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+                   and I: "\<And>X x y a b.  \<lbrakk>X \<in> \<F>'; x \<in> X; y \<in> X; (a,b) \<in> I\<rbrakk> \<Longrightarrow>
+                                    a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or> a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b"
+    by (auto simp: that)
+  obtain a b where "ab = (a,b)"
+    by fastforce
+  let ?\<G> = "(\<lambda>X. X \<inter> {x. a \<bullet> x \<le> b}) ` \<F>' \<union> (\<lambda>X. X \<inter> {x. a \<bullet> x \<ge> b}) ` \<F>'"
+  have eqInt: "(S \<inter> Collect P) \<inter> (T \<inter> Collect Q) = (S \<inter> T) \<inter> (Collect P \<inter> Collect Q)" for S T::"'a set" and P Q
+    by blast
+  show ?case
+  proof (intro conjI exI)
+    show "\<Union>?\<G> = \<Union>\<F>"
+      by (force simp: eq [symmetric])
+    show "finite ?\<G>"
+      using \<open>finite \<F>'\<close> by force
+    show "\<forall>X \<in> ?\<G>. polytope X"
+      by (force simp: poly polytope_Int_polyhedron polyhedron_halfspace_le polyhedron_halfspace_ge)
+    show "\<forall>X \<in> ?\<G>. aff_dim X \<le> d"
+      by (auto; metis order_trans aff aff_dim_subset inf_le1)
+    show "\<forall>X \<in> ?\<G>. \<forall>x \<in> X. \<forall>y \<in> X. \<forall>a b.
+                          (a,b) \<in> insert ab I \<longrightarrow> a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or>
+                                                  a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b"
+      using \<open>ab = (a, b)\<close> I by fastforce
+    show "\<forall>X \<in> ?\<G>. \<forall>Y \<in> ?\<G>. X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+      by (auto simp: eqInt halfspace_Int_eq face_of_Int_Int face face_of_halfspace_le face_of_halfspace_ge)
+  qed
+qed
+
+
+proposition cell_complex_subdivision_exists:
+  fixes \<F> :: "'a::euclidean_space set set"
+  assumes "0 < e" "finite \<F>"
+      and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
+      and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> d"
+      and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+  obtains "\<F>'" where "finite \<F>'" "\<Union>\<F>' = \<Union>\<F>" "\<And>X. X \<in> \<F>' \<Longrightarrow> diameter X < e"
+                "\<And>X. X \<in> \<F>' \<Longrightarrow> polytope X" "\<And>X. X \<in> \<F>' \<Longrightarrow> aff_dim X \<le> d"
+                "\<And>X Y. \<lbrakk>X \<in> \<F>'; Y \<in> \<F>'\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+proof -
+  have "bounded(\<Union>\<F>)"
+    by (simp add: \<open>finite \<F>\<close> poly bounded_Union polytope_imp_bounded)
+  then obtain B where "B > 0" and B: "\<And>x. x \<in> \<Union>\<F> \<Longrightarrow> norm x < B"
+    by (meson bounded_pos_less)
+  define C where "C \<equiv> {z \<in> \<int>. \<bar>z * e / 2 / real DIM('a)\<bar> \<le> B}"
+  define I where "I \<equiv> \<Union>i \<in> Basis. \<Union>j \<in> C. { (i::'a, j * e / 2 / DIM('a)) }"
+  have "finite C"
+    using finite_int_segment [of "-B / (e / 2 / DIM('a))" "B / (e / 2 / DIM('a))"]
+    apply (simp add: C_def)
+    apply (erule rev_finite_subset)
+    using \<open>0 < e\<close>
+    apply (auto simp: divide_simps)
+    done
+  then have "finite I"
+    by (simp add: I_def)
+  obtain \<F>' where eq: "\<Union>\<F>' = \<Union>\<F>" and "finite \<F>'"
+              and poly: "\<And>X. X \<in> \<F>' \<Longrightarrow> polytope X"
+              and aff: "\<And>X. X \<in> \<F>' \<Longrightarrow> aff_dim X \<le> d"
+              and face: "\<And>X Y. \<lbrakk>X \<in> \<F>'; Y \<in> \<F>'\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
+              and I: "\<And>X x y a b.  \<lbrakk>X \<in> \<F>'; x \<in> X; y \<in> X; (a,b) \<in> I\<rbrakk> \<Longrightarrow>
+                                     a \<bullet> x \<le> b \<and> a \<bullet> y \<le> b \<or> a \<bullet> x \<ge> b \<and> a \<bullet> y \<ge> b"
+    apply (rule exE [OF cell_subdivision_lemma])
+         apply (rule assms \<open>finite I\<close> | assumption)+
+    apply (auto intro: that)
+    done
+  show ?thesis
+  proof (rule_tac \<F>'="\<F>'" in that)
+    show "diameter X < e" if "X \<in> \<F>'" for X
+    proof -
+      have "diameter X \<le> e/2"
+      proof (rule diameter_le)
+        show "norm (x - y) \<le> e / 2" if "x \<in> X" "y \<in> X" for x y
+        proof -
+          have "norm x < B" "norm y < B"
+            using B \<open>X \<in> \<F>'\<close> eq that by fastforce+
+          have "norm (x - y) \<le> (\<Sum>b\<in>Basis. \<bar>(x-y) \<bullet> b\<bar>)"
+            by (rule norm_le_l1)
+          also have "... \<le> of_nat (DIM('a)) * (e / 2 / DIM('a))"
+          proof (rule setsum_bounded_above)
+            fix i::'a
+            assume "i \<in> Basis"
+            then have I': "\<And>z b. \<lbrakk>z \<in> C; b = z * e / (2 * real DIM('a))\<rbrakk> \<Longrightarrow> i \<bullet> x \<le> b \<and> i \<bullet> y \<le> b \<or> i \<bullet> x \<ge> b \<and> i \<bullet> y \<ge> b"
+              using I \<open>X \<in> \<F>'\<close> that
+              by (fastforce simp: I_def)
+            show "\<bar>(x - y) \<bullet> i\<bar> \<le> e / 2 / real DIM('a)"
+            proof (rule ccontr)
+              assume "\<not> \<bar>(x - y) \<bullet> i\<bar> \<le> e / 2 / real DIM('a)"
+              then have xyi: "\<bar>i \<bullet> x - i \<bullet> y\<bar> > e / 2 / real DIM('a)"
+                by (simp add: inner_commute inner_diff_right)
+              obtain n where "n \<in> \<int>" and n: "i \<bullet> x < n * (e / 2 / real DIM('a)) \<and> n * (e / 2 / real DIM('a)) < i \<bullet> y \<or> i \<bullet> y < n * (e / 2 / real DIM('a)) \<and> n * (e / 2 / real DIM('a)) < i \<bullet> x"
+                using subdivide_interval [OF xyi] DIM_positive \<open>0 < e\<close>
+                by (auto simp: zero_less_divide_iff)
+              have "\<bar>i \<bullet> x\<bar> < B"
+                by (metis \<open>i \<in> Basis\<close> \<open>norm x < B\<close> inner_commute norm_bound_Basis_lt)
+              have "\<bar>i \<bullet> y\<bar> < B"
+                by (metis \<open>i \<in> Basis\<close> \<open>norm y < B\<close> inner_commute norm_bound_Basis_lt)
+              have *: "\<bar>n * e\<bar> \<le> B * (2 * real DIM('a))"
+                      if "\<bar>ix\<bar> < B" "\<bar>iy\<bar> < B"
+                         and ix: "ix * (2 * real DIM('a)) < n * e"
+                         and iy: "n * e < iy * (2 * real DIM('a))" for ix iy
+              proof (rule abs_leI)
+                have "iy * (2 * real DIM('a)) \<le> B * (2 * real DIM('a))"
+                  by (rule mult_right_mono) (use \<open>\<bar>iy\<bar> < B\<close> in linarith)+
+                then show "n * e \<le> B * (2 * real DIM('a))"
+                  using iy by linarith
+              next
+                have "- ix * (2 * real DIM('a)) \<le> B * (2 * real DIM('a))"
+                  by (rule mult_right_mono) (use \<open>\<bar>ix\<bar> < B\<close> in linarith)+
+                then show "- (n * e) \<le> B * (2 * real DIM('a))"
+                  using ix by linarith
+              qed
+              have "n \<in> C"
+                using \<open>n \<in> \<int>\<close> n  by (auto simp: C_def divide_simps intro: * \<open>\<bar>i \<bullet> x\<bar> < B\<close> \<open>\<bar>i \<bullet> y\<bar> < B\<close>)
+              show False
+                using  I' [OF \<open>n \<in> C\<close> refl] n  by auto
+            qed
+          qed
+          also have "... = e / 2"
+            by simp
+          finally show ?thesis .
+        qed
+      qed (use \<open>0 < e\<close> in force)
+      also have "... < e"
+        by (simp add: \<open>0 < e\<close>)
+      finally show ?thesis .
+    qed
+  qed (auto simp: eq poly aff face  \<open>finite \<F>'\<close>)
+qed
+
 end

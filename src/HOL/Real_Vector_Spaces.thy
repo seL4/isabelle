@@ -375,6 +375,21 @@ proof
     by (simp add: comp_def)
 qed
 
+lemma fraction_scaleR_times [simp]:
+  fixes a :: "'a::real_algebra_1"
+  shows "(numeral u / numeral v) *\<^sub>R (numeral w * a) = (numeral u * numeral w / numeral v) *\<^sub>R a"
+by (metis (no_types, lifting) of_real_numeral scaleR_conv_of_real scaleR_scaleR times_divide_eq_left)
+
+lemma inverse_scaleR_times [simp]:
+  fixes a :: "'a::real_algebra_1"
+  shows "(1 / numeral v) *\<^sub>R (numeral w * a) = (numeral w / numeral v) *\<^sub>R a"
+by (metis divide_inverse_commute inverse_eq_divide of_real_numeral scaleR_conv_of_real scaleR_scaleR)
+
+lemma scaleR_times [simp]:
+  fixes a :: "'a::real_algebra_1"
+  shows "(numeral u) *\<^sub>R (numeral w * a) = (numeral u * numeral w) *\<^sub>R a"
+by (simp add: scaleR_conv_of_real)
+
 instance real_field < field_char_0 ..
 
 
