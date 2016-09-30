@@ -8,7 +8,7 @@
 section \<open>Lebesgue measure\<close>
 
 theory Lebesgue_Measure
-  imports Finite_Product_Measure Bochner_Integration Caratheodory Complete_Measure Summation_Tests
+  imports Finite_Product_Measure Bochner_Integration Caratheodory Complete_Measure Summation_Tests Regularity
 begin
 
 subsection \<open>Every right continuous and nondecreasing function gives rise to a measure\<close>
@@ -985,5 +985,93 @@ qed
 corollary starlike_negligible_compact:
   "compact S \<Longrightarrow> (\<And>c x. \<lbrakk>(c *\<^sub>R x) \<in> S; 0 \<le> c; x \<in> S\<rbrakk> \<Longrightarrow> c = 1) \<Longrightarrow> S \<in> null_sets lebesgue"
   using starlike_negligible_bounded_gmeasurable[of S] by (auto simp: compact_eq_bounded_closed)
+
+lemma outer_regular_lborel:
+  assumes B: "B \<in> fmeasurable lborel" "0 < (e::real)"
+  shows "\<exists>U. open U \<and> B \<subseteq> U \<and> emeasure lborel U \<le> emeasure lborel B + e"
+proof -
+  let ?\<mu> = "emeasure lborel"
+  let ?B = "\<lambda>n::nat. ball 0 n :: 'a set"
+  have B[measurable]: "B \<in> sets borel"
+    using B by auto
+  let ?e = "\<lambda>n. e*((1/2)^Suc n)"
+  have "\<forall>n. \<exists>U. open U \<and> ?B n \<inter> B \<subseteq> U \<and> ?\<mu> (U - B) < ?e n"
+  proof
+    fix n :: nat
+    let ?A = "density lborel (indicator (?B n))"
+    have emeasure_A: "X \<in> sets borel \<Longrightarrow> emeasure ?A X = ?\<mu> (?B n \<inter> X)" for X
+      by (auto simp add: emeasure_density borel_measurable_indicator indicator_inter_arith[symmetric])
+
+    have finite_A: "emeasure ?A (space ?A) \<noteq> \<infinity>"
+      using emeasure_bounded_finite[of "?B n"] by (auto simp add: emeasure_A)
+    interpret A: finite_measure ?A
+      by rule fact
+    have "emeasure ?A B + ?e n > (INF U:{U. B \<subseteq> U \<and> open U}. emeasure ?A U)"
+      using \<open>0<e\<close> by (auto simp: outer_regular[OF _ finite_A B, symmetric])
+    then obtain U where U: "B \<subseteq> U" "open U" "?\<mu> (?B n \<inter> B) + ?e n > ?\<mu> (?B n \<inter> U)"
+      unfolding INF_less_iff by (auto simp: emeasure_A)
+    moreover
+    { have "?\<mu> ((?B n \<inter> U) - B) = ?\<mu> ((?B n \<inter> U) - (?B n \<inter> B))"
+        using U by (intro arg_cong[where f="?\<mu>"]) auto
+      also have "\<dots> = ?\<mu> (?B n \<inter> U) - ?\<mu> (?B n \<inter> B)"
+        using U A.emeasure_finite[of B]
+        by (intro emeasure_Diff) (auto simp del: A.emeasure_finite simp: emeasure_A)
+      also have "\<dots> < ?e n"
+        using U(1,2,3) A.emeasure_finite[of B]
+        by (subst minus_less_iff_ennreal)
+          (auto simp del: A.emeasure_finite simp: emeasure_A less_top ac_simps intro!: emeasure_mono)
+      finally have "?\<mu> ((?B n \<inter> U) - B) < ?e n" . }
+    ultimately show "\<exists>U. open U \<and> ?B n \<inter> B \<subseteq> U \<and> ?\<mu> (U - B) < ?e n"
+      by (intro exI[of _ "?B n \<inter> U"]) auto
+  qed
+  then obtain U
+    where U: "\<And>n. open (U n)" "\<And>n. ?B n \<inter> B \<subseteq> U n" "\<And>n. ?\<mu> (U n - B) < ?e n"
+    by metis
+  then show ?thesis
+  proof (intro exI conjI)
+    { fix x assume "x \<in> B"
+      moreover
+      have "\<exists>n. norm x < real n"
+        by (simp add: reals_Archimedean2)
+      then guess n ..
+      ultimately have "x \<in> (\<Union>n. U n)"
+        using U(2)[of n] by auto }
+    note * = this
+    then show "open (\<Union>n. U n)" "B \<subseteq> (\<Union>n. U n)"
+      using U(1,2) by auto
+    have "?\<mu> (\<Union>n. U n) = ?\<mu> (B \<union> (\<Union>n. U n - B))"
+      using * U(2) by (intro arg_cong[where ?f="?\<mu>"]) auto
+    also have "\<dots> = ?\<mu> B + ?\<mu> (\<Union>n. U n - B)"
+      using U(1) by (intro plus_emeasure[symmetric]) auto
+    also have "\<dots> \<le> ?\<mu> B + (\<Sum>n. ?\<mu> (U n - B))"
+      using U(1) by (intro add_mono emeasure_subadditive_countably) auto
+    also have "\<dots> \<le> ?\<mu> B + (\<Sum>n. ennreal (?e n))"
+      using U(3) by (intro add_mono suminf_le) (auto intro: less_imp_le)
+    also have "(\<Sum>n. ennreal (?e n)) = ennreal (e * 1)"
+      using \<open>0<e\<close> by (intro suminf_ennreal_eq sums_mult power_half_series) auto
+    finally show "emeasure lborel (\<Union>n. U n) \<le> emeasure lborel B + ennreal e"
+      by simp
+  qed
+qed
+
+lemma lmeasurable_outer_open:
+  assumes S: "S \<in> lmeasurable" and "0 < e"
+  obtains T where "open T" "S \<subseteq> T" "T \<in> lmeasurable" "measure lebesgue T \<le> measure lebesgue S + e"
+proof -
+  obtain S' where S': "S \<subseteq> S'" "S' \<in> sets borel" "emeasure lborel S' = emeasure lebesgue S"
+    using completion_upper[of S lborel] S by auto
+  then have f_S': "S' \<in> fmeasurable lborel"
+    using S by (auto simp: fmeasurable_def)
+  from outer_regular_lborel[OF this \<open>0<e\<close>] guess U .. note U = this
+  show thesis
+  proof (rule that)
+    show "open U" "S \<subseteq> U" "U \<in> lmeasurable"
+      using f_S' U S' by (auto simp: fmeasurable_def less_top[symmetric] top_unique)
+    then have "U \<in> fmeasurable lborel"
+      by (auto simp: fmeasurable_def)
+    with S U \<open>0<e\<close> show "measure lebesgue U \<le> measure lebesgue S + e"
+      unfolding S'(3) by (simp add: emeasure_eq_measure2 ennreal_plus[symmetric] del: ennreal_plus)
+  qed
+qed
 
 end

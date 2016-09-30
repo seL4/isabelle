@@ -199,6 +199,9 @@ proof (subst emeasure_measure_of[OF completion_def completion_into_space])
   qed
 qed
 
+lemma measure_completion[simp]: "S \<in> sets M \<Longrightarrow> measure (completion M) S = measure M S"
+  unfolding measure_def by auto
+
 lemma emeasure_completion_UN:
   "range S \<subseteq> sets (completion M) \<Longrightarrow>
     emeasure (completion M) (\<Union>i::nat. (S i)) = emeasure M (\<Union>i. main_part M (S i))"

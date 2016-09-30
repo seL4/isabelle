@@ -1,6 +1,5 @@
 theory Analysis
 imports
-  Regularity
   Lebesgue_Integral_Substitution
   Embed_Measure
   Complete_Measure

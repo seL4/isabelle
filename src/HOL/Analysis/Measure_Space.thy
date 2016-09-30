@@ -472,6 +472,10 @@ lemma plus_emeasure:
   "a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a \<inter> b = {} \<Longrightarrow> emeasure M a + emeasure M b = emeasure M (a \<union> b)"
   using additiveD[OF emeasure_additive] ..
 
+lemma emeasure_Union:
+  "A \<in> sets M \<Longrightarrow> B \<in> sets M \<Longrightarrow> emeasure M (A \<union> B) = emeasure M A + emeasure M (B - A)"
+  using plus_emeasure[of A M "B - A"] by auto
+
 lemma setsum_emeasure:
   "F`I \<subseteq> sets M \<Longrightarrow> disjoint_family_on F I \<Longrightarrow> finite I \<Longrightarrow>
     (\<Sum>i\<in>I. emeasure M (F i)) = emeasure M (\<Union>i\<in>I. F i)"
@@ -1748,6 +1752,42 @@ qed simp
 lemma measure_Union_le:
   "finite F \<Longrightarrow> (\<And>S. S \<in> F \<Longrightarrow> S \<in> sets M) \<Longrightarrow> measure M (\<Union>F) \<le> (\<Sum>S\<in>F. measure M S)"
   using measure_UNION_le[of F "\<lambda>x. x" M] by simp
+
+lemma
+  assumes "countable I" and I: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> fmeasurable M"
+    and bound: "\<And>I'. I' \<subseteq> I \<Longrightarrow> finite I' \<Longrightarrow> measure M (\<Union>i\<in>I'. A i) \<le> B" and "0 \<le> B"
+  shows fmeasurable_UN_bound: "(\<Union>i\<in>I. A i) \<in> fmeasurable M" (is ?fm)
+    and measure_UN_bound: "measure M (\<Union>i\<in>I. A i) \<le> B" (is ?m)
+proof -
+  have "?fm \<and> ?m"
+  proof cases
+    assume "I = {}" with \<open>0 \<le> B\<close> show ?thesis by simp
+  next
+    assume "I \<noteq> {}"
+    have "(\<Union>i\<in>I. A i) = (\<Union>i. (\<Union>n\<le>i. A (from_nat_into I n)))"
+      by (subst range_from_nat_into[symmetric, OF \<open>I \<noteq> {}\<close> \<open>countable I\<close>]) auto
+    then have "emeasure M (\<Union>i\<in>I. A i) = emeasure M (\<Union>i. (\<Union>n\<le>i. A (from_nat_into I n)))" by simp
+    also have "\<dots> = (SUP i. emeasure M (\<Union>n\<le>i. A (from_nat_into I n)))"
+      using I \<open>I \<noteq> {}\<close>[THEN from_nat_into] by (intro SUP_emeasure_incseq[symmetric]) (fastforce simp: incseq_Suc_iff)+
+    also have "\<dots> \<le> B"
+    proof (intro SUP_least)
+      fix i :: nat
+      have "emeasure M (\<Union>n\<le>i. A (from_nat_into I n)) = measure M (\<Union>n\<le>i. A (from_nat_into I n))"
+        using I \<open>I \<noteq> {}\<close>[THEN from_nat_into] by (intro emeasure_eq_measure2 fmeasurable.finite_UN) auto
+      also have "\<dots> = measure M (\<Union>n\<in>from_nat_into I ` {..i}. A n)"
+        by simp
+      also have "\<dots> \<le> B"
+        by (intro ennreal_leI bound) (auto intro:  from_nat_into[OF \<open>I \<noteq> {}\<close>])
+      finally show "emeasure M (\<Union>n\<le>i. A (from_nat_into I n)) \<le> ennreal B" .
+    qed
+    finally have *: "emeasure M (\<Union>i\<in>I. A i) \<le> B" .
+    then have ?fm
+      using I \<open>countable I\<close> by (intro fmeasurableI conjI) (auto simp: less_top[symmetric] top_unique)
+    with * \<open>0\<le>B\<close> show ?thesis
+      by (simp add: emeasure_eq_measure2)
+  qed
+  then show ?fm ?m by auto
+qed
 
 subsection \<open>Measure spaces with @{term "emeasure M (space M) < \<infinity>"}\<close>
 

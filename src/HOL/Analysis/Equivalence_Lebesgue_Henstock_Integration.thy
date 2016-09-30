@@ -962,7 +962,7 @@ lemma lmeasure_integral: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue
 lemma
   assumes \<D>: "\<D> division_of S"
   shows lmeasurable_division: "S \<in> lmeasurable" (is ?l)
-    and content_divsion: "(\<Sum>k\<in>\<D>. measure lebesgue k) = measure lebesgue S" (is ?m)
+    and content_division: "(\<Sum>k\<in>\<D>. measure lebesgue k) = measure lebesgue S" (is ?m)
 proof -
   { fix d1 d2 assume *: "d1 \<in> \<D>" "d2 \<in> \<D>" "d1 \<noteq> d2"
     then obtain a b c d where "d1 = cbox a b" "d2 = cbox c d"
@@ -1132,6 +1132,368 @@ lemma negligible_interval:
    by (auto simp: negligible_iff_null_sets null_sets_def setprod_nonneg inner_diff_left box_eq_empty
                   not_le emeasure_lborel_cbox_eq emeasure_lborel_box_eq
             intro: eq_refl antisym less_imp_le)
+
+subsection \<open>Negligibility of a Lipschitz image of a negligible set\<close>
+
+lemma measure_eq_0_null_sets: "S \<in> null_sets M \<Longrightarrow> measure M S = 0"
+  by (auto simp: measure_def null_sets_def)
+
+text\<open>The bound will be eliminated by a sort of onion argument\<close>
+lemma locally_Lipschitz_negl_bounded:
+  fixes f :: "'M::euclidean_space \<Rightarrow> 'N::euclidean_space"
+  assumes MleN: "DIM('M) \<le> DIM('N)" "0 < B" "bounded S" "negligible S"
+      and lips: "\<And>x. x \<in> S
+                      \<Longrightarrow> \<exists>T. open T \<and> x \<in> T \<and>
+                              (\<forall>y \<in> S \<inter> T. norm(f y - f x) \<le> B * norm(y - x))"
+  shows "negligible (f ` S)"
+  unfolding negligible_iff_null_sets
+proof (clarsimp simp: completion.null_sets_outer)
+  fix e::real
+  assume "0 < e"
+  have "S \<in> lmeasurable"
+    using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets fmeasurableI_null_sets)
+  have e22: "0 < e / 2 / (2 * B * real DIM('M)) ^ DIM('N)"
+    using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: divide_simps)
+  obtain T
+    where "open T" "S \<subseteq> T" "T \<in> lmeasurable"
+      and "measure lebesgue T \<le> measure lebesgue S + e / 2 / (2 * B * DIM('M)) ^ DIM('N)"
+    by (rule lmeasurable_outer_open [OF \<open>S \<in> lmeasurable\<close> e22])
+  then have T: "measure lebesgue T \<le> e / 2 / (2 * B * DIM('M)) ^ DIM('N)"
+    using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets measure_eq_0_null_sets)
+  have "\<exists>r. 0 < r \<and> r \<le> 1/2 \<and>
+            (x \<in> S \<longrightarrow> (\<forall>y. norm(y - x) < r
+                       \<longrightarrow> y \<in> T \<and> (y \<in> S \<longrightarrow> norm(f y - f x) \<le> B * norm(y - x))))"
+        for x
+  proof (cases "x \<in> S")
+    case True
+    obtain U where "open U" "x \<in> U" and U: "\<And>y. y \<in> S \<inter> U \<Longrightarrow> norm(f y - f x) \<le> B * norm(y - x)"
+      using lips [OF \<open>x \<in> S\<close>] by auto
+    have "x \<in> T \<inter> U"
+      using \<open>S \<subseteq> T\<close> \<open>x \<in> U\<close> \<open>x \<in> S\<close> by auto
+    then obtain \<epsilon> where "0 < \<epsilon>" "ball x \<epsilon> \<subseteq> T \<inter> U"
+      by (metis \<open>open T\<close> \<open>open U\<close> openE open_Int)
+    then show ?thesis
+      apply (rule_tac x="min (1/2) \<epsilon>" in exI)
+      apply (simp del: divide_const_simps)
+      apply (intro allI impI conjI)
+       apply (metis dist_commute dist_norm mem_ball subsetCE)
+      by (metis Int_iff subsetCE U dist_norm mem_ball norm_minus_commute)
+  next
+    case False
+    then show ?thesis
+      by (rule_tac x="1/4" in exI) auto
+  qed
+  then obtain R where R12: "\<And>x. 0 < R x \<and> R x \<le> 1/2"
+                and RT: "\<And>x y. \<lbrakk>x \<in> S; norm(y - x) < R x\<rbrakk> \<Longrightarrow> y \<in> T"
+                and RB: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S; norm(y - x) < R x\<rbrakk> \<Longrightarrow> norm(f y - f x) \<le> B * norm(y - x)"
+    by metis+
+  then have gaugeR: "gauge (\<lambda>x. ball x (R x))"
+    by (simp add: gauge_def)
+  obtain c where c: "S \<subseteq> cbox (-c *\<^sub>R One) (c *\<^sub>R One)" "box (-c *\<^sub>R One:: 'M) (c *\<^sub>R One) \<noteq> {}"
+  proof -
+    obtain B where B: "\<And>x. x \<in> S \<Longrightarrow> norm x \<le> B"
+      using \<open>bounded S\<close> bounded_iff by blast
+    show ?thesis
+      apply (rule_tac c = "abs B + 1" in that)
+      using norm_bound_Basis_le Basis_le_norm
+       apply (fastforce simp: box_eq_empty mem_box dest!: B intro: order_trans)+
+      done
+  qed
+  obtain \<D> where "countable \<D>"
+     and Dsub: "\<Union>\<D> \<subseteq> cbox (-c *\<^sub>R One) (c *\<^sub>R One)"
+     and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> interior K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
+     and pw:   "pairwise (\<lambda>A B. interior A \<inter> interior B = {}) \<D>"
+     and Ksub: "\<And>K. K \<in> \<D> \<Longrightarrow> \<exists>x \<in> S \<inter> K. K \<subseteq> (\<lambda>x. ball x (R x)) x"
+     and exN:  "\<And>u v. cbox u v \<in> \<D> \<Longrightarrow> \<exists>n. \<forall>i \<in> Basis. v \<bullet> i - u \<bullet> i = (2*c) / 2^n"
+     and "S \<subseteq> \<Union>\<D>"
+    using covering_lemma [OF c gaugeR]  by force
+  have "\<exists>u v z. K = cbox u v \<and> box u v \<noteq> {} \<and> z \<in> S \<and> z \<in> cbox u v \<and>
+                cbox u v \<subseteq> ball z (R z)" if "K \<in> \<D>" for K
+  proof -
+    obtain u v where "K = cbox u v"
+      using \<open>K \<in> \<D>\<close> cbox by blast
+    with that show ?thesis
+      apply (rule_tac x=u in exI)
+      apply (rule_tac x=v in exI)
+      apply (metis Int_iff interior_cbox cbox Ksub)
+      done
+  qed
+  then obtain uf vf zf
+    where uvz: "\<And>K. K \<in> \<D> \<Longrightarrow>
+                K = cbox (uf K) (vf K) \<and> box (uf K) (vf K) \<noteq> {} \<and> zf K \<in> S \<and>
+                zf K \<in> cbox (uf K) (vf K) \<and> cbox (uf K) (vf K) \<subseteq> ball (zf K) (R (zf K))"
+    by metis
+  define prj1 where "prj1 \<equiv> \<lambda>x::'M. x \<bullet> (SOME i. i \<in> Basis)"
+  define fbx where "fbx \<equiv> \<lambda>D. cbox (f(zf D) - (B * DIM('M) * (prj1(vf D - uf D))) *\<^sub>R One::'N)
+                                    (f(zf D) + (B * DIM('M) * prj1(vf D - uf D)) *\<^sub>R One)"
+  have vu_pos: "0 < prj1 (vf X - uf X)" if "X \<in> \<D>" for X
+    using uvz [OF that] by (simp add: prj1_def box_ne_empty SOME_Basis inner_diff_left)
+  have prj1_idem: "prj1 (vf X - uf X) = (vf X - uf X) \<bullet> i" if  "X \<in> \<D>" "i \<in> Basis" for X i
+  proof -
+    have "cbox (uf X) (vf X) \<in> \<D>"
+      using uvz \<open>X \<in> \<D>\<close> by auto
+    with exN obtain n where "\<And>i. i \<in> Basis \<Longrightarrow> vf X \<bullet> i - uf X \<bullet> i = (2*c) / 2^n"
+      by blast
+    then show ?thesis
+      by (simp add: \<open>i \<in> Basis\<close> SOME_Basis inner_diff prj1_def)
+  qed
+  have countbl: "countable (fbx ` \<D>)"
+    using \<open>countable \<D>\<close> by blast
+  have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> e / 2" if "\<D>' \<subseteq> \<D>" "finite \<D>'" for \<D>'
+  proof -
+    have BM_ge0: "0 \<le> B * (DIM('M) * prj1 (vf X - uf X))" if "X \<in> \<D>'" for X
+      using \<open>0 < B\<close> \<open>\<D>' \<subseteq> \<D>\<close> that vu_pos by fastforce
+    have "{} \<notin> \<D>'"
+      using cbox \<open>\<D>' \<subseteq> \<D>\<close> interior_empty by blast
+    have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> setsum (measure lebesgue o fbx) \<D>'"
+      by (rule setsum_image_le [OF \<open>finite \<D>'\<close>]) (force simp: fbx_def)
+    also have "\<dots> \<le> (\<Sum>X\<in>\<D>'. (2 * B * DIM('M)) ^ DIM('N) * measure lebesgue X)"
+    proof (rule setsum_mono)
+      fix X assume "X \<in> \<D>'"
+      then have "X \<in> \<D>" using \<open>\<D>' \<subseteq> \<D>\<close> by blast
+      then have ufvf: "cbox (uf X) (vf X) = X"
+        using uvz by blast
+      have "prj1 (vf X - uf X) ^ DIM('M) = (\<Prod>i::'M \<in> Basis. prj1 (vf X - uf X))"
+        by (rule setprod_constant [symmetric])
+      also have "\<dots> = (\<Prod>i\<in>Basis. vf X \<bullet> i - uf X \<bullet> i)"
+        using prj1_idem [OF \<open>X \<in> \<D>\<close>] by (auto simp: algebra_simps intro: setprod.cong)
+      finally have prj1_eq: "prj1 (vf X - uf X) ^ DIM('M) = (\<Prod>i\<in>Basis. vf X \<bullet> i - uf X \<bullet> i)" .
+      have "uf X \<in> cbox (uf X) (vf X)" "vf X \<in> cbox (uf X) (vf X)"
+        using uvz [OF \<open>X \<in> \<D>\<close>] by (force simp: mem_box)+
+      moreover have "cbox (uf X) (vf X) \<subseteq> ball (zf X) (1/2)"
+        by (meson R12 order_trans subset_ball uvz [OF \<open>X \<in> \<D>\<close>])
+      ultimately have "uf X \<in> ball (zf X) (1/2)"  "vf X \<in> ball (zf X) (1/2)"
+        by auto
+      then have "dist (vf X) (uf X) \<le> 1"
+        unfolding mem_ball
+        by (metis dist_commute dist_triangle_half_l dual_order.order_iff_strict)
+      then have 1: "prj1 (vf X - uf X) \<le> 1"
+        unfolding prj1_def dist_norm using Basis_le_norm SOME_Basis order_trans by fastforce
+      have 0: "0 \<le> prj1 (vf X - uf X)"
+        using \<open>X \<in> \<D>\<close> prj1_def vu_pos by fastforce
+      have "(measure lebesgue \<circ> fbx) X \<le> (2 * B * DIM('M)) ^ DIM('N) * content (cbox (uf X) (vf X))"
+        apply (simp add: fbx_def content_cbox_cases algebra_simps BM_ge0 \<open>X \<in> \<D>'\<close> setprod_constant)
+        apply (simp add: power_mult_distrib \<open>0 < B\<close> prj1_eq [symmetric])
+        using MleN 0 1 uvz \<open>X \<in> \<D>\<close>
+        apply (fastforce simp add: box_ne_empty power_decreasing)
+        done
+      also have "\<dots> = (2 * B * DIM('M)) ^ DIM('N) * measure lebesgue X"
+        by (subst (3) ufvf[symmetric]) simp
+      finally show "(measure lebesgue \<circ> fbx) X \<le> (2 * B * DIM('M)) ^ DIM('N) * measure lebesgue X" .
+    qed
+    also have "\<dots> = (2 * B * DIM('M)) ^ DIM('N) * setsum (measure lebesgue) \<D>'"
+      by (simp add: setsum_distrib_left)
+    also have "\<dots> \<le> e / 2"
+    proof -
+      have div: "\<D>' division_of \<Union>\<D>'"
+        apply (auto simp: \<open>finite \<D>'\<close> \<open>{} \<notin> \<D>'\<close> division_of_def)
+        using cbox that apply blast
+        using pairwise_subset [OF pw \<open>\<D>' \<subseteq> \<D>\<close>] unfolding pairwise_def apply force+
+        done
+      have le_meaT: "measure lebesgue (\<Union>\<D>') \<le> measure lebesgue T"
+      proof (rule measure_mono_fmeasurable [OF _ _ \<open>T : lmeasurable\<close>])
+        show "(\<Union>\<D>') \<in> sets lebesgue"
+          using div lmeasurable_division by auto
+        have "\<Union>\<D>' \<subseteq> \<Union>\<D>"
+          using \<open>\<D>' \<subseteq> \<D>\<close> by blast
+        also have "... \<subseteq> T"
+        proof (clarify)
+          fix x D
+          assume "x \<in> D" "D \<in> \<D>"
+          show "x \<in> T"
+            using Ksub [OF \<open>D \<in> \<D>\<close>]
+            by (metis \<open>x \<in> D\<close> Int_iff dist_norm mem_ball norm_minus_commute subsetD RT)
+        qed
+        finally show "\<Union>\<D>' \<subseteq> T" .
+      qed
+      have "setsum (measure lebesgue) \<D>' = setsum content \<D>'"
+        using  \<open>\<D>' \<subseteq> \<D>\<close> cbox by (force intro: setsum.cong)
+      then have "(2 * B * DIM('M)) ^ DIM('N) * setsum (measure lebesgue) \<D>' =
+                 (2 * B * real DIM('M)) ^ DIM('N) * measure lebesgue (\<Union>\<D>')"
+        using content_division [OF div] by auto
+      also have "\<dots> \<le> (2 * B * real DIM('M)) ^ DIM('N) * measure lebesgue T"
+        apply (rule mult_left_mono [OF le_meaT])
+        using \<open>0 < B\<close>
+        apply (simp add: algebra_simps)
+        done
+      also have "\<dots> \<le> e / 2"
+        using T \<open>0 < B\<close> by (simp add: field_simps)
+      finally show ?thesis .
+    qed
+    finally show ?thesis .
+  qed
+  then have e2: "setsum (measure lebesgue) \<G> \<le> e / 2" if "\<G> \<subseteq> fbx ` \<D>" "finite \<G>" for \<G>
+    by (metis finite_subset_image that)
+  show "\<exists>W\<in>lmeasurable. f ` S \<subseteq> W \<and> measure lebesgue W < e"
+  proof (intro bexI conjI)
+    have "\<exists>X\<in>\<D>. f y \<in> fbx X" if "y \<in> S" for y
+    proof -
+      obtain X where "y \<in> X" "X \<in> \<D>"
+        using \<open>S \<subseteq> \<Union>\<D>\<close> \<open>y \<in> S\<close> by auto
+      then have y: "y \<in> ball(zf X) (R(zf X))"
+        using uvz by fastforce
+      have conj_le_eq: "z - b \<le> y \<and> y \<le> z + b \<longleftrightarrow> abs(y - z) \<le> b" for z y b::real
+        by auto
+      have yin: "y \<in> cbox (uf X) (vf X)" and zin: "(zf X) \<in> cbox (uf X) (vf X)"
+        using uvz \<open>X \<in> \<D>\<close> \<open>y \<in> X\<close> by auto
+      have "norm (y - zf X) \<le> (\<Sum>i\<in>Basis. \<bar>(y - zf X) \<bullet> i\<bar>)"
+        by (rule norm_le_l1)
+      also have "\<dots> \<le> real DIM('M) * prj1 (vf X - uf X)"
+      proof (rule setsum_bounded_above)
+        fix j::'M assume j: "j \<in> Basis"
+        show "\<bar>(y - zf X) \<bullet> j\<bar> \<le> prj1 (vf X - uf X)"
+          using yin zin j
+          by (fastforce simp add: mem_box prj1_idem [OF \<open>X \<in> \<D>\<close> j] inner_diff_left)
+      qed
+      finally have nole: "norm (y - zf X) \<le> DIM('M) * prj1 (vf X - uf X)"
+        by simp
+      have fle: "\<bar>f y \<bullet> i - f(zf X) \<bullet> i\<bar> \<le> B * DIM('M) * prj1 (vf X - uf X)" if "i \<in> Basis" for i
+      proof -
+        have "\<bar>f y \<bullet> i - f (zf X) \<bullet> i\<bar> = \<bar>(f y - f (zf X)) \<bullet> i\<bar>"
+          by (simp add: algebra_simps)
+        also have "\<dots> \<le> norm (f y - f (zf X))"
+          by (simp add: Basis_le_norm that)
+        also have "\<dots> \<le> B * norm(y - zf X)"
+          by (metis uvz RB \<open>X \<in> \<D>\<close> dist_commute dist_norm mem_ball \<open>y \<in> S\<close> y)
+        also have "\<dots> \<le> B * real DIM('M) * prj1 (vf X - uf X)"
+          using \<open>0 < B\<close> by (simp add: nole)
+        finally show ?thesis .
+      qed
+      show ?thesis
+        by (rule_tac x=X in bexI)
+           (auto simp: fbx_def prj1_idem mem_box conj_le_eq inner_add inner_diff fle \<open>X \<in> \<D>\<close>)
+    qed
+    then show "f ` S \<subseteq> (\<Union>D\<in>\<D>. fbx D)" by auto
+  next
+    have 1: "\<And>D. D \<in> \<D> \<Longrightarrow> fbx D \<in> lmeasurable"
+      by (auto simp: fbx_def)
+    have 2: "I' \<subseteq> \<D> \<Longrightarrow> finite I' \<Longrightarrow> measure lebesgue (\<Union>D\<in>I'. fbx D) \<le> e/2" for I'
+      by (rule order_trans[OF measure_Union_le e2]) (auto simp: fbx_def)
+    have 3: "0 \<le> e/2"
+      using \<open>0<e\<close> by auto
+    show "(\<Union>D\<in>\<D>. fbx D) \<in> lmeasurable"
+      by (intro fmeasurable_UN_bound[OF \<open>countable \<D>\<close> 1 2 3])
+    have "measure lebesgue (\<Union>D\<in>\<D>. fbx D) \<le> e/2"
+      by (intro measure_UN_bound[OF \<open>countable \<D>\<close> 1 2 3])
+    then show "measure lebesgue (\<Union>D\<in>\<D>. fbx D) < e"
+      using \<open>0 < e\<close> by linarith
+  qed
+qed
+
+proposition negligible_locally_Lipschitz_image:
+  fixes f :: "'M::euclidean_space \<Rightarrow> 'N::euclidean_space"
+  assumes MleN: "DIM('M) \<le> DIM('N)" "negligible S"
+      and lips: "\<And>x. x \<in> S
+                      \<Longrightarrow> \<exists>T B. open T \<and> x \<in> T \<and>
+                              (\<forall>y \<in> S \<inter> T. norm(f y - f x) \<le> B * norm(y - x))"
+    shows "negligible (f ` S)"
+proof -
+  let ?S = "\<lambda>n. ({x \<in> S. norm x \<le> n \<and>
+                          (\<exists>T. open T \<and> x \<in> T \<and>
+                               (\<forall>y\<in>S \<inter> T. norm (f y - f x) \<le> (real n + 1) * norm (y - x)))})"
+  have negfn: "f ` ?S n \<in> null_sets lebesgue" for n::nat
+    unfolding negligible_iff_null_sets[symmetric]
+    apply (rule_tac B = "real n + 1" in locally_Lipschitz_negl_bounded)
+    by (auto simp: MleN bounded_iff intro: negligible_subset [OF \<open>negligible S\<close>])
+  have "S = (\<Union>n. ?S n)"
+  proof (intro set_eqI iffI)
+    fix x assume "x \<in> S"
+    with lips obtain T B where T: "open T" "x \<in> T"
+                           and B: "\<And>y. y \<in> S \<inter> T \<Longrightarrow> norm(f y - f x) \<le> B * norm(y - x)"
+      by metis+
+    have no: "norm (f y - f x) \<le> (nat \<lceil>max B (norm x)\<rceil> + 1) * norm (y - x)" if "y \<in> S \<inter> T" for y
+    proof -
+      have "B * norm(y - x) \<le> (nat \<lceil>max B (norm x)\<rceil> + 1) * norm (y - x)"
+        by (meson max.cobounded1 mult_right_mono nat_ceiling_le_eq nat_le_iff_add norm_ge_zero order_trans)
+      then show ?thesis
+        using B order_trans that by blast
+    qed
+    have "x \<in> ?S (nat (ceiling (max B (norm x))))"
+      apply (simp add: \<open>x \<in> S \<close>, rule)
+      using real_nat_ceiling_ge max.bounded_iff apply blast
+      using T no
+      apply (force simp: algebra_simps)
+      done
+    then show "x \<in> (\<Union>n. ?S n)" by force
+  qed auto
+  then show ?thesis
+    by (rule ssubst) (auto simp: image_Union negligible_iff_null_sets intro: negfn)
+qed
+
+corollary negligible_differentiable_image_negligible:
+  fixes f :: "'M::euclidean_space \<Rightarrow> 'N::euclidean_space"
+  assumes MleN: "DIM('M) \<le> DIM('N)" "negligible S"
+      and diff_f: "f differentiable_on S"
+    shows "negligible (f ` S)"
+proof -
+  have "\<exists>T B. open T \<and> x \<in> T \<and> (\<forall>y \<in> S \<inter> T. norm(f y - f x) \<le> B * norm(y - x))"
+        if "x \<in> S" for x
+  proof -
+    obtain f' where "linear f'"
+      and f': "\<And>e. e>0 \<Longrightarrow>
+                  \<exists>d>0. \<forall>y\<in>S. norm (y - x) < d \<longrightarrow>
+                              norm (f y - f x - f' (y - x)) \<le> e * norm (y - x)"
+      using diff_f \<open>x \<in> S\<close>
+      by (auto simp: linear_linear differentiable_on_def differentiable_def has_derivative_within_alt)
+    obtain B where "B > 0" and B: "\<forall>x. norm (f' x) \<le> B * norm x"
+      using linear_bounded_pos \<open>linear f'\<close> by blast
+    obtain d where "d>0"
+              and d: "\<And>y. \<lbrakk>y \<in> S; norm (y - x) < d\<rbrakk> \<Longrightarrow>
+                          norm (f y - f x - f' (y - x)) \<le> norm (y - x)"
+      using f' [of 1] by (force simp:)
+    have *: "norm (f y - f x) \<le> (B + 1) * norm (y - x)"
+              if "y \<in> S" "norm (y - x) < d" for y
+    proof -
+      have "norm (f y - f x) -B *  norm (y - x) \<le> norm (f y - f x) - norm (f' (y - x))"
+        by (simp add: B)
+      also have "\<dots> \<le> norm (f y - f x - f' (y - x))"
+        by (rule norm_triangle_ineq2)
+      also have "... \<le> norm (y - x)"
+        by (rule d [OF that])
+      finally show ?thesis
+        by (simp add: algebra_simps)
+    qed
+    show ?thesis
+      apply (rule_tac x="ball x d" in exI)
+      apply (rule_tac x="B+1" in exI)
+      using \<open>d>0\<close>
+      apply (auto simp: dist_norm norm_minus_commute intro!: *)
+      done
+  qed
+  with negligible_locally_Lipschitz_image assms show ?thesis by metis
+qed
+
+corollary negligible_differentiable_image_lowdim:
+  fixes f :: "'M::euclidean_space \<Rightarrow> 'N::euclidean_space"
+  assumes MlessN: "DIM('M) < DIM('N)" and diff_f: "f differentiable_on S"
+    shows "negligible (f ` S)"
+proof -
+  have "x \<le> DIM('M) \<Longrightarrow> x \<le> DIM('N)" for x
+    using MlessN by linarith
+  obtain lift :: "'M * real \<Rightarrow> 'N" and drop :: "'N \<Rightarrow> 'M * real" and j :: 'N
+    where "linear lift" "linear drop" and dropl [simp]: "\<And>z. drop (lift z) = z"
+      and "j \<in> Basis" and j: "\<And>x. lift(x,0) \<bullet> j = 0"
+    using lowerdim_embeddings [OF MlessN] by metis
+  have "negligible {x. x\<bullet>j = 0}"
+    by (metis \<open>j \<in> Basis\<close> negligible_standard_hyperplane)
+  then have neg0S: "negligible ((\<lambda>x. lift (x, 0)) ` S)"
+    apply (rule negligible_subset)
+    by (simp add: image_subsetI j)
+  have diff_f': "f \<circ> fst \<circ> drop differentiable_on (\<lambda>x. lift (x, 0)) ` S"
+    using diff_f
+    apply (clarsimp simp add: differentiable_on_def)
+    apply (intro differentiable_chain_within linear_imp_differentiable [OF \<open>linear drop\<close>]
+             linear_imp_differentiable [OF fst_linear])
+    apply (force simp: image_comp o_def)
+    done
+  have "f = (f o fst o drop o (\<lambda>x. lift (x, 0)))"
+    by (simp add: o_def)
+  then show ?thesis
+    apply (rule ssubst)
+    apply (subst image_comp [symmetric])
+    apply (metis negligible_differentiable_image_negligible order_refl diff_f' neg0S)
+    done
+qed
 
 lemma set_integral_norm_bound:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"

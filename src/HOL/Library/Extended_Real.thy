@@ -2106,6 +2106,50 @@ lemma SUP_ereal_add:
   apply (rule SUP_combine[symmetric] ereal_add_mono inc[THEN monoD] | assumption)+
   done
 
+lemma INF_eq_minf: "(INF i:I. f i::ereal) \<noteq> -\<infinity> \<longleftrightarrow> (\<exists>b>-\<infinity>. \<forall>i\<in>I. b \<le> f i)"
+  unfolding bot_ereal_def[symmetric] INF_eq_bot_iff by (auto simp: not_less)
+
+lemma INF_ereal_add_left:
+  assumes "I \<noteq> {}" "c \<noteq> -\<infinity>" "\<And>x. x \<in> I \<Longrightarrow> 0 \<le> f x"
+  shows "(INF i:I. f i + c :: ereal) = (INF i:I. f i) + c"
+proof -
+  have "(INF i:I. f i) \<noteq> -\<infinity>"
+    unfolding INF_eq_minf using assms by (intro exI[of _ 0]) auto
+  then show ?thesis
+    by (subst continuous_at_Inf_mono[where f="\<lambda>x. x + c"])
+       (auto simp: mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close> continuous_at_imp_continuous_at_within continuous_at)
+qed
+
+lemma INF_ereal_add_right:
+  assumes "I \<noteq> {}" "c \<noteq> -\<infinity>" "\<And>x. x \<in> I \<Longrightarrow> 0 \<le> f x"
+  shows "(INF i:I. c + f i :: ereal) = c + (INF i:I. f i)"
+  using INF_ereal_add_left[OF assms] by (simp add: ac_simps)
+
+lemma INF_ereal_add_directed:
+  fixes f g :: "'a \<Rightarrow> ereal"
+  assumes nonneg: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> g i"
+  assumes directed: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. f i + g j \<ge> f k + g k"
+  shows "(INF i:I. f i + g i) = (INF i:I. f i) + (INF i:I. g i)"
+proof cases
+  assume "I = {}" then show ?thesis
+    by (simp add: top_ereal_def)
+next
+  assume "I \<noteq> {}"
+  show ?thesis
+  proof (rule antisym)
+    show "(INF i:I. f i) + (INF i:I. g i) \<le> (INF i:I. f i + g i)"
+      by (rule INF_greatest; intro ereal_add_mono INF_lower)
+  next
+    have "(INF i:I. f i + g i) \<le> (INF i:I. (INF j:I. f i + g j))"
+      using directed by (intro INF_greatest) (blast intro: INF_lower2)
+    also have "\<dots> = (INF i:I. f i + (INF i:I. g i))"
+      using nonneg by (intro INF_cong refl INF_ereal_add_right \<open>I \<noteq> {}\<close>) (auto simp: INF_eq_minf intro!: exI[of _ 0])
+    also have "\<dots> = (INF i:I. f i) + (INF i:I. g i)"
+      using nonneg by (intro INF_ereal_add_left \<open>I \<noteq> {}\<close>) (auto simp: INF_eq_minf intro!: exI[of _ 0])
+    finally show "(INF i:I. f i + g i) \<le> (INF i:I. f i) + (INF i:I. g i)" .
+  qed
+qed
+
 lemma INF_ereal_add:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "decseq f" "decseq g"
