@@ -5,7 +5,7 @@
 section \<open>Pointwise order on product types\<close>
 
 theory Product_Order
-imports Product_plus
+imports Product_Plus
 begin
 
 subsection \<open>Pointwise ordering\<close>

@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Product_plus.thy
+(*  Title:      HOL/Library/Product_Plus.thy
     Author:     Brian Huffman
 *)
 
 section \<open>Additive group operations on product types\<close>
 
-theory Product_plus
+theory Product_Plus
 imports Main
 begin
 

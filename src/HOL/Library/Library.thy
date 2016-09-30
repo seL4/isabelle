@@ -61,7 +61,7 @@ imports
   Polynomial
   Polynomial_FPS
   Preorder
-  Product_plus
+  Product_Plus
   Quadratic_Discriminant
   Quotient_List
   Quotient_Option
