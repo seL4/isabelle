@@ -11,7 +11,6 @@ section \<open>Convex sets, functions and related things\<close>
 theory Convex_Euclidean_Space
 imports
   Topology_Euclidean_Space
-  "~~/src/HOL/Library/Product_Vector"
   "~~/src/HOL/Library/Set_Algebras"
 begin
 

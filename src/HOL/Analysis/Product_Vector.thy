@@ -1,11 +1,13 @@
-(*  Title:      HOL/Library/Product_Vector.thy
+(*  Title:      HOL/Analysis/Product_Vector.thy
     Author:     Brian Huffman
 *)
 
 section \<open>Cartesian Products as Vector Spaces\<close>
 
 theory Product_Vector
-imports Inner_Product Product_plus
+imports
+  Inner_Product
+  "~~/src/HOL/Library/Product_plus"
 begin
 
 subsection \<open>Product is a real vector space\<close>

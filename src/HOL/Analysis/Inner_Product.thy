@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Inner_Product.thy
+(*  Title:      HOL/Analysis/Inner_Product.thy
     Author:     Brian Huffman
 *)
 

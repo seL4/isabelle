@@ -7,9 +7,7 @@ section \<open>Finite-Dimensional Inner Product Spaces\<close>
 
 theory Euclidean_Space
 imports
-  L2_Norm
-  "~~/src/HOL/Library/Inner_Product"
-  "~~/src/HOL/Library/Product_Vector"
+  L2_Norm Product_Vector
 begin
 
 subsection \<open>Type class of Euclidean spaces\<close>

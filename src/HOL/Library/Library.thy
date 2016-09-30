@@ -37,7 +37,6 @@ imports
   Groups_Big_Fun
   Indicator_Function
   Infinite_Set
-  Inner_Product
   IArray
   Lattice_Algebras
   Lattice_Syntax
@@ -62,7 +61,7 @@ imports
   Polynomial
   Polynomial_FPS
   Preorder
-  Product_Vector
+  Product_plus
   Quadratic_Discriminant
   Quotient_List
   Quotient_Option
