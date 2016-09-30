@@ -1936,7 +1936,7 @@ proof -
     by simp
   also from assms
     have "\<dots> = (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. ennreal (sum_list (map snd [z\<leftarrow>xs . fst z = x])))"
-    by (subst nn_integral_measure_pmf_finite) (simp_all add: finite_set_pmf_of_list pmf_pmf_of_list)
+    by (subst nn_integral_measure_pmf_finite) (simp_all add: finite_set_pmf_of_list pmf_pmf_of_list Int_def)
   also from assms
     have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. sum_list (map snd [z\<leftarrow>xs . fst z = x]))"
     by (subst setsum_ennreal) (auto simp: pmf_of_list_wf_def intro!: sum_list_nonneg)
