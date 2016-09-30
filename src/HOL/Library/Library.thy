@@ -10,7 +10,6 @@ imports
   Bourbaki_Witt_Fixpoint
   Char_ord
   Code_Test
-  Continuum_Not_Denumerable
   Combine_PER
   Complete_Partial_Order2
   Countable

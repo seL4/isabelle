@@ -5,7 +5,7 @@
 section \<open>Continuous paths and path-connected sets\<close>
 
 theory Path_Connected
-imports Continuous_Extension "~~/src/HOL/Library/Continuum_Not_Denumerable"
+imports Continuous_Extension Continuum_Not_Denumerable
 begin
 
 subsection \<open>Paths and Arcs\<close>

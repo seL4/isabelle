@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Continuum_Not_Denumerable.thy
+(*  Title:      HOL/Analysis/Continuum_Not_Denumerable.thy
     Author:     Benjamin Porter, Monash University, NICTA, 2005
     Author:     Johannes Hölzl, TU München
 *)
@@ -6,7 +6,9 @@
 section \<open>Non-denumerability of the Continuum.\<close>
 
 theory Continuum_Not_Denumerable
-imports Complex_Main Countable_Set
+imports
+  Complex_Main 
+  "~~/src/HOL/Library/Countable_Set"
 begin
 
 subsection \<open>Abstract\<close>
