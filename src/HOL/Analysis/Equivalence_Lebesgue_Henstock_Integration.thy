@@ -22,12 +22,6 @@ proof safe
     by simp
 qed
 
-abbreviation lebesgue :: "'a::euclidean_space measure"
-  where "lebesgue \<equiv> completion lborel"
-
-abbreviation lebesgue_on :: "'a set \<Rightarrow> 'a::euclidean_space measure"
-  where "lebesgue_on \<Omega> \<equiv> restrict_space (completion lborel) \<Omega>"
-
 lemma has_integral_implies_lebesgue_measurable_cbox:
   fixes f :: "'a :: euclidean_space \<Rightarrow> real"
   assumes f: "(f has_integral I) (cbox x y)"
@@ -779,19 +773,6 @@ lemma integral_lborel: "integrable lborel f \<Longrightarrow> integral UNIV f = 
 
 end
 
-lemma measurable_completion: "f \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> f \<in> completion M \<rightarrow>\<^sub>M N"
-  by (auto simp: measurable_def)
-
-lemma integrable_completion:
-  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> integrable (completion M) f \<longleftrightarrow> integrable M f"
-  by (rule integrable_subalgebra[symmetric]) auto
-
-lemma integral_completion:
-  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  assumes f: "f \<in> M \<rightarrow>\<^sub>M borel" shows "integral\<^sup>L (completion M) f = integral\<^sup>L M f"
-  by (rule integral_subalgebra[symmetric]) (auto intro: f)
-
 context
 begin
 
@@ -917,6 +898,11 @@ lemma set_lebesgue_integral_eq_integral:
   shows "f integrable_on S" "LINT x:S | lebesgue. f x = integral S f"
   using has_integral_set_lebesgue[OF f] by (auto simp: integral_unique integrable_on_def)
 
+lemma lmeasurable_iff_has_integral:
+  "S \<in> lmeasurable \<longleftrightarrow> ((indicator S) has_integral measure lebesgue S) UNIV"
+  by (subst has_integral_iff_nn_integral_lebesgue)
+     (auto simp: ennreal_indicator emeasure_eq_measure2 borel_measurable_indicator_iff intro!: fmeasurableI)
+
 abbreviation
   absolutely_integrable_on :: "('a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool"
   (infixr "absolutely'_integrable'_on" 46)
@@ -948,10 +934,204 @@ next
   qed
 qed
 
+lemma absolutely_integrable_on_iff_nonneg:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
+  assumes "\<And>x. 0 \<le> f x" shows "f absolutely_integrable_on s \<longleftrightarrow> f integrable_on s"
+proof -
+  from assms have "(\<lambda>x. \<bar>f x\<bar>) = f"
+    by (intro ext) auto
+  then show ?thesis
+    unfolding absolutely_integrable_on_def by simp
+qed
+
 lemma absolutely_integrable_onI:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f integrable_on s \<Longrightarrow> (\<lambda>x. norm (f x)) integrable_on s \<Longrightarrow> f absolutely_integrable_on s"
   unfolding absolutely_integrable_on_def by auto
+
+lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
+  by (subst absolutely_integrable_on_iff_nonneg[symmetric])
+     (simp_all add: lmeasurable_iff_integrable)
+
+lemma lmeasure_integral_UNIV: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral UNIV (indicator S)"
+  by (simp add: lmeasurable_iff_has_integral integral_unique)
+
+lemma lmeasure_integral: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral S (\<lambda>x. 1::real)"
+  by (auto simp add: lmeasure_integral_UNIV indicator_def[abs_def] lmeasurable_iff_integrable_on)
+
+lemma
+  assumes \<D>: "\<D> division_of S"
+  shows lmeasurable_division: "S \<in> lmeasurable" (is ?l)
+    and content_divsion: "(\<Sum>k\<in>\<D>. measure lebesgue k) = measure lebesgue S" (is ?m)
+proof -
+  { fix d1 d2 assume *: "d1 \<in> \<D>" "d2 \<in> \<D>" "d1 \<noteq> d2"
+    then obtain a b c d where "d1 = cbox a b" "d2 = cbox c d"
+      using division_ofD(4)[OF \<D>] by blast
+    with division_ofD(5)[OF \<D> *]
+    have "d1 \<in> sets lborel" "d2 \<in> sets lborel" "d1 \<inter> d2 \<subseteq> (cbox a b - box a b) \<union> (cbox c d - box c d)"
+      by auto
+    moreover have "(cbox a b - box a b) \<union> (cbox c d - box c d) \<in> null_sets lborel"
+      by (intro null_sets.Un null_sets_cbox_Diff_box)
+    ultimately have "d1 \<inter> d2 \<in> null_sets lborel"
+      by (blast intro: null_sets_subset) }
+  then show ?l ?m
+    unfolding division_ofD(6)[OF \<D>, symmetric]
+    using division_ofD(1,4)[OF \<D>]
+    by (auto intro!: measure_Union_AE[symmetric] simp: completion.AE_iff_null_sets Int_def[symmetric] pairwise_def null_sets_def)
+qed
+
+text \<open>This should be an abbreviation for negligible.\<close>
+lemma negligible_iff_null_sets: "negligible S \<longleftrightarrow> S \<in> null_sets lebesgue"
+proof
+  assume "negligible S"
+  then have "(indicator S has_integral (0::real)) UNIV"
+    by (auto simp: negligible)
+  then show "S \<in> null_sets lebesgue"
+    by (subst (asm) has_integral_iff_nn_integral_lebesgue)
+        (auto simp: borel_measurable_indicator_iff nn_integral_0_iff_AE AE_iff_null_sets indicator_eq_0_iff)
+next
+  assume S: "S \<in> null_sets lebesgue"
+  show "negligible S"
+    unfolding negligible_def
+  proof (safe intro!: has_integral_iff_nn_integral_lebesgue[THEN iffD2]
+                      has_integral_restrict_univ[where s="cbox _ _", THEN iffD1])
+    fix a b
+    show "(\<lambda>x. if x \<in> cbox a b then indicator S x else 0) \<in> lebesgue \<rightarrow>\<^sub>M borel"
+      using S by (auto intro!: measurable_If)
+    then show "(\<integral>\<^sup>+ x. ennreal (if x \<in> cbox a b then indicator S x else 0) \<partial>lebesgue) = ennreal 0"
+      using S[THEN AE_not_in] by (auto intro!: nn_integral_0_iff_AE[THEN iffD2])
+  qed auto
+qed
+
+lemma starlike_negligible:
+  assumes "closed S"
+      and eq1: "\<And>c x. \<lbrakk>(a + c *\<^sub>R x) \<in> S; 0 \<le> c; a + x \<in> S\<rbrakk> \<Longrightarrow> c = 1"
+    shows "negligible S"
+proof -
+  have "negligible (op + (-a) ` S)"
+  proof (subst negligible_on_intervals, intro allI)
+    fix u v
+    show "negligible (op + (- a) ` S \<inter> cbox u v)"
+      unfolding negligible_iff_null_sets
+      apply (rule starlike_negligible_compact)
+       apply (simp add: assms closed_translation closed_Int_compact, clarify)
+      by (metis eq1 minus_add_cancel)
+  qed
+  then show ?thesis
+    by (rule negligible_translation_rev)
+qed
+
+lemma starlike_negligible_strong:
+  assumes "closed S"
+      and star: "\<And>c x. \<lbrakk>0 \<le> c; c < 1; a+x \<in> S\<rbrakk> \<Longrightarrow> a + c *\<^sub>R x \<notin> S"
+    shows "negligible S"
+proof -
+  show ?thesis
+  proof (rule starlike_negligible [OF \<open>closed S\<close>, of a])
+    fix c x
+    assume cx: "a + c *\<^sub>R x \<in> S" "0 \<le> c" "a + x \<in> S"
+    with star have "~ (c < 1)" by auto
+    moreover have "~ (c > 1)"
+      using star [of "1/c" "c *\<^sub>R x"] cx by force
+    ultimately show "c = 1" by arith
+  qed
+qed
+
+subsection\<open>Applications\<close>
+
+lemma negligible_hyperplane:
+  assumes "a \<noteq> 0 \<or> b \<noteq> 0" shows "negligible {x. a \<bullet> x = b}"
+proof -
+  obtain x where x: "a \<bullet> x \<noteq> b"
+    using assms
+    apply auto
+     apply (metis inner_eq_zero_iff inner_zero_right)
+    using inner_zero_right by fastforce
+  show ?thesis
+    apply (rule starlike_negligible [OF closed_hyperplane, of x])
+    using x apply (auto simp: algebra_simps)
+    done
+qed
+
+lemma negligible_lowdim:
+  fixes S :: "'N :: euclidean_space set"
+  assumes "dim S < DIM('N)"
+    shows "negligible S"
+proof -
+  obtain a where "a \<noteq> 0" and a: "span S \<subseteq> {x. a \<bullet> x = 0}"
+    using lowdim_subset_hyperplane [OF assms] by blast
+  have "negligible (span S)"
+    using \<open>a \<noteq> 0\<close> a negligible_hyperplane by (blast intro: negligible_subset)
+  then show ?thesis
+    using span_inc by (blast intro: negligible_subset)
+qed
+
+proposition negligible_convex_frontier:
+  fixes S :: "'N :: euclidean_space set"
+  assumes "convex S"
+    shows "negligible(frontier S)"
+proof -
+  have nf: "negligible(frontier S)" if "convex S" "0 \<in> S" for S :: "'N set"
+  proof -
+    obtain B where "B \<subseteq> S" and indB: "independent B"
+               and spanB: "S \<subseteq> span B" and cardB: "card B = dim S"
+      by (metis basis_exists)
+    consider "dim S < DIM('N)" | "dim S = DIM('N)"
+      using dim_subset_UNIV le_eq_less_or_eq by blast
+    then show ?thesis
+    proof cases
+      case 1
+      show ?thesis
+        by (rule negligible_subset [of "closure S"])
+           (simp_all add: Diff_subset frontier_def negligible_lowdim 1)
+    next
+      case 2
+      obtain a where a: "a \<in> interior S"
+        apply (rule interior_simplex_nonempty [OF indB])
+          apply (simp add: indB independent_finite)
+         apply (simp add: cardB 2)
+        apply (metis \<open>B \<subseteq> S\<close> \<open>0 \<in> S\<close> \<open>convex S\<close> insert_absorb insert_subset interior_mono subset_hull)
+        done
+      show ?thesis
+      proof (rule starlike_negligible_strong [where a=a])
+        fix c::real and x
+        have eq: "a + c *\<^sub>R x = (a + x) - (1 - c) *\<^sub>R ((a + x) - a)"
+          by (simp add: algebra_simps)
+        assume "0 \<le> c" "c < 1" "a + x \<in> frontier S"
+        then show "a + c *\<^sub>R x \<notin> frontier S"
+          apply (clarsimp simp: frontier_def)
+          apply (subst eq)
+          apply (rule mem_interior_closure_convex_shrink [OF \<open>convex S\<close> a, of _ "1-c"], auto)
+          done
+      qed auto
+    qed
+  qed
+  show ?thesis
+  proof (cases "S = {}")
+    case True then show ?thesis by auto
+  next
+    case False
+    then obtain a where "a \<in> S" by auto
+    show ?thesis
+      using nf [of "(\<lambda>x. -a + x) ` S"]
+      by (metis \<open>a \<in> S\<close> add.left_inverse assms convex_translation_eq frontier_translation
+                image_eqI negligible_translation_rev)
+  qed
+qed
+
+corollary negligible_sphere: "negligible (sphere a e)"
+  using frontier_cball negligible_convex_frontier convex_cball
+  by (blast intro: negligible_subset)
+
+
+lemma non_negligible_UNIV [simp]: "\<not> negligible UNIV"
+  unfolding negligible_iff_null_sets by (auto simp: null_sets_def emeasure_lborel_UNIV)
+
+lemma negligible_interval:
+  "negligible (cbox a b) \<longleftrightarrow> box a b = {}" "negligible (box a b) \<longleftrightarrow> box a b = {}"
+   by (auto simp: negligible_iff_null_sets null_sets_def setprod_nonneg inner_diff_left box_eq_empty
+                  not_le emeasure_lborel_cbox_eq emeasure_lborel_box_eq
+            intro: eq_refl antisym less_imp_le)
 
 lemma set_integral_norm_bound:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
@@ -1209,8 +1389,8 @@ proof -
       have sum_p': "(\<Sum>(x, k)\<in>p'. norm (integral k f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
         apply (subst setsum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
         unfolding norm_eq_zero
-        apply (rule integral_null)
-        apply assumption
+         apply (rule integral_null)
+        apply (simp add: content_eq_0_interior)
         apply rule
         done
       note snd_p = division_ofD[OF division_of_tagged_division[OF p(1)]]
@@ -1657,7 +1837,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
           show "(\<Sum>(x, k)\<in>p. norm (integral k f)) \<le> ?S"
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
             apply (subst setsum.over_tagged_division_lemma[OF p(1)])
-            apply (simp add: integral_null)
+            apply (simp add: content_eq_0_interior)
             apply (intro cSUP_upper2[OF D(2), of "snd ` p"])
             apply (auto simp: tagged_partial_division_of_def)
             done

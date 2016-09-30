@@ -6417,6 +6417,26 @@ lemma ends_in_segment [iff]: "a \<in> closed_segment a b" "b \<in> closed_segmen
   unfolding segment_convex_hull
   by (auto intro!: hull_subset[unfolded subset_eq, rule_format])
 
+lemma eventually_closed_segment:
+  fixes x0::"'a::real_normed_vector"
+  assumes "open X0" "x0 \<in> X0"
+  shows "\<forall>\<^sub>F x in at x0 within U. closed_segment x0 x \<subseteq> X0"
+proof -
+  from openE[OF assms]
+  obtain e where e: "0 < e" "ball x0 e \<subseteq> X0" .
+  then have "\<forall>\<^sub>F x in at x0 within U. x \<in> ball x0 e"
+    by (auto simp: dist_commute eventually_at)
+  then show ?thesis
+  proof eventually_elim
+    case (elim x)
+    have "x0 \<in> ball x0 e" using \<open>e > 0\<close> by simp
+    from convex_ball[unfolded convex_contains_segment, rule_format, OF this elim]
+    have "closed_segment x0 x \<subseteq> ball x0 e" .
+    also note \<open>\<dots> \<subseteq> X0\<close>
+    finally show ?case .
+  qed
+qed
+
 lemma segment_furthest_le:
   fixes a b x y :: "'a::euclidean_space"
   assumes "x \<in> closed_segment a b"
@@ -8697,6 +8717,59 @@ using assms
 apply (simp add: rel_frontier_def convex_affine_closure_Int frontier_def)
 by (metis Diff_Int_distrib2 Int_emptyI convex_affine_closure_Int convex_affine_rel_interior_Int empty_iff interior_rel_interior_gen)
 
+lemma rel_interior_convex_Int_affine:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "affine T" "interior S \<inter> T \<noteq> {}"
+    shows "rel_interior(S \<inter> T) = interior S \<inter> T"
+proof -
+  obtain a where aS: "a \<in> interior S" and aT:"a \<in> T"
+    using assms by force
+  have "rel_interior S = interior S"
+    by (metis (no_types) aS affine_hull_nonempty_interior equals0D rel_interior_interior)
+  then show ?thesis
+    by (metis (no_types) affine_imp_convex assms convex_rel_interior_inter_two hull_same rel_interior_affine_hull)
+qed
+
+lemma closure_convex_Int_affine:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "affine T" "rel_interior S \<inter> T \<noteq> {}"
+  shows "closure(S \<inter> T) = closure S \<inter> T"
+proof
+  have "closure (S \<inter> T) \<subseteq> closure T"
+    by (simp add: closure_mono)
+  also have "... \<subseteq> T"
+    by (simp add: affine_closed assms)
+  finally show "closure(S \<inter> T) \<subseteq> closure S \<inter> T"
+    by (simp add: closure_mono)
+next
+  obtain a where "a \<in> rel_interior S" "a \<in> T"
+    using assms by auto
+  then have ssT: "subspace ((\<lambda>x. (-a)+x) ` T)" and "a \<in> S"
+    using affine_diffs_subspace rel_interior_subset assms by blast+
+  show "closure S \<inter> T \<subseteq> closure (S \<inter> T)"
+  proof
+    fix x  assume "x \<in> closure S \<inter> T"
+    show "x \<in> closure (S \<inter> T)"
+    proof (cases "x = a")
+      case True
+      then show ?thesis
+        using \<open>a \<in> S\<close> \<open>a \<in> T\<close> closure_subset by fastforce
+    next
+      case False
+      then have "x \<in> closure(open_segment a x)"
+        by auto
+      then show ?thesis
+        using \<open>x \<in> closure S \<inter> T\<close> assms convex_affine_closure_Int by blast
+    qed
+  qed
+qed
+
+lemma rel_frontier_convex_Int_affine:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "affine T" "interior S \<inter> T \<noteq> {}"
+    shows "rel_frontier(S \<inter> T) = frontier S \<inter> T"
+by (simp add: assms convex_affine_rel_frontier_Int)
+
 lemma subset_rel_interior_convex:
   fixes S T :: "'n::euclidean_space set"
   assumes "convex S"
@@ -10447,7 +10520,7 @@ lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftr
 
 lemma collinear_3_expand:
    "collinear{a,b,c} \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
-proof -                          
+proof -
   have "collinear{a,b,c} = collinear{a,c,b}"
     by (simp add: insert_commute)
   also have "... = collinear {0, a - c, b - c}"

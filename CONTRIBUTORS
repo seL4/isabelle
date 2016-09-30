@@ -30,6 +30,12 @@ Contributions to this Isabelle version
   Algebraic foundation for primes; generalization from nat
   to general factorial rings
 
+* September 2016: Sascha Boehme
+  Proof method 'argo' based on SMT technology for a combination of
+  quantifier-free propositional logic, equality and linear real
+  arithmetic
+
+
 Contributions to Isabelle2016
 -----------------------------
 

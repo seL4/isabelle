@@ -180,13 +180,6 @@ corollary differentiable_iff_scaleR:
   shows "f differentiable F \<longleftrightarrow> (\<exists>d. (f has_derivative (\<lambda>x. x *\<^sub>R d)) F)"
   by (auto simp: differentiable_def dest: has_derivative_linear linear_imp_scaleR)
 
-lemma differentiable_within_open: (* TODO: delete *)
-  assumes "a \<in> s"
-    and "open s"
-  shows "f differentiable (at a within s) \<longleftrightarrow> f differentiable (at a)"
-  using assms
-  by (simp only: at_within_interior interior_open)
-
 lemma differentiable_on_eq_differentiable_at:
   "open s \<Longrightarrow> f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable at x)"
   unfolding differentiable_on_def
@@ -206,6 +199,15 @@ lemma differentiable_on_ident [simp, derivative_intros]: "(\<lambda>x. x) differ
 
 lemma differentiable_on_id [simp, derivative_intros]: "id differentiable_on S"
   by (simp add: id_def)
+
+lemma differentiable_on_const [simp, derivative_intros]: "(\<lambda>z. c) differentiable_on S"
+  by (simp add: differentiable_on_def)
+
+lemma differentiable_on_mult [simp, derivative_intros]:
+  fixes f :: "'M::real_normed_vector \<Rightarrow> 'a::real_normed_algebra"
+  shows "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>z. f z * g z) differentiable_on S"
+  apply (simp add: differentiable_on_def differentiable_def)
+  using differentiable_def differentiable_mult by blast
 
 lemma differentiable_on_compose:
    "\<lbrakk>g differentiable_on S; f differentiable_on (g ` S)\<rbrakk> \<Longrightarrow> (\<lambda>x. f (g x)) differentiable_on S"

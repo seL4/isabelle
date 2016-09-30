@@ -88,6 +88,7 @@ val named_methods =
    ("auto", ((true, true), full_attrs)),
    ("blast", ((false, true), clas_attrs)),
    ("metis", ((false, true), metis_attrs)),
+   ("argo", ((false, true), no_attrs)),
    ("linarith", ((false, true), no_attrs)),
    ("presburger", ((false, true), no_attrs)),
    ("algebra", ((false, true), no_attrs)),
@@ -111,6 +112,7 @@ fun silence_methods debug =
       |> Simplifier_Trace.disable
       |> Context_Position.set_visible false
       |> Config.put Unify.trace_bound (Config.get ctxt Unify.search_bound)
+      |> Config.put Argo_Tactic.trace "none"
       |> Proof_Context.background_theory (fn thy =>
           thy
           |> Context_Position.set_visible_global false

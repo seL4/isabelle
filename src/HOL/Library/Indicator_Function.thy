@@ -28,6 +28,9 @@ lemma indicator_eq_0_iff: "indicator A x = (0::'a::zero_neq_one) \<longleftright
 lemma indicator_eq_1_iff: "indicator A x = (1::'a::zero_neq_one) \<longleftrightarrow> x \<in> A"
   by (auto simp: indicator_def)
 
+lemma indicator_UNIV [simp]: "indicator UNIV = (\<lambda>x. 1)"
+  by auto
+
 lemma indicator_leI:
   "(x \<in> A \<Longrightarrow> y \<in> B) \<Longrightarrow> (indicator A x :: 'a::linordered_nonzero_semiring) \<le> indicator B y"
   by (auto simp: indicator_def)

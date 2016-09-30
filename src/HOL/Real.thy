@@ -1807,4 +1807,9 @@ lemma [z3_rule]:
   for x y :: real
   by auto
 
+
+subsection \<open>Setup for Argo\<close>
+
+ML_file "Tools/Argo/argo_real.ML"
+
 end

@@ -240,6 +240,13 @@ some situations where ambiguities may occur.
 
 *** HOL ***
 
+* New proof method "argo" using the built-in Argo solver based on SMT technology.
+The method can be used to prove goals of quantifier-free propositional logic,
+goals based on a combination of quantifier-free propositional logic with equality,
+and goals based on a combination of quantifier-free propositional logic with
+linear real arithmetic including min/max/abs. See HOL/ex/Argo_Examples.thy for
+examples.
+
 * Type class "div" with operation "mod" renamed to type class "modulo" with
 operation "modulo", analogously to type class "divide".  This eliminates the
 need to qualify any of those names in the presence of infix "mod" syntax.

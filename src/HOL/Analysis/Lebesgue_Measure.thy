@@ -8,7 +8,7 @@
 section \<open>Lebesgue measure\<close>
 
 theory Lebesgue_Measure
-  imports Finite_Product_Measure Bochner_Integration Caratheodory
+  imports Finite_Product_Measure Bochner_Integration Caratheodory Complete_Measure Summation_Tests
 begin
 
 subsection \<open>Every right continuous and nondecreasing function gives rise to a measure\<close>
@@ -356,6 +356,12 @@ subsection \<open>Lebesgue-Borel measure\<close>
 definition lborel :: "('a :: euclidean_space) measure" where
   "lborel = distr (\<Pi>\<^sub>M b\<in>Basis. interval_measure (\<lambda>x. x)) borel (\<lambda>f. \<Sum>b\<in>Basis. f b *\<^sub>R b)"
 
+abbreviation lebesgue :: "'a::euclidean_space measure"
+  where "lebesgue \<equiv> completion lborel"
+
+abbreviation lebesgue_on :: "'a set \<Rightarrow> 'a::euclidean_space measure"
+  where "lebesgue_on \<Omega> \<equiv> restrict_space (completion lborel) \<Omega>"
+
 lemma
   shows sets_lborel[simp, measurable_cong]: "sets lborel = sets borel"
     and space_lborel[simp]: "space lborel = space borel"
@@ -659,6 +665,105 @@ next
     by (simp add: lborel_integrable_real_affine_iff not_integrable_integral_eq)
 qed
 
+lemma
+  fixes c :: "'a::euclidean_space \<Rightarrow> real" and t
+  assumes c: "\<And>j. j \<in> Basis \<Longrightarrow> c j \<noteq> 0"
+  defines "T == (\<lambda>x. t + (\<Sum>j\<in>Basis. (c j * (x \<bullet> j)) *\<^sub>R j))"
+  shows lebesgue_affine_euclidean: "lebesgue = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))" (is "_ = ?D")
+    and lebesgue_affine_measurable: "T \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
+proof -
+  have T_borel[measurable]: "T \<in> borel \<rightarrow>\<^sub>M borel"
+    by (auto simp: T_def[abs_def])
+  { fix A :: "'a set" assume A: "A \<in> sets borel"
+    then have "emeasure lborel A = 0 \<longleftrightarrow> emeasure (density (distr lborel borel T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))) A = 0"
+      unfolding T_def using c by (subst lborel_affine_euclidean[symmetric]) auto
+    also have "\<dots> \<longleftrightarrow> emeasure (distr lebesgue lborel T) A = 0"
+      using A c by (simp add: distr_completion emeasure_density nn_integral_cmult setprod_nonneg cong: distr_cong)
+    finally have "emeasure lborel A = 0 \<longleftrightarrow> emeasure (distr lebesgue lborel T) A = 0" . }
+  then have eq: "null_sets lborel = null_sets (distr lebesgue lborel T)"
+    by (auto simp: null_sets_def)
+
+  show "T \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
+    by (rule completion.measurable_completion2) (auto simp: eq measurable_completion)
+
+  have "lebesgue = completion (density (distr lborel borel T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>)))"
+    using c by (subst lborel_affine_euclidean[of c t]) (simp_all add: T_def[abs_def])
+  also have "\<dots> = density (completion (distr lebesgue lborel T)) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))"
+    using c by (auto intro!: always_eventually setprod_pos completion_density_eq simp: distr_completion cong: distr_cong)
+  also have "\<dots> = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))"
+    by (subst completion.completion_distr_eq) (auto simp: eq measurable_completion)
+  finally show "lebesgue = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))" .
+qed
+
+lemma lebesgue_measurable_scaling[measurable]: "op *\<^sub>R x \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
+proof cases
+  assume "x = 0"
+  then have "op *\<^sub>R x = (\<lambda>x. 0::'a)"
+    by (auto simp: fun_eq_iff)
+  then show ?thesis by auto
+next
+  assume "x \<noteq> 0" then show ?thesis
+    using lebesgue_affine_measurable[of "\<lambda>_. x" 0]
+    unfolding scaleR_scaleR[symmetric] scaleR_setsum_right[symmetric] euclidean_representation
+    by (auto simp add: ac_simps)
+qed
+
+lemma
+  fixes m :: real and \<delta> :: "'a::euclidean_space"
+  defines "T r d x \<equiv> r *\<^sub>R x + d"
+  shows emeasure_lebesgue_affine: "emeasure lebesgue (T m \<delta> ` S) = \<bar>m\<bar> ^ DIM('a) * emeasure lebesgue S" (is ?e)
+    and measure_lebesgue_affine: "measure lebesgue (T m \<delta> ` S) = \<bar>m\<bar> ^ DIM('a) * measure lebesgue S" (is ?m)
+proof -
+  show ?e
+  proof cases
+    assume "m = 0" then show ?thesis
+      by (simp add: image_constant_conv T_def[abs_def])
+  next
+    let ?T = "T m \<delta>" and ?T' = "T (1 / m) (- ((1/m) *\<^sub>R \<delta>))"
+    assume "m \<noteq> 0"
+    then have s_comp_s: "?T' \<circ> ?T = id" "?T \<circ> ?T' = id"
+      by (auto simp: T_def[abs_def] fun_eq_iff scaleR_add_right scaleR_diff_right)
+    then have "inv ?T' = ?T" "bij ?T'"
+      by (auto intro: inv_unique_comp o_bij)
+    then have eq: "T m \<delta> ` S = T (1 / m) ((-1/m) *\<^sub>R \<delta>) -` S \<inter> space lebesgue"
+      using bij_vimage_eq_inv_image[OF \<open>bij ?T'\<close>, of S] by auto
+
+    have trans_eq_T: "(\<lambda>x. \<delta> + (\<Sum>j\<in>Basis. (m * (x \<bullet> j)) *\<^sub>R j)) = T m \<delta>" for m \<delta>
+      unfolding T_def[abs_def] scaleR_scaleR[symmetric] scaleR_setsum_right[symmetric]
+      by (auto simp add: euclidean_representation ac_simps)
+
+    have T[measurable]: "T r d \<in> lebesgue \<rightarrow>\<^sub>M lebesgue" for r d
+      using lebesgue_affine_measurable[of "\<lambda>_. r" d]
+      by (cases "r = 0") (auto simp: trans_eq_T T_def[abs_def])
+
+    show ?thesis
+    proof cases
+      assume "S \<in> sets lebesgue" with \<open>m \<noteq> 0\<close> show ?thesis
+        unfolding eq
+        apply (subst lebesgue_affine_euclidean[of "\<lambda>_. m" \<delta>])
+        apply (simp_all add: emeasure_density trans_eq_T nn_integral_cmult emeasure_distr
+                        del: space_completion emeasure_completion)
+        apply (simp add: vimage_comp s_comp_s setprod_constant)
+        done
+    next
+      assume "S \<notin> sets lebesgue"
+      moreover have "?T ` S \<notin> sets lebesgue"
+      proof
+        assume "?T ` S \<in> sets lebesgue"
+        then have "?T -` (?T ` S) \<inter> space lebesgue \<in> sets lebesgue"
+          by (rule measurable_sets[OF T])
+        also have "?T -` (?T ` S) \<inter> space lebesgue = S"
+          by (simp add: vimage_comp s_comp_s eq)
+        finally show False using \<open>S \<notin> sets lebesgue\<close> by auto
+      qed
+      ultimately show ?thesis
+        by (simp add: emeasure_notin_sets)
+    qed
+  qed
+  show ?m
+    unfolding measure_def \<open>?e\<close> by (simp add: enn2real_mult setprod_nonneg)
+qed
+
 lemma divideR_right:
   fixes x y :: "'a::real_normed_vector"
   shows "r \<noteq> 0 \<Longrightarrow> y = x /\<^sub>R r \<longleftrightarrow> r *\<^sub>R y = x"
@@ -779,5 +884,106 @@ proof -
   then show ?thesis
     by (auto simp: mult.commute)
 qed
+
+abbreviation lmeasurable :: "'a::euclidean_space set set"
+where
+  "lmeasurable \<equiv> fmeasurable lebesgue"
+
+lemma lmeasurable_iff_integrable:
+  "S \<in> lmeasurable \<longleftrightarrow> integrable lebesgue (indicator S :: 'a::euclidean_space \<Rightarrow> real)"
+  by (auto simp: fmeasurable_def integrable_iff_bounded borel_measurable_indicator_iff ennreal_indicator)
+
+lemma lmeasurable_cbox [iff]: "cbox a b \<in> lmeasurable"
+  and lmeasurable_box [iff]: "box a b \<in> lmeasurable"
+  by (auto simp: fmeasurable_def emeasure_lborel_box_eq emeasure_lborel_cbox_eq)
+
+lemma lmeasurable_compact: "compact S \<Longrightarrow> S \<in> lmeasurable"
+  using emeasure_compact_finite[of S] by (intro fmeasurableI) (auto simp: borel_compact)
+
+lemma lmeasurable_open: "bounded S \<Longrightarrow> open S \<Longrightarrow> S \<in> lmeasurable"
+  using emeasure_bounded_finite[of S] by (intro fmeasurableI) (auto simp: borel_open)
+
+lemma lmeasurable_ball: "ball a r \<in> lmeasurable"
+  by (simp add: lmeasurable_open)
+
+lemma lmeasurable_interior: "bounded S \<Longrightarrow> interior S \<in> lmeasurable"
+  by (simp add: bounded_interior lmeasurable_open)
+
+lemma null_sets_cbox_Diff_box: "cbox a b - box a b \<in> null_sets lborel"
+proof -
+  have "emeasure lborel (cbox a b - box a b) = 0"
+    by (subst emeasure_Diff) (auto simp: emeasure_lborel_cbox_eq emeasure_lborel_box_eq box_subset_cbox)
+  then have "cbox a b - box a b \<in> null_sets lborel"
+    by (auto simp: null_sets_def)
+  then show ?thesis
+    by (auto dest!: AE_not_in)
+qed
+subsection\<open> A nice lemma for negligibility proofs.\<close>
+
+lemma summable_iff_suminf_neq_top: "(\<And>n. f n \<ge> 0) \<Longrightarrow> \<not> summable f \<Longrightarrow> (\<Sum>i. ennreal (f i)) = top"
+  by (metis summable_suminf_not_top)
+
+proposition starlike_negligible_bounded_gmeasurable:
+  fixes S :: "'a :: euclidean_space set"
+  assumes S: "S \<in> sets lebesgue" and "bounded S"
+      and eq1: "\<And>c x. \<lbrakk>(c *\<^sub>R x) \<in> S; 0 \<le> c; x \<in> S\<rbrakk> \<Longrightarrow> c = 1"
+    shows "S \<in> null_sets lebesgue"
+proof -
+  obtain M where "0 < M" "S \<subseteq> ball 0 M"
+    using \<open>bounded S\<close> by (auto dest: bounded_subset_ballD)
+
+  let ?f = "\<lambda>n. root DIM('a) (Suc n)"
+
+  have vimage_eq_image: "op *\<^sub>R (?f n) -` S = op *\<^sub>R (1 / ?f n) ` S" for n
+    apply safe
+    subgoal for x by (rule image_eqI[of _ _ "?f n *\<^sub>R x"]) auto
+    subgoal by auto
+    done
+
+  have eq: "(1 / ?f n) ^ DIM('a) = 1 / Suc n" for n
+    by (simp add: field_simps)
+
+  { fix n x assume x: "root DIM('a) (1 + real n) *\<^sub>R x \<in> S"
+    have "1 * norm x \<le> root DIM('a) (1 + real n) * norm x"
+      by (rule mult_mono) auto
+    also have "\<dots> < M"
+      using x \<open>S \<subseteq> ball 0 M\<close> by auto
+    finally have "norm x < M" by simp }
+  note less_M = this
+
+  have "(\<Sum>n. ennreal (1 / Suc n)) = top"
+    using not_summable_harmonic[where 'a=real] summable_Suc_iff[where f="\<lambda>n. 1 / (real n)"]
+    by (intro summable_iff_suminf_neq_top) (auto simp add: inverse_eq_divide)
+  then have "top * emeasure lebesgue S = (\<Sum>n. (1 / ?f n)^DIM('a) * emeasure lebesgue S)"
+    unfolding ennreal_suminf_multc eq by simp
+  also have "\<dots> = (\<Sum>n. emeasure lebesgue (op *\<^sub>R (?f n) -` S))"
+    unfolding vimage_eq_image using emeasure_lebesgue_affine[of "1 / ?f n" 0 S for n] by simp
+  also have "\<dots> = emeasure lebesgue (\<Union>n. op *\<^sub>R (?f n) -` S)"
+  proof (intro suminf_emeasure)
+    show "disjoint_family (\<lambda>n. op *\<^sub>R (?f n) -` S)"
+      unfolding disjoint_family_on_def
+    proof safe
+      fix m n :: nat and x assume "m \<noteq> n" "?f m *\<^sub>R x \<in> S" "?f n *\<^sub>R x \<in> S"
+      with eq1[of "?f m / ?f n" "?f n *\<^sub>R x"] show "x \<in> {}"
+        by auto
+    qed
+    have "op *\<^sub>R (?f i) -` S \<in> sets lebesgue" for i
+      using measurable_sets[OF lebesgue_measurable_scaling[of "?f i"] S] by auto
+    then show "range (\<lambda>i. op *\<^sub>R (?f i) -` S) \<subseteq> sets lebesgue"
+      by auto
+  qed
+  also have "\<dots> \<le> emeasure lebesgue (ball 0 M :: 'a set)"
+    using less_M by (intro emeasure_mono) auto
+  also have "\<dots> < top"
+    using lmeasurable_ball by (auto simp: fmeasurable_def)
+  finally have "emeasure lebesgue S = 0"
+    by (simp add: ennreal_top_mult split: if_split_asm)
+  then show "S \<in> null_sets lebesgue"
+    unfolding null_sets_def using \<open>S \<in> sets lebesgue\<close> by auto
+qed
+
+corollary starlike_negligible_compact:
+  "compact S \<Longrightarrow> (\<And>c x. \<lbrakk>(c *\<^sub>R x) \<in> S; 0 \<le> c; x \<in> S\<rbrakk> \<Longrightarrow> c = 1) \<Longrightarrow> S \<in> null_sets lebesgue"
+  using starlike_negligible_bounded_gmeasurable[of S] by (auto simp: compact_eq_bounded_closed)
 
 end

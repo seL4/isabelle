@@ -129,24 +129,28 @@ proof -
     have "(\<lambda>x. if x \<le> c then f x else g x) differentiable at x within {a..b}" (is "?diff_fg")
     proof (cases x c rule: le_cases)
       case le show ?diff_fg
-        apply (rule differentiable_transform_within [where d = "dist x c" and f = f])
-        using x le st
-        apply (simp_all add: dist_real_def)
-        apply (rule differentiable_at_withinI)
-        apply (rule differentiable_within_open [where s = "{a<..<c} - s", THEN iffD1], simp_all)
-        apply (blast intro: open_greaterThanLessThan finite_imp_closed)
-        apply (force elim!: differentiable_subset)+
-        done
+      proof (rule differentiable_transform_within [where d = "dist x c" and f = f])
+        have "f differentiable at x within ({a<..<c} - s)"
+          apply (rule differentiable_at_withinI)
+          using x le st
+          by (metis (no_types, lifting) DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost le st(3) x)
+        moreover have "open ({a<..<c} - s)"
+          by (blast intro: open_greaterThanLessThan \<open>finite s\<close> finite_imp_closed)
+        ultimately show "f differentiable at x within {a..b}"
+          using x le by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI) 
+      qed (use x le st dist_real_def in auto)
     next
       case ge show ?diff_fg
-        apply (rule differentiable_transform_within [where d = "dist x c" and f = g])
-        using x ge st
-        apply (simp_all add: dist_real_def)
-        apply (rule differentiable_at_withinI)
-        apply (rule differentiable_within_open [where s = "{c<..<b} - t", THEN iffD1], simp_all)
-        apply (blast intro: open_greaterThanLessThan finite_imp_closed)
-        apply (force elim!: differentiable_subset)+
-        done
+      proof (rule differentiable_transform_within [where d = "dist x c" and f = g])
+        have "g differentiable at x within ({c<..<b} - t)"
+          apply (rule differentiable_at_withinI)
+          using x ge st
+          by (metis DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost)
+        moreover have "open ({c<..<b} - t)"
+          by (blast intro: open_greaterThanLessThan \<open>finite t\<close> finite_imp_closed)
+        ultimately show "g differentiable at x within {a..b}"
+          using x ge by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI) 
+      qed (use x ge st dist_real_def in auto)
     qed
   }
   then have "\<exists>s. finite s \<and>
@@ -3801,7 +3805,7 @@ proof -
   moreover have "{a<..<b} - k \<subseteq> {a..b} - k"
     by force
   ultimately have g_diff_at: "\<And>x. \<lbrakk>x \<notin> k; x \<in> {a<..<b}\<rbrakk> \<Longrightarrow> \<gamma> differentiable at x"
-    by (metis Diff_iff differentiable_on_subset C1_diff_imp_diff [OF g_C1_diff] differentiable_on_def differentiable_within_open)
+    by (metis Diff_iff differentiable_on_subset C1_diff_imp_diff [OF g_C1_diff] differentiable_on_def at_within_open)
   { fix w
     assume "w \<noteq> z"
     have "continuous_on (ball w (cmod (w - z))) (\<lambda>w. 1 / (w - z))"
@@ -7525,6 +7529,34 @@ corollary Cauchy_theorem_global_outside:
             "\<And>w. w \<notin> s \<Longrightarrow> w \<in> outside(path_image \<gamma>)"
       shows "(f has_contour_integral 0) \<gamma>"
 by (metis Cauchy_theorem_global assms winding_number_zero_in_outside valid_path_imp_path)
+
+
+lemma simply_connected_imp_winding_number_zero:
+  assumes "simply_connected s" "path g"
+           "path_image g \<subseteq> s" "pathfinish g = pathstart g" "z \<notin> s"
+    shows "winding_number g z = 0"
+proof -
+  have "winding_number g z = winding_number(linepath (pathstart g) (pathstart g)) z"
+    apply (rule winding_number_homotopic_paths)
+    apply (rule homotopic_loops_imp_homotopic_paths_null [where a = "pathstart g"])
+    apply (rule homotopic_loops_subset [of s])
+    using assms
+    apply (auto simp: homotopic_paths_imp_homotopic_loops path_defs simply_connected_eq_contractible_path)
+    done
+  also have "... = 0"
+    using assms by (force intro: winding_number_trivial)
+  finally show ?thesis .
+qed
+
+lemma Cauchy_theorem_simply_connected:
+  assumes "open s" "simply_connected s" "f holomorphic_on s" "valid_path g"
+           "path_image g \<subseteq> s" "pathfinish g = pathstart g"
+    shows "(f has_contour_integral 0) g"
+using assms
+apply (simp add: simply_connected_eq_contractible_path)
+apply (auto intro!: Cauchy_theorem_null_homotopic [where a = "pathstart g"]
+                         homotopic_paths_imp_homotopic_loops)
+using valid_path_imp_path by blast
 
 
 end
