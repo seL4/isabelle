@@ -1692,6 +1692,16 @@ next
     by (simp add: ** nn_integral_suminf from_nat_into)
 qed
 
+lemma of_bool_Bex_eq_nn_integral:
+  assumes unique: "\<And>x y. x \<in> X \<Longrightarrow> y \<in> X \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
+  shows "of_bool (\<exists>y\<in>X. P y) = (\<integral>\<^sup>+y. of_bool (P y) \<partial>count_space X)"
+proof cases
+  assume "\<exists>y\<in>X. P y"
+  then obtain y where "P y" "y \<in> X" by auto
+  then show ?thesis
+    by (subst nn_integral_count_space'[where A="{y}"]) (auto dest: unique)
+qed (auto cong: nn_integral_cong_simp)
+
 lemma emeasure_UN_countable:
   assumes sets[measurable]: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" and I[simp]: "countable I"
   assumes disj: "disjoint_family_on X I"

@@ -838,6 +838,38 @@ proof -
   qed
 qed
 
+lemma space_empty: "space M = {} \<Longrightarrow> M = count_space {}"
+  by (rule measure_eqI) (simp_all add: space_empty_iff)
+
+lemma measure_eqI_generator_eq_countable:
+  fixes M N :: "'a measure" and E :: "'a set set" and A :: "'a set set"
+  assumes E: "Int_stable E" "E \<subseteq> Pow \<Omega>" "\<And>X. X \<in> E \<Longrightarrow> emeasure M X = emeasure N X"
+    and sets: "sets M = sigma_sets \<Omega> E" "sets N = sigma_sets \<Omega> E"
+  and A: "A \<subseteq> E" "(\<Union>A) = \<Omega>" "countable A" "\<And>a. a \<in> A \<Longrightarrow> emeasure M a \<noteq> \<infinity>"
+  shows "M = N"
+proof cases
+  assume "\<Omega> = {}"
+  have *: "sigma_sets \<Omega> E = sets (sigma \<Omega> E)"
+    using E(2) by simp
+  have "space M = \<Omega>" "space N = \<Omega>"
+    using sets E(2) unfolding * by (auto dest: sets_eq_imp_space_eq simp del: sets_measure_of)
+  then show "M = N"
+    unfolding \<open>\<Omega> = {}\<close> by (auto dest: space_empty)
+next
+  assume "\<Omega> \<noteq> {}" with \<open>\<Union>A = \<Omega>\<close> have "A \<noteq> {}" by auto
+  from this \<open>countable A\<close> have rng: "range (from_nat_into A) = A"
+    by (rule range_from_nat_into)
+  show "M = N"
+  proof (rule measure_eqI_generator_eq[OF E sets])
+    show "range (from_nat_into A) \<subseteq> E"
+      unfolding rng using \<open>A \<subseteq> E\<close> .
+    show "(\<Union>i. from_nat_into A i) = \<Omega>"
+      unfolding rng using \<open>\<Union>A = \<Omega>\<close> .
+    show "emeasure M (from_nat_into A i) \<noteq> \<infinity>" for i
+      using rng by (intro A) auto
+  qed
+qed
+
 lemma measure_of_of_measure: "measure_of (space M) (sets M) (emeasure M) = M"
 proof (intro measure_eqI emeasure_measure_of_sigma)
   show "sigma_algebra (space M) (sets M)" ..
@@ -1096,6 +1128,9 @@ lemma AE_Ball_mp:
 lemma AE_cong[cong]:
   "(\<And>x. x \<in> space M \<Longrightarrow> P x \<longleftrightarrow> Q x) \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> (AE x in M. Q x)"
   by auto
+
+lemma AE_cong_strong: "M = N \<Longrightarrow> (\<And>x. x \<in> space N =simp=> P x = Q x) \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> (AE x in N. Q x)"
+  by (auto simp: simp_implies_def)
 
 lemma AE_all_countable:
   "(AE x in M. \<forall>i. P i x) \<longleftrightarrow> (\<forall>i::'i::countable. AE x in M. P i x)"
@@ -2134,9 +2169,6 @@ proof cases
       by (subst (asm) emeasure_count_space) (auto split: if_split_asm)
   qed simp
 qed (simp add: emeasure_notin_sets)
-
-lemma space_empty: "space M = {} \<Longrightarrow> M = count_space {}"
-  by (rule measure_eqI) (simp_all add: space_empty_iff)
 
 lemma null_sets_count_space: "null_sets (count_space A) = { {} }"
   unfolding null_sets_def by (auto simp add: emeasure_count_space_eq_0)

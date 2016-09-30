@@ -618,6 +618,24 @@ lemma measurable_predpow[measurable]:
   shows "Measurable.pred M ((R ^^ n) T)"
   by (induct n) (auto intro: assms)
 
+lemma measurable_compose_countable_restrict:
+  assumes P: "countable {i. P i}"
+    and f: "f \<in> M \<rightarrow>\<^sub>M count_space UNIV"
+    and Q: "\<And>i. P i \<Longrightarrow> pred M (Q i)"
+  shows "pred M (\<lambda>x. P (f x) \<and> Q (f x) x)"
+proof -
+  have P_f: "{x \<in> space M. P (f x)} \<in> sets M"
+    unfolding pred_def[symmetric] by (rule measurable_compose[OF f]) simp
+  have "pred (restrict_space M {x\<in>space M. P (f x)}) (\<lambda>x. Q (f x) x)"
+  proof (rule measurable_compose_countable'[where g=f, OF _ _ P])
+    show "f \<in> restrict_space M {x\<in>space M. P (f x)} \<rightarrow>\<^sub>M count_space {i. P i}"
+      by (rule measurable_count_space_extend[OF subset_UNIV])
+         (auto simp: space_restrict_space intro!: measurable_restrict_space1 f)
+  qed (auto intro!: measurable_restrict_space1 Q)
+  then show ?thesis
+    unfolding pred_restrict_space[OF P_f] by (simp cong: measurable_cong)
+qed
+
 hide_const (open) pred
 
 end

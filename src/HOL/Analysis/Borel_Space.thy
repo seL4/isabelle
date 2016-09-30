@@ -1500,6 +1500,9 @@ lemma borel_measurable_complex_iff:
   apply auto
   done
 
+lemma measurable_of_bool[measurable]: "of_bool \<in> count_space UNIV \<rightarrow>\<^sub>M borel"
+  by simp
+
 subsection "Borel space on the extended reals"
 
 lemma borel_measurable_ereal[measurable (raw)]:
@@ -1908,6 +1911,56 @@ lemma borel_measurable_mono:
   fixes f :: "real \<Rightarrow> real"
   shows "mono f \<Longrightarrow> f \<in> borel_measurable borel"
   using borel_measurable_mono_on_fnc[of f UNIV] by (simp add: mono_def mono_on_def)
+
+lemma measurable_bdd_below_real[measurable (raw)]:
+  fixes F :: "'a \<Rightarrow> 'i \<Rightarrow> real"
+  assumes [simp]: "countable I" and [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> M \<rightarrow>\<^sub>M borel"
+  shows "Measurable.pred M (\<lambda>x. bdd_below ((\<lambda>i. F i x)`I))"
+proof (subst measurable_cong)
+  show "bdd_below ((\<lambda>i. F i x)`I) \<longleftrightarrow> (\<exists>q\<in>\<int>. \<forall>i\<in>I. q \<le> F i x)" for x
+    by (auto simp: bdd_below_def intro!: bexI[of _ "of_int (floor _)"] intro: order_trans of_int_floor_le)
+  show "Measurable.pred M (\<lambda>w. \<exists>q\<in>\<int>. \<forall>i\<in>I. q \<le> F i w)"
+    using countable_int by measurable
+qed
+
+lemma borel_measurable_cINF_real[measurable (raw)]:
+  fixes F :: "_ \<Rightarrow> _ \<Rightarrow> real"
+  assumes [simp]: "countable I"
+  assumes F[measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
+  shows "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable M"
+proof (rule measurable_piecewise_restrict)
+  let ?\<Omega> = "{x\<in>space M. bdd_below ((\<lambda>i. F i x)`I)}"
+  show "countable {?\<Omega>, - ?\<Omega>}" "space M \<subseteq> \<Union>{?\<Omega>, - ?\<Omega>}" "\<And>X. X \<in> {?\<Omega>, - ?\<Omega>} \<Longrightarrow> X \<inter> space M \<in> sets M"
+    by auto
+  fix X assume "X \<in> {?\<Omega>, - ?\<Omega>}" then show "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable (restrict_space M X)"
+  proof safe
+    show "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable (restrict_space M ?\<Omega>)"
+      by (intro borel_measurable_cINF measurable_restrict_space1 F)
+         (auto simp: space_restrict_space)
+    show "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable (restrict_space M (-?\<Omega>))"
+    proof (subst measurable_cong)
+      fix x assume "x \<in> space (restrict_space M (-?\<Omega>))"
+      then have "\<not> (\<forall>i\<in>I. - F i x \<le> y)" for y
+        by (auto simp: space_restrict_space bdd_above_def bdd_above_uminus[symmetric])
+      then show "(INF i:I. F i x) = - (THE x. False)"
+        by (auto simp: space_restrict_space Inf_real_def Sup_real_def Least_def simp del: Set.ball_simps(10))
+    qed simp
+  qed
+qed
+
+lemma borel_Ici: "borel = sigma UNIV (range (\<lambda>x::real. {x ..}))"
+proof (safe intro!: borel_eq_sigmaI1[OF borel_Iio])
+  fix x :: real
+  have eq: "{..<x} = space (sigma UNIV (range atLeast)) - {x ..}"
+    by auto
+  show "{..<x} \<in> sets (sigma UNIV (range atLeast))"
+    unfolding eq by (intro sets.compl_sets) auto
+qed auto
+
+lemma borel_measurable_pred_less[measurable (raw)]:
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, linorder_topology}"
+  shows "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> Measurable.pred M (\<lambda>w. f w < g w)"
+  unfolding Measurable.pred_def by (rule borel_measurable_less)
 
 no_notation
   eucl_less (infix "<e" 50)

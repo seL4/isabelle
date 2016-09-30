@@ -686,6 +686,53 @@ next
   show "a \<in> A" and "b \<in> B" by auto
 qed
 
+lemma sets_pair_eq:
+  assumes Ea: "Ea \<subseteq> Pow (space A)" "sets A = sigma_sets (space A) Ea"
+    and Ca: "countable Ca" "Ca \<subseteq> Ea" "\<Union>Ca = space A"
+    and Eb: "Eb \<subseteq> Pow (space B)" "sets B = sigma_sets (space B) Eb"
+    and Cb: "countable Cb" "Cb \<subseteq> Eb" "\<Union>Cb = space B"
+  shows "sets (A \<Otimes>\<^sub>M B) = sets (sigma (space A \<times> space B) { a \<times> b | a b. a \<in> Ea \<and> b \<in> Eb })"
+    (is "_ = sets (sigma ?\<Omega> ?E)")
+proof
+  show "sets (sigma ?\<Omega> ?E) \<subseteq> sets (A \<Otimes>\<^sub>M B)"
+    using Ea(1) Eb(1) by (subst sigma_le_sets) (auto simp: Ea(2) Eb(2))
+  have "?E \<subseteq> Pow ?\<Omega>"
+    using Ea(1) Eb(1) by auto
+  then have E: "a \<in> Ea \<Longrightarrow> b \<in> Eb \<Longrightarrow> a \<times> b \<in> sets (sigma ?\<Omega> ?E)" for a b
+    by auto
+  have "sets (A \<Otimes>\<^sub>M B) \<subseteq> sets (Sup {vimage_algebra ?\<Omega> fst A, vimage_algebra ?\<Omega> snd B})"
+    unfolding sets_pair_eq_sets_fst_snd ..
+  also have "vimage_algebra ?\<Omega> fst A = vimage_algebra ?\<Omega> fst (sigma (space A) Ea)"
+    by (intro vimage_algebra_cong[OF refl refl]) (simp add: Ea)
+  also have "\<dots> = sigma ?\<Omega> {fst -` A \<inter> ?\<Omega> |A. A \<in> Ea}"
+    by (intro Ea vimage_algebra_sigma) auto
+  also have "vimage_algebra ?\<Omega> snd B = vimage_algebra ?\<Omega> snd (sigma (space B) Eb)"
+    by (intro vimage_algebra_cong[OF refl refl]) (simp add: Eb)
+  also have "\<dots> = sigma ?\<Omega> {snd -` A \<inter> ?\<Omega> |A. A \<in> Eb}"
+    by (intro Eb vimage_algebra_sigma) auto
+  also have "{sigma ?\<Omega> {fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, sigma ?\<Omega> {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}} =
+    sigma ?\<Omega> ` {{fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}}"
+    by auto
+  also have "sets (SUP S:{{fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}}. sigma ?\<Omega> S) =
+    sets (sigma ?\<Omega> (\<Union>{{fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}}))"
+    using Ea(1) Eb(1) by (intro sets_Sup_sigma) auto
+  also have "\<dots> \<subseteq> sets (sigma ?\<Omega> ?E)"
+  proof (subst sigma_le_sets, safe intro!: space_in_measure_of)
+    fix a assume "a \<in> Ea"
+    then have "fst -` a \<inter> ?\<Omega> = (\<Union>b\<in>Cb. a \<times> b)"
+      using Cb(3)[symmetric] Ea(1) by auto
+    then show "fst -` a \<inter> ?\<Omega> \<in> sets (sigma ?\<Omega> ?E)"
+      using Cb \<open>a \<in> Ea\<close> by (auto intro!: sets.countable_UN' E)
+  next
+    fix b assume "b \<in> Eb"
+    then have "snd -` b \<inter> ?\<Omega> = (\<Union>a\<in>Ca. a \<times> b)"
+      using Ca(3)[symmetric] Eb(1) by auto
+    then show "snd -` b \<inter> ?\<Omega> \<in> sets (sigma ?\<Omega> ?E)"
+      using Ca \<open>b \<in> Eb\<close> by (auto intro!: sets.countable_UN' E)
+  qed
+  finally show "sets (A \<Otimes>\<^sub>M B) \<subseteq> sets (sigma ?\<Omega> ?E)" .
+qed
+
 lemma borel_prod:
   "(borel \<Otimes>\<^sub>M borel) = (borel :: ('a::second_countable_topology \<times> 'b::second_countable_topology) measure)"
   (is "?P = ?B")

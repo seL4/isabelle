@@ -1196,4 +1196,14 @@ proof (rule pair_measure_eqI[OF assms])
     by (subst emeasure_distr) (auto simp: measurable_pair_iff)
 qed simp
 
+lemma infprod_in_sets[intro]:
+  fixes E :: "nat \<Rightarrow> 'a set" assumes E: "\<And>i. E i \<in> sets (M i)"
+  shows "Pi UNIV E \<in> sets (\<Pi>\<^sub>M i\<in>UNIV::nat set. M i)"
+proof -
+  have "Pi UNIV E = (\<Inter>i. prod_emb UNIV M {..i} (\<Pi>\<^sub>E j\<in>{..i}. E j))"
+    using E E[THEN sets.sets_into_space]
+    by (auto simp: prod_emb_def Pi_iff extensional_def)
+  with E show ?thesis by auto
+qed
+
 end

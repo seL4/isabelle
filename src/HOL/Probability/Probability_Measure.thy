@@ -508,8 +508,6 @@ where
   "distributed M N X f \<longleftrightarrow>
   distr M N X = density N f \<and> f \<in> borel_measurable N \<and> X \<in> measurable M N"
 
-term distributed
-
 lemma
   assumes "distributed M N X f"
   shows distributed_distr_eq_density: "distr M N X = density N f"

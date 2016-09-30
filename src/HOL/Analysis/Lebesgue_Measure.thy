@@ -11,6 +11,24 @@ theory Lebesgue_Measure
   imports Finite_Product_Measure Bochner_Integration Caratheodory Complete_Measure Summation_Tests Regularity
 begin
 
+lemma measure_eqI_lessThan:
+  fixes M N :: "real measure"
+  assumes sets: "sets M = sets borel" "sets N = sets borel"
+  assumes fin: "\<And>x. emeasure M {x <..} < \<infinity>"
+  assumes "\<And>x. emeasure M {x <..} = emeasure N {x <..}"
+  shows "M = N"
+proof (rule measure_eqI_generator_eq_countable)
+  let ?LT = "\<lambda>a::real. {a <..}" let ?E = "range ?LT"
+  show "Int_stable ?E"
+    by (auto simp: Int_stable_def lessThan_Int_lessThan)
+
+  show "?E \<subseteq> Pow UNIV" "sets M = sigma_sets UNIV ?E" "sets N = sigma_sets UNIV ?E"
+    unfolding sets borel_Ioi by auto
+
+  show "?LT`Rats \<subseteq> ?E" "(\<Union>i\<in>Rats. ?LT i) = UNIV" "\<And>a. a \<in> ?LT`Rats \<Longrightarrow> emeasure M a \<noteq> \<infinity>"
+    using fin by (auto intro: Rats_no_bot_less simp: less_top)
+qed (auto intro: assms countable_rat)
+
 subsection \<open>Every right continuous and nondecreasing function gives rise to a measure\<close>
 
 definition interval_measure :: "(real \<Rightarrow> real) \<Rightarrow> real measure" where

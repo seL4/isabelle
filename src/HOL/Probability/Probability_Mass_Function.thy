@@ -246,7 +246,7 @@ lemma integrable_measure_pmf_finite:
   shows "finite (set_pmf M) \<Longrightarrow> integrable M f"
   by (auto intro!: integrableI_bounded simp: nn_integral_measure_pmf_finite ennreal_mult_less_top)
 
-lemma integral_measure_pmf:
+lemma integral_measure_pmf_real:
   assumes [simp]: "finite A" and "\<And>a. a \<in> set_pmf M \<Longrightarrow> f a \<noteq> 0 \<Longrightarrow> a \<in> A"
   shows "(\<integral>x. f x \<partial>measure_pmf M) = (\<Sum>a\<in>A. f a * pmf M a)"
 proof -
@@ -572,9 +572,9 @@ definition "pair_pmf A B = bind_pmf A (\<lambda>x. bind_pmf B (\<lambda>y. retur
 
 lemma pmf_pair: "pmf (pair_pmf M N) (a, b) = pmf M a * pmf N b"
   unfolding pair_pmf_def pmf_bind pmf_return
-  apply (subst integral_measure_pmf[where A="{b}"])
+  apply (subst integral_measure_pmf_real[where A="{b}"])
   apply (auto simp: indicator_eq_0_iff)
-  apply (subst integral_measure_pmf[where A="{a}"])
+  apply (subst integral_measure_pmf_real[where A="{a}"])
   apply (auto simp: indicator_eq_0_iff setsum_nonneg_eq_0_iff pmf_nonneg)
   done
 
@@ -658,7 +658,10 @@ apply(auto simp add: pmf_eq_0_set_pmf dest: injD)
 done
 
 lemma pmf_map_outside: "x \<notin> f ` set_pmf M \<Longrightarrow> pmf (map_pmf f M) x = 0"
-unfolding pmf_eq_0_set_pmf by simp
+  unfolding pmf_eq_0_set_pmf by simp
+
+lemma measurable_set_pmf[measurable]: "Measurable.pred (count_space UNIV) (\<lambda>x. x \<in> set_pmf M)"
+  by simp
 
 subsection \<open> PMFs as function \<close>
 
@@ -741,6 +744,107 @@ end
 
 lemma nn_integral_measure_pmf: "(\<integral>\<^sup>+ x. f x \<partial>measure_pmf p) = \<integral>\<^sup>+ x. ennreal (pmf p x) * f x \<partial>count_space UNIV"
 by(simp add: measure_pmf_eq_density nn_integral_density pmf_nonneg)
+
+lemma integral_measure_pmf:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes A: "finite A"
+  shows "(\<And>a. a \<in> set_pmf M \<Longrightarrow> f a \<noteq> 0 \<Longrightarrow> a \<in> A) \<Longrightarrow> (LINT x|M. f x) = (\<Sum>a\<in>A. pmf M a *\<^sub>R f a)"
+  unfolding measure_pmf_eq_density
+  apply (simp add: integral_density)
+  apply (subst lebesgue_integral_count_space_finite_support)
+  apply (auto intro!: finite_subset[OF _ \<open>finite A\<close>] setsum.mono_neutral_left simp: pmf_eq_0_set_pmf)
+  done
+
+lemma continuous_on_LINT_pmf: -- \<open>This is dominated convergence!?\<close>
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes f: "\<And>i. i \<in> set_pmf M \<Longrightarrow> continuous_on A (f i)"
+    and bnd: "\<And>a i. a \<in> A \<Longrightarrow> i \<in> set_pmf M \<Longrightarrow> norm (f i a) \<le> B"
+  shows "continuous_on A (\<lambda>a. LINT i|M. f i a)"
+proof cases
+  assume "finite M" with f show ?thesis
+    using integral_measure_pmf[OF \<open>finite M\<close>]
+    by (subst integral_measure_pmf[OF \<open>finite M\<close>])
+       (auto intro!: continuous_on_setsum continuous_on_scaleR continuous_on_const)
+next
+  assume "infinite M"
+  let ?f = "\<lambda>i x. pmf (map_pmf (to_nat_on M) M) i *\<^sub>R f (from_nat_into M i) x"
+
+  show ?thesis
+  proof (rule uniform_limit_theorem)
+    show "\<forall>\<^sub>F n in sequentially. continuous_on A (\<lambda>a. \<Sum>i<n. ?f i a)"
+      by (intro always_eventually allI continuous_on_setsum continuous_on_scaleR continuous_on_const f
+                from_nat_into set_pmf_not_empty)
+    show "uniform_limit A (\<lambda>n a. \<Sum>i<n. ?f i a) (\<lambda>a. LINT i|M. f i a) sequentially"
+    proof (subst uniform_limit_cong[where g="\<lambda>n a. \<Sum>i<n. ?f i a"])
+      fix a assume "a \<in> A"
+      have 1: "(LINT i|M. f i a) = (LINT i|map_pmf (to_nat_on M) M. f (from_nat_into M i) a)"
+        by (auto intro!: integral_cong_AE AE_pmfI)
+      have 2: "\<dots> = (LINT i|count_space UNIV. pmf (map_pmf (to_nat_on M) M) i *\<^sub>R f (from_nat_into M i) a)"
+        by (simp add: measure_pmf_eq_density integral_density)
+      have "(\<lambda>n. ?f n a) sums (LINT i|M. f i a)"
+        unfolding 1 2
+      proof (intro sums_integral_count_space_nat)
+        have A: "integrable M (\<lambda>i. f i a)"
+          using \<open>a\<in>A\<close> by (auto intro!: measure_pmf.integrable_const_bound AE_pmfI bnd)
+        have "integrable (map_pmf (to_nat_on M) M) (\<lambda>i. f (from_nat_into M i) a)"
+          by (auto simp add: map_pmf_rep_eq integrable_distr_eq intro!: AE_pmfI integrable_cong_AE_imp[OF A])
+        then show "integrable (count_space UNIV) (\<lambda>n. ?f n a)"
+          by (simp add: measure_pmf_eq_density integrable_density)
+      qed
+      then show "(LINT i|M. f i a) = (\<Sum> n. ?f n a)"
+        by (simp add: sums_unique)
+    next
+      show "uniform_limit A (\<lambda>n a. \<Sum>i<n. ?f i a) (\<lambda>a. (\<Sum> n. ?f n a)) sequentially"
+      proof (rule weierstrass_m_test)
+        fix n a assume "a\<in>A"
+        then show "norm (?f n a) \<le> pmf (map_pmf (to_nat_on M) M) n * B"
+          using bnd by (auto intro!: mult_mono simp: from_nat_into set_pmf_not_empty)
+      next
+        have "integrable (map_pmf (to_nat_on M) M) (\<lambda>n. B)"
+          by auto
+        then show "summable (\<lambda>n. pmf (map_pmf (to_nat_on (set_pmf M)) M) n * B)"
+          by (simp add: measure_pmf_eq_density integrable_density integrable_count_space_nat_iff summable_rabs_cancel)
+      qed
+    qed simp
+  qed simp
+qed
+
+lemma continuous_on_LBINT:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f: "\<And>b. a \<le> b \<Longrightarrow> set_integrable lborel {a..b} f"
+  shows "continuous_on UNIV (\<lambda>b. LBINT x:{a..b}. f x)"
+proof (subst set_borel_integral_eq_integral)
+  { fix b :: real assume "a \<le> b"
+    from f[OF this] have "continuous_on {a..b} (\<lambda>b. integral {a..b} f)"
+      by (intro indefinite_integral_continuous set_borel_integral_eq_integral) }
+  note * = this
+
+  have "continuous_on (\<Union>b\<in>{a..}. {a <..< b}) (\<lambda>b. integral {a..b} f)"
+  proof (intro continuous_on_open_UN)
+    show "b \<in> {a..} \<Longrightarrow> continuous_on {a<..<b} (\<lambda>b. integral {a..b} f)" for b
+      using *[of b] by (rule continuous_on_subset) auto
+  qed simp
+  also have "(\<Union>b\<in>{a..}. {a <..< b}) = {a <..}"
+    by (auto simp: lt_ex gt_ex less_imp_le) (simp add: Bex_def less_imp_le gt_ex cong: rev_conj_cong)
+  finally have "continuous_on {a+1 ..} (\<lambda>b. integral {a..b} f)"
+    by (rule continuous_on_subset) auto
+  moreover have "continuous_on {a..a+1} (\<lambda>b. integral {a..b} f)"
+    by (rule *) simp
+  moreover
+  have "x \<le> a \<Longrightarrow> {a..x} = (if a = x then {a} else {})" for x
+    by auto
+  then have "continuous_on {..a} (\<lambda>b. integral {a..b} f)"
+    by (subst continuous_on_cong[OF refl, where g="\<lambda>x. 0"]) (auto intro!: continuous_on_const)
+  ultimately have "continuous_on ({..a} \<union> {a..a+1} \<union> {a+1 ..}) (\<lambda>b. integral {a..b} f)"
+    by (intro continuous_on_closed_Un) auto
+  also have "{..a} \<union> {a..a+1} \<union> {a+1 ..} = UNIV"
+    by auto
+  finally show "continuous_on UNIV (\<lambda>b. integral {a..b} f)"
+    by auto
+next
+  show "set_integrable lborel {a..b} f" for b
+    using f by (cases "a \<le> b") auto
+qed
 
 locale pmf_as_function
 begin

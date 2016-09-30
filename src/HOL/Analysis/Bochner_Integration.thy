@@ -951,6 +951,10 @@ lemma integrable_cong_AE:
   unfolding integrable.simps
   by (intro has_bochner_integral_cong_AE arg_cong[where f=Ex] ext)
 
+lemma integrable_cong_AE_imp:
+  "integrable M g \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow> (AE x in M. g x = f x) \<Longrightarrow> integrable M f"
+  using integrable_cong_AE[of f M g] by (auto simp: eq_commute)
+
 lemma integral_cong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> f x = g x) \<Longrightarrow> integral\<^sup>L M f = integral\<^sup>L N g"
   by (simp cong: has_bochner_integral_cong cong del: if_weak_cong add: lebesgue_integral_def)
@@ -1682,6 +1686,16 @@ proof -
   finally show ?thesis .
 qed
 
+lemma nn_integral_eq_integrable:
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M borel" "AE x in M. 0 \<le> f x" and "0 \<le> x"
+  shows "(\<integral>\<^sup>+x. f x \<partial>M) = ennreal x \<longleftrightarrow> (integrable M f \<and> integral\<^sup>L M f = x)"
+proof (safe intro!: nn_integral_eq_integral assms)
+  assume *: "(\<integral>\<^sup>+x. f x \<partial>M) = ennreal x"
+  with integrableI_nn_integral_finite[OF f this] nn_integral_eq_integral[of M f, OF _ f(2)]
+  show "integrable M f" "integral\<^sup>L M f = x"
+    by (simp_all add: * assms integral_nonneg_AE)
+qed
+
 lemma
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes integrable[measurable]: "\<And>i. integrable M (f i)"
@@ -2226,6 +2240,27 @@ lemma integral_count_space_nat:
   fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
   shows "integrable (count_space UNIV) f \<Longrightarrow> integral\<^sup>L (count_space UNIV) f = (\<Sum>x. f x)"
   using sums_integral_count_space_nat by (rule sums_unique)
+
+lemma integrable_bij_count_space:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes g: "bij_betw g A B"
+  shows "integrable (count_space A) (\<lambda>x. f (g x)) \<longleftrightarrow> integrable (count_space B) f"
+  unfolding integrable_iff_bounded by (subst nn_integral_bij_count_space[OF g]) auto
+
+lemma integral_bij_count_space:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes g: "bij_betw g A B"
+  shows "integral\<^sup>L (count_space A) (\<lambda>x. f (g x)) = integral\<^sup>L (count_space B) f"
+  using g[THEN bij_betw_imp_funcset]
+  apply (subst distr_bij_count_space[OF g, symmetric])
+  apply (intro integral_distr[symmetric])
+  apply auto
+  done
+
+lemma has_bochner_integral_count_space_nat:
+  fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
+  shows "has_bochner_integral (count_space UNIV) f x \<Longrightarrow> f sums x"
+  unfolding has_bochner_integral_iff by (auto intro!: sums_integral_count_space_nat)
 
 subsection \<open>Point measure\<close>
 

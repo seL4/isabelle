@@ -1244,6 +1244,10 @@ definition "Int_stable M \<longleftrightarrow> (\<forall> a \<in> M. \<forall> b
 lemma (in algebra) Int_stable: "Int_stable M"
   unfolding Int_stable_def by auto
 
+lemma Int_stableI_image:
+  "(\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. A i \<inter> A j = A k) \<Longrightarrow> Int_stable (A ` I)"
+  by (auto simp: Int_stable_def image_def)
+
 lemma Int_stableI:
   "(\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<inter> b \<in> A) \<Longrightarrow> Int_stable A"
   unfolding Int_stable_def by auto
@@ -1573,6 +1577,9 @@ lemma [simp]:
     and space_measure_of: "space (measure_of \<Omega> A \<mu>) = \<Omega>"
 using assms
 by(simp_all add: sets_measure_of_conv space_measure_of_conv)
+
+lemma space_in_measure_of[simp]: "\<Omega> \<in> sets (measure_of \<Omega> M \<mu>)"
+  by (subst sets_measure_of_conv) (auto simp: sigma_sets_top)
 
 lemma (in sigma_algebra) sets_measure_of_eq[simp]: "sets (measure_of \<Omega> M \<mu>) = M"
   using space_closed by (auto intro!: sigma_sets_eq)
@@ -2258,5 +2265,8 @@ lemma measurable_discrete_difference:
   shows "g \<in> measurable M N"
   by (rule measurable_restrict_countable[OF X])
      (auto simp: eq[symmetric] space_restrict_space cong: measurable_cong' intro: f measurable_restrict_space1)
+
+lemma measurable_count_space_extend: "A \<subseteq> B \<Longrightarrow> f \<in> space M \<rightarrow> A \<Longrightarrow> f \<in> M \<rightarrow>\<^sub>M count_space B \<Longrightarrow> f \<in> M \<rightarrow>\<^sub>M count_space A"
+  by (auto simp: measurable_def)
 
 end

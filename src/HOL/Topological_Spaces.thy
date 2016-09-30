@@ -699,7 +699,7 @@ lemma filterlim_at_withinI:
   assumes "filterlim f (nhds c) F"
   assumes "eventually (\<lambda>x. f x \<in> A - {c}) F"
   shows   "filterlim f (at c within A) F"
-  using assms by (simp add: filterlim_at) 
+  using assms by (simp add: filterlim_at)
 
 lemma filterlim_atI:
   assumes "filterlim f (nhds c) F"
@@ -1643,6 +1643,10 @@ lemma continuous_on_cong [cong]:
   "s = t \<Longrightarrow> (\<And>x. x \<in> t \<Longrightarrow> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
   unfolding continuous_on_def
   by (intro ball_cong filterlim_cong) (auto simp: eventually_at_filter)
+
+lemma continuous_on_strong_cong:
+  "s = t \<Longrightarrow> (\<And>x. x \<in> t =simp=> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
+  unfolding simp_implies_def by (rule continuous_on_cong)
 
 lemma continuous_on_topological:
   "continuous_on s f \<longleftrightarrow>

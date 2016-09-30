@@ -28,6 +28,9 @@ proof -
   show "subprob_space M" by standard fact+
 qed
 
+lemma (in subprob_space) emeasure_subprob_space_less_top: "emeasure M A \<noteq> top"
+  using emeasure_finite[of A] .
+
 lemma prob_space_imp_subprob_space:
   "prob_space M \<Longrightarrow> subprob_space M"
   by (rule subprob_spaceI) (simp_all add: prob_space.emeasure_space_1 prob_space.not_empty)
@@ -243,6 +246,43 @@ next
   then show "(\<forall>x\<in>space M. subprob_space (K x) \<and> sets (K x) = sets M) \<and>
     (\<forall>A\<in>sets M. (\<lambda>x. emeasure (K x) A) \<in> borel_measurable M)"
     by (auto dest: subprob_space_kernel sets_kernel)
+qed
+
+lemma measurable_subprob_algebra_generated:
+  assumes eq: "sets N = sigma_sets \<Omega> G" and "Int_stable G" "G \<subseteq> Pow \<Omega>"
+  assumes subsp: "\<And>a. a \<in> space M \<Longrightarrow> subprob_space (K a)"
+  assumes sets: "\<And>a. a \<in> space M \<Longrightarrow> sets (K a) = sets N"
+  assumes "\<And>A. A \<in> G \<Longrightarrow> (\<lambda>a. emeasure (K a) A) \<in> borel_measurable M"
+  assumes \<Omega>: "(\<lambda>a. emeasure (K a) \<Omega>) \<in> borel_measurable M"
+  shows "K \<in> measurable M (subprob_algebra N)"
+proof (rule measurable_subprob_algebra)
+  fix a assume "a \<in> space M" then show "subprob_space (K a)" "sets (K a) = sets N" by fact+
+next
+  interpret G: sigma_algebra \<Omega> "sigma_sets \<Omega> G"
+    using \<open>G \<subseteq> Pow \<Omega>\<close> by (rule sigma_algebra_sigma_sets)
+  fix A assume "A \<in> sets N" with assms(2,3) show "(\<lambda>a. emeasure (K a) A) \<in> borel_measurable M"
+    unfolding \<open>sets N = sigma_sets \<Omega> G\<close>
+  proof (induction rule: sigma_sets_induct_disjoint)
+    case (basic A) then show ?case by fact
+  next
+    case empty then show ?case by simp
+  next
+    case (compl A)
+    have "(\<lambda>a. emeasure (K a) (\<Omega> - A)) \<in> borel_measurable M \<longleftrightarrow>
+      (\<lambda>a. emeasure (K a) \<Omega> - emeasure (K a) A) \<in> borel_measurable M"
+      using G.top G.sets_into_space sets eq compl subprob_space.emeasure_subprob_space_less_top[OF subsp]
+      by (intro measurable_cong emeasure_Diff) auto
+    with compl \<Omega> show ?case
+      by simp
+  next
+    case (union F)
+    moreover have "(\<lambda>a. emeasure (K a) (\<Union>i. F i)) \<in> borel_measurable M \<longleftrightarrow>
+        (\<lambda>a. \<Sum>i. emeasure (K a) (F i)) \<in> borel_measurable M"
+      using sets union eq
+      by (intro measurable_cong suminf_emeasure[symmetric]) auto
+    ultimately show ?case
+      by auto
+  qed
 qed
 
 lemma space_subprob_algebra_empty_iff:
@@ -1080,7 +1120,7 @@ lemma space_bind[simp]:
   shows "space (bind M f) = space N"
   using assms by (intro sets_eq_imp_space_eq sets_bind)
 
-lemma bind_cong:
+lemma bind_cong_All:
   assumes "\<forall>x \<in> space M. f x = g x"
   shows "bind M f = bind M g"
 proof (cases "space M = {}")
@@ -1089,6 +1129,10 @@ proof (cases "space M = {}")
   with assms have "f (SOME x. x \<in> space M) = g (SOME x. x \<in> space M)" by blast
   with \<open>space M \<noteq> {}\<close> and assms show ?thesis by (simp add: bind_nonempty cong: distr_cong)
 qed (simp add: bind_empty)
+
+lemma bind_cong:
+  "M = N \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> f x = g x) \<Longrightarrow> bind M f = bind N g"
+  using bind_cong_All[of M f g] by auto
 
 lemma bind_nonempty':
   assumes "f \<in> measurable M (subprob_algebra N)" "x \<in> space M"
@@ -1121,8 +1165,8 @@ proof cases
 qed (simp add: bind_empty space_empty[of M] nn_integral_count_space)
 
 lemma AE_bind:
-  assumes P[measurable]: "Measurable.pred B P"
   assumes N[measurable]: "N \<in> measurable M (subprob_algebra B)"
+  assumes P[measurable]: "Measurable.pred B P"
   shows "(AE x in M \<bind> N. P x) \<longleftrightarrow> (AE x in M. AE y in N x. P y)"
 proof cases
   assume M: "space M = {}" show ?thesis
@@ -1454,7 +1498,7 @@ proof-
   also from Mh have "\<And>x. x \<in> space M \<Longrightarrow> h x \<in> measurable M' N" by measurable
   hence "do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<bind> g} =
             do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y) \<bind> g}"
-    apply (intro ballI bind_cong bind_assoc)
+    apply (intro ballI bind_cong refl bind_assoc)
     apply (subst measurable_cong_sets[OF sets_kernel[OF Mf] refl], simp)
     apply (rule measurable_compose[OF _ return_measurable], auto intro: Mg)
     done
@@ -1521,5 +1565,151 @@ lemma return_count_space_eq_density:
 lemma null_measure_in_space_subprob_algebra [simp]:
   "null_measure M \<in> space (subprob_algebra M) \<longleftrightarrow> space M \<noteq> {}"
 by(simp add: space_subprob_algebra subprob_space_null_measure_iff)
+
+subsection \<open>Giry monad on probability spaces\<close>
+
+definition prob_algebra :: "'a measure \<Rightarrow> 'a measure measure" where
+  "prob_algebra K = restrict_space (subprob_algebra K) {M. prob_space M}"
+
+lemma space_prob_algebra: "space (prob_algebra M) = {N. sets N = sets M \<and> prob_space N}"
+  unfolding prob_algebra_def by (auto simp: space_subprob_algebra space_restrict_space prob_space_imp_subprob_space)
+
+lemma measurable_measure_prob_algebra[measurable]:
+  "a \<in> sets A \<Longrightarrow> (\<lambda>M. Sigma_Algebra.measure M a) \<in> prob_algebra A \<rightarrow>\<^sub>M borel"
+  unfolding prob_algebra_def by (intro measurable_restrict_space1 measurable_measure_subprob_algebra)
+
+lemma measurable_prob_algebraD:
+  "f \<in> N \<rightarrow>\<^sub>M prob_algebra M \<Longrightarrow> f \<in> N \<rightarrow>\<^sub>M subprob_algebra M"
+  unfolding prob_algebra_def measurable_restrict_space2_iff by auto
+
+lemma measure_measurable_prob_algebra2:
+  "Sigma (space M) A \<in> sets (M \<Otimes>\<^sub>M N) \<Longrightarrow> L \<in> M \<rightarrow>\<^sub>M prob_algebra N \<Longrightarrow>
+    (\<lambda>x. Sigma_Algebra.measure (L x) (A x)) \<in> borel_measurable M"
+  using measure_measurable_subprob_algebra2[of M A N L] by (auto intro: measurable_prob_algebraD)
+
+lemma measurable_prob_algebraI:
+  "(\<And>x. x \<in> space N \<Longrightarrow> prob_space (f x)) \<Longrightarrow> f \<in> N \<rightarrow>\<^sub>M subprob_algebra M \<Longrightarrow> f \<in> N \<rightarrow>\<^sub>M prob_algebra M"
+  unfolding prob_algebra_def by (intro measurable_restrict_space2) auto
+
+lemma measurable_distr_prob_space:
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M N"
+  shows "(\<lambda>M'. distr M' N f) \<in> prob_algebra M \<rightarrow>\<^sub>M prob_algebra N"
+  unfolding prob_algebra_def measurable_restrict_space2_iff
+proof (intro conjI measurable_restrict_space1 measurable_distr f)
+  show "(\<lambda>M'. distr M' N f) \<in> space (restrict_space (subprob_algebra M) (Collect prob_space)) \<rightarrow> Collect prob_space"
+    using f by (auto simp: space_restrict_space space_subprob_algebra intro!: prob_space.prob_space_distr)
+qed
+
+lemma measurable_return_prob_space[measurable]: "return N \<in> N \<rightarrow>\<^sub>M prob_algebra N"
+  by (rule measurable_prob_algebraI) (auto simp: prob_space_return)
+
+lemma measurable_distr_prob_space2[measurable (raw)]:
+  assumes f: "g \<in> L \<rightarrow>\<^sub>M prob_algebra M" "(\<lambda>(x, y). f x y) \<in> L \<Otimes>\<^sub>M M \<rightarrow>\<^sub>M N"
+  shows "(\<lambda>x. distr (g x) N (f x)) \<in> L \<rightarrow>\<^sub>M prob_algebra N"
+  unfolding prob_algebra_def measurable_restrict_space2_iff
+proof (intro conjI measurable_restrict_space1 measurable_distr2[where M=M] f measurable_prob_algebraD)
+  show "(\<lambda>x. distr (g x) N (f x)) \<in> space L \<rightarrow> Collect prob_space"
+    using f subprob_measurableD[OF measurable_prob_algebraD[OF f(1)]]
+    by (auto simp: measurable_restrict_space2_iff prob_algebra_def
+             intro!: prob_space.prob_space_distr)
+qed
+
+lemma measurable_bind_prob_space:
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M prob_algebra N" and g: "g \<in> N \<rightarrow>\<^sub>M prob_algebra R"
+  shows "(\<lambda>x. bind (f x) g) \<in> M \<rightarrow>\<^sub>M prob_algebra R"
+  unfolding prob_algebra_def measurable_restrict_space2_iff
+proof (intro conjI measurable_restrict_space1 measurable_bind2[where N=N] f g measurable_prob_algebraD)
+  show "(\<lambda>x. f x \<bind> g) \<in> space M \<rightarrow> Collect prob_space"
+    using g f subprob_measurableD[OF measurable_prob_algebraD[OF f]]
+    by (auto simp: measurable_restrict_space2_iff prob_algebra_def
+                intro!: prob_space.prob_space_bind[where S=R] AE_I2)
+qed
+
+lemma measurable_bind_prob_space2[measurable (raw)]:
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M prob_algebra N" and g: "(\<lambda>(x, y). g x y) \<in> (M \<Otimes>\<^sub>M N) \<rightarrow>\<^sub>M prob_algebra R"
+  shows "(\<lambda>x. bind (f x) (g x)) \<in> M \<rightarrow>\<^sub>M prob_algebra R"
+  unfolding prob_algebra_def measurable_restrict_space2_iff
+proof (intro conjI measurable_restrict_space1 measurable_bind[where N=N] f g measurable_prob_algebraD)
+  show "(\<lambda>x. f x \<bind> g x) \<in> space M \<rightarrow> Collect prob_space"
+    using g f subprob_measurableD[OF measurable_prob_algebraD[OF f]]
+      using measurable_space[OF g]
+    by (auto simp: measurable_restrict_space2_iff prob_algebra_def space_pair_measure Pi_iff
+                intro!: prob_space.prob_space_bind[where S=R] AE_I2)
+qed (insert g, simp)
+
+
+lemma measurable_prob_algebra_generated:
+  assumes eq: "sets N = sigma_sets \<Omega> G" and "Int_stable G" "G \<subseteq> Pow \<Omega>"
+  assumes subsp: "\<And>a. a \<in> space M \<Longrightarrow> prob_space (K a)"
+  assumes sets: "\<And>a. a \<in> space M \<Longrightarrow> sets (K a) = sets N"
+  assumes "\<And>A. A \<in> G \<Longrightarrow> (\<lambda>a. emeasure (K a) A) \<in> borel_measurable M"
+  shows "K \<in> measurable M (prob_algebra N)"
+  unfolding measurable_restrict_space2_iff prob_algebra_def
+proof
+  show "K \<in> M \<rightarrow>\<^sub>M subprob_algebra N"
+  proof (rule measurable_subprob_algebra_generated[OF assms(1,2,3) _ assms(5,6)])
+    fix a assume "a \<in> space M" then show "subprob_space (K a)"
+      using subsp[of a] by (intro prob_space_imp_subprob_space)
+  next
+    have "(\<lambda>a. emeasure (K a) \<Omega>) \<in> borel_measurable M \<longleftrightarrow> (\<lambda>a. 1::ennreal) \<in> borel_measurable M"
+      using sets_eq_imp_space_eq[of "sigma \<Omega> G" N] \<open>G \<subseteq> Pow \<Omega>\<close> eq sets_eq_imp_space_eq[OF sets]
+        prob_space.emeasure_space_1[OF subsp]
+      by (intro measurable_cong) auto
+    then show "(\<lambda>a. emeasure (K a) \<Omega>) \<in> borel_measurable M" by simp
+  qed
+qed (insert subsp, auto)
+
+lemma in_space_prob_algebra:
+  "x \<in> space (prob_algebra M) \<Longrightarrow> emeasure x (space M) = 1"
+  unfolding prob_algebra_def space_restrict_space space_subprob_algebra
+  by (auto dest!: prob_space.emeasure_space_1 sets_eq_imp_space_eq)
+
+lemma prob_space_pair:
+  assumes "prob_space M" "prob_space N" shows "prob_space (M \<Otimes>\<^sub>M N)"
+proof -
+  interpret M: prob_space M by fact
+  interpret N: prob_space N by fact
+  interpret P: pair_prob_space M N proof qed
+  show ?thesis
+    by unfold_locales
+qed
+
+lemma measurable_pair_prob[measurable]:
+  "f \<in> M \<rightarrow>\<^sub>M prob_algebra N \<Longrightarrow> g \<in> M \<rightarrow>\<^sub>M prob_algebra L \<Longrightarrow> (\<lambda>x. f x \<Otimes>\<^sub>M g x) \<in> M \<rightarrow>\<^sub>M prob_algebra (N \<Otimes>\<^sub>M L)"
+  unfolding prob_algebra_def measurable_restrict_space2_iff
+  by (auto intro!: measurable_pair_measure prob_space_pair)
+
+lemma emeasure_bind_prob_algebra:
+  assumes A: "A \<in> space (prob_algebra N)"
+  assumes B: "B \<in> N \<rightarrow>\<^sub>M prob_algebra L"
+  assumes X: "X \<in> sets L"
+  shows "emeasure (bind A B) X = (\<integral>\<^sup>+x. emeasure (B x) X \<partial>A)"
+  using A B
+  by (intro emeasure_bind[OF _ _ X])
+     (auto simp: space_prob_algebra measurable_prob_algebraD cong: measurable_cong_sets intro!: prob_space.not_empty)
+
+lemma prob_space_bind':
+  assumes A: "A \<in> space (prob_algebra M)" and B: "B \<in> M \<rightarrow>\<^sub>M prob_algebra N" shows "prob_space (A \<bind> B)"
+  using measurable_bind_prob_space[OF measurable_const, OF A B, THEN measurable_space, of undefined "count_space UNIV"]
+  by (simp add: space_prob_algebra)
+
+lemma sets_bind':
+  assumes A: "A \<in> space (prob_algebra M)" and B: "B \<in> M \<rightarrow>\<^sub>M prob_algebra N" shows "sets (A \<bind> B) = sets N"
+  using measurable_bind_prob_space[OF measurable_const, OF A B, THEN measurable_space, of undefined "count_space UNIV"]
+  by (simp add: space_prob_algebra)
+
+lemma bind_cong_AE:
+  assumes M: "M \<in> space (prob_algebra L)"
+    and f: "f \<in> L \<rightarrow>\<^sub>M prob_algebra N" and g: "g \<in> L \<rightarrow>\<^sub>M prob_algebra N"
+    and ae: "AE x in M. f x = g x"
+  shows "bind M f = bind M g"
+proof (rule measure_eqI)
+  show "sets (M \<bind> f) = sets (M \<bind> g)"
+    unfolding sets_bind'[OF M f] sets_bind'[OF M g] ..
+  show "A \<in> sets (M \<bind> f) \<Longrightarrow> emeasure (M \<bind> f) A = emeasure (M \<bind> g) A" for A
+    unfolding sets_bind'[OF M f]
+    using emeasure_bind_prob_algebra[OF M f, of A] emeasure_bind_prob_algebra[OF M g, of A] ae
+    by (auto intro: nn_integral_cong_AE)
+qed
 
 end

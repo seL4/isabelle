@@ -63,6 +63,21 @@ proof
     using emeasure_PiM_emb[of "{}" "\<lambda>_. {}"] by (simp add: *)
 qed
 
+lemma prob_space_PiM:
+  assumes M: "\<And>i. i \<in> I \<Longrightarrow> prob_space (M i)" shows "prob_space (PiM I M)"
+proof -
+  let ?M = "\<lambda>i. if i \<in> I then M i else count_space {undefined}"
+  interpret M': prob_space "?M i" for i
+    using M by (cases "i \<in> I") (auto intro!: prob_spaceI)
+  interpret product_prob_space ?M I
+    by unfold_locales
+  have "prob_space (\<Pi>\<^sub>M i\<in>I. ?M i)"
+    by unfold_locales
+  also have "(\<Pi>\<^sub>M i\<in>I. ?M i) = (\<Pi>\<^sub>M i\<in>I. M i)"
+    by (intro PiM_cong) auto
+  finally show ?thesis .
+qed
+
 lemma (in product_prob_space) emeasure_PiM_Collect:
   assumes X: "J \<subseteq> I" "finite J" "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
   shows "emeasure (Pi\<^sub>M I M) {x\<in>space (Pi\<^sub>M I M). \<forall>i\<in>J. x i \<in> X i} = (\<Prod> i\<in>J. emeasure (M i) (X i))"
@@ -122,6 +137,107 @@ lemma (in product_prob_space) AE_component: "i \<in> I \<Longrightarrow> AE x in
   apply (subst PiM_component)
   apply simp_all
   done
+
+lemma emeasure_PiM_emb:
+  assumes M: "\<And>i. i \<in> I \<Longrightarrow> prob_space (M i)"
+  assumes J: "J \<subseteq> I" "finite J" and A: "\<And>i. i \<in> J \<Longrightarrow> A i \<in> sets (M i)"
+  shows "emeasure (Pi\<^sub>M I M) (prod_emb I M J (Pi\<^sub>E J A)) = (\<Prod>i\<in>J. emeasure (M i) (A i))"
+proof -
+  let ?M = "\<lambda>i. if i \<in> I then M i else count_space {undefined}"
+  interpret M': prob_space "?M i" for i
+    using M by (cases "i \<in> I") (auto intro!: prob_spaceI)
+  interpret P: product_prob_space ?M I
+    by unfold_locales
+  have "emeasure (Pi\<^sub>M I M) (prod_emb I M J (Pi\<^sub>E J A)) = emeasure (Pi\<^sub>M I ?M) (P.emb I J (Pi\<^sub>E J A))"
+    by (auto simp: prod_emb_def PiE_iff intro!: arg_cong2[where f=emeasure] PiM_cong)
+  also have "\<dots> = (\<Prod>i\<in>J. emeasure (M i) (A i))"
+    using J A by (subst P.emeasure_PiM_emb[OF J]) (auto intro!: setprod.cong)
+  finally show ?thesis .
+qed
+
+lemma distr_pair_PiM_eq_PiM:
+  fixes i' :: "'i" and I :: "'i set" and M :: "'i \<Rightarrow> 'a measure"
+  assumes M: "\<And>i. i \<in> I \<Longrightarrow> prob_space (M i)" "prob_space (M i')"
+  shows "distr (M i' \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>I. M i)) (\<Pi>\<^sub>M i\<in>insert i' I. M i) (\<lambda>(x, X). X(i' := x)) =
+    (\<Pi>\<^sub>M i\<in>insert i' I. M i)" (is "?L = _")
+proof (rule measure_eqI_PiM_infinite[symmetric, OF refl])
+  interpret M': prob_space "M i'" by fact
+  interpret I: prob_space "(\<Pi>\<^sub>M i\<in>I. M i)"
+    using M by (intro prob_space_PiM) auto
+  interpret I': prob_space "(\<Pi>\<^sub>M i\<in>insert i' I. M i)"
+    using M by (intro prob_space_PiM) auto
+  show "finite_measure (\<Pi>\<^sub>M i\<in>insert i' I. M i)"
+    by unfold_locales
+  fix J A assume J: "finite J" "J \<subseteq> insert i' I" and A: "\<And>i. i \<in> J \<Longrightarrow> A i \<in> sets (M i)"
+  let ?X = "prod_emb (insert i' I) M J (Pi\<^sub>E J A)"
+  have "Pi\<^sub>M (insert i' I) M ?X = (\<Prod>i\<in>J. M i (A i))"
+    using M J A by (intro emeasure_PiM_emb) auto
+  also have "\<dots> = M i' (if i' \<in> J then (A i') else space (M i')) * (\<Prod>i\<in>J-{i'}. M i (A i))"
+    using setprod.insert_remove[of J "\<lambda>i. M i (A i)" i'] J M'.emeasure_space_1
+    by (cases "i' \<in> J") (auto simp: insert_absorb)
+  also have "(\<Prod>i\<in>J-{i'}. M i (A i)) = Pi\<^sub>M I M (prod_emb I M (J - {i'}) (Pi\<^sub>E (J - {i'}) A))"
+    using M J A by (intro emeasure_PiM_emb[symmetric]) auto
+  also have "M i' (if i' \<in> J then (A i') else space (M i')) * \<dots> =
+    (M i' \<Otimes>\<^sub>M Pi\<^sub>M I M) ((if i' \<in> J then (A i') else space (M i')) \<times> prod_emb I M (J - {i'}) (Pi\<^sub>E (J - {i'}) A))"
+    using J A by (intro I.emeasure_pair_measure_Times[symmetric] sets_PiM_I) auto
+  also have "((if i' \<in> J then (A i') else space (M i')) \<times> prod_emb I M (J - {i'}) (Pi\<^sub>E (J - {i'}) A)) =
+    (\<lambda>(x, X). X(i' := x)) -` ?X \<inter> space (M i' \<Otimes>\<^sub>M Pi\<^sub>M I M)"
+    using A[of i', THEN sets.sets_into_space] unfolding set_eq_iff
+    by (simp add: prod_emb_def space_pair_measure space_PiM PiE_fun_upd ac_simps cong: conj_cong)
+       (auto simp add: Pi_iff Ball_def all_conj_distrib)
+  finally show "Pi\<^sub>M (insert i' I) M ?X = ?L ?X"
+    using J A by (simp add: emeasure_distr)
+qed simp
+
+lemma distr_PiM_reindex:
+  assumes M: "\<And>i. i \<in> K \<Longrightarrow> prob_space (M i)"
+  assumes f: "inj_on f I" "f \<in> I \<rightarrow> K"
+  shows "distr (Pi\<^sub>M K M) (\<Pi>\<^sub>M i\<in>I. M (f i)) (\<lambda>\<omega>. \<lambda>n\<in>I. \<omega> (f n)) = (\<Pi>\<^sub>M i\<in>I. M (f i))"
+    (is "distr ?K ?I ?t = ?I")
+proof (rule measure_eqI_PiM_infinite[symmetric, OF refl])
+  interpret prob_space ?I
+    using f M by (intro prob_space_PiM) auto
+  show "finite_measure ?I"
+    by unfold_locales
+  fix A J assume J: "finite J" "J \<subseteq> I" and A: "\<And>i. i \<in> J \<Longrightarrow> A i \<in> sets (M (f i))"
+  have [simp]: "i \<in> J \<Longrightarrow> the_inv_into I f (f i) = i" for i
+    using J f by (intro the_inv_into_f_f) auto
+  have "?I (prod_emb I (\<lambda>i. M (f i)) J (Pi\<^sub>E J A)) = (\<Prod>j\<in>J. M (f j) (A j))"
+    using f J A by (intro emeasure_PiM_emb M) auto
+  also have "\<dots> = (\<Prod>j\<in>f`J. M j (A (the_inv_into I f j)))"
+    using f J by (subst setprod.reindex) (auto intro!: setprod.cong intro: inj_on_subset simp: the_inv_into_f_f)
+  also have "\<dots> = ?K (prod_emb K M (f`J) (\<Pi>\<^sub>E j\<in>f`J. A (the_inv_into I f j)))"
+    using f J A by (intro emeasure_PiM_emb[symmetric] M) (auto simp: the_inv_into_f_f)
+  also have "prod_emb K M (f`J) (\<Pi>\<^sub>E j\<in>f`J. A (the_inv_into I f j)) = ?t -` prod_emb I (\<lambda>i. M (f i)) J (Pi\<^sub>E J A) \<inter> space ?K"
+    using f J A by (auto simp: prod_emb_def space_PiM Pi_iff PiE_iff Int_absorb1)
+  also have "?K \<dots> = distr ?K ?I ?t (prod_emb I (\<lambda>i. M (f i)) J (Pi\<^sub>E J A))"
+    using f J A by (intro emeasure_distr[symmetric] sets_PiM_I) (auto simp: Pi_iff)
+  finally show "?I (prod_emb I (\<lambda>i. M (f i)) J (Pi\<^sub>E J A)) = distr ?K ?I ?t (prod_emb I (\<lambda>i. M (f i)) J (Pi\<^sub>E J A))" .
+qed simp
+
+lemma distr_PiM_component:
+  assumes M: "\<And>i. i \<in> I \<Longrightarrow> prob_space (M i)"
+  assumes "i \<in> I"
+  shows "distr (Pi\<^sub>M I M) (M i) (\<lambda>\<omega>. \<omega> i) = M i"
+proof -
+  have *: "(\<lambda>\<omega>. \<omega> i) -` A \<inter> space (Pi\<^sub>M I M) = prod_emb I M {i} (\<Pi>\<^sub>E i'\<in>{i}. A)" for A
+    by (auto simp: prod_emb_def space_PiM)
+  show ?thesis
+    apply (intro measure_eqI)
+    apply (auto simp add: emeasure_distr \<open>i\<in>I\<close> * emeasure_PiM_emb M)
+    apply (subst emeasure_PiM_emb)
+    apply (simp_all add: M \<open>i\<in>I\<close>)
+    done
+qed
+
+lemma AE_PiM_component:
+  "(\<And>i. i \<in> I \<Longrightarrow> prob_space (M i)) \<Longrightarrow> i \<in> I \<Longrightarrow> AE x in M i. P x \<Longrightarrow> AE x in PiM I M. P (x i)"
+  using AE_distrD[of "\<lambda>x. x i" "PiM I M" "M i"]
+  by (subst (asm) distr_PiM_component[of I _ i]) (auto intro: AE_distrD[of "\<lambda>x. x i" _ _ P])
+
+lemma decseq_emb_PiE:
+  "incseq J \<Longrightarrow> decseq (\<lambda>i. prod_emb I M (J i) (\<Pi>\<^sub>E j\<in>J i. X j))"
+  by (fastforce simp: decseq_def prod_emb_def incseq_def Pi_iff)
 
 subsection \<open>Sequence space\<close>
 

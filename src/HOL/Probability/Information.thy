@@ -389,10 +389,6 @@ proof -
     done
 qed
 
-lemma integrable_cong_AE_imp:
-  "integrable M g \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow> (AE x in M. g x = f x) \<Longrightarrow> integrable M f"
-  using integrable_cong_AE[of f M g] by (auto simp: eq_commute)
-
 lemma (in information_space) finite_entropy_integrable:
   "finite_entropy S X Px \<Longrightarrow> integrable S (\<lambda>x. Px x * log b (Px x))"
   unfolding finite_entropy_def by auto

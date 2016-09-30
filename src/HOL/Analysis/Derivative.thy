@@ -2370,6 +2370,16 @@ lemma has_real_derivative_iff:
   shows "(\<exists>c. (f has_real_derivative c) F) = (\<exists>D. (f has_derivative D) F)"
   by (metis has_field_derivative_def has_real_derivative)
 
+lemma has_vector_derivative_cong_ev:
+  assumes *: "eventually (\<lambda>x. x \<in> s \<longrightarrow> f x = g x) (nhds x)" "f x = g x"
+  shows "(f has_vector_derivative f') (at x within s) = (g has_vector_derivative f') (at x within s)"
+  unfolding has_vector_derivative_def has_derivative_def
+  using *
+  apply (cases "at x within s \<noteq> bot")
+  apply (intro refl conj_cong filterlim_cong)
+  apply (auto simp: netlimit_within eventually_at_filter elim: eventually_mono)
+  done
+
 definition deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
   "deriv f x \<equiv> SOME D. DERIV f x :> D"
 

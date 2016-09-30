@@ -109,6 +109,10 @@ lemma measurable_shift[measurable]:
   shows "(\<lambda>x. stake n (f x) @- g x) \<in> measurable N (stream_space M)"
   using f by (induction n arbitrary: f) simp_all
 
+lemma measurable_case_stream_replace[measurable (raw)]:
+  "(\<lambda>x. f x (shd (g x)) (stl (g x))) \<in> measurable M N \<Longrightarrow> (\<lambda>x. case_stream (f x) (g x)) \<in> measurable M N"
+  unfolding stream.case_eq_if .
+
 lemma measurable_ev_at[measurable]:
   assumes [measurable]: "Measurable.pred (stream_space M) P"
   shows "Measurable.pred (stream_space M) (ev_at P n)"
@@ -441,5 +445,213 @@ next
     using P[THEN prob_space.emeasure_space_1]
     by (cases "xs = []") (auto simp: * space_stream_space del: in_listsD)
 qed (auto simp: * ae sets_M del: in_listsD intro!: streams_sets)
+
+primrec scylinder :: "'a set \<Rightarrow> 'a set list \<Rightarrow> 'a stream set"
+where
+  "scylinder S [] = streams S"
+| "scylinder S (A # As) = {\<omega>\<in>streams S. shd \<omega> \<in> A \<and> stl \<omega> \<in> scylinder S As}"
+
+lemma scylinder_streams: "scylinder S xs \<subseteq> streams S"
+  by (induction xs) auto
+
+lemma sets_scylinder: "(\<forall>x\<in>set xs. x \<in> sets S) \<Longrightarrow> scylinder (space S) xs \<in> sets (stream_space S)"
+  by (induction xs) (auto simp: space_stream_space[symmetric])
+
+lemma stream_space_eq_scylinder:
+  assumes P: "prob_space M" "prob_space N"
+  assumes "Int_stable G" and S: "sets S = sets (sigma (space S) G)"
+    and C: "countable C" "C \<subseteq> G" "\<Union>C = space S" and G: "G \<subseteq> Pow (space S)"
+  assumes sets_M: "sets M = sets (stream_space S)"
+  assumes sets_N: "sets N = sets (stream_space S)"
+  assumes *: "\<And>xs. xs \<noteq> [] \<Longrightarrow> xs \<in> lists G \<Longrightarrow> emeasure M (scylinder (space S) xs) = emeasure N (scylinder (space S) xs)"
+  shows "M = N"
+proof (rule measure_eqI_generator_eq)
+  interpret M: prob_space M by fact
+  interpret N: prob_space N by fact
+
+  let ?G = "scylinder (space S) ` lists G"
+  show sc_Pow: "?G \<subseteq> Pow (streams (space S))"
+    using scylinder_streams by auto
+
+  have "sets (stream_space S) = sets (sigma (streams (space S)) ?G)"
+    (is "?S = sets ?R")
+  proof (rule antisym)
+    let ?V = "\<lambda>i. vimage_algebra (streams (space S)) (\<lambda>s. s !! i) S"
+    show "?S \<subseteq> sets ?R"
+      unfolding sets_stream_space_eq
+    proof (safe intro!: sets_Sup_in_sets del: subsetI equalityI)
+      fix i :: nat
+      show "space (?V i) = space ?R"
+        using scylinder_streams by (subst space_measure_of) (auto simp: )
+      { fix A assume "A \<in> G"
+        then have "scylinder (space S) (replicate i (space S) @ [A]) = (\<lambda>s. s !! i) -` A \<inter> streams (space S)"
+          by (induction i) (auto simp add: streams_shd streams_stl cong: conj_cong)
+        also have "scylinder (space S) (replicate i (space S) @ [A]) = (\<Union>xs\<in>{xs\<in>lists C. length xs = i}. scylinder (space S) (xs @ [A]))"
+          apply (induction i)
+          apply auto []
+          apply (simp add: length_Suc_conv set_eq_iff ex_simps(1,2)[symmetric] cong: conj_cong del: ex_simps(1,2))
+          apply rule
+          subgoal for i x
+            apply (cases x)
+            apply (subst (2) C(3)[symmetric])
+            apply (simp del: ex_simps(1,2) add: ex_simps(1,2)[symmetric] ac_simps Bex_def)
+            apply auto
+            done
+          done
+        finally have "(\<lambda>s. s !! i) -` A \<inter> streams (space S) = (\<Union>xs\<in>{xs\<in>lists C. length xs = i}. scylinder (space S) (xs @ [A]))"
+          ..
+        also have "\<dots> \<in> ?R"
+          using C(2) \<open>A\<in>G\<close>
+          by (intro sets.countable_UN' countable_Collect countable_lists C)
+             (auto intro!: in_measure_of[OF sc_Pow] imageI)
+        finally have "(\<lambda>s. s !! i) -` A \<inter> streams (space S) \<in> ?R" . }
+      then show "sets (?V i) \<subseteq> ?R"
+        apply (subst vimage_algebra_cong[OF refl refl S])
+        apply (subst vimage_algebra_sigma[OF G])
+        apply (simp add: streams_iff_snth) []
+        apply (subst sigma_le_sets)
+        apply auto
+        done
+    qed
+    have "G \<subseteq> sets S"
+      unfolding S using G by auto
+    with C(2) show "sets ?R \<subseteq> ?S"
+      unfolding sigma_le_sets[OF sc_Pow] by (auto intro!: sets_scylinder)
+  qed
+  then show "sets M = sigma_sets (streams (space S)) (scylinder (space S) ` lists G)"
+    "sets N = sigma_sets (streams (space S)) (scylinder (space S) ` lists G)"
+    unfolding sets_M sets_N by (simp_all add: sc_Pow)
+
+  show "Int_stable ?G"
+  proof (rule Int_stableI_image)
+    fix xs ys assume "xs \<in> lists G" "ys \<in> lists G"
+    then show "\<exists>zs\<in>lists G. scylinder (space S) xs \<inter> scylinder (space S) ys = scylinder (space S) zs"
+    proof (induction xs arbitrary: ys)
+      case Nil then show ?case
+        by (auto simp add: Int_absorb1 scylinder_streams)
+    next
+      case xs: (Cons x xs)
+      show ?case
+      proof (cases ys)
+        case Nil with xs.hyps show ?thesis
+          by (auto simp add: Int_absorb2 scylinder_streams intro!: bexI[of _ "x#xs"])
+      next
+        case ys: (Cons y ys')
+        with xs.IH[of ys'] xs.prems obtain zs where
+          "zs \<in> lists G" and eq: "scylinder (space S) xs \<inter> scylinder (space S) ys' = scylinder (space S) zs"
+          by auto
+        show ?thesis
+        proof (intro bexI[of _ "(x \<inter> y)#zs"])
+          show "x \<inter> y # zs \<in> lists G"
+            using \<open>zs\<in>lists G\<close> \<open>x\<in>G\<close> \<open>ys\<in>lists G\<close> ys \<open>Int_stable G\<close>[THEN Int_stableD, of x y] by auto
+          show "scylinder (space S) (x # xs) \<inter> scylinder (space S) ys = scylinder (space S) (x \<inter> y # zs)"
+            by (auto simp add: eq[symmetric] ys)
+        qed
+      qed
+    qed
+  qed
+
+  show "range (\<lambda>_::nat. streams (space S)) \<subseteq> scylinder (space S) ` lists G"
+    "(\<Union>i. streams (space S)) = streams (space S)"
+    "emeasure M (streams (space S)) \<noteq> \<infinity>"
+    by (auto intro!: image_eqI[of _ _ "[]"])
+
+  fix X assume "X \<in> scylinder (space S) ` lists G"
+  then obtain xs where xs: "xs \<in> lists G" and eq: "X = scylinder (space S) xs"
+    by auto
+  then show "emeasure M X = emeasure N X"
+  proof (cases "xs = []")
+    assume "xs = []" then show ?thesis
+      unfolding eq
+      using sets_M[THEN sets_eq_imp_space_eq] sets_N[THEN sets_eq_imp_space_eq]
+         M.emeasure_space_1 N.emeasure_space_1
+      by (simp add: space_stream_space[symmetric])
+  next
+    assume "xs \<noteq> []" with xs show ?thesis
+      unfolding eq by (intro *)
+  qed
+qed
+
+lemma stream_space_coinduct:
+  fixes R :: "'a stream measure \<Rightarrow> 'a stream measure \<Rightarrow> bool"
+  assumes "R A B"
+  assumes R: "\<And>A B. R A B \<Longrightarrow> \<exists>K\<in>space (prob_algebra M).
+    \<exists>A'\<in>M \<rightarrow>\<^sub>M prob_algebra (stream_space M). \<exists>B'\<in>M \<rightarrow>\<^sub>M prob_algebra (stream_space M).
+    (AE y in K. R (A' y) (B' y) \<or> A' y = B' y) \<and>
+    A = do { y \<leftarrow> K; \<omega> \<leftarrow> A' y; return (stream_space M) (y ## \<omega>) } \<and>
+    B = do { y \<leftarrow> K; \<omega> \<leftarrow> B' y; return (stream_space M) (y ## \<omega>) }"
+  shows "A = B"
+proof (rule stream_space_eq_scylinder)
+  let ?step = "\<lambda>K L. do { y \<leftarrow> K; \<omega> \<leftarrow> L y; return (stream_space M) (y ## \<omega>) }"
+  { fix K A A' assume K: "K \<in> space (prob_algebra M)"
+      and A'[measurable]: "A' \<in> M \<rightarrow>\<^sub>M prob_algebra (stream_space M)" and A_eq: "A = ?step K A'"
+    have ps: "prob_space A"
+      unfolding A_eq by (rule prob_space_bind'[OF K]) measurable
+    have "sets A = sets (stream_space M)"
+      unfolding A_eq by (rule sets_bind'[OF K]) measurable
+    note ps this }
+  note ** = this
+
+  { fix A B assume "R A B"
+    obtain K A' B' where K: "K \<in> space (prob_algebra M)"
+      and A': "A' \<in> M \<rightarrow>\<^sub>M prob_algebra (stream_space M)" "A = ?step K A'"
+      and B': "B' \<in> M \<rightarrow>\<^sub>M prob_algebra (stream_space M)" "B = ?step K B'"
+      using R[OF \<open>R A B\<close>] by blast
+    have "prob_space A" "prob_space B" "sets A = sets (stream_space M)" "sets B = sets (stream_space M)"
+      using **[OF K A'] **[OF K B'] by auto }
+  note R_D = this
+
+  show "prob_space A" "prob_space B" "sets A = sets (stream_space M)" "sets B = sets (stream_space M)"
+    using R_D[OF \<open>R A B\<close>] by auto
+
+  show "Int_stable (sets M)" "sets M = sets (sigma (space M) (sets M))" "countable {space M}"
+    "{space M} \<subseteq> sets M" "\<Union>{space M} = space M" "sets M \<subseteq> Pow (space M)"
+    using sets.space_closed[of M] by (auto simp: Int_stable_def)
+
+  { fix A As L K assume K[measurable]: "K \<in> space (prob_algebra M)" and A: "A \<in> sets M" "As \<in> lists (sets M)"
+      and L[measurable]: "L \<in> M \<rightarrow>\<^sub>M prob_algebra (stream_space M)"
+    from A have [measurable]: "\<forall>x\<in>set (A # As). x \<in> sets M" "\<forall>x\<in>set As. x \<in> sets M"
+      by auto
+    have [simp]: "space K = space M" "sets K = sets M"
+      using K by (auto simp: space_prob_algebra intro!: sets_eq_imp_space_eq)
+    have [simp]: "x \<in> space M \<Longrightarrow> sets (L x) = sets (stream_space M)" for x
+      using measurable_space[OF L] by (auto simp: space_prob_algebra)
+    note sets_scylinder[measurable]
+    have *: "indicator (scylinder (space M) (A # As)) (x ## \<omega>) =
+        (indicator A x * indicator (scylinder (space M) As) \<omega> :: ennreal)" for \<omega> x
+      using scylinder_streams[of "space M" As] \<open>A \<in> sets M\<close>[THEN sets.sets_into_space]
+      by (auto split: split_indicator)
+    have "emeasure (?step K L) (scylinder (space M) (A # As)) = (\<integral>\<^sup>+y. L y (scylinder (space M) As) * indicator A y \<partial>K)"
+      apply (subst emeasure_bind_prob_algebra[OF K])
+      apply measurable
+      apply (rule nn_integral_cong)
+      apply (subst emeasure_bind_prob_algebra[OF L[THEN measurable_space]])
+      apply (simp_all add: ac_simps * nn_integral_cmult_indicator del: scylinder.simps)
+      apply measurable
+      done }
+  note emeasure_step = this
+
+  fix Xs assume "Xs \<in> lists (sets M)"
+  from this \<open>R A B\<close> show "emeasure A (scylinder (space M) Xs) = emeasure B (scylinder (space M) Xs)"
+  proof (induction Xs arbitrary: A B)
+    case (Cons X Xs)
+    obtain K A' B' where K: "K \<in> space (prob_algebra M)"
+      and A'[measurable]: "A' \<in> M \<rightarrow>\<^sub>M prob_algebra (stream_space M)" and A: "A = ?step K A'"
+      and B'[measurable]: "B' \<in> M \<rightarrow>\<^sub>M prob_algebra (stream_space M)" and B: "B = ?step K B'"
+      and AE_R: "AE x in K. R (A' x) (B' x) \<or> A' x = B' x"
+      using R[OF \<open>R A B\<close>] by blast
+
+    show ?case
+      unfolding A B emeasure_step[OF K Cons.hyps A'] emeasure_step[OF K Cons.hyps B']
+      apply (rule nn_integral_cong_AE)
+      using AE_R by eventually_elim (auto simp add: Cons.IH)
+  next
+    case Nil
+    note R_D[OF this]
+    from this(1,2)[THEN prob_space.emeasure_space_1] this(3,4)[THEN sets_eq_imp_space_eq]
+    show ?case
+      by (simp add: space_stream_space)
+  qed
+qed
 
 end
