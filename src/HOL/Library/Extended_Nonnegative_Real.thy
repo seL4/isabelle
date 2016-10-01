@@ -99,7 +99,7 @@ proof (rule antisym)
        (auto intro!: mono_funpow sup_continuous_mono[OF f] SUP_least)
 
   show "lfp g \<le> \<alpha> (lfp f)"
-    by (rule lfp_lowerbound) (simp add: eq[symmetric] lfp_unfold[OF mf, symmetric])
+    by (rule lfp_lowerbound) (simp add: eq[symmetric] lfp_fixpoint[OF mf])
 qed
 
 lemma sup_continuous_applyD: "sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. f x h)"

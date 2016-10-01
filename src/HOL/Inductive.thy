@@ -14,21 +14,13 @@ theory Inductive
     "primrec" :: thy_decl
 begin
 
-subsection \<open>Least and greatest fixed points\<close>
+subsection \<open>Least fixed points\<close>
 
 context complete_lattice
 begin
 
-definition lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  \<comment> \<open>least fixed point\<close>
+definition lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
   where "lfp f = Inf {u. f u \<le> u}"
-
-definition gfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  \<comment> \<open>greatest fixed point\<close>
-  where "gfp f = Sup {u. u \<le> f u}"
-
-
-subsection \<open>Proof of Knaster-Tarski Theorem using @{term lfp}\<close>
-
-text \<open>@{term "lfp f"} is the least upper bound of the set @{term "{u. f u \<le> u}"}\<close>
 
 lemma lfp_lowerbound: "f A \<le> A \<Longrightarrow> lfp f \<le> A"
   by (auto simp add: lfp_def intro: Inf_lower)
@@ -38,14 +30,31 @@ lemma lfp_greatest: "(\<And>u. f u \<le> u \<Longrightarrow> A \<le> u) \<Longri
 
 end
 
-lemma lfp_lemma2: "mono f \<Longrightarrow> f (lfp f) \<le> lfp f"
-  by (iprover intro: lfp_greatest order_trans monoD lfp_lowerbound)
-
-lemma lfp_lemma3: "mono f \<Longrightarrow> lfp f \<le> f (lfp f)"
-  by (iprover intro: lfp_lemma2 monoD lfp_lowerbound)
+lemma lfp_fixpoint:
+  assumes "mono f"
+  shows "f (lfp f) = lfp f"
+  unfolding lfp_def
+proof (rule order_antisym)
+  let ?H = "{u. f u \<le> u}"
+  let ?a = "\<Sqinter>?H"
+  show "f ?a \<le> ?a"
+  proof (rule Inf_greatest)
+    fix x
+    assume "x \<in> ?H"
+    then have "?a \<le> x" by (rule Inf_lower)
+    with \<open>mono f\<close> have "f ?a \<le> f x" ..
+    also from \<open>x \<in> ?H\<close> have "f x \<le> x" ..
+    finally show "f ?a \<le> x" .
+  qed
+  show "?a \<le> f ?a"
+  proof (rule Inf_lower)
+    from \<open>mono f\<close> and \<open>f ?a \<le> ?a\<close> have "f (f ?a) \<le> f ?a" ..
+    then show "f ?a \<in> ?H" ..
+  qed
+qed
 
 lemma lfp_unfold: "mono f \<Longrightarrow> lfp f = f (lfp f)"
-  by (iprover intro: order_antisym lfp_lemma2 lfp_lemma3)
+  by (rule lfp_fixpoint [symmetric])
 
 lemma lfp_const: "lfp (\<lambda>x. t) = t"
   by (rule lfp_unfold) (simp add: mono_def)
@@ -132,9 +141,13 @@ lemma lfp_mono: "(\<And>Z. f Z \<le> g Z) \<Longrightarrow> lfp f \<le> lfp g"
   by (rule lfp_lowerbound [THEN lfp_greatest]) (blast intro: order_trans)
 
 
-subsection \<open>Proof of Knaster-Tarski Theorem using \<open>gfp\<close>\<close>
+subsection \<open>Greatest fixed points\<close>
 
-text \<open>@{term "gfp f"} is the greatest lower bound of the set @{term "{u. u \<le> f u}"}\<close>
+context complete_lattice
+begin
+
+definition gfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where "gfp f = Sup {u. u \<le> f u}"
 
 lemma gfp_upperbound: "X \<le> f X \<Longrightarrow> X \<le> gfp f"
   by (auto simp add: gfp_def intro: Sup_upper)
@@ -142,24 +155,42 @@ lemma gfp_upperbound: "X \<le> f X \<Longrightarrow> X \<le> gfp f"
 lemma gfp_least: "(\<And>u. u \<le> f u \<Longrightarrow> u \<le> X) \<Longrightarrow> gfp f \<le> X"
   by (auto simp add: gfp_def intro: Sup_least)
 
-lemma gfp_lemma2: "mono f \<Longrightarrow> gfp f \<le> f (gfp f)"
-  by (iprover intro: gfp_least order_trans monoD gfp_upperbound)
+end
 
-lemma gfp_lemma3: "mono f \<Longrightarrow> f (gfp f) \<le> gfp f"
-  by (iprover intro: gfp_lemma2 monoD gfp_upperbound)
+lemma lfp_le_gfp: "mono f \<Longrightarrow> lfp f \<le> gfp f"
+  by (rule gfp_upperbound) (simp add: lfp_fixpoint)
+
+lemma gfp_fixpoint:
+  assumes "mono f"
+  shows "f (gfp f) = gfp f"
+  unfolding gfp_def
+proof (rule order_antisym)
+  let ?H = "{u. u \<le> f u}"
+  let ?a = "\<Squnion>?H"
+  show "?a \<le> f ?a"
+  proof (rule Sup_least)
+    fix x
+    assume "x \<in> ?H"
+    then have "x \<le> f x" ..
+    also from \<open>x \<in> ?H\<close> have "x \<le> ?a" by (rule Sup_upper)
+    with \<open>mono f\<close> have "f x \<le> f ?a" ..
+    finally show "x \<le> f ?a" .
+  qed
+  show "f ?a \<le> ?a"
+  proof (rule Sup_upper)
+    from \<open>mono f\<close> and \<open>?a \<le> f ?a\<close> have "f ?a \<le> f (f ?a)" ..
+    then show "f ?a \<in> ?H" ..
+  qed
+qed
 
 lemma gfp_unfold: "mono f \<Longrightarrow> gfp f = f (gfp f)"
-  by (iprover intro: order_antisym gfp_lemma2 gfp_lemma3)
+  by (rule gfp_fixpoint [symmetric])
 
 lemma gfp_const: "gfp (\<lambda>x. t) = t"
   by (rule gfp_unfold) (simp add: mono_def)
 
 lemma gfp_eqI: "mono F \<Longrightarrow> F x = x \<Longrightarrow> (\<And>z. F z = z \<Longrightarrow> z \<le> x) \<Longrightarrow> gfp F = x"
   by (rule antisym) (simp_all add: gfp_upperbound gfp_unfold[symmetric])
-
-
-lemma lfp_le_gfp: "mono f \<Longrightarrow> lfp f \<le> gfp f"
-  by (iprover intro: gfp_upperbound lfp_lemma3)
 
 
 subsection \<open>Coinduction rules for greatest fixed points\<close>
@@ -174,7 +205,7 @@ lemma weak_coinduct_image: "a \<in> X \<Longrightarrow> g`X \<subseteq> f (g`X) 
   done
 
 lemma coinduct_lemma: "X \<le> f (sup X (gfp f)) \<Longrightarrow> mono f \<Longrightarrow> sup X (gfp f) \<le> f (sup X (gfp f))"
-  apply (frule gfp_lemma2)
+  apply (frule gfp_unfold [THEN eq_refl])
   apply (drule mono_sup)
   apply (rule le_supI)
    apply assumption
@@ -190,7 +221,7 @@ lemma coinduct_set: "mono f \<Longrightarrow> a \<in> X \<Longrightarrow> X \<su
   by (rule weak_coinduct[rotated], rule coinduct_lemma) blast+
 
 lemma gfp_fun_UnI2: "mono f \<Longrightarrow> a \<in> gfp f \<Longrightarrow> a \<in> f (X \<union> gfp f)"
-  by (blast dest: gfp_lemma2 mono_Un)
+  by (blast dest: gfp_fixpoint mono_Un)
 
 lemma gfp_ordinal_induct[case_names mono step union]:
   fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
@@ -248,7 +279,7 @@ lemma coinduct3_lemma:
   "X \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> gfp f)) \<Longrightarrow> mono f \<Longrightarrow>
     lfp (\<lambda>x. f x \<union> X \<union> gfp f) \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> gfp f))"
   apply (rule subset_trans)
-   apply (erule coinduct3_mono_lemma [THEN lfp_lemma3])
+   apply (erule coinduct3_mono_lemma [THEN lfp_unfold [THEN eq_refl]])
   apply (rule Un_least [THEN Un_least])
     apply (rule subset_refl, assumption)
   apply (rule gfp_unfold [THEN equalityD1, THEN subset_trans], assumption)
