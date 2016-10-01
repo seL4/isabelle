@@ -98,6 +98,7 @@ function usage()
   echo "  Options are:"
   echo "    -D NAME=X    set JVM system property"
   echo "    -J OPTION    add JVM runtime option (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+  echo "    -P CMD       JVM process command prefix (process policy)"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
@@ -106,6 +107,7 @@ function usage()
   echo "    -l NAME      logic session name"
   echo "    -m MODE      add print mode for output"
   echo "    -n           no build of session image on startup"
+  echo "    -p CMD       ML process command prefix (process policy)"
   echo "    -s           system build mode for session image"
   echo
   echo "  Start jEdit with Isabelle plugin setup and open FILES"
@@ -132,6 +134,8 @@ function failed()
 
 BUILD_ONLY=false
 BUILD_JARS="jars"
+JAVA_PROCESS_POLICY=""
+ML_PROCESS_POLICY=""
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
@@ -140,7 +144,7 @@ JEDIT_BUILD_MODE="normal"
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:J:bd:fj:l:m:ns" OPT
+  while getopts "D:J:P:bd:fj:l:m:np:s" OPT
   do
     case "$OPT" in
       D)
@@ -148,6 +152,9 @@ function getoptions()
         ;;
       J)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
+        ;;
+      P)
+        JAVA_PROCESS_POLICY="$OPTARG"
         ;;
       b)
         BUILD_ONLY=true
@@ -177,6 +184,9 @@ function getoptions()
         ;;
       n)
         JEDIT_BUILD_MODE="none"
+        ;;
+      p)
+        ML_PROCESS_POLICY="$OPTARG"
         ;;
       s)
         JEDIT_BUILD_MODE="system"
@@ -361,6 +371,7 @@ popd >/dev/null
 if [ "$BUILD_ONLY" = false ]
 then
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+  export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
-  exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
+  exec $JAVA_PROCESS_POLICY isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
 fi

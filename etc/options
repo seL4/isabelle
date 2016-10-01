@@ -129,6 +129,9 @@ public option ML_statistics : bool = true
 public option ML_system_64 : bool = false
   -- "ML system for 64bit platform is used if possible (change requires restart)"
 
+public option ML_process_policy : string = ""
+  -- "ML process command prefix (process policy)"
+
 
 section "Editor Reactivity"
 

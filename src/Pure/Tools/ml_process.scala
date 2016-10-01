@@ -98,7 +98,9 @@ object ML_Process
       (eval_init ::: eval_modes ::: eval_options ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
-    Bash.process("""exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args),
+    Bash.process(
+      "exec " + options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
+        File.bash_args(bash_args),
       cwd = cwd,
       env =
         Isabelle_System.library_path(env ++ env_options ++ env_tmp,

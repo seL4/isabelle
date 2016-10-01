@@ -26,13 +26,19 @@ object JEdit_Sessions
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
 
+  def session_options(): Options =
+    Isabelle_System.getenv("JEDIT_ML_PROCESS_POLICY") match {
+      case "" => PIDE.options.value
+      case s => PIDE.options.value.string("ML_process_policy") = s
+    }
+
   def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
 
   def session_build(progress: Progress = Ignore_Progress, no_build: Boolean = false): Int =
   {
     val mode = session_build_mode()
 
-    Build.build(options = PIDE.options.value, progress = progress,
+    Build.build(options = session_options(), progress = progress,
       build_heap = true, no_build = no_build, system_mode = mode == "" || mode == "system",
       dirs = session_dirs(), sessions = List(session_name())).rc
   }
@@ -42,8 +48,9 @@ object JEdit_Sessions
     val modes =
       (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
        space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
+
     PIDE.session.start(receiver =>
-      Isabelle_Process(PIDE.options.value, logic = session_name(), dirs = session_dirs(),
+      Isabelle_Process(options = session_options(), logic = session_name(), dirs = session_dirs(),
         modes = modes, receiver = receiver,
         store = Sessions.store(session_build_mode() == "system")))
   }
