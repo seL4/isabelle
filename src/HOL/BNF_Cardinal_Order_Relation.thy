@@ -183,7 +183,7 @@ proof(auto)
    card_of_Well_order[of "B"] Field_card_of[of "B"] Field_card_of[of "A"]
    embed_Field[of "|B|" "|A|" g] by auto
    obtain h where "bij_betw h A B"
-   using * ** 1 Cantor_Bernstein[of f] by fastforce
+   using * ** 1 Schroeder_Bernstein[of f] by fastforce
    hence "|A| =o |B|" using card_of_ordIso by blast
    hence "|A| \<le>o |B|" using ordIso_iff_ordLeq by auto
   }

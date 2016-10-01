@@ -422,6 +422,94 @@ lemmas [mono] =
   induct_rulify_fallback
 
 
+subsection \<open>The Schroeder-Bernstein Theorem\<close>
+
+text \<open>
+  See also:
+  \<^item> \<^file>\<open>$ISABELLE_HOME/src/HOL/ex/Set_Theory.thy\<close>
+  \<^item> \<^url>\<open>http://planetmath.org/proofofschroederbernsteintheoremusingtarskiknastertheorem\<close>
+  \<^item> Springer LNCS 828 (cover page)
+\<close>
+
+theorem Schroeder_Bernstein:
+  fixes f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'a"
+    and A :: "'a set" and B :: "'b set"
+  assumes inj1: "inj_on f A" and sub1: "f ` A \<subseteq> B"
+    and inj2: "inj_on g B" and sub2: "g ` B \<subseteq> A"
+  shows "\<exists>h. bij_betw h A B"
+proof (rule exI, rule bij_betw_imageI)
+  define X where "X = lfp (\<lambda>X. A - (g ` (B - (f ` X))))"
+  define g' where "g' = the_inv_into (B - (f ` X)) g"
+  let ?h = "\<lambda>z. if z \<in> X then f z else g' z"
+
+  have X: "X = A - (g ` (B - (f ` X)))"
+    unfolding X_def by (rule lfp_unfold) (blast intro: monoI)
+  then have X_compl: "A - X = g ` (B - (f ` X))"
+    using sub2 by blast
+
+  from inj2 have inj2': "inj_on g (B - (f ` X))"
+    by (rule inj_on_subset) auto
+  with X_compl have *: "g' ` (A - X) = B - (f ` X)"
+    by (simp add: g'_def)
+
+  from X have X_sub: "X \<subseteq> A" by auto
+  from X sub1 have fX_sub: "f ` X \<subseteq> B" by auto
+
+  show "?h ` A = B"
+  proof -
+    from X_sub have "?h ` A = ?h ` (X \<union> (A - X))" by auto
+    also have "\<dots> = ?h ` X \<union> ?h ` (A - X)" by (simp only: image_Un)
+    also have "?h ` X = f ` X" by auto
+    also from * have "?h ` (A - X) = B - (f ` X)" by auto
+    also from fX_sub have "f ` X \<union> (B - f ` X) = B" by blast
+    finally show ?thesis .
+  qed
+  show "inj_on ?h A"
+  proof -
+    from inj1 X_sub have on_X: "inj_on f X"
+      by (rule subset_inj_on)
+
+    have on_X_compl: "inj_on g' (A - X)"
+      unfolding g'_def X_compl
+      by (rule inj_on_the_inv_into) (rule inj2')
+
+    have impossible: False if eq: "f a = g' b" and a: "a \<in> X" and b: "b \<in> A - X" for a b
+    proof -
+      from a have fa: "f a \<in> f ` X" by (rule imageI)
+      from b have "g' b \<in> g' ` (A - X)" by (rule imageI)
+      with * have "g' b \<in> - (f ` X)" by simp
+      with eq fa show False by simp
+    qed
+
+    show ?thesis
+    proof (rule inj_onI)
+      fix a b
+      assume h: "?h a = ?h b"
+      assume "a \<in> A" and "b \<in> A"
+      then consider "a \<in> X" "b \<in> X" | "a \<in> A - X" "b \<in> A - X"
+        | "a \<in> X" "b \<in> A - X" | "a \<in> A - X" "b \<in> X"
+        by blast
+      then show "a = b"
+      proof cases
+        case 1
+        with h on_X show ?thesis by (simp add: inj_on_eq_iff)
+      next
+        case 2
+        with h on_X_compl show ?thesis by (simp add: inj_on_eq_iff)
+      next
+        case 3
+        with h impossible [of a b] have False by simp
+        then show ?thesis ..
+      next
+        case 4
+        with h impossible [of b a] have False by simp
+        then show ?thesis ..
+      qed
+    qed
+  qed
+qed
+
+
 subsection \<open>Inductive datatypes and primitive recursion\<close>
 
 text \<open>Package setup.\<close>

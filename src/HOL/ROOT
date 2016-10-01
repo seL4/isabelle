@@ -644,7 +644,6 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
     Peirce
     Drinker
     Cantor
-    Schroeder_Bernstein
     Structured_Statements
     Basic_Logic
     Expr_Compiler
