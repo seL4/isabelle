@@ -7482,7 +7482,7 @@ qed
 subsection\<open>nullhomotopic mappings\<close>
 
 text\<open> A mapping out of a sphere is nullhomotopic iff it extends to the ball.
-This even works out in the degenerate cases when the radius is \<le> 0, and
+This even works out in the degenerate cases when the radius is \<open>\<le>\<close> 0, and
 we also don't need to explicitly assume continuity since it's already implicit
 in both sides of the equivalence.\<close>
 
