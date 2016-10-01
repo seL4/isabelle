@@ -220,11 +220,11 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
       val bad_jobs = jobs.filterNot(all_jobs.contains(_)).sorted
 
       if (jobs.isEmpty)
-        error("No build jobs given. Available jobs: " + commas(all_jobs))
+        error("No build jobs given. Available jobs: " + all_jobs.sorted.mkString(" "))
 
       if (bad_jobs.nonEmpty)
-        error("Unknown build jobs: " + commas(bad_jobs) +
-          "\nAvailable jobs: " + commas(all_jobs.sorted))
+        error("Unknown build jobs: " + bad_jobs.mkString(" ") +
+          "\nAvailable jobs: " + all_jobs.sorted.mkString(" "))
 
       for (job <- jobs) {
         val dir = target_dir + Path.basic(job)
