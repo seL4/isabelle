@@ -46,16 +46,17 @@ Quick start in 30min
 Introduction
 ------------
 
-Mercurial http://www.selenic.com/mercurial belongs to the current
-generation of source code management systems that follow the so-called
-paradigm of "distributed version control".  This is a terrific name
-for plain revision control without the legacy of CVS or SVN.  See also
-http://hginit.com/ for an introduction to the main ideas.  The
-Mercurial book http://hgbook.red-bean.com/ explains many more details.
+Mercurial http://www.selenic.com/mercurial belongs to source code
+management systems that follow the so-called paradigm of "distributed
+version control".  This means plain revision control without the
+legacy of CVS or SVN (and without the extra complexity introduced by
+git).  See also http://hginit.com/ for an introduction to the main
+ideas.  The Mercurial book http://hgbook.red-bean.com/ explains many
+more details.
 
-Mercurial offers great flexibility in organizing the flow of changes,
+Mercurial offers some flexibility in organizing the flow of changes,
 both between individual developers and designated pull/push areas that
-are shared with others.  This additional power demands some additional
+are shared with others.  This additional freedom demands additional
 responsibility to maintain a certain development process that fits to
 a particular project.
 
@@ -294,7 +295,7 @@ examples are for tests on the local machine:
 
   ./bin/isabelle build -a  #regular test
 
-  ./bin/isabelle build -a -o document=pdf  #test with document preparation
+  ./bin/isabelle build -a -o document=pdf  #test with document preparation (optional)
 
   ./bin/isabelle build -a -j2 -o threads=4  #test on multiple cores (example)
 
