@@ -9,41 +9,6 @@ New in this Isabelle version
 
 *** General ***
 
-* Embedded content (e.g. the inner syntax of types, terms, props) may be
-delimited uniformly via cartouches. This works better than old-fashioned
-quotes when sub-languages are nested.
-
-* Type-inference improves sorts of newly introduced type variables for
-the object-logic, using its base sort (i.e. HOL.type for Isabelle/HOL).
-Thus terms like "f x" or "\<And>x. P x" without any further syntactic context
-produce x::'a::type in HOL instead of x::'a::{} in Pure. Rare
-INCOMPATIBILITY, need to provide explicit type constraints for Pure
-types where this is really intended.
-
-* Simplified outer syntax: uniform category "name" includes long
-identifiers. Former "xname" / "nameref" / "name reference" has been
-discontinued.
-
-* Mixfix annotations support general block properties, with syntax
-"(\<open>x=a y=b z \<dots>\<close>". Notable property names are "indent", "consistent",
-"unbreakable", "markup". The existing notation "(DIGITS" is equivalent
-to "(\<open>indent=DIGITS\<close>". The former notation "(00" for unbreakable blocks
-is superseded by "(\<open>unbreabable\<close>" --- rare INCOMPATIBILITY.
-
-* Mixfix annotations support delimiters like \<^control>\<open>cartouche\<close> --
-this allows special forms of document output.
-
-* Raw LaTeX output now works via \<^latex>\<open>...\<close> instead of raw control
-symbol \<^raw:...>. INCOMPATIBILITY, notably for LaTeXsugar.thy and its
-derivatives.
-
-* \<^raw:...> symbols are no longer supported.
-
-* New symbol \<circle>, e.g. for temporal operator.
-
-* Old 'header' command is no longer supported (legacy since
-Isabelle2015).
-
 * Command 'bundle' provides a local theory target to define a bundle
 from the body of specification commands (such as 'declare',
 'declaration', 'notation', 'lemmas', 'lemma'). For example:
@@ -58,47 +23,63 @@ end
 context. Unlike "context includes ... begin", the effect of 'unbundle'
 on the target context persists, until different declarations are given.
 
-* Splitter in simp, auto and friends:
-- The syntax "split add" has been discontinued, use plain "split".
-- For situations with many conditional or case expressions,
-there is an alternative splitting strategy that can be much faster.
-It is selected by writing "split!" instead of "split". It applies
-safe introduction and elimination rules after each split rule.
-As a result the subgoal may be split into several subgoals.
+* Simplified outer syntax: uniform category "name" includes long
+identifiers. Former "xname" / "nameref" / "name reference" has been
+discontinued.
+
+* Embedded content (e.g. the inner syntax of types, terms, props) may be
+delimited uniformly via cartouches. This works better than old-fashioned
+quotes when sub-languages are nested.
+
+* Mixfix annotations support general block properties, with syntax
+"(\<open>x=a y=b z \<dots>\<close>". Notable property names are "indent", "consistent",
+"unbreakable", "markup". The existing notation "(DIGITS" is equivalent
+to "(\<open>indent=DIGITS\<close>". The former notation "(00" for unbreakable blocks
+is superseded by "(\<open>unbreabable\<close>" --- rare INCOMPATIBILITY.
 
 * Proof method "blast" is more robust wrt. corner cases of Pure
 statements without object-logic judgment.
 
-* Pure provides basic versions of proof methods "simp" and "simp_all"
-that only know about meta-equality (==). Potential INCOMPATIBILITY in
-theory imports that merge Pure with e.g. Main of Isabelle/HOL: the order
-is relevant to avoid confusion of Pure.simp vs. HOL.simp.
-
 * Commands 'prf' and 'full_prf' are somewhat more informative (again):
-proof terms are reconstructed and cleaned from administrative thm
-nodes.
+proof terms are reconstructed and cleaned from administrative thm nodes.
 
-* The command 'unfolding' and proof method "unfold" include a second
-stage where given equations are passed through the attribute "abs_def"
-before rewriting. This ensures that definitions are fully expanded,
-regardless of the actual parameters that are provided. Rare
-INCOMPATIBILITY in some corner cases: use proof method (simp only:)
-instead, or declare [[unfold_abs_def = false]] in the proof context.
+* Code generator: config option "code_timing" triggers measurements of
+different phases of code generation. See src/HOL/ex/Code_Timing.thy for
+examples.
+
+* Code generator: implicits in Scala (stemming from type class
+instances) are generated into companion object of corresponding type
+class, to resolve some situations where ambiguities may occur.
+
+* Splitter in simp, auto and friends:
+  - The syntax "split add" has been discontinued, use plain "split",
+    INCOMPATIBILITY.
+  - For situations with many conditional or case expressions, there is
+    an alternative splitting strategy that can be much faster. It is
+    selected by writing "split!" instead of "split". It applies safe
+    introduction and elimination rules after each split rule. As a
+    result the subgoal may be split into several subgoals.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Highlighting of entity def/ref positions wrt. cursor.
+
+* Action "isabelle.select-entity" (shortcut CS+ENTER) selects all
+occurences of the formal entity at the caret position. This facilitates
+systematic renaming.
+
+* PIDE document markup works across multiple Isar commands, e.g. the
+results established at the end of a proof are properly identified in the
+theorem statement.
+
+* Cartouche abbreviations work both for " and ` to accomodate typical
+situations where old ASCII notation may be updated.
 
 * Dockable window "Symbols" also provides access to 'abbrevs' from the
 outer syntax of the current theory buffer. This provides clickable
 syntax templates, including entries with empty abbrevs name (which are
 inaccessible via keyboard completion).
-
-* Cartouche abbreviations work both for " and ` to accomodate typical
-situations where old ASCII notation may be updated.
-
-* Isabelle/ML and Standard ML files are presented in Sidekick with the
-tree structure of section headings: this special comment format is
-described in "implementation" chapter 0, e.g. (*** section ***).
 
 * IDE support for the Isabelle/Pure bootstrap process, with the
 following independent stages:
@@ -116,11 +97,9 @@ each stage are *not* propagated to the next stage, and isolated from the
 actual Isabelle/Pure that runs the IDE itself. The sequential
 dependencies of the above files are only observed for batch build.
 
-* Highlighting of entity def/ref positions wrt. cursor.
-
-* Refined folding mode "isabelle" based on Isar syntax: 'next' and 'qed'
-are treated as delimiters for fold structure; 'begin' and 'end'
-structure of theory specifications is treated as well.
+* Isabelle/ML and Standard ML files are presented in Sidekick with the
+tree structure of section headings: this special comment format is
+described in "implementation" chapter 0, e.g. (*** section ***).
 
 * Sidekick parser "isabelle-context" shows nesting of context blocks
 according to 'begin' and 'end' structure.
@@ -138,9 +117,9 @@ processing and may thus lag behind, when the user is editing too
 quickly; see also option "jedit_script_indent" and
 "jedit_script_indent_limit".
 
-* Action "isabelle.select-entity" (shortcut CS+ENTER) selects all
-occurences of the formal entity at the caret position. This facilitates
-systematic renaming.
+* Refined folding mode "isabelle" based on Isar syntax: 'next' and 'qed'
+are treated as delimiters for fold structure; 'begin' and 'end'
+structure of theory specifications is treated as well.
 
 * Action "isabelle.keymap-merge" asks the user to resolve pending
 Isabelle keymap changes that are in conflict with the current jEdit
@@ -148,10 +127,6 @@ keymap; non-conflicting changes are always applied implicitly. This
 action is automatically invoked on Isabelle/jEdit startup and thus
 increases chances that users see new keyboard shortcuts when re-using
 old keymaps.
-
-* Document markup works across multiple Isar commands, e.g. the results
-established at the end of a proof are properly identified in the theorem
-statement.
 
 * Command 'proof' provides information about proof outline with cases,
 e.g. for proof methods "cases", "induct", "goal_cases".
@@ -179,18 +154,24 @@ Minor INCOMPATIBILITY, former uses of @{file} and @{file_unchecked} may
 have to be changed.
 
 
+*** Document preparation ***
+
+* New symbol \<circle>, e.g. for temporal operator.
+
+* Mixfix annotations support delimiters like \<^control>\<open>cartouche\<close> --
+this allows special forms of document output.
+
+* Raw LaTeX output now works via \<^latex>\<open>...\<close> instead of raw control
+symbol \<^raw:...>. INCOMPATIBILITY, notably for LaTeXsugar.thy and its
+derivatives.
+
+* \<^raw:...> symbols are no longer supported.
+
+* Old 'header' command is no longer supported (legacy since
+Isabelle2015).
+
+
 *** Isar ***
-
-* The defining position of a literal fact \<open>prop\<close> is maintained more
-carefully, and made accessible as hyperlink in the Prover IDE.
-
-* Commands 'finally' and 'ultimately' used to expose the result as
-literal fact: this accidental behaviour has been discontinued. Rare
-INCOMPATIBILITY, use more explicit means to refer to facts in Isar.
-
-* Command 'axiomatization' has become more restrictive to correspond
-better to internal axioms as singleton facts with mandatory name. Minor
-INCOMPATIBILITY.
 
 * Many specification elements support structured statements with 'if' /
 'for' eigen-context, e.g. 'axiomatization', 'abbreviation',
@@ -213,8 +194,16 @@ context.
 * Command '\<proof>' is an alias for 'sorry', with different
 typesetting. E.g. to produce proof holes in examples and documentation.
 
-* The old proof method "default" has been removed (legacy since
-Isabelle2016). INCOMPATIBILITY, use "standard" instead.
+* The defining position of a literal fact \<open>prop\<close> is maintained more
+carefully, and made accessible as hyperlink in the Prover IDE.
+
+* Commands 'finally' and 'ultimately' used to expose the result as
+literal fact: this accidental behaviour has been discontinued. Rare
+INCOMPATIBILITY, use more explicit means to refer to facts in Isar.
+
+* Command 'axiomatization' has become more restrictive to correspond
+better to internal axioms as singleton facts with mandatory name. Minor
+INCOMPATIBILITY.
 
 * Proof methods may refer to the main facts via the dynamic fact
 "method_facts". This is particularly useful for Eisbach method
@@ -226,172 +215,54 @@ expression, e.g.
   (use facts in simp)
   (use facts in \<open>simp add: ...\<close>)
 
+* The old proof method "default" has been removed (legacy since
+Isabelle2016). INCOMPATIBILITY, use "standard" instead.
+
 
 *** Pure ***
 
-* Code generator: config option "code_timing" triggers measurements of
-different phases of code generation. See src/HOL/ex/Code_Timing.thy for
-examples.
+* Pure provides basic versions of proof methods "simp" and "simp_all"
+that only know about meta-equality (==). Potential INCOMPATIBILITY in
+theory imports that merge Pure with e.g. Main of Isabelle/HOL: the order
+is relevant to avoid confusion of Pure.simp vs. HOL.simp.
 
-* Code generator: implicits in Scala (stemming from type class instances)
-are generated into companion object of corresponding type class, to resolve
-some situations where ambiguities may occur.
+* The command 'unfolding' and proof method "unfold" include a second
+stage where given equations are passed through the attribute "abs_def"
+before rewriting. This ensures that definitions are fully expanded,
+regardless of the actual parameters that are provided. Rare
+INCOMPATIBILITY in some corner cases: use proof method (simp only:)
+instead, or declare [[unfold_abs_def = false]] in the proof context.
+
+* Type-inference improves sorts of newly introduced type variables for
+the object-logic, using its base sort (i.e. HOL.type for Isabelle/HOL).
+Thus terms like "f x" or "\<And>x. P x" without any further syntactic context
+produce x::'a::type in HOL instead of x::'a::{} in Pure. Rare
+INCOMPATIBILITY, need to provide explicit type constraints for Pure
+types where this is really intended.
 
 
 *** HOL ***
 
-* New proof method "argo" using the built-in Argo solver based on SMT technology.
-The method can be used to prove goals of quantifier-free propositional logic,
-goals based on a combination of quantifier-free propositional logic with equality,
-and goals based on a combination of quantifier-free propositional logic with
-linear real arithmetic including min/max/abs. See HOL/ex/Argo_Examples.thy for
-examples.
+* New proof method "argo" using the built-in Argo solver based on SMT
+technology. The method can be used to prove goals of quantifier-free
+propositional logic, goals based on a combination of quantifier-free
+propositional logic with equality, and goals based on a combination of
+quantifier-free propositional logic with linear real arithmetic
+including min/max/abs. See HOL/ex/Argo_Examples.thy for examples.
 
-* Type class "div" with operation "mod" renamed to type class "modulo" with
-operation "modulo", analogously to type class "divide".  This eliminates the
-need to qualify any of those names in the presence of infix "mod" syntax.
-INCOMPATIBILITY.
-
-* The unique existence quantifier no longer provides 'binder' syntax,
-but uses syntax translations (as for bounded unique existence). Thus
-iterated quantification \<exists>!x y. P x y with its slightly confusing
-sequential meaning \<exists>!x. \<exists>!y. P x y is no longer possible. Instead,
-pattern abstraction admits simultaneous unique existence \<exists>!(x, y). P x y
-(analogous to existing notation \<exists>!(x, y)\<in>A. P x y). Potential
-INCOMPATIBILITY in rare situations.
-
-* Renamed session HOL-Multivariate_Analysis to HOL-Analysis.
-
-* Moved measure theory from HOL-Probability to HOL-Analysis. When importing
-HOL-Analysis some theorems need additional name spaces prefixes due to name
-clashes.
-INCOMPATIBILITY.
-
-* In HOL-Probability the type of emeasure and nn_integral was changed
-from ereal to ennreal:
-  emeasure :: 'a measure => 'a set => ennreal
-  nn_integral :: 'a measure => ('a => ennreal) => ennreal
-INCOMPATIBILITY.
-
-* HOL-Analysis: more complex analysis including Cauchy's inequality, Liouville theorem,
-open mapping theorem, maximum modulus principle, Residue theorem, Schwarz Lemma.
-
-* HOL-Analysis: Theory of polyhedra: faces, extreme points, polytopes, and the Krein–Milman
-Minkowski theorem.
-
-* HOL-Analysis: Numerous results ported from the HOL Light libraries: homeomorphisms,
-continuous function extensions and other advanced topics in topology
-
-* Number_Theory: algebraic foundation for primes: Generalisation of
-predicate "prime" and introduction of predicates "prime_elem",
-"irreducible", a "prime_factorization" function, and the "factorial_ring"
-typeclass with instance proofs for nat, int, poly. Some theorems now have
-different names, most notably "prime_def" is now "prime_nat_iff".
-INCOMPATIBILITY.
-
-* Probability: Code generation and QuickCheck for Probability Mass
-Functions.
-
-* Theory Set_Interval.thy: substantial new theorems on indexed sums
-and products.
-
-* Theory List.thy:
-  listsum ~> sum_list
-  listprod ~> prod_list
-
-* Theory Library/LaTeXsugar.thy: New style "dummy_pats" for displaying
-equations in functional programming style: variables present on the
-left-hand but not on the righ-hand side are replaced by underscores.
-
-* "surj" is a mere input abbreviation, to avoid hiding an equation in
-term output.  Minor INCOMPATIBILITY.
-
-* Theory Library/Combinator_PER.thy: combinator to build partial
-equivalence relations from a predicate and an equivalence relation.
-
-* Theory Library/Perm.thy: basic facts about almost everywhere fix
-bijections.
-
-* Theory Library/Normalized_Fraction.thy: allows viewing an element
-of a field of fractions as a normalized fraction (i.e. a pair of
-numerator and denominator such that the two are coprime and the
-denominator is normalized w.r.t. unit factors)
-
-* Locale bijection establishes convenient default simp rules
-like "inv f (f a) = a" for total bijections.
-
-* Former locale lifting_syntax is now a bundle, which is easier to
-include in a local context or theorem statement, e.g. "context includes
-lifting_syntax begin ... end". Minor INCOMPATIBILITY.
-
-* Code generation for scala: ambiguous implicts in class diagrams
-are spelt out explicitly.
-
-* Abstract locales semigroup, abel_semigroup, semilattice,
-semilattice_neutr, ordering, ordering_top, semilattice_order,
-semilattice_neutr_order, comm_monoid_set, semilattice_set,
-semilattice_neutr_set, semilattice_order_set, semilattice_order_neutr_set
-monoid_list, comm_monoid_list, comm_monoid_list_set, comm_monoid_mset,
-comm_monoid_fun use boldified syntax uniformly that does not clash
-with corresponding global syntax.  INCOMPATIBILITY.
-
-* Conventional syntax "%(). t" for unit abstractions.  Slight syntactic
-INCOMPATIBILITY.
-
-* Command 'code_reflect' accepts empty constructor lists for datatypes,
-which renders those abstract effectively.
-
-* Command 'export_code' checks given constants for abstraction violations:
-a small guarantee that given constants specify a safe interface for the
-generated code.
-
-* Probability/Random_Permutations.thy contains some theory about
-choosing a permutation of a set uniformly at random and folding over a
-list in random order.
-
-* Probability/SPMF formalises discrete subprobability distributions.
-
-* Library/FinFun.thy: bundles "finfun_syntax" and "no_finfun_syntax"
-allow to control optional syntax in local contexts; this supersedes
-former Library/FinFun_Syntax.thy. INCOMPATIBILITY, e.g. use "unbundle
-finfun_syntax" to imitate import of "~~/src/HOL/Library/FinFun_Syntax".
-
-* Library/Set_Permutations.thy (executably) defines the set of
-permutations of a set, i.e. the set of all lists that contain every
-element of the carrier set exactly once.
-
-* Static evaluators (Code_Evaluation.static_* in Isabelle/ML) rely on
-explicitly provided auxiliary definitions for required type class
-dictionaries rather than half-working magic.  INCOMPATIBILITY, see
-the tutorial on code generation for details.
-
-* New abbreviations for negated existence (but not bounded existence):
-
-  \<nexists>x. P x \<equiv> \<not> (\<exists>x. P x)
-  \<nexists>!x. P x \<equiv> \<not> (\<exists>!x. P x)
-
-* The print mode "HOL" for ASCII syntax of binders "!", "?", "?!", "@"
-has been removed for output. It is retained for input only, until it is
-eliminated altogether.
-
-* metis: The problem encoding has changed very slightly. This might
+* Metis: The problem encoding has changed very slightly. This might
 break existing proofs. INCOMPATIBILITY.
 
 * Sledgehammer:
   - The MaSh relevance filter is now faster than before.
   - Produce syntactically correct Vampire 4.0 problem files.
 
-* The 'coinductive' command produces a proper coinduction rule for
-mutual coinductive predicates. This new rule replaces the old rule,
-which exposed details of the internal fixpoint construction and was
-hard to use. INCOMPATIBILITY.
-
 * (Co)datatype package:
   - New commands for defining corecursive functions and reasoning about
     them in "~~/src/HOL/Library/BNF_Corec.thy": 'corec', 'corecursive',
     'friend_of_corec', and 'corecursion_upto'; and 'corec_unique' proof
     method. See 'isabelle doc corec'.
-  - The predicator :: ('a => bool) => 'a F => bool is now a first-class
+  - The predicator :: ('a \<Rightarrow> bool) \<Rightarrow> 'a F \<Rightarrow> bool is now a first-class
     citizen in bounded natural functors.
   - 'primrec' now allows nested calls through the predicator in addition
     to the map function.
@@ -410,6 +281,100 @@ hard to use. INCOMPATIBILITY.
   - The theorems about "rel" and "set" may have a slightly different (but
     equivalent) form.
     INCOMPATIBILITY.
+
+* The 'coinductive' command produces a proper coinduction rule for
+mutual coinductive predicates. This new rule replaces the old rule,
+which exposed details of the internal fixpoint construction and was
+hard to use. INCOMPATIBILITY.
+
+* New abbreviations for negated existence (but not bounded existence):
+
+  \<nexists>x. P x \<equiv> \<not> (\<exists>x. P x)
+  \<nexists>!x. P x \<equiv> \<not> (\<exists>!x. P x)
+
+* The print mode "HOL" for ASCII syntax of binders "!", "?", "?!", "@"
+has been removed for output. It is retained for input only, until it is
+eliminated altogether.
+
+* The unique existence quantifier no longer provides 'binder' syntax,
+but uses syntax translations (as for bounded unique existence). Thus
+iterated quantification \<exists>!x y. P x y with its slightly confusing
+sequential meaning \<exists>!x. \<exists>!y. P x y is no longer possible. Instead,
+pattern abstraction admits simultaneous unique existence \<exists>!(x, y). P x y
+(analogous to existing notation \<exists>!(x, y)\<in>A. P x y). Potential
+INCOMPATIBILITY in rare situations.
+
+* Conventional syntax "%(). t" for unit abstractions. Slight syntactic
+INCOMPATIBILITY.
+
+* Characters (type char) are modelled as finite algebraic type
+corresponding to {0..255}.
+
+  - Logical representation:
+    * 0 is instantiated to the ASCII zero character.
+    * All other characters are represented as "Char n"
+      with n being a raw numeral expression less than 256.
+    * Expressions of the form "Char n" with n greater than 255
+      are non-canonical.
+  - Printing and parsing:
+    * Printable characters are printed and parsed as "CHR ''\<dots>''"
+      (as before).
+    * The ASCII zero character is printed and parsed as "0".
+    * All other canonical characters are printed as "CHR 0xXX"
+      with XX being the hexadecimal character code.  "CHR n"
+      is parsable for every numeral expression n.
+    * Non-canonical characters have no special syntax and are
+      printed as their logical representation.
+  - Explicit conversions from and to the natural numbers are
+    provided as char_of_nat, nat_of_char (as before).
+  - The auxiliary nibble type has been discontinued.
+
+INCOMPATIBILITY.
+
+* Type class "div" with operation "mod" renamed to type class "modulo"
+with operation "modulo", analogously to type class "divide". This
+eliminates the need to qualify any of those names in the presence of
+infix "mod" syntax. INCOMPATIBILITY.
+
+* Constant "surj" is a mere input abbreviation, to avoid hiding an
+equation in term output. Minor INCOMPATIBILITY.
+
+* Command 'code_reflect' accepts empty constructor lists for datatypes,
+which renders those abstract effectively.
+
+* Command 'export_code' checks given constants for abstraction
+violations: a small guarantee that given constants specify a safe
+interface for the generated code.
+
+* Code generation for Scala: ambiguous implicts in class diagrams are
+spelt out explicitly.
+
+* Static evaluators (Code_Evaluation.static_* in Isabelle/ML) rely on
+explicitly provided auxiliary definitions for required type class
+dictionaries rather than half-working magic.  INCOMPATIBILITY, see
+the tutorial on code generation for details.
+
+* Theory Set_Interval.thy: substantial new theorems on indexed sums
+and products.
+
+* Theory List.thy: ranaming of listsum ~> sum_list, listprod ~>
+prod_list, INCOMPATIBILITY.
+
+* Locale bijection establishes convenient default simp rules such as
+"inv f (f a) = a" for total bijections.
+
+* Abstract locales semigroup, abel_semigroup, semilattice,
+semilattice_neutr, ordering, ordering_top, semilattice_order,
+semilattice_neutr_order, comm_monoid_set, semilattice_set,
+semilattice_neutr_set, semilattice_order_set,
+semilattice_order_neutr_set monoid_list, comm_monoid_list,
+comm_monoid_list_set, comm_monoid_mset, comm_monoid_fun use boldified
+syntax uniformly that does not clash with corresponding global syntax.
+INCOMPATIBILITY.
+
+* Former locale lifting_syntax is now a bundle, which is easier to
+include in a local context or theorem statement, e.g. "context includes
+lifting_syntax begin ... end". Minor INCOMPATIBILITY.
 
 * Some old / obsolete theorems have been renamed / removed, potential
 INCOMPATIBILITY.
@@ -444,31 +409,20 @@ INCOMPATIBILITY.
 * Renamed split_if -> if_split and split_if_asm -> if_split_asm to
 resemble the f.split naming convention, INCOMPATIBILITY.
 
-* Characters (type char) are modelled as finite algebraic type
-corresponding to {0..255}.
+* Added class topological_monoid.
 
-  - Logical representation:
-    * 0 is instantiated to the ASCII zero character.
-    * All other characters are represented as "Char n"
-      with n being a raw numeral expression less than 256.
-    * Expressions of the form "Char n" with n greater than 255
-      are non-canonical.
-  - Printing and parsing:
-    * Printable characters are printed and parsed as "CHR ''\<dots>''"
-      (as before).
-    * The ASCII zero character is printed and parsed as "0".
-    * All other canonical characters are printed as "CHR 0xXX"
-      with XX being the hexadecimal character code.  "CHR n"
-      is parsable for every numeral expression n.
-    * Non-canonical characters have no special syntax and are
-      printed as their logical representation.
-  - Explicit conversions from and to the natural numbers are
-    provided as char_of_nat, nat_of_char (as before).
-  - The auxiliary nibble type has been discontinued.
+* HOL-Library: theory FinFun bundles "finfun_syntax" and
+"no_finfun_syntax" allow to control optional syntax in local contexts;
+this supersedes former theory FinFun_Syntax. INCOMPATIBILITY, e.g. use
+"unbundle finfun_syntax" to imitate import of
+"~~/src/HOL/Library/FinFun_Syntax".
 
-INCOMPATIBILITY.
+* HOL-Library: theory Set_Permutations (executably) defines the set of
+permutations of a set, i.e. the set of all lists that contain every
+element of the carrier set exactly once.
 
-* Multiset membership is now expressed using set_mset rather than count.
+* HOL-Library: multiset membership is now expressed using set_mset
+rather than count.
 
   - Expressions "count M a > 0" and similar simplify to membership
     by default.
@@ -484,8 +438,68 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* The names of multiset theorems have been normalised to distinguish which
-  ordering the theorems are about
+* HOL-Library: theory LaTeXsugar uses new-style "dummy_pats" for
+displaying equations in functional programming style --- variables
+present on the left-hand but not on the righ-hand side are replaced by
+underscores.
+
+* HOL-Library: theory Combinator_PER provides combinator to build
+partial equivalence relations from a predicate and an equivalence
+relation.
+
+* HOL-Library: theory Perm provides basic facts about almost everywhere
+fix bijections.
+
+* HOL-Library: theory Normalized_Fraction allows viewing an element of a
+field of fractions as a normalized fraction (i.e. a pair of numerator
+and denominator such that the two are coprime and the denominator is
+normalized wrt. unit factors).
+
+* Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
+
+* Session HOL-Multivariate_Analysis has been renamed to HOL-Analysis.
+
+* HOL-Analysis: measure theory has been moved here from HOL-Probability.
+When importing HOL-Analysis some theorems need additional name spaces
+prefixes due to name clashes. INCOMPATIBILITY.
+
+* HOL-Analysis: more complex analysis including Cauchy's inequality,
+Liouville theorem, open mapping theorem, maximum modulus principle,
+Residue theorem, Schwarz Lemma.
+
+* HOL-Analysis: Theory of polyhedra: faces, extreme points, polytopes,
+and the Krein–Milman Minkowski theorem.
+
+* HOL-Analysis: Numerous results ported from the HOL Light libraries:
+homeomorphisms, continuous function extensions and other advanced topics
+in topology
+
+* HOL-Probability: the type of emeasure and nn_integral was changed from
+ereal to ennreal, INCOMPATIBILITY.
+
+  emeasure :: 'a measure \<Rightarrow> 'a set \<Rightarrow> ennreal
+  nn_integral :: 'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal
+
+* HOL-Probability: Code generation and QuickCheck for Probability Mass
+Functions.
+
+* HOL-Probability: theory Random_Permutations contains some theory about
+choosing a permutation of a set uniformly at random and folding over a
+list in random order.
+
+* HOL-Probability: theory SPMF formalises discrete subprobability
+distributions.
+
+* HOL-Number_Theory: algebraic foundation for primes: Generalisation of
+predicate "prime" and introduction of predicates "prime_elem",
+"irreducible", a "prime_factorization" function, and the
+"factorial_ring" typeclass with instance proofs for nat, int, poly. Some
+theorems now have different names, most notably "prime_def" is now
+"prime_nat_iff". INCOMPATIBILITY.
+
+* HOL-Library: the names of multiset theorems have been normalised to
+distinguish which ordering the theorems are about
+
     mset_less_eqI ~> mset_subset_eqI
     mset_less_insertD ~> mset_subset_insertD
     mset_less_eq_count ~> mset_subset_eq_count
@@ -512,23 +526,25 @@ INCOMPATIBILITY.
     mset_remdups_le ~> mset_remdups_subset_eq
     ms_lesseq_impl ~> subset_eq_mset_impl
 
-  Some functions have been renamed:
+Some functions have been renamed:
     ms_lesseq_impl -> subset_eq_mset_impl
 
-* Multisets are now ordered with the multiset ordering
+* HOL-Library: multisets are now ordered with the multiset ordering
     #\<subseteq># ~> \<le>
     #\<subset># ~> <
     le_multiset ~> less_eq_multiset
     less_multiset ~> le_multiset
 INCOMPATIBILITY.
 
-* The prefix multiset_order has been discontinued: the theorems can be directly
-accessed. As a consequence, the lemmas "order_multiset" and "linorder_multiset"
-have been discontinued, and the interpretations "multiset_linorder" and
-"multiset_wellorder" have been replaced by instantiations.
-INCOMPATIBILITY.
+* HOL-Library: the prefix multiset_order has been discontinued: the
+theorems can be directly accessed. As a consequence, the lemmas
+"order_multiset" and "linorder_multiset" have been discontinued, and the
+interpretations "multiset_linorder" and "multiset_wellorder" have been
+replaced by instantiations. INCOMPATIBILITY.
 
-* Some theorems about the multiset ordering have been renamed:
+* HOL-Library: some theorems about the multiset ordering have been
+renamed:
+
     le_multiset_def ~> less_eq_multiset_def
     less_multiset_def ~> le_multiset_def
     less_eq_imp_le_multiset ~> subset_eq_imp_le_multiset
@@ -554,32 +570,36 @@ INCOMPATIBILITY.
     less_multiset_plus_plus_right_iff ~> le_multiset_plus_plus_right_iff
 INCOMPATIBILITY.
 
-* The lemma mset_map has now the attribute [simp].
+* HOL-Library: the lemma mset_map has now the attribute [simp].
 INCOMPATIBILITY.
 
-* Some theorems about multisets have been removed:
+* HOL-Library: some theorems about multisets have been removed.
+INCOMPATIBILITY, use the following replacements:
+
     le_multiset_plus_plus_left_iff ~> add_less_cancel_right
     le_multiset_plus_plus_right_iff ~> add_less_cancel_left
     add_eq_self_empty_iff ~> add_cancel_left_right
     mset_subset_add_bothsides ~> subset_mset.add_less_cancel_right
+
+* HOL-Library: some typeclass constraints about multisets have been
+reduced from ordered or linordered to preorder. Multisets have the
+additional typeclasses order_bot, no_top,
+ordered_ab_semigroup_add_imp_le, ordered_cancel_comm_monoid_add,
+linordered_cancel_ab_semigroup_add, and
+ordered_ab_semigroup_monoid_add_imp_le. INCOMPATIBILITY.
+
+* HOL-Library: there are some new simplification rules about multisets,
+the multiset ordering, and the subset ordering on multisets.
 INCOMPATIBILITY.
 
-* Some typeclass constraints about multisets have been reduced from ordered or
-linordered to preorder. Multisets have the additional typeclasses order_bot,
-no_top, ordered_ab_semigroup_add_imp_le, ordered_cancel_comm_monoid_add,
-linordered_cancel_ab_semigroup_add, and ordered_ab_semigroup_monoid_add_imp_le.
-INCOMPATIBILITY.
+* HOL-Library: the subset ordering on multisets has now the
+interpretations ordered_ab_semigroup_monoid_add_imp_le and
+bounded_lattice_bot. INCOMPATIBILITY.
 
-* There are some new simplification rules about multisets, the multiset
-ordering, and the subset ordering on multisets.
-INCOMPATIBILITY.
+* HOL-Library/Multiset: single has been removed in favor of add_mset
+that roughly corresponds to Set.insert. Some theorems have removed or
+changed:
 
-* The subset ordering on multisets has now the interpretations
-ordered_ab_semigroup_monoid_add_imp_le and bounded_lattice_bot.
-INCOMPATIBILITY.
-
-* Multiset: single has been removed in favor of add_mset that roughly
-corresponds to Set.insert. Some theorems have removed or changed:
   single_not_empty ~> add_mset_not_empty or empty_not_add_mset
   fold_mset_insert ~> fold_mset_add_mset
   image_mset_insert ~> image_mset_add_mset
@@ -588,7 +608,9 @@ corresponds to Set.insert. Some theorems have removed or changed:
   diff_single_eq_union
 INCOMPATIBILITY.
 
-* Multiset: some theorems have been changed to use add_mset instead of single:
+* HOL-Library/Multiset: some theorems have been changed to use add_mset
+instead of single:
+
   mset_add
   multi_self_add_other_not_self
   diff_single_eq_union
@@ -630,8 +652,8 @@ INCOMPATIBILITY.
   multiset_induct2
 INCOMPATIBILITY.
 
-* Multiset: the definitions of some constants have changed to use add_mset instead
-of adding a single element:
+* HOL-Library/Multiset. The definitions of some constants have changed
+to use add_mset instead of adding a single element:
   image_mset
   mset
   replicate_mset
@@ -641,8 +663,8 @@ of adding a single element:
   mset_insort
 INCOMPATIBILITY.
 
-* Due to the above changes, the attributes of some multiset theorems have
-been changed:
+* HOL-Library/Multiset. Due to the above changes, the attributes of some
+multiset theorems have been changed:
   insert_DiffM  [] ~> [simp]
   insert_DiffM2 [simp] ~> []
   diff_add_mset_swap [simp]
@@ -664,26 +686,26 @@ been changed:
   empty_inter [simp] ~> []
 INCOMPATIBILITY.
 
-* The order of the variables in the second cases of multiset_induct,
-multiset_induct2_size, multiset_induct2 has been changed (e.g. Add A a ~> Add a A).
+* HOL-Library/Multiset. The order of the variables in the second cases
+of multiset_induct, multiset_induct2_size, multiset_induct2 has been
+changed (e.g. Add A a ~> Add a A). INCOMPATIBILITY.
+
+* HOL-Library/Multiset. There is now a simplification procedure on
+multisets. It mimics the behavior of the procedure on natural numbers.
 INCOMPATIBILITY.
 
-* There is now a simplification procedure on multisets. It mimics the behavior
-of the procedure on natural numbers.
-INCOMPATIBILITY.
-
-* Renamed sums and products of multisets:
+* HOL-Library/Multiset. Renamed sums and products of multisets:
   msetsum ~> sum_mset
   msetprod ~> prod_mset
 
-* The symbols for intersection and union of multisets have been changed:
+* HOL-Library/Multiset. The notation for intersection and union of
+multisets have been changed:
   #\<inter> ~> \<inter>#
   #\<union> ~> \<union>#
 INCOMPATIBILITY.
 
-* The lemma one_step_implies_mult_aux on multisets has been removed, use
-one_step_implies_mult instead.
-INCOMPATIBILITY.
+* HOL-Library/Multiset. The lemma one_step_implies_mult_aux on multisets
+has been removed, use one_step_implies_mult instead. INCOMPATIBILITY.
 
 * The following theorems have been renamed:
   setsum_left_distrib ~> setsum_distrib_right
@@ -699,36 +721,37 @@ comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f ` A)".
 * Class semiring_Lcd merged into semiring_Gcd.  INCOMPATIBILITY.
 
 * The type class ordered_comm_monoid_add is now called
-ordered_cancel_comm_monoid_add. A new type class ordered_comm_monoid_add is
-introduced as the combination of ordered_ab_semigroup_add + comm_monoid_add.
-INCOMPATIBILITY.
+ordered_cancel_comm_monoid_add. A new type class ordered_comm_monoid_add
+is introduced as the combination of ordered_ab_semigroup_add +
+comm_monoid_add. INCOMPATIBILITY.
 
-* Introduced the type classes canonically_ordered_comm_monoid_add and dioid.
+* Introduced the type classes canonically_ordered_comm_monoid_add and
+dioid.
 
 * Introduced the type class ordered_ab_semigroup_monoid_add_imp_le. When
-instantiating linordered_semiring_strict and ordered_ab_group_add, an explicit
-instantiation of ordered_ab_semigroup_monoid_add_imp_le might be
-required.
-INCOMPATIBILITY.
+instantiating linordered_semiring_strict and ordered_ab_group_add, an
+explicit instantiation of ordered_ab_semigroup_monoid_add_imp_le might
+be required. INCOMPATIBILITY.
 
-* Added topological_monoid
+* HOL-Library: theory Complete_Partial_Order2 provides reasoning support
+for monotonicity and continuity in chain-complete partial orders and
+about admissibility conditions for fixpoint inductions.
 
-* Library/Complete_Partial_Order2.thy provides reasoning support for
-proofs about monotonicity and continuity in chain-complete partial
-orders and about admissibility conditions for fixpoint inductions.
+* HOL-Library: theory Polynomial contains also derivation of polynomials
+but not gcd/lcm on polynomials over fields. This has been moved to a
+separate theory Library/Polynomial_GCD_euclidean.thy, to pave way for a
+possible future different type class instantiation for polynomials over
+factorial rings. INCOMPATIBILITY.
 
-* Library/Polynomial.thy contains also derivation of polynomials
-but not gcd/lcm on polynomials over fields.  This has been moved
-to a separate theory Library/Polynomial_GCD_euclidean.thy, to
-pave way for a possible future different type class instantiation
-for polynomials over factorial rings.  INCOMPATIBILITY.
+* HOL-Library: theory Sublist.thy provides function "prefixes" with the
+following renaming
 
-* Library/Sublist.thy: added function "prefixes" and renamed
   prefixeq -> prefix
   prefix -> strict_prefix
   suffixeq -> suffix
   suffix -> strict_suffix
-  Added theory of longest common prefixes.
+
+Added theory of longest common prefixes.
 
 * Dropped various legacy fact bindings, whose replacements are often
 of a more general type also:
@@ -822,11 +845,9 @@ of a more general type also:
   dvd_Gcd, dvd_Gcd_nat, dvd_Gcd_int removed in favour of Gcd_greatest
 INCOMPATIBILITY.
 
-* Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
-
 * Renamed HOL/Quotient_Examples/FSet.thy to
-HOL/Quotient_Examples/Quotient_FSet.thy
-INCOMPATIBILITY.
+HOL/Quotient_Examples/Quotient_FSet.thy INCOMPATIBILITY.
+
 
 *** ML ***
 
