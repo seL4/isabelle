@@ -158,6 +158,10 @@ lemma gfp_eqI: "mono F \<Longrightarrow> F x = x \<Longrightarrow> (\<And>z. F z
   by (rule antisym) (simp_all add: gfp_upperbound gfp_unfold[symmetric])
 
 
+lemma lfp_le_gfp: "mono f \<Longrightarrow> lfp f \<le> gfp f"
+  by (iprover intro: gfp_upperbound lfp_lemma3)
+
+
 subsection \<open>Coinduction rules for greatest fixed points\<close>
 
 text \<open>Weak version.\<close>
