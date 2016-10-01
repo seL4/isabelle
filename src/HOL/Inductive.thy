@@ -23,10 +23,10 @@ definition lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
   where "lfp f = Inf {u. f u \<le> u}"
 
 lemma lfp_lowerbound: "f A \<le> A \<Longrightarrow> lfp f \<le> A"
-  by (auto simp add: lfp_def intro: Inf_lower)
+  unfolding lfp_def by (rule Inf_lower) simp
 
 lemma lfp_greatest: "(\<And>u. f u \<le> u \<Longrightarrow> A \<le> u) \<Longrightarrow> A \<le> lfp f"
-  by (auto simp add: lfp_def intro: Inf_greatest)
+  unfolding lfp_def by (rule Inf_greatest) simp
 
 end
 

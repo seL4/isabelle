@@ -466,30 +466,48 @@ lemma Eps_case_prod_eq [simp]: "(SOME (x', y'). x = x' \<and> y = y') = (x, y)"
 
 
 text \<open>A relation is wellfounded iff it has no infinite descending chain.\<close>
-lemma wf_iff_no_infinite_down_chain: "wf r \<longleftrightarrow> (\<not> (\<exists>f. \<forall>i. (f (Suc i), f i) \<in> r))"
-  apply (simp only: wf_eq_minimal)
-  apply (rule iffI)
-   apply (rule notI)
-   apply (erule exE)
-   apply (erule_tac x = "{w. \<exists>i. w = f i}" in allE)
-   apply blast
-  apply (erule contrapos_np)
-  apply simp
-  apply clarify
-  apply (subgoal_tac "\<forall>n. rec_nat x (\<lambda>i y. SOME z. z \<in> Q \<and> (z, y) \<in> r) n \<in> Q")
-   apply (rule_tac x = "rec_nat x (\<lambda>i y. SOME z. z \<in> Q \<and> (z, y) \<in> r)" in exI)
-   apply (rule allI)
-   apply simp
-   apply (rule someI2_ex)
-    apply blast
-   apply blast
-  apply (rule allI)
-  apply (induct_tac n)
-   apply simp_all
-  apply (rule someI2_ex)
-   apply blast
-  apply blast
-  done
+lemma wf_iff_no_infinite_down_chain: "wf r \<longleftrightarrow> (\<nexists>f. \<forall>i. (f (Suc i), f i) \<in> r)"
+  (is "_ \<longleftrightarrow> \<not> ?ex")
+proof
+  assume "wf r"
+  show "\<not> ?ex"
+  proof
+    assume ?ex
+    then obtain f where f: "(f (Suc i), f i) \<in> r" for i
+      by blast
+    from \<open>wf r\<close> have minimal: "x \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q" for x Q
+      by (auto simp: wf_eq_minimal)
+    let ?Q = "{w. \<exists>i. w = f i}"
+    fix n
+    have "f n \<in> ?Q" by blast
+    from minimal [OF this] obtain j where "(y, f j) \<in> r \<Longrightarrow> y \<notin> ?Q" for y by blast
+    with this [OF \<open>(f (Suc j), f j) \<in> r\<close>] have "f (Suc j) \<notin> ?Q" by simp
+    then show False by blast
+  qed
+next
+  assume "\<not> ?ex"
+  then show "wf r"
+  proof (rule contrapos_np)
+    assume "\<not> wf r"
+    then obtain Q x where x: "x \<in> Q" and rec: "z \<in> Q \<Longrightarrow> \<exists>y. (y, z) \<in> r \<and> y \<in> Q" for z
+      by (auto simp add: wf_eq_minimal)
+    obtain descend :: "nat \<Rightarrow> 'a"
+      where descend_0: "descend 0 = x"
+        and descend_Suc: "descend (Suc n) = (SOME y. y \<in> Q \<and> (y, descend n) \<in> r)" for n
+      by (rule that [of "rec_nat x (\<lambda>_ rec. (SOME y. y \<in> Q \<and> (y, rec) \<in> r))"]) simp_all
+    have descend_Q: "descend n \<in> Q" for n
+    proof (induct n)
+      case 0
+      with x show ?case by (simp only: descend_0)
+    next
+      case Suc
+      then show ?case by (simp only: descend_Suc) (rule someI2_ex; use rec in blast)
+    qed
+    have "(descend (Suc i), descend i) \<in> r" for i
+      by (simp only: descend_Suc) (rule someI2_ex; use descend_Q rec in blast)
+    then show "\<exists>f. \<forall>i. (f (Suc i), f i) \<in> r" by blast
+  qed
+qed
 
 lemma wf_no_infinite_down_chainE:
   assumes "wf r"
