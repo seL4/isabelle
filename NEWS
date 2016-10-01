@@ -336,6 +336,12 @@ with operation "modulo", analogously to type class "divide". This
 eliminates the need to qualify any of those names in the presence of
 infix "mod" syntax. INCOMPATIBILITY.
 
+* Statements and proofs of Knaster-Tarski fixpoint combinators lfp/gfp
+have been clarified. The fixpoint properties are lfp_fixpoint, its
+symmetric lfp_unfold (as before), and the duals for gfp. Auxiliary items
+for the proof (lfp_lemma2 etc.) are no longer exported, but can be
+easily recovered by composition with eq_refl. Minor INCOMPATIBILITY.
+
 * Constant "surj" is a mere input abbreviation, to avoid hiding an
 equation in term output. Minor INCOMPATIBILITY.
 

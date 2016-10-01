@@ -123,7 +123,7 @@ proof (rule antisym)
       case (Suc i)
       have "(F ^^ Suc i) bot = F ((F ^^ i) bot)" by simp
       also have "\<dots> \<le> F (lfp F)" by (rule monoD[OF mono Suc])
-      also have "\<dots> = lfp F" by (simp add: lfp_unfold[OF mono, symmetric])
+      also have "\<dots> = lfp F" by (simp add: lfp_fixpoint[OF mono])
       finally show ?case .
     qed simp
   qed
@@ -287,7 +287,7 @@ proof (rule antisym)
     fix i show "gfp F \<le> (F ^^ i) top"
     proof (induct i)
       case (Suc i)
-      have "gfp F = F (gfp F)" by (simp add: gfp_unfold[OF mono, symmetric])
+      have "gfp F = F (gfp F)" by (simp add: gfp_fixpoint[OF mono])
       also have "\<dots> \<le> F ((F ^^ i) top)" by (rule monoD[OF mono Suc])
       also have "\<dots> = (F ^^ Suc i) top" by simp
       finally show ?case .

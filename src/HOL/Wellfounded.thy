@@ -837,8 +837,9 @@ proof (rule acc_wfI, intro allI)
       qed
     qed
   next
-    case [simp]: infinite
-    show ?case by (rule accI) (auto elim: max_ext.cases)
+    case infinite
+    show ?case
+      by (rule accI) (auto elim: max_ext.cases simp: infinite)
   qed
 qed
 

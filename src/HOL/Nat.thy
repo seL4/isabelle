@@ -1554,7 +1554,7 @@ proof (rule antisym)
       by (simp add: comp_def)
   qed
   have "(f ^^ n) (lfp f) = lfp f" for n
-    by (induct n) (auto intro: f lfp_unfold[symmetric])
+    by (induct n) (auto intro: f lfp_fixpoint)
   then show "lfp (f ^^ Suc n) \<le> lfp f"
     by (intro lfp_lowerbound) (simp del: funpow.simps)
 qed
@@ -1571,7 +1571,7 @@ proof (rule antisym)
       by (simp add: comp_def)
   qed
   have "(f ^^ n) (gfp f) = gfp f" for n
-    by (induct n) (auto intro: f gfp_unfold[symmetric])
+    by (induct n) (auto intro: f gfp_fixpoint)
   then show "gfp (f ^^ Suc n) \<ge> gfp f"
     by (intro gfp_upperbound) (simp del: funpow.simps)
 qed

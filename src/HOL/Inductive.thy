@@ -14,38 +14,47 @@ theory Inductive
     "primrec" :: thy_decl
 begin
 
-subsection \<open>Least and greatest fixed points\<close>
+subsection \<open>Least fixed points\<close>
 
 context complete_lattice
 begin
 
-definition lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  \<comment> \<open>least fixed point\<close>
+definition lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
   where "lfp f = Inf {u. f u \<le> u}"
 
-definition gfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  \<comment> \<open>greatest fixed point\<close>
-  where "gfp f = Sup {u. u \<le> f u}"
-
-
-subsection \<open>Proof of Knaster-Tarski Theorem using @{term lfp}\<close>
-
-text \<open>@{term "lfp f"} is the least upper bound of the set @{term "{u. f u \<le> u}"}\<close>
-
 lemma lfp_lowerbound: "f A \<le> A \<Longrightarrow> lfp f \<le> A"
-  by (auto simp add: lfp_def intro: Inf_lower)
+  unfolding lfp_def by (rule Inf_lower) simp
 
 lemma lfp_greatest: "(\<And>u. f u \<le> u \<Longrightarrow> A \<le> u) \<Longrightarrow> A \<le> lfp f"
-  by (auto simp add: lfp_def intro: Inf_greatest)
+  unfolding lfp_def by (rule Inf_greatest) simp
 
 end
 
-lemma lfp_lemma2: "mono f \<Longrightarrow> f (lfp f) \<le> lfp f"
-  by (iprover intro: lfp_greatest order_trans monoD lfp_lowerbound)
-
-lemma lfp_lemma3: "mono f \<Longrightarrow> lfp f \<le> f (lfp f)"
-  by (iprover intro: lfp_lemma2 monoD lfp_lowerbound)
+lemma lfp_fixpoint:
+  assumes "mono f"
+  shows "f (lfp f) = lfp f"
+  unfolding lfp_def
+proof (rule order_antisym)
+  let ?H = "{u. f u \<le> u}"
+  let ?a = "\<Sqinter>?H"
+  show "f ?a \<le> ?a"
+  proof (rule Inf_greatest)
+    fix x
+    assume "x \<in> ?H"
+    then have "?a \<le> x" by (rule Inf_lower)
+    with \<open>mono f\<close> have "f ?a \<le> f x" ..
+    also from \<open>x \<in> ?H\<close> have "f x \<le> x" ..
+    finally show "f ?a \<le> x" .
+  qed
+  show "?a \<le> f ?a"
+  proof (rule Inf_lower)
+    from \<open>mono f\<close> and \<open>f ?a \<le> ?a\<close> have "f (f ?a) \<le> f ?a" ..
+    then show "f ?a \<in> ?H" ..
+  qed
+qed
 
 lemma lfp_unfold: "mono f \<Longrightarrow> lfp f = f (lfp f)"
-  by (iprover intro: order_antisym lfp_lemma2 lfp_lemma3)
+  by (rule lfp_fixpoint [symmetric])
 
 lemma lfp_const: "lfp (\<lambda>x. t) = t"
   by (rule lfp_unfold) (simp add: mono_def)
@@ -132,9 +141,13 @@ lemma lfp_mono: "(\<And>Z. f Z \<le> g Z) \<Longrightarrow> lfp f \<le> lfp g"
   by (rule lfp_lowerbound [THEN lfp_greatest]) (blast intro: order_trans)
 
 
-subsection \<open>Proof of Knaster-Tarski Theorem using \<open>gfp\<close>\<close>
+subsection \<open>Greatest fixed points\<close>
 
-text \<open>@{term "gfp f"} is the greatest lower bound of the set @{term "{u. u \<le> f u}"}\<close>
+context complete_lattice
+begin
+
+definition gfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where "gfp f = Sup {u. u \<le> f u}"
 
 lemma gfp_upperbound: "X \<le> f X \<Longrightarrow> X \<le> gfp f"
   by (auto simp add: gfp_def intro: Sup_upper)
@@ -142,24 +155,42 @@ lemma gfp_upperbound: "X \<le> f X \<Longrightarrow> X \<le> gfp f"
 lemma gfp_least: "(\<And>u. u \<le> f u \<Longrightarrow> u \<le> X) \<Longrightarrow> gfp f \<le> X"
   by (auto simp add: gfp_def intro: Sup_least)
 
-lemma gfp_lemma2: "mono f \<Longrightarrow> gfp f \<le> f (gfp f)"
-  by (iprover intro: gfp_least order_trans monoD gfp_upperbound)
+end
 
-lemma gfp_lemma3: "mono f \<Longrightarrow> f (gfp f) \<le> gfp f"
-  by (iprover intro: gfp_lemma2 monoD gfp_upperbound)
+lemma lfp_le_gfp: "mono f \<Longrightarrow> lfp f \<le> gfp f"
+  by (rule gfp_upperbound) (simp add: lfp_fixpoint)
+
+lemma gfp_fixpoint:
+  assumes "mono f"
+  shows "f (gfp f) = gfp f"
+  unfolding gfp_def
+proof (rule order_antisym)
+  let ?H = "{u. u \<le> f u}"
+  let ?a = "\<Squnion>?H"
+  show "?a \<le> f ?a"
+  proof (rule Sup_least)
+    fix x
+    assume "x \<in> ?H"
+    then have "x \<le> f x" ..
+    also from \<open>x \<in> ?H\<close> have "x \<le> ?a" by (rule Sup_upper)
+    with \<open>mono f\<close> have "f x \<le> f ?a" ..
+    finally show "x \<le> f ?a" .
+  qed
+  show "f ?a \<le> ?a"
+  proof (rule Sup_upper)
+    from \<open>mono f\<close> and \<open>?a \<le> f ?a\<close> have "f ?a \<le> f (f ?a)" ..
+    then show "f ?a \<in> ?H" ..
+  qed
+qed
 
 lemma gfp_unfold: "mono f \<Longrightarrow> gfp f = f (gfp f)"
-  by (iprover intro: order_antisym gfp_lemma2 gfp_lemma3)
+  by (rule gfp_fixpoint [symmetric])
 
 lemma gfp_const: "gfp (\<lambda>x. t) = t"
   by (rule gfp_unfold) (simp add: mono_def)
 
 lemma gfp_eqI: "mono F \<Longrightarrow> F x = x \<Longrightarrow> (\<And>z. F z = z \<Longrightarrow> z \<le> x) \<Longrightarrow> gfp F = x"
   by (rule antisym) (simp_all add: gfp_upperbound gfp_unfold[symmetric])
-
-
-lemma lfp_le_gfp: "mono f \<Longrightarrow> lfp f \<le> gfp f"
-  by (iprover intro: gfp_upperbound lfp_lemma3)
 
 
 subsection \<open>Coinduction rules for greatest fixed points\<close>
@@ -174,7 +205,7 @@ lemma weak_coinduct_image: "a \<in> X \<Longrightarrow> g`X \<subseteq> f (g`X) 
   done
 
 lemma coinduct_lemma: "X \<le> f (sup X (gfp f)) \<Longrightarrow> mono f \<Longrightarrow> sup X (gfp f) \<le> f (sup X (gfp f))"
-  apply (frule gfp_lemma2)
+  apply (frule gfp_unfold [THEN eq_refl])
   apply (drule mono_sup)
   apply (rule le_supI)
    apply assumption
@@ -190,7 +221,7 @@ lemma coinduct_set: "mono f \<Longrightarrow> a \<in> X \<Longrightarrow> X \<su
   by (rule weak_coinduct[rotated], rule coinduct_lemma) blast+
 
 lemma gfp_fun_UnI2: "mono f \<Longrightarrow> a \<in> gfp f \<Longrightarrow> a \<in> f (X \<union> gfp f)"
-  by (blast dest: gfp_lemma2 mono_Un)
+  by (blast dest: gfp_fixpoint mono_Un)
 
 lemma gfp_ordinal_induct[case_names mono step union]:
   fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
@@ -248,7 +279,7 @@ lemma coinduct3_lemma:
   "X \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> gfp f)) \<Longrightarrow> mono f \<Longrightarrow>
     lfp (\<lambda>x. f x \<union> X \<union> gfp f) \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> gfp f))"
   apply (rule subset_trans)
-   apply (erule coinduct3_mono_lemma [THEN lfp_lemma3])
+   apply (erule coinduct3_mono_lemma [THEN lfp_unfold [THEN eq_refl]])
   apply (rule Un_least [THEN Un_least])
     apply (rule subset_refl, assumption)
   apply (rule gfp_unfold [THEN equalityD1, THEN subset_trans], assumption)
@@ -389,6 +420,94 @@ lemmas [mono] =
   imp_mono not_mono
   Ball_def Bex_def
   induct_rulify_fallback
+
+
+subsection \<open>The Schroeder-Bernstein Theorem\<close>
+
+text \<open>
+  See also:
+  \<^item> \<^file>\<open>$ISABELLE_HOME/src/HOL/ex/Set_Theory.thy\<close>
+  \<^item> \<^url>\<open>http://planetmath.org/proofofschroederbernsteintheoremusingtarskiknastertheorem\<close>
+  \<^item> Springer LNCS 828 (cover page)
+\<close>
+
+theorem Schroeder_Bernstein:
+  fixes f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'a"
+    and A :: "'a set" and B :: "'b set"
+  assumes inj1: "inj_on f A" and sub1: "f ` A \<subseteq> B"
+    and inj2: "inj_on g B" and sub2: "g ` B \<subseteq> A"
+  shows "\<exists>h. bij_betw h A B"
+proof (rule exI, rule bij_betw_imageI)
+  define X where "X = lfp (\<lambda>X. A - (g ` (B - (f ` X))))"
+  define g' where "g' = the_inv_into (B - (f ` X)) g"
+  let ?h = "\<lambda>z. if z \<in> X then f z else g' z"
+
+  have X: "X = A - (g ` (B - (f ` X)))"
+    unfolding X_def by (rule lfp_unfold) (blast intro: monoI)
+  then have X_compl: "A - X = g ` (B - (f ` X))"
+    using sub2 by blast
+
+  from inj2 have inj2': "inj_on g (B - (f ` X))"
+    by (rule inj_on_subset) auto
+  with X_compl have *: "g' ` (A - X) = B - (f ` X)"
+    by (simp add: g'_def)
+
+  from X have X_sub: "X \<subseteq> A" by auto
+  from X sub1 have fX_sub: "f ` X \<subseteq> B" by auto
+
+  show "?h ` A = B"
+  proof -
+    from X_sub have "?h ` A = ?h ` (X \<union> (A - X))" by auto
+    also have "\<dots> = ?h ` X \<union> ?h ` (A - X)" by (simp only: image_Un)
+    also have "?h ` X = f ` X" by auto
+    also from * have "?h ` (A - X) = B - (f ` X)" by auto
+    also from fX_sub have "f ` X \<union> (B - f ` X) = B" by blast
+    finally show ?thesis .
+  qed
+  show "inj_on ?h A"
+  proof -
+    from inj1 X_sub have on_X: "inj_on f X"
+      by (rule subset_inj_on)
+
+    have on_X_compl: "inj_on g' (A - X)"
+      unfolding g'_def X_compl
+      by (rule inj_on_the_inv_into) (rule inj2')
+
+    have impossible: False if eq: "f a = g' b" and a: "a \<in> X" and b: "b \<in> A - X" for a b
+    proof -
+      from a have fa: "f a \<in> f ` X" by (rule imageI)
+      from b have "g' b \<in> g' ` (A - X)" by (rule imageI)
+      with * have "g' b \<in> - (f ` X)" by simp
+      with eq fa show False by simp
+    qed
+
+    show ?thesis
+    proof (rule inj_onI)
+      fix a b
+      assume h: "?h a = ?h b"
+      assume "a \<in> A" and "b \<in> A"
+      then consider "a \<in> X" "b \<in> X" | "a \<in> A - X" "b \<in> A - X"
+        | "a \<in> X" "b \<in> A - X" | "a \<in> A - X" "b \<in> X"
+        by blast
+      then show "a = b"
+      proof cases
+        case 1
+        with h on_X show ?thesis by (simp add: inj_on_eq_iff)
+      next
+        case 2
+        with h on_X_compl show ?thesis by (simp add: inj_on_eq_iff)
+      next
+        case 3
+        with h impossible [of a b] have False by simp
+        then show ?thesis ..
+      next
+        case 4
+        with h impossible [of b a] have False by simp
+        then show ?thesis ..
+      qed
+    qed
+  qed
+qed
 
 
 subsection \<open>Inductive datatypes and primitive recursion\<close>

@@ -365,15 +365,15 @@ instance complete_lattice \<subseteq> ccpo
   by standard (fast intro: Sup_upper Sup_least)+
 
 lemma lfp_eq_fixp:
-  assumes f: "mono f"
+  assumes mono: "mono f"
   shows "lfp f = fixp f"
 proof (rule antisym)
-  from f have f': "monotone (op \<le>) (op \<le>) f"
+  from mono have f': "monotone (op \<le>) (op \<le>) f"
     unfolding mono_def monotone_def .
   show "lfp f \<le> fixp f"
     by (rule lfp_lowerbound, subst fixp_unfold [OF f'], rule order_refl)
   show "fixp f \<le> lfp f"
-    by (rule fixp_lowerbound [OF f'], subst lfp_unfold [OF f], rule order_refl)
+    by (rule fixp_lowerbound [OF f']) (simp add: lfp_fixpoint [OF mono])
 qed
 
 hide_const (open) iterates fixp

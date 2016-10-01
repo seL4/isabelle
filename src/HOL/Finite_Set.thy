@@ -139,12 +139,12 @@ next
   qed
 qed
 
-lemma finite_conv_nat_seg_image: "finite A \<longleftrightarrow> (\<exists>(n::nat) f. A = f ` {i::nat. i < n})"
+lemma finite_conv_nat_seg_image: "finite A \<longleftrightarrow> (\<exists>n f. A = f ` {i::nat. i < n})"
   by (blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 
 lemma finite_imp_inj_to_nat_seg:
   assumes "finite A"
-  shows "\<exists>f n::nat. f ` A = {i. i < n} \<and> inj_on f A"
+  shows "\<exists>f n. f ` A = {i::nat. i < n} \<and> inj_on f A"
 proof -
   from finite_imp_nat_seg_image_inj_on [OF \<open>finite A\<close>]
   obtain f and n :: nat where bij: "bij_betw f {i. i<n} A"
