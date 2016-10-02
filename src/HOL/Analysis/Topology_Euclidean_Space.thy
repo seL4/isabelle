@@ -817,7 +817,7 @@ lemma connected_openin:
                  openin (subtopology euclidean s) e2 \<and>
                  s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and> e1 \<noteq> {} \<and> e2 \<noteq> {})"
   apply (simp add: connected_def openin_open, safe)
-  apply (simp_all, blast+)  \<comment>\<open>slow\<close>
+  apply (simp_all, blast+)  (* SLOW *)
   done
 
 lemma connected_openin_eq:
@@ -3693,8 +3693,7 @@ lemma bounded_ball[simp,intro]: "bounded (ball x e)"
   by (metis ball_subset_cball bounded_cball bounded_subset)
 
 lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S \<and> bounded T"
-  apply (auto simp add: bounded_def)
-  by (metis Un_iff add_le_cancel_left dist_triangle le_max_iff_disj max.order_iff)
+  by (auto simp add: bounded_def) (metis Un_iff bounded_any_center le_max_iff_disj)
 
 lemma bounded_Union[intro]: "finite F \<Longrightarrow> \<forall>S\<in>F. bounded S \<Longrightarrow> bounded (\<Union>F)"
   by (induct rule: finite_induct[of F]) auto
