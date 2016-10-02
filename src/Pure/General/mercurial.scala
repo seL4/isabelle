@@ -30,8 +30,11 @@ object Mercurial
     def command(cmd: String, cwd: JFile = null): Process_Result =
       Isabelle_System.hg("--repository " + File.bash_path(root) + " " + cmd, cwd = cwd)
 
-    def manifest(rev: String = "", cwd: JFile = null): List[String] =
-      command("manifest" + opt_rev(rev), cwd = cwd).check.out_lines
+    def identify(rev: String = "", options: String = ""): String =
+      command("id -i " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
+
+    def manifest(rev: String = "", options: String = ""): List[String] =
+      command("manifest " + options + opt_rev(rev)).check.out_lines
 
     command("root").check
   }
