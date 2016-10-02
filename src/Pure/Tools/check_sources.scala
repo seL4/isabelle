@@ -44,11 +44,12 @@ object Check_Sources
   def check_hg(root: Path)
   {
     Output.writeln("Checking " + root + " ...")
-    Isabelle_System.hg("--repository " + File.bash_path(root) + " root").check
-    for {
-      file <- Isabelle_System.hg("manifest", cwd = root.file).check.out_lines
-      if file.endsWith(".thy") || file.endsWith(".ML") || file.endsWith("/ROOT")
-    } check_file(root + Path.explode(file))
+    using(Mercurial.open_repository(root)) { hg =>
+      for {
+        file <- hg.manifest()
+        if file.endsWith(".thy") || file.endsWith(".ML") || file.endsWith("/ROOT")
+      } check_file(root + Path.explode(file))
+    }
   }
 
 

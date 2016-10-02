@@ -36,6 +36,7 @@ declare -a SOURCES=(
   General/json.scala
   General/linear_set.scala
   General/long_name.scala
+  General/mercurial.scala
   General/multi_map.scala
   General/output.scala
   General/path.scala
