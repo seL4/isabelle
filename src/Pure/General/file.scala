@@ -190,12 +190,14 @@ object File
   }
 
   def read_stream(stream: InputStream): String =
-   read_stream(new BufferedReader(new InputStreamReader(stream, UTF8.charset)))
+    read_stream(new BufferedReader(new InputStreamReader(stream, UTF8.charset)))
 
   def read_gzip(file: JFile): String =
     read_stream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))))
-
   def read_gzip(path: Path): String = read_gzip(path.file)
+
+  def read_xz(file: JFile): String = read_stream(XZ.uncompress(new FileInputStream(file)))
+  def read_xz(path: Path): String = read_xz(path.file)
 
 
   /* read lines */
@@ -234,6 +236,11 @@ object File
   def write_gzip(file: JFile, text: CharSequence): Unit = write_gzip(file, List(text))
   def write_gzip(path: Path, text: Iterable[CharSequence]): Unit = write_gzip(path.file, text)
   def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
+
+  def write_xz(file: JFile, text: Iterable[CharSequence]): Unit = XZ.write_file(file, text)
+  def write_xz(file: JFile, text: CharSequence): Unit = XZ.write_file(file, List(text))
+  def write_xz(path: Path, text: Iterable[CharSequence]): Unit = XZ.write_file(path.file, text)
+  def write_xz(path: Path, text: CharSequence): Unit = XZ.write_file(path.file, List(text))
 
   def write_backup(path: Path, text: CharSequence)
   {
