@@ -1,4 +1,4 @@
-(*  Title:    HOL/Analysis/Gamma.thy
+(*  Title:    HOL/Analysis/Gamma_Function.thy
     Author:   Manuel Eberl, TU München
 *)
 

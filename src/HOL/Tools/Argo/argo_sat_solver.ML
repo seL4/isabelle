@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/argo_sat_solver.ML
+(*  Title:      HOL/Tools/Argo/argo_sat_solver.ML
     Author:     Sascha Boehme
 
 A SAT solver based on the Argo solver.

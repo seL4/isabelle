@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/argo_tactic.ML
+(*  Title:      HOL/Tools/Argo/argo_tactic.ML
     Author:     Sascha Boehme
 
 HOL method and tactic for the Argo solver.

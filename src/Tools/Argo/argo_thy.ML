@@ -1,4 +1,4 @@
-(*  Title:      Tools/Argo/argo_theory.ML
+(*  Title:      Tools/Argo/argo_thy.ML
     Author:     Sascha Boehme
 
 Combination of all theory solvers.

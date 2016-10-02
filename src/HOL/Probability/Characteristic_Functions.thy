@@ -1,4 +1,4 @@
-(*  Title:     Characteristic_Functions.thy
+(*  Title:     HOL/Probability/Characteristic_Functions.thy
     Authors:   Jeremy Avigad (CMU), Luke Serafin (CMU), Johannes Hölzl (TUM)
 *)
 

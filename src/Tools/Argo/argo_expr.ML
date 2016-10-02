@@ -1,4 +1,4 @@
-(*  Title:      Tools/Argo/sid_expr.ML
+(*  Title:      Tools/Argo/argo_expr.ML
     Author:     Sascha Boehme
 
 The input language of the Argo solver.

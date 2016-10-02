@@ -1,4 +1,4 @@
-(*  Title:      HOL/Analysis/Extension.thy
+(*  Title:      HOL/Analysis/Continuous_Extension.thy
     Authors:    LC Paulson, based on material from HOL Light
 *)
 

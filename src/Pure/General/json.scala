@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/json.scala
+/*  Title:      Pure/General/json.scala
     Author:     Makarius
 
 Support for JSON parsing.

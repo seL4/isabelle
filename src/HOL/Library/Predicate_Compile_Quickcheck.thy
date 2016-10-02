@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Predicate_Compile_Alternative_Defs.thy
+(*  Title:      HOL/Library/Predicate_Compile_Quickcheck.thy
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 

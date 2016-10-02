@@ -1,4 +1,4 @@
-(*  Title:    Distribution_Functions.thy
+(*  Title:    HOL/Probability/Distribution_Functions.thy
     Authors:  Jeremy Avigad (CMU) and Luke Serafin (CMU)
 *)
 

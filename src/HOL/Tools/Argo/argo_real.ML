@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/argo_real.ML
+(*  Title:      HOL/Tools/Argo/argo_real.ML
     Author:     Sascha Boehme
 
 Extension of the Argo tactic for the reals.

@@ -1,4 +1,4 @@
-(*  Title:    HOL/Analysis/Summation.thy
+(*  Title:    HOL/Analysis/Summation_Tests.thy
     Author:   Manuel Eberl, TU München
 *)
 
