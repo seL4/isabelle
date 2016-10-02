@@ -975,6 +975,10 @@ for the underlying ML process, e.g. to control CPU affinity on
 multiprocessor systems. The "isabelle jedit" tool allows to override the
 implicit default via option -p.
 
+* The isabelle_java executable allows to run a Java process within the
+name space of Java and Scala components that are bundled with Isabelle,
+but without the Isabelle settings environment.
+
 
 
 New in Isabelle2016 (February 2016)

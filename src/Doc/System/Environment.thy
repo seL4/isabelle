@@ -399,6 +399,35 @@ text \<open>
 \<close>
 
 
+section \<open>The raw Isabelle Java process \label{sec:isabelle-java}\<close>
+
+text \<open>
+  The @{executable_ref isabelle_java} executable allows to run a Java process
+  within the name space of Java and Scala components that are bundled with
+  Isabelle, but \<^emph>\<open>without\<close> the Isabelle settings environment
+  (\secref{sec:settings}).
+
+  After such a JVM cold-start, the Isabelle environment can be accessed via
+  \<^verbatim>\<open>Isabelle_System.getenv\<close> as usual, but the underlying process environment
+  remains clean. This is e.g.\ relevant when invoking other processes that
+  should remain separate from the current Isabelle installation.
+
+  \<^medskip>
+  Note that under normal circumstances, Isabelle command-line tools are run
+  \<^emph>\<open>within\<close> the settings environment, as provided by the @{executable
+  isabelle} wrapper (\secref{sec:isabelle-tool} and \secref{sec:tool-java}).
+\<close>
+
+
+subsubsection \<open>Example\<close>
+
+text \<open>
+  The subsequent example creates a raw Java process on the command-line and
+  invokes the main Isabelle application entry point:
+  @{verbatim [display] \<open>isabelle_java isabelle.Main\<close>}
+\<close>
+
+
 section \<open>YXML versus XML\<close>
 
 text \<open>

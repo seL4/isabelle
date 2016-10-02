@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# Isabelle/Java cold start -- without settings environment
+
+if [ -L "$0" ]; then
+  TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
+  exec "$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET")" "$@"
+fi
+
+export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
+
+(
+  source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
+
+  declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
+
+  if [ -f "$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar" ]; then
+    classpath "$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar"
+  fi
+
+  [ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
+
+  echo "$ISABELLE_ROOT"
+  echo "$CYGWIN_ROOT"
+  echo "$JAVA_HOME"
+  echo "$(platform_path "$ISABELLE_CLASSPATH")"
+  for ARG in "${JAVA_ARGS[@]}"; do echo "$ARG"; done
+) | {
+  LINE_COUNT=0
+  export ISABELLE_ROOT=""
+  export CYGWIN_ROOT=""
+  unset JAVA_HOME
+  unset ISABELLE_CLASSPATH
+  unset JAVA_ARGS; declare -a JAVA_ARGS
+
+  while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
+  do
+    case "$LINE_COUNT" in
+      0)
+        LINE_COUNT=1
+        ISABELLE_ROOT="$REPLY"
+        ;;
+      1)
+        LINE_COUNT=2
+        CYGWIN_ROOT="$REPLY"
+        ;;
+      2)
+        LINE_COUNT=3
+        JAVA_HOME="$REPLY"
+        ;;
+      3)
+        LINE_COUNT=4
+        ISABELLE_CLASSPATH="$REPLY"
+        ;;
+      *)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="$REPLY"
+        ;;
+    esac
+  done
+
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Unknown JAVA_HOME -- Java unavailable" >&2
+    exit 127
+  else
+    unset CLASSPATH
+    exec "$JAVA_HOME/bin/java" "${JAVA_ARGS[@]}" -classpath "$ISABELLE_CLASSPATH" "$@"
+  fi
+}
