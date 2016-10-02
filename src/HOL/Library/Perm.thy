@@ -278,7 +278,7 @@ qed
 
 definition order :: "'a perm \<Rightarrow> 'a \<Rightarrow> nat"
 where
-	"order f = card \<circ> orbit f"
+  "order f = card \<circ> orbit f"
 
 lemma orbit_subset_eq_affected:
   assumes "a \<in> affected f"

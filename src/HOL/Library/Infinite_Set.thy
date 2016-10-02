@@ -331,7 +331,7 @@ proof
     assume "S \<in> \<F>"
     have "{T \<in> \<F>. S \<subseteq> T} = {}" if "~ (\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y)"
       apply (rule finite_transitivity_chain [of _ "\<lambda>T U. S \<subseteq> T \<and> T \<subset> U"])
-	 using assms that apply auto
+      using assms that apply auto
       by (blast intro: dual_order.trans psubset_imp_subset)
     then show "\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y"
       using \<open>S \<in> \<F>\<close> by blast
