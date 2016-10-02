@@ -14,7 +14,12 @@ object Mercurial
 {
   /* command-line syntax */
 
-  def opt_rev(rev: String): String = if (rev == "") "" else " --rev " + File.bash_string(rev)
+  def optional(s: String, prefix: String = ""): String =
+    if (s == "") "" else " " + prefix + " " + File.bash_string(s)
+
+  def opt_flag(flag: String, b: Boolean): String = if (b) " " + flag else ""
+  def opt_rev(s: String): String = optional(s, "--rev")
+  def opt_template(s: String): String = optional(s, "--template")
 
 
   /* repository access */
@@ -30,11 +35,24 @@ object Mercurial
     def command(cmd: String, cwd: JFile = null): Process_Result =
       Isabelle_System.hg("--repository " + File.bash_path(root) + " " + cmd, cwd = cwd)
 
+
+    def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
+      command("heads " + options + opt_template(template)).check.out_lines
+
     def identify(rev: String = "", options: String = ""): String =
       command("id -i " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
 
     def manifest(rev: String = "", options: String = ""): List[String] =
       command("manifest " + options + opt_rev(rev)).check.out_lines
+
+    def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
+      command("pull " + options + opt_rev(rev) + optional(remote)).check
+
+    def update(rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
+    {
+      command("update " + options +
+        opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check)).check
+    }
 
     command("root").check
   }
