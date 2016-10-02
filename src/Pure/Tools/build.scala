@@ -419,7 +419,7 @@ object Build
 
   /** build with results **/
 
-  class Results private [Build](results: Map[String, (Option[Process_Result], Sessions.Info)])
+  class Results private[Build](results: Map[String, (Option[Process_Result], Sessions.Info)])
   {
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = results(name)._1.isEmpty

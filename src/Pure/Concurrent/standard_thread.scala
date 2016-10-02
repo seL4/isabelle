@@ -51,7 +51,7 @@ object Standard_Thread
 
   /* delayed events */
 
-  final class Delay private [Standard_Thread](first: Boolean, delay: => Time, event: => Unit)
+  final class Delay private[Standard_Thread](first: Boolean, delay: => Time, event: => Unit)
   {
     private var running: Option[Event_Timer.Request] = None
 

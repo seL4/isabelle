@@ -33,7 +33,7 @@ object Bash
       cleanup: () => Unit = () => ()): Process =
     new Process(script, cwd, env, redirect, cleanup)
 
-  class Process private [Bash](
+  class Process private[Bash](
       script: String,
       cwd: JFile,
       env: Map[String, String],

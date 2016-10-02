@@ -23,7 +23,7 @@ object SQLite
     new Database(path0, connection)
   }
 
-  class Database private [SQLite](path: Path, val connection: Connection)
+  class Database private[SQLite](path: Path, val connection: Connection)
   {
     override def toString: String = path.toString
 

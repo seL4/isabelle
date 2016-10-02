@@ -395,7 +395,7 @@ object Sessions
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
 
-  class Store private [Sessions](system_mode: Boolean)
+  class Store private[Sessions](system_mode: Boolean)
   {
     /* output */
 
