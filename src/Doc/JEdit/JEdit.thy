@@ -238,6 +238,7 @@ text \<open>
     -l NAME      logic image name
     -m MODE      add print mode for output
     -n           no build of session image on startup
+    -p CMD       ML process command prefix (process policy)
     -s           system build mode for session image
 
   Start jEdit with Isabelle plugin setup and open FILES
@@ -293,6 +294,10 @@ text \<open>
   different server name. The default server name is the official distribution
   name (e.g.\ \<^verbatim>\<open>Isabelle2016\<close>). Thus @{tool jedit_client} can connect to the
   Isabelle desktop application without further options.
+
+  The \<^verbatim>\<open>-p\<close> option allows to override the implicit default of the system
+  option @{system_option_ref ML_process_policy} for ML processes started by
+  the Prover IDE, e.g. to control CPU affinity on multiprocessor systems.
 
   The JVM system property \<^verbatim>\<open>isabelle.jedit_server\<close> provides a different server
   name, e.g.\ use \<^verbatim>\<open>isabelle jedit -Disabelle.jedit_server=\<close>\<open>name\<close> and

@@ -972,11 +972,8 @@ by default).
 
 * System option "ML_process_policy" specifies an optional command prefix
 for the underlying ML process, e.g. to control CPU affinity on
-multiprocessor systems.
-
-* The "isabelle jedit" tool provides options -P and -p to specify an
-optional command prefix for the Java and ML process, respectively (see
-also option "ML_process_policy").
+multiprocessor systems. The "isabelle jedit" tool allows to override the
+implicit default via option -p.
 
 
 
