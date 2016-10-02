@@ -19,8 +19,9 @@ fi
 export -f platform_path
 
 #GNU tar (notably on Mac OS X)
-if [ -x /usr/bin/gnutar ]; then
-  function tar() { /usr/bin/gnutar "$@"; }
+if type -p gnutar >/dev/null
+then
+  function tar() { gnutar "$@"; }
   export -f tar
 fi
 
