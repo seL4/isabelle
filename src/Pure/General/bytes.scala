@@ -8,7 +8,10 @@ Immutable byte vectors versus UTF8 strings.
 package isabelle
 
 
-import java.io.{File => JFile, OutputStream, FileInputStream}
+import java.io.{File => JFile, ByteArrayOutputStream, ByteArrayInputStream,
+  OutputStream, InputStream, FileInputStream}
+
+import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
 
 object Bytes
@@ -38,24 +41,23 @@ object Bytes
 
   /* read */
 
-  def read(file: JFile): Bytes =
-  {
-    var i = 0
-    var m = 0
-    val n = file.length.toInt
-    val bytes = new Array[Byte](n)
+  def read_stream(stream: InputStream, limit: Int = Integer.MAX_VALUE, hint: Int = 1024): Bytes =
+    if (limit == 0) empty
+    else {
+      val out = new ByteArrayOutputStream(if (limit == Integer.MAX_VALUE) hint else limit)
+      val buf = new Array[Byte](8192)
+      var m = 0
 
-    val stream = new FileInputStream(file)
-    try {
       do {
-        m = stream.read(bytes, i, n - i)
-        if (m != -1) i += m
-      } while (m != -1 && n > i)
-    }
-    finally { stream.close }
+        m = stream.read(buf, 0, buf.size min (limit - out.size))
+        if (m != -1) out.write(buf, 0, m)
+      } while (m != -1 && limit > out.size)
 
-    new Bytes(bytes, 0, bytes.length)
-  }
+      new Bytes(out.toByteArray, 0, out.size)
+    }
+
+  def read(file: JFile): Bytes =
+    using(new FileInputStream(file))(read_stream(_, file.length.toInt))
 }
 
 final class Bytes private(
@@ -122,8 +124,22 @@ final class Bytes private(
   }
 
 
-  /* write */
+  /* streams */
 
-  def write(stream: OutputStream): Unit = stream.write(bytes, offset, length)
+  def stream(): ByteArrayInputStream = new ByteArrayInputStream(bytes, offset, length)
+
+  def write_stream(stream: OutputStream): Unit = stream.write(bytes, offset, length)
+
+
+  /* XZ data compression */
+
+  def uncompress(): Bytes =
+    using(new XZInputStream(stream()))(Bytes.read_stream(_, hint = length))
+
+  def compress(options: XZ.Options = XZ.options()): Bytes =
+  {
+    val result = new ByteArrayOutputStream(length)
+    using(new XZOutputStream(result, options))(write_stream(_))
+    new Bytes(result.toByteArray, 0, result.size)
+  }
 }
-

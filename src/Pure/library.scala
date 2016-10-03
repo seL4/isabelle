@@ -99,11 +99,7 @@ object Library
 
   /* lines */
 
-  def terminate_lines(lines: Iterable[CharSequence]): Iterable[CharSequence] =
-    new Iterable[CharSequence] {
-      def iterator: Iterator[CharSequence] =
-        lines.iterator.map(line => new Line_Termination(line))
-    }
+  def terminate_lines(lines: TraversableOnce[String]): String = lines.mkString("", "\n", "\n")
 
   def cat_lines(lines: TraversableOnce[String]): String = lines.mkString("\n")
 
