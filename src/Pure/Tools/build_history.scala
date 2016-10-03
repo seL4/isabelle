@@ -12,8 +12,6 @@ import java.io.{File => JFile}
 
 object Build_History
 {
-  val rev0 = "0cebcbeac4c7"  // wenzelm 29-Aug-2012: provide polyml-5.4.1 as regular component
-
   def apply(hg: Mercurial.Repository, rev: String = "",
     isabelle_identifier: String = "build_history"): Build_History =
       new Build_History(hg, rev, isabelle_identifier)
