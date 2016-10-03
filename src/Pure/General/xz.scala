@@ -14,9 +14,7 @@ object XZ
 {
   type Options = LZMA2Options
 
-  def options(): Options = options_preset(3)
-
-  def options_preset(preset: Int): Options =
+  def options(preset: Int = 3): Options =
   {
     val opts = new LZMA2Options
     opts.setPreset(preset)

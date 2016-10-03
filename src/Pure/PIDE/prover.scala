@@ -204,8 +204,8 @@ abstract class Prover(
             {
               case chunks =>
                 try {
-                  Bytes(chunks.map(_.length).mkString("", ",", "\n")).write(stream)
-                  chunks.foreach(_.write(stream))
+                  Bytes(chunks.map(_.length).mkString("", ",", "\n")).write_stream(stream)
+                  chunks.foreach(_.write_stream(stream))
                   stream.flush
                   true
                 }
