@@ -60,6 +60,9 @@ class, to resolve some situations where ambiguities may occur.
     introduction and elimination rules after each split rule. As a
     result the subgoal may be split into several subgoals.
 
+* Solve direct: option 'solve_direct_strict_warnings' gives explicit
+  warnings for lemma statements with trivial proofs.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

@@ -15,6 +15,7 @@ sig
   val noneN: string
   val unknownN: string
   val max_solutions: int Config.T
+  val strict_warnings: bool Config.T
   val solve_direct: Proof.state -> bool * (string * string list)
 end;
 
@@ -33,6 +34,7 @@ val unknownN = "none";
 (* preferences *)
 
 val max_solutions = Attrib.setup_config_int @{binding solve_direct_max_solutions} (K 5);
+val strict_warnings = Attrib.setup_config_bool @{binding solve_direct_strict_warnings} (K false);
 
 
 (* solve_direct command *)
@@ -77,8 +79,15 @@ fun do_solve_direct mode state =
     (case try seek_against_goal () of
       SOME (SOME results) =>
         (someN,
-          let val msg = Pretty.string_of (Pretty.chunks (message results))
-          in if mode = Auto_Try then [msg] else (writeln msg; []) end)
+          let
+            val msg = Pretty.string_of (Pretty.chunks (message results))
+          in
+            if Config.get ctxt strict_warnings
+            then (warning msg; [])
+            else if mode = Auto_Try
+              then [msg]
+              else (writeln msg; [])
+          end)
     | SOME NONE =>
         (if mode = Normal then writeln "No proof found"
          else ();
