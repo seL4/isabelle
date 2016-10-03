@@ -10,6 +10,7 @@ imports
   Bounded_Continuous_Function
   Weierstrass_Theorems
   Polytope
+  FurtherTopology
   Poly_Roots
   Conformal_Mappings
   Generalised_Binomial_Theorem

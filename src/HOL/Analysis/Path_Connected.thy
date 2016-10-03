@@ -1883,6 +1883,10 @@ proof -
   finally show ?thesis .
 qed
 
+corollary connected_punctured_universe:
+  "2 \<le> DIM('N::euclidean_space) \<Longrightarrow> connected(- {a::'N})"
+  by (simp add: path_connected_punctured_universe path_connected_imp_connected)
+
 lemma path_connected_sphere:
   assumes "2 \<le> DIM('a::euclidean_space)"
   shows "path_connected {x::'a. norm (x - a) = r}"
@@ -2102,6 +2106,32 @@ next
   moreover have "open (S - F)" using finite_imp_closed[OF \<open>finite F\<close>] \<open>open S\<close> by auto
   ultimately have "connected (S - F - {x})" using connected_open_delete[OF _ _ 2] by auto
   thus ?case by (metis Diff_insert)
+qed
+
+lemma psubset_sphere_Compl_connected:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "S \<subset> sphere a r" and "0 < r" and 2: "2 \<le> DIM('a)"
+  shows "connected(- S)"
+proof -
+  have "S \<subseteq> sphere a r"
+    using S by blast
+  obtain b where "dist a b = r" and "b \<notin> S"
+    using S mem_sphere by blast
+  have CS: "- S = {x. dist a x \<le> r \<and> (x \<notin> S)} \<union> {x. r \<le> dist a x \<and> (x \<notin> S)}"
+    by (auto simp: )
+  have "{x. dist a x \<le> r \<and> x \<notin> S} \<inter> {x. r \<le> dist a x \<and> x \<notin> S} \<noteq> {}"
+    using \<open>b \<notin> S\<close> \<open>dist a b = r\<close> by blast
+  moreover have "connected {x. dist a x \<le> r \<and> x \<notin> S}"
+    apply (rule connected_intermediate_closure [of "ball a r"])
+    using assms by auto
+  moreover
+  have "connected {x. r \<le> dist a x \<and> x \<notin> S}"
+    apply (rule connected_intermediate_closure [of "- cball a r"])
+    using assms apply (auto intro: connected_complement_bounded_convex)
+    apply (metis ComplI interior_cball interior_closure mem_ball not_less)
+    done
+  ultimately show ?thesis
+    by (simp add: CS connected_Un)
 qed
 
 subsection\<open>Relations between components and path components\<close>
@@ -2505,9 +2535,9 @@ proof -
   { fix y
     assume y1: "y \<in> closure (connected_component_set S x)"
        and y2: "y \<notin> interior (connected_component_set S x)"
-    have 1: "y \<in> closure S"
+    have "y \<in> closure S"
       using y1 closure_mono connected_component_subset by blast
-    have "z \<in> interior (connected_component_set S x)"
+    moreover have "z \<in> interior (connected_component_set S x)"
           if "0 < e" "ball y e \<subseteq> interior S" "dist y z < e" for e z
     proof -
       have "ball y e \<subseteq> connected_component_set S y"
@@ -2516,12 +2546,12 @@ proof -
         done
       then show ?thesis
         using y1 apply (simp add: closure_approachable open_contains_ball_eq [OF open_interior])
-        by (metis (no_types, hide_lams) connected_component_eq_eq connected_component_in subsetD
-                       dist_commute mem_Collect_eq mem_ball mem_interior \<open>0 < e\<close> y2)
+        by (metis connected_component_eq dist_commute mem_Collect_eq mem_ball mem_interior subsetD \<open>0 < e\<close> y2)
     qed
-    then have 2: "y \<notin> interior S"
+    then have "y \<notin> interior S"
       using y2 by (force simp: open_contains_ball_eq [OF open_interior])
-    note 1 2
+    ultimately have "y \<in> frontier S"
+      by (auto simp: frontier_def)
   }
   then show ?thesis by (auto simp: frontier_def)
 qed
@@ -2564,6 +2594,49 @@ lemma frontier_Union_subset:
   shows "finite F \<Longrightarrow> frontier(\<Union>F) \<subseteq> (\<Union>t \<in> F. frontier t)"
 by (rule order_trans [OF frontier_Union_subset_closure])
    (auto simp: closure_subset_eq)
+
+lemma frontier_of_components_subset:
+  fixes S :: "'a::real_normed_vector set"
+  shows "C \<in> components S \<Longrightarrow> frontier C \<subseteq> frontier S"
+  by (metis Path_Connected.frontier_of_connected_component_subset components_iff)
+
+lemma frontier_of_components_closed_complement:
+  fixes S :: "'a::real_normed_vector set"
+  shows "\<lbrakk>closed S; C \<in> components (- S)\<rbrakk> \<Longrightarrow> frontier C \<subseteq> S"
+  using frontier_complement frontier_of_components_subset frontier_subset_eq by blast
+
+lemma frontier_minimal_separating_closed:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "closed S"
+      and nconn: "~ connected(- S)"
+      and C: "C \<in> components (- S)"
+      and conn: "\<And>T. \<lbrakk>closed T; T \<subset> S\<rbrakk> \<Longrightarrow> connected(- T)"
+    shows "frontier C = S"
+proof (rule ccontr)
+  assume "frontier C \<noteq> S"
+  then have "frontier C \<subset> S"
+    using frontier_of_components_closed_complement [OF \<open>closed S\<close> C] by blast
+  then have "connected(- (frontier C))"
+    by (simp add: conn)
+  have "\<not> connected(- (frontier C))"
+    unfolding connected_def not_not
+  proof (intro exI conjI)
+    show "open C"
+      using C \<open>closed S\<close> open_components by blast
+    show "open (- closure C)"
+      by blast
+    show "C \<inter> - closure C \<inter> - frontier C = {}"
+      using closure_subset by blast
+    show "C \<inter> - frontier C \<noteq> {}"
+      using C \<open>open C\<close> components_eq frontier_disjoint_eq by fastforce
+    show "- frontier C \<subseteq> C \<union> - closure C"
+      by (simp add: \<open>open C\<close> closed_Compl frontier_closures)
+    then show "- closure C \<inter> - frontier C \<noteq> {}"
+      by (metis (no_types, lifting) C Compl_subset_Compl_iff \<open>frontier C \<subset> S\<close> compl_sup frontier_closures in_components_subset psubsetE sup.absorb_iff2 sup.boundedE sup_bot.right_neutral sup_inf_absorb)
+  qed
+  then show False
+    using \<open>connected (- frontier C)\<close> by blast
+qed
 
 lemma connected_component_UNIV [simp]:
     fixes x :: "'a::real_normed_vector"
@@ -6139,6 +6212,51 @@ lemma homotopy_eqv_cohomotopic_triviality_null:
 apply (rule iffI)
 apply (metis assms homotopy_eqv_cohomotopic_triviality_null_imp)
 by (metis assms homotopy_eqv_cohomotopic_triviality_null_imp homotopy_eqv_sym)
+
+lemma homotopy_eqv_homotopic_triviality_null_imp:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+    and U :: "'c::real_normed_vector set"
+  assumes "S homotopy_eqv T"
+      and f: "continuous_on U f" "f ` U \<subseteq> T"
+      and homSU: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S\<rbrakk>
+                      \<Longrightarrow> \<exists>c. homotopic_with (\<lambda>x. True) U S f (\<lambda>x. c)"
+    shows "\<exists>c. homotopic_with (\<lambda>x. True) U T f (\<lambda>x. c)"
+proof -
+  obtain h k where h: "continuous_on S h" "h ` S \<subseteq> T"
+               and k: "continuous_on T k" "k ` T \<subseteq> S"
+               and hom: "homotopic_with (\<lambda>x. True) S S (k \<circ> h) id"
+                        "homotopic_with (\<lambda>x. True) T T (h \<circ> k) id"
+    using assms by (auto simp: homotopy_eqv_def)
+  obtain c::'a where "homotopic_with (\<lambda>x. True) U S (k \<circ> f) (\<lambda>x. c)"
+    apply (rule exE [OF homSU [of "k \<circ> f"]])
+    apply (intro continuous_on_compose h)
+    using k f  apply (force elim!: continuous_on_subset)+
+    done
+  then have "homotopic_with (\<lambda>x. True) U T (h \<circ> (k \<circ> f)) (h \<circ> (\<lambda>x. c))"
+    apply (rule homotopic_with_compose_continuous_left [where Y=S])
+    using h by auto
+  moreover have "homotopic_with (\<lambda>x. True) U T (id \<circ> f) ((h \<circ> k) \<circ> f)"
+    apply (rule homotopic_with_compose_continuous_right [where X=T])
+      apply (simp add: hom homotopic_with_symD)
+     using f apply auto
+    done
+  ultimately show ?thesis
+    using homotopic_with_trans by (fastforce simp add: o_def)
+qed
+
+lemma homotopy_eqv_homotopic_triviality_null:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+    and U :: "'c::real_normed_vector set"
+  assumes "S homotopy_eqv T"
+    shows "(\<forall>f. continuous_on U f \<and> f ` U \<subseteq> S
+                  \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) U S f (\<lambda>x. c))) \<longleftrightarrow>
+           (\<forall>f. continuous_on U f \<and> f ` U \<subseteq> T
+                  \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) U T f (\<lambda>x. c)))"
+apply (rule iffI)
+apply (metis assms homotopy_eqv_homotopic_triviality_null_imp)
+by (metis assms homotopy_eqv_homotopic_triviality_null_imp homotopy_eqv_sym)
 
 lemma homotopy_eqv_contractible_sets:
   fixes S :: "'a::real_normed_vector set"

@@ -1975,7 +1975,7 @@ qed
 
 text \<open>So we get the no-retraction theorem.\<close>
 
-lemma no_retraction_cball:
+theorem no_retraction_cball:
   fixes a :: "'a::euclidean_space"
   assumes "e > 0"
   shows "\<not> (frontier (cball a e) retract_of (cball a e))"
@@ -1999,6 +1999,26 @@ proof
     by auto
   then show False
     using x assms by auto
+qed
+
+corollary contractible_sphere:
+  fixes a :: "'a::euclidean_space"
+  shows "contractible(sphere a r) \<longleftrightarrow> r \<le> 0"
+proof (cases "0 < r")
+  case True
+  then show ?thesis
+    unfolding contractible_def nullhomotopic_from_sphere_extension
+    using no_retraction_cball [OF True, of a]
+    by (auto simp: retract_of_def retraction_def)
+next
+  case False
+  then show ?thesis
+    unfolding contractible_def nullhomotopic_from_sphere_extension
+    apply (simp add: not_less)
+    apply (rule_tac x=id in exI)
+    apply (auto simp: continuous_on_def)
+    apply (meson dist_not_less_zero le_less less_le_trans)
+    done
 qed
 
 subsection\<open>Retractions\<close>

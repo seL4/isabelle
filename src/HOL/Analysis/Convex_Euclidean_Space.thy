@@ -7495,6 +7495,11 @@ proof -
     by (auto simp: closed_segment_commute)
 qed
 
+lemma open_segment_eq_real_ivl:
+  fixes a b::real
+  shows "open_segment a b = (if a \<le> b then {a<..<b} else {b<..<a})"
+by (auto simp: closed_segment_eq_real_ivl open_segment_def split: if_split_asm)
+
 lemma closed_segment_real_eq:
   fixes u::real shows "closed_segment u v = (\<lambda>x. (v - u) * x + u) ` {0..1}"
   by (simp add: add.commute [of u] image_affinity_atLeastAtMost [where c=u] closed_segment_eq_real_ivl)
@@ -11352,6 +11357,81 @@ lemma subset_continuous_image_segment_1:
   shows "closed_segment (f a) (f b) \<subseteq> image f (closed_segment a b)"
 by (metis connected_segment convex_contains_segment ends_in_segment imageI
            is_interval_connected_1 is_interval_convex connected_continuous_image [OF assms])
+
+lemma continuous_injective_image_segment_1:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes contf: "continuous_on (closed_segment a b) f"
+      and injf: "inj_on f (closed_segment a b)"
+  shows "f ` (closed_segment a b) = closed_segment (f a) (f b)"
+proof
+  show "closed_segment (f a) (f b) \<subseteq> f ` closed_segment a b"
+    by (metis subset_continuous_image_segment_1 contf)
+  show "f ` closed_segment a b \<subseteq> closed_segment (f a) (f b)"
+  proof (cases "a = b")
+    case True
+    then show ?thesis by auto
+  next
+    case False
+    then have fnot: "f a \<noteq> f b"
+      using inj_onD injf by fastforce
+    moreover
+    have "f a \<notin> open_segment (f c) (f b)" if c: "c \<in> closed_segment a b" for c
+    proof (clarsimp simp add: open_segment_def)
+      assume fa: "f a \<in> closed_segment (f c) (f b)"
+      moreover have "closed_segment (f c) (f b) \<subseteq> f ` closed_segment c b"
+        by (meson closed_segment_subset contf continuous_on_subset convex_closed_segment ends_in_segment(2) subset_continuous_image_segment_1 that)
+      ultimately have "f a \<in> f ` closed_segment c b"
+        by blast
+      then have a: "a \<in> closed_segment c b"
+        by (meson ends_in_segment inj_on_image_mem_iff_alt injf subset_closed_segment that)
+      have cb: "closed_segment c b \<subseteq> closed_segment a b"
+        by (simp add: closed_segment_subset that)
+      show "f a = f c"
+      proof (rule between_antisym)
+        show "between (f c, f b) (f a)"
+          by (simp add: between_mem_segment fa)
+        show "between (f a, f b) (f c)"
+          by (metis a cb between_antisym between_mem_segment between_triv1 subset_iff)
+      qed
+    qed
+    moreover
+    have "f b \<notin> open_segment (f a) (f c)" if c: "c \<in> closed_segment a b" for c
+    proof (clarsimp simp add: open_segment_def fnot eq_commute)
+      assume fb: "f b \<in> closed_segment (f a) (f c)"
+      moreover have "closed_segment (f a) (f c) \<subseteq> f ` closed_segment a c"
+        by (meson contf continuous_on_subset ends_in_segment(1) subset_closed_segment subset_continuous_image_segment_1 that)
+      ultimately have "f b \<in> f ` closed_segment a c"
+        by blast
+      then have b: "b \<in> closed_segment a c"
+        by (meson ends_in_segment inj_on_image_mem_iff_alt injf subset_closed_segment that)
+      have ca: "closed_segment a c \<subseteq> closed_segment a b"
+        by (simp add: closed_segment_subset that)
+      show "f b = f c"
+      proof (rule between_antisym)
+        show "between (f c, f a) (f b)"
+          by (simp add: between_commute between_mem_segment fb)
+        show "between (f b, f a) (f c)"
+          by (metis b between_antisym between_commute between_mem_segment between_triv2 that)
+      qed
+    qed
+    ultimately show ?thesis
+      by (force simp: closed_segment_eq_real_ivl open_segment_eq_real_ivl split: if_split_asm)
+  qed
+qed
+
+lemma continuous_injective_image_open_segment_1:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes contf: "continuous_on (closed_segment a b) f"
+      and injf: "inj_on f (closed_segment a b)"
+    shows "f ` (open_segment a b) = open_segment (f a) (f b)"
+proof -
+  have "f ` (open_segment a b) = f ` (closed_segment a b) - {f a, f b}"
+    by (metis (no_types, hide_lams) empty_subsetI ends_in_segment image_insert image_is_empty inj_on_image_set_diff injf insert_subset open_segment_def segment_open_subset_closed)
+  also have "... = open_segment (f a) (f b)"
+    using continuous_injective_image_segment_1 [OF assms]
+    by (simp add: open_segment_def inj_on_image_set_diff [OF injf])
+  finally show ?thesis .
+qed
 
 lemma collinear_imp_coplanar:
   "collinear s ==> coplanar s"
