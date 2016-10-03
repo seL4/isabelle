@@ -8,7 +8,7 @@ theory Central_Limit_Theorem
   imports Levy
 begin
 
-theorem (in prob_space) central_limit_theorem:
+theorem (in prob_space) central_limit_theorem_zero_mean:
   fixes X :: "nat \<Rightarrow> 'a \<Rightarrow> real"
     and \<mu> :: "real measure"
     and \<sigma> :: real
@@ -112,6 +112,33 @@ proof -
     then show "(\<lambda>n. char (distr M borel (?S' n)) t) \<longlonglongrightarrow> char std_normal_distribution t"
       by (simp add: \<phi>_def char_std_normal_distribution)
   qed (auto intro!: real_dist_normal_dist simp: S_def)
+qed
+
+theorem (in prob_space) central_limit_theorem:
+  fixes X :: "nat \<Rightarrow> 'a \<Rightarrow> real"
+    and \<mu> :: "real measure"
+    and \<sigma> :: real
+    and S :: "nat \<Rightarrow> 'a \<Rightarrow> real"
+  assumes X_indep: "indep_vars (\<lambda>i. borel) X UNIV"
+    and X_integrable: "\<And>n. integrable M (X n)"
+    and X_mean: "\<And>n. expectation (X n) = m"
+    and \<sigma>_pos: "\<sigma> > 0"
+    and X_square_integrable: "\<And>n. integrable M (\<lambda>x. (X n x)\<^sup>2)"
+    and X_variance: "\<And>n. variance (X n) = \<sigma>\<^sup>2"
+    and X_distrib: "\<And>n. distr M borel (X n) = \<mu>"
+  defines "X' i x \<equiv> X i x - m"
+  shows "weak_conv_m (\<lambda>n. distr M borel (\<lambda>x. (\<Sum>i<n. X' i x) / sqrt (n*\<sigma>\<^sup>2))) std_normal_distribution"
+proof (intro central_limit_theorem_zero_mean)
+  show "indep_vars (\<lambda>i. borel) X' UNIV"
+    unfolding X'_def[abs_def] using X_indep by (rule indep_vars_compose2) auto
+  show "integrable M (X' n)" "expectation (X' n) = 0" for n
+    using X_integrable X_mean by (auto simp: X'_def[abs_def] prob_space)
+  show "\<sigma> > 0" "integrable M (\<lambda>x. (X' n x)\<^sup>2)" "variance (X' n) = \<sigma>\<^sup>2" for n
+    using \<open>0 < \<sigma>\<close> X_integrable X_mean X_square_integrable X_variance unfolding X'_def
+    by (auto simp: prob_space power2_diff)
+  show "distr M borel (X' n) = distr \<mu> borel (\<lambda>x. x - m)" for n
+    unfolding X_distrib[of n, symmetric] using X_integrable
+    by (subst distr_distr) (auto simp: X'_def[abs_def] comp_def)
 qed
 
 end
