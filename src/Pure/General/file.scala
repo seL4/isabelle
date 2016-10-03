@@ -227,7 +227,7 @@ object File
     try { writer.append(text) } finally { writer.close }
   }
 
-  def write(file: JFile, text: CharSequence): Unit = write_file(file, text, (s) => s)
+  def write(file: JFile, text: CharSequence): Unit = write_file(file, text, s => s)
   def write(path: Path, text: CharSequence): Unit = write(path.file, text)
 
   def write_gzip(file: JFile, text: CharSequence): Unit =
@@ -235,9 +235,11 @@ object File
   def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
 
   def write_xz(file: JFile, text: CharSequence, options: XZ.Options): Unit =
-    File.write_file(file, text, (s) => new XZOutputStream(new BufferedOutputStream(s), options))
+    File.write_file(file, text, s => new XZOutputStream(new BufferedOutputStream(s), options))
+  def write_xz(file: JFile, text: CharSequence): Unit = write_xz(file, text, XZ.options())
   def write_xz(path: Path, text: CharSequence, options: XZ.Options): Unit =
     write_xz(path.file, text, options)
+  def write_xz(path: Path, text: CharSequence): Unit = write_xz(path, text, XZ.options())
 
   def write_backup(path: Path, text: CharSequence)
   {
