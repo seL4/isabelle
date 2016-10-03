@@ -33,7 +33,8 @@ object Mercurial
     def close() { }
 
     def command(cmd: String, cwd: JFile = null): Process_Result =
-      Isabelle_System.hg("--repository " + File.bash_path(root) + " " + cmd, cwd = cwd)
+      Isabelle_System.hg("--repository " + File.bash_path(root) + " --noninteractive " + cmd,
+        cwd = cwd)
 
 
     def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
