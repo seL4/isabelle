@@ -45,6 +45,9 @@ object Mercurial
     def manifest(rev: String = "", options: String = ""): List[String] =
       command("manifest " + options + opt_rev(rev)).check.out_lines
 
+    def log(rev: String = "", options: String = ""): String =
+      Library.trim_line(command("log " + options + opt_rev(rev)).check.out)
+
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
       command("pull " + options + opt_rev(rev) + optional(remote)).check
 

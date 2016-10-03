@@ -29,7 +29,7 @@ object Build_History
     build_args: List[String] = Nil): Process_Result =
   {
     hg.update(rev = rev, clean = true)
-    if (verbose) hg.command("log -l1").check.print
+    if (verbose) Output.writeln(hg.log(rev, options = "-l1"))
 
     def bash(script: String): Process_Result =
       Isabelle_System.bash("env ISABELLE_IDENTIFIER=" + File.bash_string(isabelle_identifier) +
