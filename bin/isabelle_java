@@ -64,6 +64,7 @@ export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
     echo "Unknown JAVA_HOME -- Java unavailable" >&2
     exit 127
   else
+    unset ISABELLE_HOME
     unset CLASSPATH
     exec "$JAVA_HOME/bin/java" "${JAVA_ARGS[@]}" -classpath "$ISABELLE_CLASSPATH" "$@"
   fi
