@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#
+# DESCRIPTION: build history versions from another repository clone
+
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+
+"$THIS/build" jars || exit $?
+
+exec "$THIS/../bin/isabelle_java" isabelle.Build_History "$@"
