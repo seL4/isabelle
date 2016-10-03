@@ -8,7 +8,7 @@ Immutable byte vectors versus UTF8 strings.
 package isabelle
 
 
-import java.io.{File => JFile, OutputStream, FileInputStream}
+import java.io.{File => JFile, OutputStream, InputStream, FileInputStream}
 
 
 object Bytes
@@ -38,24 +38,25 @@ object Bytes
 
   /* read */
 
-  def read(file: JFile): Bytes =
+  def read_stream(stream: InputStream, max_length: Int): Bytes =
   {
+    val bytes = new Array[Byte](max_length)
     var i = 0
     var m = 0
-    val n = file.length.toInt
-    val bytes = new Array[Byte](n)
 
-    val stream = new FileInputStream(file)
     try {
       do {
-        m = stream.read(bytes, i, n - i)
+        m = stream.read(bytes, i, max_length - i)
         if (m != -1) i += m
-      } while (m != -1 && n > i)
+      } while (m != -1 && max_length > i)
     }
     finally { stream.close }
 
-    new Bytes(bytes, 0, bytes.length)
+    new Bytes(bytes, 0, i)
   }
+
+  def read(file: JFile): Bytes =
+    read_stream(new FileInputStream(file), file.length.toInt)
 }
 
 final class Bytes private(
