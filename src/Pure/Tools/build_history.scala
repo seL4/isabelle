@@ -23,8 +23,10 @@ object Build_History
     rev: String = default_rev,
     isabelle_identifier: String = default_isabelle_identifier,
     components_base: String = "",
+    fresh: Boolean = false,
     nonfree: Boolean = false,
-    verbose: Boolean = false)
+    verbose: Boolean = false,
+    build_args: List[String] = Nil): Process_Result =
   {
     hg.update(rev = rev, clean = true)
     if (verbose) hg.command("log -l1").check.print
@@ -69,9 +71,9 @@ object Build_History
     /* components */
 
     isabelle("components -a").check.print_if(verbose)
-    isabelle("jedit -b -f").check.print_if(verbose)
+    isabelle("jedit -b" + (if (fresh) " -f" else "")).check.print_if(verbose)
 
-    isabelle("build -?").print
+    isabelle("build " + File.bash_args(build_args))
   }
 
 
@@ -80,45 +82,56 @@ object Build_History
   def main(args: Array[String])
   {
     Command_Line.tool0 {
+      var allow = false
       var components_base = ""
       var isabelle_identifier = default_isabelle_identifier
-      var force = false
+      var fresh = false
       var nonfree = false
       var rev = default_rev
       var verbose = false
 
       val getopts = Getopts("""
-Usage: isabelle build_history [OPTIONS] REPOSITORY
+Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
   Options are:
+    -A           allow irreversible cleanup of REPOSITORY clone
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
-    -f           force -- allow irreversible operations on REPOSITORY clone
+    -f           fresh build of Isabelle/Scala components (recommended)
     -n           include nonfree components
-    -r REV       update to revision
+    -r REV       update to revision (default: """ + default_rev + """)
     -v           verbose
 
   Build Isabelle sessions from the history of another REPOSITORY clone,
-  starting at changeset REV (default: """ + default_rev + """).
+  passing ARGS directly to its isabelle build tool.
 """,
+        "A" -> (_ => allow = true),
         "C:" -> (arg => components_base = arg),
         "N:" -> (arg => isabelle_identifier = arg),
-        "f" -> (_ => force = true),
+        "f" -> (_ => fresh = true),
         "n" -> (_ => nonfree = true),
         "r:" -> (arg => rev = arg),
         "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
-      val root = more_args match { case List(root) => (root) case _ => getopts.usage() }
+      val (root, build_args) =
+        more_args match {
+          case root :: build_args => (root, build_args)
+          case _ => getopts.usage()
+        }
 
       using(Mercurial.open_repository(Path.explode(root)))(hg =>
         {
-          if (!force)
-            error("Repository " + hg + " will be cleaned by force!\n" +
-              "Need to provide option -f to confirm this.")
+          if (!allow)
+            error("Repository " + hg + " will be cleaned thoroughly!\n" +
+              "Provide option -A to allow this explicitly.")
 
-          build_history(hg, rev = rev, isabelle_identifier = isabelle_identifier,
-            components_base = components_base, nonfree = nonfree, verbose = verbose)
+          val res =
+            build_history(hg, rev = rev, isabelle_identifier = isabelle_identifier,
+              components_base = components_base, fresh = fresh, nonfree = nonfree,
+              verbose = verbose, build_args = build_args)
+          res.print
+          if (!res.ok) sys.exit(res.rc)
         })
     }
   }
