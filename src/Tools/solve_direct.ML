@@ -14,7 +14,7 @@ sig
   val someN: string
   val noneN: string
   val unknownN: string
-  val max_solutions: int Unsynchronized.ref
+  val max_solutions: int Config.T
   val solve_direct: Proof.state -> bool * (string * string list)
 end;
 
@@ -32,7 +32,7 @@ val unknownN = "none";
 
 (* preferences *)
 
-val max_solutions = Unsynchronized.ref 5;
+val max_solutions = Attrib.setup_config_int @{binding solve_direct_max_solutions} (K 5);
 
 
 (* solve_direct command *)
@@ -44,7 +44,8 @@ fun do_solve_direct mode state =
 
     val crits = [(true, Find_Theorems.Solves)];
     fun find g =
-      snd (Find_Theorems.find_theorems find_ctxt (SOME g) (SOME (! max_solutions)) false crits);
+      snd (Find_Theorems.find_theorems find_ctxt (SOME g)
+        (SOME (Config.get find_ctxt max_solutions)) false crits);
 
     fun prt_result (goal, results) =
       let
