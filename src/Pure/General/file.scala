@@ -17,6 +17,8 @@ import java.net.{URL, URLDecoder, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.regex.Pattern
 
+import org.tukaani.xz.{XZInputStream, XZOutputStream}
+
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -196,7 +198,8 @@ object File
     read_stream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))))
   def read_gzip(path: Path): String = read_gzip(path.file)
 
-  def read_xz(file: JFile): String = read_stream(XZ.uncompress(new FileInputStream(file)))
+  def read_xz(file: JFile): String =
+    read_stream(new XZInputStream(new BufferedInputStream(new FileInputStream(file))))
   def read_xz(path: Path): String = read_xz(path.file)
 
 
@@ -217,30 +220,24 @@ object File
 
   /* write */
 
-  def write_file(file: JFile, text: Iterable[CharSequence],
-    make_stream: OutputStream => OutputStream)
+  def write_file(file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream)
   {
     val stream = make_stream(new FileOutputStream(file))
     val writer = new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset))
-    try { text.iterator.foreach(writer.append(_)) }
-    finally { writer.close }
+    try { writer.append(text) } finally { writer.close }
   }
 
-  def write(file: JFile, text: Iterable[CharSequence]): Unit = write_file(file, text, (s) => s)
-  def write(file: JFile, text: CharSequence): Unit = write(file, List(text))
-  def write(path: Path, text: Iterable[CharSequence]): Unit = write(path.file, text)
+  def write(file: JFile, text: CharSequence): Unit = write_file(file, text, (s) => s)
   def write(path: Path, text: CharSequence): Unit = write(path.file, text)
 
-  def write_gzip(file: JFile, text: Iterable[CharSequence]): Unit =
+  def write_gzip(file: JFile, text: CharSequence): Unit =
     write_file(file, text, (s: OutputStream) => new GZIPOutputStream(new BufferedOutputStream(s)))
-  def write_gzip(file: JFile, text: CharSequence): Unit = write_gzip(file, List(text))
-  def write_gzip(path: Path, text: Iterable[CharSequence]): Unit = write_gzip(path.file, text)
   def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
 
-  def write_xz(file: JFile, text: Iterable[CharSequence]): Unit = XZ.write_file(file, text)
-  def write_xz(file: JFile, text: CharSequence): Unit = XZ.write_file(file, List(text))
-  def write_xz(path: Path, text: Iterable[CharSequence]): Unit = XZ.write_file(path.file, text)
-  def write_xz(path: Path, text: CharSequence): Unit = XZ.write_file(path.file, List(text))
+  def write_xz(file: JFile, text: CharSequence, options: XZ.Options): Unit =
+    File.write_file(file, text, (s) => new XZOutputStream(new BufferedOutputStream(s), options))
+  def write_xz(path: Path, text: CharSequence, options: XZ.Options): Unit =
+    write_xz(path.file, text, options)
 
   def write_backup(path: Path, text: CharSequence)
   {
