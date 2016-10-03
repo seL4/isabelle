@@ -542,6 +542,10 @@ lemma even_iff_mod_2_eq_zero:
   "even a \<longleftrightarrow> a mod 2 = 0"
   by (fact dvd_eq_mod_eq_0)
 
+lemma odd_iff_mod_2_eq_one:
+  "odd a \<longleftrightarrow> a mod 2 = 1"
+  by (auto simp add: even_iff_mod_2_eq_zero)
+
 lemma even_succ_div_two [simp]:
   "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
   by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)

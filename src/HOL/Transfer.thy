@@ -602,4 +602,14 @@ unfolding map_fun_def[abs_def] by transfer_prover
 
 end
 
+
+subsection \<open>@{const of_nat}\<close>
+
+lemma transfer_rule_of_nat:
+  fixes R :: "'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool"
+  assumes [transfer_rule]: "R 0 0" "R 1 1"
+    "rel_fun R (rel_fun R R) plus plus"
+  shows "rel_fun HOL.eq R of_nat of_nat"
+  by (unfold of_nat_def [abs_def]) transfer_prover
+
 end

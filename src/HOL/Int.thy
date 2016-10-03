@@ -983,6 +983,20 @@ qed
 
 end
 
+lemma transfer_rule_of_int:
+  fixes R :: "'a::ring_1 \<Rightarrow> 'b::ring_1 \<Rightarrow> bool"
+  assumes [transfer_rule]: "R 0 0" "R 1 1"
+    "rel_fun R (rel_fun R R) plus plus"
+    "rel_fun R R uminus uminus"
+  shows "rel_fun HOL.eq R of_int of_int"
+proof -
+  note transfer_rule_of_nat [transfer_rule]
+  have [transfer_rule]: "rel_fun HOL.eq R of_nat of_nat"
+    by transfer_prover
+  show ?thesis
+    by (unfold of_int_of_nat [abs_def]) transfer_prover
+qed
+
 lemma nat_mult_distrib:
   fixes z z' :: int
   assumes "0 \<le> z"
