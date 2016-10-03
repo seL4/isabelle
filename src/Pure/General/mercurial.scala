@@ -40,7 +40,7 @@ object Mercurial
       command("heads " + options + opt_template(template)).check.out_lines
 
     def identify(rev: String = "", options: String = ""): String =
-      command("id -i " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
+      command("id " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
 
     def manifest(rev: String = "", options: String = ""): List[String] =
       command("manifest " + options + opt_rev(rev)).check.out_lines
