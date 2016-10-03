@@ -1698,7 +1698,7 @@ lemma sets_bind':
   using measurable_bind_prob_space[OF measurable_const, OF A B, THEN measurable_space, of undefined "count_space UNIV"]
   by (simp add: space_prob_algebra)
 
-lemma bind_cong_AE:
+lemma bind_cong_AE':
   assumes M: "M \<in> space (prob_algebra L)"
     and f: "f \<in> L \<rightarrow>\<^sub>M prob_algebra N" and g: "g \<in> L \<rightarrow>\<^sub>M prob_algebra N"
     and ae: "AE x in M. f x = g x"
@@ -1711,5 +1711,71 @@ proof (rule measure_eqI)
     using emeasure_bind_prob_algebra[OF M f, of A] emeasure_bind_prob_algebra[OF M g, of A] ae
     by (auto intro: nn_integral_cong_AE)
 qed
+
+lemma density_discrete:
+  "countable A \<Longrightarrow> sets N = Set.Pow A \<Longrightarrow> (\<And>x. f x \<ge> 0) \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x = emeasure N {x}) \<Longrightarrow>
+    density (count_space A) f = N"
+  by (rule measure_eqI_countable[of _ A]) (auto simp: emeasure_density)
+
+lemma distr_density_discrete:
+  fixes f'
+  assumes "countable A"
+  assumes "f' \<in> borel_measurable M"
+  assumes "g \<in> measurable M (count_space A)"
+  defines "f \<equiv> \<lambda>x. \<integral>\<^sup>+t. (if g t = x then 1 else 0) * f' t \<partial>M"
+  assumes "\<And>x.  x \<in> space M \<Longrightarrow> g x \<in> A"
+  shows "density (count_space A) (\<lambda>x. f x) = distr (density M f') (count_space A) g"
+proof (rule density_discrete)
+  fix x assume x: "x \<in> A"
+  have "f x = \<integral>\<^sup>+t. indicator (g -` {x} \<inter> space M) t * f' t \<partial>M" (is "_ = ?I") unfolding f_def
+    by (intro nn_integral_cong) (simp split: split_indicator)
+  also from x have in_sets: "g -` {x} \<inter> space M \<in> sets M"
+    by (intro measurable_sets[OF assms(3)]) simp
+  have "?I = emeasure (density M f') (g -` {x} \<inter> space M)" unfolding f_def
+    by (subst emeasure_density[OF assms(2) in_sets], subst mult.commute) (rule refl)
+  also from assms(3) x have "... = emeasure (distr (density M f') (count_space A) g) {x}"
+    by (subst emeasure_distr) simp_all
+  finally show "f x = emeasure (distr (density M f') (count_space A) g) {x}" .
+qed (insert assms, auto)
+
+lemma bind_cong_AE:
+  assumes "M = N"
+  assumes f: "f \<in> measurable N (subprob_algebra B)"
+  assumes g: "g \<in> measurable N (subprob_algebra B)"
+  assumes ae: "AE x in N. f x = g x"
+  shows "bind M f = bind N g"
+proof cases
+  assume "space N = {}" then show ?thesis
+    using `M = N` by (simp add: bind_empty)
+next
+  assume "space N \<noteq> {}"
+  show ?thesis unfolding `M = N`
+  proof (rule measure_eqI)
+    have *: "sets (N \<bind> f) = sets B"
+      using sets_bind[OF sets_kernel[OF f] `space N \<noteq> {}`] by simp
+    then show "sets (N \<bind> f) = sets (N \<bind> g)"
+      using sets_bind[OF sets_kernel[OF g] `space N \<noteq> {}`] by auto
+    fix A assume "A \<in> sets (N \<bind> f)"
+    then have "A \<in> sets B"
+      unfolding * .
+    with ae f g `space N \<noteq> {}` show "emeasure (N \<bind> f) A = emeasure (N \<bind> g) A"
+      by (subst (1 2) emeasure_bind[where N=B]) (auto intro!: nn_integral_cong_AE)
+  qed
+qed
+
+lemma bind_cong_strong: "M = N \<Longrightarrow> (\<And>x. x\<in>space M =simp=> f x = g x) \<Longrightarrow> bind M f = bind N g"
+  by (auto simp: simp_implies_def intro!: bind_cong)
+
+lemma sets_bind_measurable:
+  assumes f: "f \<in> measurable M (subprob_algebra B)"
+  assumes M: "space M \<noteq> {}"
+  shows "sets (M \<bind> f) = sets B"
+  using M by (intro sets_bind[OF sets_kernel[OF f]]) auto
+
+lemma space_bind_measurable:
+  assumes f: "f \<in> measurable M (subprob_algebra B)"
+  assumes M: "space M \<noteq> {}"
+  shows "space (M \<bind> f) = space B"
+  using M by (intro space_bind[OF sets_kernel[OF f]]) auto
 
 end
