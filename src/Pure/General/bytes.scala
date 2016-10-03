@@ -41,11 +41,11 @@ object Bytes
 
   /* read */
 
-  def read_stream(stream: InputStream, limit: Int = Integer.MAX_VALUE): Bytes =
+  def read_stream(stream: InputStream, limit: Int = Integer.MAX_VALUE, hint: Int = 1024): Bytes =
     if (limit == 0) empty
     else {
-      val out = new ByteArrayOutputStream(if (limit == Integer.MAX_VALUE) 1024 else limit)
-      val buf = new Array[Byte](1024)
+      val out = new ByteArrayOutputStream(if (limit == Integer.MAX_VALUE) hint else limit)
+      val buf = new Array[Byte](8192)
       var m = 0
 
       do {
@@ -133,7 +133,8 @@ final class Bytes private(
 
   /* XZ data compression */
 
-  def uncompress(): Bytes = using(new XZInputStream(stream()))(Bytes.read_stream(_))
+  def uncompress(): Bytes =
+    using(new XZInputStream(stream()))(Bytes.read_stream(_, hint = length))
 
   def compress(options: XZ.Options = XZ.options()): Bytes =
   {
