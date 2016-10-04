@@ -177,7 +177,8 @@ object Build_History
 
     /* build */
 
-    isabelle("jedit -b" + (if (fresh) " -f" else ""), redirect = true, echo = verbose).check
+    bash("env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
+      "bin/isabelle jedit -b" + (if (fresh) " -f" else ""), redirect = true, echo = verbose).check
 
     isabelle("build " + File.bash_args(build_args), redirect = true, echo = verbose)
   }
