@@ -109,6 +109,9 @@ object Build_History
     File.append(etc_settings, "\n" + Library.terminate_lines(component_settings))
 
 
+    isabelle("components -a", redirect = true, echo = verbose).check
+
+
     /* augmented settings */
 
     val ml_settings =
@@ -169,9 +172,11 @@ object Build_History
       File.append(etc_settings, "\n" + Library.terminate_lines(more_settings))
 
 
+    isabelle("components -a", redirect = true, echo = verbose).check
+
+
     /* build */
 
-    isabelle("components -a", redirect = true, echo = verbose).check
     isabelle("jedit -b" + (if (fresh) " -f" else ""), redirect = true, echo = verbose).check
 
     isabelle("build " + File.bash_args(build_args), redirect = true, echo = verbose)
