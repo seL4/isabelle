@@ -25,7 +25,7 @@ object ML_Statistics
   def apply(session_name: String, ml_statistics: List[Properties.T]): ML_Statistics =
     new ML_Statistics(session_name, ml_statistics)
 
-  def apply(info: Build.Session_Log_Info): ML_Statistics =
+  def apply(info: Build_Log.Session_Info): ML_Statistics =
     apply(info.session_name, info.ml_statistics)
 
   val empty = apply("", Nil)

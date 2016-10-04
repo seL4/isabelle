@@ -108,6 +108,7 @@ declare -a SOURCES=(
   Tools/build.scala
   Tools/build_doc.scala
   Tools/build_history.scala
+  Tools/build_log.scala
   Tools/build_stats.scala
   Tools/check_keywords.scala
   Tools/check_sources.scala

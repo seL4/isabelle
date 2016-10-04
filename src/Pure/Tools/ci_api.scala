@@ -45,11 +45,11 @@ object CI_API
     session_logs: List[(String, URL)])
   {
     def read_output(): String = Url.read(output)
-    def read_log(name: String, full: Boolean): Build.Session_Log_Info =
+    def read_log(name: String, full: Boolean): Build_Log.Session_Info =
     {
       val text =
         session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse ""
-      Build.parse_session_log(name, split_lines(text), full)
+      Build_Log.parse_session_info(name, split_lines(text), full)
     }
   }
 
