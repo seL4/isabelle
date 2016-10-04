@@ -75,7 +75,7 @@ object Build_History
       "#-*- shell-script -*- :mode=shellscript:\n")
 
 
-    /* component settings */
+    /* initial settings */
 
     val component_settings =
     {
@@ -94,7 +94,7 @@ object Build_History
     File.append(etc_settings, "\n" + Library.terminate_lines(component_settings))
 
 
-    /* ML settings */
+    /* augmented settings */
 
     val ml_settings =
     {
@@ -138,22 +138,19 @@ object Build_History
         "ML_OPTIONS=" + quote(ml_options))
     }
 
-
-    /* thread settings */
-
     val thread_settings =
       List(
         "ISABELLE_JAVA_SYSTEM_OPTIONS=\"$ISABELLE_JAVA_SYSTEM_OPTIONS -Disabelle.threads=" + threads + "\"",
         "ISABELLE_BUILD_OPTIONS=\"threads=" + threads + "\"")
-
-
-    /* build */
 
     File.append(etc_settings, "\n" +
       cat_lines(List(ml_settings, thread_settings).map(Library.terminate_lines(_))))
 
     if (more_settings.nonEmpty)
       File.append(etc_settings, "\n" + Library.terminate_lines(more_settings))
+
+
+    /* build */
 
     isabelle("components -a").check.print_if(verbose)
     isabelle("jedit -b" + (if (fresh) " -f" else "")).check.print_if(verbose)
