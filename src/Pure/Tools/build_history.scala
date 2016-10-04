@@ -58,11 +58,13 @@ object Build_History
 
     /* invoke isabelle tools */
 
-    def bash(script: String): Process_Result =
+    def bash(script: String, redirect: Boolean = false): Process_Result =
       Isabelle_System.bash("env ISABELLE_IDENTIFIER=" + File.bash_string(isabelle_identifier) +
-        " " + script, cwd = hg.root.file, env = null)
+        " " + script, cwd = hg.root.file, env = null, redirect = redirect)
 
-    def isabelle(cmdline: String): Process_Result = bash("bin/isabelle " + cmdline)
+    def isabelle(cmdline: String, redirect: Boolean = false): Process_Result =
+      bash("bin/isabelle " + cmdline, redirect)
+
     val isabelle_home_user: Path = Path.explode(isabelle("getenv -b ISABELLE_HOME_USER").check.out)
 
 
@@ -158,10 +160,10 @@ object Build_History
 
     /* build */
 
-    isabelle("components -a").check.print_if(verbose)
-    isabelle("jedit -b" + (if (fresh) " -f" else "")).check.print_if(verbose)
+    isabelle("components -a", redirect = true).check.print_if(verbose)
+    isabelle("jedit -b" + (if (fresh) " -f" else ""), redirect = true).check.print_if(verbose)
 
-    isabelle("build " + File.bash_args(build_args))
+    isabelle("build " + File.bash_args(build_args), redirect = true)
   }
 
 
