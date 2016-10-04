@@ -30,6 +30,7 @@ object Build_History
     threads: Int = default_threads,
     arch_64: Boolean = false,
     heap: Int = default_heap,
+    max_heap: Option[Int] = None,
     more_settings: List[String] = Nil,
     verbose: Boolean = false,
     build_args: List[String] = Nil): Process_Result =
@@ -37,7 +38,11 @@ object Build_History
     /* sanity checks */
 
     if (threads < 1) error("Bad threads value < 1: " + threads)
+
     if (heap < 100) error("Bad heap value < 100: " + heap)
+
+    if (max_heap.isDefined && max_heap.get < heap)
+      error("Bad max_heap value < heap: " + max_heap.get)
 
     System.getenv("ISABELLE_SETTINGS_PRESENT") match {
       case null | "" =>
@@ -129,7 +134,8 @@ object Build_History
         }
 
       val ml_options =
-        "-H " + heap + " --gcthreads " + threads +
+        "--minheap " + heap + (if (max_heap.isDefined) " --maxheap " + max_heap.get else "") +
+        " --gcthreads " + threads +
         (if (ml_platform.endsWith("-windows")) " --codepage utf8" else "")
 
       List(
@@ -167,6 +173,7 @@ object Build_History
       var allow = false
       var components_base = ""
       var heap: Option[Int] = None
+      var max_heap: Option[Int] = None
       var threads = default_threads
       var isabelle_identifier = default_isabelle_identifier
       var more_settings: List[String] = Nil
@@ -182,9 +189,10 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   Options are:
     -A           allow irreversible cleanup of REPOSITORY clone (required)
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
-    -H HEAP      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
+    -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
     -M THREADS   number of threads for Poly/ML RTS and Isabelle/ML (default: """ + default_threads + """)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
+    -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
     -f           fresh build of Isabelle/Scala components (recommended)
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
@@ -200,6 +208,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => threads = Value.Int.parse(arg)),
         "N:" -> (arg => isabelle_identifier = arg),
+        "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
         "f" -> (_ => fresh = true),
         "m:" ->
@@ -230,7 +239,8 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
               components_base = components_base, fresh = fresh, nonfree = nonfree,
               threads = threads, arch_64 = arch_64,
               heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
-              more_settings = more_settings, verbose = verbose, build_args = build_args)
+              max_heap = max_heap, more_settings = more_settings, verbose = verbose,
+              build_args = build_args)
           res.print
           if (!res.ok) sys.exit(res.rc)
         })
