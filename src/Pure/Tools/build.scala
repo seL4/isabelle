@@ -348,31 +348,30 @@ object Build
   }
 
 
-  /* log files */
+  /* session log files */
 
   private val SESSION_NAME = "\fSession.name = "
 
-  sealed case class Log_Info(
-    name: String,
-    stats: List[Properties.T],
-    tasks: List[Properties.T],
+  sealed case class Session_Log_Info(
+    session_name: String,
+    session_timing: Properties.T,
     command_timings: List[Properties.T],
-    session_timing: Properties.T)
+    ml_statistics: List[Properties.T],
+    task_statistics: List[Properties.T])
 
-  def parse_log(full_stats: Boolean, text: String): Log_Info =
+  def parse_session_log(lines: List[String], full: Boolean): Session_Log_Info =
   {
-    val lines = split_lines(text)
     val xml_cache = new XML.Cache()
     def parse_lines(prfx: String): List[Properties.T] =
       Props.parse_lines(prfx, lines).map(xml_cache.props(_))
 
-    val name =
+    val session_name =
       lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) getOrElse ""
-    val stats = if (full_stats) parse_lines("\fML_statistics = ") else Nil
-    val tasks = if (full_stats) parse_lines("\ftask_statistics = ") else Nil
-    val command_timings = parse_lines("\fcommand_timing = ")
     val session_timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
-    Log_Info(name, stats, tasks, command_timings, session_timing)
+    val command_timings = parse_lines("\fcommand_timing = ")
+    val ml_statistics = if (full) parse_lines("\fML_statistics = ") else Nil
+    val task_statistics = if (full) parse_lines("\ftask_statistics = ") else Nil
+    Session_Log_Info(session_name, session_timing, command_timings, ml_statistics, task_statistics)
   }
 
 
@@ -519,7 +518,7 @@ object Build
       }
 
       try {
-        val info = parse_log(false, text)
+        val info = parse_session_log(split_lines(text), false)
         val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
         (info.command_timings, session_timing)
       }

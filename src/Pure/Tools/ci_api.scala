@@ -45,9 +45,12 @@ object CI_API
     session_logs: List[(String, URL)])
   {
     def read_output(): String = Url.read(output)
-    def read_log(full_stats: Boolean, name: String): Build.Log_Info =
-      Build.parse_log(full_stats,
-        session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse "")
+    def read_log(name: String, full: Boolean): Build.Session_Log_Info =
+    {
+      val text =
+        session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse ""
+      Build.parse_session_log(split_lines(text), full)
+    }
   }
 
   def build_job_builds(job_name: String): List[Build_Info] =
