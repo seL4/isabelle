@@ -49,7 +49,7 @@ object CI_API
     {
       val text =
         session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse ""
-      Build.parse_session_log(split_lines(text), full)
+      Build.parse_session_log(name, split_lines(text), full)
     }
   }
 

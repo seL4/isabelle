@@ -359,18 +359,24 @@ object Build
     ml_statistics: List[Properties.T],
     task_statistics: List[Properties.T])
 
-  def parse_session_log(lines: List[String], full: Boolean): Session_Log_Info =
+  def parse_session_log(name0: String, lines: List[String], full: Boolean): Session_Log_Info =
   {
     val xml_cache = new XML.Cache()
     def parse_lines(prfx: String): List[Properties.T] =
       Props.parse_lines(prfx, lines).map(xml_cache.props(_))
 
     val session_name =
-      lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) getOrElse ""
+      lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) match {
+        case None => name0
+        case Some(name) if name0 == "" || name0 == name => name
+        case Some(name) =>
+          error("Session log for " + quote(name0) + " is actually from " + quote(name))
+      }
     val session_timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
     val command_timings = parse_lines("\fcommand_timing = ")
     val ml_statistics = if (full) parse_lines("\fML_statistics = ") else Nil
     val task_statistics = if (full) parse_lines("\ftask_statistics = ") else Nil
+
     Session_Log_Info(session_name, session_timing, command_timings, ml_statistics, task_statistics)
   }
 
@@ -518,7 +524,7 @@ object Build
       }
 
       try {
-        val info = parse_session_log(split_lines(text), false)
+        val info = parse_session_log(name, split_lines(text), false)
         val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
         (info.command_timings, session_timing)
       }
