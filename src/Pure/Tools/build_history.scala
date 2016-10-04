@@ -119,7 +119,10 @@ object Build_History
       val platform_64 = isabelle("getenv -b ISABELLE_PLATFORM64").check.out
       val platform_family = isabelle("getenv -b ISABELLE_PLATFORM_FAMILY").check.out
 
-      val polyml_home = Path.explode(isabelle("getenv -b ML_HOME").check.out).dir
+      val polyml_home =
+        try { Path.explode(isabelle("getenv -b ML_HOME").check.out).dir }
+        catch { case ERROR(msg) => error("Bad ML_HOME: " + msg) }
+
       def ml_home(platform: String): Path = polyml_home + Path.explode(platform)
 
       def err(platform: String): Nothing =
