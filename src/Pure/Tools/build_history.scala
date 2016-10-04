@@ -34,11 +34,24 @@ object Build_History
     verbose: Boolean = false,
     build_args: List[String] = Nil): Process_Result =
   {
+    /* sanity checks */
+
     if (threads < 1) error("Bad threads value < 1: " + threads)
     if (heap < 100) error("Bad heap value < 100: " + heap)
 
+    System.getenv("ISABELLE_SETTINGS_PRESENT") match {
+      case null | "" =>
+      case _ => error("Cannot run build_history within existing Isabelle settings environment")
+    }
+
+
+    /* purge repository */
+
     hg.update(rev = rev, clean = true)
     if (verbose) Output.writeln(hg.log(rev, options = "-l1"))
+
+
+    /* invoke isabelle tools */
 
     def bash(script: String): Process_Result =
       Isabelle_System.bash("env ISABELLE_IDENTIFIER=" + File.bash_string(isabelle_identifier) +
