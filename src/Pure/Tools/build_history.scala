@@ -69,8 +69,9 @@ object Build_History
     /* invoke isabelle tools */
 
     def bash(script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
-      Isabelle_System.bash("env ISABELLE_IDENTIFIER=" + File.bash_string(isabelle_identifier) +
-        " " + script, cwd = hg.root.file, env = null, redirect = redirect,
+      Isabelle_System.bash(
+        "export ISABELLE_IDENTIFIER=" + File.bash_string(isabelle_identifier) + "\n" + script,
+        env = null, cwd = hg.root.file, redirect = redirect,
         progress_stdout = output_if(echo, _), progress_stderr = output_if(echo, _))
 
     def isabelle(cmdline: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
