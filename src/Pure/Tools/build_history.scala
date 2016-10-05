@@ -44,6 +44,9 @@ object Build_History
 
     /* sanity checks */
 
+    if (File.eq(Path.explode("~~").file, hg.root.file))
+      error("Repository coincides with ISABELLE_HOME=" + Path.explode("~~").expand)
+
     if (threads < 1) error("Bad threads value < 1: " + threads)
 
     if (heap < 100) error("Bad heap value < 100: " + heap)
@@ -189,7 +192,6 @@ object Build_History
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      var allow = false
       var components_base = ""
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
@@ -206,7 +208,6 @@ object Build_History
 Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
   Options are:
-    -A           allow irreversible cleanup of REPOSITORY clone (required)
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
     -M THREADS   number of threads for Poly/ML RTS and Isabelle/ML (default: """ + default_threads + """)
@@ -222,7 +223,6 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   Build Isabelle sessions from the history of another REPOSITORY clone,
   passing ARGS directly to its isabelle build tool.
 """,
-        "A" -> (_ => allow = true),
         "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => threads = Value.Int.parse(arg)),
@@ -249,10 +249,6 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       using(Mercurial.open_repository(Path.explode(root)))(hg =>
         {
-          if (!allow)
-            error("Repository " + hg + " will be cleaned thoroughly!\n" +
-              "Provide option -A to allow this explicitly.")
-
           val progress = new Console_Progress(false)
           val res =
             build_history(progress, hg, rev = rev, isabelle_identifier = isabelle_identifier,
