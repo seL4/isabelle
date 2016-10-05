@@ -9,6 +9,9 @@ package isabelle
 
 import java.time.{Instant, ZonedDateTime, ZoneId}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.temporal.TemporalAccessor
+
+import scala.annotation.tailrec
 
 
 object Date
@@ -17,14 +20,29 @@ object Date
 
   object Format
   {
-    def apply(fmt: DateTimeFormatter): Format =
-      new Format {
-        def apply(date: Date): String = fmt.format(date.rep)
-        def parse(str: String): Date = new Date(ZonedDateTime.from(fmt.parse(str)))
-      }
+    def make(fmts: List[DateTimeFormatter]): Format =
+    {
+      require(fmts.nonEmpty)
 
-    def apply(pattern: String): Format =
-      apply(DateTimeFormatter.ofPattern(pattern))
+      @tailrec def parse_first(
+        last_exn: Option[Throwable], fs: List[DateTimeFormatter], str: String): TemporalAccessor =
+      {
+        fs match {
+          case Nil => throw last_exn.get
+          case f :: rest =>
+            try { ZonedDateTime.from(f.parse(str)) }
+            catch { case exn: DateTimeParseException => parse_first(Some(exn), rest, str) }
+        }
+      }
+      new Format {
+        def apply(date: Date): String = fmts.head.format(date.rep)
+        def parse(str: String): Date =
+          new Date(ZonedDateTime.from(parse_first(None, fmts, str)))
+      }
+    }
+
+    def apply(patterns: String*): Format =
+      make(patterns.toList.map(DateTimeFormatter.ofPattern(_)))
 
     val default: Format = apply("dd-MMM-uuuu HH:mm:ss xx")
     val date: Format = apply("dd-MMM-uuuu")
@@ -51,7 +69,7 @@ object Date
     new Date(ZonedDateTime.ofInstant(t.instant, zone))
 }
 
-sealed case class Date private(private[Date] rep: ZonedDateTime)
+sealed case class Date(rep: ZonedDateTime)
 {
   def time: Time = Time.instant(Instant.from(rep))
   def timezone: ZoneId = rep.getZone
