@@ -545,6 +545,8 @@ lemma mset_subset_eq_exists_conv: "(A::'a multiset) \<subseteq># B \<longleftrig
 interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<le>#" "op <#" "op -"
   by standard (simp, fact mset_subset_eq_exists_conv)
 
+declare subset_mset.add_diff_assoc[simp] subset_mset.add_diff_assoc2[simp]
+
 lemma mset_subset_eq_mono_add_right_cancel: "(A::'a multiset) + C \<subseteq># B + C \<longleftrightarrow> A \<subseteq># B"
    by (fact subset_mset.add_le_cancel_right)
 
@@ -2649,7 +2651,7 @@ next
       using K N trans True by (meson that transE)
     ultimately show ?thesis
       by (rule_tac x = I in exI, rule_tac x = J in exI, rule_tac x = "(K - {#a#}) + K'" in exI)
-        (use z y N in \<open>auto simp: subset_mset.add_diff_assoc dest: in_diffD\<close>)
+        (use z y N in \<open>auto simp del: subset_mset.add_diff_assoc2 dest: in_diffD\<close>)
   next
     case False
     then have "a \<in># I" by (metis N(2) union_iff union_single_eq_member z)
@@ -2658,7 +2660,7 @@ next
     ultimately show ?thesis
       by (rule_tac x = "I - {#a#}" in exI, rule_tac x = "add_mset a J" in exI,
           rule_tac x = "K + K'" in exI)
-        (use z y N False K in \<open>auto simp: subset_mset.diff_add_assoc2\<close>)
+        (use z y N False K in \<open>auto simp: add.assoc\<close>)
   qed
 qed
 
