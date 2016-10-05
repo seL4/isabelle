@@ -13,6 +13,7 @@ object Build_Log
 
   object Props
   {
+    def print(props: Properties.T): String = YXML.string_of_body(XML.Encode.properties(props))
     def parse(text: String): Properties.T = XML.Decode.properties(YXML.parse_body(text))
 
     def parse_lines(prefix: String, lines: List[String]): List[Properties.T] =
