@@ -155,20 +155,20 @@ object Build_History
     components_base: String = "",
     fresh: Boolean = false,
     nonfree: Boolean = false,
-    threads: Int = default_threads,
+    threads_list: List[Int] = List(default_threads),
     arch_64: Boolean = false,
     heap: Int = default_heap,
     max_heap: Option[Int] = None,
     more_settings: List[String] = Nil,
     verbose: Boolean = false,
-    build_args: List[String] = Nil): Process_Result =
+    build_args: List[String] = Nil): List[Process_Result] =
   {
     /* sanity checks */
 
     if (File.eq(Path.explode("~~").file, hg.root.file))
       error("Repository coincides with ISABELLE_HOME=" + Path.explode("~~").expand)
 
-    if (threads < 1) error("Bad threads value < 1: " + threads)
+    for (threads <- threads_list if threads < 1) error("Bad threads value < 1: " + threads)
 
     if (heap < 100) error("Bad heap value < 100: " + heap)
 
@@ -186,27 +186,32 @@ object Build_History
     hg.update(rev = rev, clean = true)
     progress.echo_if(verbose, hg.log(rev, options = "-l1"))
 
-
-    /* init other Isabelle */
-
     val other_isabelle = new Other_Isabelle(progress, hg.root, isabelle_identifier)
 
-    other_isabelle.reset_settings(components_base, nonfree)
-    other_isabelle.resolve_components(verbose)
 
-    other_isabelle.augment_settings(threads, arch_64, heap, max_heap, more_settings)
-    other_isabelle.resolve_components(verbose)
+    /* init settings and build */
 
+    var first_build = true
+    for (threads <- threads_list)
+    yield {
+      other_isabelle.reset_settings(components_base, nonfree)
+      other_isabelle.resolve_components(verbose)
+      other_isabelle.augment_settings(threads, arch_64, heap, max_heap, more_settings)
 
-    /* build */
+      if (first_build) {
+        first_build = false
 
-    other_isabelle.bash(
-      "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
-      "bin/isabelle jedit -b" + (if (fresh) " -f" else ""), redirect = true, echo = verbose).check
+        other_isabelle.resolve_components(verbose)
+        other_isabelle.bash(
+          "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
+            "bin/isabelle jedit -b" + (if (fresh) " -f" else ""),
+          redirect = true, echo = verbose).check
+      }
 
-    val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
-    Isabelle_System.rm_tree(isabelle_output.file)
-    other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = true)
+      val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
+      Isabelle_System.rm_tree(isabelle_output.file)
+      other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = true)
+    }
   }
 
 
@@ -218,7 +223,7 @@ object Build_History
       var components_base = ""
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
-      var threads = default_threads
+      var threads_list = List(default_threads)
       var isabelle_identifier = default_isabelle_identifier
       var more_settings: List[String] = Nil
       var fresh = false
@@ -233,7 +238,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   Options are:
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
-    -M THREADS   number of threads for Poly/ML RTS and Isabelle/ML (default: """ + default_threads + """)
+    -M THREADS   multithreading configurations (comma-separated list, default: """ + default_threads + """)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
@@ -248,7 +253,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 """,
         "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
-        "M:" -> (arg => threads = Value.Int.parse(arg)),
+        "M:" -> (arg => threads_list = space_explode(',', arg).map(Value.Int.parse(_))),
         "N:" -> (arg => isabelle_identifier = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
@@ -273,14 +278,15 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       using(Mercurial.open_repository(Path.explode(root)))(hg =>
         {
           val progress = new Console_Progress(false)
-          val res =
+          val results =
             build_history(progress, hg, rev = rev, isabelle_identifier = isabelle_identifier,
               components_base = components_base, fresh = fresh, nonfree = nonfree,
-              threads = threads, arch_64 = arch_64,
+              threads_list = threads_list, arch_64 = arch_64,
               heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
               max_heap = max_heap, more_settings = more_settings, verbose = verbose,
               build_args = build_args)
-          if (!res.ok) sys.exit(res.rc)
+          val rc = (0 /: results) { case (rc, res) => rc max res.rc }
+          if (rc != 0) sys.exit(rc)
         })
     }
   }
