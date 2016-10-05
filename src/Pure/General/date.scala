@@ -7,20 +7,12 @@ Date and time, with time zone.
 package isabelle
 
 
-import java.time.{ZonedDateTime, ZoneId}
+import java.time.{Instant, ZonedDateTime, ZoneId}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
 
 object Date
 {
-  def timezone(): ZoneId = ZoneId.systemDefault
-
-  def now(zone: ZoneId = timezone()): Date = new Date(ZonedDateTime.now(zone))
-
-  def apply(t: Time, zone: ZoneId = timezone()): Date =
-    new Date(ZonedDateTime.ofInstant(t.instant, zone))
-
-
   /* format */
 
   object Format
@@ -35,8 +27,8 @@ object Date
       apply(DateTimeFormatter.ofPattern(pattern))
 
     val default: Format = apply("dd-MMM-uuuu HH:mm:ss xx")
-    val default_date: Format = apply("dd-MMM-uuuu")
-    val default_time: Format = apply("HH:mm:ss")
+    val date: Format = apply("dd-MMM-uuuu")
+    val time: Format = apply("HH:mm:ss")
   }
 
   abstract class Format private
@@ -47,9 +39,23 @@ object Date
       try { Some(parse(str)) }
       catch { case _: DateTimeParseException => None }
   }
+
+
+  /* date operations */
+
+  def timezone(): ZoneId = ZoneId.systemDefault
+
+  def now(zone: ZoneId = timezone()): Date = new Date(ZonedDateTime.now(zone))
+
+  def apply(t: Time, zone: ZoneId = timezone()): Date =
+    new Date(ZonedDateTime.ofInstant(t.instant, zone))
 }
 
 sealed case class Date private(private[Date] rep: ZonedDateTime)
 {
-  override def toString: String = Date.Format.default(this)
+  def time: Time = Time.instant(Instant.from(rep))
+  def timezone: ZoneId = rep.getZone
+
+  def format(fmt: Date.Format = Date.Format.default): String = fmt(this)
+  override def toString: String = format()
 }
