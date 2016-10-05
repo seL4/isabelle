@@ -1660,7 +1660,7 @@ proof -
     thus "((x, y), (s.max_fun_diff (rev_curr f m) (rev_curr g m), m)) \<in> s *o t"
       using rst.max_fun_diff_in[OF diff1] rs.max_fun_diff_in[OF diff2] diff1 diff2
         rst.max_fun_diff_max[OF diff1, of y] rs.max_fun_diff_le_eq[OF _ diff2, of x]
-      unfolding oprod_def m_def rev_curr_def fun_eq_iff by auto (metis s.in_notinI)
+      unfolding oprod_def m_def rev_curr_def fun_eq_iff by (auto intro: s.in_notinI)
   qed
 qed
 
