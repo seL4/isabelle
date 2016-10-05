@@ -7,6 +7,10 @@ Build log parsing for historic versions, back to "build_history_base".
 package isabelle
 
 
+import scala.collection.mutable
+import scala.util.matching.Regex
+
+
 object Build_Log
 {
   /* inlined properties (YXML) */
@@ -54,5 +58,75 @@ object Build_Log
     val task_statistics = if (full) parse_lines("\ftask_statistics = ") else Nil
 
     Session_Info(session_name, session_timing, command_timings, ml_statistics, task_statistics)
+  }
+
+
+  /* main log: produced by isatest, afp-test, jenkins etc. */
+
+  sealed case class Info(
+    ml_options: List[(String, String)],
+    finished: Map[String, Timing],
+    timing: Map[String, Timing],
+    threads: Map[String, Int])
+  {
+    val sessions: Set[String] = finished.keySet ++ timing.keySet
+
+    override def toString: String =
+      sessions.toList.sorted.mkString("Build_Log.Info(", ", ", ")")
+  }
+
+  private val Session_Finished1 =
+    new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time.*$""")
+  private val Session_Finished2 =
+    new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
+  private val Session_Timing =
+    new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
+
+  private object ML_Option
+  {
+    def unapply(s: String): Option[(String, String)] =
+      s.indexOf('=') match {
+        case -1 => None
+        case i =>
+          val a = s.substring(0, i)
+          Library.try_unquote(s.substring(i + 1)) match {
+            case Some(b) if Build.ml_options.contains(a) => Some((a, b))
+            case _ => None
+          }
+      }
+  }
+
+  def parse_info(text: String): Info =
+  {
+    val ml_options = new mutable.ListBuffer[(String, String)]
+    var finished = Map.empty[String, Timing]
+    var timing = Map.empty[String, Timing]
+    var threads = Map.empty[String, Int]
+
+    for (line <- split_lines(text)) {
+      line match {
+        case Session_Finished1(name,
+            Value.Int(e1), Value.Int(e2), Value.Int(e3),
+            Value.Int(c1), Value.Int(c2), Value.Int(c3)) =>
+          val elapsed = Time.hms(e1, e2, e3)
+          val cpu = Time.hms(c1, c2, c3)
+          finished += (name -> Timing(elapsed, cpu, Time.zero))
+        case Session_Finished2(name,
+            Value.Int(e1), Value.Int(e2), Value.Int(e3)) =>
+          val elapsed = Time.hms(e1, e2, e3)
+          finished += (name -> Timing(elapsed, Time.zero, Time.zero))
+        case Session_Timing(name,
+            Value.Int(t), Value.Double(e), Value.Double(c), Value.Double(g)) =>
+          val elapsed = Time.seconds(e)
+          val cpu = Time.seconds(c)
+          val gc = Time.seconds(g)
+          timing += (name -> Timing(elapsed, cpu, gc))
+          threads += (name -> t)
+        case ML_Option(a, b) => ml_options += (a -> b)
+        case _ =>
+      }
+    }
+
+    Info(ml_options.toList, finished, timing, threads)
   }
 }

@@ -38,7 +38,7 @@ object CI_API
       name <- JSON.string(job, "name")
     } yield name
 
-  sealed case class Build_Info(
+  sealed case class Job_Info(
     job_name: String,
     timestamp: Long,
     output: URL,
@@ -53,7 +53,7 @@ object CI_API
     }
   }
 
-  def build_job_builds(job_name: String): List[Build_Info] =
+  def build_job_builds(job_name: String): List[Job_Info] =
   {
     val Log_Session = new Regex("""^.*/log/([^/]+)\.gz$""")
 
@@ -71,7 +71,7 @@ object CI_API
           log_path <- JSON.string(artifact, "relativePath")
           session <- (log_path match { case Log_Session(name) => Some(name) case _ => None })
         } yield (session -> Url(job_prefix + "/artifact/" + log_path))
-      Build_Info(job_name, timestamp, output, session_logs)
+      Job_Info(job_name, timestamp, output, session_logs)
     }
   }
 }
