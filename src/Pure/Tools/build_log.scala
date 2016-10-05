@@ -7,6 +7,9 @@ Build log parsing for historic versions, back to "build_history_base".
 package isabelle
 
 
+import java.time.ZonedDateTime
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
+
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -58,6 +61,76 @@ object Build_Log
     val task_statistics = if (full) parse_lines("\ftask_statistics = ") else Nil
 
     Session_Info(session_name, session_timing, command_timings, ml_statistics, task_statistics)
+  }
+
+
+  /* header and data fields */
+
+  object Header_Kind extends Enumeration
+  {
+    val ISATEST = Value("isatest")
+    val AFP_TEST = Value("afp-test")
+    val JENKINS = Value("jenkins")
+  }
+
+  sealed case class Header(kind: Header_Kind.Value, props: Properties.T, settings: List[String])
+
+  object Field
+  {
+    val build_host = "build_host"
+    val build_start = "build_start"
+    val build_end = "build_end"
+    val isabelle_version = "isabelle_version"
+    val afp_version = "afp_version"
+  }
+
+  object AFP
+  {
+    val Date_Format =
+      Date.Format.make_patterns(List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+        // workaround for jdk-8u102
+        s => Word.implode(Word.explode(s).map({ case "CEST" => "GMT+2" case a => a })))
+    val Test_Start = new Regex("""^Start test for .+ at (.+), (\w+)$""")
+    val Test_End = new Regex("""^End test on (.+), \w+, elapsed time:.*$""")
+    val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\w+)$""")
+    val AFP_Version = new Regex("""^AFP version: .* -- hg id (\w+)$""")
+    val settings =
+      List("ISABELLE_BUILD_OPTIONS=", "ML_PLATFORM=", "ML_HOME=", "ML_SYSTEM=", "ML_OPTIONS=")
+  }
+
+  def parse_header(lines: List[String]): Header =
+  {
+    val proper_lines = lines.filterNot(line => line.forall(Character.isWhitespace(_)))
+
+    def err(msg: String): Nothing = error(cat_lines((msg + ":") :: lines.take(10)))
+
+    proper_lines match {
+      case AFP.Test_Start(start, hostname) :: _ =>
+        (start, proper_lines.last) match {
+          case (AFP.Date_Format(start_date), AFP.Test_End(AFP.Date_Format(end_date))) =>
+            val props =
+              List(
+                Field.build_host -> hostname,
+                Field.build_start -> start_date.toString,
+                Field.build_end -> end_date.toString) :::
+              lines.collectFirst(
+                { case AFP.Isabelle_Version(id) => Field.isabelle_version -> id }).toList :::
+              lines.collectFirst(
+                { case AFP.AFP_Version(id) => Field.afp_version -> id }).toList
+            val settings = lines.filter(line => AFP.settings.exists(line.startsWith(_)))
+            Header(Header_Kind.AFP_TEST, props, settings)
+          case _ => err("Malformed start/end date in afp-test log")
+        }
+      case _ => err("Failed to detect build log header")
+    }
+  }
+
+  object Session_Status extends Enumeration
+  {
+    val UNKNOWN = Value("unknown")
+    val FINISHED = Value("finished")
+    val FAILED = Value("failed")
+    val CANCELLED = Value("cancelled")
   }
 
 
