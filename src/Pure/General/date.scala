@@ -20,7 +20,7 @@ object Date
 
   object Format
   {
-    def make(fmts: List[DateTimeFormatter]): Format =
+    def make(fmts: List[DateTimeFormatter], filter: String => String = s => s): Format =
     {
       require(fmts.nonEmpty)
 
@@ -37,9 +37,12 @@ object Date
       new Format {
         def apply(date: Date): String = fmts.head.format(date.rep)
         def parse(str: String): Date =
-          new Date(ZonedDateTime.from(parse_first(None, fmts, str)))
+          new Date(ZonedDateTime.from(parse_first(None, fmts, filter(str))))
       }
     }
+
+    def make_patterns(patterns: List[String], filter: String => String = s => s): Format =
+      make(patterns.toList.map(DateTimeFormatter.ofPattern(_)), filter)
 
     def apply(patterns: String*): Format =
       make(patterns.toList.map(DateTimeFormatter.ofPattern(_)))
