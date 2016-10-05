@@ -10,6 +10,7 @@ package isabelle
 class Progress
 {
   def echo(msg: String) {}
+  def echo_if(cond: Boolean, msg: String) { if (cond) echo(msg) }
   def theory(session: String, theory: String) {}
   def stopped: Boolean = false
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
