@@ -29,6 +29,9 @@ object Build_History
         progress_stdout = progress.echo_if(echo, _),
         progress_stderr = progress.echo_if(echo, _))
 
+    def copy_dir(dir1: Path, dir2: Path): Unit =
+      bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2)).check
+
     def apply(cmdline: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
       bash("bin/isabelle " + cmdline, redirect, echo)
 
@@ -155,6 +158,7 @@ object Build_History
     components_base: String = "",
     fresh: Boolean = false,
     nonfree: Boolean = false,
+    multicore_base: Boolean = false,
     threads_list: List[Int] = List(default_threads),
     arch_64: Boolean = false,
     heap: Int = default_heap,
@@ -189,28 +193,48 @@ object Build_History
     val other_isabelle = new Other_Isabelle(progress, hg.root, isabelle_identifier)
 
 
-    /* init settings and build */
+    /* main */
 
     var first_build = true
-    for (threads <- threads_list)
-    yield {
+    for (threads <- threads_list) yield
+    {
+      /* init settings */
+
       other_isabelle.reset_settings(components_base, nonfree)
       other_isabelle.resolve_components(verbose)
       other_isabelle.augment_settings(threads, arch_64, heap, max_heap, more_settings)
 
-      if (first_build) {
-        first_build = false
+      val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
+      val isabelle_output_log = isabelle_output + Path.explode("log")
+      val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 
+      if (first_build) {
         other_isabelle.resolve_components(verbose)
         other_isabelle.bash(
           "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
             "bin/isabelle jedit -b" + (if (fresh) " -f" else ""),
           redirect = true, echo = verbose).check
+
+        Isabelle_System.rm_tree(isabelle_base_log.file)
       }
 
-      val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
       Isabelle_System.rm_tree(isabelle_output.file)
-      other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = true)
+      Isabelle_System.mkdirs(isabelle_output)
+
+
+      /* build */
+
+      if (multicore_base && !first_build && isabelle_base_log.is_dir)
+        other_isabelle.copy_dir(isabelle_base_log, isabelle_output_log)
+
+      val res = other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = true)
+
+      if (multicore_base && first_build && isabelle_output_log.is_dir)
+        other_isabelle.copy_dir(isabelle_output_log, isabelle_base_log)
+
+      first_build = false
+
+      res
     }
   }
 
@@ -220,6 +244,7 @@ object Build_History
   def main(args: Array[String])
   {
     Command_Line.tool0 {
+      var multicore_base = false
       var components_base = ""
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
@@ -236,9 +261,10 @@ object Build_History
 Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
   Options are:
+    -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
-    -M THREADS   multithreading configurations (comma-separated list, default: """ + default_threads + """)
+    -M THREADS   multicore configurations (comma-separated list, default: """ + default_threads + """)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
@@ -251,6 +277,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   Build Isabelle sessions from the history of another REPOSITORY clone,
   passing ARGS directly to its isabelle build tool.
 """,
+        "B" -> (_ => multicore_base = true),
         "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => threads_list = space_explode(',', arg).map(Value.Int.parse(_))),
@@ -281,7 +308,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           val results =
             build_history(progress, hg, rev = rev, isabelle_identifier = isabelle_identifier,
               components_base = components_base, fresh = fresh, nonfree = nonfree,
-              threads_list = threads_list, arch_64 = arch_64,
+              multicore_base = multicore_base, threads_list = threads_list, arch_64 = arch_64,
               heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
               max_heap = max_heap, more_settings = more_settings, verbose = verbose,
               build_args = build_args)
