@@ -78,6 +78,7 @@ object Build_History
       bash("bin/isabelle " + cmdline, redirect, echo)
 
     val isabelle_home_user = Path.explode(isabelle("getenv -b ISABELLE_HOME_USER").check.out)
+    val isabelle_output = Path.explode(isabelle("getenv -b ISABELLE_OUTPUT").check.out)
 
 
     /* reset settings */
@@ -184,7 +185,8 @@ object Build_History
     bash("env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
       "bin/isabelle jedit -b" + (if (fresh) " -f" else ""), redirect = true, echo = verbose).check
 
-    isabelle("build " + File.bash_args(build_args), redirect = true, echo = verbose)
+    Isabelle_System.rm_tree(isabelle_output.file)
+    isabelle("build " + File.bash_args(build_args), redirect = true, echo = true)
   }
 
 
