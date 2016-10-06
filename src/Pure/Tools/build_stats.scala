@@ -29,7 +29,7 @@ object Build_Stats
 
     val all_infos =
       Par_List.map((job_info: CI_API.Job_Info) =>
-        (job_info.timestamp / 1000, Build_Log.parse_info(Url.read(job_info.output))), job_infos)
+        (job_info.timestamp / 1000, job_info.read_output.parse_info), job_infos)
     val all_sessions =
       (Set.empty[String] /: all_infos)(
         { case (s, (_, info)) => s ++ info.sessions })

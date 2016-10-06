@@ -16,18 +16,73 @@ import scala.util.matching.Regex
 
 object Build_Log
 {
-  /* inlined properties (YXML) */
+  /** log file **/
 
-  object Props
+  object Log_File
   {
-    def print(props: Properties.T): String = YXML.string_of_body(XML.Encode.properties(props))
-    def parse(text: String): Properties.T = XML.Decode.properties(YXML.parse_body(text))
+    def apply(name: String, lines: List[String]): Log_File =
+      new Log_File(name, lines)
 
-    def parse_lines(prefix: String, lines: List[String]): List[Properties.T] =
-      for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse(s)
+    def apply(name: String, text: String): Log_File =
+      Log_File(name, split_lines(Library.trim_line(text)).map(Library.trim_line(_)))
+  }
 
-    def find_parse_line(prefix: String, lines: List[String]): Option[Properties.T] =
-      lines.find(_.startsWith(prefix)).map(line => parse(line.substring(prefix.length)))
+  class Log_File private(val name: String, val lines: List[String])
+  {
+    log_file =>
+
+    override def toString: String = name
+
+    def text: String = cat_lines(lines)
+
+    def err(msg: String): Nothing =
+      error("Error in log file " + quote(name) + ": " + msg)
+
+
+    /* inlined content */
+
+    def find[A](f: String => Option[A]): Option[A] =
+      lines.iterator.map(f).find(_.isDefined).map(_.get)
+
+    def find_match(regex: Regex): Option[String] =
+      lines.iterator.map(regex.unapplySeq(_)).find(res => res.isDefined && res.get.length == 1).
+        map(res => res.get.head)
+
+
+    /* settings */
+
+    def get_setting(setting: String): String =
+      lines.find(_.startsWith(setting + "=")) getOrElse err("missing " + setting)
+
+    def get_settings(settings: List[String]): List[String] =
+      settings.map(get_setting(_))
+
+
+    /* properties (YXML) */
+
+    val xml_cache = new XML.Cache()
+
+    def parse_props(text: String): Properties.T =
+      xml_cache.props(XML.Decode.properties(YXML.parse_body(text)))
+
+    def filter_props(prefix: String): List[Properties.T] =
+      for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse_props(s)
+
+    def find_line(prefix: String): Option[String] =
+      find(Library.try_unprefix(prefix, _))
+
+    def find_props(prefix: String): Option[Properties.T] =
+      find_line(prefix).map(parse_props(_))
+
+
+    /* parse various formats */
+
+    def parse_session_info(session_name: String, full: Boolean): Session_Info =
+      Build_Log.parse_session_info(log_file, session_name, full)
+
+    def parse_header: Header = Build_Log.parse_header(log_file)
+
+    def parse_info: Info = Build_Log.parse_info(log_file)
   }
 
 
@@ -40,31 +95,26 @@ object Build_Log
     ml_statistics: List[Properties.T],
     task_statistics: List[Properties.T])
 
-  val SESSION_NAME = "\fSession.name = "
-
-  def parse_session_info(name0: String, lines: List[String], full: Boolean): Session_Info =
+  private def parse_session_info(log_file: Log_File, name0: String, full: Boolean): Session_Info =
   {
     val xml_cache = new XML.Cache()
-    def parse_lines(prfx: String): List[Properties.T] =
-      Props.parse_lines(prfx, lines).map(xml_cache.props(_))
 
     val session_name =
-      lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) match {
+      log_file.find_line("\fSession.name = ") match {
         case None => name0
         case Some(name) if name0 == "" || name0 == name => name
-        case Some(name) =>
-          error("Session log for " + quote(name0) + " is actually from " + quote(name))
+        case Some(name) => log_file.err("log from different session " + quote(name))
       }
-    val session_timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
-    val command_timings = parse_lines("\fcommand_timing = ")
-    val ml_statistics = if (full) parse_lines("\fML_statistics = ") else Nil
-    val task_statistics = if (full) parse_lines("\ftask_statistics = ") else Nil
+    val session_timing = log_file.find_props("\fTiming = ") getOrElse Nil
+    val command_timings = log_file.filter_props("\fcommand_timing = ")
+    val ml_statistics = if (full) log_file.filter_props("\fML_statistics = ") else Nil
+    val task_statistics = if (full) log_file.filter_props("\ftask_statistics = ") else Nil
 
     Session_Info(session_name, session_timing, command_timings, ml_statistics, task_statistics)
   }
 
 
-  /* header and data fields */
+  /* header and meta data */
 
   object Header_Kind extends Enumeration
   {
@@ -84,44 +134,47 @@ object Build_Log
     val afp_version = "afp_version"
   }
 
+  val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
+
   object AFP
   {
     val Date_Format =
       Date.Format.make_patterns(List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
         // workaround for jdk-8u102
         s => Word.implode(Word.explode(s).map({ case "CEST" => "GMT+2" case a => a })))
+
     val Test_Start = new Regex("""^Start test for .+ at (.+), (\w+)$""")
     val Test_End = new Regex("""^End test on (.+), \w+, elapsed time:.*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\w+)$""")
     val AFP_Version = new Regex("""^AFP version: .* -- hg id (\w+)$""")
-    val settings =
-      List("ISABELLE_BUILD_OPTIONS=", "ML_PLATFORM=", "ML_HOME=", "ML_SYSTEM=", "ML_OPTIONS=")
+    val settings = "ISABELLE_BUILD_OPTIONS" :: ml_settings
   }
 
-  def parse_header(lines: List[String]): Header =
+  private def parse_header(log_file: Log_File): Header =
   {
-    val proper_lines = lines.filterNot(line => line.forall(Character.isWhitespace(_)))
-
-    def err(msg: String): Nothing = error(cat_lines((msg + ":") :: lines.take(10)))
-
-    proper_lines match {
+    log_file.lines match {
       case AFP.Test_Start(start, hostname) :: _ =>
-        (start, proper_lines.last) match {
+        (start, log_file.lines.last) match {
           case (AFP.Date_Format(start_date), AFP.Test_End(AFP.Date_Format(end_date))) =>
-            val props =
+            val isabelle_version =
+              log_file.find_match(AFP.Isabelle_Version) getOrElse
+                log_file.err("missing Isabelle version")
+            val afp_version =
+              log_file.find_match(AFP.AFP_Version) getOrElse
+                log_file.err("missing AFP version")
+
+            Header(Header_Kind.AFP_TEST,
               List(
                 Field.build_host -> hostname,
                 Field.build_start -> start_date.toString,
-                Field.build_end -> end_date.toString) :::
-              lines.collectFirst(
-                { case AFP.Isabelle_Version(id) => Field.isabelle_version -> id }).toList :::
-              lines.collectFirst(
-                { case AFP.AFP_Version(id) => Field.afp_version -> id }).toList
-            val settings = lines.filter(line => AFP.settings.exists(line.startsWith(_)))
-            Header(Header_Kind.AFP_TEST, props, settings)
-          case _ => err("Malformed start/end date in afp-test log")
+                Field.build_end -> end_date.toString,
+                Field.isabelle_version -> isabelle_version,
+                Field.afp_version -> afp_version),
+              log_file.get_settings(AFP.settings))
+
+          case _ => log_file.err("cannot detect start/end date in afp-test log")
         }
-      case _ => err("Failed to detect build log header")
+      case _ => log_file.err("cannot detect log header format")
     }
   }
 
@@ -169,14 +222,14 @@ object Build_Log
       }
   }
 
-  def parse_info(text: String): Info =
+  private def parse_info(log_file: Log_File): Info =
   {
     val ml_options = new mutable.ListBuffer[(String, String)]
     var finished = Map.empty[String, Timing]
     var timing = Map.empty[String, Timing]
     var threads = Map.empty[String, Int]
 
-    for (line <- split_lines(text)) {
+    for (line <- log_file.lines) {
       line match {
         case Session_Finished1(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3),
