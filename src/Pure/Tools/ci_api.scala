@@ -38,19 +38,22 @@ object CI_API
       name <- JSON.string(job, "name")
     } yield name
 
-  sealed case class Build_Info(
+  sealed case class Job_Info(
     job_name: String,
     timestamp: Long,
     output: URL,
     session_logs: List[(String, URL)])
   {
-    def read_output(): String = Url.read(output)
-    def read_log(full_stats: Boolean, name: String): Build.Log_Info =
-      Build.parse_log(full_stats,
-        session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse "")
+    def read_output(): Build_Log.Log_File = Build_Log.Log_File(job_name, Url.read(output))
+    def read_log(name: String, full: Boolean): Build_Log.Session_Info =
+    {
+      val text =
+        session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse ""
+      Build_Log.Log_File(name, text).parse_session_info(name, full)
+    }
   }
 
-  def build_job_builds(job_name: String): List[Build_Info] =
+  def build_job_builds(job_name: String): List[Job_Info] =
   {
     val Log_Session = new Regex("""^.*/log/([^/]+)\.gz$""")
 
@@ -68,7 +71,7 @@ object CI_API
           log_path <- JSON.string(artifact, "relativePath")
           session <- (log_path match { case Log_Session(name) => Some(name) case _ => None })
         } yield (session -> Url(job_prefix + "/artifact/" + log_path))
-      Build_Info(job_name, timestamp, output, session_logs)
+      Job_Info(job_name, timestamp, output, session_logs)
     }
   }
 }

@@ -14,7 +14,16 @@ export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 (
   source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
-  declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
+  case "$ISABELLE_JAVA_PLATFORM" in
+    x86-*)
+      ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS32"
+      ;;
+    x86_64-*)
+      ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS64"
+      ;;
+  esac
+
+  declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $ISABELLE_TOOL_JAVA_OPTIONS)"
 
   if [ -f "$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar" ]; then
     classpath "$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar"
@@ -64,6 +73,7 @@ export ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
     echo "Unknown JAVA_HOME -- Java unavailable" >&2
     exit 127
   else
+    unset ISABELLE_HOME
     unset CLASSPATH
     exec "$JAVA_HOME/bin/java" "${JAVA_ARGS[@]}" -classpath "$ISABELLE_CLASSPATH" "$@"
   fi

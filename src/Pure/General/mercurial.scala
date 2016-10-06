@@ -33,17 +33,21 @@ object Mercurial
     def close() { }
 
     def command(cmd: String, cwd: JFile = null): Process_Result =
-      Isabelle_System.hg("--repository " + File.bash_path(root) + " " + cmd, cwd = cwd)
+      Isabelle_System.hg("--repository " + File.bash_path(root) + " --noninteractive " + cmd,
+        cwd = cwd)
 
 
     def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
       command("heads " + options + opt_template(template)).check.out_lines
 
     def identify(rev: String = "", options: String = ""): String =
-      command("id -i " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
+      command("id " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
 
     def manifest(rev: String = "", options: String = ""): List[String] =
       command("manifest " + options + opt_rev(rev)).check.out_lines
+
+    def log(rev: String = "", template: String = "", options: String = ""): String =
+      Library.trim_line(command("log " + options + opt_rev(rev) + opt_template(template)).check.out)
 
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
       command("pull " + options + opt_rev(rev) + optional(remote)).check

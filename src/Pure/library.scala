@@ -130,6 +130,9 @@ object Library
     else if (s.endsWith("\r") || s.endsWith("\n")) s.substring(0, s.length - 1)
     else s
 
+  def trim_split_lines(s: String): List[String] =
+    split_lines(trim_line(s)).map(trim_line(_))
+
 
   /* quote */
 

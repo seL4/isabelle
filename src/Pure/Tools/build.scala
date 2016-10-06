@@ -334,48 +334,6 @@ object Build
   }
 
 
-  /* inlined properties (YXML) */
-
-  object Props
-  {
-    def parse(text: String): Properties.T = XML.Decode.properties(YXML.parse_body(text))
-
-    def parse_lines(prefix: String, lines: List[String]): List[Properties.T] =
-      for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse(s)
-
-    def find_parse_line(prefix: String, lines: List[String]): Option[Properties.T] =
-      lines.find(_.startsWith(prefix)).map(line => parse(line.substring(prefix.length)))
-  }
-
-
-  /* log files */
-
-  private val SESSION_NAME = "\fSession.name = "
-
-  sealed case class Log_Info(
-    name: String,
-    stats: List[Properties.T],
-    tasks: List[Properties.T],
-    command_timings: List[Properties.T],
-    session_timing: Properties.T)
-
-  def parse_log(full_stats: Boolean, text: String): Log_Info =
-  {
-    val lines = split_lines(text)
-    val xml_cache = new XML.Cache()
-    def parse_lines(prfx: String): List[Properties.T] =
-      Props.parse_lines(prfx, lines).map(xml_cache.props(_))
-
-    val name =
-      lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) getOrElse ""
-    val stats = if (full_stats) parse_lines("\fML_statistics = ") else Nil
-    val tasks = if (full_stats) parse_lines("\ftask_statistics = ") else Nil
-    val command_timings = parse_lines("\fcommand_timing = ")
-    val session_timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
-    Log_Info(name, stats, tasks, command_timings, session_timing)
-  }
-
-
   /* sources and heaps */
 
   private val SOURCES = "sources: "
@@ -519,7 +477,7 @@ object Build
       }
 
       try {
-        val info = parse_log(false, text)
+        val info = Build_Log.Log_File(name, text).parse_session_info(name, false)
         val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
         (info.command_timings, session_timing)
       }

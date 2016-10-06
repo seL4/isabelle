@@ -7,70 +7,8 @@ Statistics from session build output.
 package isabelle
 
 
-import scala.collection.mutable
-import scala.util.matching.Regex
-
-
 object Build_Stats
 {
-  /* parse build output */
-
-  private val Session_Finished1 =
-    new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time.*$""")
-  private val Session_Finished2 =
-    new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
-  private val Session_Timing =
-    new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
-
-  private object ML_Option
-  {
-    def unapply(s: String): Option[(String, String)] =
-      s.indexOf('=') match {
-        case -1 => None
-        case i =>
-          val a = s.substring(0, i)
-          Library.try_unquote(s.substring(i + 1)) match {
-            case Some(b) if Build.ml_options.contains(a) => Some((a, b))
-            case _ => None
-          }
-      }
-  }
-
-  def parse(text: String): Build_Stats =
-  {
-    val ml_options = new mutable.ListBuffer[(String, String)]
-    var finished = Map.empty[String, Timing]
-    var timing = Map.empty[String, Timing]
-    var threads = Map.empty[String, Int]
-
-    for (line <- split_lines(text)) {
-      line match {
-        case Session_Finished1(name,
-            Value.Int(e1), Value.Int(e2), Value.Int(e3),
-            Value.Int(c1), Value.Int(c2), Value.Int(c3)) =>
-          val elapsed = Time.hms(e1, e2, e3)
-          val cpu = Time.hms(c1, c2, c3)
-          finished += (name -> Timing(elapsed, cpu, Time.zero))
-        case Session_Finished2(name,
-            Value.Int(e1), Value.Int(e2), Value.Int(e3)) =>
-          val elapsed = Time.hms(e1, e2, e3)
-          finished += (name -> Timing(elapsed, Time.zero, Time.zero))
-        case Session_Timing(name,
-            Value.Int(t), Value.Double(e), Value.Double(c), Value.Double(g)) =>
-          val elapsed = Time.seconds(e)
-          val cpu = Time.seconds(c)
-          val gc = Time.seconds(g)
-          timing += (name -> Timing(elapsed, cpu, gc))
-          threads += (name -> t)
-        case ML_Option(a, b) => ml_options += (a -> b)
-        case _ =>
-      }
-    }
-
-    Build_Stats(ml_options.toList, finished, timing, threads)
-  }
-
-
   /* presentation */
 
   private val default_history_length = 100
@@ -86,18 +24,18 @@ object Build_Stats
     elapsed_threshold: Time = default_elapsed_threshold,
     ml_timing: Option[Boolean] = default_ml_timing): List[String] =
   {
-    val build_infos = CI_API.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
-    if (build_infos.isEmpty) error("No build infos for job " + quote(job))
+    val job_infos = CI_API.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
+    if (job_infos.isEmpty) error("No build infos for job " + quote(job))
 
-    val all_build_stats =
-      Par_List.map((info: CI_API.Build_Info) =>
-        (info.timestamp / 1000, parse(Url.read(info.output))), build_infos)
+    val all_infos =
+      Par_List.map((job_info: CI_API.Job_Info) =>
+        (job_info.timestamp / 1000, job_info.read_output.parse_info), job_infos)
     val all_sessions =
-      (Set.empty[String] /: all_build_stats)(
-        { case (s, (_, stats)) => s ++ stats.sessions })
+      (Set.empty[String] /: all_infos)(
+        { case (s, (_, info)) => s ++ info.sessions })
 
-    def check_threshold(stats: Build_Stats, session: String): Boolean =
-      stats.finished.get(session) match {
+    def check_threshold(info: Build_Log.Info, session: String): Boolean =
+      info.finished.get(session) match {
         case Some(t) => t.elapsed >= elapsed_threshold
         case None => false
       }
@@ -105,7 +43,7 @@ object Build_Stats
     val sessions =
       for {
         session <- (if (only_sessions.isEmpty) all_sessions else all_sessions & only_sessions)
-        if all_build_stats.filter({ case (_, stats) => check_threshold(stats, session) }).length >= 3
+        if all_infos.filter({ case (_, info) => check_threshold(info, session) }).length >= 3
       } yield session
 
     Isabelle_System.mkdirs(dir)
@@ -113,10 +51,10 @@ object Build_Stats
       Isabelle_System.with_tmp_file(session, "png") { data_file =>
         Isabelle_System.with_tmp_file(session, "gnuplot") { plot_file =>
           val data =
-            for { (t, stats) <- all_build_stats if stats.finished.isDefinedAt(session) }
+            for { (t, info) <- all_infos if info.finished.isDefinedAt(session) }
             yield {
-              val finished = stats.finished.getOrElse(session, Timing.zero)
-              val timing = stats.timing.getOrElse(session, Timing.zero)
+              val finished = info.finished.getOrElse(session, Timing.zero)
+              val timing = info.timing.getOrElse(session, Timing.zero)
               List(t.toString, finished.elapsed.minutes, finished.cpu.minutes,
                 timing.elapsed.minutes, timing.cpu.minutes, timing.gc.minutes).mkString(" ")
             }
@@ -246,16 +184,4 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
             HTML.output(job) + """</a> </li>""")) +
         "\n</ul>\n" + html_footer)
   })
-}
-
-sealed case class Build_Stats(
-  ml_options: List[(String, String)],
-  finished: Map[String, Timing],
-  timing: Map[String, Timing],
-  threads: Map[String, Int])
-{
-  val sessions: Set[String] = finished.keySet ++ timing.keySet
-
-  override def toString: String =
-    sessions.toList.sorted.mkString("Build_Stats(", ", ", ")")
 }
