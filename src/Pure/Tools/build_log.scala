@@ -24,7 +24,7 @@ object Build_Log
       new Log_File(name, lines)
 
     def apply(name: String, text: String): Log_File =
-      Log_File(name, split_lines(Library.trim_line(text)).map(Library.trim_line(_)))
+      Log_File(name, Library.trim_split_lines(text))
   }
 
   class Log_File private(val name: String, val lines: List[String])
