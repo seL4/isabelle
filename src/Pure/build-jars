@@ -27,6 +27,7 @@ declare -a SOURCES=(
   General/antiquote.scala
   General/bytes.scala
   General/completion.scala
+  General/date.scala
   General/exn.scala
   General/file.scala
   General/graph.scala
@@ -107,6 +108,8 @@ declare -a SOURCES=(
   Tools/bibtex.scala
   Tools/build.scala
   Tools/build_doc.scala
+  Tools/build_history.scala
+  Tools/build_log.scala
   Tools/build_stats.scala
   Tools/check_keywords.scala
   Tools/check_sources.scala

@@ -260,7 +260,10 @@ object Isabelle_System
     val proc = new ProcessBuilder
     proc.command(command_line:_*)  // fragile on Windows
     if (cwd != null) proc.directory(cwd)
-    proc.environment.clear; for ((x, y) <- env) proc.environment.put(x, y)
+    if (env != null) {
+      proc.environment.clear
+      for ((x, y) <- env) proc.environment.put(x, y)
+    }
     proc.redirectErrorStream(redirect)
     proc.start
   }

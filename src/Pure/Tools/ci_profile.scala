@@ -7,7 +7,7 @@ Build profile for continuous integration services.
 package isabelle
 
 
-import java.time._
+import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties}
 

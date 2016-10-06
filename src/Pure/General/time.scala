@@ -9,6 +9,7 @@ package isabelle
 
 
 import java.util.Locale
+import java.time.Instant
 
 
 object Time
@@ -25,6 +26,8 @@ object Time
 
   def print_seconds(s: Double): String =
     String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])
+
+  def instant(t: Instant): Time = ms(t.getEpochSecond * 1000L + t.getNano / 1000000L)
 }
 
 final class Time private(val ms: Long) extends AnyVal
@@ -57,4 +60,6 @@ final class Time private(val ms: Long) extends AnyVal
     String.format(Locale.ROOT, "%d:%02d:%02d",
       new java.lang.Long(s / 3600), new java.lang.Long((s / 60) % 60), new java.lang.Long(s % 60))
   }
+
+  def instant: Instant = Instant.ofEpochMilli(ms)
 }

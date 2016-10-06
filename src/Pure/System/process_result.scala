@@ -40,4 +40,7 @@ final case class Process_Result(
     Output.writeln(Library.trim_line(out), stdout = true)
     copy(out_lines = Nil, err_lines = Nil)
   }
+
+  def print_if(b: Boolean): Process_Result = if (b) print else this
+  def print_stdout_if(b: Boolean): Process_Result = if (b) print_stdout else this
 }
