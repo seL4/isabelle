@@ -792,6 +792,44 @@ next
   qed
 qed
 
+lemma ex_power_ivl1: fixes b k :: nat assumes "b \<ge> 2"
+shows "k \<ge> 1 \<Longrightarrow> \<exists>n. b^n \<le> k \<and> k < b^(n+1)" (is "_ \<Longrightarrow> \<exists>n. ?P k n")
+proof(induction k)
+  case 0 thus ?case by simp
+next
+  case (Suc k)
+  show ?case
+  proof cases
+    assume "k=0"
+    hence "?P (Suc k) 0" using assms by simp
+    thus ?case ..
+  next
+    assume "k\<noteq>0"
+    with Suc obtain n where IH: "?P k n" by auto
+    show ?case
+    proof (cases "k = b^(n+1) - 1")
+      case True
+      hence "?P (Suc k) (n+1)" using assms
+        by (simp add: power_less_power_Suc)
+      thus ?thesis ..
+    next
+      case False
+      hence "?P (Suc k) n" using IH by auto
+      thus ?thesis ..
+    qed
+  qed
+qed
+
+lemma ex_power_ivl2: fixes b k :: nat assumes "b \<ge> 2" "k \<ge> 2"
+shows "\<exists>n. b^n < k \<and> k \<le> b^(n+1)"
+proof -
+  have "1 \<le> k - 1" using assms(2) by arith
+  from ex_power_ivl1[OF assms(1) this]
+  obtain n where "b ^ n \<le> k - 1 \<and> k - 1 < b ^ (n + 1)" ..
+  hence "b^n < k \<and> k \<le> b^(n+1)" using assms by auto
+  thus ?thesis ..
+qed
+
 
 subsubsection \<open>Cardinality of the Powerset\<close>
 
