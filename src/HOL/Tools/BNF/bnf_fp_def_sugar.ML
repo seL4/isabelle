@@ -847,7 +847,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           in
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
               mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map_thm'
-                live_nesting_map_ident0s ctr_defs' extra_unfolds_map)
+                live_nesting_map_id0s ctr_defs' extra_unfolds_map)
             |> Thm.close_derivation
             |> Conjunction.elim_balanced (length goals)
           end;

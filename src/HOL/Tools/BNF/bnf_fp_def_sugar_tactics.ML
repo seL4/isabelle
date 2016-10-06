@@ -392,12 +392,12 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
 
-fun mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map' live_nesting_map_ident0s ctr_defs'
+fun mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map' live_nesting_map_id0s ctr_defs'
     extra_unfolds =
   TRYALL Goal.conjunction_tac THEN
   unfold_thms_tac ctxt (pre_map_def :: dtor_ctor :: fp_map' :: abs_inverses @
-    live_nesting_map_ident0s @ ctr_defs' @ extra_unfolds @ sumprod_thms_map @
-    @{thms o_def[abs_def] id_def}) THEN
+    live_nesting_map_id0s @ ctr_defs' @ extra_unfolds @ sumprod_thms_map @
+    @{thms o_apply id_apply id_o o_id}) THEN
   ALLGOALS (rtac ctxt refl);
 
 fun mk_map_disc_iff_tac ctxt ct exhaust discs maps =
