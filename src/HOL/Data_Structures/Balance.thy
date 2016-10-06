@@ -11,9 +11,10 @@ begin
 (* mv *)
 
 text \<open>The lemmas about \<open>floor\<close> and \<open>ceiling\<close> of \<open>log 2\<close> should be generalized
-from 2 to \<open>n\<close> and should be made executable. \<close>
+from 2 to \<open>n\<close> and should be made executable. In the end they should be moved
+to theory \<open>Log_Nat\<close> and \<open>floorlog\<close> should be replaced.\<close>
 
-lemma floor_log_nat: fixes b n k :: nat
+lemma floor_log_nat_ivl: fixes b n k :: nat
 assumes "b \<ge> 2" "b^n \<le> k" "k < b^(n+1)"
 shows "floor (log b (real k)) = int(n)"
 proof -
@@ -32,7 +33,7 @@ proof -
   qed
 qed
 
-lemma ceil_log_nat: fixes b n k :: nat
+lemma ceil_log_nat_ivl: fixes b n k :: nat
 assumes "b \<ge> 2" "b^n < k" "k \<le> b^(n+1)"
 shows "ceiling (log b (real k)) = int(n)+1"
 proof(rule ceiling_eq)
@@ -45,47 +46,6 @@ next
     by (simp only: powr_realpow) (metis of_nat_le_iff of_nat_power)
   thus "log b k \<le> real_of_int (int n) + 1"
     using assms(1,2) by(simp add: log_le_iff add_ac)
-qed
-
-lemma ex_power_ivl1: fixes b k :: nat assumes "b \<ge> 2"
-shows "k \<ge> 1 \<Longrightarrow> \<exists>n. b^n \<le> k \<and> k < b^(n+1)" (is "_ \<Longrightarrow> \<exists>n. ?P k n")
-proof(induction k)
-  case 0 thus ?case by simp
-next
-  case (Suc k)
-  show ?case
-  proof cases
-    assume "k=0"
-    hence "?P (Suc k) 0"
-      using assms by simp
-    thus ?case ..
-  next
-    assume "k\<noteq>0"
-    with Suc obtain n where IH: "?P k n" by auto
-    show ?case
-    proof (cases "k = b^(n+1) - 1")
-      case True
-      hence "?P (Suc k) (n+1)" using assms
-        by (simp add: not_less_eq_eq[symmetric])
-      thus ?thesis ..
-    next
-      case False
-      hence "?P (Suc k) n" using IH by auto
-      thus ?thesis ..
-    qed
-  qed
-qed
-
-lemma ex_power_ivl2: fixes b k :: nat assumes "b \<ge> 2" "(k::nat) \<ge> 2"
-shows "\<exists>n. b^n < k \<and> k \<le> b^(n+1)"
-proof -
-  have "1 \<le> k - 1"
-    using assms(2) by arith
-  from ex_power_ivl1[OF assms(1) this]
-  obtain n where "b ^ n \<le> k - 1 \<and> k - 1 < b ^ (n + 1)" ..
-  hence "b^n < k \<and> k \<le> b^(n+1)"
-    using assms by auto
-  thus ?thesis ..
 qed
 
 lemma ceil_log2_div2: assumes "n \<ge> 2"
@@ -107,7 +67,7 @@ next
   finally have *: "n \<le> \<dots>" .
   have "2^(i+1) < n"
     using i(1) by (auto simp add: less_Suc_eq_0_disj)
-  from ceil_log_nat[OF _ this *] ceil_log_nat[OF _ i]
+  from ceil_log_nat_ivl[OF _ this *] ceil_log_nat_ivl[OF _ i]
   show ?thesis by simp
 qed
 
@@ -130,7 +90,7 @@ next
   finally have *: "2^(i+1) \<le> \<dots>" .
   have "n < 2^(i+1+1)"
     using i(2) by simp
-  from floor_log_nat[OF _ * this] floor_log_nat[OF _ i]
+  from floor_log_nat_ivl[OF _ * this] floor_log_nat_ivl[OF _ i]
   show ?thesis by simp
 qed
 
