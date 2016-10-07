@@ -249,7 +249,6 @@ object Build_Log
     ml_timing: Option[Timing],
     status: Session_Status.Value)
   {
-    def ok: Boolean = status == Session_Status.EXISTING || status == Session_Status.FINISHED
     def finished: Boolean = status == Session_Status.FINISHED
   }
 
@@ -290,6 +289,7 @@ object Build_Log
       new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
+    val Session_Started = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
     val Session_Failed = new Regex("""^(\S+) FAILED""")
     val Session_Cancelled = new Regex("""^(\S+) CANCELLED""")
 
@@ -298,11 +298,12 @@ object Build_Log
     var threads = Map.empty[String, Int]
     var timing = Map.empty[String, Timing]
     var ml_timing = Map.empty[String, Timing]
+    var started = Set.empty[String]
     var failed = Set.empty[String]
     var cancelled = Set.empty[String]
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++
-      timing.keySet ++ ml_timing.keySet ++ failed ++ cancelled
+      timing.keySet ++ ml_timing.keySet ++ failed ++ cancelled ++ started
 
 
     for (line <- log_file.lines) {
@@ -313,6 +314,8 @@ object Build_Log
         case Session_Groups(Chapter_Name(chapt, name), grps) =>
           chapter += (name -> chapt)
           groups += (name -> Word.explode(grps))
+        case Session_Started(name) =>
+          started += name
         case Session_Finished1(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3),
             Value.Int(c1), Value.Int(c2), Value.Int(c3)) =>
@@ -340,7 +343,9 @@ object Build_Log
           val status =
             if (failed(name)) Session_Status.FAILED
             else if (cancelled(name)) Session_Status.CANCELLED
-            else if (timing.isDefinedAt(name)) Session_Status.FINISHED
+            else if (timing.isDefinedAt(name) || ml_timing.isDefinedAt(name))
+              Session_Status.FINISHED
+            else if (started(name)) Session_Status.FAILED
             else Session_Status.EXISTING
           val entry =
             Session_Entry(
