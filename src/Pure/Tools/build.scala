@@ -686,16 +686,15 @@ object Build
 
   /* Isabelle tool wrapper */
 
-  val ml_options = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
+  val build_settings = List("ISABELLE_BUILD_OPTIONS")
+  val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
+  val all_settings = build_settings ::: ml_settings
 
   val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions", args =>
   {
+    def show(a: String): String = a + "=" + quote(Isabelle_System.getenv(a))
     def show_settings(): String =
-      cat_lines(List(
-        "ISABELLE_BUILD_OPTIONS=" +
-          quote(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")),
-        "") :::
-        ml_options.map(opt => opt + "=" + quote(Isabelle_System.getenv(opt))))
+      cat_lines(build_settings.map(show(_)) ::: List("") ::: ml_settings.map(show(_)))
 
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 

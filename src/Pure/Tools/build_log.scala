@@ -134,8 +134,6 @@ object Build_Log
     val afp_version = "afp_version"
   }
 
-  val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
-
   object AFP
   {
     val Date_Format =
@@ -147,7 +145,6 @@ object Build_Log
     val Test_End = new Regex("""^End test on (.+), \w+, elapsed time:.*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\w+)$""")
     val AFP_Version = new Regex("""^AFP version: .* -- hg id (\w+)$""")
-    val settings = "ISABELLE_BUILD_OPTIONS" :: ml_settings
   }
 
   private def parse_header(log_file: Log_File): Header =
@@ -170,7 +167,7 @@ object Build_Log
                 Field.build_end -> end_date.toString,
                 Field.isabelle_version -> isabelle_version,
                 Field.afp_version -> afp_version),
-              log_file.get_settings(AFP.settings))
+              log_file.get_settings(Build.all_settings))
 
           case _ => log_file.err("cannot detect start/end date in afp-test log")
         }
@@ -216,7 +213,7 @@ object Build_Log
         case i =>
           val a = s.substring(0, i)
           Library.try_unquote(s.substring(i + 1)) match {
-            case Some(b) if Build.ml_options.contains(a) => Some((a, b))
+            case Some(b) if Build.ml_settings.contains(a) => Some((a, b))
             case _ => None
           }
       }
