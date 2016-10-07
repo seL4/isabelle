@@ -161,6 +161,9 @@ have to be changed.
 
 * New symbol \<circle>, e.g. for temporal operator.
 
+* New document and ML antiquotation @{locale} for locales, similar to
+existing antiquotation @{class}.
+
 * Mixfix annotations support delimiters like \<^control>\<open>cartouche\<close> --
 this allows special forms of document output.
 
@@ -1114,9 +1117,6 @@ application uniformly on all platforms: Linux, Windows, Mac OS X.
 
 
 *** Document preparation ***
-
-* Text and ML antiquotation @{locale} for locales, similar to existing
-antiquotations for classes.
 
 * Commands 'paragraph' and 'subparagraph' provide additional section
 headings. Thus there are 6 levels of standard headings, as in HTML.
