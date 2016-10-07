@@ -16,6 +16,22 @@ import scala.util.matching.Regex
 
 object Build_Log
 {
+  /** build settings **/
+
+  val build_settings = List("ISABELLE_BUILD_OPTIONS")
+  val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
+  val all_settings = build_settings ::: ml_settings
+
+  object Setting
+  {
+    def apply(a: String, b: String): String = a + "=" + quote(b)
+    def getenv(a: String): String = apply(a, Isabelle_System.getenv(a))
+
+    def show_all(): String =
+      cat_lines(build_settings.map(getenv(_)) ::: List("") ::: ml_settings.map(getenv(_)))
+  }
+
+
   /** log file **/
 
   object Log_File
@@ -167,7 +183,7 @@ object Build_Log
                 Field.build_end -> end_date.toString,
                 Field.isabelle_version -> isabelle_version,
                 Field.afp_version -> afp_version),
-              log_file.get_settings(Build.all_settings))
+              log_file.get_settings(all_settings))
 
           case _ => log_file.err("cannot detect start/end date in afp-test log")
         }
@@ -213,7 +229,7 @@ object Build_Log
         case i =>
           val a = s.substring(0, i)
           Library.try_unquote(s.substring(i + 1)) match {
-            case Some(b) if Build.ml_settings.contains(a) => Some((a, b))
+            case Some(b) if ml_settings.contains(a) => Some((a, b))
             case _ => None
           }
       }

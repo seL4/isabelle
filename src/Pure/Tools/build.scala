@@ -686,16 +686,8 @@ object Build
 
   /* Isabelle tool wrapper */
 
-  val build_settings = List("ISABELLE_BUILD_OPTIONS")
-  val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
-  val all_settings = build_settings ::: ml_settings
-
   val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions", args =>
   {
-    def show(a: String): String = a + "=" + quote(Isabelle_System.getenv(a))
-    def show_settings(): String =
-      cat_lines(build_settings.map(show(_)) ::: List("") ::: ml_settings.map(show(_)))
-
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
     var select_dirs: List[Path] = Nil
@@ -738,7 +730,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Build and manage Isabelle sessions, depending on implicit settings:
 
-""" + Library.prefix_lines("  ", show_settings()),
+""" + Library.prefix_lines("  ", Build_Log.Setting.show_all()),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -765,7 +757,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         Library.trim_line(
           Isabelle_System.bash(
             """echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))" """).out) + "\n")
-      progress.echo(show_settings() + "\n")
+      progress.echo(Build_Log.Setting.show_all() + "\n")
     }
 
     val start_time = Time.now()
