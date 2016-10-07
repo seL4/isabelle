@@ -211,11 +211,6 @@ object Build_Log
           case "EST" => "GMT+1"  // FIXME ??
           case a => a })))
 
-    object Strict_Date
-    {
-      def unapply(s: String): Some[Date] = Some(Date_Format.parse(s))
-    }
-
     val Test_Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
     val Test_Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
     val Test_End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
@@ -230,7 +225,7 @@ object Build_Log
       val start_date = Field.build_start -> start.toString
       val end_date =
         log_file.lines.last match {
-          case AFP.Test_End(AFP.Strict_Date(end_date)) =>
+          case AFP.Test_End(AFP.Date_Format.Strict(end_date)) =>
             List(Field.build_end -> end_date.toString)
           case _ => Nil
         }
@@ -249,9 +244,9 @@ object Build_Log
     }
 
     log_file.lines match {
-      case AFP.Test_Start(AFP.Strict_Date(start_date), hostname) :: _ =>
+      case AFP.Test_Start(AFP.Date_Format.Strict(start_date), hostname) :: _ =>
         parse_afp(start_date, hostname)
-      case AFP.Test_Start_Old(AFP.Strict_Date(start_date)) :: _ =>
+      case AFP.Test_Start_Old(AFP.Date_Format.Strict(start_date)) :: _ =>
         parse_afp(start_date, "")
       case _ => log_file.err("cannot detect log header format")
     }
