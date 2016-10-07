@@ -51,6 +51,16 @@ object Build_Log
 
   object Log_File
   {
+    def apply(path: Path): Log_File =
+    {
+      val (path_name, ext) = path.expand.split_ext
+      val text =
+        if (ext == "gz") File.read_gzip(path)
+        else if (ext == "xz") File.read_xz(path)
+        else File.read(path)
+      apply(path_name.base.implode, text)
+    }
+
     def apply(name: String, lines: List[String]): Log_File =
       new Log_File(name, lines)
 
