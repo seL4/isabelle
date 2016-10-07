@@ -196,7 +196,7 @@ object Build_Log
         // workaround for jdk-8u102
         s => Word.implode(Word.explode(s).map({ case "CEST" => "GMT+2" case a => a })))
 
-    val Test_Start = new Regex("""^Start test for .+ at (.+), (\S+)$""")
+    val Test_Start = new Regex("""^Start test (?:for \S+)? at (.+), (\S+)$""")
     val Test_End = new Regex("""^End test on (.+), \S+, elapsed time:.*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\S+)$""")
     val AFP_Version = new Regex("""^AFP version: .* -- hg id (\S+)$""")
@@ -209,19 +209,17 @@ object Build_Log
         (start, log_file.lines.last) match {
           case (AFP.Date_Format(start_date), AFP.Test_End(AFP.Date_Format(end_date))) =>
             val isabelle_version =
-              log_file.find_match(AFP.Isabelle_Version) getOrElse
-                log_file.err("missing Isabelle version")
+              log_file.find_match(AFP.Isabelle_Version).map((Field.isabelle_version, _))
             val afp_version =
-              log_file.find_match(AFP.AFP_Version) getOrElse
-                log_file.err("missing AFP version")
+              log_file.find_match(AFP.AFP_Version).map((Field.afp_version, _))
 
             Header(Header_Kind.AFP_TEST,
               List(
                 Field.build_host -> hostname,
                 Field.build_start -> start_date.toString,
-                Field.build_end -> end_date.toString,
-                Field.isabelle_version -> isabelle_version,
-                Field.afp_version -> afp_version),
+                Field.build_end -> end_date.toString) :::
+              isabelle_version.toList :::
+              afp_version.toList,
               log_file.get_settings(Settings.all_settings))
 
           case _ => log_file.err("cannot detect start/end date in afp-test log")
