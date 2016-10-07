@@ -7,6 +7,7 @@ Build log parsing for historic versions, back to "build_history_base".
 package isabelle
 
 
+import java.io.{File => JFile}
 import java.time.ZonedDateTime
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
@@ -51,21 +52,28 @@ object Build_Log
 
   object Log_File
   {
-    def apply(path: Path): Log_File =
-    {
-      val (path_name, ext) = path.expand.split_ext
-      val text =
-        if (ext == "gz") File.read_gzip(path)
-        else if (ext == "xz") File.read_xz(path)
-        else File.read(path)
-      apply(path_name.base.implode, text)
-    }
-
     def apply(name: String, lines: List[String]): Log_File =
       new Log_File(name, lines)
 
     def apply(name: String, text: String): Log_File =
       Log_File(name, Library.trim_split_lines(text))
+
+    def apply(file: JFile): Log_File =
+    {
+      val name = file.getName
+      val (base_name, text) =
+        Library.try_unsuffix(".gz", name) match {
+          case Some(base_name) => (base_name, File.read_gzip(file))
+          case None =>
+            Library.try_unsuffix(".xz", name) match {
+              case Some(base_name) => (base_name, File.read_xz(file))
+              case None => (name, File.read(file))
+            }
+          }
+      apply(base_name, text)
+    }
+
+    def apply(path: Path): Log_File = apply(path.file)
   }
 
   class Log_File private(val name: String, val lines: List[String])
