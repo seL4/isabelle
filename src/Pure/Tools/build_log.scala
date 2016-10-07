@@ -119,16 +119,16 @@ object Build_Log
     /* parse various formats */
 
     def parse_session_info(
-        session_name: String,
+        default_name: String = "",
         command_timings: Boolean = false,
         ml_statistics: Boolean = false,
         task_statistics: Boolean = false): Session_Info =
       Build_Log.parse_session_info(
-        log_file, session_name, command_timings, ml_statistics, task_statistics)
+        log_file, default_name, command_timings, ml_statistics, task_statistics)
 
-    def parse_header: Header = Build_Log.parse_header(log_file)
+    def parse_header(): Header = Build_Log.parse_header(log_file)
 
-    def parse_info: Info = Build_Log.parse_info(log_file)
+    def parse_build_info(): Build_Info = Build_Log.parse_build_info(log_file)
   }
 
 
@@ -230,68 +230,128 @@ object Build_Log
     }
   }
 
+
+  /* build info: produced by isabelle build */
+
   object Session_Status extends Enumeration
   {
-    val UNKNOWN = Value("unknown")
+    val EXISTING = Value("existing")
     val FINISHED = Value("finished")
     val FAILED = Value("failed")
     val CANCELLED = Value("cancelled")
   }
 
-
-  /* main log: produced by isatest, afp-test, jenkins etc. */
-
-  sealed case class Info(
-    settings: List[(String, String)],
-    finished: Map[String, Timing],
-    timing: Map[String, Timing],
-    threads: Map[String, Int])
+  sealed case class Session_Entry(
+    chapter: String,
+    groups: List[String],
+    threads: Option[Int],
+    timing: Option[Timing],
+    ml_timing: Option[Timing],
+    status: Session_Status.Value)
   {
-    val sessions: Set[String] = finished.keySet ++ timing.keySet
-
-    override def toString: String =
-      sessions.toList.sorted.mkString("Build_Log.Info(", ", ", ")")
+    def ok: Boolean = status == Session_Status.EXISTING || status == Session_Status.FINISHED
+    def finished: Boolean = status == Session_Status.FINISHED
   }
 
-  private val Session_Finished1 =
-    new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time.*$""")
-  private val Session_Finished2 =
-    new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
-  private val Session_Timing =
-    new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
-
-  private def parse_info(log_file: Log_File): Info =
+  sealed case class Build_Info(sessions: Map[String, Session_Entry])
   {
-    val settings = new mutable.ListBuffer[(String, String)]
-    var finished = Map.empty[String, Timing]
-    var timing = Map.empty[String, Timing]
+    def session(name: String): Session_Entry = sessions(name)
+    def get_session(name: String): Option[Session_Entry] = sessions.get(name)
+
+    def finished(name: String): Boolean =
+      get_session(name) match {
+        case Some(entry) => entry.finished
+        case None => false
+      }
+
+    def timing(name: String): Timing =
+      (for (entry <- get_session(name); t <- entry.timing) yield t) getOrElse Timing.zero
+
+    def ml_timing(name: String): Timing =
+      (for (entry <- get_session(name); t <- entry.ml_timing) yield t) getOrElse Timing.zero
+  }
+
+  private def parse_build_info(log_file: Log_File): Build_Info =
+  {
+    object Chapter_Name
+    {
+      def unapply(s: String): Some[(String, String)] =
+        space_explode('/', s) match {
+          case List(chapter, name) => Some((chapter, name))
+          case _ => Some(("", s))
+        }
+    }
+
+    val Session_No_Groups = new Regex("""^Session (\S+)$""")
+    val Session_Groups = new Regex("""^Session (\S+) \((.*)\)$""")
+    val Session_Finished1 =
+      new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time.*$""")
+    val Session_Finished2 =
+      new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
+    val Session_Timing =
+      new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
+    val Session_Failed = new Regex("""^(\S+) FAILED""")
+    val Session_Cancelled = new Regex("""^(\S+) CANCELLED""")
+
+    var chapter = Map.empty[String, String]
+    var groups = Map.empty[String, List[String]]
     var threads = Map.empty[String, Int]
+    var timing = Map.empty[String, Timing]
+    var ml_timing = Map.empty[String, Timing]
+    var failed = Set.empty[String]
+    var cancelled = Set.empty[String]
+    def all_sessions: Set[String] =
+      chapter.keySet ++ groups.keySet ++ threads.keySet ++
+      timing.keySet ++ ml_timing.keySet ++ failed ++ cancelled
+
 
     for (line <- log_file.lines) {
       line match {
+        case Session_No_Groups(Chapter_Name(chapt, name)) =>
+          chapter += (name -> chapt)
+          groups += (name -> Nil)
+        case Session_Groups(Chapter_Name(chapt, name), grps) =>
+          chapter += (name -> chapt)
+          groups += (name -> Word.explode(grps))
         case Session_Finished1(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3),
             Value.Int(c1), Value.Int(c2), Value.Int(c3)) =>
           val elapsed = Time.hms(e1, e2, e3)
           val cpu = Time.hms(c1, c2, c3)
-          finished += (name -> Timing(elapsed, cpu, Time.zero))
+          timing += (name -> Timing(elapsed, cpu, Time.zero))
         case Session_Finished2(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3)) =>
           val elapsed = Time.hms(e1, e2, e3)
-          finished += (name -> Timing(elapsed, Time.zero, Time.zero))
+          timing += (name -> Timing(elapsed, Time.zero, Time.zero))
         case Session_Timing(name,
             Value.Int(t), Value.Double(e), Value.Double(c), Value.Double(g)) =>
           val elapsed = Time.seconds(e)
           val cpu = Time.seconds(c)
           val gc = Time.seconds(g)
-          timing += (name -> Timing(elapsed, cpu, gc))
+          ml_timing += (name -> Timing(elapsed, cpu, gc))
           threads += (name -> t)
-        case Settings.Entry(a, b) if Settings.all_settings.contains(a) =>
-          settings += (a -> b)
         case _ =>
       }
     }
 
-    Info(settings.toList, finished, timing, threads)
+    val sessions =
+      Map(
+        (for (name <- all_sessions.toList) yield {
+          val status =
+            if (failed(name)) Session_Status.FAILED
+            else if (cancelled(name)) Session_Status.CANCELLED
+            else if (timing.isDefinedAt(name)) Session_Status.FINISHED
+            else Session_Status.EXISTING
+          val entry =
+            Session_Entry(
+              chapter.getOrElse(name, ""),
+              groups.getOrElse(name, Nil),
+              threads.get(name),
+              timing.get(name),
+              ml_timing.get(name),
+              status)
+          (name -> entry)
+        }):_*)
+    Build_Info(sessions)
   }
 }
