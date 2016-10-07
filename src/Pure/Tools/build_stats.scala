@@ -35,8 +35,10 @@ object Build_Stats
         { case (s, (_, info)) => s ++ info.sessions.keySet })
 
     def check_threshold(info: Build_Log.Build_Info, session: String): Boolean =
-      (for (entry <- info.get_session(session); t <- entry.timing)
-        yield t.elapsed >= elapsed_threshold) getOrElse false
+    {
+      val t = info.timing(session)
+      !t.is_zero && t.elapsed >= elapsed_threshold
+    }
 
     val sessions =
       for {

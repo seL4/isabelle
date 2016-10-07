@@ -243,8 +243,8 @@ object Build_Log
     chapter: String,
     groups: List[String],
     threads: Option[Int],
-    timing: Option[Timing],
-    ml_timing: Option[Timing],
+    timing: Timing,
+    ml_timing: Timing,
     status: Session_Status.Value)
   {
     def finished: Boolean = status == Session_Status.FINISHED
@@ -255,17 +255,15 @@ object Build_Log
     def session(name: String): Session_Entry = sessions(name)
     def get_session(name: String): Option[Session_Entry] = sessions.get(name)
 
-    def finished(name: String): Boolean =
+    def get_default[A](name: String, f: Session_Entry => A, x: A): A =
       get_session(name) match {
-        case Some(entry) => entry.finished
-        case None => false
+        case Some(entry) => f(entry)
+        case None => x
       }
 
-    def timing(name: String): Timing =
-      (for (entry <- get_session(name); t <- entry.timing) yield t) getOrElse Timing.zero
-
-    def ml_timing(name: String): Timing =
-      (for (entry <- get_session(name); t <- entry.ml_timing) yield t) getOrElse Timing.zero
+    def finished(name: String): Boolean = get_default(name, _.finished, false)
+    def timing(name: String): Timing = get_default(name, _.timing, Timing.zero)
+    def ml_timing(name: String): Timing = get_default(name, _.ml_timing, Timing.zero)
   }
 
   private def parse_build_info(log_file: Log_File): Build_Info =
@@ -350,8 +348,8 @@ object Build_Log
               chapter.getOrElse(name, ""),
               groups.getOrElse(name, Nil),
               threads.get(name),
-              timing.get(name),
-              ml_timing.get(name),
+              timing.getOrElse(name, Timing.zero),
+              ml_timing.getOrElse(name, Timing.zero),
               status)
           (name -> entry)
         }):_*)
