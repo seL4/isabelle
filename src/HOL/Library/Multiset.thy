@@ -2061,6 +2061,15 @@ subsection \<open>Big operators\<close>
 locale comm_monoid_mset = comm_monoid
 begin
 
+interpretation comp_fun_commute f
+  by standard (simp add: fun_eq_iff left_commute)
+
+interpretation comp?: comp_fun_commute "f \<circ> g"
+  by (fact comp_comp_fun_commute)
+
+context
+begin
+
 definition F :: "'a multiset \<Rightarrow> 'a"
   where eq_fold: "F M = fold_mset f \<^bold>1 M"
 
@@ -2085,6 +2094,43 @@ qed
 lemma add_mset [simp]: "F (add_mset x N) = x \<^bold>* F N"
   unfolding add_mset_add_single[of x N] union by (simp add: ac_simps)
 
+lemma insert [simp]:
+  shows "F (image_mset g (add_mset x A)) = g x \<^bold>* F (image_mset g A)"
+  by (simp add: eq_fold)
+
+lemma remove:
+  assumes "x \<in># A"
+  shows "F A = x \<^bold>* F (A - {#x#})"
+  using multi_member_split[OF assms] by auto
+
+lemma neutral:
+  "\<forall>x\<in>#A. x = \<^bold>1 \<Longrightarrow> F A = \<^bold>1"
+  by (induct A) simp_all
+
+lemma neutral_const [simp]:
+  "F (image_mset (\<lambda>_. \<^bold>1) A) = \<^bold>1"
+  by (simp add: neutral)
+
+private lemma F_image_mset_product:
+  "F {#g x j \<^bold>* F {#g i j. i \<in># A#}. j \<in># B#} =
+    F (image_mset (g x) B) \<^bold>* F {#F {#g i j. i \<in># A#}. j \<in># B#}"
+  by (induction B) (simp_all add: left_commute semigroup.assoc semigroup_axioms)
+
+lemma commute:
+  "F (image_mset (\<lambda>i. F (image_mset (g i) B)) A) =
+    F (image_mset (\<lambda>j. F (image_mset (\<lambda>i. g i j) A)) B)"
+  apply (induction A, simp)
+  apply (induction B, auto simp add: F_image_mset_product ac_simps)
+  done
+
+lemma distrib: "F (image_mset (\<lambda>x. g x \<^bold>* h x) A) = F (image_mset g A) \<^bold>* F (image_mset h A)"
+  by (induction A) (auto simp: ac_simps)
+
+lemma union_disjoint:
+  "A \<inter># B = {#} \<Longrightarrow> F (image_mset g (A \<union># B)) = F (image_mset g A) \<^bold>* F (image_mset g B)"
+  by (induction A) (auto simp: ac_simps)
+
+end
 end
 
 lemma comp_fun_commute_plus_mset[simp]: "comp_fun_commute (op + :: 'a multiset \<Rightarrow> _ \<Rightarrow> _)"
@@ -2155,6 +2201,26 @@ lemma sum_mset_distrib_left:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"
   shows "c * (\<Sum>x \<in># M. f x) = (\<Sum>x \<in># M. c * f(x))"
 by (induction M) (simp_all add: distrib_left)
+
+lemma sum_mset_distrib_right:
+  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
+  shows "(\<Sum>b \<in># B. f b) * a = (\<Sum>b \<in># B. f b * a)"
+  by (induction B) (auto simp: distrib_right)
+
+lemma sum_mset_constant [simp]:
+  fixes y :: "'b::semiring_1"
+  shows \<open>(\<Sum>x\<in>#A. y) = of_nat (size A) * y\<close>
+  by (induction A) (auto simp: algebra_simps)
+
+lemma (in ordered_comm_monoid_add) sum_mset_mono:
+  assumes "\<And>i. i \<in># K \<Longrightarrow> f i \<le> g i"
+  shows "sum_mset (image_mset f K) \<le> sum_mset (image_mset g K)"
+  using assms by (induction K) (simp_all add: local.add_mono)
+
+lemma sum_mset_product:
+  fixes f :: "'a::{comm_monoid_add,times} \<Rightarrow> 'b::semiring_0"
+  shows "(\<Sum>i \<in># A. f i) * (\<Sum>i \<in># B. g i) = (\<Sum>i\<in>#A. \<Sum>j\<in>#B. f i * g j)"
+  by (subst sum_mset.commute) (simp add: sum_mset_distrib_left sum_mset_distrib_right)
 
 abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#_" [900] 900)
   where "\<Union># MM \<equiv> sum_mset MM" \<comment> \<open>FIXME ambiguous notation --
