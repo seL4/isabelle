@@ -199,7 +199,7 @@ lemma le_multiset_empty_left[simp]: "M \<noteq> {#} \<Longrightarrow> {#} < M"
   by (simp add: less_multiset\<^sub>H\<^sub>O)
 
 lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
-  using subset_eq_empty less_multiset\<^sub>D\<^sub>M by blast
+  using subset_mset.le_zero_eq less_multiset\<^sub>D\<^sub>M by blast
 
 lemma union_le_diff_plus: "P \<le># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
   by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)

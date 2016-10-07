@@ -592,6 +592,13 @@ INCOMPATIBILITY, use the following replacements:
     le_multiset_plus_plus_right_iff ~> add_less_cancel_left
     add_eq_self_empty_iff ~> add_cancel_left_right
     mset_subset_add_bothsides ~> subset_mset.add_less_cancel_right
+    empty_inter ~> subset_mset.inf_bot_left
+    inter_empty ~> subset_mset.inf_bot_right
+    empty_sup ~> subset_mset.sup_bot_left
+    sup_empty ~> subset_mset.sup_bot_right
+    bdd_below_multiset ~> subset_mset.bdd_above_bot
+    subset_eq_empty ~> subset_mset.le_zero_eq
+    mset_subset_empty_nonempty ~> subset_mset.zero_less_iff_neq_zero
 
 * HOL-Library: some typeclass constraints about multisets have been
 reduced from ordered or linordered to preorder. Multisets have the
