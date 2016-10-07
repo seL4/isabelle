@@ -429,9 +429,9 @@ this supersedes former theory FinFun_Syntax. INCOMPATIBILITY, e.g. use
 "unbundle finfun_syntax" to imitate import of
 "~~/src/HOL/Library/FinFun_Syntax".
 
-* HOL-Library: theory Set_Permutations (executably) defines the set of
-permutations of a set, i.e. the set of all lists that contain every
-element of the carrier set exactly once.
+* HOL-Library: theory Multiset_Permutations (executably) defines the set of
+permutations of a given set or multiset, i.e. the set of all lists that 
+contain every element of the carrier (multi-)set exactly once.
 
 * HOL-Library: multiset membership is now expressed using set_mset
 rather than count.
