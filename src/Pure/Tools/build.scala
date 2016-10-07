@@ -730,7 +730,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Build and manage Isabelle sessions, depending on implicit settings:
 
-""" + Library.prefix_lines("  ", Build_Log.Setting.show_all()),
+""" + Library.prefix_lines("  ", Build_Log.Settings.show()),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -757,7 +757,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         Library.trim_line(
           Isabelle_System.bash(
             """echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))" """).out) + "\n")
-      progress.echo(Build_Log.Setting.show_all() + "\n")
+      progress.echo(Build_Log.Settings.show() + "\n")
     }
 
     val start_time = Time.now()

@@ -16,19 +16,34 @@ import scala.util.matching.Regex
 
 object Build_Log
 {
-  /** build settings **/
+  /** settings **/
 
-  val build_settings = List("ISABELLE_BUILD_OPTIONS")
-  val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
-  val all_settings = build_settings ::: ml_settings
-
-  object Setting
+  object Settings
   {
-    def apply(a: String, b: String): String = a + "=" + quote(b)
-    def getenv(a: String): String = apply(a, Isabelle_System.getenv(a))
+    val build_settings = List("ISABELLE_BUILD_OPTIONS")
+    val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
+    val all_settings = build_settings ::: ml_settings
 
-    def show_all(): String =
-      cat_lines(build_settings.map(getenv(_)) ::: List("") ::: ml_settings.map(getenv(_)))
+    type Entry = (String, String)
+    type T = List[Entry]
+
+    object Entry
+    {
+      def unapply(s: String): Option[Entry] =
+        s.indexOf('=') match {
+          case -1 => None
+          case i =>
+            val a = s.substring(0, i)
+            val b = Library.perhaps_unquote(s.substring(i + 1))
+            Some((a, b))
+        }
+      def apply(a: String, b: String): String = a + "=" + quote(b)
+      def getenv(a: String): String = apply(a, Isabelle_System.getenv(a))
+    }
+
+    def show(): String =
+      cat_lines(
+        build_settings.map(Entry.getenv(_)) ::: List("") ::: ml_settings.map(Entry.getenv(_)))
   }
 
 
@@ -67,11 +82,11 @@ object Build_Log
 
     /* settings */
 
-    def get_setting(setting: String): String =
-      lines.find(_.startsWith(setting + "=")) getOrElse err("missing " + setting)
+    def get_setting(a: String): Settings.Entry =
+      Settings.Entry.unapply(
+        lines.find(_.startsWith(a + "=")) getOrElse err("missing " + a)).get
 
-    def get_settings(settings: List[String]): List[String] =
-      settings.map(get_setting(_))
+    def get_settings(as: List[String]): Settings.T = as.map(get_setting(_))
 
 
     /* properties (YXML) */
@@ -139,7 +154,8 @@ object Build_Log
     val JENKINS = Value("jenkins")
   }
 
-  sealed case class Header(kind: Header_Kind.Value, props: Properties.T, settings: List[String])
+  sealed case class Header(
+    kind: Header_Kind.Value, props: Properties.T, settings: List[(String, String)])
 
   object Field
   {
@@ -183,7 +199,7 @@ object Build_Log
                 Field.build_end -> end_date.toString,
                 Field.isabelle_version -> isabelle_version,
                 Field.afp_version -> afp_version),
-              log_file.get_settings(all_settings))
+              log_file.get_settings(Settings.all_settings))
 
           case _ => log_file.err("cannot detect start/end date in afp-test log")
         }
@@ -203,7 +219,7 @@ object Build_Log
   /* main log: produced by isatest, afp-test, jenkins etc. */
 
   sealed case class Info(
-    ml_options: List[(String, String)],
+    settings: List[(String, String)],
     finished: Map[String, Timing],
     timing: Map[String, Timing],
     threads: Map[String, Int])
@@ -221,23 +237,9 @@ object Build_Log
   private val Session_Timing =
     new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
 
-  private object ML_Option
-  {
-    def unapply(s: String): Option[(String, String)] =
-      s.indexOf('=') match {
-        case -1 => None
-        case i =>
-          val a = s.substring(0, i)
-          Library.try_unquote(s.substring(i + 1)) match {
-            case Some(b) if ml_settings.contains(a) => Some((a, b))
-            case _ => None
-          }
-      }
-  }
-
   private def parse_info(log_file: Log_File): Info =
   {
-    val ml_options = new mutable.ListBuffer[(String, String)]
+    val settings = new mutable.ListBuffer[(String, String)]
     var finished = Map.empty[String, Timing]
     var timing = Map.empty[String, Timing]
     var threads = Map.empty[String, Int]
@@ -261,11 +263,12 @@ object Build_Log
           val gc = Time.seconds(g)
           timing += (name -> Timing(elapsed, cpu, gc))
           threads += (name -> t)
-        case ML_Option(a, b) => ml_options += (a -> b)
+        case Settings.Entry(a, b) if Settings.all_settings.contains(a) =>
+          settings += (a -> b)
         case _ =>
       }
     }
 
-    Info(ml_options.toList, finished, timing, threads)
+    Info(settings.toList, finished, timing, threads)
   }
 }
