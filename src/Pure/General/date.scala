@@ -7,6 +7,7 @@ Date and time, with time zone.
 package isabelle
 
 
+import java.util.Locale
 import java.time.{Instant, ZonedDateTime, ZoneId}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
@@ -41,8 +42,18 @@ object Date
       }
     }
 
-    def make_patterns(patterns: List[String], filter: String => String = s => s): Format =
-      make(patterns.toList.map(DateTimeFormatter.ofPattern(_)), filter)
+    def make_variants(patterns: List[String],
+      locales: List[Locale] = List(Locale.ROOT),
+      filter: String => String = s => s): Format =
+    {
+      val fmts =
+        patterns.flatMap(pat =>
+          {
+            val fmt = DateTimeFormatter.ofPattern(pat)
+            locales.map(fmt.withLocale(_))
+          })
+      make(fmts, filter)
+    }
 
     def apply(patterns: String*): Format =
       make(patterns.toList.map(DateTimeFormatter.ofPattern(_)))

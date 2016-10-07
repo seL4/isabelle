@@ -7,6 +7,7 @@ Build log parsing for historic versions, back to "build_history_base".
 package isabelle
 
 
+import java.util.Locale
 import java.io.{File => JFile}
 import java.time.ZonedDateTime
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
@@ -182,7 +183,9 @@ object Build_Log
   /* header and meta data */
 
   val Date_Format =
-    Date.Format.make_patterns(List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+    Date.Format.make_variants(
+      List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+      List(Locale.ENGLISH, Locale.GERMAN),
       // workaround for jdk-8u102
       s => Word.implode(Word.explode(s).map({
         case "CET" | "MET" => "GMT+1"
