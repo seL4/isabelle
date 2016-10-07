@@ -656,6 +656,9 @@ lemma mset_subset_add_mset [simp]: "add_mset x N \<subset># add_mset x M \<longl
 lemma mset_subset_diff_self: "c \<in># B \<Longrightarrow> B - {#c#} \<subset># B"
   by (auto simp: subset_mset_def elim: mset_add)
 
+lemma Diff_eq_empty_iff_mset: "A - B = {#} \<longleftrightarrow> A \<subseteq># B"
+  by (auto simp: multiset_eq_iff subseteq_mset_def)
+
 
 subsubsection \<open>Intersection and bounded union\<close>
 
@@ -748,6 +751,12 @@ next
       by auto
   qed
 qed
+
+lemma inter_mset_empty_distrib_right: "A \<inter># (B + C) = {#} \<longleftrightarrow> A \<inter># B = {#} \<and> A \<inter># C = {#}"
+  by (meson disjunct_not_in union_iff)
+
+lemma inter_mset_empty_distrib_left: "(A + B) \<inter># C = {#} \<longleftrightarrow> A \<inter># C = {#} \<and> B \<inter># C = {#}"
+  by (meson disjunct_not_in union_iff)
 
 lemma add_mset_inter_add_mset[simp]:
   "add_mset a A \<inter># add_mset a B = add_mset a (A \<inter># B)"
@@ -1305,6 +1314,9 @@ next
   qed
 qed
 
+lemma filter_filter_mset: "filter_mset P (filter_mset Q M) = {#x \<in># M. Q x \<and> P x#}"
+  by (auto simp: multiset_eq_iff)
+
 
 subsubsection \<open>Size\<close>
 
@@ -1732,6 +1744,12 @@ lemma mset_zero_iff[simp]: "(mset x = {#}) = (x = [])"
 lemma mset_zero_iff_right[simp]: "({#} = mset x) = (x = [])"
 by (induct x) auto
 
+lemma mset_single_iff[iff]: "mset xs = {#x#} \<longleftrightarrow> xs = [x]"
+  by (cases xs) auto
+
+lemma mset_single_iff_right[iff]: "{#x#} = mset xs \<longleftrightarrow> xs = [x]"
+  by (cases xs) auto
+
 lemma set_mset_mset[simp]: "set_mset (mset xs) = set xs"
   by (induct xs) auto
 
@@ -2032,6 +2050,9 @@ lemma repeat_mset_cancel1: "repeat_mset a A = repeat_mset a B \<longleftrightarr
 
 lemma repeat_mset_cancel2: "repeat_mset a A = repeat_mset b A \<longleftrightarrow> a = b \<or> A = {#}"
   by (auto simp: multiset_eq_iff)
+
+lemma repeat_mset_eq_empty_iff: "repeat_mset n A = {#} \<longleftrightarrow> n = 0 \<or> A = {#}"
+  by (cases n) auto
 
 lemma image_replicate_mset [simp]:
   "image_mset f (replicate_mset n a) = replicate_mset n (f a)"
