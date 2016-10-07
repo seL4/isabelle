@@ -208,6 +208,7 @@ object Build_Log
         s => Word.implode(Word.explode(s).map({
           case "CET" | "MET" => "GMT+1"
           case "CEST" | "MEST" => "GMT+2"
+          case "EST" => "GMT+1"  // FIXME ??
           case a => a })))
 
     object Strict_Date
