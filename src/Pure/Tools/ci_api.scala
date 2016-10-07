@@ -45,12 +45,9 @@ object CI_API
     session_logs: List[(String, URL)])
   {
     def read_output(): Build_Log.Log_File = Build_Log.Log_File(job_name, Url.read(output))
-    def read_log(name: String, full: Boolean): Build_Log.Session_Info =
-    {
-      val text =
-        session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse ""
-      Build_Log.Log_File(name, text).parse_session_info(name, full)
-    }
+    def read_log_file(name: String): Build_Log.Log_File =
+      Build_Log.Log_File(name,
+        session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse "")
   }
 
   def build_job_builds(job_name: String): List[Job_Info] =

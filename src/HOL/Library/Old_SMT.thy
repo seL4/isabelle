@@ -142,7 +142,8 @@ setup \<open>
 method_setup old_smt = \<open>
   Scan.optional Attrib.thms [] >>
     (fn thms => fn ctxt =>
-      METHOD (fn facts => HEADGOAL (Old_SMT_Solver.smt_tac ctxt (thms @ facts))))
+      (legacy_feature "Proof method \"old_smt\" will be discontinued soon -- use \"smt\" instead";
+       METHOD (fn facts => HEADGOAL (Old_SMT_Solver.smt_tac ctxt (thms @ facts)))))
 \<close> "apply an SMT solver to the current goal"
 
 

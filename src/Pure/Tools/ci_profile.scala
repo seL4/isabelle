@@ -86,7 +86,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   override final def apply(args: List[String]): Unit =
   {
     print_section("CONFIGURATION")
-    Build.ml_options.foreach(opt => println(opt + "=" + quote(Isabelle_System.getenv(opt))))
+    println(Build_Log.Settings.show())
     val props = load_properties()
     System.getProperties().putAll(props)
 

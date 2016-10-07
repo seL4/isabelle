@@ -29,16 +29,16 @@ object Build_Stats
 
     val all_infos =
       Par_List.map((job_info: CI_API.Job_Info) =>
-        (job_info.timestamp / 1000, job_info.read_output.parse_info), job_infos)
+        (job_info.timestamp / 1000, job_info.read_output.parse_build_info), job_infos)
     val all_sessions =
       (Set.empty[String] /: all_infos)(
-        { case (s, (_, info)) => s ++ info.sessions })
+        { case (s, (_, info)) => s ++ info.sessions.keySet })
 
-    def check_threshold(info: Build_Log.Info, session: String): Boolean =
-      info.finished.get(session) match {
-        case Some(t) => t.elapsed >= elapsed_threshold
-        case None => false
-      }
+    def check_threshold(info: Build_Log.Build_Info, session: String): Boolean =
+    {
+      val t = info.timing(session)
+      !t.is_zero && t.elapsed >= elapsed_threshold
+    }
 
     val sessions =
       for {
@@ -51,12 +51,16 @@ object Build_Stats
       Isabelle_System.with_tmp_file(session, "png") { data_file =>
         Isabelle_System.with_tmp_file(session, "gnuplot") { plot_file =>
           val data =
-            for { (t, info) <- all_infos if info.finished.isDefinedAt(session) }
+            for { (t, info) <- all_infos if info.finished(session) }
             yield {
-              val finished = info.finished.getOrElse(session, Timing.zero)
-              val timing = info.timing.getOrElse(session, Timing.zero)
-              List(t.toString, finished.elapsed.minutes, finished.cpu.minutes,
-                timing.elapsed.minutes, timing.cpu.minutes, timing.gc.minutes).mkString(" ")
+              val timing1 = info.timing(session)
+              val timing2 = info.ml_timing(session)
+              List(t.toString,
+                timing1.elapsed.minutes,
+                timing1.cpu.minutes,
+                timing2.elapsed.minutes,
+                timing2.cpu.minutes,
+                timing2.gc.minutes).mkString(" ")
             }
           File.write(data_file, cat_lines(data))
 

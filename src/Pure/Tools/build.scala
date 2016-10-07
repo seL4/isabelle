@@ -477,7 +477,7 @@ object Build
       }
 
       try {
-        val info = Build_Log.Log_File(name, text).parse_session_info(name, false)
+        val info = Build_Log.Log_File(name, text).parse_session_info(name, command_timings = true)
         val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
         (info.command_timings, session_timing)
       }
@@ -686,17 +686,8 @@ object Build
 
   /* Isabelle tool wrapper */
 
-  val ml_options = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
-
   val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions", args =>
   {
-    def show_settings(): String =
-      cat_lines(List(
-        "ISABELLE_BUILD_OPTIONS=" +
-          quote(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")),
-        "") :::
-        ml_options.map(opt => opt + "=" + quote(Isabelle_System.getenv(opt))))
-
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
     var select_dirs: List[Path] = Nil
@@ -739,7 +730,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Build and manage Isabelle sessions, depending on implicit settings:
 
-""" + Library.prefix_lines("  ", show_settings()),
+""" + Library.prefix_lines("  ", Build_Log.Settings.show()),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -766,7 +757,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         Library.trim_line(
           Isabelle_System.bash(
             """echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))" """).out) + "\n")
-      progress.echo(show_settings() + "\n")
+      progress.echo(Build_Log.Settings.show() + "\n")
     }
 
     val start_time = Time.now()
