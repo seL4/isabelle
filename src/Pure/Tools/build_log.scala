@@ -100,11 +100,14 @@ object Build_Log
 
     /* settings */
 
-    def get_setting(a: String): Settings.Entry =
-      Settings.Entry.unapply(
-        lines.find(_.startsWith(a + "=")) getOrElse err("missing " + a)).get
+    def get_setting(a: String): Option[Settings.Entry] =
+      lines.find(_.startsWith(a + "=")) match {
+        case Some(line) => Settings.Entry.unapply(line)
+        case None => None
+      }
 
-    def get_settings(as: List[String]): Settings.T = as.map(get_setting(_))
+    def get_settings(as: List[String]): Settings.T =
+      for { a <- as; entry <- get_setting(a) } yield entry
 
 
     /* properties (YXML) */
@@ -202,36 +205,53 @@ object Build_Log
     val Date_Format =
       Date.Format.make_patterns(List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
         // workaround for jdk-8u102
-        s => Word.implode(Word.explode(s).map({ case "CEST" => "GMT+2" case a => a })))
+        s => Word.implode(Word.explode(s).map({
+          case "CET" | "MET" => "GMT+1"
+          case "CEST" | "MEST" => "GMT+2"
+          case a => a })))
 
-    val Test_Start = new Regex("""^Start test (?:for \S+)? at (.+), (\S+)$""")
-    val Test_End = new Regex("""^End test on (.+), \S+, elapsed time:.*$""")
+    object Strict_Date
+    {
+      def unapply(s: String): Some[Date] = Some(Date_Format.parse(s))
+    }
+
+    val Test_Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
+    val Test_Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
+    val Test_End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\S+)$""")
     val AFP_Version = new Regex("""^AFP version: .* -- hg id (\S+)$""")
   }
 
   private def parse_header(log_file: Log_File): Header =
   {
-    log_file.lines match {
-      case AFP.Test_Start(start, hostname) :: _ =>
-        (start, log_file.lines.last) match {
-          case (AFP.Date_Format(start_date), AFP.Test_End(AFP.Date_Format(end_date))) =>
-            val isabelle_version =
-              log_file.find_match(AFP.Isabelle_Version).map((Field.isabelle_version, _))
-            val afp_version =
-              log_file.find_match(AFP.AFP_Version).map((Field.afp_version, _))
-
-            Header(Header_Kind.AFP_TEST,
-              List(
-                Field.build_host -> hostname,
-                Field.build_start -> start_date.toString,
-                Field.build_end -> end_date.toString) :::
-              isabelle_version.toList :::
-              afp_version.toList,
-              log_file.get_settings(Settings.all_settings))
-
-          case _ => log_file.err("cannot detect start/end date in afp-test log")
+    def parse_afp(start: Date, hostname: String): Header =
+    {
+      val start_date = Field.build_start -> start.toString
+      val end_date =
+        log_file.lines.last match {
+          case AFP.Test_End(AFP.Strict_Date(end_date)) =>
+            List(Field.build_end -> end_date.toString)
+          case _ => Nil
         }
+
+      val build_host = if (hostname == "") Nil else List(Field.build_host -> hostname)
+
+      val isabelle_version =
+        log_file.find_match(AFP.Isabelle_Version).map(Field.isabelle_version -> _)
+
+      val afp_version =
+        log_file.find_match(AFP.AFP_Version).map(Field.afp_version -> _)
+
+      Header(Header_Kind.AFP_TEST,
+        start_date :: end_date ::: build_host ::: isabelle_version.toList ::: afp_version.toList,
+        log_file.get_settings(Settings.all_settings))
+    }
+
+    log_file.lines match {
+      case AFP.Test_Start(AFP.Strict_Date(start_date), hostname) :: _ =>
+        parse_afp(start_date, hostname)
+      case AFP.Test_Start_Old(AFP.Strict_Date(start_date)) :: _ =>
+        parse_afp(start_date, "")
       case _ => log_file.err("cannot detect log header format")
     }
   }
