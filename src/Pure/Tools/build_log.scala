@@ -196,10 +196,10 @@ object Build_Log
         // workaround for jdk-8u102
         s => Word.implode(Word.explode(s).map({ case "CEST" => "GMT+2" case a => a })))
 
-    val Test_Start = new Regex("""^Start test for .+ at (.+), (\w+)$""")
-    val Test_End = new Regex("""^End test on (.+), \w+, elapsed time:.*$""")
-    val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\w+)$""")
-    val AFP_Version = new Regex("""^AFP version: .* -- hg id (\w+)$""")
+    val Test_Start = new Regex("""^Start test for .+ at (.+), (\S+)$""")
+    val Test_End = new Regex("""^End test on (.+), \S+, elapsed time:.*$""")
+    val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\S+)$""")
+    val AFP_Version = new Regex("""^AFP version: .* -- hg id (\S+)$""")
   }
 
   private def parse_header(log_file: Log_File): Header =
