@@ -477,7 +477,7 @@ object Build
       }
 
       try {
-        val info = Build_Log.Log_File(name, text).parse_session_info(name, false)
+        val info = Build_Log.Log_File(name, text).parse_session_info(name, command_timings = true)
         val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
         (info.command_timings, session_timing)
       }

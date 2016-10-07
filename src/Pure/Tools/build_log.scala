@@ -108,8 +108,13 @@ object Build_Log
 
     /* parse various formats */
 
-    def parse_session_info(session_name: String, full: Boolean): Session_Info =
-      Build_Log.parse_session_info(log_file, session_name, full)
+    def parse_session_info(
+        session_name: String,
+        command_timings: Boolean = false,
+        ml_statistics: Boolean = false,
+        task_statistics: Boolean = false): Session_Info =
+      Build_Log.parse_session_info(
+        log_file, session_name, command_timings, ml_statistics, task_statistics)
 
     def parse_header: Header = Build_Log.parse_header(log_file)
 
@@ -126,22 +131,30 @@ object Build_Log
     ml_statistics: List[Properties.T],
     task_statistics: List[Properties.T])
 
-  private def parse_session_info(log_file: Log_File, name0: String, full: Boolean): Session_Info =
+  private def parse_session_info(
+    log_file: Log_File,
+    default_name: String,
+    command_timings: Boolean,
+    ml_statistics: Boolean,
+    task_statistics: Boolean): Session_Info =
   {
     val xml_cache = new XML.Cache()
 
     val session_name =
       log_file.find_line("\fSession.name = ") match {
-        case None => name0
-        case Some(name) if name0 == "" || name0 == name => name
+        case None => default_name
+        case Some(name) if default_name == "" || default_name == name => name
         case Some(name) => log_file.err("log from different session " + quote(name))
       }
     val session_timing = log_file.find_props("\fTiming = ") getOrElse Nil
-    val command_timings = log_file.filter_props("\fcommand_timing = ")
-    val ml_statistics = if (full) log_file.filter_props("\fML_statistics = ") else Nil
-    val task_statistics = if (full) log_file.filter_props("\ftask_statistics = ") else Nil
+    val command_timings_ =
+      if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil
+    val ml_statistics_ =
+      if (ml_statistics) log_file.filter_props("\fML_statistics = ") else Nil
+    val task_statistics_ =
+      if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil
 
-    Session_Info(session_name, session_timing, command_timings, ml_statistics, task_statistics)
+    Session_Info(session_name, session_timing, command_timings_, ml_statistics_, task_statistics_)
   }
 
 
