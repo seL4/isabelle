@@ -232,18 +232,18 @@ object Build_Log
   object Isatest
   {
     val engine = "isatest"
-    val Test_Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
-    val Test_End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
+    val Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
+    val End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
     val No_AFP_Version = new Regex("""$.""")
   }
 
-  object AFP
+  object AFP_Test
   {
     val engine = "afp-test"
-    val Test_Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
-    val Test_Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
-    val Test_End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
+    val Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
+    val Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
+    val End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\S+)$""")
     val AFP_Version = new Regex("""^AFP version: .* -- hg id (\S+)$""")
     val Bad_Init = new Regex("""^cp:.*: Disc quota exceeded$""")
@@ -252,7 +252,7 @@ object Build_Log
   private def parse_meta_info(log_file: Log_File): Meta_Info =
   {
     def parse(engine: String, host: String, start: Date,
-      Test_End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Meta_Info =
+      End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Meta_Info =
     {
       val build_engine = if (engine == "") Nil else List(Field.build_engine -> engine)
       val build_host = if (host == "") Nil else List(Field.build_host -> host)
@@ -260,7 +260,7 @@ object Build_Log
       val start_date = List(Field.build_start -> start.toString)
       val end_date =
         log_file.lines.last match {
-          case Test_End(log_file.Strict_Date(end_date)) =>
+          case End(log_file.Strict_Date(end_date)) =>
             List(Field.build_end -> end_date.toString)
           case _ => Nil
         }
@@ -276,19 +276,21 @@ object Build_Log
     }
 
     log_file.lines match {
-      case Isatest.Test_Start(log_file.Strict_Date(start), host) :: _ =>
-        parse(Isatest.engine, host, start, Isatest.Test_End,
+      case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
+        parse(Isatest.engine, host, start, Isatest.End,
           Isatest.Isabelle_Version, Isatest.No_AFP_Version)
 
-      case AFP.Test_Start(log_file.Strict_Date(start), host) :: _ =>
-        parse(AFP.engine, host, start, AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
+      case AFP_Test.Start(log_file.Strict_Date(start), host) :: _ =>
+        parse(AFP_Test.engine, host, start, AFP_Test.End,
+          AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
 
-      case AFP.Test_Start_Old(log_file.Strict_Date(start)) :: _ =>
-        parse(AFP.engine, "", start, AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
+      case AFP_Test.Start_Old(log_file.Strict_Date(start)) :: _ =>
+        parse(AFP_Test.engine, "", start, AFP_Test.End,
+          AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
 
       case line :: _ if line.startsWith("\0") => Meta_Info.empty
-      case List(Isatest.Test_End(_)) => Meta_Info.empty
-      case _ :: AFP.Bad_Init() :: _ => Meta_Info.empty
+      case List(Isatest.End(_)) => Meta_Info.empty
+      case _ :: AFP_Test.Bad_Init() :: _ => Meta_Info.empty
       case Nil => Meta_Info.empty
 
       case _ => log_file.err("cannot detect log header format")
