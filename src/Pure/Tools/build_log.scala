@@ -89,21 +89,6 @@ object Build_Log
     }
 
     def apply(path: Path): Log_File = apply(path.file)
-  }
-
-  class Log_File private(val name: String, val lines: List[String])
-  {
-    log_file =>
-
-    override def toString: String = name
-
-    def text: String = cat_lines(lines)
-
-    def err(msg: String): Nothing =
-      error("Error in log file " + quote(name) + ": " + msg)
-
-
-    /* date format */
 
     val Date_Format =
     {
@@ -123,11 +108,26 @@ object Build_Log
 
       Date.Format.make(fmts, tune)
     }
+  }
+
+  class Log_File private(val name: String, val lines: List[String])
+  {
+    log_file =>
+
+    override def toString: String = name
+
+    def text: String = cat_lines(lines)
+
+    def err(msg: String): Nothing =
+      error("Error in log file " + quote(name) + ": " + msg)
+
+
+    /* date format */
 
     object Strict_Date
     {
       def unapply(s: String): Some[Date] =
-        try { Some(Date_Format.parse(s)) }
+        try { Some(Log_File.Date_Format.parse(s)) }
         catch { case exn: DateTimeParseException => log_file.err(exn.getMessage) }
     }
 
