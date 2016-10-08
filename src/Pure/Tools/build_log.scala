@@ -93,18 +93,37 @@ object Build_Log
     val Date_Format =
     {
       val fmts =
-        Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(ZoneId.of("Europe/Berlin")) ::
         Date.Formatter.variants(
           List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
-          List(Locale.ENGLISH, Locale.GERMAN))
+          List(Locale.ENGLISH, Locale.GERMAN)) :::
+        List(Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(ZoneId.of("Europe/Berlin")))
 
-      // workaround undetected timezones
-      def tune(s: String): String =
-        Word.implode(Word.explode(s).map({
+      def tune_timezone(s: String): String =
+        s match {
           case "CET" | "MET" => "GMT+1"
           case "CEST" | "MEST" => "GMT+2"
-          case "EST" => "GMT+1"  // FIXME ??
-          case a => a }))
+          case "EST" => "Europe/Berlin"
+          case _ => s
+        }
+      def tune_weekday(s: String): String =
+        s match {
+          case "Die" => "Di"
+          case "Mit" => "Mi"
+          case "Don" => "Do"
+          case "Fre" => "Fr"
+          case "Sam" => "Sa"
+          case "Son" => "So"
+          case _ => s
+        }
+
+      def tune(s: String): String =
+        Word.implode(
+          Word.explode(s) match {
+            case a :: "M\uFFFDr" :: bs => tune_weekday(a) :: "Mär" :: bs.map(tune_timezone(_))
+            case a :: bs => tune_weekday(a) :: bs.map(tune_timezone(_))
+            case Nil => Nil
+          }
+        )
 
       Date.Format.make(fmts, tune)
     }
@@ -201,9 +220,15 @@ object Build_Log
 
   object Kind extends Enumeration
   {
+    val EMPTY = Value("empty")
     val ISATEST = Value("isatest")
     val AFP_TEST = Value("afp-test")
     val JENKINS = Value("jenkins")
+  }
+
+  object Header
+  {
+    val empty: Header = Header(Kind.EMPTY, Nil, Nil)
   }
 
   sealed case class Header(kind: Kind.Value, props: Properties.T, settings: List[(String, String)])
@@ -226,6 +251,7 @@ object Build_Log
     val Test_End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\S+)$""")
     val AFP_Version = new Regex("""^AFP version: .* -- hg id (\S+)$""")
+    val Bad_Init = new Regex("""^cp:.*: Disc quota exceeded$""")
   }
 
   private def parse_header(log_file: Log_File): Header =
@@ -260,8 +286,6 @@ object Build_Log
         parse(Kind.ISATEST, start, hostname,
           Isatest.Test_End, Isatest.Isabelle_Version, Isatest.No_AFP_Version)
 
-      case List(Isatest.Test_End(_)) => Header(Kind.ISATEST, Nil, Nil)
-
       case AFP.Test_Start(log_file.Strict_Date(start), hostname) :: _ =>
         parse(Kind.AFP_TEST, start, hostname,
           AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
@@ -269,6 +293,11 @@ object Build_Log
       case AFP.Test_Start_Old(log_file.Strict_Date(start)) :: _ =>
         parse(Kind.AFP_TEST, start, "",
           AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
+
+      case line :: _ if line.startsWith("\0") => Header.empty
+      case List(Isatest.Test_End(_)) => Header.empty
+      case _ :: AFP.Bad_Init() :: _ => Header.empty
+      case Nil => Header.empty
 
       case _ => log_file.err("cannot detect log header format")
     }
