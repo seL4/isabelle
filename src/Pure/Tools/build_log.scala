@@ -97,7 +97,7 @@ object Build_Log
     {
       val fmts =
         Date.Formatter.variants(
-          List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+          List("EEE MMM d HH:mm:ss O yyyy", "EEE MMM d HH:mm:ss VV yyyy"),
           List(Locale.ENGLISH, Locale.GERMAN)) :::
         List(
           DateTimeFormatter.RFC_1123_DATE_TIME,
