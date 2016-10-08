@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/build_log.scala
     Author:     Makarius
 
-Build log parsing for historic versions, back to "build_history_base".
+Build log parsing for historic versions.
 */
 
 package isabelle
@@ -9,8 +9,6 @@ package isabelle
 
 import java.util.Locale
 import java.io.{File => JFile}
-import java.time.ZonedDateTime
-import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
 import scala.collection.mutable
 import scala.util.matching.Regex
@@ -144,7 +142,8 @@ object Build_Log
   }
 
 
-  /* session log: produced by "isabelle build" */
+
+  /** session info: produced by "isabelle build" **/
 
   sealed case class Session_Info(
     session_name: String,
@@ -180,18 +179,26 @@ object Build_Log
   }
 
 
-  /* header and meta data */
+
+  /** meta data **/
 
   val Date_Format =
-    Date.Format.make_variants(
-      List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
-      List(Locale.ENGLISH, Locale.GERMAN),
-      // workaround for jdk-8u102
-      s => Word.implode(Word.explode(s).map({
+  {
+    val fmts =
+      Date.Formatter.variants(
+        List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+        List(Locale.ENGLISH, Locale.GERMAN))
+
+    // workarounds undetected timezones
+    def tune(s: String): String =
+      Word.implode(Word.explode(s).map({
         case "CET" | "MET" => "GMT+1"
         case "CEST" | "MEST" => "GMT+2"
         case "EST" => "GMT+1"  // FIXME ??
-        case a => a })))
+        case a => a }))
+
+    Date.Format.make(fmts, tune)
+  }
 
   object Header_Kind extends Enumeration
   {
@@ -271,7 +278,8 @@ object Build_Log
   }
 
 
-  /* build info: produced by isabelle build */
+
+  /** build info: produced by isabelle build **/
 
   object Session_Status extends Enumeration
   {

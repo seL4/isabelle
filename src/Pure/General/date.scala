@@ -19,57 +19,57 @@ object Date
 {
   /* format */
 
+  object Formatter
+  {
+    def pattern(pat: String): DateTimeFormatter = DateTimeFormatter.ofPattern(pat)
+
+    def variants(pats: List[String], locs: List[Locale] = Nil): List[DateTimeFormatter] =
+      pats.flatMap(pat => {
+        val fmt = pattern(pat)
+        if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale(_))
+      })
+
+    @tailrec def try_variants(fmts: List[DateTimeFormatter], str: String,
+      last_exn: Option[DateTimeParseException] = None): TemporalAccessor =
+    {
+      fmts match {
+        case Nil =>
+          throw last_exn.getOrElse(new DateTimeParseException("Failed to parse date", str, 0))
+        case fmt :: rest =>
+          try { ZonedDateTime.from(fmt.parse(str)) }
+          catch { case exn: DateTimeParseException => try_variants(rest, str, Some(exn)) }
+      }
+    }
+  }
+
   object Format
   {
-    def make(fmts: List[DateTimeFormatter], filter: String => String = s => s): Format =
+    def make(fmts: List[DateTimeFormatter], tune: String => String = s => s): Format =
     {
       require(fmts.nonEmpty)
 
-      @tailrec def parse_first(
-        last_exn: Option[Throwable], fs: List[DateTimeFormatter], str: String): TemporalAccessor =
-      {
-        fs match {
-          case Nil => throw last_exn.get
-          case f :: rest =>
-            try { ZonedDateTime.from(f.parse(str)) }
-            catch { case exn: DateTimeParseException => parse_first(Some(exn), rest, str) }
-        }
-      }
       new Format {
         def apply(date: Date): String = fmts.head.format(date.rep)
         def parse(str: String): Date =
-          new Date(ZonedDateTime.from(parse_first(None, fmts, filter(str))))
+          new Date(ZonedDateTime.from(Formatter.try_variants(fmts, tune(str))))
       }
     }
 
-    def make_variants(patterns: List[String],
-      locales: List[Locale] = List(Locale.ROOT),
-      filter: String => String = s => s): Format =
-    {
-      val fmts =
-        patterns.flatMap(pat =>
-          {
-            val fmt = DateTimeFormatter.ofPattern(pat)
-            locales.map(fmt.withLocale(_))
-          })
-      make(fmts, filter)
-    }
+    def apply(pats: String*): Format =
+      make(pats.toList.map(Date.Formatter.pattern(_)))
 
-    def apply(patterns: String*): Format =
-      make(patterns.toList.map(DateTimeFormatter.ofPattern(_)))
-
-    val default: Format = apply("dd-MMM-uuuu HH:mm:ss xx")
-    val date: Format = apply("dd-MMM-uuuu")
-    val time: Format = apply("HH:mm:ss")
+    val default: Format = Format("dd-MMM-uuuu HH:mm:ss xx")
+    val date: Format = Format("dd-MMM-uuuu")
+    val time: Format = Format("HH:mm:ss")
   }
 
   abstract class Format private
   {
     def apply(date: Date): String
     def parse(str: String): Date
+
     def unapply(str: String): Option[Date] =
-      try { Some(parse(str)) }
-      catch { case _: DateTimeParseException => None }
+      try { Some(parse(str)) } catch { case _: DateTimeParseException => None }
     object Strict
     {
       def unapply(s: String): Some[Date] = Some(parse(s))
