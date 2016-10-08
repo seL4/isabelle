@@ -13,23 +13,21 @@ subsection \<open>Truncating bit representations of numeric types\<close>
 
 class semiring_bits = semiring_div_parity +
   assumes semiring_bits: "(1 + 2 * a) mod of_nat (2 * n) = 1 + 2 * (a mod of_nat n)"
-
-context semiring_bits
 begin
 
-definition bits :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
-  where bits_eq_mod: "bits n a = a mod of_nat (2 ^ n)"
+definition bitrunc :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
+  where bitrunc_eq_mod: "bitrunc n a = a mod of_nat (2 ^ n)"
 
-lemma bits_bits [simp]:
-  "bits n (bits n a) = bits n a"
-  by (simp add: bits_eq_mod)
+lemma bitrunc_bitrunc [simp]:
+  "bitrunc n (bitrunc n a) = bitrunc n a"
+  by (simp add: bitrunc_eq_mod)
   
-lemma bits_0 [simp]:
-  "bits 0 a = 0"
-  by (simp add: bits_eq_mod)
+lemma bitrunc_0 [simp]:
+  "bitrunc 0 a = 0"
+  by (simp add: bitrunc_eq_mod)
 
-lemma bits_Suc [simp]:
-  "bits (Suc n) a = bits n (a div 2) * 2 + a mod 2"
+lemma bitrunc_Suc [simp]:
+  "bitrunc (Suc n) a = bitrunc n (a div 2) * 2 + a mod 2"
 proof -
   define b and c
     where "b = a div 2" and "c = a mod 2"
@@ -37,32 +35,32 @@ proof -
     and "c = 0 \<or> c = 1"
     by (simp_all add: mod_div_equality parity)
   from \<open>c = 0 \<or> c = 1\<close>
-  have "bits (Suc n) (b * 2 + c) = bits n b * 2 + c"
+  have "bitrunc (Suc n) (b * 2 + c) = bitrunc n b * 2 + c"
   proof
     assume "c = 0"
     moreover have "(2 * b) mod (2 * 2 ^ n) = 2 * (b mod 2 ^ n)"
       by (simp add: mod_mult_mult1)
     ultimately show ?thesis
-      by (simp add: bits_eq_mod ac_simps)
+      by (simp add: bitrunc_eq_mod ac_simps)
   next
     assume "c = 1"
     with semiring_bits [of b "2 ^ n"] show ?thesis
-      by (simp add: bits_eq_mod ac_simps)
+      by (simp add: bitrunc_eq_mod ac_simps)
   qed
   with a show ?thesis
     by (simp add: b_def c_def)
 qed
 
-lemma bits_of_0 [simp]:
-  "bits n 0 = 0"
-  by (simp add: bits_eq_mod)
+lemma bitrunc_of_0 [simp]:
+  "bitrunc n 0 = 0"
+  by (simp add: bitrunc_eq_mod)
 
-lemma bits_plus:
-  "bits n (bits n a + bits n b) = bits n (a + b)"
-  by (simp add: bits_eq_mod mod_add_eq [symmetric])
+lemma bitrunc_plus:
+  "bitrunc n (bitrunc n a + bitrunc n b) = bitrunc n (a + b)"
+  by (simp add: bitrunc_eq_mod mod_add_eq [symmetric])
 
-lemma bits_of_1_eq_0_iff [simp]:
-  "bits n 1 = 0 \<longleftrightarrow> n = 0"
+lemma bitrunc_of_1_eq_0_iff [simp]:
+  "bitrunc n 1 = 0 \<longleftrightarrow> n = 0"
   by (induct n) simp_all
 
 end
@@ -73,32 +71,32 @@ instance nat :: semiring_bits
 instance int :: semiring_bits
   by standard (simp add: pos_zmod_mult_2)
 
-lemma bits_uminus:
+lemma bitrunc_uminus:
   fixes k :: int
-  shows "bits n (- (bits n k)) = bits n (- k)"
-  by (simp add: bits_eq_mod mod_minus_eq [symmetric])
+  shows "bitrunc n (- (bitrunc n k)) = bitrunc n (- k)"
+  by (simp add: bitrunc_eq_mod mod_minus_eq [symmetric])
 
-lemma bits_minus:
+lemma bitrunc_minus:
   fixes k l :: int
-  shows "bits n (bits n k - bits n l) = bits n (k - l)"
-  by (simp add: bits_eq_mod mod_diff_eq [symmetric])
+  shows "bitrunc n (bitrunc n k - bitrunc n l) = bitrunc n (k - l)"
+  by (simp add: bitrunc_eq_mod mod_diff_eq [symmetric])
 
-lemma bits_nonnegative [simp]:
+lemma bitrunc_nonnegative [simp]:
   fixes k :: int
-  shows "bits n k \<ge> 0"
-  by (simp add: bits_eq_mod)
+  shows "bitrunc n k \<ge> 0"
+  by (simp add: bitrunc_eq_mod)
 
-definition signed_bits :: "nat \<Rightarrow> int \<Rightarrow> int"
-  where signed_bits_eq_bits:
-    "signed_bits n k = bits (Suc n) (k + 2 ^ n) - 2 ^ n"
+definition signed_bitrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
+  where signed_bitrunc_eq_bitrunc:
+    "signed_bitrunc n k = bitrunc (Suc n) (k + 2 ^ n) - 2 ^ n"
 
-lemma signed_bits_eq_bits':
+lemma signed_bitrunc_eq_bitrunc':
   assumes "n > 0"
-  shows "signed_bits (n - Suc 0) k = bits n (k + 2 ^ (n - 1)) - 2 ^ (n - 1)"
-  using assms by (simp add: signed_bits_eq_bits)
+  shows "signed_bitrunc (n - Suc 0) k = bitrunc n (k + 2 ^ (n - 1)) - 2 ^ (n - 1)"
+  using assms by (simp add: signed_bitrunc_eq_bitrunc)
   
-lemma signed_bits_0 [simp]:
-  "signed_bits 0 k = - (k mod 2)"
+lemma signed_bitrunc_0 [simp]:
+  "signed_bitrunc 0 k = - (k mod 2)"
 proof (cases "even k")
   case True
   then have "odd (k + 1)"
@@ -106,54 +104,54 @@ proof (cases "even k")
   then have "(k + 1) mod 2 = 1"
     by (simp add: even_iff_mod_2_eq_zero)
   with True show ?thesis
-    by (simp add: signed_bits_eq_bits)
+    by (simp add: signed_bitrunc_eq_bitrunc)
 next
   case False
   then show ?thesis
-    by (simp add: signed_bits_eq_bits odd_iff_mod_2_eq_one)
+    by (simp add: signed_bitrunc_eq_bitrunc odd_iff_mod_2_eq_one)
 qed
 
-lemma signed_bits_Suc [simp]:
-  "signed_bits (Suc n) k = signed_bits n (k div 2) * 2 + k mod 2"
-  using zero_not_eq_two by (simp add: signed_bits_eq_bits algebra_simps)
+lemma signed_bitrunc_Suc [simp]:
+  "signed_bitrunc (Suc n) k = signed_bitrunc n (k div 2) * 2 + k mod 2"
+  using zero_not_eq_two by (simp add: signed_bitrunc_eq_bitrunc algebra_simps)
 
-lemma signed_bits_of_0 [simp]:
-  "signed_bits n 0 = 0"
-  by (simp add: signed_bits_eq_bits bits_eq_mod)
+lemma signed_bitrunc_of_0 [simp]:
+  "signed_bitrunc n 0 = 0"
+  by (simp add: signed_bitrunc_eq_bitrunc bitrunc_eq_mod)
 
-lemma signed_bits_of_minus_1 [simp]:
-  "signed_bits n (- 1) = - 1"
+lemma signed_bitrunc_of_minus_1 [simp]:
+  "signed_bitrunc n (- 1) = - 1"
   by (induct n) simp_all
 
-lemma signed_bits_eq_iff_bits_eq:
+lemma signed_bitrunc_eq_iff_bitrunc_eq:
   assumes "n > 0"
-  shows "signed_bits (n - Suc 0) k = signed_bits (n - Suc 0) l \<longleftrightarrow> bits n k = bits n l" (is "?P \<longleftrightarrow> ?Q")
+  shows "signed_bitrunc (n - Suc 0) k = signed_bitrunc (n - Suc 0) l \<longleftrightarrow> bitrunc n k = bitrunc n l" (is "?P \<longleftrightarrow> ?Q")
 proof -
   from assms obtain m where m: "n = Suc m"
     by (cases n) auto
   show ?thesis
   proof 
     assume ?Q
-    have "bits (Suc m) (k + 2 ^ m) =
-      bits (Suc m) (bits (Suc m) k + bits (Suc m) (2 ^ m))"
-      by (simp only: bits_plus)
+    have "bitrunc (Suc m) (k + 2 ^ m) =
+      bitrunc (Suc m) (bitrunc (Suc m) k + bitrunc (Suc m) (2 ^ m))"
+      by (simp only: bitrunc_plus)
     also have "\<dots> =
-      bits (Suc m) (bits (Suc m) l + bits (Suc m) (2 ^ m))"
+      bitrunc (Suc m) (bitrunc (Suc m) l + bitrunc (Suc m) (2 ^ m))"
       by (simp only: \<open>?Q\<close> m [symmetric])
-    also have "\<dots> = bits (Suc m) (l + 2 ^ m)"
-      by (simp only: bits_plus)
+    also have "\<dots> = bitrunc (Suc m) (l + 2 ^ m)"
+      by (simp only: bitrunc_plus)
     finally show ?P
-      by (simp only: signed_bits_eq_bits m) simp
+      by (simp only: signed_bitrunc_eq_bitrunc m) simp
   next
     assume ?P
     with assms have "(k + 2 ^ (n - Suc 0)) mod 2 ^ n = (l + 2 ^ (n - Suc 0)) mod 2 ^ n"
-      by (simp add: signed_bits_eq_bits' bits_eq_mod)
+      by (simp add: signed_bitrunc_eq_bitrunc' bitrunc_eq_mod)
     then have "(i + (k + 2 ^ (n - Suc 0))) mod 2 ^ n = (i + (l + 2 ^ (n - Suc 0))) mod 2 ^ n" for i
       by (metis mod_add_eq)
     then have "k mod 2 ^ n = l mod 2 ^ n"
       by (metis add_diff_cancel_right' uminus_add_conv_diff)
     then show ?Q
-      by (simp add: bits_eq_mod)
+      by (simp add: bitrunc_eq_mod)
   qed
 qed 
 
@@ -162,7 +160,7 @@ subsection \<open>Bit strings as quotient type\<close>
 
 subsubsection \<open>Basic properties\<close>
 
-quotient_type (overloaded) 'a word = int / "\<lambda>k l. bits LENGTH('a) k = bits LENGTH('a::len0) l"
+quotient_type (overloaded) 'a word = int / "\<lambda>k l. bitrunc LENGTH('a) k = bitrunc LENGTH('a::len0) l"
   by (auto intro!: equivpI reflpI sympI transpI)
 
 instantiation word :: (len0) "{semiring_numeral, comm_semiring_0, comm_ring}"
@@ -178,19 +176,19 @@ lift_definition one_word :: "'a word"
 
 lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is plus
-  by (subst bits_plus [symmetric]) (simp add: bits_plus)
+  by (subst bitrunc_plus [symmetric]) (simp add: bitrunc_plus)
 
 lift_definition uminus_word :: "'a word \<Rightarrow> 'a word"
   is uminus
-  by (subst bits_uminus [symmetric]) (simp add: bits_uminus)
+  by (subst bitrunc_uminus [symmetric]) (simp add: bitrunc_uminus)
 
 lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is minus
-  by (subst bits_minus [symmetric]) (simp add: bits_minus)
+  by (subst bitrunc_minus [symmetric]) (simp add: bitrunc_minus)
 
 lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is times
-  by (auto simp add: bits_eq_mod intro: mod_mult_cong)
+  by (auto simp add: bitrunc_eq_mod intro: mod_mult_cong)
 
 instance
   by standard (transfer; simp add: algebra_simps)+
@@ -223,7 +221,7 @@ context semiring_1
 begin
 
 lift_definition unsigned :: "'b::len0 word \<Rightarrow> 'a"
-  is "of_nat \<circ> nat \<circ> bits LENGTH('b)"
+  is "of_nat \<circ> nat \<circ> bitrunc LENGTH('b)"
   by simp
 
 lemma unsigned_0 [simp]:
@@ -245,8 +243,8 @@ context ring_1
 begin
 
 lift_definition signed :: "'b::len word \<Rightarrow> 'a"
-  is "of_int \<circ> signed_bits (LENGTH('b) - 1)"
-  by (simp add: signed_bits_eq_iff_bits_eq [symmetric])
+  is "of_int \<circ> signed_bitrunc (LENGTH('b) - 1)"
+  by (simp add: signed_bitrunc_eq_iff_bitrunc_eq [symmetric])
 
 lemma signed_0 [simp]:
   "signed 0 = 0"
@@ -255,8 +253,8 @@ lemma signed_0 [simp]:
 end
 
 lemma unsigned_of_nat [simp]:
-  "unsigned (of_nat n :: 'a word) = bits LENGTH('a::len) n"
-  by transfer (simp add: nat_eq_iff bits_eq_mod zmod_int)
+  "unsigned (of_nat n :: 'a word) = bitrunc LENGTH('a::len) n"
+  by transfer (simp add: nat_eq_iff bitrunc_eq_mod zmod_int)
 
 lemma of_nat_unsigned [simp]:
   "of_nat (unsigned a) = a"
@@ -271,17 +269,17 @@ begin
 
 lemma word_eq_iff_signed:
   "a = b \<longleftrightarrow> signed a = signed b"
-  by safe (transfer; auto simp add: signed_bits_eq_iff_bits_eq)
+  by safe (transfer; auto simp add: signed_bitrunc_eq_iff_bitrunc_eq)
 
 end
 
 lemma signed_of_int [simp]:
-  "signed (of_int k :: 'a word) = signed_bits (LENGTH('a::len) - 1) k"
+  "signed (of_int k :: 'a word) = signed_bitrunc (LENGTH('a::len) - 1) k"
   by transfer simp
 
 lemma of_int_signed [simp]:
   "of_int (signed a) = a"
-  by transfer (simp add: signed_bits_eq_bits bits_eq_mod zdiff_zmod_left)
+  by transfer (simp add: signed_bitrunc_eq_bitrunc bitrunc_eq_mod zdiff_zmod_left)
 
 
 subsubsection \<open>Properties\<close>
@@ -293,11 +291,11 @@ instantiation word :: (len0) modulo
 begin
 
 lift_definition divide_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "\<lambda>a b. bits LENGTH('a) a div bits LENGTH('a) b"
+  is "\<lambda>a b. bitrunc LENGTH('a) a div bitrunc LENGTH('a) b"
   by simp
 
 lift_definition modulo_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "\<lambda>a b. bits LENGTH('a) a mod bits LENGTH('a) b"
+  is "\<lambda>a b. bitrunc LENGTH('a) a mod bitrunc LENGTH('a) b"
   by simp
 
 instance ..
@@ -311,11 +309,11 @@ instantiation word :: (len0) linorder
 begin
 
 lift_definition less_eq_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
-  is "\<lambda>a b. bits LENGTH('a) a \<le> bits LENGTH('a) b"
+  is "\<lambda>a b. bitrunc LENGTH('a) a \<le> bitrunc LENGTH('a) b"
   by simp
 
 lift_definition less_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
-  is "\<lambda>a b. bits LENGTH('a) a < bits LENGTH('a) b"
+  is "\<lambda>a b. bitrunc LENGTH('a) a < bitrunc LENGTH('a) b"
   by simp
 
 instance
@@ -332,7 +330,7 @@ lemma word_less_eq_iff_unsigned:
 
 lemma word_less_iff_unsigned:
   "a < b \<longleftrightarrow> unsigned a < unsigned b"
-  by (transfer fixing: less) (auto dest: preorder_class.le_less_trans [OF bits_nonnegative])
+  by (transfer fixing: less) (auto dest: preorder_class.le_less_trans [OF bitrunc_nonnegative])
 
 end
 
