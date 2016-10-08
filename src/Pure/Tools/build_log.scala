@@ -211,6 +211,7 @@ object Build_Log
 
   object Field
   {
+    val build_engine = "build_engine"
     val build_host = "build_host"
     val build_start = "build_start"
     val build_end = "build_end"
@@ -218,27 +219,19 @@ object Build_Log
     val afp_version = "afp_version"
   }
 
-  object Kind extends Enumeration
-  {
-    val EMPTY = Value("empty")
-    val ISATEST = Value("isatest")
-    val AFP_TEST = Value("afp-test")
-    val JENKINS = Value("jenkins")
-  }
-
   object Meta_Info
   {
-    val empty: Meta_Info = Meta_Info(Kind.EMPTY, Nil, Nil)
+    val empty: Meta_Info = Meta_Info(Nil, Nil)
   }
 
-  sealed case class Meta_Info(
-    kind: Kind.Value, props: Properties.T, settings: List[(String, String)])
+  sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
   {
     def is_empty: Boolean = props.isEmpty && settings.isEmpty
   }
 
   object Isatest
   {
+    val engine = "isatest"
     val Test_Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
     val Test_End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
@@ -247,6 +240,7 @@ object Build_Log
 
   object AFP
   {
+    val engine = "afp-test"
     val Test_Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
     val Test_Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
     val Test_End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
@@ -257,10 +251,13 @@ object Build_Log
 
   private def parse_meta_info(log_file: Log_File): Meta_Info =
   {
-    def parse(kind: Kind.Value, start: Date, hostname: String,
+    def parse(engine: String, host: String, start: Date,
       Test_End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Meta_Info =
     {
-      val start_date = Field.build_start -> start.toString
+      val build_engine = if (engine == "") Nil else List(Field.build_engine -> engine)
+      val build_host = if (host == "") Nil else List(Field.build_host -> host)
+
+      val start_date = List(Field.build_start -> start.toString)
       val end_date =
         log_file.lines.last match {
           case Test_End(log_file.Strict_Date(end_date)) =>
@@ -268,32 +265,26 @@ object Build_Log
           case _ => Nil
         }
 
-      val build_host = if (hostname == "") Nil else List(Field.build_host -> hostname)
-
       val isabelle_version =
         log_file.find_match(Isabelle_Version).map(Field.isabelle_version -> _)
-
       val afp_version =
         log_file.find_match(AFP_Version).map(Field.afp_version -> _)
 
-      Meta_Info(kind,
-        start_date :: end_date ::: build_host :::
-          isabelle_version.toList ::: afp_version.toList,
+      Meta_Info(build_engine ::: build_host :::
+          start_date ::: end_date ::: isabelle_version.toList ::: afp_version.toList,
         log_file.get_settings(Settings.all_settings))
     }
 
     log_file.lines match {
-      case Isatest.Test_Start(log_file.Strict_Date(start), hostname) :: _ =>
-        parse(Kind.ISATEST, start, hostname,
-          Isatest.Test_End, Isatest.Isabelle_Version, Isatest.No_AFP_Version)
+      case Isatest.Test_Start(log_file.Strict_Date(start), host) :: _ =>
+        parse(Isatest.engine, host, start, Isatest.Test_End,
+          Isatest.Isabelle_Version, Isatest.No_AFP_Version)
 
-      case AFP.Test_Start(log_file.Strict_Date(start), hostname) :: _ =>
-        parse(Kind.AFP_TEST, start, hostname,
-          AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
+      case AFP.Test_Start(log_file.Strict_Date(start), host) :: _ =>
+        parse(AFP.engine, host, start, AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
 
       case AFP.Test_Start_Old(log_file.Strict_Date(start)) :: _ =>
-        parse(Kind.AFP_TEST, start, "",
-          AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
+        parse(AFP.engine, "", start, AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
 
       case line :: _ if line.startsWith("\0") => Meta_Info.empty
       case List(Isatest.Test_End(_)) => Meta_Info.empty
