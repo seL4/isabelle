@@ -311,7 +311,7 @@ object Build_Log
          log_file.lines.last.startsWith(Jenkins.FINISHED) =>
         log_file.lines.dropWhile(_ != Jenkins.BUILD) match {
           case Jenkins.BUILD :: _ :: Jenkins.Start_Date(log_file.Strict_Date(start)) :: _ =>
-            parse(Jenkins.engine, "", start, Jenkins.No_End,
+            parse(Jenkins.engine, "", start.to(ZoneId.of("Europe/Berlin")), Jenkins.No_End,
               Jenkins.Isabelle_Version, Jenkins.AFP_Version)
           case _ => Meta_Info.empty
         }

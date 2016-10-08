@@ -85,6 +85,9 @@ object Date
 
 sealed case class Date(rep: ZonedDateTime)
 {
+  def to(zone: ZoneId): Date = new Date(rep.withZoneSameInstant(zone))
+  def to_utc: Date = to(ZoneId.of("UTC"))
+
   def time: Time = Time.instant(Instant.from(rep))
   def timezone: ZoneId = rep.getZone
 
