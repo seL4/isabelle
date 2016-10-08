@@ -207,6 +207,9 @@ object Build_Log
   }
 
   sealed case class Header(kind: Kind.Value, props: Properties.T, settings: List[(String, String)])
+  {
+    def is_empty: Boolean = props.isEmpty && settings.isEmpty
+  }
 
   object Isatest
   {
@@ -256,6 +259,8 @@ object Build_Log
       case Isatest.Test_Start(log_file.Strict_Date(start), hostname) :: _ =>
         parse(Kind.ISATEST, start, hostname,
           Isatest.Test_End, Isatest.Isabelle_Version, Isatest.No_AFP_Version)
+
+      case List(Isatest.Test_End(_)) => Header(Kind.ISATEST, Nil, Nil)
 
       case AFP.Test_Start(log_file.Strict_Date(start), hostname) :: _ =>
         parse(Kind.AFP_TEST, start, hostname,
