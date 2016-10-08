@@ -529,9 +529,6 @@ distinguish which ordering the theorems are about
     mset_lessD ~> mset_subsetD
     mset_le_insertD ~> mset_subset_eq_insertD
     mset_less_of_empty ~> mset_subset_of_empty
-    le_empty ~> subset_eq_empty
-    mset_less_add_bothsides ~> mset_subset_add_bothsides
-    mset_less_empty_nonempty ~> mset_subset_empty_nonempty
     mset_less_size ~> mset_subset_size
     wf_less_mset_rel ~> wf_subset_mset_rel
     count_le_replicate_mset_le ~> count_le_replicate_mset_subset_eq
@@ -578,8 +575,6 @@ renamed:
     ex_gt_count_imp_less_multiset ~> ex_gt_count_imp_le_multiset
     less_multiset_plus_left_nonempty ~> le_multiset_plus_left_nonempty
     le_multiset_plus_right_nonempty ~> le_multiset_plus_right_nonempty
-    less_multiset_plus_plus_left_iff ~> le_multiset_plus_plus_left_iff
-    less_multiset_plus_plus_right_iff ~> le_multiset_plus_plus_right_iff
 INCOMPATIBILITY.
 
 * HOL-Library: the lemma mset_map has now the attribute [simp].
@@ -589,16 +584,22 @@ INCOMPATIBILITY.
 INCOMPATIBILITY, use the following replacements:
 
     le_multiset_plus_plus_left_iff ~> add_less_cancel_right
+    less_multiset_plus_plus_left_iff ~> add_less_cancel_right
     le_multiset_plus_plus_right_iff ~> add_less_cancel_left
+    less_multiset_plus_plus_right_iff ~> add_less_cancel_left
     add_eq_self_empty_iff ~> add_cancel_left_right
     mset_subset_add_bothsides ~> subset_mset.add_less_cancel_right
+    mset_less_add_bothsides ~> subset_mset.add_less_cancel_right
+    mset_le_add_bothsides ~> subset_mset.add_less_cancel_right
     empty_inter ~> subset_mset.inf_bot_left
     inter_empty ~> subset_mset.inf_bot_right
     empty_sup ~> subset_mset.sup_bot_left
     sup_empty ~> subset_mset.sup_bot_right
     bdd_below_multiset ~> subset_mset.bdd_above_bot
     subset_eq_empty ~> subset_mset.le_zero_eq
+    le_empty ~> subset_mset.le_zero_eq
     mset_subset_empty_nonempty ~> subset_mset.zero_less_iff_neq_zero
+    mset_less_empty_nonempty ~> subset_mset.zero_less_iff_neq_zero
 
 * HOL-Library: some typeclass constraints about multisets have been
 reduced from ordered or linordered to preorder. Multisets have the
