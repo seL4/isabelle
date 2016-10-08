@@ -58,7 +58,7 @@ Usage: isabelle console [OPTIONS]
           !Build.build(options = options, build_heap = true, no_build = true,
             dirs = dirs, system_mode = system_mode, sessions = List(logic)).ok)
       {
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
         progress.echo("Build started for Isabelle/" + logic + " ...")
         progress.interrupt_handler {
           val res =

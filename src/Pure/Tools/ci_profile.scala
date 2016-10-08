@@ -16,7 +16,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 {
   private def build(options: Options): (Build.Results, Time) =
   {
-    val progress = new Console_Progress(true)
+    val progress = new Console_Progress(verbose = true)
     val start_time = Time.now()
     val results = progress.interrupt_handler {
       Build.build_selection(

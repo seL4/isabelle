@@ -750,7 +750,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     val sessions = getopts(args)
 
-    val progress = new Console_Progress(verbose)
+    val progress = new Console_Progress(verbose = verbose)
 
     if (verbose) {
       progress.echo(
