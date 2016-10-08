@@ -19,29 +19,6 @@ object Date
 {
   /* format */
 
-  object Formatter
-  {
-    def pattern(pat: String): DateTimeFormatter = DateTimeFormatter.ofPattern(pat)
-
-    def variants(pats: List[String], locs: List[Locale] = Nil): List[DateTimeFormatter] =
-      pats.flatMap(pat => {
-        val fmt = pattern(pat)
-        if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale(_))
-      })
-
-    @tailrec def try_variants(fmts: List[DateTimeFormatter], str: String,
-      last_exn: Option[DateTimeParseException] = None): TemporalAccessor =
-    {
-      fmts match {
-        case Nil =>
-          throw last_exn.getOrElse(new DateTimeParseException("Failed to parse date", str, 0))
-        case fmt :: rest =>
-          try { ZonedDateTime.from(fmt.parse(str)) }
-          catch { case exn: DateTimeParseException => try_variants(rest, str, Some(exn)) }
-      }
-    }
-  }
-
   object Format
   {
     def make(fmts: List[DateTimeFormatter], tune: String => String = s => s): Format =
@@ -73,6 +50,29 @@ object Date
     object Strict
     {
       def unapply(s: String): Some[Date] = Some(parse(s))
+    }
+  }
+
+  object Formatter
+  {
+    def pattern(pat: String): DateTimeFormatter = DateTimeFormatter.ofPattern(pat)
+
+    def variants(pats: List[String], locs: List[Locale] = Nil): List[DateTimeFormatter] =
+      pats.flatMap(pat => {
+        val fmt = pattern(pat)
+        if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale(_))
+      })
+
+    @tailrec def try_variants(fmts: List[DateTimeFormatter], str: String,
+      last_exn: Option[DateTimeParseException] = None): TemporalAccessor =
+    {
+      fmts match {
+        case Nil =>
+          throw last_exn.getOrElse(new DateTimeParseException("Failed to parse date", str, 0))
+        case fmt :: rest =>
+          try { ZonedDateTime.from(fmt.parse(str)) }
+          catch { case exn: DateTimeParseException => try_variants(rest, str, Some(exn)) }
+      }
     }
   }
 

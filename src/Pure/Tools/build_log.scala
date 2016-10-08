@@ -143,72 +143,7 @@ object Build_Log
 
 
 
-  /** session info: produced by "isabelle build" **/
-
-  sealed case class Session_Info(
-    session_name: String,
-    session_timing: Properties.T,
-    command_timings: List[Properties.T],
-    ml_statistics: List[Properties.T],
-    task_statistics: List[Properties.T])
-
-  private def parse_session_info(
-    log_file: Log_File,
-    default_name: String,
-    command_timings: Boolean,
-    ml_statistics: Boolean,
-    task_statistics: Boolean): Session_Info =
-  {
-    val xml_cache = new XML.Cache()
-
-    val session_name =
-      log_file.find_line("\fSession.name = ") match {
-        case None => default_name
-        case Some(name) if default_name == "" || default_name == name => name
-        case Some(name) => log_file.err("log from different session " + quote(name))
-      }
-    val session_timing = log_file.find_props("\fTiming = ") getOrElse Nil
-    val command_timings_ =
-      if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil
-    val ml_statistics_ =
-      if (ml_statistics) log_file.filter_props("\fML_statistics = ") else Nil
-    val task_statistics_ =
-      if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil
-
-    Session_Info(session_name, session_timing, command_timings_, ml_statistics_, task_statistics_)
-  }
-
-
-
   /** meta data **/
-
-  val Date_Format =
-  {
-    val fmts =
-      Date.Formatter.variants(
-        List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
-        List(Locale.ENGLISH, Locale.GERMAN))
-
-    // workarounds undetected timezones
-    def tune(s: String): String =
-      Word.implode(Word.explode(s).map({
-        case "CET" | "MET" => "GMT+1"
-        case "CEST" | "MEST" => "GMT+2"
-        case "EST" => "GMT+1"  // FIXME ??
-        case a => a }))
-
-    Date.Format.make(fmts, tune)
-  }
-
-  object Header_Kind extends Enumeration
-  {
-    val ISATEST = Value("isatest")
-    val AFP_TEST = Value("afp-test")
-    val JENKINS = Value("jenkins")
-  }
-
-  sealed case class Header(
-    kind: Header_Kind.Value, props: Properties.T, settings: List[(String, String)])
 
   object Field
   {
@@ -217,6 +152,33 @@ object Build_Log
     val build_end = "build_end"
     val isabelle_version = "isabelle_version"
     val afp_version = "afp_version"
+  }
+
+  object Kind extends Enumeration
+  {
+    val ISATEST = Value("isatest")
+    val AFP_TEST = Value("afp-test")
+    val JENKINS = Value("jenkins")
+  }
+
+  sealed case class Header(kind: Kind.Value, props: Properties.T, settings: List[(String, String)])
+
+  val Date_Format =
+  {
+    val fmts =
+      Date.Formatter.variants(
+        List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+        List(Locale.ENGLISH, Locale.GERMAN))
+
+    // workaround undetected timezones
+    def tune(s: String): String =
+      Word.implode(Word.explode(s).map({
+        case "CET" | "MET" => "GMT+1"
+        case "CEST" | "MEST" => "GMT+2"
+        case "EST" => "GMT+1"  // FIXME ??
+        case a => a }))
+
+    Date.Format.make(fmts, tune)
   }
 
   object Isatest
@@ -238,7 +200,7 @@ object Build_Log
 
   private def parse_header(log_file: Log_File): Header =
   {
-    def parse(kind: Header_Kind.Value, start: Date, hostname: String,
+    def parse(kind: Kind.Value, start: Date, hostname: String,
       Test_End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Header =
     {
       val start_date = Field.build_start -> start.toString
@@ -265,14 +227,17 @@ object Build_Log
 
     log_file.lines match {
       case Isatest.Test_Start(Date_Format.Strict(start), hostname) :: _ =>
-        parse(Header_Kind.ISATEST, start, hostname,
+        parse(Kind.ISATEST, start, hostname,
           Isatest.Test_End, Isatest.Isabelle_Version, Isatest.No_AFP_Version)
+
       case AFP.Test_Start(Date_Format.Strict(start), hostname) :: _ =>
-        parse(Header_Kind.AFP_TEST, start, hostname,
+        parse(Kind.AFP_TEST, start, hostname,
           AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
+
       case AFP.Test_Start_Old(Date_Format.Strict(start)) :: _ =>
-        parse(Header_Kind.AFP_TEST, start, "",
+        parse(Kind.AFP_TEST, start, "",
           AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
+
       case _ => log_file.err("cannot detect log header format")
     }
   }
@@ -404,5 +369,42 @@ object Build_Log
           (name -> entry)
         }):_*)
     Build_Info(sessions)
+  }
+
+
+
+  /** session info: produced by "isabelle build" **/
+
+  sealed case class Session_Info(
+    session_name: String,
+    session_timing: Properties.T,
+    command_timings: List[Properties.T],
+    ml_statistics: List[Properties.T],
+    task_statistics: List[Properties.T])
+
+  private def parse_session_info(
+    log_file: Log_File,
+    default_name: String,
+    command_timings: Boolean,
+    ml_statistics: Boolean,
+    task_statistics: Boolean): Session_Info =
+  {
+    val xml_cache = new XML.Cache()
+
+    val session_name =
+      log_file.find_line("\fSession.name = ") match {
+        case None => default_name
+        case Some(name) if default_name == "" || default_name == name => name
+        case Some(name) => log_file.err("log from different session " + quote(name))
+      }
+    val session_timing = log_file.find_props("\fTiming = ") getOrElse Nil
+    val command_timings_ =
+      if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil
+    val ml_statistics_ =
+      if (ml_statistics) log_file.filter_props("\fML_statistics = ") else Nil
+    val task_statistics_ =
+      if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil
+
+    Session_Info(session_name, session_timing, command_timings_, ml_statistics_, task_statistics_)
   }
 }
