@@ -1,16 +1,16 @@
 /*  Title:      Pure/Tools/build_log.scala
     Author:     Makarius
 
-Build log parsing for historic versions, back to "build_history_base".
+Build log parsing for current and historic formats.
 */
 
 package isabelle
 
 
-import java.util.Locale
 import java.io.{File => JFile}
-import java.time.ZonedDateTime
+import java.time.ZoneId
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.util.Locale
 
 import scala.collection.mutable
 import scala.util.matching.Regex
@@ -18,6 +18,19 @@ import scala.util.matching.Regex
 
 object Build_Log
 {
+  /** directory content **/
+
+  def is_log(file: JFile): Boolean =
+    List(".log", ".log.gz", ".log.xz").exists(ext => file.getName.endsWith(ext))
+
+  def isatest_files(dir: Path): List[JFile] =
+    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("isatest-makeall-"))
+
+  def afp_test_files(dir: Path): List[JFile] =
+    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("afp-test-devel-"))
+
+
+
   /** settings **/
 
   object Settings
@@ -49,6 +62,7 @@ object Build_Log
   }
 
 
+
   /** log file **/
 
   object Log_File
@@ -75,6 +89,49 @@ object Build_Log
     }
 
     def apply(path: Path): Log_File = apply(path.file)
+
+
+    /* date format */
+
+    val Date_Format =
+    {
+      val fmts =
+        Date.Formatter.variants(
+          List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+          List(Locale.ENGLISH, Locale.GERMAN)) :::
+        List(
+          DateTimeFormatter.RFC_1123_DATE_TIME,
+          Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(ZoneId.of("Europe/Berlin")))
+
+      def tune_timezone(s: String): String =
+        s match {
+          case "CET" | "MET" => "GMT+1"
+          case "CEST" | "MEST" => "GMT+2"
+          case "EST" => "Europe/Berlin"
+          case _ => s
+        }
+      def tune_weekday(s: String): String =
+        s match {
+          case "Die" => "Di"
+          case "Mit" => "Mi"
+          case "Don" => "Do"
+          case "Fre" => "Fr"
+          case "Sam" => "Sa"
+          case "Son" => "So"
+          case _ => s
+        }
+
+      def tune(s: String): String =
+        Word.implode(
+          Word.explode(s) match {
+            case a :: "M\uFFFDr" :: bs => tune_weekday(a) :: "Mär" :: bs.map(tune_timezone(_))
+            case a :: bs => tune_weekday(a) :: bs.map(tune_timezone(_))
+            case Nil => Nil
+          }
+        )
+
+      Date.Format.make(fmts, tune)
+    }
   }
 
   class Log_File private(val name: String, val lines: List[String])
@@ -87,6 +144,16 @@ object Build_Log
 
     def err(msg: String): Nothing =
       error("Error in log file " + quote(name) + ": " + msg)
+
+
+    /* date format */
+
+    object Strict_Date
+    {
+      def unapply(s: String): Some[Date] =
+        try { Some(Log_File.Date_Format.parse(s)) }
+        catch { case exn: DateTimeParseException => log_file.err(exn.getMessage) }
+    }
 
 
     /* inlined content */
@@ -130,6 +197,10 @@ object Build_Log
 
     /* parse various formats */
 
+    def parse_meta_info(): Meta_Info = Build_Log.parse_meta_info(log_file)
+
+    def parse_build_info(): Build_Info = Build_Log.parse_build_info(log_file)
+
     def parse_session_info(
         default_name: String = "",
         command_timings: Boolean = false,
@@ -137,74 +208,15 @@ object Build_Log
         task_statistics: Boolean = false): Session_Info =
       Build_Log.parse_session_info(
         log_file, default_name, command_timings, ml_statistics, task_statistics)
-
-    def parse_header(): Header = Build_Log.parse_header(log_file)
-
-    def parse_build_info(): Build_Info = Build_Log.parse_build_info(log_file)
   }
 
 
-  /* session log: produced by "isabelle build" */
 
-  sealed case class Session_Info(
-    session_name: String,
-    session_timing: Properties.T,
-    command_timings: List[Properties.T],
-    ml_statistics: List[Properties.T],
-    task_statistics: List[Properties.T])
-
-  private def parse_session_info(
-    log_file: Log_File,
-    default_name: String,
-    command_timings: Boolean,
-    ml_statistics: Boolean,
-    task_statistics: Boolean): Session_Info =
-  {
-    val xml_cache = new XML.Cache()
-
-    val session_name =
-      log_file.find_line("\fSession.name = ") match {
-        case None => default_name
-        case Some(name) if default_name == "" || default_name == name => name
-        case Some(name) => log_file.err("log from different session " + quote(name))
-      }
-    val session_timing = log_file.find_props("\fTiming = ") getOrElse Nil
-    val command_timings_ =
-      if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil
-    val ml_statistics_ =
-      if (ml_statistics) log_file.filter_props("\fML_statistics = ") else Nil
-    val task_statistics_ =
-      if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil
-
-    Session_Info(session_name, session_timing, command_timings_, ml_statistics_, task_statistics_)
-  }
-
-
-  /* header and meta data */
-
-  val Date_Format =
-    Date.Format.make_variants(
-      List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
-      List(Locale.ENGLISH, Locale.GERMAN),
-      // workaround for jdk-8u102
-      s => Word.implode(Word.explode(s).map({
-        case "CET" | "MET" => "GMT+1"
-        case "CEST" | "MEST" => "GMT+2"
-        case "EST" => "GMT+1"  // FIXME ??
-        case a => a })))
-
-  object Header_Kind extends Enumeration
-  {
-    val ISATEST = Value("isatest")
-    val AFP_TEST = Value("afp-test")
-    val JENKINS = Value("jenkins")
-  }
-
-  sealed case class Header(
-    kind: Header_Kind.Value, props: Properties.T, settings: List[(String, String)])
+  /** meta info **/
 
   object Field
   {
+    val build_engine = "build_engine"
     val build_host = "build_host"
     val build_start = "build_start"
     val build_end = "build_end"
@@ -212,66 +224,110 @@ object Build_Log
     val afp_version = "afp_version"
   }
 
+  object Meta_Info
+  {
+    val empty: Meta_Info = Meta_Info(Nil, Nil)
+  }
+
+  sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
+  {
+    def is_empty: Boolean = props.isEmpty && settings.isEmpty
+  }
+
   object Isatest
   {
-    val Test_Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
-    val Test_End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
+    val engine = "isatest"
+    val Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
+    val End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
     val No_AFP_Version = new Regex("""$.""")
   }
 
-  object AFP
+  object AFP_Test
   {
-    val Test_Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
-    val Test_Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
-    val Test_End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
+    val engine = "afp-test"
+    val Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
+    val Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
+    val End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
     val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\S+)$""")
     val AFP_Version = new Regex("""^AFP version: .* -- hg id (\S+)$""")
+    val Bad_Init = new Regex("""^cp:.*: Disc quota exceeded$""")
   }
 
-  private def parse_header(log_file: Log_File): Header =
+  object Jenkins
   {
-    def parse(kind: Header_Kind.Value, start: Date, hostname: String,
-      Test_End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Header =
+    val engine = "jenkins"
+    val Start = new Regex("""^Started .*$""")
+    val Start_Date = new Regex("""^Build started at (.+)$""")
+    val No_End = new Regex("""$.""")
+    val Isabelle_Version = new Regex("""^Isabelle id (\S+)$""")
+    val AFP_Version = new Regex("""^AFP id (\S+)$""")
+    val CONFIGURATION = "=== CONFIGURATION ==="
+    val BUILD = "=== BUILD ==="
+    val FINISHED = "Finished: "
+  }
+
+  private def parse_meta_info(log_file: Log_File): Meta_Info =
+  {
+    def parse(engine: String, host: String, start: Date,
+      End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Meta_Info =
     {
-      val start_date = Field.build_start -> start.toString
+      val build_engine = if (engine == "") Nil else List(Field.build_engine -> engine)
+      val build_host = if (host == "") Nil else List(Field.build_host -> host)
+
+      val start_date = List(Field.build_start -> start.toString)
       val end_date =
         log_file.lines.last match {
-          case Test_End(Date_Format.Strict(end_date)) =>
+          case End(log_file.Strict_Date(end_date)) =>
             List(Field.build_end -> end_date.toString)
           case _ => Nil
         }
 
-      val build_host = if (hostname == "") Nil else List(Field.build_host -> hostname)
-
       val isabelle_version =
         log_file.find_match(Isabelle_Version).map(Field.isabelle_version -> _)
-
       val afp_version =
         log_file.find_match(AFP_Version).map(Field.afp_version -> _)
 
-      Header(kind,
-        start_date :: end_date ::: build_host :::
-          isabelle_version.toList ::: afp_version.toList,
+      Meta_Info(build_engine ::: build_host :::
+          start_date ::: end_date ::: isabelle_version.toList ::: afp_version.toList,
         log_file.get_settings(Settings.all_settings))
     }
 
     log_file.lines match {
-      case Isatest.Test_Start(Date_Format.Strict(start), hostname) :: _ =>
-        parse(Header_Kind.ISATEST, start, hostname,
-          Isatest.Test_End, Isatest.Isabelle_Version, Isatest.No_AFP_Version)
-      case AFP.Test_Start(Date_Format.Strict(start), hostname) :: _ =>
-        parse(Header_Kind.AFP_TEST, start, hostname,
-          AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
-      case AFP.Test_Start_Old(Date_Format.Strict(start)) :: _ =>
-        parse(Header_Kind.AFP_TEST, start, "",
-          AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
-      case _ => log_file.err("cannot detect log header format")
+      case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
+        parse(Isatest.engine, host, start, Isatest.End,
+          Isatest.Isabelle_Version, Isatest.No_AFP_Version)
+
+      case AFP_Test.Start(log_file.Strict_Date(start), host) :: _ =>
+        parse(AFP_Test.engine, host, start, AFP_Test.End,
+          AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
+
+      case AFP_Test.Start_Old(log_file.Strict_Date(start)) :: _ =>
+        parse(AFP_Test.engine, "", start, AFP_Test.End,
+          AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
+
+      case Jenkins.Start() :: _
+      if log_file.lines.contains(Jenkins.CONFIGURATION) ||
+         log_file.lines.last.startsWith(Jenkins.FINISHED) =>
+        log_file.lines.dropWhile(_ != Jenkins.BUILD) match {
+          case Jenkins.BUILD :: _ :: Jenkins.Start_Date(log_file.Strict_Date(start)) :: _ =>
+            parse(Jenkins.engine, "", start.to(ZoneId.of("Europe/Berlin")), Jenkins.No_End,
+              Jenkins.Isabelle_Version, Jenkins.AFP_Version)
+          case _ => Meta_Info.empty
+        }
+
+      case line :: _ if line.startsWith("\0") => Meta_Info.empty
+      case List(Isatest.End(_)) => Meta_Info.empty
+      case _ :: AFP_Test.Bad_Init() :: _ => Meta_Info.empty
+      case Nil => Meta_Info.empty
+
+      case _ => log_file.err("cannot detect log file format")
     }
   }
 
 
-  /* build info: produced by isabelle build */
+
+  /** build info: produced by isabelle build **/
 
   object Session_Status extends Enumeration
   {
@@ -396,5 +452,42 @@ object Build_Log
           (name -> entry)
         }):_*)
     Build_Info(sessions)
+  }
+
+
+
+  /** session info: produced by "isabelle build" **/
+
+  sealed case class Session_Info(
+    session_name: String,
+    session_timing: Properties.T,
+    command_timings: List[Properties.T],
+    ml_statistics: List[Properties.T],
+    task_statistics: List[Properties.T])
+
+  private def parse_session_info(
+    log_file: Log_File,
+    default_name: String,
+    command_timings: Boolean,
+    ml_statistics: Boolean,
+    task_statistics: Boolean): Session_Info =
+  {
+    val xml_cache = new XML.Cache()
+
+    val session_name =
+      log_file.find_line("\fSession.name = ") match {
+        case None => default_name
+        case Some(name) if default_name == "" || default_name == name => name
+        case Some(name) => log_file.err("log from different session " + quote(name))
+      }
+    val session_timing = log_file.find_props("\fTiming = ") getOrElse Nil
+    val command_timings_ =
+      if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil
+    val ml_statistics_ =
+      if (ml_statistics) log_file.filter_props("\fML_statistics = ") else Nil
+    val task_statistics_ =
+      if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil
+
+    Session_Info(session_name, session_timing, command_timings_, ml_statistics_, task_statistics_)
   }
 }

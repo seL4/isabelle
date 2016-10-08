@@ -44,8 +44,8 @@ object CI_API
     output: URL,
     session_logs: List[(String, URL)])
   {
-    def read_output(): Build_Log.Log_File = Build_Log.Log_File(job_name, Url.read(output))
-    def read_log_file(name: String): Build_Log.Log_File =
+    def read_main_log(): Build_Log.Log_File = Build_Log.Log_File(job_name, Url.read(output))
+    def read_session_log(name: String): Build_Log.Log_File =
       Build_Log.Log_File(name,
         session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse "")
   }
