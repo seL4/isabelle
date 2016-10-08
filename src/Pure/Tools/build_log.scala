@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/build_log.scala
     Author:     Makarius
 
-Build log parsing for historic versions.
+Build log parsing for current and historic versions.
 */
 
 package isabelle
