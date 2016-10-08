@@ -18,6 +18,19 @@ import scala.util.matching.Regex
 
 object Build_Log
 {
+  /** directory content **/
+
+  def is_log(file: JFile): Boolean =
+    List(".log", ".log.gz", ".log.xz").exists(ext => file.getName.endsWith(ext))
+
+  def isatest_files(dir: Path): List[JFile] =
+    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("isatest-makeall-"))
+
+  def afp_test_files(dir: Path): List[JFile] =
+    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("afp-test-devel-"))
+
+
+
   /** settings **/
 
   object Settings
@@ -88,6 +101,35 @@ object Build_Log
 
     def err(msg: String): Nothing =
       error("Error in log file " + quote(name) + ": " + msg)
+
+
+    /* date format */
+
+    val Date_Format =
+    {
+      val fmts =
+        Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(ZoneId.of("Europe/Berlin")) ::
+        Date.Formatter.variants(
+          List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
+          List(Locale.ENGLISH, Locale.GERMAN))
+
+      // workaround undetected timezones
+      def tune(s: String): String =
+        Word.implode(Word.explode(s).map({
+          case "CET" | "MET" => "GMT+1"
+          case "CEST" | "MEST" => "GMT+2"
+          case "EST" => "GMT+1"  // FIXME ??
+          case a => a }))
+
+      Date.Format.make(fmts, tune)
+    }
+
+    object Strict_Date
+    {
+      def unapply(s: String): Some[Date] =
+        try { Some(Date_Format.parse(s)) }
+        catch { case exn: DateTimeParseException => log_file.err(exn.getMessage) }
+    }
 
 
     /* inlined content */
@@ -166,24 +208,6 @@ object Build_Log
 
   sealed case class Header(kind: Kind.Value, props: Properties.T, settings: List[(String, String)])
 
-  val Date_Format =
-  {
-    val fmts =
-      Date.Formatter.variants(
-        List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
-        List(Locale.ENGLISH, Locale.GERMAN))
-
-    // workaround undetected timezones
-    def tune(s: String): String =
-      Word.implode(Word.explode(s).map({
-        case "CET" | "MET" => "GMT+1"
-        case "CEST" | "MEST" => "GMT+2"
-        case "EST" => "GMT+1"  // FIXME ??
-        case a => a }))
-
-    Date.Format.make(fmts, tune)
-  }
-
   object Isatest
   {
     val Test_Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
@@ -203,20 +227,13 @@ object Build_Log
 
   private def parse_header(log_file: Log_File): Header =
   {
-    object Strict_Date
-    {
-      def unapply(s: String): Some[Date] =
-        try { Some(Date_Format.parse(s)) }
-        catch { case exn: DateTimeParseException => log_file.err(exn.getMessage) }
-    }
-
     def parse(kind: Kind.Value, start: Date, hostname: String,
       Test_End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Header =
     {
       val start_date = Field.build_start -> start.toString
       val end_date =
         log_file.lines.last match {
-          case Test_End(Strict_Date(end_date)) =>
+          case Test_End(log_file.Strict_Date(end_date)) =>
             List(Field.build_end -> end_date.toString)
           case _ => Nil
         }
@@ -236,15 +253,15 @@ object Build_Log
     }
 
     log_file.lines match {
-      case Isatest.Test_Start(Strict_Date(start), hostname) :: _ =>
+      case Isatest.Test_Start(log_file.Strict_Date(start), hostname) :: _ =>
         parse(Kind.ISATEST, start, hostname,
           Isatest.Test_End, Isatest.Isabelle_Version, Isatest.No_AFP_Version)
 
-      case AFP.Test_Start(Strict_Date(start), hostname) :: _ =>
+      case AFP.Test_Start(log_file.Strict_Date(start), hostname) :: _ =>
         parse(Kind.AFP_TEST, start, hostname,
           AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
 
-      case AFP.Test_Start_Old(Strict_Date(start)) :: _ =>
+      case AFP.Test_Start_Old(log_file.Strict_Date(start)) :: _ =>
         parse(Kind.AFP_TEST, start, "",
           AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
 
