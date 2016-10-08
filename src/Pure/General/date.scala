@@ -47,10 +47,6 @@ object Date
 
     def unapply(str: String): Option[Date] =
       try { Some(parse(str)) } catch { case _: DateTimeParseException => None }
-    object Strict
-    {
-      def unapply(s: String): Some[Date] = Some(parse(s))
-    }
   }
 
   object Formatter
