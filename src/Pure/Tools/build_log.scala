@@ -132,6 +132,12 @@ object Build_Log
 
       Date.Format.make(fmts, tune)
     }
+
+
+    /* inlined content */
+
+    def print_props(prefix: String, props: Properties.T): String =
+      prefix + YXML.string_of_body(XML.Encode.properties(props))
   }
 
   class Log_File private(val name: String, val lines: List[String])
@@ -294,6 +300,10 @@ object Build_Log
     }
 
     log_file.lines match {
+      case line :: _ if line.startsWith(Build_History.META_INFO) =>
+        Meta_Info(log_file.find_props(Build_History.META_INFO).get,
+          log_file.get_settings(Settings.all_settings))
+
       case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
         parse(Isatest.engine, host, start, Isatest.End,
           Isatest.Isabelle_Version, Isatest.No_AFP_Version)

@@ -8,11 +8,27 @@ package isabelle
 
 
 import java.io.{File => JFile}
-import java.util.Calendar
+import java.time.format.DateTimeFormatter
+import java.util.{Calendar, Locale}
 
 
 object Build_History
 {
+  /* log files */
+
+  val BUILD_HISTORY = "build_history"
+  val META_INFO = "\fmeta_info = "
+
+  def log_date(date: Date): String =
+    String.format(Locale.ROOT, "%s.%05d",
+      DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date.rep),
+      new java.lang.Long((date.time - date.midnight.time).ms / 1000))
+
+  def log_name(date: Date, parts: String*): String =
+    (BUILD_HISTORY :: log_date(date) :: parts.toList).mkString("", "_", ".log.gz")
+
+
+
   /** other Isabelle environment **/
 
   private class Other_Isabelle(progress: Progress, isabelle_home: Path, isabelle_identifier: String)
@@ -42,6 +58,7 @@ object Build_History
       Path.explode(other_isabelle("getenv -b ISABELLE_HOME_USER").check.out)
 
     val etc_settings: Path = isabelle_home_user + Path.explode("etc/settings")
+    val log_dir: Path = isabelle_home_user + Path.explode("log")
 
 
     /* reset settings */
@@ -80,9 +97,9 @@ object Build_History
       arch_64: Boolean = false,
       heap: Int = default_heap,
       max_heap: Option[Int] = None,
-      more_settings: List[String])
+      more_settings: List[String]): String =
     {
-      val ml_settings =
+      val (ml_platform, ml_settings) =
       {
         val windows_32 = "x86-windows"
         val windows_64 = "x86_64-windows"
@@ -122,10 +139,11 @@ object Build_History
           " --gcthreads " + threads +
           (if (ml_platform.endsWith("-windows")) " --codepage utf8" else "")
 
-        List(
-          "ML_HOME=" + File.bash_path(ml_home(ml_platform)),
-          "ML_PLATFORM=" + quote(ml_platform),
-          "ML_OPTIONS=" + quote(ml_options))
+        (ml_platform,
+          List(
+            "ML_HOME=" + File.bash_path(ml_home(ml_platform)),
+            "ML_PLATFORM=" + quote(ml_platform),
+            "ML_OPTIONS=" + quote(ml_options)))
       }
 
       val thread_settings =
@@ -138,6 +156,8 @@ object Build_History
           (if (more_settings.isEmpty) Nil else List(more_settings))
 
       File.append(etc_settings, "\n" + cat_lines(settings.map(Library.terminate_lines(_))))
+
+      ml_platform
     }
   }
 
@@ -190,10 +210,14 @@ object Build_History
     hg.update(rev = rev, clean = true)
     progress.echo_if(verbose, hg.log(rev, options = "-l1"))
 
+    val isabelle_version = hg.identify(rev, options = "-i")
     val other_isabelle = new Other_Isabelle(progress, hg.root, isabelle_identifier)
 
 
     /* main */
+
+    val build_history_date = Date.now()
+    val build_host = Library.trim_line(Isabelle_System.bash("hostname").check.out)
 
     var first_build = true
     for (threads <- threads_list) yield
@@ -202,7 +226,8 @@ object Build_History
 
       other_isabelle.reset_settings(components_base, nonfree)
       other_isabelle.resolve_components(verbose)
-      other_isabelle.augment_settings(threads, arch_64, heap, max_heap, more_settings)
+      val ml_platform =
+        other_isabelle.augment_settings(threads, arch_64, heap, max_heap, more_settings)
 
       val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
       val isabelle_output_log = isabelle_output + Path.explode("log")
@@ -227,7 +252,26 @@ object Build_History
       if (multicore_base && !first_build && isabelle_base_log.is_dir)
         other_isabelle.copy_dir(isabelle_base_log, isabelle_output_log)
 
-      val res = other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = true)
+      val build_start = Date.now()
+      val res = other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = verbose)
+      val build_end = Date.now()
+
+      val log_path =
+        other_isabelle.log_dir + Path.explode(build_history_date.rep.getYear.toString) +
+          Path.explode(log_name(build_history_date, ml_platform, "M" + threads))
+      Isabelle_System.mkdirs(log_path.dir)
+
+      val meta_info =
+        List(Build_Log.Field.build_engine -> BUILD_HISTORY,
+          Build_Log.Field.build_host -> build_host,
+          Build_Log.Field.build_start -> Build_Log.Log_File.Date_Format(build_start),
+          Build_Log.Field.build_end -> Build_Log.Log_File.Date_Format(build_end),
+          Build_Log.Field.isabelle_version -> isabelle_version)
+
+      File.write_gzip(log_path,
+        Build_Log.Log_File.print_props(META_INFO, meta_info) + "\n" + res.out)
+
+      Output.writeln(log_path.implode, stdout = true)
 
       if (multicore_base && first_build && isabelle_output_log.is_dir)
         other_isabelle.copy_dir(isabelle_output_log, isabelle_base_log)
@@ -304,7 +348,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       using(Mercurial.open_repository(Path.explode(root)))(hg =>
         {
-          val progress = new Console_Progress(false)
+          val progress = new Console_Progress(stderr = true)
           val results =
             build_history(progress, hg, rev = rev, isabelle_identifier = isabelle_identifier,
               components_base = components_base, fresh = fresh, nonfree = nonfree,

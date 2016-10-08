@@ -8,7 +8,7 @@ package isabelle
 
 
 import java.util.Locale
-import java.time.{Instant, ZonedDateTime, ZoneId}
+import java.time.{Instant, ZonedDateTime, LocalTime, ZoneId}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
 
@@ -85,6 +85,9 @@ object Date
 
 sealed case class Date(rep: ZonedDateTime)
 {
+  def midnight: Date =
+    new Date(ZonedDateTime.of(rep.toLocalDate, LocalTime.MIDNIGHT, rep.getZone))
+
   def to(zone: ZoneId): Date = new Date(rep.withZoneSameInstant(zone))
   def to_utc: Date = to(ZoneId.of("UTC"))
 

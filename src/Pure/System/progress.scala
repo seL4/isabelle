@@ -18,9 +18,13 @@ class Progress
 
 object Ignore_Progress extends Progress
 
-class Console_Progress(verbose: Boolean = false) extends Progress
+class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extends Progress
 {
-  override def echo(msg: String) { Console.println(msg) }
+  override def echo(msg: String)
+  {
+    if (stderr) Console.err.println(msg) else Console.println(msg)
+  }
+
   override def theory(session: String, theory: String): Unit =
     if (verbose) echo(session + ": theory " + theory)
 
