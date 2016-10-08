@@ -192,6 +192,10 @@ object Build_Log
 
     /* parse various formats */
 
+    def parse_meta_info(): Meta_Info = Build_Log.parse_meta_info(log_file)
+
+    def parse_build_info(): Build_Info = Build_Log.parse_build_info(log_file)
+
     def parse_session_info(
         default_name: String = "",
         command_timings: Boolean = false,
@@ -199,15 +203,11 @@ object Build_Log
         task_statistics: Boolean = false): Session_Info =
       Build_Log.parse_session_info(
         log_file, default_name, command_timings, ml_statistics, task_statistics)
-
-    def parse_header(): Header = Build_Log.parse_header(log_file)
-
-    def parse_build_info(): Build_Info = Build_Log.parse_build_info(log_file)
   }
 
 
 
-  /** meta data **/
+  /** meta info **/
 
   object Field
   {
@@ -226,12 +226,13 @@ object Build_Log
     val JENKINS = Value("jenkins")
   }
 
-  object Header
+  object Meta_Info
   {
-    val empty: Header = Header(Kind.EMPTY, Nil, Nil)
+    val empty: Meta_Info = Meta_Info(Kind.EMPTY, Nil, Nil)
   }
 
-  sealed case class Header(kind: Kind.Value, props: Properties.T, settings: List[(String, String)])
+  sealed case class Meta_Info(
+    kind: Kind.Value, props: Properties.T, settings: List[(String, String)])
   {
     def is_empty: Boolean = props.isEmpty && settings.isEmpty
   }
@@ -254,10 +255,10 @@ object Build_Log
     val Bad_Init = new Regex("""^cp:.*: Disc quota exceeded$""")
   }
 
-  private def parse_header(log_file: Log_File): Header =
+  private def parse_meta_info(log_file: Log_File): Meta_Info =
   {
     def parse(kind: Kind.Value, start: Date, hostname: String,
-      Test_End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Header =
+      Test_End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Meta_Info =
     {
       val start_date = Field.build_start -> start.toString
       val end_date =
@@ -275,7 +276,7 @@ object Build_Log
       val afp_version =
         log_file.find_match(AFP_Version).map(Field.afp_version -> _)
 
-      Header(kind,
+      Meta_Info(kind,
         start_date :: end_date ::: build_host :::
           isabelle_version.toList ::: afp_version.toList,
         log_file.get_settings(Settings.all_settings))
@@ -294,10 +295,10 @@ object Build_Log
         parse(Kind.AFP_TEST, start, "",
           AFP.Test_End, AFP.Isabelle_Version, AFP.AFP_Version)
 
-      case line :: _ if line.startsWith("\0") => Header.empty
-      case List(Isatest.Test_End(_)) => Header.empty
-      case _ :: AFP.Bad_Init() :: _ => Header.empty
-      case Nil => Header.empty
+      case line :: _ if line.startsWith("\0") => Meta_Info.empty
+      case List(Isatest.Test_End(_)) => Meta_Info.empty
+      case _ :: AFP.Bad_Init() :: _ => Meta_Info.empty
+      case Nil => Meta_Info.empty
 
       case _ => log_file.err("cannot detect log header format")
     }
