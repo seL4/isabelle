@@ -17,10 +17,22 @@ text \<open>
 class len0 =
   fixes len_of :: "'a itself \<Rightarrow> nat"
 
+syntax "_type_length" :: "type \<Rightarrow> nat" ("(1LENGTH/(1'(_')))")
+
+translations "LENGTH('a)" \<rightharpoonup>
+  "CONST len_of (CONST Pure.type :: 'a itself)"
+
+print_translation \<open>
+  let
+    fun len_of_itself_tr' ctxt [Const (@{const_syntax Pure.type}, Type (_, [T]))] =
+      Syntax.const @{syntax_const "_type_length"} $ Syntax_Phases.term_of_typ ctxt T
+  in [(@{const_syntax len_of}, len_of_itself_tr')] end
+\<close>
+
 text \<open>Some theorems are only true on words with length greater 0.\<close>
 
 class len = len0 +
-  assumes len_gt_0 [iff]: "0 < len_of TYPE ('a)"
+  assumes len_gt_0 [iff]: "0 < LENGTH('a)"
 
 instantiation num0 and num1 :: len0
 begin
@@ -35,8 +47,8 @@ end
 instantiation bit0 and bit1 :: (len0) len0
 begin
 
-definition len_bit0: "len_of (_ :: 'a::len0 bit0 itself) = 2 * len_of TYPE('a)"
-definition len_bit1: "len_of (_ :: 'a::len0 bit1 itself) = 2 * len_of TYPE('a) + 1"
+definition len_bit0: "len_of (_ :: 'a::len0 bit0 itself) = 2 * LENGTH('a)"
+definition len_bit1: "len_of (_ :: 'a::len0 bit1 itself) = 2 * LENGTH('a) + 1"
 
 instance ..
 

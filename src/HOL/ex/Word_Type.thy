@@ -9,21 +9,6 @@ theory Word_Type
     "~~/src/HOL/Library/Type_Length"
 begin
 
-subsection \<open>Compact syntax for types with a length\<close>
-
-syntax "_type_length" :: "type \<Rightarrow> nat" ("(1LENGTH/(1'(_')))")
-
-translations "LENGTH('a)" \<rightharpoonup>
-  "CONST len_of (CONST Pure.type :: 'a itself)"
-
-print_translation \<open>
-  let
-    fun len_of_itself_tr' ctxt [Const (@{const_syntax Pure.type}, Type (_, [T]))] =
-      Syntax.const @{syntax_const "_type_length"} $ Syntax_Phases.term_of_typ ctxt T
-  in [(@{const_syntax len_of}, len_of_itself_tr')] end
-\<close>
-
-
 subsection \<open>Truncating bit representations of numeric types\<close>
 
 class semiring_bits = semiring_div_parity +
