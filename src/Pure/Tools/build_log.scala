@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/build_log.scala
     Author:     Makarius
 
-Build log parsing for current and historic versions.
+Build log parsing for current and historic formats.
 */
 
 package isabelle
@@ -9,7 +9,7 @@ package isabelle
 
 import java.io.{File => JFile}
 import java.time.ZoneId
-import java.time.format.DateTimeParseException
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
 
 import scala.collection.mutable
@@ -90,13 +90,18 @@ object Build_Log
 
     def apply(path: Path): Log_File = apply(path.file)
 
+
+    /* date format */
+
     val Date_Format =
     {
       val fmts =
         Date.Formatter.variants(
           List("EEE MMM d HH:mm:ss VV yyyy", "EEE MMM d HH:mm:ss O yyyy"),
           List(Locale.ENGLISH, Locale.GERMAN)) :::
-        List(Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(ZoneId.of("Europe/Berlin")))
+        List(
+          DateTimeFormatter.RFC_1123_DATE_TIME,
+          Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(ZoneId.of("Europe/Berlin")))
 
       def tune_timezone(s: String): String =
         s match {
@@ -249,6 +254,19 @@ object Build_Log
     val Bad_Init = new Regex("""^cp:.*: Disc quota exceeded$""")
   }
 
+  object Jenkins
+  {
+    val engine = "jenkins"
+    val Start = new Regex("""^Started .*$""")
+    val Start_Date = new Regex("""^Build started at (.+)$""")
+    val No_End = new Regex("""$.""")
+    val Isabelle_Version = new Regex("""^Isabelle id (\S+)$""")
+    val AFP_Version = new Regex("""^AFP id (\S+)$""")
+    val CONFIGURATION = "=== CONFIGURATION ==="
+    val BUILD = "=== BUILD ==="
+    val FINISHED = "Finished: "
+  }
+
   private def parse_meta_info(log_file: Log_File): Meta_Info =
   {
     def parse(engine: String, host: String, start: Date,
@@ -288,12 +306,22 @@ object Build_Log
         parse(AFP_Test.engine, "", start, AFP_Test.End,
           AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
 
+      case Jenkins.Start() :: _
+      if log_file.lines.contains(Jenkins.CONFIGURATION) ||
+         log_file.lines.last.startsWith(Jenkins.FINISHED) =>
+        log_file.lines.dropWhile(_ != Jenkins.BUILD) match {
+          case Jenkins.BUILD :: _ :: Jenkins.Start_Date(log_file.Strict_Date(start)) :: _ =>
+            parse(Jenkins.engine, "", start, Jenkins.No_End,
+              Jenkins.Isabelle_Version, Jenkins.AFP_Version)
+          case _ => Meta_Info.empty
+        }
+
       case line :: _ if line.startsWith("\0") => Meta_Info.empty
       case List(Isatest.End(_)) => Meta_Info.empty
       case _ :: AFP_Test.Bad_Init() :: _ => Meta_Info.empty
       case Nil => Meta_Info.empty
 
-      case _ => log_file.err("cannot detect log header format")
+      case _ => log_file.err("cannot detect log file format")
     }
   }
 
