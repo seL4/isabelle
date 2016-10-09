@@ -48,6 +48,7 @@ declare -a SOURCES=(
   General/sha1.scala
   General/sql.scala
   General/sqlite.scala
+  General/ssh.scala
   General/symbol.scala
   General/time.scala
   General/timing.scala
