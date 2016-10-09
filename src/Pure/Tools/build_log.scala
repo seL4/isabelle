@@ -357,6 +357,7 @@ object Build_Log
     timing: Timing,
     ml_timing: Timing,
     ml_statistics: List[Properties.T],
+    heap_size: Option[Long],
     status: Session_Status.Value)
   {
     def finished: Boolean = status == Session_Status.FINISHED
@@ -401,6 +402,7 @@ object Build_Log
     val Session_Started = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
     val Session_Failed = new Regex("""^(\S+) FAILED""")
     val Session_Cancelled = new Regex("""^(\S+) CANCELLED""")
+    val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
     var chapter = Map.empty[String, String]
     var groups = Map.empty[String, List[String]]
@@ -411,10 +413,11 @@ object Build_Log
     var failed = Set.empty[String]
     var cancelled = Set.empty[String]
     var ml_statistics = Map.empty[String, List[Properties.T]]
+    var heap_sizes = Map.empty[String, Long]
 
     def all_sessions: Set[String] =
-      chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++
-      ml_timing.keySet ++ failed ++ cancelled ++ started ++ ml_statistics.keySet
+      chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
+      failed ++ cancelled ++ started ++ ml_statistics.keySet ++ heap_sizes.keySet
 
 
     for (line <- log_file.lines) {
@@ -450,13 +453,16 @@ object Build_Log
           ml_timing += (name -> Timing(elapsed, cpu, gc))
           threads += (name -> t)
 
+        case Heap(name, Value.Long(size)) =>
+          heap_sizes += (name -> size)
+
         case _ if line.startsWith(ML_STATISTICS_MARKER) =>
           val (name, props) =
             Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
               case Some((SESSION_NAME, session_name) :: props) => (session_name, props)
               case _ => log_file.err("malformed ML_statistics " + quote(line))
             }
-          ml_statistics = ml_statistics + (name -> (props :: ml_statistics.getOrElse(name, Nil)))
+          ml_statistics += (name -> (props :: ml_statistics.getOrElse(name, Nil)))
 
         case _ =>
       }
@@ -480,6 +486,7 @@ object Build_Log
               timing.getOrElse(name, Timing.zero),
               ml_timing.getOrElse(name, Timing.zero),
               ml_statistics.getOrElse(name, Nil).reverse,
+              heap_sizes.get(name),
               status)
           (name -> entry)
         }):_*)

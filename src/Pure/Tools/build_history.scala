@@ -263,6 +263,8 @@ object Build_History
         other_isabelle.log_dir + Path.explode(build_history_date.rep.getYear.toString) +
           Path.explode(log_name(build_history_date, ml_platform, "M" + threads))
 
+      val build_info = Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info()
+
       val meta_info =
         List(Build_Log.Field.build_engine -> BUILD_HISTORY,
           Build_Log.Field.build_host -> build_host,
@@ -271,22 +273,31 @@ object Build_History
           Build_Log.Field.isabelle_version -> isabelle_version)
 
       val ml_statistics =
-        Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info().
-          finished_sessions.flatMap(session_name =>
-            {
-              val session_log = isabelle_output_log + Path.explode(session_name).ext("gz")
-              if (session_log.is_file) {
-                Build_Log.Log_File(session_log).parse_session_info(ml_statistics = true).
-                  ml_statistics.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
-              }
-              else Nil
-            })
+        build_info.finished_sessions.flatMap(session_name =>
+          {
+            val session_log = isabelle_output_log + Path.explode(session_name).ext("gz")
+            if (session_log.is_file) {
+              Build_Log.Log_File(session_log).parse_session_info(ml_statistics = true).
+                ml_statistics.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
+            }
+            else Nil
+          })
+
+      val heap_sizes =
+        build_info.finished_sessions.flatMap(session_name =>
+          {
+            val heap = isabelle_output + Path.explode(session_name)
+            if (heap.is_file)
+              Some("Heap " + session_name + " (" + Value.Long(heap.file.length) + " bytes)")
+            else None
+          })
 
       Isabelle_System.mkdirs(log_path.dir)
       File.write_gzip(log_path,
-        cat_lines(
+        Library.terminate_lines(
           Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: res.out_lines :::
-          ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _))))
+          ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
+          heap_sizes))
 
       Output.writeln(log_path.implode, stdout = true)
 
