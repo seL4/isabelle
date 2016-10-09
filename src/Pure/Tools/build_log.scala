@@ -136,8 +136,8 @@ object Build_Log
 
     /* inlined content */
 
-    def print_props(prefix: String, props: Properties.T): String =
-      prefix + YXML.string_of_body(XML.Encode.properties(props))
+    def print_props(marker: String, props: Properties.T): String =
+      marker + YXML.string_of_body(XML.Encode.properties(props))
   }
 
   class Log_File private(val name: String, val lines: List[String])
@@ -191,14 +191,14 @@ object Build_Log
     def parse_props(text: String): Properties.T =
       xml_cache.props(XML.Decode.properties(YXML.parse_body(text)))
 
-    def filter_props(prefix: String): List[Properties.T] =
-      for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse_props(s)
+    def filter_props(marker: String): List[Properties.T] =
+      for (line <- lines; s <- Library.try_unprefix(marker, line)) yield parse_props(s)
 
-    def find_line(prefix: String): Option[String] =
-      find(Library.try_unprefix(prefix, _))
+    def find_line(marker: String): Option[String] =
+      find(Library.try_unprefix(marker, _))
 
-    def find_props(prefix: String): Option[Properties.T] =
-      find_line(prefix).map(parse_props(_))
+    def find_props(marker: String): Option[Properties.T] =
+      find_line(marker).map(parse_props(_))
 
 
     /* parse various formats */
@@ -300,8 +300,8 @@ object Build_Log
     }
 
     log_file.lines match {
-      case line :: _ if line.startsWith(Build_History.META_INFO) =>
-        Meta_Info(log_file.find_props(Build_History.META_INFO).get,
+      case line :: _ if line.startsWith(Build_History.META_INFO_MARKER) =>
+        Meta_Info(log_file.find_props(Build_History.META_INFO_MARKER).get,
           log_file.get_settings(Settings.all_settings))
 
       case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
@@ -337,7 +337,10 @@ object Build_Log
 
 
 
-  /** build info: produced by isabelle build **/
+  /** build info: produced by isabelle build or build_history **/
+
+  val ML_STATISTICS_MARKER = "\fML_statistics = "
+  val SESSION_NAME = "session_name"
 
   object Session_Status extends Enumeration
   {
@@ -353,6 +356,7 @@ object Build_Log
     threads: Option[Int],
     timing: Timing,
     ml_timing: Timing,
+    ml_statistics: List[Properties.T],
     status: Session_Status.Value)
   {
     def finished: Boolean = status == Session_Status.FINISHED
@@ -369,6 +373,7 @@ object Build_Log
         case None => x
       }
 
+    def finished_sessions: List[String] = sessions.keySet.iterator.filter(finished(_)).toList
     def finished(name: String): Boolean = get_default(name, _.finished, false)
     def timing(name: String): Timing = get_default(name, _.timing, Timing.zero)
     def ml_timing(name: String): Timing = get_default(name, _.ml_timing, Timing.zero)
@@ -405,9 +410,11 @@ object Build_Log
     var started = Set.empty[String]
     var failed = Set.empty[String]
     var cancelled = Set.empty[String]
+    var ml_statistics = Map.empty[String, List[Properties.T]]
+
     def all_sessions: Set[String] =
-      chapter.keySet ++ groups.keySet ++ threads.keySet ++
-      timing.keySet ++ ml_timing.keySet ++ failed ++ cancelled ++ started
+      chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++
+      ml_timing.keySet ++ failed ++ cancelled ++ started ++ ml_statistics.keySet
 
 
     for (line <- log_file.lines) {
@@ -415,21 +422,26 @@ object Build_Log
         case Session_No_Groups(Chapter_Name(chapt, name)) =>
           chapter += (name -> chapt)
           groups += (name -> Nil)
+
         case Session_Groups(Chapter_Name(chapt, name), grps) =>
           chapter += (name -> chapt)
           groups += (name -> Word.explode(grps))
+
         case Session_Started(name) =>
           started += name
+
         case Session_Finished1(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3),
             Value.Int(c1), Value.Int(c2), Value.Int(c3)) =>
           val elapsed = Time.hms(e1, e2, e3)
           val cpu = Time.hms(c1, c2, c3)
           timing += (name -> Timing(elapsed, cpu, Time.zero))
+
         case Session_Finished2(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3)) =>
           val elapsed = Time.hms(e1, e2, e3)
           timing += (name -> Timing(elapsed, Time.zero, Time.zero))
+
         case Session_Timing(name,
             Value.Int(t), Value.Double(e), Value.Double(c), Value.Double(g)) =>
           val elapsed = Time.seconds(e)
@@ -437,6 +449,15 @@ object Build_Log
           val gc = Time.seconds(g)
           ml_timing += (name -> Timing(elapsed, cpu, gc))
           threads += (name -> t)
+
+        case _ if line.startsWith(ML_STATISTICS_MARKER) =>
+          val (name, props) =
+            Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
+              case Some((SESSION_NAME, session_name) :: props) => (session_name, props)
+              case _ => log_file.err("malformed ML_statistics " + quote(line))
+            }
+          ml_statistics = ml_statistics + (name -> (props :: ml_statistics.getOrElse(name, Nil)))
+
         case _ =>
       }
     }
@@ -458,6 +479,7 @@ object Build_Log
               threads.get(name),
               timing.getOrElse(name, Timing.zero),
               ml_timing.getOrElse(name, Timing.zero),
+              ml_statistics.getOrElse(name, Nil).reverse,
               status)
           (name -> entry)
         }):_*)
@@ -494,7 +516,7 @@ object Build_Log
     val command_timings_ =
       if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil
     val ml_statistics_ =
-      if (ml_statistics) log_file.filter_props("\fML_statistics = ") else Nil
+      if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil
     val task_statistics_ =
       if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil
 

@@ -17,7 +17,7 @@ object Build_History
   /* log files */
 
   val BUILD_HISTORY = "build_history"
-  val META_INFO = "\fmeta_info = "
+  val META_INFO_MARKER = "\fmeta_info = "
 
   def log_date(date: Date): String =
     String.format(Locale.ROOT, "%s.%05d",
@@ -256,10 +256,12 @@ object Build_History
       val res = other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = verbose)
       val build_end = Date.now()
 
+
+      /* output log */
+
       val log_path =
         other_isabelle.log_dir + Path.explode(build_history_date.rep.getYear.toString) +
           Path.explode(log_name(build_history_date, ml_platform, "M" + threads))
-      Isabelle_System.mkdirs(log_path.dir)
 
       val meta_info =
         List(Build_Log.Field.build_engine -> BUILD_HISTORY,
@@ -268,10 +270,28 @@ object Build_History
           Build_Log.Field.build_end -> Build_Log.Log_File.Date_Format(build_end),
           Build_Log.Field.isabelle_version -> isabelle_version)
 
+      val ml_statistics =
+        Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info().
+          finished_sessions.flatMap(session_name =>
+            {
+              val session_log = isabelle_output_log + Path.explode(session_name).ext("gz")
+              if (session_log.is_file) {
+                Build_Log.Log_File(session_log).parse_session_info(ml_statistics = true).
+                  ml_statistics.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
+              }
+              else Nil
+            })
+
+      Isabelle_System.mkdirs(log_path.dir)
       File.write_gzip(log_path,
-        Build_Log.Log_File.print_props(META_INFO, meta_info) + "\n" + res.out)
+        cat_lines(
+          Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: res.out_lines :::
+          ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _))))
 
       Output.writeln(log_path.implode, stdout = true)
+
+
+      /* next build */
 
       if (multicore_base && first_build && isabelle_output_log.is_dir)
         other_isabelle.copy_dir(isabelle_output_log, isabelle_base_log)
