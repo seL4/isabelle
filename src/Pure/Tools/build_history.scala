@@ -253,7 +253,8 @@ object Build_History
         other_isabelle.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
-      val res = other_isabelle("build " + File.bash_args(build_args), redirect = true, echo = verbose)
+      val res =
+        other_isabelle("build -v " + File.bash_args(build_args), redirect = true, echo = verbose)
       val build_end = Date.now()
 
 
