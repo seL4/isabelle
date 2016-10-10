@@ -96,12 +96,16 @@ class SSH private(val jsch: JSch)
       compression: Boolean = true): SSH.Session =
   {
     val session = jsch.getSession(user, host, port)
+
+    session.setUserInfo(SSH.No_User_Info)
+    session.setConfig("MaxAuthTries", "3")
+
     if (compression) {
       session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
       session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
       session.setConfig("compression_level", "9")
     }
-    session.setUserInfo(SSH.No_User_Info)
+
     new SSH.Session(jsch, session)
   }
 }
