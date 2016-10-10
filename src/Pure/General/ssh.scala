@@ -7,6 +7,10 @@ SSH client based on JSch (see also http://www.jcraft.com/jsch/examples).
 package isabelle
 
 
+import java.io.{InputStream, OutputStream}
+
+import scala.collection.JavaConversions
+
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session,
   OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp}
 
@@ -87,6 +91,45 @@ object SSH
     def close { channel.disconnect }
   }
 
+  class Exec private[SSH](
+    session: Session, kind: String, channel_options: Options, channel: ChannelExec)
+    extends Channel[ChannelExec](session, kind, channel_options, channel)
+  {
+    def kill(signal: String) { channel.sendSignal(signal) }
+  }
+
+
+  class Sftp private[SSH](
+    session: Session, kind: String, channel_options: Options, channel: ChannelSftp)
+    extends Channel[ChannelSftp](session, kind, channel_options, channel)
+  {
+    def home: String = channel.getHome()
+
+    def chmod(permissions: Int, remote_path: String) { channel.chmod(permissions, remote_path) }
+    def mv(remote_path1: String, remote_path2: String): Unit =
+      channel.rename(remote_path1, remote_path2)
+    def rm(remote_path: String) { channel.rm(remote_path) }
+    def mkdir(remote_path: String) { channel.mkdir(remote_path) }
+    def rmdir(remote_path: String) { channel.rmdir(remote_path) }
+
+    def open_input(remote_path: String): InputStream = channel.get(remote_path)
+    def open_output(remote_path: String): OutputStream = channel.put(remote_path)
+
+    def read_file(remote_path: String, local_path: Path): Unit =
+      channel.get(remote_path, File.platform_path(local_path))
+    def read_bytes(remote_path: String): Bytes =
+      using(open_input(remote_path))(Bytes.read_stream(_))
+    def read(remote_path: String): String =
+      using(open_input(remote_path))(File.read_stream(_))
+
+    def write_file(remote_path: String, local_path: Path): Unit =
+      channel.put(File.platform_path(local_path), remote_path)
+    def write_bytes(remote_path: String, bytes: Bytes): Unit =
+      using(open_output(remote_path))(bytes.write_stream(_))
+    def write(remote_path: String, text: String): Unit =
+      using(open_output(remote_path))(stream => Bytes(text).write_stream(stream))
+  }
+
 
   /* session */
 
@@ -100,23 +143,23 @@ object SSH
 
     def close { session.disconnect }
 
-    def exec(command: String, options: Options = session_options): Channel[ChannelExec] =
+    def exec(command: String, options: Options = session_options): Exec =
     {
       val kind = "exec"
       val channel = session.openChannel(kind).asInstanceOf[ChannelExec]
       channel.setCommand(command)
 
       channel.connect(connect_timeout(options))
-      new Channel(this, kind, options, channel)
+      new Exec(this, kind, options, channel)
     }
 
-    def sftp(options: Options = session_options): Channel[ChannelSftp] =
+    def sftp(options: Options = session_options): Sftp =
     {
       val kind = "sftp"
       val channel = session.openChannel(kind).asInstanceOf[ChannelSftp]
 
       channel.connect(connect_timeout(options))
-      new Channel(this, kind, options, channel)
+      new Sftp(this, kind, options, channel)
     }
   }
 }
