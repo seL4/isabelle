@@ -12,7 +12,7 @@ import java.io.{InputStream, OutputStream}
 import scala.collection.JavaConversions
 
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session,
-  OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp}
+  OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS}
 
 
 object SSH
@@ -81,7 +81,7 @@ object SSH
   }
 
 
-  /* channel: exec, sftp etc. */
+  /* channel */
 
   class Channel[C <: JSch_Channel] private[SSH](val session: Session,
     val kind: String, val channel_options: Options, val channel: C)
@@ -91,6 +91,9 @@ object SSH
     def close { channel.disconnect }
   }
 
+
+  /* exec channel */
+
   class Exec private[SSH](
     session: Session, kind: String, channel_options: Options, channel: ChannelExec)
     extends Channel[ChannelExec](session, kind, channel_options, channel)
@@ -98,6 +101,16 @@ object SSH
     def kill(signal: String) { channel.sendSignal(signal) }
   }
 
+
+  /* Sftp channel */
+
+  type Attrs = SftpATTRS
+
+  sealed case class Dir_Entry(name: String, attrs: Attrs)
+  {
+    def is_file: Boolean = attrs.isReg
+    def is_dir: Boolean = attrs.isDir
+  }
 
   class Sftp private[SSH](
     session: Session, kind: String, channel_options: Options, channel: ChannelSftp)
@@ -111,6 +124,32 @@ object SSH
     def rm(remote_path: String) { channel.rm(remote_path) }
     def mkdir(remote_path: String) { channel.mkdir(remote_path) }
     def rmdir(remote_path: String) { channel.rmdir(remote_path) }
+
+    def stat(remote_path: String): Dir_Entry =
+      Dir_Entry(remote_path, channel.stat(remote_path))
+
+    def read_dir(remote_path: String): List[Dir_Entry] =
+    {
+      val dir = channel.ls(remote_path)
+      (for {
+        i <- (0 until dir.size).iterator
+        a = dir.get(i).asInstanceOf[AnyRef]
+        name = Untyped.get[String](a, "filename")
+        attrs = Untyped.get[Attrs](a, "attrs")
+        if name != "." && name != ".."
+      } yield Dir_Entry(name, attrs)).toList
+    }
+
+    def find_files(remote_path: String, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
+    {
+      def find(dir: String): List[Dir_Entry] =
+        read_dir(dir).flatMap(entry =>
+          {
+            val file = dir + "/" + entry.name
+            if (entry.is_dir) find(file) else if (pred(entry)) List(entry) else Nil
+          })
+      find(remote_path)
+    }
 
     def open_input(remote_path: String): InputStream = channel.get(remote_path)
     def open_output(remote_path: String): OutputStream = channel.put(remote_path)
