@@ -73,6 +73,16 @@ object SSH
   }
 
 
+  /* remote command execution */
+
+  class Exec private [SSH](val session: Session, val channel: ChannelExec)
+  {
+    override def toString: String = "exec " + session.toString
+
+    def close { channel.disconnect }
+  }
+
+
   /* session */
 
   class Session private[SSH](val session: JSch_Session)
@@ -85,8 +95,14 @@ object SSH
 
     def close { session.disconnect }
 
-    def channel_exec: ChannelExec =
-      session.openChannel("exec").asInstanceOf[ChannelExec]
+    def exec(command: String, connect_timeout: Time = Time.seconds(60)): Exec =
+    {
+      val channel = session.openChannel("exec").asInstanceOf[ChannelExec]
+      channel.setCommand(command)
+      channel.connect(connect_timeout.ms.toInt)
+
+      new Exec(this, channel)
+    }
 
     def channel_sftp: ChannelSftp =
       session.openChannel("sftp").asInstanceOf[ChannelSftp]
@@ -110,8 +126,7 @@ class SSH private(val jsch: JSch)
       session.setConfig("compression_level", "9")
     }
 
-    if (connect_timeout.is_zero) session.connect
-    else session.connect(connect_timeout.ms.toInt)
+    session.connect(connect_timeout.ms.toInt)
 
     new SSH.Session(session)
   }
