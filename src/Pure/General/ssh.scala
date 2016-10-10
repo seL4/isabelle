@@ -255,6 +255,13 @@ object SSH
 
     def close { session.disconnect }
 
+    def execute(command: String,
+        options: Options = session_options,
+        progress_stdout: String => Unit = (_: String) => (),
+        progress_stderr: String => Unit = (_: String) => (),
+        strict: Boolean = true): Process_Result =
+      exec(command, options).result(progress_stdout, progress_stderr, strict)
+
     def exec(command: String, options: Options = session_options): Exec =
     {
       val kind = "exec"
