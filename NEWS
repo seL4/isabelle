@@ -432,7 +432,7 @@ this supersedes former theory FinFun_Syntax. INCOMPATIBILITY, e.g. use
 "~~/src/HOL/Library/FinFun_Syntax".
 
 * HOL-Library: theory Multiset_Permutations (executably) defines the set of
-permutations of a given set or multiset, i.e. the set of all lists that 
+permutations of a given set or multiset, i.e. the set of all lists that
 contain every element of the carrier (multi-)set exactly once.
 
 * HOL-Library: multiset membership is now expressed using set_mset
@@ -485,8 +485,7 @@ Residue theorem, Schwarz Lemma.
 and the Krein–Milman Minkowski theorem.
 
 * HOL-Analysis: Numerous results ported from the HOL Light libraries:
-homeomorphisms, continuous function extensions and other advanced topics
-in topology
+homeomorphisms, continuous function extensions, invariance of domain.
 
 * HOL-Probability: the type of emeasure and nn_integral was changed from
 ereal to ennreal, INCOMPATIBILITY.

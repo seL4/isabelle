@@ -2021,6 +2021,58 @@ next
     done
 qed
 
+proposition frontier_subset_retraction:
+  fixes S :: "'a::euclidean_space set"
+  assumes "bounded S" and fros: "frontier S \<subseteq> T"
+      and contf: "continuous_on (closure S) f"
+      and fim: "f ` S \<subseteq> T"
+      and fid: "\<And>x. x \<in> T \<Longrightarrow> f x = x"
+    shows "S \<subseteq> T"
+proof (rule ccontr)
+  assume "\<not> S \<subseteq> T"
+  then obtain a where "a \<in> S" "a \<notin> T" by blast
+  define g where "g \<equiv> \<lambda>z. if z \<in> closure S then f z else z"
+  have "continuous_on (closure S \<union> closure(-S)) g"
+    unfolding g_def
+    apply (rule continuous_on_cases)
+    using fros fid frontier_closures
+        apply (auto simp: contf continuous_on_id)
+    done
+  moreover have "closure S \<union> closure(- S) = UNIV"
+    using closure_Un by fastforce
+  ultimately have contg: "continuous_on UNIV g" by metis
+  obtain B where "0 < B" and B: "closure S \<subseteq> ball a B"
+    using \<open>bounded S\<close> bounded_subset_ballD by blast
+  have notga: "g x \<noteq> a" for x
+    unfolding g_def using fros fim \<open>a \<notin> T\<close>
+    apply (auto simp: frontier_def)
+    using fid interior_subset apply fastforce
+    by (simp add: \<open>a \<in> S\<close> closure_def)
+  define h where "h \<equiv> (\<lambda>y. a + (B / norm(y - a)) *\<^sub>R (y - a)) \<circ> g"
+  have "\<not> (frontier (cball a B) retract_of (cball a B))"
+    by (metis no_retraction_cball \<open>0 < B\<close>)
+  then have "\<And>k. \<not> retraction (cball a B) (frontier (cball a B)) k"
+    by (simp add: retract_of_def)
+  moreover have "retraction (cball a B) (frontier (cball a B)) h"
+    unfolding retraction_def
+  proof (intro conjI ballI)
+    show "frontier (cball a B) \<subseteq> cball a B"
+      by (force simp:)
+    show "continuous_on (cball a B) h"
+      unfolding h_def
+      apply (intro continuous_intros)
+      using contg continuous_on_subset notga apply auto
+      done
+    show "h ` cball a B \<subseteq> frontier (cball a B)"
+      using \<open>0 < B\<close> by (auto simp: h_def notga dist_norm)
+    show "\<And>x. x \<in> frontier (cball a B) \<Longrightarrow> h x = x"
+      apply (auto simp: h_def algebra_simps)
+      apply (simp add: vector_add_divide_simps  notga)
+      by (metis (no_types, hide_lams) B add.commute dist_commute  dist_norm g_def mem_ball not_less_iff_gr_or_eq  subset_eq)
+  qed
+  ultimately show False by simp
+qed
+
 subsection\<open>Retractions\<close>
 
 lemma retraction:
@@ -3192,7 +3244,7 @@ lemma retract_of_UNIV:
   shows "S retract_of UNIV \<longleftrightarrow> AR S \<and> closed S"
 by (metis AR_ANR AR_imp_retract ENR_def ENR_imp_ANR closed_UNIV closed_closedin contractible_UNIV empty_not_UNIV open_UNIV retract_of_closed retract_of_contractible retract_of_empty(1) subtopology_UNIV)
 
-lemma compact_AR [simp]:
+lemma compact_AR:
   fixes S :: "'a::euclidean_space set"
   shows "compact S \<and> AR S \<longleftrightarrow> compact S \<and> S retract_of UNIV"
 using compact_imp_closed retract_of_UNIV by blast
@@ -3893,7 +3945,7 @@ next
     apply (simp add: ENR_def)
     apply (rule_tac x = "{x. x \<in> UNIV \<and>
                              closest_point (affine hull S) x \<in> (- {a})}" in exI)
-    apply (simp add: open_openin)
+    apply simp
     done
 qed
 
@@ -4189,5 +4241,89 @@ next
   then show ?thesis by blast
 qed
 
+subsection\<open>The complement of a set and path-connectedness\<close>
+
+text\<open>Complement in dimension N > 1 of set homeomorphic to any interval in
+ any dimension is (path-)connected. This naively generalizes the argument
+ in Ryuji Maehara's paper "The Jordan curve theorem via the Brouwer fixed point theorem",
+American Mathematical Monthly 1984.\<close>
+
+lemma unbounded_components_complement_absolute_retract:
+  fixes S :: "'a::euclidean_space set"
+  assumes C: "C \<in> components(- S)" and S: "compact S" "AR S"
+    shows "\<not> bounded C"
+proof -
+  obtain y where y: "C = connected_component_set (- S) y" and "y \<notin> S"
+    using C by (auto simp: components_def)
+  have "open(- S)"
+    using S by (simp add: closed_open compact_eq_bounded_closed)
+  have "S retract_of UNIV"
+    using S compact_AR by blast
+  then obtain r where contr: "continuous_on UNIV r" and ontor: "range r \<subseteq> S"
+                  and r: "\<And>x. x \<in> S \<Longrightarrow> r x = x"
+    by (auto simp: retract_of_def retraction_def)
+  show ?thesis
+  proof
+    assume "bounded C"
+    have "connected_component_set (- S) y \<subseteq> S"
+    proof (rule frontier_subset_retraction)
+      show "bounded (connected_component_set (- S) y)"
+        using \<open>bounded C\<close> y by blast
+      show "frontier (connected_component_set (- S) y) \<subseteq> S"
+        using C \<open>compact S\<close> compact_eq_bounded_closed frontier_of_components_closed_complement y by blast
+      show "continuous_on (closure (connected_component_set (- S) y)) r"
+        by (blast intro: continuous_on_subset [OF contr])
+    qed (use ontor r in auto)
+    with \<open>y \<notin> S\<close> show False by force
+  qed
+qed
+
+lemma connected_complement_absolute_retract:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "compact S" "AR S" and 2: "2 \<le> DIM('a)"
+    shows "connected(- S)"
+proof -
+  have "S retract_of UNIV"
+    using S compact_AR by blast
+  show ?thesis
+    apply (clarsimp simp: connected_iff_connected_component_eq)
+    apply (rule cobounded_unique_unbounded_component [OF _ 2])
+      apply (simp add: \<open>compact S\<close> compact_imp_bounded)
+     apply (meson ComplI S componentsI unbounded_components_complement_absolute_retract)+
+    done
+qed
+
+lemma path_connected_complement_absolute_retract:
+  fixes S :: "'a::euclidean_space set"
+  assumes "compact S" "AR S" "2 \<le> DIM('a)"
+    shows "path_connected(- S)"
+  using connected_complement_absolute_retract [OF assms]
+  using \<open>compact S\<close> compact_eq_bounded_closed connected_open_path_connected by blast
+
+theorem connected_complement_homeomorphic_convex_compact:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes hom: "S homeomorphic T" and T: "convex T" "compact T" and 2: "2 \<le> DIM('a)"
+    shows "connected(- S)"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by (simp add: connected_UNIV)
+next
+  case False
+  show ?thesis
+  proof (rule connected_complement_absolute_retract)
+    show "compact S"
+      using \<open>compact T\<close> hom homeomorphic_compactness by auto
+    show "AR S"
+      by (meson AR_ANR False \<open>convex T\<close> convex_imp_ANR convex_imp_contractible hom homeomorphic_ANR_iff_ANR homeomorphic_contractible_eq)
+  qed (rule 2)
+qed
+
+corollary path_connected_complement_homeomorphic_convex_compact:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes hom: "S homeomorphic T" "convex T" "compact T" "2 \<le> DIM('a)"
+    shows "path_connected(- S)"
+  using connected_complement_homeomorphic_convex_compact [OF assms]
+  using \<open>compact T\<close> compact_eq_bounded_closed connected_open_path_connected hom homeomorphic_compactness by blast
 
 end

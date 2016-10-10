@@ -18,6 +18,11 @@ begin
 
 (* FIXME: move elsewhere *)
 
+lemma Times_eq_image_sum:
+  fixes S :: "'a :: comm_monoid_add set" and T :: "'b :: comm_monoid_add set"
+  shows "S \<times> T = {u + v |u v. u \<in> (\<lambda>x. (x, 0)) ` S \<and> v \<in> Pair 0 ` T}"
+  by force
+
 lemma halfspace_Int_eq:
      "{x. a \<bullet> x \<le> b} \<inter> {x. b \<le> a \<bullet> x} = {x. a \<bullet> x = b}"
      "{x. b \<le> a \<bullet> x} \<inter> {x. a \<bullet> x \<le> b} = {x. a \<bullet> x = b}"
@@ -730,20 +735,19 @@ lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
   apply (auto simp add: istopology_def)
   done
 
+declare open_openin [symmetric, simp]
+
 lemma topspace_euclidean [simp]: "topspace euclidean = UNIV"
-  apply (simp add: topspace_def)
-  apply (rule set_eqI)
-  apply (auto simp add: open_openin[symmetric])
-  done
+  by (force simp add: topspace_def)
 
 lemma topspace_euclidean_subtopology[simp]: "topspace (subtopology euclidean S) = S"
-  by (simp add: topspace_euclidean topspace_subtopology)
+  by (simp add: topspace_subtopology)
 
 lemma closed_closedin: "closed S \<longleftrightarrow> closedin euclidean S"
-  by (simp add: closed_def closedin_def topspace_euclidean open_openin Compl_eq_Diff_UNIV)
+  by (simp add: closed_def closedin_def Compl_eq_Diff_UNIV)
 
 lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
-  by (simp add: open_openin openin_subopen[symmetric])
+  using openI by auto
 
 lemma openin_subtopology_self [simp]: "openin (subtopology euclidean S) S"
   by (metis openin_topspace topspace_euclidean_subtopology)
@@ -751,7 +755,7 @@ lemma openin_subtopology_self [simp]: "openin (subtopology euclidean S) S"
 text \<open>Basic "localization" results are handy for connectedness.\<close>
 
 lemma openin_open: "openin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. open T \<and> (S = U \<inter> T))"
-  by (auto simp add: openin_subtopology open_openin[symmetric])
+  by (auto simp add: openin_subtopology)
 
 lemma openin_Int_open:
    "\<lbrakk>openin (subtopology euclidean U) S; open T\<rbrakk>
@@ -1968,7 +1972,7 @@ lemma closure_empty [simp]: "closure {} = {}"
 lemma closure_UNIV [simp]: "closure UNIV = UNIV"
   using closed_UNIV by (rule closure_closed)
 
-lemma closure_union [simp]: "closure (S \<union> T) = closure S \<union> closure T"
+lemma closure_Un [simp]: "closure (S \<union> T) = closure S \<union> closure T"
   unfolding closure_interior by simp
 
 lemma closure_eq_empty [iff]: "closure S = {} \<longleftrightarrow> S = {}"
@@ -2083,6 +2087,71 @@ lemma openin_subset_trans:
     "\<lbrakk>openin (subtopology euclidean U) S; S \<subseteq> T; T \<subseteq> U\<rbrakk>
      \<Longrightarrow> openin (subtopology euclidean T) S"
   by (auto simp: openin_open)
+
+lemma openin_Times:
+   "\<lbrakk>openin (subtopology euclidean S) S'; openin (subtopology euclidean T) T'\<rbrakk>
+    \<Longrightarrow> openin (subtopology euclidean (S \<times> T)) (S' \<times> T')"
+  unfolding openin_open using open_Times by blast
+
+lemma Times_in_interior_subtopology:
+  fixes U :: "('a::metric_space * 'b::metric_space) set"
+  assumes "(x, y) \<in> U" "openin (subtopology euclidean (S \<times> T)) U"
+  obtains V W where "openin (subtopology euclidean S) V" "x \<in> V"
+                    "openin (subtopology euclidean T) W" "y \<in> W" "(V \<times> W) \<subseteq> U"
+proof -
+  from assms obtain e where "e > 0" and "U \<subseteq> S \<times> T"
+                and e: "\<And>x' y'. \<lbrakk>x'\<in>S; y'\<in>T; dist (x', y') (x, y) < e\<rbrakk> \<Longrightarrow> (x', y') \<in> U"
+    by (force simp: openin_euclidean_subtopology_iff)
+  with assms have "x \<in> S" "y \<in> T"
+    by auto
+  show ?thesis
+  proof
+    show "openin (subtopology euclidean S) (ball x (e/2) \<inter> S)"
+      by (simp add: Int_commute openin_open_Int)
+    show "x \<in> ball x (e / 2) \<inter> S"
+      by (simp add: \<open>0 < e\<close> \<open>x \<in> S\<close>)
+    show "openin (subtopology euclidean T) (ball y (e/2) \<inter> T)"
+      by (simp add: Int_commute openin_open_Int)
+    show "y \<in> ball y (e / 2) \<inter> T"
+      by (simp add: \<open>0 < e\<close> \<open>y \<in> T\<close>)
+    show "(ball x (e / 2) \<inter> S) \<times> (ball y (e / 2) \<inter> T) \<subseteq> U"
+      by clarify (simp add: e dist_Pair_Pair \<open>0 < e\<close> dist_commute sqrt_sum_squares_half_less)
+  qed
+qed
+
+lemma openin_Times_eq:
+  fixes S :: "'a::metric_space set" and T :: "'b::metric_space set"
+  shows
+   "openin (subtopology euclidean (S \<times> T)) (S' \<times> T') \<longleftrightarrow>
+    (S' = {} \<or> T' = {} \<or>
+     openin (subtopology euclidean S) S' \<and> openin (subtopology euclidean T) T')"
+    (is "?lhs = ?rhs")
+proof (cases "S' = {} \<or> T' = {}")
+  case True
+  then show ?thesis by auto
+next
+  case False
+  then obtain x y where "x \<in> S'" "y \<in> T'"
+    by blast
+  show ?thesis
+  proof
+    assume L: ?lhs
+    have "openin (subtopology euclidean S) S'"
+      apply (subst openin_subopen, clarify)
+      apply (rule Times_in_interior_subtopology [OF _ L])
+      using \<open>y \<in> T'\<close> by auto
+    moreover have "openin (subtopology euclidean T) T'"
+      apply (subst openin_subopen, clarify)
+      apply (rule Times_in_interior_subtopology [OF _ L])
+      using \<open>x \<in> S'\<close> by auto
+    ultimately show ?rhs
+      by simp
+  next
+    assume ?rhs
+    with False show ?lhs
+      by (simp add: openin_Times)
+  qed
+qed
 
 lemma closedin_Times:
    "\<lbrakk>closedin (subtopology euclidean S) S'; closedin (subtopology euclidean T) T'\<rbrakk>
@@ -8502,7 +8571,7 @@ lemma closure_greaterThan[simp]:
 proof -
   from gt_ex obtain b where "a < b" by auto
   hence "{a<..} = {a<..<b} \<union> {b..}" by auto
-  also have "closure \<dots> = {a..}" using \<open>a < b\<close> unfolding closure_union
+  also have "closure \<dots> = {a..}" using \<open>a < b\<close> unfolding closure_Un
     by auto
   finally show ?thesis .
 qed
@@ -8513,7 +8582,7 @@ lemma closure_lessThan[simp]:
 proof -
   from lt_ex obtain a where "a < b" by auto
   hence "{..<b} = {a<..<b} \<union> {..a}" by auto
-  also have "closure \<dots> = {..b}" using \<open>a < b\<close> unfolding closure_union
+  also have "closure \<dots> = {..b}" using \<open>a < b\<close> unfolding closure_Un
     by auto
   finally show ?thesis .
 qed
@@ -8524,7 +8593,7 @@ lemma closure_atLeastLessThan[simp]:
   shows "closure {a ..< b} = {a .. b}"
 proof -
   from assms have "{a ..< b} = {a} \<union> {a <..< b}" by auto
-  also have "closure \<dots> = {a .. b}" unfolding closure_union
+  also have "closure \<dots> = {a .. b}" unfolding closure_Un
     by (auto simp add: assms less_imp_le)
   finally show ?thesis .
 qed
@@ -8535,7 +8604,7 @@ lemma closure_greaterThanAtMost[simp]:
   shows "closure {a <.. b} = {a .. b}"
 proof -
   from assms have "{a <.. b} = {b} \<union> {a <..< b}" by auto
-  also have "closure \<dots> = {a .. b}" unfolding closure_union
+  also have "closure \<dots> = {a .. b}" unfolding closure_Un
     by (auto simp add: assms less_imp_le)
   finally show ?thesis .
 qed

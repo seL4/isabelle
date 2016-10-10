@@ -1261,8 +1261,90 @@ lemma midpoint_in_closed_segment [simp]: "midpoint a b \<in> closed_segment a b"
   using midpoints_in_convex_hull segment_convex_hull by blast
 
 lemma midpoint_in_open_segment [simp]: "midpoint a b \<in> open_segment a b \<longleftrightarrow> a \<noteq> b"
-  by (simp add: midpoint_eq_endpoint(1) midpoint_eq_endpoint(2) open_segment_def)
+  by (simp add: open_segment_def)
 
+lemma continuous_IVT_local_extremum:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes contf: "continuous_on (closed_segment a b) f"
+      and "a \<noteq> b" "f a = f b"
+  obtains z where "z \<in> open_segment a b"
+                  "(\<forall>w \<in> closed_segment a b. (f w) \<le> (f z)) \<or>
+                   (\<forall>w \<in> closed_segment a b. (f z) \<le> (f w))"
+proof -
+  obtain c where "c \<in> closed_segment a b" and c: "\<And>y. y \<in> closed_segment a b \<Longrightarrow> f y \<le> f c"
+    using continuous_attains_sup [of "closed_segment a b" f] contf by auto
+  obtain d where "d \<in> closed_segment a b" and d: "\<And>y. y \<in> closed_segment a b \<Longrightarrow> f d \<le> f y"
+    using continuous_attains_inf [of "closed_segment a b" f] contf by auto
+  show ?thesis
+  proof (cases "c \<in> open_segment a b \<or> d \<in> open_segment a b")
+    case True
+    then show ?thesis
+      using c d that by blast
+  next
+    case False
+    then have "(c = a \<or> c = b) \<and> (d = a \<or> d = b)"
+      by (simp add: \<open>c \<in> closed_segment a b\<close> \<open>d \<in> closed_segment a b\<close> open_segment_def)
+    with \<open>a \<noteq> b\<close> \<open>f a = f b\<close> c d show ?thesis
+      by (rule_tac z = "midpoint a b" in that) (fastforce+)
+  qed
+qed
+
+text\<open>An injective map into R is also an open map w.r.T. the universe, and conversely. \<close>
+proposition injective_eq_1d_open_map_UNIV:
+  fixes f :: "real \<Rightarrow> real"
+  assumes contf: "continuous_on S f" and S: "is_interval S"
+    shows "inj_on f S \<longleftrightarrow> (\<forall>T. open T \<and> T \<subseteq> S \<longrightarrow> open(f ` T))"
+          (is "?lhs = ?rhs")
+proof safe
+  fix T
+  assume injf: ?lhs and "open T" and "T \<subseteq> S"
+  have "\<exists>U. open U \<and> f x \<in> U \<and> U \<subseteq> f ` T" if "x \<in> T" for x
+  proof -
+    obtain \<delta> where "\<delta> > 0" and \<delta>: "cball x \<delta> \<subseteq> T"
+      using \<open>open T\<close> \<open>x \<in> T\<close> open_contains_cball_eq by blast
+    show ?thesis
+    proof (intro exI conjI)
+      have "closed_segment (x-\<delta>) (x+\<delta>) = {x-\<delta>..x+\<delta>}"
+        using \<open>0 < \<delta>\<close> by (auto simp: closed_segment_eq_real_ivl)
+      also have "... \<subseteq> S"
+        using \<delta> \<open>T \<subseteq> S\<close> by (auto simp: dist_norm subset_eq)
+      finally have "f ` (open_segment (x-\<delta>) (x+\<delta>)) = open_segment (f (x-\<delta>)) (f (x+\<delta>))"
+        using continuous_injective_image_open_segment_1
+        by (metis continuous_on_subset [OF contf] inj_on_subset [OF injf])
+      then show "open (f ` {x-\<delta><..<x+\<delta>})"
+        using \<open>0 < \<delta>\<close> by (simp add: open_segment_eq_real_ivl)
+      show "f x \<in> f ` {x - \<delta><..<x + \<delta>}"
+        by (auto simp: \<open>\<delta> > 0\<close>)
+      show "f ` {x - \<delta><..<x + \<delta>} \<subseteq> f ` T"
+        using \<delta> by (auto simp: dist_norm subset_iff)
+    qed
+  qed
+  with open_subopen show "open (f ` T)"
+    by blast
+next
+  assume R: ?rhs
+  have False if xy: "x \<in> S" "y \<in> S" and "f x = f y" "x \<noteq> y" for x y
+  proof -
+    have "open (f ` open_segment x y)"
+      using R
+      by (metis S convex_contains_open_segment is_interval_convex open_greaterThanLessThan open_segment_eq_real_ivl xy)
+    moreover
+    have "continuous_on (closed_segment x y) f"
+      by (meson S closed_segment_subset contf continuous_on_subset is_interval_convex that)
+    then obtain \<xi> where "\<xi> \<in> open_segment x y"
+                    and \<xi>: "(\<forall>w \<in> closed_segment x y. (f w) \<le> (f \<xi>)) \<or>
+                            (\<forall>w \<in> closed_segment x y. (f \<xi>) \<le> (f w))"
+      using continuous_IVT_local_extremum [of x y f] \<open>f x = f y\<close> \<open>x \<noteq> y\<close> by blast
+    ultimately obtain e where "e>0" and e: "\<And>u. dist u (f \<xi>) < e \<Longrightarrow> u \<in> f ` open_segment x y"
+      using open_dist by (metis image_eqI)
+    have fin: "f \<xi> + (e/2) \<in> f ` open_segment x y" "f \<xi> - (e/2) \<in> f ` open_segment x y"
+      using e [of "f \<xi> + (e/2)"] e [of "f \<xi> - (e/2)"] \<open>e > 0\<close> by (auto simp: dist_norm)
+    show ?thesis
+      using \<xi> \<open>0 < e\<close> fin open_closed_segment by fastforce
+  qed
+  then show ?lhs
+    by (force simp: inj_on_def)
+qed
 
 subsection \<open>Bounding a point away from a path\<close>
 
@@ -2319,9 +2401,10 @@ lemma cobounded_unique_unbounded_components:
   by (metis cobounded_unique_unbounded_component)
 
 lemma cobounded_has_bounded_component:
-    fixes s :: "'a :: euclidean_space set"
-    shows "\<lbrakk>bounded (- s); ~connected s; 2 \<le> DIM('a)\<rbrakk> \<Longrightarrow> \<exists>c. c \<in> components s \<and> bounded c"
-  by (meson cobounded_unique_unbounded_components connected_eq_connected_components_eq)
+  fixes S :: "'a :: euclidean_space set"
+  assumes "bounded (- S)" "\<not> connected S" "2 \<le> DIM('a)"
+  obtains C where "C \<in> components S" "bounded C"
+  by (meson cobounded_unique_unbounded_components connected_eq_connected_components_eq assms)
 
 
 section\<open>The "inside" and "outside" of a set\<close>
@@ -7510,7 +7593,7 @@ next
     have hUS: "h ` U \<subseteq> h ` S"
       by (meson homeomorphism_imp_open_map homeomorphism_of_subsets homhj hull_subset opeS opeU open_UNIV openin_open_eq)
     have op: "openin (subtopology euclidean (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
-      using homeomorphism_imp_open_map [OF homhj]  by (simp add: open_openin)
+      using homeomorphism_imp_open_map [OF homhj]  by simp
     have "open (h ` U)" "open (h ` S)"
       by (auto intro: opeS opeU openin_trans op)
     then obtain f g where hom: "homeomorphism (h ` T) (h ` T) f g"

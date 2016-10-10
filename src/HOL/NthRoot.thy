@@ -692,15 +692,12 @@ lemma sqrt2_less_2: "sqrt 2 < (2::real)"
   by (metis not_less not_less_iff_gr_or_eq numeral_less_iff real_sqrt_four
       real_sqrt_le_iff semiring_norm(75) semiring_norm(78) semiring_norm(85))
 
-
-text \<open>Needed for the infinitely close relation over the nonstandard complex numbers.\<close>
-lemma lemma_sqrt_hcomplex_capprox:
-  "0 < u \<Longrightarrow> x < u/2 \<Longrightarrow> y < u/2 \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) < u"
+lemma sqrt_sum_squares_half_less:
+  "x < u/2 \<Longrightarrow> y < u/2 \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) < u"
   apply (rule real_sqrt_sum_squares_less)
    apply (auto simp add: abs_if field_simps)
    apply (rule le_less_trans [where y = "x*2"])
-  using less_eq_real_def sqrt2_less_2
-    apply force
+  using less_eq_real_def sqrt2_less_2 apply force
    apply assumption
   apply (rule le_less_trans [where y = "y*2"])
   using less_eq_real_def sqrt2_less_2 mult_le_cancel_left

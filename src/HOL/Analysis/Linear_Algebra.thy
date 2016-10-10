@@ -2178,7 +2178,7 @@ lemma dim_unique:
 
 text \<open>More lemmas about dimension.\<close>
 
-lemma dim_UNIV: "dim (UNIV :: 'a::euclidean_space set) = DIM('a)"
+lemma dim_UNIV [simp]: "dim (UNIV :: 'a::euclidean_space set) = DIM('a)"
   using independent_Basis
   by (intro dim_unique[of Basis]) auto
 

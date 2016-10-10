@@ -2384,7 +2384,7 @@ proposition clopen:
   shows "closed s \<and> open s \<longleftrightarrow> s = {} \<or> s = UNIV"
 apply (rule iffI)
  apply (rule connected_UNIV [unfolded connected_clopen, rule_format])
- apply (force simp add: open_openin closed_closedin, force)
+ apply (force simp add: closed_closedin, force)
 done
 
 corollary compact_open:
@@ -12085,15 +12085,11 @@ next
     show "{x \<in> U. 0 < f x} \<inter> {x \<in> U. f x < 0} = {}"
       by auto
     have "openin (subtopology euclidean U) {x \<in> U. f x \<in> {0<..}}"
-      apply (rule continuous_openin_preimage [where T=UNIV])
-        apply (simp_all add: contf)
-      using open_greaterThan open_openin by blast
+      by (rule continuous_openin_preimage [where T=UNIV]) (simp_all add: contf)
     then show "openin (subtopology euclidean U) {x \<in> U. 0 < f x}" by simp
   next
     have "openin (subtopology euclidean U) {x \<in> U. f x \<in> {..<0}}"
-      apply (rule continuous_openin_preimage [where T=UNIV])
-        apply (simp_all add: contf)
-      using open_lessThan open_openin by blast
+      by (rule continuous_openin_preimage [where T=UNIV]) (simp_all add: contf)
     then show "openin (subtopology euclidean U) {x \<in> U. f x < 0}" by simp
   next
     show "S \<subseteq> {x \<in> U. 0 < f x}"
@@ -12671,7 +12667,7 @@ lemma dim_eq_0 [simp]:
 apply safe
 apply (metis DIM_positive DIM_real card_ge_dim_independent contra_subsetD dim_empty dim_insert dim_singleton empty_subsetI independent_empty less_not_refl zero_le)
 by (metis dim_singleton dim_subset le_0_eq)
-
+                  
 lemma aff_dim_insert:
   fixes a :: "'a::euclidean_space"
   shows "aff_dim (insert a S) = (if a \<in> affine hull S then aff_dim S else aff_dim S + 1)"
@@ -13594,6 +13590,24 @@ lemma aff_dim_lt_full:
   shows "aff_dim S < DIM('a) \<longleftrightarrow> (affine hull S \<noteq> UNIV)"
 by (metis (no_types) aff_dim_affine_hull aff_dim_le_DIM aff_dim_UNIV affine_hull_UNIV less_le)
 
+
+lemma dim_Times:
+  fixes S :: "'a :: euclidean_space set" and T :: "'a set"
+  assumes "subspace S" "subspace T"
+  shows "dim(S \<times> T) = dim S + dim T"
+proof -
+  have ss: "subspace ((\<lambda>x. (x, 0)) ` S)" "subspace (Pair 0 ` T)"
+    by (rule subspace_linear_image, unfold_locales, auto simp: assms)+
+  have "dim(S \<times> T) = dim({u + v |u v. u \<in> (\<lambda>x. (x, 0)) ` S \<and> v \<in> Pair 0 ` T})"
+    by (simp add: Times_eq_image_sum)
+  moreover have "dim ((\<lambda>x. (x, 0::'a)) ` S) = dim S" "dim (Pair (0::'a) ` T) = dim T"
+    by (auto simp: additive.intro linear.intro linear_axioms.intro inj_on_def intro: dim_image_eq)
+  moreover have "dim ((\<lambda>x. (x, 0)) ` S \<inter> Pair 0 ` T) = 0"
+    by (subst dim_eq_0) (force simp: zero_prod_def)
+  ultimately show ?thesis
+    using dim_sums_Int [OF ss] by linarith
+qed
+
 subsection\<open> Orthogonal bases, Gram-Schmidt process, and related theorems\<close>
 
 lemma span_delete_0 [simp]: "span(S - {0}) = span S"
@@ -13934,6 +13948,74 @@ proof -
     by (metis (no_types, lifting) dim_orthogonal_sum dim_span mem_Collect_eq orthogonal_commute orthogonal_def)
 qed
 
+lemma aff_dim_openin:
+  fixes S :: "'a::euclidean_space set"
+  assumes ope: "openin (subtopology euclidean T) S" and "affine T" "S \<noteq> {}"
+  shows "aff_dim S = aff_dim T"
+proof -
+  show ?thesis
+  proof (rule order_antisym)
+    show "aff_dim S \<le> aff_dim T"
+      by (blast intro: aff_dim_subset [OF openin_imp_subset] ope)
+  next
+    obtain a where "a \<in> S"
+      using \<open>S \<noteq> {}\<close> by blast
+    have "S \<subseteq> T"
+      using ope openin_imp_subset by auto
+    then have "a \<in> T"
+      using \<open>a \<in> S\<close> by auto
+    then have subT': "subspace ((\<lambda>x. - a + x) ` T)"
+      using affine_diffs_subspace \<open>affine T\<close> by auto
+    then obtain B where Bsub: "B \<subseteq> ((\<lambda>x. - a + x) ` T)" and po: "pairwise orthogonal B"
+                    and eq1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1" and "independent B"
+                    and cardB: "card B = dim ((\<lambda>x. - a + x) ` T)"
+                    and spanB: "span B = ((\<lambda>x. - a + x) ` T)"
+      by (rule orthonormal_basis_subspace) auto
+    obtain e where "0 < e" and e: "cball a e \<inter> T \<subseteq> S"
+      by (meson \<open>a \<in> S\<close> openin_contains_cball ope)
+    have "aff_dim T = aff_dim ((\<lambda>x. - a + x) ` T)"
+      by (metis aff_dim_translation_eq)
+    also have "... = dim ((\<lambda>x. - a + x) ` T)"
+      using aff_dim_subspace subT' by blast
+    also have "... = card B"
+      by (simp add: cardB)
+    also have "... = card ((\<lambda>x. e *\<^sub>R x) ` B)"
+      using \<open>0 < e\<close>  by (force simp: inj_on_def card_image)
+    also have "... \<le> dim ((\<lambda>x. - a + x) ` S)"
+    proof (simp, rule independent_card_le_dim)
+      have e': "cball 0 e \<inter> (\<lambda>x. x - a) ` T \<subseteq> (\<lambda>x. x - a) ` S"
+        using e by (auto simp: dist_norm norm_minus_commute subset_eq)
+      have "(\<lambda>x. e *\<^sub>R x) ` B \<subseteq> cball 0 e \<inter> (\<lambda>x. x - a) ` T"
+        using Bsub \<open>0 < e\<close> eq1 subT' \<open>a \<in> T\<close> by (auto simp: subspace_def)
+      then show "(\<lambda>x. e *\<^sub>R x) ` B \<subseteq> (\<lambda>x. x - a) ` S"
+        using e' by blast
+      show "independent ((\<lambda>x. e *\<^sub>R x) ` B)"
+        using \<open>independent B\<close>
+        apply (rule independent_injective_image, simp)
+        by (metis \<open>0 < e\<close> injective_scaleR less_irrefl)
+    qed
+    also have "... = aff_dim S"
+      using \<open>a \<in> S\<close> aff_dim_eq_dim hull_inc by force
+    finally show "aff_dim T \<le> aff_dim S" .
+  qed
+qed
+
+lemma dim_openin:
+  fixes S :: "'a::euclidean_space set"
+  assumes ope: "openin (subtopology euclidean T) S" and "subspace T" "S \<noteq> {}"
+  shows "dim S = dim T"
+proof (rule order_antisym)
+  show "dim S \<le> dim T"
+    by (metis ope dim_subset openin_subset topspace_euclidean_subtopology)
+next
+  have "dim T = aff_dim S"
+    using aff_dim_openin
+    by (metis aff_dim_subspace \<open>subspace T\<close> \<open>S \<noteq> {}\<close> ope subspace_affine)
+  also have "... \<le> dim S"
+    by (metis aff_dim_subset aff_dim_subspace dim_span span_inc subspace_span)
+  finally show "dim T \<le> dim S" by simp
+qed
+
 subsection\<open>Parallel slices, etc.\<close>
 
 text\<open> If we take a slice out of a set, we can do it perpendicularly,
@@ -14248,7 +14330,6 @@ next
     using Fin \<open>K \<subseteq> S\<close> \<open>range a = K\<close>  apply (auto simp: odif)
     done
 qed
-
 
 corollary paracompact_closedin:
   fixes S :: "'a :: euclidean_space set"
