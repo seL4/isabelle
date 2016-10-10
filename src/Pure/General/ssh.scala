@@ -15,7 +15,7 @@ object SSH
 {
   /* init */
 
-  def apply(config_dir: Path = Path.explode("~/.ssh"),
+  def init(config_dir: Path = Path.explode("~/.ssh"),
     config_file: Path = Path.explode("~/.ssh/config"),
     identity_files: List[Path] =
       List("~/.ssh/id_dsa", "~/.ssh/id_ecdsa", "~/.ssh/id_rsa").map(Path.explode(_))): SSH =
@@ -62,15 +62,15 @@ object SSH
 
   /* session */
 
-  class Session private[SSH](val jsch: JSch, val session: JSch_Session)
+  class Session private[SSH](val session: JSch_Session)
   {
     override def toString: String =
       (if (session.getUserName == null) "" else session.getUserName + "@") +
       (if (session.getHost == null) "" else session.getHost) +
-      (if (session.getPort == 22) "" else ":" + session.getPort)
+      (if (session.getPort == 22) "" else ":" + session.getPort) +
+      (if (session.isConnected) "" else " (disconnected)")
 
-    def open: Session = { session.connect; this }
-    def close: Session = { session.disconnect; this }
+    def close { session.disconnect }
 
     def channel_exec: ChannelExec =
       session.openChannel("exec").asInstanceOf[ChannelExec]
@@ -92,8 +92,8 @@ object SSH
 
 class SSH private(val jsch: JSch)
 {
-  def session(host: String, port: Int = 22, user: String = null,
-      compression: Boolean = true): SSH.Session =
+  def open_session(host: String, port: Int = 22, user: String = null,
+    compression: Boolean = true): SSH.Session =
   {
     val session = jsch.getSession(user, host, port)
 
@@ -106,6 +106,7 @@ class SSH private(val jsch: JSch)
       session.setConfig("compression_level", "9")
     }
 
-    new SSH.Session(jsch, session)
+    session.connect
+    new SSH.Session(session)
   }
 }
