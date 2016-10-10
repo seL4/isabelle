@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/ssh.scala
     Author:     Makarius
 
-Support for Secure Shell.
+SSH client based on JSch (see also http://www.jcraft.com/jsch/examples).
 */
 
 package isabelle
