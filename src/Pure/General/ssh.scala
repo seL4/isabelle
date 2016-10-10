@@ -93,6 +93,7 @@ object SSH
 class SSH private(val jsch: JSch)
 {
   def open_session(host: String, port: Int = 22, user: String = null,
+    connect_timeout: Time = Time.seconds(60),
     compression: Boolean = true): SSH.Session =
   {
     val session = jsch.getSession(user, host, port)
@@ -106,7 +107,9 @@ class SSH private(val jsch: JSch)
       session.setConfig("compression_level", "9")
     }
 
-    session.connect
+    if (connect_timeout.is_zero) session.connect
+    else session.connect(connect_timeout.ms.toInt)
+
     new SSH.Session(session)
   }
 }
