@@ -146,7 +146,9 @@ object SSH
         read_dir(dir).flatMap(entry =>
           {
             val file = dir + "/" + entry.name
-            if (entry.is_dir) find(file) else if (pred(entry)) List(entry) else Nil
+            if (entry.is_dir) find(file)
+            else if (pred(entry)) List(entry.copy(name = file))
+            else Nil
           })
       find(remote_path)
     }
