@@ -60,6 +60,19 @@ object SSH
   }
 
 
+  /* user info */
+
+  object No_User_Info extends UserInfo
+  {
+    def getPassphrase: String = null
+    def getPassword: String = null
+    def promptPassword(msg: String): Boolean = false
+    def promptPassphrase(msg: String): Boolean = false
+    def promptYesNo(msg: String): Boolean = false
+    def showMessage(msg: String): Unit = Output.writeln(msg)
+  }
+
+
   /* session */
 
   class Session private[SSH](val session: JSch_Session)
@@ -77,16 +90,6 @@ object SSH
 
     def channel_sftp: ChannelSftp =
       session.openChannel("sftp").asInstanceOf[ChannelSftp]
-  }
-
-  object No_User_Info extends UserInfo
-  {
-    def getPassphrase: String = null
-    def getPassword: String = null
-    def promptPassword(msg: String): Boolean = false
-    def promptPassphrase(msg: String): Boolean = false
-    def promptYesNo(msg: String): Boolean = false
-    def showMessage(msg: String): Unit = Output.writeln(msg)
   }
 }
 
