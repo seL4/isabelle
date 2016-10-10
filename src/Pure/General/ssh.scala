@@ -154,7 +154,7 @@ object SSH
 
       def terminate()
       {
-        channel.disconnect
+        close
         out_lines.join
         err_lines.join
         exit_status.join
@@ -164,6 +164,7 @@ object SSH
         try { exit_status.join }
         catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
 
+      close
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
       Process_Result(rc, out_lines.join, err_lines.join)
