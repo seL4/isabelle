@@ -8,22 +8,21 @@ package isabelle
 
 
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session,
-  OpenSSHConfig, UserInfo, ChannelExec, ChannelSftp}
+  OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp}
 
 
 object SSH
 {
   /* init */
 
-  def init(config_dir: Path = Path.explode("~/.ssh"),
-    config_file: Path = Path.explode("~/.ssh/config"),
-    identity_files: List[Path] =
-      List("~/.ssh/id_dsa", "~/.ssh/id_ecdsa", "~/.ssh/id_rsa").map(Path.explode(_))): SSH =
+  def init(options: Options): SSH =
   {
+    val config_dir = Path.explode(options.string("ssh_config_dir"))
     if (!config_dir.is_dir) error("Bad ssh config directory: " + config_dir)
 
     val jsch = new JSch
 
+    val config_file = Path.explode(options.string("ssh_config_file"))
     if (config_file.is_file)
       jsch.setConfigRepository(OpenSSHConfig.parseFile(File.platform_path(config_file)))
 
@@ -31,11 +30,16 @@ object SSH
     if (!known_hosts.is_file) known_hosts.file.createNewFile
     jsch.setKnownHosts(File.platform_path(known_hosts))
 
+    val identity_files =
+      Library.space_explode(':', options.string("ssh_identity_files")).map(Path.explode(_))
     for (identity_file <- identity_files if identity_file.is_file)
       jsch.addIdentity(File.platform_path(identity_file))
 
-    new SSH(jsch)
+    new SSH(options, jsch)
   }
+
+  def connect_timeout(options: Options): Int =
+    options.seconds("ssh_connect_timeout").ms.toInt
 
 
   /* logging */
@@ -73,11 +77,12 @@ object SSH
   }
 
 
-  /* remote command execution */
+  /* channel: exec, sftp etc. */
 
-  class Exec private [SSH](val session: Session, val channel: ChannelExec)
+  class Channel[C <: JSch_Channel] private[SSH](val session: Session,
+    val kind: String, val channel_options: Options, val channel: C)
   {
-    override def toString: String = "exec " + session.toString
+    override def toString: String = kind + " " + session.toString
 
     def close { channel.disconnect }
   }
@@ -85,7 +90,7 @@ object SSH
 
   /* session */
 
-  class Session private[SSH](val session: JSch_Session)
+  class Session private[SSH](val session_options: Options, val session: JSch_Session)
   {
     override def toString: String =
       (if (session.getUserName == null) "" else session.getUserName + "@") +
@@ -95,39 +100,43 @@ object SSH
 
     def close { session.disconnect }
 
-    def exec(command: String, connect_timeout: Time = Time.seconds(60)): Exec =
+    def exec(command: String, options: Options = session_options): Channel[ChannelExec] =
     {
-      val channel = session.openChannel("exec").asInstanceOf[ChannelExec]
+      val kind = "exec"
+      val channel = session.openChannel(kind).asInstanceOf[ChannelExec]
       channel.setCommand(command)
-      channel.connect(connect_timeout.ms.toInt)
 
-      new Exec(this, channel)
+      channel.connect(connect_timeout(options))
+      new Channel(this, kind, options, channel)
     }
 
-    def channel_sftp: ChannelSftp =
-      session.openChannel("sftp").asInstanceOf[ChannelSftp]
+    def sftp(options: Options = session_options): Channel[ChannelSftp] =
+    {
+      val kind = "sftp"
+      val channel = session.openChannel(kind).asInstanceOf[ChannelSftp]
+
+      channel.connect(connect_timeout(options))
+      new Channel(this, kind, options, channel)
+    }
   }
 }
 
-class SSH private(val jsch: JSch)
+class SSH private(val options: Options, val jsch: JSch)
 {
-  def open_session(host: String, port: Int = 22, user: String = null,
-    connect_timeout: Time = Time.seconds(60),
-    compression: Boolean = true): SSH.Session =
+  def open_session(host: String, port: Int = 22, user: String = null): SSH.Session =
   {
     val session = jsch.getSession(user, host, port)
 
     session.setUserInfo(SSH.No_User_Info)
     session.setConfig("MaxAuthTries", "3")
 
-    if (compression) {
+    if (options.bool("ssh_compression")) {
       session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
       session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
       session.setConfig("compression_level", "9")
     }
 
-    session.connect(connect_timeout.ms.toInt)
-
-    new SSH.Session(session)
+    session.connect(SSH.connect_timeout(options))
+    new SSH.Session(options, session)
   }
 }
