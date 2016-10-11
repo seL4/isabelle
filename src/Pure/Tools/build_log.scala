@@ -79,6 +79,8 @@ object Build_Log
 
   /** log file **/
 
+  def print_date(date: Date): String = Log_File.Date_Format(date)
+
   object Log_File
   {
     def apply(name: String, lines: List[String]): Log_File =

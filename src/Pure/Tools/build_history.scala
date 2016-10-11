@@ -261,8 +261,8 @@ object Build_History
       val meta_info =
         List(Build_Log.Field.build_engine -> BUILD_HISTORY,
           Build_Log.Field.build_host -> build_host,
-          Build_Log.Field.build_start -> Build_Log.Log_File.Date_Format(build_start),
-          Build_Log.Field.build_end -> Build_Log.Log_File.Date_Format(build_end),
+          Build_Log.Field.build_start -> Build_Log.print_date(build_start),
+          Build_Log.Field.build_end -> Build_Log.print_date(build_end),
           Build_Log.Field.isabelle_version -> isabelle_version)
 
       val ml_statistics =

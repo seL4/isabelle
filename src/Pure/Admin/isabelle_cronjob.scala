@@ -42,7 +42,7 @@ object Isabelle_Cronjob
 
     def log(date: Date, msg: String)
     {
-      val text = "[" + Build_Log.Log_File.Date_Format(date) + " " + hostname + "]: " + msg
+      val text = "[" + Build_Log.print_date(date) + " " + hostname + "]: " + msg
       File.append(main_log, text + "\n")
       progress.echo(text)
     }
@@ -77,7 +77,7 @@ object Isabelle_Cronjob
       Isabelle_System.mkdirs(log_path.dir)
       File.write(log_path,
         Library.terminate_lines(
-          List("isabelle_identify: " + Build_Log.Log_File.Date_Format(pull_date),
+          List("isabelle_identify: " + Build_Log.print_date(pull_date),
             "",
             "Isabelle version: " + isabelle_id,
             "AFP version: " + afp_id)))

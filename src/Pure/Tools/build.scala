@@ -756,7 +756,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     if (verbose) {
       progress.echo(
-        "Started at " + Build_Log.Log_File.Date_Format(start_date) +
+        "Started at " + Build_Log.print_date(start_date) +
           " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + Isabelle_System.hostname() +")")
       progress.echo(Build_Log.Settings.show() + "\n")
     }
@@ -785,7 +785,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val elapsed_time = end_date.time - start_date.time
 
     if (verbose) {
-      progress.echo("\nFinished at " + Build_Log.Log_File.Date_Format(end_date))
+      progress.echo("\nFinished at " + Build_Log.print_date(end_date))
     }
 
     val total_timing =
