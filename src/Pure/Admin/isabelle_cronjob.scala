@@ -19,6 +19,18 @@ object Isabelle_Cronjob
   val main_log = log_dir + Path.explode("main.log")
 
 
+  /* managed repository clones */
+
+  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
+  val afp_repos = main_dir + Path.explode("AFP-build_history")
+
+  def pull_repos(root: Path): String =
+    using(Mercurial.open_repository(root))(hg =>
+      {
+        hg.pull(options = "-q")
+        hg.identify("tip")
+      })
+
 
   /** cronjob **/
 
@@ -50,6 +62,25 @@ object Isabelle_Cronjob
       case None =>
         File.write(main_state_file, start_date + " " + hostname)
         log(start_date, "start cronjob")
+    }
+
+
+    /* identify repository snapshots */
+
+    {
+      val pull_date = Date.now()
+
+      val isabelle_id = pull_repos(isabelle_repos)
+      val afp_id = pull_repos(afp_repos)
+
+      val log_path = log_dir + Build_Log.log_path("isabelle_identify", pull_date)
+      Isabelle_System.mkdirs(log_path.dir)
+      File.write(log_path,
+        Library.terminate_lines(
+          List("isabelle_identify: " + Build_Log.Log_File.Date_Format(pull_date),
+            "",
+            "Isabelle version: " + isabelle_id,
+            "AFP version: " + afp_id)))
     }
 
 
