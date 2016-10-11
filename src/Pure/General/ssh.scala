@@ -277,6 +277,21 @@ object SSH
       val channel = session.openChannel(kind).asInstanceOf[ChannelSftp]
       new Sftp(this, kind, options, channel)
     }
+
+
+    /* tmp dirs */
+
+    def rm_tree(remote_dir: String): Unit =
+      execute("rm -r -f " + File.bash_string(remote_dir)).check
+
+    def tmp_dir(): String =
+      execute("mktemp -d -t tmp.XXXXXXXXXX").check.out
+
+    def with_tmp_dir[A](body: String => A): A =
+    {
+      val remote_dir = tmp_dir()
+      try { body(remote_dir) } finally { rm_tree(remote_dir) }
+    }
   }
 }
 
