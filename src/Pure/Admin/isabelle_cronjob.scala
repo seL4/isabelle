@@ -42,7 +42,7 @@ object Isabelle_Cronjob
 
     def log(date: Date, msg: String)
     {
-      val text = "[" + Build_Log.print_date(date) + " " + hostname + "]: " + msg
+      val text = "[" + Build_Log.print_date(date) + ", " + hostname + "]: " + msg
       File.append(main_log, text + "\n")
       progress.echo(text)
     }
