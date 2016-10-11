@@ -28,7 +28,7 @@ object Isabelle_Cronjob
     using(Mercurial.open_repository(root))(hg =>
       {
         hg.pull(options = "-q")
-        hg.identify("tip")
+        hg.identify("tip", options = "-i")
       })
 
 
