@@ -124,6 +124,7 @@ declare -a SOURCES=(
   Tools/ml_statistics.scala
   Tools/news.scala
   Tools/print_operation.scala
+  Tools/remote_dmg.scala
   Tools/simplifier_trace.scala
   Tools/task_statistics.scala
   Tools/update_cartouches.scala
