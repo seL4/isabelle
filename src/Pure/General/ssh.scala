@@ -17,6 +17,26 @@ import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session,
 
 object SSH
 {
+  /* user@host syntax */
+
+  object User_Host
+  {
+    val Pattern = "^([^@]+)@(.+)$".r
+
+    def parse(s: String): (String, String) =
+      s match {
+        case Pattern(user, host) => (user, host)
+        case _ => ("", s)
+      }
+
+    def unapplySeq(s: String): Option[List[String]] =
+    {
+      val (user, host) = parse(s)
+      Some(List(user, host))
+    }
+  }
+
+
   /* init */
 
   def init(options: Options): SSH =
@@ -297,9 +317,9 @@ object SSH
 
 class SSH private(val options: Options, val jsch: JSch)
 {
-  def open_session(host: String, port: Int = 22, user: String = null): SSH.Session =
+  def open_session(host: String, port: Int = 22, user: String = ""): SSH.Session =
   {
-    val session = jsch.getSession(user, host, port)
+    val session = jsch.getSession(if (user == "") null else user, host, port)
 
     session.setUserInfo(SSH.No_User_Info)
     session.setConfig("MaxAuthTries", "3")
