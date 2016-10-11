@@ -422,9 +422,10 @@ case "$PLATFORM_FAM" in
 
       if [ -n "$REMOTE_MAC" ]
       then
-        echo "$REMOTE_MAC: dmg for $PLATFORM_FAMILY"
+        echo -n "$REMOTE_MAC: building dmg ... "
         isabelle remote_dmg -V Isabelle "$REMOTE_MAC" \
-          "${ARCHIVE_DIR}/${ISABELLE_NAME}_dmg.tar.gz" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
+          "${ARCHIVE_DIR}/${ISABELLE_NAME}_dmg.tar.gz" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg" &&
+          echo "done"
       fi
     )
     ;;
