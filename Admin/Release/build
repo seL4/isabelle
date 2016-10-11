@@ -18,6 +18,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] DIR [VERSION]"
   echo
   echo "  Options are:"
+  echo "    -M USER@HOST remote Mac OS X for dmg build"
   echo "    -O           official release (not release-candidate)"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -l           build library"
@@ -47,14 +48,18 @@ function check_number()
 
 # options
 
+REMOTE_MAC=""
 OFFICIAL_RELEASE=""
 JOBS=""
 LIBRARY=""
 RELEASE=""
 
-while getopts "Oj:lr:" OPT
+while getopts "M:Oj:lr:" OPT
 do
   case "$OPT" in
+    M)
+      REMOTE_MAC="$OPTARG"
+      ;;
     O)
       OFFICIAL_RELEASE="-O"
       ;;
@@ -121,7 +126,11 @@ do
 echo
 echo "*** $PLATFORM_FAMILY ***"
 
-"$ISABELLE_TOOL" makedist_bundle "$DISTBASE/${DISTNAME}.tar.gz" "$PLATFORM_FAMILY"
+if [ -n "$REMOTE_MAC" ]; then
+  "$ISABELLE_TOOL" makedist_bundle "$DISTBASE/${DISTNAME}.tar.gz" "$PLATFORM_FAMILY" "$REMOTE_MAC"
+else
+  "$ISABELLE_TOOL" makedist_bundle "$DISTBASE/${DISTNAME}.tar.gz" "$PLATFORM_FAMILY"
+fi
 [ "$?" = 0 ] || exit "$?"
 
 done
@@ -155,4 +164,3 @@ EOF
 if [ -n "$LIBRARY" ]; then
   "$THIS/build_library" $JOBS "$DISTBASE/${DISTNAME}_${ISABELLE_PLATFORM_FAMILY}.tar.gz"
 fi
-

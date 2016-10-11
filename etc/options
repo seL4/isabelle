@@ -185,3 +185,21 @@ section "Completion"
 
 public option completion_limit : int = 40
   -- "limit for completion within the formal context"
+
+
+section "Secure Shell"
+
+option ssh_config_dir : string = "~/.ssh"
+  -- "SSH configuration directory"
+
+option ssh_config_file : string = "~/.ssh/config"
+  -- "main SSH configuration file"
+
+option ssh_identity_files : string = "~/.ssh/id_dsa:~/.ssh/id_ecdsa:~/.ssh/id_rsa"
+  -- "possible SSH identity files (separated by colons)"
+
+option ssh_compression : bool = true
+  -- "enable SSH compression"
+
+option ssh_connect_timeout : real = 60
+  -- "SSH connection timeout (seconds)"

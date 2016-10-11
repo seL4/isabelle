@@ -9,10 +9,12 @@ PRG=$(basename "$0")
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG ARCHIVE PLATFORM_FAMILY"
+  echo "Usage: isabelle $PRG ARCHIVE PLATFORM_FAMILY [REMOTE_MAC]"
   echo
   echo "  Re-package Isabelle source distribution with add-on components and"
   echo "  post-hoc patches for platform family linux, windows, windows64, macos."
+  echo
+  echo "  The optional remote Mac OS X system is used for dmg build."
   echo
   echo "  Add-on components are that of the running Isabelle version!"
   echo
@@ -28,10 +30,11 @@ function fail()
 
 ## arguments
 
-[ "$#" -ne 2 ] && usage
+[ "$#" -ne 2 -a "$#" -ne 3 ] && usage
 
 ARCHIVE="$1"; shift
 PLATFORM_FAMILY="$1"; shift
+REMOTE_MAC="$1"; shift
 
 if [ "$PLATFORM_FAMILY" = windows64 ]; then
   PLATFORM_FAM="windows"
@@ -83,8 +86,6 @@ done
 
 
 # bundled components
-
-init_component "$JEDIT_HOME"
 
 if [ ! -e "$ARCHIVE_DIR/contrib" ]; then
   if [ ! -e "$ARCHIVE_DIR/../contrib" ]; then
@@ -201,6 +202,8 @@ case "$PLATFORM_FAM" in
     for PLATFORM in 32 64
     do
       (
+        init_component "$JEDIT_HOME"
+
         echo "# Java runtime options for ${PLATFORM}bit platform"
         declare -a JAVA_ARGS
         if [ "$PLATFORM" = 32 ]; then
@@ -268,6 +271,8 @@ case "$PLATFORM_FAM" in
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
     (
+      init_component "$JEDIT_HOME"
+
       declare -a JAVA_ARGS=()
       if [ "$PLATFORM_FAMILY" = windows ]; then
         echo -e "# Java runtime options for 32bit platform\r"
@@ -355,97 +360,99 @@ tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME" || exit 2
 
 # platform-specific setup (outside archive)
 
-if [ "$ISABELLE_PLATFORM_FAMILY" = linux -a "$PLATFORM_FAMILY" != macos -o "$ISABELLE_PLATFORM_FAMILY" = macos ]
-then
-  case "$PLATFORM_FAM" in
-    linux)
-      echo "application for $PLATFORM_FAMILY"
-      ln -s "${ISABELLE_NAME}_linux.tar.gz" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
-      ;;
-    macos)
+case "$PLATFORM_FAM" in
+  linux)
+    echo "application for $PLATFORM_FAMILY"
+    ln -s "${ISABELLE_NAME}_linux.tar.gz" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
+    ;;
+  macos)
+    echo "application for $PLATFORM_FAMILY"
+    (
+      cd "$TMP"
+
+      APP_TEMPLATE="$ISABELLE_HOME/Admin/MacOS"
+      APP="dmg/${ISABELLE_NAME}.app"
+
+      mkdir -p "dmg/.background"
+      cp "$APP_TEMPLATE/dmg/background.png" "dmg/.background/"
+      cp "$APP_TEMPLATE/dmg/DS_Store" "dmg/.DS_Store"
+      ln -s /Applications "dmg/."
+
+      for NAME in Java MacOS PlugIns Resources
+      do
+        mkdir -p "$APP/Contents/$NAME"
+      done
+
+      (
+        init_component "$JEDIT_HOME"
+
+        cat "$APP_TEMPLATE/Info.plist-part1"
+
+        declare -a OPTIONS=()
+        eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
+        for OPT in "${OPTIONS[@]}"
+        do
+          echo "<string>$OPT</string>"
+        done
+        echo "<string>-Disabelle.jedit_server={ISABELLE_NAME}</string>"
+        echo "<string>-Dapple.awt.application.name={ISABELLE_NAME}</string>"
+
+        cat "$APP_TEMPLATE/Info.plist-part2"
+      ) | perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
+
+      for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+      do
+        ln -sf "../Resources/${ISABELLE_NAME}/$ENTRY" "$APP/Contents/Java"
+      done
+
+      cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
+
+      ln -sf "../Resources/${ISABELLE_NAME}/contrib/jdk/x86_64-darwin" \
+        "$APP/Contents/PlugIns/bundled.jdk"
+
+      cp macos_app/JavaAppLauncher "$APP/Contents/MacOS/." && \
+        chmod +x "$APP/Contents/MacOS/JavaAppLauncher"
+
+      mv "$ISABELLE_NAME" "$APP/Contents/Resources/."
+      ln -sf "../../Info.plist" "$APP/Contents/Resources/$ISABELLE_NAME/${ISABELLE_NAME}.plist"
+      ln -sf "Contents/Resources/$ISABELLE_NAME" "$APP/Isabelle"
+
+      rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
+      tar -C dmg -czf "${ARCHIVE_DIR}/${ISABELLE_NAME}_dmg.tar.gz" .
+
+      if [ -n "$REMOTE_MAC" ]
+      then
+        echo "$REMOTE_MAC: dmg for $PLATFORM_FAMILY"
+        isabelle remote_dmg -V Isabelle "$REMOTE_MAC" \
+          "${ARCHIVE_DIR}/${ISABELLE_NAME}_dmg.tar.gz" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
+      fi
+    )
+    ;;
+  windows)
+    (
+      if [ "$PLATFORM_FAMILY" = windows ]; then
+        PLATFORM_SUFFIX="-win32"
+      else
+        PLATFORM_SUFFIX="-win64"
+      fi
+
+      cd "$TMP"
+      rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z"
+      7z -y -bd a "$TMP/${ISABELLE_NAME}.7z" "$ISABELLE_NAME" || exit 2
+
       echo "application for $PLATFORM_FAMILY"
       (
-        cd "$TMP"
-
-        APP_TEMPLATE="$ISABELLE_HOME/Admin/MacOS"
-        APP="dmg/${ISABELLE_NAME}.app"
-
-        mkdir -p "dmg/.background"
-        cp "$APP_TEMPLATE/dmg/background.png" "dmg/.background/"
-        cp "$APP_TEMPLATE/dmg/DS_Store" "dmg/.DS_Store"
-        ln -s /Applications "dmg/."
-
-        for NAME in Java MacOS PlugIns Resources
-        do
-          mkdir -p "$APP/Contents/$NAME"
-        done
-
-        (
-          cat "$APP_TEMPLATE/Info.plist-part1"
-
-          declare -a OPTIONS=()
-          eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
-          for OPT in "${OPTIONS[@]}"
-          do
-            echo "<string>$OPT</string>"
-          done
-          echo "<string>-Disabelle.jedit_server={ISABELLE_NAME}</string>"
-          echo "<string>-Dapple.awt.application.name={ISABELLE_NAME}</string>"
-
-          cat "$APP_TEMPLATE/Info.plist-part2"
-        ) | perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
-
-        for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
-        do
-          ln -sf "../Resources/${ISABELLE_NAME}/$ENTRY" "$APP/Contents/Java"
-        done
-
-        cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
-
-        ln -sf "../Resources/${ISABELLE_NAME}/contrib/jdk/x86_64-darwin" \
-          "$APP/Contents/PlugIns/bundled.jdk"
-
-        cp macos_app/JavaAppLauncher "$APP/Contents/MacOS/." && \
-          chmod +x "$APP/Contents/MacOS/JavaAppLauncher"
-
-        mv "$ISABELLE_NAME" "$APP/Contents/Resources/."
-        ln -sf "../../Info.plist" "$APP/Contents/Resources/$ISABELLE_NAME/${ISABELLE_NAME}.plist"
-        ln -sf "Contents/Resources/$ISABELLE_NAME" "$APP/Isabelle"
-
-        rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
-
-        cd dmg
-        hdiutil create -srcfolder . -volname Isabelle "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
-      )
-      ;;
-    windows)
-      (
-        if [ "$PLATFORM_FAMILY" = windows ]; then
-          PLATFORM_SUFFIX="-win32"
-        else
-          PLATFORM_SUFFIX="-win64"
-        fi
-
-        cd "$TMP"
-        rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z"
-        7z -y -bd a "$TMP/${ISABELLE_NAME}.7z" "$ISABELLE_NAME" || exit 2
-
-        echo "application for $PLATFORM_FAMILY"
-        (
-          cat "windows_app/7zsd_All.sfx"
-          cat "$ISABELLE_HOME/Admin/Windows/Installer/sfx.txt" | \
-            perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;"
-          cat "$TMP/${ISABELLE_NAME}.7z"
-        ) > "${ARCHIVE_DIR}/${ISABELLE_NAME}${PLATFORM_SUFFIX}.exe"
-        chmod +x "${ARCHIVE_DIR}/${ISABELLE_NAME}${PLATFORM_SUFFIX}.exe"
-      )
-      ;;
-    *)
-      ;;
-  esac
-else
-  echo "### Cannot build application for $PLATFORM_FAMILY on $ISABELLE_PLATFORM_FAMILY"
-fi
+        cat "windows_app/7zsd_All.sfx"
+        cat "$ISABELLE_HOME/Admin/Windows/Installer/sfx.txt" | \
+          perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;"
+        cat "$TMP/${ISABELLE_NAME}.7z"
+      ) > "${ARCHIVE_DIR}/${ISABELLE_NAME}${PLATFORM_SUFFIX}.exe"
+      chmod +x "${ARCHIVE_DIR}/${ISABELLE_NAME}${PLATFORM_SUFFIX}.exe"
+    )
+    ;;
+  *)
+    ;;
+esac
 
 
 # clean up

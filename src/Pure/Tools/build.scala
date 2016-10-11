@@ -752,15 +752,15 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     val progress = new Console_Progress(verbose = verbose)
 
+    val start_date = Date.now()
+
     if (verbose) {
       progress.echo(
-        Library.trim_line(
-          Isabelle_System.bash(
-            """echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))" """).out) + "\n")
+        "Started at " + Build_Log.Log_File.Date_Format(start_date) +
+          " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + Isabelle_System.hostname() +")")
       progress.echo(Build_Log.Settings.show() + "\n")
     }
 
-    val start_time = Time.now()
     val results =
       progress.interrupt_handler {
         build(options, progress,
@@ -781,12 +781,11 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           session_groups = session_groups,
           sessions = sessions)
       }
-    val elapsed_time = Time.now() - start_time
+    val end_date = Date.now()
+    val elapsed_time = end_date.time - start_date.time
 
     if (verbose) {
-      progress.echo("\n" +
-        Library.trim_line(
-          Isabelle_System.bash("""echo -n "Finished at "; date""").out))
+      progress.echo("\nFinished at " + Build_Log.Log_File.Date_Format(end_date))
     }
 
     val total_timing =

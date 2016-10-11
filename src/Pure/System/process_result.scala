@@ -29,15 +29,15 @@ final case class Process_Result(
 
   def print: Process_Result =
   {
-    Output.warning(Library.trim_line(err))
-    Output.writeln(Library.trim_line(out))
+    Output.warning(err)
+    Output.writeln(out)
     copy(out_lines = Nil, err_lines = Nil)
   }
 
   def print_stdout: Process_Result =
   {
-    Output.warning(Library.trim_line(err), stdout = true)
-    Output.writeln(Library.trim_line(out), stdout = true)
+    Output.warning(err, stdout = true)
+    Output.writeln(out, stdout = true)
     copy(out_lines = Nil, err_lines = Nil)
   }
 

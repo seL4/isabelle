@@ -217,7 +217,7 @@ object Build_History
     /* main */
 
     val build_history_date = Date.now()
-    val build_host = Library.trim_line(Isabelle_System.bash("hostname").check.out)
+    val build_host = Isabelle_System.hostname()
 
     var first_build = true
     for (threads <- threads_list) yield

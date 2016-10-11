@@ -27,7 +27,7 @@ object SQLite
   {
     override def toString: String = path.toString
 
-    def close { connection.close }
+    def close() { connection.close }
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
 

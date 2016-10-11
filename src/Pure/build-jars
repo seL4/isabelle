@@ -48,6 +48,7 @@ declare -a SOURCES=(
   General/sha1.scala
   General/sql.scala
   General/sqlite.scala
+  General/ssh.scala
   General/symbol.scala
   General/time.scala
   General/timing.scala
@@ -123,6 +124,7 @@ declare -a SOURCES=(
   Tools/ml_statistics.scala
   Tools/news.scala
   Tools/print_operation.scala
+  Tools/remote_dmg.scala
   Tools/simplifier_trace.scala
   Tools/task_statistics.scala
   Tools/update_cartouches.scala
