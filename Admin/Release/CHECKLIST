@@ -76,9 +76,9 @@ Packaging
 
 - Linux: avoid some versions of Debian / Ubuntu (bitmap fonts for prog-prove);
 
-- fully-automated packaging:
+- fully-automated packaging (e.g. on macbroy2):
 
-  hg up -r DISTNAME && Admin/Release/build -O -l -r DISTNAME /home/isabelle/dist
+  hg up -r DISTNAME && Admin/Release/build -M macbroy30 -O -l -r DISTNAME /home/isabelle/dist
 
 
 Final release stage
