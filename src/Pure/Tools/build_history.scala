@@ -19,14 +19,6 @@ object Build_History
   val BUILD_HISTORY = "build_history"
   val META_INFO_MARKER = "\fmeta_info = "
 
-  def log_date(date: Date): String =
-    String.format(Locale.ROOT, "%s.%05d",
-      DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date.rep),
-      new java.lang.Long((date.time - date.midnight.time).ms / 1000))
-
-  def log_name(date: Date, parts: String*): String =
-    (BUILD_HISTORY :: log_date(date) :: parts.toList).mkString("", "_", ".log.gz")
-
 
 
   /** other Isabelle environment **/
@@ -261,8 +253,8 @@ object Build_History
       /* output log */
 
       val log_path =
-        other_isabelle.log_dir + Path.explode(build_history_date.rep.getYear.toString) +
-          Path.explode(log_name(build_history_date, ml_platform, "M" + threads))
+        other_isabelle.log_dir +
+          Build_Log.log_path(BUILD_HISTORY, build_history_date, ml_platform, "M" + threads).ext("gz")
 
       val build_info = Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info()
 
