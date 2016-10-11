@@ -309,7 +309,7 @@ object Isabelle_System
       result(progress_stdout, progress_stderr, progress_limit, strict)
   }
 
-  def hostname(): String = bash("hostname").check.out
+  def hostname(): String = bash("hostname -s").check.out
 
   def open(arg: String): Unit =
     bash("exec \"$ISABELLE_OPEN\" " + File.bash_string(arg) + " >/dev/null 2>/dev/null &")
