@@ -36,6 +36,8 @@ object SSH
     }
   }
 
+  val default_port = 22
+
 
   /* init */
 
@@ -108,7 +110,7 @@ object SSH
   {
     override def toString: String = kind + " " + session.toString
 
-    def close { channel.disconnect }
+    def close() { channel.disconnect }
   }
 
 
@@ -271,10 +273,10 @@ object SSH
     override def toString: String =
       (if (session.getUserName == null) "" else session.getUserName + "@") +
       (if (session.getHost == null) "" else session.getHost) +
-      (if (session.getPort == 22) "" else ":" + session.getPort) +
+      (if (session.getPort == default_port) "" else ":" + session.getPort) +
       (if (session.isConnected) "" else " (disconnected)")
 
-    def close { session.disconnect }
+    def close() { session.disconnect }
 
     def execute(command: String,
         options: Options = session_options,
@@ -317,7 +319,7 @@ object SSH
 
 class SSH private(val options: Options, val jsch: JSch)
 {
-  def open_session(host: String, port: Int = 22, user: String = ""): SSH.Session =
+  def open_session(host: String, port: Int = SSH.default_port, user: String = ""): SSH.Session =
   {
     val session = jsch.getSession(if (user == "") null else user, host, port)
 
