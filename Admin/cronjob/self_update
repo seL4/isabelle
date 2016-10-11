@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# self-update of the administrative isabelle repository
+#
+# Need to copy this file manually to $HOME/cronjob in order to
+# avoid overwriting the running self_update by itself!
+
+source "$HOME/.bashrc"
+
+cd "$HOME/cronjob"
+mkdir -p run log
+
+hg -R isabelle pull -q || echo "self_update pull failed"
+hg -R isabelle update -C -q || echo "self_update update failed"

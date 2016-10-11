@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# DESCRIPTION: start the main Isabelle cronjob
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+
+source "$HOME/.bashrc"
+
+"$THIS/../build" jars || exit $?
+
+exec "$THIS/../../bin/isabelle_java" isabelle.Isabelle_Cronjob "$@"

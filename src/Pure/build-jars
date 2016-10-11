@@ -9,6 +9,7 @@
 ## sources
 
 declare -a SOURCES=(
+  Admin/isabelle_cronjob.scala
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
   Concurrent/event_timer.scala
