@@ -8,4 +8,4 @@ source "$HOME/.bashrc"
 
 "$THIS/../build" jars_fresh || exit $?
 
-exec "$THIS/../../bin/isabelle_java" isabelle.Isabelle_Cronjob "$@"
+exec "$THIS/../../bin/isabelle_java" "-Duser.timezone=Europe/Berlin" isabelle.Isabelle_Cronjob "$@"
