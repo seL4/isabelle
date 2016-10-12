@@ -71,6 +71,7 @@ do
   ENTRY=$(echo "$ENTRY" | perl -n -e "
     if (m,$ISABELLE_HOME/(.*)\$,) { print qq{\$1}; }
     elsif (m,$USER_HOME/.isabelle/contrib/(.*)\$,) { print qq{contrib/\$1}; }
+    elsif (m,/home/isabelle/contrib/(.*)\$,) { print qq{contrib/\$1}; }
     else { print; };
     print qq{\n};")
   DISTRIBITION_CLASSPATH["${#DISTRIBITION_CLASSPATH[@]}"]="$ENTRY"
