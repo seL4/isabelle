@@ -11,9 +11,8 @@ begin
 
 subsection \<open>Abstract division in commutative semirings.\<close>
 
-class semiring_div = semidom + modulo +
-  assumes mod_div_equality: "a div b * b + a mod b = a"
-    and div_by_0: "a div 0 = 0"
+class semiring_div = semidom + semiring_modulo +
+  assumes div_by_0: "a div 0 = 0"
     and div_0: "0 div a = 0"
     and div_mult_self1 [simp]: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
     and div_mult_mult1 [simp]: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
@@ -40,14 +39,6 @@ lemma div_mult_self2_is_id:
   by (fact nonzero_mult_divide_cancel_right)
 
 text \<open>@{const divide} and @{const modulo}\<close>
-
-lemma mod_div_equality2: "b * (a div b) + a mod b = a"
-  unfolding mult.commute [of b]
-  by (rule mod_div_equality)
-
-lemma mod_div_equality': "a mod b + a div b * b = a"
-  using mod_div_equality [of a b]
-  by (simp only: ac_simps)
 
 lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
   by (simp add: mod_div_equality)
@@ -143,17 +134,6 @@ lemma mod_add_self2 [simp]:
   "(a + b) mod b = a mod b"
   using mod_mult_self1 [of a 1 b] by simp
 
-lemma mod_div_decomp:
-  fixes a b
-  obtains q r where "q = a div b" and "r = a mod b"
-    and "a = q * b + r"
-proof -
-  from mod_div_equality have "a = a div b * b + a mod b" by simp
-  moreover have "a div b = a div b" ..
-  moreover have "a mod b = a mod b" ..
-  note that ultimately show thesis by blast
-qed
-
 lemma dvd_imp_mod_0 [simp]:
   assumes "a dvd b"
   shows "b mod a = 0"
@@ -189,7 +169,7 @@ next
   hence "a div b + a mod b div b = (a mod b + a div b * b) div b"
     by (rule div_mult_self1 [symmetric])
   also have "\<dots> = a div b"
-    by (simp only: mod_div_equality')
+    by (simp only: mod_div_equality3)
   also have "\<dots> = a div b + 0"
     by simp
   finally show ?thesis
@@ -202,7 +182,7 @@ proof -
   have "a mod b mod b = (a mod b + a div b * b) mod b"
     by (simp only: mod_mult_self1)
   also have "\<dots> = a mod b"
-    by (simp only: mod_div_equality')
+    by (simp only: mod_div_equality3)
   finally show ?thesis .
 qed
 

@@ -1018,8 +1018,12 @@ lemma dvd_field_poly: "dvd.dvd (op * :: 'a :: field poly \<Rightarrow> _) = op d
     by (intro ext) (simp_all add: dvd.dvd_def dvd_def)
 
 interpretation field_poly: 
-  euclidean_ring "op div" "op *" "op mod" "op +" "op -" 0 "1 :: 'a :: field poly" 
-    normalize_field_poly unit_factor_field_poly euclidean_size_field_poly uminus
+  euclidean_ring where zero = "0 :: 'a :: field poly"
+    and one = 1 and plus = plus and uminus = uminus and minus = minus
+    and times = times
+    and normalize = normalize_field_poly and unit_factor = unit_factor_field_poly
+    and euclidean_size = euclidean_size_field_poly
+    and divide = divide and modulo = modulo
 proof (standard, unfold dvd_field_poly)
   fix p :: "'a poly"
   show "unit_factor_field_poly p * normalize_field_poly p = p"
@@ -1034,7 +1038,7 @@ next
   thus "is_unit (unit_factor_field_poly p)"
     by (simp add: unit_factor_field_poly_def lead_coeff_nonzero is_unit_pCons_iff)
 qed (auto simp: unit_factor_field_poly_def normalize_field_poly_def lead_coeff_mult 
-       euclidean_size_field_poly_def intro!: degree_mod_less' degree_mult_right_le)
+       euclidean_size_field_poly_def Rings.mod_div_equality intro!: degree_mod_less' degree_mult_right_le)
 
 lemma field_poly_irreducible_imp_prime:
   assumes "irreducible (p :: 'a :: field poly)"
@@ -1352,7 +1356,7 @@ definition euclidean_size_poly :: "'a poly \<Rightarrow> nat" where
   "euclidean_size_poly p = (if p = 0 then 0 else 2 ^ degree p)"
 
 instance 
-  by standard (auto simp: euclidean_size_poly_def intro!: degree_mod_less' degree_mult_right_le)
+  by standard (auto simp: euclidean_size_poly_def Rings.mod_div_equality intro!: degree_mod_less' degree_mult_right_le)
 end
 
 
@@ -1423,7 +1427,7 @@ function gcd_poly_code_aux :: "'a :: factorial_ring_gcd poly \<Rightarrow> 'a po
 by auto
 termination
   by (relation "measure ((\<lambda>p. if p = 0 then 0 else Suc (degree p)) \<circ> snd)")
-     (auto simp: degree_primitive_part degree_pseudo_mod_less)
+     (auto simp: degree_pseudo_mod_less)
 
 declare gcd_poly_code_aux.simps [simp del]
 

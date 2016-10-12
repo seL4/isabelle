@@ -571,11 +571,6 @@ end
 
 setup \<open>Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a::divide \<Rightarrow> 'a \<Rightarrow> 'a"})\<close>
 
-text \<open>Syntactic division remainder operator\<close>
-
-class modulo = dvd + divide +
-  fixes modulo :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "mod" 70)
-
 text \<open>Algebraic classes with division\<close>
   
 class semidom_divide = semidom + divide +
@@ -1285,6 +1280,53 @@ proof -
 qed
 
 end
+
+
+text \<open>Syntactic division remainder operator\<close>
+
+class modulo = dvd + divide +
+  fixes modulo :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "mod" 70)
+
+text \<open>Arbitrary quotient and remainder partitions\<close>
+
+class semiring_modulo = comm_semiring_1_cancel + divide + modulo +
+  assumes mod_div_equality: "a div b * b + a mod b = a"
+begin
+
+lemma mod_div_decomp:
+  fixes a b
+  obtains q r where "q = a div b" and "r = a mod b"
+    and "a = q * b + r"
+proof -
+  from mod_div_equality have "a = a div b * b + a mod b" by simp
+  moreover have "a div b = a div b" ..
+  moreover have "a mod b = a mod b" ..
+  note that ultimately show thesis by blast
+qed
+
+lemma mod_div_equality2: "b * (a div b) + a mod b = a"
+  using mod_div_equality [of a b] by (simp add: ac_simps)
+
+lemma mod_div_equality3: "a mod b + a div b * b = a"
+  using mod_div_equality [of a b] by (simp add: ac_simps)
+
+lemma mod_div_equality4: "a mod b + b * (a div b) = a"
+  using mod_div_equality [of a b] by (simp add: ac_simps)
+
+lemma minus_div_eq_mod: "a - a div b * b = a mod b"
+  by (rule add_implies_diff [symmetric]) (fact mod_div_equality3)
+
+lemma minus_div_eq_mod2: "a - b * (a div b) = a mod b"
+  by (rule add_implies_diff [symmetric]) (fact mod_div_equality4)
+
+lemma minus_mod_eq_div: "a - a mod b = a div b * b"
+  by (rule add_implies_diff [symmetric]) (fact mod_div_equality)
+
+lemma minus_mod_eq_div2: "a - a mod b = b * (a div b)"
+  by (rule add_implies_diff [symmetric]) (fact mod_div_equality2)
+
+end
+  
 
 class ordered_semiring = semiring + ordered_comm_monoid_add +
   assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"

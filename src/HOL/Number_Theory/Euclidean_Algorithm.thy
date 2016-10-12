@@ -6,39 +6,6 @@ theory Euclidean_Algorithm
 imports "~~/src/HOL/GCD" Factorial_Ring
 begin
 
-class divide_modulo = semidom_divide + modulo +
-  assumes div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
-begin
-
-lemma zero_mod_left [simp]: "0 mod a = 0"
-  using div_mod_equality[of 0 a 0] by simp
-
-lemma dvd_mod_iff [simp]: 
-  assumes "k dvd n"
-  shows   "(k dvd m mod n) = (k dvd m)"
-proof -
-  thm div_mod_equality
-  from assms have "(k dvd m mod n) \<longleftrightarrow> (k dvd ((m div n) * n + m mod n))" 
-    by (simp add: dvd_add_right_iff)
-  also have "(m div n) * n + m mod n = m"
-    using div_mod_equality[of m n 0] by simp
-  finally show ?thesis .
-qed
-
-lemma mod_0_imp_dvd: 
-  assumes "a mod b = 0"
-  shows   "b dvd a"
-proof -
-  have "b dvd ((a div b) * b)" by simp
-  also have "(a div b) * b = a"
-    using div_mod_equality[of a b 0] by (simp add: assms)
-  finally show ?thesis .
-qed
-
-end
-
-
-
 text \<open>
   A Euclidean semiring is a semiring upon which the Euclidean algorithm can be
   implemented. It must provide:
@@ -50,7 +17,7 @@ text \<open>
   The existence of these functions makes it possible to derive gcd and lcm functions 
   for any Euclidean semiring.
 \<close> 
-class euclidean_semiring = divide_modulo + normalization_semidom + 
+class euclidean_semiring = semiring_modulo + normalization_semidom + 
   fixes euclidean_size :: "'a \<Rightarrow> nat"
   assumes size_0 [simp]: "euclidean_size 0 = 0"
   assumes mod_size_less: 
@@ -58,6 +25,30 @@ class euclidean_semiring = divide_modulo + normalization_semidom +
   assumes size_mult_mono:
     "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (a * b)"
 begin
+
+lemma zero_mod_left [simp]: "0 mod a = 0"
+  using mod_div_equality [of 0 a] by simp
+
+lemma dvd_mod_iff: 
+  assumes "k dvd n"
+  shows   "(k dvd m mod n) = (k dvd m)"
+proof -
+  from assms have "(k dvd m mod n) \<longleftrightarrow> (k dvd ((m div n) * n + m mod n))" 
+    by (simp add: dvd_add_right_iff)
+  also have "(m div n) * n + m mod n = m"
+    using mod_div_equality [of m n] by simp
+  finally show ?thesis .
+qed
+
+lemma mod_0_imp_dvd: 
+  assumes "a mod b = 0"
+  shows   "b dvd a"
+proof -
+  have "b dvd ((a div b) * b)" by simp
+  also have "(a div b) * b = a"
+    using mod_div_equality [of a b] by (simp add: assms)
+  finally show ?thesis .
+qed
 
 lemma euclidean_size_normalize [simp]:
   "euclidean_size (normalize a) = euclidean_size a"
@@ -81,34 +72,9 @@ lemma euclidean_division:
   obtains s and t where "a = s * b + t" 
     and "euclidean_size t < euclidean_size b"
 proof -
-  from div_mod_equality [of a b 0] 
+  from mod_div_equality [of a b] 
      have "a = a div b * b + a mod b" by simp
   with that and assms show ?thesis by (auto simp add: mod_size_less)
-qed
-
-lemma zero_mod_left [simp]: "0 mod a = 0"
-  using div_mod_equality[of 0 a 0] by simp
-
-lemma dvd_mod_iff [simp]: 
-  assumes "k dvd n"
-  shows   "(k dvd m mod n) = (k dvd m)"
-proof -
-  thm div_mod_equality
-  from assms have "(k dvd m mod n) \<longleftrightarrow> (k dvd ((m div n) * n + m mod n))" 
-    by (simp add: dvd_add_right_iff)
-  also have "(m div n) * n + m mod n = m"
-    using div_mod_equality[of m n 0] by simp
-  finally show ?thesis .
-qed
-
-lemma mod_0_imp_dvd: 
-  assumes "a mod b = 0"
-  shows   "b dvd a"
-proof -
-  have "b dvd ((a div b) * b)" by simp
-  also have "(a div b) * b = a"
-    using div_mod_equality[of a b 0] by (simp add: assms)
-  finally show ?thesis .
 qed
 
 lemma dvd_euclidean_size_eq_imp_dvd:
@@ -118,7 +84,7 @@ proof (rule ccontr)
   assume "\<not> a dvd b"
   hence "b mod a \<noteq> 0" using mod_0_imp_dvd[of b a] by blast
   then have "b mod a \<noteq> 0" by (simp add: mod_eq_0_iff_dvd)
-  from b_dvd_a have b_dvd_mod: "b dvd b mod a" by simp
+  from b_dvd_a have b_dvd_mod: "b dvd b mod a" by (simp add: dvd_mod_iff)
   from b_dvd_mod obtain c where "b mod a = b * c" unfolding dvd_def by blast
     with \<open>b mod a \<noteq> 0\<close> have "c \<noteq> 0" by auto
   with \<open>b mod a = b * c\<close> have "euclidean_size (b mod a) \<ge> euclidean_size b"
@@ -541,7 +507,7 @@ proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
               (s' * x + t' * y) - r' div r * (s * x + t * y)" by (simp add: algebra_simps)
       also have "s' * x + t' * y = r'" by fact
       also have "s * x + t * y = r" by fact
-      also have "r' - r' div r * r = r' mod r" using div_mod_equality[of r' r]
+      also have "r' - r' div r * r = r' mod r" using mod_div_equality [of r' r]
         by (simp add: algebra_simps)
       finally show "(s' - r' div r * s) * x + (t' - r' div r * t) * y = r' mod r" .
     qed (auto simp: gcd_eucl_non_0 algebra_simps div_mod_equality')
