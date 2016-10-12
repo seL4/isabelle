@@ -113,11 +113,12 @@ object Isabelle_Tool
       Update_Theorems.isabelle_tool)
 
   private def list_internal(): List[(String, String)] =
-    for (tool <- internal_tools.toList) yield (tool.name, tool.description)
+    for (tool <- internal_tools.toList if tool.accessible)
+      yield (tool.name, tool.description)
 
   private def find_internal(name: String): Option[List[String] => Unit] =
     internal_tools.collectFirst({
-      case tool if tool.name == name =>
+      case tool if tool.name == name && tool.accessible =>
         args => Command_Line.tool0 { tool.body(args) }
       })
 
@@ -148,4 +149,8 @@ Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage
   }
 }
 
-sealed case class Isabelle_Tool(name: String, description: String, body: List[String] => Unit)
+sealed case class Isabelle_Tool(
+  name: String, description: String, body: List[String] => Unit, admin: Boolean = false)
+{
+  def accessible: Boolean = !admin || Isabelle_System.admin()
+}

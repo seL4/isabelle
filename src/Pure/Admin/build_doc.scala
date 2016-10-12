@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/build_doc.scala
+/*  Title:      Pure/Admin/build_doc.scala
     Author:     Makarius
 
 Build Isabelle documentation.
@@ -69,14 +69,15 @@ object Build_Doc
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("build_doc", "build Isabelle documentation", args =>
-  {
-    var all_docs = false
-    var max_jobs = 1
-    var system_mode = false
+  val isabelle_tool =
+    Isabelle_Tool("build_doc", "build Isabelle documentation", args =>
+    {
+      var all_docs = false
+      var max_jobs = 1
+      var system_mode = false
 
-    val getopts =
-      Getopts("""
+      val getopts =
+        Getopts("""
 Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
 
   Options are:
@@ -87,20 +88,20 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
   Build Isabelle documentation from documentation sessions with
   suitable document_variants entry.
 """,
-      "a" -> (_ => all_docs = true),
-      "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-      "s" -> (_ => system_mode = true))
+        "a" -> (_ => all_docs = true),
+        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "s" -> (_ => system_mode = true))
 
-    val docs = getopts(args)
+      val docs = getopts(args)
 
-    if (!all_docs && docs.isEmpty) getopts.usage()
+      if (!all_docs && docs.isEmpty) getopts.usage()
 
-    val options = Options.init()
-    val progress = new Console_Progress()
-    val rc =
-      progress.interrupt_handler {
-        build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
-      }
-    sys.exit(rc)
-  })
+      val options = Options.init()
+      val progress = new Console_Progress()
+      val rc =
+        progress.interrupt_handler {
+          build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
+        }
+      sys.exit(rc)
+    }, admin = true)
 }

@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/check_sources.scala
+/*  Title:      Pure/Admin/check_sources.scala
     Author:     Makarius
 
 Some sanity checks for Isabelle sources.
@@ -68,5 +68,5 @@ Usage: isabelle check_sources [ROOT_DIRS...]
       if (specs.isEmpty) getopts.usage()
 
       for (root <- specs) check_hg(Path.explode(root))
-    })
+    }, admin = true)
 }

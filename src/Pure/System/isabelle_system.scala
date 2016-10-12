@@ -324,6 +324,11 @@ object Isabelle_System
 
   /** Isabelle resources **/
 
+  /* repository clone with Admin */
+
+  def admin(): Boolean = Path.explode("~~/Admin").is_dir
+
+
   /* components */
 
   def components(): List[Path] =

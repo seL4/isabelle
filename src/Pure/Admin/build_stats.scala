@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/build_stats.scala
+/*  Title:      Pure/Admin/build_stats.scala
     Author:     Makarius
 
 Statistics from session build output.
@@ -187,5 +187,5 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
           jobs.map(job => """<li> <a href=""" + quote(HTML.output(job + "/index.html")) + """>""" +
             HTML.output(job) + """</a> </li>""")) +
         "\n</ul>\n" + html_footer)
-  })
+  }, admin = true)
 }

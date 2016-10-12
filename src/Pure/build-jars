@@ -9,11 +9,15 @@
 ## sources
 
 declare -a SOURCES=(
+  Admin/build_doc.scala
   Admin/build_history.scala
   Admin/build_log.scala
+  Admin/build_stats.scala
+  Admin/check_sources.scala
   Admin/ci_api.scala
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
+  Admin/remote_dmg.scala
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
   Concurrent/event_timer.scala
@@ -113,10 +117,7 @@ declare -a SOURCES=(
   Thy/thy_syntax.scala
   Tools/bibtex.scala
   Tools/build.scala
-  Tools/build_doc.scala
-  Tools/build_stats.scala
   Tools/check_keywords.scala
-  Tools/check_sources.scala
   Tools/debugger.scala
   Tools/doc.scala
   Tools/main.scala
@@ -125,7 +126,6 @@ declare -a SOURCES=(
   Tools/ml_statistics.scala
   Tools/news.scala
   Tools/print_operation.scala
-  Tools/remote_dmg.scala
   Tools/simplifier_trace.scala
   Tools/task_statistics.scala
   Tools/update_cartouches.scala
