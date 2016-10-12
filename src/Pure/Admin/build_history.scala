@@ -78,7 +78,7 @@ object Build_History
           "init_components " + File.bash_path(components_base_path) +
             " \"$ISABELLE_HOME/Admin/components/" + catalog + "\"")
       }
-      File.append(etc_settings, "\n" + Library.terminate_lines(component_settings))
+      File.append(etc_settings, "\n" + terminate_lines(component_settings))
     }
 
 
@@ -147,7 +147,7 @@ object Build_History
         List(ml_settings, thread_settings) :::
           (if (more_settings.isEmpty) Nil else List(more_settings))
 
-      File.append(etc_settings, "\n" + cat_lines(settings.map(Library.terminate_lines(_))))
+      File.append(etc_settings, "\n" + cat_lines(settings.map(terminate_lines(_))))
 
       ml_platform
     }
@@ -287,7 +287,7 @@ object Build_History
 
       Isabelle_System.mkdirs(log_path.dir)
       File.write_gzip(log_path,
-        Library.terminate_lines(
+        terminate_lines(
           Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: res.out_lines :::
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
           heap_sizes))

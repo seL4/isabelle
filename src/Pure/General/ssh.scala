@@ -106,7 +106,7 @@ object SSH
   /* channel */
 
   class Channel[C <: JSch_Channel] private[SSH](
-    val session: Session, val kind: String, val options: Options, val channel: C)
+    val session: Session, val kind: String, val channel: C)
   {
     override def toString: String = kind + " " + session.toString
 
@@ -118,9 +118,8 @@ object SSH
 
   private val exec_wait_delay = Time.seconds(0.3)
 
-  class Exec private[SSH](
-    session: Session, kind: String, options: Options, channel: ChannelExec)
-    extends Channel[ChannelExec](session, kind, options, channel)
+  class Exec private[SSH](session: Session, kind: String, channel: ChannelExec)
+    extends Channel[ChannelExec](session, kind, channel)
   {
     def kill(signal: String) { channel.sendSignal(signal) }
 
@@ -134,8 +133,8 @@ object SSH
     val stdout: InputStream = channel.getInputStream
     val stderr: InputStream = channel.getErrStream
 
-    // after preparing streams
-    channel.connect(connect_timeout(options))
+    // connect after preparing streams
+    channel.connect(connect_timeout(session.options))
 
     def result(
       progress_stdout: String => Unit = (_: String) => (),
@@ -204,11 +203,10 @@ object SSH
     def is_dir: Boolean = attrs.isDir
   }
 
-  class Sftp private[SSH](
-    session: Session, kind: String, options: Options, channel: ChannelSftp)
-    extends Channel[ChannelSftp](session, kind, options, channel)
+  class Sftp private[SSH](session: Session, kind: String, channel: ChannelSftp)
+    extends Channel[ChannelSftp](session, kind, channel)
   {
-    channel.connect(connect_timeout(options))
+    channel.connect(connect_timeout(session.options))
 
     def home: String = channel.getHome()
 
@@ -268,8 +266,10 @@ object SSH
 
   /* session */
 
-  class Session private[SSH](val session_options: Options, val session: JSch_Session)
+  class Session private[SSH](val options: Options, val session: JSch_Session)
   {
+    def update_options(new_options: Options): Session = new Session(new_options, session)
+
     override def toString: String =
       (if (session.getUserName == null) "" else session.getUserName + "@") +
       (if (session.getHost == null) "" else session.getHost) +
@@ -279,25 +279,24 @@ object SSH
     def close() { session.disconnect }
 
     def execute(command: String,
-        options: Options = session_options,
         progress_stdout: String => Unit = (_: String) => (),
         progress_stderr: String => Unit = (_: String) => (),
         strict: Boolean = true): Process_Result =
-      exec(command, options).result(progress_stdout, progress_stderr, strict)
+      exec(command).result(progress_stdout, progress_stderr, strict)
 
-    def exec(command: String, options: Options = session_options): Exec =
+    def exec(command: String): Exec =
     {
       val kind = "exec"
       val channel = session.openChannel(kind).asInstanceOf[ChannelExec]
       channel.setCommand(command)
-      new Exec(this, kind, options, channel)
+      new Exec(this, kind, channel)
     }
 
-    def sftp(options: Options = session_options): Sftp =
+    def sftp(): Sftp =
     {
       val kind = "sftp"
       val channel = session.openChannel(kind).asInstanceOf[ChannelSftp]
-      new Sftp(this, kind, options, channel)
+      new Sftp(this, kind, channel)
     }
 
 
@@ -319,6 +318,8 @@ object SSH
 
 class SSH private(val options: Options, val jsch: JSch)
 {
+  def update_options(new_options: Options): SSH = new SSH(new_options, jsch)
+
   def open_session(host: String, port: Int = SSH.default_port, user: String = ""): SSH.Session =
   {
     val session = jsch.getSession(if (user == "") null else user, host, port)

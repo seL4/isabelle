@@ -24,38 +24,64 @@ object Mercurial
 
   /* repository access */
 
-  def repository(root: Path): Repository = new Repository(root)
-
-  class Repository private[Mercurial](val root: Path)
+  def repository(root: Path, ssh: Option[SSH.Session] = None): Repository =
   {
-    override def toString: String = root.toString
+    val hg = new Repository(root, ssh)
+    hg.command("root").check
+    hg
+  }
 
-    def command(cmd: String, cwd: JFile = null): Process_Result =
-      Isabelle_System.hg("--repository " + File.bash_path(root) + " --noninteractive " + cmd,
-        cwd = cwd)
+  def clone_repository(
+    source: String, dest: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
+  {
+    val hg = new Repository(dest, ssh)
+    hg.command("clone",
+      File.bash_string(source) + " " + File.bash_string(dest.implode), options).check
+    hg
+  }
 
+  class Repository private[Mercurial](val root: Path, ssh: Option[SSH.Session])
+  {
+    hg =>
 
-    def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
-      command("heads " + options + opt_template(template)).check.out_lines
+    override def toString: String =
+      ssh match {
+        case None => root.implode
+        case Some(session) => session.toString + ":" + root.implode
+      }
 
-    def identify(rev: String = "", options: String = ""): String =
-      command("id " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
-
-    def manifest(rev: String = "", options: String = ""): List[String] =
-      command("manifest " + options + opt_rev(rev)).check.out_lines
-
-    def log(rev: String = "", template: String = "", options: String = ""): String =
-      command("log " + options + opt_rev(rev) + opt_template(template)).check.out
-
-    def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
-      command("pull " + options + opt_rev(rev) + optional(remote)).check
-
-    def update(rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
+    def command(name: String, args: String = "", options: String = ""): Process_Result =
     {
-      command("update " + options +
-        opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check)).check
+      val cmdline =
+        "\"${HG:-hg}\"" +
+          (if (name == "clone") "" else " --repository " + File.bash_string(root.implode)) +
+          " --noninteractive " + name + " " + options + " " + args
+      ssh match {
+        case None => Isabelle_System.bash(cmdline)
+        case Some(session) => session.execute(cmdline)
+      }
     }
 
-    command("root").check
+    def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
+      hg.command("heads", opt_template(template), options).check.out_lines
+
+    def identify(rev: String = "", options: String = ""): String =
+      hg.command("id", opt_rev(rev), options).check.out_lines.headOption getOrElse ""
+
+    def manifest(rev: String = "", options: String = ""): List[String] =
+      hg.command("manifest", opt_rev(rev), options).check.out_lines
+
+    def log(rev: String = "", template: String = "", options: String = ""): String =
+      hg.command("log", opt_rev(rev) + opt_template(template), options).check.out
+
+    def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
+      hg.command("pull", opt_rev(rev) + optional(remote), options).check
+
+    def update(
+      rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
+    {
+      hg.command("update",
+        opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
+    }
   }
 }
