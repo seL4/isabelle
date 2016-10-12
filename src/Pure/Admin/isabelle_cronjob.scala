@@ -125,8 +125,6 @@ object Isabelle_Cronjob
 
   /** cronjob **/
 
-  private val all_tasks = List(isabelle_identify)
-
   def cronjob(progress: Progress)
   {
     /* soft lock */
@@ -167,7 +165,7 @@ object Isabelle_Cronjob
     /* main */
 
     log_service.run_task(main_start_date,
-      Logger_Task("isabelle_cronjob", _ => parallel_tasks(all_tasks)))
+      Logger_Task("isabelle_cronjob", _ => parallel_tasks(List(isabelle_identify))))
 
     log_service.shutdown()
 
