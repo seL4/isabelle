@@ -317,9 +317,6 @@ object Isabelle_System
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" " + File.bash_path(arg) + " >/dev/null 2>/dev/null &")
 
-  def hg(cmd_line: String, cwd: JFile = null): Process_Result =
-    bash("\"${HG:-hg}\" " + cmd_line, cwd = cwd)
-
 
 
   /** Isabelle resources **/

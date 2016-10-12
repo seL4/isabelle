@@ -24,38 +24,50 @@ object Mercurial
 
   /* repository access */
 
-  def repository(root: Path): Repository = new Repository(root)
+  def repository(root: Path, ssh: Option[SSH.Session] = None): Repository =
+    new Repository(root, ssh)
 
-  class Repository private[Mercurial](val root: Path)
+  class Repository private[Mercurial](val root: Path, ssh: Option[SSH.Session])
   {
-    override def toString: String = root.toString
+    hg =>
 
-    def command(cmd: String, cwd: JFile = null): Process_Result =
-      Isabelle_System.hg("--repository " + File.bash_path(root) + " --noninteractive " + cmd,
-        cwd = cwd)
+    override def toString: String =
+      ssh match {
+        case None => root.implode
+        case Some(session) => quote(session.toString + ":" + root.implode)
+      }
 
+    def command(cmd: String): Process_Result =
+    {
+      val cmdline =
+        "\"${HG:-hg}\" --repository " + File.bash_string(root.implode) + " --noninteractive " + cmd
+      ssh match {
+        case None => Isabelle_System.bash(cmdline)
+        case Some(session) => session.execute(cmdline)
+      }
+    }
 
     def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
-      command("heads " + options + opt_template(template)).check.out_lines
+      hg.command("heads " + options + opt_template(template)).check.out_lines
 
     def identify(rev: String = "", options: String = ""): String =
-      command("id " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
+      hg.command("id " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
 
     def manifest(rev: String = "", options: String = ""): List[String] =
-      command("manifest " + options + opt_rev(rev)).check.out_lines
+      hg.command("manifest " + options + opt_rev(rev)).check.out_lines
 
     def log(rev: String = "", template: String = "", options: String = ""): String =
-      command("log " + options + opt_rev(rev) + opt_template(template)).check.out
+      hg.command("log " + options + opt_rev(rev) + opt_template(template)).check.out
 
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
-      command("pull " + options + opt_rev(rev) + optional(remote)).check
+      hg.command("pull " + options + opt_rev(rev) + optional(remote)).check
 
     def update(rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
     {
-      command("update " + options +
+      hg.command("update " + options +
         opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check)).check
     }
 
-    command("root").check
+    hg.command("root").check
   }
 }
