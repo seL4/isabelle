@@ -370,19 +370,18 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           case _ => getopts.usage()
         }
 
-      using(Mercurial.open_repository(Path.explode(root)))(hg =>
-        {
-          val progress = new Console_Progress(stderr = true)
-          val results =
-            build_history(progress, hg, rev = rev, isabelle_identifier = isabelle_identifier,
-              components_base = components_base, fresh = fresh, nonfree = nonfree,
-              multicore_base = multicore_base, threads_list = threads_list, arch_64 = arch_64,
-              heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
-              max_heap = max_heap, more_settings = more_settings, verbose = verbose,
-              build_args = build_args)
-          val rc = (0 /: results) { case (rc, res) => rc max res.rc }
-          if (rc != 0) sys.exit(rc)
-        })
+      val hg = Mercurial.repository(Path.explode(root))
+      val progress = new Console_Progress(stderr = true)
+      val results =
+        build_history(progress, hg, rev = rev, isabelle_identifier = isabelle_identifier,
+          components_base = components_base, fresh = fresh, nonfree = nonfree,
+          multicore_base = multicore_base, threads_list = threads_list, arch_64 = arch_64,
+          heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
+          max_heap = max_heap, more_settings = more_settings, verbose = verbose,
+          build_args = build_args)
+
+      val rc = (0 /: results) { case (rc, res) => rc max res.rc }
+      if (rc != 0) sys.exit(rc)
     }
   }
 }

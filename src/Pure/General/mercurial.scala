@@ -24,13 +24,11 @@ object Mercurial
 
   /* repository access */
 
-  def open_repository(root: Path): Repository = new Repository(root)
+  def repository(root: Path): Repository = new Repository(root)
 
   class Repository private[Mercurial](val root: Path)
   {
     override def toString: String = root.toString
-
-    def close() { }
 
     def command(cmd: String, cwd: JFile = null): Process_Result =
       Isabelle_System.hg("--repository " + File.bash_path(root) + " --noninteractive " + cmd,

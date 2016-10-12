@@ -44,12 +44,11 @@ object Check_Sources
   def check_hg(root: Path)
   {
     Output.writeln("Checking " + root + " ...")
-    using(Mercurial.open_repository(root)) { hg =>
-      for {
-        file <- hg.manifest()
-        if file.endsWith(".thy") || file.endsWith(".ML") || file.endsWith("/ROOT")
-      } check_file(root + Path.explode(file))
-    }
+    val hg = Mercurial.repository(root)
+    for {
+      file <- hg.manifest()
+      if file.endsWith(".thy") || file.endsWith(".ML") || file.endsWith("/ROOT")
+    } check_file(root + Path.explode(file))
   }
 
 

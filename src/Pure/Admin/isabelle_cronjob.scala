@@ -25,12 +25,11 @@ object Isabelle_Cronjob
   val afp_repos = main_dir + Path.explode("AFP-build_history")
 
   def pull_repos(root: Path): String =
-    using(Mercurial.open_repository(root))(hg =>
-      {
-        hg.pull(options = "-q")
-        hg.identify("tip", options = "-i")
-      })
-
+  {
+    val hg = Mercurial.repository(root)
+    hg.pull(options = "-q")
+    hg.identify("tip", options = "-i")
+  }
 
   /** cronjob **/
 
