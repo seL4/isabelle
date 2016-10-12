@@ -77,23 +77,19 @@ end
 
 lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
-  by (unfold of_nat_def [abs_def]) transfer_prover
+  by (rule transfer_rule_of_nat) transfer_prover+
 
 lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_integer (\<lambda>k :: int. k :: int) (of_int :: int \<Rightarrow> integer)"
 proof -
   have "rel_fun HOL.eq pcr_integer (of_int :: int \<Rightarrow> int) (of_int :: int \<Rightarrow> integer)"
-    by (unfold of_int_of_nat [abs_def]) transfer_prover
+    by (rule transfer_rule_of_int) transfer_prover+
   then show ?thesis by (simp add: id_def)
 qed
 
 lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_integer (numeral :: num \<Rightarrow> int) (numeral :: num \<Rightarrow> integer)"
-proof -
-  have "rel_fun HOL.eq pcr_integer (numeral :: num \<Rightarrow> int) (\<lambda>n. of_int (numeral n))"
-    by transfer_prover
-  then show ?thesis by simp
-qed
+  by (rule transfer_rule_numeral) transfer_prover+
 
 lemma [transfer_rule]:
   "rel_fun HOL.eq (rel_fun HOL.eq pcr_integer) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> int) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> integer)"

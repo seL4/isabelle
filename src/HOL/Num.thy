@@ -6,7 +6,7 @@
 section \<open>Binary Numerals\<close>
 
 theory Num
-  imports BNF_Least_Fixpoint
+  imports BNF_Least_Fixpoint Transfer
 begin
 
 subsection \<open>The \<open>num\<close> type\<close>
@@ -535,7 +535,21 @@ subclass semiring_numeral ..
 lemma of_nat_numeral [simp]: "of_nat (numeral n) = numeral n"
   by (induct n) (simp_all only: numeral.simps numeral_class.numeral.simps of_nat_add of_nat_1)
 
+lemma numeral_unfold_funpow:
+  "numeral k = (op + 1 ^^ numeral k) 0"
+  unfolding of_nat_def [symmetric] by simp
+
 end
+
+lemma transfer_rule_numeral:
+  fixes R :: "'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool"
+  assumes [transfer_rule]: "R 0 0" "R 1 1"
+    "rel_fun R (rel_fun R R) plus plus"
+  shows "rel_fun HOL.eq R numeral numeral"
+  apply (subst (2) numeral_unfold_funpow [abs_def])
+  apply (subst (1) numeral_unfold_funpow [abs_def])
+  apply transfer_prover
+  done
 
 lemma nat_of_num_numeral [code_abbrev]: "nat_of_num = numeral"
 proof
