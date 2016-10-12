@@ -47,7 +47,7 @@ object Mercurial
     override def toString: String =
       ssh match {
         case None => root.implode
-        case Some(session) => quote(session.toString + ":" + root.implode)
+        case Some(session) => session.toString + ":" + root.implode
       }
 
     def command(name: String, args: String = "", options: String = ""): Process_Result =
