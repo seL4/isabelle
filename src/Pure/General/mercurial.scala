@@ -25,7 +25,20 @@ object Mercurial
   /* repository access */
 
   def repository(root: Path, ssh: Option[SSH.Session] = None): Repository =
-    new Repository(root, ssh)
+  {
+    val hg = new Repository(root, ssh)
+    hg.command("root").check
+    hg
+  }
+
+  def clone_repository(
+    source: String, dest: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
+  {
+    val hg = new Repository(dest, ssh)
+    hg.command("clone",
+      File.bash_string(source) + " " + File.bash_string(dest.implode), options).check
+    hg
+  }
 
   class Repository private[Mercurial](val root: Path, ssh: Option[SSH.Session])
   {
@@ -37,10 +50,12 @@ object Mercurial
         case Some(session) => quote(session.toString + ":" + root.implode)
       }
 
-    def command(cmd: String): Process_Result =
+    def command(name: String, args: String = "", options: String = ""): Process_Result =
     {
       val cmdline =
-        "\"${HG:-hg}\" --repository " + File.bash_string(root.implode) + " --noninteractive " + cmd
+        "\"${HG:-hg}\"" +
+          (if (name == "clone") "" else " --repository " + File.bash_string(root.implode)) +
+          " --noninteractive " + name + " " + options + " " + args
       ssh match {
         case None => Isabelle_System.bash(cmdline)
         case Some(session) => session.execute(cmdline)
@@ -48,26 +63,25 @@ object Mercurial
     }
 
     def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
-      hg.command("heads " + options + opt_template(template)).check.out_lines
+      hg.command("heads", opt_template(template), options).check.out_lines
 
     def identify(rev: String = "", options: String = ""): String =
-      hg.command("id " + options + opt_rev(rev)).check.out_lines.headOption getOrElse ""
+      hg.command("id", opt_rev(rev), options).check.out_lines.headOption getOrElse ""
 
     def manifest(rev: String = "", options: String = ""): List[String] =
-      hg.command("manifest " + options + opt_rev(rev)).check.out_lines
+      hg.command("manifest", opt_rev(rev), options).check.out_lines
 
     def log(rev: String = "", template: String = "", options: String = ""): String =
-      hg.command("log " + options + opt_rev(rev) + opt_template(template)).check.out
+      hg.command("log", opt_rev(rev) + opt_template(template), options).check.out
 
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
-      hg.command("pull " + options + opt_rev(rev) + optional(remote)).check
+      hg.command("pull", opt_rev(rev) + optional(remote), options).check
 
-    def update(rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
+    def update(
+      rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
     {
-      hg.command("update " + options +
-        opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check)).check
+      hg.command("update",
+        opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
     }
-
-    hg.command("root").check
   }
 }
