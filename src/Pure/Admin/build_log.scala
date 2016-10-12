@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/build_log.scala
+/*  Title:      Pure/Admin/build_log.scala
     Author:     Makarius
 
 Build log parsing for current and historic formats.

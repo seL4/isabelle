@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/ci_profile.scala
+/*  Title:      Pure/Admin/ci_profile.scala
     Author:     Lars Hupel
 
 Build profile for continuous integration services.

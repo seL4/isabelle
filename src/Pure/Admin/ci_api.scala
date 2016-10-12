@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/ci_api.scala
+/*  Title:      Pure/Admin/ci_api.scala
     Author:     Makarius
 
 API for Isabelle Jenkins continuous integration services.

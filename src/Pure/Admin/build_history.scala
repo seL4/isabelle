@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/build_history.scala
+/*  Title:      Pure/Admin/build_history.scala
     Author:     Makarius
 
 Build other history versions.
