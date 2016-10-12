@@ -15,6 +15,7 @@ package object isabelle
   val space_explode = Library.space_explode _
   val split_lines = Library.split_lines _
   val cat_lines = Library.cat_lines _
+  val terminate_lines = Library.terminate_lines _
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _

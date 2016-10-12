@@ -562,7 +562,7 @@ object Build
                     yield Sessions.write_heap_digest(path)
 
                 File.write_gzip(store.output_dir + Sessions.log_gz(name),
-                  Library.terminate_lines(
+                  terminate_lines(
                     session_sources_stamp(name) ::
                     input_heaps.map(INPUT_HEAP + _) :::
                     heap_stamp.toList.map(OUTPUT_HEAP + _) :::
@@ -575,7 +575,7 @@ object Build
                 (store.output_dir + Sessions.log_gz(name)).file.delete
 
                 File.write(store.output_dir + Sessions.log(name),
-                  Library.terminate_lines(process_result.out_lines))
+                  terminate_lines(process_result.out_lines))
                 progress.echo(name + " FAILED")
                 if (!process_result.interrupted) progress.echo(process_result_tail.out)
 

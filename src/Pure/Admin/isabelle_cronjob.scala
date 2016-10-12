@@ -114,7 +114,7 @@ object Isabelle_Cronjob
         val log_path = log_dir + Build_Log.log_path("isabelle_identify", logger.start_date)
         Isabelle_System.mkdirs(log_path.dir)
         File.write(log_path,
-          Library.terminate_lines(
+          terminate_lines(
             List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
               "",
               "Isabelle version: " + isabelle_id,
