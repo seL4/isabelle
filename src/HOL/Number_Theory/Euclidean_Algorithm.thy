@@ -113,14 +113,14 @@ proof (rule antisym)
   finally show "euclidean_size (a * b) \<le> euclidean_size b" .
 qed
 
-lemma euclidean_size_unit: "is_unit x \<Longrightarrow> euclidean_size x = euclidean_size 1"
-  using euclidean_size_times_unit[of x 1] by simp
+lemma euclidean_size_unit: "is_unit a \<Longrightarrow> euclidean_size a = euclidean_size 1"
+  using euclidean_size_times_unit[of a 1] by simp
 
 lemma unit_iff_euclidean_size: 
-  "is_unit x \<longleftrightarrow> euclidean_size x = euclidean_size 1 \<and> x \<noteq> 0"
+  "is_unit a \<longleftrightarrow> euclidean_size a = euclidean_size 1 \<and> a \<noteq> 0"
 proof safe
-  assume A: "x \<noteq> 0" and B: "euclidean_size x = euclidean_size 1"
-  show "is_unit x" by (rule dvd_euclidean_size_eq_imp_dvd[OF A _ B]) simp_all
+  assume A: "a \<noteq> 0" and B: "euclidean_size a = euclidean_size 1"
+  show "is_unit a" by (rule dvd_euclidean_size_eq_imp_dvd[OF A _ B]) simp_all
 qed (auto intro: euclidean_size_unit)
 
 lemma euclidean_size_times_nonunit:
@@ -138,17 +138,17 @@ proof (rule ccontr)
 qed
 
 lemma dvd_imp_size_le:
-  assumes "x dvd y" "y \<noteq> 0" 
-  shows   "euclidean_size x \<le> euclidean_size y"
+  assumes "a dvd b" "b \<noteq> 0" 
+  shows   "euclidean_size a \<le> euclidean_size b"
   using assms by (auto elim!: dvdE simp: size_mult_mono)
 
 lemma dvd_proper_imp_size_less:
-  assumes "x dvd y" "\<not>y dvd x" "y \<noteq> 0" 
-  shows   "euclidean_size x < euclidean_size y"
+  assumes "a dvd b" "\<not>b dvd a" "b \<noteq> 0" 
+  shows   "euclidean_size a < euclidean_size b"
 proof -
-  from assms(1) obtain z where "y = x * z" by (erule dvdE)
-  hence z: "y = z * x" by (simp add: mult.commute)
-  from z assms have "\<not>is_unit z" by (auto simp: mult.commute mult_unit_dvd_iff)
+  from assms(1) obtain c where "b = a * c" by (erule dvdE)
+  hence z: "b = c * a" by (simp add: mult.commute)
+  from z assms have "\<not>is_unit c" by (auto simp: mult.commute mult_unit_dvd_iff)
   with z assms show ?thesis
     by (auto intro!: euclidean_size_times_nonunit simp: )
 qed
@@ -335,7 +335,7 @@ lemma eq_Lcm_euclI:
           "\<And>A. normalize (lcm A) = lcm A" shows "lcm = Lcm_eucl"
   by (intro ext, rule associated_eqI) (auto simp: assms intro: Lcm_eucl_least)  
 
-lemma Gcd_eucl_dvd: "x \<in> A \<Longrightarrow> Gcd_eucl A dvd x"
+lemma Gcd_eucl_dvd: "a \<in> A \<Longrightarrow> Gcd_eucl A dvd a"
   unfolding Gcd_eucl_def by (auto intro: Lcm_eucl_least)
 
 lemma Gcd_eucl_greatest: "(\<And>x. x \<in> A \<Longrightarrow> d dvd x) \<Longrightarrow> d dvd Gcd_eucl A"
@@ -470,11 +470,11 @@ termination by (relation "measure (\<lambda>(_,b,_,_,_,_). euclidean_size b)") (
 declare euclid_ext_aux.simps [simp del]
 
 lemma euclid_ext_aux_correct:
-  assumes "gcd_eucl r' r = gcd_eucl x y"
-  assumes "s' * x + t' * y = r'"
-  assumes "s * x + t * y = r"
-  shows   "case euclid_ext_aux r' r s' s t' t of (a,b,c) \<Rightarrow>
-             a * x + b * y = c \<and> c = gcd_eucl x y" (is "?P (euclid_ext_aux r' r s' s t' t)")
+  assumes "gcd_eucl r' r = gcd_eucl a b"
+  assumes "s' * a + t' * b = r'"
+  assumes "s * a + t * b = r"
+  shows   "case euclid_ext_aux r' r s' s t' t of (x,y,c) \<Rightarrow>
+             x * a + y * b = c \<and> c = gcd_eucl a b" (is "?P (euclid_ext_aux r' r s' s t' t)")
 using assms
 proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
   case (1 r' r s' s t' t)
@@ -486,14 +486,14 @@ proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
       by (subst euclid_ext_aux.simps) (simp add: Let_def)
     also have "?P \<dots>"
     proof safe
-      have "s' div unit_factor r' * x + t' div unit_factor r' * y = 
-                (s' * x + t' * y) div unit_factor r'"
+      have "s' div unit_factor r' * a + t' div unit_factor r' * b = 
+                (s' * a + t' * b) div unit_factor r'"
         by (cases "r' = 0") (simp_all add: unit_div_commute)
-      also have "s' * x + t' * y = r'" by fact
+      also have "s' * a + t' * b = r'" by fact
       also have "\<dots> div unit_factor r' = normalize r'" by simp
-      finally show "s' div unit_factor r' * x + t' div unit_factor r' * y = normalize r'" .
+      finally show "s' div unit_factor r' * a + t' div unit_factor r' * b = normalize r'" .
     next
-      from "1.prems" True show "normalize r' = gcd_eucl x y" by (simp add: gcd_eucl_0)
+      from "1.prems" True show "normalize r' = gcd_eucl a b" by (simp add: gcd_eucl_0)
     qed
     finally show ?thesis .
   next
@@ -503,13 +503,13 @@ proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
       by (subst euclid_ext_aux.simps) (simp add: Let_def)
     also from "1.prems" False have "?P \<dots>"
     proof (intro "1.IH")
-      have "(s' - r' div r * s) * x + (t' - r' div r * t) * y =
-              (s' * x + t' * y) - r' div r * (s * x + t * y)" by (simp add: algebra_simps)
-      also have "s' * x + t' * y = r'" by fact
-      also have "s * x + t * y = r" by fact
+      have "(s' - r' div r * s) * a + (t' - r' div r * t) * b =
+              (s' * a + t' * b) - r' div r * (s * a + t * b)" by (simp add: algebra_simps)
+      also have "s' * a + t' * b = r'" by fact
+      also have "s * a + t * b = r" by fact
       also have "r' - r' div r * r = r' mod r" using mod_div_equality [of r' r]
         by (simp add: algebra_simps)
-      finally show "(s' - r' div r * s) * x + (t' - r' div r * t) * y = r' mod r" .
+      finally show "(s' - r' div r * s) * a + (t' - r' div r * t) * b = r' mod r" .
     qed (auto simp: gcd_eucl_non_0 algebra_simps div_mod_equality')
     finally show ?thesis .
   qed
@@ -527,19 +527,19 @@ lemma euclid_ext_left_0:
   by (simp add: euclid_ext_def euclid_ext_aux.simps)
 
 lemma euclid_ext_correct':
-  "case euclid_ext x y of (a,b,c) \<Rightarrow> a * x + b * y = c \<and> c = gcd_eucl x y"
+  "case euclid_ext a b of (x,y,c) \<Rightarrow> x * a + y * b = c \<and> c = gcd_eucl a b"
   unfolding euclid_ext_def by (rule euclid_ext_aux_correct) simp_all
 
 lemma euclid_ext_gcd_eucl:
-  "(case euclid_ext x y of (a,b,c) \<Rightarrow> c) = gcd_eucl x y"
-  using euclid_ext_correct'[of x y] by (simp add: case_prod_unfold)
+  "(case euclid_ext a b of (x,y,c) \<Rightarrow> c) = gcd_eucl a b"
+  using euclid_ext_correct'[of a b] by (simp add: case_prod_unfold)
 
 definition euclid_ext' where
-  "euclid_ext' x y = (case euclid_ext x y of (a, b, _) \<Rightarrow> (a, b))"
+  "euclid_ext' a b = (case euclid_ext a b of (x, y, _) \<Rightarrow> (x, y))"
 
 lemma euclid_ext'_correct':
-  "case euclid_ext' x y of (a,b) \<Rightarrow> a * x + b * y = gcd_eucl x y"
-  using euclid_ext_correct'[of x y] by (simp add: case_prod_unfold euclid_ext'_def)
+  "case euclid_ext' a b of (x,y) \<Rightarrow> x * a + y * b = gcd_eucl a b"
+  using euclid_ext_correct'[of a b] by (simp add: case_prod_unfold euclid_ext'_def)
 
 lemma euclid_ext'_0: "euclid_ext' a 0 = (1 div unit_factor a, 0)" 
   by (simp add: euclid_ext'_def euclid_ext_0)
@@ -687,8 +687,8 @@ lemma euclid_ext_gcd' [simp]:
   by (insert euclid_ext_gcd[of a b], drule (1) subst, simp)
 
 lemma euclid_ext_correct:
-  "case euclid_ext x y of (a,b,c) \<Rightarrow> a * x + b * y = c \<and> c = gcd x y"
-  using euclid_ext_correct'[of x y]
+  "case euclid_ext a b of (x,y,c) \<Rightarrow> x * a + y * b = c \<and> c = gcd a b"
+  using euclid_ext_correct'[of a b]
   by (simp add: gcd_gcd_eucl case_prod_unfold)
   
 lemma euclid_ext'_correct:
