@@ -1440,6 +1440,42 @@ lemma tendsto_at_iff_sequentially:
     at_within_def eventually_nhds_within_iff_sequentially comp_def
   by metis
 
+lemma approx_from_above_dense_linorder:
+  fixes x::"'a::{dense_linorder, linorder_topology, first_countable_topology}"
+  assumes "x < y"
+  shows "\<exists>u. (\<forall>n. u n > x) \<and> (u \<longlonglongrightarrow> x)"
+proof -
+  obtain A :: "nat \<Rightarrow> 'a set" where A: "\<And>i. open (A i)" "\<And>i. x \<in> A i"
+                                      "\<And>F. (\<forall>n. F n \<in> A n) \<Longrightarrow> F \<longlonglongrightarrow> x"
+    by (metis first_countable_topology_class.countable_basis)
+  define u where "u = (\<lambda>n. SOME z. z \<in> A n \<and> z > x)"
+  have "\<exists>z. z \<in> U \<and> x < z" if "x \<in> U" "open U" for U
+    using open_right[OF `open U` `x \<in> U` `x < y`]
+    by (meson atLeastLessThan_iff dense less_imp_le subset_eq)
+  then have *: "u n \<in> A n \<and> x < u n" for n
+    using `x \<in> A n` `open (A n)` unfolding u_def by (metis (no_types, lifting) someI_ex)
+  then have "u \<longlonglongrightarrow> x" using A(3) by simp
+  then show ?thesis using * by auto
+qed
+
+lemma approx_from_below_dense_linorder:
+  fixes x::"'a::{dense_linorder, linorder_topology, first_countable_topology}"
+  assumes "x > y"
+  shows "\<exists>u. (\<forall>n. u n < x) \<and> (u \<longlonglongrightarrow> x)"
+proof -
+  obtain A :: "nat \<Rightarrow> 'a set" where A: "\<And>i. open (A i)" "\<And>i. x \<in> A i"
+                                      "\<And>F. (\<forall>n. F n \<in> A n) \<Longrightarrow> F \<longlonglongrightarrow> x"
+    by (metis first_countable_topology_class.countable_basis)
+  define u where "u = (\<lambda>n. SOME z. z \<in> A n \<and> z < x)"
+  have "\<exists>z. z \<in> U \<and> z < x" if "x \<in> U" "open U" for U
+    using open_left[OF `open U` `x \<in> U` `x > y`]
+    by (meson dense greaterThanAtMost_iff less_imp_le subset_eq)
+  then have *: "u n \<in> A n \<and> u n < x" for n
+    using `x \<in> A n` `open (A n)` unfolding u_def by (metis (no_types, lifting) someI_ex)
+  then have "u \<longlonglongrightarrow> x" using A(3) by simp
+  then show ?thesis using * by auto
+qed
+
 
 subsection \<open>Function limit at a point\<close>
 

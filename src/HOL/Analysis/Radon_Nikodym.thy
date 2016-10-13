@@ -44,6 +44,64 @@ proof (rule emeasure_measure_of_sigma)
   qed
 qed fact
 
+text {*An equivalent characterization of sigma-finite spaces is the existence of integrable
+positive functions (or, still equivalently, the existence of a probability measure which is in
+the same measure class as the original measure).*}
+
+lemma (in sigma_finite_measure) obtain_positive_integrable_function:
+  obtains f::"'a \<Rightarrow> real" where
+    "f \<in> borel_measurable M"
+    "\<And>x. f x > 0"
+    "\<And>x. f x \<le> 1"
+    "integrable M f"
+proof -
+  obtain A :: "nat \<Rightarrow> 'a set" where "range A \<subseteq> sets M" "(\<Union>i. A i) = space M" "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
+    using sigma_finite by auto
+  then have [measurable]:"A n \<in> sets M" for n by auto
+  define g where "g = (\<lambda>x. (\<Sum>n. (1/2)^(Suc n) * indicator (A n) x / (1+ measure M (A n))))"
+  have [measurable]: "g \<in> borel_measurable M" unfolding g_def by auto
+  have *: "summable (\<lambda>n. (1/2)^(Suc n) * indicator (A n) x / (1+ measure M (A n)))" for x
+    apply (rule summable_comparison_test'[of "\<lambda>n. (1/2)^(Suc n)" 0])
+    using power_half_series summable_def by (auto simp add: indicator_def divide_simps)
+  have "g x \<le> (\<Sum>n. (1/2)^(Suc n))" for x unfolding g_def
+    apply (rule suminf_le) using * power_half_series summable_def by (auto simp add: indicator_def divide_simps)
+  then have g_le_1: "g x \<le> 1" for x using power_half_series sums_unique by fastforce
+
+  have g_pos: "g x > 0" if "x \<in> space M" for x
+  unfolding g_def proof (subst suminf_pos_iff[OF *[of x]], auto)
+    obtain i where "x \<in> A i" using `(\<Union>i. A i) = space M` `x \<in> space M` by auto
+    then have "0 < (1 / 2) ^ Suc i * indicator (A i) x / (1 + Sigma_Algebra.measure M (A i))"
+      unfolding indicator_def apply (auto simp add: divide_simps) using measure_nonneg[of M "A i"]
+      by (auto, meson add_nonneg_nonneg linorder_not_le mult_nonneg_nonneg zero_le_numeral zero_le_one zero_le_power)
+    then show "\<exists>i. 0 < (1 / 2) ^ i * indicator (A i) x / (2 + 2 * Sigma_Algebra.measure M (A i))"
+      by auto
+  qed
+
+  have "integrable M g"
+  unfolding g_def proof (rule integrable_suminf)
+    fix n
+    show "integrable M (\<lambda>x. (1 / 2) ^ Suc n * indicator (A n) x / (1 + Sigma_Algebra.measure M (A n)))"
+      using `emeasure M (A n) \<noteq> \<infinity>`
+      by (auto intro!: integrable_mult_right integrable_divide_zero integrable_real_indicator simp add: top.not_eq_extremum)
+  next
+    show "AE x in M. summable (\<lambda>n. norm ((1 / 2) ^ Suc n * indicator (A n) x / (1 + Sigma_Algebra.measure M (A n))))"
+      using * by auto
+    show "summable (\<lambda>n. (\<integral>x. norm ((1 / 2) ^ Suc n * indicator (A n) x / (1 + Sigma_Algebra.measure M (A n))) \<partial>M))"
+      apply (rule summable_comparison_test'[of "\<lambda>n. (1/2)^(Suc n)" 0], auto)
+      using power_half_series summable_def apply auto[1]
+      apply (auto simp add: divide_simps) using measure_nonneg[of M] not_less by fastforce
+  qed
+
+  define f where "f = (\<lambda>x. if x \<in> space M then g x else 1)"
+  have "f x > 0" for x unfolding f_def using g_pos by auto
+  moreover have "f x \<le> 1" for x unfolding f_def using g_le_1 by auto
+  moreover have [measurable]: "f \<in> borel_measurable M" unfolding f_def by auto
+  moreover have "integrable M f"
+    apply (subst integrable_cong[of _ _ _ g]) unfolding f_def using `integrable M g` by auto
+  ultimately show "(\<And>f. f \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 < f x) \<Longrightarrow> (\<And>x. f x \<le> 1) \<Longrightarrow> integrable M f \<Longrightarrow> thesis) \<Longrightarrow> thesis"
+    by (meson that)
+qed
+
 lemma (in sigma_finite_measure) Ex_finite_integrable_function:
   "\<exists>h\<in>borel_measurable M. integral\<^sup>N M h \<noteq> \<infinity> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>)"
 proof -
@@ -877,9 +935,6 @@ proof -
     using f by (simp add: nn_integral_density)
   finally show ?thesis by simp
 qed
-
-lemma null_setsD_AE: "N \<in> null_sets M \<Longrightarrow> AE x in M. x \<notin> N"
-  using AE_iff_null_sets[of N M] by auto
 
 lemma (in sigma_finite_measure) RN_deriv_unique:
   assumes f: "f \<in> borel_measurable M"

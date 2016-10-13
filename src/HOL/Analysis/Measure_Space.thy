@@ -1059,6 +1059,11 @@ proof -
   with AE_iff_null[of M P] assms show ?thesis by auto
 qed
 
+lemma AE_E3:
+  assumes "AE x in M. P x"
+  obtains N where "\<And>x. x \<in> space M - N \<Longrightarrow> P x" "N \<in> null_sets M"
+using assms unfolding eventually_ae_filter by auto
+
 lemma AE_I:
   assumes "{x \<in> space M. \<not> P x} \<subseteq> N" "emeasure M N = 0" "N \<in> sets M"
   shows "AE x in M. P x"
@@ -1087,6 +1092,10 @@ proof -
   qed
 qed
 
+text {*The next lemma is convenient to combine with a lemma whose conclusion is of the
+form \<open>AE x in M. P x = Q x\<close>: for such a lemma, there is no \verb+[symmetric]+ variant,
+but using \<open>AE_symmetric[OF...]\<close> will replace it.*}
+
 (* depricated replace by laws about eventually *)
 lemma
   shows AE_iffI: "AE x in M. P x \<Longrightarrow> AE x in M. P x \<longleftrightarrow> Q x \<Longrightarrow> AE x in M. Q x"
@@ -1095,6 +1104,11 @@ lemma
     and AE_conjI: "AE x in M. P x \<Longrightarrow> AE x in M. Q x \<Longrightarrow> AE x in M. P x \<and> Q x"
     and AE_conj_iff[simp]: "(AE x in M. P x \<and> Q x) \<longleftrightarrow> (AE x in M. P x) \<and> (AE x in M. Q x)"
   by auto
+
+lemma AE_symmetric:
+  assumes "AE x in M. P x = Q x"
+  shows "AE x in M. Q x = P x"
+  using assms by auto
 
 lemma AE_impI:
   "(P \<Longrightarrow> AE x in M. Q x) \<Longrightarrow> AE x in M. P \<longrightarrow> Q x"
@@ -1166,6 +1180,10 @@ proof
     unfolding eventually_ae_filter by auto
 qed auto
 
+lemma AE_ball_countable':
+  "(\<And>N. N \<in> I \<Longrightarrow> AE x in M. P N x) \<Longrightarrow> countable I \<Longrightarrow> AE x in M. \<forall>N \<in> I. P N x"
+  unfolding AE_ball_countable by simp
+
 lemma pairwise_alt: "pairwise R S \<longleftrightarrow> (\<forall>x\<in>S. \<forall>y\<in>S-{x}. R x y)"
   by (auto simp add: pairwise_def)
 
@@ -1224,6 +1242,11 @@ lemma emeasure_Collect_eq_AE:
 lemma emeasure_eq_0_AE: "AE x in M. \<not> P x \<Longrightarrow> emeasure M {x\<in>space M. P x} = 0"
   using AE_iff_measurable[OF _ refl, of M "\<lambda>x. \<not> P x"]
   by (cases "{x\<in>space M. P x} \<in> sets M") (simp_all add: emeasure_notin_sets)
+
+lemma emeasure_0_AE:
+  assumes "emeasure M (space M) = 0"
+  shows "AE x in M. P x"
+using eventually_ae_filter assms by blast
 
 lemma emeasure_add_AE:
   assumes [measurable]: "A \<in> sets M" "B \<in> sets M" "C \<in> sets M"
@@ -1326,6 +1349,40 @@ proof -
     show "incseq (\<lambda>n. \<Union>i\<le>n. F i)"
       by (force simp: incseq_def)
   qed
+qed
+
+lemma (in sigma_finite_measure) approx_PInf_emeasure_with_finite:
+  fixes C::real
+  assumes W_meas: "W \<in> sets M"
+      and W_inf: "emeasure M W = \<infinity>"
+  obtains Z where "Z \<in> sets M" "Z \<subseteq> W" "emeasure M Z < \<infinity>" "emeasure M Z > C"
+proof -
+  obtain A :: "nat \<Rightarrow> 'a set"
+    where A: "range A \<subseteq> sets M" "(\<Union>i. A i) = space M" "\<And>i. emeasure M (A i) \<noteq> \<infinity>" "incseq A"
+    using sigma_finite_incseq by blast
+  define B where "B = (\<lambda>i. W \<inter> A i)"
+  have B_meas: "\<And>i. B i \<in> sets M" using W_meas `range A \<subseteq> sets M` B_def by blast
+  have b: "\<And>i. B i \<subseteq> W" using B_def by blast
+
+  { fix i
+    have "emeasure M (B i) \<le> emeasure M (A i)"
+      using A by (intro emeasure_mono) (auto simp: B_def)
+    also have "emeasure M (A i) < \<infinity>"
+      using `\<And>i. emeasure M (A i) \<noteq> \<infinity>` by (simp add: less_top)
+    finally have "emeasure M (B i) < \<infinity>" . }
+  note c = this
+
+  have "W = (\<Union>i. B i)" using B_def `(\<Union>i. A i) = space M` W_meas by auto
+  moreover have "incseq B" using B_def `incseq A` by (simp add: incseq_def subset_eq)
+  ultimately have "(\<lambda>i. emeasure M (B i)) \<longlonglongrightarrow> emeasure M W" using W_meas B_meas
+    by (simp add: B_meas Lim_emeasure_incseq image_subset_iff)
+  then have "(\<lambda>i. emeasure M (B i)) \<longlonglongrightarrow> \<infinity>" using W_inf by simp
+  from order_tendstoD(1)[OF this, of C]
+  obtain i where d: "emeasure M (B i) > C"
+    by (auto simp: eventually_sequentially)
+  have "B i \<in> sets M" "B i \<subseteq> W" "emeasure M (B i) < \<infinity>" "emeasure M (B i) > C"
+    using B_meas b c d by auto
+  then show ?thesis using that by blast
 qed
 
 subsection \<open>Measure space induced by distribution of @{const measurable}-functions\<close>
@@ -1822,6 +1879,88 @@ proof -
       by (simp add: emeasure_eq_measure2)
   qed
   then show ?fm ?m by auto
+qed
+
+lemma suminf_exist_split2:
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
+  assumes "summable f"
+  shows "(\<lambda>n. (\<Sum>k. f(k+n))) \<longlonglongrightarrow> 0"
+by (subst lim_sequentially, auto simp add: dist_norm suminf_exist_split[OF _ assms])
+
+lemma emeasure_union_summable:
+  assumes [measurable]: "\<And>n. A n \<in> sets M"
+    and "\<And>n. emeasure M (A n) < \<infinity>" "summable (\<lambda>n. measure M (A n))"
+  shows "emeasure M (\<Union>n. A n) < \<infinity>" "emeasure M (\<Union>n. A n) \<le> (\<Sum>n. measure M (A n))"
+proof -
+  define B where "B = (\<lambda>N. (\<Union>n\<in>{..<N}. A n))"
+  have [measurable]: "B N \<in> sets M" for N unfolding B_def by auto
+  have "(\<lambda>N. emeasure M (B N)) \<longlonglongrightarrow> emeasure M (\<Union>N. B N)"
+    apply (rule Lim_emeasure_incseq) unfolding B_def by (auto simp add: SUP_subset_mono incseq_def)
+  moreover have "emeasure M (B N) \<le> ennreal (\<Sum>n. measure M (A n))" for N
+  proof -
+    have *: "(\<Sum>n\<in>{..<N}. measure M (A n)) \<le> (\<Sum>n. measure M (A n))"
+      using assms(3) measure_nonneg sum_le_suminf by blast
+
+    have "emeasure M (B N) \<le> (\<Sum>n\<in>{..<N}. emeasure M (A n))"
+      unfolding B_def by (rule emeasure_subadditive_finite, auto)
+    also have "... = (\<Sum>n\<in>{..<N}. ennreal(measure M (A n)))"
+      using assms(2) by (simp add: emeasure_eq_ennreal_measure less_top)
+    also have "... = ennreal (\<Sum>n\<in>{..<N}. measure M (A n))"
+      by auto
+    also have "... \<le> ennreal (\<Sum>n. measure M (A n))"
+      using * by (auto simp: ennreal_leI)
+    finally show ?thesis by simp
+  qed
+  ultimately have "emeasure M (\<Union>N. B N) \<le> ennreal (\<Sum>n. measure M (A n))"
+    by (simp add: Lim_bounded_ereal)
+  then show "emeasure M (\<Union>n. A n) \<le> (\<Sum>n. measure M (A n))"
+    unfolding B_def by (metis UN_UN_flatten UN_lessThan_UNIV)
+  then show "emeasure M (\<Union>n. A n) < \<infinity>"
+    by (auto simp: less_top[symmetric] top_unique)
+qed
+
+lemma borel_cantelli_limsup1:
+  assumes [measurable]: "\<And>n. A n \<in> sets M"
+    and "\<And>n. emeasure M (A n) < \<infinity>" "summable (\<lambda>n. measure M (A n))"
+  shows "limsup A \<in> null_sets M"
+proof -
+  have "emeasure M (limsup A) \<le> 0"
+  proof (rule LIMSEQ_le_const)
+    have "(\<lambda>n. (\<Sum>k. measure M (A (k+n)))) \<longlonglongrightarrow> 0" by (rule suminf_exist_split2[OF assms(3)])
+    then show "(\<lambda>n. ennreal (\<Sum>k. measure M (A (k+n)))) \<longlonglongrightarrow> 0"
+      unfolding ennreal_0[symmetric] by (intro tendsto_ennrealI)
+    have "emeasure M (limsup A) \<le> (\<Sum>k. measure M (A (k+n)))" for n
+    proof -
+      have I: "(\<Union>k\<in>{n..}. A k) = (\<Union>k. A (k+n))" by (auto, metis le_add_diff_inverse2, fastforce)
+      have "emeasure M (limsup A) \<le> emeasure M (\<Union>k\<in>{n..}. A k)"
+        by (rule emeasure_mono, auto simp add: limsup_INF_SUP)
+      also have "... = emeasure M (\<Union>k. A (k+n))"
+        using I by auto
+      also have "... \<le> (\<Sum>k. measure M (A (k+n)))"
+        apply (rule emeasure_union_summable)
+        using assms summable_ignore_initial_segment[OF assms(3), of n] by auto
+      finally show ?thesis by simp
+    qed
+    then show "\<exists>N. \<forall>n\<ge>N. emeasure M (limsup A) \<le> (\<Sum>k. measure M (A (k+n)))"
+      by auto
+  qed
+  then show ?thesis using assms(1) measurable_limsup by auto
+qed
+
+lemma borel_cantelli_AE1:
+  assumes [measurable]: "\<And>n. A n \<in> sets M"
+    and "\<And>n. emeasure M (A n) < \<infinity>" "summable (\<lambda>n. measure M (A n))"
+  shows "AE x in M. eventually (\<lambda>n. x \<in> space M - A n) sequentially"
+proof -
+  have "AE x in M. x \<notin> limsup A"
+    using borel_cantelli_limsup1[OF assms] unfolding eventually_ae_filter by auto
+  moreover
+  {
+    fix x assume "x \<notin> limsup A"
+    then obtain N where "x \<notin> (\<Union>n\<in>{N..}. A n)" unfolding limsup_INF_SUP by blast
+    then have "eventually (\<lambda>n. x \<notin> A n) sequentially" using eventually_sequentially by auto
+  }
+  ultimately show ?thesis by auto
 qed
 
 subsection \<open>Measure spaces with @{term "emeasure M (space M) < \<infinity>"}\<close>

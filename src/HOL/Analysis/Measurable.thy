@@ -636,6 +636,16 @@ proof -
     unfolding pred_restrict_space[OF P_f] by (simp cong: measurable_cong)
 qed
 
+lemma measurable_limsup [measurable (raw)]:
+  assumes [measurable]: "\<And>n. A n \<in> sets M"
+  shows "limsup A \<in> sets M"
+by (subst limsup_INF_SUP, auto)
+
+lemma measurable_liminf [measurable (raw)]:
+  assumes [measurable]: "\<And>n. A n \<in> sets M"
+  shows "liminf A \<in> sets M"
+by (subst liminf_SUP_INF, auto)
+
 hide_const (open) pred
 
 end

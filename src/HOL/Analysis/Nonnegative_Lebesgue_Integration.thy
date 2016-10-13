@@ -9,6 +9,102 @@ theory Nonnegative_Lebesgue_Integration
   imports Measure_Space Borel_Space
 begin
 
+subsection \<open>Approximating functions\<close>
+
+lemma AE_upper_bound_inf_ennreal:
+  fixes F G::"'a \<Rightarrow> ennreal"
+  assumes "\<And>e. (e::real) > 0 \<Longrightarrow> AE x in M. F x \<le> G x + e"
+  shows "AE x in M. F x \<le> G x"
+proof -
+  have "AE x in M. \<forall>n::nat. F x \<le> G x + ennreal (1 / Suc n)"
+    using assms by (auto simp: AE_all_countable)
+  then show ?thesis
+  proof (eventually_elim)
+    fix x assume x: "\<forall>n::nat. F x \<le> G x + ennreal (1 / Suc n)"
+    show "F x \<le> G x"
+    proof (rule ennreal_le_epsilon)
+      fix e :: real assume "0 < e"
+      then obtain n where n: "1 / Suc n < e"
+        by (blast elim: nat_approx_posE)
+      have "F x \<le> G x + 1 / Suc n"
+        using x by simp
+      also have "\<dots> \<le> G x + e"
+        using n by (intro add_mono ennreal_leI) auto
+      finally show "F x \<le> G x + ennreal e" .
+    qed
+  qed
+qed
+
+lemma AE_upper_bound_inf:
+  fixes F G::"'a \<Rightarrow> real"
+  assumes "\<And>e. e > 0 \<Longrightarrow> AE x in M. F x \<le> G x + e"
+  shows "AE x in M. F x \<le> G x"
+proof -
+  have "AE x in M. F x \<le> G x + 1/real (n+1)" for n::nat
+    by (rule assms, auto)
+  then have "AE x in M. \<forall>n::nat \<in> UNIV. F x \<le> G x + 1/real (n+1)"
+    by (rule AE_ball_countable', auto)
+  moreover
+  {
+    fix x assume i: "\<forall>n::nat \<in> UNIV. F x \<le> G x + 1/real (n+1)"
+    have "(\<lambda>n. G x + 1/real (n+1)) \<longlonglongrightarrow> G x + 0"
+      by (rule tendsto_add, simp, rule LIMSEQ_ignore_initial_segment[OF lim_1_over_n, of 1])
+    then have "F x \<le> G x" using i LIMSEQ_le_const by fastforce
+  }
+  ultimately show ?thesis by auto
+qed
+
+lemma not_AE_zero_ennreal_E:
+  fixes f::"'a \<Rightarrow> ennreal"
+  assumes "\<not> (AE x in M. f x = 0)" and [measurable]: "f \<in> borel_measurable M"
+  shows "\<exists>A\<in>sets M. \<exists>e::real>0. emeasure M A > 0 \<and> (\<forall>x \<in> A. f x \<ge> e)"
+proof -
+  { assume "\<not> (\<exists>e::real>0. {x \<in> space M. f x \<ge> e} \<notin> null_sets M)"
+    then have "0 < e \<Longrightarrow> AE x in M. f x \<le> e" for e :: real
+      by (auto simp: not_le less_imp_le dest!: AE_not_in)
+    then have "AE x in M. f x \<le> 0"
+      by (intro AE_upper_bound_inf_ennreal[where G="\<lambda>_. 0"]) simp
+    then have False
+      using assms by auto }
+  then obtain e::real where e: "e > 0" "{x \<in> space M. f x \<ge> e} \<notin> null_sets M" by auto
+  define A where "A = {x \<in> space M. f x \<ge> e}"
+  have 1 [measurable]: "A \<in> sets M" unfolding A_def by auto
+  have 2: "emeasure M A > 0"
+    using e(2) A_def \<open>A \<in> sets M\<close> by auto
+  have 3: "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> e" unfolding A_def by auto
+  show ?thesis using e(1) 1 2 3 by blast
+qed
+
+lemma not_AE_zero_E:
+  fixes f::"'a \<Rightarrow> real"
+  assumes "AE x in M. f x \<ge> 0"
+          "\<not>(AE x in M. f x = 0)"
+      and [measurable]: "f \<in> borel_measurable M"
+  shows "\<exists>A e. A \<in> sets M \<and> e>0 \<and> emeasure M A > 0 \<and> (\<forall>x \<in> A. f x \<ge> e)"
+proof -
+  have "\<exists>e. e > 0 \<and> {x \<in> space M. f x \<ge> e} \<notin> null_sets M"
+  proof (rule ccontr)
+    assume *: "\<not>(\<exists>e. e > 0 \<and> {x \<in> space M. f x \<ge> e} \<notin> null_sets M)"
+    {
+      fix e::real assume "e > 0"
+      then have "{x \<in> space M. f x \<ge> e} \<in> null_sets M" using * by blast
+      then have "AE x in M. x \<notin> {x \<in> space M. f x \<ge> e}" using AE_not_in by blast
+      then have "AE x in M. f x \<le> e" by auto
+    }
+    then have "AE x in M. f x \<le> 0" by (rule AE_upper_bound_inf, auto)
+    then have "AE x in M. f x = 0" using assms(1) by auto
+    then show False using assms(2) by auto
+  qed
+  then obtain e where e: "e>0" "{x \<in> space M. f x \<ge> e} \<notin> null_sets M" by auto
+  define A where "A = {x \<in> space M. f x \<ge> e}"
+  have 1 [measurable]: "A \<in> sets M" unfolding A_def by auto
+  have 2: "emeasure M A > 0"
+    using e(2) A_def \<open>A \<in> sets M\<close> by auto
+  have 3: "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> e" unfolding A_def by auto
+  show ?thesis
+    using e(1) 1 2 3 by blast
+qed
+
 subsection "Simple function"
 
 text \<open>

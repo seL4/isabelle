@@ -1896,6 +1896,9 @@ proof -
     by auto
 qed
 
+text \<open>The next lemmas hold in any second countable linorder (including ennreal or ereal for instance),
+but in the current state they are restricted to reals.\<close>
+
 lemma borel_measurable_mono_on_fnc:
   fixes f :: "real \<Rightarrow> real" and A :: "real set"
   assumes "mono_on f A"
@@ -1906,6 +1909,12 @@ lemma borel_measurable_mono_on_fnc:
               cong: measurable_cong_sets
               intro!: borel_measurable_continuous_on_restrict intro: continuous_within_subset)
   done
+
+lemma borel_measurable_piecewise_mono:
+  fixes f::"real \<Rightarrow> real" and C::"real set set"
+  assumes "countable C" "\<And>c. c \<in> C \<Longrightarrow> c \<in> sets borel" "\<And>c. c \<in> C \<Longrightarrow> mono_on f c" "(\<Union>C) = UNIV"
+  shows "f \<in> borel_measurable borel"
+by (rule measurable_piecewise_restrict[of C], auto intro: borel_measurable_mono_on_fnc simp: assms)
 
 lemma borel_measurable_mono:
   fixes f :: "real \<Rightarrow> real"

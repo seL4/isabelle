@@ -11,6 +11,7 @@ imports
   Random_Permutations
   SPMF
   Stream_Space
+  Conditional_Expectation
 begin
 
 end

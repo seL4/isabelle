@@ -75,7 +75,7 @@ qed (insert f, simp)
 lemma (in real_distribution) cmod_char_le_1: "norm (char M t) \<le> 1"
 proof -
   have "norm (char M t) \<le> (\<integral>x. norm (iexp (t * x)) \<partial>M)"
-    unfolding char_def by (intro integral_norm_bound integrable_iexp) auto
+    unfolding char_def by (intro integral_norm_bound)
   also have "\<dots> \<le> 1"
     by (simp del: of_real_mult)
   finally show ?thesis .
@@ -318,7 +318,7 @@ proof -
   also have "\<dots> = norm ((CLINT x | M. iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
     unfolding char_def by (subst Bochner_Integration.integral_diff[OF integ_iexp]) (auto intro!: integ_c)
   also have "\<dots> \<le> expectation (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_sum integ_c) simp
+    by (intro integral_norm_bound)
   also have "\<dots> \<le> expectation (\<lambda>x. 2 * \<bar>t\<bar> ^ n / fact n * \<bar>x\<bar> ^ n)"
   proof (rule integral_mono)
     show "integrable M (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k\<le>n. c k x)))"
@@ -362,7 +362,7 @@ proof -
   also have "\<dots> = norm ((CLINT x | M. iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
     unfolding char_def by (subst Bochner_Integration.integral_diff[OF integ_iexp]) (auto intro!: integ_c)
   also have "\<dots> \<le> expectation (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_sum integ_c) simp
+    by (rule integral_norm_bound)
   also have "\<dots> \<le> expectation (\<lambda>x. min (2 * \<bar>t * x\<bar>^n / fact n) (\<bar>t * x\<bar>^(Suc n) / fact (Suc n)))"
     (is "_ \<le> expectation ?f")
   proof (rule integral_mono)

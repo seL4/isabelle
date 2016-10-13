@@ -390,7 +390,7 @@ proof -
       by (intro borel_integrable_compact[OF compact_Icc] continuous_at_imp_continuous_on
                 continuous_intros ballI M'.isCont_char continuous_intros)
     have "cmod (CLBINT t:{-d/2..d/2}. 1 - char M' t) \<le> LBINT t:{-d/2..d/2}. cmod (1 - char M' t)"
-      using integral_norm_bound[OF 2] by simp
+      using integral_norm_bound[of _ "\<lambda>x. indicator {u..v} x *\<^sub>R (1 - char M' x)" for u v] by simp
     also have 4: "\<dots> \<le> LBINT t:{-d/2..d/2}. \<epsilon> / 4"
       apply (rule integral_mono [OF 3])
        apply (simp add: emeasure_lborel_Icc_eq)

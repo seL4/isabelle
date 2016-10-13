@@ -1,5 +1,6 @@
 (*  Title:      HOL/Analysis/Set_Integral.thy
     Author:     Jeremy Avigad (CMU), Johannes Hölzl (TUM), Luke Serafin (CMU)
+    Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
 
 Notation and useful facts for working with integrals over a set.
 
@@ -7,7 +8,7 @@ TODO: keep all these? Need unicode translations as well.
 *)
 
 theory Set_Integral
-  imports Bochner_Integration
+  imports Radon_Nikodym
 begin
 
 (*
@@ -523,5 +524,235 @@ lemma set_measurable_continuous_on_ivl:
   shows "set_borel_measurable borel {a..b} f"
   by (rule set_borel_measurable_continuous[OF _ assms]) simp
 
-end
 
+text{* This notation is from Sébastien Gouëzel: His use is not directly in line with the
+notations in this file, they are more in line with sum, and more readable he thinks. *}
+
+abbreviation "set_nn_integral M A f \<equiv> nn_integral M (\<lambda>x. f x * indicator A x)"
+
+syntax
+"_set_nn_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
+("(\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 60)
+
+"_set_lebesgue_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
+("(\<integral>((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 60)
+
+translations
+"\<integral>\<^sup>+x \<in> A. f \<partial>M" == "CONST set_nn_integral M A (\<lambda>x. f)"
+"\<integral>x \<in> A. f \<partial>M" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
+
+lemma nn_integral_disjoint_pair:
+  assumes [measurable]: "f \<in> borel_measurable M"
+          "B \<in> sets M" "C \<in> sets M"
+          "B \<inter> C = {}"
+  shows "(\<integral>\<^sup>+x \<in> B \<union> C. f x \<partial>M) = (\<integral>\<^sup>+x \<in> B. f x \<partial>M) + (\<integral>\<^sup>+x \<in> C. f x \<partial>M)"
+proof -
+  have mes: "\<And>D. D \<in> sets M \<Longrightarrow> (\<lambda>x. f x * indicator D x) \<in> borel_measurable M" by simp
+  have pos: "\<And>D. AE x in M. f x * indicator D x \<ge> 0" using assms(2) by auto
+  have "\<And>x. f x * indicator (B \<union> C) x = f x * indicator B x + f x * indicator C x" using assms(4)
+    by (auto split: split_indicator)
+  then have "(\<integral>\<^sup>+x. f x * indicator (B \<union> C) x \<partial>M) = (\<integral>\<^sup>+x. f x * indicator B x + f x * indicator C x \<partial>M)"
+    by simp
+  also have "... = (\<integral>\<^sup>+x. f x * indicator B x \<partial>M) + (\<integral>\<^sup>+x. f x * indicator C x \<partial>M)"
+    by (rule nn_integral_add) (auto simp add: assms mes pos)
+  finally show ?thesis by simp
+qed
+
+lemma nn_integral_disjoint_pair_countspace:
+  assumes "B \<inter> C = {}"
+  shows "(\<integral>\<^sup>+x \<in> B \<union> C. f x \<partial>count_space UNIV) = (\<integral>\<^sup>+x \<in> B. f x \<partial>count_space UNIV) + (\<integral>\<^sup>+x \<in> C. f x \<partial>count_space UNIV)"
+by (rule nn_integral_disjoint_pair) (simp_all add: assms)
+
+lemma nn_integral_null_delta:
+  assumes "A \<in> sets M" "B \<in> sets M"
+          "(A - B) \<union> (B - A) \<in> null_sets M"
+  shows "(\<integral>\<^sup>+x \<in> A. f x \<partial>M) = (\<integral>\<^sup>+x \<in> B. f x \<partial>M)"
+proof (rule nn_integral_cong_AE, auto simp add: indicator_def)
+  have *: "AE a in M. a \<notin> (A - B) \<union> (B - A)"
+    using assms(3) AE_not_in by blast
+  then show "AE a in M. a \<notin> A \<longrightarrow> a \<in> B \<longrightarrow> f a = 0"
+    by auto
+  show "AE x\<in>A in M. x \<notin> B \<longrightarrow> f x = 0"
+    using * by auto
+qed
+
+lemma nn_integral_disjoint_family:
+  assumes [measurable]: "f \<in> borel_measurable M" "\<And>(n::nat). B n \<in> sets M"
+      and "disjoint_family B"
+  shows "(\<integral>\<^sup>+x \<in> (\<Union>n. B n). f x \<partial>M) = (\<Sum>n. (\<integral>\<^sup>+x \<in> B n. f x \<partial>M))"
+proof -
+  have "(\<integral>\<^sup>+ x. (\<Sum>n. f x * indicator (B n) x) \<partial>M) = (\<Sum>n. (\<integral>\<^sup>+ x. f x * indicator (B n) x \<partial>M))"
+    by (rule nn_integral_suminf) simp
+  moreover have "(\<Sum>n. f x * indicator (B n) x) = f x * indicator (\<Union>n. B n) x" for x
+  proof (cases)
+    assume "x \<in> (\<Union>n. B n)"
+    then obtain n where "x \<in> B n" by blast
+    have a: "finite {n}" by simp
+    have "\<And>i. i \<noteq> n \<Longrightarrow> x \<notin> B i" using `x \<in> B n` assms(3) disjoint_family_on_def
+      by (metis IntI UNIV_I empty_iff)
+    then have "\<And>i. i \<notin> {n} \<Longrightarrow> indicator (B i) x = (0::ennreal)" using indicator_def by simp
+    then have b: "\<And>i. i \<notin> {n} \<Longrightarrow> f x * indicator (B i) x = (0::ennreal)" by simp
+
+    define h where "h = (\<lambda>i. f x * indicator (B i) x)"
+    then have "\<And>i. i \<notin> {n} \<Longrightarrow> h i = 0" using b by simp
+    then have "(\<Sum>i. h i) = (\<Sum>i\<in>{n}. h i)"
+      by (metis sums_unique[OF sums_finite[OF a]])
+    then have "(\<Sum>i. h i) = h n" by simp
+    then have "(\<Sum>n. f x * indicator (B n) x) = f x * indicator (B n) x" using h_def by simp
+    then have "(\<Sum>n. f x * indicator (B n) x) = f x" using `x \<in> B n` indicator_def by simp
+    then show ?thesis using `x \<in> (\<Union>n. B n)` by auto
+  next
+    assume "x \<notin> (\<Union>n. B n)"
+    then have "\<And>n. f x * indicator (B n) x = 0" by simp
+    have "(\<Sum>n. f x * indicator (B n) x) = 0"
+      by (simp add: `\<And>n. f x * indicator (B n) x = 0`)
+    then show ?thesis using `x \<notin> (\<Union>n. B n)` by auto
+  qed
+  ultimately show ?thesis by simp
+qed
+
+lemma nn_set_integral_add:
+  assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+          "A \<in> sets M"
+  shows "(\<integral>\<^sup>+x \<in> A. (f x + g x) \<partial>M) = (\<integral>\<^sup>+x \<in> A. f x \<partial>M) + (\<integral>\<^sup>+x \<in> A. g x \<partial>M)"
+proof -
+  have "(\<integral>\<^sup>+x \<in> A. (f x + g x) \<partial>M) = (\<integral>\<^sup>+x. (f x * indicator A x + g x * indicator A x) \<partial>M)"
+    by (auto simp add: indicator_def intro!: nn_integral_cong)
+  also have "... = (\<integral>\<^sup>+x. f x * indicator A x \<partial>M) + (\<integral>\<^sup>+x. g x * indicator A x \<partial>M)"
+    apply (rule nn_integral_add) using assms(1) assms(2) by auto
+  finally show ?thesis by simp
+qed
+
+lemma nn_set_integral_cong:
+  assumes "AE x in M. f x = g x"
+  shows "(\<integral>\<^sup>+x \<in> A. f x \<partial>M) = (\<integral>\<^sup>+x \<in> A. g x \<partial>M)"
+apply (rule nn_integral_cong_AE) using assms(1) by auto
+
+lemma nn_set_integral_set_mono:
+  "A \<subseteq> B \<Longrightarrow> (\<integral>\<^sup>+ x \<in> A. f x \<partial>M) \<le> (\<integral>\<^sup>+ x \<in> B. f x \<partial>M)"
+by (auto intro!: nn_integral_mono split: split_indicator)
+
+lemma nn_set_integral_mono:
+  assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+          "A \<in> sets M"
+      and "AE x\<in>A in M. f x \<le> g x"
+  shows "(\<integral>\<^sup>+x \<in> A. f x \<partial>M) \<le> (\<integral>\<^sup>+x \<in> A. g x \<partial>M)"
+by (auto intro!: nn_integral_mono_AE split: split_indicator simp: assms)
+
+lemma nn_set_integral_space [simp]:
+  shows "(\<integral>\<^sup>+ x \<in> space M. f x \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M)"
+by (metis (mono_tags, lifting) indicator_simps(1) mult.right_neutral nn_integral_cong)
+
+lemma nn_integral_count_compose_inj:
+  assumes "inj_on g A"
+  shows "(\<integral>\<^sup>+x \<in> A. f (g x) \<partial>count_space UNIV) = (\<integral>\<^sup>+y \<in> g`A. f y \<partial>count_space UNIV)"
+proof -
+  have "(\<integral>\<^sup>+x \<in> A. f (g x) \<partial>count_space UNIV) = (\<integral>\<^sup>+x. f (g x) \<partial>count_space A)"
+    by (auto simp add: nn_integral_count_space_indicator[symmetric])
+  also have "... = (\<integral>\<^sup>+y. f y \<partial>count_space (g`A))"
+    by (simp add: assms nn_integral_bij_count_space inj_on_imp_bij_betw)
+  also have "... = (\<integral>\<^sup>+y \<in> g`A. f y \<partial>count_space UNIV)"
+    by (auto simp add: nn_integral_count_space_indicator[symmetric])
+  finally show ?thesis by simp
+qed
+
+lemma nn_integral_count_compose_bij:
+  assumes "bij_betw g A B"
+  shows "(\<integral>\<^sup>+x \<in> A. f (g x) \<partial>count_space UNIV) = (\<integral>\<^sup>+y \<in> B. f y \<partial>count_space UNIV)"
+proof -
+  have "inj_on g A" using assms bij_betw_def by auto
+  then have "(\<integral>\<^sup>+x \<in> A. f (g x) \<partial>count_space UNIV) = (\<integral>\<^sup>+y \<in> g`A. f y \<partial>count_space UNIV)"
+    by (rule nn_integral_count_compose_inj)
+  then show ?thesis using assms by (simp add: bij_betw_def)
+qed
+
+lemma set_integral_null_delta:
+  fixes f::"_ \<Rightarrow> _ :: {banach, second_countable_topology}"
+  assumes [measurable]: "integrable M f" "A \<in> sets M" "B \<in> sets M"
+    and "(A - B) \<union> (B - A) \<in> null_sets M"
+  shows "(\<integral>x \<in> A. f x \<partial>M) = (\<integral>x \<in> B. f x \<partial>M)"
+proof (rule set_integral_cong_set, auto)
+  have *: "AE a in M. a \<notin> (A - B) \<union> (B - A)"
+    using assms(4) AE_not_in by blast
+  then show "AE x in M. (x \<in> B) = (x \<in> A)"
+    by auto
+qed
+
+lemma set_integral_space:
+  assumes "integrable M f"
+  shows "(\<integral>x \<in> space M. f x \<partial>M) = (\<integral>x. f x \<partial>M)"
+by (metis (mono_tags, lifting) indicator_simps(1) Bochner_Integration.integral_cong real_vector.scale_one)
+
+lemma null_if_pos_func_has_zero_nn_int:
+  fixes f::"'a \<Rightarrow> ennreal"
+  assumes [measurable]: "f \<in> borel_measurable M" "A \<in> sets M"
+    and "AE x\<in>A in M. f x > 0" "(\<integral>\<^sup>+x\<in>A. f x \<partial>M) = 0"
+  shows "A \<in> null_sets M"
+proof -
+  have "AE x in M. f x * indicator A x = 0"
+    by (subst nn_integral_0_iff_AE[symmetric], auto simp add: assms(4))
+  then have "AE x\<in>A in M. False" using assms(3) by auto
+  then show "A \<in> null_sets M" using assms(2) by (simp add: AE_iff_null_sets)
+qed
+
+lemma null_if_pos_func_has_zero_int:
+  assumes [measurable]: "integrable M f" "A \<in> sets M"
+      and "AE x\<in>A in M. f x > 0" "(\<integral>x\<in>A. f x \<partial>M) = (0::real)"
+  shows "A \<in> null_sets M"
+proof -
+  have "AE x in M. indicator A x * f x = 0"
+    apply (subst integral_nonneg_eq_0_iff_AE[symmetric])
+    using assms integrable_mult_indicator[OF `A \<in> sets M` assms(1)] by auto
+  then have "AE x\<in>A in M. f x = 0" by auto
+  then have "AE x\<in>A in M. False" using assms(3) by auto
+  then show "A \<in> null_sets M" using assms(2) by (simp add: AE_iff_null_sets)
+qed
+
+text{*The next lemma is a variant of \<open>density_unique\<close>. Note that it uses the notation
+for nonnegative set integrals introduced earlier.*}
+
+lemma (in sigma_finite_measure) density_unique2:
+  assumes [measurable]: "f \<in> borel_measurable M" "f' \<in> borel_measurable M"
+  assumes density_eq: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+ x \<in> A. f x \<partial>M) = (\<integral>\<^sup>+ x \<in> A. f' x \<partial>M)"
+  shows "AE x in M. f x = f' x"
+proof (rule density_unique)
+  show "density M f = density M f'"
+    by (intro measure_eqI) (auto simp: emeasure_density intro!: density_eq)
+qed (auto simp add: assms)
+
+
+text {* The next lemma implies the same statement for Banach-space valued functions
+using Hahn-Banach theorem and linear forms. Since they are not yet easily available, I
+only formulate it for real-valued functions.*}
+
+lemma density_unique_real:
+  fixes f f'::"_ \<Rightarrow> real"
+  assumes [measurable]: "integrable M f" "integrable M f'"
+  assumes density_eq: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>x \<in> A. f x \<partial>M) = (\<integral>x \<in> A. f' x \<partial>M)"
+  shows "AE x in M. f x = f' x"
+proof -
+  define A where "A = {x \<in> space M. f x < f' x}"
+  then have [measurable]: "A \<in> sets M" by simp
+  have "(\<integral>x \<in> A. (f' x - f x) \<partial>M) = (\<integral>x \<in> A. f' x \<partial>M) - (\<integral>x \<in> A. f x \<partial>M)"
+    using `A \<in> sets M` assms(1) assms(2) integrable_mult_indicator by blast
+  then have "(\<integral>x \<in> A. (f' x - f x) \<partial>M) = 0" using assms(3) by simp
+  then have "A \<in> null_sets M"
+    using A_def null_if_pos_func_has_zero_int[where ?f = "\<lambda>x. f' x - f x" and ?A = A] assms by auto
+  then have "AE x in M. x \<notin> A" by (simp add: AE_not_in)
+  then have *: "AE x in M. f' x \<le> f x" unfolding A_def by auto
+
+
+  define B where "B = {x \<in> space M. f' x < f x}"
+  then have [measurable]: "B \<in> sets M" by simp
+  have "(\<integral>x \<in> B. (f x - f' x) \<partial>M) = (\<integral>x \<in> B. f x \<partial>M) - (\<integral>x \<in> B. f' x \<partial>M)"
+    using `B \<in> sets M` assms(1) assms(2) integrable_mult_indicator by blast
+  then have "(\<integral>x \<in> B. (f x - f' x) \<partial>M) = 0" using assms(3) by simp
+  then have "B \<in> null_sets M"
+    using B_def null_if_pos_func_has_zero_int[where ?f = "\<lambda>x. f x - f' x" and ?A = B] assms by auto
+  then have "AE x in M. x \<notin> B" by (simp add: AE_not_in)
+  then have "AE x in M. f' x \<ge> f x" unfolding B_def by auto
+
+  then show ?thesis using * by auto
+qed
+
+end
