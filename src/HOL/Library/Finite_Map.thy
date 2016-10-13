@@ -407,9 +407,6 @@ lemma fmrestrict_fset_null[simp]: "fmrestrict_fset {||} m = fmempty"
 lemma fmdrop_comm: "fmdrop a (fmdrop b m) = fmdrop b (fmdrop a m)"
 unfolding fmfilter_alt_defs by (rule fmfilter_comm)
 
-lemma fmdrop_fmupd[simp]: "fmdrop x (fmupd x y m) = m"
-oops
-
 lift_definition fmadd :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" (infixl "++\<^sub>f" 100)
   is map_add
   parametric map_add_transfer
