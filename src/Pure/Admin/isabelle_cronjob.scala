@@ -44,7 +44,10 @@ object Isabelle_Cronjob
         val isabelle_id = pull_repos(isabelle_repos)
         val afp_id = pull_repos(afp_repos)
 
-        val log_path = log_dir + Build_Log.log_path("isabelle_identify", logger.start_date)
+        val log_path =
+          main_dir +
+            Build_Log.log_subdir(logger.start_date) +
+            Build_Log.log_filename("isabelle_identify", logger.start_date)
         Isabelle_System.mkdirs(log_path.dir)
         File.write(log_path,
           terminate_lines(
@@ -55,10 +58,19 @@ object Isabelle_Cronjob
       })
 
 
+  /* build_history_base integrity test */
+
+  val build_history_base =
+    Logger_Task("build_history_base", logger =>
+      {
+        error("FIXME")
+      })
+
+
 
   /** task logging **/
 
-  sealed case class Logger_Task(name: String, body: Logger => Unit)
+  sealed case class Logger_Task(name: String = "", body: Logger => Unit)
 
   class Log_Service private[Isabelle_Cronjob](progress: Progress)
   {
@@ -76,8 +88,9 @@ object Isabelle_Cronjob
     val hostname = Isabelle_System.hostname()
 
     def log(date: Date, task_name: String, msg: String): Unit =
-      thread.send(
-        "[" + Build_Log.print_date(date) + ", " + hostname + ", " + task_name + "]: " + msg)
+      if (task_name != "")
+        thread.send(
+          "[" + Build_Log.print_date(date) + ", " + hostname + ", " + task_name + "]: " + msg)
 
     def start_logger(start_date: Date, task_name: String): Logger =
       new Logger(this, start_date, task_name)
@@ -148,15 +161,16 @@ object Isabelle_Cronjob
     File.write(main_state_file, main_start_date + " " + log_service.hostname)
 
 
-    /* manage tasks */
+    /* run tasks */
 
-    def sequential_tasks(tasks: List[Logger_Task])
-    {
-      for (task <- tasks.iterator if !exclude_task(task.name))
-        log_service.run_task(Date.now(), task)
-    }
+    def run(start_date: Date, task: Logger_Task): Unit =
+      log_service.run_task(start_date, task)
 
-    def parallel_tasks(tasks: List[Logger_Task])
+    def run_sequential(tasks: Logger_Task*): Unit =
+      for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "")
+        run(Date.now(), task)
+
+    def run_parallel(tasks: Logger_Task*)
     {
       @tailrec def join(running: List[Task])
       {
@@ -169,16 +183,23 @@ object Isabelle_Cronjob
 
       val start_date = Date.now()
       val running =
-        for (task <- tasks if !exclude_task(task.name))
+        for (task <- tasks.toList if !exclude_task(task.name))
           yield log_service.fork_task(start_date, task)
       join(running)
     }
 
+    def SEQ(tasks: Logger_Task*): Logger_Task =
+      Logger_Task(body = _ => run_sequential(tasks:_*))
+
+    def PAR(tasks: Logger_Task*): Logger_Task =
+      Logger_Task(body = _ => run_parallel(tasks:_*))
+
 
     /* main */
 
-    log_service.run_task(main_start_date,
-      Logger_Task("isabelle_cronjob", _ => parallel_tasks(List(isabelle_identify))))
+    run(main_start_date,
+      Logger_Task("isabelle_cronjob", _ =>
+        run_sequential(isabelle_identify, build_history_base)))
 
     log_service.shutdown()
 

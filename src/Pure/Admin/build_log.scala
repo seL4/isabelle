@@ -27,9 +27,11 @@ object Build_Log
       DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date.rep),
       new java.lang.Long((date.time - date.midnight.time).ms / 1000))
 
-  def log_path(engine: String, date: Date, more: String*): Path =
-    Path.explode(date.rep.getYear.toString) +
-      Path.explode((engine :: log_date(date) :: more.toList).mkString("", "_", ".log"))
+  def log_subdir(date: Date): Path =
+    Path.explode("log") + Path.explode(date.rep.getYear.toString)
+
+  def log_filename(engine: String, date: Date, more: String*): Path =
+    Path.explode((engine :: log_date(date) :: more.toList).mkString("", "_", ".log"))
 
 
   /* log file collections */
