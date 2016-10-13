@@ -17,9 +17,9 @@ import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session,
 
 object SSH
 {
-  /* user@host syntax */
+  /* target machine: user@host syntax */
 
-  object User_Host
+  object Target
   {
     val Pattern = "^([^@]+)@(.+)$".r
 
@@ -30,10 +30,10 @@ object SSH
       }
 
     def unapplySeq(s: String): Option[List[String]] =
-    {
-      val (user, host) = parse(s)
-      Some(List(user, host))
-    }
+      parse(s) match {
+        case (_, "") => None
+        case (user, host) => Some(List(user, host))
+      }
   }
 
   val default_port = 22

@@ -52,7 +52,7 @@ Usage: isabelle remote_dmg [OPTIONS] USER@HOST TAR_GZ_FILE DMG_FILE
         val more_args = getopts(args)
         val (user, host, tar_gz_file, dmg_file) =
           more_args match {
-            case List(SSH.User_Host(user, host), tar_gz_file, dmg_file) =>
+            case List(SSH.Target(user, host), tar_gz_file, dmg_file) =>
               (user, host, Path.explode(tar_gz_file), Path.explode(dmg_file))
             case _ => getopts.usage()
           }
