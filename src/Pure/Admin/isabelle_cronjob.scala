@@ -23,7 +23,40 @@ object Isabelle_Cronjob
   val main_log = log_dir + Path.explode("main.log")  // owned by log service
 
 
-  /* task logging */
+
+  /** particular tasks **/
+
+  /* identify repository snapshots */
+
+  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
+  val afp_repos = main_dir + Path.explode("AFP-build_history")
+
+  val isabelle_identify =
+    Logger_Task("isabelle_identify", logger =>
+      {
+        def pull_repos(root: Path): String =
+        {
+          val hg = Mercurial.repository(root)
+          hg.pull(options = "-q")
+          hg.identify("tip", options = "-i")
+        }
+
+        val isabelle_id = pull_repos(isabelle_repos)
+        val afp_id = pull_repos(afp_repos)
+
+        val log_path = log_dir + Build_Log.log_path("isabelle_identify", logger.start_date)
+        Isabelle_System.mkdirs(log_path.dir)
+        File.write(log_path,
+          terminate_lines(
+            List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
+              "",
+              "Isabelle version: " + isabelle_id,
+              "AFP version: " + afp_id)))
+      })
+
+
+
+  /** task logging **/
 
   sealed case class Logger_Task(name: String, body: Logger => Unit)
 
@@ -88,38 +121,6 @@ object Isabelle_Cronjob
     private val future: Future[Unit] = Future.thread("cronjob: " + name) { body }
     def is_finished: Boolean = future.is_finished
   }
-
-
-
-  /** particular tasks **/
-
-  /* identify repository snapshots */
-
-  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
-  val afp_repos = main_dir + Path.explode("AFP-build_history")
-
-  val isabelle_identify =
-    Logger_Task("isabelle_identify", logger =>
-      {
-        def pull_repos(root: Path): String =
-        {
-          val hg = Mercurial.repository(root)
-          hg.pull(options = "-q")
-          hg.identify("tip", options = "-i")
-        }
-
-        val isabelle_id = pull_repos(isabelle_repos)
-        val afp_id = pull_repos(afp_repos)
-
-        val log_path = log_dir + Build_Log.log_path("isabelle_identify", logger.start_date)
-        Isabelle_System.mkdirs(log_path.dir)
-        File.write(log_path,
-          terminate_lines(
-            List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
-              "",
-              "Isabelle version: " + isabelle_id,
-              "AFP version: " + afp_id)))
-      })
 
 
 
