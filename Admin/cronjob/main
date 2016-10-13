@@ -8,4 +8,5 @@ source "$HOME/.bashrc"
 
 "$THIS/../build" jars_fresh || exit $?
 
-exec "$THIS/../../bin/isabelle_java" "-Duser.timezone=Europe/Berlin" isabelle.Isabelle_Cronjob "$@"
+exec env ISABELLE_IDENTIFIER="cronjob" \
+  "$THIS/../../bin/isabelle_java" "-Duser.timezone=Europe/Berlin" isabelle.Isabelle_Cronjob "$@"
