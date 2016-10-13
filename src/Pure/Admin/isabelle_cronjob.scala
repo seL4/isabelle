@@ -121,7 +121,7 @@ object Isabelle_Cronjob
       val elapsed_time = end_date.time - start_date.time
       val msg =
         (if (err.isEmpty) "finished" else "ERROR " + err.get) +
-        (if (elapsed_time.seconds < 3.0) "" else ", elapsed time " + elapsed_time.message_hms)
+        (if (elapsed_time.seconds < 3.0) "" else " (" + elapsed_time.message_hms + " elapsed time)")
       log(end_date, msg)
     }
 
