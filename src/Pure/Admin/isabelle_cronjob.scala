@@ -125,6 +125,8 @@ object Isabelle_Cronjob
 
   /** cronjob **/
 
+  def init_options(): Options = Options.load(Path.explode("~~/Admin/cronjob/cronjob.options"))
+
   def cronjob(progress: Progress)
   {
     /* soft lock */
