@@ -180,7 +180,7 @@ object Build_History
       /* build */
 
       if (multicore_base && !first_build && isabelle_base_log.is_dir)
-        other_isabelle.copy_dir(isabelle_base_log, isabelle_output_log)
+        Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
       val res =
@@ -236,7 +236,7 @@ object Build_History
       /* next build */
 
       if (multicore_base && first_build && isabelle_output_log.is_dir)
-        other_isabelle.copy_dir(isabelle_output_log, isabelle_base_log)
+        Isabelle_System.copy_dir(isabelle_output_log, isabelle_base_log)
 
       first_build = false
 

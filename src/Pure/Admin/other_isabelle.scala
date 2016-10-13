@@ -21,9 +21,6 @@ private class Other_Isabelle(progress: Progress, isabelle_home: Path, isabelle_i
       progress_stdout = progress.echo_if(echo, _),
       progress_stderr = progress.echo_if(echo, _))
 
-  def copy_dir(dir1: Path, dir2: Path): Unit =
-    bash("cp -a " + File.bash_path(dir1) + " " + File.bash_path(dir2)).check
-
   def apply(cmdline: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
     bash("bin/isabelle " + cmdline, redirect, echo)
 
