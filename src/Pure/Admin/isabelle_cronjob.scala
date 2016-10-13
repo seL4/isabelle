@@ -145,20 +145,25 @@ object Isabelle_Cronjob
     File.write(main_state_file, main_start_date + " " + log_service.hostname)
 
 
-    /* parallel tasks */
+    /* manage tasks */
+
+    def sequential_tasks(tasks: List[Logger_Task])
+    {
+      tasks.map(task => log_service.run_task(Date.now(), task))
+    }
 
     def parallel_tasks(tasks: List[Logger_Task])
     {
-      @tailrec def await(running: List[Task])
+      @tailrec def join(running: List[Task])
       {
         running.partition(_.is_finished) match {
           case (Nil, Nil) =>
-          case (Nil, _ :: _) => Thread.sleep(500); await(running)
-          case (_ :: _, remaining) => await(remaining)
+          case (Nil, _ :: _) => Thread.sleep(500); join(running)
+          case (_ :: _, remaining) => join(remaining)
         }
       }
       val start_date = Date.now()
-      await(tasks.map(task => log_service.fork_task(start_date, task)))
+      join(tasks.map(task => log_service.fork_task(start_date, task)))
     }
 
 
