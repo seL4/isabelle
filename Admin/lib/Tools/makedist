@@ -199,6 +199,9 @@ rm -rf Admin browser_info heaps
 
 ./bin/isabelle java isabelle.NEWS
 
+rmdir "$USER_HOME/.isabelle/${DISTNAME}-build"
+rmdir "$USER_HOME/.isabelle/${DISTNAME}"
+
 
 # create archive
 
