@@ -35,7 +35,7 @@ proof
       then obtain y where "n a = Some y" "A x y"
         unfolding \<open>m a = _\<close>
         by cases auto
-      thus "\<exists>y \<in> ran n. A x y"
+      then show "\<exists>y \<in> ran n. A x y"
         unfolding ran_def by blast
     next
       fix y
@@ -49,7 +49,7 @@ proof
       then obtain x where "m a = Some x" "A x y"
         unfolding \<open>n a = _\<close>
         by cases auto
-      thus "\<exists>x \<in> ran m. A x y"
+      then show "\<exists>x \<in> ran m. A x y"
         unfolding ran_def by blast
     qed
 qed
@@ -65,10 +65,10 @@ proof
     proof -
       from \<open>rel_map A m n\<close> have "rel_option A (m a) (n a)"
         unfolding rel_fun_def by auto
-      thus ?thesis
+      then show ?thesis
         by cases auto
     qed
-  thus "dom m = dom n"
+  then show "dom m = dom n"
     by auto
 qed
 
@@ -102,7 +102,7 @@ proof -
   have "dom (map_filter P m) = Set.filter P (dom m)"
     unfolding map_filter_def Set.filter_def dom_def
     by auto
-  thus ?thesis
+  then show ?thesis
     using assms
     by (simp add: Set.filter_def)
 qed
@@ -261,7 +261,7 @@ proof (rule fmap_ext)
   have "fmlookup m x = None" if "\<not> P x"
     using that assms
     unfolding fmlookup_dom_iff by fastforce
-  thus "fmlookup (fmfilter P m) x = fmlookup m x"
+  then show "fmlookup (fmfilter P m) x = fmlookup m x"
     by simp
 qed
 
@@ -282,7 +282,7 @@ proof (rule fmap_ext)
   have "fmlookup m x = None" if "P x \<noteq> Q x"
     using that assms
     unfolding fmlookup_dom_iff by fastforce
-  thus "fmlookup (fmfilter P m) x = fmlookup (fmfilter Q m) x"
+  then show "fmlookup (fmfilter P m) x = fmlookup (fmfilter Q m) x"
     by auto
 qed
 
@@ -292,7 +292,7 @@ lemma fmfilter_cong'[fundef_cong]:
 proof (rule fmfilter_cong)
   fix x
   assume "x |\<in>| fmdom m"
-  thus "P x = Q x"
+  then show "P x = Q x"
     using assms
     unfolding fmdom'_alt_def fmember.rep_eq
     by auto
@@ -611,26 +611,36 @@ lift_bnf ('a, fmran': 'b) fmap [wits: Map.empty]
       rel: fmrel
   by auto
 
+text \<open>
+  Unfortunately, @{command lift_bnf} doesn't register the definitional theorems. We're doing it
+  manually below.
+\<close>
+
+local_setup \<open>fn lthy =>
+  let
+    val SOME bnf = BNF_Def.bnf_of lthy @{type_name fmap}
+  in
+    lthy
+    |> Local_Theory.note ((@{binding fmmap_def}, []), [BNF_Def.map_def_of_bnf bnf]) |> #2
+    |> Local_Theory.note ((@{binding fmran'_def}, []), BNF_Def.set_defs_of_bnf bnf) |> #2
+    |> Local_Theory.note ((@{binding fmrel_def}, []), [BNF_Def.rel_def_of_bnf bnf]) |> #2
+  end
+\<close>
+
 context includes lifting_syntax begin
 
 lemma fmmap_transfer[transfer_rule]:
   "(op = ===> pcr_fmap op = op = ===> pcr_fmap op = op =) (\<lambda>f. op \<circ> (map_option f)) fmmap"
-apply (tactic \<open>Local_Defs.unfold_tac @{context} [BNF_Def.bnf_of @{context} @{type_name fmap} |> the |> BNF_Def.map_def_of_bnf]\<close>)
-apply (rule rel_funI ext)+
-apply (auto simp: fmap.Abs_fmap_inverse fmap.pcr_cr_eq cr_fmap_def)
-done
+  unfolding fmmap_def
+  by (rule rel_funI ext)+ (auto simp: fmap.Abs_fmap_inverse fmap.pcr_cr_eq cr_fmap_def)
 
 lemma fmran'_transfer[transfer_rule]:
   "(pcr_fmap op = op = ===> op =) (\<lambda>x. UNION (range x) set_option) fmran'"
-apply (tactic \<open>Local_Defs.unfold_tac @{context} (BNF_Def.bnf_of @{context} @{type_name fmap} |> the |> BNF_Def.set_defs_of_bnf)\<close>)
-unfolding fmap.pcr_cr_eq cr_fmap_def
-by fastforce
+  unfolding fmran'_def fmap.pcr_cr_eq cr_fmap_def by fastforce
 
 lemma fmrel_transfer[transfer_rule]:
   "(op = ===> pcr_fmap op = op = ===> pcr_fmap op = op = ===> op =) rel_map fmrel"
-apply (tactic \<open>Local_Defs.unfold_tac @{context} [BNF_Def.bnf_of @{context} @{type_name fmap} |> the |> BNF_Def.rel_def_of_bnf]\<close>)
-unfolding fmap.pcr_cr_eq cr_fmap_def vimage2p_def
-  by fastforce
+  unfolding fmrel_def fmap.pcr_cr_eq cr_fmap_def vimage2p_def by fastforce
 
 end
 
@@ -675,7 +685,7 @@ lemma fmrel_cases[consumes 1]:
 proof -
   from assms have "rel_option P (fmlookup m x) (fmlookup n x)"
     by auto
-  thus thesis
+  then show thesis
     using none some
     by (cases rule: option.rel_cases) auto
 qed
@@ -711,9 +721,7 @@ unfolding fmap.pred_set fmap.set_map
 by simp
 
 lemma fmlookup_map[simp]: "fmlookup (fmmap f m) x = map_option f (fmlookup m x)"
-apply (tactic \<open>Local_Defs.unfold_tac @{context} [BNF_Def.bnf_of @{context} @{type_name fmap} |> the |> BNF_Def.map_def_of_bnf]\<close>)
-apply (auto simp: fmap.Abs_fmap_inverse)
-done
+by transfer' auto
 
 lemma fmpred_map[simp]: "fmpred P (fmmap f m) \<longleftrightarrow> fmpred (\<lambda>k v. P k (f v)) m"
 unfolding fmpred_iff pred_fmap_def fmap.set_map
@@ -758,7 +766,7 @@ instance proof
   fix m n :: "('a, 'b) fmap"
   have "fmrel op = m n \<longleftrightarrow> (m = n)"
     by transfer' (simp add: option.rel_eq rel_fun_eq)
-  thus "equal_class.equal m n \<longleftrightarrow> (m = n)"
+  then show "equal_class.equal m n \<longleftrightarrow> (m = n)"
     unfolding equal_fmap_def
     by (simp add: equal_eq[abs_def])
 qed
