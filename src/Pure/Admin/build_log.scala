@@ -185,6 +185,9 @@ object Build_Log
     def find[A](f: String => Option[A]): Option[A] =
       lines.iterator.map(f).find(_.isDefined).map(_.get)
 
+    def find_line(marker: String): Option[String] =
+      find(Library.try_unprefix(marker, _))
+
     def find_match(regex: Regex): Option[String] =
       lines.iterator.map(regex.unapplySeq(_)).find(res => res.isDefined && res.get.length == 1).
         map(res => res.get.head)
@@ -210,13 +213,17 @@ object Build_Log
       xml_cache.props(XML.Decode.properties(YXML.parse_body(text)))
 
     def filter_props(marker: String): List[Properties.T] =
-      for (line <- lines; s <- Library.try_unprefix(marker, line)) yield parse_props(s)
-
-    def find_line(marker: String): Option[String] =
-      find(Library.try_unprefix(marker, _))
+      for {
+        line <- lines
+        s <- Library.try_unprefix(marker, line)
+        if YXML.detect(s)
+      } yield parse_props(s)
 
     def find_props(marker: String): Option[Properties.T] =
-      find_line(marker).map(parse_props(_))
+      find_line(marker) match {
+        case Some(text) if YXML.detect(text) => Some(parse_props(text))
+        case _ => None
+      }
 
 
     /* parse various formats */
