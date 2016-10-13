@@ -288,7 +288,7 @@ object SSH
     {
       val kind = "exec"
       val channel = session.openChannel(kind).asInstanceOf[ChannelExec]
-      channel.setCommand(command)
+      channel.setCommand("export USER_HOME=\"$HOME\"\n" + command)
       new Exec(this, kind, channel)
     }
 
