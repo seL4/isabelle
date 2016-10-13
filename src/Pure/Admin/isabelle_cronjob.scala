@@ -127,7 +127,7 @@ object Isabelle_Cronjob
 
   def init_options(): Options = Options.load(Path.explode("~~/Admin/cronjob/cronjob.options"))
 
-  def cronjob(progress: Progress)
+  def cronjob(progress: Progress, exclude_task: Set[String])
   {
     /* soft lock */
 
@@ -151,7 +151,8 @@ object Isabelle_Cronjob
 
     def sequential_tasks(tasks: List[Logger_Task])
     {
-      tasks.map(task => log_service.run_task(Date.now(), task))
+      for (task <- tasks.iterator if !exclude_task(task.name))
+        log_service.run_task(Date.now(), task)
     }
 
     def parallel_tasks(tasks: List[Logger_Task])
@@ -164,8 +165,12 @@ object Isabelle_Cronjob
           case (_ :: _, remaining) => join(remaining)
         }
       }
+
       val start_date = Date.now()
-      join(tasks.map(task => log_service.fork_task(start_date, task)))
+      val running =
+        for (task <- tasks if !exclude_task(task.name))
+          yield log_service.fork_task(start_date, task)
+      join(running)
     }
 
 
@@ -188,6 +193,7 @@ object Isabelle_Cronjob
     Command_Line.tool0 {
       var force = false
       var verbose = false
+      var exclude_task = Set.empty[String]
 
       val getopts = Getopts("""
 Usage: Admin/cronjob/main [OPTIONS]
@@ -195,16 +201,18 @@ Usage: Admin/cronjob/main [OPTIONS]
   Options are:
     -f           apply force to do anything
     -v           verbose
+    -x NAME      exclude tasks with this name
 """,
         "f" -> (_ => force = true),
-        "v" -> (_ => verbose = true))
+        "v" -> (_ => verbose = true),
+        "x:" -> (arg => exclude_task += arg))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
       val progress = if (verbose) new Console_Progress() else Ignore_Progress
 
-      if (force) cronjob(progress)
+      if (force) cronjob(progress, exclude_task)
       else error("Need to apply force to do anything")
     }
   }
