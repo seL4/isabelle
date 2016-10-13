@@ -582,7 +582,7 @@ lift_definition fmrel_on_fset :: "'a fset \<Rightarrow> ('b \<Rightarrow> 'c \<R
 lemma fmrel_on_fset_alt_def: "fmrel_on_fset S P m n \<longleftrightarrow> fBall S (\<lambda>x. rel_option P (fmlookup m x) (fmlookup n x))"
 by transfer' (auto simp: rel_map_on_set_def eq_onp_def rel_fun_def)
 
-lemma rel_map_on_fsetI[intro]:
+lemma fmrel_on_fsetI[intro]:
   assumes "\<And>x. x |\<in>| S \<Longrightarrow> rel_option P (fmlookup m x) (fmlookup n x)"
   shows "fmrel_on_fset S P m n"
 using assms
