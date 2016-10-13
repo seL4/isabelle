@@ -77,6 +77,12 @@ object Mercurial
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
       hg.command("pull", opt_rev(rev) + optional(remote), options).check
 
+    def pull_id(remote: String = ""): String =
+    {
+      hg.pull(remote = remote, options = "-q")
+      hg.identify("tip", options = "-i")
+    }
+
     def update(
       rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")
     {

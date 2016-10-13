@@ -28,18 +28,11 @@ object Isabelle_Cronjob
 
   /* identify Isabelle + AFP repository snapshots */
 
-  private def pull_repos(root: Path): String =
-  {
-    val hg = Mercurial.repository(root)
-    hg.pull(options = "-q")
-    hg.identify("tip", options = "-i")
-  }
-
   private val isabelle_identify =
     Logger_Task("isabelle_identify", logger =>
       {
-        val isabelle_id = pull_repos(isabelle_repos)
-        val afp_id = pull_repos(afp_repos)
+        val isabelle_id = Mercurial.repository(isabelle_repos).pull_id()
+        val afp_id = Mercurial.repository(afp_repos).pull_id()
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           terminate_lines(
