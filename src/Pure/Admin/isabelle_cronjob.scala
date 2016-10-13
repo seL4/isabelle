@@ -41,10 +41,7 @@ object Isabelle_Cronjob
         val isabelle_id = pull_repos(isabelle_repos)
         val afp_id = pull_repos(afp_repos)
 
-        val log_dir = main_dir + Build_Log.log_subdir(logger.start_date)
-        Isabelle_System.mkdirs(log_dir)
-
-        File.write(log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
+        File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           terminate_lines(
             List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
               "",
@@ -58,16 +55,13 @@ object Isabelle_Cronjob
   private val build_history_base =
     Logger_Task("build_history_base", logger =>
       {
-        val log_dir = main_dir + Build_Log.log_subdir(logger.start_date)
-        Isabelle_System.mkdirs(log_dir)
-
         for {
           (result, log_path) <-
             Build_History.build_history(Mercurial.repository(isabelle_repos),
               rev = "build_history_base", fresh = true, build_args = List("FOL"))
         } {
           result.check
-          File.copy(log_path, log_dir + log_path.base)
+          File.copy(log_path, logger.log_dir + log_path.base)
         }
       })
 
@@ -131,6 +125,9 @@ object Isabelle_Cronjob
       log(end_date, msg)
     }
 
+    val log_dir: Path = main_dir + Build_Log.log_subdir(start_date)
+
+    Isabelle_System.mkdirs(log_dir)
     log(start_date, "started")
   }
 
