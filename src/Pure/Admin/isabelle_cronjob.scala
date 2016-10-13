@@ -150,51 +150,48 @@ object Isabelle_Cronjob
         error("Isabelle cronjob appears to be still running: " + running)
     }
 
-    val main_start_date = Date.now()
+
+    /* log service */
+
     val log_service = new Log_Service(progress)
 
-    File.write(main_state_file, main_start_date + " " + log_service.hostname)
+    def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
+
+    def run_now(task: Logger_Task) { run(Date.now(), task) }
 
 
-    /* run tasks */
+    /* structured tasks */
 
-    def run(start_date: Date, task: Logger_Task): Unit =
-      log_service.run_task(start_date, task)
-
-    def run_sequential(tasks: Logger_Task*): Unit =
+    def SEQ(tasks: Logger_Task*): Logger_Task = Logger_Task(body = _ =>
       for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "")
-        run(Date.now(), task)
+        run_now(task))
 
-    def run_parallel(tasks: Logger_Task*)
-    {
-      @tailrec def join(running: List[Task])
+    def PAR(tasks: Logger_Task*): Logger_Task = Logger_Task(body = _ =>
       {
-        running.partition(_.is_finished) match {
-          case (Nil, Nil) =>
-          case (Nil, _ :: _) => Thread.sleep(500); join(running)
-          case (_ :: _, remaining) => join(remaining)
+        @tailrec def join(running: List[Task])
+        {
+          running.partition(_.is_finished) match {
+            case (Nil, Nil) =>
+            case (Nil, _ :: _) => Thread.sleep(500); join(running)
+            case (_ :: _, remaining) => join(remaining)
+          }
         }
-      }
-
-      val start_date = Date.now()
-      val running =
-        for (task <- tasks.toList if !exclude_task(task.name))
-          yield log_service.fork_task(start_date, task)
-      join(running)
-    }
-
-    def SEQ(tasks: Logger_Task*): Logger_Task =
-      Logger_Task(body = _ => run_sequential(tasks:_*))
-
-    def PAR(tasks: Logger_Task*): Logger_Task =
-      Logger_Task(body = _ => run_parallel(tasks:_*))
+        val start_date = Date.now()
+        val running =
+          for (task <- tasks.toList if !exclude_task(task.name))
+            yield log_service.fork_task(start_date, task)
+        join(running)
+      })
 
 
     /* main */
 
+    val main_start_date = Date.now()
+    File.write(main_state_file, main_start_date + " " + log_service.hostname)
+
     run(main_start_date,
       Logger_Task("isabelle_cronjob", _ =>
-        run_sequential(isabelle_identify, build_history_base)))
+        run_now(SEQ(isabelle_identify, build_history_base))))
 
     log_service.shutdown()
 
