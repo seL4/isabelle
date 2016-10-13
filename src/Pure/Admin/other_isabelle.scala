@@ -15,11 +15,9 @@ private class Other_Isabelle(progress: Progress, isabelle_home: Path, isabelle_i
   /* static system */
 
   def bash(script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
-    Isabelle_System.bash(
+    progress.bash(
       "export ISABELLE_IDENTIFIER=" + File.bash_string(isabelle_identifier) + "\n" + script,
-      env = null, cwd = isabelle_home.file, redirect = redirect,
-      progress_stdout = progress.echo_if(echo, _),
-      progress_stderr = progress.echo_if(echo, _))
+      env = null, cwd = isabelle_home.file, redirect = redirect)
 
   def apply(cmdline: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
     bash("bin/isabelle " + cmdline, redirect, echo)

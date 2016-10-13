@@ -7,6 +7,9 @@ Progress context for system processes.
 package isabelle
 
 
+import java.io.{File => JFile}
+
+
 class Progress
 {
   def echo(msg: String) {}
@@ -14,6 +17,17 @@ class Progress
   def theory(session: String, theory: String) {}
   def stopped: Boolean = false
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
+
+  def bash(script: String,
+    cwd: JFile = null,
+    env: Map[String, String] = Isabelle_System.settings(),
+    redirect: Boolean = false,
+    echo: Boolean = false): Process_Result =
+  {
+    Isabelle_System.bash(script, cwd = cwd, env = env, redirect = redirect,
+      progress_stdout = echo_if(echo, _),
+      progress_stderr = echo_if(echo, _))
+  }
 }
 
 object Ignore_Progress extends Progress
