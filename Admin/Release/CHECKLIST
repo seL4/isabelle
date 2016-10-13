@@ -78,7 +78,7 @@ Packaging
 
 - fully-automated packaging (e.g. on macbroy2):
 
-  hg up -r DISTNAME && Admin/Release/build -M macbroy30 -O -l -r DISTNAME /home/isabelle/dist
+  hg up -r DISTNAME && Admin/build_release -M macbroy30 -O -l -R DISTNAME /home/isabelle/dist
 
 
 Final release stage
