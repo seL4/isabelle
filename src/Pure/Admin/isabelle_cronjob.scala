@@ -13,43 +13,38 @@ import scala.collection.mutable
 
 object Isabelle_Cronjob
 {
-  /** file-system state: owned by main cronjob **/
+  /* file-system state: owned by main cronjob */
 
   val main_dir = Path.explode("~/cronjob")
-  val run_dir = main_dir + Path.explode("run")
-  val log_dir = main_dir + Path.explode("log")
+  val main_state_file = main_dir + Path.explode("run/main.state")
+  val main_log = main_dir + Path.explode("log/main.log")  // owned by log service
 
-  val main_state_file = run_dir + Path.explode("main.state")
-  val main_log = log_dir + Path.explode("main.log")  // owned by log service
+  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
+  val afp_repos = main_dir + Path.explode("AFP-build_history")
 
 
 
   /** particular tasks **/
 
-  /* identify repository snapshots */
+  /* identify Isabelle + AFP repository snapshots */
 
-  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
-  val afp_repos = main_dir + Path.explode("AFP-build_history")
+  private def pull_repos(root: Path): String =
+  {
+    val hg = Mercurial.repository(root)
+    hg.pull(options = "-q")
+    hg.identify("tip", options = "-i")
+  }
 
-  val isabelle_identify =
+  private val isabelle_identify =
     Logger_Task("isabelle_identify", logger =>
       {
-        def pull_repos(root: Path): String =
-        {
-          val hg = Mercurial.repository(root)
-          hg.pull(options = "-q")
-          hg.identify("tip", options = "-i")
-        }
-
         val isabelle_id = pull_repos(isabelle_repos)
         val afp_id = pull_repos(afp_repos)
 
-        val log_path =
-          main_dir +
-            Build_Log.log_subdir(logger.start_date) +
-            Build_Log.log_filename("isabelle_identify", logger.start_date)
-        Isabelle_System.mkdirs(log_path.dir)
-        File.write(log_path,
+        val log_dir = main_dir + Build_Log.log_subdir(logger.start_date)
+        Isabelle_System.mkdirs(log_dir)
+
+        File.write(log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           terminate_lines(
             List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
               "",
@@ -58,12 +53,22 @@ object Isabelle_Cronjob
       })
 
 
-  /* build_history_base integrity test */
+  /* integrity test of build_history vs. build_history_base */
 
-  val build_history_base =
+  private val build_history_base =
     Logger_Task("build_history_base", logger =>
       {
-        error("FIXME")
+        val log_dir = main_dir + Build_Log.log_subdir(logger.start_date)
+        Isabelle_System.mkdirs(log_dir)
+
+        for {
+          (result, log_path) <-
+            Build_History.build_history(Mercurial.repository(isabelle_repos),
+              rev = "build_history_base", fresh = true, build_args = List("FOL"))
+        } {
+          result.check
+          File.copy(log_path, log_dir + log_path.base)
+        }
       })
 
 

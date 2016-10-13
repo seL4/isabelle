@@ -101,8 +101,8 @@ object Build_History
   private val default_isabelle_identifier = "build_history"
 
   def build_history(
-    progress: Progress,
     hg: Mercurial.Repository,
+    progress: Progress = Ignore_Progress,
     rev: String = default_rev,
     isabelle_identifier: String = default_isabelle_identifier,
     components_base: String = "",
@@ -115,7 +115,7 @@ object Build_History
     max_heap: Option[Int] = None,
     more_settings: List[String] = Nil,
     verbose: Boolean = false,
-    build_args: List[String] = Nil): List[Process_Result] =
+    build_args: List[String] = Nil): List[(Process_Result, Path)] =
   {
     /* sanity checks */
 
@@ -232,8 +232,6 @@ object Build_History
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
           heap_sizes))
 
-      Output.writeln(log_path.implode, stdout = true)
-
 
       /* next build */
 
@@ -242,7 +240,7 @@ object Build_History
 
       first_build = false
 
-      res
+      (res, log_path)
     }
   }
 
@@ -313,14 +311,17 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val hg = Mercurial.repository(Path.explode(root))
       val progress = new Console_Progress(stderr = true)
       val results =
-        build_history(progress, hg, rev = rev, isabelle_identifier = isabelle_identifier,
+        build_history(hg, progress = progress, rev = rev, isabelle_identifier = isabelle_identifier,
           components_base = components_base, fresh = fresh, nonfree = nonfree,
           multicore_base = multicore_base, threads_list = threads_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, more_settings = more_settings, verbose = verbose,
           build_args = build_args)
 
-      val rc = (0 /: results) { case (rc, res) => rc max res.rc }
+      for ((_, log_path) <- results)
+        Output.writeln(log_path.implode, stdout = true)
+
+      val rc = (0 /: results) { case (rc, (res, _)) => rc max res.rc }
       if (rc != 0) sys.exit(rc)
     }
   }
