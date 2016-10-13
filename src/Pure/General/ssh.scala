@@ -114,6 +114,77 @@ object SSH
   }
 
 
+  /* Sftp channel */
+
+  type Attrs = SftpATTRS
+
+  sealed case class Dir_Entry(name: String, attrs: Attrs)
+  {
+    def is_file: Boolean = attrs.isReg
+    def is_dir: Boolean = attrs.isDir
+  }
+
+  class Sftp private[SSH](session: Session, kind: String, channel: ChannelSftp)
+    extends Channel[ChannelSftp](session, kind, channel)
+  {
+    channel.connect(connect_timeout(session.options))
+
+    def home: String = channel.getHome()
+
+    def chmod(permissions: Int, remote_path: String) { channel.chmod(permissions, remote_path) }
+    def mv(remote_path1: String, remote_path2: String): Unit =
+      channel.rename(remote_path1, remote_path2)
+    def rm(remote_path: String) { channel.rm(remote_path) }
+    def mkdir(remote_path: String) { channel.mkdir(remote_path) }
+    def rmdir(remote_path: String) { channel.rmdir(remote_path) }
+
+    def stat(remote_path: String): Dir_Entry =
+      Dir_Entry(remote_path, channel.stat(remote_path))
+
+    def read_dir(remote_path: String): List[Dir_Entry] =
+    {
+      val dir = channel.ls(remote_path)
+      (for {
+        i <- (0 until dir.size).iterator
+        a = dir.get(i).asInstanceOf[AnyRef]
+        name = Untyped.get[String](a, "filename")
+        attrs = Untyped.get[Attrs](a, "attrs")
+        if name != "." && name != ".."
+      } yield Dir_Entry(name, attrs)).toList
+    }
+
+    def find_files(remote_path: String, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
+    {
+      def find(dir: String): List[Dir_Entry] =
+        read_dir(dir).flatMap(entry =>
+          {
+            val file = dir + "/" + entry.name
+            if (entry.is_dir) find(file)
+            else if (pred(entry)) List(entry.copy(name = file))
+            else Nil
+          })
+      find(remote_path)
+    }
+
+    def open_input(remote_path: String): InputStream = channel.get(remote_path)
+    def open_output(remote_path: String): OutputStream = channel.put(remote_path)
+
+    def read_file(remote_path: String, local_path: Path): Unit =
+      channel.get(remote_path, File.platform_path(local_path))
+    def read_bytes(remote_path: String): Bytes =
+      using(open_input(remote_path))(Bytes.read_stream(_))
+    def read(remote_path: String): String =
+      using(open_input(remote_path))(File.read_stream(_))
+
+    def write_file(remote_path: String, local_path: Path): Unit =
+      channel.put(File.platform_path(local_path), remote_path)
+    def write_bytes(remote_path: String, bytes: Bytes): Unit =
+      using(open_output(remote_path))(bytes.write_stream(_))
+    def write(remote_path: String, text: String): Unit =
+      using(open_output(remote_path))(stream => Bytes(text).write_stream(stream))
+  }
+
+
   /* exec channel */
 
   private val exec_wait_delay = Time.seconds(0.3)
@@ -193,77 +264,6 @@ object SSH
   }
 
 
-  /* Sftp channel */
-
-  type Attrs = SftpATTRS
-
-  sealed case class Dir_Entry(name: String, attrs: Attrs)
-  {
-    def is_file: Boolean = attrs.isReg
-    def is_dir: Boolean = attrs.isDir
-  }
-
-  class Sftp private[SSH](session: Session, kind: String, channel: ChannelSftp)
-    extends Channel[ChannelSftp](session, kind, channel)
-  {
-    channel.connect(connect_timeout(session.options))
-
-    def home: String = channel.getHome()
-
-    def chmod(permissions: Int, remote_path: String) { channel.chmod(permissions, remote_path) }
-    def mv(remote_path1: String, remote_path2: String): Unit =
-      channel.rename(remote_path1, remote_path2)
-    def rm(remote_path: String) { channel.rm(remote_path) }
-    def mkdir(remote_path: String) { channel.mkdir(remote_path) }
-    def rmdir(remote_path: String) { channel.rmdir(remote_path) }
-
-    def stat(remote_path: String): Dir_Entry =
-      Dir_Entry(remote_path, channel.stat(remote_path))
-
-    def read_dir(remote_path: String): List[Dir_Entry] =
-    {
-      val dir = channel.ls(remote_path)
-      (for {
-        i <- (0 until dir.size).iterator
-        a = dir.get(i).asInstanceOf[AnyRef]
-        name = Untyped.get[String](a, "filename")
-        attrs = Untyped.get[Attrs](a, "attrs")
-        if name != "." && name != ".."
-      } yield Dir_Entry(name, attrs)).toList
-    }
-
-    def find_files(remote_path: String, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
-    {
-      def find(dir: String): List[Dir_Entry] =
-        read_dir(dir).flatMap(entry =>
-          {
-            val file = dir + "/" + entry.name
-            if (entry.is_dir) find(file)
-            else if (pred(entry)) List(entry.copy(name = file))
-            else Nil
-          })
-      find(remote_path)
-    }
-
-    def open_input(remote_path: String): InputStream = channel.get(remote_path)
-    def open_output(remote_path: String): OutputStream = channel.put(remote_path)
-
-    def read_file(remote_path: String, local_path: Path): Unit =
-      channel.get(remote_path, File.platform_path(local_path))
-    def read_bytes(remote_path: String): Bytes =
-      using(open_input(remote_path))(Bytes.read_stream(_))
-    def read(remote_path: String): String =
-      using(open_input(remote_path))(File.read_stream(_))
-
-    def write_file(remote_path: String, local_path: Path): Unit =
-      channel.put(File.platform_path(local_path), remote_path)
-    def write_bytes(remote_path: String, bytes: Bytes): Unit =
-      using(open_output(remote_path))(bytes.write_stream(_))
-    def write(remote_path: String, text: String): Unit =
-      using(open_output(remote_path))(stream => Bytes(text).write_stream(stream))
-  }
-
-
   /* session */
 
   class Session private[SSH](val options: Options, val session: JSch_Session)
@@ -278,11 +278,12 @@ object SSH
 
     def close() { session.disconnect }
 
-    def execute(command: String,
-        progress_stdout: String => Unit = (_: String) => (),
-        progress_stderr: String => Unit = (_: String) => (),
-        strict: Boolean = true): Process_Result =
-      exec(command).result(progress_stdout, progress_stderr, strict)
+    def sftp(): Sftp =
+    {
+      val kind = "sftp"
+      val channel = session.openChannel(kind).asInstanceOf[ChannelSftp]
+      new Sftp(this, kind, channel)
+    }
 
     def exec(command: String): Exec =
     {
@@ -292,12 +293,11 @@ object SSH
       new Exec(this, kind, channel)
     }
 
-    def sftp(): Sftp =
-    {
-      val kind = "sftp"
-      val channel = session.openChannel(kind).asInstanceOf[ChannelSftp]
-      new Sftp(this, kind, channel)
-    }
+    def execute(command: String,
+        progress_stdout: String => Unit = (_: String) => (),
+        progress_stderr: String => Unit = (_: String) => (),
+        strict: Boolean = true): Process_Result =
+      exec(command).result(progress_stdout, progress_stderr, strict)
 
 
     /* tmp dirs */
