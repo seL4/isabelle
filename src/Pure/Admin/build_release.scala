@@ -92,6 +92,13 @@ object Build_Release
 
     /* minimal website */
 
+    val existing_platform_bundles =
+      for {
+        (a, b) <- all_platform_bundles
+        p = release_info.dist_dir + Path.explode(b)
+        if p.is_file
+      } yield (a, b)
+
     File.write(release_info.dist_dir + Path.explode("index.html"),
 """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
@@ -103,7 +110,7 @@ object Build_Release
 <h1>""" + HTML.output(release_info.name) + """</h1>
 <ul>
 """ +
-  cat_lines(platform_bundles.map({ case (a, b) =>
+  cat_lines(existing_platform_bundles.map({ case (a, b) =>
     "<li><a href=" + quote(HTML.output(a)) + ">" + HTML.output(b) + "</a></li>" })) +
 """
 </ul>
