@@ -211,6 +211,8 @@ object Isabelle_System
 
   /* tmp dirs */
 
+  def rm_tree(root: Path): Unit = rm_tree(root.file)
+
   def rm_tree(root: JFile)
   {
     root.delete

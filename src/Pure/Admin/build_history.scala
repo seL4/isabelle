@@ -119,7 +119,7 @@ object Build_History
   {
     /* sanity checks */
 
-    if (File.eq(Path.explode("~~").file, hg.root.file))
+    if (File.eq(Path.explode("~~"), hg.root))
       error("Repository coincides with ISABELLE_HOME=" + Path.explode("~~").expand)
 
     for (threads <- threads_list if threads < 1) error("Bad threads value < 1: " + threads)
@@ -170,10 +170,10 @@ object Build_History
             "bin/isabelle jedit -b" + (if (fresh) " -f" else ""),
           redirect = true, echo = verbose).check
 
-        Isabelle_System.rm_tree(isabelle_base_log.file)
+        Isabelle_System.rm_tree(isabelle_base_log)
       }
 
-      Isabelle_System.rm_tree(isabelle_output.file)
+      Isabelle_System.rm_tree(isabelle_output)
       Isabelle_System.mkdirs(isabelle_output)
 
 

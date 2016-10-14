@@ -243,13 +243,13 @@ object File
 
   def write_backup(path: Path, text: CharSequence)
   {
-    path.file renameTo path.backup.file
+    mv(path, path.backup)
     write(path, text)
   }
 
   def write_backup2(path: Path, text: CharSequence)
   {
-    path.file renameTo path.backup2.file
+    mv(path, path.backup2)
     write(path, text)
   }
 
@@ -263,11 +263,16 @@ object File
   def append(path: Path, text: CharSequence): Unit = append(path.file, text)
 
 
-  /* copy */
+  /* eq */
 
   def eq(file1: JFile, file2: JFile): Boolean =
     try { java.nio.file.Files.isSameFile(file1.toPath, file2.toPath) }
     catch { case ERROR(_) => false }
+
+  def eq(path1: Path, path2: Path): Boolean = eq(path1.file, path2.file)
+
+
+  /* copy */
 
   def copy(src: JFile, dst: JFile)
   {
@@ -279,4 +284,12 @@ object File
   }
 
   def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
+
+
+  /* move */
+
+  def mv(file1: JFile, file2: JFile): Unit =
+    Files.move(file1.toPath, file2.toPath, StandardCopyOption.REPLACE_EXISTING)
+
+  def mv(path1: Path, path2: Path): Unit = mv(path1.file, path2.file)
 }
