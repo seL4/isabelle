@@ -22,6 +22,8 @@ object Isabelle_Cronjob
   val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
   val afp_repos = main_dir + Path.explode("AFP-build_history")
 
+  val release_snapshot = main_dir + Path.explode("release_snapshot")
+
 
 
   /** particular tasks **/
@@ -57,6 +59,29 @@ object Isabelle_Cronjob
           File.copy(log_path, logger.log_dir + log_path.base)
         }
       })
+
+
+  /* build release from repository snapshot */
+
+  private val build_release =
+    Logger_Task("build_release", logger =>
+      Isabelle_System.with_tmp_dir("isadist")(tmp_dir =>
+        {
+          val base_dir = File.path(tmp_dir)
+
+          val new_snapshot = release_snapshot.ext("new")
+          val old_snapshot = release_snapshot.ext("old")
+
+          Isabelle_System.rm_tree(new_snapshot)
+          Isabelle_System.rm_tree(old_snapshot)
+
+          Build_Release.build_release(base_dir, parallel_jobs = 4,
+            remote_mac = "macbroy30", website = Some(new_snapshot))
+
+          if (release_snapshot.is_dir) File.mv(release_snapshot, old_snapshot)
+          File.mv(new_snapshot, release_snapshot)
+          Isabelle_System.rm_tree(old_snapshot)
+        }))
 
 
 
@@ -191,7 +216,7 @@ object Isabelle_Cronjob
 
     run(main_start_date,
       Logger_Task("isabelle_cronjob", _ =>
-        run_now(SEQ(isabelle_identify, build_history_base))))
+        run_now(SEQ(isabelle_identify, build_history_base, build_release))))
 
     log_service.shutdown()
 
