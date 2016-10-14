@@ -56,7 +56,7 @@ object Build_Release
     val jobs_option = " -j" + parallel_jobs.toString
 
     if (release_info.dist_archive.is_file)
-      progress.echo("Release archive " + release_info.dist_archive + " already exists")
+      progress.echo("### Release archive already exists: " + release_info.dist_archive)
     else {
       progress.echo("Producing release archive " + release_info.dist_archive + " ...")
       progress.bash(
@@ -78,7 +78,7 @@ object Build_Release
               release_info.name + "_dmg.tar.gz"
             else platform_bundle)
       if (bundle_archive.is_file)
-        progress.echo("Application bundle " + bundle_archive + " already exists")
+        progress.echo("### Application bundle already exists: " + bundle_archive)
       else {
         progress.echo("\n*** " + platform_family + ": " + bundle_archive + " ***")
         progress.bash(
@@ -117,7 +117,7 @@ object Build_Release
 
     if (build_library) {
       if (release_info.dist_library_archive.is_file)
-        progress.echo("Library archive " + release_info.dist_library_archive + " already exists")
+        progress.echo("### Library archive already exists: " + release_info.dist_library_archive)
       else {
         progress.bash("\"$ISABELLE_HOME/Admin/Release/build_library\"" + jobs_option + " " +
           File.bash_path(release_info.dist_dir +
