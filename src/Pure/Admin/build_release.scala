@@ -119,7 +119,7 @@ object Build_Release
 <ul>
 """ +
   cat_lines(website_platform_bundles.map({ case (a, b) =>
-    "<li><a href=" + quote(HTML.output(a)) + ">" + HTML.output(b) + "</a></li>" })) +
+    "<li><a href=" + quote(HTML.output(b)) + ">" + HTML.output(Word.capitalize(a)) + "</a></li>" })) +
 """
 </ul>
 </body>
