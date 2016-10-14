@@ -56,6 +56,8 @@ object File
     }
     catch { case _: MalformedURLException => standard_path(name) }
 
+  def path(file: JFile): Path = Path.explode(standard_path(file.getAbsolutePath))
+
 
   /* platform path (Windows or Posix) */
 
