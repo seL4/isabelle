@@ -12,14 +12,14 @@ object Build_Release
   sealed case class Release_Info(
     date: Date, name: String, dist_dir: Path, dist_archive: Path, dist_library_archive: Path)
 
-  private val all_platform_families = List("linux", "windows", "windows64", "macos")
+  private val default_platform_families = List("linux", "windows", "windows64", "macos")
 
   def build_release(base_dir: Path,
     progress: Progress = Ignore_Progress,
     rev: String = "",
     official_release: Boolean = false,
     release_name: String = "",
-    platform_families: List[String] = all_platform_families,
+    platform_families: List[String] = default_platform_families,
     build_library: Boolean = false,
     parallel_jobs: Int = 1,
     remote_mac: String = ""): Release_Info =
@@ -36,15 +36,18 @@ object Build_Release
       Release_Info(date, name, dist_dir, dist_archive, dist_library_archive)
     }
 
-    val all_platform_bundles =
-      Map("linux" -> (release_info.name + "_app.tar.gz"),
+    val main_platform_bundles =
+      List("linux" -> (release_info.name + "_app.tar.gz"),
         "windows" -> (release_info.name + "-win32.exe"),
         "windows64" -> (release_info.name + "-win64.exe"),
         "macos" -> (release_info.name + ".dmg"))
 
+    val fallback_platform_bundles =
+      List("macos" -> (release_info.name + "_dmg.tar.gz"))
+
     val platform_bundles =
       for (platform_family <- platform_families) yield {
-        all_platform_bundles.get(platform_family) match {
+        main_platform_bundles.toMap.get(platform_family) match {
           case None => error("Unknown platform family " + quote(platform_family))
           case Some(bundle) => (platform_family, bundle)
         }
@@ -72,11 +75,9 @@ object Build_Release
 
     for ((platform_family, platform_bundle) <- platform_bundles) {
       val bundle_archive =
-        release_info.dist_dir +
-          Path.explode(
-            if (platform_family == "macos" && remote_mac.isEmpty)
-              release_info.name + "_dmg.tar.gz"
-            else platform_bundle)
+        Path.explode(
+          (if (remote_mac.isEmpty) fallback_platform_bundles.toMap.get(platform_family) else None)
+            getOrElse platform_bundle)
       if (bundle_archive.is_file)
         progress.echo("### Application bundle already exists: " + bundle_archive)
       else {
@@ -93,11 +94,12 @@ object Build_Release
     /* minimal website */
 
     val existing_platform_bundles =
-      for {
-        (a, b) <- all_platform_bundles
-        p = release_info.dist_dir + Path.explode(b)
-        if p.is_file
-      } yield (a, b)
+      Library.distinct(
+        for {
+          (a, b) <- main_platform_bundles ::: fallback_platform_bundles
+          p = release_info.dist_dir + Path.explode(b)
+          if p.is_file
+        } yield (a, b), (x: (String, String), y: (String, String)) => x._1 == y._1)
 
     File.write(release_info.dist_dir + Path.explode("index.html"),
 """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
@@ -149,7 +151,7 @@ object Build_Release
       var release_name = ""
       var parallel_jobs = 1
       var build_library = false
-      var platform_families = all_platform_families
+      var platform_families = default_platform_families
       var rev = ""
 
       val getopts = Getopts("""
@@ -162,7 +164,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
     -p NAMES     platform families (comma separated list, default: """ +
-      all_platform_families.mkString(",") + """)
+      default_platform_families.mkString(",") + """)
     -r REV       Mercurial changeset id (default: RELEASE or tip)
 
   Build Isabelle release in base directory, using the local repository clone.
@@ -183,7 +185,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
       build_release(Path.explode(base_dir), progress = progress, rev = rev,
         official_release = official_release, release_name = release_name,
         platform_families =
-          if (platform_families.isEmpty) all_platform_families else platform_families,
+          if (platform_families.isEmpty) default_platform_families else platform_families,
         build_library = build_library, parallel_jobs = parallel_jobs, remote_mac = remote_mac)
     }
   }
