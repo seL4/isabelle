@@ -124,6 +124,9 @@ object Options
     }
   }
 
+  def load(file: Path): Options =
+    Parser.parse_file(options_syntax, Parser.option_entry, empty, file)
+
   def init_defaults(): Options =
   {
     var options = empty
@@ -197,7 +200,7 @@ final class Options private(
   val options: Map[String, Options.Opt] = Map.empty,
   val section: String = "")
 {
-  override def toString: String = options.iterator.mkString("Options (", ",", ")")
+  override def toString: String = options.iterator.mkString("Options(", ",", ")")
 
   private def print_opt(opt: Options.Opt): String =
     if (opt.public) "public " + opt.print else opt.print

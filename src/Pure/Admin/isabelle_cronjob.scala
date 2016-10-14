@@ -13,19 +13,81 @@ import scala.collection.mutable
 
 object Isabelle_Cronjob
 {
-  /** file-system state: owned by main cronjob **/
+  /* file-system state: owned by main cronjob */
 
   val main_dir = Path.explode("~/cronjob")
-  val run_dir = main_dir + Path.explode("run")
-  val log_dir = main_dir + Path.explode("log")
+  val main_state_file = main_dir + Path.explode("run/main.state")
+  val main_log = main_dir + Path.explode("log/main.log")  // owned by log service
 
-  val main_state_file = run_dir + Path.explode("main.state")
-  val main_log = log_dir + Path.explode("main.log")  // owned by log service
+  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
+  val afp_repos = main_dir + Path.explode("AFP-build_history")
+
+  val release_snapshot = main_dir + Path.explode("release_snapshot")
 
 
-  /* task logging */
 
-  sealed case class Logger_Task(name: String, body: Logger => Unit)
+  /** particular tasks **/
+
+  /* identify Isabelle + AFP repository snapshots */
+
+  private val isabelle_identify =
+    Logger_Task("isabelle_identify", logger =>
+      {
+        val isabelle_id = Mercurial.repository(isabelle_repos).pull_id()
+        val afp_id = Mercurial.repository(afp_repos).pull_id()
+
+        File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
+          terminate_lines(
+            List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
+              "",
+              "Isabelle version: " + isabelle_id,
+              "AFP version: " + afp_id)))
+      })
+
+
+  /* integrity test of build_history vs. build_history_base */
+
+  private val build_history_base =
+    Logger_Task("build_history_base", logger =>
+      {
+        for {
+          (result, log_path) <-
+            Build_History.build_history(Mercurial.repository(isabelle_repos),
+              rev = "build_history_base", fresh = true, build_args = List("FOL"))
+        } {
+          result.check
+          File.copy(log_path, logger.log_dir + log_path.base)
+        }
+      })
+
+
+  /* build release from repository snapshot */
+
+  private val build_release =
+    Logger_Task("build_release", logger =>
+      Isabelle_System.with_tmp_dir("isadist")(tmp_dir =>
+        {
+          val base_dir = File.path(tmp_dir)
+
+          val new_snapshot = release_snapshot.ext("new")
+          val old_snapshot = release_snapshot.ext("old")
+
+          Isabelle_System.rm_tree(new_snapshot)
+          Isabelle_System.rm_tree(old_snapshot)
+
+          Build_Release.build_release(base_dir, parallel_jobs = 4,
+            remote_mac = "macbroy30", website = Some(new_snapshot))
+
+          if (release_snapshot.is_dir) File.mv(release_snapshot, old_snapshot)
+          File.mv(new_snapshot, release_snapshot)
+          Isabelle_System.rm_tree(old_snapshot)
+        }))
+
+
+
+  /** task logging **/
+
+  sealed case class Logger_Task(name: String = "", body: Logger => Unit)
 
   class Log_Service private[Isabelle_Cronjob](progress: Progress)
   {
@@ -43,8 +105,9 @@ object Isabelle_Cronjob
     val hostname = Isabelle_System.hostname()
 
     def log(date: Date, task_name: String, msg: String): Unit =
-      thread.send(
-        "[" + Build_Log.print_date(date) + ", " + hostname + ", " + task_name + "]: " + msg)
+      if (task_name != "")
+        thread.send(
+          "[" + Build_Log.print_date(date) + ", " + hostname + ", " + task_name + "]: " + msg)
 
     def start_logger(start_date: Date, task_name: String): Logger =
       new Logger(this, start_date, task_name)
@@ -76,10 +139,13 @@ object Isabelle_Cronjob
       val elapsed_time = end_date.time - start_date.time
       val msg =
         (if (err.isEmpty) "finished" else "ERROR " + err.get) +
-        (if (elapsed_time.seconds < 3.0) "" else ", elapsed time " + elapsed_time.message_hms)
+        (if (elapsed_time.seconds < 3.0) "" else " (" + elapsed_time.message_hms + " elapsed time)")
       log(end_date, msg)
     }
 
+    val log_dir: Path = main_dir + Build_Log.log_subdir(start_date)
+
+    Isabelle_System.mkdirs(log_dir)
     log(start_date, "started")
   }
 
@@ -91,41 +157,11 @@ object Isabelle_Cronjob
 
 
 
-  /** particular tasks **/
-
-  /* identify repository snapshots */
-
-  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
-  val afp_repos = main_dir + Path.explode("AFP-build_history")
-
-  val isabelle_identify =
-    Logger_Task("isabelle_identify", logger =>
-      {
-        def pull_repos(root: Path): String =
-        {
-          val hg = Mercurial.repository(root)
-          hg.pull(options = "-q")
-          hg.identify("tip", options = "-i")
-        }
-
-        val isabelle_id = pull_repos(isabelle_repos)
-        val afp_id = pull_repos(afp_repos)
-
-        val log_path = log_dir + Build_Log.log_path("isabelle_identify", logger.start_date)
-        Isabelle_System.mkdirs(log_path.dir)
-        File.write(log_path,
-          terminate_lines(
-            List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
-              "",
-              "Isabelle version: " + isabelle_id,
-              "AFP version: " + afp_id)))
-      })
-
-
-
   /** cronjob **/
 
-  def cronjob(progress: Progress)
+  def init_options(): Options = Options.load(Path.explode("~~/Admin/cronjob/cronjob.options"))
+
+  def cronjob(progress: Progress, exclude_task: Set[String])
   {
     /* soft lock */
 
@@ -139,33 +175,48 @@ object Isabelle_Cronjob
         error("Isabelle cronjob appears to be still running: " + running)
     }
 
-    val main_start_date = Date.now()
+
+    /* log service */
+
     val log_service = new Log_Service(progress)
 
-    File.write(main_state_file, main_start_date + " " + log_service.hostname)
+    def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
+
+    def run_now(task: Logger_Task) { run(Date.now(), task) }
 
 
-    /* parallel tasks */
+    /* structured tasks */
 
-    def parallel_tasks(tasks: List[Logger_Task])
-    {
-      @tailrec def await(running: List[Task])
+    def SEQ(tasks: Logger_Task*): Logger_Task = Logger_Task(body = _ =>
+      for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "")
+        run_now(task))
+
+    def PAR(tasks: Logger_Task*): Logger_Task = Logger_Task(body = _ =>
       {
-        running.partition(_.is_finished) match {
-          case (Nil, Nil) =>
-          case (Nil, _ :: _) => Thread.sleep(500); await(running)
-          case (_ :: _, remaining) => await(remaining)
+        @tailrec def join(running: List[Task])
+        {
+          running.partition(_.is_finished) match {
+            case (Nil, Nil) =>
+            case (Nil, _ :: _) => Thread.sleep(500); join(running)
+            case (_ :: _, remaining) => join(remaining)
+          }
         }
-      }
-      val start_date = Date.now()
-      await(tasks.map(task => log_service.fork_task(start_date, task)))
-    }
+        val start_date = Date.now()
+        val running =
+          for (task <- tasks.toList if !exclude_task(task.name))
+            yield log_service.fork_task(start_date, task)
+        join(running)
+      })
 
 
     /* main */
 
-    log_service.run_task(main_start_date,
-      Logger_Task("isabelle_cronjob", _ => parallel_tasks(List(isabelle_identify))))
+    val main_start_date = Date.now()
+    File.write(main_state_file, main_start_date + " " + log_service.hostname)
+
+    run(main_start_date,
+      Logger_Task("isabelle_cronjob", _ =>
+        run_now(SEQ(isabelle_identify, build_history_base, build_release))))
 
     log_service.shutdown()
 
@@ -181,6 +232,7 @@ object Isabelle_Cronjob
     Command_Line.tool0 {
       var force = false
       var verbose = false
+      var exclude_task = Set.empty[String]
 
       val getopts = Getopts("""
 Usage: Admin/cronjob/main [OPTIONS]
@@ -188,16 +240,18 @@ Usage: Admin/cronjob/main [OPTIONS]
   Options are:
     -f           apply force to do anything
     -v           verbose
+    -x NAME      exclude tasks with this name
 """,
         "f" -> (_ => force = true),
-        "v" -> (_ => verbose = true))
+        "v" -> (_ => verbose = true),
+        "x:" -> (arg => exclude_task += arg))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
       val progress = if (verbose) new Console_Progress() else Ignore_Progress
 
-      if (force) cronjob(progress)
+      if (force) cronjob(progress, exclude_task)
       else error("Need to apply force to do anything")
     }
   }

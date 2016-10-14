@@ -204,21 +204,21 @@ object Library
     else if (xs.isEmpty) ys
     else ys.foldRight(xs)(Library.insert(_)(_))
 
-  def distinct[A](xs: List[A]): List[A] =
+  def distinct[A](xs: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[A] =
   {
     val result = new mutable.ListBuffer[A]
-    xs.foreach(x => if (!result.contains(x)) result += x)
+    xs.foreach(x => if (!result.exists(y => eq(x, y))) result += x)
     result.toList
   }
 
-  def duplicates[A](lst: List[A]): List[A] =
+  def duplicates[A](lst: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[A] =
   {
     val result = new mutable.ListBuffer[A]
     @tailrec def dups(rest: List[A]): Unit =
       rest match {
         case Nil =>
         case x :: xs =>
-          if (!result.contains(x) && xs.contains(x)) result += x
+          if (!result.exists(y => eq(x, y)) && xs.exists(y => eq(x, y))) result += x
           dups(xs)
       }
     dups(lst)
