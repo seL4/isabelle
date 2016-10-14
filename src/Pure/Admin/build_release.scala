@@ -59,9 +59,9 @@ object Build_Release
     val jobs_option = " -j" + parallel_jobs.toString
 
     if (release_info.dist_archive.is_file)
-      progress.echo("### Release archive already exists: " + release_info.dist_archive)
+      progress.echo("### Release archive already exists: " + release_info.dist_archive.implode)
     else {
-      progress.echo("Producing release archive " + release_info.dist_archive + " ...")
+      progress.echo("Producing release archive " + release_info.dist_archive.implode + " ...")
       progress.bash(
         "isabelle makedist -d " + File.bash_path(base_dir) + jobs_option +
           (if (official_release) " -O" else "") +
@@ -79,9 +79,9 @@ object Build_Release
           (if (remote_mac.isEmpty) fallback_platform_bundles.toMap.get(platform_family) else None)
             getOrElse platform_bundle)
       if (bundle_archive.is_file)
-        progress.echo("### Application bundle already exists: " + bundle_archive)
+        progress.echo("### Application bundle already exists: " + bundle_archive.implode)
       else {
-        progress.echo("\n*** " + platform_family + ": " + bundle_archive + " ***")
+        progress.echo("\nApplication bundle for " + platform_family + ": " + bundle_archive.implode)
         progress.bash(
           "isabelle makedist_bundle " + File.bash_path(release_info.dist_archive) +
             " " + File.bash_string(platform_family) +
@@ -126,7 +126,8 @@ object Build_Release
 
     if (build_library) {
       if (release_info.dist_library_archive.is_file)
-        progress.echo("### Library archive already exists: " + release_info.dist_library_archive)
+        progress.echo("### Library archive already exists: " +
+          release_info.dist_library_archive.implode)
       else {
         progress.bash("\"$ISABELLE_HOME/Admin/Release/build_library\"" + jobs_option + " " +
           File.bash_path(release_info.dist_dir +
