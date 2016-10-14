@@ -20,6 +20,7 @@ object Build_Release
     official_release: Boolean = false,
     release_name: String = "",
     platform_families: List[String] = default_platform_families,
+    website: Option[Path] = None,
     build_library: Boolean = false,
     parallel_jobs: Int = 1,
     remote_mac: String = ""): Release_Info =
@@ -94,15 +95,19 @@ object Build_Release
 
     /* minimal website */
 
-    val existing_platform_bundles =
-      Library.distinct(
-        for {
-          (a, b) <- main_platform_bundles ::: fallback_platform_bundles
-          p = release_info.dist_dir + Path.explode(b)
-          if p.is_file
-        } yield (a, b), (x: (String, String), y: (String, String)) => x._1 == y._1)
+    website.foreach(dir =>
+      {
+        val website_platform_bundles =
+          Library.distinct(
+            for {
+              (a, b) <- main_platform_bundles ::: fallback_platform_bundles
+              p = release_info.dist_dir + Path.explode(b)
+              if p.is_file
+            } yield (a, b), (x: (String, String), y: (String, String)) => x._1 == y._1)
 
-    File.write(release_info.dist_dir + Path.explode("index.html"),
+        Isabelle_System.mkdirs(dir)
+
+        File.write(dir + Path.explode("index.html"),
 """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
 <head>
@@ -113,7 +118,7 @@ object Build_Release
 <h1>""" + HTML.output(release_info.name) + """</h1>
 <ul>
 """ +
-  cat_lines(existing_platform_bundles.map({ case (a, b) =>
+  cat_lines(website_platform_bundles.map({ case (a, b) =>
     "<li><a href=" + quote(HTML.output(a)) + ">" + HTML.output(b) + "</a></li>" })) +
 """
 </ul>
@@ -121,6 +126,9 @@ object Build_Release
 
 </html>
 """)
+        for ((_, b) <- website_platform_bundles)
+          File.copy(release_info.dist_dir + Path.explode(b), dir)
+      })
 
 
     /* HTML library */
@@ -151,6 +159,7 @@ object Build_Release
       var remote_mac = ""
       var official_release = false
       var release_name = ""
+      var website: Option[Path] = None
       var parallel_jobs = 1
       var build_library = false
       var platform_families = default_platform_families
@@ -163,6 +172,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -M USER@HOST remote Mac OS X for dmg build
     -O           official release (not release-candidate)
     -R RELEASE   proper release with name
+    -W WEBSITE   produce minimal website in given directory
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
     -p NAMES     platform families (comma separated list, default: """ +
@@ -174,6 +184,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "M:" -> (arg => remote_mac = arg),
         "O" -> (_ => official_release = true),
         "R:" -> (arg => release_name = arg),
+        "W:" -> (arg => website = Some(Path.explode(arg))),
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
         "l" -> (_ => build_library),
         "p:" -> (arg => platform_families = Library.space_explode(',', arg)),
@@ -185,7 +196,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
       val progress = new Console_Progress()
 
       build_release(Path.explode(base_dir), progress = progress, rev = rev,
-        official_release = official_release, release_name = release_name,
+        official_release = official_release, release_name = release_name, website = website,
         platform_families =
           if (platform_families.isEmpty) default_platform_families else platform_families,
         build_library = build_library, parallel_jobs = parallel_jobs, remote_mac = remote_mac)
