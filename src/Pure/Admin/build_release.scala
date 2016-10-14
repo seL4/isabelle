@@ -9,6 +9,9 @@ package isabelle
 
 object Build_Release
 {
+  sealed case class Release_Info(
+    date: Date, name: String, dist_dir: Path, dist_archive: Path, dist_library_archive: Path)
+
   def build_release(base_dir: Path,
     progress: Progress = Ignore_Progress,
     rev: String = "",
@@ -16,58 +19,82 @@ object Build_Release
     release_name: String = "",
     build_library: Boolean = false,
     parallel_jobs: Int = 1,
-    remote_mac: String = "")
+    remote_mac: String = ""): Release_Info =
   {
     /* release info */
 
-    val release_date = Date.now()
-
-    val distribution_name =
-      if (release_name != "") release_name
-      else "Isabelle_" + Date.Format.date(release_date)
-
-    val distribution_dir = base_dir + Path.explode("dist-" + distribution_name)
+    val release_info =
+    {
+      val date = Date.now()
+      val name = if (release_name != "") release_name else "Isabelle_" + Date.Format.date(date)
+      val dist_dir = base_dir + Path.explode("dist-" + name)
+      val dist_archive = dist_dir + Path.explode(name + ".tar.gz")
+      val dist_library_archive = dist_dir + Path.explode(name + "_library.tar.gz")
+      Release_Info(date, name, dist_dir, dist_archive, dist_library_archive)
+    }
 
 
     /* make distribution */
 
-    progress.bash(
-      "isabelle makedist -d " + File.bash_path(base_dir) + " -j" + parallel_jobs.toString +
-        (if (official_release) " -O" else "") +
-        (if (release_name != "") " -r " + File.bash_string(release_name) else "") +
-        (if (rev != "") " " + File.bash_string(rev) else ""),
-      echo = true).check
+    val jobs_option = " -j" + parallel_jobs.toString
+
+    if (release_info.dist_archive.is_file)
+      progress.echo("Release archive " + release_info.dist_archive + " already exists")
+    else {
+      progress.echo("Producing release archive " + release_info.dist_archive + " ...")
+      progress.bash(
+        "isabelle makedist -d " + File.bash_path(base_dir) + jobs_option +
+          (if (official_release) " -O" else "") +
+          (if (release_name != "") " -r " + File.bash_string(release_name) else "") +
+          (if (rev != "") " " + File.bash_string(rev) else ""),
+        echo = true).check
+    }
 
 
     /* make application bundles */
 
-    for (platform_family <- List("linux", "windows", "windows64", "macos")) {
-      progress.echo("\n*** " + platform_family + " ***")
-      progress.bash(
-        "isabelle makedist_bundle " +
-          File.bash_path(distribution_dir + Path.explode(distribution_name + ".tar.gz")) +
-          " " + File.bash_string(platform_family) +
-          (if (remote_mac == "") "" else " " + File.bash_string(remote_mac)),
-        echo = true).check
+    val platform_bundles =
+      List("linux" -> (release_info.name + "_app.tar.gz"),
+        "windows" -> (release_info.name + "-win32.exe"),
+        "windows64" -> (release_info.name + "-win64.exe"),
+        "macos" -> (release_info.name + ".dmg"))
+
+    for ((platform_family, bundle) <- platform_bundles) {
+      val bundle_archive =
+        release_info.dist_dir +
+          Path.explode(
+            if (platform_family == "macos" && remote_mac.isEmpty)
+              release_info.name + "_dmg.tar.gz"
+            else bundle)
+      if (bundle_archive.is_file)
+        progress.echo("Application bundle " + bundle_archive + " already exists")
+      else {
+        progress.echo("\n*** " + platform_family + ": " + bundle_archive + " ***")
+        progress.bash(
+          "isabelle makedist_bundle " + File.bash_path(release_info.dist_archive) +
+            " " + File.bash_string(platform_family) +
+            (if (remote_mac == "") "" else " " + File.bash_string(remote_mac)),
+          echo = true).check
+      }
     }
 
 
     /* minimal website */
 
-    File.write(distribution_dir + Path.explode("index.html"),
+    File.write(release_info.dist_dir + Path.explode("index.html"),
 """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
 <head>
-<title>""" + HTML.output(distribution_name) + """</title>
+<title>""" + HTML.output(release_info.name) + """</title>
 </head>
 
 <body>
-<h1>""" + HTML.output(distribution_name) + """</h1>
+<h1>""" + HTML.output(release_info.name) + """</h1>
 <ul>
-<li><a href=""" + "\"" + HTML.output(distribution_name) + """_app.tar.gz">Linux</a></li>
-<li><a href=""" + "\"" + HTML.output(distribution_name) + """-win32.exe">Windows</a></li>
-<li><a href=""" + "\"" + HTML.output(distribution_name) + """-win64.exe">Windows (64bit)</a></li>
-<li><a href=""" + "\"" + HTML.output(distribution_name) + """.dmg">Mac OS X</a></li>
+""" +
+  cat_lines(platform_bundles.map({ case (a, b) =>
+    "<li><a href=" + quote(HTML.output(a)) + ">" + HTML.output(b) + "</a></li>" })) +
+"""
 </ul>
 </body>
 
@@ -77,11 +104,19 @@ object Build_Release
 
     /* HTML library */
 
-    if (build_library)
-      progress.bash("\"$ISABELLE_HOME/Admin/Release/build_library\" -j" + parallel_jobs.toString +
-        File.bash_path(distribution_dir +
-          Path.explode(distribution_name + "_" +
-            Isabelle_System.getenv_strict("ISABELLE_PLATFORM_FAMILY") + ".tar.gz"))).check
+    if (build_library) {
+      if (release_info.dist_library_archive.is_file)
+        progress.echo("Library archive " + release_info.dist_library_archive + " already exists")
+      else {
+        progress.bash("\"$ISABELLE_HOME/Admin/Release/build_library\"" + jobs_option + " " +
+          File.bash_path(release_info.dist_dir +
+            Path.explode(release_info.name + "_" +
+              Isabelle_System.getenv_strict("ISABELLE_PLATFORM_FAMILY") + ".tar.gz"))).check
+      }
+    }
+
+
+    release_info
   }
 
 
