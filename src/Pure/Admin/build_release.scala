@@ -12,11 +12,14 @@ object Build_Release
   sealed case class Release_Info(
     date: Date, name: String, dist_dir: Path, dist_archive: Path, dist_library_archive: Path)
 
+  private val all_platform_families = List("linux", "windows", "windows64", "macos")
+
   def build_release(base_dir: Path,
     progress: Progress = Ignore_Progress,
     rev: String = "",
     official_release: Boolean = false,
     release_name: String = "",
+    platform_families: List[String] = all_platform_families,
     build_library: Boolean = false,
     parallel_jobs: Int = 1,
     remote_mac: String = ""): Release_Info =
@@ -32,6 +35,20 @@ object Build_Release
       val dist_library_archive = dist_dir + Path.explode(name + "_library.tar.gz")
       Release_Info(date, name, dist_dir, dist_archive, dist_library_archive)
     }
+
+    val all_platform_bundles =
+      Map("linux" -> (release_info.name + "_app.tar.gz"),
+        "windows" -> (release_info.name + "-win32.exe"),
+        "windows64" -> (release_info.name + "-win64.exe"),
+        "macos" -> (release_info.name + ".dmg"))
+
+    val platform_bundles =
+      for (platform_family <- platform_families) yield {
+        all_platform_bundles.get(platform_family) match {
+          case None => error("Unknown platform family " + quote(platform_family))
+          case Some(bundle) => (platform_family, bundle)
+        }
+      }
 
 
     /* make distribution */
@@ -53,19 +70,13 @@ object Build_Release
 
     /* make application bundles */
 
-    val platform_bundles =
-      List("linux" -> (release_info.name + "_app.tar.gz"),
-        "windows" -> (release_info.name + "-win32.exe"),
-        "windows64" -> (release_info.name + "-win64.exe"),
-        "macos" -> (release_info.name + ".dmg"))
-
-    for ((platform_family, bundle) <- platform_bundles) {
+    for ((platform_family, platform_bundle) <- platform_bundles) {
       val bundle_archive =
         release_info.dist_dir +
           Path.explode(
             if (platform_family == "macos" && remote_mac.isEmpty)
               release_info.name + "_dmg.tar.gz"
-            else bundle)
+            else platform_bundle)
       if (bundle_archive.is_file)
         progress.echo("Application bundle " + bundle_archive + " already exists")
       else {
@@ -131,6 +142,7 @@ object Build_Release
       var release_name = ""
       var parallel_jobs = 1
       var build_library = false
+      var platform_families = all_platform_families
       var rev = ""
 
       val getopts = Getopts("""
@@ -142,6 +154,8 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -R RELEASE   proper release with name
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
+    -p NAMES     platform families (comma separated list, default: """ +
+      all_platform_families.mkString(",") + """)
     -r REV       Mercurial changeset id (default: RELEASE or tip)
 
   Build Isabelle release in base directory, using the local repository clone.
@@ -150,7 +164,9 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "O" -> (_ => official_release = true),
         "R:" -> (arg => release_name = arg),
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
-        "l" -> (_ => build_library))
+        "l" -> (_ => build_library),
+        "p:" -> (arg => platform_families = Library.space_explode(',', arg)),
+        "r:" -> (arg => rev = arg))
 
       val more_args = getopts(args)
       val base_dir = more_args match { case List(base_dir) => base_dir case _ => getopts.usage() }
@@ -159,6 +175,8 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 
       build_release(Path.explode(base_dir), progress = progress, rev = rev,
         official_release = official_release, release_name = release_name,
+        platform_families =
+          if (platform_families.isEmpty) all_platform_families else platform_families,
         build_library = build_library, parallel_jobs = parallel_jobs, remote_mac = remote_mac)
     }
   }
