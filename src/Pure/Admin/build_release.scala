@@ -75,9 +75,10 @@ object Build_Release
 
     for ((platform_family, platform_bundle) <- platform_bundles) {
       val bundle_archive =
-        Path.explode(
-          (if (remote_mac.isEmpty) fallback_platform_bundles.toMap.get(platform_family) else None)
-            getOrElse platform_bundle)
+        release_info.dist_dir +
+          Path.explode(
+            (if (remote_mac.isEmpty) fallback_platform_bundles.toMap.get(platform_family) else None)
+              getOrElse platform_bundle)
       if (bundle_archive.is_file)
         progress.echo("### Application bundle already exists: " + bundle_archive.implode)
       else {
