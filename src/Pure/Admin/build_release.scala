@@ -10,7 +10,8 @@ package isabelle
 object Build_Release
 {
   sealed case class Release_Info(
-    date: Date, name: String, dist_dir: Path, dist_archive: Path, dist_library_archive: Path)
+    date: Date, name: String, dist_dir: Path, dist_archive: Path, dist_library_archive: Path,
+      id: String)
 
   private val default_platform_families = List("linux", "windows", "windows64", "macos")
 
@@ -34,7 +35,7 @@ object Build_Release
       val dist_dir = base_dir + Path.explode("dist-" + name)
       val dist_archive = dist_dir + Path.explode(name + ".tar.gz")
       val dist_library_archive = dist_dir + Path.explode(name + "_library.tar.gz")
-      Release_Info(date, name, dist_dir, dist_archive, dist_library_archive)
+      Release_Info(date, name, dist_dir, dist_archive, dist_library_archive, "")
     }
 
     val main_platform_bundles =
@@ -59,16 +60,27 @@ object Build_Release
 
     val jobs_option = " -j" + parallel_jobs.toString
 
-    if (release_info.dist_archive.is_file)
-      progress.echo("### Release archive already exists: " + release_info.dist_archive.implode)
-    else {
-      progress.echo("Producing release archive " + release_info.dist_archive.implode + " ...")
-      progress.bash(
-        "isabelle makedist -d " + File.bash_path(base_dir) + jobs_option +
-          (if (official_release) " -O" else "") +
-          (if (release_name != "") " -r " + File.bash_string(release_name) else "") +
-          (if (rev != "") " " + File.bash_string(rev) else ""),
-        echo = true).check
+    val release_id =
+    {
+      val isabelle_ident_file = base_dir + Path.explode("ISABELLE_IDENT")
+      val isabelle_dist_file = base_dir + Path.explode("ISABELLE_DIST")
+
+      if (release_info.dist_archive.is_file &&
+          isabelle_ident_file.is_file && isabelle_dist_file.is_file &&
+          File.eq(Path.explode(Library.trim_line(File.read(isabelle_dist_file))),
+            release_info.dist_archive)) {
+        progress.echo("### Release archive already exists: " + release_info.dist_archive.implode)
+      }
+      else {
+        progress.echo("Producing release archive " + release_info.dist_archive.implode + " ...")
+        progress.bash(
+          "isabelle makedist -d " + File.bash_path(base_dir) + jobs_option +
+            (if (official_release) " -O" else "") +
+            (if (release_name != "") " -r " + File.bash_string(release_name) else "") +
+            (if (rev != "") " " + File.bash_string(rev) else ""),
+          echo = true).check
+      }
+      Library.trim_line(File.read(isabelle_ident_file))
     }
 
 
@@ -115,7 +127,7 @@ object Build_Release
 </head>
 
 <body>
-<h1>""" + HTML.output(release_info.name) + """</h1>
+<h1>""" + HTML.output(release_info.name + " (" + release_id + ")") + """</h1>
 <ul>
 """ +
   cat_lines(website_platform_bundles.map({ case (a, b) =>
@@ -146,7 +158,7 @@ object Build_Release
     }
 
 
-    release_info
+    release_info.copy(id = release_id)
   }
 
 

@@ -118,6 +118,8 @@ mkdir -p "$DISTBASE" || fail "Unable to create distribution base dir \"$DISTBASE
 DIR="$DISTBASE/$DISTNAME"
 [ -e "$DIR" ] && fail "Directory \"$DIR\" already exists"
 
+rm -f "$DISTPREFIX/ISABELLE_DIST" "$DISTPREFIX/ISABELLE_IDENT"
+
 
 # retrieve repository archive
 
@@ -212,8 +214,8 @@ echo "### Creating archive"
 
 cd "$DISTBASE"
 
-echo "$DISTBASE/$DISTNAME.tar.gz" > ../ISABELLE_DIST
-echo "$IDENT" >../ISABELLE_IDENT
+echo "$DISTBASE/$DISTNAME.tar.gz" > "$DISTPREFIX/ISABELLE_DIST"
+echo "$IDENT" > "$DISTPREFIX/ISABELLE_IDENT"
 
 chown -R "$LOGNAME" "$DISTNAME"
 chmod -R g=o "$DISTNAME"
