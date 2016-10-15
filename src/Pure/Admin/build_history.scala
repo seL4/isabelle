@@ -140,7 +140,7 @@ object Build_History
     hg.update(rev = rev, clean = true)
     progress.echo_if(verbose, hg.log(rev, options = "-l1"))
 
-    val isabelle_version = hg.identify(rev, options = "-i")
+    val isabelle_version = hg.id(rev)
     val other_isabelle = new Other_Isabelle(progress, hg.root, isabelle_identifier)
 
 

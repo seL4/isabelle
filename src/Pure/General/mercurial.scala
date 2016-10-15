@@ -79,8 +79,10 @@ object Mercurial
     def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
       hg.command("heads", opt_template(template), options).check.out_lines
 
-    def identify(rev: String = "", options: String = ""): String =
+    def identify(rev: String = "tip", options: String = ""): String =
       hg.command("id", opt_rev(rev), options).check.out_lines.headOption getOrElse ""
+
+    def id(rev: String = "tip"): String = identify(rev, options = "-i")
 
     def manifest(rev: String = "", options: String = ""): List[String] =
       hg.command("manifest", opt_rev(rev), options).check.out_lines
@@ -90,12 +92,6 @@ object Mercurial
 
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
       hg.command("pull", opt_rev(rev) + optional(remote), options).check
-
-    def pull_id(remote: String = ""): String =
-    {
-      hg.pull(remote = remote, options = "-q")
-      hg.identify("tip", options = "-i")
-    }
 
     def update(
       rev: String = "", clean: Boolean = false, check: Boolean = false, options: String = "")

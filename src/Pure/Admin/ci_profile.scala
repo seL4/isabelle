@@ -72,7 +72,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 
 
   final def hg_id(path: Path): String =
-    Mercurial.repository(path).identify(options = "-i")
+    Mercurial.repository(path).id()
 
   final def print_section(title: String): Unit =
     println(s"\n=== $title ===\n")

@@ -35,10 +35,13 @@ object Isabelle_Cronjob
   private val isabelle_identify =
     Logger_Task("isabelle_identify", logger =>
       {
-        val isabelle_id = Mercurial.repository(isabelle_repos).identify(options = "-i")
+        val isabelle_id = Mercurial.repository(isabelle_repos).id()
         val afp_id =
-          Mercurial.setup_repository(
-            logger.cronjob_options.string("afp_repos"), afp_repos).pull_id()
+        {
+          val hg = Mercurial.setup_repository(logger.cronjob_options.string("afp_repos"), afp_repos)
+          hg.pull()
+          hg.id()
+        }
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           terminate_lines(
@@ -258,7 +261,7 @@ object Isabelle_Cronjob
     val main_start_date = Date.now()
     File.write(main_state_file, main_start_date + " " + log_service.hostname)
 
-    val rev = Mercurial.repository(isabelle_repos).identify(options = "-i")
+    val rev = Mercurial.repository(isabelle_repos).id()
 
     run(main_start_date,
       Logger_Task("isabelle_cronjob", _ =>
