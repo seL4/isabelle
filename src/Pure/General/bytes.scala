@@ -96,7 +96,10 @@ final class Bytes private(
   lazy val sha1_digest: SHA1.Digest = SHA1.digest(bytes)
 
   override def toString: String =
-    UTF8.decode_chars(s => s, bytes, offset, offset + length).toString
+  {
+    val str = UTF8.decode_chars(s => s, bytes, offset, offset + length).toString
+    if (str.contains('\uFFFD')) "Bytes(" + length + ")" else str
+  }
 
   def isEmpty: Boolean = length == 0
 
