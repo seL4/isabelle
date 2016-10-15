@@ -328,16 +328,16 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
 
 
-  /** build_history_remote **/
+  /** remote build_history -- via command-line **/
 
   sealed case class File_Content(name: String, content: Bytes)
 
-  def build_history_remote(
+  def remote_build_history(
     ssh_session: SSH.Session,
     isabelle_repos: Path,
     isabelle_repos_build_history: Path,
-    build_history_options: List[String],
-    build_history_args: List[String],
+    options: String,
+    args: String,
     progress: Progress = Ignore_Progress,
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
     self_update: Boolean = false): List[File_Content] =
@@ -367,14 +367,12 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           Mercurial.clone_repository(isabelle_repos.implode, isabelle_repos_build_history, ssh = ssh)
 
 
-        /* build_history */
+        /* Admin/build_history */
 
         val result =
           ssh_session.execute(
-            File.bash_string(isabelle_admin + "/build_history") + " " +
-              File.bash_args(build_history_options) + " " +
-              File.bash_path(isabelle_repos_build_history) + " " +
-              File.bash_args(build_history_args),
+            File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
+              File.bash_path(isabelle_repos_build_history) + " " + args,
             progress_stderr = progress.echo(_))
 
         result.check.out_lines.map(name =>
