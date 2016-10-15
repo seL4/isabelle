@@ -225,8 +225,7 @@ object Isabelle_Cronjob
 
     /* log service */
 
-    val ssh_context = SSH.init(Options.init())
-    val log_service = new Log_Service(progress, ssh_context)
+    val log_service = new Log_Service(progress, SSH.init(Options.init()))
 
     def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
 
