@@ -11,7 +11,7 @@ import java.io.{InputStream, OutputStream, ByteArrayOutputStream}
 
 import scala.collection.{mutable, JavaConversions}
 
-import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session,
+import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session, SftpException,
   OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS}
 
 
@@ -138,8 +138,12 @@ object SSH
     def mkdir(remote_path: String) { channel.mkdir(remote_path) }
     def rmdir(remote_path: String) { channel.rmdir(remote_path) }
 
-    def stat(remote_path: String): Dir_Entry =
-      Dir_Entry(remote_path, channel.stat(remote_path))
+    def stat(remote_path: String): Option[Dir_Entry] =
+      try { Some(Dir_Entry(remote_path, channel.stat(remote_path))) }
+      catch { case _: SftpException => None }
+
+    def is_file(remote_path: String): Boolean = stat(remote_path).map(_.is_file) getOrElse false
+    def is_dir(remote_path: String): Boolean = stat(remote_path).map(_.is_dir) getOrElse false
 
     def read_dir(remote_path: String): List[Dir_Entry] =
     {
