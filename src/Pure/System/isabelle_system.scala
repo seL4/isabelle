@@ -133,11 +133,12 @@ object Isabelle_System
 
   /* getenv */
 
-  def getenv(name: String): String = settings().getOrElse(name, "")
+  def getenv(name: String, env: Map[String, String] = settings()): String =
+    env.getOrElse(name, "")
 
-  def getenv_strict(name: String): String =
+  def getenv_strict(name: String, env: Map[String, String] = settings()): String =
   {
-    val value = getenv(name)
+    val value = getenv(name, env)
     if (value != "") value
     else error("Undefined Isabelle environment variable: " + quote(name))
   }

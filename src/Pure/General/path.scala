@@ -182,12 +182,12 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
 
   /* expand */
 
-  def expand: Path =
+  def expand_env(env: Map[String, String]): Path =
   {
     def eval(elem: Path.Elem): List[Path.Elem] =
       elem match {
         case Path.Variable(s) =>
-          val path = Path.explode(Isabelle_System.getenv_strict(s))
+          val path = Path.explode(Isabelle_System.getenv_strict(s, env))
           if (path.elems.exists(_.isInstanceOf[Path.Variable]))
             error("Illegal path variable nesting: " + s + "=" + path.toString)
           else path.elems
@@ -196,6 +196,8 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
 
     new Path(Path.norm_elems(elems.map(eval).flatten))
   }
+
+  def expand: Path = expand_env(Isabelle_System.settings())
 
 
   /* source position */

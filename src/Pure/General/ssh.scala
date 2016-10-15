@@ -129,7 +129,12 @@ object SSH
   {
     channel.connect(connect_timeout(session.options))
 
-    def home: String = channel.getHome()
+    val settings: Map[String, String] =
+    {
+      val home = channel.getHome
+      Map("HOME" -> home, "USER_HOME" -> home)
+    }
+    def path(p: Path): String = p.expand_env(settings).implode
 
     def chmod(permissions: Int, remote_path: String) { channel.chmod(permissions, remote_path) }
     def mv(remote_path1: String, remote_path2: String): Unit =
