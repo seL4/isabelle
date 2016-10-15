@@ -1,7 +1,0 @@
-(* :mode=isabelle-options: *)
-
-option isabelle_repos : string = "http://isabelle.in.tum.de/repos/isabelle"
-
-option isabelle_release_repos : string = "http://bitbucket.org/isabelle_project/isabelle-release"
-
-option afp_repos : string = "https://bitbucket.org/isa-afp/afp-devel"

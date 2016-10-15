@@ -24,6 +24,10 @@ object Isabelle_Cronjob
   val isabelle_repos_test = main_dir + Path.explode("isabelle-test")
   val afp_repos = main_dir + Path.explode("AFP")
 
+  val isabelle_dev_source = "http://isabelle.in.tum.de/repos/isabelle"
+  val isabelle_release_source = "http://bitbucket.org/isabelle_project/isabelle-release"
+  val afp_source = "https://bitbucket.org/isa-afp/afp-devel"
+
   val release_snapshot = Path.explode("~/html-data/release_snapshot")
 
 
@@ -38,7 +42,7 @@ object Isabelle_Cronjob
         val isabelle_id = Mercurial.repository(isabelle_repos).id()
         val afp_id =
         {
-          val hg = Mercurial.setup_repository(logger.cronjob_options.string("afp_repos"), afp_repos)
+          val hg = Mercurial.setup_repository(afp_source, afp_repos)
           hg.pull()
           hg.id()
         }
@@ -114,7 +118,7 @@ object Isabelle_Cronjob
                 Build_History.remote_build_history(session,
                   isabelle_repos,
                   isabelle_repos.ext(r.host),
-                  isabelle_repos_source = logger.cronjob_options.string("isabelle_repos"),
+                  isabelle_repos_source = isabelle_dev_source,
                   self_update = !r.shared_home,
                   options = r.options + " -f -r " + File.bash_string(rev),
                   args = r.args)
@@ -129,8 +133,7 @@ object Isabelle_Cronjob
 
   sealed case class Logger_Task(name: String = "", body: Logger => Unit)
 
-  class Log_Service private[Isabelle_Cronjob](
-    progress: Progress, val cronjob_options: Options, val ssh_context: SSH)
+  class Log_Service private[Isabelle_Cronjob](progress: Progress, val ssh_context: SSH)
   {
     current_log.file.delete
 
@@ -176,7 +179,6 @@ object Isabelle_Cronjob
   class Logger private[Isabelle_Cronjob](
     val log_service: Log_Service, val start_date: Date, val task_name: String)
   {
-    def cronjob_options: Options = log_service.cronjob_options
     def ssh_context: SSH = log_service.ssh_context
 
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
@@ -223,9 +225,8 @@ object Isabelle_Cronjob
 
     /* log service */
 
-    val cronjob_options = Options.load(Path.explode("~~/Admin/cronjob/cronjob.options"))
     val ssh_context = SSH.init(Options.init())
-    val log_service = new Log_Service(progress, cronjob_options, ssh_context)
+    val log_service = new Log_Service(progress, ssh_context)
 
     def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
 
