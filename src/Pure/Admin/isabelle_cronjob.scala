@@ -20,8 +20,9 @@ object Isabelle_Cronjob
   val current_log = main_dir + Path.explode("run/main.log")  // owned by log service
   val cumulative_log = main_dir + Path.explode("log/main.log")  // owned by log service
 
-  val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
-  val afp_repos = main_dir + Path.explode("AFP-build_history")
+  val isabelle_repos = main_dir + Path.explode("isabelle")
+  val isabelle_repos_test = main_dir + Path.explode("isabelle-test")
+  val afp_repos = main_dir + Path.explode("AFP")
 
   val release_snapshot = Path.explode("~/html-data/release_snapshot")
 
@@ -34,8 +35,10 @@ object Isabelle_Cronjob
   private val isabelle_identify =
     Logger_Task("isabelle_identify", logger =>
       {
-        val isabelle_id = Mercurial.repository(isabelle_repos).pull_id()
-        val afp_id = Mercurial.repository(afp_repos).pull_id()
+        val isabelle_id = Mercurial.repository(isabelle_repos).identify(options = "-i")
+        val afp_id =
+          Mercurial.setup_repository(
+            logger.cronjob_options.string("afp_repos"), afp_repos).pull_id()
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           terminate_lines(
@@ -53,8 +56,8 @@ object Isabelle_Cronjob
       {
         for {
           (result, log_path) <-
-            Build_History.build_history(Mercurial.repository(isabelle_repos),
-              rev = "build_history_base", fresh = true, build_args = List("FOL"))
+            Build_History.build_history(Mercurial.repository(isabelle_repos_test),
+              rev = "build_history_base", fresh = true, build_args = List("HOL"))
         } {
           result.check
           File.copy(log_path, logger.log_dir + log_path.base)
@@ -83,12 +86,48 @@ object Isabelle_Cronjob
         }))
 
 
+  /* remote build_history */
+
+  private sealed case class Remote_Build(
+    host: String,
+    user: String = "",
+    port: Int = SSH.default_port,
+    shared_home: Boolean = false,
+    options: String = "",
+    args: String = "-a")
+
+  private val remote_builds =
+    List(
+      Remote_Build("lxbroy10", options = "-m32 -M4", shared_home = true),
+      Remote_Build("macbroy2", options = "-m32 -M4"))
+
+  private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
+    Logger_Task("build_history-" + r.host, logger =>
+      {
+        using(logger.ssh_context.open_session(host = r.host, user = r.user, port = r.port))(
+          session =>
+            {
+              val results =
+                Build_History.remote_build_history(session,
+                  isabelle_repos,
+                  isabelle_repos.ext(r.host),
+                  isabelle_repos_source = logger.cronjob_options.string("isabelle_repos"),
+                  self_update = !r.shared_home,
+                  options = r.options + " -f -r " + File.bash_string(rev),
+                  args = r.args)
+              for ((log, bytes) <- results)
+                Bytes.write(logger.log_dir + Path.explode(log), bytes)
+            })
+      })
+
+
 
   /** task logging **/
 
   sealed case class Logger_Task(name: String = "", body: Logger => Unit)
 
-  class Log_Service private[Isabelle_Cronjob](progress: Progress)
+  class Log_Service private[Isabelle_Cronjob](
+    progress: Progress, val cronjob_options: Options, val ssh_context: SSH)
   {
     current_log.file.delete
 
@@ -134,6 +173,9 @@ object Isabelle_Cronjob
   class Logger private[Isabelle_Cronjob](
     val log_service: Log_Service, val start_date: Date, val task_name: String)
   {
+    def cronjob_options: Options = log_service.cronjob_options
+    def ssh_context: SSH = log_service.ssh_context
+
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
     def log_end(end_date: Date, err: Option[String])
@@ -161,8 +203,6 @@ object Isabelle_Cronjob
 
   /** cronjob **/
 
-  def init_options(): Options = Options.load(Path.explode("~~/Admin/cronjob/cronjob.options"))
-
   def cronjob(progress: Progress, exclude_task: Set[String])
   {
     /* soft lock */
@@ -180,7 +220,9 @@ object Isabelle_Cronjob
 
     /* log service */
 
-    val log_service = new Log_Service(progress)
+    val cronjob_options = Options.load(Path.explode("~~/Admin/cronjob/cronjob.options"))
+    val ssh_context = SSH.init(Options.init())
+    val log_service = new Log_Service(progress, cronjob_options, ssh_context)
 
     def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
 
@@ -216,9 +258,13 @@ object Isabelle_Cronjob
     val main_start_date = Date.now()
     File.write(main_state_file, main_start_date + " " + log_service.hostname)
 
+    val rev = Mercurial.repository(isabelle_repos).identify(options = "-i")
+
     run(main_start_date,
       Logger_Task("isabelle_cronjob", _ =>
-        run_now(SEQ(isabelle_identify, build_history_base, build_release))))
+        run_now(
+          SEQ(isabelle_identify, build_history_base, build_release,
+            PAR(remote_builds.map(remote_build_history(rev, _)):_*)))))
 
     log_service.shutdown()
 

@@ -342,18 +342,14 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   {
     using(session.sftp())(sftp =>
       {
-        val isabelle_admin = (isabelle_repos_self + Path.explode("Admin")).implode
+        val isabelle_admin = sftp.path(isabelle_repos_self + Path.explode("Admin"))
 
 
         /* prepare repository clones */
 
-        val ssh = Some(session)
-
         val isabelle_hg =
-          if (sftp.stat(isabelle_repos_self.implode).nonEmpty)
-            Mercurial.repository(isabelle_repos_self, ssh = ssh)
-          else
-            Mercurial.clone_repository(isabelle_repos_source, isabelle_repos_self, ssh = ssh)
+          Mercurial.setup_repository(
+            isabelle_repos_source, isabelle_repos_self, ssh = Some(session))
 
         if (self_update) {
           isabelle_hg.pull()
@@ -361,8 +357,8 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           session.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
         }
 
-        if (sftp.stat(isabelle_repos_other.implode).isEmpty)
-          Mercurial.clone_repository(isabelle_repos_self.implode, isabelle_repos_other, ssh = ssh)
+        Mercurial.setup_repository(
+          sftp.path(isabelle_repos_self), isabelle_repos_other, ssh = Some(session))
 
 
         /* Admin/build_history */
@@ -370,7 +366,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         val result =
           session.execute(
             File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
-              File.bash_path(isabelle_repos_other) + " " + args,
+              File.bash_string(sftp.path(isabelle_repos_other)) + " " + args,
             progress_stderr = progress.echo(_))
 
         result.check.out_lines.map(log => (Path.explode(log).base.implode, sftp.read_bytes(log)))
