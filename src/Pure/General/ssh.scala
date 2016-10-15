@@ -118,7 +118,7 @@ object SSH
 
   type Attrs = SftpATTRS
 
-  sealed case class Dir_Entry(name: String, attrs: Attrs)
+  sealed case class Dir_Entry(name: Path, attrs: Attrs)
   {
     def is_file: Boolean = attrs.isReg
     def is_dir: Boolean = attrs.isDir
@@ -134,63 +134,61 @@ object SSH
       val home = channel.getHome
       Map("HOME" -> home, "USER_HOME" -> home)
     }
-    def path(p: Path): String = p.expand_env(settings).implode
+    def expand_path(path: Path): Path = path.expand_env(settings)
+    def remote_path(path: Path): String = expand_path(path).implode
 
-    def chmod(permissions: Int, remote_path: String) { channel.chmod(permissions, remote_path) }
-    def mv(remote_path1: String, remote_path2: String): Unit =
-      channel.rename(remote_path1, remote_path2)
-    def rm(remote_path: String) { channel.rm(remote_path) }
-    def mkdir(remote_path: String) { channel.mkdir(remote_path) }
-    def rmdir(remote_path: String) { channel.rmdir(remote_path) }
+    def chmod(permissions: Int, path: Path): Unit = channel.chmod(permissions, remote_path(path))
+    def mv(path1: Path, path2: Path): Unit = channel.rename(remote_path(path1), remote_path(path2))
+    def rm(path: Path): Unit = channel.rm(remote_path(path))
+    def mkdir(path: Path): Unit = channel.mkdir(remote_path(path))
+    def rmdir(path: Path): Unit = channel.rmdir(remote_path(path))
 
-    def stat(remote_path: String): Option[Dir_Entry] =
-      try { Some(Dir_Entry(remote_path, channel.stat(remote_path))) }
+    def stat(path: Path): Option[Dir_Entry] =
+      try { Some(Dir_Entry(expand_path(path), channel.stat(remote_path(path)))) }
       catch { case _: SftpException => None }
 
-    def is_file(remote_path: String): Boolean = stat(remote_path).map(_.is_file) getOrElse false
-    def is_dir(remote_path: String): Boolean = stat(remote_path).map(_.is_dir) getOrElse false
+    def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
+    def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
 
-    def read_dir(remote_path: String): List[Dir_Entry] =
+    def read_dir(path: Path): List[Dir_Entry] =
     {
-      val dir = channel.ls(remote_path)
+      val dir = channel.ls(remote_path(path))
       (for {
         i <- (0 until dir.size).iterator
         a = dir.get(i).asInstanceOf[AnyRef]
         name = Untyped.get[String](a, "filename")
         attrs = Untyped.get[Attrs](a, "attrs")
         if name != "." && name != ".."
-      } yield Dir_Entry(name, attrs)).toList
+      } yield Dir_Entry(Path.basic(name), attrs)).toList
     }
 
-    def find_files(remote_path: String, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
+    def find_files(root: Path, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
     {
-      def find(dir: String): List[Dir_Entry] =
+      def find(dir: Path): List[Dir_Entry] =
         read_dir(dir).flatMap(entry =>
           {
-            val file = dir + "/" + entry.name
+            val file = dir + entry.name
             if (entry.is_dir) find(file)
             else if (pred(entry)) List(entry.copy(name = file))
             else Nil
           })
-      find(remote_path)
+      find(root)
     }
 
-    def open_input(remote_path: String): InputStream = channel.get(remote_path)
-    def open_output(remote_path: String): OutputStream = channel.put(remote_path)
+    def open_input(path: Path): InputStream = channel.get(remote_path(path))
+    def open_output(path: Path): OutputStream = channel.put(remote_path(path))
 
-    def read_file(remote_path: String, local_path: Path): Unit =
-      channel.get(remote_path, File.platform_path(local_path))
-    def read_bytes(remote_path: String): Bytes =
-      using(open_input(remote_path))(Bytes.read_stream(_))
-    def read(remote_path: String): String =
-      using(open_input(remote_path))(File.read_stream(_))
+    def read_file(path: Path, local_path: Path): Unit =
+      channel.get(remote_path(path), File.platform_path(local_path))
+    def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
+    def read(path: Path): String = using(open_input(path))(File.read_stream(_))
 
-    def write_file(remote_path: String, local_path: Path): Unit =
-      channel.put(File.platform_path(local_path), remote_path)
-    def write_bytes(remote_path: String, bytes: Bytes): Unit =
-      using(open_output(remote_path))(bytes.write_stream(_))
-    def write(remote_path: String, text: String): Unit =
-      using(open_output(remote_path))(stream => Bytes(text).write_stream(stream))
+    def write_file(path: Path, local_path: Path): Unit =
+      channel.put(File.platform_path(local_path), remote_path(path))
+    def write_bytes(path: Path, bytes: Bytes): Unit =
+      using(open_output(path))(bytes.write_stream(_))
+    def write(path: Path, text: String): Unit =
+      using(open_output(path))(stream => Bytes(text).write_stream(stream))
   }
 
 
@@ -317,10 +315,10 @@ object SSH
     def tmp_dir(): String =
       execute("mktemp -d -t tmp.XXXXXXXXXX").check.out
 
-    def with_tmp_dir[A](body: String => A): A =
+    def with_tmp_dir[A](body: Path => A): A =
     {
       val remote_dir = tmp_dir()
-      try { body(remote_dir) } finally { rm_tree(remote_dir) }
+      try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
     }
   }
 }

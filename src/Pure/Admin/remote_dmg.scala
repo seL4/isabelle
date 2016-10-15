@@ -14,15 +14,15 @@ object Remote_DMG
     session.with_tmp_dir(remote_dir =>
       using(session.sftp())(sftp =>
         {
-          val cd = "cd " + File.bash_string(remote_dir) + "; "
+          val cd = "cd " + File.bash_string(sftp.remote_path(remote_dir)) + "; "
 
-          sftp.write_file(remote_dir + "/dmg.tar.gz", tar_gz_file)
+          sftp.write_file(remote_dir + Path.explode("dmg.tar.gz"), tar_gz_file)
           session.execute(cd + "mkdir root && tar -C root -xzf dmg.tar.gz").check
           session.execute(
             cd + "hdiutil create -srcfolder root" +
               (if (volume_name == "") "" else " -volname " + File.bash_string(volume_name)) +
               " dmg.dmg").check
-          sftp.read_file(remote_dir + "/dmg.dmg", dmg_file)
+          sftp.read_file(remote_dir + Path.explode("dmg.dmg"), dmg_file)
         }))
   }
 

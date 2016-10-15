@@ -44,7 +44,7 @@ object Mercurial
       case None => if (root.is_dir) repository(root) else clone_repository(source, root)
       case Some(session) =>
         using(session.sftp())(sftp =>
-          if (sftp.is_dir(sftp.path(root))) repository(root, ssh = ssh)
+          if (sftp.is_dir(root)) repository(root, ssh = ssh)
           else clone_repository(source, root, ssh = ssh))
     }
 

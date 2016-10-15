@@ -342,7 +342,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   {
     using(session.sftp())(sftp =>
       {
-        val isabelle_admin = sftp.path(isabelle_repos_self + Path.explode("Admin"))
+        val isabelle_admin = sftp.remote_path(isabelle_repos_self + Path.explode("Admin"))
 
 
         /* prepare repository clones */
@@ -358,7 +358,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         }
 
         Mercurial.setup_repository(
-          sftp.path(isabelle_repos_self), isabelle_repos_other, ssh = Some(session))
+          sftp.remote_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(session))
 
 
         /* Admin/build_history */
@@ -366,10 +366,11 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         val result =
           session.execute(
             File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
-              File.bash_string(sftp.path(isabelle_repos_other)) + " " + args,
-            progress_stderr = progress.echo(_))
+              File.bash_string(sftp.remote_path(isabelle_repos_other)) + " " + args,
+            progress_stderr = progress.echo(_)).check
 
-        result.check.out_lines.map(log => (Path.explode(log).base.implode, sftp.read_bytes(log)))
+        for (line <- result.out_lines; log = Path.explode(line))
+          yield (log.base.implode, sftp.read_bytes(log))
       })
   }
 }
