@@ -9,7 +9,7 @@ package isabelle
 
 
 import java.io.{File => JFile, ByteArrayOutputStream, ByteArrayInputStream,
-  OutputStream, InputStream, FileInputStream}
+  OutputStream, InputStream, FileInputStream, FileOutputStream}
 
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
@@ -58,6 +58,19 @@ object Bytes
 
   def read(file: JFile): Bytes =
     using(new FileInputStream(file))(read_stream(_, file.length.toInt))
+
+  def read(path: Path): Bytes = read(path.file)
+
+
+  /* write */
+
+  def write(file: JFile, bytes: Bytes)
+  {
+    val stream = new FileOutputStream(file)
+    try { bytes.write_stream(stream) } finally { stream.close }
+  }
+
+  def write(path: Path, bytes: Bytes): Unit = write(path.file, bytes)
 }
 
 final class Bytes private(
