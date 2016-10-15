@@ -22,7 +22,7 @@ object Isabelle_Cronjob
   val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
   val afp_repos = main_dir + Path.explode("AFP-build_history")
 
-  val release_snapshot = main_dir + Path.explode("release_snapshot")
+  val release_snapshot = Path.explode("~/html-data/release_snapshot")
 
 
 
