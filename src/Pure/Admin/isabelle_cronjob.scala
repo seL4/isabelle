@@ -97,7 +97,7 @@ object Isabelle_Cronjob
     port: Int = SSH.default_port,
     shared_home: Boolean = false,
     options: String = "",
-    args: String = "-a")
+    args: String = "-o timeout=10800 -a")
 
   private val remote_builds =
     List(
