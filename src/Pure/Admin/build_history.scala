@@ -330,53 +330,50 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
   /** remote build_history -- via command-line **/
 
-  sealed case class File_Content(name: String, content: Bytes)
-
   def remote_build_history(
-    ssh_session: SSH.Session,
-    isabelle_repos: Path,
-    isabelle_repos_build_history: Path,
-    options: String,
-    args: String,
-    progress: Progress = Ignore_Progress,
+    session: SSH.Session,
+    isabelle_repos_self: Path,
+    isabelle_repos_other: Path,
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
-    self_update: Boolean = false): List[File_Content] =
+    self_update: Boolean = false,
+    progress: Progress = Ignore_Progress,
+    options: String = "",
+    args: String = ""): List[(String, Bytes)] =
   {
-    using(ssh_session.sftp())(sftp =>
+    using(session.sftp())(sftp =>
       {
-        val isabelle_admin = (isabelle_repos + Path.explode("Admin")).implode
+        val isabelle_admin = (isabelle_repos_self + Path.explode("Admin")).implode
 
 
         /* prepare repository clones */
 
-        val ssh = Some(ssh_session)
+        val ssh = Some(session)
 
         val isabelle_hg =
-          if (sftp.stat(isabelle_repos.implode).nonEmpty)
-            Mercurial.repository(isabelle_repos, ssh = ssh)
+          if (sftp.stat(isabelle_repos_self.implode).nonEmpty)
+            Mercurial.repository(isabelle_repos_self, ssh = ssh)
           else
-            Mercurial.clone_repository(isabelle_repos_source, isabelle_repos, ssh = ssh)
+            Mercurial.clone_repository(isabelle_repos_source, isabelle_repos_self, ssh = ssh)
 
         if (self_update) {
           isabelle_hg.pull()
           isabelle_hg.update(clean = true)
-          ssh_session.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
+          session.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
         }
 
-        if (sftp.stat(isabelle_repos_build_history.implode).isEmpty)
-          Mercurial.clone_repository(isabelle_repos.implode, isabelle_repos_build_history, ssh = ssh)
+        if (sftp.stat(isabelle_repos_other.implode).isEmpty)
+          Mercurial.clone_repository(isabelle_repos_self.implode, isabelle_repos_other, ssh = ssh)
 
 
         /* Admin/build_history */
 
         val result =
-          ssh_session.execute(
+          session.execute(
             File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
-              File.bash_path(isabelle_repos_build_history) + " " + args,
+              File.bash_path(isabelle_repos_other) + " " + args,
             progress_stderr = progress.echo(_))
 
-        result.check.out_lines.map(name =>
-          File_Content(Path.explode(name).base.implode, sftp.read_bytes(name)))
+        result.check.out_lines.map(log => (Path.explode(log).base.implode, sftp.read_bytes(log)))
       })
   }
 }
