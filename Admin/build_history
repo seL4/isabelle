@@ -4,5 +4,5 @@
 
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
-"$THIS/build" jars || exit $?
+"$THIS/build" jars > /dev/null || exit $?
 exec "$THIS/../bin/isabelle_java" isabelle.Build_History "$@"

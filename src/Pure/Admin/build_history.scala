@@ -325,4 +325,60 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       if (rc != 0) sys.exit(rc)
     }
   }
+
+
+
+  /** build_history_remote **/
+
+  sealed case class File_Content(name: String, content: Bytes)
+
+  def build_history_remote(
+    ssh_session: SSH.Session,
+    isabelle_repos: Path,
+    isabelle_repos_build_history: Path,
+    build_history_options: List[String],
+    build_history_args: List[String],
+    progress: Progress = Ignore_Progress,
+    isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
+    self_update: Boolean = false): List[File_Content] =
+  {
+    using(ssh_session.sftp())(sftp =>
+      {
+        val isabelle_admin = (isabelle_repos + Path.explode("Admin")).implode
+
+
+        /* prepare repository clones */
+
+        val ssh = Some(ssh_session)
+
+        val isabelle_hg =
+          if (sftp.stat(isabelle_repos.implode).nonEmpty)
+            Mercurial.repository(isabelle_repos, ssh = ssh)
+          else
+            Mercurial.clone_repository(isabelle_repos_source, isabelle_repos, ssh = ssh)
+
+        if (self_update) {
+          isabelle_hg.pull()
+          isabelle_hg.update(clean = true)
+          ssh_session.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
+        }
+
+        if (sftp.stat(isabelle_repos_build_history.implode).isEmpty)
+          Mercurial.clone_repository(isabelle_repos.implode, isabelle_repos_build_history, ssh = ssh)
+
+
+        /* build_history */
+
+        val result =
+          ssh_session.execute(
+            File.bash_string(isabelle_admin + "/build_history") + " " +
+              File.bash_args(build_history_options) + " " +
+              File.bash_path(isabelle_repos_build_history) + " " +
+              File.bash_args(build_history_args),
+            progress_stderr = progress.echo(_))
+
+        result.check.out_lines.map(name =>
+          File_Content(Path.explode(name).base.implode, sftp.read_bytes(name)))
+      })
+  }
 }
