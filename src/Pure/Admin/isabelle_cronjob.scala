@@ -17,7 +17,8 @@ object Isabelle_Cronjob
 
   val main_dir = Path.explode("~/cronjob")
   val main_state_file = main_dir + Path.explode("run/main.state")
-  val main_log = main_dir + Path.explode("log/main.log")  // owned by log service
+  val current_log = main_dir + Path.explode("run/main.log")  // owned by log service
+  val cumulative_log = main_dir + Path.explode("log/main.log")  // owned by log service
 
   val isabelle_repos = main_dir + Path.explode("isabelle-build_history")
   val afp_repos = main_dir + Path.explode("AFP-build_history")
@@ -91,11 +92,14 @@ object Isabelle_Cronjob
 
   class Log_Service private[Isabelle_Cronjob](progress: Progress)
   {
+    current_log.file.delete
+
     private val thread: Consumer_Thread[String] =
       Consumer_Thread.fork("cronjob: logger", daemon = true)(
         consume = (text: String) =>
-          {
-            File.append(main_log, text + "\n")   // critical
+          { // critical
+            File.append(current_log, text + "\n")
+            File.append(cumulative_log, text + "\n")
             progress.echo(text)
             true
           })
