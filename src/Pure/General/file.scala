@@ -47,6 +47,8 @@ object File
 
   def standard_path(file: JFile): String = standard_path(file.getPath)
 
+  def path(file: JFile): Path = Path.explode(standard_path(file))
+
   def standard_url(name: String): String =
     try {
       val url = new URL(name)
@@ -55,8 +57,6 @@ object File
       else name
     }
     catch { case _: MalformedURLException => standard_path(name) }
-
-  def path(file: JFile): Path = Path.explode(standard_path(file.getAbsolutePath))
 
 
   /* platform path (Windows or Posix) */

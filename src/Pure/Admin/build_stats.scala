@@ -85,7 +85,6 @@ object Build_Stats
               case Some(true) => plots2
             }
 
-          val data_file_name = File.standard_path(data_file.getAbsolutePath)
           File.write(plot_file, """
 set terminal png size """ + size._1 + "," + size._2 + """
 set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) + """
@@ -94,7 +93,7 @@ set timefmt "%s"
 set format x "%d-%b"
 set xlabel """ + quote(session) + """ noenhanced
 set key left top
-plot [] [0:] """ + plots.map(s => quote(data_file_name) + " " + s).mkString(", ") + "\n")
+plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
           val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(plot_file))
           if (result.rc != 0) {
             Output.error_message("Session " + session + ": gnuplot error")

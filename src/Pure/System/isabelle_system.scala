@@ -202,10 +202,10 @@ object Isabelle_System
     file
   }
 
-  def with_tmp_file[A](name: String, ext: String = "")(body: JFile => A): A =
+  def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A =
   {
     val file = tmp_file(name, ext)
-    try { body(file) } finally { file.delete }
+    try { body(File.path(file)) } finally { file.delete }
   }
 
 
@@ -245,10 +245,10 @@ object Isabelle_System
     dir
   }
 
-  def with_tmp_dir[A](name: String)(body: JFile => A): A =
+  def with_tmp_dir[A](name: String)(body: Path => A): A =
   {
     val dir = tmp_dir(name)
-    try { body(dir) } finally { rm_tree(dir) }
+    try { body(File.path(dir)) } finally { rm_tree(dir) }
   }
 
 

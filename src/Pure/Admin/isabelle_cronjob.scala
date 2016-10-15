@@ -66,10 +66,8 @@ object Isabelle_Cronjob
 
   private val build_release =
     Logger_Task("build_release", logger =>
-      Isabelle_System.with_tmp_dir("isadist")(tmp_dir =>
+      Isabelle_System.with_tmp_dir("isadist")(base_dir =>
         {
-          val base_dir = File.path(tmp_dir)
-
           val new_snapshot = release_snapshot.ext("new")
           val old_snapshot = release_snapshot.ext("old")
 

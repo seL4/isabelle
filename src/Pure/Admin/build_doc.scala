@@ -50,14 +50,14 @@ object Build_Doc
             Build.build(
               options.bool.update("browser_info", false).
                 string.update("document", "pdf").
-                string.update("document_output", File.standard_path(output)),
+                string.update("document_output", output.implode),
               progress, clean_build = true, max_jobs = max_jobs, system_mode = system_mode,
               sessions = sessions)
           if (res2.ok) {
-            val doc_dir = Path.explode("$ISABELLE_HOME/doc").file
+            val doc_dir = Path.explode("$ISABELLE_HOME/doc")
             for (doc <- selected_docs) {
-              val name = doc + ".pdf"
-              File.copy(new JFile(output, name), new JFile(doc_dir, name))
+              val name = Path.explode(doc + ".pdf")
+              File.copy(output + name, doc_dir + name)
             }
           }
           res2.rc
