@@ -324,7 +324,7 @@ class SSH private(val options: Options, val jsch: JSch)
 {
   def update_options(new_options: Options): SSH = new SSH(new_options, jsch)
 
-  def open_session(host: String, port: Int = SSH.default_port, user: String = ""): SSH.Session =
+  def open_session(host: String, user: String = "", port: Int = SSH.default_port): SSH.Session =
   {
     val session = jsch.getSession(if (user == "") null else user, host, port)
 
