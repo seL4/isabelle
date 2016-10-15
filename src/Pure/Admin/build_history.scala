@@ -194,7 +194,7 @@ object Build_History
         other_isabelle.isabelle_home_user +
           Build_Log.log_subdir(build_history_date) +
           Build_Log.log_filename(
-            BUILD_HISTORY, build_history_date, ml_platform, "M" + threads).ext("gz")
+            BUILD_HISTORY, build_history_date, build_host, ml_platform, "M" + threads).ext("gz")
 
       val build_info = Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info()
 
