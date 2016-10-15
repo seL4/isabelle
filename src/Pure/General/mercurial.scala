@@ -32,17 +32,31 @@ object Mercurial
   }
 
   def clone_repository(
-    source: String, dest: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
+    source: String, root: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
   {
-    val hg = new Repository(dest, ssh)
-    hg.command("clone",
-      File.bash_string(source) + " " + File.bash_string(dest.implode), options).check
+    val hg = new Repository(root, ssh)
+    hg.command("clone", File.bash_string(source) + " " + File.bash_path(hg.root), options).check
     hg
   }
 
-  class Repository private[Mercurial](val root: Path, ssh: Option[SSH.Session])
+  def setup_repository(source: String, root: Path, ssh: Option[SSH.Session] = None): Repository =
+    ssh match {
+      case None => if (root.is_dir) repository(root) else clone_repository(source, root)
+      case Some(session) =>
+        using(session.sftp())(sftp =>
+          if (sftp.is_dir(sftp.path(root))) repository(root, ssh = ssh)
+          else clone_repository(source, root, ssh = ssh))
+    }
+
+  class Repository private[Mercurial](root_path: Path, ssh: Option[SSH.Session])
   {
     hg =>
+
+    val root =
+      ssh match {
+        case None => root_path.expand
+        case Some(session) => using(session.sftp())(sftp => root_path.expand_env(sftp.settings))
+      }
 
     override def toString: String =
       ssh match {
@@ -54,7 +68,7 @@ object Mercurial
     {
       val cmdline =
         "\"${HG:-hg}\"" +
-          (if (name == "clone") "" else " --repository " + File.bash_string(root.implode)) +
+          (if (name == "clone") "" else " --repository " + File.bash_path(root)) +
           " --noninteractive " + name + " " + options + " " + args
       ssh match {
         case None => Isabelle_System.bash(cmdline)
