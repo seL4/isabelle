@@ -1918,6 +1918,10 @@ lemma sgn_greater [simp]: "0 < sgn a \<longleftrightarrow> 0 < a"
 lemma sgn_less [simp]: "sgn a < 0 \<longleftrightarrow> a < 0"
   unfolding sgn_if by auto
 
+lemma abs_sgn_eq_1 [simp]:
+  "a \<noteq> 0 \<Longrightarrow> \<bar>sgn a\<bar> = 1"
+  by (simp add: abs_if)
+
 lemma abs_sgn_eq: "\<bar>sgn a\<bar> = (if a = 0 then 0 else 1)"
   by (simp add: sgn_if)
 
