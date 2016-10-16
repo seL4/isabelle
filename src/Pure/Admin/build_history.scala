@@ -331,7 +331,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   /** remote build_history -- via command-line **/
 
   def remote_build_history(
-    session: SSH.Session,
+    ssh: SSH.Session,
     isabelle_repos_self: Path,
     isabelle_repos_other: Path,
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
@@ -340,37 +340,33 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
-    using(session.sftp())(sftp =>
-      {
-        val isabelle_admin = sftp.remote_path(isabelle_repos_self + Path.explode("Admin"))
+    val isabelle_admin = ssh.remote_path(isabelle_repos_self + Path.explode("Admin"))
 
 
-        /* prepare repository clones */
+    /* prepare repository clones */
 
-        val isabelle_hg =
-          Mercurial.setup_repository(
-            isabelle_repos_source, isabelle_repos_self, ssh = Some(session))
+    val isabelle_hg =
+      Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = Some(ssh))
 
-        if (self_update) {
-          isabelle_hg.pull()
-          isabelle_hg.update(clean = true)
-          session.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
-        }
+    if (self_update) {
+      isabelle_hg.pull()
+      isabelle_hg.update(clean = true)
+      ssh.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
+    }
 
-        Mercurial.setup_repository(
-          sftp.remote_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(session))
+    Mercurial.setup_repository(
+      ssh.remote_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(ssh))
 
 
-        /* Admin/build_history */
+    /* Admin/build_history */
 
-        val result =
-          session.execute(
-            File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
-              File.bash_string(sftp.remote_path(isabelle_repos_other)) + " " + args,
-            progress_stderr = progress.echo(_)).check
+    val result =
+      ssh.execute(
+        File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
+          File.bash_string(ssh.remote_path(isabelle_repos_other)) + " " + args,
+        progress_stderr = progress.echo(_)).check
 
-        for (line <- result.out_lines; log = Path.explode(line))
-          yield (log.base.implode, sftp.read_bytes(log))
-      })
+    for (line <- result.out_lines; log = Path.explode(line))
+      yield (log.base.implode, ssh.read_bytes(log))
   }
 }

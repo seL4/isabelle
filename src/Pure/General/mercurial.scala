@@ -37,7 +37,7 @@ object Mercurial
     val hg = new Repository(root, ssh)
     ssh match {
       case None => Isabelle_System.mkdirs(hg.root.dir)
-      case Some(session) => using(session.sftp())(_.mkdirs(hg.root.dir))
+      case Some(ssh) => ssh.mkdirs(hg.root.dir)
     }
     hg.command("clone", File.bash_string(source) + " " + File.bash_path(hg.root), options).check
     hg
@@ -48,7 +48,7 @@ object Mercurial
     val present =
       ssh match {
         case None => root.is_dir
-        case Some(session) => using(session.sftp())(_.is_dir(root))
+        case Some(ssh) => ssh.is_dir(root)
       }
     if (present) { val hg = repository(root, ssh = ssh); hg.pull(); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
@@ -61,13 +61,13 @@ object Mercurial
     val root =
       ssh match {
         case None => root_path.expand
-        case Some(session) => using(session.sftp())(sftp => root_path.expand_env(sftp.settings))
+        case Some(ssh) => root_path.expand_env(ssh.settings)
       }
 
     override def toString: String =
       ssh match {
         case None => root.implode
-        case Some(session) => session.toString + ":" + root.implode
+        case Some(ssh) => ssh.toString + ":" + root.implode
       }
 
     def command(name: String, args: String = "", options: String = ""): Process_Result =
@@ -78,7 +78,7 @@ object Mercurial
           " --noninteractive " + name + " " + options + " " + args
       ssh match {
         case None => Isabelle_System.bash(cmdline)
-        case Some(session) => session.execute(cmdline)
+        case Some(ssh) => ssh.execute(cmdline)
       }
     }
 
