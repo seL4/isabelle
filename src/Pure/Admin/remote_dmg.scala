@@ -9,21 +9,20 @@ package isabelle
 
 object Remote_DMG
 {
-  def remote_dmg(session: SSH.Session, tar_gz_file: Path, dmg_file: Path, volume_name: String = "")
+  def remote_dmg(ssh: SSH.Session, tar_gz_file: Path, dmg_file: Path, volume_name: String = "")
   {
-    session.with_tmp_dir(remote_dir =>
-      using(session.sftp())(sftp =>
-        {
-          val cd = "cd " + File.bash_string(sftp.remote_path(remote_dir)) + "; "
+    ssh.with_tmp_dir(remote_dir =>
+      {
+        val cd = "cd " + File.bash_string(ssh.remote_path(remote_dir)) + "; "
 
-          sftp.write_file(remote_dir + Path.explode("dmg.tar.gz"), tar_gz_file)
-          session.execute(cd + "mkdir root && tar -C root -xzf dmg.tar.gz").check
-          session.execute(
-            cd + "hdiutil create -srcfolder root" +
-              (if (volume_name == "") "" else " -volname " + File.bash_string(volume_name)) +
-              " dmg.dmg").check
-          sftp.read_file(remote_dir + Path.explode("dmg.dmg"), dmg_file)
-        }))
+        ssh.write_file(remote_dir + Path.explode("dmg.tar.gz"), tar_gz_file)
+        ssh.execute(cd + "mkdir root && tar -C root -xzf dmg.tar.gz").check
+        ssh.execute(
+          cd + "hdiutil create -srcfolder root" +
+            (if (volume_name == "") "" else " -volname " + File.bash_string(volume_name)) +
+            " dmg.dmg").check
+        ssh.read_file(remote_dir + Path.explode("dmg.dmg"), dmg_file)
+      })
   }
 
 
@@ -57,7 +56,7 @@ Usage: isabelle remote_dmg [OPTIONS] USER@HOST TAR_GZ_FILE DMG_FILE
             case _ => getopts.usage()
           }
 
-        val ssh = SSH.init(Options.init)
+        val ssh = SSH.init_context(Options.init)
         using(ssh.open_session(user = user, host = host, port = port))(
           remote_dmg(_, tar_gz_file, dmg_file, volume_name))
       }

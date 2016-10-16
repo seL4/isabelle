@@ -35,18 +35,24 @@ object Mercurial
     source: String, root: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
   {
     val hg = new Repository(root, ssh)
+    ssh match {
+      case None => Isabelle_System.mkdirs(hg.root.dir)
+      case Some(ssh) => ssh.mkdirs(hg.root.dir)
+    }
     hg.command("clone", File.bash_string(source) + " " + File.bash_path(hg.root), options).check
     hg
   }
 
   def setup_repository(source: String, root: Path, ssh: Option[SSH.Session] = None): Repository =
-    ssh match {
-      case None => if (root.is_dir) repository(root) else clone_repository(source, root)
-      case Some(session) =>
-        using(session.sftp())(sftp =>
-          if (sftp.is_dir(root)) repository(root, ssh = ssh)
-          else clone_repository(source, root, ssh = ssh))
-    }
+  {
+    val present =
+      ssh match {
+        case None => root.is_dir
+        case Some(ssh) => ssh.is_dir(root)
+      }
+    if (present) { val hg = repository(root, ssh = ssh); hg.pull(); hg }
+    else clone_repository(source, root, options = "--noupdate", ssh = ssh)
+  }
 
   class Repository private[Mercurial](root_path: Path, ssh: Option[SSH.Session])
   {
@@ -55,13 +61,13 @@ object Mercurial
     val root =
       ssh match {
         case None => root_path.expand
-        case Some(session) => using(session.sftp())(sftp => root_path.expand_env(sftp.settings))
+        case Some(ssh) => root_path.expand_env(ssh.settings)
       }
 
     override def toString: String =
       ssh match {
         case None => root.implode
-        case Some(session) => session.toString + ":" + root.implode
+        case Some(ssh) => ssh.toString + ":" + root.implode
       }
 
     def command(name: String, args: String = "", options: String = ""): Process_Result =
@@ -72,7 +78,7 @@ object Mercurial
           " --noninteractive " + name + " " + options + " " + args
       ssh match {
         case None => Isabelle_System.bash(cmdline)
-        case Some(session) => session.execute(cmdline)
+        case Some(ssh) => ssh.execute(cmdline)
       }
     }
 

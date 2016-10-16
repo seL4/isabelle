@@ -40,12 +40,7 @@ object Isabelle_Cronjob
     Logger_Task("isabelle_identify", logger =>
       {
         val isabelle_id = Mercurial.repository(isabelle_repos).id()
-        val afp_id =
-        {
-          val hg = Mercurial.setup_repository(afp_source, afp_repos)
-          hg.pull()
-          hg.id()
-        }
+        val afp_id = Mercurial.setup_repository(afp_source, afp_repos).id()
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           terminate_lines(
@@ -61,10 +56,13 @@ object Isabelle_Cronjob
   private val build_history_base =
     Logger_Task("build_history_base", logger =>
       {
+        val hg =
+          Mercurial.setup_repository(
+            File.standard_path(isabelle_repos), isabelle_repos_test)
         for {
           (result, log_path) <-
-            Build_History.build_history(Mercurial.repository(isabelle_repos_test),
-              rev = "build_history_base", fresh = true, build_args = List("HOL"))
+            Build_History.build_history(
+              hg, rev = "build_history_base", fresh = true, build_args = List("HOL"))
         } {
           result.check
           File.copy(log_path, logger.log_dir + log_path.base)
@@ -112,10 +110,10 @@ object Isabelle_Cronjob
     Logger_Task("build_history-" + r.host, logger =>
       {
         using(logger.ssh_context.open_session(host = r.host, user = r.user, port = r.port))(
-          session =>
+          ssh =>
             {
               val results =
-                Build_History.remote_build_history(session,
+                Build_History.remote_build_history(ssh,
                   isabelle_repos,
                   isabelle_repos.ext(r.host),
                   isabelle_repos_source = isabelle_dev_source,
@@ -133,7 +131,7 @@ object Isabelle_Cronjob
 
   sealed case class Logger_Task(name: String = "", body: Logger => Unit)
 
-  class Log_Service private[Isabelle_Cronjob](progress: Progress, val ssh_context: SSH)
+  class Log_Service private[Isabelle_Cronjob](progress: Progress, val ssh_context: SSH.Context)
   {
     current_log.file.delete
 
@@ -179,7 +177,7 @@ object Isabelle_Cronjob
   class Logger private[Isabelle_Cronjob](
     val log_service: Log_Service, val start_date: Date, val task_name: String)
   {
-    def ssh_context: SSH = log_service.ssh_context
+    def ssh_context: SSH.Context = log_service.ssh_context
 
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
@@ -225,7 +223,7 @@ object Isabelle_Cronjob
 
     /* log service */
 
-    val log_service = new Log_Service(progress, SSH.init(Options.init()))
+    val log_service = new Log_Service(progress, SSH.init_context(Options.init()))
 
     def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
 
