@@ -146,8 +146,6 @@ object SSH
 
     def close() { channel.disconnect }
 
-    def kill(signal: String) { channel.sendSignal(signal) }
-
     val exit_status: Future[Int] =
       Future.thread("ssh_wait") {
         while (!channel.isClosed) Thread.sleep(exec_wait_delay.ms)
