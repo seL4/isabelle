@@ -40,12 +40,7 @@ object Isabelle_Cronjob
     Logger_Task("isabelle_identify", logger =>
       {
         val isabelle_id = Mercurial.repository(isabelle_repos).id()
-        val afp_id =
-        {
-          val hg = Mercurial.setup_repository(afp_source, afp_repos)
-          hg.pull()
-          hg.id()
-        }
+        val afp_id = Mercurial.setup_repository(afp_source, afp_repos).id()
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           terminate_lines(

@@ -40,13 +40,15 @@ object Mercurial
   }
 
   def setup_repository(source: String, root: Path, ssh: Option[SSH.Session] = None): Repository =
-    ssh match {
-      case None => if (root.is_dir) repository(root) else clone_repository(source, root)
-      case Some(session) =>
-        using(session.sftp())(sftp =>
-          if (sftp.is_dir(root)) repository(root, ssh = ssh)
-          else clone_repository(source, root, ssh = ssh))
-    }
+  {
+    val present =
+      ssh match {
+        case None => root.is_dir
+        case Some(session) => using(session.sftp())(_.is_dir(root))
+      }
+    if (present) { val hg = repository(root, ssh = ssh); hg.pull(); hg }
+    else clone_repository(source, root, options = "--noupdate", ssh = ssh)
+  }
 
   class Repository private[Mercurial](root_path: Path, ssh: Option[SSH.Session])
   {
