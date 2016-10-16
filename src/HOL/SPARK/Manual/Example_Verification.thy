@@ -172,9 +172,9 @@ operator \textbf{rem}, the \SPARK{} expression \texttt{c}\ \textbf{rem}\ \texttt
 just becomes \<open>c - c sdiv d * d\<close> in Isabelle. The first conclusion of
 \<open>procedure_g_c_d_4\<close> requires us to prove that the remainder of \<open>c\<close>
 and \<open>d\<close> is greater than \<open>0\<close>. To do this, we use the theorem
-\<open>zmod_zdiv_equality'\<close> describing the correspondence between \<open>div\<close>
+\<open>minus_div_mult_eq_mod [symmetric]\<close> describing the correspondence between \<open>div\<close>
 and \<open>mod\<close>
-@{thm [display] zmod_zdiv_equality'}
+@{thm [display] minus_div_mult_eq_mod [symmetric]}
 together with the theorem \<open>pos_mod_sign\<close> saying that the result of the
 \<open>mod\<close> operator is non-negative when applied to a non-negative divisor:
 @{thm [display] pos_mod_sign}
@@ -194,7 +194,7 @@ is equal to the \<open>gcd\<close> of the original input values \<open>m\<close>
 which is the actual \emph{invariant} of the procedure. This is a consequence
 of theorem \<open>gcd_non_0_int\<close>
 @{thm [display] gcd_non_0_int}
-Again, we also need theorems \<open>zmod_zdiv_equality'\<close> and \<open>sdiv_pos_pos\<close>
+Again, we also need theorems \<open>minus_div_mult_eq_mod [symmetric]\<close> and \<open>sdiv_pos_pos\<close>
 to justify that \SPARK{}'s \textbf{rem} operator is equivalent to Isabelle's
 \<open>mod\<close> operator for non-negative operands.
 The VC \<open>procedure_g_c_d_11\<close> says that if the loop invariant holds before
@@ -227,7 +227,7 @@ be declared as \texttt{Natural} rather than \texttt{Integer}. Since natural
 numbers are non-negative by construction, the values computed by the algorithm
 are trivially proved to be non-negative. Since we are working with non-negative
 numbers, we can also just use \SPARK{}'s \textbf{mod} operator instead of
-\textbf{rem}, which spares us an application of theorems \<open>zmod_zdiv_equality'\<close>
+\textbf{rem}, which spares us an application of theorems \<open>minus_div_mult_eq_mod [symmetric]\<close>
 and \<open>sdiv_pos_pos\<close>. Finally, as noted by Barnes @{cite \<open>\S 11.5\<close> Barnes},
 we can simplify matters by placing the \textbf{assert} statement between
 \textbf{while} and \textbf{loop} rather than directly after the \textbf{loop}.

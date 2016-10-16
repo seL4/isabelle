@@ -26,7 +26,7 @@ proof -
   also have "setsum (%x. x * a) A = setsum id B"
     by (simp add: B_def setsum.reindex [OF inj_on_xa_A])
   also have "... = setsum (%x. p * (x div p) + StandardRes p x) B"
-    by (auto simp add: StandardRes_def zmod_zdiv_equality)
+    by (auto simp add: StandardRes_def mult_div_mod_eq [symmetric])
   also have "... = setsum (%x. p * (x div p)) B + setsum (StandardRes p) B"
     by (rule setsum.distrib)
   also have "setsum (StandardRes p) B = setsum id C"

@@ -1735,7 +1735,7 @@ proof (induct p rule: iszlfm.induct)
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl: "c * (l div c) =l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+    using mult_div_mod_eq [where a="l" and b="c"] by simp
   then have "(l * x + (l div c) * Inum (x # bs) e < 0) \<longleftrightarrow>
       ((c * (l div c)) * x + (l div c) * Inum (x # bs) e < 0)"
     by simp
@@ -1762,7 +1762,7 @@ next
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl: "c * (l div c) = l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+    using mult_div_mod_eq [where a="l" and b="c"] by simp
   then have "l * x + (l div c) * Inum (x # bs) e \<le> 0 \<longleftrightarrow>
       (c * (l div c)) * x + (l div c) * Inum (x # bs) e \<le> 0"
     by simp
@@ -1787,7 +1787,7 @@ next
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl: "c * (l div c) = l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+    using mult_div_mod_eq [where a="l" and b="c"] by simp
   then have "l * x + (l div c) * Inum (x # bs) e > 0 \<longleftrightarrow>
       (c * (l div c)) * x + (l div c) * Inum (x # bs) e > 0"
     by simp
@@ -1814,7 +1814,7 @@ next
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl: "c * (l div c) =l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    using mult_div_mod_eq [where a="l" and b="c"]
     by simp
   then have "l * x + (l div c) * Inum (x # bs) e \<ge> 0 \<longleftrightarrow>
       (c * (l div c)) * x + (l div c) * Inum (x # bs) e \<ge> 0"
@@ -1841,7 +1841,7 @@ next
     by (simp add: div_self[OF cnz])
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-  then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+  then have cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
     by simp
   then have "l * x + (l div c) * Inum (x # bs) e = 0 \<longleftrightarrow>
       (c * (l div c)) * x + (l div c) * Inum (x # bs) e = 0"
@@ -1869,7 +1869,7 @@ next
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl: "c * (l div c) = l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+    using mult_div_mod_eq [where a="l" and b="c"] by simp
   then have "l * x + (l div c) * Inum (x # bs) e \<noteq> 0 \<longleftrightarrow>
       (c * (l div c)) * x + (l div c) * Inum (x # bs) e \<noteq> 0"
     by simp
@@ -1895,7 +1895,7 @@ next
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl: "c * (l div c) = l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+    using mult_div_mod_eq [where a="l" and b="c"] by simp
   then have "(\<exists>k::int. l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) \<longleftrightarrow>
       (\<exists>k::int. (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"
     by simp
@@ -1925,7 +1925,7 @@ next
   have "c * (l div c) = c* (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl:"c * (l div c) =l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    using mult_div_mod_eq [where a="l" and b="c"]
     by simp
   then have "(\<exists>k::int. l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) \<longleftrightarrow>
       (\<exists>k::int. (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"

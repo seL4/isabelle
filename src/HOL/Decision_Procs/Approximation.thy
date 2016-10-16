@@ -4408,7 +4408,7 @@ lemma approximation_preproc_int[approximation_preproc]:
   "i \<le> j \<longleftrightarrow> real_of_int i \<le> real_of_int j"
   "i < j \<longleftrightarrow> real_of_int i < real_of_int j"
   "i \<in> {j .. k} \<longleftrightarrow> real_of_int i \<in> {real_of_int j .. real_of_int k}"
-  by (simp_all add: floor_divide_of_int_eq zmod_zdiv_equality')
+  by (simp_all add: floor_divide_of_int_eq minus_div_mult_eq_mod [symmetric])
 
 lemma approximation_preproc_nat[approximation_preproc]:
   "real 0 = real_of_float 0"

@@ -534,7 +534,7 @@ proof -
     show "k = integer_of_int (int_of_integer k)" by simp
   qed
   moreover have "2 * (j div 2) = j - j mod 2"
-    by (simp add: zmult_div_cancel mult.commute)
+    by (simp add: minus_mod_eq_mult_div [symmetric] mult.commute)
   ultimately show ?thesis
     by (auto simp add: split_def Let_def modulo_integer_def nat_of_integer_def not_le
       nat_add_distrib [symmetric] Suc_nat_eq_nat_zadd1)
@@ -548,7 +548,7 @@ lemma int_of_integer_code [code]:
        (l, j) = divmod_integer k 2;
        l' = 2 * int_of_integer l
      in if j = 0 then l' else l' + 1)"
-  by (auto simp add: split_def Let_def integer_eq_iff zmult_div_cancel)
+  by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
 
 lemma integer_of_int_code [code]:
   "integer_of_int k = (if k < 0 then - (integer_of_int (- k))
@@ -557,7 +557,7 @@ lemma integer_of_int_code [code]:
        l = 2 * integer_of_int (k div 2);
        j = k mod 2
      in if j = 0 then l else l + 1)"
-  by (auto simp add: split_def Let_def integer_eq_iff zmult_div_cancel)
+  by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
 
 hide_const (open) Pos Neg sub dup divmod_abs
 

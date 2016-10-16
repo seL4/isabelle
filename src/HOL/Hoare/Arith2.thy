@@ -83,7 +83,7 @@ subsubsection \<open>pow\<close>
 
 lemma sq_pow_div2 [simp]:
     "m mod 2 = 0 ==> ((n::nat)*n)^(m div 2) = n^m"
-  apply (simp add: power2_eq_square [symmetric] power_mult [symmetric] mult_div_cancel)
+  apply (simp add: power2_eq_square [symmetric] power_mult [symmetric] minus_mod_eq_mult_div [symmetric])
   done
 
 end

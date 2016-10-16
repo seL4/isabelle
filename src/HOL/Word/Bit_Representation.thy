@@ -314,7 +314,7 @@ lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
    apply arith
   apply (simp add: bin_last_def bin_rest_def Bit_def)
   apply (clarsimp simp: mod_mult_mult1 [symmetric] 
-         zmod_zdiv_equality [THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
+         mult_div_mod_eq [symmetric, THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
   apply (rule trans [symmetric, OF _ emep1])
   apply auto
   done

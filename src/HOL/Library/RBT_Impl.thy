@@ -1240,7 +1240,7 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       case True
       hence "length (snd (rbtreeify_f n kvs)) = 
         length (snd (rbtreeify_f (2 * (n div 2)) kvs))"
-        by(metis minus_nat.diff_0 mult_div_cancel)
+        by(metis minus_nat.diff_0 minus_mod_eq_mult_div [symmetric])
       also from "1.prems" False obtain k v kvs' 
         where kvs: "kvs = (k, v) # kvs'" by(cases kvs) auto
       also have "0 < n div 2" using False by(simp) 
@@ -1260,7 +1260,7 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       have "length (snd (rbtreeify_g (n div 2) kvs'')) = 
         Suc (length kvs'') - n div 2" by(rule IH)
       finally show ?thesis using len[unfolded kvs''] "1.prems" True
-        by(simp add: Suc_diff_le[symmetric] mult_2[symmetric] mult_div_cancel)
+        by(simp add: Suc_diff_le[symmetric] mult_2[symmetric] minus_mod_eq_mult_div [symmetric])
     next
       case False
       hence "length (snd (rbtreeify_f n kvs)) = 
@@ -1303,7 +1303,7 @@ next
       case True
       hence "length (snd (rbtreeify_g n kvs)) =
         length (snd (rbtreeify_g (2 * (n div 2)) kvs))"
-        by(metis minus_nat.diff_0 mult_div_cancel)
+        by(metis minus_nat.diff_0 minus_mod_eq_mult_div [symmetric])
       also from "2.prems" True obtain k v kvs' 
         where kvs: "kvs = (k, v) # kvs'" by(cases kvs) auto
       also have "0 < n div 2" using \<open>1 < n\<close> by(simp) 
@@ -1324,7 +1324,7 @@ next
       have "length (snd (rbtreeify_g (n div 2) kvs'')) = Suc (length kvs'') - n div 2"
         by(rule IH)
       finally show ?thesis using len[unfolded kvs''] "2.prems" True
-        by(simp add: Suc_diff_le[symmetric] mult_2[symmetric] mult_div_cancel)
+        by(simp add: Suc_diff_le[symmetric] mult_2[symmetric] minus_mod_eq_mult_div [symmetric])
     next
       case False
       hence "length (snd (rbtreeify_g n kvs)) = 
@@ -1431,7 +1431,7 @@ proof -
         moreover note fodd[unfolded fodd_def]
         ultimately have "P (Suc (2 * (n div 2))) kvs" by -
         thus ?thesis using False 
-          by simp (metis One_nat_def Suc_eq_plus1_left le_add_diff_inverse mod_less_eq_dividend mult_div_cancel)
+          by simp (metis One_nat_def Suc_eq_plus1_left le_add_diff_inverse mod_less_eq_dividend minus_mod_eq_mult_div [symmetric])
       qed
     qed
   next
@@ -1478,7 +1478,7 @@ proof -
         moreover note godd[unfolded godd_def]
         ultimately have "Q (Suc (2 * (n div 2))) kvs" by -
         thus ?thesis using False 
-          by simp (metis One_nat_def Suc_eq_plus1_left le_add_diff_inverse mod_less_eq_dividend mult_div_cancel)
+          by simp (metis One_nat_def Suc_eq_plus1_left le_add_diff_inverse mod_less_eq_dividend minus_mod_eq_mult_div [symmetric])
       qed
     qed
   qed

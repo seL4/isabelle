@@ -565,17 +565,6 @@ class semiring_numeral_div = semiring_div + comm_semiring_1_cancel + linordered_
 
 begin
 
-lemma mult_div_cancel:
-  "b * (a div b) = a - a mod b"
-proof -
-  have "b * (a div b) + a mod b = a"
-    using div_mult_mod_eq [of a b] by (simp add: ac_simps)
-  then have "b * (a div b) + a mod b - a mod b = a - a mod b"
-    by simp
-  then show ?thesis
-    by simp
-qed
-
 subclass semiring_div_parity
 proof
   fix a
@@ -617,7 +606,7 @@ proof -
     by (auto simp add: mod_w) (insert mod_less, auto)
   with mod_w have mod: "a mod (2 * b) = a mod b + b" by simp
   have "2 * (a div (2 * b)) = a div b - w"
-    by (simp add: w_def div_mult2_eq mult_div_cancel ac_simps)
+    by (simp add: w_def div_mult2_eq minus_mod_eq_mult_div ac_simps)
   with \<open>w = 1\<close> have div: "2 * (a div (2 * b)) = a div b - 1" by simp
   then show ?P and ?Q
     by (simp_all add: div mod add_implies_diff [symmetric])
@@ -642,7 +631,7 @@ proof -
   ultimately have "w = 0" by auto
   with mod_w have mod: "a mod (2 * b) = a mod b" by simp
   have "2 * (a div (2 * b)) = a div b - w"
-    by (simp add: w_def div_mult2_eq mult_div_cancel ac_simps)
+    by (simp add: w_def div_mult2_eq minus_mod_eq_mult_div ac_simps)
   with \<open>w = 0\<close> have div: "2 * (a div (2 * b)) = a div b" by simp
   then show ?P and ?Q
     by (simp_all add: div mod)
@@ -1120,10 +1109,6 @@ by (simp add: le_mod_geq)
 lemma mod_by_Suc_0 [simp]: "m mod Suc 0 = 0"
 by (induct m) (simp_all add: mod_geq)
 
-(* a simple rearrangement of div_mult_mod_eq: *)
-lemma mult_div_cancel: "(n::nat) * (m div n) = m - (m mod n)"
-  using mult_div_mod_eq [of n m] by arith
-
 lemma mod_le_divisor[simp]: "0 < n \<Longrightarrow> m mod n \<le> (n::nat)"
   apply (drule mod_less_divisor [where m = m])
   apply simp
@@ -1329,7 +1314,7 @@ lemma split_div_lemma:
   shows "n * q \<le> m \<and> m < n * Suc q \<longleftrightarrow> q = ((m::nat) div n)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?rhs
-  with mult_div_cancel have nq: "n * q = m - (m mod n)" by simp
+  with minus_mod_eq_mult_div [symmetric] have nq: "n * q = m - (m mod n)" by simp
   then have A: "n * q \<le> m" by simp
   have "n - (m mod n) > 0" using mod_less_divisor assms by auto
   then have "m < m + (n - (m mod n))" by simp
@@ -1386,8 +1371,6 @@ next
     show ?P by simp
   qed
 qed
-
-declare minus_div_mult_eq_mod [symmetric, where ?'a = nat, nitpick_unfold]
 
 lemma div_eq_dividend_iff: "a \<noteq> 0 \<Longrightarrow> (a :: nat) div b = a \<longleftrightarrow> b = 1"
   apply rule
@@ -1806,9 +1789,6 @@ end
   
 text\<open>Basic laws about division and remainder\<close>
 
-lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
-  by (fact mult_div_mod_eq [symmetric])
-
 lemma zdiv_int: "int (a div b) = int a div int b"
   by (simp add: divide_int_def)
 
@@ -1932,16 +1912,18 @@ lemma zmod_zminus2_not_zero:
 subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
 
 lemma zdiv_mono1: "[| a \<le> a';  0 < (b::int) |] ==> a div b \<le> a' div b"
-apply (cut_tac a = a and b = b in zmod_zdiv_equality)
-apply (cut_tac a = a' and b = b in zmod_zdiv_equality)
+using mult_div_mod_eq [symmetric, of a b]
+using mult_div_mod_eq [symmetric, of a' b]
+apply -
 apply (rule unique_quotient_lemma)
 apply (erule subst)
 apply (erule subst, simp_all)
 done
 
 lemma zdiv_mono1_neg: "[| a \<le> a';  (b::int) < 0 |] ==> a' div b \<le> a div b"
-apply (cut_tac a = a and b = b in zmod_zdiv_equality)
-apply (cut_tac a = a' and b = b in zmod_zdiv_equality)
+using mult_div_mod_eq [symmetric, of a b]
+using mult_div_mod_eq [symmetric, of a' b]
+apply -
 apply (rule unique_quotient_lemma_neg)
 apply (erule subst)
 apply (erule subst, simp_all)
@@ -1974,9 +1956,10 @@ done
 lemma zdiv_mono2:
      "[| (0::int) \<le> a;  0 < b';  b' \<le> b |] ==> a div b \<le> a div b'"
 apply (subgoal_tac "b \<noteq> 0")
- prefer 2 apply arith
-apply (cut_tac a = a and b = b in zmod_zdiv_equality)
-apply (cut_tac a = a and b = b' in zmod_zdiv_equality)
+  prefer 2 apply arith
+using mult_div_mod_eq [symmetric, of a b]
+using mult_div_mod_eq [symmetric, of a b']
+apply -
 apply (rule zdiv_mono2_lemma)
 apply (erule subst)
 apply (erule subst, simp_all)
@@ -2002,8 +1985,9 @@ done
 
 lemma zdiv_mono2_neg:
      "[| a < (0::int);  0 < b';  b' \<le> b |] ==> a div b' \<le> a div b"
-apply (cut_tac a = a and b = b in zmod_zdiv_equality)
-apply (cut_tac a = a and b = b' in zmod_zdiv_equality)
+using mult_div_mod_eq [symmetric, of a b]
+using mult_div_mod_eq [symmetric, of a b']
+apply -
 apply (rule zdiv_mono2_neg_lemma)
 apply (erule subst)
 apply (erule subst, simp_all)
@@ -2043,10 +2027,6 @@ by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 
 (* REVISIT: should this be generalized to all semiring_div types? *)
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
-
-lemma zmod_zdiv_equality' [nitpick_unfold]:
-  "(m::int) mod n = m - (m div n) * n"
-  using div_mult_mod_eq [of m n] by arith
 
 
 subsubsection \<open>Proving  @{term "a div (b * c) = (a div b) div c"}\<close>
@@ -2349,11 +2329,6 @@ lemma zmod_le_nonneg_dividend: "(m::int) \<ge> 0 ==> m mod k \<le> m"
 apply (rule split_zmod[THEN iffD2])
 apply(fastforce dest: q_pos_lemma intro: split_mult_pos_le)
 done
-
-lemma zmult_div_cancel:
-  "(n::int) * (m div n) = m - (m mod n)"
-  using zmod_zdiv_equality [where a="m" and b="n"]
-  by (simp add: algebra_simps) (* FIXME: generalize *)
 
 
 subsubsection \<open>Computation of Division and Remainder\<close>
@@ -2689,6 +2664,8 @@ code_identifier
 lemma dvd_eq_mod_eq_0_numeral:
   "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semiring_div)"
   by (fact dvd_eq_mod_eq_0)
+
+declare minus_div_mult_eq_mod [symmetric, nitpick_unfold]
 
 hide_fact (open) div_0 div_by_0
 

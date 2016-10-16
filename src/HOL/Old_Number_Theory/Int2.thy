@@ -51,7 +51,7 @@ proof -
   have "(x div z) * z \<le> (x div z) * z" by simp
   then have "(x div z) * z \<le> (x div z) * z + x mod z" using modth by arith 
   also have "\<dots> = x"
-    by (auto simp add: zmod_zdiv_equality [symmetric] ac_simps)
+    by (auto simp add: mult_div_mod_eq ac_simps)
   also note \<open>x < y * z\<close>
   finally show ?thesis
     apply (auto simp add: mult_less_cancel_right)
@@ -73,7 +73,7 @@ qed
 
 lemma zdiv_leq_prop: assumes "0 < y" shows "y * (x div y) \<le> (x::int)"
 proof-
-  from zmod_zdiv_equality have "x = y * (x div y) + x mod y" by auto
+  from mult_div_mod_eq [symmetric] have "x = y * (x div y) + x mod y" by auto
   moreover have "0 \<le> x mod y" by (auto simp add: assms)
   ultimately show ?thesis by arith
 qed

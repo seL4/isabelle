@@ -342,7 +342,7 @@ proof -
     apply (simp add: int_Idl a_r_coset_defs)
   proof -
     have "a = m * (a div m) + (a mod m)"
-      by (simp add: zmod_zdiv_equality)
+      by (simp add: mult_div_mod_eq [symmetric])
     then have "a = (a div m) * m + (a mod m)"
       by simp
     then show "\<exists>h. (\<exists>x. h = x * m) \<and> a = h + a mod m"

@@ -236,7 +236,7 @@ lemma zcong_zless_unique:
    prefer 2 apply (metis zcong_sym zcong_trans zcong_zless_imp_eq)
   apply (unfold zcong_def dvd_def)
   apply (rule_tac x = "a mod m" in exI, auto)
-  apply (metis zmult_div_cancel)
+  apply (metis minus_mod_eq_mult_div [symmetric])
   done
 
 lemma zcong_iff_lin: "([a = b] (mod m)) = (\<exists>k. b = a + m * k)"

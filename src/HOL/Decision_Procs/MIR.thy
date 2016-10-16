@@ -2419,7 +2419,7 @@ proof (induct p rule: iszlfm.induct)
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e < (0::real)) =
           (real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e < 0)"
@@ -2437,7 +2437,7 @@ next
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e \<le> (0::real)) =
           (real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e \<le> 0)"
@@ -2455,7 +2455,7 @@ next
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e > (0::real)) =
           (real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e > 0)"
@@ -2473,7 +2473,7 @@ next
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e \<ge> (0::real)) =
           (real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e \<ge> 0)"
@@ -2491,7 +2491,7 @@ next
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e = (0::real)) =
           (real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e = 0)"
@@ -2509,7 +2509,7 @@ next
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e \<noteq> (0::real)) =
           (real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e \<noteq> 0)"
@@ -2527,7 +2527,7 @@ next
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(\<exists> (k::int). real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e = (real_of_int (l div c) * real_of_int j) * real_of_int k) = (\<exists> (k::int). real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e = (real_of_int (l div c) * real_of_int j) * real_of_int k)"  by simp
     also have "\<dots> = (\<exists> (k::int). real_of_int (l div c) * (real_of_int c * real_of_int x + Inum (real_of_int x # bs) e - real_of_int j * real_of_int k) = real_of_int (l div c)*0)" by (simp add: algebra_simps)
@@ -2544,7 +2544,7 @@ next
     then have ldcp:"0 < l div c"
       by (simp add: div_self[OF cnz])
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
-    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    hence cl:"c * (l div c) =l" using mult_div_mod_eq [where a="l" and b="c"]
       by simp
     hence "(\<exists> (k::int). real_of_int l * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e = (real_of_int (l div c) * real_of_int j) * real_of_int k) = (\<exists> (k::int). real_of_int (c * (l div c)) * real_of_int x + real_of_int (l div c) * Inum (real_of_int x # bs) e = (real_of_int (l div c) * real_of_int j) * real_of_int k)"  by simp
     also have "\<dots> = (\<exists> (k::int). real_of_int (l div c) * (real_of_int c * real_of_int x + Inum (real_of_int x # bs) e - real_of_int j * real_of_int k) = real_of_int (l div c)*0)" by (simp add: algebra_simps)

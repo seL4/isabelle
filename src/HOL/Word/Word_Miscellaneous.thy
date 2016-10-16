@@ -255,7 +255,7 @@ lemma mod_sub_if_z:
    (x - y) mod z = (if y <= x then x - y else x - y + z)"
   by (auto intro: int_mod_eq)
 
-lemmas zmde = zmod_zdiv_equality [THEN diff_eq_eq [THEN iffD2], symmetric]
+lemmas zmde = mult_div_mod_eq [symmetric, THEN diff_eq_eq [THEN iffD2], symmetric]
 lemmas mcl = mult_cancel_left [THEN iffD1, THEN make_pos_rule]
 
 (* already have this for naturals, div_mult_self1/2, but not for ints *)
@@ -331,7 +331,7 @@ lemma diff_mod_le: "(a::nat) < d ==> b dvd d ==> a - a mod b <= d - b"
    apply (drule mult.commute [THEN xtr1])
    apply (frule (1) td_gal_lt [THEN iffD1])
    apply (clarsimp simp: le_simps)
-   apply (rule mult_div_cancel [THEN [2] xtr4])
+   apply (rule minus_mod_eq_mult_div [symmetric, THEN [2] xtr4])
    apply (rule mult_mono)
       apply auto
   done

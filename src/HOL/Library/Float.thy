@@ -1816,7 +1816,7 @@ lemma mult_div_le:
   assumes "b > 0"
   shows "a \<ge> b * (a div b)"
 proof -
-  from zmod_zdiv_equality'[of a b] have "a = b * (a div b) + a mod b"
+  from minus_div_mult_eq_mod [symmetric, of a b] have "a = b * (a div b) + a mod b"
     by simp
   also have "\<dots> \<ge> b * (a div b) + 0"
     apply (rule add_left_mono)
