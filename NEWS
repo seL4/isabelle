@@ -1026,6 +1026,10 @@ implicit default via option -p.
 name space of Java and Scala components that are bundled with Isabelle,
 but without the Isabelle settings environment.
 
+* The command-line tool "isabelle build" supports option -N for cyclic
+shuffling of NUMA CPU nodes. This may help performance tuning on Linux
+servers with separate CPU/memory modules.
+
 
 
 New in Isabelle2016 (February 2016)

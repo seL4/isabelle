@@ -257,6 +257,7 @@ text \<open>
 
   Options are:
     -D DIR       include session directory and select its sessions
+    -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -347,6 +348,10 @@ text \<open>
   Option \<^verbatim>\<open>-j\<close> specifies the maximum number of parallel build jobs (prover
   processes). Each prover process is subject to a separate limit of parallel
   worker threads, cf.\ system option @{system_option_ref threads}.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-N\<close> enables cyclic shuffling of NUMA CPU nodes. This may help
+  performance tuning on Linux servers with separate CPU/memory modules.
 
   \<^medskip>
   Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close>, which means that resulting heap images

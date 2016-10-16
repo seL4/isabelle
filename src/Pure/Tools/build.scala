@@ -236,7 +236,7 @@ object Build
   /* jobs */
 
   private class Job(progress: Progress, name: String, val info: Sessions.Info, tree: Sessions.Tree,
-    store: Sessions.Store, do_output: Boolean, verbose: Boolean,
+    store: Sessions.Store, do_output: Boolean, verbose: Boolean, val numa_node: Option[Int],
     session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
     val output = store.output_dir + Path.basic(name)
@@ -278,18 +278,25 @@ object Build
           "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
           (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
            else "") + "));"
+
+        val process_options =
+          numa_node match {
+            case None => info.options
+            case Some(n) => info.options.string("ML_process_policy") = NUMA.policy(n)
+          }
         val process =
           if (Sessions.pure_name(name)) {
-            ML_Process(info.options, raw_ml_system = true, cwd = info.dir.file,
+            ML_Process(process_options, raw_ml_system = true, cwd = info.dir.file,
               args =
                 (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
                 List("--eval", eval),
               env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
           }
           else {
-            ML_Process(info.options, parent, List("--eval", eval), cwd = info.dir.file,
+            ML_Process(process_options, parent, List("--eval", eval), cwd = info.dir.file,
               env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
           }
+
         process.result(
           progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {
@@ -396,6 +403,7 @@ object Build
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
+    numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
     list_files: Boolean = false,
     check_keywords: Set[String] = Set.empty,
@@ -416,6 +424,7 @@ object Build
       clean_build = clean_build,
       dirs = dirs,
       select_dirs = select_dirs,
+      numa_shuffling = numa_shuffling,
       max_jobs = max_jobs,
       list_files = list_files,
       check_keywords = check_keywords,
@@ -434,6 +443,7 @@ object Build
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
+    numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
     list_files: Boolean = false,
     check_keywords: Set[String] = Set.empty,
@@ -524,11 +534,17 @@ object Build
       catch { case Exn.Interrupt() => Exn.Interrupt.impose() }
     }
 
+    val numa_nodes = new NUMA.Nodes(numa_shuffling)
+
     @tailrec def loop(
       pending: Queue,
       running: Map[String, (List[String], Job)],
       results: Map[String, Result]): Map[String, Result] =
     {
+      def used_node(i: Int): Boolean =
+        running.iterator.exists(
+          { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
+
       if (pending.is_empty) results
       else {
         if (progress.stopped)
@@ -621,10 +637,11 @@ object Build
                     results + (name -> Result(false, heap_stamp, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
+                  val numa_node = numa_nodes.next(used_node(_))
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
                     new Job(progress, name, info, selected_tree, store, do_output, verbose,
-                      deps(name).session_graph, queue.command_timings(name))
+                      numa_node, deps(name).session_graph, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
                 else {
@@ -650,7 +667,9 @@ object Build
       else loop(queue, Map.empty, Map.empty)
 
     val results =
-      new Results((for ((name, result) <- results0.iterator) yield (name, (result.process, result.info))).toMap)
+      new Results(
+        (for ((name, result) <- results0.iterator)
+          yield (name, (result.process, result.info))).toMap)
 
     if (results.rc != 0 && (verbose || !no_build)) {
       val unfinished =
@@ -691,6 +710,7 @@ object Build
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
     var select_dirs: List[Path] = Nil
+    var numa_shuffling = false
     var requirements = false
     var exclude_session_groups: List[String] = Nil
     var all_sessions = false
@@ -712,6 +732,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
     -D DIR       include session directory and select its sessions
+    -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -732,6 +753,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
 """ + Library.prefix_lines("  ", Build_Log.Settings.show()),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+      "N" -> (_ => numa_shuffling = true),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
@@ -768,6 +790,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           clean_build = clean_build,
           dirs = dirs,
           select_dirs = select_dirs,
+          numa_shuffling = NUMA.enabled_warning(numa_shuffling),
           max_jobs = max_jobs,
           list_files = list_files,
           check_keywords = check_keywords,
