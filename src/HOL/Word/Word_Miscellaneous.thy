@@ -291,7 +291,7 @@ lemma pl_pl_mm: "(a :: nat) + b = c + d ==> a - c = d - b"  by arith
 
 lemmas pl_pl_mm' = add.commute [THEN [2] trans, THEN pl_pl_mm]
 
-lemmas dme = box_equals [OF div_mod_equality add_0_right add_0_right]
+lemmas dme = div_mult_mod_eq
 lemmas dtle = xtr3 [OF dme [symmetric] le_add1]
 lemmas th2 = order_trans [OF order_refl [THEN [2] mult_le_mono] dtle]
 
