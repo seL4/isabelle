@@ -744,7 +744,7 @@ proof-
     {assume nm1: "(n - 1) mod m > 0"
       from mod_less_divisor[OF m(1)] have th0:"(n - 1) mod m < m" by blast
       let ?y = "a^ ((n - 1) div m * m)"
-      note mdeq = mod_div_equality[of "(n - 1)" m]
+      note mdeq = div_mult_mod_eq[of "(n - 1)" m]
       from coprime_exp[OF an(1)[unfolded coprime_commute[of a n]],
         of "(n - 1) div m * m"]
       have yn: "coprime ?y n" by (simp add: coprime_commute)
@@ -757,7 +757,7 @@ proof-
       finally have th3: "?y mod n = 1"  .
       have th2: "[?y * a ^ ((n - 1) mod m) = ?y* 1] (mod n)"
         using an1[unfolded modeq_def onen] onen
-          mod_div_equality[of "(n - 1)" m, symmetric]
+          div_mult_mod_eq[of "(n - 1)" m, symmetric]
         by (simp add:power_add[symmetric] modeq_def th3 del: One_nat_def)
       from cong_mult_lcancel[of ?y n "a^((n - 1) mod m)" 1, OF yn th2]
       have th1: "[a ^ ((n - 1) mod m) = 1] (mod n)"  .
@@ -855,7 +855,7 @@ next
     have eqo: "[(a^?o)^?q = 1] (mod n)"  by (simp add: modeq_def power_Suc0)
     from H have onz: "?o \<noteq> 0" by (simp add: ord_eq_0)
     hence op: "?o > 0" by simp
-    from mod_div_equality[of d "ord n a"] lh
+    from div_mult_mod_eq[of d "ord n a"] lh
     have "[a^(?o*?q + ?r) = 1] (mod n)" by (simp add: modeq_def mult.commute)
     hence "[(a^?o)^?q * (a^?r) = 1] (mod n)"
       by (simp add: modeq_def power_mult[symmetric] power_add[symmetric])
@@ -1108,7 +1108,7 @@ proof-
     {assume b0: "b = 0"
       from p(2) nqr have "(n - 1) mod p = 0"
         apply (simp only: dvd_eq_mod_eq_0[symmetric]) by (rule dvd_mult2, simp)
-      with mod_div_equality[of "n - 1" p]
+      with div_mult_mod_eq[of "n - 1" p]
       have "(n - 1) div p * p= n - 1" by auto
       hence eq: "(a^((n - 1) div p))^p = a^(n - 1)"
         by (simp only: power_mult[symmetric])
@@ -1196,7 +1196,7 @@ qed
 
 lemma mod_le: assumes n: "n \<noteq> (0::nat)" shows "m mod n \<le> m"
 proof-
-    from mod_div_equality[of m n]
+    from div_mult_mod_eq[of m n]
     have "\<exists>x. x + m mod n = m" by blast
     then show ?thesis by auto
 qed
@@ -1214,7 +1214,7 @@ proof-
     and psp: "list_all (\<lambda>p. prime p \<and> coprime (a^(r *(q div p)) mod n - 1) n) ps"  unfolding arnb[symmetric] power_mod
     by (simp_all add: power_mult[symmetric] algebra_simps)
   from n  have n0: "n > 0" by arith
-  from mod_div_equality[of "a^(n - 1)" n]
+  from div_mult_mod_eq[of "a^(n - 1)" n]
     mod_less_divisor[OF n0, of "a^(n - 1)"]
   have an1: "[a ^ (n - 1) = 1] (mod n)"
     unfolding nat_mod bqn

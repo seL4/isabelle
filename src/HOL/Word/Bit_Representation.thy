@@ -43,7 +43,7 @@ where
 lemma bin_rl_simp [simp]:
   "bin_rest w BIT bin_last w = w"
   unfolding bin_rest_def bin_last_def Bit_def
-  using mod_div_equality [of w 2]
+  using div_mult_mod_eq [of w 2]
   by (cases "w mod 2 = 0", simp_all)
 
 lemma bin_rest_BIT [simp]: "bin_rest (x BIT b) = x"

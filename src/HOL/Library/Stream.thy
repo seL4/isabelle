@@ -336,7 +336,7 @@ lemma sdrop_cycle_eq_mod_0[simp]: "\<lbrakk>u \<noteq> []; n mod length u = 0\<r
 
 lemma stake_cycle: "u \<noteq> [] \<Longrightarrow>
    stake n (cycle u) = concat (replicate (n div length u) u) @ take (n mod length u) u"
-  by (subst mod_div_equality[of n "length u", symmetric], unfold stake_add[symmetric]) auto
+  by (subst div_mult_mod_eq[of n "length u", symmetric], unfold stake_add[symmetric]) auto
 
 lemma sdrop_cycle: "u \<noteq> [] \<Longrightarrow> sdrop n (cycle u) = cycle (rotate (n mod length u) u)"
   by (induct n arbitrary: u) (auto simp: rotate1_rotate_swap rotate1_hd_tl rotate_conv_mod[symmetric])

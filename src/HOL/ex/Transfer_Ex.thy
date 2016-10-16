@@ -16,7 +16,7 @@ lemma "0 \<le> (x::int) \<Longrightarrow> 0 \<le> (y::int) \<Longrightarrow> x +
   by (fact ex1 [untransferred])
 
 lemma ex2: "(a::nat) div b * b + a mod b = a"
-  by (rule mod_div_equality)
+  by (rule div_mult_mod_eq)
 
 lemma "0 \<le> (b::int) \<Longrightarrow> 0 \<le> (a::int) \<Longrightarrow> a div b * b + a mod b = a"
   by (fact ex2 [transferred])

@@ -4426,7 +4426,7 @@ lemma approximation_preproc_nat[approximation_preproc]:
   "n \<le> m \<longleftrightarrow> real n \<le> real m"
   "n < m \<longleftrightarrow> real n < real m"
   "n \<in> {m .. l} \<longleftrightarrow> real n \<in> {real m .. real l}"
-  by (simp_all add: real_div_nat_eq_floor_of_divide mod_div_equality')
+  by (simp_all add: real_div_nat_eq_floor_of_divide div_mult_mod_eq')
 
 ML_file "approximation.ML"
 

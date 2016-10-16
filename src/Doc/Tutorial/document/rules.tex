@@ -2175,7 +2175,7 @@ Here is another demonstration of \isa{insert}.  Division and
 remainder obey a well-known law: 
 \begin{isabelle}
 (?m\ div\ ?n)\ *\ ?n\ +\ ?m\ mod\ ?n\ =\ ?m
-\rulename{mod_div_equality}
+\rulename{div_mult_mod_eq}
 \end{isabelle}
 
 We refer to this law explicitly in the following proof: 
@@ -2183,7 +2183,7 @@ We refer to this law explicitly in the following proof:
 \isacommand{lemma}\ div_mult_self_is_m:\ \isanewline
 \ \ \ \ \ \ "0{\isacharless}n\ \isasymLongrightarrow\ (m*n)\ div\ n\ =\
 (m::nat)"\isanewline
-\isacommand{apply}\ (insert\ mod_div_equality\ [of\ "m*n"\ n])\isanewline
+\isacommand{apply}\ (insert\ div_mult_mod_eq\ [of\ "m*n"\ n])\isanewline
 \isacommand{apply}\ (simp)\isanewline
 \isacommand{done}
 \end{isabelle}

@@ -115,7 +115,7 @@ lemma (in semiring_1) of_nat_code_if:
        m' = 2 * of_nat m
      in if q = 0 then m' else m' + 1)"
 proof -
-  from mod_div_equality have *: "of_nat n = of_nat (n div 2 * 2 + n mod 2)" by simp
+  from div_mult_mod_eq have *: "of_nat n = of_nat (n div 2 * 2 + n mod 2)" by simp
   show ?thesis
     by (simp add: Let_def divmod_nat_div_mod of_nat_add [symmetric])
       (simp add: * mult.commute of_nat_mult add.commute)

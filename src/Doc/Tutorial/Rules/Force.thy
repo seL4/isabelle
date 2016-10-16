@@ -6,7 +6,7 @@ declare div_mult_self_is_m [simp del]
 
 lemma div_mult_self_is_m: 
       "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
-apply (insert mod_div_equality [of "m*n" n])
+apply (insert div_mult_mod_eq [of "m*n" n])
 apply simp
 done
 

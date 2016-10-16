@@ -227,7 +227,7 @@ proof-
     {assume nm1: "(n - 1) mod m > 0"
       from mod_less_divisor[OF m(1)] have th0:"(n - 1) mod m < m" by blast
       let ?y = "a^ ((n - 1) div m * m)"
-      note mdeq = mod_div_equality[of "(n - 1)" m]
+      note mdeq = div_mult_mod_eq[of "(n - 1)" m]
       have yn: "coprime ?y n"
         by (metis an(1) coprime_exp gcd.commute)
       have "?y mod n = (a^m)^((n - 1) div m) mod n"
@@ -239,7 +239,7 @@ proof-
       finally have th3: "?y mod n = 1"  .
       have th2: "[?y * a ^ ((n - 1) mod m) = ?y* 1] (mod n)"
         using an1[unfolded cong_nat_def onen] onen
-          mod_div_equality[of "(n - 1)" m, symmetric]
+          div_mult_mod_eq[of "(n - 1)" m, symmetric]
         by (simp add:power_add[symmetric] cong_nat_def th3 del: One_nat_def)
       have th1: "[a ^ ((n - 1) mod m) = 1] (mod n)"
         by (metis cong_mult_rcancel_nat mult.commute th2 yn)
@@ -362,7 +362,7 @@ next
       by (metis cong_exp_nat ord power_one)
     from H have onz: "?o \<noteq> 0" by (simp add: ord_eq_0)
     hence op: "?o > 0" by simp
-    from mod_div_equality[of d "ord n a"] lh
+    from div_mult_mod_eq[of d "ord n a"] lh
     have "[a^(?o*?q + ?r) = 1] (mod n)" by (simp add: cong_nat_def mult.commute)
     hence "[(a^?o)^?q * (a^?r) = 1] (mod n)"
       by (simp add: cong_nat_def power_mult[symmetric] power_add[symmetric])
@@ -618,7 +618,7 @@ proof-
     {assume b0: "b = 0"
       from p(2) nqr have "(n - 1) mod p = 0"
         by (metis mod_0 mod_mod_cancel mod_mult_self1_is_0)
-      with mod_div_equality[of "n - 1" p]
+      with div_mult_mod_eq[of "n - 1" p]
       have "(n - 1) div p * p= n - 1" by auto
       hence eq: "(a^((n - 1) div p))^p = a^(n - 1)"
         by (simp only: power_mult[symmetric])
@@ -720,7 +720,7 @@ proof-
     unfolding arnb[symmetric] power_mod 
     by (simp_all add: power_mult[symmetric] algebra_simps)
   from n  have n0: "n > 0" by arith
-  from mod_div_equality[of "a^(n - 1)" n]
+  from div_mult_mod_eq[of "a^(n - 1)" n]
     mod_less_divisor[OF n0, of "a^(n - 1)"]
   have an1: "[a ^ (n - 1) = 1] (mod n)"
     by (metis bqn cong_nat_def mod_mod_trivial)

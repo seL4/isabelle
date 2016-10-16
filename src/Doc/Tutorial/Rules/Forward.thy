@@ -183,8 +183,8 @@ text {*
 
 Another example of "insert"
 
-@{thm[display] mod_div_equality}
-\rulename{mod_div_equality}
+@{thm[display] div_mult_mod_eq}
+\rulename{div_mult_mod_eq}
 *}
 
 (*MOVED to Force.thy, which now depends only on Divides.thy

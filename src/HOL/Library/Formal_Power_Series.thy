@@ -1302,13 +1302,13 @@ lemma subdegree_mod:
 proof (cases "f div g * g = 0")
   assume "f div g * g \<noteq> 0"
   hence [simp]: "f div g \<noteq> 0" "g \<noteq> 0" by auto
-  from mod_div_equality[of f g] have "f mod g = f - f div g * g" by (simp add: algebra_simps)
+  from div_mult_mod_eq[of f g] have "f mod g = f - f div g * g" by (simp add: algebra_simps)
   also from assms have "subdegree ... = subdegree f"
     by (intro subdegree_diff_eq1) simp_all
   finally show ?thesis .
 next
   assume zero: "f div g * g = 0"
-  from mod_div_equality[of f g] have "f mod g = f - f div g * g" by (simp add: algebra_simps)
+  from div_mult_mod_eq[of f g] have "f mod g = f - f div g * g" by (simp add: algebra_simps)
   also note zero
   finally show ?thesis by simp
 qed

@@ -863,7 +863,7 @@ instance star :: (semidom_divide) semidom_divide
   by (intro_classes; transfer) simp_all
 
 instance star :: (semiring_div) semiring_div
-  by (intro_classes; transfer) (simp_all add: mod_div_equality)
+  by (intro_classes; transfer) (simp_all add: div_mult_mod_eq)
 
 instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
 instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..

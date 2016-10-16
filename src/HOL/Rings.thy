@@ -1290,7 +1290,7 @@ class modulo = dvd + divide +
 text \<open>Arbitrary quotient and remainder partitions\<close>
 
 class semiring_modulo = comm_semiring_1_cancel + divide + modulo +
-  assumes mod_div_equality: "a div b * b + a mod b = a"
+  assumes div_mult_mod_eq: "a div b * b + a mod b = a"
 begin
 
 lemma mod_div_decomp:
@@ -1298,35 +1298,35 @@ lemma mod_div_decomp:
   obtains q r where "q = a div b" and "r = a mod b"
     and "a = q * b + r"
 proof -
-  from mod_div_equality have "a = a div b * b + a mod b" by simp
+  from div_mult_mod_eq have "a = a div b * b + a mod b" by simp
   moreover have "a div b = a div b" ..
   moreover have "a mod b = a mod b" ..
   note that ultimately show thesis by blast
 qed
 
-lemma mod_div_equality2: "b * (a div b) + a mod b = a"
-  using mod_div_equality [of a b] by (simp add: ac_simps)
+lemma mult_div_mod_eq: "b * (a div b) + a mod b = a"
+  using div_mult_mod_eq [of a b] by (simp add: ac_simps)
 
-lemma mod_div_equality3: "a mod b + a div b * b = a"
-  using mod_div_equality [of a b] by (simp add: ac_simps)
+lemma mod_div_mult_eq: "a mod b + a div b * b = a"
+  using div_mult_mod_eq [of a b] by (simp add: ac_simps)
 
-lemma mod_div_equality4: "a mod b + b * (a div b) = a"
-  using mod_div_equality [of a b] by (simp add: ac_simps)
+lemma mod_mult_div_eq: "a mod b + b * (a div b) = a"
+  using div_mult_mod_eq [of a b] by (simp add: ac_simps)
 
-lemma minus_div_eq_mod: "a - a div b * b = a mod b"
-  by (rule add_implies_diff [symmetric]) (fact mod_div_equality3)
+lemma minus_div_mult_eq_mod: "a - a div b * b = a mod b"
+  by (rule add_implies_diff [symmetric]) (fact mod_div_mult_eq)
 
-lemma minus_div_eq_mod2: "a - b * (a div b) = a mod b"
-  by (rule add_implies_diff [symmetric]) (fact mod_div_equality4)
+lemma minus_mult_div_eq_mod: "a - b * (a div b) = a mod b"
+  by (rule add_implies_diff [symmetric]) (fact mod_mult_div_eq)
 
-lemma minus_mod_eq_div: "a - a mod b = a div b * b"
-  by (rule add_implies_diff [symmetric]) (fact mod_div_equality)
+lemma minus_mod_eq_div_mult: "a - a mod b = a div b * b"
+  by (rule add_implies_diff [symmetric]) (fact div_mult_mod_eq)
 
-lemma minus_mod_eq_div2: "a - a mod b = b * (a div b)"
-  by (rule add_implies_diff [symmetric]) (fact mod_div_equality2)
+lemma minus_mod_eq_mult_div: "a - a mod b = b * (a div b)"
+  by (rule add_implies_diff [symmetric]) (fact mult_div_mod_eq)
 
 end
-  
+
 
 class ordered_semiring = semiring + ordered_comm_monoid_add +
   assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"

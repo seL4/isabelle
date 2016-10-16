@@ -27,7 +27,7 @@ class euclidean_semiring = semiring_modulo + normalization_semidom +
 begin
 
 lemma mod_0 [simp]: "0 mod a = 0"
-  using mod_div_equality [of 0 a] by simp
+  using div_mult_mod_eq [of 0 a] by simp
 
 lemma dvd_mod_iff: 
   assumes "k dvd n"
@@ -36,7 +36,7 @@ proof -
   from assms have "(k dvd m mod n) \<longleftrightarrow> (k dvd ((m div n) * n + m mod n))" 
     by (simp add: dvd_add_right_iff)
   also have "(m div n) * n + m mod n = m"
-    using mod_div_equality [of m n] by simp
+    using div_mult_mod_eq [of m n] by simp
   finally show ?thesis .
 qed
 
@@ -46,7 +46,7 @@ lemma mod_0_imp_dvd:
 proof -
   have "b dvd ((a div b) * b)" by simp
   also have "(a div b) * b = a"
-    using mod_div_equality [of a b] by (simp add: assms)
+    using div_mult_mod_eq [of a b] by (simp add: assms)
   finally show ?thesis .
 qed
 
@@ -72,7 +72,7 @@ lemma euclidean_division:
   obtains s and t where "a = s * b + t" 
     and "euclidean_size t < euclidean_size b"
 proof -
-  from mod_div_equality [of a b] 
+  from div_mult_mod_eq [of a b] 
      have "a = a div b * b + a mod b" by simp
   with that and assms show ?thesis by (auto simp add: mod_size_less)
 qed
@@ -507,7 +507,7 @@ proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
               (s' * a + t' * b) - r' div r * (s * a + t * b)" by (simp add: algebra_simps)
       also have "s' * a + t' * b = r'" by fact
       also have "s * a + t * b = r" by fact
-      also have "r' - r' div r * r = r' mod r" using mod_div_equality [of r' r]
+      also have "r' - r' div r * r = r' mod r" using div_mult_mod_eq [of r' r]
         by (simp add: algebra_simps)
       finally show "(s' - r' div r * s) * a + (t' - r' div r * t) * b = r' mod r" .
     qed (auto simp: gcd_eucl_non_0 algebra_simps div_mod_equality')

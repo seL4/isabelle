@@ -1920,7 +1920,7 @@ next
     apply (simp add: bezw_non_0 gcd_non_0_nat)
     apply (erule subst)
     apply (simp add: field_simps)
-    apply (subst mod_div_equality [of m n, symmetric])
+    apply (subst div_mult_mod_eq [of m n, symmetric])
       (* applying simp here undoes the last substitution! what is procedure cancel_div_mod? *)
     apply (simp only: NO_MATCH_def field_simps of_nat_add of_nat_mult)
     done

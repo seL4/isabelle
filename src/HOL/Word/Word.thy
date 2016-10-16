@@ -2161,7 +2161,7 @@ lemma word_mod_div_equality:
   apply (unfold word_less_nat_alt word_arith_nat_defs)
   apply (cut_tac y="unat b" in gt_or_eq_0)
   apply (erule disjE)
-   apply (simp only: mod_div_equality uno_simps Word.word_unat.Rep_inverse)
+   apply (simp only: div_mult_mod_eq uno_simps Word.word_unat.Rep_inverse)
   apply simp
   done
 
@@ -3867,7 +3867,7 @@ lemma nth_rcat_lem:
    apply clarsimp
   apply (clarsimp simp add : nth_append size_rcat_lem)
   apply (simp (no_asm_use) only:  mult_Suc [symmetric] 
-         td_gal_lt_len less_Suc_eq_le mod_div_equality')
+         td_gal_lt_len less_Suc_eq_le div_mult_mod_eq')
   apply clarsimp
   done
 

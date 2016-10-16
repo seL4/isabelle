@@ -347,10 +347,10 @@ qed
 
 lemma mod_lemma: "\<lbrakk> (c::nat) \<le> a; a < b; b - c < n \<rbrakk> \<Longrightarrow> b mod n \<noteq> a mod n"
 apply(subgoal_tac "b=b div n*n + b mod n" )
- prefer 2  apply (simp add: mod_div_equality [symmetric])
+ prefer 2  apply (simp add: div_mult_mod_eq [symmetric])
 apply(subgoal_tac "a=a div n*n + a mod n")
  prefer 2
- apply(simp add: mod_div_equality [symmetric])
+ apply(simp add: div_mult_mod_eq [symmetric])
 apply(subgoal_tac "b - a \<le> b - c")
  prefer 2 apply arith
 apply(drule le_less_trans)

@@ -419,7 +419,7 @@ proof  (induction h t rule: RB.induct)
 next
   case (2 h t t')
   with RB_mod obtain n where "2*n + 1 = h" 
-    by (metis color.distinct(1) mod_div_equality2 parity) 
+    by (metis color.distinct(1) mult_div_mod_eq parity) 
   with 2 balB_h RB_h show ?case by auto
 next
   case (3 h t t')

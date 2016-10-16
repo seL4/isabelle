@@ -262,6 +262,14 @@ types where this is really intended.
     div_mult_self2_is_id ~> nonzero_mult_div_cancel_right
     is_unit_divide_mult_cancel_left ~> is_unit_div_mult_cancel_left
     is_unit_divide_mult_cancel_right ~> is_unit_div_mult_cancel_right
+    mod_div_equality ~> div_mult_mod_eq
+    mod_div_equality2 ~> mult_div_mod_eq
+    mod_div_equality3 ~> mod_div_mult_eq
+    mod_div_equality4 ~> mod_mult_div_eq
+    minus_div_eq_mod ~> minus_div_mult_eq_mod
+    minus_div_eq_mod2 ~> minus_mult_div_eq_mod
+    minus_mod_eq_div ~> minus_mod_eq_div_mult
+    minus_mod_eq_div2 ~> minus_mod_eq_mult_div
 INCOMPATIBILITY.
 
 * Dedicated syntax LENGTH('a) for length of types.

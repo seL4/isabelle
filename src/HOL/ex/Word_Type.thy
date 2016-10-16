@@ -33,7 +33,7 @@ proof -
     where "b = a div 2" and "c = a mod 2"
   then have a: "a = b * 2 + c" 
     and "c = 0 \<or> c = 1"
-    by (simp_all add: mod_div_equality parity)
+    by (simp_all add: div_mult_mod_eq parity)
   from \<open>c = 0 \<or> c = 1\<close>
   have "bitrunc (Suc n) (b * 2 + c) = bitrunc n b * 2 + c"
   proof

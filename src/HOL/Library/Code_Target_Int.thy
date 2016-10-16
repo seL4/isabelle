@@ -115,7 +115,7 @@ lemma (in ring_1) of_int_code_if:
        j = k mod 2
      in if j = 0 then l else l + 1)"
 proof -
-  from mod_div_equality have *: "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
+  from div_mult_mod_eq have *: "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
   show ?thesis
     by (simp add: Let_def of_int_add [symmetric]) (simp add: * mult.commute)
 qed

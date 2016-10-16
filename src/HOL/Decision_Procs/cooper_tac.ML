@@ -56,7 +56,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
       addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
     val simpset0 =
       put_simpset HOL_basic_ss ctxt
-      addsimps @{thms mod_div_equality' Suc_eq_plus1 simp_thms}
+      addsimps @{thms div_mult_mod_eq' Suc_eq_plus1 simp_thms}
       |> fold Splitter.add_split @{thms split_zdiv split_zmod split_div' split_min split_max}
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 =

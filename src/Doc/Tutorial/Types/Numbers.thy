@@ -86,8 +86,8 @@ text{*
 @{thm[display] mod_if[no_vars]}
 \rulename{mod_if}
 
-@{thm[display] mod_div_equality[no_vars]}
-\rulename{mod_div_equality}
+@{thm[display] div_mult_mod_eq[no_vars]}
+\rulename{div_mult_mod_eq}
 
 
 @{thm[display] div_mult1_eq[no_vars]}
