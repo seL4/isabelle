@@ -2219,8 +2219,6 @@ lemma pos_divmod_int_rel_mult_2:
   shows "divmod_int_rel (1 + 2*a) (2*b) (q, 1 + 2*r)"
   using assms unfolding divmod_int_rel_def by auto
 
-declaration \<open>K (Lin_Arith.add_simps @{thms uminus_numeral_One})\<close>
-
 lemma neg_divmod_int_rel_mult_2:
   assumes "b \<le> 0"
   assumes "divmod_int_rel (a + 1) b (q, r)"
