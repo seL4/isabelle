@@ -410,7 +410,7 @@ method_setup presburger = \<open>
   end
 \<close> "Cooper's algorithm for Presburger arithmetic"
 
-declare dvd_eq_mod_eq_0 [symmetric, presburger]
+declare mod_eq_0_iff_dvd [presburger]
 declare mod_by_Suc_0 [presburger] 
 declare mod_0 [presburger]
 declare mod_by_1 [presburger]
@@ -418,13 +418,11 @@ declare mod_self [presburger]
 declare div_by_0 [presburger]
 declare mod_by_0 [presburger]
 declare mod_div_trivial [presburger]
-declare div_mod_equality2 [presburger]
-declare div_mod_equality [presburger]
 declare mult_div_mod_eq [presburger]
 declare div_mult_mod_eq [presburger]
 declare mod_mult_self1 [presburger]
 declare mod_mult_self2 [presburger]
-declare mod2_Suc_Suc[presburger]
+declare mod2_Suc_Suc [presburger]
 declare not_mod_2_eq_0_eq_1 [presburger] 
 declare nat_zero_less_power_iff [presburger]
 
