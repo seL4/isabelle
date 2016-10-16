@@ -194,7 +194,7 @@ object Build_History
         other_isabelle.isabelle_home_user +
           Build_Log.log_subdir(build_history_date) +
           Build_Log.log_filename(
-            BUILD_HISTORY, build_history_date, build_host, ml_platform, "M" + threads).ext("gz")
+            BUILD_HISTORY, build_history_date, build_host, ml_platform, "M" + threads)
 
       val build_info = Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info()
 
@@ -226,11 +226,11 @@ object Build_History
           })
 
       Isabelle_System.mkdirs(log_path.dir)
-      File.write_gzip(log_path,
+      File.write_xz(log_path.ext("xz"),
         terminate_lines(
           Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: res.out_lines :::
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
-          heap_sizes))
+          heap_sizes), XZ.options(6))
 
 
       /* next build */
