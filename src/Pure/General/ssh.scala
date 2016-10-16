@@ -38,10 +38,13 @@ object SSH
 
   val default_port = 22
 
+  def connect_timeout(options: Options): Int =
+    options.seconds("ssh_connect_timeout").ms.toInt
 
-  /* init */
 
-  def init(options: Options): SSH =
+  /* init context */
+
+  def init_context(options: Options): Context =
   {
     val config_dir = Path.explode(options.string("ssh_config_dir"))
     if (!config_dir.is_dir) error("Bad ssh config directory: " + config_dir)
@@ -61,11 +64,30 @@ object SSH
     for (identity_file <- identity_files if identity_file.is_file)
       jsch.addIdentity(File.platform_path(identity_file))
 
-    new SSH(options, jsch)
+    new Context(options, jsch)
   }
 
-  def connect_timeout(options: Options): Int =
-    options.seconds("ssh_connect_timeout").ms.toInt
+  class Context private[SSH](val options: Options, val jsch: JSch)
+  {
+    def update_options(new_options: Options): Context = new Context(new_options, jsch)
+
+    def open_session(host: String, user: String = "", port: Int = default_port): Session =
+    {
+      val session = jsch.getSession(if (user == "") null else user, host, port)
+
+      session.setUserInfo(No_User_Info)
+      session.setConfig("MaxAuthTries", "3")
+
+      if (options.bool("ssh_compression")) {
+        session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
+        session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
+        session.setConfig("compression_level", "9")
+      }
+
+      session.connect(connect_timeout(options))
+      new Session(options, session)
+    }
+  }
 
 
   /* logging */
@@ -314,27 +336,5 @@ object SSH
       val remote_dir = tmp_dir()
       try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
     }
-  }
-}
-
-class SSH private(val options: Options, val jsch: JSch)
-{
-  def update_options(new_options: Options): SSH = new SSH(new_options, jsch)
-
-  def open_session(host: String, user: String = "", port: Int = SSH.default_port): SSH.Session =
-  {
-    val session = jsch.getSession(if (user == "") null else user, host, port)
-
-    session.setUserInfo(SSH.No_User_Info)
-    session.setConfig("MaxAuthTries", "3")
-
-    if (options.bool("ssh_compression")) {
-      session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
-      session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
-      session.setConfig("compression_level", "9")
-    }
-
-    session.connect(SSH.connect_timeout(options))
-    new SSH.Session(options, session)
   }
 }

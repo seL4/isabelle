@@ -131,7 +131,7 @@ object Isabelle_Cronjob
 
   sealed case class Logger_Task(name: String = "", body: Logger => Unit)
 
-  class Log_Service private[Isabelle_Cronjob](progress: Progress, val ssh_context: SSH)
+  class Log_Service private[Isabelle_Cronjob](progress: Progress, val ssh_context: SSH.Context)
   {
     current_log.file.delete
 
@@ -177,7 +177,7 @@ object Isabelle_Cronjob
   class Logger private[Isabelle_Cronjob](
     val log_service: Log_Service, val start_date: Date, val task_name: String)
   {
-    def ssh_context: SSH = log_service.ssh_context
+    def ssh_context: SSH.Context = log_service.ssh_context
 
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
@@ -223,7 +223,7 @@ object Isabelle_Cronjob
 
     /* log service */
 
-    val log_service = new Log_Service(progress, SSH.init(Options.init()))
+    val log_service = new Log_Service(progress, SSH.init_context(Options.init()))
 
     def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
 
