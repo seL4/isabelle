@@ -1315,7 +1315,7 @@ next
   case False
   then have "z / of_real(norm z) = exp(\<i> * of_real(Arg z))"
     using Arg [of z]
-    by (metis abs_norm_cancel nonzero_mult_divide_cancel_left norm_of_real zero_less_norm_iff)
+    by (metis abs_norm_cancel nonzero_mult_div_cancel_left norm_of_real zero_less_norm_iff)
   then have "- z / of_real(norm z) = exp (\<i> * (of_real (Arg z) - pi))"
     using cis_conv_exp cis_pi
     by (auto simp: exp_diff algebra_simps)
@@ -1918,7 +1918,7 @@ lemma csqrt_exp_Ln:
     shows "csqrt z = exp(Ln(z) / 2)"
 proof -
   have "(exp (Ln z / 2))\<^sup>2 = (exp (Ln z))"
-    by (metis exp_double nonzero_mult_divide_cancel_left times_divide_eq_right zero_neq_numeral)
+    by (metis exp_double nonzero_mult_div_cancel_left times_divide_eq_right zero_neq_numeral)
   also have "... = z"
     using assms exp_Ln by blast
   finally have "csqrt z = csqrt ((exp (Ln z / 2))\<^sup>2)"

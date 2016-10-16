@@ -108,7 +108,7 @@ next
       using Suc.hyps[OF geq1]
       by (simp only: stirling_Suc_n_1 of_nat_fact of_nat_add of_nat_mult)
     also have "\<dots> = Suc n * (\<Sum>k=1..n. fact n div k) + Suc n * fact n div Suc n"
-      by (metis nat.distinct(1) nonzero_mult_divide_cancel_left)
+      by (metis nat.distinct(1) nonzero_mult_div_cancel_left)
     also have "\<dots> = (\<Sum>k=1..n. fact (Suc n) div k) + fact (Suc n) div Suc n"
       by (simp add: setsum_distrib_left div_mult_swap dvd_fact)
     also have "\<dots> = (\<Sum>k=1..Suc n. fact (Suc n) div k)"

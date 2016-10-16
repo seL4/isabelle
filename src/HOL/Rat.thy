@@ -295,10 +295,10 @@ proof -
         (q * gcd r s) * (sgn (q * s) * r * gcd p q)"
       by simp
     with assms show ?thesis
-      by (auto simp add: ac_simps sgn_times sgn_0_0)
+      by (auto simp add: ac_simps sgn_mult sgn_0_0)
   qed
   from assms show ?thesis
-    by (auto simp: normalize_def Let_def dvd_div_div_eq_mult mult.commute sgn_times
+    by (auto simp: normalize_def Let_def dvd_div_div_eq_mult mult.commute sgn_mult
         split: if_splits intro: *)
 qed
 
@@ -651,7 +651,7 @@ declaration \<open>
       @{thm True_implies_equals},
       @{thm distrib_left [where a = "numeral v" for v]},
       @{thm distrib_left [where a = "- numeral v" for v]},
-      @{thm divide_1}, @{thm divide_zero_left},
+      @{thm div_by_1}, @{thm div_0},
       @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
       @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
       @{thm add_divide_distrib}, @{thm diff_divide_distrib},

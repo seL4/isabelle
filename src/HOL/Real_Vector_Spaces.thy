@@ -1325,6 +1325,8 @@ lemma sgn_mult: "sgn (x * y) = sgn x * sgn y"
   for x y :: "'a::real_normed_div_algebra"
   by (simp add: sgn_div_norm norm_mult mult.commute)
 
+hide_fact (open) sgn_mult
+
 lemma real_sgn_eq: "sgn x = x / \<bar>x\<bar>"
   for x :: real
   by (simp add: sgn_div_norm divide_inverse)

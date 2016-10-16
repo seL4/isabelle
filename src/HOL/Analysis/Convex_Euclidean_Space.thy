@@ -11985,7 +11985,7 @@ proof -
   have "UNIV \<subseteq> {x. a \<bullet> x = b} \<Longrightarrow> a = 0 \<and> b = 0"
     apply (drule_tac c = "((b+1) / (a \<bullet> a)) *\<^sub>R a" in subsetD)
     apply simp_all
-    by (metis add_cancel_right_right divide_1 zero_neq_one)
+    by (metis add_cancel_right_right div_by_1 zero_neq_one)
   then show ?thesis by force
 qed
 

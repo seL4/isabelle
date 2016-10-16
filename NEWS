@@ -249,6 +249,21 @@ types where this is really intended.
 
 *** HOL ***
 
+* Sligthly more standardized theorem names:
+    sgn_times ~> sgn_mult
+    sgn_mult' ~> Real_Vector_Spaces.sgn_mult
+    divide_zero_left ~> div_0
+    zero_mod_left ~> mod_0
+    divide_zero ~> div_by_0
+    divide_1 ~> div_by_1
+    nonzero_mult_divide_cancel_left ~> nonzero_mult_div_cancel_left
+    div_mult_self1_is_id ~> nonzero_mult_div_cancel_left
+    nonzero_mult_divide_cancel_right ~> nonzero_mult_div_cancel_right
+    div_mult_self2_is_id ~> nonzero_mult_div_cancel_right
+    is_unit_divide_mult_cancel_left ~> is_unit_div_mult_cancel_left
+    is_unit_divide_mult_cancel_right ~> is_unit_div_mult_cancel_right
+INCOMPATIBILITY.
+
 * Dedicated syntax LENGTH('a) for length of types.
 
 * New proof method "argo" using the built-in Argo solver based on SMT

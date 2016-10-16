@@ -10,7 +10,7 @@ apply (case_tac "y = 0") apply simp
 apply (auto simp add: dvd_def)
 apply (subgoal_tac "-(y * k) = y * - k")
 apply (simp only:)
-apply (erule nonzero_mult_divide_cancel_left)
+apply (erule nonzero_mult_div_cancel_left)
 apply simp
 done
 

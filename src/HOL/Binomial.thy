@@ -407,7 +407,7 @@ lemma binomial_fact':
   assumes "k \<le> n"
   shows "n choose k = fact n div (fact k * fact (n - k))"
   using binomial_fact_lemma [OF assms]
-  by (metis fact_nonzero mult_eq_0_iff nonzero_mult_divide_cancel_left)
+  by (metis fact_nonzero mult_eq_0_iff nonzero_mult_div_cancel_left)
 
 lemma binomial_fact:
   assumes kn: "k \<le> n"

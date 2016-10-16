@@ -26,7 +26,7 @@ class euclidean_semiring = semiring_modulo + normalization_semidom +
     "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (a * b)"
 begin
 
-lemma zero_mod_left [simp]: "0 mod a = 0"
+lemma mod_0 [simp]: "0 mod a = 0"
   using mod_div_equality [of 0 a] by simp
 
 lemma dvd_mod_iff: 

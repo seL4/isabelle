@@ -2224,7 +2224,7 @@ lemma ln_add:
 proof -
   have "x \<noteq> 0" using assms by auto
   have "x + y = x * (1 + y / x)"
-    unfolding distrib_left times_divide_eq_right nonzero_mult_divide_cancel_left[OF \<open>x \<noteq> 0\<close>]
+    unfolding distrib_left times_divide_eq_right nonzero_mult_div_cancel_left[OF \<open>x \<noteq> 0\<close>]
     by auto
   moreover
   have "0 < y / x" using assms by auto

@@ -4412,7 +4412,7 @@ proof(induct p rule: \<upsilon>.induct)
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real_of_int c *(?t/?n)) + ?n*(?N x e) < 0)"
     by (simp only: pos_less_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
-      and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
+      and b="0", simplified div_0]) (simp only: algebra_simps)
   also have "\<dots> = (real_of_int c *?t + ?n* (?N x e) < 0)"
     using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
@@ -4423,7 +4423,7 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real_of_int c *(?t/?n)) + ?n*(?N x e) \<le> 0)"
     by (simp only: pos_le_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
-      and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
+      and b="0", simplified div_0]) (simp only: algebra_simps)
   also have "\<dots> = (real_of_int c *?t + ?n* (?N x e) \<le> 0)"
     using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
@@ -4434,7 +4434,7 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real_of_int c *(?t/?n)) + ?n*(?N x e) > 0)"
     by (simp only: pos_divide_less_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
-      and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
+      and b="0", simplified div_0]) (simp only: algebra_simps)
   also have "\<dots> = (real_of_int c *?t + ?n* (?N x e) > 0)"
     using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
@@ -4445,7 +4445,7 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real_of_int c *(?t/?n)) + ?n*(?N x e) \<ge> 0)"
     by (simp only: pos_divide_le_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
-      and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
+      and b="0", simplified div_0]) (simp only: algebra_simps)
   also have "\<dots> = (real_of_int c *?t + ?n* (?N x e) \<ge> 0)"
     using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
@@ -4457,7 +4457,7 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real_of_int c *(?t/?n)) + ?n*(?N x e) = 0)"
     by (simp only: nonzero_eq_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
-      and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
+      and b="0", simplified div_0]) (simp only: algebra_simps)
   also have "\<dots> = (real_of_int c *?t + ?n* (?N x e) = 0)"
     using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
@@ -4469,7 +4469,7 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real_of_int c *(?t/?n)) + ?n*(?N x e) \<noteq> 0)"
     by (simp only: nonzero_eq_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
-      and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
+      and b="0", simplified div_0]) (simp only: algebra_simps)
   also have "\<dots> = (real_of_int c *?t + ?n* (?N x e) \<noteq> 0)"
     using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)

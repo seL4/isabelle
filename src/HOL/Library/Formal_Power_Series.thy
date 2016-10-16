@@ -3013,7 +3013,7 @@ qed
 *)
 
 lemma fps_divide_1 [simp]: "(a :: 'a::field fps) / 1 = a"
-  by (fact divide_1)
+  by (fact div_by_1)
 
 lemma radical_divide:
   fixes a :: "'a::field_char_0 fps"

@@ -361,7 +361,7 @@ notepad begin
     have "(k) / (k*y) = uu"
       by (tactic \<open>test @{context} [@{simproc divide_cancel_factor}]\<close>) fact
   next
-    assume "(if b = 0 then 0 else a * c / 1) = uu"
+    assume "(if b = 0 then 0 else a * c) = uu"
     have "(a*(b*c)) / b = uu"
       by (tactic \<open>test @{context} [@{simproc divide_cancel_factor}]\<close>) fact
   next

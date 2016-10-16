@@ -100,7 +100,7 @@ proof (cases "q = 0")
   also have "fps_of_poly \<dots> = fps_of_poly (p div q) * fps_of_poly q" 
     by (simp add: fps_of_poly_mult)
   also from nz have "\<dots> / fps_of_poly q = fps_of_poly (p div q)"
-    by (intro div_mult_self2_is_id) (auto simp: fps_of_poly_0)
+    by (intro nonzero_mult_div_cancel_right) (auto simp: fps_of_poly_0)
   finally show ?thesis ..
 qed simp
 

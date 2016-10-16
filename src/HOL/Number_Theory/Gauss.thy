@@ -52,7 +52,7 @@ proof -
 qed
 
 lemma p_eq2: "int p = (2 * ((int p - 1) div 2)) + 1"
-  using odd_p p_ge_2 div_mult_self1_is_id [of 2 "p - 1"]   
+  using odd_p p_ge_2 nonzero_mult_div_cancel_left [of 2 "p - 1"]   
   by simp
 
 lemma p_odd_int: obtains z::int where "int p = 2*z+1" "0<z"

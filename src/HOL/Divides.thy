@@ -26,18 +26,6 @@ proof
     using div_mult_self1 [of b 0 a] by (simp add: ac_simps div_0)
 qed (simp add: div_by_0)
 
-lemma div_by_1:
-  "a div 1 = a"
-  by (fact divide_1)
-
-lemma div_mult_self1_is_id:
-  "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
-  by (fact nonzero_mult_divide_cancel_left)
-
-lemma div_mult_self2_is_id:
-  "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
-  by (fact nonzero_mult_divide_cancel_right)
-
 text \<open>@{const divide} and @{const modulo}\<close>
 
 lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
@@ -412,7 +400,7 @@ apply (case_tac "y = 0") apply simp
 apply (auto simp add: dvd_def)
 apply (subgoal_tac "-(y * k) = y * - k")
  apply (simp only:)
- apply (erule div_mult_self1_is_id)
+ apply (erule nonzero_mult_div_cancel_left)
 apply simp
 done
 
@@ -420,7 +408,7 @@ lemma dvd_div_neg: "y dvd x \<Longrightarrow> x div -y = - (x div y)"
 apply (case_tac "y = 0") apply simp
 apply (auto simp add: dvd_def)
 apply (subgoal_tac "y * k = -y * -k")
- apply (erule ssubst, rule div_mult_self1_is_id)
+ apply (erule ssubst, rule nonzero_mult_div_cancel_left)
  apply simp
 apply simp
 done
@@ -1817,7 +1805,7 @@ proof
     by (cases "0::int" k rule: linorder_cases) simp_all
   then show "is_unit (unit_factor k)"
     by simp
-qed (simp_all add: sgn_times mult_sgn_abs)
+qed (simp_all add: sgn_mult mult_sgn_abs)
   
 end
   
@@ -2706,5 +2694,7 @@ code_identifier
 lemma dvd_eq_mod_eq_0_numeral:
   "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semiring_div)"
   by (fact dvd_eq_mod_eq_0)
+
+hide_fact (open) div_0 div_by_0
 
 end

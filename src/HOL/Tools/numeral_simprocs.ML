@@ -173,7 +173,7 @@ val numeral_syms = [@{thm numeral_One} RS sym];
 
 (*Simplify 0+n, n+0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
 val add_0s =  @{thms add_0_left add_0_right};
-val mult_1s = @{thms mult_1s divide_numeral_1 mult_1_left mult_1_right mult_minus1 mult_minus1_right divide_1};
+val mult_1s = @{thms mult_1s divide_numeral_1 mult_1_left mult_1_right mult_minus1 mult_minus1_right div_by_1};
 
 (* For post-simplification of the rhs of simproc-generated rules *)
 val post_simps =
@@ -184,7 +184,7 @@ val post_simps =
      @{thm mult_minus1}, @{thm mult_minus1_right}]
 
 val field_post_simps =
-    post_simps @ [@{thm divide_zero_left}, @{thm divide_1}]
+    post_simps @ [@{thm div_0}, @{thm div_by_1}]
 
 (*Simplify inverse Numeral1*)
 val inverse_1s = [@{thm inverse_numeral_1}];
@@ -712,7 +712,7 @@ val ord_frac_simproc =
 val ths =
  [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
   @{thm "divide_numeral_1"},
-  @{thm "divide_zero"}, @{thm divide_zero_left},
+  @{thm "div_by_0"}, @{thm div_0},
   @{thm "divide_divide_eq_left"},
   @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
   @{thm "times_divide_times_eq"},

@@ -331,7 +331,7 @@ proof (cases "c = 0")
   from assms obtain q where p: "p = [:c:] * q" by (erule dvdE)
   moreover {
     have "smult c q = [:c:] * q" by simp
-    also have "\<dots> div [:c:] = q" by (rule nonzero_mult_divide_cancel_left) (insert False, auto)
+    also have "\<dots> div [:c:] = q" by (rule nonzero_mult_div_cancel_left) (insert False, auto)
     finally have "smult c q div [:c:] = q" .
   }
   ultimately show ?thesis by (intro poly_eqI) (auto simp: coeff_map_poly False)

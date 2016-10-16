@@ -258,7 +258,7 @@ proof
     fix a b :: int
     assume "b \<noteq> 0"
     then have "a * b \<le> (a div b + 1) * b * b"
-      by (metis mult.commute div_mult_self1_is_id less_int_def linorder_le_cases zdiv_mono1 zdiv_mono1_neg zle_add1_eq_le)
+      by (metis mult.commute nonzero_mult_div_cancel_left less_int_def linorder_le_cases zdiv_mono1 zdiv_mono1_neg zle_add1_eq_le)
     then show "\<exists>z::int. a * b \<le> z * b * b" by auto
   qed
 qed

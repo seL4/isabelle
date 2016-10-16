@@ -2363,7 +2363,7 @@ lemma scale_scale_spmf' [simp]:
 apply(cases "weight_spmf p > 0")
 apply(auto simp add: scale_scale_spmf min_def max_def field_simps not_le weight_spmf_lt_0 weight_spmf_eq_0 not_less weight_spmf_le_0)
 apply(subgoal_tac "1 = r'")
- apply (metis (no_types) divide_1 eq_iff measure_spmf.subprob_measure_le_1 mult.commute mult_cancel_right1)
+ apply (metis (no_types) div_by_1 eq_iff measure_spmf.subprob_measure_le_1 mult.commute mult_cancel_right1)
 apply(meson eq_iff le_divide_eq_1_pos measure_spmf.subprob_measure_le_1 mult_imp_div_pos_le order.trans)
 done
 

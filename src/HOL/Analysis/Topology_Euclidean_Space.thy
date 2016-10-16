@@ -3668,7 +3668,7 @@ lemma cball_divide_subset: "d \<ge> 1 \<Longrightarrow> cball x (e/d) \<subseteq
   apply (cases "e < 0")
   apply (simp add: divide_simps)
   apply (rule subset_cball)
-  apply (metis divide_1 frac_le not_le order_refl zero_less_one)
+  apply (metis div_by_1 frac_le not_le order_refl zero_less_one)
   done
 
 lemma cball_divide_subset_numeral: "cball x (e / numeral w) \<subseteq> cball x e"

@@ -14,6 +14,13 @@ definition zOdd :: "int set"
 definition zEven :: "int set"
   where "zEven = {x. \<exists>k. x = 2 * k}"
 
+lemma in_zEven_zOdd_iff:
+  fixes k :: int
+  shows "k \<in> zEven \<longleftrightarrow> even k"
+    and "k \<in> zOdd \<longleftrightarrow> odd k"
+  by (auto simp add: zEven_def zOdd_def elim: evenE oddE)
+
+
 subsection \<open>Some useful properties about even and odd\<close>
 
 lemma zOddI [intro?]: "x = 2 * k + 1 \<Longrightarrow> x \<in> zOdd"

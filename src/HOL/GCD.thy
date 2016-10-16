@@ -356,7 +356,7 @@ proof -
   then have "gcd a b * lcm a b div lcm a b = normalize (a * b) div lcm a b"
     by (simp_all add: normalize_mult)
   with \<open>lcm a b \<noteq> 0\<close> show ?thesis
-    using nonzero_mult_divide_cancel_right [of "lcm a b" "gcd a b"] by simp
+    using nonzero_mult_div_cancel_right [of "lcm a b" "gcd a b"] by simp
 qed
 
 lemma lcm_1_left [simp]: "lcm 1 a = normalize a"

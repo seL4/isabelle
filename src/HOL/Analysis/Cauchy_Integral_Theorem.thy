@@ -5106,7 +5106,7 @@ proof -
                   and x: "x \<in> {0..1}" and y: "y \<in> {0..1}" for x y n
     proof -
       have "(linepath s t x) = (linepath s t y) + 2 * of_int n * complex_of_real pi"
-        by (metis add_divide_eq_iff complex_i_not_zero mult.commute nonzero_mult_divide_cancel_left eq)
+        by (metis add_divide_eq_iff complex_i_not_zero mult.commute nonzero_mult_div_cancel_left eq)
       then have "s*y + t*x = s*x + (t*y + of_int n * (pi * 2))"
         by (force simp: algebra_simps linepath_def dest: arg_cong [where f=Re])
       then have st: "x \<noteq> y \<Longrightarrow> (s-t) = (of_int n * (pi * 2) / (y-x))"

@@ -2704,7 +2704,7 @@ proof -
       using cd mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2 * ?c * ?d)) + ?r" 0]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2 * ?c * ?d * ?r = 0"
-      using nonzero_mult_divide_cancel_left [OF cd2] cd
+      using nonzero_mult_div_cancel_left [OF cd2] cd
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally show ?thesis
       using cd
@@ -2811,7 +2811,7 @@ proof -
       using cd mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<noteq> 0"
-      using nonzero_mult_divide_cancel_left[OF cd2] cd
+      using nonzero_mult_div_cancel_left[OF cd2] cd
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally show ?thesis
       using cd
@@ -2899,7 +2899,7 @@ proof -
         mult_less_cancel_left_disj[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r < 0"
-      using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
+      using nonzero_mult_div_cancel_left[of "2*?c*?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally show ?thesis
       using cd c d nc nd cd2'
@@ -2923,7 +2923,7 @@ proof -
         mult_less_cancel_left_disj[of "2 * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2 * ?c * ?d * ?r < 0"
-      using nonzero_mult_divide_cancel_left[of "2 * ?c * ?d"] c d
+      using nonzero_mult_div_cancel_left[of "2 * ?c * ?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally show ?thesis
       using cd c d nc nd
@@ -2946,7 +2946,7 @@ proof -
         order_less_not_sym[OF c'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?t + 2 * ?c * ?r < 0"
-      using nonzero_mult_divide_cancel_left[OF c'] \<open>?c > 0\<close>
+      using nonzero_mult_div_cancel_left[OF c'] \<open>?c > 0\<close>
       by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally show ?thesis
       using cd nc nd
@@ -2969,7 +2969,7 @@ proof -
         mult_less_cancel_left_disj[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  2*?c *?r < 0"
-      using nonzero_mult_divide_cancel_left[OF c'] cd(1) order_less_not_sym[OF c'']
+      using nonzero_mult_div_cancel_left[OF c'] cd(1) order_less_not_sym[OF c'']
           less_imp_neq[OF c''] c''
         by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally show ?thesis
@@ -2993,7 +2993,7 @@ proof -
         order_less_not_sym[OF d'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?s+  2 * ?d * ?r < 0"
-      using nonzero_mult_divide_cancel_left[OF d'] cd(2)
+      using nonzero_mult_div_cancel_left[OF d'] cd(2)
       by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally show ?thesis
       using cd nc nd
@@ -3016,7 +3016,7 @@ proof -
         mult_less_cancel_left_disj[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ?s -  2 * ?d * ?r < 0"
-      using nonzero_mult_divide_cancel_left[OF d'] cd(2) order_less_not_sym[OF d'']
+      using nonzero_mult_div_cancel_left[OF d'] cd(2) order_less_not_sym[OF d'']
           less_imp_neq[OF d''] d''
         by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally show ?thesis
@@ -3108,7 +3108,7 @@ proof -
         mult_le_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<le> 0"
-      using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
+      using nonzero_mult_div_cancel_left[of "2*?c*?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd dc'
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def
@@ -3133,7 +3133,7 @@ proof -
         mult_le_cancel_left[of "2 * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2 * ?c * ?d * ?r \<le> 0"
-      using nonzero_mult_divide_cancel_left[of "2 * ?c * ?d"] c d
+      using nonzero_mult_div_cancel_left[of "2 * ?c * ?d"] c d
       by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def
@@ -3157,7 +3157,7 @@ proof -
         order_less_not_sym[OF c'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?t+  2*?c *?r \<le> 0"
-      using nonzero_mult_divide_cancel_left[OF c'] c
+      using nonzero_mult_div_cancel_left[OF c'] c
       by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def
@@ -3181,7 +3181,7 @@ proof -
         mult_le_cancel_left[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ?t - 2 * ?c * ?r \<le> 0"
-      using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c'']
+      using nonzero_mult_div_cancel_left[OF c'] c order_less_not_sym[OF c'']
           less_imp_neq[OF c''] c''
         by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis using c d nc nd
@@ -3206,7 +3206,7 @@ proof -
         order_less_not_sym[OF d'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?s + 2 * ?d * ?r \<le> 0"
-      using nonzero_mult_divide_cancel_left[OF d'] d
+      using nonzero_mult_div_cancel_left[OF d'] d
       by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?s / (2*?d))"] msubstle_def Let_def
@@ -3230,7 +3230,7 @@ proof -
         mult_le_cancel_left[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"]
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ?s -  2 * ?d * ?r \<le> 0"
-      using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d'']
+      using nonzero_mult_div_cancel_left[OF d'] d order_less_not_sym[OF d'']
           less_imp_neq[OF d''] d''
         by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis using c d nc nd

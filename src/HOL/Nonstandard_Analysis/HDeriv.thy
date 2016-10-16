@@ -147,7 +147,7 @@ apply (drule_tac x = "xa - star_of x" in bspec)
 apply (auto simp add: mem_infmal_iff [symmetric] add.commute)
 apply (drule_tac c = "xa - star_of x" in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult.assoc nonzero_mult_divide_cancel_right)
+            simp add: mult.assoc nonzero_mult_div_cancel_right)
 apply (drule_tac x3=D in
            HFinite_star_of [THEN [2] Infinitesimal_HFinite_mult,
              THEN mem_infmal_iff [THEN iffD1]])
@@ -417,7 +417,7 @@ proof -
   have "\<forall>w. w \<noteq> star_of x \<and> w \<approx> star_of x \<longrightarrow>
          ( *f* g) w * (w - star_of x) / (w - star_of x) \<approx>
          star_of (g x)"
-    by (simp add: isNSCont_def nonzero_mult_divide_cancel_right)
+    by (simp add: isNSCont_def nonzero_mult_div_cancel_right)
   thus ?thesis using all
     by (simp add: NSDERIV_iff2 starfun_if_eq cong: if_cong)
 qed

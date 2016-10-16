@@ -46,16 +46,11 @@ proof -
 qed
 
 lemma p_eq: "p = (2 * (p - 1) div 2) + 1"
-  using div_mult_self1_is_id [of 2 "p - 1"] by auto
+  using nonzero_mult_div_cancel_left [of 2 "p - 1"] by auto
 
 
 lemma (in -) zodd_imp_zdiv_eq: "x \<in> zOdd ==> 2 * (x - 1) div 2 = 2 * ((x - 1) div 2)"
-  apply (frule odd_minus_one_even)
-  apply (simp add: zEven_def)
-  apply (subgoal_tac "2 \<noteq> 0")
-  apply (frule_tac b = "2 :: int" and a = "x - 1" in div_mult_self1_is_id)
-  apply (auto simp add: even_div_2_prop2)
-  done
+  by (simp add: in_zEven_zOdd_iff)
 
 
 lemma p_eq2: "p = (2 * ((p - 1) div 2)) + 1"

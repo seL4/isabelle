@@ -574,12 +574,12 @@ setup \<open>Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a::
 text \<open>Algebraic classes with division\<close>
   
 class semidom_divide = semidom + divide +
-  assumes nonzero_mult_divide_cancel_right [simp]: "b \<noteq> 0 \<Longrightarrow> (a * b) div b = a"
-  assumes divide_zero [simp]: "a div 0 = 0"
+  assumes nonzero_mult_div_cancel_right [simp]: "b \<noteq> 0 \<Longrightarrow> (a * b) div b = a"
+  assumes div_by_0 [simp]: "a div 0 = 0"
 begin
 
-lemma nonzero_mult_divide_cancel_left [simp]: "a \<noteq> 0 \<Longrightarrow> (a * b) div a = b"
-  using nonzero_mult_divide_cancel_right [of a b] by (simp add: ac_simps)
+lemma nonzero_mult_div_cancel_left [simp]: "a \<noteq> 0 \<Longrightarrow> (a * b) div a = b"
+  using nonzero_mult_div_cancel_right [of a b] by (simp add: ac_simps)
 
 subclass semiring_no_zero_divisors_cancel
 proof
@@ -603,21 +603,21 @@ proof
 qed
 
 lemma div_self [simp]: "a \<noteq> 0 \<Longrightarrow> a div a = 1"
-  using nonzero_mult_divide_cancel_left [of a 1] by simp
+  using nonzero_mult_div_cancel_left [of a 1] by simp
 
-lemma divide_zero_left [simp]: "0 div a = 0"
+lemma div_0 [simp]: "0 div a = 0"
 proof (cases "a = 0")
   case True
   then show ?thesis by simp
 next
   case False
   then have "a * 0 div a = 0"
-    by (rule nonzero_mult_divide_cancel_left)
+    by (rule nonzero_mult_div_cancel_left)
   then show ?thesis by simp
 qed
 
-lemma divide_1 [simp]: "a div 1 = a"
-  using nonzero_mult_divide_cancel_left [of 1 a] by simp
+lemma div_by_1 [simp]: "a div 1 = a"
+  using nonzero_mult_div_cancel_left [of 1 a] by simp
 
 end
 
@@ -952,7 +952,7 @@ lemmas unit_simps = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff
   unit_mult_left_cancel unit_mult_right_cancel unit_div_cancel
   unit_eq_div1 unit_eq_div2
 
-lemma is_unit_divide_mult_cancel_left:
+lemma is_unit_div_mult_cancel_left:
   assumes "a \<noteq> 0" and "is_unit b"
   shows "a div (a * b) = 1 div b"
 proof -
@@ -961,10 +961,10 @@ proof -
   with assms show ?thesis by simp
 qed
 
-lemma is_unit_divide_mult_cancel_right:
+lemma is_unit_div_mult_cancel_right:
   assumes "a \<noteq> 0" and "is_unit b"
   shows "a div (b * a) = 1 div b"
-  using assms is_unit_divide_mult_cancel_left [of a b] by (simp add: ac_simps)
+  using assms is_unit_div_mult_cancel_left [of a b] by (simp add: ac_simps)
 
 end
 
@@ -1058,7 +1058,7 @@ proof (cases "a = 0")
 next
   case False
   then have "normalize a \<noteq> 0" by simp
-  with nonzero_mult_divide_cancel_right
+  with nonzero_mult_div_cancel_right
   have "unit_factor a * normalize a div normalize a = unit_factor a" by blast
   then show ?thesis by simp
 qed
@@ -1070,7 +1070,7 @@ proof (cases "a = 0")
 next
   case False
   then have "unit_factor a \<noteq> 0" by simp
-  with nonzero_mult_divide_cancel_left
+  with nonzero_mult_div_cancel_left
   have "unit_factor a * normalize a div unit_factor a = normalize a"
     by blast
   then show ?thesis by simp
@@ -1085,7 +1085,7 @@ next
   have "normalize a div a = normalize a div (unit_factor a * normalize a)"
     by simp
   also have "\<dots> = 1 div unit_factor a"
-    using False by (subst is_unit_divide_mult_cancel_right) simp_all
+    using False by (subst is_unit_div_mult_cancel_right) simp_all
   finally show ?thesis .
 qed
 
@@ -1906,7 +1906,7 @@ lemma sgn_pos [simp]: "0 < a \<Longrightarrow> sgn a = 1"
 lemma sgn_neg [simp]: "a < 0 \<Longrightarrow> sgn a = - 1"
   by (simp only: sgn_1_neg)
 
-lemma sgn_times: "sgn (a * b) = sgn a * sgn b"
+lemma sgn_mult: "sgn (a * b) = sgn a * sgn b"
   by (auto simp add: sgn_if zero_less_mult_iff)
 
 lemma abs_sgn: "\<bar>k\<bar> = k * sgn k"

@@ -25,7 +25,7 @@ val nT = HOLogic.natT;
              @{thm of_nat_numeral},
              @{thm "of_nat_Suc"}, @{thm "of_nat_1"},
              @{thm "of_int_0"}, @{thm "of_nat_0"},
-             @{thm "divide_zero"}, 
+             @{thm "div_by_0"}, 
              @{thm "divide_divide_eq_left"}, @{thm "times_divide_eq_right"}, 
              @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
              @{thm uminus_add_conv_diff [symmetric]}, @{thm "minus_divide_left"}]
