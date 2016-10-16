@@ -272,6 +272,8 @@ types where this is really intended.
     minus_mod_eq_div2 ~> minus_mod_eq_mult_div
     div_mod_equality' ~> minus_mod_eq_div_mult [symmetric]
     mod_div_equality' ~> minus_div_mult_eq_mod [symmetric]
+    div_1 ~> div_by_Suc_0
+    mod_1 ~> mod_by_Suc_0
 INCOMPATIBILITY.
 
 * Dedicated syntax LENGTH('a) for length of types.

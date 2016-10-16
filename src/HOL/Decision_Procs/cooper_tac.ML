@@ -50,7 +50,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
           div_add1_eq [symmetric] zdiv_zadd1_eq [symmetric]
           mod_self
           div_by_0 mod_by_0 div_0 mod_0
-          div_by_1 mod_by_1 div_1 mod_1
+          div_by_1 mod_by_1 div_by_Suc_0 mod_by_Suc_0
           Suc_eq_plus1}
       addsimps @{thms ac_simps}
       addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]

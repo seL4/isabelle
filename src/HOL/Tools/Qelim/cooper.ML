@@ -829,8 +829,8 @@ val div_mod_ss =
        @{thm "mod_add_left_eq"}, @{thm "mod_add_right_eq"}, 
        @{thm "mod_add_eq"}, @{thm "div_add1_eq"}, @{thm "zdiv_zadd1_eq"}]
     @ [@{thm "mod_self"}, @{thm "mod_by_0"}, @{thm "div_by_0"},
-       @{thm "div_0"}, @{thm "mod_0"}, @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, 
-       @{thm "mod_1"}, @{thm "Suc_eq_plus1"}]
+       @{thm "div_0"}, @{thm "mod_0"}, @{thm "div_by_1"}, @{thm "mod_by_1"},
+       @{thm "div_by_Suc_0"}, @{thm "mod_by_Suc_0"}, @{thm "Suc_eq_plus1"}]
     @ @{thms ac_simps}
    addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}])
 val splits_ss =

@@ -1117,7 +1117,7 @@ by (simp add: le_mod_geq linorder_not_less)
 lemma mod_if: "m mod (n::nat) = (if m < n then m else (m - n) mod n)"
 by (simp add: le_mod_geq)
 
-lemma mod_1 [simp]: "m mod Suc 0 = 0"
+lemma mod_by_Suc_0 [simp]: "m mod Suc 0 = 0"
 by (induct m) (simp_all add: mod_geq)
 
 (* a simple rearrangement of div_mult_mod_eq: *)
@@ -1196,7 +1196,7 @@ declare divmod_algorithm_code [where ?'a = nat, code]
 
 subsubsection \<open>Further Facts about Quotient and Remainder\<close>
 
-lemma div_1 [simp]:
+lemma div_by_Suc_0 [simp]:
   "m div Suc 0 = m"
   using div_by_1 [of m] by simp
 

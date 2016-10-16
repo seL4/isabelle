@@ -74,7 +74,7 @@ fun mir_tac ctxt q =
                         addsimps [refl, mod_add_eq, 
                                   @{thm mod_self},
                                   @{thm div_0}, @{thm mod_0},
-                                  @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
+                                  @{thm div_by_1}, @{thm mod_by_1}, @{thm div_by_Suc_0}, @{thm mod_by_Suc_0},
                                   @{thm "Suc_eq_plus1"}]
                         addsimps @{thms add.assoc add.commute add.left_commute}
                         addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]

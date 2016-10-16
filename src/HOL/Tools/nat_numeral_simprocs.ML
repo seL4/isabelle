@@ -350,7 +350,7 @@ fun find_first_t past u []         = raise TERM("find_first_t", [])
 
 (** Final simplification for the CancelFactor simprocs **)
 val simplify_one = Arith_Data.simplify_meta_eq  
-  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_1}, @{thm numeral_1_eq_Suc_0}];
+  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_by_Suc_0}, @{thm numeral_1_eq_Suc_0}];
 
 fun cancel_simplify_meta_eq ctxt cancel_th th =
     simplify_one ctxt (([th, cancel_th]) MRS trans);

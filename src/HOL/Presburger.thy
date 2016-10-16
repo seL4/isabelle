@@ -411,7 +411,7 @@ method_setup presburger = \<open>
 \<close> "Cooper's algorithm for Presburger arithmetic"
 
 declare dvd_eq_mod_eq_0 [symmetric, presburger]
-declare mod_1 [presburger] 
+declare mod_by_Suc_0 [presburger] 
 declare mod_0 [presburger]
 declare mod_by_1 [presburger]
 declare mod_self [presburger]
