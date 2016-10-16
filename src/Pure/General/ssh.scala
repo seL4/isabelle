@@ -150,6 +150,13 @@ object SSH
     def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
     def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
 
+    def mkdirs(path: Path): Unit =
+      if (!is_dir(path)) {
+        session.execute(
+          "perl -e \"use File::Path make_path; make_path('" + remote_path(path) + "');\"")
+        if (!is_dir(path)) error("Failed to create directory: " + quote(remote_path(path)))
+      }
+
     def read_dir(path: Path): List[Dir_Entry] =
     {
       val dir = channel.ls(remote_path(path))
