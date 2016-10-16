@@ -75,6 +75,12 @@ qed (transfer, simp add: algebra_simps)+
 
 end
 
+instance integer :: Rings.dvd ..
+
+lemma [transfer_rule]:
+  "rel_fun pcr_integer (rel_fun pcr_integer HOL.iff) Rings.dvd Rings.dvd"
+  unfolding dvd_def by transfer_prover
+
 lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
   by (rule transfer_rule_of_nat) transfer_prover+
@@ -715,6 +721,12 @@ instance proof
 qed (transfer, simp add: algebra_simps)+
 
 end
+
+instance natural :: Rings.dvd ..
+
+lemma [transfer_rule]:
+  "rel_fun pcr_natural (rel_fun pcr_natural HOL.iff) Rings.dvd Rings.dvd"
+  unfolding dvd_def by transfer_prover
 
 lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_natural (\<lambda>n::nat. n) (of_nat :: nat \<Rightarrow> natural)"
