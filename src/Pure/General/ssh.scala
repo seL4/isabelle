@@ -38,10 +38,13 @@ object SSH
 
   val default_port = 22
 
+  def connect_timeout(options: Options): Int =
+    options.seconds("ssh_connect_timeout").ms.toInt
 
-  /* init */
 
-  def init(options: Options): SSH =
+  /* init context */
+
+  def init_context(options: Options): Context =
   {
     val config_dir = Path.explode(options.string("ssh_config_dir"))
     if (!config_dir.is_dir) error("Bad ssh config directory: " + config_dir)
@@ -61,11 +64,30 @@ object SSH
     for (identity_file <- identity_files if identity_file.is_file)
       jsch.addIdentity(File.platform_path(identity_file))
 
-    new SSH(options, jsch)
+    new Context(options, jsch)
   }
 
-  def connect_timeout(options: Options): Int =
-    options.seconds("ssh_connect_timeout").ms.toInt
+  class Context private[SSH](val options: Options, val jsch: JSch)
+  {
+    def update_options(new_options: Options): Context = new Context(new_options, jsch)
+
+    def open_session(host: String, user: String = "", port: Int = default_port): Session =
+    {
+      val session = jsch.getSession(if (user == "") null else user, host, port)
+
+      session.setUserInfo(No_User_Info)
+      session.setConfig("MaxAuthTries", "3")
+
+      if (options.bool("ssh_compression")) {
+        session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
+        session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
+        session.setConfig("compression_level", "9")
+      }
+
+      session.connect(connect_timeout(options))
+      new Session(options, session)
+    }
+  }
 
 
   /* logging */
@@ -103,17 +125,6 @@ object SSH
   }
 
 
-  /* channel */
-
-  class Channel[C <: JSch_Channel] private[SSH](
-    val session: Session, val kind: String, val channel: C)
-  {
-    override def toString: String = kind + " " + session.toString
-
-    def close() { channel.disconnect }
-  }
-
-
   /* Sftp channel */
 
   type Attrs = SftpATTRS
@@ -124,82 +135,16 @@ object SSH
     def is_dir: Boolean = attrs.isDir
   }
 
-  class Sftp private[SSH](session: Session, kind: String, channel: ChannelSftp)
-    extends Channel[ChannelSftp](session, kind, channel)
-  {
-    channel.connect(connect_timeout(session.options))
-
-    val settings: Map[String, String] =
-    {
-      val home = channel.getHome
-      Map("HOME" -> home, "USER_HOME" -> home)
-    }
-    def expand_path(path: Path): Path = path.expand_env(settings)
-    def remote_path(path: Path): String = expand_path(path).implode
-
-    def chmod(permissions: Int, path: Path): Unit = channel.chmod(permissions, remote_path(path))
-    def mv(path1: Path, path2: Path): Unit = channel.rename(remote_path(path1), remote_path(path2))
-    def rm(path: Path): Unit = channel.rm(remote_path(path))
-    def mkdir(path: Path): Unit = channel.mkdir(remote_path(path))
-    def rmdir(path: Path): Unit = channel.rmdir(remote_path(path))
-
-    def stat(path: Path): Option[Dir_Entry] =
-      try { Some(Dir_Entry(expand_path(path), channel.stat(remote_path(path)))) }
-      catch { case _: SftpException => None }
-
-    def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
-    def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
-
-    def read_dir(path: Path): List[Dir_Entry] =
-    {
-      val dir = channel.ls(remote_path(path))
-      (for {
-        i <- (0 until dir.size).iterator
-        a = dir.get(i).asInstanceOf[AnyRef]
-        name = Untyped.get[String](a, "filename")
-        attrs = Untyped.get[Attrs](a, "attrs")
-        if name != "." && name != ".."
-      } yield Dir_Entry(Path.basic(name), attrs)).toList
-    }
-
-    def find_files(root: Path, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
-    {
-      def find(dir: Path): List[Dir_Entry] =
-        read_dir(dir).flatMap(entry =>
-          {
-            val file = dir + entry.name
-            if (entry.is_dir) find(file)
-            else if (pred(entry)) List(entry.copy(name = file))
-            else Nil
-          })
-      find(root)
-    }
-
-    def open_input(path: Path): InputStream = channel.get(remote_path(path))
-    def open_output(path: Path): OutputStream = channel.put(remote_path(path))
-
-    def read_file(path: Path, local_path: Path): Unit =
-      channel.get(remote_path(path), File.platform_path(local_path))
-    def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
-    def read(path: Path): String = using(open_input(path))(File.read_stream(_))
-
-    def write_file(path: Path, local_path: Path): Unit =
-      channel.put(File.platform_path(local_path), remote_path(path))
-    def write_bytes(path: Path, bytes: Bytes): Unit =
-      using(open_output(path))(bytes.write_stream(_))
-    def write(path: Path, text: String): Unit =
-      using(open_output(path))(stream => Bytes(text).write_stream(stream))
-  }
-
 
   /* exec channel */
 
   private val exec_wait_delay = Time.seconds(0.3)
 
-  class Exec private[SSH](session: Session, kind: String, channel: ChannelExec)
-    extends Channel[ChannelExec](session, kind, channel)
+  class Exec private[SSH](session: Session, channel: ChannelExec)
   {
-    def kill(signal: String) { channel.sendSignal(signal) }
+    override def toString: String = "exec " + session.toString
+
+    def close() { channel.disconnect }
 
     val exit_status: Future[Int] =
       Future.thread("ssh_wait") {
@@ -283,21 +228,90 @@ object SSH
       (if (session.getPort == default_port) "" else ":" + session.getPort) +
       (if (session.isConnected) "" else " (disconnected)")
 
-    def close() { session.disconnect }
 
-    def sftp(): Sftp =
+    /* sftp channel */
+
+    val sftp: ChannelSftp = session.openChannel("sftp").asInstanceOf[ChannelSftp]
+    sftp.connect(connect_timeout(options))
+
+    def close() { sftp.disconnect; session.disconnect }
+
+    val settings: Map[String, String] =
     {
-      val kind = "sftp"
-      val channel = session.openChannel(kind).asInstanceOf[ChannelSftp]
-      new Sftp(this, kind, channel)
+      val home = sftp.getHome
+      Map("HOME" -> home, "USER_HOME" -> home)
     }
+    def expand_path(path: Path): Path = path.expand_env(settings)
+    def remote_path(path: Path): String = expand_path(path).implode
+
+    def chmod(permissions: Int, path: Path): Unit = sftp.chmod(permissions, remote_path(path))
+    def mv(path1: Path, path2: Path): Unit = sftp.rename(remote_path(path1), remote_path(path2))
+    def rm(path: Path): Unit = sftp.rm(remote_path(path))
+    def mkdir(path: Path): Unit = sftp.mkdir(remote_path(path))
+    def rmdir(path: Path): Unit = sftp.rmdir(remote_path(path))
+
+    def stat(path: Path): Option[Dir_Entry] =
+      try { Some(Dir_Entry(expand_path(path), sftp.stat(remote_path(path)))) }
+      catch { case _: SftpException => None }
+
+    def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
+    def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
+
+    def mkdirs(path: Path): Unit =
+      if (!is_dir(path)) {
+        execute(
+          "perl -e \"use File::Path make_path; make_path('" + remote_path(path) + "');\"")
+        if (!is_dir(path)) error("Failed to create directory: " + quote(remote_path(path)))
+      }
+
+    def read_dir(path: Path): List[Dir_Entry] =
+    {
+      val dir = sftp.ls(remote_path(path))
+      (for {
+        i <- (0 until dir.size).iterator
+        a = dir.get(i).asInstanceOf[AnyRef]
+        name = Untyped.get[String](a, "filename")
+        attrs = Untyped.get[Attrs](a, "attrs")
+        if name != "." && name != ".."
+      } yield Dir_Entry(Path.basic(name), attrs)).toList
+    }
+
+    def find_files(root: Path, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
+    {
+      def find(dir: Path): List[Dir_Entry] =
+        read_dir(dir).flatMap(entry =>
+          {
+            val file = dir + entry.name
+            if (entry.is_dir) find(file)
+            else if (pred(entry)) List(entry.copy(name = file))
+            else Nil
+          })
+      find(root)
+    }
+
+    def open_input(path: Path): InputStream = sftp.get(remote_path(path))
+    def open_output(path: Path): OutputStream = sftp.put(remote_path(path))
+
+    def read_file(path: Path, local_path: Path): Unit =
+      sftp.get(remote_path(path), File.platform_path(local_path))
+    def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
+    def read(path: Path): String = using(open_input(path))(File.read_stream(_))
+
+    def write_file(path: Path, local_path: Path): Unit =
+      sftp.put(File.platform_path(local_path), remote_path(path))
+    def write_bytes(path: Path, bytes: Bytes): Unit =
+      using(open_output(path))(bytes.write_stream(_))
+    def write(path: Path, text: String): Unit =
+      using(open_output(path))(stream => Bytes(text).write_stream(stream))
+
+
+    /* exec channel */
 
     def exec(command: String): Exec =
     {
-      val kind = "exec"
-      val channel = session.openChannel(kind).asInstanceOf[ChannelExec]
+      val channel = session.openChannel("exec").asInstanceOf[ChannelExec]
       channel.setCommand("export USER_HOME=\"$HOME\"\n" + command)
-      new Exec(this, kind, channel)
+      new Exec(this, channel)
     }
 
     def execute(command: String,
@@ -320,27 +334,5 @@ object SSH
       val remote_dir = tmp_dir()
       try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
     }
-  }
-}
-
-class SSH private(val options: Options, val jsch: JSch)
-{
-  def update_options(new_options: Options): SSH = new SSH(new_options, jsch)
-
-  def open_session(host: String, user: String = "", port: Int = SSH.default_port): SSH.Session =
-  {
-    val session = jsch.getSession(if (user == "") null else user, host, port)
-
-    session.setUserInfo(SSH.No_User_Info)
-    session.setConfig("MaxAuthTries", "3")
-
-    if (options.bool("ssh_compression")) {
-      session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
-      session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none")
-      session.setConfig("compression_level", "9")
-    }
-
-    session.connect(SSH.connect_timeout(options))
-    new SSH.Session(options, session)
   }
 }
