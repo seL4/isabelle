@@ -61,10 +61,13 @@ object Isabelle_Cronjob
   private val build_history_base =
     Logger_Task("build_history_base", logger =>
       {
+        val hg =
+          Mercurial.setup_repository(
+            File.standard_path(isabelle_repos), isabelle_repos_test)
         for {
           (result, log_path) <-
-            Build_History.build_history(Mercurial.repository(isabelle_repos_test),
-              rev = "build_history_base", fresh = true, build_args = List("HOL"))
+            Build_History.build_history(
+              hg, rev = "build_history_base", fresh = true, build_args = List("HOL"))
         } {
           result.check
           File.copy(log_path, logger.log_dir + log_path.base)
