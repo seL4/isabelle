@@ -238,6 +238,8 @@ object Build_History
       if (multicore_base && first_build && isabelle_output_log.is_dir)
         Isabelle_System.copy_dir(isabelle_output_log, isabelle_base_log)
 
+      Isabelle_System.rm_tree(isabelle_output)
+
       first_build = false
 
       (res, log_path)
@@ -367,6 +369,10 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         progress_stderr = progress.echo(_)).check
 
     for (line <- result.out_lines; log = Path.explode(line))
-      yield (log.base.implode, ssh.read_bytes(log))
+    yield {
+      val bytes = ssh.read_bytes(log)
+      ssh.rm(log)
+      (log.base.implode, bytes)
+    }
   }
 }
