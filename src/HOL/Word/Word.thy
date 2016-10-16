@@ -3867,7 +3867,7 @@ lemma nth_rcat_lem:
    apply clarsimp
   apply (clarsimp simp add : nth_append size_rcat_lem)
   apply (simp (no_asm_use) only:  mult_Suc [symmetric] 
-         td_gal_lt_len less_Suc_eq_le div_mult_mod_eq')
+         td_gal_lt_len less_Suc_eq_le minus_div_mult_eq_mod [symmetric])
   apply clarsimp
   done
 

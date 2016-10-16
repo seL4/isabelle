@@ -510,7 +510,7 @@ proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
       also have "r' - r' div r * r = r' mod r" using div_mult_mod_eq [of r' r]
         by (simp add: algebra_simps)
       finally show "(s' - r' div r * s) * a + (t' - r' div r * t) * b = r' mod r" .
-    qed (auto simp: gcd_eucl_non_0 algebra_simps div_mod_equality')
+    qed (auto simp: gcd_eucl_non_0 algebra_simps minus_mod_eq_div_mult [symmetric])
     finally show ?thesis .
   qed
 qed

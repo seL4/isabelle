@@ -1387,12 +1387,7 @@ next
   qed
 qed
 
-theorem div_mult_mod_eq' [nitpick_unfold]: "(m::nat) mod n = m - (m div n) * n"
-  using div_mult_mod_eq [of m n] by arith
-
-lemma div_mod_equality': "(m::nat) div n * n = m - m mod n"
-  using div_mult_mod_eq [of m n] by arith
-(* FIXME: very similar to mult_div_cancel *)
+declare minus_div_mult_eq_mod [symmetric, where ?'a = nat, nitpick_unfold]
 
 lemma div_eq_dividend_iff: "a \<noteq> 0 \<Longrightarrow> (a :: nat) div b = a \<longleftrightarrow> b = 1"
   apply rule

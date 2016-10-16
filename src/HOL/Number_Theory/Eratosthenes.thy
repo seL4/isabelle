@@ -143,7 +143,7 @@ next
       then have "u + (w - u mod w) = w + (u - u mod w)"
         by simp
       then have "u + (w - u mod w) = w + u div w * w"
-        by (simp add: div_mod_equality' [symmetric])
+        by (simp add: minus_mod_eq_div_mult)
     }
     then have "w dvd v + w + r + (w - v mod w) \<longleftrightarrow> w dvd m + w + r + (w - m mod w)"
       by (simp add: add.assoc add.left_commute [of m] add.left_commute [of v]

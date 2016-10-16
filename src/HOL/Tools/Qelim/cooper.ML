@@ -835,7 +835,7 @@ val div_mod_ss =
    addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}])
 val splits_ss =
   simpset_of (put_simpset comp_ss @{context}
-    addsimps [@{thm "div_mult_mod_eq'"}]
+    addsimps [@{thm minus_div_mult_eq_mod [symmetric]}]
     |> fold Splitter.add_split
       [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
        @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
