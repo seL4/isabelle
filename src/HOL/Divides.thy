@@ -28,12 +28,6 @@ qed (simp add: div_by_0)
 
 text \<open>@{const divide} and @{const modulo}\<close>
 
-lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
-  by (simp add: div_mult_mod_eq)
-
-lemma div_mod_equality2: "(b * (a div b) + a mod b) + c = a + c"
-  by (simp add: mult_div_mod_eq)
-
 lemma mod_by_0 [simp]: "a mod 0 = a"
   using div_mult_mod_eq [of a zero] by simp
 
@@ -344,6 +338,11 @@ lemma div_div_div_same:
   assumes "d dvd a" "d dvd b" "b dvd a"
   shows   "(a div d) div (b div d) = a div b"
   using assms by (subst dvd_div_mult2_eq [symmetric]) simp_all
+
+lemma cancel_div_mod_rules:
+  "((a div b) * b + a mod b) + c = a + c"
+  "(b * (a div b) + a mod b) + c = a + c"
+  by (simp_all add: div_mult_mod_eq mult_div_mod_eq)
 
 end
 
@@ -1042,10 +1041,10 @@ structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
             SOME (t, u) => dest_sum t @ dest_sum u
           | NONE => [tm]));
 
-  val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
+  val div_mod_eqs = map mk_meta_eq @{thms cancel_div_mod_rules};
 
-  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
-    (@{thm add_0_left} :: @{thm add_0_right} :: @{thms ac_simps}))
+  val prove_eq_sums = Arith_Data.prove_conv2 all_tac
+    (Arith_Data.simp_all_tac @{thms add_0_left add_0_right ac_simps})
 )
 \<close>
 
@@ -1806,10 +1805,10 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
   val mk_sum = Arith_Data.mk_sum HOLogic.intT;
   val dest_sum = Arith_Data.dest_sum;
 
-  val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
+  val div_mod_eqs = map mk_meta_eq @{thms cancel_div_mod_rules};
 
-  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
-    (@{thm diff_conv_add_uminus} :: @{thms add_0_left add_0_right} @ @{thms ac_simps}))
+  val prove_eq_sums = Arith_Data.prove_conv2 all_tac
+    (Arith_Data.simp_all_tac @{thms diff_conv_add_uminus add_0_left add_0_right ac_simps})
 )
 \<close>
 
