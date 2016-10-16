@@ -242,7 +242,7 @@ object Build_History
 
       first_build = false
 
-      (res, log_path)
+      (res, log_path.ext("xz"))
     }
   }
 
