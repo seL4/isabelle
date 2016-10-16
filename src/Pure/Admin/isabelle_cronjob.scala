@@ -110,10 +110,10 @@ object Isabelle_Cronjob
     Logger_Task("build_history-" + r.host, logger =>
       {
         using(logger.ssh_context.open_session(host = r.host, user = r.user, port = r.port))(
-          session =>
+          ssh =>
             {
               val results =
-                Build_History.remote_build_history(session,
+                Build_History.remote_build_history(ssh,
                   isabelle_repos,
                   isabelle_repos.ext(r.host),
                   isabelle_repos_source = isabelle_dev_source,
