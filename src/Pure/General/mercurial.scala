@@ -35,6 +35,10 @@ object Mercurial
     source: String, root: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
   {
     val hg = new Repository(root, ssh)
+    ssh match {
+      case None => Isabelle_System.mkdirs(hg.root.dir)
+      case Some(session) => using(session.sftp())(_.mkdirs(hg.root.dir))
+    }
     hg.command("clone", File.bash_string(source) + " " + File.bash_path(hg.root), options).check
     hg
   }
