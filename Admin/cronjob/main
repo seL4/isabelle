@@ -6,7 +6,7 @@ THIS="$(cd "$(dirname "$0")"; pwd)"
 
 source "$HOME/.bashrc"
 
+export ISABELLE_IDENTIFIER="cronjob"
 "$THIS/../build" jars_fresh || exit $?
 
-exec env ISABELLE_IDENTIFIER="cronjob" \
-  "$THIS/../../bin/isabelle_java" "-Duser.timezone=Europe/Berlin" isabelle.Isabelle_Cronjob "$@"
+exec "$THIS/../../bin/isabelle_java" "-Duser.timezone=Europe/Berlin" isabelle.Isabelle_Cronjob "$@"
