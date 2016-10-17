@@ -453,9 +453,9 @@ that reverses a list. Prove @{prop"reverse(reverse xs) = xs"}.
 \end{exercise}
 
 \begin{exercise}
-Define a recursive function @{text "sum ::"} @{typ"nat \<Rightarrow> nat"} such that
-\mbox{@{text"sum n"}} @{text"="} @{text"0 + ... + n"} and prove
-@{prop" sum(n::nat) = n * (n+1) div 2"}.
+Define a recursive function @{text "sum_upto ::"} @{typ"nat \<Rightarrow> nat"} such that
+\mbox{@{text"sum_upto n"}} @{text"="} @{text"0 + ... + n"} and prove
+@{prop" sum_upto (n::nat) = n * (n+1) div 2"}.
 \end{exercise}
 *}
 (*<*)
