@@ -46,7 +46,7 @@ fun timed_access (Var {name, lock, cond, var}) time_limit f =
         let val x = ! var in
           (case f x of
             NONE =>
-              (case Multithreading.sync_wait NONE (time_limit x) cond lock of
+              (case Multithreading.sync_wait (time_limit x) cond lock of
                 Exn.Res true => try_change ()
               | Exn.Res false => NONE
               | Exn.Exn exn => Exn.reraise exn)

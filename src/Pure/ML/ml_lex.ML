@@ -235,7 +235,8 @@ local
 
 val scan_escape =
   Scan.one (member (op =) (raw_explode "\"\\abtnvfr") o Symbol_Pos.symbol) >> single ||
-  $$$ "^" @@@ (Scan.one (fn (s, _) => ord "@" <= ord s andalso ord s <= ord "_") >> single) ||
+  $$$ "^" @@@
+    (Scan.one (fn (s, _) => Char.ord #"@" <= ord s andalso ord s <= Char.ord #"_") >> single) ||
   Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) --
     Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) --
     Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) >> (fn ((a, b), c) => [a, b, c]);

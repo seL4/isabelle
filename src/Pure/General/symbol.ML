@@ -121,7 +121,7 @@ fun is_symbolic s =
 val is_symbolic_char = member (op =) (raw_explode "!#$%&*+-/<=>?@^_|~");
 
 fun is_printable s =
-  if is_char s then ord space <= ord s andalso ord s <= ord "~"
+  if is_char s then 32 <= ord s andalso ord s <= Char.ord #"~"
   else is_utf8 s orelse raw_symbolic s;
 
 fun is_control s =
@@ -148,17 +148,17 @@ fun is_ascii s = is_char s andalso ord s < 128;
 
 fun is_ascii_letter s =
   is_char s andalso
-   (ord "A" <= ord s andalso ord s <= ord "Z" orelse
-    ord "a" <= ord s andalso ord s <= ord "z");
+   (Char.ord #"A" <= ord s andalso ord s <= Char.ord #"Z" orelse
+    Char.ord #"a" <= ord s andalso ord s <= Char.ord #"z");
 
 fun is_ascii_digit s =
-  is_char s andalso ord "0" <= ord s andalso ord s <= ord "9";
+  is_char s andalso Char.ord #"0" <= ord s andalso ord s <= Char.ord #"9";
 
 fun is_ascii_hex s =
   is_char s andalso
-   (ord "0" <= ord s andalso ord s <= ord "9" orelse
-    ord "A" <= ord s andalso ord s <= ord "F" orelse
-    ord "a" <= ord s andalso ord s <= ord "f");
+   (Char.ord #"0" <= ord s andalso ord s <= Char.ord #"9" orelse
+    Char.ord #"A" <= ord s andalso ord s <= Char.ord #"F" orelse
+    Char.ord #"a" <= ord s andalso ord s <= Char.ord #"f");
 
 fun is_ascii_quasi "_" = true
   | is_ascii_quasi "'" = true
@@ -172,11 +172,11 @@ fun is_ascii_control s = is_char s andalso ord s < 32 andalso not (is_ascii_blan
 
 fun is_ascii_letdig s = is_ascii_letter s orelse is_ascii_digit s orelse is_ascii_quasi s;
 
-fun is_ascii_lower s = is_char s andalso (ord "a" <= ord s andalso ord s <= ord "z");
-fun is_ascii_upper s = is_char s andalso (ord "A" <= ord s andalso ord s <= ord "Z");
+fun is_ascii_lower s = is_char s andalso (Char.ord #"a" <= ord s andalso ord s <= Char.ord #"z");
+fun is_ascii_upper s = is_char s andalso (Char.ord #"A" <= ord s andalso ord s <= Char.ord #"Z");
 
-fun to_ascii_lower s = if is_ascii_upper s then chr (ord s + ord "a" - ord "A") else s;
-fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + ord "A" - ord "a") else s;
+fun to_ascii_lower s = if is_ascii_upper s then chr (ord s + Char.ord #"a" - Char.ord #"A") else s;
+fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + Char.ord #"A" - Char.ord #"a") else s;
 
 fun is_ascii_identifier s =
   size s > 0 andalso is_ascii_letter (String.substring (s, 0, 1)) andalso
@@ -444,7 +444,7 @@ fun bump_string str =
     fun bump [] = ["a"]
       | bump ("z" :: ss) = "a" :: bump ss
       | bump (s :: ss) =
-          if is_char s andalso ord "a" <= ord s andalso ord s < ord "z"
+          if is_char s andalso Char.ord #"a" <= ord s andalso ord s < Char.ord #"z"
           then chr (ord s + 1) :: ss
           else "a" :: s :: ss;
 

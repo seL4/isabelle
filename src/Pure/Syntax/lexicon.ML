@@ -295,7 +295,7 @@ local
 val scan_vname =
   let
     fun nat n [] = n
-      | nat n (c :: cs) = nat (n * 10 + (ord c - ord "0")) cs;
+      | nat n (c :: cs) = nat (n * 10 + (ord c - Char.ord #"0")) cs;
 
     fun idxname cs ds = (implode (rev cs), nat 0 ds);
     fun chop_idx [] ds = idxname [] ds
@@ -371,9 +371,9 @@ end;
 
 local
 
-val ten = ord "0" + 10;
-val a = ord "a";
-val A = ord "A";
+val ten = Char.ord #"0" + 10;
+val a = Char.ord #"a";
+val A = Char.ord #"A";
 val _ = a > A orelse raise Fail "Bad ASCII";
 
 fun remap_hex c =
