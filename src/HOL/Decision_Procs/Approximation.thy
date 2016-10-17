@@ -3972,7 +3972,7 @@ next
     qed
 
     have "\<And>k i. k < i \<Longrightarrow> {k ..< i} = insert k {Suc k ..< i}" by auto
-    hence setprod_head_Suc: "\<And>k i. \<Prod>{k ..< k + Suc i} = k * \<Prod>{Suc k ..< Suc k + i}"
+    hence prod_head_Suc: "\<And>k i. \<Prod>{k ..< k + Suc i} = k * \<Prod>{Suc k ..< Suc k + i}"
       by auto
     have sum_move0: "\<And>k F. sum F {0..<Suc k} = F 0 + sum (\<lambda> k. F (Suc k)) {0..<k}"
       unfolding sum_shift_bounds_Suc_ivl[symmetric]
@@ -3994,7 +3994,7 @@ next
       also have "?X (Suc k) f n t * (xs!x - real_of_float c) * inverse (real k) + ?f 0 c =
                (\<Sum> i = 0..<Suc n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) * ?f i c * (xs!x - c)^i) +
                inverse (real (\<Prod> j \<in> {k..<k+Suc n}. j)) * ?f (Suc n) t * (xs!x - c)^Suc n" (is "_ = ?T")
-        unfolding funpow_Suc C_def[symmetric] sum_move0 setprod_head_Suc
+        unfolding funpow_Suc C_def[symmetric] sum_move0 prod_head_Suc
         by (auto simp add: algebra_simps)
           (simp only: mult.left_commute [of _ "inverse (real k)"] sum_distrib_left [symmetric])
       finally have "?T \<in> {l .. u}" .
@@ -4003,8 +4003,8 @@ next
   qed
 qed
 
-lemma setprod_fact: "real (\<Prod> {1..<1 + k}) = fact (k :: nat)"
-  by (simp add: fact_setprod atLeastLessThanSuc_atLeastAtMost)
+lemma prod_fact: "real (\<Prod> {1..<1 + k}) = fact (k :: nat)"
+  by (simp add: fact_prod atLeastLessThanSuc_atLeastAtMost)
 
 lemma approx_tse:
   assumes "bounded_by xs vs"
@@ -4029,7 +4029,7 @@ proof -
            (\<Sum> j = 0..<n. inverse(fact j) * F j c * (xs!x - c)^j) +
              inverse ((fact n)) * F n t * (xs!x - c)^n
              \<in> {l .. u}" (is "\<And> t. _ \<Longrightarrow> ?taylor t \<in> _")
-    unfolding F_def atLeastAtMost_iff[symmetric] setprod_fact
+    unfolding F_def atLeastAtMost_iff[symmetric] prod_fact
     by blast
 
   have bnd_xs: "xs ! x \<in> { lx .. ux }"

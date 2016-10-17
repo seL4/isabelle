@@ -247,8 +247,8 @@ lemma wset_zcong_prod_1 [rule_format]:
    prefer 2
    apply (subst wset.simps)
    apply (auto, unfold Let_def, auto)
-  apply (subst setprod.insert)
-    apply (tactic \<open>stac @{context} @{thm setprod.insert} 3\<close>)
+  apply (subst prod.insert)
+    apply (tactic \<open>stac @{context} @{thm prod.insert} 3\<close>)
       apply (subgoal_tac [5]
         "zcong (a * inv p a * (\<Prod>x\<in>wset (a - 1) p. x)) (1 * 1) p")
        prefer 5

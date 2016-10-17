@@ -1348,7 +1348,7 @@ lemma borel_measurable_times[measurable (raw)]:
   shows "(\<lambda>x. f x * g x) \<in> borel_measurable M"
   using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
-lemma borel_measurable_setprod[measurable (raw)]:
+lemma borel_measurable_prod[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> 'b::{second_countable_topology, real_normed_field}"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
@@ -1652,7 +1652,7 @@ lemma borel_measurable_ereal_sum[measurable (raw)]:
   shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
   using assms by (induction S rule: infinite_finite_induct) auto
 
-lemma borel_measurable_ereal_setprod[measurable (raw)]:
+lemma borel_measurable_ereal_prod[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
@@ -1728,7 +1728,7 @@ lemma borel_measurable_minus_ennreal[measurable (raw)]:
   shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> g \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. f x - g x) \<in> M \<rightarrow>\<^sub>M borel"
   unfolding is_borel_def[symmetric] by transfer simp
 
-lemma borel_measurable_setprod_ennreal[measurable (raw)]:
+lemma borel_measurable_prod_ennreal[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ennreal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"

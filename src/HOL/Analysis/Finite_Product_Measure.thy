@@ -202,7 +202,7 @@ next
 next
   case (4 x)
   thus ?case using assms
-    by (auto intro!: setprod.cong split: if_split_asm)
+    by (auto intro!: prod.cong split: if_split_asm)
 qed
 
 
@@ -926,12 +926,12 @@ proof (induct I arbitrary: A rule: finite_induct)
       by (auto simp: prod_emb_iff PiE_def Pi_iff split: if_split_asm) blast+
     also have "emeasure (Pi\<^sub>M I M) (\<Pi>\<^sub>E j\<in>I. if j \<in> J-{i} then E j else space (M j)) =
       (\<Prod> j\<in>I. if j \<in> J-{i} then emeasure (M j) (E j) else emeasure (M j) (space (M j)))"
-      using E by (subst insert) (auto intro!: setprod.cong)
+      using E by (subst insert) (auto intro!: prod.cong)
     also have "(\<Prod>j\<in>I. if j \<in> J - {i} then emeasure (M j) (E j) else emeasure (M j) (space (M j))) *
        emeasure (M i) (if i \<in> J then E i else space (M i)) = (\<Prod>j\<in>insert i I. ?f J E j)"
-      using insert by (auto simp: mult.commute intro!: arg_cong2[where f="op *"] setprod.cong)
+      using insert by (auto simp: mult.commute intro!: arg_cong2[where f="op *"] prod.cong)
     also have "\<dots> = (\<Prod>j\<in>J \<union> ?I. ?f J E j)"
-      using insert(1,2) J E by (intro setprod.mono_neutral_right) auto
+      using insert(1,2) J E by (intro prod.mono_neutral_right) auto
     finally show "?\<mu> ?p = \<dots>" .
 
     show "prod_emb (insert i I) M J (Pi\<^sub>E J E) \<in> Pow (\<Pi>\<^sub>E i\<in>insert i I. space (M i))"
@@ -943,7 +943,7 @@ proof (induct I arbitrary: A rule: finite_induct)
     show "(insert i I \<noteq> {} \<or> insert i I = {}) \<and> finite (insert i I) \<and>
       insert i I \<subseteq> insert i I \<and> A \<in> (\<Pi> j\<in>insert i I. sets (M j))"
       using insert by auto
-  qed (auto intro!: setprod.cong)
+  qed (auto intro!: prod.cong)
   with insert show ?case
     by (subst (asm) prod_emb_PiE_same_index) (auto intro!: sets.sets_into_space)
 qed simp
@@ -962,7 +962,7 @@ proof -
       by (simp add: eq emeasure_PiM)
     define A where "A n = (\<Pi>\<^sub>E i\<in>I. C i n)" for n
     with C show "range A \<subseteq> prod_algebra I M" "\<And>i. emeasure (Pi\<^sub>M I M) (A i) \<noteq> \<infinity>" "(\<Union>i. A i) = space (PiM I M)"
-      by (auto intro!: prod_algebraI_finite simp: emeasure_PiM subset_eq ennreal_setprod_eq_top)
+      by (auto intro!: prod_algebraI_finite simp: emeasure_PiM subset_eq ennreal_prod_eq_top)
   qed
 qed
 
@@ -981,7 +981,7 @@ proof
   ultimately show "\<exists>A. countable A \<and> A \<subseteq> sets (Pi\<^sub>M I M) \<and> \<Union>A = space (Pi\<^sub>M I M) \<and> (\<forall>a\<in>A. emeasure (Pi\<^sub>M I M) a \<noteq> \<infinity>)"
     by (intro exI[of _ "PiE I ` PiE I F"])
        (auto intro!: countable_PiE sets_PiM_I_finite
-             simp: PiE_iff emeasure_PiM finite_index ennreal_setprod_eq_top)
+             simp: PiE_iff emeasure_PiM finite_index ennreal_prod_eq_top)
 qed
 
 sublocale finite_product_sigma_finite \<subseteq> sigma_finite_measure "Pi\<^sub>M I M"
@@ -1008,7 +1008,7 @@ proof (rule PiM_eqI)
   from A fin show "emeasure (distr (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M) (Pi\<^sub>M (I \<union> J) M) (merge I J)) (Pi\<^sub>E (I \<union> J) A) =
       (\<Prod>i\<in>I \<union> J. emeasure (M i) (A i))"
     by (subst emeasure_distr)
-       (auto simp: * J.emeasure_pair_measure_Times I.measure_times J.measure_times setprod.union_disjoint)
+       (auto simp: * J.emeasure_pair_measure_Times I.measure_times J.measure_times prod.union_disjoint)
 qed (insert fin, simp_all)
 
 lemma (in product_sigma_finite) product_nn_integral_fold:
@@ -1090,7 +1090,7 @@ lemma (in product_sigma_finite) product_nn_integral_insert_rev:
   apply measurable
   done
 
-lemma (in product_sigma_finite) product_nn_integral_setprod:
+lemma (in product_sigma_finite) product_nn_integral_prod:
   assumes "finite I" "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable (M i)"
   shows "(\<integral>\<^sup>+ x. (\<Prod>i\<in>I. f i (x i)) \<partial>Pi\<^sub>M I M) = (\<Prod>i\<in>I. integral\<^sup>N (M i) (f i))"
 using assms proof (induction I)
@@ -1099,10 +1099,10 @@ using assms proof (induction I)
   note \<open>finite I\<close>[intro, simp]
   interpret I: finite_product_sigma_finite M I by standard auto
   have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
-    using insert by (auto intro!: setprod.cong)
+    using insert by (auto intro!: prod.cong)
   have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow> (\<lambda>x. (\<Prod>i\<in>J. f i (x i))) \<in> borel_measurable (Pi\<^sub>M J M)"
     using sets.sets_into_space insert
-    by (intro borel_measurable_setprod_ennreal
+    by (intro borel_measurable_prod_ennreal
               measurable_comp[OF measurable_component_singleton, unfolded comp_def])
        auto
   then show ?case

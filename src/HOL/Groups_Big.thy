@@ -1051,34 +1051,34 @@ subsection \<open>Generalized product over a set\<close>
 context comm_monoid_mult
 begin
 
-sublocale setprod: comm_monoid_set times 1
-  defines setprod = setprod.F ..
+sublocale prod: comm_monoid_set times 1
+  defines prod = prod.F ..
 
-abbreviation Setprod ("\<Prod>_" [1000] 999)
-  where "\<Prod>A \<equiv> setprod (\<lambda>x. x) A"
+abbreviation Prod ("\<Prod>_" [1000] 999)
+  where "\<Prod>A \<equiv> prod (\<lambda>x. x) A"
 
 end
 
 syntax (ASCII)
-  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD _:_./ _)" [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD _:_./ _)" [0, 51, 10] 10)
 syntax
-  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "\<Prod>i\<in>A. b" == "CONST setprod (\<lambda>i. b) A"
+  "\<Prod>i\<in>A. b" == "CONST prod (\<lambda>i. b) A"
 
 text \<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
 
 syntax (ASCII)
-  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(4PROD _ |/ _./ _)" [0, 0, 10] 10)
+  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(4PROD _ |/ _./ _)" [0, 0, 10] 10)
 syntax
-  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Prod>_ | (_)./ _)" [0, 0, 10] 10)
+  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Prod>_ | (_)./ _)" [0, 0, 10] 10)
 translations
-  "\<Prod>x|P. t" => "CONST setprod (\<lambda>x. t) {x. P}"
+  "\<Prod>x|P. t" => "CONST prod (\<lambda>x. t) {x. P}"
 
 context comm_monoid_mult
 begin
 
-lemma setprod_dvd_setprod: "(\<And>a. a \<in> A \<Longrightarrow> f a dvd g a) \<Longrightarrow> setprod f A dvd setprod g A"
+lemma prod_dvd_prod: "(\<And>a. a \<in> A \<Longrightarrow> f a dvd g a) \<Longrightarrow> prod f A dvd prod g A"
 proof (induct A rule: infinite_finite_induct)
   case infinite
   then show ?case by (auto intro: dvdI)
@@ -1087,18 +1087,18 @@ next
   then show ?case by (auto intro: dvdI)
 next
   case (insert a A)
-  then have "f a dvd g a" and "setprod f A dvd setprod g A"
+  then have "f a dvd g a" and "prod f A dvd prod g A"
     by simp_all
-  then obtain r s where "g a = f a * r" and "setprod g A = setprod f A * s"
+  then obtain r s where "g a = f a * r" and "prod g A = prod f A * s"
     by (auto elim!: dvdE)
-  then have "g a * setprod g A = f a * setprod f A * (r * s)"
+  then have "g a * prod g A = f a * prod f A * (r * s)"
     by (simp add: ac_simps)
   with insert.hyps show ?case
     by (auto intro: dvdI)
 qed
 
-lemma setprod_dvd_setprod_subset: "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> setprod f A dvd setprod f B"
-  by (auto simp add: setprod.subset_diff ac_simps intro: dvdI)
+lemma prod_dvd_prod_subset: "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> prod f A dvd prod f B"
+  by (auto simp add: prod.subset_diff ac_simps intro: dvdI)
 
 end
 
@@ -1108,25 +1108,25 @@ subsubsection \<open>Properties in more restricted classes of structures\<close>
 context comm_semiring_1
 begin
 
-lemma dvd_setprod_eqI [intro]:
+lemma dvd_prod_eqI [intro]:
   assumes "finite A" and "a \<in> A" and "b = f a"
-  shows "b dvd setprod f A"
+  shows "b dvd prod f A"
 proof -
-  from \<open>finite A\<close> have "setprod f (insert a (A - {a})) = f a * setprod f (A - {a})"
-    by (intro setprod.insert) auto
+  from \<open>finite A\<close> have "prod f (insert a (A - {a})) = f a * prod f (A - {a})"
+    by (intro prod.insert) auto
   also from \<open>a \<in> A\<close> have "insert a (A - {a}) = A"
     by blast
-  finally have "setprod f A = f a * setprod f (A - {a})" .
+  finally have "prod f A = f a * prod f (A - {a})" .
   with \<open>b = f a\<close> show ?thesis
     by simp
 qed
 
-lemma dvd_setprodI [intro]: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> f a dvd setprod f A"
+lemma dvd_prodI [intro]: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> f a dvd prod f A"
   by auto
 
-lemma setprod_zero:
+lemma prod_zero:
   assumes "finite A" and "\<exists>a\<in>A. f a = 0"
-  shows "setprod f A = 0"
+  shows "prod f A = 0"
   using assms
 proof (induct A)
   case empty
@@ -1134,32 +1134,32 @@ proof (induct A)
 next
   case (insert a A)
   then have "f a = 0 \<or> (\<exists>a\<in>A. f a = 0)" by simp
-  then have "f a * setprod f A = 0" by rule (simp_all add: insert)
+  then have "f a * prod f A = 0" by rule (simp_all add: insert)
   with insert show ?case by simp
 qed
 
-lemma setprod_dvd_setprod_subset2:
+lemma prod_dvd_prod_subset2:
   assumes "finite B" and "A \<subseteq> B" and "\<And>a. a \<in> A \<Longrightarrow> f a dvd g a"
-  shows "setprod f A dvd setprod g B"
+  shows "prod f A dvd prod g B"
 proof -
-  from assms have "setprod f A dvd setprod g A"
-    by (auto intro: setprod_dvd_setprod)
-  moreover from assms have "setprod g A dvd setprod g B"
-    by (auto intro: setprod_dvd_setprod_subset)
+  from assms have "prod f A dvd prod g A"
+    by (auto intro: prod_dvd_prod)
+  moreover from assms have "prod g A dvd prod g B"
+    by (auto intro: prod_dvd_prod_subset)
   ultimately show ?thesis by (rule dvd_trans)
 qed
 
 end
 
-lemma (in semidom) setprod_zero_iff [simp]:
+lemma (in semidom) prod_zero_iff [simp]:
   fixes f :: "'b \<Rightarrow> 'a"
   assumes "finite A"
-  shows "setprod f A = 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = 0)"
+  shows "prod f A = 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = 0)"
   using assms by (induct A) (auto simp: no_zero_divisors)
 
-lemma (in semidom_divide) setprod_diff1:
+lemma (in semidom_divide) prod_diff1:
   assumes "finite A" and "f a \<noteq> 0"
-  shows "setprod f (A - {a}) = (if a \<in> A then setprod f A div f a else setprod f A)"
+  shows "prod f (A - {a}) = (if a \<in> A then prod f A div f a else prod f A)"
 proof (cases "a \<notin> A")
   case True
   then show ?thesis by simp
@@ -1196,73 +1196,73 @@ lemma sum_zero_power' [simp]:
   for c :: "nat \<Rightarrow> 'a::field"
   using sum_zero_power [of "\<lambda>i. c i / d i" A] by auto
 
-lemma (in field) setprod_inversef:
-  "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = inverse (setprod f A)"
+lemma (in field) prod_inversef:
+  "finite A \<Longrightarrow> prod (inverse \<circ> f) A = inverse (prod f A)"
   by (induct A rule: finite_induct) simp_all
 
-lemma (in field) setprod_dividef: "finite A \<Longrightarrow> (\<Prod>x\<in>A. f x / g x) = setprod f A / setprod g A"
-  using setprod_inversef [of A g] by (simp add: divide_inverse setprod.distrib)
+lemma (in field) prod_dividef: "finite A \<Longrightarrow> (\<Prod>x\<in>A. f x / g x) = prod f A / prod g A"
+  using prod_inversef [of A g] by (simp add: divide_inverse prod.distrib)
 
-lemma setprod_Un:
+lemma prod_Un:
   fixes f :: "'b \<Rightarrow> 'a :: field"
   assumes "finite A" and "finite B"
     and "\<forall>x\<in>A \<inter> B. f x \<noteq> 0"
-  shows "setprod f (A \<union> B) = setprod f A * setprod f B / setprod f (A \<inter> B)"
+  shows "prod f (A \<union> B) = prod f A * prod f B / prod f (A \<inter> B)"
 proof -
-  from assms have "setprod f A * setprod f B = setprod f (A \<union> B) * setprod f (A \<inter> B)"
-    by (simp add: setprod.union_inter [symmetric, of A B])
+  from assms have "prod f A * prod f B = prod f (A \<union> B) * prod f (A \<inter> B)"
+    by (simp add: prod.union_inter [symmetric, of A B])
   with assms show ?thesis
     by simp
 qed
 
-lemma (in linordered_semidom) setprod_nonneg: "(\<forall>a\<in>A. 0 \<le> f a) \<Longrightarrow> 0 \<le> setprod f A"
+lemma (in linordered_semidom) prod_nonneg: "(\<forall>a\<in>A. 0 \<le> f a) \<Longrightarrow> 0 \<le> prod f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma (in linordered_semidom) setprod_pos: "(\<forall>a\<in>A. 0 < f a) \<Longrightarrow> 0 < setprod f A"
+lemma (in linordered_semidom) prod_pos: "(\<forall>a\<in>A. 0 < f a) \<Longrightarrow> 0 < prod f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma (in linordered_semidom) setprod_mono:
-  "\<forall>i\<in>A. 0 \<le> f i \<and> f i \<le> g i \<Longrightarrow> setprod f A \<le> setprod g A"
-  by (induct A rule: infinite_finite_induct) (auto intro!: setprod_nonneg mult_mono)
+lemma (in linordered_semidom) prod_mono:
+  "\<forall>i\<in>A. 0 \<le> f i \<and> f i \<le> g i \<Longrightarrow> prod f A \<le> prod g A"
+  by (induct A rule: infinite_finite_induct) (auto intro!: prod_nonneg mult_mono)
 
-lemma (in linordered_semidom) setprod_mono_strict:
+lemma (in linordered_semidom) prod_mono_strict:
   assumes "finite A" "\<forall>i\<in>A. 0 \<le> f i \<and> f i < g i" "A \<noteq> {}"
-  shows "setprod f A < setprod g A"
+  shows "prod f A < prod g A"
   using assms
 proof (induct A rule: finite_induct)
   case empty
   then show ?case by simp
 next
   case insert
-  then show ?case by (force intro: mult_strict_mono' setprod_nonneg)
+  then show ?case by (force intro: mult_strict_mono' prod_nonneg)
 qed
 
-lemma (in linordered_field) abs_setprod: "\<bar>setprod f A\<bar> = (\<Prod>x\<in>A. \<bar>f x\<bar>)"
+lemma (in linordered_field) abs_prod: "\<bar>prod f A\<bar> = (\<Prod>x\<in>A. \<bar>f x\<bar>)"
   by (induct A rule: infinite_finite_induct) (simp_all add: abs_mult)
 
-lemma setprod_eq_1_iff [simp]: "finite A \<Longrightarrow> setprod f A = 1 \<longleftrightarrow> (\<forall>a\<in>A. f a = 1)"
+lemma prod_eq_1_iff [simp]: "finite A \<Longrightarrow> prod f A = 1 \<longleftrightarrow> (\<forall>a\<in>A. f a = 1)"
   for f :: "'a \<Rightarrow> nat"
   by (induct A rule: finite_induct) simp_all
 
-lemma setprod_pos_nat_iff [simp]: "finite A \<Longrightarrow> setprod f A > 0 \<longleftrightarrow> (\<forall>a\<in>A. f a > 0)"
+lemma prod_pos_nat_iff [simp]: "finite A \<Longrightarrow> prod f A > 0 \<longleftrightarrow> (\<forall>a\<in>A. f a > 0)"
   for f :: "'a \<Rightarrow> nat"
-  using setprod_zero_iff by (simp del: neq0_conv add: zero_less_iff_neq_zero)
+  using prod_zero_iff by (simp del: neq0_conv add: zero_less_iff_neq_zero)
 
-lemma setprod_constant: "(\<Prod>x\<in> A. y) = y ^ card A"
+lemma prod_constant: "(\<Prod>x\<in> A. y) = y ^ card A"
   for y :: "'a::comm_monoid_mult"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma setprod_power_distrib: "setprod f A ^ n = setprod (\<lambda>x. (f x) ^ n) A"
+lemma prod_power_distrib: "prod f A ^ n = prod (\<lambda>x. (f x) ^ n) A"
   for f :: "'a \<Rightarrow> 'b::comm_semiring_1"
   by (induct A rule: infinite_finite_induct) (auto simp add: power_mult_distrib)
 
 lemma power_sum: "c ^ (\<Sum>a\<in>A. f a) = (\<Prod>a\<in>A. c ^ f a)"
   by (induct A rule: infinite_finite_induct) (simp_all add: power_add)
 
-lemma setprod_gen_delta:
+lemma prod_gen_delta:
   fixes b :: "'b \<Rightarrow> 'a::comm_monoid_mult"
   assumes fin: "finite S"
-  shows "setprod (\<lambda>k. if k = a then b k else c) S =
+  shows "prod (\<lambda>k. if k = a then b k else c) S =
     (if a \<in> S then b a * c ^ (card S - 1) else c ^ card S)"
 proof -
   let ?f = "(\<lambda>k. if k=a then b k else c)"
@@ -1270,7 +1270,7 @@ proof -
   proof (cases "a \<in> S")
     case False
     then have "\<forall> k\<in> S. ?f k = c" by simp
-    with False show ?thesis by (simp add: setprod_constant)
+    with False show ?thesis by (simp add: prod_constant)
   next
     case True
     let ?A = "S - {a}"
@@ -1278,16 +1278,16 @@ proof -
     from True have eq: "S = ?A \<union> ?B" by blast
     have disjoint: "?A \<inter> ?B = {}" by simp
     from fin have fin': "finite ?A" "finite ?B" by auto
-    have f_A0: "setprod ?f ?A = setprod (\<lambda>i. c) ?A"
-      by (rule setprod.cong) auto
+    have f_A0: "prod ?f ?A = prod (\<lambda>i. c) ?A"
+      by (rule prod.cong) auto
     from fin True have card_A: "card ?A = card S - 1" by auto
-    have f_A1: "setprod ?f ?A = c ^ card ?A"
-      unfolding f_A0 by (rule setprod_constant)
-    have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
-      using setprod.union_disjoint[OF fin' disjoint, of ?f, unfolded eq[symmetric]]
+    have f_A1: "prod ?f ?A = c ^ card ?A"
+      unfolding f_A0 by (rule prod_constant)
+    have "prod ?f ?A * prod ?f ?B = prod ?f S"
+      using prod.union_disjoint[OF fin' disjoint, of ?f, unfolded eq[symmetric]]
       by simp
     with True card_A show ?thesis
-      by (simp add: f_A1 field_simps cong add: setprod.cong cong del: if_weak_cong)
+      by (simp add: f_A1 field_simps cong add: prod.cong cong del: if_weak_cong)
   qed
 qed
 

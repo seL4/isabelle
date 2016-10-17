@@ -88,7 +88,7 @@ lemma [code, code del]:
   "sum = sum" ..
 
 lemma [code, code del]:
-  "setprod = setprod" ..
+  "prod = prod" ..
 
 lemma [code, code del]:
   "Product_Type.product = Product_Type.product"  ..

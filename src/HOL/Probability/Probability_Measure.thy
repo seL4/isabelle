@@ -485,7 +485,7 @@ locale finite_product_prob_space = finite_product_sigma_finite M I + product_pro
 sublocale finite_product_prob_space \<subseteq> prob_space "\<Pi>\<^sub>M i\<in>I. M i"
 proof
   show "emeasure (\<Pi>\<^sub>M i\<in>I. M i) (space (\<Pi>\<^sub>M i\<in>I. M i)) = 1"
-    by (simp add: measure_times M.emeasure_space_1 setprod.neutral_const space_PiM)
+    by (simp add: measure_times M.emeasure_space_1 prod.neutral_const space_PiM)
 qed
 
 lemma (in finite_product_prob_space) prob_times:
@@ -497,8 +497,8 @@ proof -
   also have "\<dots> = (\<Prod>i\<in>I. emeasure (M i) (X i))"
     using measure_times X by simp
   also have "\<dots> = ennreal (\<Prod>i\<in>I. measure (M i) (X i))"
-    using X by (simp add: M.emeasure_eq_measure setprod_ennreal measure_nonneg)
-  finally show ?thesis by (simp add: measure_nonneg setprod_nonneg)
+    using X by (simp add: M.emeasure_eq_measure prod_ennreal measure_nonneg)
+  finally show ?thesis by (simp add: measure_nonneg prod_nonneg)
 qed
 
 subsection \<open>Distributions\<close>
@@ -1201,8 +1201,8 @@ proof (rule product_sigma_finite.PiM_eqI)
     apply (subst emeasure_distr)
     apply (auto intro!: sets_PiM_I_finite simp: Pi_iff)
     apply (subst emeasure_PiM)
-    apply (auto simp: the_inv_into_f_f \<open>inj_on t J\<close> setprod.reindex[OF \<open>inj_on t J\<close>]
-      if_distrib[where f="emeasure (M _)"] setprod.If_cases emeasure_space_1 Int_absorb1 \<open>t`J \<subseteq> K\<close>)
+    apply (auto simp: the_inv_into_f_f \<open>inj_on t J\<close> prod.reindex[OF \<open>inj_on t J\<close>]
+      if_distrib[where f="emeasure (M _)"] prod.If_cases emeasure_space_1 Int_absorb1 \<open>t`J \<subseteq> K\<close>)
     done
 qed simp
 

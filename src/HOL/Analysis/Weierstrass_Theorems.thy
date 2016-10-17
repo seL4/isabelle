@@ -192,7 +192,7 @@ begin
   lemma sum: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Sum>i \<in> I. f i x) \<in> R"
     by (induct I rule: finite_induct; simp add: const add)
 
-  lemma setprod: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Prod>i \<in> I. f i x) \<in> R"
+  lemma prod: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Prod>i \<in> I. f i x) \<in> R"
     by (induct I rule: finite_induct; simp add: const mult)
 
   definition normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
@@ -467,19 +467,19 @@ proof -
     by metis
   define pff where [abs_def]: "pff x = (\<Prod>w \<in> subA. ff w x)" for x
   have pffR: "pff \<in> R"
-    unfolding pff_def using subA ff by (auto simp: intro: setprod)
+    unfolding pff_def using subA ff by (auto simp: intro: prod)
   moreover
   have pff01: "pff x \<in> {0..1}" if t: "x \<in> S" for x
   proof -
     have "0 \<le> pff x"
       using subA cardp t
       apply (simp add: pff_def divide_simps sum_nonneg)
-      apply (rule Groups_Big.linordered_semidom_class.setprod_nonneg)
+      apply (rule Groups_Big.linordered_semidom_class.prod_nonneg)
       using ff by fastforce
     moreover have "pff x \<le> 1"
       using subA cardp t
       apply (simp add: pff_def divide_simps sum_nonneg)
-      apply (rule setprod_mono [where g = "\<lambda>x. 1", simplified])
+      apply (rule prod_mono [where g = "\<lambda>x. 1", simplified])
       using ff by fastforce
     ultimately show ?thesis
       by auto
@@ -488,10 +488,10 @@ proof -
   { fix v x
     assume v: "v \<in> subA" and x: "x \<in> Vf v" "x \<in> S"
     from subA v have "pff x = ff v x * (\<Prod>w \<in> subA - {v}. ff w x)"
-      unfolding pff_def  by (metis setprod.remove)
+      unfolding pff_def  by (metis prod.remove)
     also have "... \<le> ff v x * 1"
       apply (rule Rings.ordered_semiring_class.mult_left_mono)
-      apply (rule setprod_mono [where g = "\<lambda>x. 1", simplified])
+      apply (rule prod_mono [where g = "\<lambda>x. 1", simplified])
       using ff [THEN conjunct2, THEN conjunct1] v subA x
       apply auto
       apply (meson atLeastAtMost_iff contra_subsetD imageI)
@@ -515,10 +515,10 @@ proof -
       using Bernoulli_inequality [of "-e / card subA" "card subA"] e cardp
       by (auto simp: field_simps)
     also have "... = (\<Prod>w \<in> subA. 1 - e / card subA)"
-      by (simp add: setprod_constant subA(2))
+      by (simp add: prod_constant subA(2))
     also have "... < pff x"
       apply (simp add: pff_def)
-      apply (rule setprod_mono_strict [where f = "\<lambda>x. 1 - e / card subA", simplified])
+      apply (rule prod_mono_strict [where f = "\<lambda>x. 1 - e / card subA", simplified])
       apply (simp_all add: subA(2))
       apply (intro ballI conjI)
       using e apply (force simp: divide_simps)

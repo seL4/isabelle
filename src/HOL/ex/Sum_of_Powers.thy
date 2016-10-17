@@ -23,8 +23,8 @@ proof (cases k)
 next
   case (Suc l)
   have "of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
-    using setprod.atLeast0_lessThan_Suc [where ?'a = 'a, symmetric, of "\<lambda>i. of_nat (Suc n - i)" k]
-    by (simp add: ac_simps setprod.atLeast0_lessThan_Suc_shift)
+    using prod.atLeast0_lessThan_Suc [where ?'a = 'a, symmetric, of "\<lambda>i. of_nat (Suc n - i)" k]
+    by (simp add: ac_simps prod.atLeast0_lessThan_Suc_shift)
   also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (Suc n - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
     by (simp add: Suc atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
   also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
@@ -32,7 +32,7 @@ next
   finally have "(\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
     by (simp add: field_simps)
   with assms show ?thesis
-    by (simp add: binomial_altdef_of_nat setprod_dividef)
+    by (simp add: binomial_altdef_of_nat prod_dividef)
 qed
 
 lemma real_binomial_eq_mult_binomial_Suc:

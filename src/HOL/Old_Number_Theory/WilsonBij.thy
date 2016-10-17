@@ -229,9 +229,9 @@ lemma bijER_zcong_prod_1:
     apply (subgoal_tac [2] "a = 1 \<or> a = p - 1")
      apply (rule_tac [3] zcong_square_zless)
         apply auto
-  apply (subst setprod.insert)
+  apply (subst prod.insert)
     prefer 3
-    apply (subst setprod.insert)
+    apply (subst prod.insert)
       apply (auto simp add: fin_bijER)
   apply (subgoal_tac "zcong ((a * b) * \<Prod>A) (1 * 1) p")
    apply (simp add: mult.assoc)

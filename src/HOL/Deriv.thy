@@ -351,7 +351,7 @@ qed
 lemmas has_derivative_mult[simp, derivative_intros] = bounded_bilinear.FDERIV[OF bounded_bilinear_mult]
 lemmas has_derivative_scaleR[simp, derivative_intros] = bounded_bilinear.FDERIV[OF bounded_bilinear_scaleR]
 
-lemma has_derivative_setprod[simp, derivative_intros]:
+lemma has_derivative_prod[simp, derivative_intros]:
   fixes f :: "'i \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_field"
   shows "(\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) (at x within s)) \<Longrightarrow>
     ((\<lambda>x. \<Prod>i\<in>I. f i x) has_derivative (\<lambda>y. \<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x))) (at x within s)"
@@ -377,7 +377,7 @@ lemma has_derivative_power[simp, derivative_intros]:
   fixes f :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
   assumes f: "(f has_derivative f') (at x within s)"
   shows "((\<lambda>x. f x^n) has_derivative (\<lambda>y. of_nat n * f' y * f x^(n - 1))) (at x within s)"
-  using has_derivative_setprod[OF f, of "{..< n}"] by (simp add: setprod_constant ac_simps)
+  using has_derivative_prod[OF f, of "{..< n}"] by (simp add: prod_constant ac_simps)
 
 lemma has_derivative_inverse':
   fixes x :: "'a::real_normed_div_algebra"

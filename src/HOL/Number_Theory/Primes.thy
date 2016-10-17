@@ -485,11 +485,11 @@ lemma prod_mset_prime_factorization_nat [simp]:
 
 lemma prime_factorization_nat:
     "n > (0::nat) \<Longrightarrow> n = (\<Prod>p \<in> prime_factors n. p ^ multiplicity p n)"
-  by (simp add: setprod_prime_factors)
+  by (simp add: prod_prime_factors)
 
 lemma prime_factorization_int:
     "n > (0::int) \<Longrightarrow> n = (\<Prod>p \<in> prime_factors n. p ^ multiplicity p n)"
-  by (simp add: setprod_prime_factors)
+  by (simp add: prod_prime_factors)
 
 lemma prime_factorization_unique_nat:
   fixes f :: "nat \<Rightarrow> _"
@@ -524,13 +524,13 @@ lemma prime_factors_characterization_int:
   by (rule prime_factorization_unique_int [THEN conjunct1, symmetric])
 
 (* TODO Move *)
-lemma abs_setprod: "abs (setprod f A :: 'a :: linordered_idom) = setprod (\<lambda>x. abs (f x)) A"
+lemma abs_prod: "abs (prod f A :: 'a :: linordered_idom) = prod (\<lambda>x. abs (f x)) A"
   by (cases "finite A", induction A rule: finite_induct) (simp_all add: abs_mult)
 
 lemma primes_characterization'_int [rule_format]:
   "finite {p. p \<ge> 0 \<and> 0 < f (p::int)} \<Longrightarrow> \<forall>p. 0 < f p \<longrightarrow> prime p \<Longrightarrow>
       prime_factors (\<Prod>p | p \<ge> 0 \<and> 0 < f p. p ^ f p) = {p. p \<ge> 0 \<and> 0 < f p}"
-  by (rule prime_factors_characterization_int) (auto simp: abs_setprod prime_ge_0_int)
+  by (rule prime_factors_characterization_int) (auto simp: abs_prod prime_ge_0_int)
 
 lemma multiplicity_characterization_nat:
   "S = {p. 0 < f (p::nat)} \<Longrightarrow> finite S \<Longrightarrow> \<forall>p\<in>S. prime p \<Longrightarrow> prime p \<Longrightarrow>
@@ -545,7 +545,7 @@ lemma multiplicity_characterization'_nat: "finite {p. 0 < f (p::nat)} \<longrigh
 lemma multiplicity_characterization_int: "S = {p. 0 < f (p::int)} \<Longrightarrow>
     finite S \<Longrightarrow> \<forall>p\<in>S. prime p \<Longrightarrow> prime p \<Longrightarrow> n = (\<Prod>p\<in>S. p ^ f p) \<Longrightarrow> multiplicity p n = f p"
   by (frule prime_factorization_unique_int [of S f n, THEN conjunct2, rule_format, symmetric]) 
-     (auto simp: abs_setprod power_abs prime_ge_0_int intro!: setprod.cong)
+     (auto simp: abs_prod power_abs prime_ge_0_int intro!: prod.cong)
 
 lemma multiplicity_characterization'_int [rule_format]:
   "finite {p. p \<ge> 0 \<and> 0 < f (p::int)} \<Longrightarrow>
@@ -583,11 +583,11 @@ proof -
     unfolding set_mset_def count_A by (auto simp: g_def)
   with assms have prime: "prime x" if "x \<in># A" for x using that by auto
   from set_mset_A assms have "(\<Prod>p \<in> S. p ^ f p) = (\<Prod>p \<in> S. p ^ g p) "
-    by (intro setprod.cong) (auto simp: g_def)
+    by (intro prod.cong) (auto simp: g_def)
   also from set_mset_A assms have "\<dots> = (\<Prod>p \<in> set_mset A. p ^ g p)"
-    by (intro setprod.mono_neutral_right) (auto simp: g_def set_mset_A)
+    by (intro prod.mono_neutral_right) (auto simp: g_def set_mset_A)
   also have "\<dots> = prod_mset A"
-    by (auto simp: prod_mset_multiplicity count_A set_mset_A intro!: setprod.cong)
+    by (auto simp: prod_mset_multiplicity count_A set_mset_A intro!: prod.cong)
   also from assms have "multiplicity p \<dots> = sum_mset (image_mset (multiplicity p) A)"
     by (subst prime_elem_multiplicity_prod_mset_distrib) (auto dest: prime)
   also from assms have "image_mset (multiplicity p) A = image_mset (\<lambda>x. if x = p then 1 else 0) A"
@@ -601,10 +601,10 @@ lemma prime_factorization_prod_mset:
   shows "prime_factorization (prod_mset A) = \<Union>#(image_mset prime_factorization A)"
   using assms by (induct A) (auto simp add: prime_factorization_mult)
 
-lemma prime_factors_setprod:
+lemma prime_factors_prod:
   assumes "finite A" and "0 \<notin> f ` A"
-  shows "prime_factors (setprod f A) = UNION A (prime_factors \<circ> f)"
-  using assms by (simp add: setprod_unfold_prod_mset prime_factorization_prod_mset)
+  shows "prime_factors (prod f A) = UNION A (prime_factors \<circ> f)"
+  using assms by (simp add: prod_unfold_prod_mset prime_factorization_prod_mset)
 
 lemma prime_factors_fact:
   "prime_factors (fact n) = {p \<in> {2..n}. prime p}" (is "?M = ?N")
@@ -621,7 +621,7 @@ proof (rule set_eqI)
       by (auto intro: order_trans)
   } note * = this
   show "p \<in> ?M \<longleftrightarrow> p \<in> ?N"
-    by (auto simp add: fact_setprod prime_factors_setprod Suc_le_eq dest!: prime_prime_factors intro: *)
+    by (auto simp add: fact_prod prime_factors_prod Suc_le_eq dest!: prime_prime_factors intro: *)
 qed
 
 lemma prime_dvd_fact_iff:

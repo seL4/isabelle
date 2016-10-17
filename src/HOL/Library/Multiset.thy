@@ -2269,13 +2269,13 @@ lemma prod_mset_replicate_mset [simp]:
   "prod_mset (replicate_mset n a) = a ^ n"
   by (induct n) simp_all
 
-lemma setprod_unfold_prod_mset:
-  "setprod f A = prod_mset (image_mset f (mset_set A))"
+lemma prod_unfold_prod_mset:
+  "prod f A = prod_mset (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
 lemma prod_mset_multiplicity:
-  "prod_mset M = setprod (\<lambda>x. x ^ count M x) (set_mset M)"
-  by (simp add: fold_mset_def setprod.eq_fold prod_mset.eq_fold funpow_times_power comp_def)
+  "prod_mset M = prod (\<lambda>x. x ^ count M x) (set_mset M)"
+  by (simp add: fold_mset_def prod.eq_fold prod_mset.eq_fold funpow_times_power comp_def)
 
 lemma prod_mset_delta: "prod_mset (image_mset (\<lambda>x. if x = y then c else 1) A) = c ^ count A y"
   by (induction A) simp_all

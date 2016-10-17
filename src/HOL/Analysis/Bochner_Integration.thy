@@ -3003,7 +3003,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in product_sigma_finite) product_integrable_setprod:
+lemma (in product_sigma_finite) product_integrable_prod:
   fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> _::{real_normed_field,banach,second_countable_topology}"
   assumes [simp]: "finite I" and integrable: "\<And>i. i \<in> I \<Longrightarrow> integrable (M i) (f i)"
   shows "integrable (Pi\<^sub>M I M) (\<lambda>x. (\<Prod>i\<in>I. f i (x i)))" (is "integrable _ ?f")
@@ -3014,15 +3014,15 @@ proof (unfold integrable_iff_bounded, intro conjI)
     using assms by simp
   have "(\<integral>\<^sup>+ x. ennreal (norm (\<Prod>i\<in>I. f i (x i))) \<partial>Pi\<^sub>M I M) =
       (\<integral>\<^sup>+ x. (\<Prod>i\<in>I. ennreal (norm (f i (x i)))) \<partial>Pi\<^sub>M I M)"
-    by (simp add: setprod_norm setprod_ennreal)
+    by (simp add: prod_norm prod_ennreal)
   also have "\<dots> = (\<Prod>i\<in>I. \<integral>\<^sup>+ x. ennreal (norm (f i x)) \<partial>M i)"
-    using assms by (intro product_nn_integral_setprod) auto
+    using assms by (intro product_nn_integral_prod) auto
   also have "\<dots> < \<infinity>"
-    using integrable by (simp add: less_top[symmetric] ennreal_setprod_eq_top integrable_iff_bounded)
+    using integrable by (simp add: less_top[symmetric] ennreal_prod_eq_top integrable_iff_bounded)
   finally show "(\<integral>\<^sup>+ x. ennreal (norm (\<Prod>i\<in>I. f i (x i))) \<partial>Pi\<^sub>M I M) < \<infinity>" .
 qed
 
-lemma (in product_sigma_finite) product_integral_setprod:
+lemma (in product_sigma_finite) product_integral_prod:
   fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> _::{real_normed_field,banach,second_countable_topology}"
   assumes "finite I" and integrable: "\<And>i. i \<in> I \<Longrightarrow> integrable (M i) (f i)"
   shows "(\<integral>x. (\<Prod>i\<in>I. f i (x i)) \<partial>Pi\<^sub>M I M) = (\<Prod>i\<in>I. integral\<^sup>L (M i) (f i))"
@@ -3036,10 +3036,10 @@ next
   then have iI: "finite (insert i I)" by auto
   then have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow>
     integrable (Pi\<^sub>M J M) (\<lambda>x. (\<Prod>i\<in>J. f i (x i)))"
-    by (intro product_integrable_setprod insert(4)) (auto intro: finite_subset)
+    by (intro product_integrable_prod insert(4)) (auto intro: finite_subset)
   interpret I: finite_product_sigma_finite M I by standard fact
   have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
-    using \<open>i \<notin> I\<close> by (auto intro!: setprod.cong)
+    using \<open>i \<notin> I\<close> by (auto intro!: prod.cong)
   show ?case
     unfolding product_integral_insert[OF insert(1,2) prod[OF subset_refl]]
     by (simp add: * insert prod subset_insertI)

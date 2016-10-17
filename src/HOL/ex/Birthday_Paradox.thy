@@ -64,11 +64,11 @@ proof -
     by (auto intro!: finite_PiE)
   have "{f \<in> extensional_funcset S T. \<not> inj_on f S} = extensional_funcset S T - {f \<in> extensional_funcset S T. inj_on f S}" by auto
   from assms this finite subset show ?thesis
-    by (simp add: card_Diff_subset card_PiE card_extensional_funcset_inj_on setprod_constant)
+    by (simp add: card_Diff_subset card_PiE card_extensional_funcset_inj_on prod_constant)
 qed
 
-lemma setprod_upto_nat_unfold:
-  "setprod f {m..(n::nat)} = (if n < m then 1 else (if n = 0 then f 0 else f n * setprod f {m..(n - 1)}))"
+lemma prod_upto_nat_unfold:
+  "prod f {m..(n::nat)} = (if n < m then 1 else (if n = 0 then f 0 else f n * prod f {m..(n - 1)}))"
   by auto (auto simp add: gr0_conv_Suc atLeastAtMostSuc_conv)
 
 section \<open>Birthday paradox\<close>
@@ -81,7 +81,7 @@ proof -
   from assms show ?thesis
     using card_PiE[OF \<open>finite S\<close>, of "\<lambda>i. T"] \<open>finite S\<close>
       card_extensional_funcset_not_inj_on[OF \<open>finite S\<close> \<open>finite T\<close> \<open>card S <= card T\<close>]
-    by (simp add: fact_div_fact setprod_upto_nat_unfold setprod_constant)
+    by (simp add: fact_div_fact prod_upto_nat_unfold prod_constant)
 qed
 
 end

@@ -186,33 +186,33 @@ declare transfer_morphism_nat_int [transfer add
 ]
 
 
-text \<open>sum and setprod\<close>
+text \<open>sum and prod\<close>
 
 (* this handles the case where the *domain* of f is nat *)
 lemma transfer_nat_int_sum_prod:
     "sum f A = sum (%x. f (nat x)) (int ` A)"
-    "setprod f A = setprod (%x. f (nat x)) (int ` A)"
+    "prod f A = prod (%x. f (nat x)) (int ` A)"
   apply (subst sum.reindex)
   apply (unfold inj_on_def, auto)
-  apply (subst setprod.reindex)
+  apply (subst prod.reindex)
   apply (unfold inj_on_def o_def, auto)
 done
 
 (* this handles the case where the *range* of f is nat *)
 lemma transfer_nat_int_sum_prod2:
     "sum f A = nat(sum (%x. int (f x)) A)"
-    "setprod f A = nat(setprod (%x. int (f x)) A)"
+    "prod f A = nat(prod (%x. int (f x)) A)"
   apply (simp only: int_sum [symmetric] nat_int)
-  apply (simp only: int_setprod [symmetric] nat_int)
+  apply (simp only: int_prod [symmetric] nat_int)
   done
 
 lemma transfer_nat_int_sum_prod_closure:
     "nat_set A \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x >= (0::int)) \<Longrightarrow> sum f A >= 0"
-    "nat_set A \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x >= (0::int)) \<Longrightarrow> setprod f A >= 0"
+    "nat_set A \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x >= (0::int)) \<Longrightarrow> prod f A >= 0"
   unfolding nat_set_def
   apply (rule sum_nonneg)
   apply auto
-  apply (rule setprod_nonneg)
+  apply (rule prod_nonneg)
   apply auto
 done
 
@@ -223,28 +223,28 @@ done
 
 lemma transfer_nat_int_sum_prod_closure:
     "(!!x. x : A  ==> f x >= (0::int)) \<Longrightarrow> sum f A >= 0"
-    "(!!x. x : A  ==> f x >= (0::int)) \<Longrightarrow> setprod f A >= 0"
+    "(!!x. x : A  ==> f x >= (0::int)) \<Longrightarrow> prod f A >= 0"
   unfolding nat_set_def simp_implies_def
   apply (rule sum_nonneg)
   apply auto
-  apply (rule setprod_nonneg)
+  apply (rule prod_nonneg)
   apply auto
 done
 *)
 
 (* Making A = B in this lemma doesn't work. Why not?
-   Also, why aren't sum.cong and setprod.cong enough,
+   Also, why aren't sum.cong and prod.cong enough,
    with the previously mentioned rule turned on? *)
 
 lemma transfer_nat_int_sum_prod_cong:
     "A = B \<Longrightarrow> nat_set B \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x = g x) \<Longrightarrow>
       sum f A = sum g B"
     "A = B \<Longrightarrow> nat_set B \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x = g x) \<Longrightarrow>
-      setprod f A = setprod g B"
+      prod f A = prod g B"
   unfolding nat_set_def
   apply (subst sum.cong, assumption)
   apply auto [2]
-  apply (subst setprod.cong, assumption, auto)
+  apply (subst prod.cong, assumption, auto)
 done
 
 declare transfer_morphism_nat_int [transfer add
@@ -389,29 +389,29 @@ declare transfer_morphism_int_nat [transfer add
 ]
 
 
-text \<open>sum and setprod\<close>
+text \<open>sum and prod\<close>
 
 (* this handles the case where the *domain* of f is int *)
 lemma transfer_int_nat_sum_prod:
     "nat_set A \<Longrightarrow> sum f A = sum (%x. f (int x)) (nat ` A)"
-    "nat_set A \<Longrightarrow> setprod f A = setprod (%x. f (int x)) (nat ` A)"
+    "nat_set A \<Longrightarrow> prod f A = prod (%x. f (int x)) (nat ` A)"
   apply (subst sum.reindex)
   apply (unfold inj_on_def nat_set_def, auto simp add: eq_nat_nat_iff)
-  apply (subst setprod.reindex)
+  apply (subst prod.reindex)
   apply (unfold inj_on_def nat_set_def o_def, auto simp add: eq_nat_nat_iff
-            cong: setprod.cong)
+            cong: prod.cong)
 done
 
 (* this handles the case where the *range* of f is int *)
 lemma transfer_int_nat_sum_prod2:
     "(!!x. x:A \<Longrightarrow> is_nat (f x)) \<Longrightarrow> sum f A = int(sum (%x. nat (f x)) A)"
     "(!!x. x:A \<Longrightarrow> is_nat (f x)) \<Longrightarrow>
-      setprod f A = int(setprod (%x. nat (f x)) A)"
+      prod f A = int(prod (%x. nat (f x)) A)"
   unfolding is_nat_def
   by (subst int_sum) auto
 
 declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_sum_prod transfer_int_nat_sum_prod2
-  cong: sum.cong setprod.cong]
+  cong: sum.cong prod.cong]
 
 end

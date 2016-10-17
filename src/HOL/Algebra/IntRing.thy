@@ -73,7 +73,7 @@ proof -
 qed
 
 interpretation int: comm_monoid \<Z>
-  rewrites "finprod \<Z> f A = setprod f A"
+  rewrites "finprod \<Z> f A = prod f A"
 proof -
   \<comment> "Specification"
   show "comm_monoid \<Z>" by standard auto
@@ -83,7 +83,7 @@ proof -
   { fix x y have "mult \<Z> x y = x * y" by simp }
   note mult = this
   have one: "one \<Z> = 1" by simp
-  show "finprod \<Z> f A = setprod f A"
+  show "finprod \<Z> f A = prod f A"
     by (induct A rule: infinite_finite_induct, auto)
 qed
 

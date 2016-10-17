@@ -1180,7 +1180,7 @@ lemma ereal_le_real:
   shows "y \<le> x"
   by (metis assms ereal_bot ereal_cases ereal_infty_less_eq(2) ereal_less_eq(1) linorder_le_cases)
 
-lemma setprod_ereal_0:
+lemma prod_ereal_0:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(\<Prod>i\<in>A. f i) = 0 \<longleftrightarrow> finite A \<and> (\<exists>i\<in>A. f i = 0)"
 proof (cases "finite A")
@@ -1191,7 +1191,7 @@ next
   then show ?thesis by auto
 qed
 
-lemma setprod_ereal_pos:
+lemma prod_ereal_pos:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes pos: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
   shows "0 \<le> (\<Prod>i\<in>I. f i)"
@@ -1204,7 +1204,7 @@ next
   then show ?thesis by simp
 qed
 
-lemma setprod_PInf:
+lemma prod_PInf:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
   shows "(\<Prod>i\<in>I. f i) = \<infinity> \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = \<infinity>) \<and> (\<forall>i\<in>I. f i \<noteq> 0)"
@@ -1213,15 +1213,15 @@ proof (cases "finite I")
   from this assms show ?thesis
   proof (induct I)
     case (insert i I)
-    then have pos: "0 \<le> f i" "0 \<le> setprod f I"
-      by (auto intro!: setprod_ereal_pos)
-    from insert have "(\<Prod>j\<in>insert i I. f j) = \<infinity> \<longleftrightarrow> setprod f I * f i = \<infinity>"
+    then have pos: "0 \<le> f i" "0 \<le> prod f I"
+      by (auto intro!: prod_ereal_pos)
+    from insert have "(\<Prod>j\<in>insert i I. f j) = \<infinity> \<longleftrightarrow> prod f I * f i = \<infinity>"
       by auto
-    also have "\<dots> \<longleftrightarrow> (setprod f I = \<infinity> \<or> f i = \<infinity>) \<and> f i \<noteq> 0 \<and> setprod f I \<noteq> 0"
-      using setprod_ereal_pos[of I f] pos
-      by (cases rule: ereal2_cases[of "f i" "setprod f I"]) auto
+    also have "\<dots> \<longleftrightarrow> (prod f I = \<infinity> \<or> f i = \<infinity>) \<and> f i \<noteq> 0 \<and> prod f I \<noteq> 0"
+      using prod_ereal_pos[of I f] pos
+      by (cases rule: ereal2_cases[of "f i" "prod f I"]) auto
     also have "\<dots> \<longleftrightarrow> finite (insert i I) \<and> (\<exists>j\<in>insert i I. f j = \<infinity>) \<and> (\<forall>j\<in>insert i I. f j \<noteq> 0)"
-      using insert by (auto simp: setprod_ereal_0)
+      using insert by (auto simp: prod_ereal_0)
     finally show ?case .
   qed simp
 next
@@ -1229,7 +1229,7 @@ next
   then show ?thesis by simp
 qed
 
-lemma setprod_ereal: "(\<Prod>i\<in>A. ereal (f i)) = ereal (setprod f A)"
+lemma prod_ereal: "(\<Prod>i\<in>A. ereal (f i)) = ereal (prod f A)"
 proof (cases "finite A")
   case True
   then show ?thesis

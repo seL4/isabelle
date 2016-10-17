@@ -428,10 +428,10 @@ proof -
     apply auto
     done
   also have "\<dots> = fact (p - 1) mod p"
-    apply (simp add: fact_setprod)
+    apply (simp add: fact_prod)
     apply (insert assms)
     apply (subst res_prime_units_eq)
-    apply (simp add: int_setprod zmod_int setprod_int_eq)
+    apply (simp add: int_prod zmod_int prod_int_eq)
     done
   finally have "fact (p - 1) mod p = \<ominus> \<one>" .
   then show ?thesis
@@ -445,7 +445,7 @@ lemma wilson_theorem:
 proof (cases "p = 2")
   case True
   then show ?thesis
-    by (simp add: cong_int_def fact_setprod)
+    by (simp add: cong_int_def fact_prod)
 next
   case False
   then show ?thesis

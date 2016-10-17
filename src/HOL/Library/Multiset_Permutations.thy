@@ -161,24 +161,24 @@ text \<open>
 context
 begin
 
-private lemma multiset_setprod_fact_insert:
+private lemma multiset_prod_fact_insert:
   "(\<Prod>y\<in>set_mset (A+{#x#}). fact (count (A+{#x#}) y)) =
      (count A x + 1) * (\<Prod>y\<in>set_mset A. fact (count A y))"
 proof -
   have "(\<Prod>y\<in>set_mset (A+{#x#}). fact (count (A+{#x#}) y)) =
           (\<Prod>y\<in>set_mset (A+{#x#}). (if y = x then count A x + 1 else 1) * fact (count A y))"
-    by (intro setprod.cong) simp_all
+    by (intro prod.cong) simp_all
   also have "\<dots> = (count A x + 1) * (\<Prod>y\<in>set_mset (A+{#x#}). fact (count A y))"
-    by (simp add: setprod.distrib setprod.delta)
+    by (simp add: prod.distrib prod.delta)
   also have "(\<Prod>y\<in>set_mset (A+{#x#}). fact (count A y)) = (\<Prod>y\<in>set_mset A. fact (count A y))"
-    by (intro setprod.mono_neutral_right) (auto simp: not_in_iff)
+    by (intro prod.mono_neutral_right) (auto simp: not_in_iff)
   finally show ?thesis .
 qed
 
-private lemma multiset_setprod_fact_remove:
+private lemma multiset_prod_fact_remove:
   "x \<in># A \<Longrightarrow> (\<Prod>y\<in>set_mset A. fact (count A y)) =
                    count A x * (\<Prod>y\<in>set_mset (A-{#x#}). fact (count (A-{#x#}) y))"
-  using multiset_setprod_fact_insert[of "A - {#x#}" x] by simp
+  using multiset_prod_fact_insert[of "A - {#x#}" x] by simp
 
 lemma card_permutations_of_multiset_aux:
   "card (permutations_of_multiset A) * (\<Prod>x\<in>set_mset A. fact (count A x)) = fact (size A)"
@@ -199,7 +199,7 @@ proof (induction A rule: multiset_remove_induct)
     have "card (permutations_of_multiset (A - {#x#})) * (\<Prod>y\<in>set_mset A. fact (count A y)) = 
             count A x * (card (permutations_of_multiset (A - {#x#})) * 
               (\<Prod>y\<in>set_mset (A - {#x#}). fact (count (A - {#x#}) y)))" (is "?lhs = _")
-      by (subst multiset_setprod_fact_remove[OF x]) simp_all
+      by (subst multiset_prod_fact_remove[OF x]) simp_all
     also note remove.IH[OF x]
     also from x have "size (A - {#x#}) = size A - 1" by (simp add: size_Diff_submset)
     finally show "?lhs = count A x * fact (size A - 1)" .
@@ -223,7 +223,7 @@ lemma card_permutations_of_multiset_insert_aux:
 proof -
   note card_permutations_of_multiset_aux[of "A + {#x#}"]
   also have "fact (size (A + {#x#})) = (size A + 1) * fact (size A)" by simp
-  also note multiset_setprod_fact_insert[of A x]
+  also note multiset_prod_fact_insert[of A x]
   also note card_permutations_of_multiset_aux[of A, symmetric]
   finally have "card (permutations_of_multiset (A + {#x#})) * (count A x + 1) *
                     (\<Prod>y\<in>set_mset A. fact (count A y)) =

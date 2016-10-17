@@ -35,7 +35,7 @@ lemma of_real_fact [simp]: "of_real (fact n) = fact n"
   by (metis of_nat_fact of_real_of_nat_eq)
 
 lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
-  by (simp add: pochhammer_setprod)
+  by (simp add: pochhammer_prod)
 
 lemma norm_fact [simp]: "norm (fact n :: 'a::real_normed_algebra_1) = fact n"
 proof -
@@ -1522,7 +1522,7 @@ lemma exp_of_nat_mult: "exp (of_nat n * x) = exp x ^ n"
 corollary exp_real_of_nat_mult: "exp (real n * x) = exp x ^ n"
   by (simp add: exp_of_nat_mult)
 
-lemma exp_sum: "finite I \<Longrightarrow> exp (sum f I) = setprod (\<lambda>x. exp (f x)) I"
+lemma exp_sum: "finite I \<Longrightarrow> exp (sum f I) = prod (\<lambda>x. exp (f x)) I"
   by (induct I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
 
 lemma exp_divide_power_eq:
@@ -1744,9 +1744,9 @@ lemma ln_mult: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln 
   for x :: real
   by (rule ln_unique) (simp add: exp_add)
 
-lemma ln_setprod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i > 0) \<Longrightarrow> ln (setprod f I) = sum (\<lambda>x. ln(f x)) I"
+lemma ln_prod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i > 0) \<Longrightarrow> ln (prod f I) = sum (\<lambda>x. ln(f x)) I"
   for f :: "'a \<Rightarrow> real"
-  by (induct I rule: finite_induct) (auto simp: ln_mult setprod_pos)
+  by (induct I rule: finite_induct) (auto simp: ln_mult prod_pos)
 
 lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
   for x :: real

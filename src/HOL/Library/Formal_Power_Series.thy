@@ -2278,11 +2278,11 @@ proof
 qed
 
 text \<open>The general form.\<close>
-lemma fps_setprod_nth:
+lemma fps_prod_nth:
   fixes m :: nat
     and a :: "nat \<Rightarrow> 'a::comm_ring_1 fps"
-  shows "(setprod a {0 .. m}) $ n =
-    sum (\<lambda>v. setprod (\<lambda>j. (a j) $ (v!j)) {0..m}) (natpermute n (m+1))"
+  shows "(prod a {0 .. m}) $ n =
+    sum (\<lambda>v. prod (\<lambda>j. (a j) $ (v!j)) {0..m}) (natpermute n (m+1))"
   (is "?P m n")
 proof (induct m arbitrary: n rule: nat_less_induct)
   fix m n assume H: "\<forall>m' < m. \<forall>n. ?P m' n"
@@ -2301,8 +2301,8 @@ proof (induct m arbitrary: n rule: nat_less_induct)
       using Suc by (simp add: set_eq_iff) presburger
     have f0: "finite {0 .. k}" "finite {m}" by auto
     have d0: "{0 .. k} \<inter> {m} = {}" using Suc by auto
-    have "(setprod a {0 .. m}) $ n = (setprod a {0 .. k} * a m) $ n"
-      unfolding setprod.union_disjoint[OF f0 d0, unfolded u0] by simp
+    have "(prod a {0 .. m}) $ n = (prod a {0 .. k} * a m) $ n"
+      unfolding prod.union_disjoint[OF f0 d0, unfolded u0] by simp
     also have "\<dots> = (\<Sum>i = 0..n. (\<Sum>v\<in>natpermute i (k + 1). \<Prod>j\<in>{0..k}. a j $ v ! j) * a m $ (n - i))"
       unfolding fps_mult_nth H[rule_format, OF km] ..
     also have "\<dots> = (\<Sum>v\<in>natpermute n (m + 1). \<Prod>j\<in>{0..m}. a j $ v ! j)"
@@ -2325,7 +2325,7 @@ proof (induct m arbitrary: n rule: nat_less_induct)
       apply (rule_tac l = "\<lambda>xs. xs @ [n - x]" in sum.reindex_cong)
       apply (simp add: inj_on_def)
       apply auto
-      unfolding setprod.union_disjoint[OF f0 d0, unfolded u0, unfolded Suc]
+      unfolding prod.union_disjoint[OF f0 d0, unfolded u0, unfolded Suc]
       apply (clarsimp simp add: natpermute_def nth_append)
       done
     finally show ?thesis .
@@ -2336,18 +2336,18 @@ text \<open>The special form for powers.\<close>
 lemma fps_power_nth_Suc:
   fixes m :: nat
     and a :: "'a::comm_ring_1 fps"
-  shows "(a ^ Suc m)$n = sum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m}) (natpermute n (m+1))"
+  shows "(a ^ Suc m)$n = sum (\<lambda>v. prod (\<lambda>j. a $ (v!j)) {0..m}) (natpermute n (m+1))"
 proof -
-  have th0: "a^Suc m = setprod (\<lambda>i. a) {0..m}"
-    by (simp add: setprod_constant)
-  show ?thesis unfolding th0 fps_setprod_nth ..
+  have th0: "a^Suc m = prod (\<lambda>i. a) {0..m}"
+    by (simp add: prod_constant)
+  show ?thesis unfolding th0 fps_prod_nth ..
 qed
 
 lemma fps_power_nth:
   fixes m :: nat
     and a :: "'a::comm_ring_1 fps"
   shows "(a ^m)$n =
-    (if m=0 then 1$n else sum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m - 1}) (natpermute n m))"
+    (if m=0 then 1$n else sum (\<lambda>v. prod (\<lambda>j. a $ (v!j)) {0..m - 1}) (natpermute n m))"
   by (cases m) (simp_all add: fps_power_nth_Suc del: power_Suc)
 
 lemma fps_nth_power_0:
@@ -2360,10 +2360,10 @@ proof (cases m)
 next
   case (Suc n)
   then have c: "m = card {0..n}" by simp
-  have "(a ^m)$0 = setprod (\<lambda>i. a$0) {0..n}"
+  have "(a ^m)$0 = prod (\<lambda>i. a$0) {0..n}"
     by (simp add: Suc fps_power_nth del: replicate.simps power_Suc)
   also have "\<dots> = (a$0) ^ m"
-   unfolding c by (rule setprod_constant)
+   unfolding c by (rule prod_constant)
  finally show ?thesis .
 qed
 
@@ -2433,10 +2433,10 @@ proof -
       
     from j have "{0..m} = insert j ({0..m} - {j})" by auto
     also from j have "(\<Prod>i\<in>\<dots>. f $ (v ! i)) = f $ k * (\<Prod>i\<in>{0..m} - {j}. f $ (v ! i))"
-      by (subst setprod.insert) auto
+      by (subst prod.insert) auto
     also have "(\<Prod>i\<in>{0..m} - {j}. f $ (v ! i)) = (\<Prod>i\<in>{0..m} - {j}. f $ 0)"
-      by (intro setprod.cong) (simp_all add: zero)
-    also from j have "\<dots> = (f $ 0) ^ m" by (subst setprod_constant) simp_all
+      by (intro prod.cong) (simp_all add: zero)
+    also from j have "\<dots> = (f $ 0) ^ m" by (subst prod_constant) simp_all
     finally have "(\<Prod>j = 0..m. f $ (v ! j)) = f $ k * (f $ 0) ^ m" .
   } note A = this
   
@@ -2472,7 +2472,7 @@ proof (rule fps_ext)
         using that elem_le_sum_list_nat[of i v] unfolding natpermute_def
         by (auto simp: set_conv_nth dest!: spec[of _ i])
       hence "?h f = ?h g"
-        by (intro sum.cong refl setprod.cong less lessI) (auto simp: natpermute_def)
+        by (intro sum.cong refl prod.cong less lessI) (auto simp: natpermute_def)
       finally have "f $ k * (of_nat (Suc m) * (f $ 0) ^ m) = g $ k * (of_nat (Suc m) * (f $ 0) ^ m)"
         by simp
       with assms show "f $ k = g $ k" 
@@ -2567,7 +2567,7 @@ qed
 
 subsection \<open>Radicals\<close>
 
-declare setprod.cong [fundef_cong]
+declare prod.cong [fundef_cong]
 
 function radical :: "(nat \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a::field fps \<Rightarrow> nat \<Rightarrow> 'a"
 where
@@ -2575,7 +2575,7 @@ where
 | "radical r 0 a (Suc n) = 0"
 | "radical r (Suc k) a 0 = r (Suc k) (a$0)"
 | "radical r (Suc k) a (Suc n) =
-    (a$ Suc n - sum (\<lambda>xs. setprod (\<lambda>j. radical r (Suc k) a (xs ! j)) {0..k})
+    (a$ Suc n - sum (\<lambda>xs. prod (\<lambda>j. radical r (Suc k) a (xs ! j)) {0..k})
       {xs. xs \<in> natpermute (Suc n) (Suc k) \<and> Suc n \<notin> set xs}) /
     (of_nat (Suc k) * (radical r (Suc k) a 0)^k)"
   by pat_completeness auto
@@ -2641,14 +2641,14 @@ next
   have eq1: "fps_radical r k a ^ k $ 0 = (\<Prod>j\<in>{0..h}. fps_radical r k a $ (replicate k 0) ! j)"
     unfolding fps_power_nth Suc by simp
   also have "\<dots> = (\<Prod>j\<in>{0..h}. r k (a$0))"
-    apply (rule setprod.cong)
+    apply (rule prod.cong)
     apply simp
     using Suc
     apply (subgoal_tac "replicate k 0 ! x = 0")
     apply (auto intro: nth_replicate simp del: replicate.simps)
     done
   also have "\<dots> = a$0"
-    using r Suc by (simp add: setprod_constant)
+    using r Suc by (simp add: prod_constant)
   finally show ?thesis
     using Suc by simp
 qed
@@ -2693,12 +2693,12 @@ proof
             unfolding natpermute_contain_maximal by auto
           have "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
               (\<Prod>j\<in>{0..k}. if j = i then fps_radical r (Suc k) a $ n else r (Suc k) (a$0))"
-            apply (rule setprod.cong, simp)
+            apply (rule prod.cong, simp)
             using i r0
             apply (simp del: replicate.simps)
             done
           also have "\<dots> = (fps_radical r (Suc k) a $ n) * r (Suc k) (a$0) ^ k"
-            using i r0 by (simp add: setprod_gen_delta)
+            using i r0 by (simp add: prod_gen_delta)
           finally show ?ths .
         qed rule
         then have "sum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
@@ -2720,7 +2720,7 @@ proof
       by simp
     then show ?thesis
       unfolding fps_power_nth_Suc
-      by (simp add: setprod_constant del: replicate.simps)
+      by (simp add: prod_constant del: replicate.simps)
   qed
 qed
 
@@ -2757,10 +2757,10 @@ proof-
           from v obtain i where i: "i \<in> {0..k}" "v = replicate (k+1) 0 [i:= n]"
             unfolding natpermute_contain_maximal by auto
           have "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) = (\<Prod>j\<in>{0..k}. if j = i then fps_radical r (Suc k) a $ n else r (Suc k) (a$0))"
-            apply (rule setprod.cong, simp)
+            apply (rule prod.cong, simp)
             using i r0 by (simp del: replicate.simps)
           also have "\<dots> = (fps_radical r (Suc k) a $ n) * r (Suc k) (a$0) ^ k"
-            unfolding setprod_gen_delta[OF fK] using i r0 by simp
+            unfolding prod_gen_delta[OF fK] using i r0 by simp
           finally show ?ths .
         qed
         then have "sum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
@@ -2828,18 +2828,18 @@ proof
             unfolding Suc_eq_plus1 natpermute_contain_maximal
             by (auto simp del: replicate.simps)
           have "(\<Prod>j\<in>{0..k}. a $ v ! j) = (\<Prod>j\<in>{0..k}. if j = i then a $ n else r (Suc k) (b$0))"
-            apply (rule setprod.cong, simp)
+            apply (rule prod.cong, simp)
             using i a0
             apply (simp del: replicate.simps)
             done
           also have "\<dots> = a $ n * (?r $ 0)^k"
-            using i by (simp add: setprod_gen_delta)
+            using i by (simp add: prod_gen_delta)
           finally show ?ths .
         qed rule
         then have th0: "sum ?g ?Pnkn = of_nat (k+1) * a $ n * (?r $ 0)^k"
           by (simp add: natpermute_max_card[OF nz, simplified])
         have th1: "sum ?g ?Pnknn = sum ?f ?Pnknn"
-        proof (rule sum.cong, rule refl, rule setprod.cong, simp)
+        proof (rule sum.cong, rule refl, rule prod.cong, simp)
           fix xs i
           assume xs: "xs \<in> ?Pnknn" and i: "i \<in> {0..k}"
           have False if c: "n \<le> xs ! i"
@@ -3380,9 +3380,9 @@ lemma fps_compose_mult_distrib:
   apply (simp add: fps_compose_nth fps_mult_nth sum_distrib_right)
   done
 
-lemma fps_compose_setprod_distrib:
+lemma fps_compose_prod_distrib:
   assumes c0: "c$0 = (0::'a::idom)"
-  shows "setprod a S oo c = setprod (\<lambda>k. a k oo c) S"
+  shows "prod a S oo c = prod (\<lambda>k. a k oo c) S"
   apply (cases "finite S")
   apply simp_all
   apply (induct S rule: finite_induct)
@@ -3413,10 +3413,10 @@ proof (cases n)
   then show ?thesis by simp
 next
   case (Suc m)
-  have th0: "a^n = setprod (\<lambda>k. a) {0..m}" "(a oo c) ^ n = setprod (\<lambda>k. a oo c) {0..m}"
-    by (simp_all add: setprod_constant Suc)
+  have th0: "a^n = prod (\<lambda>k. a) {0..m}" "(a oo c) ^ n = prod (\<lambda>k. a oo c) {0..m}"
+    by (simp_all add: prod_constant Suc)
   then show ?thesis
-    by (simp add: fps_compose_setprod_distrib[OF c0])
+    by (simp add: fps_compose_prod_distrib[OF c0])
 qed
 
 lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
@@ -4155,8 +4155,8 @@ proof -
         case False
         with kn have kn': "k < n"
           by simp
-        have m1nk: "?m1 n = setprod (\<lambda>i. - 1) {..m}" "?m1 k = setprod (\<lambda>i. - 1) {0..h}"
-          by (simp_all add: setprod_constant m h)
+        have m1nk: "?m1 n = prod (\<lambda>i. - 1) {..m}" "?m1 k = prod (\<lambda>i. - 1) {0..h}"
+          by (simp_all add: prod_constant m h)
         have bnz0: "pochhammer (b - of_nat n + 1) k \<noteq> 0"
           using bn0 kn
           unfolding pochhammer_eq_0_iff
@@ -4164,37 +4164,37 @@ proof -
           apply (erule_tac x= "n - ka - 1" in allE)
           apply (auto simp add: algebra_simps of_nat_diff)
           done
-        have eq1: "setprod (\<lambda>k. (1::'a) + of_nat m - of_nat k) {..h} =
-          setprod of_nat {Suc (m - h) .. Suc m}"
+        have eq1: "prod (\<lambda>k. (1::'a) + of_nat m - of_nat k) {..h} =
+          prod of_nat {Suc (m - h) .. Suc m}"
           using kn' h m
-          by (intro setprod.reindex_bij_witness[where i="\<lambda>k. Suc m - k" and j="\<lambda>k. Suc m - k"])
+          by (intro prod.reindex_bij_witness[where i="\<lambda>k. Suc m - k" and j="\<lambda>k. Suc m - k"])
              (auto simp: of_nat_diff)
         have th1: "(?m1 k * ?p (of_nat n) k) / ?f n = 1 / of_nat(fact (n - k))"
           apply (simp add: pochhammer_minus field_simps)
           using \<open>k \<le> n\<close> apply (simp add: fact_split [of k n])
-          apply (simp add: pochhammer_setprod)
-          using setprod.atLeast_lessThan_shift_bounds [where ?'a = 'a, of "\<lambda>i. 1 + of_nat i" 0 "n - k" k]
+          apply (simp add: pochhammer_prod)
+          using prod.atLeast_lessThan_shift_bounds [where ?'a = 'a, of "\<lambda>i. 1 + of_nat i" 0 "n - k" k]
           apply (auto simp add: of_nat_diff field_simps)
           done
-        have th20: "?m1 n * ?p b n = setprod (\<lambda>i. b - of_nat i) {0..m}"
+        have th20: "?m1 n * ?p b n = prod (\<lambda>i. b - of_nat i) {0..m}"
           apply (simp add: pochhammer_minus field_simps m)
-          apply (auto simp add: pochhammer_setprod_rev of_nat_diff setprod.atLeast_Suc_atMost_Suc_shift)
+          apply (auto simp add: pochhammer_prod_rev of_nat_diff prod.atLeast_Suc_atMost_Suc_shift)
           done
-        have th21:"pochhammer (b - of_nat n + 1) k = setprod (\<lambda>i. b - of_nat i) {n - k .. n - 1}"
-          using kn apply (simp add: pochhammer_setprod_rev m h setprod.atLeast_Suc_atMost_Suc_shift)
-          using setprod.atLeast_atMost_shift_0 [of "m - h" m, where ?'a = 'a]
+        have th21:"pochhammer (b - of_nat n + 1) k = prod (\<lambda>i. b - of_nat i) {n - k .. n - 1}"
+          using kn apply (simp add: pochhammer_prod_rev m h prod.atLeast_Suc_atMost_Suc_shift)
+          using prod.atLeast_atMost_shift_0 [of "m - h" m, where ?'a = 'a]
           apply (auto simp add: of_nat_diff field_simps)
           done
         have "?m1 n * ?p b n =
-          setprod (\<lambda>i. b - of_nat i) {0.. n - k - 1} * pochhammer (b - of_nat n + 1) k"
+          prod (\<lambda>i. b - of_nat i) {0.. n - k - 1} * pochhammer (b - of_nat n + 1) k"
           using kn' m h unfolding th20 th21 apply simp
-          apply (subst setprod.union_disjoint [symmetric])
+          apply (subst prod.union_disjoint [symmetric])
           apply auto
-          apply (rule setprod.cong)
+          apply (rule prod.cong)
           apply auto
           done
         then have th2: "(?m1 n * ?p b n)/pochhammer (b - of_nat n + 1) k =
-          setprod (\<lambda>i. b - of_nat i) {0.. n - k - 1}"
+          prod (\<lambda>i. b - of_nat i) {0.. n - k - 1}"
           using nz' by (simp add: field_simps)
         have "(?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k) =
           ((?m1 k * ?p (of_nat n) k) / ?f n) * ((?m1 n * ?p b n)/pochhammer (b - of_nat n + 1) k)"
@@ -4204,7 +4204,7 @@ proof -
           unfolding th1 th2
           using kn' m h
           apply (simp add: field_simps gbinomial_mult_fact)
-          apply (rule setprod.cong)
+          apply (rule prod.cong)
           apply auto
           done
         finally show ?thesis by simp

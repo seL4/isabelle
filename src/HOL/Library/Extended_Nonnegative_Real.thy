@@ -550,12 +550,12 @@ lemma ennreal_mult_less_top:
 lemma top_power_ennreal: "top ^ n = (if n = 0 then 1 else top :: ennreal)"
   by (induction n) (simp_all add: ennreal_mult_eq_top_iff)
 
-lemma ennreal_setprod_eq_0[simp]:
+lemma ennreal_prod_eq_0[simp]:
   fixes f :: "'a \<Rightarrow> ennreal"
-  shows "(setprod f A = 0) = (finite A \<and> (\<exists>i\<in>A. f i = 0))"
+  shows "(prod f A = 0) = (finite A \<and> (\<exists>i\<in>A. f i = 0))"
   by (induction A rule: infinite_finite_induct) auto
 
-lemma ennreal_setprod_eq_top:
+lemma ennreal_prod_eq_top:
   fixes f :: "'a \<Rightarrow> ennreal"
   shows "(\<Prod>i\<in>I. f i) = top \<longleftrightarrow> (finite I \<and> ((\<forall>i\<in>I. f i \<noteq> 0) \<and> (\<exists>i\<in>I. f i = top)))"
   by (induction I rule: infinite_finite_induct) (auto simp: ennreal_mult_eq_top_iff)
@@ -1047,9 +1047,9 @@ qed
 lemma ennreal_divide_numeral: "0 \<le> x \<Longrightarrow> ennreal x / numeral b = ennreal (x / numeral b)"
   by (subst divide_ennreal[symmetric]) auto
 
-lemma setprod_ennreal: "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Prod>i\<in>A. ennreal (f i)) = ennreal (setprod f A)"
+lemma prod_ennreal: "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Prod>i\<in>A. ennreal (f i)) = ennreal (prod f A)"
   by (induction A rule: infinite_finite_induct)
-     (auto simp: ennreal_mult setprod_nonneg)
+     (auto simp: ennreal_mult prod_nonneg)
 
 lemma mult_right_ennreal_cancel: "a * ennreal c = b * ennreal c \<longleftrightarrow> (a = b \<or> c \<le> 0)"
   apply (cases "0 \<le> c")

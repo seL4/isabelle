@@ -83,7 +83,7 @@ qed simp
 lemma zero_notin_Suc_image[simp]: "0 \<notin> Suc ` A"
   by auto
 
-lemma setprod_sum_distrib_lists:
+lemma prod_sum_distrib_lists:
   fixes P and S :: "'a set" and f :: "'a \<Rightarrow> _::semiring_0" assumes "finite S"
   shows "(\<Sum>ms\<in>{ms. set ms \<subseteq> S \<and> length ms = n \<and> (\<forall>i<n. P i (ms!i))}. \<Prod>x<n. f (ms ! x)) =
          (\<Prod>i<n. \<Sum>m\<in>{m\<in>S. P i m}. f m)"
@@ -100,7 +100,7 @@ next
   show ?case unfolding *
     using Suc[of "\<lambda>i. P (Suc i)"]
     by (simp add: sum.reindex split_conv sum_cartesian_product'
-      lessThan_Suc_eq_insert_0 setprod.reindex sum_distrib_right[symmetric] sum_distrib_left[symmetric])
+      lessThan_Suc_eq_insert_0 prod.reindex sum_distrib_right[symmetric] sum_distrib_left[symmetric])
 qed
 
 declare space_point_measure[simp]
@@ -169,12 +169,12 @@ proof
     case (Suc n)
     then show ?case
       by (simp add: lists_length_Suc_eq lessThan_Suc_eq_insert_0
-                    sum.reindex setprod.reindex)
+                    sum.reindex prod.reindex)
   qed
   then show "sum P msgs = 1"
     unfolding msgs_def P_def by simp
   fix x
-  have "\<And> A f. 0 \<le> (\<Prod>x\<in>A. M (f x))" by (auto simp: setprod_nonneg)
+  have "\<And> A f. 0 \<le> (\<Prod>x\<in>A. M (f x))" by (auto simp: prod_nonneg)
   then show "0 \<le> P x"
     unfolding P_def by (auto split: prod.split simp: zero_le_mult_iff)
 qed auto
@@ -255,8 +255,8 @@ proof -
     apply (simp add: \<mu>'_eq)
     apply (simp add: * P_def)
     apply (simp add: sum_cartesian_product')
-    using setprod_sum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] \<open>k \<in> keys\<close>
-    by (auto simp add: sum_distrib_left[symmetric] subset_eq setprod.neutral_const)
+    using prod_sum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] \<open>k \<in> keys\<close>
+    by (auto simp add: sum_distrib_left[symmetric] subset_eq prod.neutral_const)
 qed
 
 lemma fst_image_msgs[simp]: "fst`msgs = keys"
@@ -352,14 +352,14 @@ proof -
           (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
         unfolding P_def using \<open>K k \<noteq> 0\<close> \<open>k \<in> keys\<close>
         apply (simp add: sum_cartesian_product' sum_divide_distrib msgs_def ** cong: conj_cong)
-        apply (subst setprod_sum_distrib_lists[OF M.finite_space]) ..
+        apply (subst prod_sum_distrib_lists[OF M.finite_space]) ..
       finally have "(\<P>(OB ; fst) {(obs, k)}) / K k =
             (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)" . }
     note * = this
 
     have "(\<P>(OB ; fst) {(obs, k)}) / K k = (\<P>(OB ; fst) {(obs', k)}) / K k"
       unfolding *[OF obs] *[OF obs']
-      using t_f(1) obs_t_f by (subst (2) t_f(2)) (simp add: setprod.reindex)
+      using t_f(1) obs_t_f by (subst (2) t_f(2)) (simp add: prod.reindex)
     then have "(\<P>(OB ; fst) {(obs, k)}) = (\<P>(OB ; fst) {(obs', k)})"
       using \<open>K k \<noteq> 0\<close> by auto }
   note t_eq_imp = this

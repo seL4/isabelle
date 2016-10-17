@@ -701,7 +701,7 @@ lemma of_rat_mult: "of_rat (a * b) = of_rat a * of_rat b"
 lemma of_rat_sum: "of_rat (\<Sum>a\<in>A. f a) = (\<Sum>a\<in>A. of_rat (f a))"
   by (induct rule: infinite_finite_induct) (auto simp: of_rat_add)
 
-lemma of_rat_setprod: "of_rat (\<Prod>a\<in>A. f a) = (\<Prod>a\<in>A. of_rat (f a))"
+lemma of_rat_prod: "of_rat (\<Prod>a\<in>A. f a) = (\<Prod>a\<in>A. of_rat (f a))"
   by (induct rule: infinite_finite_induct) (auto simp: of_rat_mult)
 
 lemma nonzero_of_rat_inverse: "a \<noteq> 0 \<Longrightarrow> of_rat (inverse a) = inverse (of_rat a)"

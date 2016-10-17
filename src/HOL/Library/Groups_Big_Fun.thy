@@ -283,11 +283,11 @@ begin
 
 sublocale Prod_any: comm_monoid_fun times 1
   defines Prod_any = Prod_any.G
-  rewrites "comm_monoid_set.F times 1 = setprod"
+  rewrites "comm_monoid_set.F times 1 = prod"
 proof -
   show "comm_monoid_fun times 1" ..
   then interpret Prod_any: comm_monoid_fun times 1 .
-  from setprod_def show "comm_monoid_set.F times 1 = setprod" by (auto intro: sym)
+  from prod_def show "comm_monoid_set.F times 1 = prod" by (auto intro: sym)
 qed
 
 end
@@ -308,7 +308,7 @@ proof -
   from \<open>f a = 0\<close> have "f a \<noteq> 1" by simp
   with \<open>f a = 0\<close> have "\<exists>a. f a \<noteq> 1 \<and> f a = 0" by blast
   with \<open>finite {a. f a \<noteq> 1}\<close> show ?thesis
-    by (simp add: Prod_any.expand_set setprod_zero)
+    by (simp add: Prod_any.expand_set prod_zero)
 qed
 
 lemma Prod_any_not_zero:

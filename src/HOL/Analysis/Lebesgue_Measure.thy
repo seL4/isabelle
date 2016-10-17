@@ -404,11 +404,11 @@ lemma lborel_eq_real: "lborel = interval_measure (\<lambda>x. x)"
 lemma lborel_eq: "lborel = distr (\<Pi>\<^sub>M b\<in>Basis. lborel) borel (\<lambda>f. \<Sum>b\<in>Basis. f b *\<^sub>R b)"
   by (subst lborel_def) (simp add: lborel_eq_real)
 
-lemma nn_integral_lborel_setprod:
+lemma nn_integral_lborel_prod:
   assumes [measurable]: "\<And>b. b \<in> Basis \<Longrightarrow> f b \<in> borel_measurable borel"
   assumes nn[simp]: "\<And>b x. b \<in> Basis \<Longrightarrow> 0 \<le> f b x"
   shows "(\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. f b (x \<bullet> b)) \<partial>lborel) = (\<Prod>b\<in>Basis. (\<integral>\<^sup>+x. f b x \<partial>lborel))"
-  by (simp add: lborel_def nn_integral_distr product_nn_integral_setprod
+  by (simp add: lborel_def nn_integral_distr product_nn_integral_prod
                 product_nn_integral_singleton)
 
 lemma emeasure_lborel_Icc[simp]:
@@ -434,13 +434,13 @@ proof -
   then have "emeasure lborel (cbox l u) = (\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b)) \<partial>lborel)"
     by simp
   also have "\<dots> = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
-    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ennreal inner_diff_left)
+    by (subst nn_integral_lborel_prod) (simp_all add: prod_ennreal inner_diff_left)
   finally show ?thesis .
 qed
 
 lemma AE_lborel_singleton: "AE x in lborel::'a::euclidean_space measure. x \<noteq> c"
   using SOME_Basis AE_discrete_difference [of "{c}" lborel] emeasure_lborel_cbox [of c c]
-  by (auto simp add: cbox_sing setprod_constant power_0_left)
+  by (auto simp add: cbox_sing prod_constant power_0_left)
 
 lemma emeasure_lborel_Ioo[simp]:
   assumes [simp]: "l \<le> u"
@@ -481,7 +481,7 @@ proof -
   then have "emeasure lborel (box l u) = (\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. indicator {l\<bullet>b <..< u\<bullet>b} (x \<bullet> b)) \<partial>lborel)"
     by simp
   also have "\<dots> = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
-    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ennreal inner_diff_left)
+    by (subst nn_integral_lborel_prod) (simp_all add: prod_ennreal inner_diff_left)
   finally show ?thesis .
 qed
 
@@ -495,7 +495,7 @@ lemma emeasure_lborel_box_eq:
 
 lemma emeasure_lborel_singleton[simp]: "emeasure lborel {x} = 0"
   using emeasure_lborel_cbox[of x x] nonempty_Basis
-  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: cbox_sing setprod_constant)
+  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: cbox_sing prod_constant)
 
 lemma
   fixes l u :: real
@@ -510,7 +510,7 @@ lemma
   assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
   shows measure_lborel_box[simp]: "measure lborel (box l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
     and measure_lborel_cbox[simp]: "measure lborel (cbox l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
-  by (simp_all add: measure_def inner_diff_left setprod_nonneg)
+  by (simp_all add: measure_def inner_diff_left prod_nonneg)
 
 lemma measure_lborel_cbox_eq:
   "measure lborel (cbox l u) = (if \<forall>b\<in>Basis. l \<bullet> b \<le> u \<bullet> b then \<Prod>b\<in>Basis. (u - l) \<bullet> b else 0)"
@@ -549,7 +549,7 @@ proof -
   show ?thesis
     unfolding UN_box_eq_UNIV[symmetric]
     apply (subst SUP_emeasure_incseq[symmetric])
-    apply (auto simp: incseq_def subset_box inner_add_left setprod_constant
+    apply (auto simp: incseq_def subset_box inner_add_left prod_constant
       simp del: Sup_eq_top_iff SUP_eq_top_iff
       intro!: ennreal_SUP_eq_top)
     done
@@ -629,15 +629,15 @@ proof (rule lborel_eqI)
     using c by (auto simp: box_def T_def field_simps inner_simps divide_less_eq)
   with le c show "emeasure ?D (box l u) = (\<Prod>b\<in>?B. (u - l) \<bullet> b)"
     by (auto simp: emeasure_density emeasure_distr nn_integral_multc emeasure_lborel_box_eq inner_simps
-                   field_simps divide_simps ennreal_mult'[symmetric] setprod_nonneg setprod.distrib[symmetric]
-             intro!: setprod.cong)
+                   field_simps divide_simps ennreal_mult'[symmetric] prod_nonneg prod.distrib[symmetric]
+             intro!: prod.cong)
 qed simp
 
 lemma lborel_affine:
   fixes t :: "'a::euclidean_space"
   shows "c \<noteq> 0 \<Longrightarrow> lborel = density (distr lborel borel (\<lambda>x. t + c *\<^sub>R x)) (\<lambda>_. \<bar>c\<bar>^DIM('a))"
   using lborel_affine_euclidean[where c="\<lambda>_::'a. c" and t=t]
-  unfolding scaleR_scaleR[symmetric] scaleR_sum_right[symmetric] euclidean_representation setprod_constant by simp
+  unfolding scaleR_scaleR[symmetric] scaleR_sum_right[symmetric] euclidean_representation prod_constant by simp
 
 lemma lborel_real_affine:
   "c \<noteq> 0 \<Longrightarrow> lborel = density (distr lborel borel (\<lambda>x. t + c * x)) (\<lambda>_. ennreal (abs c))"
@@ -696,7 +696,7 @@ proof -
     then have "emeasure lborel A = 0 \<longleftrightarrow> emeasure (density (distr lborel borel T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))) A = 0"
       unfolding T_def using c by (subst lborel_affine_euclidean[symmetric]) auto
     also have "\<dots> \<longleftrightarrow> emeasure (distr lebesgue lborel T) A = 0"
-      using A c by (simp add: distr_completion emeasure_density nn_integral_cmult setprod_nonneg cong: distr_cong)
+      using A c by (simp add: distr_completion emeasure_density nn_integral_cmult prod_nonneg cong: distr_cong)
     finally have "emeasure lborel A = 0 \<longleftrightarrow> emeasure (distr lebesgue lborel T) A = 0" . }
   then have eq: "null_sets lborel = null_sets (distr lebesgue lborel T)"
     by (auto simp: null_sets_def)
@@ -707,7 +707,7 @@ proof -
   have "lebesgue = completion (density (distr lborel borel T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>)))"
     using c by (subst lborel_affine_euclidean[of c t]) (simp_all add: T_def[abs_def])
   also have "\<dots> = density (completion (distr lebesgue lborel T)) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))"
-    using c by (auto intro!: always_eventually setprod_pos completion_density_eq simp: distr_completion cong: distr_cong)
+    using c by (auto intro!: always_eventually prod_pos completion_density_eq simp: distr_completion cong: distr_cong)
   also have "\<dots> = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))"
     by (subst completion.completion_distr_eq) (auto simp: eq measurable_completion)
   finally show "lebesgue = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))" .
@@ -761,7 +761,7 @@ proof -
         apply (subst lebesgue_affine_euclidean[of "\<lambda>_. m" \<delta>])
         apply (simp_all add: emeasure_density trans_eq_T nn_integral_cmult emeasure_distr
                         del: space_completion emeasure_completion)
-        apply (simp add: vimage_comp s_comp_s setprod_constant)
+        apply (simp add: vimage_comp s_comp_s prod_constant)
         done
     next
       assume "S \<notin> sets lebesgue"
@@ -779,7 +779,7 @@ proof -
     qed
   qed
   show ?m
-    unfolding measure_def \<open>?e\<close> by (simp add: enn2real_mult setprod_nonneg)
+    unfolding measure_def \<open>?e\<close> by (simp add: enn2real_mult prod_nonneg)
 qed
 
 lemma divideR_right:
@@ -843,9 +843,9 @@ proof (rule lborel_eqI[symmetric], clarify)
     "box (la, lb) (ua, ub) = box la ua \<times> box lb ub"
     using lu[of _ 0] lu[of 0] by (auto intro!: inj_onI simp add: Basis_prod_def ball_Un box_def)
   show "emeasure (lborel \<Otimes>\<^sub>M lborel) (box (la, lb) (ua, ub)) =
-      ennreal (setprod (op \<bullet> ((ua, ub) - (la, lb))) Basis)"
-    by (simp add: lborel.emeasure_pair_measure_Times Basis_prod_def setprod.union_disjoint
-                  setprod.reindex ennreal_mult inner_diff_left setprod_nonneg)
+      ennreal (prod (op \<bullet> ((ua, ub) - (la, lb))) Basis)"
+    by (simp add: lborel.emeasure_pair_measure_Times Basis_prod_def prod.union_disjoint
+                  prod.reindex ennreal_mult inner_diff_left prod_nonneg)
 qed (simp add: borel_prod[symmetric])
 
 (* FIXME: conversion in measurable prover *)
@@ -860,7 +860,7 @@ proof -
   then have "emeasure lborel A \<le> emeasure lborel (cbox a b)"
     by (intro emeasure_mono) auto
   then show ?thesis
-    by (auto simp: emeasure_lborel_cbox_eq setprod_nonneg less_top[symmetric] top_unique split: if_split_asm)
+    by (auto simp: emeasure_lborel_cbox_eq prod_nonneg less_top[symmetric] top_unique split: if_split_asm)
 qed
 
 lemma emeasure_compact_finite: "compact A \<Longrightarrow> emeasure lborel A < \<infinity>"

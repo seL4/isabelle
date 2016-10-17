@@ -2018,41 +2018,41 @@ qed
 subsection \<open>Products indexed over intervals\<close>
 
 syntax (ASCII)
-  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _<_./ _)" [0,0,10] 10)
-  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _<=_./ _)" [0,0,10] 10)
+  "_from_to_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _<_./ _)" [0,0,10] 10)
+  "_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _<=_./ _)" [0,0,10] 10)
 
 syntax (latex_prod output)
-  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_from_to_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\prod_{\<close>_ = _\<^latex>\<open>}^{\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
-  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_from_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\prod_{\<close>_ = _\<^latex>\<open>}^{<\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
-  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_upt_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\prod_{\<close>_ < _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
-  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\prod_{\<close>_ \<le> _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
 
 syntax
-  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_<_./ _)" [0,0,10] 10)
-  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_\<le>_./ _)" [0,0,10] 10)
+  "_from_to_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_<_./ _)" [0,0,10] 10)
+  "_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_\<le>_./ _)" [0,0,10] 10)
 
 translations
-  "\<Prod>x=a..b. t" \<rightleftharpoons> "CONST setprod (\<lambda>x. t) {a..b}"
-  "\<Prod>x=a..<b. t" \<rightleftharpoons> "CONST setprod (\<lambda>x. t) {a..<b}"
-  "\<Prod>i\<le>n. t" \<rightleftharpoons> "CONST setprod (\<lambda>i. t) {..n}"
-  "\<Prod>i<n. t" \<rightleftharpoons> "CONST setprod (\<lambda>i. t) {..<n}"
+  "\<Prod>x=a..b. t" \<rightleftharpoons> "CONST prod (\<lambda>x. t) {a..b}"
+  "\<Prod>x=a..<b. t" \<rightleftharpoons> "CONST prod (\<lambda>x. t) {a..<b}"
+  "\<Prod>i\<le>n. t" \<rightleftharpoons> "CONST prod (\<lambda>i. t) {..n}"
+  "\<Prod>i<n. t" \<rightleftharpoons> "CONST prod (\<lambda>i. t) {..<n}"
 
-lemma setprod_int_plus_eq: "setprod int {i..i+j} =  \<Prod>{int i..int (i+j)}"
+lemma prod_int_plus_eq: "prod int {i..i+j} =  \<Prod>{int i..int (i+j)}"
   by (induct j) (auto simp add: atLeastAtMostSuc_conv atLeastAtMostPlus1_int_conv)
 
-lemma setprod_int_eq: "setprod int {i..j} =  \<Prod>{int i..int j}"
+lemma prod_int_eq: "prod int {i..j} =  \<Prod>{int i..int j}"
 proof (cases "i \<le> j")
   case True
   then show ?thesis
-    by (metis le_iff_add setprod_int_plus_eq)
+    by (metis le_iff_add prod_int_plus_eq)
 next
   case False
   then show ?thesis
@@ -2062,37 +2062,37 @@ qed
 
 subsubsection \<open>Shifting bounds\<close>
 
-lemma setprod_shift_bounds_nat_ivl:
-  "setprod f {m+k..<n+k} = setprod (%i. f(i + k)){m..<n::nat}"
+lemma prod_shift_bounds_nat_ivl:
+  "prod f {m+k..<n+k} = prod (%i. f(i + k)){m..<n::nat}"
 by (induct "n", auto simp:atLeastLessThanSuc)
 
-lemma setprod_shift_bounds_cl_nat_ivl:
-  "setprod f {m+k..n+k} = setprod (%i. f(i + k)){m..n::nat}"
-  by (rule setprod.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
+lemma prod_shift_bounds_cl_nat_ivl:
+  "prod f {m+k..n+k} = prod (%i. f(i + k)){m..n::nat}"
+  by (rule prod.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
 
-corollary setprod_shift_bounds_cl_Suc_ivl:
-  "setprod f {Suc m..Suc n} = setprod (%i. f(Suc i)){m..n}"
-by (simp add:setprod_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
+corollary prod_shift_bounds_cl_Suc_ivl:
+  "prod f {Suc m..Suc n} = prod (%i. f(Suc i)){m..n}"
+by (simp add:prod_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
 
-corollary setprod_shift_bounds_Suc_ivl:
-  "setprod f {Suc m..<Suc n} = setprod (%i. f(Suc i)){m..<n}"
-by (simp add:setprod_shift_bounds_nat_ivl[where k="Suc 0", simplified])
+corollary prod_shift_bounds_Suc_ivl:
+  "prod f {Suc m..<Suc n} = prod (%i. f(Suc i)){m..<n}"
+by (simp add:prod_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 
-lemma setprod_lessThan_Suc: "setprod f {..<Suc n} = setprod f {..<n} * f n"
+lemma prod_lessThan_Suc: "prod f {..<Suc n} = prod f {..<n} * f n"
   by (simp add: lessThan_Suc mult.commute)
 
-lemma setprod_lessThan_Suc_shift:"(\<Prod>i<Suc n. f i) = f 0 * (\<Prod>i<n. f (Suc i))"
+lemma prod_lessThan_Suc_shift:"(\<Prod>i<Suc n. f i) = f 0 * (\<Prod>i<n. f (Suc i))"
   by (induction n) (simp_all add: lessThan_Suc mult_ac)
 
-lemma setprod_atLeastLessThan_Suc: "a \<le> b \<Longrightarrow> setprod f {a..<Suc b} = setprod f {a..<b} * f b"
+lemma prod_atLeastLessThan_Suc: "a \<le> b \<Longrightarrow> prod f {a..<Suc b} = prod f {a..<b} * f b"
   by (simp add: atLeastLessThanSuc mult.commute)
 
-lemma setprod_nat_ivl_Suc':
+lemma prod_nat_ivl_Suc':
   assumes "m \<le> Suc n"
-  shows   "setprod f {m..Suc n} = f (Suc n) * setprod f {m..n}"
+  shows   "prod f {m..Suc n} = f (Suc n) * prod f {m..n}"
 proof -
   from assms have "{m..Suc n} = insert (Suc n) {m..n}" by auto
-  also have "setprod f \<dots> = f (Suc n) * setprod f {m..n}" by simp
+  also have "prod f \<dots> = f (Suc n) * prod f {m..n}" by simp
   finally show ?thesis .
 qed
 
@@ -2133,13 +2133,13 @@ proof -
     by (simp add: sum.eq_fold fold_atLeastAtMost_nat o_def)
 qed
 
-lemma setprod_atLeastAtMost_code:
-  "setprod f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a * acc) a b 1"
+lemma prod_atLeastAtMost_code:
+  "prod f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a * acc) a b 1"
 proof -
   have "comp_fun_commute (\<lambda>a. op * (f a))"
     by unfold_locales (auto simp: o_def mult_ac)
   thus ?thesis
-    by (simp add: setprod.eq_fold fold_atLeastAtMost_nat o_def)
+    by (simp add: prod.eq_fold fold_atLeastAtMost_nat o_def)
 qed
 
 (* TODO: Add support for more kinds of intervals here *)

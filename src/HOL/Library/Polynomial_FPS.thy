@@ -67,7 +67,7 @@ lemma fps_of_poly_sum: "fps_of_poly (sum f A) = sum (\<lambda>x. fps_of_poly (f 
 lemma fps_of_poly_sum_list: "fps_of_poly (sum_list xs) = sum_list (map fps_of_poly xs)"
   by (induction xs) (simp_all add: fps_of_poly_add)
   
-lemma fps_of_poly_setprod: "fps_of_poly (setprod f A) = setprod (\<lambda>x. fps_of_poly (f x)) A"
+lemma fps_of_poly_prod: "fps_of_poly (prod f A) = prod (\<lambda>x. fps_of_poly (f x)) A"
   by (cases "finite A", induction rule: finite_induct) (simp_all add: fps_of_poly_mult)
   
 lemma fps_of_poly_prod_list: "fps_of_poly (prod_list xs) = prod_list (map fps_of_poly xs)"
@@ -144,7 +144,7 @@ qed (insert assms, auto)
 lemmas fps_of_poly_simps =
   fps_of_poly_0 fps_of_poly_1 fps_of_poly_numeral fps_of_poly_const fps_of_poly_X
   fps_of_poly_add fps_of_poly_diff fps_of_poly_uminus fps_of_poly_mult fps_of_poly_smult
-  fps_of_poly_sum fps_of_poly_sum_list fps_of_poly_setprod fps_of_poly_prod_list
+  fps_of_poly_sum fps_of_poly_sum_list fps_of_poly_prod fps_of_poly_prod_list
   fps_of_poly_pCons fps_of_poly_pderiv fps_of_poly_power fps_of_poly_monom
   fps_of_poly_divide_numeral
 

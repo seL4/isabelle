@@ -170,7 +170,7 @@ lemma zcong_zero: "[| 0 \<le> x; x < m; [x = 0](mod m) |] ==> x = 0"
   done
 
 lemma all_relprime_prod_relprime: "[| finite A; \<forall>x \<in> A. zgcd x y = 1 |]
-    ==> zgcd (setprod id A) y = 1"
+    ==> zgcd (prod id A) y = 1"
   by (induct set: finite) (auto simp add: zgcd_zgcd_zmult)
 
 

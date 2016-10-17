@@ -56,7 +56,7 @@ abbreviation content :: "'a::euclidean_space set \<Rightarrow> real"
   where "content s \<equiv> measure lborel s"
 
 lemma content_cbox_cases:
-  "content (cbox a b) = (if \<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i then setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis else 0)"
+  "content (cbox a b) = (if \<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i then prod (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis else 0)"
   by (simp add: measure_lborel_cbox_eq inner_diff)
 
 lemma content_cbox: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
@@ -84,7 +84,7 @@ corollary content_nonneg [simp]: "~ content (cbox a b) < 0"
   using not_le by blast
 
 lemma content_pos_lt: "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i \<Longrightarrow> 0 < content (cbox a b)"
-  by (auto simp: less_imp_le inner_diff box_eq_empty intro!: setprod_pos)
+  by (auto simp: less_imp_le inner_diff box_eq_empty intro!: prod_pos)
 
 lemma content_eq_0: "content (cbox a b) = 0 \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i)"
   by (auto simp: content_cbox_cases not_le intro: less_imp_le antisym eq_refl)
@@ -93,7 +93,7 @@ lemma content_eq_0_interior: "content (cbox a b) = 0 \<longleftrightarrow> inter
   unfolding content_eq_0 interior_cbox box_eq_empty by auto
 
 lemma content_pos_lt_eq: "0 < content (cbox a (b::'a::euclidean_space)) \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i)"
-  by (auto simp add: content_cbox_cases less_le setprod_nonneg)
+  by (auto simp add: content_cbox_cases less_le prod_nonneg)
 
 lemma content_empty [simp]: "content {} = 0"
   by simp
@@ -110,9 +110,9 @@ lemma content_lt_nz: "0 < content (cbox a b) \<longleftrightarrow> content (cbox
 
 lemma content_Pair: "content (cbox (a,c) (b,d)) = content (cbox a b) * content (cbox c d)"
   unfolding measure_lborel_cbox_eq Basis_prod_def
-  apply (subst setprod.union_disjoint)
+  apply (subst prod.union_disjoint)
   apply (auto simp: bex_Un ball_Un)
-  apply (subst (1 2) setprod.reindex_nontrivial)
+  apply (subst (1 2) prod.reindex_nontrivial)
   apply auto
   done
 
@@ -138,7 +138,7 @@ proof cases
     apply (subst *(1))
     defer
     apply (subst *(1))
-    unfolding setprod.insert[OF *(2-)]
+    unfolding prod.insert[OF *(2-)]
     apply auto
     done
   assume as: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
@@ -151,7 +151,7 @@ proof cases
       (\<Prod>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) - a \<bullet> i)"
     "(\<Prod>i\<in>Basis. b \<bullet> i - ((\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i)) =
       (\<Prod>i\<in>Basis. b \<bullet> i - (if i = k then max (a \<bullet> k) c else a \<bullet> i))"
-    by (auto intro!: setprod.cong)
+    by (auto intro!: prod.cong)
   have "\<not> a \<bullet> k \<le> c \<Longrightarrow> \<not> c \<le> b \<bullet> k \<Longrightarrow> False"
     unfolding not_le
     using as[unfolded ,rule_format,of k] assms
@@ -1876,7 +1876,7 @@ proof cases
     by (auto simp: b'_def a'_def intro!: tendsto_min tendsto_max tendsto_eq_intros)
   also have "(\<Prod>j\<in>Basis. (b' 0 - a' 0) \<bullet> j) = 0"
     using k *
-    by (intro setprod_zero bexI[OF _ k])
+    by (intro prod_zero bexI[OF _ k])
        (auto simp: b'_def a'_def inner_diff inner_sum_left inner_not_same_Basis intro!: sum.cong)
   also have "((\<lambda>d. \<Prod>j\<in>Basis. (b' d - a' d) \<bullet> j) \<longlongrightarrow> 0) (at_right 0) =
     ((\<lambda>d. content (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d})) \<longlongrightarrow> 0) (at_right 0)"
@@ -3472,7 +3472,7 @@ proof -
   also have "\<dots> = (\<Prod>j\<in>Basis. emeasure lborel (if j = k then {c} else UNIV))"
     by (intro measure_times) auto
   also have "\<dots> = 0"
-    by (intro setprod_zero bexI[OF _ k]) auto
+    by (intro prod_zero bexI[OF _ k]) auto
   finally show ?thesis
     by (subst AE_iff_measurable[OF _ refl]) auto
 qed
@@ -3494,13 +3494,13 @@ proof cases
   show ?thesis
     using m unfolding eq measure_def
     by (subst lborel_affine_euclidean[where c=m and t=0])
-       (simp_all add: emeasure_density measurable_sets_borel[OF s] abs_setprod nn_integral_cmult
-                      s_def[symmetric] emeasure_distr vimage_comp s_comp_s enn2real_mult setprod_nonneg)
+       (simp_all add: emeasure_density measurable_sets_borel[OF s] abs_prod nn_integral_cmult
+                      s_def[symmetric] emeasure_distr vimage_comp s_comp_s enn2real_mult prod_nonneg)
 next
   assume "\<not> (\<forall>k\<in>Basis. m k \<noteq> 0)"
   then obtain k where k: "k \<in> Basis" "m k = 0" by auto
   then have [simp]: "(\<Prod>k\<in>Basis. m k) = 0"
-    by (intro setprod_zero) auto
+    by (intro prod_zero) auto
   have "emeasure lborel {x\<in>space lborel. x \<in> s m ` cbox a b} = 0"
   proof (rule emeasure_eq_0_AE)
     show "AE x in lborel. x \<notin> s m ` cbox a b"
@@ -3539,7 +3539,7 @@ next
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis
       by (simp add: image_affinity_cbox True content_cbox'
-        setprod.distrib setprod_constant inner_diff_left)
+        prod.distrib prod_constant inner_diff_left)
   next
     case False
     with \<open>cbox a b \<noteq> {}\<close> have "cbox (m *\<^sub>R b + c) (m *\<^sub>R a + c) \<noteq> {}"
@@ -3552,7 +3552,7 @@ next
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis using False
       by (simp add: image_affinity_cbox content_cbox'
-        setprod.distrib[symmetric] setprod_constant[symmetric] inner_diff_left)
+        prod.distrib[symmetric] prod_constant[symmetric] inner_diff_left)
   qed
 qed
 
@@ -3589,7 +3589,7 @@ lemma has_integral_stretch:
   assumes "(f has_integral i) (cbox a b)"
     and "\<forall>k\<in>Basis. m k \<noteq> 0"
   shows "((\<lambda>x. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) has_integral
-         ((1/ \<bar>setprod m Basis\<bar>) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b)"
+         ((1/ \<bar>prod m Basis\<bar>) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b)"
 apply (rule has_integral_twiddle[where f=f])
 unfolding zero_less_abs_iff content_image_stretch_interval
 unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a]
@@ -7371,7 +7371,8 @@ qed
 subsection \<open>Integration by parts\<close>
 
 lemma integration_by_parts_interior_strong:
-  assumes bilinear: "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)"
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes bilinear: "bounded_bilinear (prod)"
   assumes s: "finite s" and le: "a \<le> b"
   assumes cont [continuous_intros]: "continuous_on {a..b} f" "continuous_on {a..b} g"
   assumes deriv: "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
@@ -7389,7 +7390,8 @@ proof -
 qed
 
 lemma integration_by_parts_interior:
-  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
           "continuous_on {a..b} f" "continuous_on {a..b} g"
   assumes "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
           "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
@@ -7398,7 +7400,8 @@ lemma integration_by_parts_interior:
   by (rule integration_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (insert assms, simp_all)
 
 lemma integration_by_parts:
-  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
           "continuous_on {a..b} f" "continuous_on {a..b} g"
   assumes "\<And>x. x\<in>{a..b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
           "\<And>x. x\<in>{a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
@@ -7407,7 +7410,8 @@ lemma integration_by_parts:
   by (rule integration_by_parts_interior[of _ _ _ f g f' g']) (insert assms, simp_all)
 
 lemma integrable_by_parts_interior_strong:
-  assumes bilinear: "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)"
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes bilinear: "bounded_bilinear (prod)"
   assumes s: "finite s" and le: "a \<le> b"
   assumes cont [continuous_intros]: "continuous_on {a..b} f" "continuous_on {a..b} g"
   assumes deriv: "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
@@ -7424,7 +7428,8 @@ proof -
 qed
 
 lemma integrable_by_parts_interior:
-  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
           "continuous_on {a..b} f" "continuous_on {a..b} g"
   assumes "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
           "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
@@ -7433,7 +7438,8 @@ lemma integrable_by_parts_interior:
   by (rule integrable_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (insert assms, simp_all)
 
 lemma integrable_by_parts:
-  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
           "continuous_on {a..b} f" "continuous_on {a..b} g"
   assumes "\<And>x. x\<in>{a..b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
           "\<And>x. x\<in>{a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
