@@ -663,7 +663,7 @@ lemma fract_poly_diff [simp]:
   "fract_poly (p - q) = fract_poly p - fract_poly q"
   by (intro poly_eqI) (simp_all add: coeff_map_poly)
 
-lemma to_fract_setsum [simp]: "to_fract (setsum f A) = setsum (\<lambda>x. to_fract (f x)) A"
+lemma to_fract_sum [simp]: "to_fract (sum f A) = sum (\<lambda>x. to_fract (f x)) A"
   by (cases "finite A", induction A rule: finite_induct) simp_all 
 
 lemma fract_poly_mult [simp]:
@@ -851,10 +851,10 @@ proof (rule prime_elemI)
       also have "(\<Sum>k\<in>\<dots>. coeff a k * coeff b (i + m - k)) =
                    coeff a i * coeff b m + (\<Sum>k\<in>?A. coeff a k * coeff b (i + m - k))"
         (is "_ = _ + ?S")
-        by (subst setsum.insert) simp_all
+        by (subst sum.insert) simp_all
       finally have eq: "c dvd coeff a i * coeff b m + ?S" .
       moreover have "c dvd ?S"
-      proof (rule dvd_setsum)
+      proof (rule dvd_sum)
         fix k assume k: "k \<in> {..i+m} - {i}"
         show "c dvd coeff a k * coeff b (i + m - k)"
         proof (cases "k < i")

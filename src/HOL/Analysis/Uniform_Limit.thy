@@ -290,7 +290,7 @@ text\<open>Alternative version, formulated as in HOL Light\<close>
 corollary series_comparison_uniform:
   fixes f :: "_ \<Rightarrow> nat \<Rightarrow> _ :: banach"
   assumes g: "summable g" and le: "\<And>n x. N \<le> n \<and> x \<in> A \<Longrightarrow> norm(f x n) \<le> g n"
-    shows "\<exists>l. \<forall>e. 0 < e \<longrightarrow> (\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> A \<longrightarrow> dist(setsum (f x) {..<n}) (l x) < e)"
+    shows "\<exists>l. \<forall>e. 0 < e \<longrightarrow> (\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> A \<longrightarrow> dist(sum (f x) {..<n}) (l x) < e)"
 proof -
   have 1: "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>A. norm (f x n) \<le> g n"
     using le eventually_sequentially by auto

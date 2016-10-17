@@ -110,7 +110,7 @@ next
     also have "\<dots> = Suc n * (\<Sum>k=1..n. fact n div k) + Suc n * fact n div Suc n"
       by (metis nat.distinct(1) nonzero_mult_div_cancel_left)
     also have "\<dots> = (\<Sum>k=1..n. fact (Suc n) div k) + fact (Suc n) div Suc n"
-      by (simp add: setsum_distrib_left div_mult_swap dvd_fact)
+      by (simp add: sum_distrib_left div_mult_swap dvd_fact)
     also have "\<dots> = (\<Sum>k=1..Suc n. fact (Suc n) div k)"
       by simp
     finally show ?thesis .
@@ -149,24 +149,24 @@ next
   qed
 qed
 
-lemma setsum_stirling: "(\<Sum>k\<le>n. stirling n k) = fact n"
+lemma sum_stirling: "(\<Sum>k\<le>n. stirling n k) = fact n"
 proof (induct n)
   case 0
   then show ?case by simp
 next
   case (Suc n)
   have "(\<Sum>k\<le>Suc n. stirling (Suc n) k) = stirling (Suc n) 0 + (\<Sum>k\<le>n. stirling (Suc n) (Suc k))"
-    by (simp only: setsum_atMost_Suc_shift)
+    by (simp only: sum_atMost_Suc_shift)
   also have "\<dots> = (\<Sum>k\<le>n. stirling (Suc n) (Suc k))"
     by simp
   also have "\<dots> = (\<Sum>k\<le>n. n * stirling n (Suc k) + stirling n k)"
     by simp
   also have "\<dots> = n * (\<Sum>k\<le>n. stirling n (Suc k)) + (\<Sum>k\<le>n. stirling n k)"
-    by (simp add: setsum.distrib setsum_distrib_left)
+    by (simp add: sum.distrib sum_distrib_left)
   also have "\<dots> = n * fact n + fact n"
   proof -
     have "n * (\<Sum>k\<le>n. stirling n (Suc k)) = n * ((\<Sum>k\<le>Suc n. stirling n k) - stirling n 0)"
-      by (metis add_diff_cancel_left' setsum_atMost_Suc_shift)
+      by (metis add_diff_cancel_left' sum_atMost_Suc_shift)
     also have "\<dots> = n * (\<Sum>k\<le>n. stirling n k)"
       by (cases n) simp_all
     also have "\<dots> = n * fact n"
@@ -192,10 +192,10 @@ next
       (of_nat (n * stirling n 0) * x ^ 0 +
       (\<Sum>i\<le>n. of_nat (n * stirling n (Suc i)) * (x ^ Suc i))) +
       (\<Sum>i\<le>n. of_nat (stirling n i) * (x ^ Suc i))"
-    by (subst setsum_atMost_Suc_shift) (simp add: setsum.distrib ring_distribs)
+    by (subst sum_atMost_Suc_shift) (simp add: sum.distrib ring_distribs)
   also have "\<dots> = pochhammer x (Suc n)"
-    by (subst setsum_atMost_Suc_shift [symmetric])
-      (simp add: algebra_simps setsum.distrib setsum_distrib_left pochhammer_Suc Suc [symmetric])
+    by (subst sum_atMost_Suc_shift [symmetric])
+      (simp add: algebra_simps sum.distrib sum_distrib_left pochhammer_Suc Suc [symmetric])
   finally show ?case .
 qed
 

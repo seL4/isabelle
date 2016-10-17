@@ -12,18 +12,18 @@ lemma delta_mult_idempotent:
   by simp
 
 (*move up?*)
-lemma setsum_UNIV_sum:
+lemma sum_UNIV_sum:
   fixes g :: "'a::finite + 'b::finite \<Rightarrow> _"
   shows "(\<Sum>x\<in>UNIV. g x) = (\<Sum>x\<in>UNIV. g (Inl x)) + (\<Sum>x\<in>UNIV. g (Inr x))"
   apply (subst UNIV_Plus_UNIV [symmetric])
-  apply (subst setsum.Plus)
+  apply (subst sum.Plus)
   apply simp_all
   done
 
-lemma setsum_mult_product:
-  "setsum h {..<A * B :: nat} = (\<Sum>i\<in>{..<A}. \<Sum>j\<in>{..<B}. h (j + i * B))"
-  unfolding setsum_nat_group[of h B A, unfolded atLeast0LessThan, symmetric]
-proof (rule setsum.cong, simp, rule setsum.reindex_cong)
+lemma sum_mult_product:
+  "sum h {..<A * B :: nat} = (\<Sum>i\<in>{..<A}. \<Sum>j\<in>{..<B}. h (j + i * B))"
+  unfolding sum_nat_group[of h B A, unfolded atLeast0LessThan, symmetric]
+proof (rule sum.cong, simp, rule sum.reindex_cong)
   fix i
   show "inj_on (\<lambda>j. j + i * B) {..<B}" by (auto intro!: inj_onI)
   show "{i * B..<i * B + B} = (\<lambda>j. j + i * B) ` {..<B}"
@@ -108,19 +108,19 @@ definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^ 'n \<Rightarrow> '
 
 subsection \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space.\<close>
 
-lemma setsum_cong_aux:
-  "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> setsum f A = setsum g A"
-  by (auto intro: setsum.cong)
+lemma sum_cong_aux:
+  "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> sum f A = sum g A"
+  by (auto intro: sum.cong)
 
-hide_fact (open) setsum_cong_aux
+hide_fact (open) sum_cong_aux
 
 method_setup vector = \<open>
 let
   val ss1 =
     simpset_of (put_simpset HOL_basic_ss @{context}
-      addsimps [@{thm setsum.distrib} RS sym,
-      @{thm setsum_subtractf} RS sym, @{thm setsum_distrib_left},
-      @{thm setsum_distrib_right}, @{thm setsum_negf} RS sym])
+      addsimps [@{thm sum.distrib} RS sym,
+      @{thm sum_subtractf} RS sym, @{thm sum_distrib_left},
+      @{thm sum_distrib_right}, @{thm sum_negf} RS sym])
   val ss2 =
     simpset_of (@{context} addsimps
              [@{thm plus_vec_def}, @{thm times_vec_def},
@@ -130,8 +130,8 @@ let
               @{thm vec_lambda_beta}, @{thm vector_scalar_mult_def}])
   fun vector_arith_tac ctxt ths =
     simp_tac (put_simpset ss1 ctxt)
-    THEN' (fn i => resolve_tac ctxt @{thms Cartesian_Euclidean_Space.setsum_cong_aux} i
-         ORELSE resolve_tac ctxt @{thms setsum.neutral} i
+    THEN' (fn i => resolve_tac ctxt @{thms Cartesian_Euclidean_Space.sum_cong_aux} i
+         ORELSE resolve_tac ctxt @{thms sum.neutral} i
          ORELSE simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm vec_eq_iff}]) i)
     (* THEN' TRY o clarify_tac HOL_cs  THEN' (TRY o rtac @{thm iffI}) *)
     THEN' asm_full_simp_tac (put_simpset ss2 ctxt addsimps ths)
@@ -152,9 +152,9 @@ lemma vec_sub: "vec(x - y) = vec x - vec y" by vector
 lemma vec_cmul: "vec(c * x) = c *s vec x " by vector
 lemma vec_neg: "vec(- x) = - vec x " by vector
 
-lemma vec_setsum:
+lemma vec_sum:
   assumes "finite S"
-  shows "vec(setsum f S) = setsum (vec \<circ> f) S"
+  shows "vec(sum f S) = sum (vec \<circ> f) S"
   using assms
 proof induct
   case empty
@@ -299,8 +299,8 @@ lemma norm_bound_component_le_cart: "norm x <= e ==> \<bar>x$i\<bar> <= e"
 lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
   by (metis component_le_norm_cart le_less_trans)
 
-lemma norm_le_l1_cart: "norm x <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
-  by (simp add: norm_vec_def setL2_le_setsum)
+lemma norm_le_l1_cart: "norm x <= sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
+  by (simp add: norm_vec_def setL2_le_sum)
 
 lemma scalar_mult_eq_scaleR: "c *s x = c *\<^sub>R x"
   unfolding scaleR_vec_def vector_scalar_mult_def by simp
@@ -309,9 +309,9 @@ lemma dist_mul[simp]: "dist (c *s x) (c *s y) = \<bar>c\<bar> * dist x y"
   unfolding dist_norm scalar_mult_eq_scaleR
   unfolding scaleR_right_diff_distrib[symmetric] by simp
 
-lemma setsum_component [simp]:
+lemma sum_component [simp]:
   fixes f:: " 'a \<Rightarrow> ('b::comm_monoid_add) ^'n"
-  shows "(setsum f S)$i = setsum (\<lambda>x. (f x)$i) S"
+  shows "(sum f S)$i = sum (\<lambda>x. (f x)$i) S"
 proof (cases "finite S")
   case True
   then show ?thesis by induct simp_all
@@ -320,19 +320,19 @@ next
   then show ?thesis by simp
 qed
 
-lemma setsum_eq: "setsum f S = (\<chi> i. setsum (\<lambda>x. (f x)$i ) S)"
+lemma sum_eq: "sum f S = (\<chi> i. sum (\<lambda>x. (f x)$i ) S)"
   by (simp add: vec_eq_iff)
 
-lemma setsum_cmul:
+lemma sum_cmul:
   fixes f:: "'c \<Rightarrow> ('a::semiring_1)^'n"
-  shows "setsum (\<lambda>x. c *s f x) S = c *s setsum f S"
-  by (simp add: vec_eq_iff setsum_distrib_left)
+  shows "sum (\<lambda>x. c *s f x) S = c *s sum f S"
+  by (simp add: vec_eq_iff sum_distrib_left)
 
-lemma setsum_norm_allsubsets_bound_cart:
+lemma sum_norm_allsubsets_bound_cart:
   fixes f:: "'a \<Rightarrow> real ^'n"
-  assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
-  shows "setsum (\<lambda>x. norm (f x)) P \<le> 2 * real CARD('n) *  e"
-  using setsum_norm_allsubsets_bound[OF assms]
+  assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (sum f Q) \<le> e"
+  shows "sum (\<lambda>x. norm (f x)) P \<le> 2 * real CARD('n) *  e"
+  using sum_norm_allsubsets_bound[OF assms]
   by simp
 
 subsection\<open>Closures and interiors of halfspaces\<close>
@@ -475,15 +475,15 @@ text\<open>Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not 
 
 definition matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
     (infixl "**" 70)
-  where "m ** m' == (\<chi> i j. setsum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
+  where "m ** m' == (\<chi> i j. sum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
 
 definition matrix_vector_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"
     (infixl "*v" 70)
-  where "m *v x \<equiv> (\<chi> i. setsum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
+  where "m *v x \<equiv> (\<chi> i. sum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
 
 definition vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "
     (infixl "v*" 70)
-  where "v v* m == (\<chi> j. setsum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
+  where "v v* m == (\<chi> j. sum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
 
 definition "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
 definition transpose where
@@ -495,14 +495,14 @@ definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
-  by (vector matrix_matrix_mult_def setsum.distrib[symmetric] field_simps)
+  by (vector matrix_matrix_mult_def sum.distrib[symmetric] field_simps)
 
 lemma matrix_mul_lid:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "mat 1 ** A = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
   apply vector
-  apply (auto simp only: if_distrib cond_application_beta setsum.delta'[OF finite]
+  apply (auto simp only: if_distrib cond_application_beta sum.delta'[OF finite]
     mult_1_left mult_zero_left if_True UNIV_I)
   done
 
@@ -512,26 +512,26 @@ lemma matrix_mul_rid:
   shows "A ** mat 1 = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
   apply vector
-  apply (auto simp only: if_distrib cond_application_beta setsum.delta[OF finite]
+  apply (auto simp only: if_distrib cond_application_beta sum.delta[OF finite]
     mult_1_right mult_zero_right if_True UNIV_I cong: if_cong)
   done
 
 lemma matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
-  apply (vector matrix_matrix_mult_def setsum_distrib_left setsum_distrib_right mult.assoc)
-  apply (subst setsum.commute)
+  apply (vector matrix_matrix_mult_def sum_distrib_left sum_distrib_right mult.assoc)
+  apply (subst sum.commute)
   apply simp
   done
 
 lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply (vector matrix_matrix_mult_def matrix_vector_mult_def
-    setsum_distrib_left setsum_distrib_right mult.assoc)
-  apply (subst setsum.commute)
+    sum_distrib_left sum_distrib_right mult.assoc)
+  apply (subst sum.commute)
   apply simp
   done
 
 lemma matrix_vector_mul_lid: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
-  apply (simp add: if_distrib cond_application_beta setsum.delta' cong del: if_weak_cong)
+  apply (simp add: if_distrib cond_application_beta sum.delta' cong del: if_weak_cong)
   done
 
 lemma matrix_transpose_mul:
@@ -548,15 +548,15 @@ lemma matrix_eq:
   apply (erule_tac x="axis ia 1" in allE)
   apply (erule_tac x="i" in allE)
   apply (auto simp add: if_distrib cond_application_beta axis_def
-    setsum.delta[OF finite] cong del: if_weak_cong)
+    sum.delta[OF finite] cong del: if_weak_cong)
   done
 
 lemma matrix_vector_mul_component: "((A::real^_^_) *v x)$k = (A$k) \<bullet> x"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
-  apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def setsum_distrib_right setsum_distrib_left ac_simps)
-  apply (subst setsum.commute)
+  apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def sum_distrib_right sum_distrib_left ac_simps)
+  apply (subst sum.commute)
   apply simp
   done
 
@@ -588,27 +588,27 @@ lemma matrix_mult_dot: "A *v x = (\<chi> i. A$i \<bullet> x)"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma matrix_mult_vsum:
-  "(A::'a::comm_semiring_1^'n^'m) *v x = setsum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
+  "(A::'a::comm_semiring_1^'n^'m) *v x = sum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def vec_eq_iff column_def mult.commute)
 
 lemma vector_componentwise:
   "(x::'a::ring_1^'n) = (\<chi> j. \<Sum>i\<in>UNIV. (x$i) * (axis i 1 :: 'a^'n) $ j)"
-  by (simp add: axis_def if_distrib setsum.If_cases vec_eq_iff)
+  by (simp add: axis_def if_distrib sum.If_cases vec_eq_iff)
 
-lemma basis_expansion: "setsum (\<lambda>i. (x$i) *s axis i 1) UNIV = (x::('a::ring_1) ^'n)"
-  by (auto simp add: axis_def vec_eq_iff if_distrib setsum.If_cases cong del: if_weak_cong)
+lemma basis_expansion: "sum (\<lambda>i. (x$i) *s axis i 1) UNIV = (x::('a::ring_1) ^'n)"
+  by (auto simp add: axis_def vec_eq_iff if_distrib sum.If_cases cong del: if_weak_cong)
 
 lemma linear_componentwise_expansion:
   fixes f:: "real ^'m \<Rightarrow> real ^ _"
   assumes lf: "linear f"
-  shows "(f x)$j = setsum (\<lambda>i. (x$i) * (f (axis i 1)$j)) (UNIV :: 'm set)" (is "?lhs = ?rhs")
+  shows "(f x)$j = sum (\<lambda>i. (x$i) * (f (axis i 1)$j)) (UNIV :: 'm set)" (is "?lhs = ?rhs")
 proof -
   let ?M = "(UNIV :: 'm set)"
   let ?N = "(UNIV :: 'n set)"
-  have "?rhs = (setsum (\<lambda>i.(x$i) *\<^sub>R f (axis i 1) ) ?M)$j"
-    unfolding setsum_component by simp
+  have "?rhs = (sum (\<lambda>i.(x$i) *\<^sub>R f (axis i 1) ) ?M)$j"
+    unfolding sum_component by simp
   then show ?thesis
-    unfolding linear_setsum_mul[OF lf, symmetric]
+    unfolding linear_sum_mul[OF lf, symmetric]
     unfolding scalar_mult_eq_scaleR[symmetric]
     unfolding basis_expansion
     by simp
@@ -630,7 +630,7 @@ definition matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<R
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
   by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
-      field_simps setsum_distrib_left setsum.distrib)
+      field_simps sum_distrib_left sum.distrib)
 
 lemma matrix_works:
   assumes lf: "linear f"
@@ -652,14 +652,14 @@ lemma matrix_compose:
   by (simp add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
 
 lemma matrix_vector_column:
-  "(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
+  "(A::'a::comm_semiring_1^'n^_) *v x = sum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def transpose_def vec_eq_iff mult.commute)
 
 lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
   apply (rule adjoint_unique)
   apply (simp add: transpose_def inner_vec_def matrix_vector_mult_def
-    setsum_distrib_right setsum_distrib_left)
-  apply (subst setsum.commute)
+    sum_distrib_right sum_distrib_left)
+  apply (subst sum.commute)
   apply (auto simp add: ac_simps)
   done
 
@@ -758,13 +758,13 @@ qed
 lemma matrix_left_invertible_independent_columns:
   fixes A :: "real^'n^'m"
   shows "(\<exists>(B::real ^'m^'n). B ** A = mat 1) \<longleftrightarrow>
-      (\<forall>c. setsum (\<lambda>i. c i *s column i A) (UNIV :: 'n set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
+      (\<forall>c. sum (\<lambda>i. c i *s column i A) (UNIV :: 'n set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
     (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   let ?U = "UNIV :: 'n set"
   { assume k: "\<forall>x. A *v x = 0 \<longrightarrow> x = 0"
     { fix c i
-      assume c: "setsum (\<lambda>i. c i *s column i A) ?U = 0" and i: "i \<in> ?U"
+      assume c: "sum (\<lambda>i. c i *s column i A) ?U = 0" and i: "i \<in> ?U"
       let ?x = "\<chi> i. c i"
       have th0:"A *v ?x = 0"
         using c
@@ -786,7 +786,7 @@ qed
 lemma matrix_right_invertible_independent_rows:
   fixes A :: "real^'n^'m"
   shows "(\<exists>(B::real^'m^'n). A ** B = mat 1) \<longleftrightarrow>
-    (\<forall>c. setsum (\<lambda>i. c i *s row i A) (UNIV :: 'm set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
+    (\<forall>c. sum (\<lambda>i. c i *s row i A) (UNIV :: 'm set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
   unfolding left_invertible_transpose[symmetric]
     matrix_left_invertible_independent_columns
   by (simp add: column_transpose)
@@ -797,7 +797,7 @@ lemma matrix_right_invertible_span_columns:
 proof -
   let ?U = "UNIV :: 'm set"
   have fU: "finite ?U" by simp
-  have lhseq: "?lhs \<longleftrightarrow> (\<forall>y. \<exists>(x::real^'m). setsum (\<lambda>i. (x$i) *s column i A) ?U = y)"
+  have lhseq: "?lhs \<longleftrightarrow> (\<forall>y. \<exists>(x::real^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y)"
     unfolding matrix_right_invertible_surjective matrix_mult_vsum surj_def
     apply (subst eq_commute)
     apply rule
@@ -806,10 +806,10 @@ proof -
   { assume h: ?lhs
     { fix x:: "real ^'n"
       from h[unfolded lhseq, rule_format, of x] obtain y :: "real ^'m"
-        where y: "setsum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
+        where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
       have "x \<in> span (columns A)"
         unfolding y[symmetric]
-        apply (rule span_setsum)
+        apply (rule span_sum)
         unfolding scalar_mult_eq_scaleR
         apply (rule span_mul)
         apply (rule span_superset)
@@ -820,11 +820,11 @@ proof -
     then have ?rhs unfolding rhseq by blast }
   moreover
   { assume h:?rhs
-    let ?P = "\<lambda>(y::real ^'n). \<exists>(x::real^'m). setsum (\<lambda>i. (x$i) *s column i A) ?U = y"
+    let ?P = "\<lambda>(y::real ^'n). \<exists>(x::real^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y"
     { fix y
       have "?P y"
       proof (rule span_induct_alt[of ?P "columns A", folded scalar_mult_eq_scaleR])
-        show "\<exists>x::real ^ 'm. setsum (\<lambda>i. (x$i) *s column i A) ?U = 0"
+        show "\<exists>x::real ^ 'm. sum (\<lambda>i. (x$i) *s column i A) ?U = 0"
           by (rule exI[where x=0], simp)
       next
         fix c y1 y2
@@ -832,7 +832,7 @@ proof -
         from y1 obtain i where i: "i \<in> ?U" "y1 = column i A"
           unfolding columns_def by blast
         from y2 obtain x:: "real ^'m" where
-          x: "setsum (\<lambda>i. (x$i) *s column i A) ?U = y2" by blast
+          x: "sum (\<lambda>i. (x$i) *s column i A) ?U = y2" by blast
         let ?x = "(\<chi> j. if j = i then c + (x$i) else (x$j))::real^'m"
         show "?P (c*s y1 + y2)"
         proof (rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] if_distrib distrib_left cond_application_beta cong del: if_weak_cong)
@@ -840,18 +840,18 @@ proof -
           have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
               else (x$xa) * ((column xa A$j))) = (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))"
             using i(1) by (simp add: field_simps)
-          have "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
-              else (x$xa) * ((column xa A$j))) ?U = setsum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
-            apply (rule setsum.cong[OF refl])
+          have "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
+              else (x$xa) * ((column xa A$j))) ?U = sum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
+            apply (rule sum.cong[OF refl])
             using th apply blast
             done
-          also have "\<dots> = setsum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
-            by (simp add: setsum.distrib)
-          also have "\<dots> = c * ((column i A)$j) + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
-            unfolding setsum.delta[OF fU]
+          also have "\<dots> = sum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
+            by (simp add: sum.distrib)
+          also have "\<dots> = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
+            unfolding sum.delta[OF fU]
             using i(1) by simp
-          finally show "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
-            else (x$xa) * ((column xa A$j))) ?U = c * ((column i A)$j) + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
+          finally show "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
+            else (x$xa) * ((column xa A$j))) ?U = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
         qed
       next
         show "y \<in> span (columns A)"
@@ -984,9 +984,9 @@ proof
     { fix n
       assume n: "\<forall>i. dist (f (r n) $ i) (l $ i) < e / (real_of_nat (card ?d))"
       have "dist (f (r n)) l \<le> (\<Sum>i\<in>?d. dist (f (r n) $ i) (l $ i))"
-        unfolding dist_vec_def using zero_le_dist by (rule setL2_le_setsum)
+        unfolding dist_vec_def using zero_le_dist by (rule setL2_le_sum)
       also have "\<dots> < (\<Sum>i\<in>?d. e / (real_of_nat (card ?d)))"
-        by (rule setsum_strict_mono) (simp_all add: n)
+        by (rule sum_strict_mono) (simp_all add: n)
       finally have "dist (f (r n)) l < e" by simp
     }
     ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
@@ -1235,7 +1235,7 @@ lemma cube_convex_hull_cart:
     where "finite s" "cbox (x - (\<chi> i. d)) (x + (\<chi> i. d)) = convex hull s"
 proof -
   from assms obtain s where "finite s"
-    and "cbox (x - setsum (op *\<^sub>R d) Basis) (x + setsum (op *\<^sub>R d) Basis) = convex hull s"
+    and "cbox (x - sum (op *\<^sub>R d) Basis) (x + sum (op *\<^sub>R d) Basis) = convex hull s"
     by (rule cube_convex_hull)
   with that[of s] show thesis
     by (simp add: const_vector_cart)
@@ -1314,13 +1314,13 @@ lemma UNIV_2: "UNIV = {1::2, 2::2}"
 lemma UNIV_3: "UNIV = {1::3, 2::3, 3::3}"
   using exhaust_3 by auto
 
-lemma setsum_1: "setsum f (UNIV::1 set) = f 1"
+lemma sum_1: "sum f (UNIV::1 set) = f 1"
   unfolding UNIV_1 by simp
 
-lemma setsum_2: "setsum f (UNIV::2 set) = f 1 + f 2"
+lemma sum_2: "sum f (UNIV::2 set) = f 1 + f 2"
   unfolding UNIV_2 by simp
 
-lemma setsum_3: "setsum f (UNIV::3 set) = f 1 + f 2 + f 3"
+lemma sum_3: "sum f (UNIV::3 set) = f 1 + f 2 + f 3"
   unfolding UNIV_3 by (simp add: ac_simps)
 
 instantiation num1 :: cart_one

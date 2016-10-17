@@ -53,9 +53,9 @@ lemma (in euclidean_space) nonzero_Basis: "u \<in> Basis \<Longrightarrow> u \<n
 lemma (in euclidean_space) SOME_Basis: "(SOME i. i \<in> Basis) \<in> Basis"
   by (metis ex_in_conv nonempty_Basis someI_ex)
 
-lemma (in euclidean_space) inner_setsum_left_Basis[simp]:
+lemma (in euclidean_space) inner_sum_left_Basis[simp]:
     "b \<in> Basis \<Longrightarrow> inner (\<Sum>i\<in>Basis. f i *\<^sub>R i) b = f b"
-  by (simp add: inner_setsum_left inner_Basis if_distrib comm_monoid_add_class.setsum.If_cases)
+  by (simp add: inner_sum_left inner_Basis if_distrib comm_monoid_add_class.sum.If_cases)
 
 lemma (in euclidean_space) euclidean_eqI:
   assumes b: "\<And>b. b \<in> Basis \<Longrightarrow> inner x b = inner y b" shows "x = y"
@@ -70,16 +70,16 @@ lemma (in euclidean_space) euclidean_eq_iff:
   "x = y \<longleftrightarrow> (\<forall>b\<in>Basis. inner x b = inner y b)"
   by (auto intro: euclidean_eqI)
 
-lemma (in euclidean_space) euclidean_representation_setsum:
+lemma (in euclidean_space) euclidean_representation_sum:
   "(\<Sum>i\<in>Basis. f i *\<^sub>R i) = b \<longleftrightarrow> (\<forall>i\<in>Basis. f i = inner b i)"
   by (subst euclidean_eq_iff) simp
 
-lemma (in euclidean_space) euclidean_representation_setsum':
+lemma (in euclidean_space) euclidean_representation_sum':
   "b = (\<Sum>i\<in>Basis. f i *\<^sub>R i) \<longleftrightarrow> (\<forall>i\<in>Basis. f i = inner b i)"
-  by (auto simp add: euclidean_representation_setsum[symmetric])
+  by (auto simp add: euclidean_representation_sum[symmetric])
 
 lemma (in euclidean_space) euclidean_representation: "(\<Sum>b\<in>Basis. inner x b *\<^sub>R b) = x"
-  unfolding euclidean_representation_setsum by simp
+  unfolding euclidean_representation_sum by simp
 
 lemma (in euclidean_space) choice_Basis_iff:
   fixes P :: "'a \<Rightarrow> real \<Rightarrow> bool"
@@ -96,15 +96,15 @@ lemma (in euclidean_space) bchoice_Basis_iff:
   shows "(\<forall>i\<in>Basis. \<exists>x\<in>A. P i x) \<longleftrightarrow> (\<exists>x. \<forall>i\<in>Basis. inner x i \<in> A \<and> P i (inner x i))"
 by (simp add: choice_Basis_iff Bex_def)
 
-lemma (in euclidean_space) euclidean_representation_setsum_fun:
+lemma (in euclidean_space) euclidean_representation_sum_fun:
     "(\<lambda>x. \<Sum>b\<in>Basis. inner (f x) b *\<^sub>R b) = f"
-  by (rule ext) (simp add: euclidean_representation_setsum)
+  by (rule ext) (simp add: euclidean_representation_sum)
 
 lemma euclidean_isCont:
   assumes "\<And>b. b \<in> Basis \<Longrightarrow> isCont (\<lambda>x. (inner (f x) b) *\<^sub>R b) x"
     shows "isCont f x"
-  apply (subst euclidean_representation_setsum_fun [symmetric])
-  apply (rule isCont_setsum)
+  apply (subst euclidean_representation_sum_fun [symmetric])
+  apply (rule isCont_sum)
   apply (blast intro: assms)
   done
 
@@ -115,16 +115,16 @@ lemma DIM_ge_Suc0 [simp]: "Suc 0 \<le> card Basis"
   by (meson DIM_positive Suc_leI)
 
 
-lemma setsum_inner_Basis_scaleR [simp]:
+lemma sum_inner_Basis_scaleR [simp]:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_vector"
   assumes "b \<in> Basis" shows "(\<Sum>i\<in>Basis. (inner i b) *\<^sub>R f i) = f b"
-  by (simp add: comm_monoid_add_class.setsum.remove [OF finite_Basis assms]
-         assms inner_not_same_Basis comm_monoid_add_class.setsum.neutral)
+  by (simp add: comm_monoid_add_class.sum.remove [OF finite_Basis assms]
+         assms inner_not_same_Basis comm_monoid_add_class.sum.neutral)
 
-lemma setsum_inner_Basis_eq [simp]:
+lemma sum_inner_Basis_eq [simp]:
   assumes "b \<in> Basis" shows "(\<Sum>i\<in>Basis. (inner i b) * f i) = f b"
-  by (simp add: comm_monoid_add_class.setsum.remove [OF finite_Basis assms]
-         assms inner_not_same_Basis comm_monoid_add_class.setsum.neutral)
+  by (simp add: comm_monoid_add_class.sum.remove [OF finite_Basis assms]
+         assms inner_not_same_Basis comm_monoid_add_class.sum.neutral)
 
 subsection \<open>Subclass relationships\<close>
 
@@ -188,15 +188,15 @@ begin
 definition
   "Basis = (\<lambda>u. (u, 0)) ` Basis \<union> (\<lambda>v. (0, v)) ` Basis"
 
-lemma setsum_Basis_prod_eq:
+lemma sum_Basis_prod_eq:
   fixes f::"('a*'b)\<Rightarrow>('a*'b)"
-  shows "setsum f Basis = setsum (\<lambda>i. f (i, 0)) Basis + setsum (\<lambda>i. f (0, i)) Basis"
+  shows "sum f Basis = sum (\<lambda>i. f (i, 0)) Basis + sum (\<lambda>i. f (0, i)) Basis"
 proof -
   have "inj_on (\<lambda>u. (u::'a, 0::'b)) Basis" "inj_on (\<lambda>u. (0::'a, u::'b)) Basis"
     by (auto intro!: inj_onI Pair_inject)
   thus ?thesis
     unfolding Basis_prod_def
-    by (subst setsum.union_disjoint) (auto simp: Basis_prod_def setsum.reindex)
+    by (subst sum.union_disjoint) (auto simp: Basis_prod_def sum.reindex)
 qed
 
 instance proof

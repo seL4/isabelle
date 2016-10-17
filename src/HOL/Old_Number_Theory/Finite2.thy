@@ -16,9 +16,9 @@ text\<open>
 
 subsection \<open>Useful properties of sums and products\<close>
 
-lemma setsum_same_function_zcong:
+lemma sum_same_function_zcong:
   assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
-  shows "[setsum f S = setsum g S] (mod m)"
+  shows "[sum f S = sum g S] (mod m)"
 proof cases
   assume "finite S"
   thus ?thesis using a by induct (simp_all add: zcong_zadd)
@@ -36,15 +36,15 @@ next
   assume "infinite S" thus ?thesis by simp
 qed
 
-lemma setsum_const: "finite X ==> setsum (%x. (c :: int)) X = c * int(card X)"
+lemma sum_const: "finite X ==> sum (%x. (c :: int)) X = c * int(card X)"
 by (simp add: of_nat_mult)
 
-lemma setsum_const2: "finite X ==> int (setsum (%x. (c :: nat)) X) =
+lemma sum_const2: "finite X ==> int (sum (%x. (c :: nat)) X) =
     int(c) * int(card X)"
 by (simp add: of_nat_mult)
 
-lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A =
-    c * setsum f A"
+lemma sum_const_mult: "finite A ==> sum (%x. c * ((f x)::int)) A =
+    c * sum f A"
   by (induct set: finite) (auto simp add: distrib_left)
 
 

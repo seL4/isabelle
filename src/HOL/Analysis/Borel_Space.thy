@@ -969,7 +969,7 @@ lemma borel_measurable_add[measurable (raw)]:
   shows "(\<lambda>x. f x + g x) \<in> borel_measurable M"
   using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
-lemma borel_measurable_setsum[measurable (raw)]:
+lemma borel_measurable_sum[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> 'b::{second_countable_topology, topological_comm_monoid_add}"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
@@ -1646,7 +1646,7 @@ lemma [measurable(raw)]:
     and borel_measurable_ereal_divide: "(\<lambda>x. f x / g x) \<in> borel_measurable M"
   using assms by (simp_all add: minus_ereal_def divide_ereal_def)
 
-lemma borel_measurable_ereal_setsum[measurable (raw)]:
+lemma borel_measurable_ereal_sum[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"

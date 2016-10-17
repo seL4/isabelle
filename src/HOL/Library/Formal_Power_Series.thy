@@ -129,7 +129,7 @@ lemma fps_mult_assoc_lemma:
     and f :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a::comm_monoid_add"
   shows "(\<Sum>j=0..k. \<Sum>i=0..j. f i (j - i) (n - j)) =
          (\<Sum>j=0..k. \<Sum>i=0..k - j. f j i (n - j - i))"
-  by (induct k) (simp_all add: Suc_diff_le setsum.distrib add.assoc)
+  by (induct k) (simp_all add: Suc_diff_le sum.distrib add.assoc)
 
 instance fps :: (semiring_0) semigroup_mult
 proof
@@ -141,7 +141,7 @@ proof
           (\<Sum>j=0..n. \<Sum>i=0..n - j. a$j * b$i * c$(n - j - i))"
       by (rule fps_mult_assoc_lemma)
     then show "((a * b) * c) $ n = (a * (b * c)) $ n"
-      by (simp add: fps_mult_nth setsum_distrib_left setsum_distrib_right mult.assoc)
+      by (simp add: fps_mult_nth sum_distrib_left sum_distrib_right mult.assoc)
   qed
 qed
 
@@ -149,7 +149,7 @@ lemma fps_mult_commute_lemma:
   fixes n :: nat
     and f :: "nat \<Rightarrow> nat \<Rightarrow> 'a::comm_monoid_add"
   shows "(\<Sum>i=0..n. f i (n - i)) = (\<Sum>i=0..n. f (n - i) i)"
-  by (rule setsum.reindex_bij_witness[where i="op - n" and j="op - n"]) auto
+  by (rule sum.reindex_bij_witness[where i="op - n" and j="op - n"]) auto
 
 instance fps :: (comm_semiring_0) ab_semigroup_mult
 proof
@@ -181,9 +181,9 @@ instance fps :: (semiring_1) monoid_mult
 proof
   fix a :: "'a fps"
   show "1 * a = a"
-    by (simp add: fps_ext fps_mult_nth mult_delta_left setsum.delta)
+    by (simp add: fps_ext fps_mult_nth mult_delta_left sum.delta)
   show "a * 1 = a"
-    by (simp add: fps_ext fps_mult_nth mult_delta_right setsum.delta')
+    by (simp add: fps_ext fps_mult_nth mult_delta_right sum.delta')
 qed
 
 instance fps :: (cancel_semigroup_add) cancel_semigroup_add
@@ -227,9 +227,9 @@ instance fps :: (semiring_0) semiring
 proof
   fix a b c :: "'a fps"
   show "(a + b) * c = a * c + b * c"
-    by (simp add: expand_fps_eq fps_mult_nth distrib_right setsum.distrib)
+    by (simp add: expand_fps_eq fps_mult_nth distrib_right sum.distrib)
   show "a * (b + c) = a * b + a * c"
-    by (simp add: expand_fps_eq fps_mult_nth distrib_left setsum.distrib)
+    by (simp add: expand_fps_eq fps_mult_nth distrib_left sum.distrib)
 qed
 
 instance fps :: (semiring_0) semiring_0
@@ -276,7 +276,7 @@ qed
 lemma fps_eq_iff: "f = g \<longleftrightarrow> (\<forall>n. f $ n = g $n)"
   by (rule expand_fps_eq)
 
-lemma fps_setsum_nth: "setsum f S $ n = setsum (\<lambda>k. (f k) $ n) S"
+lemma fps_sum_nth: "sum f S $ n = sum (\<lambda>k. (f k) $ n) S"
 proof (cases "finite S")
   case True
   then show ?thesis by (induct set: finite) auto
@@ -309,7 +309,7 @@ lemma fps_const_sub [simp]: "fps_const (c::'a::group_add) - fps_const d = fps_co
   by (simp add: fps_ext)
 
 lemma fps_const_mult[simp]: "fps_const (c::'a::ring) * fps_const d = fps_const (c * d)"
-  by (simp add: fps_eq_iff fps_mult_nth setsum.neutral)
+  by (simp add: fps_eq_iff fps_mult_nth sum.neutral)
 
 lemma fps_const_add_left: "fps_const (c::'a::monoid_add) + f =
     Abs_fps (\<lambda>n. if n = 0 then c + f$0 else f$n)"
@@ -321,17 +321,17 @@ lemma fps_const_add_right: "f + fps_const (c::'a::monoid_add) =
 
 lemma fps_const_mult_left: "fps_const (c::'a::semiring_0) * f = Abs_fps (\<lambda>n. c * f$n)"
   unfolding fps_eq_iff fps_mult_nth
-  by (simp add: fps_const_def mult_delta_left setsum.delta)
+  by (simp add: fps_const_def mult_delta_left sum.delta)
 
 lemma fps_const_mult_right: "f * fps_const (c::'a::semiring_0) = Abs_fps (\<lambda>n. f$n * c)"
   unfolding fps_eq_iff fps_mult_nth
-  by (simp add: fps_const_def mult_delta_right setsum.delta')
+  by (simp add: fps_const_def mult_delta_right sum.delta')
 
 lemma fps_mult_left_const_nth [simp]: "(fps_const (c::'a::semiring_1) * f)$n = c* f$n"
-  by (simp add: fps_mult_nth mult_delta_left setsum.delta)
+  by (simp add: fps_mult_nth mult_delta_left sum.delta)
 
 lemma fps_mult_right_const_nth [simp]: "(f * fps_const (c::'a::semiring_1))$n = f$n * c"
-  by (simp add: fps_mult_nth mult_delta_right setsum.delta')
+  by (simp add: fps_mult_nth mult_delta_right sum.delta')
 
 
 subsection \<open>Formal power series form an integral domain\<close>
@@ -354,9 +354,9 @@ proof
   have "(a * b) $ (i + j) = (\<Sum>k=0..i+j. a $ k * b $ (i + j - k))"
     by (rule fps_mult_nth)
   also have "\<dots> = (a $ i * b $ (i + j - i)) + (\<Sum>k\<in>{0..i+j} - {i}. a $ k * b $ (i + j - k))"
-    by (rule setsum.remove) simp_all
+    by (rule sum.remove) simp_all
   also have "(\<Sum>k\<in>{0..i+j}-{i}. a $ k * b $ (i + j - k)) = 0"
-  proof (rule setsum.neutral [rule_format])
+  proof (rule sum.neutral [rule_format])
     fix k assume "k \<in> {0..i+j} - {i}"
     then have "k < i \<or> i+j-k < j"
       by auto
@@ -409,7 +409,7 @@ proof (cases "n = 0")
   have "(X * f) $n = (\<Sum>i = 0..n. X $ i * f $ (n - i))"
     by (simp add: fps_mult_nth)
   also have "\<dots> = f $ (n - 1)"
-    using False by (simp add: X_def mult_delta_left setsum.delta)
+    using False by (simp add: X_def mult_delta_left sum.delta)
   finally show ?thesis
     using False by simp
 next
@@ -424,8 +424,8 @@ proof -
   have "(a * X) $ n = (\<Sum>i = 0..n. a $ i * (if n - i = Suc 0 then 1 else 0))"
     by (simp add: fps_times_def X_def)
   also have "\<dots> = (\<Sum>i = 0..n. if i = n - 1 then if n = 0 then 0 else a $ i else 0)"
-    by (intro setsum.cong) auto
-  also have "\<dots> = (if n = 0 then 0 else a $ (n - 1))" by (simp add: setsum.delta)
+    by (intro sum.cong) auto
+  also have "\<dots> = (if n = 0 then 0 else a $ (n - 1))" by (simp add: sum.delta)
   finally show ?thesis .
 qed
 
@@ -587,13 +587,13 @@ proof-
   have "(f * g) $ ?n = (\<Sum>i=0..?n. f$i * g$(?n-i))"
     by (simp add: fps_mult_nth)
   also have "... = (\<Sum>i=0..?n. if i = subdegree f then f$i * g$(?n-i) else 0)"
-  proof (intro setsum.cong)
+  proof (intro sum.cong)
     fix x assume x: "x \<in> {0..?n}"
     hence "x = subdegree f \<or> x < subdegree f \<or> ?n - x < subdegree g" by auto
     thus "f $ x * g $ (?n - x) = (if x = subdegree f then f $ x * g $ (?n - x) else 0)"
       by (elim disjE conjE) auto
   qed auto
-  also have "... = f $ subdegree f * g $ subdegree g" by (simp add: setsum.delta)
+  also have "... = f $ subdegree f * g $ subdegree g" by (simp add: sum.delta)
   finally show ?thesis .
 qed
 
@@ -604,20 +604,20 @@ proof (rule subdegreeI)
   let ?n = "subdegree f + subdegree g"
   have "(f * g) $ ?n = (\<Sum>i=0..?n. f$i * g$(?n-i))" by (simp add: fps_mult_nth)
   also have "... = (\<Sum>i=0..?n. if i = subdegree f then f$i * g$(?n-i) else 0)"
-  proof (intro setsum.cong)
+  proof (intro sum.cong)
     fix x assume x: "x \<in> {0..?n}"
     hence "x = subdegree f \<or> x < subdegree f \<or> ?n - x < subdegree g" by auto
     thus "f $ x * g $ (?n - x) = (if x = subdegree f then f $ x * g $ (?n - x) else 0)"
       by (elim disjE conjE) auto
   qed auto
-  also have "... = f $ subdegree f * g $ subdegree g" by (simp add: setsum.delta)
+  also have "... = f $ subdegree f * g $ subdegree g" by (simp add: sum.delta)
   also from assms have "... \<noteq> 0" by auto
   finally show "(f * g) $ (subdegree f + subdegree g) \<noteq> 0" .
 next
   fix m assume m: "m < subdegree f + subdegree g"
   have "(f * g) $ m = (\<Sum>i=0..m. f$i * g$(m-i))" by (simp add: fps_mult_nth)
   also have "... = (\<Sum>i=0..m. 0)"
-  proof (rule setsum.cong)
+  proof (rule sum.cong)
     fix i assume "i \<in> {0..m}"
     with m have "i < subdegree f \<or> m - i < subdegree g" by auto
     thus "f$i * g$(m-i) = 0" by (elim disjE) auto
@@ -914,13 +914,13 @@ proof -
     using kp by blast
 qed
 
-lemma fps_sum_rep_nth: "(setsum (\<lambda>i. fps_const(a$i)*X^i) {0..m})$n =
+lemma fps_sum_rep_nth: "(sum (\<lambda>i. fps_const(a$i)*X^i) {0..m})$n =
     (if n \<le> m then a$n else 0::'a::comm_ring_1)"
-  apply (auto simp add: fps_setsum_nth cond_value_iff cong del: if_weak_cong)
-  apply (simp add: setsum.delta')
+  apply (auto simp add: fps_sum_nth cond_value_iff cong del: if_weak_cong)
+  apply (simp add: sum.delta')
   done
 
-lemma fps_notation: "(\<lambda>n. setsum (\<lambda>i. fps_const(a$i) * X^i) {0..n}) \<longlonglongrightarrow> a"
+lemma fps_notation: "(\<lambda>n. sum (\<lambda>i. fps_const(a$i) * X^i) {0..n}) \<longlonglongrightarrow> a"
   (is "?s \<longlonglongrightarrow> a")
 proof -
   have "\<exists>n0. \<forall>n \<ge> n0. dist (?s n) a < r" if "r > 0" for r
@@ -964,7 +964,7 @@ qed
 
 subsection \<open>Inverses of formal power series\<close>
 
-declare setsum.cong[fundef_cong]
+declare sum.cong[fundef_cong]
 
 instantiation fps :: ("{comm_monoid_add,inverse,times,uminus}") inverse
 begin
@@ -972,7 +972,7 @@ begin
 fun natfun_inverse:: "'a fps \<Rightarrow> nat \<Rightarrow> 'a"
 where
   "natfun_inverse f 0 = inverse (f$0)"
-| "natfun_inverse f n = - inverse (f$0) * setsum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n}"
+| "natfun_inverse f n = - inverse (f$0) * sum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n}"
 
 definition fps_inverse_def: "inverse f = (if f $ 0 = 0 then 0 else Abs_fps (natfun_inverse f))"
 
@@ -1012,10 +1012,10 @@ proof -
     have d: "{0} \<inter> {1 .. n} = {}"
       by auto
     from f0 np have th0: "- (inverse f $ n) =
-      (setsum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n}) / (f$0)"
+      (sum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n}) / (f$0)"
       by (cases n) (simp_all add: divide_inverse fps_inverse_def)
     from th0[symmetric, unfolded nonzero_divide_eq_eq[OF f0]]
-    have th1: "setsum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n} = - (f$0) * (inverse f)$n"
+    have th1: "sum (\<lambda>i. f$i * natfun_inverse f (n - i)) {1..n} = - (f$0) * (inverse f)$n"
       by (simp add: field_simps)
     have "(f * inverse f) $ n = (\<Sum>i = 0..n. f $i * natfun_inverse f (n - i))"
       unfolding fps_mult_nth ifn ..
@@ -1077,7 +1077,7 @@ qed
 lemma fps_inverse_eq_0: "f$0 = 0 \<Longrightarrow> inverse (f :: 'a :: division_ring fps) = 0"
   by simp
   
-lemma setsum_zero_lemma:
+lemma sum_zero_lemma:
   fixes n::nat
   assumes "0 < n"
   shows "(\<Sum>i = 0..n. if n = i then 1 else if n - i = 1 then - 1 else 0) = (0::'a::field)"
@@ -1085,10 +1085,10 @@ proof -
   let ?f = "\<lambda>i. if n = i then 1 else if n - i = 1 then - 1 else 0"
   let ?g = "\<lambda>i. if i = n then 1 else if i = n - 1 then - 1 else 0"
   let ?h = "\<lambda>i. if i=n - 1 then - 1 else 0"
-  have th1: "setsum ?f {0..n} = setsum ?g {0..n}"
-    by (rule setsum.cong) auto
-  have th2: "setsum ?g {0..n - 1} = setsum ?h {0..n - 1}"
-    apply (rule setsum.cong)
+  have th1: "sum ?f {0..n} = sum ?g {0..n}"
+    by (rule sum.cong) auto
+  have th2: "sum ?g {0..n - 1} = sum ?h {0..n - 1}"
+    apply (rule sum.cong)
     using assms
     apply auto
     done
@@ -1100,9 +1100,9 @@ proof -
     by auto
   show ?thesis
     unfolding th1
-    apply (simp add: setsum.union_disjoint[OF f d, unfolded eq[symmetric]] del: One_nat_def)
+    apply (simp add: sum.union_disjoint[OF f d, unfolded eq[symmetric]] del: One_nat_def)
     unfolding th2
-    apply (simp add: setsum.delta)
+    apply (simp add: sum.delta)
     done
 qed
 
@@ -1127,7 +1127,7 @@ qed
 lemma fps_inverse_gp: "inverse (Abs_fps(\<lambda>n. (1::'a::field))) =
     Abs_fps (\<lambda>n. if n= 0 then 1 else if n=1 then - 1 else 0)"
   apply (rule fps_inverse_unique)
-  apply (simp_all add: fps_eq_iff fps_mult_nth setsum_zero_lemma)
+  apply (simp_all add: fps_eq_iff fps_mult_nth sum_zero_lemma)
   done
 
 lemma subdegree_inverse [simp]: "subdegree (inverse (f::'a::field fps)) = 0"
@@ -1546,24 +1546,24 @@ proof -
         of_nat (i+1)* f $ (i+1) * g $ (n - i)"
     let ?h = "\<lambda>i. of_nat i * g $ i * f $ ((n+1) - i) +
         of_nat i* f $ i * g $ ((n + 1) - i)"
-    have s0: "setsum (\<lambda>i. of_nat i * f $ i * g $ (n + 1 - i)) ?Zn1 =
-      setsum (\<lambda>i. of_nat (n + 1 - i) * f $ (n + 1 - i) * g $ i) ?Zn1"
-       by (rule setsum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
-    have s1: "setsum (\<lambda>i. f $ i * g $ (n + 1 - i)) ?Zn1 =
-      setsum (\<lambda>i. f $ (n + 1 - i) * g $ i) ?Zn1"
-       by (rule setsum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
+    have s0: "sum (\<lambda>i. of_nat i * f $ i * g $ (n + 1 - i)) ?Zn1 =
+      sum (\<lambda>i. of_nat (n + 1 - i) * f $ (n + 1 - i) * g $ i) ?Zn1"
+       by (rule sum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
+    have s1: "sum (\<lambda>i. f $ i * g $ (n + 1 - i)) ?Zn1 =
+      sum (\<lambda>i. f $ (n + 1 - i) * g $ i) ?Zn1"
+       by (rule sum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
     have "(f * ?D g + ?D f * g)$n = (?D g * f + ?D f * g)$n"
       by (simp only: mult.commute)
     also have "\<dots> = (\<Sum>i = 0..n. ?g i)"
-      by (simp add: fps_mult_nth setsum.distrib[symmetric])
-    also have "\<dots> = setsum ?h {0..n+1}"
-      by (rule setsum.reindex_bij_witness_not_neutral
+      by (simp add: fps_mult_nth sum.distrib[symmetric])
+    also have "\<dots> = sum ?h {0..n+1}"
+      by (rule sum.reindex_bij_witness_not_neutral
             [where S'="{}" and T'="{0}" and j="Suc" and i="\<lambda>i. i - 1"]) auto
     also have "\<dots> = (fps_deriv (f * g)) $ n"
-      apply (simp only: fps_deriv_nth fps_mult_nth setsum.distrib)
+      apply (simp only: fps_deriv_nth fps_mult_nth sum.distrib)
       unfolding s0 s1
-      unfolding setsum.distrib[symmetric] setsum_distrib_left
-      apply (rule setsum.cong)
+      unfolding sum.distrib[symmetric] sum_distrib_left
+      apply (rule sum.cong)
       apply (auto simp add: of_nat_diff field_simps)
       done
     finally show ?thesis .
@@ -1604,8 +1604,8 @@ lemma fps_deriv_mult_const_right[simp]:
   "fps_deriv (f * fps_const (c::'a::comm_ring_1)) = fps_deriv f * fps_const c"
   by simp
 
-lemma fps_deriv_setsum:
-  "fps_deriv (setsum f S) = setsum (\<lambda>i. fps_deriv (f i :: 'a::comm_ring_1 fps)) S"
+lemma fps_deriv_sum:
+  "fps_deriv (sum f S) = sum (\<lambda>i. fps_deriv (f i :: 'a::comm_ring_1 fps)) S"
 proof (cases "finite S")
   case False
   then show ?thesis by simp
@@ -1699,8 +1699,8 @@ lemma fps_nth_deriv_mult_const_right[simp]:
   "fps_nth_deriv n (f * fps_const (c::'a::comm_ring_1)) = fps_nth_deriv n f * fps_const c"
   using fps_nth_deriv_linear[of n "c" f 0 0] by (simp add: mult.commute)
 
-lemma fps_nth_deriv_setsum:
-  "fps_nth_deriv n (setsum f S) = setsum (\<lambda>i. fps_nth_deriv n (f i :: 'a::comm_ring_1 fps)) S"
+lemma fps_nth_deriv_sum:
+  "fps_nth_deriv n (sum f S) = sum (\<lambda>i. fps_nth_deriv n (f i :: 'a::comm_ring_1 fps)) S"
 proof (cases "finite S")
   case True
   show ?thesis by (induct rule: finite_induct [OF True]) simp_all
@@ -1771,7 +1771,7 @@ proof (induct k rule: nat_less_induct)
       also have "\<dots> = (\<Sum>i = 0..m. a ^ l $ i * a $ (m - i))"
         by (simp add: fps_mult_nth)
       also have "\<dots> = 0"
-        apply (rule setsum.neutral)
+        apply (rule sum.neutral)
         apply auto
         apply (case_tac "x = m")
         using a0 apply simp
@@ -1784,11 +1784,11 @@ proof (induct k rule: nat_less_induct)
   qed
 qed
 
-lemma startsby_zero_setsum_depends:
+lemma startsby_zero_sum_depends:
   assumes a0: "a $0 = (0::'a::idom)"
     and kn: "n \<ge> k"
-  shows "setsum (\<lambda>i. (a ^ i)$k) {0 .. n} = setsum (\<lambda>i. (a ^ i)$k) {0 .. k}"
-  apply (rule setsum.mono_neutral_right)
+  shows "sum (\<lambda>i. (a ^ i)$k) {0 .. n} = sum (\<lambda>i. (a ^ i)$k) {0 .. k}"
+  apply (rule sum.mono_neutral_right)
   using kn
   apply auto
   apply (rule startsby_zero_power_prefix[rule_format, OF a0])
@@ -1805,10 +1805,10 @@ next
   case (Suc n)
   have "a ^ Suc n $ (Suc n) = (a^n * a)$(Suc n)"
     by (simp add: field_simps)
-  also have "\<dots> = setsum (\<lambda>i. a^n$i * a $ (Suc n - i)) {0.. Suc n}"
+  also have "\<dots> = sum (\<lambda>i. a^n$i * a $ (Suc n - i)) {0.. Suc n}"
     by (simp add: fps_mult_nth)
-  also have "\<dots> = setsum (\<lambda>i. a^n$i * a $ (Suc n - i)) {n .. Suc n}"
-    apply (rule setsum.mono_neutral_right)
+  also have "\<dots> = sum (\<lambda>i. a^n$i * a $ (Suc n - i)) {n .. Suc n}"
+    apply (rule sum.mono_neutral_right)
     apply simp
     apply clarsimp
     apply clarsimp
@@ -1946,19 +1946,19 @@ qed
 subsection \<open>Composition of FPSs\<close>
 
 definition fps_compose :: "'a::semiring_1 fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps"  (infixl "oo" 55)
-  where "a oo b = Abs_fps (\<lambda>n. setsum (\<lambda>i. a$i * (b^i$n)) {0..n})"
+  where "a oo b = Abs_fps (\<lambda>n. sum (\<lambda>i. a$i * (b^i$n)) {0..n})"
 
-lemma fps_compose_nth: "(a oo b)$n = setsum (\<lambda>i. a$i * (b^i$n)) {0..n}"
+lemma fps_compose_nth: "(a oo b)$n = sum (\<lambda>i. a$i * (b^i$n)) {0..n}"
   by (simp add: fps_compose_def)
 
 lemma fps_compose_nth_0 [simp]: "(f oo g) $ 0 = f $ 0"
   by (simp add: fps_compose_nth)
 
 lemma fps_compose_X[simp]: "a oo X = (a :: 'a::comm_ring_1 fps)"
-  by (simp add: fps_ext fps_compose_def mult_delta_right setsum.delta')
+  by (simp add: fps_ext fps_compose_def mult_delta_right sum.delta')
 
 lemma fps_const_compose[simp]: "fps_const (a::'a::comm_ring_1) oo b = fps_const a"
-  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum.delta)
+  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left sum.delta)
 
 lemma numeral_compose[simp]: "(numeral k :: 'a::comm_ring_1 fps) oo b = numeral k"
   unfolding numeral_fps_const by simp
@@ -1967,17 +1967,17 @@ lemma neg_numeral_compose[simp]: "(- numeral k :: 'a::comm_ring_1 fps) oo b = - 
   unfolding neg_numeral_fps_const by simp
 
 lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: 'a::comm_ring_1 fps)"
-  by (simp add: fps_eq_iff fps_compose_def mult_delta_left setsum.delta not_le)
+  by (simp add: fps_eq_iff fps_compose_def mult_delta_left sum.delta not_le)
 
 
 subsection \<open>Rules from Herbert Wilf's Generatingfunctionology\<close>
 
 subsubsection \<open>Rule 1\<close>
-  (* {a_{n+k}}_0^infty Corresponds to (f - setsum (\<lambda>i. a_i * x^i))/x^h, for h>0*)
+  (* {a_{n+k}}_0^infty Corresponds to (f - sum (\<lambda>i. a_i * x^i))/x^h, for h>0*)
 
 lemma fps_power_mult_eq_shift:
   "X^Suc k * Abs_fps (\<lambda>n. a (n + Suc k)) =
-    Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a::comm_ring_1) * X^i) {0 .. k}"
+    Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a::comm_ring_1) * X^i) {0 .. k}"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs $ n = ?rhs $ n" for n :: nat
@@ -1988,11 +1988,11 @@ proof -
     proof (induct k)
       case 0
       then show ?case
-        by (simp add: fps_setsum_nth)
+        by (simp add: fps_sum_nth)
     next
       case (Suc k)
-      have "(Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. Suc k})$n =
-        (Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. k} -
+      have "(Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. Suc k})$n =
+        (Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. k} -
           fps_const (a (Suc k)) * X^ Suc k) $ n"
         by (simp add: field_simps)
       also have "\<dots> = (if n < Suc k then 0 else a n) - (fps_const (a (Suc k)) * X^ Suc k)$n"
@@ -2051,10 +2051,10 @@ text \<open>Rule 3 is trivial and is given by \<open>fps_times_def\<close>.\<clo
 
 subsubsection \<open>Rule 5 --- summation and "division" by (1 - X)\<close>
 
-lemma fps_divide_X_minus1_setsum_lemma:
-  "a = ((1::'a::comm_ring_1 fps) - X) * Abs_fps (\<lambda>n. setsum (\<lambda>i. a $ i) {0..n})"
+lemma fps_divide_X_minus1_sum_lemma:
+  "a = ((1::'a::comm_ring_1 fps) - X) * Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
 proof -
-  let ?sa = "Abs_fps (\<lambda>n. setsum (\<lambda>i. a $ i) {0..n})"
+  let ?sa = "Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
   have th0: "\<And>i. (1 - (X::'a fps)) $ i = (if i = 0 then 1 else if i = 1 then - 1 else 0)"
     by simp
   have "a$n = ((1 - X) * ?sa) $ n" for n
@@ -2071,14 +2071,14 @@ proof -
       using False by simp_all
     have f: "finite {0}" "finite {1}" "finite {2 .. n}"
       "finite {0 .. n - 1}" "finite {n}" by simp_all
-    have "((1 - X) * ?sa) $ n = setsum (\<lambda>i. (1 - X)$ i * ?sa $ (n - i)) {0 .. n}"
+    have "((1 - X) * ?sa) $ n = sum (\<lambda>i. (1 - X)$ i * ?sa $ (n - i)) {0 .. n}"
       by (simp add: fps_mult_nth)
     also have "\<dots> = a$n"
       unfolding th0
-      unfolding setsum.union_disjoint[OF f(1) finite_UnI[OF f(2,3)] d(1), unfolded u(1)]
-      unfolding setsum.union_disjoint[OF f(2) f(3) d(2)]
+      unfolding sum.union_disjoint[OF f(1) finite_UnI[OF f(2,3)] d(1), unfolded u(1)]
+      unfolding sum.union_disjoint[OF f(2) f(3) d(2)]
       apply (simp)
-      unfolding setsum.union_disjoint[OF f(4,5) d(3), unfolded u(3)]
+      unfolding sum.union_disjoint[OF f(4,5) d(3), unfolded u(3)]
       apply simp
       done
     finally show ?thesis
@@ -2088,16 +2088,16 @@ proof -
     unfolding fps_eq_iff by blast
 qed
 
-lemma fps_divide_X_minus1_setsum:
-  "a /((1::'a::field fps) - X) = Abs_fps (\<lambda>n. setsum (\<lambda>i. a $ i) {0..n})"
+lemma fps_divide_X_minus1_sum:
+  "a /((1::'a::field fps) - X) = Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
 proof -
   let ?X = "1 - (X::'a fps)"
   have th0: "?X $ 0 \<noteq> 0"
     by simp
-  have "a /?X = ?X *  Abs_fps (\<lambda>n::nat. setsum (op $ a) {0..n}) * inverse ?X"
-    using fps_divide_X_minus1_setsum_lemma[of a, symmetric] th0
+  have "a /?X = ?X *  Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) * inverse ?X"
+    using fps_divide_X_minus1_sum_lemma[of a, symmetric] th0
     by (simp add: fps_divide_def mult.assoc)
-  also have "\<dots> = (inverse ?X * ?X) * Abs_fps (\<lambda>n::nat. setsum (op $ a) {0..n}) "
+  also have "\<dots> = (inverse ?X * ?X) * Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) "
     by (simp add: ac_simps)
   finally show ?thesis
     by (simp add: inverse_mult_eq_1[OF th0])
@@ -2228,12 +2228,12 @@ proof
       by auto
     have d: "({0..k} - {i}) \<inter> {i} = {}"
       using i by auto
-    from H have "n = setsum (nth xs) {0..k}"
+    from H have "n = sum (nth xs) {0..k}"
       apply (simp add: natpermute_def)
-      apply (auto simp add: atLeastLessThanSuc_atLeastAtMost sum_list_setsum_nth)
+      apply (auto simp add: atLeastLessThanSuc_atLeastAtMost sum_list_sum_nth)
       done
-    also have "\<dots> = n + setsum (nth xs) ({0..k} - {i})"
-      unfolding setsum.union_disjoint[OF f d, unfolded eqs] using i by simp
+    also have "\<dots> = n + sum (nth xs) ({0..k} - {i})"
+      unfolding sum.union_disjoint[OF f d, unfolded eqs] using i by simp
     finally have zxs: "\<forall> j\<in> {0..k} - {i}. xs!j = 0"
       by auto
     from H have xsl: "length xs = k+1"
@@ -2265,11 +2265,11 @@ proof
       done
     have xsl: "length xs = k + 1"
       by (simp only: xs length_replicate length_list_update)
-    have "sum_list xs = setsum (nth xs) {0..<k+1}"
-      unfolding sum_list_setsum_nth xsl ..
-    also have "\<dots> = setsum (\<lambda>j. if j = i then n else 0) {0..< k+1}"
-      by (rule setsum.cong) (simp_all add: xs del: replicate.simps)
-    also have "\<dots> = n" using i by (simp add: setsum.delta)
+    have "sum_list xs = sum (nth xs) {0..<k+1}"
+      unfolding sum_list_sum_nth xsl ..
+    also have "\<dots> = sum (\<lambda>j. if j = i then n else 0) {0..< k+1}"
+      by (rule sum.cong) (simp_all add: xs del: replicate.simps)
+    also have "\<dots> = n" using i by (simp add: sum.delta)
     finally have "xs \<in> natpermute n (k + 1)"
       using xsl unfolding natpermute_def mem_Collect_eq by blast
     then show "xs \<in> ?A"
@@ -2282,7 +2282,7 @@ lemma fps_setprod_nth:
   fixes m :: nat
     and a :: "nat \<Rightarrow> 'a::comm_ring_1 fps"
   shows "(setprod a {0 .. m}) $ n =
-    setsum (\<lambda>v. setprod (\<lambda>j. (a j) $ (v!j)) {0..m}) (natpermute n (m+1))"
+    sum (\<lambda>v. setprod (\<lambda>j. (a j) $ (v!j)) {0..m}) (natpermute n (m+1))"
   (is "?P m n")
 proof (induct m arbitrary: n rule: nat_less_induct)
   fix m n assume H: "\<forall>m' < m. \<forall>n. ?P m' n"
@@ -2309,7 +2309,7 @@ proof (induct m arbitrary: n rule: nat_less_induct)
       apply (simp add: Suc)
       unfolding natpermute_split[of m "m + 1", simplified, of n,
         unfolded natlist_trivial_1[unfolded One_nat_def] Suc]
-      apply (subst setsum.UNION_disjoint)
+      apply (subst sum.UNION_disjoint)
       apply simp
       apply simp
       unfolding image_Collect[symmetric]
@@ -2318,11 +2318,11 @@ proof (induct m arbitrary: n rule: nat_less_induct)
       apply (rule natpermute_finite)
       apply (clarsimp simp add: set_eq_iff)
       apply auto
-      apply (rule setsum.cong)
+      apply (rule sum.cong)
       apply (rule refl)
-      unfolding setsum_distrib_right
+      unfolding sum_distrib_right
       apply (rule sym)
-      apply (rule_tac l = "\<lambda>xs. xs @ [n - x]" in setsum.reindex_cong)
+      apply (rule_tac l = "\<lambda>xs. xs @ [n - x]" in sum.reindex_cong)
       apply (simp add: inj_on_def)
       apply auto
       unfolding setprod.union_disjoint[OF f0 d0, unfolded u0, unfolded Suc]
@@ -2336,7 +2336,7 @@ text \<open>The special form for powers.\<close>
 lemma fps_power_nth_Suc:
   fixes m :: nat
     and a :: "'a::comm_ring_1 fps"
-  shows "(a ^ Suc m)$n = setsum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m}) (natpermute n (m+1))"
+  shows "(a ^ Suc m)$n = sum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m}) (natpermute n (m+1))"
 proof -
   have th0: "a^Suc m = setprod (\<lambda>i. a) {0..m}"
     by (simp add: setprod_constant)
@@ -2347,7 +2347,7 @@ lemma fps_power_nth:
   fixes m :: nat
     and a :: "'a::comm_ring_1 fps"
   shows "(a ^m)$n =
-    (if m=0 then 1$n else setsum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m - 1}) (natpermute n m))"
+    (if m=0 then 1$n else sum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m - 1}) (natpermute n m))"
   by (cases m) (simp_all add: fps_power_nth_Suc del: power_Suc)
 
 lemma fps_nth_power_0:
@@ -2423,13 +2423,13 @@ proof -
     
     from v have "k = sum_list v" by (simp add: A_def natpermute_def)
     also have "\<dots> = (\<Sum>i=0..m. v ! i)"
-      by (simp add: sum_list_setsum_nth atLeastLessThanSuc_atLeastAtMost del: setsum_op_ivl_Suc)
+      by (simp add: sum_list_sum_nth atLeastLessThanSuc_atLeastAtMost del: sum_op_ivl_Suc)
     also from j have "{0..m} = insert j ({0..m}-{j})" by auto
     also from j have "(\<Sum>i\<in>\<dots>. v ! i) = k + (\<Sum>i\<in>{0..m}-{j}. v ! i)"
-      by (subst setsum.insert) simp_all
+      by (subst sum.insert) simp_all
     finally have "(\<Sum>i\<in>{0..m}-{j}. v ! i) = 0" by simp
     hence zero: "v ! i = 0" if "i \<in> {0..m}-{j}" for i using that
-      by (subst (asm) setsum_eq_0_iff) auto
+      by (subst (asm) sum_eq_0_iff) auto
       
     from j have "{0..m} = insert j ({0..m} - {j})" by auto
     also from j have "(\<Prod>i\<in>\<dots>. f $ (v ! i)) = f $ k * (\<Prod>i\<in>{0..m} - {j}. f $ (v ! i))"
@@ -2445,7 +2445,7 @@ proof -
   also have "natpermute k (m+1) = A \<union> B" unfolding A_def B_def by blast
   also have "(\<Sum>v\<in>\<dots>. \<Prod>j = 0..m. f $ (v ! j)) = 
                (\<Sum>v\<in>A. \<Prod>j = 0..m. f $ (v ! j)) + (\<Sum>v\<in>B. \<Prod>j = 0..m. f $ (v ! j))"
-    by (intro setsum.union_disjoint) simp_all   
+    by (intro sum.union_disjoint) simp_all   
   also have "(\<Sum>v\<in>A. \<Prod>j = 0..m. f $ (v ! j)) = of_nat (Suc m) * (f $ k * (f $ 0) ^ m)"
     by (simp add: A card_A)
   finally show ?thesis by (simp add: B_def)
@@ -2472,7 +2472,7 @@ proof (rule fps_ext)
         using that elem_le_sum_list_nat[of i v] unfolding natpermute_def
         by (auto simp: set_conv_nth dest!: spec[of _ i])
       hence "?h f = ?h g"
-        by (intro setsum.cong refl setprod.cong less lessI) (auto simp: natpermute_def)
+        by (intro sum.cong refl setprod.cong less lessI) (auto simp: natpermute_def)
       finally have "f $ k * (of_nat (Suc m) * (f $ 0) ^ m) = g $ k * (of_nat (Suc m) * (f $ 0) ^ m)"
         by simp
       with assms show "f $ k = g $ k" 
@@ -2544,16 +2544,16 @@ proof
         have eq: "{0 .. n1} \<union> {n} = {0 .. n}" using Suc by auto
         have d: "{0 .. n1} \<inter> {n} = {}" using Suc by auto
         have seq: "(\<Sum>i = 0..n1. b $ i * a ^ i $ n) = (\<Sum>i = 0..n1. c $ i * a ^ i $ n)"
-          apply (rule setsum.cong)
+          apply (rule sum.cong)
           using H Suc
           apply auto
           done
         have th0: "(b oo a) $n = (\<Sum>i = 0..n1. c $ i * a ^ i $ n) + b$n * (a$1)^n"
-          unfolding fps_compose_nth setsum.union_disjoint[OF f d, unfolded eq] seq
+          unfolding fps_compose_nth sum.union_disjoint[OF f d, unfolded eq] seq
           using startsby_zero_power_nth_same[OF a0]
           by simp
         have th1: "(c oo a) $n = (\<Sum>i = 0..n1. c $ i * a ^ i $ n) + c$n * (a$1)^n"
-          unfolding fps_compose_nth setsum.union_disjoint[OF f d, unfolded eq]
+          unfolding fps_compose_nth sum.union_disjoint[OF f d, unfolded eq]
           using startsby_zero_power_nth_same[OF a0]
           by simp
         from \<open>?lhs\<close>[unfolded fps_eq_iff, rule_format, of n] th0 th1 a1
@@ -2575,7 +2575,7 @@ where
 | "radical r 0 a (Suc n) = 0"
 | "radical r (Suc k) a 0 = r (Suc k) (a$0)"
 | "radical r (Suc k) a (Suc n) =
-    (a$ Suc n - setsum (\<lambda>xs. setprod (\<lambda>j. radical r (Suc k) a (xs ! j)) {0..k})
+    (a$ Suc n - sum (\<lambda>xs. setprod (\<lambda>j. radical r (Suc k) a (xs ! j)) {0..k})
       {xs. xs \<in> natpermute (Suc n) (Suc k) \<and> Suc n \<notin> set xs}) /
     (of_nat (Suc k) * (radical r (Suc k) a 0)^k)"
   by pat_completeness auto
@@ -2601,11 +2601,11 @@ proof
         using i by auto
       from xs have "Suc n = sum_list xs"
         by (simp add: natpermute_def)
-      also have "\<dots> = setsum (nth xs) {0..<Suc k}" using xs
-        by (simp add: natpermute_def sum_list_setsum_nth)
-      also have "\<dots> = xs!i + setsum (nth xs) {0..<i} + setsum (nth xs) {i+1..<Suc k}"
-        unfolding eqs  setsum.union_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
-        unfolding setsum.union_disjoint[OF fths(2) fths(3) d(2)]
+      also have "\<dots> = sum (nth xs) {0..<Suc k}" using xs
+        by (simp add: natpermute_def sum_list_sum_nth)
+      also have "\<dots> = xs!i + sum (nth xs) {0..<i} + sum (nth xs) {i+1..<Suc k}"
+        unfolding eqs  sum.union_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
+        unfolding sum.union_disjoint[OF fths(2) fths(3) d(2)]
         by simp
       finally show ?thesis using c' by simp
     qed
@@ -2684,8 +2684,8 @@ proof
           using finite_Un[of ?Pnkn ?Pnknn, unfolded eq]
           by (metis natpermute_finite)+
         let ?f = "\<lambda>v. \<Prod>j\<in>{0..k}. ?r $ v ! j"
-        have "setsum ?f ?Pnkn = setsum (\<lambda>v. ?r $ n * r (Suc k) (a $ 0) ^ k) ?Pnkn"
-        proof (rule setsum.cong)
+        have "sum ?f ?Pnkn = sum (\<lambda>v. ?r $ n * r (Suc k) (a $ 0) ^ k) ?Pnkn"
+        proof (rule sum.cong)
           fix v assume v: "v \<in> {xs \<in> natpermute n (k + 1). n \<in> set xs}"
           let ?ths = "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
             fps_radical r (Suc k) a $ n * r (Suc k) (a $ 0) ^ k"
@@ -2701,13 +2701,13 @@ proof
             using i r0 by (simp add: setprod_gen_delta)
           finally show ?ths .
         qed rule
-        then have "setsum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
+        then have "sum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
           by (simp add: natpermute_max_card[OF \<open>n \<noteq> 0\<close>, simplified])
-        also have "\<dots> = a$n - setsum ?f ?Pnknn"
+        also have "\<dots> = a$n - sum ?f ?Pnknn"
           unfolding Suc using r00 a0 by (simp add: field_simps fps_radical_def del: of_nat_Suc)
-        finally have fn: "setsum ?f ?Pnkn = a$n - setsum ?f ?Pnknn" .
-        have "(?r ^ Suc k)$n = setsum ?f ?Pnkn + setsum ?f ?Pnknn"
-          unfolding fps_power_nth_Suc setsum.union_disjoint[OF f d, unfolded eq] ..
+        finally have fn: "sum ?f ?Pnkn = a$n - sum ?f ?Pnknn" .
+        have "(?r ^ Suc k)$n = sum ?f ?Pnkn + sum ?f ?Pnknn"
+          unfolding fps_power_nth_Suc sum.union_disjoint[OF f d, unfolded eq] ..
         also have "\<dots> = a$n" unfolding fn by simp
         finally show ?thesis .
       qed
@@ -2750,8 +2750,8 @@ proof-
           using finite_Un[of ?Pnkn ?Pnknn, unfolded eq]
           by (metis natpermute_finite)+
         let ?f = "\<lambda>v. \<Prod>j\<in>{0..k}. ?r $ v ! j"
-        have "setsum ?f ?Pnkn = setsum (\<lambda>v. ?r $ n * r (Suc k) (a $ 0) ^ k) ?Pnkn"
-        proof(rule setsum.cong2)
+        have "sum ?f ?Pnkn = sum (\<lambda>v. ?r $ n * r (Suc k) (a $ 0) ^ k) ?Pnkn"
+        proof(rule sum.cong2)
           fix v assume v: "v \<in> {xs \<in> natpermute n (k + 1). n \<in> set xs}"
           let ?ths = "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) = fps_radical r (Suc k) a $ n * r (Suc k) (a $ 0) ^ k"
           from v obtain i where i: "i \<in> {0..k}" "v = replicate (k+1) 0 [i:= n]"
@@ -2763,13 +2763,13 @@ proof-
             unfolding setprod_gen_delta[OF fK] using i r0 by simp
           finally show ?ths .
         qed
-        then have "setsum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
+        then have "sum ?f ?Pnkn = of_nat (k+1) * ?r $ n * r (Suc k) (a $ 0) ^ k"
           by (simp add: natpermute_max_card[OF nz, simplified])
-        also have "\<dots> = a$n - setsum ?f ?Pnknn"
+        also have "\<dots> = a$n - sum ?f ?Pnknn"
           unfolding n1 using r00 a0 by (simp add: field_simps fps_radical_def del: of_nat_Suc )
-        finally have fn: "setsum ?f ?Pnkn = a$n - setsum ?f ?Pnknn" .
-        have "(?r ^ Suc k)$n = setsum ?f ?Pnkn + setsum ?f ?Pnknn"
-          unfolding fps_power_nth_Suc setsum.union_disjoint[OF f d, unfolded eq] ..
+        finally have fn: "sum ?f ?Pnkn = a$n - sum ?f ?Pnknn" .
+        have "(?r ^ Suc k)$n = sum ?f ?Pnkn + sum ?f ?Pnknn"
+          unfolding fps_power_nth_Suc sum.union_disjoint[OF f d, unfolded eq] ..
         also have "\<dots> = a$n" unfolding fn by simp
         finally have "?r ^ Suc k $ n = a $n" .}
       ultimately  show "?r ^ Suc k $ n = a $n" by (cases n, auto)
@@ -2819,8 +2819,8 @@ proof
           by (metis natpermute_finite)+
         let ?f = "\<lambda>v. \<Prod>j\<in>{0..k}. ?r $ v ! j"
         let ?g = "\<lambda>v. \<Prod>j\<in>{0..k}. a $ v ! j"
-        have "setsum ?g ?Pnkn = setsum (\<lambda>v. a $ n * (?r$0)^k) ?Pnkn"
-        proof (rule setsum.cong)
+        have "sum ?g ?Pnkn = sum (\<lambda>v. a $ n * (?r$0)^k) ?Pnkn"
+        proof (rule sum.cong)
           fix v
           assume v: "v \<in> {xs \<in> natpermute n (Suc k). n \<in> set xs}"
           let ?ths = "(\<Prod>j\<in>{0..k}. a $ v ! j) = a $ n * (?r$0)^k"
@@ -2836,10 +2836,10 @@ proof
             using i by (simp add: setprod_gen_delta)
           finally show ?ths .
         qed rule
-        then have th0: "setsum ?g ?Pnkn = of_nat (k+1) * a $ n * (?r $ 0)^k"
+        then have th0: "sum ?g ?Pnkn = of_nat (k+1) * a $ n * (?r $ 0)^k"
           by (simp add: natpermute_max_card[OF nz, simplified])
-        have th1: "setsum ?g ?Pnknn = setsum ?f ?Pnknn"
-        proof (rule setsum.cong, rule refl, rule setprod.cong, simp)
+        have th1: "sum ?g ?Pnknn = sum ?f ?Pnknn"
+        proof (rule sum.cong, rule refl, rule setprod.cong, simp)
           fix xs i
           assume xs: "xs \<in> ?Pnknn" and i: "i \<in> {0..k}"
           have False if c: "n \<le> xs ! i"
@@ -2855,11 +2855,11 @@ proof
               using i by auto
             from xs have "n = sum_list xs"
               by (simp add: natpermute_def)
-            also have "\<dots> = setsum (nth xs) {0..<Suc k}"
-              using xs by (simp add: natpermute_def sum_list_setsum_nth)
-            also have "\<dots> = xs!i + setsum (nth xs) {0..<i} + setsum (nth xs) {i+1..<Suc k}"
-              unfolding eqs  setsum.union_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
-              unfolding setsum.union_disjoint[OF fths(2) fths(3) d(2)]
+            also have "\<dots> = sum (nth xs) {0..<Suc k}"
+              using xs by (simp add: natpermute_def sum_list_sum_nth)
+            also have "\<dots> = xs!i + sum (nth xs) {0..<i} + sum (nth xs) {i+1..<Suc k}"
+              unfolding eqs  sum.union_disjoint[OF fths(1) finite_UnI[OF fths(2,3)] d(1)]
+              unfolding sum.union_disjoint[OF fths(2) fths(3) d(2)]
               by simp
             finally show ?thesis using c' by simp
           qed
@@ -2870,15 +2870,15 @@ proof
           by (simp add: field_simps del: of_nat_Suc)
         from \<open>?lhs\<close> have "b$n = a^Suc k $ n"
           by (simp add: fps_eq_iff)
-        also have "a ^ Suc k$n = setsum ?g ?Pnkn + setsum ?g ?Pnknn"
+        also have "a ^ Suc k$n = sum ?g ?Pnkn + sum ?g ?Pnknn"
           unfolding fps_power_nth_Suc
-          using setsum.union_disjoint[OF f d, unfolded Suc_eq_plus1[symmetric],
+          using sum.union_disjoint[OF f d, unfolded Suc_eq_plus1[symmetric],
             unfolded eq, of ?g] by simp
-        also have "\<dots> = of_nat (k+1) * a $ n * (?r $ 0)^k + setsum ?f ?Pnknn"
+        also have "\<dots> = of_nat (k+1) * a $ n * (?r $ 0)^k + sum ?f ?Pnknn"
           unfolding th0 th1 ..
-        finally have "of_nat (k+1) * a $ n * (?r $ 0)^k = b$n - setsum ?f ?Pnknn"
+        finally have "of_nat (k+1) * a $ n * (?r $ 0)^k = b$n - sum ?f ?Pnknn"
           by simp
-        then have "a$n = (b$n - setsum ?f ?Pnknn) / (of_nat (k+1) * (?r $ 0)^k)"
+        then have "a$n = (b$n - sum ?f ?Pnknn) / (of_nat (k+1) * (?r $ 0)^k)"
           apply -
           apply (rule eq_divide_imp')
           using r00
@@ -3081,31 +3081,31 @@ lemma fps_compose_deriv:
 proof -
   have "(fps_deriv (a oo b))$n = (((fps_deriv a) oo b) * (fps_deriv b)) $n" for n
   proof -
-    have "(fps_deriv (a oo b))$n = setsum (\<lambda>i. a $ i * (fps_deriv (b^i))$n) {0.. Suc n}"
-      by (simp add: fps_compose_def field_simps setsum_distrib_left del: of_nat_Suc)
-    also have "\<dots> = setsum (\<lambda>i. a$i * ((fps_const (of_nat i)) * (fps_deriv b * (b^(i - 1))))$n) {0.. Suc n}"
+    have "(fps_deriv (a oo b))$n = sum (\<lambda>i. a $ i * (fps_deriv (b^i))$n) {0.. Suc n}"
+      by (simp add: fps_compose_def field_simps sum_distrib_left del: of_nat_Suc)
+    also have "\<dots> = sum (\<lambda>i. a$i * ((fps_const (of_nat i)) * (fps_deriv b * (b^(i - 1))))$n) {0.. Suc n}"
       by (simp add: field_simps fps_deriv_power del: fps_mult_left_const_nth of_nat_Suc)
-    also have "\<dots> = setsum (\<lambda>i. of_nat i * a$i * (((b^(i - 1)) * fps_deriv b))$n) {0.. Suc n}"
+    also have "\<dots> = sum (\<lambda>i. of_nat i * a$i * (((b^(i - 1)) * fps_deriv b))$n) {0.. Suc n}"
       unfolding fps_mult_left_const_nth  by (simp add: field_simps)
-    also have "\<dots> = setsum (\<lambda>i. of_nat i * a$i * (setsum (\<lambda>j. (b^ (i - 1))$j * (fps_deriv b)$(n - j)) {0..n})) {0.. Suc n}"
+    also have "\<dots> = sum (\<lambda>i. of_nat i * a$i * (sum (\<lambda>j. (b^ (i - 1))$j * (fps_deriv b)$(n - j)) {0..n})) {0.. Suc n}"
       unfolding fps_mult_nth ..
-    also have "\<dots> = setsum (\<lambda>i. of_nat i * a$i * (setsum (\<lambda>j. (b^ (i - 1))$j * (fps_deriv b)$(n - j)) {0..n})) {1.. Suc n}"
-      apply (rule setsum.mono_neutral_right)
-      apply (auto simp add: mult_delta_left setsum.delta not_le)
+    also have "\<dots> = sum (\<lambda>i. of_nat i * a$i * (sum (\<lambda>j. (b^ (i - 1))$j * (fps_deriv b)$(n - j)) {0..n})) {1.. Suc n}"
+      apply (rule sum.mono_neutral_right)
+      apply (auto simp add: mult_delta_left sum.delta not_le)
       done
-    also have "\<dots> = setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
+    also have "\<dots> = sum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (sum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
       unfolding fps_deriv_nth
-      by (rule setsum.reindex_cong [of Suc]) (auto simp add: mult.assoc)
+      by (rule sum.reindex_cong [of Suc]) (auto simp add: mult.assoc)
     finally have th0: "(fps_deriv (a oo b))$n =
-      setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}" .
+      sum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (sum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}" .
 
-    have "(((fps_deriv a) oo b) * (fps_deriv b))$n = setsum (\<lambda>i. (fps_deriv b)$ (n - i) * ((fps_deriv a) oo b)$i) {0..n}"
+    have "(((fps_deriv a) oo b) * (fps_deriv b))$n = sum (\<lambda>i. (fps_deriv b)$ (n - i) * ((fps_deriv a) oo b)$i) {0..n}"
       unfolding fps_mult_nth by (simp add: ac_simps)
-    also have "\<dots> = setsum (\<lambda>i. setsum (\<lambda>j. of_nat (n - i +1) * b$(n - i + 1) * of_nat (j + 1) * a$(j+1) * (b^j)$i) {0..n}) {0..n}"
-      unfolding fps_deriv_nth fps_compose_nth setsum_distrib_left mult.assoc
-      apply (rule setsum.cong)
+    also have "\<dots> = sum (\<lambda>i. sum (\<lambda>j. of_nat (n - i +1) * b$(n - i + 1) * of_nat (j + 1) * a$(j+1) * (b^j)$i) {0..n}) {0..n}"
+      unfolding fps_deriv_nth fps_compose_nth sum_distrib_left mult.assoc
+      apply (rule sum.cong)
       apply (rule refl)
-      apply (rule setsum.mono_neutral_left)
+      apply (rule sum.mono_neutral_left)
       apply (simp_all add: subset_eq)
       apply clarify
       apply (subgoal_tac "b^i$x = 0")
@@ -3113,10 +3113,10 @@ proof -
       apply (rule startsby_zero_power_prefix[OF b0, rule_format])
       apply simp
       done
-    also have "\<dots> = setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
-      unfolding setsum_distrib_left
-      apply (subst setsum.commute)
-      apply (rule setsum.cong, rule refl)+
+    also have "\<dots> = sum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (sum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
+      unfolding sum_distrib_left
+      apply (subst sum.commute)
+      apply (rule sum.cong, rule refl)+
       apply simp
       done
     finally show ?thesis
@@ -3133,10 +3133,10 @@ proof (cases n)
     by (simp add: fps_mult_nth)
 next
   case (Suc m)
-  have "((1 + X)*a) $ n = setsum (\<lambda>i. (1 + X) $ i * a $ (n - i)) {0..n}"
+  have "((1 + X)*a) $ n = sum (\<lambda>i. (1 + X) $ i * a $ (n - i)) {0..n}"
     by (simp add: fps_mult_nth)
-  also have "\<dots> = setsum (\<lambda>i. (1+X)$i * a$(n-i)) {0.. 1}"
-    unfolding Suc by (rule setsum.mono_neutral_right) auto
+  also have "\<dots> = sum (\<lambda>i. (1+X)$i * a$(n-i)) {0.. 1}"
+    unfolding Suc by (rule sum.mono_neutral_right) auto
   also have "\<dots> = (if n = 0 then (a$n :: 'a::comm_ring_1) else a$n + a$(n - 1))"
     by (simp add: Suc)
   finally show ?thesis .
@@ -3147,11 +3147,11 @@ subsection \<open>Finite FPS (i.e. polynomials) and X\<close>
 
 lemma fps_poly_sum_X:
   assumes "\<forall>i > n. a$i = (0::'a::comm_ring_1)"
-  shows "a = setsum (\<lambda>i. fps_const (a$i) * X^i) {0..n}" (is "a = ?r")
+  shows "a = sum (\<lambda>i. fps_const (a$i) * X^i) {0..n}" (is "a = ?r")
 proof -
   have "a$i = ?r$i" for i
-    unfolding fps_setsum_nth fps_mult_left_const_nth X_power_nth
-    by (simp add: mult_delta_right setsum.delta' assms)
+    unfolding fps_sum_nth fps_mult_left_const_nth X_power_nth
+    by (simp add: mult_delta_right sum.delta' assms)
   then show ?thesis
     unfolding fps_eq_iff by blast
 qed
@@ -3163,7 +3163,7 @@ fun compinv :: "'a fps \<Rightarrow> nat \<Rightarrow> 'a::field"
 where
   "compinv a 0 = X$0"
 | "compinv a (Suc n) =
-    (X$ Suc n - setsum (\<lambda>i. (compinv a i) * (a^i)$Suc n) {0 .. n}) / (a$1) ^ Suc n"
+    (X$ Suc n - sum (\<lambda>i. (compinv a i) * (a^i)$Suc n) {0 .. n}) / (a$1) ^ Suc n"
 
 definition "fps_inv a = Abs_fps (compinv a)"
 
@@ -3184,10 +3184,10 @@ proof -
         by (simp add: fps_compose_nth fps_inv_def)
     next
       case (Suc n1)
-      have "?i $ n = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + fps_inv a $ Suc n1 * (a $ 1)^ Suc n1"
+      have "?i $ n = sum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + fps_inv a $ Suc n1 * (a $ 1)^ Suc n1"
         by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
-      also have "\<dots> = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} +
-        (X$ Suc n1 - setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
+      also have "\<dots> = sum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} +
+        (X$ Suc n1 - sum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
         using a0 a1 Suc by (simp add: fps_inv_def)
       also have "\<dots> = X$n" using Suc by simp
       finally show ?thesis .
@@ -3202,7 +3202,7 @@ fun gcompinv :: "'a fps \<Rightarrow> 'a fps \<Rightarrow> nat \<Rightarrow> 'a:
 where
   "gcompinv b a 0 = b$0"
 | "gcompinv b a (Suc n) =
-    (b$ Suc n - setsum (\<lambda>i. (gcompinv b a i) * (a^i)$Suc n) {0 .. n}) / (a$1) ^ Suc n"
+    (b$ Suc n - sum (\<lambda>i. (gcompinv b a i) * (a^i)$Suc n) {0 .. n}) / (a$1) ^ Suc n"
 
 definition "fps_ginv b a = Abs_fps (gcompinv b a)"
 
@@ -3223,10 +3223,10 @@ proof -
         by (simp add: fps_compose_nth fps_ginv_def)
     next
       case (Suc n1)
-      have "?i $ n = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} + fps_ginv b a $ Suc n1 * (a $ 1)^ Suc n1"
+      have "?i $ n = sum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} + fps_ginv b a $ Suc n1 * (a $ 1)^ Suc n1"
         by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
-      also have "\<dots> = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} +
-        (b$ Suc n1 - setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1})"
+      also have "\<dots> = sum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} +
+        (b$ Suc n1 - sum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1})"
         using a0 a1 Suc by (simp add: fps_ginv_def)
       also have "\<dots> = b$n" using Suc by simp
       finally show ?thesis .
@@ -3246,30 +3246,30 @@ lemma fps_inv_ginv: "fps_inv = fps_ginv X"
   done
 
 lemma fps_compose_1[simp]: "1 oo a = 1"
-  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum.delta)
+  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left sum.delta)
 
 lemma fps_compose_0[simp]: "0 oo a = 0"
   by (simp add: fps_eq_iff fps_compose_nth)
 
 lemma fps_compose_0_right[simp]: "a oo 0 = fps_const (a $ 0)"
-  by (auto simp add: fps_eq_iff fps_compose_nth power_0_left setsum.neutral)
+  by (auto simp add: fps_eq_iff fps_compose_nth power_0_left sum.neutral)
 
 lemma fps_compose_add_distrib: "(a + b) oo c = (a oo c) + (b oo c)"
-  by (simp add: fps_eq_iff fps_compose_nth field_simps setsum.distrib)
+  by (simp add: fps_eq_iff fps_compose_nth field_simps sum.distrib)
 
-lemma fps_compose_setsum_distrib: "(setsum f S) oo a = setsum (\<lambda>i. f i oo a) S"
+lemma fps_compose_sum_distrib: "(sum f S) oo a = sum (\<lambda>i. f i oo a) S"
 proof (cases "finite S")
   case True
   show ?thesis
   proof (rule finite_induct[OF True])
-    show "setsum f {} oo a = (\<Sum>i\<in>{}. f i oo a)"
+    show "sum f {} oo a = (\<Sum>i\<in>{}. f i oo a)"
       by simp
   next
     fix x F
     assume fF: "finite F"
       and xF: "x \<notin> F"
-      and h: "setsum f F oo a = setsum (\<lambda>i. f i oo a) F"
-    show "setsum f (insert x F) oo a  = setsum (\<lambda>i. f i oo a) (insert x F)"
+      and h: "sum f F oo a = sum (\<lambda>i. f i oo a) F"
+    show "sum f (insert x F) oo a  = sum (\<lambda>i. f i oo a) (insert x F)"
       using fF xF h by (simp add: fps_compose_add_distrib)
   qed
 next
@@ -3278,15 +3278,15 @@ next
 qed
 
 lemma convolution_eq:
-  "setsum (\<lambda>i. a (i :: nat) * b (n - i)) {0 .. n} =
-    setsum (\<lambda>(i,j). a i * b j) {(i,j). i \<le> n \<and> j \<le> n \<and> i + j = n}"
-  by (rule setsum.reindex_bij_witness[where i=fst and j="\<lambda>i. (i, n - i)"]) auto
+  "sum (\<lambda>i. a (i :: nat) * b (n - i)) {0 .. n} =
+    sum (\<lambda>(i,j). a i * b j) {(i,j). i \<le> n \<and> j \<le> n \<and> i + j = n}"
+  by (rule sum.reindex_bij_witness[where i=fst and j="\<lambda>i. (i, n - i)"]) auto
 
 lemma product_composition_lemma:
   assumes c0: "c$0 = (0::'a::idom)"
     and d0: "d$0 = 0"
   shows "((a oo c) * (b oo d))$n =
-    setsum (\<lambda>(k,m). a$k * b$m * (c^k * d^m) $ n) {(k,m). k + m \<le> n}"  (is "?l = ?r")
+    sum (\<lambda>(k,m). a$k * b$m * (c^k * d^m) $ n) {(k,m). k + m \<le> n}"  (is "?l = ?r")
 proof -
   let ?S = "{(k::nat, m::nat). k + m \<le> n}"
   have s: "?S \<subseteq> {0..n} \<times> {0..n}" by (auto simp add: subset_eq)
@@ -3294,18 +3294,18 @@ proof -
     apply (rule finite_subset[OF s])
     apply auto
     done
-  have "?r =  setsum (\<lambda>i. setsum (\<lambda>(k,m). a$k * (c^k)$i * b$m * (d^m) $ (n - i)) {(k,m). k + m \<le> n}) {0..n}"
-    apply (simp add: fps_mult_nth setsum_distrib_left)
-    apply (subst setsum.commute)
-    apply (rule setsum.cong)
+  have "?r =  sum (\<lambda>i. sum (\<lambda>(k,m). a$k * (c^k)$i * b$m * (d^m) $ (n - i)) {(k,m). k + m \<le> n}) {0..n}"
+    apply (simp add: fps_mult_nth sum_distrib_left)
+    apply (subst sum.commute)
+    apply (rule sum.cong)
     apply (auto simp add: field_simps)
     done
   also have "\<dots> = ?l"
-    apply (simp add: fps_mult_nth fps_compose_nth setsum_product)
-    apply (rule setsum.cong)
+    apply (simp add: fps_mult_nth fps_compose_nth sum_product)
+    apply (rule sum.cong)
     apply (rule refl)
-    apply (simp add: setsum.cartesian_product mult.assoc)
-    apply (rule setsum.mono_neutral_right[OF f])
+    apply (simp add: sum.cartesian_product mult.assoc)
+    apply (rule sum.mono_neutral_right[OF f])
     apply (simp add: subset_eq)
     apply presburger
     apply clarsimp
@@ -3326,10 +3326,10 @@ lemma product_composition_lemma':
   assumes c0: "c$0 = (0::'a::idom)"
     and d0: "d$0 = 0"
   shows "((a oo c) * (b oo d))$n =
-    setsum (\<lambda>k. setsum (\<lambda>m. a$k * b$m * (c^k * d^m) $ n) {0..n}) {0..n}"  (is "?l = ?r")
+    sum (\<lambda>k. sum (\<lambda>m. a$k * b$m * (c^k * d^m) $ n) {0..n}) {0..n}"  (is "?l = ?r")
   unfolding product_composition_lemma[OF c0 d0]
-  unfolding setsum.cartesian_product
-  apply (rule setsum.mono_neutral_left)
+  unfolding sum.cartesian_product
+  apply (rule sum.mono_neutral_left)
   apply simp
   apply (clarsimp simp add: subset_eq)
   apply clarsimp
@@ -3337,7 +3337,7 @@ lemma product_composition_lemma':
   apply (subgoal_tac "(c^aa * d^ba) $ n = 0")
   apply simp
   unfolding fps_mult_nth
-  apply (rule setsum.neutral)
+  apply (rule sum.neutral)
   apply (clarsimp simp add: not_le)
   apply (case_tac "x < aa")
   apply (rule startsby_zero_power_prefix[OF c0, rule_format])
@@ -3349,9 +3349,9 @@ lemma product_composition_lemma':
   done
 
 
-lemma setsum_pair_less_iff:
-  "setsum (\<lambda>((k::nat),m). a k * b m * c (k + m)) {(k,m). k + m \<le> n} =
-    setsum (\<lambda>s. setsum (\<lambda>i. a i * b (s - i) * c s) {0..s}) {0..n}"
+lemma sum_pair_less_iff:
+  "sum (\<lambda>((k::nat),m). a k * b m * c (k + m)) {(k,m). k + m \<le> n} =
+    sum (\<lambda>s. sum (\<lambda>i. a i * b (s - i) * c s) {0..s}) {0..n}"
   (is "?l = ?r")
 proof -
   let ?KM = "{(k,m). k + m \<le> n}"
@@ -3360,24 +3360,24 @@ proof -
     by auto
   show "?l = ?r "
     unfolding th0
-    apply (subst setsum.UNION_disjoint)
+    apply (subst sum.UNION_disjoint)
     apply auto
-    apply (subst setsum.UNION_disjoint)
+    apply (subst sum.UNION_disjoint)
     apply auto
     done
 qed
 
 lemma fps_compose_mult_distrib_lemma:
   assumes c0: "c$0 = (0::'a::idom)"
-  shows "((a oo c) * (b oo c))$n = setsum (\<lambda>s. setsum (\<lambda>i. a$i * b$(s - i) * (c^s) $ n) {0..s}) {0..n}"
+  shows "((a oo c) * (b oo c))$n = sum (\<lambda>s. sum (\<lambda>i. a$i * b$(s - i) * (c^s) $ n) {0..s}) {0..n}"
   unfolding product_composition_lemma[OF c0 c0] power_add[symmetric]
-  unfolding setsum_pair_less_iff[where a = "\<lambda>k. a$k" and b="\<lambda>m. b$m" and c="\<lambda>s. (c ^ s)$n" and n = n] ..
+  unfolding sum_pair_less_iff[where a = "\<lambda>k. a$k" and b="\<lambda>m. b$m" and c="\<lambda>s. (c ^ s)$n" and n = n] ..
 
 lemma fps_compose_mult_distrib:
   assumes c0: "c $ 0 = (0::'a::idom)"
   shows "(a * b) oo c = (a oo c) * (b oo c)"
   apply (simp add: fps_eq_iff fps_compose_mult_distrib_lemma [OF c0])
-  apply (simp add: fps_compose_nth fps_mult_nth setsum_distrib_right)
+  apply (simp add: fps_compose_nth fps_mult_nth sum_distrib_right)
   done
 
 lemma fps_compose_setprod_distrib:
@@ -3420,13 +3420,13 @@ next
 qed
 
 lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
-  by (simp add: fps_eq_iff fps_compose_nth field_simps setsum_negf[symmetric])
+  by (simp add: fps_eq_iff fps_compose_nth field_simps sum_negf[symmetric])
 
 lemma fps_compose_sub_distrib: "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b oo c)"
   using fps_compose_add_distrib [of a "- b" c] by (simp add: fps_compose_uminus)
 
 lemma X_fps_compose: "X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
-  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum.delta)
+  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left sum.delta)
 
 lemma fps_inverse_compose:
   assumes b0: "(b$0 :: 'a::field) = 0"
@@ -3498,7 +3498,7 @@ proof -
 qed
 
 lemma fps_const_mult_apply_left: "fps_const c * (a oo b) = (fps_const c * a) oo b"
-  by (simp add: fps_eq_iff fps_compose_nth setsum_distrib_left mult.assoc)
+  by (simp add: fps_eq_iff fps_compose_nth sum_distrib_left mult.assoc)
 
 lemma fps_const_mult_apply_right:
   "(a oo b) * fps_const (c::'a::comm_semiring_1) = (fps_const c * a) oo b"
@@ -3511,16 +3511,16 @@ lemma fps_compose_assoc:
 proof -
   have "?l$n = ?r$n" for n
   proof -
-    have "?l$n = (setsum (\<lambda>i. (fps_const (a$i) * b^i) oo c) {0..n})$n"
+    have "?l$n = (sum (\<lambda>i. (fps_const (a$i) * b^i) oo c) {0..n})$n"
       by (simp add: fps_compose_nth fps_compose_power[OF c0] fps_const_mult_apply_left
-        setsum_distrib_left mult.assoc fps_setsum_nth)
-    also have "\<dots> = ((setsum (\<lambda>i. fps_const (a$i) * b^i) {0..n}) oo c)$n"
-      by (simp add: fps_compose_setsum_distrib)
+        sum_distrib_left mult.assoc fps_sum_nth)
+    also have "\<dots> = ((sum (\<lambda>i. fps_const (a$i) * b^i) {0..n}) oo c)$n"
+      by (simp add: fps_compose_sum_distrib)
     also have "\<dots> = ?r$n"
-      apply (simp add: fps_compose_nth fps_setsum_nth setsum_distrib_right mult.assoc)
-      apply (rule setsum.cong)
+      apply (simp add: fps_compose_nth fps_sum_nth sum_distrib_right mult.assoc)
+      apply (rule sum.cong)
       apply (rule refl)
-      apply (rule setsum.mono_neutral_right)
+      apply (rule sum.mono_neutral_right)
       apply (auto simp add: not_le)
       apply (erule startsby_zero_power_prefix[OF b0, rule_format])
       done
@@ -3552,7 +3552,7 @@ next
     next
       case 2
       then show ?thesis
-        by (simp add: fps_compose_nth mult_delta_left setsum.delta)
+        by (simp add: fps_compose_nth mult_delta_left sum.delta)
     qed
   qed
   then show ?thesis
@@ -3688,7 +3688,7 @@ qed
 lemma fps_compose_linear:
   "fps_compose (f :: 'a :: comm_ring_1 fps) (fps_const c * X) = Abs_fps (\<lambda>n. c^n * f $ n)"
   by (simp add: fps_eq_iff fps_compose_def power_mult_distrib
-                if_distrib setsum.delta' cong: if_cong)
+                if_distrib sum.delta' cong: if_cong)
 
 subsection \<open>Elementary series\<close>
 
@@ -3796,7 +3796,7 @@ qed
 
 lemma Ec_E1_eq: "E (1::'a::field_char_0) oo (fps_const c * X) = E c"
   apply (auto simp add: fps_eq_iff E_def fps_compose_def power_mult_distrib)
-  apply (simp add: cond_value_iff cond_application_beta setsum.delta' cong del: if_weak_cong)
+  apply (simp add: cond_value_iff cond_application_beta sum.delta' cong del: if_weak_cong)
   done
 
 
@@ -4066,7 +4066,7 @@ lemma one_minus_const_X_neg_power':
 
 text \<open>Vandermonde's Identity as a consequence.\<close>
 lemma gbinomial_Vandermonde:
-  "setsum (\<lambda>k. (a gchoose k) * (b gchoose (n - k))) {0..n} = (a + b) gchoose n"
+  "sum (\<lambda>k. (a gchoose k) * (b gchoose (n - k))) {0..n} = (a + b) gchoose n"
 proof -
   let ?ba = "fps_binomial a"
   let ?bb = "fps_binomial b"
@@ -4076,23 +4076,23 @@ proof -
 qed
 
 lemma binomial_Vandermonde:
-  "setsum (\<lambda>k. (a choose k) * (b choose (n - k))) {0..n} = (a + b) choose n"
+  "sum (\<lambda>k. (a choose k) * (b choose (n - k))) {0..n} = (a + b) choose n"
   using gbinomial_Vandermonde[of "(of_nat a)" "of_nat b" n]
   by (simp only: binomial_gbinomial[symmetric] of_nat_mult[symmetric]
-                 of_nat_setsum[symmetric] of_nat_add[symmetric] of_nat_eq_iff)
+                 of_nat_sum[symmetric] of_nat_add[symmetric] of_nat_eq_iff)
 
-lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)\<^sup>2) {0..n} = (2 * n) choose n"
+lemma binomial_Vandermonde_same: "sum (\<lambda>k. (n choose k)\<^sup>2) {0..n} = (2 * n) choose n"
   using binomial_Vandermonde[of n n n, symmetric]
   unfolding mult_2
   apply (simp add: power2_eq_square)
-  apply (rule setsum.cong)
+  apply (rule sum.cong)
   apply (auto intro:  binomial_symmetric)
   done
 
 lemma Vandermonde_pochhammer_lemma:
   fixes a :: "'a::field_char_0"
   assumes b: "\<forall>j\<in>{0 ..<n}. b \<noteq> of_nat j"
-  shows "setsum (\<lambda>k. (pochhammer (- a) k * pochhammer (- (of_nat n)) k) /
+  shows "sum (\<lambda>k. (pochhammer (- a) k * pochhammer (- (of_nat n)) k) /
       (of_nat (fact k) * pochhammer (b - of_nat n + 1) k)) {0..n} =
     pochhammer (- (a + b)) n / pochhammer (- b) n"
   (is "?l = ?r")
@@ -4224,7 +4224,7 @@ proof -
     apply (simp add: th00)
     unfolding gbinomial_pochhammer
     using bn0
-    apply (simp add: setsum_distrib_right setsum_distrib_left field_simps)
+    apply (simp add: sum_distrib_right sum_distrib_left field_simps)
     done
   finally show ?thesis by simp
 qed
@@ -4232,7 +4232,7 @@ qed
 lemma Vandermonde_pochhammer:
   fixes a :: "'a::field_char_0"
   assumes c: "\<forall>i \<in> {0..< n}. c \<noteq> - of_nat i"
-  shows "setsum (\<lambda>k. (pochhammer a k * pochhammer (- (of_nat n)) k) /
+  shows "sum (\<lambda>k. (pochhammer a k * pochhammer (- (of_nat n)) k) /
     (of_nat (fact k) * pochhammer c k)) {0..n} = pochhammer (c - a) n / pochhammer c n"
 proof -
   let ?a = "- a"
@@ -4253,7 +4253,7 @@ proof -
     by (simp add: pochhammer_eq_0_iff)
   from Vandermonde_pochhammer_lemma[where a = "?a" and b="?b" and n=n, OF h, unfolded th0 th1]
   show ?thesis
-    using nz by (simp add: field_simps setsum_distrib_left)
+    using nz by (simp add: field_simps sum_distrib_left)
 qed
 
 
@@ -4558,7 +4558,7 @@ proof -
   have th0: "(fps_const c * X) $ 0 = 0" by simp
   show ?thesis unfolding gp[OF th0, symmetric]
     by (auto simp add: fps_eq_iff pochhammer_fact[symmetric]
-      fps_compose_nth power_mult_distrib cond_value_iff setsum.delta' cong del: if_weak_cong)
+      fps_compose_nth power_mult_distrib cond_value_iff sum.delta' cong del: if_weak_cong)
 qed
 
 lemma F_B[simp]: "F [-a] [] (- 1) = fps_binomial a"
@@ -4620,10 +4620,10 @@ lemma F_minus_nat:
      else 0)"
   by (auto simp add: pochhammer_eq_0_iff)
 
-lemma setsum_eq_if: "setsum f {(n::nat) .. m} = (if m < n then 0 else f n + setsum f {n+1 .. m})"
+lemma sum_eq_if: "sum f {(n::nat) .. m} = (if m < n then 0 else f n + sum f {n+1 .. m})"
   apply simp
-  apply (subst setsum.insert[symmetric])
-  apply (auto simp add: not_less setsum_head_Suc)
+  apply (subst sum.insert[symmetric])
+  apply (auto simp add: not_less sum_head_Suc)
   done
 
 lemma pochhammer_rec_if: "pochhammer a n = (if n = 0 then 1 else a * pochhammer (a + 1) (n - 1))"

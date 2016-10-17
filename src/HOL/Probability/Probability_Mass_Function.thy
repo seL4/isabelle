@@ -205,13 +205,13 @@ lemma measure_pmf_single: "measure (measure_pmf M) {x} = pmf M x"
   using emeasure_pmf_single[of M x] by(simp add: measure_pmf.emeasure_eq_measure pmf_nonneg measure_nonneg)
 
 lemma emeasure_measure_pmf_finite: "finite S \<Longrightarrow> emeasure (measure_pmf M) S = (\<Sum>s\<in>S. pmf M s)"
-  by (subst emeasure_eq_setsum_singleton) (auto simp: emeasure_pmf_single pmf_nonneg)
+  by (subst emeasure_eq_sum_singleton) (auto simp: emeasure_pmf_single pmf_nonneg)
 
-lemma measure_measure_pmf_finite: "finite S \<Longrightarrow> measure (measure_pmf M) S = setsum (pmf M) S"
+lemma measure_measure_pmf_finite: "finite S \<Longrightarrow> measure (measure_pmf M) S = sum (pmf M) S"
   using emeasure_measure_pmf_finite[of S M]
-  by (simp add: measure_pmf.emeasure_eq_measure measure_nonneg setsum_nonneg pmf_nonneg)
+  by (simp add: measure_pmf.emeasure_eq_measure measure_nonneg sum_nonneg pmf_nonneg)
 
-lemma setsum_pmf_eq_1:
+lemma sum_pmf_eq_1:
   assumes "finite A" "set_pmf p \<subseteq> A"
   shows   "(\<Sum>x\<in>A. pmf p x) = 1"
 proof -
@@ -575,7 +575,7 @@ lemma pmf_pair: "pmf (pair_pmf M N) (a, b) = pmf M a * pmf N b"
   apply (subst integral_measure_pmf_real[where A="{b}"])
   apply (auto simp: indicator_eq_0_iff)
   apply (subst integral_measure_pmf_real[where A="{a}"])
-  apply (auto simp: indicator_eq_0_iff setsum_nonneg_eq_0_iff pmf_nonneg)
+  apply (auto simp: indicator_eq_0_iff sum_nonneg_eq_0_iff pmf_nonneg)
   done
 
 lemma set_pair_pmf[simp]: "set_pmf (pair_pmf A B) = set_pmf A \<times> set_pmf B"
@@ -752,7 +752,7 @@ lemma integral_measure_pmf:
   unfolding measure_pmf_eq_density
   apply (simp add: integral_density)
   apply (subst lebesgue_integral_count_space_finite_support)
-  apply (auto intro!: finite_subset[OF _ \<open>finite A\<close>] setsum.mono_neutral_left simp: pmf_eq_0_set_pmf)
+  apply (auto intro!: finite_subset[OF _ \<open>finite A\<close>] sum.mono_neutral_left simp: pmf_eq_0_set_pmf)
   done
 
 lemma continuous_on_LINT_pmf: -- \<open>This is dominated convergence!?\<close>
@@ -764,7 +764,7 @@ proof cases
   assume "finite M" with f show ?thesis
     using integral_measure_pmf[OF \<open>finite M\<close>]
     by (subst integral_measure_pmf[OF \<open>finite M\<close>])
-       (auto intro!: continuous_on_setsum continuous_on_scaleR continuous_on_const)
+       (auto intro!: continuous_on_sum continuous_on_scaleR continuous_on_const)
 next
   assume "infinite M"
   let ?f = "\<lambda>i x. pmf (map_pmf (to_nat_on M) M) i *\<^sub>R f (from_nat_into M i) x"
@@ -772,7 +772,7 @@ next
   show ?thesis
   proof (rule uniform_limit_theorem)
     show "\<forall>\<^sub>F n in sequentially. continuous_on A (\<lambda>a. \<Sum>i<n. ?f i a)"
-      by (intro always_eventually allI continuous_on_setsum continuous_on_scaleR continuous_on_const f
+      by (intro always_eventually allI continuous_on_sum continuous_on_scaleR continuous_on_const f
                 from_nat_into set_pmf_not_empty)
     show "uniform_limit A (\<lambda>n a. \<Sum>i<n. ?f i a) (\<lambda>a. LINT i|M. f i a) sequentially"
     proof (subst uniform_limit_cong[where g="\<lambda>n a. \<Sum>i<n. ?f i a"])
@@ -1677,8 +1677,8 @@ proof
   show "(\<integral>\<^sup>+ x. ennreal (real (count M x) / real (size M)) \<partial>count_space UNIV) = 1"
     using M_not_empty
     by (simp add: zero_less_divide_iff nn_integral_count_space nonempty_has_size
-                  setsum_divide_distrib[symmetric])
-       (auto simp: size_multiset_overloaded_eq intro!: setsum.cong)
+                  sum_divide_distrib[symmetric])
+       (auto simp: size_multiset_overloaded_eq intro!: sum.cong)
 qed simp
 
 lemma pmf_of_multiset[simp]: "pmf pmf_of_multiset x = count M x / size M"
@@ -1712,17 +1712,17 @@ lemma set_pmf_of_set[simp]: "set_pmf pmf_of_set = S"
 lemma emeasure_pmf_of_set_space[simp]: "emeasure pmf_of_set S = 1"
   by (rule measure_pmf.emeasure_eq_1_AE) (auto simp: AE_measure_pmf_iff)
 
-lemma nn_integral_pmf_of_set: "nn_integral (measure_pmf pmf_of_set) f = setsum f S / card S"
+lemma nn_integral_pmf_of_set: "nn_integral (measure_pmf pmf_of_set) f = sum f S / card S"
   by (subst nn_integral_measure_pmf_finite)
-     (simp_all add: setsum_distrib_right[symmetric] card_gt_0_iff S_not_empty S_finite divide_ennreal_def
+     (simp_all add: sum_distrib_right[symmetric] card_gt_0_iff S_not_empty S_finite divide_ennreal_def
                 divide_ennreal[symmetric] ennreal_of_nat_eq_real_of_nat[symmetric] ennreal_times_divide)
 
-lemma integral_pmf_of_set: "integral\<^sup>L (measure_pmf pmf_of_set) f = setsum f S / card S"
-  by (subst integral_measure_pmf[of S]) (auto simp: S_finite setsum_divide_distrib)
+lemma integral_pmf_of_set: "integral\<^sup>L (measure_pmf pmf_of_set) f = sum f S / card S"
+  by (subst integral_measure_pmf[of S]) (auto simp: S_finite sum_divide_distrib)
 
 lemma emeasure_pmf_of_set: "emeasure (measure_pmf pmf_of_set) A = card (S \<inter> A) / card S"
   by (subst nn_integral_indicator[symmetric], simp)
-     (simp add: S_finite S_not_empty card_gt_0_iff indicator_def setsum.If_cases divide_ennreal
+     (simp add: S_finite S_not_empty card_gt_0_iff indicator_def sum.If_cases divide_ennreal
                 ennreal_of_nat_eq_real_of_nat nn_integral_pmf_of_set)
 
 lemma measure_pmf_of_set: "measure (measure_pmf pmf_of_set) A = card (S \<inter> A) / card S"
@@ -1752,8 +1752,8 @@ proof -
   with assms have "ennreal ?lhs = ennreal ?rhs"
     by (subst ennreal_pmf_bind)
        (simp_all add: nn_integral_pmf_of_set max_def pmf_nonneg divide_ennreal [symmetric]
-        setsum_nonneg ennreal_of_nat_eq_real_of_nat)
-  thus ?thesis by (subst (asm) ennreal_inj) (auto intro!: setsum_nonneg divide_nonneg_nonneg)
+        sum_nonneg ennreal_of_nat_eq_real_of_nat)
+  thus ?thesis by (subst (asm) ennreal_inj) (auto intro!: sum_nonneg divide_nonneg_nonneg)
 qed
 
 lemma pmf_of_set_singleton: "pmf_of_set {x} = return_pmf x"
@@ -1801,12 +1801,12 @@ proof (intro pmf_eqI)
   also from assms
     have "indicator (\<Union>x\<in>A. f x) x / real \<dots> =
               indicator (\<Union>x\<in>A. f x) x / (n * real (card A))"
-      by (simp add: setsum_divide_distrib [symmetric] mult_ac)
+      by (simp add: sum_divide_distrib [symmetric] mult_ac)
   also from assms have "indicator (\<Union>x\<in>A. f x) x = (\<Sum>y\<in>A. indicator (f y) x)"
     by (intro indicator_UN_disjoint) simp_all
   also from assms have "ereal ((\<Sum>y\<in>A. indicator (f y) x) / (real n * real (card A))) =
                           ereal (pmf ?rhs x)"
-    by (subst pmf_bind_pmf_of_set) (simp_all add: setsum_divide_distrib)
+    by (subst pmf_bind_pmf_of_set) (simp_all add: sum_divide_distrib)
   finally show "pmf ?lhs x = pmf ?rhs x" by simp
 qed
 
@@ -2043,32 +2043,32 @@ proof -
     by (subst nn_integral_measure_pmf_finite) (simp_all add: finite_set_pmf_of_list pmf_pmf_of_list Int_def)
   also from assms
     have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. sum_list (map snd [z\<leftarrow>xs . fst z = x]))"
-    by (subst setsum_ennreal) (auto simp: pmf_of_list_wf_def intro!: sum_list_nonneg)
+    by (subst sum_ennreal) (auto simp: pmf_of_list_wf_def intro!: sum_list_nonneg)
   also have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A.
       indicator A x * pmf (pmf_of_list xs) x)" (is "_ = ennreal ?S")
-    using assms by (intro ennreal_cong setsum.cong) (auto simp: pmf_pmf_of_list)
+    using assms by (intro ennreal_cong sum.cong) (auto simp: pmf_pmf_of_list)
   also have "?S = (\<Sum>x\<in>set_pmf (pmf_of_list xs). indicator A x * pmf (pmf_of_list xs) x)"
-    using assms by (intro setsum.mono_neutral_left set_pmf_of_list finite_set_pmf_of_list) auto
+    using assms by (intro sum.mono_neutral_left set_pmf_of_list finite_set_pmf_of_list) auto
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). indicator A x * pmf (pmf_of_list xs) x)"
-    using assms by (intro setsum.mono_neutral_left set_pmf_of_list) (auto simp: set_pmf_eq)
+    using assms by (intro sum.mono_neutral_left set_pmf_of_list) (auto simp: set_pmf_eq)
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). indicator A x *
                       sum_list (map snd (filter (\<lambda>z. fst z = x) xs)))"
     using assms by (simp add: pmf_pmf_of_list)
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). sum_list (map snd (filter (\<lambda>z. fst z = x \<and> x \<in> A) xs)))"
-    by (intro setsum.cong) (auto simp: indicator_def)
+    by (intro sum.cong) (auto simp: indicator_def)
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). (\<Sum>xa = 0..<length xs.
                      if fst (xs ! xa) = x \<and> x \<in> A then snd (xs ! xa) else 0))"
-    by (intro setsum.cong refl, subst sum_list_map_filter', subst sum_list_setsum_nth) simp
+    by (intro sum.cong refl, subst sum_list_map_filter', subst sum_list_sum_nth) simp
   also have "\<dots> = (\<Sum>xa = 0..<length xs. (\<Sum>x\<in>set (map fst xs).
                      if fst (xs ! xa) = x \<and> x \<in> A then snd (xs ! xa) else 0))"
-    by (rule setsum.commute)
+    by (rule sum.commute)
   also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then
                      (\<Sum>x\<in>set (map fst xs). if x = fst (xs ! xa) then snd (xs ! xa) else 0) else 0)"
-    by (auto intro!: setsum.cong setsum.neutral)
+    by (auto intro!: sum.cong sum.neutral)
   also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then snd (xs ! xa) else 0)"
-    by (intro setsum.cong refl) (simp_all add: setsum.delta)
+    by (intro sum.cong refl) (simp_all add: sum.delta)
   also have "\<dots> = sum_list (map snd (filter (\<lambda>x. fst x \<in> A) xs))"
-    by (subst sum_list_map_filter', subst sum_list_setsum_nth) simp_all
+    by (subst sum_list_map_filter', subst sum_list_sum_nth) simp_all
   finally show ?thesis .
 qed
 

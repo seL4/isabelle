@@ -43,11 +43,11 @@ proof -
     with Suc show ?case by simp
   qed simp_all
   also have "... \<le> (\<Sum>k<n. integral {of_nat k..of_nat (Suc k)} (\<lambda>_::real. f (of_nat k)))"
-    by (intro setsum_mono integral_le int) (auto intro: dec)
+    by (intro sum_mono integral_le int) (auto intro: dec)
   also have "... = (\<Sum>k<n. f (of_nat k))" by simp
   also have "\<dots> - (\<Sum>k\<le>n. f (of_nat k)) = -(\<Sum>k\<in>{..n} - {..<n}. f (of_nat k))"
-    by (subst setsum_diff) auto
-  also have "\<dots> \<le> 0" by (auto intro!: setsum_nonneg nonneg)
+    by (subst sum_diff) auto
+  also have "\<dots> \<le> 0" by (auto intro!: sum_nonneg nonneg)
   finally show "sum_integral_diff_series n \<ge> 0" by simp
 qed
 

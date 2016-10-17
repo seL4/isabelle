@@ -19,7 +19,7 @@ lemma eval_fact:
   by (simp, simp, simp_all only: numeral_eq_Suc fact_Suc,
       simp only: numeral_eq_Suc [symmetric] of_nat_numeral)
 
-lemma setsum_poly_horner_expand:
+lemma sum_poly_horner_expand:
   "(\<Sum>k<(numeral n::nat). f k * x^k) = f 0 + (\<Sum>k<pred_numeral n. f (k+1) * x^k) * x"
   "(\<Sum>k<Suc 0. f k * x^k) = (f 0 :: 'a :: semiring_1)"
   "(\<Sum>k<(0::nat). f k * x^k) = 0"
@@ -27,10 +27,10 @@ proof -
   {
     fix m :: nat
     have "(\<Sum>k<Suc m. f k * x^k) = f 0 + (\<Sum>k=Suc 0..<Suc m. f k * x^k)"
-      by (subst atLeast0LessThan [symmetric], subst setsum_head_upt_Suc) simp_all
+      by (subst atLeast0LessThan [symmetric], subst sum_head_upt_Suc) simp_all
     also have "(\<Sum>k=Suc 0..<Suc m. f k * x^k) = (\<Sum>k<m. f (k+1) * x^k) * x"
-      by (subst setsum_shift_bounds_Suc_ivl)
-         (simp add: setsum_distrib_right algebra_simps atLeast0LessThan power_commutes)
+      by (subst sum_shift_bounds_Suc_ivl)
+         (simp add: sum_distrib_right algebra_simps atLeast0LessThan power_commutes)
     finally have "(\<Sum>k<Suc m. f k * x ^ k) = f 0 + (\<Sum>k<m. f (k + 1) * x ^ k) * x" .
   }
   from this[of "pred_numeral n"]
@@ -181,9 +181,9 @@ lemma euler_approx_altdef [code]:
 proof -
   have "real (\<Sum>k\<le>n. \<Prod>{k+1..n}) = (\<Sum>k\<le>n. \<Prod>i=k+1..n. real i)" by simp
   also have "\<dots> / fact n = (\<Sum>k\<le>n. 1 / (fact n / (\<Prod>i=k+1..n. real i)))"
-    by (simp add: setsum_divide_distrib)
+    by (simp add: sum_divide_distrib)
   also have "\<dots> = (\<Sum>k\<le>n. 1 / fact k)"
-  proof (intro setsum.cong refl)
+  proof (intro sum.cong refl)
     fix k assume k: "k \<in> {..n}"
     have "fact n = (\<Prod>i=1..n. real i)" by (simp add: fact_setprod)
     also from k have "{1..n} = {1..k} \<union> {k+1..n}" by auto
@@ -199,7 +199,7 @@ qed
 lemma euler_approx_aux_Suc:
   "euler_approx_aux (Suc m) = 1 + Suc m * euler_approx_aux m"
   unfolding euler_approx_aux_def
-  by (subst setsum_distrib_left) (simp add: atLeastAtMostSuc_conv)
+  by (subst sum_distrib_left) (simp add: atLeastAtMostSuc_conv)
 
 lemma eval_euler_approx_aux:
   "euler_approx_aux 0 = 1"
@@ -209,7 +209,7 @@ lemma eval_euler_approx_aux:
 proof -
   have A: "euler_approx_aux (Suc m) = 1 + Suc m * euler_approx_aux m" for m :: nat
     unfolding euler_approx_aux_def
-    by (subst setsum_distrib_left) (simp add: atLeastAtMostSuc_conv)
+    by (subst sum_distrib_left) (simp add: atLeastAtMostSuc_conv)
   show ?th by (subst numeral_eq_Suc, subst A, subst numeral_eq_Suc [symmetric]) simp
 qed (simp_all add: euler_approx_aux_def)
 
@@ -281,7 +281,7 @@ proof (rule approx_coarsen[OF ln_approx_abs[OF x, of n]], goal_cases)
                    y_def [symmetric] d_def [symmetric])
   also have "2 * y * (\<Sum>k<n. inverse (real (2 * k + 1)) * y\<^sup>2 ^ k) = 
                (\<Sum>k<n. 2 * y^(2*k+1) / (real (2 * k + 1)))"
-    by (subst setsum_distrib_left, simp, subst power_mult) 
+    by (subst sum_distrib_left, simp, subst power_mult) 
        (simp_all add: divide_simps mult_ac power_mult)
   finally show ?case by (simp only: d_def y_def approx_def) 
 qed
@@ -297,7 +297,7 @@ lemma ln_2_40_decimals:
   apply (simp, simp add: ln_approx_aux1_def)
   apply (simp add: ln_approx_aux2_def power2_eq_square power_divide)
   apply (simp add: ln_approx_aux3_def power2_eq_square)
-  apply (simp add: setsum_poly_horner_expand)
+  apply (simp add: sum_poly_horner_expand)
   done
      
 lemma ln_2_128: 
@@ -380,7 +380,7 @@ proof -
   from sums_split_initial_segment[OF this, of n]
     have "(\<lambda>i. x * ((- x\<^sup>2) ^ (i + n) / real (2 * (i + n) + 1))) sums
             (arctan x - arctan_approx n x)"
-    by (simp add: arctan_approx_def setsum_distrib_left)
+    by (simp add: arctan_approx_def sum_distrib_left)
   from sums_group[OF this, of 2] assms
     have sums: "(\<lambda>k. x * (x\<^sup>2)^n * (x^4)^k * c k) sums (arctan x - arctan_approx n x)"
     by (simp add: algebra_simps power_add power_mult [symmetric] c_def)
@@ -420,10 +420,10 @@ proof -
     fix m :: nat
     have "(\<Sum>k<Suc m. inverse (f k * x^k)) =
              inverse (f 0) + (\<Sum>k=Suc 0..<Suc m. inverse (f k * x^k))"
-      by (subst atLeast0LessThan [symmetric], subst setsum_head_upt_Suc) simp_all
+      by (subst atLeast0LessThan [symmetric], subst sum_head_upt_Suc) simp_all
     also have "(\<Sum>k=Suc 0..<Suc m. inverse (f k * x^k)) = (\<Sum>k<m. inverse (f (k+1) * x^k)) / x"
-      by (subst setsum_shift_bounds_Suc_ivl)
-         (simp add: setsum_distrib_left divide_inverse algebra_simps
+      by (subst sum_shift_bounds_Suc_ivl)
+         (simp add: sum_distrib_left divide_inverse algebra_simps
                     atLeast0LessThan power_commutes)
     finally have "(\<Sum>k<Suc m. inverse (f k) * inverse (x ^ k)) =
                       inverse (f 0) + (\<Sum>k<m. inverse (f (k + 1)) * inverse (x ^ k)) / x" by simp

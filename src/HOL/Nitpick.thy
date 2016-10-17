@@ -72,8 +72,8 @@ definition wf' :: "('a \<times> 'a) set \<Rightarrow> bool" where
 definition card' :: "'a set \<Rightarrow> nat" where
   "card' A \<equiv> if finite A then length (SOME xs. set xs = A \<and> distinct xs) else 0"
 
-definition setsum' :: "('a \<Rightarrow> 'b::comm_monoid_add) \<Rightarrow> 'a set \<Rightarrow> 'b" where
-  "setsum' f A \<equiv> if finite A then sum_list (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
+definition sum' :: "('a \<Rightarrow> 'b::comm_monoid_add) \<Rightarrow> 'a set \<Rightarrow> 'b" where
+  "sum' f A \<equiv> if finite A then sum_list (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
 
 inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> bool" where
   "fold_graph' f z {} z" |
@@ -224,7 +224,7 @@ ML_file "Tools/Nitpick/nitpick_tests.ML"
 setup \<open>
   Nitpick_HOL.register_ersatz_global
     [(@{const_name card}, @{const_name card'}),
-     (@{const_name setsum}, @{const_name setsum'}),
+     (@{const_name sum}, @{const_name sum'}),
      (@{const_name fold_graph}, @{const_name fold_graph'}),
      (@{const_name wf}, @{const_name wf'}),
      (@{const_name wf_wfrec}, @{const_name wf_wfrec'}),
@@ -232,14 +232,14 @@ setup \<open>
 \<close>
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The FunBox PairBox Word prod
-  refl' wf' card' setsum' fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac
+  refl' wf' card' sum' fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac
   zero_frac one_frac num denom norm_frac frac plus_frac times_frac uminus_frac number_of_frac
   inverse_frac less_frac less_eq_frac of_frac wf_wfrec wf_wfrec wfrec'
 
 hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold prod_def refl'_def wf'_def
-  card'_def setsum'_def The_psimp Eps_psimp case_unit_unfold case_nat_unfold
+  card'_def sum'_def The_psimp Eps_psimp case_unit_unfold case_nat_unfold
   size_list_simp nat_lcm_def int_gcd_def int_lcm_def Frac_def zero_frac_def one_frac_def
   num_def denom_def frac_def plus_frac_def times_frac_def uminus_frac_def
   number_of_frac_def inverse_frac_def less_frac_def less_eq_frac_def of_frac_def wf_wfrec'_def

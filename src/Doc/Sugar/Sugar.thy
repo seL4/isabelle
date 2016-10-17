@@ -13,9 +13,9 @@ text{*
 This document is for those Isabelle users who have mastered
 the art of mixing \LaTeX\ text and Isabelle theories and never want to
 typeset a theorem by hand anymore because they have experienced the
-bliss of writing \verb!@!\verb!{thm[display,mode=latex_sum] setsum_Suc_diff [no_vars]}!
+bliss of writing \verb!@!\verb!{thm[display,mode=latex_sum] sum_Suc_diff [no_vars]}!
 and seeing Isabelle typeset it for them:
-@{thm[display,mode=latex_sum] setsum_Suc_diff[no_vars]}
+@{thm[display,mode=latex_sum] sum_Suc_diff[no_vars]}
 No typos, no omissions, no sweat.
 If you have not experienced that joy, read Chapter 4, \emph{Presenting
 Theories}, @{cite LNCS2283} first.

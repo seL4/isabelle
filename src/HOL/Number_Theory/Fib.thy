@@ -100,18 +100,18 @@ lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"
     \<comment> \<open>Law 6.111\<close>
   by (induct m n rule: gcd_nat_induct) (simp_all add: gcd_non_0_nat gcd.commute gcd_fib_mod)
 
-theorem fib_mult_eq_setsum_nat: "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
+theorem fib_mult_eq_sum_nat: "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   by (induct n rule: nat.induct) (auto simp add:  field_simps)
 
 
 subsection \<open>Fibonacci and Binomial Coefficients\<close>
 
-lemma setsum_drop_zero: "(\<Sum>k = 0..Suc n. if 0<k then (f (k - 1)) else 0) = (\<Sum>j = 0..n. f j)"
+lemma sum_drop_zero: "(\<Sum>k = 0..Suc n. if 0<k then (f (k - 1)) else 0) = (\<Sum>j = 0..n. f j)"
   by (induct n) auto
 
-lemma setsum_choose_drop_zero:
+lemma sum_choose_drop_zero:
     "(\<Sum>k = 0..Suc n. if k=0 then 0 else (Suc n - k) choose (k - 1)) = (\<Sum>j = 0..n. (n-j) choose j)"
-  by (rule trans [OF setsum.cong setsum_drop_zero]) auto
+  by (rule trans [OF sum.cong sum_drop_zero]) auto
 
 lemma ne_diagonal_fib: "(\<Sum>k = 0..n. (n-k) choose k) = fib (Suc n)"
 proof (induct n rule: fib.induct)
@@ -124,13 +124,13 @@ next
   case (3 n)
   have "(\<Sum>k = 0..Suc n. Suc (Suc n) - k choose k) =
         (\<Sum>k = 0..Suc n. (Suc n - k choose k) + (if k=0 then 0 else (Suc n - k choose (k - 1))))"
-    by (rule setsum.cong) (simp_all add: choose_reduce_nat)
+    by (rule sum.cong) (simp_all add: choose_reduce_nat)
   also have "\<dots> = (\<Sum>k = 0..Suc n. Suc n - k choose k) +
                    (\<Sum>k = 0..Suc n. if k=0 then 0 else (Suc n - k choose (k - 1)))"
-    by (simp add: setsum.distrib)
+    by (simp add: sum.distrib)
   also have "\<dots> = (\<Sum>k = 0..Suc n. Suc n - k choose k) +
                    (\<Sum>j = 0..n. n - j choose j)"
-    by (metis setsum_choose_drop_zero)
+    by (metis sum_choose_drop_zero)
   finally show ?case using 3
     by simp
 qed

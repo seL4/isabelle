@@ -113,7 +113,7 @@ lemma three_div_general:
   shows "(3 dvd (\<Sum>x<nd. D x * 10^x)) = (3 dvd (\<Sum>x<nd. D x))"
 proof
   have mono: "(\<Sum>x<nd. D x) \<le> (\<Sum>x<nd. D x * 10^x)"
-    by (rule setsum_mono) simp
+    by (rule sum_mono) simp
   txt \<open>This lets us form the term
          @{term "(\<Sum>x<nd. D x * 10^x) - (\<Sum>x<nd. D x)"}\<close>
 
@@ -193,17 +193,17 @@ next
       "m = 10*(\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x) + c" by simp
     also have
       "\<dots> = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^(x+1)) + c"
-      by (subst setsum_distrib_left) (simp add: ac_simps)
+      by (subst sum_distrib_left) (simp add: ac_simps)
     also have
       "\<dots> = (\<Sum>x<nd. m div 10^(Suc x) mod 10 * 10^(Suc x)) + c"
       by (simp add: div_mult2_eq[symmetric])
     also have
       "\<dots> = (\<Sum>x\<in>{Suc 0..<Suc nd}. m div 10^x  mod 10 * 10^x) + c"
-      by (simp only: setsum_shift_bounds_Suc_ivl)
+      by (simp only: sum_shift_bounds_Suc_ivl)
          (simp add: atLeast0LessThan)
     also have
       "\<dots> = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)"
-      by (simp add: atLeast0LessThan[symmetric] setsum_head_upt_Suc cdef)
+      by (simp add: atLeast0LessThan[symmetric] sum_head_upt_Suc cdef)
     also note \<open>Suc nd = nlen m\<close>
     finally
     show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)" .

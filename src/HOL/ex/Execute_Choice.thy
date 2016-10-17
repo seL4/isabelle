@@ -54,7 +54,7 @@ lemma valuesum_choice:
   "finite (Mapping.keys M) \<Longrightarrow> x \<in> Mapping.keys M \<Longrightarrow> y \<in> Mapping.keys M \<Longrightarrow>
     the (Mapping.lookup M x) + valuesum (Mapping.delete x M) =
     the (Mapping.lookup M y) + valuesum (Mapping.delete y M)"
-  unfolding valuesum_def  by transfer (simp add: setsum_diff)
+  unfolding valuesum_def  by transfer (simp add: sum_diff)
 
 text \<open>
   Given \<open>valuesum_rec\<close> as initial description, we stepwise refine it to something executable;

@@ -272,7 +272,7 @@ qed
 subsubsection \<open>From sets to naturals\<close>
 
 definition set_encode :: "nat set \<Rightarrow> nat"
-  where "set_encode = setsum (op ^ 2)"
+  where "set_encode = sum (op ^ 2)"
 
 lemma set_encode_empty [simp]: "set_encode {} = 0"
   by (simp add: set_encode_def)
@@ -381,7 +381,7 @@ proof -
       "n = set_encode B" "finite B"
       by (metis finite_set_decode set_decode_inverse)
   with assms show ?thesis
-    by auto (simp add: set_encode_def add.commute setsum.subset_diff)
+    by auto (simp add: set_encode_def add.commute sum.subset_diff)
   qed
   then show ?thesis
     by (metis le_add1)

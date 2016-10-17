@@ -991,7 +991,7 @@ proof -
     unfolding indep_var_def .
 qed
 
-lemma (in prob_space) indep_vars_setsum:
+lemma (in prob_space) indep_vars_sum:
   fixes X :: "'i \<Rightarrow> 'a \<Rightarrow> real"
   assumes I: "finite I" "i \<notin> I" and indep: "indep_vars (\<lambda>_. borel) X (insert i I)"
   shows "indep_var borel (X i) borel (\<lambda>\<omega>. \<Sum>i\<in>I. X i \<omega>)"

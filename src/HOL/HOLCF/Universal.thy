@@ -45,9 +45,9 @@ lemma node_gt2: "\<lbrakk>finite S; b \<in> S\<rbrakk> \<Longrightarrow> b < nod
 unfolding node_def less_Suc_eq_le set_encode_def
 apply (rule order_trans [OF _ le_prod_encode_2])
 apply (rule order_trans [OF _ le_prod_encode_2])
-apply (rule order_trans [where y="setsum (op ^ 2) {b}"])
+apply (rule order_trans [where y="sum (op ^ 2) {b}"])
 apply (simp add: nat_less_power2 [THEN order_less_imp_le])
-apply (erule setsum_mono2, simp, simp)
+apply (erule sum_mono2, simp, simp)
 done
 
 lemma eq_prod_encode_pairI:

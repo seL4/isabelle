@@ -426,7 +426,7 @@ proof -
     by (simp add: cbox_def)
   then have "(\<Sum>i\<in>Basis. (dist (clamp a b y \<bullet> i) (clamp a b x \<bullet> i))\<^sup>2) \<le>
     (\<Sum>i\<in>Basis. (dist (y \<bullet> i) (x \<bullet> i))\<^sup>2)"
-    by (auto intro!: setsum_mono simp: clamp_def dist_real_def abs_le_square_iff[symmetric])
+    by (auto intro!: sum_mono simp: clamp_def dist_real_def abs_le_square_iff[symmetric])
   then show ?thesis
     by (auto intro: real_sqrt_le_mono
       simp: euclidean_dist_l2[where y=x] euclidean_dist_l2[where y="clamp a b x"] setL2_def)

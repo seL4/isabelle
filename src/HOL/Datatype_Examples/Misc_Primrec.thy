@@ -45,7 +45,7 @@ primrec shuffle_sp :: "('a :: ord, 'b :: ord, 'c, 'd) some_passive \<Rightarrow>
 primrec
   hf_size :: "hfset \<Rightarrow> nat"
 where
-  "hf_size (HFset X) = 1 + setsum id (fset (fimage hf_size X))"
+  "hf_size (HFset X) = 1 + sum id (fset (fimage hf_size X))"
 
 primrec rename_lam :: "(string \<Rightarrow> string) \<Rightarrow> lambda \<Rightarrow> lambda" where
   "rename_lam f (Var s) = Var (f s)" |

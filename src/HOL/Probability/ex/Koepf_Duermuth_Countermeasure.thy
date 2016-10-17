@@ -83,7 +83,7 @@ qed simp
 lemma zero_notin_Suc_image[simp]: "0 \<notin> Suc ` A"
   by auto
 
-lemma setprod_setsum_distrib_lists:
+lemma setprod_sum_distrib_lists:
   fixes P and S :: "'a set" and f :: "'a \<Rightarrow> _::semiring_0" assumes "finite S"
   shows "(\<Sum>ms\<in>{ms. set ms \<subseteq> S \<and> length ms = n \<and> (\<forall>i<n. P i (ms!i))}. \<Prod>x<n. f (ms ! x)) =
          (\<Prod>i<n. \<Sum>m\<in>{m\<in>S. P i m}. f m)"
@@ -99,8 +99,8 @@ next
     by force+
   show ?case unfolding *
     using Suc[of "\<lambda>i. P (Suc i)"]
-    by (simp add: setsum.reindex split_conv setsum_cartesian_product'
-      lessThan_Suc_eq_insert_0 setprod.reindex setsum_distrib_right[symmetric] setsum_distrib_left[symmetric])
+    by (simp add: sum.reindex split_conv sum_cartesian_product'
+      lessThan_Suc_eq_insert_0 setprod.reindex sum_distrib_right[symmetric] sum_distrib_left[symmetric])
 qed
 
 declare space_point_measure[simp]
@@ -111,7 +111,7 @@ lemma measure_point_measure:
   "finite \<Omega> \<Longrightarrow> A \<subseteq> \<Omega> \<Longrightarrow> (\<And>x. x \<in> \<Omega> \<Longrightarrow> 0 \<le> p x) \<Longrightarrow>
     measure (point_measure \<Omega> (\<lambda>x. ennreal (p x))) A = (\<Sum>i\<in>A. p i)"
   unfolding measure_def
-  by (subst emeasure_point_measure_finite) (auto simp: subset_eq setsum_nonneg)
+  by (subst emeasure_point_measure_finite) (auto simp: subset_eq sum_nonneg)
 
 locale finite_information =
   fixes \<Omega> :: "'a set"
@@ -122,8 +122,8 @@ locale finite_information =
   and positive_p[simp, intro]: "\<And>x. 0 \<le> p x"
   and b_gt_1[simp, intro]: "1 < b"
 
-lemma (in finite_information) positive_p_sum[simp]: "0 \<le> setsum p X"
-   by (auto intro!: setsum_nonneg)
+lemma (in finite_information) positive_p_sum[simp]: "0 \<le> sum p X"
+   by (auto intro!: sum_nonneg)
 
 sublocale finite_information \<subseteq> prob_space "point_measure \<Omega> p"
   by standard (simp add: one_ereal_def emeasure_point_measure_finite)
@@ -131,7 +131,7 @@ sublocale finite_information \<subseteq> prob_space "point_measure \<Omega> p"
 sublocale finite_information \<subseteq> information_space "point_measure \<Omega> p" b
   by standard simp
 
-lemma (in finite_information) \<mu>'_eq: "A \<subseteq> \<Omega> \<Longrightarrow> prob A = setsum p A"
+lemma (in finite_information) \<mu>'_eq: "A \<subseteq> \<Omega> \<Longrightarrow> prob A = sum p A"
   by (auto simp: measure_point_measure)
 
 locale koepf_duermuth = K: finite_information keys K b + M: finite_information messages M b
@@ -158,9 +158,9 @@ proof
 
   have [simp]: "\<And>A. inj_on (\<lambda>(xs, n). n # xs) A" by (force intro!: inj_onI)
 
-  note setsum_distrib_left[symmetric, simp]
-  note setsum_distrib_right[symmetric, simp]
-  note setsum_cartesian_product'[simp]
+  note sum_distrib_left[symmetric, simp]
+  note sum_distrib_right[symmetric, simp]
+  note sum_cartesian_product'[simp]
 
   have "(\<Sum>ms | set ms \<subseteq> messages \<and> length ms = n. \<Prod>x<length ms. M (ms ! x)) = 1"
   proof (induct n)
@@ -169,9 +169,9 @@ proof
     case (Suc n)
     then show ?case
       by (simp add: lists_length_Suc_eq lessThan_Suc_eq_insert_0
-                    setsum.reindex setprod.reindex)
+                    sum.reindex setprod.reindex)
   qed
-  then show "setsum P msgs = 1"
+  then show "sum P msgs = 1"
     unfolding msgs_def P_def by simp
   fix x
   have "\<And> A f. 0 \<le> (\<Prod>x\<in>A. M (f x))" by (auto simp: setprod_nonneg)
@@ -211,7 +211,7 @@ proof -
 qed
 
 abbreviation
- "p A \<equiv> setsum P A"
+ "p A \<equiv> sum P A"
 
 abbreviation
   "\<mu> \<equiv> point_measure msgs P"
@@ -254,9 +254,9 @@ proof -
   show "(\<P>(fst) {k}) = K k"
     apply (simp add: \<mu>'_eq)
     apply (simp add: * P_def)
-    apply (simp add: setsum_cartesian_product')
-    using setprod_setsum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] \<open>k \<in> keys\<close>
-    by (auto simp add: setsum_distrib_left[symmetric] subset_eq setprod.neutral_const)
+    apply (simp add: sum_cartesian_product')
+    using setprod_sum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] \<open>k \<in> keys\<close>
+    by (auto simp add: sum_distrib_left[symmetric] subset_eq setprod.neutral_const)
 qed
 
 lemma fst_image_msgs[simp]: "fst`msgs = keys"
@@ -268,7 +268,7 @@ proof -
     unfolding msgs_def fst_image_times if_not_P[OF *] by simp
 qed
 
-lemma setsum_distribution_cut:
+lemma sum_distribution_cut:
   "\<P>(X) {x} = (\<Sum>y \<in> Y`space \<mu>. \<P>(X ; Y) {(x, y)})"
   by (subst finite_measure_finite_Union[symmetric])
      (auto simp add: disjoint_family_on_def inj_on_def
@@ -298,8 +298,8 @@ proof -
   show "- (\<Sum>x\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {x}) * log b (\<P>(X ; Y) {x})) =
     - (\<Sum>x\<in>(\<lambda>x. (Y x, X x)) ` msgs. (\<P>(Y ; X) {x}) * log b (\<P>(Y ; X) {x}))"
     unfolding eq
-    apply (subst setsum.reindex)
-    apply (auto simp: vimage_def inj_on_def intro!: setsum.cong arg_cong[where f="\<lambda>x. prob x * log b (prob x)"])
+    apply (subst sum.reindex)
+    apply (auto simp: vimage_def inj_on_def intro!: sum.cong arg_cong[where f="\<lambda>x. prob x * log b (prob x)"])
     done
 qed simp_all
 
@@ -315,15 +315,15 @@ lemma conditional_entropy_eq_ce_with_hypothesis:
 proof -
   have "- (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))) =
     - (\<Sum>x\<in>X`msgs. (\<Sum>y\<in>Y`msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))))"
-    unfolding setsum.cartesian_product
-    apply (intro arg_cong[where f=uminus] setsum.mono_neutral_left)
+    unfolding sum.cartesian_product
+    apply (intro arg_cong[where f=uminus] sum.mono_neutral_left)
     apply (auto simp: vimage_def image_iff intro!: measure_eq_0I)
     apply metis
     done
   also have "\<dots> = - (\<Sum>y\<in>Y`msgs. (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))))"
-    by (subst setsum.commute) rule
+    by (subst sum.commute) rule
   also have "\<dots> = -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))"
-    by (auto simp add: setsum_distrib_left vimage_def intro!: setsum.cong prob_conj_imp1)
+    by (auto simp add: sum_distrib_left vimage_def intro!: sum.cong prob_conj_imp1)
   finally show "- (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))) =
     -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))" .
 qed simp_all
@@ -351,8 +351,8 @@ proof -
       also have "\<dots> =
           (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
         unfolding P_def using \<open>K k \<noteq> 0\<close> \<open>k \<in> keys\<close>
-        apply (simp add: setsum_cartesian_product' setsum_divide_distrib msgs_def ** cong: conj_cong)
-        apply (subst setprod_setsum_distrib_lists[OF M.finite_space]) ..
+        apply (simp add: sum_cartesian_product' sum_divide_distrib msgs_def ** cong: conj_cong)
+        apply (subst setprod_sum_distrib_lists[OF M.finite_space]) ..
       finally have "(\<P>(OB ; fst) {(obs, k)}) / K k =
             (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)" . }
     note * = this
@@ -373,7 +373,7 @@ proof -
     have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = (\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)})"
       unfolding comp_def
       using finite_measure_finite_Union[OF _ _ df]
-      by (auto simp add: * intro!: setsum_nonneg)
+      by (auto simp add: * intro!: sum_nonneg)
     also have "(\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}"
       by (simp add: t_eq_imp[OF \<open>k \<in> keys\<close> \<open>K k \<noteq> 0\<close> obs])
     finally have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}" .}
@@ -396,18 +396,18 @@ proof -
     also have "(\<P>(t\<circ>OB) {t obs}) = (\<Sum>k'\<in>keys. (\<P>(t\<circ>OB|fst) {(t obs, k')}) * (\<P>(fst) {k'}))"
       using finite_measure_mono[of "{x. t (OB x) = t obs \<and> fst x = k} \<inter> msgs" "{x. fst x = k} \<inter> msgs"]
       using measure_nonneg[of \<mu> "{x. fst x = k \<and> t (OB x) = t obs} \<inter> msgs"]
-      apply (simp add: setsum_distribution_cut[of "t\<circ>OB" "t obs" fst])
-      apply (auto intro!: setsum.cong simp: subset_eq vimage_def prob_conj_imp1)
+      apply (simp add: sum_distribution_cut[of "t\<circ>OB" "t obs" fst])
+      apply (auto intro!: sum.cong simp: subset_eq vimage_def prob_conj_imp1)
       done
     also have "\<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'}) =
       \<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'})"
       using CP_t_K[OF \<open>k\<in>keys\<close> obs] CP_t_K[OF _ obs] \<open>real (card ?S) \<noteq> 0\<close>
-      by (simp only: setsum_distrib_left[symmetric] ac_simps
+      by (simp only: sum_distrib_left[symmetric] ac_simps
           mult_divide_mult_cancel_left[OF \<open>real (card ?S) \<noteq> 0\<close>]
-        cong: setsum.cong)
+        cong: sum.cong)
     also have "(\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'}) = \<P>(OB) {obs}"
-      using setsum_distribution_cut[of OB obs fst]
-      by (auto intro!: setsum.cong simp: prob_conj_imp1 vimage_def)
+      using sum_distribution_cut[of OB obs fst]
+      by (auto intro!: sum.cong simp: prob_conj_imp1 vimage_def)
     also have "\<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / \<P>(OB) {obs} = \<P>(fst | OB) {(k, obs)}"
       by (auto simp: vimage_def conj_commute prob_conj_imp2)
     finally have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(fst | OB) {(k, obs)}" . }
@@ -433,7 +433,7 @@ proof -
     have "\<P>(t\<circ>OB) {t (OB x)} = (\<Sum>obs\<in>?S (OB x). \<P>(OB) {obs})"
       unfolding comp_def
       using finite_measure_finite_Union[OF _ _ df]
-      by (force simp add: * intro!: setsum_nonneg) }
+      by (force simp add: * intro!: sum_nonneg) }
   note P_t_sum_P_O = this
 
   txt \<open>Lemma 3\<close>
@@ -441,16 +441,16 @@ proof -
     unfolding conditional_entropy_eq_ce_with_hypothesis using * by simp
   also have "\<dots> = -(\<Sum>obs\<in>t`OB`msgs. \<P>(t\<circ>OB) {obs} * ?Ht obs)"
     apply (subst SIGMA_image_vimage[symmetric, of "OB`msgs" t])
-    apply (subst setsum.reindex)
+    apply (subst sum.reindex)
     apply (fastforce intro!: inj_onI)
     apply simp
-    apply (subst setsum.Sigma[symmetric, unfolded split_def])
+    apply (subst sum.Sigma[symmetric, unfolded split_def])
     using finite_space apply fastforce
     using finite_space apply fastforce
-    apply (safe intro!: setsum.cong)
+    apply (safe intro!: sum.cong)
     using P_t_sum_P_O
-    by (simp add: setsum_divide_distrib[symmetric] field_simps **
-                  setsum_distrib_left[symmetric] setsum_distrib_right[symmetric])
+    by (simp add: sum_divide_distrib[symmetric] field_simps **
+                  sum_distrib_left[symmetric] sum_distrib_right[symmetric])
   also have "\<dots> = \<H>(fst | t\<circ>OB)"
     unfolding conditional_entropy_eq_ce_with_hypothesis
     by (simp add: comp_def image_image[symmetric])

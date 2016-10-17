@@ -866,12 +866,12 @@ proof -
 qed
 
 
-subsection \<open>@{term setsum} and @{term setprod}\<close>
+subsection \<open>@{term sum} and @{term setprod}\<close>
 
-lemma of_nat_setsum [simp]: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
+lemma of_nat_sum [simp]: "of_nat (sum f A) = (\<Sum>x\<in>A. of_nat(f x))"
   by (induct A rule: infinite_finite_induct) auto
 
-lemma of_int_setsum [simp]: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
+lemma of_int_sum [simp]: "of_int (sum f A) = (\<Sum>x\<in>A. of_int(f x))"
   by (induct A rule: infinite_finite_induct) auto
 
 lemma of_nat_setprod [simp]: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
@@ -880,7 +880,7 @@ lemma of_nat_setprod [simp]: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x
 lemma of_int_setprod [simp]: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
   by (induct A rule: infinite_finite_induct) auto
 
-lemmas int_setsum = of_nat_setsum [where 'a=int]
+lemmas int_sum = of_nat_sum [where 'a=int]
 lemmas int_setprod = of_nat_setprod [where 'a=int]
 
 

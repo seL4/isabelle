@@ -471,7 +471,7 @@ lemma complex_cnj_zero_iff [iff]: "cnj z = 0 \<longleftrightarrow> z = 0"
 lemma complex_cnj_add [simp]: "cnj (x + y) = cnj x + cnj y"
   by (simp add: complex_eq_iff)
 
-lemma cnj_setsum [simp]: "cnj (setsum f s) = (\<Sum>x\<in>s. cnj (f x))"
+lemma cnj_sum [simp]: "cnj (sum f s) = (\<Sum>x\<in>s. cnj (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
 lemma complex_cnj_diff [simp]: "cnj (x - y) = cnj x - cnj y"
@@ -559,7 +559,7 @@ lemma lim_cnj: "((\<lambda>x. cnj(f x)) \<longlongrightarrow> cnj l) F \<longlef
   by (simp add: tendsto_iff dist_complex_def complex_cnj_diff [symmetric] del: complex_cnj_diff)
 
 lemma sums_cnj: "((\<lambda>x. cnj(f x)) sums cnj l) \<longleftrightarrow> (f sums l)"
-  by (simp add: sums_def lim_cnj cnj_setsum [symmetric] del: cnj_setsum)
+  by (simp add: sums_def lim_cnj cnj_sum [symmetric] del: cnj_sum)
 
 
 subsection \<open>Basic Lemmas\<close>
@@ -630,14 +630,14 @@ lemma Re_divide_Reals: "r \<in> Reals \<Longrightarrow> Re (z / r) = Re z / Re r
 lemma Im_divide_Reals: "r \<in> Reals \<Longrightarrow> Im (z / r) = Im z / Re r"
   by (metis Im_divide_of_real of_real_Re)
 
-lemma Re_setsum[simp]: "Re (setsum f s) = (\<Sum>x\<in>s. Re (f x))"
+lemma Re_sum[simp]: "Re (sum f s) = (\<Sum>x\<in>s. Re (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
-lemma Im_setsum[simp]: "Im (setsum f s) = (\<Sum>x\<in>s. Im(f x))"
+lemma Im_sum[simp]: "Im (sum f s) = (\<Sum>x\<in>s. Im(f x))"
   by (induct s rule: infinite_finite_induct) auto
 
 lemma sums_complex_iff: "f sums x \<longleftrightarrow> ((\<lambda>x. Re (f x)) sums Re x) \<and> ((\<lambda>x. Im (f x)) sums Im x)"
-  unfolding sums_def tendsto_complex_iff Im_setsum Re_setsum ..
+  unfolding sums_def tendsto_complex_iff Im_sum Re_sum ..
 
 lemma summable_complex_iff: "summable f \<longleftrightarrow> summable (\<lambda>x. Re (f x)) \<and>  summable (\<lambda>x. Im (f x))"
   unfolding summable_def sums_complex_iff[abs_def] by (metis complex.sel)
@@ -1028,8 +1028,8 @@ lemma legacy_Complex_simps:
     and complex_of_real_mult_Complex: "complex_of_real r * Complex x y = Complex (r*x) (r*y)"
     and complex_eq_cancel_iff2: "(Complex x y = complex_of_real xa) = (x = xa \<and> y = 0)"
     and complex_cn: "cnj (Complex a b) = Complex a (- b)"
-    and Complex_setsum': "setsum (\<lambda>x. Complex (f x) 0) s = Complex (setsum f s) 0"
-    and Complex_setsum: "Complex (setsum f s) 0 = setsum (\<lambda>x. Complex (f x) 0) s"
+    and Complex_sum': "sum (\<lambda>x. Complex (f x) 0) s = Complex (sum f s) 0"
+    and Complex_sum: "Complex (sum f s) 0 = sum (\<lambda>x. Complex (f x) 0) s"
     and complex_of_real_def: "complex_of_real r = Complex r 0"
     and complex_norm: "cmod (Complex x y) = sqrt (x\<^sup>2 + y\<^sup>2)"
   by (simp_all add: norm_complex_def field_simps complex_eq_iff Re_divide Im_divide del: Complex_eq)

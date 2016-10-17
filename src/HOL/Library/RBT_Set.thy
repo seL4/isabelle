@@ -85,7 +85,7 @@ lemma [code, code del]:
   "Pow = Pow" ..
 
 lemma [code, code del]:
-  "setsum = setsum" ..
+  "sum = sum" ..
 
 lemma [code, code del]:
   "setprod = setprod" ..
@@ -673,13 +673,13 @@ lemma card_Set [code]:
   "card (Set t) = fold_keys (\<lambda>_ n. n + 1) t 0"
   by (auto simp add: card.eq_fold intro: finite_fold_fold_keys comp_fun_commute_const)
 
-lemma setsum_Set [code]:
-  "setsum f (Set xs) = fold_keys (plus o f) xs 0"
+lemma sum_Set [code]:
+  "sum f (Set xs) = fold_keys (plus o f) xs 0"
 proof -
   have "comp_fun_commute (\<lambda>x. op + (f x))"
     by standard (auto simp: ac_simps)
   then show ?thesis 
-    by (auto simp add: setsum.eq_fold finite_fold_fold_keys o_def)
+    by (auto simp add: sum.eq_fold finite_fold_fold_keys o_def)
 qed
 
 lemma the_elem_set [code]:

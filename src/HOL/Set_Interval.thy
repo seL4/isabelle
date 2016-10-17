@@ -1408,7 +1408,7 @@ proof -
 qed
 
 
-subsection \<open>Lemmas useful with the summation operator setsum\<close>
+subsection \<open>Lemmas useful with the summation operator sum\<close>
 
 text \<open>For examples, see Algebra/poly/UnivPoly2.thy\<close>
 
@@ -1614,32 +1614,32 @@ end
 subsection \<open>Summation indexed over intervals\<close>
 
 syntax (ASCII)
-  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _<_./ _)" [0,0,10] 10)
-  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _<=_./ _)" [0,0,10] 10)
+  "_from_to_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _<_./ _)" [0,0,10] 10)
+  "_upto_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _<=_./ _)" [0,0,10] 10)
 
 syntax (latex_sum output)
-  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_from_to_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\sum_{\<close>_ = _\<^latex>\<open>}^{\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
-  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_from_upto_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\sum_{\<close>_ = _\<^latex>\<open>}^{<\<close>_\<^latex>\<open>}$\<close> _)" [0,0,0,10] 10)
-  "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_upt_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\sum_{\<close>_ < _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
-  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  "_upto_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^latex>\<open>$\\sum_{\<close>_ \<le> _\<^latex>\<open>}$\<close> _)" [0,0,10] 10)
 
 syntax
-  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_<_./ _)" [0,0,10] 10)
-  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_\<le>_./ _)" [0,0,10] 10)
+  "_from_to_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_<_./ _)" [0,0,10] 10)
+  "_upto_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_\<le>_./ _)" [0,0,10] 10)
 
 translations
-  "\<Sum>x=a..b. t" == "CONST setsum (\<lambda>x. t) {a..b}"
-  "\<Sum>x=a..<b. t" == "CONST setsum (\<lambda>x. t) {a..<b}"
-  "\<Sum>i\<le>n. t" == "CONST setsum (\<lambda>i. t) {..n}"
-  "\<Sum>i<n. t" == "CONST setsum (\<lambda>i. t) {..<n}"
+  "\<Sum>x=a..b. t" == "CONST sum (\<lambda>x. t) {a..b}"
+  "\<Sum>x=a..<b. t" == "CONST sum (\<lambda>x. t) {a..<b}"
+  "\<Sum>i\<le>n. t" == "CONST sum (\<lambda>i. t) {..n}"
+  "\<Sum>i<n. t" == "CONST sum (\<lambda>i. t) {..<n}"
 
 text\<open>The above introduces some pretty alternative syntaxes for
 summation over intervals:
@@ -1661,42 +1661,42 @@ antiquotations). It is not the default \LaTeX\ output because it only
 works well with italic-style formulae, not tt-style.
 
 Note that for uniformity on @{typ nat} it is better to use
-@{term"\<Sum>x::nat=0..<n. e"} rather than \<open>\<Sum>x<n. e\<close>: \<open>setsum\<close> may
+@{term"\<Sum>x::nat=0..<n. e"} rather than \<open>\<Sum>x<n. e\<close>: \<open>sum\<close> may
 not provide all lemmas available for @{term"{m..<n}"} also in the
 special form for @{term"{..<n}"}.\<close>
 
 text\<open>This congruence rule should be used for sums over intervals as
-the standard theorem @{text[source]setsum.cong} does not work well
+the standard theorem @{text[source]sum.cong} does not work well
 with the simplifier who adds the unsimplified premise @{term"x:B"} to
 the context.\<close>
 
-lemmas setsum_ivl_cong = setsum.ivl_cong
+lemmas sum_ivl_cong = sum.ivl_cong
 
 (* FIXME why are the following simp rules but the corresponding eqns
 on intervals are not? *)
 
-lemma setsum_atMost_Suc [simp]:
+lemma sum_atMost_Suc [simp]:
   "(\<Sum>i \<le> Suc n. f i) = (\<Sum>i \<le> n. f i) + f (Suc n)"
   by (simp add: atMost_Suc ac_simps)
 
-lemma setsum_lessThan_Suc [simp]:
+lemma sum_lessThan_Suc [simp]:
   "(\<Sum>i < Suc n. f i) = (\<Sum>i < n. f i) + f n"
   by (simp add: lessThan_Suc ac_simps)
 
-lemma setsum_cl_ivl_Suc [simp]:
-  "setsum f {m..Suc n} = (if Suc n < m then 0 else setsum f {m..n} + f(Suc n))"
+lemma sum_cl_ivl_Suc [simp]:
+  "sum f {m..Suc n} = (if Suc n < m then 0 else sum f {m..n} + f(Suc n))"
   by (auto simp: ac_simps atLeastAtMostSuc_conv)
 
-lemma setsum_op_ivl_Suc [simp]:
-  "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
+lemma sum_op_ivl_Suc [simp]:
+  "sum f {m..<Suc n} = (if n < m then 0 else sum f {m..<n} + f(n))"
   by (auto simp: ac_simps atLeastLessThanSuc)
 (*
-lemma setsum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
+lemma sum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
     (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
 by (auto simp:ac_simps atLeastAtMostSuc_conv)
 *)
 
-lemma setsum_head:
+lemma sum_head:
   fixes n :: nat
   assumes mn: "m <= n"
   shows "(\<Sum>x\<in>{m..n}. P x) = P m + (\<Sum>x\<in>{m<..n}. P x)" (is "?lhs = ?rhs")
@@ -1710,93 +1710,93 @@ proof -
   finally show ?thesis .
 qed
 
-lemma setsum_head_Suc:
-  "m \<le> n \<Longrightarrow> setsum f {m..n} = f m + setsum f {Suc m..n}"
-by (simp add: setsum_head atLeastSucAtMost_greaterThanAtMost)
+lemma sum_head_Suc:
+  "m \<le> n \<Longrightarrow> sum f {m..n} = f m + sum f {Suc m..n}"
+by (simp add: sum_head atLeastSucAtMost_greaterThanAtMost)
 
-lemma setsum_head_upt_Suc:
-  "m < n \<Longrightarrow> setsum f {m..<n} = f m + setsum f {Suc m..<n}"
-apply(insert setsum_head_Suc[of m "n - Suc 0" f])
+lemma sum_head_upt_Suc:
+  "m < n \<Longrightarrow> sum f {m..<n} = f m + sum f {Suc m..<n}"
+apply(insert sum_head_Suc[of m "n - Suc 0" f])
 apply (simp add: atLeastLessThanSuc_atLeastAtMost[symmetric] algebra_simps)
 done
 
-lemma setsum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
-  shows "setsum f {m..n + p} = setsum f {m..n} + setsum f {n + 1..n + p}"
+lemma sum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
+  shows "sum f {m..n + p} = sum f {m..n} + sum f {n + 1..n + p}"
 proof-
   have "{m .. n+p} = {m..n} \<union> {n+1..n+p}" using \<open>m \<le> n+1\<close> by auto
-  thus ?thesis by (auto simp: ivl_disj_int setsum.union_disjoint
+  thus ?thesis by (auto simp: ivl_disj_int sum.union_disjoint
     atLeastSucAtMost_greaterThanAtMost)
 qed
 
-lemmas setsum_add_nat_ivl = setsum.atLeast_lessThan_concat
+lemmas sum_add_nat_ivl = sum.atLeast_lessThan_concat
 
-lemma setsum_diff_nat_ivl:
+lemma sum_diff_nat_ivl:
 fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
 shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
-  setsum f {m..<p} - setsum f {m..<n} = setsum f {n..<p}"
-using setsum_add_nat_ivl [of m n p f,symmetric]
+  sum f {m..<p} - sum f {m..<n} = sum f {n..<p}"
+using sum_add_nat_ivl [of m n p f,symmetric]
 apply (simp add: ac_simps)
 done
 
-lemma setsum_natinterval_difff:
+lemma sum_natinterval_difff:
   fixes f:: "nat \<Rightarrow> ('a::ab_group_add)"
-  shows  "setsum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
+  shows  "sum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
           (if m <= n then f m - f(n + 1) else 0)"
 by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
 
-lemma setsum_nat_group: "(\<Sum>m<n::nat. setsum f {m * k ..< m*k + k}) = setsum f {..< n * k}"
+lemma sum_nat_group: "(\<Sum>m<n::nat. sum f {m * k ..< m*k + k}) = sum f {..< n * k}"
   apply (subgoal_tac "k = 0 | 0 < k", auto)
   apply (induct "n")
-  apply (simp_all add: setsum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
+  apply (simp_all add: sum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
   done
 
-lemma setsum_triangle_reindex:
+lemma sum_triangle_reindex:
   fixes n :: nat
   shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k<n. \<Sum>i\<le>k. f i (k - i))"
-  apply (simp add: setsum.Sigma)
-  apply (rule setsum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
+  apply (simp add: sum.Sigma)
+  apply (rule sum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
   apply auto
   done
 
-lemma setsum_triangle_reindex_eq:
+lemma sum_triangle_reindex_eq:
   fixes n :: nat
   shows "(\<Sum>(i,j)\<in>{(i,j). i+j \<le> n}. f i j) = (\<Sum>k\<le>n. \<Sum>i\<le>k. f i (k - i))"
-using setsum_triangle_reindex [of f "Suc n"]
+using sum_triangle_reindex [of f "Suc n"]
 by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
 
-lemma nat_diff_setsum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
-  by (rule setsum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
+lemma nat_diff_sum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
+  by (rule sum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
 
 
 subsubsection \<open>Shifting bounds\<close>
 
-lemma setsum_shift_bounds_nat_ivl:
-  "setsum f {m+k..<n+k} = setsum (%i. f(i + k)){m..<n::nat}"
+lemma sum_shift_bounds_nat_ivl:
+  "sum f {m+k..<n+k} = sum (%i. f(i + k)){m..<n::nat}"
 by (induct "n", auto simp:atLeastLessThanSuc)
 
-lemma setsum_shift_bounds_cl_nat_ivl:
-  "setsum f {m+k..n+k} = setsum (%i. f(i + k)){m..n::nat}"
-  by (rule setsum.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
+lemma sum_shift_bounds_cl_nat_ivl:
+  "sum f {m+k..n+k} = sum (%i. f(i + k)){m..n::nat}"
+  by (rule sum.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
 
-corollary setsum_shift_bounds_cl_Suc_ivl:
-  "setsum f {Suc m..Suc n} = setsum (%i. f(Suc i)){m..n}"
-by (simp add:setsum_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
+corollary sum_shift_bounds_cl_Suc_ivl:
+  "sum f {Suc m..Suc n} = sum (%i. f(Suc i)){m..n}"
+by (simp add:sum_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
 
-corollary setsum_shift_bounds_Suc_ivl:
-  "setsum f {Suc m..<Suc n} = setsum (%i. f(Suc i)){m..<n}"
-by (simp add:setsum_shift_bounds_nat_ivl[where k="Suc 0", simplified])
+corollary sum_shift_bounds_Suc_ivl:
+  "sum f {Suc m..<Suc n} = sum (%i. f(Suc i)){m..<n}"
+by (simp add:sum_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 
-lemma setsum_shift_lb_Suc0_0:
-  "f(0::nat) = (0::nat) \<Longrightarrow> setsum f {Suc 0..k} = setsum f {0..k}"
-by(simp add:setsum_head_Suc)
+lemma sum_shift_lb_Suc0_0:
+  "f(0::nat) = (0::nat) \<Longrightarrow> sum f {Suc 0..k} = sum f {0..k}"
+by(simp add:sum_head_Suc)
 
-lemma setsum_shift_lb_Suc0_0_upt:
-  "f(0::nat) = 0 \<Longrightarrow> setsum f {Suc 0..<k} = setsum f {0..<k}"
+lemma sum_shift_lb_Suc0_0_upt:
+  "f(0::nat) = 0 \<Longrightarrow> sum f {Suc 0..<k} = sum f {0..<k}"
 apply(cases k)apply simp
-apply(simp add:setsum_head_upt_Suc)
+apply(simp add:sum_head_upt_Suc)
 done
 
-lemma setsum_atMost_Suc_shift:
+lemma sum_atMost_Suc_shift:
   fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
   shows "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
 proof (induct n)
@@ -1804,71 +1804,71 @@ proof (induct n)
 next
   case (Suc n) note IH = this
   have "(\<Sum>i\<le>Suc (Suc n). f i) = (\<Sum>i\<le>Suc n. f i) + f (Suc (Suc n))"
-    by (rule setsum_atMost_Suc)
+    by (rule sum_atMost_Suc)
   also have "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
     by (rule IH)
   also have "f 0 + (\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) =
              f 0 + ((\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)))"
     by (rule add.assoc)
   also have "(\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) = (\<Sum>i\<le>Suc n. f (Suc i))"
-    by (rule setsum_atMost_Suc [symmetric])
+    by (rule sum_atMost_Suc [symmetric])
   finally show ?case .
 qed
 
-lemma setsum_lessThan_Suc_shift:
+lemma sum_lessThan_Suc_shift:
   "(\<Sum>i<Suc n. f i) = f 0 + (\<Sum>i<n. f (Suc i))"
   by (induction n) (simp_all add: add_ac)
 
-lemma setsum_atMost_shift:
+lemma sum_atMost_shift:
   fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
   shows "(\<Sum>i\<le>n. f i) = f 0 + (\<Sum>i<n. f (Suc i))"
-by (metis atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost atLeastSucAtMost_greaterThanAtMost le0 setsum_head setsum_shift_bounds_Suc_ivl)
+by (metis atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost atLeastSucAtMost_greaterThanAtMost le0 sum_head sum_shift_bounds_Suc_ivl)
 
-lemma setsum_last_plus: fixes n::nat shows "m <= n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
+lemma sum_last_plus: fixes n::nat shows "m <= n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
   by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost add.commute)
 
-lemma setsum_Suc_diff:
+lemma sum_Suc_diff:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
   assumes "m \<le> Suc n"
   shows "(\<Sum>i = m..n. f(Suc i) - f i) = f (Suc n) - f m"
 using assms by (induct n) (auto simp: le_Suc_eq)
 
-lemma nested_setsum_swap:
+lemma nested_sum_swap:
      "(\<Sum>i = 0..n. (\<Sum>j = 0..<i. a i j)) = (\<Sum>j = 0..<n. \<Sum>i = Suc j..n. a i j)"
-  by (induction n) (auto simp: setsum.distrib)
+  by (induction n) (auto simp: sum.distrib)
 
-lemma nested_setsum_swap':
+lemma nested_sum_swap':
      "(\<Sum>i\<le>n. (\<Sum>j<i. a i j)) = (\<Sum>j<n. \<Sum>i = Suc j..n. a i j)"
-  by (induction n) (auto simp: setsum.distrib)
+  by (induction n) (auto simp: sum.distrib)
 
-lemma setsum_atLeast1_atMost_eq:
-  "setsum f {Suc 0..n} = (\<Sum>k<n. f (Suc k))"
+lemma sum_atLeast1_atMost_eq:
+  "sum f {Suc 0..n} = (\<Sum>k<n. f (Suc k))"
 proof -
-  have "setsum f {Suc 0..n} = setsum f (Suc ` {..<n})"
+  have "sum f {Suc 0..n} = sum f (Suc ` {..<n})"
     by (simp add: image_Suc_lessThan)
   also have "\<dots> = (\<Sum>k<n. f (Suc k))"
-    by (simp add: setsum.reindex)
+    by (simp add: sum.reindex)
   finally show ?thesis .
 qed
 
 
 subsubsection \<open>Telescoping\<close>
 
-lemma setsum_telescope:
+lemma sum_telescope:
   fixes f::"nat \<Rightarrow> 'a::ab_group_add"
-  shows "setsum (\<lambda>i. f i - f (Suc i)) {.. i} = f 0 - f (Suc i)"
+  shows "sum (\<lambda>i. f i - f (Suc i)) {.. i} = f 0 - f (Suc i)"
   by (induct i) simp_all
 
-lemma setsum_telescope'':
+lemma sum_telescope'':
   assumes "m \<le> n"
   shows   "(\<Sum>k\<in>{Suc m..n}. f k - f (k - 1)) = f n - (f m :: 'a :: ab_group_add)"
   by (rule dec_induct[OF assms]) (simp_all add: algebra_simps)
 
-lemma setsum_lessThan_telescope:
+lemma sum_lessThan_telescope:
   "(\<Sum>n<m. f (Suc n) - f n :: 'a :: ab_group_add) = f m - f 0"
   by (induction m) (simp_all add: algebra_simps)
 
-lemma setsum_lessThan_telescope':
+lemma sum_lessThan_telescope':
   "(\<Sum>n<m. f n - f (Suc n) :: 'a :: ab_group_add) = f 0 - f m"
   by (induction m) (simp_all add: algebra_simps)
 
@@ -1885,7 +1885,7 @@ proof -
   ultimately show ?thesis by simp
 qed
 
-lemma diff_power_eq_setsum:
+lemma diff_power_eq_sum:
   fixes y :: "'a::{comm_ring,monoid_mult}"
   shows
     "x ^ (Suc n) - y ^ (Suc n) =
@@ -1901,32 +1901,32 @@ proof (induct n)
   also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x^n)"
     by (simp only: mult.left_commute)
   also have "... = (x - y) * (\<Sum>p<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
-    by (simp add: field_simps Suc_diff_le setsum_distrib_right setsum_distrib_left)
+    by (simp add: field_simps Suc_diff_le sum_distrib_right sum_distrib_left)
   finally show ?case .
 qed simp
 
 corollary power_diff_sumr2: \<comment>\<open>\<open>COMPLEX_POLYFUN\<close> in HOL Light\<close>
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows   "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
-using diff_power_eq_setsum[of x "n - 1" y]
+using diff_power_eq_sum[of x "n - 1" y]
 by (cases "n = 0") (simp_all add: field_simps)
 
 lemma power_diff_1_eq:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "n \<noteq> 0 \<Longrightarrow> x^n - 1 = (x - 1) * (\<Sum>i<n. (x^i))"
-using diff_power_eq_setsum [of x _ 1]
+using diff_power_eq_sum [of x _ 1]
   by (cases n) auto
 
 lemma one_diff_power_eq':
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^(n - Suc i))"
-using diff_power_eq_setsum [of 1 _ x]
+using diff_power_eq_sum [of 1 _ x]
   by (cases n) auto
 
 lemma one_diff_power_eq:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
-by (metis one_diff_power_eq' [of n x] nat_diff_setsum_reindex)
+by (metis one_diff_power_eq' [of n x] nat_diff_sum_reindex)
 
 
 subsubsection \<open>The formula for arithmetic sums\<close>
@@ -1952,11 +1952,11 @@ proof cases
   have
     "(\<Sum>i\<in>{..<n}. a+?I i*d) =
      ((\<Sum>i\<in>{..<n}. a) + (\<Sum>i\<in>{..<n}. ?I i*d))"
-    by (rule setsum.distrib)
+    by (rule sum.distrib)
   also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
   also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
     unfolding One_nat_def
-    by (simp add: setsum_distrib_left atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt ac_simps)
+    by (simp add: sum_distrib_left atLeast0LessThan[symmetric] sum_shift_lb_Suc0_0_upt ac_simps)
   also have "2*\<dots> = 2*?n*a + d*2*(\<Sum>i\<in>{1..<n}. ?I i)"
     by (simp add: algebra_simps)
   also from ngt1 have "{1..<n} = {1..n - 1}"
@@ -1989,7 +1989,7 @@ lemma arith_series_int:
   by (fact arith_series_general) (* FIXME: duplicate *)
 
 lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
-  by (subst setsum_subtractf_nat) auto
+  by (subst sum_subtractf_nat) auto
 
 
 subsubsection \<open>Division remainder\<close>
@@ -2124,13 +2124,13 @@ proof (induction f a b acc rule: fold_atLeastAtMost_nat.induct, goal_cases)
   qed
 qed
 
-lemma setsum_atLeastAtMost_code:
-  "setsum f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a + acc) a b 0"
+lemma sum_atLeastAtMost_code:
+  "sum f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a + acc) a b 0"
 proof -
   have "comp_fun_commute (\<lambda>a. op + (f a))"
     by unfold_locales (auto simp: o_def add_ac)
   thus ?thesis
-    by (simp add: setsum.eq_fold fold_atLeastAtMost_nat o_def)
+    by (simp add: sum.eq_fold fold_atLeastAtMost_nat o_def)
 qed
 
 lemma setprod_atLeastAtMost_code:

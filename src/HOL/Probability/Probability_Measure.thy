@@ -383,7 +383,7 @@ proof -
     by (intro finite_measure_UNION) auto
 qed
 
-lemma (in prob_space) prob_setsum:
+lemma (in prob_space) prob_sum:
   assumes [simp, intro]: "finite I"
   assumes P: "\<And>n. n \<in> I \<Longrightarrow> {x\<in>space M. P n x} \<in> events"
   assumes Q: "{x\<in>space M. Q x} \<in> events"
@@ -1025,14 +1025,14 @@ proof -
   qed auto
 qed
 
-lemma (in prob_space) simple_distributed_setsum_space:
+lemma (in prob_space) simple_distributed_sum_space:
   assumes X: "simple_distributed M X f"
-  shows "setsum f (X`space M) = 1"
+  shows "sum f (X`space M) = 1"
 proof -
-  from X have "setsum f (X`space M) = prob (\<Union>i\<in>X`space M. X -` {i} \<inter> space M)"
+  from X have "sum f (X`space M) = prob (\<Union>i\<in>X`space M. X -` {i} \<inter> space M)"
     by (subst finite_measure_finite_Union)
        (auto simp add: disjoint_family_on_def simple_distributed_measure simple_distributed_simple_function simple_functionD
-             intro!: setsum.cong arg_cong[where f="prob"])
+             intro!: sum.cong arg_cong[where f="prob"])
   also have "\<dots> = prob (space M)"
     by (auto intro!: arg_cong[where f=prob])
   finally show ?thesis
@@ -1058,10 +1058,10 @@ proof -
     using y Px[THEN simple_distributed_finite]
     by (auto simp: AE_count_space nn_integral_count_space_finite)
   also have "\<dots> = (\<Sum>x\<in>X`space M. if (x, y) \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy (x, y) else 0)"
-    using Pxy by (intro setsum_ennreal) auto
+    using Pxy by (intro sum_ennreal) auto
   finally show ?thesis
     using simple_distributed_nonneg[OF Py] simple_distributed_nonneg[OF Pxy]
-    by (subst (asm) ennreal_inj) (auto intro!: setsum_nonneg)
+    by (subst (asm) ennreal_inj) (auto intro!: sum_nonneg)
 qed
 
 lemma distributedI_real:

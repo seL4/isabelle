@@ -25,7 +25,7 @@ proof -
   thus "ln 2 < (1::real)" by (subst (asm) exp_less_cancel_iff) simp
 qed
 
-lemma setsum_Suc_diff':
+lemma sum_Suc_diff':
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
   assumes "m \<le> n"
   shows "(\<Sum>i = m..<n. f (Suc i) - f i) = f n - f m"
@@ -44,10 +44,10 @@ lemma harm_Suc: "harm (Suc n) = harm n + inverse (of_nat (Suc n))"
   by (simp add: harm_def)
 
 lemma harm_nonneg: "harm n \<ge> (0 :: 'a :: {real_normed_field,linordered_field})"
-  unfolding harm_def by (intro setsum_nonneg) simp_all
+  unfolding harm_def by (intro sum_nonneg) simp_all
 
 lemma harm_pos: "n > 0 \<Longrightarrow> harm n > (0 :: 'a :: {real_normed_field,linordered_field})"
-  unfolding harm_def by (intro setsum_pos) simp_all
+  unfolding harm_def by (intro sum_pos) simp_all
 
 lemma of_real_harm: "of_real (harm n) = harm n"
   unfolding harm_def by simp
@@ -73,7 +73,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> convergent (\<lambda>n. \<Sum>k=Suc 0..Suc n. inverse (of_nat k) :: real)"
     unfolding harm_def[abs_def] by (subst convergent_Suc_iff) simp_all
   also have "... \<longleftrightarrow> convergent (\<lambda>n. \<Sum>k\<le>n. inverse (of_nat (Suc k)) :: real)"
-    by (subst setsum_shift_bounds_cl_Suc_ivl) (simp add: atLeast0AtMost)
+    by (subst sum_shift_bounds_cl_Suc_ivl) (simp add: atLeast0AtMost)
   also have "... \<longleftrightarrow> summable (\<lambda>n. inverse (of_nat n) :: real)"
     by (subst summable_Suc_iff [symmetric]) (simp add: summable_iff_convergent')
   also have "\<not>..." by (rule not_summable_harmonic)
@@ -126,7 +126,7 @@ lemma euler_mascheroni_sum_integral_diff_series:
   "euler_mascheroni.sum_integral_diff_series n = harm (Suc n) - ln (of_nat (Suc n))"
 proof -
   have "harm (Suc n) = (\<Sum>k=0..n. inverse (of_nat k + 1) :: real)" unfolding harm_def
-    unfolding One_nat_def by (subst setsum_shift_bounds_cl_Suc_ivl) (simp add: add_ac)
+    unfolding One_nat_def by (subst sum_shift_bounds_cl_Suc_ivl) (simp add: add_ac)
   moreover have "((\<lambda>x. inverse (x + 1) :: real) has_integral ln (of_nat n + 1) - ln (0 + 1))
                    {0..of_nat n}"
     by (intro fundamental_theorem_of_calculus)
@@ -201,16 +201,16 @@ proof -
     fix n :: nat assume n: "n > 0"
     have "(\<Sum>k<2*n. (-1)^k / real_of_nat (Suc k)) =
               (\<Sum>k<2*n. ((-1)^k + ?g k) / of_nat (Suc k)) - (\<Sum>k<2*n. ?g k / of_nat (Suc k))"
-      by (simp add: setsum.distrib algebra_simps divide_inverse)
+      by (simp add: sum.distrib algebra_simps divide_inverse)
     also have "(\<Sum>k<2*n. ((-1)^k + ?g k) / real_of_nat (Suc k)) = harm (2*n)"
-      unfolding harm_altdef by (intro setsum.cong) (auto simp: field_simps)
+      unfolding harm_altdef by (intro sum.cong) (auto simp: field_simps)
     also have "(\<Sum>k<2*n. ?g k / real_of_nat (Suc k)) = (\<Sum>k|k<2*n \<and> odd k. ?g k / of_nat (Suc k))"
-      by (intro setsum.mono_neutral_right) auto
+      by (intro sum.mono_neutral_right) auto
     also have "\<dots> = (\<Sum>k|k<2*n \<and> odd k. 2 / (real_of_nat (Suc k)))"
-      by (intro setsum.cong) auto
+      by (intro sum.cong) auto
     also have "(\<Sum>k|k<2*n \<and> odd k. 2 / (real_of_nat (Suc k))) = harm n"
       unfolding harm_altdef
-      by (intro setsum.reindex_cong[of "\<lambda>n. 2*n+1"]) (auto simp: inj_on_def field_simps elim!: oddE)
+      by (intro sum.reindex_cong[of "\<lambda>n. 2*n+1"]) (auto simp: inj_on_def field_simps elim!: oddE)
     also have "harm (2*n) - harm n = ?em (2*n) - ?em n + ln 2" using n
       by (simp_all add: algebra_simps ln_mult)
     finally show "?em (2*n) - ?em n + ln 2 = (\<Sum>k<2*n. (-1)^k / real_of_nat (Suc k))" ..
@@ -388,9 +388,9 @@ proof -
   finally have "euler_mascheroni \<ge> (\<Sum>k\<le>n. D k) + 1 / (of_nat (2 * (n+2)))"
     by (simp add: inv_def field_simps)
   also have "(\<Sum>k\<le>n. D k) = harm (Suc n) - (\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1)))"
-    unfolding harm_altdef D_def by (subst lessThan_Suc_atMost) (simp add:  setsum.distrib setsum_subtractf)
+    unfolding harm_altdef D_def by (subst lessThan_Suc_atMost) (simp add:  sum.distrib sum_subtractf)
   also have "(\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1))) = ln (of_nat (n+2))"
-    by (subst atLeast0AtMost [symmetric], subst setsum_Suc_diff) simp_all
+    by (subst atLeast0AtMost [symmetric], subst sum_Suc_diff) simp_all
   finally show "euler_mascheroni \<ge> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 2))"
     by simp
 
@@ -422,9 +422,9 @@ proof -
   finally have "euler_mascheroni \<le> (\<Sum>k\<le>n. D k) + 1 / of_nat (2 * (n+1))"
     by (simp add: inv_def field_simps)
   also have "(\<Sum>k\<le>n. D k) = harm (Suc n) - (\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1)))"
-    unfolding harm_altdef D_def by (subst lessThan_Suc_atMost) (simp add:  setsum.distrib setsum_subtractf)
+    unfolding harm_altdef D_def by (subst lessThan_Suc_atMost) (simp add:  sum.distrib sum_subtractf)
   also have "(\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1))) = ln (of_nat (n+2))"
-    by (subst atLeast0AtMost [symmetric], subst setsum_Suc_diff) simp_all
+    by (subst atLeast0AtMost [symmetric], subst sum_Suc_diff) simp_all
   finally show "euler_mascheroni \<le> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 1))"
     by simp
 qed

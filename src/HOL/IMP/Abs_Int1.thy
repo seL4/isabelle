@@ -109,7 +109,7 @@ definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>s
 "m_s S X = (\<Sum> x \<in> X. m(fun S x))"
 
 lemma m_s_h: "finite X \<Longrightarrow> m_s S X \<le> h * card X"
-by(simp add: m_s_def) (metis mult.commute of_nat_id setsum_bounded_above[OF h])
+by(simp add: m_s_def) (metis mult.commute of_nat_id sum_bounded_above[OF h])
 
 definition m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>o") where
 "m_o opt X = (case opt of None \<Rightarrow> h * card X + 1 | Some S \<Rightarrow> m_s S X)"
@@ -125,9 +125,9 @@ lemma m_c_h: "m_c C \<le> size(annos C) * (h * card(vars C) + 1)"
 proof-
   let ?X = "vars C" let ?n = "card ?X" let ?a = "size(annos C)"
   have "m_c C = (\<Sum>i<?a. m_o (annos C ! i) ?X)"
-    by(simp add: m_c_def sum_list_setsum_nth atLeast0LessThan)
+    by(simp add: m_c_def sum_list_sum_nth atLeast0LessThan)
   also have "\<dots> \<le> (\<Sum>i<?a. h * ?n + 1)"
-    apply(rule setsum_mono) using m_o_h[OF finite_Cvars] by simp
+    apply(rule sum_mono) using m_o_h[OF finite_Cvars] by simp
   also have "\<dots> = ?a * (h * ?n + 1)" by simp
   finally show ?thesis .
 qed
@@ -191,7 +191,7 @@ proof-
   from assms(2,3,4) have "EX x:X. S1 x < S2 x"
     by(simp add: fun_eq_iff) (metis Compl_iff le_neq_trans)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S2 x)" by (metis m2)
-  from setsum_strict_mono_ex1[OF `finite X` 1 2]
+  from sum_strict_mono_ex1[OF `finite X` 1 2]
   show "(\<Sum>x\<in>X. m (S2 x)) < (\<Sum>x\<in>X. m (S1 x))" .
 qed
 
@@ -237,9 +237,9 @@ proof(auto simp add: le_iff_le_annos size_annos_same[of C1 C2] vars_acom_def les
   hence 2: "\<exists>i < size(annos C2). ?P i" using `i < size(annos C2)` by blast
   have "(\<Sum>i<size(annos C2). m_o (annos C2 ! i) ?X)
          < (\<Sum>i<size(annos C2). m_o (annos C1 ! i) ?X)"
-    apply(rule setsum_strict_mono_ex1) using 1 2 by (auto)
+    apply(rule sum_strict_mono_ex1) using 1 2 by (auto)
   thus ?thesis
-    by(simp add: m_c_def vars_acom_def strip_eq sum_list_setsum_nth atLeast0LessThan size_annos_same[OF strip_eq])
+    by(simp add: m_c_def vars_acom_def strip_eq sum_list_sum_nth atLeast0LessThan size_annos_same[OF strip_eq])
 qed
 
 end

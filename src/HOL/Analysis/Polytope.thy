@@ -293,8 +293,8 @@ proof -
   proof -
     have waff: "w \<in> affine hull T"
       using convex_hull_subset_affine_hull w by blast
-    obtain a b where a: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> a i" and asum: "setsum a S = 1" and aeqx: "(\<Sum>i\<in>S. a i *\<^sub>R i) = x"
-                 and b: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> b i" and bsum: "setsum b S = 1" and beqy: "(\<Sum>i\<in>S. b i *\<^sub>R i) = y"
+    obtain a b where a: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> a i" and asum: "sum a S = 1" and aeqx: "(\<Sum>i\<in>S. a i *\<^sub>R i) = x"
+                 and b: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> b i" and bsum: "sum b S = 1" and beqy: "(\<Sum>i\<in>S. b i *\<^sub>R i) = y"
       using x y by (auto simp: assms convex_hull_finite)
     obtain u where "(1 - u) *\<^sub>R x + u *\<^sub>R y \<in> convex hull T" "x \<noteq> y" and weq: "w = (1 - u) *\<^sub>R x + u *\<^sub>R y"
                and u01: "0 < u" "u < 1"
@@ -302,43 +302,43 @@ proof -
     define c where "c i = (1 - u) * a i + u * b i" for i
     have cge0: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> c i"
       using a b u01 by (simp add: c_def)
-    have sumc1: "setsum c S = 1"
-      by (simp add: c_def setsum.distrib setsum_distrib_left [symmetric] asum bsum)
+    have sumc1: "sum c S = 1"
+      by (simp add: c_def sum.distrib sum_distrib_left [symmetric] asum bsum)
     have sumci_xy: "(\<Sum>i\<in>S. c i *\<^sub>R i) = (1 - u) *\<^sub>R x + u *\<^sub>R y"
-      apply (simp add: c_def setsum.distrib scaleR_left_distrib)
-      by (simp only: scaleR_scaleR [symmetric] Real_Vector_Spaces.scaleR_right.setsum [symmetric] aeqx beqy)
+      apply (simp add: c_def sum.distrib scaleR_left_distrib)
+      by (simp only: scaleR_scaleR [symmetric] Real_Vector_Spaces.scaleR_right.sum [symmetric] aeqx beqy)
     show ?thesis
-    proof (cases "setsum c (S - T) = 0")
+    proof (cases "sum c (S - T) = 0")
       case True
       have ci0: "\<And>i. i \<in> (S - T) \<Longrightarrow> c i = 0"
-        using True cge0 by (simp add: \<open>finite S\<close> setsum_nonneg_eq_0_iff)
+        using True cge0 by (simp add: \<open>finite S\<close> sum_nonneg_eq_0_iff)
       have a0: "a i = 0" if "i \<in> (S - T)" for i
         using ci0 [OF that] u01 a [of i] b [of i] that
         by (simp add: c_def Groups.ordered_comm_monoid_add_class.add_nonneg_eq_0_iff)
-      have [simp]: "setsum a T = 1"
-        using assms by (metis setsum.mono_neutral_cong_right a0 asum)
+      have [simp]: "sum a T = 1"
+        using assms by (metis sum.mono_neutral_cong_right a0 asum)
       show ?thesis
         apply (simp add: convex_hull_finite \<open>finite T\<close>)
         apply (rule_tac x=a in exI)
         using a0 assms
-        apply (auto simp: cge0 a aeqx [symmetric] setsum.mono_neutral_right)
+        apply (auto simp: cge0 a aeqx [symmetric] sum.mono_neutral_right)
         done
     next
       case False
-      define k where "k = setsum c (S - T)"
+      define k where "k = sum c (S - T)"
       have "k > 0" using False
-        unfolding k_def by (metis DiffD1 antisym_conv cge0 setsum_nonneg not_less)
-      have weq_sumsum: "w = setsum (\<lambda>x. c x *\<^sub>R x) T + setsum (\<lambda>x. c x *\<^sub>R x) (S - T)"
-        by (metis (no_types) add.commute S(1) S(2) setsum.subset_diff sumci_xy weq)
+        unfolding k_def by (metis DiffD1 antisym_conv cge0 sum_nonneg not_less)
+      have weq_sumsum: "w = sum (\<lambda>x. c x *\<^sub>R x) T + sum (\<lambda>x. c x *\<^sub>R x) (S - T)"
+        by (metis (no_types) add.commute S(1) S(2) sum.subset_diff sumci_xy weq)
       show ?thesis
       proof (cases "k = 1")
         case True
-        then have "setsum c T = 0"
-          by (simp add: S k_def setsum_diff sumc1)
-        then have [simp]: "setsum c (S - T) = 1"
-          by (simp add: S setsum_diff sumc1)
+        then have "sum c T = 0"
+          by (simp add: S k_def sum_diff sumc1)
+        then have [simp]: "sum c (S - T) = 1"
+          by (simp add: S sum_diff sumc1)
         have ci0: "\<And>i. i \<in> T \<Longrightarrow> c i = 0"
-          by (meson \<open>finite T\<close> \<open>setsum c T = 0\<close> \<open>T \<subseteq> S\<close> cge0 setsum_nonneg_eq_0_iff subsetCE)
+          by (meson \<open>finite T\<close> \<open>sum c T = 0\<close> \<open>T \<subseteq> S\<close> cge0 sum_nonneg_eq_0_iff subsetCE)
         then have [simp]: "(\<Sum>i\<in>S-T. c i *\<^sub>R i) = w"
           by (simp add: weq_sumsum)
         have "w \<in> convex hull (S - T)"
@@ -350,22 +350,22 @@ proof -
           using disj waff by blast
       next
         case False
-        then have sumcf: "setsum c T = 1 - k"
-          by (simp add: S k_def setsum_diff sumc1)
+        then have sumcf: "sum c T = 1 - k"
+          by (simp add: S k_def sum_diff sumc1)
         have "(\<Sum>i\<in>T. c i *\<^sub>R i) /\<^sub>R (1 - k) \<in> convex hull T"
           apply (simp add: convex_hull_finite fin)
           apply (rule_tac x="\<lambda>i. inverse (1-k) * c i" in exI)
           apply auto
-          apply (metis sumcf cge0 inverse_nonnegative_iff_nonnegative mult_nonneg_nonneg S(2) setsum_nonneg subsetCE)
-          apply (metis False mult.commute right_inverse right_minus_eq setsum_distrib_left sumcf)
-          by (metis (mono_tags, lifting) scaleR_right.setsum scaleR_scaleR setsum.cong)
-        with \<open>0 < k\<close>  have "inverse(k) *\<^sub>R (w - setsum (\<lambda>i. c i *\<^sub>R i) T) \<in> affine hull T"
+          apply (metis sumcf cge0 inverse_nonnegative_iff_nonnegative mult_nonneg_nonneg S(2) sum_nonneg subsetCE)
+          apply (metis False mult.commute right_inverse right_minus_eq sum_distrib_left sumcf)
+          by (metis (mono_tags, lifting) scaleR_right.sum scaleR_scaleR sum.cong)
+        with \<open>0 < k\<close>  have "inverse(k) *\<^sub>R (w - sum (\<lambda>i. c i *\<^sub>R i) T) \<in> affine hull T"
           by (simp add: affine_diff_divide [OF affine_affine_hull] False waff convex_hull_subset_affine_hull [THEN subsetD])
-        moreover have "inverse(k) *\<^sub>R (w - setsum (\<lambda>x. c x *\<^sub>R x) T) \<in> convex hull (S - T)"
+        moreover have "inverse(k) *\<^sub>R (w - sum (\<lambda>x. c x *\<^sub>R x) T) \<in> convex hull (S - T)"
           apply (simp add: weq_sumsum convex_hull_finite fin)
           apply (rule_tac x="\<lambda>i. inverse k * c i" in exI)
           using \<open>k > 0\<close> cge0
-          apply (auto simp: scaleR_right.setsum setsum_distrib_left [symmetric] k_def [symmetric])
+          apply (auto simp: scaleR_right.sum sum_distrib_left [symmetric] k_def [symmetric])
           done
         ultimately show ?thesis
           using disj by blast
@@ -2727,7 +2727,7 @@ proof -
           have "norm (x - y) \<le> (\<Sum>b\<in>Basis. \<bar>(x-y) \<bullet> b\<bar>)"
             by (rule norm_le_l1)
           also have "... \<le> of_nat (DIM('a)) * (e / 2 / DIM('a))"
-          proof (rule setsum_bounded_above)
+          proof (rule sum_bounded_above)
             fix i::'a
             assume "i \<in> Basis"
             then have I': "\<And>z b. \<lbrakk>z \<in> C; b = z * e / (2 * real DIM('a))\<rbrakk> \<Longrightarrow> i \<bullet> x \<le> b \<and> i \<bullet> y \<le> b \<or> i \<bullet> x \<ge> b \<and> i \<bullet> y \<ge> b"

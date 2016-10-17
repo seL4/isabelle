@@ -473,35 +473,35 @@ subsection \<open>Generalized summation over a set\<close>
 context comm_monoid_add
 begin
 
-sublocale setsum: comm_monoid_set plus 0
-  defines setsum = setsum.F ..
+sublocale sum: comm_monoid_set plus 0
+  defines sum = sum.F ..
 
-abbreviation Setsum ("\<Sum>_" [1000] 999)
-  where "\<Sum>A \<equiv> setsum (\<lambda>x. x) A"
+abbreviation Sum ("\<Sum>_" [1000] 999)
+  where "\<Sum>A \<equiv> sum (\<lambda>x. x) A"
 
 end
 
-text \<open>Now: lot's of fancy syntax. First, @{term "setsum (\<lambda>x. e) A"} is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
+text \<open>Now: lot's of fancy syntax. First, @{term "sum (\<lambda>x. e) A"} is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
 
 syntax (ASCII)
-  "_setsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM _:_./ _)" [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM _:_./ _)" [0, 51, 10] 10)
 syntax
-  "_setsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "\<Sum>i\<in>A. b" \<rightleftharpoons> "CONST setsum (\<lambda>i. b) A"
+  "\<Sum>i\<in>A. b" \<rightleftharpoons> "CONST sum (\<lambda>i. b) A"
 
 text \<open>Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter \<open>\<Sum>x|P. e\<close>.\<close>
 
 syntax (ASCII)
-  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SUM _ |/ _./ _)" [0, 0, 10] 10)
+  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SUM _ |/ _./ _)" [0, 0, 10] 10)
 syntax
-  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Sum>_ | (_)./ _)" [0, 0, 10] 10)
+  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Sum>_ | (_)./ _)" [0, 0, 10] 10)
 translations
-  "\<Sum>x|P. t" => "CONST setsum (\<lambda>x. t) {x. P}"
+  "\<Sum>x|P. t" => "CONST sum (\<lambda>x. t) {x. P}"
 
 print_translation \<open>
 let
-  fun setsum_tr' [Abs (x, Tx, t), Const (@{const_syntax Collect}, _) $ Abs (y, Ty, P)] =
+  fun sum_tr' [Abs (x, Tx, t), Const (@{const_syntax Collect}, _) $ Abs (y, Ty, P)] =
         if x <> y then raise Match
         else
           let
@@ -509,55 +509,55 @@ let
             val t' = subst_bound (x', t);
             val P' = subst_bound (x', P);
           in
-            Syntax.const @{syntax_const "_qsetsum"} $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
+            Syntax.const @{syntax_const "_qsum"} $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
           end
-    | setsum_tr' _ = raise Match;
-in [(@{const_syntax setsum}, K setsum_tr')] end
+    | sum_tr' _ = raise Match;
+in [(@{const_syntax sum}, K sum_tr')] end
 \<close>
 
 (* TODO generalization candidates *)
 
-lemma (in comm_monoid_add) setsum_image_gen:
+lemma (in comm_monoid_add) sum_image_gen:
   assumes fin: "finite S"
-  shows "setsum g S = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
+  shows "sum g S = sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) (f ` S)"
 proof -
   have "{y. y\<in> f`S \<and> f x = y} = {f x}" if "x \<in> S" for x
     using that by auto
-  then have "setsum g S = setsum (\<lambda>x. setsum (\<lambda>y. g x) {y. y\<in> f`S \<and> f x = y}) S"
+  then have "sum g S = sum (\<lambda>x. sum (\<lambda>y. g x) {y. y\<in> f`S \<and> f x = y}) S"
     by simp
-  also have "\<dots> = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-    by (rule setsum.commute_restrict [OF fin finite_imageI [OF fin]])
+  also have "\<dots> = sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) (f ` S)"
+    by (rule sum.commute_restrict [OF fin finite_imageI [OF fin]])
   finally show ?thesis .
 qed
 
 
 subsubsection \<open>Properties in more restricted classes of structures\<close>
 
-lemma setsum_Un:
-  "finite A \<Longrightarrow> finite B \<Longrightarrow> setsum f (A \<union> B) = setsum f A + setsum f B - setsum f (A \<inter> B)"
+lemma sum_Un:
+  "finite A \<Longrightarrow> finite B \<Longrightarrow> sum f (A \<union> B) = sum f A + sum f B - sum f (A \<inter> B)"
   for f :: "'b \<Rightarrow> 'a::ab_group_add"
-  by (subst setsum.union_inter [symmetric]) (auto simp add: algebra_simps)
+  by (subst sum.union_inter [symmetric]) (auto simp add: algebra_simps)
 
-lemma setsum_Un2:
+lemma sum_Un2:
   assumes "finite (A \<union> B)"
-  shows "setsum f (A \<union> B) = setsum f (A - B) + setsum f (B - A) + setsum f (A \<inter> B)"
+  shows "sum f (A \<union> B) = sum f (A - B) + sum f (B - A) + sum f (A \<inter> B)"
 proof -
   have "A \<union> B = A - B \<union> (B - A) \<union> A \<inter> B"
     by auto
   with assms show ?thesis
-    by simp (subst setsum.union_disjoint, auto)+
+    by simp (subst sum.union_disjoint, auto)+
 qed
 
-lemma setsum_diff1:
+lemma sum_diff1:
   fixes f :: "'b \<Rightarrow> 'a::ab_group_add"
   assumes "finite A"
-  shows "setsum f (A - {a}) = (if a \<in> A then setsum f A - f a else setsum f A)"
+  shows "sum f (A - {a}) = (if a \<in> A then sum f A - f a else sum f A)"
   using assms by induct (auto simp: insert_Diff_if)
 
-lemma setsum_diff:
+lemma sum_diff:
   fixes f :: "'b \<Rightarrow> 'a::ab_group_add"
   assumes "finite A" "B \<subseteq> A"
-  shows "setsum f (A - B) = setsum f A - setsum f B"
+  shows "sum f (A - B) = sum f A - sum f B"
 proof -
   from assms(2,1) have "finite B" by (rule finite_subset)
   from this \<open>B \<subseteq> A\<close>
@@ -568,18 +568,18 @@ proof -
   next
     case (insert x F)
     with \<open>finite A\<close> \<open>finite B\<close> show ?case
-      by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
+      by (simp add: Diff_insert[where a=x and B=F] sum_diff1 insert_absorb)
   qed
 qed
 
-lemma (in ordered_comm_monoid_add) setsum_mono:
+lemma (in ordered_comm_monoid_add) sum_mono:
   "(\<And>i. i\<in>K \<Longrightarrow> f i \<le> g i) \<Longrightarrow> (\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
   by (induct K rule: infinite_finite_induct) (use add_mono in auto)
 
-lemma (in strict_ordered_comm_monoid_add) setsum_strict_mono:
+lemma (in strict_ordered_comm_monoid_add) sum_strict_mono:
   assumes "finite A" "A \<noteq> {}"
     and "\<And>x. x \<in> A \<Longrightarrow> f x < g x"
-  shows "setsum f A < setsum g A"
+  shows "sum f A < sum g A"
   using assms
 proof (induct rule: finite_ne_induct)
   case singleton
@@ -589,31 +589,31 @@ next
   then show ?case by (auto simp: add_strict_mono)
 qed
 
-lemma setsum_strict_mono_ex1:
+lemma sum_strict_mono_ex1:
   fixes f g :: "'i \<Rightarrow> 'a::ordered_cancel_comm_monoid_add"
   assumes "finite A"
     and "\<forall>x\<in>A. f x \<le> g x"
     and "\<exists>a\<in>A. f a < g a"
-  shows "setsum f A < setsum g A"
+  shows "sum f A < sum g A"
 proof-
   from assms(3) obtain a where a: "a \<in> A" "f a < g a" by blast
-  have "setsum f A = setsum f ((A - {a}) \<union> {a})"
+  have "sum f A = sum f ((A - {a}) \<union> {a})"
     by(simp add: insert_absorb[OF \<open>a \<in> A\<close>])
-  also have "\<dots> = setsum f (A - {a}) + setsum f {a}"
-    using \<open>finite A\<close> by(subst setsum.union_disjoint) auto
-  also have "setsum f (A - {a}) \<le> setsum g (A - {a})"
-    by (rule setsum_mono) (simp add: assms(2))
-  also from a have "setsum f {a} < setsum g {a}" by simp
-  also have "setsum g (A - {a}) + setsum g {a} = setsum g((A - {a}) \<union> {a})"
-    using \<open>finite A\<close> by (subst setsum.union_disjoint[symmetric]) auto
-  also have "\<dots> = setsum g A" by (simp add: insert_absorb[OF \<open>a \<in> A\<close>])
+  also have "\<dots> = sum f (A - {a}) + sum f {a}"
+    using \<open>finite A\<close> by(subst sum.union_disjoint) auto
+  also have "sum f (A - {a}) \<le> sum g (A - {a})"
+    by (rule sum_mono) (simp add: assms(2))
+  also from a have "sum f {a} < sum g {a}" by simp
+  also have "sum g (A - {a}) + sum g {a} = sum g((A - {a}) \<union> {a})"
+    using \<open>finite A\<close> by (subst sum.union_disjoint[symmetric]) auto
+  also have "\<dots> = sum g A" by (simp add: insert_absorb[OF \<open>a \<in> A\<close>])
   finally show ?thesis
     by (auto simp add: add_right_mono add_strict_left_mono)
 qed
 
-lemma setsum_mono_inv:
+lemma sum_mono_inv:
   fixes f g :: "'i \<Rightarrow> 'a :: ordered_cancel_comm_monoid_add"
-  assumes eq: "setsum f I = setsum g I"
+  assumes eq: "sum f I = sum g I"
   assumes le: "\<And>i. i \<in> I \<Longrightarrow> f i \<le> g i"
   assumes i: "i \<in> I"
   assumes I: "finite I"
@@ -622,46 +622,46 @@ proof (rule ccontr)
   assume "\<not> ?thesis"
   with le[OF i] have "f i < g i" by simp
   with i have "\<exists>i\<in>I. f i < g i" ..
-  from setsum_strict_mono_ex1[OF I _ this] le have "setsum f I < setsum g I"
+  from sum_strict_mono_ex1[OF I _ this] le have "sum f I < sum g I"
     by blast
   with eq show False by simp
 qed
 
-lemma member_le_setsum:
+lemma member_le_sum:
   fixes f :: "_ \<Rightarrow> 'b::{semiring_1, ordered_comm_monoid_add}"
   assumes le: "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x"
     and "i \<in> A"
     and "finite A"
-  shows "f i \<le> setsum f A"
+  shows "f i \<le> sum f A"
 proof -
-  have "f i \<le> setsum f (A \<inter> {i})"
+  have "f i \<le> sum f (A \<inter> {i})"
     by (simp add: assms)
   also have "... = (\<Sum>x\<in>A. if x \<in> {i} then f x else 0)"
-    using assms setsum.inter_restrict by blast
-  also have "... \<le> setsum f A"
-    apply (rule setsum_mono)
+    using assms sum.inter_restrict by blast
+  also have "... \<le> sum f A"
+    apply (rule sum_mono)
     apply (auto simp: le)
     done
   finally show ?thesis .
 qed
 
-lemma setsum_negf: "(\<Sum>x\<in>A. - f x) = - (\<Sum>x\<in>A. f x)"
+lemma sum_negf: "(\<Sum>x\<in>A. - f x) = - (\<Sum>x\<in>A. f x)"
   for f :: "'b \<Rightarrow> 'a::ab_group_add"
   by (induct A rule: infinite_finite_induct) auto
 
-lemma setsum_subtractf: "(\<Sum>x\<in>A. f x - g x) = (\<Sum>x\<in>A. f x) - (\<Sum>x\<in>A. g x)"
+lemma sum_subtractf: "(\<Sum>x\<in>A. f x - g x) = (\<Sum>x\<in>A. f x) - (\<Sum>x\<in>A. g x)"
   for f g :: "'b \<Rightarrow>'a::ab_group_add"
-  using setsum.distrib [of f "- g" A] by (simp add: setsum_negf)
+  using sum.distrib [of f "- g" A] by (simp add: sum_negf)
 
-lemma setsum_subtractf_nat:
+lemma sum_subtractf_nat:
   "(\<And>x. x \<in> A \<Longrightarrow> g x \<le> f x) \<Longrightarrow> (\<Sum>x\<in>A. f x - g x) = (\<Sum>x\<in>A. f x) - (\<Sum>x\<in>A. g x)"
   for f g :: "'a \<Rightarrow> nat"
-  by (induct A rule: infinite_finite_induct) (auto simp: setsum_mono)
+  by (induct A rule: infinite_finite_induct) (auto simp: sum_mono)
 
 context ordered_comm_monoid_add
 begin
 
-lemma setsum_nonneg: "\<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> 0 \<le> setsum f A"
+lemma sum_nonneg: "\<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> 0 \<le> sum f A"
 proof (induct A rule: infinite_finite_induct)
   case infinite
   then show ?case by simp
@@ -670,11 +670,11 @@ next
   then show ?case by simp
 next
   case (insert x F)
-  then have "0 + 0 \<le> f x + setsum f F" by (blast intro: add_mono)
+  then have "0 + 0 \<le> f x + sum f F" by (blast intro: add_mono)
   with insert show ?case by simp
 qed
 
-lemma setsum_nonpos: "\<forall>x\<in>A. f x \<le> 0 \<Longrightarrow> setsum f A \<le> 0"
+lemma sum_nonpos: "\<forall>x\<in>A. f x \<le> 0 \<Longrightarrow> sum f A \<le> 0"
 proof (induct A rule: infinite_finite_induct)
   case infinite
   then show ?case by simp
@@ -683,74 +683,74 @@ next
   then show ?case by simp
 next
   case (insert x F)
-  then have "f x + setsum f F \<le> 0 + 0" by (blast intro: add_mono)
+  then have "f x + sum f F \<le> 0 + 0" by (blast intro: add_mono)
   with insert show ?case by simp
 qed
 
-lemma setsum_nonneg_eq_0_iff:
-  "finite A \<Longrightarrow> \<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> setsum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
-  by (induct set: finite) (simp_all add: add_nonneg_eq_0_iff setsum_nonneg)
+lemma sum_nonneg_eq_0_iff:
+  "finite A \<Longrightarrow> \<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> sum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
+  by (induct set: finite) (simp_all add: add_nonneg_eq_0_iff sum_nonneg)
 
-lemma setsum_nonneg_0:
+lemma sum_nonneg_0:
   "finite s \<Longrightarrow> (\<And>i. i \<in> s \<Longrightarrow> f i \<ge> 0) \<Longrightarrow> (\<Sum> i \<in> s. f i) = 0 \<Longrightarrow> i \<in> s \<Longrightarrow> f i = 0"
-  by (simp add: setsum_nonneg_eq_0_iff)
+  by (simp add: sum_nonneg_eq_0_iff)
 
-lemma setsum_nonneg_leq_bound:
+lemma sum_nonneg_leq_bound:
   assumes "finite s" "\<And>i. i \<in> s \<Longrightarrow> f i \<ge> 0" "(\<Sum>i \<in> s. f i) = B" "i \<in> s"
   shows "f i \<le> B"
 proof -
   from assms have "f i \<le> f i + (\<Sum>i \<in> s - {i}. f i)"
-    by (intro add_increasing2 setsum_nonneg) auto
+    by (intro add_increasing2 sum_nonneg) auto
   also have "\<dots> = B"
-    using setsum.remove[of s i f] assms by simp
+    using sum.remove[of s i f] assms by simp
   finally show ?thesis by auto
 qed
 
-lemma setsum_mono2:
+lemma sum_mono2:
   assumes fin: "finite B"
     and sub: "A \<subseteq> B"
     and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 0 \<le> f b"
-  shows "setsum f A \<le> setsum f B"
+  shows "sum f A \<le> sum f B"
 proof -
-  have "setsum f A \<le> setsum f A + setsum f (B-A)"
-    by(simp add: add_increasing2[OF setsum_nonneg] nn Ball_def)
-  also from fin finite_subset[OF sub fin] have "\<dots> = setsum f (A \<union> (B-A))"
-    by (simp add: setsum.union_disjoint del: Un_Diff_cancel)
+  have "sum f A \<le> sum f A + sum f (B-A)"
+    by(simp add: add_increasing2[OF sum_nonneg] nn Ball_def)
+  also from fin finite_subset[OF sub fin] have "\<dots> = sum f (A \<union> (B-A))"
+    by (simp add: sum.union_disjoint del: Un_Diff_cancel)
   also from sub have "A \<union> (B-A) = B" by blast
   finally show ?thesis .
 qed
 
-lemma setsum_le_included:
+lemma sum_le_included:
   assumes "finite s" "finite t"
   and "\<forall>y\<in>t. 0 \<le> g y" "(\<forall>x\<in>s. \<exists>y\<in>t. i y = x \<and> f x \<le> g y)"
-  shows "setsum f s \<le> setsum g t"
+  shows "sum f s \<le> sum g t"
 proof -
-  have "setsum f s \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) s"
-  proof (rule setsum_mono)
+  have "sum f s \<le> sum (\<lambda>y. sum g {x. x\<in>t \<and> i x = y}) s"
+  proof (rule sum_mono)
     fix y
     assume "y \<in> s"
     with assms obtain z where z: "z \<in> t" "y = i z" "f y \<le> g z" by auto
-    with assms show "f y \<le> setsum g {x \<in> t. i x = y}" (is "?A y \<le> ?B y")
-      using order_trans[of "?A (i z)" "setsum g {z}" "?B (i z)", intro]
-      by (auto intro!: setsum_mono2)
+    with assms show "f y \<le> sum g {x \<in> t. i x = y}" (is "?A y \<le> ?B y")
+      using order_trans[of "?A (i z)" "sum g {z}" "?B (i z)", intro]
+      by (auto intro!: sum_mono2)
   qed
-  also have "\<dots> \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) (i ` t)"
-    using assms(2-4) by (auto intro!: setsum_mono2 setsum_nonneg)
-  also have "\<dots> \<le> setsum g t"
-    using assms by (auto simp: setsum_image_gen[symmetric])
+  also have "\<dots> \<le> sum (\<lambda>y. sum g {x. x\<in>t \<and> i x = y}) (i ` t)"
+    using assms(2-4) by (auto intro!: sum_mono2 sum_nonneg)
+  also have "\<dots> \<le> sum g t"
+    using assms by (auto simp: sum_image_gen[symmetric])
   finally show ?thesis .
 qed
 
-lemma setsum_mono3: "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> \<forall>x\<in>B - A. 0 \<le> f x \<Longrightarrow> setsum f A \<le> setsum f B"
-  by (rule setsum_mono2) auto
+lemma sum_mono3: "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> \<forall>x\<in>B - A. 0 \<le> f x \<Longrightarrow> sum f A \<le> sum f B"
+  by (rule sum_mono2) auto
 
 end
 
-lemma (in canonically_ordered_monoid_add) setsum_eq_0_iff [simp]:
-  "finite F \<Longrightarrow> (setsum f F = 0) = (\<forall>a\<in>F. f a = 0)"
-  by (intro ballI setsum_nonneg_eq_0_iff zero_le)
+lemma (in canonically_ordered_monoid_add) sum_eq_0_iff [simp]:
+  "finite F \<Longrightarrow> (sum f F = 0) = (\<forall>a\<in>F. f a = 0)"
+  by (intro ballI sum_nonneg_eq_0_iff zero_le)
 
-lemma setsum_distrib_left: "r * setsum f A = setsum (\<lambda>n. r * f n) A"
+lemma sum_distrib_left: "r * sum f A = sum (\<lambda>n. r * f n) A"
   for f :: "'a \<Rightarrow> 'b::semiring_0"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -763,7 +763,7 @@ next
   then show ?case by (simp add: distrib_left)
 qed
 
-lemma setsum_distrib_right: "setsum f A * r = (\<Sum>n\<in>A. f n * r)"
+lemma sum_distrib_right: "sum f A * r = (\<Sum>n\<in>A. f n * r)"
   for r :: "'a::semiring_0"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -776,7 +776,7 @@ next
   then show ?case by (simp add: distrib_right)
 qed
 
-lemma setsum_divide_distrib: "setsum f A / r = (\<Sum>n\<in>A. f n / r)"
+lemma sum_divide_distrib: "sum f A / r = (\<Sum>n\<in>A. f n / r)"
   for r :: "'a::field"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -789,7 +789,7 @@ next
   then show ?case by (simp add: add_divide_distrib)
 qed
 
-lemma setsum_abs[iff]: "\<bar>setsum f A\<bar> \<le> setsum (\<lambda>i. \<bar>f i\<bar>) A"
+lemma sum_abs[iff]: "\<bar>sum f A\<bar> \<le> sum (\<lambda>i. \<bar>f i\<bar>) A"
   for f :: "'a \<Rightarrow> 'b::ordered_ab_group_add_abs"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -802,11 +802,11 @@ next
   then show ?case by (auto intro: abs_triangle_ineq order_trans)
 qed
 
-lemma setsum_abs_ge_zero[iff]: "0 \<le> setsum (\<lambda>i. \<bar>f i\<bar>) A"
+lemma sum_abs_ge_zero[iff]: "0 \<le> sum (\<lambda>i. \<bar>f i\<bar>) A"
   for f :: "'a \<Rightarrow> 'b::ordered_ab_group_add_abs"
-  by (simp add: setsum_nonneg)
+  by (simp add: sum_nonneg)
 
-lemma abs_setsum_abs[simp]: "\<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar> = (\<Sum>a\<in>A. \<bar>f a\<bar>)"
+lemma abs_sum_abs[simp]: "\<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar> = (\<Sum>a\<in>A. \<bar>f a\<bar>)"
   for f :: "'a \<Rightarrow> 'b::ordered_ab_group_add_abs"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -823,39 +823,39 @@ next
   finally show ?case .
 qed
 
-lemma setsum_diff1_ring:
+lemma sum_diff1_ring:
   fixes f :: "'b \<Rightarrow> 'a::ring"
   assumes "finite A" "a \<in> A"
-  shows "setsum f (A - {a}) = setsum f A - (f a)"
-  unfolding setsum.remove [OF assms] by auto
+  shows "sum f (A - {a}) = sum f A - (f a)"
+  unfolding sum.remove [OF assms] by auto
 
-lemma setsum_product:
+lemma sum_product:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "setsum f A * setsum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"
-  by (simp add: setsum_distrib_left setsum_distrib_right) (rule setsum.commute)
+  shows "sum f A * sum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"
+  by (simp add: sum_distrib_left sum_distrib_right) (rule sum.commute)
 
-lemma setsum_mult_setsum_if_inj:
+lemma sum_mult_sum_if_inj:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"
   shows "inj_on (\<lambda>(a, b). f a * g b) (A \<times> B) \<Longrightarrow>
-    setsum f A * setsum g B = setsum id {f a * g b |a b. a \<in> A \<and> b \<in> B}"
-  by(auto simp: setsum_product setsum.cartesian_product intro!: setsum.reindex_cong[symmetric])
+    sum f A * sum g B = sum id {f a * g b |a b. a \<in> A \<and> b \<in> B}"
+  by(auto simp: sum_product sum.cartesian_product intro!: sum.reindex_cong[symmetric])
 
-lemma setsum_SucD: "setsum f A = Suc n \<Longrightarrow> \<exists>a\<in>A. 0 < f a"
+lemma sum_SucD: "sum f A = Suc n \<Longrightarrow> \<exists>a\<in>A. 0 < f a"
   by (induct A rule: infinite_finite_induct) auto
 
-lemma setsum_eq_Suc0_iff:
-  "finite A \<Longrightarrow> setsum f A = Suc 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = Suc 0 \<and> (\<forall>b\<in>A. a \<noteq> b \<longrightarrow> f b = 0))"
+lemma sum_eq_Suc0_iff:
+  "finite A \<Longrightarrow> sum f A = Suc 0 \<longleftrightarrow> (\<exists>a\<in>A. f a = Suc 0 \<and> (\<forall>b\<in>A. a \<noteq> b \<longrightarrow> f b = 0))"
   by (induct A rule: finite_induct) (auto simp add: add_is_1)
 
-lemmas setsum_eq_1_iff = setsum_eq_Suc0_iff[simplified One_nat_def[symmetric]]
+lemmas sum_eq_1_iff = sum_eq_Suc0_iff[simplified One_nat_def[symmetric]]
 
-lemma setsum_Un_nat:
-  "finite A \<Longrightarrow> finite B \<Longrightarrow> setsum f (A \<union> B) = setsum f A + setsum f B - setsum f (A \<inter> B)"
+lemma sum_Un_nat:
+  "finite A \<Longrightarrow> finite B \<Longrightarrow> sum f (A \<union> B) = sum f A + sum f B - sum f (A \<inter> B)"
   for f :: "'a \<Rightarrow> nat"
   \<comment> \<open>For the natural numbers, we have subtraction.\<close>
-  by (subst setsum.union_inter [symmetric]) (auto simp: algebra_simps)
+  by (subst sum.union_inter [symmetric]) (auto simp: algebra_simps)
 
-lemma setsum_diff1_nat: "setsum f (A - {a}) = (if a \<in> A then setsum f A - f a else setsum f A)"
+lemma sum_diff1_nat: "sum f (A - {a}) = (if a \<in> A then sum f A - f a else sum f A)"
   for f :: "'a \<Rightarrow> nat"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -872,60 +872,60 @@ next
     done
 qed
 
-lemma setsum_diff_nat:
+lemma sum_diff_nat:
   fixes f :: "'a \<Rightarrow> nat"
   assumes "finite B" and "B \<subseteq> A"
-  shows "setsum f (A - B) = setsum f A - setsum f B"
+  shows "sum f (A - B) = sum f A - sum f B"
   using assms
 proof induct
   case empty
   then show ?case by simp
 next
   case (insert x F)
-  note IH = \<open>F \<subseteq> A \<Longrightarrow> setsum f (A - F) = setsum f A - setsum f F\<close>
+  note IH = \<open>F \<subseteq> A \<Longrightarrow> sum f (A - F) = sum f A - sum f F\<close>
   from \<open>x \<notin> F\<close> \<open>insert x F \<subseteq> A\<close> have "x \<in> A - F" by simp
-  then have A: "setsum f ((A - F) - {x}) = setsum f (A - F) - f x"
-    by (simp add: setsum_diff1_nat)
+  then have A: "sum f ((A - F) - {x}) = sum f (A - F) - f x"
+    by (simp add: sum_diff1_nat)
   from \<open>insert x F \<subseteq> A\<close> have "F \<subseteq> A" by simp
-  with IH have "setsum f (A - F) = setsum f A - setsum f F" by simp
-  with A have B: "setsum f ((A - F) - {x}) = setsum f A - setsum f F - f x"
+  with IH have "sum f (A - F) = sum f A - sum f F" by simp
+  with A have B: "sum f ((A - F) - {x}) = sum f A - sum f F - f x"
     by simp
   from \<open>x \<notin> F\<close> have "A - insert x F = (A - F) - {x}" by auto
-  with B have C: "setsum f (A - insert x F) = setsum f A - setsum f F - f x"
+  with B have C: "sum f (A - insert x F) = sum f A - sum f F - f x"
     by simp
-  from \<open>finite F\<close> \<open>x \<notin> F\<close> have "setsum f (insert x F) = setsum f F + f x"
+  from \<open>finite F\<close> \<open>x \<notin> F\<close> have "sum f (insert x F) = sum f F + f x"
     by simp
-  with C have "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)"
+  with C have "sum f (A - insert x F) = sum f A - sum f (insert x F)"
     by simp
   then show ?case by simp
 qed
 
-lemma setsum_comp_morphism:
-  "h 0 = 0 \<Longrightarrow> (\<And>x y. h (x + y) = h x + h y) \<Longrightarrow> setsum (h \<circ> g) A = h (setsum g A)"
+lemma sum_comp_morphism:
+  "h 0 = 0 \<Longrightarrow> (\<And>x y. h (x + y) = h x + h y) \<Longrightarrow> sum (h \<circ> g) A = h (sum g A)"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma (in comm_semiring_1) dvd_setsum: "(\<And>a. a \<in> A \<Longrightarrow> d dvd f a) \<Longrightarrow> d dvd setsum f A"
+lemma (in comm_semiring_1) dvd_sum: "(\<And>a. a \<in> A \<Longrightarrow> d dvd f a) \<Longrightarrow> d dvd sum f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma (in ordered_comm_monoid_add) setsum_pos:
-  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < setsum f I"
+lemma (in ordered_comm_monoid_add) sum_pos:
+  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < sum f I"
   by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
 
-lemma (in ordered_comm_monoid_add) setsum_pos2:
+lemma (in ordered_comm_monoid_add) sum_pos2:
   assumes I: "finite I" "i \<in> I" "0 < f i" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
-  shows "0 < setsum f I"
+  shows "0 < sum f I"
 proof -
-  have "0 < f i + setsum f (I - {i})"
-    using assms by (intro add_pos_nonneg setsum_nonneg) auto
-  also have "\<dots> = setsum f I"
-    using assms by (simp add: setsum.remove)
+  have "0 < f i + sum f (I - {i})"
+    using assms by (intro add_pos_nonneg sum_nonneg) auto
+  also have "\<dots> = sum f I"
+    using assms by (simp add: sum.remove)
   finally show ?thesis .
 qed
 
-lemma setsum_cong_Suc:
+lemma sum_cong_Suc:
   assumes "0 \<notin> A" "\<And>x. Suc x \<in> A \<Longrightarrow> f (Suc x) = g (Suc x)"
-  shows "setsum f A = setsum g A"
-proof (rule setsum.cong)
+  shows "sum f A = sum g A"
+proof (rule sum.cong)
   fix x
   assume "x \<in> A"
   with assms(1) show "f x = g x"
@@ -933,9 +933,9 @@ proof (rule setsum.cong)
 qed simp_all
 
 
-subsubsection \<open>Cardinality as special case of @{const setsum}\<close>
+subsubsection \<open>Cardinality as special case of @{const sum}\<close>
 
-lemma card_eq_setsum: "card A = setsum (\<lambda>x. 1) A"
+lemma card_eq_sum: "card A = sum (\<lambda>x. 1) A"
 proof -
   have "plus \<circ> (\<lambda>_. Suc 0) = (\<lambda>_. Suc)"
     by (simp add: fun_eq_iff)
@@ -944,43 +944,43 @@ proof -
   then have "Finite_Set.fold (plus \<circ> (\<lambda>_. Suc 0)) 0 A = Finite_Set.fold (\<lambda>_. Suc) 0 A"
     by (blast intro: fun_cong)
   then show ?thesis
-    by (simp add: card.eq_fold setsum.eq_fold)
+    by (simp add: card.eq_fold sum.eq_fold)
 qed
 
-lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat (card A) * y"
+lemma sum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat (card A) * y"
   by (induct A rule: infinite_finite_induct) (auto simp: algebra_simps)
 
-lemma setsum_Suc: "setsum (\<lambda>x. Suc(f x)) A = setsum f A + card A"
-  using setsum.distrib[of f "\<lambda>_. 1" A] by simp
+lemma sum_Suc: "sum (\<lambda>x. Suc(f x)) A = sum f A + card A"
+  using sum.distrib[of f "\<lambda>_. 1" A] by simp
 
-lemma setsum_bounded_above:
+lemma sum_bounded_above:
   fixes K :: "'a::{semiring_1,ordered_comm_monoid_add}"
   assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> K"
-  shows "setsum f A \<le> of_nat (card A) * K"
+  shows "sum f A \<le> of_nat (card A) * K"
 proof (cases "finite A")
   case True
   then show ?thesis
-    using le setsum_mono[where K=A and g = "\<lambda>x. K"] by simp
+    using le sum_mono[where K=A and g = "\<lambda>x. K"] by simp
 next
   case False
   then show ?thesis by simp
 qed
 
-lemma setsum_bounded_above_strict:
+lemma sum_bounded_above_strict:
   fixes K :: "'a::{ordered_cancel_comm_monoid_add,semiring_1}"
   assumes "\<And>i. i\<in>A \<Longrightarrow> f i < K" "card A > 0"
-  shows "setsum f A < of_nat (card A) * K"
-  using assms setsum_strict_mono[where A=A and g = "\<lambda>x. K"]
+  shows "sum f A < of_nat (card A) * K"
+  using assms sum_strict_mono[where A=A and g = "\<lambda>x. K"]
   by (simp add: card_gt_0_iff)
 
-lemma setsum_bounded_below:
+lemma sum_bounded_below:
   fixes K :: "'a::{semiring_1,ordered_comm_monoid_add}"
   assumes le: "\<And>i. i\<in>A \<Longrightarrow> K \<le> f i"
-  shows "of_nat (card A) * K \<le> setsum f A"
+  shows "of_nat (card A) * K \<le> sum f A"
 proof (cases "finite A")
   case True
   then show ?thesis
-    using le setsum_mono[where K=A and f = "\<lambda>x. K"] by simp
+    using le sum_mono[where K=A and f = "\<lambda>x. K"] by simp
 next
   case False
   then show ?thesis by simp
@@ -994,33 +994,33 @@ proof -
   have "(\<Sum>i\<in>I. card (A i)) = (\<Sum>i\<in>I. \<Sum>x\<in>A i. 1)"
     by simp
   with assms show ?thesis
-    by (simp add: card_eq_setsum setsum.UNION_disjoint del: setsum_constant)
+    by (simp add: card_eq_sum sum.UNION_disjoint del: sum_constant)
 qed
 
 lemma card_Union_disjoint:
   "finite C \<Longrightarrow> \<forall>A\<in>C. finite A \<Longrightarrow> \<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A \<inter> B = {} \<Longrightarrow>
-    card (\<Union>C) = setsum card C"
+    card (\<Union>C) = sum card C"
   by (frule card_UN_disjoint [of C id]) simp_all
 
-lemma setsum_multicount_gen:
+lemma sum_multicount_gen:
   assumes "finite s" "finite t" "\<forall>j\<in>t. (card {i\<in>s. R i j} = k j)"
-  shows "setsum (\<lambda>i. (card {j\<in>t. R i j})) s = setsum k t"
+  shows "sum (\<lambda>i. (card {j\<in>t. R i j})) s = sum k t"
     (is "?l = ?r")
 proof-
-  have "?l = setsum (\<lambda>i. setsum (\<lambda>x.1) {j\<in>t. R i j}) s"
+  have "?l = sum (\<lambda>i. sum (\<lambda>x.1) {j\<in>t. R i j}) s"
     by auto
   also have "\<dots> = ?r"
-    unfolding setsum.commute_restrict [OF assms(1-2)]
+    unfolding sum.commute_restrict [OF assms(1-2)]
     using assms(3) by auto
   finally show ?thesis .
 qed
 
-lemma setsum_multicount:
+lemma sum_multicount:
   assumes "finite S" "finite T" "\<forall>j\<in>T. (card {i\<in>S. R i j} = k)"
-  shows "setsum (\<lambda>i. card {j\<in>T. R i j}) S = k * card T" (is "?l = ?r")
+  shows "sum (\<lambda>i. card {j\<in>T. R i j}) S = k * card T" (is "?l = ?r")
 proof-
-  have "?l = setsum (\<lambda>i. k) T"
-    by (rule setsum_multicount_gen) (auto simp: assms)
+  have "?l = sum (\<lambda>i. k) T"
+    by (rule sum_multicount_gen) (auto simp: assms)
   also have "\<dots> = ?r" by (simp add: mult.commute)
   finally show ?thesis by auto
 qed
@@ -1030,7 +1030,7 @@ subsubsection \<open>Cardinality of products\<close>
 
 lemma card_SigmaI [simp]:
   "finite A \<Longrightarrow> \<forall>a\<in>A. finite (B a) \<Longrightarrow> card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
-  by (simp add: card_eq_setsum setsum.Sigma del: setsum_constant)
+  by (simp add: card_eq_sum sum.Sigma del: sum_constant)
 
 (*
 lemma SigmaI_insert: "y \<notin> A ==>
@@ -1187,14 +1187,14 @@ next
   qed
 qed
 
-lemma setsum_zero_power [simp]: "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
+lemma sum_zero_power [simp]: "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
   for c :: "nat \<Rightarrow> 'a::division_ring"
   by (induct A rule: infinite_finite_induct) auto
 
-lemma setsum_zero_power' [simp]:
+lemma sum_zero_power' [simp]:
   "(\<Sum>i\<in>A. c i * 0^i / d i) = (if finite A \<and> 0 \<in> A then c 0 / d 0 else 0)"
   for c :: "nat \<Rightarrow> 'a::field"
-  using setsum_zero_power [of "\<lambda>i. c i / d i" A] by auto
+  using sum_zero_power [of "\<lambda>i. c i / d i" A] by auto
 
 lemma (in field) setprod_inversef:
   "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = inverse (setprod f A)"
@@ -1256,7 +1256,7 @@ lemma setprod_power_distrib: "setprod f A ^ n = setprod (\<lambda>x. (f x) ^ n) 
   for f :: "'a \<Rightarrow> 'b::comm_semiring_1"
   by (induct A rule: infinite_finite_induct) (auto simp add: power_mult_distrib)
 
-lemma power_setsum: "c ^ (\<Sum>a\<in>A. f a) = (\<Prod>a\<in>A. c ^ f a)"
+lemma power_sum: "c ^ (\<Sum>a\<in>A. f a) = (\<Prod>a\<in>A. c ^ f a)"
   by (induct A rule: infinite_finite_induct) (simp_all add: power_add)
 
 lemma setprod_gen_delta:
@@ -1291,20 +1291,20 @@ proof -
   qed
 qed
 
-lemma setsum_image_le:
+lemma sum_image_le:
   fixes g :: "'a \<Rightarrow> 'b::ordered_ab_group_add"
   assumes "finite I" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> g(f i)"
-    shows "setsum g (f ` I) \<le> setsum (g \<circ> f) I"
+    shows "sum g (f ` I) \<le> sum (g \<circ> f) I"
   using assms
 proof induction
   case empty
   then show ?case by auto
 next
   case (insert x F) then
-  have "setsum g (f ` insert x F) = setsum g (insert (f x) (f ` F))" by simp
-  also have "\<dots> \<le> g (f x) + setsum g (f ` F)"
-    by (simp add: insert setsum.insert_if)
-  also have "\<dots>  \<le> setsum (g \<circ> f) (insert x F)"
+  have "sum g (f ` insert x F) = sum g (insert (f x) (f ` F))" by simp
+  also have "\<dots> \<le> g (f x) + sum g (f ` F)"
+    by (simp add: insert sum.insert_if)
+  also have "\<dots>  \<le> sum (g \<circ> f) (insert x F)"
     using insert by auto
   finally show ?case .
 qed

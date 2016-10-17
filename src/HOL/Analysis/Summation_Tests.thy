@@ -218,7 +218,7 @@ private lemma condensation_inequality:
   assumes mono: "\<And>m n. 0 < m \<Longrightarrow> m \<le> n \<Longrightarrow> f n \<le> f m"
   shows   "(\<Sum>k=1..<n. f k) \<ge> (\<Sum>k=1..<n. f (2 * 2 ^ natlog2 k))" (is "?thesis1")
           "(\<Sum>k=1..<n. f k) \<le> (\<Sum>k=1..<n. f (2 ^ natlog2 k))" (is "?thesis2")
-  by (intro setsum_mono mono pow_natlog2_ge pow_natlog2_le, simp, simp)+
+  by (intro sum_mono mono pow_natlog2_ge pow_natlog2_le, simp, simp)+
 
 private lemma condensation_condense1: "(\<Sum>k=1..<2^n. f (2 ^ natlog2 k)) = (\<Sum>k<n. 2^k * f (2 ^ k))"
 proof (induction n)
@@ -226,10 +226,10 @@ proof (induction n)
   have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
   also have "(\<Sum>k\<in>\<dots>. f (2 ^ natlog2 k)) =
                  (\<Sum>k<n. 2^k * f (2^k)) + (\<Sum>k = 2^n..<2^Suc n. f (2^natlog2 k))"
-    by (subst setsum.union_disjoint) (insert Suc, auto)
+    by (subst sum.union_disjoint) (insert Suc, auto)
   also have "natlog2 k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro natlog2_eqI) simp_all
   hence "(\<Sum>k = 2^n..<2^Suc n. f (2^natlog2 k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^n))"
-    by (intro setsum.cong) simp_all
+    by (intro sum.cong) simp_all
   also have "\<dots> = 2^n * f (2^n)" by (simp add: of_nat_power)
   finally show ?case by simp
 qed simp
@@ -240,10 +240,10 @@ proof (induction n)
   have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
   also have "(\<Sum>k\<in>\<dots>. f (2 * 2 ^ natlog2 k)) =
                  (\<Sum>k<n. 2^k * f (2^Suc k)) + (\<Sum>k = 2^n..<2^Suc n. f (2 * 2^natlog2 k))"
-    by (subst setsum.union_disjoint) (insert Suc, auto)
+    by (subst sum.union_disjoint) (insert Suc, auto)
   also have "natlog2 k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro natlog2_eqI) simp_all
   hence "(\<Sum>k = 2^n..<2^Suc n. f (2*2^natlog2 k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^Suc n))"
-    by (intro setsum.cong) simp_all
+    by (intro sum.cong) simp_all
   also have "\<dots> = 2^n * f (2^Suc n)" by (simp add: of_nat_power)
   finally show ?case by simp
 qed simp
@@ -267,11 +267,11 @@ proof -
   hence "convergent (\<lambda>n. \<Sum>k<n. f' k) \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k<n. f' k)"
     by (rule monoseq_imp_convergent_iff_Bseq)
   also have "\<dots> \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k=1..<n. f' k)" unfolding One_nat_def
-    by (subst setsum_shift_lb_Suc0_0_upt) (simp_all add: f'_def atLeast0LessThan)
+    by (subst sum_shift_lb_Suc0_0_upt) (simp_all add: f'_def atLeast0LessThan)
   also have "\<dots> \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k=1..<n. f k)" unfolding f'_def by simp
   also have "\<dots> \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k=1..<2^n. f k)"
     by (rule nonneg_incseq_Bseq_subseq_iff[symmetric])
-       (auto intro!: setsum_nonneg incseq_SucI nonneg simp: subseq_def)
+       (auto intro!: sum_nonneg incseq_SucI nonneg simp: subseq_def)
   also have "\<dots> \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k<n. 2^k * f (2^k))"
   proof (intro iffI)
     assume A: "Bseq (\<lambda>n. \<Sum>k=1..<2^n. f k)"
@@ -279,20 +279,20 @@ proof -
     proof (intro always_eventually allI)
       fix n :: nat
       have "norm (\<Sum>k<n. 2^k * f (2^Suc k)) = (\<Sum>k<n. 2^k * f (2^Suc k))" unfolding real_norm_def
-        by (intro abs_of_nonneg setsum_nonneg ballI mult_nonneg_nonneg nonneg) simp_all
+        by (intro abs_of_nonneg sum_nonneg ballI mult_nonneg_nonneg nonneg) simp_all
       also have "\<dots> \<le> (\<Sum>k=1..<2^n. f k)"
         by (subst condensation_condense2 [symmetric]) (intro condensation_inequality mono')
       also have "\<dots> = norm \<dots>" unfolding real_norm_def
-        by (intro abs_of_nonneg[symmetric] setsum_nonneg ballI mult_nonneg_nonneg nonneg)
+        by (intro abs_of_nonneg[symmetric] sum_nonneg ballI mult_nonneg_nonneg nonneg)
       finally show "norm (\<Sum>k<n. 2 ^ k * f (2 ^ Suc k)) \<le> norm (\<Sum>k=1..<2^n. f k)" .
     qed
     from this and A have "Bseq (\<lambda>n. \<Sum>k<n. 2^k * f (2^Suc k))" by (rule Bseq_eventually_mono)
     from Bseq_mult[OF Bfun_const[of 2] this] have "Bseq (\<lambda>n. \<Sum>k<n. 2^Suc k * f (2^Suc k))"
-      by (simp add: setsum_distrib_left setsum_distrib_right mult_ac)
+      by (simp add: sum_distrib_left sum_distrib_right mult_ac)
     hence "Bseq (\<lambda>n. (\<Sum>k=Suc 0..<Suc n. 2^k * f (2^k)) + f 1)"
-      by (intro Bseq_add, subst setsum_shift_bounds_Suc_ivl) (simp add: atLeast0LessThan)
+      by (intro Bseq_add, subst sum_shift_bounds_Suc_ivl) (simp add: atLeast0LessThan)
     hence "Bseq (\<lambda>n. (\<Sum>k=0..<Suc n. 2^k * f (2^k)))"
-      by (subst setsum_head_upt_Suc) (simp_all add: add_ac)
+      by (subst sum_head_upt_Suc) (simp_all add: add_ac)
     thus "Bseq (\<lambda>n. (\<Sum>k<n. 2^k * f (2^k)))"
       by (subst (asm) Bseq_Suc_iff) (simp add: atLeast0LessThan)
   next
@@ -301,11 +301,11 @@ proof -
     proof (intro always_eventually allI)
       fix n :: nat
       have "norm (\<Sum>k=1..<2^n. f k) = (\<Sum>k=1..<2^n. f k)" unfolding real_norm_def
-        by (intro abs_of_nonneg setsum_nonneg ballI mult_nonneg_nonneg nonneg)
+        by (intro abs_of_nonneg sum_nonneg ballI mult_nonneg_nonneg nonneg)
       also have "\<dots> \<le> (\<Sum>k<n. 2^k * f (2^k))"
         by (subst condensation_condense1 [symmetric]) (intro condensation_inequality mono')
       also have "\<dots> = norm \<dots>" unfolding real_norm_def
-        by (intro abs_of_nonneg [symmetric] setsum_nonneg ballI mult_nonneg_nonneg nonneg) simp_all
+        by (intro abs_of_nonneg [symmetric] sum_nonneg ballI mult_nonneg_nonneg nonneg) simp_all
       finally show "norm (\<Sum>k=1..<2^n. f k) \<le> norm (\<Sum>k<n. 2^k * f (2^k))" .
     qed
     from this and A show "Bseq (\<lambda>n. \<Sum>k=1..<2^n. f k)" by (rule Bseq_eventually_mono)
@@ -384,7 +384,7 @@ proof
     by (simp add: summable_iff_convergent convergent_norm)
   hence "convergent (\<lambda>n. abs (\<Sum>k<n. inverse (of_nat k)) :: real)" by (simp only: norm_of_real)
   also have "(\<lambda>n. abs (\<Sum>k<n. inverse (of_nat k)) :: real) = (\<lambda>n. \<Sum>k<n. inverse (of_nat k))"
-    by (intro ext abs_of_nonneg setsum_nonneg) auto
+    by (intro ext abs_of_nonneg sum_nonneg) auto
   also have "convergent \<dots> \<longleftrightarrow> summable (\<lambda>k. inverse (of_nat k) :: real)"
     by (simp add: summable_iff_convergent)
   finally show False using summable_real_powr_iff[of "-1"] by (simp add: powr_minus)
@@ -424,31 +424,31 @@ proof -
     have n: "n > m" by (simp add: n_def)
 
     from r have "r * norm (\<Sum>k\<le>n. f k) = norm (\<Sum>k\<le>n. r * f k)"
-      by (simp add: setsum_distrib_left[symmetric] abs_mult)
+      by (simp add: sum_distrib_left[symmetric] abs_mult)
     also from n have "{..n} = {..m} \<union> {Suc m..n}" by auto
     hence "(\<Sum>k\<le>n. r * f k) = (\<Sum>k\<in>{..m} \<union> {Suc m..n}. r * f k)" by (simp only:)
     also have "\<dots> = (\<Sum>k\<le>m. r * f k) + (\<Sum>k=Suc m..n. r * f k)"
-      by (subst setsum.union_disjoint) auto
+      by (subst sum.union_disjoint) auto
     also have "norm \<dots> \<le> norm (\<Sum>k\<le>m. r * f k) + norm (\<Sum>k=Suc m..n. r * f k)"
       by (rule norm_triangle_ineq)
     also from r less_imp_le[OF m(1)] have "(\<Sum>k=Suc m..n. r * f k) \<ge> 0"
-      by (intro setsum_nonneg) auto
+      by (intro sum_nonneg) auto
     hence "norm (\<Sum>k=Suc m..n. r * f k) = (\<Sum>k=Suc m..n. r * f k)" by simp
     also have "(\<Sum>k=Suc m..n. r * f k) = (\<Sum>k=m..<n. r * f (Suc k))"
-     by (subst setsum_shift_bounds_Suc_ivl [symmetric])
+     by (subst sum_shift_bounds_Suc_ivl [symmetric])
           (simp only: atLeastLessThanSuc_atLeastAtMost)
     also from m have "\<dots> \<le> (\<Sum>k=m..<n. p k * f k - p (Suc k) * f (Suc k))"
-      by (intro setsum_mono[OF less_imp_le]) simp_all
+      by (intro sum_mono[OF less_imp_le]) simp_all
     also have "\<dots> = -(\<Sum>k=m..<n. p (Suc k) * f (Suc k) - p k * f k)"
-      by (simp add: setsum_negf [symmetric] algebra_simps)
+      by (simp add: sum_negf [symmetric] algebra_simps)
     also from n have "\<dots> = p m * f m - p n * f n"
-      by (cases n, simp, simp only: atLeastLessThanSuc_atLeastAtMost, subst setsum_Suc_diff) simp_all
+      by (cases n, simp, simp only: atLeastLessThanSuc_atLeastAtMost, subst sum_Suc_diff) simp_all
     also from less_imp_le[OF m(1)] m(2) n have "\<dots> \<le> p m * f m" by simp
     finally show "norm (\<Sum>k\<le>n. f k) \<le> (norm (\<Sum>k\<le>m. r * f k) + p m * f m) / r" using r
       by (subst pos_le_divide_eq[OF r(1)]) (simp only: mult_ac)
   qed
   moreover have "(\<Sum>k\<le>n. f k) \<le> (\<Sum>k\<le>n'. f k)" if "Suc m \<le> n" "n \<le> n'" for n n'
-    using less_imp_le[OF m(1)] that by (intro setsum_mono2) auto
+    using less_imp_le[OF m(1)] that by (intro sum_mono2) auto
   ultimately show "convergent (\<lambda>n. \<Sum>k\<le>n. f k)" by (rule Bseq_monoseq_convergent'_inc)
 qed
 
@@ -905,7 +905,7 @@ proof (rule conv_radius_geI_ex')
   from r have "summable (\<lambda>n. (\<Sum>i\<le>n. (f i * of_real r^i) * (g (n - i) * of_real r^(n - i))))"
     by (intro summable_Cauchy_product abs_summable_in_conv_radius) simp_all
   thus "summable (\<lambda>n. (\<Sum>i\<le>n. f i * g (n - i)) * of_real r ^ n)"
-    by (simp add: algebra_simps of_real_def power_add [symmetric] scaleR_setsum_right)
+    by (simp add: algebra_simps of_real_def power_add [symmetric] scaleR_sum_right)
 qed
 
 lemma le_conv_radius_iff:

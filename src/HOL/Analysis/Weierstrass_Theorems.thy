@@ -25,7 +25,7 @@ lemma binomial_deriv1:
     "(\<Sum>k=0..n. (of_nat k * of_nat (n choose k)) * a^(k-1) * b^(n-k)) = real_of_nat n * (a+b) ^ (n-1)"
   apply (rule DERIV_unique [where f = "\<lambda>a. (a+b)^n" and x=a])
   apply (subst binomial_ring)
-  apply (rule derivative_eq_intros setsum.cong | simp)+
+  apply (rule derivative_eq_intros sum.cong | simp)+
   done
 
 lemma binomial_deriv2:
@@ -33,21 +33,21 @@ lemma binomial_deriv2:
      of_nat n * of_nat (n-1) * (a+b::real) ^ (n-2)"
   apply (rule DERIV_unique [where f = "\<lambda>a. of_nat n * (a+b::real) ^ (n-1)" and x=a])
   apply (subst binomial_deriv1 [symmetric])
-  apply (rule derivative_eq_intros setsum.cong | simp add: Num.numeral_2_eq_2)+
+  apply (rule derivative_eq_intros sum.cong | simp add: Num.numeral_2_eq_2)+
   done
 
 lemma sum_k_Bernstein [simp]: "(\<Sum>k = 0..n. real k * Bernstein n k x) = of_nat n * x"
   apply (subst binomial_deriv1 [of n x "1-x", simplified, symmetric])
-  apply (simp add: setsum_distrib_right)
-  apply (auto simp: Bernstein_def algebra_simps realpow_num_eq_if intro!: setsum.cong)
+  apply (simp add: sum_distrib_right)
+  apply (auto simp: Bernstein_def algebra_simps realpow_num_eq_if intro!: sum.cong)
   done
 
 lemma sum_kk_Bernstein [simp]: "(\<Sum> k = 0..n. real k * (real k - 1) * Bernstein n k x) = real n * (real n - 1) * x\<^sup>2"
 proof -
   have "(\<Sum> k = 0..n. real k * (real k - 1) * Bernstein n k x) = real_of_nat n * real_of_nat (n - Suc 0) * x\<^sup>2"
     apply (subst binomial_deriv2 [of n x "1-x", simplified, symmetric])
-    apply (simp add: setsum_distrib_right)
-    apply (rule setsum.cong [OF refl])
+    apply (simp add: sum_distrib_right)
+    apply (rule sum.cong [OF refl])
     apply (simp add: Bernstein_def power2_eq_square algebra_simps)
     apply (rename_tac k)
     apply (subgoal_tac "k = 0 \<or> k = 1 \<or> (\<exists>k'. k = Suc (Suc k'))")
@@ -97,14 +97,14 @@ proof -
       have *: "\<And>a b x::real. (a - b)\<^sup>2 * x = a * (a - 1) * x + (1 - 2 * b) * a * x + b * b * x"
         by (simp add: algebra_simps power2_eq_square)
       have "(\<Sum> k = 0..n. (k - n * x)\<^sup>2 * Bernstein n k x) = n * x * (1 - x)"
-        apply (simp add: * setsum.distrib)
-        apply (simp add: setsum_distrib_left [symmetric] mult.assoc)
+        apply (simp add: * sum.distrib)
+        apply (simp add: sum_distrib_left [symmetric] mult.assoc)
         apply (simp add: algebra_simps power2_eq_square)
         done
       then have "(\<Sum> k = 0..n. (k - n * x)\<^sup>2 * Bernstein n k x)/n^2 = x * (1 - x) / n"
         by (simp add: power2_eq_square)
       then show ?thesis
-        using n by (simp add: setsum_divide_distrib divide_simps mult.commute power2_commute)
+        using n by (simp add: sum_divide_distrib divide_simps mult.commute power2_commute)
     qed
     { fix k
       assume k: "k \<le> n"
@@ -138,14 +138,14 @@ proof -
         qed
     } note * = this
     have "\<bar>f x - (\<Sum> k = 0..n. f(k / n) * Bernstein n k x)\<bar> \<le> \<bar>\<Sum> k = 0..n. (f x - f(k / n)) * Bernstein n k x\<bar>"
-      by (simp add: setsum_subtractf setsum_distrib_left [symmetric] algebra_simps)
+      by (simp add: sum_subtractf sum_distrib_left [symmetric] algebra_simps)
     also have "... \<le> (\<Sum> k = 0..n. (e/2 + (2 * M / d\<^sup>2) * (x - k / n)\<^sup>2) * Bernstein n k x)"
-      apply (rule order_trans [OF setsum_abs setsum_mono])
+      apply (rule order_trans [OF sum_abs sum_mono])
       using *
       apply (simp add: abs_mult Bernstein_nonneg x mult_right_mono)
       done
     also have "... \<le> e/2 + (2 * M) / (d\<^sup>2 * n)"
-      apply (simp only: setsum.distrib Rings.semiring_class.distrib_right setsum_distrib_left [symmetric] mult.assoc sum_bern)
+      apply (simp only: sum.distrib Rings.semiring_class.distrib_right sum_distrib_left [symmetric] mult.assoc sum_bern)
       using \<open>d>0\<close> x
       apply (simp add: divide_simps Mge0 mult_le_one mult_left_le)
       done
@@ -189,7 +189,7 @@ begin
   lemma power: "f \<in> R \<Longrightarrow> (\<lambda>x. f x ^ n) \<in> R"
     by (induct n) (auto simp: const mult)
 
-  lemma setsum: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Sum>i \<in> I. f i x) \<in> R"
+  lemma sum: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Sum>i \<in> I. f i x) \<in> R"
     by (induct I rule: finite_induct; simp add: const add)
 
   lemma setprod: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Prod>i \<in> I. f i x) \<in> R"
@@ -268,16 +268,16 @@ proof -
     by (simp add: card_gt_0_iff)
   define p where [abs_def]: "p x = (1 / card subU) * (\<Sum>t \<in> subU. pf t x)" for x
   have pR: "p \<in> R"
-    unfolding p_def using subU pf by (fast intro: pf const mult setsum)
+    unfolding p_def using subU pf by (fast intro: pf const mult sum)
   have pt0 [simp]: "p t0 = 0"
-    using subU pf by (auto simp: p_def intro: setsum.neutral)
+    using subU pf by (auto simp: p_def intro: sum.neutral)
   have pt_pos: "p t > 0" if t: "t \<in> S-U" for t
   proof -
     obtain i where i: "i \<in> subU" "t \<in> Uf i" using subU t by blast
     show ?thesis
       using subU i t
       apply (clarsimp simp: p_def divide_simps)
-      apply (rule setsum_pos2 [OF \<open>finite subU\<close>])
+      apply (rule sum_pos2 [OF \<open>finite subU\<close>])
       using Uf t pf01 apply auto
       apply (force elim!: subsetCE)
       done
@@ -286,13 +286,13 @@ proof -
   proof -
     have "0 \<le> p x"
       using subU cardp t
-      apply (simp add: p_def divide_simps setsum_nonneg)
-      apply (rule setsum_nonneg)
+      apply (simp add: p_def divide_simps sum_nonneg)
+      apply (rule sum_nonneg)
       using pf01 by force
     moreover have "p x \<le> 1"
       using subU cardp t
-      apply (simp add: p_def divide_simps setsum_nonneg)
-      apply (rule setsum_bounded_above [where 'a=real and K=1, simplified])
+      apply (simp add: p_def divide_simps sum_nonneg)
+      apply (rule sum_bounded_above [where 'a=real and K=1, simplified])
       using pf01 by force
     ultimately show ?thesis
       by auto
@@ -449,12 +449,12 @@ proof -
     by blast
   have tVft: "\<And>w. w \<in> A \<Longrightarrow> w \<in> Vf w"
     using Vf by blast
-  then have setsum_max_0: "A \<subseteq> (\<Union>x \<in> A. Vf x)"
+  then have sum_max_0: "A \<subseteq> (\<Union>x \<in> A. Vf x)"
     by blast
   have com_A: "compact A" using A
     by (metis compact compact_Int_closed inf.absorb_iff2)
   obtain subA where subA: "subA \<subseteq> A" "finite subA" "A \<subseteq> (\<Union>x \<in> subA. Vf x)"
-    by (blast intro: that open_Vf compactE_image [OF com_A _ setsum_max_0])
+    by (blast intro: that open_Vf compactE_image [OF com_A _ sum_max_0])
   then have [simp]: "subA \<noteq> {}"
     using \<open>a \<in> A\<close> by auto
   then have cardp: "card subA > 0" using subA
@@ -473,12 +473,12 @@ proof -
   proof -
     have "0 \<le> pff x"
       using subA cardp t
-      apply (simp add: pff_def divide_simps setsum_nonneg)
+      apply (simp add: pff_def divide_simps sum_nonneg)
       apply (rule Groups_Big.linordered_semidom_class.setprod_nonneg)
       using ff by fastforce
     moreover have "pff x \<le> 1"
       using subA cardp t
-      apply (simp add: pff_def divide_simps setsum_nonneg)
+      apply (simp add: pff_def divide_simps sum_nonneg)
       apply (rule setprod_mono [where g = "\<lambda>x. 1", simplified])
       using ff by fastforce
     ultimately show ?thesis
@@ -594,9 +594,9 @@ proof -
     by metis
   define g where [abs_def]: "g x = e * (\<Sum>i\<le>n. xf i x)" for x
   have gR: "g \<in> R"
-    unfolding g_def by (fast intro: mult const setsum xfR)
+    unfolding g_def by (fast intro: mult const sum xfR)
   have gge0: "\<And>x. x \<in> S \<Longrightarrow> g x \<ge> 0"
-    using e xf01 by (simp add: g_def zero_le_mult_iff image_subset_iff setsum_nonneg)
+    using e xf01 by (simp add: g_def zero_le_mult_iff image_subset_iff sum_nonneg)
   have A0: "A 0 = {}"
     using fpos e by (fastforce simp: A_def)
   have An: "A n = S"
@@ -647,14 +647,14 @@ proof -
     have "g t = e * (\<Sum>i<j. xf i t) + e * (\<Sum>i=j..n. xf i t)"
       using j1 jn e
       apply (simp add: g_def distrib_left [symmetric])
-      apply (subst setsum.union_disjoint [symmetric])
+      apply (subst sum.union_disjoint [symmetric])
       apply (auto simp: ivl_disj_un)
       done
     also have "... \<le> e*j + e * ((Suc n - j)*e/n)"
       apply (rule add_mono)
       apply (simp_all only: mult_le_cancel_left_pos e)
-      apply (rule setsum_bounded_above [OF xf_le1, where A = "lessThan j", simplified])
-      using setsum_bounded_above [of "{j..n}" "\<lambda>i. xf i t", OF ***]
+      apply (rule sum_bounded_above [OF xf_le1, where A = "lessThan j", simplified])
+      using sum_bounded_above [of "{j..n}" "\<lambda>i. xf i t", OF ***]
       apply simp
       done
     also have "... \<le> j*e + e*(n - j + 1)*e/n "
@@ -680,15 +680,15 @@ proof -
       also have "... \<le> e * (\<Sum>i\<le>j-2. xf i t)"
         using e
         apply simp
-        apply (rule order_trans [OF _ setsum_bounded_below [OF less_imp_le [OF ****]]])
+        apply (rule order_trans [OF _ sum_bounded_below [OF less_imp_le [OF ****]]])
         using True
         apply (simp_all add: of_nat_Suc of_nat_diff)
         done
       also have "... \<le> g t"
         using jn e
         using e xf01 t
-        apply (simp add: g_def zero_le_mult_iff image_subset_iff setsum_nonneg)
-        apply (rule Groups_Big.setsum_mono2, auto)
+        apply (simp add: g_def zero_le_mult_iff image_subset_iff sum_nonneg)
+        apply (rule Groups_Big.sum_mono2, auto)
         done
       finally show ?thesis .
     qed
@@ -848,8 +848,8 @@ lemma polynomial_function_diff [intro]:
   unfolding add_uminus_conv_diff [symmetric]
   by (metis polynomial_function_add polynomial_function_minus)
 
-lemma polynomial_function_setsum [intro]:
-    "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> polynomial_function (\<lambda>x. setsum (f x) I)"
+lemma polynomial_function_sum [intro]:
+    "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> polynomial_function (\<lambda>x. sum (f x) I)"
 by (induct I rule: finite_induct) auto
 
 lemma real_polynomial_function_minus [intro]:
@@ -862,9 +862,9 @@ lemma real_polynomial_function_diff [intro]:
   using polynomial_function_diff [of f]
   by (simp add: real_polynomial_function_eq)
 
-lemma real_polynomial_function_setsum [intro]:
-    "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> real_polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> real_polynomial_function (\<lambda>x. setsum (f x) I)"
-  using polynomial_function_setsum [of I f]
+lemma real_polynomial_function_sum [intro]:
+    "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> real_polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> real_polynomial_function (\<lambda>x. sum (f x) I)"
+  using polynomial_function_sum [of I f]
   by (simp add: real_polynomial_function_eq)
 
 lemma real_polynomial_function_power [intro]:
@@ -886,20 +886,20 @@ lemma polynomial_function_compose [intro]:
   using g real_polynomial_function_compose [OF f]
   by (auto simp: polynomial_function_def o_def)
 
-lemma setsum_max_0:
+lemma sum_max_0:
   fixes x::real (*in fact "'a::comm_ring_1"*)
   shows "(\<Sum>i = 0..max m n. x^i * (if i \<le> m then a i else 0)) = (\<Sum>i = 0..m. x^i * a i)"
 proof -
   have "(\<Sum>i = 0..max m n. x^i * (if i \<le> m then a i else 0)) = (\<Sum>i = 0..max m n. (if i \<le> m then x^i * a i else 0))"
-    by (auto simp: algebra_simps intro: setsum.cong)
+    by (auto simp: algebra_simps intro: sum.cong)
   also have "... = (\<Sum>i = 0..m. (if i \<le> m then x^i * a i else 0))"
-    by (rule setsum.mono_neutral_right) auto
+    by (rule sum.mono_neutral_right) auto
   also have "... = (\<Sum>i = 0..m. x^i * a i)"
-    by (auto simp: algebra_simps intro: setsum.cong)
+    by (auto simp: algebra_simps intro: sum.cong)
   finally show ?thesis .
 qed
 
-lemma real_polynomial_function_imp_setsum:
+lemma real_polynomial_function_imp_sum:
   assumes "real_polynomial_function f"
     shows "\<exists>a n::nat. f = (\<lambda>x. \<Sum>i=0..n. a i * x ^ i)"
 using assms
@@ -925,8 +925,8 @@ next
   then show ?case
     apply (rule_tac x="\<lambda>i. (if i \<le> n1 then a1 i else 0) + (if i \<le> n2 then a2 i else 0)" in exI)
     apply (rule_tac x="max n1 n2" in exI)
-    using setsum_max_0 [where m=n1 and n=n2] setsum_max_0 [where m=n2 and n=n1]
-    apply (simp add: setsum.distrib algebra_simps max.commute)
+    using sum_max_0 [where m=n1 and n=n2] sum_max_0 [where m=n2 and n=n1]
+    apply (simp add: sum.distrib algebra_simps max.commute)
     done
   case (mult f1 f2)
   then obtain a1 n1 a2 n2 where
@@ -944,11 +944,11 @@ next
     done
 qed
 
-lemma real_polynomial_function_iff_setsum:
+lemma real_polynomial_function_iff_sum:
      "real_polynomial_function f \<longleftrightarrow> (\<exists>a n::nat. f = (\<lambda>x. \<Sum>i=0..n. a i * x ^ i))"
   apply (rule iffI)
-  apply (erule real_polynomial_function_imp_setsum)
-  apply (auto simp: linear mult const real_polynomial_function_power real_polynomial_function_setsum)
+  apply (erule real_polynomial_function_imp_sum)
+  apply (auto simp: linear mult const real_polynomial_function_power real_polynomial_function_sum)
   done
 
 lemma polynomial_function_iff_Basis_inner:
@@ -969,7 +969,7 @@ next
     apply (auto simp: real_polynomial_function_eq polynomial_function_mult)
     done
   then show "real_polynomial_function (h \<circ> f)"
-    by (simp add: euclidean_representation_setsum_fun)
+    by (simp add: euclidean_representation_sum_fun)
 qed
 
 subsection \<open>Stone-Weierstrass theorem for polynomial functions\<close>
@@ -1058,8 +1058,8 @@ proof -
   show ?thesis
     apply (rule_tac p'="\<lambda>x. \<Sum>b\<in>Basis. qf b x" in that)
      apply (force intro: qf)
-    apply (subst euclidean_representation_setsum_fun [of p, symmetric])
-     apply (auto intro: has_vector_derivative_setsum qf)
+    apply (subst euclidean_representation_sum_fun [of p, symmetric])
+     apply (auto intro: has_vector_derivative_sum qf)
     done
 qed
 
@@ -1068,14 +1068,14 @@ lemma real_polynomial_function_separable:
   assumes "x \<noteq> y" shows "\<exists>f. real_polynomial_function f \<and> f x \<noteq> f y"
 proof -
   have "real_polynomial_function (\<lambda>u. \<Sum>b\<in>Basis. (inner (x-u) b)^2)"
-    apply (rule real_polynomial_function_setsum)
+    apply (rule real_polynomial_function_sum)
     apply (auto simp: algebra_simps real_polynomial_function_power real_polynomial_function_diff
                  const linear bounded_linear_inner_left)
     done
   then show ?thesis
     apply (intro exI conjI, assumption)
     using assms
-    apply (force simp add: euclidean_eq_iff [of x y] setsum_nonneg_eq_0_iff algebra_simps)
+    apply (force simp add: euclidean_eq_iff [of x y] sum_nonneg_eq_0_iff algebra_simps)
     done
 qed
 
@@ -1117,14 +1117,14 @@ proof -
       done
   have "polynomial_function (\<lambda>x. \<Sum>b\<in>Basis. pf b x *\<^sub>R b)"
     using pf
-    by (simp add: polynomial_function_setsum polynomial_function_mult real_polynomial_function_eq)
+    by (simp add: polynomial_function_sum polynomial_function_mult real_polynomial_function_eq)
   moreover
   { fix x
     assume "x \<in> S"
     have "norm (\<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b - pf b x *\<^sub>R b) \<le> (\<Sum>b\<in>Basis. norm ((f x \<bullet> b) *\<^sub>R b - pf b x *\<^sub>R b))"
-      by (rule norm_setsum)
+      by (rule norm_sum)
     also have "... < of_nat DIM('b) * (e / DIM('b))"
-      apply (rule setsum_bounded_above_strict)
+      apply (rule sum_bounded_above_strict)
       apply (simp add: Real_Vector_Spaces.scaleR_diff_left [symmetric] pf \<open>x \<in> S\<close>)
       apply (rule DIM_positive)
       done
@@ -1134,9 +1134,9 @@ proof -
   }
   ultimately
   show ?thesis
-    apply (subst euclidean_representation_setsum_fun [of f, symmetric])
+    apply (subst euclidean_representation_sum_fun [of f, symmetric])
     apply (rule_tac x="\<lambda>x. \<Sum>b\<in>Basis. pf b x *\<^sub>R b" in exI)
-    apply (auto simp: setsum_subtractf [symmetric])
+    apply (auto simp: sum_subtractf [symmetric])
     done
 qed
 
@@ -1247,7 +1247,7 @@ lemma polynomial_function_inner [intro]:
   fixes i :: "'a::euclidean_space"
   shows "polynomial_function g \<Longrightarrow> polynomial_function (\<lambda>x. g x \<bullet> i)"
   apply (subst euclidean_representation [where x=i, symmetric])
-  apply (force simp: inner_setsum_right polynomial_function_iff_Basis_inner polynomial_function_setsum)
+  apply (force simp: inner_sum_right polynomial_function_iff_Basis_inner polynomial_function_sum)
   done
 
 text\<open> Differentiability of real and vector polynomial functions.\<close>
@@ -1292,18 +1292,18 @@ lemma orthonormal_basis_expand:
     shows "(\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) = x"
 proof (rule vector_eq_dot_span [OF _ \<open>x \<in> span B\<close>])
   show "(\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) \<in> span B"
-    by (simp add: span_clauses span_setsum)
+    by (simp add: span_clauses span_sum)
   show "i \<bullet> (\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) = i \<bullet> x" if "i \<in> B" for i
   proof -
     have [simp]: "i \<bullet> j = (if j = i then 1 else 0)" if "j \<in> B" for j
       using B 1 that \<open>i \<in> B\<close>
       by (force simp: norm_eq_1 orthogonal_def pairwise_def)
     have "i \<bullet> (\<Sum>i\<in>B. (x \<bullet> i) *\<^sub>R i) = (\<Sum>j\<in>B. x \<bullet> j * (i \<bullet> j))"
-      by (simp add: inner_setsum_right)
+      by (simp add: inner_sum_right)
     also have "... = (\<Sum>j\<in>B. if j = i then x \<bullet> i else 0)"
-      by (rule setsum.cong; simp)
+      by (rule sum.cong; simp)
     also have "... = i \<bullet> x"
-      by (simp add: \<open>finite B\<close> that inner_commute setsum.delta)
+      by (simp add: \<open>finite B\<close> that inner_commute sum.delta)
     finally show ?thesis .
   qed
 qed
@@ -1343,11 +1343,11 @@ proof -
   show ?thesis
   proof
     show "polynomial_function (\<lambda>x. \<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i)"
-      apply (rule polynomial_function_setsum)
+      apply (rule polynomial_function_sum)
        apply (simp add: \<open>finite B\<close>)
       using \<open>polynomial_function g\<close>  by auto
     show "(\<lambda>x. \<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i) ` S \<subseteq> T"
-      using \<open>B \<subseteq> T\<close> by (blast intro: subspace_setsum subspace_mul \<open>subspace T\<close>)
+      using \<open>B \<subseteq> T\<close> by (blast intro: subspace_sum subspace_mul \<open>subspace T\<close>)
     show "norm (f x - (\<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i)) < e" if "x \<in> S" for x
     proof -
       have orth': "pairwise (\<lambda>i j. orthogonal ((f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i)
@@ -1357,11 +1357,11 @@ proof -
         done
       then have "(norm (\<Sum>i\<in>B. (f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i))\<^sup>2 =
                  (\<Sum>i\<in>B. (norm ((f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i))\<^sup>2)"
-        by (simp add:  norm_setsum_Pythagorean [OF \<open>finite B\<close> orth'])
+        by (simp add:  norm_sum_Pythagorean [OF \<open>finite B\<close> orth'])
       also have "... = (\<Sum>i\<in>B. (norm (((f x - g x) \<bullet> i) *\<^sub>R i))\<^sup>2)"
         by (simp add: algebra_simps)
       also have "... \<le> (\<Sum>i\<in>B. (norm (f x - g x))\<^sup>2)"
-        apply (rule setsum_mono)
+        apply (rule sum_mono)
         apply (simp add: B1)
         apply (rule order_trans [OF Cauchy_Schwarz_ineq])
         by (simp add: B1 dot_square_norm)
@@ -1380,7 +1380,7 @@ proof -
         apply (rule power2_less_imp_less)
         using  \<open>0 < e\<close> by auto
       then show ?thesis
-        using fx that by (simp add: setsum_subtractf)
+        using fx that by (simp add: sum_subtractf)
     qed
   qed
 qed

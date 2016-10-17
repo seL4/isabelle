@@ -13,7 +13,7 @@ begin
 subsection \<open>Trace\<close>
 
 definition trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
-  where "trace A = setsum (\<lambda>i. ((A$i)$i)) (UNIV::'n set)"
+  where "trace A = sum (\<lambda>i. ((A$i)$i)) (UNIV::'n set)"
 
 lemma trace_0: "trace (mat 0) = 0"
   by (simp add: trace_def mat_def)
@@ -22,14 +22,14 @@ lemma trace_I: "trace (mat 1 :: 'a::semiring_1^'n^'n) = of_nat(CARD('n))"
   by (simp add: trace_def mat_def)
 
 lemma trace_add: "trace ((A::'a::comm_semiring_1^'n^'n) + B) = trace A + trace B"
-  by (simp add: trace_def setsum.distrib)
+  by (simp add: trace_def sum.distrib)
 
 lemma trace_sub: "trace ((A::'a::comm_ring_1^'n^'n) - B) = trace A - trace B"
-  by (simp add: trace_def setsum_subtractf)
+  by (simp add: trace_def sum_subtractf)
 
 lemma trace_mul_sym: "trace ((A::'a::comm_semiring_1^'n^'m) ** B) = trace (B**A)"
   apply (simp add: trace_def matrix_matrix_mult_def)
-  apply (subst setsum.commute)
+  apply (subst sum.commute)
   apply (simp add: mult.commute)
   done
 
@@ -37,7 +37,7 @@ text \<open>Definition of determinant.\<close>
 
 definition det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
   "det A =
-    setsum (\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set))
+    sum (\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set))
       {p. p permutes (UNIV :: 'n set)}"
 
 text \<open>A few general lemmas we need below.\<close>
@@ -94,8 +94,8 @@ proof -
   }
   then show ?thesis
     unfolding det_def
-    apply (subst setsum_permutations_inverse)
-    apply (rule setsum.cong)
+    apply (subst sum_permutations_inverse)
+    apply (rule sum.cong)
     apply (rule refl)
     apply blast
     done
@@ -128,7 +128,7 @@ proof -
   }
   then have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"
     by blast
-  from setsum.mono_neutral_cong_left[OF fPU id0 p0] show ?thesis
+  from sum.mono_neutral_cong_left[OF fPU id0 p0] show ?thesis
     unfolding det_def by (simp add: sign_id)
 qed
 
@@ -159,7 +159,7 @@ proof -
   }
   then have p0: "\<forall>p \<in> ?PU -{id}. ?pp p = 0"
     by blast
-  from setsum.mono_neutral_cong_left[OF fPU id0 p0] show ?thesis
+  from sum.mono_neutral_cong_left[OF fPU id0 p0] show ?thesis
     unfolding det_def by (simp add: sign_id)
 qed
 
@@ -189,7 +189,7 @@ proof -
   }
   then have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"
     by blast
-  from setsum.mono_neutral_cong_left[OF fPU id0 p0] show ?thesis
+  from sum.mono_neutral_cong_left[OF fPU id0 p0] show ?thesis
     unfolding det_def by (simp add: sign_id)
 qed
 
@@ -226,9 +226,9 @@ lemma det_permute_rows:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes p: "p permutes (UNIV :: 'n::finite set)"
   shows "det (\<chi> i. A$p i :: 'a^'n^'n) = of_int (sign p) * det A"
-  apply (simp add: det_def setsum_distrib_left mult.assoc[symmetric])
+  apply (simp add: det_def sum_distrib_left mult.assoc[symmetric])
   apply (subst sum_permutations_compose_right[OF p])
-proof (rule setsum.cong)
+proof (rule sum.cong)
   let ?U = "UNIV :: 'n set"
   let ?PU = "{p. p permutes ?U}"
   fix q
@@ -303,7 +303,7 @@ lemma det_zero_row:
   shows "det A = 0"
   using r
   apply (simp add: row_def det_def vec_eq_iff)
-  apply (rule setsum.neutral)
+  apply (rule sum.neutral)
   apply (auto simp: sign_nz)
   done
 
@@ -321,8 +321,8 @@ lemma det_row_add:
   shows "det((\<chi> i. if i = k then a i + b i else c i)::'a::comm_ring_1^'n^'n) =
     det((\<chi> i. if i = k then a i else c i)::'a::comm_ring_1^'n^'n) +
     det((\<chi> i. if i = k then b i else c i)::'a::comm_ring_1^'n^'n)"
-  unfolding det_def vec_lambda_beta setsum.distrib[symmetric]
-proof (rule setsum.cong)
+  unfolding det_def vec_lambda_beta sum.distrib[symmetric]
+proof (rule sum.cong)
   let ?U = "UNIV :: 'n set"
   let ?pU = "{p. p permutes ?U}"
   let ?f = "(\<lambda>i. if i = k then a i + b i else c i)::'n \<Rightarrow> 'a::comm_ring_1^'n"
@@ -372,8 +372,8 @@ lemma det_row_mul:
   fixes a b :: "'n::finite \<Rightarrow> _ ^ 'n"
   shows "det((\<chi> i. if i = k then c *s a i else b i)::'a::comm_ring_1^'n^'n) =
     c * det((\<chi> i. if i = k then a i else b i)::'a::comm_ring_1^'n^'n)"
-  unfolding det_def vec_lambda_beta setsum_distrib_left
-proof (rule setsum.cong)
+  unfolding det_def vec_lambda_beta sum_distrib_left
+proof (rule sum.cong)
   let ?U = "UNIV :: 'n set"
   let ?pU = "{p. p permutes ?U}"
   let ?f = "(\<lambda>i. if i = k then c*s a i else b i)::'n \<Rightarrow> 'a::comm_ring_1^'n"
@@ -535,15 +535,15 @@ text \<open>Multilinearity and the multiplication formula.\<close>
 lemma Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (vec_lambda f::'a^'n) = (vec_lambda g :: 'a^'n)"
   by (rule iffD1[OF vec_lambda_unique]) vector
 
-lemma det_linear_row_setsum:
+lemma det_linear_row_sum:
   assumes fS: "finite S"
-  shows "det ((\<chi> i. if i = k then setsum (a i) S else c i)::'a::comm_ring_1^'n^'n) =
-    setsum (\<lambda>j. det ((\<chi> i. if i = k then a  i j else c i)::'a^'n^'n)) S"
+  shows "det ((\<chi> i. if i = k then sum (a i) S else c i)::'a::comm_ring_1^'n^'n) =
+    sum (\<lambda>j. det ((\<chi> i. if i = k then a  i j else c i)::'a^'n^'n)) S"
 proof (induct rule: finite_induct[OF fS])
   case 1
   then show ?case
     apply simp
-    unfolding setsum.empty det_row_0[of k]
+    unfolding sum.empty det_row_0[of k]
     apply rule
     done
 next
@@ -577,11 +577,11 @@ next
 qed
 
 
-lemma det_linear_rows_setsum_lemma:
+lemma det_linear_rows_sum_lemma:
   assumes fS: "finite S"
     and fT: "finite T"
-  shows "det ((\<chi> i. if i \<in> T then setsum (a i) S else c i):: 'a::comm_ring_1^'n^'n) =
-    setsum (\<lambda>f. det((\<chi> i. if i \<in> T then a i (f i) else c i)::'a^'n^'n))
+  shows "det ((\<chi> i. if i \<in> T then sum (a i) S else c i):: 'a::comm_ring_1^'n^'n) =
+    sum (\<lambda>f. det((\<chi> i. if i \<in> T then a i (f i) else c i)::'a^'n^'n))
       {f. (\<forall>i \<in> T. f i \<in> S) \<and> (\<forall>i. i \<notin> T \<longrightarrow> f i = i)}"
   using fT
 proof (induct T arbitrary: a c set: finite)
@@ -604,48 +604,48 @@ next
     by simp
   from \<open>z \<notin> T\<close> have nz: "\<And>i. i \<in> T \<Longrightarrow> i = z \<longleftrightarrow> False"
     by auto
-  have "det (\<chi> i. if i \<in> insert z T then setsum (a i) S else c i) =
-    det (\<chi> i. if i = z then setsum (a i) S else if i \<in> T then setsum (a i) S else c i)"
+  have "det (\<chi> i. if i \<in> insert z T then sum (a i) S else c i) =
+    det (\<chi> i. if i = z then sum (a i) S else if i \<in> T then sum (a i) S else c i)"
     unfolding insert_iff thif ..
-  also have "\<dots> = (\<Sum>j\<in>S. det (\<chi> i. if i \<in> T then setsum (a i) S else if i = z then a i j else c i))"
-    unfolding det_linear_row_setsum[OF fS]
+  also have "\<dots> = (\<Sum>j\<in>S. det (\<chi> i. if i \<in> T then sum (a i) S else if i = z then a i j else c i))"
+    unfolding det_linear_row_sum[OF fS]
     apply (subst thif2)
     using nz
     apply (simp cong del: if_weak_cong cong add: if_cong)
     done
   finally have tha:
-    "det (\<chi> i. if i \<in> insert z T then setsum (a i) S else c i) =
+    "det (\<chi> i. if i \<in> insert z T then sum (a i) S else c i) =
      (\<Sum>(j, f)\<in>S \<times> ?F T. det (\<chi> i. if i \<in> T then a i (f i)
                                 else if i = z then a i j
                                 else c i))"
-    unfolding insert.hyps unfolding setsum.cartesian_product by blast
+    unfolding insert.hyps unfolding sum.cartesian_product by blast
   show ?case unfolding tha
     using \<open>z \<notin> T\<close>
-    by (intro setsum.reindex_bij_witness[where i="?k" and j="?h"])
+    by (intro sum.reindex_bij_witness[where i="?k" and j="?h"])
        (auto intro!: cong[OF refl[of det]] simp: vec_eq_iff)
 qed
 
-lemma det_linear_rows_setsum:
+lemma det_linear_rows_sum:
   fixes S :: "'n::finite set"
   assumes fS: "finite S"
-  shows "det (\<chi> i. setsum (a i) S) =
-    setsum (\<lambda>f. det (\<chi> i. a i (f i) :: 'a::comm_ring_1 ^ 'n^'n)) {f. \<forall>i. f i \<in> S}"
+  shows "det (\<chi> i. sum (a i) S) =
+    sum (\<lambda>f. det (\<chi> i. a i (f i) :: 'a::comm_ring_1 ^ 'n^'n)) {f. \<forall>i. f i \<in> S}"
 proof -
   have th0: "\<And>x y. ((\<chi> i. if i \<in> (UNIV:: 'n set) then x i else y i) :: 'a^'n^'n) = (\<chi> i. x i)"
     by vector
-  from det_linear_rows_setsum_lemma[OF fS, of "UNIV :: 'n set" a, unfolded th0, OF finite]
+  from det_linear_rows_sum_lemma[OF fS, of "UNIV :: 'n set" a, unfolded th0, OF finite]
   show ?thesis by simp
 qed
 
-lemma matrix_mul_setsum_alt:
+lemma matrix_mul_sum_alt:
   fixes A B :: "'a::comm_ring_1^'n^'n"
-  shows "A ** B = (\<chi> i. setsum (\<lambda>k. A$i$k *s B $ k) (UNIV :: 'n set))"
-  by (vector matrix_matrix_mult_def setsum_component)
+  shows "A ** B = (\<chi> i. sum (\<lambda>k. A$i$k *s B $ k) (UNIV :: 'n set))"
+  by (vector matrix_matrix_mult_def sum_component)
 
 lemma det_rows_mul:
   "det((\<chi> i. c i *s a i)::'a::comm_ring_1^'n^'n) =
     setprod (\<lambda>i. c i) (UNIV:: 'n set) * det((\<chi> i. a i)::'a^'n^'n)"
-proof (simp add: det_def setsum_distrib_left cong add: setprod.cong, rule setsum.cong)
+proof (simp add: det_def sum_distrib_left cong add: setprod.cong, rule sum.cong)
   let ?U = "UNIV :: 'n set"
   let ?PU = "{p. p permutes ?U}"
   fix p
@@ -735,11 +735,11 @@ proof -
       by blast
     let ?s = "\<lambda>p. of_int (sign p)"
     let ?f = "\<lambda>q. ?s p * (\<Prod>i\<in> ?U. A $ i $ p i) * (?s q * (\<Prod>i\<in> ?U. B $ i $ q i))"
-    have "(setsum (\<lambda>q. ?s q *
+    have "(sum (\<lambda>q. ?s q *
         (\<Prod>i\<in> ?U. (\<chi> i. A $ i $ p i *s B $ p i :: 'a^'n^'n) $ i $ q i)) ?PU) =
-      (setsum (\<lambda>q. ?s p * (\<Prod>i\<in> ?U. A $ i $ p i) * (?s q * (\<Prod>i\<in> ?U. B $ i $ q i))) ?PU)"
+      (sum (\<lambda>q. ?s p * (\<Prod>i\<in> ?U. A $ i $ p i) * (?s q * (\<Prod>i\<in> ?U. B $ i $ q i))) ?PU)"
       unfolding sum_permutations_compose_right[OF permutes_inv[OF p], of ?f]
-    proof (rule setsum.cong)
+    proof (rule sum.cong)
       fix q
       assume qU: "q \<in> ?PU"
       then have q: "q permutes ?U"
@@ -769,14 +769,14 @@ proof -
         by (simp add: sign_nz th00 field_simps sign_idempotent sign_compose)
     qed rule
   }
-  then have th2: "setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU = det A * det B"
-    unfolding det_def setsum_product
-    by (rule setsum.cong [OF refl])
-  have "det (A**B) = setsum (\<lambda>f.  det (\<chi> i. A $ i $ f i *s B $ f i)) ?F"
-    unfolding matrix_mul_setsum_alt det_linear_rows_setsum[OF fU]
+  then have th2: "sum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU = det A * det B"
+    unfolding det_def sum_product
+    by (rule sum.cong [OF refl])
+  have "det (A**B) = sum (\<lambda>f.  det (\<chi> i. A $ i $ f i *s B $ f i)) ?F"
+    unfolding matrix_mul_sum_alt det_linear_rows_sum[OF fU]
     by simp
-  also have "\<dots> = setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU"
-    using setsum.mono_neutral_cong_left[OF fF PUF zth, symmetric]
+  also have "\<dots> = sum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU"
+    using sum.mono_neutral_cong_left[OF fF PUF zth, symmetric]
     unfolding det_rows_mul by auto
   finally show ?thesis unfolding th2 .
 qed
@@ -812,7 +812,7 @@ proof -
     let ?U = "UNIV :: 'n set"
     have fU: "finite ?U"
       by simp
-    from H obtain c i where c: "setsum (\<lambda>i. c i *s row i A) ?U = 0"
+    from H obtain c i where c: "sum (\<lambda>i. c i *s row i A) ?U = 0"
       and iU: "i \<in> ?U"
       and ci: "c i \<noteq> 0"
       unfolding invertible_righ_inverse
@@ -824,8 +824,8 @@ proof -
       apply simp
       done
     from c ci
-    have thr0: "- row i A = setsum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
-      unfolding setsum.remove[OF fU iU] setsum_cmul
+    have thr0: "- row i A = sum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
+      unfolding sum.remove[OF fU iU] sum_cmul
       apply -
       apply (rule vector_mul_lcancel_imp[OF ci])
       apply (auto simp add: field_simps)
@@ -834,7 +834,7 @@ proof -
       done
     have thr: "- row i A \<in> span {row j A| j. j \<noteq> i}"
       unfolding thr0
-      apply (rule span_setsum)
+      apply (rule span_sum)
       apply simp
       apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])+
       apply (rule span_superset)
@@ -855,7 +855,7 @@ text \<open>Cramer's rule.\<close>
 lemma cramer_lemma_transpose:
   fixes A:: "real^'n^'n"
     and x :: "real^'n"
-  shows "det ((\<chi> i. if i = k then setsum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
+  shows "det ((\<chi> i. if i = k then sum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
                              else row i A)::real^'n^'n) = x$k * det A"
   (is "?lhs = ?rhs")
 proof -
@@ -876,14 +876,14 @@ proof -
     by simp
   have thd0: "det (\<chi> i. if i = k then row k A + (\<Sum>i \<in> ?Uk. x $ i *s row i A) else row i A) = det A"
     apply (rule det_row_span)
-    apply (rule span_setsum)
+    apply (rule span_sum)
     apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])+
     apply (rule span_superset)
     apply auto
     done
   show "?lhs = x$k * det A"
     apply (subst U)
-    unfolding setsum.insert[OF fUk kUk]
+    unfolding sum.insert[OF fUk kUk]
     apply (subst th00)
     unfolding add.assoc
     apply (subst det_row_add)
@@ -900,8 +900,8 @@ lemma cramer_lemma:
   shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: real^'n^'n) = x$k * det A"
 proof -
   let ?U = "UNIV :: 'n set"
-  have *: "\<And>c. setsum (\<lambda>i. c i *s row i (transpose A)) ?U = setsum (\<lambda>i. c i *s column i A) ?U"
-    by (auto simp add: row_transpose intro: setsum.cong)
+  have *: "\<And>c. sum (\<lambda>i. c i *s row i (transpose A)) ?U = sum (\<lambda>i. c i *s column i A) ?U"
+    by (auto simp add: row_transpose intro: sum.cong)
   show ?thesis
     unfolding matrix_mult_vsum
     unfolding cramer_lemma_transpose[of k x "transpose A", unfolded det_transpose, symmetric]
@@ -995,7 +995,7 @@ proof -
         simplified matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
       have "?A$i$j = ?m1 $ i $ j"
         by (simp add: inner_vec_def matrix_matrix_mult_def columnvector_def rowvector_def
-            th0 setsum.delta[OF fU] mat_def axis_def)
+            th0 sum.delta[OF fU] mat_def axis_def)
     }
     then have "orthogonal_matrix ?mf"
       unfolding orthogonal_matrix
@@ -1219,7 +1219,7 @@ proof -
   have f12: "finite {2::2}" "1 \<notin> {2::2}" by auto
   show ?thesis
     unfolding det_def UNIV_2
-    unfolding setsum_over_permutations_insert[OF f12]
+    unfolding sum_over_permutations_insert[OF f12]
     unfolding permutes_sing
     by (simp add: sign_swap_id sign_id swap_id_eq)
 qed
@@ -1240,8 +1240,8 @@ proof -
 
   show ?thesis
     unfolding det_def UNIV_3
-    unfolding setsum_over_permutations_insert[OF f123]
-    unfolding setsum_over_permutations_insert[OF f23]
+    unfolding sum_over_permutations_insert[OF f123]
+    unfolding sum_over_permutations_insert[OF f23]
     unfolding permutes_sing
     by (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
 qed

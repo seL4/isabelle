@@ -343,7 +343,7 @@ lemma m_s_anti_mono_rep: assumes "\<forall>x. S1 x \<le> S2 x"
 shows "(\<Sum>x\<in>X. m (S2 x)) \<le> (\<Sum>x\<in>X. m (S1 x))"
 proof-
   from assms have "\<forall>x. m(S1 x) \<ge> m(S2 x)" by (metis m_anti_mono)
-  thus "(\<Sum>x\<in>X. m (S2 x)) \<le> (\<Sum>x\<in>X. m (S1 x))" by (metis setsum_mono)
+  thus "(\<Sum>x\<in>X. m (S2 x)) \<le> (\<Sum>x\<in>X. m (S1 x))" by (metis sum_mono)
 qed
 
 lemma m_s_anti_mono: "S1 \<le> S2 \<Longrightarrow> m_s S1 X \<ge> m_s S2 X"
@@ -361,7 +361,7 @@ proof-
     by(auto simp add: Ball_def)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S1 x \<nabla> S2 x)"
     using assms(3) m_widen by blast
-  from setsum_strict_mono_ex1[OF `finite X` 1 2]
+  from sum_strict_mono_ex1[OF `finite X` 1 2]
   show ?thesis .
 qed
 
@@ -390,11 +390,11 @@ by(auto simp: m_o_def m_s_h less_Suc_eq_le m_s_widen split: option.split)
 lemma m_c_widen:
   "strip C1 = strip C2  \<Longrightarrow> top_on_acom C1 (-vars C1) \<Longrightarrow> top_on_acom C2 (-vars C2)
    \<Longrightarrow> \<not> C2 \<le> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
-apply(auto simp: m_c_def widen_acom_def map2_acom_def size_annos[symmetric] anno_def[symmetric]sum_list_setsum_nth)
+apply(auto simp: m_c_def widen_acom_def map2_acom_def size_annos[symmetric] anno_def[symmetric]sum_list_sum_nth)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
  prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
-apply(rule setsum_strict_mono_ex1)
+apply(rule sum_strict_mono_ex1)
  apply(auto simp add: m_o_anti_mono vars_acom_def anno_def top_on_acom_def top_on_opt_widen widen1 less_eq_acom_def listrel_iff_nth)
 apply(rule_tac x=p in bexI)
  apply (auto simp: vars_acom_def m_o_widen top_on_acom_def)
@@ -415,7 +415,7 @@ proof-
   hence 2: "\<exists>x\<in>X. n(S1 x \<triangle> S2 x) < n(S1 x)"
     by (metis assms(3-5) eq_iff less_le_not_le n_narrow)
   show ?thesis
-    apply(rule setsum_strict_mono_ex1[OF `finite X`]) using 1 2 by blast+
+    apply(rule sum_strict_mono_ex1[OF `finite X`]) using 1 2 by blast+
 qed
 
 lemma n_s_narrow: "finite X \<Longrightarrow> fun S1 = fun S2 on -X \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1
@@ -446,12 +446,12 @@ by(metis (hide_lams, no_types) less_le_not_le le_iff_le_annos size_annos_same2)
 lemma n_c_narrow: "strip C1 = strip C2
   \<Longrightarrow> top_on_acom C1 (- vars C1) \<Longrightarrow> top_on_acom C2 (- vars C2)
   \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n\<^sub>c (C1 \<triangle> C2) < n\<^sub>c C1"
-apply(auto simp: n_c_def narrow_acom_def sum_list_setsum_nth)
+apply(auto simp: n_c_def narrow_acom_def sum_list_sum_nth)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
 prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
 apply(simp add: less_annos_iff le_iff_le_annos)
-apply(rule setsum_strict_mono_ex1)
+apply(rule sum_strict_mono_ex1)
 apply (auto simp: vars_acom_def top_on_acom_def)
 apply (metis n_o_narrow nth_mem finite_cvars less_imp_le le_less order_refl)
 apply(rule_tac x=i in bexI)
