@@ -992,6 +992,10 @@ literal expressions (option -e) or files (option -f) in the context of a
 given heap image. Errors lead to premature exit of the ML process with
 return code 1.
 
+* The system option "threads" (for the size of the Isabelle/ML thread
+farm) is also passed to the underlying ML runtime system as --gcthreads,
+unless there is already a default provided via ML_OPTIONS settings.
+
 * Command-line tool "isabelle console" provides option -r to help to
 bootstrapping Isabelle/Pure interactively.
 
