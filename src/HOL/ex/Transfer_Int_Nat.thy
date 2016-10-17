@@ -104,12 +104,12 @@ lemma ZN_atLeastAtMost [transfer_rule]:
   unfolding rel_fun_def ZN_def rel_set_def
   by (clarsimp simp add: Bex_def, arith)
 
-lemma ZN_setsum [transfer_rule]:
-  "bi_unique A \<Longrightarrow> ((A ===> ZN) ===> rel_set A ===> ZN) setsum setsum"
+lemma ZN_sum [transfer_rule]:
+  "bi_unique A \<Longrightarrow> ((A ===> ZN) ===> rel_set A ===> ZN) sum sum"
   apply (intro rel_funI)
   apply (erule (1) bi_unique_rel_set_lemma)
-  apply (simp add: setsum.reindex int_setsum ZN_def rel_fun_def)
-  apply (rule setsum.cong)
+  apply (simp add: sum.reindex int_sum ZN_def rel_fun_def)
+  apply (rule sum.cong)
   apply simp_all
   done
 

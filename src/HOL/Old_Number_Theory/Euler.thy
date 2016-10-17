@@ -108,8 +108,8 @@ lemma SetS_elems_card: "[| zprime p; 2 < p; ~([a = 0] (mod p));
 lemma Union_SetS_finite: "2 < p ==> finite (\<Union>(SetS a p))"
   by (auto simp add: SetS_finite SetS_elems_finite)
 
-lemma card_setsum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set); 
-    \<forall>X \<in> S. card X = n |] ==> setsum card S = setsum (%x. n) S"
+lemma card_sum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set); 
+    \<forall>X \<in> S. card X = n |] ==> sum card S = sum (%x. n) S"
   by (induct set: finite) auto
 
 lemma SetS_card:
@@ -120,14 +120,14 @@ proof -
   proof -
     have "p - 1 = int(card(\<Union>(SetS a p)))"
       by (auto simp add: assms MultInvPair_prop2 SRStar_card)
-    also have "... = int (setsum card (SetS a p))"
+    also have "... = int (sum card (SetS a p))"
       by (auto simp add: assms SetS_finite SetS_elems_finite
         MultInvPair_prop1c [of p a] card_Union_disjoint)
-    also have "... = int(setsum (%x.2) (SetS a p))"
+    also have "... = int(sum (%x.2) (SetS a p))"
       using assms by (auto simp add: SetS_elems_card SetS_finite SetS_elems_finite
-        card_setsum_aux simp del: setsum_constant)
+        card_sum_aux simp del: sum_constant)
     also have "... = 2 * int(card( SetS a p))"
-      by (auto simp add: assms SetS_finite setsum_const2)
+      by (auto simp add: assms SetS_finite sum_const2)
     finally show ?thesis .
   qed
   then show ?thesis by auto

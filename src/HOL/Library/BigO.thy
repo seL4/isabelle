@@ -23,7 +23,7 @@ text \<open>
       to be inessential.)
     \<^item> We no longer use \<open>+\<close> as output syntax for \<open>+o\<close>
     \<^item> Lemmas involving \<open>sumr\<close> have been replaced by more general lemmas
-      involving `\<open>setsum\<close>.
+      involving `\<open>sum\<close>.
     \<^item> The library has been expanded, with e.g.~support for expressions of
       the form \<open>f < g + O(h)\<close>.
 
@@ -546,21 +546,21 @@ lemma bigo_compose2: "f =o g +o O(h) \<Longrightarrow> (\<lambda>x. f (k x)) =o 
   done
 
 
-subsection \<open>Setsum\<close>
+subsection \<open>Sum\<close>
 
-lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 \<le> h x y \<Longrightarrow>
+lemma bigo_sum_main: "\<forall>x. \<forall>y \<in> A x. 0 \<le> h x y \<Longrightarrow>
     \<exists>c. \<forall>x. \<forall>y \<in> A x. \<bar>f x y\<bar> \<le> c * h x y \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f x y) =o O(\<lambda>x. \<Sum>y \<in> A x. h x y)"
   apply (auto simp add: bigo_def)
   apply (rule_tac x = "\<bar>c\<bar>" in exI)
   apply (subst abs_of_nonneg) back back
-   apply (rule setsum_nonneg)
+   apply (rule sum_nonneg)
    apply force
-  apply (subst setsum_distrib_left)
+  apply (subst sum_distrib_left)
   apply (rule allI)
   apply (rule order_trans)
-   apply (rule setsum_abs)
-  apply (rule setsum_mono)
+   apply (rule sum_abs)
+  apply (rule sum_mono)
   apply (rule order_trans)
    apply (drule spec)+
    apply (drule bspec)+
@@ -572,24 +572,24 @@ lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 \<le> h x y \<Longr
   apply force
   done
 
-lemma bigo_setsum1: "\<forall>x y. 0 \<le> h x y \<Longrightarrow>
+lemma bigo_sum1: "\<forall>x y. 0 \<le> h x y \<Longrightarrow>
     \<exists>c. \<forall>x y. \<bar>f x y\<bar> \<le> c * h x y \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f x y) =o O(\<lambda>x. \<Sum>y \<in> A x. h x y)"
-  apply (rule bigo_setsum_main)
+  apply (rule bigo_sum_main)
    apply force
   apply clarsimp
   apply (rule_tac x = c in exI)
   apply force
   done
 
-lemma bigo_setsum2: "\<forall>y. 0 \<le> h y \<Longrightarrow>
+lemma bigo_sum2: "\<forall>y. 0 \<le> h y \<Longrightarrow>
     \<exists>c. \<forall>y. \<bar>f y\<bar> \<le> c * (h y) \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f y) =o O(\<lambda>x. \<Sum>y \<in> A x. h y)"
-  by (rule bigo_setsum1) auto
+  by (rule bigo_sum1) auto
 
-lemma bigo_setsum3: "f =o O(h) \<Longrightarrow>
+lemma bigo_sum3: "f =o O(h) \<Longrightarrow>
     (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o O(\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h (k x y)\<bar>)"
-  apply (rule bigo_setsum1)
+  apply (rule bigo_sum1)
    apply (rule allI)+
    apply (rule abs_ge_zero)
   apply (unfold bigo_def)
@@ -603,44 +603,44 @@ lemma bigo_setsum3: "f =o O(h) \<Longrightarrow>
   apply (rule abs_ge_zero)
   done
 
-lemma bigo_setsum4: "f =o g +o O(h) \<Longrightarrow>
+lemma bigo_sum4: "f =o g +o O(h) \<Longrightarrow>
     (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o
       (\<lambda>x. \<Sum>y \<in> A x. l x y * g (k x y)) +o
         O(\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h (k x y)\<bar>)"
   apply (rule set_minus_imp_plus)
   apply (subst fun_diff_def)
-  apply (subst setsum_subtractf [symmetric])
+  apply (subst sum_subtractf [symmetric])
   apply (subst right_diff_distrib [symmetric])
-  apply (rule bigo_setsum3)
+  apply (rule bigo_sum3)
   apply (subst fun_diff_def [symmetric])
   apply (erule set_plus_imp_minus)
   done
 
-lemma bigo_setsum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x y \<Longrightarrow>
+lemma bigo_sum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x y \<Longrightarrow>
     \<forall>x. 0 \<le> h x \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o
         O(\<lambda>x. \<Sum>y \<in> A x. l x y * h (k x y))"
   apply (subgoal_tac "(\<lambda>x. \<Sum>y \<in> A x. l x y * h (k x y)) =
       (\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h (k x y)\<bar>)")
    apply (erule ssubst)
-   apply (erule bigo_setsum3)
+   apply (erule bigo_sum3)
   apply (rule ext)
-  apply (rule setsum.cong)
+  apply (rule sum.cong)
    apply (rule refl)
   apply (subst abs_of_nonneg)
    apply auto
   done
 
-lemma bigo_setsum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x y \<Longrightarrow>
+lemma bigo_sum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x y \<Longrightarrow>
     \<forall>x. 0 \<le> h x \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o
         (\<lambda>x. \<Sum>y \<in> A x. l x y * g (k x y)) +o
           O(\<lambda>x. \<Sum>y \<in> A x. l x y * h (k x y))"
   apply (rule set_minus_imp_plus)
   apply (subst fun_diff_def)
-  apply (subst setsum_subtractf [symmetric])
+  apply (subst sum_subtractf [symmetric])
   apply (subst right_diff_distrib [symmetric])
-  apply (rule bigo_setsum5)
+  apply (rule bigo_sum5)
     apply (subst fun_diff_def [symmetric])
     apply (drule set_plus_imp_minus)
     apply auto

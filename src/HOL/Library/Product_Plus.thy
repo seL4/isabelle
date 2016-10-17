@@ -106,7 +106,7 @@ instance prod :: (group_add, group_add) group_add
 instance prod :: (ab_group_add, ab_group_add) ab_group_add
   by standard (simp_all add: prod_eq_iff)
 
-lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
+lemma fst_sum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
 proof (cases "finite A")
   case True
   then show ?thesis by induct simp_all
@@ -115,7 +115,7 @@ next
   then show ?thesis by simp
 qed
 
-lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
+lemma snd_sum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
 proof (cases "finite A")
   case True
   then show ?thesis by induct simp_all
@@ -124,7 +124,7 @@ next
   then show ?thesis by simp
 qed
 
-lemma setsum_prod: "(\<Sum>x\<in>A. (f x, g x)) = (\<Sum>x\<in>A. f x, \<Sum>x\<in>A. g x)"
+lemma sum_prod: "(\<Sum>x\<in>A. (f x, g x)) = (\<Sum>x\<in>A. f x, \<Sum>x\<in>A. g x)"
 proof (cases "finite A")
   case True
   then show ?thesis by induct (simp_all add: zero_prod_def)

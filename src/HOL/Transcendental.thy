@@ -193,14 +193,14 @@ proof -
   also have "{0..2*n} = {0<..<2*n} \<union> {0,2*n}" by auto
   also have "(\<Sum>k\<in>\<dots>. (2*n) choose k) = 
                (\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) + (\<Sum>k\<in>{0,2*n}. (2*n) choose k)"
-    by (subst setsum.union_disjoint) auto
+    by (subst sum.union_disjoint) auto
   also have "(\<Sum>k\<in>{0,2*n}. (2*n) choose k) \<le> (\<Sum>k\<le>1. (n choose k)\<^sup>2)" 
     by (cases n) simp_all
   also from assms have "\<dots> \<le> (\<Sum>k\<le>n. (n choose k)\<^sup>2)"
-    by (intro setsum_mono3) auto
+    by (intro sum_mono3) auto
   also have "\<dots> = (2*n) choose n" by (rule choose_square_sum)
   also have "(\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) \<le> (\<Sum>k\<in>{0<..<2*n}. (2*n) choose n)"
-    by (intro setsum_mono binomial_maximum')
+    by (intro sum_mono binomial_maximum')
   also have "\<dots> = card {0<..<2*n} * ((2*n) choose n)" by simp
   also have "card {0<..<2*n} \<le> 2*n - 1" by (cases n) simp_all
   also have "(2 * n - 1) * (2 * n choose n) + (2 * n choose n) = ((2*n) choose n) * (2*n)"
@@ -353,14 +353,14 @@ proof (rule LIMSEQ_I)
   fix r :: real
   assume "0 < r"
   from \<open>g sums x\<close>[unfolded sums_def, THEN LIMSEQ_D, OF this]
-  obtain no where no_eq: "\<And>n. n \<ge> no \<Longrightarrow> (norm (setsum g {..<n} - x) < r)"
+  obtain no where no_eq: "\<And>n. n \<ge> no \<Longrightarrow> (norm (sum g {..<n} - x) < r)"
     by blast
 
   let ?SUM = "\<lambda> m. \<Sum>i<m. if even i then 0 else g ((i - 1) div 2)"
   have "(norm (?SUM m - x) < r)" if "m \<ge> 2 * no" for m
   proof -
     from that have "m div 2 \<ge> no" by auto
-    have sum_eq: "?SUM (2 * (m div 2)) = setsum g {..< m div 2}"
+    have sum_eq: "?SUM (2 * (m div 2)) = sum g {..< m div 2}"
       using sum_split_even_odd by auto
     then have "(norm (?SUM (2 * (m div 2)) - x) < r)"
       using no_eq unfolding sum_eq using \<open>m div 2 \<ge> no\<close> by auto
@@ -400,7 +400,7 @@ proof -
   have "?s sums y" using sums_if'[OF \<open>f sums y\<close>] .
   from this[unfolded sums_def, THEN LIMSEQ_Suc]
   have "(\<lambda>n. if even n then f (n div 2) else 0) sums y"
-    by (simp add: lessThan_Suc_eq_insert_0 setsum_atLeast1_atMost_eq image_Suc_lessThan
+    by (simp add: lessThan_Suc_eq_insert_0 sum_atLeast1_atMost_eq image_Suc_lessThan
         if_eq sums_def cong del: if_weak_cong)
   from sums_add[OF g_sums this] show ?thesis
     by (simp only: if_sum)
@@ -580,10 +580,10 @@ proof -
     have ?pos using \<open>0 \<le> ?a 0\<close> by auto
     moreover have ?neg
       using leibniz(2,4)
-      unfolding mult_minus_right setsum_negf move_minus neg_le_iff_le
+      unfolding mult_minus_right sum_negf move_minus neg_le_iff_le
       by auto
     moreover have ?f and ?g
-      using leibniz(3,5)[unfolded mult_minus_right setsum_negf move_minus, THEN tendsto_minus_cancel]
+      using leibniz(3,5)[unfolded mult_minus_right sum_negf move_minus, THEN tendsto_minus_cancel]
       by auto
     ultimately show ?thesis by auto
   qed
@@ -614,13 +614,13 @@ lemma lemma_termdiff1:
     (\<Sum>p<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p))))"
   by (auto simp add: algebra_simps power_add [symmetric])
 
-lemma sumr_diff_mult_const2: "setsum f {..<n} - of_nat n * r = (\<Sum>i<n. f i - r)"
+lemma sumr_diff_mult_const2: "sum f {..<n} - of_nat n * r = (\<Sum>i<n. f i - r)"
   for r :: "'a::ring_1"
-  by (simp add: setsum_subtractf)
+  by (simp add: sum_subtractf)
 
 lemma lemma_realpow_rev_sumr:
   "(\<Sum>p<Suc n. (x ^ p) * (y ^ (n - p))) = (\<Sum>p<Suc n. (x ^ (n - p)) * (y ^ p))"
-  by (subst nat_diff_setsum_reindex[symmetric]) simp
+  by (subst nat_diff_sum_reindex[symmetric]) simp
 
 lemma lemma_termdiff2:
   fixes h :: "'a::field"
@@ -634,27 +634,27 @@ lemma lemma_termdiff2:
   apply (simp add: mult.assoc [symmetric])
   apply (cases n)
   apply simp
-  apply (simp add: diff_power_eq_setsum h right_diff_distrib [symmetric] mult.assoc
-      del: power_Suc setsum_lessThan_Suc of_nat_Suc)
+  apply (simp add: diff_power_eq_sum h right_diff_distrib [symmetric] mult.assoc
+      del: power_Suc sum_lessThan_Suc of_nat_Suc)
   apply (subst lemma_realpow_rev_sumr)
   apply (subst sumr_diff_mult_const2)
   apply simp
-  apply (simp only: lemma_termdiff1 setsum_distrib_left)
-  apply (rule setsum.cong [OF refl])
+  apply (simp only: lemma_termdiff1 sum_distrib_left)
+  apply (rule sum.cong [OF refl])
   apply (simp add: less_iff_Suc_add)
   apply clarify
-  apply (simp add: setsum_distrib_left diff_power_eq_setsum ac_simps
-      del: setsum_lessThan_Suc power_Suc)
+  apply (simp add: sum_distrib_left diff_power_eq_sum ac_simps
+      del: sum_lessThan_Suc power_Suc)
   apply (subst mult.assoc [symmetric], subst power_add [symmetric])
   apply (simp add: ac_simps)
   done
 
-lemma real_setsum_nat_ivl_bounded2:
+lemma real_sum_nat_ivl_bounded2:
   fixes K :: "'a::linordered_semidom"
   assumes f: "\<And>p::nat. p < n \<Longrightarrow> f p \<le> K"
     and K: "0 \<le> K"
-  shows "setsum f {..<n-k} \<le> of_nat n * K"
-  apply (rule order_trans [OF setsum_mono])
+  shows "sum f {..<n-k} \<le> of_nat n * K"
+  apply (rule order_trans [OF sum_mono])
    apply (rule f)
    apply simp
   apply (simp add: mult_right_mono K)
@@ -683,8 +683,8 @@ proof -
     show "norm (\<Sum>p<n - Suc 0. \<Sum>q<n - Suc 0 - p. (z + h) ^ q * z ^ (n - 2 - q)) \<le>
         of_nat n * (of_nat (n - Suc 0) * K ^ (n - 2))"
       apply (intro
-          order_trans [OF norm_setsum]
-          real_setsum_nat_ivl_bounded2
+          order_trans [OF norm_sum]
+          real_sum_nat_ivl_bounded2
           mult_nonneg_nonneg
           of_nat_0_le_iff
           zero_le_power K)
@@ -1123,7 +1123,7 @@ proof (rule LIM_I)
 
     have "\<bar>\<Sum>n<?N. ?diff n x - f' x0 n\<bar> \<le> (\<Sum>n<?N. \<bar>?diff n x - f' x0 n\<bar>)" ..
     also have "\<dots> < (\<Sum>n<?N. ?r)"
-    proof (rule setsum_strict_mono)
+    proof (rule sum_strict_mono)
       fix n
       assume "n \<in> {..< ?N}"
       have "\<bar>x\<bar> < S" using \<open>\<bar>x\<bar> < S\<close> .
@@ -1145,7 +1145,7 @@ proof (rule LIM_I)
         by blast
     qed auto
     also have "\<dots> = of_nat (card {..<?N}) * ?r"
-      by (rule setsum_constant)
+      by (rule sum_constant)
     also have "\<dots> = real ?N * ?r"
       by simp
     also have "\<dots> = r/3"
@@ -1209,14 +1209,14 @@ proof -
       proof -
         have "\<bar>f n * x ^ (Suc n) - f n * y ^ (Suc n)\<bar> =
           (\<bar>f n\<bar> * \<bar>x-y\<bar>) * \<bar>\<Sum>p<Suc n. x ^ p * y ^ (n - p)\<bar>"
-          unfolding right_diff_distrib[symmetric] diff_power_eq_setsum abs_mult
+          unfolding right_diff_distrib[symmetric] diff_power_eq_sum abs_mult
           by auto
         also have "\<dots> \<le> (\<bar>f n\<bar> * \<bar>x-y\<bar>) * (\<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>)"
         proof (rule mult_left_mono)
           have "\<bar>\<Sum>p<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> (\<Sum>p<Suc n. \<bar>x ^ p * y ^ (n - p)\<bar>)"
-            by (rule setsum_abs)
+            by (rule sum_abs)
           also have "\<dots> \<le> (\<Sum>p<Suc n. R' ^ n)"
-          proof (rule setsum_mono)
+          proof (rule sum_mono)
             fix p
             assume "p \<in> {..<Suc n}"
             then have "p \<le> n" by auto
@@ -1234,7 +1234,7 @@ proof -
               unfolding power_add[symmetric] using \<open>p \<le> n\<close> by auto
           qed
           also have "\<dots> = real (Suc n) * R' ^ n"
-            unfolding setsum_constant card_atLeastLessThan by auto
+            unfolding sum_constant card_atLeastLessThan by auto
           finally show "\<bar>\<Sum>p<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> \<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>"
             unfolding abs_of_nonneg[OF zero_le_power[OF less_imp_le[OF \<open>0 < R'\<close>]]]
             by linarith
@@ -1448,7 +1448,7 @@ next
   also have "\<dots> = x * (\<Sum>i\<le>n. S x i * S y (n - i)) + y * (\<Sum>i\<le>n. S x i * S y (n - i))"
     by (rule distrib_right)
   also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n - i)) + (\<Sum>i\<le>n. S x i * y * S y (n - i))"
-    by (simp add: setsum_distrib_left ac_simps S_comm)
+    by (simp add: sum_distrib_left ac_simps S_comm)
   also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n - i)) + (\<Sum>i\<le>n. S x i * (y * S y (n - i)))"
     by (simp add: ac_simps)
   also have "\<dots> = (\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i))) +
@@ -1456,19 +1456,19 @@ next
     by (simp add: times_S Suc_diff_le)
   also have "(\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i))) =
       (\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n - i)))"
-    by (subst setsum_atMost_Suc_shift) simp
+    by (subst sum_atMost_Suc_shift) simp
   also have "(\<Sum>i\<le>n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i))) =
       (\<Sum>i\<le>Suc n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i)))"
     by simp
   also have "(\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n - i))) +
         (\<Sum>i\<le>Suc n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i))) =
       (\<Sum>i\<le>Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n - i)))"
-    by (simp only: setsum.distrib [symmetric] scaleR_left_distrib [symmetric]
+    by (simp only: sum.distrib [symmetric] scaleR_left_distrib [symmetric]
         of_nat_add [symmetric]) simp
   also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i\<le>Suc n. S x i * S y (Suc n - i))"
-    by (simp only: scaleR_right.setsum)
+    by (simp only: scaleR_right.sum)
   finally show "S (x + y) (Suc n) = (\<Sum>i\<le>Suc n. S x i * S y (Suc n - i))"
-    by (simp del: setsum_cl_ivl_Suc)
+    by (simp del: sum_cl_ivl_Suc)
 qed
 
 lemma exp_add_commuting: "x * y = y * x \<Longrightarrow> exp (x + y) = exp x * exp y"
@@ -1522,7 +1522,7 @@ lemma exp_of_nat_mult: "exp (of_nat n * x) = exp x ^ n"
 corollary exp_real_of_nat_mult: "exp (real n * x) = exp x ^ n"
   by (simp add: exp_of_nat_mult)
 
-lemma exp_setsum: "finite I \<Longrightarrow> exp (setsum f I) = setprod (\<lambda>x. exp (f x)) I"
+lemma exp_sum: "finite I \<Longrightarrow> exp (sum f I) = setprod (\<lambda>x. exp (f x)) I"
   by (induct I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
 
 lemma exp_divide_power_eq:
@@ -1596,7 +1596,7 @@ proof
   have "1 + x \<le> (\<Sum>n<2. inverse (fact n) * x^n)"
     by (auto simp add: numeral_2_eq_2)
   also have "\<dots> \<le> (\<Sum>n. inverse (fact n) * x^n)"
-    apply (rule setsum_le_suminf [OF summable_exp])
+    apply (rule sum_le_suminf [OF summable_exp])
     using \<open>0 < x\<close>
     apply (auto  simp add:  zero_le_mult_iff)
     done
@@ -1744,7 +1744,7 @@ lemma ln_mult: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln 
   for x :: real
   by (rule ln_unique) (simp add: exp_add)
 
-lemma ln_setprod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i > 0) \<Longrightarrow> ln (setprod f I) = setsum (\<lambda>x. ln(f x)) I"
+lemma ln_setprod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i > 0) \<Longrightarrow> ln (setprod f I) = sum (\<lambda>x. ln(f x)) I"
   for f :: "'a \<Rightarrow> real"
   by (induct I rule: finite_induct) (auto simp: ln_mult setprod_pos)
 
@@ -3340,7 +3340,7 @@ proof -
        (if even p
         then of_real ((-1) ^ (p div 2) / (fact p)) * (\<Sum>n\<le>p. (p choose n) *\<^sub>R (x^n) * y^(p-n))
         else 0)"
-      by (auto simp: setsum_distrib_left field_simps scaleR_conv_of_real nonzero_of_real_divide)
+      by (auto simp: sum_distrib_left field_simps scaleR_conv_of_real nonzero_of_real_divide)
     also have "\<dots> = cos_coeff p *\<^sub>R ((x + y) ^ p)"
       by (simp add: cos_coeff_def binomial_ring [of x y]  scaleR_conv_of_real atLeast0AtMost)
     finally show ?thesis .
@@ -3372,7 +3372,7 @@ proof -
     "(\<lambda>p. \<Sum>n\<le>p. (if even p then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0))
       sums (cos x * cos y - sin x * sin y)"
     using sums_diff [OF cos_x_cos_y [of x y] sin_x_sin_y [of x y]]
-    by (simp add: setsum_subtractf [symmetric])
+    by (simp add: sum_subtractf [symmetric])
   then show ?thesis
     by (blast intro: sums_cos_x_plus_y sums_unique2)
 qed
@@ -3531,7 +3531,7 @@ lemma sumr_pos_lt_pair:
   fixes f :: "nat \<Rightarrow> real"
   shows "summable f \<Longrightarrow>
     (\<And>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc (Suc 0) * d) + 1))) \<Longrightarrow>
-    setsum f {..<k} < suminf f"
+    sum f {..<k} < suminf f"
   apply (simp only: One_nat_def)
   apply (subst suminf_split_initial_segment [where k=k])
    apply assumption
@@ -5629,7 +5629,7 @@ proof -
       moreover have "isCont (\<lambda> x. ?a x n - ?diff x n) x" for x
         unfolding diff_conv_add_uminus divide_inverse
         by (auto intro!: isCont_add isCont_rabs continuous_ident isCont_minus isCont_arctan
-          isCont_inverse isCont_mult isCont_power continuous_const isCont_setsum
+          isCont_inverse isCont_mult isCont_power continuous_const isCont_sum
           simp del: add_uminus_conv_diff)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n"
         by (rule LIM_less_bound)
@@ -5804,8 +5804,8 @@ lemma pairs_le_eq_Sigma: "{(i, j). i + j \<le> m} = Sigma (atMost m) (\<lambda>r
   for m :: nat
   by auto
 
-lemma setsum_up_index_split: "(\<Sum>k\<le>m + n. f k) = (\<Sum>k\<le>m. f k) + (\<Sum>k = Suc m..m + n. f k)"
-  by (metis atLeast0AtMost Suc_eq_plus1 le0 setsum_ub_add_nat)
+lemma sum_up_index_split: "(\<Sum>k\<le>m + n. f k) = (\<Sum>k\<le>m. f k) + (\<Sum>k = Suc m..m + n. f k)"
+  by (metis atLeast0AtMost Suc_eq_plus1 le0 sum_ub_add_nat)
 
 lemma Sigma_interval_disjoint: "(SIGMA i:A. {..v i}) \<inter> (SIGMA i:A.{v i<..w}) = {}"
   for w :: "'a::order"
@@ -5823,19 +5823,19 @@ lemma polynomial_product: (*with thanks to Chaitanya Mangla*)
     (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
 proof -
   have "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = (\<Sum>i\<le>m. \<Sum>j\<le>n. (a i * x ^ i) * (b j * x ^ j))"
-    by (rule setsum_product)
+    by (rule sum_product)
   also have "\<dots> = (\<Sum>i\<le>m + n. \<Sum>j\<le>n + m. a i * x ^ i * (b j * x ^ j))"
-    using assms by (auto simp: setsum_up_index_split)
+    using assms by (auto simp: sum_up_index_split)
   also have "\<dots> = (\<Sum>r\<le>m + n. \<Sum>j\<le>m + n - r. a r * x ^ r * (b j * x ^ j))"
-    apply (simp add: add_ac setsum.Sigma product_atMost_eq_Un)
-    apply (clarsimp simp add: setsum_Un Sigma_interval_disjoint intro!: setsum.neutral)
+    apply (simp add: add_ac sum.Sigma product_atMost_eq_Un)
+    apply (clarsimp simp add: sum_Un Sigma_interval_disjoint intro!: sum.neutral)
     apply (metis add_diff_assoc2 add.commute add_lessD1 leD m n nat_le_linear neqE)
     done
   also have "\<dots> = (\<Sum>(i,j)\<in>{(i,j). i+j \<le> m+n}. (a i * x ^ i) * (b j * x ^ j))"
-    by (auto simp: pairs_le_eq_Sigma setsum.Sigma)
+    by (auto simp: pairs_le_eq_Sigma sum.Sigma)
   also have "\<dots> = (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
-    apply (subst setsum_triangle_reindex_eq)
-    apply (auto simp: algebra_simps setsum_distrib_left intro!: setsum.cong)
+    apply (subst sum_triangle_reindex_eq)
+    apply (auto simp: algebra_simps sum_distrib_left intro!: sum.cong)
     apply (metis le_add_diff_inverse power_add)
     done
   finally show ?thesis .
@@ -5849,7 +5849,7 @@ lemma polynomial_product_nat:
     (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
   using polynomial_product [of m a n b x] assms
   by (simp only: of_nat_mult [symmetric] of_nat_power [symmetric]
-      of_nat_eq_iff Int.int_setsum [symmetric])
+      of_nat_eq_iff Int.int_sum [symmetric])
 
 lemma polyfun_diff: (*COMPLEX_SUB_POLYFUN in HOL Light*)
   fixes x :: "'a::idom"
@@ -5860,19 +5860,19 @@ proof -
   have h: "bij_betw (\<lambda>(i,j). (j,i)) ((SIGMA i : atMost n. lessThan i)) (SIGMA j : lessThan n. {Suc j..n})"
     by (auto simp: bij_betw_def inj_on_def)
   have "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) = (\<Sum>i\<le>n. a i * (x^i - y^i))"
-    by (simp add: right_diff_distrib setsum_subtractf)
+    by (simp add: right_diff_distrib sum_subtractf)
   also have "\<dots> = (\<Sum>i\<le>n. a i * (x - y) * (\<Sum>j<i. y^(i - Suc j) * x^j))"
     by (simp add: power_diff_sumr2 mult.assoc)
   also have "\<dots> = (\<Sum>i\<le>n. \<Sum>j<i. a i * (x - y) * (y^(i - Suc j) * x^j))"
-    by (simp add: setsum_distrib_left)
+    by (simp add: sum_distrib_left)
   also have "\<dots> = (\<Sum>(i,j) \<in> (SIGMA i : atMost n. lessThan i). a i * (x - y) * (y^(i - Suc j) * x^j))"
-    by (simp add: setsum.Sigma)
+    by (simp add: sum.Sigma)
   also have "\<dots> = (\<Sum>(j,i) \<in> (SIGMA j : lessThan n. {Suc j..n}). a i * (x - y) * (y^(i - Suc j) * x^j))"
-    by (auto simp add: setsum.reindex_bij_betw [OF h, symmetric] intro: setsum.strong_cong)
+    by (auto simp add: sum.reindex_bij_betw [OF h, symmetric] intro: sum.strong_cong)
   also have "\<dots> = (\<Sum>j<n. \<Sum>i=Suc j..n. a i * (x - y) * (y^(i - Suc j) * x^j))"
-    by (simp add: setsum.Sigma)
+    by (simp add: sum.Sigma)
   also have "\<dots> = (x - y) * (\<Sum>j<n. (\<Sum>i=Suc j..n. a i * y^(i - j - 1)) * x^j)"
-    by (simp add: setsum_distrib_left mult_ac)
+    by (simp add: sum_distrib_left mult_ac)
   finally show ?thesis .
 qed
 
@@ -5891,10 +5891,10 @@ proof -
        apply (auto simp: )
       done
     then show ?thesis
-      by (auto simp add: setsum.reindex_bij_betw [OF h, symmetric] intro: setsum.strong_cong)
+      by (auto simp add: sum.reindex_bij_betw [OF h, symmetric] intro: sum.strong_cong)
   qed
   then show ?thesis
-    by (simp add: polyfun_diff [OF assms] setsum_distrib_right)
+    by (simp add: polyfun_diff [OF assms] sum_distrib_right)
 qed
 
 lemma polyfun_linear_factor:  (*COMPLEX_POLYFUN_LINEAR_FACTOR in HOL Light*)
@@ -5946,10 +5946,10 @@ next
   have "(\<Sum>i\<le>Suc n. c i * w^i) = w * (\<Sum>i\<le>n. c (Suc i) * w^i)" for w
   proof -
     have "(\<Sum>i\<le>Suc n. c i * w^i) = (\<Sum>i\<le>n. c (Suc i) * w ^ Suc i)"
-      unfolding Set_Interval.setsum_atMost_Suc_shift
+      unfolding Set_Interval.sum_atMost_Suc_shift
       by simp
     also have "\<dots> = w * (\<Sum>i\<le>n. c (Suc i) * w^i)"
-      by (simp add: setsum_distrib_left ac_simps)
+      by (simp add: sum_distrib_left ac_simps)
     finally show ?thesis .
   qed
   then have w: "\<And>w. w \<noteq> 0 \<Longrightarrow> (\<Sum>i\<le>n. c (Suc i) * w^i) = 0"
@@ -6008,7 +6008,7 @@ next
       by blast
     show ?succase
       using Suc.IH [of b k'] bk'
-      by (simp add: eq card_insert_if del: setsum_atMost_Suc)
+      by (simp add: eq card_insert_if del: sum_atMost_Suc)
     qed
 qed
 
@@ -6048,7 +6048,7 @@ lemma polyfun_eq_coeffs: "(\<forall>x. (\<Sum>i\<le>n. c i * x^i) = (\<Sum>i\<le
   for c :: "nat \<Rightarrow> 'a::{idom,real_normed_div_algebra}"
 proof -
   have "(\<forall>x. (\<Sum>i\<le>n. c i * x^i) = (\<Sum>i\<le>n. d i * x^i)) \<longleftrightarrow> (\<forall>x. (\<Sum>i\<le>n. (c i - d i) * x^i) = 0)"
-    by (simp add: left_diff_distrib Groups_Big.setsum_subtractf)
+    by (simp add: left_diff_distrib Groups_Big.sum_subtractf)
   also have "\<dots> \<longleftrightarrow> (\<forall>i\<le>n. c i - d i = 0)"
     by (rule polyfun_eq_0)
   finally show ?thesis
@@ -6078,7 +6078,7 @@ lemma root_polyfun:
   fixes z :: "'a::idom"
   assumes "1 \<le> n"
   shows "z^n = a \<longleftrightarrow> (\<Sum>i\<le>n. (if i = 0 then -a else if i=n then 1 else 0) * z^i) = 0"
-  using assms by (cases n) (simp_all add: setsum_head_Suc atLeast0AtMost [symmetric])
+  using assms by (cases n) (simp_all add: sum_head_Suc atLeast0AtMost [symmetric])
 
 lemma
   assumes "SORT_CONSTRAINT('a::{idom,real_normed_div_algebra})"

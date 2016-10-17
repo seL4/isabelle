@@ -1011,7 +1011,7 @@ lemmas [simp] = fset.map_comp fset.map_id fset.set_map
 subsection \<open>Size setup\<close>
 
 context includes fset.lifting begin
-lift_definition size_fset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a fset \<Rightarrow> nat" is "\<lambda>f. setsum (Suc \<circ> f)" .
+lift_definition size_fset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a fset \<Rightarrow> nat" is "\<lambda>f. sum (Suc \<circ> f)" .
 end
 
 instantiation fset :: (type) size begin
@@ -1030,7 +1030,7 @@ lemmas size_fset_overloaded_simps[simp] =
 
 lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = size_fset (g \<circ> f)"
   apply (subst fun_eq_iff)
-  including fset.lifting by transfer (auto intro: setsum.reindex_cong subset_inj_on)
+  including fset.lifting by transfer (auto intro: sum.reindex_cong subset_inj_on)
 
 setup \<open>
 BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}

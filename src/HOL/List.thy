@@ -3808,12 +3808,12 @@ by (induction xs) auto
 lemma count_le_length: "count_list xs x \<le> length xs"
 by (induction xs) auto
 
-lemma setsum_count_set:
-  "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> setsum (count_list xs) X = length xs"
+lemma sum_count_set:
+  "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> sum (count_list xs) X = length xs"
 apply(induction xs arbitrary: X)
  apply simp
-apply (simp add: setsum.If_cases)
-by (metis Diff_eq setsum.remove)
+apply (simp add: sum.If_cases)
+by (metis Diff_eq sum.remove)
 
 
 subsubsection \<open>@{const List.extract}\<close>

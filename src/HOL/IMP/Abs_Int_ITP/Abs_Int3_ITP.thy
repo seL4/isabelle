@@ -301,10 +301,10 @@ lemma m_st_height: assumes "finite X" and "set (dom S) \<subseteq> X"
 shows "m_st m_ivl S \<le> 2 * card X"
 proof(auto simp: m_st_def)
   have "(\<Sum>x\<in>set(dom S). m_ivl (fun S x)) \<le> (\<Sum>x\<in>set(dom S). 2)" (is "?L \<le> _")
-    by(rule setsum_mono)(simp add:m_ivl_height)
+    by(rule sum_mono)(simp add:m_ivl_height)
   also have "\<dots> \<le> (\<Sum>x\<in>X. 2)"
-    by(rule setsum_mono3[OF assms]) simp
-  also have "\<dots> = 2 * card X" by(simp add: setsum_constant)
+    by(rule sum_mono3[OF assms]) simp
+  also have "\<dots> = 2 * card X" by(simp add: sum_constant)
   finally show "?L \<le> \<dots>" .
 qed
 
@@ -319,13 +319,13 @@ proof(auto simp: m_st_def le_st_def lookup_def split: if_splits)
   have "(\<Sum>y\<in>?Y. m_ivl(?g y)) = (\<Sum>y\<in>(?Y-?X) \<union> (?Y\<inter>?X). m_ivl(?g y))"
     by (metis Un_Diff_Int)
   also have "\<dots> = (\<Sum>y\<in>?Y-?X. m_ivl(?g y)) + (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?g y))"
-    by(subst setsum.union_disjoint) auto
+    by(subst sum.union_disjoint) auto
   also have "(\<Sum>y\<in>?Y-?X. m_ivl(?g y)) = 0" using 0 by simp
   also have "0 + (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?g y)) = (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?g y))" by simp
   also have "\<dots> \<le> (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?f y))"
-    by(rule setsum_mono)(simp add: 1)
+    by(rule sum_mono)(simp add: 1)
   also have "\<dots> \<le> (\<Sum>y\<in>?X. m_ivl(?f y))"
-    by(simp add: setsum_mono3[of "?X" "?Y Int ?X", OF _ Int_lower2])
+    by(simp add: sum_mono3[of "?X" "?Y Int ?X", OF _ Int_lower2])
   finally show "(\<Sum>y\<in>?Y. m_ivl(?g y)) \<le> (\<Sum>x\<in>?X. m_ivl(?f x))"
     by (metis add_less_cancel_left)
 qed
@@ -340,7 +340,7 @@ proof-
     proof cases
       assume "x : ?Y"
       have "?L < (\<Sum>x\<in>?X\<inter>?Y. m_ivl(?f x))"
-      proof(rule setsum_strict_mono_ex1, simp)
+      proof(rule sum_strict_mono_ex1, simp)
         show "\<forall>x\<in>?X\<inter>?Y. m_ivl(?f x \<nabla> ?g x) \<le> m_ivl (?f x)"
           by (metis m_ivl_anti_mono widen1)
       next
@@ -348,12 +348,12 @@ proof-
           using `x:?X` `x:?Y` `\<not> lookup S2 x \<sqsubseteq> ?f x`
           by (metis IntI m_ivl_widen lookup_def)
       qed
-      also have "\<dots> \<le> ?R" by(simp add: setsum_mono3[OF _ Int_lower1])
+      also have "\<dots> \<le> ?R" by(simp add: sum_mono3[OF _ Int_lower1])
       finally show ?thesis .
     next
       assume "x ~: ?Y"
       have "?L \<le> (\<Sum>x\<in>?X\<inter>?Y. m_ivl(?f x))"
-      proof(rule setsum_mono, simp)
+      proof(rule sum_mono, simp)
         fix x assume "x:?X \<and> x:?Y" show "m_ivl(?f x \<nabla> ?g x) \<le> m_ivl (?f x)"
           by (metis m_ivl_anti_mono widen1)
       qed
@@ -363,7 +363,7 @@ proof-
       also have "\<dots> = (\<Sum>y\<in>insert x (?X\<inter>?Y). m_ivl(?f y))"
         using `x ~: ?Y` by simp
       also have "\<dots> \<le> (\<Sum>x\<in>?X. m_ivl(?f x))"
-        by(rule setsum_mono3)(insert `x:?X`, auto)
+        by(rule sum_mono3)(insert `x:?X`, auto)
       finally show ?thesis .
     qed
   } with assms show ?thesis
@@ -376,7 +376,7 @@ lemma n_st_mono: assumes "set(dom S1) \<subseteq> X" "set(dom S2) \<subseteq> X"
 shows "n_st n_ivl X S1 \<le> n_st n_ivl X S2"
 proof-
   have "(\<Sum>x\<in>X. n_ivl(lookup S1 x)) \<le> (\<Sum>x\<in>X. n_ivl(lookup S2 x))"
-    apply(rule setsum_mono) using assms
+    apply(rule sum_mono) using assms
     by(auto simp: le_st_def lookup_def n_ivl_mono split: if_splits)
   thus ?thesis by(simp add: n_st_def)
 qed
@@ -395,7 +395,7 @@ proof-
     by(auto simp: le_st_def narrow_st_def lookup_def intro: n_ivl_narrow
             split: if_splits)
   have "(\<Sum>x\<in>X. n_ivl(lookup (S1 \<triangle> S2) x)) < (\<Sum>x\<in>X. n_ivl(lookup S1 x))"
-    apply(rule setsum_strict_mono_ex1[OF `finite X`]) using 1 2 by blast+
+    apply(rule sum_strict_mono_ex1[OF `finite X`]) using 1 2 by blast+
   thus ?thesis by(simp add: n_st_def)
 qed
 
@@ -501,7 +501,7 @@ apply(auto simp: m_c_def Let_def Com_def)
 apply(subgoal_tac "length(annos c') = length(annos c)")
 prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
-apply(rule setsum_strict_mono_ex1)
+apply(rule sum_strict_mono_ex1)
 apply simp
 apply (clarsimp)
 apply(erule m_o_anti_mono)
@@ -522,7 +522,7 @@ apply(auto simp: m_c_def Let_def Com_def)
 apply(subgoal_tac "length(annos c') = length(annos c)")
 prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
-apply(rule setsum_strict_mono_ex1)
+apply(rule sum_strict_mono_ex1)
 apply simp
 apply (clarsimp)
 apply(rule n_o_mono)

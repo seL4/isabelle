@@ -87,7 +87,7 @@ proof
     qed
     then have
       "(\<Sum>n\<in>(?S m). 1 / real n) \<ge> (\<Sum>n\<in>(?S m). 1/(real tm))"
-      by (rule setsum_mono)
+      by (rule sum_mono)
     moreover have
       "(\<Sum>n\<in>(?S m). 1/(real tm)) = 1/2"
     proof -
@@ -147,7 +147,7 @@ next
           "\<dots> = (\<Sum>n\<in>{(1::nat)..2}. 1/real n)" by simp
         also have
           "\<dots> = ((\<Sum>n\<in>{Suc 1..2}. 1/real n) + 1/(real (1::nat)))"
-          by (subst setsum_head)
+          by (subst sum_head)
              (auto simp: atLeastSucAtMost_greaterThanAtMost)
         also have
           "\<dots> = ((\<Sum>n\<in>{2..2::nat}. 1/real n) + 1/(real (1::nat)))"
@@ -194,7 +194,7 @@ next
           "finite {1..(2::nat)^M}" and "finite {(2::nat)^M+1..(2::nat)^(Suc M)}"
           by auto
         ultimately show ?thesis
-          by (auto intro: setsum.union_disjoint)
+          by (auto intro: sum.union_disjoint)
       qed
       moreover
       {
@@ -243,7 +243,7 @@ next
     let ?f = "(\<lambda>x. 1/2)"
     let ?g = "(\<lambda>x. (\<Sum>n\<in>{(2::nat)^(x - 1)+1..2^x}. 1/real n))"
     from harmonic_aux have "\<And>x. x\<in>{1..M} \<Longrightarrow> ?f x \<le> ?g x" by simp
-    then have "(\<Sum>m\<in>{1..M}. ?g m) \<ge> (\<Sum>m\<in>{1..M}. ?f m)" by (rule setsum_mono)
+    then have "(\<Sum>m\<in>{1..M}. ?g m) \<ge> (\<Sum>m\<in>{1..M}. ?f m)" by (rule sum_mono)
     thus ?thesis by simp
   qed
   finally have "(?P M) \<ge> (1 + (\<Sum>m\<in>{1..M}. 1/2))" .
@@ -266,8 +266,8 @@ qed
 
 text \<open>The final theorem shows that as we take more and more elements
 (see @{thm [source] harmonic_aux3}) we get an ever increasing sum. By assuming
-the sum converges, the lemma @{thm [source] setsum_less_suminf} ( @{thm
-setsum_less_suminf} ) states that each sum is bounded above by the
+the sum converges, the lemma @{thm [source] sum_less_suminf} ( @{thm
+sum_less_suminf} ) states that each sum is bounded above by the
 series' limit. This contradicts our first statement and thus we prove
 that the harmonic series is divergent.\<close>
 
@@ -281,9 +281,9 @@ proof \<comment> "by contradiction"
   then have ngt: "1 + real n/2 > ?s" by linarith
   define j where "j = (2::nat)^n"
   have "\<forall>m\<ge>j. 0 < ?f m" by simp
-  with sf have "(\<Sum>i<j. ?f i) < ?s" by (rule setsum_less_suminf)
+  with sf have "(\<Sum>i<j. ?f i) < ?s" by (rule sum_less_suminf)
   then have "(\<Sum>i\<in>{Suc 0..<Suc j}. 1/(real i)) < ?s"
-    unfolding setsum_shift_bounds_Suc_ivl by (simp add: atLeast0LessThan)
+    unfolding sum_shift_bounds_Suc_ivl by (simp add: atLeast0LessThan)
   with j_def have
     "(\<Sum>i\<in>{1..< Suc ((2::nat)^n)}. 1 / (real i)) < ?s" by simp
   then have

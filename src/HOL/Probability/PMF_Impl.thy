@@ -27,7 +27,7 @@ proof -
     by (subst nn_integral_count_space'[of "Mapping.keys m"])
        (auto simp: Mapping.lookup_default_def keys_is_none_rep Option.is_none_def)
   also from assms have "\<dots> = ennreal (\<Sum>k\<in>Mapping.keys m. Mapping.lookup_default 0 m k)"
-    by (intro setsum_ennreal) 
+    by (intro sum_ennreal) 
        (auto simp: Mapping.lookup_default_def All_mapping_def split: option.splits)
   finally show ?thesis .
 qed
@@ -317,12 +317,12 @@ proof -
   define prob where "prob = (\<Sum>x\<in>C. pmf p x)"
   also note C_def
   also from assms have "(\<Sum>x\<in>A \<inter> set_pmf p. pmf p x) = (\<Sum>x\<in>A. pmf p x)"
-    by (intro setsum.mono_neutral_left) (auto simp: set_pmf_eq)
+    by (intro sum.mono_neutral_left) (auto simp: set_pmf_eq)
   finally have prob1: "prob = (\<Sum>x\<in>A. pmf p x)" .
   hence prob2: "prob = measure_pmf.prob p A"
     using assms by (subst measure_measure_pmf_finite) simp_all
   have prob3: "prob = 0 \<longleftrightarrow> A \<inter> set_pmf p = {}"
-    by (subst prob1, subst setsum_nonneg_eq_0_iff) (auto simp: set_pmf_eq assms)
+    by (subst prob1, subst sum_nonneg_eq_0_iff) (auto simp: set_pmf_eq assms)
   from assms have prob4: "prob = measure_pmf.prob p C"
     unfolding prob_def by (intro measure_measure_pmf_finite [symmetric]) (simp_all add: C_def)
   

@@ -260,7 +260,7 @@ proof -
     also have "(\<lambda>n. \<Sum>i<n. M (D i)) \<longlonglongrightarrow> (\<Sum>i. M (D i))"
       by (intro summable_LIMSEQ) auto
     finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i<n. measure M (D i)) \<longlonglongrightarrow> measure M (\<Union>i. D i)"
-      by (simp add: emeasure_eq_measure measure_nonneg setsum_nonneg)
+      by (simp add: emeasure_eq_measure measure_nonneg sum_nonneg)
     have "(\<Union>i. D i) \<in> sets M" using \<open>range D \<subseteq> sets M\<close> by auto
 
     case 1
@@ -274,12 +274,12 @@ proof -
       then obtain n0 where n0: "\<bar>(\<Sum>i<n0. measure M (D i)) - measure M (\<Union>i. D i)\<bar> < e/2"
         unfolding choice_iff by blast
       have "ennreal (\<Sum>i<n0. measure M (D i)) = (\<Sum>i<n0. M (D i))"
-        by (auto simp add: emeasure_eq_measure setsum_nonneg measure_nonneg)
-      also have "\<dots> \<le> (\<Sum>i. M (D i))" by (rule setsum_le_suminf) auto
+        by (auto simp add: emeasure_eq_measure sum_nonneg measure_nonneg)
+      also have "\<dots> \<le> (\<Sum>i. M (D i))" by (rule sum_le_suminf) auto
       also have "\<dots> = M (\<Union>i. D i)" by (simp add: M)
       also have "\<dots> = measure M (\<Union>i. D i)" by (simp add: emeasure_eq_measure)
       finally have n0: "measure M (\<Union>i. D i) - (\<Sum>i<n0. measure M (D i)) < e/2"
-        using n0 by (auto simp: measure_nonneg setsum_nonneg)
+        using n0 by (auto simp: measure_nonneg sum_nonneg)
       have "\<forall>i. \<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
       proof
         fix i
@@ -301,16 +301,16 @@ proof -
       have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (D i)) + e/2" using n0 by simp
       also have "(\<Sum>i<n0. measure M (D i)) \<le> (\<Sum>i<n0. measure M (K i) + e/(2*Suc n0))"
         using K \<open>0 < e\<close>
-        by (auto intro: setsum_mono simp: emeasure_eq_measure measure_nonneg ennreal_plus[symmetric] simp del: ennreal_plus)
+        by (auto intro: sum_mono simp: emeasure_eq_measure measure_nonneg ennreal_plus[symmetric] simp del: ennreal_plus)
       also have "\<dots> = (\<Sum>i<n0. measure M (K i)) + (\<Sum>i<n0. e/(2*Suc n0))"
-        by (simp add: setsum.distrib)
+        by (simp add: sum.distrib)
       also have "\<dots> \<le> (\<Sum>i<n0. measure M (K i)) +  e / 2" using \<open>0 < e\<close>
         by (auto simp: field_simps intro!: mult_left_mono)
       finally
       have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (K i)) + e / 2 + e / 2"
         by auto
       hence "M (\<Union>i. D i) < M ?K + e"
-        using \<open>0<e\<close> by (auto simp: mK emeasure_eq_measure measure_nonneg setsum_nonneg ennreal_less_iff ennreal_plus[symmetric] simp del: ennreal_plus)
+        using \<open>0<e\<close> by (auto simp: mK emeasure_eq_measure measure_nonneg sum_nonneg ennreal_less_iff ennreal_plus[symmetric] simp del: ennreal_plus)
       moreover
       have "?K \<subseteq> (\<Union>i. D i)" using K by auto
       moreover
@@ -332,7 +332,7 @@ proof -
         from INF_approx_ennreal[OF \<open>0 < e/(2 powr Suc i)\<close> this]
         show "\<exists>U. D i \<subseteq> U \<and> open U \<and> e/(2 powr Suc i) > emeasure M U - emeasure M (D i)"
           using \<open>0<e\<close>
-          by (auto simp: emeasure_eq_measure measure_nonneg setsum_nonneg ennreal_less_iff ennreal_plus[symmetric] ennreal_minus
+          by (auto simp: emeasure_eq_measure measure_nonneg sum_nonneg ennreal_less_iff ennreal_plus[symmetric] ennreal_minus
                          finite_measure_mono sb
                    simp del: ennreal_plus)
       qed

@@ -506,10 +506,10 @@ done
 lemma Example2_lemma2:
  "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat=0..<n. b i)=(\<Sum>i=0..<n. (b (j := Suc 0)) i)"
 apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
-apply(erule_tac  t="setsum (b(j := (Suc 0))) {0..<n}" in ssubst)
+apply(erule_tac  t="sum (b(j := (Suc 0))) {0..<n}" in ssubst)
 apply(frule_tac b=b in Example2_lemma2_aux)
-apply(erule_tac  t="setsum b {0..<n}" in ssubst)
-apply(subgoal_tac "Suc (setsum b {0..<j} + b j + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))=(setsum b {0..<j} + Suc (b j) + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))")
+apply(erule_tac  t="sum b {0..<n}" in ssubst)
+apply(subgoal_tac "Suc (sum b {0..<j} + b j + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))=(sum b {0..<j} + Suc (b j) + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))")
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply(subgoal_tac "j\<le>j")
@@ -534,9 +534,9 @@ lemma Example_2: "0<n \<Longrightarrow>
  COEND
  \<lbrace>\<acute>x=n\<rbrace>"
 apply oghoare
-apply (simp_all cong del: setsum.strong_cong)
+apply (simp_all cong del: sum.strong_cong)
 apply (tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
-apply (simp_all cong del: setsum.strong_cong)
+apply (simp_all cong del: sum.strong_cong)
    apply(erule (1) Example2_lemma2)
   apply(erule (1) Example2_lemma2)
  apply(erule (1) Example2_lemma2)

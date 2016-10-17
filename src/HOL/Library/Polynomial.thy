@@ -507,8 +507,8 @@ proof (induction p rule: pCons_induct)
       also note pCons.IH
       also have "a + x * (\<Sum>i\<le>degree p. coeff p i * x ^ i) =
                  coeff ?p' 0 * x^0 + (\<Sum>i\<le>degree p. coeff ?p' (Suc i) * x^Suc i)"
-          by (simp add: field_simps setsum_distrib_left coeff_pCons)
-      also note setsum_atMost_Suc_shift[symmetric]
+          by (simp add: field_simps sum_distrib_left coeff_pCons)
+      also note sum_atMost_Suc_shift[symmetric]
       also note degree_pCons_eq[OF \<open>p \<noteq> 0\<close>, of a, symmetric]
       finally show ?thesis .
    qed simp
@@ -721,11 +721,11 @@ lemma diff_monom: "monom a n - monom b n = monom (a - b) n"
 lemma minus_monom: "- monom a n = monom (-a) n"
   by (rule poly_eqI) simp
 
-lemma coeff_setsum: "coeff (\<Sum>x\<in>A. p x) i = (\<Sum>x\<in>A. coeff (p x) i)"
+lemma coeff_sum: "coeff (\<Sum>x\<in>A. p x) i = (\<Sum>x\<in>A. coeff (p x) i)"
   by (cases "finite A", induct set: finite, simp_all)
 
-lemma monom_setsum: "monom (\<Sum>x\<in>A. a x) n = (\<Sum>x\<in>A. monom (a x) n)"
-  by (rule poly_eqI) (simp add: coeff_setsum)
+lemma monom_sum: "monom (\<Sum>x\<in>A. a x) n = (\<Sum>x\<in>A. monom (a x) n)"
+  by (rule poly_eqI) (simp add: coeff_sum)
 
 fun plus_coeffs :: "'a::comm_monoid_add list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -784,15 +784,15 @@ lemma poly_diff [simp]:
   shows "poly (p - q) x = poly p x - poly q x"
   using poly_add [of p "- q" x] by simp
 
-lemma poly_setsum: "poly (\<Sum>k\<in>A. p k) x = (\<Sum>k\<in>A. poly (p k) x)"
+lemma poly_sum: "poly (\<Sum>k\<in>A. p k) x = (\<Sum>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma degree_setsum_le: "finite S \<Longrightarrow> (\<And> p . p \<in> S \<Longrightarrow> degree (f p) \<le> n)
-  \<Longrightarrow> degree (setsum f S) \<le> n"
+lemma degree_sum_le: "finite S \<Longrightarrow> (\<And> p . p \<in> S \<Longrightarrow> degree (f p) \<le> n)
+  \<Longrightarrow> degree (sum f S) \<le> n"
 proof (induct S rule: finite_induct)
   case (insert p S)
-  hence "degree (setsum f S) \<le> n" "degree (f p) \<le> n" by auto
-  thus ?case unfolding setsum.insert[OF insert(1-2)] by (metis degree_add_le)
+  hence "degree (sum f S) \<le> n" "degree (f p) \<le> n" by auto
+  thus ?case unfolding sum.insert[OF insert(1-2)] by (metis degree_add_le)
 qed simp
 
 lemma poly_as_sum_of_monoms': 
@@ -802,7 +802,7 @@ proof -
   have eq: "\<And>i. {..n} \<inter> {i} = (if i \<le> n then {i} else {})"
     by auto
   show ?thesis
-    using n by (simp add: poly_eq_iff coeff_setsum coeff_eq_0 setsum.If_cases eq 
+    using n by (simp add: poly_eq_iff coeff_sum coeff_eq_0 sum.If_cases eq 
                   if_distrib[where f="\<lambda>x. x * a" for a])
 qed
 
@@ -973,8 +973,8 @@ proof (induct p arbitrary: n)
   case 0 show ?case by simp
 next
   case (pCons a p n) thus ?case
-    by (cases n, simp, simp add: setsum_atMost_Suc_shift
-                            del: setsum_atMost_Suc)
+    by (cases n, simp, simp add: sum_atMost_Suc_shift
+                            del: sum_atMost_Suc)
 qed
 
 lemma degree_mult_le: "degree (p * q) \<le> degree p + degree q"
@@ -1057,10 +1057,10 @@ lemma poly_power [simp]:
 lemma poly_setprod: "poly (\<Prod>k\<in>A. p k) x = (\<Prod>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma degree_setprod_setsum_le: "finite S \<Longrightarrow> degree (setprod f S) \<le> setsum (degree o f) S"
+lemma degree_setprod_sum_le: "finite S \<Longrightarrow> degree (setprod f S) \<le> sum (degree o f) S"
 proof (induct S rule: finite_induct)
   case (insert a S)
-  show ?case unfolding setprod.insert[OF insert(1-2)] setsum.insert[OF insert(1-2)]
+  show ?case unfolding setprod.insert[OF insert(1-2)] sum.insert[OF insert(1-2)]
     by (rule le_trans[OF degree_mult_le], insert insert, auto)
 qed simp
 
@@ -2852,7 +2852,7 @@ lemma pcompose_idR[simp]:
   shows "pcompose p [: 0, 1 :] = p"
   by (induct p; simp add: pcompose_pCons)
 
-lemma pcompose_setsum: "pcompose (setsum f A) p = setsum (\<lambda>i. pcompose (f i) p) A"
+lemma pcompose_sum: "pcompose (sum f A) p = sum (\<lambda>i. pcompose (f i) p) A"
   by (cases "finite A", induction rule: finite_induct)
      (simp_all add: pcompose_1 pcompose_add)
 
@@ -3185,17 +3185,17 @@ proof (cases "p = 0 \<or> q = 0")
       also have "\<dots> = (\<Sum>j\<le>degree (p * q) - i. coeff p j * coeff q (degree (p * q) - i - j))"
         unfolding coeff_mult by simp
       also have "\<dots> = (\<Sum>j\<in>B. coeff p j * coeff q (degree (p * q) - i - j))"
-        by (intro setsum.mono_neutral_right) (auto simp: B_def degree_mult_eq not_le coeff_eq_0)
+        by (intro sum.mono_neutral_right) (auto simp: B_def degree_mult_eq not_le coeff_eq_0)
       also from True have "\<dots> = (\<Sum>j\<in>A. coeff p (degree p - j) * coeff q (degree q - (i - j)))"
-        by (intro setsum.reindex_bij_witness[of _ ?f ?f])
+        by (intro sum.reindex_bij_witness[of _ ?f ?f])
            (auto simp: A_def B_def degree_mult_eq add_ac)
       also have "\<dots> = (\<Sum>j\<le>i. if j \<in> {i - degree q..degree p} then
                  coeff p (degree p - j) * coeff q (degree q - (i - j)) else 0)"
-        by (subst setsum.inter_restrict [symmetric]) (simp_all add: A_def)
+        by (subst sum.inter_restrict [symmetric]) (simp_all add: A_def)
        also have "\<dots> = coeff (reflect_poly p * reflect_poly q) i"
-          by (fastforce simp: coeff_mult coeff_reflect_poly intro!: setsum.cong)
+          by (fastforce simp: coeff_mult coeff_reflect_poly intro!: sum.cong)
        finally show ?thesis .
-    qed (auto simp: coeff_mult coeff_reflect_poly coeff_eq_0 degree_mult_eq intro!: setsum.neutral)
+    qed (auto simp: coeff_mult coeff_reflect_poly coeff_eq_0 degree_mult_eq intro!: sum.neutral)
   qed
 qed auto
 
@@ -3400,7 +3400,7 @@ lemma pderiv_setprod: "pderiv (setprod f (as)) =
 proof (induct as rule: infinite_finite_induct)
   case (insert a as)
   hence id: "setprod f (insert a as) = f a * setprod f as" 
-    "\<And> g. setsum g (insert a as) = g a + setsum g as"
+    "\<And> g. sum g (insert a as) = g a + sum g as"
     "insert a as - {a} = as"
     by auto
   {
@@ -3412,8 +3412,8 @@ proof (induct as rule: infinite_finite_induct)
       by (subst setprod.insert, insert insert, auto)
   } note id2 = this
   show ?case
-    unfolding id pderiv_mult insert(3) setsum_distrib_left
-    by (auto simp add: ac_simps id2 intro!: setsum.cong)
+    unfolding id pderiv_mult insert(3) sum_distrib_left
+    by (auto simp add: ac_simps id2 intro!: sum.cong)
 qed auto
 
 lemma DERIV_pow2: "DERIV (%x. x ^ Suc n) x :> real (Suc n) * (x ^ n)"
@@ -3877,8 +3877,8 @@ proof -
   have "coeff (monom c n * p) k = (\<Sum>i\<le>k. (if n = i then c else 0) * coeff p (k - i))"
     by (simp add: coeff_mult)
   also have "\<dots> = (\<Sum>i\<le>k. (if n = i then c * coeff p (k - i) else 0))"
-    by (intro setsum.cong) simp_all
-  also have "\<dots> = (if k < n then 0 else c * coeff p (k - n))" by (simp add: setsum.delta')
+    by (intro sum.cong) simp_all
+  also have "\<dots> = (if k < n then 0 else c * coeff p (k - n))" by (simp add: sum.delta')
   finally show ?thesis .
 qed
 

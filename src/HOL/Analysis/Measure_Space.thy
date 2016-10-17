@@ -21,7 +21,7 @@ proof -
   have **: "\<And>n. f n * indicator (A n) x = (if n = i then f n else 0 :: ennreal)"
     using \<open>x \<in> A i\<close> assms unfolding disjoint_family_on_def indicator_def by auto
   then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: ennreal)"
-    by (auto simp: setsum.If_cases)
+    by (auto simp: sum.If_cases)
   moreover have "(SUP n. if i < n then f i else 0) = (f i :: ennreal)"
   proof (rule SUP_eqI)
     fix y :: ennreal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
@@ -41,7 +41,7 @@ proof cases
   show ?thesis using * by simp
 qed simp
 
-lemma setsum_indicator_disjoint_family:
+lemma sum_indicator_disjoint_family:
   fixes f :: "'d \<Rightarrow> 'e::semiring_1"
   assumes d: "disjoint_family_on A P" and "x \<in> A j" and "finite P" and "j \<in> P"
   shows "(\<Sum>i\<in>P. f i * indicator (A i) x) = f j"
@@ -51,7 +51,7 @@ proof -
     by auto
   thus ?thesis
     unfolding indicator_def
-    by (simp add: if_distrib setsum.If_cases[OF \<open>finite P\<close>])
+    by (simp add: if_distrib sum.If_cases[OF \<open>finite P\<close>])
 qed
 
 text \<open>
@@ -302,7 +302,7 @@ proof (rule countably_additiveI)
   from fin_not_0 have "(\<Sum>i. \<mu> (F i)) = (\<Sum>i | \<mu> (F i) \<noteq> 0. \<mu> (F i))"
     by (rule suminf_finite) auto
   also have "\<dots> = (\<Sum>i | F i \<noteq> {}. \<mu> (F i))"
-    using fin_not_empty F_subset by (rule setsum.mono_neutral_left) auto
+    using fin_not_empty F_subset by (rule sum.mono_neutral_left) auto
   also have "\<dots> = \<mu> (\<Union>i\<in>{i. F i \<noteq> {}}. F i)"
     using \<open>positive M \<mu>\<close> \<open>additive M \<mu>\<close> fin_not_empty disj_not_empty F by (intro additive_sum) auto
   also have "\<dots> = \<mu> (\<Union>i. F i)"
@@ -476,7 +476,7 @@ lemma emeasure_Union:
   "A \<in> sets M \<Longrightarrow> B \<in> sets M \<Longrightarrow> emeasure M (A \<union> B) = emeasure M A + emeasure M (B - A)"
   using plus_emeasure[of A M "B - A"] by auto
 
-lemma setsum_emeasure:
+lemma sum_emeasure:
   "F`I \<subseteq> sets M \<Longrightarrow> disjoint_family_on F I \<Longrightarrow> finite I \<Longrightarrow>
     (\<Sum>i\<in>I. emeasure M (F i)) = emeasure M (\<Union>i\<in>I. F i)"
   by (metis sets.additive_sum emeasure_positive emeasure_additive)
@@ -704,20 +704,20 @@ lemma emeasure_insert_ne:
   "A \<noteq> {} \<Longrightarrow> {x} \<in> sets M \<Longrightarrow> A \<in> sets M \<Longrightarrow> x \<notin> A \<Longrightarrow> emeasure M (insert x A) = emeasure M {x} + emeasure M A"
   by (rule emeasure_insert)
 
-lemma emeasure_eq_setsum_singleton:
+lemma emeasure_eq_sum_singleton:
   assumes "finite S" "\<And>x. x \<in> S \<Longrightarrow> {x} \<in> sets M"
   shows "emeasure M S = (\<Sum>x\<in>S. emeasure M {x})"
-  using setsum_emeasure[of "\<lambda>x. {x}" S M] assms
+  using sum_emeasure[of "\<lambda>x. {x}" S M] assms
   by (auto simp: disjoint_family_on_def subset_eq)
 
-lemma setsum_emeasure_cover:
+lemma sum_emeasure_cover:
   assumes "finite S" and "A \<in> sets M" and br_in_M: "B ` S \<subseteq> sets M"
   assumes A: "A \<subseteq> (\<Union>i\<in>S. B i)"
   assumes disj: "disjoint_family_on B S"
   shows "emeasure M A = (\<Sum>i\<in>S. emeasure M (A \<inter> (B i)))"
 proof -
   have "(\<Sum>i\<in>S. emeasure M (A \<inter> (B i))) = emeasure M (\<Union>i\<in>S. A \<inter> (B i))"
-  proof (rule setsum_emeasure)
+  proof (rule sum_emeasure)
     show "disjoint_family_on (\<lambda>i. A \<inter> B i) S"
       using \<open>disjoint_family_on B S\<close>
       unfolding disjoint_family_on_def by auto
@@ -749,11 +749,11 @@ proof (rule measure_eqI)
   fix X assume "X \<in> sets M"
   then have X: "X \<subseteq> A" by auto
   then have "emeasure M X = (\<Sum>a\<in>X. emeasure M {a})"
-    using \<open>finite A\<close> by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
+    using \<open>finite A\<close> by (subst emeasure_eq_sum_singleton) (auto dest: finite_subset)
   also have "\<dots> = (\<Sum>a\<in>X. emeasure N {a})"
-    using X eq by (auto intro!: setsum.cong)
+    using X eq by (auto intro!: sum.cong)
   also have "\<dots> = emeasure N X"
-    using X \<open>finite A\<close> by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
+    using X \<open>finite A\<close> by (subst emeasure_eq_sum_singleton) (auto dest: finite_subset)
   finally show "emeasure M X = emeasure N X" .
 qed simp
 
@@ -1320,7 +1320,7 @@ proof -
       have "emeasure M (\<Union>i\<le>n. F i) \<le> (\<Sum>i\<le>n. emeasure M (F i))"
         using F by (auto intro!: emeasure_subadditive_finite)
       also have "\<dots> < \<infinity>"
-        using F by (auto simp: setsum_Pinfty less_top)
+        using F by (auto simp: sum_Pinfty less_top)
       finally show ?thesis by simp
     qed
     show "incseq (\<lambda>n. \<Union>i\<le>n. F i)"
@@ -1517,7 +1517,7 @@ lemma measure_finite_Union:
   "finite S \<Longrightarrow> A`S \<subseteq> sets M \<Longrightarrow> disjoint_family_on A S \<Longrightarrow> (\<And>i. i \<in> S \<Longrightarrow> emeasure M (A i) \<noteq> \<infinity>) \<Longrightarrow>
     measure M (\<Union>i\<in>S. A i) = (\<Sum>i\<in>S. measure M (A i))"
   by (induction S rule: finite_induct)
-     (auto simp: disjoint_family_on_insert measure_Union setsum_emeasure[symmetric] sets.countable_UN'[OF countable_finite])
+     (auto simp: disjoint_family_on_insert measure_Union sum_emeasure[symmetric] sets.countable_UN'[OF countable_finite])
 
 lemma measure_Diff:
   assumes finite: "emeasure M A \<noteq> \<infinity>"
@@ -1576,7 +1576,7 @@ proof -
   show ?thesis
     using emeasure_subadditive_finite[OF A] fin
     unfolding emeasure_eq_ennreal_measure[OF *]
-    by (simp_all add: setsum_nonneg emeasure_eq_ennreal_measure)
+    by (simp_all add: sum_nonneg emeasure_eq_ennreal_measure)
 qed
 
 lemma measure_subadditive_countably:
@@ -1611,11 +1611,11 @@ lemma measure_Un_null_set: "A \<in> sets M \<Longrightarrow> B \<in> null_sets M
 lemma measure_Diff_null_set: "A \<in> sets M \<Longrightarrow> B \<in> null_sets M \<Longrightarrow> measure M (A - B) = measure M A"
   by (simp add: measure_def emeasure_Diff_null_set)
 
-lemma measure_eq_setsum_singleton:
+lemma measure_eq_sum_singleton:
   "finite S \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> {x} \<in> sets M) \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> emeasure M {x} \<noteq> \<infinity>) \<Longrightarrow>
     measure M S = (\<Sum>x\<in>S. measure M {x})"
-  using emeasure_eq_setsum_singleton[of S M]
-  by (intro measure_eq_emeasure_eq_ennreal) (auto simp: setsum_nonneg emeasure_eq_ennreal_measure)
+  using emeasure_eq_sum_singleton[of S M]
+  by (intro measure_eq_emeasure_eq_ennreal) (auto simp: sum_nonneg emeasure_eq_ennreal_measure)
 
 lemma Lim_measure_incseq:
   assumes A: "range A \<subseteq> sets M" "incseq A" and fin: "emeasure M (\<Union>i. A i) \<noteq> \<infinity>"
@@ -1886,10 +1886,10 @@ lemma (in finite_measure) finite_measure_subadditive_countably:
   by (rule measure_subadditive_countably)
      (simp_all add: ennreal_suminf_neq_top emeasure_eq_measure)
 
-lemma (in finite_measure) finite_measure_eq_setsum_singleton:
+lemma (in finite_measure) finite_measure_eq_sum_singleton:
   assumes "finite S" and *: "\<And>x. x \<in> S \<Longrightarrow> {x} \<in> sets M"
   shows "measure M S = (\<Sum>x\<in>S. measure M {x})"
-  using measure_eq_setsum_singleton[OF assms] by simp
+  using measure_eq_sum_singleton[OF assms] by simp
 
 lemma (in finite_measure) finite_Lim_measure_incseq:
   assumes A: "range A \<subseteq> sets M" "incseq A"
@@ -1985,10 +1985,10 @@ proof cases
   from someI_ex[OF this] assms
   have prob_some: "\<And> x. x \<in> s \<Longrightarrow> measure M {x} = measure M {SOME y. y \<in> s}" by blast
   have "measure M s = (\<Sum> x \<in> s. measure M {x})"
-    using finite_measure_eq_setsum_singleton[OF s] by simp
+    using finite_measure_eq_sum_singleton[OF s] by simp
   also have "\<dots> = (\<Sum> x \<in> s. measure M {SOME y. y \<in> s})" using prob_some by auto
   also have "\<dots> = real (card s) * measure M {(SOME x. x \<in> s)}"
-    using setsum_constant assms by simp
+    using sum_constant assms by simp
   finally show ?thesis by simp
 qed simp
 
@@ -3581,7 +3581,7 @@ next
       using \<open>?M \<noteq> 0\<close>
       by (simp add: \<open>card X = Suc (Suc n)\<close> field_simps less_le)
     also have "\<dots> \<le> (\<Sum>x\<in>X. ?m x)"
-      by (rule setsum_mono) fact
+      by (rule sum_mono) fact
     also have "\<dots> = measure M (\<Union>x\<in>X. {x})"
       using singleton_sets \<open>finite X\<close>
       by (intro finite_measure_finite_Union[symmetric]) (auto simp: disjoint_family_on_def)

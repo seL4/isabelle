@@ -15,20 +15,20 @@ begin
 text \<open>This should be part of @{theory Extended_Nat} or @{theory Order_Continuity}, but then the
 AFP-entry \<open>Jinja_Thread\<close> fails, as it does overload certain named from @{theory Complex_Main}.\<close>
 
-lemma incseq_setsumI2:
+lemma incseq_sumI2:
   fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::ordered_comm_monoid_add"
   shows "(\<And>n. n \<in> A \<Longrightarrow> mono (f n)) \<Longrightarrow> mono (\<lambda>i. \<Sum>n\<in>A. f n i)"
-  unfolding incseq_def by (auto intro: setsum_mono)
+  unfolding incseq_def by (auto intro: sum_mono)
 
-lemma incseq_setsumI:
+lemma incseq_sumI:
   fixes f :: "nat \<Rightarrow> 'a::ordered_comm_monoid_add"
   assumes "\<And>i. 0 \<le> f i"
-  shows "incseq (\<lambda>i. setsum f {..< i})"
+  shows "incseq (\<lambda>i. sum f {..< i})"
 proof (intro incseq_SucI)
   fix n
-  have "setsum f {..< n} + 0 \<le> setsum f {..<n} + f n"
+  have "sum f {..< n} + 0 \<le> sum f {..<n} + f n"
     using assms by (rule add_left_mono)
-  then show "setsum f {..< n} \<le> setsum f {..< Suc n}"
+  then show "sum f {..< n} \<le> sum f {..< Suc n}"
     by auto
 qed
 
@@ -762,7 +762,7 @@ lemma ereal_add_nonneg_nonneg[simp]:
   shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a + b"
   using add_mono[of 0 a 0 b] by simp
 
-lemma setsum_ereal[simp]: "(\<Sum>x\<in>A. ereal (f x)) = ereal (\<Sum>x\<in>A. f x)"
+lemma sum_ereal[simp]: "(\<Sum>x\<in>A. ereal (f x)) = ereal (\<Sum>x\<in>A. f x)"
 proof (cases "finite A")
   case True
   then show ?thesis by induct auto
@@ -774,11 +774,11 @@ qed
 lemma sum_list_ereal [simp]: "sum_list (map (\<lambda>x. ereal (f x)) xs) = ereal (sum_list (map f xs))"
   by (induction xs) simp_all
 
-lemma setsum_Pinfty:
+lemma sum_Pinfty:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(\<Sum>x\<in>P. f x) = \<infinity> \<longleftrightarrow> finite P \<and> (\<exists>i\<in>P. f i = \<infinity>)"
 proof safe
-  assume *: "setsum f P = \<infinity>"
+  assume *: "sum f P = \<infinity>"
   show "finite P"
   proof (rule ccontr)
     assume "\<not> finite P"
@@ -790,7 +790,7 @@ proof safe
     assume "\<not> ?thesis"
     then have "\<And>i. i \<in> P \<Longrightarrow> f i \<noteq> \<infinity>"
       by auto
-    with \<open>finite P\<close> have "setsum f P \<noteq> \<infinity>"
+    with \<open>finite P\<close> have "sum f P \<noteq> \<infinity>"
       by induct auto
     with * show False
       by auto
@@ -798,18 +798,18 @@ proof safe
 next
   fix i
   assume "finite P" and "i \<in> P" and "f i = \<infinity>"
-  then show "setsum f P = \<infinity>"
+  then show "sum f P = \<infinity>"
   proof induct
     case (insert x A)
     show ?case using insert by (cases "x = i") auto
   qed simp
 qed
 
-lemma setsum_Inf:
+lemma sum_Inf:
   fixes f :: "'a \<Rightarrow> ereal"
-  shows "\<bar>setsum f A\<bar> = \<infinity> \<longleftrightarrow> finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
+  shows "\<bar>sum f A\<bar> = \<infinity> \<longleftrightarrow> finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
 proof
-  assume *: "\<bar>setsum f A\<bar> = \<infinity>"
+  assume *: "\<bar>sum f A\<bar> = \<infinity>"
   have "finite A"
     by (rule ccontr) (insert *, auto)
   moreover have "\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>"
@@ -827,18 +827,18 @@ next
   assume "finite A \<and> (\<exists>i\<in>A. \<bar>f i\<bar> = \<infinity>)"
   then obtain i where "finite A" "i \<in> A" and "\<bar>f i\<bar> = \<infinity>"
     by auto
-  then show "\<bar>setsum f A\<bar> = \<infinity>"
+  then show "\<bar>sum f A\<bar> = \<infinity>"
   proof induct
     case (insert j A)
     then show ?case
-      by (cases rule: ereal3_cases[of "f i" "f j" "setsum f A"]) auto
+      by (cases rule: ereal3_cases[of "f i" "f j" "sum f A"]) auto
   qed simp
 qed
 
-lemma setsum_real_of_ereal:
+lemma sum_real_of_ereal:
   fixes f :: "'i \<Rightarrow> ereal"
   assumes "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
-  shows "(\<Sum>x\<in>S. real_of_ereal (f x)) = real_of_ereal (setsum f S)"
+  shows "(\<Sum>x\<in>S. real_of_ereal (f x)) = real_of_ereal (sum f S)"
 proof -
   have "\<forall>x\<in>S. \<exists>r. f x = ereal r"
   proof
@@ -852,17 +852,17 @@ proof -
     by simp
 qed
 
-lemma setsum_ereal_0:
+lemma sum_ereal_0:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "finite A"
     and "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i"
   shows "(\<Sum>x\<in>A. f x) = 0 \<longleftrightarrow> (\<forall>i\<in>A. f i = 0)"
 proof
-  assume "setsum f A = 0" with assms show "\<forall>i\<in>A. f i = 0"
+  assume "sum f A = 0" with assms show "\<forall>i\<in>A. f i = 0"
   proof (induction A)
     case (insert a A)
     then have "f a = 0 \<and> (\<Sum>a\<in>A. f a) = 0"
-      by (subst ereal_add_nonneg_eq_0_iff[symmetric]) (simp_all add: setsum_nonneg)
+      by (subst ereal_add_nonneg_eq_0_iff[symmetric]) (simp_all add: sum_nonneg)
     with insert show ?case
       by simp
   qed simp
@@ -1089,18 +1089,18 @@ lemma distrib_left_ereal_nn:
   "c \<ge> 0 \<Longrightarrow> (x + y) * ereal c = x * ereal c + y * ereal c"
 by(cases x y rule: ereal2_cases)(simp_all add: ring_distribs)
 
-lemma setsum_ereal_right_distrib:
+lemma sum_ereal_right_distrib:
   fixes f :: "'a \<Rightarrow> ereal"
-  shows "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> r * setsum f A = (\<Sum>n\<in>A. r * f n)"
-  by (induct A rule: infinite_finite_induct)  (auto simp: ereal_right_distrib setsum_nonneg)
+  shows "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> r * sum f A = (\<Sum>n\<in>A. r * f n)"
+  by (induct A rule: infinite_finite_induct)  (auto simp: ereal_right_distrib sum_nonneg)
 
-lemma setsum_ereal_left_distrib:
-  "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> setsum f A * r = (\<Sum>n\<in>A. f n * r :: ereal)"
-  using setsum_ereal_right_distrib[of A f r] by (simp add: mult_ac)
+lemma sum_ereal_left_distrib:
+  "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> sum f A * r = (\<Sum>n\<in>A. f n * r :: ereal)"
+  using sum_ereal_right_distrib[of A f r] by (simp add: mult_ac)
 
-lemma setsum_distrib_right_ereal:
-  "c \<ge> 0 \<Longrightarrow> setsum f A * ereal c = (\<Sum>x\<in>A. f x * c :: ereal)"
-by(subst setsum_comp_morphism[where h="\<lambda>x. x * ereal c", symmetric])(simp_all add: distrib_left_ereal_nn)
+lemma sum_distrib_right_ereal:
+  "c \<ge> 0 \<Longrightarrow> sum f A * ereal c = (\<Sum>x\<in>A. f x * c :: ereal)"
+by(subst sum_comp_morphism[where h="\<lambda>x. x * ereal c", symmetric])(simp_all add: distrib_left_ereal_nn)
 
 lemma ereal_le_epsilon:
   fixes x y :: ereal
@@ -2182,7 +2182,7 @@ proof (intro SUP_ereal_add inc)
     using pos[of i] by auto
 qed
 
-lemma SUP_ereal_setsum:
+lemma SUP_ereal_sum:
   fixes f g :: "'a \<Rightarrow> nat \<Rightarrow> ereal"
   assumes "\<And>n. n \<in> A \<Longrightarrow> incseq (f n)"
     and pos: "\<And>n i. n \<in> A \<Longrightarrow> 0 \<le> f n i"
@@ -2190,7 +2190,7 @@ lemma SUP_ereal_setsum:
 proof (cases "finite A")
   case True
   then show ?thesis using assms
-    by induct (auto simp: incseq_setsumI2 setsum_nonneg SUP_ereal_add_pos)
+    by induct (auto simp: incseq_sumI2 sum_nonneg SUP_ereal_add_pos)
 next
   case False
   then show ?thesis by simp
@@ -3111,7 +3111,7 @@ proof (rule Lim_bounded_ereal)
   have "summable f" using pos[THEN summable_ereal_pos] .
   then show "(\<lambda>N. \<Sum>n<N. f n) \<longlonglongrightarrow> suminf f"
     by (auto dest!: summable_sums simp: sums_def atLeast0LessThan)
-  show "\<forall>n\<ge>0. setsum f {..<n} \<le> x"
+  show "\<forall>n\<ge>0. sum f {..<n} \<le> x"
     using assms by auto
 qed
 
@@ -3157,12 +3157,12 @@ proof (safe intro!: suminf_bound)
     have "0 \<le> g N"
       using assms(2,1)[of N] by auto
   }
-  have "setsum f {..<n} \<le> setsum g {..<n}"
-    using assms by (auto intro: setsum_mono)
+  have "sum f {..<n} \<le> sum g {..<n}"
+    using assms by (auto intro: sum_mono)
   also have "\<dots> \<le> suminf g"
     using \<open>\<And>N. 0 \<le> g N\<close>
     by (rule suminf_upper)
-  finally show "setsum f {..<n} \<le> suminf g" .
+  finally show "sum f {..<n} \<le> suminf g" .
 qed (rule assms(2))
 
 lemma suminf_half_series_ereal: "(\<Sum>n. (1/2 :: ereal) ^ Suc n) = 1"
@@ -3175,8 +3175,8 @@ lemma suminf_add_ereal:
     and "\<And>i. 0 \<le> g i"
   shows "(\<Sum>i. f i + g i) = suminf f + suminf g"
   apply (subst (1 2 3) suminf_ereal_eq_SUP)
-  unfolding setsum.distrib
-  apply (intro assms ereal_add_nonneg_nonneg SUP_ereal_add_pos incseq_setsumI setsum_nonneg ballI)+
+  unfolding sum.distrib
+  apply (intro assms ereal_add_nonneg_nonneg SUP_ereal_add_pos incseq_sumI sum_nonneg ballI)+
   done
 
 lemma suminf_cmult_ereal:
@@ -3184,8 +3184,8 @@ lemma suminf_cmult_ereal:
   assumes "\<And>i. 0 \<le> f i"
     and "0 \<le> a"
   shows "(\<Sum>i. a * f i) = a * suminf f"
-  by (auto simp: setsum_ereal_right_distrib[symmetric] assms
-       ereal_zero_le_0_iff setsum_nonneg suminf_ereal_eq_SUP
+  by (auto simp: sum_ereal_right_distrib[symmetric] assms
+       ereal_zero_le_0_iff sum_nonneg suminf_ereal_eq_SUP
        intro!: SUP_ereal_mult_left)
 
 lemma suminf_PInfty:
@@ -3198,7 +3198,7 @@ proof -
   have "(\<Sum>i<Suc i. f i) \<noteq> \<infinity>"
     by auto
   then show ?thesis
-    unfolding setsum_Pinfty by simp
+    unfolding sum_Pinfty by simp
 qed
 
 lemma suminf_PInfty_fun:
@@ -3325,7 +3325,7 @@ proof -
     fix n :: nat
     have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
       using assms
-      by (auto intro!: SUP_ereal_setsum [symmetric])
+      by (auto intro!: SUP_ereal_sum [symmetric])
   }
   note * = this
   show ?thesis
@@ -3338,7 +3338,7 @@ proof -
     done
 qed
 
-lemma suminf_setsum_ereal:
+lemma suminf_sum_ereal:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> ereal"
   assumes nonneg: "\<And>i a. a \<in> A \<Longrightarrow> 0 \<le> f i a"
   shows "(\<Sum>i. \<Sum>a\<in>A. f i a) = (\<Sum>a\<in>A. \<Sum>i. f i a)"
@@ -3346,7 +3346,7 @@ proof (cases "finite A")
   case True
   then show ?thesis
     using nonneg
-    by induct (simp_all add: suminf_add_ereal setsum_nonneg)
+    by induct (simp_all add: suminf_add_ereal sum_nonneg)
 next
   case False
   then show ?thesis by simp
@@ -3392,10 +3392,10 @@ proof -
     have "(\<Sum>i<n. f (i + k)) = (\<Sum>i<n. (f \<circ> (\<lambda>i. i + k)) i)"
       by simp
     also have "\<dots> = (\<Sum>i\<in>(\<lambda>i. i + k) ` {..<n}. f i)"
-      by (subst setsum.reindex) auto
-    also have "\<dots> \<le> setsum f {..<n + k}"
-      by (intro setsum_mono3) (auto simp: f)
-    finally show "(\<Sum>i<n. f (i + k)) \<le> setsum f {..<n + k}" .
+      by (subst sum.reindex) auto
+    also have "\<dots> \<le> sum f {..<n + k}"
+      by (intro sum_mono3) (auto simp: f)
+    finally show "(\<Sum>i<n. f (i + k)) \<le> sum f {..<n + k}" .
   qed
 qed
 
@@ -3445,7 +3445,7 @@ next
   qed
 qed
 
-lemma SUP_ereal_setsum_directed:
+lemma SUP_ereal_sum_directed:
   fixes f g :: "'a \<Rightarrow> 'b \<Rightarrow> ereal"
   assumes "I \<noteq> {}"
   assumes directed: "\<And>N i j. N \<subseteq> A \<Longrightarrow> i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. \<forall>n\<in>N. f n i \<le> f n k \<and> f n j \<le> f n k"
@@ -3458,12 +3458,12 @@ proof -
     moreover have "(SUP i:I. f n i + (\<Sum>l\<in>N. f l i)) = (SUP i:I. f n i) + (SUP i:I. \<Sum>l\<in>N. f l i)"
     proof (rule SUP_ereal_add_directed)
       fix i assume "i \<in> I" then show "0 \<le> f n i" "0 \<le> (\<Sum>l\<in>N. f l i)"
-        using insert by (auto intro!: setsum_nonneg nonneg)
+        using insert by (auto intro!: sum_nonneg nonneg)
     next
       fix i j assume "i \<in> I" "j \<in> I"
       from directed[OF \<open>insert n N \<subseteq> A\<close> this] guess k ..
       then show "\<exists>k\<in>I. f n i + (\<Sum>l\<in>N. f l j) \<le> f n k + (\<Sum>l\<in>N. f l k)"
-        by (intro bexI[of _ k]) (auto intro!: ereal_add_mono setsum_mono)
+        by (intro bexI[of _ k]) (auto intro!: ereal_add_mono sum_mono)
     qed
     ultimately show ?case
       by simp
@@ -3482,7 +3482,7 @@ proof (subst (1 2) suminf_ereal_eq_SUP)
     using \<open>I \<noteq> {}\<close> nonneg by (auto intro: SUP_upper2)
   show "(SUP n. \<Sum>i<n. SUP n:I. f n i) = (SUP n:I. SUP j. \<Sum>i<j. f n i)"
     apply (subst SUP_commute)
-    apply (subst SUP_ereal_setsum_directed)
+    apply (subst SUP_ereal_sum_directed)
     apply (auto intro!: assms simp: finite_subset)
     done
 qed

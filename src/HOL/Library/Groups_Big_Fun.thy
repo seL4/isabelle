@@ -216,11 +216,11 @@ begin
 
 sublocale Sum_any: comm_monoid_fun plus 0
   defines Sum_any = Sum_any.G
-  rewrites "comm_monoid_set.F plus 0 = setsum"
+  rewrites "comm_monoid_set.F plus 0 = sum"
 proof -
   show "comm_monoid_fun plus 0" ..
   then interpret Sum_any: comm_monoid_fun plus 0 .
-  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by (auto intro: sym)
+  from sum_def show "comm_monoid_set.F plus 0 = sum" by (auto intro: sym)
 qed
 
 end
@@ -240,7 +240,7 @@ proof -
   note assms
   moreover have "{a. g a * r \<noteq> 0} \<subseteq> {a. g a \<noteq> 0}" by auto
   ultimately show ?thesis
-    by (simp add: setsum_distrib_right Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
+    by (simp add: sum_distrib_right Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
 qed  
 
 lemma Sum_any_right_distrib:
@@ -251,7 +251,7 @@ proof -
   note assms
   moreover have "{a. r * g a \<noteq> 0} \<subseteq> {a. g a \<noteq> 0}" by auto
   ultimately show ?thesis
-    by (simp add: setsum_distrib_left Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
+    by (simp add: sum_distrib_left Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
 qed
 
 lemma Sum_any_product:
@@ -266,7 +266,7 @@ proof -
   ultimately show ?thesis using assms
     by (auto simp add: Sum_any.expand_set [of f] Sum_any.expand_set [of g]
       Sum_any.expand_superset [of "{a. f a \<noteq> 0}"] Sum_any.expand_superset [of "{b. g b \<noteq> 0}"]
-      setsum_product)
+      sum_product)
 qed
 
 lemma Sum_any_eq_zero_iff [simp]: 
@@ -325,7 +325,7 @@ proof -
   have "{a. c ^ f a \<noteq> 1} \<subseteq> {a. f a \<noteq> 0}"
     by (auto intro: ccontr)
   with assms show ?thesis
-    by (simp add: Sum_any.expand_set Prod_any.expand_superset power_setsum)
+    by (simp add: Sum_any.expand_set Prod_any.expand_superset power_sum)
 qed
 
 end

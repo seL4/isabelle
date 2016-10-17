@@ -20,31 +20,31 @@ lemma suminf_ennreal_2dimen:
 proof -
   have g_def: "g = (\<lambda>m. (\<Sum>n. f (m,n)))"
     using assms by (simp add: fun_eq_iff)
-  have reindex: "\<And>B. (\<Sum>x\<in>B. f (prod_decode x)) = setsum f (prod_decode ` B)"
-    by (simp add: setsum.reindex[OF inj_prod_decode] comp_def)
+  have reindex: "\<And>B. (\<Sum>x\<in>B. f (prod_decode x)) = sum f (prod_decode ` B)"
+    by (simp add: sum.reindex[OF inj_prod_decode] comp_def)
   have "(SUP n. \<Sum>i<n. f (prod_decode i)) = (SUP p : UNIV \<times> UNIV. \<Sum>i<fst p. \<Sum>n<snd p. f (i, n))"
-  proof (intro SUP_eq; clarsimp simp: setsum.cartesian_product reindex)
+  proof (intro SUP_eq; clarsimp simp: sum.cartesian_product reindex)
     fix n
     let ?M = "\<lambda>f. Suc (Max (f ` prod_decode ` {..<n}))"
     { fix a b x assume "x < n" and [symmetric]: "(a, b) = prod_decode x"
       then have "a < ?M fst" "b < ?M snd"
         by (auto intro!: Max_ge le_imp_less_Suc image_eqI) }
-    then have "setsum f (prod_decode ` {..<n}) \<le> setsum f ({..<?M fst} \<times> {..<?M snd})"
-      by (auto intro!: setsum_mono3)
-    then show "\<exists>a b. setsum f (prod_decode ` {..<n}) \<le> setsum f ({..<a} \<times> {..<b})" by auto
+    then have "sum f (prod_decode ` {..<n}) \<le> sum f ({..<?M fst} \<times> {..<?M snd})"
+      by (auto intro!: sum_mono3)
+    then show "\<exists>a b. sum f (prod_decode ` {..<n}) \<le> sum f ({..<a} \<times> {..<b})" by auto
   next
     fix a b
     let ?M = "prod_decode ` {..<Suc (Max (prod_encode ` ({..<a} \<times> {..<b})))}"
     { fix a' b' assume "a' < a" "b' < b" then have "(a', b') \<in> ?M"
         by (auto intro!: Max_ge le_imp_less_Suc image_eqI[where x="prod_encode (a', b')"]) }
-    then have "setsum f ({..<a} \<times> {..<b}) \<le> setsum f ?M"
-      by (auto intro!: setsum_mono3)
-    then show "\<exists>n. setsum f ({..<a} \<times> {..<b}) \<le> setsum f (prod_decode ` {..<n})"
+    then have "sum f ({..<a} \<times> {..<b}) \<le> sum f ?M"
+      by (auto intro!: sum_mono3)
+    then show "\<exists>n. sum f ({..<a} \<times> {..<b}) \<le> sum f (prod_decode ` {..<n})"
       by auto
   qed
   also have "\<dots> = (SUP p. \<Sum>i<p. \<Sum>n. f (i, n))"
-    unfolding suminf_setsum[OF summableI, symmetric]
-    by (simp add: suminf_eq_SUP SUP_pair setsum.commute[of _ "{..< fst _}"])
+    unfolding suminf_sum[OF summableI, symmetric]
+    by (simp add: suminf_eq_SUP SUP_pair sum.commute[of _ "{..< fst _}"])
   finally show ?thesis unfolding g_def
     by (simp add: suminf_eq_SUP)
 qed
@@ -529,7 +529,7 @@ proof -
   with \<open>volume M f\<close> have "f (\<Union>(A`I)) = (\<Sum>a\<in>A`I. f a)"
     unfolding volume_def by blast
   also have "\<dots> = (\<Sum>i\<in>I. f (A i))"
-  proof (subst setsum.reindex_nontrivial)
+  proof (subst sum.reindex_nontrivial)
     fix i j assume "i \<in> I" "j \<in> I" "i \<noteq> j" "A i = A j"
     with \<open>disjoint_family_on A I\<close> have "A i = {}"
       by (auto simp: disjoint_family_on_def)
@@ -547,7 +547,7 @@ lemma (in ring_of_sets) volume_additiveI:
   shows "volume M \<mu>"
 proof (unfold volume_def, safe)
   fix C assume "finite C" "C \<subseteq> M" "disjoint C"
-  then show "\<mu> (\<Union>C) = setsum \<mu> C"
+  then show "\<mu> (\<Union>C) = sum \<mu> C"
   proof (induct C)
     case (insert c C)
     from insert(1,2,4,5) have "\<mu> (\<Union>insert c C) = \<mu> c + \<mu> (\<Union>C)"
@@ -570,7 +570,7 @@ proof -
     fix D assume D: "D \<subseteq> M" "finite D" "disjoint D"
     assume "\<Union>C = \<Union>D"
     have "(\<Sum>d\<in>D. \<mu> d) = (\<Sum>d\<in>D. \<Sum>c\<in>C. \<mu> (c \<inter> d))"
-    proof (intro setsum.cong refl)
+    proof (intro sum.cong refl)
       fix d assume "d \<in> D"
       have Un_eq_d: "(\<Union>c\<in>C. c \<inter> d) = d"
         using \<open>d \<in> D\<close> \<open>\<Union>C = \<Union>D\<close> by auto
@@ -592,7 +592,7 @@ proof -
     assume "\<Union>C = \<Union>D"
     with split_sum[OF C D] split_sum[OF D C]
     have "(\<Sum>d\<in>D. \<mu> d) = (\<Sum>c\<in>C. \<mu> c)"
-      by (simp, subst setsum.commute, simp add: ac_simps) }
+      by (simp, subst sum.commute, simp add: ac_simps) }
   note sum_eq = this
 
   { fix C assume C: "C \<subseteq> M" "finite C" "disjoint C"
@@ -612,7 +612,7 @@ proof -
     fix a assume "a \<in> ?R" then guess Ca .. note Ca = this
     with \<mu>'[of Ca] \<open>volume M \<mu>\<close>[THEN volume_positive]
     show "0 \<le> \<mu>' a"
-      by (auto intro!: setsum_nonneg)
+      by (auto intro!: sum_nonneg)
   next
     show "\<mu>' {} = 0" using \<mu>'[of "{}"] by auto
   next
@@ -627,7 +627,7 @@ proof -
     also have "\<dots> = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c) + (\<Sum>c\<in>Ca \<inter> Cb. \<mu> c)"
       using C_Int_cases volume_empty[OF \<open>volume M \<mu>\<close>] by (elim disjE) simp_all
     also have "\<dots> = (\<Sum>c\<in>Ca. \<mu> c) + (\<Sum>c\<in>Cb. \<mu> c)"
-      using Ca Cb by (simp add: setsum.union_inter)
+      using Ca Cb by (simp add: sum.union_inter)
     also have "\<dots> = \<mu>' a + \<mu>' b"
       using Ca Cb by (simp add: \<mu>')
     finally show "\<mu>' (a \<union> b) = \<mu>' a + \<mu>' b"
@@ -680,7 +680,7 @@ proof -
         by (simp add: sums_iff)
     qed
     also have "\<dots> = (\<Sum>c\<in>C. \<mu> c)"
-      using F'(2) by (subst (2) F') (simp add: setsum.reindex)
+      using F'(2) by (subst (2) F') (simp add: sum.reindex)
     finally show "\<mu> (\<Union>C) = (\<Sum>c\<in>C. \<mu> c)" .
   next
     show "\<mu> {} = 0"
@@ -798,9 +798,9 @@ proof -
                intro: generated_ringI_Basic)
     also have "\<dots> = (\<Sum>c\<in>C'. \<Sum>n. \<mu>_r (A' n \<inter> c))"
       using C' A'
-      by (intro suminf_setsum G.Int G.finite_Union) (auto intro: generated_ringI_Basic)
+      by (intro suminf_sum G.Int G.finite_Union) (auto intro: generated_ringI_Basic)
     also have "\<dots> = (\<Sum>c\<in>C'. \<mu>_r c)"
-      using eq V C' by (auto intro!: setsum.cong)
+      using eq V C' by (auto intro!: sum.cong)
     also have "\<dots> = \<mu>_r (\<Union>C')"
       using C' Un_A
       by (subst volume_finite_additive[symmetric, OF V(1)])

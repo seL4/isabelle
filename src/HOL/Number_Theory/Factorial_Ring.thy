@@ -1300,7 +1300,7 @@ lemma prime_elem_multiplicity_setprod_distrib:
 proof -
   have "multiplicity p (setprod f A) = (\<Sum>x\<in>#mset_set A. multiplicity p (f x))"
     using assms by (subst setprod_unfold_prod_mset)
-                   (simp_all add: prime_elem_multiplicity_prod_mset_distrib setsum_unfold_sum_mset 
+                   (simp_all add: prime_elem_multiplicity_prod_mset_distrib sum_unfold_sum_mset 
                       multiset.map_comp o_def)
   also from \<open>finite A\<close> have "\<dots> = (\<Sum>x\<in>A. multiplicity p (f x))"
     by (induction A rule: finite_induct) simp_all

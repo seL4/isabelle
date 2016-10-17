@@ -17,7 +17,7 @@ context
 begin
 
 lemma sums_SUP[simp, intro]: "f sums (SUP n. \<Sum>i<n. f i)"
-  unfolding sums_def by (intro LIMSEQ_SUP monoI setsum_mono2 zero_le) auto
+  unfolding sums_def by (intro LIMSEQ_SUP monoI sum_mono2 zero_le) auto
 
 lemma suminf_eq_SUP: "suminf f = (SUP n. \<Sum>i<n. f i)"
   using sums_SUP by (rule sums_unique[symmetric])

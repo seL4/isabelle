@@ -17,13 +17,13 @@ definition interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Righta
 lemma interval_bij_affine:
   "interval_bij (a,b) (u,v) = (\<lambda>x. (\<Sum>i\<in>Basis. ((v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (x\<bullet>i)) *\<^sub>R i) +
     (\<Sum>i\<in>Basis. (u\<bullet>i - (v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (a\<bullet>i)) *\<^sub>R i))"
-  by (auto simp: setsum.distrib[symmetric] scaleR_add_left[symmetric] interval_bij_def fun_eq_iff
-    field_simps inner_simps add_divide_distrib[symmetric] intro!: setsum.cong)
+  by (auto simp: sum.distrib[symmetric] scaleR_add_left[symmetric] interval_bij_def fun_eq_iff
+    field_simps inner_simps add_divide_distrib[symmetric] intro!: sum.cong)
 
 lemma continuous_interval_bij:
   fixes a b :: "'a::euclidean_space"
   shows "continuous (at x) (interval_bij (a, b) (u, v))"
-  by (auto simp add: divide_inverse interval_bij_def intro!: continuous_setsum continuous_intros)
+  by (auto simp add: divide_inverse interval_bij_def intro!: continuous_sum continuous_intros)
 
 lemma continuous_on_interval_bij: "continuous_on s (interval_bij (a, b) (u, v))"
   apply(rule continuous_at_imp_continuous_on)
@@ -35,7 +35,7 @@ lemma in_interval_interval_bij:
   assumes "x \<in> cbox a b"
     and "cbox u v \<noteq> {}"
   shows "interval_bij (a, b) (u, v) x \<in> cbox u v"
-  apply (simp only: interval_bij_def split_conv mem_box inner_setsum_left_Basis cong: ball_cong)
+  apply (simp only: interval_bij_def split_conv mem_box inner_sum_left_Basis cong: ball_cong)
   apply safe
 proof -
   fix i :: 'a

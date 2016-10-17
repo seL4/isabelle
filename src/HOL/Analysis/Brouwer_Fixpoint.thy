@@ -52,13 +52,13 @@ lemmas lessThan_empty_iff = Iio_eq_empty_iff_nat
 lemmas Zero_notin_Suc = zero_notin_Suc_image
 lemmas atMost_Suc_eq_insert_0 = Iic_Suc_eq_insert_0
 
-lemma setsum_union_disjoint':
+lemma sum_union_disjoint':
   assumes "finite A"
     and "finite B"
     and "A \<inter> B = {}"
     and "A \<union> B = C"
-  shows "setsum g C = setsum g A + setsum g B"
-  using setsum.union_disjoint[OF assms(1-3)] and assms(4) by auto
+  shows "sum g C = sum g A + sum g B"
+  using sum.union_disjoint[OF assms(1-3)] and assms(4) by auto
 
 lemma pointwise_minimal_pointwise_maximal:
   fixes s :: "(nat \<Rightarrow> nat) set"
@@ -139,19 +139,19 @@ lemma kuhn_counting_lemma:
   shows "odd (card {s\<in>S. compo s})"
 proof -
   have "(\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) + (\<Sum>s | s \<in> S \<and> compo s. nF s) = (\<Sum>s\<in>S. nF s)"
-    by (subst setsum.union_disjoint[symmetric]) (auto intro!: setsum.cong)
+    by (subst sum.union_disjoint[symmetric]) (auto intro!: sum.cong)
   also have "\<dots> = (\<Sum>s\<in>S. card {f \<in> {f\<in>F. compo' f \<and> bnd f}. face f s}) +
                   (\<Sum>s\<in>S. card {f \<in> {f\<in>F. compo' f \<and> \<not> bnd f}. face f s})"
-    unfolding setsum.distrib[symmetric]
+    unfolding sum.distrib[symmetric]
     by (subst card_Un_disjoint[symmetric])
-       (auto simp: nF_def intro!: setsum.cong arg_cong[where f=card])
+       (auto simp: nF_def intro!: sum.cong arg_cong[where f=card])
   also have "\<dots> = 1 * card {f\<in>F. compo' f \<and> bnd f} + 2 * card {f\<in>F. compo' f \<and> \<not> bnd f}"
-    using assms(4,5) by (fastforce intro!: arg_cong2[where f="op +"] setsum_multicount)
+    using assms(4,5) by (fastforce intro!: arg_cong2[where f="op +"] sum_multicount)
   finally have "odd ((\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) + card {s\<in>S. compo s})"
     using assms(6,8) by simp
   moreover have "(\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) =
     (\<Sum>s | s \<in> S \<and> \<not> compo s \<and> nF s = 0. nF s) + (\<Sum>s | s \<in> S \<and> \<not> compo s \<and> nF s = 2. nF s)"
-    using assms(7) by (subst setsum.union_disjoint[symmetric]) (fastforce intro!: setsum.cong)+
+    using assms(7) by (subst sum.union_disjoint[symmetric]) (fastforce intro!: sum.cong)+
   ultimately show ?thesis
     by auto
 qed
@@ -1417,9 +1417,9 @@ proof (intro exI ballI)
   fix y :: 'a assume y: "y \<in> unit_cube"
   have "dist 0 y = norm y" by (rule dist_0_norm)
   also have "\<dots> = norm (\<Sum>i\<in>Basis. (y \<bullet> i) *\<^sub>R i)" unfolding euclidean_representation ..
-  also have "\<dots> \<le> (\<Sum>i\<in>Basis. norm ((y \<bullet> i) *\<^sub>R i))" by (rule norm_setsum)
+  also have "\<dots> \<le> (\<Sum>i\<in>Basis. norm ((y \<bullet> i) *\<^sub>R i))" by (rule norm_sum)
   also have "\<dots> \<le> (\<Sum>i::'a\<in>Basis. 1)"
-    by (rule setsum_mono, simp add: y [unfolded mem_unit_cube])
+    by (rule sum_mono, simp add: y [unfolded mem_unit_cube])
   finally show "dist 0 y \<le> (\<Sum>i::'a\<in>Basis. 1)" .
 qed
 
@@ -1679,7 +1679,7 @@ proof (rule ccontr)
       unfolding inner_diff_left[symmetric]
       by (rule norm_le_l1)
     also have "\<dots> < (\<Sum>(i::'a) \<in> Basis. d / real n)"
-      apply (rule setsum_strict_mono)
+      apply (rule sum_strict_mono)
       using as
       apply auto
       done
@@ -1731,7 +1731,7 @@ proof (rule ccontr)
     by auto
   {
     have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
-      apply (rule setsum_mono)
+      apply (rule sum_mono)
       using rs(1)[OF b'_im]
       apply (auto simp add:* field_simps simp del: of_nat_Suc)
       done
@@ -1743,7 +1743,7 @@ proof (rule ccontr)
   moreover
   {
     have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
-      apply (rule setsum_mono)
+      apply (rule sum_mono)
       using rs(2)[OF b'_im]
       apply (auto simp add:* field_simps simp del: of_nat_Suc)
       done
@@ -1757,7 +1757,7 @@ proof (rule ccontr)
     unfolding r'_def s'_def z_def
     using \<open>p > 0\<close>
     apply (rule_tac[!] le_less_trans[OF norm_le_l1])
-    apply (auto simp add: field_simps setsum_divide_distrib[symmetric] inner_diff_left)
+    apply (auto simp add: field_simps sum_divide_distrib[symmetric] inner_diff_left)
     done
   then have "\<bar>(f z - z) \<bullet> i\<bar> < d / real n"
     using rs(3) i

@@ -1191,8 +1191,8 @@ lemma image_compose_permutations_right:
 lemma permutes_in_seg: "p permutes {1 ..n} \<Longrightarrow> i \<in> {1..n} \<Longrightarrow> 1 \<le> p i \<and> p i \<le> n"
   by (simp add: permutes_def) metis
 
-lemma setsum_permutations_inverse:
-  "setsum f {p. p permutes S} = setsum (\<lambda>p. f(inv p)) {p. p permutes S}"
+lemma sum_permutations_inverse:
+  "sum f {p. p permutes S} = sum (\<lambda>p. f(inv p)) {p. p permutes S}"
   (is "?lhs = ?rhs")
 proof -
   let ?S = "{p . p permutes S}"
@@ -1209,18 +1209,18 @@ proof -
   qed
   have th1: "inv ` ?S = ?S"
     using image_inverse_permutations by blast
-  have th2: "?rhs = setsum (f \<circ> inv) ?S"
+  have th2: "?rhs = sum (f \<circ> inv) ?S"
     by (simp add: o_def)
-  from setsum.reindex[OF th0, of f] show ?thesis unfolding th1 th2 .
+  from sum.reindex[OF th0, of f] show ?thesis unfolding th1 th2 .
 qed
 
 lemma setum_permutations_compose_left:
   assumes q: "q permutes S"
-  shows "setsum f {p. p permutes S} = setsum (\<lambda>p. f(q \<circ> p)) {p. p permutes S}"
+  shows "sum f {p. p permutes S} = sum (\<lambda>p. f(q \<circ> p)) {p. p permutes S}"
   (is "?lhs = ?rhs")
 proof -
   let ?S = "{p. p permutes S}"
-  have th0: "?rhs = setsum (f \<circ> (op \<circ> q)) ?S"
+  have th0: "?rhs = sum (f \<circ> (op \<circ> q)) ?S"
     by (simp add: o_def)
   have th1: "inj_on (op \<circ> q) ?S"
   proof (auto simp add: inj_on_def)
@@ -1235,16 +1235,16 @@ proof -
   qed
   have th3: "(op \<circ> q) ` ?S = ?S"
     using image_compose_permutations_left[OF q] by auto
-  from setsum.reindex[OF th1, of f] show ?thesis unfolding th0 th1 th3 .
+  from sum.reindex[OF th1, of f] show ?thesis unfolding th0 th1 th3 .
 qed
 
 lemma sum_permutations_compose_right:
   assumes q: "q permutes S"
-  shows "setsum f {p. p permutes S} = setsum (\<lambda>p. f(p \<circ> q)) {p. p permutes S}"
+  shows "sum f {p. p permutes S} = sum (\<lambda>p. f(p \<circ> q)) {p. p permutes S}"
   (is "?lhs = ?rhs")
 proof -
   let ?S = "{p. p permutes S}"
-  have th0: "?rhs = setsum (f \<circ> (\<lambda>p. p \<circ> q)) ?S"
+  have th0: "?rhs = sum (f \<circ> (\<lambda>p. p \<circ> q)) ?S"
     by (simp add: o_def)
   have th1: "inj_on (\<lambda>p. p \<circ> q) ?S"
   proof (auto simp add: inj_on_def)
@@ -1259,18 +1259,18 @@ proof -
   qed
   have th3: "(\<lambda>p. p \<circ> q) ` ?S = ?S"
     using image_compose_permutations_right[OF q] by auto
-  from setsum.reindex[OF th1, of f]
+  from sum.reindex[OF th1, of f]
   show ?thesis unfolding th0 th1 th3 .
 qed
 
 
 subsection \<open>Sum over a set of permutations (could generalize to iteration)\<close>
 
-lemma setsum_over_permutations_insert:
+lemma sum_over_permutations_insert:
   assumes fS: "finite S"
     and aS: "a \<notin> S"
-  shows "setsum f {p. p permutes (insert a S)} =
-    setsum (\<lambda>b. setsum (\<lambda>q. f (Fun.swap a b id \<circ> q)) {p. p permutes S}) (insert a S)"
+  shows "sum f {p. p permutes (insert a S)} =
+    sum (\<lambda>b. sum (\<lambda>q. f (Fun.swap a b id \<circ> q)) {p. p permutes S}) (insert a S)"
 proof -
   have th0: "\<And>f a b. (\<lambda>(b,p). f (Fun.swap a b id \<circ> p)) = f \<circ> (\<lambda>(b,p). Fun.swap a b id \<circ> p)"
     by (simp add: fun_eq_iff)
@@ -1280,10 +1280,10 @@ proof -
     by blast
   show ?thesis
     unfolding permutes_insert
-    unfolding setsum.cartesian_product
+    unfolding sum.cartesian_product
     unfolding th1[symmetric]
     unfolding th0
-  proof (rule setsum.reindex)
+  proof (rule sum.reindex)
     let ?f = "(\<lambda>(b, y). Fun.swap a b id \<circ> y)"
     let ?P = "{p. p permutes S}"
     {

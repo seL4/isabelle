@@ -269,7 +269,7 @@ lemma real_series:
   fixes l::complex
   shows "f sums l \<Longrightarrow> (\<And>n. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
 unfolding sums_def
-by (metis real_lim_sequentially setsum_in_Reals)
+by (metis real_lim_sequentially sum_in_Reals)
 
 lemma Lim_null_comparison_Re:
   assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g \<longlongrightarrow> 0) F" shows "(f \<longlongrightarrow> 0) F"
@@ -335,7 +335,7 @@ lemma field_differentiable_add_const [simp,derivative_intros]:
      "op + c field_differentiable F"
   by (simp add: field_differentiable_add)
 
-lemma field_differentiable_setsum [derivative_intros]:
+lemma field_differentiable_sum [derivative_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) field_differentiable F) \<Longrightarrow> (\<lambda>z. \<Sum>i\<in>I. f i z) field_differentiable F"
   by (induct I rule: infinite_finite_induct)
      (auto intro: field_differentiable_add field_differentiable_const)
@@ -502,9 +502,9 @@ lemma holomorphic_on_power [holomorphic_intros]:
   "f holomorphic_on s \<Longrightarrow> (\<lambda>z. (f z)^n) holomorphic_on s"
   unfolding holomorphic_on_def by (metis field_differentiable_power)
 
-lemma holomorphic_on_setsum [holomorphic_intros]:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis field_differentiable_setsum)
+lemma holomorphic_on_sum [holomorphic_intros]:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis field_differentiable_sum)
 
 lemma DERIV_deriv_iff_field_differentiable:
   "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
@@ -788,8 +788,8 @@ lemma analytic_on_power:
   "f analytic_on s \<Longrightarrow> (\<lambda>z. (f z) ^ n) analytic_on s"
 by (induct n) (auto simp: analytic_on_const analytic_on_mult)
 
-lemma analytic_on_setsum:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) analytic_on s"
+lemma analytic_on_sum:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) analytic_on s"
   by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_const analytic_on_add)
 
 lemma deriv_left_inverse:
@@ -951,7 +951,7 @@ proof -
       then have "cmod h * cmod ((\<Sum>i<n. f' i y) - g' y) \<le> cmod h * e"
         by (auto simp: antisym_conv2 mult_le_cancel_left norm_triangle_ineq2)
       then show "cmod ((\<Sum>i<n. h * f' i y) - g' y * h) \<le> e * cmod h"
-        by (simp add: norm_mult [symmetric] field_simps setsum_distrib_left)
+        by (simp add: norm_mult [symmetric] field_simps sum_distrib_left)
     qed
   } note ** = this
   show ?thesis
@@ -1064,9 +1064,9 @@ lemma has_complex_derivative_inverse_strong_x:
 
 subsection \<open>Taylor on Complex Numbers\<close>
 
-lemma setsum_Suc_reindex:
+lemma sum_Suc_reindex:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
-    shows  "setsum f {0..n} = f 0 - f (Suc n) + setsum (\<lambda>i. f (Suc i)) {0..n}"
+    shows  "sum f {0..n} = f 0 - f (Suc n) + sum (\<lambda>i. f (Suc i)) {0..n}"
 by (induct n) auto
 
 lemma complex_taylor:
@@ -1146,7 +1146,7 @@ proof -
   have "(\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)) = (\<Sum>i\<le>n. (f i z / (fact i)) * 0 ^ i)"
     by simp
   also have "\<dots> = f 0 z / (fact 0)"
-    by (subst setsum_zero_power) simp
+    by (subst sum_zero_power) simp
   finally have "cmod (f 0 z - (\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)))
                 \<le> cmod ((\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)) -
                         (\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)))"
@@ -1203,7 +1203,7 @@ proof -
              (\<Sum>i = 0..n.
                  (f (Suc (Suc i)) u * ((z-u) ^ Suc i) - of_nat (Suc i) * (f (Suc i) u * (z-u) ^ i)) /
                  (fact (Suc i)))"
-       by (subst setsum_Suc_reindex) simp
+       by (subst sum_Suc_reindex) simp
     also have "... = f (Suc 0) u -
              (f (Suc (Suc n)) u * ((z-u) ^ Suc n) - (of_nat (Suc n)) * (z-u) ^ n * f (Suc n) u) /
              (fact (Suc n)) +
@@ -1215,7 +1215,7 @@ proof -
              (f (Suc (Suc n)) u * (z-u) ^ Suc n - of_nat (Suc n) * (z-u) ^ n * f (Suc n) u) /
              (fact (Suc n)) +
              f (Suc (Suc n)) u * (z-u) ^ Suc n / (fact (Suc n)) - f (Suc 0) u"
-      by (subst setsum_Suc_diff) auto
+      by (subst sum_Suc_diff) auto
     also have "... = f (Suc n) u * (z-u) ^ n / (fact n)"
       by (simp only: algebra_simps diff_divide_distrib fact_cancel)
     finally have "(\<Sum>i = 0..n. (f (Suc i) u * (z - u) ^ i

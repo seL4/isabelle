@@ -96,7 +96,7 @@ lemma (in real_distribution) char_measurable [measurable]: "char M \<in> borel_m
 subsection \<open>Independence\<close>
 
 (* the automation can probably be improved *)
-lemma (in prob_space) char_distr_sum:
+lemma (in prob_space) char_distr_add:
   fixes X1 X2 :: "'a \<Rightarrow> real" and t :: real
   assumes "indep_var borel X1 borel X2"
   shows "char (distr M borel (\<lambda>\<omega>. X1 \<omega> + X2 \<omega>)) t =
@@ -117,12 +117,12 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in prob_space) char_distr_setsum:
+lemma (in prob_space) char_distr_sum:
   "indep_vars (\<lambda>i. borel) X A \<Longrightarrow>
     char (distr M borel (\<lambda>\<omega>. \<Sum>i\<in>A. X i \<omega>)) t = (\<Prod>i\<in>A. char (distr M borel (X i)) t)"
 proof (induct A rule: infinite_finite_induct)
   case (insert x F) with indep_vars_subset[of "\<lambda>_. borel" X "insert x F" F] show ?case
-    by (auto simp add: char_distr_sum indep_vars_setsum)
+    by (auto simp add: char_distr_add indep_vars_sum)
 qed (simp_all add: char_def integral_distr prob_space del: distr_const)
 
 subsection \<open>Approximations to $e^{ix}$\<close>
@@ -177,7 +177,7 @@ next
     unfolding of_nat_mult[symmetric]
     by (simp add: complex_eq_iff ** of_nat_add[symmetric] del: of_nat_mult of_nat_fact of_nat_add)
   show "?P (Suc n)"
-    unfolding setsum_atMost_Suc ih f_def CLBINT_I0c_power_mirror_iexp[of _ n]
+    unfolding sum_atMost_Suc ih f_def CLBINT_I0c_power_mirror_iexp[of _ n]
     by (simp add: divide_simps add_eq_0_iff *) (simp add: field_simps)
 qed
 
@@ -318,11 +318,11 @@ proof -
   also have "\<dots> = norm ((CLINT x | M. iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
     unfolding char_def by (subst Bochner_Integration.integral_diff[OF integ_iexp]) (auto intro!: integ_c)
   also have "\<dots> \<le> expectation (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
+    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_sum integ_c) simp
   also have "\<dots> \<le> expectation (\<lambda>x. 2 * \<bar>t\<bar> ^ n / fact n * \<bar>x\<bar> ^ n)"
   proof (rule integral_mono)
     show "integrable M (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k\<le>n. c k x)))"
-      by (intro integrable_norm Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
+      by (intro integrable_norm Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_sum integ_c) simp
     show "integrable M (\<lambda>x. 2 * \<bar>t\<bar> ^ n / fact n * \<bar>x\<bar> ^ n)"
       unfolding power_abs[symmetric]
       by (intro integrable_mult_right integrable_abs integrable_moments) simp
@@ -362,12 +362,12 @@ proof -
   also have "\<dots> = norm ((CLINT x | M. iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
     unfolding char_def by (subst Bochner_Integration.integral_diff[OF integ_iexp]) (auto intro!: integ_c)
   also have "\<dots> \<le> expectation (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k \<le> n. c k x)))"
-    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
+    by (intro integral_norm_bound Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_sum integ_c) simp
   also have "\<dots> \<le> expectation (\<lambda>x. min (2 * \<bar>t * x\<bar>^n / fact n) (\<bar>t * x\<bar>^(Suc n) / fact (Suc n)))"
     (is "_ \<le> expectation ?f")
   proof (rule integral_mono)
     show "integrable M (\<lambda>x. cmod (iexp (t * x) - (\<Sum>k\<le>n. c k x)))"
-      by (intro integrable_norm Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_setsum integ_c) simp
+      by (intro integrable_norm Bochner_Integration.integrable_diff integ_iexp Bochner_Integration.integrable_sum integ_c) simp
     show "integrable M ?f"
       by (rule Bochner_Integration.integrable_bound[where f="\<lambda>x. 2 * \<bar>t * x\<bar> ^ n / fact n"])
          (auto simp: integrable_moments power_abs[symmetric] power_mult_distrib)
@@ -502,8 +502,8 @@ proof (intro ext LIMSEQ_unique)
     have "(\<i> * complex_of_real t) ^ (2 * a) / (2 ^ a * fact a) = (- ((complex_of_real t)\<^sup>2 / 2)) ^ a / fact a" for a
       by (subst power_mult) (simp add: field_simps uminus_power_if power_mult)
     then have *: "?f (2 * n) = complex_of_real (\<Sum>k < Suc n. (1 / fact k) * (- (t^2) / 2)^k)" for n :: nat
-      unfolding of_real_setsum
-      by (intro setsum.reindex_bij_witness_not_neutral[symmetric, where
+      unfolding of_real_sum
+      by (intro sum.reindex_bij_witness_not_neutral[symmetric, where
            i="\<lambda>n. n div 2" and j="\<lambda>n. 2 * n" and T'="{i. i \<le> 2 * n \<and> odd i}" and S'="{}"])
          (auto simp: integral_std_normal_distribution_moment_odd std_normal_distribution_even_moments)
     show "(\<lambda>n. ?f (2 * n)) \<longlonglongrightarrow> exp (-(t^2) / 2)"

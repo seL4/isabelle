@@ -999,22 +999,22 @@ proof -
   proof
     show "linear f"
       unfolding f_def
-      by (intro linear_compose_setsum linearI ballI) (auto simp: algebra_simps)
+      by (intro linear_compose_sum linearI ballI) (auto simp: algebra_simps)
     show "linear g"
       unfolding g_def
-      by (intro linear_compose_setsum linearI ballI) (auto simp: algebra_simps)
+      by (intro linear_compose_sum linearI ballI) (auto simp: algebra_simps)
     have *: "(\<Sum>a \<in> Basis. a \<bullet> basf b * (x \<bullet> basg a)) = x \<bullet> b" if "b \<in> Basis" for x b
       using sbf that by auto
     show gf: "g (f x) = x" for x
       apply (rule euclidean_eqI)
-      apply (simp add: f_def g_def inner_setsum_left scaleR_setsum_left algebra_simps)
-      apply (simp add: Groups_Big.setsum_distrib_left [symmetric] *)
+      apply (simp add: f_def g_def inner_sum_left scaleR_sum_left algebra_simps)
+      apply (simp add: Groups_Big.sum_distrib_left [symmetric] *)
       done
     show "basf(0,1) \<in> Basis"
       using b01 sbf by auto
     then show "f(x,0) \<bullet> basf(0,1) = 0" for x
-      apply (simp add: f_def inner_setsum_left)
-      apply (rule comm_monoid_add_class.setsum.neutral)
+      apply (simp add: f_def inner_sum_left)
+      apply (rule comm_monoid_add_class.sum.neutral)
       using b01 inner_not_same_Basis by fastforce
   qed
 qed

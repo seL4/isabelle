@@ -192,9 +192,9 @@ proof (induction A rule: multiset_remove_induct)
   also have "\<dots> * (\<Prod>x\<in>set_mset A. fact (count A x)) = 
                (\<Sum>x\<in>set_mset A. card (permutations_of_multiset (A - {#x#})) * 
                  (\<Prod>y\<in>set_mset A. fact (count A y)))"
-    by (subst setsum_distrib_right) simp_all
+    by (subst sum_distrib_right) simp_all
   also have "\<dots> = (\<Sum>x\<in>set_mset A. count A x * fact (size A - 1))"
-  proof (intro setsum.cong refl)
+  proof (intro sum.cong refl)
     fix x assume x: "x \<in># A"
     have "card (permutations_of_multiset (A - {#x#})) * (\<Prod>y\<in>set_mset A. fact (count A y)) = 
             count A x * (card (permutations_of_multiset (A - {#x#})) * 
@@ -206,7 +206,7 @@ proof (induction A rule: multiset_remove_induct)
   qed
   also have "(\<Sum>x\<in>set_mset A. count A x * fact (size A - 1)) =
                 size A * fact (size A - 1)"
-    by (simp add: setsum_distrib_right size_multiset_overloaded_eq)
+    by (simp add: sum_distrib_right size_multiset_overloaded_eq)
   also from remove.hyps have "\<dots> = fact (size A)"
     by (cases "size A") auto
   finally show ?case .

@@ -1330,7 +1330,7 @@ lemma wcount_add_mset:
   unfolding add_mset_add_single[of _ M] wcount_union by (auto simp: wcount_def)
 
 definition size_multiset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a multiset \<Rightarrow> nat" where
-  "size_multiset f M = setsum (wcount f M) (set_mset M)"
+  "size_multiset f M = sum (wcount f M) (set_mset M)"
 
 lemmas size_multiset_eq = size_multiset_def[unfolded wcount_def]
 
@@ -1358,16 +1358,16 @@ by (simp add: size_multiset_eq)
 lemma size_single: "size {#b#} = 1"
 by (simp add: size_multiset_overloaded_def size_multiset_single)
 
-lemma setsum_wcount_Int:
-  "finite A \<Longrightarrow> setsum (wcount f N) (A \<inter> set_mset N) = setsum (wcount f N) A"
+lemma sum_wcount_Int:
+  "finite A \<Longrightarrow> sum (wcount f N) (A \<inter> set_mset N) = sum (wcount f N) A"
   by (induct rule: finite_induct)
     (simp_all add: Int_insert_left wcount_def count_eq_zero_iff)
 
 lemma size_multiset_union [simp]:
   "size_multiset f (M + N::'a multiset) = size_multiset f M + size_multiset f N"
-apply (simp add: size_multiset_def setsum_Un_nat setsum.distrib setsum_wcount_Int wcount_union)
+apply (simp add: size_multiset_def sum_Un_nat sum.distrib sum_wcount_Int wcount_union)
 apply (subst Int_commute)
-apply (simp add: setsum_wcount_Int)
+apply (simp add: sum_wcount_Int)
 done
 
 lemma size_multiset_add_mset [simp]:
@@ -1392,7 +1392,7 @@ by (metis gr0I gr_implies_not0 size_empty size_eq_0_iff_empty)
 
 lemma size_eq_Suc_imp_elem: "size M = Suc n \<Longrightarrow> \<exists>a. a \<in># M"
 apply (unfold size_multiset_overloaded_eq)
-apply (drule setsum_SucD)
+apply (drule sum_SucD)
 apply auto
 done
 
@@ -1663,7 +1663,7 @@ next
   moreover have *: "(if x = y then Suc n else n) = n + (if x = y then 1 else 0)" for n y
     by simp
   ultimately show ?case
-    by (auto simp: setsum.distrib setsum.delta' intro!: setsum.mono_neutral_left)
+    by (auto simp: sum.distrib sum.delta' intro!: sum.mono_neutral_left)
 qed
 
 lemma image_mset_subseteq_mono: "A \<subseteq># B \<Longrightarrow> image_mset f A \<subseteq># image_mset f B"
@@ -2154,8 +2154,8 @@ lemma (in semiring_1) sum_mset_replicate_mset [simp]:
   "sum_mset (replicate_mset n a) = of_nat n * a"
   by (induct n) (simp_all add: algebra_simps)
 
-lemma setsum_unfold_sum_mset:
-  "setsum f A = sum_mset (image_mset f (mset_set A))"
+lemma sum_unfold_sum_mset:
+  "sum f A = sum_mset (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
 lemma sum_mset_delta: "sum_mset (image_mset (\<lambda>x. if x = y then c else 0) A) = c * count A y"
@@ -2186,12 +2186,12 @@ proof (induct M)
 next
   case (add x M) then show ?case
     by (cases "x \<in> set_mset M")
-      (simp_all add: size_multiset_overloaded_eq not_in_iff setsum.If_cases Diff_eq[symmetric]
-        setsum.remove)
+      (simp_all add: size_multiset_overloaded_eq not_in_iff sum.If_cases Diff_eq[symmetric]
+        sum.remove)
 qed
 
 lemma size_mset_set [simp]: "size (mset_set A) = card A"
-by (simp only: size_eq_sum_mset card_eq_setsum setsum_unfold_sum_mset)
+by (simp only: size_eq_sum_mset card_eq_sum sum_unfold_sum_mset)
 
 syntax (ASCII)
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
@@ -2235,13 +2235,13 @@ lemma set_mset_Union_mset[simp]: "set_mset (\<Union># MM) = (\<Union>M \<in> set
 lemma in_Union_mset_iff[iff]: "x \<in># \<Union># MM \<longleftrightarrow> (\<exists>M. M \<in># MM \<and> x \<in># M)"
   by (induct MM) auto
 
-lemma count_setsum:
-  "count (setsum f A) x = setsum (\<lambda>a. count (f a) x) A"
+lemma count_sum:
+  "count (sum f A) x = sum (\<lambda>a. count (f a) x) A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma setsum_eq_empty_iff:
+lemma sum_eq_empty_iff:
   assumes "finite A"
-  shows "setsum f A = {#} \<longleftrightarrow> (\<forall>a\<in>A. f a = {#})"
+  shows "sum f A = {#} \<longleftrightarrow> (\<forall>a\<in>A. f a = {#})"
   using assms by induct simp_all
 
 lemma Union_mset_empty_conv[simp]: "\<Union># M = {#} \<longleftrightarrow> (\<forall>i\<in>#M. i = {#})"

@@ -19,9 +19,9 @@ where
 abbreviation (input)
   "bag_of \<equiv> mset"
 
-lemma setsum_fun_mono:
+lemma sum_fun_mono:
   fixes f :: "nat \<Rightarrow> nat"
-  shows "(\<And>i. i < n \<Longrightarrow> f i \<le> g i) \<Longrightarrow> setsum f {..<n} \<le> setsum g {..<n}"
+  shows "(\<And>i. i < n \<Longrightarrow> f i \<le> g i) \<Longrightarrow> sum f {..<n} \<le> sum g {..<n}"
   by (induct n) (auto simp add: lessThan_Suc add_le_mono)
 
 lemma tokens_mono_prefix: "xs \<le> ys \<Longrightarrow> tokens xs \<le> tokens ys"
@@ -44,14 +44,14 @@ apply (erule order_trans)
 apply simp
 done
 
-(** setsum **)
+(** sum **)
 
-declare setsum.cong [cong]
+declare sum.cong [cong]
 
 lemma bag_of_sublist_lemma:
      "(\<Sum>i\<in> A Int lessThan k. {#if i<k then f i else g i#}) =  
       (\<Sum>i\<in> A Int lessThan k. {#f i#})"
-by (rule setsum.cong, auto)
+by (rule sum.cong, auto)
 
 lemma bag_of_sublist:
      "bag_of (sublist l A) =  
@@ -67,7 +67,7 @@ lemma bag_of_sublist_Un_Int:
       bag_of (sublist l A) + bag_of (sublist l B)"
 apply (subgoal_tac "A Int B Int {..<length l} =
                     (A Int {..<length l}) Int (B Int {..<length l}) ")
-apply (simp add: bag_of_sublist Int_Un_distrib2 setsum.union_inter, blast)
+apply (simp add: bag_of_sublist Int_Un_distrib2 sum.union_inter, blast)
 done
 
 lemma bag_of_sublist_Un_disjoint:
@@ -82,7 +82,7 @@ lemma bag_of_sublist_UN_disjoint [rule_format]:
           (\<Sum>i\<in>I. bag_of (sublist l (A i)))"
 apply (auto simp add: bag_of_sublist)
 unfolding UN_simps [symmetric]
-apply (subst setsum.UNION_disjoint)
+apply (subst sum.UNION_disjoint)
 apply auto
 done
 

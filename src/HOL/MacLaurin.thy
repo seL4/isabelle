@@ -48,7 +48,7 @@ proof (rule allI impI)+
     unfolding atLeast0LessThan[symmetric] by auto
   have "(\<Sum>x<n - m. real x * t ^ (x - Suc 0) * diff (m + x) 0 / fact x) =
       (\<Sum>x<n - Suc m. real (Suc x) * t ^ x * diff (Suc m + x) 0 / fact (Suc x))"
-    unfolding intvl by (subst setsum.insert) (auto simp add: setsum.reindex)
+    unfolding intvl by (subst sum.insert) (auto simp add: sum.reindex)
   moreover
   have fact_neq_0: "\<And>x. (fact x) + real x * (fact x) \<noteq> 0"
     by (metis add_pos_pos fact_gt_zero less_add_same_cancel1 less_add_same_cancel2
@@ -69,7 +69,7 @@ lemma Maclaurin:
     and diff_Suc: "\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
   shows
     "\<exists>t::real. 0 < t \<and> t < h \<and>
-      f h = setsum (\<lambda>m. (diff m 0 / fact m) * h ^ m) {..<n} + (diff n t / fact n) * h ^ n"
+      f h = sum (\<lambda>m. (diff m 0 / fact m) * h ^ m) {..<n} + (diff n t / fact n) * h ^ n"
 proof -
   from n obtain m where m: "n = Suc m"
     by (cases n) (simp add: n)
@@ -79,19 +79,19 @@ proof -
     using Maclaurin_lemma [OF h] ..
 
   define g where [abs_def]: "g t =
-    f t - (setsum (\<lambda>m. (diff m 0 / fact m) * t^m) {..<n} + B * (t^n / fact n))" for t
+    f t - (sum (\<lambda>m. (diff m 0 / fact m) * t^m) {..<n} + B * (t^n / fact n))" for t
   have g2: "g 0 = 0" "g h = 0"
-    by (simp_all add: m f_h g_def lessThan_Suc_eq_insert_0 image_iff diff_0 setsum.reindex)
+    by (simp_all add: m f_h g_def lessThan_Suc_eq_insert_0 image_iff diff_0 sum.reindex)
 
   define difg where [abs_def]: "difg m t =
-    diff m t - (setsum (\<lambda>p. (diff (m + p) 0 / fact p) * (t ^ p)) {..<n-m} +
+    diff m t - (sum (\<lambda>p. (diff (m + p) 0 / fact p) * (t ^ p)) {..<n-m} +
       B * ((t ^ (n - m)) / fact (n - m)))" for m t
   have difg_0: "difg 0 = g"
     by (simp add: difg_def g_def diff_0)
   have difg_Suc: "\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> h \<longrightarrow> DERIV (difg m) t :> difg (Suc m) t"
     using diff_Suc m unfolding difg_def [abs_def] by (rule Maclaurin_lemma2)
   have difg_eq_0: "\<forall>m<n. difg m 0 = 0"
-    by (auto simp: difg_def m Suc_diff_le lessThan_Suc_eq_insert_0 image_iff setsum.reindex)
+    by (auto simp: difg_def m Suc_diff_le lessThan_Suc_eq_insert_0 image_iff sum.reindex)
   have isCont_difg: "\<And>m x. m < n \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> h \<Longrightarrow> isCont (difg m) x"
     by (rule DERIV_isCont [OF difg_Suc [rule_format]]) simp
   have differentiable_difg: "\<And>m x. m < n \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> h \<Longrightarrow> difg m differentiable (at x)"
@@ -198,7 +198,7 @@ proof -
     by (auto simp: power_mult_distrib[symmetric])
   moreover
     have "(\<Sum>m<n. (- 1) ^ m * diff m 0 * (- h) ^ m / fact m) = (\<Sum>m<n. diff m 0 * h ^ m / fact m)"
-    by (auto intro: setsum.cong simp add: power_mult_distrib[symmetric])
+    by (auto intro: sum.cong simp add: power_mult_distrib[symmetric])
   ultimately have "h < - t \<and> - t < 0 \<and>
     f h = (\<Sum>m<n. diff m 0 / (fact m) * h ^ m) + diff n (- t) / (fact n) * h ^ n"
     by auto
@@ -394,7 +394,7 @@ lemma Maclaurin_sin_expansion2:
       apply simp
      apply (simp add: sin_expansion_lemma del: of_nat_Suc)
      apply (force intro!: derivative_eq_intros)
-    apply (subst (asm) setsum.neutral; auto)
+    apply (subst (asm) sum.neutral; auto)
    apply (rule ccontr)
    apply simp
    apply (drule_tac x = x in spec)
@@ -402,7 +402,7 @@ lemma Maclaurin_sin_expansion2:
   apply (erule ssubst)
   apply (rule_tac x = t in exI)
   apply simp
-  apply (rule setsum.cong[OF refl])
+  apply (rule sum.cong[OF refl])
   apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
   done
 
@@ -423,7 +423,7 @@ lemma Maclaurin_sin_expansion3:
   apply (erule ssubst)
   apply (rule_tac x = t in exI)
   apply simp
-  apply (rule setsum.cong[OF refl])
+  apply (rule sum.cong[OF refl])
   apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
   done
 
@@ -440,7 +440,7 @@ lemma Maclaurin_sin_expansion4:
   apply (erule ssubst)
   apply (rule_tac x = t in exI)
   apply simp
-  apply (rule setsum.cong[OF refl])
+  apply (rule sum.cong[OF refl])
   apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
   done
 
@@ -463,7 +463,7 @@ lemma Maclaurin_cos_expansion:
      apply (simp add: cos_expansion_lemma del: of_nat_Suc)
     apply (cases n)
      apply simp
-    apply (simp del: setsum_lessThan_Suc)
+    apply (simp del: sum_lessThan_Suc)
    apply (rule ccontr)
    apply simp
    apply (drule_tac x = x in spec)
@@ -471,7 +471,7 @@ lemma Maclaurin_cos_expansion:
   apply (erule ssubst)
   apply (rule_tac x = t in exI)
   apply simp
-  apply (rule setsum.cong[OF refl])
+  apply (rule sum.cong[OF refl])
   apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
   done
 
@@ -487,7 +487,7 @@ lemma Maclaurin_cos_expansion2:
   apply (erule ssubst)
   apply (rule_tac x = t in exI)
   apply simp
-  apply (rule setsum.cong[OF refl])
+  apply (rule sum.cong[OF refl])
   apply (auto simp: cos_coeff_def cos_zero_iff elim: evenE)
   done
 
@@ -503,7 +503,7 @@ lemma Maclaurin_minus_cos_expansion:
   apply (erule ssubst)
   apply (rule_tac x = t in exI)
   apply simp
-  apply (rule setsum.cong[OF refl])
+  apply (rule sum.cong[OF refl])
   apply (auto simp: cos_coeff_def cos_zero_iff elim: evenE)
   done
 
@@ -548,7 +548,7 @@ proof -
     unfolding sin_coeff_def
     apply (subst t2)
     apply (rule sin_bound_lemma)
-     apply (rule setsum.cong[OF refl])
+     apply (rule sum.cong[OF refl])
      apply (subst diff_m_0, simp)
     using est
     apply (auto intro: mult_right_mono [where b=1, simplified] mult_right_mono

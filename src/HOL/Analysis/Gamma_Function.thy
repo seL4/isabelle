@@ -407,7 +407,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
     moreover have "N \<ge> 2" "N \<ge> M" unfolding N_def by simp_all
     moreover have "(\<Sum>k=m..n. 1/(of_nat k)\<^sup>2) < e'" if "m \<ge> N" for m n
       using M[OF order.trans[OF \<open>N \<ge> M\<close> that]] unfolding real_norm_def
-      by (subst (asm) abs_of_nonneg) (auto intro: setsum_nonneg simp: divide_simps)
+      by (subst (asm) abs_of_nonneg) (auto intro: sum_nonneg simp: divide_simps)
     moreover note calculation
   } note N = this
 
@@ -432,25 +432,25 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
       by (simp add: ln_Gamma_series_def algebra_simps)
     also have "(\<Sum>k=1..n. Ln (t / of_nat k + 1)) - (\<Sum>k=1..m. Ln (t / of_nat k + 1)) =
                  (\<Sum>k\<in>{1..n}-{1..m}. Ln (t / of_nat k + 1))" using mn
-      by (simp add: setsum_diff)
+      by (simp add: sum_diff)
     also from mn have "{1..n}-{1..m} = {Suc m..n}" by fastforce
     also have "-(t * Ln (of_nat n)) - (-(t * Ln (of_nat m))) =
                    (\<Sum>k = Suc m..n. t * Ln (of_nat (k - 1)) - t * Ln (of_nat k))" using mn
-      by (subst setsum_telescope'' [symmetric]) simp_all
+      by (subst sum_telescope'' [symmetric]) simp_all
     also have "... = (\<Sum>k = Suc m..n. t * Ln (of_nat (k - 1) / of_nat k))" using mn N
-      by (intro setsum_cong_Suc)
+      by (intro sum_cong_Suc)
          (simp_all del: of_nat_Suc add: field_simps Ln_of_nat Ln_of_nat_over_of_nat)
     also have "of_nat (k - 1) / of_nat k = 1 - 1 / (of_nat k :: complex)" if "k \<in> {Suc m..n}" for k
       using that of_nat_eq_0_iff[of "Suc i" for i] by (cases k) (simp_all add: divide_simps)
     hence "(\<Sum>k = Suc m..n. t * Ln (of_nat (k - 1) / of_nat k)) =
              (\<Sum>k = Suc m..n. t * Ln (1 - 1 / of_nat k))" using mn N
-      by (intro setsum.cong) simp_all
-    also note setsum.distrib [symmetric]
+      by (intro sum.cong) simp_all
+    also note sum.distrib [symmetric]
     also have "norm (\<Sum>k=Suc m..n. t * Ln (1 - 1/of_nat k) + Ln (t/of_nat k + 1)) \<le>
       (\<Sum>k=Suc m..n. 2 * (norm t + (norm t)\<^sup>2) / (real_of_nat k)\<^sup>2)" using t_nz N(2) mn norm_t
-      by (intro order.trans[OF norm_setsum setsum_mono[OF ln_Gamma_series_complex_converges_aux]]) simp_all
+      by (intro order.trans[OF norm_sum sum_mono[OF ln_Gamma_series_complex_converges_aux]]) simp_all
     also have "... \<le> 2 * (norm t + norm t^2) * (\<Sum>k=Suc m..n. 1 / (of_nat k)\<^sup>2)"
-      by (simp add: setsum_distrib_left)
+      by (simp add: sum_distrib_left)
     also have "... < 2 * (norm t + norm t^2) * e'" using mn z t_nz
       by (intro mult_strict_left_mono N mult_pos_pos add_pos_pos) simp_all
     also from e''_pos have "... = e * ((cmod t + (cmod t)\<^sup>2) / e'')"
@@ -508,7 +508,7 @@ proof -
   from assms have "z \<noteq> 0" by (intro notI) auto
   with assms have "exp (ln_Gamma_series z n) =
           (of_nat n) powr z / (z * (\<Prod>k=1..n. exp (Ln (z / of_nat k + 1))))"
-    unfolding ln_Gamma_series_def powr_def by (simp add: exp_diff exp_setsum)
+    unfolding ln_Gamma_series_def powr_def by (simp add: exp_diff exp_sum)
   also from assms have "(\<Prod>k=1..n. exp (Ln (z / of_nat k + 1))) = (\<Prod>k=1..n. z / of_nat k + 1)"
     by (intro setprod.cong[OF refl], subst exp_Ln) (auto simp: field_simps plus_of_nat_eq_0_imp)
   also have "... = (\<Prod>k=1..n. z + k) / fact n"
@@ -540,12 +540,12 @@ proof (rule Lim_transform)
   proof eventually_elim
     fix n :: nat assume n: "n > 0"
     have "(\<Sum>k<n. ?f k) = (\<Sum>k=1..n. z / of_nat k - ln (1 + z / of_nat k))"
-      by (subst atLeast0LessThan [symmetric], subst setsum_shift_bounds_Suc_ivl [symmetric],
+      by (subst atLeast0LessThan [symmetric], subst sum_shift_bounds_Suc_ivl [symmetric],
           subst atLeastLessThanSuc_atLeastAtMost) simp_all
     also have "\<dots> = z * of_real (harm n) - (\<Sum>k=1..n. ln (1 + z / of_nat k))"
-      by (simp add: harm_def setsum_subtractf setsum_distrib_left divide_inverse)
+      by (simp add: harm_def sum_subtractf sum_distrib_left divide_inverse)
     also from n have "\<dots> - ?g n = 0"
-      by (simp add: ln_Gamma_series_def setsum_subtractf algebra_simps Ln_of_nat)
+      by (simp add: ln_Gamma_series_def sum_subtractf algebra_simps Ln_of_nat)
     finally show "(\<Sum>k<n. ?f k) - ?g n = 0" .
   qed
   show "(\<lambda>n. (\<Sum>k<n. ?f k) - ?g n) \<longlonglongrightarrow> 0" by (subst tendsto_cong[OF A]) simp_all
@@ -654,13 +654,13 @@ proof -
     fix m :: nat
     have "{..<m+k} = {..<k} \<union> {k..<m+k}" by auto
     also have "(\<Sum>n\<in>\<dots>. f n) = (\<Sum>n<k. f n) + (\<Sum>n=k..<m+k. f n)"
-      by (rule setsum.union_disjoint) auto
+      by (rule sum.union_disjoint) auto
     also have "(\<Sum>n=k..<m+k. f n) = (\<Sum>n=0..<m+k-k. f (n + k))"
-      by (intro setsum.reindex_cong[of "\<lambda>n. n + k"])
+      by (intro sum.reindex_cong[of "\<lambda>n. n + k"])
          (simp, subst image_add_atLeastLessThan, auto)
     finally show "(\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k)) = (\<Sum>n<m+k. f n)" by (simp add: atLeast0LessThan)
   qed
-  finally have "(\<lambda>a. setsum f {..<a}) \<longlonglongrightarrow> lim (\<lambda>m. setsum f {..<m + k})"
+  finally have "(\<lambda>a. sum f {..<a}) \<longlonglongrightarrow> lim (\<lambda>m. sum f {..<m + k})"
     by (auto simp: convergent_LIMSEQ_iff dest: LIMSEQ_offset)
   thus ?thesis by (auto simp: summable_iff_convergent convergent_def)
 qed
@@ -733,10 +733,10 @@ proof -
             sums Digamma z" by (simp add: add_ac)
   hence "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1))) - 
               (\<Sum>n<m. inverse (z + of_nat n))) \<longlonglongrightarrow> Digamma z"
-    by (simp add: sums_def setsum_subtractf)
+    by (simp add: sums_def sum_subtractf)
   also have "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1)))) = 
                  (\<lambda>m. of_real (ln (m + 1)) :: 'a)"
-    by (subst setsum_lessThan_telescope) simp_all
+    by (subst sum_lessThan_telescope) simp_all
   finally show ?thesis by (rule Lim_transform) (insert lim, simp)
 qed
 
@@ -944,7 +944,7 @@ next
       using z' n by (intro uniformly_convergent_mult Polygamma_converges) (simp_all add: n'_def)
     thus "uniformly_convergent_on (ball z d)
               (\<lambda>k z. \<Sum>i<k. - of_nat n' * inverse ((z + of_nat i :: 'a) ^ (n'+1)))"
-      by (subst (asm) setsum_distrib_left) simp
+      by (subst (asm) sum_distrib_left) simp
   qed (insert Polygamma_converges'[OF z' n'] d, simp_all)
   also have "(\<Sum>k. - of_nat n' * inverse ((z + of_nat k) ^ (n' + 1))) =
                (- of_nat n') * (\<Sum>k. inverse ((z + of_nat k) ^ (n' + 1)))"
@@ -2573,7 +2573,7 @@ private lemma Gamma_euler'_aux1:
 proof -
   have "(\<Prod>k=1..n. exp (z * of_real (ln (1 + 1 / of_nat k)))) =
           exp (z * of_real (\<Sum>k = 1..n. ln (1 + 1 / real_of_nat k)))"
-    by (subst exp_setsum [symmetric]) (simp_all add: setsum_distrib_left)
+    by (subst exp_sum [symmetric]) (simp_all add: sum_distrib_left)
   also have "(\<Sum>k=1..n. ln (1 + 1 / of_nat k) :: real) = ln (\<Prod>k=1..n. 1 + 1 / real_of_nat k)"
     by (subst ln_setprod [symmetric]) (auto intro!: add_pos_nonneg)
   also have "(\<Prod>k=1..n. 1 + 1 / of_nat k :: real) = (\<Prod>k=1..n. (of_nat k + 1) / of_nat k)"
@@ -2654,9 +2654,9 @@ next
   have "(\<lambda>n. \<Sum>k=1..n. z / of_nat k - ln (1 + z / of_nat k)) \<longlonglongrightarrow> ln_Gamma z + euler_mascheroni * z + ln z"
     using ln_Gamma_series'_aux[OF False]
     by (simp only: atLeastLessThanSuc_atLeastAtMost [symmetric] One_nat_def
-                   setsum_shift_bounds_Suc_ivl sums_def atLeast0LessThan)
+                   sum_shift_bounds_Suc_ivl sums_def atLeast0LessThan)
   from tendsto_exp[OF this] False z have "?f \<longlonglongrightarrow> z * exp (euler_mascheroni * z) * Gamma z"
-    by (simp add: exp_add exp_setsum exp_diff mult_ac Gamma_complex_altdef A)
+    by (simp add: exp_add exp_sum exp_diff mult_ac Gamma_complex_altdef A)
   from tendsto_mult[OF tendsto_const[of "exp (-euler_mascheroni * z) / z"] this] z
     show "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma z"
     by (simp add: exp_minus divide_simps Gamma_series_weierstrass_def [abs_def])

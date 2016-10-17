@@ -157,10 +157,10 @@ qed
 
 lemma
   fixes f :: "'a \<Rightarrow> 'b::semiring_1" assumes "finite A"
-  shows setsum_mult_indicator[simp]: "(\<Sum>x \<in> A. f x * indicator (B x) (g x)) = (\<Sum>x\<in>{x\<in>A. g x \<in> B x}. f x)"
-  and setsum_indicator_mult[simp]: "(\<Sum>x \<in> A. indicator (B x) (g x) * f x) = (\<Sum>x\<in>{x\<in>A. g x \<in> B x}. f x)"
+  shows sum_mult_indicator[simp]: "(\<Sum>x \<in> A. f x * indicator (B x) (g x)) = (\<Sum>x\<in>{x\<in>A. g x \<in> B x}. f x)"
+  and sum_indicator_mult[simp]: "(\<Sum>x \<in> A. indicator (B x) (g x) * f x) = (\<Sum>x\<in>{x\<in>A. g x \<in> B x}. f x)"
   unfolding indicator_def
-  using assms by (auto intro!: setsum.mono_neutral_cong_right split: if_split_asm)
+  using assms by (auto intro!: sum.mono_neutral_cong_right split: if_split_asm)
 
 lemma borel_measurable_induct_real[consumes 2, case_names set mult add seq]:
   fixes P :: "('a \<Rightarrow> real) \<Rightarrow> bool"
@@ -220,8 +220,8 @@ proof -
     next
       case (insert x F)
       then show ?case
-        by (auto intro!: add mult set setsum_nonneg split: split_indicator split_indicator_asm
-                 simp del: setsum_mult_indicator simp: setsum_nonneg_eq_0_iff)
+        by (auto intro!: add mult set sum_nonneg split: split_indicator split_indicator_asm
+                 simp del: sum_mult_indicator simp: sum_nonneg_eq_0_iff)
     qed
     with U' show "P (U' i)" by simp
   qed
@@ -337,7 +337,7 @@ proof -
     (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M.
       if \<exists>x\<in>space M. y = f x \<and> z = g x then measure M {x\<in>space M. g x = z} else 0) *\<^sub>R y)"
     unfolding simple_bochner_integral_def
-  proof (safe intro!: setsum.cong scaleR_cong_right)
+  proof (safe intro!: sum.cong scaleR_cong_right)
     fix y assume y: "y \<in> space M" "f y \<noteq> 0"
     have [simp]: "g ` space M \<inter> {z. \<exists>x\<in>space M. f y = f x \<and> z = g x} =
         {z. \<exists>x\<in>space M. f y = f x \<and> z = g x}"
@@ -359,17 +359,17 @@ proof -
     ultimately
     show "measure M {x \<in> space M. f x = f y} =
       (\<Sum>z\<in>g ` space M. if \<exists>x\<in>space M. f y = f x \<and> z = g x then measure M {x \<in> space M. g x = z} else 0)"
-      apply (simp add: setsum.If_cases eq)
+      apply (simp add: sum.If_cases eq)
       apply (subst measure_finite_Union[symmetric])
       apply (auto simp: disjoint_family_on_def less_top)
       done
   qed
   also have "\<dots> = (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M.
       if \<exists>x\<in>space M. y = f x \<and> z = g x then measure M {x\<in>space M. g x = z} *\<^sub>R y else 0))"
-    by (auto intro!: setsum.cong simp: scaleR_setsum_left)
+    by (auto intro!: sum.cong simp: scaleR_sum_left)
   also have "\<dots> = ?r"
-    by (subst setsum.commute)
-       (auto intro!: setsum.cong simp: setsum.If_cases scaleR_setsum_right[symmetric] eq)
+    by (subst sum.commute)
+       (auto intro!: sum.cong simp: sum.If_cases scaleR_sum_right[symmetric] eq)
   finally show "simple_bochner_integral M f = ?r" .
 qed
 
@@ -391,7 +391,7 @@ proof -
     by (intro simple_bochner_integral_partition)
        (auto simp: simple_bochner_integrable_compose2 elim: simple_bochner_integrable.cases)
   ultimately show ?thesis
-    by (simp add: setsum.distrib[symmetric] scaleR_add_right)
+    by (simp add: sum.distrib[symmetric] scaleR_add_right)
 qed
 
 lemma (in linear) simple_bochner_integral_linear:
@@ -404,7 +404,7 @@ proof -
        (auto simp: simple_bochner_integrable_compose2[where p="\<lambda>x y. f x"] zero
              elim: simple_bochner_integrable.cases)
   also have "\<dots> = f (simple_bochner_integral M g)"
-    by (simp add: simple_bochner_integral_def setsum scaleR)
+    by (simp add: simple_bochner_integral_def sum scaleR)
   finally show ?thesis .
 qed
 
@@ -431,7 +431,7 @@ lemma simple_bochner_integral_norm_bound:
 proof -
   have "norm (simple_bochner_integral M f) \<le>
     (\<Sum>y\<in>f ` space M. norm (measure M {x \<in> space M. f x = y} *\<^sub>R y))"
-    unfolding simple_bochner_integral_def by (rule norm_setsum)
+    unfolding simple_bochner_integral_def by (rule norm_sum)
   also have "\<dots> = (\<Sum>y\<in>f ` space M. measure M {x \<in> space M. f x = y} *\<^sub>R norm y)"
     by simp
   also have "\<dots> = simple_bochner_integral M (\<lambda>x. norm (f x))"
@@ -444,7 +444,7 @@ qed
 lemma simple_bochner_integral_nonneg[simp]:
   fixes f :: "'a \<Rightarrow> real"
   shows "(\<And>x. 0 \<le> f x) \<Longrightarrow> 0 \<le> simple_bochner_integral M f"
-  by (simp add: setsum_nonneg simple_bochner_integral_def)
+  by (simp add: sum_nonneg simple_bochner_integral_def)
 
 lemma simple_bochner_integral_eq_nn_integral:
   assumes f: "simple_bochner_integrable M f" "\<And>x. 0 \<le> f x"
@@ -473,9 +473,9 @@ proof -
     unfolding simple_integral_def
     by (subst simple_bochner_integral_partition[OF f(1), where g="\<lambda>x. ennreal (f x)" and v=enn2real])
        (auto intro: f simple_function_compose1 elim: simple_bochner_integrable.cases
-             intro!: setsum.cong ennreal_cong_mult
-             simp: setsum_ennreal[symmetric] ac_simps ennreal_mult
-             simp del: setsum_ennreal)
+             intro!: sum.cong ennreal_cong_mult
+             simp: sum_ennreal[symmetric] ac_simps ennreal_mult
+             simp del: sum_ennreal)
   also have "\<dots> = (\<integral>\<^sup>+x. f x \<partial>M)"
     using f
     by (intro nn_integral_eq_simple_integral[symmetric])
@@ -714,7 +714,7 @@ lemma has_bochner_integral_diff:
   unfolding diff_conv_add_uminus
   by (intro has_bochner_integral_add has_bochner_integral_minus)
 
-lemma has_bochner_integral_setsum:
+lemma has_bochner_integral_sum:
   "(\<And>i. i \<in> I \<Longrightarrow> has_bochner_integral M (f i) (x i)) \<Longrightarrow>
     has_bochner_integral M (\<lambda>x. \<Sum>i\<in>I. f i x) (\<Sum>i\<in>I. x i)"
   by (induct I rule: infinite_finite_induct) auto
@@ -882,7 +882,7 @@ proof -
     by (auto simp: space_restrict_space measure_restrict_space[OF \<Omega>(1)] le_infI2
                    simple_bochner_integral_def Collect_restrict
              split: split_indicator split_indicator_asm
-             intro!: setsum.mono_neutral_cong_left arg_cong2[where f=measure])
+             intro!: sum.mono_neutral_cong_left arg_cong2[where f=measure])
 qed
 
 context
@@ -971,8 +971,8 @@ lemma integrable_add[simp, intro]: "integrable M f \<Longrightarrow> integrable 
 lemma integrable_zero[simp, intro]: "integrable M (\<lambda>x. 0)"
   by (metis has_bochner_integral_zero integrable.simps)
 
-lemma integrable_setsum[simp, intro]: "(\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)) \<Longrightarrow> integrable M (\<lambda>x. \<Sum>i\<in>I. f i x)"
-  by (metis has_bochner_integral_setsum integrable.simps)
+lemma integrable_sum[simp, intro]: "(\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)) \<Longrightarrow> integrable M (\<lambda>x. \<Sum>i\<in>I. f i x)"
+  by (metis has_bochner_integral_sum integrable.simps)
 
 lemma integrable_indicator[simp, intro]: "A \<in> sets M \<Longrightarrow> emeasure M A < \<infinity> \<Longrightarrow>
   integrable M (\<lambda>x. indicator A x *\<^sub>R c)"
@@ -1045,13 +1045,13 @@ lemma integral_diff[simp]: "integrable M f \<Longrightarrow> integrable M g \<Lo
     integral\<^sup>L M (\<lambda>x. f x - g x) = integral\<^sup>L M f - integral\<^sup>L M g"
   by (intro has_bochner_integral_integral_eq has_bochner_integral_diff has_bochner_integral_integrable)
 
-lemma integral_setsum: "(\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)) \<Longrightarrow>
+lemma integral_sum: "(\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)) \<Longrightarrow>
   integral\<^sup>L M (\<lambda>x. \<Sum>i\<in>I. f i x) = (\<Sum>i\<in>I. integral\<^sup>L M (f i))"
-  by (intro has_bochner_integral_integral_eq has_bochner_integral_setsum has_bochner_integral_integrable)
+  by (intro has_bochner_integral_integral_eq has_bochner_integral_sum has_bochner_integral_integrable)
 
-lemma integral_setsum'[simp]: "(\<And>i. i \<in> I =simp=> integrable M (f i)) \<Longrightarrow>
+lemma integral_sum'[simp]: "(\<And>i. i \<in> I =simp=> integrable M (f i)) \<Longrightarrow>
   integral\<^sup>L M (\<lambda>x. \<Sum>i\<in>I. f i x) = (\<Sum>i\<in>I. integral\<^sup>L M (f i))"
-  unfolding simp_implies_def by (rule integral_setsum)
+  unfolding simp_implies_def by (rule integral_sum)
 
 lemma integral_bounded_linear: "bounded_linear T \<Longrightarrow> integrable M f \<Longrightarrow>
     integral\<^sup>L M (\<lambda>x. T (f x)) = T (integral\<^sup>L M f)"
@@ -1729,9 +1729,9 @@ proof -
     using summable
   proof eventually_elim
     fix j x assume [simp]: "summable (\<lambda>i. norm (f i x))"
-    have "norm (\<Sum>i<j. f i x) \<le> (\<Sum>i<j. norm (f i x))" by (rule norm_setsum)
+    have "norm (\<Sum>i<j. f i x) \<le> (\<Sum>i<j. norm (f i x))" by (rule norm_sum)
     also have "\<dots> \<le> (\<Sum>i. norm (f i x))"
-      using setsum_le_suminf[of "\<lambda>i. norm (f i x)"] unfolding sums_iff by auto
+      using sum_le_suminf[of "\<lambda>i. norm (f i x)"] unfolding sums_iff by auto
     finally show "norm (\<Sum>i<j. f i x) \<le> (\<Sum>i. norm (f i x))" by simp
   qed
 
@@ -1835,7 +1835,7 @@ proof -
     have "(\<And>i::'b. i \<in> A \<Longrightarrow> integrable M (f i::'a \<Rightarrow> 'b)) \<Longrightarrow>
     (\<And>i. i \<in> A \<Longrightarrow> P (f i)) \<Longrightarrow> P (\<lambda>x. \<Sum>i\<in>A. f i x)"
     by (induct A rule: infinite_finite_induct) (auto intro!: add) }
-  note setsum = this
+  note sum = this
 
   define s' where [abs_def]: "s' i z = indicator (space M) z *\<^sub>R s i z" for i z
   then have s'_eq_s: "\<And>i x. x \<in> space M \<Longrightarrow> s' i x = s i x"
@@ -1873,7 +1873,7 @@ proof -
         using sbi by (auto elim: simple_bochner_integrable.cases simp: less_top)
       finally have "emeasure M {y \<in> space M. s' i y = s' i x} \<noteq> \<infinity>" by simp }
     then show "P (s' i)"
-      by (subst s'_eq) (auto intro!: setsum base simp: less_top)
+      by (subst s'_eq) (auto intro!: sum base simp: less_top)
 
     fix x assume "x \<in> space M" with s show "(\<lambda>i. s' i x) \<longlonglongrightarrow> f x"
       by (simp add: s'_eq_s)
@@ -2191,19 +2191,19 @@ lemma lebesgue_integral_count_space_finite_support:
   shows "(\<integral>x. f x \<partial>count_space A) = (\<Sum>a | a \<in> A \<and> f a \<noteq> 0. f a)"
 proof -
   have eq: "\<And>x. x \<in> A \<Longrightarrow> (\<Sum>a | x = a \<and> a \<in> A \<and> f a \<noteq> 0. f a) = (\<Sum>x\<in>{x}. f x)"
-    by (intro setsum.mono_neutral_cong_left) auto
+    by (intro sum.mono_neutral_cong_left) auto
 
   have "(\<integral>x. f x \<partial>count_space A) = (\<integral>x. (\<Sum>a | a \<in> A \<and> f a \<noteq> 0. indicator {a} x *\<^sub>R f a) \<partial>count_space A)"
     by (intro integral_cong refl) (simp add: f eq)
   also have "\<dots> = (\<Sum>a | a \<in> A \<and> f a \<noteq> 0. measure (count_space A) {a} *\<^sub>R f a)"
-    by (subst integral_setsum) (auto intro!: setsum.cong)
+    by (subst integral_sum) (auto intro!: sum.cong)
   finally show ?thesis
     by auto
 qed
 
 lemma lebesgue_integral_count_space_finite: "finite A \<Longrightarrow> (\<integral>x. f x \<partial>count_space A) = (\<Sum>a\<in>A. f a)"
   by (subst lebesgue_integral_count_space_finite_support)
-     (auto intro!: setsum.mono_neutral_cong_left)
+     (auto intro!: sum.mono_neutral_cong_left)
 
 lemma integrable_count_space_nat_iff:
   fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
@@ -2491,7 +2491,7 @@ proof -
       by (auto split: split_indicator simp: eq_commute[of x] cong: conj_cong)
   qed
   also have "\<dots> = (\<Sum>a\<in>A. f a * measure M {a})"
-    using finite by (subst integral_setsum) (auto simp add: integrable_mult_left_iff)
+    using finite by (subst integral_sum) (auto simp add: integrable_mult_left_iff)
   finally show ?thesis .
 qed
 
@@ -2645,7 +2645,7 @@ proof -
       (\<Sum>z\<in>s i ` (space N \<times> space M). measure M {y \<in> space M. s i (x, y) = z} *\<^sub>R z)"
       using s(1)[THEN simple_functionD(1)]
       unfolding simple_bochner_integral_def
-      by (intro setsum.mono_neutral_cong_left)
+      by (intro sum.mono_neutral_cong_left)
          (auto simp: eq_commute space_pair_measure image_iff cong: conj_cong) }
   note eq = this
 

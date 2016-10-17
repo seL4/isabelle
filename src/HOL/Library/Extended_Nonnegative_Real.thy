@@ -40,11 +40,11 @@ proof  -
   moreover
   { fix k :: nat
     have "(\<Sum>j<k + i. f j) = (\<Sum>j=i..<k + i. f j) + (\<Sum>j=0..<i. f j)"
-      by (subst setsum.union_disjoint[symmetric]) (auto intro!: setsum.cong)
+      by (subst sum.union_disjoint[symmetric]) (auto intro!: sum.cong)
     also have "(\<Sum>j=i..<k + i. f j) = (\<Sum>j\<in>(\<lambda>n. n + i)`{0..<k}. f j)"
       unfolding image_add_atLeastLessThan by simp
     finally have "(\<Sum>j<k + i. f j) = (\<Sum>n<k. f (n + i)) + (\<Sum>j<i. f j)"
-      by (auto simp: inj_on_def atLeast0LessThan setsum.reindex) }
+      by (auto simp: inj_on_def atLeast0LessThan sum.reindex) }
   ultimately have "(\<lambda>k. (\<Sum>n<k + i. f n)) \<longlonglongrightarrow> l + (\<Sum>j<i. f j)"
     by simp
   then show ?thesis
@@ -215,15 +215,15 @@ lemma one_less_of_natD:
     done
   done
 
-lemma setsum_le_suminf:
+lemma sum_le_suminf:
   fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
-  shows "summable f \<Longrightarrow> finite I \<Longrightarrow> \<forall>m\<in>- I. 0 \<le> f m \<Longrightarrow> setsum f I \<le> suminf f"
+  shows "summable f \<Longrightarrow> finite I \<Longrightarrow> \<forall>m\<in>- I. 0 \<le> f m \<Longrightarrow> sum f I \<le> suminf f"
   by (rule sums_le[OF _ sums_If_finite_set summable_sums]) auto
 
 lemma suminf_eq_SUP_real:
   assumes X: "summable X" "\<And>i. 0 \<le> X i" shows "suminf X = (SUP i. \<Sum>n<i. X n::real)"
   by (intro LIMSEQ_unique[OF summable_LIMSEQ] X LIMSEQ_incseq_SUP)
-     (auto intro!: bdd_aboveI2[where M="\<Sum>i. X i"] setsum_le_suminf X monoI setsum_mono3)
+     (auto intro!: bdd_aboveI2[where M="\<Sum>i. X i"] sum_le_suminf X monoI sum_mono3)
 
 subsection \<open>Defining the extended non-negative reals\<close>
 
@@ -394,11 +394,11 @@ proof -
     done
 qed
 
-lemma setsum_enn2ereal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Sum>i\<in>I. enn2ereal (f i)) = enn2ereal (setsum f I)"
-  by (induction I rule: infinite_finite_induct) (auto simp: setsum_nonneg zero_ennreal.rep_eq plus_ennreal.rep_eq)
+lemma sum_enn2ereal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Sum>i\<in>I. enn2ereal (f i)) = enn2ereal (sum f I)"
+  by (induction I rule: infinite_finite_induct) (auto simp: sum_nonneg zero_ennreal.rep_eq plus_ennreal.rep_eq)
 
-lemma transfer_e2ennreal_setsum [transfer_rule]:
-  "rel_fun (rel_fun op = pcr_ennreal) (rel_fun op = pcr_ennreal) setsum setsum"
+lemma transfer_e2ennreal_sum [transfer_rule]:
+  "rel_fun (rel_fun op = pcr_ennreal) (rel_fun op = pcr_ennreal) sum sum"
   by (auto intro!: rel_funI simp: rel_fun_eq_pcr_ennreal comp_def)
 
 lemma enn2ereal_of_nat[simp]: "enn2ereal (of_nat n) = ereal n"
@@ -522,12 +522,12 @@ lemma ennreal_add_eq_top[simp]:
   shows "a + b = top \<longleftrightarrow> a = top \<or> b = top"
   by transfer (auto simp: top_ereal_def)
 
-lemma ennreal_setsum_less_top[simp]:
+lemma ennreal_sum_less_top[simp]:
   fixes f :: "'a \<Rightarrow> ennreal"
   shows "finite I \<Longrightarrow> (\<Sum>i\<in>I. f i) < top \<longleftrightarrow> (\<forall>i\<in>I. f i < top)"
   by (induction I rule: finite_induct) auto
 
-lemma ennreal_setsum_eq_top[simp]:
+lemma ennreal_sum_eq_top[simp]:
   fixes f :: "'a \<Rightarrow> ennreal"
   shows "finite I \<Longrightarrow> (\<Sum>i\<in>I. f i) = top \<longleftrightarrow> (\<exists>i\<in>I. f i = top)"
   by (induction I rule: finite_induct) auto
@@ -953,8 +953,8 @@ lemma ennreal_plus[simp]:
   "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> ennreal (a + b) = ennreal a + ennreal b"
   by (transfer fixing: a b) (auto simp: max_absorb2)
 
-lemma setsum_ennreal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Sum>i\<in>I. ennreal (f i)) = ennreal (setsum f I)"
-  by (induction I rule: infinite_finite_induct) (auto simp: setsum_nonneg)
+lemma sum_ennreal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Sum>i\<in>I. ennreal (f i)) = ennreal (sum f I)"
+  by (induction I rule: infinite_finite_induct) (auto simp: sum_nonneg)
 
 lemma sum_list_ennreal[simp]:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x \<ge> 0"
@@ -1368,10 +1368,10 @@ lemma sup_continuous_add_ennreal[order_continuous_intros]:
   by transfer (auto intro!: sup_continuous_add)
 
 lemma ennreal_suminf_lessD: "(\<Sum>i. f i :: ennreal) < x \<Longrightarrow> f i < x"
-  using le_less_trans[OF setsum_le_suminf[OF summableI, of "{i}" f]] by simp
+  using le_less_trans[OF sum_le_suminf[OF summableI, of "{i}" f]] by simp
 
 lemma sums_ennreal[simp]: "(\<And>i. 0 \<le> f i) \<Longrightarrow> 0 \<le> x \<Longrightarrow> (\<lambda>i. ennreal (f i)) sums ennreal x \<longleftrightarrow> f sums x"
-  unfolding sums_def by (simp add: always_eventually setsum_nonneg)
+  unfolding sums_def by (simp add: always_eventually sum_nonneg)
 
 lemma summable_suminf_not_top: "(\<And>i. 0 \<le> f i) \<Longrightarrow> (\<Sum>i. ennreal (f i)) \<noteq> top \<Longrightarrow> summable f"
   using summable_sums[OF summableI, of "\<lambda>i. ennreal (f i)"]
@@ -1383,7 +1383,7 @@ lemma suminf_ennreal[simp]:
   by (rule sums_unique[symmetric]) (simp add: summable_suminf_not_top suminf_nonneg summable_sums)
 
 lemma sums_enn2ereal[simp]: "(\<lambda>i. enn2ereal (f i)) sums enn2ereal x \<longleftrightarrow> f sums x"
-  unfolding sums_def by (simp add: always_eventually setsum_nonneg)
+  unfolding sums_def by (simp add: always_eventually sum_nonneg)
 
 lemma suminf_enn2ereal[simp]: "(\<Sum>i. enn2ereal (f i)) = enn2ereal (suminf f)"
   by (rule sums_unique[symmetric]) (simp add: summable_sums)
@@ -1529,12 +1529,12 @@ lemma ennreal_SUP_add:
   by transfer
      (simp add: SUP_ereal_add incseq_def le_fun_def max_absorb2 SUP_upper2)
 
-lemma ennreal_SUP_setsum:
+lemma ennreal_SUP_sum:
   fixes f :: "'a \<Rightarrow> nat \<Rightarrow> ennreal"
   shows "(\<And>i. i \<in> I \<Longrightarrow> incseq (f i)) \<Longrightarrow> (SUP n. \<Sum>i\<in>I. f i n) = (\<Sum>i\<in>I. SUP n. f i n)"
   unfolding incseq_def
   by transfer
-     (simp add: SUP_ereal_setsum incseq_def SUP_upper2 max_absorb2 setsum_nonneg)
+     (simp add: SUP_ereal_sum incseq_def SUP_upper2 max_absorb2 sum_nonneg)
 
 lemma ennreal_liminf_minus:
   fixes f :: "nat \<Rightarrow> ennreal"

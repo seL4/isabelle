@@ -489,78 +489,78 @@ apply (drule bigo_compose1 [of "f - g" h k])
 apply (simp add: fun_diff_def)
 done
 
-subsection \<open>Setsum\<close>
+subsection \<open>Sum\<close>
 
-lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 <= h x y \<Longrightarrow>
+lemma bigo_sum_main: "\<forall>x. \<forall>y \<in> A x. 0 <= h x y \<Longrightarrow>
     \<exists>c. \<forall>x. \<forall>y \<in> A x. \<bar>f x y\<bar> <= c * (h x y) \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f x y) =o O(\<lambda>x. \<Sum>y \<in> A x. h x y)"
 apply (auto simp add: bigo_def)
 apply (rule_tac x = "\<bar>c\<bar>" in exI)
 apply (subst abs_of_nonneg) back back
- apply (rule setsum_nonneg)
+ apply (rule sum_nonneg)
  apply force
-apply (subst setsum_distrib_left)
+apply (subst sum_distrib_left)
 apply (rule allI)
 apply (rule order_trans)
- apply (rule setsum_abs)
-apply (rule setsum_mono)
+ apply (rule sum_abs)
+apply (rule sum_mono)
 by (metis abs_ge_self abs_mult_pos order_trans)
 
-lemma bigo_setsum1: "\<forall>x y. 0 <= h x y \<Longrightarrow>
+lemma bigo_sum1: "\<forall>x y. 0 <= h x y \<Longrightarrow>
     \<exists>c. \<forall>x y. \<bar>f x y\<bar> <= c * (h x y) \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f x y) =o O(\<lambda>x. \<Sum>y \<in> A x. h x y)"
-by (metis (no_types) bigo_setsum_main)
+by (metis (no_types) bigo_sum_main)
 
-lemma bigo_setsum2: "\<forall>y. 0 <= h y \<Longrightarrow>
+lemma bigo_sum2: "\<forall>y. 0 <= h y \<Longrightarrow>
     \<exists>c. \<forall>y. \<bar>f y\<bar> <= c * (h y) \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f y) =o O(\<lambda>x. \<Sum>y \<in> A x. h y)"
-apply (rule bigo_setsum1)
+apply (rule bigo_sum1)
 by metis+
 
-lemma bigo_setsum3: "f =o O(h) \<Longrightarrow>
+lemma bigo_sum3: "f =o O(h) \<Longrightarrow>
     (\<lambda>x. \<Sum>y \<in> A x. (l x y) * f(k x y)) =o
       O(\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h(k x y)\<bar>)"
-apply (rule bigo_setsum1)
+apply (rule bigo_sum1)
  apply (rule allI)+
  apply (rule abs_ge_zero)
 apply (unfold bigo_def)
 apply (auto simp add: abs_mult)
 by (metis abs_ge_zero mult.left_commute mult_left_mono)
 
-lemma bigo_setsum4: "f =o g +o O(h) \<Longrightarrow>
+lemma bigo_sum4: "f =o g +o O(h) \<Longrightarrow>
     (\<lambda>x. \<Sum>y \<in> A x. l x y * f(k x y)) =o
       (\<lambda>x. \<Sum>y \<in> A x. l x y * g(k x y)) +o
         O(\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h(k x y)\<bar>)"
 apply (rule set_minus_imp_plus)
 apply (subst fun_diff_def)
-apply (subst setsum_subtractf [symmetric])
+apply (subst sum_subtractf [symmetric])
 apply (subst right_diff_distrib [symmetric])
-apply (rule bigo_setsum3)
+apply (rule bigo_sum3)
 by (metis (lifting, no_types) fun_diff_def set_plus_imp_minus ext)
 
-lemma bigo_setsum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \<Longrightarrow>
+lemma bigo_sum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \<Longrightarrow>
     \<forall>x. 0 <= h x \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. (l x y) * f(k x y)) =o
         O(\<lambda>x. \<Sum>y \<in> A x. (l x y) * h(k x y))"
 apply (subgoal_tac "(\<lambda>x. \<Sum>y \<in> A x. (l x y) * h(k x y)) =
       (\<lambda>x. \<Sum>y \<in> A x. \<bar>(l x y) * h(k x y)\<bar>)")
  apply (erule ssubst)
- apply (erule bigo_setsum3)
+ apply (erule bigo_sum3)
 apply (rule ext)
-apply (rule setsum.cong)
+apply (rule sum.cong)
 apply (rule refl)
 by (metis abs_of_nonneg zero_le_mult_iff)
 
-lemma bigo_setsum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \<Longrightarrow>
+lemma bigo_sum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \<Longrightarrow>
     \<forall>x. 0 <= h x \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. (l x y) * f(k x y)) =o
         (\<lambda>x. \<Sum>y \<in> A x. (l x y) * g(k x y)) +o
           O(\<lambda>x. \<Sum>y \<in> A x. (l x y) * h(k x y))"
   apply (rule set_minus_imp_plus)
   apply (subst fun_diff_def)
-  apply (subst setsum_subtractf [symmetric])
+  apply (subst sum_subtractf [symmetric])
   apply (subst right_diff_distrib [symmetric])
-  apply (rule bigo_setsum5)
+  apply (rule bigo_sum5)
   apply (subst fun_diff_def [symmetric])
   apply (drule set_plus_imp_minus)
   apply auto

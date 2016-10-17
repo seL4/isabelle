@@ -296,7 +296,7 @@ lemma Merge_Bag_Follows:
              (bag_of o merge.Out) Fols
              (%s. \<Sum>i \<in> lessThan Nclients. (bag_of o sub i o merge.In) s)"
 apply (rule Merge_Bag_Follows_lemma [THEN Always_Follows1, THEN guaranteesI], auto)
-apply (rule Follows_setsum)
+apply (rule Follows_sum)
 apply (cut_tac Merge_spec)
 apply (auto simp add: merge_spec_def merge_follows_def o_def)
 apply (drule guaranteesD)
@@ -360,7 +360,7 @@ lemma Distr_Bag_Follows:
         (%s. bag_of (sublist (distr.In s) (lessThan (length(distr.iIn s))))))"
 apply (rule guaranteesI, clarify)
 apply (rule Distr_Bag_Follows_lemma [THEN Always_Follows2], auto)
-apply (rule Follows_setsum)
+apply (rule Follows_sum)
 apply (cut_tac Distrib_spec)
 apply (auto simp add: distr_spec_def distr_follows_def o_def)
 apply (drule guaranteesD)

@@ -1125,7 +1125,7 @@ lemma real_of_int_div4: "real_of_int (n div x) \<le> real_of_int n / real_of_int
 
 subsection \<open>Embedding the Naturals into the Reals\<close>
 
-lemma real_of_card: "real (card A) = setsum (\<lambda>x. 1) A"
+lemma real_of_card: "real (card A) = sum (\<lambda>x. 1) A"
   by simp
 
 lemma nat_less_real_le: "n < m \<longleftrightarrow> real n + 1 \<le> real m"

@@ -236,7 +236,7 @@ apply (simp add: union_commute)
 apply (blast intro: Follows_union_lemma)
 done
 
-lemma Follows_setsum:
+lemma Follows_sum:
      "!!f ::['c,'b] => ('a::order) multiset.  
         [| \<forall>i \<in> I. F \<in> f' i Fols f i;  finite I |]  
         ==> F \<in> (%s. \<Sum>i \<in> I. f' i s) Fols (%s. \<Sum>i \<in> I. f i s)"

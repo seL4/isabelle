@@ -274,7 +274,7 @@ proof (rule emeasure_lim)
     also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. \<mu>G (Z i - Z' i))" using \<open>Z _ \<in> generator\<close> \<open>Z' _ \<in> generator\<close>
       by (intro generator.subadditive[OF positive_mu_G additive_mu_G]) auto
     also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. 2 powr -real i * ?a)"
-    proof (rule setsum_mono)
+    proof (rule sum_mono)
       fix i assume "i \<in> {1..n}" hence "i \<le> n" by simp
       have "\<mu>G (Z i - Z' i) = \<mu>G (prod_emb I (\<lambda>_. borel) (J i) (B i - K i))"
         unfolding Z'_def Z_def by simp
@@ -290,14 +290,14 @@ proof (rule emeasure_lim)
       finally show "\<mu>G (Z i - Z' i) \<le> (2 powr - real i) * ?a" .
     qed
     also have "\<dots> = ennreal ((\<Sum> i\<in>{1..n}. (2 powr -enn2real i)) * enn2real ?a)"
-      using r by (simp add: setsum_distrib_right ennreal_mult[symmetric])
+      using r by (simp add: sum_distrib_right ennreal_mult[symmetric])
     also have "\<dots> < ennreal (1 * enn2real ?a)"
     proof (intro ennreal_lessI mult_strict_right_mono)
       have "(\<Sum>i = 1..n. 2 powr - real i) = (\<Sum>i = 1..<Suc n. (1/2) ^ i)"
-        by (rule setsum.cong) (auto simp: powr_realpow powr_divide power_divide powr_minus_divide)
+        by (rule sum.cong) (auto simp: powr_realpow powr_divide power_divide powr_minus_divide)
       also have "{1..<Suc n} = {..<Suc n} - {0}" by auto
-      also have "setsum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =
-        setsum (op ^ (1 / 2)) ({..<Suc n}) - 1" by (auto simp: setsum_diff1)
+      also have "sum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =
+        sum (op ^ (1 / 2)) ({..<Suc n}) - 1" by (auto simp: sum_diff1)
       also have "\<dots> < 1" by (subst geometric_sum) auto
       finally show "(\<Sum>i = 1..n. 2 powr - enn2real i) < 1" by simp
     qed (auto simp: r enn2real_positive_iff)

@@ -177,7 +177,7 @@ lemma cong_exp_nat: "[(x::nat) = y] (mod n) \<Longrightarrow> [x^k = y^k] (mod n
 lemma cong_exp_int: "[(x::int) = y] (mod n) \<Longrightarrow> [x^k = y^k] (mod n)"
   by (induct k) (auto simp add: cong_mult_int)
 
-lemma cong_setsum_nat [rule_format]:
+lemma cong_sum_nat [rule_format]:
     "(\<forall>x\<in>A. [((f x)::nat) = g x] (mod m)) \<longrightarrow>
       [(\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
@@ -185,7 +185,7 @@ lemma cong_setsum_nat [rule_format]:
   apply (auto intro: cong_add_nat)
   done
 
-lemma cong_setsum_int [rule_format]:
+lemma cong_sum_int [rule_format]:
     "(\<forall>x\<in>A. [((f x)::int) = g x] (mod m)) \<longrightarrow>
       [(\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
@@ -794,7 +794,7 @@ proof -
     proof -
       from fin a have "?x = (\<Sum>j \<in> {i}. u j * b j) +
           (\<Sum>j \<in> A - {i}. u j * b j)"
-        by (subst setsum.union_disjoint [symmetric], auto intro: setsum.cong)
+        by (subst sum.union_disjoint [symmetric], auto intro: sum.cong)
       then have "[?x = u i * b i + (\<Sum>j \<in> A - {i}. u j * b j)] (mod m i)"
         by auto
       also have "[u i * b i + (\<Sum>j \<in> A - {i}. u j * b j) =
@@ -802,7 +802,7 @@ proof -
         apply (rule cong_add_nat)
         apply (rule cong_scalar2_nat)
         using bprop a apply blast
-        apply (rule cong_setsum_nat)
+        apply (rule cong_sum_nat)
         apply (rule cong_scalar2_nat)
         using bprop apply auto
         apply (rule cong_dvd_modulus_nat)

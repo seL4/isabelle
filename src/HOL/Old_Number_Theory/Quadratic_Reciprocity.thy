@@ -16,110 +16,110 @@ text \<open>
 context GAUSS
 begin
 
-lemma QRLemma1: "a * setsum id A =
-  p * setsum (%x. ((x * a) div p)) A + setsum id D + setsum id E"
+lemma QRLemma1: "a * sum id A =
+  p * sum (%x. ((x * a) div p)) A + sum id D + sum id E"
 proof -
-  from finite_A have "a * setsum id A = setsum (%x. a * x) A"
-    by (auto simp add: setsum_const_mult id_def)
-  also have "setsum (%x. a * x) = setsum (%x. x * a)"
+  from finite_A have "a * sum id A = sum (%x. a * x) A"
+    by (auto simp add: sum_const_mult id_def)
+  also have "sum (%x. a * x) = sum (%x. x * a)"
     by (auto simp add: mult.commute)
-  also have "setsum (%x. x * a) A = setsum id B"
-    by (simp add: B_def setsum.reindex [OF inj_on_xa_A])
-  also have "... = setsum (%x. p * (x div p) + StandardRes p x) B"
+  also have "sum (%x. x * a) A = sum id B"
+    by (simp add: B_def sum.reindex [OF inj_on_xa_A])
+  also have "... = sum (%x. p * (x div p) + StandardRes p x) B"
     by (auto simp add: StandardRes_def mult_div_mod_eq [symmetric])
-  also have "... = setsum (%x. p * (x div p)) B + setsum (StandardRes p) B"
-    by (rule setsum.distrib)
-  also have "setsum (StandardRes p) B = setsum id C"
-    by (auto simp add: C_def setsum.reindex [OF SR_B_inj])
-  also from C_eq have "... = setsum id (D \<union> E)"
+  also have "... = sum (%x. p * (x div p)) B + sum (StandardRes p) B"
+    by (rule sum.distrib)
+  also have "sum (StandardRes p) B = sum id C"
+    by (auto simp add: C_def sum.reindex [OF SR_B_inj])
+  also from C_eq have "... = sum id (D \<union> E)"
     by auto
-  also from finite_D finite_E have "... = setsum id D + setsum id E"
-    by (rule setsum.union_disjoint) (auto simp add: D_def E_def)
-  also have "setsum (%x. p * (x div p)) B =
-      setsum ((%x. p * (x div p)) o (%x. (x * a))) A"
-    by (auto simp add: B_def setsum.reindex inj_on_xa_A)
-  also have "... = setsum (%x. p * ((x * a) div p)) A"
+  also from finite_D finite_E have "... = sum id D + sum id E"
+    by (rule sum.union_disjoint) (auto simp add: D_def E_def)
+  also have "sum (%x. p * (x div p)) B =
+      sum ((%x. p * (x div p)) o (%x. (x * a))) A"
+    by (auto simp add: B_def sum.reindex inj_on_xa_A)
+  also have "... = sum (%x. p * ((x * a) div p)) A"
     by (auto simp add: o_def)
-  also from finite_A have "setsum (%x. p * ((x * a) div p)) A =
-    p * setsum (%x. ((x * a) div p)) A"
-    by (auto simp add: setsum_const_mult)
+  also from finite_A have "sum (%x. p * ((x * a) div p)) A =
+    p * sum (%x. ((x * a) div p)) A"
+    by (auto simp add: sum_const_mult)
   finally show ?thesis by arith
 qed
 
-lemma QRLemma2: "setsum id A = p * int (card E) - setsum id E +
-  setsum id D"
+lemma QRLemma2: "sum id A = p * int (card E) - sum id E +
+  sum id D"
 proof -
-  from F_Un_D_eq_A have "setsum id A = setsum id (D \<union> F)"
+  from F_Un_D_eq_A have "sum id A = sum id (D \<union> F)"
     by (simp add: Un_commute)
   also from F_D_disj finite_D finite_F
-  have "... = setsum id D + setsum id F"
-    by (auto simp add: Int_commute intro: setsum.union_disjoint)
+  have "... = sum id D + sum id F"
+    by (auto simp add: Int_commute intro: sum.union_disjoint)
   also from F_def have "F = (%x. (p - x)) ` E"
     by auto
-  also from finite_E inj_on_pminusx_E have "setsum id ((%x. (p - x)) ` E) =
-      setsum (%x. (p - x)) E"
-    by (auto simp add: setsum.reindex)
-  also from finite_E have "setsum (op - p) E = setsum (%x. p) E - setsum id E"
-    by (auto simp add: setsum_subtractf id_def)
-  also from finite_E have "setsum (%x. p) E = p * int(card E)"
-    by (intro setsum_const)
+  also from finite_E inj_on_pminusx_E have "sum id ((%x. (p - x)) ` E) =
+      sum (%x. (p - x)) E"
+    by (auto simp add: sum.reindex)
+  also from finite_E have "sum (op - p) E = sum (%x. p) E - sum id E"
+    by (auto simp add: sum_subtractf id_def)
+  also from finite_E have "sum (%x. p) E = p * int(card E)"
+    by (intro sum_const)
   finally show ?thesis
     by arith
 qed
 
-lemma QRLemma3: "(a - 1) * setsum id A =
-    p * (setsum (%x. ((x * a) div p)) A - int(card E)) + 2 * setsum id E"
+lemma QRLemma3: "(a - 1) * sum id A =
+    p * (sum (%x. ((x * a) div p)) A - int(card E)) + 2 * sum id E"
 proof -
-  have "(a - 1) * setsum id A = a * setsum id A - setsum id A"
+  have "(a - 1) * sum id A = a * sum id A - sum id A"
     by (auto simp add: left_diff_distrib)
   also note QRLemma1
-  also from QRLemma2 have "p * (\<Sum>x \<in> A. x * a div p) + setsum id D +
-     setsum id E - setsum id A =
-      p * (\<Sum>x \<in> A. x * a div p) + setsum id D +
-      setsum id E - (p * int (card E) - setsum id E + setsum id D)"
+  also from QRLemma2 have "p * (\<Sum>x \<in> A. x * a div p) + sum id D +
+     sum id E - sum id A =
+      p * (\<Sum>x \<in> A. x * a div p) + sum id D +
+      sum id E - (p * int (card E) - sum id E + sum id D)"
     by auto
   also have "... = p * (\<Sum>x \<in> A. x * a div p) -
-      p * int (card E) + 2 * setsum id E"
+      p * int (card E) + 2 * sum id E"
     by arith
   finally show ?thesis
     by (auto simp only: right_diff_distrib)
 qed
 
 lemma QRLemma4: "a \<in> zOdd ==>
-    (setsum (%x. ((x * a) div p)) A \<in> zEven) = (int(card E): zEven)"
+    (sum (%x. ((x * a) div p)) A \<in> zEven) = (int(card E): zEven)"
 proof -
   assume a_odd: "a \<in> zOdd"
-  from QRLemma3 have a: "p * (setsum (%x. ((x * a) div p)) A - int(card E)) =
-      (a - 1) * setsum id A - 2 * setsum id E"
+  from QRLemma3 have a: "p * (sum (%x. ((x * a) div p)) A - int(card E)) =
+      (a - 1) * sum id A - 2 * sum id E"
     by arith
   from a_odd have "a - 1 \<in> zEven"
     by (rule odd_minus_one_even)
-  hence "(a - 1) * setsum id A \<in> zEven"
+  hence "(a - 1) * sum id A \<in> zEven"
     by (rule even_times_either)
-  moreover have "2 * setsum id E \<in> zEven"
+  moreover have "2 * sum id E \<in> zEven"
     by (auto simp add: zEven_def)
-  ultimately have "(a - 1) * setsum id A - 2 * setsum id E \<in> zEven"
+  ultimately have "(a - 1) * sum id A - 2 * sum id E \<in> zEven"
     by (rule even_minus_even)
-  with a have "p * (setsum (%x. ((x * a) div p)) A - int(card E)): zEven"
+  with a have "p * (sum (%x. ((x * a) div p)) A - int(card E)): zEven"
     by simp
-  hence "p \<in> zEven | (setsum (%x. ((x * a) div p)) A - int(card E)): zEven"
+  hence "p \<in> zEven | (sum (%x. ((x * a) div p)) A - int(card E)): zEven"
     by (rule EvenOdd.even_product)
-  with p_odd have "(setsum (%x. ((x * a) div p)) A - int(card E)): zEven"
+  with p_odd have "(sum (%x. ((x * a) div p)) A - int(card E)): zEven"
     by (auto simp add: odd_iff_not_even)
   thus ?thesis
     by (auto simp only: even_diff [symmetric])
 qed
 
 lemma QRLemma5: "a \<in> zOdd ==>
-   (-1::int)^(card E) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
+   (-1::int)^(card E) = (-1::int)^(nat(sum (%x. ((x * a) div p)) A))"
 proof -
   assume "a \<in> zOdd"
   from QRLemma4 [OF this] have
-    "(int(card E): zEven) = (setsum (%x. ((x * a) div p)) A \<in> zEven)" ..
+    "(int(card E): zEven) = (sum (%x. ((x * a) div p)) A \<in> zEven)" ..
   moreover have "0 \<le> int(card E)"
     by auto
-  moreover have "0 \<le> setsum (%x. ((x * a) div p)) A"
-    proof (intro setsum_nonneg)
+  moreover have "0 \<le> sum (%x. ((x * a) div p)) A"
+    proof (intro sum_nonneg)
       show "\<forall>x \<in> A. 0 \<le> x * a div p"
       proof
         fix x
@@ -144,7 +144,7 @@ end
 
 lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p)); zprime p; 2 < p;
   A = {x. 0 < x & x \<le> (p - 1) div 2} |] ==>
-  (Legendre a p) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
+  (Legendre a p) = (-1::int)^(nat(sum (%x. ((x * a) div p)) A))"
   apply (subst GAUSS.gauss_lemma)
   apply (auto simp add: GAUSS_def)
   apply (subst GAUSS.QRLemma5)
@@ -508,7 +508,7 @@ proof
   finally show "int (card (f2 j)) = p * j div q" .
 qed
 
-lemma S1_card: "int (card(S1)) = setsum (%j. (q * j) div p) P_set"
+lemma S1_card: "int (card(S1)) = sum (%j. (q * j) div p) P_set"
 proof -
   have "\<forall>x \<in> P_set. finite (f1 x)"
   proof
@@ -520,18 +520,18 @@ proof -
     by (auto simp add: f1_def)
   moreover note P_set_finite
   ultimately have "int(card (UNION P_set f1)) =
-      setsum (%x. int(card (f1 x))) P_set"
-    by(simp add:card_UN_disjoint int_setsum o_def)
+      sum (%x. int(card (f1 x))) P_set"
+    by(simp add:card_UN_disjoint int_sum o_def)
   moreover have "S1 = UNION P_set f1"
     by (auto simp add: f1_def S_def S1_def S2_def P_set_def Q_set_def aux1a)
-  ultimately have "int(card (S1)) = setsum (%j. int(card (f1 j))) P_set"
+  ultimately have "int(card (S1)) = sum (%j. int(card (f1 j))) P_set"
     by auto
-  also have "... = setsum (%j. q * j div p) P_set"
-    using aux3a by(fastforce intro: setsum.cong)
+  also have "... = sum (%j. q * j div p) P_set"
+    using aux3a by(fastforce intro: sum.cong)
   finally show ?thesis .
 qed
 
-lemma S2_card: "int (card(S2)) = setsum (%j. (p * j) div q) Q_set"
+lemma S2_card: "int (card(S2)) = sum (%j. (p * j) div q) Q_set"
 proof -
   have "\<forall>x \<in> Q_set. finite (f2 x)"
   proof
@@ -544,30 +544,30 @@ proof -
     by (auto simp add: f2_def)
   moreover note Q_set_finite
   ultimately have "int(card (UNION Q_set f2)) =
-      setsum (%x. int(card (f2 x))) Q_set"
-    by(simp add:card_UN_disjoint int_setsum o_def)
+      sum (%x. int(card (f2 x))) Q_set"
+    by(simp add:card_UN_disjoint int_sum o_def)
   moreover have "S2 = UNION Q_set f2"
     by (auto simp add: f2_def S_def S1_def S2_def P_set_def Q_set_def aux1b)
-  ultimately have "int(card (S2)) = setsum (%j. int(card (f2 j))) Q_set"
+  ultimately have "int(card (S2)) = sum (%j. int(card (f2 j))) Q_set"
     by auto
-  also have "... = setsum (%j. p * j div q) Q_set"
-    using aux3b by(fastforce intro: setsum.cong)
+  also have "... = sum (%j. p * j div q) Q_set"
+    using aux3b by(fastforce intro: sum.cong)
   finally show ?thesis .
 qed
 
 lemma S1_carda: "int (card(S1)) =
-    setsum (%j. (j * q) div p) P_set"
+    sum (%j. (j * q) div p) P_set"
   by (auto simp add: S1_card ac_simps)
 
 lemma S2_carda: "int (card(S2)) =
-    setsum (%j. (j * p) div q) Q_set"
+    sum (%j. (j * p) div q) Q_set"
   by (auto simp add: S2_card ac_simps)
 
-lemma pq_sum_prop: "(setsum (%j. (j * p) div q) Q_set) +
-    (setsum (%j. (j * q) div p) P_set) = ((p - 1) div 2) * ((q - 1) div 2)"
+lemma pq_sum_prop: "(sum (%j. (j * p) div q) Q_set) +
+    (sum (%j. (j * q) div p) P_set) = ((p - 1) div 2) * ((q - 1) div 2)"
 proof -
-  have "(setsum (%j. (j * p) div q) Q_set) +
-      (setsum (%j. (j * q) div p) P_set) = int (card S2) + int (card S1)"
+  have "(sum (%j. (j * p) div q) Q_set) +
+      (sum (%j. (j * q) div p) P_set) = int (card S2) + int (card S1)"
     by (auto simp add: S1_carda S2_carda)
   also have "... = int (card S1) + int (card S2)"
     by auto
@@ -591,7 +591,7 @@ proof -
   from QRTEMP_axioms have "~([p = 0] (mod q))"
     by (auto simp add: pq_prime_neq QRTEMP_def)
   with QRTEMP_axioms Q_set_def have a1: "(Legendre p q) = (-1::int) ^
-      nat(setsum (%x. ((x * p) div q)) Q_set)"
+      nat(sum (%x. ((x * p) div q)) Q_set)"
     apply (rule_tac p = q in  MainQRLemma)
     apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
     done
@@ -600,22 +600,22 @@ proof -
     apply (simp add: QRTEMP_def)+
     done
   with QRTEMP_axioms P_set_def have a2: "(Legendre q p) =
-      (-1::int) ^ nat(setsum (%x. ((x * q) div p)) P_set)"
+      (-1::int) ^ nat(sum (%x. ((x * q) div p)) P_set)"
     apply (rule_tac p = p in  MainQRLemma)
     apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
     done
   from a1 a2 have "(Legendre p q) * (Legendre q p) =
-      (-1::int) ^ nat(setsum (%x. ((x * p) div q)) Q_set) *
-        (-1::int) ^ nat(setsum (%x. ((x * q) div p)) P_set)"
+      (-1::int) ^ nat(sum (%x. ((x * p) div q)) Q_set) *
+        (-1::int) ^ nat(sum (%x. ((x * q) div p)) P_set)"
     by auto
-  also have "... = (-1::int) ^ (nat(setsum (%x. ((x * p) div q)) Q_set) +
-                   nat(setsum (%x. ((x * q) div p)) P_set))"
+  also have "... = (-1::int) ^ (nat(sum (%x. ((x * p) div q)) Q_set) +
+                   nat(sum (%x. ((x * q) div p)) P_set))"
     by (auto simp add: power_add)
-  also have "nat(setsum (%x. ((x * p) div q)) Q_set) +
-      nat(setsum (%x. ((x * q) div p)) P_set) =
-        nat((setsum (%x. ((x * p) div q)) Q_set) +
-          (setsum (%x. ((x * q) div p)) P_set))"
-    apply (rule_tac z = "setsum (%x. ((x * p) div q)) Q_set" in
+  also have "nat(sum (%x. ((x * p) div q)) Q_set) +
+      nat(sum (%x. ((x * q) div p)) P_set) =
+        nat((sum (%x. ((x * p) div q)) Q_set) +
+          (sum (%x. ((x * q) div p)) P_set))"
+    apply (rule_tac z = "sum (%x. ((x * p) div q)) Q_set" in
       nat_add_distrib [symmetric])
     apply (auto simp add: S1_carda [symmetric] S2_carda [symmetric])
     done

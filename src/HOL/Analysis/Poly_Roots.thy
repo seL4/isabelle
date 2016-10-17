@@ -10,67 +10,67 @@ begin
 
 subsection\<open>Geometric progressions\<close>
 
-lemma setsum_gp_basic:
+lemma sum_gp_basic:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "(1 - x) * (\<Sum>i\<le>n. x^i) = 1 - x^Suc n"
   by (simp only: one_diff_power_eq [of "Suc n" x] lessThan_Suc_atMost)
 
-lemma setsum_gp0:
+lemma sum_gp0:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows   "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
-  using setsum_gp_basic[of x n]
+  using sum_gp_basic[of x n]
   by (simp add: mult.commute divide_simps)
 
-lemma setsum_power_add:
+lemma sum_power_add:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "(\<Sum>i\<in>I. x^(m+i)) = x^m * (\<Sum>i\<in>I. x^i)"
-  by (simp add: setsum_distrib_left power_add)
+  by (simp add: sum_distrib_left power_add)
 
-lemma setsum_power_shift:
+lemma sum_power_shift:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   assumes "m \<le> n"
   shows "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i\<le>n-m. x^i)"
 proof -
   have "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i=m..n. x^(i-m))"
-    by (simp add: setsum_distrib_left power_add [symmetric])
+    by (simp add: sum_distrib_left power_add [symmetric])
   also have "(\<Sum>i=m..n. x^(i-m)) = (\<Sum>i\<le>n-m. x^i)"
-    using \<open>m \<le> n\<close> by (intro setsum.reindex_bij_witness[where j="\<lambda>i. i - m" and i="\<lambda>i. i + m"]) auto
+    using \<open>m \<le> n\<close> by (intro sum.reindex_bij_witness[where j="\<lambda>i. i - m" and i="\<lambda>i. i + m"]) auto
   finally show ?thesis .
 qed
 
-lemma setsum_gp_multiplied:
+lemma sum_gp_multiplied:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   assumes "m \<le> n"
   shows "(1 - x) * (\<Sum>i=m..n. x^i) = x^m - x^Suc n"
 proof -
   have  "(1 - x) * (\<Sum>i=m..n. x^i) = x^m * (1 - x) * (\<Sum>i\<le>n-m. x^i)"
-    by (metis mult.assoc mult.commute assms setsum_power_shift)
+    by (metis mult.assoc mult.commute assms sum_power_shift)
   also have "... =x^m * (1 - x^Suc(n-m))"
-    by (metis mult.assoc setsum_gp_basic)
+    by (metis mult.assoc sum_gp_basic)
   also have "... = x^m - x^Suc n"
     using assms
     by (simp add: algebra_simps) (metis le_add_diff_inverse power_add)
   finally show ?thesis .
 qed
 
-lemma setsum_gp:
+lemma sum_gp:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows   "(\<Sum>i=m..n. x^i) =
                (if n < m then 0
                 else if x = 1 then of_nat((n + 1) - m)
                 else (x^m - x^Suc n) / (1 - x))"
-using setsum_gp_multiplied [of m n x]
+using sum_gp_multiplied [of m n x]
 apply auto
 by (metis eq_iff_diff_eq_0 mult.commute nonzero_divide_eq_eq)
 
-lemma setsum_gp_offset:
+lemma sum_gp_offset:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows   "(\<Sum>i=m..m+n. x^i) =
        (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
-  using setsum_gp [of x m "m+n"]
+  using sum_gp [of x m "m+n"]
   by (auto simp: power_add algebra_simps)
 
-lemma setsum_gp_strict:
+lemma sum_gp_strict:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows "(\<Sum>i<n. x^i) = (if x = 1 then of_nat n else (1 - x^n) / (1 - x))"
   by (induct n) (auto simp: algebra_simps divide_simps)
@@ -84,13 +84,13 @@ lemma sub_polyfun:
 proof -
   have "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
         (\<Sum>i\<le>n. a i * (x^i - y^i))"
-    by (simp add: algebra_simps setsum_subtractf [symmetric])
+    by (simp add: algebra_simps sum_subtractf [symmetric])
   also have "... = (\<Sum>i\<le>n. a i * (x - y) * (\<Sum>j<i. y^(i - Suc j) * x^j))"
     by (simp add: power_diff_sumr2 ac_simps)
   also have "... = (x - y) * (\<Sum>i\<le>n. (\<Sum>j<i. a i * y^(i - Suc j) * x^j))"
-    by (simp add: setsum_distrib_left ac_simps)
+    by (simp add: sum_distrib_left ac_simps)
   also have "... = (x - y) * (\<Sum>j<n. (\<Sum>i=Suc j..n. a i * y^(i - Suc j) * x^j))"
-    by (simp add: nested_setsum_swap')
+    by (simp add: nested_sum_swap')
   finally show ?thesis .
 qed
 
@@ -102,7 +102,7 @@ proof -
   { fix j
     have "(\<Sum>k = Suc j..n. a k * y^(k - Suc j) * x^j) =
           (\<Sum>k <n - j. a (Suc (j + k)) * y^k * x^j)"
-      by (rule setsum.reindex_bij_witness[where i="\<lambda>i. i + Suc j" and j="\<lambda>i. i - Suc j"]) auto }
+      by (rule sum.reindex_bij_witness[where i="\<lambda>i. i + Suc j" and j="\<lambda>i. i - Suc j"]) auto }
   then show ?thesis
     by (simp add: sub_polyfun)
 qed
@@ -115,7 +115,7 @@ proof -
   { fix z
     have "(\<Sum>i\<le>n. c i * z^i) - (\<Sum>i\<le>n. c i * a^i) =
           (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)"
-      by (simp add: sub_polyfun setsum_distrib_right)
+      by (simp add: sub_polyfun sum_distrib_right)
     then have "(\<Sum>i\<le>n. c i * z^i) =
           (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)
           + (\<Sum>i\<le>n. c i * a^i)"
@@ -241,7 +241,7 @@ proof (induction n arbitrary: c)
    have "\<exists>k\<le>n. b k \<noteq> 0"
      apply (rule ccontr)
      using polyfun_extremal [OF extr_prem, of 1]
-     apply (auto simp: eventually_at_infinity b simp del: setsum_atMost_Suc)
+     apply (auto simp: eventually_at_infinity b simp del: sum_atMost_Suc)
      apply (drule_tac x="of_real ba" in spec, simp)
      done
    then show ?thesis using Suc.IH [of b] ins_ab

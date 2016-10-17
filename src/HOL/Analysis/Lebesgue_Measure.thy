@@ -82,7 +82,7 @@ next
           by fastforce
 
         have "(\<Sum>i\<in>S. F (r i) - F (l i)) = (F (r m) - F (l m)) + (\<Sum>i\<in>S - {m}. F (r i) - F (l i))"
-          using m psubset by (intro setsum.remove) auto
+          using m psubset by (intro sum.remove) auto
         also have "(\<Sum>i\<in>S - {m}. F (r i) - F (l i)) \<le> F b - F (r m)"
         proof (intro psubset.IH)
           show "S - {m} \<subset> S"
@@ -144,7 +144,7 @@ next
             by (intro psubset) auto
           also have "\<dots> \<le> (\<Sum>i\<in>S. F (r i) - F (l i))"
             using psubset.prems
-            by (intro setsum_mono2 psubset) (auto intro: less_imp_le)
+            by (intro sum_mono2 psubset) (auto intro: less_imp_le)
           finally show ?thesis .
         next
           assume "\<not> ?R"
@@ -155,13 +155,13 @@ next
 
           have "(\<Sum>i\<in>S. F (r i) - F (l i)) \<ge> (\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i))"
             using \<open>j \<in> S\<close> \<open>finite S\<close> psubset.prems j
-            by (intro setsum_mono2) (auto intro: less_imp_le)
+            by (intro sum_mono2) (auto intro: less_imp_le)
           also have "(\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i)) =
             (\<Sum>i\<in>?S1. F (r i) - F (l i)) + (\<Sum>i\<in>?S2 . F (r i) - F (l i)) + (F (r j) - F (l j))"
             using psubset(1) psubset.prems(1) j
-            apply (subst setsum.union_disjoint)
+            apply (subst sum.union_disjoint)
             apply simp_all
-            apply (subst setsum.union_disjoint)
+            apply (subst sum.union_disjoint)
             apply auto
             apply (metis less_le_not_le)
             done
@@ -245,7 +245,7 @@ next
       apply arith
       by (rule deltai_gt0)
     also have "... \<le> (\<Sum>i \<in> S. F(r i) - F(l i) + epsilon / 2^(i+2))"
-      apply (rule setsum_mono)
+      apply (rule sum_mono)
       apply simp
       apply (rule order_trans)
       apply (rule less_imp_le)
@@ -253,11 +253,11 @@ next
       by auto
     also have "... = (\<Sum>i \<in> S. F(r i) - F(l i)) +
         (epsilon / 4) * (\<Sum>i \<in> S. (1 / 2)^i)" (is "_ = ?t + _")
-      by (subst setsum.distrib) (simp add: field_simps setsum_distrib_left)
+      by (subst sum.distrib) (simp add: field_simps sum_distrib_left)
     also have "... \<le> ?t + (epsilon / 4) * (\<Sum> i < Suc n. (1 / 2)^i)"
       apply (rule add_left_mono)
       apply (rule mult_left_mono)
-      apply (rule setsum_mono2)
+      apply (rule sum_mono2)
       using egt0 apply auto
       by (frule Sbound, auto)
     also have "... \<le> ?t + (epsilon / 2)"
@@ -281,11 +281,11 @@ next
     also have "... = (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon"
       by auto
     also have "... \<le> (\<Sum>i\<le>n. F (r i) - F (l i)) + epsilon"
-      using finS Sbound Sprop by (auto intro!: add_right_mono setsum_mono3)
+      using finS Sbound Sprop by (auto intro!: add_right_mono sum_mono3)
     finally have "ennreal (F b - F a) \<le> (\<Sum>i\<le>n. ennreal (F (r i) - F (l i))) + epsilon"
-      using egt0 by (simp add: ennreal_plus[symmetric] setsum_nonneg del: ennreal_plus)
+      using egt0 by (simp add: ennreal_plus[symmetric] sum_nonneg del: ennreal_plus)
     then show "ennreal (F b - F a) \<le> (\<Sum>i. ennreal (F (r i) - F (l i))) + (epsilon :: real)"
-      by (rule order_trans) (auto intro!: add_mono setsum_le_suminf simp del: setsum_ennreal)
+      by (rule order_trans) (auto intro!: add_mono sum_le_suminf simp del: sum_ennreal)
   qed
   moreover have "(\<Sum>i. ennreal (F (r i) - F (l i))) \<le> ennreal (F b - F a)"
     using \<open>a \<le> b\<close> by (auto intro!: suminf_le_const ennreal_le_iff[THEN iffD2] claim1)
@@ -637,7 +637,7 @@ lemma lborel_affine:
   fixes t :: "'a::euclidean_space"
   shows "c \<noteq> 0 \<Longrightarrow> lborel = density (distr lborel borel (\<lambda>x. t + c *\<^sub>R x)) (\<lambda>_. \<bar>c\<bar>^DIM('a))"
   using lborel_affine_euclidean[where c="\<lambda>_::'a. c" and t=t]
-  unfolding scaleR_scaleR[symmetric] scaleR_setsum_right[symmetric] euclidean_representation setprod_constant by simp
+  unfolding scaleR_scaleR[symmetric] scaleR_sum_right[symmetric] euclidean_representation setprod_constant by simp
 
 lemma lborel_real_affine:
   "c \<noteq> 0 \<Longrightarrow> lborel = density (distr lborel borel (\<lambda>x. t + c * x)) (\<lambda>_. ennreal (abs c))"
@@ -722,7 +722,7 @@ proof cases
 next
   assume "x \<noteq> 0" then show ?thesis
     using lebesgue_affine_measurable[of "\<lambda>_. x" 0]
-    unfolding scaleR_scaleR[symmetric] scaleR_setsum_right[symmetric] euclidean_representation
+    unfolding scaleR_scaleR[symmetric] scaleR_sum_right[symmetric] euclidean_representation
     by (auto simp add: ac_simps)
 qed
 
@@ -747,7 +747,7 @@ proof -
       using bij_vimage_eq_inv_image[OF \<open>bij ?T'\<close>, of S] by auto
 
     have trans_eq_T: "(\<lambda>x. \<delta> + (\<Sum>j\<in>Basis. (m * (x \<bullet> j)) *\<^sub>R j)) = T m \<delta>" for m \<delta>
-      unfolding T_def[abs_def] scaleR_scaleR[symmetric] scaleR_setsum_right[symmetric]
+      unfolding T_def[abs_def] scaleR_scaleR[symmetric] scaleR_sum_right[symmetric]
       by (auto simp add: euclidean_representation ac_simps)
 
     have T[measurable]: "T r d \<in> lebesgue \<rightarrow>\<^sub>M lebesgue" for r d

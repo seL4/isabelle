@@ -641,20 +641,20 @@ lemma tendsto_add_zero:
   shows "(f \<longlongrightarrow> 0) F \<Longrightarrow> (g \<longlongrightarrow> 0) F \<Longrightarrow> ((\<lambda>x. f x + g x) \<longlongrightarrow> 0) F"
   by (drule (1) tendsto_add) simp
 
-lemma tendsto_setsum [tendsto_intros]:
+lemma tendsto_sum [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::topological_comm_monoid_add"
   shows "(\<And>i. i \<in> I \<Longrightarrow> (f i \<longlongrightarrow> a i) F) \<Longrightarrow> ((\<lambda>x. \<Sum>i\<in>I. f i x) \<longlongrightarrow> (\<Sum>i\<in>I. a i)) F"
   by (induct I rule: infinite_finite_induct) (simp_all add: tendsto_add)
 
-lemma continuous_setsum [continuous_intros]:
+lemma continuous_sum [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_add"
   shows "(\<And>i. i \<in> I \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Sum>i\<in>I. f i x)"
-  unfolding continuous_def by (rule tendsto_setsum)
+  unfolding continuous_def by (rule tendsto_sum)
 
-lemma continuous_on_setsum [continuous_intros]:
+lemma continuous_on_sum [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::topological_space \<Rightarrow> 'c::topological_comm_monoid_add"
   shows "(\<And>i. i \<in> I \<Longrightarrow> continuous_on S (f i)) \<Longrightarrow> continuous_on S (\<lambda>x. \<Sum>i\<in>I. f i x)"
-  unfolding continuous_on_def by (auto intro: tendsto_setsum)
+  unfolding continuous_on_def by (auto intro: tendsto_sum)
 
 instance nat :: topological_comm_monoid_add
   by standard
@@ -1886,7 +1886,7 @@ lemma convergent_add:
   shows "convergent (\<lambda>n. X n + Y n)"
   using assms unfolding convergent_def by (blast intro: tendsto_add)
 
-lemma convergent_setsum:
+lemma convergent_sum:
   fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::real_normed_vector"
   shows "(\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)) \<Longrightarrow> convergent (\<lambda>n. \<Sum>i\<in>A. X i n)"
   by (induct A rule: infinite_finite_induct) (simp_all add: convergent_const convergent_add)
@@ -2299,9 +2299,9 @@ lemma isCont_power [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x
   for f :: "'a::t2_space \<Rightarrow> 'b::{power,real_normed_algebra}"
   by (fact continuous_power)
 
-lemma isCont_setsum [simp]: "\<forall>i\<in>A. isCont (f i) a \<Longrightarrow> isCont (\<lambda>x. \<Sum>i\<in>A. f i x) a"
+lemma isCont_sum [simp]: "\<forall>i\<in>A. isCont (f i) a \<Longrightarrow> isCont (\<lambda>x. \<Sum>i\<in>A. f i x) a"
   for f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_add"
-  by (auto intro: continuous_setsum)
+  by (auto intro: continuous_sum)
 
 
 subsection \<open>Uniform Continuity\<close>
