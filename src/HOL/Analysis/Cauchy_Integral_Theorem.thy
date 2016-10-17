@@ -1551,9 +1551,9 @@ lemma has_contour_integral_is_0:
     "(\<And>z. z \<in> path_image g \<Longrightarrow> f z = 0) \<Longrightarrow> (f has_contour_integral 0) g"
   by (rule has_contour_integral_eq [OF has_contour_integral_0]) auto
 
-lemma has_contour_integral_setsum:
+lemma has_contour_integral_sum:
     "\<lbrakk>finite s; \<And>a. a \<in> s \<Longrightarrow> (f a has_contour_integral i a) p\<rbrakk>
-     \<Longrightarrow> ((\<lambda>x. setsum (\<lambda>a. f a x) s) has_contour_integral setsum i s) p"
+     \<Longrightarrow> ((\<lambda>x. sum (\<lambda>a. f a x) s) has_contour_integral sum i s) p"
   by (induction s rule: finite_induct) (auto simp: has_contour_integral_0 has_contour_integral_add)
 
 
@@ -1613,10 +1613,10 @@ lemma contour_integral_bound_linepath:
 lemma contour_integral_0 [simp]: "contour_integral g (\<lambda>x. 0) = 0"
   by (simp add: contour_integral_unique has_contour_integral_0)
 
-lemma contour_integral_setsum:
+lemma contour_integral_sum:
     "\<lbrakk>finite s; \<And>a. a \<in> s \<Longrightarrow> (f a) contour_integrable_on p\<rbrakk>
-     \<Longrightarrow> contour_integral p (\<lambda>x. setsum (\<lambda>a. f a x) s) = setsum (\<lambda>a. contour_integral p (f a)) s"
-  by (auto simp: contour_integral_unique has_contour_integral_setsum has_contour_integral_integral)
+     \<Longrightarrow> contour_integral p (\<lambda>x. sum (\<lambda>a. f a x) s) = sum (\<lambda>a. contour_integral p (f a)) s"
+  by (auto simp: contour_integral_unique has_contour_integral_sum has_contour_integral_integral)
 
 lemma contour_integrable_eq:
     "\<lbrakk>f contour_integrable_on p; \<And>x. x \<in> path_image p \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> g contour_integrable_on p"
@@ -1655,11 +1655,11 @@ lemma contour_integrable_div:
   using has_contour_integral_div contour_integrable_on_def
   by fastforce
 
-lemma contour_integrable_setsum:
+lemma contour_integrable_sum:
     "\<lbrakk>finite s; \<And>a. a \<in> s \<Longrightarrow> (f a) contour_integrable_on p\<rbrakk>
-     \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) s) contour_integrable_on p"
+     \<Longrightarrow> (\<lambda>x. sum (\<lambda>a. f a x) s) contour_integrable_on p"
    unfolding contour_integrable_on_def
-   by (metis has_contour_integral_setsum)
+   by (metis has_contour_integral_sum)
 
 
 subsection\<open>Reversing a path integral\<close>
@@ -5919,9 +5919,9 @@ next
   have sumeq: "(\<Sum>i = 0..n.
                of_nat (n choose i) * (deriv ((deriv ^^ i) f) z * (deriv ^^ (n - i)) g z + deriv ((deriv ^^ (n - i)) g) z * (deriv ^^ i) f z)) =
             g z * deriv ((deriv ^^ n) f) z + (\<Sum>i = 0..n. (deriv ^^ i) f z * (of_nat (Suc n choose i) * (deriv ^^ (Suc n - i)) g z))"
-    apply (simp add: bb algebra_simps setsum.distrib)
-    apply (subst (4) setsum_Suc_reindex)
-    apply (auto simp: algebra_simps Suc_diff_le intro: setsum.cong)
+    apply (simp add: bb algebra_simps sum.distrib)
+    apply (subst (4) sum_Suc_reindex)
+    apply (auto simp: algebra_simps Suc_diff_le intro: sum.cong)
     done
   show ?case
     apply (simp only: funpow.simps o_apply)
@@ -5929,7 +5929,7 @@ next
     apply (rule DERIV_transform_within_open
              [of "\<lambda>w. (\<Sum>i = 0..n. of_nat (n choose i) * (deriv ^^ i) f w * (deriv ^^ (n - i)) g w)"])
     apply (simp add: algebra_simps)
-    apply (rule DERIV_cong [OF DERIV_setsum])
+    apply (rule DERIV_cong [OF DERIV_sum])
     apply (rule DERIV_cmult)
     apply (auto simp: intro: DERIV_mult * sumeq \<open>open s\<close> Suc.prems Suc.IH [symmetric])
     done
@@ -6210,7 +6210,7 @@ proof -
         by (metis (no_types) dist_norm divide_eq_1_iff less_irrefl mem_ball norm_minus_commute r w)
       have "norm ((\<Sum>k<N. (w - z) ^ k * f u / (u - z) ^ Suc k) * (u - w) - f u)
             = norm ((\<Sum>k<N. (((w - z) / (u - z)) ^ k)) * f u * (u - w) / (u - z) - f u)"
-        unfolding setsum_distrib_right setsum_divide_distrib power_divide by (simp add: algebra_simps)
+        unfolding sum_distrib_right sum_divide_distrib power_divide by (simp add: algebra_simps)
       also have "... = norm ((((w - z) / (u - z)) ^ N - 1) * (u - w) / (((w - z) / (u - z) - 1) * (u - z)) - 1) * norm (f u)"
         using \<open>0 < B\<close>
         apply (auto simp: geometric_sum [OF wzu_not1])
@@ -6242,7 +6242,7 @@ proof -
              contour_integral (circlepath z r) (\<lambda>u. \<Sum>k<x. (w - z) ^ k * (f u / (u - z) ^ Suc k)) =
              (\<Sum>k<x. contour_integral (circlepath z r) (\<lambda>u. f u / (u - z) ^ Suc k) * (w - z) ^ k)"
     apply (rule eventuallyI)
-    apply (subst contour_integral_setsum, simp)
+    apply (subst contour_integral_sum, simp)
     using contour_integrable_lmul [OF cint, of "(w - z) ^ a" for a] apply (simp add: field_simps)
     apply (simp only: contour_integral_lmul cint algebra_simps)
     done
@@ -6251,7 +6251,7 @@ proof -
     unfolding sums_def
     apply (rule Lim_transform_eventually [OF eq])
     apply (rule contour_integral_uniform_limit_circlepath [OF eventuallyI *])
-    apply (rule contour_integrable_setsum, simp)
+    apply (rule contour_integrable_sum, simp)
     apply (rule contour_integrable_lmul)
     apply (rule Cauchy_higher_derivative_integral_circlepath [OF contf holf])
     using \<open>0 < r\<close>
@@ -6589,7 +6589,7 @@ proof -
   have "(\<forall>x\<in>s. (\<lambda>n. \<Sum>i<n. f i x) \<longlonglongrightarrow> g x)"
     using g by (force simp add: lim_sequentially)
   moreover have "\<exists>g'. \<forall>x\<in>s. (g has_field_derivative g' x) (at x) \<and> (\<lambda>n. \<Sum>i<n. f' i x) \<longlonglongrightarrow> g' x"
-    by (rule has_complex_derivative_uniform_sequence [OF s]) (auto intro: * hfd DERIV_setsum)+
+    by (rule has_complex_derivative_uniform_sequence [OF s]) (auto intro: * hfd DERIV_sum)+
   ultimately show ?thesis
     by (force simp add: sums_def  conj_commute intro: that)
 qed

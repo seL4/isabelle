@@ -118,7 +118,7 @@ proof safe
     by (simp add: field_simps scaleR_add_right scaleR_diff_right)
 qed (blast intro: bounded_linear_add f g has_derivative_bounded_linear)
 
-lemma has_derivative_setsum[simp, derivative_intros]:
+lemma has_derivative_sum[simp, derivative_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) F) \<Longrightarrow>
     ((\<lambda>x. \<Sum>i\<in>I. f i x) has_derivative (\<lambda>x. \<Sum>i\<in>I. f' i x)) F"
   by (induct I rule: infinite_finite_induct) simp_all
@@ -368,7 +368,7 @@ next
     using insert by (intro has_derivative_mult) auto
   also have "?P = (\<lambda>y. \<Sum>i'\<in>insert i I. f' i' y * (\<Prod>j\<in>insert i I - {i'}. f j x))"
     using insert(1,2)
-    by (auto simp add: setsum_distrib_left insert_Diff_if intro!: ext setsum.cong)
+    by (auto simp add: sum_distrib_left insert_Diff_if intro!: ext sum.cong)
   finally show ?case
     using insert by simp
 qed
@@ -678,10 +678,10 @@ lemma has_vector_derivative_add[derivative_intros]:
     ((\<lambda>x. f x + g x) has_vector_derivative (f' + g')) net"
   by (auto simp: has_vector_derivative_def scaleR_right_distrib)
 
-lemma has_vector_derivative_setsum[derivative_intros]:
+lemma has_vector_derivative_sum[derivative_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i has_vector_derivative f' i) net) \<Longrightarrow>
     ((\<lambda>x. \<Sum>i\<in>I. f i x) has_vector_derivative (\<Sum>i\<in>I. f' i)) net"
-  by (auto simp: has_vector_derivative_def fun_eq_iff scaleR_setsum_right intro!: derivative_eq_intros)
+  by (auto simp: has_vector_derivative_def fun_eq_iff scaleR_sum_right intro!: derivative_eq_intros)
 
 lemma has_vector_derivative_diff[derivative_intros]:
   "(f has_vector_derivative f') net \<Longrightarrow> (g has_vector_derivative g') net \<Longrightarrow>
@@ -841,11 +841,11 @@ lemma DERIV_cdivide:
 lemma DERIV_unique: "DERIV f x :> D \<Longrightarrow> DERIV f x :> E \<Longrightarrow> D = E"
   unfolding DERIV_def by (rule LIM_unique)
 
-lemma DERIV_setsum[derivative_intros]:
+lemma DERIV_sum[derivative_intros]:
   "(\<And> n. n \<in> S \<Longrightarrow> ((\<lambda>x. f x n) has_field_derivative (f' x n)) F) \<Longrightarrow>
-    ((\<lambda>x. setsum (f x) S) has_field_derivative setsum (f' x) S) F"
-  by (rule has_derivative_imp_has_field_derivative [OF has_derivative_setsum])
-     (auto simp: setsum_distrib_left mult_commute_abs dest: has_field_derivative_imp_has_derivative)
+    ((\<lambda>x. sum (f x) S) has_field_derivative sum (f' x) S) F"
+  by (rule has_derivative_imp_has_field_derivative [OF has_derivative_sum])
+     (auto simp: sum_distrib_left mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 
 lemma DERIV_inverse'[derivative_intros]:
   assumes "(f has_field_derivative D) (at x within s)"

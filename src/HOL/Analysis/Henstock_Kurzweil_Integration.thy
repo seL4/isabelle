@@ -176,11 +176,11 @@ lemma division_of_content_0:
   unfolding forall_in_division[OF assms(2)]
   by (metis antisym_conv assms content_pos_le content_subset division_ofD(2))
 
-lemma setsum_content_null:
+lemma sum_content_null:
   assumes "content (cbox a b) = 0"
     and "p tagged_division_of (cbox a b)"
-  shows "setsum (\<lambda>(x,k). content k *\<^sub>R f x) p = (0::'a::real_normed_vector)"
-proof (rule setsum.neutral, rule)
+  shows "sum (\<lambda>(x,k). content k *\<^sub>R f x) p = (0::'a::real_normed_vector)"
+proof (rule sum.neutral, rule)
   fix y
   assume y: "y \<in> p"
   obtain x k where xk: "y = (x, k)"
@@ -199,12 +199,12 @@ qed
 lemma operative_content[intro]: "add.operative content"
   by (force simp add: add.operative_def content_split[symmetric] content_eq_0_interior)
 
-lemma additive_content_division: "d division_of (cbox a b) \<Longrightarrow> setsum content d = content (cbox a b)"
-  by (metis operative_content setsum.operative_division)
+lemma additive_content_division: "d division_of (cbox a b) \<Longrightarrow> sum content d = content (cbox a b)"
+  by (metis operative_content sum.operative_division)
 
 lemma additive_content_tagged_division:
-  "d tagged_division_of (cbox a b) \<Longrightarrow> setsum (\<lambda>(x,l). content l) d = content (cbox a b)"
-  unfolding setsum.operative_tagged_division[OF operative_content, symmetric] by blast
+  "d tagged_division_of (cbox a b) \<Longrightarrow> sum (\<lambda>(x,l). content l) d = content (cbox a b)"
+  unfolding sum.operative_tagged_division[OF operative_content, symmetric] by blast
 
 lemma content_real_eq_0: "content {a .. b::real} = 0 \<longleftrightarrow> a \<ge> b"
   by (metis atLeastatMost_empty_iff2 content_empty content_real diff_self eq_iff le_cases le_iff_diff_le_0)
@@ -234,14 +234,14 @@ lemma has_integral:
   "(f has_integral y) (cbox a b) \<longleftrightarrow>
     (\<forall>e>0. \<exists>d. gauge d \<and>
       (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-        norm (setsum (\<lambda>(x,k). content(k) *\<^sub>R f x) p - y) < e))"
+        norm (sum (\<lambda>(x,k). content(k) *\<^sub>R f x) p - y) < e))"
   by (auto simp: dist_norm eventually_division_filter has_integral_def tendsto_iff)
 
 lemma has_integral_real:
   "(f has_integral y) {a .. b::real} \<longleftrightarrow>
     (\<forall>e>0. \<exists>d. gauge d \<and>
       (\<forall>p. p tagged_division_of {a .. b} \<and> d fine p \<longrightarrow>
-        norm (setsum (\<lambda>(x,k). content(k) *\<^sub>R f x) p - y) < e))"
+        norm (sum (\<lambda>(x,k). content(k) *\<^sub>R f x) p - y) < e))"
   unfolding box_real[symmetric]
   by (rule has_integral)
 
@@ -364,7 +364,7 @@ lemma has_integral_const [intro]:
   shows "((\<lambda>x. c) has_integral (content (cbox a b) *\<^sub>R c)) (cbox a b)"
   using eventually_division_filter_tagged_division[of "cbox a b"]
      additive_content_tagged_division[of _ a b]
-  by (auto simp: has_integral_cbox split_beta' scaleR_setsum_left[symmetric]
+  by (auto simp: has_integral_cbox split_beta' scaleR_sum_left[symmetric]
            elim!: eventually_mono intro!: tendsto_cong[THEN iffD1, OF _ tendsto_const])
 
 lemma has_integral_const_real [intro]:
@@ -391,7 +391,7 @@ proof -
     unfolding has_integral_cbox
     using eventually_division_filter_tagged_division[of "cbox a b"]
     by (subst tendsto_cong[where g="\<lambda>_. 0"])
-       (auto elim!: eventually_mono intro!: setsum.neutral simp: tag_in_interval)
+       (auto elim!: eventually_mono intro!: sum.neutral simp: tag_in_interval)
   {
     presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
     with assms lem show ?thesis
@@ -425,7 +425,7 @@ proof -
   from pos_bounded obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
     by blast
   have lem: "\<And>a b y f::'n\<Rightarrow>'a. (f has_integral y) (cbox a b) \<Longrightarrow> ((h \<circ> f) has_integral h y) (cbox a b)"
-    unfolding has_integral_cbox by (drule tendsto) (simp add: setsum scaleR split_beta')
+    unfolding has_integral_cbox by (drule tendsto) (simp add: sum scaleR split_beta')
   {
     presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
     then show ?thesis
@@ -531,7 +531,7 @@ proof -
     ((\<lambda>x. f x + g x) has_integral (k + l)) (cbox a b)"
     for f :: "'n \<Rightarrow> 'a" and g a b k l
     unfolding has_integral_cbox
-    by (simp add: split_beta' scaleR_add_right setsum.distrib[abs_def] tendsto_add)
+    by (simp add: split_beta' scaleR_add_right sum.distrib[abs_def] tendsto_add)
   {
     presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
     then show ?thesis
@@ -666,10 +666,10 @@ lemma integral_component_eq[simp]:
   shows "integral s (\<lambda>x. f x \<bullet> k) = integral s f \<bullet> k"
   unfolding integral_linear[OF assms(1) bounded_linear_inner_left,unfolded o_def] ..
 
-lemma has_integral_setsum:
+lemma has_integral_sum:
   assumes "finite t"
     and "\<forall>a\<in>t. ((f a) has_integral (i a)) s"
-  shows "((\<lambda>x. setsum (\<lambda>a. f a x) t) has_integral (setsum i t)) s"
+  shows "((\<lambda>x. sum (\<lambda>a. f a x) t) has_integral (sum i t)) s"
   using assms(1) subset_refl[of t]
 proof (induct rule: finite_subset_induct)
   case empty
@@ -680,16 +680,16 @@ next
     by (simp add: has_integral_add)
 qed
 
-lemma integral_setsum:
+lemma integral_sum:
   "\<lbrakk>finite t;  \<forall>a\<in>t. (f a) integrable_on s\<rbrakk> \<Longrightarrow>
-   integral s (\<lambda>x. setsum (\<lambda>a. f a x) t) = setsum (\<lambda>a. integral s (f a)) t"
-  by (auto intro: has_integral_setsum integrable_integral)
+   integral s (\<lambda>x. sum (\<lambda>a. f a x) t) = sum (\<lambda>a. integral s (f a)) t"
+  by (auto intro: has_integral_sum integrable_integral)
 
-lemma integrable_setsum:
-  "\<lbrakk>finite t;  \<forall>a\<in>t. (f a) integrable_on s\<rbrakk> \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) t) integrable_on s"
+lemma integrable_sum:
+  "\<lbrakk>finite t;  \<forall>a\<in>t. (f a) integrable_on s\<rbrakk> \<Longrightarrow> (\<lambda>x. sum (\<lambda>a. f a x) t) integrable_on s"
   unfolding integrable_on_def
   apply (drule bchoice)
-  using has_integral_setsum[of t]
+  using has_integral_sum[of t]
   apply auto
   done
 
@@ -760,7 +760,7 @@ by (simp add: divide_inverse assms of_real_inverse [symmetric] del: of_real_inve
 lemma has_integral_null [intro]: "content(cbox a b) = 0 \<Longrightarrow> (f has_integral 0) (cbox a b)"
   unfolding has_integral_cbox
   using eventually_division_filter_tagged_division[of "cbox a b"]
-  by (subst tendsto_cong[where g="\<lambda>_. 0"]) (auto elim: eventually_mono intro: setsum_content_null)
+  by (subst tendsto_cong[where g="\<lambda>_. 0"]) (auto elim: eventually_mono intro: sum_content_null)
 
 lemma has_integral_null_real [intro]: "content {a .. b::real} = 0 \<Longrightarrow> (f has_integral 0) {a .. b}"
   by (metis box_real(2) has_integral_null)
@@ -840,7 +840,7 @@ next
   hence "\<forall>b\<in>Basis. (((\<lambda>x. x *\<^sub>R b) \<circ> (\<lambda>x. f x \<bullet> b)) has_integral ((y \<bullet> b) *\<^sub>R b)) A"
     by (intro ballI has_integral_linear) (simp_all add: bounded_linear_scaleR_left)
   hence "((\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) has_integral (\<Sum>b\<in>Basis. (y \<bullet> b) *\<^sub>R b)) A"
-    by (intro has_integral_setsum) (simp_all add: o_def)
+    by (intro has_integral_sum) (simp_all add: o_def)
   thus "(f has_integral y) A" by (simp add: euclidean_representation)
 qed
 
@@ -865,7 +865,7 @@ next
   hence "\<forall>b\<in>Basis. (((\<lambda>x. x *\<^sub>R b) \<circ> (\<lambda>x. f x \<bullet> b)) has_integral (y b *\<^sub>R b)) A"
     by (intro ballI has_integral_linear) (simp_all add: bounded_linear_scaleR_left)
   hence "((\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) has_integral (\<Sum>b\<in>Basis. y b *\<^sub>R b)) A"
-    by (intro has_integral_setsum) (simp_all add: o_def)
+    by (intro has_integral_sum) (simp_all add: o_def)
   thus "f integrable_on A" by (auto simp: integrable_on_def o_def euclidean_representation)
 qed
 
@@ -885,7 +885,7 @@ proof -
   have "integral A f = integral A (\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b)"
     by (simp add: euclidean_representation)
   also from integrable have "\<dots> = (\<Sum>a\<in>Basis. integral A (\<lambda>x. (f x \<bullet> a) *\<^sub>R a))"
-    by (subst integral_setsum) (simp_all add: o_def)
+    by (subst integral_sum) (simp_all add: o_def)
   finally show ?thesis .
 qed
 
@@ -944,7 +944,7 @@ next
   from choice[OF this] guess p .. note p = conjunctD2[OF this[rule_format]]
   have dp: "\<And>i n. i\<le>n \<Longrightarrow> d i fine p n"
     using p(2) unfolding fine_inters by auto
-  have "Cauchy (\<lambda>n. setsum (\<lambda>(x,k). content k *\<^sub>R (f x)) (p n))"
+  have "Cauchy (\<lambda>n. sum (\<lambda>(x,k). content k *\<^sub>R (f x)) (p n))"
   proof (rule CauchyI, goal_cases)
     case (1 e)
     then guess N unfolding real_arch_inverse[of e] .. note N=this
@@ -1124,9 +1124,9 @@ proof (unfold has_integral, rule, rule, goal_cases)
         unfolding xk split_conv by auto
     } note [simp] = this
     have lem3: "\<And>g :: 'a set \<Rightarrow> 'a set. finite p \<Longrightarrow>
-                  setsum (\<lambda>(x, k). content k *\<^sub>R f x) {(x,g k) |x k. (x,k) \<in> p \<and> g k \<noteq> {}} =
-                  setsum (\<lambda>(x, k). content k *\<^sub>R f x) ((\<lambda>(x, k). (x, g k)) ` p)"
-      by (rule setsum.mono_neutral_left) auto
+                  sum (\<lambda>(x, k). content k *\<^sub>R f x) {(x,g k) |x k. (x,k) \<in> p \<and> g k \<noteq> {}} =
+                  sum (\<lambda>(x, k). content k *\<^sub>R f x) ((\<lambda>(x, k). (x, g k)) ` p)"
+      by (rule sum.mono_neutral_left) auto
     let ?M1 = "{(x, kk \<inter> {x. x\<bullet>k \<le> c}) |x kk. (x, kk) \<in> p \<and> kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
     have d1_fine: "d1 fine ?M1"
       by (force intro: fineI dest: fineD[OF p(2)] simp add: split: if_split_asm)
@@ -1218,10 +1218,10 @@ proof (unfold has_integral, rule, rule, goal_cases)
       also have "\<dots> = (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. x \<bullet> k \<le> c}) *\<^sub>R f x) +
         (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. c \<le> x \<bullet> k}) *\<^sub>R f x) - (i + j)"
         unfolding lem3[OF p(3)]
-        by (subst (1 2) setsum.reindex_nontrivial[OF p(3)])
+        by (subst (1 2) sum.reindex_nontrivial[OF p(3)])
            (auto intro!: k eq0 tagged_division_split_left_inj_content[OF p(1)] tagged_division_split_right_inj_content[OF p(1)]
                  simp: cont_eq)+
-      also note setsum.distrib[symmetric]
+      also note sum.distrib[symmetric]
       also have "\<And>x. x \<in> p \<Longrightarrow>
                     (\<lambda>(x,ka). content (ka \<inter> {x. x \<bullet> k \<le> c}) *\<^sub>R f x) x +
                     (\<lambda>(x,ka). content (ka \<inter> {x. c \<le> x \<bullet> k}) *\<^sub>R f x) x =
@@ -1236,7 +1236,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
           unfolding uv content_split[OF k,of u v c]
           by auto
       qed
-      note setsum.cong [OF _ this]
+      note sum.cong [OF _ this]
       finally have "(\<Sum>(x, k)\<in>{(x, kk \<inter> {x. x \<bullet> k \<le> c}) |x kk. (x, kk) \<in> p \<and> kk \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}}. content k *\<^sub>R f x) - i +
         ((\<Sum>(x, k)\<in>{(x, kk \<inter> {x. c \<le> x \<bullet> k}) |x kk. (x, kk) \<in> p \<and> kk \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}}. content k *\<^sub>R f x) - j) =
         (\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f x) - (i + j)"
@@ -1258,7 +1258,7 @@ lemma has_integral_separate_sides:
   obtains d where "gauge d"
     "\<forall>p1 p2. p1 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<and> d fine p1 \<and>
         p2 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) \<and> d fine p2 \<longrightarrow>
-        norm ((setsum (\<lambda>(x,k). content k *\<^sub>R f x) p1 + setsum (\<lambda>(x,k). content k *\<^sub>R f x) p2) - i) < e"
+        norm ((sum (\<lambda>(x,k). content k *\<^sub>R f x) p1 + sum (\<lambda>(x,k). content k *\<^sub>R f x) p2) - i) < e"
 proof -
   guess d using has_integralD[OF assms(1-2)] . note d=this
   { fix p1 p2
@@ -1287,9 +1287,9 @@ proof -
           using e k by (auto simp: inner_simps inner_not_same_Basis)
         have "(\<Sum>i\<in>Basis. \<bar>(x - (x + (e / 2 ) *\<^sub>R k)) \<bullet> i\<bar>) =
               (\<Sum>i\<in>Basis. (if i = k then e / 2 else 0))"
-          using "*" by (blast intro: setsum.cong)
+          using "*" by (blast intro: sum.cong)
         also have "\<dots> < e"
-          apply (subst setsum.delta)
+          apply (subst sum.delta)
           using e
           apply auto
           done
@@ -1308,7 +1308,7 @@ proof -
     }
     then have "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - i) =
                norm ((\<Sum>(x, k)\<in>p1 \<union> p2. content k *\<^sub>R f x) - i)"
-      by (subst setsum.union_inter_neutral) (auto simp: p1 p2)
+      by (subst sum.union_inter_neutral) (auto simp: p1 p2)
     also have "\<dots> < e"
       by (rule k d(2) p12 fine_union p1 p2)+
     finally have "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - i) < e" .
@@ -1426,20 +1426,20 @@ subsection \<open>Bounds on the norm of Riemann sums and the integral itself.\<c
 lemma dsum_bound:
   assumes "p division_of (cbox a b)"
     and "norm c \<le> e"
-  shows "norm (setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> e * content(cbox a b)"
+  shows "norm (sum (\<lambda>l. content l *\<^sub>R c) p) \<le> e * content(cbox a b)"
 proof -
-  have sumeq: "(\<Sum>i\<in>p. \<bar>content i\<bar>) = setsum content p"
-    apply (rule setsum.cong)
+  have sumeq: "(\<Sum>i\<in>p. \<bar>content i\<bar>) = sum content p"
+    apply (rule sum.cong)
     using assms
     apply simp
     apply (metis abs_of_nonneg assms(1) content_pos_le division_ofD(4))
     done
   have e: "0 \<le> e"
     using assms(2) norm_ge_zero order_trans by blast
-  have "norm (setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> (\<Sum>i\<in>p. norm (content i *\<^sub>R c))"
-    using norm_setsum by blast
+  have "norm (sum (\<lambda>l. content l *\<^sub>R c) p) \<le> (\<Sum>i\<in>p. norm (content i *\<^sub>R c))"
+    using norm_sum by blast
   also have "...  \<le> e * (\<Sum>i\<in>p. \<bar>content i\<bar>)"
-    by (simp add: setsum_distrib_left[symmetric] mult.commute assms(2) mult_right_mono setsum_nonneg)
+    by (simp add: sum_distrib_left[symmetric] mult.commute assms(2) mult_right_mono sum_nonneg)
   also have "... \<le> e * content (cbox a b)"
     apply (rule mult_left_mono [OF _ e])
     apply (simp add: sumeq)
@@ -1451,7 +1451,7 @@ qed
 lemma rsum_bound:
   assumes p: "p tagged_division_of (cbox a b)"
       and "\<forall>x\<in>cbox a b. norm (f x) \<le> e"
-    shows "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p) \<le> e * content (cbox a b)"
+    shows "norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p) \<le> e * content (cbox a b)"
 proof (cases "cbox a b = {}")
   case True show ?thesis
     using p unfolding True tagged_division_of_trivial by auto
@@ -1459,7 +1459,7 @@ next
   case False
   then have e: "e \<ge> 0"
     by (meson ex_in_conv assms(2) norm_ge_zero order_trans)
-  have setsum_le: "setsum (content \<circ> snd) p \<le> content (cbox a b)"
+  have sum_le: "sum (content \<circ> snd) p \<le> content (cbox a b)"
     unfolding additive_content_tagged_division[OF p, symmetric] split_def
     by (auto intro: eq_refl)
   have con: "\<And>xk. xk \<in> p \<Longrightarrow> 0 \<le> content (snd xk)"
@@ -1468,15 +1468,15 @@ next
   have norm: "\<And>xk. xk \<in> p \<Longrightarrow> norm (f (fst xk)) \<le> e"
     unfolding fst_conv using tagged_division_ofD(2,3)[OF p] assms
     by (metis prod.collapse subset_eq)
-  have "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p) \<le> (\<Sum>i\<in>p. norm (case i of (x, k) \<Rightarrow> content k *\<^sub>R f x))"
-    by (rule norm_setsum)
+  have "norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p) \<le> (\<Sum>i\<in>p. norm (case i of (x, k) \<Rightarrow> content k *\<^sub>R f x))"
+    by (rule norm_sum)
   also have "...  \<le> e * content (cbox a b)"
     unfolding split_def norm_scaleR
-    apply (rule order_trans[OF setsum_mono])
+    apply (rule order_trans[OF sum_mono])
     apply (rule mult_left_mono[OF _ abs_ge_zero, of _ e])
     apply (metis norm)
-    unfolding setsum_distrib_right[symmetric]
-    using con setsum_le
+    unfolding sum_distrib_right[symmetric]
+    using con sum_le
     apply (auto simp: mult.commute intro: mult_left_mono [OF _ e])
     done
   finally show ?thesis .
@@ -1485,10 +1485,10 @@ qed
 lemma rsum_diff_bound:
   assumes "p tagged_division_of (cbox a b)"
     and "\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e"
-  shows "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - setsum (\<lambda>(x,k). content k *\<^sub>R g x) p) \<le>
+  shows "norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - sum (\<lambda>(x,k). content k *\<^sub>R g x) p) \<le>
          e * content (cbox a b)"
   apply (rule order_trans[OF _ rsum_bound[OF assms]])
-  apply (simp add: split_def scaleR_diff_right setsum_subtractf eq_refl)
+  apply (simp add: split_def scaleR_diff_right sum_subtractf eq_refl)
   done
 
 lemma has_integral_bound:
@@ -1534,9 +1534,9 @@ lemma rsum_component_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "p tagged_division_of (cbox a b)"
       and "\<forall>x\<in>cbox a b. (f x)\<bullet>i \<le> (g x)\<bullet>i"
-    shows "(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p)\<bullet>i \<le> (setsum (\<lambda>(x,k). content k *\<^sub>R g x) p)\<bullet>i"
-unfolding inner_setsum_left
-proof (rule setsum_mono, clarify)
+    shows "(sum (\<lambda>(x,k). content k *\<^sub>R f x) p)\<bullet>i \<le> (sum (\<lambda>(x,k). content k *\<^sub>R g x) p)\<bullet>i"
+unfolding inner_sum_left
+proof (rule sum_mono, clarify)
   fix a b
   assume ab: "(a, b) \<in> p"
   note tagged = tagged_division_ofD(2-4)[OF assms(1) ab]
@@ -1877,7 +1877,7 @@ proof cases
   also have "(\<Prod>j\<in>Basis. (b' 0 - a' 0) \<bullet> j) = 0"
     using k *
     by (intro setprod_zero bexI[OF _ k])
-       (auto simp: b'_def a'_def inner_diff inner_setsum_left inner_not_same_Basis intro!: setsum.cong)
+       (auto simp: b'_def a'_def inner_diff inner_sum_left inner_not_same_Basis intro!: sum.cong)
   also have "((\<lambda>d. \<Prod>j\<in>Basis. (b' d - a' d) \<bullet> j) \<longlongrightarrow> 0) (at_right 0) =
     ((\<lambda>d. content (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d})) \<longlongrightarrow> 0) (at_right 0)"
   proof (intro tendsto_cong eventually_at_rightI)
@@ -1952,7 +1952,7 @@ proof (clarify, goal_cases)
     assume p: "p tagged_division_of (cbox a b) \<and> (\<lambda>x. ball x d) fine p"
     have *: "(\<Sum>(x, ka)\<in>p. content ka *\<^sub>R ?i x) =
       (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
-      apply (rule setsum.cong)
+      apply (rule sum.cong)
       apply (rule refl)
       unfolding split_paired_all real_scaleR_def mult_cancel_right split_conv
       apply cases
@@ -1989,7 +1989,7 @@ proof (clarify, goal_cases)
       unfolding diff_0_right *
       unfolding real_scaleR_def real_norm_def
       apply (subst abs_of_nonneg)
-      apply (rule setsum_nonneg)
+      apply (rule sum_nonneg)
       apply rule
       unfolding split_paired_all split_conv
       apply (rule mult_nonneg_nonneg)
@@ -2005,14 +2005,14 @@ proof (clarify, goal_cases)
     proof -
       have "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) \<le>
         (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}))"
-        apply (rule setsum_mono)
+        apply (rule sum_mono)
         unfolding split_paired_all split_conv
         apply (rule mult_right_le_one_le)
         apply (drule p'(4))
         apply (auto simp add:interval_doublesplit[OF k])
         done
       also have "\<dots> < e"
-      proof (subst setsum.over_tagged_division_lemma[OF p[THEN conjunct1]], goal_cases)
+      proof (subst sum.over_tagged_division_lemma[OF p[THEN conjunct1]], goal_cases)
         case prems: (1 u v)
         then have *: "content (cbox u v) = 0"
           unfolding content_eq_0_interior by simp
@@ -2027,8 +2027,8 @@ proof (clarify, goal_cases)
           by (blast intro: antisym)
       next
         have "(\<Sum>l\<in>snd ` p. content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) =
-          setsum content ((\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}})"
-        proof (subst (2) setsum.reindex_nontrivial)
+          sum content ((\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}})"
+        proof (subst (2) sum.reindex_nontrivial)
           fix x y assume "x \<in> {l \<in> snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}" "y \<in> {l \<in> snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}"
             "x \<noteq> y" and eq: "x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} = y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}"
           then obtain x' y' where "(x', x) \<in> p" "x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}" "(y', y) \<in> p" "y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}"
@@ -2041,7 +2041,7 @@ proof (clarify, goal_cases)
             by (auto simp: eq)
           then show "content (x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = 0"
             using p'(4)[OF \<open>(x', x) \<in> p\<close>] by (auto simp: interval_doublesplit[OF k] content_eq_0_interior simp del: interior_Int)
-        qed (insert p'(1), auto intro!: setsum.mono_neutral_right)
+        qed (insert p'(1), auto intro!: sum.mono_neutral_right)
         also have "\<dots> \<le> norm (\<Sum>l\<in>(\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}. content l *\<^sub>R 1::real)"
           by simp
         also have "\<dots> \<le> 1 * content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})"
@@ -2144,15 +2144,15 @@ next
         by (auto intro: tagged_division_finer[OF as(1) d(1)])
       from choice[OF this] guess q .. note q=conjunctD3[OF this[rule_format]]
       have *: "\<And>i. (\<Sum>(x, k)\<in>q i. content k *\<^sub>R indicator s x) \<ge> (0::real)"
-        apply (rule setsum_nonneg)
+        apply (rule sum_nonneg)
         apply safe
         unfolding real_scaleR_def
         apply (drule tagged_division_ofD(4)[OF q(1)])
         apply (auto intro: mult_nonneg_nonneg)
         done
       have **: "finite s \<Longrightarrow> finite t \<Longrightarrow> (\<forall>(x,y) \<in> t. (0::real) \<le> g(x,y)) \<Longrightarrow>
-        (\<forall>y\<in>s. \<exists>x. (x,y) \<in> t \<and> f(y) \<le> g(x,y)) \<Longrightarrow> setsum f s \<le> setsum g t" for f g s t
-        apply (rule setsum_le_included[of s t g snd f])
+        (\<forall>y\<in>s. \<exists>x. (x,y) \<in> t \<and> f(y) \<le> g(x,y)) \<Longrightarrow> sum f s \<le> sum g t" for f g s t
+        apply (rule sum_le_included[of s t g snd f])
         prefer 4
         apply safe
         apply (erule_tac x=x in ballE)
@@ -2160,11 +2160,11 @@ next
         apply (rule_tac x="(xa,x)" in bexI)
         apply auto
         done
-      have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> setsum (\<lambda>i. (real i + 1) *
-        norm (setsum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {..N+1}"
-        unfolding real_norm_def setsum_distrib_left abs_of_nonneg[OF *] diff_0_right
+      have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> sum (\<lambda>i. (real i + 1) *
+        norm (sum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {..N+1}"
+        unfolding real_norm_def sum_distrib_left abs_of_nonneg[OF *] diff_0_right
         apply (rule order_trans)
-        apply (rule norm_setsum)
+        apply (rule norm_sum)
         apply (subst sum_sum_product)
         prefer 3
       proof (rule **, safe)
@@ -2229,8 +2229,8 @@ next
           apply auto
           done
       qed (insert as, auto)
-      also have "\<dots> \<le> setsum (\<lambda>i. e / 2 / 2 ^ i) {..N+1}"
-      proof (rule setsum_mono, goal_cases)
+      also have "\<dots> \<le> sum (\<lambda>i. e / 2 / 2 ^ i) {..N+1}"
+      proof (rule sum_mono, goal_cases)
         case (1 i)
         then show ?case
           apply (subst mult.commute, subst pos_le_divide_eq[symmetric])
@@ -2240,7 +2240,7 @@ next
           done
       qed
       also have "\<dots> < e * inverse 2 * 2"
-        unfolding divide_inverse setsum_distrib_left[symmetric]
+        unfolding divide_inverse sum_distrib_left[symmetric]
         apply (rule mult_strict_left_mono)
         unfolding power_inverse [symmetric] lessThan_Suc_atMost[symmetric]
         apply (subst geometric_sum)
@@ -2640,14 +2640,14 @@ subsection \<open>A useful lemma allowing us to factor out the content size.\<cl
 lemma has_integral_factor_content:
   "(f has_integral i) (cbox a b) \<longleftrightarrow>
     (\<forall>e>0. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - i) \<le> e * content (cbox a b)))"
+      norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - i) \<le> e * content (cbox a b)))"
 proof (cases "content (cbox a b) = 0")
   case True
   show ?thesis
     unfolding has_integral_null_eq[OF True]
     apply safe
     apply (rule, rule, rule gauge_trivial, safe)
-    unfolding setsum_content_null[OF True] True
+    unfolding sum_content_null[OF True] True
     defer
     apply (erule_tac x=1 in allE)
     apply safe
@@ -2655,7 +2655,7 @@ proof (cases "content (cbox a b) = 0")
     apply (rule fine_division_exists[of _ a b])
     apply assumption
     apply (erule_tac x=p in allE)
-    unfolding setsum_content_null[OF True]
+    unfolding sum_content_null[OF True]
     apply auto
     done
 next
@@ -2696,7 +2696,7 @@ qed
 lemma has_integral_factor_content_real:
   "(f has_integral i) {a .. b::real} \<longleftrightarrow>
     (\<forall>e>0. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a .. b}  \<and> d fine p \<longrightarrow>
-      norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - i) \<le> e * content {a .. b} ))"
+      norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - i) \<le> e * content {a .. b} ))"
   unfolding box_real[symmetric]
   by (rule has_integral_factor_content)
 
@@ -2738,10 +2738,10 @@ proof safe
     show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content (cbox a b)"
       unfolding content_real[OF assms(1), simplified box_real[symmetric]] additive_tagged_division_1[OF assms(1) as(1)[simplified box_real],of f,symmetric]
       unfolding additive_tagged_division_1[OF assms(1) as(1)[simplified box_real],of "\<lambda>x. x",symmetric]
-      unfolding setsum_distrib_left
+      unfolding sum_distrib_left
       defer
-      unfolding setsum_subtractf[symmetric]
-    proof (rule setsum_norm_le,safe)
+      unfolding sum_subtractf[symmetric]
+    proof (rule sum_norm_le,safe)
       fix x k
       assume "(x, k) \<in> p"
       note xk = tagged_division_ofD(2-4)[OF as(1) this]
@@ -2809,7 +2809,7 @@ by (metis atLeastatMost_empty_iff integrable_on_def has_integral_empty ident_has
 
 subsection \<open>Taylor series expansion\<close>
 
-lemma (in bounded_bilinear) setsum_prod_derivatives_has_vector_derivative:
+lemma (in bounded_bilinear) sum_prod_derivatives_has_vector_derivative:
   assumes "p>0"
   and f0: "Df 0 = f"
   and Df: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
@@ -2835,7 +2835,7 @@ proof cases
     prod (Df (Suc i) t) (Dg (p - Suc i) t))) =
     (\<Sum>i\<le>(Suc p'). ?f i - ?f (Suc i))"
     by (auto simp: algebra_simps p'(2) numeral_2_eq_2 * lessThan_Suc_atMost)
-  also note setsum_telescope
+  also note sum_telescope
   finally
   have "(\<Sum>i<p. (-1) ^ i *\<^sub>R (prod (Df i t) (Dg (Suc (p - Suc i)) t) +
     prod (Df (Suc i) t) (Dg (p - Suc i) t)))
@@ -2884,7 +2884,7 @@ proof goal_cases
     unfolding Dg_def
     by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def fact_eq divide_simps)
   let ?sum = "\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t"
-  from setsum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
+  from sum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
       OF \<open>p > 0\<close> g0 Dg f0 Df]
   have deriv: "\<And>t. a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
     (?sum has_vector_derivative
@@ -2903,7 +2903,7 @@ proof goal_cases
   then have "?sum b = f b"
     using Suc_pred'[OF \<open>p > 0\<close>]
     by (simp add: diff_eq_eq Dg_def power_0_left le_Suc_eq if_distrib
-        cond_application_beta setsum.If_cases f0)
+        cond_application_beta sum.If_cases f0)
   also
   have "{..<p} = (\<lambda>x. p - x - 1) ` {..<p}"
   proof safe
@@ -2914,7 +2914,7 @@ proof goal_cases
   qed simp
   from _ this
   have "?sum a = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)"
-    by (rule setsum.reindex_cong) (auto simp add: inj_on_def Dg_def one)
+    by (rule sum.reindex_cong) (auto simp add: inj_on_def Dg_def one)
   finally show c: ?case .
   case 2 show ?case using c integral_unique by force
   case 3 show ?case using c by force
@@ -3003,10 +3003,10 @@ proof (induct "card s" arbitrary: s rule: nat_less_induct)
         unfolding euclidean_eq_iff[where 'a='a] using i by auto
       have *: "Basis = insert i (Basis - {i})"
         using i by auto
-      have "norm (y - x) < e + setsum (\<lambda>i. 0) Basis"
+      have "norm (y - x) < e + sum (\<lambda>i. 0) Basis"
         apply (rule le_less_trans[OF norm_le_l1])
         apply (subst *)
-        apply (subst setsum.insert)
+        apply (subst sum.insert)
         prefer 3
         apply (rule add_less_le_mono)
       proof -
@@ -3436,9 +3436,9 @@ proof -
           using inj(1) unfolding inj_on_def by fastforce
         have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _")
           using assms(7)
-          apply (simp only: algebra_simps add_left_cancel scaleR_right.setsum)
-          apply (subst setsum.reindex_bij_betw[symmetric, where h="\<lambda>(x, k). (g x, g ` k)" and S=p])
-          apply (auto intro!: * setsum.cong simp: bij_betw_def dest!: p(4))
+          apply (simp only: algebra_simps add_left_cancel scaleR_right.sum)
+          apply (subst sum.reindex_bij_betw[symmetric, where h="\<lambda>(x, k). (g x, g ` k)" and S=p])
+          apply (auto intro!: * sum.cong simp: bij_betw_def dest!: p(4))
           done
       also have "\<dots> = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r")
         unfolding scaleR_diff_right scaleR_scaleR
@@ -3865,18 +3865,18 @@ proof -
     have **: "\<And>n1 s1 n2 s2::real. n2 \<le> s2 / 2 \<Longrightarrow> n1 - s1 \<le> s2 / 2 \<Longrightarrow> n1 + n2 \<le> s1 + s2"
       by arith
     show ?case
-      unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] setsum_subtractf[symmetric] split_minus
-      unfolding setsum_distrib_left
+      unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus
+      unfolding sum_distrib_left
       apply (subst(2) pA)
       apply (subst pA)
-      unfolding setsum.union_disjoint[OF pA(2-)]
+      unfolding sum.union_disjoint[OF pA(2-)]
     proof (rule norm_triangle_le, rule **, goal_cases)
       case 1
       show ?case
         apply (rule order_trans)
-        apply (rule setsum_norm_le)
+        apply (rule sum_norm_le)
         defer
-        apply (subst setsum_divide_distrib)
+        apply (subst sum_divide_distrib)
         apply (rule order_refl)
         apply safe
         apply (unfold not_le o_def split_conv fst_conv)
@@ -3930,12 +3930,12 @@ proof -
       case 2
       show ?case
         apply (rule *)
-        apply (rule setsum_nonneg)
+        apply (rule sum_nonneg)
         apply rule
         apply (unfold split_paired_all split_conv)
         defer
-        unfolding setsum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
-        unfolding setsum_distrib_left[symmetric]
+        unfolding sum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
+        unfolding sum_distrib_left[symmetric]
         apply (subst additive_tagged_division_1[OF _ as(1)])
         apply (rule assms)
       proof -
@@ -3948,12 +3948,12 @@ proof -
         then show "0 \<le> e * ((Sup k) - (Inf k))"
           unfolding uv using e by (auto simp add: field_simps)
       next
-        have *: "\<And>s f t e. setsum f s = setsum f t \<Longrightarrow> norm (setsum f t) \<le> e \<Longrightarrow> norm (setsum f s) \<le> e"
+        have *: "\<And>s f t e. sum f s = sum f t \<Longrightarrow> norm (sum f t) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
           by auto
         show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x -
           (f ((Sup k)) - f ((Inf k)))) \<le> e * (b - a) / 2"
           apply (rule *[where t1="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
-          apply (rule setsum.mono_neutral_right[OF pA(2)])
+          apply (rule sum.mono_neutral_right[OF pA(2)])
           defer
           apply rule
           unfolding split_paired_all split_conv o_def
@@ -3975,7 +3975,7 @@ proof -
           have *: "p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0} =
             {t. t\<in>p \<and> fst t = a \<and> content(snd t) \<noteq> 0} \<union> {t. t\<in>p \<and> fst t = b \<and> content(snd t) \<noteq> 0}"
             by blast
-          have **: "norm (setsum f s) \<le> e"
+          have **: "norm (sum f s) \<le> e"
             if "\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y"
             and "\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e"
             and "e > 0"
@@ -3995,7 +3995,7 @@ proof -
           case 2
           show ?case
             apply (subst *)
-            apply (subst setsum.union_disjoint)
+            apply (subst sum.union_disjoint)
             prefer 4
             apply (rule order_trans[of _ "e * (b - a)/4 + e * (b - a)/4"])
             apply (rule norm_triangle_le,rule add_mono)
@@ -4425,7 +4425,7 @@ proof -
       then show ?thesis
         unfolding ** box_real
         apply -
-        apply (subst setsum.insert)
+        apply (subst sum.insert)
         apply (rule p')
         unfolding split_conv
         defer
@@ -5003,7 +5003,7 @@ proof -
       show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i" if "norm x \<le> B" and "i \<in> Basis"
         using that and Basis_le_norm[OF \<open>i\<in>Basis\<close>, of x]
         unfolding c_def d_def
-        by (auto simp add: field_simps setsum_negf)
+        by (auto simp add: field_simps sum_negf)
     qed
     have "ball 0 C \<subseteq> cbox c d"
       apply (rule subsetI)
@@ -5014,7 +5014,7 @@ proof -
       show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
         using Basis_le_norm[OF i, of x] and x i
         unfolding c_def d_def
-        by (auto simp: setsum_negf)
+        by (auto simp: sum_negf)
     qed
     from C(2)[OF this] have "\<exists>y. (f has_integral y) (cbox a b)"
       unfolding has_integral_restrict_closed_subintervals_eq[OF c_d,symmetric]
@@ -5040,7 +5040,7 @@ proof -
         then show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
           using Basis_le_norm[of i x]
           unfolding c_def d_def
-          by (auto simp add: field_simps setsum_negf)
+          by (auto simp add: field_simps sum_negf)
       qed
       have "ball 0 C \<subseteq> cbox c d"
         apply (rule subsetI)
@@ -5051,7 +5051,7 @@ proof -
         then show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
           using Basis_le_norm[of i x]
           unfolding c_def d_def
-          by (auto simp: setsum_negf)
+          by (auto simp: sum_negf)
       qed
       note C(2)[OF this] then guess z .. note z = conjunctD2[OF this, unfolded s]
       note this[unfolded has_integral_restrict_closed_subintervals_eq[OF c_d]]
@@ -5425,7 +5425,7 @@ next
         then show ?case
           using Basis_le_norm[of i x] \<open>i\<in>Basis\<close>
           using n N
-          by (auto simp add: field_simps setsum_negf)
+          by (auto simp add: field_simps sum_negf)
       qed
     }
     then show ?case
@@ -5482,7 +5482,7 @@ next
           then show ?case
             using Basis_le_norm[of i x] \<open>i \<in> Basis\<close>
             using n
-            by (auto simp add: field_simps setsum_negf)
+            by (auto simp add: field_simps sum_negf)
         qed
       qed
     qed
@@ -5541,9 +5541,9 @@ proof (subst integrable_cauchy, safe, goal_cases)
       and "0 \<le> (\<Sum>(x, k)\<in>p2. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)"
       and "(\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R g x) \<ge> 0"
       and "0 \<le> (\<Sum>(x, k)\<in>p1. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x)"
-      unfolding setsum_subtractf[symmetric]
+      unfolding sum_subtractf[symmetric]
       apply -
-      apply (rule_tac[!] setsum_nonneg)
+      apply (rule_tac[!] sum_nonneg)
       apply safe
       unfolding real_scaleR_def right_diff_distrib[symmetric]
       apply (rule_tac[!] mult_nonneg_nonneg)
@@ -5774,7 +5774,7 @@ lemma has_integral_unions:
   assumes "finite t"
     and "\<forall>s\<in>t. (f has_integral (i s)) s"
     and "\<forall>s\<in>t. \<forall>s'\<in>t. s \<noteq> s' \<longrightarrow> negligible (s \<inter> s')"
-  shows "(f has_integral (setsum i t)) (\<Union>t)"
+  shows "(f has_integral (sum i t)) (\<Union>t)"
 proof -
   note * = has_integral_restrict_univ[symmetric, of f]
   have **: "negligible (\<Union>((\<lambda>(a,b). a \<inter> b) ` {(a,b). a \<in> t \<and> b \<in> {y. y \<in> t \<and> a \<noteq> y}}))"
@@ -5787,7 +5787,7 @@ proof -
     apply auto
     done
   note assms(2)[unfolded *]
-  note has_integral_setsum[OF assms(1) this]
+  note has_integral_sum[OF assms(1) this]
   then show ?thesis
     unfolding *
     apply -
@@ -5807,12 +5807,12 @@ proof -
         unfolding if_P[OF True]
         apply (rule trans)
         defer
-        apply (rule setsum.cong)
+        apply (rule sum.cong)
         apply (rule refl)
         apply (subst *)
         apply assumption
         apply (rule refl)
-        unfolding setsum.delta[OF assms(1)]
+        unfolding sum.delta[OF assms(1)]
         using s
         apply auto
         done
@@ -5827,7 +5827,7 @@ lemma has_integral_combine_division:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "d division_of s"
     and "\<forall>k\<in>d. (f has_integral (i k)) k"
-  shows "(f has_integral (setsum i d)) s"
+  shows "(f has_integral (sum i d)) s"
 proof -
   note d = division_ofD[OF assms(1)]
   show ?thesis
@@ -5854,7 +5854,7 @@ lemma integral_combine_division_bottomup:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "d division_of s"
     and "\<forall>k\<in>d. f integrable_on k"
-  shows "integral s f = setsum (\<lambda>i. integral i f) d"
+  shows "integral s f = sum (\<lambda>i. integral i f) d"
   apply (rule integral_unique)
   apply (rule has_integral_combine_division[OF assms(1)])
   using assms(2)
@@ -5867,7 +5867,7 @@ lemma has_integral_combine_division_topdown:
   assumes "f integrable_on s"
     and "d division_of k"
     and "k \<subseteq> s"
-  shows "(f has_integral (setsum (\<lambda>i. integral i f) d)) k"
+  shows "(f has_integral (sum (\<lambda>i. integral i f) d)) k"
   apply (rule has_integral_combine_division[OF assms(2)])
   apply safe
   unfolding has_integral_integral[symmetric]
@@ -5887,7 +5887,7 @@ lemma integral_combine_division_topdown:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "f integrable_on s"
     and "d division_of s"
-  shows "integral s f = setsum (\<lambda>i. integral i f) d"
+  shows "integral s f = sum (\<lambda>i. integral i f) d"
   apply (rule integral_unique)
   apply (rule has_integral_combine_division_topdown)
   using assms
@@ -5941,17 +5941,17 @@ proof -
     apply auto
     done
   also have "(\<Sum>k\<in>snd`p. integral k f) = (\<Sum>(x, k)\<in>p. integral k f)"
-    by (intro setsum.over_tagged_division_lemma[OF assms(1), symmetric] integral_null)
+    by (intro sum.over_tagged_division_lemma[OF assms(1), symmetric] integral_null)
        (simp add: content_eq_0_interior)
   finally show ?thesis
-    using assms by (auto simp add: has_integral_iff intro!: setsum.cong)
+    using assms by (auto simp add: has_integral_iff intro!: sum.cong)
 qed
 
 lemma integral_combine_tagged_division_bottomup:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "p tagged_division_of (cbox a b)"
     and "\<forall>(x,k)\<in>p. f integrable_on k"
-  shows "integral (cbox a b) f = setsum (\<lambda>(x,k). integral k f) p"
+  shows "integral (cbox a b) f = sum (\<lambda>(x,k). integral k f) p"
   apply (rule integral_unique)
   apply (rule has_integral_combine_tagged_division[OF assms(1)])
   using assms(2)
@@ -5962,7 +5962,7 @@ lemma has_integral_combine_tagged_division_topdown:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "f integrable_on cbox a b"
     and "p tagged_division_of (cbox a b)"
-  shows "(f has_integral (setsum (\<lambda>(x,k). integral k f) p)) (cbox a b)"
+  shows "(f has_integral (sum (\<lambda>(x,k). integral k f) p)) (cbox a b)"
   apply (rule has_integral_combine_tagged_division[OF assms(2)])
   apply safe
 proof goal_cases
@@ -5976,7 +5976,7 @@ lemma integral_combine_tagged_division_topdown:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "f integrable_on cbox a b"
     and "p tagged_division_of (cbox a b)"
-  shows "integral (cbox a b) f = setsum (\<lambda>(x,k). integral k f) p"
+  shows "integral (cbox a b) f = sum (\<lambda>(x,k). integral k f) p"
   apply (rule integral_unique)
   apply (rule has_integral_combine_tagged_division_topdown)
   using assms
@@ -5992,9 +5992,9 @@ lemma henstock_lemma_part1:
     and "e > 0"
     and "gauge d"
     and "(\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral(cbox a b) f) < e)"
+      norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral(cbox a b) f) < e)"
     and p: "p tagged_partial_division_of (cbox a b)" "d fine p"
-  shows "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x - integral k f) p) \<le> e"
+  shows "norm (sum (\<lambda>(x,k). content k *\<^sub>R f x - integral k f) p) \<le> e"
   (is "?x \<le> e")
 proof -
   { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" then show ?thesis by (blast intro: field_le_epsilon) }
@@ -6012,7 +6012,7 @@ proof -
     using q' unfolding r_def by auto
 
   have "\<forall>i\<in>r. \<exists>p. p tagged_division_of i \<and> d fine p \<and>
-    norm (setsum (\<lambda>(x,j). content j *\<^sub>R f x) p - integral i f) < k / (real (card r) + 1)"
+    norm (sum (\<lambda>(x,j). content j *\<^sub>R f x) p - integral i f) < k / (real (card r) + 1)"
     apply safe
   proof goal_cases
     case (1 i)
@@ -6100,7 +6100,7 @@ proof -
 
   then have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>\<Union>(qq ` r). content k *\<^sub>R f x) -
     integral (cbox a b) f) < e"
-    apply (subst setsum.union_inter_neutral[symmetric])
+    apply (subst sum.union_inter_neutral[symmetric])
     apply (rule p')
     prefer 3
     apply assumption
@@ -6124,9 +6124,9 @@ proof -
       unfolding uv content_eq_0_interior[symmetric] by auto
   qed auto
 
-  then have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + setsum (setsum (\<lambda>(x, k). content k *\<^sub>R f x))
+  then have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + sum (sum (\<lambda>(x, k). content k *\<^sub>R f x))
     (qq ` r) - integral (cbox a b) f) < e"
-    apply (subst (asm) setsum.Union_comp)
+    apply (subst (asm) sum.Union_comp)
     prefer 2
     unfolding split_paired_all split_conv image_iff
     apply (erule bexE)+
@@ -6150,11 +6150,11 @@ proof -
       by auto
   qed (insert qq, auto)
 
-  then have **: "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + setsum (setsum (\<lambda>(x, k). content k *\<^sub>R f x) \<circ> qq) r -
+  then have **: "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + sum (sum (\<lambda>(x, k). content k *\<^sub>R f x) \<circ> qq) r -
     integral (cbox a b) f) < e"
-    apply (subst (asm) setsum.reindex_nontrivial)
+    apply (subst (asm) sum.reindex_nontrivial)
     apply fact
-    apply (rule setsum.neutral)
+    apply (rule sum.neutral)
     apply rule
     unfolding split_paired_all split_conv
     defer
@@ -6180,28 +6180,28 @@ proof -
   qed
 
   have "?x =  norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p. integral k f))"
-    unfolding split_def setsum_subtractf ..
+    unfolding split_def sum_subtractf ..
   also have "\<dots> \<le> e + k"
-    apply (rule *[OF **, where ir1="setsum (\<lambda>k. integral k f) r"])
+    apply (rule *[OF **, where ir1="sum (\<lambda>k. integral k f) r"])
   proof goal_cases
     case 1
     have *: "k * real (card r) / (1 + real (card r)) < k"
       using k by (auto simp add: field_simps)
     show ?case
-      apply (rule le_less_trans[of _ "setsum (\<lambda>x. k / (real (card r) + 1)) r"])
-      unfolding setsum_subtractf[symmetric]
-      apply (rule setsum_norm_le)
+      apply (rule le_less_trans[of _ "sum (\<lambda>x. k / (real (card r) + 1)) r"])
+      unfolding sum_subtractf[symmetric]
+      apply (rule sum_norm_le)
       apply rule
       apply (drule qq)
       defer
-      unfolding divide_inverse setsum_distrib_right[symmetric]
+      unfolding divide_inverse sum_distrib_right[symmetric]
       unfolding divide_inverse[symmetric]
       using * apply (auto simp add: field_simps)
       done
   next
     case 2
     have *: "(\<Sum>(x, k)\<in>p. integral k f) = (\<Sum>k\<in>snd ` p. integral k f)"
-      apply (subst setsum.reindex_nontrivial)
+      apply (subst sum.reindex_nontrivial)
       apply fact
       unfolding split_paired_all snd_conv split_def o_def
     proof -
@@ -6221,7 +6221,7 @@ proof -
     from q(1) have **: "snd ` p \<union> q = q" by auto
     show ?case
       unfolding integral_combine_division_topdown[OF assms(1) q(2)] * r_def
-      using ** q'(1) p'(1) setsum.union_disjoint [of "snd ` p" "q - snd ` p" "\<lambda>k. integral k f", symmetric]
+      using ** q'(1) p'(1) sum.union_disjoint [of "snd ` p" "q - snd ` p" "\<lambda>k. integral k f", symmetric]
         by simp
   qed
   finally show "?x \<le> e + k" .
@@ -6233,12 +6233,12 @@ lemma henstock_lemma_part2:
     and "e > 0"
     and "gauge d"
     and "\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral (cbox a b) f) < e"
+      norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral (cbox a b) f) < e"
     and "p tagged_partial_division_of (cbox a b)"
     and "d fine p"
-  shows "setsum (\<lambda>(x,k). norm (content k *\<^sub>R f x - integral k f)) p \<le> 2 * real (DIM('n)) * e"
+  shows "sum (\<lambda>(x,k). norm (content k *\<^sub>R f x - integral k f)) p \<le> 2 * real (DIM('n)) * e"
   unfolding split_def
-  apply (rule setsum_norm_allsubsets_bound)
+  apply (rule sum_norm_allsubsets_bound)
   defer
   apply (rule henstock_lemma_part1[unfolded split_def,OF assms(1-3)])
   apply safe
@@ -6260,7 +6260,7 @@ lemma henstock_lemma:
     and "e > 0"
   obtains d where "gauge d"
     and "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      setsum (\<lambda>(x,k). norm(content k *\<^sub>R f x - integral k f)) p < e"
+      sum (\<lambda>(x,k). norm(content k *\<^sub>R f x - integral k f)) p < e"
 proof -
   have *: "e / (2 * (real DIM('n) + 1)) > 0" using assms(2) by simp
   from integrable_integral[OF assms(1),unfolded has_integral[of f],rule_format,OF this]
@@ -6287,7 +6287,7 @@ text \<open>FIXME: Should one or more of these theorems be moved to
 
 lemma sum_gp_basic:
   fixes x :: "'a::ring_1"
-  shows "(1 - x) * setsum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
+  shows "(1 - x) * sum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
 proof -
   define y where "y = 1 - x"
   have "y * (\<Sum>i=0..n. (1 - y) ^ i) = 1 - (1 - y) ^ Suc n"
@@ -6298,7 +6298,7 @@ qed
 
 lemma sum_gp_multiplied:
   assumes mn: "m \<le> n"
-  shows "((1::'a::{field}) - x) * setsum (op ^ x) {m..n} = x^m - x^ Suc n"
+  shows "((1::'a::{field}) - x) * sum (op ^ x) {m..n} = x^m - x^ Suc n"
   (is "?lhs = ?rhs")
 proof -
   let ?S = "{0..(n - m)}"
@@ -6314,8 +6314,8 @@ proof -
     done
   have th: "op ^ x \<circ> op + m = (\<lambda>i. x^m * x^i)"
     by (rule ext) (simp add: power_add power_mult)
-  from setsum.reindex[OF i, of "op ^ x", unfolded f th setsum_distrib_left[symmetric]]
-  have "?lhs = x^m * ((1 - x) * setsum (op ^ x) {0..n - m})"
+  from sum.reindex[OF i, of "op ^ x", unfolded f th sum_distrib_left[symmetric]]
+  have "?lhs = x^m * ((1 - x) * sum (op ^ x) {0..n - m})"
     by simp
   then show ?thesis
     unfolding sum_gp_basic
@@ -6324,7 +6324,7 @@ proof -
 qed
 
 lemma sum_gp:
-  "setsum (op ^ (x::'a::{field})) {m .. n} =
+  "sum (op ^ (x::'a::{field})) {m .. n} =
     (if n < m then 0
      else if x = 1 then of_nat ((n + 1) - m)
      else (x^ m - x^ (Suc n)) / (1 - x))"
@@ -6357,7 +6357,7 @@ proof -
 qed
 
 lemma sum_gp_offset:
-  "setsum (op ^ (x::'a::{field})) {m .. m+n} =
+  "sum (op ^ (x::'a::{field})) {m .. m+n} =
     (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
   unfolding sum_gp[of x m "m + n"] power_Suc
   by (simp add: field_simps power_add)
@@ -6497,12 +6497,12 @@ next
         case 1
         show ?case
           apply (rule order_trans[of _ "\<Sum>(x, k)\<in>p. content k * (e / (4 * content (cbox a b)))"])
-          unfolding setsum_subtractf[symmetric]
+          unfolding sum_subtractf[symmetric]
           apply (rule order_trans)
-          apply (rule norm_setsum)
-          apply (rule setsum_mono)
+          apply (rule norm_sum)
+          apply (rule sum_mono)
           unfolding split_paired_all split_conv
-          unfolding split_def setsum_distrib_right[symmetric] scaleR_diff_right[symmetric]
+          unfolding split_def sum_distrib_right[symmetric] scaleR_diff_right[symmetric]
           unfolding additive_content_tagged_division[OF p(1), unfolded split_def]
         proof -
           fix x k
@@ -6524,22 +6524,22 @@ next
         show ?case
           apply (rule le_less_trans[of _ "norm (\<Sum>j = 0..s.
             \<Sum>(x, k)\<in>{xk\<in>p. m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x)))"])
-          apply (subst setsum_group)
+          apply (subst sum_group)
           apply fact
           apply (rule finite_atLeastAtMost)
           defer
           apply (subst split_def)+
-          unfolding setsum_subtractf
+          unfolding sum_subtractf
           apply rule
         proof -
           show "norm (\<Sum>j = 0..s. \<Sum>(x, k)\<in>{xk \<in> p.
             m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x))) < e / 2"
-            apply (rule le_less_trans[of _ "setsum (\<lambda>i. e / 2^(i+2)) {0..s}"])
-            apply (rule setsum_norm_le)
+            apply (rule le_less_trans[of _ "sum (\<lambda>i. e / 2^(i+2)) {0..s}"])
+            apply (rule sum_norm_le)
           proof
             show "(\<Sum>i = 0..s. e / 2 ^ (i + 2)) < e / 2"
               unfolding power_add divide_inverse inverse_mult_distrib
-              unfolding setsum_distrib_left[symmetric] setsum_distrib_right[symmetric]
+              unfolding sum_distrib_left[symmetric] sum_distrib_right[symmetric]
               unfolding power_inverse [symmetric] sum_gp
               apply(rule mult_strict_left_mono[OF _ e])
               unfolding power2_eq_square
@@ -6550,10 +6550,10 @@ next
             show "norm (\<Sum>(x, k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f (m x) x -
               integral k (f (m x))) \<le> e / 2 ^ (t + 2)"
               apply (rule order_trans
-                [of _ "norm (setsum (\<lambda>(x,k). content k *\<^sub>R f t x - integral k (f t)) {xk \<in> p. m (fst xk) = t})"])
+                [of _ "norm (sum (\<lambda>(x,k). content k *\<^sub>R f t x - integral k (f t)) {xk \<in> p. m (fst xk) = t})"])
               apply (rule eq_refl)
               apply (rule arg_cong[where f=norm])
-              apply (rule setsum.cong)
+              apply (rule sum.cong)
               apply (rule refl)
               defer
               apply (rule henstock_lemma_part1)
@@ -6587,7 +6587,7 @@ next
           apply (rule comb[of r])
           apply (rule comb[of s])
           apply (rule i'[unfolded real_inner_1_right])
-          apply (rule_tac[1-2] setsum_mono)
+          apply (rule_tac[1-2] sum_mono)
           unfolding split_paired_all split_conv
           apply (rule_tac[1-2] integral_le[OF ])
         proof safe
@@ -7013,7 +7013,7 @@ proof -
       defer
       apply (rule d1(2)[OF conjI[OF p(1)]])
       defer
-      apply (rule setsum_norm_le)
+      apply (rule sum_norm_le)
     proof safe
       fix x k
       assume "(x, k) \<in> p"

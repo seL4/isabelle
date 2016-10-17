@@ -31,9 +31,9 @@ proof -
   have shift_pow: "\<And>i. - (x * ((-1)^i * a (Suc i) * x ^ i)) = (-1)^(Suc i) * a (Suc i) * x ^ (Suc i)"
     by auto
   show ?thesis
-    unfolding setsum_distrib_left shift_pow uminus_add_conv_diff [symmetric] setsum_negf[symmetric]
-    setsum_head_upt_Suc[OF zero_less_Suc]
-    setsum.reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
+    unfolding sum_distrib_left shift_pow uminus_add_conv_diff [symmetric] sum_negf[symmetric]
+    sum_head_upt_Suc[OF zero_less_Suc]
+    sum.reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
 qed
 
 lemma horner_schema:
@@ -514,7 +514,7 @@ proof -
   proof -
     have "(sqrt y * lb_arctan_horner prec n 1 y) \<le> ?S n"
       using bounds(1) \<open>0 \<le> sqrt y\<close>
-      apply (simp only: power_add power_one_right mult.assoc[symmetric] setsum_distrib_right[symmetric])
+      apply (simp only: power_add power_one_right mult.assoc[symmetric] sum_distrib_right[symmetric])
       apply (simp only: mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult)
       apply (auto intro!: mult_left_mono)
       done
@@ -527,7 +527,7 @@ proof -
     have "arctan (sqrt y) \<le> ?S (Suc n)" using arctan_bounds ..
     also have "\<dots> \<le> (sqrt y * ub_arctan_horner prec (Suc n) 1 y)"
       using bounds(2)[of "Suc n"] \<open>0 \<le> sqrt y\<close>
-      apply (simp only: power_add power_one_right mult.assoc[symmetric] setsum_distrib_right[symmetric])
+      apply (simp only: power_add power_one_right mult.assoc[symmetric] sum_distrib_right[symmetric])
       apply (simp only: mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult)
       apply (auto intro!: mult_left_mono)
       done
@@ -1116,7 +1116,7 @@ proof (cases "real_of_float x = 0")
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then (- 1) ^ (i div 2) / ((fact i)) * x ^ i else 0)"
       unfolding sum_split_even_odd atLeast0LessThan ..
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then (- 1) ^ (i div 2) / ((fact i)) else 0) * x ^ i)"
-      by (rule setsum.cong) auto
+      by (rule sum.cong) auto
     finally show ?thesis .
   qed
 
@@ -1212,7 +1212,7 @@ proof -
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0,
     OF \<open>0 \<le> real_of_float (x * x)\<close> f_eq lb_sin_cos_aux.simps ub_sin_cos_aux.simps]
   show "?lb" and "?ub" using \<open>0 \<le> real_of_float x\<close>
-    apply (simp_all only: power_add power_one_right mult.assoc[symmetric] setsum_distrib_right[symmetric])
+    apply (simp_all only: power_add power_one_right mult.assoc[symmetric] sum_distrib_right[symmetric])
     apply (simp_all only: mult.commute[where 'a=real] of_nat_fact)
     apply (auto intro!: mult_left_mono simp add: power_mult power2_eq_square[of "real_of_float x"])
     done
@@ -1230,7 +1230,7 @@ proof (cases "real_of_float x = 0")
   have "0 < x * x"
     using \<open>0 < x\<close> by simp
 
-  have setsum_morph: "(\<Sum>j = 0 ..< n. (- 1) ^ (((2 * j + 1) - Suc 0) div 2) / ((fact (2 * j + 1))) * x ^(2 * j + 1)) =
+  have sum_morph: "(\<Sum>j = 0 ..< n. (- 1) ^ (((2 * j + 1) - Suc 0) div 2) / ((fact (2 * j + 1))) * x ^(2 * j + 1)) =
     (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * x ^ i)"
     (is "?SUM = _") for x :: real and n
   proof -
@@ -1241,7 +1241,7 @@ proof (cases "real_of_float x = 0")
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then 0 else (- 1) ^ ((i - Suc 0) div 2) / ((fact i)) * x ^ i)"
       unfolding sum_split_even_odd atLeast0LessThan ..
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then 0 else (- 1) ^ ((i - Suc 0) div 2) / ((fact i))) * x ^ i)"
-      by (rule setsum.cong) auto
+      by (rule sum.cong) auto
     finally show ?thesis .
   qed
 
@@ -1273,7 +1273,7 @@ proof (cases "real_of_float x = 0")
       assume "even n"
       have "(x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le>
             (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * (real_of_float x) ^ i)"
-        using sin_aux[OF \<open>0 \<le> real_of_float x\<close>] unfolding setsum_morph[symmetric] by auto
+        using sin_aux[OF \<open>0 \<le> real_of_float x\<close>] unfolding sum_morph[symmetric] by auto
       also have "\<dots> \<le> ?SUM" by auto
       also have "\<dots> \<le> sin x"
       proof -
@@ -1296,7 +1296,7 @@ proof (cases "real_of_float x = 0")
       also have "\<dots> \<le> (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else ((- 1) ^ ((i - Suc 0) div 2))/((fact i))) * (real_of_float x) ^ i)"
          by auto
       also have "\<dots> \<le> (x * ub_sin_cos_aux prec n 2 1 (x * x))"
-        using sin_aux[OF \<open>0 \<le> real_of_float x\<close>] unfolding setsum_morph[symmetric] by auto
+        using sin_aux[OF \<open>0 \<le> real_of_float x\<close>] unfolding sum_morph[symmetric] by auto
       finally have "sin x \<le> (x * ub_sin_cos_aux prec n 2 1 (x * x))" .
     } note ub = this and lb
   } note ub = this(1) and lb = this(2)
@@ -2192,8 +2192,8 @@ proof -
 
   let "?s n" = "(- 1) ^ n * (1 / real (1 + n)) * (real_of_float x)^(Suc n)"
 
-  have "?lb \<le> setsum ?s {0 ..< 2 * ev}"
-    unfolding power_Suc2 mult.assoc[symmetric] times_float.rep_eq setsum_distrib_right[symmetric]
+  have "?lb \<le> sum ?s {0 ..< 2 * ev}"
+    unfolding power_Suc2 mult.assoc[symmetric] times_float.rep_eq sum_distrib_right[symmetric]
     unfolding mult.commute[of "real_of_float x"] ev 
     using horner_bounds(1)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" 
                     and lb="\<lambda>n i k x. lb_ln_horner prec n k x" 
@@ -2205,10 +2205,10 @@ proof -
     using ln_bounds(1)[OF \<open>0 \<le> real_of_float x\<close> \<open>real_of_float x < 1\<close>] by auto
   finally show "?lb \<le> ?ln" .
 
-  have "?ln \<le> setsum ?s {0 ..< 2 * od + 1}"
+  have "?ln \<le> sum ?s {0 ..< 2 * od + 1}"
     using ln_bounds(2)[OF \<open>0 \<le> real_of_float x\<close> \<open>real_of_float x < 1\<close>] by auto
   also have "\<dots> \<le> ?ub"
-    unfolding power_Suc2 mult.assoc[symmetric] times_float.rep_eq setsum_distrib_right[symmetric]
+    unfolding power_Suc2 mult.assoc[symmetric] times_float.rep_eq sum_distrib_right[symmetric]
     unfolding mult.commute[of "real_of_float x"] od
     using horner_bounds(2)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" and lb="\<lambda>n i k x. lb_ln_horner prec n k x" and ub="\<lambda>n i k x. ub_ln_horner prec n k x" and j'=1 and n="2*od+1",
       OF \<open>0 \<le> real_of_float x\<close> refl lb_ln_horner.simps ub_ln_horner.simps] \<open>0 \<le> real_of_float x\<close>
@@ -3974,9 +3974,9 @@ next
     have "\<And>k i. k < i \<Longrightarrow> {k ..< i} = insert k {Suc k ..< i}" by auto
     hence setprod_head_Suc: "\<And>k i. \<Prod>{k ..< k + Suc i} = k * \<Prod>{Suc k ..< Suc k + i}"
       by auto
-    have setsum_move0: "\<And>k F. setsum F {0..<Suc k} = F 0 + setsum (\<lambda> k. F (Suc k)) {0..<k}"
-      unfolding setsum_shift_bounds_Suc_ivl[symmetric]
-      unfolding setsum_head_upt_Suc[OF zero_less_Suc] ..
+    have sum_move0: "\<And>k F. sum F {0..<Suc k} = F 0 + sum (\<lambda> k. F (Suc k)) {0..<k}"
+      unfolding sum_shift_bounds_Suc_ivl[symmetric]
+      unfolding sum_head_upt_Suc[OF zero_less_Suc] ..
     define C where "C = xs!x - c"
 
     {
@@ -3994,9 +3994,9 @@ next
       also have "?X (Suc k) f n t * (xs!x - real_of_float c) * inverse (real k) + ?f 0 c =
                (\<Sum> i = 0..<Suc n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) * ?f i c * (xs!x - c)^i) +
                inverse (real (\<Prod> j \<in> {k..<k+Suc n}. j)) * ?f (Suc n) t * (xs!x - c)^Suc n" (is "_ = ?T")
-        unfolding funpow_Suc C_def[symmetric] setsum_move0 setprod_head_Suc
+        unfolding funpow_Suc C_def[symmetric] sum_move0 setprod_head_Suc
         by (auto simp add: algebra_simps)
-          (simp only: mult.left_commute [of _ "inverse (real k)"] setsum_distrib_left [symmetric])
+          (simp only: mult.left_commute [of _ "inverse (real k)"] sum_distrib_left [symmetric])
       finally have "?T \<in> {l .. u}" .
     }
     thus ?thesis using DERIV by blast
@@ -4046,7 +4046,7 @@ proof -
     proof (cases "xs ! x = c")
       case True
       from True[symmetric] hyp[OF bnd_xs] Suc show ?thesis
-        unfolding F_def Suc setsum_head_upt_Suc[OF zero_less_Suc] setsum_shift_bounds_Suc_ivl
+        unfolding F_def Suc sum_head_upt_Suc[OF zero_less_Suc] sum_shift_bounds_Suc_ivl
         by auto
     next
       case False

@@ -767,8 +767,8 @@ proof (rule measure_eqI)
     apply (subst B.emeasure_pair_measure_alt[OF X])
     apply (subst emeasure_count_space)
     apply (auto simp add: emeasure_count_space nn_integral_count_space
-                          pos_card of_nat_setsum[symmetric] card_SigmaI[symmetric]
-                simp del: of_nat_setsum card_SigmaI
+                          pos_card of_nat_sum[symmetric] card_SigmaI[symmetric]
+                simp del: of_nat_sum card_SigmaI
                 intro!: arg_cong[where f=card])
     done
 qed

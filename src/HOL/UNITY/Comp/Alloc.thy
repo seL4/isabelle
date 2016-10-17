@@ -903,9 +903,9 @@ theorem System_safety: "System : system_safety"
     @{thm Always_tokens_giv_le_allocGiv}, @{thm Always_tokens_allocRel_le_rel}] RS
     @{thm Always_weaken}] 1\<close>)
   apply auto
-  apply (rule setsum_fun_mono [THEN order_trans])
+  apply (rule sum_fun_mono [THEN order_trans])
   apply (drule_tac [2] order_trans)
-  apply (rule_tac [2] add_le_mono [OF order_refl setsum_fun_mono])
+  apply (rule_tac [2] add_le_mono [OF order_refl sum_fun_mono])
   prefer 3 apply assumption
   apply auto
   done

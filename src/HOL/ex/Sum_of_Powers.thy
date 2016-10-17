@@ -55,14 +55,14 @@ proof -
   qed (simp add: assms)
 qed
 
-lemma setsum_diff: "((\<Sum>i\<le>n::nat. f (i + 1) - f i)::'a::field) = f (n + 1) - f 0"
+lemma sum_diff: "((\<Sum>i\<le>n::nat. f (i + 1) - f i)::'a::field) = f (n + 1) - f 0"
 by (induct n) (auto simp add: field_simps)
 
 declare One_nat_def [simp del]
 
 subsection \<open>Bernoulli Numbers and Bernoulli Polynomials\<close>
 
-declare setsum.cong [fundef_cong]
+declare sum.cong [fundef_cong]
 
 fun bernoulli :: "nat \<Rightarrow> real"
 where
@@ -84,12 +84,12 @@ proof (cases n)
 next
   case (Suc n')
   have "(\<Sum>k\<le>n'. real (Suc n' choose k) * bernoulli k * 0 ^ (Suc n' - k)) = 0"
-    by (rule setsum.neutral) auto
+    by (rule sum.neutral) auto
   with Suc show ?thesis
     unfolding bernpoly_def by simp
 qed
 
-lemma setsum_binomial_times_bernoulli:
+lemma sum_binomial_times_bernoulli:
   "(\<Sum>k\<le>n. ((Suc n) choose k) * bernoulli k) = (if n = 0 then 1 else 0)"
 proof (cases n)
   case 0
@@ -110,7 +110,7 @@ proof -
     unfolding bernpoly_def by (rule DERIV_cong) (fast intro!: derivative_intros, simp)
   moreover have "(\<Sum>k\<le>n. real (Suc n - k) * x ^ (n - k) * (real (Suc n choose k) * bernoulli k)) = (n + 1) * bernpoly n x"
     unfolding bernpoly_def
-    by (auto intro: setsum.cong simp add: setsum_distrib_left real_binomial_eq_mult_binomial_Suc[of _ n] Suc_eq_plus1 of_nat_diff)
+    by (auto intro: sum.cong simp add: sum_distrib_left real_binomial_eq_mult_binomial_Suc[of _ n] Suc_eq_plus1 of_nat_diff)
   ultimately show ?thesis by auto
 qed
 
@@ -122,7 +122,7 @@ proof (induct n arbitrary: x)
 next
   case (Suc n)
   have "bernpoly (Suc n) (0 + 1) - bernpoly (Suc n) 0 = (Suc n) * 0 ^ n"
-    unfolding bernpoly_0 unfolding bernpoly_def by (simp add: setsum_binomial_times_bernoulli zero_power)
+    unfolding bernpoly_0 unfolding bernpoly_def by (simp add: sum_binomial_times_bernoulli zero_power)
   then have const: "bernpoly (Suc n) (0 + 1) - bernpoly (Suc n) 0 = real (Suc n) * 0 ^ n" by (simp add: power_0_left)
   have hyps': "\<And>x. (real n + 1) * bernpoly n (x + 1) - (real n + 1) * bernpoly n x = real n * x ^ (n - Suc 0) * real (Suc n)"
     unfolding right_diff_distrib[symmetric] by (simp add: Suc.hyps One_nat_def)
@@ -135,11 +135,11 @@ qed
 lemma sum_of_powers: "(\<Sum>k\<le>n::nat. (real k) ^ m) = (bernpoly (Suc m) (n + 1) - bernpoly (Suc m) 0) / (m + 1)"
 proof -
   from diff_bernpoly[of "Suc m", simplified] have "(m + (1::real)) * (\<Sum>k\<le>n. (real k) ^ m) = (\<Sum>k\<le>n. bernpoly (Suc m) (real k + 1) - bernpoly (Suc m) (real k))"
-    by (auto simp add: setsum_distrib_left intro!: setsum.cong)
+    by (auto simp add: sum_distrib_left intro!: sum.cong)
   also have "... = (\<Sum>k\<le>n. bernpoly (Suc m) (real (k + 1)) - bernpoly (Suc m) (real k))"
     by simp
   also have "... = bernpoly (Suc m) (n + 1) - bernpoly (Suc m) 0"
-    by (simp only: setsum_diff[where f="\<lambda>k. bernpoly (Suc m) (real k)"]) simp
+    by (simp only: sum_diff[where f="\<lambda>k. bernpoly (Suc m) (real k)"]) simp
   finally show ?thesis by (auto simp add: field_simps intro!: eq_divide_imp)
 qed
 
@@ -149,16 +149,16 @@ lemma binomial_unroll:
   "n > 0 \<Longrightarrow> (n choose k) = (if k = 0 then 1 else (n - 1) choose (k - 1) + ((n - 1) choose k))"
   by (auto simp add: gr0_conv_Suc)
 
-lemma setsum_unroll:
+lemma sum_unroll:
   "(\<Sum>k\<le>n::nat. f k) = (if n = 0 then f 0 else f n + (\<Sum>k\<le>n - 1. f k))"
-by auto (metis One_nat_def Suc_pred add.commute setsum_atMost_Suc)
+by auto (metis One_nat_def Suc_pred add.commute sum_atMost_Suc)
 
 lemma bernoulli_unroll:
   "n > 0 \<Longrightarrow> bernoulli n = - 1 / (real n + 1) * (\<Sum>k\<le>n - 1. real (n + 1 choose k) * bernoulli k)"
 by (cases n) (simp add: bernoulli.simps One_nat_def)+
 
 lemmas unroll = binomial_unroll
-  bernoulli.simps(1) bernoulli_unroll setsum_unroll bernpoly_def
+  bernoulli.simps(1) bernoulli_unroll sum_unroll bernpoly_def
 
 lemma sum_of_squares: "(\<Sum>k\<le>n::nat. k ^ 2) = (2 * n ^ 3 + 3 * n ^ 2 + n) / 6"
 proof -

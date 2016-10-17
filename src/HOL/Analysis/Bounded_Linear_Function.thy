@@ -43,7 +43,7 @@ lemmas [bounded_linear_intros] =
   bounded_linear_scaleR_const
   bounded_linear_const_scaleR
   bounded_linear_ident
-  bounded_linear_setsum
+  bounded_linear_sum
   bounded_linear_Pair
   bounded_linear_sub
   bounded_linear_fst_comp
@@ -204,8 +204,8 @@ lemmas [bilinear_simps] =
   scaleR_right
   zero_left
   zero_right
-  setsum_left
-  setsum_right
+  sum_left
+  sum_right
 
 end
 
@@ -340,20 +340,20 @@ qed
 
 subsection \<open>On Euclidean Space\<close>
 
-lemma Zfun_setsum:
+lemma Zfun_sum:
   assumes "finite s"
   assumes f: "\<And>i. i \<in> s \<Longrightarrow> Zfun (f i) F"
-  shows "Zfun (\<lambda>x. setsum (\<lambda>i. f i x) s) F"
+  shows "Zfun (\<lambda>x. sum (\<lambda>i. f i x) s) F"
   using assms by induct (auto intro!: Zfun_zero Zfun_add)
 
 lemma norm_blinfun_euclidean_le:
   fixes a::"'a::euclidean_space \<Rightarrow>\<^sub>L 'b::real_normed_vector"
-  shows "norm a \<le> setsum (\<lambda>x. norm (a x)) Basis"
+  shows "norm a \<le> sum (\<lambda>x. norm (a x)) Basis"
   apply (rule norm_blinfun_bound)
-   apply (simp add: setsum_nonneg)
+   apply (simp add: sum_nonneg)
   apply (subst euclidean_representation[symmetric, where 'a='a])
-  apply (simp only: blinfun.bilinear_simps setsum_distrib_right)
-  apply (rule order.trans[OF norm_setsum setsum_mono])
+  apply (simp only: blinfun.bilinear_simps sum_distrib_right)
+  apply (rule order.trans[OF norm_sum sum_mono])
   apply (simp add: abs_mult mult_right_mono ac_simps Basis_le_norm)
   done
 
@@ -366,7 +366,7 @@ proof -
   have "\<And>j. j \<in> Basis \<Longrightarrow> Zfun (\<lambda>x. norm (b x j - a j)) F"
     using assms unfolding tendsto_Zfun_iff Zfun_norm_iff .
   hence "Zfun (\<lambda>x. \<Sum>j\<in>Basis. norm (b x j - a j)) F"
-    by (auto intro!: Zfun_setsum)
+    by (auto intro!: Zfun_sum)
   thus ?thesis
     unfolding tendsto_Zfun_iff
     by (rule Zfun_le)
@@ -387,9 +387,9 @@ proof (transfer, rule,  rule euclidean_eqI)
   have "(\<Sum>j\<in>Basis. \<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> j)) *\<^sub>R j) \<bullet> b
     = (\<Sum>j\<in>Basis. if j = b then (\<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> j))) else 0)"
     using b
-    by (auto simp add: algebra_simps inner_setsum_left inner_Basis split: if_split intro!: setsum.cong)
+    by (auto simp add: algebra_simps inner_sum_left inner_Basis split: if_split intro!: sum.cong)
   also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> b)))"
-    using b by (simp add: setsum.delta)
+    using b by (simp add: sum.delta)
   also have "\<dots> = f x \<bullet> b"
     by (metis (mono_tags, lifting) Linear_Algebra.linear_componentwise linear_axioms)
   finally show "(\<Sum>j\<in>Basis. \<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> j)) *\<^sub>R j) \<bullet> b = f x \<bullet> b" .
@@ -400,15 +400,15 @@ lemma blinfun_of_matrix_apply:
   by transfer simp
 
 lemma blinfun_of_matrix_minus: "blinfun_of_matrix x - blinfun_of_matrix y = blinfun_of_matrix (x - y)"
-  by transfer (auto simp: algebra_simps setsum_subtractf)
+  by transfer (auto simp: algebra_simps sum_subtractf)
 
 lemma norm_blinfun_of_matrix:
   "norm (blinfun_of_matrix a) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. \<bar>a i j\<bar>)"
   apply (rule norm_blinfun_bound)
-   apply (simp add: setsum_nonneg)
-  apply (simp only: blinfun_of_matrix_apply setsum_distrib_right)
-  apply (rule order_trans[OF norm_setsum setsum_mono])
-  apply (rule order_trans[OF norm_setsum setsum_mono])
+   apply (simp add: sum_nonneg)
+  apply (simp only: blinfun_of_matrix_apply sum_distrib_right)
+  apply (rule order_trans[OF norm_sum sum_mono])
+  apply (rule order_trans[OF norm_sum sum_mono])
   apply (simp add: abs_mult mult_right_mono ac_simps Basis_le_norm)
   done
 
@@ -419,7 +419,7 @@ proof -
   have "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> Zfun (\<lambda>x. norm (b x i j - a i j)) F"
     using assms unfolding tendsto_Zfun_iff Zfun_norm_iff .
   hence "Zfun (\<lambda>x. (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. \<bar>b x i j - a i j\<bar>)) F"
-    by (auto intro!: Zfun_setsum)
+    by (auto intro!: Zfun_sum)
   thus ?thesis
     unfolding tendsto_Zfun_iff blinfun_of_matrix_minus
     by (rule Zfun_le) (auto intro!: order_trans[OF norm_blinfun_of_matrix])
@@ -480,8 +480,8 @@ lemma compact_blinfun_lemma:
     subseq r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) i) (l i) < e) sequentially)"
   by (rule compact_lemma_general[where unproj = "\<lambda>e. blinfun_of_matrix (\<lambda>i j. e j \<bullet> i)"])
    (auto intro!: euclidean_eqI[where 'a='b] bounded_linear_image assms
-    simp: blinfun_of_matrix_works blinfun_of_matrix_apply inner_Basis mult_if_delta setsum.delta'
-      scaleR_setsum_left[symmetric])
+    simp: blinfun_of_matrix_works blinfun_of_matrix_apply inner_Basis mult_if_delta sum.delta'
+      scaleR_sum_left[symmetric])
 
 lemma blinfun_euclidean_eqI: "(\<And>i. i \<in> Basis \<Longrightarrow> blinfun_apply x i = blinfun_apply y i) \<Longrightarrow> x = y"
   apply (auto intro!: blinfun_eqI)
@@ -493,7 +493,7 @@ lemma blinfun_euclidean_eqI: "(\<And>i. i \<in> Basis \<Longrightarrow> blinfun_
 lemma Blinfun_eq_matrix: "bounded_linear f \<Longrightarrow> Blinfun f = blinfun_of_matrix (\<lambda>i j. f j \<bullet> i)"
   by (intro blinfun_euclidean_eqI)
      (auto simp: blinfun_of_matrix_apply bounded_linear_Blinfun_apply inner_Basis if_distrib
-      cond_application_beta setsum.delta' euclidean_representation
+      cond_application_beta sum.delta' euclidean_representation
       cong: if_cong)
 
 text \<open>TODO: generalize (via @{thm compact_cball})?\<close>
@@ -520,10 +520,10 @@ proof
       also note norm_blinfun_of_matrix
       also have "(\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. \<bar>(f (r n) - l) j \<bullet> i\<bar>) <
         (\<Sum>i\<in>(Basis::'b set). e / real_of_nat DIM('b))"
-      proof (rule setsum_strict_mono)
+      proof (rule sum_strict_mono)
         fix i::'b assume i: "i \<in> Basis"
         have "(\<Sum>j::'a\<in>Basis. \<bar>(f (r n) - l) j \<bullet> i\<bar>) < (\<Sum>j::'a\<in>Basis. e / ?d)"
-        proof (rule setsum_strict_mono)
+        proof (rule sum_strict_mono)
           fix j::'a assume j: "j \<in> Basis"
           have "\<bar>(f (r n) - l) j \<bullet> i\<bar> \<le> norm ((f (r n) - l) j)"
             by (simp add: Basis_le_norm i)

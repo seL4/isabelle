@@ -373,10 +373,10 @@ proof (rule metric_CauchyI)
     assume "M \<le> m" "M \<le> n"
     have "dist (X m) (X n) = setL2 (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
       unfolding dist_vec_def ..
-    also have "\<dots> \<le> setsum (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
-      by (rule setL2_le_setsum [OF zero_le_dist])
-    also have "\<dots> < setsum (\<lambda>i::'n. ?s) UNIV"
-      by (rule setsum_strict_mono, simp_all add: M \<open>M \<le> m\<close> \<open>M \<le> n\<close>)
+    also have "\<dots> \<le> sum (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
+      by (rule setL2_le_sum [OF zero_le_dist])
+    also have "\<dots> < sum (\<lambda>i::'n. ?s) UNIV"
+      by (rule sum_strict_mono, simp_all add: M \<open>M \<le> m\<close> \<open>M \<le> n\<close>)
     also have "\<dots> = r"
       by simp
     finally have "dist (X m) (X n) < r" .
@@ -449,7 +449,7 @@ subsection \<open>Inner product space\<close>
 instantiation vec :: (real_inner, finite) real_inner
 begin
 
-definition "inner x y = setsum (\<lambda>i. inner (x$i) (y$i)) UNIV"
+definition "inner x y = sum (\<lambda>i. inner (x$i) (y$i)) UNIV"
 
 instance proof
   fix r :: real and x y z :: "'a ^ 'b"
@@ -458,16 +458,16 @@ instance proof
     by (simp add: inner_commute)
   show "inner (x + y) z = inner x z + inner y z"
     unfolding inner_vec_def
-    by (simp add: inner_add_left setsum.distrib)
+    by (simp add: inner_add_left sum.distrib)
   show "inner (scaleR r x) y = r * inner x y"
     unfolding inner_vec_def
-    by (simp add: setsum_distrib_left)
+    by (simp add: sum_distrib_left)
   show "0 \<le> inner x x"
     unfolding inner_vec_def
-    by (simp add: setsum_nonneg)
+    by (simp add: sum_nonneg)
   show "inner x x = 0 \<longleftrightarrow> x = 0"
     unfolding inner_vec_def
-    by (simp add: vec_eq_iff setsum_nonneg_eq_0_iff)
+    by (simp add: vec_eq_iff sum_nonneg_eq_0_iff)
   show "norm x = sqrt (inner x x)"
     unfolding inner_vec_def norm_vec_def setL2_def
     by (simp add: power2_norm_eq_inner)
@@ -493,22 +493,22 @@ lemma inner_axis_axis:
   unfolding inner_vec_def
   apply (cases "i = j")
   apply clarsimp
-  apply (subst setsum.remove [of _ j], simp_all)
-  apply (rule setsum.neutral, simp add: axis_def)
-  apply (rule setsum.neutral, simp add: axis_def)
+  apply (subst sum.remove [of _ j], simp_all)
+  apply (rule sum.neutral, simp add: axis_def)
+  apply (rule sum.neutral, simp add: axis_def)
   done
 
-lemma setsum_single:
+lemma sum_single:
   assumes "finite A" and "k \<in> A" and "f k = y"
   assumes "\<And>i. i \<in> A \<Longrightarrow> i \<noteq> k \<Longrightarrow> f i = 0"
   shows "(\<Sum>i\<in>A. f i) = y"
-  apply (subst setsum.remove [OF assms(1,2)])
-  apply (simp add: setsum.neutral assms(3,4))
+  apply (subst sum.remove [OF assms(1,2)])
+  apply (simp add: sum.neutral assms(3,4))
   done
 
 lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"
   unfolding inner_vec_def
-  apply (rule_tac k=i in setsum_single)
+  apply (rule_tac k=i in sum_single)
   apply simp_all
   apply (simp add: axis_def)
   done

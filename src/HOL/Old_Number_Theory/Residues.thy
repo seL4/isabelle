@@ -129,7 +129,7 @@ lemma StandardRes_inj_on_ResSet: "ResSet m X ==> (inj_on (StandardRes m) X)"
   done
 
 lemma StandardRes_Sum: "[| finite X; 0 < m |] 
-     ==> [setsum f X = setsum (StandardRes m o f) X](mod m)" 
+     ==> [sum f X = sum (StandardRes m o f) X](mod m)" 
   apply (rule_tac F = X in finite_induct)
   apply (auto intro!: zcong_zadd simp add: StandardRes_prop1)
   done

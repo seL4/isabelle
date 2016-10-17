@@ -54,10 +54,10 @@ proof -
       by (subst X_distrib [symmetric]) (auto simp: integral_distr)
 
     have "\<phi> n t = char (distr M borel (\<lambda>x. \<Sum>i<n. X i x / sqrt (\<sigma>\<^sup>2 * real n))) t"
-      by (auto simp: \<phi>_def S_def setsum_divide_distrib ac_simps)
+      by (auto simp: \<phi>_def S_def sum_divide_distrib ac_simps)
     also have "\<dots> = (\<Prod> i < n. \<psi>' n i t)"
       unfolding \<psi>'_def
-      apply (rule char_distr_setsum)
+      apply (rule char_distr_sum)
       apply (rule indep_vars_compose2[where X=X])
       apply (rule indep_vars_subset)
       apply (rule X_indep)

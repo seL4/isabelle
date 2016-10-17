@@ -2195,13 +2195,13 @@ lemma has_derivative_series:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
   assumes "convex s"
     and "\<And>n x. x \<in> s \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within s)"
-    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (setsum (\<lambda>i. f' i x h) {..<n} - g' x h) \<le> e * norm h"
+    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (sum (\<lambda>i. f' i x h) {..<n} - g' x h) \<le> e * norm h"
     and "x \<in> s"
     and "(\<lambda>n. f n x) sums l"
   shows "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums (g x) \<and> (g has_derivative g' x) (at x within s)"
   unfolding sums_def
   apply (rule has_derivative_sequence[OF assms(1) _ assms(3)])
-  apply (metis assms(2) has_derivative_setsum)
+  apply (metis assms(2) has_derivative_sum)
   using assms(4-5)
   unfolding sums_def
   apply auto
@@ -2224,7 +2224,7 @@ proof (rule has_derivative_series)
     {
       fix n :: nat and x h :: 'a assume nx: "n \<ge> N" "x \<in> s"
       have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) = norm ((\<Sum>i<n. f' i x) - g' x) * norm h"
-        by (simp add: norm_mult [symmetric] ring_distribs setsum_distrib_right)
+        by (simp add: norm_mult [symmetric] ring_distribs sum_distrib_right)
       also from N[OF nx] have "norm ((\<Sum>i<n. f' i x) - g' x) \<le> e" by simp
       hence "norm ((\<Sum>i<n. f' i x) - g' x) * norm h \<le> e * norm h"
         by (intro mult_right_mono) simp_all
@@ -2591,7 +2591,7 @@ proof (rule has_derivativeI)
     "\<forall>\<^sub>F n in sequentially. ((\<lambda>x. \<Sum>i<n. ?e i x) \<longlongrightarrow> A) ?F"
     by eventually_elim
       (auto intro!: tendsto_eq_intros
-        simp: power_0_left if_distrib cond_application_beta setsum.delta
+        simp: power_0_left if_distrib cond_application_beta sum.delta
         cong: if_cong)
   ultimately
   have [tendsto_intros]: "((\<lambda>x. \<Sum>i. ?e i x) \<longlongrightarrow> A) ?F"

@@ -33,7 +33,7 @@ qed
 lemma diff: "f (x - y) = f x - f y"
   using add [of x "- y"] by (simp add: minus)
 
-lemma setsum: "f (setsum g A) = (\<Sum>x\<in>A. f (g x))"
+lemma sum: "f (sum g A) = (\<Sum>x\<in>A. f (g x))"
   by (induct A rule: infinite_finite_induct) (simp_all add: zero add)
 
 end
@@ -55,27 +55,27 @@ lemma scale_left_commute: "scale a (scale b x) = scale b (scale a x)"
 lemma scale_zero_left [simp]: "scale 0 x = 0"
   and scale_minus_left [simp]: "scale (- a) x = - (scale a x)"
   and scale_left_diff_distrib [algebra_simps]: "scale (a - b) x = scale a x - scale b x"
-  and scale_setsum_left: "scale (setsum f A) x = (\<Sum>a\<in>A. scale (f a) x)"
+  and scale_sum_left: "scale (sum f A) x = (\<Sum>a\<in>A. scale (f a) x)"
 proof -
   interpret s: additive "\<lambda>a. scale a x"
     by standard (rule scale_left_distrib)
   show "scale 0 x = 0" by (rule s.zero)
   show "scale (- a) x = - (scale a x)" by (rule s.minus)
   show "scale (a - b) x = scale a x - scale b x" by (rule s.diff)
-  show "scale (setsum f A) x = (\<Sum>a\<in>A. scale (f a) x)" by (rule s.setsum)
+  show "scale (sum f A) x = (\<Sum>a\<in>A. scale (f a) x)" by (rule s.sum)
 qed
 
 lemma scale_zero_right [simp]: "scale a 0 = 0"
   and scale_minus_right [simp]: "scale a (- x) = - (scale a x)"
   and scale_right_diff_distrib [algebra_simps]: "scale a (x - y) = scale a x - scale a y"
-  and scale_setsum_right: "scale a (setsum f A) = (\<Sum>x\<in>A. scale a (f x))"
+  and scale_sum_right: "scale a (sum f A) = (\<Sum>x\<in>A. scale a (f x))"
 proof -
   interpret s: additive "\<lambda>x. scale a x"
     by standard (rule scale_right_distrib)
   show "scale a 0 = 0" by (rule s.zero)
   show "scale a (- x) = - (scale a x)" by (rule s.minus)
   show "scale a (x - y) = scale a x - scale a y" by (rule s.diff)
-  show "scale a (setsum f A) = (\<Sum>x\<in>A. scale a (f x))" by (rule s.setsum)
+  show "scale a (sum f A) = (\<Sum>x\<in>A. scale a (f x))" by (rule s.sum)
 qed
 
 lemma scale_eq_0_iff [simp]: "scale a x = 0 \<longleftrightarrow> a = 0 \<or> x = 0"
@@ -154,11 +154,11 @@ lemmas scaleR_left_commute = real_vector.scale_left_commute
 lemmas scaleR_zero_left = real_vector.scale_zero_left
 lemmas scaleR_minus_left = real_vector.scale_minus_left
 lemmas scaleR_diff_left = real_vector.scale_left_diff_distrib
-lemmas scaleR_setsum_left = real_vector.scale_setsum_left
+lemmas scaleR_sum_left = real_vector.scale_sum_left
 lemmas scaleR_zero_right = real_vector.scale_zero_right
 lemmas scaleR_minus_right = real_vector.scale_minus_right
 lemmas scaleR_diff_right = real_vector.scale_right_diff_distrib
-lemmas scaleR_setsum_right = real_vector.scale_setsum_right
+lemmas scaleR_sum_right = real_vector.scale_sum_right
 lemmas scaleR_eq_0_iff = real_vector.scale_eq_0_iff
 lemmas scaleR_left_imp_eq = real_vector.scale_left_imp_eq
 lemmas scaleR_right_imp_eq = real_vector.scale_right_imp_eq
@@ -216,7 +216,7 @@ lemma inverse_scaleR_distrib: "inverse (scaleR a x) = scaleR (inverse a) (invers
   apply (erule (1) nonzero_inverse_scaleR_distrib)
   done
 
-lemma setsum_constant_scaleR: "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
+lemma sum_constant_scaleR: "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
   for y :: "'a::real_vector"
   by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
 
@@ -316,7 +316,7 @@ lemma of_real_diff [simp]: "of_real (x - y) = of_real x - of_real y"
 lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
   by (simp add: of_real_def mult.commute)
 
-lemma of_real_setsum[simp]: "of_real (setsum f s) = (\<Sum>x\<in>s. of_real (f x))"
+lemma of_real_sum[simp]: "of_real (sum f s) = (\<Sum>x\<in>s. of_real (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
 lemma of_real_setprod[simp]: "of_real (setprod f s) = (\<Prod>x\<in>s. of_real (f x))"
@@ -495,10 +495,10 @@ proof -
   then show thesis ..
 qed
 
-lemma setsum_in_Reals [intro,simp]: "(\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>) \<Longrightarrow> setsum f s \<in> \<real>"
+lemma sum_in_Reals [intro,simp]: "(\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>) \<Longrightarrow> sum f s \<in> \<real>"
 proof (induct s rule: infinite_finite_induct)
   case infinite
-  then show ?case by (metis Reals_0 setsum.infinite)
+  then show ?case by (metis Reals_0 sum.infinite)
 qed simp_all
 
 lemma setprod_in_Reals [intro,simp]: "(\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>) \<Longrightarrow> setprod f s \<in> \<real>"
@@ -848,16 +848,16 @@ lemma norm_triangle_mono:
   shows "norm a \<le> r \<Longrightarrow> norm b \<le> s \<Longrightarrow> norm (a + b) \<le> r + s"
   by (metis add_mono_thms_linordered_semiring(1) norm_triangle_ineq order.trans)
 
-lemma norm_setsum:
+lemma norm_sum:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  shows "norm (setsum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
+  shows "norm (sum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
   by (induct A rule: infinite_finite_induct) (auto intro: norm_triangle_mono)
 
-lemma setsum_norm_le:
+lemma sum_norm_le:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
-  shows "norm (setsum f S) \<le> setsum g S"
-  by (rule order_trans [OF norm_setsum setsum_mono]) (simp add: fg)
+  shows "norm (sum f S) \<le> sum g S"
+  by (rule order_trans [OF norm_sum sum_mono]) (simp add: fg)
 
 lemma abs_norm_cancel [simp]: "\<bar>norm a\<bar> = norm a"
   for a :: "'a::real_normed_vector"
@@ -1471,11 +1471,11 @@ lemma diff_left: "prod (a - a') b = prod a b - prod a' b"
 lemma diff_right: "prod a (b - b') = prod a b - prod a b'"
   by (rule additive.diff [OF additive_right])
 
-lemma setsum_left: "prod (setsum g S) x = setsum ((\<lambda>i. prod (g i) x)) S"
-  by (rule additive.setsum [OF additive_left])
+lemma sum_left: "prod (sum g S) x = sum ((\<lambda>i. prod (g i) x)) S"
+  by (rule additive.sum [OF additive_left])
 
-lemma setsum_right: "prod x (setsum g S) = setsum ((\<lambda>i. (prod x (g i)))) S"
-  by (rule additive.setsum [OF additive_right])
+lemma sum_right: "prod x (sum g S) = sum ((\<lambda>i. (prod x (g i)))) S"
+  by (rule additive.sum [OF additive_right])
 
 
 lemma bounded_linear_left: "bounded_linear (\<lambda>a. a ** b)"
@@ -1578,7 +1578,7 @@ lemma bounded_linear_sub: "bounded_linear f \<Longrightarrow> bounded_linear g \
   using bounded_linear_add[of f "\<lambda>x. - g x"] bounded_linear_minus[of g]
   by (auto simp add: algebra_simps)
 
-lemma bounded_linear_setsum:
+lemma bounded_linear_sum:
   fixes f :: "'i \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   shows "(\<And>i. i \<in> I \<Longrightarrow> bounded_linear (f i)) \<Longrightarrow> bounded_linear (\<lambda>x. \<Sum>i\<in>I. f i x)"
   by (induct I rule: infinite_finite_induct) (auto intro!: bounded_linear_add)

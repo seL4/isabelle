@@ -182,15 +182,15 @@ proof (rule cld_measure.borel_measurable_cld)
       have "(\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) =
         (\<Sum>(x, k)\<in>?T ` (p \<inter> s). content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p - s. content k *\<^sub>R f x)"
         using p(1)[THEN tagged_division_ofD(1)]
-        by (safe intro!: setsum.union_inter_neutral) (auto simp: s_def T_def)
+        by (safe intro!: sum.union_inter_neutral) (auto simp: s_def T_def)
       also have "(\<Sum>(x, k)\<in>?T ` (p \<inter> s). content k *\<^sub>R f x) = (\<Sum>(x, k)\<in>p \<inter> s. content k *\<^sub>R f (T X k))"
-      proof (subst setsum.reindex_nontrivial, safe)
+      proof (subst sum.reindex_nontrivial, safe)
         fix x1 x2 k assume 1: "(x1, k) \<in> p" "(x1, k) \<in> s" and 2: "(x2, k) \<in> p" "(x2, k) \<in> s"
           and eq: "content k *\<^sub>R f (T X k) \<noteq> 0"
         with tagged_division_ofD(5)[OF p(1), of x1 k x2 k] tagged_division_ofD(4)[OF p(1), of x1 k]
         show "x1 = x2"
           by (auto simp: content_eq_0_interior)
-      qed (use p in \<open>auto intro!: setsum.cong\<close>)
+      qed (use p in \<open>auto intro!: sum.cong\<close>)
       finally have eq: "(\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) =
         (\<Sum>(x, k)\<in>p \<inter> s. content k *\<^sub>R f (T X k)) + (\<Sum>(x, k)\<in>p - s. content k *\<^sub>R f x)" .
 
@@ -270,11 +270,11 @@ proof (rule cld_measure.borel_measurable_cld)
         using \<open>0 < e\<close> by (simp add: split_beta)
     qed (use \<open>a < b\<close> in auto)
     also have "\<dots> = (\<Sum>(x, k)\<in>p \<inter> s. content k * (b - a))"
-      by (simp add: setsum_distrib_right split_beta')
+      by (simp add: sum_distrib_right split_beta')
     also have "\<dots> \<le> (\<Sum>(x, k)\<in>p \<inter> s. content k * (f (T ?F k) - f (T ?E k)))"
-      using parts(3) by (auto intro!: setsum_mono mult_left_mono diff_mono)
+      using parts(3) by (auto intro!: sum_mono mult_left_mono diff_mono)
     also have "\<dots> = (\<Sum>(x, k)\<in>p \<inter> s. content k * f (T ?F k)) - (\<Sum>(x, k)\<in>p \<inter> s. content k * f (T ?E k))"
-      by (auto intro!: setsum.cong simp: field_simps setsum_subtractf[symmetric])
+      by (auto intro!: sum.cong simp: field_simps sum_subtractf[symmetric])
     also have "\<dots> = (\<Sum>(x, k)\<in>?B. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>?A. content k *\<^sub>R f x)"
       by (subst (1 2) parts) auto
     also have "\<dots> \<le> norm ((\<Sum>(x, k)\<in>?B. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>?A. content k *\<^sub>R f x))"
@@ -401,13 +401,13 @@ proof -
       proof (rule has_integral_monotone_convergence_increasing)
         let ?f = "\<lambda>k x. \<Sum>i<k. if x \<in> F i \<inter> box a b then 1 else 0 :: real"
         show "\<And>k. (?f k has_integral (\<Sum>i<k. ?M (F i))) (box a b)"
-          using union.IH by (auto intro!: has_integral_setsum simp del: Int_iff)
+          using union.IH by (auto intro!: has_integral_sum simp del: Int_iff)
         show "\<And>k x. ?f k x \<le> ?f (Suc k) x"
-          by (intro setsum_mono2) auto
+          by (intro sum_mono2) auto
         from union(1) have *: "\<And>x i j. x \<in> F i \<Longrightarrow> x \<in> F j \<longleftrightarrow> j = i"
           by (auto simp add: disjoint_family_on_def)
         show "\<And>x. (\<lambda>k. ?f k x) \<longlonglongrightarrow> (if x \<in> UNION UNIV F \<inter> box a b then 1 else 0)"
-          apply (auto simp: * setsum.If_cases Iio_Int_singleton)
+          apply (auto simp: * sum.If_cases Iio_Int_singleton)
           apply (rule_tac k="Suc xa" in LIMSEQ_offset)
           apply simp
           done
@@ -757,7 +757,7 @@ lemma has_integral_integral_lborel:
   shows "(f has_integral (integral\<^sup>L lborel f)) UNIV"
 proof -
   have "((\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) has_integral (\<Sum>b\<in>Basis. integral\<^sup>L lborel (\<lambda>x. f x \<bullet> b) *\<^sub>R b)) UNIV"
-    using f by (intro has_integral_setsum finite_Basis ballI has_integral_scaleR_left has_integral_integral_real) auto
+    using f by (intro has_integral_sum finite_Basis ballI has_integral_scaleR_left has_integral_integral_real) auto
   also have eq_f: "(\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) = f"
     by (simp add: fun_eq_iff euclidean_representation)
   also have "(\<Sum>b\<in>Basis. integral\<^sup>L lborel (\<lambda>x. f x \<bullet> b) *\<^sub>R b) = integral\<^sup>L lborel f"
@@ -804,7 +804,7 @@ lemma has_integral_integral_lebesgue:
   shows "(f has_integral (integral\<^sup>L lebesgue f)) UNIV"
 proof -
   have "((\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) has_integral (\<Sum>b\<in>Basis. integral\<^sup>L lebesgue (\<lambda>x. f x \<bullet> b) *\<^sub>R b)) UNIV"
-    using f by (intro has_integral_setsum finite_Basis ballI has_integral_scaleR_left has_integral_integral_lebesgue_real) auto
+    using f by (intro has_integral_sum finite_Basis ballI has_integral_scaleR_left has_integral_integral_lebesgue_real) auto
   also have eq_f: "(\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) = f"
     by (simp add: fun_eq_iff euclidean_representation)
   also have "(\<Sum>b\<in>Basis. integral\<^sup>L lebesgue (\<lambda>x. f x \<bullet> b) *\<^sub>R b) = integral\<^sup>L lebesgue f"
@@ -1245,10 +1245,10 @@ proof (clarsimp simp: completion.null_sets_outer)
       using \<open>0 < B\<close> \<open>\<D>' \<subseteq> \<D>\<close> that vu_pos by fastforce
     have "{} \<notin> \<D>'"
       using cbox \<open>\<D>' \<subseteq> \<D>\<close> interior_empty by blast
-    have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> setsum (measure lebesgue o fbx) \<D>'"
-      by (rule setsum_image_le [OF \<open>finite \<D>'\<close>]) (force simp: fbx_def)
+    have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> sum (measure lebesgue o fbx) \<D>'"
+      by (rule sum_image_le [OF \<open>finite \<D>'\<close>]) (force simp: fbx_def)
     also have "\<dots> \<le> (\<Sum>X\<in>\<D>'. (2 * B * DIM('M)) ^ DIM('N) * measure lebesgue X)"
-    proof (rule setsum_mono)
+    proof (rule sum_mono)
       fix X assume "X \<in> \<D>'"
       then have "X \<in> \<D>" using \<open>\<D>' \<subseteq> \<D>\<close> by blast
       then have ufvf: "cbox (uf X) (vf X) = X"
@@ -1281,8 +1281,8 @@ proof (clarsimp simp: completion.null_sets_outer)
         by (subst (3) ufvf[symmetric]) simp
       finally show "(measure lebesgue \<circ> fbx) X \<le> (2 * B * DIM('M)) ^ DIM('N) * measure lebesgue X" .
     qed
-    also have "\<dots> = (2 * B * DIM('M)) ^ DIM('N) * setsum (measure lebesgue) \<D>'"
-      by (simp add: setsum_distrib_left)
+    also have "\<dots> = (2 * B * DIM('M)) ^ DIM('N) * sum (measure lebesgue) \<D>'"
+      by (simp add: sum_distrib_left)
     also have "\<dots> \<le> e / 2"
     proof -
       have div: "\<D>' division_of \<Union>\<D>'"
@@ -1306,9 +1306,9 @@ proof (clarsimp simp: completion.null_sets_outer)
         qed
         finally show "\<Union>\<D>' \<subseteq> T" .
       qed
-      have "setsum (measure lebesgue) \<D>' = setsum content \<D>'"
-        using  \<open>\<D>' \<subseteq> \<D>\<close> cbox by (force intro: setsum.cong)
-      then have "(2 * B * DIM('M)) ^ DIM('N) * setsum (measure lebesgue) \<D>' =
+      have "sum (measure lebesgue) \<D>' = sum content \<D>'"
+        using  \<open>\<D>' \<subseteq> \<D>\<close> cbox by (force intro: sum.cong)
+      then have "(2 * B * DIM('M)) ^ DIM('N) * sum (measure lebesgue) \<D>' =
                  (2 * B * real DIM('M)) ^ DIM('N) * measure lebesgue (\<Union>\<D>')"
         using content_division [OF div] by auto
       also have "\<dots> \<le> (2 * B * real DIM('M)) ^ DIM('N) * measure lebesgue T"
@@ -1322,7 +1322,7 @@ proof (clarsimp simp: completion.null_sets_outer)
     qed
     finally show ?thesis .
   qed
-  then have e2: "setsum (measure lebesgue) \<G> \<le> e / 2" if "\<G> \<subseteq> fbx ` \<D>" "finite \<G>" for \<G>
+  then have e2: "sum (measure lebesgue) \<G> \<le> e / 2" if "\<G> \<subseteq> fbx ` \<D>" "finite \<G>" for \<G>
     by (metis finite_subset_image that)
   show "\<exists>W\<in>lmeasurable. f ` S \<subseteq> W \<and> measure lebesgue W < e"
   proof (intro bexI conjI)
@@ -1339,7 +1339,7 @@ proof (clarsimp simp: completion.null_sets_outer)
       have "norm (y - zf X) \<le> (\<Sum>i\<in>Basis. \<bar>(y - zf X) \<bullet> i\<bar>)"
         by (rule norm_le_l1)
       also have "\<dots> \<le> real DIM('M) * prj1 (vf X - uf X)"
-      proof (rule setsum_bounded_above)
+      proof (rule sum_bounded_above)
         fix j::'M assume j: "j \<in> Basis"
         show "\<bar>(y - zf X) \<bullet> j\<bar> \<le> prj1 (vf X - uf X)"
           using yin zin j
@@ -1533,7 +1533,7 @@ lemma set_integrable_norm:
 lemma absolutely_integrable_bounded_variation:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "f absolutely_integrable_on UNIV"
-  obtains B where "\<forall>d. d division_of (\<Union>d) \<longrightarrow> setsum (\<lambda>k. norm (integral k f)) d \<le> B"
+  obtains B where "\<forall>d. d division_of (\<Union>d) \<longrightarrow> sum (\<lambda>k. norm (integral k f)) d \<le> B"
 proof (rule that[of "integral UNIV (\<lambda>x. norm (f x))"]; safe)
   fix d :: "'a set set" assume d: "d division_of \<Union>d"
   have *: "k \<in> d \<Longrightarrow> f absolutely_integrable_on k" for k
@@ -1541,11 +1541,11 @@ proof (rule that[of "integral UNIV (\<lambda>x. norm (f x))"]; safe)
   note d' = division_ofD[OF d]
 
   have "(\<Sum>k\<in>d. norm (integral k f)) = (\<Sum>k\<in>d. norm (LINT x:k|lebesgue. f x))"
-    by (intro setsum.cong refl arg_cong[where f=norm] set_lebesgue_integral_eq_integral(2)[symmetric] *)
+    by (intro sum.cong refl arg_cong[where f=norm] set_lebesgue_integral_eq_integral(2)[symmetric] *)
   also have "\<dots> \<le> (\<Sum>k\<in>d. LINT x:k|lebesgue. norm (f x))"
-    by (intro setsum_mono set_integral_norm_bound *)
+    by (intro sum_mono set_integral_norm_bound *)
   also have "\<dots> = (\<Sum>k\<in>d. integral k (\<lambda>x. norm (f x)))"
-    by (intro setsum.cong refl set_lebesgue_integral_eq_integral(2) set_integrable_norm *)
+    by (intro sum.cong refl set_lebesgue_integral_eq_integral(2) set_integrable_norm *)
   also have "\<dots> \<le> integral (\<Union>d) (\<lambda>x. norm (f x))"
     using integrable_on_subdivision[OF d] assms f unfolding absolutely_integrable_on_def
     by (subst integral_combine_division_topdown[OF _ d]) auto
@@ -1556,20 +1556,20 @@ proof (rule that[of "integral UNIV (\<lambda>x. norm (f x))"]; safe)
 qed
 
 lemma helplemma:
-  assumes "setsum (\<lambda>x. norm (f x - g x)) s < e"
+  assumes "sum (\<lambda>x. norm (f x - g x)) s < e"
     and "finite s"
-  shows "\<bar>setsum (\<lambda>x. norm(f x)) s - setsum (\<lambda>x. norm(g x)) s\<bar> < e"
-  unfolding setsum_subtractf[symmetric]
-  apply (rule le_less_trans[OF setsum_abs])
+  shows "\<bar>sum (\<lambda>x. norm(f x)) s - sum (\<lambda>x. norm(g x)) s\<bar> < e"
+  unfolding sum_subtractf[symmetric]
+  apply (rule le_less_trans[OF sum_abs])
   apply (rule le_less_trans[OF _ assms(1)])
-  apply (rule setsum_mono)
+  apply (rule sum_mono)
   apply (rule norm_triangle_ineq3)
   done
 
 lemma bounded_variation_absolutely_integrable_interval:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes f: "f integrable_on cbox a b"
-    and *: "\<forall>d. d division_of (cbox a b) \<longrightarrow> setsum (\<lambda>k. norm(integral k f)) d \<le> B"
+    and *: "\<forall>d. d division_of (cbox a b) \<longrightarrow> sum (\<lambda>k. norm(integral k f)) d \<le> B"
   shows "f absolutely_integrable_on cbox a b"
 proof -
   let ?f = "\<lambda>d. \<Sum>k\<in>d. norm (integral k f)" and ?D = "{d. d division_of (cbox a b)}"
@@ -1749,7 +1749,7 @@ proof -
           done
       qed
       have sum_p': "(\<Sum>(x, k)\<in>p'. norm (integral k f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
-        apply (subst setsum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
+        apply (subst sum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
         unfolding norm_eq_zero
          apply (rule integral_null)
         apply (simp add: content_eq_0_interior)
@@ -1775,7 +1775,7 @@ proof -
           (\<lambda>(k,l). k \<inter> l) ` {(k,l)|k l. k \<in> d \<and> l \<in> snd ` p}"
           by auto
         have "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>i\<in>d. \<Sum>l\<in>snd ` p. norm (integral (i \<inter> l) f))"
-        proof (rule setsum_mono, goal_cases)
+        proof (rule sum_mono, goal_cases)
           case k: (1 k)
           from d'(4)[OF this] guess u v by (elim exE) note uv=this
           define d' where "d' = {cbox u v \<inter> l |l. l \<in> snd ` p \<and>  cbox u v \<inter> l \<noteq> {}}"
@@ -1786,16 +1786,16 @@ proof -
             apply (rule division_of_tagged_division[OF p(1)])
             apply (rule uvab)
             done
-          then have "norm (integral k f) \<le> setsum (\<lambda>k. norm (integral k f)) d'"
+          then have "norm (integral k f) \<le> sum (\<lambda>k. norm (integral k f)) d'"
             unfolding uv
             apply (subst integral_combine_division_topdown[of _ _ d'])
             apply (rule integrable_on_subcbox[OF assms(1) uvab])
             apply assumption
-            apply (rule setsum_norm_le)
+            apply (rule sum_norm_le)
             apply auto
             done
           also have "\<dots> = (\<Sum>k\<in>{k \<inter> l |l. l \<in> snd ` p}. norm (integral k f))"
-            apply (rule setsum.mono_neutral_left)
+            apply (rule sum.mono_neutral_left)
             apply (subst Setcompr_eq_image)
             apply (rule finite_imageI)+
             apply fact
@@ -1813,7 +1813,7 @@ proof -
           qed
           also have "\<dots> = (\<Sum>l\<in>snd ` p. norm (integral (k \<inter> l) f))"
             unfolding Setcompr_eq_image
-            apply (rule setsum.reindex_nontrivial [unfolded o_def])
+            apply (rule sum.reindex_nontrivial [unfolded o_def])
             apply (rule finite_imageI)
             apply (rule p')
           proof goal_cases
@@ -1845,7 +1845,7 @@ proof -
           unfolding split_def ..
         also have "\<dots> = (\<Sum>k\<in>{i \<inter> l |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral k f))"
           unfolding *
-          apply (rule setsum.reindex_nontrivial [symmetric, unfolded o_def])
+          apply (rule sum.reindex_nontrivial [symmetric, unfolded o_def])
           apply (rule finite_product_dependent)
           apply fact
           apply (rule finite_imageI)
@@ -1886,7 +1886,7 @@ proof -
         qed
         also have "\<dots> = (\<Sum>(x, k)\<in>p'. norm (integral k f))"
           unfolding sum_p'
-          apply (rule setsum.mono_neutral_right)
+          apply (rule sum.mono_neutral_right)
           apply (subst *)
           apply (rule finite_imageI[OF finite_product_dependent])
           apply fact
@@ -1929,7 +1929,7 @@ proof -
         note pdfin = finite_cartesian_product[OF p'(1) d'(1)]
         have "(\<Sum>(x, k)\<in>p'. norm (content k *\<^sub>R f x)) = (\<Sum>(x, k)\<in>?S. \<bar>content k\<bar> * norm (f x))"
           unfolding norm_scaleR
-          apply (rule setsum.mono_neutral_left)
+          apply (rule sum.mono_neutral_left)
           apply (subst *)
           apply (rule finite_imageI)
           apply fact
@@ -1943,7 +1943,7 @@ proof -
           done
         also have "\<dots> = (\<Sum>((x,l),i)\<in>p \<times> d. \<bar>content (l \<inter> i)\<bar> * norm (f x))"
           unfolding *
-          apply (subst setsum.reindex_nontrivial)
+          apply (subst sum.reindex_nontrivial)
           apply fact
           unfolding split_paired_all
           unfolding o_def split_def snd_conv fst_conv mem_Sigma_iff prod.inject
@@ -1981,7 +1981,7 @@ proof -
           apply (rule p')
           apply rule
           apply (rule d')
-          apply (rule setsum.cong)
+          apply (rule sum.cong)
           apply (rule refl)
           unfolding split_paired_all split_conv
         proof -
@@ -1990,7 +1990,7 @@ proof -
           note xl = p'(2-4)[OF this]
           from this(3) guess u v by (elim exE) note uv=this
           have "(\<Sum>i\<in>d. \<bar>content (l \<inter> i)\<bar>) = (\<Sum>k\<in>d. content (k \<inter> cbox u v))"
-            apply (rule setsum.cong)
+            apply (rule sum.cong)
             apply (rule refl)
             apply (drule d'(4))
             apply safe
@@ -1999,9 +1999,9 @@ proof -
             apply (subst abs_of_nonneg)
             apply auto
             done
-          also have "\<dots> = setsum content {k \<inter> cbox u v| k. k \<in> d}"
+          also have "\<dots> = sum content {k \<inter> cbox u v| k. k \<in> d}"
             unfolding Setcompr_eq_image
-            apply (rule setsum.reindex_nontrivial [unfolded o_def, symmetric])
+            apply (rule sum.reindex_nontrivial [unfolded o_def, symmetric])
             apply (rule d')
           proof goal_cases
             case prems: (1 k y)
@@ -2019,8 +2019,8 @@ proof -
             finally show ?case
               unfolding uv Int_interval content_eq_0_interior ..
           qed
-          also have "\<dots> = setsum content {cbox u v \<inter> k |k. k \<in> d \<and> cbox u v \<inter> k \<noteq> {}}"
-            apply (rule setsum.mono_neutral_right)
+          also have "\<dots> = sum content {cbox u v \<inter> k |k. k \<in> d \<and> cbox u v \<inter> k \<noteq> {}}"
+            apply (rule sum.mono_neutral_right)
             unfolding Setcompr_eq_image
             apply (rule finite_imageI)
             apply (rule d')
@@ -2040,7 +2040,7 @@ proof -
               by auto
           qed
           finally show "(\<Sum>i\<in>d. \<bar>content (l \<inter> i)\<bar> * norm (f x)) = content l *\<^sub>R norm (f x)"
-            unfolding setsum_distrib_right[symmetric] real_scaleR_def
+            unfolding sum_distrib_right[symmetric] real_scaleR_def
             apply (subst(asm) additive_content_division[OF division_inter_1[OF d(1)]])
             using xl(2)[unfolded uv]
             unfolding uv
@@ -2056,7 +2056,7 @@ qed
 lemma bounded_variation_absolutely_integrable:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "f integrable_on UNIV"
-    and "\<forall>d. d division_of (\<Union>d) \<longrightarrow> setsum (\<lambda>k. norm (integral k f)) d \<le> B"
+    and "\<forall>d. d division_of (\<Union>d) \<longrightarrow> sum (\<lambda>k. norm (integral k f)) d \<le> B"
   shows "f absolutely_integrable_on UNIV"
 proof (rule absolutely_integrable_onI, fact, rule)
   let ?f = "\<lambda>d. \<Sum>k\<in>d. norm (integral k f)" and ?D = "{d. d division_of  (\<Union>d)}"
@@ -2083,7 +2083,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
       using f_int[of a b] unfolding absolutely_integrable_on_def by auto
   next
     case prems: (2 e)
-    have "\<exists>y\<in>setsum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union>d}. \<not> y \<le> ?S - e"
+    have "\<exists>y\<in>sum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union>d}. \<not> y \<le> ?S - e"
     proof (rule ccontr)
       assume "\<not> ?thesis"
       then have "?S \<le> ?S - e"
@@ -2092,7 +2092,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
         using prems by auto
     qed
     then obtain K where *: "\<exists>x\<in>{d. d division_of \<Union>d}. K = (\<Sum>k\<in>x. norm (integral k f))"
-      "SUPREMUM {d. d division_of \<Union>d} (setsum (\<lambda>k. norm (integral k f))) - e < K"
+      "SUPREMUM {d. d division_of \<Union>d} (sum (\<lambda>k. norm (integral k f))) - e < K"
       by (auto simp add: image_iff not_le)
     from this(1) obtain d where "d division_of \<Union>d"
       and "K = (\<Sum>k\<in>d. norm (integral k f))"
@@ -2118,8 +2118,8 @@ proof (rule absolutely_integrable_onI, fact, rule)
         apply (rule d(2))
       proof goal_cases
         case 1
-        have "(\<Sum>k\<in>d. norm (integral k f)) \<le> setsum (\<lambda>k. integral k (\<lambda>x. norm (f x))) d"
-          apply (intro setsum_mono)
+        have "(\<Sum>k\<in>d. norm (integral k f)) \<le> sum (\<lambda>k. integral k (\<lambda>x. norm (f x))) d"
+          apply (intro sum_mono)
           subgoal for k
             using d'(4)[of k] f_int
             by (auto simp: absolutely_integrable_on_def integral_norm_bound_integral)
@@ -2188,7 +2188,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
             using d1(2)[rule_format,OF conjI[OF p(1,2)]]
             by (simp only: real_norm_def)
           show "(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) = (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x))"
-            apply (rule setsum.cong)
+            apply (rule sum.cong)
             apply (rule refl)
             unfolding split_paired_all split_conv
             apply (drule tagged_division_ofD(4)[OF p(1)])
@@ -2198,7 +2198,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
             done
           show "(\<Sum>(x, k)\<in>p. norm (integral k f)) \<le> ?S"
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
-            apply (subst setsum.over_tagged_division_lemma[OF p(1)])
+            apply (subst sum.over_tagged_division_lemma[OF p(1)])
             apply (simp add: content_eq_0_interior)
             apply (intro cSUP_upper2[OF D(2), of "snd ` p"])
             apply (auto simp: tagged_partial_division_of_def)
@@ -2230,10 +2230,10 @@ lemma absolutely_integrable_linear:
   using integrable_bounded_linear[of h lebesgue "\<lambda>x. indicator s x *\<^sub>R f x"]
   by (simp add: linear_simps[of h])
 
-lemma absolutely_integrable_setsum:
+lemma absolutely_integrable_sum:
   fixes f :: "'a \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "finite t" and "\<And>a. a \<in> t \<Longrightarrow> (f a) absolutely_integrable_on s"
-  shows "(\<lambda>x. setsum (\<lambda>a. f a x) t) absolutely_integrable_on s"
+  shows "(\<lambda>x. sum (\<lambda>a. f a x) t) absolutely_integrable_on s"
   using assms(1,2) by induct auto
 
 lemma absolutely_integrable_integrable_bound:

@@ -612,7 +612,7 @@ proof -
     have "powf sums f w"
       unfolding powf_def by (rule holomorphic_power_series [OF holfb w])
     moreover have "(\<Sum>i<n. powf i) = f \<xi>"
-      apply (subst Groups_Big.comm_monoid_add_class.setsum.setdiff_irrelevant [symmetric])
+      apply (subst Groups_Big.comm_monoid_add_class.sum.setdiff_irrelevant [symmetric])
       apply (simp add:)
       apply (simp only: dfz sing)
       apply (simp add: powf_def)
@@ -1052,7 +1052,7 @@ proof
   proof (cases "\<forall>i\<le>n. 0<i \<longrightarrow> a i = 0")
     case True
     then have [simp]: "\<And>z. f z = a 0"
-      by (simp add: that setsum_atMost_shift)
+      by (simp add: that sum_atMost_shift)
     have False using compf [of "{a 0}"] by simp
     then show ?thesis ..
   next
@@ -1073,7 +1073,7 @@ proof
       using k apply auto
       done
     with k m show ?thesis
-      by (rule_tac x=m in exI) (auto simp: that comm_monoid_add_class.setsum.mono_neutral_right)
+      by (rule_tac x=m in exI) (auto simp: that comm_monoid_add_class.sum.mono_neutral_right)
   qed
   have "((inverse \<circ> f) \<longlongrightarrow> 0) at_infinity"
   proof (rule Lim_at_infinityI)
@@ -2758,9 +2758,9 @@ next
       finally show ?thesis .
     qed
   ultimately show ?case unfolding p_circ_def
-    apply (subst (asm) setsum.cong[OF refl,
+    apply (subst (asm) sum.cong[OF refl,
         of pts _ "\<lambda>p. winding_number g p * contour_integral (circlepath p (h p)) f"])
-    by (auto simp add:setsum.insert[OF \<open>finite pts\<close> \<open>p\<notin>pts\<close>] algebra_simps)
+    by (auto simp add:sum.insert[OF \<open>finite pts\<close> \<open>p\<notin>pts\<close>] algebra_simps)
 qed
 
 lemma Cauchy_theorem_singularities:
@@ -2791,17 +2791,17 @@ proof -
       show "\<forall>p\<in>s. 0 < h p \<and> (\<forall>w\<in>cball p (h p). w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts1))"
         by (simp add: avoid pts1_def)
     qed
-  moreover have "setsum circ pts2=0"
+  moreover have "sum circ pts2=0"
     proof -
       have "winding_number g p=0" when "p\<in>pts2" for p
         using  \<open>pts2 \<inter> s={}\<close> that homo[rule_format,of p] by auto
       thus ?thesis unfolding circ_def
-        apply (intro setsum.neutral)
+        apply (intro sum.neutral)
         by auto
     qed
-  moreover have "?R=setsum circ pts1 + setsum circ pts2"
+  moreover have "?R=sum circ pts1 + sum circ pts2"
     unfolding circ_def
-    using setsum.union_disjoint[OF _ _ \<open>pts1 \<inter> pts2 = {}\<close>] \<open>finite pts\<close> \<open>pts=pts1 \<union> pts2\<close>
+    using sum.union_disjoint[OF _ _ \<open>pts1 \<inter> pts2 = {}\<close>] \<open>finite pts\<close> \<open>pts=pts1 \<union> pts2\<close>
     by blast
   ultimately show ?thesis
     apply (fold circ_def)
@@ -2826,7 +2826,7 @@ proof -
       = (\<Sum>p\<in>pts. winding_number g p * contour_integral (circlepath p (h p)) f)"
     using Cauchy_theorem_singularities[OF assms avoid] .
   also have "... = (\<Sum>p\<in>pts.  c * winding_number g p * residue f p)"
-    proof (intro setsum.cong)
+    proof (intro sum.cong)
       show "pts = pts" by simp
     next
       fix x assume "x \<in> pts"
@@ -2846,7 +2846,7 @@ proof -
         qed
     qed
   also have "... = c * (\<Sum>p\<in>pts. winding_number g p * residue f p)"
-    by (simp add: setsum_distrib_left algebra_simps)
+    by (simp add: sum_distrib_left algebra_simps)
   finally show ?thesis unfolding c_def .
 qed
 
@@ -3437,12 +3437,12 @@ proof -
     qed
   also have "... = (\<Sum>p\<in>zeros. w p * cont p) + (\<Sum>p\<in>poles. w p * cont p)"
     using finite
-    apply (subst setsum.union_disjoint)
+    apply (subst sum.union_disjoint)
     by (auto simp add:zeros_def)
   also have "... = c * ((\<Sum>p\<in>zeros. w p *  h p * zorder f p) - (\<Sum>p\<in>poles. w p *  h p * porder f p))"
     proof -
       have "(\<Sum>p\<in>zeros. w p * cont p) = (\<Sum>p\<in>zeros. c * w p *  h p * zorder f p)"
-        proof (rule setsum.cong[of zeros zeros,simplified])
+        proof (rule sum.cong[of zeros zeros,simplified])
           fix p assume "p \<in> zeros"
           show "w p * cont p = c * w p * h p * (zorder f p)"
             proof (cases "p\<in>s")
@@ -3459,10 +3459,10 @@ proof -
             qed
         qed
       then have "(\<Sum>p\<in>zeros. w p * cont p) = c * (\<Sum>p\<in>zeros.  w p *  h p * zorder f p)"
-        apply (subst setsum_distrib_left)
+        apply (subst sum_distrib_left)
         by (simp add:algebra_simps)
       moreover have "(\<Sum>p\<in>poles. w p * cont p) = (\<Sum>p\<in>poles.  - c * w p *  h p * porder f p)"
-        proof (rule setsum.cong[of poles poles,simplified])
+        proof (rule sum.cong[of poles poles,simplified])
           fix p assume "p \<in> poles"
           show "w p * cont p = - c * w p * h p * (porder f p)"
             proof (cases "p\<in>s")
@@ -3479,7 +3479,7 @@ proof -
             qed
         qed
       then have "(\<Sum>p\<in>poles. w p * cont p) = - c * (\<Sum>p\<in>poles. w p *  h p * porder f p)"
-        apply (subst setsum_distrib_left)
+        apply (subst sum_distrib_left)
         by (simp add:algebra_simps)
       ultimately show ?thesis by (simp add: right_diff_distrib)
     qed

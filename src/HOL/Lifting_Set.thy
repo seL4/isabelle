@@ -285,7 +285,7 @@ proof (rule rel_funI)+
     by (simp add: reindex_bij_betw)
 qed
 
-lemmas setsum_parametric = setsum.F_parametric
+lemmas sum_parametric = sum.F_parametric
 lemmas setprod_parametric = setprod.F_parametric
 
 lemma rel_set_UNION:

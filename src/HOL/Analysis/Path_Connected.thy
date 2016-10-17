@@ -5760,18 +5760,18 @@ proof -
     obtain a where x: "x = (\<Sum>v \<in> B. a v *\<^sub>R v)"
       using \<open>finite B\<close> \<open>span B = S\<close> \<open>x \<in> S\<close> span_finite by fastforce
     have "f x = (\<Sum>v \<in> B. f (a v *\<^sub>R v))"
-      using linear_setsum [OF \<open>linear f\<close>] x by auto
+      using linear_sum [OF \<open>linear f\<close>] x by auto
     also have "... = (\<Sum>v \<in> B. a v *\<^sub>R f v)"
-      using \<open>linear f\<close> by (simp add: linear_setsum linear.scaleR)
+      using \<open>linear f\<close> by (simp add: linear_sum linear.scaleR)
     also have "... = (\<Sum>v \<in> B. a v *\<^sub>R fb v)"
-      by (simp add: ffb cong: setsum.cong)
+      by (simp add: ffb cong: sum.cong)
     finally have "norm (f x)^2 = norm (\<Sum>v\<in>B. a v *\<^sub>R fb v)^2" by simp
     also have "... = (\<Sum>v\<in>B. norm ((a v *\<^sub>R fb v))^2)"
-      apply (rule norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+      apply (rule norm_sum_Pythagorean [OF \<open>finite B\<close>])
       apply (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
       done
     also have "... = norm x ^2"
-      by (simp add: x pairwise_ortho_scaleR Borth norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+      by (simp add: x pairwise_ortho_scaleR Borth norm_sum_Pythagorean [OF \<open>finite B\<close>])
     finally show ?thesis
       by (simp add: norm_eq_sqrt_inner)
   qed
@@ -5823,28 +5823,28 @@ proof -
     obtain a where x: "x = (\<Sum>v \<in> B. a v *\<^sub>R v)"
       using \<open>finite B\<close> \<open>span B = S\<close> \<open>x \<in> S\<close> span_finite by fastforce
     have "f x = (\<Sum>v \<in> B. f (a v *\<^sub>R v))"
-      using linear_setsum [OF \<open>linear f\<close>] x by auto
+      using linear_sum [OF \<open>linear f\<close>] x by auto
     also have "... = (\<Sum>v \<in> B. a v *\<^sub>R f v)"
-      using \<open>linear f\<close> by (simp add: linear_setsum linear.scaleR)
+      using \<open>linear f\<close> by (simp add: linear_sum linear.scaleR)
     also have "... = (\<Sum>v \<in> B. a v *\<^sub>R fb v)"
-      by (simp add: ffb cong: setsum.cong)
+      by (simp add: ffb cong: sum.cong)
     finally have *: "f x = (\<Sum>v\<in>B. a v *\<^sub>R fb v)" .
     then have "(norm (f x))\<^sup>2 = (norm (\<Sum>v\<in>B. a v *\<^sub>R fb v))\<^sup>2" by simp
     also have "... = (\<Sum>v\<in>B. norm ((a v *\<^sub>R fb v))^2)"
-      apply (rule norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+      apply (rule norm_sum_Pythagorean [OF \<open>finite B\<close>])
       apply (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
       done
     also have "... = (norm x)\<^sup>2"
-      by (simp add: x pairwise_ortho_scaleR Borth norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+      by (simp add: x pairwise_ortho_scaleR Borth norm_sum_Pythagorean [OF \<open>finite B\<close>])
     finally show "norm (f x) = norm x"
       by (simp add: norm_eq_sqrt_inner)
     have "g (f x) = g (\<Sum>v\<in>B. a v *\<^sub>R fb v)" by (simp add: *)
     also have "... = (\<Sum>v\<in>B. g (a v *\<^sub>R fb v))"
-      using \<open>linear g\<close> by (simp add: linear_setsum linear.scaleR)
+      using \<open>linear g\<close> by (simp add: linear_sum linear.scaleR)
     also have "... = (\<Sum>v\<in>B. a v *\<^sub>R g (fb v))"
       by (simp add: \<open>linear g\<close> linear.scaleR)
     also have "... = (\<Sum>v\<in>B. a v *\<^sub>R v)"
-      apply (rule setsum.cong [OF refl])
+      apply (rule sum.cong [OF refl])
       using \<open>bij_betw fb B C\<close> gb_def bij_betwE bij_betw_inv_into_left gb_def ggb by fastforce
     also have "... = x"
       using x by blast
@@ -5857,14 +5857,14 @@ proof -
     obtain a where x: "x = (\<Sum>v \<in> C. a v *\<^sub>R v)"
       using \<open>finite C\<close> \<open>span C = T\<close> \<open>x \<in> T\<close> span_finite by fastforce
     have "g x = (\<Sum>v \<in> C. g (a v *\<^sub>R v))"
-      using linear_setsum [OF \<open>linear g\<close>] x by auto
+      using linear_sum [OF \<open>linear g\<close>] x by auto
     also have "... = (\<Sum>v \<in> C. a v *\<^sub>R g v)"
-      using \<open>linear g\<close> by (simp add: linear_setsum linear.scaleR)
+      using \<open>linear g\<close> by (simp add: linear_sum linear.scaleR)
     also have "... = (\<Sum>v \<in> C. a v *\<^sub>R gb v)"
-      by (simp add: ggb cong: setsum.cong)
+      by (simp add: ggb cong: sum.cong)
     finally have "f (g x) = f (\<Sum>v\<in>C. a v *\<^sub>R gb v)" by simp
     also have "... = (\<Sum>v\<in>C. f (a v *\<^sub>R gb v))"
-      using \<open>linear f\<close> by (simp add: linear_setsum linear.scaleR)
+      using \<open>linear f\<close> by (simp add: linear_sum linear.scaleR)
     also have "... = (\<Sum>v\<in>C. a v *\<^sub>R f (gb v))"
       by (simp add: \<open>linear f\<close> linear.scaleR)
     also have "... = (\<Sum>v\<in>C. a v *\<^sub>R v)"

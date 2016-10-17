@@ -46,7 +46,7 @@ lemma inner_minus_left [simp]: "inner (- x) y = - inner x y"
 lemma inner_diff_left: "inner (x - y) z = inner x z - inner y z"
   using inner_add_left [of x "- y" z] by simp
 
-lemma inner_setsum_left: "inner (\<Sum>x\<in>A. f x) y = (\<Sum>x\<in>A. inner (f x) y)"
+lemma inner_sum_left: "inner (\<Sum>x\<in>A. f x) y = (\<Sum>x\<in>A. inner (f x) y)"
   by (cases "finite A", induct set: finite, simp_all add: inner_add_left)
 
 text \<open>Transfer distributivity rules to right argument.\<close>
@@ -66,8 +66,8 @@ lemma inner_minus_right [simp]: "inner x (- y) = - inner x y"
 lemma inner_diff_right: "inner x (y - z) = inner x y - inner x z"
   using inner_diff_left [of y z x] by (simp only: inner_commute)
 
-lemma inner_setsum_right: "inner x (\<Sum>y\<in>A. f y) = (\<Sum>y\<in>A. inner x (f y))"
-  using inner_setsum_left [of f A x] by (simp only: inner_commute)
+lemma inner_sum_right: "inner x (\<Sum>y\<in>A. f y) = (\<Sum>y\<in>A. inner x (f y))"
+  using inner_sum_left [of f A x] by (simp only: inner_commute)
 
 lemmas inner_add [algebra_simps] = inner_add_left inner_add_right
 lemmas inner_diff [algebra_simps]  = inner_diff_left inner_diff_right

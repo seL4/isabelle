@@ -341,17 +341,17 @@ next
     by (rule distrib_right)
   also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
       (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n - k + 1))"
-    by (auto simp add: setsum_distrib_left ac_simps)
+    by (auto simp add: sum_distrib_left ac_simps)
   also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n + 1 - k)) +
       (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k))"
-    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps del: setsum_cl_ivl_Suc)
+    by (simp add:sum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps del: sum_cl_ivl_Suc)
   also have "\<dots> = a^(n + 1) + b^(n + 1) +
       (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k)) +
       (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n + 1 - k))"
     by (simp add: decomp2)
   also have "\<dots> = a^(n + 1) + b^(n + 1) +
       (\<Sum>k=1..n. of_nat (n + 1 choose k) * a^k * b^(n + 1 - k))"
-    by (auto simp add: field_simps setsum.distrib [symmetric] choose_reduce_nat)
+    by (auto simp add: field_simps sum.distrib [symmetric] choose_reduce_nat)
   also have "\<dots> = (\<Sum>k=0..n+1. of_nat (n + 1 choose k) * a^k * b^(n + 1 - k))"
     using decomp by (simp add: field_simps)
   finally show ?case
@@ -362,7 +362,7 @@ text \<open>Original version for the naturals.\<close>
 corollary binomial: "(a + b :: nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n - k))"
   using binomial_ring [of "int a" "int b" n]
   by (simp only: of_nat_add [symmetric] of_nat_mult [symmetric] of_nat_power [symmetric]
-      of_nat_setsum [symmetric] of_nat_eq_iff of_nat_id)
+      of_nat_sum [symmetric] of_nat_eq_iff of_nat_id)
 
 lemma binomial_fact_lemma: "k \<le> n \<Longrightarrow> fact k * fact (n - k) * (n choose k) = fact n"
 proof (induct n arbitrary: k rule: nat_less_induct)
@@ -459,11 +459,11 @@ lemma choose_even_sum:
 proof -
   have "2 ^ n = (\<Sum>i\<le>n. of_nat (n choose i)) + (\<Sum>i\<le>n. (-1) ^ i * of_nat (n choose i) :: 'a)"
     using choose_row_sum[of n]
-    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_setsum[symmetric])
+    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_sum[symmetric])
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) + (-1) ^ i * of_nat (n choose i))"
-    by (simp add: setsum.distrib)
+    by (simp add: sum.distrib)
   also have "\<dots> = 2 * (\<Sum>i\<le>n. if even i then of_nat (n choose i) else 0)"
-    by (subst setsum_distrib_left, intro setsum.cong) simp_all
+    by (subst sum_distrib_left, intro sum.cong) simp_all
   finally show ?thesis ..
 qed
 
@@ -473,11 +473,11 @@ lemma choose_odd_sum:
 proof -
   have "2 ^ n = (\<Sum>i\<le>n. of_nat (n choose i)) - (\<Sum>i\<le>n. (-1) ^ i * of_nat (n choose i) :: 'a)"
     using choose_row_sum[of n]
-    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_setsum[symmetric])
+    by (simp add: choose_alternating_sum assms atLeast0AtMost of_nat_sum[symmetric])
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) - (-1) ^ i * of_nat (n choose i))"
-    by (simp add: setsum_subtractf)
+    by (simp add: sum_subtractf)
   also have "\<dots> = 2 * (\<Sum>i\<le>n. if odd i then of_nat (n choose i) else 0)"
-    by (subst setsum_distrib_left, intro setsum.cong) simp_all
+    by (subst sum_distrib_left, intro sum.cong) simp_all
   finally show ?thesis ..
 qed
 
@@ -490,7 +490,7 @@ lemma sum_choose_diagonal:
   shows "(\<Sum>k=0..m. (n - k) choose (m - k)) = Suc n choose m"
 proof -
   have "(\<Sum>k=0..m. (n-k) choose (m - k)) = (\<Sum>k=0..m. (n - m + k) choose k)"
-    using setsum.atLeast_atMost_rev [of "\<lambda>k. (n - k) choose (m - k)" 0 m] assms
+    using sum.atLeast_atMost_rev [of "\<lambda>k. (n - k) choose (m - k)" 0 m] assms
       by simp
   also have "\<dots> = Suc (n - m + m) choose m"
     by (rule sum_choose_lower)
@@ -914,7 +914,7 @@ next
   have "(\<Sum>i\<le>n. i * (n choose i)) = (\<Sum>i\<le>Suc m. i * (Suc m choose i))"
     by (simp add: Suc)
   also have "\<dots> = Suc m * 2 ^ m"
-    by (simp only: setsum_atMost_Suc_shift Suc_times_binomial setsum_distrib_left[symmetric])
+    by (simp only: sum_atMost_Suc_shift Suc_times_binomial sum_distrib_left[symmetric])
        (simp add: choose_row_sum')
   finally show ?thesis
     using Suc by simp
@@ -934,9 +934,9 @@ next
       (\<Sum>i\<le>Suc m. (-1) ^ i * of_nat i * of_nat (Suc m choose i))"
     by (simp add: Suc)
   also have "\<dots> = (\<Sum>i\<le>m. (-1) ^ (Suc i) * of_nat (Suc i * (Suc m choose Suc i)))"
-    by (simp only: setsum_atMost_Suc_shift setsum_distrib_left[symmetric] mult_ac of_nat_mult) simp
+    by (simp only: sum_atMost_Suc_shift sum_distrib_left[symmetric] mult_ac of_nat_mult) simp
   also have "\<dots> = - of_nat (Suc m) * (\<Sum>i\<le>m. (-1) ^ i * of_nat (m choose i))"
-    by (subst setsum_distrib_left, rule setsum.cong[OF refl], subst Suc_times_binomial)
+    by (subst sum_distrib_left, rule sum.cong[OF refl], subst Suc_times_binomial)
        (simp add: algebra_simps)
   also have "(\<Sum>i\<le>m. (-1 :: 'a) ^ i * of_nat ((m choose i))) = 0"
     using choose_alternating_sum[OF \<open>m > 0\<close>] by simp
@@ -948,15 +948,15 @@ lemma vandermonde: "(\<Sum>k\<le>r. (m choose k) * (n choose (r - k))) = (m + n)
 proof (induct n arbitrary: r)
   case 0
   have "(\<Sum>k\<le>r. (m choose k) * (0 choose (r - k))) = (\<Sum>k\<le>r. if k = r then (m choose k) else 0)"
-    by (intro setsum.cong) simp_all
+    by (intro sum.cong) simp_all
   also have "\<dots> = m choose r"
-    by (simp add: setsum.delta)
+    by (simp add: sum.delta)
   finally show ?case
     by simp
 next
   case (Suc n r)
   show ?case
-    by (cases r) (simp_all add: Suc [symmetric] algebra_simps setsum.distrib Suc_diff_le)
+    by (cases r) (simp_all add: Suc [symmetric] algebra_simps sum.distrib Suc_diff_le)
 qed
 
 lemma choose_square_sum: "(\<Sum>k\<le>n. (n choose k)^2) = ((2*n) choose n)"
@@ -975,24 +975,24 @@ next
       (\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a (Suc i) * pochhammer b (n - i)) +
       ((\<Sum>i\<le>n. of_nat (n choose Suc i) * pochhammer a (Suc i) * pochhammer b (n - i)) +
       pochhammer b (Suc n))"
-    by (subst setsum_atMost_Suc_shift) (simp add: ring_distribs setsum.distrib)
+    by (subst sum_atMost_Suc_shift) (simp add: ring_distribs sum.distrib)
   also have "(\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a (Suc i) * pochhammer b (n - i)) =
       a * pochhammer ((a + 1) + b) n"
-    by (subst Suc) (simp add: setsum_distrib_left pochhammer_rec mult_ac)
+    by (subst Suc) (simp add: sum_distrib_left pochhammer_rec mult_ac)
   also have "(\<Sum>i\<le>n. of_nat (n choose Suc i) * pochhammer a (Suc i) * pochhammer b (n - i)) +
         pochhammer b (Suc n) =
       (\<Sum>i=0..Suc n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc n - i))"
-    apply (subst setsum_head_Suc)
+    apply (subst sum_head_Suc)
     apply simp
-    apply (subst setsum_shift_bounds_cl_Suc_ivl)
+    apply (subst sum_shift_bounds_cl_Suc_ivl)
     apply (simp add: atLeast0AtMost)
     done
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc n - i))"
-    using Suc by (intro setsum.mono_neutral_right) (auto simp: not_le binomial_eq_0)
+    using Suc by (intro sum.mono_neutral_right) (auto simp: not_le binomial_eq_0)
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc (n - i)))"
-    by (intro setsum.cong) (simp_all add: Suc_diff_le)
+    by (intro sum.cong) (simp_all add: Suc_diff_le)
   also have "\<dots> = b * pochhammer (a + (b + 1)) n"
-    by (subst Suc) (simp add: setsum_distrib_left mult_ac pochhammer_rec)
+    by (subst Suc) (simp add: sum_distrib_left mult_ac pochhammer_rec)
   also have "a * pochhammer ((a + 1) + b) n + b * pochhammer (a + (b + 1)) n =
       pochhammer (a + b) (Suc n)"
     by (simp add: pochhammer_rec algebra_simps)
@@ -1193,7 +1193,7 @@ lemma gbinomial_sum_lower_neg: "(\<Sum>k\<le>m. (r gchoose k) * (- 1) ^ k) = (- 
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = (\<Sum>k\<le>m. -(r + 1) + of_nat k gchoose k)"
-    by (intro setsum.cong[OF refl]) (subst gbinomial_negated_upper, simp add: power_mult_distrib)
+    by (intro sum.cong[OF refl]) (subst gbinomial_negated_upper, simp add: power_mult_distrib)
   also have "\<dots>  = - r + of_nat m gchoose m"
     by (subst gbinomial_parallel_sum) simp
   also have "\<dots> = ?rhs"
@@ -1218,7 +1218,7 @@ next
   finally show ?case .
 qed
 
-lemma setsum_bounds_lt_plus1: "(\<Sum>k<mm. f (Suc k)) = (\<Sum>k=1..mm. f k)"
+lemma sum_bounds_lt_plus1: "(\<Sum>k<mm. f (Suc k)) = (\<Sum>k=1..mm. f k)"
   by (induct mm) simp_all
 
 lemma gbinomial_partial_sum_poly:
@@ -1236,24 +1236,24 @@ next
     unfolding S_def G_def ..
 
   have "S (Suc mm) = G (Suc mm) 0 + (\<Sum>k=Suc 0..Suc mm. G (Suc mm) k)"
-    using SG_def by (simp add: setsum_head_Suc atLeast0AtMost [symmetric])
+    using SG_def by (simp add: sum_head_Suc atLeast0AtMost [symmetric])
   also have "(\<Sum>k=Suc 0..Suc mm. G (Suc mm) k) = (\<Sum>k=0..mm. G (Suc mm) (Suc k))"
-    by (subst setsum_shift_bounds_cl_Suc_ivl) simp
+    by (subst sum_shift_bounds_cl_Suc_ivl) simp
   also have "\<dots> = (\<Sum>k=0..mm. ((of_nat mm + r gchoose (Suc k)) +
       (of_nat mm + r gchoose k)) * x^(Suc k) * y^(mm - k))"
     unfolding G_def by (subst gbinomial_addition_formula) simp
   also have "\<dots> = (\<Sum>k=0..mm. (of_nat mm + r gchoose (Suc k)) * x^(Suc k) * y^(mm - k)) +
       (\<Sum>k=0..mm. (of_nat mm + r gchoose k) * x^(Suc k) * y^(mm - k))"
-    by (subst setsum.distrib [symmetric]) (simp add: algebra_simps)
+    by (subst sum.distrib [symmetric]) (simp add: algebra_simps)
   also have "(\<Sum>k=0..mm. (of_nat mm + r gchoose (Suc k)) * x^(Suc k) * y^(mm - k)) =
       (\<Sum>k<Suc mm. (of_nat mm + r gchoose (Suc k)) * x^(Suc k) * y^(mm - k))"
     by (simp only: atLeast0AtMost lessThan_Suc_atMost)
   also have "\<dots> = (\<Sum>k<mm. (of_nat mm + r gchoose Suc k) * x^(Suc k) * y^(mm-k)) +
       (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm)"
     (is "_ = ?A + ?B")
-    by (subst setsum_lessThan_Suc) simp
+    by (subst sum_lessThan_Suc) simp
   also have "?A = (\<Sum>k=1..mm. (of_nat mm + r gchoose k) * x^k * y^(mm - k + 1))"
-  proof (subst setsum_bounds_lt_plus1 [symmetric], intro setsum.cong[OF refl], clarify)
+  proof (subst sum_bounds_lt_plus1 [symmetric], intro sum.cong[OF refl], clarify)
     fix k
     assume "k < mm"
     then have "mm - k = mm - Suc k + 1"
@@ -1263,16 +1263,16 @@ next
       by (simp only:)
   qed
   also have "\<dots> + ?B = y * (\<Sum>k=1..mm. (G mm k)) + (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm)"
-    unfolding G_def by (subst setsum_distrib_left) (simp add: algebra_simps)
+    unfolding G_def by (subst sum_distrib_left) (simp add: algebra_simps)
   also have "(\<Sum>k=0..mm. (of_nat mm + r gchoose k) * x^(Suc k) * y^(mm - k)) = x * (S mm)"
-    unfolding S_def by (subst setsum_distrib_left) (simp add: atLeast0AtMost algebra_simps)
+    unfolding S_def by (subst sum_distrib_left) (simp add: atLeast0AtMost algebra_simps)
   also have "(G (Suc mm) 0) = y * (G mm 0)"
     by (simp add: G_def)
   finally have "S (Suc mm) =
       y * (G mm 0 + (\<Sum>k=1..mm. (G mm k))) + (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm) + x * (S mm)"
     by (simp add: ring_distribs)
   also have "G mm 0 + (\<Sum>k=1..mm. (G mm k)) = S mm"
-    by (simp add: setsum_head_Suc[symmetric] SG_def atLeast0AtMost)
+    by (simp add: sum_head_Suc[symmetric] SG_def atLeast0AtMost)
   finally have "S (Suc mm) = (x + y) * (S mm) + (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm)"
     by (simp add: algebra_simps)
   also have "(of_nat mm + r gchoose (Suc mm)) = (-1) ^ (Suc mm) * (- r gchoose (Suc mm))"
@@ -1283,7 +1283,7 @@ next
   also have "(x + y) * S mm + \<dots> = (x + y) * ?rhs mm + (- r gchoose (Suc mm)) * (- x)^Suc mm"
     unfolding S_def by (subst Suc.IH) simp
   also have "(x + y) * ?rhs mm = (\<Sum>n\<le>mm. ((- r gchoose n) * (- x) ^ n * (x + y) ^ (Suc mm - n)))"
-    by (subst setsum_distrib_left, rule setsum.cong) (simp_all add: Suc_diff_le)
+    by (subst sum_distrib_left, rule sum.cong) (simp_all add: Suc_diff_le)
   also have "\<dots> + (-r gchoose (Suc mm)) * (-x)^Suc mm =
       (\<Sum>n\<le>Suc mm. (- r gchoose n) * (- x) ^ n * (x + y) ^ (Suc mm - n))"
     by simp
@@ -1296,7 +1296,7 @@ lemma gbinomial_partial_sum_poly_xpos:
      (\<Sum>k\<le>m. (of_nat k + r - 1 gchoose k) * x^k * (x + y)^(m-k))"
   apply (subst gbinomial_partial_sum_poly)
   apply (subst gbinomial_negated_upper)
-  apply (intro setsum.cong, rule refl)
+  apply (intro sum.cong, rule refl)
   apply (simp add: power_mult_distrib [symmetric])
   done
 
@@ -1307,15 +1307,15 @@ proof -
   also have "(\<Sum>k = 0..(2 * m + 1). (2 * m + 1 choose k)) =
       (\<Sum>k = 0..m. (2 * m + 1 choose k)) +
       (\<Sum>k = m+1..2*m+1. (2 * m + 1 choose k))"
-    using setsum_ub_add_nat[of 0 m "\<lambda>k. 2 * m + 1 choose k" "m+1"]
+    using sum_ub_add_nat[of 0 m "\<lambda>k. 2 * m + 1 choose k" "m+1"]
     by (simp add: mult_2)
   also have "(\<Sum>k = m+1..2*m+1. (2 * m + 1 choose k)) =
       (\<Sum>k = 0..m. (2 * m + 1 choose (k + (m + 1))))"
-    by (subst setsum_shift_bounds_cl_nat_ivl [symmetric]) (simp add: mult_2)
+    by (subst sum_shift_bounds_cl_nat_ivl [symmetric]) (simp add: mult_2)
   also have "\<dots> = (\<Sum>k = 0..m. (2 * m + 1 choose (m - k)))"
-    by (intro setsum.cong[OF refl], subst binomial_symmetric) simp_all
+    by (intro sum.cong[OF refl], subst binomial_symmetric) simp_all
   also have "\<dots> = (\<Sum>k = 0..m. (2 * m + 1 choose k))"
-    using setsum.atLeast_atMost_rev [of "\<lambda>k. 2 * m + 1 choose (m - k)" 0 m]
+    using sum.atLeast_atMost_rev [of "\<lambda>k. 2 * m + 1 choose (m - k)" 0 m]
     by simp
   also have "\<dots> + \<dots> = 2 * \<dots>"
     by simp
@@ -1345,7 +1345,7 @@ proof -
     using gbinomial_partial_sum_poly_xpos[where x="1" and y="1" and r="of_nat m + 1" and m="m"]
     by (simp add: add_ac)
   also have "\<dots> = 2 ^ m * (\<Sum>k\<le>m. (of_nat (m + k) gchoose k) / 2 ^ k)"
-    by (subst setsum_distrib_left) (simp add: algebra_simps power_diff)
+    by (subst sum_distrib_left) (simp add: algebra_simps power_diff)
   finally show ?thesis
     by (subst (asm) mult_left_cancel) simp_all
 qed
@@ -1444,18 +1444,18 @@ proof -
     by simp
   also have "\<dots> = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. (- 1) ^ (card I + 1)))"
     (is "_ = nat ?rhs")
-    by (subst setsum_distrib_left) simp
+    by (subst sum_distrib_left) simp
   also have "?rhs = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. (- 1) ^ (card I + 1))"
-    using assms by (subst setsum.Sigma) auto
+    using assms by (subst sum.Sigma) auto
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:UNIV. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). (- 1) ^ (card I + 1))"
-    by (rule setsum.reindex_cong [where l = "\<lambda>(x, y). (y, x)"]) (auto intro: inj_onI simp add: split_beta)
+    by (rule sum.reindex_cong [where l = "\<lambda>(x, y). (y, x)"]) (auto intro: inj_onI simp add: split_beta)
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:\<Union>A. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). (- 1) ^ (card I + 1))"
     using assms
-    by (auto intro!: setsum.mono_neutral_cong_right finite_SigmaI2 intro: finite_subset[where B="\<Union>A"])
+    by (auto intro!: sum.mono_neutral_cong_right finite_SigmaI2 intro: finite_subset[where B="\<Union>A"])
   also have "\<dots> = (\<Sum>x\<in>\<Union>A. (\<Sum>I|I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I. (- 1) ^ (card I + 1)))"
-    using assms by (subst setsum.Sigma) auto
-  also have "\<dots> = (\<Sum>_\<in>\<Union>A. 1)" (is "setsum ?lhs _ = _")
-  proof (rule setsum.cong[OF refl])
+    using assms by (subst sum.Sigma) auto
+  also have "\<dots> = (\<Sum>_\<in>\<Union>A. 1)" (is "sum ?lhs _ = _")
+  proof (rule sum.cong[OF refl])
     fix x
     assume x: "x \<in> \<Union>A"
     define K where "K = {X \<in> A. x \<in> X}"
@@ -1470,14 +1470,14 @@ proof -
         simp add: card_gt_0_iff[folded Suc_le_eq]
         dest: finite_subset intro: card_mono)
     ultimately have "?lhs x = (\<Sum>(i, I)\<in>(SIGMA i:{1..card A}. ?I i). (- 1) ^ (i + 1))"
-      by (rule setsum.reindex_cong [where l = snd]) fastforce
+      by (rule sum.reindex_cong [where l = snd]) fastforce
     also have "\<dots> = (\<Sum>i=1..card A. (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. (- 1) ^ (i + 1)))"
-      using assms by (subst setsum.Sigma) auto
+      using assms by (subst sum.Sigma) auto
     also have "\<dots> = (\<Sum>i=1..card A. (- 1) ^ (i + 1) * (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1))"
-      by (subst setsum_distrib_left) simp
+      by (subst sum_distrib_left) simp
     also have "\<dots> = (\<Sum>i=1..card K. (- 1) ^ (i + 1) * (\<Sum>I|I \<subseteq> K \<and> card I = i. 1))"
       (is "_ = ?rhs")
-    proof (rule setsum.mono_neutral_cong_right[rule_format])
+    proof (rule sum.mono_neutral_cong_right[rule_format])
       show "finite {1..card A}"
         by simp
       show "{1..card K} \<subseteq> {1..card A}"
@@ -1497,18 +1497,18 @@ proof -
       fix i
       have "(\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1) = (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)"
         (is "?lhs = ?rhs")
-        by (rule setsum.cong) (auto simp add: K_def)
+        by (rule sum.cong) (auto simp add: K_def)
       then show "(- 1) ^ (i + 1) * ?lhs = (- 1) ^ (i + 1) * ?rhs"
         by simp
     qed
     also have "{I. I \<subseteq> K \<and> card I = 0} = {{}}"
       using assms by (auto simp add: card_eq_0_iff K_def dest: finite_subset)
     then have "?rhs = (\<Sum>i = 0..card K. (- 1) ^ (i + 1) * (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)) + 1"
-      by (subst (2) setsum_head_Suc) simp_all
+      by (subst (2) sum_head_Suc) simp_all
     also have "\<dots> = (\<Sum>i = 0..card K. (- 1) * ((- 1) ^ i * int (card K choose i))) + 1"
       using K by (subst n_subsets[symmetric]) simp_all
     also have "\<dots> = - (\<Sum>i = 0..card K. (- 1) ^ i * int (card K choose i)) + 1"
-      by (subst setsum_distrib_left[symmetric]) simp
+      by (subst sum_distrib_left[symmetric]) simp
     also have "\<dots> =  - ((-1 + 1) ^ card K) + 1"
       by (subst binomial_ring) (simp add: ac_simps)
     also have "\<dots> = 1"

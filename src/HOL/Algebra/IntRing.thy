@@ -91,7 +91,7 @@ interpretation int: abelian_monoid \<Z>
   rewrites int_carrier_eq: "carrier \<Z> = UNIV"
     and int_zero_eq: "zero \<Z> = 0"
     and int_add_eq: "add \<Z> x y = x + y"
-    and int_finsum_eq: "finsum \<Z> f A = setsum f A"
+    and int_finsum_eq: "finsum \<Z> f A = sum f A"
 proof -
   \<comment> "Specification"
   show "abelian_monoid \<Z>" by standard auto
@@ -105,7 +105,7 @@ proof -
   note add = this
   show zero: "zero \<Z> = 0"
     by simp
-  show "finsum \<Z> f A = setsum f A"
+  show "finsum \<Z> f A = sum f A"
     by (induct A rule: infinite_finite_induct, auto)
 qed
 
@@ -117,7 +117,7 @@ interpretation int: abelian_group \<Z>
   rewrites "carrier \<Z> = UNIV"
     and "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
-    and "finsum \<Z> f A = setsum f A"
+    and "finsum \<Z> f A = sum f A"
     and int_a_inv_eq: "a_inv \<Z> x = - x"
     and int_a_minus_eq: "a_minus \<Z> x y = x - y"
 proof -
@@ -150,7 +150,7 @@ interpretation int: "domain" \<Z>
   rewrites "carrier \<Z> = UNIV"
     and "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
-    and "finsum \<Z> f A = setsum f A"
+    and "finsum \<Z> f A = sum f A"
     and "a_inv \<Z> x = - x"
     and "a_minus \<Z> x y = x - y"
 proof -

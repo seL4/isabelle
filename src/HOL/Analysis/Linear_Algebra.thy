@@ -141,9 +141,9 @@ lemma linear_zero: "linear (\<lambda>x. 0)"
 lemma linear_uminus: "linear uminus"
 by (simp add: linear_iff)
 
-lemma linear_compose_setsum:
+lemma linear_compose_sum:
   assumes lS: "\<forall>a \<in> S. linear (f a)"
-  shows "linear (\<lambda>x. setsum (\<lambda>a. f a x) S)"
+  shows "linear (\<lambda>x. sum (\<lambda>a. f a x) S)"
 proof (cases "finite S")
   case True
   then show ?thesis
@@ -173,9 +173,9 @@ lemma linear_add: "linear f \<Longrightarrow> f (x + y) = f x + f y"
 lemma linear_diff: "linear f \<Longrightarrow> f (x - y) = f x - f y"
   using linear_add [of f x "- y"] by (simp add: linear_neg)
 
-lemma linear_setsum:
+lemma linear_sum:
   assumes f: "linear f"
-  shows "f (setsum g S) = setsum (f \<circ> g) S"
+  shows "f (sum g S) = sum (f \<circ> g) S"
 proof (cases "finite S")
   case True
   then show ?thesis
@@ -186,10 +186,10 @@ next
     by (simp add: linear_0 [OF f])
 qed
 
-lemma linear_setsum_mul:
+lemma linear_sum_mul:
   assumes lin: "linear f"
-  shows "f (setsum (\<lambda>i. c i *\<^sub>R v i) S) = setsum (\<lambda>i. c i *\<^sub>R f (v i)) S"
-  using linear_setsum[OF lin, of "\<lambda>i. c i *\<^sub>R v i" , unfolded o_def] linear_cmul[OF lin]
+  shows "f (sum (\<lambda>i. c i *\<^sub>R v i) S) = sum (\<lambda>i. c i *\<^sub>R f (v i)) S"
+  using linear_sum[OF lin, of "\<lambda>i. c i *\<^sub>R v i" , unfolded o_def] linear_cmul[OF lin]
   by simp
 
 lemma linear_injective_0:
@@ -250,10 +250,10 @@ lemma subspace_neg: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> - 
 lemma subspace_diff: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
   using subspace_add [of S x "- y"] by (simp add: subspace_neg)
 
-lemma (in real_vector) subspace_setsum:
+lemma (in real_vector) subspace_sum:
   assumes sA: "subspace A"
     and f: "\<And>x. x \<in> B \<Longrightarrow> f x \<in> A"
-  shows "setsum f B \<in> A"
+  shows "sum f B \<in> A"
 proof (cases "finite B")
   case True
   then show ?thesis
@@ -460,8 +460,8 @@ lemma span_neg: "x \<in> span S \<Longrightarrow> - x \<in> span S"
 lemma span_diff: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x - y \<in> span S"
   by (metis subspace_span subspace_diff)
 
-lemma (in real_vector) span_setsum: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> span S) \<Longrightarrow> setsum f A \<in> span S"
-  by (rule subspace_setsum [OF subspace_span])
+lemma (in real_vector) span_sum: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> span S) \<Longrightarrow> sum f A \<in> span S"
+  by (rule subspace_sum [OF subspace_span])
 
 lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
   by (metis add_minus_cancel scaleR_minus1_left subspace_def subspace_span)
@@ -619,16 +619,16 @@ lemma span_insert_0[simp]: "span (insert 0 S) = span S"
 text \<open>An explicit expansion is sometimes needed.\<close>
 
 lemma span_explicit:
-  "span P = {y. \<exists>S u. finite S \<and> S \<subseteq> P \<and> setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
+  "span P = {y. \<exists>S u. finite S \<and> S \<subseteq> P \<and> sum (\<lambda>v. u v *\<^sub>R v) S = y}"
   (is "_ = ?E" is "_ = {y. ?h y}" is "_ = {y. \<exists>S u. ?Q S u y}")
 proof -
   {
     fix x
     assume "?h x"
-    then obtain S u where "finite S" and "S \<subseteq> P" and "setsum (\<lambda>v. u v *\<^sub>R v) S = x"
+    then obtain S u where "finite S" and "S \<subseteq> P" and "sum (\<lambda>v. u v *\<^sub>R v) S = x"
       by blast
     then have "x \<in> span P"
-      by (auto intro: span_setsum span_mul span_superset)
+      by (auto intro: span_sum span_mul span_superset)
   }
   moreover
   have "\<forall>x \<in> span P. ?h x"
@@ -640,7 +640,7 @@ proof -
     assume x: "x \<in> P"
     assume hy: "?h y"
     from hy obtain S u where fS: "finite S" and SP: "S\<subseteq>P"
-      and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y" by blast
+      and u: "sum (\<lambda>v. u v *\<^sub>R v) S = y" by blast
     let ?S = "insert x S"
     let ?u = "\<lambda>y. if y = x then (if x \<in> S then u y + c else c) else u y"
     from fS SP x have th0: "finite (insert x S)" "insert x S \<subseteq> P"
@@ -648,19 +648,19 @@ proof -
     have "?Q ?S ?u (c*\<^sub>R x + y)"
     proof cases
       assume xS: "x \<in> S"
-      have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = (\<Sum>v\<in>S - {x}. u v *\<^sub>R v) + (u x + c) *\<^sub>R x"
-        using xS by (simp add: setsum.remove [OF fS xS] insert_absorb)
+      have "sum (\<lambda>v. ?u v *\<^sub>R v) ?S = (\<Sum>v\<in>S - {x}. u v *\<^sub>R v) + (u x + c) *\<^sub>R x"
+        using xS by (simp add: sum.remove [OF fS xS] insert_absorb)
       also have "\<dots> = (\<Sum>v\<in>S. u v *\<^sub>R v) + c *\<^sub>R x"
-        by (simp add: setsum.remove [OF fS xS] algebra_simps)
+        by (simp add: sum.remove [OF fS xS] algebra_simps)
       also have "\<dots> = c*\<^sub>R x + y"
         by (simp add: add.commute u)
-      finally have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = c*\<^sub>R x + y" .
+      finally have "sum (\<lambda>v. ?u v *\<^sub>R v) ?S = c*\<^sub>R x + y" .
       then show ?thesis using th0 by blast
     next
       assume xS: "x \<notin> S"
       have th00: "(\<Sum>v\<in>S. (if v = x then c else u v) *\<^sub>R v) = y"
         unfolding u[symmetric]
-        apply (rule setsum.cong)
+        apply (rule sum.cong)
         using xS
         apply auto
         done
@@ -674,13 +674,13 @@ proof -
 qed
 
 lemma dependent_explicit:
-  "dependent P \<longleftrightarrow> (\<exists>S u. finite S \<and> S \<subseteq> P \<and> (\<exists>v\<in>S. u v \<noteq> 0 \<and> setsum (\<lambda>v. u v *\<^sub>R v) S = 0))"
+  "dependent P \<longleftrightarrow> (\<exists>S u. finite S \<and> S \<subseteq> P \<and> (\<exists>v\<in>S. u v \<noteq> 0 \<and> sum (\<lambda>v. u v *\<^sub>R v) S = 0))"
   (is "?lhs = ?rhs")
 proof -
   {
     assume dP: "dependent P"
     then obtain a S u where aP: "a \<in> P" and fS: "finite S"
-      and SP: "S \<subseteq> P - {a}" and ua: "setsum (\<lambda>v. u v *\<^sub>R v) S = a"
+      and SP: "S \<subseteq> P - {a}" and ua: "sum (\<lambda>v. u v *\<^sub>R v) S = a"
       unfolding dependent_def span_explicit by blast
     let ?S = "insert a S"
     let ?u = "\<lambda>y. if y = a then - 1 else u y"
@@ -689,11 +689,11 @@ proof -
       by blast
     from fS SP aP have th0: "finite ?S" "?S \<subseteq> P" "?v \<in> ?S" "?u ?v \<noteq> 0"
       by auto
-    have s0: "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = 0"
+    have s0: "sum (\<lambda>v. ?u v *\<^sub>R v) ?S = 0"
       using fS aS
       apply simp
       apply (subst (2) ua[symmetric])
-      apply (rule setsum.cong)
+      apply (rule sum.cong)
       apply auto
       done
     with th0 have ?rhs by fast
@@ -705,18 +705,18 @@ proof -
       and SP: "S \<subseteq> P"
       and vS: "v \<in> S"
       and uv: "u v \<noteq> 0"
-      and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = 0"
+      and u: "sum (\<lambda>v. u v *\<^sub>R v) S = 0"
     let ?a = v
     let ?S = "S - {v}"
     let ?u = "\<lambda>i. (- u i) / u v"
     have th0: "?a \<in> P" "finite ?S" "?S \<subseteq> P"
       using fS SP vS by auto
-    have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S =
-      setsum (\<lambda>v. (- (inverse (u ?a))) *\<^sub>R (u v *\<^sub>R v)) S - ?u v *\<^sub>R v"
-      using fS vS uv by (simp add: setsum_diff1 field_simps)
+    have "sum (\<lambda>v. ?u v *\<^sub>R v) ?S =
+      sum (\<lambda>v. (- (inverse (u ?a))) *\<^sub>R (u v *\<^sub>R v)) S - ?u v *\<^sub>R v"
+      using fS vS uv by (simp add: sum_diff1 field_simps)
     also have "\<dots> = ?a"
-      unfolding scaleR_right.setsum [symmetric] u using uv by simp
-    finally have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = ?a" .
+      unfolding scaleR_right.sum [symmetric] u using uv by simp
+    finally have "sum (\<lambda>v. ?u v *\<^sub>R v) ?S = ?a" .
     with th0 have ?lhs
       unfolding dependent_def span_explicit
       apply -
@@ -740,7 +740,7 @@ proof
     by (force simp: dependent_explicit)
   with assms show ?rhs
     apply (rule_tac x="\<lambda>v. if v \<in> T then u v else 0" in exI)
-    apply (auto simp: setsum.mono_neutral_right)
+    apply (auto simp: sum.mono_neutral_right)
     done
 next
   assume ?rhs  with assms show ?lhs
@@ -753,7 +753,7 @@ lemma span_alt:
   apply safe
   subgoal for x S u
     by (intro exI[of _ "\<lambda>x. if x \<in> S then u x else 0"])
-        (auto intro!: setsum.mono_neutral_cong_right)
+        (auto intro!: sum.mono_neutral_cong_right)
   apply auto
   done
 
@@ -764,8 +764,8 @@ lemma dependent_alt:
   apply safe
   subgoal for S u v
     apply (intro exI[of _ "\<lambda>x. if x \<in> S then u x else 0"])
-    apply (subst setsum.mono_neutral_cong_left[where T=S])
-    apply (auto intro!: setsum.mono_neutral_cong_right cong: rev_conj_cong)
+    apply (subst sum.mono_neutral_cong_left[where T=S])
+    apply (auto intro!: sum.mono_neutral_cong_right cong: rev_conj_cong)
     done
   apply auto
   done
@@ -794,13 +794,13 @@ proof -
     then show "finite {x. X x - Y x \<noteq> 0}" "{x. X x - Y x \<noteq> 0} \<subseteq> B"
       using X Y by (auto dest: finite_subset)
     then have "(\<Sum>x | X x - Y x \<noteq> 0. (X x - Y x) *\<^sub>R x) = (\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. (X v - Y v) *\<^sub>R v)"
-      using X Y by (intro setsum.mono_neutral_cong_left) auto
+      using X Y by (intro sum.mono_neutral_cong_left) auto
     also have "\<dots> = (\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. X v *\<^sub>R v) - (\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. Y v *\<^sub>R v)"
-      by (simp add: scaleR_diff_left setsum_subtractf assms)
+      by (simp add: scaleR_diff_left sum_subtractf assms)
     also have "(\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. X v *\<^sub>R v) = (\<Sum>v\<in>{S. X S \<noteq> 0}. X v *\<^sub>R v)"
-      using X Y by (intro setsum.mono_neutral_cong_right) auto
+      using X Y by (intro sum.mono_neutral_cong_right) auto
     also have "(\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. Y v *\<^sub>R v) = (\<Sum>v\<in>{S. Y S \<noteq> 0}. Y v *\<^sub>R v)"
-      using X Y by (intro setsum.mono_neutral_cong_right) auto
+      using X Y by (intro sum.mono_neutral_cong_right) auto
     finally show "(\<Sum>x | X x - Y x \<noteq> 0. (X x - Y x) *\<^sub>R x) = 0"
       using assms by simp
   qed
@@ -927,7 +927,7 @@ lemma maximal_independent_subset:
 
 lemma span_finite:
   assumes fS: "finite S"
-  shows "span S = {y. \<exists>u. setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
+  shows "span S = {y. \<exists>u. sum (\<lambda>v. u v *\<^sub>R v) S = y}"
   (is "_ = ?rhs")
 proof -
   {
@@ -935,18 +935,18 @@ proof -
     assume y: "y \<in> span S"
     from y obtain S' u where fS': "finite S'"
       and SS': "S' \<subseteq> S"
-      and u: "setsum (\<lambda>v. u v *\<^sub>R v) S' = y"
+      and u: "sum (\<lambda>v. u v *\<^sub>R v) S' = y"
       unfolding span_explicit by blast
     let ?u = "\<lambda>x. if x \<in> S' then u x else 0"
-    have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = setsum (\<lambda>v. u v *\<^sub>R v) S'"
-      using SS' fS by (auto intro!: setsum.mono_neutral_cong_right)
-    then have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = y" by (metis u)
+    have "sum (\<lambda>v. ?u v *\<^sub>R v) S = sum (\<lambda>v. u v *\<^sub>R v) S'"
+      using SS' fS by (auto intro!: sum.mono_neutral_cong_right)
+    then have "sum (\<lambda>v. ?u v *\<^sub>R v) S = y" by (metis u)
     then have "y \<in> ?rhs" by auto
   }
   moreover
   {
     fix y u
-    assume u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y"
+    assume u: "sum (\<lambda>v. u v *\<^sub>R v) S = y"
     then have "y \<in> span S" using fS unfolding span_explicit by auto
   }
   ultimately show ?thesis by blast
@@ -970,10 +970,10 @@ proof -
   proof (rule independentD_unique)
     have "(\<Sum>z | X x z + X y z \<noteq> 0. (X x z + X y z) *\<^sub>R z)
       = (\<Sum>z\<in>{z. X x z \<noteq> 0} \<union> {z. X y z \<noteq> 0}. (X x z + X y z) *\<^sub>R z)"
-      by (intro setsum.mono_neutral_cong_left) (auto intro: X)
+      by (intro sum.mono_neutral_cong_left) (auto intro: X)
     also have "\<dots> = (\<Sum>z\<in>{z. X x z \<noteq> 0}. X x z *\<^sub>R z) + (\<Sum>z\<in>{z. X y z \<noteq> 0}. X y z *\<^sub>R z)"
-      by (auto simp add: scaleR_add_left setsum.distrib
-               intro!: arg_cong2[where f="op +"]  setsum.mono_neutral_cong_right X)
+      by (auto simp add: scaleR_add_left sum.distrib
+               intro!: arg_cong2[where f="op +"]  sum.mono_neutral_cong_right X)
     also have "\<dots> = x + y"
       by (simp add: X(3)[symmetric])
     also have "\<dots> = (\<Sum>z | X (x + y) z \<noteq> 0. X (x + y) z *\<^sub>R z)"
@@ -994,7 +994,7 @@ proof -
       "finite {z. c * X x z \<noteq> 0}" "{z. c * X x z \<noteq> 0} \<subseteq> B' "
       using X(1,2) by auto
     show "(\<Sum>z | X (c *\<^sub>R x) z \<noteq> 0. X (c *\<^sub>R x) z *\<^sub>R z) = (\<Sum>z | c * X x z \<noteq> 0. (c * X x z) *\<^sub>R z)"
-      unfolding scaleR_scaleR[symmetric] scaleR_setsum_right[symmetric]
+      unfolding scaleR_scaleR[symmetric] scaleR_sum_right[symmetric]
       by (cases "c = 0") (auto simp: X(3)[symmetric])
   qed
 
@@ -1013,14 +1013,14 @@ proof -
     fix x y
     have *: "(\<Sum>z | X x z + X y z \<noteq> 0. (X x z + X y z) *\<^sub>R f' z)
       = (\<Sum>z\<in>{z. X x z \<noteq> 0} \<union> {z. X y z \<noteq> 0}. (X x z + X y z) *\<^sub>R f' z)"
-      by (intro setsum.mono_neutral_cong_left) (auto intro: X)
+      by (intro sum.mono_neutral_cong_left) (auto intro: X)
     show "g (x + y) = g x + g y"
       unfolding g_def X_add *
-      by (auto simp add: scaleR_add_left setsum.distrib
-               intro!: arg_cong2[where f="op +"]  setsum.mono_neutral_cong_right X)
+      by (auto simp add: scaleR_add_left sum.distrib
+               intro!: arg_cong2[where f="op +"]  sum.mono_neutral_cong_right X)
   next
     show "g (r *\<^sub>R x) = r *\<^sub>R g x" for r x
-      by (auto simp add: g_def X_cmult scaleR_setsum_right intro!: setsum.mono_neutral_cong_left X)
+      by (auto simp add: g_def X_cmult scaleR_sum_right intro!: sum.mono_neutral_cong_left X)
   qed
   moreover have "\<forall>x\<in>B. g x = f x"
     using \<open>B \<subseteq> B'\<close> by (auto simp: g_f' f'_def)
@@ -1436,9 +1436,9 @@ lemma linear_componentwise:
   shows "(f x) \<bullet> j = (\<Sum>i\<in>Basis. (x\<bullet>i) * (f i\<bullet>j))" (is "?lhs = ?rhs")
 proof -
   have "?rhs = (\<Sum>i\<in>Basis. (x\<bullet>i) *\<^sub>R (f i))\<bullet>j"
-    by (simp add: inner_setsum_left)
+    by (simp add: inner_sum_left)
   then show ?thesis
-    unfolding linear_setsum_mul[OF lf, symmetric]
+    unfolding linear_sum_mul[OF lf, symmetric]
     unfolding euclidean_representation ..
 qed
 
@@ -1475,30 +1475,30 @@ lemma norm_triangle_le: "norm x + norm y \<le> e \<Longrightarrow> norm (x + y) 
 lemma norm_triangle_lt: "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
   by (rule norm_triangle_ineq [THEN le_less_trans])
 
-lemma setsum_clauses:
-  shows "setsum f {} = 0"
-    and "finite S \<Longrightarrow> setsum f (insert x S) = (if x \<in> S then setsum f S else f x + setsum f S)"
+lemma sum_clauses:
+  shows "sum f {} = 0"
+    and "finite S \<Longrightarrow> sum f (insert x S) = (if x \<in> S then sum f S else f x + sum f S)"
   by (auto simp add: insert_absorb)
 
-lemma setsum_norm_le:
+lemma sum_norm_le:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
-  shows "norm (setsum f S) \<le> setsum g S"
-  by (rule order_trans [OF norm_setsum setsum_mono]) (simp add: fg)
+  shows "norm (sum f S) \<le> sum g S"
+  by (rule order_trans [OF norm_sum sum_mono]) (simp add: fg)
 
-lemma setsum_norm_bound:
+lemma sum_norm_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes K: "\<forall>x \<in> S. norm (f x) \<le> K"
-  shows "norm (setsum f S) \<le> of_nat (card S) * K"
-  using setsum_norm_le[OF K] setsum_constant[symmetric]
+  shows "norm (sum f S) \<le> of_nat (card S) * K"
+  using sum_norm_le[OF K] sum_constant[symmetric]
   by simp
 
-lemma setsum_group:
+lemma sum_group:
   assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
-  shows "setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) T = setsum g S"
-  apply (subst setsum_image_gen[OF fS, of g f])
-  apply (rule setsum.mono_neutral_right[OF fT fST])
-  apply (auto intro: setsum.neutral)
+  shows "sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) T = sum g S"
+  apply (subst sum_image_gen[OF fS, of g f])
+  apply (rule sum.mono_neutral_right[OF fT fST])
+  apply (auto intro: sum.neutral)
   done
 
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
@@ -1557,11 +1557,11 @@ lemma pairwise_ortho_scaleR:
   by (auto simp: pairwise_def orthogonal_clauses)
 
 lemma orthogonal_rvsum:
-    "\<lbrakk>finite s; \<And>y. y \<in> s \<Longrightarrow> orthogonal x (f y)\<rbrakk> \<Longrightarrow> orthogonal x (setsum f s)"
+    "\<lbrakk>finite s; \<And>y. y \<in> s \<Longrightarrow> orthogonal x (f y)\<rbrakk> \<Longrightarrow> orthogonal x (sum f s)"
   by (induction s rule: finite_induct) (auto simp: orthogonal_clauses)
 
 lemma orthogonal_lvsum:
-    "\<lbrakk>finite s; \<And>x. x \<in> s \<Longrightarrow> orthogonal (f x) y\<rbrakk> \<Longrightarrow> orthogonal (setsum f s) y"
+    "\<lbrakk>finite s; \<And>x. x \<in> s \<Longrightarrow> orthogonal (f x) y\<rbrakk> \<Longrightarrow> orthogonal (sum f s) y"
   by (induction s rule: finite_induct) (auto simp: orthogonal_clauses)
 
 lemma norm_add_Pythagorean:
@@ -1574,15 +1574,15 @@ proof -
     by (simp add: power2_norm_eq_inner)
 qed
 
-lemma norm_setsum_Pythagorean:
+lemma norm_sum_Pythagorean:
   assumes "finite I" "pairwise (\<lambda>i j. orthogonal (f i) (f j)) I"
-    shows "(norm (setsum f I))\<^sup>2 = (\<Sum>i\<in>I. (norm (f i))\<^sup>2)"
+    shows "(norm (sum f I))\<^sup>2 = (\<Sum>i\<in>I. (norm (f i))\<^sup>2)"
 using assms
 proof (induction I rule: finite_induct)
   case empty then show ?case by simp
 next
   case (insert x I)
-  then have "orthogonal (f x) (setsum f I)"
+  then have "orthogonal (f x) (sum f I)"
     by (metis pairwise_insert orthogonal_rvsum)
   with insert show ?case
     by (simp add: pairwise_insert norm_add_Pythagorean)
@@ -1630,25 +1630,25 @@ lemma bilinear_lsub: "bilinear h \<Longrightarrow> h (x - y) z = h x z - h y z"
 lemma bilinear_rsub: "bilinear h \<Longrightarrow> h z (x - y) = h z x - h z y"
   using bilinear_radd [of h _ x "- y"] by (simp add: bilinear_rneg)
 
-lemma bilinear_setsum:
+lemma bilinear_sum:
   assumes bh: "bilinear h"
     and fS: "finite S"
     and fT: "finite T"
-  shows "h (setsum f S) (setsum g T) = setsum (\<lambda>(i,j). h (f i) (g j)) (S \<times> T) "
+  shows "h (sum f S) (sum g T) = sum (\<lambda>(i,j). h (f i) (g j)) (S \<times> T) "
 proof -
-  have "h (setsum f S) (setsum g T) = setsum (\<lambda>x. h (f x) (setsum g T)) S"
-    apply (rule linear_setsum[unfolded o_def])
+  have "h (sum f S) (sum g T) = sum (\<lambda>x. h (f x) (sum g T)) S"
+    apply (rule linear_sum[unfolded o_def])
     using bh fS
     apply (auto simp add: bilinear_def)
     done
-  also have "\<dots> = setsum (\<lambda>x. setsum (\<lambda>y. h (f x) (g y)) T) S"
-    apply (rule setsum.cong, simp)
-    apply (rule linear_setsum[unfolded o_def])
+  also have "\<dots> = sum (\<lambda>x. sum (\<lambda>y. h (f x) (g y)) T) S"
+    apply (rule sum.cong, simp)
+    apply (rule linear_sum[unfolded o_def])
     using bh fT
     apply (auto simp add: bilinear_def)
     done
   finally show ?thesis
-    unfolding setsum.cartesian_product .
+    unfolding sum.cartesian_product .
 qed
 
 
@@ -1694,10 +1694,10 @@ proof -
     have "f x \<bullet> y = f (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i) \<bullet> y"
       by (simp add: euclidean_representation)
     also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<bullet> y"
-      unfolding linear_setsum[OF lf]
+      unfolding linear_sum[OF lf]
       by (simp add: linear_cmul[OF lf])
     finally show "f x \<bullet> y = x \<bullet> ?w"
-      by (simp add: inner_setsum_left inner_setsum_right mult.commute)
+      by (simp add: inner_sum_left inner_sum_right mult.commute)
   qed
   then show ?thesis
     unfolding adjoint_def choice_iff
@@ -1876,7 +1876,7 @@ lemma independent_Basis: "independent Basis"
   apply simp
   apply clarify
   apply (drule_tac f="inner a" in arg_cong)
-  apply (simp add: inner_Basis inner_setsum_right eq_commute)
+  apply (simp add: inner_Basis inner_sum_right eq_commute)
   done
 
 lemma span_Basis [simp]: "span Basis = UNIV"
@@ -1897,27 +1897,27 @@ lemma norm_bound_Basis_lt: "b \<in> Basis \<Longrightarrow> norm x < e \<Longrig
 
 lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>x \<bullet> b\<bar>)"
   apply (subst euclidean_representation[of x, symmetric])
-  apply (rule order_trans[OF norm_setsum])
-  apply (auto intro!: setsum_mono)
+  apply (rule order_trans[OF norm_sum])
+  apply (auto intro!: sum_mono)
   done
 
-lemma setsum_norm_allsubsets_bound:
+lemma sum_norm_allsubsets_bound:
   fixes f :: "'a \<Rightarrow> 'n::euclidean_space"
   assumes fP: "finite P"
-    and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
+    and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (sum f Q) \<le> e"
   shows "(\<Sum>x\<in>P. norm (f x)) \<le> 2 * real DIM('n) * e"
 proof -
   have "(\<Sum>x\<in>P. norm (f x)) \<le> (\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>)"
-    by (rule setsum_mono) (rule norm_le_l1)
+    by (rule sum_mono) (rule norm_le_l1)
   also have "(\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>) = (\<Sum>b\<in>Basis. \<Sum>x\<in>P. \<bar>f x \<bullet> b\<bar>)"
-    by (rule setsum.commute)
+    by (rule sum.commute)
   also have "\<dots> \<le> of_nat (card (Basis :: 'n set)) * (2 * e)"
-  proof (rule setsum_bounded_above)
+  proof (rule sum_bounded_above)
     fix i :: 'n
     assume i: "i \<in> Basis"
     have "norm (\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le>
       norm ((\<Sum>x\<in>P \<inter> - {x. f x \<bullet> i < 0}. f x) \<bullet> i) + norm ((\<Sum>x\<in>P \<inter> {x. f x \<bullet> i < 0}. f x) \<bullet> i)"
-      by (simp add: abs_real_def setsum.If_cases[OF fP] setsum_negf norm_triangle_ineq4 inner_setsum_left
+      by (simp add: abs_real_def sum.If_cases[OF fP] sum_negf norm_triangle_ineq4 inner_sum_left
         del: real_norm_def)
     also have "\<dots> \<le> e + e"
       unfolding real_norm_def
@@ -1943,9 +1943,9 @@ proof
     let ?g = "\<lambda>b. (x \<bullet> b) *\<^sub>R f b"
     have "norm (f x) = norm (f (\<Sum>b\<in>Basis. (x \<bullet> b) *\<^sub>R b))"
       unfolding euclidean_representation ..
-    also have "\<dots> = norm (setsum ?g Basis)"
-      by (simp add: linear_setsum [OF lf] linear_cmul [OF lf])
-    finally have th0: "norm (f x) = norm (setsum ?g Basis)" .
+    also have "\<dots> = norm (sum ?g Basis)"
+      by (simp add: linear_sum [OF lf] linear_cmul [OF lf])
+    finally have th0: "norm (f x) = norm (sum ?g Basis)" .
     have th: "\<forall>b\<in>Basis. norm (?g b) \<le> norm (f b) * norm x"
     proof
       fix i :: 'a
@@ -1958,9 +1958,9 @@ proof
         apply (auto simp add: field_simps)
         done
     qed
-    from setsum_norm_le[of _ ?g, OF th]
+    from sum_norm_le[of _ ?g, OF th]
     show "norm (f x) \<le> ?B * norm x"
-      unfolding th0 setsum_distrib_right by metis
+      unfolding th0 sum_distrib_right by metis
   qed
 qed
 
@@ -2012,17 +2012,17 @@ lemma bilinear_bounded:
 proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)"])
   fix x :: 'm
   fix y :: 'n
-  have "norm (h x y) = norm (h (setsum (\<lambda>i. (x \<bullet> i) *\<^sub>R i) Basis) (setsum (\<lambda>i. (y \<bullet> i) *\<^sub>R i) Basis))"
+  have "norm (h x y) = norm (h (sum (\<lambda>i. (x \<bullet> i) *\<^sub>R i) Basis) (sum (\<lambda>i. (y \<bullet> i) *\<^sub>R i) Basis))"
     apply (subst euclidean_representation[where 'a='m])
     apply (subst euclidean_representation[where 'a='n])
     apply rule
     done
-  also have "\<dots> = norm (setsum (\<lambda> (i,j). h ((x \<bullet> i) *\<^sub>R i) ((y \<bullet> j) *\<^sub>R j)) (Basis \<times> Basis))"
-    unfolding bilinear_setsum[OF bh finite_Basis finite_Basis] ..
+  also have "\<dots> = norm (sum (\<lambda> (i,j). h ((x \<bullet> i) *\<^sub>R i) ((y \<bullet> j) *\<^sub>R j)) (Basis \<times> Basis))"
+    unfolding bilinear_sum[OF bh finite_Basis finite_Basis] ..
   finally have th: "norm (h x y) = \<dots>" .
   show "norm (h x y) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)) * norm x * norm y"
-    apply (auto simp add: setsum_distrib_right th setsum.cartesian_product)
-    apply (rule setsum_norm_le)
+    apply (auto simp add: sum_distrib_right th sum.cartesian_product)
+    apply (rule sum_norm_le)
     apply simp
     apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]
       field_simps simp del: scaleR_scaleR)
@@ -2353,7 +2353,7 @@ next
   from \<open>\<exists>C. finite C \<and> card C \<le> card B \<and> span C = span B \<and> pairwise orthogonal C\<close>
   obtain C where C: "finite C" "card C \<le> card B"
     "span C = span B" "pairwise orthogonal C" by blast
-  let ?a = "a - setsum (\<lambda>x. (x \<bullet> a / (x \<bullet> x)) *\<^sub>R x) C"
+  let ?a = "a - sum (\<lambda>x. (x \<bullet> a / (x \<bullet> x)) *\<^sub>R x) C"
   let ?C = "insert ?a C"
   from C(1) have fC: "finite ?C"
     by simp
@@ -2367,7 +2367,7 @@ next
       apply (simp only: scaleR_right_diff_distrib th0)
       apply (rule span_add_eq)
       apply (rule span_mul)
-      apply (rule span_setsum)
+      apply (rule span_sum)
       apply (rule span_mul)
       apply (rule span_superset)
       apply assumption
@@ -2384,10 +2384,10 @@ next
       using C by simp
     have "orthogonal ?a y"
       unfolding orthogonal_def
-      unfolding inner_diff inner_setsum_left right_minus_eq
-      unfolding setsum.remove [OF \<open>finite C\<close> \<open>y \<in> C\<close>]
+      unfolding inner_diff inner_sum_left right_minus_eq
+      unfolding sum.remove [OF \<open>finite C\<close> \<open>y \<in> C\<close>]
       apply (clarsimp simp add: inner_commute[of y a])
-      apply (rule setsum.neutral)
+      apply (rule sum.neutral)
       apply clarsimp
       apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
       using \<open>y \<in> C\<close> by auto
@@ -2446,10 +2446,10 @@ proof -
   from span_mono[OF B(2)] span_mono[OF B(3)]
   have sSB: "span S = span B"
     by (simp add: span_span)
-  let ?a = "a - setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B"
-  have "setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B \<in> span S"
+  let ?a = "a - sum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B"
+  have "sum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B \<in> span S"
     unfolding sSB
-    apply (rule span_setsum)
+    apply (rule span_sum)
     apply (rule span_mul)
     apply (rule span_superset)
     apply assumption
@@ -2471,10 +2471,10 @@ proof -
       have "?a \<bullet> x = 0"
         apply (subst B')
         using fB fth
-        unfolding setsum_clauses(2)[OF fth]
+        unfolding sum_clauses(2)[OF fth]
         apply simp unfolding inner_simps
-        apply (clarsimp simp add: inner_add inner_setsum_left)
-        apply (rule setsum.neutral, rule ballI)
+        apply (clarsimp simp add: inner_add inner_sum_left)
+        apply (rule sum.neutral, rule ballI)
         apply (simp only: inner_commute)
         apply (auto simp add: x field_simps
           intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -3016,7 +3016,7 @@ lemma infnorm_le_norm: "infnorm x \<le> norm x"
 
 lemma (in euclidean_space) euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<bullet> b))"
   by (subst (1 2) euclidean_representation [symmetric])
-    (simp add: inner_setsum_right inner_Basis ac_simps)
+    (simp add: inner_sum_right inner_Basis ac_simps)
 
 lemma norm_le_infnorm:
   fixes x :: "'a::euclidean_space"
@@ -3033,7 +3033,7 @@ proof -
     unfolding power_mult_distrib d2
     apply (subst euclidean_inner)
     apply (subst power2_abs[symmetric])
-    apply (rule order_trans[OF setsum_bounded_above[where K="\<bar>infnorm x\<bar>\<^sup>2"]])
+    apply (rule order_trans[OF sum_bounded_above[where K="\<bar>infnorm x\<bar>\<^sup>2"]])
     apply (auto simp add: power2_eq_square[symmetric])
     apply (subst power2_abs[symmetric])
     apply (rule power_mono)

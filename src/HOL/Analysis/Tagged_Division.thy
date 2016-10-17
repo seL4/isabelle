@@ -30,8 +30,8 @@ qed auto
 lemma sum_sum_product:
   assumes "finite s"
     and "\<forall>i\<in>s. finite (t i)"
-  shows "setsum (\<lambda>i. setsum (x i) (t i)::real) s =
-    setsum (\<lambda>(i,j). x i j) {(i,j) | i j. i \<in> s \<and> j \<in> t i}"
+  shows "sum (\<lambda>i. sum (x i) (t i)::real) s =
+    sum (\<lambda>(i,j). x i j) {(i,j) | i j. i \<in> s \<and> j \<in> t i}"
   using assms
 proof induct
   case (insert a s)
@@ -39,14 +39,14 @@ proof induct
     (\<lambda>y. (a,y)) ` (t a) \<union> {(i, j) |i j. i \<in> s \<and> j \<in> t i}" by auto
   show ?case
     unfolding *
-    apply (subst setsum.union_disjoint)
-    unfolding setsum.insert[OF insert(1-2)]
+    apply (subst sum.union_disjoint)
+    unfolding sum.insert[OF insert(1-2)]
     prefer 4
     apply (subst insert(3))
     unfolding add_right_cancel
   proof -
-    show "setsum (x a) (t a) = (\<Sum>(xa, y)\<in> Pair a ` t a. x xa y)"
-      apply (subst setsum.reindex)
+    show "sum (x a) (t a) = (\<Sum>(xa, y)\<in> Pair a ` t a. x xa y)"
+      apply (subst sum.reindex)
       unfolding inj_on_def
       apply auto
       done
@@ -196,13 +196,13 @@ definition interval_lowerbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
 lemma interval_upperbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
     interval_upperbound (cbox a b) = (b::'a::euclidean_space)"
-  unfolding interval_upperbound_def euclidean_representation_setsum cbox_def
+  unfolding interval_upperbound_def euclidean_representation_sum cbox_def
   by (safe intro!: cSup_eq) auto
 
 lemma interval_lowerbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
     interval_lowerbound (cbox a b) = (a::'a::euclidean_space)"
-  unfolding interval_lowerbound_def euclidean_representation_setsum cbox_def
+  unfolding interval_lowerbound_def euclidean_representation_sum cbox_def
   by (safe intro!: cInf_eq) auto
 
 lemmas interval_bounds = interval_upperbound interval_lowerbound
@@ -230,7 +230,7 @@ proof-
   have "(\<Sum>i\<in>Basis. (SUP x:A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x:B. x \<bullet> i) *\<^sub>R i)"
       by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
   ultimately show ?thesis unfolding interval_upperbound_def
-      by (subst setsum_Basis_prod_eq) (auto simp add: setsum_prod)
+      by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
 qed
 
 lemma interval_lowerbound_Times:
@@ -244,7 +244,7 @@ proof-
   have "(\<Sum>i\<in>Basis. (INF x:A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x:B. x \<bullet> i) *\<^sub>R i)"
       by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
   ultimately show ?thesis unfolding interval_lowerbound_def
-      by (subst setsum_Basis_prod_eq) (auto simp add: setsum_prod)
+      by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
 qed
 
 subsection \<open>The notion of a gauge --- simply an open set containing the point.\<close>
@@ -1359,7 +1359,7 @@ lemma (in comm_monoid) operative_empty:
   assumes g: "operative g" shows "g {} = \<^bold>1"
 proof -
   have *: "cbox One (-One) = ({}::'b set)"
-    by (auto simp: box_eq_empty inner_setsum_left inner_Basis setsum.If_cases ex_in_conv)
+    by (auto simp: box_eq_empty inner_sum_left inner_Basis sum.If_cases ex_in_conv)
   moreover have "box One (-One) = ({}::'b set)"
     using box_subset_cbox[of One "-One"] by (auto simp: *)
   ultimately show ?thesis
@@ -1438,7 +1438,7 @@ proof -
     apply rule
     unfolding mem_Collect_eq split_beta
     apply (erule bexE conjE)+
-    apply (simp only: mem_Collect_eq inner_setsum_left_Basis simp_thms)
+    apply (simp only: mem_Collect_eq inner_sum_left_Basis simp_thms)
     apply (erule exE conjE)+
   proof
     fix i l x
@@ -1931,7 +1931,7 @@ lemma additive_tagged_division_1:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "a \<le> b"
     and "p tagged_division_of {a..b}"
-  shows "setsum (\<lambda>(x,k). f(Sup k) - f(Inf k)) p = f b - f a"
+  shows "sum (\<lambda>(x,k). f(Sup k) - f(Inf k)) p = f b - f a"
 proof -
   let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
   have ***: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
@@ -1941,11 +1941,11 @@ proof -
     by auto
   have **: "cbox a b \<noteq> {}"
     using assms(1) by auto
-  note setsum.operative_tagged_division[OF * assms(2)[simplified box_real[symmetric]]]
+  note sum.operative_tagged_division[OF * assms(2)[simplified box_real[symmetric]]]
   note * = this[unfolded if_not_P[OF **] interval_bounds[OF ***],symmetric]
   show ?thesis
     unfolding *
-    apply (rule setsum.cong)
+    apply (rule sum.cong)
     unfolding split_paired_all split_conv
     using assms(2)
     apply auto
@@ -1959,7 +1959,7 @@ lemma additive_tagged_division_1':
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "a \<le> b"
     and "p tagged_division_of {a..b}"
-  shows "setsum (\<lambda>(x,k). f (Sup k) - f(Inf k)) p = f b - f a"
+  shows "sum (\<lambda>(x,k). f (Sup k) - f(Inf k)) p = f b - f a"
   using additive_tagged_division_1[OF _ assms(2), of f]
   using assms(1)
   by auto
@@ -2264,24 +2264,24 @@ proof -
     if e: "0 < e" for e
   proof -
     obtain n where n: "(\<Sum>i\<in>Basis. b \<bullet> i - a \<bullet> i) / e < 2 ^ n"
-      using real_arch_pow[of 2 "(setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] by auto
+      using real_arch_pow[of 2 "(sum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] by auto
     show ?thesis
     proof (rule exI [where x=n], clarify)
       fix x y
       assume xy: "x\<in>cbox (A n) (B n)" "y\<in>cbox (A n) (B n)"
-      have "dist x y \<le> setsum (\<lambda>i. \<bar>(x - y)\<bullet>i\<bar>) Basis"
+      have "dist x y \<le> sum (\<lambda>i. \<bar>(x - y)\<bullet>i\<bar>) Basis"
         unfolding dist_norm by(rule norm_le_l1)
-      also have "\<dots> \<le> setsum (\<lambda>i. B n\<bullet>i - A n\<bullet>i) Basis"
-      proof (rule setsum_mono)
+      also have "\<dots> \<le> sum (\<lambda>i. B n\<bullet>i - A n\<bullet>i) Basis"
+      proof (rule sum_mono)
         fix i :: 'a
         assume i: "i \<in> Basis"
         show "\<bar>(x - y) \<bullet> i\<bar> \<le> B n \<bullet> i - A n \<bullet> i"
           using xy[unfolded mem_box,THEN bspec, OF i]
           by (auto simp: inner_diff_left)
       qed
-      also have "\<dots> \<le> setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis / 2^n"
-        unfolding setsum_divide_distrib
-      proof (rule setsum_mono)
+      also have "\<dots> \<le> sum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis / 2^n"
+        unfolding sum_divide_distrib
+      proof (rule sum_mono)
         show "B n \<bullet> i - A n \<bullet> i \<le> (b \<bullet> i - a \<bullet> i) / 2 ^ n" if i: "i \<in> Basis" for i
         proof (induct n)
           case 0
@@ -2600,9 +2600,9 @@ proof -
                if "(\<And>i. i \<in> Basis \<Longrightarrow> \<bar>x \<bullet> i - y \<bullet> i\<bar> \<le> \<epsilon> / (2 * real DIM('a)))" for y
           proof -
             have "norm (x - y) \<le> (\<Sum>i\<in>Basis. \<bar>x \<bullet> i - y \<bullet> i\<bar>)"
-              by (metis (no_types, lifting) inner_diff_left norm_le_l1 setsum.cong)
+              by (metis (no_types, lifting) inner_diff_left norm_le_l1 sum.cong)
             also have "... \<le> DIM('a) * (\<epsilon> / (2 * real DIM('a)))"
-              by (meson setsum_bounded_above that)
+              by (meson sum_bounded_above that)
             also have "... = \<epsilon> / 2"
               by (simp add: divide_simps)
             also have "... < \<epsilon>"

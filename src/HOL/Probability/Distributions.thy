@@ -102,7 +102,7 @@ proof -
     qed
   qed auto
   also have "\<dots> = ennreal (1 - (\<Sum>n\<le>k. (a^n * exp (-a)) / fact n))"
-    by (auto simp: power_0_left if_distrib[where f="\<lambda>x. x / a" for a] setsum.If_cases)
+    by (auto simp: power_0_left if_distrib[where f="\<lambda>x. x / a" for a] sum.If_cases)
   also have "\<dots> = ennreal ((1 - (\<Sum>n\<le>k. (a^n * exp (-a)) / fact n)) * fact k) * ennreal (inverse (fact k))"
     by (subst ennreal_mult''[symmetric]) (auto intro!: arg_cong[where f=ennreal])
   finally show ?thesis
@@ -149,14 +149,14 @@ proof (clarsimp simp: not_less)
   assume "0 \<le> x"
   have "(\<Sum>n\<le>k. (l * x) ^ n * exp (- (l * x)) / fact n) =
     exp (- (l * x)) * (\<Sum>n\<le>k. (l * x) ^ n / fact n)"
-    unfolding setsum_distrib_left by (intro setsum.cong) (auto simp: field_simps)
+    unfolding sum_distrib_left by (intro sum.cong) (auto simp: field_simps)
   also have "\<dots> = (\<Sum>n\<le>k. (l * x) ^ n / fact n) / exp (l * x)"
     by (simp add: exp_minus field_simps)
   also have "\<dots> \<le> 1"
   proof (subst divide_le_eq_1_pos)
     show "(\<Sum>n\<le>k. (l * x) ^ n / fact n) \<le> exp (l * x)"
       using \<open>0 < l\<close> \<open>0 \<le> x\<close> summable_exp_generic[of "l * x"]
-      by (auto simp: exp_def divide_inverse ac_simps intro!: setsum_le_suminf)
+      by (auto simp: exp_def divide_inverse ac_simps intro!: sum_le_suminf)
   qed simp
   finally show "(\<Sum>n\<le>k. (l * x) ^ n * exp (- (l * x)) / fact n) \<le> 1" .
 qed
@@ -457,7 +457,7 @@ next
   case (insert i I)
   then have "distributed M lborel (\<lambda>x. min (X i x) (Min ((\<lambda>i. X i x)`I))) (exponential_density (l i + (\<Sum>i\<in>I. l i)))"
       by (intro exponential_distributed_min indep_vars_Min insert)
-         (auto intro: indep_vars_subset setsum_pos)
+         (auto intro: indep_vars_subset sum_pos)
   then show ?case
     using insert by simp
 qed
@@ -557,7 +557,7 @@ lemma (in prob_space) sum_indep_erlang:
   apply auto
   done
 
-lemma (in prob_space) erlang_distributed_setsum:
+lemma (in prob_space) erlang_distributed_sum:
   assumes finI : "finite I"
   assumes A: "I \<noteq> {}"
   assumes [simp, arith]: "0 < l"
@@ -570,7 +570,7 @@ proof (induct rule: finite_ne_induct)
 next
   case (insert i I)
     then have "distributed M lborel (\<lambda>x. (X i x) + (\<Sum>i\<in> I. X i x)) (erlang_density (Suc (k i) + Suc ((\<Sum>i\<in>I. Suc (k i)) - 1) - 1) l)"
-      by(intro sum_indep_erlang indep_vars_setsum) (auto intro!: indep_vars_subset)
+      by(intro sum_indep_erlang indep_vars_sum) (auto intro!: indep_vars_subset)
     also have "(\<lambda>x. (X i x) + (\<Sum>i\<in> I. X i x)) = (\<lambda>x. \<Sum>i\<in>insert i I. X i x)"
       using insert by auto
     also have "Suc(k i) + Suc ((\<Sum>i\<in>I. Suc (k i)) - 1) - 1 = (\<Sum>i\<in>insert i I. Suc (k i)) - 1"
@@ -578,14 +578,14 @@ next
     finally show ?case by fast
 qed
 
-lemma (in prob_space) exponential_distributed_setsum:
+lemma (in prob_space) exponential_distributed_sum:
   assumes finI: "finite I"
   assumes A: "I \<noteq> {}"
   assumes l: "0 < l"
   assumes expX: "\<And>i. i \<in> I \<Longrightarrow> distributed M lborel (X i) (exponential_density l)"
   assumes ind: "indep_vars (\<lambda>i. borel) X I"
   shows "distributed M lborel (\<lambda>x. \<Sum>i\<in>I. X i x) (erlang_density ((card I) - 1) l)"
-  using erlang_distributed_setsum[OF assms] by simp
+  using erlang_distributed_sum[OF assms] by simp
 
 lemma (in information_space) entropy_exponential:
   assumes l[simp, arith]: "0 < l"
@@ -1248,7 +1248,7 @@ lemma conv_std_normal_density:
   (normal_density 0 (sqrt 2))"
   by (subst conv_normal_density_zero_mean) simp_all
 
-lemma (in prob_space) sum_indep_normal:
+lemma (in prob_space) add_indep_normal:
   assumes indep: "indep_var borel X borel Y"
   assumes pos_var[arith]: "0 < \<sigma>" "0 < \<tau>"
   assumes normalX[simp]: "distributed M lborel X (normal_density \<mu> \<sigma>)"
@@ -1293,14 +1293,14 @@ proof -
   then have [simp]:"distributed M lborel (\<lambda>x. - Y x) (\<lambda>x. ennreal (normal_density (- \<nu>) \<tau> x))" by simp
 
   have "distributed M lborel (\<lambda>x. X x + (- Y x)) (normal_density (\<mu> + - \<nu>) (sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2)))"
-    apply (rule sum_indep_normal)
+    apply (rule add_indep_normal)
     apply (rule indep_var_compose[unfolded comp_def, of borel _ borel _ "\<lambda>x. x" _ "\<lambda>x. - x"])
     apply simp_all
     done
   then show ?thesis by simp
 qed
 
-lemma (in prob_space) setsum_indep_normal:
+lemma (in prob_space) sum_indep_normal:
   assumes "finite I" "I \<noteq> {}" "indep_vars (\<lambda>i. borel) X I"
   assumes "\<And>i. i \<in> I \<Longrightarrow> 0 < \<sigma> i"
   assumes normal: "\<And>i. i \<in> I \<Longrightarrow> distributed M lborel (X i) (normal_density (\<mu> i) (\<sigma> i))"
@@ -1311,17 +1311,17 @@ proof (induct I rule: finite_ne_induct)
 next
   case (insert i I)
     then have 1: "distributed M lborel (\<lambda>x. (X i x) + (\<Sum>i\<in>I. X i x))
-                (normal_density (\<mu> i  + setsum \<mu> I)  (sqrt ((\<sigma> i)\<^sup>2 + (sqrt (\<Sum>i\<in>I. (\<sigma> i)\<^sup>2))\<^sup>2)))"
-      apply (intro sum_indep_normal indep_vars_setsum insert real_sqrt_gt_zero)
-      apply (auto intro: indep_vars_subset intro!: setsum_pos)
+                (normal_density (\<mu> i  + sum \<mu> I)  (sqrt ((\<sigma> i)\<^sup>2 + (sqrt (\<Sum>i\<in>I. (\<sigma> i)\<^sup>2))\<^sup>2)))"
+      apply (intro add_indep_normal indep_vars_sum insert real_sqrt_gt_zero)
+      apply (auto intro: indep_vars_subset intro!: sum_pos)
       apply fastforce
       done
     have 2: "(\<lambda>x. (X i x)+ (\<Sum>i\<in>I. X i x)) = (\<lambda>x. (\<Sum>j\<in>insert i I. X j x))"
-          "\<mu> i + setsum \<mu> I = setsum \<mu> (insert i I)"
+          "\<mu> i + sum \<mu> I = sum \<mu> (insert i I)"
       using insert by auto
 
     have 3: "(sqrt ((\<sigma> i)\<^sup>2 + (sqrt (\<Sum>i\<in>I. (\<sigma> i)\<^sup>2))\<^sup>2)) = (sqrt (\<Sum>i\<in>insert i I. (\<sigma> i)\<^sup>2))"
-      using insert by (simp add: setsum_nonneg)
+      using insert by (simp add: sum_nonneg)
 
     show ?case using 1 2 3 by simp
 qed

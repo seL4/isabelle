@@ -20,19 +20,19 @@ proposition subordinate_partition_of_unity:
   obtains F :: "['a set, 'a] \<Rightarrow> real"
     where "\<And>U. U \<in> \<C> \<Longrightarrow> continuous_on S (F U) \<and> (\<forall>x \<in> S. 0 \<le> F U x)"
       and "\<And>x U. \<lbrakk>U \<in> \<C>; x \<in> S; x \<notin> U\<rbrakk> \<Longrightarrow> F U x = 0"
-      and "\<And>x. x \<in> S \<Longrightarrow> supp_setsum (\<lambda>W. F W x) \<C> = 1"
+      and "\<And>x. x \<in> S \<Longrightarrow> supp_sum (\<lambda>W. F W x) \<C> = 1"
       and "\<And>x. x \<in> S \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<C>. \<exists>x\<in>V. F U x \<noteq> 0}"
 proof (cases "\<exists>W. W \<in> \<C> \<and> S \<subseteq> W")
   case True
     then obtain W where "W \<in> \<C>" "S \<subseteq> W" by metis
     then show ?thesis
       apply (rule_tac F = "\<lambda>V x. if V = W then 1 else 0" in that)
-      apply (auto simp: continuous_on_const supp_setsum_def support_on_def)
+      apply (auto simp: continuous_on_const supp_sum_def support_on_def)
       done
 next
   case False
-    have nonneg: "0 \<le> supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>" for x
-      by (simp add: supp_setsum_def setsum_nonneg)
+    have nonneg: "0 \<le> supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>" for x
+      by (simp add: supp_sum_def sum_nonneg)
     have sd_pos: "0 < setdist {x} (S - V)" if "V \<in> \<C>" "x \<in> S" "x \<in> V" for V x
     proof -
       have "closedin (subtopology euclidean S) (S - V)"
@@ -41,7 +41,7 @@ next
         show ?thesis
           by (simp add: order_class.order.order_iff_strict)
     qed
-    have ss_pos: "0 < supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>" if "x \<in> S" for x
+    have ss_pos: "0 < supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>" if "x \<in> S" for x
     proof -
       obtain U where "U \<in> \<C>" "x \<in> U" using \<open>x \<in> S\<close> \<open>S \<subseteq> \<Union>\<C>\<close>
         by blast
@@ -52,20 +52,20 @@ next
       have "x \<notin> closure (S - U)"
         by (metis \<open>U \<in> \<C>\<close> \<open>x \<in> U\<close> less_irrefl sd_pos setdist_eq_0_sing_1 that)
       then show ?thesis
-        apply (simp add: setdist_eq_0_sing_1 supp_setsum_def support_on_def)
-        apply (rule ordered_comm_monoid_add_class.setsum_pos2 [OF *, of U])
+        apply (simp add: setdist_eq_0_sing_1 supp_sum_def support_on_def)
+        apply (rule ordered_comm_monoid_add_class.sum_pos2 [OF *, of U])
         using \<open>U \<in> \<C>\<close> \<open>x \<in> U\<close> False
         apply (auto simp: setdist_pos_le sd_pos that)
         done
     qed
     define F where
-      "F \<equiv> \<lambda>W x. if x \<in> S then setdist {x} (S - W) / supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>
+      "F \<equiv> \<lambda>W x. if x \<in> S then setdist {x} (S - W) / supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>
                  else 0"
     show ?thesis
     proof (rule_tac F = F in that)
       have "continuous_on S (F U)" if "U \<in> \<C>" for U
       proof -
-        have *: "continuous_on S (\<lambda>x. supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>)"
+        have *: "continuous_on S (\<lambda>x. supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>)"
         proof (clarsimp simp add: continuous_on_eq_continuous_within)
           fix x assume "x \<in> S"
           then obtain X where "open X" and x: "x \<in> S \<inter> X" and finX: "finite {U \<in> \<C>. U \<inter> X \<noteq> {}}"
@@ -73,15 +73,15 @@ next
           then have OSX: "openin (subtopology euclidean S) (S \<inter> X)" by blast
           have sumeq: "\<And>x. x \<in> S \<inter> X \<Longrightarrow>
                      (\<Sum>V | V \<in> \<C> \<and> V \<inter> X \<noteq> {}. setdist {x} (S - V))
-                     = supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>"
-            apply (simp add: supp_setsum_def)
-            apply (rule setsum.mono_neutral_right [OF finX])
+                     = supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>"
+            apply (simp add: supp_sum_def)
+            apply (rule sum.mono_neutral_right [OF finX])
             apply (auto simp: setdist_eq_0_sing_1 support_on_def subset_iff)
             apply (meson DiffI closure_subset disjoint_iff_not_equal subsetCE)
             done
-          show "continuous (at x within S) (\<lambda>x. supp_setsum (\<lambda>V. setdist {x} (S - V)) \<C>)"
+          show "continuous (at x within S) (\<lambda>x. supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>)"
             apply (rule continuous_transform_within_openin
-                     [where f = "\<lambda>x. (setsum (\<lambda>V. setdist {x} (S - V)) {V \<in> \<C>. V \<inter> X \<noteq> {}})"
+                     [where f = "\<lambda>x. (sum (\<lambda>V. setdist {x} (S - V)) {V \<in> \<C>. V \<inter> X \<noteq> {}})"
                         and S ="S \<inter> X"])
             apply (rule continuous_intros continuous_at_setdist continuous_at_imp_continuous_at_within OSX x)+
             apply (simp add: sumeq)
@@ -101,9 +101,9 @@ next
       show "\<And>x U. \<lbrakk>U \<in> \<C>; x \<in> S; x \<notin> U\<rbrakk> \<Longrightarrow> F U x = 0"
         by (simp add: setdist_eq_0_sing_1 closure_def F_def)
     next
-      show "supp_setsum (\<lambda>W. F W x) \<C> = 1" if "x \<in> S" for x
+      show "supp_sum (\<lambda>W. F W x) \<C> = 1" if "x \<in> S" for x
         using that ss_pos [OF that]
-        by (simp add: F_def divide_simps supp_setsum_divide_distrib [symmetric])
+        by (simp add: F_def divide_simps supp_sum_divide_distrib [symmetric])
     next
       show "\<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<C>. \<exists>x\<in>V. F U x \<noteq> 0}" if "x \<in> S" for x
         using fin [OF that] that
@@ -378,11 +378,11 @@ next
     where Hcont: "\<And>Z. Z \<in> \<C> \<Longrightarrow> continuous_on (U-S) (H Z)"
       and Hge0: "\<And>Z x. \<lbrakk>Z \<in> \<C>; x \<in> U-S\<rbrakk> \<Longrightarrow> 0 \<le> H Z x"
       and Heq0: "\<And>x Z. \<lbrakk>Z \<in> \<C>; x \<in> U-S; x \<notin> Z\<rbrakk> \<Longrightarrow> H Z x = 0"
-      and H1: "\<And>x. x \<in> U-S \<Longrightarrow> supp_setsum (\<lambda>W. H W x) \<C> = 1"
+      and H1: "\<And>x. x \<in> U-S \<Longrightarrow> supp_sum (\<lambda>W. H W x) \<C> = 1"
       and Hfin: "\<And>x. x \<in> U-S \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<C>. \<exists>x\<in>V. H U x \<noteq> 0}"
     apply (rule subordinate_partition_of_unity [OF USsub _ fin])
     using nbrhd by auto
-  define g where "g \<equiv> \<lambda>x. if x \<in> S then f x else supp_setsum (\<lambda>T. H T x *\<^sub>R f(\<A> T)) \<C>"
+  define g where "g \<equiv> \<lambda>x. if x \<in> S then f x else supp_sum (\<lambda>T. H T x *\<^sub>R f(\<A> T)) \<C>"
   show ?thesis
   proof (rule that)
     show "continuous_on U g"
@@ -420,8 +420,8 @@ next
               then show ?thesis
                 using VA [OF \<open>T \<in> \<C>\<close>] by (auto simp: d)
             qed
-            have "supp_setsum (\<lambda>T. H T y *\<^sub>R f (\<A> T)) \<C> \<in> ball (f a) e"
-              apply (rule convex_supp_setsum [OF convex_ball])
+            have "supp_sum (\<lambda>T. H T y *\<^sub>R f (\<A> T)) \<C> \<in> ball (f a) e"
+              apply (rule convex_supp_sum [OF convex_ball])
               apply (simp_all add: False H1 Hge0 \<open>y \<in> U\<close>)
               by (metis dist_commute *)
             then show ?thesis
@@ -447,7 +447,7 @@ next
           done
         show ?thesis
         proof (rule continuous_transform_within_openin [OF _ oUS])
-          show "continuous (at a within U) (\<lambda>x. supp_setsum (\<lambda>T. H T x *\<^sub>R f (\<A> T)) \<C>)"
+          show "continuous (at a within U) (\<lambda>x. supp_sum (\<lambda>T. H T x *\<^sub>R f (\<A> T)) \<C>)"
           proof (rule continuous_transform_within_openin)
             show "continuous (at a within U)
                     (\<lambda>x. \<Sum>T\<in>{U \<in> \<C>. \<exists>x\<in>N. H U x \<noteq> 0}. H T x *\<^sub>R f (\<A> T))"
@@ -460,21 +460,21 @@ next
           next
             show "\<And>x. x \<in> (U - S) \<inter> N \<Longrightarrow>
                          (\<Sum>T \<in> {U \<in> \<C>. \<exists>x\<in>N. H U x \<noteq> 0}. H T x *\<^sub>R f (\<A> T))
-                         = supp_setsum (\<lambda>T. H T x *\<^sub>R f (\<A> T)) \<C>"
-              by (auto simp: supp_setsum_def support_on_def
-                       intro: setsum.mono_neutral_right [OF finN])
+                         = supp_sum (\<lambda>T. H T x *\<^sub>R f (\<A> T)) \<C>"
+              by (auto simp: supp_sum_def support_on_def
+                       intro: sum.mono_neutral_right [OF finN])
           qed
         next
           show "a \<in> U - S" using False \<open>a \<in> U\<close> by blast
         next
-          show "\<And>x. x \<in> U - S \<Longrightarrow> supp_setsum (\<lambda>T. H T x *\<^sub>R f (\<A> T)) \<C> = g x"
+          show "\<And>x. x \<in> U - S \<Longrightarrow> supp_sum (\<lambda>T. H T x *\<^sub>R f (\<A> T)) \<C> = g x"
             by (simp add: g_def)
         qed
       qed
     qed
     show "g ` U \<subseteq> C"
       using \<open>f ` S \<subseteq> C\<close> VA
-      by (fastforce simp: g_def Hge0 intro!: convex_supp_setsum [OF \<open>convex C\<close>] H1)
+      by (fastforce simp: g_def Hge0 intro!: convex_supp_sum [OF \<open>convex C\<close>] H1)
     show "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
       by (simp add: g_def)
   qed

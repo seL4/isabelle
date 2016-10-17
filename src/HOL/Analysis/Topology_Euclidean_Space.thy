@@ -58,22 +58,22 @@ lemma support_on_if_subset: "support_on A (\<lambda>x. if P x then a else 0) \<s
 lemma finite_support[intro]: "finite s \<Longrightarrow> finite (support_on s f)"
   unfolding support_on_def by auto
 
-(* TODO: is supp_setsum really needed? TODO: Generalize to Finite_Set.fold *)
-definition (in comm_monoid_add) supp_setsum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
+(* TODO: is supp_sum really needed? TODO: Generalize to Finite_Set.fold *)
+definition (in comm_monoid_add) supp_sum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
 where
-  "supp_setsum f s = (\<Sum>x\<in>support_on s f. f x)"
+  "supp_sum f s = (\<Sum>x\<in>support_on s f. f x)"
 
-lemma supp_setsum_empty[simp]: "supp_setsum f {} = 0"
-  unfolding supp_setsum_def by auto
+lemma supp_sum_empty[simp]: "supp_sum f {} = 0"
+  unfolding supp_sum_def by auto
 
-lemma supp_setsum_insert[simp]:
+lemma supp_sum_insert[simp]:
   "finite (support_on s f) \<Longrightarrow>
-    supp_setsum f (insert x s) = (if x \<in> s then supp_setsum f s else f x + supp_setsum f s)"
-  by (simp add: supp_setsum_def in_support_on insert_absorb)
+    supp_sum f (insert x s) = (if x \<in> s then supp_sum f s else f x + supp_sum f s)"
+  by (simp add: supp_sum_def in_support_on insert_absorb)
 
-lemma supp_setsum_divide_distrib: "supp_setsum f A / (r::'a::field) = supp_setsum (\<lambda>n. f n / r) A"
+lemma supp_sum_divide_distrib: "supp_sum f A / (r::'a::field) = supp_sum (\<lambda>n. f n / r) A"
   by (cases "r = 0")
-     (auto simp: supp_setsum_def setsum_divide_distrib intro!: setsum.cong support_on_cong)
+     (auto simp: supp_sum_def sum_divide_distrib intro!: sum.cong support_on_cong)
 
 (*END OF SUPPORT, ETC.*)
 
@@ -1164,7 +1164,7 @@ proof -
     have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<^sup>2)"
       unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
     also have "\<dots> < sqrt (\<Sum>(i::'a)\<in>Basis. e^2 / real (DIM('a)))"
-    proof (rule real_sqrt_less_mono, rule setsum_strict_mono)
+    proof (rule real_sqrt_less_mono, rule sum_strict_mono)
       fix i :: "'a"
       assume i: "i \<in> Basis"
       have "a i < y\<bullet>i \<and> y\<bullet>i < b i"
@@ -1497,7 +1497,7 @@ proof -
   moreover have "\<And>x b::'a. \<And>n::nat.  \<bar>x \<bullet> b\<bar> < real n \<longleftrightarrow> - real n < x \<bullet> b \<and> x \<bullet> b < real n"
     by auto
   ultimately show ?thesis
-    by (auto simp: box_def inner_setsum_left inner_Basis setsum.If_cases)
+    by (auto simp: box_def inner_sum_left inner_Basis sum.If_cases)
 qed
 
 text \<open>Intervals in general, including infinite and mixtures of open and closed.\<close>
@@ -1562,10 +1562,10 @@ proof -
 qed
 
 lemma cbox01_nonempty [simp]: "cbox 0 One \<noteq> {}"
-  by (simp add: box_ne_empty inner_Basis inner_setsum_left setsum_nonneg)
+  by (simp add: box_ne_empty inner_Basis inner_sum_left sum_nonneg)
 
 lemma box01_nonempty [simp]: "box 0 One \<noteq> {}"
-  by (simp add: box_ne_empty inner_Basis inner_setsum_left) (simp add: setsum.remove)
+  by (simp add: box_ne_empty inner_Basis inner_sum_left) (simp add: sum.remove)
 
 
 subsection\<open>Connectedness\<close>
@@ -5046,10 +5046,10 @@ proof
       have "dist (f (r n)) l \<le> (\<Sum>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i))"
         apply (subst euclidean_dist_l2)
         using zero_le_dist
-        apply (rule setL2_le_setsum)
+        apply (rule setL2_le_sum)
         done
       also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). e / (real_of_nat DIM('a)))"
-        apply (rule setsum_strict_mono)
+        apply (rule sum_strict_mono)
         using n
         apply auto
         done
@@ -5448,7 +5448,7 @@ lemma summable_imp_bounded:
 by (frule summable_LIMSEQ_zero) (simp add: convergent_imp_bounded)
 
 lemma summable_imp_sums_bounded:
-   "summable f \<Longrightarrow> bounded (range (\<lambda>n. setsum f {..<n}))"
+   "summable f \<Longrightarrow> bounded (range (\<lambda>n. sum f {..<n}))"
 by (auto simp: summable_def sums_def dest: convergent_imp_bounded)
 
 lemma power_series_conv_imp_absconv_weak:
@@ -7064,17 +7064,17 @@ proof clarify
       show ?thesis
       proof (rule image_eqI)
         show "y = f (x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i))"
-          apply (simp add: linear_add linear_setsum linear.scaleR \<open>linear f\<close> surj_f_inv_f \<open>surj f\<close>)
+          apply (simp add: linear_add linear_sum linear.scaleR \<open>linear f\<close> surj_f_inv_f \<open>surj f\<close>)
           apply (simp add: euclidean_representation u_def)
           done
         have "dist (x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i)) x \<le> (\<Sum>i\<in>Basis. norm ((u \<bullet> i) *\<^sub>R inv f i))"
-          by (simp add: dist_norm setsum_norm_le)
+          by (simp add: dist_norm sum_norm_le)
         also have "... = (\<Sum>i\<in>Basis. \<bar>u \<bullet> i\<bar> * norm (inv f i))"
           by (simp add: )
         also have "... \<le> (\<Sum>i\<in>Basis. \<bar>u \<bullet> i\<bar>) * B"
-          by (simp add: B setsum_distrib_right setsum_mono mult_left_mono)
+          by (simp add: B sum_distrib_right sum_mono mult_left_mono)
         also have "... \<le> DIM('b) * dist y (f x) * B"
-          apply (rule mult_right_mono [OF setsum_bounded_above])
+          apply (rule mult_right_mono [OF sum_bounded_above])
           using \<open>0 < B\<close> by (auto simp add: Basis_le_norm dist_norm u_def)
         also have "... < e"
           by (metis mult.commute mult.left_commute that)
@@ -8200,7 +8200,7 @@ proof -
     }
     then have "(\<Sum>i\<in>Basis. \<bar>x \<bullet> i\<bar>) \<le> ?b"
       apply -
-      apply (rule setsum_mono)
+      apply (rule sum_mono)
       apply auto
       done
     then have "norm x \<le> ?b"
@@ -9164,9 +9164,9 @@ proof (rule dim_unique)
     have "finite d"
       using finite_subset [OF d finite_Basis] .
     then have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) \<in> span d"
-      by (simp add: span_setsum span_clauses)
+      by (simp add: span_sum span_clauses)
     also have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
-      by (rule setsum.mono_neutral_cong_left [OF finite_Basis d]) (auto simp add: x)
+      by (rule sum.mono_neutral_cong_left [OF finite_Basis d]) (auto simp add: x)
     finally show "x \<in> span d"
       unfolding euclidean_representation .
   qed
@@ -9950,10 +9950,10 @@ next
     have *: "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e"
              if "\<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / real DIM('b)" for x
     proof -
-      have "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis \<le> setsum (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis"
-        by (simp add: setL2_le_setsum)
+      have "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis \<le> sum (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis"
+        by (simp add: setL2_le_sum)
       also have "... < DIM('b) * (e / real DIM('b))"
-        apply (rule setsum_bounded_above_strict)
+        apply (rule sum_bounded_above_strict)
         using that by auto
       also have "... = e"
         by (simp add: field_simps)
@@ -9998,14 +9998,14 @@ next
     by (auto simp: bounded_linear_def bounded_linear_axioms_def linear_componentwise_iff [symmetric] ball_conj_distrib)
   then obtain F where F: "\<And>i x. i \<in> Basis \<Longrightarrow> \<bar>f' x \<bullet> i\<bar> \<le> norm x * F i"
     by metis
-  have "norm (f' x) \<le> norm x * setsum F Basis" for x
+  have "norm (f' x) \<le> norm x * sum F Basis" for x
   proof -
     have "norm (f' x) \<le> (\<Sum>i\<in>Basis. \<bar>f' x \<bullet> i\<bar>)"
       by (rule norm_le_l1)
     also have "... \<le> (\<Sum>i\<in>Basis. norm x * F i)"
-      by (metis F setsum_mono)
-    also have "... = norm x * setsum F Basis"
-      by (simp add: setsum_distrib_left)
+      by (metis F sum_mono)
+    also have "... = norm x * sum F Basis"
+      by (simp add: sum_distrib_left)
     finally show ?thesis .
   qed
   then show ?lhs

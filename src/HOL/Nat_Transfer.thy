@@ -186,13 +186,13 @@ declare transfer_morphism_nat_int [transfer add
 ]
 
 
-text \<open>setsum and setprod\<close>
+text \<open>sum and setprod\<close>
 
 (* this handles the case where the *domain* of f is nat *)
 lemma transfer_nat_int_sum_prod:
-    "setsum f A = setsum (%x. f (nat x)) (int ` A)"
+    "sum f A = sum (%x. f (nat x)) (int ` A)"
     "setprod f A = setprod (%x. f (nat x)) (int ` A)"
-  apply (subst setsum.reindex)
+  apply (subst sum.reindex)
   apply (unfold inj_on_def, auto)
   apply (subst setprod.reindex)
   apply (unfold inj_on_def o_def, auto)
@@ -200,17 +200,17 @@ done
 
 (* this handles the case where the *range* of f is nat *)
 lemma transfer_nat_int_sum_prod2:
-    "setsum f A = nat(setsum (%x. int (f x)) A)"
+    "sum f A = nat(sum (%x. int (f x)) A)"
     "setprod f A = nat(setprod (%x. int (f x)) A)"
-  apply (simp only: int_setsum [symmetric] nat_int)
+  apply (simp only: int_sum [symmetric] nat_int)
   apply (simp only: int_setprod [symmetric] nat_int)
   done
 
 lemma transfer_nat_int_sum_prod_closure:
-    "nat_set A \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x >= (0::int)) \<Longrightarrow> setsum f A >= 0"
+    "nat_set A \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x >= (0::int)) \<Longrightarrow> sum f A >= 0"
     "nat_set A \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x >= (0::int)) \<Longrightarrow> setprod f A >= 0"
   unfolding nat_set_def
-  apply (rule setsum_nonneg)
+  apply (rule sum_nonneg)
   apply auto
   apply (rule setprod_nonneg)
   apply auto
@@ -222,10 +222,10 @@ done
   also: what does =simp=> do?
 
 lemma transfer_nat_int_sum_prod_closure:
-    "(!!x. x : A  ==> f x >= (0::int)) \<Longrightarrow> setsum f A >= 0"
+    "(!!x. x : A  ==> f x >= (0::int)) \<Longrightarrow> sum f A >= 0"
     "(!!x. x : A  ==> f x >= (0::int)) \<Longrightarrow> setprod f A >= 0"
   unfolding nat_set_def simp_implies_def
-  apply (rule setsum_nonneg)
+  apply (rule sum_nonneg)
   apply auto
   apply (rule setprod_nonneg)
   apply auto
@@ -233,16 +233,16 @@ done
 *)
 
 (* Making A = B in this lemma doesn't work. Why not?
-   Also, why aren't setsum.cong and setprod.cong enough,
+   Also, why aren't sum.cong and setprod.cong enough,
    with the previously mentioned rule turned on? *)
 
 lemma transfer_nat_int_sum_prod_cong:
     "A = B \<Longrightarrow> nat_set B \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x = g x) \<Longrightarrow>
-      setsum f A = setsum g B"
+      sum f A = sum g B"
     "A = B \<Longrightarrow> nat_set B \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x = g x) \<Longrightarrow>
       setprod f A = setprod g B"
   unfolding nat_set_def
-  apply (subst setsum.cong, assumption)
+  apply (subst sum.cong, assumption)
   apply auto [2]
   apply (subst setprod.cong, assumption, auto)
 done
@@ -389,13 +389,13 @@ declare transfer_morphism_int_nat [transfer add
 ]
 
 
-text \<open>setsum and setprod\<close>
+text \<open>sum and setprod\<close>
 
 (* this handles the case where the *domain* of f is int *)
 lemma transfer_int_nat_sum_prod:
-    "nat_set A \<Longrightarrow> setsum f A = setsum (%x. f (int x)) (nat ` A)"
+    "nat_set A \<Longrightarrow> sum f A = sum (%x. f (int x)) (nat ` A)"
     "nat_set A \<Longrightarrow> setprod f A = setprod (%x. f (int x)) (nat ` A)"
-  apply (subst setsum.reindex)
+  apply (subst sum.reindex)
   apply (unfold inj_on_def nat_set_def, auto simp add: eq_nat_nat_iff)
   apply (subst setprod.reindex)
   apply (unfold inj_on_def nat_set_def o_def, auto simp add: eq_nat_nat_iff
@@ -404,14 +404,14 @@ done
 
 (* this handles the case where the *range* of f is int *)
 lemma transfer_int_nat_sum_prod2:
-    "(!!x. x:A \<Longrightarrow> is_nat (f x)) \<Longrightarrow> setsum f A = int(setsum (%x. nat (f x)) A)"
+    "(!!x. x:A \<Longrightarrow> is_nat (f x)) \<Longrightarrow> sum f A = int(sum (%x. nat (f x)) A)"
     "(!!x. x:A \<Longrightarrow> is_nat (f x)) \<Longrightarrow>
       setprod f A = int(setprod (%x. nat (f x)) A)"
   unfolding is_nat_def
-  by (subst int_setsum) auto
+  by (subst int_sum) auto
 
 declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_sum_prod transfer_int_nat_sum_prod2
-  cong: setsum.cong setprod.cong]
+  cong: sum.cong setprod.cong]
 
 end

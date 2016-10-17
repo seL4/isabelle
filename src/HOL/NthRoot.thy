@@ -720,7 +720,7 @@ proof -
         by (simp add: x_def)
       also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
         using \<open>2 < n\<close>
-        by (intro setsum_mono2) (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
+        by (intro sum_mono2) (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
       also have "\<dots> = (x n + 1) ^ n"
         by (simp add: binomial_ring)
       also have "\<dots> = n"
@@ -761,7 +761,7 @@ proof -
           by (simp add: x_def)
         also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
           using \<open>1 < n\<close> \<open>1 \<le> c\<close>
-          by (intro setsum_mono2)
+          by (intro sum_mono2)
             (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
         also have "\<dots> = (x n + 1) ^ n"
           by (simp add: binomial_ring)

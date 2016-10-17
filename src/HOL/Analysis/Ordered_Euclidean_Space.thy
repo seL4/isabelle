@@ -46,7 +46,7 @@ qed (force intro!: cInf_lower cSup_upper
 
 lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i = inf (x \<bullet> i) (y \<bullet> i)"
   and inner_Basis_sup_left: "i \<in> Basis \<Longrightarrow> sup x y \<bullet> i = sup (x \<bullet> i) (y \<bullet> i)"
-  by (simp_all add: eucl_inf eucl_sup inner_setsum_left inner_Basis if_distrib comm_monoid_add_class.setsum.delta
+  by (simp_all add: eucl_inf eucl_sup inner_sum_left inner_Basis if_distrib comm_monoid_add_class.sum.delta
       cong: if_cong)
 
 lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x:X. f x) \<bullet> i = (INF x:X. f x \<bullet> i)"
@@ -65,7 +65,7 @@ lemma interval_inner_leI:
   shows "a\<bullet>i \<le> x\<bullet>i" "x\<bullet>i \<le> b\<bullet>i"
   using assms
   unfolding euclidean_inner[of a i] euclidean_inner[of x i] euclidean_inner[of b i]
-  by (auto intro!: ordered_comm_monoid_add_class.setsum_mono mult_right_mono simp: eucl_le)
+  by (auto intro!: ordered_comm_monoid_add_class.sum_mono mult_right_mono simp: eucl_le)
 
 lemma inner_nonneg_nonneg:
   shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a \<bullet> b"
@@ -86,7 +86,7 @@ lemma Sup_eq_maximum_componentwise:
   assumes i_s: "\<And>b. b \<in> Basis \<Longrightarrow> (i b \<bullet> b) \<in> (\<lambda>x. x \<bullet> b) ` s"
   shows "Sup s = X"
   using assms
-  unfolding eucl_Sup euclidean_representation_setsum
+  unfolding eucl_Sup euclidean_representation_sum
   by (auto intro!: conditionally_complete_lattice_class.cSup_eq_maximum)
 
 lemma Inf_eq_minimum_componentwise:
@@ -95,7 +95,7 @@ lemma Inf_eq_minimum_componentwise:
   assumes i_s: "\<And>b. b \<in> Basis \<Longrightarrow> (i b \<bullet> b) \<in> (\<lambda>x. x \<bullet> b) ` s"
   shows "Inf s = X"
   using assms
-  unfolding eucl_Inf euclidean_representation_setsum
+  unfolding eucl_Inf euclidean_representation_sum
   by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
 
 end
@@ -117,7 +117,7 @@ proof atomize_elim
   hence "Inf ?proj = x \<bullet> b"
     by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
   hence "x \<bullet> b = Inf X \<bullet> b"
-    by (auto simp: eucl_Inf inner_setsum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> setsum.delta
+    by (auto simp: eucl_Inf inner_sum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> sum.delta
       cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Inf X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> x \<bullet> b \<le> y \<bullet> b)" by blast
 qed
@@ -139,7 +139,7 @@ proof atomize_elim
   hence "Sup ?proj = x \<bullet> b"
     by (auto intro!: cSup_eq_maximum)
   hence "x \<bullet> b = Sup X \<bullet> b"
-    by (auto simp: eucl_Sup[where 'a='a] inner_setsum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> setsum.delta
+    by (auto simp: eucl_Sup[where 'a='a] inner_sum_left inner_Basis if_distrib \<open>b \<in> Basis\<close> sum.delta
       cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
 qed
@@ -167,7 +167,7 @@ end
 
 instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
   by standard
-    (auto intro!: add_mono simp add: euclidean_representation_setsum'  Ball_def inner_prod_def
+    (auto intro!: add_mono simp add: euclidean_representation_sum'  Ball_def inner_prod_def
       in_Basis_prod_iff inner_Basis_inf_left inner_Basis_sup_left inner_Basis_INF_left Inf_prod_def
       inner_Basis_SUP_left Sup_prod_def less_prod_def less_eq_prod_def eucl_le[where 'a='a]
       eucl_le[where 'a='b] abs_prod_def abs_inner)
@@ -241,7 +241,7 @@ no_notation
   eucl_less (infix "<e" 50)
 
 lemma One_nonneg: "0 \<le> (\<Sum>Basis::'a::ordered_euclidean_space)"
-  by (auto intro: setsum_nonneg)
+  by (auto intro: sum_nonneg)
 
 lemma
   fixes a b::"'a::ordered_euclidean_space"
@@ -264,7 +264,7 @@ definition "\<bar>x\<bar> = (\<chi> i. \<bar>x $ i\<bar>)"
 
 instance
   apply standard
-  unfolding euclidean_representation_setsum'
+  unfolding euclidean_representation_sum'
   apply (auto simp: less_eq_vec_def inf_vec_def sup_vec_def Inf_vec_def Sup_vec_def inner_axis
     Basis_vec_def inner_Basis_inf_left inner_Basis_sup_left inner_Basis_INF_left
     inner_Basis_SUP_left eucl_le[where 'a='a] less_le_not_le abs_vec_def abs_inner)

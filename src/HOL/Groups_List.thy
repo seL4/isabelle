@@ -73,15 +73,15 @@ proof -
   from sum_list_def show "monoid_list.F plus 0 = sum_list" by simp
 qed
 
-sublocale setsum: comm_monoid_list_set plus 0
+sublocale sum: comm_monoid_list_set plus 0
 rewrites
   "monoid_list.F plus 0 = sum_list"
-  and "comm_monoid_set.F plus 0 = setsum"
+  and "comm_monoid_set.F plus 0 = sum"
 proof -
   show "comm_monoid_list_set plus 0" ..
-  then interpret setsum: comm_monoid_list_set plus 0 .
+  then interpret sum: comm_monoid_list_set plus 0 .
   from sum_list_def show "monoid_list.F plus 0 = sum_list" by simp
-  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by (auto intro: sym)
+  from sum_def show "comm_monoid_set.F plus 0 = sum" by (auto intro: sym)
 qed
 
 end
@@ -134,13 +134,13 @@ lemma (in monoid_add) sum_list_map_filter:
   shows "sum_list (map f (filter P xs)) = sum_list (map f xs)"
   using assms by (induct xs) auto
 
-lemma (in comm_monoid_add) distinct_sum_list_conv_Setsum:
-  "distinct xs \<Longrightarrow> sum_list xs = Setsum (set xs)"
+lemma (in comm_monoid_add) distinct_sum_list_conv_Sum:
+  "distinct xs \<Longrightarrow> sum_list xs = Sum (set xs)"
   by (induct xs) simp_all
 
 lemma sum_list_upt[simp]:
   "m \<le> n \<Longrightarrow> sum_list [m..<n] = \<Sum> {m..<n}"
-by(simp add: distinct_sum_list_conv_Setsum)
+by(simp add: distinct_sum_list_conv_Sum)
 
 lemma sum_list_eq_0_nat_iff_nat [simp]:
   "sum_list ns = (0::nat) \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
@@ -200,25 +200,25 @@ lemma sum_list_mono:
   shows "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sum>x\<leftarrow>xs. f x) \<le> (\<Sum>x\<leftarrow>xs. g x)"
   by (induct xs) (simp, simp add: add_mono)
 
-lemma (in monoid_add) sum_list_distinct_conv_setsum_set:
-  "distinct xs \<Longrightarrow> sum_list (map f xs) = setsum f (set xs)"
+lemma (in monoid_add) sum_list_distinct_conv_sum_set:
+  "distinct xs \<Longrightarrow> sum_list (map f xs) = sum f (set xs)"
   by (induct xs) simp_all
 
-lemma (in monoid_add) interv_sum_list_conv_setsum_set_nat:
-  "sum_list (map f [m..<n]) = setsum f (set [m..<n])"
-  by (simp add: sum_list_distinct_conv_setsum_set)
+lemma (in monoid_add) interv_sum_list_conv_sum_set_nat:
+  "sum_list (map f [m..<n]) = sum f (set [m..<n])"
+  by (simp add: sum_list_distinct_conv_sum_set)
 
-lemma (in monoid_add) interv_sum_list_conv_setsum_set_int:
-  "sum_list (map f [k..l]) = setsum f (set [k..l])"
-  by (simp add: sum_list_distinct_conv_setsum_set)
+lemma (in monoid_add) interv_sum_list_conv_sum_set_int:
+  "sum_list (map f [k..l]) = sum f (set [k..l])"
+  by (simp add: sum_list_distinct_conv_sum_set)
 
-text \<open>General equivalence between @{const sum_list} and @{const setsum}\<close>
-lemma (in monoid_add) sum_list_setsum_nth:
+text \<open>General equivalence between @{const sum_list} and @{const sum}\<close>
+lemma (in monoid_add) sum_list_sum_nth:
   "sum_list xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
-  using interv_sum_list_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
+  using interv_sum_list_conv_sum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
 
-lemma sum_list_map_eq_setsum_count:
-  "sum_list (map f xs) = setsum (\<lambda>x. count_list xs x * f x) (set xs)"
+lemma sum_list_map_eq_sum_count:
+  "sum_list (map f xs) = sum (\<lambda>x. count_list xs x * f x) (set xs)"
 proof(induction xs)
   case (Cons x xs)
   show ?case (is "?l = ?r")
@@ -227,7 +227,7 @@ proof(induction xs)
     have "?l = f x + (\<Sum>x\<in>set xs. count_list xs x * f x)" by (simp add: Cons.IH)
     also have "set xs = insert x (set xs - {x})" using \<open>x \<in> set xs\<close>by blast
     also have "f x + (\<Sum>x\<in>insert x (set xs - {x}). count_list xs x * f x) = ?r"
-      by (simp add: setsum.insert_remove eq_commute)
+      by (simp add: sum.insert_remove eq_commute)
     finally show ?thesis .
   next
     assume "x \<notin> set xs"
@@ -236,17 +236,17 @@ proof(induction xs)
   qed
 qed simp
 
-lemma sum_list_map_eq_setsum_count2:
+lemma sum_list_map_eq_sum_count2:
 assumes "set xs \<subseteq> X" "finite X"
-shows "sum_list (map f xs) = setsum (\<lambda>x. count_list xs x * f x) X"
+shows "sum_list (map f xs) = sum (\<lambda>x. count_list xs x * f x) X"
 proof-
   let ?F = "\<lambda>x. count_list xs x * f x"
-  have "setsum ?F X = setsum ?F (set xs \<union> (X - set xs))"
+  have "sum ?F X = sum ?F (set xs \<union> (X - set xs))"
     using Un_absorb1[OF assms(1)] by(simp)
-  also have "\<dots> = setsum ?F (set xs)"
+  also have "\<dots> = sum ?F (set xs)"
     using assms(2)
-    by(simp add: setsum.union_disjoint[OF _ _ Diff_disjoint] del: Un_Diff_cancel)
-  finally show ?thesis by(simp add:sum_list_map_eq_setsum_count)
+    by(simp add: sum.union_disjoint[OF _ _ Diff_disjoint] del: Un_Diff_cancel)
+  finally show ?thesis by(simp add:sum_list_map_eq_sum_count)
 qed
 
 lemma sum_list_nonneg: 
@@ -298,15 +298,15 @@ qed
 
 subsection \<open>Tools setup\<close>
 
-lemmas setsum_code = setsum.set_conv_list
+lemmas sum_code = sum.set_conv_list
 
-lemma setsum_set_upto_conv_sum_list_int [code_unfold]:
-  "setsum f (set [i..j::int]) = sum_list (map f [i..j])"
-  by (simp add: interv_sum_list_conv_setsum_set_int)
+lemma sum_set_upto_conv_sum_list_int [code_unfold]:
+  "sum f (set [i..j::int]) = sum_list (map f [i..j])"
+  by (simp add: interv_sum_list_conv_sum_set_int)
 
-lemma setsum_set_upt_conv_sum_list_nat [code_unfold]:
-  "setsum f (set [m..<n]) = sum_list (map f [m..<n])"
-  by (simp add: interv_sum_list_conv_setsum_set_nat)
+lemma sum_set_upt_conv_sum_list_nat [code_unfold]:
+  "sum f (set [m..<n]) = sum_list (map f [m..<n])"
+  by (simp add: interv_sum_list_conv_sum_set_nat)
 
 lemma sum_list_transfer[transfer_rule]:
   includes lifting_syntax

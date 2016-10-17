@@ -172,10 +172,10 @@ lemma Example2_lemma2_aux2:
 lemma Example2_lemma2:
  "\<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat=0..<n. b i)=(\<Sum>i=0..<n. (b (j := Suc 0)) i)"
 apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
-apply(erule_tac  t="setsum (b(j := (Suc 0))) {0..<n}" in ssubst)
+apply(erule_tac  t="sum (b(j := (Suc 0))) {0..<n}" in ssubst)
 apply(frule_tac b=b in Example2_lemma2_aux)
-apply(erule_tac  t="setsum b {0..<n}" in ssubst)
-apply(subgoal_tac "Suc (setsum b {0..<j} + b j + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))=(setsum b {0..<j} + Suc (b j) + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))")
+apply(erule_tac  t="sum b {0..<n}" in ssubst)
+apply(subgoal_tac "Suc (sum b {0..<j} + b j + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))=(sum b {0..<j} + Suc (b j) + (\<Sum>i=0..<n - Suc j. b (Suc j + i)))")
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply(subgoal_tac "j\<le>j")

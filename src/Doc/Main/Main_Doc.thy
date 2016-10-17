@@ -408,7 +408,7 @@ Type @{typ int}
 @{const Finite_Set.finite} & @{term_type_only Finite_Set.finite "'a set\<Rightarrow>bool"}\\
 @{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set \<Rightarrow> nat"}\\
 @{const Finite_Set.fold} & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
-@{const Groups_Big.setsum} & @{term_type_only Groups_Big.setsum "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_add"}\\
+@{const Groups_Big.sum} & @{term_type_only Groups_Big.sum "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_add"}\\
 @{const Groups_Big.setprod} & @{term_type_only Groups_Big.setprod "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_mult"}\\
 \end{supertabular}
 
@@ -416,8 +416,8 @@ Type @{typ int}
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term "setsum (\<lambda>x. x) A"} & @{term[source]"setsum (\<lambda>x. x) A"} & (\<^verbatim>\<open>SUM\<close>)\\
-@{term "setsum (\<lambda>x. t) A"} & @{term[source]"setsum (\<lambda>x. t) A"}\\
+@{term "sum (\<lambda>x. x) A"} & @{term[source]"sum (\<lambda>x. x) A"} & (\<^verbatim>\<open>SUM\<close>)\\
+@{term "sum (\<lambda>x. t) A"} & @{term[source]"sum (\<lambda>x. t) A"}\\
 @{term[source] "\<Sum>x|P. t"} & @{term"\<Sum>x|P. t"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>} & (\<^verbatim>\<open>PROD\<close>)\\
 \end{supertabular}
@@ -463,10 +463,10 @@ Type @{typ int}
 @{term[source] "\<Union>i\<le>n. A"} & @{term[source] "\<Union>i \<in> {..n}. A"}\\
 @{term[source] "\<Union>i<n. A"} & @{term[source] "\<Union>i \<in> {..<n}. A"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Inter>\<close> instead of \<open>\<Union>\<close>}\\
-@{term "setsum (\<lambda>x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
-@{term "setsum (\<lambda>x. t) {a..<b}"} & @{term[source] "setsum (\<lambda>x. t) {a..<b}"}\\
-@{term "setsum (\<lambda>x. t) {..b}"} & @{term[source] "setsum (\<lambda>x. t) {..b}"}\\
-@{term "setsum (\<lambda>x. t) {..<b}"} & @{term[source] "setsum (\<lambda>x. t) {..<b}"}\\
+@{term "sum (\<lambda>x. t) {a..b}"} & @{term[source] "sum (\<lambda>x. t) {a..b}"}\\
+@{term "sum (\<lambda>x. t) {a..<b}"} & @{term[source] "sum (\<lambda>x. t) {a..<b}"}\\
+@{term "sum (\<lambda>x. t) {..b}"} & @{term[source] "sum (\<lambda>x. t) {..b}"}\\
+@{term "sum (\<lambda>x. t) {..<b}"} & @{term[source] "sum (\<lambda>x. t) {..<b}"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>}\\
 \end{supertabular}
 

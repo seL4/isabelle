@@ -313,7 +313,7 @@ lemma sum_list_sparsify[simp]:
     (is "(\<Sum>x\<leftarrow>_. ?f x) = _")
   unfolding sparsify_def scalar_product_def
   using assms sum_list_map_filter[where f="?f" and P="\<lambda> i. snd i \<noteq> (0::'a)"]
-  by (simp add: sum_list_setsum)
+  by (simp add: sum_list_sum)
 *)
 definition [simp]: "unzip w = (map fst w, map snd w)"
 

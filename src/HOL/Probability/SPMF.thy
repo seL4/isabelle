@@ -1967,10 +1967,10 @@ lemma measure_spmf_of_set:
   "measure (measure_spmf (spmf_of_set S)) A = card (S \<inter> A) / card S"
 by(auto simp add: measure_spmf_spmf_of_set measure_pmf_of_set)
 
-lemma nn_integral_spmf_of_set: "nn_integral (measure_spmf (spmf_of_set A)) f = setsum f A / card A"
+lemma nn_integral_spmf_of_set: "nn_integral (measure_spmf (spmf_of_set A)) f = sum f A / card A"
 by(cases "finite A")(auto simp add: spmf_of_set_def nn_integral_pmf_of_set card_gt_0_iff simp del: spmf_of_pmf_pmf_of_set)
 
-lemma integral_spmf_of_set: "integral\<^sup>L (measure_spmf (spmf_of_set A)) f = setsum f A / card A"
+lemma integral_spmf_of_set: "integral\<^sup>L (measure_spmf (spmf_of_set A)) f = sum f A / card A"
 by(clarsimp simp add: spmf_of_set_def integral_pmf_of_set card_gt_0_iff simp del: spmf_of_pmf_pmf_of_set)
 
 notepad begin \<comment> \<open>@{const pmf_of_set} is not fully parametric.\<close>

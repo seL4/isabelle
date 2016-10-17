@@ -203,9 +203,9 @@ proof-
         by (fastforce simp: le_st_def lookup_def)
       have "(\<Sum>y\<in>?Y'\<inter>?X. m(?g y)+1) < (\<Sum>y\<in>?Y'\<inter>?X. m(?f y)+1)"
         using `u:?X` `u:?Y'` `m(?g u) < m(?f u)`
-        by(fastforce intro!: setsum_strict_mono_ex1[OF _ 1])
+        by(fastforce intro!: sum_strict_mono_ex1[OF _ 1])
       also have "\<dots> \<le> (\<Sum>y\<in>?X'. m(?f y)+1)"
-        by(simp add: setsum_mono3[OF _ `?Y'\<inter>?X <= ?X'`])
+        by(simp add: sum_mono3[OF _ `?Y'\<inter>?X <= ?X'`])
       finally show ?thesis .
     next
       assume "u \<notin> ?Y'"
@@ -217,11 +217,11 @@ proof-
       qed
       also have "\<dots> < (\<Sum>y\<in>?Y'\<inter>?X-{u}. m(?g y)+1) + (\<Sum>y\<in>{u}. m(?f y)+1)" by simp
       also have "(\<Sum>y\<in>?Y'\<inter>?X-{u}. m(?g y)+1) \<le> (\<Sum>y\<in>?Y'\<inter>?X-{u}. m(?f y)+1)"
-        using 1 by(blast intro: setsum_mono)
+        using 1 by(blast intro: sum_mono)
       also have "\<dots> \<le> (\<Sum>y\<in>?X'-{u}. m(?f y)+1)"
-        by(simp add: setsum_mono3[OF _ `?Y'\<inter>?X-{u} <= ?X'-{u}`])
+        by(simp add: sum_mono3[OF _ `?Y'\<inter>?X-{u} <= ?X'-{u}`])
       also have "\<dots> + (\<Sum>y\<in>{u}. m(?f y)+1)= (\<Sum>y\<in>(?X'-{u}) \<union> {u}. m(?f y)+1)"
-        using `u:?X'` by(subst setsum.union_disjoint[symmetric]) auto
+        using `u:?X'` by(subst sum.union_disjoint[symmetric]) auto
       also have "\<dots> = (\<Sum>x\<in>?X'. m(?f x)+1)"
         using `u : ?X'` by(simp add:insert_absorb)
       finally show ?thesis by (blast intro: add_right_mono)

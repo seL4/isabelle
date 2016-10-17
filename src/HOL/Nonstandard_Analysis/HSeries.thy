@@ -14,11 +14,11 @@ begin
 definition
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal" where
   "sumhr =
-      (%(M,N,f). starfun2 (%m n. setsum f {m..<n}) M N)"
+      (%(M,N,f). starfun2 (%m n. sum f {m..<n}) M N)"
 
 definition
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80) where
-  "f NSsums s = (%n. setsum f {..<n}) \<longlonglongrightarrow>\<^sub>N\<^sub>S s"
+  "f NSsums s = (%n. sum f {..<n}) \<longlonglongrightarrow>\<^sub>N\<^sub>S s"
 
 definition
   NSsummable :: "(nat=>real) => bool" where
@@ -28,7 +28,7 @@ definition
   NSsuminf   :: "(nat=>real) => real" where
   "NSsuminf f = (THE s. f NSsums s)"
 
-lemma sumhr_app: "sumhr(M,N,f) = ( *f2* (\<lambda>m n. setsum f {m..<n})) M N"
+lemma sumhr_app: "sumhr(M,N,f) = ( *f2* (\<lambda>m n. sum f {m..<n})) M N"
 by (simp add: sumhr_def)
 
 text\<open>Base case in definition of @{term sumr}\<close>
@@ -55,21 +55,21 @@ unfolding sumhr_app by transfer simp
 
 lemma sumhr_add:
   "!!m n. sumhr (m,n,f) + sumhr(m,n,g) = sumhr(m,n,%i. f i + g i)"
-unfolding sumhr_app by transfer (rule setsum.distrib [symmetric])
+unfolding sumhr_app by transfer (rule sum.distrib [symmetric])
 
 lemma sumhr_mult:
   "!!m n. hypreal_of_real r * sumhr(m,n,f) = sumhr(m,n,%n. r * f n)"
-unfolding sumhr_app by transfer (rule setsum_distrib_left)
+unfolding sumhr_app by transfer (rule sum_distrib_left)
 
 lemma sumhr_split_add:
   "!!n p. n < p ==> sumhr(0,n,f) + sumhr(n,p,f) = sumhr(0,p,f)"
-unfolding sumhr_app by transfer (simp add: setsum_add_nat_ivl)
+unfolding sumhr_app by transfer (simp add: sum_add_nat_ivl)
 
 lemma sumhr_split_diff: "n<p ==> sumhr(0,p,f) - sumhr(0,n,f) = sumhr(n,p,f)"
 by (drule_tac f = f in sumhr_split_add [symmetric], simp)
 
 lemma sumhr_hrabs: "!!m n. \<bar>sumhr(m,n,f)\<bar> \<le> sumhr(m,n,%i. \<bar>f i\<bar>)"
-unfolding sumhr_app by transfer (rule setsum_abs)
+unfolding sumhr_app by transfer (rule sum_abs)
 
 text\<open>other general version also needed\<close>
 lemma sumhr_fun_hypnat_eq:
@@ -86,12 +86,12 @@ lemma sumhr_less_bounds_zero [simp]: "!!m n. n < m ==> sumhr(m,n,f) = 0"
 unfolding sumhr_app by transfer simp
 
 lemma sumhr_minus: "!!m n. sumhr(m, n, %i. - f i) = - sumhr(m, n, f)"
-unfolding sumhr_app by transfer (rule setsum_negf)
+unfolding sumhr_app by transfer (rule sum_negf)
 
 lemma sumhr_shift_bounds:
   "!!m n. sumhr(m+hypnat_of_nat k,n+hypnat_of_nat k,f) =
           sumhr(m,n,%i. f(i + k))"
-unfolding sumhr_app by transfer (rule setsum_shift_bounds_nat_ivl)
+unfolding sumhr_app by transfer (rule sum_shift_bounds_nat_ivl)
 
 
 subsection\<open>Nonstandard Sums\<close>
@@ -126,7 +126,7 @@ lemma sumhr_interval_const:
           (hypreal_of_nat (na - m) * hypreal_of_real r)"
 unfolding sumhr_app by transfer simp
 
-lemma starfunNat_sumr: "!!N. ( *f* (%n. setsum f {0..<n})) N = sumhr(0,N,f)"
+lemma starfunNat_sumr: "!!N. ( *f* (%n. sum f {0..<n})) N = sumhr(0,N,f)"
 unfolding sumhr_app by transfer (rule refl)
 
 lemma sumhr_hrabs_approx [simp]: "sumhr(0, M, f) \<approx> sumhr(0, N, f)
@@ -162,7 +162,7 @@ lemma NSsums_unique: "f NSsums s ==> (s = NSsuminf f)"
 by (simp add: suminf_NSsuminf_iff [symmetric] sums_NSsums_iff sums_unique)
 
 lemma NSseries_zero:
-  "\<forall>m. n \<le> Suc m --> f(m) = 0 ==> f NSsums (setsum f {..<n})"
+  "\<forall>m. n \<le> Suc m --> f(m) = 0 ==> f NSsums (sum f {..<n})"
 by (auto simp add: sums_NSsums_iff [symmetric] not_le[symmetric] intro!: sums_finite)
 
 lemma NSsummable_NSCauchy:

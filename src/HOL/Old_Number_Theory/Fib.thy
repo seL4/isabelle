@@ -138,7 +138,7 @@ lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"  \<comment> \<open>Law 6.11
   apply (simp_all add: gcd_non_0 gcd_commute gcd_fib_mod)
   done
 
-theorem fib_mult_eq_setsum:
+theorem fib_mult_eq_sum:
     "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   apply (induct n rule: fib.induct)
     apply (auto simp add: atMost_Suc fib_2)
