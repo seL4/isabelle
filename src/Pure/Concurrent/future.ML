@@ -123,10 +123,10 @@ in
 fun SYNCHRONIZED name = Multithreading.synchronized name lock;
 
 fun wait cond = (*requires SYNCHRONIZED*)
-  Multithreading.sync_wait NONE NONE cond lock;
+  Multithreading.sync_wait NONE cond lock;
 
 fun wait_timeout timeout cond = (*requires SYNCHRONIZED*)
-  Multithreading.sync_wait NONE (SOME (Time.now () + timeout)) cond lock;
+  Multithreading.sync_wait (SOME (Time.now () + timeout)) cond lock;
 
 fun signal cond = (*requires SYNCHRONIZED*)
   ConditionVar.signal cond;
