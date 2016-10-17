@@ -6,7 +6,7 @@ Ported by lcp but unfinished
 section \<open>Gauss' Lemma\<close>
 
 theory Gauss
-imports Residues
+imports Euler_Criterion
 begin
 
 lemma cong_prime_prod_zero_nat: 
@@ -373,25 +373,24 @@ proof -
     by (simp add: A_card_eq cong_sym_int)
 qed
 
-(*NOT WORKING. Old_Number_Theory/Euler.thy needs to be translated, but it's
-quite a mess and should better be completely redone.
-
 theorem gauss_lemma: "(Legendre a p) = (-1) ^ (card E)"
 proof -
-  from Euler_Criterion p_prime p_ge_2 have
+  from euler_criterion p_prime p_ge_2 have
       "[(Legendre a p) = a^(nat (((p) - 1) div 2))] (mod p)"
     by auto
+  moreover have "int ((p - 1) div 2) =(int p - 1) div 2" using p_eq2 by linarith
+    hence "[a ^ nat (int ((p - 1) div 2)) = a ^ nat ((int p - 1) div 2)] (mod int p)" by force
   moreover note pre_gauss_lemma
-  ultimately have "[(Legendre a p) = (-1) ^ (card E)] (mod p)"
-    by (rule cong_trans_int)
+  ultimately have "[(Legendre a p) = (-1) ^ (card E)] (mod p)" using cong_trans_int by blast
   moreover from p_a_relprime have "(Legendre a p) = 1 | (Legendre a p) = (-1)"
     by (auto simp add: Legendre_def)
   moreover have "(-1::int) ^ (card E) = 1 | (-1::int) ^ (card E) = -1"
-    by (rule neg_one_power)
+    using neg_one_even_power neg_one_odd_power by blast
+  moreover have "[1 \<noteq> - 1] (mod int p)"
+    using cong_altdef_int nonzero_mod_p[of 2] p_odd_int by fastforce
   ultimately show ?thesis
-    by (auto simp add: p_ge_2 one_not_neg_one_mod_m zcong_sym)
+    by (auto simp add: cong_sym_int)
 qed
-*)
 
 end
 

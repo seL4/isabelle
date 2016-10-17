@@ -10,7 +10,7 @@ begin
 
 subsection\<open>Lemmas about previously defined terms\<close>
 
-lemma prime: 
+lemma prime_nat_iff'':
   "prime (p::nat) \<longleftrightarrow> p \<noteq> 0 \<and> p \<noteq> 1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
   unfolding prime_nat_iff
 proof safe
@@ -78,7 +78,7 @@ proof-
   from pa have ap: "coprime a p"
     by (metis gcd.commute) 
   have px:"coprime x p"
-    by (metis gcd.commute p prime x0 xp)
+    by (metis gcd.commute p prime_nat_iff'' x0 xp)
   obtain y where y: "y < p" "[x * y = a] (mod p)" "\<forall>z. z < p \<and> [x * z = a] (mod p) \<longrightarrow> z = y"
     by (metis cong_solve_unique neq0_conv p prime_gt_0_nat px)
   {assume y0: "y = 0"

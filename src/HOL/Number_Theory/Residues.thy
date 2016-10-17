@@ -11,6 +11,14 @@ theory Residues
 imports Cong MiscAlgebra
 begin
 
+definition QuadRes :: "int \<Rightarrow> int \<Rightarrow> bool" where
+  "QuadRes p a = (\<exists>y. ([y^2 = a] (mod p)))"
+
+definition Legendre :: "int \<Rightarrow> int \<Rightarrow> int" where
+  "Legendre a p = (if ([a = 0] (mod p)) then 0
+    else if QuadRes p a then 1
+    else -1)"
+
 subsection \<open>A locale for residue rings\<close>
 
 definition residue_ring :: "int \<Rightarrow> int ring"

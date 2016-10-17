@@ -218,27 +218,6 @@ session "HOL-Number_Theory" (timing) in Number_Theory = HOL +
   document_files
     "root.tex"
 
-session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
-  description {*
-    Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
-    Theorem, Wilson's Theorem, Quadratic Reciprocity.
-  *}
-  theories [document = false]
-    "~~/src/HOL/Library/Infinite_Set"
-    "~~/src/HOL/Library/Permutation"
-  theories
-    Fib
-    Factorization
-    Chinese
-    WilsonRuss
-    WilsonBij
-    Quadratic_Reciprocity
-    Primes
-    Pocklington
-  document_files
-    "root.bib"
-    "root.tex"
-
 session "HOL-Hoare" in Hoare = HOL +
   description {*
     Verification of imperative programs (verification conditions are generated
