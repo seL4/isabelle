@@ -510,15 +510,15 @@ proof -
           (of_nat n) powr z / (z * (\<Prod>k=1..n. exp (Ln (z / of_nat k + 1))))"
     unfolding ln_Gamma_series_def powr_def by (simp add: exp_diff exp_sum)
   also from assms have "(\<Prod>k=1..n. exp (Ln (z / of_nat k + 1))) = (\<Prod>k=1..n. z / of_nat k + 1)"
-    by (intro setprod.cong[OF refl], subst exp_Ln) (auto simp: field_simps plus_of_nat_eq_0_imp)
+    by (intro prod.cong[OF refl], subst exp_Ln) (auto simp: field_simps plus_of_nat_eq_0_imp)
   also have "... = (\<Prod>k=1..n. z + k) / fact n"
-    by (simp add: fact_setprod)
-    (subst setprod_dividef [symmetric], simp_all add: field_simps)
+    by (simp add: fact_prod)
+    (subst prod_dividef [symmetric], simp_all add: field_simps)
   also from m have "z * ... = (\<Prod>k=0..n. z + k) / fact n"
-    by (simp add: setprod.atLeast0_atMost_Suc_shift setprod.atLeast_Suc_atMost_Suc_shift)
+    by (simp add: prod.atLeast0_atMost_Suc_shift prod.atLeast_Suc_atMost_Suc_shift)
   also have "(\<Prod>k=0..n. z + k) = pochhammer z (Suc n)"
-    unfolding pochhammer_setprod
-    by (simp add: setprod.atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
+    unfolding pochhammer_prod
+    by (simp add: prod.atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
   also have "of_nat n powr z / (pochhammer z (Suc n) / fact n) = Gamma_series z n"
     unfolding Gamma_series_def using assms by (simp add: divide_simps powr_def Ln_of_nat)
   finally show ?thesis .
@@ -995,10 +995,10 @@ class Gamma = real_normed_field + complete_space +
                         norm (y - z)) (nhds 0) (at z)"
   assumes differentiable_rGamma_aux2:
     "let z = - of_nat n
-     in  filterlim (\<lambda>y. (rGamma y - rGamma z - (-1)^n * (setprod of_nat {1..n}) * (y - z)) /\<^sub>R
+     in  filterlim (\<lambda>y. (rGamma y - rGamma z - (-1)^n * (prod of_nat {1..n}) * (y - z)) /\<^sub>R
                         norm (y - z)) (nhds 0) (at z)"
   assumes rGamma_series_aux: "(\<And>n. z \<noteq> - of_nat n) \<Longrightarrow>
-             let fact' = (\<lambda>n. setprod of_nat {1..n});
+             let fact' = (\<lambda>n. prod of_nat {1..n});
                  exp = (\<lambda>x. THE e. (\<lambda>n. \<Sum>k<n. x^k /\<^sub>R fact k) \<longlonglongrightarrow> e);
                  pochhammer' = (\<lambda>a n. (\<Prod>n = 0..n. a + of_nat n))
              in  filterlim (\<lambda>n. pochhammer' z n / (fact' n * exp (z * (ln (of_nat n) *\<^sub>R 1))))
@@ -1033,7 +1033,7 @@ proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
   case False
   hence "z \<noteq> - of_nat n" for n by auto
   from rGamma_series_aux[OF this] show ?thesis
-    by (simp add: rGamma_series_def[abs_def] fact_setprod pochhammer_Suc_setprod
+    by (simp add: rGamma_series_def[abs_def] fact_prod pochhammer_Suc_prod
                   exp_def of_real_def[symmetric] suminf_def sums_def[abs_def] atLeast0AtMost)
 qed (insert rGamma_eq_zero_iff[of z], simp_all add: rGamma_series_nonpos_Ints_LIMSEQ)
 
@@ -1183,7 +1183,7 @@ lemma has_field_derivative_rGamma_nonpos_int:
   apply (rule has_field_derivative_at_within)
   using differentiable_rGamma_aux2[of n]
   unfolding Let_def has_field_derivative_def has_derivative_def netlimit_at
-  by (simp only: bounded_linear_mult_right mult_ac of_real_def [symmetric] fact_setprod) simp
+  by (simp only: bounded_linear_mult_right mult_ac of_real_def [symmetric] fact_prod) simp
 
 lemma has_field_derivative_rGamma [derivative_intros]:
   "(rGamma has_field_derivative (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then (-1)^(nat \<lfloor>norm z\<rfloor>) * fact (nat \<lfloor>norm z\<rfloor>)
@@ -1387,18 +1387,18 @@ next
 next
   fix n :: nat
   from has_field_derivative_rGamma_complex_nonpos_Int[of n]
-  show "let z = - of_nat n in (\<lambda>y. (rGamma y - rGamma z - (- 1) ^ n * setprod of_nat {1..n} *
+  show "let z = - of_nat n in (\<lambda>y. (rGamma y - rGamma z - (- 1) ^ n * prod of_nat {1..n} *
                   (y - z)) /\<^sub>R cmod (y - z)) \<midarrow>z\<rightarrow> 0"
-    by (simp add: has_field_derivative_def has_derivative_def fact_setprod netlimit_at Let_def)
+    by (simp add: has_field_derivative_def has_derivative_def fact_prod netlimit_at Let_def)
 next
   fix z :: complex
   from rGamma_series_complex_converges[of z] have "rGamma_series z \<longlonglongrightarrow> rGamma z"
     by (simp add: convergent_LIMSEQ_iff rGamma_complex_def)
-  thus "let fact' = \<lambda>n. setprod of_nat {1..n};
+  thus "let fact' = \<lambda>n. prod of_nat {1..n};
             exp = \<lambda>x. THE e. (\<lambda>n. \<Sum>k<n. x ^ k /\<^sub>R fact k) \<longlonglongrightarrow> e;
             pochhammer' = \<lambda>a n. \<Prod>n = 0..n. a + of_nat n
         in  (\<lambda>n. pochhammer' z n / (fact' n * exp (z * ln (real_of_nat n) *\<^sub>R 1))) \<longlonglongrightarrow> rGamma z"
-    by (simp add: fact_setprod pochhammer_Suc_setprod rGamma_series_def [abs_def] exp_def
+    by (simp add: fact_prod pochhammer_Suc_prod rGamma_series_def [abs_def] exp_def
                   of_real_def [symmetric] suminf_def sums_def [abs_def] atLeast0AtMost)
 qed
 
@@ -1517,9 +1517,9 @@ next
   have "(rGamma has_field_derivative (-1)^n * fact n) (at (- of_nat n :: real))"
     by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex
                   simp: Polygamma_of_real rGamma_real_def [abs_def])
-  thus "let x = - of_nat n in (\<lambda>y. (rGamma y - rGamma x - (- 1) ^ n * setprod of_nat {1..n} *
+  thus "let x = - of_nat n in (\<lambda>y. (rGamma y - rGamma x - (- 1) ^ n * prod of_nat {1..n} *
                   (y - x)) /\<^sub>R norm (y - x)) \<midarrow>x::real\<rightarrow> 0"
-    by (simp add: has_field_derivative_def has_derivative_def fact_setprod netlimit_at Let_def)
+    by (simp add: has_field_derivative_def has_derivative_def fact_prod netlimit_at Let_def)
 next
   fix x :: real
   have "rGamma_series x \<longlonglongrightarrow> rGamma x"
@@ -1527,11 +1527,11 @@ next
     show "(\<lambda>n. Re (rGamma_series (of_real x) n)) \<longlonglongrightarrow> rGamma x" unfolding rGamma_real_def
       by (intro tendsto_intros)
   qed (insert rGamma_series_real, simp add: eq_commute)
-  thus "let fact' = \<lambda>n. setprod of_nat {1..n};
+  thus "let fact' = \<lambda>n. prod of_nat {1..n};
             exp = \<lambda>x. THE e. (\<lambda>n. \<Sum>k<n. x ^ k /\<^sub>R fact k) \<longlonglongrightarrow> e;
             pochhammer' = \<lambda>a n. \<Prod>n = 0..n. a + of_nat n
         in  (\<lambda>n. pochhammer' x n / (fact' n * exp (x * ln (real_of_nat n) *\<^sub>R 1))) \<longlonglongrightarrow> rGamma x"
-    by (simp add: fact_setprod pochhammer_Suc_setprod rGamma_series_def [abs_def] exp_def
+    by (simp add: fact_prod pochhammer_Suc_prod rGamma_series_def [abs_def] exp_def
                   of_real_def [symmetric] suminf_def sums_def [abs_def] atLeast0AtMost)
 qed
 
@@ -2575,11 +2575,11 @@ proof -
           exp (z * of_real (\<Sum>k = 1..n. ln (1 + 1 / real_of_nat k)))"
     by (subst exp_sum [symmetric]) (simp_all add: sum_distrib_left)
   also have "(\<Sum>k=1..n. ln (1 + 1 / of_nat k) :: real) = ln (\<Prod>k=1..n. 1 + 1 / real_of_nat k)"
-    by (subst ln_setprod [symmetric]) (auto intro!: add_pos_nonneg)
+    by (subst ln_prod [symmetric]) (auto intro!: add_pos_nonneg)
   also have "(\<Prod>k=1..n. 1 + 1 / of_nat k :: real) = (\<Prod>k=1..n. (of_nat k + 1) / of_nat k)"
-    by (intro setprod.cong) (simp_all add: divide_simps)
+    by (intro prod.cong) (simp_all add: divide_simps)
   also have "(\<Prod>k=1..n. (of_nat k + 1) / of_nat k :: real) = of_nat n + 1"
-    by (induction n) (simp_all add: setprod_nat_ivl_Suc' divide_simps)
+    by (induction n) (simp_all add: prod_nat_ivl_Suc' divide_simps)
   finally show ?thesis ..
 qed
 
@@ -2606,11 +2606,11 @@ proof (rule Gamma_seriesI, rule Lim_transform_eventually)
     from n z' have "Gamma_series_euler' z n =
       exp (z * of_real (ln (of_nat n + 1))) / (z * (\<Prod>k=1..n. (1 + z / of_nat k)))"
       by (subst Gamma_euler'_aux1)
-         (simp_all add: Gamma_series_euler'_def setprod.distrib
-                        setprod_inversef[symmetric] divide_inverse)
+         (simp_all add: Gamma_series_euler'_def prod.distrib
+                        prod_inversef[symmetric] divide_inverse)
     also have "(\<Prod>k=1..n. (1 + z / of_nat k)) = pochhammer (z + 1) n / fact n"
-      by (cases n) (simp_all add: pochhammer_setprod fact_setprod atLeastLessThanSuc_atLeastAtMost
-        setprod_dividef [symmetric] field_simps setprod.atLeast_Suc_atMost_Suc_shift)
+      by (cases n) (simp_all add: pochhammer_prod fact_prod atLeastLessThanSuc_atLeastAtMost
+        prod_dividef [symmetric] field_simps prod.atLeast_Suc_atMost_Suc_shift)
     also have "z * \<dots> = pochhammer z (Suc n) / fact n" by (simp add: pochhammer_rec)
     finally show "?r n = Gamma_series_euler' z n / Gamma_series z n" by simp
   qed
@@ -2681,7 +2681,7 @@ next
   case False
   have "rGamma_series_weierstrass z = (\<lambda>n. inverse (Gamma_series_weierstrass z n))"
     by (simp add: rGamma_series_weierstrass_def[abs_def] Gamma_series_weierstrass_def
-                  exp_minus divide_inverse setprod_inversef[symmetric] mult_ac)
+                  exp_minus divide_inverse prod_inversef[symmetric] mult_ac)
   also from False have "\<dots> \<longlonglongrightarrow> inverse (Gamma z)"
     by (intro tendsto_intros Gamma_weierstrass_complex) (simp add: Gamma_eq_zero_iff)
   finally show ?thesis by (simp add: Gamma_def)
@@ -2865,7 +2865,7 @@ proof -
       also have "?A = (\<lambda>t. ?f t * ?g' t)" by (intro ext) (simp_all add: field_simps)
       also have "?B = - (of_nat (Suc n) * fact n / pochhammer z (n+2))"
         by (simp add: divide_simps pochhammer_rec
-              setprod_shift_bounds_cl_Suc_ivl del: of_nat_Suc)
+              prod_shift_bounds_cl_Suc_ivl del: of_nat_Suc)
       finally show "((\<lambda>t. ?f t * ?g' t) has_integral (?f 1 * ?g 1 - ?f 0 * ?g 0 - ?I)) {0..1}"
         by simp
     qed (simp_all add: bounded_bilinear_mult)
@@ -3024,10 +3024,10 @@ proof -
     have "(- of_real pi * inverse z) * (?f z n * ?f (-z) n) =
               of_real pi * z * (\<Prod>k=1..n. (of_nat k - z) * (of_nat k + z) / of_nat k ^ 2)"
       by (simp add: rGamma_series_weierstrass_def mult_ac exp_minus
-                    divide_simps setprod.distrib[symmetric] power2_eq_square)
+                    divide_simps prod.distrib[symmetric] power2_eq_square)
     also have "(\<Prod>k=1..n. (of_nat k - z) * (of_nat k + z) / of_nat k ^ 2) =
                  (\<Prod>k=1..n. 1 - z^2 / of_nat k ^ 2)"
-      by (intro setprod.cong) (simp_all add: power2_eq_square field_simps)
+      by (intro prod.cong) (simp_all add: power2_eq_square field_simps)
     finally show "(- of_real pi * inverse z) * (?f z n * ?f (-z) n) = of_real pi * z * \<dots>"
       by (simp add: divide_simps)
   qed
@@ -3058,10 +3058,10 @@ proof -
   from tendsto_inverse[OF tendsto_mult[OF 
          sin_product_formula_real[of "1/2"] tendsto_const[of "2/pi"]]]
     have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) \<longlonglongrightarrow> pi/2" 
-    by (simp add: setprod_inversef [symmetric])
+    by (simp add: prod_inversef [symmetric])
   also have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) =
                (\<lambda>n. (\<Prod>k=1..n. (4*real k^2)/(4*real k^2 - 1)))"
-    by (intro ext setprod.cong refl) (simp add: divide_simps)
+    by (intro ext prod.cong refl) (simp add: divide_simps)
   finally show ?thesis .
 qed
 
@@ -3086,7 +3086,7 @@ proof -
     have "(\<lambda>n. P x n - P x (Suc n)) sums (P x 0 - sin (pi * x) / (pi * x))"
       unfolding P_def using x by (intro telescope_sums' sin_product_formula_real')
     also have "(\<lambda>n. P x n - P x (Suc n)) = (\<lambda>n. (x^2 / of_nat (Suc n)^2) * P x n)"
-      unfolding P_def by (simp add: setprod_nat_ivl_Suc' algebra_simps)
+      unfolding P_def by (simp add: prod_nat_ivl_Suc' algebra_simps)
     also have "P x 0 = 1" by (simp add: P_def)
     finally have "(\<lambda>n. x\<^sup>2 / (of_nat (Suc n))\<^sup>2 * P x n) sums (1 - sin (pi * x) / (pi * x))" .
     from sums_divide[OF this, of "x^2"] x show ?thesis unfolding g_def by simp
@@ -3104,9 +3104,9 @@ proof -
         finally have "(1 - x^2 / of_nat k^2) \<in> {0..1}" using k
           by (simp_all add: field_simps del: of_nat_Suc)
       }
-      hence "(\<Prod>k=1..n. abs (1 - x^2 / of_nat k^2)) \<le> (\<Prod>k=1..n. 1)" by (intro setprod_mono) simp
+      hence "(\<Prod>k=1..n. abs (1 - x^2 / of_nat k^2)) \<le> (\<Prod>k=1..n. 1)" by (intro prod_mono) simp
       thus "norm (P x n / (of_nat (Suc n)^2)) \<le> 1 / of_nat (Suc n)^2"
-        unfolding P_def by (simp add: field_simps abs_setprod del: of_nat_Suc)
+        unfolding P_def by (simp add: field_simps abs_prod del: of_nat_Suc)
     qed (subst summable_Suc_iff, insert inverse_power_summable[of 2], simp add: inverse_eq_divide)
   qed (auto simp: P_def intro!: continuous_intros)
   hence "isCont f 0" by (subst (asm) continuous_on_eq_continuous_at) simp_all

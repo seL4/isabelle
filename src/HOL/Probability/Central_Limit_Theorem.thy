@@ -64,7 +64,7 @@ proof -
       apply auto
       done
     also have "\<dots> = (\<psi> n t)^n"
-      by (auto simp add: * setprod_constant)
+      by (auto simp add: * prod_constant)
     finally have \<phi>_eq: "\<phi> n t =(\<psi> n t)^n" .
 
     have "norm (\<psi> n t - (1 - ?t^2 * \<sigma>\<^sup>2 / 2)) \<le> ?t\<^sup>2 / 6 * (LINT x|\<mu>. min (6 * x\<^sup>2) (\<bar>?t\<bar> * \<bar>x\<bar> ^ 3))"

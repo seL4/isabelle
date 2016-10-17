@@ -193,7 +193,7 @@ lemma cong_sum_int [rule_format]:
   apply (auto intro: cong_add_int)
   done
 
-lemma cong_setprod_nat [rule_format]:
+lemma cong_prod_nat [rule_format]:
     "(\<forall>x\<in>A. [((f x)::nat) = g x] (mod m)) \<longrightarrow>
       [(\<Prod>x\<in>A. f x) = (\<Prod>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
@@ -201,7 +201,7 @@ lemma cong_setprod_nat [rule_format]:
   apply (auto intro: cong_mult_nat)
   done
 
-lemma cong_setprod_int [rule_format]:
+lemma cong_prod_int [rule_format]:
     "(\<forall>x\<in>A. [((f x)::int) = g x] (mod m)) \<longrightarrow>
       [(\<Prod>x\<in>A. f x) = (\<Prod>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
@@ -562,22 +562,22 @@ lemma cong_cong_lcm_int: "[(x::int) = y] (mod a) \<Longrightarrow>
     [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   by (auto simp add: cong_altdef_int lcm_least) [1]
 
-lemma cong_cong_setprod_coprime_nat [rule_format]: "finite A \<Longrightarrow>
+lemma cong_cong_prod_coprime_nat [rule_format]: "finite A \<Longrightarrow>
     (\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
     (\<forall>i\<in>A. [(x::nat) = y] (mod m i)) \<longrightarrow>
       [x = y] (mod (\<Prod>i\<in>A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (metis One_nat_def coprime_cong_mult_nat gcd.commute setprod_coprime)
+  apply (metis One_nat_def coprime_cong_mult_nat gcd.commute prod_coprime)
   done
 
-lemma cong_cong_setprod_coprime_int [rule_format]: "finite A \<Longrightarrow>
+lemma cong_cong_prod_coprime_int [rule_format]: "finite A \<Longrightarrow>
     (\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
     (\<forall>i\<in>A. [(x::int) = y] (mod m i)) \<longrightarrow>
       [x = y] (mod (\<Prod>i\<in>A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (metis coprime_cong_mult_int gcd.commute setprod_coprime)
+  apply (metis coprime_cong_mult_int gcd.commute prod_coprime)
   done
 
 lemma binary_chinese_remainder_aux_nat:
@@ -760,7 +760,7 @@ proof (rule finite_set_choice, rule fin, rule ballI)
   fix i
   assume "i : A"
   with cop have "coprime (\<Prod>j \<in> A - {i}. m j) (m i)"
-    by (intro setprod_coprime, auto)
+    by (intro prod_coprime, auto)
   then have "EX x. [(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
     by (elim cong_solve_coprime_nat)
   then obtain x where "[(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
@@ -769,7 +769,7 @@ proof (rule finite_set_choice, rule fin, rule ballI)
     (mod (\<Prod>j \<in> A - {i}. m j))"
     by (subst mult.commute, rule cong_mult_self_nat)
   ultimately show "\<exists>a. [a = 1] (mod m i) \<and> [a = 0]
-      (mod setprod m (A - {i}))"
+      (mod prod m (A - {i}))"
     by blast
 qed
 
@@ -824,7 +824,7 @@ lemma coprime_cong_prod_nat [rule_format]: "finite A \<Longrightarrow>
          [x = y] (mod (\<Prod>i\<in>A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (metis One_nat_def coprime_cong_mult_nat gcd.commute setprod_coprime)
+  apply (metis One_nat_def coprime_cong_mult_nat gcd.commute prod_coprime)
   done
 
 lemma chinese_remainder_unique_nat:

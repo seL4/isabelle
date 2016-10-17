@@ -1294,12 +1294,12 @@ lemma prime_elem_multiplicity_power_distrib:
   using assms prime_elem_multiplicity_prod_mset_distrib [of p "replicate_mset n x"]
   by simp
 
-lemma prime_elem_multiplicity_setprod_distrib:
+lemma prime_elem_multiplicity_prod_distrib:
   assumes "prime_elem p" "0 \<notin> f ` A" "finite A"
-  shows   "multiplicity p (setprod f A) = (\<Sum>x\<in>A. multiplicity p (f x))"
+  shows   "multiplicity p (prod f A) = (\<Sum>x\<in>A. multiplicity p (f x))"
 proof -
-  have "multiplicity p (setprod f A) = (\<Sum>x\<in>#mset_set A. multiplicity p (f x))"
-    using assms by (subst setprod_unfold_prod_mset)
+  have "multiplicity p (prod f A) = (\<Sum>x\<in>#mset_set A. multiplicity p (f x))"
+    using assms by (subst prod_unfold_prod_mset)
                    (simp_all add: prime_elem_multiplicity_prod_mset_distrib sum_unfold_sum_mset 
                       multiset.map_comp o_def)
   also from \<open>finite A\<close> have "\<dots> = (\<Sum>x\<in>A. multiplicity p (f x))"
@@ -1352,7 +1352,7 @@ lemma prime_prime_factors:
   "prime p \<Longrightarrow> prime_factors p = {p}"
   by (drule prime_factorization_prime) simp
 
-lemma setprod_prime_factors:
+lemma prod_prime_factors:
   assumes "x \<noteq> 0"
   shows   "(\<Prod>p \<in> prime_factors x. p ^ multiplicity p x) = normalize x"
 proof -
@@ -1361,7 +1361,7 @@ proof -
   also have "\<dots> = (\<Prod>p \<in> prime_factors x. p ^ count (prime_factorization x) p)"
     by (subst prod_mset_multiplicity) simp_all
   also have "\<dots> = (\<Prod>p \<in> prime_factors x. p ^ multiplicity p x)"
-    by (intro setprod.cong) 
+    by (intro prod.cong) 
       (simp_all add: assms count_prime_factorization_prime in_prime_factors_imp_prime)
   finally show ?thesis ..
 qed
@@ -1751,12 +1751,12 @@ proof -
   have "gcd x y = gcd_factorial x y" by (rule gcd_eq_gcd_factorial)
   also have "\<dots> = ?rhs1"
     by (auto simp: gcd_factorial_def assms prod_mset_multiplicity
-          count_prime_factorization_prime dest: in_prime_factors_imp_prime intro!: setprod.cong)
+          count_prime_factorization_prime dest: in_prime_factors_imp_prime intro!: prod.cong)
   finally show "gcd x y = ?rhs1" .
   have "lcm x y = lcm_factorial x y" by (rule lcm_eq_lcm_factorial)
   also have "\<dots> = ?rhs2"
     by (auto simp: lcm_factorial_def assms prod_mset_multiplicity
-          count_prime_factorization_prime dest: in_prime_factors_imp_prime intro!: setprod.cong)
+          count_prime_factorization_prime dest: in_prime_factors_imp_prime intro!: prod.cong)
   finally show "lcm x y = ?rhs2" .
 qed
 

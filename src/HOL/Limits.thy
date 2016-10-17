@@ -833,20 +833,20 @@ lemma continuous_on_power [continuous_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. (f x)^n)"
   unfolding continuous_on_def by (auto intro: tendsto_power)
 
-lemma tendsto_setprod [tendsto_intros]:
+lemma tendsto_prod [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
   shows "(\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> L i) F) \<Longrightarrow> ((\<lambda>x. \<Prod>i\<in>S. f i x) \<longlongrightarrow> (\<Prod>i\<in>S. L i)) F"
   by (induct S rule: infinite_finite_induct) (simp_all add: tendsto_mult)
 
-lemma continuous_setprod [continuous_intros]:
+lemma continuous_prod [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
   shows "(\<And>i. i \<in> S \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Prod>i\<in>S. f i x)"
-  unfolding continuous_def by (rule tendsto_setprod)
+  unfolding continuous_def by (rule tendsto_prod)
 
-lemma continuous_on_setprod [continuous_intros]:
+lemma continuous_on_prod [continuous_intros]:
   fixes f :: "'a \<Rightarrow> _ \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
   shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Prod>i\<in>S. f i x)"
-  unfolding continuous_on_def by (auto intro: tendsto_setprod)
+  unfolding continuous_on_def by (auto intro: tendsto_prod)
 
 lemma tendsto_of_real_iff:
   "((\<lambda>x. of_real (f x) :: 'a::real_normed_div_algebra) \<longlongrightarrow> of_real c) F \<longleftrightarrow> (f \<longlongrightarrow> c) F"

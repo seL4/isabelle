@@ -209,8 +209,8 @@ lemma all_A_relprime: assumes "x \<in> A" shows "gcd x p = 1"
   using p_prime A_ncong_p [OF assms]
   by (auto simp: cong_altdef_int gcd.commute[of _ "int p"] intro!: prime_imp_coprime)
 
-lemma A_prod_relprime: "gcd (setprod id A) p = 1"
-  by (metis id_def all_A_relprime setprod_coprime)
+lemma A_prod_relprime: "gcd (prod id A) p = 1"
+  by (metis id_def all_A_relprime prod_coprime)
 
 
 subsection \<open>Relationships Between Gauss Sets\<close>
@@ -242,15 +242,15 @@ lemma D_E_disj: "D \<inter> E = {}"
 lemma C_card_eq_D_plus_E: "card C = card D + card E"
   by (auto simp add: C_eq card_Un_disjoint D_E_disj finite_D finite_E)
 
-lemma C_prod_eq_D_times_E: "setprod id E * setprod id D = setprod id C"
-  by (metis C_eq D_E_disj finite_D finite_E inf_commute setprod.union_disjoint sup_commute)
+lemma C_prod_eq_D_times_E: "prod id E * prod id D = prod id C"
+  by (metis C_eq D_E_disj finite_D finite_E inf_commute prod.union_disjoint sup_commute)
 
-lemma C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)"
+lemma C_B_zcong_prod: "[prod id C = prod id B] (mod p)"
   apply (auto simp add: C_def)
   apply (insert finite_B SR_B_inj)
-  apply (drule setprod.reindex [of "\<lambda>x. x mod int p" B id])
+  apply (drule prod.reindex [of "\<lambda>x. x mod int p" B id])
   apply auto
-  apply (rule cong_setprod_int)
+  apply (rule cong_prod_int)
   apply (auto simp add: cong_int_def)
   done
 
@@ -295,25 +295,25 @@ lemma F_Un_D_eq_A: "F \<union> D = A"
   using finite_A F_Un_D_subset A_card_eq F_Un_D_card 
   by (auto simp add: card_seteq)
 
-lemma prod_D_F_eq_prod_A: "(setprod id D) * (setprod id F) = setprod id A"
-  by (metis F_D_disj F_Un_D_eq_A Int_commute Un_commute finite_D finite_F setprod.union_disjoint)
+lemma prod_D_F_eq_prod_A: "(prod id D) * (prod id F) = prod id A"
+  by (metis F_D_disj F_Un_D_eq_A Int_commute Un_commute finite_D finite_F prod.union_disjoint)
 
-lemma prod_F_zcong: "[setprod id F = ((-1) ^ (card E)) * (setprod id E)] (mod p)"
+lemma prod_F_zcong: "[prod id F = ((-1) ^ (card E)) * (prod id E)] (mod p)"
 proof -
-  have FE: "setprod id F = setprod (op - p) E"
+  have FE: "prod id F = prod (op - p) E"
     apply (auto simp add: F_def)
     apply (insert finite_E inj_on_pminusx_E)
-    apply (drule setprod.reindex, auto)
+    apply (drule prod.reindex, auto)
     done
   then have "\<forall>x \<in> E. [(p-x) mod p = - x](mod p)"
     by (metis cong_int_def minus_mod_self1 mod_mod_trivial)
-  then have "[setprod ((\<lambda>x. x mod p) o (op - p)) E = setprod (uminus) E](mod p)"
+  then have "[prod ((\<lambda>x. x mod p) o (op - p)) E = prod (uminus) E](mod p)"
     using finite_E p_ge_2
-          cong_setprod_int [of E "(\<lambda>x. x mod p) o (op - p)" uminus p]
+          cong_prod_int [of E "(\<lambda>x. x mod p) o (op - p)" uminus p]
     by auto
-  then have two: "[setprod id F = setprod (uminus) E](mod p)"
-    by (metis FE cong_cong_mod_int cong_refl_int cong_setprod_int minus_mod_self1)
-  have "setprod uminus E = (-1) ^ (card E) * (setprod id E)"
+  then have two: "[prod id F = prod (uminus) E](mod p)"
+    by (metis FE cong_cong_mod_int cong_refl_int cong_prod_int minus_mod_self1)
+  have "prod uminus E = (-1) ^ (card E) * (prod id E)"
     using finite_E by (induct set: finite) auto
   with two show ?thesis
     by simp
@@ -322,50 +322,50 @@ qed
 
 subsection \<open>Gauss' Lemma\<close>
 
-lemma aux: "setprod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = setprod id A * a ^ card A"
+lemma aux: "prod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = prod id A * a ^ card A"
 by (metis (no_types) minus_minus mult.commute mult.left_commute power_minus power_one)
 
 theorem pre_gauss_lemma:
   "[a ^ nat((int p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
-  have "[setprod id A = setprod id F * setprod id D](mod p)"
-    by (auto simp add: prod_D_F_eq_prod_A mult.commute cong del: setprod.strong_cong)
-  then have "[setprod id A = ((-1)^(card E) * setprod id E) * setprod id D] (mod p)"
+  have "[prod id A = prod id F * prod id D](mod p)"
+    by (auto simp add: prod_D_F_eq_prod_A mult.commute cong del: prod.strong_cong)
+  then have "[prod id A = ((-1)^(card E) * prod id E) * prod id D] (mod p)"
     apply (rule cong_trans_int)
     apply (metis cong_scalar_int prod_F_zcong)
     done
-  then have "[setprod id A = ((-1)^(card E) * setprod id C)] (mod p)"
+  then have "[prod id A = ((-1)^(card E) * prod id C)] (mod p)"
     by (metis C_prod_eq_D_times_E mult.commute mult.left_commute)
-  then have "[setprod id A = ((-1)^(card E) * setprod id B)] (mod p)"
+  then have "[prod id A = ((-1)^(card E) * prod id B)] (mod p)"
     by (rule cong_trans_int) (metis C_B_zcong_prod cong_scalar2_int)
-  then have "[setprod id A = ((-1)^(card E) *
-    (setprod id ((\<lambda>x. x * a) ` A)))] (mod p)"
+  then have "[prod id A = ((-1)^(card E) *
+    (prod id ((\<lambda>x. x * a) ` A)))] (mod p)"
     by (simp add: B_def)
-  then have "[setprod id A = ((-1)^(card E) * (setprod (\<lambda>x. x * a) A))]
+  then have "[prod id A = ((-1)^(card E) * (prod (\<lambda>x. x * a) A))]
     (mod p)"
-    by (simp add: inj_on_xa_A setprod.reindex)
-  moreover have "setprod (\<lambda>x. x * a) A =
-    setprod (\<lambda>x. a) A * setprod id A"
+    by (simp add: inj_on_xa_A prod.reindex)
+  moreover have "prod (\<lambda>x. x * a) A =
+    prod (\<lambda>x. a) A * prod id A"
     using finite_A by (induct set: finite) auto
-  ultimately have "[setprod id A = ((-1)^(card E) * (setprod (\<lambda>x. a) A *
-    setprod id A))] (mod p)"
+  ultimately have "[prod id A = ((-1)^(card E) * (prod (\<lambda>x. a) A *
+    prod id A))] (mod p)"
     by simp
-  then have "[setprod id A = ((-1)^(card E) * a^(card A) *
-      setprod id A)](mod p)"
+  then have "[prod id A = ((-1)^(card E) * a^(card A) *
+      prod id A)](mod p)"
     apply (rule cong_trans_int)
-    apply (simp add: cong_scalar2_int cong_scalar_int finite_A setprod_constant mult.assoc)
+    apply (simp add: cong_scalar2_int cong_scalar_int finite_A prod_constant mult.assoc)
     done
-  then have a: "[setprod id A * (-1)^(card E) =
-      ((-1)^(card E) * a^(card A) * setprod id A * (-1)^(card E))](mod p)"
+  then have a: "[prod id A * (-1)^(card E) =
+      ((-1)^(card E) * a^(card A) * prod id A * (-1)^(card E))](mod p)"
     by (rule cong_scalar_int)
-  then have "[setprod id A * (-1)^(card E) = setprod id A *
+  then have "[prod id A * (-1)^(card E) = prod id A *
       (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)"
     apply (rule cong_trans_int)
     apply (simp add: a mult.commute mult.left_commute)
     done
-  then have "[setprod id A * (-1)^(card E) = setprod id A * a^(card A)](mod p)"
+  then have "[prod id A * (-1)^(card E) = prod id A * a^(card A)](mod p)"
     apply (rule cong_trans_int)
-    apply (simp add: aux cong del: setprod.strong_cong)
+    apply (simp add: aux cong del: prod.strong_cong)
     done
   with A_prod_relprime have "[(- 1) ^ card E = a ^ card A](mod p)"
     by (metis cong_mult_lcancel_int)

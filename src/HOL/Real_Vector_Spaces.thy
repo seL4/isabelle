@@ -319,7 +319,7 @@ lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
 lemma of_real_sum[simp]: "of_real (sum f s) = (\<Sum>x\<in>s. of_real (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
-lemma of_real_setprod[simp]: "of_real (setprod f s) = (\<Prod>x\<in>s. of_real (f x))"
+lemma of_real_prod[simp]: "of_real (prod f s) = (\<Prod>x\<in>s. of_real (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
 lemma nonzero_of_real_inverse:
@@ -501,10 +501,10 @@ proof (induct s rule: infinite_finite_induct)
   then show ?case by (metis Reals_0 sum.infinite)
 qed simp_all
 
-lemma setprod_in_Reals [intro,simp]: "(\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>) \<Longrightarrow> setprod f s \<in> \<real>"
+lemma prod_in_Reals [intro,simp]: "(\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>) \<Longrightarrow> prod f s \<in> \<real>"
 proof (induct s rule: infinite_finite_induct)
   case infinite
-  then show ?case by (metis Reals_1 setprod.infinite)
+  then show ?case by (metis Reals_1 prod.infinite)
 qed simp_all
 
 lemma Reals_induct [case_names of_real, induct set: Reals]:
@@ -978,20 +978,20 @@ proof -
     by simp
 qed
 
-lemma setprod_norm: "setprod (\<lambda>x. norm (f x)) A = norm (setprod f A)"
+lemma prod_norm: "prod (\<lambda>x. norm (f x)) A = norm (prod f A)"
   for f :: "'a \<Rightarrow> 'b::{comm_semiring_1,real_normed_div_algebra}"
   by (induct A rule: infinite_finite_induct) (auto simp: norm_mult)
 
-lemma norm_setprod_le:
-  "norm (setprod f A) \<le> (\<Prod>a\<in>A. norm (f a :: 'a :: {real_normed_algebra_1,comm_monoid_mult}))"
+lemma norm_prod_le:
+  "norm (prod f A) \<le> (\<Prod>a\<in>A. norm (f a :: 'a :: {real_normed_algebra_1,comm_monoid_mult}))"
 proof (induct A rule: infinite_finite_induct)
   case empty
   then show ?case by simp
 next
   case (insert a A)
-  then have "norm (setprod f (insert a A)) \<le> norm (f a) * norm (setprod f A)"
+  then have "norm (prod f (insert a A)) \<le> norm (f a) * norm (prod f A)"
     by (simp add: norm_mult_ineq)
-  also have "norm (setprod f A) \<le> (\<Prod>a\<in>A. norm (f a))"
+  also have "norm (prod f A) \<le> (\<Prod>a\<in>A. norm (f a))"
     by (rule insert)
   finally show ?case
     by (simp add: insert mult_left_mono)
@@ -1000,7 +1000,7 @@ next
   then show ?case by simp
 qed
 
-lemma norm_setprod_diff:
+lemma norm_prod_diff:
   fixes z w :: "'i \<Rightarrow> 'a::{real_normed_algebra_1, comm_monoid_mult}"
   shows "(\<And>i. i \<in> I \<Longrightarrow> norm (z i) \<le> 1) \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> norm (w i) \<le> 1) \<Longrightarrow>
     norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) \<le> (\<Sum>i\<in>I. norm (z i - w i))"
@@ -1020,9 +1020,9 @@ next
   also have "norm ?t1 \<le> norm (\<Prod>i\<in>I. z i) * norm (z i - w i)"
     by (rule norm_mult_ineq)
   also have "\<dots> \<le> (\<Prod>i\<in>I. norm (z i)) * norm(z i - w i)"
-    by (rule mult_right_mono) (auto intro: norm_setprod_le)
+    by (rule mult_right_mono) (auto intro: norm_prod_le)
   also have "(\<Prod>i\<in>I. norm (z i)) \<le> (\<Prod>i\<in>I. 1)"
-    by (intro setprod_mono) (auto intro!: insert)
+    by (intro prod_mono) (auto intro!: insert)
   also have "norm ?t2 \<le> norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) * norm (w i)"
     by (rule norm_mult_ineq)
   also have "norm (w i) \<le> 1"
@@ -1042,9 +1042,9 @@ lemma norm_power_diff:
   shows "norm (z^m - w^m) \<le> m * norm (z - w)"
 proof -
   have "norm (z^m - w^m) = norm ((\<Prod> i < m. z) - (\<Prod> i < m. w))"
-    by (simp add: setprod_constant)
+    by (simp add: prod_constant)
   also have "\<dots> \<le> (\<Sum>i<m. norm (z - w))"
-    by (intro norm_setprod_diff) (auto simp add: assms)
+    by (intro norm_prod_diff) (auto simp add: assms)
   also have "\<dots> = m * norm (z - w)"
     by simp
   finally show ?thesis .

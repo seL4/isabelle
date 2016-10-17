@@ -1054,13 +1054,13 @@ lemma poly_power [simp]:
   shows "poly (p ^ n) x = poly p x ^ n"
   by (induct n) simp_all
 
-lemma poly_setprod: "poly (\<Prod>k\<in>A. p k) x = (\<Prod>k\<in>A. poly (p k) x)"
+lemma poly_prod: "poly (\<Prod>k\<in>A. p k) x = (\<Prod>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma degree_setprod_sum_le: "finite S \<Longrightarrow> degree (setprod f S) \<le> sum (degree o f) S"
+lemma degree_prod_sum_le: "finite S \<Longrightarrow> degree (prod f S) \<le> sum (degree o f) S"
 proof (induct S rule: finite_induct)
   case (insert a S)
-  show ?case unfolding setprod.insert[OF insert(1-2)] sum.insert[OF insert(1-2)]
+  show ?case unfolding prod.insert[OF insert(1-2)] sum.insert[OF insert(1-2)]
     by (rule le_trans[OF degree_mult_le], insert insert, auto)
 qed simp
 
@@ -2856,7 +2856,7 @@ lemma pcompose_sum: "pcompose (sum f A) p = sum (\<lambda>i. pcompose (f i) p) A
   by (cases "finite A", induction rule: finite_induct)
      (simp_all add: pcompose_1 pcompose_add)
 
-lemma pcompose_setprod: "pcompose (setprod f A) p = setprod (\<lambda>i. pcompose (f i) p) A"
+lemma pcompose_prod: "pcompose (prod f A) p = prod (\<lambda>i. pcompose (f i) p) A"
   by (cases "finite A", induction rule: finite_induct)
      (simp_all add: pcompose_1 pcompose_mult)
 
@@ -3209,9 +3209,9 @@ lemma reflect_poly_power:
        reflect_poly p ^ n"
   by (induction n) (simp_all add: reflect_poly_mult)
 
-lemma reflect_poly_setprod:
-  "reflect_poly (setprod (f :: _ \<Rightarrow> _ :: {comm_semiring_0,semiring_no_zero_divisors} poly) A) = 
-     setprod (\<lambda>x. reflect_poly (f x)) A"
+lemma reflect_poly_prod:
+  "reflect_poly (prod (f :: _ \<Rightarrow> _ :: {comm_semiring_0,semiring_no_zero_divisors} poly) A) = 
+     prod (\<lambda>x. reflect_poly (f x)) A"
   by (cases "finite A", induction rule: finite_induct) (simp_all add: reflect_poly_mult)
 
 lemma reflect_poly_prod_list:
@@ -3225,7 +3225,7 @@ lemma reflect_poly_Poly_nz:
 
 lemmas reflect_poly_simps = 
   reflect_poly_0 reflect_poly_1 reflect_poly_const reflect_poly_smult reflect_poly_mult
-  reflect_poly_power reflect_poly_setprod reflect_poly_prod_list
+  reflect_poly_power reflect_poly_prod reflect_poly_prod_list
 
 
 subsection \<open>Derivatives of univariate polynomials\<close>
@@ -3395,11 +3395,11 @@ apply (simp only: of_nat_Suc smult_add_left smult_1_left)
 apply (simp add: algebra_simps)
 done
 
-lemma pderiv_setprod: "pderiv (setprod f (as)) = 
-  (\<Sum>a \<in> as. setprod f (as - {a}) * pderiv (f a))"
+lemma pderiv_prod: "pderiv (prod f (as)) = 
+  (\<Sum>a \<in> as. prod f (as - {a}) * pderiv (f a))"
 proof (induct as rule: infinite_finite_induct)
   case (insert a as)
-  hence id: "setprod f (insert a as) = f a * setprod f as" 
+  hence id: "prod f (insert a as) = f a * prod f as" 
     "\<And> g. sum g (insert a as) = g a + sum g as"
     "insert a as - {a} = as"
     by auto
@@ -3407,9 +3407,9 @@ proof (induct as rule: infinite_finite_induct)
     fix b
     assume "b \<in> as"
     hence id2: "insert a as - {b} = insert a (as - {b})" using \<open>a \<notin> as\<close> by auto
-    have "setprod f (insert a as - {b}) = f a * setprod f (as - {b})"
+    have "prod f (insert a as - {b}) = f a * prod f (as - {b})"
       unfolding id2
-      by (subst setprod.insert, insert insert, auto)
+      by (subst prod.insert, insert insert, auto)
   } note id2 = this
   show ?case
     unfolding id pderiv_mult insert(3) sum_distrib_left

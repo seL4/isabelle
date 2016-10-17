@@ -1129,7 +1129,7 @@ lemma non_negligible_UNIV [simp]: "\<not> negligible UNIV"
 
 lemma negligible_interval:
   "negligible (cbox a b) \<longleftrightarrow> box a b = {}" "negligible (box a b) \<longleftrightarrow> box a b = {}"
-   by (auto simp: negligible_iff_null_sets null_sets_def setprod_nonneg inner_diff_left box_eq_empty
+   by (auto simp: negligible_iff_null_sets null_sets_def prod_nonneg inner_diff_left box_eq_empty
                   not_le emeasure_lborel_cbox_eq emeasure_lborel_box_eq
             intro: eq_refl antisym less_imp_le)
 
@@ -1254,9 +1254,9 @@ proof (clarsimp simp: completion.null_sets_outer)
       then have ufvf: "cbox (uf X) (vf X) = X"
         using uvz by blast
       have "prj1 (vf X - uf X) ^ DIM('M) = (\<Prod>i::'M \<in> Basis. prj1 (vf X - uf X))"
-        by (rule setprod_constant [symmetric])
+        by (rule prod_constant [symmetric])
       also have "\<dots> = (\<Prod>i\<in>Basis. vf X \<bullet> i - uf X \<bullet> i)"
-        using prj1_idem [OF \<open>X \<in> \<D>\<close>] by (auto simp: algebra_simps intro: setprod.cong)
+        using prj1_idem [OF \<open>X \<in> \<D>\<close>] by (auto simp: algebra_simps intro: prod.cong)
       finally have prj1_eq: "prj1 (vf X - uf X) ^ DIM('M) = (\<Prod>i\<in>Basis. vf X \<bullet> i - uf X \<bullet> i)" .
       have "uf X \<in> cbox (uf X) (vf X)" "vf X \<in> cbox (uf X) (vf X)"
         using uvz [OF \<open>X \<in> \<D>\<close>] by (force simp: mem_box)+
@@ -1272,7 +1272,7 @@ proof (clarsimp simp: completion.null_sets_outer)
       have 0: "0 \<le> prj1 (vf X - uf X)"
         using \<open>X \<in> \<D>\<close> prj1_def vu_pos by fastforce
       have "(measure lebesgue \<circ> fbx) X \<le> (2 * B * DIM('M)) ^ DIM('N) * content (cbox (uf X) (vf X))"
-        apply (simp add: fbx_def content_cbox_cases algebra_simps BM_ge0 \<open>X \<in> \<D>'\<close> setprod_constant)
+        apply (simp add: fbx_def content_cbox_cases algebra_simps BM_ge0 \<open>X \<in> \<D>'\<close> prod_constant)
         apply (simp add: power_mult_distrib \<open>0 < B\<close> prj1_eq [symmetric])
         using MleN 0 1 uvz \<open>X \<in> \<D>\<close>
         apply (fastforce simp add: box_ne_empty power_decreasing)

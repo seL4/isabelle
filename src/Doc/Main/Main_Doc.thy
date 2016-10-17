@@ -409,7 +409,7 @@ Type @{typ int}
 @{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set \<Rightarrow> nat"}\\
 @{const Finite_Set.fold} & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
 @{const Groups_Big.sum} & @{term_type_only Groups_Big.sum "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_add"}\\
-@{const Groups_Big.setprod} & @{term_type_only Groups_Big.setprod "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_mult"}\\
+@{const Groups_Big.prod} & @{term_type_only Groups_Big.prod "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b::comm_monoid_mult"}\\
 \end{supertabular}
 
 

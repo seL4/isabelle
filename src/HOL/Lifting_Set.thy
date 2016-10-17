@@ -286,7 +286,7 @@ proof (rule rel_funI)+
 qed
 
 lemmas sum_parametric = sum.F_parametric
-lemmas setprod_parametric = setprod.F_parametric
+lemmas prod_parametric = prod.F_parametric
 
 lemma rel_set_UNION:
   assumes [transfer_rule]: "rel_set Q A B" "rel_fun Q (rel_set R) f g"

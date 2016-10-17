@@ -31,9 +31,9 @@ proof (rule Lim_transform_eventually)
     let ?P = "\<Prod>i=0..<n. a - of_nat i"
     from n have "(a gchoose n) / (a gchoose Suc n) = (of_nat (Suc n) :: 'a) *
                    (?P / (\<Prod>i=0..n. a - of_nat i))"
-      by (simp add: gbinomial_setprod_rev atLeastLessThanSuc_atLeastAtMost)
+      by (simp add: gbinomial_prod_rev atLeastLessThanSuc_atLeastAtMost)
     also from q have "(\<Prod>i=0..n. a - of_nat i) = ?P * (a - of_nat n)"
-      by (simp add: setprod.atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
+      by (simp add: prod.atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
     also have "?P / \<dots> = (?P / ?P) / (a - of_nat n)" by (rule divide_divide_eq_left[symmetric])
     also from assms have "?P / ?P = 1" by auto
     also have "of_nat (Suc n) * (1 / (a - of_nat n)) =
@@ -210,7 +210,7 @@ proof -
   also have "(of_real (1 + z) :: complex) powr (of_real a) = of_real ((1 + z) powr a)"
     using assms by (subst powr_of_real) simp_all
   also have "(of_real a gchoose n :: complex) = of_real (a gchoose n)" for n
-    by (simp add: gbinomial_setprod_rev)
+    by (simp add: gbinomial_prod_rev)
   hence "(\<lambda>n. (of_real a gchoose n :: complex) * of_real z ^ n) =
            (\<lambda>n. of_real ((a gchoose n) * z ^ n))" by (intro ext) simp
   finally show ?thesis by (simp only: sums_of_real_iff)

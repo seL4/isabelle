@@ -26,9 +26,9 @@ next
   assume "infinite S" thus ?thesis by simp
 qed
 
-lemma setprod_same_function_zcong:
+lemma prod_same_function_zcong:
   assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
-  shows "[setprod f S = setprod g S] (mod m)"
+  shows "[prod f S = prod g S] (mod m)"
 proof cases
   assume "finite S"
   thus ?thesis using a by induct (simp_all add: zcong_zmult)

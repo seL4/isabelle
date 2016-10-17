@@ -486,7 +486,7 @@ lemma complex_cnj_one [simp]: "cnj 1 = 1"
 lemma complex_cnj_mult [simp]: "cnj (x * y) = cnj x * cnj y"
   by (simp add: complex_eq_iff)
 
-lemma cnj_setprod [simp]: "cnj (setprod f s) = (\<Prod>x\<in>s. cnj (f x))"
+lemma cnj_prod [simp]: "cnj (prod f s) = (\<Prod>x\<in>s. cnj (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
 lemma complex_cnj_inverse [simp]: "cnj (inverse x) = inverse (cnj x)"

@@ -263,7 +263,7 @@ qed
 lemma all_A_relprime: "\<forall>x \<in> A. zgcd x p = 1"
   using p_prime p_minus_one_l by (auto simp add: A_def zless_zprime_imp_zrelprime)
 
-lemma A_prod_relprime: "zgcd (setprod id A) p = 1"
+lemma A_prod_relprime: "zgcd (prod id A) p = 1"
 by(rule all_relprime_prod_relprime[OF finite_A all_A_relprime])
 
 
@@ -292,18 +292,18 @@ lemma D_E_disj: "D \<inter> E = {}"
 lemma C_card_eq_D_plus_E: "card C = card D + card E"
   by (auto simp add: C_eq card_Un_disjoint D_E_disj finite_D finite_E)
 
-lemma C_prod_eq_D_times_E: "setprod id E * setprod id D = setprod id C"
+lemma C_prod_eq_D_times_E: "prod id E * prod id D = prod id C"
   apply (insert D_E_disj finite_D finite_E C_eq)
-  apply (frule setprod.union_disjoint [of D E id])
+  apply (frule prod.union_disjoint [of D E id])
   apply auto
   done
 
-lemma C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)"
+lemma C_B_zcong_prod: "[prod id C = prod id B] (mod p)"
   apply (auto simp add: C_def)
   apply (insert finite_B SR_B_inj)
-  apply (frule setprod.reindex [of "StandardRes p" B id])
+  apply (frule prod.reindex [of "StandardRes p" B id])
   apply auto
-  apply (rule setprod_same_function_zcong)
+  apply (rule prod_same_function_zcong)
   apply (auto simp add: StandardRes_prop1 zcong_sym p_g_0)
   done
 
@@ -372,25 +372,25 @@ lemma F_Un_D_eq_A: "F \<union> D = A"
   using finite_A F_Un_D_subset A_card_eq F_Un_D_card by (auto simp add: card_seteq)
 
 lemma prod_D_F_eq_prod_A:
-    "(setprod id D) * (setprod id F) = setprod id A"
+    "(prod id D) * (prod id F) = prod id A"
   apply (insert F_D_disj finite_D finite_F)
-  apply (frule setprod.union_disjoint [of F D id])
+  apply (frule prod.union_disjoint [of F D id])
   apply (auto simp add: F_Un_D_eq_A)
   done
 
 lemma prod_F_zcong:
-  "[setprod id F = ((-1) ^ (card E)) * (setprod id E)] (mod p)"
+  "[prod id F = ((-1) ^ (card E)) * (prod id E)] (mod p)"
 proof -
-  have "setprod id F = setprod id (op - p ` E)"
+  have "prod id F = prod id (op - p ` E)"
     by (auto simp add: F_def)
-  then have "setprod id F = setprod (op - p) E"
+  then have "prod id F = prod (op - p) E"
     apply simp
     apply (insert finite_E inj_on_pminusx_E)
-    apply (frule setprod.reindex [of "minus p" E id])
+    apply (frule prod.reindex [of "minus p" E id])
     apply auto
     done
   then have one:
-    "[setprod id F = setprod (StandardRes p o (op - p)) E] (mod p)"
+    "[prod id F = prod (StandardRes p o (op - p)) E] (mod p)"
     apply simp
     apply (insert p_g_0 finite_E StandardRes_prod)
     by (auto)
@@ -409,20 +409,20 @@ proof -
     apply (rule_tac b = "p - x" in zcong_trans, auto)
     done
   ultimately have c:
-    "[setprod (StandardRes p o (op - p)) E = setprod (uminus) E](mod p)"
+    "[prod (StandardRes p o (op - p)) E = prod (uminus) E](mod p)"
     apply simp
     using finite_E p_g_0
-      setprod_same_function_zcong [of E "StandardRes p o (op - p)" uminus p]
+      prod_same_function_zcong [of E "StandardRes p o (op - p)" uminus p]
     by auto
-  then have two: "[setprod id F = setprod (uminus) E](mod p)"
+  then have two: "[prod id F = prod (uminus) E](mod p)"
     apply (insert one c)
-    apply (rule zcong_trans [of "setprod id F"
-                               "setprod (StandardRes p o op - p) E" p
-                               "setprod uminus E"], auto)
+    apply (rule zcong_trans [of "prod id F"
+                               "prod (StandardRes p o op - p) E" p
+                               "prod uminus E"], auto)
     done
-  also have "setprod uminus E = (setprod id E) * (-1)^(card E)"
+  also have "prod uminus E = (prod id E) * (-1)^(card E)"
     using finite_E by (induct set: finite) auto
-  then have "setprod uminus E = (-1) ^ (card E) * (setprod id E)"
+  then have "prod uminus E = (-1) ^ (card E) * (prod id E)"
     by (simp add: mult.commute)
   with two show ?thesis
     by simp
@@ -431,52 +431,52 @@ qed
 
 subsection \<open>Gauss' Lemma\<close>
 
-lemma aux: "setprod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = setprod id A * a ^ card A"
+lemma aux: "prod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = prod id A * a ^ card A"
   by (auto simp add: finite_E neg_one_special)
 
 theorem pre_gauss_lemma:
   "[a ^ nat((p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
-  have "[setprod id A = setprod id F * setprod id D](mod p)"
-    by (auto simp add: prod_D_F_eq_prod_A mult.commute cong del: setprod.strong_cong)
-  then have "[setprod id A = ((-1)^(card E) * setprod id E) *
-      setprod id D] (mod p)"
-    by (rule zcong_trans) (auto simp add: prod_F_zcong zcong_scalar cong del: setprod.strong_cong)
-  then have "[setprod id A = ((-1)^(card E) * setprod id C)] (mod p)"
+  have "[prod id A = prod id F * prod id D](mod p)"
+    by (auto simp add: prod_D_F_eq_prod_A mult.commute cong del: prod.strong_cong)
+  then have "[prod id A = ((-1)^(card E) * prod id E) *
+      prod id D] (mod p)"
+    by (rule zcong_trans) (auto simp add: prod_F_zcong zcong_scalar cong del: prod.strong_cong)
+  then have "[prod id A = ((-1)^(card E) * prod id C)] (mod p)"
     apply (rule zcong_trans)
     apply (insert C_prod_eq_D_times_E, erule subst)
     apply (subst mult.assoc)
     apply auto
     done
-  then have "[setprod id A = ((-1)^(card E) * setprod id B)] (mod p)"
+  then have "[prod id A = ((-1)^(card E) * prod id B)] (mod p)"
     apply (rule zcong_trans)
-    apply (simp add: C_B_zcong_prod zcong_scalar2 cong del: setprod.strong_cong)
+    apply (simp add: C_B_zcong_prod zcong_scalar2 cong del: prod.strong_cong)
     done
-  then have "[setprod id A = ((-1)^(card E) *
-    (setprod id ((%x. x * a) ` A)))] (mod p)"
+  then have "[prod id A = ((-1)^(card E) *
+    (prod id ((%x. x * a) ` A)))] (mod p)"
     by (simp add: B_def)
-  then have "[setprod id A = ((-1)^(card E) * (setprod (%x. x * a) A))]
+  then have "[prod id A = ((-1)^(card E) * (prod (%x. x * a) A))]
     (mod p)"
-    by (simp add:finite_A inj_on_xa_A setprod.reindex cong del: setprod.strong_cong)
-  moreover have "setprod (%x. x * a) A =
-    setprod (%x. a) A * setprod id A"
+    by (simp add:finite_A inj_on_xa_A prod.reindex cong del: prod.strong_cong)
+  moreover have "prod (%x. x * a) A =
+    prod (%x. a) A * prod id A"
     using finite_A by (induct set: finite) auto
-  ultimately have "[setprod id A = ((-1)^(card E) * (setprod (%x. a) A *
-    setprod id A))] (mod p)"
+  ultimately have "[prod id A = ((-1)^(card E) * (prod (%x. a) A *
+    prod id A))] (mod p)"
     by simp
-  then have "[setprod id A = ((-1)^(card E) * a^(card A) *
-      setprod id A)](mod p)"
-    by (rule zcong_trans) (simp add: zcong_scalar2 zcong_scalar finite_A setprod_constant mult.assoc)
-  then have a: "[setprod id A * (-1)^(card E) =
-      ((-1)^(card E) * a^(card A) * setprod id A * (-1)^(card E))](mod p)"
+  then have "[prod id A = ((-1)^(card E) * a^(card A) *
+      prod id A)](mod p)"
+    by (rule zcong_trans) (simp add: zcong_scalar2 zcong_scalar finite_A prod_constant mult.assoc)
+  then have a: "[prod id A * (-1)^(card E) =
+      ((-1)^(card E) * a^(card A) * prod id A * (-1)^(card E))](mod p)"
     by (rule zcong_scalar)
-  then have "[setprod id A * (-1)^(card E) = setprod id A *
+  then have "[prod id A * (-1)^(card E) = prod id A *
       (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)"
     by (rule zcong_trans) (simp add: a mult.commute mult.left_commute)
-  then have "[setprod id A * (-1)^(card E) = setprod id A *
+  then have "[prod id A * (-1)^(card E) = prod id A *
       a^(card A)](mod p)"
-    by (rule zcong_trans) (simp add: aux cong del: setprod.strong_cong)
-  with this zcong_cancel2 [of p "setprod id A" "(- 1) ^ card E" "a ^ card A"]
+    by (rule zcong_trans) (simp add: aux cong del: prod.strong_cong)
+  with this zcong_cancel2 [of p "prod id A" "(- 1) ^ card E" "a ^ card A"]
       p_g_0 A_prod_relprime have "[(- 1) ^ card E = a ^ card A](mod p)"
     by (simp add: order_less_imp_le)
   from this show ?thesis

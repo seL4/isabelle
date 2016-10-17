@@ -340,15 +340,15 @@ proof -
   from prod_list_def show "monoid_list.F times 1 = prod_list" by simp
 qed
 
-sublocale setprod: comm_monoid_list_set times 1
+sublocale prod: comm_monoid_list_set times 1
 rewrites
   "monoid_list.F times 1 = prod_list"
-  and "comm_monoid_set.F times 1 = setprod"
+  and "comm_monoid_set.F times 1 = prod"
 proof -
   show "comm_monoid_list_set times 1" ..
-  then interpret setprod: comm_monoid_list_set times 1 .
+  then interpret prod: comm_monoid_list_set times 1 .
   from prod_list_def show "monoid_list.F times 1 = prod_list" by simp
-  from setprod_def show "comm_monoid_set.F times 1 = setprod" by (auto intro: sym)
+  from prod_def show "comm_monoid_set.F times 1 = prod" by (auto intro: sym)
 qed
 
 end

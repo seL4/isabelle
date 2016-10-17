@@ -859,7 +859,7 @@ lemma pow_divs_eq [simp]: "n \<noteq> 0 \<Longrightarrow> a ^ n dvd b ^ n \<long
 lemma coprime_plus_one [simp]: "gcd (n + 1) n = 1"
   by (subst add_commute) simp
 
-lemma setprod_coprime [rule_format]: "(\<forall>i\<in>A. gcd (f i) a = 1) \<longrightarrow> gcd (\<Prod>i\<in>A. f i) a = 1"
+lemma prod_coprime [rule_format]: "(\<forall>i\<in>A. gcd (f i) a = 1) \<longrightarrow> gcd (\<Prod>i\<in>A. f i) a = 1"
   by (induct A rule: infinite_finite_induct) (auto simp add: gcd_mult_cancel)
 
 lemma prod_list_coprime: "(\<And>x. x \<in> set xs \<Longrightarrow> coprime x y) \<Longrightarrow> coprime (prod_list xs) y"
@@ -1373,7 +1373,7 @@ next
   also have "lcm a \<dots> = lcm a (\<Prod>A)"
     by (cases "\<Prod>A = 0") (simp_all add: lcm_div_unit2)
   also from insert have "gcd a (\<Prod>A) = 1"
-    by (subst gcd.commute, intro setprod_coprime) auto
+    by (subst gcd.commute, intro prod_coprime) auto
   with insert have "lcm a (\<Prod>A) = normalize (\<Prod>(insert a A))"
     by (simp add: lcm_coprime)
   finally show ?case .

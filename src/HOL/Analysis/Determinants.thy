@@ -37,20 +37,20 @@ text \<open>Definition of determinant.\<close>
 
 definition det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
   "det A =
-    sum (\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set))
+    sum (\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set))
       {p. p permutes (UNIV :: 'n set)}"
 
 text \<open>A few general lemmas we need below.\<close>
 
-lemma setprod_permute:
+lemma prod_permute:
   assumes p: "p permutes S"
-  shows "setprod f S = setprod (f \<circ> p) S"
-  using assms by (fact setprod.permute)
+  shows "prod f S = prod (f \<circ> p) S"
+  using assms by (fact prod.permute)
 
-lemma setproduct_permute_nat_interval:
+lemma product_permute_nat_interval:
   fixes m n :: nat
-  shows "p permutes {m..n} \<Longrightarrow> setprod f {m..n} = setprod (f \<circ> p) {m..n}"
-  by (blast intro!: setprod_permute)
+  shows "p permutes {m..n} \<Longrightarrow> prod f {m..n} = prod (f \<circ> p) {m..n}"
+  by (blast intro!: prod_permute)
 
 text \<open>Basic determinant properties.\<close>
 
@@ -70,12 +70,12 @@ proof -
     have pi: "inj_on p ?U"
       by (blast intro: subset_inj_on)
     from permutes_image[OF pU]
-    have "setprod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U =
-      setprod (\<lambda>i. ?di (transpose A) i (inv p i)) (p ` ?U)"
+    have "prod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U =
+      prod (\<lambda>i. ?di (transpose A) i (inv p i)) (p ` ?U)"
       by simp
-    also have "\<dots> = setprod ((\<lambda>i. ?di (transpose A) i (inv p i)) \<circ> p) ?U"
-      unfolding setprod.reindex[OF pi] ..
-    also have "\<dots> = setprod (\<lambda>i. ?di A i (p i)) ?U"
+    also have "\<dots> = prod ((\<lambda>i. ?di (transpose A) i (inv p i)) \<circ> p) ?U"
+      unfolding prod.reindex[OF pi] ..
+    also have "\<dots> = prod (\<lambda>i. ?di A i (p i)) ?U"
     proof -
       {
         fix i
@@ -84,12 +84,12 @@ proof -
         have "((\<lambda>i. ?di (transpose A) i (inv p i)) \<circ> p) i = ?di A i (p i)"
           unfolding transpose_def by (simp add: fun_eq_iff)
       }
-      then show "setprod ((\<lambda>i. ?di (transpose A) i (inv p i)) \<circ> p) ?U =
-        setprod (\<lambda>i. ?di A i (p i)) ?U"
-        by (auto intro: setprod.cong)
+      then show "prod ((\<lambda>i. ?di (transpose A) i (inv p i)) \<circ> p) ?U =
+        prod (\<lambda>i. ?di A i (p i)) ?U"
+        by (auto intro: prod.cong)
     qed
-    finally have "of_int (sign (inv p)) * (setprod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U) =
-      of_int (sign p) * (setprod (\<lambda>i. ?di A i (p i)) ?U)"
+    finally have "of_int (sign (inv p)) * (prod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U) =
+      of_int (sign p) * (prod (\<lambda>i. ?di A i (p i)) ?U)"
       using sth by simp
   }
   then show ?thesis
@@ -104,11 +104,11 @@ qed
 lemma det_lowerdiagonal:
   fixes A :: "'a::comm_ring_1^('n::{finite,wellorder})^('n::{finite,wellorder})"
   assumes ld: "\<And>i j. i < j \<Longrightarrow> A$i$j = 0"
-  shows "det A = setprod (\<lambda>i. A$i$i) (UNIV:: 'n set)"
+  shows "det A = prod (\<lambda>i. A$i$i) (UNIV:: 'n set)"
 proof -
   let ?U = "UNIV:: 'n set"
   let ?PU = "{p. p permutes ?U}"
-  let ?pp = "\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set)"
+  let ?pp = "\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set)"
   have fU: "finite ?U"
     by simp
   from finite_permutations[OF fU] have fPU: "finite ?PU" .
@@ -123,7 +123,7 @@ proof -
       by (metis not_le)
     from ld[OF i] have ex:"\<exists>i \<in> ?U. A$i$p i = 0"
       by blast
-    from setprod_zero[OF fU ex] have "?pp p = 0"
+    from prod_zero[OF fU ex] have "?pp p = 0"
       by simp
   }
   then have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"
@@ -135,11 +135,11 @@ qed
 lemma det_upperdiagonal:
   fixes A :: "'a::comm_ring_1^'n::{finite,wellorder}^'n::{finite,wellorder}"
   assumes ld: "\<And>i j. i > j \<Longrightarrow> A$i$j = 0"
-  shows "det A = setprod (\<lambda>i. A$i$i) (UNIV:: 'n set)"
+  shows "det A = prod (\<lambda>i. A$i$i) (UNIV:: 'n set)"
 proof -
   let ?U = "UNIV:: 'n set"
   let ?PU = "{p. p permutes ?U}"
-  let ?pp = "(\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set))"
+  let ?pp = "(\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set))"
   have fU: "finite ?U"
     by simp
   from finite_permutations[OF fU] have fPU: "finite ?PU" .
@@ -154,7 +154,7 @@ proof -
       by (metis not_le)
     from ld[OF i] have ex:"\<exists>i \<in> ?U. A$i$p i = 0"
       by blast
-    from setprod_zero[OF fU ex] have "?pp p = 0"
+    from prod_zero[OF fU ex] have "?pp p = 0"
       by simp
   }
   then have p0: "\<forall>p \<in> ?PU -{id}. ?pp p = 0"
@@ -166,11 +166,11 @@ qed
 lemma det_diagonal:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes ld: "\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0"
-  shows "det A = setprod (\<lambda>i. A$i$i) (UNIV::'n set)"
+  shows "det A = prod (\<lambda>i. A$i$i) (UNIV::'n set)"
 proof -
   let ?U = "UNIV:: 'n set"
   let ?PU = "{p. p permutes ?U}"
-  let ?pp = "\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set)"
+  let ?pp = "\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set)"
   have fU: "finite ?U" by simp
   from finite_permutations[OF fU] have fPU: "finite ?PU" .
   have id0: "{id} \<subseteq> ?PU"
@@ -184,7 +184,7 @@ proof -
       unfolding fun_eq_iff by auto
     from ld [OF i [symmetric]] have ex:"\<exists>i \<in> ?U. A$i$p i = 0"
       by blast
-    from setprod_zero [OF fU ex] have "?pp p = 0"
+    from prod_zero [OF fU ex] have "?pp p = 0"
       by simp
   }
   then have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"
@@ -204,23 +204,23 @@ proof -
     have "?f i i = 1"
       using i by (vector mat_def)
   }
-  then have th: "setprod (\<lambda>i. ?f i i) ?U = setprod (\<lambda>x. 1) ?U"
-    by (auto intro: setprod.cong)
+  then have th: "prod (\<lambda>i. ?f i i) ?U = prod (\<lambda>x. 1) ?U"
+    by (auto intro: prod.cong)
   {
     fix i j
     assume i: "i \<in> ?U" and j: "j \<in> ?U" and ij: "i \<noteq> j"
     have "?f i j = 0" using i j ij
       by (vector mat_def)
   }
-  then have "det ?A = setprod (\<lambda>i. ?f i i) ?U"
+  then have "det ?A = prod (\<lambda>i. ?f i i) ?U"
     using det_diagonal by blast
   also have "\<dots> = 1"
-    unfolding th setprod.neutral_const ..
+    unfolding th prod.neutral_const ..
   finally show ?thesis .
 qed
 
 lemma det_0: "det (mat 0 :: 'a::comm_ring_1^'n^'n) = 0"
-  by (simp add: det_def setprod_zero)
+  by (simp add: det_def prod_zero)
 
 lemma det_permute_rows:
   fixes A :: "'a::comm_ring_1^'n^'n"
@@ -240,16 +240,16 @@ proof (rule sum.cong)
   from p q have pp: "permutation p" and qp: "permutation q"
     by (metis fU permutation_permutes)+
   from permutes_inv[OF p] have ip: "inv p permutes ?U" .
-  have "setprod (\<lambda>i. A$p i$ (q \<circ> p) i) ?U = setprod ((\<lambda>i. A$p i$(q \<circ> p) i) \<circ> inv p) ?U"
-    by (simp only: setprod_permute[OF ip, symmetric])
-  also have "\<dots> = setprod (\<lambda>i. A $ (p \<circ> inv p) i $ (q \<circ> (p \<circ> inv p)) i) ?U"
+  have "prod (\<lambda>i. A$p i$ (q \<circ> p) i) ?U = prod ((\<lambda>i. A$p i$(q \<circ> p) i) \<circ> inv p) ?U"
+    by (simp only: prod_permute[OF ip, symmetric])
+  also have "\<dots> = prod (\<lambda>i. A $ (p \<circ> inv p) i $ (q \<circ> (p \<circ> inv p)) i) ?U"
     by (simp only: o_def)
-  also have "\<dots> = setprod (\<lambda>i. A$i$q i) ?U"
+  also have "\<dots> = prod (\<lambda>i. A$i$q i) ?U"
     by (simp only: o_def permutes_inverses[OF p])
-  finally have thp: "setprod (\<lambda>i. A$p i$ (q \<circ> p) i) ?U = setprod (\<lambda>i. A$i$q i) ?U"
+  finally have thp: "prod (\<lambda>i. A$p i$ (q \<circ> p) i) ?U = prod (\<lambda>i. A$i$q i) ?U"
     by blast
-  show "of_int (sign (q \<circ> p)) * setprod (\<lambda>i. A$ p i$ (q \<circ> p) i) ?U =
-    of_int (sign p) * of_int (sign q) * setprod (\<lambda>i. A$i$q i) ?U"
+  show "of_int (sign (q \<circ> p)) * prod (\<lambda>i. A$ p i$ (q \<circ> p) i) ?U =
+    of_int (sign p) * of_int (sign q) * prod (\<lambda>i. A$i$q i) ?U"
     by (simp only: thp sign_compose[OF qp pp] mult.commute of_int_mult)
 qed rule
 
@@ -341,30 +341,30 @@ proof (rule sum.cong)
     from j have "?f j $ p j = ?g j $ p j" and "?f j $ p j= ?h j $ p j"
       by simp_all
   }
-  then have th1: "setprod (\<lambda>i. ?f i $ p i) ?Uk = setprod (\<lambda>i. ?g i $ p i) ?Uk"
-    and th2: "setprod (\<lambda>i. ?f i $ p i) ?Uk = setprod (\<lambda>i. ?h i $ p i) ?Uk"
+  then have th1: "prod (\<lambda>i. ?f i $ p i) ?Uk = prod (\<lambda>i. ?g i $ p i) ?Uk"
+    and th2: "prod (\<lambda>i. ?f i $ p i) ?Uk = prod (\<lambda>i. ?h i $ p i) ?Uk"
     apply -
-    apply (rule setprod.cong, simp_all)+
+    apply (rule prod.cong, simp_all)+
     done
   have th3: "finite ?Uk" "k \<notin> ?Uk"
     by auto
-  have "setprod (\<lambda>i. ?f i $ p i) ?U = setprod (\<lambda>i. ?f i $ p i) (insert k ?Uk)"
+  have "prod (\<lambda>i. ?f i $ p i) ?U = prod (\<lambda>i. ?f i $ p i) (insert k ?Uk)"
     unfolding kU[symmetric] ..
-  also have "\<dots> = ?f k $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk"
-    apply (rule setprod.insert)
+  also have "\<dots> = ?f k $ p k * prod (\<lambda>i. ?f i $ p i) ?Uk"
+    apply (rule prod.insert)
     apply simp
     apply blast
     done
-  also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk)"
+  also have "\<dots> = (a k $ p k * prod (\<lambda>i. ?f i $ p i) ?Uk) + (b k$ p k * prod (\<lambda>i. ?f i $ p i) ?Uk)"
     by (simp add: field_simps)
-  also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?g i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?h i $ p i) ?Uk)"
+  also have "\<dots> = (a k $ p k * prod (\<lambda>i. ?g i $ p i) ?Uk) + (b k$ p k * prod (\<lambda>i. ?h i $ p i) ?Uk)"
     by (metis th1 th2)
-  also have "\<dots> = setprod (\<lambda>i. ?g i $ p i) (insert k ?Uk) + setprod (\<lambda>i. ?h i $ p i) (insert k ?Uk)"
-    unfolding  setprod.insert[OF th3] by simp
-  finally have "setprod (\<lambda>i. ?f i $ p i) ?U = setprod (\<lambda>i. ?g i $ p i) ?U + setprod (\<lambda>i. ?h i $ p i) ?U"
+  also have "\<dots> = prod (\<lambda>i. ?g i $ p i) (insert k ?Uk) + prod (\<lambda>i. ?h i $ p i) (insert k ?Uk)"
+    unfolding  prod.insert[OF th3] by simp
+  finally have "prod (\<lambda>i. ?f i $ p i) ?U = prod (\<lambda>i. ?g i $ p i) ?U + prod (\<lambda>i. ?h i $ p i) ?U"
     unfolding kU[symmetric] .
-  then show "of_int (sign p) * setprod (\<lambda>i. ?f i $ p i) ?U =
-    of_int (sign p) * setprod (\<lambda>i. ?g i $ p i) ?U + of_int (sign p) * setprod (\<lambda>i. ?h i $ p i) ?U"
+  then show "of_int (sign p) * prod (\<lambda>i. ?f i $ p i) ?U =
+    of_int (sign p) * prod (\<lambda>i. ?g i $ p i) ?U + of_int (sign p) * prod (\<lambda>i. ?h i $ p i) ?U"
     by (simp add: field_simps)
 qed rule
 
@@ -391,30 +391,30 @@ proof (rule sum.cong)
     from j have "?f j $ p j = ?g j $ p j"
       by simp
   }
-  then have th1: "setprod (\<lambda>i. ?f i $ p i) ?Uk = setprod (\<lambda>i. ?g i $ p i) ?Uk"
+  then have th1: "prod (\<lambda>i. ?f i $ p i) ?Uk = prod (\<lambda>i. ?g i $ p i) ?Uk"
     apply -
-    apply (rule setprod.cong)
+    apply (rule prod.cong)
     apply simp_all
     done
   have th3: "finite ?Uk" "k \<notin> ?Uk"
     by auto
-  have "setprod (\<lambda>i. ?f i $ p i) ?U = setprod (\<lambda>i. ?f i $ p i) (insert k ?Uk)"
+  have "prod (\<lambda>i. ?f i $ p i) ?U = prod (\<lambda>i. ?f i $ p i) (insert k ?Uk)"
     unfolding kU[symmetric] ..
-  also have "\<dots> = ?f k $ p k  * setprod (\<lambda>i. ?f i $ p i) ?Uk"
-    apply (rule setprod.insert)
+  also have "\<dots> = ?f k $ p k  * prod (\<lambda>i. ?f i $ p i) ?Uk"
+    apply (rule prod.insert)
     apply simp
     apply blast
     done
-  also have "\<dots> = (c*s a k) $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk"
+  also have "\<dots> = (c*s a k) $ p k * prod (\<lambda>i. ?f i $ p i) ?Uk"
     by (simp add: field_simps)
-  also have "\<dots> = c* (a k $ p k * setprod (\<lambda>i. ?g i $ p i) ?Uk)"
+  also have "\<dots> = c* (a k $ p k * prod (\<lambda>i. ?g i $ p i) ?Uk)"
     unfolding th1 by (simp add: ac_simps)
-  also have "\<dots> = c* (setprod (\<lambda>i. ?g i $ p i) (insert k ?Uk))"
-    unfolding setprod.insert[OF th3] by simp
-  finally have "setprod (\<lambda>i. ?f i $ p i) ?U = c* (setprod (\<lambda>i. ?g i $ p i) ?U)"
+  also have "\<dots> = c* (prod (\<lambda>i. ?g i $ p i) (insert k ?Uk))"
+    unfolding prod.insert[OF th3] by simp
+  finally have "prod (\<lambda>i. ?f i $ p i) ?U = c* (prod (\<lambda>i. ?g i $ p i) ?U)"
     unfolding kU[symmetric] .
-  then show "of_int (sign p) * setprod (\<lambda>i. ?f i $ p i) ?U =
-    c * (of_int (sign p) * setprod (\<lambda>i. ?g i $ p i) ?U)"
+  then show "of_int (sign p) * prod (\<lambda>i. ?f i $ p i) ?U =
+    c * (of_int (sign p) * prod (\<lambda>i. ?g i $ p i) ?U)"
     by (simp add: field_simps)
 qed rule
 
@@ -644,8 +644,8 @@ lemma matrix_mul_sum_alt:
 
 lemma det_rows_mul:
   "det((\<chi> i. c i *s a i)::'a::comm_ring_1^'n^'n) =
-    setprod (\<lambda>i. c i) (UNIV:: 'n set) * det((\<chi> i. a i)::'a^'n^'n)"
-proof (simp add: det_def sum_distrib_left cong add: setprod.cong, rule sum.cong)
+    prod (\<lambda>i. c i) (UNIV:: 'n set) * det((\<chi> i. a i)::'a^'n^'n)"
+proof (simp add: det_def sum_distrib_left cong add: prod.cong, rule sum.cong)
   let ?U = "UNIV :: 'n set"
   let ?PU = "{p. p permutes ?U}"
   fix p
@@ -653,10 +653,10 @@ proof (simp add: det_def sum_distrib_left cong add: setprod.cong, rule sum.cong)
   let ?s = "of_int (sign p)"
   from pU have p: "p permutes ?U"
     by blast
-  have "setprod (\<lambda>i. c i * a i $ p i) ?U = setprod c ?U * setprod (\<lambda>i. a i $ p i) ?U"
-    unfolding setprod.distrib ..
+  have "prod (\<lambda>i. c i * a i $ p i) ?U = prod c ?U * prod (\<lambda>i. a i $ p i) ?U"
+    unfolding prod.distrib ..
   then show "?s * (\<Prod>xa\<in>?U. c xa * a xa $ p xa) =
-    setprod c ?U * (?s* (\<Prod>xa\<in>?U. a xa $ p xa))"
+    prod c ?U * (?s* (\<Prod>xa\<in>?U. a xa $ p xa))"
     by (simp add: field_simps)
 qed rule
 
@@ -754,17 +754,17 @@ proof -
       have ths: "?s q = ?s p * ?s (q \<circ> inv p)"
         using pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
         by (simp add:  th00 ac_simps sign_idempotent sign_compose)
-      have th001: "setprod (\<lambda>i. B$i$ q (inv p i)) ?U = setprod ((\<lambda>i. B$i$ q (inv p i)) \<circ> p) ?U"
-        by (rule setprod_permute[OF p])
-      have thp: "setprod (\<lambda>i. (\<chi> i. A$i$p i *s B$p i :: 'a^'n^'n) $i $ q i) ?U =
-        setprod (\<lambda>i. A$i$p i) ?U * setprod (\<lambda>i. B$i$ q (inv p i)) ?U"
-        unfolding th001 setprod.distrib[symmetric] o_def permutes_inverses[OF p]
-        apply (rule setprod.cong[OF refl])
+      have th001: "prod (\<lambda>i. B$i$ q (inv p i)) ?U = prod ((\<lambda>i. B$i$ q (inv p i)) \<circ> p) ?U"
+        by (rule prod_permute[OF p])
+      have thp: "prod (\<lambda>i. (\<chi> i. A$i$p i *s B$p i :: 'a^'n^'n) $i $ q i) ?U =
+        prod (\<lambda>i. A$i$p i) ?U * prod (\<lambda>i. B$i$ q (inv p i)) ?U"
+        unfolding th001 prod.distrib[symmetric] o_def permutes_inverses[OF p]
+        apply (rule prod.cong[OF refl])
         using permutes_in_image[OF q]
         apply vector
         done
-      show "?s q * setprod (\<lambda>i. (((\<chi> i. A$i$p i *s B$p i) :: 'a^'n^'n)$i$q i)) ?U =
-        ?s p * (setprod (\<lambda>i. A$i$p i) ?U) * (?s (q \<circ> inv p) * setprod (\<lambda>i. B$i$(q \<circ> inv p) i) ?U)"
+      show "?s q * prod (\<lambda>i. (((\<chi> i. A$i$p i *s B$p i) :: 'a^'n^'n)$i$q i)) ?U =
+        ?s p * (prod (\<lambda>i. A$i$p i) ?U) * (?s (q \<circ> inv p) * prod (\<lambda>i. B$i$(q \<circ> inv p) i) ?U)"
         using ths thp pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
         by (simp add: sign_nz th00 field_simps sign_idempotent sign_compose)
     qed rule
@@ -1202,13 +1202,13 @@ lemma orthogonal_rotation_or_rotoinversion:
 
 text \<open>Explicit formulas for low dimensions.\<close>
 
-lemma setprod_neutral_const: "setprod f {(1::nat)..1} = f 1"
+lemma prod_neutral_const: "prod f {(1::nat)..1} = f 1"
   by simp
 
-lemma setprod_2: "setprod f {(1::nat)..2} = f 1 * f 2"
+lemma prod_2: "prod f {(1::nat)..2} = f 1 * f 2"
   by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
 
-lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
+lemma prod_3: "prod f {(1::nat)..3} = f 1 * f 2 * f 3"
   by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"

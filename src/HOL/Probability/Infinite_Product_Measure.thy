@@ -98,7 +98,7 @@ lemma (in product_prob_space) measure_PiM_emb:
   shows "measure (PiM I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod> i\<in>J. measure (M i) (X i))"
   using emeasure_PiM_emb[OF assms]
   unfolding emeasure_eq_measure M.emeasure_eq_measure
-  by (simp add: setprod_ennreal measure_nonneg setprod_nonneg)
+  by (simp add: prod_ennreal measure_nonneg prod_nonneg)
 
 lemma sets_Collect_single':
   "i \<in> I \<Longrightarrow> {x\<in>space (M i). P x} \<in> sets (M i) \<Longrightarrow> {x\<in>space (PiM I M). P (x i)} \<in> sets (PiM I M)"
@@ -151,7 +151,7 @@ proof -
   have "emeasure (Pi\<^sub>M I M) (prod_emb I M J (Pi\<^sub>E J A)) = emeasure (Pi\<^sub>M I ?M) (P.emb I J (Pi\<^sub>E J A))"
     by (auto simp: prod_emb_def PiE_iff intro!: arg_cong2[where f=emeasure] PiM_cong)
   also have "\<dots> = (\<Prod>i\<in>J. emeasure (M i) (A i))"
-    using J A by (subst P.emeasure_PiM_emb[OF J]) (auto intro!: setprod.cong)
+    using J A by (subst P.emeasure_PiM_emb[OF J]) (auto intro!: prod.cong)
   finally show ?thesis .
 qed
 
@@ -173,7 +173,7 @@ proof (rule measure_eqI_PiM_infinite[symmetric, OF refl])
   have "Pi\<^sub>M (insert i' I) M ?X = (\<Prod>i\<in>J. M i (A i))"
     using M J A by (intro emeasure_PiM_emb) auto
   also have "\<dots> = M i' (if i' \<in> J then (A i') else space (M i')) * (\<Prod>i\<in>J-{i'}. M i (A i))"
-    using setprod.insert_remove[of J "\<lambda>i. M i (A i)" i'] J M'.emeasure_space_1
+    using prod.insert_remove[of J "\<lambda>i. M i (A i)" i'] J M'.emeasure_space_1
     by (cases "i' \<in> J") (auto simp: insert_absorb)
   also have "(\<Prod>i\<in>J-{i'}. M i (A i)) = Pi\<^sub>M I M (prod_emb I M (J - {i'}) (Pi\<^sub>E (J - {i'}) A))"
     using M J A by (intro emeasure_PiM_emb[symmetric]) auto
@@ -205,7 +205,7 @@ proof (rule measure_eqI_PiM_infinite[symmetric, OF refl])
   have "?I (prod_emb I (\<lambda>i. M (f i)) J (Pi\<^sub>E J A)) = (\<Prod>j\<in>J. M (f j) (A j))"
     using f J A by (intro emeasure_PiM_emb M) auto
   also have "\<dots> = (\<Prod>j\<in>f`J. M j (A (the_inv_into I f j)))"
-    using f J by (subst setprod.reindex) (auto intro!: setprod.cong intro: inj_on_subset simp: the_inv_into_f_f)
+    using f J by (subst prod.reindex) (auto intro!: prod.cong intro: inj_on_subset simp: the_inv_into_f_f)
   also have "\<dots> = ?K (prod_emb K M (f`J) (\<Pi>\<^sub>E j\<in>f`J. A (the_inv_into I f j)))"
     using f J A by (intro emeasure_PiM_emb[symmetric] M) (auto simp: the_inv_into_f_f)
   also have "prod_emb K M (f`J) (\<Pi>\<^sub>E j\<in>f`J. A (the_inv_into I f j)) = ?t -` prod_emb I (\<lambda>i. M (f i)) J (Pi\<^sub>E J A) \<inter> space ?K"
@@ -352,12 +352,12 @@ proof (rule PiM_eq)
   also have "emeasure S ?F = (\<Prod>j\<in>(op + i) -` J. emeasure M (E (i + j)))"
     using J by (intro emeasure_PiM_emb) (simp_all add: finite_vimageI inj_on_def)
   also have "\<dots> = (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j))"
-    by (rule setprod.reindex_cong [of "\<lambda>x. x - i"])
+    by (rule prod.reindex_cong [of "\<lambda>x. x - i"])
        (auto simp: image_iff Bex_def not_less nat_eq_diff_eq ac_simps cong: conj_cong intro!: inj_onI)
   also have "emeasure S ?E = (\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j))"
     using J by (intro emeasure_PiM_emb) simp_all
   also have "(\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j)) * (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j)) = (\<Prod>j\<in>J. emeasure M (E j))"
-    by (subst mult.commute) (auto simp: J setprod.subset_diff[symmetric])
+    by (subst mult.commute) (auto simp: J prod.subset_diff[symmetric])
   finally show "emeasure ?D ?X = (\<Prod>j\<in>J. emeasure M (E j))" .
 qed simp_all
 
@@ -383,10 +383,10 @@ proof (rule PiM_eq)
   also have "emeasure S ?F = (\<Prod>j\<in>Suc -` J. emeasure M (E (Suc j)))"
     using J by (intro emeasure_PiM_emb) (simp_all add: finite_vimageI)
   also have "\<dots> = (\<Prod>j\<in>J - {0}. emeasure M (E j))"
-    by (rule setprod.reindex_cong [of "\<lambda>x. x - 1"])
+    by (rule prod.reindex_cong [of "\<lambda>x. x - 1"])
        (auto simp: image_iff Bex_def not_less nat_eq_diff_eq ac_simps cong: conj_cong intro!: inj_onI)
   also have "emeasure M ?E * (\<Prod>j\<in>J - {0}. emeasure M (E j)) = (\<Prod>j\<in>J. emeasure M (E j))"
-    by (auto simp: M.emeasure_space_1 setprod.remove J)
+    by (auto simp: M.emeasure_space_1 prod.remove J)
   finally show "emeasure ?D ?X = (\<Prod>j\<in>J. emeasure M (E j))" .
 qed simp_all
 

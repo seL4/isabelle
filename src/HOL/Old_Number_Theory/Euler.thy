@@ -133,7 +133,7 @@ proof -
   then show ?thesis by auto
 qed
 
-lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
+lemma SetS_prod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                               ~(QuadRes p a); x \<in> (SetS a p) |] ==> 
                           [\<Prod>x = a] (mod p)"
   apply (auto simp add: SetS_def MultInvPair_def)
@@ -174,21 +174,21 @@ lemma SRStar_d22set_prop: "2 < p \<Longrightarrow> (SRStar p) = {1} \<union> (d2
   apply (frule d22set_g_1, auto)
   done
 
-lemma Union_SetS_setprod_prop1:
+lemma Union_SetS_prod_prop1:
   assumes "zprime p" and "2 < p" and "~([a = 0] (mod p))" and
     "~(QuadRes p a)"
   shows "[\<Prod>(\<Union>(SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
 proof -
-  from assms have "[\<Prod>(\<Union>(SetS a p)) = setprod (setprod (%x. x)) (SetS a p)] (mod p)"
+  from assms have "[\<Prod>(\<Union>(SetS a p)) = prod (prod (%x. x)) (SetS a p)] (mod p)"
     by (auto simp add: SetS_finite SetS_elems_finite
-      MultInvPair_prop1c setprod.Union_disjoint)
-  also have "[setprod (setprod (%x. x)) (SetS a p) = 
-      setprod (%x. a) (SetS a p)] (mod p)"
-    by (rule setprod_same_function_zcong)
-      (auto simp add: assms SetS_setprod_prop SetS_finite)
-  also (zcong_trans) have "[setprod (%x. a) (SetS a p) = 
+      MultInvPair_prop1c prod.Union_disjoint)
+  also have "[prod (prod (%x. x)) (SetS a p) = 
+      prod (%x. a) (SetS a p)] (mod p)"
+    by (rule prod_same_function_zcong)
+      (auto simp add: assms SetS_prod_prop SetS_finite)
+  also (zcong_trans) have "[prod (%x. a) (SetS a p) = 
       a^(card (SetS a p))] (mod p)"
-    by (auto simp add: assms SetS_finite setprod_constant)
+    by (auto simp add: assms SetS_finite prod_constant)
   finally (zcong_trans) show ?thesis
     apply (rule zcong_trans)
     apply (subgoal_tac "card(SetS a p) = nat((p - 1) div 2)", auto)
@@ -197,7 +197,7 @@ proof -
     done
 qed
 
-lemma Union_SetS_setprod_prop2:
+lemma Union_SetS_prod_prop2:
   assumes "zprime p" and "2 < p" and "~([a = 0](mod p))"
   shows "\<Prod>(\<Union>(SetS a p)) = zfact (p - 1)"
 proof -
@@ -219,8 +219,8 @@ qed
 
 lemma zfact_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
                    [zfact (p - 1) = a ^ nat ((p - 1) div 2)] (mod p)"
-  apply (frule Union_SetS_setprod_prop1) 
-  apply (auto simp add: Union_SetS_setprod_prop2)
+  apply (frule Union_SetS_prod_prop1) 
+  apply (auto simp add: Union_SetS_prod_prop2)
   done
 
 text \<open>\medskip Prove the first part of Euler's Criterion:\<close>

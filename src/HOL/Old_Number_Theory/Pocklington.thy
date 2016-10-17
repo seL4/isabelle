@@ -561,7 +561,7 @@ qed
 
 lemma nproduct_mod:
   assumes fS: "finite S" and n0: "n \<noteq> 0"
-  shows "[setprod (\<lambda>m. a(m) mod n) S = setprod a S] (mod n)"
+  shows "[prod (\<lambda>m. a(m) mod n) S = prod a S] (mod n)"
 proof-
   have th1:"[1 = 1] (mod n)" by (simp add: modeq_def)
   from cong_mult
@@ -569,17 +569,17 @@ proof-
     [x1 = x2] (mod n) \<and> [y1 = y2] (mod n) \<longrightarrow> [x1 * y1 = x2 * y2] (mod n)"
     by blast
   have th4:"\<forall>x\<in>S. [a x mod n = a x] (mod n)" by (simp add: modeq_def)
-  from setprod.related [where h="(\<lambda>m. a(m) mod n)" and g=a, OF th1 th3 fS, OF th4] show ?thesis by (simp add: fS)
+  from prod.related [where h="(\<lambda>m. a(m) mod n)" and g=a, OF th1 th3 fS, OF th4] show ?thesis by (simp add: fS)
 qed
 
 lemma nproduct_cmul:
   assumes fS:"finite S"
-  shows "setprod (\<lambda>m. (c::'a::{comm_monoid_mult})* a(m)) S = c ^ (card S) * setprod a S"
-unfolding setprod.distrib setprod_constant [of c] ..
+  shows "prod (\<lambda>m. (c::'a::{comm_monoid_mult})* a(m)) S = c ^ (card S) * prod a S"
+unfolding prod.distrib prod_constant [of c] ..
 
 lemma coprime_nproduct:
   assumes fS: "finite S" and Sn: "\<forall>x\<in>S. coprime n (a x)"
-  shows "coprime n (setprod a S)"
+  shows "coprime n (prod a S)"
   using fS by (rule finite_subset_induct)
     (insert Sn, auto simp add: coprime_mul)
 
@@ -607,7 +607,7 @@ proof-
       let ?h = "\<lambda>m. (a * m) mod n"
       
       have eq0: "(\<Prod>i\<in>?S. ?h i) = (\<Prod>i\<in>?S. i)"
-      proof (rule setprod.reindex_bij_betw)
+      proof (rule prod.reindex_bij_betw)
         have "inj_on (\<lambda>i. ?h i) ?S"
         proof (rule inj_onI)
           fix x y assume "?h x = ?h y"
@@ -636,7 +636,7 @@ proof-
       have "[(\<Prod>i\<in>?S. a * i) = (\<Prod>i\<in>?S. ?h i)] (mod n)"
         by (simp add: cong_commute)
       also have "[(\<Prod>i\<in>?S. ?h i) = ?P] (mod n)"
-        using eq0 fS an by (simp add: setprod_def modeq_def)
+        using eq0 fS an by (simp add: prod_def modeq_def)
       finally show "[?P*a^ (\<phi> n) = ?P*1] (mod n)"
         unfolding cardfS mult.commute[of ?P "a^ (card ?S)"]
           nproduct_cmul[OF fS, symmetric] mult_1_right by simp
