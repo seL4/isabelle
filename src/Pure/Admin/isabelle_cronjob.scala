@@ -103,8 +103,10 @@ object Isabelle_Cronjob
 
   private val remote_builds =
     List(
-      Remote_Build("lxbroy10", options = "-m32 -M4", shared_home = true),
-      Remote_Build("macbroy2", options = "-m32 -M4"))
+      Remote_Build("lxbroy10", options = "-m32 -M4 -N", shared_home = true),
+      Remote_Build("macbroy2", options = "-m32 -M4"),
+      Remote_Build("macbroy30", options = "-m32 -M2"),
+      Remote_Build("macbroy31", options = "-m32 -M2"))
 
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
     Logger_Task("build_history-" + r.host, logger =>
