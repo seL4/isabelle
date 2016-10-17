@@ -50,6 +50,25 @@ fun unstar_term consts term =
     unstar term
   end
 
+local exception MATCH
+in
+fun transfer_star_tac ctxt =
+  let
+    fun thm_of (Const (@{const_name Ifun}, _) $ t $ u) = @{thm transfer_Ifun} OF [thm_of t, thm_of u]
+    | thm_of (Const (@{const_name star_of}, _) $ _) = @{thm star_of_def}
+    | thm_of (Const (@{const_name star_n}, _) $ _) = @{thm Pure.reflexive}
+    | thm_of _ = raise MATCH;
+
+    fun thm_of_goal (Const (@{const_name Pure.eq}, _) $ t $ (Const (@{const_name star_n}, _) $ _)) =
+      thm_of t
+    | thm_of_goal _ = raise MATCH;
+  in
+    SUBGOAL (fn (t, i) =>
+      resolve_tac ctxt [thm_of_goal (strip_all_body t |> Logic.strip_imp_concl)] i
+      handle MATCH => no_tac)
+  end;
+end;
+
 fun transfer_thm_of ctxt ths t =
   let
     val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt);
@@ -58,12 +77,12 @@ fun transfer_thm_of ctxt ths t =
     val unfolds' = map meta unfolds and refolds' = map meta refolds;
     val (_$_$t') = Thm.concl_of (Raw_Simplifier.rewrite ctxt true unfolds' (Thm.cterm_of ctxt t))
     val u = unstar_term consts t'
-    val tac =
+   val tac =
       rewrite_goals_tac ctxt (ths' @ refolds' @ unfolds') THEN
       ALLGOALS (Object_Logic.full_atomize_tac ctxt) THEN
       match_tac ctxt [transitive_thm] 1 THEN
       resolve_tac ctxt [@{thm transfer_start}] 1 THEN
-      REPEAT_ALL_NEW (resolve_tac ctxt intros) 1 THEN
+      REPEAT_ALL_NEW (resolve_tac ctxt intros ORELSE' transfer_star_tac ctxt) 1 THEN
       match_tac ctxt [reflexive_thm] 1
   in Goal.prove ctxt [] [] (Logic.mk_equals (t,u)) (K tac) end
 

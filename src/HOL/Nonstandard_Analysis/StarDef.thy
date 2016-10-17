@@ -78,6 +78,28 @@ lemma transfer_start:
   "P \<equiv> eventually (\<lambda>n. Q) \<U> \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
   by (simp add: FreeUltrafilterNat.proper)
 
+text \<open>Standard principles that play a central role in the transfer tactic.\<close>
+definition
+  Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("_ \<star> _" [300,301] 300) where
+  "Ifun f \<equiv> \<lambda>x. Abs_star
+       (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
+
+lemma Ifun_congruent2:
+  "congruent2 starrel starrel (\<lambda>F X. starrel``{\<lambda>n. F n (X n)})"
+by (auto simp add: congruent2_def equiv_starrel_iff elim!: eventually_rev_mp)
+
+lemma Ifun_star_n: "star_n F \<star> star_n X = star_n (\<lambda>n. F n (X n))"
+by (simp add: Ifun_def star_n_def Abs_star_inverse starrel_in_star
+    UN_equiv_class2 [OF equiv_starrel equiv_starrel Ifun_congruent2])
+
+lemma transfer_Ifun:
+  "\<lbrakk>f \<equiv> star_n F; x \<equiv> star_n X\<rbrakk> \<Longrightarrow> f \<star> x \<equiv> star_n (\<lambda>n. F n (X n))"
+by (simp only: Ifun_star_n)
+
+definition
+  star_of :: "'a \<Rightarrow> 'a star" where
+  "star_of x == star_n (\<lambda>n. x)"
+
 text \<open>Initialize transfer tactic.\<close>
 ML_file "transfer.ML"
 
@@ -155,17 +177,11 @@ by (simp add: FreeUltrafilterNat.proper)
 subsection \<open>Standard elements\<close>
 
 definition
-  star_of :: "'a \<Rightarrow> 'a star" where
-  "star_of x == star_n (\<lambda>n. x)"
-
-definition
   Standard :: "'a star set" where
   "Standard = range star_of"
 
 text \<open>Transfer tactic should remove occurrences of @{term star_of}\<close>
 setup \<open>Transfer_Principle.add_const @{const_name star_of}\<close>
-
-declare star_of_def [transfer_intro]
 
 lemma star_of_inject: "(star_of x = star_of y) = (x = y)"
 by (transfer, rule refl)
@@ -173,28 +189,10 @@ by (transfer, rule refl)
 lemma Standard_star_of [simp]: "star_of x \<in> Standard"
 by (simp add: Standard_def)
 
-
 subsection \<open>Internal functions\<close>
-
-definition
-  Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("_ \<star> _" [300,301] 300) where
-  "Ifun f \<equiv> \<lambda>x. Abs_star
-       (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
-
-lemma Ifun_congruent2:
-  "congruent2 starrel starrel (\<lambda>F X. starrel``{\<lambda>n. F n (X n)})"
-by (auto simp add: congruent2_def equiv_starrel_iff elim!: eventually_rev_mp)
-
-lemma Ifun_star_n: "star_n F \<star> star_n X = star_n (\<lambda>n. F n (X n))"
-by (simp add: Ifun_def star_n_def Abs_star_inverse starrel_in_star
-    UN_equiv_class2 [OF equiv_starrel equiv_starrel Ifun_congruent2])
 
 text \<open>Transfer tactic should remove occurrences of @{term Ifun}\<close>
 setup \<open>Transfer_Principle.add_const @{const_name Ifun}\<close>
-
-lemma transfer_Ifun [transfer_intro]:
-  "\<lbrakk>f \<equiv> star_n F; x \<equiv> star_n X\<rbrakk> \<Longrightarrow> f \<star> x \<equiv> star_n (\<lambda>n. F n (X n))"
-by (simp only: Ifun_star_n)
 
 lemma Ifun_star_of [simp]: "star_of f \<star> star_of x = star_of (f x)"
 by (transfer, rule refl)
