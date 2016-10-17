@@ -9,8 +9,7 @@ sig
   val max_threads: unit -> int
   val max_threads_update: int -> unit
   val enabled: unit -> bool
-  val sync_wait: Thread.threadAttribute list option -> Time.time option ->
-    ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
+  val sync_wait: Time.time option -> ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
@@ -47,10 +46,9 @@ end;
 
 (* synchronous wait *)
 
-fun sync_wait opt_atts time cond lock =
+fun sync_wait time cond lock =
   Thread_Attributes.with_attributes
-    (Thread_Attributes.sync_interrupts
-      (case opt_atts of SOME atts => atts | NONE => Thread.getAttributes ()))
+    (Thread_Attributes.sync_interrupts (Thread.getAttributes ()))
     (fn _ =>
       (case time of
         SOME t => Exn.Res (ConditionVar.waitUntil (cond, lock, t))

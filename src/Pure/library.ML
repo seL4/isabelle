@@ -596,7 +596,7 @@ fun radixstring (base, zerochar, num) =
 
 
 local
-  val zero = ord "0";
+  val zero = Char.ord #"0";
   val small_int = 10000: int;
   val small_int_table = Vector.tabulate (small_int, Int.toString);
 in
@@ -620,7 +620,7 @@ fun string_of_indexname (a, 0) = a
 
 fun read_radix_int radix cs =
   let
-    val zero = ord "0";
+    val zero = Char.ord #"0";
     val limit = zero + radix;
     fun scan (num, []) = (num, [])
       | scan (num, c :: cs) =

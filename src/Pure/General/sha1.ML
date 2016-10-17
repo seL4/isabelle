@@ -42,7 +42,7 @@ fun rotate k w = w << k orb w >> (0w32 - k);
 fun hex_digit (text, w: Word32.word) =
   let
     val d = Word32.toInt (w andb 0wxf);
-    val dig = if d < 10 then chr (ord "0" + d) else chr (ord "a" + d - 10);
+    val dig = if d < 10 then chr (Char.ord #"0" + d) else chr (Char.ord #"a" + d - 10);
   in (dig ^ text, w >> 0w4) end;
 
 fun hex_word w = #1 (funpow 8 hex_digit ("", w));
@@ -145,7 +145,7 @@ local
 
 (* digesting *)
 
-fun hex_digit i = if i < 10 then chr (ord "0" + i) else chr (ord "a" + i - 10);
+fun hex_digit i = if i < 10 then chr (Char.ord #"0" + i) else chr (Char.ord #"a" + i - 10);
 
 fun hex_string arr i =
   let val c = CInterface.fromCchar (CInterface.offset i CInterface.Cchar arr)

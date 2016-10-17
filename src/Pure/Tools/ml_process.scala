@@ -92,9 +92,16 @@ object ML_Process
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
     val env_tmp = Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp))
 
+    val ml_runtime_options =
+    {
+      val ml_options = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
+      if (ml_options.exists(_.containsSlice("gcthreads"))) ml_options
+      else ml_options ::: List("--gcthreads", options.int("threads").toString)
+    }
+
     // bash
     val bash_args =
-      Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
+      ml_runtime_options :::
       (eval_init ::: eval_modes ::: eval_options ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
