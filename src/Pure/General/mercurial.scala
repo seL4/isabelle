@@ -1,7 +1,8 @@
 /*  Title:      Pure/General/mercurial.scala
     Author:     Makarius
 
-Support for Mercurial repositories.
+Support for Mercurial repositories, with local or remote repository clone
+and working directory (via ssh connection).
 */
 
 package isabelle

@@ -960,6 +960,18 @@ Attrib.empty_binding. Minor INCOMPATIBILITY.
 
 *** System ***
 
+* Isabelle/Scala: the SSH module supports ssh and sftp connections, for
+remote command-execution and file-system access. This resembles
+operations from module File and Isabelle_System to some extent. Note
+that Path specifications need to be resolved remotely via
+ssh.remote_path instead of File.standard_path: the implicit process
+environment is different, Isabelle settings are not available remotely.
+
+* Isabelle/Scala: the Mercurial module supports repositories via the
+regular hg command-line interface. The repositroy clone and working
+directory may reside on a local or remote file-system (via ssh
+connection).
+
 * Many Isabelle tools that require a Java runtime system refer to the
 settings ISABELLE_TOOL_JAVA_OPTIONS32 / ISABELLE_TOOL_JAVA_OPTIONS64,
 depending on the underlying platform. The settings for "isabelle build"
