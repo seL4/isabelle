@@ -146,8 +146,9 @@ object Build_History
 
     /* main */
 
-    val build_history_date = Date.now()
     val build_host = Isabelle_System.hostname()
+    val build_history_date = Date.now()
+    val build_group_id = build_host + ":" + build_history_date.time.ms
 
     var first_build = true
     for (threads <- threads_list) yield
@@ -183,12 +184,9 @@ object Build_History
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
-      val res =
+      val build_result =
         other_isabelle("build -v " + File.bash_args(build_args), redirect = true, echo = verbose)
       val build_end = Date.now()
-
-
-      /* output log */
 
       val log_path =
         other_isabelle.isabelle_home_user +
@@ -196,10 +194,17 @@ object Build_History
           Build_Log.log_filename(
             BUILD_HISTORY, build_history_date, build_host, ml_platform, "M" + threads)
 
-      val build_info = Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info()
+      val build_info =
+        Build_Log.Log_File(log_path.base.implode, build_result.out_lines).parse_build_info()
+
+
+      /* output log */
 
       val meta_info =
-        List(Build_Log.Field.build_engine -> BUILD_HISTORY,
+        List(
+          Build_Log.Field.build_group_id -> build_group_id,
+          Build_Log.Field.build_id -> (build_host + ":" + build_start.time.ms),
+          Build_Log.Field.build_engine -> BUILD_HISTORY,
           Build_Log.Field.build_host -> build_host,
           Build_Log.Field.build_start -> Build_Log.print_date(build_start),
           Build_Log.Field.build_end -> Build_Log.print_date(build_end),
@@ -228,7 +233,7 @@ object Build_History
       Isabelle_System.mkdirs(log_path.dir)
       File.write_xz(log_path.ext("xz"),
         terminate_lines(
-          Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: res.out_lines :::
+          Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: build_result.out_lines :::
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
           heap_sizes), XZ.options(6))
 
@@ -242,7 +247,7 @@ object Build_History
 
       first_build = false
 
-      (res, log_path.ext("xz"))
+      (build_result, log_path.ext("xz"))
     }
   }
 

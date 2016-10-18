@@ -247,6 +247,8 @@ object Build_Log
 
   object Field
   {
+    val build_group_id = "build_group_id"
+    val build_id = "build_id"
     val build_engine = "build_engine"
     val build_host = "build_host"
     val build_start = "build_start"
@@ -303,6 +305,11 @@ object Build_Log
     def parse(engine: String, host: String, start: Date,
       End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Meta_Info =
     {
+      val build_id =
+      {
+        val prefix = if (host != "") host else if (engine != "") engine else ""
+        (if (prefix == "") "build" else prefix) + ":" + start.time.ms
+      }
       val build_engine = if (engine == "") Nil else List(Field.build_engine -> engine)
       val build_host = if (host == "") Nil else List(Field.build_host -> host)
 
@@ -319,7 +326,7 @@ object Build_Log
       val afp_version =
         log_file.find_match(AFP_Version).map(Field.afp_version -> _)
 
-      Meta_Info(build_engine ::: build_host :::
+      Meta_Info((Field.build_id -> build_id) :: build_engine ::: build_host :::
           start_date ::: end_date ::: isabelle_version.toList ::: afp_version.toList,
         log_file.get_settings(Settings.all_settings))
     }
