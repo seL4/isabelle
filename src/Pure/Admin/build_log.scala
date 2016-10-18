@@ -24,7 +24,11 @@ object Build_Log
 
   object Prop
   {
-    val build_tags = "build_tags"
+    def lines(name: String, lines: List[String]): Properties.T =
+      if (lines.isEmpty) Nil else List(name -> cat_lines(lines))
+
+    val build_tags = "build_tags"  // lines
+    val build_args = "build_args"  // lines
     val build_group_id = "build_group_id"
     val build_id = "build_id"
     val build_engine = "build_engine"
