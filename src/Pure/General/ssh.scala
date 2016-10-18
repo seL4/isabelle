@@ -324,6 +324,8 @@ object SSH
 
     /* tmp dirs */
 
+    def rm_tree(dir: Path): Unit = rm_tree(remote_path(dir))
+
     def rm_tree(remote_dir: String): Unit =
       execute("rm -r -f " + Bash.string(remote_dir)).check
 
