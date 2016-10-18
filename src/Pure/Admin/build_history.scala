@@ -115,6 +115,7 @@ object Build_History
     max_heap: Option[Int] = None,
     more_settings: List[String] = Nil,
     verbose: Boolean = false,
+    build_tags: List[String] = Nil,
     build_args: List[String] = Nil): List[(Process_Result, Path)] =
   {
     /* sanity checks */
@@ -191,8 +192,8 @@ object Build_History
       val log_path =
         other_isabelle.isabelle_home_user +
           Build_Log.log_subdir(build_history_date) +
-          Build_Log.log_filename(
-            BUILD_HISTORY, build_history_date, build_host, ml_platform, "M" + threads)
+          Build_Log.log_filename(BUILD_HISTORY, build_history_date,
+            List(build_host, ml_platform, "M" + threads) ::: build_tags)
 
       val build_info =
         Build_Log.Log_File(log_path.base.implode, build_result.out_lines).parse_build_info()
@@ -201,6 +202,8 @@ object Build_History
       /* output log */
 
       val meta_info =
+        (if (build_tags.isEmpty) Nil
+         else List(Build_Log.Field.build_tags -> Word.implode(build_tags))) :::
         List(
           Build_Log.Field.build_group_id -> build_group_id,
           Build_Log.Field.build_id -> (build_host + ":" + build_start.time.ms),
@@ -268,6 +271,7 @@ object Build_History
       var arch_64 = false
       var nonfree = false
       var rev = default_rev
+      var build_tags = List.empty[String]
       var verbose = false
 
       val getopts = Getopts("""
@@ -285,6 +289,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
     -n           include nonfree components
     -r REV       update to revision (default: """ + default_rev + """)
+    -t TAG       free-form build tag (multiple occurrences possible)
     -v           verbose
 
   Build Isabelle sessions from the history of another REPOSITORY clone,
@@ -306,6 +311,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           },
         "n" -> (_ => nonfree = true),
         "r:" -> (arg => rev = arg),
+        "t:" -> (arg => build_tags = build_tags ::: List(arg)),
         "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
@@ -323,7 +329,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           multicore_base = multicore_base, threads_list = threads_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, more_settings = more_settings, verbose = verbose,
-          build_args = build_args)
+          build_tags = build_tags, build_args = build_args)
 
       for ((_, log_path) <- results)
         Output.writeln(log_path.implode, stdout = true)

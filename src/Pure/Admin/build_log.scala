@@ -30,8 +30,8 @@ object Build_Log
   def log_subdir(date: Date): Path =
     Path.explode("log") + Path.explode(date.rep.getYear.toString)
 
-  def log_filename(engine: String, date: Date, more: String*): Path =
-    Path.explode((engine :: log_date(date) :: more.toList).mkString("", "_", ".log"))
+  def log_filename(engine: String, date: Date, more: List[String] = Nil): Path =
+    Path.explode((engine :: log_date(date) :: more).mkString("", "_", ".log"))
 
 
   /* log file collections */
@@ -247,6 +247,7 @@ object Build_Log
 
   object Field
   {
+    val build_tags = "build_tags"
     val build_group_id = "build_group_id"
     val build_id = "build_id"
     val build_engine = "build_engine"
