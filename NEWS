@@ -281,6 +281,8 @@ types where this is really intended.
     mod_1 ~> mod_by_Suc_0
 INCOMPATIBILITY.
 
+* Renamed "setsum" ~> "sum" and "setprod" ~> "prod".
+
 * Dedicated syntax LENGTH('a) for length of types.
 
 * New proof method "argo" using the built-in Argo solver based on SMT
