@@ -24,9 +24,11 @@ object Build_Log
 
   object Prop
   {
+    val separator = '\u000b'
+
     def multiple(name: String, args: List[String]): Properties.T =
       if (args.isEmpty) Nil
-      else List(name -> YXML.string_of_body(XML.Encode.list(XML.Encode.string)(args)))
+      else List(name -> args.mkString(separator.toString))
 
     val build_tags = "build_tags"  // multiple
     val build_args = "build_args"  // multiple
