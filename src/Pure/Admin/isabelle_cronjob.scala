@@ -172,7 +172,9 @@ object Isabelle_Cronjob
       val err =
         res match {
           case Exn.Res(_) => None
-          case Exn.Exn(exn) => Some(Exn.message(exn))
+          case Exn.Exn(exn) =>
+            val first_line = Library.split_lines(Exn.message(exn)).headOption getOrElse "exception"
+            Some(first_line)
         }
       logger.log_end(end_date, err)
     }
