@@ -18,36 +18,25 @@ import scala.util.matching.Regex
 
 object Build_Log
 {
-  /** directory content **/
+  /** content **/
 
-  /* file names */
+  /* properties */
 
-  def log_date(date: Date): String =
-    String.format(Locale.ROOT, "%s.%05d",
-      DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date.rep),
-      new java.lang.Long((date.time - date.midnight.time).ms / 1000))
-
-  def log_subdir(date: Date): Path =
-    Path.explode("log") + Path.explode(date.rep.getYear.toString)
-
-  def log_filename(engine: String, date: Date, more: List[String] = Nil): Path =
-    Path.explode((engine :: log_date(date) :: more).mkString("", "_", ".log"))
-
-
-  /* log file collections */
-
-  def is_log(file: JFile): Boolean =
-    List(".log", ".log.gz", ".log.xz").exists(ext => file.getName.endsWith(ext))
-
-  def isatest_files(dir: Path): List[JFile] =
-    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("isatest-makeall-"))
-
-  def afp_test_files(dir: Path): List[JFile] =
-    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("afp-test-devel-"))
+  object Prop
+  {
+    val build_tags = "build_tags"
+    val build_group_id = "build_group_id"
+    val build_id = "build_id"
+    val build_engine = "build_engine"
+    val build_host = "build_host"
+    val build_start = "build_start"
+    val build_end = "build_end"
+    val isabelle_version = "isabelle_version"
+    val afp_version = "afp_version"
+  }
 
 
-
-  /** settings **/
+  /* settings */
 
   object Settings
   {
@@ -76,6 +65,32 @@ object Build_Log
       cat_lines(
         build_settings.map(Entry.getenv(_)) ::: List("") ::: ml_settings.map(Entry.getenv(_)))
   }
+
+
+  /* file names */
+
+  def log_date(date: Date): String =
+    String.format(Locale.ROOT, "%s.%05d",
+      DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date.rep),
+      new java.lang.Long((date.time - date.midnight.time).ms / 1000))
+
+  def log_subdir(date: Date): Path =
+    Path.explode("log") + Path.explode(date.rep.getYear.toString)
+
+  def log_filename(engine: String, date: Date, more: List[String] = Nil): Path =
+    Path.explode((engine :: log_date(date) :: more).mkString("", "_", ".log"))
+
+
+  /* log file collections */
+
+  def is_log(file: JFile): Boolean =
+    List(".log", ".log.gz", ".log.xz").exists(ext => file.getName.endsWith(ext))
+
+  def isatest_files(dir: Path): List[JFile] =
+    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("isatest-makeall-"))
+
+  def afp_test_files(dir: Path): List[JFile] =
+    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("afp-test-devel-"))
 
 
 
@@ -245,19 +260,6 @@ object Build_Log
 
   /** meta info **/
 
-  object Field
-  {
-    val build_tags = "build_tags"
-    val build_group_id = "build_group_id"
-    val build_id = "build_id"
-    val build_engine = "build_engine"
-    val build_host = "build_host"
-    val build_start = "build_start"
-    val build_end = "build_end"
-    val isabelle_version = "isabelle_version"
-    val afp_version = "afp_version"
-  }
-
   object Meta_Info
   {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
@@ -311,23 +313,23 @@ object Build_Log
         val prefix = if (host != "") host else if (engine != "") engine else ""
         (if (prefix == "") "build" else prefix) + ":" + start.time.ms
       }
-      val build_engine = if (engine == "") Nil else List(Field.build_engine -> engine)
-      val build_host = if (host == "") Nil else List(Field.build_host -> host)
+      val build_engine = if (engine == "") Nil else List(Prop.build_engine -> engine)
+      val build_host = if (host == "") Nil else List(Prop.build_host -> host)
 
-      val start_date = List(Field.build_start -> start.toString)
+      val start_date = List(Prop.build_start -> start.toString)
       val end_date =
         log_file.lines.last match {
           case End(log_file.Strict_Date(end_date)) =>
-            List(Field.build_end -> end_date.toString)
+            List(Prop.build_end -> end_date.toString)
           case _ => Nil
         }
 
       val isabelle_version =
-        log_file.find_match(Isabelle_Version).map(Field.isabelle_version -> _)
+        log_file.find_match(Isabelle_Version).map(Prop.isabelle_version -> _)
       val afp_version =
-        log_file.find_match(AFP_Version).map(Field.afp_version -> _)
+        log_file.find_match(AFP_Version).map(Prop.afp_version -> _)
 
-      Meta_Info((Field.build_id -> build_id) :: build_engine ::: build_host :::
+      Meta_Info((Prop.build_id -> build_id) :: build_engine ::: build_host :::
           start_date ::: end_date ::: isabelle_version.toList ::: afp_version.toList,
         log_file.get_settings(Settings.all_settings))
     }

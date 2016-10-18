@@ -203,15 +203,15 @@ object Build_History
 
       val meta_info =
         (if (build_tags.isEmpty) Nil
-         else List(Build_Log.Field.build_tags -> Word.implode(build_tags))) :::
+         else List(Build_Log.Prop.build_tags -> Word.implode(build_tags))) :::
         List(
-          Build_Log.Field.build_group_id -> build_group_id,
-          Build_Log.Field.build_id -> (build_host + ":" + build_start.time.ms),
-          Build_Log.Field.build_engine -> BUILD_HISTORY,
-          Build_Log.Field.build_host -> build_host,
-          Build_Log.Field.build_start -> Build_Log.print_date(build_start),
-          Build_Log.Field.build_end -> Build_Log.print_date(build_end),
-          Build_Log.Field.isabelle_version -> isabelle_version)
+          Build_Log.Prop.build_group_id -> build_group_id,
+          Build_Log.Prop.build_id -> (build_host + ":" + build_start.time.ms),
+          Build_Log.Prop.build_engine -> BUILD_HISTORY,
+          Build_Log.Prop.build_host -> build_host,
+          Build_Log.Prop.build_start -> Build_Log.print_date(build_start),
+          Build_Log.Prop.build_end -> Build_Log.print_date(build_end),
+          Build_Log.Prop.isabelle_version -> isabelle_version)
 
       val ml_statistics =
         build_info.finished_sessions.flatMap(session_name =>
