@@ -202,8 +202,8 @@ object Build_History
       /* output log */
 
       val meta_info =
-        Build_Log.Prop.lines(Build_Log.Prop.build_tags, build_tags) :::
-        Build_Log.Prop.lines(Build_Log.Prop.build_args, build_args) :::
+        Build_Log.Prop.multiple(Build_Log.Prop.build_tags, build_tags) :::
+        Build_Log.Prop.multiple(Build_Log.Prop.build_args, build_args) :::
         List(
           Build_Log.Prop.build_group_id -> build_group_id,
           Build_Log.Prop.build_id -> (build_host + ":" + build_start.time.ms),

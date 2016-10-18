@@ -24,11 +24,12 @@ object Build_Log
 
   object Prop
   {
-    def lines(name: String, lines: List[String]): Properties.T =
-      if (lines.isEmpty) Nil else List(name -> cat_lines(lines))
+    def multiple(name: String, args: List[String]): Properties.T =
+      if (args.isEmpty) Nil
+      else List(name -> YXML.string_of_body(XML.Encode.list(XML.Encode.string)(args)))
 
-    val build_tags = "build_tags"  // lines
-    val build_args = "build_args"  // lines
+    val build_tags = "build_tags"  // multiple
+    val build_args = "build_args"  // multiple
     val build_group_id = "build_group_id"
     val build_id = "build_id"
     val build_engine = "build_engine"
