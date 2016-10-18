@@ -89,7 +89,7 @@ object Isabelle_Tool
         (args: List[String]) =>
           {
             val tool = dir + Path.basic(name)
-            val result = Isabelle_System.bash(File.bash_path(tool) + " " + File.bash_args(args))
+            val result = Isabelle_System.bash(File.bash_path(tool) + " " + Bash.strings(args))
             sys.exit(result.print_stdout.rc)
           }
     })

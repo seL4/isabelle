@@ -318,7 +318,7 @@ object Isabelle_System
   def hostname(): String = bash("hostname -s").check.out
 
   def open(arg: String): Unit =
-    bash("exec \"$ISABELLE_OPEN\" " + File.bash_string(arg) + " >/dev/null 2>/dev/null &")
+    bash("exec \"$ISABELLE_OPEN\" " + Bash.string(arg) + " >/dev/null 2>/dev/null &")
 
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" " + File.bash_path(arg) + " >/dev/null 2>/dev/null &")

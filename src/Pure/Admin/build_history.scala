@@ -190,7 +190,7 @@ object Build_History
       val build_start = Date.now()
       val build_args1 = List("-v", "-j" + processes) ::: build_args
       val build_result =
-        other_isabelle("build " + File.bash_args(build_args1), redirect = true, echo = verbose)
+        other_isabelle("build " + Bash.strings(build_args1), redirect = true, echo = verbose)
       val build_end = Date.now()
 
       val log_path =
@@ -373,7 +373,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
-    val isabelle_admin = ssh.remote_path(isabelle_repos_self + Path.explode("Admin"))
+    val isabelle_admin = ssh.bash_path(isabelle_repos_self + Path.explode("Admin"))
 
 
     /* prepare repository clones */
@@ -384,19 +384,19 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     if (self_update) {
       isabelle_hg.pull()
       isabelle_hg.update(clean = true)
-      ssh.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
+      ssh.execute(Bash.string(isabelle_admin + "/build") + " jars_fresh").check
     }
 
     Mercurial.setup_repository(
-      ssh.remote_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(ssh))
+      ssh.bash_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(ssh))
 
 
     /* Admin/build_history */
 
     val result =
       ssh.execute(
-        File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
-          File.bash_string(ssh.remote_path(isabelle_repos_other)) + " " + args,
+        Bash.string(isabelle_admin + "/build_history") + " " + options + " " +
+          ssh.bash_path(isabelle_repos_other) + " " + args,
         progress_stderr = progress.echo(_)).check
 
     for (line <- result.out_lines; log = Path.explode(line))

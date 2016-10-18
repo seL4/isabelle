@@ -13,13 +13,13 @@ object Remote_DMG
   {
     ssh.with_tmp_dir(remote_dir =>
       {
-        val cd = "cd " + File.bash_string(ssh.remote_path(remote_dir)) + "; "
+        val cd = "cd " + ssh.bash_path(remote_dir) + "; "
 
         ssh.write_file(remote_dir + Path.explode("dmg.tar.gz"), tar_gz_file)
         ssh.execute(cd + "mkdir root && tar -C root -xzf dmg.tar.gz").check
         ssh.execute(
           cd + "hdiutil create -srcfolder root" +
-            (if (volume_name == "") "" else " -volname " + File.bash_string(volume_name)) +
+            (if (volume_name == "") "" else " -volname " + Bash.string(volume_name)) +
             " dmg.dmg").check
         ssh.read_file(remote_dir + Path.explode("dmg.dmg"), dmg_file)
       })

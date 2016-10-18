@@ -13,6 +13,36 @@ import java.io.{File => JFile, BufferedReader, InputStreamReader,
 
 object Bash
 {
+  /* concrete syntax */
+
+  private def bash_chr(c: Byte): String =
+  {
+    val ch = c.toChar
+    ch match {
+      case '\t' => "$'\\t'"
+      case '\n' => "$'\\n'"
+      case '\f' => "$'\\f'"
+      case '\r' => "$'\\r'"
+      case _ =>
+        if (Symbol.is_ascii_letter(ch) || Symbol.is_ascii_digit(ch) || "-./:_".contains(ch))
+          Symbol.ascii(ch)
+        else if (c < 0) "$'\\x" + Integer.toHexString(256 + c) + "'"
+        else if (c < 16) "$'\\x0" + Integer.toHexString(c) + "'"
+        else if (c < 32 || c >= 127) "$'\\x" + Integer.toHexString(c) + "'"
+        else  "\\" + ch
+    }
+  }
+
+  def string(s: String): String =
+    if (s == "") "\"\""
+    else UTF8.bytes(s).iterator.map(bash_chr(_)).mkString
+
+  def strings(ss: List[String]): String =
+    ss.iterator.map(Bash.string(_)).mkString(" ")
+
+
+  /* process and result */
+
   private class Limited_Progress(proc: Process, progress_limit: Option[Long])
   {
     private var count = 0L

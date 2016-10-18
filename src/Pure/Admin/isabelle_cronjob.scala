@@ -123,8 +123,7 @@ object Isabelle_Cronjob
                   isabelle_repos_source = isabelle_dev_source,
                   self_update = !r.shared_home,
                   options =
-                    r.options + " -f -r " + File.bash_string(rev) +
-                      " -N " + File.bash_string(task_name),
+                    r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
                   args = r.args)
               for ((log, bytes) <- results)
                 Bytes.write(logger.log_dir + Path.explode(log), bytes)

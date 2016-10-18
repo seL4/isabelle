@@ -49,7 +49,7 @@ struct
 local
 
 fun make_command command options problem_path proof_path =
-  "(exec 2>&1;" :: map File.bash_string (command () @ options) @
+  "(exec 2>&1;" :: map Bash.string (command () @ options) @
   [File.bash_path problem_path, ")", ">", File.bash_path proof_path]
   |> space_implode " "
 
