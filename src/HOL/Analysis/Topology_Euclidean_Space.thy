@@ -1034,6 +1034,14 @@ lemma mem_cball_0 [simp]:
   shows "x \<in> cball 0 e \<longleftrightarrow> norm x \<le> e"
   by (simp add: dist_norm)
 
+lemma disjoint_ballI:
+  shows "dist x y \<ge> r+s \<Longrightarrow> ball x r \<inter> ball y s = {}"
+  using dist_triangle_less_add not_le by fastforce
+
+lemma disjoint_cballI:
+  shows "dist x y > r+s \<Longrightarrow> cball x r \<inter> cball y s = {}"
+  by (metis add_mono disjoint_iff_not_equal dist_triangle2 dual_order.trans leD mem_cball)
+
 lemma mem_sphere_0 [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "x \<in> sphere 0 e \<longleftrightarrow> norm x = e"
@@ -5435,62 +5443,62 @@ proof (rule completeI)
 qed
 
 lemma complete_imp_closed:
-  fixes s :: "'a::metric_space set"
-  assumes "complete s"
-  shows "closed s"
+  fixes S :: "'a::metric_space set"
+  assumes "complete S"
+  shows "closed S"
 proof (unfold closed_sequential_limits, clarify)
-  fix f x assume "\<forall>n. f n \<in> s" and "f \<longlonglongrightarrow> x"
+  fix f x assume "\<forall>n. f n \<in> S" and "f \<longlonglongrightarrow> x"
   from \<open>f \<longlonglongrightarrow> x\<close> have "Cauchy f"
     by (rule LIMSEQ_imp_Cauchy)
-  with \<open>complete s\<close> and \<open>\<forall>n. f n \<in> s\<close> obtain l where "l \<in> s" and "f \<longlonglongrightarrow> l"
+  with \<open>complete S\<close> and \<open>\<forall>n. f n \<in> S\<close> obtain l where "l \<in> S" and "f \<longlonglongrightarrow> l"
     by (rule completeE)
   from \<open>f \<longlonglongrightarrow> x\<close> and \<open>f \<longlonglongrightarrow> l\<close> have "x = l"
     by (rule LIMSEQ_unique)
-  with \<open>l \<in> s\<close> show "x \<in> s"
+  with \<open>l \<in> S\<close> show "x \<in> S"
     by simp
 qed
 
 lemma complete_Int_closed:
-  fixes s :: "'a::metric_space set"
-  assumes "complete s" and "closed t"
-  shows "complete (s \<inter> t)"
+  fixes S :: "'a::metric_space set"
+  assumes "complete S" and "closed t"
+  shows "complete (S \<inter> t)"
 proof (rule completeI)
-  fix f assume "\<forall>n. f n \<in> s \<inter> t" and "Cauchy f"
-  then have "\<forall>n. f n \<in> s" and "\<forall>n. f n \<in> t"
+  fix f assume "\<forall>n. f n \<in> S \<inter> t" and "Cauchy f"
+  then have "\<forall>n. f n \<in> S" and "\<forall>n. f n \<in> t"
     by simp_all
-  from \<open>complete s\<close> obtain l where "l \<in> s" and "f \<longlonglongrightarrow> l"
-    using \<open>\<forall>n. f n \<in> s\<close> and \<open>Cauchy f\<close> by (rule completeE)
+  from \<open>complete S\<close> obtain l where "l \<in> S" and "f \<longlonglongrightarrow> l"
+    using \<open>\<forall>n. f n \<in> S\<close> and \<open>Cauchy f\<close> by (rule completeE)
   from \<open>closed t\<close> and \<open>\<forall>n. f n \<in> t\<close> and \<open>f \<longlonglongrightarrow> l\<close> have "l \<in> t"
     by (rule closed_sequentially)
-  with \<open>l \<in> s\<close> and \<open>f \<longlonglongrightarrow> l\<close> show "\<exists>l\<in>s \<inter> t. f \<longlonglongrightarrow> l"
+  with \<open>l \<in> S\<close> and \<open>f \<longlonglongrightarrow> l\<close> show "\<exists>l\<in>S \<inter> t. f \<longlonglongrightarrow> l"
     by fast
 qed
 
 lemma complete_closed_subset:
-  fixes s :: "'a::metric_space set"
-  assumes "closed s" and "s \<subseteq> t" and "complete t"
-  shows "complete s"
-  using assms complete_Int_closed [of t s] by (simp add: Int_absorb1)
+  fixes S :: "'a::metric_space set"
+  assumes "closed S" and "S \<subseteq> t" and "complete t"
+  shows "complete S"
+  using assms complete_Int_closed [of t S] by (simp add: Int_absorb1)
 
 lemma complete_eq_closed:
-  fixes s :: "('a::complete_space) set"
-  shows "complete s \<longleftrightarrow> closed s"
+  fixes S :: "('a::complete_space) set"
+  shows "complete S \<longleftrightarrow> closed S"
 proof
-  assume "closed s" then show "complete s"
+  assume "closed S" then show "complete S"
     using subset_UNIV complete_UNIV by (rule complete_closed_subset)
 next
-  assume "complete s" then show "closed s"
+  assume "complete S" then show "closed S"
     by (rule complete_imp_closed)
 qed
 
-lemma convergent_eq_cauchy:
-  fixes s :: "nat \<Rightarrow> 'a::complete_space"
-  shows "(\<exists>l. (s \<longlongrightarrow> l) sequentially) \<longleftrightarrow> Cauchy s"
+lemma convergent_eq_Cauchy:
+  fixes S :: "nat \<Rightarrow> 'a::complete_space"
+  shows "(\<exists>l. (S \<longlongrightarrow> l) sequentially) \<longleftrightarrow> Cauchy S"
   unfolding Cauchy_convergent_iff convergent_def ..
 
 lemma convergent_imp_bounded:
-  fixes s :: "nat \<Rightarrow> 'a::metric_space"
-  shows "(s \<longlongrightarrow> l) sequentially \<Longrightarrow> bounded (range s)"
+  fixes S :: "nat \<Rightarrow> 'a::metric_space"
+  shows "(S \<longlongrightarrow> l) sequentially \<Longrightarrow> bounded (range S)"
   by (intro cauchy_imp_bounded LIMSEQ_imp_Cauchy)
 
 lemma compact_cball[simp]:
@@ -5500,15 +5508,15 @@ lemma compact_cball[simp]:
   by blast
 
 lemma compact_frontier_bounded[intro]:
-  fixes s :: "'a::heine_borel set"
-  shows "bounded s \<Longrightarrow> compact (frontier s)"
+  fixes S :: "'a::heine_borel set"
+  shows "bounded S \<Longrightarrow> compact (frontier S)"
   unfolding frontier_def
   using compact_eq_bounded_closed
   by blast
 
 lemma compact_frontier[intro]:
-  fixes s :: "'a::heine_borel set"
-  shows "compact s \<Longrightarrow> compact (frontier s)"
+  fixes S :: "'a::heine_borel set"
+  shows "compact S \<Longrightarrow> compact (frontier S)"
   using compact_eq_bounded_closed compact_frontier_bounded
   by blast
 
@@ -5528,8 +5536,8 @@ corollary closed_sphere  [simp]:
 by (simp add: compact_imp_closed)
 
 lemma frontier_subset_compact:
-  fixes s :: "'a::heine_borel set"
-  shows "compact s \<Longrightarrow> frontier s \<subseteq> s"
+  fixes S :: "'a::heine_borel set"
+  shows "compact S \<Longrightarrow> frontier S \<subseteq> S"
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
 
@@ -5723,7 +5731,7 @@ next
     apply auto
     done
   then obtain l where l: "\<forall>x. P x \<longrightarrow> ((\<lambda>n. s n x) \<longlongrightarrow> l x) sequentially"
-    unfolding convergent_eq_cauchy[symmetric]
+    unfolding convergent_eq_Cauchy[symmetric]
     using choice[of "\<lambda>x l. P x \<longrightarrow> ((\<lambda>n. s n x) \<longlongrightarrow> l) sequentially"]
     by auto
   {
@@ -6081,6 +6089,11 @@ next
     unfolding uniformly_continuous_on_def by blast
 qed
 
+lemma continuous_closed_imp_Cauchy_continuous:
+  fixes S :: "('a::complete_space) set"
+  shows "\<lbrakk>continuous_on S f; closed S; Cauchy \<sigma>; \<And>n. (\<sigma> n) \<in> S\<rbrakk> \<Longrightarrow> Cauchy(f o \<sigma>)"
+  apply (simp add: complete_eq_closed [symmetric] continuous_on_sequentially)
+  by (meson LIMSEQ_imp_Cauchy complete_def)
 
 text\<open>The usual transformation theorems.\<close>
 
@@ -6630,7 +6643,7 @@ proof -
 
   from uniformly_continuous_on_Cauchy[OF uc LIMSEQ_imp_Cauchy, OF xs]
   obtain l where l: "(\<lambda>n. f (xs n)) \<longlonglongrightarrow> l"
-    by atomize_elim (simp only: convergent_eq_cauchy)
+    by atomize_elim (simp only: convergent_eq_Cauchy)
 
   have "(f \<longlongrightarrow> l) (at x within X)"
   proof (safe intro!: Lim_within_LIMSEQ)
@@ -6641,7 +6654,7 @@ proof -
 
     from uniformly_continuous_on_Cauchy[OF uc LIMSEQ_imp_Cauchy, OF \<open>xs' \<longlonglongrightarrow> x\<close> \<open>xs' _ \<in> X\<close>]
     obtain l' where l': "(\<lambda>n. f (xs' n)) \<longlonglongrightarrow> l'"
-      by atomize_elim (simp only: convergent_eq_cauchy)
+      by atomize_elim (simp only: convergent_eq_Cauchy)
 
     show "(\<lambda>n. f (xs' n)) \<longlonglongrightarrow> l"
     proof (rule tendstoI)

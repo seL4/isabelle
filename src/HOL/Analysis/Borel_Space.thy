@@ -1797,13 +1797,13 @@ lemma borel_measurable_lim_metric[measurable (raw)]:
 proof -
   define u' where "u' x = lim (\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0)" for x
   then have *: "\<And>x. lim (\<lambda>i. f i x) = (if Cauchy (\<lambda>i. f i x) then u' x else (THE x. False))"
-    by (auto simp: lim_def convergent_eq_cauchy[symmetric])
+    by (auto simp: lim_def convergent_eq_Cauchy[symmetric])
   have "u' \<in> borel_measurable M"
   proof (rule borel_measurable_LIMSEQ_metric)
     fix x
     have "convergent (\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0)"
       by (cases "Cauchy (\<lambda>i. f i x)")
-         (auto simp add: convergent_eq_cauchy[symmetric] convergent_def)
+         (auto simp add: convergent_eq_Cauchy[symmetric] convergent_def)
     then show "(\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0) \<longlonglongrightarrow> u' x"
       unfolding u'_def
       by (rule convergent_LIMSEQ_iff[THEN iffD1])

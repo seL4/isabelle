@@ -4378,6 +4378,15 @@ subsection \<open>Relative interior of a set\<close>
 definition "rel_interior S =
   {x. \<exists>T. openin (subtopology euclidean (affine hull S)) T \<and> x \<in> T \<and> T \<subseteq> S}"
 
+lemma rel_interior_mono:
+   "\<lbrakk>S \<subseteq> T; affine hull S = affine hull T\<rbrakk>
+   \<Longrightarrow> (rel_interior S) \<subseteq> (rel_interior T)"
+  by (auto simp: rel_interior_def)
+
+lemma rel_interior_maximal:
+   "\<lbrakk>T \<subseteq> S; openin(subtopology euclidean (affine hull S)) T\<rbrakk> \<Longrightarrow> T \<subseteq> (rel_interior S)"
+  by (auto simp: rel_interior_def)
+
 lemma rel_interior:
   "rel_interior S = {x \<in> S. \<exists>T. open T \<and> x \<in> T \<and> T \<inter> affine hull S \<subseteq> S}"
   unfolding rel_interior_def[of S] openin_open[of "affine hull S"]

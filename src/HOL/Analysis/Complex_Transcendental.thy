@@ -236,6 +236,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma exp_plus_2pin [simp]: "exp (z + \<i> * (of_int n * (of_real pi * 2))) = exp z"
+  by (simp add: exp_eq)
+
+lemma inj_on_exp_pi:
+  fixes z::complex shows "inj_on exp (ball z pi)"
+proof (clarsimp simp: inj_on_def exp_eq)
+  fix y n
+  assume "dist z (y + 2 * of_int n * of_real pi * \<i>) < pi"
+         "dist z y < pi"
+  then have "dist y (y + 2 * of_int n * of_real pi * \<i>) < pi+pi"
+    using dist_commute_lessI dist_triangle_less_add by blast
+  then have "norm (2 * of_int n * of_real pi * \<i>) < 2*pi"
+    by (simp add: dist_norm)
+  then show "n = 0"
+    by (auto simp: norm_mult)
+qed
+
 lemma sin_cos_eq_iff: "sin y = sin x \<and> cos y = cos x \<longleftrightarrow> (\<exists>n::int. y = x + 2 * n * pi)"
 proof -
   { assume "sin y = sin x" "cos y = cos x"

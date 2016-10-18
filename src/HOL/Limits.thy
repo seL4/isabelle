@@ -2340,6 +2340,11 @@ lemma uniformly_continuous_on_Cauchy:
 
 lemma isUCont_Cauchy: "isUCont f \<Longrightarrow> Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
   by (rule uniformly_continuous_on_Cauchy[where S=UNIV and f=f]) simp_all
+  
+lemma uniformly_continuous_imp_Cauchy_continuous:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  shows "\<lbrakk>uniformly_continuous_on S f; Cauchy \<sigma>; \<And>n. (\<sigma> n) \<in> S\<rbrakk> \<Longrightarrow> Cauchy(f o \<sigma>)"
+  by (simp add: uniformly_continuous_on_def Cauchy_def) meson
 
 lemma (in bounded_linear) isUCont: "isUCont f"
   unfolding isUCont_def dist_norm

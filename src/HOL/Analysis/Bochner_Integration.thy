@@ -1157,7 +1157,7 @@ proof -
   let ?s = "\<lambda>n. simple_bochner_integral M (s n)"
 
   have "\<exists>x. ?s \<longlonglongrightarrow> x"
-    unfolding convergent_eq_cauchy
+    unfolding convergent_eq_Cauchy
   proof (rule metric_CauchyI)
     fix e :: real assume "0 < e"
     then have "0 < ennreal (e / 2)" by auto

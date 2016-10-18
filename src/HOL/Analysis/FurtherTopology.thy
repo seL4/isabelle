@@ -3,7 +3,7 @@ section \<open>Extending Continous Maps, Invariance of Domain, etc..\<close>
 text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 
 theory "FurtherTopology"
-  imports Equivalence_Lebesgue_Henstock_Integration Weierstrass_Theorems Polytope
+  imports Equivalence_Lebesgue_Henstock_Integration Weierstrass_Theorems Polytope Complex_Transcendental
 
 begin
 
@@ -2351,5 +2351,748 @@ corollary invariance_of_domain_homeomorphic:
   shows "S homeomorphic (f ` S)"
   using invariance_of_domain_homeomorphism [OF assms]
   by (meson homeomorphic_def)
+
+lemma continuous_image_subset_interior:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "continuous_on S f" "inj_on f S" "DIM('b) \<le> DIM('a)"
+  shows "f ` (interior S) \<subseteq> interior(f ` S)"
+  apply (rule interior_maximal)
+   apply (simp add: image_mono interior_subset)
+  apply (rule invariance_of_domain_gen)
+  using assms
+     apply (auto simp: subset_inj_on interior_subset continuous_on_subset)
+  done
+
+lemma homeomorphic_interiors_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" and dimeq: "DIM('a) = DIM('b)"
+  shows "(interior S) homeomorphic (interior T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have fim: "f ` interior S \<subseteq> interior T"
+    using continuous_image_subset_interior [OF contf \<open>inj_on f S\<close>] dimeq fST by simp
+  have gim: "g ` interior T \<subseteq> interior S"
+    using continuous_image_subset_interior [OF contg \<open>inj_on g T\<close>] dimeq gTS by simp
+  show "homeomorphism (interior S) (interior T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show "\<And>x. x \<in> interior S \<Longrightarrow> g (f x) = x"
+      by (meson \<open>\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x\<close> subsetD interior_subset)
+    have "interior T \<subseteq> f ` interior S"
+    proof
+      fix x assume "x \<in> interior T"
+      then have "g x \<in> interior S"
+        using gim by blast
+      then show "x \<in> f ` interior S"
+        by (metis T \<open>x \<in> interior T\<close> image_iff interior_subset subsetCE)
+    qed
+    then show "f ` interior S = interior T"
+      using fim by blast
+    show "continuous_on (interior S) f"
+      by (metis interior_subset continuous_on_subset contf)
+    show "\<And>y. y \<in> interior T \<Longrightarrow> f (g y) = y"
+      by (meson T subsetD interior_subset)
+    have "interior S \<subseteq> g ` interior T"
+    proof
+      fix x assume "x \<in> interior S"
+      then have "f x \<in> interior T"
+        using fim by blast
+      then show "x \<in> g ` interior T"
+        by (metis S \<open>x \<in> interior S\<close> image_iff interior_subset subsetCE)
+    qed
+    then show "g ` interior T = interior S"
+      using gim by blast
+    show "continuous_on (interior T) g"
+      by (metis interior_subset continuous_on_subset contg)
+  qed
+qed
+
+lemma homeomorphic_open_imp_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "open S" "S \<noteq> {}" "open T" "T \<noteq> {}"
+  shows "DIM('a) = DIM('b)"
+    using assms
+    apply (simp add: homeomorphic_minimal)
+    apply (rule order_antisym; metis inj_onI invariance_of_dimension)
+    done
+
+lemma homeomorphic_interiors:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "interior S = {} \<longleftrightarrow> interior T = {}"
+    shows "(interior S) homeomorphic (interior T)"
+proof (cases "interior T = {}")
+  case True
+  with assms show ?thesis by auto
+next
+  case False
+  then have "DIM('a) = DIM('b)"
+    using assms
+    apply (simp add: homeomorphic_minimal)
+    apply (rule order_antisym; metis continuous_on_subset inj_onI inj_on_subset interior_subset invariance_of_dimension open_interior)
+    done
+  then show ?thesis
+    by (rule homeomorphic_interiors_same_dimension [OF \<open>S homeomorphic T\<close>])
+qed
+
+lemma homeomorphic_frontiers_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "closed S" "closed T" and dimeq: "DIM('a) = DIM('b)"
+  shows "(frontier S) homeomorphic (frontier T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have "g ` interior T \<subseteq> interior S"
+    using continuous_image_subset_interior [OF contg \<open>inj_on g T\<close>] dimeq gTS by simp
+  then have fim: "f ` frontier S \<subseteq> frontier T"
+    apply (simp add: frontier_def)
+    using continuous_image_subset_interior assms(2) assms(3) S by auto
+  have "f ` interior S \<subseteq> interior T"
+    using continuous_image_subset_interior [OF contf \<open>inj_on f S\<close>] dimeq fST by simp
+  then have gim: "g ` frontier T \<subseteq> frontier S"
+    apply (simp add: frontier_def)
+    using continuous_image_subset_interior T assms(2) assms(3) by auto
+  show "homeomorphism (frontier S) (frontier T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show gf: "\<And>x. x \<in> frontier S \<Longrightarrow> g (f x) = x"
+      by (simp add: S assms(2) frontier_def)
+    show fg: "\<And>y. y \<in> frontier T \<Longrightarrow> f (g y) = y"
+      by (simp add: T assms(3) frontier_def)
+    have "frontier T \<subseteq> f ` frontier S"
+    proof
+      fix x assume "x \<in> frontier T"
+      then have "g x \<in> frontier S"
+        using gim by blast
+      then show "x \<in> f ` frontier S"
+        by (metis fg \<open>x \<in> frontier T\<close> imageI)
+    qed
+    then show "f ` frontier S = frontier T"
+      using fim by blast
+    show "continuous_on (frontier S) f"
+      by (metis Diff_subset assms(2) closure_eq contf continuous_on_subset frontier_def)
+    have "frontier S \<subseteq> g ` frontier T"
+    proof
+      fix x assume "x \<in> frontier S"
+      then have "f x \<in> frontier T"
+        using fim by blast
+      then show "x \<in> g ` frontier T"
+        by (metis gf \<open>x \<in> frontier S\<close> imageI)
+    qed
+    then show "g ` frontier T = frontier S"
+      using gim by blast
+    show "continuous_on (frontier T) g"
+      by (metis Diff_subset assms(3) closure_closed contg continuous_on_subset frontier_def)
+  qed
+qed
+
+lemma homeomorphic_frontiers:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "closed S" "closed T"
+          "interior S = {} \<longleftrightarrow> interior T = {}"
+    shows "(frontier S) homeomorphic (frontier T)"
+proof (cases "interior T = {}")
+  case True
+  then show ?thesis
+    by (metis Diff_empty assms closure_eq frontier_def)
+next
+  case False
+  show ?thesis
+    apply (rule homeomorphic_frontiers_same_dimension)
+       apply (simp_all add: assms)
+    using False assms homeomorphic_interiors homeomorphic_open_imp_same_dimension by blast
+qed
+
+lemma continuous_image_subset_rel_interior:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+      and TS: "aff_dim T \<le> aff_dim S"
+  shows "f ` (rel_interior S) \<subseteq> rel_interior(f ` S)"
+proof (rule rel_interior_maximal)
+  show "f ` rel_interior S \<subseteq> f ` S"
+    by(simp add: image_mono rel_interior_subset)
+  show "openin (subtopology euclidean (affine hull f ` S)) (f ` rel_interior S)"
+  proof (rule invariance_of_domain_affine_sets)
+    show "openin (subtopology euclidean (affine hull S)) (rel_interior S)"
+      by (simp add: openin_rel_interior)
+    show "aff_dim (affine hull f ` S) \<le> aff_dim (affine hull S)"
+      by (metis aff_dim_affine_hull aff_dim_subset fim TS order_trans)
+    show "f ` rel_interior S \<subseteq> affine hull f ` S"
+      by (meson \<open>f ` rel_interior S \<subseteq> f ` S\<close> hull_subset order_trans)
+    show "continuous_on (rel_interior S) f"
+      using contf continuous_on_subset rel_interior_subset by blast
+    show "inj_on f (rel_interior S)"
+      using inj_on_subset injf rel_interior_subset by blast
+  qed auto
+qed
+
+lemma homeomorphic_rel_interiors_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" and aff: "aff_dim S = aff_dim T"
+  shows "(rel_interior S) homeomorphic (rel_interior T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have fim: "f ` rel_interior S \<subseteq> rel_interior T"
+    by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
+  have gim: "g ` rel_interior T \<subseteq> rel_interior S"
+    by (metis \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior gTS order_refl)
+  show "homeomorphism (rel_interior S) (rel_interior T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show gf: "\<And>x. x \<in> rel_interior S \<Longrightarrow> g (f x) = x"
+      using S rel_interior_subset by blast
+    show fg: "\<And>y. y \<in> rel_interior T \<Longrightarrow> f (g y) = y"
+      using T mem_rel_interior_ball by blast
+    have "rel_interior T \<subseteq> f ` rel_interior S"
+    proof
+      fix x assume "x \<in> rel_interior T"
+      then have "g x \<in> rel_interior S"
+        using gim by blast
+      then show "x \<in> f ` rel_interior S"
+        by (metis fg \<open>x \<in> rel_interior T\<close> imageI)
+    qed
+    moreover have "f ` rel_interior S \<subseteq> rel_interior T"
+      by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
+    ultimately show "f ` rel_interior S = rel_interior T"
+      by blast
+    show "continuous_on (rel_interior S) f"
+      using contf continuous_on_subset rel_interior_subset by blast
+    have "rel_interior S \<subseteq> g ` rel_interior T"
+    proof
+      fix x assume "x \<in> rel_interior S"
+      then have "f x \<in> rel_interior T"
+        using fim by blast
+      then show "x \<in> g ` rel_interior T"
+        by (metis gf \<open>x \<in> rel_interior S\<close> imageI)
+    qed
+    then show "g ` rel_interior T = rel_interior S"
+      using gim by blast
+    show "continuous_on (rel_interior T) g"
+      using contg continuous_on_subset rel_interior_subset by blast
+  qed
+qed
+
+lemma homeomorphic_rel_interiors:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "rel_interior S = {} \<longleftrightarrow> rel_interior T = {}"
+    shows "(rel_interior S) homeomorphic (rel_interior T)"
+proof (cases "rel_interior T = {}")
+  case True
+  with assms show ?thesis by auto
+next
+  case False
+  obtain f g
+    where S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+      and contf: "continuous_on S f" and contg: "continuous_on T g"
+    using  assms [unfolded homeomorphic_minimal] by auto
+  have "aff_dim (affine hull S) \<le> aff_dim (affine hull T)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior S" _ f])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contf continuous_on_subset rel_interior_subset apply blast
+      apply (meson S hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis S inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  moreover have "aff_dim (affine hull T) \<le> aff_dim (affine hull S)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior T" _ g])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contg continuous_on_subset rel_interior_subset apply blast
+      apply (meson T hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis T inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  ultimately have "aff_dim S = aff_dim T" by force
+  then show ?thesis
+    by (rule homeomorphic_rel_interiors_same_dimension [OF \<open>S homeomorphic T\<close>])
+qed
+
+
+lemma homeomorphic_rel_boundaries_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" and aff: "aff_dim S = aff_dim T"
+  shows "(S - rel_interior S) homeomorphic (T - rel_interior T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have fim: "f ` rel_interior S \<subseteq> rel_interior T"
+    by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
+  have gim: "g ` rel_interior T \<subseteq> rel_interior S"
+    by (metis \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior gTS order_refl)
+  show "homeomorphism (S - rel_interior S) (T - rel_interior T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show gf: "\<And>x. x \<in> S - rel_interior S \<Longrightarrow> g (f x) = x"
+      using S rel_interior_subset by blast
+    show fg: "\<And>y. y \<in> T - rel_interior T \<Longrightarrow> f (g y) = y"
+      using T mem_rel_interior_ball by blast
+    show "f ` (S - rel_interior S) = T - rel_interior T"
+      using S fST fim gim by auto
+    show "continuous_on (S - rel_interior S) f"
+      using contf continuous_on_subset rel_interior_subset by blast
+    show "g ` (T - rel_interior T) = S - rel_interior S"
+      using T gTS gim fim by auto
+    show "continuous_on (T - rel_interior T) g"
+      using contg continuous_on_subset rel_interior_subset by blast
+  qed
+qed
+
+lemma homeomorphic_rel_boundaries:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "rel_interior S = {} \<longleftrightarrow> rel_interior T = {}"
+    shows "(S - rel_interior S) homeomorphic (T - rel_interior T)"
+proof (cases "rel_interior T = {}")
+  case True
+  with assms show ?thesis by auto
+next
+  case False
+  obtain f g
+    where S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+      and contf: "continuous_on S f" and contg: "continuous_on T g"
+    using  assms [unfolded homeomorphic_minimal] by auto
+  have "aff_dim (affine hull S) \<le> aff_dim (affine hull T)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior S" _ f])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contf continuous_on_subset rel_interior_subset apply blast
+      apply (meson S hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis S inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  moreover have "aff_dim (affine hull T) \<le> aff_dim (affine hull S)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior T" _ g])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contg continuous_on_subset rel_interior_subset apply blast
+      apply (meson T hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis T inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  ultimately have "aff_dim S = aff_dim T" by force
+  then show ?thesis
+    by (rule homeomorphic_rel_boundaries_same_dimension [OF \<open>S homeomorphic T\<close>])
+qed
+
+proposition uniformly_continuous_homeomorphism_UNIV_trivial:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes contf: "uniformly_continuous_on S f" and hom: "homeomorphism S UNIV f g"
+  shows "S = UNIV"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by (metis UNIV_I hom empty_iff homeomorphism_def image_eqI)
+next
+  case False
+  have "inj g"
+    by (metis UNIV_I hom homeomorphism_apply2 injI)
+  then have "open (g ` UNIV)"
+    by (blast intro: invariance_of_domain hom homeomorphism_cont2)
+  then have "open S"
+    using hom homeomorphism_image2 by blast
+  moreover have "complete S"
+    unfolding complete_def
+  proof clarify
+    fix \<sigma>
+    assume \<sigma>: "\<forall>n. \<sigma> n \<in> S" and "Cauchy \<sigma>"
+    have "Cauchy (f o \<sigma>)"
+      using uniformly_continuous_imp_Cauchy_continuous \<open>Cauchy \<sigma>\<close> \<sigma> contf by blast
+    then obtain l where "(f \<circ> \<sigma>) \<longlonglongrightarrow> l"
+      by (auto simp: convergent_eq_Cauchy [symmetric])
+    show "\<exists>l\<in>S. \<sigma> \<longlonglongrightarrow> l"
+    proof
+      show "g l \<in> S"
+        using hom homeomorphism_image2 by blast
+      have "(g \<circ> (f \<circ> \<sigma>)) \<longlonglongrightarrow> g l"
+        by (meson UNIV_I \<open>(f \<circ> \<sigma>) \<longlonglongrightarrow> l\<close> continuous_on_sequentially hom homeomorphism_cont2)
+      then show "\<sigma> \<longlonglongrightarrow> g l"
+      proof -
+        have "\<forall>n. \<sigma> n = (g \<circ> (f \<circ> \<sigma>)) n"
+          by (metis (no_types) \<sigma> comp_eq_dest_lhs hom homeomorphism_apply1)
+        then show ?thesis
+          by (metis (no_types) LIMSEQ_iff \<open>(g \<circ> (f \<circ> \<sigma>)) \<longlonglongrightarrow> g l\<close>)
+      qed
+    qed
+  qed
+  then have "closed S"
+    by (simp add: complete_eq_closed)
+  ultimately show ?thesis
+    using clopen [of S] False  by simp
+qed
+
+subsection\<open>The power, squaring and exponential functions as covering maps\<close>
+
+proposition covering_space_power_punctured_plane:
+  assumes "0 < n"
+    shows "covering_space (- {0}) (\<lambda>z::complex. z^n) (- {0})"
+proof -
+  consider "n = 1" | "2 \<le> n" using assms by linarith
+  then obtain e where "0 < e"
+                and e: "\<And>w z. cmod(w - z) < e * cmod z \<Longrightarrow> (w^n = z^n \<longleftrightarrow> w = z)"
+  proof cases
+    assume "n = 1" then show ?thesis
+      by (rule_tac e=1 in that) auto
+  next
+    assume "2 \<le> n"
+    have eq_if_pow_eq:
+         "w = z" if lt: "cmod (w - z) < 2 * sin (pi / real n) * cmod z"
+                 and eq: "w^n = z^n" for w z
+    proof (cases "z = 0")
+      case True with eq assms show ?thesis by (auto simp: power_0_left)
+    next
+      case False
+      then have "z \<noteq> 0" by auto
+      have "(w/z)^n = 1"
+        by (metis False divide_self_if eq power_divide power_one)
+      then obtain j where j: "w / z = exp (2 * of_real pi * \<i> * j / n)" and "j < n"
+        using Suc_leI assms \<open>2 \<le> n\<close> complex_roots_unity [THEN eqset_imp_iff, of n "w/z"]
+        by force
+      have "cmod (w/z - 1) < 2 * sin (pi / real n)"
+        using lt assms \<open>z \<noteq> 0\<close> by (simp add: divide_simps norm_divide)
+      then have "cmod (exp (\<i> * of_real (2 * pi * j / n)) - 1) < 2 * sin (pi / real n)"
+        by (simp add: j field_simps)
+      then have "2 * \<bar>sin((2 * pi * j / n) / 2)\<bar> < 2 * sin (pi / real n)"
+        by (simp only: dist_exp_ii_1)
+      then have sin_less: "sin((pi * j / n)) < sin (pi / real n)"
+        by (simp add: field_simps)
+      then have "w / z = 1"
+      proof (cases "j = 0")
+        case True then show ?thesis by (auto simp: j)
+      next
+        case False
+        then have "sin (pi / real n) \<le> sin((pi * j / n))"
+        proof (cases "j / n \<le> 1/2")
+          case True
+          show ?thesis
+            apply (rule sin_monotone_2pi_le)
+            using \<open>j \<noteq> 0 \<close> \<open>j < n\<close> True
+            apply (auto simp: field_simps intro: order_trans [of _ 0])
+            done
+        next
+          case False
+          then have seq: "sin(pi * j / n) = sin(pi * (n - j) / n)"
+            using \<open>j < n\<close> by (simp add: algebra_simps diff_divide_distrib of_nat_diff)
+          show ?thesis
+            apply (simp only: seq)
+            apply (rule sin_monotone_2pi_le)
+            using \<open>j < n\<close> False
+            apply (auto simp: field_simps intro: order_trans [of _ 0])
+            done
+        qed
+        with sin_less show ?thesis by force
+      qed
+      then show ?thesis by simp
+    qed
+    show ?thesis
+      apply (rule_tac e = "2 * sin(pi / n)" in that)
+       apply (force simp: \<open>2 \<le> n\<close> sin_pi_divide_n_gt_0)
+      apply (meson eq_if_pow_eq)
+      done
+  qed
+  have zn1: "continuous_on (- {0}) (\<lambda>z::complex. z^n)"
+    by (rule continuous_intros)+
+  have zn2: "(\<lambda>z::complex. z^n) ` (- {0}) = - {0}"
+    using assms by (auto simp: image_def elim: exists_complex_root_nonzero [where n = n])
+  have zn3: "\<exists>T. z^n \<in> T \<and> open T \<and> 0 \<notin> T \<and>
+               (\<exists>v. \<Union>v = {x. x \<noteq> 0 \<and> x^n \<in> T} \<and>
+                    (\<forall>u\<in>v. open u \<and> 0 \<notin> u) \<and>
+                    pairwise disjnt v \<and>
+                    (\<forall>u\<in>v. Ex (homeomorphism u T (\<lambda>z. z^n))))"
+           if "z \<noteq> 0" for z::complex
+  proof -
+    def d \<equiv> "min (1/2) (e/4) * norm z"
+    have "0 < d"
+      by (simp add: d_def \<open>0 < e\<close> \<open>z \<noteq> 0\<close>)
+    have iff_x_eq_y: "x^n = y^n \<longleftrightarrow> x = y"
+         if eq: "w^n = z^n" and x: "x \<in> ball w d" and y: "y \<in> ball w d" for w x y
+    proof -
+      have [simp]: "norm z = norm w" using that
+        by (simp add: assms power_eq_imp_eq_norm)
+      show ?thesis
+      proof (cases "w = 0")
+        case True with \<open>z \<noteq> 0\<close> assms eq
+        show ?thesis by (auto simp: power_0_left)
+      next
+        case False
+        have "cmod (x - y) < 2*d"
+          using x y
+          by (simp add: dist_norm [symmetric]) (metis dist_commute mult_2 dist_triangle_less_add)
+        also have "... \<le> 2 * e / 4 * norm w"
+          using \<open>e > 0\<close> by (simp add: d_def min_mult_distrib_right)
+        also have "... = e * (cmod w / 2)"
+          by simp
+        also have "... \<le> e * cmod y"
+          apply (rule mult_left_mono)
+          using \<open>e > 0\<close> y
+           apply (simp_all add: dist_norm d_def min_mult_distrib_right del: divide_const_simps)
+          apply (metis dist_0_norm dist_complex_def dist_triangle_half_l linorder_not_less order_less_irrefl)
+          done
+        finally have "cmod (x - y) < e * cmod y" .
+        then show ?thesis by (rule e)
+      qed
+    qed
+    then have inj: "inj_on (\<lambda>w. w^n) (ball z d)"
+      by (simp add: inj_on_def)
+    have cont: "continuous_on (ball z d) (\<lambda>w. w ^ n)"
+      by (intro continuous_intros)
+    have noncon: "\<not> (\<lambda>w::complex. w^n) constant_on UNIV"
+      by (metis UNIV_I assms constant_on_def power_one zero_neq_one zero_power)
+    have open_imball: "open ((\<lambda>w. w^n) ` ball z d)"
+      by (rule invariance_of_domain [OF cont open_ball inj])
+    have im_eq: "(\<lambda>w. w^n) ` ball z' d = (\<lambda>w. w^n) ` ball z d"
+                if z': "z'^n = z^n" for z'
+    proof -
+      have nz': "norm z' = norm z" using that assms power_eq_imp_eq_norm by blast
+      have "(w \<in> (\<lambda>w. w^n) ` ball z' d) = (w \<in> (\<lambda>w. w^n) ` ball z d)" for w
+      proof (cases "w=0")
+        case True with assms show ?thesis
+          by (simp add: image_def ball_def nz')
+      next
+        case False
+        have "z' \<noteq> 0" using \<open>z \<noteq> 0\<close> nz' by force
+        have [simp]: "(z*x / z')^n = x^n" if "x \<noteq> 0" for x
+          using z' that by (simp add: field_simps \<open>z \<noteq> 0\<close>)
+        have [simp]: "cmod (z - z * x / z') = cmod (z' - x)" if "x \<noteq> 0" for x
+        proof -
+          have "cmod (z - z * x / z') = cmod z * cmod (1 - x / z')"
+            by (metis (no_types) ab_semigroup_mult_class.mult_ac(1) complex_divide_def mult.right_neutral norm_mult right_diff_distrib')
+          also have "... = cmod z' * cmod (1 - x / z')"
+            by (simp add: nz')
+          also have "... = cmod (z' - x)"
+            by (simp add: \<open>z' \<noteq> 0\<close> diff_divide_eq_iff norm_divide)
+          finally show ?thesis .
+        qed
+        have [simp]: "(z'*x / z)^n = x^n" if "x \<noteq> 0" for x
+          using z' that by (simp add: field_simps \<open>z \<noteq> 0\<close>)
+        have [simp]: "cmod (z' - z' * x / z) = cmod (z - x)" if "x \<noteq> 0" for x
+        proof -
+          have "cmod (z * (1 - x * inverse z)) = cmod (z - x)"
+            by (metis \<open>z \<noteq> 0\<close> diff_divide_distrib divide_complex_def divide_self_if nonzero_eq_divide_eq semiring_normalization_rules(7))
+          then show ?thesis
+            by (metis (no_types) mult.assoc complex_divide_def mult.right_neutral norm_mult nz' right_diff_distrib')
+        qed
+        show ?thesis
+          unfolding image_def ball_def
+          apply safe
+          apply simp_all
+          apply (rule_tac x="z/z' * x" in exI)
+          using assms False apply (simp add: dist_norm)
+          apply (rule_tac x="z'/z * x" in exI)
+          using assms False apply (simp add: dist_norm)
+          done
+      qed
+      then show ?thesis by blast
+    qed
+    have ex_ball: "\<exists>B. (\<exists>z'. B = ball z' d \<and> z'^n = z^n) \<and> x \<in> B"
+                  if "x \<noteq> 0" and eq: "x^n = w^n" and dzw: "dist z w < d" for x w
+    proof -
+      have "w \<noteq> 0" by (metis assms power_eq_0_iff that(1) that(2))
+      have [simp]: "cmod x = cmod w"
+        using assms power_eq_imp_eq_norm eq by blast
+      have [simp]: "cmod (x * z / w - x) = cmod (z - w)"
+      proof -
+        have "cmod (x * z / w - x) = cmod x * cmod (z / w - 1)"
+          by (metis (no_types) mult.right_neutral norm_mult right_diff_distrib' times_divide_eq_right)
+        also have "... = cmod w * cmod (z / w - 1)"
+          by simp
+        also have "... = cmod (z - w)"
+          by (simp add: \<open>w \<noteq> 0\<close> divide_diff_eq_iff nonzero_norm_divide)
+        finally show ?thesis .
+      qed
+      show ?thesis
+        apply (rule_tac x="ball (z / w * x) d" in exI)
+        using \<open>d > 0\<close> that
+        apply (simp add: ball_eq_ball_iff)
+        apply (simp add: \<open>z \<noteq> 0\<close> \<open>w \<noteq> 0\<close> field_simps)
+        apply (simp add: dist_norm)
+        done
+    qed
+    have ball1: "\<Union>{ball z' d |z'. z'^n = z^n} = {x. x \<noteq> 0 \<and> x^n \<in> (\<lambda>w. w^n) ` ball z d}"
+      apply (rule equalityI)
+       prefer 2 apply (force simp: ex_ball, clarsimp)
+      apply (subst im_eq [symmetric], assumption)
+      using assms
+      apply (force simp: dist_norm d_def min_mult_distrib_right dest: power_eq_imp_eq_norm)
+      done
+    have ball2: "pairwise disjnt {ball z' d |z'. z'^n = z^n}"
+    proof (clarsimp simp add: pairwise_def disjnt_iff)
+      fix \<xi> \<zeta> x
+      assume "\<xi>^n = z^n" "\<zeta>^n = z^n" "ball \<xi> d \<noteq> ball \<zeta> d"
+         and "dist \<xi> x < d" "dist \<zeta> x < d"
+      then have "dist \<xi> \<zeta> < d+d"
+        using dist_triangle_less_add by blast
+      then have "cmod (\<xi> - \<zeta>) < 2*d"
+        by (simp add: dist_norm)
+      also have "... \<le> e * cmod z"
+        using mult_right_mono \<open>0 < e\<close> that by (auto simp: d_def)
+      finally have "cmod (\<xi> - \<zeta>) < e * cmod z" .
+      with e have "\<xi> = \<zeta>"
+        by (metis \<open>\<xi>^n = z^n\<close> \<open>\<zeta>^n = z^n\<close> assms power_eq_imp_eq_norm)
+      then show "False"
+        using \<open>ball \<xi> d \<noteq> ball \<zeta> d\<close> by blast
+    qed
+    have ball3: "Ex (homeomorphism (ball z' d) ((\<lambda>w. w^n) ` ball z d) (\<lambda>z. z^n))"
+            if zeq: "z'^n = z^n" for z'
+    proof -
+      have inj: "inj_on (\<lambda>z. z ^ n) (ball z' d)"
+        by (meson iff_x_eq_y inj_onI zeq)
+      show ?thesis
+        apply (rule invariance_of_domain_homeomorphism [of "ball z' d" "\<lambda>z. z^n"])
+          apply (rule open_ball continuous_intros order_refl inj)+
+        apply (force simp: im_eq [OF zeq])
+        done
+    qed
+    show ?thesis
+      apply (rule_tac x = "(\<lambda>w. w^n) ` (ball z d)" in exI)
+      apply (intro conjI open_imball)
+        using \<open>d > 0\<close> apply simp
+       using \<open>z \<noteq> 0\<close> assms apply (force simp: d_def)
+      apply (rule_tac x="{ ball z' d |z'. z'^n = z^n}" in exI)
+      apply (intro conjI ball1 ball2)
+       apply (force simp: assms d_def power_eq_imp_eq_norm that, clarify)
+      by (metis ball3)
+  qed
+  show ?thesis
+    using assms
+    apply (simp add: covering_space_def zn1 zn2)
+    apply (subst zn2 [symmetric])
+    apply (simp add: openin_open_eq open_Compl)
+    apply (blast intro: zn3)
+    done
+qed
+
+corollary covering_space_square_punctured_plane:
+  "covering_space (- {0}) (\<lambda>z::complex. z^2) (- {0})"
+  by (simp add: covering_space_power_punctured_plane)
+
+
+
+proposition covering_space_exp_punctured_plane:
+  "covering_space UNIV (\<lambda>z::complex. exp z) (- {0})"
+proof (simp add: covering_space_def, intro conjI ballI)
+  show "continuous_on UNIV (\<lambda>z::complex. exp z)"
+    by (rule continuous_on_exp [OF continuous_on_id])
+  show "range exp = - {0::complex}"
+    by auto (metis exp_Ln range_eqI)
+  show "\<exists>T. z \<in> T \<and> openin (subtopology euclidean (- {0})) T \<and>
+             (\<exists>v. \<Union>v = {z. exp z \<in> T} \<and> (\<forall>u\<in>v. open u) \<and> disjoint v \<and>
+                  (\<forall>u\<in>v. \<exists>q. homeomorphism u T exp q))"
+        if "z \<in> - {0::complex}" for z
+  proof -
+    have "z \<noteq> 0"
+      using that by auto
+    have inj_exp: "inj_on exp (ball (Ln z) 1)"
+      apply (rule inj_on_subset [OF inj_on_exp_pi [of "Ln z"]])
+      using pi_ge_two by (simp add: ball_subset_ball_iff)
+    define \<V> where "\<V> \<equiv> range (\<lambda>n. (\<lambda>x. x + of_real (2 * of_int n * pi) * ii) ` (ball(Ln z) 1))"
+    show ?thesis
+    proof (intro exI conjI)
+      show "z \<in> exp ` (ball(Ln z) 1)"
+        by (metis \<open>z \<noteq> 0\<close> centre_in_ball exp_Ln rev_image_eqI zero_less_one)
+      have "open (- {0::complex})"
+        by blast
+      moreover have "inj_on exp (ball (Ln z) 1)"
+        apply (rule inj_on_subset [OF inj_on_exp_pi [of "Ln z"]])
+        using pi_ge_two by (simp add: ball_subset_ball_iff)
+      ultimately show "openin (subtopology euclidean (- {0})) (exp ` ball (Ln z) 1)"
+        by (auto simp: openin_open_eq invariance_of_domain continuous_on_exp [OF continuous_on_id])
+      show "\<Union>\<V> = {w. exp w \<in> exp ` ball (Ln z) 1}"
+        by (auto simp: \<V>_def Complex_Transcendental.exp_eq image_iff)
+      show "\<forall>V\<in>\<V>. open V"
+        by (auto simp: \<V>_def inj_on_def continuous_intros invariance_of_domain)
+      have xy: "2 \<le> cmod (2 * of_int x * of_real pi * \<i> - 2 * of_int y * of_real pi * \<i>)"
+               if "x < y" for x y
+      proof -
+        have "1 \<le> abs (x - y)"
+          using that by linarith
+        then have "1 \<le> cmod (of_int x - of_int y) * 1"
+          by (metis mult.right_neutral norm_of_int of_int_1_le_iff of_int_abs of_int_diff)
+        also have "... \<le> cmod (of_int x - of_int y) * of_real pi"
+          apply (rule mult_left_mono)
+          using pi_ge_two by auto
+        also have "... \<le> cmod ((of_int x - of_int y) * of_real pi * \<i>)"
+          by (simp add: norm_mult)
+        also have "... \<le> cmod (of_int x * of_real pi * \<i> - of_int y * of_real pi * \<i>)"
+          by (simp add: algebra_simps)
+        finally have "1 \<le> cmod (of_int x * of_real pi * \<i> - of_int y * of_real pi * \<i>)" .
+        then have "2 * 1 \<le> cmod (2 * (of_int x * of_real pi * \<i> - of_int y * of_real pi * \<i>))"
+          by (metis mult_le_cancel_left_pos norm_mult_numeral1 zero_less_numeral)
+        then show ?thesis
+          by (simp add: algebra_simps)
+      qed
+      show "disjoint \<V>"
+        apply (clarsimp simp add: \<V>_def pairwise_def disjnt_def add.commute [of _ "x*y" for x y]
+                        image_add_ball ball_eq_ball_iff)
+        apply (rule disjoint_ballI)
+        apply (auto simp: dist_norm neq_iff)
+        by (metis norm_minus_commute xy)+
+      show "\<forall>u\<in>\<V>. \<exists>q. homeomorphism u (exp ` ball (Ln z) 1) exp q"
+      proof
+        fix u
+        assume "u \<in> \<V>"
+        then obtain n where n: "u = (\<lambda>x. x + of_real (2 * of_int n * pi) * ii) ` (ball(Ln z) 1)"
+          by (auto simp: \<V>_def)
+        have "compact (cball (Ln z) 1)"
+          by simp
+        moreover have "continuous_on (cball (Ln z) 1) exp"
+          by (rule continuous_on_exp [OF continuous_on_id])
+        moreover have "inj_on exp (cball (Ln z) 1)"
+          apply (rule inj_on_subset [OF inj_on_exp_pi [of "Ln z"]])
+          using pi_ge_two by (simp add: cball_subset_ball_iff)
+        ultimately obtain \<gamma> where hom: "homeomorphism (cball (Ln z) 1) (exp ` cball (Ln z) 1) exp \<gamma>"
+          using homeomorphism_compact  by blast
+        have eq1: "exp ` u = exp ` ball (Ln z) 1"
+          unfolding n
+          apply (auto simp: algebra_simps)
+          apply (rename_tac w)
+          apply (rule_tac x = "w + \<i> * (of_int n * (of_real pi * 2))" in image_eqI)
+          apply (auto simp: image_iff)
+          done
+        have \<gamma>exp: "\<gamma> (exp x) + 2 * of_int n * of_real pi * \<i> = x" if "x \<in> u" for x
+        proof -
+          have "exp x = exp (x - 2 * of_int n * of_real pi * \<i>)"
+            by (simp add: exp_eq)
+          then have "\<gamma> (exp x) = \<gamma> (exp (x - 2 * of_int n * of_real pi * \<i>))"
+            by simp
+          also have "... = x - 2 * of_int n * of_real pi * \<i>"
+            apply (rule homeomorphism_apply1 [OF hom])
+            using \<open>x \<in> u\<close> by (auto simp: n)
+          finally show ?thesis
+            by simp
+        qed
+        have exp2n: "exp (\<gamma> (exp x) + 2 * of_int n * complex_of_real pi * \<i>) = exp x"
+                if "dist (Ln z) x < 1" for x
+          using that by (auto simp: exp_eq homeomorphism_apply1 [OF hom])
+        have cont: "continuous_on (exp ` ball (Ln z) 1) (\<lambda>x. \<gamma> x + 2 * of_int n * complex_of_real pi * \<i>)"
+          apply (intro continuous_intros)
+          apply (rule continuous_on_subset [OF homeomorphism_cont2 [OF hom]])
+          apply (force simp:)
+          done
+        show "\<exists>q. homeomorphism u (exp ` ball (Ln z) 1) exp q"
+          apply (rule_tac x="(\<lambda>x. x + of_real(2 * n * pi) * ii) \<circ> \<gamma>" in exI)
+          unfolding homeomorphism_def
+          apply (intro conjI ballI eq1 continuous_on_exp [OF continuous_on_id])
+             apply (auto simp: \<gamma>exp exp2n cont n)
+           apply (simp add:  homeomorphism_apply1 [OF hom])
+          apply (simp add: image_comp [symmetric])
+          using hom homeomorphism_apply1  apply (force simp: image_iff)
+          done
+      qed
+    qed
+  qed
+qed
 
 end

@@ -1922,7 +1922,7 @@ proof -
     using assms(1,2,3) by (rule has_derivative_sequence_lipschitz)
   have "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially"
     apply (rule bchoice)
-    unfolding convergent_eq_cauchy
+    unfolding convergent_eq_Cauchy
   proof
     fix x
     assume "x \<in> s"

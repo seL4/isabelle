@@ -1437,6 +1437,17 @@ apply (erule contrapos_nn)
 apply (erule Least_le)
 done
 
+lemma exists_least_iff: "(\<exists>n. P n) \<longleftrightarrow> (\<exists>n. P n \<and> (\<forall>m < n. \<not> P m))" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?rhs thus ?lhs by blast
+next
+  assume H: ?lhs then obtain n where n: "P n" by blast
+  let ?x = "Least P"
+  { fix m assume m: "m < ?x"
+    from not_less_Least[OF m] have "\<not> P m" . }
+  with LeastI_ex[OF H] show ?rhs by blast
+qed
+
 end
 
 

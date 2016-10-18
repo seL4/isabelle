@@ -960,7 +960,7 @@ next
         using dp p(1) mn d(2) by auto
     qed
   qed
-  then guess y unfolding convergent_eq_cauchy[symmetric] .. note y=this[THEN LIMSEQ_D]
+  then guess y unfolding convergent_eq_Cauchy[symmetric] .. note y=this[THEN LIMSEQ_D]
   show ?l
     unfolding integrable_on_def has_integral
   proof (rule_tac x=y in exI, clarify)
@@ -1798,7 +1798,7 @@ next
     qed
   qed
   then obtain s where s: "i \<longlonglongrightarrow> s"
-    using convergent_eq_cauchy[symmetric] by blast
+    using convergent_eq_Cauchy[symmetric] by blast
   show ?thesis
     unfolding integrable_on_def has_integral
   proof (rule_tac x=s in exI, clarify)
@@ -5437,7 +5437,7 @@ next
       apply auto
       done
   qed
-  from this[unfolded convergent_eq_cauchy[symmetric]] guess i ..
+  from this[unfolded convergent_eq_Cauchy[symmetric]] guess i ..
   note i = this[THEN LIMSEQ_D]
 
   show ?l unfolding integrable_on_def has_integral_alt'[of f]
