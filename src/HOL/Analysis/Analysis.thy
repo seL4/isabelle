@@ -8,9 +8,10 @@ imports
   Determinants
   Homeomorphism
   Bounded_Continuous_Function
+  Function_Topology
   Weierstrass_Theorems
   Polytope
-  FurtherTopology
+  Further_Topology
   Poly_Roots
   Conformal_Mappings
   Generalised_Binomial_Theorem

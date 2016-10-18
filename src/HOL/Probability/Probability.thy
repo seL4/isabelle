@@ -12,6 +12,7 @@ imports
   SPMF
   Stream_Space
   Conditional_Expectation
+  Essential_Supremum
 begin
 
 end

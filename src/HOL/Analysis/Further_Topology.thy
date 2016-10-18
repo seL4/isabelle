@@ -2,9 +2,8 @@ section \<open>Extending Continous Maps, Invariance of Domain, etc..\<close>
 
 text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 
-theory "FurtherTopology"
-  imports Equivalence_Lebesgue_Henstock_Integration Weierstrass_Theorems Polytope Complex_Transcendental
-
+theory Further_Topology
+  imports Equivalence_Lebesgue_Henstock_Integration Weierstrass_Theorems Polytope
 begin
 
 subsection\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
