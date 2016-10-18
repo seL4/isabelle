@@ -120,7 +120,7 @@ fun err_dup kind entry1 entry2 pos =
 
 (* internal names *)
 
-type internals = (string list * string list) Change_Table.T;
+type internals = (string list * string list) Change_Table.T;  (*xname -> visible, hidden*)
 
 fun map_internals f xname : internals -> internals =
   Change_Table.map_default (xname, ([], [])) f;
@@ -132,13 +132,15 @@ val add_name = map_internals o apfst o update (op =);
 fun hide_name name = map_internals (apsnd (update (op =) name)) name;
 
 
+(* external accesses *)
+
+type accesses = (xstring list * xstring list);  (*input / output fragments*)
+type entries = (accesses * entry) Change_Table.T;  (*name -> accesses, entry*)
+
+
 (* datatype T *)
 
-datatype T =
-  Name_Space of
-   {kind: string,
-    internals: internals,  (*xname -> visible, hidden*)
-    entries: (xstring list * entry) Change_Table.T};  (*name -> externals, entry*)
+datatype T = Name_Space of {kind: string, internals: internals, entries: entries};
 
 fun make_name_space (kind, internals, entries) =
   Name_Space {kind = kind, internals = internals, entries = entries};
@@ -200,12 +202,13 @@ val intern = #1 oo intern';
 
 fun get_accesses (Name_Space {entries, ...}) name =
   (case Change_Table.lookup entries name of
-    NONE => []
-  | SOME (externals, _) => externals);
+    NONE => ([], [])
+  | SOME (accesses, _) => accesses);
 
-fun valid_accesses (Name_Space {internals, ...}) name =
-  Change_Table.fold (fn (xname, (names, _)) =>
-    if not (null names) andalso hd names = name then cons xname else I) internals [];
+fun is_valid_access (Name_Space {internals, ...}) name xname =
+  (case Change_Table.lookup internals xname of
+    SOME (name' :: _, _) => name = name'
+  | _ => false);
 
 
 (* extern *)
@@ -234,7 +237,7 @@ fun extern ctxt space name =
   in
     if names_long then name
     else if names_short then Long_Name.base_name name
-    else ext (get_accesses space name)
+    else ext (#2 (get_accesses space name))
   end;
 
 fun extern_ord ctxt space = string_ord o apply2 (extern ctxt space);
@@ -426,7 +429,7 @@ and mandatory_prefixes1 [] = []
 
 fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
-fun accesses naming binding =
+fun make_accesses naming binding =
   (case name_spec naming binding of
     {restriction = SOME true, ...} => ([], [])
   | {restriction, spec, ...} =>
@@ -443,12 +446,13 @@ fun hide fully name space =
   space |> map_name_space (fn (kind, internals, entries) =>
     let
       val _ = the_entry space name;
-      val names = valid_accesses space name;
+      val (accs, accs') = get_accesses space name;
+      val xnames = filter (is_valid_access space name) accs;
       val internals' = internals
         |> hide_name name
         |> fold (del_name name)
-          (if fully then names else inter (op =) [Long_Name.base_name name] names)
-        |> fold (del_name_extra name) (get_accesses space name);
+          (if fully then xnames else inter (op =) [Long_Name.base_name name] xnames)
+        |> fold (del_name_extra name) accs';
     in (kind, internals', entries) end);
 
 
@@ -458,10 +462,12 @@ fun alias naming binding name space =
   space |> map_name_space (fn (kind, internals, entries) =>
     let
       val _ = the_entry space name;
-      val (accs, accs') = accesses naming binding;
-      val internals' = internals |> fold (add_name name) accs;
+      val (more_accs, more_accs') = make_accesses naming binding;
+      val internals' = internals |> fold (add_name name) more_accs;
       val entries' = entries
-        |> Change_Table.map_entry name (apfst (fold_rev (update op =) accs'));
+        |> Change_Table.map_entry name (apfst (fn (accs, accs') =>
+            (fold_rev (update op =) more_accs accs,
+             fold_rev (update op =) more_accs' accs')))
     in (kind, internals', entries') end);
 
 
@@ -497,7 +503,7 @@ fun declare context strict binding space =
     val naming = naming_of context;
     val Naming {group, theory_name, ...} = naming;
     val {concealed, spec, ...} = name_spec naming binding;
-    val (accs, accs') = accesses naming binding;
+    val accesses = make_accesses naming binding;
 
     val name = Long_Name.implode (map fst spec);
     val _ = name = "" andalso error (Binding.bad binding);
@@ -512,10 +518,10 @@ fun declare context strict binding space =
     val space' =
       space |> map_name_space (fn (kind, internals, entries) =>
         let
-          val internals' = internals |> fold (add_name name) accs;
+          val internals' = internals |> fold (add_name name) (#1 accesses);
           val entries' =
             (if strict then Change_Table.update_new else Change_Table.update)
-              (name, (accs', entry)) entries
+              (name, (accesses, entry)) entries
             handle Change_Table.DUP dup =>
               err_dup kind (dup, #2 (the (Change_Table.lookup entries dup)))
                 (name, entry) (#pos entry);
