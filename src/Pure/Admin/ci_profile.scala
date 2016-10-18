@@ -27,7 +27,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         max_jobs = jobs,
         dirs = include,
         select_dirs = select,
-        system_mode = false,
+        system_mode = true,
         selection = select_sessions _)
     }
     val end_time = Time.now()
