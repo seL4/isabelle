@@ -373,7 +373,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
-    val isabelle_admin = ssh.bash_path(isabelle_repos_self + Path.explode("Admin"))
+    val isabelle_admin = isabelle_repos_self + Path.explode("Admin")
 
 
     /* prepare repository clones */
@@ -384,7 +384,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     if (self_update) {
       isabelle_hg.pull()
       isabelle_hg.update(clean = true)
-      ssh.execute(Bash.string(isabelle_admin + "/build") + " jars_fresh").check
+      ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
     }
 
     Mercurial.setup_repository(
@@ -395,7 +395,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
     val result =
       ssh.execute(
-        Bash.string(isabelle_admin + "/build_history") + " " + options + " " +
+        ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
           ssh.bash_path(isabelle_repos_other) + " " + args,
         progress_stderr = progress.echo(_)).check
 
