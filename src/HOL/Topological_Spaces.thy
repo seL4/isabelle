@@ -3398,4 +3398,93 @@ qed
 lemma isCont_swap[continuous_intros]: "isCont prod.swap a"
   using continuous_on_eq_continuous_within continuous_on_swap by blast
 
+lemma open_diagonal_complement:
+  "open {(x,y) | x y. x \<noteq> (y::('a::t2_space))}"
+proof (rule topological_space_class.openI)
+  fix t assume "t \<in> {(x, y) | x y. x \<noteq> (y::'a)}"
+  then obtain x y where "t = (x,y)" "x \<noteq> y" by blast
+  then obtain U V where *: "open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+    by (auto simp add: separation_t2)
+  define T where "T = U \<times> V"
+  have "open T" using * open_Times T_def by auto
+  moreover have "t \<in> T" unfolding T_def using `t = (x,y)` * by auto
+  moreover have "T \<subseteq> {(x, y) | x y. x \<noteq> y}" unfolding T_def using * by auto
+  ultimately show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {(x, y) | x y. x \<noteq> y}" by auto
+qed
+
+lemma closed_diagonal:
+  "closed {y. \<exists> x::('a::t2_space). y = (x,x)}"
+proof -
+  have "{y. \<exists> x::'a. y = (x,x)} = UNIV - {(x,y) | x y. x \<noteq> y}" by auto
+  then show ?thesis using open_diagonal_complement closed_Diff by auto
+qed
+
+lemma open_superdiagonal:
+  "open {(x,y) | x y. x > (y::'a::{linorder_topology})}"
+proof (rule topological_space_class.openI)
+  fix t assume "t \<in> {(x, y) | x y. y < (x::'a)}"
+  then obtain x y where "t = (x, y)" "x > y" by blast
+  show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {(x, y) | x y. y < x}"
+  proof (cases)
+    assume "\<exists>z. y < z \<and> z < x"
+    then obtain z where z: "y < z \<and> z < x" by blast
+    define T where "T = {z<..} \<times> {..<z}"
+    have "open T" unfolding T_def by (simp add: open_Times)
+    moreover have "t \<in> T" using T_def z `t = (x,y)` by auto
+    moreover have "T \<subseteq> {(x, y) | x y. y < x}" unfolding T_def by auto
+    ultimately show ?thesis by auto
+  next
+    assume "\<not>(\<exists>z. y < z \<and> z < x)"
+    then have *: "{x ..} = {y<..}" "{..< x} = {..y}"
+      using `x > y` apply auto using leI by blast
+    define T where "T = {x ..} \<times> {.. y}"
+    then have "T = {y<..} \<times> {..< x}" using * by simp
+    then have "open T" unfolding T_def by (simp add: open_Times)
+    moreover have "t \<in> T" using T_def `t = (x,y)` by auto
+    moreover have "T \<subseteq> {(x, y) | x y. y < x}" unfolding T_def using `x > y` by auto
+    ultimately show ?thesis by auto
+  qed
+qed
+
+lemma closed_subdiagonal:
+  "closed {(x,y) | x y. x \<le> (y::'a::{linorder_topology})}"
+proof -
+  have "{(x,y) | x y. x \<le> (y::'a)} = UNIV - {(x,y) | x y. x > (y::'a)}" by auto
+  then show ?thesis using open_superdiagonal closed_Diff by auto
+qed
+
+lemma open_subdiagonal:
+  "open {(x,y) | x y. x < (y::'a::{linorder_topology})}"
+proof (rule topological_space_class.openI)
+  fix t assume "t \<in> {(x, y) | x y. y > (x::'a)}"
+  then obtain x y where "t = (x, y)" "x < y" by blast
+  show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {(x, y) | x y. y > x}"
+  proof (cases)
+    assume "\<exists>z. y > z \<and> z > x"
+    then obtain z where z: "y > z \<and> z > x" by blast
+    define T where "T = {..<z} \<times> {z<..}"
+    have "open T" unfolding T_def by (simp add: open_Times)
+    moreover have "t \<in> T" using T_def z `t = (x,y)` by auto
+    moreover have "T \<subseteq> {(x, y) |x y. y > x}" unfolding T_def by auto
+    ultimately show ?thesis by auto
+  next
+    assume "\<not>(\<exists>z. y > z \<and> z > x)"
+    then have *: "{..x} = {..<y}" "{x<..} = {y..}"
+      using `x < y` apply auto using leI by blast
+    define T where "T = {..x} \<times> {y..}"
+    then have "T = {..<y} \<times> {x<..}" using * by simp
+    then have "open T" unfolding T_def by (simp add: open_Times)
+    moreover have "t \<in> T" using T_def `t = (x,y)` by auto
+    moreover have "T \<subseteq> {(x, y) |x y. y > x}" unfolding T_def using `x < y` by auto
+    ultimately show ?thesis by auto
+  qed
+qed
+
+lemma closed_superdiagonal:
+  "closed {(x,y) | x y. x \<ge> (y::('a::{linorder_topology}))}"
+proof -
+  have "{(x,y) | x y. x \<ge> (y::'a)} = UNIV - {(x,y) | x y. x < y}" by auto
+  then show ?thesis using open_subdiagonal closed_Diff by auto
+qed
+
 end

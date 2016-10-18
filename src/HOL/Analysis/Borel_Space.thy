@@ -1974,4 +1974,189 @@ lemma borel_measurable_pred_less[measurable (raw)]:
 no_notation
   eucl_less (infix "<e" 50)
 
+lemma borel_measurable_Max2[measurable (raw)]:
+  fixes f::"_ \<Rightarrow> _ \<Rightarrow> 'a::{second_countable_topology, dense_linorder, linorder_topology}"
+  assumes "finite I"
+    and [measurable]: "\<And>i. f i \<in> borel_measurable M"
+  shows "(\<lambda>x. Max{f i x |i. i \<in> I}) \<in> borel_measurable M"
+by (simp add: borel_measurable_Max[OF assms(1), where ?f=f and ?M=M] Setcompr_eq_image)
+
+lemma measurable_compose_n [measurable (raw)]:
+  assumes "T \<in> measurable M M"
+  shows "(T^^n) \<in> measurable M M"
+by (induction n, auto simp add: measurable_compose[OF _ assms])
+
+lemma measurable_real_imp_nat:
+  fixes f::"'a \<Rightarrow> nat"
+  assumes [measurable]: "(\<lambda>x. real(f x)) \<in> borel_measurable M"
+  shows "f \<in> measurable M (count_space UNIV)"
+proof -
+  let ?g = "(\<lambda>x. real(f x))"
+  have "\<And>(n::nat). ?g-`({real n}) \<inter> space M = f-`{n} \<inter> space M" by auto
+  moreover have "\<And>(n::nat). ?g-`({real n}) \<inter> space M \<in> sets M" using assms by measurable
+  ultimately have "\<And>(n::nat). f-`{n} \<inter> space M \<in> sets M" by simp
+  then show ?thesis using measurable_count_space_eq2_countable by blast
+qed
+
+lemma measurable_equality_set [measurable]:
+  fixes f g::"_\<Rightarrow> 'a::{second_countable_topology, t2_space}"
+  assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  shows "{x \<in> space M. f x = g x} \<in> sets M"
+
+proof -
+  define A where "A = {x \<in> space M. f x = g x}"
+  define B where "B = {y. \<exists>x::'a. y = (x,x)}"
+  have "A = (\<lambda>x. (f x, g x))-`B \<inter> space M" unfolding A_def B_def by auto
+  moreover have "(\<lambda>x. (f x, g x)) \<in> borel_measurable M" by simp
+  moreover have "B \<in> sets borel" unfolding B_def by (simp add: closed_diagonal)
+  ultimately have "A \<in> sets M" by simp
+  then show ?thesis unfolding A_def by simp
+qed
+
+lemma measurable_inequality_set [measurable]:
+  fixes f g::"_ \<Rightarrow> 'a::{second_countable_topology, linorder_topology}"
+  assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  shows "{x \<in> space M. f x \<le> g x} \<in> sets M"
+        "{x \<in> space M. f x < g x} \<in> sets M"
+        "{x \<in> space M. f x \<ge> g x} \<in> sets M"
+        "{x \<in> space M. f x > g x} \<in> sets M"
+proof -
+  define F where "F = (\<lambda>x. (f x, g x))"
+  have * [measurable]: "F \<in> borel_measurable M" unfolding F_def by simp
+
+  have "{x \<in> space M. f x \<le> g x} = F-`{(x, y) | x y. x \<le> y} \<inter> space M" unfolding F_def by auto
+  moreover have "{(x, y) | x y. x \<le> (y::'a)} \<in> sets borel" using closed_subdiagonal borel_closed by blast
+  ultimately show "{x \<in> space M. f x \<le> g x} \<in> sets M" using * by (metis (mono_tags, lifting) measurable_sets)
+
+  have "{x \<in> space M. f x < g x} = F-`{(x, y) | x y. x < y} \<inter> space M" unfolding F_def by auto
+  moreover have "{(x, y) | x y. x < (y::'a)} \<in> sets borel" using open_subdiagonal borel_open by blast
+  ultimately show "{x \<in> space M. f x < g x} \<in> sets M" using * by (metis (mono_tags, lifting) measurable_sets)
+
+  have "{x \<in> space M. f x \<ge> g x} = F-`{(x, y) | x y. x \<ge> y} \<inter> space M" unfolding F_def by auto
+  moreover have "{(x, y) | x y. x \<ge> (y::'a)} \<in> sets borel" using closed_superdiagonal borel_closed by blast
+  ultimately show "{x \<in> space M. f x \<ge> g x} \<in> sets M" using * by (metis (mono_tags, lifting) measurable_sets)
+
+  have "{x \<in> space M. f x > g x} = F-`{(x, y) | x y. x > y} \<inter> space M" unfolding F_def by auto
+  moreover have "{(x, y) | x y. x > (y::'a)} \<in> sets borel" using open_superdiagonal borel_open by blast
+  ultimately show "{x \<in> space M. f x > g x} \<in> sets M" using * by (metis (mono_tags, lifting) measurable_sets)
+qed
+
+lemma measurable_limit [measurable]:
+  fixes f::"nat \<Rightarrow> 'a \<Rightarrow> 'b::first_countable_topology"
+  assumes [measurable]: "\<And>n::nat. f n \<in> borel_measurable M"
+  shows "Measurable.pred M (\<lambda>x. (\<lambda>n. f n x) \<longlonglongrightarrow> c)"
+proof -
+  obtain A :: "nat \<Rightarrow> 'b set" where A:
+    "\<And>i. open (A i)"
+    "\<And>i. c \<in> A i"
+    "\<And>S. open S \<Longrightarrow> c \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
+  by (rule countable_basis_at_decseq) blast
+
+  have [measurable]: "\<And>N i. (f N)-`(A i) \<inter> space M \<in> sets M" using A(1) by auto
+  then have mes: "(\<Inter>i. \<Union>n. \<Inter>N\<in>{n..}. (f N)-`(A i) \<inter> space M) \<in> sets M" by blast
+
+  have "(u \<longlonglongrightarrow> c) \<longleftrightarrow> (\<forall>i. eventually (\<lambda>n. u n \<in> A i) sequentially)" for u::"nat \<Rightarrow> 'b"
+  proof
+    assume "u \<longlonglongrightarrow> c"
+    then have "eventually (\<lambda>n. u n \<in> A i) sequentially" for i using A(1)[of i] A(2)[of i]
+      by (simp add: topological_tendstoD)
+    then show "(\<forall>i. eventually (\<lambda>n. u n \<in> A i) sequentially)" by auto
+  next
+    assume H: "(\<forall>i. eventually (\<lambda>n. u n \<in> A i) sequentially)"
+    show "(u \<longlonglongrightarrow> c)"
+    proof (rule topological_tendstoI)
+      fix S assume "open S" "c \<in> S"
+      with A(3)[OF this] obtain i where "A i \<subseteq> S"
+        using eventually_False_sequentially eventually_mono by blast
+      moreover have "eventually (\<lambda>n. u n \<in> A i) sequentially" using H by simp
+      ultimately show "\<forall>\<^sub>F n in sequentially. u n \<in> S"
+        by (simp add: eventually_mono subset_eq)
+    qed
+  qed
+  then have "{x. (\<lambda>n. f n x) \<longlonglongrightarrow> c} = (\<Inter>i. \<Union>n. \<Inter>N\<in>{n..}. (f N)-`(A i))"
+    by (auto simp add: atLeast_def eventually_at_top_linorder)
+  then have "{x \<in> space M. (\<lambda>n. f n x) \<longlonglongrightarrow> c} = (\<Inter>i. \<Union>n. \<Inter>N\<in>{n..}. (f N)-`(A i) \<inter> space M)"
+    by auto
+  then have "{x \<in> space M. (\<lambda>n. f n x) \<longlonglongrightarrow> c} \<in> sets M" using mes by simp
+  then show ?thesis by auto
+qed
+
+lemma measurable_limit2 [measurable]:
+  fixes u::"nat \<Rightarrow> 'a \<Rightarrow> real"
+  assumes [measurable]: "\<And>n. u n \<in> borel_measurable M" "v \<in> borel_measurable M"
+  shows "Measurable.pred M (\<lambda>x. (\<lambda>n. u n x) \<longlonglongrightarrow> v x)"
+proof -
+  define w where "w = (\<lambda>n x. u n x - v x)"
+  have [measurable]: "w n \<in> borel_measurable M" for n unfolding w_def by auto
+  have "((\<lambda>n. u n x) \<longlonglongrightarrow> v x) \<longleftrightarrow> ((\<lambda>n. w n x) \<longlonglongrightarrow> 0)" for x
+    unfolding w_def using Lim_null by auto
+  then show ?thesis using measurable_limit by auto
+qed
+
+lemma measurable_P_restriction [measurable (raw)]:
+  assumes [measurable]: "Measurable.pred M P" "A \<in> sets M"
+  shows "{x \<in> A. P x} \<in> sets M"
+proof -
+  have "A \<subseteq> space M" using sets.sets_into_space[OF assms(2)].
+  then have "{x \<in> A. P x} = A \<inter> {x \<in> space M. P x}" by blast
+  then show ?thesis by auto
+qed
+
+lemma measurable_sum_nat [measurable (raw)]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> nat"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> measurable M (count_space UNIV)"
+proof cases
+  assume "finite S"
+  then show ?thesis using assms by induct auto
+qed simp
+
+
+lemma measurable_abs_powr [measurable]:
+  fixes p::real
+  assumes [measurable]: "f \<in> borel_measurable M"
+  shows "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> borel_measurable M"
+unfolding powr_def by auto
+
+text {* The next one is a variation around \verb+measurable_restrict_space+.*}
+
+lemma measurable_restrict_space3:
+  assumes "f \<in> measurable M N" and
+          "f \<in> A \<rightarrow> B"
+  shows "f \<in> measurable (restrict_space M A) (restrict_space N B)"
+proof -
+  have "f \<in> measurable (restrict_space M A) N" using assms(1) measurable_restrict_space1 by auto
+  then show ?thesis by (metis Int_iff funcsetI funcset_mem
+      measurable_restrict_space2[of f, of "restrict_space M A", of B, of N] assms(2) space_restrict_space)
+qed
+
+text {* The next one is a variation around \verb+measurable_piecewise_restrict+.*}
+
+lemma measurable_piecewise_restrict2:
+  assumes [measurable]: "\<And>n. A n \<in> sets M"
+      and "space M = (\<Union>(n::nat). A n)"
+          "\<And>n. \<exists>h \<in> measurable M N. (\<forall>x \<in> A n. f x = h x)"
+  shows "f \<in> measurable M N"
+proof (rule measurableI)
+  fix B assume [measurable]: "B \<in> sets N"
+  {
+    fix n::nat
+    obtain h where [measurable]: "h \<in> measurable M N" and "\<forall>x \<in> A n. f x = h x" using assms(3) by blast
+    then have *: "f-`B \<inter> A n = h-`B \<inter> A n" by auto
+    have "h-`B \<inter> A n = h-`B \<inter> space M \<inter> A n" using assms(2) sets.sets_into_space by auto
+    then have "h-`B \<inter> A n \<in> sets M" by simp
+    then have "f-`B \<inter> A n \<in> sets M" using * by simp
+  }
+  then have "(\<Union>n. f-`B \<inter> A n) \<in> sets M" by measurable
+  moreover have "f-`B \<inter> space M = (\<Union>n. f-`B \<inter> A n)" using assms(2) by blast
+  ultimately show "f-`B \<inter> space M \<in> sets M" by simp
+next
+  fix x assume "x \<in> space M"
+  then obtain n where "x \<in> A n" using assms(2) by blast
+  obtain h where [measurable]: "h \<in> measurable M N" and "\<forall>x \<in> A n. f x = h x" using assms(3) by blast
+  then have "f x = h x" using `x \<in> A n` by blast
+  moreover have "h x \<in> space N" by (metis measurable_space `x \<in> space M` `h \<in> measurable M N`)
+  ultimately show "f x \<in> space N" by simp
+qed
+
 end

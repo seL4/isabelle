@@ -949,6 +949,9 @@ lemma ennreal_ge_1[simp]: "ennreal x \<ge> 1 \<longleftrightarrow> x \<ge> 1"
   by (cases "0 \<le> x")
      (auto simp: ennreal_neg ennreal_1[symmetric] simp del: ennreal_1)
 
+lemma one_less_ennreal[simp]: "1 < ennreal x \<longleftrightarrow> 1 < x"
+  by transfer (auto simp: max.absorb2 less_max_iff_disj)
+
 lemma ennreal_plus[simp]:
   "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> ennreal (a + b) = ennreal a + ennreal b"
   by (transfer fixing: a b) (auto simp: max_absorb2)

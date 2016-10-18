@@ -22,6 +22,23 @@ lemma swap_id_eq:
   "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
   by (simp add: Fun.swap_def)
 
+lemma bij_inv_eq_iff: "bij p \<Longrightarrow> x = inv p y \<longleftrightarrow> p x = y"
+  using surj_f_inv_f[of p] by (auto simp add: bij_def)
+
+lemma bij_swap_comp:
+  assumes bp: "bij p"
+  shows "Fun.swap a b id \<circ> p = Fun.swap (inv p a) (inv p b) p"
+  using surj_f_inv_f[OF bij_is_surj[OF bp]]
+  by (simp add: fun_eq_iff Fun.swap_def bij_inv_eq_iff[OF bp])
+
+lemma bij_swap_ompose_bij: "bij p \<Longrightarrow> bij (Fun.swap a b id \<circ> p)"
+proof -
+  assume H: "bij p"
+  show ?thesis
+    unfolding bij_swap_comp[OF H] bij_swap_iff
+    using H .
+qed
+
 
 subsection \<open>Basic consequences of the definition\<close>
 
@@ -30,7 +47,7 @@ definition permutes  (infixr "permutes" 41)
 
 lemma permutes_in_image: "p permutes S \<Longrightarrow> p x \<in> S \<longleftrightarrow> x \<in> S"
   unfolding permutes_def by metis
-  
+
 lemma permutes_not_in:
   assumes "f permutes S" "x \<notin> S" shows "f x = x"
   using assms by (auto simp: permutes_def)
@@ -107,7 +124,7 @@ lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T
 
 (* Next three lemmas contributed by Lukas Bulwahn *)
 lemma permutes_bij_inv_into:
-  fixes A :: "'a set" and B :: "'b set" 
+  fixes A :: "'a set" and B :: "'b set"
   assumes "p permutes A"
   assumes "bij_betw f A B"
   shows "(\<lambda>x. if x \<in> B then f (p (inv_into A f x)) else x) permutes B"
@@ -167,9 +184,9 @@ lemma permutes_inv_inv:
   unfolding fun_eq_iff permutes_inv_eq[OF pS] permutes_inv_eq[OF permutes_inv[OF pS]]
   by blast
 
-lemma permutes_invI: 
+lemma permutes_invI:
   assumes perm: "p permutes S"
-      and inv:  "\<And>x. x \<in> S \<Longrightarrow> p' (p x) = x" 
+      and inv:  "\<And>x. x \<in> S \<Longrightarrow> p' (p x) = x"
       and outside: "\<And>x. x \<notin> S \<Longrightarrow> p' x = x"
   shows   "inv p = p'"
 proof
@@ -177,14 +194,14 @@ proof
   proof (cases "x \<in> S")
     assume [simp]: "x \<in> S"
     from assms have "p' x = p' (p (inv p x))" by (simp add: permutes_inverses)
-    also from permutes_inv[OF perm] 
+    also from permutes_inv[OF perm]
       have "\<dots> = inv p x" by (subst inv) (simp_all add: permutes_in_image)
     finally show "inv p x = p' x" ..
   qed (insert permutes_inv[OF perm], simp_all add: outside permutes_not_in)
 qed
 
 lemma permutes_vimage: "f permutes A \<Longrightarrow> f -` A = A"
-  by (simp add: bij_vimage_eq_inv_image permutes_bij permutes_image[OF permutes_inv])  
+  by (simp add: bij_vimage_eq_inv_image permutes_bij permutes_image[OF permutes_inv])
 
 
 subsection \<open>The number of permutations on a finite set\<close>
@@ -329,7 +346,7 @@ qed
 lemma finite_permutations:
   assumes fS: "finite S"
   shows "finite {p. p permutes S}"
-  using card_permutations[OF refl fS] 
+  using card_permutations[OF refl fS]
   by (auto intro: card_ge_0_finite)
 
 
@@ -724,23 +741,6 @@ proof -
   qed
 qed
 
-lemma bij_inv_eq_iff: "bij p \<Longrightarrow> x = inv p y \<longleftrightarrow> p x = y"
-  using surj_f_inv_f[of p] by (auto simp add: bij_def)
-
-lemma bij_swap_comp:
-  assumes bp: "bij p"
-  shows "Fun.swap a b id \<circ> p = Fun.swap (inv p a) (inv p b) p"
-  using surj_f_inv_f[OF bij_is_surj[OF bp]]
-  by (simp add: fun_eq_iff Fun.swap_def bij_inv_eq_iff[OF bp])
-
-lemma bij_swap_ompose_bij: "bij p \<Longrightarrow> bij (Fun.swap a b id \<circ> p)"
-proof -
-  assume H: "bij p"
-  show ?thesis
-    unfolding bij_swap_comp[OF H] bij_swap_iff
-    using H .
-qed
-
 lemma permutation_lemma:
   assumes fS: "finite S"
     and p: "bij p"
@@ -881,7 +881,7 @@ lemma sign_swap_id: "sign (Fun.swap a b id) = (if a = b then 1 else -1)"
 lemma sign_idempotent: "sign p * sign p = 1"
   by (simp add: sign_def)
 
- 
+
 subsection \<open>Permuting a list\<close>
 
 text \<open>This function permutes a list by applying a permutation to the indices.\<close>
@@ -889,7 +889,7 @@ text \<open>This function permutes a list by applying a permutation to the indic
 definition permute_list :: "(nat \<Rightarrow> nat) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "permute_list f xs = map (\<lambda>i. xs ! (f i)) [0..<length xs]"
 
-lemma permute_list_map: 
+lemma permute_list_map:
   assumes "f permutes {..<length xs}"
   shows   "permute_list f (map g xs) = map g (permute_list f xs)"
   using permutes_in_image[OF assms] by (auto simp: permute_list_def)
@@ -897,7 +897,7 @@ lemma permute_list_map:
 lemma permute_list_nth:
   assumes "f permutes {..<length xs}" "i < length xs"
   shows   "permute_list f xs ! i = xs ! f i"
-  using permutes_in_image[OF assms(1)] assms(2) 
+  using permutes_in_image[OF assms(1)] assms(2)
   by (simp add: permute_list_def)
 
 lemma permute_list_Nil [simp]: "permute_list f [] = []"
@@ -906,7 +906,7 @@ lemma permute_list_Nil [simp]: "permute_list f [] = []"
 lemma length_permute_list [simp]: "length (permute_list f xs) = length xs"
   by (simp add: permute_list_def)
 
-lemma permute_list_compose: 
+lemma permute_list_compose:
   assumes "g permutes {..<length xs}"
   shows   "permute_list (f \<circ> g) xs = permute_list g (permute_list f xs)"
   using assms[THEN permutes_in_image] by (auto simp add: permute_list_def)
@@ -924,7 +924,7 @@ proof (rule multiset_eqI)
   fix y :: 'a
   from assms have [simp]: "f x < length xs \<longleftrightarrow> x < length xs" for x
     using permutes_in_image[OF assms] by auto
-  have "count (mset (permute_list f xs)) y = 
+  have "count (mset (permute_list f xs)) y =
           card ((\<lambda>i. xs ! f i) -` {y} \<inter> {..<length xs})"
     by (simp add: permute_list_def mset_map count_image_mset atLeast0LessThan)
   also have "(\<lambda>i. xs ! f i) -` {y} \<inter> {..<length xs} = f -` {i. i < length xs \<and> y = xs ! i}"
@@ -935,7 +935,7 @@ proof (rule multiset_eqI)
   finally show "count (mset (permute_list f xs)) y = count (mset xs) y" by simp
 qed
 
-lemma set_permute_list [simp]:                   
+lemma set_permute_list [simp]:
   assumes "f permutes {..<length xs}"
   shows   "set (permute_list f xs) = set xs"
   by (rule mset_eq_setD[OF mset_permute_list]) fact
@@ -945,7 +945,7 @@ lemma distinct_permute_list [simp]:
   shows   "distinct (permute_list f xs) = distinct xs"
   by (simp add: distinct_count_atmost_1 assms)
 
-lemma permute_list_zip: 
+lemma permute_list_zip:
   assumes "f permutes A" "A = {..<length xs}"
   assumes [simp]: "length xs = length ys"
   shows   "permute_list f (zip xs ys) = zip (permute_list f xs) (permute_list f ys)"
@@ -961,7 +961,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma map_of_permute: 
+lemma map_of_permute:
   assumes "\<sigma> permutes fst ` set xs"
   shows   "map_of xs \<circ> \<sigma> = map_of (map (\<lambda>(x,y). (inv \<sigma> x, y)) xs)" (is "_ = map_of (map ?f _)")
 proof
@@ -993,7 +993,7 @@ next
     from this have "count (image_mset f (mset_set (insert x F))) b = Suc (card {a \<in> F. f a = f x})"
       using insert.hyps by auto
     also have "\<dots> = card (insert x {a \<in> F. f a = f x})"
-      using insert.hyps(1,2) by simp  
+      using insert.hyps(1,2) by simp
     also have "card (insert x {a \<in> F. f a = f x}) = card {a \<in> insert x F. f a = b}"
       using \<open>f x = b\<close> by (auto intro: arg_cong[where f="card"])
     finally show ?thesis using insert by auto
@@ -1003,7 +1003,7 @@ next
     with insert A show ?thesis by simp
   qed
 qed
-  
+
 (* Prove image_mset_eq_implies_permutes *)
 lemma image_mset_eq_implies_permutes:
   fixes f :: "'a \<Rightarrow> 'b"
@@ -1317,7 +1317,7 @@ qed
 subsection \<open>Constructing permutations from association lists\<close>
 
 definition list_permutes where
-  "list_permutes xs A \<longleftrightarrow> set (map fst xs) \<subseteq> A \<and> set (map snd xs) = set (map fst xs) \<and> 
+  "list_permutes xs A \<longleftrightarrow> set (map fst xs) \<subseteq> A \<and> set (map snd xs) = set (map fst xs) \<and>
      distinct (map fst xs) \<and> distinct (map snd xs)"
 
 lemma list_permutesI [simp]:
@@ -1349,8 +1349,8 @@ lemma inj_on_map_of:
 proof (rule inj_onI)
   fix x y assume xy: "x \<in> set (map fst xs)" "y \<in> set (map fst xs)"
   assume eq: "map_of xs x = map_of xs y"
-  from xy obtain x' y' 
-    where x'y': "map_of xs x = Some x'" "map_of xs y = Some y'" 
+  from xy obtain x' y'
+    where x'y': "map_of xs x = Some x'" "map_of xs y = Some y'"
     by (cases "map_of xs x"; cases "map_of xs y")
        (simp_all add: map_of_eq_None_iff)
   moreover from x'y' have *: "(x,x') \<in> set xs" "(y,y') \<in> set xs"
@@ -1398,7 +1398,7 @@ proof (rule permutes_subset[OF bij_imp_permutes])
   also from assms have "?f ` set (map fst xs) = (the \<circ> map_of xs) ` set (map fst xs)"
     by (intro image_cong refl)
        (auto simp: permutation_of_list_def map_of_eq_None_iff split: option.splits)
-  also from assms have "\<dots> = set (map fst xs)" 
+  also from assms have "\<dots> = set (map fst xs)"
     by (subst image_map_of') (simp_all add: list_permutes_def)
   finally show "bij_betw ?f (set (map fst xs)) (set (map fst xs))" .
 qed (force simp: permutation_of_list_def dest!: map_of_SomeD split: option.splits)+

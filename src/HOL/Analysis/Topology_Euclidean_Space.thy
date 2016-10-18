@@ -459,6 +459,99 @@ proof
 qed
 
 
+lemma countable_separating_set_linorder1:
+  shows "\<exists>B::('a::{linorder_topology, second_countable_topology} set). countable B \<and> (\<forall>x y. x < y \<longrightarrow> (\<exists>b \<in> B. x < b \<and> b \<le> y))"
+proof -
+  obtain A::"'a set set" where "countable A" "topological_basis A" using ex_countable_basis by auto
+  define B1 where "B1 = {(LEAST x. x \<in> U)| U. U \<in> A}"
+  then have "countable B1" using `countable A` by (simp add: Setcompr_eq_image)
+  define B2 where "B2 = {(SOME x. x \<in> U)| U. U \<in> A}"
+  then have "countable B2" using `countable A` by (simp add: Setcompr_eq_image)
+  have "\<exists>b \<in> B1 \<union> B2. x < b \<and> b \<le> y" if "x < y" for x y
+  proof (cases)
+    assume "\<exists>z. x < z \<and> z < y"
+    then obtain z where z: "x < z \<and> z < y" by auto
+    define U where "U = {x<..<y}"
+    then have "open U" by simp
+    moreover have "z \<in> U" using z U_def by simp
+    ultimately obtain V where "V \<in> A" "z \<in> V" "V \<subseteq> U" using topological_basisE[OF `topological_basis A`] by auto
+    define w where "w = (SOME x. x \<in> V)"
+    then have "w \<in> V" using `z \<in> V` by (metis someI2)
+    then have "x < w \<and> w \<le> y" using `w \<in> V` `V \<subseteq> U` U_def by fastforce
+    moreover have "w \<in> B1 \<union> B2" using w_def B2_def `V \<in> A` by auto
+    ultimately show ?thesis by auto
+  next
+    assume "\<not>(\<exists>z. x < z \<and> z < y)"
+    then have *: "\<And>z. z > x \<Longrightarrow> z \<ge> y" by auto
+    define U where "U = {x<..}"
+    then have "open U" by simp
+    moreover have "y \<in> U" using `x < y` U_def by simp
+    ultimately obtain "V" where "V \<in> A" "y \<in> V" "V \<subseteq> U" using topological_basisE[OF `topological_basis A`] by auto
+    have "U = {y..}" unfolding U_def using * `x < y` by auto
+    then have "V \<subseteq> {y..}" using `V \<subseteq> U` by simp
+    then have "(LEAST w. w \<in> V) = y" using `y \<in> V` by (meson Least_equality atLeast_iff subsetCE)
+    then have "y \<in> B1 \<union> B2" using `V \<in> A` B1_def by auto
+    moreover have "x < y \<and> y \<le> y" using `x < y` by simp
+    ultimately show ?thesis by auto
+  qed
+  moreover have "countable (B1 \<union> B2)" using `countable B1` `countable B2` by simp
+  ultimately show ?thesis by auto
+qed
+
+lemma countable_separating_set_linorder2:
+  shows "\<exists>B::('a::{linorder_topology, second_countable_topology} set). countable B \<and> (\<forall>x y. x < y \<longrightarrow> (\<exists>b \<in> B. x \<le> b \<and> b < y))"
+proof -
+  obtain A::"'a set set" where "countable A" "topological_basis A" using ex_countable_basis by auto
+  define B1 where "B1 = {(GREATEST x. x \<in> U) | U. U \<in> A}"
+  then have "countable B1" using `countable A` by (simp add: Setcompr_eq_image)
+  define B2 where "B2 = {(SOME x. x \<in> U)| U. U \<in> A}"
+  then have "countable B2" using `countable A` by (simp add: Setcompr_eq_image)
+  have "\<exists>b \<in> B1 \<union> B2. x \<le> b \<and> b < y" if "x < y" for x y
+  proof (cases)
+    assume "\<exists>z. x < z \<and> z < y"
+    then obtain z where z: "x < z \<and> z < y" by auto
+    define U where "U = {x<..<y}"
+    then have "open U" by simp
+    moreover have "z \<in> U" using z U_def by simp
+    ultimately obtain "V" where "V \<in> A" "z \<in> V" "V \<subseteq> U" using topological_basisE[OF `topological_basis A`] by auto
+    define w where "w = (SOME x. x \<in> V)"
+    then have "w \<in> V" using `z \<in> V` by (metis someI2)
+    then have "x \<le> w \<and> w < y" using `w \<in> V` `V \<subseteq> U` U_def by fastforce
+    moreover have "w \<in> B1 \<union> B2" using w_def B2_def `V \<in> A` by auto
+    ultimately show ?thesis by auto
+  next
+    assume "\<not>(\<exists>z. x < z \<and> z < y)"
+    then have *: "\<And>z. z < y \<Longrightarrow> z \<le> x" using leI by blast
+    define U where "U = {..<y}"
+    then have "open U" by simp
+    moreover have "x \<in> U" using `x < y` U_def by simp
+    ultimately obtain "V" where "V \<in> A" "x \<in> V" "V \<subseteq> U" using topological_basisE[OF `topological_basis A`] by auto
+    have "U = {..x}" unfolding U_def using * `x < y` by auto
+    then have "V \<subseteq> {..x}" using `V \<subseteq> U` by simp
+    then have "(GREATEST x. x \<in> V) = x" using `x \<in> V` by (meson Greatest_equality atMost_iff subsetCE)
+    then have "x \<in> B1 \<union> B2" using `V \<in> A` B1_def by auto
+    moreover have "x \<le> x \<and> x < y" using `x < y` by simp
+    ultimately show ?thesis by auto
+  qed
+  moreover have "countable (B1 \<union> B2)" using `countable B1` `countable B2` by simp
+  ultimately show ?thesis by auto
+qed
+
+lemma countable_separating_set_dense_linorder:
+  shows "\<exists>B::('a::{linorder_topology, dense_linorder, second_countable_topology} set). countable B \<and> (\<forall>x y. x < y \<longrightarrow> (\<exists>b \<in> B. x < b \<and> b < y))"
+proof -
+  obtain B::"'a set" where B: "countable B" "\<And>x y. x < y \<Longrightarrow> (\<exists>b \<in> B. x < b \<and> b \<le> y)"
+    using countable_separating_set_linorder1 by auto
+  have "\<exists>b \<in> B. x < b \<and> b < y" if "x < y" for x y
+  proof -
+    obtain z where "x < z" "z < y" using `x < y` dense by blast
+    then obtain b where "b \<in> B" "x < b \<and> b \<le> z" using B(2) by auto
+    then have "x < b \<and> b < y" using `z < y` by auto
+    then show ?thesis using `b \<in> B` by auto
+  qed
+  then show ?thesis using B(1) by auto
+qed
+
 subsection \<open>Polish spaces\<close>
 
 text \<open>Textbooks define Polish spaces as completely metrizable.
@@ -8688,7 +8781,7 @@ next
     unfolding homeomorphic_def homeomorphism_def
     by (metis equalityI image_subset_iff subsetI)
  qed
- 
+
 lemma homeomorphicI [intro?]:
    "\<lbrakk>f ` S = T; g ` T = S;
      continuous_on S f; continuous_on T g;
@@ -10037,7 +10130,7 @@ proof (clarsimp simp: continuous_openin_preimage_eq)
     apply (rule openin_Union, clarify)
     apply (metis (full_types) \<open>open U\<close> cont clo openin_trans continuous_openin_preimage_gen)
     done
-qed 
+qed
 
 lemma pasting_lemma_exists:
   fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"

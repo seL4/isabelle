@@ -8,11 +8,6 @@ theory Levy
   imports Characteristic_Functions Helly_Selection Sinc_Integral
 begin
 
-lemma LIM_zero_cancel:
-  fixes f :: "_ \<Rightarrow> 'b::real_normed_vector"
-  shows "((\<lambda>x. f x - l) \<longlongrightarrow> 0) F \<Longrightarrow> (f \<longlongrightarrow> l) F"
-unfolding tendsto_iff dist_norm by simp
-
 subsection \<open>The Levy inversion theorem\<close>
 
 (* Actually, this is not needed for us -- but it is useful for other purposes. (See Billingsley.) *)

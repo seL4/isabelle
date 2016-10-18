@@ -791,11 +791,11 @@ proof (intro measure_eqI)
     by (auto simp add: emeasure_density measurable_completion nn_integral_completion intro!: nn_integral_cong_AE)
 qed
 
-lemma null_sets_subset: "A \<subseteq> B \<Longrightarrow> A \<in> sets M \<Longrightarrow> B \<in> null_sets M \<Longrightarrow> A \<in> null_sets M"
+lemma null_sets_subset: "B \<in> null_sets M \<Longrightarrow> A \<in> sets M \<Longrightarrow> A \<subseteq> B \<Longrightarrow> A \<in> null_sets M"
   using emeasure_mono[of A B M] by (simp add: null_sets_def)
 
 lemma (in complete_measure) complete2: "A \<subseteq> B \<Longrightarrow> B \<in> null_sets M \<Longrightarrow> A \<in> null_sets M"
-  using complete[of A B] null_sets_subset[of A B M] by simp
+  using complete[of A B] null_sets_subset[of B M A] by simp
 
 lemma (in complete_measure) AE_iff_null_sets: "(AE x in M. P x) \<longleftrightarrow> {x\<in>space M. \<not> P x} \<in> null_sets M"
   unfolding eventually_ae_filter by (auto intro: complete2)
