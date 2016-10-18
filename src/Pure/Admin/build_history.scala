@@ -96,7 +96,7 @@ object Build_History
   /** build_history **/
 
   private val default_rev = "tip"
-  private val default_threads = 1
+  private val default_multicore = (1, 1)
   private val default_heap = 1000
   private val default_isabelle_identifier = "build_history"
 
@@ -109,7 +109,7 @@ object Build_History
     fresh: Boolean = false,
     nonfree: Boolean = false,
     multicore_base: Boolean = false,
-    threads_list: List[Int] = List(default_threads),
+    multicore_list: List[(Int, Int)] = List(default_multicore),
     arch_64: Boolean = false,
     heap: Int = default_heap,
     max_heap: Option[Int] = None,
@@ -123,7 +123,10 @@ object Build_History
     if (File.eq(Path.explode("~~"), hg.root))
       error("Repository coincides with ISABELLE_HOME=" + Path.explode("~~").expand)
 
-    for (threads <- threads_list if threads < 1) error("Bad threads value < 1: " + threads)
+    for ((threads, _) <- multicore_list if threads < 1)
+      error("Bad threads value < 1: " + threads)
+    for ((_, processes) <- multicore_list if processes < 1)
+      error("Bad processes value < 1: " + processes)
 
     if (heap < 100) error("Bad heap value < 100: " + heap)
 
@@ -152,7 +155,7 @@ object Build_History
     val build_group_id = build_host + ":" + build_history_date.time.ms
 
     var first_build = true
-    for (threads <- threads_list) yield
+    for ((threads, processes) <- multicore_list) yield
     {
       /* init settings */
 
@@ -186,7 +189,8 @@ object Build_History
 
       val build_start = Date.now()
       val build_result =
-        other_isabelle("build -v " + File.bash_args(build_args), redirect = true, echo = verbose)
+        other_isabelle("build -v -j " + processes + " " + File.bash_args(build_args),
+          redirect = true, echo = verbose)
       val build_end = Date.now()
 
       val log_path =
@@ -257,6 +261,19 @@ object Build_History
 
   /* command line entry point */
 
+  private object Multicore
+  {
+    private val Pat1 = """^(\d+)$""".r
+    private val Pat2 = """^(\d+)x(\d+)$""".r
+
+    def parse(s: String): (Int, Int) =
+      s match {
+        case Pat1(Value.Int(x)) => (x, 1)
+        case Pat2(Value.Int(x), Value.Int(y)) => (x, y)
+        case _ => error("Bad multicore configuration: " + quote(s))
+      }
+  }
+
   def main(args: Array[String])
   {
     Command_Line.tool0 {
@@ -264,7 +281,7 @@ object Build_History
       var components_base = ""
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
-      var threads_list = List(default_threads)
+      var multicore_list = List(default_multicore)
       var isabelle_identifier = default_isabelle_identifier
       var more_settings: List[String] = Nil
       var fresh = false
@@ -281,7 +298,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
-    -M THREADS   multicore configurations (comma-separated list, default: """ + default_threads + """)
+    -M MULTICORE multicore configurations (see below)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
@@ -294,11 +311,14 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
   Build Isabelle sessions from the history of another REPOSITORY clone,
   passing ARGS directly to its isabelle build tool.
+
+  Each MULTICORE configuration consists of one or two numbers (default 1):
+  THREADS or THREADSxPROCESSES, e.g. -M 1,2,4 or -M 1x4,2x2,4.
 """,
         "B" -> (_ => multicore_base = true),
         "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
-        "M:" -> (arg => threads_list = space_explode(',', arg).map(Value.Int.parse(_))),
+        "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse(_))),
         "N:" -> (arg => isabelle_identifier = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
@@ -326,7 +346,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val results =
         build_history(hg, progress = progress, rev = rev, isabelle_identifier = isabelle_identifier,
           components_base = components_base, fresh = fresh, nonfree = nonfree,
-          multicore_base = multicore_base, threads_list = threads_list, arch_64 = arch_64,
+          multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, more_settings = more_settings, verbose = verbose,
           build_tags = build_tags, build_args = build_args)
