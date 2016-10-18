@@ -188,9 +188,9 @@ object Build_History
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
+      val build_args1 = List("-v", "-j" + processes) ::: build_args
       val build_result =
-        other_isabelle("build -v -j " + processes + " " + File.bash_args(build_args),
-          redirect = true, echo = verbose)
+        other_isabelle("build " + File.bash_args(build_args1), redirect = true, echo = verbose)
       val build_end = Date.now()
 
       val log_path =
@@ -207,7 +207,7 @@ object Build_History
 
       val meta_info =
         Build_Log.Prop.multiple(Build_Log.Prop.build_tags, build_tags) :::
-        Build_Log.Prop.multiple(Build_Log.Prop.build_args, build_args) :::
+        Build_Log.Prop.multiple(Build_Log.Prop.build_args, build_args1) :::
         List(
           Build_Log.Prop.build_group_id -> build_group_id,
           Build_Log.Prop.build_id -> (build_host + ":" + build_start.time.ms),
