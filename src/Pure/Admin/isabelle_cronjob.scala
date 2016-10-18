@@ -97,19 +97,21 @@ object Isabelle_Cronjob
     host: String,
     user: String = "",
     port: Int = SSH.default_port,
-    shared_home: Boolean = false,
+    shared_home: Boolean = true,
     options: String = "",
     args: String = "-o timeout=10800 -a")
 
   private val remote_builds =
     List(
-      Remote_Build("lxbroy10", options = "-m32 -M4 -N", shared_home = true),
+      Remote_Build("lxbroy10", options = "-m32 -M4 -N"),
       Remote_Build("macbroy2", options = "-m32 -M4"),
       Remote_Build("macbroy30", options = "-m32 -M2"),
       Remote_Build("macbroy31", options = "-m32 -M2"))
 
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
-    Logger_Task("build_history-" + r.host, logger =>
+  {
+    val task_name = "build_history-" + r.host
+    Logger_Task(task_name, logger =>
       {
         using(logger.ssh_context.open_session(host = r.host, user = r.user, port = r.port))(
           ssh =>
@@ -120,12 +122,15 @@ object Isabelle_Cronjob
                   isabelle_repos.ext(r.host),
                   isabelle_repos_source = isabelle_dev_source,
                   self_update = !r.shared_home,
-                  options = r.options + " -f -r " + File.bash_string(rev),
+                  options =
+                    r.options + " -f -r " + File.bash_string(rev) +
+                      " -N " + File.bash_string(task_name),
                   args = r.args)
               for ((log, bytes) <- results)
                 Bytes.write(logger.log_dir + Path.explode(log), bytes)
             })
       })
+  }
 
 
 
