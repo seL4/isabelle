@@ -898,19 +898,15 @@ instance star :: (ordered_ring_abs) ordered_ring_abs
 instance star :: (abs_if) abs_if
   by (intro_classes; transfer) (fact abs_if)
 
-instance star :: (sgn_if) sgn_if
-  by (intro_classes; transfer) (fact sgn_if)
-
 instance star :: (linordered_ring_strict) linordered_ring_strict ..
 instance star :: (ordered_comm_ring) ordered_comm_ring ..
 
 instance star :: (linordered_semidom) linordered_semidom
-  apply intro_classes
-  apply(transfer, fact zero_less_one)
-  apply(transfer, fact le_add_diff_inverse2)
-  done
+  by (intro_classes; transfer) (fact zero_less_one le_add_diff_inverse2)+
 
-instance star :: (linordered_idom) linordered_idom ..
+instance star :: (linordered_idom) linordered_idom
+  by (intro_classes; transfer) (fact sgn_if)
+
 instance star :: (linordered_field) linordered_field ..
 
 subsection \<open>Power\<close>

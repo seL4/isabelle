@@ -28,7 +28,7 @@ qed
 quotient_type rat = "int \<times> int" / partial: ratrel
  using ratrel_equivp .
 
-instantiation rat :: "{zero, one, plus, uminus, minus, times, ord, abs_if, sgn_if}"
+instantiation rat :: "{zero, one, plus, uminus, minus, times, ord, abs, sgn}"
 begin
 
 quotient_definition
@@ -100,8 +100,7 @@ definition
 definition
   sgn_rat_def: "sgn (i::rat) = (if i = 0 then 0 else if 0 < i then 1 else - 1)"
 
-instance by intro_classes
-  (auto simp add: rabs_rat_def sgn_rat_def)
+instance ..
 
 end
 
