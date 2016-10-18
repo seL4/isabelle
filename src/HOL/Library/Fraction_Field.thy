@@ -70,7 +70,7 @@ lemma eq_fract:
     and "\<And>a c. Fract 0 a = Fract 0 c"
 by(transfer; simp)+
 
-instantiation fract :: (idom) "{comm_ring_1,power}"
+instantiation fract :: (idom) comm_ring_1
 begin
 
 lift_definition zero_fract :: "'a fract" is "(0, 1)" by simp
@@ -353,31 +353,20 @@ qed
 
 end
 
-instantiation fract :: (linordered_idom) "{distrib_lattice,abs_if,sgn_if}"
+instantiation fract :: (linordered_idom) linordered_field
 begin
 
-definition abs_fract_def2: "\<bar>q\<bar> = (if q < 0 then -q else (q::'a fract))"
+definition abs_fract_def2:
+  "\<bar>q\<bar> = (if q < 0 then -q else (q::'a fract))"
 
 definition sgn_fract_def:
   "sgn (q::'a fract) = (if q = 0 then 0 else if 0 < q then 1 else - 1)"
 
 theorem abs_fract [simp]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
-unfolding abs_fract_def2 not_le[symmetric]
-by transfer(auto simp add: zero_less_mult_iff le_less)
+  unfolding abs_fract_def2 not_le [symmetric]
+  by transfer (auto simp add: zero_less_mult_iff le_less)
 
-definition inf_fract_def:
-  "(inf :: 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = min"
-
-definition sup_fract_def:
-  "(sup :: 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = max"
-
-instance
-by intro_classes (simp_all add: abs_fract_def2 sgn_fract_def inf_fract_def sup_fract_def max_min_distrib2)
-
-end
-
-instance fract :: (linordered_idom) linordered_field
-proof
+instance proof
   fix q r s :: "'a fract"
   assume "q \<le> r"
   then show "s + q \<le> s + r"
@@ -420,7 +409,23 @@ next
         by (simp add: ac_simps)
     qed
   qed
-qed
+qed (fact sgn_fract_def abs_fract_def2)+
+
+end
+
+instantiation fract :: (linordered_idom) distrib_lattice
+begin
+
+definition inf_fract_def:
+  "(inf :: 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = min"
+
+definition sup_fract_def:
+  "(sup :: 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = max"
+
+instance
+  by standard (simp_all add: inf_fract_def sup_fract_def max_min_distrib2)
+  
+end
 
 lemma fract_induct_pos [case_names Fract]:
   fixes P :: "'a::linordered_idom fract \<Rightarrow> bool"

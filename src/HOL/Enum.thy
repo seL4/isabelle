@@ -580,7 +580,7 @@ end
 instantiation finite_1 :: 
   "{linordered_ring_strict, linordered_comm_semiring_strict, ordered_comm_ring,
     ordered_cancel_comm_monoid_diff, comm_monoid_mult, ordered_ring_abs,
-    one, modulo, sgn_if, inverse}"
+    one, modulo, sgn, inverse}"
 begin
 definition [simp]: "Groups.zero = a\<^sub>1"
 definition [simp]: "Groups.one = a\<^sub>1"
@@ -683,7 +683,7 @@ instance finite_2 :: complete_distrib_lattice
 
 instance finite_2 :: complete_linorder ..
 
-instantiation finite_2 :: "{field, abs_if, ring_div, sgn_if, semiring_div}" begin
+instantiation finite_2 :: "{field, ring_div, idom_abs_sgn}" begin
 definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition "x + y = (case (x, y) of (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
@@ -806,7 +806,7 @@ qed
 
 instance finite_3 :: complete_linorder ..
 
-instantiation finite_3 :: "{field, abs_if, ring_div, semiring_div, sgn_if}" begin
+instantiation finite_3 :: "{field, ring_div, idom_abs_sgn}" begin
 definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition
@@ -819,9 +819,9 @@ definition "x - y = x + (- y :: finite_3)"
 definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>3) \<Rightarrow> a\<^sub>2 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>3 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
 definition "inverse = (\<lambda>x :: finite_3. x)" 
 definition "x div y = x * inverse (y :: finite_3)"
-definition "abs = (\<lambda>x :: finite_3. x)"
+definition "abs = (\<lambda>x. case x of a\<^sub>3 \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> x)"
 definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>1) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
-definition "sgn = (\<lambda>x. case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
+definition "sgn = (\<lambda>x :: finite_3. x)"
 instance
 by intro_classes
   (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def times_finite_3_def

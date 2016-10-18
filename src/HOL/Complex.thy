@@ -381,6 +381,23 @@ lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
   by (simp add: complex_sgn_def divide_inverse)
 
 
+subsection \<open>Absolute value\<close>
+
+instantiation complex :: field_abs_sgn
+begin
+
+definition abs_complex :: "complex \<Rightarrow> complex"
+  where "abs_complex = of_real \<circ> norm"
+
+instance
+  apply standard
+         apply (auto simp add: abs_complex_def complex_sgn_def norm_mult)
+  apply (auto simp add: scaleR_conv_of_real field_simps)
+  done
+
+end
+
+
 subsection \<open>Completeness of the Complexes\<close>
 
 lemma bounded_linear_Re: "bounded_linear Re"

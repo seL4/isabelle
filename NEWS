@@ -281,6 +281,10 @@ types where this is really intended.
     mod_1 ~> mod_by_Suc_0
 INCOMPATIBILITY.
 
+* New type class "idom_abs_sgn" specifies algebraic properties
+of sign and absolute value functions.  Type class "sgn_if" has
+disappeared.  Slight INCOMPATIBILITY.
+
 * Dedicated syntax LENGTH('a) for length of types.
 
 * New proof method "argo" using the built-in Argo solver based on SMT

@@ -1148,18 +1148,6 @@ class abs =
 class sgn =
   fixes sgn :: "'a \<Rightarrow> 'a"
 
-class abs_if = minus + uminus + ord + zero + abs +
-  assumes abs_if: "\<bar>a\<bar> = (if a < 0 then - a else a)"
-
-class sgn_if = minus + uminus + zero + one + ord + sgn +
-  assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
-begin
-
-lemma sgn0 [simp]: "sgn 0 = 0"
-  by (simp add:sgn_if)
-
-end
-
 class ordered_ab_group_add_abs = ordered_ab_group_add + abs +
   assumes abs_ge_zero [simp]: "\<bar>a\<bar> \<ge> 0"
     and abs_ge_self: "a \<le> \<bar>a\<bar>"

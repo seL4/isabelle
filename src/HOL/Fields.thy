@@ -513,6 +513,48 @@ class field_char_0 = field + ring_char_0
 
 subsection \<open>Ordered fields\<close>
 
+class field_abs_sgn = field + idom_abs_sgn
+begin
+
+lemma sgn_inverse [simp]:
+  "sgn (inverse a) = inverse (sgn a)"
+proof (cases "a = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  then have "a * inverse a = 1"
+    by simp
+  then have "sgn (a * inverse a) = sgn 1"
+    by simp
+  then have "sgn a * sgn (inverse a) = 1"
+    by (simp add: sgn_mult)
+  then have "inverse (sgn a) * (sgn a * sgn (inverse a)) = inverse (sgn a) * 1"
+    by simp
+  then have "(inverse (sgn a) * sgn a) * sgn (inverse a) = inverse (sgn a)"
+    by (simp add: ac_simps)
+  with False show ?thesis
+    by (simp add: sgn_eq_0_iff)
+qed
+
+lemma abs_inverse [simp]:
+  "\<bar>inverse a\<bar> = inverse \<bar>a\<bar>"
+proof -
+  from sgn_mult_abs [of "inverse a"] sgn_mult_abs [of a]
+  have "inverse (sgn a) * \<bar>inverse a\<bar> = inverse (sgn a * \<bar>a\<bar>)"
+    by simp
+  then show ?thesis by (auto simp add: sgn_eq_0_iff)
+qed
+    
+lemma sgn_divide [simp]:
+  "sgn (a / b) = sgn a / sgn b"
+  unfolding divide_inverse sgn_mult by simp
+
+lemma abs_divide [simp]:
+  "\<bar>a / b\<bar> = \<bar>a\<bar> / \<bar>b\<bar>"
+  unfolding divide_inverse abs_mult by simp
+  
+end
+
 class linordered_field = field + linordered_idom
 begin
 
@@ -932,16 +974,15 @@ proof
   show "x < y \<Longrightarrow> \<exists>z>x. z < y" by (blast intro!: less_half_sum gt_half_sum)
 qed
 
+subclass field_abs_sgn ..
+
 lemma nonzero_abs_inverse:
-     "a \<noteq> 0 ==> \<bar>inverse a\<bar> = inverse \<bar>a\<bar>"
-apply (auto simp add: neq_iff abs_if nonzero_inverse_minus_eq
-                      negative_imp_inverse_negative)
-apply (blast intro: positive_imp_inverse_positive elim: less_asym)
-done
+  "a \<noteq> 0 ==> \<bar>inverse a\<bar> = inverse \<bar>a\<bar>"
+  by (rule abs_inverse)
 
 lemma nonzero_abs_divide:
-     "b \<noteq> 0 ==> \<bar>a / b\<bar> = \<bar>a\<bar> / \<bar>b\<bar>"
-  by (simp add: divide_inverse abs_mult nonzero_abs_inverse)
+  "b \<noteq> 0 ==> \<bar>a / b\<bar> = \<bar>a\<bar> / \<bar>b\<bar>"
+  by (rule abs_divide)
 
 lemma field_le_epsilon:
   assumes e: "\<And>e. 0 < e \<Longrightarrow> x \<le> y + e"
@@ -1147,19 +1188,6 @@ lemma divide_eq_eq_1 [simp]:
   "(b/a = 1) = ((a \<noteq> 0 & a = b))"
 by (auto simp add: divide_eq_eq)
 
-lemma abs_inverse [simp]:
-     "\<bar>inverse a\<bar> =
-      inverse \<bar>a\<bar>"
-apply (cases "a=0", simp)
-apply (simp add: nonzero_abs_inverse)
-done
-
-lemma abs_divide [simp]:
-     "\<bar>a / b\<bar> = \<bar>a\<bar> / \<bar>b\<bar>"
-apply (cases "b=0", simp)
-apply (simp add: nonzero_abs_divide)
-done
-
 lemma abs_div_pos: "0 < y ==>
     \<bar>x\<bar> / y = \<bar>x / y\<bar>"
   apply (subst abs_divide)
@@ -1174,7 +1202,7 @@ by (auto simp: divide_le_0_iff)
 
 lemma inverse_sgn:
   "sgn (inverse a) = inverse (sgn a)"
-  by (simp add: sgn_if)
+  by (fact sgn_inverse)
 
 lemma field_le_mult_one_interval:
   assumes *: "\<And>z. \<lbrakk> 0 < z ; z < 1 \<rbrakk> \<Longrightarrow> z * x \<le> y"

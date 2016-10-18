@@ -532,6 +532,100 @@ qed
 
 end
 
+class idom_abs_sgn = idom + abs + sgn +
+  assumes sgn_mult_abs: "sgn a * \<bar>a\<bar> = a"
+    and sgn_sgn [simp]: "sgn (sgn a) = sgn a"
+    and abs_abs [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
+    and abs_0 [simp]: "\<bar>0\<bar> = 0"
+    and sgn_0 [simp]: "sgn 0 = 0"
+    and sgn_1 [simp]: "sgn 1 = 1"
+    and sgn_minus_1: "sgn (- 1) = - 1"
+    and sgn_mult: "sgn (a * b) = sgn a * sgn b"
+begin
+
+lemma sgn_eq_0_iff:
+  "sgn a = 0 \<longleftrightarrow> a = 0"
+proof -
+  { assume "sgn a = 0"
+    then have "sgn a * \<bar>a\<bar> = 0"
+      by simp
+    then have "a = 0"
+      by (simp add: sgn_mult_abs)
+  } then show ?thesis
+    by auto
+qed
+
+lemma abs_eq_0_iff:
+  "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
+proof -
+  { assume "\<bar>a\<bar> = 0"
+    then have "sgn a * \<bar>a\<bar> = 0"
+      by simp
+    then have "a = 0"
+      by (simp add: sgn_mult_abs)
+  } then show ?thesis
+    by auto
+qed
+
+lemma abs_mult_sgn:
+  "\<bar>a\<bar> * sgn a = a"
+  using sgn_mult_abs [of a] by (simp add: ac_simps)
+
+lemma abs_1 [simp]:
+  "\<bar>1\<bar> = 1"
+  using sgn_mult_abs [of 1] by simp
+
+lemma sgn_abs [simp]:
+  "\<bar>sgn a\<bar> = of_bool (a \<noteq> 0)"
+  using sgn_mult_abs [of "sgn a"] mult_cancel_left [of "sgn a" "\<bar>sgn a\<bar>" 1]
+  by (auto simp add: sgn_eq_0_iff)
+
+lemma abs_sgn [simp]:
+  "sgn \<bar>a\<bar> = of_bool (a \<noteq> 0)"
+  using sgn_mult_abs [of "\<bar>a\<bar>"] mult_cancel_right [of "sgn \<bar>a\<bar>" "\<bar>a\<bar>" 1]
+  by (auto simp add: abs_eq_0_iff)
+
+lemma abs_mult:
+  "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>"
+proof (cases "a = 0 \<or> b = 0")
+  case True
+  then show ?thesis
+    by auto
+next
+  case False
+  then have *: "sgn (a * b) \<noteq> 0"
+    by (simp add: sgn_eq_0_iff)
+  from abs_mult_sgn [of "a * b"] abs_mult_sgn [of a] abs_mult_sgn [of b]
+  have "\<bar>a * b\<bar> * sgn (a * b) = \<bar>a\<bar> * sgn a * \<bar>b\<bar> * sgn b"
+    by (simp add: ac_simps)
+  then have "\<bar>a * b\<bar> * sgn (a * b) = \<bar>a\<bar> * \<bar>b\<bar> * sgn (a * b)"
+    by (simp add: sgn_mult ac_simps)
+  with * show ?thesis
+    by simp
+qed
+
+lemma sgn_minus [simp]:
+  "sgn (- a) = - sgn a"
+proof -
+  from sgn_minus_1 have "sgn (- 1 * a) = - 1 * sgn a"
+    by (simp only: sgn_mult)
+  then show ?thesis
+    by simp
+qed
+
+lemma abs_minus [simp]:
+  "\<bar>- a\<bar> = \<bar>a\<bar>"
+proof -
+  have [simp]: "\<bar>- 1\<bar> = 1"
+    using sgn_mult_abs [of "- 1"] by simp
+  then have "\<bar>- 1 * a\<bar> = 1 * \<bar>a\<bar>"
+    by (simp only: abs_mult)
+  then show ?thesis
+    by simp
+qed
+
+end
+
 text \<open>
   The theory of partially ordered rings is taken from the books:
     \<^item> \<^emph>\<open>Lattice Theory\<close> by Garret Birkhoff, American Mathematical Society, 1979
@@ -1599,6 +1693,9 @@ lemma split_mult_pos_le: "(0 \<le> a \<and> 0 \<le> b) \<or> (a \<le> 0 \<and> b
 
 end
 
+class abs_if = minus + uminus + ord + zero + abs +
+  assumes abs_if: "\<bar>a\<bar> = (if a < 0 then - a else a)"
+
 class linordered_ring = ring + linordered_semiring + linordered_ab_group_add + abs_if
 begin
 
@@ -1842,7 +1939,8 @@ lemma less_1_mult: "1 < m \<Longrightarrow> 1 < n \<Longrightarrow> 1 < m * n"
 end
 
 class linordered_idom =
-  comm_ring_1 + linordered_comm_semiring_strict + ordered_ab_group_add + abs_if + sgn_if
+  comm_ring_1 + linordered_comm_semiring_strict + ordered_ab_group_add + abs_if + sgn +
+  assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 begin
 
 subclass linordered_semiring_1_strict ..
@@ -1856,6 +1954,10 @@ proof
   then show "0 < 1" by (simp add: le_less)
   show "b \<le> a \<Longrightarrow> a - b + b = a" for a b by simp
 qed
+
+subclass idom_abs_sgn
+  by standard
+    (auto simp add: sgn_if abs_if zero_less_mult_iff)
 
 lemma linorder_neqE_linordered_idom:
   assumes "x \<noteq> y"
@@ -1888,11 +1990,8 @@ lemma mult_less_cancel_left1: "c < c * b \<longleftrightarrow> (0 \<le> c \<long
 lemma mult_less_cancel_left2: "c * a < c \<longleftrightarrow> (0 \<le> c \<longrightarrow> a < 1) \<and> (c \<le> 0 \<longrightarrow> 1 < a)"
   using mult_less_cancel_left [of c a 1] by simp
 
-lemma sgn_sgn [simp]: "sgn (sgn a) = sgn a"
-  unfolding sgn_if by simp
-
 lemma sgn_0_0: "sgn a = 0 \<longleftrightarrow> a = 0"
-  unfolding sgn_if by simp
+  by (fact sgn_eq_0_iff)
 
 lemma sgn_1_pos: "sgn a = 1 \<longleftrightarrow> a > 0"
   unfolding sgn_if by simp
@@ -1906,9 +2005,6 @@ lemma sgn_pos [simp]: "0 < a \<Longrightarrow> sgn a = 1"
 lemma sgn_neg [simp]: "a < 0 \<Longrightarrow> sgn a = - 1"
   by (simp only: sgn_1_neg)
 
-lemma sgn_mult: "sgn (a * b) = sgn a * sgn b"
-  by (auto simp add: sgn_if zero_less_mult_iff)
-
 lemma abs_sgn: "\<bar>k\<bar> = k * sgn k"
   unfolding sgn_if abs_if by auto
 
@@ -1920,7 +2016,7 @@ lemma sgn_less [simp]: "sgn a < 0 \<longleftrightarrow> a < 0"
 
 lemma abs_sgn_eq_1 [simp]:
   "a \<noteq> 0 \<Longrightarrow> \<bar>sgn a\<bar> = 1"
-  by (simp add: abs_if)
+  by simp
 
 lemma abs_sgn_eq: "\<bar>sgn a\<bar> = (if a = 0 then 0 else 1)"
   by (simp add: sgn_if)
@@ -2005,10 +2101,10 @@ context linordered_idom
 begin
 
 lemma mult_sgn_abs: "sgn x * \<bar>x\<bar> = x"
-  unfolding abs_if sgn_if by auto
+  by (fact sgn_mult_abs)
 
-lemma abs_one [simp]: "\<bar>1\<bar> = 1"
-  by (simp add: abs_if)
+lemma abs_one: "\<bar>1\<bar> = 1"
+  by (fact abs_1)
 
 end
 
@@ -2021,9 +2117,6 @@ begin
 
 subclass ordered_ring_abs
   by standard (auto simp: abs_if not_less mult_less_0_iff)
-
-lemma abs_mult: "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>"
-  by (rule abs_eq_mult) auto
 
 lemma abs_mult_self [simp]: "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
   by (simp add: abs_if)
