@@ -14,8 +14,8 @@ function fail()
 
 ## parameters
 
-VERSION="8u102"
-FULL_VERSION="1.8.0_102"
+VERSION="8u112"
+FULL_VERSION="1.8.0_112"
 
 ARCHIVE_LINUX32="jdk-${VERSION}-linux-i586.tar.gz"
 ARCHIVE_LINUX64="jdk-${VERSION}-linux-x64.tar.gz"
