@@ -16,7 +16,7 @@ object Mercurial
   /* command-line syntax */
 
   def optional(s: String, prefix: String = ""): String =
-    if (s == "") "" else " " + prefix + " " + File.bash_string(s)
+    if (s == "") "" else " " + prefix + " " + Bash.string(s)
 
   def opt_flag(flag: String, b: Boolean): String = if (b) " " + flag else ""
   def opt_rev(s: String): String = optional(s, "--rev")
@@ -40,7 +40,7 @@ object Mercurial
       case None => Isabelle_System.mkdirs(hg.root.dir)
       case Some(ssh) => ssh.mkdirs(hg.root.dir)
     }
-    hg.command("clone", File.bash_string(source) + " " + File.bash_path(hg.root), options).check
+    hg.command("clone", Bash.string(source) + " " + File.bash_path(hg.root), options).check
     hg
   }
 

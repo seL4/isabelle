@@ -6,6 +6,8 @@ GNU bash processes, with propagation of interrupts -- POSIX version.
 
 signature BASH =
 sig
+  val string: string -> string
+  val strings: string list -> string
   val process: string -> {out: string, err: string, rc: int, terminate: unit -> unit}
 end;
 
@@ -13,6 +15,9 @@ if ML_System.platform_is_windows then ML
 \<open>
 structure Bash: BASH =
 struct
+
+val string = Bash_Syntax.string;
+val strings = Bash_Syntax.strings;
 
 val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn script =>
   let
@@ -104,6 +109,9 @@ else ML
 \<open>
 structure Bash: BASH =
 struct
+
+val string = Bash_Syntax.string;
+val strings = Bash_Syntax.strings;
 
 val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn script =>
   let

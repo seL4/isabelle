@@ -96,7 +96,7 @@ object Build_History
   /** build_history **/
 
   private val default_rev = "tip"
-  private val default_threads = 1
+  private val default_multicore = (1, 1)
   private val default_heap = 1000
   private val default_isabelle_identifier = "build_history"
 
@@ -109,12 +109,13 @@ object Build_History
     fresh: Boolean = false,
     nonfree: Boolean = false,
     multicore_base: Boolean = false,
-    threads_list: List[Int] = List(default_threads),
+    multicore_list: List[(Int, Int)] = List(default_multicore),
     arch_64: Boolean = false,
     heap: Int = default_heap,
     max_heap: Option[Int] = None,
     more_settings: List[String] = Nil,
     verbose: Boolean = false,
+    build_tags: List[String] = Nil,
     build_args: List[String] = Nil): List[(Process_Result, Path)] =
   {
     /* sanity checks */
@@ -122,7 +123,10 @@ object Build_History
     if (File.eq(Path.explode("~~"), hg.root))
       error("Repository coincides with ISABELLE_HOME=" + Path.explode("~~").expand)
 
-    for (threads <- threads_list if threads < 1) error("Bad threads value < 1: " + threads)
+    for ((threads, _) <- multicore_list if threads < 1)
+      error("Bad threads value < 1: " + threads)
+    for ((_, processes) <- multicore_list if processes < 1)
+      error("Bad processes value < 1: " + processes)
 
     if (heap < 100) error("Bad heap value < 100: " + heap)
 
@@ -146,11 +150,12 @@ object Build_History
 
     /* main */
 
-    val build_history_date = Date.now()
     val build_host = Isabelle_System.hostname()
+    val build_history_date = Date.now()
+    val build_group_id = build_host + ":" + build_history_date.time.ms
 
     var first_build = true
-    for (threads <- threads_list) yield
+    for ((threads, processes) <- multicore_list) yield
     {
       /* init settings */
 
@@ -183,27 +188,34 @@ object Build_History
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
-      val res =
-        other_isabelle("build -v " + File.bash_args(build_args), redirect = true, echo = verbose)
+      val build_args1 = List("-v", "-j" + processes) ::: build_args
+      val build_result =
+        other_isabelle("build " + Bash.strings(build_args1), redirect = true, echo = verbose)
       val build_end = Date.now()
-
-
-      /* output log */
 
       val log_path =
         other_isabelle.isabelle_home_user +
           Build_Log.log_subdir(build_history_date) +
-          Build_Log.log_filename(
-            BUILD_HISTORY, build_history_date, build_host, ml_platform, "M" + threads)
+          Build_Log.log_filename(BUILD_HISTORY, build_history_date,
+            List(build_host, ml_platform, "M" + threads) ::: build_tags)
 
-      val build_info = Build_Log.Log_File(log_path.base.implode, res.out_lines).parse_build_info()
+      val build_info =
+        Build_Log.Log_File(log_path.base.implode, build_result.out_lines).parse_build_info()
+
+
+      /* output log */
 
       val meta_info =
-        List(Build_Log.Field.build_engine -> BUILD_HISTORY,
-          Build_Log.Field.build_host -> build_host,
-          Build_Log.Field.build_start -> Build_Log.print_date(build_start),
-          Build_Log.Field.build_end -> Build_Log.print_date(build_end),
-          Build_Log.Field.isabelle_version -> isabelle_version)
+        Build_Log.Prop.multiple(Build_Log.Prop.build_tags, build_tags) :::
+        Build_Log.Prop.multiple(Build_Log.Prop.build_args, build_args1) :::
+        List(
+          Build_Log.Prop.build_group_id -> build_group_id,
+          Build_Log.Prop.build_id -> (build_host + ":" + build_start.time.ms),
+          Build_Log.Prop.build_engine -> BUILD_HISTORY,
+          Build_Log.Prop.build_host -> build_host,
+          Build_Log.Prop.build_start -> Build_Log.print_date(build_start),
+          Build_Log.Prop.build_end -> Build_Log.print_date(build_end),
+          Build_Log.Prop.isabelle_version -> isabelle_version)
 
       val ml_statistics =
         build_info.finished_sessions.flatMap(session_name =>
@@ -228,7 +240,7 @@ object Build_History
       Isabelle_System.mkdirs(log_path.dir)
       File.write_xz(log_path.ext("xz"),
         terminate_lines(
-          Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: res.out_lines :::
+          Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: build_result.out_lines :::
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
           heap_sizes), XZ.options(6))
 
@@ -242,12 +254,25 @@ object Build_History
 
       first_build = false
 
-      (res, log_path.ext("xz"))
+      (build_result, log_path.ext("xz"))
     }
   }
 
 
   /* command line entry point */
+
+  private object Multicore
+  {
+    private val Pat1 = """^(\d+)$""".r
+    private val Pat2 = """^(\d+)x(\d+)$""".r
+
+    def parse(s: String): (Int, Int) =
+      s match {
+        case Pat1(Value.Int(x)) => (x, 1)
+        case Pat2(Value.Int(x), Value.Int(y)) => (x, y)
+        case _ => error("Bad multicore configuration: " + quote(s))
+      }
+  }
 
   def main(args: Array[String])
   {
@@ -256,13 +281,14 @@ object Build_History
       var components_base = ""
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
-      var threads_list = List(default_threads)
+      var multicore_list = List(default_multicore)
       var isabelle_identifier = default_isabelle_identifier
       var more_settings: List[String] = Nil
       var fresh = false
       var arch_64 = false
       var nonfree = false
       var rev = default_rev
+      var build_tags = List.empty[String]
       var verbose = false
 
       val getopts = Getopts("""
@@ -272,7 +298,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
-    -M THREADS   multicore configurations (comma-separated list, default: """ + default_threads + """)
+    -M MULTICORE multicore configurations (see below)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
@@ -280,15 +306,19 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
     -n           include nonfree components
     -r REV       update to revision (default: """ + default_rev + """)
+    -t TAG       free-form build tag (multiple occurrences possible)
     -v           verbose
 
   Build Isabelle sessions from the history of another REPOSITORY clone,
   passing ARGS directly to its isabelle build tool.
+
+  Each MULTICORE configuration consists of one or two numbers (default 1):
+  THREADS or THREADSxPROCESSES, e.g. -M 1,2,4 or -M 1x4,2x2,4.
 """,
         "B" -> (_ => multicore_base = true),
         "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
-        "M:" -> (arg => threads_list = space_explode(',', arg).map(Value.Int.parse(_))),
+        "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse(_))),
         "N:" -> (arg => isabelle_identifier = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
@@ -301,6 +331,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           },
         "n" -> (_ => nonfree = true),
         "r:" -> (arg => rev = arg),
+        "t:" -> (arg => build_tags = build_tags ::: List(arg)),
         "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
@@ -315,10 +346,10 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val results =
         build_history(hg, progress = progress, rev = rev, isabelle_identifier = isabelle_identifier,
           components_base = components_base, fresh = fresh, nonfree = nonfree,
-          multicore_base = multicore_base, threads_list = threads_list, arch_64 = arch_64,
+          multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, more_settings = more_settings, verbose = verbose,
-          build_args = build_args)
+          build_tags = build_tags, build_args = build_args)
 
       for ((_, log_path) <- results)
         Output.writeln(log_path.implode, stdout = true)
@@ -342,7 +373,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
-    val isabelle_admin = ssh.remote_path(isabelle_repos_self + Path.explode("Admin"))
+    val isabelle_admin = isabelle_repos_self + Path.explode("Admin")
 
 
     /* prepare repository clones */
@@ -353,19 +384,19 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     if (self_update) {
       isabelle_hg.pull()
       isabelle_hg.update(clean = true)
-      ssh.execute(File.bash_string(isabelle_admin + "/build") + " jars_fresh").check
+      ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
     }
 
     Mercurial.setup_repository(
-      ssh.remote_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(ssh))
+      ssh.bash_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(ssh))
 
 
     /* Admin/build_history */
 
     val result =
       ssh.execute(
-        File.bash_string(isabelle_admin + "/build_history") + " " + options + " " +
-          File.bash_string(ssh.remote_path(isabelle_repos_other)) + " " + args,
+        ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
+          ssh.bash_path(isabelle_repos_other) + " " + args,
         progress_stderr = progress.echo(_)).check
 
     for (line <- result.out_lines; log = Path.explode(line))

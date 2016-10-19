@@ -243,6 +243,7 @@ object SSH
     }
     def expand_path(path: Path): Path = path.expand_env(settings)
     def remote_path(path: Path): String = expand_path(path).implode
+    def bash_path(path: Path): String = Bash.string(remote_path(path))
 
     def chmod(permissions: Int, path: Path): Unit = sftp.chmod(permissions, remote_path(path))
     def mv(path1: Path, path2: Path): Unit = sftp.rename(remote_path(path1), remote_path(path2))
@@ -323,8 +324,10 @@ object SSH
 
     /* tmp dirs */
 
+    def rm_tree(dir: Path): Unit = rm_tree(remote_path(dir))
+
     def rm_tree(remote_dir: String): Unit =
-      execute("rm -r -f " + File.bash_string(remote_dir)).check
+      execute("rm -r -f " + Bash.string(remote_dir)).check
 
     def tmp_dir(): String =
       execute("mktemp -d -t tmp.XXXXXXXXXX").check.out

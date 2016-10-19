@@ -114,6 +114,12 @@ fun build_theories symbols last_timing master_dir (options, thys) =
           symbols = symbols,
           last_timing = last_timing,
           master_dir = master_dir}
+        |>
+          (case Options.string options "profiling" of
+            "" => I
+          | "time" => profile_time
+          | "allocations" => profile_allocations
+          | bad => error ("Bad profiling option: " ^ quote bad))
         |> Unsynchronized.setmp print_mode
             (space_explode "," (Options.string options "print_mode") @ print_mode_value ())) thys)
     else

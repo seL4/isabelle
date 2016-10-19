@@ -215,6 +215,11 @@ text \<open>
     Isabelle/Scala. Thus it is relatively reliable in canceling processes that
     get out of control, even if there is a deadlock without CPU time usage.
 
+    \<^item> @{system_option_def "profiling"} specifies a mode for global ML
+    profiling. Possible values are the empty string (disabled), \<^verbatim>\<open>time\<close> for
+    @{ML profile_time} and \<^verbatim>\<open>allocations\<close> for @{ML profile_allocations}.
+    Results appear near the bottom of the session log file.
+
   The @{tool_def options} tool prints Isabelle system options. Its
   command-line usage is:
   @{verbatim [display]

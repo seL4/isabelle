@@ -67,6 +67,7 @@ ML_file "General/rat.ML";
 ML_file "PIDE/xml.ML";
 ML_file "General/path.ML";
 ML_file "General/url.ML";
+ML_file "System/bash_syntax.ML";
 ML_file "General/file.ML";
 ML_file "General/long_name.ML";
 ML_file "General/binding.ML";

@@ -76,8 +76,8 @@ object Build_Release
         progress.bash(
           "isabelle makedist -d " + File.bash_path(base_dir) + jobs_option +
             (if (official_release) " -O" else "") +
-            (if (release_name != "") " -r " + File.bash_string(release_name) else "") +
-            (if (rev != "") " " + File.bash_string(rev) else ""),
+            (if (release_name != "") " -r " + Bash.string(release_name) else "") +
+            (if (rev != "") " " + Bash.string(rev) else ""),
           echo = true).check
       }
       Library.trim_line(File.read(isabelle_ident_file))
@@ -98,8 +98,8 @@ object Build_Release
         progress.echo("\nApplication bundle for " + platform_family + ": " + bundle_archive.implode)
         progress.bash(
           "isabelle makedist_bundle " + File.bash_path(release_info.dist_archive) +
-            " " + File.bash_string(platform_family) +
-            (if (remote_mac == "") "" else " " + File.bash_string(remote_mac)),
+            " " + Bash.string(platform_family) +
+            (if (remote_mac == "") "" else " " + Bash.string(remote_mac)),
           echo = true).check
       }
     }
