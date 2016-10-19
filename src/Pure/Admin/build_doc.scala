@@ -78,7 +78,7 @@ object Build_Doc
 
       val getopts =
         Getopts("""
-Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
+Usage: isabelle build_doc [OPTIONS] [DOCS ...]
 
   Options are:
     -a           select all documentation sessions
@@ -88,9 +88,9 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
   Build Isabelle documentation from documentation sessions with
   suitable document_variants entry.
 """,
-        "a" -> (_ => all_docs = true),
-        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-        "s" -> (_ => system_mode = true))
+          "a" -> (_ => all_docs = true),
+          "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+          "s" -> (_ => system_mode = true))
 
       val docs = getopts(args)
 
