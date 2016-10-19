@@ -106,6 +106,7 @@ object Isabelle_Tool
       Doc.isabelle_tool,
       ML_Process.isabelle_tool,
       Options.isabelle_tool,
+      Profiling_Report.isabelle_tool,
       Remote_DMG.isabelle_tool,
       Update_Cartouches.isabelle_tool,
       Update_Header.isabelle_tool,

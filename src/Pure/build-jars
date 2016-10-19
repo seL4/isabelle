@@ -19,6 +19,7 @@ declare -a SOURCES=(
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
   Admin/other_isabelle.scala
+  Admin/profiling_report.scala
   Admin/remote_dmg.scala
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
