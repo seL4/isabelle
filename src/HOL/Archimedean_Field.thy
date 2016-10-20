@@ -736,6 +736,9 @@ proof (rule floor_unique)
     by simp
 qed
 
+lemma round_unique': "\<bar>x - of_int n\<bar> < 1/2 \<Longrightarrow> round x = n"
+  by (subst (asm) abs_less_iff, rule round_unique) (simp_all add: field_simps)
+
 lemma round_altdef: "round x = (if frac x \<ge> 1/2 then \<lceil>x\<rceil> else \<lfloor>x\<rfloor>)"
   by (cases "frac x \<ge> 1/2")
     (rule round_unique, ((simp add: frac_def field_simps ceiling_altdef; linarith)+)[2])+

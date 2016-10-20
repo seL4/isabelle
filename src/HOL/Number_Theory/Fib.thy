@@ -1,12 +1,13 @@
 (*  Title:      HOL/Number_Theory/Fib.thy
     Author:     Lawrence C. Paulson
     Author:     Jeremy Avigad
+    Author:     Manuel Eberl
 *)
 
 section \<open>The fibonacci function\<close>
 
 theory Fib
-imports Main GCD Binomial
+  imports Complex_Main
 begin
 
 
@@ -36,6 +37,34 @@ lemma fib_add: "fib (Suc (n+k)) = fib (Suc k) * fib (Suc n) + fib k * fib n"
 
 lemma fib_neq_0_nat: "n > 0 \<Longrightarrow> fib n > 0"
   by (induct n rule: fib.induct) (auto simp add: )
+
+
+subsection \<open>More efficient code\<close>
+
+text \<open>
+  The naive approach is very inefficient since the branching recursion leads to many
+  values of @{term fib} being computed multiple times. We can avoid this by ``remembering''
+  the last two values in the sequence, yielding a tail-recursive version.
+  This is far from optimal (it takes roughly $O(n\cdot M(n))$ time where $M(n)$ is the 
+  time required to multiply two $n$-bit integers), but much better than the naive version,
+  which is exponential.
+\<close>
+
+fun gen_fib :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
+  "gen_fib a b 0 = a"
+| "gen_fib a b (Suc 0) = b"
+| "gen_fib a b (Suc (Suc n)) = gen_fib b (a + b) (Suc n)"
+
+lemma gen_fib_recurrence: "gen_fib a b (Suc (Suc n)) = gen_fib a b n + gen_fib a b (Suc n)"
+  by (induction a b n rule: gen_fib.induct) simp_all
+  
+lemma gen_fib_fib: "gen_fib (fib n) (fib (Suc n)) m = fib (n + m)"
+  by (induction m rule: fib.induct) (simp_all del: gen_fib.simps(3) add: gen_fib_recurrence)
+
+lemma fib_conv_gen_fib: "fib n = gen_fib 0 1 n"
+  using gen_fib_fib[of 0 n] by simp
+
+declare fib_conv_gen_fib [code]
 
 
 subsection \<open>A Few Elementary Results\<close>
@@ -102,6 +131,114 @@ lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"
 
 theorem fib_mult_eq_sum_nat: "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   by (induct n rule: nat.induct) (auto simp add:  field_simps)
+
+
+subsection \<open>Closed form\<close>
+
+lemma fib_closed_form:
+  defines "\<phi> \<equiv> (1 + sqrt 5) / (2::real)" and "\<psi> \<equiv> (1 - sqrt 5) / (2::real)"
+  shows   "of_nat (fib n) = (\<phi> ^ n - \<psi> ^ n) / sqrt 5"
+proof (induction n rule: fib.induct)
+  fix n :: nat
+  assume IH1: "of_nat (fib n) = (\<phi> ^ n - \<psi> ^ n) / sqrt 5"
+  assume IH2: "of_nat (fib (Suc n)) = (\<phi> ^ Suc n - \<psi> ^ Suc n) / sqrt 5"
+  have "of_nat (fib (Suc (Suc n))) = of_nat (fib (Suc n)) + of_nat (fib n)" by simp
+  also have "... = (\<phi>^n*(\<phi> + 1) - \<psi>^n*(\<psi> + 1)) / sqrt 5"
+    by (simp add: IH1 IH2 field_simps)
+  also have "\<phi> + 1 = \<phi>\<^sup>2" by (simp add: \<phi>_def field_simps power2_eq_square)
+  also have "\<psi> + 1 = \<psi>\<^sup>2" by (simp add: \<psi>_def field_simps power2_eq_square)
+  also have "\<phi>^n * \<phi>\<^sup>2 - \<psi>^n * \<psi>\<^sup>2 = \<phi> ^ Suc (Suc n) - \<psi> ^ Suc (Suc n)"  
+    by (simp add: power2_eq_square)
+  finally show "of_nat (fib (Suc (Suc n))) = (\<phi> ^ Suc (Suc n) - \<psi> ^ Suc (Suc n)) / sqrt 5" .
+qed (simp_all add: \<phi>_def \<psi>_def field_simps)
+
+lemma fib_closed_form':
+  defines "\<phi> \<equiv> (1 + sqrt 5) / (2 :: real)" and "\<psi> \<equiv> (1 - sqrt 5) / (2 :: real)"
+  assumes "n > 0"
+  shows   "fib n = round (\<phi> ^ n / sqrt 5)"
+proof (rule sym, rule round_unique')
+  have "\<bar>\<phi> ^ n / sqrt 5 - of_int (int (fib n))\<bar> = \<bar>\<psi>\<bar> ^ n / sqrt 5"
+    by (simp add: fib_closed_form[folded \<phi>_def \<psi>_def] field_simps power_abs)
+  also {
+    from assms have "\<bar>\<psi>\<bar>^n \<le> \<bar>\<psi>\<bar>^1"
+      by (intro power_decreasing) (simp_all add: algebra_simps real_le_lsqrt)
+    also have "... < sqrt 5 / 2" by (simp add: \<psi>_def field_simps)
+    finally have "\<bar>\<psi>\<bar>^n / sqrt 5 < 1/2" by (simp add: field_simps)
+  }
+  finally show "\<bar>\<phi> ^ n / sqrt 5 - of_int (int (fib n))\<bar> < 1/2" .
+qed
+
+lemma fib_asymptotics:
+  defines "\<phi> \<equiv> (1 + sqrt 5) / (2 :: real)"
+  shows   "(\<lambda>n. real (fib n) / (\<phi> ^ n / sqrt 5)) \<longlonglongrightarrow> 1"
+proof -
+  define \<psi> where "\<psi> \<equiv> (1 - sqrt 5) / (2 :: real)"
+  have "\<phi> > 1" by (simp add: \<phi>_def)
+  hence A: "\<phi> \<noteq> 0" by auto
+  have "(\<lambda>n. (\<psi> / \<phi>) ^ n) \<longlonglongrightarrow> 0"
+    by (rule LIMSEQ_power_zero) (simp_all add: \<phi>_def \<psi>_def field_simps add_pos_pos)
+  hence "(\<lambda>n. 1 - (\<psi> / \<phi>) ^ n) \<longlonglongrightarrow> 1 - 0" by (intro tendsto_diff tendsto_const)
+  with A show ?thesis
+    by (simp add: divide_simps fib_closed_form [folded \<phi>_def \<psi>_def])
+qed
+
+
+subsection \<open>Divide-and-Conquer recurrence\<close>
+
+text \<open>
+  The following divide-and-conquer recurrence allows for a more efficient computation 
+  of Fibonacci numbers; however, it requires memoisation of values to be reasonably 
+  efficient, cutting the number of values to be computed to logarithmically many instead of
+  linearly many. The vast majority of the computation time is then actually spent on the 
+  multiplication, since the output number is exponential in the input number.
+\<close>
+
+lemma fib_rec_odd:
+  defines "\<phi> \<equiv> (1 + sqrt 5) / (2 :: real)" and "\<psi> \<equiv> (1 - sqrt 5) / (2 :: real)"
+  shows   "fib (Suc (2*n)) = fib n^2 + fib (Suc n)^2"
+proof -
+  have "of_nat (fib n^2 + fib (Suc n)^2) = ((\<phi> ^ n - \<psi> ^ n)\<^sup>2 + (\<phi> * \<phi> ^ n - \<psi> * \<psi> ^ n)\<^sup>2)/5"
+    by (simp add: fib_closed_form[folded \<phi>_def \<psi>_def] field_simps power2_eq_square)
+  also have "(\<phi> ^ n - \<psi> ^ n)\<^sup>2 + (\<phi> * \<phi> ^ n - \<psi> * \<psi> ^ n)\<^sup>2 = 
+    \<phi>^(2*n) + \<psi>^(2*n) - 2*(\<phi>*\<psi>)^n + \<phi>^(2*n+2) + \<psi>^(2*n+2) - 2*(\<phi>*\<psi>)^(n+1)" (is "_ = ?A")
+      by (simp add: power2_eq_square algebra_simps power_mult power_mult_distrib)
+  also have "\<phi> * \<psi> = -1" by (simp add: \<phi>_def \<psi>_def field_simps)
+  hence "?A = \<phi>^(2*n+1) * (\<phi> + inverse \<phi>) + \<psi>^(2*n+1) * (\<psi> + inverse \<psi>)" 
+    by (auto simp: field_simps power2_eq_square)
+  also have "1 + sqrt 5 > 0" by (auto intro: add_pos_pos)
+  hence "\<phi> + inverse \<phi> = sqrt 5" by (simp add: \<phi>_def field_simps)
+  also have "\<psi> + inverse \<psi> = -sqrt 5" by (simp add: \<psi>_def field_simps)
+  also have "(\<phi> ^ (2*n+1) * sqrt 5 + \<psi> ^ (2*n+1)* - sqrt 5) / 5 =
+               (\<phi> ^ (2*n+1) - \<psi> ^ (2*n+1)) * (sqrt 5 / 5)" by (simp add: field_simps)
+  also have "sqrt 5 / 5 = inverse (sqrt 5)" by (simp add: field_simps)
+  also have "(\<phi> ^ (2*n+1) - \<psi> ^ (2*n+1)) * ... = of_nat (fib (Suc (2*n)))"
+    by (simp add: fib_closed_form[folded \<phi>_def \<psi>_def] divide_inverse)
+  finally show ?thesis by (simp only: of_nat_eq_iff)
+qed
+
+lemma fib_rec_even: "fib (2*n) = (fib (n - 1) + fib (n + 1)) * fib n"
+proof (induction n)
+  case (Suc n)
+  let ?rfib = "\<lambda>x. real (fib x)"
+  have "2 * (Suc n) = Suc (Suc (2*n))" by simp
+  also have "real (fib ...) = ?rfib n^2 + ?rfib (Suc n)^2 + (?rfib (n - 1) + ?rfib (n + 1)) * ?rfib n" 
+    by (simp add: fib_rec_odd Suc)
+  also have "(?rfib (n - 1) + ?rfib (n + 1)) * ?rfib n = (2 * ?rfib (n + 1) - ?rfib n) * ?rfib n"
+    by (cases n) simp_all
+  also have "?rfib n^2 + ?rfib (Suc n)^2 + ... = (?rfib (Suc n) + 2 * ?rfib n) * ?rfib (Suc n)"
+    by (simp add: algebra_simps power2_eq_square)
+  also have "... = real ((fib (Suc n - 1) + fib (Suc n + 1)) * fib (Suc n))" by simp
+  finally show ?case by (simp only: of_nat_eq_iff)
+qed simp
+
+lemma fib_rec_even': "fib (2*n) = (2*fib (n - 1) + fib n) * fib n"
+  by (subst fib_rec_even, cases n) simp_all
+
+lemma fib_rec:
+  "fib n = (if n = 0 then 0 else if n = 1 then 1 else
+            if even n then let n' = n div 2; fn = fib n' in (2 * fib (n' - 1) + fn) * fn
+            else let n' = n div 2 in fib n' ^ 2 + fib (Suc n') ^ 2)"
+  by (auto elim: evenE oddE simp: fib_rec_odd fib_rec_even' Let_def)
 
 
 subsection \<open>Fibonacci and Binomial Coefficients\<close>
