@@ -13,18 +13,18 @@ essential supremum of a function is its maximum value if one is allowed to throw
 of measure $0$. It is convenient to define it to be infinity for non-measurable functions, as
 it allows for neater statements in general. This is a prerequisiste to define the space $L^\infty$.*}
 
-definition esssup::"'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ereal"
-  where "esssup M f = (if f \<in> borel_measurable M then Inf {z. emeasure M {x \<in> space M. f x > z} = 0} else \<infinity>)"
+definition esssup::"'a measure \<Rightarrow> ('a \<Rightarrow> 'b::{second_countable_topology, dense_linorder, linorder_topology, complete_linorder}) \<Rightarrow> 'b"
+  where "esssup M f = (if f \<in> borel_measurable M then Inf {z. emeasure M {x \<in> space M. f x > z} = 0} else top)"
 
 lemma esssup_zero_measure:
   "emeasure M {x \<in> space M. f x > esssup M f} = 0"
-proof (cases "esssup M f = \<infinity>")
+proof (cases "esssup M f = top")
   case True
   then show ?thesis by auto
 next
   case False
   then have [measurable]: "f \<in> borel_measurable M" unfolding esssup_def by meson
-  have "esssup M f < \<infinity>" using False by auto
+  have "esssup M f < top" using False by (auto simp: less_top)
   have *: "{x \<in> space M. f x > z} \<in> null_sets M" if "z > esssup M f" for z
   proof -
     have "\<exists>w. w < z \<and> emeasure M {x \<in> space M. f x > w} = 0"
@@ -35,8 +35,8 @@ next
     have b: "{x \<in> space M. f x > z} \<subseteq> {x \<in> space M. f x > w}" using `w < z` by auto
     show ?thesis using null_sets_subset[OF a _ b] by simp
   qed
-  obtain u::"nat \<Rightarrow> ereal" where u: "\<And>n. u n > esssup M f" "u \<longlonglongrightarrow> esssup M f"
-    using approx_from_above_dense_linorder[OF `esssup M f < \<infinity>`] by auto
+  obtain u::"nat \<Rightarrow> 'b" where u: "\<And>n. u n > esssup M f" "u \<longlonglongrightarrow> esssup M f"
+    using approx_from_above_dense_linorder[OF `esssup M f < top`] by auto
   have "{x \<in> space M. f x > esssup M f} = (\<Union>n. {x \<in> space M. f x > u n})"
     using u apply auto
     apply (metis (mono_tags, lifting) order_tendsto_iff eventually_mono LIMSEQ_unique)
@@ -54,7 +54,7 @@ proof (cases "f \<in> borel_measurable M")
     apply (rule AE_I[OF _ esssup_zero_measure[of _ f]]) using True by auto
 next
   case False
-  then have "esssup M f = \<infinity>" unfolding esssup_def by auto
+  then have "esssup M f = top" unfolding esssup_def by auto
   then show ?thesis by auto
 qed
 
@@ -65,7 +65,7 @@ using assms Inf_less_iff mem_Collect_eq not_gr_zero unfolding esssup_def by forc
 
 lemma esssup_non_measurable:
   assumes "f \<notin> borel_measurable M"
-  shows "esssup M f = \<infinity>"
+  shows "esssup M f = top"
 using assms unfolding esssup_def by auto
 
 lemma esssup_I [intro]:
@@ -122,7 +122,7 @@ qed
 
 lemma esssup_cmult:
   assumes "c > (0::real)"
-  shows "esssup M (\<lambda>x. c * f x) = c * esssup M f"
+  shows "esssup M (\<lambda>x. c * f x::ereal) = c * esssup M f"
 proof (cases "f \<in> borel_measurable M")
   case True
   then have a [measurable]: "f \<in> borel_measurable M" by simp
@@ -154,8 +154,8 @@ proof (cases "f \<in> borel_measurable M")
   finally show ?thesis by simp
 next
   case False
-  have "esssup M f = \<infinity>" using False unfolding esssup_def by auto
-  then have *: "c * esssup M f = \<infinity>" using assms by (simp add: ennreal_mult_eq_top_iff)
+  have "esssup M f = top" using False unfolding esssup_def by auto
+  then have *: "c * esssup M f = \<infinity>" using assms by (simp add: ennreal_mult_eq_top_iff top_ereal_def)
   have "(\<lambda>x. c * f x) \<notin> borel_measurable M"
   proof (rule ccontr)
     assume "\<not> (\<lambda>x. c * f x) \<notin> borel_measurable M"
@@ -165,12 +165,12 @@ next
       by (metis "*" PInfty_neq_ereal(1) divide_inverse divide_self_if ereal_zero_mult mult.assoc mult.commute mult.left_neutral one_ereal_def times_ereal.simps(1) zero_ereal_def)
     ultimately show False using False by auto
   qed
-  then have "esssup M (\<lambda>x. c * f x) = \<infinity>" unfolding esssup_def by simp
+  then have "esssup M (\<lambda>x. c * f x) = \<infinity>" unfolding esssup_def by (simp add: top_ereal_def)
   then show ?thesis using * by auto
 qed
 
 lemma esssup_add:
-  "esssup M (\<lambda>x. f x + g x) \<le> esssup M f + esssup M g"
+  "esssup M (\<lambda>x. f x + g x::ereal) \<le> esssup M f + esssup M g"
 proof (cases "f \<in> borel_measurable M \<and> g \<in> borel_measurable M")
   case True
   then have [measurable]: "(\<lambda>x. f x + g x) \<in> borel_measurable M" by auto
@@ -181,14 +181,14 @@ proof (cases "f \<in> borel_measurable M \<and> g \<in> borel_measurable M")
   then show ?thesis using esssup_I by auto
 next
   case False
-  then have "esssup M f + esssup M g = \<infinity>" unfolding esssup_def by auto
+  then have "esssup M f + esssup M g = \<infinity>" unfolding esssup_def top_ereal_def by auto
   then show ?thesis by auto
 qed
 
 lemma esssup_zero_space:
   assumes "emeasure M (space M) = 0"
           "f \<in> borel_measurable M"
-  shows "esssup M f = - \<infinity>"
+  shows "esssup M f = (- \<infinity>::ereal)"
 proof -
   have "emeasure M {x \<in> space M. f x > - \<infinity>} = 0"
     using assms(1) emeasure_mono emeasure_eq_0 by fastforce
