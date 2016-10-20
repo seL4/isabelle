@@ -36,11 +36,11 @@ lemma cdf_def2: "cdf M x = measure M {..x}"
   by (simp add: cdf_def)
 
 locale finite_borel_measure = finite_measure M for M :: "real measure" +
-  assumes M_super_borel: "sets borel \<subseteq> sets M"
+  assumes M_is_borel: "sets M = sets borel"
 begin
 
 lemma sets_M[intro]: "a \<in> sets borel \<Longrightarrow> a \<in> sets M"
-  using M_super_borel by auto
+  using M_is_borel by auto
 
 lemma cdf_diff_eq:
   assumes "x < y"
@@ -57,7 +57,7 @@ lemma cdf_nondecreasing: "x \<le> y \<Longrightarrow> cdf M x \<le> cdf M y"
   unfolding cdf_def by (auto intro!: finite_measure_mono)
 
 lemma borel_UNIV: "space M = UNIV"
- by (metis in_mono sets.sets_into_space space_in_borel top_le M_super_borel)
+ by (metis in_mono sets.sets_into_space space_in_borel top_le M_is_borel)
 
 lemma cdf_nonneg: "cdf M x \<ge> 0"
   unfolding cdf_def by (rule measure_nonneg)
@@ -142,11 +142,17 @@ lemma countable_atoms: "countable {x. measure M {x} > 0}"
 end
 
 locale real_distribution = prob_space M for M :: "real measure" +
-  assumes events_eq_borel [simp, measurable_cong]: "sets M = sets borel" and space_eq_univ [simp]: "space M = UNIV"
+  assumes events_eq_borel [simp, measurable_cong]: "sets M = sets borel"
 begin
 
-sublocale finite_borel_measure M
+lemma finite_borel_measure_M: "finite_borel_measure M"
   by standard auto
+
+sublocale finite_borel_measure M
+  by (rule finite_borel_measure_M)
+
+lemma space_eq_univ [simp]: "space M = UNIV"
+  using events_eq_borel[THEN sets_eq_imp_space_eq] by simp
 
 lemma cdf_bounded_prob: "\<And>x. cdf M x \<le> 1"
   by (subst prob_space [symmetric], rule cdf_bounded)
@@ -167,20 +173,23 @@ lemma (in prob_space) real_distribution_distr [intro, simp]:
   "random_variable borel X \<Longrightarrow> real_distribution (distr M borel X)"
   unfolding real_distribution_def real_distribution_axioms_def by (auto intro!: prob_space_distr)
 
-subsection \<open>uniqueness\<close>
+subsection \<open>Uniqueness\<close>
 
-lemma (in real_distribution) emeasure_Ioc:
+lemma (in finite_borel_measure) emeasure_Ioc:
   assumes "a \<le> b" shows "emeasure M {a <.. b} = cdf M b - cdf M a"
 proof -
   have "{a <.. b} = {..b} - {..a}"
     by auto
-  with \<open>a \<le> b\<close> show ?thesis
+  moreover have "{..x} \<in> sets M" for x
+    using atMost_borel[of x] M_is_borel by auto
+  moreover note \<open>a \<le> b\<close>
+  ultimately show ?thesis
     by (simp add: emeasure_eq_measure finite_measure_Diff cdf_def)
 qed
 
-lemma cdf_unique:
+lemma cdf_unique':
   fixes M1 M2
-  assumes "real_distribution M1" and "real_distribution M2"
+  assumes "finite_borel_measure M1" and "finite_borel_measure M2"
   assumes "cdf M1 = cdf M2"
   shows "M1 = M2"
 proof (rule measure_eqI_generator_eq[where \<Omega>=UNIV])
@@ -188,26 +197,30 @@ proof (rule measure_eqI_generator_eq[where \<Omega>=UNIV])
   then obtain a b where Xeq: "X = {a<..b}" by auto
   then show "emeasure M1 X = emeasure M2 X"
     by (cases "a \<le> b")
-       (simp_all add: assms(1,2)[THEN real_distribution.emeasure_Ioc] assms(3))
+       (simp_all add: assms(1,2)[THEN finite_borel_measure.emeasure_Ioc] assms(3))
 next
   show "(\<Union>i. {- real (i::nat)<..real i}) = UNIV"
     by (rule UN_Ioc_eq_UNIV)
-qed (auto simp: real_distribution.emeasure_Ioc[OF assms(1)]
-  assms(1,2)[THEN real_distribution.events_eq_borel] borel_sigma_sets_Ioc
+qed (auto simp: finite_borel_measure.emeasure_Ioc[OF assms(1)]
+  assms(1,2)[THEN finite_borel_measure.M_is_borel] borel_sigma_sets_Ioc
   Int_stable_def)
 
-lemma real_distribution_interval_measure:
+lemma cdf_unique:
+  "real_distribution M1 \<Longrightarrow> real_distribution M2 \<Longrightarrow> cdf M1 = cdf M2 \<Longrightarrow> M1 = M2"
+  using cdf_unique'[of M1 M2] by (simp add: real_distribution.finite_borel_measure_M)
+
+lemma
   fixes F :: "real \<Rightarrow> real"
-  assumes nondecF : "\<And> x y. x \<le> y \<Longrightarrow> F x \<le> F y" and
-    right_cont_F : "\<And>a. continuous (at_right a) F" and
-    lim_F_at_bot : "(F \<longlongrightarrow> 0) at_bot" and
-    lim_F_at_top : "(F \<longlongrightarrow> 1) at_top"
-  shows "real_distribution (interval_measure F)"
+  assumes nondecF : "\<And> x y. x \<le> y \<Longrightarrow> F x \<le> F y"
+    and right_cont_F : "\<And>a. continuous (at_right a) F"
+    and lim_F_at_bot : "(F \<longlongrightarrow> 0) at_bot"
+    and lim_F_at_top : "(F \<longlongrightarrow> m) at_top"
+    and m: "0 \<le> m"
+  shows interval_measure_UNIV: "emeasure (interval_measure F) UNIV = m"
+    and finite_borel_measure_interval_measure: "finite_borel_measure (interval_measure F)"
 proof -
   let ?F = "interval_measure F"
-  interpret prob_space ?F
-  proof
-    have "ennreal (1 - 0) = (SUP i::nat. ennreal (F (real i) - F (- real i)))"
+  { have "ennreal (m - 0) = (SUP i::nat. ennreal (F (real i) - F (- real i)))"
       by (intro LIMSEQ_unique[OF _ LIMSEQ_SUP] tendsto_ennrealI tendsto_intros
                 lim_F_at_bot[THEN filterlim_compose] lim_F_at_top[THEN filterlim_compose]
                 lim_F_at_bot[THEN filterlim_compose] filterlim_real_sequentially
@@ -219,40 +232,72 @@ proof -
       by (rule SUP_emeasure_incseq) (auto simp: incseq_def)
     also have "(\<Union>i. {- real (i::nat)<..real i}) = space ?F"
       by (simp add: UN_Ioc_eq_UNIV)
-    finally show "emeasure ?F (space ?F) = 1"
-      by (simp add: one_ereal_def)
+    finally have "emeasure ?F (space ?F) = m"
+      by simp }
+  note * = this
+  then show "emeasure (interval_measure F) UNIV = m"
+    by simp
+
+  interpret finite_measure ?F
+  proof
+    show "emeasure ?F (space ?F) \<noteq> \<infinity>"
+      using * by simp
   qed
-  show ?thesis
+  show "finite_borel_measure (interval_measure F)"
     proof qed simp_all
 qed
 
-lemma cdf_interval_measure:
+lemma real_distribution_interval_measure:
   fixes F :: "real \<Rightarrow> real"
   assumes nondecF : "\<And> x y. x \<le> y \<Longrightarrow> F x \<le> F y" and
     right_cont_F : "\<And>a. continuous (at_right a) F" and
     lim_F_at_bot : "(F \<longlongrightarrow> 0) at_bot" and
     lim_F_at_top : "(F \<longlongrightarrow> 1) at_top"
-  shows "cdf (interval_measure F) = F"
+  shows "real_distribution (interval_measure F)"
+proof -
+  let ?F = "interval_measure F"
+  interpret prob_space ?F
+    proof qed (use interval_measure_UNIV[OF assms] in simp)
+  show ?thesis
+    proof qed simp_all
+qed
+
+lemma
+  fixes F :: "real \<Rightarrow> real"
+  assumes nondecF : "\<And> x y. x \<le> y \<Longrightarrow> F x \<le> F y" and
+    right_cont_F : "\<And>a. continuous (at_right a) F" and
+    lim_F_at_bot : "(F \<longlongrightarrow> 0) at_bot"
+  shows emeasure_interval_measure_Iic: "emeasure (interval_measure F) {.. x} = F x"
+    and measure_interval_measure_Iic: "measure (interval_measure F) {.. x} = F x"
   unfolding cdf_def
-proof (intro ext)
-  interpret real_distribution "interval_measure F"
-    by (rule real_distribution_interval_measure) fact+
-  fix x
-  have "F x - 0 = measure (interval_measure F) (\<Union>i::nat. {-real i <.. x})"
-  proof (intro LIMSEQ_unique[OF _ finite_Lim_measure_incseq])
+proof -
+  have F_nonneg[simp]: "0 \<le> F y" for y
+    using lim_F_at_bot by (rule tendsto_upperbound) (auto simp: eventually_at_bot_linorder nondecF intro!: exI[of _ y])
+
+  have "emeasure (interval_measure F) (\<Union>i::nat. {-real i <.. x}) = F x - ennreal 0"
+  proof (intro LIMSEQ_unique[OF Lim_emeasure_incseq])
     have "(\<lambda>i. F x - F (- real i)) \<longlonglongrightarrow> F x - 0"
       by (intro tendsto_intros lim_F_at_bot[THEN filterlim_compose] filterlim_real_sequentially
                 filterlim_uminus_at_top[THEN iffD1])
-    then show "(\<lambda>i. measure (interval_measure F) {- real i<..x}) \<longlonglongrightarrow> F x - 0"
-      apply (rule filterlim_cong[OF refl refl, THEN iffD1, rotated])
+    from tendsto_ennrealI[OF this]
+    show "(\<lambda>i. emeasure (interval_measure F) {- real i<..x}) \<longlonglongrightarrow> F x - ennreal 0"
+      apply (rule filterlim_cong[THEN iffD1, rotated 3])
+        apply simp
+       apply simp
       apply (rule eventually_sequentiallyI[where c="nat (ceiling (- x))"])
-      apply (simp add: measure_interval_measure_Ioc right_cont_F nondecF)
+      apply (simp add: emeasure_interval_measure_Ioc right_cont_F nondecF)
       done
   qed (auto simp: incseq_def)
   also have "(\<Union>i::nat. {-real i <.. x}) = {..x}"
     by auto (metis minus_minus neg_less_iff_less reals_Archimedean2)
-  finally show "measure (interval_measure F) {..x} = F x"
+  finally show "emeasure (interval_measure F) {..x} = F x"
     by simp
+  then show "measure (interval_measure F) {..x} = F x"
+    by (simp add: measure_def)
 qed
+
+lemma cdf_interval_measure:
+  "(\<And> x y. x \<le> y \<Longrightarrow> F x \<le> F y) \<Longrightarrow> (\<And>a. continuous (at_right a) F) \<Longrightarrow> (F \<longlongrightarrow> 0) at_bot \<Longrightarrow> cdf (interval_measure F) = F"
+  by (simp add: cdf_def fun_eq_iff measure_interval_measure_Iic)
 
 end
