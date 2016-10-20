@@ -7,7 +7,7 @@ Manage other Isabelle distributions.
 package isabelle
 
 
-private class Other_Isabelle(progress: Progress, isabelle_home: Path, isabelle_identifier: String)
+class Other_Isabelle(progress: Progress, val isabelle_home: Path, val isabelle_identifier: String)
 {
   other_isabelle =>
 
@@ -17,7 +17,7 @@ private class Other_Isabelle(progress: Progress, isabelle_home: Path, isabelle_i
   def bash(script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
     progress.bash(
       "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n" + script,
-      env = null, cwd = isabelle_home.file, redirect = redirect)
+      env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo)
 
   def apply(cmdline: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
     bash("bin/isabelle " + cmdline, redirect, echo)
