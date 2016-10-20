@@ -41,6 +41,9 @@ object SSH
   def connect_timeout(options: Options): Int =
     options.seconds("ssh_connect_timeout").ms.toInt
 
+  def alive_interval(options: Options): Int =
+    options.seconds("ssh_alive_interval").ms.toInt
+
 
   /* init context */
 
@@ -76,6 +79,7 @@ object SSH
       val session = jsch.getSession(if (user == "") null else user, host, port)
 
       session.setUserInfo(No_User_Info)
+      session.setServerAliveInterval(alive_interval(options))
       session.setConfig("MaxAuthTries", "3")
 
       if (options.bool("ssh_compression")) {
