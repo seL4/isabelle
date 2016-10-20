@@ -4,6 +4,7 @@ session Pure =
   description {*
     The Pure logical framework
   *}
+  options [threads = 1]
   global_theories
     Pure
   theories
