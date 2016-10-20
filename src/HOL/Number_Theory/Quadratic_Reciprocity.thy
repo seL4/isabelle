@@ -1,6 +1,6 @@
 (* Author: Jaime Mendizabal Roche *)
 
-theory QuadraticReciprocity
+theory Quadratic_Reciprocity
 imports Gauss
 begin
 
