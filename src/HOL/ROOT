@@ -181,7 +181,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
   theories [document = false]
     "Less_False"
     "~~/src/HOL/Library/Multiset"
-    "~~/src/HOL/Library/Float"
+    "~~/src/HOL/Number_Theory/Fib"
   theories
     Balance
     Tree_Map
