@@ -176,7 +176,7 @@ object SSH
         val line_buffer = new ByteArrayOutputStream(100)
         def line_flush()
         {
-          val line = line_buffer.toString(UTF8.charset_name)
+          val line = Library.trim_line(line_buffer.toString(UTF8.charset_name))
           progress(line)
           result += line
           line_buffer.reset
