@@ -976,6 +976,14 @@ qed
 
 subclass field_abs_sgn ..
 
+lemma inverse_sgn [simp]:
+  "inverse (sgn a) = sgn a"
+  by (cases a 0 rule: linorder_cases) simp_all
+
+lemma divide_sgn [simp]:
+  "a / sgn b = a * sgn b"
+  by (cases b 0 rule: linorder_cases) simp_all
+
 lemma nonzero_abs_inverse:
   "a \<noteq> 0 ==> \<bar>inverse a\<bar> = inverse \<bar>a\<bar>"
   by (rule abs_inverse)
@@ -1199,10 +1207,6 @@ by (auto simp: zero_le_divide_iff)
 
 lemma divide_le_0_abs_iff [simp]: "(a / \<bar>b\<bar> \<le> 0) = (a \<le> 0 | b = 0)"
 by (auto simp: divide_le_0_iff)
-
-lemma inverse_sgn:
-  "sgn (inverse a) = inverse (sgn a)"
-  by (fact sgn_inverse)
 
 lemma field_le_mult_one_interval:
   assumes *: "\<And>z. \<lbrakk> 0 < z ; z < 1 \<rbrakk> \<Longrightarrow> z * x \<le> y"
