@@ -106,7 +106,8 @@ object Isabelle_Cronjob
       Remote_Build("lxbroy10", options = "-m32 -M4 -N"),
       Remote_Build("macbroy2", options = "-m32 -M4"),
       Remote_Build("macbroy30", options = "-m32 -M2"),
-      Remote_Build("macbroy31", options = "-m32 -M2"))
+      Remote_Build("macbroy31", options = "-m32 -M2"),
+      Remote_Build("vmnipkow9", options = "-m32 -M1,2,4", shared_home = false))
 
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
   {

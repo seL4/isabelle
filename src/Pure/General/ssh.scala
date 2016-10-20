@@ -41,6 +41,9 @@ object SSH
   def connect_timeout(options: Options): Int =
     options.seconds("ssh_connect_timeout").ms.toInt
 
+  def alive_interval(options: Options): Int =
+    options.seconds("ssh_alive_interval").ms.toInt
+
 
   /* init context */
 
@@ -76,6 +79,7 @@ object SSH
       val session = jsch.getSession(if (user == "") null else user, host, port)
 
       session.setUserInfo(No_User_Info)
+      session.setServerAliveInterval(alive_interval(options))
       session.setConfig("MaxAuthTries", "3")
 
       if (options.bool("ssh_compression")) {
@@ -172,7 +176,7 @@ object SSH
         val line_buffer = new ByteArrayOutputStream(100)
         def line_flush()
         {
-          val line = line_buffer.toString(UTF8.charset_name)
+          val line = Library.trim_line(line_buffer.toString(UTF8.charset_name))
           progress(line)
           result += line
           line_buffer.reset
