@@ -345,6 +345,14 @@ lemma borel_singleton[measurable]:
   "A \<in> sets borel \<Longrightarrow> insert x A \<in> sets (borel :: 'a::t1_space measure)"
   unfolding insert_def by (rule sets.Un) auto
 
+lemma sets_borel_eq_count_space: "sets (borel :: 'a::{countable, t2_space} measure) = count_space UNIV"
+proof -
+  have "(\<Union>a\<in>A. {a}) \<in> sets borel" for A :: "'a set"
+    by (intro sets.countable_UN') auto
+  then show ?thesis
+    by auto
+qed
+
 lemma borel_comp[measurable]: "A \<in> sets borel \<Longrightarrow> - A \<in> sets borel"
   unfolding Compl_eq_Diff_UNIV by simp
 

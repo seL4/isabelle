@@ -446,6 +446,17 @@ next
     by (cases "xs = []") (auto simp: * space_stream_space del: in_listsD)
 qed (auto simp: * ae sets_M del: in_listsD intro!: streams_sets)
 
+lemma sets_sstart[measurable]: "sstart \<Omega> xs \<in> sets (stream_space (count_space UNIV))"
+proof (induction xs)
+  case (Cons x xs)
+  note this[measurable]
+  have "sstart \<Omega> (x # xs) = {\<omega>\<in>space (stream_space (count_space UNIV)). \<omega> \<in> sstart \<Omega> (x # xs)}"
+    by (auto simp: space_stream_space)
+  also have "\<dots> \<in> sets (stream_space (count_space UNIV))"
+    unfolding in_sstart by measurable
+  finally show ?case .
+qed (auto intro!: streams_sets)
+
 primrec scylinder :: "'a set \<Rightarrow> 'a set list \<Rightarrow> 'a stream set"
 where
   "scylinder S [] = streams S"

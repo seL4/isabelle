@@ -1778,4 +1778,10 @@ lemma space_bind_measurable:
   shows "space (M \<bind> f) = space B"
   using M by (intro space_bind[OF sets_kernel[OF f]]) auto
 
+lemma bind_distr_return:
+  "f \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> g \<in> N \<rightarrow>\<^sub>M L \<Longrightarrow> space M \<noteq> {} \<Longrightarrow>
+    distr M N f \<bind> (\<lambda>x. return L (g x)) = distr M L (\<lambda>x. g (f x))"
+  by (subst bind_distr[OF _ measurable_compose[OF _ return_measurable]])
+     (auto intro!: bind_return_distr')
+
 end

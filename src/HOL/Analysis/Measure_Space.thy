@@ -1469,6 +1469,9 @@ qed
 lemma distr_id[simp]: "distr N N (\<lambda>x. x) = N"
   by (rule measure_eqI) (auto simp: emeasure_distr)
 
+lemma distr_id2: "sets M = sets N \<Longrightarrow> distr N M (\<lambda>x. x) = N"
+  by (rule measure_eqI) (auto simp: emeasure_distr)
+
 lemma measure_distr:
   "f \<in> measurable M N \<Longrightarrow> S \<in> sets N \<Longrightarrow> measure (distr M N f) S = measure M (f -` S \<inter> space M)"
   by (simp add: emeasure_distr measure_def)
@@ -3515,6 +3518,11 @@ proof -
     done
   finally show ?thesis .
 qed
+
+lemma measurable_SUP2:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f \<in> measurable N (M i)) \<Longrightarrow>
+    (\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> space (M i) = space (M j)) \<Longrightarrow> f \<in> measurable N (SUP i:I. M i)"
+  by (auto intro!: measurable_Sup2)
 
 lemma sets_Sup_sigma:
   assumes [simp]: "M \<noteq> {}" and M: "\<And>m. m \<in> M \<Longrightarrow> m \<subseteq> Pow \<Omega>"

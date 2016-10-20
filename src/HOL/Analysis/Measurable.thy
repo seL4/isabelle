@@ -646,6 +646,14 @@ lemma measurable_liminf [measurable (raw)]:
   shows "liminf A \<in> sets M"
 by (subst liminf_SUP_INF, auto)
 
+lemma measurable_case_enat[measurable (raw)]:
+  assumes f: "f \<in> M \<rightarrow>\<^sub>M count_space UNIV" and g: "\<And>i. g i \<in> M \<rightarrow>\<^sub>M N" and h: "h \<in> M \<rightarrow>\<^sub>M N"
+  shows "(\<lambda>x. case f x of enat i \<Rightarrow> g i x | \<infinity> \<Rightarrow> h x) \<in> M \<rightarrow>\<^sub>M N"
+  apply (rule measurable_compose_countable[OF _ f])
+  subgoal for i
+    by (cases i) (auto intro: g h)
+  done
+
 hide_const (open) pred
 
 end

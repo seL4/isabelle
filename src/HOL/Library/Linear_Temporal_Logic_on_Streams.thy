@@ -662,7 +662,7 @@ lemma sfilter_P[simp]: "P (shd s) \<Longrightarrow> sfilter P s = shd s ## sfilt
 lemma sfilter_not_P[simp]: "\<not> P (shd s) \<Longrightarrow> sfilter P s = sfilter P (stl s)"
   using sfilter_Stream[of P "shd s" "stl s"] by simp
 
-lemma sfilter_eq: 
+lemma sfilter_eq:
   assumes "ev (holds P) s"
   shows "sfilter P s = x ## s' \<longleftrightarrow>
     P x \<and> (not (holds P) suntil (HLD {x} aand nxt (\<lambda>s. sfilter P s = s'))) s"
@@ -685,7 +685,7 @@ lemma alw_sfilter:
 proof
   assume "alw Q (sfilter P s)" with * show "alw (\<lambda>x. Q (sfilter P x)) s"
   proof (coinduction arbitrary: s rule: alw_coinduct)
-    case (stl s) 
+    case (stl s)
     then have "ev (holds P) s"
       by blast
     from this stl show ?case
@@ -694,7 +694,7 @@ proof
 next
   assume "alw (\<lambda>x. Q (sfilter P x)) s" with * show "alw Q (sfilter P s)"
   proof (coinduction arbitrary: s rule: alw_coinduct)
-    case (stl s) 
+    case (stl s)
     then have "ev (holds P) s"
       by blast
     from this stl show ?case
@@ -766,5 +766,23 @@ qed (auto intro: suntil.intros)
 
 lemma hld_smap': "HLD x (smap f s) = HLD (f -` x) s"
   by (simp add: HLD_def)
+
+lemma pigeonhole_stream:
+  assumes "alw (HLD s) \<omega>"
+  assumes "finite s"
+  shows "\<exists>x\<in>s. alw (ev (HLD {x})) \<omega>"
+proof -
+  have "\<forall>i\<in>UNIV. \<exists>x\<in>s. \<omega> !! i = x"
+    using `alw (HLD s) \<omega>` by (simp add: alw_iff_sdrop HLD_iff)
+  from pigeonhole_infinite_rel[OF infinite_UNIV_nat `finite s` this]
+  show ?thesis
+    by (simp add: HLD_iff infinite_iff_alw_ev[symmetric])
+qed
+
+lemma ev_eq_suntil: "ev P \<omega> \<longleftrightarrow> (not P suntil P) \<omega>"
+proof
+  assume "ev P \<omega>" then show "((\<lambda>xs. \<not> P xs) suntil P) \<omega>"
+    by (induction rule: ev_induct_strong) (auto intro: suntil.intros)
+qed (auto simp: ev_suntil)
 
 end

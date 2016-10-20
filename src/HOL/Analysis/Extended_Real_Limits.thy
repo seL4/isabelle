@@ -56,6 +56,15 @@ proof -
     by simp
 qed
 
+instance enat :: second_countable_topology
+proof
+  show "\<exists>B::enat set set. countable B \<and> open = generate_topology B"
+  proof (intro exI conjI)
+    show "countable (range lessThan \<union> range greaterThan::enat set set)"
+      by auto
+  qed (simp add: open_enat_def)
+qed
+
 instance ereal :: second_countable_topology
 proof (standard, intro exI conjI)
   let ?B = "(\<Union>r\<in>\<rat>. {{..< r}, {r <..}} :: ereal set set)"

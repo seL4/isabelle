@@ -458,6 +458,11 @@ proof
        (fastforce simp: topological_space_class.topological_basis_def)+
 qed
 
+instance nat :: second_countable_topology
+proof
+  show "\<exists>B::nat set set. countable B \<and> open = generate_topology B"
+    by (intro exI[of _ "range lessThan \<union> range greaterThan"]) (auto simp: open_nat_def)
+qed
 
 lemma countable_separating_set_linorder1:
   shows "\<exists>B::('a::{linorder_topology, second_countable_topology} set). countable B \<and> (\<forall>x y. x < y \<longrightarrow> (\<exists>b \<in> B. x < b \<and> b \<le> y))"

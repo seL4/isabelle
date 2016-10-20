@@ -242,7 +242,7 @@ lemma sdrop_add[simp]: "sdrop n (sdrop m s) = sdrop (m + n) s"
 lemma sdrop_snth: "sdrop n s !! m = s !! (n + m)"
   by (induct n arbitrary: m s) auto
 
-partial_function (tailrec) sdrop_while :: "('a \<Rightarrow> bool) \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where 
+partial_function (tailrec) sdrop_while :: "('a \<Rightarrow> bool) \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where
   "sdrop_while P s = (if P (shd s) then sdrop_while P (stl s) else s)"
 
 lemma sdrop_while_SCons[code]:
@@ -342,7 +342,7 @@ lemma sdrop_cycle: "u \<noteq> [] \<Longrightarrow> sdrop n (cycle u) = cycle (r
   by (induct n arbitrary: u) (auto simp: rotate1_rotate_swap rotate1_hd_tl rotate_conv_mod[symmetric])
 
 lemma sset_cycle[simp]:
-  assumes "xs \<noteq> []" 
+  assumes "xs \<noteq> []"
   shows "sset (cycle xs) = set xs"
 proof (intro set_eqI iffI)
   fix x
@@ -408,6 +408,14 @@ lemma smap_sconst: "smap f (sconst x) = sconst (f x)"
 lemma sconst_streams: "x \<in> A \<Longrightarrow> sconst x \<in> streams A"
   by (simp add: streams_iff_sset)
 
+lemma streams_empty_iff: "streams S = {} \<longleftrightarrow> S = {}"
+proof safe
+  fix x assume "x \<in> S" "streams S = {}"
+  then have "sconst x \<in> streams S"
+    by (intro sconst_streams)
+  then show "x \<in> {}"
+    unfolding \<open>streams S = {}\<close> by simp
+qed (auto simp: streams_empty)
 
 subsection \<open>stream of natural numbers\<close>
 
@@ -442,11 +450,11 @@ lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (xs ## ws) = xs 
 lemma flat_unfold: "shd ws \<noteq> [] \<Longrightarrow> flat ws = shd ws @- flat (stl ws)"
   by (cases ws) auto
 
-lemma flat_snth: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow> flat s !! n = (if n < length (shd s) then 
+lemma flat_snth: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow> flat s !! n = (if n < length (shd s) then
   shd s ! n else flat (stl s) !! (n - length (shd s)))"
   by (metis flat_unfold not_less shd_sset shift_snth_ge shift_snth_less)
 
-lemma sset_flat[simp]: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow> 
+lemma sset_flat[simp]: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow>
   sset (flat s) = (\<Union>xs \<in> sset s. set xs)" (is "?P \<Longrightarrow> ?L = ?R")
 proof safe
   fix x assume ?P "x : ?L"
