@@ -150,10 +150,29 @@ object Build_Release
         progress.echo("### Library archive already exists: " +
           release_info.dist_library_archive.implode)
       else {
-        progress.bash("\"$ISABELLE_HOME/Admin/Release/build_library\"" + jobs_option + " " +
-          File.bash_path(release_info.dist_dir +
-            Path.explode(release_info.name + "_" +
-              Isabelle_System.getenv_strict("ISABELLE_PLATFORM_FAMILY") + ".tar.gz"))).check
+        Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
+          {
+            def execute(script: String): Unit =
+              Isabelle_System.bash(script, cwd = tmp_dir.file).check
+
+            val name = release_info.name
+            val platform = Isabelle_System.getenv_strict("ISABELLE_PLATFORM_FAMILY")
+            val bundle = release_info.dist_dir + Path.explode(name + "_" + platform + ".tar.gz")
+            execute("tar xzf " + File.bash_path(bundle))
+
+            val other_isabelle =
+              new Other_Isabelle(progress, tmp_dir + Path.explode(name), name + "-build")
+
+            other_isabelle.bash("bin/isabelle build" + jobs_option +
+                " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
+                " -s -c -a -d '~~/src/Benchmarks'", echo = true).check
+            other_isabelle.isabelle_home_user.file.delete
+
+            execute("chmod -R a+r " + Bash.string(name))
+            execute("chmod -R g=o " + Bash.string(name))
+            execute("tar czf " + File.bash_path(release_info.dist_library_archive) +
+              " " + Bash.string(name + "/browser_info"))
+          })
       }
     }
 
@@ -198,7 +217,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "R:" -> (arg => release_name = arg),
         "W:" -> (arg => website = Some(Path.explode(arg))),
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
-        "l" -> (_ => build_library),
+        "l" -> (_ => build_library = true),
         "p:" -> (arg => platform_families = Library.space_explode(',', arg)),
         "r:" -> (arg => rev = arg))
 
