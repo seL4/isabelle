@@ -97,7 +97,7 @@ object Build_History
 
   private val default_rev = "tip"
   private val default_multicore = (1, 1)
-  private val default_heap = 1000
+  private val default_heap = 1500
   private val default_isabelle_identifier = "build_history"
 
   def build_history(
