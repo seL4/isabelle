@@ -25,6 +25,9 @@ object Mercurial
 
   /* repository access */
 
+  def is_repository(root: Path, ssh: Option[SSH.Session] = None): Boolean =
+    new Repository(root, ssh).command("root").ok
+
   def repository(root: Path, ssh: Option[SSH.Session] = None): Repository =
   {
     val hg = new Repository(root, ssh)
