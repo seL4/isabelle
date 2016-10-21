@@ -99,11 +99,11 @@ object Isabelle_Cronjob
     port: Int = SSH.default_port,
     shared_home: Boolean = true,
     options: String = "",
-    args: String = "-o timeout=10800 -a")
+    args: String = "-a")
 
   private val remote_builds =
     List(
-      Remote_Build("lxbroy10", options = "-m32 -M4 -N"),
+      Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6 -N", args = "-g timing"),
       Remote_Build("macbroy2", options = "-m32 -M4"),
       Remote_Build("macbroy30", options = "-m32 -M2"),
       Remote_Build("macbroy31", options = "-m32 -M2"),
@@ -125,7 +125,7 @@ object Isabelle_Cronjob
                   self_update = !r.shared_home,
                   options =
                     r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
-                  args = r.args)
+                  args = "-o timeout=10800 " + r.args)
               for ((log, bytes) <- results)
                 Bytes.write(logger.log_dir + Path.explode(log), bytes)
             })
