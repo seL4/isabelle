@@ -143,33 +143,38 @@ end;
 
 local
 
+(* C library and memory *)
+
+val library_path =
+  Path.explode ("$ML_HOME/" ^ (if ML_System.platform_is_windows then "sha1.dll" else "libsha1.so"));
+
+fun with_memory n =
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn f =>
+    let
+      val mem = Foreign.Memory.malloc (Word.fromInt n);
+      val res = Exn.capture (restore_attributes f) mem;
+      val _ = Foreign.Memory.free mem;
+    in Exn.release res end);
+
+
 (* digesting *)
 
 fun hex_digit i = if i < 10 then chr (Char.ord #"0" + i) else chr (Char.ord #"a" + i - 10);
-
-fun hex_string arr i =
-  let val c = CInterface.fromCchar (CInterface.offset i CInterface.Cchar arr)
-  in (op ^) (apply2 hex_digit (Integer.div_mod (Char.ord c) 16)) end
-
-val lib_path =
-  ("$ML_HOME/" ^ (if ML_System.platform_is_windows then "sha1.dll" else "libsha1.so"))
-  |> Path.explode;
-
-val STRING_INPUT_BYTES =
-  CInterface.mkConversion undefined (CInterface.toCbytes o Byte.stringToBytes)
-    (CInterface.Cpointer CInterface.Cchar);
+fun hex_string byte = op ^ (apply2 hex_digit (Integer.div_mod (Word8.toInt byte) 16));
 
 in
 
 fun digest_string_external str =
-  let
-    val digest = CInterface.alloc 20 CInterface.Cchar;
-    val _ =
-      CInterface.call3
-        (CInterface.get_sym (File.platform_path lib_path) "sha1_buffer")
-        (STRING_INPUT_BYTES, CInterface.LONG, CInterface.POINTER)
-        CInterface.POINTER (str, size str, CInterface.address digest);
-  in fold (suffix o hex_string digest) (0 upto 19) "" end;
+  with_memory 20 (fn mem =>
+    let
+      val library = Foreign.loadLibrary (File.platform_path library_path);
+      val bytes = Byte.stringToBytes str;
+      val _ =
+        Foreign.buildCall3 (Foreign.getSymbol library "sha1_buffer",
+          (Foreign.cByteArray, Foreign.cUlong, Foreign.cPointer), Foreign.cPointer)
+          (bytes, Word8Vector.length bytes, mem);
+      fun get i = hex_string (Foreign.Memory.get8 (mem, Word.fromInt i));
+    in implode (map get (0 upto 19)) end);
 
 end;
 
