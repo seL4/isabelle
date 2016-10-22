@@ -68,6 +68,12 @@ object Mercurial
         case Some(ssh) => root_path.expand_env(ssh.settings)
       }
 
+    def root_url: String =
+      ssh match {
+        case None => root.implode
+        case Some(ssh) => ssh.hg_url + root.implode
+      }
+
     override def toString: String =
       ssh match {
         case None => root.implode

@@ -226,11 +226,13 @@ object SSH
   {
     def update_options(new_options: Options): Session = new Session(new_options, session)
 
+    def user_prefix: String = if (session.getUserName == null) "" else session.getUserName + "@"
+    def host: String = if (session.getHost == null) "" else session.getHost
+    def port_suffix: String = if (session.getPort == default_port) "" else ":" + session.getPort
+    def hg_url: String = "ssh://" + user_prefix + host + port_suffix + "/"
+
     override def toString: String =
-      (if (session.getUserName == null) "" else session.getUserName + "@") +
-      (if (session.getHost == null) "" else session.getHost) +
-      (if (session.getPort == default_port) "" else ":" + session.getPort) +
-      (if (session.isConnected) "" else " (disconnected)")
+      user_prefix + host + port_suffix + (if (session.isConnected) "" else " (disconnected)")
 
 
     /* sftp channel */
