@@ -220,13 +220,13 @@ object File
 
   def write_backup(path: Path, text: CharSequence)
   {
-    mv(path, path.backup)
+    if (path.is_file) mv(path, path.backup)
     write(path, text)
   }
 
   def write_backup2(path: Path, text: CharSequence)
   {
-    mv(path, path.backup2)
+    if (path.is_file) mv(path, path.backup2)
     write(path, text)
   }
 
