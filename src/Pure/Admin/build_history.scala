@@ -11,6 +11,8 @@ import java.io.{File => JFile}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+import scala.collection.mutable
+
 
 object Build_History
 {
@@ -103,6 +105,7 @@ object Build_History
   def build_history(
     hg: Mercurial.Repository,
     progress: Progress = Ignore_Progress,
+    progress_result: (Process_Result, Path) => Unit = (result: Process_Result, path: Path) => (),
     rev: String = default_rev,
     isabelle_identifier: String = default_isabelle_identifier,
     components_base: String = "",
@@ -254,7 +257,9 @@ object Build_History
 
       first_build = false
 
-      (build_result, log_path.ext("xz"))
+      val res = (build_result, log_path.ext("xz"))
+      progress_result(res._1, res._2)
+      res
     }
   }
 
@@ -343,16 +348,15 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       val hg = Mercurial.repository(Path.explode(root))
       val progress = new Console_Progress(stderr = true)
+
       val results =
         build_history(hg, progress = progress, rev = rev, isabelle_identifier = isabelle_identifier,
+          progress_result = (_, log_path) => Output.writeln(log_path.implode, stdout = true),
           components_base = components_base, fresh = fresh, nonfree = nonfree,
           multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, more_settings = more_settings, verbose = verbose,
           build_tags = build_tags, build_args = build_args)
-
-      for ((_, log_path) <- results)
-        Output.writeln(log_path.implode, stdout = true)
 
       val rc = (0 /: results) { case (rc, (res, _)) => rc max res.rc }
       if (rc != 0) sys.exit(rc)
@@ -370,6 +374,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
     self_update: Boolean = false,
     progress: Progress = Ignore_Progress,
+    progress_result: (String, Bytes) => Unit = (log_name: String, bytes: Bytes) => (),
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
@@ -393,17 +398,23 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
     /* Admin/build_history */
 
-    val result =
-      ssh.execute(
-        ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
-          ssh.bash_path(isabelle_repos_other) + " " + args,
-        progress_stderr = progress.echo(_)).check
+    val result = new mutable.ListBuffer[(String, Bytes)]
 
-    for (line <- result.out_lines; log = Path.explode(line))
-    yield {
-      val bytes = ssh.read_bytes(log)
+    def progress_stdout(line: String)
+    {
+      val log = Path.explode(line)
+      val res = (log.base.implode, ssh.read_bytes(log))
       ssh.rm(log)
-      (log.base.implode, bytes)
+      progress_result(res._1, res._2)
+      result += res
     }
+
+    ssh.execute(
+      ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
+        ssh.bash_path(isabelle_repos_other) + " " + args,
+      progress_stdout = progress_stdout _,
+      progress_stderr = progress.echo(_)).check
+
+    result.toList
   }
 }

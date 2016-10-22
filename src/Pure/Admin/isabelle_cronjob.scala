@@ -117,17 +117,18 @@ object Isabelle_Cronjob
         using(logger.ssh_context.open_session(host = r.host, user = r.user, port = r.port))(
           ssh =>
             {
-              val results =
-                Build_History.remote_build_history(ssh,
-                  isabelle_repos,
-                  isabelle_repos.ext(r.host),
-                  isabelle_repos_source = isabelle_dev_source,
-                  self_update = !r.shared_home,
-                  options =
-                    r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
-                  args = "-o timeout=10800 " + r.args)
-              for ((log, bytes) <- results)
-                Bytes.write(logger.log_dir + Path.explode(log), bytes)
+              def progress_result(log_name: String, bytes: Bytes): Unit =
+                Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+
+              Build_History.remote_build_history(ssh,
+                isabelle_repos,
+                isabelle_repos.ext(r.host),
+                isabelle_repos_source = isabelle_dev_source,
+                self_update = !r.shared_home,
+                progress_result = progress_result _,
+                options =
+                  r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
+                args = "-o timeout=10800 " + r.args)
             })
       })
   }
