@@ -106,6 +106,12 @@ object Mercurial
     def log(rev: String = "", template: String = "", options: String = ""): String =
       hg.command("log", opt_rev(rev) + opt_template(template), options).check.out
 
+    def push(remote: String = "", rev: String = "", force: Boolean = false, options: String = "")
+    {
+      hg.command("push", opt_rev(rev) + opt_flag("--force", force) + optional(remote), options).
+        check
+    }
+
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =
       hg.command("pull", opt_rev(rev) + optional(remote), options).check
 

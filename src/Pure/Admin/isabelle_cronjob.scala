@@ -117,6 +117,9 @@ object Isabelle_Cronjob
         using(logger.ssh_context.open_session(host = r.host, user = r.user, port = r.port))(
           ssh =>
             {
+              val self_update = !r.shared_home
+              val push_isabelle_home = self_update && Mercurial.is_repository(Path.explode("~~"))
+
               def progress_result(log_name: String, bytes: Bytes): Unit =
                 Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
 
@@ -124,7 +127,8 @@ object Isabelle_Cronjob
                 isabelle_repos,
                 isabelle_repos.ext(r.host),
                 isabelle_repos_source = isabelle_dev_source,
-                self_update = !r.shared_home,
+                self_update = self_update,
+                push_isabelle_home = push_isabelle_home,
                 progress_result = progress_result _,
                 options =
                   r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
