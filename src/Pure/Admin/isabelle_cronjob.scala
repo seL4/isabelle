@@ -103,11 +103,11 @@ object Isabelle_Cronjob
 
   private val remote_builds =
     List(
-      Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6 -N", args = "-g timing"),
-      Remote_Build("macbroy2", options = "-m32 -M4"),
-      Remote_Build("macbroy30", options = "-m32 -M2"),
-      Remote_Build("macbroy31", options = "-m32 -M2"),
-      Remote_Build("vmnipkow9", options = "-m32 -M4", shared_home = false))
+      List(Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6 -N", args = "-g timing")),
+      List(Remote_Build("macbroy2", options = "-m32 -M4")),
+      List(Remote_Build("macbroy30", options = "-m32 -M2")),
+      List(Remote_Build("macbroy31", options = "-m32 -M2")),
+      List(Remote_Build("vmnipkow9", options = "-m32 -M4", shared_home = false)))
 
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
   {
@@ -246,11 +246,11 @@ object Isabelle_Cronjob
 
     /* structured tasks */
 
-    def SEQ(tasks: Logger_Task*): Logger_Task = Logger_Task(body = _ =>
+    def SEQ(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ =>
       for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "")
         run_now(task))
 
-    def PAR(tasks: Logger_Task*): Logger_Task = Logger_Task(body = _ =>
+    def PAR(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ =>
       {
         @tailrec def join(running: List[Task])
         {
@@ -262,7 +262,7 @@ object Isabelle_Cronjob
         }
         val start_date = Date.now()
         val running =
-          for (task <- tasks.toList if !exclude_task(task.name))
+          for (task <- tasks if !exclude_task(task.name))
             yield log_service.fork_task(start_date, task)
         join(running)
       })
@@ -278,8 +278,8 @@ object Isabelle_Cronjob
     run(main_start_date,
       Logger_Task("isabelle_cronjob", _ =>
         run_now(
-          SEQ(isabelle_identify, build_history_base, build_release,
-            PAR(remote_builds.map(remote_build_history(rev, _)):_*)))))
+          SEQ(List(isabelle_identify, build_history_base, build_release,
+            PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))))))))
 
     log_service.shutdown()
 
