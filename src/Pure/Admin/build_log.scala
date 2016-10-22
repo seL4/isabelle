@@ -368,7 +368,7 @@ object Build_Log
           case _ => Meta_Info.empty
         }
 
-      case line :: _ if line.startsWith("\0") => Meta_Info.empty
+      case line :: _ if line.startsWith("\u0000") => Meta_Info.empty
       case List(Isatest.End(_)) => Meta_Info.empty
       case _ :: AFP_Test.Bad_Init() :: _ => Meta_Info.empty
       case Nil => Meta_Info.empty
