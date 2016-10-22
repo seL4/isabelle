@@ -1041,7 +1041,9 @@ exhaust the small 32-bit address space of the ML process (which is used
 by default).
 
 * System option "profiling" specifies the mode for global ML profiling
-in "isabelle build". Possible values are "time", "allocations".
+in "isabelle build". Possible values are "time", "allocations". The
+command-line tool "isabelle profiling_report" helps to digest the
+resulting log files.
 
 * System option "ML_process_policy" specifies an optional command prefix
 for the underlying ML process, e.g. to control CPU affinity on

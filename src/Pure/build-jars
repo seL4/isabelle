@@ -19,7 +19,6 @@ declare -a SOURCES=(
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
   Admin/other_isabelle.scala
-  Admin/profiling_report.scala
   Admin/remote_dmg.scala
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
@@ -130,6 +129,7 @@ declare -a SOURCES=(
   Tools/ml_statistics.scala
   Tools/news.scala
   Tools/print_operation.scala
+  Tools/profiling_report.scala
   Tools/simplifier_trace.scala
   Tools/task_statistics.scala
   Tools/update_cartouches.scala

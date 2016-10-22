@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/profiling_report.scala
+/*  Title:      Pure/Tools/profiling_report.scala
     Author:     Makarius
 
 Report Poly/ML profiling information from log files.
