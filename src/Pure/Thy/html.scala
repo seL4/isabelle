@@ -69,9 +69,9 @@ object HTML
         case XML.Elem(markup, Nil) =>
           s ++= "<"; elem(markup); s ++= "/>"
         case XML.Elem(markup, ts) =>
-          s ++= "<"; elem(markup); s ++= ">"
+          s ++= "\n<"; elem(markup); s ++= ">"
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s ++= ">"
+          s ++= "</"; s ++= markup.name; s ++= ">\n"
         case XML.Text(txt) => output(txt, s)
       }
     body.foreach(tree)
