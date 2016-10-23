@@ -9,9 +9,30 @@ package isabelle
 
 object Build_Release
 {
+  sealed case class Bundle_Info(
+    platform_family: String,
+    platform_description: String,
+    main_bundle: String,
+    fallback_bundle: Option[String])
+  {
+    def all_bundles: List[String] = main_bundle :: fallback_bundle.toList
+  }
+
   sealed case class Release_Info(
     date: Date, name: String, dist_dir: Path, dist_archive: Path, dist_library_archive: Path,
       id: String)
+  {
+    val bundle_infos: List[Bundle_Info] =
+      List(Bundle_Info("linux", "Linux", name + "_app.tar.gz", None),
+        Bundle_Info("windows", "Windows (32bit)", name + "-win32.exe", None),
+        Bundle_Info("windows64", "Windows (64bit)", name + "-win64.exe", None),
+        Bundle_Info("macos", "Mac OS X", name + ".dmg", Some(name + "_dmg.tar.gz")))
+
+    def bundle_info(platform_family: String): Bundle_Info =
+      bundle_infos.find(info => info.platform_family == platform_family) getOrElse
+        error("Unknown platform family " + quote(platform_family))
+  }
+
 
   private val default_platform_families = List("linux", "windows", "windows64", "macos")
 
@@ -38,22 +59,7 @@ object Build_Release
       Release_Info(date, name, dist_dir, dist_archive, dist_library_archive, "")
     }
 
-    val main_platform_bundles =
-      List("linux" -> (release_info.name + "_app.tar.gz"),
-        "windows" -> (release_info.name + "-win32.exe"),
-        "windows64" -> (release_info.name + "-win64.exe"),
-        "macos" -> (release_info.name + ".dmg"))
-
-    val fallback_platform_bundles =
-      List("macos" -> (release_info.name + "_dmg.tar.gz"))
-
-    val platform_bundles =
-      for (platform_family <- platform_families) yield {
-        main_platform_bundles.toMap.get(platform_family) match {
-          case None => error("Unknown platform family " + quote(platform_family))
-          case Some(bundle) => (platform_family, bundle)
-        }
-      }
+    val bundle_infos = platform_families.map(release_info.bundle_info(_))
 
 
     /* make distribution */
@@ -86,19 +92,18 @@ object Build_Release
 
     /* make application bundles */
 
-    for ((platform_family, platform_bundle) <- platform_bundles) {
-      val bundle_archive =
-        release_info.dist_dir +
-          Path.explode(
-            (if (remote_mac.isEmpty) fallback_platform_bundles.toMap.get(platform_family) else None)
-              getOrElse platform_bundle)
+    for (info <- bundle_infos) {
+      val bundle =
+        (if (remote_mac.isEmpty) info.fallback_bundle else None) getOrElse info.main_bundle
+      val bundle_archive = release_info.dist_dir + Path.explode(bundle)
       if (bundle_archive.is_file)
         progress.echo("### Application bundle already exists: " + bundle_archive.implode)
       else {
-        progress.echo("\nApplication bundle for " + platform_family + ": " + bundle_archive.implode)
+        progress.echo(
+          "\nApplication bundle for " + info.platform_family + ": " + bundle_archive.implode)
         progress.bash(
           "isabelle makedist_bundle " + File.bash_path(release_info.dist_archive) +
-            " " + Bash.string(platform_family) +
+            " " + Bash.string(info.platform_family) +
             (if (remote_mac == "") "" else " " + Bash.string(remote_mac)),
           echo = true).check
       }
@@ -107,30 +112,28 @@ object Build_Release
 
     /* minimal website */
 
-    website.foreach(dir =>
-      {
-        val website_platform_bundles =
-          Library.distinct(
-            for {
-              (a, b) <- main_platform_bundles ::: fallback_platform_bundles
-              p = release_info.dist_dir + Path.explode(b)
-              if p.is_file
-            } yield (a, b), (x: (String, String), y: (String, String)) => x._1 == y._1)
+    for (dir <- website) {
+      val website_platform_bundles =
+        for {
+          info <- bundle_infos
+          bundle <-
+            info.all_bundles.find(name => (release_info.dist_dir + Path.explode(name)).is_file)
+        } yield (bundle, info)
 
-        Isabelle_System.mkdirs(dir)
+      Isabelle_System.mkdirs(dir)
 
-        File.write(dir + Path.explode("index.html"),
-          HTML.output_document(
-            List(HTML.title(release_info.name)),
-            List(
-              HTML.chapter(release_info.name + " (" + release_id + ")"),
-              HTML.itemize(
-                website_platform_bundles.map({ case (a, b) =>
-                  List(HTML.link(b, HTML.text(Word.capitalize(a)))) })))))
+      File.write(dir + Path.explode("index.html"),
+        HTML.output_document(
+          List(HTML.title(release_info.name)),
+          List(
+            HTML.chapter(release_info.name + " (" + release_id + ")"),
+            HTML.itemize(
+              website_platform_bundles.map({ case (bundle, info) =>
+                List(HTML.link(bundle, HTML.text(info.platform_description))) })))))
 
-        for ((_, b) <- website_platform_bundles)
-          File.copy(release_info.dist_dir + Path.explode(b), dir)
-      })
+      for ((bundle, _) <- website_platform_bundles)
+        File.copy(release_info.dist_dir + Path.explode(bundle), dir)
+    }
 
 
     /* HTML library */
