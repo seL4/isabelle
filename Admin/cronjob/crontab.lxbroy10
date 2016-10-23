@@ -2,4 +2,4 @@ SHELL=/bin/bash
 MAILTO=wenzelm
 
 03 00 * * *       $HOME/cronjob/self_update
-17 00 * * *       $HOME/cronjob/isabelle/Admin/cronjob/main -f > $HOME/cronjob/run/main.out 2> $HOME/cronjob/run/main.err || cat $HOME/cronjob/run/main.out $HOME/cronjob/run/main.err
+17 00 * * *       $HOME/cronjob/isabelle/Admin/cronjob/main -f > $HOME/cronjob/run/main.out 2>&1 || cat $HOME/cronjob/run/main.out
