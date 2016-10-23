@@ -26,6 +26,9 @@ object XML
   case class Elem(markup: Markup, body: Body) extends Tree
   {
     def name: String = markup.name
+    def update_attributes(more_attributes: Attributes): Elem =
+      if (more_attributes.isEmpty) this
+      else Elem(markup.update_properties(more_attributes), body)
   }
   case class Text(content: String) extends Tree
 

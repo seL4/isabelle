@@ -602,4 +602,8 @@ sealed case class Markup(name: String, properties: Properties.T)
 {
   def markup(s: String): String =
     YXML.string_of_tree(XML.Elem(this, List(XML.Text(s))))
+
+  def update_properties(more_props: Properties.T): Markup =
+    if (more_props.isEmpty) this
+    else Markup(name, (more_props :\ properties) { case (p, ps) => Properties.put(ps, p) })
 }

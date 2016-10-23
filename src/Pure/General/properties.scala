@@ -10,10 +10,29 @@ package isabelle
 
 object Properties
 {
-  /* named entries */
-
   type Entry = (java.lang.String, java.lang.String)
   type T = List[Entry]
+
+  def defined(props: T, name: java.lang.String): java.lang.Boolean =
+    props.exists({ case (x, _) => x == name })
+
+  def get(props: T, name: java.lang.String): Option[java.lang.String] =
+    props.collectFirst({ case (x, y) if x == name => y })
+
+  def put(props: T, entry: Entry): T =
+  {
+    val (x, y) = entry
+    def update(ps: T): T =
+      ps match {
+        case (p @ (x1, _)) :: rest =>
+          if (x1 == x) (x1, y) :: rest else p :: update(rest)
+        case Nil => Nil
+      }
+    if (defined(props, x)) update(props) else entry :: props
+  }
+
+
+  /* named entries */
 
   class String(val name: java.lang.String)
   {
