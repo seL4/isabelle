@@ -20,21 +20,19 @@ object HTML
       Symbol.bold -> "b",
       Symbol.bold_decoded -> "b")
 
-  def output(text: String): String =
+  def output(text: String, s: StringBuilder)
   {
-    val result = new StringBuilder
-
     def output_char(c: Char) =
       c match {
-        case '<' => result ++= "&lt;"
-        case '>' => result ++= "&gt;"
-        case '&' => result ++= "&amp;"
-        case '"' => result ++= "&quot;"
-        case '\'' => result ++= "&#39;"
-        case '\n' => result ++= "<br/>"
-        case _ => result += c
+        case '<' => s ++= "&lt;"
+        case '>' => s ++= "&gt;"
+        case '&' => s ++= "&amp;"
+        case '"' => s ++= "&quot;"
+        case '\'' => s ++= "&#39;"
+        case '\n' => s ++= "<br/>"
+        case _ => s += c
       }
-    def output_chars(s: String) = s.iterator.foreach(output_char(_))
+    def output_chars(str: String) = str.iterator.foreach(output_char(_))
 
     var ctrl = ""
     for (sym <- Symbol.iterator(text)) {
@@ -42,9 +40,9 @@ object HTML
       else {
         control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
-            result ++= ("<" + elem + ">")
+            s ++= ("<" + elem + ">")
             output_chars(sym)
-            result ++= ("</" + elem + ">")
+            s ++= ("</" + elem + ">")
           case _ =>
             output_chars(ctrl)
             output_chars(sym)
@@ -53,9 +51,44 @@ object HTML
       }
     }
     output_chars(ctrl)
-
-    result.toString
   }
+
+  def output(text: String): String = Library.make_string(output(text, _))
+
+
+  /* output XML as HTML */
+
+  def output(body: XML.Body, s: StringBuilder)
+  {
+    def attrib(p: (String, String)): Unit =
+      { s ++= " "; s ++= p._1; s ++= "=\""; output(p._2, s); s ++= "\"" }
+    def elem(markup: Markup): Unit =
+      { s ++= markup.name; markup.properties.foreach(attrib) }
+    def tree(t: XML.Tree): Unit =
+      t match {
+        case XML.Elem(markup, Nil) =>
+          s ++= "<"; elem(markup); s ++= "/>"
+        case XML.Elem(markup, ts) =>
+          s ++= "<"; elem(markup); s ++= ">"
+          ts.foreach(tree)
+          s ++= "</"; s ++= markup.name; s ++= ">"
+        case XML.Text(txt) => output(txt, s)
+      }
+    body.foreach(tree)
+  }
+
+  def output(body: XML.Body): String = Library.make_string(output(body, _))
+  def output(tree: XML.Tree): String = output(List(tree))
+
+
+  /* structured markup */
+
+  def chapter(body: XML.Body): XML.Elem = XML.elem("h1", body)
+  def section(body: XML.Body): XML.Elem = XML.elem("h2", body)
+  def subsection(body: XML.Body): XML.Elem = XML.elem("h3", body)
+  def subsubsection(body: XML.Body): XML.Elem = XML.elem("h4", body)
+  def paragraph(body: XML.Body): XML.Elem = XML.elem("h5", body)
+  def subparagraph(body: XML.Body): XML.Elem = XML.elem("h6", body)
 
 
   /* document */

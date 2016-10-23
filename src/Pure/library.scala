@@ -119,6 +119,13 @@ object Library
 
   /* strings */
 
+  def make_string(f: StringBuilder => Unit): String =
+  {
+    val s = new StringBuilder
+    f(s)
+    s.toString
+  }
+
   def try_unprefix(prfx: String, s: String): Option[String] =
     if (s.startsWith(prfx)) Some(s.substring(prfx.length)) else None
 
