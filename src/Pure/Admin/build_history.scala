@@ -387,25 +387,30 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     val isabelle_hg =
       Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = Some(ssh))
 
-    if (self_update) {
-      if (push_isabelle_home) {
-        val isabelle_home_hg = Mercurial.repository(Path.explode("~~"))
-        val rev = isabelle_home_hg.id()
-        isabelle_home_hg.push(isabelle_hg.root_url, rev = rev, force = true)
+    val rev =
+      if (self_update) {
+        val rev =
+          if (push_isabelle_home) {
+            val isabelle_home_hg = Mercurial.repository(Path.explode("~~"))
+            val rev = isabelle_home_hg.id()
+            isabelle_home_hg.push(isabelle_hg.root_url, rev = rev, force = true)
+            rev
+          }
+          else {
+            isabelle_hg.pull()
+            isabelle_hg.id()
+          }
         isabelle_hg.update(rev = rev, clean = true)
+        ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
+        rev
       }
-      else {
-        isabelle_hg.pull()
-        isabelle_hg.update(clean = true)
-      }
-      ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
-    }
+      else "tip"
 
     val other_hg =
       Mercurial.setup_repository(
         ssh.bash_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(ssh))
     other_hg.pull(isabelle_hg.root.implode)
-    other_hg.update(rev = isabelle_hg.id(), clean = true)
+    other_hg.update(rev = rev, clean = true)
 
 
     /* Admin/build_history */
