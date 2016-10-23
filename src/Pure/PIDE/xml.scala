@@ -22,16 +22,15 @@ object XML
   type Attributes = Properties.T
 
   sealed abstract class Tree { override def toString: String = string_of_tree(this) }
-  case class Elem(markup: Markup, body: List[Tree]) extends Tree
+  type Body = List[Tree]
+  case class Elem(markup: Markup, body: Body) extends Tree
   {
     def name: String = markup.name
   }
   case class Text(content: String) extends Tree
 
-  def elem(name: String, body: List[Tree]) = XML.Elem(Markup(name, Nil), body)
-  def elem(name: String) = XML.Elem(Markup(name, Nil), Nil)
-
-  type Body = List[Tree]
+  def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
+  def elem(name: String): XML.Elem = XML.Elem(Markup(name, Nil), Nil)
 
 
   /* wrapped elements */
