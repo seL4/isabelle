@@ -215,7 +215,7 @@ fun output_text state {markdown} source =
         output_antiquotes (Markdown.line_content line);
 
     fun output_blocks blocks = space_implode "\n\n" (map output_block blocks)
-    and output_block (Markdown.Paragraph lines) = cat_lines (map output_line lines)
+    and output_block (Markdown.Par lines) = cat_lines (map output_line lines)
       | output_block (Markdown.List {kind, body, ...}) =
           Latex.environment (Markdown.print_kind kind) (output_blocks body);
   in

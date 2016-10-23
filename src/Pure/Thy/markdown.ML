@@ -28,7 +28,7 @@ sig
   val line_content: line -> Antiquote.text_antiquote list
   val make_line: Antiquote.text_antiquote list -> line
   val empty_line: line
-  datatype block = Paragraph of line list | List of {indent: int, kind: kind, body: block list}
+  datatype block = Par of line list | List of {indent: int, kind: kind, body: block list}
   val read_lines: line list -> block list
   val read_antiquotes: Antiquote.text_antiquote list -> block list
   val read_source: Input.source -> block list
@@ -124,17 +124,16 @@ end;
 
 (* document blocks *)
 
-datatype block =
-  Paragraph of line list | List of {indent: int, kind: kind, body: block list};
+datatype block = Par of line list | List of {indent: int, kind: kind, body: block list};
 
-fun block_lines (Paragraph lines) = lines
+fun block_lines (Par lines) = lines
   | block_lines (List {body, ...}) = maps block_lines body;
 
-fun block_range (Paragraph lines) = Antiquote.range (maps line_content lines)
+fun block_range (Par lines) = Antiquote.range (maps line_content lines)
   | block_range (List {body, ...}) = Antiquote.range (maps line_source (maps block_lines body));
 
 fun block_indent (List {indent, ...}) = indent
-  | block_indent (Paragraph (Line {indent, ...} :: _)) = indent
+  | block_indent (Par (Line {indent, ...} :: _)) = indent
   | block_indent _ = 0;
 
 fun block_list indent0 kind0 (List {indent, kind, body}) =
@@ -167,7 +166,7 @@ val parse_paragraph =
   Scan.one (fn line => line <> eof_line) -- Scan.many plain_line >> (fn (line, lines) =>
     let
       val Line {indent, item, ...} = line;
-      val block = Paragraph (line :: lines);
+      val block = Par (line :: lines);
     in (indent, item, [block]) end);
 
 val parse_document =
@@ -199,7 +198,7 @@ fun line_reports depth (Line {item_pos, content, ...}) =
 
 fun block_reports depth block =
   (case block of
-    Paragraph lines =>
+    Par lines =>
       cons (#1 (block_range block), Markup.markdown_paragraph) #>
       fold (line_reports depth) lines
   | List {kind, body, ...} =>
