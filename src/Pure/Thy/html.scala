@@ -81,14 +81,16 @@ object HTML
   def output(tree: XML.Tree): String = output(List(tree))
 
 
-  /* structured markup */
+  /* markup operators */
 
-  def chapter(body: XML.Body): XML.Elem = XML.elem("h1", body)
-  def section(body: XML.Body): XML.Elem = XML.elem("h2", body)
-  def subsection(body: XML.Body): XML.Elem = XML.elem("h3", body)
-  def subsubsection(body: XML.Body): XML.Elem = XML.elem("h4", body)
-  def paragraph(body: XML.Body): XML.Elem = XML.elem("h5", body)
-  def subparagraph(body: XML.Body): XML.Elem = XML.elem("h6", body)
+  type Operator = XML.Body => XML.Elem
+
+  val chapter: Operator = XML.elem("h1", _)
+  val section: Operator = XML.elem("h2", _)
+  val subsection: Operator = XML.elem("h3", _)
+  val subsubsection: Operator = XML.elem("h4", _)
+  val paragraph: Operator = XML.elem("h5", _)
+  val subparagraph: Operator = XML.elem("h6", _)
 
 
   /* document */
