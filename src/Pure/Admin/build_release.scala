@@ -120,24 +120,14 @@ object Build_Release
         Isabelle_System.mkdirs(dir)
 
         File.write(dir + Path.explode("index.html"),
-"""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<html>
-<head>
-<title>""" + HTML.output(release_info.name) + """</title>
-</head>
+          HTML.output_document(
+            List(HTML.title(release_info.name)),
+            List(
+              HTML.chapter(release_info.name + " (" + release_id + ")"),
+              HTML.itemize(
+                website_platform_bundles.map({ case (a, b) =>
+                  List(HTML.link(b, HTML.text(Word.capitalize(a)))) })))))
 
-<body>
-<h1>""" + HTML.output(release_info.name + " (" + release_id + ")") + """</h1>
-<ul>
-""" +
-  cat_lines(website_platform_bundles.map({ case (a, b) =>
-    "<li><a href=" + quote(HTML.output(b)) + ">" + HTML.output(Word.capitalize(a)) + "</a></li>" })) +
-"""
-</ul>
-</body>
-
-</html>
-""")
         for ((_, b) <- website_platform_bundles)
           File.copy(release_info.dist_dir + Path.explode(b), dir)
       })
