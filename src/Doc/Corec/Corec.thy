@@ -939,6 +939,14 @@ are not supported by @{command corec} and @{command corecursive}.}
 \item
 \emph{The package does not interact well with locales.}
 
+\item
+\emph{The undocumented @{text corecUU_transfer} theorem is not as polymorphic as
+it could be.}
+
+\item
+\emph{All type variables occurring in the arguments of a friendly function must occur
+as direct arguments of the type constructor of the resulting type.}
+
 \end{enumerate}
 \<close>
 
