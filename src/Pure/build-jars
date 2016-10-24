@@ -242,6 +242,7 @@ then
     done
   }
 
+  rm -f "$TARGET"
   rm -rf classes && mkdir classes
 
   SCALAC_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -d classes"
