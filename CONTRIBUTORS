@@ -48,6 +48,10 @@ Contributions to Isabelle2016-1
   Ported remaining theories of Old_Number_Theory to the new 
   Number_Theory and removed Old_Number_Theory.
 
+* October 2016: Jasmin Blanchette
+  Integration of Nunchaku model finder.
+
+
 Contributions to Isabelle2016
 -----------------------------
 

@@ -910,6 +910,9 @@ INCOMPATIBILITY.
 * Renamed HOL/Quotient_Examples/FSet.thy to
 HOL/Quotient_Examples/Quotient_FSet.thy INCOMPATIBILITY.
 
+* The "nunchaku" program integrates the Nunchaku model finder. The tool
+is experimental. See ~~/src/HOL/Nunchaku/Nunchaku.thy for details.
+
 
 *** ML ***
 
