@@ -8,6 +8,7 @@ Tactics for generalized corecursor construction.
 
 signature BNF_GFP_GREC_TACTICS =
 sig
+  val transfer_prover_eq_tac: Proof.context -> int -> tactic
   val transfer_prover_add_tac: Proof.context -> thm list -> thm list -> int -> tactic
 
   val mk_algLam_algLam_tac: Proof.context -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm ->
@@ -82,8 +83,12 @@ fun context_relator_eq_add rel_eqs ctxt =
     rel_eqs ctxt;
 val context_transfer_rule_add = fold (snd oo Thm.proof_attributes [Transfer.transfer_add]);
 
+fun transfer_prover_eq_tac ctxt =
+  SELECT_GOAL (Local_Defs.fold_tac ctxt (Transfer.get_relator_eq ctxt)) THEN'
+  Transfer.transfer_prover_tac ctxt;
+
 fun transfer_prover_add_tac ctxt rel_eqs transfers =
-  Transfer.transfer_prover_tac (ctxt
+  transfer_prover_eq_tac (ctxt
     |> context_relator_eq_add rel_eqs
     |> context_transfer_rule_add transfers);
 

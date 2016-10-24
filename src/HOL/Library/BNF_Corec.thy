@@ -206,6 +206,10 @@ ML_file "../Tools/BNF/bnf_gfp_grec_sugar_tactics.ML"
 ML_file "../Tools/BNF/bnf_gfp_grec_sugar.ML"
 ML_file "../Tools/BNF/bnf_gfp_grec_unique_sugar.ML"
 
+method_setup transfer_prover_eq = \<open>
+  Scan.succeed (SIMPLE_METHOD' o BNF_GFP_Grec_Tactics.transfer_prover_eq_tac)
+\<close> "apply transfer_prover after folding relator_eq"
+
 method_setup corec_unique = \<open>
   Scan.succeed (SIMPLE_METHOD' o BNF_GFP_Grec_Unique_Sugar.corec_unique_tac)
 \<close> "prove uniqueness of corecursive equation"
