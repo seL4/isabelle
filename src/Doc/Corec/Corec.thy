@@ -9,10 +9,7 @@ Tutorial for nonprimitively corecursive definitions.
 *)
 
 theory Corec
-imports
-  GCD
-  "../Datatypes/Setup"
-  "~~/src/HOL/Library/BNF_Corec"
+imports GCD "../Datatypes/Setup" "~~/src/HOL/Library/BNF_Corec"
   "~~/src/HOL/Library/FSet"
 begin
 
@@ -75,11 +72,11 @@ contexts.
 
 The package fully adheres to the LCF philosophy @{cite mgordon79}: The
 characteristic theorems associated with the specified corecursive functions are
-derived rather than introduced axiomatically.%
-\footnote{However, most of the internal proof obligations are omitted if the
-@{text quick_and_dirty} option is enabled.}
+derived rather than introduced axiomatically.
+(Exceptionally, most of the internal proof obligations are omitted if the
+@{text quick_and_dirty} option is enabled.)
 The package is described in a pair of scientific papers
-@{cite "blanchette-et-al-2015-fouco" and "blanchette-et-al-2016-fouco2"}. Some
+@{cite "blanchette-et-al-2015-fouco" and "blanchette-et-al-201x-amico"}. Some
 of the text and examples below originate from there.
 
 This tutorial is organized as follows:
@@ -96,8 +93,13 @@ of the commands offered by the package.
 \item Section \ref{sec:generated-theorems}, ``Generated Theorems,'' lists the
 theorems produced by the package's commands.
 
-\item Section \ref{sec:proof-method}, ``Proof Method,'' briefly describes the
-@{method corec_unique} proof method.
+\item Section \ref{sec:proof-methods}, ``Proof Methods,'' briefly describes the
+@{method corec_unique} and @{method transfer_prover_eq} proof methods.
+
+\item Section \ref{sec:attribute}, ``Attribute,'' briefly describes the
+@{attribute friend_of_corec_simps} attribute, which can be used to strengthen
+the tactics underlying the @{command friend_of_corec} and @{command corec}
+@{text "(friend)"} commands.
 
 \item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
 Limitations,'' concludes with known open issues.
@@ -163,10 +165,11 @@ The command emits two subgoals. The first subgoal corresponds to the equation we
 specified and is trivial to discharge. The second subgoal is a parametricity
 property that captures the the requirement that the function may destruct at
 most one constructor of input to produce one constructor of output. This subgoal
-can usually be discharged using the @{text transfer_prover} or 
-@{method transfer_prover_eq} proof method. The latter replaces equality relations
-by their relator terms according to the theorem collection @{thm [source] relator_eq}
-before it calles @{method transfer_prover}.
+can usually be discharged using the @{text transfer_prover} or
+@{method transfer_prover_eq} proof method (Section~\ref{ssec:transfer-prover-eq}).
+The latter replaces equality relations by their relator terms according to the
+@{thm [source] relator_eq} theorem collection before it invokes
+@{method transfer_prover}.
 
 After registering @{const ssum} as a friend, we can use it in the corecursive
 call context, either inside or outside the constructor guard:
@@ -198,7 +201,8 @@ text \<open>\blankline\<close>
 
 text \<open>
 \noindent
-The parametricity subgoal is given to @{text transfer_prover_eq}.
+The parametricity subgoal is given to @{text transfer_prover_eq}
+(Section~\ref{ssec:transfer-prover-eq}).
 
 The @{const sprod} and @{const sexp} functions provide shuffle product and
 exponentiation on streams. We can use them to define the stream of factorial
@@ -259,8 +263,8 @@ text \<open>
 \noindent
 Here, @{const map} is the standard map function on lists, and @{const zip}
 converts two parallel lists into a list of pairs. The @{const tsum} function is
-primitively corecursive. Instead of @{text "corec (friend)"}, we could also have
-used \keyw{primcorec} and @{command friend_of_corec}, as we did for
+primitively corecursive. Instead of @{command corec} @{text "(friend)"}, we could
+also have used \keyw{primcorec} and @{command friend_of_corec}, as we did for
 @{const ssum}.
 
 Once @{const tsum} is registered as friendly, we can use it in the corecursive
@@ -659,8 +663,9 @@ should be generated and proved @{text "by transfer_prover"}. The
 \end{itemize}
 
 The @{command corec} command is an abbreviation for @{command corecursive}
-with appropriate applications of @{method transfer_prover_eq} and
-@{method lexicographic_order} to discharge any emerging proof obligations.
+with appropriate applications of @{method transfer_prover_eq}
+(Section~\ref{ssec:transfer-prover-eq}) and @{method lexicographic_order} to
+discharge any emerging proof obligations.
 \<close>
 
 
@@ -670,8 +675,6 @@ subsection \<open>\keyw{friend_of_corec}
 text \<open>
 \begin{matharray}{rcl}
   @{command_def "friend_of_corec"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
-  \\
-  @{attribute_def "friend_of_corec_simps"} & : & @{text "attribute"}
 \end{matharray}
 
 @{rail \<open>
@@ -705,19 +708,9 @@ The @{text plugins} option indicates which plugins should be enabled
 The @{text transfer} option indicates that an unconditional transfer rule
 should be generated and proved @{text "by transfer_prover"}. The
 @{text "[transfer_rule]"} attribute is set on the generated theorem.
-
-\item
-The attribute @{attribute friend_of_corec_simps} declares naturality theorems
-to be used by @{command friend_of_corec} and @{text "corec (friend)"} in deriving
-the user specification from reduction to primitive corecursion.
-Internally, they derive naturality theorems from the parametricity proof obligations
-dischared by the user or the method @{method transfer_prover_eq}, but this derivation
-fails if in the arguments of a higher-order constant a type variable occurs on both
-sides of the function type constructor. In that case, the required naturality
-theorem can be declared with @{attribute friend_of_corec_simps}. See 
-@{file "~~/src/HOL/Corec_Examples/Tests/Iterate_GPV.thy"} for an example.
 \end{itemize}
 \<close>
+
 
 subsection \<open>\keyw{coinduction_upto}
   \label{ssec:coinduction-upto-syntax}\<close>
@@ -881,8 +874,8 @@ separately as @{text "t.cong_base"}, @{text "t.cong_refl"}, etc.\
 \<close>
 
 
-section \<open>Proof Method
-  \label{sec:proof-method}\<close>
+section \<open>Proof Methods
+  \label{sec:proof-methods}\<close>
 
 subsection \<open>\textit{corec_unique}
   \label{ssec:corec-unique}\<close>
@@ -893,18 +886,40 @@ a corecursive specification. See Section~\ref{ssec:uniqueness-reasoning} for
 details.
 \<close>
 
+
 subsection \<open>\textit{transfer_prover_eq}
   \label{ssec:transfer-prover-eq}\<close>
 
 text \<open>
-The proof method @{method transfer_prover_eq} replaces the equality relation
-@{term "op ="} with compound relator expressions according to 
+The @{method transfer_prover_eq} proof method replaces the equality relation
+@{term "op ="} with compound relator expressions according to
 @{thm [source] relator_eq} before calling @{method transfer_prover} on the
-current subgoal. It works better than plain @{method transfer_prover} on 
-the parametricity proof obligations of @{command corecursive} and 
-@{command friend_of_corec}, as they often contain equality relations on complex
-types, which @{method transfer_prover} does not like.
+current subgoal. It tends to work better than plain @{method transfer_prover} on
+the parametricity proof obligations of @{command corecursive} and
+@{command friend_of_corec}, because they often contain equality relations on
+complex types, which @{method transfer_prover} cannot reason about.
 \<close>
+
+
+section \<open>Attribute
+  \label{sec:attribute}\<close>
+
+
+subsection \<open>\textit{friend_of_corec_simps}
+  \label{ssec:friend-of-corec-simps}\<close>
+
+text \<open>
+The @{attribute friend_of_corec_simps} attribute declares naturality theorems
+to be used by @{command friend_of_corec} and @{command corec} @{text "(friend)"} in
+deriving the user specification from reduction to primitive corecursion.
+Internally, these commands derive naturality theorems from the parametricity proof
+obligations dischared by the user or the @{method transfer_prover_eq} method, but
+this derivation fails if in the arguments of a higher-order constant a type variable
+occurs on both sides of the function type constructor. The required naturality
+theorem can then be declared with @{attribute friend_of_corec_simps}. See
+@{file "~~/src/HOL/Corec_Examples/Tests/Iterate_GPV.thy"} for an example.
+\<close>
+
 
 section \<open>Known Bugs and Limitations
   \label{sec:known-bugs-and-limitations}\<close>
@@ -925,6 +940,9 @@ those that appear in the codatatype.}
 
 \item
 \emph{The internal tactics may fail on legal inputs.}
+In some cases, this limitation can be circumvented using the
+@{attribute friend_of_corec_simps} attribute
+(Section~\ref{ssec:friend-of-corec-simps}).
 
 \item
 \emph{The @{text transfer} option is not implemented yet.}
