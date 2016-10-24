@@ -49,6 +49,8 @@ object Build_Release
   {
     /* release info */
 
+    Isabelle_System.mkdirs(base_dir)
+
     val release_info =
     {
       val date = Date.now()
