@@ -1,5 +1,4 @@
 /*  Title:      Pure/Concurrent/counter.scala
-    Module:     PIDE
     Author:     Makarius
 
 Synchronized counter for unique identifiers < 0.

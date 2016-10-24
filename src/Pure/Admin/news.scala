@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/news.scala
+/*  Title:      Pure/Admin/news.scala
     Author:     Makarius
 
 Support for the NEWS file.
@@ -29,10 +29,9 @@ object NEWS
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
-  {
-    Command_Line.tool0 { generate_html() }
-  }
+  val isabelle_tool =
+    Isabelle_Tool("news", "generate HTML version of the NEWS file",
+      _ => generate_html(), admin = true)
 }

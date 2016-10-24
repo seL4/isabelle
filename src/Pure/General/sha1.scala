@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/sha1.scala
-    Module:     PIDE
     Author:     Makarius
 
 Digest strings according to SHA-1 (see RFC 3174).

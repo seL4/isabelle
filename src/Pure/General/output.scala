@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/output.scala
-    Module:     PIDE
     Author:     Makarius
 
 Isabelle output channels.

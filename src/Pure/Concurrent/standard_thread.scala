@@ -1,5 +1,4 @@
 /*  Title:      Pure/Concurrent/standard_thread.scala
-    Module:     PIDE
     Author:     Makarius
 
 Standard thread operations.

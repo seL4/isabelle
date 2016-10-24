@@ -26,7 +26,6 @@ Usage: $PRG [MODULES]
     all             all modules below
     browser         graph browser
     jars            Isabelle/Scala
-    jars_test       test separate build of jars
     jars_fresh      fresh build of jars
 
 EOF
@@ -86,7 +85,6 @@ do
     browser) build_browser;;
     jars) build_jars;;
     jars_fresh) build_jars -f;;
-    jars_test) build_jars -t;;
     *) fail "Bad module $MODULE"
   esac
 done

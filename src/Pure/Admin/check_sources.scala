@@ -41,7 +41,7 @@ object Check_Sources
       Output.warning("CR character" + Position.here(file_pos))
 
     if (Word.bidi_detect(content))
-      Output.warning("Bidirectional Unicode text " + Position.here(file_pos))
+      Output.warning("Bidirectional Unicode text" + Position.here(file_pos))
   }
 
   def check_hg(root: Path)

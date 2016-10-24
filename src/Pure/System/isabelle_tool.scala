@@ -105,6 +105,7 @@ object Isabelle_Tool
       Check_Sources.isabelle_tool,
       Doc.isabelle_tool,
       ML_Process.isabelle_tool,
+      NEWS.isabelle_tool,
       Options.isabelle_tool,
       Profiling_Report.isabelle_tool,
       Remote_DMG.isabelle_tool,

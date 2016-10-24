@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/linear_set.scala
-    Module:     PIDE
     Author:     Makarius
     Author:     Fabian Immler, TU Munich
 

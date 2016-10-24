@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/exn.scala
-    Module:     PIDE
     Author:     Makarius
 
 Support for exceptions (arbitrary throwables).
