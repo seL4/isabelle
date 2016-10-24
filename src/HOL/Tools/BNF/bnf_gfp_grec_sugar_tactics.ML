@@ -118,7 +118,10 @@ fun mk_eq_algrho_tac ctxt fpsig_nesting_maps abs rep ctor ssig_map eval pre_map_
     val case_dtor' = unfold_thms ctxt shared_simps case_dtor;
     val disc_sel_eq_cases' = map (mk_abs_def
       o unfold_thms ctxt (case_dtor' :: ctr_defs @ shared_simps)) disc_sel_eq_cases;
-    val const_pointful_naturals' = map (unfold_thms ctxt shared_simps) const_pointful_naturals;
+    val extra_naturals = Facts.retrieve (Context.Proof ctxt) (Proof_Context.facts_of ctxt)
+      ("friend_of_corec_simps", Position.none) |> #thms;
+    val const_pointful_naturals' = map (unfold_thms ctxt shared_simps)
+      (extra_naturals @ const_pointful_naturals);
     val const_pointful_naturals_sym' = map (fn thm => thm RS sym) const_pointful_naturals';
     val case_eq_ifs' = map mk_abs_def (@{thm sum.case_eq_if} :: case_eq_ifs);
 

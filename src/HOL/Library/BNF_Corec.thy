@@ -199,6 +199,8 @@ qed
 
 end
 
+named_theorems friend_of_corec_simps
+
 ML_file "../Tools/BNF/bnf_gfp_grec_tactics.ML"
 ML_file "../Tools/BNF/bnf_gfp_grec.ML"
 ML_file "../Tools/BNF/bnf_gfp_grec_sugar_util.ML"

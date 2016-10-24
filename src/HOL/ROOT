@@ -804,6 +804,7 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = HOL +
     Paper_Examples
     Stream_Processor
     "Tests/Simple_Nesting"
+    "Tests/Iterate_GPV"
   theories [quick_and_dirty]
     "Tests/GPV_Bare_Bones"
     "Tests/Merge_D"
