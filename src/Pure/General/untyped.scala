@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/untyped.scala
-    Module:     PIDE
     Author:     Makarius
 
 Untyped, unscoped, unchecked access to JVM objects.

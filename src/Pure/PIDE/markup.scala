@@ -1,5 +1,4 @@
 /*  Title:      Pure/PIDE/markup.scala
-    Module:     PIDE
     Author:     Makarius
 
 Quasi-abstract markup elements.

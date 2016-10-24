@@ -166,7 +166,6 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -f           fresh build"
-  echo "    -t           test separate compilation of PIDE"
   echo
   exit 1
 }
@@ -185,16 +184,12 @@ function fail()
 # options
 
 FRESH=""
-TEST_PIDE=""
 
-while getopts "ft" OPT
+while getopts "f" OPT
 do
   case "$OPT" in
     f)
       FRESH=true
-      ;;
-    t)
-      TEST_PIDE=true
       ;;
     \?)
       usage
@@ -214,19 +209,6 @@ shift $(($OPTIND - 1))
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
 TARGET="$TARGET_DIR/Pure.jar"
-
-declare -a PIDE_SOURCES=()
-declare -a PURE_SOURCES=()
-
-for DEP in "${SOURCES[@]}"
-do
-  if grep "Module:.*PIDE" "$DEP" >/dev/null
-  then
-    PIDE_SOURCES["${#PIDE_SOURCES[@]}"]="$DEP"
-  else
-    PURE_SOURCES["${#PURE_SOURCES[@]}"]="$DEP"
-  fi
-done
 
 declare -a UPDATED=()
 
@@ -269,15 +251,8 @@ then
     classpath classes
     export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
 
-    if [ "$TEST_PIDE" = true ]; then
-      isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
-        fail "Failed to compile PIDE sources"
-      isabelle_scala scalac $SCALAC_OPTIONS "${PURE_SOURCES[@]}" || \
-        fail "Failed to compile Pure sources"
-    else
-      isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" "${PURE_SOURCES[@]}" || \
-        fail "Failed to compile sources"
-    fi
+    isabelle_scala scalac $SCALAC_OPTIONS "${SOURCES[@]}" || \
+      fail "Failed to compile sources"
   ) || exit "$?"
 
   mkdir -p "$TARGET_DIR" || fail "Failed to create directory $TARGET_DIR"

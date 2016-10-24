@@ -1,5 +1,4 @@
 /*  Title:      Pure/library.scala
-    Module:     PIDE
     Author:     Makarius
 
 Basic library.

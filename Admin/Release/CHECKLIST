@@ -36,9 +36,6 @@ Checklist for official releases
 
 - HTML library: check theory dependencies (PDF);
 
-- test separate compilation of Isabelle/Scala PIDE sources:
-    Admin/build jars_test
-
 - test Isabelle/jEdit:
     . print buffer
     . on single-core

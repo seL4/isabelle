@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/bytes.scala
-    Module:     PIDE
     Author:     Makarius
 
 Immutable byte vectors versus UTF8 strings.

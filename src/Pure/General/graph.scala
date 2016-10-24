@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/graph.scala
-    Module:     PIDE
     Author:     Makarius
 
 Directed graphs.

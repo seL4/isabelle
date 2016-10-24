@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/time.scala
-    Module:     PIDE
     Author:     Makarius
 
 Time based on milliseconds.

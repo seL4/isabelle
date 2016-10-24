@@ -1,5 +1,4 @@
 /*  Title:      Pure/ROOT.scala
-    Module:     PIDE
     Author:     Makarius
 
 Root of isabelle package.

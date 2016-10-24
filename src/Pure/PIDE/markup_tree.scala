@@ -1,5 +1,4 @@
 /*  Title:      Pure/PIDE/markup_tree.scala
-    Module:     PIDE
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 

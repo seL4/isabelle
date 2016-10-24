@@ -1,5 +1,4 @@
 /*  Title:      Pure/Concurrent/event_timer.scala
-    Module:     PIDE
     Author:     Makarius
 
 Initiate event after given point in time.

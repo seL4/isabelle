@@ -1,5 +1,4 @@
 /*  Title:      Pure/Concurrent/mailbox.scala
-    Module:     PIDE
     Author:     Makarius
 
 Message exchange via mailbox, with multiple senders (non-blocking,

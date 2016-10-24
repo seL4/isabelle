@@ -1,5 +1,4 @@
 /*  Title:      Pure/Concurrent/consumer_thread.scala
-    Module:     PIDE
     Author:     Makarius
 
 Consumer thread with unbounded queueing of requests, and optional

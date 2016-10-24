@@ -1,5 +1,4 @@
 /*  Title:      Pure/System/platform.scala
-    Module:     PIDE
     Author:     Makarius
 
 Raw platform identification.

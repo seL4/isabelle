@@ -1,5 +1,4 @@
 /*  Title:      Pure/System/utf8.scala
-    Module:     PIDE
     Author:     Makarius
 
 Variations on UTF-8.

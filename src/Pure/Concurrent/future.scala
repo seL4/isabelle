@@ -1,5 +1,4 @@
 /*  Title:      Pure/Concurrent/future.scala
-    Module:     PIDE
     Author:     Makarius
 
 Value-oriented parallel execution via futures and promises.
