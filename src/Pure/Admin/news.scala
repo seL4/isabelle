@@ -32,8 +32,6 @@ object NEWS
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("news", "generate HTML version of the NEWS file", args =>
-    {
-      Command_Line.tool0 { generate_html() }
-    }, admin = true)
+    Isabelle_Tool("news", "generate HTML version of the NEWS file",
+      _ => generate_html(), admin = true)
 }
