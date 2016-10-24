@@ -2257,7 +2257,8 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
       |> (case raw_fun_T_opt of
            SOME raw_T =>
            Proof_Context.add_const_constraint (fun_name, SOME (Syntax.read_typ lthy raw_T))
-         | NONE => I);
+         | NONE => I)
+      handle TYPE (s, _, _) => error s;
 
     val fun_b = Binding.name (Long_Name.base_name fun_name);
     val code_goal = Syntax.read_prop fake_lthy raw_eq;
