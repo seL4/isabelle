@@ -58,7 +58,7 @@ We can register functions as friendly using the @{command friend_of_corec}
 command, or by passing the @{text friend} option to @{command corec}. The
 friendliness check relies on an internal syntactic check in combination with
 a parametricity subgoal, which must be discharged manually (typically using
-@{method transfer_prover}).
+@{method transfer_prover} or @{method transfer_prover_eq}).
 
 Third, @{command corec} allows self-calls that are not guarded by a constructor,
 as long as these calls occur in a friendly context (a context consisting
@@ -163,7 +163,10 @@ The command emits two subgoals. The first subgoal corresponds to the equation we
 specified and is trivial to discharge. The second subgoal is a parametricity
 property that captures the the requirement that the function may destruct at
 most one constructor of input to produce one constructor of output. This subgoal
-can usually be discharged using the @{text transfer_prover} proof method.
+can usually be discharged using the @{text transfer_prover} or 
+@{method transfer_prover_eq} proof method. The latter replaces equality relations
+by their relator terms according to the theorem collection @{thm [source] relator_eq}
+before it calles @{method transfer_prover}.
 
 After registering @{const ssum} as a friend, we can use it in the corecursive
 call context, either inside or outside the constructor guard:
@@ -195,7 +198,7 @@ text \<open>\blankline\<close>
 
 text \<open>
 \noindent
-The parametricity subgoal is given to @{text transfer_prover}.
+The parametricity subgoal is given to @{text transfer_prover_eq}.
 
 The @{const sprod} and @{const sexp} functions provide shuffle product and
 exponentiation on streams. We can use them to define the stream of factorial
@@ -656,7 +659,7 @@ should be generated and proved @{text "by transfer_prover"}. The
 \end{itemize}
 
 The @{command corec} command is an abbreviation for @{command corecursive}
-with appropriate applications of @{method transfer_prover} and
+with appropriate applications of @{method transfer_prover_eq} and
 @{method lexicographic_order} to discharge any emerging proof obligations.
 \<close>
 
@@ -667,6 +670,8 @@ subsection \<open>\keyw{friend_of_corec}
 text \<open>
 \begin{matharray}{rcl}
   @{command_def "friend_of_corec"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  \\
+  @{attribute_def "friend_of_corec_simps"} & : & @{text "attribute"}
 \end{matharray}
 
 @{rail \<open>
@@ -700,9 +705,19 @@ The @{text plugins} option indicates which plugins should be enabled
 The @{text transfer} option indicates that an unconditional transfer rule
 should be generated and proved @{text "by transfer_prover"}. The
 @{text "[transfer_rule]"} attribute is set on the generated theorem.
+
+\item
+The attribute @{attribute friend_of_corec_simps} declares naturality theorems
+to be used by @{command friend_of_corec} and @{text "corec (friend)"} in deriving
+the user specification from reduction to primitive corecursion.
+Internally, they derive naturality theorems from the parametricity proof obligations
+dischared by the user or the method @{method transfer_prover_eq}, but this derivation
+fails if in the arguments of a higher-order constant a type variable occurs on both
+sides of the function type constructor. In that case, the required naturality
+theorem can be declared with @{attribute friend_of_corec_simps}. See 
+@{file "~~/src/HOL/Corec_Examples/Tests/Iterate_GPV.thy"} for an example.
 \end{itemize}
 \<close>
-
 
 subsection \<open>\keyw{coinduction_upto}
   \label{ssec:coinduction-upto-syntax}\<close>
@@ -878,6 +893,18 @@ a corecursive specification. See Section~\ref{ssec:uniqueness-reasoning} for
 details.
 \<close>
 
+subsection \<open>\textit{transfer_prover_eq}
+  \label{ssec:transfer-prover-eq}\<close>
+
+text \<open>
+The proof method @{method transfer_prover_eq} replaces the equality relation
+@{term "op ="} with compound relator expressions according to 
+@{thm [source] relator_eq} before calling @{method transfer_prover} on the
+current subgoal. It works better than plain @{method transfer_prover} on 
+the parametricity proof obligations of @{command corecursive} and 
+@{command friend_of_corec}, as they often contain equality relations on complex
+types, which @{method transfer_prover} does not like.
+\<close>
 
 section \<open>Known Bugs and Limitations
   \label{sec:known-bugs-and-limitations}\<close>
