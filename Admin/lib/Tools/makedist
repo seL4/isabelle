@@ -197,9 +197,9 @@ env ISABELLE_IDENTIFIER="${DISTNAME}-build" \
 rm -rf src
 mv src.orig src
 
-rm -rf Admin browser_info heaps
-
 ./bin/isabelle news
+
+rm -rf Admin browser_info heaps
 
 rmdir "$USER_HOME/.isabelle/${DISTNAME}-build"
 rmdir "$USER_HOME/.isabelle/${DISTNAME}"
@@ -244,4 +244,3 @@ mv "${DISTNAME}-old/doc/"*.pdf \
 rm -f Isabelle && ln -sf "$DISTNAME" Isabelle
 
 rm -rf "${DISTNAME}-old"
-
