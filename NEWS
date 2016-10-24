@@ -249,6 +249,8 @@ types where this is really intended.
 
 *** HOL ***
 
+* Ported remaining theories of Old_Number_Theory and removed Old_Number_Theory.
+
 * Sligthly more standardized theorem names:
     sgn_times ~> sgn_mult
     sgn_mult' ~> Real_Vector_Spaces.sgn_mult

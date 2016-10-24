@@ -44,6 +44,9 @@ Contributions to Isabelle2016-1
   quantifier-free propositional logic, equality and linear real
   arithmetic
 
+* October 2016: Jaime Mendizabal Roche
+  Ported remaining theories of Old_Number_Theory to the new 
+  Number_Theory and removed Old_Number_Theory.
 
 Contributions to Isabelle2016
 -----------------------------
