@@ -18,6 +18,7 @@ declare -a SOURCES=(
   Admin/ci_api.scala
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
+  Admin/news.scala
   Admin/other_isabelle.scala
   Admin/remote_dmg.scala
   Concurrent/consumer_thread.scala
@@ -127,7 +128,6 @@ declare -a SOURCES=(
   Tools/ml_console.scala
   Tools/ml_process.scala
   Tools/ml_statistics.scala
-  Tools/news.scala
   Tools/print_operation.scala
   Tools/profiling_report.scala
   Tools/simplifier_trace.scala

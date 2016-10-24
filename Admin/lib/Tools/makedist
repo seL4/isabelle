@@ -199,7 +199,7 @@ mv src.orig src
 
 rm -rf Admin browser_info heaps
 
-./bin/isabelle java isabelle.NEWS
+./bin/isabelle news
 
 rmdir "$USER_HOME/.isabelle/${DISTNAME}-build"
 rmdir "$USER_HOME/.isabelle/${DISTNAME}"
