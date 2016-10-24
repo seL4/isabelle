@@ -173,10 +173,12 @@ object Build_History
 
       if (first_build) {
         other_isabelle.resolve_components(verbose)
+
+        if (fresh)
+          Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode("lib/classes"))
         other_isabelle.bash(
           "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
-            "bin/isabelle jedit -b" + (if (fresh) " -f" else ""),
-          redirect = true, echo = verbose).check
+            "bin/isabelle jedit -b", redirect = true, echo = verbose).check
 
         Isabelle_System.rm_tree(isabelle_base_log)
       }
