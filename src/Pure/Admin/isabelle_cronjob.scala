@@ -83,7 +83,7 @@ object Isabelle_Cronjob
           Isabelle_System.rm_tree(old_snapshot)
 
           Build_Release.build_release(base_dir, parallel_jobs = 4,
-            remote_mac = "macbroy30", website = Some(new_snapshot))
+            remote_mac = "macbroy31", website = Some(new_snapshot))
 
           if (release_snapshot.is_dir) File.mv(release_snapshot, old_snapshot)
           File.mv(new_snapshot, release_snapshot)
@@ -183,6 +183,7 @@ object Isabelle_Cronjob
         res match {
           case Exn.Res(_) => None
           case Exn.Exn(exn) =>
+            exn.printStackTrace()
             val first_line = Library.split_lines(Exn.message(exn)).headOption getOrElse "exception"
             Some(first_line)
         }

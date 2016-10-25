@@ -62,6 +62,8 @@ sig
   val facts_of: Proof.context -> Facts.T
   val facts_of_fact: Proof.context -> string -> Facts.T
   val markup_extern_fact: Proof.context -> string -> Markup.T list * xstring
+  val print_name: Proof.context -> string -> string
+  val pretty_name: Proof.context -> string -> Pretty.T
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
@@ -412,6 +414,9 @@ fun markup_extern_fact ctxt name =
 
 
 (** pretty printing **)
+
+val print_name = Token.print_name o Thy_Header.get_keywords';
+val pretty_name = Pretty.str oo print_name;
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
@@ -1485,6 +1490,7 @@ local
 
 fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
   let
+    val prt_name = pretty_name ctxt;
     val prt_term = Syntax.pretty_term ctxt;
 
     fun prt_let (xi, t) = Pretty.block
@@ -1493,7 +1499,7 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
 
     fun prt_asm (a, ts) =
       Pretty.block (Pretty.breaks
-        ((if a = "" then [] else [Pretty.str a, Pretty.str ":"]) @
+        ((if a = "" then [] else [prt_name a, Pretty.str ":"]) @
           map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
@@ -1502,13 +1508,13 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
             flat (separate sep (map (single o prt) xs))))];
   in
     Pretty.block (Pretty.fbreaks
-      (Pretty.str (name ^ ":") ::
-        prt_sect (Pretty.keyword1 "fix") [] (Pretty.str o Binding.name_of o fst) fixes @
+      (prt_name name :: Pretty.str ":" ::
+        prt_sect (Pretty.keyword1 "fix") [] (prt_name o Binding.name_of o fst) fixes @
         prt_sect (Pretty.keyword1 "let") [Pretty.keyword2 "and"] prt_let
           (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
           else prt_sect (Pretty.keyword1 "assume") [Pretty.keyword2 "and"] prt_asm asms) @
-        prt_sect (Pretty.str "subcases:") [] (Pretty.str o fst) cs))
+        prt_sect (Pretty.str "subcases:") [] (prt_name o fst) cs))
   end;
 
 in
