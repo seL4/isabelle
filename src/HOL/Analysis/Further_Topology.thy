@@ -2732,6 +2732,254 @@ next
     using clopen [of S] False  by simp
 qed
 
+subsection\<open> Dimension-based conditions for various homeomorphisms.\<close>
+
+lemma homeomorphic_subspaces_eq:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "subspace S" "subspace T"
+  shows "S homeomorphic T \<longleftrightarrow> dim S = dim T"
+proof
+  assume "S homeomorphic T"
+  then obtain f g where hom: "homeomorphism S T f g"
+    using homeomorphic_def by blast
+  show "dim S = dim T"
+  proof (rule order_antisym)
+    show "dim S \<le> dim T"
+      by (metis assms dual_order.refl inj_onI homeomorphism_cont1 [OF hom] homeomorphism_apply1 [OF hom] homeomorphism_image1 [OF hom] continuous_injective_image_subspace_dim_le)
+    show "dim T \<le> dim S"
+      by (metis assms dual_order.refl inj_onI homeomorphism_cont2 [OF hom] homeomorphism_apply2 [OF hom] homeomorphism_image2 [OF hom] continuous_injective_image_subspace_dim_le)
+  qed
+next
+  assume "dim S = dim T"
+  then show "S homeomorphic T"
+    by (simp add: assms homeomorphic_subspaces)
+qed
+
+lemma homeomorphic_affine_sets_eq:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "affine S" "affine T"
+  shows "S homeomorphic T \<longleftrightarrow> aff_dim S = aff_dim T"
+proof (cases "S = {} \<or> T = {}")
+  case True
+  then show ?thesis
+    using assms homeomorphic_affine_sets by force
+next
+  case False
+  then obtain a b where "a \<in> S" "b \<in> T"
+    by blast
+  then have "subspace (op + (- a) ` S)" "subspace (op + (- b) ` T)"
+    using affine_diffs_subspace assms by blast+
+  then show ?thesis
+    by (metis affine_imp_convex assms homeomorphic_affine_sets homeomorphic_convex_sets)
+qed
+
+lemma homeomorphic_hyperplanes_eq:
+  fixes a :: "'a::euclidean_space" and c :: "'b::euclidean_space"
+  assumes "a \<noteq> 0" "c \<noteq> 0"
+  shows "({x. a \<bullet> x = b} homeomorphic {x. c \<bullet> x = d} \<longleftrightarrow> DIM('a) = DIM('b))"
+  apply (auto simp: homeomorphic_affine_sets_eq affine_hyperplane assms)
+  by (metis DIM_positive Suc_pred)
+
+lemma homeomorphic_UNIV_UNIV:
+  shows "(UNIV::'a set) homeomorphic (UNIV::'b set) \<longleftrightarrow>
+    DIM('a::euclidean_space) = DIM('b::euclidean_space)"
+  by (simp add: homeomorphic_subspaces_eq)
+
+lemma simply_connected_sphere_gen:
+   assumes "convex S" "bounded S" and 3: "3 \<le> aff_dim S"
+   shows "simply_connected(rel_frontier S)"
+proof -
+  have pa: "path_connected (rel_frontier S)"
+    using assms by (simp add: path_connected_sphere_gen)
+  show ?thesis
+  proof (clarsimp simp add: simply_connected_eq_contractible_circlemap pa)
+    fix f
+    assume f: "continuous_on (sphere (0::complex) 1) f" "f ` sphere 0 1 \<subseteq> rel_frontier S"
+    have eq: "sphere (0::complex) 1 = rel_frontier(cball 0 1)"
+      by simp
+    have "convex (cball (0::complex) 1)"
+      by (rule convex_cball)
+    then obtain c where "homotopic_with (\<lambda>z. True) (sphere (0::complex) 1) (rel_frontier S) f (\<lambda>x. c)"
+      apply (rule inessential_spheremap_lowdim_gen [OF _ bounded_cball \<open>convex S\<close> \<open>bounded S\<close>, where f=f])
+      using f 3
+         apply (auto simp: aff_dim_cball)
+      done
+    then show "\<exists>a. homotopic_with (\<lambda>h. True) (sphere 0 1) (rel_frontier S) f (\<lambda>x. a)"
+      by blast
+  qed
+qed
+
+subsection\<open>more invariance of domain\<close>
+
+proposition invariance_of_domain_sphere_affine_set_gen:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+      and U: "bounded U" "convex U"
+      and "affine T" and affTU: "aff_dim T < aff_dim U"
+      and ope: "openin (subtopology euclidean (rel_frontier U)) S"
+   shows "openin (subtopology euclidean T) (f ` S)"
+proof (cases "rel_frontier U = {}")
+  case True
+  then show ?thesis
+    using ope openin_subset by force
+next
+  case False
+  obtain b c where b: "b \<in> rel_frontier U" and c: "c \<in> rel_frontier U" and "b \<noteq> c"
+    using \<open>bounded U\<close> rel_frontier_not_sing [of U] subset_singletonD False  by fastforce
+  obtain V :: "'a set" where "affine V" and affV: "aff_dim V = aff_dim U - 1"
+  proof (rule choose_affine_subset [OF affine_UNIV])
+    show "- 1 \<le> aff_dim U - 1"
+      by (metis aff_dim_empty aff_dim_geq aff_dim_negative_iff affTU diff_0 diff_right_mono not_le)
+    show "aff_dim U - 1 \<le> aff_dim (UNIV::'a set)"
+      by (metis aff_dim_UNIV aff_dim_le_DIM le_cases not_le zle_diff1_eq)
+  qed auto
+  have SU: "S \<subseteq> rel_frontier U"
+    using ope openin_imp_subset by auto
+  have homb: "rel_frontier U - {b} homeomorphic V"
+   and homc: "rel_frontier U - {c} homeomorphic V"
+    using homeomorphic_punctured_sphere_affine_gen [of U _ V]
+    by (simp_all add: \<open>affine V\<close> affV U b c)
+  then obtain g h j k
+           where gh: "homeomorphism (rel_frontier U - {b}) V g h"
+             and jk: "homeomorphism (rel_frontier U - {c}) V j k"
+    by (auto simp: homeomorphic_def)
+  with SU have hgsub: "(h ` g ` (S - {b})) \<subseteq> S" and kjsub: "(k ` j ` (S - {c})) \<subseteq> S"
+    by (simp_all add: homeomorphism_def subset_eq)
+  have [simp]: "aff_dim T \<le> aff_dim V"
+    by (simp add: affTU affV)
+  have "openin (subtopology euclidean T) ((f \<circ> h) ` g ` (S - {b}))"
+  proof (rule invariance_of_domain_affine_sets [OF _ \<open>affine V\<close>])
+    show "openin (subtopology euclidean V) (g ` (S - {b}))"
+      apply (rule homeomorphism_imp_open_map [OF gh])
+      by (meson Diff_mono Diff_subset SU ope openin_delete openin_subset_trans order_refl)
+    show "continuous_on (g ` (S - {b})) (f \<circ> h)"
+       apply (rule continuous_on_compose)
+        apply (meson Diff_mono SU homeomorphism_def homeomorphism_of_subsets gh set_eq_subset)
+      using contf continuous_on_subset hgsub by blast
+    show "inj_on (f \<circ> h) (g ` (S - {b}))"
+      using kjsub
+      apply (clarsimp simp add: inj_on_def)
+      by (metis SU b homeomorphism_def inj_onD injf insert_Diff insert_iff gh rev_subsetD)
+    show "(f \<circ> h) ` g ` (S - {b}) \<subseteq> T"
+      by (metis fim image_comp image_mono hgsub subset_trans)
+  qed (auto simp: assms)
+  moreover
+  have "openin (subtopology euclidean T) ((f \<circ> k) ` j ` (S - {c}))"
+  proof (rule invariance_of_domain_affine_sets [OF _ \<open>affine V\<close>])
+    show "openin (subtopology euclidean V) (j ` (S - {c}))"
+      apply (rule homeomorphism_imp_open_map [OF jk])
+      by (meson Diff_mono Diff_subset SU ope openin_delete openin_subset_trans order_refl)
+    show "continuous_on (j ` (S - {c})) (f \<circ> k)"
+       apply (rule continuous_on_compose)
+        apply (meson Diff_mono SU homeomorphism_def homeomorphism_of_subsets jk set_eq_subset)
+      using contf continuous_on_subset kjsub by blast
+    show "inj_on (f \<circ> k) (j ` (S - {c}))"
+      using kjsub
+      apply (clarsimp simp add: inj_on_def)
+      by (metis SU c homeomorphism_def inj_onD injf insert_Diff insert_iff jk rev_subsetD)
+    show "(f \<circ> k) ` j ` (S - {c}) \<subseteq> T"
+      by (metis fim image_comp image_mono kjsub subset_trans)
+  qed (auto simp: assms)
+  ultimately have "openin (subtopology euclidean T) ((f \<circ> h) ` g ` (S - {b}) \<union> ((f \<circ> k) ` j ` (S - {c})))"
+    by (rule openin_Un)
+  moreover have "(f \<circ> h) ` g ` (S - {b}) = f ` (S - {b})"
+  proof -
+    have "h ` g ` (S - {b}) = (S - {b})"
+    proof
+      show "h ` g ` (S - {b}) \<subseteq> S - {b}"
+        using homeomorphism_apply1 [OF gh] SU
+        by (fastforce simp add: image_iff image_subset_iff)
+      show "S - {b} \<subseteq> h ` g ` (S - {b})"
+        apply clarify
+        by  (metis SU subsetD homeomorphism_apply1 [OF gh] image_iff member_remove remove_def)
+    qed
+    then show ?thesis
+      by (metis image_comp)
+  qed
+  moreover have "(f \<circ> k) ` j ` (S - {c}) = f ` (S - {c})"
+  proof -
+    have "k ` j ` (S - {c}) = (S - {c})"
+    proof
+      show "k ` j ` (S - {c}) \<subseteq> S - {c}"
+        using homeomorphism_apply1 [OF jk] SU
+        by (fastforce simp add: image_iff image_subset_iff)
+      show "S - {c} \<subseteq> k ` j ` (S - {c})"
+        apply clarify
+        by  (metis SU subsetD homeomorphism_apply1 [OF jk] image_iff member_remove remove_def)
+    qed
+    then show ?thesis
+      by (metis image_comp)
+  qed
+  moreover have "f ` (S - {b}) \<union> f ` (S - {c}) = f ` (S)"
+    using \<open>b \<noteq> c\<close> by blast
+  ultimately show ?thesis
+    by simp
+qed
+
+
+lemma invariance_of_domain_sphere_affine_set:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+      and "r \<noteq> 0" "affine T" and affTU: "aff_dim T < DIM('a)"
+      and ope: "openin (subtopology euclidean (sphere a r)) S"
+   shows "openin (subtopology euclidean T) (f ` S)"
+proof (cases "sphere a r = {}")
+  case True
+  then show ?thesis
+    using ope openin_subset by force
+next
+  case False
+  show ?thesis
+  proof (rule invariance_of_domain_sphere_affine_set_gen [OF contf injf fim bounded_cball convex_cball \<open>affine T\<close>])
+    show "aff_dim T < aff_dim (cball a r)"
+      by (metis False affTU aff_dim_cball assms(4) linorder_cases sphere_empty)
+    show "openin (subtopology euclidean (rel_frontier (cball a r))) S"
+      by (simp add: \<open>r \<noteq> 0\<close> ope)
+  qed
+qed
+
+lemma no_embedding_sphere_lowdim:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on (sphere a r) f" and injf: "inj_on f (sphere a r)" and "r > 0"
+   shows "DIM('a) \<le> DIM('b)"
+proof -
+  have "False" if "DIM('a) > DIM('b)"
+  proof -
+    have "compact (f ` sphere a r)"
+      using compact_continuous_image
+      by (simp add: compact_continuous_image contf)
+    then have "\<not> open (f ` sphere a r)"
+      using compact_open
+      by (metis assms(3) image_is_empty not_less_iff_gr_or_eq sphere_eq_empty)
+    then show False
+      using invariance_of_domain_sphere_affine_set [OF contf injf subset_UNIV] \<open>r > 0\<close>
+      by (metis aff_dim_UNIV affine_UNIV less_irrefl of_nat_less_iff open_openin openin_subtopology_self subtopology_UNIV that)
+  qed
+  then show ?thesis
+    using not_less by blast
+qed
+
+
+subsection\<open> Dimension-based conditions for various homeomorphisms.\<close>
+
+lemma simply_connected_sphere:
+  fixes a :: "'a::euclidean_space"
+  assumes "3 \<le> DIM('a)"
+    shows "simply_connected(sphere a r)"
+proof (cases rule: linorder_cases [of r 0])
+  case less
+  then show ?thesis by simp
+next
+  case equal
+  then show ?thesis  by (auto simp: convex_imp_simply_connected)
+next
+  case greater
+  then show ?thesis
+    using simply_connected_sphere_gen [of "cball a r"] assms
+    by (simp add: aff_dim_cball)
+qed
+
+
 subsection\<open>The power, squaring and exponential functions as covering maps\<close>
 
 proposition covering_space_power_punctured_plane:
@@ -2978,7 +3226,6 @@ corollary covering_space_square_punctured_plane:
   by (simp add: covering_space_power_punctured_plane)
 
 
-
 proposition covering_space_exp_punctured_plane:
   "covering_space UNIV (\<lambda>z::complex. exp z) (- {0})"
 proof (simp add: covering_space_def, intro conjI ballI)
@@ -3093,84 +3340,5 @@ proof (simp add: covering_space_def, intro conjI ballI)
     qed
   qed
 qed
-
-subsection\<open> Dimension-based conditions for various homeomorphisms.\<close>
-
-lemma homeomorphic_subspaces_eq:
-  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
-  assumes "subspace S" "subspace T"
-  shows "S homeomorphic T \<longleftrightarrow> dim S = dim T"
-proof
-  assume "S homeomorphic T"
-  then obtain f g where hom: "homeomorphism S T f g"
-    using homeomorphic_def by blast
-  show "dim S = dim T"
-  proof (rule order_antisym)
-    show "dim S \<le> dim T"
-      by (metis assms dual_order.refl inj_onI homeomorphism_cont1 [OF hom] homeomorphism_apply1 [OF hom] homeomorphism_image1 [OF hom] continuous_injective_image_subspace_dim_le)
-    show "dim T \<le> dim S"
-      by (metis assms dual_order.refl inj_onI homeomorphism_cont2 [OF hom] homeomorphism_apply2 [OF hom] homeomorphism_image2 [OF hom] continuous_injective_image_subspace_dim_le)
-  qed
-next
-  assume "dim S = dim T"
-  then show "S homeomorphic T"
-    by (simp add: assms homeomorphic_subspaces)
-qed
-
-lemma homeomorphic_affine_sets_eq:
-  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
-  assumes "affine S" "affine T"
-  shows "S homeomorphic T \<longleftrightarrow> aff_dim S = aff_dim T"
-proof (cases "S = {} \<or> T = {}")
-  case True
-  then show ?thesis
-    using assms homeomorphic_affine_sets by force
-next
-  case False
-  then obtain a b where "a \<in> S" "b \<in> T"
-    by blast
-  then have "subspace (op + (- a) ` S)" "subspace (op + (- b) ` T)"
-    using affine_diffs_subspace assms by blast+
-  then show ?thesis
-    by (metis affine_imp_convex assms homeomorphic_affine_sets homeomorphic_convex_sets)
-qed
-
-
-lemma homeomorphic_hyperplanes_eq:
-  fixes a :: "'a::euclidean_space" and c :: "'b::euclidean_space"
-  assumes "a \<noteq> 0" "c \<noteq> 0"
-  shows "({x. a \<bullet> x = b} homeomorphic {x. c \<bullet> x = d} \<longleftrightarrow> DIM('a) = DIM('b))"
-  apply (auto simp: homeomorphic_affine_sets_eq affine_hyperplane assms)
-  by (metis DIM_positive Suc_pred)
-
-lemma homeomorphic_UNIV_UNIV:
-  shows "(UNIV::'a set) homeomorphic (UNIV::'b set) \<longleftrightarrow>
-    DIM('a::euclidean_space) = DIM('b::euclidean_space)"
-  by (simp add: homeomorphic_subspaces_eq)
-
-lemma simply_connected_sphere_gen:
-   assumes "convex S" "bounded S" and 3: "3 \<le> aff_dim S"
-   shows "simply_connected(rel_frontier S)"
-proof -
-  have pa: "path_connected (rel_frontier S)"
-    using assms by (simp add: path_connected_sphere_gen)
-  show ?thesis
-  proof (clarsimp simp add: simply_connected_eq_contractible_circlemap pa)
-    fix f
-    assume f: "continuous_on (sphere (0::complex) 1) f" "f ` sphere 0 1 \<subseteq> rel_frontier S"
-    have eq: "sphere (0::complex) 1 = rel_frontier(cball 0 1)"
-      by simp
-    have "convex (cball (0::complex) 1)"
-      by (rule convex_cball)
-    then obtain c where "homotopic_with (\<lambda>z. True) (sphere (0::complex) 1) (rel_frontier S) f (\<lambda>x. c)"
-      apply (rule inessential_spheremap_lowdim_gen [OF _ bounded_cball \<open>convex S\<close> \<open>bounded S\<close>, where f=f])
-      using f 3
-         apply (auto simp: aff_dim_cball)
-      done
-    then show "\<exists>a. homotopic_with (\<lambda>h. True) (sphere 0 1) (rel_frontier S) f (\<lambda>x. a)"
-      by blast
-  qed
-qed
-
 
 end
