@@ -470,6 +470,34 @@ resemble the f.split naming convention, INCOMPATIBILITY.
 
 * Added class topological_monoid.
 
+* The following theorems have been renamed:
+
+  setsum_left_distrib ~> setsum_distrib_right
+  setsum_right_distrib ~> setsum_distrib_left
+
+INCOMPATIBILITY.
+
+* Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
+INCOMPATIBILITY.
+
+* "Gcd (f ` A)" and "Lcm (f ` A)" are printed with optional
+comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f `
+A)".
+
+* Class semiring_Lcd merged into semiring_Gcd. INCOMPATIBILITY.
+
+* The type class ordered_comm_monoid_add is now called
+ordered_cancel_comm_monoid_add. A new type class ordered_comm_monoid_add
+is introduced as the combination of ordered_ab_semigroup_add +
+comm_monoid_add. INCOMPATIBILITY.
+
+* Introduced the type classes canonically_ordered_comm_monoid_add and
+dioid.
+
+* Introduced the type class ordered_ab_semigroup_monoid_add_imp_le. When
+instantiating linordered_semiring_strict and ordered_ab_group_add, an
+explicit instantiation of ordered_ab_semigroup_monoid_add_imp_le might
+be required. INCOMPATIBILITY.
 
 * Dropped various legacy fact bindings, whose replacements are often
 of a more general type also:
@@ -646,16 +674,6 @@ folding over a list in random order.
 * Session HOL-Probability: theory SPMF formalises discrete
 subprobability distributions.
 
-* Session HOL-Number_Theory: algebraic foundation for primes:
-Generalisation of predicate "prime" and introduction of predicates
-"prime_elem", "irreducible", a "prime_factorization" function, and the
-"factorial_ring" typeclass with instance proofs for nat, int, poly. Some
-theorems now have different names, most notably "prime_def" is now
-"prime_nat_iff". INCOMPATIBILITY.
-
-* Session Old_Number_Theory has been removed, after porting remaining
-theories.
-
 * Session HOL-Library: the names of multiset theorems have been
 normalised to distinguish which ordering the theorems are about
 
@@ -684,35 +702,6 @@ normalised to distinguish which ordering the theorems are about
 
 Some functions have been renamed:
     ms_lesseq_impl -> subset_eq_mset_impl
-
-* The following theorems have been renamed:
-
-  setsum_left_distrib ~> setsum_distrib_right
-  setsum_right_distrib ~> setsum_distrib_left
-
-INCOMPATIBILITY.
-
-* Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
-INCOMPATIBILITY.
-
-* "Gcd (f ` A)" and "Lcm (f ` A)" are printed with optional
-comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f `
-A)".
-
-* Class semiring_Lcd merged into semiring_Gcd. INCOMPATIBILITY.
-
-* The type class ordered_comm_monoid_add is now called
-ordered_cancel_comm_monoid_add. A new type class ordered_comm_monoid_add
-is introduced as the combination of ordered_ab_semigroup_add +
-comm_monoid_add. INCOMPATIBILITY.
-
-* Introduced the type classes canonically_ordered_comm_monoid_add and
-dioid.
-
-* Introduced the type class ordered_ab_semigroup_monoid_add_imp_le. When
-instantiating linordered_semiring_strict and ordered_ab_group_add, an
-explicit instantiation of ordered_ab_semigroup_monoid_add_imp_le might
-be required. INCOMPATIBILITY.
 
 * HOL-Library: multisets are now ordered with the multiset ordering
     #\<subseteq># ~> \<le>
@@ -886,7 +875,7 @@ attributes of some multiset theorems have been changed:
   empty_inter [simp] ~> []
 INCOMPATIBILITY.
 
-* Session HOL-Library, theory Multiset: The order of the variables in
+* Session HOL-Library, theory Multiset: the order of the variables in
 the second cases of multiset_induct, multiset_induct2_size,
 multiset_induct2 has been changed (e.g. Add A a ~> Add a A).
 INCOMPATIBILITY.
@@ -932,6 +921,16 @@ the following renaming
   suffix -> strict_suffix
 
 Added theory of longest common prefixes.
+
+* Session HOL-Number_Theory: algebraic foundation for primes:
+Generalisation of predicate "prime" and introduction of predicates
+"prime_elem", "irreducible", a "prime_factorization" function, and the
+"factorial_ring" typeclass with instance proofs for nat, int, poly. Some
+theorems now have different names, most notably "prime_def" is now
+"prime_nat_iff". INCOMPATIBILITY.
+
+* Session Old_Number_Theory has been removed, after porting remaining
+theories.
 
 
 *** ML ***
