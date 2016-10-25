@@ -127,13 +127,14 @@ fun pretty_stmt ctxt =
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_terms = separate (Pretty.keyword2 "and") o map prt_term;
     val prt_binding = Attrib.pretty_binding ctxt;
+    val prt_name = Proof_Context.pretty_name ctxt;
 
     fun prt_show (a, ts) =
       Pretty.block (Pretty.breaks (prt_binding a ":" @ prt_terms (map fst ts)));
 
     fun prt_var (x, SOME T, _) = Pretty.block
-          [Pretty.str (Binding.name_of x ^ " ::"), Pretty.brk 1, prt_typ T]
-      | prt_var (x, NONE, _) = Pretty.str (Binding.name_of x);
+          [prt_name (Binding.name_of x), Pretty.str " ::", Pretty.brk 1, prt_typ T]
+      | prt_var (x, NONE, _) = prt_name (Binding.name_of x);
     val prt_vars = separate (Pretty.keyword2 "and") o map prt_var;
 
     fun prt_obtain (_, ([], props)) = Pretty.block (Pretty.breaks (prt_terms props))
@@ -152,6 +153,7 @@ fun gen_pretty_ctxt show_attribs ctxt =
     val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_thm = Pretty.cartouche o Thm.pretty_thm ctxt;
+    val prt_name = Proof_Context.pretty_name ctxt;
 
     fun prt_binding (b, atts) =
       Attrib.pretty_binding ctxt (b, if show_attribs then atts else []);
@@ -165,9 +167,9 @@ fun gen_pretty_ctxt show_attribs ctxt =
     fun prt_mixfix NoSyn = []
       | prt_mixfix mx = [Pretty.brk 2, Mixfix.pretty_mixfix mx];
 
-    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (Binding.name_of x ^ " ::") ::
+    fun prt_fix (x, SOME T, mx) = Pretty.block (prt_name (Binding.name_of x) :: Pretty.str " ::" ::
           Pretty.brk 1 :: prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
-      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str (Binding.name_of x) ::
+      | prt_fix (x, NONE, mx) = Pretty.block (prt_name (Binding.name_of x) ::
           Pretty.brk 1 :: prt_mixfix mx);
     fun prt_constrain (x, T) = prt_fix (Binding.name x, SOME T, NoSyn);
 
@@ -204,11 +206,11 @@ fun standard_elim ctxt th =
       in (th', true) end
   | NONE => (th, false));
 
-fun thm_name kind th prts =
+fun thm_name ctxt kind th prts =
   let val head =
     if Thm.has_name_hint th then
-      Pretty.block [Pretty.keyword1 kind,
-        Pretty.brk 1, Pretty.str (Long_Name.base_name (Thm.get_name_hint th) ^ ":")]
+      Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
+        Proof_Context.pretty_name ctxt (Long_Name.base_name (Thm.get_name_hint th)), Pretty.str ":"]
     else Pretty.keyword1 kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
@@ -244,7 +246,7 @@ fun pretty_statement ctxt kind raw_th =
       else
         let val (clauses, ctxt'') = fold_map obtain cases ctxt'
         in pretty_stmt ctxt'' (Obtains clauses) end)
-  end |> thm_name kind raw_th;
+  end |> thm_name ctxt kind raw_th;
 
 end;
 
