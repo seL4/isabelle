@@ -6,50 +6,54 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2016-1
 -------------------------------
 
-* January 2016: Florian Haftmann, TUM
-  Abolition of compound operators INFIMUM and SUPREMUM
-  for complete lattices.
+* October 2016: Jasmin Blanchette
+  Integration of Nunchaku model finder.
+
+* October 2016: Jaime Mendizabal Roche, TUM
+  Ported remaining theories of session Old_Number_Theory to the new
+  Number_Theory and removed Old_Number_Theory.
+
+* September 2016: Sascha Boehme
+  Proof method "argo" based on SMT technology for a combination of
+  quantifier-free propositional logic, equality and linear real arithmetic
+
+* July 2016: Daniel Stuewe
+  Height-size proofs in HOL-Data_Structures.
+
+* July 2016: Manuel Eberl, TUM
+  Algebraic foundation for primes; generalization from nat to general
+  factorial rings.
+
+* June 2016: Andreas Lochbihler, ETH Zurich
+  Formalisation of discrete subprobability distributions.
+
+* June 2016: Florian Haftmann, TUM
+  Improvements to code generation: optional timing measurements, more succint
+  closures for static evaluation, less ambiguities concering Scala implicits.
+
+* May 2016: Manuel Eberl, TUM
+  Code generation for Probability Mass Functions.
 
 * March 2016: Florian Haftmann, TUM
   Abstract factorial rings with unique factorization.
 
 * March 2016: Florian Haftmann, TUM
-  Reworking of the HOL char type as special case of a
-  finite numeral type.
+  Reworking of the HOL char type as special case of a finite numeral type.
 
-* March 2016: Andreas Lochbihler
-  Reasoning support for monotonicity, continuity and
-  admissibility in chain-complete partial orders.
+* March 2016: Andreas Lochbihler, ETH Zurich
+  Reasoning support for monotonicity, continuity and admissibility in
+  chain-complete partial orders.
 
-* May 2016: Manuel Eberl
-  Code generation for Probability Mass Functions.
+* February - October 2016: Makarius Wenzel
+  Prover IDE improvements.
+  ML IDE improvements: bootstrap of Pure.
+  Isar language consolidation.
+  Notational modernization of HOL.
+  Tight Poly/ML integration.
+  More Isabelle/Scala system programming modules (e.g. SSH, Mercurial).
 
-* June 2016: Andreas Lochbihler
-  Formalisation of discrete subprobability distributions.
-
-* June 2016: Florian Haftmann, TUM
-  Improvements to code generation: optional timing measurements,
-  more succint closures for static evaluation, less ambiguities
-  concering Scala implicits.
-
-* July 2016: Daniel Stuewe
-  Height-size proofs in HOL/Data_Structures
-
-* July 2016: Manuel Eberl
-  Algebraic foundation for primes; generalization from nat
-  to general factorial rings
-
-* September 2016: Sascha Boehme
-  Proof method 'argo' based on SMT technology for a combination of
-  quantifier-free propositional logic, equality and linear real
-  arithmetic
-
-* October 2016: Jaime Mendizabal Roche
-  Ported remaining theories of Old_Number_Theory to the new 
-  Number_Theory and removed Old_Number_Theory.
-
-* October 2016: Jasmin Blanchette
-  Integration of Nunchaku model finder.
+* January 2016: Florian Haftmann, TUM
+  Abolition of compound operators INFIMUM and SUPREMUM for complete lattices.
 
 
 Contributions to Isabelle2016
