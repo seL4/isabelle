@@ -3,11 +3,27 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2016-1 is now available.
 
-This version introduces significant changes over Isabelle2016, see the
-NEWS file in the distribution for further details. Some highlights are
-as follows:
+This version introduces significant changes over Isabelle2016: see the NEWS
+file for further details. Some notable points are as follows:
 
-* TBA
+* Improved Isabelle/jEdit Prover IDE: more support for formal text structure,
+more visual feedback.
+
+* The Isabelle/ML IDE can load Isabelle/Pure into itself.
+
+* Improved Isar proof and specification elements.
+
+* HOL codatatype specifications: new commands for corecursive functions.
+
+* HOL tools: new Argo SMT solver, experimental Nunchaku model finder.
+
+* HOL library: improved HOL-Number_Theory and HOL-Library, especially theory
+Multiset.
+
+* Reorganization of HOL-Probability versus and HOL-Analysis, with many new
+theorems ported from HOL-Light.
+
+* Improved management of Poly/ML 5.6 processes and cumulative heap files.
 
 
 You may get Isabelle2016-1 from the following mirror sites:
