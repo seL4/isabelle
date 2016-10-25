@@ -9,6 +9,15 @@ New in Isabelle2016-1 (December 2016)
 
 *** General ***
 
+* Splitter in proof methods "simp", "auto" and friends:
+  - The syntax "split add" has been discontinued, use plain "split",
+    INCOMPATIBILITY.
+  - For situations with many conditional or case expressions, there is
+    an alternative splitting strategy that can be much faster. It is
+    selected by writing "split!" instead of "split". It applies safe
+    introduction and elimination rules after each split rule. As a
+    result the subgoal may be split into several subgoals.
+
 * Command 'bundle' provides a local theory target to define a bundle
 from the body of specification commands (such as 'declare',
 'declaration', 'notation', 'lemmas', 'lemma'). For example:
@@ -51,20 +60,37 @@ examples.
 instances) are generated into companion object of corresponding type
 class, to resolve some situations where ambiguities may occur.
 
-* Splitter in simp, auto and friends:
-  - The syntax "split add" has been discontinued, use plain "split",
-    INCOMPATIBILITY.
-  - For situations with many conditional or case expressions, there is
-    an alternative splitting strategy that can be much faster. It is
-    selected by writing "split!" instead of "split". It applies safe
-    introduction and elimination rules after each split rule. As a
-    result the subgoal may be split into several subgoals.
-
-* Solve direct: option 'solve_direct_strict_warnings' gives explicit
-  warnings for lemma statements with trivial proofs.
+* Solve direct: option "solve_direct_strict_warnings" gives explicit
+warnings for lemma statements with trivial proofs.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Syntactic indentation according to Isabelle outer syntax. Action
+"indent-lines" (shortcut C+i) indents the current line according to
+command keywords and some command substructure. Action
+"isabelle.newline" (shortcut ENTER) indents the old and the new line
+according to command keywords only; see also option
+"jedit_indent_newline".
+
+* Semantic indentation for unstructured proof scripts ('apply' etc.) via
+number of subgoals. This requires information of ongoing document
+processing and may thus lag behind, when the user is editing too
+quickly; see also option "jedit_script_indent" and
+"jedit_script_indent_limit".
+
+* Refined folding mode "isabelle" based on Isar syntax: 'next' and 'qed'
+are treated as delimiters for fold structure; 'begin' and 'end'
+structure of theory specifications is treated as well.
+
+* Command 'proof' provides information about proof outline with cases,
+e.g. for proof methods "cases", "induct", "goal_cases".
+
+* Completion templates for commands involving "begin ... end" blocks,
+e.g. 'context', 'notepad'.
+
+* Sidekick parser "isabelle-context" shows nesting of context blocks
+according to 'begin' and 'end' structure.
 
 * Highlighting of entity def/ref positions wrt. cursor.
 
@@ -104,39 +130,6 @@ dependencies of the above files are only observed for batch build.
 tree structure of section headings: this special comment format is
 described in "implementation" chapter 0, e.g. (*** section ***).
 
-* Sidekick parser "isabelle-context" shows nesting of context blocks
-according to 'begin' and 'end' structure.
-
-* Syntactic indentation according to Isabelle outer syntax. Action
-"indent-lines" (shortcut C+i) indents the current line according to
-command keywords and some command substructure. Action
-"isabelle.newline" (shortcut ENTER) indents the old and the new line
-according to command keywords only; see also option
-"jedit_indent_newline".
-
-* Semantic indentation for unstructured proof scripts ('apply' etc.) via
-number of subgoals. This requires information of ongoing document
-processing and may thus lag behind, when the user is editing too
-quickly; see also option "jedit_script_indent" and
-"jedit_script_indent_limit".
-
-* Refined folding mode "isabelle" based on Isar syntax: 'next' and 'qed'
-are treated as delimiters for fold structure; 'begin' and 'end'
-structure of theory specifications is treated as well.
-
-* Action "isabelle.keymap-merge" asks the user to resolve pending
-Isabelle keymap changes that are in conflict with the current jEdit
-keymap; non-conflicting changes are always applied implicitly. This
-action is automatically invoked on Isabelle/jEdit startup and thus
-increases chances that users see new keyboard shortcuts when re-using
-old keymaps.
-
-* Command 'proof' provides information about proof outline with cases,
-e.g. for proof methods "cases", "induct", "goal_cases".
-
-* Completion templates for commands involving "begin ... end" blocks,
-e.g. 'context', 'notepad'.
-
 * Additional abbreviations for syntactic completion may be specified
 within the theory header as 'abbrevs'. The theory syntax for 'keywords'
 has been simplified accordingly: optional abbrevs need to go into the
@@ -145,6 +138,13 @@ new 'abbrevs' section.
 * Global abbreviations via $ISABELLE_HOME/etc/abbrevs and
 $ISABELLE_HOME_USER/etc/abbrevs are no longer supported. Minor
 INCOMPATIBILITY, use 'abbrevs' within theory header instead.
+
+* Action "isabelle.keymap-merge" asks the user to resolve pending
+Isabelle keymap changes that are in conflict with the current jEdit
+keymap; non-conflicting changes are always applied implicitly. This
+action is automatically invoked on Isabelle/jEdit startup and thus
+increases chances that users see new keyboard shortcuts when re-using
+old keymaps.
 
 * ML and document antiquotations for file-systems paths are more uniform
 and diverse:
@@ -249,55 +249,15 @@ types where this is really intended.
 
 *** HOL ***
 
-* Ported remaining theories of Old_Number_Theory and removed Old_Number_Theory.
-
-* Sligthly more standardized theorem names:
-    sgn_times ~> sgn_mult
-    sgn_mult' ~> Real_Vector_Spaces.sgn_mult
-    divide_zero_left ~> div_0
-    zero_mod_left ~> mod_0
-    divide_zero ~> div_by_0
-    divide_1 ~> div_by_1
-    nonzero_mult_divide_cancel_left ~> nonzero_mult_div_cancel_left
-    div_mult_self1_is_id ~> nonzero_mult_div_cancel_left
-    nonzero_mult_divide_cancel_right ~> nonzero_mult_div_cancel_right
-    div_mult_self2_is_id ~> nonzero_mult_div_cancel_right
-    is_unit_divide_mult_cancel_left ~> is_unit_div_mult_cancel_left
-    is_unit_divide_mult_cancel_right ~> is_unit_div_mult_cancel_right
-    mod_div_equality ~> div_mult_mod_eq
-    mod_div_equality2 ~> mult_div_mod_eq
-    mod_div_equality3 ~> mod_div_mult_eq
-    mod_div_equality4 ~> mod_mult_div_eq
-    minus_div_eq_mod ~> minus_div_mult_eq_mod
-    minus_div_eq_mod2 ~> minus_mult_div_eq_mod
-    minus_mod_eq_div ~> minus_mod_eq_div_mult
-    minus_mod_eq_div2 ~> minus_mod_eq_mult_div
-    div_mod_equality' ~> minus_mod_eq_div_mult [symmetric]
-    mod_div_equality' ~> minus_div_mult_eq_mod [symmetric]
-    zmod_zdiv_equality ~> mult_div_mod_eq [symmetric]
-    zmod_zdiv_equality' ~> minus_div_mult_eq_mod [symmetric]
-    Divides.mult_div_cancel ~> minus_mod_eq_mult_div [symmetric]
-    mult_div_cancel ~> minus_mod_eq_mult_div [symmetric]
-    zmult_div_cancel ~> minus_mod_eq_mult_div [symmetric]
-    div_1 ~> div_by_Suc_0
-    mod_1 ~> mod_by_Suc_0
-INCOMPATIBILITY.
-
-* Renamed constants "setsum" ~> "sum" and "setprod" ~> "prod".
-  Corresponding renaming of theorems.
-
-* New type class "idom_abs_sgn" specifies algebraic properties
-of sign and absolute value functions.  Type class "sgn_if" has
-disappeared.  Slight INCOMPATIBILITY.
-
-* Dedicated syntax LENGTH('a) for length of types.
-
 * New proof method "argo" using the built-in Argo solver based on SMT
 technology. The method can be used to prove goals of quantifier-free
 propositional logic, goals based on a combination of quantifier-free
 propositional logic with equality, and goals based on a combination of
 quantifier-free propositional logic with linear real arithmetic
 including min/max/abs. See HOL/ex/Argo_Examples.thy for examples.
+
+* The new "nunchaku" program integrates the Nunchaku model finder. The
+tool is experimental. See ~~/src/HOL/Nunchaku/Nunchaku.thy for details.
 
 * Metis: The problem encoding has changed very slightly. This might
 break existing proofs. INCOMPATIBILITY.
@@ -356,6 +316,53 @@ INCOMPATIBILITY in rare situations.
 * Conventional syntax "%(). t" for unit abstractions. Slight syntactic
 INCOMPATIBILITY.
 
+* Renamed constants and corresponding theorems:
+
+    setsum ~> sum
+    setprod ~> prod
+    listsum ~> sum_list
+    listprod ~> prod_list
+
+INCOMPATIBILITY.
+
+* Sligthly more standardized theorem names:
+    sgn_times ~> sgn_mult
+    sgn_mult' ~> Real_Vector_Spaces.sgn_mult
+    divide_zero_left ~> div_0
+    zero_mod_left ~> mod_0
+    divide_zero ~> div_by_0
+    divide_1 ~> div_by_1
+    nonzero_mult_divide_cancel_left ~> nonzero_mult_div_cancel_left
+    div_mult_self1_is_id ~> nonzero_mult_div_cancel_left
+    nonzero_mult_divide_cancel_right ~> nonzero_mult_div_cancel_right
+    div_mult_self2_is_id ~> nonzero_mult_div_cancel_right
+    is_unit_divide_mult_cancel_left ~> is_unit_div_mult_cancel_left
+    is_unit_divide_mult_cancel_right ~> is_unit_div_mult_cancel_right
+    mod_div_equality ~> div_mult_mod_eq
+    mod_div_equality2 ~> mult_div_mod_eq
+    mod_div_equality3 ~> mod_div_mult_eq
+    mod_div_equality4 ~> mod_mult_div_eq
+    minus_div_eq_mod ~> minus_div_mult_eq_mod
+    minus_div_eq_mod2 ~> minus_mult_div_eq_mod
+    minus_mod_eq_div ~> minus_mod_eq_div_mult
+    minus_mod_eq_div2 ~> minus_mod_eq_mult_div
+    div_mod_equality' ~> minus_mod_eq_div_mult [symmetric]
+    mod_div_equality' ~> minus_div_mult_eq_mod [symmetric]
+    zmod_zdiv_equality ~> mult_div_mod_eq [symmetric]
+    zmod_zdiv_equality' ~> minus_div_mult_eq_mod [symmetric]
+    Divides.mult_div_cancel ~> minus_mod_eq_mult_div [symmetric]
+    mult_div_cancel ~> minus_mod_eq_mult_div [symmetric]
+    zmult_div_cancel ~> minus_mod_eq_mult_div [symmetric]
+    div_1 ~> div_by_Suc_0
+    mod_1 ~> mod_by_Suc_0
+INCOMPATIBILITY.
+
+* New type class "idom_abs_sgn" specifies algebraic properties
+of sign and absolute value functions.  Type class "sgn_if" has
+disappeared.  Slight INCOMPATIBILITY.
+
+* Dedicated syntax LENGTH('a) for length of types.
+
 * Characters (type char) are modelled as finite algebraic type
 corresponding to {0..255}.
 
@@ -406,14 +413,11 @@ spelt out explicitly.
 
 * Static evaluators (Code_Evaluation.static_* in Isabelle/ML) rely on
 explicitly provided auxiliary definitions for required type class
-dictionaries rather than half-working magic.  INCOMPATIBILITY, see
-the tutorial on code generation for details.
+dictionaries rather than half-working magic. INCOMPATIBILITY, see the
+tutorial on code generation for details.
 
-* Theory Set_Interval.thy: substantial new theorems on indexed sums
-and products.
-
-* Theory List.thy: ranaming of listsum ~> sum_list, listprod ~>
-prod_list, INCOMPATIBILITY.
+* Theory Set_Interval: substantial new theorems on indexed sums and
+products.
 
 * Locale bijection establishes convenient default simp rules such as
 "inv f (f a) = a" for total bijections.
@@ -466,354 +470,6 @@ resemble the f.split naming convention, INCOMPATIBILITY.
 
 * Added class topological_monoid.
 
-* HOL-Library: theory FinFun bundles "finfun_syntax" and
-"no_finfun_syntax" allow to control optional syntax in local contexts;
-this supersedes former theory FinFun_Syntax. INCOMPATIBILITY, e.g. use
-"unbundle finfun_syntax" to imitate import of
-"~~/src/HOL/Library/FinFun_Syntax".
-
-* HOL-Library: theory Multiset_Permutations (executably) defines the set of
-permutations of a given set or multiset, i.e. the set of all lists that
-contain every element of the carrier (multi-)set exactly once.
-
-* HOL-Library: multiset membership is now expressed using set_mset
-rather than count.
-
-  - Expressions "count M a > 0" and similar simplify to membership
-    by default.
-
-  - Converting between "count M a = 0" and non-membership happens using
-    equations count_eq_zero_iff and not_in_iff.
-
-  - Rules count_inI and in_countE obtain facts of the form
-    "count M a = n" from membership.
-
-  - Rules count_in_diffI and in_diff_countE obtain facts of the form
-    "count M a = n + count N a" from membership on difference sets.
-
-INCOMPATIBILITY.
-
-* HOL-Library: theory LaTeXsugar uses new-style "dummy_pats" for
-displaying equations in functional programming style --- variables
-present on the left-hand but not on the righ-hand side are replaced by
-underscores.
-
-* HOL-Library: theory Combinator_PER provides combinator to build
-partial equivalence relations from a predicate and an equivalence
-relation.
-
-* HOL-Library: theory Perm provides basic facts about almost everywhere
-fix bijections.
-
-* HOL-Library: theory Normalized_Fraction allows viewing an element of a
-field of fractions as a normalized fraction (i.e. a pair of numerator
-and denominator such that the two are coprime and the denominator is
-normalized wrt. unit factors).
-
-* Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
-
-* Session HOL-Multivariate_Analysis has been renamed to HOL-Analysis.
-
-* HOL-Analysis: measure theory has been moved here from HOL-Probability.
-When importing HOL-Analysis some theorems need additional name spaces
-prefixes due to name clashes. INCOMPATIBILITY.
-
-* HOL-Analysis: more complex analysis including Cauchy's inequality,
-Liouville theorem, open mapping theorem, maximum modulus principle,
-Residue theorem, Schwarz Lemma.
-
-* HOL-Analysis: Theory of polyhedra: faces, extreme points, polytopes,
-and the Krein–Milman Minkowski theorem.
-
-* HOL-Analysis: Numerous results ported from the HOL Light libraries:
-homeomorphisms, continuous function extensions, invariance of domain.
-
-* HOL-Probability: the type of emeasure and nn_integral was changed from
-ereal to ennreal, INCOMPATIBILITY.
-
-  emeasure :: 'a measure \<Rightarrow> 'a set \<Rightarrow> ennreal
-  nn_integral :: 'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal
-
-* HOL-Probability: Code generation and QuickCheck for Probability Mass
-Functions.
-
-* HOL-Probability: theory Random_Permutations contains some theory about
-choosing a permutation of a set uniformly at random and folding over a
-list in random order.
-
-* HOL-Probability: theory SPMF formalises discrete subprobability
-distributions.
-
-* HOL-Number_Theory: algebraic foundation for primes: Generalisation of
-predicate "prime" and introduction of predicates "prime_elem",
-"irreducible", a "prime_factorization" function, and the
-"factorial_ring" typeclass with instance proofs for nat, int, poly. Some
-theorems now have different names, most notably "prime_def" is now
-"prime_nat_iff". INCOMPATIBILITY.
-
-* HOL-Library: the names of multiset theorems have been normalised to
-distinguish which ordering the theorems are about
-
-    mset_less_eqI ~> mset_subset_eqI
-    mset_less_insertD ~> mset_subset_insertD
-    mset_less_eq_count ~> mset_subset_eq_count
-    mset_less_diff_self ~> mset_subset_diff_self
-    mset_le_exists_conv ~> mset_subset_eq_exists_conv
-    mset_le_mono_add_right_cancel ~> mset_subset_eq_mono_add_right_cancel
-    mset_le_mono_add_left_cancel ~> mset_subset_eq_mono_add_left_cancel
-    mset_le_mono_add ~> mset_subset_eq_mono_add
-    mset_le_add_left ~> mset_subset_eq_add_left
-    mset_le_add_right ~> mset_subset_eq_add_right
-    mset_le_single ~> mset_subset_eq_single
-    mset_le_multiset_union_diff_commute ~> mset_subset_eq_multiset_union_diff_commute
-    diff_le_self ~> diff_subset_eq_self
-    mset_leD ~> mset_subset_eqD
-    mset_lessD ~> mset_subsetD
-    mset_le_insertD ~> mset_subset_eq_insertD
-    mset_less_of_empty ~> mset_subset_of_empty
-    mset_less_size ~> mset_subset_size
-    wf_less_mset_rel ~> wf_subset_mset_rel
-    count_le_replicate_mset_le ~> count_le_replicate_mset_subset_eq
-    mset_remdups_le ~> mset_remdups_subset_eq
-    ms_lesseq_impl ~> subset_eq_mset_impl
-
-Some functions have been renamed:
-    ms_lesseq_impl -> subset_eq_mset_impl
-
-* HOL-Library: multisets are now ordered with the multiset ordering
-    #\<subseteq># ~> \<le>
-    #\<subset># ~> <
-    le_multiset ~> less_eq_multiset
-    less_multiset ~> le_multiset
-INCOMPATIBILITY.
-
-* HOL-Library: the prefix multiset_order has been discontinued: the
-theorems can be directly accessed. As a consequence, the lemmas
-"order_multiset" and "linorder_multiset" have been discontinued, and the
-interpretations "multiset_linorder" and "multiset_wellorder" have been
-replaced by instantiations. INCOMPATIBILITY.
-
-* HOL-Library: some theorems about the multiset ordering have been
-renamed:
-
-    le_multiset_def ~> less_eq_multiset_def
-    less_multiset_def ~> le_multiset_def
-    less_eq_imp_le_multiset ~> subset_eq_imp_le_multiset
-    mult_less_not_refl ~> mset_le_not_refl
-    mult_less_trans ~> mset_le_trans
-    mult_less_not_sym ~> mset_le_not_sym
-    mult_less_asym ~> mset_le_asym
-    mult_less_irrefl ~> mset_le_irrefl
-    union_less_mono2{,1,2} ~> union_le_mono2{,1,2}
-
-    le_multiset\<^sub>H\<^sub>O ~> less_eq_multiset\<^sub>H\<^sub>O
-    le_multiset_total ~> less_eq_multiset_total
-    less_multiset_right_total ~> subset_eq_imp_le_multiset
-    le_multiset_empty_left ~> less_eq_multiset_empty_left
-    le_multiset_empty_right ~> less_eq_multiset_empty_right
-    less_multiset_empty_right ~> le_multiset_empty_left
-    less_multiset_empty_left ~> le_multiset_empty_right
-    union_less_diff_plus ~> union_le_diff_plus
-    ex_gt_count_imp_less_multiset ~> ex_gt_count_imp_le_multiset
-    less_multiset_plus_left_nonempty ~> le_multiset_plus_left_nonempty
-    le_multiset_plus_right_nonempty ~> le_multiset_plus_right_nonempty
-INCOMPATIBILITY.
-
-* HOL-Library: the lemma mset_map has now the attribute [simp].
-INCOMPATIBILITY.
-
-* HOL-Library: some theorems about multisets have been removed.
-INCOMPATIBILITY, use the following replacements:
-
-    le_multiset_plus_plus_left_iff ~> add_less_cancel_right
-    less_multiset_plus_plus_left_iff ~> add_less_cancel_right
-    le_multiset_plus_plus_right_iff ~> add_less_cancel_left
-    less_multiset_plus_plus_right_iff ~> add_less_cancel_left
-    add_eq_self_empty_iff ~> add_cancel_left_right
-    mset_subset_add_bothsides ~> subset_mset.add_less_cancel_right
-    mset_less_add_bothsides ~> subset_mset.add_less_cancel_right
-    mset_le_add_bothsides ~> subset_mset.add_less_cancel_right
-    empty_inter ~> subset_mset.inf_bot_left
-    inter_empty ~> subset_mset.inf_bot_right
-    empty_sup ~> subset_mset.sup_bot_left
-    sup_empty ~> subset_mset.sup_bot_right
-    bdd_below_multiset ~> subset_mset.bdd_above_bot
-    subset_eq_empty ~> subset_mset.le_zero_eq
-    le_empty ~> subset_mset.le_zero_eq
-    mset_subset_empty_nonempty ~> subset_mset.zero_less_iff_neq_zero
-    mset_less_empty_nonempty ~> subset_mset.zero_less_iff_neq_zero
-
-* HOL-Library: some typeclass constraints about multisets have been
-reduced from ordered or linordered to preorder. Multisets have the
-additional typeclasses order_bot, no_top,
-ordered_ab_semigroup_add_imp_le, ordered_cancel_comm_monoid_add,
-linordered_cancel_ab_semigroup_add, and
-ordered_ab_semigroup_monoid_add_imp_le. INCOMPATIBILITY.
-
-* HOL-Library: there are some new simplification rules about multisets,
-the multiset ordering, and the subset ordering on multisets.
-INCOMPATIBILITY.
-
-* HOL-Library: the subset ordering on multisets has now the
-interpretations ordered_ab_semigroup_monoid_add_imp_le and
-bounded_lattice_bot. INCOMPATIBILITY.
-
-* HOL-Library/Multiset: single has been removed in favor of add_mset
-that roughly corresponds to Set.insert. Some theorems have removed or
-changed:
-
-  single_not_empty ~> add_mset_not_empty or empty_not_add_mset
-  fold_mset_insert ~> fold_mset_add_mset
-  image_mset_insert ~> image_mset_add_mset
-  union_single_eq_diff
-  multi_self_add_other_not_self
-  diff_single_eq_union
-INCOMPATIBILITY.
-
-* HOL-Library/Multiset: some theorems have been changed to use add_mset
-instead of single:
-
-  mset_add
-  multi_self_add_other_not_self
-  diff_single_eq_union
-  union_single_eq_diff
-  union_single_eq_member
-  add_eq_conv_diff
-  insert_noteq_member
-  add_eq_conv_ex
-  multi_member_split
-  multiset_add_sub_el_shuffle
-  mset_subset_eq_insertD
-  mset_subset_insertD
-  insert_subset_eq_iff
-  insert_union_subset_iff
-  multi_psub_of_add_self
-  inter_add_left1
-  inter_add_left2
-  inter_add_right1
-  inter_add_right2
-  sup_union_left1
-  sup_union_left2
-  sup_union_right1
-  sup_union_right2
-  size_eq_Suc_imp_eq_union
-  multi_nonempty_split
-  mset_insort
-  mset_update
-  mult1I
-  less_add
-  mset_zip_take_Cons_drop_twice
-  rel_mset_Zero
-  msed_map_invL
-  msed_map_invR
-  msed_rel_invL
-  msed_rel_invR
-  le_multiset_right_total
-  multiset_induct
-  multiset_induct2_size
-  multiset_induct2
-INCOMPATIBILITY.
-
-* HOL-Library/Multiset. The definitions of some constants have changed
-to use add_mset instead of adding a single element:
-  image_mset
-  mset
-  replicate_mset
-  mult1
-  pred_mset
-  rel_mset'
-  mset_insort
-INCOMPATIBILITY.
-
-* HOL-Library/Multiset. Due to the above changes, the attributes of some
-multiset theorems have been changed:
-  insert_DiffM  [] ~> [simp]
-  insert_DiffM2 [simp] ~> []
-  diff_add_mset_swap [simp]
-  fold_mset_add_mset [simp]
-  diff_diff_add [simp] (for multisets only)
-  diff_cancel [simp] ~> []
-  count_single [simp] ~> []
-  set_mset_single [simp] ~> []
-  size_multiset_single [simp] ~> []
-  size_single [simp] ~> []
-  image_mset_single [simp] ~> []
-  mset_subset_eq_mono_add_right_cancel [simp] ~> []
-  mset_subset_eq_mono_add_left_cancel [simp] ~> []
-  fold_mset_single [simp] ~> []
-  subset_eq_empty [simp] ~> []
-  empty_sup [simp] ~> []
-  sup_empty [simp] ~> []
-  inter_empty [simp] ~> []
-  empty_inter [simp] ~> []
-INCOMPATIBILITY.
-
-* HOL-Library/Multiset. The order of the variables in the second cases
-of multiset_induct, multiset_induct2_size, multiset_induct2 has been
-changed (e.g. Add A a ~> Add a A). INCOMPATIBILITY.
-
-* HOL-Library/Multiset. There is now a simplification procedure on
-multisets. It mimics the behavior of the procedure on natural numbers.
-INCOMPATIBILITY.
-
-* HOL-Library/Multiset. Renamed sums and products of multisets:
-  msetsum ~> sum_mset
-  msetprod ~> prod_mset
-
-* HOL-Library/Multiset. The notation for intersection and union of
-multisets have been changed:
-  #\<inter> ~> \<inter>#
-  #\<union> ~> \<union>#
-INCOMPATIBILITY.
-
-* HOL-Library/Multiset. The lemma one_step_implies_mult_aux on multisets
-has been removed, use one_step_implies_mult instead. INCOMPATIBILITY.
-
-* The following theorems have been renamed:
-  setsum_left_distrib ~> setsum_distrib_right
-  setsum_right_distrib ~> setsum_distrib_left
-INCOMPATIBILITY.
-
-* Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
-INCOMPATIBILITY.
-
-* "Gcd (f ` A)" and "Lcm (f ` A)" are printed with optional
-comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f ` A)".
-
-* Class semiring_Lcd merged into semiring_Gcd.  INCOMPATIBILITY.
-
-* The type class ordered_comm_monoid_add is now called
-ordered_cancel_comm_monoid_add. A new type class ordered_comm_monoid_add
-is introduced as the combination of ordered_ab_semigroup_add +
-comm_monoid_add. INCOMPATIBILITY.
-
-* Introduced the type classes canonically_ordered_comm_monoid_add and
-dioid.
-
-* Introduced the type class ordered_ab_semigroup_monoid_add_imp_le. When
-instantiating linordered_semiring_strict and ordered_ab_group_add, an
-explicit instantiation of ordered_ab_semigroup_monoid_add_imp_le might
-be required. INCOMPATIBILITY.
-
-* HOL-Library: theory Complete_Partial_Order2 provides reasoning support
-for monotonicity and continuity in chain-complete partial orders and
-about admissibility conditions for fixpoint inductions.
-
-* HOL-Library: theory Polynomial contains also derivation of polynomials
-but not gcd/lcm on polynomials over fields. This has been moved to a
-separate theory Library/Polynomial_GCD_euclidean.thy, to pave way for a
-possible future different type class instantiation for polynomials over
-factorial rings. INCOMPATIBILITY.
-
-* HOL-Library: theory Sublist.thy provides function "prefixes" with the
-following renaming
-
-  prefixeq -> prefix
-  prefix -> strict_prefix
-  suffixeq -> suffix
-  suffix -> strict_suffix
-
-Added theory of longest common prefixes.
 
 * Dropped various legacy fact bindings, whose replacements are often
 of a more general type also:
@@ -910,14 +566,375 @@ INCOMPATIBILITY.
 * Renamed HOL/Quotient_Examples/FSet.thy to
 HOL/Quotient_Examples/Quotient_FSet.thy INCOMPATIBILITY.
 
-* The "nunchaku" program integrates the Nunchaku model finder. The tool
-is experimental. See ~~/src/HOL/Nunchaku/Nunchaku.thy for details.
+* Session HOL-Library: theory FinFun bundles "finfun_syntax" and
+"no_finfun_syntax" allow to control optional syntax in local contexts;
+this supersedes former theory FinFun_Syntax. INCOMPATIBILITY, e.g. use
+"unbundle finfun_syntax" to imitate import of
+"~~/src/HOL/Library/FinFun_Syntax".
+
+* Session HOL-Library: theory Multiset_Permutations (executably) defines
+the set of permutations of a given set or multiset, i.e. the set of all
+lists that contain every element of the carrier (multi-)set exactly
+once.
+
+* Session HOL-Library: multiset membership is now expressed using
+set_mset rather than count.
+
+  - Expressions "count M a > 0" and similar simplify to membership
+    by default.
+
+  - Converting between "count M a = 0" and non-membership happens using
+    equations count_eq_zero_iff and not_in_iff.
+
+  - Rules count_inI and in_countE obtain facts of the form
+    "count M a = n" from membership.
+
+  - Rules count_in_diffI and in_diff_countE obtain facts of the form
+    "count M a = n + count N a" from membership on difference sets.
+
+INCOMPATIBILITY.
+
+* Session HOL-Library: theory LaTeXsugar uses new-style "dummy_pats" for
+displaying equations in functional programming style --- variables
+present on the left-hand but not on the righ-hand side are replaced by
+underscores.
+
+* Session HOL-Library: theory Combinator_PER provides combinator to
+build partial equivalence relations from a predicate and an equivalence
+relation.
+
+* Session HOL-Library: theory Perm provides basic facts about almost
+everywhere fix bijections.
+
+* Session HOL-Library: theory Normalized_Fraction allows viewing an
+element of a field of fractions as a normalized fraction (i.e. a pair of
+numerator and denominator such that the two are coprime and the
+denominator is normalized wrt. unit factors).
+
+* Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
+
+* Session HOL-Multivariate_Analysis has been renamed to HOL-Analysis.
+
+* Session HOL-Analysis: measure theory has been moved here from
+HOL-Probability. When importing HOL-Analysis some theorems need
+additional name spaces prefixes due to name clashes. INCOMPATIBILITY.
+
+* Session HOL-Analysis: more complex analysis including Cauchy's
+inequality, Liouville theorem, open mapping theorem, maximum modulus
+principle, Residue theorem, Schwarz Lemma.
+
+* Session HOL-Analysis: Theory of polyhedra: faces, extreme points,
+polytopes, and the Krein–Milman Minkowski theorem.
+
+* Session HOL-Analysis: Numerous results ported from the HOL Light
+libraries: homeomorphisms, continuous function extensions, invariance of
+domain.
+
+* Session HOL-Probability: the type of emeasure and nn_integral was
+changed from ereal to ennreal, INCOMPATIBILITY.
+
+  emeasure :: 'a measure \<Rightarrow> 'a set \<Rightarrow> ennreal
+  nn_integral :: 'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal
+
+* Session HOL-Probability: Code generation and QuickCheck for
+Probability Mass Functions.
+
+* Session HOL-Probability: theory Random_Permutations contains some
+theory about choosing a permutation of a set uniformly at random and
+folding over a list in random order.
+
+* Session HOL-Probability: theory SPMF formalises discrete
+subprobability distributions.
+
+* Session HOL-Number_Theory: algebraic foundation for primes:
+Generalisation of predicate "prime" and introduction of predicates
+"prime_elem", "irreducible", a "prime_factorization" function, and the
+"factorial_ring" typeclass with instance proofs for nat, int, poly. Some
+theorems now have different names, most notably "prime_def" is now
+"prime_nat_iff". INCOMPATIBILITY.
+
+* Session Old_Number_Theory has been removed, after porting remaining
+theories.
+
+* Session HOL-Library: the names of multiset theorems have been
+normalised to distinguish which ordering the theorems are about
+
+    mset_less_eqI ~> mset_subset_eqI
+    mset_less_insertD ~> mset_subset_insertD
+    mset_less_eq_count ~> mset_subset_eq_count
+    mset_less_diff_self ~> mset_subset_diff_self
+    mset_le_exists_conv ~> mset_subset_eq_exists_conv
+    mset_le_mono_add_right_cancel ~> mset_subset_eq_mono_add_right_cancel
+    mset_le_mono_add_left_cancel ~> mset_subset_eq_mono_add_left_cancel
+    mset_le_mono_add ~> mset_subset_eq_mono_add
+    mset_le_add_left ~> mset_subset_eq_add_left
+    mset_le_add_right ~> mset_subset_eq_add_right
+    mset_le_single ~> mset_subset_eq_single
+    mset_le_multiset_union_diff_commute ~> mset_subset_eq_multiset_union_diff_commute
+    diff_le_self ~> diff_subset_eq_self
+    mset_leD ~> mset_subset_eqD
+    mset_lessD ~> mset_subsetD
+    mset_le_insertD ~> mset_subset_eq_insertD
+    mset_less_of_empty ~> mset_subset_of_empty
+    mset_less_size ~> mset_subset_size
+    wf_less_mset_rel ~> wf_subset_mset_rel
+    count_le_replicate_mset_le ~> count_le_replicate_mset_subset_eq
+    mset_remdups_le ~> mset_remdups_subset_eq
+    ms_lesseq_impl ~> subset_eq_mset_impl
+
+Some functions have been renamed:
+    ms_lesseq_impl -> subset_eq_mset_impl
+
+* The following theorems have been renamed:
+
+  setsum_left_distrib ~> setsum_distrib_right
+  setsum_right_distrib ~> setsum_distrib_left
+
+INCOMPATIBILITY.
+
+* Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
+INCOMPATIBILITY.
+
+* "Gcd (f ` A)" and "Lcm (f ` A)" are printed with optional
+comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f `
+A)".
+
+* Class semiring_Lcd merged into semiring_Gcd. INCOMPATIBILITY.
+
+* The type class ordered_comm_monoid_add is now called
+ordered_cancel_comm_monoid_add. A new type class ordered_comm_monoid_add
+is introduced as the combination of ordered_ab_semigroup_add +
+comm_monoid_add. INCOMPATIBILITY.
+
+* Introduced the type classes canonically_ordered_comm_monoid_add and
+dioid.
+
+* Introduced the type class ordered_ab_semigroup_monoid_add_imp_le. When
+instantiating linordered_semiring_strict and ordered_ab_group_add, an
+explicit instantiation of ordered_ab_semigroup_monoid_add_imp_le might
+be required. INCOMPATIBILITY.
+
+* HOL-Library: multisets are now ordered with the multiset ordering
+    #\<subseteq># ~> \<le>
+    #\<subset># ~> <
+    le_multiset ~> less_eq_multiset
+    less_multiset ~> le_multiset
+INCOMPATIBILITY.
+
+* Session HOL-Library: the prefix multiset_order has been discontinued:
+the theorems can be directly accessed. As a consequence, the lemmas
+"order_multiset" and "linorder_multiset" have been discontinued, and the
+interpretations "multiset_linorder" and "multiset_wellorder" have been
+replaced by instantiations. INCOMPATIBILITY.
+
+* Session HOL-Library: some theorems about the multiset ordering have
+been renamed:
+
+    le_multiset_def ~> less_eq_multiset_def
+    less_multiset_def ~> le_multiset_def
+    less_eq_imp_le_multiset ~> subset_eq_imp_le_multiset
+    mult_less_not_refl ~> mset_le_not_refl
+    mult_less_trans ~> mset_le_trans
+    mult_less_not_sym ~> mset_le_not_sym
+    mult_less_asym ~> mset_le_asym
+    mult_less_irrefl ~> mset_le_irrefl
+    union_less_mono2{,1,2} ~> union_le_mono2{,1,2}
+
+    le_multiset\<^sub>H\<^sub>O ~> less_eq_multiset\<^sub>H\<^sub>O
+    le_multiset_total ~> less_eq_multiset_total
+    less_multiset_right_total ~> subset_eq_imp_le_multiset
+    le_multiset_empty_left ~> less_eq_multiset_empty_left
+    le_multiset_empty_right ~> less_eq_multiset_empty_right
+    less_multiset_empty_right ~> le_multiset_empty_left
+    less_multiset_empty_left ~> le_multiset_empty_right
+    union_less_diff_plus ~> union_le_diff_plus
+    ex_gt_count_imp_less_multiset ~> ex_gt_count_imp_le_multiset
+    less_multiset_plus_left_nonempty ~> le_multiset_plus_left_nonempty
+    le_multiset_plus_right_nonempty ~> le_multiset_plus_right_nonempty
+INCOMPATIBILITY.
+
+* Session HOL-Library: the lemma mset_map has now the attribute [simp].
+INCOMPATIBILITY.
+
+* Session HOL-Library: some theorems about multisets have been removed.
+INCOMPATIBILITY, use the following replacements:
+
+    le_multiset_plus_plus_left_iff ~> add_less_cancel_right
+    less_multiset_plus_plus_left_iff ~> add_less_cancel_right
+    le_multiset_plus_plus_right_iff ~> add_less_cancel_left
+    less_multiset_plus_plus_right_iff ~> add_less_cancel_left
+    add_eq_self_empty_iff ~> add_cancel_left_right
+    mset_subset_add_bothsides ~> subset_mset.add_less_cancel_right
+    mset_less_add_bothsides ~> subset_mset.add_less_cancel_right
+    mset_le_add_bothsides ~> subset_mset.add_less_cancel_right
+    empty_inter ~> subset_mset.inf_bot_left
+    inter_empty ~> subset_mset.inf_bot_right
+    empty_sup ~> subset_mset.sup_bot_left
+    sup_empty ~> subset_mset.sup_bot_right
+    bdd_below_multiset ~> subset_mset.bdd_above_bot
+    subset_eq_empty ~> subset_mset.le_zero_eq
+    le_empty ~> subset_mset.le_zero_eq
+    mset_subset_empty_nonempty ~> subset_mset.zero_less_iff_neq_zero
+    mset_less_empty_nonempty ~> subset_mset.zero_less_iff_neq_zero
+
+* Session HOL-Library: some typeclass constraints about multisets have
+been reduced from ordered or linordered to preorder. Multisets have the
+additional typeclasses order_bot, no_top,
+ordered_ab_semigroup_add_imp_le, ordered_cancel_comm_monoid_add,
+linordered_cancel_ab_semigroup_add, and
+ordered_ab_semigroup_monoid_add_imp_le. INCOMPATIBILITY.
+
+* Session HOL-Library: there are some new simplification rules about
+multisets, the multiset ordering, and the subset ordering on multisets.
+INCOMPATIBILITY.
+
+* Session HOL-Library: the subset ordering on multisets has now the
+interpretations ordered_ab_semigroup_monoid_add_imp_le and
+bounded_lattice_bot. INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: single has been removed in favor
+of add_mset that roughly corresponds to Set.insert. Some theorems have
+removed or changed:
+
+  single_not_empty ~> add_mset_not_empty or empty_not_add_mset
+  fold_mset_insert ~> fold_mset_add_mset
+  image_mset_insert ~> image_mset_add_mset
+  union_single_eq_diff
+  multi_self_add_other_not_self
+  diff_single_eq_union
+INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: some theorems have been changed
+to use add_mset instead of single:
+
+  mset_add
+  multi_self_add_other_not_self
+  diff_single_eq_union
+  union_single_eq_diff
+  union_single_eq_member
+  add_eq_conv_diff
+  insert_noteq_member
+  add_eq_conv_ex
+  multi_member_split
+  multiset_add_sub_el_shuffle
+  mset_subset_eq_insertD
+  mset_subset_insertD
+  insert_subset_eq_iff
+  insert_union_subset_iff
+  multi_psub_of_add_self
+  inter_add_left1
+  inter_add_left2
+  inter_add_right1
+  inter_add_right2
+  sup_union_left1
+  sup_union_left2
+  sup_union_right1
+  sup_union_right2
+  size_eq_Suc_imp_eq_union
+  multi_nonempty_split
+  mset_insort
+  mset_update
+  mult1I
+  less_add
+  mset_zip_take_Cons_drop_twice
+  rel_mset_Zero
+  msed_map_invL
+  msed_map_invR
+  msed_rel_invL
+  msed_rel_invR
+  le_multiset_right_total
+  multiset_induct
+  multiset_induct2_size
+  multiset_induct2
+INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: the definitions of some
+constants have changed to use add_mset instead of adding a single
+element:
+
+  image_mset
+  mset
+  replicate_mset
+  mult1
+  pred_mset
+  rel_mset'
+  mset_insort
+
+INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: due to the above changes, the
+attributes of some multiset theorems have been changed:
+
+  insert_DiffM  [] ~> [simp]
+  insert_DiffM2 [simp] ~> []
+  diff_add_mset_swap [simp]
+  fold_mset_add_mset [simp]
+  diff_diff_add [simp] (for multisets only)
+  diff_cancel [simp] ~> []
+  count_single [simp] ~> []
+  set_mset_single [simp] ~> []
+  size_multiset_single [simp] ~> []
+  size_single [simp] ~> []
+  image_mset_single [simp] ~> []
+  mset_subset_eq_mono_add_right_cancel [simp] ~> []
+  mset_subset_eq_mono_add_left_cancel [simp] ~> []
+  fold_mset_single [simp] ~> []
+  subset_eq_empty [simp] ~> []
+  empty_sup [simp] ~> []
+  sup_empty [simp] ~> []
+  inter_empty [simp] ~> []
+  empty_inter [simp] ~> []
+INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: The order of the variables in
+the second cases of multiset_induct, multiset_induct2_size,
+multiset_induct2 has been changed (e.g. Add A a ~> Add a A).
+INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: there is now a simplification
+procedure on multisets. It mimics the behavior of the procedure on
+natural numbers. INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: renamed sums and products of
+multisets:
+
+  msetsum ~> sum_mset
+  msetprod ~> prod_mset
+
+* Session HOL-Library, theory Multiset: the notation for intersection
+and union of multisets have been changed:
+
+  #\<inter> ~> \<inter>#
+  #\<union> ~> \<union>#
+
+INCOMPATIBILITY.
+
+* Session HOL-Library, theory Multiset: the lemma
+one_step_implies_mult_aux on multisets has been removed, use
+one_step_implies_mult instead. INCOMPATIBILITY.
+
+* Session HOL-Library: theory Complete_Partial_Order2 provides reasoning
+support for monotonicity and continuity in chain-complete partial orders
+and about admissibility conditions for fixpoint inductions.
+
+* Session HOL-Library: theory Polynomial contains also derivation of
+polynomials but not gcd/lcm on polynomials over fields. This has been
+moved to a separate theory Library/Polynomial_GCD_euclidean.thy, to pave
+way for a possible future different type class instantiation for
+polynomials over factorial rings. INCOMPATIBILITY.
+
+* Session HOL-Library: theory Sublist provides function "prefixes" with
+the following renaming
+
+  prefixeq -> prefix
+  prefix -> strict_prefix
+  suffixeq -> suffix
+  suffix -> strict_suffix
+
+Added theory of longest common prefixes.
 
 
 *** ML ***
-
-* ML antiquotation @{path} is superseded by @{file}, which ensures that
-the argument is a plain file. Minor INCOMPATIBILITY.
 
 * Integer.gcd and Integer.lcm use efficient operations from the Poly/ML
 library (notably for big integers). Subtle change of semantics:
@@ -933,15 +950,18 @@ overloading of + - * / < <= > >= ~ abs. INCOMPATIBILITY, need to
 use + instead of +/ etc. Moreover, exception Rat.DIVZERO has been
 superseded by General.Div.
 
-* The ML function "ML" provides easy access to run-time compilation.
-This is particularly useful for conditional compilation, without
-requiring separate files.
+* ML antiquotation @{path} is superseded by @{file}, which ensures that
+the argument is a plain file. Minor INCOMPATIBILITY.
+
+* Antiquotation @{make_string} is available during Pure bootstrap --
+with approximative output quality.
 
 * Low-level ML system structures (like PolyML and RunCall) are no longer
 exposed to Isabelle/ML user-space. Potential INCOMPATIBILITY.
 
-* Antiquotation @{make_string} is available during Pure bootstrap --
-with approximative output quality.
+* The ML function "ML" provides easy access to run-time compilation.
+This is particularly useful for conditional compilation, without
+requiring separate files.
 
 * Option ML_exception_debugger controls detailed exception trace via the
 Poly/ML debugger. Relevant ML modules need to be compiled beforehand
@@ -972,31 +992,10 @@ Attrib.empty_binding. Minor INCOMPATIBILITY.
 
 *** System ***
 
-* Isabelle/Scala: the SSH module supports ssh and sftp connections, for
-remote command-execution and file-system access. This resembles
-operations from module File and Isabelle_System to some extent. Note
-that Path specifications need to be resolved remotely via
-ssh.remote_path instead of File.standard_path: the implicit process
-environment is different, Isabelle settings are not available remotely.
+* SML/NJ and old versions of Poly/ML are no longer supported.
 
-* Isabelle/Scala: the Mercurial module supports repositories via the
-regular hg command-line interface. The repositroy clone and working
-directory may reside on a local or remote file-system (via ssh
-connection).
-
-* Many Isabelle tools that require a Java runtime system refer to the
-settings ISABELLE_TOOL_JAVA_OPTIONS32 / ISABELLE_TOOL_JAVA_OPTIONS64,
-depending on the underlying platform. The settings for "isabelle build"
-ISABELLE_BUILD_JAVA_OPTIONS32 / ISABELLE_BUILD_JAVA_OPTIONS64 have been
-discontinued. Potential INCOMPATIBILITY.
-
-* The Isabelle system environment always ensures that the main
-executables are found within the shell search $PATH: "isabelle" and
-"isabelle_scala_script".
-
-* Isabelle tools may consist of .scala files: the Scala compiler is
-invoked on the spot. The source needs to define some object that extends
-Isabelle_Tool.Body.
+* Poly/ML heaps now follow the hierarchy of sessions, and thus require
+much less disk space.
 
 * The Isabelle ML process is now managed directly by Isabelle/Scala, and
 shell scripts merely provide optional command-line access. In
@@ -1016,29 +1015,13 @@ literal expressions (option -e) or files (option -f) in the context of a
 given heap image. Errors lead to premature exit of the ML process with
 return code 1.
 
-* The system option "threads" (for the size of the Isabelle/ML thread
-farm) is also passed to the underlying ML runtime system as --gcthreads,
+* The command-line tool "isabelle build" supports option -N for cyclic
+shuffling of NUMA CPU nodes. This may help performance tuning on Linux
+servers with separate CPU/memory modules.
+
+* System option "threads" (for the size of the Isabelle/ML thread farm)
+is also passed to the underlying ML runtime system as --gcthreads,
 unless there is already a default provided via ML_OPTIONS settings.
-
-* Command-line tool "isabelle console" provides option -r to help to
-bootstrapping Isabelle/Pure interactively.
-
-* Command-line tool "isabelle yxml" has been discontinued.
-INCOMPATIBILITY, use operations from the modules "XML" and "YXML" in
-Isabelle/ML or Isabelle/Scala.
-
-* File.bash_string, File.bash_path etc. represent Isabelle/ML and
-Isabelle/Scala strings authentically within GNU bash. This is useful to
-produce robust shell scripts under program control, without worrying
-about spaces or special characters. Note that user output works via
-Path.print (ML) or Path.toString (Scala). INCOMPATIBILITY, the old (and
-less versatile) operations File.shell_quote, File.shell_path etc. have
-been discontinued.
-
-* SML/NJ and old versions of Poly/ML are no longer supported.
-
-* Poly/ML heaps now follow the hierarchy of sessions, and thus require
-much less disk space.
 
 * System option "checkpoint" helps to fine-tune the global heap space
 management of isabelle build. This is relevant for big sessions that may
@@ -1055,13 +1038,50 @@ for the underlying ML process, e.g. to control CPU affinity on
 multiprocessor systems. The "isabelle jedit" tool allows to override the
 implicit default via option -p.
 
+* Command-line tool "isabelle console" provides option -r to help to
+bootstrapping Isabelle/Pure interactively.
+
+* Command-line tool "isabelle yxml" has been discontinued.
+INCOMPATIBILITY, use operations from the modules "XML" and "YXML" in
+Isabelle/ML or Isabelle/Scala.
+
+* Many Isabelle tools that require a Java runtime system refer to the
+settings ISABELLE_TOOL_JAVA_OPTIONS32 / ISABELLE_TOOL_JAVA_OPTIONS64,
+depending on the underlying platform. The settings for "isabelle build"
+ISABELLE_BUILD_JAVA_OPTIONS32 / ISABELLE_BUILD_JAVA_OPTIONS64 have been
+discontinued. Potential INCOMPATIBILITY.
+
+* The Isabelle system environment always ensures that the main
+executables are found within the shell search $PATH: "isabelle" and
+"isabelle_scala_script".
+
+* Isabelle tools may consist of .scala files: the Scala compiler is
+invoked on the spot. The source needs to define some object that extends
+Isabelle_Tool.Body.
+
+* File.bash_string, File.bash_path etc. represent Isabelle/ML and
+Isabelle/Scala strings authentically within GNU bash. This is useful to
+produce robust shell scripts under program control, without worrying
+about spaces or special characters. Note that user output works via
+Path.print (ML) or Path.toString (Scala). INCOMPATIBILITY, the old (and
+less versatile) operations File.shell_quote, File.shell_path etc. have
+been discontinued.
+
 * The isabelle_java executable allows to run a Java process within the
 name space of Java and Scala components that are bundled with Isabelle,
 but without the Isabelle settings environment.
 
-* The command-line tool "isabelle build" supports option -N for cyclic
-shuffling of NUMA CPU nodes. This may help performance tuning on Linux
-servers with separate CPU/memory modules.
+* Isabelle/Scala: the SSH module supports ssh and sftp connections, for
+remote command-execution and file-system access. This resembles
+operations from module File and Isabelle_System to some extent. Note
+that Path specifications need to be resolved remotely via
+ssh.remote_path instead of File.standard_path: the implicit process
+environment is different, Isabelle settings are not available remotely.
+
+* Isabelle/Scala: the Mercurial module supports repositories via the
+regular hg command-line interface. The repositroy clone and working
+directory may reside on a local or remote file-system (via ssh
+connection).
 
 
 
