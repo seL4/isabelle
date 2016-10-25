@@ -277,144 +277,7 @@ lemma Lim_null_comparison_Re:
 
 subsection\<open>Holomorphic functions\<close>
 
-definition field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
-           (infixr "(field'_differentiable)" 50)
-  where "f field_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
-
-lemma field_differentiable_derivI:
-    "f field_differentiable (at x) \<Longrightarrow> (f has_field_derivative deriv f x) (at x)"
-by (simp add: field_differentiable_def DERIV_deriv_iff_has_field_derivative)
-
-lemma field_differentiable_imp_continuous_at:
-    "f field_differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
-  by (metis DERIV_continuous field_differentiable_def)
-
-lemma field_differentiable_within_subset:
-    "\<lbrakk>f field_differentiable (at x within s); t \<subseteq> s\<rbrakk>
-     \<Longrightarrow> f field_differentiable (at x within t)"
-  by (metis DERIV_subset field_differentiable_def)
-
-lemma field_differentiable_at_within:
-    "\<lbrakk>f field_differentiable (at x)\<rbrakk>
-     \<Longrightarrow> f field_differentiable (at x within s)"
-  unfolding field_differentiable_def
-  by (metis DERIV_subset top_greatest)
-
-lemma field_differentiable_linear [simp,derivative_intros]: "(op * c) field_differentiable F"
-proof -
-  show ?thesis
-    unfolding field_differentiable_def has_field_derivative_def mult_commute_abs
-    by (force intro: has_derivative_mult_right)
-qed
-
-lemma field_differentiable_const [simp,derivative_intros]: "(\<lambda>z. c) field_differentiable F"
-  unfolding field_differentiable_def has_field_derivative_def
-  by (rule exI [where x=0])
-     (metis has_derivative_const lambda_zero)
-
-lemma field_differentiable_ident [simp,derivative_intros]: "(\<lambda>z. z) field_differentiable F"
-  unfolding field_differentiable_def has_field_derivative_def
-  by (rule exI [where x=1])
-     (simp add: lambda_one [symmetric])
-
-lemma field_differentiable_id [simp,derivative_intros]: "id field_differentiable F"
-  unfolding id_def by (rule field_differentiable_ident)
-
-lemma field_differentiable_minus [derivative_intros]:
-  "f field_differentiable F \<Longrightarrow> (\<lambda>z. - (f z)) field_differentiable F"
-  unfolding field_differentiable_def
-  by (metis field_differentiable_minus)
-
-lemma field_differentiable_add [derivative_intros]:
-  assumes "f field_differentiable F" "g field_differentiable F"
-    shows "(\<lambda>z. f z + g z) field_differentiable F"
-  using assms unfolding field_differentiable_def
-  by (metis field_differentiable_add)
-
-lemma field_differentiable_add_const [simp,derivative_intros]:
-     "op + c field_differentiable F"
-  by (simp add: field_differentiable_add)
-
-lemma field_differentiable_sum [derivative_intros]:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) field_differentiable F) \<Longrightarrow> (\<lambda>z. \<Sum>i\<in>I. f i z) field_differentiable F"
-  by (induct I rule: infinite_finite_induct)
-     (auto intro: field_differentiable_add field_differentiable_const)
-
-lemma field_differentiable_diff [derivative_intros]:
-  assumes "f field_differentiable F" "g field_differentiable F"
-    shows "(\<lambda>z. f z - g z) field_differentiable F"
-  using assms unfolding field_differentiable_def
-  by (metis field_differentiable_diff)
-
-lemma field_differentiable_inverse [derivative_intros]:
-  assumes "f field_differentiable (at a within s)" "f a \<noteq> 0"
-  shows "(\<lambda>z. inverse (f z)) field_differentiable (at a within s)"
-  using assms unfolding field_differentiable_def
-  by (metis DERIV_inverse_fun)
-
-lemma field_differentiable_mult [derivative_intros]:
-  assumes "f field_differentiable (at a within s)"
-          "g field_differentiable (at a within s)"
-    shows "(\<lambda>z. f z * g z) field_differentiable (at a within s)"
-  using assms unfolding field_differentiable_def
-  by (metis DERIV_mult [of f _ a s g])
-
-lemma field_differentiable_divide [derivative_intros]:
-  assumes "f field_differentiable (at a within s)"
-          "g field_differentiable (at a within s)"
-          "g a \<noteq> 0"
-    shows "(\<lambda>z. f z / g z) field_differentiable (at a within s)"
-  using assms unfolding field_differentiable_def
-  by (metis DERIV_divide [of f _ a s g])
-
-lemma field_differentiable_power [derivative_intros]:
-  assumes "f field_differentiable (at a within s)"
-    shows "(\<lambda>z. f z ^ n) field_differentiable (at a within s)"
-  using assms unfolding field_differentiable_def
-  by (metis DERIV_power)
-
-lemma field_differentiable_transform_within:
-  "0 < d \<Longrightarrow>
-        x \<in> s \<Longrightarrow>
-        (\<And>x'. x' \<in> s \<Longrightarrow> dist x' x < d \<Longrightarrow> f x' = g x') \<Longrightarrow>
-        f field_differentiable (at x within s)
-        \<Longrightarrow> g field_differentiable (at x within s)"
-  unfolding field_differentiable_def has_field_derivative_def
-  by (blast intro: has_derivative_transform_within)
-
-lemma field_differentiable_compose_within:
-  assumes "f field_differentiable (at a within s)"
-          "g field_differentiable (at (f a) within f`s)"
-    shows "(g o f) field_differentiable (at a within s)"
-  using assms unfolding field_differentiable_def
-  by (metis DERIV_image_chain)
-
-lemma field_differentiable_compose:
-  "f field_differentiable at z \<Longrightarrow> g field_differentiable at (f z)
-          \<Longrightarrow> (g o f) field_differentiable at z"
-by (metis field_differentiable_at_within field_differentiable_compose_within)
-
-lemma field_differentiable_within_open:
-     "\<lbrakk>a \<in> s; open s\<rbrakk> \<Longrightarrow> f field_differentiable at a within s \<longleftrightarrow>
-                          f field_differentiable at a"
-  unfolding field_differentiable_def
-  by (metis at_within_open)
-
-subsection\<open>Caratheodory characterization\<close>
-
-lemma field_differentiable_caratheodory_at:
-  "f field_differentiable (at z) \<longleftrightarrow>
-         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z) g)"
-  using CARAT_DERIV [of f]
-  by (simp add: field_differentiable_def has_field_derivative_def)
-
-lemma field_differentiable_caratheodory_within:
-  "f field_differentiable (at z within s) \<longleftrightarrow>
-         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z within s) g)"
-  using DERIV_caratheodory_within [of f]
-  by (simp add: field_differentiable_def has_field_derivative_def)
-
-subsection\<open>Holomorphic\<close>
+subsection\<open>Holomorphic functions\<close>
 
 definition holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
            (infixl "(holomorphic'_on)" 50)
@@ -427,6 +290,11 @@ lemma holomorphic_onI [intro?]: "(\<And>x. x \<in> s \<Longrightarrow> f field_d
 
 lemma holomorphic_onD [dest?]: "\<lbrakk>f holomorphic_on s; x \<in> s\<rbrakk> \<Longrightarrow> f field_differentiable (at x within s)"
   by (simp add: holomorphic_on_def)
+
+lemma holomorphic_on_imp_differentiable_on:
+    "f holomorphic_on s \<Longrightarrow> f differentiable_on s"
+  unfolding holomorphic_on_def differentiable_on_def
+  by (simp add: field_differentiable_imp_differentiable)
 
 lemma holomorphic_on_imp_differentiable_at:
    "\<lbrakk>f holomorphic_on s; open s; x \<in> s\<rbrakk> \<Longrightarrow> f field_differentiable (at x)"
@@ -593,6 +461,20 @@ lemma holomorphic_nonconstant:
     using assms
     apply (auto simp: holomorphic_derivI)
     done
+
+subsection\<open>Caratheodory characterization\<close>
+
+lemma field_differentiable_caratheodory_at:
+  "f field_differentiable (at z) \<longleftrightarrow>
+         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z) g)"
+  using CARAT_DERIV [of f]
+  by (simp add: field_differentiable_def has_field_derivative_def)
+
+lemma field_differentiable_caratheodory_within:
+  "f field_differentiable (at z within s) \<longleftrightarrow>
+         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z within s) g)"
+  using DERIV_caratheodory_within [of f]
+  by (simp add: field_differentiable_def has_field_derivative_def)
 
 subsection\<open>Analyticity on a set\<close>
 

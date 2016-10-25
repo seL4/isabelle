@@ -3115,6 +3115,9 @@ subsection \<open>Relations among closure notions and corresponding hulls\<close
 lemma affine_imp_convex: "affine s \<Longrightarrow> convex s"
   unfolding affine_def convex_def by auto
 
+lemma convex_affine_hull [simp]: "convex (affine hull S)"
+  by (simp add: affine_imp_convex)
+
 lemma subspace_imp_convex: "subspace s \<Longrightarrow> convex s"
   using subspace_imp_affine affine_imp_convex by auto
 
@@ -7662,6 +7665,12 @@ lemma segment_degen_0:
   using segment_degen_1 [of "1-u" b a]
   by (auto simp: algebra_simps)
 
+lemma add_scaleR_degen:
+  fixes a b ::"'a::real_vector"
+  assumes  "(u *\<^sub>R b + v *\<^sub>R a) = (u *\<^sub>R a + v *\<^sub>R b)"  "u \<noteq> v"
+  shows "a=b"
+  by (metis (no_types, hide_lams) add.commute add_diff_eq diff_add_cancel real_vector.scale_cancel_left real_vector.scale_left_diff_distrib assms)
+  
 lemma closed_segment_image_interval:
      "closed_segment a b = (\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0..1}"
   by (auto simp: set_eq_iff image_iff closed_segment_def)

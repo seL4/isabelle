@@ -8985,6 +8985,18 @@ proof -
     done
 qed
 
+lemma homeomorphic_spheres:
+  fixes a b ::"'a::real_normed_vector"
+  assumes "0 < d"  "0 < e"
+  shows "(sphere a d) homeomorphic (sphere b e)"
+unfolding homeomorphic_minimal
+    apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
+    apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
+    using assms
+    apply (auto intro!: continuous_intros
+      simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
+    done
+
 subsection\<open>Inverse function property for open/closed maps\<close>
 
 lemma continuous_on_inverse_open_map:

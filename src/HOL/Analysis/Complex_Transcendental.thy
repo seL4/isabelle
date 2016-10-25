@@ -693,8 +693,8 @@ corollary
     and Arg_eq: "z = of_real(norm z) * exp(\<i> * of_real(Arg z))"
   using Arg by auto
 
-lemma complex_norm_eq_1_exp: "norm z = 1 \<longleftrightarrow> (\<exists>t. z = exp(\<i> * of_real t))"
-  using Arg [of z] by auto
+lemma complex_norm_eq_1_exp: "norm z = 1 \<longleftrightarrow> exp(\<i> * of_real (Arg z)) = z"
+  by (metis Arg_eq cis_conv_exp mult.left_neutral norm_cis of_real_1)
 
 lemma Arg_unique: "\<lbrakk>of_real r * exp(\<i> * of_real a) = z; 0 < r; 0 \<le> a; a < 2*pi\<rbrakk> \<Longrightarrow> Arg z = a"
   apply (rule Arg_unique_lemma [OF _ Arg_eq])
@@ -2300,7 +2300,7 @@ lemma norm_exp_ii_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
   by simp
 
 lemma norm_exp_imaginary: "norm(exp z) = 1 \<Longrightarrow> Re z = 0"
-  by (simp add: complex_norm_eq_1_exp)
+  by simp
 
 lemma Im_Arctan_of_real [simp]: "Im (Arctan (of_real x)) = 0"
   unfolding Arctan_def divide_complex_def
@@ -3260,5 +3260,191 @@ lemma complex_not_root_unity:
   apply (rule_tac x="exp (of_real pi * \<i> * of_real (1 / n))" in exI)
   apply (auto simp: Re_complex_div_eq_0 exp_of_nat_mult [symmetric] mult_ac exp_Euler)
   done
+
+subsection\<open> Formulation of loop homotopy in terms of maps out of type complex\<close>
+
+lemma homotopic_circlemaps_imp_homotopic_loops:
+  assumes "homotopic_with (\<lambda>h. True) (sphere 0 1) S f g"
+   shows "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * ii))
+                            (g \<circ> exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * ii))"
+proof -
+  have "homotopic_with (\<lambda>f. True) {z. cmod z = 1} S f g"
+    using assms by (auto simp: sphere_def)
+  moreover have "continuous_on {0..1} (exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * \<i>))"
+     by (intro continuous_intros)
+  moreover have "(exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * \<i>)) ` {0..1} \<subseteq> {z. cmod z = 1}"
+    by (auto simp: norm_mult)
+  ultimately
+  show ?thesis
+    apply (simp add: homotopic_loops_def comp_assoc)
+    apply (rule homotopic_with_compose_continuous_right)
+      apply (auto simp: pathstart_def pathfinish_def)
+    done
+qed
+
+lemma homotopic_loops_imp_homotopic_circlemaps:
+  assumes "homotopic_loops S p q"
+    shows "homotopic_with (\<lambda>h. True) (sphere 0 1) S
+                          (p \<circ> (\<lambda>z. (Arg z / (2 * pi))))
+                          (q \<circ> (\<lambda>z. (Arg z / (2 * pi))))"
+proof -
+  obtain h where conth: "continuous_on ({0..1::real} \<times> {0..1}) h"
+             and him: "h ` ({0..1} \<times> {0..1}) \<subseteq> S"
+             and h0: "(\<forall>x. h (0, x) = p x)"
+             and h1: "(\<forall>x. h (1, x) = q x)"
+             and h01: "(\<forall>t\<in>{0..1}. h (t, 1) = h (t, 0)) "
+    using assms
+    by (auto simp: homotopic_loops_def sphere_def homotopic_with_def pathstart_def pathfinish_def)
+  define j where "j \<equiv> \<lambda>z. if 0 \<le> Im (snd z)
+                          then h (fst z, Arg (snd z) / (2 * pi))
+                          else h (fst z, 1 - Arg (cnj (snd z)) / (2 * pi))"
+  have Arg_eq: "1 - Arg (cnj y) / (2 * pi) = Arg y / (2 * pi) \<or> Arg y = 0 \<and> Arg (cnj y) = 0" if "cmod y = 1" for y
+    using that Arg_eq_0_pi Arg_eq_pi by (force simp: Arg_cnj divide_simps)
+  show ?thesis
+  proof (simp add: homotopic_with; intro conjI ballI exI)
+    show "continuous_on ({0..1} \<times> sphere 0 1) (\<lambda>w. h (fst w, Arg (snd w) / (2 * pi)))"
+    proof (rule continuous_on_eq)
+      show j: "j x = h (fst x, Arg (snd x) / (2 * pi))" if "x \<in> {0..1} \<times> sphere 0 1" for x
+        using Arg_eq that h01 by (force simp: j_def)
+      have eq:  "S = S \<inter> (UNIV \<times> {z. 0 \<le> Im z}) \<union> S \<inter> (UNIV \<times> {z. Im z \<le> 0})" for S :: "(real*complex)set"
+        by auto
+      have c1: "continuous_on ({0..1} \<times> sphere 0 1 \<inter> UNIV \<times> {z. 0 \<le> Im z}) (\<lambda>x. h (fst x, Arg (snd x) / (2 * pi)))"
+        apply (intro continuous_intros continuous_on_compose2 [OF conth]  continuous_on_compose2 [OF continuous_on_upperhalf_Arg])
+            apply (auto simp: Arg)
+        apply (meson Arg_lt_2pi linear not_le)
+        done
+      have c2: "continuous_on ({0..1} \<times> sphere 0 1 \<inter> UNIV \<times> {z. Im z \<le> 0}) (\<lambda>x. h (fst x, 1 - Arg (cnj (snd x)) / (2 * pi)))"
+        apply (intro continuous_intros continuous_on_compose2 [OF conth]  continuous_on_compose2 [OF continuous_on_upperhalf_Arg])
+            apply (auto simp: Arg)
+        apply (meson Arg_lt_2pi linear not_le)
+        done
+      show "continuous_on ({0..1} \<times> sphere 0 1) j"
+        apply (simp add: j_def)
+        apply (subst eq)
+        apply (rule continuous_on_cases_local)
+            apply (simp_all add: eq [symmetric] closedin_closed_Int closed_Times closed_halfspace_Im_le closed_halfspace_Im_ge c1 c2)
+        using Arg_eq h01
+        by force
+    qed
+    have "(\<lambda>w. h (fst w, Arg (snd w) / (2 * pi))) ` ({0..1} \<times> sphere 0 1) \<subseteq> h ` ({0..1} \<times> {0..1})"
+      by (auto simp: Arg_ge_0 Arg_lt_2pi less_imp_le)
+    also have "... \<subseteq> S"
+      using him by blast
+    finally show "(\<lambda>w. h (fst w, Arg (snd w) / (2 * pi))) ` ({0..1} \<times> sphere 0 1) \<subseteq> S" .
+  qed (auto simp: h0 h1)
+qed
+
+lemma simply_connected_homotopic_loops:
+  "simply_connected S \<longleftrightarrow>
+       (\<forall>p q. homotopic_loops S p p \<and> homotopic_loops S q q \<longrightarrow> homotopic_loops S p q)"
+unfolding simply_connected_def using homotopic_loops_refl by metis
+
+
+lemma simply_connected_eq_homotopic_circlemaps1:
+  fixes f :: "complex \<Rightarrow> 'a::topological_space" and g :: "complex \<Rightarrow> 'a"
+  assumes S: "simply_connected S"
+      and contf: "continuous_on (sphere 0 1) f" and fim: "f ` (sphere 0 1) \<subseteq> S"
+      and contg: "continuous_on (sphere 0 1) g" and gim: "g ` (sphere 0 1) \<subseteq> S"
+    shows "homotopic_with (\<lambda>h. True) (sphere 0 1) S f g"
+proof -
+  have "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi * t) * ii)) (g \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi *  t) * ii))"
+    apply (rule S [unfolded simply_connected_homotopic_loops, rule_format])
+    apply (simp add: homotopic_circlemaps_imp_homotopic_loops homotopic_with_refl contf fim contg gim)
+    done
+  then show ?thesis
+    apply (rule homotopic_with_eq [OF homotopic_loops_imp_homotopic_circlemaps])
+      apply (auto simp: o_def complex_norm_eq_1_exp mult.commute)
+    done
+qed
+
+lemma simply_connected_eq_homotopic_circlemaps2a:
+  fixes h :: "complex \<Rightarrow> 'a::topological_space"
+  assumes conth: "continuous_on (sphere 0 1) h" and him: "h ` (sphere 0 1) \<subseteq> S"
+      and hom: "\<And>f g::complex \<Rightarrow> 'a.
+                \<lbrakk>continuous_on (sphere 0 1) f; f ` (sphere 0 1) \<subseteq> S;
+                continuous_on (sphere 0 1) g; g ` (sphere 0 1) \<subseteq> S\<rbrakk>
+                \<Longrightarrow> homotopic_with (\<lambda>h. True) (sphere 0 1) S f g"
+            shows "\<exists>a. homotopic_with (\<lambda>h. True) (sphere 0 1) S h (\<lambda>x. a)"
+    apply (rule_tac x="h 1" in exI)
+    apply (rule hom)
+    using assms
+    by (auto simp: continuous_on_const)
+
+lemma simply_connected_eq_homotopic_circlemaps2b:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "\<And>f g::complex \<Rightarrow> 'a.
+                \<lbrakk>continuous_on (sphere 0 1) f; f ` (sphere 0 1) \<subseteq> S;
+                continuous_on (sphere 0 1) g; g ` (sphere 0 1) \<subseteq> S\<rbrakk>
+                \<Longrightarrow> homotopic_with (\<lambda>h. True) (sphere 0 1) S f g"
+  shows "path_connected S"
+proof (clarsimp simp add: path_connected_eq_homotopic_points)
+  fix a b
+  assume "a \<in> S" "b \<in> S"
+  then show "homotopic_loops S (linepath a a) (linepath b b)"
+    using homotopic_circlemaps_imp_homotopic_loops [OF assms [of "\<lambda>x. a" "\<lambda>x. b"]]
+    by (auto simp: o_def continuous_on_const linepath_def)
+qed
+
+lemma simply_connected_eq_homotopic_circlemaps3:
+  fixes h :: "complex \<Rightarrow> 'a::real_normed_vector"
+  assumes "path_connected S"
+      and hom: "\<And>f::complex \<Rightarrow> 'a.
+                  \<lbrakk>continuous_on (sphere 0 1) f; f `(sphere 0 1) \<subseteq> S\<rbrakk>
+                  \<Longrightarrow> \<exists>a. homotopic_with (\<lambda>h. True) (sphere 0 1) S f (\<lambda>x. a)"
+    shows "simply_connected S"
+proof (clarsimp simp add: simply_connected_eq_contractible_loop_some assms)
+  fix p
+  assume p: "path p" "path_image p \<subseteq> S" "pathfinish p = pathstart p"
+  then have "homotopic_loops S p p"
+    by (simp add: homotopic_loops_refl)
+  then obtain a where homp: "homotopic_with (\<lambda>h. True) (sphere 0 1) S (p \<circ> (\<lambda>z. Arg z / (2 * pi))) (\<lambda>x. a)"
+    by (metis homotopic_with_imp_subset2 homotopic_loops_imp_homotopic_circlemaps homotopic_with_imp_continuous hom)
+  show "\<exists>a. a \<in> S \<and> homotopic_loops S p (linepath a a)"
+  proof (intro exI conjI)
+    show "a \<in> S"
+      using homotopic_with_imp_subset2 [OF homp]
+      by (metis dist_0_norm image_subset_iff mem_sphere norm_one)
+    have teq: "\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk>
+               \<Longrightarrow> t = Arg (exp (2 * of_real pi * of_real t * \<i>)) / (2 * pi) \<or> t=1 \<and> Arg (exp (2 * of_real pi * of_real t * \<i>)) = 0"
+      apply (rule disjCI)
+      using Arg_of_real [of 1] apply (auto simp: Arg_exp)
+      done
+    have "homotopic_loops S p (p \<circ> (\<lambda>z. Arg z / (2 * pi)) \<circ> exp \<circ> (\<lambda>t. 2 * complex_of_real pi * complex_of_real t * \<i>))"
+      apply (rule homotopic_loops_eq [OF p])
+      using p teq apply (fastforce simp: pathfinish_def pathstart_def)
+      done
+    then
+    show "homotopic_loops S p (linepath a a)"
+      by (simp add: linepath_refl  homotopic_loops_trans [OF _ homotopic_circlemaps_imp_homotopic_loops [OF homp, simplified K_record_comp]])
+  qed
+qed
+
+
+proposition simply_connected_eq_homotopic_circlemaps:
+  fixes S :: "'a::real_normed_vector set"
+  shows "simply_connected S \<longleftrightarrow>
+         (\<forall>f g::complex \<Rightarrow> 'a.
+              continuous_on (sphere 0 1) f \<and> f ` (sphere 0 1) \<subseteq> S \<and>
+              continuous_on (sphere 0 1) g \<and> g ` (sphere 0 1) \<subseteq> S
+              \<longrightarrow> homotopic_with (\<lambda>h. True) (sphere 0 1) S f g)"
+  apply (rule iffI)
+   apply (blast elim: dest: simply_connected_eq_homotopic_circlemaps1)
+  by (simp add: simply_connected_eq_homotopic_circlemaps2a simply_connected_eq_homotopic_circlemaps2b simply_connected_eq_homotopic_circlemaps3)
+
+proposition simply_connected_eq_contractible_circlemap:
+  fixes S :: "'a::real_normed_vector set"
+  shows "simply_connected S \<longleftrightarrow>
+         path_connected S \<and>
+         (\<forall>f::complex \<Rightarrow> 'a.
+              continuous_on (sphere 0 1) f \<and> f `(sphere 0 1) \<subseteq> S
+              \<longrightarrow> (\<exists>a. homotopic_with (\<lambda>h. True) (sphere 0 1) S f (\<lambda>x. a)))"
+  apply (rule iffI)
+   apply (simp add: simply_connected_eq_homotopic_circlemaps1 simply_connected_eq_homotopic_circlemaps2a simply_connected_eq_homotopic_circlemaps2b)
+  using simply_connected_eq_homotopic_circlemaps3 by blast
+
+corollary homotopy_eqv_simple_connectedness:
+  fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
+  shows "S homotopy_eqv T \<Longrightarrow> simply_connected S \<longleftrightarrow> simply_connected T"
+  by (simp add: simply_connected_eq_homotopic_circlemaps homotopy_eqv_homotopic_triviality)
 
 end

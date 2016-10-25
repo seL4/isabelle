@@ -1367,7 +1367,7 @@ qed
 
 lemma tendsto_mult_filterlim_at_infinity:
   fixes c :: "'a::real_normed_field"
-  assumes "F \<noteq> bot" "(f \<longlongrightarrow> c) F" "c \<noteq> 0"
+  assumes  "(f \<longlongrightarrow> c) F" "c \<noteq> 0"
   assumes "filterlim g at_infinity F"
   shows "filterlim (\<lambda>x. f x * g x) at_infinity F"
 proof -
@@ -1379,7 +1379,7 @@ proof -
     by (auto intro: filterlim_at_infinity_imp_eventually_ne tendsto_imp_eventually_ne eventually_conj)
   then show ?thesis
     by (subst filterlim_inverse_at_iff[symmetric]) simp_all
-qed
+qed  
 
 lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) \<longlongrightarrow> 0) F"
  by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)

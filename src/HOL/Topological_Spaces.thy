@@ -855,14 +855,21 @@ qed
 
 lemma tendsto_imp_eventually_ne:
   fixes c :: "'a::t1_space"
-  assumes "F \<noteq> bot" "(f \<longlongrightarrow> c) F" "c \<noteq> c'"
+  assumes  "(f \<longlongrightarrow> c) F" "c \<noteq> c'"
   shows "eventually (\<lambda>z. f z \<noteq> c') F"
-proof (rule ccontr)
-  assume "\<not> eventually (\<lambda>z. f z \<noteq> c') F"
-  then have "frequently (\<lambda>z. f z = c') F"
-    by (simp add: frequently_def)
-  from limit_frequently_eq[OF assms(1) this assms(2)] and assms(3) show False
-    by contradiction
+proof (cases "F=bot")
+  case True
+  thus ?thesis by auto
+next
+  case False
+  show ?thesis
+  proof (rule ccontr)
+    assume "\<not> eventually (\<lambda>z. f z \<noteq> c') F"
+    then have "frequently (\<lambda>z. f z = c') F"
+      by (simp add: frequently_def)
+    from limit_frequently_eq[OF False this \<open>(f \<longlongrightarrow> c) F\<close>] and \<open>c \<noteq> c'\<close> show False
+      by contradiction
+  qed
 qed
 
 lemma tendsto_le:

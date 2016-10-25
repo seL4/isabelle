@@ -3590,8 +3590,9 @@ proof -
             using contra_subsetD path_image_def path_fg t_def that by fastforce
           ultimately have "(h has_field_derivative der t) (at t)"
             unfolding h_def der_def using g_holo f_holo \<open>open s\<close>
-            by (auto intro!: holomorphic_derivI derivative_eq_intros )
-          then show "\<exists>g'. (h has_field_derivative g') (at (\<gamma> x))" unfolding t_def by auto
+            by (auto intro!: holomorphic_derivI derivative_eq_intros)
+          then show "h field_differentiable at (\<gamma> x)" 
+            unfolding t_def field_differentiable_def by blast
         qed
       then have " (op / 1 has_contour_integral 0) (h \<circ> \<gamma>)
           = ((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>"

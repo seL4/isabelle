@@ -2493,6 +2493,24 @@ corollary rel_boundary_retract_of_punctured_affine_hull:
 by (metis assms closure_closed compact_eq_bounded_closed rel_frontier_def
           rel_frontier_retract_of_punctured_affine_hull)
 
+lemma path_connected_sphere_gen:
+  assumes "convex S" "bounded S" "aff_dim S \<noteq> 1"
+  shows "path_connected(rel_frontier S)"
+proof (cases "rel_interior S = {}")
+  case True
+  then show ?thesis
+    by (simp add: \<open>convex S\<close> convex_imp_path_connected rel_frontier_def)
+next
+  case False
+  then show ?thesis
+    by (metis aff_dim_affine_hull affine_affine_hull affine_imp_convex all_not_in_conv assms path_connected_punctured_convex rel_frontier_retract_of_punctured_affine_hull retract_of_path_connected)
+qed
+
+lemma connected_sphere_gen:
+  assumes "convex S" "bounded S" "aff_dim S \<noteq> 1"
+  shows "connected(rel_frontier S)"
+  by (simp add: assms path_connected_imp_connected path_connected_sphere_gen)
+
 subsection\<open>Borsuk-style characterization of separation\<close>
 
 lemma continuous_on_Borsuk_map:
@@ -4325,5 +4343,6 @@ corollary path_connected_complement_homeomorphic_convex_compact:
     shows "path_connected(- S)"
   using connected_complement_homeomorphic_convex_compact [OF assms]
   using \<open>compact T\<close> compact_eq_bounded_closed connected_open_path_connected hom homeomorphic_compactness by blast
+
 
 end

@@ -359,6 +359,23 @@ lemma diff_chain_at[derivative_intros]:
   using has_derivative_compose[of f f' x UNIV g g']
   by (simp add: comp_def)
 
+lemma field_vector_diff_chain_within:
+ assumes Df: "(f has_vector_derivative f') (at x within s)"
+     and Dg: "(g has_field_derivative g') (at (f x) within f`s)"
+ shows "((g \<circ> f) has_vector_derivative (f' * g')) (at x within s)"
+using diff_chain_within[OF Df[unfolded has_vector_derivative_def]
+                       Dg [unfolded has_field_derivative_def]]
+ by (auto simp: o_def mult.commute has_vector_derivative_def)
+
+lemma vector_derivative_diff_chain_within:
+  assumes Df: "(f has_vector_derivative f') (at x within s)"
+     and Dg: "(g has_derivative g') (at (f x) within f`s)"
+  shows "((g \<circ> f) has_vector_derivative (g' f')) (at x within s)"
+using diff_chain_within[OF Df[unfolded has_vector_derivative_def] Dg]
+  linear.scaleR[OF has_derivative_linear[OF Dg]]
+  unfolding has_vector_derivative_def o_def
+  by (auto simp: o_def mult.commute has_vector_derivative_def)
+
 
 subsection \<open>Composition rules stated just for differentiability\<close>
 
@@ -2563,13 +2580,149 @@ using diff_chain_at[OF Df[unfolded has_vector_derivative_def]
                        Dg [unfolded has_field_derivative_def]]
  by (auto simp: o_def mult.commute has_vector_derivative_def)
 
-lemma vector_derivative_chain_at_general:  (*thanks to Wenda Li*)
- assumes "f differentiable at x" "(\<exists>g'. (g has_field_derivative g') (at (f x)))"
- shows "vector_derivative (g \<circ> f) (at x) =
-        vector_derivative f (at x) * deriv g (f x)"
-apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
-using assms
-by (auto simp: vector_derivative_works DERIV_deriv_iff_has_field_derivative)
+lemma vector_derivative_chain_within: 
+  assumes "at x within s \<noteq> bot" "f differentiable (at x within s)" 
+    "(g has_derivative g') (at (f x) within f ` s)" 
+  shows "vector_derivative (g \<circ> f) (at x within s) =
+        g' (vector_derivative f (at x within s)) "
+  apply (rule vector_derivative_within [OF \<open>at x within s \<noteq> bot\<close>])
+  apply (rule vector_derivative_diff_chain_within)
+  using assms(2-3) vector_derivative_works
+  by auto
+
+subsection\<open>The notion of being field differentiable\<close>
+
+definition field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
+           (infixr "(field'_differentiable)" 50)
+  where "f field_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
+
+lemma field_differentiable_imp_differentiable:
+  "f field_differentiable F \<Longrightarrow> f differentiable F"
+  unfolding field_differentiable_def differentiable_def 
+  using has_field_derivative_imp_has_derivative by auto
+
+lemma field_differentiable_derivI:
+    "f field_differentiable (at x) \<Longrightarrow> (f has_field_derivative deriv f x) (at x)"
+by (simp add: field_differentiable_def DERIV_deriv_iff_has_field_derivative)
+
+lemma field_differentiable_imp_continuous_at:
+    "f field_differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
+  by (metis DERIV_continuous field_differentiable_def)
+
+lemma field_differentiable_within_subset:
+    "\<lbrakk>f field_differentiable (at x within s); t \<subseteq> s\<rbrakk>
+     \<Longrightarrow> f field_differentiable (at x within t)"
+  by (metis DERIV_subset field_differentiable_def)
+
+lemma field_differentiable_at_within:
+    "\<lbrakk>f field_differentiable (at x)\<rbrakk>
+     \<Longrightarrow> f field_differentiable (at x within s)"
+  unfolding field_differentiable_def
+  by (metis DERIV_subset top_greatest)
+
+lemma field_differentiable_linear [simp,derivative_intros]: "(op * c) field_differentiable F"
+proof -
+  show ?thesis
+    unfolding field_differentiable_def has_field_derivative_def mult_commute_abs
+    by (force intro: has_derivative_mult_right)
+qed
+
+lemma field_differentiable_const [simp,derivative_intros]: "(\<lambda>z. c) field_differentiable F"
+  unfolding field_differentiable_def has_field_derivative_def
+  using DERIV_const has_field_derivative_imp_has_derivative by blast
+
+lemma field_differentiable_ident [simp,derivative_intros]: "(\<lambda>z. z) field_differentiable F"
+  unfolding field_differentiable_def has_field_derivative_def
+  using DERIV_ident has_field_derivative_def by blast
+
+lemma field_differentiable_id [simp,derivative_intros]: "id field_differentiable F"
+  unfolding id_def by (rule field_differentiable_ident)
+
+lemma field_differentiable_minus [derivative_intros]:
+  "f field_differentiable F \<Longrightarrow> (\<lambda>z. - (f z)) field_differentiable F"
+  unfolding field_differentiable_def
+  by (metis field_differentiable_minus)
+
+lemma field_differentiable_add [derivative_intros]:
+  assumes "f field_differentiable F" "g field_differentiable F"
+    shows "(\<lambda>z. f z + g z) field_differentiable F"
+  using assms unfolding field_differentiable_def
+  by (metis field_differentiable_add)
+
+lemma field_differentiable_add_const [simp,derivative_intros]:
+     "op + c field_differentiable F"
+  by (simp add: field_differentiable_add)
+
+lemma field_differentiable_sum [derivative_intros]:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) field_differentiable F) \<Longrightarrow> (\<lambda>z. \<Sum>i\<in>I. f i z) field_differentiable F"
+  by (induct I rule: infinite_finite_induct)
+     (auto intro: field_differentiable_add field_differentiable_const)
+
+lemma field_differentiable_diff [derivative_intros]:
+  assumes "f field_differentiable F" "g field_differentiable F"
+    shows "(\<lambda>z. f z - g z) field_differentiable F"
+  using assms unfolding field_differentiable_def
+  by (metis field_differentiable_diff)
+
+lemma field_differentiable_inverse [derivative_intros]:
+  assumes "f field_differentiable (at a within s)" "f a \<noteq> 0"
+  shows "(\<lambda>z. inverse (f z)) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
+  by (metis DERIV_inverse_fun)
+
+lemma field_differentiable_mult [derivative_intros]:
+  assumes "f field_differentiable (at a within s)"
+          "g field_differentiable (at a within s)"
+    shows "(\<lambda>z. f z * g z) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
+  by (metis DERIV_mult [of f _ a s g])
+
+lemma field_differentiable_divide [derivative_intros]:
+  assumes "f field_differentiable (at a within s)"
+          "g field_differentiable (at a within s)"
+          "g a \<noteq> 0"
+    shows "(\<lambda>z. f z / g z) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
+  by (metis DERIV_divide [of f _ a s g])
+
+lemma field_differentiable_power [derivative_intros]:
+  assumes "f field_differentiable (at a within s)"
+    shows "(\<lambda>z. f z ^ n) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
+  by (metis DERIV_power)
+
+lemma field_differentiable_transform_within:
+  "0 < d \<Longrightarrow>
+        x \<in> s \<Longrightarrow>
+        (\<And>x'. x' \<in> s \<Longrightarrow> dist x' x < d \<Longrightarrow> f x' = g x') \<Longrightarrow>
+        f field_differentiable (at x within s)
+        \<Longrightarrow> g field_differentiable (at x within s)"
+  unfolding field_differentiable_def has_field_derivative_def
+  by (blast intro: has_derivative_transform_within)
+
+lemma field_differentiable_compose_within:
+  assumes "f field_differentiable (at a within s)"
+          "g field_differentiable (at (f a) within f`s)"
+    shows "(g o f) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
+  by (metis DERIV_image_chain)
+
+lemma field_differentiable_compose:
+  "f field_differentiable at z \<Longrightarrow> g field_differentiable at (f z)
+          \<Longrightarrow> (g o f) field_differentiable at z"
+by (metis field_differentiable_at_within field_differentiable_compose_within)
+
+lemma field_differentiable_within_open:
+     "\<lbrakk>a \<in> s; open s\<rbrakk> \<Longrightarrow> f field_differentiable at a within s \<longleftrightarrow>
+                          f field_differentiable at a"
+  unfolding field_differentiable_def
+  by (metis at_within_open)
+
+lemma vector_derivative_chain_at_general: 
+  assumes "f differentiable at x" "g field_differentiable at (f x)"
+  shows "vector_derivative (g \<circ> f) (at x) = vector_derivative f (at x) * deriv g (f x)"
+  apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
+  using assms vector_derivative_works by (auto simp: field_differentiable_derivI)
 
 lemma exp_scaleR_has_vector_derivative_right:
   "((\<lambda>t. exp (t *\<^sub>R A)) has_vector_derivative exp (t *\<^sub>R A) * A) (at t within T)"

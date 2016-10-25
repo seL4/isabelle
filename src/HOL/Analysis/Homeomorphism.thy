@@ -129,6 +129,68 @@ proof -
     by (simp add: \<open>interior S = rel_interior S\<close> frontier_def rel_frontier_def that)
 qed
 
+proposition rel_frontier_not_sing:
+  fixes a :: "'a::euclidean_space"
+  assumes "bounded S"
+    shows "rel_frontier S \<noteq> {a}"
+proof (cases "S = {}")
+  case True  then show ?thesis  by simp
+next
+  case False
+  then obtain z where "z \<in> S"
+    by blast
+  then show ?thesis
+  proof (cases "S = {z}")
+    case True then show ?thesis  by simp
+  next
+    case False
+    then obtain w where "w \<in> S" "w \<noteq> z"
+      using \<open>z \<in> S\<close> by blast
+    show ?thesis
+    proof
+      assume "rel_frontier S = {a}"
+      then consider "w \<notin> rel_frontier S" | "z \<notin> rel_frontier S"
+        using \<open>w \<noteq> z\<close> by auto
+      then show False
+      proof cases
+        case 1
+        then have w: "w \<in> rel_interior S"
+          using \<open>w \<in> S\<close> closure_subset rel_frontier_def by fastforce
+        have "w + (w - z) \<in> affine hull S"
+          by (metis \<open>w \<in> S\<close> \<open>z \<in> S\<close> affine_affine_hull hull_inc mem_affine_3_minus scaleR_one)
+        then obtain e where "0 < e" "(w + e *\<^sub>R (w - z)) \<in> rel_frontier S"
+          using \<open>w \<noteq> z\<close>  \<open>z \<in> S\<close> by (metis assms ray_to_rel_frontier right_minus_eq w)
+        moreover obtain d where "0 < d" "(w + d *\<^sub>R (z - w)) \<in> rel_frontier S"
+          using ray_to_rel_frontier [OF \<open>bounded S\<close> w, of "1 *\<^sub>R (z - w)"]  \<open>w \<noteq> z\<close>  \<open>z \<in> S\<close>
+          by (metis add.commute add.right_neutral diff_add_cancel hull_inc scaleR_one)
+        ultimately have "d *\<^sub>R (z - w) = e *\<^sub>R (w - z)"
+          using \<open>rel_frontier S = {a}\<close> by force
+        moreover have "e \<noteq> -d "
+          using \<open>0 < e\<close> \<open>0 < d\<close> by force
+        ultimately show False
+          by (metis (no_types, lifting) \<open>w \<noteq> z\<close> eq_iff_diff_eq_0 minus_diff_eq real_vector.scale_cancel_right real_vector.scale_minus_right scaleR_left.minus)
+      next
+        case 2
+        then have z: "z \<in> rel_interior S"
+          using \<open>z \<in> S\<close> closure_subset rel_frontier_def by fastforce
+        have "z + (z - w) \<in> affine hull S"
+          by (metis \<open>z \<in> S\<close> \<open>w \<in> S\<close> affine_affine_hull hull_inc mem_affine_3_minus scaleR_one)
+        then obtain e where "0 < e" "(z + e *\<^sub>R (z - w)) \<in> rel_frontier S"
+          using \<open>w \<noteq> z\<close>  \<open>w \<in> S\<close> by (metis assms ray_to_rel_frontier right_minus_eq z)
+        moreover obtain d where "0 < d" "(z + d *\<^sub>R (w - z)) \<in> rel_frontier S"
+          using ray_to_rel_frontier [OF \<open>bounded S\<close> z, of "1 *\<^sub>R (w - z)"]  \<open>w \<noteq> z\<close>  \<open>w \<in> S\<close>
+          by (metis add.commute add.right_neutral diff_add_cancel hull_inc scaleR_one)
+        ultimately have "d *\<^sub>R (w - z) = e *\<^sub>R (z - w)"
+          using \<open>rel_frontier S = {a}\<close> by force
+        moreover have "e \<noteq> -d "
+          using \<open>0 < e\<close> \<open>0 < d\<close> by force
+        ultimately show False
+          by (metis (no_types, lifting) \<open>w \<noteq> z\<close> eq_iff_diff_eq_0 minus_diff_eq real_vector.scale_cancel_right real_vector.scale_minus_right scaleR_left.minus)
+      qed
+    qed
+  qed
+qed
+
 proposition
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and 0: "0 \<in> rel_interior S"

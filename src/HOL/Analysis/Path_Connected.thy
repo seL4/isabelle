@@ -1205,6 +1205,9 @@ lemma simple_path_linepath[intro]: "a \<noteq> b \<Longrightarrow> simple_path (
 lemma linepath_trivial [simp]: "linepath a a x = a"
   by (simp add: linepath_def real_vector.scale_left_diff_distrib)
 
+lemma linepath_refl: "linepath a a = (\<lambda>x. a)"
+  by auto
+
 lemma subpath_refl: "subpath a a g = linepath (g a) (g a)"
   by (simp add: subpath_def linepath_def algebra_simps)
 
@@ -4361,6 +4364,7 @@ proof -
   with assms show ?thesis
     by (simp add: simply_connected_eq_contractible_loop_any pathfinish_def pathstart_def)
 qed
+
 
 subsection\<open>Contractible sets\<close>
 
