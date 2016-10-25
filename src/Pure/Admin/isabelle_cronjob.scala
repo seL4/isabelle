@@ -183,6 +183,7 @@ object Isabelle_Cronjob
         res match {
           case Exn.Res(_) => None
           case Exn.Exn(exn) =>
+            exn.printStackTrace()
             val first_line = Library.split_lines(Exn.message(exn)).headOption getOrElse "exception"
             Some(first_line)
         }
