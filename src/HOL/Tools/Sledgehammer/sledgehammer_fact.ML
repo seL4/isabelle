@@ -458,7 +458,7 @@ fun is_useful_unnamed_local_fact ctxt =
 fun all_facts ctxt generous ho_atp keywords add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
-    val transfer = Global_Theory.transfer_theories thy;
+    val transfer = Global_Theory.transfer_theories thy
     val global_facts = Global_Theory.facts_of thy
     val is_too_complex =
       if generous orelse fact_count global_facts >= max_facts_for_complex_check then K false
@@ -528,7 +528,7 @@ fun all_facts ctxt generous ho_atp keywords add_ths chained css =
   in
     (* The single-theorem names go before the multiple-theorem ones (e.g., "xxx" vs. "xxx(3)"), so
        that single names are preferred when both are available. *)
-    `I []
+    ([], [])
     |> add_facts false fold local_facts (unnamed_locals @ named_locals)
     |> add_facts true Facts.fold_static global_facts global_facts
     |> op @

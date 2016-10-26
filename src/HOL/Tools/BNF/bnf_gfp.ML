@@ -1676,7 +1676,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
       dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_notes, dtor_Jset_induct_thms, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
-        map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids),
+        map_split (`(mk_pointfree2 lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids),
         mk_dtor_map_unique_DEADID_thm (),
         replicate n [],
         map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs,
@@ -2532,7 +2532,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
       ||>> mk_Frees "S" activephiTs;
 
     val dtor_unfold_o_Jmap_thms = mk_xtor_co_iter_o_map_thms Greatest_FP false m
-      dtor_unfold_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_unfold_thms)
+      dtor_unfold_unique_thm dtor_Jmap_o_thms (map (mk_pointfree2 lthy) dtor_unfold_thms)
       sym_map_comps map_cong0s;
 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;

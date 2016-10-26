@@ -10,6 +10,8 @@ sig
   include CTR_SUGAR_UTIL
   include BNF_FP_REC_SUGAR_UTIL
 
+  val transfer_plugin: string
+
   val unflatt: 'a list list list -> 'b list -> 'b list list list
   val unflattt: 'a list list list list -> 'b list -> 'b list list list list
 
@@ -120,6 +122,9 @@ struct
 
 open Ctr_Sugar_Util
 open BNF_FP_Rec_Sugar_Util
+
+val transfer_plugin = Plugin_Name.declare_setup @{binding transfer};
+
 
 (* Library proper *)
 

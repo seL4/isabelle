@@ -862,7 +862,7 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
     val xtor_co_rec_o_map_thms = if forall is_none absT_info_opts
       then
         mk_xtor_co_iter_o_map_thms fp true m xtor_co_rec_unique_thm
-          (map (mk_pointfree lthy) xtor_maps) (map (mk_pointfree lthy) xtor_co_rec_thms)
+          (map (mk_pointfree2 lthy) xtor_maps) (map (mk_pointfree2 lthy) xtor_co_rec_thms)
           sym_map_comp0s map_cong0s
       else
         replicate n refl (* FIXME *);

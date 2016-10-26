@@ -66,8 +66,6 @@ sig
      fp_bnf_sugar: fp_bnf_sugar,
      fp_co_induct_sugar: fp_co_induct_sugar option}
 
-  val transfer_plugin: string
-
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
 
@@ -312,8 +310,6 @@ type fp_sugar =
    fp_ctr_sugar: fp_ctr_sugar,
    fp_bnf_sugar: fp_bnf_sugar,
    fp_co_induct_sugar: fp_co_induct_sugar option};
-
-val transfer_plugin = Plugin_Name.declare_setup @{binding transfer};
 
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;

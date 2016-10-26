@@ -464,7 +464,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (res
         val goals =
           @{map 8} mk_goals un_folds xtors ss pre_fold_maps fp_abss fp_reps abss reps;
 
-        val fp_un_folds = map (mk_pointfree lthy) (of_fp_res #xtor_un_fold_thms);
+        val fp_un_folds = map (mk_pointfree2 lthy) (of_fp_res #xtor_un_fold_thms);
 
         val simps = flat [simp_thms, un_fold_defs, map_defs, fp_un_folds,
           fp_un_fold_o_maps, map_thms, Rep_o_Abss];

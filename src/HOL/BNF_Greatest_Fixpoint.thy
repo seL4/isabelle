@@ -136,8 +136,8 @@ lemma relImage_relInvImage:
 lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a) (snd a)"
   by simp
 
-lemma fst_diag_id: "(fst \<circ> (%x. (x, x))) z = id z" by simp
-lemma snd_diag_id: "(snd \<circ> (%x. (x, x))) z = id z" by simp
+lemma fst_diag_id: "(fst \<circ> (\<lambda>x. (x, x))) z = id z" by simp
+lemma snd_diag_id: "(snd \<circ> (\<lambda>x. (x, x))) z = id z" by simp
 
 lemma fst_diag_fst: "fst o ((\<lambda>x. (x, x)) o fst) = fst" by auto
 lemma snd_diag_fst: "snd o ((\<lambda>x. (x, x)) o fst) = fst" by auto
@@ -201,16 +201,16 @@ lemma Inl_Field_csum: "a \<in> Field r \<Longrightarrow> Inl a \<in> Field (r +c
 lemma Inr_Field_csum: "a \<in> Field s \<Longrightarrow> Inr a \<in> Field (r +c s)"
   unfolding Field_card_of csum_def by auto
 
-lemma rec_nat_0_imp: "f = rec_nat f1 (%n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
+lemma rec_nat_0_imp: "f = rec_nat f1 (\<lambda>n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
   by auto
 
-lemma rec_nat_Suc_imp: "f = rec_nat f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
+lemma rec_nat_Suc_imp: "f = rec_nat f1 (\<lambda>n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
   by auto
 
-lemma rec_list_Nil_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
+lemma rec_list_Nil_imp: "f = rec_list f1 (\<lambda>x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
   by auto
 
-lemma rec_list_Cons_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
+lemma rec_list_Cons_imp: "f = rec_list f1 (\<lambda>x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
   by auto
 
 lemma not_arg_cong_Inr: "x \<noteq> y \<Longrightarrow> Inr x \<noteq> Inr y"
@@ -235,40 +235,40 @@ lemma rel_fun_image2p: "rel_fun R (image2p f g R) f g"
 subsection \<open>Equivalence relations, quotients, and Hilbert's choice\<close>
 
 lemma equiv_Eps_in:
-"\<lbrakk>equiv A r; X \<in> A//r\<rbrakk> \<Longrightarrow> Eps (%x. x \<in> X) \<in> X"
+"\<lbrakk>equiv A r; X \<in> A//r\<rbrakk> \<Longrightarrow> Eps (\<lambda>x. x \<in> X) \<in> X"
   apply (rule someI2_ex)
   using in_quotient_imp_non_empty by blast
 
 lemma equiv_Eps_preserves:
   assumes ECH: "equiv A r" and X: "X \<in> A//r"
-  shows "Eps (%x. x \<in> X) \<in> A"
+  shows "Eps (\<lambda>x. x \<in> X) \<in> A"
   apply (rule in_mono[rule_format])
    using assms apply (rule in_quotient_imp_subset)
   by (rule equiv_Eps_in) (rule assms)+
 
 lemma proj_Eps:
   assumes "equiv A r" and "X \<in> A//r"
-  shows "proj r (Eps (%x. x \<in> X)) = X"
+  shows "proj r (Eps (\<lambda>x. x \<in> X)) = X"
 unfolding proj_def
 proof auto
   fix x assume x: "x \<in> X"
-  thus "(Eps (%x. x \<in> X), x) \<in> r" using assms equiv_Eps_in in_quotient_imp_in_rel by fast
+  thus "(Eps (\<lambda>x. x \<in> X), x) \<in> r" using assms equiv_Eps_in in_quotient_imp_in_rel by fast
 next
-  fix x assume "(Eps (%x. x \<in> X),x) \<in> r"
+  fix x assume "(Eps (\<lambda>x. x \<in> X),x) \<in> r"
   thus "x \<in> X" using in_quotient_imp_closed[OF assms equiv_Eps_in[OF assms]] by fast
 qed
 
-definition univ where "univ f X == f (Eps (%x. x \<in> X))"
+definition univ where "univ f X == f (Eps (\<lambda>x. x \<in> X))"
 
 lemma univ_commute:
 assumes ECH: "equiv A r" and RES: "f respects r" and x: "x \<in> A"
 shows "(univ f) (proj r x) = f x"
 proof (unfold univ_def)
   have prj: "proj r x \<in> A//r" using x proj_preserves by fast
-  hence "Eps (%y. y \<in> proj r x) \<in> A" using ECH equiv_Eps_preserves by fast
-  moreover have "proj r (Eps (%y. y \<in> proj r x)) = proj r x" using ECH prj proj_Eps by fast
-  ultimately have "(x, Eps (%y. y \<in> proj r x)) \<in> r" using x ECH proj_iff by fast
-  thus "f (Eps (%y. y \<in> proj r x)) = f x" using RES unfolding congruent_def by fastforce
+  hence "Eps (\<lambda>y. y \<in> proj r x) \<in> A" using ECH equiv_Eps_preserves by fast
+  moreover have "proj r (Eps (\<lambda>y. y \<in> proj r x)) = proj r x" using ECH prj proj_Eps by fast
+  ultimately have "(x, Eps (\<lambda>y. y \<in> proj r x)) \<in> r" using x ECH proj_iff by fast
+  thus "f (Eps (\<lambda>y. y \<in> proj r x)) = f x" using RES unfolding congruent_def by fastforce
 qed
 
 lemma univ_preserves:

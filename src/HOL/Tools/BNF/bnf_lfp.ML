@@ -1303,7 +1303,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         ctor_Irel_thms, Ibnf_notes, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
-        map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids),
+        map_split (`(mk_pointfree2 lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids),
         mk_ctor_map_unique_DEADID_thm (),
         replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, [], lthy)
       else let
@@ -1791,7 +1791,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       ||>> mk_Frees "IR" activeIphiTs;
 
     val ctor_fold_o_Imap_thms = mk_xtor_co_iter_o_map_thms Least_FP false m ctor_fold_unique_thm
-      ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_fold_thms) sym_map_comps map_cong0s;
+      ctor_Imap_o_thms (map (mk_pointfree2 lthy) ctor_fold_thms) sym_map_comps map_cong0s;
 
     val Irels = if m = 0 then map HOLogic.eq_const Ts
       else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
