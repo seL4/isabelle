@@ -144,9 +144,13 @@ fun gen_tm_of_isa in_prop ctxt t =
 val tm_of_isa = gen_tm_of_isa false;
 val prop_of_isa = gen_tm_of_isa true;
 
-fun nun_type_spec_of_isa ctxt {abs_typ, rep_typ, wrt, abs, rep} =
-  {abs_ty = ty_of_isa abs_typ, rep_ty = ty_of_isa rep_typ, wrt = tm_of_isa ctxt wrt,
-   abs = tm_of_isa ctxt abs, rep = tm_of_isa ctxt rep};
+fun nun_copy_spec_of_isa_typedef ctxt {abs_typ, rep_typ, wrt, abs, rep} =
+  {abs_ty = ty_of_isa abs_typ, rep_ty = ty_of_isa rep_typ, subset = SOME (tm_of_isa ctxt wrt),
+   quotient = NONE, abs = tm_of_isa ctxt abs, rep = tm_of_isa ctxt rep};
+
+fun nun_copy_spec_of_isa_quotient ctxt {abs_typ, rep_typ, wrt, abs, rep} =
+  {abs_ty = ty_of_isa abs_typ, rep_ty = ty_of_isa rep_typ, subset = NONE,
+   quotient = SOME (tm_of_isa ctxt wrt), abs = tm_of_isa ctxt abs, rep = tm_of_isa ctxt rep};
 
 fun nun_ctr_of_isa ctxt ctr =
   {ctr = tm_of_isa ctxt ctr, arg_tys = map ty_of_isa (binder_types (fastype_of ctr))};
@@ -168,8 +172,8 @@ fun nun_problem_of_isa ctxt {commandss, sound, complete} =
     fun cmd_of cmd =
       (case cmd of
         ITVal (T, cards) => NTVal (ty_of_isa T, cards)
-      | ICopy spec => NCopy (nun_type_spec_of_isa ctxt spec)
-      | IQuotient spec => NQuotient (nun_type_spec_of_isa ctxt spec)
+      | ITypedef spec => NCopy (nun_copy_spec_of_isa_typedef ctxt spec)
+      | IQuotient spec => NCopy (nun_copy_spec_of_isa_quotient ctxt spec)
       | ICoData (fp, specs) =>
         BNF_Util.case_fp fp NData NCodata (map (nun_co_data_spec_of_isa ctxt) specs)
       | IVal t => NVal (tm_of_isa ctxt t, ty_of_isa (fastype_of t))

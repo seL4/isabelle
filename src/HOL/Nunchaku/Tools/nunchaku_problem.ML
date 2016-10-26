@@ -19,10 +19,11 @@ sig
   | NMatch of tm * (ident * tm list * tm) list
   | NApp of tm * tm
 
-  type nun_type_spec =
+  type nun_copy_spec =
     {abs_ty: ty,
      rep_ty: ty,
-     wrt: tm,
+     subset: tm option,
+     quotient: tm option,
      abs: tm,
      rep: tm}
 
@@ -44,8 +45,7 @@ sig
 
   datatype nun_command =
     NTVal of ty * (int option * int option)
-  | NCopy of nun_type_spec
-  | NQuotient of nun_type_spec
+  | NCopy of nun_copy_spec
   | NData of nun_co_data_spec list
   | NCodata of nun_co_data_spec list
   | NVal of tm * ty
@@ -116,6 +116,7 @@ sig
   val nun_rparen: string
   val nun_semicolon: string
   val nun_spec: string
+  val nun_subset: string
   val nun_then: string
   val nun_true: string
   val nun_type: string
@@ -125,7 +126,6 @@ sig
   val nun_val: string
   val nun_wf: string
   val nun_with: string
-  val nun_wrt: string
   val nun__witness_of: string
 
   val ident_of_str: string -> ident
@@ -192,10 +192,11 @@ datatype tm =
 | NMatch of tm * (ident * tm list * tm) list
 | NApp of tm * tm;
 
-type nun_type_spec =
+type nun_copy_spec =
   {abs_ty: ty,
    rep_ty: ty,
-   wrt: tm,
+   subset: tm option,
+   quotient: tm option,
    abs: tm,
    rep: tm};
 
@@ -217,8 +218,7 @@ type nun_consts_spec =
 
 datatype nun_command =
   NTVal of ty * (int option * int option)
-| NCopy of nun_type_spec
-| NQuotient of nun_type_spec
+| NCopy of nun_copy_spec
 | NData of nun_co_data_spec list
 | NCodata of nun_co_data_spec list
 | NVal of tm * ty
@@ -289,6 +289,7 @@ val nun_rec = "rec";
 val nun_rparen = ")";
 val nun_semicolon = ";";
 val nun_spec = "spec";
+val nun_subset = "subset";
 val nun_then = "then";
 val nun_true = "true";
 val nun_type = "type";
@@ -298,7 +299,6 @@ val nun_unparsable = "?__unparsable";
 val nun_val = "val";
 val nun_wf = "wf";
 val nun_with = "with";
-val nun_wrt = "wrt";
 val nun__witness_of = "_witness_of";
 
 val nun_parens = enclose nun_lparen nun_rparen;
@@ -415,6 +415,9 @@ fun strip_nun_binders binder (app as NApp (NConst (id, _, _), NAbs (var, body)))
       ([], app)
   | strip_nun_binders _ tm = ([], tm);
 
+fun fold_map_option _ NONE = pair NONE
+  | fold_map_option f (SOME x) = f x #>> SOME;
+
 fun fold_map_ty_idents f (NType (id, tys)) =
     f id
     ##>> fold_map (fold_map_ty_idents f) tys
@@ -446,14 +449,15 @@ and fold_map_tm_idents f (NAtom (j, ty)) =
     ##>> fold_map_tm_idents f arg
     #>> NApp;
 
-fun fold_map_nun_type_spec_idents f {abs_ty, rep_ty, wrt, abs, rep} =
+fun fold_map_nun_copy_spec_idents f {abs_ty, rep_ty, subset, quotient, abs, rep} =
   fold_map_ty_idents f abs_ty
   ##>> fold_map_ty_idents f rep_ty
-  ##>> fold_map_tm_idents f wrt
+  ##>> fold_map_option (fold_map_tm_idents f) subset
+  ##>> fold_map_option (fold_map_tm_idents f) quotient
   ##>> fold_map_tm_idents f abs
   ##>> fold_map_tm_idents f rep
-  #>> (fn ((((abs_ty, rep_ty), wrt), abs), rep) =>
-    {abs_ty = abs_ty, rep_ty = rep_ty, wrt = wrt, abs = abs, rep = rep});
+  #>> (fn (((((abs_ty, rep_ty), subset), quotient), abs), rep) =>
+    {abs_ty = abs_ty, rep_ty = rep_ty, subset = subset, quotient = quotient, abs = abs, rep = rep});
 
 fun fold_map_nun_ctr_spec_idents f {ctr, arg_tys} =
   fold_map_tm_idents f ctr
@@ -479,11 +483,8 @@ fun fold_map_nun_command_idents f (NTVal (ty, cards)) =
     fold_map_ty_idents f ty
     #>> (rpair cards #> NTVal)
   | fold_map_nun_command_idents f (NCopy spec) =
-    fold_map_nun_type_spec_idents f spec
+    fold_map_nun_copy_spec_idents f spec
     #>> NCopy
-  | fold_map_nun_command_idents f (NQuotient spec) =
-    fold_map_nun_type_spec_idents f spec
-    #>> NQuotient
   | fold_map_nun_command_idents f (NData specs) =
     fold_map (fold_map_nun_co_data_spec_idents f) specs
     #>> NData
@@ -727,13 +728,18 @@ fun str_of_tval (NType (id, tys)) =
   str_of_ident id ^ " " ^ nun_colon ^ " " ^
   fold (K (prefix (nun_type ^ " " ^ nun_arrow ^ " "))) tys nun_type;
 
-fun is_triv_wrt (NAbs (_, body)) = is_triv_wrt body
-  | is_triv_wrt (NConst (id, _, _)) = (id = nun_true)
-  | is_triv_wrt _ = false;
+fun is_triv_subset (NAbs (_, body)) = is_triv_subset body
+  | is_triv_subset (NConst (id, _, _)) = (id = nun_true)
+  | is_triv_subset _ = false;
 
-fun str_of_nun_type_spec {abs_ty, rep_ty, wrt, abs, rep} =
+fun str_of_nun_copy_spec {abs_ty, rep_ty, subset, quotient, abs, rep} =
   str_of_ty abs_ty ^ " " ^ nun_assign ^ " " ^ str_of_ty rep_ty ^
-  (if is_triv_wrt wrt then "" else "\n  " ^ nun_wrt ^ " " ^ str_of_tm wrt) ^
+  (case subset of
+    NONE => ""
+  | SOME s => if is_triv_subset s then "" else "\n  " ^ nun_subset ^ " " ^ str_of_tm s) ^
+  (case quotient of
+    NONE => ""
+  | SOME q => "\n  " ^ nun_quotient ^ " " ^ str_of_tm q) ^
   "\n  " ^ nun_abstract ^ " " ^ str_of_tm abs ^ "\n  " ^ nun_concrete ^ " " ^ str_of_tm rep;
 
 fun str_of_nun_ctr_spec {ctr, arg_tys} =
@@ -762,8 +768,7 @@ fun str_of_nun_cards_suffix (NONE, NONE) = ""
 
 fun str_of_nun_command (NTVal (ty, cards)) =
     nun_val ^ " " ^ str_of_tval ty ^ str_of_nun_cards_suffix cards
-  | str_of_nun_command (NCopy spec) = nun_copy ^ " " ^ str_of_nun_type_spec spec
-  | str_of_nun_command (NQuotient spec) = nun_quotient ^ " " ^ str_of_nun_type_spec spec
+  | str_of_nun_command (NCopy spec) = nun_copy ^ " " ^ str_of_nun_copy_spec spec
   | str_of_nun_command (NData specs) =
     nun_data ^ " " ^ str_of_nun_and_list str_of_nun_co_data_spec specs
   | str_of_nun_command (NCodata specs) =

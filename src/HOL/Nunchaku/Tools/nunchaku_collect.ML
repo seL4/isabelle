@@ -35,7 +35,7 @@ sig
 
   datatype isa_command =
     ITVal of typ * (int option * int option)
-  | ICopy of isa_type_spec
+  | ITypedef of isa_type_spec
   | IQuotient of isa_type_spec
   | ICoData of BNF_Util.fp_kind * isa_co_data_spec list
   | IVal of term
@@ -96,7 +96,7 @@ type isa_consts_spec =
 
 datatype isa_command =
   ITVal of typ * (int option * int option)
-| ICopy of isa_type_spec
+| ITypedef of isa_type_spec
 | IQuotient of isa_type_spec
 | ICoData of BNF_Util.fp_kind * isa_co_data_spec list
 | IVal of term
@@ -211,7 +211,7 @@ val is_const_builtin =
     @{const_name implies}, @{const_name Not}, @{const_name The}, @{const_name The_unsafe},
     @{const_name True}];
 
-datatype type_classification = Builtin | TVal | Copy | Quotient | Co_Datatype;
+datatype type_classification = Builtin | TVal | Typedef | Quotient | Co_Datatype;
 
 fun classify_type_name ctxt T_name =
   if is_type_builtin T_name then
@@ -229,10 +229,10 @@ fun classify_type_name ctxt T_name =
           SOME _ => Quotient
         | NONE =>
           if T_name = @{type_name set} then
-            Copy
+            Typedef
           else
             (case Typedef.get_info ctxt T_name of
-              _ :: _ => Copy
+              _ :: _ => Typedef
             | [] => TVal))));
 
 fun fp_kind_of_ctr_sugar_kind Ctr_Sugar.Codatatype = BNF_Util.Greatest_FP
@@ -270,17 +270,17 @@ fun quotient_of ctxt T_name =
       (qtyp, rtyp, equiv_rel, abs, rep)
     end);
 
-fun copy_of ctxt T_name =
+fun typedef_of ctxt T_name =
   if T_name = @{type_name set} then
     let
       val A = Logic.varifyT_global @{typ 'a};
       val absT = Type (@{type_name set}, [A]);
       val repT = A --> HOLogic.boolT;
-      val wrt = Abs (Name.uu, repT, @{const True});
+      val pred = Abs (Name.uu, repT, @{const True});
       val abs = Const (@{const_name Collect}, repT --> absT);
       val rep = Const (@{const_name rmember}, absT --> repT);
     in
-      (absT, repT, wrt, abs, rep)
+      (absT, repT, pred, abs, rep)
     end
   else
     (case Typedef.get_info ctxt T_name of
@@ -291,14 +291,15 @@ fun copy_of ctxt T_name =
       let
         val absT = Logic.varifyT_global abs_type;
         val repT = Logic.varifyT_global rep_type;
-        val wrt = Thm.prop_of Rep
+        val set = Thm.prop_of Rep
           |> HOLogic.dest_Trueprop
           |> HOLogic.dest_mem
           |> snd;
+        val pred = Abs (Name.uu, repT, HOLogic.mk_mem (Bound 0, set));
         val abs = Const (Abs_name, repT --> absT);
         val rep = Const (Rep_name, absT --> repT);
       in
-        (absT, repT, wrt, abs, rep)
+        (absT, repT, pred, abs, rep)
       end);
 
 fun is_co_datatype_ctr ctxt (s, T) =
@@ -365,44 +366,44 @@ fun is_quotient_rep ctxt (s, T) =
       (_, _, _, _, Const (s', _)) => s' = s)
   | _ => false);
 
-fun is_maybe_copy_abs ctxt absT_name s =
+fun is_maybe_typedef_abs ctxt absT_name s =
   if absT_name = @{type_name set} then
     s = @{const_name Collect}
   else
-    (case try (copy_of ctxt) absT_name of
+    (case try (typedef_of ctxt) absT_name of
       SOME (_, _, _, Const (s', _), _) => s' = s
     | NONE => false);
 
-fun is_maybe_copy_rep ctxt absT_name s =
+fun is_maybe_typedef_rep ctxt absT_name s =
   if absT_name = @{type_name set} then
     s = @{const_name rmember}
   else
-    (case try (copy_of ctxt) absT_name of
+    (case try (typedef_of ctxt) absT_name of
       SOME (_, _, _, _, Const (s', _)) => s' = s
     | NONE => false);
 
-fun is_copy_abs ctxt (s, T) =
+fun is_typedef_abs ctxt (s, T) =
   (case T of
     Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
-    classify_type_name ctxt absT_name = Copy andalso is_maybe_copy_abs ctxt absT_name s
+    classify_type_name ctxt absT_name = Typedef andalso is_maybe_typedef_abs ctxt absT_name s
   | _ => false);
 
-fun is_copy_rep ctxt (s, T) =
+fun is_typedef_rep ctxt (s, T) =
   (case T of
     Type (@{type_name fun}, [Type (absT_name, _), _]) =>
-    classify_type_name ctxt absT_name = Copy andalso is_maybe_copy_rep ctxt absT_name s
+    classify_type_name ctxt absT_name = Typedef andalso is_maybe_typedef_rep ctxt absT_name s
   | _ => false);
 
-fun is_stale_copy_abs ctxt (s, T) =
+fun is_stale_typedef_abs ctxt (s, T) =
   (case T of
     Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
-    classify_type_name ctxt absT_name <> Copy andalso is_maybe_copy_abs ctxt absT_name s
+    classify_type_name ctxt absT_name <> Typedef andalso is_maybe_typedef_abs ctxt absT_name s
   | _ => false);
 
-fun is_stale_copy_rep ctxt (s, T) =
+fun is_stale_typedef_rep ctxt (s, T) =
   (case T of
     Type (@{type_name fun}, [Type (absT_name, _), _]) =>
-    classify_type_name ctxt absT_name <> Copy andalso is_maybe_copy_rep ctxt absT_name s
+    classify_type_name ctxt absT_name <> Typedef andalso is_maybe_typedef_rep ctxt absT_name s
   | _ => false);
 
 fun instantiate_constant_types_in_term ctxt csts target =
@@ -551,7 +552,7 @@ val orphan_axioms_of =
   #> map Thm.prop_of;
 
 fun keys_of _ (ITVal (T, _)) = [key_of_typ T]
-  | keys_of _ (ICopy {abs_typ, ...}) = [key_of_typ abs_typ]
+  | keys_of _ (ITypedef {abs_typ, ...}) = [key_of_typ abs_typ]
   | keys_of _ (IQuotient {abs_typ, ...}) = [key_of_typ abs_typ]
   | keys_of _ (ICoData (_, specs)) = map (key_of_typ o #typ) specs
   | keys_of ctxt (IVal const) = [key_of_const ctxt const]
@@ -570,7 +571,7 @@ fun consts_spec_deps_of ctxt {consts, props} =
   fold (add_keys ctxt) props [] |> subtract (op =) (map (key_of_const ctxt) consts);
 
 fun deps_of _ (ITVal _) = []
-  | deps_of ctxt (ICopy {wrt, ...}) = add_keys ctxt wrt []
+  | deps_of ctxt (ITypedef {wrt, ...}) = add_keys ctxt wrt []
   | deps_of ctxt (IQuotient {wrt, ...}) = add_keys ctxt wrt []
   | deps_of ctxt (ICoData (_, specs)) = maps (co_data_spec_deps_of ctxt) specs
   | deps_of _ (IVal const) = add_type_keys (fastype_of const) []
@@ -646,7 +647,7 @@ fun sort_isa_commands_topologically ctxt cmds =
 
     val typedecls = filter (can (fn ITVal _ => ())) cmds;
     val (mixed, complete) =
-      (filter (can (fn ICopy _ => () | IQuotient _ => () | ICoData _ => () | IVal _ => ()
+      (filter (can (fn ITypedef _ => () | IQuotient _ => () | ICoData _ => () | IVal _ => ()
          | ICoPred _ => () | IRec _ => () | ISpec _ => ())) cmds, true)
       |> sort_problem;
     val axioms = filter (can (fn IAxiom _ => ())) cmds;
@@ -657,7 +658,7 @@ fun sort_isa_commands_topologically ctxt cmds =
   end;
 
 fun group_of (ITVal _) = 1
-  | group_of (ICopy _) = 2
+  | group_of (ITypedef _) = 2
   | group_of (IQuotient _) = 3
   | group_of (ICoData _) = 4
   | group_of (IVal _) = 5
@@ -876,7 +877,7 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
           val seenT = T :: seenT;
           val seens = (seenS, seenT, seen);
 
-          fun consider_quotient_or_copy tuple_of s =
+          fun consider_quotient_or_typedef iquotient_or_itypedef tuple_of s =
             let
               val (T0, repT0, wrt0, abs0, rep0) = tuple_of ctxt s;
               val tyenv = Sign.typ_match thy (T0, T) Vartab.empty;
@@ -887,7 +888,7 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
               val abs = subst abs0;
               val rep = subst rep0;
             in
-              apsnd (cons (ICopy {abs_typ = T, rep_typ = repT, wrt = wrt, abs = abs,
+              apsnd (cons (iquotient_or_itypedef {abs_typ = T, rep_typ = repT, wrt = wrt, abs = abs,
                 rep = rep}))
               #> consider_term (depth + 1) wrt
             end;
@@ -910,8 +911,8 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
                           ((seenS, union (op =) fpTs seenT, seen), ICoData (fp, specs) :: problem))
                       #> fold (fold (consider_type (depth + 1) o fastype_of)) ctrss
                     end
-                  | Quotient => consider_quotient_or_copy quotient_of s
-                  | Copy => consider_quotient_or_copy copy_of s
+                  | Quotient => consider_quotient_or_typedef IQuotient quotient_of s
+                  | Typedef => consider_quotient_or_typedef ITypedef typedef_of s
                   | TVal => apsnd (cons (ITVal (T, card_of T)))))
         end
     and consider_term depth t =
@@ -936,10 +937,10 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
                 Const (x as (s, T)) =>
                 (if is_const_builtin s orelse is_co_datatype_ctr ctxt x orelse
                     is_co_datatype_case ctxt x orelse is_quotient_abs ctxt x orelse
-                    is_quotient_rep ctxt x orelse is_copy_abs ctxt x orelse
-                    is_copy_rep ctxt x then
+                    is_quotient_rep ctxt x orelse is_typedef_abs ctxt x orelse
+                    is_typedef_rep ctxt x then
                    (seens, problem)
-                 else if is_stale_copy_abs ctxt x orelse is_stale_copy_rep ctxt x then
+                 else if is_stale_typedef_abs ctxt x orelse is_stale_typedef_rep ctxt x then
                    raise UNSUPPORTED_FUNC t
                  else
                    (case spec_rules_of ctxt x of
@@ -1086,7 +1087,7 @@ fun str_of_isa_cards_suffix (NONE, NONE) = ""
 
 fun str_of_isa_command ctxt (ITVal (T, cards)) =
     "type " ^ Syntax.string_of_typ ctxt T ^ str_of_isa_cards_suffix cards
-  | str_of_isa_command ctxt (ICopy spec) = "copy " ^ str_of_isa_type_spec ctxt spec
+  | str_of_isa_command ctxt (ITypedef spec) = "typedef " ^ str_of_isa_type_spec ctxt spec
   | str_of_isa_command ctxt (IQuotient spec) = "quotient " ^ str_of_isa_type_spec ctxt spec
   | str_of_isa_command ctxt (ICoData (fp, specs)) =
     BNF_Util.case_fp fp "data" "codata" ^ " " ^ str_of_and_list (str_of_isa_co_data_spec ctxt) specs
