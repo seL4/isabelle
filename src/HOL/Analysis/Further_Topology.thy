@@ -2959,9 +2959,6 @@ proof -
     using not_less by blast
 qed
 
-
-subsection\<open> Dimension-based conditions for various homeomorphisms.\<close>
-
 lemma simply_connected_sphere:
   fixes a :: "'a::euclidean_space"
   assumes "3 \<le> DIM('a)"
