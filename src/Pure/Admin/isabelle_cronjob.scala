@@ -34,21 +34,35 @@ object Isabelle_Cronjob
 
   /** particular tasks **/
 
-  /* identify Isabelle + AFP repository snapshots */
+  /* identify Isabelle + AFP repository snapshots and build release */
 
-  private val isabelle_identify =
-    Logger_Task("isabelle_identify", logger =>
-      {
-        val isabelle_id = Mercurial.repository(isabelle_repos).id()
-        val afp_id = Mercurial.setup_repository(afp_source, afp_repos).id()
+  private val build_release =
+    Logger_Task("build_release", logger =>
+      Isabelle_System.with_tmp_dir("isadist")(base_dir =>
+        {
+          val rev = Mercurial.repository(isabelle_repos).id()
+          val afp_rev = Mercurial.setup_repository(afp_source, afp_repos).id()
 
-        File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
-          terminate_lines(
-            List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
-              "",
-              "Isabelle version: " + isabelle_id,
-              "AFP version: " + afp_id)))
-      })
+          File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
+            terminate_lines(
+              List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
+                "",
+                "Isabelle version: " + rev,
+                "AFP version: " + afp_rev)))
+
+          val new_snapshot = release_snapshot.ext("new")
+          val old_snapshot = release_snapshot.ext("old")
+
+          Isabelle_System.rm_tree(new_snapshot)
+          Isabelle_System.rm_tree(old_snapshot)
+
+          Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
+            parallel_jobs = 4, remote_mac = "macbroy31", website = Some(new_snapshot))
+
+          if (release_snapshot.is_dir) File.mv(release_snapshot, old_snapshot)
+          File.mv(new_snapshot, release_snapshot)
+          Isabelle_System.rm_tree(old_snapshot)
+        }))
 
 
   /* integrity test of build_history vs. build_history_base */
@@ -68,27 +82,6 @@ object Isabelle_Cronjob
           File.copy(log_path, logger.log_dir + log_path.base)
         }
       })
-
-
-  /* build release from repository snapshot */
-
-  private val build_release =
-    Logger_Task("build_release", logger =>
-      Isabelle_System.with_tmp_dir("isadist")(base_dir =>
-        {
-          val new_snapshot = release_snapshot.ext("new")
-          val old_snapshot = release_snapshot.ext("old")
-
-          Isabelle_System.rm_tree(new_snapshot)
-          Isabelle_System.rm_tree(old_snapshot)
-
-          Build_Release.build_release(base_dir, parallel_jobs = 4,
-            remote_mac = "macbroy31", website = Some(new_snapshot))
-
-          if (release_snapshot.is_dir) File.mv(release_snapshot, old_snapshot)
-          File.mv(new_snapshot, release_snapshot)
-          Isabelle_System.rm_tree(old_snapshot)
-        }))
 
 
   /* remote build_history */
@@ -284,7 +277,7 @@ object Isabelle_Cronjob
     run(main_start_date,
       Logger_Task("isabelle_cronjob", _ =>
         run_now(
-          SEQ(List(isabelle_identify, build_history_base, build_release,
+          SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))))))))
 
     log_service.shutdown()

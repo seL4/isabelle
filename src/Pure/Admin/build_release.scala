@@ -39,6 +39,7 @@ object Build_Release
   def build_release(base_dir: Path,
     progress: Progress = Ignore_Progress,
     rev: String = "",
+    afp_rev: String = "",
     official_release: Boolean = false,
     release_name: String = "",
     platform_families: List[String] = default_platform_families,
@@ -124,6 +125,10 @@ object Build_Release
 
       Isabelle_System.mkdirs(dir)
 
+      val afp_link =
+        HTML.link("https://bitbucket.org/isa-afp/afp-devel/commits/" + afp_rev,
+          HTML.text("AFP/" + afp_rev))
+
       File.write(dir + Path.explode("index.html"),
         HTML.output_document(
           List(HTML.title(release_info.name)),
@@ -131,7 +136,8 @@ object Build_Release
             HTML.chapter(release_info.name + " (" + release_id + ")"),
             HTML.itemize(
               website_platform_bundles.map({ case (bundle, info) =>
-                List(HTML.link(bundle, HTML.text(info.platform_description))) })))))
+                List(HTML.link(bundle, HTML.text(info.platform_description))) }))) :::
+          (if (afp_rev == "") Nil else List(HTML.par(HTML.text("See also ") ::: List(afp_link))))))
 
       for ((bundle, _) <- website_platform_bundles)
         File.copy(release_info.dist_dir + Path.explode(bundle), dir)
@@ -182,6 +188,7 @@ object Build_Release
   def main(args: Array[String])
   {
     Command_Line.tool0 {
+      var afp_rev = ""
       var remote_mac = ""
       var official_release = false
       var release_name = ""
@@ -195,6 +202,7 @@ object Build_Release
 Usage: Admin/build_release [OPTIONS] BASE_DIR
 
   Options are:
+    -A REV       corresponding AFP changeset id
     -M USER@HOST remote Mac OS X for dmg build
     -O           official release (not release-candidate)
     -R RELEASE   proper release with name
@@ -207,6 +215,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 
   Build Isabelle release in base directory, using the local repository clone.
 """,
+        "A:" -> (arg => afp_rev = arg),
         "M:" -> (arg => remote_mac = arg),
         "O" -> (_ => official_release = true),
         "R:" -> (arg => release_name = arg),
@@ -221,7 +230,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 
       val progress = new Console_Progress()
 
-      build_release(Path.explode(base_dir), progress = progress, rev = rev,
+      build_release(Path.explode(base_dir), progress = progress, rev = rev, afp_rev = afp_rev,
         official_release = official_release, release_name = release_name, website = website,
         platform_families =
           if (platform_families.isEmpty) default_platform_families else platform_families,
