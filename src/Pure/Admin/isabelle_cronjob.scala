@@ -86,7 +86,7 @@ object Isabelle_Cronjob
 
   /* remote build_history */
 
-  private sealed case class Remote_Build(
+  sealed case class Remote_Build(
     host: String,
     user: String = "",
     port: Int = SSH.default_port,
