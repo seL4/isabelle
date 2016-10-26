@@ -123,7 +123,7 @@ rm -f "$DISTPREFIX/ISABELLE_DIST" "$DISTPREFIX/ISABELLE_IDENT"
 
 # retrieve repository archive
 
-echo "### Retrieving Mercurial repository $VERSION"
+echo "### Retrieving Mercurial repository version $VERSION"
 
 "$HG" --repository "$ISABELLE_HOME" archive --type files -r "$IDENT" "$DIR" || \
   fail "Failed to retrieve $VERSION"
