@@ -263,20 +263,13 @@ fun mutual_co_datatypes_of ctxt (T_name, Ts) =
   |> @{apply 3(2)} (map ((fn Type (s, _) => Type (s, Ts))))
   |> @{apply 3(3)} (map (map (Ctr_Sugar.mk_ctr Ts)));
 
-fun quotient_of ctxt T_name =
-  (case Quotient_Info.lookup_quotients ctxt T_name of
-    SOME {equiv_rel, qtyp, rtyp, quot_thm, ...} =>
-    let val _ $ (_ $ _ $ abs $ rep) = Thm.prop_of quot_thm in
-      (qtyp, rtyp, equiv_rel, abs, rep)
-    end);
-
-fun typedef_of ctxt T_name =
+fun typedef_of ctxt whacks T_name =
   if T_name = @{type_name set} then
     let
       val A = Logic.varifyT_global @{typ 'a};
       val absT = Type (@{type_name set}, [A]);
       val repT = A --> HOLogic.boolT;
-      val pred = Abs (Name.uu, repT, @{const True});
+      val pred = K (Abs (Name.uu, repT, @{const True}));
       val abs = Const (@{const_name Collect}, repT --> absT);
       val rep = Const (@{const_name rmember}, absT --> repT);
     in
@@ -291,16 +284,27 @@ fun typedef_of ctxt T_name =
       let
         val absT = Logic.varifyT_global abs_type;
         val repT = Logic.varifyT_global rep_type;
-        val set = Thm.prop_of Rep
+        val set0 = Thm.prop_of Rep
           |> HOLogic.dest_Trueprop
           |> HOLogic.dest_mem
           |> snd;
-        val pred = Abs (Name.uu, repT, HOLogic.mk_mem (Bound 0, set));
+        val pred0 = Abs (Name.uu, repT, HOLogic.mk_mem (Bound 0, set0));
+        fun pred () = preprocess_prop false ctxt whacks pred0;
         val abs = Const (Abs_name, repT --> absT);
         val rep = Const (Rep_name, absT --> repT);
       in
         (absT, repT, pred, abs, rep)
       end);
+
+fun quotient_of ctxt whacks T_name =
+  (case Quotient_Info.lookup_quotients ctxt T_name of
+    SOME {equiv_rel = equiv_rel0, qtyp, rtyp, quot_thm, ...} =>
+    let
+      val _ $ (_ $ _ $ abs $ rep) = Thm.prop_of quot_thm;
+      fun equiv_rel () = preprocess_prop false ctxt whacks equiv_rel0;
+    in
+      (qtyp, rtyp, equiv_rel, abs, rep)
+    end);
 
 fun is_co_datatype_ctr ctxt (s, T) =
   (case body_type T of
@@ -350,60 +354,64 @@ fun dest_co_datatype_case ctxt (s, T) =
 
 val is_co_datatype_case = can o dest_co_datatype_case;
 
-fun is_quotient_abs ctxt (s, T) =
+fun is_quotient_abs ctxt whacks (s, T) =
   (case T of
     Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
     classify_type_name ctxt absT_name = Quotient andalso
-    (case quotient_of ctxt absT_name of
+    (case quotient_of ctxt whacks absT_name of
       (_, _, _, Const (s', _), _) => s' = s)
   | _ => false);
 
-fun is_quotient_rep ctxt (s, T) =
+fun is_quotient_rep ctxt whacks (s, T) =
   (case T of
     Type (@{type_name fun}, [Type (absT_name, _), _]) =>
     classify_type_name ctxt absT_name = Quotient andalso
-    (case quotient_of ctxt absT_name of
+    (case quotient_of ctxt whacks absT_name of
       (_, _, _, _, Const (s', _)) => s' = s)
   | _ => false);
 
-fun is_maybe_typedef_abs ctxt absT_name s =
+fun is_maybe_typedef_abs ctxt whacks absT_name s =
   if absT_name = @{type_name set} then
     s = @{const_name Collect}
   else
-    (case try (typedef_of ctxt) absT_name of
+    (case try (typedef_of ctxt whacks) absT_name of
       SOME (_, _, _, Const (s', _), _) => s' = s
     | NONE => false);
 
-fun is_maybe_typedef_rep ctxt absT_name s =
+fun is_maybe_typedef_rep ctxt whacks absT_name s =
   if absT_name = @{type_name set} then
     s = @{const_name rmember}
   else
-    (case try (typedef_of ctxt) absT_name of
+    (case try (typedef_of ctxt whacks) absT_name of
       SOME (_, _, _, _, Const (s', _)) => s' = s
     | NONE => false);
 
-fun is_typedef_abs ctxt (s, T) =
+fun is_typedef_abs ctxt whacks (s, T) =
   (case T of
     Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
-    classify_type_name ctxt absT_name = Typedef andalso is_maybe_typedef_abs ctxt absT_name s
+    classify_type_name ctxt absT_name = Typedef andalso
+    is_maybe_typedef_abs ctxt whacks absT_name s
   | _ => false);
 
-fun is_typedef_rep ctxt (s, T) =
+fun is_typedef_rep ctxt whacks (s, T) =
   (case T of
     Type (@{type_name fun}, [Type (absT_name, _), _]) =>
-    classify_type_name ctxt absT_name = Typedef andalso is_maybe_typedef_rep ctxt absT_name s
+    classify_type_name ctxt absT_name = Typedef andalso
+    is_maybe_typedef_rep ctxt whacks absT_name s
   | _ => false);
 
-fun is_stale_typedef_abs ctxt (s, T) =
+fun is_stale_typedef_abs ctxt whacks (s, T) =
   (case T of
     Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
-    classify_type_name ctxt absT_name <> Typedef andalso is_maybe_typedef_abs ctxt absT_name s
+    classify_type_name ctxt absT_name <> Typedef andalso
+    is_maybe_typedef_abs ctxt whacks absT_name s
   | _ => false);
 
-fun is_stale_typedef_rep ctxt (s, T) =
+fun is_stale_typedef_rep ctxt whacks (s, T) =
   (case T of
     Type (@{type_name fun}, [Type (absT_name, _), _]) =>
-    classify_type_name ctxt absT_name <> Typedef andalso is_maybe_typedef_rep ctxt absT_name s
+    classify_type_name ctxt absT_name <> Typedef andalso
+    is_maybe_typedef_rep ctxt whacks absT_name s
   | _ => false);
 
 fun instantiate_constant_types_in_term ctxt csts target =
@@ -877,18 +885,18 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
           val seenT = T :: seenT;
           val seens = (seenS, seenT, seen);
 
-          fun consider_quotient_or_typedef iquotient_or_itypedef tuple_of s =
+          fun consider_typedef_or_quotient itypedef_or_quotient tuple_of s =
             let
-              val (T0, repT0, wrt0, abs0, rep0) = tuple_of ctxt s;
+              val (T0, repT0, wrt0, abs0, rep0) = tuple_of ctxt whacks s;
               val tyenv = Sign.typ_match thy (T0, T) Vartab.empty;
               val substT = Envir.subst_type tyenv;
               val subst = Envir.subst_term_types tyenv;
               val repT = substT repT0;
-              val wrt = subst wrt0;
+              val wrt = subst (wrt0 ());
               val abs = subst abs0;
               val rep = subst rep0;
             in
-              apsnd (cons (iquotient_or_itypedef {abs_typ = T, rep_typ = repT, wrt = wrt, abs = abs,
+              apsnd (cons (itypedef_or_quotient {abs_typ = T, rep_typ = repT, wrt = wrt, abs = abs,
                 rep = rep}))
               #> consider_term (depth + 1) wrt
             end;
@@ -911,8 +919,8 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
                           ((seenS, union (op =) fpTs seenT, seen), ICoData (fp, specs) :: problem))
                       #> fold (fold (consider_type (depth + 1) o fastype_of)) ctrss
                     end
-                  | Quotient => consider_quotient_or_typedef IQuotient quotient_of s
-                  | Typedef => consider_quotient_or_typedef ITypedef typedef_of s
+                  | Typedef => consider_typedef_or_quotient ITypedef typedef_of s
+                  | Quotient => consider_typedef_or_quotient IQuotient quotient_of s
                   | TVal => apsnd (cons (ITVal (T, card_of T)))))
         end
     and consider_term depth t =
@@ -936,11 +944,12 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
               (case t of
                 Const (x as (s, T)) =>
                 (if is_const_builtin s orelse is_co_datatype_ctr ctxt x orelse
-                    is_co_datatype_case ctxt x orelse is_quotient_abs ctxt x orelse
-                    is_quotient_rep ctxt x orelse is_typedef_abs ctxt x orelse
-                    is_typedef_rep ctxt x then
+                    is_co_datatype_case ctxt x orelse is_quotient_abs ctxt whacks x orelse
+                    is_quotient_rep ctxt whacks x orelse is_typedef_abs ctxt whacks x orelse
+                    is_typedef_rep ctxt whacks x then
                    (seens, problem)
-                 else if is_stale_typedef_abs ctxt x orelse is_stale_typedef_rep ctxt x then
+                 else if is_stale_typedef_abs ctxt whacks x orelse
+                     is_stale_typedef_rep ctxt whacks x then
                    raise UNSUPPORTED_FUNC t
                  else
                    (case spec_rules_of ctxt x of
