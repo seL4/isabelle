@@ -109,7 +109,7 @@ object Mercurial
     def push(remote: String = "", rev: String = "", force: Boolean = false, options: String = "")
     {
       hg.command("push", opt_rev(rev) + opt_flag("--force", force) + optional(remote), options).
-        check
+        check_rc(rc => rc == 0 | rc == 1)
     }
 
     def pull(remote: String = "", rev: String = "", options: String = ""): Unit =

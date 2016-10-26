@@ -22,10 +22,12 @@ final case class Process_Result(
   def ok: Boolean = rc == 0
   def interrupted: Boolean = rc == Exn.Interrupt.return_code
 
-  def check: Process_Result =
-    if (ok) this
+  def check_rc(pred: Int => Boolean): Process_Result =
+    if (pred(rc)) this
     else if (interrupted) throw Exn.Interrupt()
     else Exn.error(err)
+
+  def check: Process_Result = check_rc(_ == 0)
 
   def print: Process_Result =
   {
