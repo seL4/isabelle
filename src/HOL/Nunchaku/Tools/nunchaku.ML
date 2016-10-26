@@ -210,17 +210,16 @@ fun run_chaku_on_prop state
               null whacks andalso null cards andalso null monos;
 
             fun unknown () =
-              (print_n ("No " ^ das_wort_model ^ " can be found \<midarrow> the problem lies \
-                 \outside Nunchaku's fragment");
+              (print_n ("No " ^ das_wort_model ^ " can be found\n\
+                 \The problem lies outside Nunchaku's fragment, or the Nunchaku backends are not \
+                 \installed properly");
                (unknownN, NONE));
 
             fun unsat_or_unknown complete =
               if complete then
                 (print_n ("No " ^ das_wort_model ^ " exists" ^
-                   (if falsify andalso unsat_means_theorem () then
-                      " \<midarrow> the goal is a theorem"
-                    else
-                      ""));
+                   (if falsify andalso unsat_means_theorem () then "\nThe goal is a theorem"
+                    else ""));
                  (noneN, NONE))
               else
                 unknown ();

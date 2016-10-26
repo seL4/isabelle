@@ -8,6 +8,10 @@ Nunchaku relies on an external program of the same name. The program is still
 being actively developed. The sources are available at
 
     https://github.com/nunchaku-inria
+
+The "$NUNCHAKU" environment variable must be set to the absolute file name of
+the "nunchaku" executable. The Isabelle components for CVC4 and Kodkodi are
+necessary to use these backends.
 *)
 
 theory Nunchaku

@@ -84,7 +84,7 @@ fun uncached_solve_nun_problem ({overlord, specialize, timeout, ...} : tool_para
     else
       let
         val bash_cmd =
-          "\"$" ^ nunchaku_env_var ^ "\" \
+          "PATH=\"$CVC4_HOME:$KODKODI/bin:$PATH\" \"$" ^ nunchaku_env_var ^ "\" \
           \--skolems-in-model --no-color " ^
           (if specialize then "" else "--no-specialize ") ^
           "--timeout " ^ string_of_int (Time.toSeconds timeout) ^ " " ^
