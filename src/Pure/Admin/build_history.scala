@@ -379,7 +379,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     progress: Progress = Ignore_Progress,
     progress_result: (String, Bytes) => Unit = (log_name: String, bytes: Bytes) => (),
     options: String = "",
-    args: String = ""): List[(String, Bytes)] =
+    args: String = ""): (List[(String, Bytes)], Process_Result) =
   {
     val isabelle_admin = isabelle_repos_self + Path.explode("Admin")
 
@@ -428,12 +428,13 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       result += res
     }
 
-    ssh.execute(
-      ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
-        ssh.bash_path(isabelle_repos_other) + " " + args,
-      progress_stdout = progress_stdout _,
-      progress_stderr = progress.echo(_)).check
+    val process_result =
+      ssh.execute(
+        ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
+          ssh.bash_path(isabelle_repos_other) + " " + args,
+        progress_stdout = progress_stdout _,
+        progress_stderr = progress.echo(_))
 
-    result.toList
+    (result.toList, process_result)
   }
 }
