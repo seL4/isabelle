@@ -507,8 +507,9 @@ fun check_src ctxt get_table src =
       SOME {name, ...} => (src, Name_Space.get table name)
     | NONE =>
         let
-          val (name, x) =
-            Name_Space.check (Context.Proof ctxt) table (content_of head, pos_of head);
+          val pos = pos_of head;
+          val (name, x) = Name_Space.check (Context.Proof ctxt) table (content_of head, pos);
+          val _ = Context_Position.report ctxt pos Markup.operator;
           val kind = Name_Space.kind_of (Name_Space.space_of_table table);
           fun print ctxt' =
             Name_Space.markup_extern ctxt' (Name_Space.space_of_table (get_table ctxt')) name;
@@ -720,11 +721,15 @@ fun read_antiq keywords scan (syms, pos) =
 fun syntax_generic scan src context =
   let
     val (name, pos) = name_of_src src;
+    val old_reports = maps reports_of_value src;
     val args1 = map init_assignable (args_of_src src);
     fun reported_text () =
       if Context_Position.is_visible_generic context then
-        ((pos, Markup.operator) :: maps (reports_of_value o closure) args1)
-        |> map (fn (p, m) => Position.reported_text p m "")
+        let val new_reports = maps (reports_of_value o closure) args1 in
+          if old_reports <> new_reports then
+            map (fn (p, m) => Position.reported_text p m "") new_reports
+          else []
+        end
       else [];
   in
     (case Scan.error (Scan.finite' stopper (Scan.option scan)) (context, args1) of
