@@ -1163,9 +1163,18 @@ fun global_qed arg =
 
 local
 
-fun terminal_proof qeds initial terminal =
-  proof (SOME initial) #> Seq.maps_results (qeds (#2 (#2 initial), terminal))
-  #> Seq.the_result "";
+fun terminal_proof qeds initial terminal state =
+  let
+    val ctxt = context_of state;
+    val check_closure = Method.check_text ctxt #> Method.map_source (Method.method_closure ctxt);
+    val initial' = apfst check_closure initial;
+    val terminal' = (apfst o Option.map o apfst) check_closure terminal;
+  in
+    state
+    |> proof (SOME initial')
+    |> Seq.maps_results (qeds (#2 (#2 initial), terminal'))
+    |> Seq.the_result ""
+  end;
 
 in
 
