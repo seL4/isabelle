@@ -280,6 +280,12 @@ lemma ex_gt_count_imp_le_multiset:
   unfolding less_multiset\<^sub>H\<^sub>O
   by (metis count_greater_zero_iff le_imp_less_or_eq less_imp_not_less not_gr_zero union_iff)
 
+lemma mset_lt_single_iff[iff]: "{#x#} < {#y#} \<longleftrightarrow> x < y"
+  unfolding less_multiset\<^sub>H\<^sub>O by simp
+
+lemma mset_le_single_iff[iff]: "{#x#} \<le> {#y#} \<longleftrightarrow> x \<le> y" for x y :: "'a::order"
+  unfolding less_eq_multiset\<^sub>H\<^sub>O by force
+
 
 instance multiset :: (linorder) linordered_cancel_ab_semigroup_add
   by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)

@@ -495,6 +495,10 @@ proof -
   then show ?thesis using B by simp
 qed
 
+lemma add_mset_eq_singleton_iff[iff]:
+  "add_mset x M = {#y#} \<longleftrightarrow> M = {#} \<and> x = y"
+  by auto
+
 
 subsubsection \<open>Pointwise ordering induced by count\<close>
 
@@ -658,6 +662,15 @@ lemma mset_subset_diff_self: "c \<in># B \<Longrightarrow> B - {#c#} \<subset># 
 
 lemma Diff_eq_empty_iff_mset: "A - B = {#} \<longleftrightarrow> A \<subseteq># B"
   by (auto simp: multiset_eq_iff subseteq_mset_def)
+
+lemma add_mset_subseteq_single_iff[iff]: "add_mset a M \<subseteq># {#b#} \<longleftrightarrow> M = {#} \<and> a = b"
+proof
+  assume A: "add_mset a M \<subseteq># {#b#}"
+  then have \<open>a = b\<close>
+    by (auto dest: mset_subset_eq_insertD)
+  then show "M={#} \<and> a=b"
+    using A by (simp add: mset_subset_eq_add_mset_cancel)
+qed simp
 
 
 subsubsection \<open>Intersection and bounded union\<close>
@@ -1315,6 +1328,11 @@ next
 qed
 
 lemma filter_filter_mset: "filter_mset P (filter_mset Q M) = {#x \<in># M. Q x \<and> P x#}"
+  by (auto simp: multiset_eq_iff)
+
+lemma
+  filter_mset_True[simp]: "{#y \<in># M. True#} = M" and
+  filter_mset_False[simp]: "{#y \<in># M. False#} = {#}"
   by (auto simp: multiset_eq_iff)
 
 
@@ -2173,7 +2191,7 @@ by (induction M) auto
 lemma sum_mset_0_iff [simp]:
   "sum_mset M = (0::'a::canonically_ordered_monoid_add)
    \<longleftrightarrow> (\<forall>x \<in> set_mset M. x = 0)"
-by(induction M) (auto simp: add_eq_0_iff_both_eq_0)
+by(induction M) auto
 
 lemma sum_mset_diff:
   fixes M N :: "('a :: ordered_cancel_comm_monoid_diff) multiset"
@@ -2192,6 +2210,9 @@ qed
 
 lemma size_mset_set [simp]: "size (mset_set A) = card A"
 by (simp only: size_eq_sum_mset card_eq_sum sum_unfold_sum_mset)
+
+lemma sum_mset_sum_list: "sum_mset (mset xs) = sum_list xs"
+  by (induction xs) auto
 
 syntax (ASCII)
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
@@ -2341,6 +2362,9 @@ proof -
     by (induct A) simp_all
   then show ?thesis by (simp add: normalize_prod_mset)
 qed
+
+lemma prod_mset_prod_list: "prod_mset (mset xs) = prod_list xs"
+  by (induct xs) auto
 
 
 subsection \<open>Alternative representations\<close>
