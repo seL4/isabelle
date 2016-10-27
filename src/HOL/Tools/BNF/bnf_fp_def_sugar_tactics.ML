@@ -30,8 +30,8 @@ sig
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
     thm list -> thm -> thm list -> thm list -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
-  val mk_map_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> thm list ->
-    thm list -> tactic
+  val mk_map_tac: Proof.context -> thm list -> thm -> thm -> thm list -> thm list -> thm list ->
+    tactic
   val mk_map_disc_iff_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_map_sel_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> tactic
@@ -39,8 +39,8 @@ sig
     tactic
   val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
     term list list list list -> thm list -> thm list -> thm list -> thm list -> tactic
-  val mk_rel_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> thm list ->
-    thm list -> tactic
+  val mk_rel_tac: Proof.context -> thm list -> thm -> thm -> thm list -> thm list -> thm list ->
+    tactic
   val mk_rel_case_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
@@ -392,11 +392,11 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
 
-fun mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map' live_nesting_map_id0s ctr_defs'
+fun mk_map_tac ctxt abs_inverses pre_map_def map_ctor live_nesting_map_id0s ctr_defs'
     extra_unfolds =
   TRYALL Goal.conjunction_tac THEN
-  unfold_thms_tac ctxt (pre_map_def :: dtor_ctor :: fp_map' :: abs_inverses @
-    live_nesting_map_id0s @ ctr_defs' @ extra_unfolds @ sumprod_thms_map @
+  unfold_thms_tac ctxt (pre_map_def :: map_ctor :: abs_inverses @ live_nesting_map_id0s @
+    ctr_defs' @ extra_unfolds @ sumprod_thms_map @
     @{thms o_apply id_apply id_o o_id}) THEN
   ALLGOALS (rtac ctxt refl);
 
@@ -419,11 +419,10 @@ fun mk_map_sel_tac ctxt ct exhaust discs maps sels map_id0s =
   unfold_thms_tac ctxt (@{thm id_apply} :: maps @ sels @ map_id0s) THEN
   ALLGOALS (rtac ctxt refl);
 
-fun mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel live_nesting_rel_eqs ctr_defs'
-    extra_unfolds =
+fun mk_rel_tac ctxt abs_inverses pre_rel_def rel_ctor live_nesting_rel_eqs ctr_defs' extra_unfolds =
   TRYALL Goal.conjunction_tac THEN
-  unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: fp_rel :: abs_inverses @ live_nesting_rel_eqs @
-    ctr_defs' @ extra_unfolds @ sumprod_thms_rel @ @{thms vimage2p_def o_apply sum.inject
+  unfold_thms_tac ctxt (pre_rel_def :: rel_ctor :: abs_inverses @ live_nesting_rel_eqs @ ctr_defs' @
+    extra_unfolds @ sumprod_thms_rel @ @{thms vimage2p_def o_apply sum.inject
       sum.distinct(1)[THEN eq_False[THEN iffD2]] not_False_eq_True}) THEN
   ALLGOALS (resolve_tac ctxt [TrueI, refl]);
 

@@ -742,7 +742,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           let
             val argA_Ts = binder_types (fastype_of ctrA);
             val argB_Ts = binder_types (fastype_of ctrB);
-            val ((argAs, argBs), names_ctxt) =  ctxt
+            val ((argAs, argBs), names_ctxt) = ctxt
               |> mk_Frees "x" argA_Ts
               ||>> mk_Frees "y" argB_Ts;
             val ctrA_args = list_comb (ctrA, argAs);
@@ -810,6 +810,32 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         val selAss = map (map (mk_disc_or_sel As)) selss;
         val selBss = map (map (mk_disc_or_sel Bs)) selss;
 
+        val map_ctor_thm =
+          if fp = Least_FP then
+            fp_map_thm
+          else
+            let
+              val ctorA = mk_ctor As ctor;
+              val ctorB = mk_ctor Bs ctor;
+              val ctor_cong =
+                infer_instantiate' lthy [NONE, NONE, SOME (Thm.cterm_of lthy ctorB)] arg_cong;
+
+              val y_T = domain_type (fastype_of ctorA);
+              val (y as Free (y_s, _), _) = lthy
+                |> yield_singleton (mk_Frees "y") y_T;
+
+              val ctor_cong =
+                infer_instantiate' lthy [NONE, NONE, SOME (Thm.cterm_of lthy ctorB)] arg_cong;
+              val fp_map_thm' = fp_map_thm
+                |> infer_instantiate' lthy (replicate live NONE @
+                  [SOME (Thm.cterm_of lthy (ctorA $ y))])
+                |> unfold_thms lthy [dtor_ctor];
+
+              val map_ctor_thm0 = fp_map_thm' RS ctor_cong RS (ctor_dtor RS sym RS trans);
+            in
+              Thm.generalize ([], [y_s]) (Thm.maxidx_of map_ctor_thm0 + 1) map_ctor_thm0
+            end;
+
         val map_thms =
           let
             fun mk_goal ctrA ctrB xs ys =
@@ -828,22 +854,10 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             val goals = @{map 4} mk_goal ctrAs ctrBs xss yss;
             val goal = Logic.mk_conjunction_balanced goals;
             val vars = Variable.add_free_names lthy goal [];
-
-            val fp_map_thm' =
-              if fp = Least_FP then
-                fp_map_thm
-              else
-                let
-                  val ctor' = mk_ctor Bs ctor;
-                  val ctor_cong =
-                    infer_instantiate' lthy [NONE, NONE, SOME (Thm.cterm_of lthy ctor')] arg_cong;
-                in
-                  fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans)
-                end;
           in
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
-              mk_map_tac ctxt abs_inverses pre_map_def dtor_ctor fp_map_thm'
-                live_nesting_map_id0s ctr_defs' extra_unfolds_map)
+              mk_map_tac ctxt abs_inverses pre_map_def map_ctor_thm live_nesting_map_id0s ctr_defs'
+                extra_unfolds_map)
             |> Thm.close_derivation
             |> Conjunction.elim_balanced (length goals)
           end;
@@ -880,6 +894,28 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         val set_thms = set0_thms
           |> map (unfold_thms lthy @{thms insert_is_Un[THEN sym] Un_empty_left Un_insert_left});
 
+        val rel_ctor_thm =
+          if fp = Least_FP then
+            fp_rel_thm
+          else
+            let
+              val ctorA = mk_ctor As ctor;
+              val ctorB = mk_ctor Bs ctor;
+
+              val y_T = domain_type (fastype_of ctorA);
+              val z_T = domain_type (fastype_of ctorB);
+              val ((y as Free (y_s, _), z as Free (z_s, _)), _) = lthy
+                |> yield_singleton (mk_Frees "y") y_T
+                ||>> yield_singleton (mk_Frees "z") z_T;
+
+              val rel_ctor_thm0 = fp_rel_thm
+                |> infer_instantiate' lthy (replicate live NONE @
+                  [SOME (Thm.cterm_of lthy (ctorA $ y)), SOME (Thm.cterm_of lthy (ctorB $ z))])
+                |> unfold_thms lthy [dtor_ctor];
+            in
+              Thm.generalize ([], [y_s, z_s]) (Thm.maxidx_of rel_ctor_thm0 + 1) rel_ctor_thm0
+            end;
+
         val rel_inject_thms =
           let
             fun mk_goal ctrA ctrB xs ys =
@@ -897,8 +933,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             val vars = Variable.add_free_names lthy goal [];
           in
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
-              mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm live_nesting_rel_eqs
-                ctr_defs' extra_unfolds_rel)
+              mk_rel_tac ctxt abs_inverses pre_rel_def rel_ctor_thm live_nesting_rel_eqs ctr_defs'
+                extra_unfolds_rel)
             |> Thm.close_derivation
             |> Conjunction.elim_balanced (length goals)
           end;
@@ -923,8 +959,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                    val vars = Variable.add_free_names lthy goal [];
                  in
                    Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
-                     mk_rel_tac ctxt abs_inverses pre_rel_def dtor_ctor fp_rel_thm
-                       live_nesting_rel_eqs ctr_defs' extra_unfolds_rel)
+                     mk_rel_tac ctxt abs_inverses pre_rel_def rel_ctor_thm live_nesting_rel_eqs
+                       ctr_defs' extra_unfolds_rel)
                    |> Thm.close_derivation
                    |> Conjunction.elim_balanced (length goals)
                  end)
