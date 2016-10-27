@@ -141,6 +141,9 @@ by(cases t) auto
 lemma height_map_tree[simp]: "height (map_tree f t) = height t"
 by (induction t) auto
 
+lemma height_le_size_tree: "height t \<le> size (t::'a tree)"
+by (induction t) auto
+
 lemma size1_height: "size t + 1 \<le> 2 ^ height (t::'a tree)"
 proof(induction t)
   case (Node l a r)
