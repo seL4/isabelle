@@ -107,6 +107,7 @@ sig
   val nun_match: string
   val nun_mu: string
   val nun_not: string
+  val nun_partial_quotient: string
   val nun_pred: string
   val nun_prop: string
   val nun_quotient: string
@@ -280,6 +281,7 @@ val nun_lparen = "(";
 val nun_match = "match";
 val nun_mu = "mu";
 val nun_not = "~";
+val nun_partial_quotient = "partial_quotient";
 val nun_pred = "pred";
 val nun_prop = "prop";
 val nun_quotient = "quotient";
@@ -737,9 +739,10 @@ fun str_of_nun_copy_spec {abs_ty, rep_ty, subset, quotient, abs, rep} =
   (case subset of
     NONE => ""
   | SOME s => if is_triv_subset s then "" else "\n  " ^ nun_subset ^ " " ^ str_of_tm s) ^
+  (* TODO: use nun_quotient when possible *)
   (case quotient of
     NONE => ""
-  | SOME q => "\n  " ^ nun_quotient ^ " " ^ str_of_tm q) ^
+  | SOME q => "\n  " ^ nun_partial_quotient ^ " " ^ str_of_tm q) ^
   "\n  " ^ nun_abstract ^ " " ^ str_of_tm abs ^ "\n  " ^ nun_concrete ^ " " ^ str_of_tm rep;
 
 fun str_of_nun_ctr_spec {ctr, arg_tys} =

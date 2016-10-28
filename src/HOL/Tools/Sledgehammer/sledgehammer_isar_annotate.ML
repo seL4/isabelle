@@ -2,14 +2,16 @@
     Author:     Steffen Juilf Smolka, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-Supplements term with a locally minmal, complete set of type constraints. Complete: The constraints
-suffice to infer the term's types. Minimal: Reducing the set of constraints further will make it
-incomplete.
+Supplements term with a locally minimal, complete set of type constraints.
+Complete: The constraints suffice to infer the term's types. Minimal: Reducing
+the set of constraints further will make it incomplete.
 
-When configuring the pretty printer appropriately, the constraints will show up as type annotations
-when printing the term. This allows the term to be printed and reparsed without a change of types.
+When configuring the pretty printer appropriately, the constraints will show up
+as type annotations when printing the term. This allows the term to be printed
+and reparsed without a change of types.
 
-Note: Terms should be unchecked before calling "annotate_types_in_term" to avoid awkward syntax.
+Terms should be unchecked before calling "annotate_types_in_term" to avoid
+awkward syntax.
 *)
 
 signature SLEDGEHAMMER_ISAR_ANNOTATE =
