@@ -246,11 +246,18 @@ lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
 lemma Domainp_refl[transfer_domain_rule]:
   "Domainp T = Domainp T" ..
 
-lemma Domain_eq_top: "Domainp op= = top" by auto
+lemma Domain_eq_top[transfer_domain_rule]: "Domainp op= = top" by auto
 
-lemma Domainp_prod_fun_eq[relator_domain]:
-  "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. (Domainp T) (f x))"
-by (auto intro: choice simp: Domainp_iff rel_fun_def fun_eq_iff)
+lemma Domainp_pred_fun_eq[relator_domain]:
+  assumes "left_unique T"
+  shows "Domainp (T ===> S) = pred_fun (Domainp T) (Domainp S)"
+  using assms unfolding rel_fun_def Domainp_iff[abs_def] left_unique_def fun_eq_iff pred_fun_def
+  apply safe
+   apply blast
+  apply (subst all_comm)
+  apply (rule choice)
+  apply blast
+  done
 
 text \<open>Properties are preserved by relation composition.\<close>
 
@@ -360,6 +367,10 @@ ML_file "Tools/BNF/bnf_fp_rec_sugar_transfer.ML"
 
 declare pred_fun_def [simp]
 declare rel_fun_eq [relator_eq]
+
+(* Delete the automated generated rule from the bnf command;
+  we have a more general rule (Domainp_pred_fun_eq) that subsumes it. *)
+declare fun.Domainp_rel[relator_domain del]
 
 subsection \<open>Transfer rules\<close>
 

@@ -1354,7 +1354,7 @@ lemma continuous_on_inverse_ennreal[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> ennreal"
   shows "continuous_on A f \<Longrightarrow> continuous_on A (\<lambda>x. inverse (f x))"
 proof (transfer fixing: A)
-  show "pred_fun (\<lambda>_. True)  (op \<le> 0) f \<Longrightarrow> continuous_on A (\<lambda>x. inverse (f x))" if "continuous_on A f"
+  show "pred_fun top  (op \<le> 0) f \<Longrightarrow> continuous_on A (\<lambda>x. inverse (f x))" if "continuous_on A f"
     for f :: "'a \<Rightarrow> ereal"
     using continuous_on_compose2[OF continuous_on_inverse_ereal that] by (auto simp: subset_eq)
 qed
