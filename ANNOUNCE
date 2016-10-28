@@ -4,7 +4,7 @@ To: isabelle-users@cl.cam.ac.uk
 Isabelle2016-1 is now available.
 
 This version introduces significant changes over Isabelle2016: see the NEWS
-file for further details. Some notable points are as follows:
+file for further details. Some notable changes:
 
 * Improved Isabelle/jEdit Prover IDE: more support for formal text structure,
 more visual feedback.
