@@ -31,8 +31,8 @@ sig
   val mk_half_distinct_disc_tac: Proof.context -> int -> thm -> thm -> tactic
   val mk_nchotomy_tac: Proof.context -> int -> thm -> tactic
   val mk_other_half_distinct_disc_tac: Proof.context -> thm -> tactic
-  val mk_split_tac: Proof.context -> int list -> thm -> thm list -> thm list list ->
-    thm list list -> thm list list list -> tactic
+  val mk_split_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list ->
+    thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
   val mk_unique_disc_def_tac: Proof.context -> int -> thm -> tactic
 end;
@@ -180,20 +180,18 @@ fun mk_case_eq_if_tac ctxt n uexhaust cases discss' selss =
           rtac ctxt casex])
       cases (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) discss') selss));
 
-fun mk_split_tac ctxt ms uexhaust cases selss injectss distinctsss =
-  let val depth = fold Integer.max ms 0 in
-    HEADGOAL (rtac ctxt uexhaust) THEN
-    ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
-       simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
-         flat (nth distinctsss (k - 1))) ctxt)) k) THEN
-    ALLGOALS (etac ctxt thin_rl THEN' rtac ctxt iffI THEN'
-      REPEAT_DETERM o rtac ctxt allI THEN' rtac ctxt impI THEN'
-      REPEAT_DETERM o etac ctxt conjE THEN'
-      hyp_subst_tac ctxt THEN' assume_tac ctxt THEN'
-      REPEAT_DETERM o etac ctxt allE THEN' etac ctxt impE THEN'
-      REPEAT_DETERM o (rtac ctxt conjI THEN' rtac ctxt refl) THEN'
-      rtac ctxt refl THEN' assume_tac ctxt)
-  end;
+fun mk_split_tac ctxt uexhaust cases selss injectss distinctsss =
+  HEADGOAL (rtac ctxt uexhaust) THEN
+  ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
+    simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
+      flat (nth distinctsss (k - 1))) ctxt)) k) THEN
+  ALLGOALS (etac ctxt thin_rl THEN' rtac ctxt iffI THEN'
+    REPEAT_DETERM o rtac ctxt allI THEN' rtac ctxt impI THEN'
+    REPEAT_DETERM o etac ctxt conjE THEN'
+    hyp_subst_tac ctxt THEN' assume_tac ctxt THEN'
+    REPEAT_DETERM o etac ctxt allE THEN' etac ctxt impE THEN'
+    REPEAT_DETERM o (rtac ctxt conjI THEN' rtac ctxt refl) THEN'
+    rtac ctxt refl THEN' assume_tac ctxt);
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
 

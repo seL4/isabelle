@@ -406,25 +406,27 @@ fun perhaps_constrain thy insts raw_vs =
   handle Sorts.CLASS_ERROR _ => NONE
 
 fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config raw_tycos thy =
-  let
-    val algebra = Sign.classes_of thy
-    val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) = the_descr thy raw_tycos
-    val vs = (map o apsnd) (curry (Sorts.inter_sort algebra) sort_vs) raw_vs
-    fun insts_of sort constr = (map (rpair sort) o flat o maps snd o maps snd)
-      (Old_Datatype_Aux.interpret_construction descr vs constr)
-    val insts = insts_of sort { atyp = single, dtyp = (K o K o K) [] }
-      @ insts_of aux_sort { atyp = K [], dtyp = K o K }
-    val has_inst = exists (fn tyco => Sorts.has_instance algebra tyco sort) tycos
-  in
-    if has_inst then thy
-    else
-      (case perhaps_constrain thy insts vs of
-        SOME constrain =>
-          instantiate config descr
-            (map constrain vs) tycos prfx (names, auxnames)
-              ((apply2 o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
-      | NONE => thy)
-  end
+  (case try (the_descr thy) raw_tycos of
+    NONE => thy
+  | SOME (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) =>
+    let
+      val algebra = Sign.classes_of thy
+      val vs = (map o apsnd) (curry (Sorts.inter_sort algebra) sort_vs) raw_vs
+      fun insts_of sort constr = (map (rpair sort) o flat o maps snd o maps snd)
+        (Old_Datatype_Aux.interpret_construction descr vs constr)
+      val insts = insts_of sort { atyp = single, dtyp = (K o K o K) [] }
+        @ insts_of aux_sort { atyp = K [], dtyp = K o K }
+      val has_inst = exists (fn tyco => Sorts.has_instance algebra tyco sort) tycos
+    in
+      if has_inst then thy
+      else
+        (case perhaps_constrain thy insts vs of
+          SOME constrain =>
+            instantiate config descr
+              (map constrain vs) tycos prfx (names, auxnames)
+                ((apply2 o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
+        | NONE => thy)
+    end)
 
 fun ensure_common_sort_datatype (sort, instantiate) =
   ensure_sort (((@{sort typerep}, @{sort term_of}), sort),

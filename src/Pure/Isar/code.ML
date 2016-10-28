@@ -47,6 +47,7 @@ sig
   val add_eqn: kind * bool -> thm -> theory -> theory
   val add_default_eqn_attribute: kind -> attribute
   val add_default_eqn_attrib: kind -> Token.src
+  val del_eqn_silent: thm -> theory -> theory
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
   val del_exception: string -> theory -> theory
@@ -1168,7 +1169,7 @@ fun add_maybe_abs_eqn_liberal thm thy =
     | SOME ((thm, _), SOME tyco) => gen_add_abs_eqn false (thm, tyco) thy
     | NONE => thy;
 
-fun del_eqn thm thy = case mk_eqn Liberal thy (thm, true)
+fun generic_del_eqn strictness thm thy = case mk_eqn strictness thy (thm, true)
  of SOME (thm, _) =>
       let
         fun del_eqn' (Eqns_Default _) = initial_fun_spec
@@ -1179,6 +1180,9 @@ fun del_eqn thm thy = case mk_eqn Liberal thy (thm, true)
           | del_eqn' spec = spec
       in change_fun_spec (const_eqn thy thm) del_eqn' thy end
   | NONE => thy;
+
+val del_eqn_silent = generic_del_eqn Silent;
+val del_eqn = generic_del_eqn Liberal;
 
 fun del_eqns c = change_fun_spec c (K None);
 

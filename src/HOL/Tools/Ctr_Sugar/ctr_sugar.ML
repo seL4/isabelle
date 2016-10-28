@@ -785,7 +785,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
         fun prove_split selss goal =
           Variable.add_free_names lthy goal []
           |> (fn vars => Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
-            mk_split_tac ctxt ms uexhaust_thm case_thms selss inject_thmss distinct_thmsss))
+            mk_split_tac ctxt uexhaust_thm case_thms selss inject_thmss distinct_thmsss))
           |> Thm.close_derivation;
 
         fun prove_split_asm asm_goal split_thm =
@@ -805,13 +805,12 @@ fun prepare_free_constructors kind prep_plugins prep_term
             (thm, asm_thm)
           end;
 
-        val (sel_defs, all_sel_thms, sel_thmss, disc_defs, nontriv_disc_defs, disc_thmss,
-             nontriv_disc_thmss, discI_thms, nontriv_discI_thms, distinct_disc_thms,
-             distinct_disc_thmsss, exhaust_disc_thms, exhaust_sel_thms, all_collapse_thms,
-             safe_collapse_thms, expand_thms, split_sel_thms, split_sel_asm_thms, case_eq_if_thms,
-             disc_eq_case_thms) =
+        val (sel_defs, all_sel_thms, sel_thmss, nontriv_disc_defs, disc_thmss, nontriv_disc_thmss,
+             discI_thms, nontriv_discI_thms, distinct_disc_thms, distinct_disc_thmsss,
+             exhaust_disc_thms, exhaust_sel_thms, all_collapse_thms, safe_collapse_thms,
+             expand_thms, split_sel_thms, split_sel_asm_thms, case_eq_if_thms, disc_eq_case_thms) =
           if no_discs_sels then
-            ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
           else
             let
               val udiscs = map (rapp u) discs;
@@ -1049,11 +1048,11 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   |> Conjunction.elim_balanced (length goals)
                 end;
             in
-              (sel_defs, all_sel_thms, sel_thmss, disc_defs, nontriv_disc_defs, disc_thmss,
-               nontriv_disc_thmss, discI_thms, nontriv_discI_thms, distinct_disc_thms,
-               distinct_disc_thmsss, [exhaust_disc_thm], [exhaust_sel_thm], all_collapse_thms,
-               safe_collapse_thms, [expand_thm], [split_sel_thm], [split_sel_asm_thm],
-               [case_eq_if_thm], disc_eq_case_thms)
+              (sel_defs, all_sel_thms, sel_thmss, nontriv_disc_defs, disc_thmss, nontriv_disc_thmss,
+               discI_thms, nontriv_discI_thms, distinct_disc_thms, distinct_disc_thmsss,
+               [exhaust_disc_thm], [exhaust_sel_thm], all_collapse_thms, safe_collapse_thms,
+               [expand_thm], [split_sel_thm], [split_sel_asm_thm], [case_eq_if_thm],
+               disc_eq_case_thms)
             end;
 
         val case_distrib_thm =
@@ -1113,8 +1112,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
 
-        val (noted, lthy') =
-          lthy
+        val (noted, lthy') = lthy
           |> Spec_Rules.add Spec_Rules.Equational ([casex], case_thms)
           |> fold (Spec_Rules.add Spec_Rules.Equational)
             (AList.group (eq_list (op aconv)) (map (`(single o lhs_head_of)) all_sel_thms))
@@ -1123,14 +1121,15 @@ fun prepare_free_constructors kind prep_plugins prep_term
           |> Local_Theory.declaration {syntax = false, pervasive = true}
             (fn phi => Case_Translation.register
                (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
-          |> Local_Theory.background_theory (fold (fold Code.del_eqn) [nontriv_disc_defs, sel_defs])
+          |> Local_Theory.background_theory
+            (fold (fold Code.del_eqn_silent) [nontriv_disc_defs, sel_defs])
           |> plugins code_plugin ?
-            Local_Theory.declaration {syntax = false, pervasive = false}
-              (fn phi => Context.mapping
-                 (add_ctr_code fcT_name (map (Morphism.typ phi) As)
-                    (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
-                    (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
-                 I)
+             Local_Theory.declaration {syntax = false, pervasive = false}
+               (fn phi => Context.mapping
+                  (add_ctr_code fcT_name (map (Morphism.typ phi) As)
+                     (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
+                     (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
+                  I)
           |> Local_Theory.notes (anonymous_notes @ notes)
           (* for "datatype_realizer.ML": *)
           |>> name_noted_thms fcT_name exhaustN;

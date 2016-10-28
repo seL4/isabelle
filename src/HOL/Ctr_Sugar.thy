@@ -42,8 +42,8 @@ ML_file "Tools/Ctr_Sugar/ctr_sugar_tactics.ML"
 ML_file "Tools/Ctr_Sugar/ctr_sugar_code.ML"
 ML_file "Tools/Ctr_Sugar/ctr_sugar.ML"
 
+text \<open>Coinduction method that avoids some boilerplate compared with coinduct.\<close>
 
-text \<open>Coinduction method that avoids some boilerplate compared to coinduct.\<close>
 ML_file "Tools/coinduction.ML"
 
 end
