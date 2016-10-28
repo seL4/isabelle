@@ -7,7 +7,7 @@ This version introduces significant changes over Isabelle2016: see the NEWS
 file for further details. Some notable changes:
 
 * Improved Isabelle/jEdit Prover IDE: more support for formal text structure,
-more visual feedback.
+  more visual feedback.
 
 * The Isabelle/ML IDE can load Isabelle/Pure into itself.
 
@@ -18,10 +18,10 @@ more visual feedback.
 * HOL tools: new Argo SMT solver, experimental Nunchaku model finder.
 
 * HOL library: improved HOL-Number_Theory and HOL-Library, especially theory
-Multiset.
+  Multiset.
 
 * Reorganization of HOL-Probability versus and HOL-Analysis, with many new
-theorems ported from HOL-Light.
+  theorems ported from HOL-Light.
 
 * Improved management of Poly/ML 5.6 processes and cumulative heap files.
 
