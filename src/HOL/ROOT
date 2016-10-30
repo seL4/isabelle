@@ -38,6 +38,7 @@ session "HOL-Library" (main timing) in Library = HOL +
     Predicate_Compile_Quickcheck
     Prefix_Order
     Rewrite
+    Types_To_Sets
     (*conflicting type class instantiations*)
     List_lexord
     Sublist_Order
