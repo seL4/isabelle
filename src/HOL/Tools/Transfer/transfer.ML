@@ -19,6 +19,8 @@ sig
   val top_sweep_rewr_conv: thm list -> conv
 
   val prep_conv: conv
+  val fold_relator_eqs_conv: Proof.context -> conv
+  val unfold_relator_eqs_conv: Proof.context -> conv
   val get_transfer_raw: Proof.context -> thm list
   val get_relator_eq_item_net: Proof.context -> thm Item_Net.T
   val get_relator_eq: Proof.context -> thm list
@@ -231,6 +233,10 @@ fun prep_conv ct = (
       else_conv
       Conv.all_conv) ct
 
+fun fold_relator_eqs_conv ctxt ct = (bottom_rewr_conv (get_relator_eq ctxt)) ct;
+fun unfold_relator_eqs_conv ctxt ct = (top_rewr_conv (get_sym_relator_eq ctxt)) ct;
+
+
 (** Replacing explicit equalities with is_equality premises **)
 
 fun mk_is_equality t =
@@ -278,7 +284,7 @@ fun abstract_equalities_transfer ctxt thm =
           Logic.list_implies (prems, HOLogic.mk_Trueprop (rel' $ x $ y)))
       end
     val contracted_eq_thm =
-      Conv.fconv_rule (transfer_rel_conv (bottom_rewr_conv (get_relator_eq ctxt))) thm
+      Conv.fconv_rule (transfer_rel_conv (fold_relator_eqs_conv ctxt)) thm
       handle CTERM _ => thm
   in
     gen_abstract_equalities ctxt dest contracted_eq_thm
@@ -301,7 +307,7 @@ fun abstract_equalities_domain ctxt thm =
     fun transfer_rel_conv conv =
       Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.arg1_conv (Conv.arg_conv conv)))
     val contracted_eq_thm =
-      Conv.fconv_rule (transfer_rel_conv (bottom_rewr_conv (get_relator_eq ctxt))) thm
+      Conv.fconv_rule (transfer_rel_conv (fold_relator_eqs_conv ctxt)) thm
   in
     gen_abstract_equalities ctxt dest contracted_eq_thm
   end
@@ -654,13 +660,13 @@ fun transfer_prover_start_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val rhs = (snd o Term.dest_comb o HOLogic.dest_Trueprop) t
     val rule1 = transfer_rule_of_term ctxt false rhs
-    val expand_eq_in_rel = transfer_rel_conv (top_rewr_conv [@{thm rel_fun_eq[symmetric,THEN eq_reflection]}])
+    val expand_eqs_in_rel_conv = transfer_rel_conv (unfold_relator_eqs_conv ctxt)
   in
     EVERY
       [CONVERSION prep_conv i,
+       CONVERSION expand_eqs_in_rel_conv i,
        resolve_tac ctxt @{thms transfer_prover_start} i,
-       (resolve_tac ctxt [rule1] ORELSE'
-         (CONVERSION expand_eq_in_rel THEN' resolve_tac ctxt [rule1])) (i + 1)]
+       resolve_tac ctxt [rule1] (i + 1)]
   end);
 
 fun transfer_end_tac ctxt i =
