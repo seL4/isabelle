@@ -73,7 +73,7 @@ Packaging
 
 - Linux: avoid some versions of Debian / Ubuntu (bitmap fonts for prog-prove);
 
-- fully-automated packaging (e.g. on macbroy2):
+- fully-automated packaging (e.g. on lxbroy10 or macbroy2):
 
   hg up -r DISTNAME && Admin/build_release -M macbroy30 -O -l -R DISTNAME /home/isabelle/dist
 
