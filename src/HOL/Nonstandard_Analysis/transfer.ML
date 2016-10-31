@@ -13,7 +13,7 @@ end;
 structure Transfer_Principle: TRANSFER_PRINCIPLE =
 struct
 
-structure TransferData = Generic_Data
+structure Data = Generic_Data
 (
   type T = {
     intros: thm list,
@@ -55,13 +55,13 @@ in
 fun transfer_star_tac ctxt =
   let
     fun thm_of (Const (@{const_name Ifun}, _) $ t $ u) = @{thm transfer_Ifun} OF [thm_of t, thm_of u]
-    | thm_of (Const (@{const_name star_of}, _) $ _) = @{thm star_of_def}
-    | thm_of (Const (@{const_name star_n}, _) $ _) = @{thm Pure.reflexive}
-    | thm_of _ = raise MATCH;
+      | thm_of (Const (@{const_name star_of}, _) $ _) = @{thm star_of_def}
+      | thm_of (Const (@{const_name star_n}, _) $ _) = @{thm Pure.reflexive}
+      | thm_of _ = raise MATCH;
 
     fun thm_of_goal (Const (@{const_name Pure.eq}, _) $ t $ (Const (@{const_name star_n}, _) $ _)) =
-      thm_of t
-    | thm_of_goal _ = raise MATCH;
+          thm_of t
+      | thm_of_goal _ = raise MATCH;
   in
     SUBGOAL (fn (t, i) =>
       resolve_tac ctxt [thm_of_goal (strip_all_body t |> Logic.strip_imp_concl)] i
@@ -71,44 +71,43 @@ end;
 
 fun transfer_thm_of ctxt ths t =
   let
-    val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt);
+    val {intros,unfolds,refolds,consts} = Data.get (Context.Proof ctxt);
     val meta = Local_Defs.meta_rewrite_rule ctxt;
     val ths' = map meta ths;
     val unfolds' = map meta unfolds and refolds' = map meta refolds;
     val (_$_$t') = Thm.concl_of (Raw_Simplifier.rewrite ctxt true unfolds' (Thm.cterm_of ctxt t))
     val u = unstar_term consts t'
-   val tac =
+    val tac =
       rewrite_goals_tac ctxt (ths' @ refolds' @ unfolds') THEN
       ALLGOALS (Object_Logic.full_atomize_tac ctxt) THEN
       match_tac ctxt [transitive_thm] 1 THEN
       resolve_tac ctxt [@{thm transfer_start}] 1 THEN
       REPEAT_ALL_NEW (resolve_tac ctxt intros ORELSE' transfer_star_tac ctxt) 1 THEN
       match_tac ctxt [reflexive_thm] 1
-  in Goal.prove ctxt [] [] (Logic.mk_equals (t,u)) (K tac) end
+  in Goal.prove ctxt [] [] (Logic.mk_equals (t,u)) (K tac) end;
 
-fun transfer_tac ctxt ths =
-    SUBGOAL (fn (t, _) =>
-        (fn th =>
-            let
-              val tr = transfer_thm_of ctxt ths t
-              val (_$l$r) = Thm.concl_of tr;
-              val trs = if l aconv r then [] else [tr];
-            in rewrite_goals_tac ctxt trs th end))
+fun transfer_tac ctxt ths = SUBGOAL (fn (t, _) => (fn th =>
+  let
+    val tr = transfer_thm_of ctxt ths t
+    val (_$ l $ r) = Thm.concl_of tr;
+    val trs = if l aconv r then [] else [tr];
+  in rewrite_goals_tac ctxt trs th end));
 
 local
 
-fun map_intros f = TransferData.map
+fun map_intros f = Data.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=f intros, unfolds=unfolds, refolds=refolds, consts=consts})
 
-fun map_unfolds f = TransferData.map
+fun map_unfolds f = Data.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=f unfolds, refolds=refolds, consts=consts})
 
-fun map_refolds f = TransferData.map
+fun map_refolds f = Data.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=unfolds, refolds=f refolds, consts=consts})
 in
+
 val intro_add = Thm.declaration_attribute (map_intros o Thm.add_thm);
 val intro_del = Thm.declaration_attribute (map_intros o Thm.del_thm);
 
@@ -117,9 +116,10 @@ val unfold_del = Thm.declaration_attribute (map_unfolds o Thm.del_thm);
 
 val refold_add = Thm.declaration_attribute (map_refolds o Thm.add_thm);
 val refold_del = Thm.declaration_attribute (map_refolds o Thm.del_thm);
+
 end
 
-fun add_const c = Context.theory_map (TransferData.map
+fun add_const c = Context.theory_map (Data.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=unfolds, refolds=refolds, consts=c::consts}))
 

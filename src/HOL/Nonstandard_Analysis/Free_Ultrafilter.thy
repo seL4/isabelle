@@ -2,13 +2,14 @@
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson
     Author:     Brian Huffman
-*) 
+*)
 
 section \<open>Filters and Ultrafilters\<close>
 
 theory Free_Ultrafilter
-imports "~~/src/HOL/Library/Infinite_Set"
+  imports "~~/src/HOL/Library/Infinite_Set"
 begin
+
 
 subsection \<open>Definitions and basic properties\<close>
 
@@ -43,28 +44,29 @@ lemma eventually_not_iff: "eventually (\<lambda>x. \<not> P x) F \<longleftright
 
 end
 
+
 subsection \<open>Maximal filter = Ultrafilter\<close>
 
 text \<open>
-   A filter F is an ultrafilter iff it is a maximal filter,
-   i.e. whenever G is a filter and @{term "F \<subseteq> G"} then @{term "F = G"}
+   A filter \<open>F\<close> is an ultrafilter iff it is a maximal filter,
+   i.e. whenever \<open>G\<close> is a filter and @{prop "F \<subseteq> G"} then @{prop "F = G"}
 \<close>
+
 text \<open>
-  Lemmas that shows existence of an extension to what was assumed to
+  Lemma that shows existence of an extension to what was assumed to
   be a maximal filter. Will be used to derive contradiction in proof of
   property of ultrafilter.
 \<close>
 
-lemma extend_filter:
-  "frequently P F \<Longrightarrow> inf F (principal {x. P x}) \<noteq> bot"
-  unfolding trivial_limit_def eventually_inf_principal by (simp add: not_eventually)
+lemma extend_filter: "frequently P F \<Longrightarrow> inf F (principal {x. P x}) \<noteq> bot"
+  by (simp add: trivial_limit_def eventually_inf_principal not_eventually)
 
 lemma max_filter_ultrafilter:
-  assumes proper: "F \<noteq> bot"
+  assumes "F \<noteq> bot"
   assumes max: "\<And>G. G \<noteq> bot \<Longrightarrow> G \<le> F \<Longrightarrow> F = G"
   shows "ultrafilter F"
 proof
-  fix P show "eventually P F \<or> (\<forall>\<^sub>Fx in F. \<not> P x)"
+  show "eventually P F \<or> (\<forall>\<^sub>Fx in F. \<not> P x)" for P
   proof (rule disjCI)
     assume "\<not> (\<forall>\<^sub>Fx in F. \<not> P x)"
     then have "inf F (principal {x. P x}) \<noteq> bot"
@@ -84,7 +86,9 @@ lemma le_filter_frequently: "F \<le> G \<longleftrightarrow> (\<forall>P. freque
   done
 
 lemma (in ultrafilter) max_filter:
-  assumes G: "G \<noteq> bot" and sub: "G \<le> F" shows "F = G"
+  assumes G: "G \<noteq> bot"
+    and sub: "G \<le> F"
+  shows "F = G"
 proof (rule antisym)
   show "F \<le> G"
     using sub
@@ -92,9 +96,8 @@ proof (rule antisym)
              intro!: eventually_frequently G proper)
 qed fact
 
-subsection \<open>Ultrafilter Theorem\<close>
 
-text "A local context makes proof of ultrafilter Theorem more modular"
+subsection \<open>Ultrafilter Theorem\<close>
 
 lemma ex_max_ultrafilter:
   fixes F :: "'a filter"
@@ -104,73 +107,77 @@ proof -
   let ?X = "{G. G \<noteq> bot \<and> G \<le> F}"
   let ?R = "{(b, a). a \<noteq> bot \<and> a \<le> b \<and> b \<le> F}"
 
-  have bot_notin_R: "\<And>c. c \<in> Chains ?R \<Longrightarrow> bot \<notin> c"
+  have bot_notin_R: "c \<in> Chains ?R \<Longrightarrow> bot \<notin> c" for c
     by (auto simp: Chains_def)
 
   have [simp]: "Field ?R = ?X"
     by (auto simp: Field_def bot_unique)
 
-  have "\<exists>m\<in>Field ?R. \<forall>a\<in>Field ?R. (m, a) \<in> ?R \<longrightarrow> a = m"
+  have "\<exists>m\<in>Field ?R. \<forall>a\<in>Field ?R. (m, a) \<in> ?R \<longrightarrow> a = m" (is "\<exists>m\<in>?A. ?B m")
   proof (rule Zorns_po_lemma)
     show "Partial_order ?R"
-      unfolding partial_order_on_def preorder_on_def
-      by (auto simp: antisym_def refl_on_def trans_def Field_def bot_unique)
+      by (auto simp: partial_order_on_def preorder_on_def
+          antisym_def refl_on_def trans_def Field_def bot_unique)
     show "\<forall>C\<in>Chains ?R. \<exists>u\<in>Field ?R. \<forall>a\<in>C. (a, u) \<in> ?R"
     proof (safe intro!: bexI del: notI)
-      fix c x assume c: "c \<in> Chains ?R"
+      fix c x
+      assume c: "c \<in> Chains ?R"
 
-      { assume "c \<noteq> {}"
-        with c have "Inf c = bot \<longleftrightarrow> (\<exists>x\<in>c. x = bot)"
+      have Inf_c: "Inf c \<noteq> bot" "Inf c \<le> F" if "c \<noteq> {}"
+      proof -
+        from c that have "Inf c = bot \<longleftrightarrow> (\<exists>x\<in>c. x = bot)"
           unfolding trivial_limit_def by (intro eventually_Inf_base) (auto simp: Chains_def)
-        with c have 1: "Inf c \<noteq> bot"
+        with c show "Inf c \<noteq> bot"
           by (simp add: bot_notin_R)
-        from \<open>c \<noteq> {}\<close> obtain x where "x \<in> c" by auto
-        with c have 2: "Inf c \<le> F"
+        from that obtain x where "x \<in> c" by auto
+        with c show "Inf c \<le> F"
           by (auto intro!: Inf_lower2[of x] simp: Chains_def)
-        note 1 2 }
-      note Inf_c = this
+      qed
       then have [simp]: "inf F (Inf c) = (if c = {} then F else Inf c)"
         using c by (auto simp add: inf_absorb2)
 
-      show "inf F (Inf c) \<noteq> bot"
-        using c by (simp add: F Inf_c)
+      from c show "inf F (Inf c) \<noteq> bot"
+        by (simp add: F Inf_c)
+      from c show "inf F (Inf c) \<in> Field ?R"
+        by (simp add: Chains_def Inf_c F)
 
-      show "inf F (Inf c) \<in> Field ?R"
-        using c by (simp add: Chains_def Inf_c F)
-
-      assume x: "x \<in> c"
+      assume "x \<in> c"
       with c show "inf F (Inf c) \<le> x" "x \<le> F"
         by (auto intro: Inf_lower simp: Chains_def)
     qed
   qed
-  then guess U ..
-  then show ?thesis
-    by (intro exI[of _ U] conjI max_filter_ultrafilter) auto
+  then obtain U where U: "U \<in> ?A" "?B U" ..
+  show ?thesis
+  proof
+    from U show "U \<le> F \<and> ultrafilter U"
+      by (auto intro!: max_filter_ultrafilter)
+  qed
 qed
+
 
 subsubsection \<open>Free Ultrafilters\<close>
 
-text \<open>There exists a free ultrafilter on any infinite set\<close>
+text \<open>There exists a free ultrafilter on any infinite set.\<close>
 
 locale freeultrafilter = ultrafilter +
   assumes infinite: "eventually P F \<Longrightarrow> infinite {x. P x}"
 begin
 
 lemma finite: "finite {x. P x} \<Longrightarrow> \<not> eventually P F"
-  by (erule contrapos_pn, erule infinite)
+  by (erule contrapos_pn) (erule infinite)
 
 lemma finite': "finite {x. \<not> P x} \<Longrightarrow> eventually P F"
   by (drule finite) (simp add: not_eventually frequently_eq_eventually)
 
 lemma le_cofinite: "F \<le> cofinite"
   by (intro filter_leI)
-     (auto simp add: eventually_cofinite not_eventually frequently_eq_eventually dest!: finite)
+    (auto simp add: eventually_cofinite not_eventually frequently_eq_eventually dest!: finite)
 
 lemma singleton: "\<not> eventually (\<lambda>x. x = a) F"
-by (rule finite, simp)
+  by (rule finite) simp
 
 lemma singleton': "\<not> eventually (op = a) F"
-by (rule finite, simp)
+  by (rule finite) simp
 
 lemma ultrafilter: "ultrafilter F" ..
 
@@ -186,7 +193,8 @@ proof -
   interpret ultrafilter U by fact
   have "freeultrafilter U"
   proof
-    fix P assume "eventually P U"
+    fix P
+    assume "eventually P U"
     with proper have "frequently P U"
       by (rule eventually_frequently)
     then have "frequently P cofinite"
