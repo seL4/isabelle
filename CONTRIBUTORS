@@ -52,17 +52,17 @@ Contributions to Isabelle2016-1
   Tight Poly/ML integration.
   More Isabelle/Scala system programming modules (e.g. SSH, Mercurial).
 
+* Winter 2016: Jasmin Blanchette, Inria & LORIA & MPII, Aymeric Bouzy,
+  Ecole polytechnique, Andreas Lochbihler, ETH Zurich, Andrei Popescu,
+  Middlesex University, and Dmitriy Traytel, ETH Zurich
+  'corec' command and friends.
+
 * January 2016: Florian Haftmann, TUM
   Abolition of compound operators INFIMUM and SUPREMUM for complete lattices.
 
 
 Contributions to Isabelle2016
 -----------------------------
-
-* Winter 2016: Jasmin Blanchette, Inria & LORIA & MPII, Aymeric Bouzy,
-  Ecole polytechnique, Andreas Lochbihler, ETH Zurich, Andrei Popescu,
-  Middlesex University, and Dmitriy Traytel, ETH Zurich
-  'corec' command and friends.
 
 * Winter 2016: Manuel Eberl, TUM
   Support for real exponentiation ("powr") in the "approximation" method.
