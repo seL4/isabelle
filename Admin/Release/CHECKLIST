@@ -85,8 +85,8 @@ Final release stage
   default = http://bitbucket.org/isabelle_project/isabelle-release
   default = ssh://hg@bitbucket.org/isabelle_project/isabelle-release
 
-- isatest@lxbroy10:hg-isabelle/.hg/hgrc
-- isatest@lxbroy10:devel-page/content/index.content
+- Admin/cronjob/self_update:
+  http://bitbucket.org/isabelle_project/isabelle-release
 
 
 Post-release
