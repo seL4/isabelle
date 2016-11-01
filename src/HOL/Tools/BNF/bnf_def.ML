@@ -14,6 +14,7 @@ sig
 
   val morph_bnf: morphism -> bnf -> bnf
   val morph_bnf_defs: morphism -> bnf -> bnf
+  val permute_deads: (typ list -> typ list) -> bnf -> bnf
   val transfer_bnf: theory -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
   val bnf_of_global: theory -> string -> bnf option
@@ -659,6 +660,8 @@ fun morph_bnf phi =
   end;
 
 fun morph_bnf_defs phi = map_bnf I I I I I I I I I I I (morph_defs phi) I I I I I;
+
+fun permute_deads perm = map_bnf I I I I I I perm I I I I I I I I I I;
 
 val transfer_bnf = morph_bnf o Morphism.transfer_morphism;
 
