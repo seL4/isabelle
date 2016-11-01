@@ -54,7 +54,7 @@ object Mercurial
         case None => root.is_dir
         case Some(ssh) => ssh.is_dir(root)
       }
-    if (present) { val hg = repository(root, ssh = ssh); hg.pull(); hg }
+    if (present) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
 
