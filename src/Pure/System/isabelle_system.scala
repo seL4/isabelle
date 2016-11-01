@@ -107,12 +107,14 @@ object Isabelle_System
         dump.deleteOnExit
         try {
           val cmd1 =
-            if (Platform.is_windows) List(cygwin_root1 + "\\bin\\bash", "-l") else Nil
-          val cmd2 =
-            List(isabelle_root1 + JFile.separator + "bin" + JFile.separator + "isabelle",
-              "getenv", "-d", dump.toString)
+            if (Platform.is_windows)
+              List(cygwin_root1 + "\\bin\\bash", "-l",
+                File.standard_path(isabelle_root1 + "\\bin\\isabelle"))
+            else
+              List(isabelle_root1 + "/bin/isabelle")
+          val cmd = cmd1 ::: List("getenv", "-d", dump.toString)
 
-          val (output, rc) = process_output(process(cmd1 ::: cmd2, env = env, redirect = true))
+          val (output, rc) = process_output(process(cmd, env = env, redirect = true))
           if (rc != 0) error(output)
 
           val entries =
