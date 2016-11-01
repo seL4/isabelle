@@ -433,7 +433,8 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
           ssh.bash_path(isabelle_repos_other) + " " + args,
         progress_stdout = progress_stdout _,
-        progress_stderr = progress.echo(_))
+        progress_stderr = progress.echo(_),
+        strict = false)
 
     (result.toList, process_result)
   }
