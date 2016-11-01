@@ -177,10 +177,10 @@ lemma star_n_mult: "star_n X * star_n Y = star_n (\<lambda>n. X n * Y n)"
 lemma star_n_inverse: "inverse (star_n X) = star_n (\<lambda>n. inverse (X n))"
   by (simp only: star_inverse_def starfun_star_n)
 
-lemma star_n_le: "star_n X \<le> star_n Y = eventually (\<lambda>n. X n \<le> Y n) FreeUltrafilterNat"
+lemma star_n_le: "star_n X \<le> star_n Y = eventually (\<lambda>n. X n \<le> Y n) \<U>"
   by (simp only: star_le_def starP2_star_n)
 
-lemma star_n_less: "star_n X < star_n Y = eventually (\<lambda>n. X n < Y n) FreeUltrafilterNat"
+lemma star_n_less: "star_n X < star_n Y = eventually (\<lambda>n. X n < Y n) \<U>"
   by (simp only: star_less_def starP2_star_n)
 
 lemma star_n_zero_num: "0 = star_n (\<lambda>n. 0)"
@@ -199,7 +199,7 @@ lemma hypreal_omega_gt_zero [simp]: "0 < \<omega>"
 subsection \<open>Existence of Infinite Hyperreal Number\<close>
 
 text \<open>Existence of infinite number not corresponding to any real number.
-  Use assumption that member @{term FreeUltrafilterNat} is not finite.\<close>
+  Use assumption that member @{term \<U>} is not finite.\<close>
 
 text \<open>A few lemmas first.\<close>
 

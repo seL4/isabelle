@@ -1767,7 +1767,7 @@ subsection \<open>Alternative Definitions using Free Ultrafilter\<close>
 subsubsection \<open>@{term HFinite}\<close>
 
 lemma HFinite_FreeUltrafilterNat:
-  "star_n X \<in> HFinite \<Longrightarrow> \<exists>u. eventually (\<lambda>n. norm (X n) < u) FreeUltrafilterNat"
+  "star_n X \<in> HFinite \<Longrightarrow> \<exists>u. eventually (\<lambda>n. norm (X n) < u) \<U>"
   apply (auto simp add: HFinite_def SReal_def)
   apply (rule_tac x=r in exI)
   apply (simp add: hnorm_def star_of_def starfun_star_n)
@@ -1775,7 +1775,7 @@ lemma HFinite_FreeUltrafilterNat:
   done
 
 lemma FreeUltrafilterNat_HFinite:
-  "\<exists>u. eventually (\<lambda>n. norm (X n) < u) FreeUltrafilterNat \<Longrightarrow> star_n X \<in> HFinite"
+  "\<exists>u. eventually (\<lambda>n. norm (X n) < u) \<U> \<Longrightarrow> star_n X \<in> HFinite"
   apply (auto simp add: HFinite_def mem_Rep_star_iff)
   apply (rule_tac x="star_of u" in bexI)
    apply (simp add: hnorm_def starfun_star_n star_of_def)
@@ -1784,7 +1784,7 @@ lemma FreeUltrafilterNat_HFinite:
   done
 
 lemma HFinite_FreeUltrafilterNat_iff:
-  "star_n X \<in> HFinite \<longleftrightarrow> (\<exists>u. eventually (\<lambda>n. norm (X n) < u) FreeUltrafilterNat)"
+  "star_n X \<in> HFinite \<longleftrightarrow> (\<exists>u. eventually (\<lambda>n. norm (X n) < u) \<U>)"
   by (blast intro!: HFinite_FreeUltrafilterNat FreeUltrafilterNat_HFinite)
 
 
@@ -1804,14 +1804,14 @@ lemma lemma_FreeUltrafilterNat_one: "{n. norm (f n) = u} \<le> {n. norm (f n) < 
 
 text \<open>Exclude this type of sets from free ultrafilter for Infinite numbers!\<close>
 lemma FreeUltrafilterNat_const_Finite:
-  "eventually (\<lambda>n. norm (X n) = u) FreeUltrafilterNat \<Longrightarrow> star_n X \<in> HFinite"
+  "eventually (\<lambda>n. norm (X n) = u) \<U> \<Longrightarrow> star_n X \<in> HFinite"
   apply (rule FreeUltrafilterNat_HFinite)
   apply (rule_tac x = "u + 1" in exI)
   apply (auto elim: eventually_mono)
   done
 
 lemma HInfinite_FreeUltrafilterNat:
-  "star_n X \<in> HInfinite \<Longrightarrow> \<forall>u. eventually (\<lambda>n. u < norm (X n)) FreeUltrafilterNat"
+  "star_n X \<in> HInfinite \<Longrightarrow> \<forall>u. eventually (\<lambda>n. u < norm (X n)) \<U>"
   apply (drule HInfinite_HFinite_iff [THEN iffD1])
   apply (simp add: HFinite_FreeUltrafilterNat_iff)
   apply (rule allI, drule_tac x="u + 1" in spec)
@@ -1827,7 +1827,7 @@ lemma lemma_Int_HIa: "{n. u < norm (X n)} \<inter> {n. norm (X n) < u} = {}"
   by (auto intro: order_less_asym)
 
 lemma FreeUltrafilterNat_HInfinite:
-  "\<forall>u. eventually (\<lambda>n. u < norm (X n)) FreeUltrafilterNat \<Longrightarrow> star_n X \<in> HInfinite"
+  "\<forall>u. eventually (\<lambda>n. u < norm (X n)) \<U> \<Longrightarrow> star_n X \<in> HInfinite"
   apply (rule HInfinite_HFinite_iff [THEN iffD2])
   apply (safe, drule HFinite_FreeUltrafilterNat, safe)
   apply (drule_tac x = u in spec)
@@ -1841,7 +1841,7 @@ proof -
 qed
 
 lemma HInfinite_FreeUltrafilterNat_iff:
-  "star_n X \<in> HInfinite \<longleftrightarrow> (\<forall>u. eventually (\<lambda>n. u < norm (X n)) FreeUltrafilterNat)"
+  "star_n X \<in> HInfinite \<longleftrightarrow> (\<forall>u. eventually (\<lambda>n. u < norm (X n)) \<U>)"
   by (blast intro!: HInfinite_FreeUltrafilterNat FreeUltrafilterNat_HInfinite)
 
 
@@ -1904,7 +1904,7 @@ lemma Suc_Un_eq: "{n. n < Suc m} = {n. n < m} Un {n. n = m}"
   by (auto simp add: less_Suc_eq)
 
 
-text \<open>Prove that any segment is finite and hence cannot belong to \<open>FreeUltrafilterNat\<close>.\<close>
+text \<open>Prove that any segment is finite and hence cannot belong to \<open>\<U>\<close>.\<close>
 
 lemma finite_real_of_nat_segment: "finite {n::nat. real n < real (m::nat)}"
   by auto
@@ -1925,17 +1925,17 @@ lemma finite_rabs_real_of_nat_le_real: "finite {n::nat. \<bar>real n\<bar> \<le>
   by (simp add: finite_real_of_nat_le_real)
 
 lemma rabs_real_of_nat_le_real_FreeUltrafilterNat:
-  "\<not> eventually (\<lambda>n. \<bar>real n\<bar> \<le> u) FreeUltrafilterNat"
+  "\<not> eventually (\<lambda>n. \<bar>real n\<bar> \<le> u) \<U>"
   by (blast intro!: FreeUltrafilterNat.finite finite_rabs_real_of_nat_le_real)
 
-lemma FreeUltrafilterNat_nat_gt_real: "eventually (\<lambda>n. u < real n) FreeUltrafilterNat"
+lemma FreeUltrafilterNat_nat_gt_real: "eventually (\<lambda>n. u < real n) \<U>"
   apply (rule FreeUltrafilterNat.finite')
   apply (subgoal_tac "{n::nat. \<not> u < real n} = {n. real n \<le> u}")
    apply (auto simp add: finite_real_of_nat_le_real)
   done
 
 text \<open>The complement of \<open>{n. \<bar>real n\<bar> \<le> u} = {n. u < \<bar>real n\<bar>}\<close> is in
-  \<open>FreeUltrafilterNat\<close> by property of (free) ultrafilters.\<close>
+  \<open>\<U>\<close> by property of (free) ultrafilters.\<close>
 
 lemma Compl_real_le_eq: "- {n::nat. real n \<le> u} = {n. u < real n}"
   by (auto dest!: order_le_less_trans simp add: linorder_not_le)
@@ -1991,17 +1991,17 @@ lemma finite_inverse_real_of_posnat_ge_real: "0 < u \<Longrightarrow> finite {n.
       simp del: of_nat_Suc)
 
 lemma inverse_real_of_posnat_ge_real_FreeUltrafilterNat:
-  "0 < u \<Longrightarrow> \<not> eventually (\<lambda>n. u \<le> inverse(real(Suc n))) FreeUltrafilterNat"
+  "0 < u \<Longrightarrow> \<not> eventually (\<lambda>n. u \<le> inverse(real(Suc n))) \<U>"
   by (blast intro!: FreeUltrafilterNat.finite finite_inverse_real_of_posnat_ge_real)
 
 text \<open>The complement of \<open>{n. u \<le> inverse(real(Suc n))} = {n. inverse (real (Suc n)) < u}\<close>
-  is in \<open>FreeUltrafilterNat\<close> by property of (free) ultrafilters.\<close>
+  is in \<open>\<U>\<close> by property of (free) ultrafilters.\<close>
 lemma Compl_le_inverse_eq: "- {n. u \<le> inverse(real(Suc n))} = {n. inverse(real(Suc n)) < u}"
   by (auto dest!: order_le_less_trans simp add: linorder_not_le)
 
 
 lemma FreeUltrafilterNat_inverse_real_of_posnat:
-  "0 < u \<Longrightarrow> eventually (\<lambda>n. inverse(real(Suc n)) < u) FreeUltrafilterNat"
+  "0 < u \<Longrightarrow> eventually (\<lambda>n. inverse(real(Suc n)) < u) \<U>"
   by (drule inverse_real_of_posnat_ge_real_FreeUltrafilterNat)
     (simp add: FreeUltrafilterNat.eventually_not_iff not_le[symmetric])
 

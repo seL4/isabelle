@@ -329,18 +329,18 @@ lemma HNatInfinite_iff: "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"
 subsubsection \<open>Alternative Characterization of @{term HNatInfinite} using Free Ultrafilter\<close>
 
 lemma HNatInfinite_FreeUltrafilterNat:
-  "star_n X \<in> HNatInfinite \<Longrightarrow> \<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat"
+  "star_n X \<in> HNatInfinite \<Longrightarrow> \<forall>u. eventually (\<lambda>n. u < X n) \<U>"
   apply (auto simp add: HNatInfinite_iff SHNat_eq)
   apply (drule_tac x="star_of u" in spec, simp)
   apply (simp add: star_of_def star_less_def starP2_star_n)
   done
 
 lemma FreeUltrafilterNat_HNatInfinite:
-  "\<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat \<Longrightarrow> star_n X \<in> HNatInfinite"
+  "\<forall>u. eventually (\<lambda>n. u < X n) \<U> \<Longrightarrow> star_n X \<in> HNatInfinite"
   by (auto simp add: star_less_def starP2_star_n HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 
 lemma HNatInfinite_FreeUltrafilterNat_iff:
-  "(star_n X \<in> HNatInfinite) = (\<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat)"
+  "(star_n X \<in> HNatInfinite) = (\<forall>u. eventually (\<lambda>n. u < X n) \<U>)"
   by (rule iffI [OF HNatInfinite_FreeUltrafilterNat FreeUltrafilterNat_HNatInfinite])
 
 

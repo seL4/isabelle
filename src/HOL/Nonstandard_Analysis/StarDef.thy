@@ -20,7 +20,7 @@ lemma freeultrafilter_FreeUltrafilterNat: "freeultrafilter \<U>"
   apply (rule infinite_UNIV_nat)
   done
 
-interpretation FreeUltrafilterNat: freeultrafilter FreeUltrafilterNat
+interpretation FreeUltrafilterNat: freeultrafilter \<U>
   by (rule freeultrafilter_FreeUltrafilterNat)
 
 
