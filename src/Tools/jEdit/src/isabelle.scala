@@ -338,9 +338,9 @@ object Isabelle
                 JEdit_Lib.buffer_edit(buffer) {
                   if (padding) {
                     text_area.moveCaretPosition(start + range.length)
+                    val start_line = text_area.getCaretLine + 1
                     text_area.setSelectedText("\n" + text)
                     val end_line = text_area.getCaretLine
-                    val start_line = end_line - split_lines(text).length
                     buffer.indentLines(start_line, end_line)
                   }
                   else {
