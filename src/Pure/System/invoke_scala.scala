@@ -125,4 +125,3 @@ class Invoke_Scala extends Session.Protocol_Handler
     Markup.INVOKE_SCALA -> invoke_scala _,
     Markup.CANCEL_SCALA -> cancel_scala _)
 }
-
