@@ -472,8 +472,8 @@ resemble the f.split naming convention, INCOMPATIBILITY.
 
 * The following theorems have been renamed:
 
-  setsum_left_distrib ~> setsum_distrib_right
-  setsum_right_distrib ~> setsum_distrib_left
+  setsum_left_distrib ~> sum_distrib_right
+  setsum_right_distrib ~> sum_distrib_left
 
 INCOMPATIBILITY.
 
