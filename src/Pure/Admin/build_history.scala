@@ -403,6 +403,9 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
             isabelle_hg.id()
           }
         isabelle_hg.update(rev = rev, clean = true)
+        ssh.execute(
+          ssh.bash_path(isabelle_repos_self + Path.explode("bin/isabelle"))
+            + " components -a").check
         ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
         rev
       }
