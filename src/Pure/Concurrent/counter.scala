@@ -27,4 +27,3 @@ final class Counter private
 
   override def toString: String = count.toString
 }
-
