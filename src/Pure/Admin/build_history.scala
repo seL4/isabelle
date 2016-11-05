@@ -11,8 +11,6 @@ import java.io.{File => JFile}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-import scala.collection.mutable
-
 
 object Build_History
 {
@@ -420,7 +418,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
     /* Admin/build_history */
 
-    val result = new mutable.ListBuffer[(String, Bytes)]
+    var result = Synchronized(List.empty[(String, Bytes)])
 
     def progress_stdout(line: String)
     {
@@ -428,7 +426,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val res = (log.base.implode, ssh.read_bytes(log))
       ssh.rm(log)
       progress_result(res._1, res._2)
-      result += res
+      result.change(res :: _)
     }
 
     val process_result =
@@ -439,6 +437,6 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         progress_stderr = progress.echo(_),
         strict = false)
 
-    (result.toList, process_result)
+    (result.value.reverse, process_result)
   }
 }
