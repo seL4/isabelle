@@ -138,7 +138,7 @@ text \<open>
   @{ML_text foo1}, @{ML_text foo42}.
 \<close>
 
-paragraph\<open>Scopes.\<close>
+paragraph \<open>Scopes.\<close>
 text \<open>
   Apart from very basic library modules, ML structures are not ``opened'', but
   names are referenced with explicit qualification, as in @{ML
