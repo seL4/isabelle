@@ -443,7 +443,7 @@ val literals = let
     else if c = "\\" then "\\\\"
     else let val k = ord c
     in if k < 32 orelse k > 126
-    then "\\u" ^ align_right "0" 4 (radixstring (8, "0", k)) else c end
+    then "\\u" ^ align_right "0" 4 (Int.fmt StringCvt.HEX k) else c end
   fun numeral_scala k =
     if ~2147483647 < k andalso k <= 2147483647
     then signed_string_of_int k
