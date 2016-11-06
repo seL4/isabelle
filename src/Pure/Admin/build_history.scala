@@ -103,7 +103,6 @@ object Build_History
   def build_history(
     hg: Mercurial.Repository,
     progress: Progress = Ignore_Progress,
-    progress_result: (Process_Result, Path) => Unit = (result: Process_Result, path: Path) => (),
     rev: String = default_rev,
     isabelle_identifier: String = default_isabelle_identifier,
     components_base: String = "",
@@ -257,9 +256,7 @@ object Build_History
 
       first_build = false
 
-      val res = (build_result, log_path.ext("xz"))
-      progress_result(res._1, res._2)
-      res
+      (build_result, log_path.ext("xz"))
     }
   }
 
@@ -351,7 +348,6 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       val results =
         build_history(hg, progress = progress, rev = rev, isabelle_identifier = isabelle_identifier,
-          progress_result = (_, log_path) => Output.writeln(log_path.implode, stdout = true),
           components_base = components_base, fresh = fresh, nonfree = nonfree,
           multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
@@ -375,7 +371,6 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     self_update: Boolean = false,
     push_isabelle_home: Boolean = false,
     progress: Progress = Ignore_Progress,
-    progress_result: (String, Bytes) => Unit = (log_name: String, bytes: Bytes) => (),
     options: String = "",
     args: String = ""): (List[(String, Bytes)], Process_Result) =
   {
@@ -418,25 +413,23 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
     /* Admin/build_history */
 
-    var result = Synchronized(List.empty[(String, Bytes)])
-
-    def progress_stdout(line: String)
-    {
-      val log = Path.explode(line)
-      val res = (log.base.implode, ssh.read_bytes(log))
-      ssh.rm(log)
-      progress_result(res._1, res._2)
-      result.change(res :: _)
-    }
-
     val process_result =
       ssh.execute(
         ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
           ssh.bash_path(isabelle_repos_other) + " " + args,
-        progress_stdout = progress_stdout _,
+        progress_stdout = progress.echo(_),
         progress_stderr = progress.echo(_),
         strict = false)
 
-    (result.value.reverse, process_result)
+    val result =
+      for (line <- process_result.out_lines)
+      yield {
+        val log = Path.explode(line)
+        val bytes = ssh.read_bytes(log)
+        ssh.rm(log)
+        (log.base.implode, bytes)
+      }
+
+    (result, process_result)
   }
 }

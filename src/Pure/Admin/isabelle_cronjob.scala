@@ -118,19 +118,19 @@ object Isabelle_Cronjob
               val self_update = !r.shared_home
               val push_isabelle_home = self_update && Mercurial.is_repository(Path.explode("~~"))
 
-              def progress_result(log_name: String, bytes: Bytes): Unit =
-                Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+              val (results, _) =
+                Build_History.remote_build_history(ssh,
+                  isabelle_repos,
+                  isabelle_repos.ext(r.host),
+                  isabelle_repos_source = isabelle_release_source,
+                  self_update = self_update,
+                  push_isabelle_home = push_isabelle_home,
+                  options =
+                    r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
+                  args = "-o timeout=10800 " + r.args)
 
-              Build_History.remote_build_history(ssh,
-                isabelle_repos,
-                isabelle_repos.ext(r.host),
-                isabelle_repos_source = isabelle_release_source,
-                self_update = self_update,
-                push_isabelle_home = push_isabelle_home,
-                progress_result = progress_result _,
-                options =
-                  r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
-                args = "-o timeout=10800 " + r.args)
+              for ((log_name, bytes) <- results)
+                Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
             })
       })
   }
