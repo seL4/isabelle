@@ -300,7 +300,7 @@ locale classical =
 
 theorem (in classical) Peirce's_Law: "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
 proof
-  assume a: "(A \<longrightarrow> B) \<longrightarrow> A"
+  assume *: "(A \<longrightarrow> B) \<longrightarrow> A"
   show A
   proof (rule classical)
     assume "\<not> A"
@@ -309,7 +309,7 @@ proof
       assume A
       with \<open>\<not> A\<close> show B by (rule contradiction)
     qed
-    with a show A ..
+    with * show A ..
   qed
 qed
 
