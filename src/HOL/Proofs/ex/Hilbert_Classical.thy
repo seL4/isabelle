@@ -19,6 +19,86 @@ subsection \<open>Proof text\<close>
 
 theorem tertium_non_datur: "A \<or> \<not> A"
 proof -
+  let ?P = "\<lambda>x. (A \<and> x) \<or> \<not> x"
+  let ?Q = "\<lambda>x. (A \<and> \<not> x) \<or> x"
+
+  have a: "?P (Eps ?P)"
+  proof (rule someI)
+    have "\<not> False" ..
+    then show "?P False" ..
+  qed
+  have b: "?Q (Eps ?Q)"
+  proof (rule someI)
+    have True ..
+    then show "?Q True" ..
+  qed
+
+  from a show ?thesis
+  proof
+    assume "A \<and> Eps ?P"
+    then have A ..
+    then show ?thesis ..
+  next
+    assume "\<not> Eps ?P"
+    from b show ?thesis
+    proof
+      assume "A \<and> \<not> Eps ?Q"
+      then have A ..
+      then show ?thesis ..
+    next
+      assume "Eps ?Q"
+      have neq: "?P \<noteq> ?Q"
+      proof
+        assume "?P = ?Q"
+        then have "Eps ?P \<longleftrightarrow> Eps ?Q" by (rule arg_cong)
+        also note \<open>Eps ?Q\<close>
+        finally have "Eps ?P" .
+        with \<open>\<not> Eps ?P\<close> show False by contradiction
+      qed
+      have "\<not> A"
+      proof
+        assume A
+        have "?P = ?Q"
+        proof (rule ext)
+          show "?P x \<longleftrightarrow> ?Q x" for x
+          proof
+            assume "?P x"
+            then show "?Q x"
+            proof
+              assume "\<not> x"
+              with \<open>A\<close> have "A \<and> \<not> x" ..
+              then show ?thesis ..
+            next
+              assume "A \<and> x"
+              then have x ..
+              then show ?thesis ..
+            qed
+          next
+            assume "?Q x"
+            then show "?P x"
+            proof
+              assume "A \<and> \<not> x"
+              then have "\<not> x" ..
+              then show ?thesis ..
+            next
+              assume x
+              with \<open>A\<close> have "A \<and> x" ..
+              then show ?thesis ..
+            qed
+          qed
+        qed
+        with neq show False by contradiction
+      qed
+      then show ?thesis ..
+    qed
+  qed
+qed
+
+
+subsection \<open>Old proof text\<close>
+
+theorem tertium_non_datur1: "A \<or> \<not> A"
+proof -
   let ?P = "\<lambda>x. (x \<longleftrightarrow> False) \<or> (x \<longleftrightarrow> True) \<and> A"
   let ?Q = "\<lambda>x. (x \<longleftrightarrow> False) \<and> A \<or> (x \<longleftrightarrow> True)"
 
@@ -93,14 +173,9 @@ proof -
 qed
 
 
-subsection \<open>Proof term of text\<close>
+subsection \<open>Old proof script\<close>
 
-prf tertium_non_datur
-
-
-subsection \<open>Proof script\<close>
-
-theorem tertium_non_datur': "A \<or> \<not> A"
+theorem tertium_non_datur2: "A \<or> \<not> A"
   apply (subgoal_tac
       "(((SOME x. x = False \<or> x = True \<and> A) = False) \<or>
       ((SOME x. x = False \<or> x = True \<and> A) = True) \<and> A) \<and>
@@ -152,8 +227,10 @@ theorem tertium_non_datur': "A \<or> \<not> A"
   done
 
 
-subsection \<open>Proof term of script\<close>
+subsection \<open>Proof terms\<close>
 
-prf tertium_non_datur'
+prf tertium_non_datur
+prf tertium_non_datur1
+prf tertium_non_datur2
 
 end
