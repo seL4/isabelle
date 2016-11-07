@@ -354,6 +354,8 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           max_heap = max_heap, more_settings = more_settings, verbose = verbose,
           build_tags = build_tags, build_args = build_args)
 
+      for ((_, log_path) <- results) Output.writeln(log_path.implode, stdout = true)
+
       val rc = (0 /: results) { case (rc, (res, _)) => rc max res.rc }
       if (rc != 0) sys.exit(rc)
     }
