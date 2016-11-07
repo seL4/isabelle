@@ -33,7 +33,7 @@ sig
   | CVC4_Not_Found
   | Unknown_Error of int * string
 
-  val nunchaku_env_var: string
+  val nunchaku_home_env_var: string
 
   val solve_nun_problem: tool_params -> nun_problem -> nun_outcome
 end;
@@ -71,7 +71,7 @@ fun bash_output_error s =
     ((out, err), rc)
   end;
 
-val nunchaku_env_var = "NUNCHAKU";
+val nunchaku_home_env_var = "NUNCHAKU_HOME";
 
 val cached_outcome =
   Synchronized.var "Nunchaku_Tool.cached_outcome" (NONE : (nun_problem * nun_outcome) option);
@@ -79,13 +79,13 @@ val cached_outcome =
 fun uncached_solve_nun_problem ({overlord, specialize, timeout, ...} : tool_params)
     (problem as {sound, complete, ...}) =
   with_tmp_or_overlord_file overlord "nunchaku" "nun" (fn prob_path =>
-    if getenv nunchaku_env_var = "" then
+    if getenv nunchaku_home_env_var = "" then
       Nunchaku_Var_Not_Set
     else
       let
         val bash_cmd =
-          "PATH=\"$CVC4_HOME:$KODKODI/bin:$PATH\" \"$" ^ nunchaku_env_var ^ "\" \
-          \--skolems-in-model --no-color " ^
+          "PATH=\"$CVC4_HOME:$KODKODI/bin:$PATH\" \"$" ^
+          nunchaku_home_env_var ^ "\"/nunchaku --skolems-in-model --no-color " ^
           (if specialize then "" else "--no-specialize ") ^
           "--timeout " ^ string_of_int (Time.toSeconds timeout) ^ " " ^
           File.bash_path prob_path;
@@ -99,10 +99,12 @@ fun uncached_solve_nun_problem ({overlord, specialize, timeout, ...} : tool_para
           (if sound then Sat else Unknown o SOME) (output, {tys = [], tms = []})
         else if String.isPrefix "UNSAT" output then
           if complete then Unsat else Unknown NONE
+        else if String.isSubstring "TIMEOUT" output
+            (* FIXME: temporary *)
+            orelse String.isSubstring "kodkod failed (errcode 152)" error then
+          Timeout
         else if String.isPrefix "UNKNOWN" output then
           Unknown NONE
-        else if String.isPrefix "TIMEOUT" output then
-          Timeout
         else if code = 126 then
           Nunchaku_Cannot_Execute
         else if code = 127 then

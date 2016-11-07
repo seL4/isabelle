@@ -256,7 +256,7 @@ fun run_chaku_on_prop state
             | Unknown (SOME (output, _)) => sat_or_maybe_sat false output
             | Timeout => (print_n "Time out"; (unknownN, NONE))
             | Nunchaku_Var_Not_Set =>
-              (print_n ("Variable $" ^ nunchaku_env_var ^ " not set"); (unknownN, NONE))
+              (print_n ("Variable $" ^ nunchaku_home_env_var ^ " not set"); (unknownN, NONE))
             | Nunchaku_Cannot_Execute =>
               (print_n "External tool \"nunchaku\" cannot execute"; (unknownN, NONE))
             | Nunchaku_Not_Found =>
