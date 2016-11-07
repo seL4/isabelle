@@ -242,6 +242,11 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
     kind == Token.Kind.SYM_IDENT ||
     kind == Token.Kind.STRING ||
     kind == Token.Kind.NAT
+  def is_embedded: Boolean = is_name ||
+    kind == Token.Kind.CARTOUCHE ||
+    kind == Token.Kind.VAR ||
+    kind == Token.Kind.TYPE_IDENT ||
+    kind == Token.Kind.TYPE_VAR
   def is_text: Boolean = is_name || kind == Token.Kind.VERBATIM || kind == Token.Kind.CARTOUCHE
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_comment: Boolean = kind == Token.Kind.COMMENT

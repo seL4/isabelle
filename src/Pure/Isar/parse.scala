@@ -64,12 +64,13 @@ object Parse
     def string: Parser[String] = atom("string", _.is_string)
     def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ (s => Integer.parseInt(s))
     def name: Parser[String] = atom("name", _.is_name)
+    def embedded: Parser[String] = atom("embedded content", _.is_embedded)
     def text: Parser[String] = atom("text", _.is_text)
     def ML_source: Parser[String] = atom("ML source", _.is_text)
     def document_source: Parser[String] = atom("document source", _.is_text)
 
     def path: Parser[String] =
-      atom("file name/path specification", tok => tok.is_name && Path.is_wellformed(tok.content))
+      atom("file name/path specification", tok => tok.is_embedded && Path.is_wellformed(tok.content))
 
     def theory_name: Parser[String] =
       atom("theory name", tok => tok.is_name && Path.is_wellformed(tok.content))
