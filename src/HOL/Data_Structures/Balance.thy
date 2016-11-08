@@ -96,55 +96,61 @@ qed
 
 (* end of mv *)
 
-fun bal :: "'a list \<Rightarrow> nat \<Rightarrow> 'a tree * 'a list" where
-"bal xs n = (if n=0 then (Leaf,xs) else
+fun bal :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a tree * 'a list" where
+"bal n xs = (if n=0 then (Leaf,xs) else
  (let m = n div 2;
-      (l, ys) = bal xs m;
-      (r, zs) = bal (tl ys) (n-1-m)
+      (l, ys) = bal m xs;
+      (r, zs) = bal (n-1-m) (tl ys)
   in (Node l (hd ys) r, zs)))"
 
 declare bal.simps[simp del]
 
+definition bal_list :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a tree" where
+"bal_list n xs = fst (bal n xs)"
+
 definition balance_list :: "'a list \<Rightarrow> 'a tree" where
-"balance_list xs = fst (bal xs (length xs))"
+"balance_list xs = bal_list (length xs) xs"
+
+definition bal_tree :: "nat \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
+"bal_tree n t = bal_list n (inorder t)"
 
 definition balance_tree :: "'a tree \<Rightarrow> 'a tree" where
-"balance_tree = balance_list o inorder"
+"balance_tree t = bal_tree (size t) t"
 
 lemma bal_simps:
-  "bal xs 0 = (Leaf, xs)"
+  "bal 0 xs = (Leaf, xs)"
   "n > 0 \<Longrightarrow>
-   bal xs n =
+   bal n xs =
   (let m = n div 2;
-      (l, ys) = bal xs m;
-      (r, zs) = bal (tl ys) (n-1-m)
+      (l, ys) = bal m xs;
+      (r, zs) = bal (n-1-m) (tl ys)
   in (Node l (hd ys) r, zs))"
 by(simp_all add: bal.simps)
 
-text\<open>The following lemmas take advantage of the fact
+text\<open>Some of the following lemmas take advantage of the fact
 that \<open>bal xs n\<close> yields a result even if \<open>n > length xs\<close>.\<close>
   
-lemma size_bal: "bal xs n = (t,ys) \<Longrightarrow> size t = n"
-proof(induction xs n arbitrary: t ys rule: bal.induct)
-  case (1 xs n)
+lemma size_bal: "bal n xs = (t,ys) \<Longrightarrow> size t = n"
+proof(induction n xs arbitrary: t ys rule: bal.induct)
+  case (1 n xs)
   thus ?case
     by(cases "n=0")
       (auto simp add: bal_simps Let_def split: prod.splits)
 qed
 
 lemma bal_inorder:
-  "\<lbrakk> bal xs n = (t,ys); n \<le> length xs \<rbrakk>
+  "\<lbrakk> bal n xs = (t,ys); n \<le> length xs \<rbrakk>
   \<Longrightarrow> inorder t = take n xs \<and> ys = drop n xs"
-proof(induction xs n arbitrary: t ys rule: bal.induct)
-  case (1 xs n) show ?case
+proof(induction n xs arbitrary: t ys rule: bal.induct)
+  case (1 n xs) show ?case
   proof cases
     assume "n = 0" thus ?thesis using 1 by (simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     let ?n1 = "n div 2" let ?n2 = "n - 1 - ?n1"
     from "1.prems" obtain l r xs' where
-      b1: "bal xs ?n1 = (l,xs')" and
-      b2: "bal (tl xs') ?n2 = (r,ys)" and
+      b1: "bal ?n1 xs = (l,xs')" and
+      b2: "bal ?n2 (tl xs') = (r,ys)" and
       t: "t = \<langle>l, hd xs', r\<rangle>"
       by(auto simp: Let_def bal_simps split: prod.splits)
     have IH1: "inorder l = take ?n1 xs \<and> xs' = drop ?n1 xs"
@@ -162,31 +168,44 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
   qed
 qed
 
-corollary inorder_balance_list: "inorder(balance_list xs) = xs"
-using bal_inorder[of xs "length xs"]
-by (metis balance_list_def order_refl prod.collapse take_all)
+corollary inorder_bal_list[simp]:
+  "n \<le> length xs \<Longrightarrow> inorder(bal_list n xs) = take n xs"
+unfolding bal_list_def by (metis bal_inorder eq_fst_iff)
+
+corollary inorder_balance_list[simp]: "inorder(balance_list xs) = xs"
+by(simp add: balance_list_def)
+
+corollary inorder_bal_tree:
+  "n \<le> size t \<Longrightarrow> inorder(bal_tree n t) = take n (inorder t)"
+by(simp add: bal_tree_def)
 
 corollary inorder_balance_tree[simp]: "inorder(balance_tree t) = inorder t"
-by(simp add: balance_tree_def inorder_balance_list)
+by(simp add: balance_tree_def inorder_bal_tree)
+
+corollary size_bal_list[simp]: "size(bal_list n xs) = n"
+unfolding bal_list_def by (metis prod.collapse size_bal)
 
 corollary size_balance_list[simp]: "size(balance_list xs) = length xs"
-by (metis inorder_balance_list length_inorder)
+by (simp add: balance_list_def)
+
+corollary size_bal_tree[simp]: "size(bal_tree n t) = n"
+by(simp add: bal_tree_def)
 
 corollary size_balance_tree[simp]: "size(balance_tree t) = size t"
-by(simp add: balance_tree_def inorder_balance_list)
+by(simp add: balance_tree_def)
 
 lemma min_height_bal:
-  "bal xs n = (t,ys) \<Longrightarrow> min_height t = nat(floor(log 2 (n + 1)))"
-proof(induction xs n arbitrary: t ys rule: bal.induct)
-  case (1 xs n) show ?case
+  "bal n xs = (t,ys) \<Longrightarrow> min_height t = nat(floor(log 2 (n + 1)))"
+proof(induction n xs arbitrary: t ys rule: bal.induct)
+  case (1 n xs) show ?case
   proof cases
     assume "n = 0" thus ?thesis
       using "1.prems" by (simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     from "1.prems" obtain l r xs' where
-      b1: "bal xs (n div 2) = (l,xs')" and
-      b2: "bal (tl xs') (n - 1 - n div 2) = (r,ys)" and
+      b1: "bal (n div 2) xs = (l,xs')" and
+      b2: "bal (n - 1 - n div 2) (tl xs') = (r,ys)" and
       t: "t = \<langle>l, hd xs', r\<rangle>"
       by(auto simp: bal_simps Let_def split: prod.splits)
     let ?log1 = "nat (floor(log 2 (n div 2 + 1)))"
@@ -211,17 +230,17 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
 qed
 
 lemma height_bal:
-  "bal xs n = (t,ys) \<Longrightarrow> height t = nat \<lceil>log 2 (n + 1)\<rceil>"
-proof(induction xs n arbitrary: t ys rule: bal.induct)
-  case (1 xs n) show ?case
+  "bal n xs = (t,ys) \<Longrightarrow> height t = nat \<lceil>log 2 (n + 1)\<rceil>"
+proof(induction n xs arbitrary: t ys rule: bal.induct)
+  case (1 n xs) show ?case
   proof cases
     assume "n = 0" thus ?thesis
       using "1.prems" by (simp add: bal_simps)
   next
     assume [arith]: "n \<noteq> 0"
     from "1.prems" obtain l r xs' where
-      b1: "bal xs (n div 2) = (l,xs')" and
-      b2: "bal (tl xs') (n - 1 - n div 2) = (r,ys)" and
+      b1: "bal (n div 2) xs = (l,xs')" and
+      b2: "bal (n - 1 - n div 2) (tl xs') = (r,ys)" and
       t: "t = \<langle>l, hd xs', r\<rangle>"
       by(auto simp: bal_simps Let_def split: prod.splits)
     let ?log1 = "nat \<lceil>log 2 (n div 2 + 1)\<rceil>"
@@ -242,28 +261,43 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
 qed
 
 lemma balanced_bal:
-  assumes "bal xs n = (t,ys)" shows "balanced t"
+  assumes "bal n xs = (t,ys)" shows "balanced t"
 unfolding balanced_def
 using height_bal[OF assms] min_height_bal[OF assms]
 by linarith
 
+lemma height_bal_list:
+  "n \<le> length xs \<Longrightarrow> height (bal_list n xs) = nat \<lceil>log 2 (n + 1)\<rceil>"
+unfolding bal_list_def by (metis height_bal prod.collapse)
+
 lemma height_balance_list:
   "height (balance_list xs) = nat \<lceil>log 2 (length xs + 1)\<rceil>"
-by (metis balance_list_def height_bal prod.collapse)
+by (simp add: balance_list_def height_bal_list)
+
+corollary height_bal_tree:
+  "n \<le> length xs \<Longrightarrow> height (bal_tree n t) = nat(ceiling(log 2 (n + 1)))"
+unfolding bal_list_def bal_tree_def
+using height_bal prod.exhaust_sel by blast
 
 corollary height_balance_tree:
   "height (balance_tree t) = nat(ceiling(log 2 (size t + 1)))"
-by(simp add: balance_tree_def height_balance_list)
+by (simp add: bal_tree_def balance_tree_def height_bal_list)
+
+corollary balanced_bal_list[simp]: "balanced (bal_list n xs)"
+unfolding bal_list_def by (metis  balanced_bal prod.collapse)
 
 corollary balanced_balance_list[simp]: "balanced (balance_list xs)"
-by (metis balance_list_def balanced_bal prod.collapse)
+by (simp add: balance_list_def)
+
+corollary balanced_bal_tree[simp]: "balanced (bal_tree n t)"
+by (simp add: bal_tree_def)
 
 corollary balanced_balance_tree[simp]: "balanced (balance_tree t)"
 by (simp add: balance_tree_def)
 
-lemma wbalanced_bal: "bal xs n = (t,ys) \<Longrightarrow> wbalanced t"
-proof(induction xs n arbitrary: t ys rule: bal.induct)
-  case (1 xs n)
+lemma wbalanced_bal: "bal n xs = (t,ys) \<Longrightarrow> wbalanced t"
+proof(induction n xs arbitrary: t ys rule: bal.induct)
+  case (1 n xs)
   show ?case
   proof cases
     assume "n = 0"
@@ -272,8 +306,8 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
   next
     assume "n \<noteq> 0"
     with "1.prems" obtain l ys r zs where
-      rec1: "bal xs (n div 2) = (l, ys)" and
-      rec2: "bal (tl ys) (n - 1 - n div 2) = (r, zs)" and
+      rec1: "bal (n div 2) xs = (l, ys)" and
+      rec2: "bal (n - 1 - n div 2) (tl ys) = (r, zs)" and
       t: "t = \<langle>l, hd ys, r\<rangle>"
       by(auto simp add: bal_simps Let_def split: prod.splits)
     have l: "wbalanced l" using "1.IH"(1)[OF \<open>n\<noteq>0\<close> refl rec1] .
@@ -283,9 +317,17 @@ proof(induction xs n arbitrary: t ys rule: bal.induct)
   qed
 qed
 
+lemma wbalanced_bal_list[simp]: "wbalanced (bal_list n xs)"
+by(simp add: bal_list_def) (metis prod.collapse wbalanced_bal)
+
+lemma wbalanced_balance_list[simp]: "wbalanced (balance_list xs)"
+by(simp add: balance_list_def)
+
+lemma wbalanced_bal_tree[simp]: "wbalanced (bal_tree n t)"
+by(simp add: bal_tree_def)
+
 lemma wbalanced_balance_tree: "wbalanced (balance_tree t)"
-by(simp add: balance_tree_def balance_list_def)
-  (metis prod.collapse wbalanced_bal)
+by (simp add: balance_tree_def)
 
 hide_const (open) bal
 
