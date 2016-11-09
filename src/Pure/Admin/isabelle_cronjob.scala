@@ -96,7 +96,7 @@ object Isabelle_Cronjob
 
   private val remote_builds =
     List(
-      List(Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6 -N", args = "-g timing")),
+      List(Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("macbroy2", options = "-m32 -M8", args = "-a"),
         Remote_Build("macbroy2", options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty"),
