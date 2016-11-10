@@ -59,8 +59,8 @@ object Isabelle_Cronjob
           Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
             parallel_jobs = 4, remote_mac = "macbroy31", website = Some(new_snapshot))
 
-          if (release_snapshot.is_dir) File.mv(release_snapshot, old_snapshot)
-          File.mv(new_snapshot, release_snapshot)
+          if (release_snapshot.is_dir) File.move(release_snapshot, old_snapshot)
+          File.move(new_snapshot, release_snapshot)
           Isabelle_System.rm_tree(old_snapshot)
         }))
 
@@ -79,7 +79,7 @@ object Isabelle_Cronjob
               hg, rev = "build_history_base", fresh = true, build_args = List("HOL"))
         } {
           result.check
-          File.mv(log_path, logger.log_dir + log_path.base)
+          File.move(log_path, logger.log_dir + log_path.base)
         }
       })
 
