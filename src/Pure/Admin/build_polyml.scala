@@ -58,7 +58,8 @@ object Build_PolyML
     source: Path,
     progress: Progress = Ignore_Progress,
     platform: String = default_platform,
-    options: List[String] = Nil)
+    options: List[String] = Nil,
+    other_bash: String = "")
   {
     source.is_dir || error("Bad source directory: " + source)
 
@@ -73,17 +74,20 @@ object Build_PolyML
       (if (multilib) info.options_multilib else info.options) :::
         List("--enable-intinf-as-int") ::: options
 
-    Isabelle_System.bash(cwd = source.file,
-      script =
-        (if (info.shell_path == "") "" else "export PATH=\"" + info.shell_path + ":$PATH\"\n") +
-        """
-          [ -f Makefile ] && make distclean
-          {
-            ./configure --prefix="$PWD/target" """ + Bash.strings(configure_options) + """
-            rm -rf target
-            make compiler && make compiler && make install
-          } || { echo "Build failed" >&2; exit 2; }
-        """,
+    val script =
+      (if (info.shell_path == "") "" else "export PATH=\"" + info.shell_path + ":$PATH\"\n") +
+      """
+        [ -f Makefile ] && make distclean
+        {
+          ./configure --prefix="$PWD/target" """ + Bash.strings(configure_options) + """
+          rm -rf target
+          make compiler && make compiler && make install
+        } || { echo "Build failed" >&2; exit 2; }
+      """
+
+    Isabelle_System.bash(
+      if (other_bash == "") script else Bash.string(other_bash) + " -c " + Bash.string(script),
+      cwd = source.file,
       progress_stdout = progress.echo(_),
       progress_stderr = progress.echo(_)).check
 
@@ -114,6 +118,7 @@ object Build_PolyML
     {
       Command_Line.tool0 {
         var options = List.empty[String]
+        var other_bash = ""
         var platform = default_platform
 
         val getopts = Getopts("""
@@ -121,12 +126,14 @@ Usage: isabelle build_polyml [OPTIONS] [SOURCE]
 
   Options are:
     -O OPTS...   additional options ./configure (e.g. --with-gmp)
+    -b EXE       other bash executable (notably for msys on Windows)
     -p PLATFORM  platform identifier and target directory
 
   Build Poly/ML in SOURCE directory (default: .) for
   given PLATFORM (default: """ + default_platform + """).
 """,
           "O:" -> (arg => options = options ::: List(arg)),
+          "b:" -> (arg => other_bash = arg),
           "p:" -> (arg => platform = arg))
 
         val more_args = getopts(args)
@@ -137,7 +144,8 @@ Usage: isabelle build_polyml [OPTIONS] [SOURCE]
             case _ => getopts.usage()
           }
         build_polyml(source,
-          progress = new Console_Progress, platform = platform, options = options)
+          progress = new Console_Progress, platform = platform, options = options,
+            other_bash = other_bash)
       }
     }, admin = true)
 }
