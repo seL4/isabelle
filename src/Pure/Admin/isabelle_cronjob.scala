@@ -129,8 +129,10 @@ object Isabelle_Cronjob
                     "-r " + Bash.string(rev) + " -N " + Bash.string(task_name) + " -f " + r.options,
                   args = "-o timeout=10800 " + r.args)
 
-              for ((log_name, bytes) <- results)
+              for ((log_name, bytes) <- results) {
+                logger.log(Date.now(), log_name)
                 Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+              }
             })
       })
   }
