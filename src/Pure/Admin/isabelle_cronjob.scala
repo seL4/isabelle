@@ -79,7 +79,7 @@ object Isabelle_Cronjob
               hg, rev = "build_history_base", fresh = true, build_args = List("HOL"))
         } {
           result.check
-          File.copy(log_path, logger.log_dir + log_path.base)
+          File.mv(log_path, logger.log_dir + log_path.base)
         }
       })
 
