@@ -126,7 +126,7 @@ object Isabelle_Cronjob
                   self_update = self_update,
                   push_isabelle_home = push_isabelle_home,
                   options =
-                    r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
+                    "-r " + Bash.string(rev) + " -N " + Bash.string(task_name) + " -f " + r.options,
                   args = "-o timeout=10800 " + r.args)
 
               for ((log_name, bytes) <- results)
