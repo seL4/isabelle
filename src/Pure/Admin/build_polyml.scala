@@ -37,7 +37,7 @@ object Build_PolyML
       Platform_Info(
         options =
           List("--host=i686-w32-mingw32", "CPPFLAGS=-I/mingw32/include", "--disable-windows-gui"),
-        shell_path = "/mingw32/bin",
+        shell_path = "/usr/bin:/bin:/mingw32/bin",
         copy_files =
           List("/mingw32/bin/libgcc_s_dw2-1.dll",
             "/mingw32/bin/libgmp-10.dll",
@@ -46,7 +46,7 @@ object Build_PolyML
       Platform_Info(
         options =
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
-        shell_path = "/mingw64/bin",
+        shell_path = "/usr/bin:/bin:/mingw64/bin",
         copy_files =
           List("/mingw64/bin/libgcc_s_seh-1.dll",
             "/mingw64/bin/libgmp-10.dll",
