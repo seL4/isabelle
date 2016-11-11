@@ -55,13 +55,14 @@ object Build_PolyML
   lazy val default_platform = Isabelle_System.getenv_strict("ISABELLE_PLATFORM32")
 
   def build_polyml(
-    source: Path,
+    root: Path,
     progress: Progress = Ignore_Progress,
     platform: String = default_platform,
     options: List[String] = Nil,
     other_bash: String = "")
   {
-    source.is_dir || error("Bad source directory: " + source)
+    if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
+      error("Bad Poly/ML root directory: " + root)
 
     val info =
       platform_info.get(platform) getOrElse
@@ -87,7 +88,7 @@ object Build_PolyML
 
     Isabelle_System.bash(
       if (other_bash == "") script else Bash.string(other_bash) + " -c " + Bash.string(script),
-      cwd = source.file, env = null,
+      cwd = root.file, env = null,
       progress_stdout = progress.echo(_),
       progress_stderr = progress.echo(_)).check
 
@@ -98,7 +99,7 @@ object Build_PolyML
 
     for {
       d <- List("target/bin", "target/lib")
-      dir = source + Path.explode(d)
+      dir = root + Path.explode(d)
       entry <- File.read_dir(dir)
     } File.move(dir + Path.explode(entry), target)
 
@@ -113,34 +114,29 @@ object Build_PolyML
     Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
     {
       Command_Line.tool0 {
-        var options = List.empty[String]
         var other_bash = ""
         var platform = default_platform
 
         val getopts = Getopts("""
-Usage: isabelle build_polyml [OPTIONS] [SOURCE]
+Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
-    -O OPTS...   additional options ./configure (e.g. --with-gmp)
     -b EXE       other bash executable (notably for msys on Windows)
-    -p PLATFORM  platform identifier and target directory
+    -p PLATFORM  platform identifier and target directory (default: """ + default_platform + """)
 
-  Build Poly/ML in SOURCE directory (default: .) for
-  given PLATFORM (default: """ + default_platform + """).
+  Build Poly/ML in its source ROOT directory of its sources, with additional
+  CONFIGURE_OPTIONS (e.g. --with-gmp).
 """,
-          "O:" -> (arg => options = options ::: List(arg)),
           "b:" -> (arg => other_bash = arg),
           "p:" -> (arg => platform = arg))
 
         val more_args = getopts(args)
-        val source =
+        val (root, options) =
           more_args match {
-            case Nil => Path.current
-            case List(source) => Path.explode(source)
-            case _ => getopts.usage()
+            case root :: options => (Path.explode(root), options)
+            case Nil => getopts.usage()
           }
-        build_polyml(source,
-          progress = new Console_Progress, platform = platform, options = options,
+        build_polyml(root, progress = new Console_Progress, platform = platform, options = options,
             other_bash = other_bash)
       }
     }, admin = true)
