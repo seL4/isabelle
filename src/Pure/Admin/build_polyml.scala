@@ -161,9 +161,9 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Options are:
     -b EXE       other bash executable (notably for msys on Windows)
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
-    -s DIR       root directory for sha1 library
+    -s DIR       sha1 sources, see https://bitbucket.org/isabelle_project/sha1
 
-  Build Poly/ML in its source ROOT directory of its sources, with additional
+  Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --with-gmp).
 """,
         "b:" -> (arg => other_bash = arg),
