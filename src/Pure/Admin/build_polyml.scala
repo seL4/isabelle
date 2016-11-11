@@ -68,6 +68,9 @@ object Build_PolyML
       platform_info.get(platform) getOrElse
         error("Bad platform identifier: " + quote(platform))
 
+
+    /* configure and make */
+
     val multilib =
       platform == "x86-linux" && Isabelle_System.getenv("ISABELLE_PLATFORM64") == "x86_64-linux"
 
@@ -92,6 +95,16 @@ object Build_PolyML
       progress_stdout = progress.echo(_),
       progress_stderr = progress.echo(_)).check
 
+    val lib_files =
+      if (platform.endsWith("linux")) {
+        val libs = Isabelle_System.bash("ldd target/bin/poly", cwd = root.file).check.out_lines
+        val Pattern = """\s*libgmp.*=>\s*(\S+).*""".r
+        for (Pattern(lib) <- libs) yield lib
+      }
+      else Nil
+
+
+    /* target */
 
     val target = Path.explode(platform)
     Isabelle_System.rm_tree(target)
@@ -103,7 +116,7 @@ object Build_PolyML
       entry <- File.read_dir(dir)
     } File.move(dir + Path.explode(entry), target)
 
-    for (file <- "~~/Admin/polyml/polyi" :: info.copy_files)
+    for (file <- "~~/Admin/polyml/polyi" :: info.copy_files ::: lib_files)
       File.copy(Path.explode(file), target)
   }
 
