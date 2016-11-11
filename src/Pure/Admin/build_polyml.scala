@@ -93,11 +93,7 @@ object Build_PolyML
 
 
     val target = Path.explode(platform)
-
-    if (target.file.exists) {
-      if (target.backup.file.exists) Isabelle_System.rm_tree(target.backup)
-      File.move(target, target.backup)
-    }
+    Isabelle_System.rm_tree(target)
     Isabelle_System.mkdirs(target)
 
     for {
