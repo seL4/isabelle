@@ -52,7 +52,11 @@ object Build_PolyML
             "/mingw64/bin/libgmp-10.dll",
             "/mingw64/bin/libstdc++-6.dll")))
 
-  lazy val default_platform = Isabelle_System.getenv_strict("ISABELLE_PLATFORM32")
+  lazy val default_platform =
+    Isabelle_System.getenv_strict("ISABELLE_PLATFORM32") match {
+      case "x86-cygwin" => "x86-windows"
+      case platform => platform
+    }
 
   def build_polyml(
     root: Path,
@@ -67,6 +71,9 @@ object Build_PolyML
     val info =
       platform_info.get(platform) getOrElse
         error("Bad platform identifier: " + quote(platform))
+
+    if (platform.endsWith("windows") && other_bash == "")
+      error("Windows requires other bash (for msys)")
 
 
     /* configure and make */
