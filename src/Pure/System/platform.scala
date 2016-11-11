@@ -14,6 +14,7 @@ object Platform
 {
   /* main OS variants */
 
+  val is_linux = System.getProperty("os.name", "") == "Linux"
   val is_macos = System.getProperty("os.name", "") == "Mac OS X"
   val is_windows = System.getProperty("os.name", "").startsWith("Windows")
 
