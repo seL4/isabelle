@@ -108,16 +108,15 @@ object Build_PolyML
   }
 
 
-  /* Isabelle tool wrapper */
+  /** command line entry point **/
 
-  val isabelle_tool =
-    Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
-    {
-      Command_Line.tool0 {
-        var other_bash = ""
-        var platform = default_platform
+  def main(args: Array[String])
+  {
+    Command_Line.tool0 {
+      var other_bash = ""
+      var platform = default_platform
 
-        val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
@@ -127,17 +126,17 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Build Poly/ML in its source ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --with-gmp).
 """,
-          "b:" -> (arg => other_bash = arg),
-          "p:" -> (arg => platform = arg))
+        "b:" -> (arg => other_bash = arg),
+        "p:" -> (arg => platform = arg))
 
-        val more_args = getopts(args)
-        val (root, options) =
-          more_args match {
-            case root :: options => (Path.explode(root), options)
-            case Nil => getopts.usage()
-          }
-        build_polyml(root, progress = new Console_Progress, platform = platform, options = options,
-            other_bash = other_bash)
-      }
-    }, admin = true)
+      val more_args = getopts(args)
+      val (root, options) =
+        more_args match {
+          case root :: options => (Path.explode(root), options)
+          case Nil => getopts.usage()
+        }
+      build_polyml(root, progress = new Console_Progress, platform = platform, options = options,
+          other_bash = other_bash)
+    }
+  }
 }

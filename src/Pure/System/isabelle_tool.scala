@@ -101,7 +101,6 @@ object Isabelle_Tool
     List(
       Build.isabelle_tool,
       Build_Doc.isabelle_tool,
-      Build_PolyML.isabelle_tool,
       Build_Stats.isabelle_tool,
       Check_Sources.isabelle_tool,
       Doc.isabelle_tool,
