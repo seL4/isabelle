@@ -9,6 +9,8 @@ package isabelle
 
 object Build_PolyML
 {
+  /** build_polyml **/
+
   sealed case class Platform_Info(
     options: List[String] = Nil,
     options_multilib: List[String] = Nil,
@@ -141,6 +143,7 @@ object Build_PolyML
     for (file <- "~~/Admin/polyml/polyi" :: info.copy_files ::: ldd_files ::: sha1_files)
       File.copy(Path.explode(file), target)
   }
+
 
 
   /** command line entry point **/
