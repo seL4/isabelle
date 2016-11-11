@@ -12,7 +12,7 @@ object Build_PolyML
   sealed case class Platform_Info(
     options: List[String] = Nil,
     options_multilib: List[String] = Nil,
-    shell_path: String = "",
+    setup: String = "",
     copy_files: List[String] = Nil)
 
   private val platform_info = Map(
@@ -37,7 +37,7 @@ object Build_PolyML
       Platform_Info(
         options =
           List("--host=i686-w32-mingw32", "CPPFLAGS=-I/mingw32/include", "--disable-windows-gui"),
-        shell_path = "/usr/bin:/bin:/mingw32/bin",
+        setup = "PATH=/usr/bin:/bin:/mingw32/bin",
         copy_files =
           List("/mingw32/bin/libgcc_s_dw2-1.dll",
             "/mingw32/bin/libgmp-10.dll",
@@ -46,7 +46,7 @@ object Build_PolyML
       Platform_Info(
         options =
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
-        shell_path = "/usr/bin:/bin:/mingw64/bin",
+        setup = "PATH=/usr/bin:/bin:/mingw64/bin",
         copy_files =
           List("/mingw64/bin/libgcc_s_seh-1.dll",
             "/mingw64/bin/libgmp-10.dll",
@@ -75,7 +75,7 @@ object Build_PolyML
         List("--enable-intinf-as-int") ::: options
 
     val script =
-      (if (info.shell_path == "") "" else "export PATH=\"" + info.shell_path + ":$PATH\"\n") +
+      info.setup + "\n" +
       """
         [ -f Makefile ] && make distclean
         {
@@ -87,7 +87,7 @@ object Build_PolyML
 
     Isabelle_System.bash(
       if (other_bash == "") script else Bash.string(other_bash) + " -c " + Bash.string(script),
-      cwd = source.file,
+      cwd = source.file, env = null,
       progress_stdout = progress.echo(_),
       progress_stderr = progress.echo(_)).check
 
