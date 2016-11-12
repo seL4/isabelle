@@ -28,13 +28,15 @@ object Build_PolyML
         options =
           List("--build=i686-darwin", "CFLAGS=-arch i686 -O3 -I../libffi/include",
             "CXXFLAGS=-arch i686 -O3 -I../libffi/include", "CCASFLAGS=-arch i686 -O3",
-            "LDFLAGS=-segprot POLY rwx rwx")),
+            "LDFLAGS=-segprot POLY rwx rwx"),
+        setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"),
     "x86_64-darwin" ->
       Platform_Info(
         options =
           List("--build=x86_64-darwin", "CFLAGS=-arch x86_64 -O3 -I../libffi/include",
             "CXXFLAGS=-arch x86_64 -O3 -I../libffi/include", "CCASFLAGS=-arch x86_64",
-            "LDFLAGS=-segprot POLY rwx rwx")),
+            "LDFLAGS=-segprot POLY rwx rwx"),
+        setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"),
     "x86-windows" ->
       Platform_Info(
         options =
