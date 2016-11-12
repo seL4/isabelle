@@ -86,7 +86,7 @@ object Build_PolyML
     def bash(cwd: Path, script: String, echo: Boolean = false): Process_Result =
       progress.bash(
         if (other_bash == "") script else Bash.string(other_bash) + " -c " + Bash.string(script),
-        cwd = cwd.file, env = null, echo = echo)
+        cwd = cwd.file, echo = echo)
 
 
     /* configure and make */
@@ -146,16 +146,16 @@ object Build_PolyML
 
 
 
-  /** command line entry point **/
+  /** Isabelle tool wrapper **/
 
-  def main(args: Array[String])
-  {
-    Command_Line.tool0 {
-      var other_bash = ""
-      var arch_64 = false
-      var sha1_root: Option[Path] = None
+  val isabelle_tool = Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
+    {
+      Command_Line.tool0 {
+        var other_bash = ""
+        var arch_64 = false
+        var sha1_root: Option[Path] = None
 
-      val getopts = Getopts("""
+        val getopts = Getopts("""
 Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
@@ -166,23 +166,23 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --with-gmp).
 """,
-        "b:" -> (arg => other_bash = arg),
-        "m:" ->
-          {
-            case "32" | "x86" => arch_64 = false
-            case "64" | "x86_64" => arch_64 = true
-            case bad => error("Bad processor architecture: " + quote(bad))
-          },
-        "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
+          "b:" -> (arg => other_bash = arg),
+          "m:" ->
+            {
+              case "32" | "x86" => arch_64 = false
+              case "64" | "x86_64" => arch_64 = true
+              case bad => error("Bad processor architecture: " + quote(bad))
+            },
+          "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
 
-      val more_args = getopts(args)
-      val (root, options) =
-        more_args match {
-          case root :: options => (Path.explode(root), options)
-          case Nil => getopts.usage()
-        }
-      build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
-        arch_64 = arch_64, options = options, other_bash = other_bash)
-    }
-  }
+        val more_args = getopts(args)
+        val (root, options) =
+          more_args match {
+            case root :: options => (Path.explode(root), options)
+            case Nil => getopts.usage()
+          }
+        build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
+          arch_64 = arch_64, options = options, other_bash = other_bash)
+      }
+    })
 }
