@@ -45,9 +45,9 @@ object Build_PolyML
           """PATH=/usr/bin:/bin:/mingw32/bin
             export CONFIG_SITE=/etc/config.site""",
         copy_files =
-          List("/mingw32/bin/libgcc_s_dw2-1.dll",
-            "/mingw32/bin/libgmp-10.dll",
-            "/mingw32/bin/libstdc++-6.dll")),
+          List("$MSYS/mingw32/bin/libgcc_s_dw2-1.dll",
+            "$MSYS/mingw32/bin/libgmp-10.dll",
+            "$MSYS/mingw32/bin/libstdc++-6.dll")),
     "x86_64-windows" ->
       Platform_Info(
         options =
@@ -56,9 +56,9 @@ object Build_PolyML
           """PATH=/usr/bin:/bin:/mingw64/bin
             export CONFIG_SITE=/etc/config.site""",
         copy_files =
-          List("/mingw64/bin/libgcc_s_seh-1.dll",
-            "/mingw64/bin/libgmp-10.dll",
-            "/mingw64/bin/libstdc++-6.dll")))
+          List("$MSYS/mingw64/bin/libgcc_s_seh-1.dll",
+            "$MSYS/mingw64/bin/libgmp-10.dll",
+            "$MSYS/mingw64/bin/libstdc++-6.dll")))
 
   def build_polyml(
     root: Path,
@@ -66,7 +66,7 @@ object Build_PolyML
     progress: Progress = Ignore_Progress,
     arch_64: Boolean = false,
     options: List[String] = Nil,
-    other_bash: String = "")
+    msys_root: Option[Path] = None)
   {
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
@@ -79,17 +79,28 @@ object Build_PolyML
       platform_info.get(platform) getOrElse
         error("Bad platform identifier: " + quote(platform))
 
-    if (Platform.is_windows && other_bash == "")
-      error("Windows requires other bash (for msys)")
+    val settings =
+      msys_root match {
+        case None if Platform.is_windows =>
+          error("Windows requires specification of msys root directory")
+        case None => Isabelle_System.settings()
+        case Some(msys) => Isabelle_System.settings() + ("MSYS" -> msys.expand.implode)
+      }
 
 
     /* bash */
 
-    def bash(cwd: Path, script: String, redirect: Boolean = false, echo: Boolean = false)
-        : Process_Result =
-      progress.bash(
-        if (other_bash == "") script else Bash.string(other_bash) + " -c " + Bash.string(script),
-        cwd = cwd.file, redirect = redirect, echo = echo)
+    def bash(
+      cwd: Path, script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
+    {
+      val script1 =
+        msys_root match {
+          case None => script
+          case Some(msys) =>
+            File.bash_path(msys + Path.explode("usr/bin/bash")) + " -c " + Bash.string(script)
+        }
+      progress.bash(script1, cwd = cwd.file, redirect = redirect, echo = echo)
+    }
 
 
     /* configure and make */
@@ -144,7 +155,7 @@ object Build_PolyML
     } File.move(dir + Path.explode(entry), target)
 
     for (file <- "~~/Admin/polyml/polyi" :: info.copy_files ::: ldd_files ::: sha1_files)
-      File.copy(Path.explode(file), target)
+      File.copy(Path.explode(file).expand_env(settings), target)
   }
 
 
@@ -154,7 +165,7 @@ object Build_PolyML
   val isabelle_tool = Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
     {
       Command_Line.tool0 {
-        var other_bash = ""
+        var msys_root: Option[Path] = None
         var arch_64 = false
         var sha1_root: Option[Path] = None
 
@@ -162,14 +173,14 @@ object Build_PolyML
 Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
-    -b EXE       other bash executable (notably for msys on Windows)
+    -M DIR       msys root directory (for Windows)
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
     -s DIR       sha1 sources, see https://bitbucket.org/isabelle_project/sha1
 
   Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --with-gmp).
 """,
-          "b:" -> (arg => other_bash = arg),
+          "M:" -> (arg => msys_root = Some(Path.explode(arg))),
           "m:" ->
             {
               case "32" | "x86" => arch_64 = false
@@ -185,7 +196,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
             case Nil => getopts.usage()
           }
         build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
-          arch_64 = arch_64, options = options, other_bash = other_bash)
+          arch_64 = arch_64, options = options, msys_root = msys_root)
       }
     }, admin = true)
 }
