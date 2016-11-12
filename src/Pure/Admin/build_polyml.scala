@@ -185,5 +185,5 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
           arch_64 = arch_64, options = options, other_bash = other_bash)
       }
-    })
+    }, admin = true)
 }
