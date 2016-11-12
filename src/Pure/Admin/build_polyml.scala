@@ -83,10 +83,11 @@ object Build_PolyML
 
     /* bash */
 
-    def bash(cwd: Path, script: String, echo: Boolean = false): Process_Result =
+    def bash(cwd: Path, script: String, redirect: Boolean = false, echo: Boolean = false)
+        : Process_Result =
       progress.bash(
         if (other_bash == "") script else Bash.string(other_bash) + " -c " + Bash.string(script),
-        cwd = cwd.file, echo = echo)
+        cwd = cwd.file, redirect = redirect, echo = echo)
 
 
     /* configure and make */
@@ -105,7 +106,7 @@ object Build_PolyML
           rm -rf target
           make compiler && make compiler && make install
         } || { echo "Build failed" >&2; exit 2; }
-      """, echo = true).check
+      """, redirect = true, echo = true).check
 
     val ldd_files =
       if (Platform.is_linux) {
@@ -121,7 +122,7 @@ object Build_PolyML
     val sha1_files =
       if (sha1_root.isDefined) {
         val dir1 = sha1_root.get
-        bash(dir1, "./build " + platform, echo = true).check
+        bash(dir1, "./build " + platform, redirect = true, echo = true).check
         val dir2 = dir1 + Path.explode(platform)
         File.read_dir(dir2).map(entry => dir2.implode + "/" + entry)
       }
