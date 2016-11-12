@@ -92,6 +92,9 @@ object Mercurial
       }
     }
 
+    def archive(target: String, rev: String = "", options: String = ""): Unit =
+      hg.command("archive", opt_rev(rev) + " " + Bash.string(target), options).check
+
     def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
       hg.command("heads", opt_template(template), options).check.out_lines
 
