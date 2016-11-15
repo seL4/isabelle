@@ -1529,7 +1529,7 @@ val fTrue_iconst = IConst ((const_prefix ^ "fTrue", @{const_name fTrue}), @{typ 
 val predicator_iconst = IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
 
 fun predicatify completish tm =
-  if completish > 0 then
+  if completish > 1 then
     IApp (IApp (IConst (`I tptp_equal, @{typ "bool => bool => bool"}, []), tm), fTrue_iconst)
   else
     IApp (predicator_iconst, tm)
@@ -1733,14 +1733,14 @@ fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : s
       fold (fn ((helper_s, needs_sound), ths) =>
                if (needs_sound andalso not sound) orelse
                   (helper_s <> unmangled_s andalso
-                   (completish < 2 orelse could_specialize)) then
+                   (completish < 3 orelse could_specialize)) then
                  I
                else
                  ths ~~ (1 upto length ths)
                  |> maps (dub_and_inst needs_sound o apfst (apsnd Thm.prop_of))
                  |> make_facts
                  |> union (op = o apply2 #iformula))
-           (if completish >= 2 then completish_helper_table else helper_table)
+           (if completish >= 3 then completish_helper_table else helper_table)
     end
   | NONE => I)
 fun helper_facts_of_sym_table ctxt format type_enc completish sym_tab =
@@ -2168,7 +2168,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
 fun default_mono level completish =
   {maybe_finite_Ts = [@{typ bool}],
    surely_infinite_Ts = (case level of Nonmono_Types (Strict, _) => [] | _ => known_infinite_types),
-   maybe_nonmono_Ts = [if completish >= 2 then tvar_a else @{typ bool}]}
+   maybe_nonmono_Ts = [if completish >= 3 then tvar_a else @{typ bool}]}
 
 (* This inference is described in section 4 of Blanchette et al., "Encoding
    monomorphic and polymorphic types", TACAS 2013. *)

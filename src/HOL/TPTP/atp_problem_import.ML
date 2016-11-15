@@ -185,7 +185,7 @@ fun atp_tac ctxt completeness override_params timeout assms prover =
     val thy = Proof_Context.theory_of ctxt
     val assm_ths0 = map (Skip_Proof.make_thm thy) assms
     val ((assm_name, _), ctxt) = ctxt
-      |> Config.put Sledgehammer_Prover_ATP.atp_completish (if completeness > 0 then 2 else 0)
+      |> Config.put Sledgehammer_Prover_ATP.atp_completish (if completeness > 0 then 3 else 0)
       |> Local_Theory.note ((@{binding thms}, []), assm_ths0)
 
     fun ref_of th = (Facts.named (Thm.derivation_name th), [])
