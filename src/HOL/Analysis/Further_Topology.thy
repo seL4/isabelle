@@ -3240,7 +3240,7 @@ proof (simp add: covering_space_def, intro conjI ballI)
     have inj_exp: "inj_on exp (ball (Ln z) 1)"
       apply (rule inj_on_subset [OF inj_on_exp_pi [of "Ln z"]])
       using pi_ge_two by (simp add: ball_subset_ball_iff)
-    define \<V> where "\<V> \<equiv> range (\<lambda>n. (\<lambda>x. x + of_real (2 * of_int n * pi) * ii) ` (ball(Ln z) 1))"
+    define \<V> where "\<V> \<equiv> range (\<lambda>n. (\<lambda>x. x + of_real (2 * of_int n * pi) * \<i>) ` (ball(Ln z) 1))"
     show ?thesis
     proof (intro exI conjI)
       show "z \<in> exp ` (ball(Ln z) 1)"
@@ -3286,7 +3286,7 @@ proof (simp add: covering_space_def, intro conjI ballI)
       proof
         fix u
         assume "u \<in> \<V>"
-        then obtain n where n: "u = (\<lambda>x. x + of_real (2 * of_int n * pi) * ii) ` (ball(Ln z) 1)"
+        then obtain n where n: "u = (\<lambda>x. x + of_real (2 * of_int n * pi) * \<i>) ` (ball(Ln z) 1)"
           by (auto simp: \<V>_def)
         have "compact (cball (Ln z) 1)"
           by simp
@@ -3325,7 +3325,7 @@ proof (simp add: covering_space_def, intro conjI ballI)
           apply (force simp:)
           done
         show "\<exists>q. homeomorphism u (exp ` ball (Ln z) 1) exp q"
-          apply (rule_tac x="(\<lambda>x. x + of_real(2 * n * pi) * ii) \<circ> \<gamma>" in exI)
+          apply (rule_tac x="(\<lambda>x. x + of_real(2 * n * pi) * \<i>) \<circ> \<gamma>" in exI)
           unfolding homeomorphism_def
           apply (intro conjI ballI eq1 continuous_on_exp [OF continuous_on_id])
              apply (auto simp: \<gamma>exp exp2n cont n)

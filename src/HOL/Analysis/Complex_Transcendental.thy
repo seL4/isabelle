@@ -3265,8 +3265,8 @@ subsection\<open> Formulation of loop homotopy in terms of maps out of type comp
 
 lemma homotopic_circlemaps_imp_homotopic_loops:
   assumes "homotopic_with (\<lambda>h. True) (sphere 0 1) S f g"
-   shows "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * ii))
-                            (g \<circ> exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * ii))"
+   shows "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * \<i>))
+                            (g \<circ> exp \<circ> (\<lambda>t. 2 * of_real pi * of_real t * \<i>))"
 proof -
   have "homotopic_with (\<lambda>f. True) {z. cmod z = 1} S f g"
     using assms by (auto simp: sphere_def)
@@ -3347,7 +3347,7 @@ lemma simply_connected_eq_homotopic_circlemaps1:
       and contg: "continuous_on (sphere 0 1) g" and gim: "g ` (sphere 0 1) \<subseteq> S"
     shows "homotopic_with (\<lambda>h. True) (sphere 0 1) S f g"
 proof -
-  have "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi * t) * ii)) (g \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi *  t) * ii))"
+  have "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi * t) * \<i>)) (g \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi *  t) * \<i>))"
     apply (rule S [unfolded simply_connected_homotopic_loops, rule_format])
     apply (simp add: homotopic_circlemaps_imp_homotopic_loops homotopic_with_refl contf fim contg gim)
     done
