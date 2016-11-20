@@ -696,6 +696,36 @@ text \<open>
 \<close>
 
 
+section \<open>Indentation\<close>
+
+text \<open>
+  Isabelle/jEdit augments the existing indentation facilities of jEdit to take
+  the structure of theory and proof texts into account. There is also special
+  support for unstructured proof scripts.
+
+    \<^descr>[Syntactic indentation] follows the outer syntax of Isabelle/Isar.
+
+    Action @{action "indent-lines"} (shortcut \<^verbatim>\<open>C+i\<close>) indents the current line
+    according to command keywords and some command substructure: this
+    approximation may need further manual tuning.
+
+    Action @{action "isabelle.newline"} (shortcut \<^verbatim>\<open>ENTER\<close>) indents the old
+    and the new line according to command keywords only: this leads to precise
+    alignment of the main Isar language elements. This depends on option
+    @{system_option_def "jedit_indent_newline"} (enabled by default).
+
+    \<^descr>[Semantic indentation] adds additional white space to unstructured proof
+    scripts (\<^theory_text>\<open>apply\<close> etc.) via number of subgoals. This requires information
+    of ongoing document processing and may thus lag behind, when the user is
+    editing too quickly; see also option @{system_option_def
+    "jedit_script_indent"} and @{system_option_def
+    "jedit_script_indent_limit"}.
+
+  The above options are accessible in the menu \<^emph>\<open>Plugins / Plugin Options /
+  Isabelle / General\<close>.
+\<close>
+
+
 section \<open>SideKick parsers \label{sec:sidekick}\<close>
 
 text \<open>
