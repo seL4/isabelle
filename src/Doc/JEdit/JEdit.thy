@@ -1170,6 +1170,40 @@ text \<open>
 \<close>
 
 
+section \<open>Formal scopes and semantic selection\<close>
+
+text \<open>
+  Formal entities are semantically annotated in the source text as explained
+  in \secref{sec:tooltips-hyperlinks}. A \<^emph>\<open>formal scope\<close> consists of the
+  defining position with all its referencing positions. This correspondence is
+  highlighted in the text according to the cursor position, see also
+  \figref{fig:scope1}. Here the referencing positions are rendered with an
+  additional border, in reminiscence to a hyperlink: clicking there moves the
+  cursor to the original defining position.
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.5]{scope1}
+  \end{center}
+  \caption{Scope of formal entity: defining vs.\ referencing positions}
+  \label{fig:scope1}
+  \end{figure}
+
+  The action @{action_def "isabelle.select-entity"} (shortcut \<^verbatim>\<open>CS+ENTER\<close>)
+  supports semantic selection of all occurrences of the formal entity at the
+  caret position. This facilitates systematic renaming, using regular jEdit
+  editing of a multi-selection, see also \figref{fig:scope2}.
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.5]{scope2}
+  \end{center}
+  \caption{The result of semantic selection and systematic renaming}
+  \label{fig:scope2}
+  \end{figure}
+\<close>
+
+
 section \<open>Completion \label{sec:completion}\<close>
 
 text \<open>

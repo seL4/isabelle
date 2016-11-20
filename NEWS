@@ -95,7 +95,7 @@ according to 'begin' and 'end' structure.
 * Highlighting of entity def/ref positions wrt. cursor.
 
 * Action "isabelle.select-entity" (shortcut CS+ENTER) selects all
-occurences of the formal entity at the caret position. This facilitates
+occurrences of the formal entity at the caret position. This facilitates
 systematic renaming.
 
 * PIDE document markup works across multiple Isar commands, e.g. the
