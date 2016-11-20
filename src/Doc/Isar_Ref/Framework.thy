@@ -485,11 +485,58 @@ text \<open>
   entities of Pure (propositions, facts, and goals). The Isar proof language
   allows to organize reasoning within the underlying rule calculus of Pure,
   but Isar is not another logical calculus. Isar merely imposes certain
-  structure and policies on Pure inferences.
+  structure and policies on Pure inferences. The main grammar of the Isar
+  proof language is given in \figref{fig:isar-syntax}.
 
-  Isar is intended as an exercise in minimalism. Approximately half of the
-  language is introduced as primitive, the rest defined as derived concepts.
-  The grammar in \appref{ap:main-grammar} describes the core language
+  \begin{figure}[htb]
+  \begin{center}
+  \begin{tabular}{rcl}
+    \<open>main\<close> & \<open>=\<close> & \<^theory_text>\<open>notepad begin "statement\<^sup>*" end\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>theorem name: props if name: props for vars\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>theorem name:\<close> \\
+    & & \quad\<^theory_text>\<open>fixes vars\<close> \\
+    & & \quad\<^theory_text>\<open>assumes name: props\<close> \\
+    & & \quad\<^theory_text>\<open>shows name: props "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>theorem name:\<close> \\
+    & & \quad\<^theory_text>\<open>fixes vars\<close> \\
+    & & \quad\<^theory_text>\<open>assumes name: props\<close> \\
+    & & \quad\<^theory_text>\<open>obtains (name) clause "\<^bold>|" \<dots> "proof"\<close> \\
+    \<open>proof\<close> & \<open>=\<close> & \<^theory_text>\<open>"refinement\<^sup>* proper_proof"\<close> \\
+    \<open>refinement\<close> & \<open>=\<close> &  \<^theory_text>\<open>apply method\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>supply name = thms\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>subgoal premises name for vars "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>using thms\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>unfolding thms\<close> \\
+    \<open>proper_proof\<close> & \<open>=\<close> & \<^theory_text>\<open>proof "method\<^sup>?" "statement\<^sup>*" qed "method\<^sup>?"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>by method method\<close>~~~\<open>|\<close>~~~\<^theory_text>\<open>..\<close>~~~\<open>|\<close>~~~\<^theory_text>\<open>.\<close>~~~\<open>|\<close>~~~\<^theory_text>\<open>sorry\<close>~~~\<open>|\<close>~~~\<^theory_text>\<open>done\<close> \\
+    \<open>statement\<close> & \<open>=\<close> & \<^theory_text>\<open>{ "statement\<^sup>*" }\<close>~~~\<open>|\<close>~~~\<^theory_text>\<open>next\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>note name = thms\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>let "term" = "term"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>write name  (mixfix)\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>fix vars\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>assume name: props if props for vars\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>presume name: props if props for vars\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>define clause\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>case name: "case"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>then"\<^sup>?" goal\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>from thms goal\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>with thms goal\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>also\<close>~~~\<open>|\<close>~~~\<^theory_text>\<open>finally goal\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>moreover\<close>~~~\<open>|\<close>~~~\<^theory_text>\<open>ultimately goal\<close> \\
+    \<open>goal\<close> & \<open>=\<close> & \<^theory_text>\<open>have name: props if name: props for vars "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>show name: props if name: props for vars "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>show name: props when name: props for vars "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>consider (name) clause "\<^bold>|" \<dots> "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>obtain (name) clause "proof"\<close> \\
+    \<open>clause\<close> & \<open>=\<close> & \<^theory_text>\<open>vars where name: props if props for vars\<close> \\
+  \end{tabular}
+  \end{center}
+  \caption{Main grammar of the Isar proof language}\label{fig:isar-syntax}
+  \end{figure}
+
+  The construction of the Isar proof language proceeds in a bottom-up fashion,
+  as an exercise in purity and minimalism. The grammar in
+  \appref{ap:main-grammar} describes the primitive parts of the core language
   (category \<open>proof\<close>), which is embedded into the main outer theory syntax via
   elements that require a proof (e.g.\ \<^theory_text>\<open>theorem\<close>, \<^theory_text>\<open>lemma\<close>, \<^theory_text>\<open>function\<close>,
   \<^theory_text>\<open>termination\<close>).
