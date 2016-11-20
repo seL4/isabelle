@@ -141,8 +141,7 @@ text \<open>
   done with the usual care for such an open bazaar of contributions. Arbitrary
   combinations of add-on features are apt to cause problems. It is advisable
   to start with the default configuration of Isabelle/jEdit and develop some
-  understanding how it is supposed to work, before loading too many other
-  plugins.
+  sense how it is meant to work, before loading too many other plugins.
 
   \<^medskip>
   The main \<^emph>\<open>Isabelle\<close> plugin is an integral part of Isabelle/jEdit and needs
@@ -207,12 +206,15 @@ text \<open>
   first start of the editor; afterwards the keymap file takes precedence and
   is no longer affected by change of default properties.
 
-  This subtle difference of jEdit keymaps versus properties is relevant for
-  Isabelle/jEdit due to various fine-tuning of global defaults, with
-  additional keyboard shortcuts for Isabelle-specific functionality. Users may
-  change their keymap later, but need to copy some keyboard shortcuts manually
-  (see also @{path "$JEDIT_SETTINGS/keymaps"} versus \<^verbatim>\<open>shortcut\<close> properties in
-  \<^file>\<open>$JEDIT_HOME/src/jEdit.props\<close>).
+  Users may change their keymap later, but need to keep its content @{path
+  "$JEDIT_SETTINGS/keymaps"} in sync with \<^verbatim>\<open>shortcut\<close> properties in
+  \<^file>\<open>$JEDIT_HOME/src/jEdit.props\<close>.
+
+  \<^medskip>
+  The action @{action_def "isabelle.keymap-merge"} helps to resolve pending
+  Isabelle keymap changes that are in conflict with the current jEdit keymap;
+  non-conflicting changes are always applied implicitly. This action is
+  automatically invoked on Isabelle/jEdit startup.
 \<close>
 
 
@@ -292,7 +294,7 @@ text \<open>
 
   The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
   different server name. The default server name is the official distribution
-  name (e.g.\ \<^verbatim>\<open>Isabelle2016\<close>). Thus @{tool jedit_client} can connect to the
+  name (e.g.\ \<^verbatim>\<open>Isabelle2016-1\<close>). Thus @{tool jedit_client} can connect to the
   Isabelle desktop application without further options.
 
   The \<^verbatim>\<open>-p\<close> option allows to override the implicit default of the system
@@ -699,9 +701,9 @@ section \<open>SideKick parsers \label{sec:sidekick}\<close>
 text \<open>
   The \<^emph>\<open>SideKick\<close> plugin provides some general services to display buffer
   structure in a tree view. Isabelle/jEdit provides SideKick parsers for its
-  main mode for theory files, as well as some minor modes for the \<^verbatim>\<open>NEWS\<close> file
-  (see \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, system \<^verbatim>\<open>options\<close>, and
-  Bib{\TeX} files (\secref{sec:bibtex}).
+  main mode for theory files, ML files, as well as some minor modes for the
+  \<^verbatim>\<open>NEWS\<close> file (see \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, system
+  \<^verbatim>\<open>options\<close>, and Bib{\TeX} files (\secref{sec:bibtex}).
 
   \begin{figure}[!htb]
   \begin{center}
@@ -711,6 +713,19 @@ text \<open>
   \label{fig:sidekick}
   \end{figure}
 
+  The default SideKick parser for theory files is \<^verbatim>\<open>isabelle\<close>: it provides a
+  tree-view on the formal document structure, with section headings at the top
+  and formal specification elements at the bottom. The alternative parser
+  \<^verbatim>\<open>isabelle-context\<close> shows nesting of context blocks according to \<^theory_text>\<open>begin \<dots>
+  end\<close> structure.
+
+  \<^medskip>
+  Isabelle/ML files are structured according to semi-formal comments that are
+  explained in @{cite "isabelle-implementation"}. This outline is turned into
+  a tree-view by default, by using the \<^verbatim>\<open>isabelle-ml\<close> parser. There is also a
+  folding mode of the same name, for hierarchic text folds within ML files.
+
+  \<^medskip>
   The special SideKick parser \<^verbatim>\<open>isabelle-markup\<close> exposes the uninterpreted
   markup tree of the PIDE document model of the current buffer. This is
   occasionally useful for informative purposes, but the amount of displayed
@@ -1199,12 +1214,12 @@ text \<open>
   kinds and purposes. The completion mechanism supports this by the following
   built-in templates:
 
-    \<^descr> \<^verbatim>\<open>`\<close> (single ASCII back-quote) supports \<^emph>\<open>quotations\<close> via text
-    cartouches. There are three selections, which are always presented in the
-    same order and do not depend on any context information. The default
-    choice produces a template ``\<open>\<open>\<box>\<close>\<close>'', where the box indicates the cursor
-    position after insertion; the other choices help to repair the block
-    structure of unbalanced text cartouches.
+    \<^descr> \<^verbatim>\<open>`\<close> (single ASCII back-quote) or \<^verbatim>\<open>"\<close> (double ASCII quote) support
+    \<^emph>\<open>quotations\<close> via text cartouches. There are three selections, which are
+    always presented in the same order and do not depend on any context
+    information. The default choice produces a template ``\<open>\<open>\<box>\<close>\<close>'', where the
+    box indicates the cursor position after insertion; the other choices help
+    to repair the block structure of unbalanced text cartouches.
 
     \<^descr> \<^verbatim>\<open>@{\<close> is completed to the template ``\<open>@{\<box>}\<close>'', where the box indicates
     the cursor position after insertion. Here it is convenient to use the
@@ -1213,8 +1228,8 @@ text \<open>
 
   With some practice, input of quoted sub-languages and antiquotations of
   embedded languages should work fluently. Note that national keyboard layouts
-  might cause problems with back-quote as dead key: if possible, dead keys
-  should be disabled.
+  might cause problems with back-quote as dead key, but double quote can be
+  used instead.
 \<close>
 
 
@@ -1271,6 +1286,20 @@ text \<open>
   Backslash sequences also help when input is broken, and thus escapes its
   normal semantic context: e.g.\ antiquotations or string literals in ML,
   which do not allow arbitrary backslash sequences.
+\<close>
+
+
+subsubsection \<open>User-defined abbreviations\<close>
+
+text \<open>
+  The theory header syntax supports abbreviations via the \<^theory_text>\<open>abbrevs\<close> keyword
+  @{cite "isabelle-isar-ref"}. This is a slight generalization of built-in
+  templates and abbreviations for Isabelle symbols, as explained above.
+  Examples may be found in the Isabelle sources, by searching for
+  ``\<^verbatim>\<open>abbrevs\<close>'' in \<^verbatim>\<open>*.thy\<close> files.
+
+  The \<^emph>\<open>Symbols\<close> panel shows the abbreviations that are available in the
+  current theory buffer (according to its \<^theory_text>\<open>imports\<close>) in the \<^verbatim>\<open>Abbrevs\<close> tab.
 \<close>
 
 
