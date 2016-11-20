@@ -214,8 +214,8 @@ text \<open>
 
     \<^item> \<^verbatim>\<open>etc/settings\<close> holds additional settings that are initialized when
     bootstrapping the overall Isabelle environment, cf.\ \secref{sec:boot}. As
-    usual, the content is interpreted as a \<^verbatim>\<open>bash\<close> script. It may refer to the
-    component's enclosing directory via the \<^verbatim>\<open>COMPONENT\<close> shell variable.
+    usual, the content is interpreted as a GNU bash script. It may refer to
+    the component's enclosing directory via the \<^verbatim>\<open>COMPONENT\<close> shell variable.
 
     For example, the following setting allows to refer to files within the
     component later on, without having to hardwire absolute paths:
@@ -260,9 +260,12 @@ section \<open>The Isabelle tool wrapper \label{sec:isabelle-tool}\<close>
 
 text \<open>
   The main \<^emph>\<open>Isabelle tool wrapper\<close> provides a generic startup environment for
-  Isabelle related utilities, user interfaces etc. Such tools automatically
-  benefit from the settings mechanism. All Isabelle command-line tools are
-  invoked via a common wrapper --- @{executable_ref isabelle}:
+  Isabelle-related utilities, user interfaces, add-on applications etc. Such
+  tools automatically benefit from the settings mechanism
+  (\secref{sec:settings}). Moreover, this is the standard way to invoke
+  Isabelle/Scala functionality as a separate operating-system process.
+  Isabelle command-line tools are run uniformly via a common wrapper ---
+  @{executable_ref isabelle}:
   @{verbatim [display]
 \<open>Usage: isabelle TOOL [ARGS ...]
 
@@ -271,12 +274,32 @@ text \<open>
 Available tools:
   ...\<close>}
 
-  In principle, Isabelle tools are ordinary executable scripts that are run
-  within the Isabelle settings environment, see \secref{sec:settings}. The set
-  of available tools is collected by @{executable isabelle} from the
-  directories listed in the @{setting ISABELLE_TOOLS} setting. Do not try to
-  call the scripts directly from the shell. Neither should you add the tool
-  directories to your shell's search path!
+  Tools may be implemented in Isabelle/Scala or as stand-alone executables
+  (usually as GNU bash scripts). In the invocation of ``@{executable
+  isabelle}~\<open>tool\<close>'', the named \<open>tool\<close> is resolved as follows (and in the
+  given order).
+
+    \<^enum> An external tool found on the directories listed in the @{setting
+    ISABELLE_TOOLS} settings variable (colon-separated list in standard POSIX
+    notation).
+
+      \<^enum> If a file ``\<open>tool\<close>\<^verbatim>\<open>.scala\<close>'' is found, the source needs to define
+      some object that extends the class \<^verbatim>\<open>Isabelle_Tool.Body\<close>. The Scala
+      compiler is invoked on the spot (which may take some time), and the body
+      function is run with the command-line arguments as \<^verbatim>\<open>List[String]\<close>.
+
+      \<^enum> If an executable file ``\<open>tool\<close>'' is found, it is invoked as
+      stand-alone program with the command-line arguments provided as \<^verbatim>\<open>argv\<close>
+      array.
+
+    \<^enum> An internal tool that is registered in \<^verbatim>\<open>Isabelle_Tool.internal_tools\<close>
+    within the Isabelle/Scala namespace of \<^verbatim>\<open>Pure.jar\<close>. This is the preferred
+    entry-point for high-end tools implemented in Isabelle/Scala --- compiled
+    once when the Isabelle distribution is built. These tools are provided by
+    Isabelle/Pure and cannot be augmented in user-space.
+
+  There are also some administrative tools that are available from a bare
+  repository clone of Isabelle, but not in regular distributions.
 \<close>
 
 
@@ -346,7 +369,7 @@ text \<open>
   loader within ML:
   @{verbatim [display] \<open>isabelle process -e 'Thy_Info.get_theory "Main"'\<close>}
 
-  Observe the delicate quoting rules for the Bash shell vs.\ ML. The
+  Observe the delicate quoting rules for the GNU bash shell vs.\ ML. The
   Isabelle/ML and Scala libraries provide functions for that, but here we need
   to do it manually.
 \<close>
