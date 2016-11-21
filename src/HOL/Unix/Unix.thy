@@ -5,9 +5,9 @@
 section \<open>Unix file-systems \label{sec:unix-file-system}\<close>
 
 theory Unix
-imports
-  Nested_Environment
-  "~~/src/HOL/Library/Sublist"
+  imports
+    Nested_Environment
+    "~~/src/HOL/Library/Sublist"
 begin
 
 text \<open>
@@ -296,26 +296,26 @@ text \<open>
 \<close>
 
 primrec uid_of :: "operation \<Rightarrow> uid"
-where
-  "uid_of (Read uid text path) = uid"
-| "uid_of (Write uid text path) = uid"
-| "uid_of (Chmod uid perms path) = uid"
-| "uid_of (Creat uid perms path) = uid"
-| "uid_of (Unlink uid path) = uid"
-| "uid_of (Mkdir uid path perms) = uid"
-| "uid_of (Rmdir uid path) = uid"
-| "uid_of (Readdir uid names path) = uid"
+  where
+    "uid_of (Read uid text path) = uid"
+  | "uid_of (Write uid text path) = uid"
+  | "uid_of (Chmod uid perms path) = uid"
+  | "uid_of (Creat uid perms path) = uid"
+  | "uid_of (Unlink uid path) = uid"
+  | "uid_of (Mkdir uid path perms) = uid"
+  | "uid_of (Rmdir uid path) = uid"
+  | "uid_of (Readdir uid names path) = uid"
 
 primrec path_of :: "operation \<Rightarrow> path"
-where
-  "path_of (Read uid text path) = path"
-| "path_of (Write uid text path) = path"
-| "path_of (Chmod uid perms path) = path"
-| "path_of (Creat uid perms path) = path"
-| "path_of (Unlink uid path) = path"
-| "path_of (Mkdir uid perms path) = path"
-| "path_of (Rmdir uid path) = path"
-| "path_of (Readdir uid names path) = path"
+  where
+    "path_of (Read uid text path) = path"
+  | "path_of (Write uid text path) = path"
+  | "path_of (Chmod uid perms path) = path"
+  | "path_of (Creat uid perms path) = path"
+  | "path_of (Unlink uid path) = path"
+  | "path_of (Mkdir uid perms path) = path"
+  | "path_of (Rmdir uid path) = path"
+  | "path_of (Readdir uid names path) = path"
 
 text \<open>
   \<^medskip>
@@ -340,45 +340,43 @@ text \<open>
 
 inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
   ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
-where
-  read:
-    "root \<midarrow>(Read uid text path)\<rightarrow> root"
-    if "access root path uid {Readable} = Some (Val (att, text))"
-| "write":
-    "root \<midarrow>(Write uid text path)\<rightarrow> update path (Some (Val (att, text))) root"
-    if "access root path uid {Writable} = Some (Val (att, text'))"
-| chmod:
-    "root \<midarrow>(Chmod uid perms path)\<rightarrow>
-      update path (Some (map_attributes (others_update (\<lambda>_. perms)) file)) root"
-    if "access root path uid {} = Some file" and "uid = 0 \<or> uid = owner (attributes file)"
-| creat:
-    "root \<midarrow>(Creat uid perms path)\<rightarrow>
-      update path (Some (Val (\<lparr>owner = uid, others = perms\<rparr>, []))) root"
-    if "path = parent_path @ [name]"
-    and "access root parent_path uid {Writable} = Some (Env att parent)"
-    and "access root path uid {} = None"
-| unlink:
-    "root \<midarrow>(Unlink uid path)\<rightarrow> update path None root"
-    if "path = parent_path @ [name]"
-    and "access root parent_path uid {Writable} = Some (Env att parent)"
-    and "access root path uid {} = Some (Val plain)"
-| mkdir:
-    "root \<midarrow>(Mkdir uid perms path)\<rightarrow>
-      update path (Some (Env \<lparr>owner = uid, others = perms\<rparr> empty)) root"
-    if "path = parent_path @ [name]"
-    and "access root parent_path uid {Writable} = Some (Env att parent)"
-    and "access root path uid {} = None"
-|
-  rmdir:
-    "root \<midarrow>(Rmdir uid path)\<rightarrow> update path None root"
-    if "path = parent_path @ [name]"
-    and "access root parent_path uid {Writable} = Some (Env att parent)"
-    and "access root path uid {} = Some (Env att' empty)"
-|
-  readdir:
-    "root \<midarrow>(Readdir uid names path)\<rightarrow> root"
-    if "access root path uid {Readable} = Some (Env att dir)"
-    and "names = dom dir"
+  where
+    read:
+      "root \<midarrow>(Read uid text path)\<rightarrow> root"
+      if "access root path uid {Readable} = Some (Val (att, text))"
+  | "write":
+      "root \<midarrow>(Write uid text path)\<rightarrow> update path (Some (Val (att, text))) root"
+      if "access root path uid {Writable} = Some (Val (att, text'))"
+  | chmod:
+      "root \<midarrow>(Chmod uid perms path)\<rightarrow>
+        update path (Some (map_attributes (others_update (\<lambda>_. perms)) file)) root"
+      if "access root path uid {} = Some file" and "uid = 0 \<or> uid = owner (attributes file)"
+  | creat:
+      "root \<midarrow>(Creat uid perms path)\<rightarrow>
+        update path (Some (Val (\<lparr>owner = uid, others = perms\<rparr>, []))) root"
+      if "path = parent_path @ [name]"
+      and "access root parent_path uid {Writable} = Some (Env att parent)"
+      and "access root path uid {} = None"
+  | unlink:
+      "root \<midarrow>(Unlink uid path)\<rightarrow> update path None root"
+      if "path = parent_path @ [name]"
+      and "access root parent_path uid {Writable} = Some (Env att parent)"
+      and "access root path uid {} = Some (Val plain)"
+  | mkdir:
+      "root \<midarrow>(Mkdir uid perms path)\<rightarrow>
+        update path (Some (Env \<lparr>owner = uid, others = perms\<rparr> empty)) root"
+      if "path = parent_path @ [name]"
+      and "access root parent_path uid {Writable} = Some (Env att parent)"
+      and "access root path uid {} = None"
+  | rmdir:
+      "root \<midarrow>(Rmdir uid path)\<rightarrow> update path None root"
+      if "path = parent_path @ [name]"
+      and "access root parent_path uid {Writable} = Some (Env att parent)"
+      and "access root path uid {} = Some (Env att' empty)"
+  | readdir:
+      "root \<midarrow>(Readdir uid names path)\<rightarrow> root"
+      if "access root path uid {Readable} = Some (Env att dir)"
+      and "names = dom dir"
 
 text \<open>
   \<^medskip>
@@ -480,11 +478,10 @@ text \<open>
   running processes over a finite amount of time.
 \<close>
 
-inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
-  ("_ \<Midarrow>_\<Rightarrow> _" [90, 1000, 90] 100)
-where
-  nil: "root \<Midarrow>[]\<Rightarrow> root"
-| cons: "root \<Midarrow>(x # xs)\<Rightarrow> root''" if "root \<midarrow>x\<rightarrow> root'" and "root' \<Midarrow>xs\<Rightarrow> root''"
+inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"  ("_ \<Midarrow>_\<Rightarrow> _" [90, 1000, 90] 100)
+  where
+    nil: "root \<Midarrow>[]\<Rightarrow> root"
+  | cons: "root \<Midarrow>(x # xs)\<Rightarrow> root''" if "root \<midarrow>x\<rightarrow> root'" and "root' \<Midarrow>xs\<Rightarrow> root''"
 
 text \<open>
   \<^medskip>
@@ -750,8 +747,7 @@ proof -
     fix xs
     assume Ps: "\<forall>x \<in> set xs. P x"
     assume can_exec: "can_exec root (xs @ [y])"
-    then obtain root' root'' where
-        xs: "root \<Midarrow>xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> root''"
+    then obtain root' root'' where xs: "root \<Midarrow>xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> root''"
       by (blast dest: can_exec_snocD)
     from init_result have "Q root" by (rule init_inv)
     from preserve_inv xs this Ps have "Q root'"
@@ -864,8 +860,7 @@ proof -
   from inv obtain "file" where "access root bogus_path user\<^sub>1 {} = Some file"
     unfolding invariant_def by blast
   moreover
-  from rmdir obtain att where
-      "access root [user\<^sub>1, name\<^sub>1] user\<^sub>1 {} = Some (Env att empty)"
+  from rmdir obtain att where "access root [user\<^sub>1, name\<^sub>1] user\<^sub>1 {} = Some (Env att empty)"
     by cases auto
   then have "access root ([user\<^sub>1, name\<^sub>1] @ [name\<^sub>2]) user\<^sub>1 {} = empty name\<^sub>2"
     by (simp only: access_empty_lookup lookup_append_some) simp
