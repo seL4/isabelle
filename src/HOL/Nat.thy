@@ -10,7 +10,7 @@ and * (for div and mod, see theory Divides).
 section \<open>Natural numbers\<close>
 
 theory Nat
-  imports Inductive Typedef Fun Rings
+imports Inductive Typedef Fun Rings
 begin
 
 named_theorems arith "arith facts -- only ground formulas"
@@ -742,6 +742,8 @@ text \<open>Useful in certain inductive arguments\<close>
 lemma less_Suc_eq_0_disj: "m < Suc n \<longleftrightarrow> m = 0 \<or> (\<exists>j. m = Suc j \<and> j < n)"
   by (cases m) simp_all
 
+lemma All_less_Suc: "(\<forall>i < Suc n. P i) = (P n \<and> (\<forall>i < n. P i))"
+by (auto simp: less_Suc_eq)
 
 subsubsection \<open>Monotonicity of Addition\<close>
 
