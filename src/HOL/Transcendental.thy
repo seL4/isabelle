@@ -2634,6 +2634,10 @@ lemmas powr_le_iff = le_log_iff[symmetric]
   and less_powr_iff = log_less_iff[symmetric]
   and le_powr_iff = log_le_iff[symmetric]
 
+lemma gr_one_powr[simp]:
+  fixes x y :: real shows "\<lbrakk> x > 1; y > 0 \<rbrakk> \<Longrightarrow> 1 < x powr y"
+by(simp add: less_powr_iff)
+
 lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
   by (auto simp add: floor_eq_iff powr_le_iff less_powr_iff)
 
@@ -2712,6 +2716,7 @@ lemma log_root: "n > 0 \<Longrightarrow> a > 0 \<Longrightarrow> log b (root n a
 lemma log_powr: "x \<noteq> 0 \<Longrightarrow> log b (x powr y) = y * log b x"
   by (simp add: log_def ln_powr)
 
+(* [simp] is not worth it, interferes with some proofs *)
 lemma log_nat_power: "0 < x \<Longrightarrow> log b (x^n) = real n * log b x"
   by (simp add: log_powr powr_realpow [symmetric])
 
