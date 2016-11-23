@@ -111,7 +111,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       // no robust_body
-      PIDE.editor.invoke()
+      PIDE.editor.invoke_update()
     }
   }
 

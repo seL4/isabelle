@@ -12,6 +12,7 @@ abstract class Editor[Context]
   def session: Session
   def flush(hidden: Boolean = true): Unit
   def invoke(): Unit
+  def invoke_update(): Unit
   def current_context: Context
   def current_node(context: Context): Option[Document.Node.Name]
   def current_node_snapshot(context: Context): Option[Document.Snapshot]
