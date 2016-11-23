@@ -69,13 +69,13 @@ sig
   val mash_suggested_facts : Proof.context -> string -> params -> int -> term list -> term ->
     raw_fact list -> fact list * fact list
 
-  val mash_unlearn : unit -> unit
+  val mash_unlearn : Proof.context -> unit
   val mash_learn_proof : Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
   val mash_learn_facts : Proof.context -> params -> string -> int -> bool -> Time.time ->
     raw_fact list -> string
   val mash_learn : Proof.context -> params -> fact_override -> thm list -> bool -> unit
   val mash_can_suggest_facts : Proof.context -> bool
-  val mash_can_suggest_facts_fast : unit -> bool
+  val mash_can_suggest_facts_fast : Proof.context -> bool
 
   val generous_max_suggestions : int -> int
   val mepo_weight : real
@@ -272,6 +272,18 @@ fun rev_sort_list_prefix cmp needed xs =
     sort_array_suffix cmp needed ary;
     Array.foldl (op ::) [] ary
   end
+
+
+(*** Convenience functions for synchronized access ***)
+
+fun synchronized_timed_value var time_limit =
+  Synchronized.timed_access var time_limit (fn value => SOME (value, value))
+fun synchronized_timed_change_result var time_limit f =
+  Synchronized.timed_access var time_limit (SOME o f)
+fun synchronized_timed_change var time_limit f =
+  synchronized_timed_change_result var time_limit (fn x => ((), f x))
+
+fun mash_time_limit _ = SOME (seconds 0.1)
 
 
 (*** Isabelle-agnostic machine learning ***)
@@ -640,7 +652,7 @@ fun recompute_ffds_freqs_from_access_G access_G (xtabs as (fact_xtab, _)) =
 
 local
 
-val version = "*** MaSh version 20160805 ***"
+val version = "*** MaSh version 20161123 ***"
 
 exception FILE_VERSION_TOO_NEW of unit
 
@@ -734,42 +746,49 @@ val global_state = Synchronized.var "Sledgehammer_MaSh.global_state" (Time.zeroT
 in
 
 fun map_state ctxt f =
-  Synchronized.change global_state (load_state ctxt ##> f #> save_state ctxt)
+  (trace_msg ctxt (fn () => "Changing MaSh state");
+   synchronized_timed_change global_state mash_time_limit
+     (load_state ctxt ##> f #> save_state ctxt))
+  |> ignore
   handle FILE_VERSION_TOO_NEW () => ()
 
-fun peek_state () =
-  let val state = Synchronized.value global_state in
-    if would_load_state state then NONE else SOME state
-  end
+fun peek_state ctxt =
+  (trace_msg ctxt (fn () => "Peeking at MaSh state");
+   (case synchronized_timed_value global_state mash_time_limit of
+     NONE => NONE
+   | SOME state => if would_load_state state then NONE else SOME state))
 
 fun get_state ctxt =
-  Synchronized.change_result global_state (perhaps (try (load_state ctxt)) #> `snd)
+  (trace_msg ctxt (fn () => "Retrieving MaSh state");
+   synchronized_timed_change_result global_state mash_time_limit
+     (perhaps (try (load_state ctxt)) #> `snd))
 
-fun clear_state () =
-  Synchronized.change global_state (fn _ => (remove_state_file (); (Time.zeroTime, empty_state)))
+fun clear_state ctxt =
+  (trace_msg ctxt (fn () => "Clearing MaSh state");
+   Synchronized.change global_state (fn _ => (remove_state_file (); (Time.zeroTime, empty_state))))
 
 end
 
 
 (*** Isabelle helpers ***)
 
-fun crude_printed_term depth t =
+fun crude_printed_term size t =
   let
     fun term _ (res, 0) = (res, 0)
-      | term (t $ u) (res, depth) =
+      | term (t $ u) (res, size) =
         let
-          val (res, depth) = term t (res ^ "(", depth)
-          val (res, depth) = term u (res ^ " ", depth)
+          val (res, size) = term t (res ^ "(", size)
+          val (res, size) = term u (res ^ " ", size)
         in
-          (res ^ ")", depth)
+          (res ^ ")", size)
         end
-      | term (Abs (s, _, t)) (res, depth) = term t (res ^ "%" ^ s ^ ".", depth - 1)
-      | term (Bound n) (res, depth) = (res ^ "#" ^ string_of_int n, depth - 1)
-      | term (Const (s, _)) (res, depth) = (res ^ Long_Name.base_name s, depth - 1)
-      | term (Free (s, _)) (res, depth) = (res ^ s, depth - 1)
-      | term (Var ((s, _), _)) (res, depth) = (res ^ s, depth - 1)
+      | term (Abs (s, _, t)) (res, size) = term t (res ^ "%" ^ s ^ ".", size - 1)
+      | term (Bound n) (res, size) = (res ^ "#" ^ string_of_int n, size - 1)
+      | term (Const (s, _)) (res, size) = (res ^ Long_Name.base_name s, size - 1)
+      | term (Free (s, _)) (res, size) = (res ^ s, size - 1)
+      | term (Var ((s, _), _)) (res, size) = (res ^ s, size - 1)
   in
-    fst (term t ("", depth))
+    fst (term t ("", size))
   end
 
 fun nickname_of_thm th =
@@ -778,11 +797,11 @@ fun nickname_of_thm th =
       (* There must be a better way to detect local facts. *)
       (case Long_Name.dest_local hint of
         SOME suf =>
-        Long_Name.implode [Thm.theory_name_of_thm th, suf, crude_printed_term 50 (Thm.prop_of th)]
+        Long_Name.implode [Thm.theory_name_of_thm th, suf, crude_printed_term 25 (Thm.prop_of th)]
       | NONE => hint)
     end
   else
-    crude_printed_term 100 (Thm.prop_of th)
+    crude_printed_term 50 (Thm.prop_of th)
 
 fun find_suggested_facts ctxt facts =
   let
@@ -857,23 +876,17 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
 
 val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
 
-val pat_tvar_prefix = "_"
-val pat_var_prefix = "_"
+val crude_str_of_sort = space_implode "," o map Long_Name.base_name o subtract (op =) @{sort type}
 
-(* try "Long_Name.base_name" for shorter names *)
-fun massage_long_name s = s
-
-val crude_str_of_sort = space_implode "," o map massage_long_name o subtract (op =) @{sort type}
-
-fun crude_str_of_typ (Type (s, [])) = massage_long_name s
-  | crude_str_of_typ (Type (s, Ts)) = massage_long_name s ^ implode (map crude_str_of_typ Ts)
+fun crude_str_of_typ (Type (s, [])) = Long_Name.base_name s
+  | crude_str_of_typ (Type (s, Ts)) = Long_Name.base_name s ^ implode (map crude_str_of_typ Ts)
   | crude_str_of_typ (TFree (_, S)) = crude_str_of_sort S
   | crude_str_of_typ (TVar (_, S)) = crude_str_of_sort S
 
-fun maybe_singleton_str _ "" = []
-  | maybe_singleton_str pref s = [pref ^ s]
+fun maybe_singleton_str "" = []
+  | maybe_singleton_str s = [s]
 
-val max_pat_breadth = 10 (* FUDGE *)
+val max_pat_breadth = 5 (* FUDGE *)
 
 fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
   let
@@ -886,13 +899,12 @@ fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
       | add_classes S =
         fold (`(Sorts.super_classes classes)
           #> swap #> op ::
-          #> subtract (op =) @{sort type} #> map massage_long_name
+          #> subtract (op =) @{sort type}
           #> map class_feature_of
           #> union (op =)) S
 
     fun pattify_type 0 _ = []
-      | pattify_type _ (Type (s, [])) =
-        if member (op =) bad_types s then [] else [massage_long_name s]
+      | pattify_type depth (Type (s, [])) = if member (op =) bad_types s then [] else [s]
       | pattify_type depth (Type (s, U :: Ts)) =
         let
           val T = Type (s, Ts)
@@ -901,8 +913,8 @@ fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
         in
           map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs
         end
-      | pattify_type _ (TFree (_, S)) = maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
-      | pattify_type _ (TVar (_, S)) = maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
+      | pattify_type _ (TFree (_, S)) = maybe_singleton_str (crude_str_of_sort S)
+      | pattify_type _ (TVar (_, S)) = maybe_singleton_str (crude_str_of_sort S)
 
     fun add_type_pat depth T =
       union (op =) (map type_feature_of (pattify_type depth T))
@@ -918,17 +930,16 @@ fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
       | add_subtypes T = add_type T
 
     fun pattify_term _ 0 _ = []
-      | pattify_term _ _ (Const (s, _)) =
-        if is_widely_irrelevant_const s then [] else [massage_long_name s]
+      | pattify_term _ depth (Const (s, _)) =
+        if is_widely_irrelevant_const s then [] else [s]
       | pattify_term _ _ (Free (s, T)) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
-        |> (if member (op =) fixes s then
-              cons (free_feature_of (massage_long_name (Long_Name.append thy_name s)))
-            else
-              I)
-      | pattify_term _ _ (Var (_, T)) = maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
+        maybe_singleton_str (crude_str_of_typ T)
+        |> (if member (op =) fixes s then cons (free_feature_of (Long_Name.append thy_name s))
+            else I)
+      | pattify_term _ _ (Var (_, T)) =
+        maybe_singleton_str (crude_str_of_typ T)
       | pattify_term Ts _ (Bound j) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j))
+        maybe_singleton_str (crude_str_of_typ (nth Ts j))
       | pattify_term Ts depth (t $ u) =
         let
           val ps = take max_pat_breadth (pattify_term Ts depth t)
@@ -972,9 +983,9 @@ fun features_of ctxt thy_name (scope, _) ts =
 
 (* Too many dependencies is a sign that a decision procedure is at work. There is not much to learn
    from such proofs. *)
-val max_dependencies = 20
+val max_dependencies = 20 (* FUDGE *)
 
-val prover_default_max_facts = 25
+val prover_default_max_facts = 25 (* FUDGE *)
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_dep = nickname_of_thm @{thm CollectI}
@@ -1161,7 +1172,7 @@ val max_facts_for_shuffle_cleanup = 20
 fun maximal_wrt_access_graph _ [] = []
   | maximal_wrt_access_graph access_G (fact :: facts) =
     let
-      fun cleanup_wrt (fact as (_, th)) =
+      fun cleanup_wrt (_, th) =
         let val thy_id = Thm.theory_id_of_thm th in
           filter_out (fn (_, th') =>
             Context.proper_subthy_id (Thm.theory_id_of_thm th', thy_id))
@@ -1224,54 +1235,57 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
       [Thm.prop_of th]
       |> features_of ctxt (Thm.theory_name_of_thm th) stature
       |> map (rpair (weight * factor))
-
-    val {access_G, xtabs = ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs, ...} =
-      get_state ctxt
-
-    val goal_feats0 =
-      features_of ctxt thy_name (Local, General) (concl_t :: hyp_ts)
-    val chained_feats = chained
-      |> map (rpair 1.0)
-      |> map (chained_or_extra_features_of chained_feature_factor)
-      |> rpair [] |-> fold (union (eq_fst (op =)))
-    val extra_feats = facts
-      |> take (Int.max (0, num_extra_feature_facts - length chained))
-      |> filter fact_has_right_theory
-      |> weight_facts_steeply
-      |> map (chained_or_extra_features_of extra_feature_factor)
-      |> rpair [] |-> fold (union (eq_fst (op =)))
-
-    val goal_feats =
-      fold (union (eq_fst (op =))) [chained_feats, extra_feats] (map (rpair 1.0) goal_feats0)
-      |> debug ? sort (Real.compare o swap o apply2 snd)
-
-    val parents = maximal_wrt_access_graph access_G facts
-    val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
-
-    val suggs =
-      if algorithm = MaSh_NB_Ext orelse algorithm = MaSh_kNN_Ext then
-        let
-          val learns =
-            Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
-        in
-          MaSh.query_external ctxt algorithm max_suggs learns goal_feats
-        end
-      else
-        let
-          val int_goal_feats =
-            map_filter (fn (s, w) => Option.map (rpair w) (Symtab.lookup feat_tab s)) goal_feats
-        in
-          MaSh.query_internal ctxt algorithm num_facts num_feats ffds freqs visible_facts max_suggs
-            goal_feats int_goal_feats
-        end
-
-    val unknown = filter_out (is_fact_in_graph access_G o snd) facts
   in
-    find_mash_suggestions ctxt max_suggs suggs facts chained unknown
-    |> apply2 (map fact_of_raw_fact)
+    (case get_state ctxt of
+      NONE => ([], [])
+    | SOME {access_G, xtabs = ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs, ...} =>
+      let
+        val goal_feats0 =
+          features_of ctxt thy_name (Local, General) (concl_t :: hyp_ts)
+        val chained_feats = chained
+          |> map (rpair 1.0)
+          |> map (chained_or_extra_features_of chained_feature_factor)
+          |> rpair [] |-> fold (union (eq_fst (op =)))
+        val extra_feats = facts
+          |> take (Int.max (0, num_extra_feature_facts - length chained))
+          |> filter fact_has_right_theory
+          |> weight_facts_steeply
+          |> map (chained_or_extra_features_of extra_feature_factor)
+          |> rpair [] |-> fold (union (eq_fst (op =)))
+
+        val goal_feats =
+          fold (union (eq_fst (op =))) [chained_feats, extra_feats] (map (rpair 1.0) goal_feats0)
+          |> debug ? sort (Real.compare o swap o apply2 snd)
+
+        val parents = maximal_wrt_access_graph access_G facts
+        val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
+
+        val suggs =
+          if algorithm = MaSh_NB_Ext orelse algorithm = MaSh_kNN_Ext then
+            let
+              val learns =
+                Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps))
+                  access_G
+            in
+              MaSh.query_external ctxt algorithm max_suggs learns goal_feats
+            end
+          else
+            let
+              val int_goal_feats =
+                map_filter (fn (s, w) => Option.map (rpair w) (Symtab.lookup feat_tab s)) goal_feats
+            in
+              MaSh.query_internal ctxt algorithm num_facts num_feats ffds freqs visible_facts
+                max_suggs goal_feats int_goal_feats
+            end
+
+        val unknown = filter_out (is_fact_in_graph access_G o snd) facts
+      in
+        find_mash_suggestions ctxt max_suggs suggs facts chained unknown
+        |> apply2 (map fact_of_raw_fact)
+      end)
   end
 
-fun mash_unlearn () = (clear_state (); writeln "Reset MaSh")
+fun mash_unlearn ctxt = (clear_state ctxt; writeln "Reset MaSh")
 
 fun learn_wrt_access_graph ctxt (name, parents, feats, deps)
     (accum as (access_G, (fact_xtab, feat_xtab))) =
@@ -1363,164 +1377,169 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
   let
     val timer = Timer.startRealTimer ()
     fun next_commit_time () = Timer.checkRealTimer timer + commit_timeout
-
-    val {access_G, ...} = get_state ctxt
-    val is_in_access_G = is_fact_in_graph access_G o snd
-    val no_new_facts = forall is_in_access_G facts
   in
-    if no_new_facts andalso not run_prover then
-      if auto_level < 2 then
-        "No new " ^ (if run_prover then "automatic" else "Isar") ^ " proofs to learn" ^
-        (if auto_level = 0 andalso not run_prover then
-           "\n\nHint: Try " ^ sendback learn_proverN ^ " to learn from an automatic prover"
-         else
-           "")
-      else
-        ""
-    else
+    (case get_state ctxt of
+      NONE => "MaSh is busy\nPlease try again later"
+    | SOME {access_G, ...} =>
       let
-        val name_tabs = build_name_tables nickname_of_thm facts
-
-        fun deps_of status th =
-          if status = Non_Rec_Def orelse status = Rec_Def then
-            SOME []
-          else if run_prover then
-            prover_dependencies_of ctxt params prover auto_level facts name_tabs th
-            |> (fn (false, _) => NONE | (true, deps) => trim_dependencies deps)
-          else
-            isar_dependencies_of name_tabs th
-
-        fun do_commit [] [] [] state = state
-          | do_commit learns relearns flops
-              {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =
-            let
-              val was_empty = Graph.is_empty access_G
-
-              val (learns, (access_G', xtabs')) =
-                fold_map (learn_wrt_access_graph ctxt) learns (access_G, xtabs)
-                |>> map_filter I
-              val (relearns, access_G'') =
-                fold_map (relearn_wrt_access_graph ctxt) relearns access_G'
-
-              val access_G''' = access_G'' |> fold flop_wrt_access_graph flops
-              val dirty_facts' =
-                (case (was_empty, dirty_facts) of
-                  (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
-                | _ => NONE)
-
-              val (ffds', freqs') =
-                if null relearns then
-                  recompute_ffds_freqs_from_learns
-                    (map (fn (name, _, feats, deps) => (name, feats, deps)) learns) xtabs' num_facts0
-                    ffds freqs
-                else
-                  recompute_ffds_freqs_from_access_G access_G''' xtabs'
-            in
-              {access_G = access_G''', xtabs = xtabs', ffds = ffds', freqs = freqs',
-               dirty_facts = dirty_facts'}
-            end
-
-        fun commit last learns relearns flops =
-          (if debug andalso auto_level = 0 then writeln "Committing..." else ();
-           map_state ctxt (do_commit (rev learns) relearns flops);
-           if not last andalso auto_level = 0 then
-             let val num_proofs = length learns + length relearns in
-               writeln ("Learned " ^ string_of_int num_proofs ^ " " ^
-                 (if run_prover then "automatic" else "Isar") ^ " proof" ^
-                 plural_s num_proofs ^ " in the last " ^ string_of_time commit_timeout)
-             end
-           else
-             ())
-
-        fun learn_new_fact _ (accum as (_, (_, _, true))) = accum
-          | learn_new_fact (parents, ((_, stature as (_, status)), th))
-              (learns, (num_nontrivial, next_commit, _)) =
-            let
-              val name = nickname_of_thm th
-              val feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
-              val deps = these (deps_of status th)
-              val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
-              val learns = (name, parents, feats, deps) :: learns
-              val (learns, next_commit) =
-                if Timer.checkRealTimer timer > next_commit then
-                  (commit false learns [] []; ([], next_commit_time ()))
-                else
-                  (learns, next_commit)
-              val timed_out = Timer.checkRealTimer timer > learn_timeout
-            in
-              (learns, (num_nontrivial, next_commit, timed_out))
-            end
-
-        val (num_new_facts, num_nontrivial) =
-          if no_new_facts then
-            (0, 0)
-          else
-            let
-              val new_facts = facts
-                |> sort (crude_thm_ord ctxt o apply2 snd)
-                |> attach_parents_to_facts []
-                |> filter_out (is_in_access_G o snd)
-              val (learns, (num_nontrivial, _, _)) =
-                ([], (0, next_commit_time (), false))
-                |> fold learn_new_fact new_facts
-            in
-              commit true learns [] []; (length new_facts, num_nontrivial)
-            end
-
-        fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
-          | relearn_old_fact ((_, (_, status)), th)
-              ((relearns, flops), (num_nontrivial, next_commit, _)) =
-            let
-              val name = nickname_of_thm th
-              val (num_nontrivial, relearns, flops) =
-                (case deps_of status th of
-                  SOME deps => (num_nontrivial + 1, (name, deps) :: relearns, flops)
-                | NONE => (num_nontrivial, relearns, name :: flops))
-              val (relearns, flops, next_commit) =
-                if Timer.checkRealTimer timer > next_commit then
-                  (commit false [] relearns flops; ([], [], next_commit_time ()))
-                else
-                  (relearns, flops, next_commit)
-              val timed_out = Timer.checkRealTimer timer > learn_timeout
-            in
-              ((relearns, flops), (num_nontrivial, next_commit, timed_out))
-            end
-
-        val num_nontrivial =
-          if not run_prover then
-            num_nontrivial
-          else
-            let
-              val max_isar = 1000 * max_dependencies
-
-              fun priority_of th =
-                Random.random_range 0 max_isar +
-                (case try (Graph.get_node access_G) (nickname_of_thm th) of
-                  SOME (Isar_Proof, _, deps) => ~100 * length deps
-                | SOME (Automatic_Proof, _, _) => 2 * max_isar
-                | SOME (Isar_Proof_wegen_Prover_Flop, _, _) => max_isar
-                | NONE => 0)
-
-              val old_facts = facts
-                |> filter is_in_access_G
-                |> map (`(priority_of o snd))
-                |> sort (int_ord o apply2 fst)
-                |> map snd
-              val ((relearns, flops), (num_nontrivial, _, _)) =
-                (([], []), (num_nontrivial, next_commit_time (), false))
-                |> fold relearn_old_fact old_facts
-            in
-              commit true [] relearns flops; num_nontrivial
-            end
+        val is_in_access_G = is_fact_in_graph access_G o snd
+        val no_new_facts = forall is_in_access_G facts
       in
-        if verbose orelse auto_level < 2 then
-          "Learned " ^ string_of_int num_new_facts ^ " fact" ^ plural_s num_new_facts ^ " and " ^
-          string_of_int num_nontrivial ^ " nontrivial " ^
-          (if run_prover then "automatic and " else "") ^ "Isar proof" ^ plural_s num_nontrivial ^
-          (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer) else "")
+        if no_new_facts andalso not run_prover then
+          if auto_level < 2 then
+            "No new " ^ (if run_prover then "automatic" else "Isar") ^ " proofs to learn" ^
+            (if auto_level = 0 andalso not run_prover then
+               "\n\nHint: Try " ^ sendback learn_proverN ^ " to learn from an automatic prover"
+             else
+               "")
+          else
+            ""
         else
-          ""
-      end
+          let
+            val name_tabs = build_name_tables nickname_of_thm facts
+
+            fun deps_of status th =
+              if status = Non_Rec_Def orelse status = Rec_Def then
+                SOME []
+              else if run_prover then
+                prover_dependencies_of ctxt params prover auto_level facts name_tabs th
+                |> (fn (false, _) => NONE | (true, deps) => trim_dependencies deps)
+              else
+                isar_dependencies_of name_tabs th
+
+            fun do_commit [] [] [] state = state
+              | do_commit learns relearns flops
+                  {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =
+                let
+                  val was_empty = Graph.is_empty access_G
+
+                  val (learns, (access_G', xtabs')) =
+                    fold_map (learn_wrt_access_graph ctxt) learns (access_G, xtabs)
+                    |>> map_filter I
+                  val (relearns, access_G'') =
+                    fold_map (relearn_wrt_access_graph ctxt) relearns access_G'
+
+                  val access_G''' = access_G'' |> fold flop_wrt_access_graph flops
+                  val dirty_facts' =
+                    (case (was_empty, dirty_facts) of
+                      (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
+                    | _ => NONE)
+
+                  val (ffds', freqs') =
+                    if null relearns then
+                      recompute_ffds_freqs_from_learns
+                        (map (fn (name, _, feats, deps) => (name, feats, deps)) learns) xtabs'
+                        num_facts0 ffds freqs
+                    else
+                      recompute_ffds_freqs_from_access_G access_G''' xtabs'
+                in
+                  {access_G = access_G''', xtabs = xtabs', ffds = ffds', freqs = freqs',
+                   dirty_facts = dirty_facts'}
+                end
+
+            fun commit last learns relearns flops =
+              (if debug andalso auto_level = 0 then writeln "Committing..." else ();
+               map_state ctxt (do_commit (rev learns) relearns flops);
+               if not last andalso auto_level = 0 then
+                 let val num_proofs = length learns + length relearns in
+                   writeln ("Learned " ^ string_of_int num_proofs ^ " " ^
+                     (if run_prover then "automatic" else "Isar") ^ " proof" ^
+                     plural_s num_proofs ^ " in the last " ^ string_of_time commit_timeout)
+                 end
+               else
+                 ())
+
+            fun learn_new_fact _ (accum as (_, (_, _, true))) = accum
+              | learn_new_fact (parents, ((_, stature as (_, status)), th))
+                  (learns, (num_nontrivial, next_commit, _)) =
+                let
+                  val name = nickname_of_thm th
+                  val feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
+                  val deps = these (deps_of status th)
+                  val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
+                  val learns = (name, parents, feats, deps) :: learns
+                  val (learns, next_commit) =
+                    if Timer.checkRealTimer timer > next_commit then
+                      (commit false learns [] []; ([], next_commit_time ()))
+                    else
+                      (learns, next_commit)
+                  val timed_out = Timer.checkRealTimer timer > learn_timeout
+                in
+                  (learns, (num_nontrivial, next_commit, timed_out))
+                end
+
+            val (num_new_facts, num_nontrivial) =
+              if no_new_facts then
+                (0, 0)
+              else
+                let
+                  val new_facts = facts
+                    |> sort (crude_thm_ord ctxt o apply2 snd)
+                    |> attach_parents_to_facts []
+                    |> filter_out (is_in_access_G o snd)
+                  val (learns, (num_nontrivial, _, _)) =
+                    ([], (0, next_commit_time (), false))
+                    |> fold learn_new_fact new_facts
+                in
+                  commit true learns [] []; (length new_facts, num_nontrivial)
+                end
+
+            fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
+              | relearn_old_fact ((_, (_, status)), th)
+                  ((relearns, flops), (num_nontrivial, next_commit, _)) =
+                let
+                  val name = nickname_of_thm th
+                  val (num_nontrivial, relearns, flops) =
+                    (case deps_of status th of
+                      SOME deps => (num_nontrivial + 1, (name, deps) :: relearns, flops)
+                    | NONE => (num_nontrivial, relearns, name :: flops))
+                  val (relearns, flops, next_commit) =
+                    if Timer.checkRealTimer timer > next_commit then
+                      (commit false [] relearns flops; ([], [], next_commit_time ()))
+                    else
+                      (relearns, flops, next_commit)
+                  val timed_out = Timer.checkRealTimer timer > learn_timeout
+                in
+                  ((relearns, flops), (num_nontrivial, next_commit, timed_out))
+                end
+
+            val num_nontrivial =
+              if not run_prover then
+                num_nontrivial
+              else
+                let
+                  val max_isar = 1000 * max_dependencies
+
+                  fun priority_of th =
+                    Random.random_range 0 max_isar +
+                    (case try (Graph.get_node access_G) (nickname_of_thm th) of
+                      SOME (Isar_Proof, _, deps) => ~100 * length deps
+                    | SOME (Automatic_Proof, _, _) => 2 * max_isar
+                    | SOME (Isar_Proof_wegen_Prover_Flop, _, _) => max_isar
+                    | NONE => 0)
+
+                  val old_facts = facts
+                    |> filter is_in_access_G
+                    |> map (`(priority_of o snd))
+                    |> sort (int_ord o apply2 fst)
+                    |> map snd
+                  val ((relearns, flops), (num_nontrivial, _, _)) =
+                    (([], []), (num_nontrivial, next_commit_time (), false))
+                    |> fold relearn_old_fact old_facts
+                in
+                  commit true [] relearns flops; num_nontrivial
+                end
+          in
+            if verbose orelse auto_level < 2 then
+              "Learned " ^ string_of_int num_new_facts ^ " fact" ^ plural_s num_new_facts ^
+              " and " ^ string_of_int num_nontrivial ^ " nontrivial " ^
+              (if run_prover then "automatic and " else "") ^ "Isar proof" ^
+              plural_s num_nontrivial ^
+              (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer) else "")
+            else
+              ""
+          end
+      end)
   end
 
 fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained run_prover =
@@ -1552,21 +1571,23 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
   end
 
 fun mash_can_suggest_facts ctxt =
-  not (Graph.is_empty (#access_G (get_state ctxt)))
-
-fun mash_can_suggest_facts_fast () =
-  (case peek_state () of
+  (case get_state ctxt of
     NONE => false
-  | SOME (_, {access_G, ...}) => not (Graph.is_empty access_G));
+  | SOME {access_G, ...} => not (Graph.is_empty access_G))
+
+fun mash_can_suggest_facts_fast ctxt =
+  (case peek_state ctxt of
+    NONE => false
+  | SOME (_, {access_G, ...}) => not (Graph.is_empty access_G))
 
 (* Generate more suggestions than requested, because some might be thrown out later for various
    reasons (e.g., duplicates). *)
 fun generous_max_suggestions max_facts = 3 * max_facts div 2 + 25
 
-val mepo_weight = 0.5
-val mash_weight = 0.5
+val mepo_weight = 0.5 (* FUDGE *)
+val mash_weight = 0.5 (* FUDGE *)
 
-val max_facts_to_learn_before_query = 100
+val max_facts_to_learn_before_query = 100 (* FUDGE *)
 
 (* The threshold should be large enough so that MaSh does not get activated for Auto Sledgehammer. *)
 val min_secs_for_learning = 10
@@ -1600,27 +1621,29 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
           ()
 
       val mash_enabled = is_mash_enabled ()
-      val mash_fast = mash_can_suggest_facts_fast ()
+      val mash_fast = mash_can_suggest_facts_fast ctxt
 
       fun please_learn () =
         if mash_fast then
-          let
-            val {access_G, xtabs = ((num_facts0, _), _), ...} = get_state ctxt
-            val is_in_access_G = is_fact_in_graph access_G o snd
-            val min_num_facts_to_learn = length facts - num_facts0
-          in
-            if min_num_facts_to_learn <= max_facts_to_learn_before_query then
-              (case length (filter_out is_in_access_G facts) of
-                0 => ()
-              | num_facts_to_learn =>
-                if num_facts_to_learn <= max_facts_to_learn_before_query then
-                  mash_learn_facts ctxt params prover 2 false timeout facts
-                  |> (fn "" => () | s => writeln (MaShN ^ ": " ^ s))
-                else
-                  maybe_launch_thread true num_facts_to_learn)
-            else
-              maybe_launch_thread false min_num_facts_to_learn
-          end
+          (case get_state ctxt of
+            NONE => maybe_launch_thread false (length facts)
+          | SOME {access_G, xtabs = ((num_facts0, _), _), ...} =>
+            let
+              val is_in_access_G = is_fact_in_graph access_G o snd
+              val min_num_facts_to_learn = length facts - num_facts0
+            in
+              if min_num_facts_to_learn <= max_facts_to_learn_before_query then
+                (case length (filter_out is_in_access_G facts) of
+                  0 => ()
+                | num_facts_to_learn =>
+                  if num_facts_to_learn <= max_facts_to_learn_before_query then
+                    mash_learn_facts ctxt params prover 2 false timeout facts
+                    |> (fn "" => () | s => writeln (MaShN ^ ": " ^ s))
+                  else
+                    maybe_launch_thread true num_facts_to_learn)
+              else
+                maybe_launch_thread false min_num_facts_to_learn
+            end)
         else
           maybe_launch_thread false (length facts)
 
