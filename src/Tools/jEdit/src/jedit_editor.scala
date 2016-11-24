@@ -44,14 +44,14 @@ class JEdit_Editor extends Editor[View]
     session.update(doc_blobs, edits)
   }
 
-  private val delay_flush =
+  private val delay1_flush =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
 
-  private val delay_update_flush =
-    GUI_Thread.delay_first(Time.seconds(PIDE.options.real("editor_update_delay") * 3.0)) { flush() }
+  private val delay2_flush =
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_generated_input_delay")) { flush() }
 
-  def invoke(): Unit = delay_flush.invoke()
-  def invoke_update(): Unit = { delay_flush.invoke(); delay_update_flush.invoke() }
+  def invoke(): Unit = delay1_flush.invoke()
+  def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }
 
   def stable_tip_version(): Option[Document.Version] =
     GUI_Thread.require {

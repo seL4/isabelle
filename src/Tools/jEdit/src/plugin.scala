@@ -125,7 +125,7 @@ object PIDE
         else if (plugin != null) plugin.delay_init.invoke()
       }
 
-      PIDE.editor.invoke_update()
+      PIDE.editor.invoke_generated()
     }
   }
 
