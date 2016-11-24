@@ -3,7 +3,7 @@
 section \<open>Common discrete functions\<close>
 
 theory Discrete
-imports Main
+imports Complex_Main
 begin
 
 subsection \<open>Discrete logarithm\<close>
@@ -110,6 +110,62 @@ next
   also have "n div 2 * 2 \<le> n" by (cases "even n") simp_all
   finally show ?case .
 qed
+
+lemma log_exp2_gt: "2 * 2 ^ log n > n"
+proof (cases "n > 0")
+  case True
+  thus ?thesis
+  proof (induct n rule: log_induct)
+    case (double n)
+    thus ?case
+      by (cases "even n") (auto elim!: evenE oddE simp: field_simps log.simps)
+  qed simp_all
+qed simp_all
+
+lemma log_exp2_ge: "2 * 2 ^ log n \<ge> n"
+  using log_exp2_gt[of n] by simp
+
+lemma log_le_iff: "m \<le> n \<Longrightarrow> log m \<le> log n"
+  by (rule monoD [OF log_mono])
+
+lemma log_eqI:
+  assumes "n > 0" "2^k \<le> n" "n < 2 * 2^k"
+  shows   "log n = k"
+proof (rule antisym)
+  from \<open>n > 0\<close> have "2 ^ log n \<le> n" by (rule log_exp2_le)
+  also have "\<dots> < 2 ^ Suc k" using assms by simp
+  finally have "log n < Suc k" by (subst (asm) power_strict_increasing_iff) simp_all
+  thus "log n \<le> k" by simp
+next
+  have "2^k \<le> n" by fact
+  also have "\<dots> < 2^(Suc (log n))" by (simp add: log_exp2_gt)
+  finally have "k < Suc (log n)" by (subst (asm) power_strict_increasing_iff) simp_all
+  thus "k \<le> log n" by simp
+qed
+
+lemma log_altdef: "log n = (if n = 0 then 0 else nat \<lfloor>Transcendental.log 2 (real_of_nat n)\<rfloor>)"
+proof (cases "n = 0")
+  case False
+  have "\<lfloor>Transcendental.log 2 (real_of_nat n)\<rfloor> = int (log n)"
+  proof (rule floor_unique)
+    from False have "2 powr (real (log n)) \<le> real n"
+      by (simp add: powr_realpow log_exp2_le)
+    hence "Transcendental.log 2 (2 powr (real (log n))) \<le> Transcendental.log 2 (real n)"
+      using False by (subst Transcendental.log_le_cancel_iff) simp_all
+    also have "Transcendental.log 2 (2 powr (real (log n))) = real (log n)" by simp
+    finally show "real_of_int (int (log n)) \<le> Transcendental.log 2 (real n)" by simp
+  next
+    have "real n < real (2 * 2 ^ log n)"
+      by (subst of_nat_less_iff) (rule log_exp2_gt)
+    also have "\<dots> = 2 powr (real (log n) + 1)"
+      by (simp add: powr_add powr_realpow)
+    finally have "Transcendental.log 2 (real n) < Transcendental.log 2 \<dots>"
+      using False by (subst Transcendental.log_less_cancel_iff) simp_all
+    also have "\<dots> = real (log n) + 1" by simp
+    finally show "Transcendental.log 2 (real n) < real_of_int (int (log n)) + 1" by simp
+  qed
+  thus ?thesis by simp
+qed simp_all
 
 
 subsection \<open>Discrete square root\<close>

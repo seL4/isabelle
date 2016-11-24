@@ -7,6 +7,7 @@ section \<open>Radius of Convergence and Summation Tests\<close>
 theory Summation_Tests
 imports
   Complex_Main
+  "~~/src/HOL/Library/Discrete"
   "~~/src/HOL/Library/Extended_Real"
   "~~/src/HOL/Library/Liminf_Limsup"
 begin
@@ -15,89 +16,6 @@ text \<open>
   The definition of the radius of convergence of a power series,
   various summability tests, lemmas to compute the radius of convergence etc.
 \<close>
-
-subsection \<open>Rounded dual logarithm\<close>
-
-(* This is required for the Cauchy condensation criterion *)
-
-definition "natlog2 n = (if n = 0 then 0 else nat \<lfloor>log 2 (real_of_nat n)\<rfloor>)"
-
-lemma natlog2_0 [simp]: "natlog2 0 = 0" by (simp add: natlog2_def)
-lemma natlog2_1 [simp]: "natlog2 1 = 0" by (simp add: natlog2_def)
-lemma natlog2_eq_0_iff: "natlog2 n = 0 \<longleftrightarrow> n < 2" by (simp add: natlog2_def)
-
-lemma natlog2_power_of_two [simp]: "natlog2 (2 ^ n) = n"
-  by (simp add: natlog2_def log_nat_power)
-
-lemma natlog2_mono: "m \<le> n \<Longrightarrow> natlog2 m \<le> natlog2 n"
-  unfolding natlog2_def by (simp_all add: nat_mono floor_mono)
-
-lemma pow_natlog2_le: "n > 0 \<Longrightarrow> 2 ^ natlog2 n \<le> n"
-proof -
-  assume n: "n > 0"
-  from n have "of_nat (2 ^ natlog2 n) = 2 powr real_of_nat (nat \<lfloor>log 2 (real_of_nat n)\<rfloor>)"
-    by (subst powr_realpow) (simp_all add: natlog2_def)
-  also have "\<dots> = 2 powr of_int \<lfloor>log 2 (real_of_nat n)\<rfloor>" using n by simp
-  also have "\<dots> \<le> 2 powr log 2 (real_of_nat n)" by (intro powr_mono) (linarith, simp_all)
-  also have "\<dots> = of_nat n" using n by simp
-  finally show ?thesis by simp
-qed
-
-lemma pow_natlog2_gt: "n > 0 \<Longrightarrow> 2 * 2 ^ natlog2 n > n"
-  and pow_natlog2_ge: "n > 0 \<Longrightarrow> 2 * 2 ^ natlog2 n \<ge> n"
-proof -
-  assume n: "n > 0"
-  from n have "of_nat n = 2 powr log 2 (real_of_nat n)" by simp
-  also have "\<dots> < 2 powr (1 + of_int \<lfloor>log 2 (real_of_nat n)\<rfloor>)"
-    by (intro powr_less_mono) (linarith, simp_all)
-  also from n have "\<dots> = 2 powr (1 + real_of_nat (nat \<lfloor>log 2 (real_of_nat n)\<rfloor>))" by simp
-  also from n have "\<dots> = of_nat (2 * 2 ^ natlog2 n)"
-    by (simp_all add: natlog2_def powr_real_of_int powr_add)
-  finally show "2 * 2 ^ natlog2 n > n" by (rule of_nat_less_imp_less)
-  thus "2 * 2 ^ natlog2 n \<ge> n" by simp
-qed
-
-lemma natlog2_eqI:
-  assumes "n > 0" "2^k \<le> n" "n < 2 * 2^k"
-  shows   "natlog2 n = k"
-proof -
-  from assms have "of_nat (2 ^ k) \<le> real_of_nat n"  by (subst of_nat_le_iff) simp_all
-  hence "real_of_int (int k) \<le> log (of_nat 2) (real_of_nat n)"
-    by (subst le_log_iff) (simp_all add: powr_realpow assms del: of_nat_le_iff)
-  moreover from assms have "real_of_nat n < of_nat (2 ^ Suc k)" by (subst of_nat_less_iff) simp_all
-  hence "log 2 (real_of_nat n) < of_nat k + 1"
-    by (subst log_less_iff) (simp_all add: assms powr_realpow powr_add)
-  ultimately have "\<lfloor>log 2 (real_of_nat n)\<rfloor> = of_nat k" by (intro floor_unique) simp_all
-  with assms show ?thesis by (simp add: natlog2_def)
-qed
-
-lemma natlog2_rec:
-  assumes "n \<ge> 2"
-  shows   "natlog2 n = 1 + natlog2 (n div 2)"
-proof (rule natlog2_eqI)
-  from assms have "2 ^ (1 + natlog2 (n div 2)) \<le> 2 * (n div 2)"
-    by (simp add: pow_natlog2_le)
-  also have "\<dots> \<le> n" by simp
-  finally show "2 ^ (1 + natlog2 (n div 2)) \<le> n" .
-next
-  from assms have "n < 2 * (n div 2 + 1)" by simp
-  also from assms have "(n div 2) < 2 ^ (1 + natlog2 (n div 2))"
-    by (simp add: pow_natlog2_gt)
-  hence "2 * (n div 2 + 1) \<le> 2 * (2 ^ (1 + natlog2 (n div 2)))"
-    by (intro mult_left_mono) simp_all
-  finally show "n < 2 * 2 ^ (1 + natlog2 (n div 2))" .
-qed (insert assms, simp_all)
-
-fun natlog2_aux where
-  "natlog2_aux n acc = (if (n::nat) < 2 then acc else natlog2_aux (n div 2) (acc + 1))"
-
-lemma natlog2_aux_correct:
-  "natlog2_aux n acc = acc + natlog2 n"
-  by (induction n acc rule: natlog2_aux.induct) (auto simp: natlog2_rec natlog2_eq_0_iff)
-
-lemma natlog2_code [code]: "natlog2 n = natlog2_aux n 0"
-  by (subst natlog2_aux_correct) simp
-
 
 subsection \<open>Convergence tests for infinite sums\<close>
 
@@ -216,33 +134,33 @@ begin
 
 private lemma condensation_inequality:
   assumes mono: "\<And>m n. 0 < m \<Longrightarrow> m \<le> n \<Longrightarrow> f n \<le> f m"
-  shows   "(\<Sum>k=1..<n. f k) \<ge> (\<Sum>k=1..<n. f (2 * 2 ^ natlog2 k))" (is "?thesis1")
-          "(\<Sum>k=1..<n. f k) \<le> (\<Sum>k=1..<n. f (2 ^ natlog2 k))" (is "?thesis2")
-  by (intro sum_mono mono pow_natlog2_ge pow_natlog2_le, simp, simp)+
+  shows   "(\<Sum>k=1..<n. f k) \<ge> (\<Sum>k=1..<n. f (2 * 2 ^ Discrete.log k))" (is "?thesis1")
+          "(\<Sum>k=1..<n. f k) \<le> (\<Sum>k=1..<n. f (2 ^ Discrete.log k))" (is "?thesis2")
+  by (intro sum_mono mono Discrete.log_exp2_ge Discrete.log_exp2_le, simp, simp)+
 
-private lemma condensation_condense1: "(\<Sum>k=1..<2^n. f (2 ^ natlog2 k)) = (\<Sum>k<n. 2^k * f (2 ^ k))"
+private lemma condensation_condense1: "(\<Sum>k=1..<2^n. f (2 ^ Discrete.log k)) = (\<Sum>k<n. 2^k * f (2 ^ k))"
 proof (induction n)
   case (Suc n)
   have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
-  also have "(\<Sum>k\<in>\<dots>. f (2 ^ natlog2 k)) =
-                 (\<Sum>k<n. 2^k * f (2^k)) + (\<Sum>k = 2^n..<2^Suc n. f (2^natlog2 k))"
+  also have "(\<Sum>k\<in>\<dots>. f (2 ^ Discrete.log k)) =
+                 (\<Sum>k<n. 2^k * f (2^k)) + (\<Sum>k = 2^n..<2^Suc n. f (2^Discrete.log k))"
     by (subst sum.union_disjoint) (insert Suc, auto)
-  also have "natlog2 k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro natlog2_eqI) simp_all
-  hence "(\<Sum>k = 2^n..<2^Suc n. f (2^natlog2 k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^n))"
+  also have "Discrete.log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro Discrete.log_eqI) simp_all
+  hence "(\<Sum>k = 2^n..<2^Suc n. f (2^Discrete.log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^n))"
     by (intro sum.cong) simp_all
   also have "\<dots> = 2^n * f (2^n)" by (simp add: of_nat_power)
   finally show ?case by simp
 qed simp
 
-private lemma condensation_condense2: "(\<Sum>k=1..<2^n. f (2 * 2 ^ natlog2 k)) = (\<Sum>k<n. 2^k * f (2 ^ Suc k))"
+private lemma condensation_condense2: "(\<Sum>k=1..<2^n. f (2 * 2 ^ Discrete.log k)) = (\<Sum>k<n. 2^k * f (2 ^ Suc k))"
 proof (induction n)
   case (Suc n)
   have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
-  also have "(\<Sum>k\<in>\<dots>. f (2 * 2 ^ natlog2 k)) =
-                 (\<Sum>k<n. 2^k * f (2^Suc k)) + (\<Sum>k = 2^n..<2^Suc n. f (2 * 2^natlog2 k))"
+  also have "(\<Sum>k\<in>\<dots>. f (2 * 2 ^ Discrete.log k)) =
+                 (\<Sum>k<n. 2^k * f (2^Suc k)) + (\<Sum>k = 2^n..<2^Suc n. f (2 * 2^Discrete.log k))"
     by (subst sum.union_disjoint) (insert Suc, auto)
-  also have "natlog2 k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro natlog2_eqI) simp_all
-  hence "(\<Sum>k = 2^n..<2^Suc n. f (2*2^natlog2 k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^Suc n))"
+  also have "Discrete.log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro Discrete.log_eqI) simp_all
+  hence "(\<Sum>k = 2^n..<2^Suc n. f (2*2^Discrete.log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^Suc n))"
     by (intro sum.cong) simp_all
   also have "\<dots> = 2^n * f (2^Suc n)" by (simp add: of_nat_power)
   finally show ?case by simp
