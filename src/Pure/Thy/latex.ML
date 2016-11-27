@@ -106,21 +106,30 @@ fun output_known_sym (known_sym, known_ctrl) sym =
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
+val scan_latex_length =
+  Scan.many1 (fn (s, _) => Symbol.not_eof s andalso not (is_latex_control s))
+    >> (Symbol.length o map Symbol_Pos.symbol) ||
+  Scan.one (is_latex_control o Symbol_Pos.symbol) --
+    Scan.option (Scan.permissive Symbol_Pos.scan_cartouche "") >> K 0;
+
 fun scan_latex known =
   Scan.one (is_latex_control o Symbol_Pos.symbol) |--
     Symbol_Pos.scan_cartouche_content "Embedded LaTeX: " >> (implode o map Symbol_Pos.symbol) ||
   Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> (output_known_sym known o Symbol_Pos.symbol);
 
-fun read_latex known syms =
-  (case Scan.read Symbol_Pos.stopper (Scan.repeat (scan_latex known))
-      (map (rpair Position.none) syms) of
-    SOME ss => implode ss
-  | NONE => error ("Malformed embedded LaTeX: " ^ quote (Symbol.beginning 10 syms)));
+fun read scan syms =
+  Scan.read Symbol_Pos.stopper (Scan.repeat scan) (map (rpair Position.none) syms);
 
 in
 
+fun length_symbols syms =
+  fold Integer.add (these (read scan_latex_length syms)) 0;
+
 fun output_known_symbols known syms =
-  if exists is_latex_control syms then read_latex known syms
+  if exists is_latex_control syms then
+    (case read (scan_latex known) syms of
+      SOME ss => implode ss
+    | NONE => error ("Malformed embedded LaTeX: " ^ quote (Symbol.beginning 10 syms)))
   else implode (map (output_known_sym known) syms);
 
 val output_symbols = output_known_symbols (K true, K true);
@@ -201,7 +210,7 @@ val modes = [latexN, Symbol.xsymbolsN];
 
 fun latex_output str =
   let val syms = Symbol.explode str
-  in (output_symbols syms, Symbol.length syms) end;
+  in (output_symbols syms, length_symbols syms) end;
 
 fun latex_markup (s, _) =
   if s = Markup.commandN orelse s = Markup.keyword1N orelse s = Markup.keyword3N
