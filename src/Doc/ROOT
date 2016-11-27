@@ -234,6 +234,8 @@ session JEdit (doc) in "JEdit" = HOL +
     "popup2.png"
     "query.png"
     "root.tex"
+    "scope1.png"
+    "scope2.png"
     "sidekick-document.png"
     "sidekick.png"
     "sledgehammer.png"

@@ -52,6 +52,8 @@ fun mapprox_floatarith (@{term Add} $ a $ b) xs = mapprox_floatarith a xs + mapp
   | mapprox_floatarith @{term Pi} _ = Math.pi
   | mapprox_floatarith (@{term Sqrt} $ a) xs = Math.sqrt (mapprox_floatarith a xs)
   | mapprox_floatarith (@{term Exp} $ a) xs = Math.exp (mapprox_floatarith a xs)
+  | mapprox_floatarith (@{term Powr} $ a $ b) xs =
+      Math.pow (mapprox_floatarith a xs, mapprox_floatarith b xs)
   | mapprox_floatarith (@{term Ln} $ a) xs = Math.ln (mapprox_floatarith a xs)
   | mapprox_floatarith (@{term Power} $ a $ n) xs =
       Math.pow (mapprox_floatarith a xs, Real.fromInt (nat_of_term n))

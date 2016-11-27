@@ -54,7 +54,7 @@ object Mercurial
         case None => root.is_dir
         case Some(ssh) => ssh.is_dir(root)
       }
-    if (present) { val hg = repository(root, ssh = ssh); hg.pull(); hg }
+    if (present) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
 
@@ -91,6 +91,9 @@ object Mercurial
         case Some(ssh) => ssh.execute(cmdline)
       }
     }
+
+    def archive(target: String, rev: String = "", options: String = ""): Unit =
+      hg.command("archive", opt_rev(rev) + " " + Bash.string(target), options).check
 
     def heads(template: String = "{node|short}\n", options: String = ""): List[String] =
       hg.command("heads", opt_template(template), options).check.out_lines

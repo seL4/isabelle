@@ -59,8 +59,8 @@ object Isabelle_Cronjob
           Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
             parallel_jobs = 4, remote_mac = "macbroy31", website = Some(new_snapshot))
 
-          if (release_snapshot.is_dir) File.mv(release_snapshot, old_snapshot)
-          File.mv(new_snapshot, release_snapshot)
+          if (release_snapshot.is_dir) File.move(release_snapshot, old_snapshot)
+          File.move(new_snapshot, release_snapshot)
           Isabelle_System.rm_tree(old_snapshot)
         }))
 
@@ -79,7 +79,7 @@ object Isabelle_Cronjob
               hg, rev = "build_history_base", fresh = true, build_args = List("HOL"))
         } {
           result.check
-          File.copy(log_path, logger.log_dir + log_path.base)
+          File.move(log_path, logger.log_dir + log_path.base)
         }
       })
 
@@ -96,7 +96,11 @@ object Isabelle_Cronjob
 
   private val remote_builds =
     List(
-      List(Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6 -N", args = "-g timing")),
+      List(Remote_Build("lxbroy8",
+        options = "-m32 -B -M1x2,2 -t polyml-test -e 'init_component /home/isabelle/contrib/polyml-test-7a7b742897e9'",
+        args = "-N -g timing")),
+      List(Remote_Build("lxbroy9", options = "-m32 -B -M1x2,2", args = "-N -g timing")),
+      List(Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("macbroy2", options = "-m32 -M8", args = "-a"),
         Remote_Build("macbroy2", options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty"),
@@ -118,19 +122,21 @@ object Isabelle_Cronjob
               val self_update = !r.shared_home
               val push_isabelle_home = self_update && Mercurial.is_repository(Path.explode("~~"))
 
-              def progress_result(log_name: String, bytes: Bytes): Unit =
-                Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+              val (results, _) =
+                Build_History.remote_build_history(ssh,
+                  isabelle_repos,
+                  isabelle_repos.ext(r.host),
+                  isabelle_repos_source = isabelle_release_source,
+                  self_update = self_update,
+                  push_isabelle_home = push_isabelle_home,
+                  options =
+                    "-r " + Bash.string(rev) + " -N " + Bash.string(task_name) + " -f " + r.options,
+                  args = "-o timeout=10800 " + r.args)
 
-              Build_History.remote_build_history(ssh,
-                isabelle_repos,
-                isabelle_repos.ext(r.host),
-                isabelle_repos_source = isabelle_dev_source,
-                self_update = self_update,
-                push_isabelle_home = push_isabelle_home,
-                progress_result = progress_result _,
-                options =
-                  r.options + " -f -r " + Bash.string(rev) + " -N " + Bash.string(task_name),
-                args = "-o timeout=10800 " + r.args)
+              for ((log_name, bytes) <- results) {
+                logger.log(Date.now(), log_name)
+                Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+              }
             })
       })
   }

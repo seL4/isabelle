@@ -44,7 +44,7 @@ object Text_Structure
     private val keyword_open = Keyword.theory_goal ++ Keyword.proof_open
     private val keyword_close = Keyword.proof_close
 
-    def apply(buffer: JEditBuffer, current_line: Int, prev_line: Int, prev_prev_line: Int,
+    def apply(buffer: JEditBuffer, current_line: Int, prev_line0: Int, prev_prev_line0: Int,
       actions: java.util.List[IndentAction])
     {
       Isabelle.buffer_syntax(buffer) match {
@@ -67,6 +67,11 @@ object Text_Structure
               case None => false
               case Some(Text.Info(_, tok)) => keywords.is_quasi_command(tok)
             }
+
+          val prev_line: Int =
+            Range.inclusive(current_line - 1, 0, -1).find(line =>
+              Token_Markup.Line_Context.prev(buffer, line).get_context == Scan.Finished &&
+              !Token_Markup.Line_Context.next(buffer, line).structure.improper) getOrElse -1
 
           def prev_line_command: Option[Token] =
             nav.reverse_iterator(prev_line, 1).
@@ -135,33 +140,36 @@ object Text_Structure
             else 0
 
           val indent =
-            line_head(current_line) match {
-              case None => indent_structure + indent_brackets + indent_extra
-              case Some(info @ Text.Info(range, tok)) =>
-                if (tok.is_begin ||
-                    keywords.is_before_command(tok) ||
-                    keywords.is_command(tok, Keyword.theory)) 0
-                else if (keywords.is_command(tok, Keyword.proof_enclose))
-                  indent_structure + script_indent(info) - indent_offset(tok)
-                else if (keywords.is_command(tok, Keyword.proof))
-                  (indent_structure + script_indent(info) - indent_offset(tok)) max indent_size
-                else if (tok.is_command) indent_structure - indent_offset(tok)
-                else {
-                  prev_line_command match {
-                    case None =>
-                      val extra =
-                        (keywords.is_quasi_command(tok), head_is_quasi_command(prev_line)) match {
-                          case (true, true) | (false, false) => 0
-                          case (true, false) => - indent_extra
-                          case (false, true) => indent_extra
-                        }
-                      line_indent(prev_line) + indent_brackets + extra - indent_offset(tok)
-                    case Some(prev_tok) =>
-                      indent_structure + indent_brackets + indent_size - indent_offset(tok) -
-                      indent_offset(prev_tok) - indent_indent(prev_tok)
-                  }
-               }
+            if (Token_Markup.Line_Context.prev(buffer, current_line).get_context == Scan.Finished) {
+              line_head(current_line) match {
+                case None => indent_structure + indent_brackets + indent_extra
+                case Some(info @ Text.Info(range, tok)) =>
+                  if (tok.is_begin ||
+                      keywords.is_before_command(tok) ||
+                      keywords.is_command(tok, Keyword.theory)) 0
+                  else if (keywords.is_command(tok, Keyword.proof_enclose))
+                    indent_structure + script_indent(info) - indent_offset(tok)
+                  else if (keywords.is_command(tok, Keyword.proof))
+                    (indent_structure + script_indent(info) - indent_offset(tok)) max indent_size
+                  else if (tok.is_command) indent_structure - indent_offset(tok)
+                  else {
+                    prev_line_command match {
+                      case None =>
+                        val extra =
+                          (keywords.is_quasi_command(tok), head_is_quasi_command(prev_line)) match {
+                            case (true, true) | (false, false) => 0
+                            case (true, false) => - indent_extra
+                            case (false, true) => indent_extra
+                          }
+                        line_indent(prev_line) + indent_brackets + extra - indent_offset(tok)
+                      case Some(prev_tok) =>
+                        indent_structure + indent_brackets + indent_size - indent_offset(tok) -
+                        indent_offset(prev_tok) - indent_indent(prev_tok)
+                    }
+                 }
+              }
             }
+            else line_indent(current_line)
 
           actions.clear()
           actions.add(new IndentAction.AlignOffset(indent max 0))

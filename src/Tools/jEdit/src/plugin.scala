@@ -125,7 +125,7 @@ object PIDE
         else if (plugin != null) plugin.delay_init.invoke()
       }
 
-      PIDE.editor.invoke()
+      PIDE.editor.invoke_generated()
     }
   }
 
@@ -223,7 +223,7 @@ class Plugin extends EBPlugin
             if (PIDE.options.bool("jedit_auto_resolve")) {
               PIDE.editor.stable_tip_version() match {
                 case Some(version) => PIDE.resources.undefined_blobs(version.nodes).map(_.node)
-                case None => Nil
+                case None => delay_load.invoke(); Nil
               }
             }
             else Nil
@@ -263,7 +263,7 @@ class Plugin extends EBPlugin
     }
   }
 
-  lazy val delay_load =
+  private lazy val delay_load =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay")) { delay_load_action() }
 
 

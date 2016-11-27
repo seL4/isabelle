@@ -68,6 +68,7 @@ val cvc4_extensions = Attrib.setup_config_bool @{binding cvc4_extensions} (K fal
 
 local
   fun cvc4_options ctxt = [
+    "--no-statistics",
     "--random-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
     "--lang=smt2",
     "--continued-execution",

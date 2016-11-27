@@ -220,9 +220,6 @@ fun type_dep (c, args) = ((Defs.Type, c), args);
 
 fun dependencies (context as (ctxt, _)) unchecked def description lhs rhs =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val consts = Sign.consts_of thy;
-
     fun prep (item, args) =
       (case fold Term.add_tvarsT args [] of
         [] => (item, map Logic.varifyT_global args)

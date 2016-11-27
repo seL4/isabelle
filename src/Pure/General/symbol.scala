@@ -197,7 +197,7 @@ object Symbol
   }
 
 
-  /* text chunks */
+  /* symbolic text chunks -- without actual text */
 
   object Text_Chunk
   {

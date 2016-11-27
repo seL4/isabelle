@@ -88,6 +88,9 @@ Final release stage
 - Admin/cronjob/self_update:
   http://bitbucket.org/isabelle_project/isabelle-release
 
+- src/Pure/Admin/isabelle_cronjon.scala:
+  isabelle_repos_source = isabelle_release_source
+
 
 Post-release
 ============

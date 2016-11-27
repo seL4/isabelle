@@ -144,6 +144,9 @@ public option editor_load_delay : real = 0.5
 public option editor_input_delay : real = 0.3
   -- "delay for user input (text edits, cursor movement etc.)"
 
+public option editor_generated_input_delay : real = 1.0
+  -- "delay for machine-generated input that may outperform user edits"
+
 public option editor_output_delay : real = 0.1
   -- "delay for prover output (markup, common messages etc.)"
 

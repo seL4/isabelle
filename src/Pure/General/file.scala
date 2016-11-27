@@ -220,13 +220,13 @@ object File
 
   def write_backup(path: Path, text: CharSequence)
   {
-    if (path.is_file) mv(path, path.backup)
+    if (path.is_file) move(path, path.backup)
     write(path, text)
   }
 
   def write_backup2(path: Path, text: CharSequence)
   {
-    if (path.is_file) mv(path, path.backup2)
+    if (path.is_file) move(path, path.backup2)
     write(path, text)
   }
 
@@ -265,8 +265,12 @@ object File
 
   /* move */
 
-  def mv(file1: JFile, file2: JFile): Unit =
-    Files.move(file1.toPath, file2.toPath, StandardCopyOption.REPLACE_EXISTING)
+  def move(src: JFile, dst: JFile)
+  {
+    val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
+    if (!eq(src, target))
+      Files.move(src.toPath, target.toPath, StandardCopyOption.REPLACE_EXISTING)
+  }
 
-  def mv(path1: Path, path2: Path): Unit = mv(path1.file, path2.file)
+  def move(path1: Path, path2: Path): Unit = move(path1.file, path2.file)
 }

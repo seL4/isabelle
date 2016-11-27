@@ -138,7 +138,7 @@ text \<open>
   @{ML_text foo1}, @{ML_text foo42}.
 \<close>
 
-paragraph\<open>Scopes.\<close>
+paragraph \<open>Scopes.\<close>
 text \<open>
   Apart from very basic library modules, ML structures are not ``opened'', but
   names are referenced with explicit qualification, as in @{ML
@@ -1192,11 +1192,43 @@ text %mlref \<open>
 text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "assert"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "undefined"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   \<^descr> \<open>@{assert}\<close> inlines a function @{ML_type "bool -> unit"} that raises @{ML
   Fail} if the argument is @{ML false}. Due to inlining the source position of
   failed assertions is included in the error output.
+
+  \<^descr> \<open>@{undefined}\<close> inlines @{verbatim raise}~@{ML Match}, i.e.\ the ML program
+  behaves as in some function application of an undefined case.
+\<close>
+
+text %mlex \<open>
+  The ML function @{ML undefined} is defined in \<^file>\<open>~~/src/Pure/library.ML\<close>
+  as follows:
+\<close>
+
+ML \<open>fun undefined _ = raise Match\<close>
+
+text \<open>
+  \<^medskip>
+  The following variant uses the antiquotation @{ML_antiquotation undefined}
+  instead:
+\<close>
+
+ML \<open>fun undefined _ = @{undefined}\<close>
+
+text \<open>
+  \<^medskip>
+  Here is the same, using control-symbol notation for the antiquotation, with
+  special rendering of \<^verbatim>\<open>\<^undefined>\<close>:
+\<close>
+
+ML \<open>fun undefined _ = \<^undefined>\<close>
+
+text \<open>
+  \medskip Semantically, all forms are equivalent to a function definition
+  without any clauses, but that is syntactically not allowed in ML.
 \<close>
 
 

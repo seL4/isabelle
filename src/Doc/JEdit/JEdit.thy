@@ -141,8 +141,7 @@ text \<open>
   done with the usual care for such an open bazaar of contributions. Arbitrary
   combinations of add-on features are apt to cause problems. It is advisable
   to start with the default configuration of Isabelle/jEdit and develop some
-  understanding how it is supposed to work, before loading too many other
-  plugins.
+  sense how it is meant to work, before loading too many other plugins.
 
   \<^medskip>
   The main \<^emph>\<open>Isabelle\<close> plugin is an integral part of Isabelle/jEdit and needs
@@ -207,12 +206,15 @@ text \<open>
   first start of the editor; afterwards the keymap file takes precedence and
   is no longer affected by change of default properties.
 
-  This subtle difference of jEdit keymaps versus properties is relevant for
-  Isabelle/jEdit due to various fine-tuning of global defaults, with
-  additional keyboard shortcuts for Isabelle-specific functionality. Users may
-  change their keymap later, but need to copy some keyboard shortcuts manually
-  (see also @{path "$JEDIT_SETTINGS/keymaps"} versus \<^verbatim>\<open>shortcut\<close> properties in
-  \<^file>\<open>$JEDIT_HOME/src/jEdit.props\<close>).
+  Users may change their keymap later, but need to keep its content @{path
+  "$JEDIT_SETTINGS/keymaps"} in sync with \<^verbatim>\<open>shortcut\<close> properties in
+  \<^file>\<open>$JEDIT_HOME/src/jEdit.props\<close>.
+
+  \<^medskip>
+  The action @{action_def "isabelle.keymap-merge"} helps to resolve pending
+  Isabelle keymap changes that are in conflict with the current jEdit keymap;
+  non-conflicting changes are always applied implicitly. This action is
+  automatically invoked on Isabelle/jEdit startup.
 \<close>
 
 
@@ -292,7 +294,7 @@ text \<open>
 
   The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
   different server name. The default server name is the official distribution
-  name (e.g.\ \<^verbatim>\<open>Isabelle2016\<close>). Thus @{tool jedit_client} can connect to the
+  name (e.g.\ \<^verbatim>\<open>Isabelle2016-1\<close>). Thus @{tool jedit_client} can connect to the
   Isabelle desktop application without further options.
 
   The \<^verbatim>\<open>-p\<close> option allows to override the implicit default of the system
@@ -694,14 +696,44 @@ text \<open>
 \<close>
 
 
+section \<open>Indentation\<close>
+
+text \<open>
+  Isabelle/jEdit augments the existing indentation facilities of jEdit to take
+  the structure of theory and proof texts into account. There is also special
+  support for unstructured proof scripts.
+
+    \<^descr>[Syntactic indentation] follows the outer syntax of Isabelle/Isar.
+
+    Action @{action "indent-lines"} (shortcut \<^verbatim>\<open>C+i\<close>) indents the current line
+    according to command keywords and some command substructure: this
+    approximation may need further manual tuning.
+
+    Action @{action "isabelle.newline"} (shortcut \<^verbatim>\<open>ENTER\<close>) indents the old
+    and the new line according to command keywords only: this leads to precise
+    alignment of the main Isar language elements. This depends on option
+    @{system_option_def "jedit_indent_newline"} (enabled by default).
+
+    \<^descr>[Semantic indentation] adds additional white space to unstructured proof
+    scripts (\<^theory_text>\<open>apply\<close> etc.) via number of subgoals. This requires information
+    of ongoing document processing and may thus lag behind, when the user is
+    editing too quickly; see also option @{system_option_def
+    "jedit_script_indent"} and @{system_option_def
+    "jedit_script_indent_limit"}.
+
+  The above options are accessible in the menu \<^emph>\<open>Plugins / Plugin Options /
+  Isabelle / General\<close>.
+\<close>
+
+
 section \<open>SideKick parsers \label{sec:sidekick}\<close>
 
 text \<open>
   The \<^emph>\<open>SideKick\<close> plugin provides some general services to display buffer
   structure in a tree view. Isabelle/jEdit provides SideKick parsers for its
-  main mode for theory files, as well as some minor modes for the \<^verbatim>\<open>NEWS\<close> file
-  (see \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, system \<^verbatim>\<open>options\<close>, and
-  Bib{\TeX} files (\secref{sec:bibtex}).
+  main mode for theory files, ML files, as well as some minor modes for the
+  \<^verbatim>\<open>NEWS\<close> file (see \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, system
+  \<^verbatim>\<open>options\<close>, and Bib{\TeX} files (\secref{sec:bibtex}).
 
   \begin{figure}[!htb]
   \begin{center}
@@ -711,6 +743,19 @@ text \<open>
   \label{fig:sidekick}
   \end{figure}
 
+  The default SideKick parser for theory files is \<^verbatim>\<open>isabelle\<close>: it provides a
+  tree-view on the formal document structure, with section headings at the top
+  and formal specification elements at the bottom. The alternative parser
+  \<^verbatim>\<open>isabelle-context\<close> shows nesting of context blocks according to \<^theory_text>\<open>begin \<dots>
+  end\<close> structure.
+
+  \<^medskip>
+  Isabelle/ML files are structured according to semi-formal comments that are
+  explained in @{cite "isabelle-implementation"}. This outline is turned into
+  a tree-view by default, by using the \<^verbatim>\<open>isabelle-ml\<close> parser. There is also a
+  folding mode of the same name, for hierarchic text folds within ML files.
+
+  \<^medskip>
   The special SideKick parser \<^verbatim>\<open>isabelle-markup\<close> exposes the uninterpreted
   markup tree of the PIDE document model of the current buffer. This is
   occasionally useful for informative purposes, but the amount of displayed
@@ -1155,6 +1200,40 @@ text \<open>
 \<close>
 
 
+section \<open>Formal scopes and semantic selection\<close>
+
+text \<open>
+  Formal entities are semantically annotated in the source text as explained
+  in \secref{sec:tooltips-hyperlinks}. A \<^emph>\<open>formal scope\<close> consists of the
+  defining position with all its referencing positions. This correspondence is
+  highlighted in the text according to the cursor position, see also
+  \figref{fig:scope1}. Here the referencing positions are rendered with an
+  additional border, in reminiscence to a hyperlink: clicking there moves the
+  cursor to the original defining position.
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.5]{scope1}
+  \end{center}
+  \caption{Scope of formal entity: defining vs.\ referencing positions}
+  \label{fig:scope1}
+  \end{figure}
+
+  The action @{action_def "isabelle.select-entity"} (shortcut \<^verbatim>\<open>CS+ENTER\<close>)
+  supports semantic selection of all occurrences of the formal entity at the
+  caret position. This facilitates systematic renaming, using regular jEdit
+  editing of a multi-selection, see also \figref{fig:scope2}.
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.5]{scope2}
+  \end{center}
+  \caption{The result of semantic selection and systematic renaming}
+  \label{fig:scope2}
+  \end{figure}
+\<close>
+
+
 section \<open>Completion \label{sec:completion}\<close>
 
 text \<open>
@@ -1199,12 +1278,12 @@ text \<open>
   kinds and purposes. The completion mechanism supports this by the following
   built-in templates:
 
-    \<^descr> \<^verbatim>\<open>`\<close> (single ASCII back-quote) supports \<^emph>\<open>quotations\<close> via text
-    cartouches. There are three selections, which are always presented in the
-    same order and do not depend on any context information. The default
-    choice produces a template ``\<open>\<open>\<box>\<close>\<close>'', where the box indicates the cursor
-    position after insertion; the other choices help to repair the block
-    structure of unbalanced text cartouches.
+    \<^descr> \<^verbatim>\<open>`\<close> (single ASCII back-quote) or \<^verbatim>\<open>"\<close> (double ASCII quote) support
+    \<^emph>\<open>quotations\<close> via text cartouches. There are three selections, which are
+    always presented in the same order and do not depend on any context
+    information. The default choice produces a template ``\<open>\<open>\<box>\<close>\<close>'', where the
+    box indicates the cursor position after insertion; the other choices help
+    to repair the block structure of unbalanced text cartouches.
 
     \<^descr> \<^verbatim>\<open>@{\<close> is completed to the template ``\<open>@{\<box>}\<close>'', where the box indicates
     the cursor position after insertion. Here it is convenient to use the
@@ -1213,8 +1292,8 @@ text \<open>
 
   With some practice, input of quoted sub-languages and antiquotations of
   embedded languages should work fluently. Note that national keyboard layouts
-  might cause problems with back-quote as dead key: if possible, dead keys
-  should be disabled.
+  might cause problems with back-quote as dead key, but double quote can be
+  used instead.
 \<close>
 
 
@@ -1271,6 +1350,20 @@ text \<open>
   Backslash sequences also help when input is broken, and thus escapes its
   normal semantic context: e.g.\ antiquotations or string literals in ML,
   which do not allow arbitrary backslash sequences.
+\<close>
+
+
+subsubsection \<open>User-defined abbreviations\<close>
+
+text \<open>
+  The theory header syntax supports abbreviations via the \<^theory_text>\<open>abbrevs\<close> keyword
+  @{cite "isabelle-isar-ref"}. This is a slight generalization of built-in
+  templates and abbreviations for Isabelle symbols, as explained above.
+  Examples may be found in the Isabelle sources, by searching for
+  ``\<^verbatim>\<open>abbrevs\<close>'' in \<^verbatim>\<open>*.thy\<close> files.
+
+  The \<^emph>\<open>Symbols\<close> panel shows the abbreviations that are available in the
+  current theory buffer (according to its \<^theory_text>\<open>imports\<close>) in the \<^verbatim>\<open>Abbrevs\<close> tab.
 \<close>
 
 
@@ -2020,6 +2113,27 @@ text \<open>
 
   \<^bold>\<open>Workaround:\<close> Use native full-screen control of the window manager (notably
   on Mac OS X).
+
+  \<^item> \<^bold>\<open>Problem:\<close> Heap space of the JVM may fill up and render the Prover IDE
+  unresponsive, e.g.\ when editing big Isabelle sessions with many theories.
+
+  \<^bold>\<open>Workaround:\<close> On a 64bit platform, ensure that the JVM runs in 64bit mode,
+  but the Isabelle/ML process remains in 32bit mode! Do not switch Isabelle/ML
+  into 64bit mode in the expectation to be ``more efficient'' --- this
+  requires approx.\ 32\,GB to make sense.
+
+  For the JVM, always use the 64bit version. That is the default on all
+  platforms, except for Windows: the standard download is for win32, but there
+  is a separate download for win64. This implicitly provides a larger default
+  heap for the JVM.
+
+  Moreover, it is possible to increase JVM heap parameters explicitly, by
+  editing platform-specific files (for ``properties'' or ``options'') that are
+  associated with the main app bundle.
+
+  Also note that jEdit provides a heap space monitor in the status line
+  (bottom-right). Double-clicking on that causes full garbage-collection,
+  which sometimes helps in low-memory situations.
 \<close>
 
 end

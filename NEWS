@@ -70,6 +70,11 @@ warnings for lemma statements with trivial proofs.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* More aggressive flushing of machine-generated input, according to
+system option editor_generated_input_delay (in addition to existing
+editor_input_delay for regular user edits). This may affect overall PIDE
+reactivity and CPU usage.
+
 * Syntactic indentation according to Isabelle outer syntax. Action
 "indent-lines" (shortcut C+i) indents the current line according to
 command keywords and some command substructure. Action
@@ -99,7 +104,7 @@ according to 'begin' and 'end' structure.
 * Highlighting of entity def/ref positions wrt. cursor.
 
 * Action "isabelle.select-entity" (shortcut CS+ENTER) selects all
-occurences of the formal entity at the caret position. This facilitates
+occurrences of the formal entity at the caret position. This facilitates
 systematic renaming.
 
 * PIDE document markup works across multiple Isar commands, e.g. the
@@ -910,11 +915,12 @@ one_step_implies_mult instead. INCOMPATIBILITY.
 support for monotonicity and continuity in chain-complete partial orders
 and about admissibility conditions for fixpoint inductions.
 
-* Session HOL-Library: theory Polynomial contains also derivation of
-polynomials but not gcd/lcm on polynomials over fields. This has been
-moved to a separate theory Library/Polynomial_GCD_euclidean.thy, to pave
-way for a possible future different type class instantiation for
-polynomials over factorial rings. INCOMPATIBILITY.
+* Session HOL-Library: theory Library/Polynomial contains also
+derivation of polynomials (formerly in Library/Poly_Deriv) but not
+gcd/lcm on polynomials over fields. This has been moved to a separate
+theory Library/Polynomial_GCD_euclidean.thy, to pave way for a possible
+future different type class instantiation for polynomials over factorial
+rings. INCOMPATIBILITY.
 
 * Session HOL-Library: theory Sublist provides function "prefixes" with
 the following renaming

@@ -324,10 +324,10 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
     else if subcommand = supported_proversN then
       supported_provers ctxt
     else if subcommand = unlearnN then
-      mash_unlearn ()
+      mash_unlearn ctxt
     else if subcommand = learn_isarN orelse subcommand = learn_proverN orelse
             subcommand = relearn_isarN orelse subcommand = relearn_proverN then
-      (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then mash_unlearn ()
+      (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then mash_unlearn ctxt
        else ();
        mash_learn ctxt
            (* TODO: Use MaSh mode instead and have the special defaults hardcoded in "get_params" *)
