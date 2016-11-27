@@ -66,6 +66,11 @@ warnings for lemma statements with trivial proofs.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* More aggressive flushing of machine-generated input, according to
+system option editor_generated_input_delay (in addition to existing
+editor_input_delay for regular user edits). This may affect overall PIDE
+reactivity and CPU usage.
+
 * Syntactic indentation according to Isabelle outer syntax. Action
 "indent-lines" (shortcut C+i) indents the current line according to
 command keywords and some command substructure. Action
