@@ -51,10 +51,10 @@ public option isabelle_fonts_hinted : bool = true
 
 section "Indentation"
 
-public option jedit_indent_input : bool = true
+public option jedit_indent_input : bool = false
   -- "indentation of Isabelle keywords after input (typed character or completion)"
 
-public option jedit_indent_newline : bool = true
+public option jedit_indent_newline : bool = false
   -- "indentation of Isabelle keywords on ENTER (action isabelle.newline)"
 
 public option jedit_indent_script : bool = true

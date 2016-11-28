@@ -744,7 +744,7 @@ text \<open>
     Action @{action "isabelle.newline"} (shortcut \<^verbatim>\<open>ENTER\<close>) indents the old
     and the new line according to command keywords only: leading to precise
     alignment of the main Isar language elements. This depends on option
-    @{system_option_def "jedit_indent_newline"} (enabled by default).
+    @{system_option_def "jedit_indent_newline"} (disabled by default).
 
     Regular input (via keyboard or completion) indents the current line
     whenever an new keyword is emerging at the start of the line. This depends
