@@ -179,52 +179,39 @@ proof -
   -- "to show the equivalence, we look at the derivation tree for"
   -- "each side and from that construct a derivation tree for the other side"
   { fix s t assume "(?w, s) \<Rightarrow> t"
-    -- "as a first thing we note that, if @{text b} is @{text False} in state @{text s},"
-    -- "then both statements do nothing:"
-    { assume "\<not>bval b s"
-      hence "t = s" using `(?w,s) \<Rightarrow> t` by blast
-      hence "(?iw, s) \<Rightarrow> t" using `\<not>bval b s` by blast
-    }
-    moreover
-    -- "on the other hand, if @{text b} is @{text True} in state @{text s},"
-    -- {* then only the @{text WhileTrue} rule can have been used to derive @{text "(?w, s) \<Rightarrow> t"} *}
-    { assume "bval b s"
-      with `(?w, s) \<Rightarrow> t` obtain s' where
+    hence  "(?iw, s) \<Rightarrow> t"
+    proof cases --"rule inversion on \<open>(?w, s) \<Rightarrow> t\<close>"
+      case WhileFalse
+      thus ?thesis by blast
+    next
+      case WhileTrue
+      from `bval b s` `(?w, s) \<Rightarrow> t` obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
       -- "now we can build a derivation tree for the @{text IF}"
       -- "first, the body of the True-branch:"
       hence "(c;; ?w, s) \<Rightarrow> t" by (rule Seq)
       -- "then the whole @{text IF}"
-      with `bval b s` have "(?iw, s) \<Rightarrow> t" by (rule IfTrue)
-    }
-    ultimately
-    -- "both cases together give us what we want:"
-    have "(?iw, s) \<Rightarrow> t" by blast
+      with `bval b s` show ?thesis by (rule IfTrue)
+    qed
   }
   moreover
   -- "now the other direction:"
   { fix s t assume "(?iw, s) \<Rightarrow> t"
-    -- "again, if @{text b} is @{text False} in state @{text s}, then the False-branch"
-    -- "of the @{text IF} is executed, and both statements do nothing:"
-    { assume "\<not>bval b s"
+    hence "(?w, s) \<Rightarrow> t"
+    proof cases --"rule inversion on \<open>(?iw, s) \<Rightarrow> t\<close>"
+      case IfFalse
       hence "s = t" using `(?iw, s) \<Rightarrow> t` by blast
-      hence "(?w, s) \<Rightarrow> t" using `\<not>bval b s` by blast
-    }
-    moreover
-    -- "on the other hand, if @{text b} is @{text True} in state @{text s},"
-    -- {* then this time only the @{text IfTrue} rule can have be used *}
-    { assume "bval b s"
+      thus ?thesis using `\<not>bval b s` by blast
+    next
+      case IfTrue
       with `(?iw, s) \<Rightarrow> t` have "(c;; ?w, s) \<Rightarrow> t" by auto
       -- "and for this, only the Seq-rule is applicable:"
       then obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
       -- "with this information, we can build a derivation tree for the @{text WHILE}"
       with `bval b s`
-      have "(?w, s) \<Rightarrow> t" by (rule WhileTrue)
-    }
-    ultimately
-    -- "both cases together again give us what we want:"
-    have "(?w, s) \<Rightarrow> t" by blast
+      show ?thesis by (rule WhileTrue)
+    qed
   }
   ultimately
   show ?thesis by blast
