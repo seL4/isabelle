@@ -341,7 +341,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
               fold_rev (curry (op @) o #co_rec_o_maps o the o #fp_co_induct_sugar) fp_sugars [];
 
             val size_gen_o_map_thmss =
-              if nested_size_gen_o_maps_complete then
+              if nested_size_gen_o_maps_complete
+                 andalso forall (fn TFree (_, S) => S = @{sort type}) As then
                 @{map 3} (fn goal => fn size_def => fn rec_o_map =>
                     Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
                       mk_size_gen_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)

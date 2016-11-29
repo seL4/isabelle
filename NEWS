@@ -6,6 +6,11 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+* (Co)datatype package:
+  - The 'size_gen_o_map' lemma is no longer generated for datatypes
+    with type class annotations. As a result, the tactic that derives
+    it no longer fails on nested datatypes. Slight INCOMPATIBILITY.
+
 
 
 New in Isabelle2016-1 (December 2016)
