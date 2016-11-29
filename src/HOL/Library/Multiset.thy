@@ -2825,6 +2825,9 @@ next
   thus ?L using one_step_implies_mult[of J K s "I + Z"] by (auto simp: ac_simps)
 qed
 
+lemmas mult_cancel_add_mset =
+  mult_cancel[of _ _ "{#_#}", unfolded union_mset_add_mset_right add.comm_neutral]
+
 lemma mult_cancel_max:
   assumes "trans s" and "irrefl s"
   shows "(X, Y) \<in> mult s \<longleftrightarrow> (X - X \<inter># Y, Y - X \<inter># Y) \<in> mult s" (is "?L \<longleftrightarrow> ?R")
