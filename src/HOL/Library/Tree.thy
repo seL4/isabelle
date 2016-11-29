@@ -144,29 +144,29 @@ by (induction t) auto
 lemma height_le_size_tree: "height t \<le> size (t::'a tree)"
 by (induction t) auto
 
-lemma size1_height: "size t + 1 \<le> 2 ^ height (t::'a tree)"
+lemma size1_height: "size1 t \<le> 2 ^ height (t::'a tree)"
 proof(induction t)
   case (Node l a r)
   show ?case
   proof (cases "height l \<le> height r")
     case True
-    have "size(Node l a r) + 1 = (size l + 1) + (size r + 1)" by simp
-    also have "size l + 1 \<le> 2 ^ height l" by(rule Node.IH(1))
-    also have "size r + 1 \<le> 2 ^ height r" by(rule Node.IH(2))
+    have "size1(Node l a r) = size1 l + size1 r" by simp
+    also have "size1 l \<le> 2 ^ height l" by(rule Node.IH(1))
+    also have "size1 r \<le> 2 ^ height r" by(rule Node.IH(2))
     also have "(2::nat) ^ height l \<le> 2 ^ height r" using True by simp
     finally show ?thesis using True by (auto simp: max_def mult_2)
   next
     case False
-    have "size(Node l a r) + 1 = (size l + 1) + (size r + 1)" by simp
-    also have "size l + 1 \<le> 2 ^ height l" by(rule Node.IH(1))
-    also have "size r + 1 \<le> 2 ^ height r" by(rule Node.IH(2))
+    have "size1(Node l a r) = size1 l + size1 r" by simp
+    also have "size1 l \<le> 2 ^ height l" by(rule Node.IH(1))
+    also have "size1 r \<le> 2 ^ height r" by(rule Node.IH(2))
     also have "(2::nat) ^ height r \<le> 2 ^ height l" using False by simp
     finally show ?thesis using False by (auto simp: max_def mult_2)
   qed
 qed simp
 
 corollary size_height: "size t \<le> 2 ^ height (t::'a tree) - 1"
-using size1_height[of t] by(arith)
+using size1_height[of t, unfolded size1_def] by(arith)
 
 lemma height_subtrees: "s \<in> subtrees t \<Longrightarrow> height s \<le> height t"
 by (induction t) auto
@@ -178,12 +178,12 @@ by(induction t) auto
 lemma min_height_map_tree[simp]: "min_height (map_tree f t) = min_height t"
 by (induction t) auto
 
-lemma min_height_le_size1: "2 ^ min_height t \<le> size t + 1"
+lemma min_height_size1: "2 ^ min_height t \<le> size1 t"
 proof(induction t)
   case (Node l a r)
   have "(2::nat) ^ min_height (Node l a r) \<le> 2 ^ min_height l + 2 ^ min_height r"
     by (simp add: min_def)
-  also have "\<dots> \<le> size(Node l a r) + 1" using Node.IH by simp
+  also have "\<dots> \<le> size1(Node l a r)" using Node.IH by simp
   finally show ?case .
 qed simp
 
@@ -202,101 +202,105 @@ by (induction t) auto
 lemma size_if_complete: "complete t \<Longrightarrow> size t = 2 ^ height t - 1"
 using size1_if_complete[simplified size1_def] by fastforce
 
-lemma complete_if_size: "size t = 2 ^ height t - 1 \<Longrightarrow> complete t"
+lemma complete_if_size1_height: "size1 t = 2 ^ height t \<Longrightarrow> complete t"
 proof (induct "height t" arbitrary: t)
-  case 0 thus ?case by (simp add: size_0_iff_Leaf)
+  case 0 thus ?case by (simp add: height_0_iff_Leaf)
 next
   case (Suc h)
   hence "t \<noteq> Leaf" by auto
   then obtain l a r where [simp]: "t = Node l a r"
     by (auto simp: neq_Leaf_iff)
   have 1: "height l \<le> h" and 2: "height r \<le> h" using Suc(2) by(auto)
-  have 3: "~ height l < h"
+  have 3: "\<not> height l < h"
   proof
     assume 0: "height l < h"
-    have "size t = size l + (size r + 1)" by simp
-    also note size_height[of l]
+    have "size1 t = size1 l + size1 r" by simp
+    also note size1_height[of l]
     also note size1_height[of r]
-    also have "(2::nat) ^ height l - 1 < 2 ^ h - 1"
+    also have "(2::nat) ^ height l < 2 ^ h"
         using 0 by (simp add: diff_less_mono)
     also have "(2::nat) ^ height r \<le> 2 ^ h" using 2 by simp
-    also have "(2::nat) ^ h - 1 + 2 ^ h = 2 ^ (Suc h) - 1" by (simp)
-    also have "\<dots> = size t" using Suc(2,3) by simp
+    also have "(2::nat) ^ h  + 2 ^ h = 2 ^ (Suc h)" by (simp)
+    also have "\<dots> = size1 t" using Suc(2,3) by simp
     finally show False by (simp add: diff_le_mono)
   qed
   have 4: "~ height r < h"
   proof
     assume 0: "height r < h"
-    have "size t = (size l + 1) + size r" by simp
-    also note size_height[of r]
+    have "size1 t = size1 l + size1 r" by simp
+    also note size1_height[of r]
     also note size1_height[of l]
-    also have "(2::nat) ^ height r - 1 < 2 ^ h - 1"
+    also have "(2::nat) ^ height r < 2 ^ h"
         using 0 by (simp add: diff_less_mono)
     also have "(2::nat) ^ height l \<le> 2 ^ h" using 1 by simp
-    also have "(2::nat) ^ h + (2 ^ h - 1) = 2 ^ (Suc h) - 1" by (simp)
-    also have "\<dots> = size t" using Suc(2,3) by simp
+    also have "(2::nat) ^ h +2 ^ h = 2 ^ (Suc h)" by (simp)
+    also have "\<dots> = size1 t" using Suc(2,3) by simp
     finally show False by (simp add: diff_le_mono)
   qed
   from 1 2 3 4 have *: "height l = h" "height r = h" by linarith+
-  hence "size l = 2 ^ height l - 1" "size r = 2 ^ height r - 1"
-    using Suc(3) size_height[of l] size_height[of r] by (auto)
+  hence "size1 l = 2 ^ height l" "size1 r = 2 ^ height r"
+    using Suc(3) size1_height[of l] size1_height[of r] by (auto)
   with * Suc(1) show ?case by simp
 qed
 
-lemma complete_iff_size: "complete t \<longleftrightarrow> size t = 2 ^ height t - 1"
-using complete_if_size size_if_complete by blast
+text\<open>The following proof involves \<open>\<ge>\<close>/\<open>>\<close> chains rather than the standard
+\<open>\<le>\<close>/\<open><\<close> chains. To chain the elements together the transitivity rules \<open>xtrans\<close>
+are used.\<close>
 
-text\<open>A better lower bound for incomplete trees:\<close>
-
-lemma min_height_le_size_if_incomplete:
-  "\<not> complete t \<Longrightarrow> 2 ^ min_height t \<le> size t"
-proof(induction t)
-  case Leaf thus ?case by simp
+lemma complete_if_size1_min_height: "size1 t = 2 ^ min_height t \<Longrightarrow> complete t"
+proof (induct "min_height t" arbitrary: t)
+  case 0 thus ?case by (simp add: size_0_iff_Leaf size1_def)
 next
-  case (Node l a r)
-  show ?case (is "?l \<le> ?r")
-  proof (cases "complete l")
-    case l: True thus ?thesis
-    proof (cases "complete r")
-      case r: True
-      have "height l \<noteq> height r" using Node.prems l r by simp
-      hence "?l < 2 ^ min_height l + 2 ^ min_height r"
-        using l r by (simp add: min_def complete_iff_height)
-      also have "\<dots> = (size l + 1) + (size r + 1)"
-        using l r size_if_complete[where ?'a = 'a]
-        by (simp add: complete_iff_height)
-      also have "\<dots> \<le> ?r + 1" by simp
-      finally show ?thesis by arith
-    next
-      case r: False
-      have "?l \<le> 2 ^ min_height l + 2 ^ min_height r" by (simp add: min_def)
-      also have "\<dots> \<le> size l + 1 + size r"
-        using Node.IH(2)[OF r] l size_if_complete[where ?'a = 'a]
-        by (simp add: complete_iff_height)
-      also have "\<dots> = ?r" by simp
-      finally show ?thesis .
-    qed
-  next
-    case l: False thus ?thesis
-    proof (cases "complete r")
-      case r: True
-      have "?l \<le> 2 ^ min_height l + 2 ^ min_height r" by (simp add: min_def)
-      also have "\<dots> \<le> size l + (size r + 1)"
-        using Node.IH(1)[OF l] r size_if_complete[where ?'a = 'a]
-        by (simp add: complete_iff_height)
-      also have "\<dots> = ?r" by simp
-      finally show ?thesis .
-    next
-      case r: False
-      have "?l \<le> 2 ^ min_height l + 2 ^ min_height r"
-        by (simp add: min_def)
-      also have "\<dots> \<le> size l + size r"
-        using Node.IH(1)[OF l] Node.IH(2)[OF r] by (simp)
-      also have "\<dots> \<le> ?r" by simp
-      finally show ?thesis .
-    qed
+  case (Suc h)
+  hence "t \<noteq> Leaf" by auto
+  then obtain l a r where [simp]: "t = Node l a r"
+    by (auto simp: neq_Leaf_iff)
+  have 1: "h \<le> min_height l" and 2: "h \<le> min_height r" using Suc(2) by(auto)
+  have 3: "\<not> h < min_height l"
+  proof
+    assume 0: "h < min_height l"
+    have "size1 t = size1 l + size1 r" by simp
+    also note min_height_size1[of l]
+    also(xtrans) note min_height_size1[of r]
+    also(xtrans) have "(2::nat) ^ min_height l > 2 ^ h"
+        using 0 by (simp add: diff_less_mono)
+    also(xtrans) have "(2::nat) ^ min_height r \<ge> 2 ^ h" using 2 by simp
+    also(xtrans) have "(2::nat) ^ h + 2 ^ h = 2 ^ (Suc h)" by (simp)
+    also have "\<dots> = size1 t" using Suc(2,3) by simp
+    finally show False by (simp add: diff_le_mono)
   qed
+  have 4: "\<not> h < min_height r"
+  proof
+    assume 0: "h < min_height r"
+    have "size1 t = size1 l + size1 r" by simp
+    also note min_height_size1[of l]
+    also(xtrans) note min_height_size1[of r]
+    also(xtrans) have "(2::nat) ^ min_height r > 2 ^ h"
+        using 0 by (simp add: diff_less_mono)
+    also(xtrans) have "(2::nat) ^ min_height l \<ge> 2 ^ h" using 1 by simp
+    also(xtrans) have "(2::nat) ^ h + 2 ^ h = 2 ^ (Suc h)" by (simp)
+    also have "\<dots> = size1 t" using Suc(2,3) by simp
+    finally show False by (simp add: diff_le_mono)
+  qed
+  from 1 2 3 4 have *: "min_height l = h" "min_height r = h" by linarith+
+  hence "size1 l = 2 ^ min_height l" "size1 r = 2 ^ min_height r"
+    using Suc(3) min_height_size1[of l] min_height_size1[of r] by (auto)
+  with * Suc(1) show ?case
+    by (simp add: complete_iff_height)
 qed
+
+lemma complete_iff_size1: "complete t \<longleftrightarrow> size1 t = 2 ^ height t"
+using complete_if_size1_height size1_if_complete by blast
+
+text\<open>Better bounds for incomplete trees:\<close>
+
+lemma size1_height_if_incomplete:
+  "\<not> complete t \<Longrightarrow> size1 t < 2 ^ height t"
+by (meson antisym_conv complete_iff_size1 not_le size1_height)
+
+lemma min_height_size1_if_incomplete:
+  "\<not> complete t \<Longrightarrow> 2 ^ min_height t < size1 t"
+by (metis complete_if_size1_min_height le_less min_height_size1)
 
 
 subsection \<open>@{const balanced}\<close>
@@ -332,10 +336,10 @@ next
   case False
   have "(2::nat) ^ min_height t < 2 ^ height t'"
   proof -
-    have "(2::nat) ^ min_height t \<le> size t"
-      by(rule min_height_le_size_if_incomplete[OF False])
-    also note assms(2)
-    also have "size t' \<le> 2 ^ height t' - 1"  by(rule size_height)
+    have "(2::nat) ^ min_height t < size1 t"
+      by(rule min_height_size1_if_incomplete[OF False])
+    also have "size1 t \<le> size1 t'" using assms(2) by (simp add: size1_def)
+    also have "size1 t' \<le> 2 ^ height t'"  by(rule size1_height)
     finally show ?thesis
       using power_eq_0_iff[of "2::nat" "height t'"] by linarith
   qed
