@@ -277,7 +277,7 @@ object Isabelle
               : (List[Token], Scan.Line_Context) =
             {
               val text = JEdit_Lib.try_get_text(buffer, Text.Range(start, stop)).getOrElse("")
-              val (toks, context1) = Token.explode_line(syntax.keywords, text, context)
+              val (toks, context1) = Token.explode_line(keywords, text, context)
               val toks1 = toks.filterNot(_.is_space)
               (toks1, context1)
             }

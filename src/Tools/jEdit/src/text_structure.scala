@@ -142,7 +142,6 @@ object Text_Structure
           val indent =
             if (Token_Markup.Line_Context.prev(buffer, current_line).get_context == Scan.Finished) {
               line_head(current_line) match {
-                case None => indent_structure + indent_brackets + indent_extra
                 case Some(info @ Text.Info(range, tok)) =>
                   if (tok.is_begin ||
                       keywords.is_before_command(tok) ||
@@ -166,7 +165,16 @@ object Text_Structure
                         indent_structure + indent_brackets + indent_size - indent_offset(tok) -
                         indent_offset(prev_tok) - indent_indent(prev_tok)
                     }
-                 }
+                  }
+                case None =>
+                  prev_line_command match {
+                    case None =>
+                      val extra = if (head_is_quasi_command(prev_line)) indent_extra else 0
+                      line_indent(prev_line) + indent_brackets + extra
+                    case Some(prev_tok) =>
+                      indent_structure + indent_brackets + indent_size -
+                      indent_offset(prev_tok) - indent_indent(prev_tok)
+                  }
               }
             }
             else line_indent(current_line)
