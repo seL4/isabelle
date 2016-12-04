@@ -126,7 +126,7 @@ object Isabelle_Cronjob
                 Build_History.remote_build_history(ssh,
                   isabelle_repos,
                   isabelle_repos.ext(r.host),
-                  isabelle_repos_source = isabelle_release_source,
+                  isabelle_repos_source = isabelle_dev_source,
                   self_update = self_update,
                   push_isabelle_home = push_isabelle_home,
                   options =
