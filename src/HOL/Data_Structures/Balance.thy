@@ -26,7 +26,7 @@ proof cases
 next
   assume *: "\<not> complete t"
   hence "height t = min_height t + 1"
-    using assms min_hight_le_height[of t]
+    using assms min_height_le_height[of t]
     by(auto simp add: balanced_def complete_iff_height)
   hence "2 ^ min_height t \<le> size1 t \<and> size1 t < 2 ^ (min_height t + 1)"
     by (metis * min_height_size1 size1_height_if_incomplete)
@@ -53,7 +53,7 @@ proof cases
 next
   assume *: "\<not> complete t"
   hence **: "height t = min_height t + 1"
-    using assms min_hight_le_height[of t]
+    using assms min_height_le_height[of t]
     by(auto simp add: balanced_def complete_iff_height)
   hence 0: "2 ^ min_height t < size1 t \<and> size1 t \<le> 2 ^ (min_height t + 1)"
     by (metis "*" min_height_size1_if_incomplete size1_height)

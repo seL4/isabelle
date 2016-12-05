@@ -172,7 +172,7 @@ lemma height_subtrees: "s \<in> subtrees t \<Longrightarrow> height s \<le> heig
 by (induction t) auto
 
 
-lemma min_hight_le_height: "min_height t \<le> height t"
+lemma min_height_le_height: "min_height t \<le> height t"
 by(induction t) auto
 
 lemma min_height_map_tree[simp]: "min_height (map_tree f t) = min_height t"
@@ -194,7 +194,7 @@ lemma complete_iff_height: "complete t \<longleftrightarrow> (min_height t = hei
 apply(induction t)
  apply simp
 apply (simp add: min_def max_def)
-by (metis le_antisym le_trans min_hight_le_height)
+by (metis le_antisym le_trans min_height_le_height)
 
 lemma size1_if_complete: "complete t \<Longrightarrow> size1 t = 2 ^ height t"
 by (induction t) auto
@@ -345,7 +345,7 @@ next
   qed
   hence *: "min_height t < height t'" by simp
   have "min_height t + 1 = height t"
-    using min_hight_le_height[of t] assms(1) False
+    using min_height_le_height[of t] assms(1) False
     by (simp add: complete_iff_height balanced_def)
   with * show ?thesis by arith
 qed
