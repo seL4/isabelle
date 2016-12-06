@@ -201,26 +201,10 @@ fun metahyps_aux_tac ctxt tacf (prem,gno) state =
           (false, relift st, Thm.nprems_of st) gno state
   in Seq.maps next (tacf subprems (Thm.trivial (Thm.cterm_of ctxt concl))) end;
 
-fun print_vars_terms ctxt n thm =
-  let
-    fun typed s ty = "  " ^ s ^ " has type: " ^ Syntax.string_of_typ ctxt ty;
-    fun find_vars (Const (c, ty)) =
-          if null (Term.add_tvarsT ty []) then I
-          else insert (op =) (typed c ty)
-      | find_vars (Var (xi, ty)) =
-          insert (op =) (typed (Term.string_of_vname xi) ty)
-      | find_vars (Free _) = I
-      | find_vars (Bound _) = I
-      | find_vars (Abs (_, _, t)) = find_vars t
-      | find_vars (t1 $ t2) = find_vars t1 #> find_vars t2;
-    val prem = Logic.nth_prem (n, Thm.prop_of thm)
-    val tms = find_vars prem []
-  in warning (cat_lines ("Found schematic vars in assumptions:" :: tms)) end;
-
 in
 
 fun METAHYPS ctxt tacf n thm = SUBGOAL (metahyps_aux_tac ctxt tacf) n thm
-  handle THM ("assume: variables", _, _) => (print_vars_terms ctxt n thm; Seq.empty)
+  handle THM ("assume: variables", _, _) => Seq.empty
 
 end;
 
