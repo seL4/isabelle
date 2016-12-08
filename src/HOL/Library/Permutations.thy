@@ -31,7 +31,7 @@ lemma bij_swap_comp:
   using surj_f_inv_f[OF bij_is_surj[OF bp]]
   by (simp add: fun_eq_iff Fun.swap_def bij_inv_eq_iff[OF bp])
 
-lemma bij_swap_ompose_bij: "bij p \<Longrightarrow> bij (Fun.swap a b id \<circ> p)"
+lemma bij_swap_compose_bij: "bij p \<Longrightarrow> bij (Fun.swap a b id \<circ> p)"
 proof -
   assume H: "bij p"
   show ?thesis
@@ -756,18 +756,10 @@ next
   let ?q = "Fun.swap a (p a) id \<circ> ?r"
   have raa: "?r a = a"
     by (simp add: Fun.swap_def)
-  from bij_swap_ompose_bij[OF insert(4)]
-  have br: "bij ?r"  .
-
+  from bij_swap_compose_bij[OF insert(4)] have br: "bij ?r"  .
   from insert raa have th: "\<forall>x. x \<notin> F \<longrightarrow> ?r x = x"
-    apply (clarsimp simp add: Fun.swap_def)
-    apply (erule_tac x="x" in allE)
-    apply auto
-    unfolding bij_iff
-    apply metis
-    done
-  from insert(3)[OF br th]
-  have rp: "permutation ?r" .
+    by (metis bij_pointE comp_apply id_apply insert_iff swap_apply(3))    
+  from insert(3)[OF br th] have rp: "permutation ?r" .
   have "permutation ?q"
     by (simp add: permutation_compose permutation_swap_id rp)
   then show ?case
@@ -926,7 +918,7 @@ proof (rule multiset_eqI)
     using permutes_in_image[OF assms] by auto
   have "count (mset (permute_list f xs)) y =
           card ((\<lambda>i. xs ! f i) -` {y} \<inter> {..<length xs})"
-    by (simp add: permute_list_def mset_map count_image_mset atLeast0LessThan)
+    by (simp add: permute_list_def count_image_mset atLeast0LessThan)
   also have "(\<lambda>i. xs ! f i) -` {y} \<inter> {..<length xs} = f -` {i. i < length xs \<and> y = xs ! i}"
     by auto
   also from assms have "card \<dots> = card {i. i < length xs \<and> y = xs ! i}"

@@ -11,7 +11,9 @@ New in this Isabelle version
     with type class annotations. As a result, the tactic that derives
     it no longer fails on nested datatypes. Slight INCOMPATIBILITY.
 
-
+* The theorem in Permutations has been renamed:
+  bij_swap_ompose_bij ~> bij_swap_compose_bij
+ 
 
 New in Isabelle2016-1 (December 2016)
 -------------------------------------
