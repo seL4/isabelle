@@ -125,6 +125,14 @@ where
 
 code_pred predicate_where_argument_is_neg_condition_and_in_equation .
 
+text {* Another related example that required slight adjustment of the proof procedure *}
+
+inductive if_as_predicate :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+where
+  "condition \<Longrightarrow> if_as_predicate condition then_value else_value then_value"
+| "\<not> condition \<Longrightarrow> if_as_predicate condition then_value else_value else_value"
+
+code_pred [show_proof_trace] if_as_predicate .
 
 inductive zerozero :: "nat * nat => bool"
 where
