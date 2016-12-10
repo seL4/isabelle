@@ -37,9 +37,9 @@ object Text
   {
     // denotation: {start} Un {i. start < i & i < stop}
     if (start > stop)
-      error("Bad range: [" + start.toString + ":" + stop.toString + "]")
+      error("Bad range: [" + start.toString + ".." + stop.toString + "]")
 
-    override def toString: String = "[" + start.toString + ":" + stop.toString + "]"
+    override def toString: String = "[" + start.toString + ".." + stop.toString + "]"
 
     def length: Int = stop - start
 
