@@ -32,7 +32,7 @@ object CI_API
 
   def build_jobs(): List[String] =
     for {
-      job <- JSON.array(invoke(root()), "jobs")
+      job <- JSON.array(invoke(root()), "jobs").getOrElse(Nil)
       _class <- JSON.string(job, "_class")
       if _class == "hudson.model.FreeStyleProject"
       name <- JSON.string(job, "name")
@@ -56,7 +56,8 @@ object CI_API
 
     for {
       build <- JSON.array(
-        invoke(root() + "/job/" + job_name, "tree=builds[number,timestamp,artifacts[*]]"), "builds")
+          invoke(root() + "/job/" + job_name, "tree=builds[number,timestamp,artifacts[*]]"), "builds")
+        .getOrElse(Nil)
       number <- JSON.int(build, "number")
       timestamp <- JSON.long(build, "timestamp")
     } yield {
@@ -64,7 +65,7 @@ object CI_API
       val output = Url(job_prefix + "/consoleText")
       val session_logs =
         for {
-          artifact <- JSON.array(build, "artifacts")
+          artifact <- JSON.array(build, "artifacts").getOrElse(Nil)
           log_path <- JSON.string(artifact, "relativePath")
           session <- (log_path match { case Log_Session(name) => Some(name) case _ => None })
         } yield (session -> Url(job_prefix + "/artifact/" + log_path))
