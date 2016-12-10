@@ -36,12 +36,12 @@ for PLATFORM in $PLATFORMS
 do
   if [ -z "$ML_HOME" ]
   then
-    if "$POLYML_HOME/$PLATFORM/polyml" -v </dev/null >/dev/null 2>/dev/null
+    if "$POLYML_HOME/$PLATFORM/polyi" -v </dev/null >/dev/null 2>/dev/null
     then
 
       # ML settings
 
-      ML_SYSTEM=polyml-5.6
+      ML_SYSTEM=polyml-5.7
       ML_PLATFORM="$PLATFORM"
       ML_HOME="$POLYML_HOME/$ML_PLATFORM"
       ML_SOURCES="$POLYML_HOME/src"

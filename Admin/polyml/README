@@ -1,32 +1,27 @@
 Poly/ML for Isabelle
 ====================
 
-This compilation of Poly/ML 5.6 (http://www.polyml.org) is based on the source
-distribution from https://github.com/polyml/polyml/releases/tag/v5.6/.
+This compilation of Poly/ML (http://www.polyml.org) is based on the repository
+version https://github.com/polyml/polyml/commit/8529546198aa
 
-On Linux the sources have changed as follows, in order to evade a
-potential conflict of /bin/bash versus /bin/sh -> dash (notably on
-Ubuntu and Debian):
+The Isabelle repository provides the administrative tool "build_polyml", which
+can be used in the polyml component directory as follows.
 
-diff -r src-orig/libpolyml/process_env.cpp src/libpolyml/process_env.cpp
-228c228
-<                 execve("/bin/sh", argv, environ);
----
->                 execvp("bash", argv);
+* Linux:
 
+  isabelle build_polyml -m32 -s sha1 src --with-gmp
+  isabelle build_polyml -m64 -s sha1 src --with-gmp
 
-The included build script is used like this:
+* Mac OS X:
 
-  ./build src x86-linux --with-gmp
-  ./build src x86_64-linux --with-gmp
-  ./build src x86-darwin --without-gmp
-  ./build src x86_64-darwin --without-gmp
-  ./build src x86-windows --with-gmp
-  ./build src x86_64-windows --with-gmp
+  isabelle build_polyml -m32 -s sha1 src --without-gmp
+  isabelle build_polyml -m64 -s sha1 src --without-gmp
 
-Also note that the separate "sha1" library module is required for
-efficient digestion of strings according to SHA-1.
+* Windows (Cygwin shell)
+
+  isabelle build_polyml -M /cygdrive/c/msys64 -m32 -s sha1 src --with-gmp
+  isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src --with-gmp
 
 
         Makarius
-        11-Feb-2016
+        10-Dec-2016
