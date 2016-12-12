@@ -938,6 +938,9 @@ theorems now have different names, most notably "prime_def" is now
 * Session Old_Number_Theory has been removed, after porting remaining
 theories.
 
+* Session HOL-Types_To_Sets provides an experimental extension of
+Higher-Order Logic to allow translation of types to sets.
+
 
 *** ML ***
 
