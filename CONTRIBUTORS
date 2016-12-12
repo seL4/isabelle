@@ -10,6 +10,10 @@ Contributions to this Isabelle version
 Contributions to Isabelle2016-1
 -------------------------------
 
+* December 2016: Ondřej Kunčar, TUM
+  Types_To_Sets: experimental extension of Higher-Order Logic to allow
+  translation of types to sets.
+
 * October 2016: Jasmin Blanchette
   Integration of Nunchaku model finder.
 

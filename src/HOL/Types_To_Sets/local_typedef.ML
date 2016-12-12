@@ -1,7 +1,7 @@
-(*  Title:      local_typedef.ML
+(*  Title:      HOL/Types_To_Sets/local_typedef.ML
     Author:     Ondřej Kunčar, TU München
 
-    Implements the Local Typedef Rule and extends the logic by the rule.
+The Local Typedef Rule (extension of the logic).
 *)
 
 signature LOCAL_TYPEDEF =
@@ -23,12 +23,12 @@ Local Typedef Rule (LT)
 
 (** BEGINNING OF THE CRITICAL CODE **)
 
-fun dest_typedef (Const (@{const_name Ex}, _) $ Abs (_, _, 
-      (Const (@{const_name Ex}, _) $ Abs (_, Abs_type,  
-      (Const (@{const_name type_definition}, _)) $ Bound 1 $ Bound 0 $ set)))) = 
+fun dest_typedef (Const (@{const_name Ex}, _) $ Abs (_, _,
+      (Const (@{const_name Ex}, _) $ Abs (_, Abs_type,
+      (Const (@{const_name type_definition}, _)) $ Bound 1 $ Bound 0 $ set)))) =
     (Abs_type, set)
    | dest_typedef t = raise TERM ("dest_typedef", [t]);
-  
+
 fun cancel_type_definition_cterm thm =
   let
     fun err msg = raise THM ("cancel_type_definition: " ^ msg, 0, [thm]);
@@ -42,19 +42,19 @@ fun cancel_type_definition_cterm thm =
     val (typedef_assm, phi) = Logic.dest_implies prop
       handle TERM _ => err "the theorem is not an implication";
     val (abs_type, set) = typedef_assm |> HOLogic.dest_Trueprop |> dest_typedef
-      handle TERM _ => err ("the assumption is not of the form " 
+      handle TERM _ => err ("the assumption is not of the form "
         ^ quote "\<exists>Rep Abs. type_definition Rep Abs A");
 
     val (repT, absT) = Term.dest_funT abs_type;
     val _ = Term.is_TVar absT orelse err "the abstract type is not a schematic type variable";
     val (absT_name, sorts) = Term.dest_TVar absT;
-    
+
     val typeS = Sign.defaultS thy;
-    val _ = sorts = typeS orelse err ("the type " ^ quote (fst absT_name) ^ " is not of the sort " 
+    val _ = sorts = typeS orelse err ("the type " ^ quote (fst absT_name) ^ " is not of the sort "
       ^ quote (Syntax.string_of_sort_global thy typeS));
-     
+
     fun contains_absT tm = member (op=) (Term.add_tvars tm []) (absT_name, sorts);
-    fun err_contains_absT_in msg = err (msg ^ " contains the forbidden type " 
+    fun err_contains_absT_in msg = err (msg ^ " contains the forbidden type "
       ^ quote (fst absT_name));
     val _ = not (contains_absT phi) orelse err_contains_absT_in "the conclusion";
     val _ = not (contains_absT set) orelse err_contains_absT_in "the set term";
@@ -73,12 +73,12 @@ fun cancel_type_definition_cterm thm =
 val (_, cancel_type_definition_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding cancel_type_definition}, cancel_type_definition_cterm)));
 
-fun cancel_type_definition thm =  
+fun cancel_type_definition thm =
   Drule.implies_elim_list (cancel_type_definition_oracle thm) (map Thm.assume (Thm.chyps_of thm));
 
 val cancel_type_definition_attr = Thm.rule_attribute [] (K cancel_type_definition);
 
-val _ = Context.>> (Context.map_theory (Attrib.setup @{binding cancel_type_definition} 
+val _ = Context.>> (Context.map_theory (Attrib.setup @{binding cancel_type_definition}
   (Scan.succeed cancel_type_definition_attr) "cancel a local type definition"));
 
 end;

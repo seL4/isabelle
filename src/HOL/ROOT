@@ -38,7 +38,6 @@ session "HOL-Library" (main timing) in Library = HOL +
     Predicate_Compile_Quickcheck
     Prefix_Order
     Rewrite
-    Types_To_Sets
     (*conflicting type class instantiations*)
     List_lexord
     Sublist_Order
@@ -1017,6 +1016,17 @@ session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples 
     List_Examples
   theories [condition = ISABELLE_SWIPL, quick_and_dirty]
     Reg_Exp_Example
+
+session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
+  description {*
+    Experimental extension of Higher-Order Logic to allow translation of types to sets.
+  *}
+  options [document = false]
+  theories
+    Types_To_Sets
+    "Examples/Prerequisites"
+    "Examples/Finite"
+    "Examples/T2_Spaces"
 
 session HOLCF (main timing) in HOLCF = HOL +
   description {*

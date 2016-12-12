@@ -43,7 +43,7 @@ fun reorder_bounds_tac ctxt prems i =
   end
 
 fun approximation_conv ctxt ct =
-  approximation_oracle (Proof_Context.theory_of ctxt, Thm.term_of ct |> tap (tracing o Syntax.string_of_term ctxt));
+  approximation_oracle (Proof_Context.theory_of ctxt, Thm.term_of ct);
 
 fun approximate ctxt t =
   approximation_oracle (Proof_Context.theory_of ctxt, t)

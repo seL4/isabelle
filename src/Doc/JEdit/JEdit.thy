@@ -723,6 +723,11 @@ text \<open>
 
   The above options are accessible in the menu \<^emph>\<open>Plugins / Plugin Options /
   Isabelle / General\<close>.
+
+  \<^medskip> Automatic indentation has a tendency to produce trailing whitespace. That
+  can be purged manually with the jEdit action @{action "remove-trailing-ws"}
+  (shortcut \<^verbatim>\<open>C+e r\<close>). Moreover, the \<^emph>\<open>WhiteSpace\<close> plugin provides some
+  aggressive options to trim whitespace on buffer-save.
 \<close>
 
 
