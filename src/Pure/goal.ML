@@ -255,7 +255,7 @@ fun prove_global thy xs asms prop tac =
 
 (* skip proofs *)
 
-val quick_and_dirty_raw = Config.declare_option ("quick_and_dirty", @{here});
+val quick_and_dirty_raw = Config.declare_option ("quick_and_dirty", \<^here>);
 val quick_and_dirty = Config.bool quick_and_dirty_raw;
 
 fun prove_sorry ctxt xs asms prop tac =

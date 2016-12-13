@@ -2779,15 +2779,15 @@ val recdef_congN = "recdef_cong";
 val recdef_wfN = "recdef_wf";
 
 val recdef_modifiers =
- [Args.$$$ recdef_simpN -- Args.colon >> K (Method.modifier simp_add @{here}),
-  Args.$$$ recdef_simpN -- Args.add -- Args.colon >> K (Method.modifier simp_add @{here}),
-  Args.$$$ recdef_simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del @{here}),
-  Args.$$$ recdef_congN -- Args.colon >> K (Method.modifier cong_add @{here}),
-  Args.$$$ recdef_congN -- Args.add -- Args.colon >> K (Method.modifier cong_add @{here}),
-  Args.$$$ recdef_congN -- Args.del -- Args.colon >> K (Method.modifier cong_del @{here}),
-  Args.$$$ recdef_wfN -- Args.colon >> K (Method.modifier wf_add @{here}),
-  Args.$$$ recdef_wfN -- Args.add -- Args.colon >> K (Method.modifier wf_add @{here}),
-  Args.$$$ recdef_wfN -- Args.del -- Args.colon >> K (Method.modifier wf_del @{here})] @
+ [Args.$$$ recdef_simpN -- Args.colon >> K (Method.modifier simp_add \<^here>),
+  Args.$$$ recdef_simpN -- Args.add -- Args.colon >> K (Method.modifier simp_add \<^here>),
+  Args.$$$ recdef_simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del \<^here>),
+  Args.$$$ recdef_congN -- Args.colon >> K (Method.modifier cong_add \<^here>),
+  Args.$$$ recdef_congN -- Args.add -- Args.colon >> K (Method.modifier cong_add \<^here>),
+  Args.$$$ recdef_congN -- Args.del -- Args.colon >> K (Method.modifier cong_del \<^here>),
+  Args.$$$ recdef_wfN -- Args.colon >> K (Method.modifier wf_add \<^here>),
+  Args.$$$ recdef_wfN -- Args.add -- Args.colon >> K (Method.modifier wf_add \<^here>),
+  Args.$$$ recdef_wfN -- Args.del -- Args.colon >> K (Method.modifier wf_del \<^here>)] @
   Clasimp.clasimp_modifiers;
 
 

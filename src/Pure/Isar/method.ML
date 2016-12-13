@@ -393,7 +393,7 @@ val get_facts = get_facts_generic o Context.Proof;
 
 val _ =
   Theory.setup
-    (Global_Theory.add_thms_dynamic (Binding.make ("method_facts", @{here}), get_facts_generic));
+    (Global_Theory.add_thms_dynamic (Binding.make ("method_facts", \<^here>), get_facts_generic));
 
 
 (* method text *)
@@ -497,7 +497,7 @@ fun method_closure ctxt src =
     val _ = Seq.pull (method ctxt' src' ctxt' [] (ctxt', Goal.protect 0 Drule.dummy_thm));
   in map Token.closure src' end;
 
-val closure = Config.bool (Config.declare ("Method.closure", @{here}) (K (Config.Bool true)));
+val closure = Config.bool (Config.declare ("Method.closure", \<^here>) (K (Config.Bool true)));
 
 fun method_cmd ctxt =
   check_src ctxt #>
@@ -608,7 +608,7 @@ fun modifier attribute pos : modifier = {init = I, attribute = attribute, pos = 
 (* sections *)
 
 val old_section_parser =
-  Config.bool (Config.declare ("Method.old_section_parser", @{here}) (K (Config.Bool false)));
+  Config.bool (Config.declare ("Method.old_section_parser", \<^here>) (K (Config.Bool false)));
 
 local
 

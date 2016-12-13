@@ -213,13 +213,13 @@ fun is_valid_access (Name_Space {internals, ...}) name xname =
 
 (* extern *)
 
-val names_long_raw = Config.declare_option ("names_long", @{here});
+val names_long_raw = Config.declare_option ("names_long", \<^here>);
 val names_long = Config.bool names_long_raw;
 
-val names_short_raw = Config.declare_option ("names_short", @{here});
+val names_short_raw = Config.declare_option ("names_short", \<^here>);
 val names_short = Config.bool names_short_raw;
 
-val names_unique_raw = Config.declare_option ("names_unique", @{here});
+val names_unique_raw = Config.declare_option ("names_unique", \<^here>);
 val names_unique = Config.bool names_unique_raw;
 
 fun extern ctxt space name =

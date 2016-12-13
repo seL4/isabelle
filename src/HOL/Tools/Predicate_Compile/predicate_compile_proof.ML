@@ -315,7 +315,7 @@ fun prove_match2 options ctxt out_ts =
               THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)
               THEN (REPEAT_DETERM_N (num_of_constrs - 1)
                 (eresolve_tac ctxt @{thms botE} 1 ORELSE eresolve_tac ctxt @{thms botE} 2)))
-            THEN assert_tac ctxt @{here} (fn st => Thm.nprems_of st <= 2)
+            THEN assert_tac ctxt \<^here> (fn st => Thm.nprems_of st <= 2)
             THEN (EVERY (map split_term_tac ts))
           end
       else all_tac

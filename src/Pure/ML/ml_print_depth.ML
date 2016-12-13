@@ -18,7 +18,7 @@ struct
 val set_print_depth = ML_Print_Depth.set_print_depth;
 
 val print_depth_raw =
-  Config.declare ("ML_print_depth", @{here})
+  Config.declare ("ML_print_depth", \<^here>)
     (fn _ => Config.Int (ML_Print_Depth.get_print_depth ()));
 
 val print_depth = Config.int print_depth_raw;

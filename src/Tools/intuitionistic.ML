@@ -78,13 +78,13 @@ fun modifier name kind kind' att pos =
     >> (fn arg => Method.modifier (att arg) pos);
 
 val modifiers =
- [modifier destN Args.bang_colon Args.bang Context_Rules.dest_bang @{here},
-  modifier destN Args.colon (Scan.succeed ()) Context_Rules.dest @{here},
-  modifier elimN Args.bang_colon Args.bang Context_Rules.elim_bang @{here},
-  modifier elimN Args.colon (Scan.succeed ()) Context_Rules.elim @{here},
-  modifier introN Args.bang_colon Args.bang Context_Rules.intro_bang @{here},
-  modifier introN Args.colon (Scan.succeed ()) Context_Rules.intro @{here},
-  Args.del -- Args.colon >> K (Method.modifier Context_Rules.rule_del @{here})];
+ [modifier destN Args.bang_colon Args.bang Context_Rules.dest_bang \<^here>,
+  modifier destN Args.colon (Scan.succeed ()) Context_Rules.dest \<^here>,
+  modifier elimN Args.bang_colon Args.bang Context_Rules.elim_bang \<^here>,
+  modifier elimN Args.colon (Scan.succeed ()) Context_Rules.elim \<^here>,
+  modifier introN Args.bang_colon Args.bang Context_Rules.intro_bang \<^here>,
+  modifier introN Args.colon (Scan.succeed ()) Context_Rules.intro \<^here>,
+  Args.del -- Args.colon >> K (Method.modifier Context_Rules.rule_del \<^here>)];
 
 in
 

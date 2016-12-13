@@ -332,23 +332,23 @@ val _ = Theory.setup
 (** method syntax **)
 
 val cong_modifiers =
- [Args.$$$ congN -- Args.colon >> K (Method.modifier cong_add @{here}),
-  Args.$$$ congN -- Args.add -- Args.colon >> K (Method.modifier cong_add @{here}),
-  Args.$$$ congN -- Args.del -- Args.colon >> K (Method.modifier cong_del @{here})];
+ [Args.$$$ congN -- Args.colon >> K (Method.modifier cong_add \<^here>),
+  Args.$$$ congN -- Args.add -- Args.colon >> K (Method.modifier cong_add \<^here>),
+  Args.$$$ congN -- Args.del -- Args.colon >> K (Method.modifier cong_del \<^here>)];
 
 val simp_modifiers =
- [Args.$$$ simpN -- Args.colon >> K (Method.modifier simp_add @{here}),
-  Args.$$$ simpN -- Args.add -- Args.colon >> K (Method.modifier simp_add @{here}),
-  Args.$$$ simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del @{here}),
+ [Args.$$$ simpN -- Args.colon >> K (Method.modifier simp_add \<^here>),
+  Args.$$$ simpN -- Args.add -- Args.colon >> K (Method.modifier simp_add \<^here>),
+  Args.$$$ simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del \<^here>),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >>
-    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = @{here}}]
+    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = \<^here>}]
    @ cong_modifiers;
 
 val simp_modifiers' =
- [Args.add -- Args.colon >> K (Method.modifier simp_add @{here}),
-  Args.del -- Args.colon >> K (Method.modifier simp_del @{here}),
+ [Args.add -- Args.colon >> K (Method.modifier simp_add \<^here>),
+  Args.del -- Args.colon >> K (Method.modifier simp_del \<^here>),
   Args.$$$ onlyN -- Args.colon >>
-    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = @{here}}]
+    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = \<^here>}]
    @ cong_modifiers;
 
 val simp_options =

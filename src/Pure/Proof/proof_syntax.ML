@@ -48,19 +48,19 @@ fun add_proof_syntax thy =
   |> Sign.root_path
   |> Sign.set_defsort []
   |> Sign.add_types_global
-    [(Binding.make ("proof", @{here}), 0, NoSyn)]
+    [(Binding.make ("proof", \<^here>), 0, NoSyn)]
   |> fold (snd oo Sign.declare_const_global)
-    [((Binding.make ("Appt", @{here}), [proofT, aT] ---> proofT), mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
-     ((Binding.make ("AppP", @{here}), [proofT, proofT] ---> proofT), mixfix ("(1_ \<bullet>/ _)", [4, 5], 4)),
-     ((Binding.make ("Abst", @{here}), (aT --> proofT) --> proofT), NoSyn),
-     ((Binding.make ("AbsP", @{here}), [propT, proofT --> proofT] ---> proofT), NoSyn),
-     ((Binding.make ("Hyp", @{here}), propT --> proofT), NoSyn),
-     ((Binding.make ("Oracle", @{here}), propT --> proofT), NoSyn),
-     ((Binding.make ("OfClass", @{here}), (Term.a_itselfT --> propT) --> proofT), NoSyn),
-     ((Binding.make ("MinProof", @{here}), proofT), Mixfix.mixfix "?")]
+    [((Binding.make ("Appt", \<^here>), [proofT, aT] ---> proofT), mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
+     ((Binding.make ("AppP", \<^here>), [proofT, proofT] ---> proofT), mixfix ("(1_ \<bullet>/ _)", [4, 5], 4)),
+     ((Binding.make ("Abst", \<^here>), (aT --> proofT) --> proofT), NoSyn),
+     ((Binding.make ("AbsP", \<^here>), [propT, proofT --> proofT] ---> proofT), NoSyn),
+     ((Binding.make ("Hyp", \<^here>), propT --> proofT), NoSyn),
+     ((Binding.make ("Oracle", \<^here>), propT --> proofT), NoSyn),
+     ((Binding.make ("OfClass", \<^here>), (Term.a_itselfT --> propT) --> proofT), NoSyn),
+     ((Binding.make ("MinProof", \<^here>), proofT), Mixfix.mixfix "?")]
   |> Sign.add_nonterminals_global
-    [Binding.make ("param", @{here}),
-     Binding.make ("params", @{here})]
+    [Binding.make ("param", \<^here>),
+     Binding.make ("params", \<^here>)]
   |> Sign.add_syntax Syntax.mode_default
     [("_Lam", [paramsT, proofT] ---> proofT, mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
      ("_Lam0", [paramT, paramsT] ---> paramsT, mixfix ("_/ _", [1, 0], 0)),

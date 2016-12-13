@@ -216,7 +216,7 @@ fun attribute_setup name source comment =
 (* internal attribute *)
 
 val _ = Theory.setup
-  (setup (Binding.make ("attribute", @{here}))
+  (setup (Binding.make ("attribute", \<^here>))
     (Scan.lift Args.internal_attribute >> Morphism.form)
     "internal attribute");
 

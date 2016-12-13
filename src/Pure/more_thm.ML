@@ -654,13 +654,13 @@ fun join_theory_proofs thy =
 
 (* options *)
 
-val show_consts_raw = Config.declare_option ("show_consts", @{here});
+val show_consts_raw = Config.declare_option ("show_consts", \<^here>);
 val show_consts = Config.bool show_consts_raw;
 
-val show_hyps_raw = Config.declare ("show_hyps", @{here}) (fn _ => Config.Bool false);
+val show_hyps_raw = Config.declare ("show_hyps", \<^here>) (fn _ => Config.Bool false);
 val show_hyps = Config.bool show_hyps_raw;
 
-val show_tags_raw = Config.declare ("show_tags", @{here}) (fn _ => Config.Bool false);
+val show_tags_raw = Config.declare ("show_tags", \<^here>) (fn _ => Config.Bool false);
 val show_tags = Config.bool show_tags_raw;
 
 

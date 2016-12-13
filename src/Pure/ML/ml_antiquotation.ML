@@ -34,16 +34,16 @@ fun value name scan =
 (* basic antiquotations *)
 
 val _ = Theory.setup
- (declaration (Binding.make ("here", @{here})) (Scan.succeed ())
+ (declaration (Binding.make ("here", \<^here>)) (Scan.succeed ())
     (fn src => fn () =>
       ML_Context.value_decl "position" (ML_Syntax.print_position (#2 (Token.name_of_src src)))) #>
 
-  inline (Binding.make ("make_string", @{here})) (Args.context >> K ML_Pretty.make_string_fn) #>
+  inline (Binding.make ("make_string", \<^here>)) (Args.context >> K ML_Pretty.make_string_fn) #>
 
-  value (Binding.make ("binding", @{here}))
+  value (Binding.make ("binding", \<^here>))
     (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>
 
-  value (Binding.make ("cartouche", @{here}))
+  value (Binding.make ("cartouche", \<^here>))
     (Scan.lift Args.cartouche_input >> (fn source =>
       "Input.source true " ^ ML_Syntax.print_string (Input.text_of source) ^ " " ^
         ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))));

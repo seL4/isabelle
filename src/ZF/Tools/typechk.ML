@@ -120,8 +120,8 @@ val _ =
       "declaration of type-checking rule" #>
     Method.setup @{binding typecheck}
       (Method.sections
-        [Args.add -- Args.colon >> K (Method.modifier TC_add @{here}),
-         Args.del -- Args.colon >> K (Method.modifier TC_del @{here})]
+        [Args.add -- Args.colon >> K (Method.modifier TC_add \<^here>),
+         Args.del -- Args.colon >> K (Method.modifier TC_del \<^here>)]
         >> K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt))))
       "ZF type-checking");
 

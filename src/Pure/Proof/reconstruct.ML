@@ -19,7 +19,7 @@ structure Reconstruct : RECONSTRUCT =
 struct
 
 val quiet_mode =
-  Config.bool (Config.declare ("Reconstruct.quiet_mode", @{here}) (K (Config.Bool true)));
+  Config.bool (Config.declare ("Reconstruct.quiet_mode", \<^here>) (K (Config.Bool true)));
 
 fun message ctxt msg =
   if Config.get ctxt quiet_mode then () else writeln (msg ());

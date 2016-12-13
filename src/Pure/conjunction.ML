@@ -85,13 +85,13 @@ fun conjunctionD which =
 in
 
 val conjunctionD1 =
-  Drule.store_standard_thm (Binding.make ("conjunctionD1", @{here})) (conjunctionD #1);
+  Drule.store_standard_thm (Binding.make ("conjunctionD1", \<^here>)) (conjunctionD #1);
 
 val conjunctionD2 =
-  Drule.store_standard_thm (Binding.make ("conjunctionD2", @{here})) (conjunctionD #2);
+  Drule.store_standard_thm (Binding.make ("conjunctionD2", \<^here>)) (conjunctionD #2);
 
 val conjunctionI =
-  Drule.store_standard_thm (Binding.make ("conjunctionI", @{here}))
+  Drule.store_standard_thm (Binding.make ("conjunctionI", \<^here>))
     (Drule.implies_intr_list [A, B]
       (Thm.equal_elim
         (Thm.symmetric conjunction_def)

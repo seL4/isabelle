@@ -98,7 +98,7 @@ fun add_breakpoints more_breakpoints =
 (* SML environment for Isabelle/ML *)
 
 val SML_environment =
-  Config.bool (Config.declare ("SML_environment", @{here}) (fn _ => Config.Bool false));
+  Config.bool (Config.declare ("SML_environment", \<^here>) (fn _ => Config.Bool false));
 
 fun sml_env SML =
   SML orelse

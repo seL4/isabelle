@@ -16,49 +16,49 @@ struct
 val semi = Scan.option (Parse.$$$ ";");
 
 val _ =
-  Outer_Syntax.command ("chapter", @{here}) "chapter heading"
+  Outer_Syntax.command ("chapter", \<^here>) "chapter heading"
     (Parse.opt_target -- Parse.document_source --| semi
       >> Thy_Output.document_command {markdown = false});
 
 val _ =
-  Outer_Syntax.command ("section", @{here}) "section heading"
+  Outer_Syntax.command ("section", \<^here>) "section heading"
     (Parse.opt_target -- Parse.document_source --| semi
       >> Thy_Output.document_command {markdown = false});
 
 val _ =
-  Outer_Syntax.command ("subsection", @{here}) "subsection heading"
+  Outer_Syntax.command ("subsection", \<^here>) "subsection heading"
     (Parse.opt_target -- Parse.document_source --| semi
       >> Thy_Output.document_command {markdown = false});
 
 val _ =
-  Outer_Syntax.command ("subsubsection", @{here}) "subsubsection heading"
+  Outer_Syntax.command ("subsubsection", \<^here>) "subsubsection heading"
     (Parse.opt_target -- Parse.document_source --| semi
       >> Thy_Output.document_command {markdown = false});
 
 val _ =
-  Outer_Syntax.command ("paragraph", @{here}) "paragraph heading"
+  Outer_Syntax.command ("paragraph", \<^here>) "paragraph heading"
     (Parse.opt_target -- Parse.document_source --| semi
       >> Thy_Output.document_command {markdown = false});
 
 val _ =
-  Outer_Syntax.command ("subparagraph", @{here}) "subparagraph heading"
+  Outer_Syntax.command ("subparagraph", \<^here>) "subparagraph heading"
     (Parse.opt_target -- Parse.document_source --| semi
       >> Thy_Output.document_command {markdown = false});
 
 val _ =
-  Outer_Syntax.command ("text", @{here}) "formal comment (primary style)"
+  Outer_Syntax.command ("text", \<^here>) "formal comment (primary style)"
     (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 
 val _ =
-  Outer_Syntax.command ("txt", @{here}) "formal comment (secondary style)"
+  Outer_Syntax.command ("txt", \<^here>) "formal comment (secondary style)"
     (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 
 val _ =
-  Outer_Syntax.command ("text_raw", @{here}) "LaTeX text (without surrounding environment)"
+  Outer_Syntax.command ("text_raw", \<^here>) "LaTeX text (without surrounding environment)"
     (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 
 val _ =
-  Outer_Syntax.command ("theory", @{here}) "begin theory"
+  Outer_Syntax.command ("theory", \<^here>) "begin theory"
     (Thy_Header.args >>
       (fn _ => Toplevel.init_theory (fn () => error "Missing theory initialization")));
 

@@ -175,7 +175,7 @@ val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 (* parse commands *)
 
 val bootstrap =
-  Config.bool (Config.declare ("Outer_Syntax.bootstrap", @{here}) (K (Config.Bool true)));
+  Config.bool (Config.declare ("Outer_Syntax.bootstrap", \<^here>) (K (Config.Bool true)));
 
 local
 
@@ -322,7 +322,7 @@ fun check_command ctxt (name, pos) =
 (* 'ML' command -- required for bootstrapping Isar *)
 
 val _ =
-  command ("ML", @{here}) "ML text within theory or local theory"
+  command ("ML", \<^here>) "ML text within theory or local theory"
     (Parse.ML_source >> (fn source =>
       Toplevel.generic_theory
         (ML_Context.exec (fn () =>

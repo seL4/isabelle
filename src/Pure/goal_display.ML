@@ -19,10 +19,10 @@ end;
 structure Goal_Display: GOAL_DISPLAY =
 struct
 
-val goals_limit_raw = Config.declare_option ("goals_limit", @{here});
+val goals_limit_raw = Config.declare_option ("goals_limit", \<^here>);
 val goals_limit = Config.int goals_limit_raw;
 
-val show_main_goal_raw = Config.declare_option ("show_main_goal", @{here});
+val show_main_goal_raw = Config.declare_option ("show_main_goal", \<^here>);
 val show_main_goal = Config.bool show_main_goal_raw;
 
 

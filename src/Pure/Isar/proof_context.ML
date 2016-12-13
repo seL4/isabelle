@@ -633,7 +633,7 @@ fun expand_abbrevs ctxt = certify_consts ctxt #> expand_binds ctxt;
 
 end;
 
-val show_abbrevs_raw = Config.declare ("show_abbrevs", @{here}) (fn _ => Config.Bool true);
+val show_abbrevs_raw = Config.declare ("show_abbrevs", \<^here>) (fn _ => Config.Bool true);
 val show_abbrevs = Config.bool show_abbrevs_raw;
 
 fun contract_abbrevs ctxt t =
@@ -667,7 +667,7 @@ fun prepare_patternT ctxt T =
 local
 
 val dummies =
-  Config.bool (Config.declare ("Proof_Context.dummies", @{here}) (K (Config.Bool false)));
+  Config.bool (Config.declare ("Proof_Context.dummies", \<^here>) (K (Config.Bool false)));
 
 fun check_dummies ctxt t =
   if Config.get ctxt dummies then t
@@ -979,7 +979,7 @@ fun lookup_fact ctxt name =
 (* retrieve facts *)
 
 val dynamic_facts_dummy =
-  Config.bool (Config.declare ("dynamic_facts_dummy_", @{here}) (fn _ => Config.Bool false));
+  Config.bool (Config.declare ("dynamic_facts_dummy_", \<^here>) (fn _ => Config.Bool false));
 
 local
 
@@ -1049,7 +1049,7 @@ end;
 (* inner statement mode *)
 
 val inner_stmt =
-  Config.bool (Config.declare ("inner_stmt", @{here}) (K (Config.Bool false)));
+  Config.bool (Config.declare ("inner_stmt", \<^here>) (K (Config.Bool false)));
 
 fun is_stmt ctxt = Config.get ctxt inner_stmt;
 val set_stmt = Config.put inner_stmt;
@@ -1571,10 +1571,10 @@ fun print_cases_proof ctxt0 ctxt =
 (* core context *)
 
 val debug =
-  Config.bool (Config.declare ("Proof_Context.debug", @{here}) (K (Config.Bool false)));
+  Config.bool (Config.declare ("Proof_Context.debug", \<^here>) (K (Config.Bool false)));
 
 val verbose =
-  Config.bool (Config.declare ("Proof_Context.verbose", @{here}) (K (Config.Bool false)));
+  Config.bool (Config.declare ("Proof_Context.verbose", \<^here>) (K (Config.Bool false)));
 
 fun pretty_ctxt ctxt =
   if not (Config.get ctxt debug) then []

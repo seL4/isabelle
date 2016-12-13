@@ -48,29 +48,29 @@ struct
 
 (** options for printing **)
 
-val show_brackets_raw = Config.declare_option ("show_brackets", @{here});
+val show_brackets_raw = Config.declare_option ("show_brackets", \<^here>);
 val show_brackets = Config.bool show_brackets_raw;
 
-val show_types_raw = Config.declare_option ("show_types", @{here});
+val show_types_raw = Config.declare_option ("show_types", \<^here>);
 val show_types = Config.bool show_types_raw;
 
-val show_sorts_raw = Config.declare_option ("show_sorts", @{here});
+val show_sorts_raw = Config.declare_option ("show_sorts", \<^here>);
 val show_sorts = Config.bool show_sorts_raw;
 
 val show_markup_default = Unsynchronized.ref false;
 val show_markup_raw =
-  Config.declare ("show_markup", @{here}) (fn _ => Config.Bool (! show_markup_default));
+  Config.declare ("show_markup", \<^here>) (fn _ => Config.Bool (! show_markup_default));
 val show_markup = Config.bool show_markup_raw;
 
 val show_structs_raw =
-  Config.declare ("show_structs", @{here}) (fn _ => Config.Bool false);
+  Config.declare ("show_structs", \<^here>) (fn _ => Config.Bool false);
 val show_structs = Config.bool show_structs_raw;
 
-val show_question_marks_raw = Config.declare_option ("show_question_marks", @{here});
+val show_question_marks_raw = Config.declare_option ("show_question_marks", \<^here>);
 val show_question_marks = Config.bool show_question_marks_raw;
 
 val show_type_emphasis =
-  Config.bool (Config.declare ("show_type_emphasis", @{here}) (fn _ => Config.Bool true));
+  Config.bool (Config.declare ("show_type_emphasis", \<^here>) (fn _ => Config.Bool true));
 
 fun type_emphasis ctxt T =
   T <> dummyT andalso
@@ -169,7 +169,7 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain _  = false;
 
 val pretty_priority =
-  Config.int (Config.declare ("Syntax.pretty_priority", @{here}) (K (Config.Int 0)));
+  Config.int (Config.declare ("Syntax.pretty_priority", \<^here>) (K (Config.Int 0)));
 
 fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
   let

@@ -101,7 +101,7 @@ fun finish ctxt tye (Ts, ts) =
 (* fixate -- introduce fresh type variables *)
 
 val object_logic =
-  Config.bool (Config.declare ("Type_Infer.object_logic", @{here}) (K (Config.Bool true)));
+  Config.bool (Config.declare ("Type_Infer.object_logic", \<^here>) (K (Config.Bool true)));
 
 fun fixate ctxt pattern ts =
   let

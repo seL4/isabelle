@@ -141,7 +141,7 @@ val criterion =
   Parse.typ >> Loose;
 
 val query_keywords =
-  Keyword.add_keywords [((":", @{here}), Keyword.no_spec)] Keyword.empty_keywords;
+  Keyword.add_keywords [((":", \<^here>), Keyword.no_spec)] Keyword.empty_keywords;
 
 in
 

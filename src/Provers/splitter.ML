@@ -473,9 +473,9 @@ val _ = Theory.setup
 (* methods *)
 
 val split_modifiers =
- [Args.$$$ splitN -- Args.colon >> K (Method.modifier (split_add false) @{here}),
-  Args.$$$ splitN -- Args.bang_colon >> K (Method.modifier (split_add true) @{here}),
-  Args.$$$ splitN -- Args.del -- Args.colon >> K (Method.modifier split_del @{here})];
+ [Args.$$$ splitN -- Args.colon >> K (Method.modifier (split_add false) \<^here>),
+  Args.$$$ splitN -- Args.bang_colon >> K (Method.modifier (split_add true) \<^here>),
+  Args.$$$ splitN -- Args.del -- Args.colon >> K (Method.modifier split_del \<^here>)];
 
 val _ =
   Theory.setup

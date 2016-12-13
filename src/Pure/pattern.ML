@@ -31,7 +31,7 @@ exception Unif;
 exception Pattern;
 
 val unify_trace_failure_raw =
-  Config.declare ("unify_trace_failure", @{here}) (fn _ => Config.Bool false);
+  Config.declare ("unify_trace_failure", \<^here>) (fn _ => Config.Bool false);
 val unify_trace_failure = Config.bool unify_trace_failure_raw;
 
 fun string_of_term ctxt env binders t =

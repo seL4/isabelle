@@ -193,9 +193,9 @@ val _ =
 val iffN = "iff";
 
 val iff_modifiers =
- [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add @{here}),
-  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add' @{here}),
-  Args.$$$ iffN -- Args.del -- Args.colon >> K (Method.modifier iff_del @{here})];
+ [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add \<^here>),
+  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add' \<^here>),
+  Args.$$$ iffN -- Args.del -- Args.colon >> K (Method.modifier iff_del \<^here>)];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @

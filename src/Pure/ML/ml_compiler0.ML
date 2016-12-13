@@ -63,7 +63,7 @@ fun drop_newline s =
 
 fun ml_input start_line name txt =
   let
-    fun input line (#"@" :: #"{" :: #"h" :: #"e" :: #"r" :: #"e" :: #"}" :: cs) res =
+    fun input line (#"\\" :: #"<" :: #"^" :: #"h" :: #"e" :: #"r" :: #"e" :: #">" :: cs) res =
           let val s = "(Position.line_file_only " ^ Int.toString line ^ " \"" ^ name ^ "\")"
           in input line cs (s :: res) end
       | input line (#"@" :: #"{" :: #"m" :: #"a" :: #"k" :: #"e" :: #"_" ::

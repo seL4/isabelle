@@ -25,13 +25,13 @@ struct
 (* source trace *)
 
 val source_trace_raw =
-  Config.declare ("ML_source_trace", @{here}) (fn _ => Config.Bool false);
+  Config.declare ("ML_source_trace", \<^here>) (fn _ => Config.Bool false);
 val source_trace = Config.bool source_trace_raw;
 
 
 (* exception trace *)
 
-val exception_trace_raw = Config.declare_option ("ML_exception_trace", @{here});
+val exception_trace_raw = Config.declare_option ("ML_exception_trace", \<^here>);
 val exception_trace = Config.bool exception_trace_raw;
 
 fun exception_trace_enabled NONE =
@@ -41,7 +41,7 @@ fun exception_trace_enabled NONE =
 
 (* exception debugger *)
 
-val exception_debugger_raw = Config.declare_option ("ML_exception_debugger", @{here});
+val exception_debugger_raw = Config.declare_option ("ML_exception_debugger", \<^here>);
 val exception_debugger = Config.bool exception_debugger_raw;
 
 fun exception_debugger_enabled NONE =
@@ -51,7 +51,7 @@ fun exception_debugger_enabled NONE =
 
 (* debugger *)
 
-val debugger_raw = Config.declare_option ("ML_debugger", @{here});
+val debugger_raw = Config.declare_option ("ML_debugger", \<^here>);
 val debugger = Config.bool debugger_raw;
 
 fun debugger_enabled NONE =
