@@ -48,7 +48,7 @@ end;
 
 fun sync_wait time cond lock =
   Thread_Attributes.with_attributes
-    (Thread_Attributes.sync_interrupts (Thread.getAttributes ()))
+    (Thread_Attributes.sync_interrupts (Thread_Attributes.get_attributes ()))
     (fn _ =>
       (case time of
         SOME t => Exn.Res (ConditionVar.waitUntil (cond, lock, t))

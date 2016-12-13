@@ -50,7 +50,8 @@ type params = {name: string, stack_limit: int option, interrupts: bool};
 
 fun attributes ({stack_limit, interrupts, ...}: params) =
   Thread.MaximumMLStack stack_limit ::
-  (if interrupts then Thread_Attributes.public_interrupts else Thread_Attributes.no_interrupts);
+  Thread_Attributes.convert_attributes
+    (if interrupts then Thread_Attributes.public_interrupts else Thread_Attributes.no_interrupts);
 
 fun fork (params: params) body =
   Thread.fork (fn () =>

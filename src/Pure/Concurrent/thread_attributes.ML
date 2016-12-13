@@ -6,7 +6,10 @@ Thread attributes for interrupt handling.
 
 signature THREAD_ATTRIBUTES =
 sig
-  type attributes = Thread.Thread.threadAttribute list
+  type attributes
+  val get_attributes: unit -> attributes
+  val set_attributes: attributes -> unit
+  val convert_attributes: attributes -> Thread.Thread.threadAttribute list
   val no_interrupts: attributes
   val test_interrupts: attributes
   val public_interrupts: attributes
@@ -21,40 +24,77 @@ end;
 structure Thread_Attributes: THREAD_ATTRIBUTES =
 struct
 
-type attributes = Thread.Thread.threadAttribute list;
+abstype attributes = Attributes of Word.word
+with
 
-val no_interrupts =
-  [Thread.Thread.EnableBroadcastInterrupt false,
-    Thread.Thread.InterruptState Thread.Thread.InterruptDefer];
+(* thread attributes *)
 
-val test_interrupts =
-  [Thread.Thread.EnableBroadcastInterrupt false,
-    Thread.Thread.InterruptState Thread.Thread.InterruptSynch];
+val thread_attributes = 0w7;
 
-val public_interrupts =
-  [Thread.Thread.EnableBroadcastInterrupt true,
-    Thread.Thread.InterruptState Thread.Thread.InterruptAsynchOnce];
+val broadcast = 0w1;
 
-val private_interrupts =
-  [Thread.Thread.EnableBroadcastInterrupt false,
-    Thread.Thread.InterruptState Thread.Thread.InterruptAsynchOnce];
+val interrupt_state = 0w6;
+val interrupt_defer = 0w0;
+val interrupt_synch = 0w2;
+val interrupt_asynch = 0w4;
+val interrupt_asynch_once = 0w6;
 
-val sync_interrupts = map
-  (fn x as Thread.Thread.InterruptState Thread.Thread.InterruptDefer => x
-    | Thread.Thread.InterruptState _ => Thread.Thread.InterruptState Thread.Thread.InterruptSynch
-    | x => x);
 
-val safe_interrupts = map
-  (fn Thread.Thread.InterruptState Thread.Thread.InterruptAsynch =>
-      Thread.Thread.InterruptState Thread.Thread.InterruptAsynchOnce
-    | x => x);
+(* access thread flags *)
+
+val thread_flags = 0w1;
+
+fun load_word () : word =
+  RunCall.loadWord (RunCall.unsafeCast (Thread.Thread.self ()), thread_flags);
+
+fun get_attributes () = Attributes (Word.andb (load_word (), thread_attributes));
+
+fun set_attributes (Attributes w) =
+  let
+    val w' = Word.orb (Word.andb (load_word (), Word.notb thread_attributes), w);
+    val _ = RunCall.storeWord (RunCall.unsafeCast (Thread.Thread.self ()), thread_flags, w');
+  in
+    if Word.andb (w', interrupt_asynch) = interrupt_asynch
+    then Thread.Thread.testInterrupt () else ()
+  end;
+
+fun convert_attributes (Attributes w) =
+  [Thread.Thread.EnableBroadcastInterrupt (Word.andb (w, broadcast) = broadcast),
+   Thread.Thread.InterruptState
+      let val w' = Word.andb (w, interrupt_state) in
+        if w' = interrupt_defer then Thread.Thread.InterruptDefer
+        else if w' = interrupt_synch then Thread.Thread.InterruptSynch
+        else if w' = interrupt_asynch then Thread.Thread.InterruptAsynch
+        else Thread.Thread.InterruptAsynchOnce
+      end];
+
+
+(* common configurations *)
+
+val no_interrupts = Attributes interrupt_defer;
+val test_interrupts = Attributes interrupt_synch;
+val public_interrupts = Attributes (Word.orb (broadcast, interrupt_asynch_once));
+val private_interrupts = Attributes interrupt_asynch_once;
+
+fun sync_interrupts (Attributes w) =
+  let
+    val w' = Word.andb (w, interrupt_state);
+    val w'' = Word.andb (w, Word.notb interrupt_state);
+  in Attributes (if w' = interrupt_defer then w else Word.orb (w'', interrupt_synch)) end;
+
+fun safe_interrupts (Attributes w) =
+  let
+    val w' = Word.andb (w, interrupt_state);
+    val w'' = Word.andb (w, Word.notb interrupt_state);
+  in Attributes (if w' = interrupt_asynch then Word.orb (w'', interrupt_asynch_once) else w) end;
+
+end;
 
 fun with_attributes new_atts e =
   let
-    val orig_atts = safe_interrupts (Thread.Thread.getAttributes ());
-    val result = Exn.capture (fn () =>
-      (Thread.Thread.setAttributes (safe_interrupts new_atts); e orig_atts)) ();
-    val _ = Thread.Thread.setAttributes orig_atts;
+    val orig_atts = safe_interrupts (get_attributes ());
+    val result = Exn.capture (fn () => (set_attributes (safe_interrupts new_atts); e orig_atts)) ();
+    val _ = set_attributes orig_atts;
   in Exn.release result end;
 
 fun uninterruptible f x =
@@ -63,10 +103,10 @@ fun uninterruptible f x =
 
 fun expose_interrupt () =
   let
-    val orig_atts = safe_interrupts (Thread.Thread.getAttributes ());
-    val _ = Thread.Thread.setAttributes test_interrupts;
+    val orig_atts = safe_interrupts (get_attributes ());
+    val _ = set_attributes test_interrupts;
     val test = Exn.capture Thread.Thread.testInterrupt ();
-    val _ = Thread.Thread.setAttributes orig_atts;
+    val _ = set_attributes orig_atts;
   in Exn.release test end;
 
 end;
