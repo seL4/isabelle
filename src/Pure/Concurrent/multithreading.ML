@@ -61,7 +61,7 @@ fun sync_wait time cond lock =
 val trace = ref 0;
 
 fun tracing level msg =
-  if level > ! trace then ()
+  if ! trace < level then ()
   else Thread_Attributes.uninterruptible (fn _ => fn () =>
     (TextIO.output (TextIO.stdErr, (">>> " ^ msg () ^ "\n")); TextIO.flushOut TextIO.stdErr)
       handle _ (*sic*) => ()) ();
