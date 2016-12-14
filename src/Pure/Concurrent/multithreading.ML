@@ -79,20 +79,27 @@ fun tracing_time detailed time =
 
 fun synchronized name lock e =
   Exn.release (Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
-    let
-      val immediate =
-        if Mutex.trylock lock then true
-        else
-          let
-            val _ = tracing 5 (fn () => name ^ ": locking ...");
-            val timer = Timer.startRealTimer ();
-            val _ = Mutex.lock lock;
-            val time = Timer.checkRealTimer timer;
-            val _ = tracing_time true time (fn () => name ^ ": locked after " ^ Time.toString time);
-          in false end;
-      val result = Exn.capture (restore_attributes e) ();
-      val _ = if immediate then () else tracing 5 (fn () => name ^ ": unlocking ...");
-      val _ = Mutex.unlock lock;
-    in result end) ());
+    if ! trace > 0 then
+      let
+        val immediate =
+          if Mutex.trylock lock then true
+          else
+            let
+              val _ = tracing 5 (fn () => name ^ ": locking ...");
+              val timer = Timer.startRealTimer ();
+              val _ = Mutex.lock lock;
+              val time = Timer.checkRealTimer timer;
+              val _ = tracing_time true time (fn () => name ^ ": locked after " ^ Time.toString time);
+            in false end;
+        val result = Exn.capture (restore_attributes e) ();
+        val _ = if immediate then () else tracing 5 (fn () => name ^ ": unlocking ...");
+        val _ = Mutex.unlock lock;
+      in result end
+    else
+      let
+        val _ = Mutex.lock lock;
+        val result = Exn.capture (restore_attributes e) ();
+        val _ = Mutex.unlock lock;
+      in result end) ());
 
 end;
