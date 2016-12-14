@@ -1159,24 +1159,34 @@ fun extract_rho_from_equation
                 |> `(curry fastype_of1 bound_Ts)
                 |>> build_params bound_Us bound_Ts
                 |-> explore;
-              val Us = map (fpT_to ssig_T) (snd (dest_Type (fastype_of1 (bound_Us, mapped_arg'))));
-              val temporary_map = map_tm
-                |> mk_map n Us Ts;
-              val map_fn_Ts = fastype_of #> strip_fun_type #> fst;
-              val binder_Uss = map_fn_Ts temporary_map
-                |> map (map (fpT_to ssig_T) o binder_types);
-              val fun_paramss = map_fn_Ts (head_of func)
-                |> map (build_params bound_Us bound_Ts);
-              val fs' = fs |> @{map 4} explore_fun binder_Uss (replicate n explore) fun_paramss;
-              val SOME bnf = bnf_of lthy T_name;
-              val Type (_, bnf_Ts) = T_of_bnf bnf;
-              val typ_alist =
-                lives_of_bnf bnf ~~ map (curry fastype_of1 bound_Us #> range_type) fs';
-              val Us' = map2 the_default Us (map (AList.lookup (op =) typ_alist) bnf_Ts);
-              val map_tm' = map_tm |> mk_map n Us Us';
             in
-              build_function_after_encapsulation func (list_comb (map_tm', fs')) params [mapped_arg]
-                [mapped_arg']
+              (case fastype_of1 (bound_Us, mapped_arg') of
+                Type (U_name, Us0) =>
+                if U_name = T_name then
+                  let
+                    val Us = map (fpT_to ssig_T) Us0;
+                    val temporary_map = map_tm
+                      |> mk_map n Us Ts;
+                    val map_fn_Ts = fastype_of #> strip_fun_type #> fst;
+                    val binder_Uss = map_fn_Ts temporary_map
+                      |> map (map (fpT_to ssig_T) o binder_types);
+                    val fun_paramss = map_fn_Ts (head_of func)
+                      |> map (build_params bound_Us bound_Ts);
+                    val fs' = fs
+                      |> @{map 4} explore_fun binder_Uss (replicate n explore) fun_paramss;
+                    val SOME bnf = bnf_of lthy T_name;
+                    val Type (_, bnf_Ts) = T_of_bnf bnf;
+                    val typ_alist =
+                      lives_of_bnf bnf ~~ map (curry fastype_of1 bound_Us #> range_type) fs';
+                    val Us' = map2 the_default Us (map (AList.lookup (op =) typ_alist) bnf_Ts);
+                    val map_tm' = map_tm |> mk_map n Us Us';
+                  in
+                    build_function_after_encapsulation func (list_comb (map_tm', fs')) params
+                      [mapped_arg] [mapped_arg']
+                  end
+                else
+                  explore params t
+              | _ => explore params t)
             end
           | NONE => explore params t)
       | massage_map explore params t = explore params t;
