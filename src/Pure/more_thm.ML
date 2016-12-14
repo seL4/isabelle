@@ -452,8 +452,7 @@ fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;
 (* close_derivation *)
 
 fun close_derivation thm =
-  if Thm.derivation_name thm = "" then Thm.name_derivation "" thm
-  else thm;
+  if Thm.derivation_closed thm then thm else Thm.name_derivation "" thm;
 
 
 (* user renaming of parameters in a subgoal *)

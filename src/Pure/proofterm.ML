@@ -60,6 +60,8 @@ sig
 
   (** primitive operations **)
   val proofs_enabled: unit -> bool
+  val atomic_proof: proof -> bool
+  val compact_proof: proof -> bool
   val proof_combt: proof * term list -> proof
   val proof_combt': proof * term option list -> proof
   val proof_combP: proof * proof list -> proof
@@ -356,6 +358,19 @@ end;
 
 
 (***** proof objects with different levels of detail *****)
+
+fun atomic_proof prf =
+  (case prf of
+    Abst _ => false
+  | AbsP _ => false
+  | op % _ => false
+  | op %% _ => false
+  | Promise _ => false
+  | _ => true);
+
+fun compact_proof (prf % _) = compact_proof prf
+  | compact_proof (prf1 %% prf2) = atomic_proof prf2 andalso compact_proof prf1
+  | compact_proof prf = atomic_proof prf;
 
 fun (prf %> t) = prf % SOME t;
 

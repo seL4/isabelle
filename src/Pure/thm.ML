@@ -89,6 +89,7 @@ sig
   val join_proofs: thm list -> unit
   val peek_status: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
+  val derivation_closed: thm -> bool
   val derivation_name: thm -> string
   val name_derivation: string -> thm -> thm
   val axiom: theory -> string -> thm
@@ -653,6 +654,10 @@ fun future future_thm ct =
 
 
 (* closed derivations with official name *)
+
+(*non-deterministic, depends on unknown promises*)
+fun derivation_closed (Thm (Deriv {body, ...}, _)) =
+  Proofterm.compact_proof (Proofterm.proof_of body);
 
 (*non-deterministic, depends on unknown promises*)
 fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
