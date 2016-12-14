@@ -156,7 +156,8 @@ fun mk_abs_transfer ctxt fpT_name =
         Variable.add_free_names ctxt goal []
         |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
           unfold_thms_tac ctxt [rel_def] THEN
-          HEADGOAL (rtac ctxt (@{thm Abs_transfer} OF [type_definition, type_definition]))))
+          HEADGOAL (rtac ctxt refl ORELSE'
+            rtac ctxt (@{thm Abs_transfer} OF [type_definition, type_definition]))))
       end
   end;
 
@@ -178,7 +179,7 @@ fun mk_rep_transfer ctxt fpT_name =
         Variable.add_free_names ctxt goal []
         |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
           unfold_thms_tac ctxt [rel_def] THEN
-          HEADGOAL (rtac ctxt @{thm vimage2p_rel_fun})))
+          HEADGOAL (rtac ctxt refl ORELSE' rtac ctxt @{thm vimage2p_rel_fun})))
       end
   end;
 
