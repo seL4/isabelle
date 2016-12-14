@@ -96,7 +96,7 @@ fun the_lang_style lang =
   which we interpret to be the last line of the proof.*)
 fun is_last_line CNF (Pred (Interpreted_Logic False, [])) = true
   | is_last_line THF (Atom (THF_Atom_term
-      (Term_Func (Interpreted_Logic False, [])))) = true
+      (Term_Func (Interpreted_Logic False, [], [])))) = true
   | is_last_line _ _ = false
 
 fun tptp_dot_node with_label reverse_arrows

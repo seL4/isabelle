@@ -81,7 +81,7 @@ sig
     | General_List of general_term list
 
   and tptp_term =
-      Term_Func of symbol * tptp_term list
+      Term_FuncG of symbol * tptp_type list (*special hack for TPTP_Interpret*) * tptp_term list
     | Term_Var of string
     | Term_Conditional of tptp_formula * tptp_term * tptp_term
     | Term_Num of number_kind * string
@@ -117,6 +117,8 @@ sig
     | Sum_type of tptp_type * tptp_type (*only THF*)
     | Fmla_type of tptp_formula
     | Subtype of symbol * symbol (*only THF*)
+
+  val Term_Func: symbol * tptp_term list -> tptp_term (*for Yacc parser*)
 
   type general_list = general_term list
   type parent_details = general_list
@@ -230,7 +232,7 @@ and general_data = (*Bind of variable * formula_data*)
     | General_List of general_term list
 
   and tptp_term =
-      Term_Func of symbol * tptp_term list
+      Term_FuncG of symbol * tptp_type list (*special hack for TPTP_Interpret*) * tptp_term list
     | Term_Var of string
     | Term_Conditional of tptp_formula * tptp_term * tptp_term
     | Term_Num of number_kind * string
@@ -266,6 +268,8 @@ and general_data = (*Bind of variable * formula_data*)
     | Sum_type of tptp_type * tptp_type
     | Fmla_type of tptp_formula
     | Subtype of symbol * symbol
+
+fun Term_Func (symb, ts) = Term_FuncG (symb, [], ts)
 
 type general_list = general_term list
 type parent_details = general_list
@@ -405,9 +409,10 @@ fun status_to_string status_value =
 
 fun string_of_tptp_term x =
   case x of
-      Term_Func (symbol, tptp_term_list) =>
+      Term_FuncG (symbol, tptp_type_list, tptp_term_list) =>
         "(" ^ string_of_symbol symbol ^ " " ^
-        space_implode " " (map string_of_tptp_term tptp_term_list) ^ ")"
+        space_implode " " (map string_of_tptp_type tptp_type_list
+          @ map string_of_tptp_term tptp_term_list) ^ ")"
     | Term_Var str => str
     | Term_Conditional (tptp_formula, tptp_term1, tptp_term2) => "" (*FIXME*)
     | Term_Num (_, str) => str
@@ -531,22 +536,23 @@ and string_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
 (*infix symbols, including \subset, \cup, \cap*)
 fun latex_of_tptp_term x =
   case x of
-      Term_Func (Interpreted_Logic Equals, [tptp_t1, tptp_t2]) =>
+      Term_FuncG (Interpreted_Logic Equals, [], [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " = " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Interpreted_Logic NEquals, [tptp_t1, tptp_t2]) =>
+    | Term_FuncG (Interpreted_Logic NEquals, [], [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\neq " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Interpreted_Logic Or, [tptp_t1, tptp_t2]) =>
+    | Term_FuncG (Interpreted_Logic Or, [], [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\vee " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Interpreted_Logic And, [tptp_t1, tptp_t2]) =>
+    | Term_FuncG (Interpreted_Logic And, [], [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\wedge " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Interpreted_Logic Iff, [tptp_t1, tptp_t2]) =>
+    | Term_FuncG (Interpreted_Logic Iff, [], [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Interpreted_Logic If, [tptp_t1, tptp_t2]) =>
+    | Term_FuncG (Interpreted_Logic If, [], [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
 
-    | Term_Func (symbol, tptp_term_list) =>
+    | Term_FuncG (symbol, tptp_type_list, tptp_term_list) =>
         (*"(" ^*) latex_of_symbol symbol ^ "\\\\, " ^
-        space_implode "\\\\, " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
+        space_implode "\\\\, " (map latex_of_tptp_type tptp_type_list
+          @ map latex_of_tptp_term tptp_term_list) (*^ ")"*)
     | Term_Var str => "\\\\mathrm{" ^ str ^ "}"
     | Term_Conditional (tptp_formula, tptp_term1, tptp_term2) => "" (*FIXME*)
     | Term_Num (_, str) => str
@@ -647,10 +653,10 @@ and latex_of_tptp_formula (Pred (Interpreted_Logic Equals, [tptp_t1, tptp_t2])) 
       latex_of_symbol symbol ^
        space_implode "\\\\, " (map latex_of_tptp_term tptp_term_list)
 
-  | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "union", []))), tptp_f1]), tptp_f2])) =
+  | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_FuncG (Uninterpreted "union", [], []))), tptp_f1]), tptp_f2])) =
       "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_f2 ^ ")"
 
-  | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "subset", []))), tptp_f1]), tptp_f2])) =
+  | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_FuncG (Uninterpreted "subset", [], []))), tptp_f1]), tptp_f2])) =
       "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_f2 ^ ")"
 
   | latex_of_tptp_formula (Fmla (Interpreted_Logic Equals, [tptp_f1, tptp_f2])) =
