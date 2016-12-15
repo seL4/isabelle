@@ -20,8 +20,8 @@ fun thm_deps thy thms =
     fun make_node name directory =
       Graph_Display.session_node
        {name = Long_Name.base_name name, directory = directory, unfold = false, path = ""};
-    fun add_dep ("", _, _) = I
-      | add_dep (name, _, PBody {thms = thms', ...}) =
+    fun add_dep {name = "", ...} = I
+      | add_dep {name = name, body = PBody {thms = thms', ...}, ...} =
           let
             val prefix = #1 (split_last (Long_Name.explode name));
             val session =
@@ -73,7 +73,7 @@ fun unused_thms (base_thys, thys) =
 
     val used =
       Proofterm.fold_body_thms
-        (fn (a, _, _) => a <> "" ? Symtab.update (a, ()))
+        (fn {name = a, ...} => a <> "" ? Symtab.update (a, ()))
         (map Proofterm.strip_thm (Thm.proof_bodies_of (map (#1 o #2) new_thms)))
         Symtab.empty;
 

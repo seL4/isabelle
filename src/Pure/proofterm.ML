@@ -40,7 +40,8 @@ sig
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
-  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
+  val fold_body_thms: ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
+    proof_body list -> 'a -> 'a
   val join_bodies: proof_body list -> unit
   val peek_status: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
@@ -213,7 +214,7 @@ fun fold_body_thms f =
           let
             val body' = Future.join body;
             val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-          in (f (name, prop, body') x', seen') end);
+          in (f {serial = i, name = name, prop = prop, body = body'} x', seen') end);
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
 
 fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
