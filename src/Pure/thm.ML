@@ -585,9 +585,8 @@ fun join_promises [] = ()
 and join_promises_of thms = join_promises (Ord_List.make promise_ord (maps raw_promises_of thms));
 
 fun fulfill_body (th as Thm (Deriv {promises, body}, _)) =
-  Proofterm.fulfill_norm_proof (theory_of_thm th) (fulfill_promises promises) body
-and fulfill_promises promises =
-  map fst promises ~~ map fulfill_body (Future.joins (map snd promises));
+  let val fulfilled_promises = map #1 promises ~~ map fulfill_body (Future.joins (map #2 promises))
+  in Proofterm.fulfill_norm_proof (theory_of_thm th) fulfilled_promises body end;
 
 fun proof_bodies_of thms =
   let
