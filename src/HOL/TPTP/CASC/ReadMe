@@ -1,4 +1,4 @@
-Notes from Geoff:
+Notes from Geoff Sutcliffe:
 
 I added a few lines to the top of bin/isabelle ...
 
@@ -48,10 +48,11 @@ Notes to Geoff:
 		STAREXEC_WALLCLOCK_LIMIT=300 ./bin/starexec_run_isabelle_hot $TPTP/Problems/CSR/CSR150^3.p
 		STAREXEC_WALLCLOCK_LIMIT=300 ./bin/starexec_run_isabelle_hot $TPTP/Problems/SYO/SYO304^5.p
 
-  The first problem is unprovable; the second one is proved by Satallax.
+  The first problem is unprovable; the second one is proved by Satallax (after
+  some delay).
 
-  All the tools accept CNF, FOF, TFF0, or THF0 problems and output SZS
-  statuses of the form
+  All the tools accept CNF, FOF, TFF0, TFF1, THF0, or THF1 problems and output
+  SZS statuses of the form
 
   	% SZS status XXX
 
@@ -60,43 +61,32 @@ Notes to Geoff:
     {Unknown, TimedOut, Unsatisfiable, Theorem, Satisfiable, CounterSatisfiable}
 
   Nitpick also output a model within "% SZS begin" and "% SZS end" tags, in
-  its idiosyncratic syntax.
-
-  In 2011, there were some problems with Java (needed for Nitpick), because it
-  required so much memory at startup. I doubt there will be any problems this
-  year, because Isabelle now includes its own version of Java, but the solution
-  back then was to replace
-
-  	exec isabelle java
-
-  in the last line of the "contrib/kodkodi-1.5.2/bin/kodkodi" script with
-
-  	/usr/lib64/jvm/java-1.5.0-gcj-4.5-1.5.0.0/jre/bin/java
-
-  See the emails we exchanged on 18 July 2011, with the subject "No problem on
-  my Linux 64-bit".
+  its idiosyncratic syntax. For TFF0 and THF0, phantom type arguments are not
+  supported, and type quantifiers are only allowed at the outermost position
+  in a formula, as "forall".
 
   Enjoy!
 
 
 Notes to myself:
 
-  I downloaded the official Isabelle2015 Linux package from
+  I downloaded the official Isabelle2016-1 Linux package from
 
-    http://isabelle.in.tum.de/dist/Isabelle2015_linux.tar.gz
+    http://isabelle.in.tum.de/dist/Isabelle2016-1_linux.tar.gz
 
-  on "macbroy21" and renamed the directory "Isabelle2015-CASC". I modified
+  on "macbroy21" and renamed the directory "Isabelle2016-1-CASC". I modified
 
-    src/HOL/TPTP/atp_problem_import.ML
+    src/HOL/TPTP
 
   to include changes backported from the development version of Isabelle. I
-  then built a "HOL-TPTP" image:
+  also modified "bin/isabelle" as suggested by Geoff above. I then built a
+  "HOL-TPTP" image:
 
     ./bin/isabelle build -b HOL-TPTP
 
-  I copied the heaps over to "./heaps":
+  I moved the heaps over to "./heaps":
 
-    mv ~/.isabelle/Isabelle2015/heaps .
+    mv ~/.isabelle/Isabelle2016-1/heaps .
 
   I created some wrapper scripts in "./bin":
 
@@ -117,7 +107,7 @@ Notes to myself:
       http://page.mi.fu-berlin.de/cbenzmueller/leo/leo2_v1.6.2.tgz
 
     I did "make opt". I copied "bin/leo.opt" to
-    "~/Isabelle2015-CASC/contrib/leo".
+    "~/Isabelle2016-1-CASC/contrib/leo".
 
     I added this line to "etc/settings":
 
@@ -141,19 +131,19 @@ Notes to myself:
 
       SATALLAX_HOME=$ISABELLE_HOME/contrib
 
-  Vampire (2.6):
+  Vampire 4.0 (commit 2fedff6)
 
-    I copied the file "vampire", which I probably got from the 2013 CASC
-    archive and moved it to "~/Isabelle2013-CASC/contrib/vampire".
+    I copied the file "vampire", which I got from Giles Reger on 23 September
+    2015.
 
     I added these lines to "etc/settings":
 
       VAMPIRE_HOME=$ISABELLE_HOME/contrib
-      VAMPIRE_VERSION=3.0
+      VAMPIRE_VERSION=4.0
 
   Z3 TPTP (4.3.2.0 postrelease):
 
-    I cloned out the git repository:
+    For Isabelle2015, I cloned out the git repository:
 
       git clone https://git01.codeplex.com/z3
 
@@ -173,9 +163,11 @@ Notes to myself:
   "/tmp/T.thy" with the following content:
 
     theory T imports Main begin
+
     lemma "a = b ==> [b] = [a]"
-    sledgehammer [cvc4 e leo2 satallax spass vampire z3 z3_tptp] ()
-    oops
+      sledgehammer [cvc4 e leo2 satallax spass vampire z3 (*z3_tptp*)] ()
+      oops
+
     end
 
   Then I ran
@@ -196,4 +188,4 @@ Notes to myself:
 
 
                 Jasmin Blanchette
-                10 June 2015
+                15 December 2016

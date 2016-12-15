@@ -22,6 +22,7 @@ ML_file "atp_problem_import.ML"
 
 (*
 ML {* ATP_Problem_Import.isabelle_tptp_file @{theory} 50 "$TPTP/Problems/PUZ/PUZ107^5.p" *}
+ML {* ATP_Problem_Import.isabelle_hot_tptp_file @{theory} 20 "$TPTP/Problems/SYO/SYO304^5.p" *}
 *)
 
 end

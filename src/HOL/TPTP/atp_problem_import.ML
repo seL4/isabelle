@@ -11,7 +11,7 @@ sig
     'a list * ('a list * 'a list) * Proof.context
   val nitpick_tptp_file : theory -> int -> string -> unit
   val refute_tptp_file : theory -> int -> string -> unit
-  val can_tac : Proof.context -> tactic -> term -> bool
+  val can_tac : Proof.context -> (Proof.context -> tactic) -> term -> bool
   val SOLVE_TIMEOUT :  int -> string -> tactic -> tactic
   val atp_tac : Proof.context -> int -> (string * string) list -> int -> term list -> string ->
     int -> tactic
@@ -131,14 +131,15 @@ fun refute_tptp_file thy timeout file_name =
 
 (** Sledgehammer and Isabelle (combination of provers) **)
 
-fun can_tac ctxt tactic conj = can (Goal.prove ctxt [] [] conj) (K tactic)
+fun can_tac ctxt tactic conj =
+  can (Goal.prove_internal ctxt [] (Thm.cterm_of ctxt conj)) (fn [] => tactic ctxt)
 
 fun SOLVE_TIMEOUT seconds name tac st =
   let
     val _ = writeln ("running " ^ name ^ " for " ^ string_of_int seconds ^ " s")
     val result =
       Timeout.apply (Time.fromSeconds seconds) (fn () => SINGLE (SOLVE tac) st) ()
-        handle Timeout.TIMEOUT _ => NONE | ERROR _ => NONE
+      handle Timeout.TIMEOUT _ => NONE | ERROR _ => NONE
   in
     (case result of
       NONE => (writeln ("FAILURE: " ^ name); Seq.empty)
@@ -274,7 +275,7 @@ fun sledgehammer_tptp_file thy timeout file_name =
     val conj = make_conj ([], []) conjs
     val assms = op @ assms
   in
-    can_tac ctxt (sledgehammer_tac true ctxt timeout assms 1) conj
+    can_tac ctxt (fn ctxt => sledgehammer_tac true ctxt timeout assms 1) conj
     |> print_szs_of_success conjs
   end
 
@@ -287,9 +288,9 @@ fun generic_isabelle_tptp_file demo thy timeout file_name =
     val (last_hope_atp, last_hope_completeness) =
       if demo then (ATP_Proof.satallaxN, 0) else (ATP_Proof.vampireN, 2)
   in
-    (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) assms 1) full_conj orelse
-     can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) assms 1) conj orelse
-     can_tac ctxt (SOLVE_TIMEOUT timeout (last_hope_atp ^ "(*)")
+    (can_tac ctxt (fn ctxt => auto_etc_tac ctxt (timeout div 2) assms 1) full_conj orelse
+     can_tac ctxt (fn ctxt => sledgehammer_tac demo ctxt (timeout div 2) assms 1) conj orelse
+     can_tac ctxt (fn ctxt => SOLVE_TIMEOUT timeout (last_hope_atp ^ "(*)")
        (atp_tac ctxt last_hope_completeness [] timeout assms last_hope_atp 1)) full_conj)
     |> print_szs_of_success conjs
   end
