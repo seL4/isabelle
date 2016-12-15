@@ -599,7 +599,7 @@ fun proof_bodies_of thms =
 val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
-val join_proofs = ignore o proof_bodies_of;
+val join_proofs = Proofterm.join_bodies o proof_bodies_of;
 
 
 (* derivation status *)
