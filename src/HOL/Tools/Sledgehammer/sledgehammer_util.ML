@@ -84,8 +84,10 @@ exception TOO_MANY of unit
    be missing over there; or maybe the two code portions are not doing the same? *)
 fun fold_body_thm max_thms outer_name (map_plain_name, map_inclass_name) body =
   let
-    fun app_thm map_name (_, (name, _, body)) (accum as (num_thms, names)) =
+    fun app_thm map_name (_, thm_node) (accum as (num_thms, names)) =
       let
+        val name = Proofterm.thm_node_name thm_node
+        val body = Proofterm.thm_node_body thm_node
         val (anonymous, enter_class) =
           (* The "name = outer_name" case caters for the uncommon case where the proved theorem
              occurs in its own proof (e.g., "Transitive_Closure.trancl_into_trancl"). *)

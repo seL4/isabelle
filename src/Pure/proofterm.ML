@@ -10,6 +10,7 @@ signature BASIC_PROOFTERM =
 sig
   val proofs: int Unsynchronized.ref
 
+  type thm_node
   datatype proof =
      MinProof
    | PBound of int
@@ -25,7 +26,7 @@ sig
    | PThm of serial * ((string * term * typ list option) * proof_body future)
   and proof_body = PBody of
     {oracles: (string * term) Ord_List.T,
-     thms: (serial * (string * term * proof_body future)) Ord_List.T,
+     thms: (serial * thm_node) Ord_List.T,
      proof: proof}
 
   val %> : proof * term -> proof
@@ -35,9 +36,12 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
 
+  type pthm = serial * thm_node
   type oracle = string * term
-  type pthm = serial * (string * term * proof_body future)
   val proof_of: proof_body -> proof
+  val thm_node_name: thm_node -> string
+  val thm_node_prop: thm_node -> term
+  val thm_node_body: thm_node -> proof_body future
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms: ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
@@ -176,16 +180,22 @@ datatype proof =
  | PThm of serial * ((string * term * typ list option) * proof_body future)
 and proof_body = PBody of
   {oracles: (string * term) Ord_List.T,
-   thms: (serial * (string * term * proof_body future)) Ord_List.T,
-   proof: proof};
+   thms: (serial * thm_node) Ord_List.T,
+   proof: proof}
+and thm_node = Thm_Node of string * term * proof_body future;
 
 type oracle = string * term;
-type pthm = serial * (string * term * proof_body future);
+type pthm = serial * thm_node;
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
 
-fun join_thms (thms: pthm list) = ignore (Future.joins (map (#3 o #2) thms));
+fun thm_node_name (Thm_Node (name, _, _)) = name;
+fun thm_node_prop (Thm_Node (_, prop, _)) = prop;
+fun thm_node_body (Thm_Node (_, _, body)) = body;
+
+fun join_thms (thms: pthm list) =
+  ignore (Future.joins (map (fn (_, Thm_Node (_, _, body)) => body) thms));
 
 
 (***** proof atoms *****)
@@ -208,7 +218,7 @@ fun fold_proof_atoms all f =
 fun fold_body_thms f =
   let
     fun app (PBody {thms, ...}) =
-      tap join_thms thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
+      tap join_thms thms |> fold (fn (i, Thm_Node (name, prop, body)) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
@@ -224,7 +234,7 @@ fun peek_status bodies =
     fun status (PBody {oracles, thms, ...}) x =
       let
         val ((oracle, unfinished, failed), seen) =
-          (thms, x) |-> fold (fn (i, (_, _, body)) => fn (st, seen) =>
+          (thms, x) |-> fold (fn (i, Thm_Node (_, _, body)) => fn (st, seen) =>
             if Inttab.defined seen i then (st, seen)
             else
               let val seen' = Inttab.update (i, ()) seen in
@@ -246,7 +256,7 @@ fun peek_status bodies =
 (* proof body *)
 
 val oracle_ord = prod_ord fast_string_ord Term_Ord.fast_term_ord;
-fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
+fun thm_ord ((i, _): pthm, (j, _): pthm) = int_ord (j, i);
 
 val unions_oracles = Ord_List.unions oracle_ord;
 val unions_thms = Ord_List.unions thm_ord;
@@ -254,7 +264,7 @@ val unions_thms = Ord_List.unions thm_ord;
 val all_oracles_of =
   let
     fun collect (PBody {oracles, thms, ...}) =
-      tap join_thms thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
+      tap join_thms thms |> fold (fn (i, Thm_Node (_, _, body)) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
@@ -267,7 +277,7 @@ fun approximate_proof_body prf =
   let
     val (oracles, thms) = fold_proof_atoms false
       (fn Oracle (s, prop, _) => apfst (cons (s, prop))
-        | PThm (i, ((name, prop, _), body)) => apsnd (cons (i, (name, prop, body)))
+        | PThm (i, ((name, prop, _), body)) => apsnd (cons (i, Thm_Node (name, prop, body)))
         | _ => I) [prf] ([], []);
   in
     PBody
@@ -311,7 +321,7 @@ fun proof prf = prf |> variant
     ([int_atom a, b], triple term (option (list typ)) proof_body (c, d, Future.join body))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
   triple (list (pair string term)) (list pthm) proof (oracles, thms, prf)
-and pthm (a, (b, c, body)) =
+and pthm (a, Thm_Node (b, c, body)) =
   pair int (triple string term proof_body) (a, (b, c, Future.join body));
 
 in
@@ -348,7 +358,7 @@ and proof_body x =
   in PBody {oracles = a, thms = b, proof = c} end
 and pthm x =
   let val (a, (b, c, d)) = pair int (triple string term proof_body) x
-  in (a, (b, c, Future.value d)) end;
+  in (a, Thm_Node (b, c, Future.value d)) end;
 
 in
 
@@ -1606,7 +1616,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
           else new_prf ()
       | _ => new_prf ());
     val head = PThm (i, ((name, prop1, NONE), body'));
-  in ((i, (name, prop1, body')), head, args, argsP, args1) end;
+  in ((i, Thm_Node (name, prop1, body')), head, args, argsP, args1) end;
 
 fun thm_proof thy name shyps hyps concl promises body =
   let val (pthm, head, args, argsP, _) = prepare_thm_proof thy name shyps hyps concl promises body

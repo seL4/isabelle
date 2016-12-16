@@ -1309,9 +1309,9 @@ fun unconstrainT (thm as Thm (der, args)) =
     val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
     val ps = map (apsnd (Future.map fulfill_body)) promises;
-    val (pthm as (_, (_, prop', _)), proof) =
-      Proofterm.unconstrain_thm_proof thy shyps prop ps body;
+    val (pthm, proof) = Proofterm.unconstrain_thm_proof thy shyps prop ps body;
     val der' = make_deriv [] [] [pthm] proof;
+    val prop' = Proofterm.thm_node_prop (#2 pthm);
   in
     Thm (der',
      {cert = cert,

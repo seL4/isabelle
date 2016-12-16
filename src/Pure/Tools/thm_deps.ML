@@ -35,7 +35,7 @@ fun thm_deps thy thms =
                   | NONE => [])
               | _ => ["global"]);
             val node = make_node name (space_implode "/" (session @ prefix));
-            val deps = filter_out (fn s => s = "") (map (#1 o #2) thms');
+            val deps = filter_out (fn s => s = "") (map (Proofterm.thm_node_name o #2) thms');
           in Symtab.update (name, (node, deps)) end;
     val entries0 = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) Symtab.empty;
     val entries1 =

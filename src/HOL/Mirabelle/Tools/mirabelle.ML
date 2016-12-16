@@ -165,15 +165,17 @@ local
 
 fun fold_body_thms f =
   let
-    fun app n (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) =>
+    fun app n (PBody {thms, ...}) = thms |> fold (fn (i, thm_node) =>
       fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
-            val body' = Future.join body
-            val (x', seen') = app (n + (if name = "" then 0 else 1)) body'
+            val name = Proofterm.thm_node_name thm_node
+            val prop = Proofterm.thm_node_prop thm_node
+            val body = Future.join (Proofterm.thm_node_body thm_node)
+            val (x', seen') = app (n + (if name = "" then 0 else 1)) body
               (x, Inttab.update (i, ()) seen)
-        in (x' |> n = 0 ? f (name, prop, body'), seen') end)
+        in (x' |> n = 0 ? f (name, prop, body), seen') end)
   in fn bodies => fn x => #1 (fold (app 0) bodies (x, Inttab.empty)) end
 
 in
