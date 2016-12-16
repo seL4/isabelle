@@ -167,7 +167,7 @@ fun add_asserted outer_ctxt rewrite_rules assms asserted ctxt =
       assms
       |> map (apsnd (rewrite ctxt eqs'))
       |> map (apsnd (Conv.fconv_rule Thm.eta_conversion))
-      |> Old_Z3_Proof_Tools.thm_net_of snd 
+      |> Old_Z3_Proof_Tools.thm_net_of snd
 
     fun revert_conv ctxt = rewrite_conv ctxt eqs' then_conv Thm.eta_conversion
 
@@ -183,14 +183,14 @@ fun add_asserted outer_ctxt rewrite_rules assms asserted ctxt =
           if exact then (Thm.implies_elim thm1 th, ctxt)
           else assume thm1 ctxt
         val thms' = if exact then thms else th :: thms
-      in 
+      in
         ((insert (op =) i is, thms'),
           (ctxt', Inttab.update (idx, Thm thm) ptab))
       end
 
     fun add (idx, ct) (cx as ((is, thms), (ctxt, ptab))) =
       let
-        val thm1 = 
+        val thm1 =
           Thm.trivial ct
           |> Conv.fconv_rule (Conv.arg1_conv (revert_conv outer_ctxt))
         val thm2 = singleton (Variable.export ctxt outer_ctxt) thm1
@@ -218,7 +218,7 @@ local
   val mp_c = precomp (Thm.dest_binop o Thm.dest_arg) @{thm mp}
 in
 fun mp (MetaEq thm) p = Thm (Thm.implies_elim (comp meta_iffD1_c thm) p)
-  | mp p_q p = 
+  | mp p_q p =
       let
         val pq = thm_of p_q
         val thm = comp iffD1_c pq handle THM _ => comp mp_c pq
@@ -509,7 +509,7 @@ local
     (case lookup (Logic.mk_equals (apply2 Thm.term_of cp)) of
       SOME eq => eq
     | NONE => if exn then raise MONO else prove_refl cp)
-  
+
   val prove_exn = prove_eq true
   and prove_safe = prove_eq false
 
@@ -752,7 +752,9 @@ fun trace_before ctxt idx = Old_SMT_Config.trace_msg ctxt (fn r =>
 fun check_after idx r ps ct (p, (ctxt, _)) =
   if not (Config.get ctxt Old_SMT_Config.trace) then ()
   else
-    let val thm = thm_of p |> tap (Thm.join_proofs o single)
+    let
+      val thm = thm_of p
+      val _ = Thm.consolidate thm
     in
       if (Thm.cprop_of thm) aconvc ct then ()
       else
@@ -852,7 +854,7 @@ local
 
   fun discharge_assms_tac ctxt rules =
     REPEAT (HEADGOAL (resolve_tac ctxt rules ORELSE' SOLVED' (discharge_sk_tac ctxt)))
-    
+
   fun discharge_assms ctxt rules thm =
     if Thm.nprems_of thm = 0 then Goal.norm_result ctxt thm
     else
@@ -881,7 +883,7 @@ fun reconstruct outer_ctxt recon output =
     if Config.get ctxt2 Old_SMT_Config.filter_only_facts then (is, @{thm TrueI})
     else
       (Thm @{thm TrueI}, cxp)
-      |> fold (prove simpset vars) steps 
+      |> fold (prove simpset vars) steps
       |> discharge rules outer_ctxt
       |> pair []
   end

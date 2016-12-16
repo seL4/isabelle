@@ -232,7 +232,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
           (Thm.term_of stmt);
   in
     res
-    |> length props > 1 ? Thm.close_derivation
+    |> Thm.close_derivation
     |> Conjunction.elim_balanced (length props)
     |> map (Assumption.export false ctxt' ctxt)
     |> Variable.export ctxt' ctxt

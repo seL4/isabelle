@@ -10,6 +10,7 @@ signature BASIC_PROOFTERM =
 sig
   val proofs: int Unsynchronized.ref
 
+  type thm_node
   datatype proof =
      MinProof
    | PBound of int
@@ -25,7 +26,7 @@ sig
    | PThm of serial * ((string * term * typ list option) * proof_body future)
   and proof_body = PBody of
     {oracles: (string * term) Ord_List.T,
-     thms: (serial * (string * term * proof_body future)) Ord_List.T,
+     thms: (serial * thm_node) Ord_List.T,
      proof: proof}
 
   val %> : proof * term -> proof
@@ -35,13 +36,17 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
 
+  type pthm = serial * thm_node
   type oracle = string * term
-  type pthm = serial * (string * term * proof_body future)
   val proof_of: proof_body -> proof
+  val thm_node_name: thm_node -> string
+  val thm_node_prop: thm_node -> term
+  val thm_node_body: thm_node -> proof_body future
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
-  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
-  val join_bodies: proof_body list -> unit
+  val fold_body_thms: ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
+    proof_body list -> 'a -> 'a
+  val consolidate: proof_body -> unit
   val peek_status: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
@@ -60,6 +65,8 @@ sig
 
   (** primitive operations **)
   val proofs_enabled: unit -> bool
+  val atomic_proof: proof -> bool
+  val compact_proof: proof -> bool
   val proof_combt: proof * term list -> proof
   val proof_combt': proof * term option list -> proof
   val proof_combP: proof * proof list -> proof
@@ -173,16 +180,35 @@ datatype proof =
  | PThm of serial * ((string * term * typ list option) * proof_body future)
 and proof_body = PBody of
   {oracles: (string * term) Ord_List.T,
-   thms: (serial * (string * term * proof_body future)) Ord_List.T,
-   proof: proof};
+   thms: (serial * thm_node) Ord_List.T,
+   proof: proof}
+and thm_node =
+  Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
 
 type oracle = string * term;
-type pthm = serial * (string * term * proof_body future);
+type pthm = serial * thm_node;
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
 
-fun join_thms (thms: pthm list) = ignore (Future.joins (map (#3 o #2) thms));
+fun rep_thm_node (Thm_Node args) = args;
+val thm_node_name = #name o rep_thm_node;
+val thm_node_prop = #prop o rep_thm_node;
+val thm_node_body = #body o rep_thm_node;
+val thm_node_consolidate = #consolidate o rep_thm_node;
+
+fun join_thms (thms: pthm list) =
+  Future.joins (map (thm_node_body o #2) thms);
+
+fun consolidate (PBody {thms, ...}) =
+  List.app (Lazy.force o thm_node_consolidate o #2) thms;
+
+fun make_thm_node name prop body =
+  Thm_Node {name = name, prop = prop, body = body,
+    consolidate =
+      Lazy.lazy (fn () =>
+        let val PBody {thms, ...} = Future.join body
+        in List.app consolidate (join_thms thms) end)};
 
 
 (***** proof atoms *****)
@@ -205,27 +231,27 @@ fun fold_proof_atoms all f =
 fun fold_body_thms f =
   let
     fun app (PBody {thms, ...}) =
-      tap join_thms thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
+      tap join_thms thms |> fold (fn (i, thm_node) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
-            val body' = Future.join body;
-            val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-          in (f (name, prop, body') x', seen') end);
+            val name = thm_node_name thm_node;
+            val prop = thm_node_prop thm_node;
+            val body = Future.join (thm_node_body thm_node);
+            val (x', seen') = app body (x, Inttab.update (i, ()) seen);
+          in (f {serial = i, name = name, prop = prop, body = body} x', seen') end);
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
-
-fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
 
 fun peek_status bodies =
   let
     fun status (PBody {oracles, thms, ...}) x =
       let
         val ((oracle, unfinished, failed), seen) =
-          (thms, x) |-> fold (fn (i, (_, _, body)) => fn (st, seen) =>
+          (thms, x) |-> fold (fn (i, thm_node) => fn (st, seen) =>
             if Inttab.defined seen i then (st, seen)
             else
               let val seen' = Inttab.update (i, ()) seen in
-                (case Future.peek body of
+                (case Future.peek (thm_node_body thm_node) of
                   SOME (Exn.Res body') => status body' (st, seen')
                 | SOME (Exn.Exn _) =>
                     let val (oracle, unfinished, _) = st
@@ -243,7 +269,7 @@ fun peek_status bodies =
 (* proof body *)
 
 val oracle_ord = prod_ord fast_string_ord Term_Ord.fast_term_ord;
-fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
+fun thm_ord ((i, _): pthm, (j, _): pthm) = int_ord (j, i);
 
 val unions_oracles = Ord_List.unions oracle_ord;
 val unions_thms = Ord_List.unions thm_ord;
@@ -251,12 +277,12 @@ val unions_thms = Ord_List.unions thm_ord;
 val all_oracles_of =
   let
     fun collect (PBody {oracles, thms, ...}) =
-      tap join_thms thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
+      tap join_thms thms |> fold (fn (i, thm_node) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
-            val body' = Future.join body;
-            val (x', seen') = collect body' (x, Inttab.update (i, ()) seen);
+            val body = Future.join (thm_node_body thm_node);
+            val (x', seen') = collect body (x, Inttab.update (i, ()) seen);
           in (if null oracles then x' else oracles :: x', seen') end);
   in fn body => unions_oracles (#1 (collect body ([], Inttab.empty))) end;
 
@@ -264,7 +290,7 @@ fun approximate_proof_body prf =
   let
     val (oracles, thms) = fold_proof_atoms false
       (fn Oracle (s, prop, _) => apfst (cons (s, prop))
-        | PThm (i, ((name, prop, _), body)) => apsnd (cons (i, (name, prop, body)))
+        | PThm (i, ((name, prop, _), body)) => apsnd (cons (i, make_thm_node name prop body))
         | _ => I) [prf] ([], []);
   in
     PBody
@@ -308,8 +334,9 @@ fun proof prf = prf |> variant
     ([int_atom a, b], triple term (option (list typ)) proof_body (c, d, Future.join body))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
   triple (list (pair string term)) (list pthm) proof (oracles, thms, prf)
-and pthm (a, (b, c, body)) =
-  pair int (triple string term proof_body) (a, (b, c, Future.join body));
+and pthm (a, thm_node) =
+  pair int (triple string term proof_body)
+    (a, (thm_node_name thm_node, thm_node_prop thm_node, Future.join (thm_node_body thm_node)));
 
 in
 
@@ -345,7 +372,7 @@ and proof_body x =
   in PBody {oracles = a, thms = b, proof = c} end
 and pthm x =
   let val (a, (b, c, d)) = pair int (triple string term proof_body) x
-  in (a, (b, c, Future.value d)) end;
+  in (a, make_thm_node b c (Future.value d)) end;
 
 in
 
@@ -356,6 +383,19 @@ end;
 
 
 (***** proof objects with different levels of detail *****)
+
+fun atomic_proof prf =
+  (case prf of
+    Abst _ => false
+  | AbsP _ => false
+  | op % _ => false
+  | op %% _ => false
+  | Promise _ => false
+  | _ => true);
+
+fun compact_proof (prf % _) = compact_proof prf
+  | compact_proof (prf1 %% prf2) = atomic_proof prf2 andalso compact_proof prf1
+  | compact_proof prf = atomic_proof prf;
 
 fun (prf %> t) = prf % SOME t;
 
@@ -533,11 +573,13 @@ fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
       prf_add_loose_bnos plev tlev prf2
         (prf_add_loose_bnos plev tlev prf1 p)
   | prf_add_loose_bnos plev tlev (prf % opt) (is, js) =
-      prf_add_loose_bnos plev tlev prf (case opt of
+      prf_add_loose_bnos plev tlev prf
+        (case opt of
           NONE => (is, insert (op =) ~1 js)
         | SOME t => (is, add_loose_bnos (t, tlev, js)))
   | prf_add_loose_bnos plev tlev (AbsP (_, opt, prf)) (is, js) =
-      prf_add_loose_bnos (plev+1) tlev prf (case opt of
+      prf_add_loose_bnos (plev+1) tlev prf
+        (case opt of
           NONE => (is, insert (op =) ~1 js)
         | SOME t => (is, add_loose_bnos (t, tlev, js)))
   | prf_add_loose_bnos plev tlev (Abst (_, _, prf)) p =
@@ -635,7 +677,7 @@ fun prf_subst_bounds args prf =
           handle Same.SAME => prf % Same.map_option (subst' lev) t)
       | subst _ _ = raise Same.SAME
     and substh lev prf = (subst lev prf handle Same.SAME => prf);
-  in case args of [] => prf | _ => substh 0 prf end;
+  in (case args of [] => prf | _ => substh 0 prf) end;
 
 fun prf_subst_pbounds args prf =
   let
@@ -651,7 +693,7 @@ fun prf_subst_pbounds args prf =
       | subst (prf % t) Plev tlev = subst prf Plev tlev % t
       | subst  _ _ _ = raise Same.SAME
     and substh prf Plev tlev = (subst prf Plev tlev handle Same.SAME => prf)
-  in case args of [] => prf | _ => substh prf 0 0 end;
+  in (case args of [] => prf | _ => substh prf 0 0) end;
 
 
 (**** Freezing and thawing of variables in proof terms ****)
@@ -992,7 +1034,7 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
         | Var _ => SOME (remove_types t)
         | _ => NONE) %
         (case head_of g of
-           Abs _ => SOME (remove_types u)
+          Abs _ => SOME (remove_types u)
         | Var _ => SOME (remove_types u)
         | _ => NONE) %% prf1 %% prf2
      | _ => prf % NONE % NONE %% prf1 %% prf2)
@@ -1105,7 +1147,8 @@ fun add_npvars q p Ts (vs, Const ("Pure.imp", _) $ t $ u) =
       add_npvars q p Ts (vs, if p andalso q then betapply (t, Var (("",0), T)) else t)
   | add_npvars q p Ts (vs, Abs (_, T, t)) = add_npvars q p (T::Ts) (vs, t)
   | add_npvars _ _ Ts (vs, t) = add_npvars' Ts (vs, t)
-and add_npvars' Ts (vs, t) = (case strip_comb t of
+and add_npvars' Ts (vs, t) =
+  (case strip_comb t of
     (Var (ixn, _), ts) => if test_args [] ts then vs
       else Library.foldl (add_npvars' Ts)
         (AList.update (op =) (ixn,
@@ -1115,19 +1158,20 @@ and add_npvars' Ts (vs, t) = (case strip_comb t of
 
 fun prop_vars (Const ("Pure.imp", _) $ P $ Q) = union (op =) (prop_vars P) (prop_vars Q)
   | prop_vars (Const ("Pure.all", _) $ Abs (_, _, t)) = prop_vars t
-  | prop_vars t = (case strip_comb t of
-      (Var (ixn, _), _) => [ixn] | _ => []);
+  | prop_vars t = (case strip_comb t of (Var (ixn, _), _) => [ixn] | _ => []);
 
 fun is_proj t =
   let
-    fun is_p i t = (case strip_comb t of
+    fun is_p i t =
+      (case strip_comb t of
         (Bound _, []) => false
       | (Bound j, ts) => j >= i orelse exists (is_p i) ts
       | (Abs (_, _, u), _) => is_p (i+1) u
       | (_, ts) => exists (is_p i) ts)
-  in (case strip_abs_body t of
-        Bound _ => true
-      | t' => is_p 0 t')
+  in
+    (case strip_abs_body t of
+      Bound _ => true
+    | t' => is_p 0 t')
   end;
 
 fun needed_vars prop =
@@ -1196,7 +1240,8 @@ val shrink_proof =
             val (ts', ts'') = chop (length vs) ts;
             val insts = take (length ts') (map (fst o dest_Var) vs) ~~ ts';
             val nvs = Library.foldl (fn (ixns', (ixn, ixns)) =>
-              insert (op =) ixn (case AList.lookup (op =) insts ixn of
+              insert (op =) ixn
+                (case AList.lookup (op =) insts ixn of
                   SOME (SOME t) => if is_proj t then union (op =) ixns ixns' else ixns'
                 | _ => union (op =) ixns ixns'))
                   (needed prop ts'' prfs, add_npvars false true [] ([], prop));
@@ -1250,12 +1295,12 @@ fun match_proof Ts tymatch =
 
     fun mtch Ts i j (pinst, tinst) (Hyp (Var (ixn, _)), prf) =
           if i = 0 andalso j = 0 then ((ixn, prf) :: pinst, tinst)
-          else (case apfst (flt i) (apsnd (flt j)
-                  (prf_add_loose_bnos 0 0 prf ([], []))) of
+          else
+            (case apfst (flt i) (apsnd (flt j) (prf_add_loose_bnos 0 0 prf ([], []))) of
               ([], []) => ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
-            | ([], _) => if j = 0 then
-                   ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
-                 else raise PMatch
+            | ([], _) =>
+                if j = 0 then ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
+                else raise PMatch
             | _ => raise PMatch)
       | mtch Ts i j inst (prf1 % opt1, prf2 % opt2) =
           optmatch (matcht Ts j) (mtch Ts i j inst (prf1, prf2)) (opt1, opt2)
@@ -1389,45 +1434,57 @@ fun rewrite_prf tymatch (rules, procs) prf =
       | rew0 Ts hs prf = rew Ts hs prf;
 
     fun rew1 _ _ (Hyp (Var _)) _ = NONE
-      | rew1 Ts hs skel prf = (case rew2 Ts hs skel prf of
-          SOME prf1 => (case rew0 Ts hs prf1 of
-              SOME (prf2, skel') => SOME (the_default prf2 (rew1 Ts hs skel' prf2))
-            | NONE => SOME prf1)
-        | NONE => (case rew0 Ts hs prf of
-              SOME (prf1, skel') => SOME (the_default prf1 (rew1 Ts hs skel' prf1))
-            | NONE => NONE))
+      | rew1 Ts hs skel prf =
+          (case rew2 Ts hs skel prf of
+            SOME prf1 =>
+              (case rew0 Ts hs prf1 of
+                SOME (prf2, skel') => SOME (the_default prf2 (rew1 Ts hs skel' prf2))
+              | NONE => SOME prf1)
+          | NONE =>
+              (case rew0 Ts hs prf of
+                SOME (prf1, skel') => SOME (the_default prf1 (rew1 Ts hs skel' prf1))
+              | NONE => NONE))
 
-    and rew2 Ts hs skel (prf % SOME t) = (case prf of
+    and rew2 Ts hs skel (prf % SOME t) =
+          (case prf of
             Abst (_, _, body) =>
               let val prf' = prf_subst_bounds [t] body
               in SOME (the_default prf' (rew2 Ts hs no_skel prf')) end
-          | _ => (case rew1 Ts hs (case skel of skel' % _ => skel' | _ => no_skel) prf of
-              SOME prf' => SOME (prf' % SOME t)
-            | NONE => NONE))
+          | _ =>
+              (case rew1 Ts hs (case skel of skel' % _ => skel' | _ => no_skel) prf of
+                SOME prf' => SOME (prf' % SOME t)
+              | NONE => NONE))
       | rew2 Ts hs skel (prf % NONE) = Option.map (fn prf' => prf' % NONE)
           (rew1 Ts hs (case skel of skel' % _ => skel' | _ => no_skel) prf)
-      | rew2 Ts hs skel (prf1 %% prf2) = (case prf1 of
+      | rew2 Ts hs skel (prf1 %% prf2) =
+          (case prf1 of
             AbsP (_, _, body) =>
               let val prf' = prf_subst_pbounds [prf2] body
               in SOME (the_default prf' (rew2 Ts hs no_skel prf')) end
           | _ =>
-            let val (skel1, skel2) = (case skel of
-                skel1 %% skel2 => (skel1, skel2)
-              | _ => (no_skel, no_skel))
-            in case rew1 Ts hs skel1 prf1 of
-                SOME prf1' => (case rew1 Ts hs skel2 prf2 of
+            let
+              val (skel1, skel2) =
+                (case skel of
+                  skel1 %% skel2 => (skel1, skel2)
+                | _ => (no_skel, no_skel))
+            in
+              (case rew1 Ts hs skel1 prf1 of
+                SOME prf1' =>
+                  (case rew1 Ts hs skel2 prf2 of
                     SOME prf2' => SOME (prf1' %% prf2')
                   | NONE => SOME (prf1' %% prf2))
-              | NONE => (case rew1 Ts hs skel2 prf2 of
+              | NONE =>
+                  (case rew1 Ts hs skel2 prf2 of
                     SOME prf2' => SOME (prf1 %% prf2')
-                  | NONE => NONE)
+                  | NONE => NONE))
             end)
-      | rew2 Ts hs skel (Abst (s, T, prf)) = (case rew1 (the_default dummyT T :: Ts) hs
+      | rew2 Ts hs skel (Abst (s, T, prf)) =
+          (case rew1 (the_default dummyT T :: Ts) hs
               (case skel of Abst (_, _, skel') => skel' | _ => no_skel) prf of
             SOME prf' => SOME (Abst (s, T, prf'))
           | NONE => NONE)
-      | rew2 Ts hs skel (AbsP (s, t, prf)) = (case rew1 Ts (t :: hs)
-              (case skel of AbsP (_, _, skel') => skel' | _ => no_skel) prf of
+      | rew2 Ts hs skel (AbsP (s, t, prf)) =
+          (case rew1 Ts (t :: hs) (case skel of AbsP (_, _, skel') => skel' | _ => no_skel) prf of
             SOME prf' => SOME (AbsP (s, t, prf'))
           | NONE => NONE)
       | rew2 _ _ _ _ = NONE;
@@ -1476,6 +1533,8 @@ fun promise_proof thy i prop =
 
 fun fulfill_norm_proof thy ps body0 =
   let
+    val _ = List.app (consolidate o #2) ps;
+    val _ = consolidate body0;
     val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
     val oracles =
       unions_oracles
@@ -1573,15 +1632,14 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
           else new_prf ()
       | _ => new_prf ());
     val head = PThm (i, ((name, prop1, NONE), body'));
-  in ((i, (name, prop1, body')), head, args, argsP, args1) end;
+  in ((i, make_thm_node name prop1 body'), head, args, argsP, args1) end;
 
 fun thm_proof thy name shyps hyps concl promises body =
   let val (pthm, head, args, argsP, _) = prepare_thm_proof thy name shyps hyps concl promises body
   in (pthm, proof_combP (proof_combt' (head, args), argsP)) end;
 
 fun unconstrain_thm_proof thy shyps concl promises body =
-  let
-    val (pthm, head, _, _, args) = prepare_thm_proof thy "" shyps [] concl promises body
+  let val (pthm, head, _, _, args) = prepare_thm_proof thy "" shyps [] concl promises body
   in (pthm, proof_combt' (head, args)) end;
 
 

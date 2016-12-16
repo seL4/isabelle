@@ -86,9 +86,10 @@ sig
   val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
-  val join_proofs: thm list -> unit
+  val consolidate: thm -> unit
   val peek_status: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
+  val derivation_closed: thm -> bool
   val derivation_name: thm -> string
   val name_derivation: string -> thm -> thm
   val axiom: theory -> string -> thm
@@ -584,21 +585,14 @@ fun join_promises [] = ()
 and join_promises_of thms = join_promises (Ord_List.make promise_ord (maps raw_promises_of thms));
 
 fun fulfill_body (th as Thm (Deriv {promises, body}, _)) =
-  Proofterm.fulfill_norm_proof (theory_of_thm th) (fulfill_promises promises) body
-and fulfill_promises promises =
-  map fst promises ~~ map fulfill_body (Future.joins (map snd promises));
+  let val fulfilled_promises = map #1 promises ~~ map fulfill_body (Future.joins (map #2 promises))
+  in Proofterm.fulfill_norm_proof (theory_of_thm th) fulfilled_promises body end;
 
-fun proof_bodies_of thms =
-  let
-    val _ = join_promises_of thms;
-    val bodies = map fulfill_body thms;
-    val _ = Proofterm.join_bodies bodies;
-  in bodies end;
-
+fun proof_bodies_of thms = (join_promises_of thms; map fulfill_body thms);
 val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
-val join_proofs = ignore o proof_bodies_of;
+val consolidate = ignore o proof_bodies_of o single;
 
 
 (* derivation status *)
@@ -653,6 +647,10 @@ fun future future_thm ct =
 
 
 (* closed derivations with official name *)
+
+(*non-deterministic, depends on unknown promises*)
+fun derivation_closed (Thm (Deriv {body, ...}, _)) =
+  Proofterm.compact_proof (Proofterm.proof_of body);
 
 (*non-deterministic, depends on unknown promises*)
 fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
@@ -1305,9 +1303,9 @@ fun unconstrainT (thm as Thm (der, args)) =
     val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
     val ps = map (apsnd (Future.map fulfill_body)) promises;
-    val (pthm as (_, (_, prop', _)), proof) =
-      Proofterm.unconstrain_thm_proof thy shyps prop ps body;
+    val (pthm, proof) = Proofterm.unconstrain_thm_proof thy shyps prop ps body;
     val der' = make_deriv [] [] [pthm] proof;
+    val prop' = Proofterm.thm_node_prop (#2 pthm);
   in
     Thm (der',
      {cert = cert,

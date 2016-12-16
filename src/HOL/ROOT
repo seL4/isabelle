@@ -18,10 +18,9 @@ session "HOL-Proofs" (timing) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false, quick_and_dirty = false]
+  options [document = false, quick_and_dirty = false, parallel_proofs = 0]
   theories Proofs (*sequential change of global flag!*)
-  theories List
-  theories [checkpoint] "~~/src/HOL/Library/Old_Datatype"
+  theories "~~/src/HOL/Library/Old_Datatype"
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"

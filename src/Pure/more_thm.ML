@@ -111,7 +111,7 @@ sig
   val untag: string -> attribute
   val kind: string -> attribute
   val register_proofs: thm list -> theory -> theory
-  val join_theory_proofs: theory -> unit
+  val consolidate_theory: theory -> unit
   val show_consts_raw: Config.raw
   val show_consts: bool Config.T
   val show_hyps_raw: Config.raw
@@ -452,8 +452,7 @@ fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;
 (* close_derivation *)
 
 fun close_derivation thm =
-  if Thm.derivation_name thm = "" then Thm.name_derivation "" thm
-  else thm;
+  if Thm.derivation_closed thm then thm else Thm.name_derivation "" thm;
 
 
 (* user renaming of parameters in a subgoal *)
@@ -645,8 +644,8 @@ structure Proofs = Theory_Data
 fun register_proofs more_thms =
   Proofs.map (fold (cons o Thm.trim_context) more_thms);
 
-fun join_theory_proofs thy =
-  Thm.join_proofs (map (Thm.transfer thy) (rev (Proofs.get thy)));
+fun consolidate_theory thy =
+  List.app (Thm.consolidate o Thm.transfer thy) (rev (Proofs.get thy));
 
 
 

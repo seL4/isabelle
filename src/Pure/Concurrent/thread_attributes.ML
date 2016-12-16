@@ -88,14 +88,20 @@ fun safe_interrupts (Attributes w) =
     val w'' = Word.andb (w, Word.notb interrupt_state);
   in Attributes (if w' = interrupt_asynch then Word.orb (w'', interrupt_asynch_once) else w) end;
 
-end;
-
 fun with_attributes new_atts e =
   let
-    val orig_atts = safe_interrupts (get_attributes ());
-    val result = Exn.capture (fn () => (set_attributes (safe_interrupts new_atts); e orig_atts)) ();
-    val _ = set_attributes orig_atts;
-  in Exn.release result end;
+    val atts1 = safe_interrupts (get_attributes ());
+    val atts2 = safe_interrupts new_atts;
+  in
+    if atts1 = atts2 then e atts1
+    else
+      let
+        val result = Exn.capture (fn () => (set_attributes atts2; e atts1)) ();
+        val _ = set_attributes atts1;
+      in Exn.release result end
+  end;
+
+end;
 
 fun uninterruptible f x =
   with_attributes no_interrupts (fn atts =>
