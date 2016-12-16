@@ -293,7 +293,7 @@ fun check_no_assoc thy prfx s = case get_type thy prfx s of
   | SOME _ => error ("Cannot associate a type with " ^ s ^
       "\nsince it is no record or enumeration type");
 
-fun check_enum [] [] = NONE 
+fun check_enum [] [] = NONE
   | check_enum els [] = SOME ("has no element(s) " ^ commas els)
   | check_enum [] cs = SOME ("has extra element(s) " ^
       commas (map (Long_Name.base_name o fst) cs))
@@ -305,7 +305,7 @@ fun check_enum [] [] = NONE
 fun invert_map [] = I
   | invert_map cmap =
       map (apfst (the o AList.lookup (op =) (map swap cmap)));
- 
+
 fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
       (check_no_assoc thy prfx s;
        (ids,
@@ -677,7 +677,7 @@ val builtin = Symtab.make (map (rpair ())
    "+", "-", "*", "/", "div", "mod", "**"]);
 
 fun complex_expr (Number _) = false
-  | complex_expr (Ident _) = false 
+  | complex_expr (Ident _) = false
   | complex_expr (Funct (s, es)) =
       not (Symtab.defined builtin s) orelse exists complex_expr es
   | complex_expr (Quantifier (_, _, _, e)) = complex_expr e
@@ -959,7 +959,7 @@ fun close incomplete thy =
     | SOME {vcs, path, ...} =>
         let
           val (proved, unproved) = partition_vcs vcs;
-          val _ = Thm.join_proofs (maps (#2 o snd) proved);
+          val _ = List.app Thm.consolidate (maps (#2 o snd) proved);
           val (proved', proved'') =
             List.partition (fn (_, (_, thms, _, _)) =>
               exists (#oracle o Thm.peek_status) thms) proved;
@@ -1117,7 +1117,7 @@ fun set_vcs ({types, vars, consts, funs} : decls)
           [(term_of_rule thy' prfx types pfuns ids rl, [])]))
            other_rules),
        Element.Notes ("", [((Binding.name "defns", []), map (rpair [] o single o snd) defs')])]
-          
+
   in
     set_env ctxt defs' types funs ids vcs' path prfx thy'
   end;

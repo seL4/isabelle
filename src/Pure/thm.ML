@@ -86,7 +86,7 @@ sig
   val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
-  val join_proofs: thm list -> unit
+  val consolidate: thm -> unit
   val peek_status: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
   val derivation_closed: thm -> bool
@@ -588,17 +588,11 @@ fun fulfill_body (th as Thm (Deriv {promises, body}, _)) =
   let val fulfilled_promises = map #1 promises ~~ map fulfill_body (Future.joins (map #2 promises))
   in Proofterm.fulfill_norm_proof (theory_of_thm th) fulfilled_promises body end;
 
-fun proof_bodies_of thms =
-  let
-    val _ = join_promises_of thms;
-    val bodies = map fulfill_body thms;
-    val _ = Proofterm.join_bodies bodies;
-  in bodies end;
-
+fun proof_bodies_of thms = (join_promises_of thms; map fulfill_body thms);
 val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
-val join_proofs = Proofterm.join_bodies o proof_bodies_of;
+val consolidate = ignore o proof_bodies_of o single;
 
 
 (* derivation status *)

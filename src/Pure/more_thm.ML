@@ -111,7 +111,7 @@ sig
   val untag: string -> attribute
   val kind: string -> attribute
   val register_proofs: thm list -> theory -> theory
-  val join_theory_proofs: theory -> unit
+  val consolidate_theory: theory -> unit
   val show_consts_raw: Config.raw
   val show_consts: bool Config.T
   val show_hyps_raw: Config.raw
@@ -644,8 +644,8 @@ structure Proofs = Theory_Data
 fun register_proofs more_thms =
   Proofs.map (fold (cons o Thm.trim_context) more_thms);
 
-fun join_theory_proofs thy =
-  Thm.join_proofs (map (Thm.transfer thy) (rev (Proofs.get thy)));
+fun consolidate_theory thy =
+  List.app (Thm.consolidate o Thm.transfer thy) (rev (Proofs.get thy));
 
 
 
