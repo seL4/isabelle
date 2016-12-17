@@ -201,10 +201,6 @@ lemmas push_mods' = mod_add_eq
 
 lemmas push_mods = push_mods' [THEN eq_reflection]
 lemmas pull_mods = push_mods [symmetric] rdmods [THEN eq_reflection]
-lemmas mod_simps = 
-  mod_mult_self2_is_0 [THEN eq_reflection]
-  mod_mult_self1_is_0 [THEN eq_reflection]
-  mod_mod_trivial [THEN eq_reflection]
 
 lemma nat_mod_eq:
   "!!b. b < n ==> a mod n = b mod n ==> a mod n = (b :: nat)" 

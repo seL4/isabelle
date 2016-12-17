@@ -57,7 +57,7 @@ lemma bitrunc_of_0 [simp]:
 
 lemma bitrunc_plus:
   "bitrunc n (bitrunc n a + bitrunc n b) = bitrunc n (a + b)"
-  by (simp add: bitrunc_eq_mod mod_add_eq [symmetric])
+  by (simp add: bitrunc_eq_mod mod_add_eq)
 
 lemma bitrunc_of_1_eq_0_iff [simp]:
   "bitrunc n 1 = 0 \<longleftrightarrow> n = 0"
@@ -74,12 +74,12 @@ instance int :: semiring_bits
 lemma bitrunc_uminus:
   fixes k :: int
   shows "bitrunc n (- (bitrunc n k)) = bitrunc n (- k)"
-  by (simp add: bitrunc_eq_mod mod_minus_eq [symmetric])
+  by (simp add: bitrunc_eq_mod mod_minus_eq)
 
 lemma bitrunc_minus:
   fixes k l :: int
   shows "bitrunc n (bitrunc n k - bitrunc n l) = bitrunc n (k - l)"
-  by (simp add: bitrunc_eq_mod mod_diff_eq [symmetric])
+  by (simp add: bitrunc_eq_mod mod_diff_eq)
 
 lemma bitrunc_nonnegative [simp]:
   fixes k :: int
@@ -279,7 +279,7 @@ lemma signed_of_int [simp]:
 
 lemma of_int_signed [simp]:
   "of_int (signed a) = a"
-  by transfer (simp add: signed_bitrunc_eq_bitrunc bitrunc_eq_mod zdiff_zmod_left)
+  by transfer (simp add: signed_bitrunc_eq_bitrunc bitrunc_eq_mod mod_simps)
 
 
 subsubsection \<open>Properties\<close>

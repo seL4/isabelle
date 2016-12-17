@@ -3206,7 +3206,7 @@ proof -
       using of_int_eq_iff apply fastforce
       by (metis of_int_add of_int_mult of_int_of_nat_eq)
     also have "... \<longleftrightarrow> int j mod int n = int k mod int n"
-      by (auto simp: zmod_eq_dvd_iff dvd_def algebra_simps)
+      by (auto simp: mod_eq_dvd_iff dvd_def algebra_simps)
     also have "... \<longleftrightarrow> j mod n = k mod n"
       by (metis of_nat_eq_iff zmod_int)
     finally have "(\<exists>z. \<i> * (of_nat j * (of_real pi * 2)) =

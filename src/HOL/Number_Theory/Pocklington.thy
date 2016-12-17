@@ -369,7 +369,7 @@ next
     hence th: "[a^?r = 1] (mod n)"
       using eqo mod_mult_left_eq[of "(a^?o)^?q" "a^?r" n]
       apply (simp add: cong_nat_def del: One_nat_def)
-      by (simp add: mod_mult_left_eq[symmetric])
+      by (metis mod_mult_left_eq nat_mult_1)
     {assume r: "?r = 0" hence ?rhs by (simp add: dvd_eq_mod_eq_0)}
     moreover
     {assume r: "?r \<noteq> 0"

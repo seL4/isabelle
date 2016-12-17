@@ -40,7 +40,7 @@ lemma abelian_group: "abelian_group R"
   apply (insert m_gt_one)
   apply (rule abelian_groupI)
   apply (unfold R_def residue_ring_def)
-  apply (auto simp add: mod_add_right_eq [symmetric] ac_simps)
+  apply (auto simp add: mod_add_right_eq ac_simps)
   apply (case_tac "x = 0")
   apply force
   apply (subgoal_tac "(x + (m - x)) mod m = 0")
@@ -55,7 +55,7 @@ lemma comm_monoid: "comm_monoid R"
   apply auto
   apply (subgoal_tac "x * y mod m * z mod m = z * (x * y mod m) mod m")
   apply (erule ssubst)
-  apply (subst mod_mult_right_eq [symmetric])+
+  apply (subst mod_mult_right_eq)+
   apply (simp_all only: ac_simps)
   done
 
@@ -64,9 +64,9 @@ lemma cring: "cring R"
   apply (rule abelian_group)
   apply (rule comm_monoid)
   apply (unfold R_def residue_ring_def, auto)
-  apply (subst mod_add_eq [symmetric])
+  apply (subst mod_add_eq)
   apply (subst mult.commute)
-  apply (subst mod_mult_right_eq [symmetric])
+  apply (subst mod_mult_right_eq)
   apply (simp add: field_simps)
   done
 
@@ -116,9 +116,9 @@ lemma res_neg_eq: "\<ominus> x = (- x) mod m"
   apply auto
   apply (rule the_equality)
   apply auto
-  apply (subst mod_add_right_eq [symmetric])
+  apply (subst mod_add_right_eq)
   apply auto
-  apply (subst mod_add_left_eq [symmetric])
+  apply (subst mod_add_left_eq)
   apply auto
   apply (subgoal_tac "y mod m = - x mod m")
   apply simp
@@ -143,13 +143,11 @@ lemma mod_in_carrier [iff]: "a mod m \<in> carrier R"
 
 lemma add_cong: "(x mod m) \<oplus> (y mod m) = (x + y) mod m"
   unfolding R_def residue_ring_def
-  apply auto
-  apply presburger
-  done
+  by (auto simp add: mod_simps)
 
 lemma mult_cong: "(x mod m) \<otimes> (y mod m) = (x * y) mod m"
   unfolding R_def residue_ring_def
-  by auto (metis mod_mult_eq)
+  by (auto simp add: mod_simps)
 
 lemma zero_cong: "\<zero> = 0"
   unfolding R_def residue_ring_def by auto

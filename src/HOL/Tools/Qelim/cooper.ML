@@ -824,8 +824,8 @@ val ss2 =
 val div_mod_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps @{thms simp_thms
-      mod_eq_0_iff_dvd mod_add_left_eq [symmetric] mod_add_right_eq [symmetric]
-      mod_add_eq [symmetric] div_add1_eq [symmetric] zdiv_zadd1_eq [symmetric]
+      mod_eq_0_iff_dvd mod_add_left_eq mod_add_right_eq
+      mod_add_eq div_add1_eq [symmetric] zdiv_zadd1_eq [symmetric]
       mod_self mod_by_0 div_by_0
       div_0 mod_0 div_by_1 mod_by_1
       div_by_Suc_0 mod_by_Suc_0 Suc_eq_plus1

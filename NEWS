@@ -6,6 +6,24 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Swapped orientation of congruence rules mod_add_left_eq,
+mod_add_right_eq, mod_add_eq, mod_mult_left_eq, mod_mult_right_eq,
+mod_mult_eq, mod_minus_eq, mod_diff_left_eq, mod_diff_right_eq,
+mod_diff_eq.  INCOMPATIBILITY.
+
+* Generalized some facts:
+    zminus_zmod ~> mod_minus_eq
+    zdiff_zmod_left ~> mod_diff_left_eq
+    zdiff_zmod_right ~> mod_diff_right_eq
+    zmod_eq_dvd_iff ~> mod_eq_dvd_iff
+INCOMPATIBILITY.
+
+* Named collection mod_simps covers various congruence rules
+concerning mod, replacing former zmod_simps.
+INCOMPATIBILITY.
+
 * (Co)datatype package:
   - The 'size_gen_o_map' lemma is no longer generated for datatypes
     with type class annotations. As a result, the tactic that derives
@@ -73,7 +91,6 @@ class, to resolve some situations where ambiguities may occur.
 
 * Solve direct: option "solve_direct_strict_warnings" gives explicit
 warnings for lemma statements with trivial proofs.
-
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

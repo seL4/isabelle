@@ -72,7 +72,7 @@ declare mod_mult_self1_is_0[algebra]
 declare zmod_eq_0_iff[algebra]
 declare dvd_0_left_iff[algebra]
 declare zdvd1_eq[algebra]
-declare zmod_eq_dvd_iff[algebra]
+declare mod_eq_dvd_iff[algebra]
 declare nat_mod_eq_iff[algebra]
 
 context semiring_parity

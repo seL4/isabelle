@@ -167,7 +167,7 @@ proof -
     fix a b
     assume a: "P_1 res a" "P_1 res b"
     hence "int p * int q dvd a - b"
-      using divides_mult[of "int p" "a - b" "int q"] pq_coprime_int zmod_eq_dvd_iff[of a _ b]
+      using divides_mult[of "int p" "a - b" "int q"] pq_coprime_int mod_eq_dvd_iff [of a _ b]
       unfolding P_1_def by force
     hence "a = b" using dvd_imp_le_int[of "a - b"] a unfolding P_1_def by fastforce
   }
@@ -187,7 +187,7 @@ proof
     assume a: "x \<in> BuC" "y \<in> BuC" "f_1 x = f_1 y"
     hence "int p * int q dvd x - y"
       using f_1_def pq_coprime_int divides_mult[of "int p" "x - y" "int q"] 
-            zmod_eq_dvd_iff[of x _ y] by auto
+            mod_eq_dvd_iff[of x _ y] by auto
     hence "x = y"
       using dvd_imp_le_int[of "x - y" "int p * int q"] a unfolding BuC_def by force
   }

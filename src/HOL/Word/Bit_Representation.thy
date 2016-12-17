@@ -308,16 +308,11 @@ lemma bintrunc_mod2p: "bintrunc n w = (w mod 2 ^ n)"
 
 lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
   apply (induct n arbitrary: w)
-   apply simp
-   apply (subst mod_add_left_eq)
-   apply (simp add: bin_last_def)
-   apply arith
-  apply (simp add: bin_last_def bin_rest_def Bit_def)
-  apply (clarsimp simp: mod_mult_mult1 [symmetric] 
-         mult_div_mod_eq [symmetric, THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
-  apply (rule trans [symmetric, OF _ emep1])
-  apply auto
+   apply (auto simp add: bin_last_odd bin_rest_def Bit_def elim!: evenE oddE)
+   apply (smt pos_zmod_mult_2 zle2p)
+  apply (simp add: mult_mod_right)
   done
+
 
 subsection "Simplifications for (s)bintrunc"
 
@@ -646,28 +641,6 @@ lemma sb_dec_lem':
 lemma sbintrunc_dec:
   "x >= (2 ^ n) ==> x - 2 ^ (Suc n) >= sbintrunc n x"
   unfolding no_sbintr_alt2 by (drule sb_dec_lem') simp
-
-lemmas zmod_uminus' = zminus_zmod [where m=c] for c
-lemmas zpower_zmod' = power_mod [where b=c and n=k] for c k
-
-lemmas brdmod1s' [symmetric] =
-  mod_add_left_eq mod_add_right_eq
-  mod_diff_left_eq mod_diff_right_eq
-  mod_mult_left_eq mod_mult_right_eq
-
-lemmas brdmods' [symmetric] = 
-  zpower_zmod' [symmetric]
-  trans [OF mod_add_left_eq mod_add_right_eq] 
-  trans [OF mod_diff_left_eq mod_diff_right_eq] 
-  trans [OF mod_mult_right_eq mod_mult_left_eq] 
-  zmod_uminus' [symmetric]
-  mod_add_left_eq [where b = "1::int"]
-  mod_diff_left_eq [where b = "1::int"]
-
-lemmas bintr_arith1s =
-  brdmod1s' [where c="2^n::int", folded bintrunc_mod2p] for n
-lemmas bintr_ariths =
-  brdmods' [where c="2^n::int", folded bintrunc_mod2p] for n
 
 lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p]
 
