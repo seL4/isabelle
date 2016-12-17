@@ -528,7 +528,7 @@ interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
-interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "op +" 0 "op -" "op \<le>#" "op <#"
+interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "op +" 0 "op -" "op \<subseteq>#" "op \<subset>#"
   by standard
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
@@ -547,7 +547,7 @@ lemma mset_subset_eq_exists_conv: "(A::'a multiset) \<subseteq># B \<longleftrig
    apply (auto intro: multiset_eq_iff [THEN iffD2])
   done
 
-interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<le>#" "op <#" "op -"
+interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<subseteq>#" "op \<subset>#" "op -"
   by standard (simp, fact mset_subset_eq_exists_conv)
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
@@ -628,8 +628,8 @@ lemma mset_subset_insertD:
 lemma mset_subset_of_empty[simp]: "A \<subset># {#} \<longleftrightarrow> False"
   by (simp only: subset_mset.not_less_zero)
 
-lemma empty_subset_add_mset[simp]: "{#} <# add_mset x M"
-by(auto intro: subset_mset.gr_zeroI)
+lemma empty_subset_add_mset[simp]: "{#} \<subset># add_mset x M"
+  by (auto intro: subset_mset.gr_zeroI)
 
 lemma empty_le: "{#} \<subseteq># A"
   by (fact subset_mset.zero_le)

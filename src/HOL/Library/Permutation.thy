@@ -134,7 +134,7 @@ theorem mset_eq_perm: "mset xs = mset ys \<longleftrightarrow> xs <~~> ys"
   apply simp
   done
 
-proposition mset_le_perm_append: "mset xs \<le># mset ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
+proposition mset_le_perm_append: "mset xs \<subseteq># mset ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
   apply (auto simp: mset_eq_perm[THEN sym] mset_subset_eq_exists_conv)
   apply (insert surj_mset)
   apply (drule surjD)
