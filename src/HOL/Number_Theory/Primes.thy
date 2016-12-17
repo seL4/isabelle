@@ -241,12 +241,18 @@ lemma prime_int_simp:
     "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)"
   by (auto simp add: prime_int_code)
 
-lemmas prime_nat_simp_numeral [simp] = prime_nat_simp [of "numeral m"] for m
+lemma prime_int_numeral_eq [simp]:
+  "prime (numeral m :: int) \<longleftrightarrow> prime (numeral m :: nat)"
+  by (simp add: prime_int_nat_transfer)
 
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
-  by simp
+  by (simp add: prime_nat_simp)
 
-declare prime_int_nat_transfer[of "numeral m" for m, simp]
+lemma prime_nat_numeral_eq [simp]:
+  "prime (numeral m :: nat) \<longleftrightarrow>
+    (1::nat) < numeral m \<and>
+    (\<forall>n::nat\<in>set [2..<numeral m]. \<not> n dvd numeral m)"
+  by (fact prime_nat_simp) -- \<open>TODO Sieve Of Erathosthenes might speed this up\<close>
 
 
 text\<open>A bit of regression testing:\<close>
