@@ -9,8 +9,6 @@ sig
   val add_driver:
     string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string) ->
     theory -> theory
-  val get_driver: theory -> string ->
-    ((Proof.context -> (string * string) list * string -> Path.T -> string) * string) option
   val overlord: bool Config.T
   val successN: string
   val failureN: string
@@ -19,40 +17,20 @@ sig
   val test_terms: Proof.context -> term list -> string -> unit
   val test_targets: Proof.context -> term list -> string list -> unit
   val test_code_cmd: string list -> string list -> Proof.context -> unit
-
   val eval_term: string -> Proof.context -> term -> term
-
-  val gen_driver:
+  val evaluate:
    (theory -> Path.T -> string list -> string ->
     {files: (Path.T * string) list,
      compile_cmd: string option,
      run_cmd: string,
      mk_code_file: string -> Path.T}) ->
    string -> string -> string -> theory -> (string * string) list * string -> Path.T -> string
-
-  val ISABELLE_POLYML: string
-  val polymlN: string
   val evaluate_in_polyml: Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val mltonN: string
-  val ISABELLE_MLTON: string
   val evaluate_in_mlton: Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val smlnjN: string
-  val ISABELLE_SMLNJ: string
   val evaluate_in_smlnj: Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val ocamlN: string
-  val ISABELLE_OCAMLC: string
   val evaluate_in_ocaml: Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val ghcN: string
-  val ISABELLE_GHC: string
   val ghc_options: string Config.T
   val evaluate_in_ghc: Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val scalaN: string
-  val ISABELLE_SCALA: string
   val evaluate_in_scala: Proof.context -> (string * string) list * string -> Path.T -> string
 end
 
@@ -295,7 +273,7 @@ fun eval_term target ctxt t =
 
 (* generic driver *)
 
-fun gen_driver mk_driver env_var env_var_dest compilerN ctxt (code_files, value_name) =
+fun evaluate mk_driver env_var env_var_dest compilerN ctxt (code_files, value_name) =
   let
     val compiler = getenv env_var
     val _ =
@@ -368,7 +346,7 @@ fun mk_driver_polyml _ path _ value_name =
   end
 
 fun evaluate_in_polyml ctxt =
-  gen_driver mk_driver_polyml ISABELLE_POLYML "PolyML executable" polymlN ctxt
+  evaluate mk_driver_polyml ISABELLE_POLYML "PolyML executable" polymlN ctxt
 
 
 (* driver for mlton *)
@@ -410,7 +388,7 @@ fun mk_driver_mlton _ path _ value_name =
   end
 
 fun evaluate_in_mlton ctxt =
-  gen_driver mk_driver_mlton ISABELLE_MLTON "MLton executable" mltonN ctxt
+  evaluate mk_driver_mlton ISABELLE_MLTON "MLton executable" mltonN ctxt
 
 
 (* driver for SML/NJ *)
@@ -450,7 +428,7 @@ fun mk_driver_smlnj _ path _ value_name =
   end
 
 fun evaluate_in_smlnj ctxt =
-  gen_driver mk_driver_smlnj ISABELLE_SMLNJ "SMLNJ executable" smlnjN ctxt
+  evaluate mk_driver_smlnj ISABELLE_SMLNJ "SMLNJ executable" smlnjN ctxt
 
 
 (* driver for OCaml *)
@@ -492,7 +470,7 @@ fun mk_driver_ocaml _ path _ value_name =
   end
 
 fun evaluate_in_ocaml ctxt =
-  gen_driver mk_driver_ocaml ISABELLE_OCAMLC "ocamlc executable" ocamlN ctxt
+  evaluate mk_driver_ocaml ISABELLE_OCAMLC "ocamlc executable" ocamlN ctxt
 
 
 (* driver for GHC *)
@@ -538,7 +516,7 @@ fun mk_driver_ghc ctxt path modules value_name =
   end
 
 fun evaluate_in_ghc ctxt =
-  gen_driver mk_driver_ghc ISABELLE_GHC "GHC executable" ghcN ctxt
+  evaluate mk_driver_ghc ISABELLE_GHC "GHC executable" ghcN ctxt
 
 
 (* driver for Scala *)
@@ -586,7 +564,7 @@ fun mk_driver_scala _ path _ value_name =
   end
 
 fun evaluate_in_scala ctxt =
-  gen_driver mk_driver_scala ISABELLE_SCALA "Scala directory" scalaN ctxt
+  evaluate mk_driver_scala ISABELLE_SCALA "Scala directory" scalaN ctxt
 
 
 (* command setup *)
