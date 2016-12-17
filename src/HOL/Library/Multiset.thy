@@ -526,9 +526,11 @@ notation (ASCII)
 
 interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<subseteq>#" "op \<subset>#"
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "op +" 0 "op -" "op \<le>#" "op <#"
   by standard
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 lemma mset_subset_eqI:
   "(\<And>a. count A a \<le> count B a) \<Longrightarrow> A \<subseteq># B"
@@ -547,6 +549,7 @@ lemma mset_subset_eq_exists_conv: "(A::'a multiset) \<subseteq># B \<longleftrig
 
 interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<le>#" "op <#" "op -"
   by standard (simp, fact mset_subset_eq_exists_conv)
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 declare subset_mset.add_diff_assoc[simp] subset_mset.add_diff_assoc2[simp]
 
@@ -684,8 +687,7 @@ proof -
     by arith
   show "class.semilattice_inf op \<inter># op \<subseteq># op \<subset>#"
     by standard (auto simp add: multiset_inter_def subseteq_mset_def)
-qed
-  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 definition sup_subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"(infixl "\<union>#" 70)
   where "sup_subset_mset A B = A + (B - A)" \<comment> \<open>FIXME irregular fact name\<close>
@@ -696,12 +698,12 @@ proof -
     by arith
   show "class.semilattice_sup op \<union># op \<subseteq># op \<subset>#"
     by standard (auto simp add: sup_subset_mset_def subseteq_mset_def)
-qed
-  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 interpretation subset_mset: bounded_lattice_bot "op \<inter>#" "op \<subseteq>#" "op \<subset>#"
   "op \<union>#" "{#}"
   by standard auto
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 
 subsubsection \<open>Additional intersection facts\<close>
@@ -1161,7 +1163,7 @@ next
       by (intro cSup_least) (auto intro: mset_subset_eq_count ge)
     finally show "count (Sup A) x \<le> count X x" .
   qed
-qed
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 lemma set_mset_Inf:
   assumes "A \<noteq> {}"
@@ -1239,7 +1241,7 @@ proof
   fix A B C :: "'a multiset"
   show "A \<union># (B \<inter># C) = A \<union># B \<inter># (A \<union># C)"
     by (intro multiset_eqI) simp_all
-qed
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 
 subsubsection \<open>Filter (with comprehension syntax)\<close>
