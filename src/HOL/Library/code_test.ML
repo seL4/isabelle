@@ -20,11 +20,11 @@ sig
   val eval_term: string -> Proof.context -> term -> term
   val evaluate:
    (theory -> Path.T -> string list -> string ->
-    {files: (Path.T * string) list,
-     compile_cmd: string option,
-     run_cmd: string,
-     mk_code_file: string -> Path.T}) ->
-   string -> string -> string -> theory -> (string * string) list * string -> Path.T -> string
+     {files: (Path.T * string) list,
+       compile_cmd: string option,
+       run_cmd: string,
+       mk_code_file: string -> Path.T}) -> (string * string) option -> string -> theory ->
+     (string * string) list * string -> Path.T -> string
   val evaluate_in_polyml: Proof.context -> (string * string) list * string -> Path.T -> string
   val evaluate_in_mlton: Proof.context -> (string * string) list * string -> Path.T -> string
   val evaluate_in_smlnj: Proof.context -> (string * string) list * string -> Path.T -> string
@@ -273,15 +273,19 @@ fun eval_term target ctxt t =
 
 (* generic driver *)
 
-fun evaluate mk_driver env_var env_var_dest compilerN ctxt (code_files, value_name) =
+fun evaluate mk_driver opt_env_var compilerN ctxt (code_files, value_name) =
   let
-    val compiler = getenv env_var
     val _ =
-      if compiler <> "" then ()
-      else error (Pretty.string_of (Pretty.para
-        ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
-          compilerN ^ ", set this variable to your " ^ env_var_dest ^
-          " in the $ISABELLE_HOME_USER/etc/settings file.")))
+      (case opt_env_var of
+        NONE => ()
+      | SOME (env_var, env_var_dest) =>
+          (case getenv env_var of
+            "" =>
+              error (Pretty.string_of (Pretty.para
+                ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
+                  compilerN ^ ", set this variable to your " ^ env_var_dest ^
+                  " in the $ISABELLE_HOME_USER/etc/settings file.")))
+          | _ => ()))
 
     fun compile NONE = ()
       | compile (SOME cmd) =
@@ -313,7 +317,6 @@ fun evaluate mk_driver env_var env_var_dest compilerN ctxt (code_files, value_na
 
 (* driver for PolyML *)
 
-val ISABELLE_POLYML = "ISABELLE_POLYML"
 val polymlN = "PolyML"
 
 fun mk_driver_polyml _ path _ value_name =
@@ -339,14 +342,12 @@ fun mk_driver_polyml _ path _ value_name =
       "  end;\n"
     val cmd =
       "echo \"use \\\"" ^ Path.implode code_path ^ "\\\"; use \\\"" ^
-      Path.implode driver_path ^ "\\\"; main ();\" | " ^
-      Path.implode (Path.variable ISABELLE_POLYML)
+      Path.implode driver_path ^ "\\\"; main ();\" | \"$ML_HOME/poly\""
   in
     {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
   end
 
-fun evaluate_in_polyml ctxt =
-  evaluate mk_driver_polyml ISABELLE_POLYML "PolyML executable" polymlN ctxt
+fun evaluate_in_polyml ctxt = evaluate mk_driver_polyml NONE polymlN ctxt
 
 
 (* driver for mlton *)
@@ -388,7 +389,7 @@ fun mk_driver_mlton _ path _ value_name =
   end
 
 fun evaluate_in_mlton ctxt =
-  evaluate mk_driver_mlton ISABELLE_MLTON "MLton executable" mltonN ctxt
+  evaluate mk_driver_mlton (SOME (ISABELLE_MLTON, "MLton executable")) mltonN ctxt
 
 
 (* driver for SML/NJ *)
@@ -428,7 +429,7 @@ fun mk_driver_smlnj _ path _ value_name =
   end
 
 fun evaluate_in_smlnj ctxt =
-  evaluate mk_driver_smlnj ISABELLE_SMLNJ "SMLNJ executable" smlnjN ctxt
+  evaluate mk_driver_smlnj (SOME (ISABELLE_SMLNJ, "SMLNJ executable")) smlnjN ctxt
 
 
 (* driver for OCaml *)
@@ -470,7 +471,7 @@ fun mk_driver_ocaml _ path _ value_name =
   end
 
 fun evaluate_in_ocaml ctxt =
-  evaluate mk_driver_ocaml ISABELLE_OCAMLC "ocamlc executable" ocamlN ctxt
+  evaluate mk_driver_ocaml (SOME (ISABELLE_OCAMLC, "ocamlc executable")) ocamlN ctxt
 
 
 (* driver for GHC *)
@@ -516,13 +517,12 @@ fun mk_driver_ghc ctxt path modules value_name =
   end
 
 fun evaluate_in_ghc ctxt =
-  evaluate mk_driver_ghc ISABELLE_GHC "GHC executable" ghcN ctxt
+  evaluate mk_driver_ghc (SOME (ISABELLE_GHC, "GHC executable")) ghcN ctxt
 
 
 (* driver for Scala *)
 
 val scalaN = "Scala"
-val ISABELLE_SCALA = "ISABELLE_SCALA"
 
 fun mk_driver_scala _ path _ value_name =
   let
@@ -551,20 +551,17 @@ fun mk_driver_scala _ path _ value_name =
       "}\n"
 
     val compile_cmd =
-      Path.implode (Path.append (Path.variable ISABELLE_SCALA) (Path.basic "scalac")) ^
-      " -d " ^ File.bash_path path ^ " -classpath " ^ File.bash_path path ^ " " ^
+      "\"$SCALA_HOME/bin/scalac\" -d " ^ File.bash_path path ^
+      " -classpath " ^ File.bash_path path ^ " " ^
       File.bash_path code_path ^ " " ^ File.bash_path driver_path
 
-    val run_cmd =
-      Path.implode (Path.append (Path.variable ISABELLE_SCALA) (Path.basic "scala")) ^
-      " -cp " ^ File.bash_path path ^ " Test"
+    val run_cmd = "\"$SCALA_HOME/bin/scala\" -cp " ^ File.bash_path path ^ " Test"
   in
     {files = [(driver_path, driver)],
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
   end
 
-fun evaluate_in_scala ctxt =
-  evaluate mk_driver_scala ISABELLE_SCALA "Scala directory" scalaN ctxt
+fun evaluate_in_scala ctxt = evaluate mk_driver_scala NONE scalaN ctxt
 
 
 (* command setup *)
