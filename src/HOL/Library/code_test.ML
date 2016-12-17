@@ -17,7 +17,7 @@ sig
   val start_markerN: string
   val end_markerN: string
   val test_terms: Proof.context -> term list -> string -> unit
-  val test_targets: Proof.context -> term list -> string list -> unit list
+  val test_targets: Proof.context -> term list -> string list -> unit
   val test_code_cmd: string list -> string list -> Toplevel.state -> unit
 
   val eval_term: string -> Proof.context -> term -> term
@@ -68,9 +68,6 @@ fun mk_tuples [] = @{term "()"}
 fun dest_tuples (Const (@{const_name Pair}, _) $ l $ r) = l :: dest_tuples r
   | dest_tuples t = [t]
 
-
-fun map_option _ NONE = NONE
-  | map_option f (SOME x) = SOME (f x)
 
 fun last_field sep str =
   let
@@ -191,7 +188,7 @@ fun dynamic_value_strict ctxt t compiler =
     fun evaluator program _ vs_ty deps =
       Exn.interruptible_capture evaluate
         (Code_Target.computation_text ctxt target program deps true vs_ty)
-    fun postproc f = map (apsnd (map_option (map f)))
+    fun postproc f = map (apsnd (Option.map (map f)))
   in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t) end
 
 
@@ -233,15 +230,14 @@ fun test_terms ctxt ts target =
         @{typ bool} => ()
       | _ => error ("Test case not of type bool: " ^ Pretty.string_of (Syntax.pretty_term ctxt t)))
 
-    val _ = map ensure_bool ts
+    val _ = List.app ensure_bool ts
 
     val evals = map (fn t => filter term_of (add_eval t [])) ts
     val eval = map mk_term_of evals
 
-    val T =
-      HOLogic.mk_prodT (@{typ bool},
-        Type (@{type_name option}, [@{typ unit} --> @{typ yxml_of_term}]))
-    val t = HOLogic.mk_list T (map HOLogic.mk_prod (ts ~~ eval))
+    val t =
+      HOLogic.mk_list @{typ "bool \<times> (unit \<Rightarrow> yxml_of_term) option"}
+        (map HOLogic.mk_prod (ts ~~ eval))
 
     val result = dynamic_value_strict ctxt t target
 
@@ -249,42 +245,44 @@ fun test_terms ctxt ts target =
       filter_out (fst o fst o fst) (result ~~ ts ~~ evals)
       handle ListPair.UnequalLengths =>
         error ("Evaluation failed!\nWrong number of test results: " ^ Int.toString (length result))
-    val _ = case failed of [] => ()
-      | _ => error (Pretty.string_of (pretty_failures ctxt target failed))
   in
-    ()
+    (case failed of [] =>
+      ()
+    | _ => error (Pretty.string_of (pretty_failures ctxt target failed)))
   end
 
-fun test_targets ctxt = map o test_terms ctxt
+fun test_targets ctxt = List.app o test_terms ctxt
 
 fun test_code_cmd raw_ts targets state =
   let
     val ctxt = Toplevel.context_of state
     val ts = Syntax.read_terms ctxt raw_ts
     val frees = fold Term.add_free_names ts []
-    val _ = if frees = [] then () else
-      error ("Terms contain free variables: " ^
-      Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
-  in
-    test_targets ctxt ts targets; ()
-  end
+    val _ =
+      if null frees then ()
+      else error ("Terms contain free variables: " ^
+        Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
+  in test_targets ctxt ts targets end
 
 fun eval_term target ctxt t =
   let
     val frees = Term.add_free_names t []
-    val _ = if frees = [] then () else
-      error ("Term contains free variables: " ^
-      Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
+    val _ =
+      if null frees then ()
+      else error ("Term contains free variables: " ^
+        Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
 
     val thy = Proof_Context.theory_of ctxt
 
     val T_t = fastype_of t
-    val _ = if Sign.of_sort thy (T_t, @{sort term_of}) then () else error
-      ("Type " ^ Pretty.string_of (Syntax.pretty_typ ctxt T_t) ^
+    val _ =
+      if Sign.of_sort thy (T_t, @{sort term_of}) then ()
+      else error ("Type " ^ Pretty.string_of (Syntax.pretty_typ ctxt T_t) ^
        " of term not of sort " ^ Pretty.string_of (Syntax.pretty_sort ctxt @{sort term_of}))
 
-    val T = HOLogic.mk_prodT (@{typ bool}, Type (@{type_name option}, [@{typ unit} --> @{typ yxml_of_term}]))
-    val t' = HOLogic.mk_list T [HOLogic.mk_prod (@{term "False"}, mk_term_of [t])]
+    val t' =
+      HOLogic.mk_list @{typ "bool \<times> (unit \<Rightarrow> yxml_of_term) option"}
+        [HOLogic.mk_prod (@{term "False"}, mk_term_of [t])]
 
     val result = dynamic_value_strict ctxt t' target
   in (case result of [(_, SOME [t])] => t | _ => error "Evaluation failed") end
@@ -298,16 +296,16 @@ fun gen_driver mk_driver env_var env_var_dest compilerN ctxt (code_files, value_
     val _ =
       if compiler <> "" then ()
       else error (Pretty.string_of (Pretty.para
-         ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
-         compilerN ^ ", set this variable to your " ^ env_var_dest ^ " in the settings file.")))
+        ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
+          compilerN ^ ", set this variable to your " ^ env_var_dest ^ " in the settings file.")))
 
     fun compile NONE = ()
       | compile (SOME cmd) =
           let
             val (out, ret) = Isabelle_System.bash_output cmd
           in
-            if ret = 0 then () else error
-              ("Compilation with " ^ compilerN ^ " failed:\n" ^ cmd ^ "\n" ^ out)
+            if ret = 0 then ()
+            else error ("Compilation with " ^ compilerN ^ " failed:\n" ^ cmd ^ "\n" ^ out)
           end
 
     fun run path =
@@ -315,15 +313,16 @@ fun gen_driver mk_driver env_var env_var_dest compilerN ctxt (code_files, value_
         val modules = map fst code_files
         val {files, compile_cmd, run_cmd, mk_code_file} = mk_driver ctxt path modules value_name
 
-        val _ = map (fn (name, code) => File.write (mk_code_file name) code) code_files
-        val _ = map (fn (name, content) => File.write name content) files
+        val _ = List.app (fn (name, code) => File.write (mk_code_file name) code) code_files
+        val _ = List.app (fn (name, content) => File.write name content) files
 
         val _ = compile compile_cmd
 
         val (out, res) = Isabelle_System.bash_output run_cmd
-        val _ = if res = 0 then () else error
-          ("Evaluation for " ^ compilerN ^ " terminated with error code " ^ Int.toString res ^
-           "\nBash output:\n" ^ out)
+        val _ =
+          if res = 0 then ()
+          else error ("Evaluation for " ^ compilerN ^ " terminated with error code " ^
+            Int.toString res ^ "\nBash output:\n" ^ out)
       in out end
   in run end
 
