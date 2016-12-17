@@ -31,18 +31,14 @@ session "HOL-Library" (main timing) in Library = HOL +
   *}
   theories
     Library
-    Nonpos_Ints
-    Periodic_Fun
     Polynomial_Factorial
-    Predicate_Compile_Quickcheck
-    Prefix_Order
-    Rewrite
-    (*conflicting type class instantiations*)
+    (*conflicting type class instantiations and dependent applications*)
+    Finite_Lattice
     List_lexord
-    Sublist_Order
+    Prefix_Order
     Product_Lexorder
     Product_Order
-    Finite_Lattice
+    Sublist_Order
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat
@@ -54,11 +50,13 @@ session "HOL-Library" (main timing) in Library = HOL +
     DAList_Multiset
     RBT_Mapping
     RBT_Set
+    (*prototypic tools*)
+    Predicate_Compile_Quickcheck
     (*legacy tools*)
-    Refute
     Old_Datatype
     Old_Recdef
     Old_SMT
+    Refute
   document_files "root.bib" "root.tex"
 
 session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
