@@ -18,7 +18,7 @@ sig
   val end_markerN: string
   val test_terms: Proof.context -> term list -> string -> unit
   val test_targets: Proof.context -> term list -> string list -> unit
-  val test_code_cmd: string list -> string list -> Toplevel.state -> unit
+  val test_code_cmd: string list -> string list -> Proof.context -> unit
 
   val eval_term: string -> Proof.context -> term -> term
 
@@ -258,9 +258,8 @@ fun test_targets ctxt = List.app o test_terms ctxt
 
 fun pretty_free ctxt = Syntax.pretty_term ctxt o Free
 
-fun test_code_cmd raw_ts targets state =
+fun test_code_cmd raw_ts targets ctxt =
   let
-    val ctxt = Toplevel.context_of state
     val ts = Syntax.read_terms ctxt raw_ts
     val frees = fold Term.add_frees ts []
     val _ =
@@ -589,21 +588,24 @@ fun mk_driver_scala _ path _ value_name =
 fun evaluate_in_scala ctxt =
   gen_driver mk_driver_scala ISABELLE_SCALA "Scala directory" scalaN ctxt
 
-val test_codeP = Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
+
+(* command setup *)
 
 val _ =
   Outer_Syntax.command @{command_keyword test_code}
     "compile test cases to target languages, execute them and report results"
-      (test_codeP >> (fn (raw_ts, targets) => Toplevel.keep (test_code_cmd raw_ts targets)))
+      (Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
+        >> (fn (ts, targets) => Toplevel.keep (test_code_cmd ts targets o Toplevel.context_of)))
 
-val _ = Theory.setup (fold add_driver
-  [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
-   (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
-   (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
-   (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
-   (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
-   (scalaN, (evaluate_in_scala, Code_Scala.target))]
+val _ =
+  Theory.setup (fold add_driver
+    [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
+     (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
+     (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
+     (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
+     (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
+     (scalaN, (evaluate_in_scala, Code_Scala.target))]
   #> fold (fn target => Value_Command.add_evaluator (target, eval_term target))
-    [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN])
+      [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN])
 
 end
