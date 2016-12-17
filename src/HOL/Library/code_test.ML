@@ -228,7 +228,10 @@ fun test_terms ctxt ts target =
     fun ensure_bool t =
       (case fastype_of t of
         @{typ bool} => ()
-      | _ => error ("Test case not of type bool: " ^ Pretty.string_of (Syntax.pretty_term ctxt t)))
+      | _ =>
+        error (Pretty.string_of
+          (Pretty.block [Pretty.str "Test case not of type bool:", Pretty.brk 1,
+            Syntax.pretty_term ctxt t])))
 
     val _ = List.app ensure_bool ts
 
@@ -253,32 +256,35 @@ fun test_terms ctxt ts target =
 
 fun test_targets ctxt = List.app o test_terms ctxt
 
+fun pretty_free ctxt = Syntax.pretty_term ctxt o Free
+
 fun test_code_cmd raw_ts targets state =
   let
     val ctxt = Toplevel.context_of state
     val ts = Syntax.read_terms ctxt raw_ts
-    val frees = fold Term.add_free_names ts []
+    val frees = fold Term.add_frees ts []
     val _ =
       if null frees then ()
-      else error ("Terms contain free variables: " ^
-        Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
+      else error (Pretty.string_of
+        (Pretty.block (Pretty.str "Terms contain free variables:" :: Pretty.brk 1 ::
+          Pretty.commas (map (pretty_free ctxt) frees))))
   in test_targets ctxt ts targets end
 
 fun eval_term target ctxt t =
   let
-    val frees = Term.add_free_names t []
+    val frees = Term.add_frees t []
     val _ =
       if null frees then ()
-      else error ("Term contains free variables: " ^
-        Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
+      else
+        error (Pretty.string_of
+          (Pretty.block (Pretty.str "Term contains free variables:" :: Pretty.brk 1 ::
+            Pretty.commas (map (pretty_free ctxt) frees))))
 
-    val thy = Proof_Context.theory_of ctxt
-
-    val T_t = fastype_of t
+    val T = fastype_of t
     val _ =
-      if Sign.of_sort thy (T_t, @{sort term_of}) then ()
-      else error ("Type " ^ Pretty.string_of (Syntax.pretty_typ ctxt T_t) ^
-       " of term not of sort " ^ Pretty.string_of (Syntax.pretty_sort ctxt @{sort term_of}))
+      if Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort term_of}) then ()
+      else error ("Type " ^ Syntax.string_of_typ ctxt T ^
+       " of term not of sort " ^ Syntax.string_of_sort ctxt @{sort term_of})
 
     val t' =
       HOLogic.mk_list @{typ "bool \<times> (unit \<Rightarrow> yxml_of_term) option"}
@@ -297,7 +303,8 @@ fun gen_driver mk_driver env_var env_var_dest compilerN ctxt (code_files, value_
       if compiler <> "" then ()
       else error (Pretty.string_of (Pretty.para
         ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
-          compilerN ^ ", set this variable to your " ^ env_var_dest ^ " in the settings file.")))
+          compilerN ^ ", set this variable to your " ^ env_var_dest ^
+          " in the $ISABELLE_HOME_USER/etc/settings file.")))
 
     fun compile NONE = ()
       | compile (SOME cmd) =
