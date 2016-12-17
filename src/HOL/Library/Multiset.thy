@@ -887,11 +887,6 @@ lemma add_mset_union:
   by (auto simp: multiset_eq_iff max_def)
 
 
-subsubsection \<open>Subset is an order\<close>
-
-interpretation subset_mset: order "op \<subseteq>#" "op \<subset>#" by unfold_locales
-
-
 subsection \<open>Replicate and repeat operations\<close>
 
 definition replicate_mset :: "nat \<Rightarrow> 'a \<Rightarrow> 'a multiset" where
