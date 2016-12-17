@@ -2274,12 +2274,6 @@ proof
   from pdivmod_rel[of x y,unfolded pdivmod_rel_def]
   show "x div y * y + x mod y = x" by auto
 next
-  fix x :: "'a poly"
-  show "x div 0 = 0" by simp
-next
-  fix y :: "'a poly"
-  show "0 div y = 0" by simp
-next
   fix x y z :: "'a poly"
   assume "y \<noteq> 0"
   hence "pdivmod_rel (x + z * y) y (z + x div y) (x mod y)"

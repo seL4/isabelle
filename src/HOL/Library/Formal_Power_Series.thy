@@ -1157,7 +1157,40 @@ lemma subdegree_eq_0' [simp]: "(f :: 'a :: field fps) dvd 1 \<Longrightarrow> su
 lemma fps_unit_dvd [simp]: "(f $ 0 :: 'a :: field) \<noteq> 0 \<Longrightarrow> f dvd g"
   by (rule dvd_trans, subst fps_is_unit_iff) simp_all
 
+instantiation fps :: (field) normalization_semidom
+begin
 
+definition fps_unit_factor_def [simp]:
+  "unit_factor f = fps_shift (subdegree f) f"
+
+definition fps_normalize_def [simp]:
+  "normalize f = (if f = 0 then 0 else X ^ subdegree f)"
+
+instance proof
+  fix f :: "'a fps"
+  show "unit_factor f * normalize f = f"
+    by (simp add: fps_shift_times_X_power)
+next
+  fix f g :: "'a fps"
+  show "unit_factor (f * g) = unit_factor f * unit_factor g"
+  proof (cases "f = 0 \<or> g = 0")
+    assume "\<not>(f = 0 \<or> g = 0)"
+    thus "unit_factor (f * g) = unit_factor f * unit_factor g"
+    unfolding fps_unit_factor_def
+      by (auto simp: fps_shift_fps_shift fps_shift_mult fps_shift_mult_right)
+  qed auto
+next
+  fix f g :: "'a fps"
+  assume "g \<noteq> 0"
+  then have "f * (fps_shift (subdegree g) g * inverse (fps_shift (subdegree g) g)) = f"
+    by (metis add_cancel_right_left fps_shift_nth inverse_mult_eq_1 mult.commute mult_cancel_left2 nth_subdegree_nonzero)
+  then have "fps_shift (subdegree g) (g * (f * inverse (fps_shift (subdegree g) g))) = f"
+    by (simp add: fps_shift_mult_right mult.commute)
+  with \<open>g \<noteq> 0\<close> show "f * g / g = f"
+    by (simp add: fps_divide_def Let_def ac_simps)
+qed (auto simp add: fps_divide_def Let_def)
+
+end
 
 instantiation fps :: (field) ring_div
 begin
@@ -1291,7 +1324,7 @@ next
   also have "fps_shift n (f * inverse h') = f div h"
     by (simp add: fps_divide_def Let_def dfs)
   finally show "(f + g * h) div h = g + f div h" by simp
-qed (auto simp: fps_divide_def fps_mod_def Let_def)
+qed
 
 end
 end
@@ -1363,36 +1396,6 @@ lemma fps_numeral_mult_divide:
 
 lemmas fps_numeral_simps = 
   fps_numeral_divide_divide fps_numeral_mult_divide inverse_fps_numeral neg_numeral_fps_const
-
-
-
-instantiation fps :: (field) normalization_semidom
-begin
-
-definition fps_unit_factor_def [simp]:
-  "unit_factor f = fps_shift (subdegree f) f"
-
-definition fps_normalize_def [simp]:
-  "normalize f = (if f = 0 then 0 else X ^ subdegree f)"
-
-instance proof
-  fix f :: "'a fps"
-  show "unit_factor f * normalize f = f"
-    by (simp add: fps_shift_times_X_power)
-next
-  fix f g :: "'a fps"
-  show "unit_factor (f * g) = unit_factor f * unit_factor g"
-  proof (cases "f = 0 \<or> g = 0")
-    assume "\<not>(f = 0 \<or> g = 0)"
-    thus "unit_factor (f * g) = unit_factor f * unit_factor g"
-    unfolding fps_unit_factor_def
-      by (auto simp: fps_shift_fps_shift fps_shift_mult fps_shift_mult_right)
-  qed auto
-qed auto
-
-end
-
-instance fps :: (field) algebraic_semidom ..
 
 
 subsection \<open>Formal power series form a Euclidean ring\<close>

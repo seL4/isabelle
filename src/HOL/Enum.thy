@@ -683,7 +683,7 @@ instance finite_2 :: complete_distrib_lattice
 
 instance finite_2 :: complete_linorder ..
 
-instantiation finite_2 :: "{field, ring_div, idom_abs_sgn}" begin
+instantiation finite_2 :: "{field, idom_abs_sgn}" begin
 definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition "x + y = (case (x, y) of (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
@@ -693,19 +693,33 @@ definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub
 definition "inverse = (\<lambda>x :: finite_2. x)"
 definition "divide = (op * :: finite_2 \<Rightarrow> _)"
 definition "abs = (\<lambda>x :: finite_2. x)"
-definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
 definition "sgn = (\<lambda>x :: finite_2. x)"
 instance
-by intro_classes
-  (simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def times_finite_2_def
-       inverse_finite_2_def divide_finite_2_def abs_finite_2_def modulo_finite_2_def sgn_finite_2_def
-     split: finite_2.splits)
+  by standard
+    (simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def times_finite_2_def
+      inverse_finite_2_def divide_finite_2_def abs_finite_2_def sgn_finite_2_def
+      split: finite_2.splits)
 end
 
 lemma two_finite_2 [simp]:
   "2 = a\<^sub>1"
   by (simp add: numeral.simps plus_finite_2_def)
-  
+
+lemma dvd_finite_2_unfold:
+  "x dvd y \<longleftrightarrow> x = a\<^sub>2 \<or> y = a\<^sub>1"
+  by (auto simp add: dvd_def times_finite_2_def split: finite_2.splits)
+
+instantiation finite_2 :: "{ring_div, normalization_semidom}" begin
+definition [simp]: "normalize = (id :: finite_2 \<Rightarrow> _)"
+definition [simp]: "unit_factor = (id :: finite_2 \<Rightarrow> _)"
+definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
+instance
+  by standard
+    (simp_all add: dvd_finite_2_unfold times_finite_2_def
+      divide_finite_2_def modulo_finite_2_def split: finite_2.splits)
+end
+
+ 
 hide_const (open) a\<^sub>1 a\<^sub>2
 
 datatype (plugins only: code "quickcheck" extraction) finite_3 =
@@ -735,6 +749,12 @@ instance proof
 qed (simp_all only: enum_finite_3_def enum_all_finite_3_def enum_ex_finite_3_def UNIV_finite_3, simp_all)
 
 end
+
+lemma finite_3_not_eq_unfold:
+  "x \<noteq> a\<^sub>1 \<longleftrightarrow> x \<in> {a\<^sub>2, a\<^sub>3}"
+  "x \<noteq> a\<^sub>2 \<longleftrightarrow> x \<in> {a\<^sub>1, a\<^sub>3}"
+  "x \<noteq> a\<^sub>3 \<longleftrightarrow> x \<in> {a\<^sub>1, a\<^sub>2}"
+  by (cases x; simp)+
 
 instantiation finite_3 :: linorder
 begin
@@ -806,7 +826,7 @@ qed
 
 instance finite_3 :: complete_linorder ..
 
-instantiation finite_3 :: "{field, ring_div, idom_abs_sgn}" begin
+instantiation finite_3 :: "{field, idom_abs_sgn}" begin
 definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition
@@ -820,14 +840,33 @@ definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub
 definition "inverse = (\<lambda>x :: finite_3. x)" 
 definition "x div y = x * inverse (y :: finite_3)"
 definition "abs = (\<lambda>x. case x of a\<^sub>3 \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> x)"
-definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>1) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
 definition "sgn = (\<lambda>x :: finite_3. x)"
 instance
-by intro_classes
-  (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def times_finite_3_def
-       inverse_finite_3_def divide_finite_3_def abs_finite_3_def modulo_finite_3_def sgn_finite_3_def
-       less_finite_3_def
-     split: finite_3.splits)
+  by standard
+    (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def times_finite_3_def
+      inverse_finite_3_def divide_finite_3_def abs_finite_3_def sgn_finite_3_def
+      less_finite_3_def
+      split: finite_3.splits)
+end
+
+lemma two_finite_3 [simp]:
+  "2 = a\<^sub>3"
+  by (simp add: numeral.simps plus_finite_3_def)
+
+lemma dvd_finite_3_unfold:
+  "x dvd y \<longleftrightarrow> x = a\<^sub>2 \<or> x = a\<^sub>3 \<or> y = a\<^sub>1"
+  by (cases x) (auto simp add: dvd_def times_finite_3_def split: finite_3.splits)
+
+instantiation finite_3 :: "{ring_div, normalization_semidom}" begin
+definition "normalize x = (case x of a\<^sub>3 \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> x)"
+definition [simp]: "unit_factor = (id :: finite_3 \<Rightarrow> _)"
+definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>1) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
+instance
+  by standard
+    (auto simp add: finite_3_not_eq_unfold plus_finite_3_def
+      dvd_finite_3_unfold times_finite_3_def inverse_finite_3_def
+      normalize_finite_3_def divide_finite_3_def modulo_finite_3_def
+      split: finite_3.splits)
 end
 
 

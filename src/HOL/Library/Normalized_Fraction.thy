@@ -184,7 +184,7 @@ lemma quot_of_fract_add:
 
 lemma quot_of_fract_uminus:
   "quot_of_fract (-x) = (let (a,b) = quot_of_fract x in (-a, b))"
-  by transfer (auto simp: case_prod_unfold Let_def normalize_quot_def dvd_neg_div' mult_unit_dvd_iff)
+  by transfer (auto simp: case_prod_unfold Let_def normalize_quot_def dvd_neg_div mult_unit_dvd_iff)
 
 lemma quot_of_fract_diff:
   "quot_of_fract (x - y) = 

@@ -731,7 +731,7 @@ end
 class idom_divide = idom + semidom_divide
 begin
 
-lemma dvd_neg_div':
+lemma dvd_neg_div:
   assumes "b dvd a"
   shows "- a div b = - (a div b)"
 proof (cases "b = 0")
@@ -740,10 +740,30 @@ proof (cases "b = 0")
 next
   case False
   from assms obtain c where "a = b * c" ..
-  moreover from False have "b * - c div b = - (b * c div b)"
-    using nonzero_mult_div_cancel_left [of b "- c"]
+  then have "- a div b = (b * - c) div b"
     by simp
-  ultimately show ?thesis
+  from False also have "\<dots> = - c"
+    by (rule nonzero_mult_div_cancel_left)  
+  with False \<open>a = b * c\<close> show ?thesis
+    by simp
+qed
+
+lemma dvd_div_neg:
+  assumes "b dvd a"
+  shows "a div - b = - (a div b)"
+proof (cases "b = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then have "- b \<noteq> 0"
+    by simp
+  from assms obtain c where "a = b * c" ..
+  then have "a div - b = (- b * - c) div - b"
+    by simp
+  from \<open>- b \<noteq> 0\<close> also have "\<dots> = - c"
+    by (rule nonzero_mult_div_cancel_left)  
+  with False \<open>a = b * c\<close> show ?thesis
     by simp
 qed
 
@@ -914,6 +934,39 @@ next
   from \<open>a * c dvd b\<close> obtain d where "b = a * c * d" ..
   with False show ?thesis
     by (simp add: mult.commute [of a] mult.assoc)
+qed
+
+lemma div_div_eq_right:
+  assumes "c dvd b" "b dvd a"
+  shows   "a div (b div c) = a div b * c"
+proof (cases "c = 0 \<or> b = 0")
+  case True
+  then show ?thesis
+    by auto
+next
+  case False
+  from assms obtain r s where "b = c * r" and "a = c * r * s"
+    by (blast elim: dvdE)
+  moreover with False have "r \<noteq> 0"
+    by auto
+  ultimately show ?thesis using False
+    by simp (simp add: mult.commute [of _ r] mult.assoc mult.commute [of c])
+qed
+
+lemma div_div_div_same:
+  assumes "d dvd b" "b dvd a"
+  shows   "(a div d) div (b div d) = a div b"
+proof (cases "b = 0 \<or> d = 0")
+  case True
+  with assms show ?thesis
+    by auto
+next
+  case False
+  from assms obtain r s
+    where "a = d * r * s" and "b = d * r"
+    by (blast elim: dvdE)
+  with False show ?thesis
+    by simp (simp add: ac_simps)
 qed
 
 
