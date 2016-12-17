@@ -1,78 +1,13 @@
+(*  Title:      HOL/Library/Normalized_Fraction.thy
+    Author:     Manuel Eberl
+*)
+
 theory Normalized_Fraction
 imports 
   Main 
   "~~/src/HOL/Number_Theory/Euclidean_Algorithm" 
   "~~/src/HOL/Library/Fraction_Field"
 begin
-
-lemma dvd_neg_div': "y dvd (x :: 'a :: idom_divide) \<Longrightarrow> -x div y = - (x div y)"
-apply (case_tac "y = 0") apply simp
-apply (auto simp add: dvd_def)
-apply (subgoal_tac "-(y * k) = y * - k")
-apply (simp only:)
-apply (erule nonzero_mult_div_cancel_left)
-apply simp
-done
-
-(* TODO Move *)
-lemma (in semiring_gcd) coprime_mul_eq': "coprime (a * b) d \<longleftrightarrow> coprime a d \<and> coprime b d"
-  using coprime_mul_eq[of d a b] by (simp add: gcd.commute)
-
-lemma dvd_div_eq_0_iff:
-  assumes "b dvd (a :: 'a :: semidom_divide)"
-  shows   "a div b = 0 \<longleftrightarrow> a = 0"
-  using assms by (elim dvdE, cases "b = 0") simp_all  
-
-lemma dvd_div_eq_0_iff':
-  assumes "b dvd (a :: 'a :: semiring_div)"
-  shows   "a div b = 0 \<longleftrightarrow> a = 0"
-  using assms by (elim dvdE, cases "b = 0") simp_all
-
-lemma unit_div_eq_0_iff:
-  assumes "is_unit (b :: 'a :: {algebraic_semidom,semidom_divide})"
-  shows   "a div b = 0 \<longleftrightarrow> a = 0"
-  by (rule dvd_div_eq_0_iff) (insert assms, auto)  
-
-lemma unit_div_eq_0_iff':
-  assumes "is_unit (b :: 'a :: semiring_div)"
-  shows   "a div b = 0 \<longleftrightarrow> a = 0"
-  by (rule dvd_div_eq_0_iff) (insert assms, auto)
-
-lemma dvd_div_eq_cancel:
-  "a div c = b div c \<Longrightarrow> (c :: 'a :: semiring_div) dvd a \<Longrightarrow> c dvd b \<Longrightarrow> a = b"
-  by (elim dvdE, cases "c = 0") simp_all
-
-lemma dvd_div_eq_iff:
-  "(c :: 'a :: semiring_div) dvd a \<Longrightarrow> c dvd b \<Longrightarrow> a div c = b div c \<longleftrightarrow> a = b"
-  by (elim dvdE, cases "c = 0") simp_all
-
-lemma normalize_imp_eq:
-  "normalize a = normalize b \<Longrightarrow> unit_factor a = unit_factor b \<Longrightarrow> a = b"
-  by (cases "a = 0 \<or> b = 0")
-     (auto simp add: div_unit_factor [symmetric] unit_div_cancel simp del: div_unit_factor)
-    
-lemma coprime_crossproduct':
-  fixes a b c d :: "'a :: semiring_gcd"
-  assumes nz: "b \<noteq> 0"
-  assumes unit_factors: "unit_factor b = unit_factor d"
-  assumes coprime: "coprime a b" "coprime c d"
-  shows "a * d = b * c \<longleftrightarrow> a = c \<and> b = d"
-proof safe
-  assume eq: "a * d = b * c"
-  hence "normalize a * normalize d = normalize c * normalize b"
-    by (simp only: normalize_mult [symmetric] mult_ac)
-  with coprime have "normalize b = normalize d"
-    by (subst (asm) coprime_crossproduct) simp_all
-  from this and unit_factors show "b = d" by (rule normalize_imp_eq)
-  from eq have "a * d = c * d" by (simp only: \<open>b = d\<close> mult_ac)
-  with nz \<open>b = d\<close> show "a = c" by simp
-qed (simp_all add: mult_ac)
-  
-     
-lemma div_mult_unit2: "is_unit c \<Longrightarrow> b dvd a \<Longrightarrow> a div (b * c) = a div b div c"
-  by (subst dvd_div_mult2_eq) (simp_all add: mult_unit_dvd_iff)
-(* END TODO *)
-
 
 definition quot_to_fract :: "'a :: {idom} \<times> 'a \<Rightarrow> 'a fract" where
   "quot_to_fract = (\<lambda>(a,b). Fraction_Field.Fract a b)"

@@ -9,144 +9,84 @@
 theory Polynomial_Factorial
 imports 
   Complex_Main
-  "~~/src/HOL/Number_Theory/Euclidean_Algorithm"
   "~~/src/HOL/Library/Polynomial"
   "~~/src/HOL/Library/Normalized_Fraction"
+  "~~/src/HOL/Library/Field_as_Ring"
 begin
 
-subsection \<open>Prelude\<close>
+subsection \<open>Various facts about polynomials\<close>
 
-lemma prod_mset_mult: 
-  "prod_mset (image_mset (\<lambda>x. f x * g x) A) = prod_mset (image_mset f A) * prod_mset (image_mset g A)"
-  by (induction A) (simp_all add: mult_ac)
+lemma prod_mset_const_poly: "prod_mset (image_mset (\<lambda>x. [:f x:]) A) = [:prod_mset (image_mset f A):]"
+  by (induction A) (simp_all add: one_poly_def mult_ac)
+
+lemma is_unit_smult_iff: "smult c p dvd 1 \<longleftrightarrow> c dvd 1 \<and> p dvd 1"
+proof -
+  have "smult c p = [:c:] * p" by simp
+  also have "\<dots> dvd 1 \<longleftrightarrow> c dvd 1 \<and> p dvd 1"
+  proof safe
+    assume A: "[:c:] * p dvd 1"
+    thus "p dvd 1" by (rule dvd_mult_right)
+    from A obtain q where B: "1 = [:c:] * p * q" by (erule dvdE)
+    have "c dvd c * (coeff p 0 * coeff q 0)" by simp
+    also have "\<dots> = coeff ([:c:] * p * q) 0" by (simp add: mult.assoc coeff_mult)
+    also note B [symmetric]
+    finally show "c dvd 1" by simp
+  next
+    assume "c dvd 1" "p dvd 1"
+    from \<open>c dvd 1\<close> obtain d where "1 = c * d" by (erule dvdE)
+    hence "1 = [:c:] * [:d:]" by (simp add: one_poly_def mult_ac)
+    hence "[:c:] dvd 1" by (rule dvdI)
+    from mult_dvd_mono[OF this \<open>p dvd 1\<close>] show "[:c:] * p dvd 1" by simp
+  qed
+  finally show ?thesis .
+qed
+
+lemma degree_mod_less': "b \<noteq> 0 \<Longrightarrow> a mod b \<noteq> 0 \<Longrightarrow> degree (a mod b) < degree b"
+  using degree_mod_less[of b a] by auto
   
-lemma prod_mset_const: "prod_mset (image_mset (\<lambda>_. c) A) = c ^ size A"
-  by (induction A) (simp_all add: mult_ac)
-  
-lemma dvd_field_iff: "x dvd y \<longleftrightarrow> (x = 0 \<longrightarrow> y = (0::'a::field))"
-proof safe
-  assume "x \<noteq> 0"
-  hence "y = x * (y / x)" by (simp add: field_simps)
-  thus "x dvd y" by (rule dvdI)
-qed auto
+lemma smult_eq_iff:
+  assumes "(b :: 'a :: field) \<noteq> 0"
+  shows   "smult a p = smult b q \<longleftrightarrow> smult (a / b) p = q"
+proof
+  assume "smult a p = smult b q"
+  also from assms have "smult (inverse b) \<dots> = q" by simp
+  finally show "smult (a / b) p = q" by (simp add: field_simps)
+qed (insert assms, auto)
 
-lemma nat_descend_induct [case_names base descend]:
-  assumes "\<And>k::nat. k > n \<Longrightarrow> P k"
-  assumes "\<And>k::nat. k \<le> n \<Longrightarrow> (\<And>i. i > k \<Longrightarrow> P i) \<Longrightarrow> P k"
-  shows   "P m"
-  using assms by induction_schema (force intro!: wf_measure[of "\<lambda>k. Suc n - k"])+
-
-lemma GreatestI_ex: "\<exists>k::nat. P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> P (GREATEST x. P x)"
-  by (metis GreatestI)
-
-
-context field
-begin
-
-subclass idom_divide ..
-
-end
-
-context field
-begin
-
-definition normalize_field :: "'a \<Rightarrow> 'a" 
-  where [simp]: "normalize_field x = (if x = 0 then 0 else 1)"
-definition unit_factor_field :: "'a \<Rightarrow> 'a" 
-  where [simp]: "unit_factor_field x = x"
-definition euclidean_size_field :: "'a \<Rightarrow> nat" 
-  where [simp]: "euclidean_size_field x = (if x = 0 then 0 else 1)"
-definition mod_field :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  where [simp]: "mod_field x y = (if y = 0 then x else 0)"
-
-end
-
-instantiation real :: euclidean_ring
-begin
-
-definition [simp]: "normalize_real = (normalize_field :: real \<Rightarrow> _)"
-definition [simp]: "unit_factor_real = (unit_factor_field :: real \<Rightarrow> _)"
-definition [simp]: "euclidean_size_real = (euclidean_size_field :: real \<Rightarrow> _)"
-definition [simp]: "modulo_real = (mod_field :: real \<Rightarrow> _)"
-
-instance by standard (simp_all add: dvd_field_iff divide_simps)
-end
-
-instantiation real :: euclidean_ring_gcd
-begin
-
-definition gcd_real :: "real \<Rightarrow> real \<Rightarrow> real" where
-  "gcd_real = gcd_eucl"
-definition lcm_real :: "real \<Rightarrow> real \<Rightarrow> real" where
-  "lcm_real = lcm_eucl"
-definition Gcd_real :: "real set \<Rightarrow> real" where
- "Gcd_real = Gcd_eucl"
-definition Lcm_real :: "real set \<Rightarrow> real" where
- "Lcm_real = Lcm_eucl"
-
-instance by standard (simp_all add: gcd_real_def lcm_real_def Gcd_real_def Lcm_real_def)
-
-end
-
-instantiation rat :: euclidean_ring
-begin
-
-definition [simp]: "normalize_rat = (normalize_field :: rat \<Rightarrow> _)"
-definition [simp]: "unit_factor_rat = (unit_factor_field :: rat \<Rightarrow> _)"
-definition [simp]: "euclidean_size_rat = (euclidean_size_field :: rat \<Rightarrow> _)"
-definition [simp]: "modulo_rat = (mod_field :: rat \<Rightarrow> _)"
-
-instance by standard (simp_all add: dvd_field_iff divide_simps)
-end
-
-instantiation rat :: euclidean_ring_gcd
-begin
-
-definition gcd_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat" where
-  "gcd_rat = gcd_eucl"
-definition lcm_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat" where
-  "lcm_rat = lcm_eucl"
-definition Gcd_rat :: "rat set \<Rightarrow> rat" where
- "Gcd_rat = Gcd_eucl"
-definition Lcm_rat :: "rat set \<Rightarrow> rat" where
- "Lcm_rat = Lcm_eucl"
-
-instance by standard (simp_all add: gcd_rat_def lcm_rat_def Gcd_rat_def Lcm_rat_def)
-
-end
-
-instantiation complex :: euclidean_ring
-begin
-
-definition [simp]: "normalize_complex = (normalize_field :: complex \<Rightarrow> _)"
-definition [simp]: "unit_factor_complex = (unit_factor_field :: complex \<Rightarrow> _)"
-definition [simp]: "euclidean_size_complex = (euclidean_size_field :: complex \<Rightarrow> _)"
-definition [simp]: "modulo_complex = (mod_field :: complex \<Rightarrow> _)"
-
-instance by standard (simp_all add: dvd_field_iff divide_simps)
-end
-
-instantiation complex :: euclidean_ring_gcd
-begin
-
-definition gcd_complex :: "complex \<Rightarrow> complex \<Rightarrow> complex" where
-  "gcd_complex = gcd_eucl"
-definition lcm_complex :: "complex \<Rightarrow> complex \<Rightarrow> complex" where
-  "lcm_complex = lcm_eucl"
-definition Gcd_complex :: "complex set \<Rightarrow> complex" where
- "Gcd_complex = Gcd_eucl"
-definition Lcm_complex :: "complex set \<Rightarrow> complex" where
- "Lcm_complex = Lcm_eucl"
-
-instance by standard (simp_all add: gcd_complex_def lcm_complex_def Gcd_complex_def Lcm_complex_def)
-
-end
-
+lemma irreducible_const_poly_iff:
+  fixes c :: "'a :: {comm_semiring_1,semiring_no_zero_divisors}"
+  shows "irreducible [:c:] \<longleftrightarrow> irreducible c"
+proof
+  assume A: "irreducible c"
+  show "irreducible [:c:]"
+  proof (rule irreducibleI)
+    fix a b assume ab: "[:c:] = a * b"
+    hence "degree [:c:] = degree (a * b)" by (simp only: )
+    also from A ab have "a \<noteq> 0" "b \<noteq> 0" by auto
+    hence "degree (a * b) = degree a + degree b" by (simp add: degree_mult_eq)
+    finally have "degree a = 0" "degree b = 0" by auto
+    then obtain a' b' where ab': "a = [:a':]" "b = [:b':]" by (auto elim!: degree_eq_zeroE)
+    from ab have "coeff [:c:] 0 = coeff (a * b) 0" by (simp only: )
+    hence "c = a' * b'" by (simp add: ab' mult_ac)
+    from A and this have "a' dvd 1 \<or> b' dvd 1" by (rule irreducibleD)
+    with ab' show "a dvd 1 \<or> b dvd 1" by (auto simp: one_poly_def)
+  qed (insert A, auto simp: irreducible_def is_unit_poly_iff)
+next
+  assume A: "irreducible [:c:]"
+  show "irreducible c"
+  proof (rule irreducibleI)
+    fix a b assume ab: "c = a * b"
+    hence "[:c:] = [:a:] * [:b:]" by (simp add: mult_ac)
+    from A and this have "[:a:] dvd 1 \<or> [:b:] dvd 1" by (rule irreducibleD)
+    thus "a dvd 1 \<or> b dvd 1" by (simp add: one_poly_def)
+  qed (insert A, auto simp: irreducible_def one_poly_def)
+qed
 
 
 subsection \<open>Lifting elements into the field of fractions\<close>
 
 definition to_fract :: "'a :: idom \<Rightarrow> 'a fract" where "to_fract x = Fract x 1"
+  -- \<open>FIXME: name \<open>of_idom\<close>, abbreviation\<close>
 
 lemma to_fract_0 [simp]: "to_fract 0 = 0"
   by (simp add: to_fract_def eq_fract Zero_fract_def)
@@ -218,285 +158,6 @@ lemma unit_factor_1_imp_normalized: "unit_factor x = 1 \<Longrightarrow> normali
   
 lemma normalize_snd_quot_of_fract: "normalize (snd (quot_of_fract x)) = snd (quot_of_fract x)"
   by (intro unit_factor_1_imp_normalized unit_factor_snd_quot_of_fract)
-
-  
-subsection \<open>Mapping polynomials\<close>
-
-definition map_poly 
-     :: "('a :: zero \<Rightarrow> 'b :: zero) \<Rightarrow> 'a poly \<Rightarrow> 'b poly" where
-  "map_poly f p = Poly (map f (coeffs p))"
-
-lemma map_poly_0 [simp]: "map_poly f 0 = 0"
-  by (simp add: map_poly_def)
-
-lemma map_poly_1: "map_poly f 1 = [:f 1:]"
-  by (simp add: map_poly_def)
-
-lemma map_poly_1' [simp]: "f 1 = 1 \<Longrightarrow> map_poly f 1 = 1"
-  by (simp add: map_poly_def one_poly_def)
-
-lemma coeff_map_poly:
-  assumes "f 0 = 0"
-  shows   "coeff (map_poly f p) n = f (coeff p n)"
-  by (auto simp: map_poly_def nth_default_def coeffs_def assms
-        not_less Suc_le_eq coeff_eq_0 simp del: upt_Suc)
-
-lemma coeffs_map_poly [code abstract]: 
-    "coeffs (map_poly f p) = strip_while (op = 0) (map f (coeffs p))"
-  by (simp add: map_poly_def)
-
-lemma set_coeffs_map_poly:
-  "(\<And>x. f x = 0 \<longleftrightarrow> x = 0) \<Longrightarrow> set (coeffs (map_poly f p)) = f ` set (coeffs p)"
-  by (cases "p = 0") (auto simp: coeffs_map_poly last_map last_coeffs_not_0)
-
-lemma coeffs_map_poly': 
-  assumes "(\<And>x. x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0)"
-  shows   "coeffs (map_poly f p) = map f (coeffs p)"
-  by (cases "p = 0") (auto simp: coeffs_map_poly last_map last_coeffs_not_0 assms 
-                           intro!: strip_while_not_last split: if_splits)
-
-lemma degree_map_poly:
-  assumes "\<And>x. x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0"
-  shows   "degree (map_poly f p) = degree p"
-  by (simp add: degree_eq_length_coeffs coeffs_map_poly' assms)
-
-lemma map_poly_eq_0_iff:
-  assumes "f 0 = 0" "\<And>x. x \<in> set (coeffs p) \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0"
-  shows   "map_poly f p = 0 \<longleftrightarrow> p = 0"
-proof -
-  {
-    fix n :: nat
-    have "coeff (map_poly f p) n = f (coeff p n)" by (simp add: coeff_map_poly assms)
-    also have "\<dots> = 0 \<longleftrightarrow> coeff p n = 0"
-    proof (cases "n < length (coeffs p)")
-      case True
-      hence "coeff p n \<in> set (coeffs p)" by (auto simp: coeffs_def simp del: upt_Suc)
-      with assms show "f (coeff p n) = 0 \<longleftrightarrow> coeff p n = 0" by auto
-    qed (auto simp: assms length_coeffs nth_default_coeffs_eq [symmetric] nth_default_def)
-    finally have "(coeff (map_poly f p) n = 0) = (coeff p n = 0)" .
-  }
-  thus ?thesis by (auto simp: poly_eq_iff)
-qed
-
-lemma map_poly_smult:
-  assumes "f 0 = 0""\<And>c x. f (c * x) = f c * f x"
-  shows   "map_poly f (smult c p) = smult (f c) (map_poly f p)"
-  by (intro poly_eqI) (simp_all add: assms coeff_map_poly)
-
-lemma map_poly_pCons:
-  assumes "f 0 = 0"
-  shows   "map_poly f (pCons c p) = pCons (f c) (map_poly f p)"
-  by (intro poly_eqI) (simp_all add: assms coeff_map_poly coeff_pCons split: nat.splits)
-
-lemma map_poly_map_poly:
-  assumes "f 0 = 0" "g 0 = 0"
-  shows   "map_poly f (map_poly g p) = map_poly (f \<circ> g) p"
-  by (intro poly_eqI) (simp add: coeff_map_poly assms)
-
-lemma map_poly_id [simp]: "map_poly id p = p"
-  by (simp add: map_poly_def)
-
-lemma map_poly_id' [simp]: "map_poly (\<lambda>x. x) p = p"
-  by (simp add: map_poly_def)
-
-lemma map_poly_cong: 
-  assumes "(\<And>x. x \<in> set (coeffs p) \<Longrightarrow> f x = g x)"
-  shows   "map_poly f p = map_poly g p"
-proof -
-  from assms have "map f (coeffs p) = map g (coeffs p)" by (intro map_cong) simp_all
-  thus ?thesis by (simp only: coeffs_eq_iff coeffs_map_poly)
-qed
-
-lemma map_poly_monom: "f 0 = 0 \<Longrightarrow> map_poly f (monom c n) = monom (f c) n"
-  by (intro poly_eqI) (simp_all add: coeff_map_poly)
-
-lemma map_poly_idI:
-  assumes "\<And>x. x \<in> set (coeffs p) \<Longrightarrow> f x = x"
-  shows   "map_poly f p = p"
-  using map_poly_cong[OF assms, of _ id] by simp
-
-lemma map_poly_idI':
-  assumes "\<And>x. x \<in> set (coeffs p) \<Longrightarrow> f x = x"
-  shows   "p = map_poly f p"
-  using map_poly_cong[OF assms, of _ id] by simp
-
-lemma smult_conv_map_poly: "smult c p = map_poly (\<lambda>x. c * x) p"
-  by (intro poly_eqI) (simp_all add: coeff_map_poly)
-
-lemma div_const_poly_conv_map_poly: 
-  assumes "[:c:] dvd p"
-  shows   "p div [:c:] = map_poly (\<lambda>x. x div c) p"
-proof (cases "c = 0")
-  case False
-  from assms obtain q where p: "p = [:c:] * q" by (erule dvdE)
-  moreover {
-    have "smult c q = [:c:] * q" by simp
-    also have "\<dots> div [:c:] = q" by (rule nonzero_mult_div_cancel_left) (insert False, auto)
-    finally have "smult c q div [:c:] = q" .
-  }
-  ultimately show ?thesis by (intro poly_eqI) (auto simp: coeff_map_poly False)
-qed (auto intro!: poly_eqI simp: coeff_map_poly)
-
-
-
-subsection \<open>Various facts about polynomials\<close>
-
-lemma prod_mset_const_poly: "prod_mset (image_mset (\<lambda>x. [:f x:]) A) = [:prod_mset (image_mset f A):]"
-  by (induction A) (simp_all add: one_poly_def mult_ac)
-
-lemma degree_mod_less': "b \<noteq> 0 \<Longrightarrow> a mod b \<noteq> 0 \<Longrightarrow> degree (a mod b) < degree b"
-  using degree_mod_less[of b a] by auto
-  
-lemma is_unit_const_poly_iff: 
-    "[:c :: 'a :: {comm_semiring_1,semiring_no_zero_divisors}:] dvd 1 \<longleftrightarrow> c dvd 1"
-  by (auto simp: one_poly_def)
-
-lemma is_unit_poly_iff:
-  fixes p :: "'a :: {comm_semiring_1,semiring_no_zero_divisors} poly"
-  shows "p dvd 1 \<longleftrightarrow> (\<exists>c. p = [:c:] \<and> c dvd 1)"
-proof safe
-  assume "p dvd 1"
-  then obtain q where pq: "1 = p * q" by (erule dvdE)
-  hence "degree 1 = degree (p * q)" by simp
-  also from pq have "\<dots> = degree p + degree q" by (intro degree_mult_eq) auto
-  finally have "degree p = 0" by simp
-  from degree_eq_zeroE[OF this] obtain c where c: "p = [:c:]" .
-  with \<open>p dvd 1\<close> show "\<exists>c. p = [:c:] \<and> c dvd 1"
-    by (auto simp: is_unit_const_poly_iff)
-qed (auto simp: is_unit_const_poly_iff)
-
-lemma is_unit_polyE:
-  fixes p :: "'a :: {comm_semiring_1,semiring_no_zero_divisors} poly"
-  assumes "p dvd 1" obtains c where "p = [:c:]" "c dvd 1"
-  using assms by (subst (asm) is_unit_poly_iff) blast
-
-lemma smult_eq_iff:
-  assumes "(b :: 'a :: field) \<noteq> 0"
-  shows   "smult a p = smult b q \<longleftrightarrow> smult (a / b) p = q"
-proof
-  assume "smult a p = smult b q"
-  also from assms have "smult (inverse b) \<dots> = q" by simp
-  finally show "smult (a / b) p = q" by (simp add: field_simps)
-qed (insert assms, auto)
-
-lemma irreducible_const_poly_iff:
-  fixes c :: "'a :: {comm_semiring_1,semiring_no_zero_divisors}"
-  shows "irreducible [:c:] \<longleftrightarrow> irreducible c"
-proof
-  assume A: "irreducible c"
-  show "irreducible [:c:]"
-  proof (rule irreducibleI)
-    fix a b assume ab: "[:c:] = a * b"
-    hence "degree [:c:] = degree (a * b)" by (simp only: )
-    also from A ab have "a \<noteq> 0" "b \<noteq> 0" by auto
-    hence "degree (a * b) = degree a + degree b" by (simp add: degree_mult_eq)
-    finally have "degree a = 0" "degree b = 0" by auto
-    then obtain a' b' where ab': "a = [:a':]" "b = [:b':]" by (auto elim!: degree_eq_zeroE)
-    from ab have "coeff [:c:] 0 = coeff (a * b) 0" by (simp only: )
-    hence "c = a' * b'" by (simp add: ab' mult_ac)
-    from A and this have "a' dvd 1 \<or> b' dvd 1" by (rule irreducibleD)
-    with ab' show "a dvd 1 \<or> b dvd 1" by (auto simp: one_poly_def)
-  qed (insert A, auto simp: irreducible_def is_unit_poly_iff)
-next
-  assume A: "irreducible [:c:]"
-  show "irreducible c"
-  proof (rule irreducibleI)
-    fix a b assume ab: "c = a * b"
-    hence "[:c:] = [:a:] * [:b:]" by (simp add: mult_ac)
-    from A and this have "[:a:] dvd 1 \<or> [:b:] dvd 1" by (rule irreducibleD)
-    thus "a dvd 1 \<or> b dvd 1" by (simp add: one_poly_def)
-  qed (insert A, auto simp: irreducible_def one_poly_def)
-qed
-
-lemma lead_coeff_monom [simp]: "lead_coeff (monom c n) = c"
-  by (cases "c = 0") (simp_all add: lead_coeff_def degree_monom_eq)
-
-  
-subsection \<open>Normalisation of polynomials\<close>
-
-instantiation poly :: ("{normalization_semidom,idom_divide}") normalization_semidom
-begin
-
-definition unit_factor_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "unit_factor_poly p = monom (unit_factor (lead_coeff p)) 0"
-
-definition normalize_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "normalize_poly p = map_poly (\<lambda>x. x div unit_factor (lead_coeff p)) p"
-
-lemma normalize_poly_altdef:
-  "normalize p = p div [:unit_factor (lead_coeff p):]"
-proof (cases "p = 0")
-  case False
-  thus ?thesis
-    by (subst div_const_poly_conv_map_poly)
-       (auto simp: normalize_poly_def const_poly_dvd_iff lead_coeff_def )
-qed (auto simp: normalize_poly_def)
-
-instance
-proof
-  fix p :: "'a poly"
-  show "unit_factor p * normalize p = p"
-    by (cases "p = 0")
-       (simp_all add: unit_factor_poly_def normalize_poly_def monom_0 
-          smult_conv_map_poly map_poly_map_poly o_def)
-next
-  fix p :: "'a poly"
-  assume "is_unit p"
-  then obtain c where p: "p = [:c:]" "is_unit c" by (auto simp: is_unit_poly_iff)
-  thus "normalize p = 1"
-    by (simp add: normalize_poly_def map_poly_pCons is_unit_normalize one_poly_def)
-next
-  fix p :: "'a poly" assume "p \<noteq> 0"
-  thus "is_unit (unit_factor p)"
-    by (simp add: unit_factor_poly_def monom_0 is_unit_poly_iff)
-qed (simp_all add: normalize_poly_def unit_factor_poly_def monom_0 lead_coeff_mult unit_factor_mult)
-
-end
-
-lemma unit_factor_pCons:
-  "unit_factor (pCons a p) = (if p = 0 then monom (unit_factor a) 0 else unit_factor p)"
-  by (simp add: unit_factor_poly_def)
-
-lemma normalize_monom [simp]:
-  "normalize (monom a n) = monom (normalize a) n"
-  by (simp add: map_poly_monom normalize_poly_def)
-
-lemma unit_factor_monom [simp]:
-  "unit_factor (monom a n) = monom (unit_factor a) 0"
-  by (simp add: unit_factor_poly_def )
-
-lemma normalize_const_poly: "normalize [:c:] = [:normalize c:]"
-  by (simp add: normalize_poly_def map_poly_pCons)
-
-lemma normalize_smult: "normalize (smult c p) = smult (normalize c) (normalize p)"
-proof -
-  have "smult c p = [:c:] * p" by simp
-  also have "normalize \<dots> = smult (normalize c) (normalize p)"
-    by (subst normalize_mult) (simp add: normalize_const_poly)
-  finally show ?thesis .
-qed
-
-lemma is_unit_smult_iff: "smult c p dvd 1 \<longleftrightarrow> c dvd 1 \<and> p dvd 1"
-proof -
-  have "smult c p = [:c:] * p" by simp
-  also have "\<dots> dvd 1 \<longleftrightarrow> c dvd 1 \<and> p dvd 1"
-  proof safe
-    assume A: "[:c:] * p dvd 1"
-    thus "p dvd 1" by (rule dvd_mult_right)
-    from A obtain q where B: "1 = [:c:] * p * q" by (erule dvdE)
-    have "c dvd c * (coeff p 0 * coeff q 0)" by simp
-    also have "\<dots> = coeff ([:c:] * p * q) 0" by (simp add: mult.assoc coeff_mult)
-    also note B [symmetric]
-    finally show "c dvd 1" by simp
-  next
-    assume "c dvd 1" "p dvd 1"
-    from \<open>c dvd 1\<close> obtain d where "1 = c * d" by (erule dvdE)
-    hence "1 = [:c:] * [:d:]" by (simp add: one_poly_def mult_ac)
-    hence "[:c:] dvd 1" by (rule dvdI)
-    from mult_dvd_mono[OF this \<open>p dvd 1\<close>] show "[:c:] * p dvd 1" by simp
-  qed
-  finally show ?thesis .
-qed
 
 
 subsection \<open>Content and primitive part of a polynomial\<close>
@@ -1243,7 +904,7 @@ lemma prime_elem_linear_poly:
 
 end
 
-  
+ 
 subsection \<open>Prime factorisation of polynomials\<close>   
 
 context
@@ -1264,7 +925,8 @@ proof -
     by (simp add: e_def content_prod_mset multiset.map_comp o_def)
   also have "image_mset (\<lambda>x. content (primitive_part_fract x)) ?P = image_mset (\<lambda>_. 1) ?P"
     by (intro image_mset_cong content_primitive_part_fract) auto
-  finally have content_e: "content e = 1" by (simp add: prod_mset_const)    
+  finally have content_e: "content e = 1"
+    by simp    
   
   have "fract_poly p = unit_factor_field_poly (fract_poly p) * 
           normalize_field_poly (fract_poly p)" by simp
@@ -1277,7 +939,7 @@ proof -
                image_mset (\<lambda>x. [:fract_content x:] * fract_poly (primitive_part_fract x)) ?P"
     by (intro image_mset_cong) (auto simp: content_times_primitive_part_fract)
   also have "prod_mset \<dots> = smult c (fract_poly e)"
-    by (subst prod_mset_mult) (simp_all add: prod_mset_fract_poly prod_mset_const_poly c_def e_def)
+    by (subst prod_mset.distrib) (simp_all add: prod_mset_fract_poly prod_mset_const_poly c_def e_def)
   also have "[:to_fract (lead_coeff p):] * \<dots> = smult c' (fract_poly e)"
     by (simp add: c'_def)
   finally have eq: "fract_poly p = smult c' (fract_poly e)" .
@@ -1466,20 +1128,22 @@ definition gcd_poly_code
               smult (gcd (content p) (content q)) 
                 (gcd_poly_code_aux (primitive_part p) (primitive_part q)))"
 
+lemma gcd_poly_code [code]: "gcd p q = gcd_poly_code p q"
+  by (simp add: gcd_poly_code_def gcd_poly_code_aux_correct gcd_poly_decompose [symmetric])
+
 lemma lcm_poly_code [code]: 
   fixes p q :: "'a :: factorial_ring_gcd poly"
   shows "lcm p q = normalize (p * q) div gcd p q"
-  by (rule lcm_gcd)
-
-lemma gcd_poly_code [code]: "gcd p q = gcd_poly_code p q"
-  by (simp add: gcd_poly_code_def gcd_poly_code_aux_correct gcd_poly_decompose [symmetric])
+  by (fact lcm_gcd)
 
 declare Gcd_set
   [where ?'a = "'a :: factorial_ring_gcd poly", code]
 
 declare Lcm_set
   [where ?'a = "'a :: factorial_ring_gcd poly", code]
-  
-value [code] "Lcm {[:1,2,3:], [:2,3,4::int poly:]}"
 
+text \<open>Example:
+  @{lemma "Lcm {[:1, 2, 3:], [:2, 3, 4:]} = [:[:2:], [:7:], [:16:], [:17:], [:12 :: int:]:]" by eval}
+\<close>
+  
 end

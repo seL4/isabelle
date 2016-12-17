@@ -657,6 +657,12 @@ lemma Greatest_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < 
   for x :: nat
   unfolding Greatest_def by (rule GreatestM_nat_le) auto
 
+lemma GreatestI_ex: "\<exists>k::nat. P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> P (GREATEST x. P x)"
+  apply (erule exE)
+  apply (rule GreatestI)
+   apply assumption+
+  done
+
 
 subsection \<open>An aside: bounded accessible part\<close>
 

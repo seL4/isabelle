@@ -506,6 +506,21 @@ lemma add_num_frac:
   "y \<noteq> 0 \<Longrightarrow> z + x / y = (x + z * y) / y"
   by (simp add: add_divide_distrib add.commute)
 
+lemma dvd_field_iff:
+  "a dvd b \<longleftrightarrow> (a = 0 \<longrightarrow> b = 0)"
+proof (cases "a = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then have "b = a * (b / a)"
+    by (simp add: field_simps)
+  then have "a dvd b" ..
+  with False show ?thesis
+    by simp
+qed
+
 end
 
 class field_char_0 = field + ring_char_0

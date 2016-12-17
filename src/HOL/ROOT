@@ -31,10 +31,11 @@ session "HOL-Library" (main timing) in Library = HOL +
   *}
   theories
     Library
-    Polynomial_Factorial
     (*conflicting type class instantiations and dependent applications*)
+    Field_as_Ring
     Finite_Lattice
     List_lexord
+    Polynomial_Factorial
     Prefix_Order
     Product_Lexorder
     Product_Order

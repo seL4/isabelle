@@ -278,6 +278,16 @@ lemma min_rpair_set: "reduction_pair (min_strict, min_weak)"
   done
 
 
+subsection \<open>Yet another induction principle on the natural numbers\<close>
+
+lemma nat_descend_induct [case_names base descend]:
+  fixes P :: "nat \<Rightarrow> bool"
+  assumes H1: "\<And>k. k > n \<Longrightarrow> P k"
+  assumes H2: "\<And>k. k \<le> n \<Longrightarrow> (\<And>i. i > k \<Longrightarrow> P i) \<Longrightarrow> P k"
+  shows "P m"
+  using assms by induction_schema (force intro!: wf_measure [of "\<lambda>k. Suc n - k"])+
+
+
 subsection \<open>Tool setup\<close>
 
 ML_file "Tools/Function/termination.ML"

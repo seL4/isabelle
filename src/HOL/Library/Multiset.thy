@@ -1738,6 +1738,10 @@ lemma image_mset_cong_pair:
   "(\<forall>x y. (x, y) \<in># M \<longrightarrow> f x y = g x y) \<Longrightarrow> {#f x y. (x, y) \<in># M#} = {#g x y. (x, y) \<in># M#}"
   by (metis image_mset_cong split_cong)
 
+lemma image_mset_const_eq:
+  "{#c. a \<in># M#} = replicate_mset (size M) c"
+  by (induct M) simp_all
+
 
 subsection \<open>Further conversions\<close>
 
@@ -2309,6 +2313,9 @@ syntax
   "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
 translations
   "\<Prod>i \<in># A. b" \<rightleftharpoons> "CONST prod_mset (CONST image_mset (\<lambda>i. b) A)"
+
+lemma prod_mset_constant [simp]: "(\<Prod>_\<in>#A. c) = c ^ size A"
+  by (simp add: image_mset_const_eq)
 
 lemma (in comm_monoid_mult) prod_mset_subset_imp_dvd:
   assumes "A \<subseteq># B"

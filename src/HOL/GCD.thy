@@ -639,7 +639,6 @@ proof -
     using dvd_times_left_cancel_iff [of "gcd a b" _ 1] by simp
 qed
 
-
 lemma divides_mult:
   assumes "a dvd c" and nr: "b dvd c" and "coprime a b"
   shows "a * b dvd c"
@@ -694,6 +693,10 @@ lemma coprime_mult:
 lemma coprime_mul_eq: "gcd d (a * b) = 1 \<longleftrightarrow> gcd d a = 1 \<and> gcd d b = 1"
   using coprime_rmult[of d a b] coprime_lmult[of d a b] coprime_mult[of d a b]
   by blast
+
+lemma coprime_mul_eq':
+  "coprime (a * b) d \<longleftrightarrow> coprime a d \<and> coprime b d"
+  using coprime_mul_eq [of d a b] by (simp add: gcd.commute)
 
 lemma gcd_coprime:
   assumes c: "gcd a b \<noteq> 0"
@@ -957,6 +960,24 @@ next
     by (simp add: x_def y_def div_dvd_iff_mult assms)
   ultimately show ?thesis by (rule that)
 qed
+
+lemma coprime_crossproduct':
+  fixes a b c d
+  assumes "b \<noteq> 0"
+  assumes unit_factors: "unit_factor b = unit_factor d"
+  assumes coprime: "coprime a b" "coprime c d"
+  shows "a * d = b * c \<longleftrightarrow> a = c \<and> b = d"
+proof safe
+  assume eq: "a * d = b * c"
+  hence "normalize a * normalize d = normalize c * normalize b"
+    by (simp only: normalize_mult [symmetric] mult_ac)
+  with coprime have "normalize b = normalize d"
+    by (subst (asm) coprime_crossproduct) simp_all
+  from this and unit_factors show "b = d"
+    by (rule normalize_unit_factor_eqI)
+  from eq have "a * d = c * d" by (simp only: \<open>b = d\<close> mult_ac)
+  with \<open>b \<noteq> 0\<close> \<open>b = d\<close> show "a = c" by simp
+qed (simp_all add: mult_ac)
 
 end
 

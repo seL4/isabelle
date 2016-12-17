@@ -877,7 +877,7 @@ lemma smult_monom: "smult a (monom b n) = monom (a * b) n"
   by (induct n, simp add: monom_0, simp add: monom_Suc)
 
 lemma smult_Poly: "smult c (Poly xs) = Poly (map (op * c) xs)"
-  by (auto simp add: poly_eq_iff coeff_Poly_eq nth_default_def)
+  by (auto simp add: poly_eq_iff nth_default_def)
 
 lemma degree_smult_eq [simp]:
   fixes a :: "'a::{comm_semiring_0,semiring_no_zero_divisors}"
@@ -1064,6 +1064,111 @@ proof (induct S rule: finite_induct)
     by (rule le_trans[OF degree_mult_le], insert insert, auto)
 qed simp
 
+
+subsection \<open>Mapping polynomials\<close>
+
+definition map_poly 
+     :: "('a :: zero \<Rightarrow> 'b :: zero) \<Rightarrow> 'a poly \<Rightarrow> 'b poly" where
+  "map_poly f p = Poly (map f (coeffs p))"
+
+lemma map_poly_0 [simp]: "map_poly f 0 = 0"
+  by (simp add: map_poly_def)
+
+lemma map_poly_1: "map_poly f 1 = [:f 1:]"
+  by (simp add: map_poly_def)
+
+lemma map_poly_1' [simp]: "f 1 = 1 \<Longrightarrow> map_poly f 1 = 1"
+  by (simp add: map_poly_def one_poly_def)
+
+lemma coeff_map_poly:
+  assumes "f 0 = 0"
+  shows   "coeff (map_poly f p) n = f (coeff p n)"
+  by (auto simp: map_poly_def nth_default_def coeffs_def assms
+        not_less Suc_le_eq coeff_eq_0 simp del: upt_Suc)
+
+lemma coeffs_map_poly [code abstract]: 
+    "coeffs (map_poly f p) = strip_while (op = 0) (map f (coeffs p))"
+  by (simp add: map_poly_def)
+
+lemma set_coeffs_map_poly:
+  "(\<And>x. f x = 0 \<longleftrightarrow> x = 0) \<Longrightarrow> set (coeffs (map_poly f p)) = f ` set (coeffs p)"
+  by (cases "p = 0") (auto simp: coeffs_map_poly last_map last_coeffs_not_0)
+
+lemma coeffs_map_poly': 
+  assumes "(\<And>x. x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0)"
+  shows   "coeffs (map_poly f p) = map f (coeffs p)"
+  by (cases "p = 0") (auto simp: coeffs_map_poly last_map last_coeffs_not_0 assms 
+                           intro!: strip_while_not_last split: if_splits)
+
+lemma degree_map_poly:
+  assumes "\<And>x. x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0"
+  shows   "degree (map_poly f p) = degree p"
+  by (simp add: degree_eq_length_coeffs coeffs_map_poly' assms)
+
+lemma map_poly_eq_0_iff:
+  assumes "f 0 = 0" "\<And>x. x \<in> set (coeffs p) \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0"
+  shows   "map_poly f p = 0 \<longleftrightarrow> p = 0"
+proof -
+  {
+    fix n :: nat
+    have "coeff (map_poly f p) n = f (coeff p n)" by (simp add: coeff_map_poly assms)
+    also have "\<dots> = 0 \<longleftrightarrow> coeff p n = 0"
+    proof (cases "n < length (coeffs p)")
+      case True
+      hence "coeff p n \<in> set (coeffs p)" by (auto simp: coeffs_def simp del: upt_Suc)
+      with assms show "f (coeff p n) = 0 \<longleftrightarrow> coeff p n = 0" by auto
+    qed (auto simp: assms length_coeffs nth_default_coeffs_eq [symmetric] nth_default_def)
+    finally have "(coeff (map_poly f p) n = 0) = (coeff p n = 0)" .
+  }
+  thus ?thesis by (auto simp: poly_eq_iff)
+qed
+
+lemma map_poly_smult:
+  assumes "f 0 = 0""\<And>c x. f (c * x) = f c * f x"
+  shows   "map_poly f (smult c p) = smult (f c) (map_poly f p)"
+  by (intro poly_eqI) (simp_all add: assms coeff_map_poly)
+
+lemma map_poly_pCons:
+  assumes "f 0 = 0"
+  shows   "map_poly f (pCons c p) = pCons (f c) (map_poly f p)"
+  by (intro poly_eqI) (simp_all add: assms coeff_map_poly coeff_pCons split: nat.splits)
+
+lemma map_poly_map_poly:
+  assumes "f 0 = 0" "g 0 = 0"
+  shows   "map_poly f (map_poly g p) = map_poly (f \<circ> g) p"
+  by (intro poly_eqI) (simp add: coeff_map_poly assms)
+
+lemma map_poly_id [simp]: "map_poly id p = p"
+  by (simp add: map_poly_def)
+
+lemma map_poly_id' [simp]: "map_poly (\<lambda>x. x) p = p"
+  by (simp add: map_poly_def)
+
+lemma map_poly_cong: 
+  assumes "(\<And>x. x \<in> set (coeffs p) \<Longrightarrow> f x = g x)"
+  shows   "map_poly f p = map_poly g p"
+proof -
+  from assms have "map f (coeffs p) = map g (coeffs p)" by (intro map_cong) simp_all
+  thus ?thesis by (simp only: coeffs_eq_iff coeffs_map_poly)
+qed
+
+lemma map_poly_monom: "f 0 = 0 \<Longrightarrow> map_poly f (monom c n) = monom (f c) n"
+  by (intro poly_eqI) (simp_all add: coeff_map_poly)
+
+lemma map_poly_idI:
+  assumes "\<And>x. x \<in> set (coeffs p) \<Longrightarrow> f x = x"
+  shows   "map_poly f p = p"
+  using map_poly_cong[OF assms, of _ id] by simp
+
+lemma map_poly_idI':
+  assumes "\<And>x. x \<in> set (coeffs p) \<Longrightarrow> f x = x"
+  shows   "p = map_poly f p"
+  using map_poly_cong[OF assms, of _ id] by simp
+
+lemma smult_conv_map_poly: "smult c p = map_poly (\<lambda>x. c * x) p"
+  by (intro poly_eqI) (simp_all add: coeff_map_poly)
+
+
 subsection \<open>Conversions from natural numbers\<close>
 
 lemma of_nat_poly: "of_nat n = [:of_nat n :: 'a :: comm_semiring_1:]"
@@ -1085,6 +1190,7 @@ lemma degree_numeral [simp]: "degree (numeral n) = 0"
 
 lemma numeral_poly: "numeral n = [:numeral n:]"
   by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+
 
 subsection \<open>Lemmas about divisibility\<close>
 
@@ -1136,6 +1242,11 @@ lemma degree_mult_eq:
 apply (rule order_antisym [OF degree_mult_le le_degree])
 apply (simp add: coeff_mult_degree_sum)
 done
+
+lemma degree_mult_eq_0:
+  fixes p q:: "'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
+  shows "degree (p * q) = 0 \<longleftrightarrow> p = 0 \<or> q = 0 \<or> (p \<noteq> 0 \<and> q \<noteq> 0 \<and> degree p = 0 \<and> degree q = 0)"
+  by (auto simp add: degree_mult_eq)
 
 lemma degree_mult_right_le:
   fixes p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
@@ -1288,6 +1399,75 @@ qed
 end
 
 text \<open>TODO: Simplification rules for comparisons\<close>
+
+
+subsection \<open>Leading coefficient\<close>
+
+definition lead_coeff:: "'a::zero poly \<Rightarrow> 'a" where
+  "lead_coeff p= coeff p (degree p)"
+
+lemma lead_coeff_pCons[simp]:
+    "p\<noteq>0 \<Longrightarrow>lead_coeff (pCons a p) = lead_coeff p"
+    "p=0 \<Longrightarrow> lead_coeff (pCons a p) = a"
+unfolding lead_coeff_def by auto
+
+lemma lead_coeff_0[simp]:"lead_coeff 0 =0" 
+  unfolding lead_coeff_def by auto
+
+lemma coeff_0_prod_list: "coeff (prod_list xs) 0 = prod_list (map (\<lambda>p. coeff p 0) xs)"
+  by (induction xs) (simp_all add: coeff_mult)
+
+lemma coeff_0_power: "coeff (p ^ n) 0 = coeff p 0 ^ n"
+  by (induction n) (simp_all add: coeff_mult)
+
+lemma lead_coeff_mult:
+   fixes p q::"'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
+   shows "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
+by (unfold lead_coeff_def,cases "p=0 \<or> q=0",auto simp add:coeff_mult_degree_sum degree_mult_eq)
+
+lemma lead_coeff_add_le:
+  assumes "degree p < degree q"
+  shows "lead_coeff (p+q) = lead_coeff q" 
+using assms unfolding lead_coeff_def
+by (metis coeff_add coeff_eq_0 monoid_add_class.add.left_neutral degree_add_eq_right)
+
+lemma lead_coeff_minus:
+  "lead_coeff (-p) = - lead_coeff p"
+by (metis coeff_minus degree_minus lead_coeff_def)
+
+lemma lead_coeff_smult:
+  "lead_coeff (smult c p :: 'a :: {comm_semiring_0,semiring_no_zero_divisors} poly) = c * lead_coeff p"
+proof -
+  have "smult c p = [:c:] * p" by simp
+  also have "lead_coeff \<dots> = c * lead_coeff p"
+    by (subst lead_coeff_mult) simp_all
+  finally show ?thesis .
+qed
+
+lemma lead_coeff_eq_zero_iff [simp]: "lead_coeff p = 0 \<longleftrightarrow> p = 0"
+  by (simp add: lead_coeff_def)
+
+lemma lead_coeff_1 [simp]: "lead_coeff 1 = 1"
+  by (simp add: lead_coeff_def)
+
+lemma lead_coeff_of_nat [simp]:
+  "lead_coeff (of_nat n) = (of_nat n :: 'a :: {comm_semiring_1,semiring_char_0})"
+  by (induction n) (simp_all add: lead_coeff_def of_nat_poly)
+
+lemma lead_coeff_numeral [simp]: 
+  "lead_coeff (numeral n) = numeral n"
+  unfolding lead_coeff_def
+  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+
+lemma lead_coeff_power: 
+  "lead_coeff (p ^ n :: 'a :: {comm_semiring_1,semiring_no_zero_divisors} poly) = lead_coeff p ^ n"
+  by (induction n) (simp_all add: lead_coeff_mult)
+
+lemma lead_coeff_nonzero: "p \<noteq> 0 \<Longrightarrow> lead_coeff p \<noteq> 0"
+  by (simp add: lead_coeff_def)
+
+lemma lead_coeff_monom [simp]: "lead_coeff (monom c n) = c"
+  by (cases "c = 0") (simp_all add: lead_coeff_def degree_monom_eq)
 
 
 subsection \<open>Synthetic division and polynomial roots\<close>
@@ -1555,7 +1735,7 @@ lemmas pdivmod_rel_unique_mod = pdivmod_rel_unique [THEN conjunct2]
 
 
 
-subsection\<open>Pseudo-Division and Division of Polynomials\<close>
+subsection \<open>Pseudo-Division and Division of Polynomials\<close>
 
 text\<open>This part is by René Thiemann and Akihisa Yamada.\<close>
 
@@ -1838,15 +2018,172 @@ qed
 lemma divide_poly_0: "f div 0 = (0 :: 'a poly)"
   by (simp add: divide_poly_def Let_def divide_poly_main_0)
 
-instance by (standard, auto simp: divide_poly divide_poly_0)
-end
+instance
+  by standard (auto simp: divide_poly divide_poly_0)
 
+end
 
 instance poly :: (idom_divide) algebraic_semidom ..
 
+lemma div_const_poly_conv_map_poly: 
+  assumes "[:c:] dvd p"
+  shows   "p div [:c:] = map_poly (\<lambda>x. x div c) p"
+proof (cases "c = 0")
+  case False
+  from assms obtain q where p: "p = [:c:] * q" by (erule dvdE)
+  moreover {
+    have "smult c q = [:c:] * q" by simp
+    also have "\<dots> div [:c:] = q" by (rule nonzero_mult_div_cancel_left) (insert False, auto)
+    finally have "smult c q div [:c:] = q" .
+  }
+  ultimately show ?thesis by (intro poly_eqI) (auto simp: coeff_map_poly False)
+qed (auto intro!: poly_eqI simp: coeff_map_poly)
+
+lemma is_unit_monom_0:
+  fixes a :: "'a::field"
+  assumes "a \<noteq> 0"
+  shows "is_unit (monom a 0)"
+proof
+  from assms show "1 = monom a 0 * monom (inverse a) 0"
+    by (simp add: mult_monom)
+qed
+
+lemma is_unit_triv:
+  fixes a :: "'a::field"
+  assumes "a \<noteq> 0"
+  shows "is_unit [:a:]"
+  using assms by (simp add: is_unit_monom_0 monom_0 [symmetric])
+
+lemma is_unit_iff_degree:
+  assumes "p \<noteq> (0 :: _ :: field poly)"
+  shows "is_unit p \<longleftrightarrow> degree p = 0" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q
+  then obtain a where "p = [:a:]" by (rule degree_eq_zeroE)
+  with assms show ?P by (simp add: is_unit_triv)
+next
+  assume ?P
+  then obtain q where "q \<noteq> 0" "p * q = 1" ..
+  then have "degree (p * q) = degree 1"
+    by simp
+  with \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close> have "degree p + degree q = 0"
+    by (simp add: degree_mult_eq)
+  then show ?Q by simp
+qed
+
+lemma is_unit_pCons_iff:
+  "is_unit (pCons (a::_::field) p) \<longleftrightarrow> p = 0 \<and> a \<noteq> 0"
+  by (cases "p = 0") (auto simp add: is_unit_triv is_unit_iff_degree)
+
+lemma is_unit_monom_trival:
+  fixes p :: "'a::field poly"
+  assumes "is_unit p"
+  shows "monom (coeff p (degree p)) 0 = p"
+  using assms by (cases p) (simp_all add: monom_0 is_unit_pCons_iff)
+
+lemma is_unit_const_poly_iff: 
+  "[:c :: 'a :: {comm_semiring_1,semiring_no_zero_divisors}:] dvd 1 \<longleftrightarrow> c dvd 1"
+  by (auto simp: one_poly_def)
+
+lemma is_unit_polyE:
+  fixes p :: "'a :: {comm_semiring_1,semiring_no_zero_divisors} poly"
+  assumes "p dvd 1" obtains c where "p = [:c:]" "c dvd 1"
+proof -
+  from assms obtain q where "1 = p * q"
+    by (rule dvdE)
+  then have "p \<noteq> 0" and "q \<noteq> 0"
+    by auto
+  from \<open>1 = p * q\<close> have "degree 1 = degree (p * q)"
+    by simp
+  also from \<open>p \<noteq> 0\<close> and \<open>q \<noteq> 0\<close> have "\<dots> = degree p + degree q"
+    by (simp add: degree_mult_eq)
+  finally have "degree p = 0" by simp
+  with degree_eq_zeroE obtain c where c: "p = [:c:]" .
+  moreover with \<open>p dvd 1\<close> have "c dvd 1"
+    by (simp add: is_unit_const_poly_iff)
+  ultimately show thesis
+    by (rule that)
+qed
+
+lemma is_unit_polyE':
+  assumes "is_unit (p::_::field poly)"
+  obtains a where "p = monom a 0" and "a \<noteq> 0"
+proof -
+  obtain a q where "p = pCons a q" by (cases p)
+  with assms have "p = [:a:]" and "a \<noteq> 0"
+    by (simp_all add: is_unit_pCons_iff)
+  with that show thesis by (simp add: monom_0)
+qed
+
+lemma is_unit_poly_iff:
+  fixes p :: "'a :: {comm_semiring_1,semiring_no_zero_divisors} poly"
+  shows "p dvd 1 \<longleftrightarrow> (\<exists>c. p = [:c:] \<and> c dvd 1)"
+  by (auto elim: is_unit_polyE simp add: is_unit_const_poly_iff)
+
+instantiation poly :: ("{normalization_semidom, idom_divide}") normalization_semidom
+begin
+
+definition unit_factor_poly :: "'a poly \<Rightarrow> 'a poly"
+  where "unit_factor_poly p = monom (unit_factor (lead_coeff p)) 0"
+
+definition normalize_poly :: "'a poly \<Rightarrow> 'a poly"
+  where "normalize_poly p = map_poly (\<lambda>x. x div unit_factor (lead_coeff p)) p"
+
+instance proof
+  fix p :: "'a poly"
+  show "unit_factor p * normalize p = p"
+    by (cases "p = 0")
+       (simp_all add: unit_factor_poly_def normalize_poly_def monom_0 
+          smult_conv_map_poly map_poly_map_poly o_def)
+next
+  fix p :: "'a poly"
+  assume "is_unit p"
+  then obtain c where p: "p = [:c:]" "is_unit c"
+    by (auto simp: is_unit_poly_iff)
+  thus "normalize p = 1"
+    by (simp add: normalize_poly_def map_poly_pCons is_unit_normalize one_poly_def)
+next
+  fix p :: "'a poly" assume "p \<noteq> 0"
+  thus "is_unit (unit_factor p)"
+    by (simp add: unit_factor_poly_def monom_0 is_unit_poly_iff)
+qed (simp_all add: normalize_poly_def unit_factor_poly_def monom_0 lead_coeff_mult unit_factor_mult)
+
+end
+
+lemma normalize_poly_eq_div:
+  "normalize p = p div [:unit_factor (lead_coeff p):]"
+proof (cases "p = 0")
+  case False
+  thus ?thesis
+    by (subst div_const_poly_conv_map_poly)
+       (auto simp: normalize_poly_def const_poly_dvd_iff lead_coeff_def )
+qed (auto simp: normalize_poly_def)
+
+lemma unit_factor_pCons:
+  "unit_factor (pCons a p) = (if p = 0 then monom (unit_factor a) 0 else unit_factor p)"
+  by (simp add: unit_factor_poly_def)
+
+lemma normalize_monom [simp]:
+  "normalize (monom a n) = monom (normalize a) n"
+  by (simp add: map_poly_monom normalize_poly_def)
+
+lemma unit_factor_monom [simp]:
+  "unit_factor (monom a n) = monom (unit_factor a) 0"
+  by (simp add: unit_factor_poly_def )
+
+lemma normalize_const_poly: "normalize [:c:] = [:normalize c:]"
+  by (simp add: normalize_poly_def map_poly_pCons)
+
+lemma normalize_smult: "normalize (smult c p) = smult (normalize c) (normalize p)"
+proof -
+  have "smult c p = [:c:] * p" by simp
+  also have "normalize \<dots> = smult (normalize c) (normalize p)"
+    by (subst normalize_mult) (simp add: normalize_const_poly)
+  finally show ?thesis .
+qed
 
 
-subsubsection\<open>Division in Field Polynomials\<close>
+subsubsection \<open>Division in Field Polynomials\<close>
 
 text\<open>
  This part connects the above result to the division of field polynomials.
@@ -1977,58 +2314,6 @@ next
 qed
 
 end
-
-lemma is_unit_monom_0:
-  fixes a :: "'a::field"
-  assumes "a \<noteq> 0"
-  shows "is_unit (monom a 0)"
-proof
-  from assms show "1 = monom a 0 * monom (inverse a) 0"
-    by (simp add: mult_monom)
-qed
-
-lemma is_unit_triv:
-  fixes a :: "'a::field"
-  assumes "a \<noteq> 0"
-  shows "is_unit [:a:]"
-  using assms by (simp add: is_unit_monom_0 monom_0 [symmetric])
-
-lemma is_unit_iff_degree:
-  assumes "p \<noteq> (0 :: _ :: field poly)"
-  shows "is_unit p \<longleftrightarrow> degree p = 0" (is "?P \<longleftrightarrow> ?Q")
-proof
-  assume ?Q
-  then obtain a where "p = [:a:]" by (rule degree_eq_zeroE)
-  with assms show ?P by (simp add: is_unit_triv)
-next
-  assume ?P
-  then obtain q where "q \<noteq> 0" "p * q = 1" ..
-  then have "degree (p * q) = degree 1"
-    by simp
-  with \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close> have "degree p + degree q = 0"
-    by (simp add: degree_mult_eq)
-  then show ?Q by simp
-qed
-
-lemma is_unit_pCons_iff:
-  "is_unit (pCons (a::_::field) p) \<longleftrightarrow> p = 0 \<and> a \<noteq> 0"
-  by (cases "p = 0") (auto simp add: is_unit_triv is_unit_iff_degree)
-
-lemma is_unit_monom_trival:
-  fixes p :: "'a::field poly"
-  assumes "is_unit p"
-  shows "monom (coeff p (degree p)) 0 = p"
-  using assms by (cases p) (simp_all add: monom_0 is_unit_pCons_iff)
-
-lemma is_unit_polyE:
-  assumes "is_unit (p::_::field poly)"
-  obtains a where "p = monom a 0" and "a \<noteq> 0"
-proof -
-  obtain a q where "p = pCons a q" by (cases p)
-  with assms have "p = [:a:]" and "a \<noteq> 0"
-    by (simp_all add: is_unit_pCons_iff)
-  with that show thesis by (simp add: monom_0)
-qed
 
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
@@ -2860,18 +3145,11 @@ lemma pcompose_prod: "pcompose (prod f A) p = prod (\<lambda>i. pcompose (f i) p
   by (cases "finite A", induction rule: finite_induct)
      (simp_all add: pcompose_1 pcompose_mult)
 
-
-(* The remainder of this section and the next were contributed by Wenda Li *)
-
-lemma degree_mult_eq_0:
-  fixes p q:: "'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
-  shows "degree (p*q) = 0 \<longleftrightarrow> p=0 \<or> q=0 \<or> (p\<noteq>0 \<and> q\<noteq>0 \<and> degree p =0 \<and> degree q =0)"
-by (auto simp add:degree_mult_eq)
-
-lemma pcompose_const[simp]:"pcompose [:a:] q = [:a:]" by (subst pcompose_pCons,simp) 
+lemma pcompose_const [simp]: "pcompose [:a:] q = [:a:]"
+  by (subst pcompose_pCons) simp
 
 lemma pcompose_0': "pcompose p 0 = [:coeff p 0:]"
-  by (induct p) (auto simp add:pcompose_pCons)
+  by (induct p) (auto simp add: pcompose_pCons)
 
 lemma degree_pcompose:
   fixes p q:: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
@@ -2932,53 +3210,6 @@ proof -
   thus ?thesis using \<open>p=[:a:]\<close> by simp
 qed
 
-
-subsection \<open>Leading coefficient\<close>
-
-definition lead_coeff:: "'a::zero poly \<Rightarrow> 'a" where
-  "lead_coeff p= coeff p (degree p)"
-
-lemma lead_coeff_pCons[simp]:
-    "p\<noteq>0 \<Longrightarrow>lead_coeff (pCons a p) = lead_coeff p"
-    "p=0 \<Longrightarrow> lead_coeff (pCons a p) = a"
-unfolding lead_coeff_def by auto
-
-lemma lead_coeff_0[simp]:"lead_coeff 0 =0" 
-  unfolding lead_coeff_def by auto
-
-lemma coeff_0_prod_list: "coeff (prod_list xs) 0 = prod_list (map (\<lambda>p. coeff p 0) xs)"
-  by (induction xs) (simp_all add: coeff_mult)
-
-lemma coeff_0_power: "coeff (p ^ n) 0 = coeff p 0 ^ n"
-  by (induction n) (simp_all add: coeff_mult)
-
-lemma lead_coeff_mult:
-   fixes p q::"'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
-   shows "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
-by (unfold lead_coeff_def,cases "p=0 \<or> q=0",auto simp add:coeff_mult_degree_sum degree_mult_eq)
-
-lemma lead_coeff_add_le:
-  assumes "degree p < degree q"
-  shows "lead_coeff (p+q) = lead_coeff q" 
-using assms unfolding lead_coeff_def
-by (metis coeff_add coeff_eq_0 monoid_add_class.add.left_neutral degree_add_eq_right)
-
-lemma lead_coeff_minus:
-  "lead_coeff (-p) = - lead_coeff p"
-by (metis coeff_minus degree_minus lead_coeff_def)
-
-lemma lead_coeff_smult:
-  "lead_coeff (smult c p :: 'a :: {comm_semiring_0,semiring_no_zero_divisors} poly) = c * lead_coeff p"
-proof -
-  have "smult c p = [:c:] * p" by simp
-  also have "lead_coeff \<dots> = c * lead_coeff p"
-    by (subst lead_coeff_mult) simp_all
-  finally show ?thesis .
-qed
-
-lemma lead_coeff_eq_zero_iff [simp]: "lead_coeff p = 0 \<longleftrightarrow> p = 0"
-  by (simp add: lead_coeff_def)
-
 lemma lead_coeff_comp:
   fixes p q:: "'a::{comm_semiring_1,semiring_no_zero_divisors} poly"
   assumes "degree q > 0" 
@@ -3008,25 +3239,6 @@ next
     qed
   ultimately show ?case by blast
 qed
-
-lemma lead_coeff_1 [simp]: "lead_coeff 1 = 1"
-  by (simp add: lead_coeff_def)
-
-lemma lead_coeff_of_nat [simp]:
-  "lead_coeff (of_nat n) = (of_nat n :: 'a :: {comm_semiring_1,semiring_char_0})"
-  by (induction n) (simp_all add: lead_coeff_def of_nat_poly)
-
-lemma lead_coeff_numeral [simp]: 
-  "lead_coeff (numeral n) = numeral n"
-  unfolding lead_coeff_def
-  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
-
-lemma lead_coeff_power: 
-  "lead_coeff (p ^ n :: 'a :: {comm_semiring_1,semiring_no_zero_divisors} poly) = lead_coeff p ^ n"
-  by (induction n) (simp_all add: lead_coeff_mult)
-
-lemma lead_coeff_nonzero: "p \<noteq> 0 \<Longrightarrow> lead_coeff p \<noteq> 0"
-  by (simp add: lead_coeff_def)
 
 
 subsection \<open>Shifting polynomials\<close>
