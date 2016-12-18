@@ -139,7 +139,7 @@ fun synchronize_syntax ctxt =
       | NONE => NONE);
     val unchecks =
       map (fn (c_ty as (_, ty), (v, _)) => (Free (v, ty), Const c_ty)) overloading;
-  in 
+  in
     ctxt
     |> map_improvable_syntax (K {primary_constraints = [],
       secondary_constraints = [], improve = K NONE, subst = subst,
@@ -168,7 +168,7 @@ fun pretty lthy =
     val overloading = get_overloading lthy;
     fun pr_operation ((c, ty), (v, _)) =
       Pretty.block (Pretty.breaks
-        [Pretty.str v, Pretty.str "==", Proof_Context.pretty_const lthy c,
+        [Pretty.str v, Pretty.str "\<equiv>", Proof_Context.pretty_const lthy c,
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
   in
     [Pretty.block
