@@ -81,7 +81,7 @@ lemma transfer_start: "P \<equiv> eventually (\<lambda>n. Q) \<U> \<Longrightarr
   by (simp add: FreeUltrafilterNat.proper)
 
 text \<open>Standard principles that play a central role in the transfer tactic.\<close>
-definition Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("_ \<star> _" [300,301] 300)
+definition Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("(_ \<star>/ _)" [300, 301] 300)
   where "Ifun f \<equiv>
     \<lambda>x. Abs_star (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
 
