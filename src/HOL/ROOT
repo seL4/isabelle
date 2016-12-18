@@ -391,7 +391,7 @@ session "HOL-Decision_Procs" (timing) in Decision_Procs = HOL +
   theories Decision_Procs
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
-  options [document = false, parallel_proofs = 0]
+  options [document = false]
   theories
     Hilbert_Classical
     Proof_Terms
