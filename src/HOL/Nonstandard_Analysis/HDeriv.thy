@@ -53,7 +53,7 @@ lemma NSDeriv_unique: "NSDERIV f x :> D \<Longrightarrow> NSDERIV f x :> E \<Lon
    apply (drule (1) bspec)+
    apply (drule (1) approx_trans3)
    apply simp
-  apply (simp add: Infinitesimal_of_hypreal Infinitesimal_epsilon)
+  apply (simp add: Infinitesimal_of_hypreal)
   apply (simp add: of_hypreal_eq_0_iff hypreal_epsilon_not_zero)
   done
 
@@ -75,7 +75,7 @@ lemma NSDERIV_NSLIM_iff2: "(NSDERIV f x :> D) \<longleftrightarrow> (\<lambda>z.
 text \<open>While we're at it!\<close>
 lemma NSDERIV_iff2:
   "(NSDERIV f x :> D) \<longleftrightarrow>
-    (\<forall>w. w \<noteq> star_of x & w \<approx> star_of x \<longrightarrow> ( *f* (%z. (f z - f x) / (z-x))) w \<approx> star_of D)"
+    (\<forall>w. w \<noteq> star_of x \<and> w \<approx> star_of x \<longrightarrow> ( *f* (\<lambda>z. (f z - f x) / (z - x))) w \<approx> star_of D)"
   by (simp add: NSDERIV_NSLIM_iff2 NSLIM_def)
 
 (* FIXME delete *)
@@ -91,7 +91,7 @@ lemma NSDERIVD5:
   apply (drule_tac x = u in spec, auto)
   apply (drule_tac c = "u - hypreal_of_real x" and b = "hypreal_of_real D" in approx_mult1)
    apply (drule_tac [!] hypreal_not_eq_minus_iff [THEN iffD1])
-   apply (subgoal_tac [2] "( *f* (%z. z-x)) u \<noteq> (0::hypreal) ")
+   apply (subgoal_tac [2] "( *f* (\<lambda>z. z - x)) u \<noteq> (0::hypreal) ")
     apply (auto simp: approx_minus_iff [THEN iffD1, THEN mem_infmal_iff [THEN iffD2]]
       Infinitesimal_subset_HFinite [THEN subsetD])
   done
@@ -290,7 +290,8 @@ lemma NSDERIV_chain:
   apply (case_tac "( *f* g) (star_of (x) + xa) = star_of (g x) ")
    apply (drule_tac g = g in NSDERIV_zero)
       apply (auto simp add: divide_inverse)
-  apply (rule_tac z1 = "( *f* g) (star_of (x) + xa) - star_of (g x) " and y1 = "inverse xa" in lemma_chain [THEN ssubst])
+  apply (rule_tac z1 = "( *f* g) (star_of (x) + xa) - star_of (g x) " and y1 = "inverse xa"
+      in lemma_chain [THEN ssubst])
    apply (erule hypreal_not_eq_minus_iff [THEN iffD1])
   apply (rule approx_mult_star_of)
    apply (simp_all add: divide_inverse [symmetric])
