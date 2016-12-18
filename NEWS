@@ -6,6 +6,13 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Command-line invocation "isabelle jedit -R -l LOGIC" opens the ROOT
+entry of the specified logic session in the editor, while its parent is
+used for formal checking.
+
+
 *** HOL ***
 
 * Swapped orientation of congruence rules mod_add_left_eq,
@@ -31,7 +38,7 @@ INCOMPATIBILITY.
 
 * The theorem in Permutations has been renamed:
   bij_swap_ompose_bij ~> bij_swap_compose_bij
- 
+
 
 New in Isabelle2016-1 (December 2016)
 -------------------------------------
@@ -91,6 +98,7 @@ class, to resolve some situations where ambiguities may occur.
 
 * Solve direct: option "solve_direct_strict_warnings" gives explicit
 warnings for lemma statements with trivial proofs.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

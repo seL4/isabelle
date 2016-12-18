@@ -19,10 +19,7 @@ object JEdit_Sessions
 
   private val option_name = "jedit_logic"
 
-  def session_name(): String =
-    Isabelle_System.default_logic(
-      Isabelle_System.getenv("JEDIT_LOGIC"),
-      PIDE.options.string(option_name))
+  sealed case class Info(name: String, open_root: Position.T)
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
 
@@ -31,6 +28,25 @@ object JEdit_Sessions
       case "" => PIDE.options.value
       case s => PIDE.options.value.string("ML_process_policy") = s
     }
+
+  def session_info(): Info =
+  {
+    val logic =
+      Isabelle_System.default_logic(
+        Isabelle_System.getenv("JEDIT_LOGIC"),
+        PIDE.options.string(option_name))
+
+    (for {
+      tree <-
+        try { Some(Sessions.load(session_options(), dirs = session_dirs())) }
+        catch { case ERROR(_) => None }
+      info <- tree.lift(logic)
+      parent <- info.parent
+      if Isabelle_System.getenv("JEDIT_LOGIC_ROOT") == "true"
+    } yield Info(parent, info.pos)) getOrElse Info(logic, Position.none)
+  }
+
+  def session_name(): String = session_info().name
 
   def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
 
@@ -66,7 +82,10 @@ object JEdit_Sessions
   def session_content(inlined_files: Boolean): Build.Session_Content =
   {
     val content =
-      Build.session_content(PIDE.options.value, inlined_files, session_dirs(), session_name())
+      try {
+        Build.session_content(PIDE.options.value, inlined_files, session_dirs(), session_name())
+      }
+      catch { case ERROR(_) => Build.Session_Content() }
     content.copy(known_theories =
       content.known_theories.mapValues(name => name.map(File.platform_path(_))))
   }

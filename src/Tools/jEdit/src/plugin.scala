@@ -333,9 +333,14 @@ class Plugin extends EBPlugin
               "It is for testing only, not for production use.")
           }
 
-          Session_Build.session_build(jEdit.getActiveView())
+          val view = jEdit.getActiveView()
 
-          Keymap_Merge.check_dialog(jEdit.getActiveView())
+          Session_Build.session_build(view)
+
+          Keymap_Merge.check_dialog(view)
+
+          PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
+            JEdit_Sessions.session_info().open_root).foreach(_.follow(view))
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED ||
