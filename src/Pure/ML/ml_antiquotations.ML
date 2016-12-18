@@ -260,10 +260,12 @@ end;
 
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding keyword}
-    (Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
-      if Keyword.is_keyword (Thy_Header.get_keywords thy) name then
-        "Parse.$$$ " ^ ML_Syntax.print_string name
-      else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos))) #>
+    (Args.context -- Scan.lift (Parse.position (Parse.name || Parse.keyword_with (K true)))
+      >> (fn (ctxt, (name, pos)) =>
+        if Keyword.is_keyword (Thy_Header.get_keywords' ctxt) name then
+          (Context_Position.report ctxt pos (Token.keyword_markup (true, Markup.keyword2) name);
+           "Parse.$$$ " ^ ML_Syntax.print_string name)
+        else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos))) #>
   ML_Antiquotation.value @{binding command_keyword}
     (Args.context -- Scan.lift (Parse.position Parse.name) >> (fn (ctxt, (name, pos)) =>
       (case Keyword.command_markup (Thy_Header.get_keywords' ctxt) name of
