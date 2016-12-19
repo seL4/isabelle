@@ -153,6 +153,13 @@ declare -a SOURCES=(
   "../Tools/Graphview/popups.scala"
   "../Tools/Graphview/shapes.scala"
   "../Tools/Graphview/tree_panel.scala"
+  "../Tools/VSCode/src/channel.scala"
+  "../Tools/VSCode/src/document_model.scala"
+  "../Tools/VSCode/src/line.scala"
+  "../Tools/VSCode/src/logger.scala"
+  "../Tools/VSCode/src/protocol.scala"
+  "../Tools/VSCode/src/server.scala"
+  "../Tools/VSCode/src/uri_resources.scala"
 )
 
 

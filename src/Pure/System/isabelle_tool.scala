@@ -113,7 +113,8 @@ object Isabelle_Tool
       Update_Cartouches.isabelle_tool,
       Update_Header.isabelle_tool,
       Update_Then.isabelle_tool,
-      Update_Theorems.isabelle_tool)
+      Update_Theorems.isabelle_tool,
+      isabelle.vscode.Server.isabelle_tool)
 
   private def list_internal(): List[(String, String)] =
     for (tool <- internal_tools.toList if tool.accessible)
