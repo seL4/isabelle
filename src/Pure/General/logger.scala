@@ -1,13 +1,10 @@
-/*  Title:      Tools/VSCode/src/logger.scala
+/*  Title:      Pure/General/logger.scala
     Author:     Makarius
 
 Minimal logging support.
 */
 
-package isabelle.vscode
-
-
-import isabelle._
+package isabelle
 
 
 object Logger
