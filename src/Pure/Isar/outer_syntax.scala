@@ -154,8 +154,8 @@ final class Outer_Syntax private(
               val name = cmd.source
               val offset =
                 (0 /: span.takeWhile(_ != cmd)) {
-                  case (i, tok) => i + Symbol.iterator(tok.source).length }
-              val end_offset = offset + Symbol.iterator(name).length
+                  case (i, tok) => i + Symbol.length(tok.source) }
+              val end_offset = offset + Symbol.length(name)
               val pos = Position.Range(Text.Range(offset, end_offset) + 1)
               Command_Span.Command_Span(name, pos)
           }
