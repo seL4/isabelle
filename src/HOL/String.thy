@@ -114,7 +114,7 @@ lemma nat_of_char_Char [simp]:
   "nat_of_char (Char k) = numeral k mod 256"
   by (simp add: Char_def)
 
-lemma Char_eq_Char_iff [simp]:
+lemma Char_eq_Char_iff:
   "Char k = Char l \<longleftrightarrow> numeral k mod (256 :: nat) = numeral l mod 256" (is "?P \<longleftrightarrow> ?Q")
 proof -
   have "?P \<longleftrightarrow> nat_of_char (Char k) = nat_of_char (Char l)"
@@ -124,13 +124,24 @@ proof -
   finally show ?thesis .
 qed
 
-lemma zero_eq_Char_iff [simp]:
+lemma zero_eq_Char_iff:
   "0 = Char k \<longleftrightarrow> numeral k mod (256 :: nat) = 0"
   by (auto simp add: zero_char_def Char_def)
 
-lemma Char_eq_zero_iff [simp]:
+lemma Char_eq_zero_iff:
   "Char k = 0 \<longleftrightarrow> numeral k mod (256 :: nat) = 0"
   by (auto simp add: zero_char_def Char_def) 
+
+simproc_setup char_eq
+  ("Char m = Char n" | "Char m = 0" | "0 = Char n") = \<open>
+  let
+    val ss = put_simpset HOL_ss @{context}
+      |> fold Simplifier.add_simp @{thms Char_eq_Char_iff zero_eq_Char_iff Char_eq_zero_iff cong_exp_iff_simps}
+      |> simpset_of 
+  in
+    fn _ => fn ctxt => SOME o Simplifier.rewrite (put_simpset ss ctxt)
+  end
+\<close>
 
 definition integer_of_char :: "char \<Rightarrow> integer"
 where

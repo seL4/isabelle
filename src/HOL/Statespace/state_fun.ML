@@ -77,7 +77,7 @@ val lazy_conj_simproc =
 fun string_eq_simp_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt
     addsimps @{thms list.inject list.distinct Char_eq_Char_iff
-      cut_eq_simps simp_thms}
+      cong_exp_iff_simps simp_thms}
     addsimprocs [lazy_conj_simproc]
     |> Simplifier.add_cong @{thm block_conj_cong});
 
