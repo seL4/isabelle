@@ -3,8 +3,34 @@ Isabelle NEWS -- history of user-relevant changes
 
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
+
 New in this Isabelle version
 ----------------------------
+
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Command-line invocation "isabelle jedit -R -l LOGIC" opens the ROOT
+entry of the specified logic session in the editor, while its parent is
+used for formal checking.
+
+
+*** HOL ***
+
+* Swapped orientation of congruence rules mod_add_left_eq,
+mod_add_right_eq, mod_add_eq, mod_mult_left_eq, mod_mult_right_eq,
+mod_mult_eq, mod_minus_eq, mod_diff_left_eq, mod_diff_right_eq,
+mod_diff_eq.  INCOMPATIBILITY.
+
+* Generalized some facts:
+    zminus_zmod ~> mod_minus_eq
+    zdiff_zmod_left ~> mod_diff_left_eq
+    zdiff_zmod_right ~> mod_diff_right_eq
+    zmod_eq_dvd_iff ~> mod_eq_dvd_iff
+INCOMPATIBILITY.
+
+* Named collection mod_simps covers various congruence rules
+concerning mod, replacing former zmod_simps.
+INCOMPATIBILITY.
 
 * (Co)datatype package:
   - The 'size_gen_o_map' lemma is no longer generated for datatypes
@@ -13,7 +39,7 @@ New in this Isabelle version
 
 * The theorem in Permutations has been renamed:
   bij_swap_ompose_bij ~> bij_swap_compose_bij
- 
+
 
 New in Isabelle2016-1 (December 2016)
 -------------------------------------

@@ -109,6 +109,7 @@ fun build_theories symbols last_timing master_dir (options, thys) =
       (if Options.bool options "checkpoint" then ML_Heap.share_common_data () else ();
         Options.set_default options;
         Isabelle_Process.init_options ();
+        Future.fork I;
         (Thy_Info.use_theories {
           document = Present.document_enabled (Options.string options "document"),
           symbols = symbols,

@@ -823,15 +823,13 @@ val ss2 =
     |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}])
 val div_mod_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
-    addsimps @{thms simp_thms}
-    @ map (Thm.symmetric o mk_meta_eq) 
-      [@{thm "dvd_eq_mod_eq_0"},
-       @{thm "mod_add_left_eq"}, @{thm "mod_add_right_eq"}, 
-       @{thm "mod_add_eq"}, @{thm "div_add1_eq"}, @{thm "zdiv_zadd1_eq"}]
-    @ [@{thm "mod_self"}, @{thm "mod_by_0"}, @{thm "div_by_0"},
-       @{thm "div_0"}, @{thm "mod_0"}, @{thm "div_by_1"}, @{thm "mod_by_1"},
-       @{thm "div_by_Suc_0"}, @{thm "mod_by_Suc_0"}, @{thm "Suc_eq_plus1"}]
-    @ @{thms ac_simps}
+    addsimps @{thms simp_thms
+      mod_eq_0_iff_dvd mod_add_left_eq mod_add_right_eq
+      mod_add_eq div_add1_eq [symmetric] zdiv_zadd1_eq [symmetric]
+      mod_self mod_by_0 div_by_0
+      div_0 mod_0 div_by_1 mod_by_1
+      div_by_Suc_0 mod_by_Suc_0 Suc_eq_plus1
+      ac_simps}
    addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}])
 val splits_ss =
   simpset_of (put_simpset comp_ss @{context}

@@ -96,12 +96,12 @@ object Build
   /* source dependencies and static content */
 
   sealed case class Session_Content(
-    loaded_theories: Set[String],
-    known_theories: Map[String, Document.Node.Name],
-    keywords: Thy_Header.Keywords,
-    syntax: Outer_Syntax,
-    sources: List[(Path, SHA1.Digest)],
-    session_graph: Graph_Display.Graph)
+    loaded_theories: Set[String] = Set.empty,
+    known_theories: Map[String, Document.Node.Name] = Map.empty,
+    keywords: Thy_Header.Keywords = Nil,
+    syntax: Outer_Syntax = Outer_Syntax.empty,
+    sources: List[(Path, SHA1.Digest)] = Nil,
+    session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
 
   sealed case class Deps(deps: Map[String, Session_Content])
   {

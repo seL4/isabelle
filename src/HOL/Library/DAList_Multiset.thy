@@ -228,17 +228,17 @@ lemma filter_Bag [code]: "filter_mset P (Bag xs) = Bag (DAList.filter (P \<circ>
   by (rule multiset_eqI) (simp add: count_of_filter DAList.filter.rep_eq)
 
 
-lemma mset_eq [code]: "HOL.equal (m1::'a::equal multiset) m2 \<longleftrightarrow> m1 \<le># m2 \<and> m2 \<le># m1"
+lemma mset_eq [code]: "HOL.equal (m1::'a::equal multiset) m2 \<longleftrightarrow> m1 \<subseteq># m2 \<and> m2 \<subseteq># m1"
   by (metis equal_multiset_def subset_mset.eq_iff)
 
 text \<open>By default the code for \<open><\<close> is @{prop"xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> xs = ys"}.
 With equality implemented by \<open>\<le>\<close>, this leads to three calls of  \<open>\<le>\<close>.
 Here is a more efficient version:\<close>
-lemma mset_less[code]: "xs <# (ys :: 'a multiset) \<longleftrightarrow> xs \<le># ys \<and> \<not> ys \<le># xs"
+lemma mset_less[code]: "xs \<subset># (ys :: 'a multiset) \<longleftrightarrow> xs \<subseteq># ys \<and> \<not> ys \<subseteq># xs"
   by (rule subset_mset.less_le_not_le)
 
 lemma mset_less_eq_Bag0:
-  "Bag xs \<le># A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"
+  "Bag xs \<subseteq># A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"
     (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
@@ -255,7 +255,7 @@ next
 qed
 
 lemma mset_less_eq_Bag [code]:
-  "Bag xs \<le># (A :: 'a multiset) \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). n \<le> count A x)"
+  "Bag xs \<subseteq># (A :: 'a multiset) \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). n \<le> count A x)"
 proof -
   {
     fix x n

@@ -526,9 +526,11 @@ notation (ASCII)
 
 interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<subseteq>#" "op \<subset>#"
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
-interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "op +" 0 "op -" "op \<le>#" "op <#"
+interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "op +" 0 "op -" "op \<subseteq>#" "op \<subset>#"
   by standard
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 lemma mset_subset_eqI:
   "(\<And>a. count A a \<le> count B a) \<Longrightarrow> A \<subseteq># B"
@@ -545,8 +547,9 @@ lemma mset_subset_eq_exists_conv: "(A::'a multiset) \<subseteq># B \<longleftrig
    apply (auto intro: multiset_eq_iff [THEN iffD2])
   done
 
-interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<le>#" "op <#" "op -"
+interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<subseteq>#" "op \<subset>#" "op -"
   by standard (simp, fact mset_subset_eq_exists_conv)
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 declare subset_mset.add_diff_assoc[simp] subset_mset.add_diff_assoc2[simp]
 
@@ -625,8 +628,8 @@ lemma mset_subset_insertD:
 lemma mset_subset_of_empty[simp]: "A \<subset># {#} \<longleftrightarrow> False"
   by (simp only: subset_mset.not_less_zero)
 
-lemma empty_subset_add_mset[simp]: "{#} <# add_mset x M"
-by(auto intro: subset_mset.gr_zeroI)
+lemma empty_subset_add_mset[simp]: "{#} \<subset># add_mset x M"
+  by (auto intro: subset_mset.gr_zeroI)
 
 lemma empty_le: "{#} \<subseteq># A"
   by (fact subset_mset.zero_le)
@@ -684,8 +687,7 @@ proof -
     by arith
   show "class.semilattice_inf op \<inter># op \<subseteq># op \<subset>#"
     by standard (auto simp add: multiset_inter_def subseteq_mset_def)
-qed
-  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 definition sup_subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"(infixl "\<union>#" 70)
   where "sup_subset_mset A B = A + (B - A)" \<comment> \<open>FIXME irregular fact name\<close>
@@ -696,12 +698,12 @@ proof -
     by arith
   show "class.semilattice_sup op \<union># op \<subseteq># op \<subset>#"
     by standard (auto simp add: sup_subset_mset_def subseteq_mset_def)
-qed
-  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 interpretation subset_mset: bounded_lattice_bot "op \<inter>#" "op \<subseteq>#" "op \<subset>#"
   "op \<union>#" "{#}"
   by standard auto
+    \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 
 subsubsection \<open>Additional intersection facts\<close>
@@ -883,11 +885,6 @@ lemma union_diff_sup_eq_inter:
 lemma add_mset_union:
   \<open>add_mset a A \<union># add_mset a B = add_mset a (A \<union># B)\<close>
   by (auto simp: multiset_eq_iff max_def)
-
-
-subsubsection \<open>Subset is an order\<close>
-
-interpretation subset_mset: order "op \<subseteq>#" "op \<subset>#" by unfold_locales
 
 
 subsection \<open>Replicate and repeat operations\<close>
@@ -1161,7 +1158,7 @@ next
       by (intro cSup_least) (auto intro: mset_subset_eq_count ge)
     finally show "count (Sup A) x \<le> count X x" .
   qed
-qed
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 lemma set_mset_Inf:
   assumes "A \<noteq> {}"
@@ -1239,7 +1236,7 @@ proof
   fix A B C :: "'a multiset"
   show "A \<union># (B \<inter># C) = A \<union># B \<inter># (A \<union># C)"
     by (intro multiset_eqI) simp_all
-qed
+qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 
 subsubsection \<open>Filter (with comprehension syntax)\<close>
@@ -1740,6 +1737,10 @@ lemma image_mset_cong: "(\<And>x. x \<in># M \<Longrightarrow> f x = g x) \<Long
 lemma image_mset_cong_pair:
   "(\<forall>x y. (x, y) \<in># M \<longrightarrow> f x y = g x y) \<Longrightarrow> {#f x y. (x, y) \<in># M#} = {#g x y. (x, y) \<in># M#}"
   by (metis image_mset_cong split_cong)
+
+lemma image_mset_const_eq:
+  "{#c. a \<in># M#} = replicate_mset (size M) c"
+  by (induct M) simp_all
 
 
 subsection \<open>Further conversions\<close>
@@ -2312,6 +2313,9 @@ syntax
   "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
 translations
   "\<Prod>i \<in># A. b" \<rightleftharpoons> "CONST prod_mset (CONST image_mset (\<lambda>i. b) A)"
+
+lemma prod_mset_constant [simp]: "(\<Prod>_\<in>#A. c) = c ^ size A"
+  by (simp add: image_mset_const_eq)
 
 lemma (in comm_monoid_mult) prod_mset_subset_imp_dvd:
   assumes "A \<subseteq># B"

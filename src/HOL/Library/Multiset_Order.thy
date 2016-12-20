@@ -49,7 +49,7 @@ text \<open>The Dershowitz--Manna ordering:\<close>
 
 definition less_multiset\<^sub>D\<^sub>M where
   "less_multiset\<^sub>D\<^sub>M M N \<longleftrightarrow>
-   (\<exists>X Y. X \<noteq> {#} \<and> X \<le># N \<and> M = (N - X) + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)))"
+   (\<exists>X Y. X \<noteq> {#} \<and> X \<subseteq># N \<and> M = (N - X) + Y \<and> (\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)))"
 
 
 text \<open>The Huet--Oppen ordering:\<close>
@@ -123,11 +123,11 @@ lemma less_multiset\<^sub>D\<^sub>M_imp_mult:
 proof -
   assume "less_multiset\<^sub>D\<^sub>M M N"
   then obtain X Y where
-    "X \<noteq> {#}" and "X \<le># N" and "M = N - X + Y" and "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
+    "X \<noteq> {#}" and "X \<subseteq># N" and "M = N - X + Y" and "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
     unfolding less_multiset\<^sub>D\<^sub>M_def by blast
   then have "(N - X + Y, N - X + X) \<in> mult {(x, y). x < y}"
     by (intro one_step_implies_mult) (auto simp: Bex_def trans_def)
-  with \<open>M = N - X + Y\<close> \<open>X \<le># N\<close> show "(M, N) \<in> mult {(x, y). x < y}"
+  with \<open>M = N - X + Y\<close> \<open>X \<subseteq># N\<close> show "(M, N) \<in> mult {(x, y). x < y}"
     by (metis subset_mset.diff_add)
 qed
 
@@ -140,7 +140,7 @@ proof (intro iffI exI conjI)
   define X where "X = N - M"
   define Y where "Y = M - N"
   from z show "X \<noteq> {#}" unfolding X_def by (auto simp: multiset_eq_iff not_less_eq_eq Suc_le_eq)
-  from z show "X \<le># N" unfolding X_def by auto
+  from z show "X \<subseteq># N" unfolding X_def by auto
   show "M = (N - X) + Y" unfolding X_def Y_def multiset_eq_iff count_union count_diff by force
   show "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> k < a)"
   proof (intro allI impI)
@@ -175,7 +175,7 @@ lemmas less_multiset\<^sub>D\<^sub>M = mult\<^sub>D\<^sub>M[folded less_multiset
 lemmas less_multiset\<^sub>H\<^sub>O = mult\<^sub>H\<^sub>O[folded less_multiset_def]
 
 lemma subset_eq_imp_le_multiset:
-  shows "M \<le># N \<Longrightarrow> M \<le> N"
+  shows "M \<subseteq># N \<Longrightarrow> M \<le> N"
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O
   by (simp add: less_le_not_le subseteq_mset_def)
 
@@ -201,7 +201,7 @@ lemma le_multiset_empty_left[simp]: "M \<noteq> {#} \<Longrightarrow> {#} < M"
 lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
   using subset_mset.le_zero_eq less_multiset\<^sub>D\<^sub>M by blast
 
-lemma union_le_diff_plus: "P \<le># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
+lemma union_le_diff_plus: "P \<subseteq># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
   by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)
 
 instantiation multiset :: (preorder) ordered_ab_semigroup_monoid_add_imp_le

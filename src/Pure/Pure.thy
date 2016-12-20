@@ -193,19 +193,19 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword oracle} "declare oracle"
-    (Parse.range Parse.name -- (@{keyword "="} |-- Parse.ML_source) >>
+    (Parse.range Parse.name -- (@{keyword =} |-- Parse.ML_source) >>
       (fn (x, y) => Toplevel.theory (Isar_Cmd.oracle x y)));
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword attribute_setup} "define attribute in ML"
     (Parse.position Parse.name --
-        Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
+        Parse.!!! (@{keyword =} |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Attrib.attribute_setup name txt cmt));
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword method_setup} "define proof method in ML"
     (Parse.position Parse.name --
-        Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
+        Parse.!!! (@{keyword =} |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Method.method_setup name txt cmt));
 
 val _ =
@@ -221,7 +221,7 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_keyword simproc_setup} "define simproc in ML"
     (Parse.position Parse.name --
-      (@{keyword "("} |-- Parse.enum1 "|" Parse.term --| @{keyword ")"} --| @{keyword "="}) --
+      (@{keyword "("} |-- Parse.enum1 "|" Parse.term --| @{keyword ")"} --| @{keyword =}) --
       Parse.ML_source >> (fn ((a, b), c) => Isar_Cmd.simproc_setup a b c));
 
 in end\<close>
@@ -248,7 +248,7 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_keyword type_synonym} "declare type abbreviation"
     (Parse.type_args -- Parse.binding --
-      (@{keyword "="} |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix'))
+      (@{keyword =} |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix'))
       >> (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs));
 
 in end\<close>
@@ -296,9 +296,9 @@ val trans_pat =
     -- Parse.inner_syntax Parse.string;
 
 fun trans_arrow toks =
-  ((@{keyword "\<rightharpoonup>"} || @{keyword "=>"}) >> K Syntax.Parse_Rule ||
-    (@{keyword "\<leftharpoondown>"} || @{keyword "<="}) >> K Syntax.Print_Rule ||
-    (@{keyword "\<rightleftharpoons>"} || @{keyword "=="}) >> K Syntax.Parse_Print_Rule) toks;
+  ((@{keyword \<rightharpoonup>} || @{keyword =>}) >> K Syntax.Parse_Rule ||
+    (@{keyword \<leftharpoondown>} || @{keyword <=}) >> K Syntax.Print_Rule ||
+    (@{keyword \<rightleftharpoons>} || @{keyword ==}) >> K Syntax.Parse_Print_Rule) toks;
 
 val trans_line =
   trans_pat -- Parse.!!! (trans_arrow -- trans_pat)
@@ -505,7 +505,7 @@ local
 val _ =
   Outer_Syntax.maybe_begin_local_theory @{command_keyword bundle}
     "define bundle of declarations"
-    ((Parse.binding --| @{keyword "="}) -- Parse.thms1 -- Parse.for_fixes
+    ((Parse.binding --| @{keyword =}) -- Parse.thms1 -- Parse.for_fixes
       >> (uncurry Bundle.bundle_cmd))
     (Parse.binding --| Parse.begin >> Bundle.init);
 
@@ -563,13 +563,13 @@ local
 
 val locale_val =
   Parse_Spec.locale_expression --
-    Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
+    Scan.optional (@{keyword +} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
   Scan.repeat1 Parse_Spec.context_element >> pair ([], []);
 
 val _ =
   Outer_Syntax.command @{command_keyword locale} "define named specification context"
     (Parse.binding --
-      Scan.optional (@{keyword "="} |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
+      Scan.optional (@{keyword =} |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           Toplevel.begin_local_theory begin
             (Expression.add_locale_cmd name Binding.empty expr elems #> snd)));
@@ -583,7 +583,7 @@ val _ =
 val interpretation_args =
   Parse.!!! Parse_Spec.locale_expression --
     Scan.optional
-      (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
+      (@{keyword rewrites} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
 
 val _ =
   Outer_Syntax.command @{command_keyword interpret}
@@ -593,10 +593,10 @@ val _ =
 
 val interpretation_args_with_defs =
   Parse.!!! Parse_Spec.locale_expression --
-    (Scan.optional (@{keyword "defines"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
-      -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword "="} -- Parse.term))) [] --
+    (Scan.optional (@{keyword defines} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
+      -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword =} -- Parse.term))) [] --
     Scan.optional
-      (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []);
+      (@{keyword rewrites} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []);
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword global_interpretation}
@@ -607,7 +607,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword sublocale}
     "prove sublocale relation between a locale and a locale expression"
-    ((Parse.position Parse.name --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
+    ((Parse.position Parse.name --| (@{keyword \<subseteq>} || @{keyword <}) --
       interpretation_args_with_defs >> (fn (loc, (expr, (defs, equations))) =>
         Toplevel.theory_to_proof (Interpretation.global_sublocale_cmd loc expr defs equations)))
     || interpretation_args_with_defs >> (fn (expr, (defs, equations)) =>
@@ -630,12 +630,12 @@ local
 
 val class_val =
   Parse_Spec.class_expression --
-    Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
+    Scan.optional (@{keyword +} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
   Scan.repeat1 Parse_Spec.context_element >> pair [];
 
 val _ =
   Outer_Syntax.command @{command_keyword class} "define type class"
-   (Parse.binding -- Scan.optional (@{keyword "="} |-- class_val) ([], []) -- Parse.opt_begin
+   (Parse.binding -- Scan.optional (@{keyword =} |-- class_val) ([], []) -- Parse.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
           (Class_Declaration.class_cmd name supclasses elems #> snd)));
@@ -652,7 +652,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword instance} "prove type arity or subclass relation"
   ((Parse.class --
-    ((@{keyword "\<subseteq>"} || @{keyword "<"}) |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
+    ((@{keyword \<subseteq>} || @{keyword <}) |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
     Parse.multi_arity >> Class.instance_arity_cmd) >> Toplevel.theory_to_proof ||
     Scan.succeed (Toplevel.local_theory_to_proof NONE NONE (Class.instantiation_instance I)));
 
@@ -666,8 +666,8 @@ local
 
 val _ =
   Outer_Syntax.command @{command_keyword overloading} "overloaded definitions"
-   (Scan.repeat1 (Parse.name --| (@{keyword "=="} || @{keyword "\<equiv>"}) -- Parse.term --
-      Scan.optional (@{keyword "("} |-- (@{keyword "unchecked"} >> K false) --| @{keyword ")"}) true
+   (Scan.repeat1 (Parse.name --| (@{keyword ==} || @{keyword \<equiv>}) -- Parse.term --
+      Scan.optional (@{keyword "("} |-- (@{keyword unchecked} >> K false) --| @{keyword ")"}) true
       >> Scan.triple1) --| Parse.begin
    >> (fn operations => Toplevel.begin_local_theory true (Overloading.overloading_cmd operations)));
 
@@ -787,7 +787,7 @@ val _ =
     (Parse.and_list1
       (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
-          ((@{keyword "\<equiv>"} || @{keyword "=="}) |-- Parse.!!! Parse.termp)))
+          ((@{keyword \<equiv>} || @{keyword ==}) |-- Parse.!!! Parse.termp)))
     >> (fn args => Toplevel.proof (fn state =>
         (legacy_feature "Old 'def' command -- use 'define' instead"; Proof.def_cmd args state))));
 
@@ -806,7 +806,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword let} "bind text variables"
-    (Parse.and_list1 (Parse.and_list1 Parse.term -- (@{keyword "="} |-- Parse.term))
+    (Parse.and_list1 (Parse.and_list1 Parse.term -- (@{keyword =} |-- Parse.term))
       >> (Toplevel.proof o Proof.let_bind_cmd));
 
 val _ =
@@ -937,7 +937,7 @@ val opt_fact_binding =
 
 val for_params =
   Scan.optional
-    (@{keyword "for"} |--
+    (@{keyword for} |--
       Parse.!!! ((Scan.option Parse.dots >> is_some) --
         (Scan.repeat1 (Parse.position (Parse.maybe Parse.name)))))
     (false, []);
@@ -945,7 +945,7 @@ val for_params =
 val _ =
   Outer_Syntax.command @{command_keyword subgoal}
     "focus on first subgoal within backward refinement"
-    (opt_fact_binding -- (Scan.option (@{keyword "premises"} |-- Parse.!!! opt_fact_binding)) --
+    (opt_fact_binding -- (Scan.option (@{keyword premises} |-- Parse.!!! opt_fact_binding)) --
       for_params >> (fn ((a, b), c) =>
         Toplevel.proofs (Seq.make_results o Seq.single o #2 o Subgoal.subgoal_cmd a b c)));
 
@@ -1176,7 +1176,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword typ} "read and print type"
-    (opt_modes -- (Parse.typ -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort))
+    (opt_modes -- (Parse.typ -- Scan.option (@{keyword ::} |-- Parse.!!! Parse.sort))
       >> Isar_Cmd.print_type);
 
 val _ =

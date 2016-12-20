@@ -1,0 +1,58 @@
+# Isabelle/PIDE for Visual Studio Code editor #
+
+* Extension for the editor ([TypeScript](extension/src/extension.ts))
+* Language Server protocol implementation ([Isabelle/Scala](src/server.scala))
+
+
+## Build and run ##
+
+* shell> `isabelle build -b HOL`
+
+* shell> `cd src/Tools/VSCode/extension; vsce package`
+
+* Preferences / User settings / edit settings.json: e.g.
+    `"isabelle.home": "/home/makarius/isabelle/repos"`
+
+* Extensions / ... / Install from VSIX: `src/Tools/VSCode/extension/isabelle-0.0.1.vsix`
+
+* File / Open Folder: e.g. `src/HOL/Isar_Examples/` then open .thy files
+
+
+## Debug
+
+* shell> `code src/Tools/VSCode/extension`
+
+* View / Debug / Launch Extension
+
+* File / Open Folder: e.g. `src/HOL/Isar_Examples/` then open .thy files
+
+
+## Relevant links ##
+
+### VSCode editor ###
+
+* https://code.visualstudio.com
+* https://code.visualstudio.com/docs/extensionAPI/extension-points
+* https://code.visualstudio.com/docs/extensions/example-language-server
+* https://github.com/Microsoft/vscode-languageserver-node-example
+
+
+### Protocol ###
+
+* https://code.visualstudio.com/blogs/2016/06/27/common-language-protocol
+* https://github.com/Microsoft/vscode-languageserver-node
+* https://github.com/Microsoft/language-server-protocol
+* https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md
+* http://www.jsonrpc.org/specification
+* http://www.json.org
+
+
+### Similar projects ###
+
+* Coq: https://github.com/siegebell/vscoq
+* OCaml: https://github.com/freebroccolo/vscode-reasonml
+* Scala: https://github.com/dragos/dragos-vscode-scala
+* Rust:
+    * https://github.com/jonathandturner/rls
+    * https://github.com/jonathandturner/rls_vscode
+    * https://github.com/RustDT/RustLSP

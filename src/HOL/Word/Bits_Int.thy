@@ -643,14 +643,14 @@ lemma power_BIT: "2 ^ (Suc n) - 1 = (2 ^ n - 1) BIT True"
 lemma mod_BIT:
   "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit"
 proof -
-  have "bin mod 2 ^ n < 2 ^ n" by simp
-  then have "bin mod 2 ^ n \<le> 2 ^ n - 1" by simp
-  then have "2 * (bin mod 2 ^ n) \<le> 2 * (2 ^ n - 1)"
-    by (rule mult_left_mono) simp
-  then have "2 * (bin mod 2 ^ n) + 1 < 2 * 2 ^ n" by simp
-  then show ?thesis
-    by (auto simp add: Bit_def mod_mult_mult1 mod_add_left_eq [of "2 * bin"]
-      mod_pos_pos_trivial)
+  have "2 * (bin mod 2 ^ n) + 1 = (2 * bin mod 2 ^ Suc n) + 1"
+    by (simp add: mod_mult_mult1)
+  also have "\<dots> = ((2 * bin mod 2 ^ Suc n) + 1) mod 2 ^ Suc n"
+    by (simp add: ac_simps p1mod22k')
+  also have "\<dots> = (2 * bin + 1) mod 2 ^ Suc n"
+    by (simp only: mod_simps)
+  finally show ?thesis
+    by (auto simp add: Bit_def)
 qed
 
 lemma AND_mod:

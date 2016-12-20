@@ -141,8 +141,6 @@ fun flatten thy lookup_pred t (names, prems) =
       | flatten' (t as Abs _) (names, prems) = [(t, (names, prems))]
       | flatten' (t as _ $ _) (names, prems) =
       if is_constrt ctxt t orelse keep_functions thy t then
-       (* FIXME: constructor terms are supposed to be seen in the way the code generator
-          sees constructors?*)
         [(t, (names, prems))]
       else
         case (fst (strip_comb t)) of

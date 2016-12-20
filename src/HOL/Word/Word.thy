@@ -282,10 +282,10 @@ interpretation word_ubin:
 subsection \<open>Arithmetic operations\<close>
 
 lift_definition word_succ :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x. x + 1"
-  by (metis bintr_ariths(6))
+  by (auto simp add: bintrunc_mod2p intro: mod_add_cong)
 
 lift_definition word_pred :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x. x - 1"
-  by (metis bintr_ariths(7))
+  by (auto simp add: bintrunc_mod2p intro: mod_diff_cong)
 
 instantiation word :: (len0) "{neg_numeral, modulo, comm_monoid_mult, comm_ring}"
 begin
@@ -295,16 +295,16 @@ lift_definition zero_word :: "'a word" is "0" .
 lift_definition one_word :: "'a word" is "1" .
 
 lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op +"
-  by (metis bintr_ariths(2))
+  by (auto simp add: bintrunc_mod2p intro: mod_add_cong)
 
 lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op -"
-  by (metis bintr_ariths(3))
+  by (auto simp add: bintrunc_mod2p intro: mod_diff_cong)
 
 lift_definition uminus_word :: "'a word \<Rightarrow> 'a word" is uminus
-  by (metis bintr_ariths(5))
+  by (auto simp add: bintrunc_mod2p intro: mod_minus_cong)
 
 lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op *"
-  by (metis bintr_ariths(4))
+  by (auto simp add: bintrunc_mod2p intro: mod_mult_cong)
 
 definition
   word_div_def: "a div b = word_of_int (uint a div uint b)"
@@ -331,9 +331,6 @@ lemma word_arith_wis [code]: shows
   unfolding plus_word_def minus_word_def times_word_def uminus_word_def
   unfolding word_succ_def word_pred_def zero_word_def one_word_def
   by simp_all
-
-lemmas arths = 
-  bintr_ariths [THEN word_ubin.norm_eq_iff [THEN iffD1], folded word_ubin.eq_norm]
 
 lemma wi_homs: 
   shows
@@ -1340,10 +1337,11 @@ lemma sint_word_ariths:
     and "sint (word_pred a) = sbintrunc (len_of TYPE('a) - 1) (sint a - 1)"
     and "sint (0 :: 'a word) = sbintrunc (len_of TYPE('a) - 1) 0"
     and "sint (1 :: 'a word) = sbintrunc (len_of TYPE('a) - 1) 1"
-  by (simp_all add: uint_word_arith_bintrs
-    [THEN uint_sint [symmetric, THEN trans],
-    unfolded uint_sint bintr_arith1s bintr_ariths 
-      len_gt_0 [THEN bin_sbin_eq_iff'] word_sbin.norm_Rep])
+         apply (simp_all only: word_sbin.inverse_norm [symmetric])
+         apply (simp_all add: wi_hom_syms)
+   apply transfer apply simp
+  apply transfer apply simp
+  done
 
 lemmas uint_div_alt = word_div_def [THEN trans [OF uint_cong int_word_uint]]
 lemmas uint_mod_alt = word_mod_def [THEN trans [OF uint_cong int_word_uint]]
@@ -1443,7 +1441,7 @@ proof -
   with \<open>1 \<le> uint w\<close> have "nat ((uint w - 1) mod 2 ^ len_of TYPE('a)) = nat (uint w) - 1"
     by auto
   then show ?thesis
-    by (simp only: unat_def int_word_uint word_arith_wis mod_diff_right_eq [symmetric])
+    by (simp only: unat_def int_word_uint word_arith_wis mod_diff_right_eq)
 qed
 
 lemma measure_unat: "p ~= 0 \<Longrightarrow> unat (p - 1) < unat p"
@@ -2699,7 +2697,7 @@ lemma test_bit_2p:
 lemma nth_w2p:
   "((2::'a::len word) ^ n) !! m \<longleftrightarrow> m = n \<and> m < len_of TYPE('a::len)"
   unfolding test_bit_2p [symmetric] word_of_int [symmetric]
-  by (simp add:  of_int_power)
+  by simp
 
 lemma uint_2p: 
   "(0::'a::len word) < 2 ^ n \<Longrightarrow> uint (2 ^ n::'a::len word) = 2 ^ n"
@@ -2723,16 +2721,7 @@ lemma uint_2p:
   done
 
 lemma word_of_int_2p: "(word_of_int (2 ^ n) :: 'a :: len word) = 2 ^ n" 
-  apply (unfold word_arith_power_alt)
-  apply (case_tac "len_of TYPE ('a)")
-   apply clarsimp
-  apply (case_tac "nat")
-   apply (rule word_ubin.norm_eq_iff [THEN iffD1]) 
-   apply (rule box_equals) 
-     apply (rule_tac [2] bintr_ariths (1))+ 
-   apply simp
-  apply simp
-  done
+  by (induct n) (simp_all add: wi_hom_syms)
 
 lemma bang_is_le: "x !! m \<Longrightarrow> 2 ^ m <= (x :: 'a :: len word)" 
   apply (rule xtr3) 
@@ -3244,6 +3233,9 @@ lemma and_mask_bintr: "w AND mask n = word_of_int (bintrunc n (uint w))"
 lemma and_mask_wi: "word_of_int i AND mask n = word_of_int (bintrunc n i)"
   by (auto simp add: nth_bintr word_size word_ops_nth_size word_eq_iff)
 
+lemma and_mask_wi': "word_of_int i AND mask n = (word_of_int (bintrunc (min LENGTH('a) n) i) :: 'a::len word)"
+  by (auto simp add: nth_bintr word_size word_ops_nth_size word_eq_iff)
+
 lemma and_mask_no: "numeral i AND mask n = word_of_int (bintrunc n (numeral i))"
   unfolding word_numeral_alt by (rule and_mask_wi)
 
@@ -3342,12 +3334,12 @@ lemma mask_eqs:
   "word_succ (a AND mask n) AND mask n = word_succ a AND mask n"
   "word_pred (a AND mask n) AND mask n = word_pred a AND mask n"
   using word_of_int_Ex [where x=a] word_of_int_Ex [where x=b]
-  by (auto simp: and_mask_wi bintr_ariths bintr_arith1s word_of_int_homs)
+  by (auto simp add: and_mask_wi' word_of_int_homs word.abs_eq_iff bintrunc_mod2p mod_simps)
 
 lemma mask_power_eq:
   "(x AND mask n) ^ k AND mask n = x ^ k AND mask n"
   using word_of_int_Ex [where x=x]
-  by (clarsimp simp: and_mask_wi word_of_int_power_hom bintr_ariths)
+  by (auto simp add: and_mask_wi' word_of_int_power_hom word.abs_eq_iff bintrunc_mod2p mod_simps)
 
 
 subsubsection \<open>Revcast\<close>
@@ -4242,7 +4234,7 @@ lemma word_roti_conv_mod': "word_roti n w = word_roti (n mod int (size w)) w"
   apply (simp add: word_size nat_mod_distrib)
   apply (rule of_nat_eq_0_iff [THEN iffD1])
   apply (auto simp add: not_le mod_eq_0_iff_dvd zdvd_int nat_add_distrib [symmetric])
-  using mod_mod_trivial zmod_eq_dvd_iff
+  using mod_mod_trivial mod_eq_dvd_iff
   apply blast
   done
 
@@ -4579,9 +4571,9 @@ lemma mod_plus_cong:
   shows "(x + y) mod b = z' mod b'"
 proof -
   from 1 2[symmetric] 3[symmetric] have "(x + y) mod b = (x' mod b' + y' mod b') mod b'"
-    by (simp add: mod_add_eq[symmetric])
+    by (simp add: mod_add_eq)
   also have "\<dots> = (x' + y') mod b'"
-    by (simp add: mod_add_eq[symmetric])
+    by (simp add: mod_add_eq)
   finally show ?thesis by (simp add: 4)
 qed
 
@@ -4591,11 +4583,8 @@ lemma mod_minus_cong:
       and 3: "y mod b' = y' mod b'"
       and 4: "x' - y' = z'"
   shows "(x - y) mod b = z' mod b'"
-  using assms
-  apply (subst mod_diff_left_eq)
-  apply (subst mod_diff_right_eq)
-  apply (simp add: mod_diff_left_eq [symmetric] mod_diff_right_eq [symmetric])
-  done
+  using 1 2 3 4 [symmetric]
+  by (auto intro: mod_diff_cong)
 
 lemma word_induct_less: 
   "\<lbrakk>P (0::'a::len word); \<And>n. \<lbrakk>n < m; P n\<rbrakk> \<Longrightarrow> P (1 + n)\<rbrakk> \<Longrightarrow> P m"

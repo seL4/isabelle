@@ -31,18 +31,15 @@ session "HOL-Library" (main timing) in Library = HOL +
   *}
   theories
     Library
-    Nonpos_Ints
-    Periodic_Fun
-    Polynomial_Factorial
-    Predicate_Compile_Quickcheck
-    Prefix_Order
-    Rewrite
-    (*conflicting type class instantiations*)
+    (*conflicting type class instantiations and dependent applications*)
+    Field_as_Ring
+    Finite_Lattice
     List_lexord
-    Sublist_Order
+    Polynomial_Factorial
+    Prefix_Order
     Product_Lexorder
     Product_Order
-    Finite_Lattice
+    Sublist_Order
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat
@@ -54,11 +51,13 @@ session "HOL-Library" (main timing) in Library = HOL +
     DAList_Multiset
     RBT_Mapping
     RBT_Set
+    (*prototypic tools*)
+    Predicate_Compile_Quickcheck
     (*legacy tools*)
-    Refute
     Old_Datatype
     Old_Recdef
     Old_SMT
+    Refute
   document_files "root.bib" "root.tex"
 
 session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
@@ -238,16 +237,14 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
     Generate_Target_Nat
     Generate_Efficient_Datastructures
     Generate_Pretty_Char
+    Code_Test_PolyML
+    Code_Test_Scala
   theories [condition = "ISABELLE_GHC"]
     Code_Test_GHC
   theories [condition = "ISABELLE_MLTON"]
     Code_Test_MLton
   theories [condition = "ISABELLE_OCAMLC"]
     Code_Test_OCaml
-  theories [condition = "ISABELLE_POLYML"]
-    Code_Test_PolyML
-  theories [condition = "ISABELLE_SCALA"]
-    Code_Test_Scala
   theories [condition = "ISABELLE_SMLNJ"]
     Code_Test_SMLNJ
 
@@ -394,7 +391,7 @@ session "HOL-Decision_Procs" (timing) in Decision_Procs = HOL +
   theories Decision_Procs
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
-  options [document = false, parallel_proofs = 0]
+  options [document = false]
   theories
     Hilbert_Classical
     Proof_Terms

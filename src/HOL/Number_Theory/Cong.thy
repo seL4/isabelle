@@ -251,7 +251,7 @@ lemma cong_altdef_nat: "(a::nat) >= b \<Longrightarrow> [a = b] (mod m) = (m dvd
   done
 
 lemma cong_altdef_int: "[(a::int) = b] (mod m) = (m dvd (a - b))"
-  by (metis cong_int_def zmod_eq_dvd_iff)
+  by (metis cong_int_def mod_eq_dvd_iff)
 
 lemma cong_abs_int: "[(x::int) = y] (mod abs m) = [x = y] (mod m)"
   by (simp add: cong_altdef_int)
@@ -429,7 +429,7 @@ lemma mod_mult_cong_nat: "(a::nat) ~= 0 \<Longrightarrow> b ~= 0
   by (simp add: cong_nat_def mod_mult2_eq  mod_add_left_eq)
 
 lemma neg_cong_int: "([(a::int) = b] (mod m)) = ([-a = -b] (mod m))"
-  by (metis cong_int_def minus_minus zminus_zmod)
+  by (metis cong_int_def minus_minus mod_minus_cong)
 
 lemma cong_modulus_neg_int: "([(a::int) = b] (mod m)) = ([a = b] (mod -m))"
   by (auto simp add: cong_altdef_int)

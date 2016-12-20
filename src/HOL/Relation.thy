@@ -389,8 +389,9 @@ lemma transp_inf: "transp r \<Longrightarrow> transp s \<Longrightarrow> transp 
 lemma trans_INTER: "\<forall>x\<in>S. trans (r x) \<Longrightarrow> trans (INTER S r)"
   by (fast intro: transI elim: transD)
 
-(* FIXME thm trans_INTER [to_pred] *)
-
+lemma transp_INF: "\<forall>x\<in>S. transp (r x) \<Longrightarrow> transp (INFIMUM S r)"
+  by (fact trans_INTER [to_pred])
+    
 lemma trans_join [code]: "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
   by (auto simp add: trans_def)
 
@@ -620,13 +621,15 @@ lemma relcompp_distrib2 [simp]: "(S \<squnion> T) OO R = S OO R \<squnion> T OO 
 lemma relcomp_UNION_distrib: "s O UNION I r = (\<Union>i\<in>I. s O r i) "
   by auto
 
-(* FIXME thm relcomp_UNION_distrib [to_pred] *)
-
+lemma relcompp_SUP_distrib: "s OO SUPREMUM I r = (\<Squnion>i\<in>I. s OO r i)"
+  by (fact relcomp_UNION_distrib [to_pred])
+    
 lemma relcomp_UNION_distrib2: "UNION I r O s = (\<Union>i\<in>I. r i O s) "
   by auto
 
-(* FIXME thm relcomp_UNION_distrib2 [to_pred] *)
-
+lemma relcompp_SUP_distrib2: "SUPREMUM I r OO s = (\<Squnion>i\<in>I. r i OO s)"
+  by (fact relcomp_UNION_distrib2 [to_pred])
+    
 lemma single_valued_relcomp: "single_valued r \<Longrightarrow> single_valued s \<Longrightarrow> single_valued (r O s)"
   unfolding single_valued_def by blast
 

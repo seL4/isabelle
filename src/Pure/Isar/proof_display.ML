@@ -95,7 +95,7 @@ fun pretty_theory verbose ctxt =
     val pretty_arities = maps (fn (t, ars) => map (prt_arity t) ars);
 
     fun pretty_abbrev (c, (ty, t)) = Pretty.block
-      (prt_const (c, ty) @ [Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t]);
+      (prt_const (c, ty) @ [Pretty.str " \<equiv>", Pretty.brk 1, prt_term_no_vars t]);
 
     fun pretty_axm (a, t) =
       Pretty.block [Pretty.mark_str a, Pretty.str ":", Pretty.brk 1, prt_term_no_vars t];

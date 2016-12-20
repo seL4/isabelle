@@ -17,7 +17,7 @@ text \<open>
   The existence of these functions makes it possible to derive gcd and lcm functions 
   for any Euclidean semiring.
 \<close> 
-class euclidean_semiring = semiring_modulo + normalization_semidom + 
+class euclidean_semiring = semidom_modulo + normalization_semidom + 
   fixes euclidean_size :: "'a \<Rightarrow> nat"
   assumes size_0 [simp]: "euclidean_size 0 = 0"
   assumes mod_size_less: 
@@ -25,30 +25,6 @@ class euclidean_semiring = semiring_modulo + normalization_semidom +
   assumes size_mult_mono:
     "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (a * b)"
 begin
-
-lemma mod_0 [simp]: "0 mod a = 0"
-  using div_mult_mod_eq [of 0 a] by simp
-
-lemma dvd_mod_iff: 
-  assumes "k dvd n"
-  shows   "(k dvd m mod n) = (k dvd m)"
-proof -
-  from assms have "(k dvd m mod n) \<longleftrightarrow> (k dvd ((m div n) * n + m mod n))" 
-    by (simp add: dvd_add_right_iff)
-  also have "(m div n) * n + m mod n = m"
-    using div_mult_mod_eq [of m n] by simp
-  finally show ?thesis .
-qed
-
-lemma mod_0_imp_dvd: 
-  assumes "a mod b = 0"
-  shows   "b dvd a"
-proof -
-  have "b dvd ((a div b) * b)" by simp
-  also have "(a div b) * b = a"
-    using div_mult_mod_eq [of a b] by (simp add: assms)
-  finally show ?thesis .
-qed
 
 lemma euclidean_size_normalize [simp]:
   "euclidean_size (normalize a) = euclidean_size a"

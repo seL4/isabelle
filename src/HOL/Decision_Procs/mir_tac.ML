@@ -31,8 +31,6 @@ val nT = HOLogic.natT;
              @{thm uminus_add_conv_diff [symmetric]}, @{thm "minus_divide_left"}]
 val comp_ths = distinct Thm.eq_thm (ths @ comp_arith @ @{thms simp_thms});
 
-val mod_add_eq = @{thm "mod_add_eq"} RS sym;
-
 fun prepare_for_mir q fm = 
   let
     val ps = Logic.strip_params fm
@@ -71,7 +69,7 @@ fun mir_tac ctxt q =
     val (t,np,nh) = prepare_for_mir q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = put_simpset HOL_basic_ss ctxt
-                        addsimps [refl, mod_add_eq, 
+                        addsimps [refl, @{thm mod_add_eq}, 
                                   @{thm mod_self},
                                   @{thm div_0}, @{thm mod_0},
                                   @{thm div_by_1}, @{thm mod_by_1}, @{thm div_by_Suc_0}, @{thm mod_by_Suc_0},

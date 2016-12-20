@@ -626,7 +626,7 @@ next
       by (auto simp add: set_conv_nth)
     \<comment> "the following bound is terrible, but it simplifies the proof"
     from nempty k have "\<forall>m. w\<^sup>\<omega> ((Suc m)*(length w) + k) = a"
-      by (simp add: mod_add_left_eq)
+      by (simp add: mod_add_left_eq [symmetric])
     moreover
     \<comment> "why is the following so hard to prove??"
     have "\<forall>m. m < (Suc m)*(length w) + k"

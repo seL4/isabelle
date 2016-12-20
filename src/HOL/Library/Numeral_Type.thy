@@ -133,7 +133,7 @@ lemmas Rep_simps =
 
 lemma comm_ring_1: "OFCLASS('a, comm_ring_1_class)"
 apply (intro_classes, unfold definitions)
-apply (simp_all add: Rep_simps zmod_simps field_simps)
+apply (simp_all add: Rep_simps mod_simps field_simps)
 done
 
 end
@@ -147,12 +147,12 @@ begin
 lemma of_nat_eq: "of_nat k = Abs (int k mod n)"
 apply (induct k)
 apply (simp add: zero_def)
-apply (simp add: Rep_simps add_def one_def zmod_simps ac_simps)
+apply (simp add: Rep_simps add_def one_def mod_simps ac_simps)
 done
 
 lemma of_int_eq: "of_int z = Abs (z mod n)"
 apply (cases z rule: int_diff_cases)
-apply (simp add: Rep_simps of_nat_eq diff_def zmod_simps)
+apply (simp add: Rep_simps of_nat_eq diff_def mod_simps)
 done
 
 lemma Rep_numeral:

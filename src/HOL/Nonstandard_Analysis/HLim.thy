@@ -77,7 +77,7 @@ proof -
 qed
 
 lemma NSLIM_zero_cancel: "(\<lambda>x. f x - l) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0 \<Longrightarrow> f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l"
-  apply (drule_tac g = "%x. l" and m = l in NSLIM_add)
+  apply (drule_tac g = "\<lambda>x. l" and m = l in NSLIM_add)
    apply (auto simp add: add.assoc)
   done
 
@@ -205,8 +205,8 @@ text \<open>Standard continuity \<open>\<Longrightarrow>\<close> NS continuity.\
 lemma isCont_isNSCont: "isCont f a \<Longrightarrow> isNSCont f a"
   by (erule isNSCont_isCont_iff [THEN iffD2])
 
-text \<open>NS continuity \<open>==>\<close> Standard continuity.\<close>
-lemma isNSCont_isCont: "isNSCont f a ==> isCont f a"
+text \<open>NS continuity \<open>\<Longrightarrow>\<close> Standard continuity.\<close>
+lemma isNSCont_isCont: "isNSCont f a \<Longrightarrow> isCont f a"
   by (erule isNSCont_isCont_iff [THEN iffD1])
 
 

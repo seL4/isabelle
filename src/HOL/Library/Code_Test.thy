@@ -1,7 +1,7 @@
 (*  Title:      HOL/Library/Code_Test.thy
-    Author:     Andreas Lochbihler, ETH Zurich
+    Author:     Andreas Lochbihler, ETH Zürich
 
-Test infrastructure for the code generator
+Test infrastructure for the code generator.
 *)
 
 theory Code_Test
@@ -100,7 +100,7 @@ lemma yxml_string_of_xml_tree_code [code]:
   "yxml_string_of_xml_tree (xml.Elem name atts ts) rest =
    yot_append xml.XY (
    yot_append (yot_literal name) (
-   foldr (\<lambda>(a, x) rest. 
+   foldr (\<lambda>(a, x) rest.
      yot_append xml.Y (
      yot_append (yot_literal a) (
      yot_append (yot_literal (STR ''='')) (

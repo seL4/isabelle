@@ -49,6 +49,7 @@ declare -a SOURCES=(
   General/http_server.scala
   General/json.scala
   General/linear_set.scala
+  General/logger.scala
   General/long_name.scala
   General/mercurial.scala
   General/multi_map.scala
@@ -153,6 +154,12 @@ declare -a SOURCES=(
   "../Tools/Graphview/popups.scala"
   "../Tools/Graphview/shapes.scala"
   "../Tools/Graphview/tree_panel.scala"
+  "../Tools/VSCode/src/channel.scala"
+  "../Tools/VSCode/src/document_model.scala"
+  "../Tools/VSCode/src/line.scala"
+  "../Tools/VSCode/src/protocol.scala"
+  "../Tools/VSCode/src/server.scala"
+  "../Tools/VSCode/src/uri_resources.scala"
 )
 
 

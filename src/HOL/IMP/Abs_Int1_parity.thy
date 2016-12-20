@@ -112,7 +112,8 @@ next
   case 3 show ?case by auto
 next
   case (4 _ a1 _ a2) thus ?case
-    by (induction a1 a2 rule: plus_parity.induct) (auto simp add:mod_add_eq)
+    by (induction a1 a2 rule: plus_parity.induct)
+      (auto simp add: mod_add_eq [symmetric])
 qed
 
 text{* In case 4 we needed to refer to particular variables.

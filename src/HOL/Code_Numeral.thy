@@ -168,20 +168,8 @@ lemma integer_of_num_triv:
   "integer_of_num (Num.Bit0 Num.One) = 2"
   by (transfer, simp)+
 
-instantiation integer :: "{ring_div, equal, linordered_idom}"
+instantiation integer :: "{linordered_idom, equal}"
 begin
-
-lift_definition divide_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
-  is "divide :: int \<Rightarrow> int \<Rightarrow> int"
-  .
-
-declare divide_integer.rep_eq [simp]
-
-lift_definition modulo_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
-  is "modulo :: int \<Rightarrow> int \<Rightarrow> int"
-  .
-
-declare modulo_integer.rep_eq [simp]
 
 lift_definition abs_integer :: "integer \<Rightarrow> integer"
   is "abs :: int \<Rightarrow> int"
@@ -199,6 +187,7 @@ lift_definition less_eq_integer :: "integer \<Rightarrow> integer \<Rightarrow> 
   is "less_eq :: int \<Rightarrow> int \<Rightarrow> bool"
   .
 
+
 lift_definition less_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
   is "less :: int \<Rightarrow> int \<Rightarrow> bool"
   .
@@ -207,8 +196,8 @@ lift_definition equal_integer :: "integer \<Rightarrow> integer \<Rightarrow> bo
   is "HOL.equal :: int \<Rightarrow> int \<Rightarrow> bool"
   .
 
-instance proof
-qed (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] mult_strict_right_mono linear)+
+instance
+  by standard (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] mult_strict_right_mono linear)+
 
 end
 
@@ -235,6 +224,38 @@ lemma nat_of_integer_non_positive [simp]:
 lemma of_nat_of_integer [simp]:
   "of_nat (nat_of_integer k) = max 0 k"
   by transfer auto
+
+instantiation integer :: "{ring_div, normalization_semidom}"
+begin
+
+lift_definition normalize_integer :: "integer \<Rightarrow> integer"
+  is "normalize :: int \<Rightarrow> int"
+  .
+
+declare normalize_integer.rep_eq [simp]
+
+lift_definition unit_factor_integer :: "integer \<Rightarrow> integer"
+  is "unit_factor :: int \<Rightarrow> int"
+  .
+
+declare unit_factor_integer.rep_eq [simp]
+
+lift_definition divide_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "divide :: int \<Rightarrow> int \<Rightarrow> int"
+  .
+
+declare divide_integer.rep_eq [simp]
+
+lift_definition modulo_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "modulo :: int \<Rightarrow> int \<Rightarrow> int"
+  .
+
+declare modulo_integer.rep_eq [simp]
+
+instance
+  by standard (transfer, simp add: mult_sgn_abs sgn_mult)+
+
+end
 
 instantiation integer :: semiring_numeral_div
 begin
@@ -388,6 +409,14 @@ lemma times_integer_code [code]:
   "Neg m * Pos n = Neg (m * n)"
   "Neg m * Neg n = Pos (m * n)"
   by simp_all
+
+lemma normalize_integer_code [code]:
+  "normalize = (abs :: integer \<Rightarrow> integer)"
+  by transfer simp
+
+lemma unit_factor_integer_code [code]:
+  "unit_factor = (sgn :: integer \<Rightarrow> integer)"
+  by transfer simp
 
 definition divmod_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer \<times> integer"
 where
@@ -760,20 +789,8 @@ lemma nat_of_natural_numeral [simp]:
   "nat_of_natural (numeral k) = numeral k"
   by transfer rule
 
-instantiation natural :: "{semiring_div, equal, linordered_semiring}"
+instantiation natural :: "{linordered_semiring, equal}"
 begin
-
-lift_definition divide_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
-  is "divide :: nat \<Rightarrow> nat \<Rightarrow> nat"
-  .
-
-declare divide_natural.rep_eq [simp]
-
-lift_definition modulo_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
-  is "modulo :: nat \<Rightarrow> nat \<Rightarrow> nat"
-  .
-
-declare modulo_natural.rep_eq [simp]
 
 lift_definition less_eq_natural :: "natural \<Rightarrow> natural \<Rightarrow> bool"
   is "less_eq :: nat \<Rightarrow> nat \<Rightarrow> bool"
@@ -811,6 +828,38 @@ lemma nat_of_natural_min [simp]:
 lemma nat_of_natural_max [simp]:
   "nat_of_natural (max k l) = max (nat_of_natural k) (nat_of_natural l)"
   by transfer rule
+
+instantiation natural :: "{semiring_div, normalization_semidom}"
+begin
+
+lift_definition normalize_natural :: "natural \<Rightarrow> natural"
+  is "normalize :: nat \<Rightarrow> nat"
+  .
+
+declare normalize_natural.rep_eq [simp]
+
+lift_definition unit_factor_natural :: "natural \<Rightarrow> natural"
+  is "unit_factor :: nat \<Rightarrow> nat"
+  .
+
+declare unit_factor_natural.rep_eq [simp]
+
+lift_definition divide_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "divide :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  .
+
+declare divide_natural.rep_eq [simp]
+
+lift_definition modulo_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "modulo :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  .
+
+declare modulo_natural.rep_eq [simp]
+
+instance
+  by standard (transfer, auto simp add: algebra_simps unit_factor_nat_def gr0_conv_Suc)+
+
+end
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"
@@ -945,7 +994,32 @@ lemma [code abstract]:
 
 lemma [code abstract]:
   "integer_of_natural (m * n) = integer_of_natural m * integer_of_natural n"
-  by transfer (simp add: of_nat_mult)
+  by transfer simp
+
+lemma [code]:
+  "normalize n = n" for n :: natural
+  by transfer simp
+
+lemma [code]:
+  "unit_factor n = of_bool (n \<noteq> 0)" for n :: natural
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then have "unit_factor n = 1"
+  proof transfer
+    fix n :: nat
+    assume "n \<noteq> 0"
+    then obtain m where "n = Suc m"
+      by (cases n) auto
+    then show "unit_factor n = 1"
+      by simp
+  qed
+  with False show ?thesis
+    by simp
+qed
 
 lemma [code abstract]:
   "integer_of_natural (m div n) = integer_of_natural m div integer_of_natural n"

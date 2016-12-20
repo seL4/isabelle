@@ -1,59 +1,44 @@
 (*  Title:      HOL/Library/code_test.ML
-    Author:     Andreas Lochbihler, ETH Zurich
+    Author:     Andreas Lochbihler, ETH Zürich
 
-Test infrastructure for the code generator
+Test infrastructure for the code generator.
 *)
 
-signature CODE_TEST = sig
-  val add_driver : string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string) -> theory -> theory
-  val get_driver : theory -> string -> ((Proof.context -> (string * string) list * string -> Path.T -> string) * string) option
-  val overlord : bool Config.T
-  val successN : string
-  val failureN : string
-  val start_markerN : string
-  val end_markerN : string
-  val test_terms : Proof.context -> term list -> string -> unit
-  val test_targets : Proof.context -> term list -> string list -> unit list
-  val test_code_cmd : string list -> string list -> Toplevel.state -> unit
-
-  val eval_term : string -> Proof.context -> term -> term
-
-  val gen_driver :
+signature CODE_TEST =
+sig
+  val add_driver:
+    string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string) ->
+    theory -> theory
+  val overlord: bool Config.T
+  val successN: string
+  val failureN: string
+  val start_markerN: string
+  val end_markerN: string
+  val test_terms: Proof.context -> term list -> string -> unit
+  val test_targets: Proof.context -> term list -> string list -> unit
+  val test_code_cmd: string list -> string list -> Proof.context -> unit
+  val eval_term: string -> Proof.context -> term -> term
+  val evaluate:
    (theory -> Path.T -> string list -> string ->
-    {files : (Path.T * string) list,
-     compile_cmd : string option, run_cmd : string, mk_code_file : string -> Path.T})
-   -> string -> string -> string
-   -> theory -> (string * string) list * string -> Path.T -> string
-
-  val ISABELLE_POLYML : string
-  val polymlN : string
-  val evaluate_in_polyml : Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val mltonN : string
-  val ISABELLE_MLTON : string
-  val evaluate_in_mlton : Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val smlnjN : string
-  val ISABELLE_SMLNJ : string
-  val evaluate_in_smlnj : Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val ocamlN : string
-  val ISABELLE_OCAMLC : string
-  val evaluate_in_ocaml : Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val ghcN : string
-  val ISABELLE_GHC : string
-  val ghc_options : string Config.T
-  val evaluate_in_ghc : Proof.context -> (string * string) list * string -> Path.T -> string
-
-  val scalaN : string
-  val ISABELLE_SCALA : string
-  val evaluate_in_scala : Proof.context -> (string * string) list * string -> Path.T -> string
+     {files: (Path.T * string) list,
+       compile_cmd: string option,
+       run_cmd: string,
+       mk_code_file: string -> Path.T}) -> (string * string) option -> string -> theory ->
+     (string * string) list * string -> Path.T -> string
+  val evaluate_in_polyml: Proof.context -> (string * string) list * string -> Path.T -> string
+  val evaluate_in_mlton: Proof.context -> (string * string) list * string -> Path.T -> string
+  val evaluate_in_smlnj: Proof.context -> (string * string) list * string -> Path.T -> string
+  val evaluate_in_ocaml: Proof.context -> (string * string) list * string -> Path.T -> string
+  val ghc_options: string Config.T
+  val evaluate_in_ghc: Proof.context -> (string * string) list * string -> Path.T -> string
+  val evaluate_in_scala: Proof.context -> (string * string) list * string -> Path.T -> string
 end
 
-structure Code_Test : CODE_TEST = struct
+structure Code_Test: CODE_TEST =
+struct
 
 (* convert a list of terms into nested tuples and back *)
+
 fun mk_tuples [] = @{term "()"}
   | mk_tuples [t] = t
   | mk_tuples (t :: ts) = HOLogic.mk_prod (t, mk_tuples ts)
@@ -62,47 +47,46 @@ fun dest_tuples (Const (@{const_name Pair}, _) $ l $ r) = l :: dest_tuples r
   | dest_tuples t = [t]
 
 
-fun map_option _ NONE = NONE
-  | map_option f (SOME x) = SOME (f x)
-
 fun last_field sep str =
   let
-    val n = size sep;
-    val len = size str;
+    val n = size sep
+    val len = size str
     fun find i =
       if i < 0 then NONE
       else if String.substring (str, i, n) = sep then SOME i
-      else find (i - 1);
+      else find (i - 1)
   in
     (case find (len - n) of
       NONE => NONE
     | SOME i => SOME (String.substring (str, 0, i), String.extract (str, i + n, NONE)))
-  end;
+  end
 
 fun split_first_last start stop s =
-  case first_field start s
-   of NONE => NONE
-    | SOME (initial, rest) =>
-      case last_field stop rest
-       of NONE => NONE
-        | SOME (middle, tail) => SOME (initial, middle, tail);
+  (case first_field start s of
+    NONE => NONE
+  | SOME (initial, rest) =>
+      (case last_field stop rest of
+        NONE => NONE
+      | SOME (middle, tail) => SOME (initial, middle, tail)))
 
-(* Data slot for drivers *)
+
+(* data slot for drivers *)
 
 structure Drivers = Theory_Data
 (
-  type T = (string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string)) list;
-  val empty = [];
-  val extend = I;
-  fun merge data : T = AList.merge (op =) (K true) data;
+  type T =
+    (string * ((Proof.context -> (string * string) list * string -> Path.T -> string) * string)) list
+  val empty = []
+  val extend = I
+  fun merge data : T = AList.merge (op =) (K true) data
 )
 
-val add_driver = Drivers.map o AList.update (op =);
-val get_driver = AList.lookup (op =) o Drivers.get;
+val add_driver = Drivers.map o AList.update (op =)
+val get_driver = AList.lookup (op =) o Drivers.get
 
 (*
   Test drivers must produce output of the following format:
-  
+
   The start of the relevant data is marked with start_markerN,
   its end with end_markerN.
 
@@ -112,7 +96,8 @@ val get_driver = AList.lookup (op =) o Drivers.get;
   There must not be any additional whitespace in between.
 *)
 
-(* Parsing of results *)
+
+(* parsing of results *)
 
 val successN = "True"
 val failureN = "False"
@@ -121,7 +106,7 @@ val end_markerN = "*@*Isabelle/Code_Test-end*@*"
 
 fun parse_line line =
   if String.isPrefix successN line then (true, NONE)
-  else if String.isPrefix failureN line then (false, 
+  else if String.isPrefix failureN line then (false,
     if size line > size failureN then
       String.extract (line, size failureN, NONE)
       |> YXML.parse_body
@@ -132,20 +117,21 @@ fun parse_line line =
   else raise Fail ("Cannot parse result of evaluation:\n" ^ line)
 
 fun parse_result target out =
-  case split_first_last start_markerN end_markerN out
-    of NONE => error ("Evaluation failed for " ^ target ^ "!\nBash output:\n" ^ out)
-     | SOME (_, middle, _) => middle |> trim_line |> split_lines |> map parse_line
+  (case split_first_last start_markerN end_markerN out of
+    NONE => error ("Evaluation failed for " ^ target ^ "!\nBash output:\n" ^ out)
+  | SOME (_, middle, _) => middle |> trim_line |> split_lines |> map parse_line)
 
-(* Pretty printing of test results *)
+
+(* pretty printing of test results *)
 
 fun pretty_eval _ NONE _ = []
-  | pretty_eval ctxt (SOME evals) ts = 
-    [Pretty.fbrk,
-     Pretty.big_list "Evaluated terms"
-       (map (fn (t, eval) => Pretty.block 
-         [Syntax.pretty_term ctxt t, Pretty.brk 1, Pretty.str "=", Pretty.brk 1,
-          Syntax.pretty_term ctxt eval])
-       (ts ~~ evals))]
+  | pretty_eval ctxt (SOME evals) ts =
+      [Pretty.fbrk,
+       Pretty.big_list "Evaluated terms"
+         (map (fn (t, eval) => Pretty.block
+           [Syntax.pretty_term ctxt t, Pretty.brk 1, Pretty.str "=", Pretty.brk 1,
+            Syntax.pretty_term ctxt eval])
+         (ts ~~ evals))]
 
 fun pretty_failure ctxt target (((_, evals), query), eval_ts) =
   Pretty.block (Pretty.text ("Test in " ^ target ^ " failed for")
@@ -155,60 +141,61 @@ fun pretty_failure ctxt target (((_, evals), query), eval_ts) =
 fun pretty_failures ctxt target failures =
   Pretty.blk (0, Pretty.fbreaks (map (pretty_failure ctxt target) failures))
 
-(* Driver invocation *)
 
-val overlord = Attrib.setup_config_bool @{binding "code_test_overlord"} (K false);
+(* driver invocation *)
+
+val overlord = Attrib.setup_config_bool @{binding "code_test_overlord"} (K false)
 
 fun with_overlord_dir name f =
   let
-    val path = Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
-    val _ = Isabelle_System.mkdirs path;
-  in
-    Exn.release (Exn.capture f path)
-  end;
+    val path =
+      Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
+    val _ = Isabelle_System.mkdirs path
+  in Exn.release (Exn.capture f path) end
 
 fun dynamic_value_strict ctxt t compiler =
   let
     val thy = Proof_Context.theory_of ctxt
-    val (driver, target) = case get_driver thy compiler
-     of NONE => error ("No driver for target " ^ compiler)
-      | SOME f => f;
+    val (driver, target) =
+      (case get_driver thy compiler of
+        NONE => error ("No driver for target " ^ compiler)
+      | SOME f => f)
     val debug = Config.get (Proof_Context.init_global thy) overlord
     val with_dir = if debug then with_overlord_dir else Isabelle_System.with_tmp_dir
     fun evaluate f = with_dir "Code_Test" (driver ctxt f) |> parse_result compiler
     fun evaluator program _ vs_ty deps =
-      Exn.interruptible_capture evaluate (Code_Target.computation_text ctxt target program deps true vs_ty);
-    fun postproc f = map (apsnd (map_option (map f)))
-  in
-    Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t)
-  end;
+      Exn.interruptible_capture evaluate
+        (Code_Target.computation_text ctxt target program deps true vs_ty)
+    fun postproc f = map (apsnd (Option.map (map f)))
+  in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t) end
 
-(* Term preprocessing *)
+
+(* term preprocessing *)
 
 fun add_eval (Const (@{const_name Trueprop}, _) $ t) = add_eval t
   | add_eval (Const (@{const_name "HOL.eq"}, _) $ lhs $ rhs) = (fn acc =>
-    acc
-    |> add_eval rhs
-    |> add_eval lhs
-    |> cons rhs
-    |> cons lhs)
+      acc
+      |> add_eval rhs
+      |> add_eval lhs
+      |> cons rhs
+      |> cons lhs)
   | add_eval (Const (@{const_name "Not"}, _) $ t) = add_eval t
   | add_eval (Const (@{const_name "Orderings.ord_class.less_eq"}, _) $ lhs $ rhs) = (fn acc =>
-    lhs :: rhs :: acc)
+      lhs :: rhs :: acc)
   | add_eval (Const (@{const_name "Orderings.ord_class.less"}, _) $ lhs $ rhs) = (fn acc =>
-    lhs :: rhs :: acc)
+      lhs :: rhs :: acc)
   | add_eval _ = I
 
 fun mk_term_of [] = @{term "None :: (unit \<Rightarrow> yxml_of_term) option"}
   | mk_term_of ts =
-  let
-    val tuple = mk_tuples ts
-    val T = fastype_of tuple
-  in
-    @{term "Some :: (unit \<Rightarrow> yxml_of_term) \<Rightarrow> (unit \<Rightarrow> yxml_of_term) option"} $
-      (absdummy @{typ unit} (@{const yxml_string_of_term} $
-        (Const (@{const_name Code_Evaluation.term_of}, T --> @{typ term}) $ tuple)))
-  end
+      let
+        val tuple = mk_tuples ts
+        val T = fastype_of tuple
+      in
+        @{term "Some :: (unit \<Rightarrow> yxml_of_term) \<Rightarrow> (unit \<Rightarrow> yxml_of_term) option"} $
+          (absdummy @{typ unit} (@{const yxml_string_of_term} $
+            (Const (@{const_name Code_Evaluation.term_of}, T --> @{typ term}) $ tuple)))
+      end
 
 fun test_terms ctxt ts target =
   let
@@ -216,109 +203,121 @@ fun test_terms ctxt ts target =
 
     fun term_of t = Sign.of_sort thy (fastype_of t, @{sort term_of})
 
-    fun ensure_bool t = case fastype_of t of @{typ bool} => ()
-      | _ => error ("Test case not of type bool: " ^ Pretty.string_of (Syntax.pretty_term ctxt t))
+    fun ensure_bool t =
+      (case fastype_of t of
+        @{typ bool} => ()
+      | _ =>
+        error (Pretty.string_of
+          (Pretty.block [Pretty.str "Test case not of type bool:", Pretty.brk 1,
+            Syntax.pretty_term ctxt t])))
 
-    val _ = map ensure_bool ts
+    val _ = List.app ensure_bool ts
 
     val evals = map (fn t => filter term_of (add_eval t [])) ts
     val eval = map mk_term_of evals
 
-    val T = HOLogic.mk_prodT (@{typ bool}, Type (@{type_name option}, [@{typ unit} --> @{typ yxml_of_term}]))
-    val t = HOLogic.mk_list T (map HOLogic.mk_prod (ts ~~ eval))
+    val t =
+      HOLogic.mk_list @{typ "bool \<times> (unit \<Rightarrow> yxml_of_term) option"}
+        (map HOLogic.mk_prod (ts ~~ eval))
 
-    val result = dynamic_value_strict ctxt t target;
+    val result = dynamic_value_strict ctxt t target
 
     val failed =
       filter_out (fst o fst o fst) (result ~~ ts ~~ evals)
-      handle ListPair.UnequalLengths => 
+      handle ListPair.UnequalLengths =>
         error ("Evaluation failed!\nWrong number of test results: " ^ Int.toString (length result))
-    val _ = case failed of [] => () 
-      | _ => error (Pretty.string_of (pretty_failures ctxt target failed))
   in
-    ()
+    (case failed of [] =>
+      ()
+    | _ => error (Pretty.string_of (pretty_failures ctxt target failed)))
   end
 
-fun test_targets ctxt = map o test_terms ctxt
+fun test_targets ctxt = List.app o test_terms ctxt
 
-fun test_code_cmd raw_ts targets state =
+fun pretty_free ctxt = Syntax.pretty_term ctxt o Free
+
+fun test_code_cmd raw_ts targets ctxt =
   let
-    val ctxt = Toplevel.context_of state;
-    val ts = Syntax.read_terms ctxt raw_ts;
-    val frees = fold Term.add_free_names ts []
-    val _ = if frees = [] then () else
-      error ("Terms contain free variables: " ^
-      Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
-  in
-    test_targets ctxt ts targets; ()
-  end
+    val ts = Syntax.read_terms ctxt raw_ts
+    val frees = fold Term.add_frees ts []
+    val _ =
+      if null frees then ()
+      else error (Pretty.string_of
+        (Pretty.block (Pretty.str "Terms contain free variables:" :: Pretty.brk 1 ::
+          Pretty.commas (map (pretty_free ctxt) frees))))
+  in test_targets ctxt ts targets end
 
 fun eval_term target ctxt t =
   let
-    val frees = Term.add_free_names t []
-    val _ = if frees = [] then () else
-      error ("Term contains free variables: " ^
-      Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
+    val frees = Term.add_frees t []
+    val _ =
+      if null frees then ()
+      else
+        error (Pretty.string_of
+          (Pretty.block (Pretty.str "Term contains free variables:" :: Pretty.brk 1 ::
+            Pretty.commas (map (pretty_free ctxt) frees))))
 
-    val thy = Proof_Context.theory_of ctxt
+    val T = fastype_of t
+    val _ =
+      if Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort term_of}) then ()
+      else error ("Type " ^ Syntax.string_of_typ ctxt T ^
+       " of term not of sort " ^ Syntax.string_of_sort ctxt @{sort term_of})
 
-    val T_t = fastype_of t
-    val _ = if Sign.of_sort thy (T_t, @{sort term_of}) then () else error 
-      ("Type " ^ Pretty.string_of (Syntax.pretty_typ ctxt T_t) ^ 
-       " of term not of sort " ^ Pretty.string_of (Syntax.pretty_sort ctxt @{sort term_of}))
+    val t' =
+      HOLogic.mk_list @{typ "bool \<times> (unit \<Rightarrow> yxml_of_term) option"}
+        [HOLogic.mk_prod (@{term "False"}, mk_term_of [t])]
 
-    val T = HOLogic.mk_prodT (@{typ bool}, Type (@{type_name option}, [@{typ unit} --> @{typ yxml_of_term}]))
-    val t' = HOLogic.mk_list T [HOLogic.mk_prod (@{term "False"}, mk_term_of [t])]
+    val result = dynamic_value_strict ctxt t' target
+  in (case result of [(_, SOME [t])] => t | _ => error "Evaluation failed") end
 
-    val result = dynamic_value_strict ctxt t' target;
-  in
-    case result of [(_, SOME [t])] => t | _ => error "Evaluation failed"
-  end
 
-(* Generic driver *)
+(* generic driver *)
 
-fun gen_driver mk_driver env_var env_var_dest compilerN ctxt (code_files, value_name) =
+fun evaluate mk_driver opt_env_var compilerN ctxt (code_files, value_name) =
   let
-    val compiler = getenv env_var
-    val _ = if compiler <> "" then () else error (Pretty.string_of (Pretty.para 
-         ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
-         compilerN ^ ", set this variable to your " ^ env_var_dest ^ " in the settings file.")))
+    val _ =
+      (case opt_env_var of
+        NONE => ()
+      | SOME (env_var, env_var_dest) =>
+          (case getenv env_var of
+            "" =>
+              error (Pretty.string_of (Pretty.para
+                ("Environment variable " ^ env_var ^ " is not set. To test code generation with " ^
+                  compilerN ^ ", set this variable to your " ^ env_var_dest ^
+                  " in the $ISABELLE_HOME_USER/etc/settings file.")))
+          | _ => ()))
 
     fun compile NONE = ()
       | compile (SOME cmd) =
-        let
-          val (out, ret) = Isabelle_System.bash_output cmd
-        in
-          if ret = 0 then () else error
-            ("Compilation with " ^ compilerN ^ " failed:\n" ^ cmd ^ "\n" ^ out)
-        end
+          let
+            val (out, ret) = Isabelle_System.bash_output cmd
+          in
+            if ret = 0 then ()
+            else error ("Compilation with " ^ compilerN ^ " failed:\n" ^ cmd ^ "\n" ^ out)
+          end
 
-    fun run (path : Path.T)= 
+    fun run path =
       let
         val modules = map fst code_files
-        val {files, compile_cmd, run_cmd, mk_code_file}
-          =  mk_driver ctxt path modules value_name
+        val {files, compile_cmd, run_cmd, mk_code_file} = mk_driver ctxt path modules value_name
 
-        val _ = map (fn (name, code) => File.write (mk_code_file name) code) code_files
-        val _ = map (fn (name, content) => File.write name content) files
+        val _ = List.app (fn (name, code) => File.write (mk_code_file name) code) code_files
+        val _ = List.app (fn (name, content) => File.write name content) files
 
         val _ = compile compile_cmd
 
         val (out, res) = Isabelle_System.bash_output run_cmd
-        val _ = if res = 0 then () else error
-          ("Evaluation for " ^ compilerN ^ " terminated with error code " ^ Int.toString res ^
-           "\nBash output:\n" ^ out)
-      in
-        out
-      end
-  in
-    run
-  end
+        val _ =
+          if res = 0 then ()
+          else error ("Evaluation for " ^ compilerN ^ " terminated with error code " ^
+            Int.toString res ^ "\nBash output:\n" ^ out)
+      in out end
+  in run end
 
-(* Driver for PolyML *)
 
-val ISABELLE_POLYML = "ISABELLE_POLYML"
-val polymlN = "PolyML";
+(* driver for PolyML *)
+
+val polymlN = "PolyML"
 
 fun mk_driver_polyml _ path _ value_name =
   let
@@ -327,10 +326,10 @@ fun mk_driver_polyml _ path _ value_name =
 
     val code_path = Path.append path (Path.basic generatedN)
     val driver_path = Path.append path (Path.basic driverN)
-    val driver = 
+    val driver =
       "fun main prog_name = \n" ^
       "  let\n" ^
-      "    fun format_term NONE = \"\"\n" ^ 
+      "    fun format_term NONE = \"\"\n" ^
       "      | format_term (SOME t) = t ();\n" ^
       "    fun format (true, _) = \"" ^ successN ^ "\\n\"\n" ^
       "      | format (false, to) = \"" ^ failureN ^ "\" ^ format_term to ^ \"\\n\";\n" ^
@@ -342,17 +341,16 @@ fun mk_driver_polyml _ path _ value_name =
       "    ()\n" ^
       "  end;\n"
     val cmd =
-      "echo \"use \\\"" ^ Path.implode code_path ^ "\\\"; use \\\"" ^ 
-      Path.implode driver_path ^ "\\\"; main ();\" | " ^ 
-      Path.implode (Path.variable ISABELLE_POLYML)
+      "echo \"use \\\"" ^ Path.implode code_path ^ "\\\"; use \\\"" ^
+      Path.implode driver_path ^ "\\\"; main ();\" | \"$ML_HOME/poly\""
   in
     {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
   end
 
-fun evaluate_in_polyml ctxt =
-  gen_driver mk_driver_polyml ISABELLE_POLYML "PolyML executable" polymlN ctxt
+fun evaluate_in_polyml ctxt = evaluate mk_driver_polyml NONE polymlN ctxt
 
-(* Driver for mlton *)
+
+(* driver for mlton *)
 
 val mltonN = "MLton"
 val ISABELLE_MLTON = "ISABELLE_MLTON"
@@ -367,8 +365,8 @@ fun mk_driver_mlton _ path _ value_name =
     val code_path = Path.append path (Path.basic generatedN)
     val driver_path = Path.append path (Path.basic driverN)
     val ml_basis_path = Path.append path (Path.basic ml_basisN)
-    val driver = 
-      "fun format_term NONE = \"\"\n" ^ 
+    val driver =
+      "fun format_term NONE = \"\"\n" ^
       "  | format_term (SOME t) = t ();\n" ^
       "fun format (true, _) = \"" ^ successN ^ "\\n\"\n" ^
       "  | format (false, to) = \"" ^ failureN ^ "\" ^ format_term to ^ \"\\n\";\n" ^
@@ -391,9 +389,10 @@ fun mk_driver_mlton _ path _ value_name =
   end
 
 fun evaluate_in_mlton ctxt =
-  gen_driver mk_driver_mlton ISABELLE_MLTON "MLton executable" mltonN ctxt
+  evaluate mk_driver_mlton (SOME (ISABELLE_MLTON, "MLton executable")) mltonN ctxt
 
-(* Driver for SML/NJ *)
+
+(* driver for SML/NJ *)
 
 val smlnjN = "SMLNJ"
 val ISABELLE_SMLNJ = "ISABELLE_SMLNJ"
@@ -405,11 +404,11 @@ fun mk_driver_smlnj _ path _ value_name =
 
     val code_path = Path.append path (Path.basic generatedN)
     val driver_path = Path.append path (Path.basic driverN)
-    val driver = 
+    val driver =
       "structure Test = struct\n" ^
       "fun main prog_name =\n" ^
       "  let\n" ^
-      "    fun format_term NONE = \"\"\n" ^ 
+      "    fun format_term NONE = \"\"\n" ^
       "      | format_term (SOME t) = t ();\n" ^
       "    fun format (true, _) = \"" ^ successN ^ "\\n\"\n" ^
       "      | format (false, to) = \"" ^ failureN ^ "\" ^ format_term to ^ \"\\n\";\n" ^
@@ -430,9 +429,10 @@ fun mk_driver_smlnj _ path _ value_name =
   end
 
 fun evaluate_in_smlnj ctxt =
-  gen_driver mk_driver_smlnj ISABELLE_SMLNJ "SMLNJ executable" smlnjN ctxt
+  evaluate mk_driver_smlnj (SOME (ISABELLE_SMLNJ, "SMLNJ executable")) smlnjN ctxt
 
-(* Driver for OCaml *)
+
+(* driver for OCaml *)
 
 val ocamlN = "OCaml"
 val ISABELLE_OCAMLC = "ISABELLE_OCAMLC"
@@ -444,9 +444,9 @@ fun mk_driver_ocaml _ path _ value_name =
 
     val code_path = Path.append path (Path.basic generatedN)
     val driver_path = Path.append path (Path.basic driverN)
-    val driver = 
+    val driver =
       "let format_term = function\n" ^
-      "  | None -> \"\"\n" ^ 
+      "  | None -> \"\"\n" ^
       "  | Some t -> t ();;\n" ^
       "let format = function\n" ^
       "  | (true, _) -> \"" ^ successN ^ "\\n\"\n" ^
@@ -471,9 +471,10 @@ fun mk_driver_ocaml _ path _ value_name =
   end
 
 fun evaluate_in_ocaml ctxt =
-  gen_driver mk_driver_ocaml ISABELLE_OCAMLC "ocamlc executable" ocamlN ctxt
+  evaluate mk_driver_ocaml (SOME (ISABELLE_OCAMLC, "ocamlc executable")) ocamlN ctxt
 
-(* Driver for GHC *)
+
+(* driver for GHC *)
 
 val ghcN = "GHC"
 val ISABELLE_GHC = "ISABELLE_GHC"
@@ -486,12 +487,12 @@ fun mk_driver_ghc ctxt path modules value_name =
 
     fun mk_code_file name = Path.append path (Path.basic (name ^ ".hs"))
     val driver_path = Path.append path (Path.basic driverN)
-    val driver = 
+    val driver =
       "module Main where {\n" ^
       String.concat (map (fn module => "import qualified " ^ module ^ ";\n") modules) ^
       "main = do {\n" ^
       "    let {\n" ^
-      "      format_term Nothing = \"\";\n" ^ 
+      "      format_term Nothing = \"\";\n" ^
       "      format_term (Just t) = t ();\n" ^
       "      format (True, _) = \"" ^ successN ^ "\\n\";\n" ^
       "      format (False, to) = \"" ^ failureN ^ "\" ++ format_term to ++ \"\\n\";\n" ^
@@ -516,12 +517,12 @@ fun mk_driver_ghc ctxt path modules value_name =
   end
 
 fun evaluate_in_ghc ctxt =
-  gen_driver mk_driver_ghc ISABELLE_GHC "GHC executable" ghcN ctxt
+  evaluate mk_driver_ghc (SOME (ISABELLE_GHC, "GHC executable")) ghcN ctxt
 
-(* Driver for Scala *)
+
+(* driver for Scala *)
 
 val scalaN = "Scala"
-val ISABELLE_SCALA = "ISABELLE_SCALA"
 
 fun mk_driver_scala _ path _ value_name =
   let
@@ -530,7 +531,7 @@ fun mk_driver_scala _ path _ value_name =
 
     val code_path = Path.append path (Path.basic (generatedN ^ ".scala"))
     val driver_path = Path.append path (Path.basic driverN)
-    val driver = 
+    val driver =
       "import " ^ generatedN ^ "._\n" ^
       "object Test {\n" ^
       "  def format_term(x : Option[Unit => String]) : String = x match {\n" ^
@@ -550,37 +551,36 @@ fun mk_driver_scala _ path _ value_name =
       "}\n"
 
     val compile_cmd =
-      Path.implode (Path.append (Path.variable ISABELLE_SCALA) (Path.basic "scalac")) ^
-      " -d " ^ File.bash_path path ^ " -classpath " ^ File.bash_path path ^ " " ^
+      "\"$SCALA_HOME/bin/scalac\" -d " ^ File.bash_path path ^
+      " -classpath " ^ File.bash_path path ^ " " ^
       File.bash_path code_path ^ " " ^ File.bash_path driver_path
 
-    val run_cmd =
-      Path.implode (Path.append (Path.variable ISABELLE_SCALA) (Path.basic "scala")) ^
-      " -cp " ^ File.bash_path path ^ " Test"
+    val run_cmd = "\"$SCALA_HOME/bin/scala\" -cp " ^ File.bash_path path ^ " Test"
   in
     {files = [(driver_path, driver)],
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
   end
 
-fun evaluate_in_scala ctxt =
-  gen_driver mk_driver_scala ISABELLE_SCALA "Scala directory" scalaN ctxt
+fun evaluate_in_scala ctxt = evaluate mk_driver_scala NONE scalaN ctxt
 
-val test_codeP = Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
 
-val _ = 
+(* command setup *)
+
+val _ =
   Outer_Syntax.command @{command_keyword test_code}
     "compile test cases to target languages, execute them and report results"
-      (test_codeP >> (fn (raw_ts, targets) => Toplevel.keep (test_code_cmd raw_ts targets)))
+      (Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
+        >> (fn (ts, targets) => Toplevel.keep (test_code_cmd ts targets o Toplevel.context_of)))
 
-val _ = Theory.setup (fold add_driver
-  [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
-   (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
-   (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
-   (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
-   (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
-   (scalaN, (evaluate_in_scala, Code_Scala.target))]
+val _ =
+  Theory.setup (fold add_driver
+    [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
+     (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
+     (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
+     (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
+     (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
+     (scalaN, (evaluate_in_scala, Code_Scala.target))]
   #> fold (fn target => Value_Command.add_evaluator (target, eval_term target))
-    [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN]);
+      [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN])
 
 end
-

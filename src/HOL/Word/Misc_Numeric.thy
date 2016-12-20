@@ -8,6 +8,10 @@ theory Misc_Numeric
 imports Main
 begin
 
+lemma one_mod_exp_eq_one [simp]:
+  "1 mod (2 * 2 ^ n) = (1::int)"
+  by (smt mod_pos_pos_trivial zero_less_power)
+
 lemma mod_2_neq_1_eq_eq_0:
   fixes k :: int
   shows "k mod 2 \<noteq> 1 \<longleftrightarrow> k mod 2 = 0"

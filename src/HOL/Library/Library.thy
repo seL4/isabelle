@@ -49,12 +49,14 @@ imports
   More_List
   Multiset_Order
   Multiset_Permutations
+  Nonpos_Ints
   Numeral_Type
   Omega_Words_Fun
   OptionalSugar
   Option_ord
   Order_Continuity
   Parallel
+  Periodic_Fun
   Perm
   Permutation
   Permutations
@@ -72,6 +74,7 @@ imports
   Quotient_Type
   Ramsey
   Reflection
+  Rewrite
   Saturated
   Set_Algebras
   State_Monad
