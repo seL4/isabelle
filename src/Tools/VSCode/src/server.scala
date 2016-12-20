@@ -20,21 +20,28 @@ object Server
 {
   /* Isabelle tool wrapper */
 
+  private val default_text_length = "UTF-16"
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   val isabelle_tool = Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", args =>
   {
     var log_file: Option[Path] = None
+    var text_length = Length.encoding(default_text_length)
     var dirs: List[Path] = Nil
     var logic = default_logic
     var modes: List[String] = Nil
     var options = Options.init()
+
+    def text_length_choice: String =
+      commas(Length.encodings.map(
+        { case (a, _) => if (a == default_text_length) a + " (default)" else a }))
 
     val getopts = Getopts("""
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
     -L FILE      enable logging on FILE
+    -T LENGTH    text length encoding: """ + text_length_choice + """
     -d DIR       include session directory
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -m MODE      add print mode for output
@@ -43,6 +50,7 @@ Usage: isabelle vscode_server [OPTIONS]
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
       "L:" -> (arg => log_file = Some(Path.explode(arg))),
+      "T:" -> (arg => Length.encoding(arg)),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "l:" -> (arg => logic = arg),
       "m:" -> (arg => modes = arg :: modes),
@@ -56,7 +64,7 @@ Usage: isabelle vscode_server [OPTIONS]
       error("Missing logic image " + quote(logic))
 
     val channel = new Channel(System.in, System.out, log_file)
-    val server = new Server(channel, options, logic, dirs, modes)
+    val server = new Server(channel, options, text_length, logic, dirs, modes)
 
     // prevent spurious garbage on the main protocol channel
     val orig_out = System.out
@@ -78,6 +86,7 @@ Usage: isabelle vscode_server [OPTIONS]
 class Server(
   channel: Channel,
   options: Options,
+  text_length: Length = Length.encoding(Server.default_text_length),
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
   modes: List[String] = Nil)
@@ -185,12 +194,13 @@ class Server(
     for {
       model <- state.value.models.get(uri)
       snapshot = model.snapshot()
-      offset <- model.doc.offset(pos)
+      offset <- model.doc.offset(pos, text_length)
       info <- tooltip(snapshot, Text.Range(offset, offset + 1))
     } yield {
-      val r = Line.Range(model.doc.position(info.range.start), model.doc.position(info.range.stop))
+      val start = model.doc.position(info.range.start, text_length)
+      val stop = model.doc.position(info.range.stop, text_length)
       val s = Pretty.string_of(info.info, margin = tooltip_margin.toDouble)
-      (r, List("```\n" + s + "\n```"))
+      (Line.Range(start, stop), List("```\n" + s + "\n```"))
     }
 
   private val tooltip_descriptions =

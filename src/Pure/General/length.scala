@@ -19,13 +19,15 @@ object Length extends Length
   def offset(text: String, i: Int): Option[Text.Offset] =
     if (0 <= i && i <= text.length) Some(i) else None
 
+  val encodings: List[(String, Length)] =
+    List(
+      "UTF-16" -> Length,
+      "UTF-8" -> UTF8.Length,
+      "codepoints" -> Codepoint.Length,
+      "symbols" -> Symbol.Length)
+
   def encoding(name: String): Length =
-    name match {
-      case "UTF-8" => UTF8.Length
-      case "UTF-16" => Length
-      case "codepoints" => Codepoint.Length
-      case "symbols" => Symbol.Length
-      case _ =>
-        error("Bad text encoding: " + name + " (expected UTF-8, UTF-16, codepoints, symbols)")
-    }
+    encodings.collectFirst({ case (a, length) if name == a => length }) getOrElse
+      error("Bad text length encoding: " + quote(name) +
+        " (expected " + commas_quote(encodings.map(_._1)) + ")")
 }
