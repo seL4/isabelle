@@ -1,7 +1,7 @@
-/*  Title:      Tools/VSCode/src/uri_resources.scala
+/*  Title:      Tools/VSCode/src/vscode_resources.scala
     Author:     Makarius
 
-Resources based on file-system URIs.
+Resources for VSCode Language Server, based on file-system URIs.
 */
 
 package isabelle.vscode
@@ -13,7 +13,7 @@ import java.net.{URI, URISyntaxException}
 import java.io.{File => JFile}
 
 
-object URI_Resources
+object VSCode_Resources
 {
   def is_wellformed(uri: String): Boolean =
     try { new JFile(new URI(uri)); true }
@@ -22,11 +22,11 @@ object URI_Resources
   def canonical_file(uri: String): JFile =
     new JFile(new URI(uri)).getCanonicalFile
 
-  val empty: URI_Resources =
-    new URI_Resources(Set.empty, Map.empty, Outer_Syntax.empty)
+  val empty: VSCode_Resources =
+    new VSCode_Resources(Set.empty, Map.empty, Outer_Syntax.empty)
 }
 
-class URI_Resources(
+class VSCode_Resources(
     loaded_theories: Set[String],
     known_theories: Map[String, Document.Node.Name],
     base_syntax: Outer_Syntax)
@@ -34,7 +34,7 @@ class URI_Resources(
 {
   def node_name(uri: String): Document.Node.Name =
   {
-    val file = URI_Resources.canonical_file(uri)  // FIXME wellformed!?
+    val file = VSCode_Resources.canonical_file(uri)  // FIXME wellformed!?
     val node = file.getPath
     val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
     val master_dir = if (theory == "") "" else file.getParent

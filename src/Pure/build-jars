@@ -162,8 +162,8 @@ declare -a SOURCES=(
   ../Tools/VSCode/src/document_model.scala
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
-  ../Tools/VSCode/src/uri_resources.scala
   ../Tools/VSCode/src/vscode_rendering.scala
+  ../Tools/VSCode/src/vscode_resources.scala
 )
 
 

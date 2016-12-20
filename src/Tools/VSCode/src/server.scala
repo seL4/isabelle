@@ -96,7 +96,7 @@ class Server(
   private val state = Synchronized(Server.State())
 
   def session: Session = state.value.session getOrElse error("Session inactive")
-  def resources: URI_Resources = session.resources.asInstanceOf[URI_Resources]
+  def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
 
   /* init and exit */
@@ -105,7 +105,7 @@ class Server(
   {
     val content = Build.session_content(options, false, session_dirs, session_name)
     val resources =
-      new URI_Resources(content.loaded_theories, content.known_theories, content.syntax)
+      new VSCode_Resources(content.loaded_theories, content.known_theories, content.syntax)
 
     val session =
       new Session(resources) {
