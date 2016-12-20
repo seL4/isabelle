@@ -86,6 +86,7 @@ declare -a SOURCES=(
   PIDE/document.scala
   PIDE/document_id.scala
   PIDE/editor.scala
+  PIDE/line.scala
   PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/protocol.scala
@@ -157,7 +158,6 @@ declare -a SOURCES=(
   ../Tools/Graphview/tree_panel.scala
   ../Tools/VSCode/src/channel.scala
   ../Tools/VSCode/src/document_model.scala
-  ../Tools/VSCode/src/line.scala
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
   ../Tools/VSCode/src/uri_resources.scala

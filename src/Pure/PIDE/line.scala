@@ -1,13 +1,11 @@
-/*  Title:      Tools/VSCode/src/line.scala
+/*  Title:      Pure/PIDE/line.scala
     Author:     Makarius
 
 Line-oriented text.
 */
 
-package isabelle.vscode
+package isabelle
 
-
-import isabelle._
 
 import scala.annotation.tailrec
 
