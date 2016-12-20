@@ -35,7 +35,9 @@ object Line
       if (text.isEmpty) this
       else {
         val lines = Library.split_lines(text)
-        Position(line + lines.length - 1, column + length(Library.trim_line(lines.last)))
+        val l = line + lines.length - 1
+        val c = (if (l == line) column else 0) + length(Library.trim_line(lines.last))
+        Position(l, c)
       }
   }
 
