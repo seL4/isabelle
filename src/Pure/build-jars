@@ -141,25 +141,25 @@ declare -a SOURCES=(
   library.scala
   term.scala
   term_xml.scala
-  "../Tools/Graphview/graph_file.scala"
-  "../Tools/Graphview/graph_panel.scala"
-  "../Tools/Graphview/graphview.scala"
-  "../Tools/Graphview/layout.scala"
-  "../Tools/Graphview/main_panel.scala"
-  "../Tools/Graphview/metrics.scala"
-  "../Tools/Graphview/model.scala"
-  "../Tools/Graphview/mutator.scala"
-  "../Tools/Graphview/mutator_dialog.scala"
-  "../Tools/Graphview/mutator_event.scala"
-  "../Tools/Graphview/popups.scala"
-  "../Tools/Graphview/shapes.scala"
-  "../Tools/Graphview/tree_panel.scala"
-  "../Tools/VSCode/src/channel.scala"
-  "../Tools/VSCode/src/document_model.scala"
-  "../Tools/VSCode/src/line.scala"
-  "../Tools/VSCode/src/protocol.scala"
-  "../Tools/VSCode/src/server.scala"
-  "../Tools/VSCode/src/uri_resources.scala"
+  ../Tools/Graphview/graph_file.scala
+  ../Tools/Graphview/graph_panel.scala
+  ../Tools/Graphview/graphview.scala
+  ../Tools/Graphview/layout.scala
+  ../Tools/Graphview/main_panel.scala
+  ../Tools/Graphview/metrics.scala
+  ../Tools/Graphview/model.scala
+  ../Tools/Graphview/mutator.scala
+  ../Tools/Graphview/mutator_dialog.scala
+  ../Tools/Graphview/mutator_event.scala
+  ../Tools/Graphview/popups.scala
+  ../Tools/Graphview/shapes.scala
+  ../Tools/Graphview/tree_panel.scala
+  ../Tools/VSCode/src/channel.scala
+  ../Tools/VSCode/src/document_model.scala
+  ../Tools/VSCode/src/line.scala
+  ../Tools/VSCode/src/protocol.scala
+  ../Tools/VSCode/src/server.scala
+  ../Tools/VSCode/src/uri_resources.scala
 )
 
 
