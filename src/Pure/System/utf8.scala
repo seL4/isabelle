@@ -21,6 +21,17 @@ object UTF8
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
+  def bytes_length(s: String): Int =
+    (0 /: Codepoint.iterator(s)) {
+      case (n, i) =>
+        if (i < 0x80) n + 1
+        else if (i < 0x800) n + 2
+        else if (i < 0x10000) n + 3
+        else n + 4
+    }
+
+  object Length extends Line.Length { def apply(s: String): Int = bytes_length(s) }
+
 
   /* permissive UTF-8 decoding */
 

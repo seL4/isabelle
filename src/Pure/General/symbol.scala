@@ -128,6 +128,9 @@ object Symbol
 
   def explode(text: CharSequence): List[Symbol] = iterator(text).toList
 
+  def length(text: CharSequence): Int = iterator(text).length
+  object Length extends Line.Length { def apply(text: String): Int = length(text) }
+
 
   /* decoding offsets */
 

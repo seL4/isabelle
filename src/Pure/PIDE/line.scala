@@ -12,6 +12,12 @@ import scala.annotation.tailrec
 
 object Line
 {
+  /* length wrt. encoding */
+
+  trait Length { def apply(text: String): Int }
+  object Length extends Length { def apply(text: String): Int = text.length }
+
+
   /* position */
 
   object Position
