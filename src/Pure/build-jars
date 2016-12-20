@@ -49,6 +49,7 @@ declare -a SOURCES=(
   General/graphics_file.scala
   General/http_server.scala
   General/json.scala
+  General/length.scala
   General/linear_set.scala
   General/logger.scala
   General/long_name.scala

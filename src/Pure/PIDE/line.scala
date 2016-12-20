@@ -12,12 +12,6 @@ import scala.annotation.tailrec
 
 object Line
 {
-  /* length wrt. encoding */
-
-  trait Length { def apply(text: String): Int }
-  object Length extends Length { def apply(text: String): Int = text.length }
-
-
   /* position */
 
   object Position
@@ -37,21 +31,12 @@ object Line
         case i => i
       }
 
-    private def advance[A](iterator: Iterator[A], is_newline: A => Boolean): Position =
-    {
-      var l = line
-      var c = column
-      for (x <- iterator) {
-        if (is_newline(x)) { l += 1; c = 0 } else c += 1
+    def advance(text: String, length: Length = Length): Position =
+      if (text.isEmpty) this
+      else {
+        val lines = Library.split_lines(text)
+        Position(line + lines.length - 1, column + length(Library.trim_line(lines.last)))
       }
-      Position(l, c)
-    }
-
-    def advance(text: String): Position =
-      if (text.isEmpty) this else advance[Char](text.iterator, _ == '\n')
-
-    def advance_codepoints(text: String): Position =
-      if (text.isEmpty) this else advance[Int](Codepoint.iterator(text), _ == 10)
   }
 
 
@@ -94,7 +79,7 @@ object Line
       }
     override def hashCode(): Int = lines.hashCode
 
-    private def position(advance: (Position, String) => Position, offset: Text.Offset): Position =
+    def position(offset: Text.Offset, length: Length = Length): Position =
     {
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
@@ -102,26 +87,23 @@ object Line
           case Nil => require(i == 0); Position(lines_count, 0)
           case line :: ls =>
             val n = line.text.length
-            if (ls.isEmpty || i <= n) advance(Position(lines_count, 0), line.text.substring(n - i))
+            if (ls.isEmpty || i <= n)
+              Position(lines_count, 0).advance(line.text.substring(n - i), length)
             else move(i - (n + 1), lines_count + 1, ls)
         }
       }
       move(offset, 0, lines)
     }
 
-    def position(i: Text.Offset): Position = position(_.advance(_), i)
-    def position_codepoints(i: Text.Offset): Position = position(_.advance_codepoints(_), i)
-
-    // FIXME codepoints
-    def offset(pos: Position): Option[Text.Offset] =
+    def offset(pos: Position, length: Length = Length): Option[Text.Offset] =
     {
       val l = pos.line
       val c = pos.column
       if (0 <= l && l < lines.length) {
         val line_offset =
           if (l == 0) 0
-          else (0 /: lines.take(l - 1))({ case (n, line) => n + line.text.length + 1 })
-        if (c <= lines(l).text.length) Some(line_offset + c) else None
+          else (0 /: lines.iterator.take(l - 1))({ case (n, line) => n + length(line.text) + 1 })
+        length.offset(lines(l).text, c).map(line_offset + _)
       }
       else None
     }

@@ -129,7 +129,15 @@ object Symbol
   def explode(text: CharSequence): List[Symbol] = iterator(text).toList
 
   def length(text: CharSequence): Int = iterator(text).length
-  object Length extends Line.Length { def apply(text: String): Int = length(text) }
+
+  object Length extends isabelle.Length
+  {
+    def apply(text: String): Int = length(text)
+    def offset(text: String, i: Int): Option[Text.Offset] =
+      if (i <= 0 || iterator(text).forall(s => s.length == 1)) isabelle.Length.offset(text, i)
+      else if (i <= length(text)) Some(iterator(text).take(i).mkString.length)
+      else None
+  }
 
 
   /* decoding offsets */
