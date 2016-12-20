@@ -1,0 +1,7 @@
+(* :mode=isabelle-options: *)
+
+option vscode_tooltip_margin : int = 60
+  -- "margin for tooltip pretty-printing"
+
+option vscode_timing_threshold : real = 0.1
+  -- "default threshold for timing display (seconds)"

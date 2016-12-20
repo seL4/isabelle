@@ -94,6 +94,7 @@ declare -a SOURCES=(
   PIDE/protocol_message.scala
   PIDE/prover.scala
   PIDE/query_operation.scala
+  PIDE/rendering.scala
   PIDE/resources.scala
   PIDE/session.scala
   PIDE/text.scala
@@ -162,6 +163,7 @@ declare -a SOURCES=(
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
   ../Tools/VSCode/src/uri_resources.scala
+  ../Tools/VSCode/src/vscode_rendering.scala
 )
 
 
