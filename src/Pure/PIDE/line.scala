@@ -44,9 +44,6 @@ object Line
     def advance(text: String): Position =
       if (text.isEmpty) this else advance[Char](text.iterator, _ == '\n')
 
-    def advance_symbols(text: String): Position =
-      if (text.isEmpty) this else advance[Symbol.Symbol](Symbol.iterator(text), Symbol.is_newline _)
-
     def advance_codepoints(text: String): Position =
       if (text.isEmpty) this else advance[Int](Codepoint.iterator(text), _ == 10)
   }
@@ -107,10 +104,9 @@ object Line
     }
 
     def position(i: Text.Offset): Position = position(_.advance(_), i)
-    def position_symbols(i: Text.Offset): Position = position(_.advance_symbols(_), i)
     def position_codepoints(i: Text.Offset): Position = position(_.advance_codepoints(_), i)
 
-    // FIXME symbols, codepoints
+    // FIXME codepoints
     def offset(pos: Position): Option[Text.Offset] =
     {
       val l = pos.line
@@ -136,7 +132,6 @@ final class Line private(val text: String)
 {
   require(text.forall(c => c != '\r' && c != '\n'))
 
-  lazy val length_symbols: Int = Symbol.iterator(text).length
   lazy val length_codepoints: Int = Codepoint.iterator(text).length
 
   override def equals(that: Any): Boolean =
