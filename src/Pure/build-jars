@@ -39,6 +39,7 @@ declare -a SOURCES=(
   GUI/wrap_panel.scala
   General/antiquote.scala
   General/bytes.scala
+  General/codepoint.scala
   General/completion.scala
   General/date.scala
   General/exn.scala
@@ -48,6 +49,7 @@ declare -a SOURCES=(
   General/graphics_file.scala
   General/http_server.scala
   General/json.scala
+  General/length.scala
   General/linear_set.scala
   General/logger.scala
   General/long_name.scala
@@ -85,6 +87,7 @@ declare -a SOURCES=(
   PIDE/document.scala
   PIDE/document_id.scala
   PIDE/editor.scala
+  PIDE/line.scala
   PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/protocol.scala
@@ -141,25 +144,24 @@ declare -a SOURCES=(
   library.scala
   term.scala
   term_xml.scala
-  "../Tools/Graphview/graph_file.scala"
-  "../Tools/Graphview/graph_panel.scala"
-  "../Tools/Graphview/graphview.scala"
-  "../Tools/Graphview/layout.scala"
-  "../Tools/Graphview/main_panel.scala"
-  "../Tools/Graphview/metrics.scala"
-  "../Tools/Graphview/model.scala"
-  "../Tools/Graphview/mutator.scala"
-  "../Tools/Graphview/mutator_dialog.scala"
-  "../Tools/Graphview/mutator_event.scala"
-  "../Tools/Graphview/popups.scala"
-  "../Tools/Graphview/shapes.scala"
-  "../Tools/Graphview/tree_panel.scala"
-  "../Tools/VSCode/src/channel.scala"
-  "../Tools/VSCode/src/document_model.scala"
-  "../Tools/VSCode/src/line.scala"
-  "../Tools/VSCode/src/protocol.scala"
-  "../Tools/VSCode/src/server.scala"
-  "../Tools/VSCode/src/uri_resources.scala"
+  ../Tools/Graphview/graph_file.scala
+  ../Tools/Graphview/graph_panel.scala
+  ../Tools/Graphview/graphview.scala
+  ../Tools/Graphview/layout.scala
+  ../Tools/Graphview/main_panel.scala
+  ../Tools/Graphview/metrics.scala
+  ../Tools/Graphview/model.scala
+  ../Tools/Graphview/mutator.scala
+  ../Tools/Graphview/mutator_dialog.scala
+  ../Tools/Graphview/mutator_event.scala
+  ../Tools/Graphview/popups.scala
+  ../Tools/Graphview/shapes.scala
+  ../Tools/Graphview/tree_panel.scala
+  ../Tools/VSCode/src/channel.scala
+  ../Tools/VSCode/src/document_model.scala
+  ../Tools/VSCode/src/protocol.scala
+  ../Tools/VSCode/src/server.scala
+  ../Tools/VSCode/src/uri_resources.scala
 )
 
 

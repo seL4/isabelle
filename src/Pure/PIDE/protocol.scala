@@ -337,8 +337,7 @@ trait Protocol
     val toks_yxml =
     {
       import XML.Encode._
-      val encode_tok: T[Token] =
-        (tok => pair(int, int)((tok.kind.id, Symbol.iterator(tok.source).length)))
+      val encode_tok: T[Token] = (tok => pair(int, int)((tok.kind.id, Symbol.length(tok.source))))
       YXML.string_of_body(list(encode_tok)(toks))
     }
 
