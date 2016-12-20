@@ -1648,16 +1648,20 @@ fun mk_induct_raw_prem names_lthy Xss setss_fp_nesting p ctr ctr_Ts ctrXs_Ts =
     val (xs, names_lthy') = names_lthy |> mk_Frees "x" ctr_Ts;
     val pprems =
       flat (map2 (mk_induct_raw_prem_prems names_lthy' Xss setss_fp_nesting) xs ctrXs_Ts);
-  in (xs, pprems, HOLogic.mk_Trueprop (p $ Term.list_comb (ctr, xs))) end;
+    val y = Term.list_comb (ctr, xs);
+    val p' = enforce_type names_lthy domain_type (fastype_of y) p;
+  in (xs, pprems, HOLogic.mk_Trueprop (p' $ y)) end;
 
 fun close_induct_prem_prem nn ps xs t =
   fold_rev Logic.all (map Free (drop (nn + length xs)
     (rev (Term.add_frees t (map dest_Free xs @ map_filter (try dest_Free) ps))))) t;
 
 fun finish_induct_prem_prem lthy nn ps xs (xysets, (j, x)) =
-  close_induct_prem_prem nn ps xs (Logic.list_implies (map (fn (x', (y, set)) =>
-      mk_Trueprop_mem (y, set $ x')) xysets,
-    HOLogic.mk_Trueprop (enforce_type lthy domain_type (fastype_of x) (nth ps (j - 1)) $ x)));
+  let val p' = enforce_type lthy domain_type (fastype_of x) (nth ps (j - 1)) in
+    close_induct_prem_prem nn ps xs (Logic.list_implies (map (fn (x', (y, set)) =>
+        mk_Trueprop_mem (y, set $ x')) xysets,
+      HOLogic.mk_Trueprop (p' $ x)))
+  end;
 
 fun finish_induct_prem lthy nn ps (xs, raw_pprems, concl) =
   fold_rev Logic.all xs (Logic.list_implies
@@ -1717,7 +1721,7 @@ fun derive_rel_induct_thms_for_types lthy nn fpA_Ts As Bs ctrAss ctrAs_Tsss exha
   end;
 
 fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_induct ctor_rec_thms
-    live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses fp_type_definitions
+    live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses pre_type_definitions
     abs_inverses ctrss ctr_defss recs rec_defs lthy =
   let
     val ctr_Tsss = map (map (binder_types o fastype_of)) ctrss;
@@ -1757,7 +1761,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
 
         val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
-        val ctor_induct' = ctor_induct OF (map2 mk_absumprodE fp_type_definitions mss);
+        val ctor_induct' = ctor_induct OF (map2 mk_absumprodE pre_type_definitions mss);
 
         val thm =
           Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>

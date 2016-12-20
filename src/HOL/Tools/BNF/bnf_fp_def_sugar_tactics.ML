@@ -10,6 +10,7 @@ signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
   val sumprod_thms_rel: thm list
 
+  val co_induct_inst_as_projs_tac: Proof.context -> int -> tactic
   val mk_case_transfer_tac: Proof.context -> thm -> thm list -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list -> thm list -> thm list list -> thm list list list ->
