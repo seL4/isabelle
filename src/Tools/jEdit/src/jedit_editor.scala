@@ -273,7 +273,7 @@ class JEdit_Editor extends Editor[View]
               JEdit_Lib.buffer_lock(buffer) {
                 (Line.Position.zero /:
                   (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
-                    zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance_symbols(_))
+                    zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_))
               }
             Some(hyperlink_file(focus, name, pos.line1, pos.column1))
           case _ => Some(hyperlink_file(focus, name, line))
@@ -296,7 +296,7 @@ class JEdit_Editor extends Editor[View]
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
               (if (offset == 0) Iterator.empty
                else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
-          val pos = (Line.Position.zero /: sources_iterator)(_.advance_symbols(_))
+          val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
           Some(hyperlink_file(focus, file_name, pos.line1, pos.column1))
       }
     }
