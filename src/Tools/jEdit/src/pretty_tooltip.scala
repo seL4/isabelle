@@ -43,7 +43,7 @@ object Pretty_Tooltip
     view: View,
     parent: JComponent,
     location: Point,
-    rendering: Rendering,
+    rendering: JEdit_Rendering,
     results: Command.Results,
     info: Text.Info[XML.Body])
   {
@@ -167,7 +167,7 @@ class Pretty_Tooltip private(
   layered: JLayeredPane,
   val original_parent: JComponent,
   location: Point,
-  rendering: Rendering,
+  rendering: JEdit_Rendering,
   private val results: Command.Results,
   private val info: Text.Info[XML.Body]) extends JPanel(new BorderLayout)
 {
@@ -246,7 +246,7 @@ class Pretty_Tooltip private(
     val screen = JEdit_Lib.screen_location(layered, location)
     val size =
     {
-      val bounds = Rendering.popup_bounds
+      val bounds = JEdit_Rendering.popup_bounds
 
       val w_max = layered.getWidth min (screen.bounds.width * bounds).toInt
       val h_max = layered.getHeight min (screen.bounds.height * bounds).toInt

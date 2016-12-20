@@ -61,7 +61,7 @@ object Spell_Checker
     result.toList
   }
 
-  def current_word(text_area: TextArea, rendering: Rendering, range: Text.Range)
+  def current_word(text_area: TextArea, rendering: JEdit_Rendering, range: Text.Range)
     : Option[Text.Info[String]] =
   {
     for {
@@ -75,7 +75,7 @@ object Spell_Checker
 
   /** completion **/
 
-  def completion(text_area: TextArea, explicit: Boolean, rendering: Rendering)
+  def completion(text_area: TextArea, explicit: Boolean, rendering: JEdit_Rendering)
       : Option[Completion.Result] =
   {
     for {

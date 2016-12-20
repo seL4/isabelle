@@ -86,7 +86,7 @@ object Text_Structure
 
           val script_indent: Text.Info[Token] => Int =
           {
-            val opt_rendering: Option[Rendering] =
+            val opt_rendering: Option[JEdit_Rendering] =
               if (PIDE.options.value.bool("jedit_indent_script"))
                 GUI_Thread.now {
                   (for {

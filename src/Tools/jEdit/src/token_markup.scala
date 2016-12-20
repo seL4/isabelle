@@ -401,14 +401,15 @@ object Token_Markup
           (line_context.context, opt_syntax) match {
             case (Some(ctxt), _) if mode == "isabelle-ml" || mode == "sml" =>
               val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, ctxt)
-              val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
+              val styled_tokens =
+                tokens.map(tok => (JEdit_Rendering.ml_token_markup(tok), tok.source))
               (styled_tokens, new Line_Context(line_context.mode, Some(ctxt1), structure))
 
             case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
               val (tokens, ctxt1) = Token.explode_line(syntax.keywords, line, ctxt)
               val structure1 = structure.update(syntax.keywords, tokens)
               val styled_tokens =
-                tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
+                tokens.map(tok => (JEdit_Rendering.token_markup(syntax, tok), tok.source))
               (styled_tokens, new Line_Context(line_context.mode, Some(ctxt1), structure1))
 
             case _ =>

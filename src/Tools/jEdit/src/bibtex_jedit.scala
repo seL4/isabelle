@@ -75,7 +75,7 @@ object Bibtex_JEdit
   def completion(
     history: Completion.History,
     text_area: JEditTextArea,
-    rendering: Rendering): Option[Completion.Result] =
+    rendering: JEdit_Rendering): Option[Completion.Result] =
   {
     for {
       Text.Info(r, name) <- rendering.citation(JEdit_Lib.before_caret_range(text_area, rendering))

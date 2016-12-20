@@ -198,7 +198,7 @@ object JEdit_Lib
   def caret_range(text_area: TextArea): Text.Range =
     point_range(text_area.getBuffer, text_area.getCaretPosition)
 
-  def before_caret_range(text_area: TextArea, rendering: Rendering): Text.Range =
+  def before_caret_range(text_area: TextArea, rendering: JEdit_Rendering): Text.Range =
   {
     val snapshot = rendering.snapshot
     val former_caret = snapshot.revert(text_area.getCaretPosition)
