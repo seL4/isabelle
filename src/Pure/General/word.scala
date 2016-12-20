@@ -12,23 +12,6 @@ import java.util.Locale
 
 object Word
 {
-  /* codepoints */
-
-  def codepoint_iterator(str: String): Iterator[Int] =
-    new Iterator[Int] {
-      var offset = 0
-      def hasNext: Boolean = offset < str.length
-      def next: Int =
-      {
-        val c = str.codePointAt(offset)
-        offset += Character.charCount(c)
-        c
-      }
-    }
-
-  def codepoint(c: Int): String = new String(Array(c), 0, 1)
-
-
   /* directionality */
 
   def bidi_detect(str: String): Boolean =
@@ -51,7 +34,7 @@ object Word
     }
 
   def perhaps_capitalize(str: String): String =
-    if (codepoint_iterator(str).forall(c => Character.isLowerCase(c) || Character.isDigit(c)))
+    if (Codepoint.iterator(str).forall(c => Character.isLowerCase(c) || Character.isDigit(c)))
       capitalize(str)
     else str
 
@@ -70,10 +53,10 @@ object Word
       }
     def unapply(str: String): Option[Case] =
       if (str.nonEmpty) {
-        if (codepoint_iterator(str).forall(Character.isLowerCase(_))) Some(Lowercase)
-        else if (codepoint_iterator(str).forall(Character.isUpperCase(_))) Some(Uppercase)
+        if (Codepoint.iterator(str).forall(Character.isLowerCase(_))) Some(Lowercase)
+        else if (Codepoint.iterator(str).forall(Character.isUpperCase(_))) Some(Uppercase)
         else {
-          val it = codepoint_iterator(str)
+          val it = Codepoint.iterator(str)
           if (Character.isUpperCase(it.next) && it.forall(Character.isLowerCase(_)))
             Some(Capitalized)
           else None

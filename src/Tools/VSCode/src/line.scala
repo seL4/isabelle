@@ -50,7 +50,7 @@ object Line
       if (text.isEmpty) this else advance[Symbol.Symbol](Symbol.iterator(text), Symbol.is_newline _)
 
     def advance_codepoints(text: String): Position =
-      if (text.isEmpty) this else advance[Int](Word.codepoint_iterator(text), _ == 10)
+      if (text.isEmpty) this else advance[Int](Codepoint.iterator(text), _ == 10)
   }
 
 
@@ -139,7 +139,7 @@ final class Line private(val text: String)
   require(text.forall(c => c != '\r' && c != '\n'))
 
   lazy val length_symbols: Int = Symbol.iterator(text).length
-  lazy val length_codepoints: Int = Word.codepoint_iterator(text).length
+  lazy val length_codepoints: Int = Codepoint.iterator(text).length
 
   override def equals(that: Any): Boolean =
     that match {

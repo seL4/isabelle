@@ -39,6 +39,7 @@ declare -a SOURCES=(
   GUI/wrap_panel.scala
   General/antiquote.scala
   General/bytes.scala
+  General/codepoint.scala
   General/completion.scala
   General/date.scala
   General/exn.scala
