@@ -466,7 +466,8 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
       range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
-            val link = PIDE.editor.hyperlink_file(true, resolve_file(name))
+            val file = resources.append_file(snapshot.node_name.master_dir, name)
+            val link = PIDE.editor.hyperlink_file(true, file)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>

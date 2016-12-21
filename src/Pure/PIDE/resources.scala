@@ -43,6 +43,15 @@ class Resources(
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
+  def append_file(dir: String, raw_name: String): String =
+    if (Path.is_valid(raw_name)) append(dir, Path.explode(raw_name))
+    else raw_name
+
+  def append_file_url(dir: String, raw_name: String): String =
+    if (Path.is_valid(raw_name)) "file://" + append(dir, Path.explode(raw_name))
+    else raw_name
+
+
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     val path = Path.explode(name.node)
@@ -133,4 +142,3 @@ class Resources(
 
   def commit(change: Session.Change) { }
 }
-

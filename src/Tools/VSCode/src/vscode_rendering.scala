@@ -37,7 +37,8 @@ class VSCode_Rendering(
       range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(_, XML.Elem(Markup.Path(name), _))) =>
-            Some(Line.Node_Range(resolve_file_url(name)) :: links)
+            val file = resources.append_file_url(snapshot.node_name.master_dir, name)
+            Some(Line.Node_Range(file) :: links)
 
 /* FIXME
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))

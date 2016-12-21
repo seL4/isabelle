@@ -39,19 +39,6 @@ abstract class Rendering(
   override def toString: String = "Rendering(" + snapshot.toString + ")"
 
 
-  /* resources */
-
-  def resolve_file(name: String): String =
-    if (Path.is_valid(name))
-      resources.append(snapshot.node_name.master_dir, Path.explode(name))
-    else name
-
-  def resolve_file_url(name: String): String =
-    if (Path.is_valid(name))
-      "file://" + resources.append(snapshot.node_name.master_dir, Path.explode(name))
-    else name
-
-
   /* tooltips */
 
   def tooltip_margin: Int
@@ -94,7 +81,7 @@ abstract class Rendering(
             Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
 
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _))) =>
-            val file = resolve_file(name)
+            val file = resources.append_file(snapshot.node_name.master_dir, name)
             val text =
               if (name == file) "file " + quote(file)
               else "path " + quote(name) + "\nfile " + quote(file)
