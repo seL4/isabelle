@@ -308,7 +308,7 @@ lemma wf_UN:
   done
 
 lemma wfP_SUP:
-  "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (DomainP (r i)) (RangeP (r j)) = bot \<Longrightarrow>
+  "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (Domainp (r i)) (Rangep (r j)) = bot \<Longrightarrow>
     wfP (SUPREMUM UNIV r)"
   by (rule wf_UN[to_pred]) simp_all
 

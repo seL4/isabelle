@@ -207,10 +207,10 @@ declare rtranclp_eq_rtrancl_tab_nil [THEN iffD2, code_pred_intro]
 code_pred rtranclp
   using rtranclp_eq_rtrancl_tab_nil [THEN iffD1] by fastforce
 
-lemma rtrancl_path_Range: "\<lbrakk> rtrancl_path R x xs y; z \<in> set xs \<rbrakk> \<Longrightarrow> RangeP R z"
+lemma rtrancl_path_Range: "\<lbrakk> rtrancl_path R x xs y; z \<in> set xs \<rbrakk> \<Longrightarrow> Rangep R z"
 by(induction rule: rtrancl_path.induct) auto
 
-lemma rtrancl_path_Range_end: "\<lbrakk> rtrancl_path R x xs y; xs \<noteq> [] \<rbrakk> \<Longrightarrow> RangeP R y"
+lemma rtrancl_path_Range_end: "\<lbrakk> rtrancl_path R x xs y; xs \<noteq> [] \<rbrakk> \<Longrightarrow> Rangep R y"
 by(induction rule: rtrancl_path.induct)(auto elim: rtrancl_path.cases)
 
 lemma rtrancl_path_nth:

@@ -1154,7 +1154,4 @@ text \<open>Misc\<close>
 abbreviation (input) transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
   where "transP r \<equiv> trans {(x, y). r x y}"  (* FIXME drop *)
 
-abbreviation (input) "RangeP \<equiv> Rangep"
-abbreviation (input) "DomainP \<equiv> Domainp"
-
 end
