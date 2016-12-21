@@ -163,8 +163,8 @@ sig
       * (((term list list * term list list * term list list list list * term list list list list)
           * term list list list) * typ list) -> (string -> binding) -> 'b list -> typ list ->
     term list -> term -> local_theory -> (term * thm) * local_theory
-  val mk_induct_raw_prem: Proof.context -> typ list list -> (string * term list) list -> term ->
-    term -> typ list -> typ list ->
+  val mk_induct_raw_prem: (term -> term) -> Proof.context -> typ list list ->
+    (string * term list) list -> term -> term -> typ list -> typ list ->
     term list * ((term * (term * term)) list * (int * term)) list * term
   val finish_induct_prem: Proof.context -> int -> term list ->
     term list * ((term * (term * term)) list * (int * term)) list * term -> term
@@ -1643,12 +1643,12 @@ fun mk_induct_raw_prem_prems names_lthy Xss setss_fp_nesting (x as Free (s, Type
     [([], (find_index (fn Xs => member (op =) Xs X) Xss + 1, x))]
   | mk_induct_raw_prem_prems _ _ _ _ _ = [];
 
-fun mk_induct_raw_prem names_lthy Xss setss_fp_nesting p ctr ctr_Ts ctrXs_Ts =
+fun mk_induct_raw_prem modify_x names_lthy Xss setss_fp_nesting p ctr ctr_Ts ctrXs_Ts =
   let
     val (xs, names_lthy') = names_lthy |> mk_Frees "x" ctr_Ts;
     val pprems =
       flat (map2 (mk_induct_raw_prem_prems names_lthy' Xss setss_fp_nesting) xs ctrXs_Ts);
-    val y = Term.list_comb (ctr, xs);
+    val y = Term.list_comb (ctr, map modify_x xs);
     val p' = enforce_type names_lthy domain_type (fastype_of y) p;
   in (xs, pprems, HOLogic.mk_Trueprop (p' $ y)) end;
 
@@ -1750,7 +1750,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
     val (induct_thms, induct_thm) =
       let
         val raw_premss = @{map 4} (@{map 3}
-            o mk_induct_raw_prem names_lthy (map single Xs) setss_fp_nesting)
+            o mk_induct_raw_prem I names_lthy (map single Xs) setss_fp_nesting)
           ps ctrss ctr_Tsss ctrXs_Tsss;
         val concl =
           HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 (curry (op $)) ps us));
