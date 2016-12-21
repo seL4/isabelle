@@ -34,10 +34,10 @@ class VSCode_Resources(
 {
   def node_name(uri: String): Document.Node.Name =
   {
-    val file = VSCode_Resources.canonical_file(uri)  // FIXME wellformed!?
-    val node = file.getPath
-    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
-    val master_dir = if (theory == "") "" else file.getParent
-    Document.Node.Name(node, master_dir, theory)
+    val theory = Thy_Header.thy_name(uri).getOrElse("")
+    val master_dir =
+      if (!VSCode_Resources.is_wellformed(uri) || theory == "") ""
+      else VSCode_Resources.canonical_file(uri).getParent
+    Document.Node.Name(uri, master_dir, theory)
   }
 }
