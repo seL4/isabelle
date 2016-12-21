@@ -1149,9 +1149,4 @@ lemma relcomp_fold:
     (auto simp: comp_fun_commute.fold_insert comp_fun_commute_relcomp_fold insert_relcomp_fold
       cong: if_cong)
 
-text \<open>Misc\<close>
-
-abbreviation (input) transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "transP r \<equiv> trans {(x, y). r x y}"  (* FIXME drop *)
-
 end
