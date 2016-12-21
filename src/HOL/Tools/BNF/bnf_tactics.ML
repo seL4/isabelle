@@ -11,6 +11,7 @@ sig
   include CTR_SUGAR_GENERAL_TACTICS
 
   val fo_rtac: Proof.context -> thm -> int -> tactic
+  val clean_blast_tac: Proof.context -> int -> tactic
   val subst_tac: Proof.context -> int list option -> thm list -> int -> tactic
   val subst_asm_tac: Proof.context -> int list option -> thm list -> int -> tactic
 
@@ -42,6 +43,8 @@ fun fo_rtac ctxt thm = Subgoal.FOCUS (fn {concl, context = ctxt, ...} =>
     rtac ctxt (Drule.instantiate_normalize insts thm) 1
   end
   handle Pattern.MATCH => no_tac) ctxt;
+
+fun clean_blast_tac ctxt = blast_tac (put_claset (claset_of @{theory_context HOL}) ctxt);
 
 (*unlike "unfold_thms_tac", it succeed when the RHS contains schematic variables not in the LHS*)
 fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt o the_default [0];

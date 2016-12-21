@@ -37,8 +37,6 @@ val if_split_asm = @{thm if_split_asm};
 val split_connectI = @{thms allI impI conjI};
 val unfold_lets = @{thms Let_def[abs_def] split_beta}
 
-fun clean_blast_tac ctxt = blast_tac (put_claset (claset_of @{theory_context HOL}) ctxt);
-
 fun exhaust_inst_as_projs ctxt frees thm =
   let
     val num_frees = length frees;
