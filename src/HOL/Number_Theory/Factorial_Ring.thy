@@ -451,7 +451,7 @@ lemma prime_imp_prime_elem' [simp]: "ASSUMPTION (prime x) \<Longrightarrow> prim
 lemma prime_dvd_multD: "prime p \<Longrightarrow> p dvd a * b \<Longrightarrow> p dvd a \<or> p dvd b"
   by (intro prime_elem_dvd_multD) simp_all
 
-lemma prime_dvd_mult_iff [simp]: "prime p \<Longrightarrow> p dvd a * b \<longleftrightarrow> p dvd a \<or> p dvd b"
+lemma prime_dvd_mult_iff: "prime p \<Longrightarrow> p dvd a * b \<longleftrightarrow> p dvd a \<or> p dvd b"
   by (auto dest: prime_dvd_multD)
 
 lemma prime_dvd_power: 
@@ -1639,7 +1639,6 @@ proof (cases "A \<subseteq> {0}")
     by (subst (asm) prime_factorization_subset_iff_dvd)
        (insert nz False, auto simp: Gcd_factorial_eq_0_iff)
 qed (simp_all add: Gcd_factorial_def)
-
 
 lemma normalize_Lcm_factorial:
   "normalize (Lcm_factorial A) = Lcm_factorial A"

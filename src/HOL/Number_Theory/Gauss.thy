@@ -12,12 +12,12 @@ begin
 lemma cong_prime_prod_zero_nat: 
   fixes a::nat
   shows "\<lbrakk>[a * b = 0] (mod p); prime p\<rbrakk> \<Longrightarrow> [a = 0] (mod p) | [b = 0] (mod p)"
-  by (auto simp add: cong_altdef_nat)
+  by (auto simp add: cong_altdef_nat prime_dvd_mult_iff)
 
 lemma cong_prime_prod_zero_int: 
   fixes a::int
   shows "\<lbrakk>[a * b = 0] (mod p); prime p\<rbrakk> \<Longrightarrow> [a = 0] (mod p) | [b = 0] (mod p)"
-  by (auto simp add: cong_altdef_int)
+  by (auto simp add: cong_altdef_int prime_dvd_mult_iff)
 
 
 locale GAUSS =
