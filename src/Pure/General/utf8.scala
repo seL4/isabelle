@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/utf8.scala
+/*  Title:      Pure/General/utf8.scala
     Author:     Makarius
 
 Variations on UTF-8.

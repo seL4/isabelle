@@ -70,6 +70,7 @@ declare -a SOURCES=(
   General/timing.scala
   General/untyped.scala
   General/url.scala
+  General/utf8.scala
   General/value.scala
   General/word.scala
   General/xz.scala
@@ -118,7 +119,6 @@ declare -a SOURCES=(
   System/process_result.scala
   System/progress.scala
   System/system_channel.scala
-  System/utf8.scala
   Thy/html.scala
   Thy/present.scala
   Thy/sessions.scala
