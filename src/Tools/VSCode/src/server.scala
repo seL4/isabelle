@@ -101,8 +101,19 @@ class Server(
 
   /* init and exit */
 
-  def initialize(reply: String => Unit)
+  def init(id: Protocol.Id)
   {
+    def reply(err: String)
+    {
+      channel.write(Protocol.Initialize.reply(id, err))
+      if (err == "") {
+        channel.write(Protocol.DisplayMessage(Protocol.MessageType.Info,
+          "Welcome to Isabelle/" + session_name + " (" + Distribution.version + ")"))
+      }
+      else channel.write(Protocol.DisplayMessage(Protocol.MessageType.Error, err))
+    }
+
+    // FIXME handle error
     val content = Build.session_content(options, false, session_dirs, session_name)
     val resources =
       new VSCode_Resources(content.loaded_theories, content.known_theories, content.syntax)
@@ -136,8 +147,10 @@ class Server(
     state.change(_.copy(session = Some(session)))
   }
 
-  def shutdown(reply: String => Unit)
+  def shutdown(id: Protocol.Id)
   {
+    def reply(err: String): Unit = channel.write(Protocol.Shutdown.reply(id, err))
+
     state.change(st =>
       st.session match {
         case None => reply("Prover inactive"); st
@@ -190,18 +203,22 @@ class Server(
 
   /* hover */
 
-  def hover(uri: String, pos: Line.Position): Option[(Line.Range, List[String])] =
-    for {
-      model <- state.value.models.get(uri)
-      rendering = model.rendering(options)
-      offset <- model.doc.offset(pos, text_length)
-      info <- rendering.tooltip(Text.Range(offset, offset + 1))
-    } yield {
-      val start = model.doc.position(info.range.start, text_length)
-      val stop = model.doc.position(info.range.stop, text_length)
-      val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
-      (Line.Range(start, stop), List("```\n" + s + "\n```"))
-    }
+  def hover(id: Protocol.Id, uri: String, pos: Line.Position)
+  {
+    val result =
+      for {
+        model <- state.value.models.get(uri)
+        rendering = model.rendering(options)
+        offset <- model.doc.offset(pos, text_length)
+        info <- rendering.tooltip(Text.Range(offset, offset + 1))
+      } yield {
+        val start = model.doc.position(info.range.start, text_length)
+        val stop = model.doc.position(info.range.stop, text_length)
+        val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
+        (Line.Range(start, stop), List("```\n" + s + "\n```"))  // FIXME proper content format
+      }
+    channel.write(Protocol.Hover.reply(id, result))
+  }
 
 
   /* main loop */
@@ -214,29 +231,16 @@ class Server(
     {
       try {
         json match {
-          case Protocol.Initialize(id) =>
-            def initialize_reply(err: String)
-            {
-              channel.write(Protocol.Initialize.reply(id, err))
-              if (err == "") {
-                channel.write(Protocol.DisplayMessage(Protocol.MessageType.Info,
-                  "Welcome to Isabelle/" + session_name + " (" + Distribution.version + ")"))
-              }
-              else channel.write(Protocol.DisplayMessage(Protocol.MessageType.Error, err))
-            }
-            initialize(initialize_reply _)
-          case Protocol.Shutdown(id) =>
-            shutdown((error: String) => channel.write(Protocol.Shutdown.reply(id, error)))
-          case Protocol.Exit =>
-            exit()
+          case Protocol.Initialize(id) => init(id)
+          case Protocol.Shutdown(id) => shutdown(id)
+          case Protocol.Exit => exit()
           case Protocol.DidOpenTextDocument(uri, lang, version, text) =>
             update_document(uri, text)
           case Protocol.DidChangeTextDocument(uri, version, List(Protocol.TextDocumentContent(text))) =>
             update_document(uri, text)
           case Protocol.DidCloseTextDocument(uri) => channel.log("CLOSE " + uri)
           case Protocol.DidSaveTextDocument(uri) => channel.log("SAVE " + uri)
-          case Protocol.Hover(id, uri, pos) =>
-            channel.write(Protocol.Hover.reply(id, hover(uri, pos)))
+          case Protocol.Hover(id, uri, pos) => hover(id, uri, pos)
           case _ => channel.log("### IGNORED")
         }
       }
