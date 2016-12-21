@@ -31,13 +31,13 @@ class VSCode_Rendering(
 
   /* hyperlinks */
 
-  def hyperlinks(range: Text.Range): List[Line.Range_Node] =
+  def hyperlinks(range: Text.Range): List[Line.Node_Range] =
   {
-    snapshot.cumulate[List[Line.Range_Node]](
+    snapshot.cumulate[List[Line.Node_Range]](
       range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(_, XML.Elem(Markup.Path(name), _))) =>
-            Some(Line.Range_Node(Line.Range.zero, resolve_file_url(name)) :: links)
+            Some(Line.Node_Range(resolve_file_url(name)) :: links)
 
 /* FIXME
           case (links, Text.Info(_, XML.Elem(Markup.Url(name), _))) =>

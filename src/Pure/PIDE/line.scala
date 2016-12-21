@@ -62,13 +62,13 @@ object Line
 
   /* positions within document node */
 
-  sealed case class Position_Node(pos: Position, name: String)
+  sealed case class Node_Position(name: String, pos: Position = Position.zero)
   {
     def line: Int = pos.line
     def column: Int = pos.column
   }
 
-  sealed case class Range_Node(range: Range, name: String)
+  sealed case class Node_Range(name: String, range: Range = Range.zero)
   {
     def start: Position = range.start
     def stop: Position = range.stop

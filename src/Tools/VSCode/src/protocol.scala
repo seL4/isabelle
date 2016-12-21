@@ -82,10 +82,10 @@ object Protocol
 
   class RequestTextDocumentPosition(name: String)
   {
-    def unapply(json: JSON.T): Option[(Id, Line.Position_Node)] =
+    def unapply(json: JSON.T): Option[(Id, Line.Node_Position)] =
       json match {
-        case RequestMessage(id, method, Some(TextDocumentPosition(pos_node))) if method == name =>
-          Some((id, pos_node))
+        case RequestMessage(id, method, Some(TextDocumentPosition(node_pos))) if method == name =>
+          Some((id, node_pos))
         case _ => None
       }
   }
@@ -178,26 +178,26 @@ object Protocol
 
   object Location
   {
-    def apply(loc: Line.Range_Node): JSON.T =
+    def apply(loc: Line.Node_Range): JSON.T =
       Map("uri" -> loc.name, "range" -> Range(loc.range))
 
-    def unapply(json: JSON.T): Option[Line.Range_Node] =
+    def unapply(json: JSON.T): Option[Line.Node_Range] =
       for {
         uri <- JSON.string(json, "uri")
         range_json <- JSON.value(json, "range")
         range <- Range.unapply(range_json)
-      } yield Line.Range_Node(range, uri)
+      } yield Line.Node_Range(uri, range)
   }
 
   object TextDocumentPosition
   {
-    def unapply(json: JSON.T): Option[Line.Position_Node] =
+    def unapply(json: JSON.T): Option[Line.Node_Position] =
       for {
         doc <- JSON.value(json, "textDocument")
         uri <- JSON.string(doc, "uri")
         pos_json <- JSON.value(json, "position")
         pos <- Position.unapply(pos_json)
-      } yield Line.Position_Node(pos, uri)
+      } yield Line.Node_Position(uri, pos)
   }
 
 
@@ -308,7 +308,7 @@ object Protocol
 
   object GotoDefinition extends RequestTextDocumentPosition("textDocument/definition")
   {
-    def reply(id: Id, result: List[Line.Range_Node]): JSON.T =
+    def reply(id: Id, result: List[Line.Node_Range]): JSON.T =
       ResponseMessage(id, Some(result.map(Location.apply(_))))
   }
 }

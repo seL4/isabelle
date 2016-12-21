@@ -106,11 +106,11 @@ class Server(
   def session: Session = state.value.session getOrElse error("Session inactive")
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
-  def rendering_offset(pos_node: Line.Position_Node): Option[(VSCode_Rendering, Text.Offset)] =
+  def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
-      model <- state.value.models.get(pos_node.name)
+      model <- state.value.models.get(node_pos.name)
       rendering = model.rendering(options)
-      offset <- model.doc.offset(pos_node.pos, text_length)
+      offset <- model.doc.offset(node_pos.pos, text_length)
     } yield (rendering, offset)
 
 
@@ -223,11 +223,11 @@ class Server(
 
   /* hover */
 
-  def hover(id: Protocol.Id, pos_node: Line.Position_Node)
+  def hover(id: Protocol.Id, node_pos: Line.Node_Position)
   {
     val result =
       for {
-        (rendering, offset) <- rendering_offset(pos_node)
+        (rendering, offset) <- rendering_offset(node_pos)
         info <- rendering.tooltip(Text.Range(offset, offset + 1))
       } yield {
         val doc = rendering.model.doc
@@ -242,10 +242,10 @@ class Server(
 
   /* goto definition */
 
-  def goto_definition(id: Protocol.Id, pos_node: Line.Position_Node)
+  def goto_definition(id: Protocol.Id, node_pos: Line.Node_Position)
   {
     val result =
-      (for ((rendering, offset) <- rendering_offset(pos_node))
+      (for ((rendering, offset) <- rendering_offset(node_pos))
         yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
     channel.write(Protocol.GotoDefinition.reply(id, result))
   }
@@ -270,8 +270,8 @@ class Server(
             update_document(uri, text)
           case Protocol.DidCloseTextDocument(uri) => channel.log("CLOSE " + uri)
           case Protocol.DidSaveTextDocument(uri) => channel.log("SAVE " + uri)
-          case Protocol.Hover(id, pos_node) => hover(id, pos_node)
-          case Protocol.GotoDefinition(id, pos_node) => goto_definition(id, pos_node)
+          case Protocol.Hover(id, node_pos) => hover(id, node_pos)
+          case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case _ => channel.log("### IGNORED")
         }
       }
