@@ -158,11 +158,18 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def goto_file(focus: Boolean, view: View, name: String, line: Int = 0, column: Int = 0)
+  def goto_file(focus: Boolean, view: View, name: String): Unit =
+    goto_file(focus, view, Line.Node_Position(name))
+
+  def goto_file(focus: Boolean, view: View, pos: Line.Node_Position)
   {
     GUI_Thread.require {}
 
     push_position(view)
+
+    val name = pos.name
+    val line = pos.line
+    val column = pos.column
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
@@ -170,9 +177,9 @@ class JEdit_Editor extends Editor[View]
         val text_area = view.getTextArea
 
         try {
-          val line_start = text_area.getBuffer.getLineStartOffset(line - 1)
+          val line_start = text_area.getBuffer.getLineStartOffset(line)
           text_area.moveCaretPosition(line_start)
-          if (column > 0) text_area.moveCaretPosition(line_start + column - 1)
+          if (column > 0) text_area.moveCaretPosition(line_start + column)
         }
         catch {
           case _: ArrayIndexOutOfBoundsException =>
@@ -185,8 +192,8 @@ class JEdit_Editor extends Editor[View]
       case None =>
         val args =
           if (line <= 0) Array(name)
-          else if (column <= 0) Array(name, "+line:" + line.toInt)
-          else Array(name, "+line:" + line.toInt + "," + column.toInt)
+          else if (column <= 0) Array(name, "+line:" + (line + 1))
+          else Array(name, "+line:" + (line + 1) + "," + (column + 1))
         jEdit.openFiles(view, null, args)
     }
   }
@@ -245,14 +252,17 @@ class JEdit_Editor extends Editor[View]
       override def toString: String = "buffer " + quote(JEdit_Lib.buffer_name(buffer))
     }
 
-  def hyperlink_file(focus: Boolean, name: String, line: Int = 0, column: Int = 0): Hyperlink =
+  def hyperlink_file(focus: Boolean, name: String): Hyperlink =
+    hyperlink_file(focus, Line.Node_Position(name))
+
+  def hyperlink_file(focus: Boolean, pos: Line.Node_Position): Hyperlink =
     new Hyperlink {
       val external = false
-      def follow(view: View): Unit = goto_file(focus, view, name, line, column)
-      override def toString: String = "file " + quote(name)
+      def follow(view: View): Unit = goto_file(focus, view, pos)
+      override def toString: String = "file " + quote(pos.name)
     }
 
-  def hyperlink_source_file(focus: Boolean, source_name: String, line: Int, offset: Symbol.Offset)
+  def hyperlink_source_file(focus: Boolean, source_name: String, line1: Int, offset: Symbol.Offset)
     : Option[Hyperlink] =
   {
     val opt_name =
@@ -275,8 +285,9 @@ class JEdit_Editor extends Editor[View]
                   (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
                     zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_))
               }
-            Some(hyperlink_file(focus, name, pos.line1, pos.column1))
-          case _ => Some(hyperlink_file(focus, name, line))
+            Some(hyperlink_file(focus, Line.Node_Position(name, pos)))
+          case _ =>
+            Some(hyperlink_file(focus, Line.Node_Position(name, Line.Position((line1 - 1) max 0))))
         }
       case None => None
     }
@@ -291,13 +302,13 @@ class JEdit_Editor extends Editor[View]
       snapshot.state.find_command(snapshot.version, command.id) match {
         case None => None
         case Some((node, _)) =>
-          val file_name = command.node_name.node
+          val name = command.node_name.node
           val sources_iterator =
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
               (if (offset == 0) Iterator.empty
                else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
           val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
-          Some(hyperlink_file(focus, file_name, pos.line1, pos.column1))
+          Some(hyperlink_file(focus, Line.Node_Position(name, pos)))
       }
     }
   }
