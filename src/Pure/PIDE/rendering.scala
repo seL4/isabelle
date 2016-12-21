@@ -46,6 +46,11 @@ abstract class Rendering(
       resources.append(snapshot.node_name.master_dir, Path.explode(name))
     else name
 
+  def resolve_file_url(name: String): String =
+    if (Path.is_valid(name))
+      "file://" + resources.append(snapshot.node_name.master_dir, Path.explode(name))
+    else name
+
 
   /* tooltips */
 

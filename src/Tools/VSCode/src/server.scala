@@ -234,6 +234,21 @@ class Server(
   }
 
 
+  /* goto definition */
+
+  def goto_definition(id: Protocol.Id, uri: String, pos: Line.Position)
+  {
+    val result =
+      (for {
+        model <- state.value.models.get(uri)
+        rendering = model.rendering(options)
+        offset <- model.doc.offset(pos, text_length)
+      } yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
+    channel.log("hyperlinks = " + result)
+    channel.write(Protocol.GotoDefinition.reply(id, result))
+  }
+
+
   /* main loop */
 
   def start()
@@ -254,6 +269,7 @@ class Server(
           case Protocol.DidCloseTextDocument(uri) => channel.log("CLOSE " + uri)
           case Protocol.DidSaveTextDocument(uri) => channel.log("SAVE " + uri)
           case Protocol.Hover(id, uri, pos) => hover(id, uri, pos)
+          case Protocol.GotoDefinition(id, uri, pos) => goto_definition(id, uri, pos)
           case _ => channel.log("### IGNORED")
         }
       }
