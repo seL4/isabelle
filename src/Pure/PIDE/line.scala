@@ -16,10 +16,10 @@ object Line
 
   object Position
   {
-    val zero: Position = Position(0, 0)
+    val zero: Position = Position()
   }
 
-  sealed case class Position(line: Int, column: Int)
+  sealed case class Position(line: Int = 0, column: Int = 0)
   {
     def line1: Int = line + 1
     def column1: Int = column + 1
@@ -63,7 +63,16 @@ object Line
   /* positions within document node */
 
   sealed case class Position_Node(pos: Position, name: String)
+  {
+    def line: Int = pos.line
+    def column: Int = pos.column
+  }
+
   sealed case class Range_Node(range: Range, name: String)
+  {
+    def start: Position = range.start
+    def stop: Position = range.stop
+  }
 
 
   /* document with newline as separator (not terminator) */
@@ -99,11 +108,11 @@ object Line
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
         lines_rest match {
-          case Nil => require(i == 0); Position(lines_count, 0)
+          case Nil => require(i == 0); Position(lines_count)
           case line :: ls =>
             val n = line.text.length
             if (ls.isEmpty || i <= n)
-              Position(lines_count, 0).advance(line.text.substring(n - i), length)
+              Position(lines_count).advance(line.text.substring(n - i), length)
             else move(i - (n + 1), lines_count + 1, ls)
         }
       }
