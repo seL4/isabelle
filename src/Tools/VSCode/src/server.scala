@@ -243,7 +243,7 @@ class Server(
         json match {
           case Protocol.Initialize(id) => init(id)
           case Protocol.Shutdown(id) => shutdown(id)
-          case Protocol.Exit => exit()
+          case Protocol.Exit(()) => exit()
           case Protocol.DidOpenTextDocument(uri, lang, version, text) =>
             update_document(uri, text)
           case Protocol.DidChangeTextDocument(uri, version, List(Protocol.TextDocumentContent(text))) =>
