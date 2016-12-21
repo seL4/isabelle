@@ -179,7 +179,10 @@ class Server(
       })
   }
 
-  def exit() { sys.exit(if (state.value.session.isDefined) 1 else 0) }
+  def exit() {
+    channel.log("\n")
+    sys.exit(if (state.value.session.isDefined) 1 else 0)
+  }
 
 
   /* document management */
@@ -235,7 +238,7 @@ class Server(
 
   def start()
   {
-    channel.log("\nServer started " + Date.now())
+    channel.log("Server started " + Date.now())
 
     def handle(json: JSON.T)
     {
