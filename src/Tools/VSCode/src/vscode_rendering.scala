@@ -13,7 +13,7 @@ import isabelle._
 object VSCode_Rendering
 {
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION)
 }
 
 class VSCode_Rendering(
@@ -40,9 +40,6 @@ class VSCode_Rendering(
             Some(Line.Node_Range(resolve_file_url(name)) :: links)
 
 /* FIXME
-          case (links, Text.Info(_, XML.Elem(Markup.Url(name), _))) =>
-            Some(PIDE.editor.hyperlink_url(name) :: links)
-
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
           if !props.exists(
             { case (Markup.KIND, Markup.ML_OPEN) => true
