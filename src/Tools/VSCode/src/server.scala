@@ -111,38 +111,42 @@ class Server(
       else channel.error_message(err)
     }
 
-    // FIXME handle error
-    val content = Build.session_content(options, false, session_dirs, session_name)
-    val resources =
-      new VSCode_Resources(content.loaded_theories, content.known_theories, content.syntax)
+    val try_session =
+      try {
+        val content = Build.session_content(options, false, session_dirs, session_name)
+        val resources =
+          new VSCode_Resources(content.loaded_theories, content.known_theories, content.syntax)
 
-    val session =
-      new Session(resources) {
-        override def output_delay = options.seconds("editor_output_delay")
-        override def prune_delay = options.seconds("editor_prune_delay")
-        override def syslog_limit = options.int("editor_syslog_limit")
-        override def reparse_limit = options.int("editor_reparse_limit")
+        Some(new Session(resources) {
+          override def output_delay = options.seconds("editor_output_delay")
+          override def prune_delay = options.seconds("editor_prune_delay")
+          override def syslog_limit = options.int("editor_syslog_limit")
+          override def reparse_limit = options.int("editor_reparse_limit")
+        })
       }
+      catch { case ERROR(msg) => reply(msg); None }
 
-    var session_phase: Session.Consumer[Session.Phase] = null
-    session_phase =
-      Session.Consumer(getClass.getName) {
-        case Session.Ready =>
-          session.phase_changed -= session_phase
-          session.update_options(options)
-          reply("")
-        case Session.Failed =>
-          session.phase_changed -= session_phase
-          reply("Prover startup failed")
-        case _ =>
-      }
-    session.phase_changed += session_phase
+    for (session <- try_session) {
+      var session_phase: Session.Consumer[Session.Phase] = null
+      session_phase =
+        Session.Consumer(getClass.getName) {
+          case Session.Ready =>
+            session.phase_changed -= session_phase
+            session.update_options(options)
+            reply("")
+          case Session.Failed =>
+            session.phase_changed -= session_phase
+            reply("Prover startup failed")
+          case _ =>
+        }
+      session.phase_changed += session_phase
 
-    session.start(receiver =>
-      Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
-        modes = modes, receiver = receiver))
+      session.start(receiver =>
+        Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
+          modes = modes, receiver = receiver))
 
-    state.change(_.copy(session = Some(session)))
+      state.change(_.copy(session = Some(session)))
+    }
   }
 
   def shutdown(id: Protocol.Id)
