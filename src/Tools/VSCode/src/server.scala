@@ -106,11 +106,9 @@ class Server(
     def reply(err: String)
     {
       channel.write(Protocol.Initialize.reply(id, err))
-      if (err == "") {
-        channel.write(Protocol.DisplayMessage(Protocol.MessageType.Info,
-          "Welcome to Isabelle/" + session_name + " (" + Distribution.version + ")"))
-      }
-      else channel.write(Protocol.DisplayMessage(Protocol.MessageType.Error, err))
+      if (err == "")
+        channel.writeln("Welcome to Isabelle/" + session_name + " (" + Distribution.version + ")")
+      else channel.error_message(err)
     }
 
     // FIXME handle error
