@@ -28,6 +28,8 @@ sig
   val mk_disc_transfer_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm -> thm list -> tactic
+  val mk_induct_discharge_prem_tac: Proof.context -> int -> int -> thm list -> thm list ->
+    thm list -> thm list -> int -> int -> int list -> tactic
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
     thm list -> thm -> thm list -> thm list -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
