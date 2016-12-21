@@ -177,10 +177,10 @@ fun mk_co_rec_o_map_tac ctxt co_rec_def pre_map_defs map_ident0s abs_inverses xt
         rec_o_map_simps) ctxt))
   end;
 
-fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
+fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec pre_abs_inverse abs_inverse ctr_def ctxt =
   HEADGOAL ((if is_def_looping ctr_def then subst_tac ctxt NONE
     else SELECT_GOAL o unfold_thms_tac ctxt) [ctr_def]) THEN
-  unfold_thms_tac ctxt (ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
+  unfold_thms_tac ctxt (ctor_rec :: pre_abs_inverse :: abs_inverse :: rec_defs @
     pre_map_defs @ map_ident0s @ rec_unfold_thms) THEN HEADGOAL (rtac ctxt refl);
 
 fun mk_rec_transfer_tac ctxt nn ns actives passives xssss rec_defs ctor_rec_transfers rel_pre_T_defs
@@ -314,15 +314,15 @@ fun solve_prem_prem_tac ctxt =
     resolve_tac ctxt @{thms disjI1 disjI2}) THEN'
   (rtac ctxt refl ORELSE' assume_tac ctxt ORELSE' rtac ctxt @{thm singletonI});
 
-fun mk_induct_leverage_prem_prems_tac ctxt nn kks fp_abs_inverses abs_inverses set_maps
+fun mk_induct_leverage_prem_prems_tac ctxt nn kks pre_abs_inverses abs_inverses set_maps
     pre_set_defs =
   HEADGOAL (EVERY' (maps (fn kk => [select_prem_tac ctxt nn (dtac ctxt meta_spec) kk,
     etac ctxt meta_mp,
-    SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ fp_abs_inverses @ abs_inverses @ set_maps @
+    SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ pre_abs_inverses @ abs_inverses @ set_maps @
       sumprod_thms_set)),
     solve_prem_prem_tac ctxt]) (rev kks)));
 
-fun mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps pre_set_defs m k
+fun mk_induct_discharge_prem_tac ctxt nn n pre_abs_inverses abs_inverses set_maps pre_set_defs m k
     kks =
   let val r = length kks in
     HEADGOAL (EVERY' [select_prem_tac ctxt n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac ctxt,
@@ -330,11 +330,11 @@ fun mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps
     EVERY [REPEAT_DETERM_N r
         (HEADGOAL (rotate_tac ~1 THEN' dtac ctxt meta_mp THEN' rotate_tac 1) THEN prefer_tac 2),
       if r > 0 then ALLGOALS (Goal.norm_hhf_tac ctxt) else all_tac, HEADGOAL (assume_tac ctxt),
-      mk_induct_leverage_prem_prems_tac ctxt nn kks fp_abs_inverses abs_inverses set_maps
+      mk_induct_leverage_prem_prems_tac ctxt nn kks pre_abs_inverses abs_inverses set_maps
         pre_set_defs]
   end;
 
-fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' fp_abs_inverses abs_inverses set_maps
+fun mk_induct_tac ctxt nn ns mss kksss ctr_defs ctor_induct' pre_abs_inverses abs_inverses set_maps
     pre_set_defss =
   let val n = Integer.sum ns in
     (if exists is_def_looping ctr_defs then
@@ -343,17 +343,17 @@ fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' fp_abs_inverses abs_
        unfold_thms_tac ctxt ctr_defs) THEN
     HEADGOAL (rtac ctxt ctor_induct') THEN co_induct_inst_as_projs_tac ctxt 0 THEN
     EVERY (@{map 4} (EVERY oooo @{map 3} o
-        mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps)
-      pre_set_defss mss (unflat mss (1 upto n)) kkss)
+        mk_induct_discharge_prem_tac ctxt nn n pre_abs_inverses abs_inverses set_maps)
+      pre_set_defss mss (unflat mss (1 upto n)) kksss)
   end;
 
-fun mk_coinduct_same_ctr_tac ctxt rel_eqs pre_rel_def fp_abs_inverse abs_inverse dtor_ctor ctr_def
+fun mk_coinduct_same_ctr_tac ctxt rel_eqs pre_rel_def pre_abs_inverse abs_inverse dtor_ctor ctr_def
     discs sels =
   hyp_subst_tac ctxt THEN'
   CONVERSION (hhf_concl_conv
     (Conv.top_conv (K (Conv.try_conv (Conv.rewr_conv ctr_def))) ctxt) ctxt) THEN'
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels)) THEN'
-  SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: fp_abs_inverse :: abs_inverse :: dtor_ctor ::
+  SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: pre_abs_inverse :: abs_inverse :: dtor_ctor ::
     sels @ sumprod_thms_rel @ @{thms o_apply vimage2p_def})) THEN'
   (assume_tac ctxt ORELSE' REPEAT o etac ctxt conjE THEN'
      full_simp_tac (ss_only (no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN'
@@ -369,7 +369,7 @@ fun mk_coinduct_distinct_ctrs_tac ctxt discs discs' =
     full_simp_tac (ss_only (refl :: no_refl discs'' @ basic_simp_thms) ctxt)
   end;
 
-fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def fp_abs_inverse abs_inverse
+fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def pre_abs_inverse abs_inverse
     dtor_ctor exhaust ctr_defs discss selss =
   let val ks = 1 upto n in
     EVERY' ([rtac ctxt allI, rtac ctxt allI, rtac ctxt impI,
@@ -380,18 +380,18 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def fp_abs_inve
         EVERY' ([rtac ctxt exhaust, K (co_induct_inst_as_projs_tac ctxt 1)] @
           map2 (fn k' => fn discs' =>
             if k' = k then
-              mk_coinduct_same_ctr_tac ctxt rel_eqs' pre_rel_def fp_abs_inverse abs_inverse
+              mk_coinduct_same_ctr_tac ctxt rel_eqs' pre_rel_def pre_abs_inverse abs_inverse
                 dtor_ctor ctr_def discs sels
             else
               mk_coinduct_distinct_ctrs_tac ctxt discs discs') ks discss)) ks ctr_defs discss selss)
   end;
 
-fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inverses abs_inverses
+fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs pre_abs_inverses abs_inverses
     dtor_ctors exhausts ctr_defss discsss selsss =
   HEADGOAL (rtac ctxt dtor_coinduct' THEN'
     EVERY' (@{map 10} (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
-      (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
-      selsss));
+      (1 upto nn) ns pre_rel_defs pre_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss
+      discsss selsss));
 
 fun mk_map_tac ctxt abs_inverses pre_map_def map_ctor live_nesting_map_id0s ctr_defs'
     extra_unfolds =

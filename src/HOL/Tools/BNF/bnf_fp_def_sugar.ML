@@ -1721,7 +1721,7 @@ fun derive_rel_induct_thms_for_types lthy nn fpA_Ts As Bs ctrAss ctrAs_Tsss exha
   end;
 
 fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_induct ctor_rec_thms
-    live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses pre_type_definitions
+    live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss pre_abs_inverses pre_type_definitions
     abs_inverses ctrss ctr_defss recs rec_defs lthy =
   let
     val ctr_Tsss = map (map (binder_types o fastype_of)) ctrss;
@@ -1758,14 +1758,13 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
           Library.foldr (Logic.list_implies o apfst (map (finish_induct_prem lthy nn ps)))
             (raw_premss, concl);
         val vars = Variable.add_free_names lthy goal [];
-
         val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
         val ctor_induct' = ctor_induct OF (map2 mk_absumprodE pre_type_definitions mss);
 
         val thm =
           Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
-            mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' fp_abs_inverses
+            mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' pre_abs_inverses
               abs_inverses fp_nesting_set_maps pre_set_defss)
           |> Thm.close_derivation;
       in
@@ -1805,7 +1804,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
 
         val tacss = @{map 4} (map ooo
               mk_rec_tac pre_map_defs (fp_nesting_map_ident0s @ live_nesting_map_ident0s) rec_defs)
-            ctor_rec_thms fp_abs_inverses abs_inverses ctr_defss;
+            ctor_rec_thms pre_abs_inverses abs_inverses ctr_defss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context)
@@ -2035,7 +2034,7 @@ fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
   end;
 
 fun derive_coinduct_thms_for_types strong alter_r pre_bnfs dtor_coinduct dtor_ctors
-    live_nesting_bnfs fpTs Xs ctrXs_Tsss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss
+    live_nesting_bnfs fpTs Xs ctrXs_Tsss ns pre_abs_inverses abs_inverses mk_vimage2p ctr_defss
     (ctr_sugars : ctr_sugar list) ctxt =
   let
     val nn = length pre_bnfs;
@@ -2108,7 +2107,7 @@ fun derive_coinduct_thms_for_types strong alter_r pre_bnfs dtor_coinduct dtor_ct
     fun prove dtor_coinduct' goal =
       Variable.add_free_names ctxt goal []
       |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, ...} =>
-        mk_coinduct_tac ctxt live_nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs fp_abs_inverses
+        mk_coinduct_tac ctxt live_nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs pre_abs_inverses
           abs_inverses dtor_ctors exhausts ctr_defss disc_thmsss sel_thmsss))
       |> Thm.close_derivation;
 
@@ -2125,7 +2124,7 @@ fun derive_coinduct_thms_for_types strong alter_r pre_bnfs dtor_coinduct dtor_ct
 
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, _), cqgsss), _))
     dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss
-    kss mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
+    kss mss ns pre_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
     corecs corec_defs ctxt =
   let
     fun mk_ctor_dtor_corec_thm dtor_inject dtor_ctor corec =
@@ -2147,7 +2146,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
     val sel_thmsss = map #sel_thmss ctr_sugars;
 
     val coinduct_thms_pairs = derive_coinduct_thms_for_types true I pre_bnfs dtor_coinduct
-      dtor_ctors live_nesting_bnfs fpTs Xs ctrXs_Tsss ns fp_abs_inverses abs_inverses mk_vimage2p
+      dtor_ctors live_nesting_bnfs fpTs Xs ctrXs_Tsss ns pre_abs_inverses abs_inverses mk_vimage2p
       ctr_defss ctr_sugars ctxt;
 
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
