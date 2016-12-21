@@ -44,12 +44,19 @@ object Line
 
   /* range (right-open interval) */
 
+  object Range
+  {
+    val zero: Range = Range(Position.zero, Position.zero)
+  }
+
   sealed case class Range(start: Position, stop: Position)
   {
     if (start.compare(stop) > 0)
       error("Bad line range: " + start.print + ".." + stop.print)
 
-    def print: String = start.print + ".." + stop.print
+    def print: String =
+      if (start == stop) start.print
+      else start.print + ".." + stop.print
   }
 
 
