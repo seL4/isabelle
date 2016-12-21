@@ -60,6 +60,12 @@ object Line
   }
 
 
+  /* positions within document node */
+
+  sealed case class Position_Node(pos: Position, name: String)
+  sealed case class Range_Node(range: Range, name: String)
+
+
   /* document with newline as separator (not terminator) */
 
   object Document

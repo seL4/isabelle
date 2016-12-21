@@ -106,6 +106,13 @@ class Server(
   def session: Session = state.value.session getOrElse error("Session inactive")
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
+  def rendering_offset(pos_node: Line.Position_Node): Option[(VSCode_Rendering, Text.Offset)] =
+    for {
+      model <- state.value.models.get(pos_node.name)
+      rendering = model.rendering(options)
+      offset <- model.doc.offset(pos_node.pos, text_length)
+    } yield (rendering, offset)
+
 
   /* init and exit */
 
@@ -216,17 +223,16 @@ class Server(
 
   /* hover */
 
-  def hover(id: Protocol.Id, uri: String, pos: Line.Position)
+  def hover(id: Protocol.Id, pos_node: Line.Position_Node)
   {
     val result =
       for {
-        model <- state.value.models.get(uri)
-        rendering = model.rendering(options)
-        offset <- model.doc.offset(pos, text_length)
+        (rendering, offset) <- rendering_offset(pos_node)
         info <- rendering.tooltip(Text.Range(offset, offset + 1))
       } yield {
-        val start = model.doc.position(info.range.start, text_length)
-        val stop = model.doc.position(info.range.stop, text_length)
+        val doc = rendering.model.doc
+        val start = doc.position(info.range.start, text_length)
+        val stop = doc.position(info.range.stop, text_length)
         val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
         (Line.Range(start, stop), List("```\n" + s + "\n```"))  // FIXME proper content format
       }
@@ -236,15 +242,11 @@ class Server(
 
   /* goto definition */
 
-  def goto_definition(id: Protocol.Id, uri: String, pos: Line.Position)
+  def goto_definition(id: Protocol.Id, pos_node: Line.Position_Node)
   {
     val result =
-      (for {
-        model <- state.value.models.get(uri)
-        rendering = model.rendering(options)
-        offset <- model.doc.offset(pos, text_length)
-      } yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
-    channel.log("hyperlinks = " + result)
+      (for ((rendering, offset) <- rendering_offset(pos_node))
+        yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
     channel.write(Protocol.GotoDefinition.reply(id, result))
   }
 
@@ -268,8 +270,8 @@ class Server(
             update_document(uri, text)
           case Protocol.DidCloseTextDocument(uri) => channel.log("CLOSE " + uri)
           case Protocol.DidSaveTextDocument(uri) => channel.log("SAVE " + uri)
-          case Protocol.Hover(id, uri, pos) => hover(id, uri, pos)
-          case Protocol.GotoDefinition(id, uri, pos) => goto_definition(id, uri, pos)
+          case Protocol.Hover(id, pos_node) => hover(id, pos_node)
+          case Protocol.GotoDefinition(id, pos_node) => goto_definition(id, pos_node)
           case _ => channel.log("### IGNORED")
         }
       }

@@ -82,10 +82,10 @@ object Protocol
 
   class RequestTextDocumentPosition(name: String)
   {
-    def unapply(json: JSON.T): Option[(Id, String, Line.Position)] =
+    def unapply(json: JSON.T): Option[(Id, Line.Position_Node)] =
       json match {
-        case RequestMessage(id, method, Some(TextDocumentPosition(uri, pos))) if method == name =>
-          Some((id, uri, pos))
+        case RequestMessage(id, method, Some(TextDocumentPosition(pos_node))) if method == name =>
+          Some((id, pos_node))
         case _ => None
       }
   }
@@ -178,26 +178,26 @@ object Protocol
 
   object Location
   {
-    def apply(uri: String, range: Line.Range): JSON.T =
-      Map("uri" -> uri, "range" -> Range(range))
+    def apply(loc: Line.Range_Node): JSON.T =
+      Map("uri" -> loc.name, "range" -> Range(loc.range))
 
-    def unapply(json: JSON.T): Option[(String, Line.Range)] =
+    def unapply(json: JSON.T): Option[Line.Range_Node] =
       for {
         uri <- JSON.string(json, "uri")
         range_json <- JSON.value(json, "range")
         range <- Range.unapply(range_json)
-      } yield (uri, range)
+      } yield Line.Range_Node(range, uri)
   }
 
   object TextDocumentPosition
   {
-    def unapply(json: JSON.T): Option[(String, Line.Position)] =
+    def unapply(json: JSON.T): Option[Line.Position_Node] =
       for {
         doc <- JSON.value(json, "textDocument")
         uri <- JSON.string(doc, "uri")
         pos_json <- JSON.value(json, "position")
         pos <- Position.unapply(pos_json)
-      } yield (uri, pos)
+      } yield Line.Position_Node(pos, uri)
   }
 
 
@@ -308,7 +308,7 @@ object Protocol
 
   object GotoDefinition extends RequestTextDocumentPosition("textDocument/definition")
   {
-    def reply(id: Id, result: List[(String, Line.Range)]): JSON.T =
-      ResponseMessage(id, Some(result.map({ case (uri, range) => Location.apply(uri, range) })))
+    def reply(id: Id, result: List[Line.Range_Node]): JSON.T =
+      ResponseMessage(id, Some(result.map(Location.apply(_))))
   }
 }

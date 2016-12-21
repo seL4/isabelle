@@ -16,7 +16,11 @@ object VSCode_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
 }
 
-class VSCode_Rendering(snapshot: Document.Snapshot, options: Options, resources: Resources)
+class VSCode_Rendering(
+    val model: Document_Model,
+    snapshot: Document.Snapshot,
+    options: Options,
+    resources: Resources)
   extends Rendering(snapshot, options, resources)
 {
   /* tooltips */
@@ -27,13 +31,13 @@ class VSCode_Rendering(snapshot: Document.Snapshot, options: Options, resources:
 
   /* hyperlinks */
 
-  def hyperlinks(range: Text.Range): List[(String, Line.Range)] =
+  def hyperlinks(range: Text.Range): List[Line.Range_Node] =
   {
-    snapshot.cumulate[List[(String, Line.Range)]](
+    snapshot.cumulate[List[Line.Range_Node]](
       range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(_, XML.Elem(Markup.Path(name), _))) =>
-            Some((resolve_file_url(name), Line.Range.zero) :: links)
+            Some(Line.Range_Node(Line.Range.zero, resolve_file_url(name)) :: links)
 
 /* FIXME
           case (links, Text.Info(_, XML.Elem(Markup.Url(name), _))) =>
