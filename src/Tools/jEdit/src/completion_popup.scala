@@ -120,7 +120,7 @@ object Completion_Popup
 
     /* rendering */
 
-    def rendering(rendering: Rendering, line_range: Text.Range): Option[Text.Info[Color]] =
+    def rendering(rendering: JEdit_Rendering, line_range: Text.Range): Option[Text.Info[Color]] =
     {
       active_range match {
         case Some(range) => range.try_restrict(line_range)
@@ -153,7 +153,7 @@ object Completion_Popup
     def syntax_completion(
       history: Completion.History,
       explicit: Boolean,
-      opt_rendering: Option[Rendering]): Option[Completion.Result] =
+      opt_rendering: Option[JEdit_Rendering]): Option[Completion.Result] =
     {
       val buffer = text_area.getBuffer
       val decode = Isabelle_Encoding.is_active(buffer)
@@ -185,7 +185,7 @@ object Completion_Popup
 
     /* path completion */
 
-    def path_completion(rendering: Rendering): Option[Completion.Result] =
+    def path_completion(rendering: JEdit_Rendering): Option[Completion.Result] =
     {
       def complete(text: String): List[(String, List[String])] =
       {
@@ -750,7 +750,7 @@ class Completion_Popup private(
     val size =
     {
       val geometry = JEdit_Lib.window_geometry(completion, completion)
-      val bounds = Rendering.popup_bounds
+      val bounds = JEdit_Rendering.popup_bounds
       val w = geometry.width min (screen.bounds.width * bounds).toInt min layered.getWidth
       val h = geometry.height min (screen.bounds.height * bounds).toInt min layered.getHeight
       new Dimension(w, h)

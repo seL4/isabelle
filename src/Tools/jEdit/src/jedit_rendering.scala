@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/rendering.scala
+/*  Title:      Tools/jEdit/src/jedit_rendering.scala
     Author:     Makarius
 
-Isabelle-specific implementation of quasi-abstract rendering and
+Isabelle/jEdit-specific implementation of quasi-abstract rendering and
 markup interpretation.
 */
 
@@ -19,10 +19,10 @@ import org.gjt.sp.jedit.jEdit
 import scala.collection.immutable.SortedMap
 
 
-object Rendering
+object JEdit_Rendering
 {
-  def apply(snapshot: Document.Snapshot, options: Options): Rendering =
-    new Rendering(snapshot, options)
+  def apply(snapshot: Document.Snapshot, options: Options): JEdit_Rendering =
+    new JEdit_Rendering(snapshot, options)
 
 
   /* message priorities */
@@ -175,23 +175,6 @@ object Rendering
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
       Markup.BAD)
 
-  private val tooltip_descriptions =
-    Map(
-      Markup.CITATION -> "citation",
-      Markup.TOKEN_RANGE -> "inner syntax token",
-      Markup.FREE -> "free variable",
-      Markup.SKOLEM -> "skolem variable",
-      Markup.BOUND -> "bound variable",
-      Markup.VAR -> "schematic variable",
-      Markup.TFREE -> "free type variable",
-      Markup.TVAR -> "schematic type variable")
-
-  private val tooltip_elements =
-    Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
-      Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
-      Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.MARKDOWN_PARAGRAPH,
-      Markup.Markdown_List.name) ++ Markup.Elements(tooltip_descriptions.keySet)
-
   private val gutter_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
 
@@ -226,11 +209,9 @@ object Rendering
 }
 
 
-class Rendering private(val snapshot: Document.Snapshot, val options: Options)
+class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
+  extends Rendering(snapshot, options, PIDE.resources)
 {
-  override def toString: String = "Rendering(" + snapshot.toString + ")"
-
-
   /* colors */
 
   def color_value(s: String): Color = Color_Value(options.string(s))
@@ -301,7 +282,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* indentation */
 
   def indentation(range: Text.Range): Int =
-    snapshot.select(range, Rendering.indentation_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.indentation_elements, _ =>
       {
         case Text.Info(_, XML.Elem(Markup.Command_Indent(i), _)) => Some(i)
         case _ => None
@@ -314,7 +295,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       : Option[Text.Info[Completion.Semantic]] =
     if (snapshot.is_outdated) None
     else {
-      snapshot.select(range, Rendering.semantic_completion_elements, _ =>
+      snapshot.select(range, JEdit_Rendering.semantic_completion_elements, _ =>
         {
           case Completion.Semantic.Info(info) =>
             completed_range match {
@@ -326,7 +307,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     }
 
   def language_context(range: Text.Range): Option[Completion.Language_Context] =
-    snapshot.select(range, Rendering.language_context_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.language_context_elements, _ =>
       {
         case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes, delimited), _)) =>
           if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
@@ -339,7 +320,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       }).headOption.map(_.info)
 
   def language_path(range: Text.Range): Option[Text.Range] =
-    snapshot.select(range, Rendering.language_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.language_elements, _ =>
       {
         case Text.Info(info_range, XML.Elem(Markup.Language(Markup.Language.PATH, _, _, _), _)) =>
           Some(snapshot.convert(info_range))
@@ -347,7 +328,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       }).headOption.map(_.info)
 
   def citation(range: Text.Range): Option[Text.Info[String]] =
-    snapshot.select(range, Rendering.citation_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.citation_elements, _ =>
       {
         case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
           Some(Text.Info(snapshot.convert(info_range), name))
@@ -375,7 +356,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def breakpoint(range: Text.Range): Option[(Command, Long)] =
     if (snapshot.is_outdated) None
     else
-      snapshot.select(range, Rendering.breakpoint_elements, command_states =>
+      snapshot.select(range, JEdit_Rendering.breakpoint_elements, command_states =>
         {
           case Text.Info(_, Protocol.ML_Breakpoint(breakpoint)) =>
             command_states match {
@@ -417,7 +398,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     check: (Boolean, Long) => Boolean = (is_def: Boolean, i: Long) => is_def): Set[Long] =
   {
     val results =
-      snapshot.cumulate[Set[Long]](range, Set.empty, Rendering.caret_focus_elements, _ =>
+      snapshot.cumulate[Set[Long]](range, Set.empty, JEdit_Rendering.caret_focus_elements, _ =>
           {
             case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
@@ -445,7 +426,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val focus = caret_focus(caret_range, visible_range)
     if (focus.nonEmpty) {
       val results =
-        snapshot.cumulate[Boolean](visible_range, false, Rendering.caret_focus_elements, _ =>
+        snapshot.cumulate[Boolean](visible_range, false, JEdit_Rendering.caret_focus_elements, _ =>
           {
             case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
@@ -460,7 +441,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
   def entity_ref(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
-    snapshot.select(range, Rendering.caret_focus_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.caret_focus_elements, _ =>
       {
         case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Entity.Ref(i)), _)) if focus(i) =>
           Some(entity_ref_color)
@@ -471,7 +452,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* highlighted area */
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
-    snapshot.select(range, Rendering.highlight_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.highlight_elements, _ =>
       {
         case info => Some(Text.Info(snapshot.convert(info.range), highlight_color))
       }).headOption.map(_.info)
@@ -479,18 +460,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* hyperlinks */
 
-  private def jedit_file(name: String): String =
-    if (Path.is_valid(name))
-      PIDE.resources.append(snapshot.node_name.master_dir, Path.explode(name))
-    else name
-
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
-      range, Vector.empty, Rendering.hyperlink_elements, _ =>
+      range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
-            val link = PIDE.editor.hyperlink_file(true, jedit_file(name))
+            val link = PIDE.editor.hyperlink_file(true, resolve_file(name))
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
@@ -528,7 +504,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* active elements */
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
-    snapshot.select(range, Rendering.active_elements, command_states =>
+    snapshot.select(range, JEdit_Rendering.active_elements, command_states =>
       {
         case Text.Info(info_range, elem) =>
           if (elem.name == Markup.DIALOG) {
@@ -554,7 +530,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     val results =
       snapshot.cumulate[List[Text.Info[Command.Results.Entry]]](
-        range, Nil, Rendering.tooltip_message_elements, _ =>
+        range, Nil, JEdit_Rendering.tooltip_message_elements, _ =>
         {
           case (msgs, Text.Info(info_range, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
           if body.nonEmpty =>
@@ -580,105 +556,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* tooltips */
 
-  private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
-    Pretty.block(XML.Text(kind) :: Pretty.brk(1) :: body)
-
-  private def timing_threshold: Double = options.real("jedit_timing_threshold")
-
-  def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
-  {
-    def add(prev: Text.Info[(Timing, Vector[(Boolean, XML.Tree)])],
-      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, Vector[(Boolean, XML.Tree)])] =
-    {
-      val r = snapshot.convert(r0)
-      val (t, info) = prev.info
-      if (prev.range == r)
-        Text.Info(r, (t, info :+ p))
-      else Text.Info(r, (t, Vector(p)))
-    }
-
-    val results =
-      snapshot.cumulate[Text.Info[(Timing, Vector[(Boolean, XML.Tree)])]](
-        range, Text.Info(range, (Timing.zero, Vector.empty)), Rendering.tooltip_elements, _ =>
-        {
-          case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
-            Some(Text.Info(r, (t1 + t2, info)))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _)))
-          if kind != "" &&
-            kind != Markup.ML_DEF &&
-            kind != Markup.ML_OPEN &&
-            kind != Markup.ML_STRUCTURE =>
-            val kind1 = Word.implode(Word.explode('_', kind))
-            val txt1 =
-              if (name == "") kind1
-              else if (kind1 == "") quote(name)
-              else kind1 + " " + quote(name)
-            val t = prev.info._1
-            val txt2 =
-              if (kind == Markup.COMMAND && t.elapsed.seconds >= timing_threshold)
-                "\n" + t.message
-              else ""
-            Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _))) =>
-            val file = jedit_file(name)
-            val text =
-              if (name == file) "file " + quote(file)
-              else "path " + quote(name) + "\nfile " + quote(file)
-            Some(add(prev, r, (true, XML.Text(text))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Doc(name), _))) =>
-            val text = "doc " + quote(name)
-            Some(add(prev, r, (true, XML.Text(text))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
-            Some(add(prev, r, (true, XML.Text("URL " + quote(name)))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
-          if name == Markup.SORTING || name == Markup.TYPING =>
-            Some(add(prev, r, (true, pretty_typing("::", body))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(Markup.CLASS_PARAMETER, _), body))) =>
-            Some(add(prev, r, (true, Pretty.block(0, body))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
-            Some(add(prev, r, (false, pretty_typing("ML:", body))))
-
-          case (prev, Text.Info(r, Protocol.ML_Breakpoint(breakpoint))) =>
-            val text =
-              if (Debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
-              else "breakpoint (disabled)"
-            Some(add(prev, r, (true, XML.Text(text))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
-            val lang = Word.implode(Word.explode('_', language))
-            Some(add(prev, r, (true, XML.Text("language: " + lang))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Expression(kind), _))) =>
-            val descr = if (kind == "") "expression" else "expression: " + kind
-            Some(add(prev, r, (true, XML.Text(descr))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
-            Some(add(prev, r, (true, XML.Text("Markdown: paragraph"))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Markdown_List(kind), _))) =>
-            Some(add(prev, r, (true, XML.Text("Markdown: " + kind))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
-            Rendering.tooltip_descriptions.get(name).
-              map(descr => add(prev, r, (true, XML.Text(descr))))
-        }).map(_.info)
-
-    results.map(_.info).flatMap(res => res._2.toList) match {
-      case Nil => None
-      case tips =>
-        val r = Text.Range(results.head.range.start, results.last.range.stop)
-        val all_tips = (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
-        Some(Text.Info(r, Library.separate(Pretty.fbrk, all_tips)))
-    }
-  }
-
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
+  def timing_threshold: Double = options.real("jedit_timing_threshold")
 
   lazy val tooltip_close_icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
@@ -687,26 +566,26 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* gutter */
 
   private def gutter_message_pri(msg: XML.Tree): Int =
-    if (Protocol.is_error(msg)) Rendering.error_pri
-    else if (Protocol.is_legacy(msg)) Rendering.legacy_pri
-    else if (Protocol.is_warning(msg)) Rendering.warning_pri
-    else if (Protocol.is_information(msg)) Rendering.information_pri
+    if (Protocol.is_error(msg)) JEdit_Rendering.error_pri
+    else if (Protocol.is_legacy(msg)) JEdit_Rendering.legacy_pri
+    else if (Protocol.is_warning(msg)) JEdit_Rendering.warning_pri
+    else if (Protocol.is_information(msg)) JEdit_Rendering.information_pri
     else 0
 
   private lazy val gutter_message_content = Map(
-    Rendering.information_pri ->
+    JEdit_Rendering.information_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_information_icon")), information_message_color),
-    Rendering.warning_pri ->
+    JEdit_Rendering.warning_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_warning_icon")), warning_message_color),
-    Rendering.legacy_pri ->
+    JEdit_Rendering.legacy_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_legacy_icon")), warning_message_color),
-    Rendering.error_pri ->
+    JEdit_Rendering.error_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_error_icon")), error_message_color))
 
   def gutter_content(range: Text.Range): Option[(Icon, Color)] =
   {
     val pris =
-      snapshot.cumulate[Int](range, 0, Rendering.gutter_elements, _ =>
+      snapshot.cumulate[Int](range, 0, JEdit_Rendering.gutter_elements, _ =>
         {
           case (pri, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(serial)), _))) =>
             Some(pri max gutter_message_pri(msg))
@@ -720,18 +599,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* squiggly underline */
 
   private lazy val squiggly_colors = Map(
-    Rendering.writeln_pri -> writeln_color,
-    Rendering.information_pri -> information_color,
-    Rendering.warning_pri -> warning_color,
-    Rendering.legacy_pri -> legacy_color,
-    Rendering.error_pri -> error_color)
+    JEdit_Rendering.writeln_pri -> writeln_color,
+    JEdit_Rendering.information_pri -> information_color,
+    JEdit_Rendering.warning_pri -> warning_color,
+    JEdit_Rendering.legacy_pri -> legacy_color,
+    JEdit_Rendering.error_pri -> error_color)
 
   def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
   {
     val results =
-      snapshot.cumulate[Int](range, 0, Rendering.squiggly_elements, _ =>
+      snapshot.cumulate[Int](range, 0, JEdit_Rendering.squiggly_elements, _ =>
         {
-          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
+          case (pri, Text.Info(_, elem)) => Some(pri max JEdit_Rendering.message_pri(elem.name))
         })
     for {
       Text.Info(r, pri) <- results
@@ -743,26 +622,26 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* message output */
 
   private lazy val message_colors = Map(
-    Rendering.writeln_pri -> writeln_message_color,
-    Rendering.information_pri -> information_message_color,
-    Rendering.tracing_pri -> tracing_message_color,
-    Rendering.warning_pri -> warning_message_color,
-    Rendering.legacy_pri -> legacy_message_color,
-    Rendering.error_pri -> error_message_color)
+    JEdit_Rendering.writeln_pri -> writeln_message_color,
+    JEdit_Rendering.information_pri -> information_message_color,
+    JEdit_Rendering.tracing_pri -> tracing_message_color,
+    JEdit_Rendering.warning_pri -> warning_message_color,
+    JEdit_Rendering.legacy_pri -> legacy_message_color,
+    JEdit_Rendering.error_pri -> error_message_color)
 
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
     val results =
-      snapshot.cumulate[Int](range, 0, Rendering.line_background_elements, _ =>
+      snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ =>
         {
-          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
+          case (pri, Text.Info(_, elem)) => Some(pri max JEdit_Rendering.message_pri(elem.name))
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
     message_colors.get(pri).map(message_color =>
       {
         val is_separator =
-          snapshot.cumulate[Boolean](range, false, Rendering.separator_elements, _ =>
+          snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ =>
             {
               case _ => Some(true)
             }).exists(_.info)
@@ -786,7 +665,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     for {
       Text.Info(r, result) <-
         snapshot.cumulate[(List[Markup], Option[Color])](
-          range, (List(Markup.Empty), None), Rendering.background_elements,
+          range, (List(Markup.Empty), None), JEdit_Rendering.background_elements,
           command_states =>
             {
               case (((status, color), Text.Info(_, XML.Elem(markup, _))))
@@ -821,7 +700,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                     Some((Nil, Some(active_color)))
                 }
               case (_, Text.Info(_, elem)) =>
-                if (Rendering.active_elements(elem.name)) Some((Nil, Some(active_color)))
+                if (JEdit_Rendering.active_elements(elem.name)) Some((Nil, Some(active_color)))
                 else None
             })
       color <-
@@ -840,7 +719,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* text foreground */
 
   def foreground(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select(range, Rendering.foreground_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.foreground_elements, _ =>
       {
         case Text.Info(_, elem) =>
           if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color) else Some(quoted_color)
@@ -904,7 +783,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* virtual bullets */
 
   def bullet(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select(range, Rendering.bullet_elements, _ =>
+    snapshot.select(range, JEdit_Rendering.bullet_elements, _ =>
       {
         case Text.Info(_, Protocol.ML_Breakpoint(breakpoint)) =>
           Debugger.active_breakpoint_state(breakpoint).map(b =>
@@ -916,7 +795,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* text folds */
 
   def fold_depth(range: Text.Range): List[Text.Info[Int]] =
-    snapshot.cumulate[Int](range, 0, Rendering.fold_depth_elements, _ =>
+    snapshot.cumulate[Int](range, 0, JEdit_Rendering.fold_depth_elements, _ =>
       {
         case (depth, _) => Some(depth + 1)
       })

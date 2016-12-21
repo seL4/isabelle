@@ -54,10 +54,10 @@ object Pretty_Text_Area
   }
 
   private def text_rendering(base_snapshot: Document.Snapshot, base_results: Command.Results,
-    formatted_body: XML.Body): (String, Rendering) =
+    formatted_body: XML.Body): (String, JEdit_Rendering) =
   {
     val (text, state) = document_state(base_snapshot, base_results, formatted_body)
-    val rendering = Rendering(state.snapshot(), PIDE.options.value)
+    val rendering = JEdit_Rendering(state.snapshot(), PIDE.options.value)
     (text, rendering)
   }
 }
@@ -75,7 +75,7 @@ class Pretty_Text_Area(
   private var current_body: XML.Body = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
-  private var current_rendering: Rendering =
+  private var current_rendering: JEdit_Rendering =
     Pretty_Text_Area.text_rendering(current_base_snapshot, current_base_results, Nil)._2
   private var future_refresh: Option[Future[Unit]] = None
 

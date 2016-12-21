@@ -20,21 +20,28 @@ object Server
 {
   /* Isabelle tool wrapper */
 
+  private val default_text_length = "UTF-16"
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   val isabelle_tool = Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", args =>
   {
     var log_file: Option[Path] = None
+    var text_length = Length.encoding(default_text_length)
     var dirs: List[Path] = Nil
     var logic = default_logic
     var modes: List[String] = Nil
     var options = Options.init()
+
+    def text_length_choice: String =
+      commas(Length.encodings.map(
+        { case (a, _) => if (a == default_text_length) a + " (default)" else a }))
 
     val getopts = Getopts("""
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
     -L FILE      enable logging on FILE
+    -T LENGTH    text length encoding: """ + text_length_choice + """
     -d DIR       include session directory
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -m MODE      add print mode for output
@@ -43,6 +50,7 @@ Usage: isabelle vscode_server [OPTIONS]
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
       "L:" -> (arg => log_file = Some(Path.explode(arg))),
+      "T:" -> (arg => Length.encoding(arg)),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "l:" -> (arg => logic = arg),
       "m:" -> (arg => modes = arg :: modes),
@@ -56,7 +64,7 @@ Usage: isabelle vscode_server [OPTIONS]
       error("Missing logic image " + quote(logic))
 
     val channel = new Channel(System.in, System.out, log_file)
-    val server = new Server(channel, options, logic, dirs, modes)
+    val server = new Server(channel, options, text_length, logic, dirs, modes)
 
     // prevent spurious garbage on the main protocol channel
     val orig_out = System.out
@@ -78,6 +86,7 @@ Usage: isabelle vscode_server [OPTIONS]
 class Server(
   channel: Channel,
   options: Options,
+  text_length: Length = Length.encoding(Server.default_text_length),
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
   modes: List[String] = Nil)
@@ -87,7 +96,7 @@ class Server(
   private val state = Synchronized(Server.State())
 
   def session: Session = state.value.session getOrElse error("Session inactive")
-  def resources: URI_Resources = session.resources.asInstanceOf[URI_Resources]
+  def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
 
   /* init and exit */
@@ -96,7 +105,7 @@ class Server(
   {
     val content = Build.session_content(options, false, session_dirs, session_name)
     val resources =
-      new URI_Resources(content.loaded_theories, content.known_theories, content.syntax)
+      new VSCode_Resources(content.loaded_theories, content.known_theories, content.syntax)
 
     val session =
       new Session(resources) {
@@ -179,123 +188,20 @@ class Server(
   }
 
 
-  /* tooltips -- see $ISABELLE_HOME/src/Tools/jEdit/rendering.scala */
+  /* hover */
 
   def hover(uri: String, pos: Line.Position): Option[(Line.Range, List[String])] =
     for {
       model <- state.value.models.get(uri)
-      snapshot = model.snapshot()
-      offset <- model.doc.offset(pos)
-      info <- tooltip(snapshot, Text.Range(offset, offset + 1))
+      rendering = model.rendering(options)
+      offset <- model.doc.offset(pos, text_length)
+      info <- rendering.tooltip(Text.Range(offset, offset + 1))
     } yield {
-      val r = Line.Range(model.doc.position(info.range.start), model.doc.position(info.range.stop))
-      val s = Pretty.string_of(info.info, margin = tooltip_margin.toDouble)
-      (r, List("```\n" + s + "\n```"))
+      val start = model.doc.position(info.range.start, text_length)
+      val stop = model.doc.position(info.range.stop, text_length)
+      val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
+      (Line.Range(start, stop), List("```\n" + s + "\n```"))
     }
-
-  private val tooltip_descriptions =
-    Map(
-      Markup.CITATION -> "citation",
-      Markup.TOKEN_RANGE -> "inner syntax token",
-      Markup.FREE -> "free variable",
-      Markup.SKOLEM -> "skolem variable",
-      Markup.BOUND -> "bound variable",
-      Markup.VAR -> "schematic variable",
-      Markup.TFREE -> "free type variable",
-      Markup.TVAR -> "schematic type variable")
-
-  private val tooltip_elements =
-    Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
-      Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
-      Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.MARKDOWN_PARAGRAPH,
-      Markup.Markdown_List.name) ++ Markup.Elements(tooltip_descriptions.keySet)
-
-  private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
-    Pretty.block(XML.Text(kind) :: Pretty.brk(1) :: body)
-
-  private def timing_threshold: Double = options.real("jedit_timing_threshold")
-
-  def tooltip(snapshot: Document.Snapshot, range: Text.Range): Option[Text.Info[XML.Body]] =
-  {
-    def add(prev: Text.Info[(Timing, Vector[(Boolean, XML.Tree)])],
-      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, Vector[(Boolean, XML.Tree)])] =
-    {
-      val r = snapshot.convert(r0)
-      val (t, info) = prev.info
-      if (prev.range == r)
-        Text.Info(r, (t, info :+ p))
-      else Text.Info(r, (t, Vector(p)))
-    }
-
-    val results =
-      snapshot.cumulate[Text.Info[(Timing, Vector[(Boolean, XML.Tree)])]](
-        range, Text.Info(range, (Timing.zero, Vector.empty)), tooltip_elements, _ =>
-        {
-          case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
-            Some(Text.Info(r, (t1 + t2, info)))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _)))
-          if kind != "" &&
-            kind != Markup.ML_DEF &&
-            kind != Markup.ML_OPEN &&
-            kind != Markup.ML_STRUCTURE =>
-            val kind1 = Word.implode(Word.explode('_', kind))
-            val txt1 =
-              if (name == "") kind1
-              else if (kind1 == "") quote(name)
-              else kind1 + " " + quote(name)
-            val t = prev.info._1
-            val txt2 =
-              if (kind == Markup.COMMAND && t.elapsed.seconds >= timing_threshold)
-                "\n" + t.message
-              else ""
-            Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Doc(name), _))) =>
-            val text = "doc " + quote(name)
-            Some(add(prev, r, (true, XML.Text(text))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
-            Some(add(prev, r, (true, XML.Text("URL " + quote(name)))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
-          if name == Markup.SORTING || name == Markup.TYPING =>
-            Some(add(prev, r, (true, pretty_typing("::", body))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(Markup.CLASS_PARAMETER, _), body))) =>
-            Some(add(prev, r, (true, Pretty.block(0, body))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
-            Some(add(prev, r, (false, pretty_typing("ML:", body))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
-            val lang = Word.implode(Word.explode('_', language))
-            Some(add(prev, r, (true, XML.Text("language: " + lang))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup.Expression(kind), _))) =>
-            val descr = if (kind == "") "expression" else "expression: " + kind
-            Some(add(prev, r, (true, XML.Text(descr))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
-            Some(add(prev, r, (true, XML.Text("Markdown: paragraph"))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Markdown_List(kind), _))) =>
-            Some(add(prev, r, (true, XML.Text("Markdown: " + kind))))
-
-          case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
-            tooltip_descriptions.get(name).
-              map(descr => add(prev, r, (true, XML.Text(descr))))
-        }).map(_.info)
-
-    results.map(_.info).flatMap(res => res._2.toList) match {
-      case Nil => None
-      case tips =>
-        val r = Text.Range(results.head.range.start, results.last.range.stop)
-        val all_tips = (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
-        Some(Text.Info(r, Library.separate(Pretty.fbrk, all_tips)))
-    }
-  }
-
-  def tooltip_margin: Int = options.int("jedit_tooltip_margin")
 
 
   /* main loop */

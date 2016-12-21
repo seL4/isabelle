@@ -50,7 +50,7 @@ object Fold_Handling
 
   /* output: static document rendering */
 
-  class Document_Fold_Handler(private val rendering: Rendering)
+  class Document_Fold_Handler(private val rendering: JEdit_Rendering)
     extends FoldHandler("isabelle-document")
   {
     override def equals(other: Any): Boolean =

@@ -29,7 +29,7 @@ import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 class Rich_Text_Area(
   view: View,
   text_area: TextArea,
-  get_rendering: () => Rendering,
+  get_rendering: () => JEdit_Rendering,
   close_action: () => Unit,
   get_search_pattern: () => Option[Regex],
   caret_update: () => Unit,
@@ -72,7 +72,7 @@ class Rich_Text_Area(
 
   /* common painter state */
 
-  @volatile private var painter_rendering: Rendering = null
+  @volatile private var painter_rendering: JEdit_Rendering = null
   @volatile private var painter_clip: Shape = null
   @volatile private var caret_focus: Set[Long] = Set.empty
 
@@ -105,7 +105,7 @@ class Rich_Text_Area(
     }
   }
 
-  def robust_rendering(body: Rendering => Unit)
+  def robust_rendering(body: JEdit_Rendering => Unit)
   {
     robust_body(()) { body(painter_rendering) }
   }
@@ -114,7 +114,7 @@ class Rich_Text_Area(
   /* active areas within the text */
 
   private class Active_Area[A](
-    rendering: Rendering => Text.Range => Option[Text.Info[A]],
+    rendering: JEdit_Rendering => Text.Range => Option[Text.Info[A]],
     cursor: Option[Int])
   {
     private var the_text_info: Option[(String, Text.Info[A])] = None
@@ -147,7 +147,7 @@ class Rich_Text_Area(
       }
     }
 
-    def update_rendering(r: Rendering, range: Text.Range)
+    def update_rendering(r: JEdit_Rendering, range: Text.Range)
     { update(rendering(r)(range)) }
 
     def reset { update(None) }
@@ -157,15 +157,15 @@ class Rich_Text_Area(
 
   private val highlight_area =
     new Active_Area[Color](
-      (rendering: Rendering) => rendering.highlight _, None)
+      (rendering: JEdit_Rendering) => rendering.highlight _, None)
 
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink](
-      (rendering: Rendering) => rendering.hyperlink _, Some(Cursor.HAND_CURSOR))
+      (rendering: JEdit_Rendering) => rendering.hyperlink _, Some(Cursor.HAND_CURSOR))
 
   private val active_area =
     new Active_Area[XML.Elem](
-      (rendering: Rendering) => rendering.active _, Some(Cursor.DEFAULT_CURSOR))
+      (rendering: JEdit_Rendering) => rendering.active _, Some(Cursor.DEFAULT_CURSOR))
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (active_area, false))
@@ -362,7 +362,7 @@ class Rich_Text_Area(
   private def caret_enabled: Boolean =
     caret_visible && (!text_area.hasFocus || text_area.isCaretVisible)
 
-  private def caret_color(rendering: Rendering, offset: Text.Offset): Color =
+  private def caret_color(rendering: JEdit_Rendering, offset: Text.Offset): Color =
   {
     if (text_area.isCaretVisible) text_area.getPainter.getCaretColor
     else {
@@ -377,7 +377,7 @@ class Rich_Text_Area(
     }
   }
 
-  private def paint_chunk_list(rendering: Rendering,
+  private def paint_chunk_list(rendering: JEdit_Rendering,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds

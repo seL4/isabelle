@@ -25,9 +25,9 @@ object Check_Sources
       try {
         Symbol.decode_strict(line)
 
-        for { c <- Word.codepoint_iterator(line); if c > 128 && !Character.isAlphabetic(c) }
+        for { c <- Codepoint.iterator(line); if c > 128 && !Character.isAlphabetic(c) }
         {
-          Output.warning("Suspicious Unicode character " + quote(Word.codepoint(c)) +
+          Output.warning("Suspicious Unicode character " + quote(Codepoint.string(c)) +
             Position.here(line_pos(i)))
         }
       }

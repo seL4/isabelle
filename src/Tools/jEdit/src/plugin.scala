@@ -158,7 +158,7 @@ object PIDE
     }
   }
 
-  def rendering(view: View): Rendering = GUI_Thread.now
+  def rendering(view: View): JEdit_Rendering = GUI_Thread.now
   {
     val text_area = view.getTextArea
     document_view(text_area) match {

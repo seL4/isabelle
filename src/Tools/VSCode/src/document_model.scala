@@ -52,7 +52,10 @@ case class Document_Model(
   def unchanged: Document_Model = if (changed) copy(changed = false) else this
 
 
-  /* snapshot */
+  /* snapshot and rendering */
 
   def snapshot(): Document.Snapshot = session.snapshot(node_name, text_edits)
+
+  def rendering(options: Options): VSCode_Rendering =
+    new VSCode_Rendering(snapshot(), options, session.resources)
 }
