@@ -209,7 +209,7 @@ fun mk_pointful_natural_from_transfer ctxt transfer =
       if op = TU then
         t
       else
-        (case try (build_map ctxt [] (the o AList.lookup (op =) AB_fs)) TU of
+        (case try (build_map ctxt [] [] (the o AList.lookup (op =) AB_fs)) TU of
           SOME mapx => mapx $ t
         | NONE => raise UNNATURAL ());
 
@@ -356,7 +356,7 @@ fun generic_spec_of friend ctxt arg_Ts res_T (raw_buffer0 as {VLeaf = VLeaf0, ..
     fun mk_friend_spec () =
       let
         fun encapsulate_nested U T free =
-          betapply (build_map ctxt [] (fn (T, _) =>
+          betapply (build_map ctxt [] [] (fn (T, _) =>
               if T = domain_type VLeaf0_T then Abs (Name.uu, T, VLeaf0 $ Bound 0)
               else Abs (Name.uu, T, Bound 0)) (T, U),
             free);

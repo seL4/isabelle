@@ -962,7 +962,7 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
           end;
 
       fun massage_noncall U T t =
-        build_map ctxt [] (uncurry Inl_const o dest_sumT o snd) (T, U) $ t;
+        build_map ctxt [] [] (uncurry Inl_const o dest_sumT o snd) (T, U) $ t;
 
       val bound_Ts = List.rev (map fastype_of fun_args);
     in

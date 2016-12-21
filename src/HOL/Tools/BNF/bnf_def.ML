@@ -122,9 +122,9 @@ sig
   val mk_pred: typ list -> term -> term
   val mk_rel: int -> typ list -> typ list -> term -> term
   val mk_set: typ list -> term -> term
-  val build_map: Proof.context -> typ list -> (typ * typ -> term) -> typ * typ -> term
-  val build_rel: (string * (int * term)) list -> Proof.context -> typ list -> (typ * typ -> term) ->
-    typ * typ -> term
+  val build_map: Proof.context -> typ list -> typ list -> (typ * typ -> term) -> typ * typ -> term
+  val build_rel: (string * (int * term)) list -> Proof.context -> typ list -> typ list ->
+    (typ * typ -> term) -> typ * typ -> term
   val build_set: Proof.context -> typ -> typ -> term
   val flatten_type_args_of_bnf: bnf -> 'a -> 'a list -> 'a list
   val map_flattened_map_args: Proof.context -> string -> (term list -> 'a list) -> term list ->
@@ -744,12 +744,13 @@ fun mk_rel live Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-fun build_map_or_rel mk const of_bnf dest pre_cst_table ctxt simple_Ts build_simple =
+fun build_map_or_rel mk const of_bnf dest pre_cst_table ctxt simple_Ts simple_Us build_simple =
   let
     fun build (TU as (T, U)) =
-      if exists (curry (op =) T) simple_Ts then
+      if exists (curry (op =) T) simple_Ts orelse exists (curry (op =) U) simple_Us then
         build_simple TU
-      else if T = U andalso not (exists_subtype_in simple_Ts T) then
+      else if T = U andalso not (exists_subtype_in simple_Ts T) andalso
+          not (exists_subtype_in simple_Us U) then
         const T
       else
         (case TU of

@@ -587,7 +587,7 @@ fun mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong alg =
       ||>> mk_Frees "y" xy_Ts;
 
     fun mk_prem xy_T x y =
-      build_rel [] ctxt [fpT] (fn (T, _) => if T = fpT then Rcong else HOLogic.eq_const T)
+      build_rel [] ctxt [fpT] [] (fn (T, _) => if T = fpT then Rcong else HOLogic.eq_const T)
         (xy_T, xy_T) $ x $ y;
 
     val prems = @{map 3} mk_prem xy_Ts xs ys;
@@ -713,7 +713,7 @@ fun explore_nested lthy explore {bound_Us, bound_Ts, U, T} t =
         |> explore {bound_Us = T :: bound_Us, bound_Ts = T :: bound_Ts, U = U, T = T}
         |> (fn t => Abs (Name.uu, T, t));
   in
-    betapply (build_map lthy [] build_simple (T, U), t)
+    betapply (build_map lthy [] [] build_simple (T, U), t)
   end;
 
 fun add_boundvar t = betapply (incr_boundvars 1 t, Bound 0);
@@ -1047,7 +1047,7 @@ fun extract_rho_from_equation
         val param2_T = Type_Infer.paramify_vars param1_T;
 
         val deadfixed_T =
-          build_map lthy [] (mk_undefined o op -->) (apply2 tupleT_of_funT (param1_T, param2_T))
+          build_map lthy [] [] (mk_undefined o op -->) (apply2 tupleT_of_funT (param1_T, param2_T))
           |> singleton (Type_Infer_Context.infer_types lthy)
           |> singleton (Type_Infer.fixate lthy false)
           |> type_of

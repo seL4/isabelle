@@ -530,7 +530,7 @@ fun build_binary_fun_app fs t u =
   Option.map (rapp u o rapp t) (choose_binary_fun fs (fastype_of t, fastype_of u));
 
 fun build_the_rel ctxt Rs Ts A B =
-  build_rel [] ctxt Ts (the o choose_binary_fun Rs) (A, B);
+  build_rel [] ctxt Ts [] (the o choose_binary_fun Rs) (A, B);
 fun build_rel_app ctxt Rs Ts t u =
   build_the_rel ctxt Rs Ts (fastype_of t) (fastype_of u) $ t $ u;
 
@@ -860,7 +860,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
 
                 fun mk_arg (x as Free (_, T)) (Free (_, U)) =
                   if T = U then x
-                  else build_map lthy [] (the o AList.lookup (op =) ABfs) (T, U) $ x;
+                  else build_map lthy [] [] (the o AList.lookup (op =) ABfs) (T, U) $ x;
 
                 val xs' = map2 mk_arg xs ys;
               in
@@ -1242,7 +1242,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 val lhsT = fastype_of lhs;
                 val map_rhsT =
                   map_atyps (perhaps (AList.lookup (op =) (map swap live_AsBs))) lhsT;
-                val map_rhs = build_map lthy []
+                val map_rhs = build_map lthy [] []
                   (the o (AList.lookup (op =) (live_AsBs ~~ fs))) (map_rhsT, lhsT);
                 val rhs = (case map_rhs of
                     Const (@{const_name id}, _) => selA $ ta
@@ -1539,7 +1539,7 @@ fun mk_corecs_args_types ctxt ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts =
 
     val cpss = map2 (map o rapp) cs pss;
 
-    fun build_sum_inj mk_inj = build_map ctxt [] (uncurry mk_inj o dest_sumT o snd);
+    fun build_sum_inj mk_inj = build_map ctxt [] [] (uncurry mk_inj o dest_sumT o snd);
 
     fun build_dtor_corec_arg _ [] [cg] = cg
       | build_dtor_corec_arg T [cq] [cg, cg'] =
@@ -1796,7 +1796,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
                 indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
                   (fn kk => fn TU => maybe_tick TU (nth us kk) (nth frecs kk));
             in
-              build_map lthy [] build_simple (T, U) $ x
+              build_map lthy [] [] build_simple (T, U) $ x
             end;
 
         val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_rec))) xsss x_Tssss;
@@ -2070,7 +2070,7 @@ fun derive_coinduct_thms_for_types strong alter_r pre_bnfs dtor_coinduct dtor_ct
         fold_rev Term.lambda [u, v] (HOLogic.mk_disj (uvr, uv_eq))) us vs uvrs uv_eqs;
 
     fun build_the_rel rs' T Xs_T =
-      build_rel [] ctxt [] (fn (_, X) => nth rs' (find_index (curry (op =) X) Xs)) (T, Xs_T)
+      build_rel [] ctxt [] [] (fn (_, X) => nth rs' (find_index (curry (op =) X) Xs)) (T, Xs_T)
       |> Term.subst_atomic_types (Xs ~~ fpTs);
 
     fun build_rel_app rs' usel vsel Xs_T =
@@ -2181,7 +2181,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
                   indexify fst (map2 (curry mk_sumT) fpTs Cs)
                     (fn kk => fn _ => tack (nth cs kk, nth us kk) (nth gcorecs kk));
               in
-                build_map ctxt [] build_simple (T, U) $ cqg
+                build_map ctxt [] [] build_simple (T, U) $ cqg
               end
             else
               cqg
@@ -2594,7 +2594,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
           fun mk_rec_arg_arg (x as Free (_, T)) =
             let val U = B_ify_T T in
-              if T = U then x else build_map lthy [] (the o AList.lookup (op =) ABfs) (T, U) $ x
+              if T = U then x else build_map lthy [] [] (the o AList.lookup (op =) ABfs) (T, U) $ x
             end;
 
           fun mk_rec_o_map_arg rec_arg_T h =
@@ -2747,8 +2747,10 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
               val T = range_type (fastype_of g);
               val U = range_type corec_argB_T;
             in
-              if T = U then g
-              else HOLogic.mk_comp (build_map lthy2 [] (the o AList.lookup (op =) ABfs) (T, U), g)
+              if T = U then
+                g
+              else
+                HOLogic.mk_comp (build_map lthy2 [] [] (the o AList.lookup (op =) ABfs) (T, U), g)
             end;
 
           fun mk_map_o_corec_rhs corecx =

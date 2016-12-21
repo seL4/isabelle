@@ -106,7 +106,7 @@ fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
         NONE
       else if exists_subtype_in fpTs T then
         let val U = mk_U T in
-          SOME (mk_to_nat_checked U $ (build_map ctxt [] (snd_const o fst) (T, U) $ Bound j))
+          SOME (mk_to_nat_checked U $ (build_map ctxt [] [] (snd_const o fst) (T, U) $ Bound j))
         end
       else
         SOME (mk_to_nat_checked T $ Bound j);
