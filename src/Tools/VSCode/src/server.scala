@@ -25,18 +25,19 @@ object Server
 
   val isabelle_tool = Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", args =>
   {
-    var log_file: Option[Path] = None
-    var text_length = Length.encoding(default_text_length)
-    var dirs: List[Path] = Nil
-    var logic = default_logic
-    var modes: List[String] = Nil
-    var options = Options.init()
+    try {
+      var log_file: Option[Path] = None
+      var text_length = Length.encoding(default_text_length)
+      var dirs: List[Path] = Nil
+      var logic = default_logic
+      var modes: List[String] = Nil
+      var options = Options.init()
 
-    def text_length_choice: String =
-      commas(Length.encodings.map(
-        { case (a, _) => if (a == default_text_length) a + " (default)" else a }))
+      def text_length_choice: String =
+        commas(Length.encodings.map(
+          { case (a, _) => if (a == default_text_length) a + " (default)" else a }))
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
@@ -49,30 +50,37 @@ Usage: isabelle vscode_server [OPTIONS]
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
-      "L:" -> (arg => log_file = Some(Path.explode(arg))),
-      "T:" -> (arg => Length.encoding(arg)),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "l:" -> (arg => logic = arg),
-      "m:" -> (arg => modes = arg :: modes),
-      "o:" -> (arg => options = options + arg))
+        "L:" -> (arg => log_file = Some(Path.explode(arg))),
+        "T:" -> (arg => Length.encoding(arg)),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "l:" -> (arg => logic = arg),
+        "m:" -> (arg => modes = arg :: modes),
+        "o:" -> (arg => options = options + arg))
 
-    val more_args = getopts(args)
-    if (more_args.nonEmpty) getopts.usage()
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
 
-    if (!Build.build(options = options, build_heap = true, no_build = true,
-          dirs = dirs, sessions = List(logic)).ok)
-      error("Missing logic image " + quote(logic))
+      if (!Build.build(options = options, build_heap = true, no_build = true,
+            dirs = dirs, sessions = List(logic)).ok)
+        error("Missing logic image " + quote(logic))
 
-    val channel = new Channel(System.in, System.out, log_file)
-    val server = new Server(channel, options, text_length, logic, dirs, modes)
+      val channel = new Channel(System.in, System.out, log_file)
+      val server = new Server(channel, options, text_length, logic, dirs, modes)
 
-    // prevent spurious garbage on the main protocol channel
-    val orig_out = System.out
-    try {
-      System.setOut(new PrintStream(new OutputStream { def write(n: Int) {} }))
-      server.start()
+      // prevent spurious garbage on the main protocol channel
+      val orig_out = System.out
+      try {
+        System.setOut(new PrintStream(new OutputStream { def write(n: Int) {} }))
+        server.start()
+      }
+      finally { System.setOut(orig_out) }
     }
-    finally { System.setOut(orig_out) }
+    catch {
+      case exn: Throwable =>
+        val channel = new Channel(System.in, System.out, None)
+        channel.error_message(Exn.message(exn))
+        throw(exn)
+    }
   })
 
 
