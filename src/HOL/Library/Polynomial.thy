@@ -1613,18 +1613,26 @@ lemma poly_all_0_iff_0:
 
 subsection \<open>Long division of polynomials\<close>
 
-definition pdivmod_rel :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
-where
-  "pdivmod_rel x y q r \<longleftrightarrow>
-    x = q * y + r \<and> (if y = 0 then q = 0 else r = 0 \<or> degree r < degree y)"
+inductive eucl_rel_poly :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly \<Rightarrow> bool"
+  where eucl_rel_poly_by0: "eucl_rel_poly x 0 (0, x)"
+  | eucl_rel_poly_dividesI: "y \<noteq> 0 \<Longrightarrow> x = q * y \<Longrightarrow> eucl_rel_poly x y (q, 0)"
+  | eucl_rel_poly_remainderI: "y \<noteq> 0 \<Longrightarrow> degree r < degree y
+      \<Longrightarrow> x = q * y + r \<Longrightarrow> eucl_rel_poly x y (q, r)"
+  
+lemma eucl_rel_poly_iff:
+  "eucl_rel_poly x y (q, r) \<longleftrightarrow>
+    x = q * y + r \<and>
+      (if y = 0 then q = 0 else r = 0 \<or> degree r < degree y)"
+  by (auto elim: eucl_rel_poly.cases
+    intro: eucl_rel_poly_by0 eucl_rel_poly_dividesI eucl_rel_poly_remainderI)
+  
+lemma eucl_rel_poly_0:
+  "eucl_rel_poly 0 y (0, 0)"
+  unfolding eucl_rel_poly_iff by simp
 
-lemma pdivmod_rel_0:
-  "pdivmod_rel 0 y 0 0"
-  unfolding pdivmod_rel_def by simp
-
-lemma pdivmod_rel_by_0:
-  "pdivmod_rel x 0 0 x"
-  unfolding pdivmod_rel_def by simp
+lemma eucl_rel_poly_by_0:
+  "eucl_rel_poly x 0 (0, x)"
+  unfolding eucl_rel_poly_iff by simp
 
 lemma eq_zero_or_degree_less:
   assumes "degree p \<le> n" and "coeff p n = 0"
@@ -1650,15 +1658,15 @@ next
   then show ?thesis ..
 qed
 
-lemma pdivmod_rel_pCons:
-  assumes rel: "pdivmod_rel x y q r"
+lemma eucl_rel_poly_pCons:
+  assumes rel: "eucl_rel_poly x y (q, r)"
   assumes y: "y \<noteq> 0"
   assumes b: "b = coeff (pCons a r) (degree y) / coeff y (degree y)"
-  shows "pdivmod_rel (pCons a x) y (pCons b q) (pCons a r - smult b y)"
-    (is "pdivmod_rel ?x y ?q ?r")
+  shows "eucl_rel_poly (pCons a x) y (pCons b q, pCons a r - smult b y)"
+    (is "eucl_rel_poly ?x y (?q, ?r)")
 proof -
   have x: "x = q * y + r" and r: "r = 0 \<or> degree r < degree y"
-    using assms unfolding pdivmod_rel_def by simp_all
+    using assms unfolding eucl_rel_poly_iff by simp_all
 
   have 1: "?x = ?q * y + ?r"
     using b x by simp
@@ -1678,31 +1686,31 @@ proof -
   qed
 
   from 1 2 show ?thesis
-    unfolding pdivmod_rel_def
+    unfolding eucl_rel_poly_iff
     using \<open>y \<noteq> 0\<close> by simp
 qed
 
-lemma pdivmod_rel_exists: "\<exists>q r. pdivmod_rel x y q r"
+lemma eucl_rel_poly_exists: "\<exists>q r. eucl_rel_poly x y (q, r)"
 apply (cases "y = 0")
-apply (fast intro!: pdivmod_rel_by_0)
+apply (fast intro!: eucl_rel_poly_by_0)
 apply (induct x)
-apply (fast intro!: pdivmod_rel_0)
-apply (fast intro!: pdivmod_rel_pCons)
+apply (fast intro!: eucl_rel_poly_0)
+apply (fast intro!: eucl_rel_poly_pCons)
 done
 
-lemma pdivmod_rel_unique:
-  assumes 1: "pdivmod_rel x y q1 r1"
-  assumes 2: "pdivmod_rel x y q2 r2"
+lemma eucl_rel_poly_unique:
+  assumes 1: "eucl_rel_poly x y (q1, r1)"
+  assumes 2: "eucl_rel_poly x y (q2, r2)"
   shows "q1 = q2 \<and> r1 = r2"
 proof (cases "y = 0")
   assume "y = 0" with assms show ?thesis
-    by (simp add: pdivmod_rel_def)
+    by (simp add: eucl_rel_poly_iff)
 next
   assume [simp]: "y \<noteq> 0"
   from 1 have q1: "x = q1 * y + r1" and r1: "r1 = 0 \<or> degree r1 < degree y"
-    unfolding pdivmod_rel_def by simp_all
+    unfolding eucl_rel_poly_iff by simp_all
   from 2 have q2: "x = q2 * y + r2" and r2: "r2 = 0 \<or> degree r2 < degree y"
-    unfolding pdivmod_rel_def by simp_all
+    unfolding eucl_rel_poly_iff by simp_all
   from q1 q2 have q3: "(q1 - q2) * y = r2 - r1"
     by (simp add: algebra_simps)
   from r1 r2 have r3: "(r2 - r1) = 0 \<or> degree (r2 - r1) < degree y"
@@ -1723,15 +1731,15 @@ next
   qed
 qed
 
-lemma pdivmod_rel_0_iff: "pdivmod_rel 0 y q r \<longleftrightarrow> q = 0 \<and> r = 0"
-by (auto dest: pdivmod_rel_unique intro: pdivmod_rel_0)
+lemma eucl_rel_poly_0_iff: "eucl_rel_poly 0 y (q, r) \<longleftrightarrow> q = 0 \<and> r = 0"
+by (auto dest: eucl_rel_poly_unique intro: eucl_rel_poly_0)
 
-lemma pdivmod_rel_by_0_iff: "pdivmod_rel x 0 q r \<longleftrightarrow> q = 0 \<and> r = x"
-by (auto dest: pdivmod_rel_unique intro: pdivmod_rel_by_0)
+lemma eucl_rel_poly_by_0_iff: "eucl_rel_poly x 0 (q, r) \<longleftrightarrow> q = 0 \<and> r = x"
+by (auto dest: eucl_rel_poly_unique intro: eucl_rel_poly_by_0)
 
-lemmas pdivmod_rel_unique_div = pdivmod_rel_unique [THEN conjunct1]
+lemmas eucl_rel_poly_unique_div = eucl_rel_poly_unique [THEN conjunct1]
 
-lemmas pdivmod_rel_unique_mod = pdivmod_rel_unique [THEN conjunct2]
+lemmas eucl_rel_poly_unique_mod = eucl_rel_poly_unique [THEN conjunct2]
 
 
 
@@ -2236,8 +2244,8 @@ definition modulo_poly where
     if g = 0 then f
     else pseudo_mod (smult ((1/coeff g (degree g)) ^ (Suc (degree f) - degree g)) f) g"
 
-lemma pdivmod_rel: "pdivmod_rel (x::'a::field poly) y (x div y) (x mod y)"
-  unfolding pdivmod_rel_def
+lemma eucl_rel_poly: "eucl_rel_poly (x::'a::field poly) y (x div y, x mod y)"
+  unfolding eucl_rel_poly_iff
 proof (intro conjI)
   show "x = x div y * y + x mod y"
   proof(cases "y = 0")
@@ -2261,24 +2269,24 @@ proof (intro conjI)
 qed
 
 lemma div_poly_eq:
-  "pdivmod_rel (x::'a::field poly) y q r \<Longrightarrow> x div y = q"
-  by(rule pdivmod_rel_unique_div[OF pdivmod_rel])
+  "eucl_rel_poly (x::'a::field poly) y (q, r) \<Longrightarrow> x div y = q"
+  by(rule eucl_rel_poly_unique_div[OF eucl_rel_poly])
 
 lemma mod_poly_eq:
-  "pdivmod_rel (x::'a::field poly) y q r \<Longrightarrow> x mod y = r"
-  by (rule pdivmod_rel_unique_mod[OF pdivmod_rel])
+  "eucl_rel_poly (x::'a::field poly) y (q, r) \<Longrightarrow> x mod y = r"
+  by (rule eucl_rel_poly_unique_mod[OF eucl_rel_poly])
 
 instance
 proof
   fix x y :: "'a poly"
-  from pdivmod_rel[of x y,unfolded pdivmod_rel_def]
+  from eucl_rel_poly[of x y,unfolded eucl_rel_poly_iff]
   show "x div y * y + x mod y = x" by auto
 next
   fix x y z :: "'a poly"
   assume "y \<noteq> 0"
-  hence "pdivmod_rel (x + z * y) y (z + x div y) (x mod y)"
-    using pdivmod_rel [of x y]
-    by (simp add: pdivmod_rel_def distrib_right)
+  hence "eucl_rel_poly (x + z * y) y (z + x div y, x mod y)"
+    using eucl_rel_poly [of x y]
+    by (simp add: eucl_rel_poly_iff distrib_right)
   thus "(x + z * y) div y = z + x div y"
     by (rule div_poly_eq)
 next
@@ -2286,23 +2294,23 @@ next
   assume "x \<noteq> 0"
   show "(x * y) div (x * z) = y div z"
   proof (cases "y \<noteq> 0 \<and> z \<noteq> 0")
-    have "\<And>x::'a poly. pdivmod_rel x 0 0 x"
-      by (rule pdivmod_rel_by_0)
+    have "\<And>x::'a poly. eucl_rel_poly x 0 (0, x)"
+      by (rule eucl_rel_poly_by_0)
     then have [simp]: "\<And>x::'a poly. x div 0 = 0"
       by (rule div_poly_eq)
-    have "\<And>x::'a poly. pdivmod_rel 0 x 0 0"
-      by (rule pdivmod_rel_0)
+    have "\<And>x::'a poly. eucl_rel_poly 0 x (0, 0)"
+      by (rule eucl_rel_poly_0)
     then have [simp]: "\<And>x::'a poly. 0 div x = 0"
       by (rule div_poly_eq)
     case False then show ?thesis by auto
   next
     case True then have "y \<noteq> 0" and "z \<noteq> 0" by auto
     with \<open>x \<noteq> 0\<close>
-    have "\<And>q r. pdivmod_rel y z q r \<Longrightarrow> pdivmod_rel (x * y) (x * z) q (x * r)"
-      by (auto simp add: pdivmod_rel_def algebra_simps)
+    have "\<And>q r. eucl_rel_poly y z (q, r) \<Longrightarrow> eucl_rel_poly (x * y) (x * z) (q, x * r)"
+      by (auto simp add: eucl_rel_poly_iff algebra_simps)
         (rule classical, simp add: degree_mult_eq)
-    moreover from pdivmod_rel have "pdivmod_rel y z (y div z) (y mod z)" .
-    ultimately have "pdivmod_rel (x * y) (x * z) (y div z) (x * (y mod z))" .
+    moreover from eucl_rel_poly have "eucl_rel_poly y z (y div z, y mod z)" .
+    ultimately have "eucl_rel_poly (x * y) (x * z) (y div z, x * (y mod z))" .
     then show ?thesis by (simp add: div_poly_eq)
   qed
 qed
@@ -2311,35 +2319,35 @@ end
 
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
-  using pdivmod_rel [of x y]
-  unfolding pdivmod_rel_def by simp
+  using eucl_rel_poly [of x y]
+  unfolding eucl_rel_poly_iff by simp
 
 lemma div_poly_less: "degree (x::'a::field poly) < degree y \<Longrightarrow> x div y = 0"
 proof -
   assume "degree x < degree y"
-  hence "pdivmod_rel x y 0 x"
-    by (simp add: pdivmod_rel_def)
+  hence "eucl_rel_poly x y (0, x)"
+    by (simp add: eucl_rel_poly_iff)
   thus "x div y = 0" by (rule div_poly_eq)
 qed
 
 lemma mod_poly_less: "degree x < degree y \<Longrightarrow> x mod y = x"
 proof -
   assume "degree x < degree y"
-  hence "pdivmod_rel x y 0 x"
-    by (simp add: pdivmod_rel_def)
+  hence "eucl_rel_poly x y (0, x)"
+    by (simp add: eucl_rel_poly_iff)
   thus "x mod y = x" by (rule mod_poly_eq)
 qed
 
-lemma pdivmod_rel_smult_left:
-  "pdivmod_rel x y q r
-    \<Longrightarrow> pdivmod_rel (smult a x) y (smult a q) (smult a r)"
-  unfolding pdivmod_rel_def by (simp add: smult_add_right)
+lemma eucl_rel_poly_smult_left:
+  "eucl_rel_poly x y (q, r)
+    \<Longrightarrow> eucl_rel_poly (smult a x) y (smult a q, smult a r)"
+  unfolding eucl_rel_poly_iff by (simp add: smult_add_right)
 
 lemma div_smult_left: "(smult (a::'a::field) x) div y = smult a (x div y)"
-  by (rule div_poly_eq, rule pdivmod_rel_smult_left, rule pdivmod_rel)
+  by (rule div_poly_eq, rule eucl_rel_poly_smult_left, rule eucl_rel_poly)
 
 lemma mod_smult_left: "(smult a x) mod y = smult a (x mod y)"
-  by (rule mod_poly_eq, rule pdivmod_rel_smult_left, rule pdivmod_rel)
+  by (rule mod_poly_eq, rule eucl_rel_poly_smult_left, rule eucl_rel_poly)
 
 lemma poly_div_minus_left [simp]:
   fixes x y :: "'a::field poly"
@@ -2351,23 +2359,23 @@ lemma poly_mod_minus_left [simp]:
   shows "(- x) mod y = - (x mod y)"
   using mod_smult_left [of "- 1::'a"] by simp
 
-lemma pdivmod_rel_add_left:
-  assumes "pdivmod_rel x y q r"
-  assumes "pdivmod_rel x' y q' r'"
-  shows "pdivmod_rel (x + x') y (q + q') (r + r')"
-  using assms unfolding pdivmod_rel_def
+lemma eucl_rel_poly_add_left:
+  assumes "eucl_rel_poly x y (q, r)"
+  assumes "eucl_rel_poly x' y (q', r')"
+  shows "eucl_rel_poly (x + x') y (q + q', r + r')"
+  using assms unfolding eucl_rel_poly_iff
   by (auto simp add: algebra_simps degree_add_less)
 
 lemma poly_div_add_left:
   fixes x y z :: "'a::field poly"
   shows "(x + y) div z = x div z + y div z"
-  using pdivmod_rel_add_left [OF pdivmod_rel pdivmod_rel]
+  using eucl_rel_poly_add_left [OF eucl_rel_poly eucl_rel_poly]
   by (rule div_poly_eq)
 
 lemma poly_mod_add_left:
   fixes x y z :: "'a::field poly"
   shows "(x + y) mod z = x mod z + y mod z"
-  using pdivmod_rel_add_left [OF pdivmod_rel pdivmod_rel]
+  using eucl_rel_poly_add_left [OF eucl_rel_poly eucl_rel_poly]
   by (rule mod_poly_eq)
 
 lemma poly_div_diff_left:
@@ -2380,17 +2388,17 @@ lemma poly_mod_diff_left:
   shows "(x - y) mod z = x mod z - y mod z"
   by (simp only: diff_conv_add_uminus poly_mod_add_left poly_mod_minus_left)
 
-lemma pdivmod_rel_smult_right:
-  "\<lbrakk>a \<noteq> 0; pdivmod_rel x y q r\<rbrakk>
-    \<Longrightarrow> pdivmod_rel x (smult a y) (smult (inverse a) q) r"
-  unfolding pdivmod_rel_def by simp
+lemma eucl_rel_poly_smult_right:
+  "a \<noteq> 0 \<Longrightarrow> eucl_rel_poly x y (q, r)
+    \<Longrightarrow> eucl_rel_poly x (smult a y) (smult (inverse a) q, r)"
+  unfolding eucl_rel_poly_iff by simp
 
 lemma div_smult_right:
   "(a::'a::field) \<noteq> 0 \<Longrightarrow> x div (smult a y) = smult (inverse a) (x div y)"
-  by (rule div_poly_eq, erule pdivmod_rel_smult_right, rule pdivmod_rel)
+  by (rule div_poly_eq, erule eucl_rel_poly_smult_right, rule eucl_rel_poly)
 
 lemma mod_smult_right: "a \<noteq> 0 \<Longrightarrow> x mod (smult a y) = x mod y"
-  by (rule mod_poly_eq, erule pdivmod_rel_smult_right, rule pdivmod_rel)
+  by (rule mod_poly_eq, erule eucl_rel_poly_smult_right, rule eucl_rel_poly)
 
 lemma poly_div_minus_right [simp]:
   fixes x y :: "'a::field poly"
@@ -2402,30 +2410,30 @@ lemma poly_mod_minus_right [simp]:
   shows "x mod (- y) = x mod y"
   using mod_smult_right [of "- 1::'a"] by simp
 
-lemma pdivmod_rel_mult:
-  "\<lbrakk>pdivmod_rel x y q r; pdivmod_rel q z q' r'\<rbrakk>
-    \<Longrightarrow> pdivmod_rel x (y * z) q' (y * r' + r)"
-apply (cases "z = 0", simp add: pdivmod_rel_def)
-apply (cases "y = 0", simp add: pdivmod_rel_by_0_iff pdivmod_rel_0_iff)
+lemma eucl_rel_poly_mult:
+  "eucl_rel_poly x y (q, r) \<Longrightarrow> eucl_rel_poly q z (q', r')
+    \<Longrightarrow> eucl_rel_poly x (y * z) (q', y * r' + r)"
+apply (cases "z = 0", simp add: eucl_rel_poly_iff)
+apply (cases "y = 0", simp add: eucl_rel_poly_by_0_iff eucl_rel_poly_0_iff)
 apply (cases "r = 0")
 apply (cases "r' = 0")
-apply (simp add: pdivmod_rel_def)
-apply (simp add: pdivmod_rel_def field_simps degree_mult_eq)
+apply (simp add: eucl_rel_poly_iff)
+apply (simp add: eucl_rel_poly_iff field_simps degree_mult_eq)
 apply (cases "r' = 0")
-apply (simp add: pdivmod_rel_def degree_mult_eq)
-apply (simp add: pdivmod_rel_def field_simps)
+apply (simp add: eucl_rel_poly_iff degree_mult_eq)
+apply (simp add: eucl_rel_poly_iff field_simps)
 apply (simp add: degree_mult_eq degree_add_less)
 done
 
 lemma poly_div_mult_right:
   fixes x y z :: "'a::field poly"
   shows "x div (y * z) = (x div y) div z"
-  by (rule div_poly_eq, rule pdivmod_rel_mult, (rule pdivmod_rel)+)
+  by (rule div_poly_eq, rule eucl_rel_poly_mult, (rule eucl_rel_poly)+)
 
 lemma poly_mod_mult_right:
   fixes x y z :: "'a::field poly"
   shows "x mod (y * z) = y * (x div y mod z) + x mod y"
-  by (rule mod_poly_eq, rule pdivmod_rel_mult, (rule pdivmod_rel)+)
+  by (rule mod_poly_eq, rule eucl_rel_poly_mult, (rule eucl_rel_poly)+)
 
 lemma mod_pCons:
   fixes a and x
@@ -2434,7 +2442,7 @@ lemma mod_pCons:
   shows "(pCons a x) mod y = (pCons a (x mod y) - smult b y)"
 unfolding b
 apply (rule mod_poly_eq)
-apply (rule pdivmod_rel_pCons [OF pdivmod_rel y refl])
+apply (rule eucl_rel_poly_pCons [OF eucl_rel_poly y refl])
 done
 
 definition pdivmod :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly"
@@ -2453,9 +2461,9 @@ lemma pdivmod_pCons:
         in (pCons b s, pCons a r - smult b q)))"
   apply (simp add: pdivmod_def Let_def, safe)
   apply (rule div_poly_eq)
-  apply (erule pdivmod_rel_pCons [OF pdivmod_rel _ refl])
+  apply (erule eucl_rel_poly_pCons [OF eucl_rel_poly _ refl])
   apply (rule mod_poly_eq)
-  apply (erule pdivmod_rel_pCons [OF pdivmod_rel _ refl])
+  apply (erule eucl_rel_poly_pCons [OF eucl_rel_poly _ refl])
   done
 
 lemma pdivmod_fold_coeffs:
@@ -2700,8 +2708,8 @@ qed
 (* *************** *)
 subsubsection \<open>Improved Code-Equations for Polynomial (Pseudo) Division\<close>
 
-lemma pdivmod_pdivmodrel: "pdivmod_rel p q r s = (pdivmod p q = (r, s))"
-  by (metis pdivmod_def pdivmod_rel pdivmod_rel_unique prod.sel)
+lemma pdivmod_pdivmodrel: "eucl_rel_poly p q (r, s) \<longleftrightarrow> pdivmod p q = (r, s)"
+  by (metis pdivmod_def eucl_rel_poly eucl_rel_poly_unique)
 
 lemma pdivmod_via_pseudo_divmod: "pdivmod f g = (if g = 0 then (0,f) 
      else let 
@@ -2720,7 +2728,7 @@ proof (cases "g = 0")
     unfolding Let_def h_def[symmetric] lc_def[symmetric] p by auto
   from pseudo_divmod[OF h0 p, unfolded h1] 
   have f: "f = h * q + r" and r: "r = 0 \<or> degree r < degree h" by auto
-  have "pdivmod_rel f h q r" unfolding pdivmod_rel_def using f r h0 by auto
+  have "eucl_rel_poly f h (q, r)" unfolding eucl_rel_poly_iff using f r h0 by auto
   hence "pdivmod f h = (q,r)" by (simp add: pdivmod_pdivmodrel)
   hence "pdivmod f g = (smult lc q, r)" 
     unfolding pdivmod_def h_def div_smult_right[OF lc] mod_smult_right[OF lc]
