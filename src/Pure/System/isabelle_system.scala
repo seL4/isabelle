@@ -161,21 +161,6 @@ object Isabelle_System
 
   /** file-system operations **/
 
-  /* source files of Isabelle/ML bootstrap */
-
-  def source_file(path: Path): Option[Path] =
-  {
-    def check(p: Path): Option[Path] = if (p.is_file) Some(p) else None
-
-    if (path.is_absolute || path.is_current) check(path)
-    else {
-      check(Path.explode("~~/src/Pure") + path) orElse
-        (if (getenv("ML_SOURCES") == "") None
-         else check(Path.explode("$ML_SOURCES") + path))
-    }
-  }
-
-
   /* directories */
 
   def mkdirs(path: Path): Unit =

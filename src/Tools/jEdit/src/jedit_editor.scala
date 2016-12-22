@@ -265,31 +265,19 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_source_file(focus: Boolean, source_name: String, line1: Int, offset: Symbol.Offset)
     : Option[Hyperlink] =
   {
-    val opt_name =
-      if (Path.is_wellformed(source_name)) {
-        if (Path.is_valid(source_name)) {
-          val path = Path.explode(source_name)
-          Some(File.platform_path(Isabelle_System.source_file(path) getOrElse path))
-        }
-        else None
+    for (name <- PIDE.resources.source_file(source_name)) yield {
+      JEdit_Lib.jedit_buffer(name) match {
+        case Some(buffer) if offset > 0 =>
+          val pos =
+            JEdit_Lib.buffer_lock(buffer) {
+              (Line.Position.zero /:
+                (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
+                  zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_))
+            }
+          hyperlink_file(focus, Line.Node_Position(name, pos))
+        case _ =>
+          hyperlink_file(focus, Line.Node_Position(name, Line.Position((line1 - 1) max 0)))
       }
-      else Some(source_name)
-
-    opt_name match {
-      case Some(name) =>
-        JEdit_Lib.jedit_buffer(name) match {
-          case Some(buffer) if offset > 0 =>
-            val pos =
-              JEdit_Lib.buffer_lock(buffer) {
-                (Line.Position.zero /:
-                  (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
-                    zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_))
-              }
-            Some(hyperlink_file(focus, Line.Node_Position(name, pos)))
-          case _ =>
-            Some(hyperlink_file(focus, Line.Node_Position(name, Line.Position((line1 - 1) max 0))))
-        }
-      case None => None
     }
   }
 

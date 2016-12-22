@@ -53,6 +53,30 @@ class Resources(
 
 
 
+  /* source files of Isabelle/ML bootstrap */
+
+  def source_file(raw_name: String): Option[String] =
+  {
+    if (Path.is_wellformed(raw_name)) {
+      if (Path.is_valid(raw_name)) {
+        def check(p: Path): Option[Path] = if (p.is_file) Some(p) else None
+
+        val path = Path.explode(raw_name)
+        val path1 =
+          if (path.is_absolute || path.is_current) check(path)
+          else {
+            check(Path.explode("~~/src/Pure") + path) orElse
+              (if (Isabelle_System.getenv("ML_SOURCES") == "") None
+               else check(Path.explode("$ML_SOURCES") + path))
+          }
+        Some(File.platform_path(path1 getOrElse path))
+      }
+      else None
+    }
+    else Some(raw_name)
+  }
+
+
   /* theory files */
 
   def loaded_files(syntax: Outer_Syntax, text: String): List[String] =
