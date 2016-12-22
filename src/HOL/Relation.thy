@@ -321,26 +321,51 @@ subsubsection \<open>Antisymmetry\<close>
 definition antisym :: "'a rel \<Rightarrow> bool"
   where "antisym r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r \<longrightarrow> x = y)"
 
-abbreviation antisymP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "antisymP r \<equiv> antisym {(x, y). r x y}" (* FIXME proper logical operation *)
+definition antisymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+  where "antisymp r \<longleftrightarrow> (\<forall>x y. r x y \<longrightarrow> r y x \<longrightarrow> x = y)"
 
-lemma antisymI [intro?]: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym r"
+lemma antisymp_antisym_eq [pred_set_conv]: "antisymp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> antisym r"
+  by (simp add: antisym_def antisymp_def)
+
+lemma antisymI [intro?]:
+  "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym r"
   unfolding antisym_def by iprover
 
-lemma antisymD [dest?]: "antisym r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> (b, a) \<in> r \<Longrightarrow> a = b"
+lemma antisympI [intro?]:
+  "(\<And>x y. r x y \<Longrightarrow> r y x \<Longrightarrow> x = y) \<Longrightarrow> antisymp r"
+  by (fact antisymI [to_pred])
+    
+lemma antisymD [dest?]:
+  "antisym r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> (b, a) \<in> r \<Longrightarrow> a = b"
   unfolding antisym_def by iprover
 
-lemma antisym_subset: "r \<subseteq> s \<Longrightarrow> antisym s \<Longrightarrow> antisym r"
+lemma antisympD [dest?]:
+  "antisymp r \<Longrightarrow> r a b \<Longrightarrow> r b a \<Longrightarrow> a = b"
+  by (fact antisymD [to_pred])
+
+lemma antisym_subset:
+  "r \<subseteq> s \<Longrightarrow> antisym s \<Longrightarrow> antisym r"
   unfolding antisym_def by blast
 
-lemma antisym_empty [simp]: "antisym {}"
+lemma antisymp_less_eq:
+  "r \<le> s \<Longrightarrow> antisymp s \<Longrightarrow> antisymp r"
+  by (fact antisym_subset [to_pred])
+    
+lemma antisym_empty [simp]:
+  "antisym {}"
   unfolding antisym_def by blast
 
-lemma antisymP_equality [simp]: "antisymP op ="
-  by (auto intro: antisymI)
+lemma antisym_bot [simp]:
+  "antisymp \<bottom>"
+  by (fact antisym_empty [to_pred])
+    
+lemma antisymp_equality [simp]:
+  "antisymp HOL.eq"
+  by (auto intro: antisympI)
 
-lemma antisym_singleton [simp]: "antisym {x}"
-by (blast intro: antisymI)
+lemma antisym_singleton [simp]:
+  "antisym {x}"
+  by (blast intro: antisymI)
 
 
 subsubsection \<open>Transitivity\<close>
@@ -437,20 +462,44 @@ subsubsection \<open>Single valued relations\<close>
 definition single_valued :: "('a \<times> 'b) set \<Rightarrow> bool"
   where "single_valued r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (\<forall>z. (x, z) \<in> r \<longrightarrow> y = z))"
 
-abbreviation single_valuedP :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "single_valuedP r \<equiv> single_valued {(x, y). r x y}" (* FIXME proper logical operation *)
+definition single_valuedp :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "single_valuedp r \<longleftrightarrow> (\<forall>x y. r x y \<longrightarrow> (\<forall>z. r x z \<longrightarrow> y = z))"
 
-lemma single_valuedI: "\<forall>x y. (x, y) \<in> r \<longrightarrow> (\<forall>z. (x, z) \<in> r \<longrightarrow> y = z) \<Longrightarrow> single_valued r"
-  unfolding single_valued_def .
+lemma single_valuedp_single_valued_eq [pred_set_conv]:
+  "single_valuedp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> single_valued r"
+  by (simp add: single_valued_def single_valuedp_def)
 
-lemma single_valuedD: "single_valued r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (x, z) \<in> r \<Longrightarrow> y = z"
-  by (simp add: single_valued_def)
-
-lemma single_valued_empty[simp]: "single_valued {}"
-  by (simp add: single_valued_def)
-
-lemma single_valued_subset: "r \<subseteq> s \<Longrightarrow> single_valued s \<Longrightarrow> single_valued r"
+lemma single_valuedI:
+  "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (\<And>z. (x, z) \<in> r \<Longrightarrow> y = z)) \<Longrightarrow> single_valued r"
   unfolding single_valued_def by blast
+
+lemma single_valuedpI:
+  "(\<And>x y. r x y \<Longrightarrow> (\<And>z. r x z \<Longrightarrow> y = z)) \<Longrightarrow> single_valuedp r"
+  by (fact single_valuedI [to_pred])
+
+lemma single_valuedD:
+  "single_valued r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (x, z) \<in> r \<Longrightarrow> y = z"
+  by (simp add: single_valued_def)
+
+lemma single_valuedpD:
+  "single_valuedp r \<Longrightarrow> r x y \<Longrightarrow> r x z \<Longrightarrow> y = z"
+  by (fact single_valuedD [to_pred])
+
+lemma single_valued_empty [simp]:
+  "single_valued {}"
+  by (simp add: single_valued_def)
+
+lemma single_valuedp_bot [simp]:
+  "single_valuedp \<bottom>"
+  by (fact single_valued_empty [to_pred])
+
+lemma single_valued_subset:
+  "r \<subseteq> s \<Longrightarrow> single_valued s \<Longrightarrow> single_valued r"
+  unfolding single_valued_def by blast
+
+lemma single_valuedp_less_eq:
+  "r \<le> s \<Longrightarrow> single_valuedp s \<Longrightarrow> single_valuedp r"
+  by (fact single_valued_subset [to_pred])
 
 
 subsection \<open>Relation operations\<close>

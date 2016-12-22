@@ -1573,34 +1573,29 @@ lemma rel_pmf_antisym:
   fixes p q :: "'a pmf"
   assumes 1: "rel_pmf R p q"
   assumes 2: "rel_pmf R q p"
-  and refl: "reflp R" and trans: "transp R" and antisym: "antisymP R"
+  and refl: "reflp R" and trans: "transp R" and antisym: "antisymp R"
   shows "p = q"
 proof -
   from 1 2 refl trans have "rel_pmf (inf R R\<inverse>\<inverse>) p q" by(rule rel_pmf_inf)
   also have "inf R R\<inverse>\<inverse> = op ="
-    using refl antisym by (auto intro!: ext simp add: reflpD dest: antisymD)
+    using refl antisym by (auto intro!: ext simp add: reflpD dest: antisympD)
   finally show ?thesis unfolding pmf.rel_eq .
 qed
 
 lemma reflp_rel_pmf: "reflp R \<Longrightarrow> reflp (rel_pmf R)"
-by(blast intro: reflpI rel_pmf_reflI reflpD)
+  by (fact pmf.rel_reflp)
 
-lemma antisymP_rel_pmf:
-  "\<lbrakk> reflp R; transp R; antisymP R \<rbrakk>
-  \<Longrightarrow> antisymP (rel_pmf R)"
-by(rule antisymI)(blast intro: rel_pmf_antisym)
+lemma antisymp_rel_pmf:
+  "\<lbrakk> reflp R; transp R; antisymp R \<rbrakk>
+  \<Longrightarrow> antisymp (rel_pmf R)"
+by(rule antisympI)(blast intro: rel_pmf_antisym)
 
 lemma transp_rel_pmf:
   assumes "transp R"
   shows "transp (rel_pmf R)"
-proof (rule transpI)
-  fix x y z
-  assume "rel_pmf R x y" and "rel_pmf R y z"
-  hence "rel_pmf (R OO R) x z" by (simp add: pmf.rel_compp relcompp.relcompI)
-  thus "rel_pmf R x z"
-    using assms by (metis (no_types) pmf.rel_mono rev_predicate2D transp_relcompp_less_eq)
-qed
+  using assms by (fact pmf.rel_transp)
 
+    
 subsection \<open> Distributions \<close>
 
 context

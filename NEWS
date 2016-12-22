@@ -19,7 +19,9 @@ used for formal checking.
 * Dropped aliasses RangeP, DomainP for Rangep, Domainp respectively.
 INCOMPATIBILITY.
 
-* Dropped abbreviation transP; use constant transp instead.
+* Dropped abbreviation transP, antisymP, single_valuedP;
+use constants transp, antisymp, single_valuedp instead.
+INCOMPATIBILITY.
 
 * Swapped orientation of congruence rules mod_add_left_eq,
 mod_add_right_eq, mod_add_eq, mod_mult_left_eq, mod_mult_right_eq,

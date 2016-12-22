@@ -95,8 +95,8 @@ by(auto elim!: ord_option.cases)
 lemma transp_ord_option: "transp ord \<Longrightarrow> transp (ord_option ord)"
 unfolding transp_def by(blast intro: ord_option_trans)
 
-lemma antisymP_ord_option: "antisymP ord \<Longrightarrow> antisymP (ord_option ord)"
-by(auto intro!: antisymI elim!: ord_option.cases dest: antisymD)
+lemma antisymp_ord_option: "antisymp ord \<Longrightarrow> antisymp (ord_option ord)"
+by(auto intro!: antisympI elim!: ord_option.cases dest: antisympD)
 
 lemma ord_option_chainD:
   "Complete_Partial_Order.chain (ord_option ord) Y
@@ -1508,7 +1508,7 @@ next
   fix x y
   assume "?R x y" "?R y x"
   thus "x = y"
-    by(rule rel_pmf_antisym)(simp_all add: reflp_ord_option transp_ord_option antisymP_ord_option)
+    by(rule rel_pmf_antisym)(simp_all add: reflp_ord_option transp_ord_option antisymp_ord_option)
 next
   fix Y x
   assume "Complete_Partial_Order.chain ?R Y" "x \<in> Y"

@@ -283,8 +283,8 @@ by(auto simp add: flat_ord_def)
 lemma flat_ord_antisym: "\<lbrakk> flat_ord a x y; flat_ord a y x \<rbrakk> \<Longrightarrow> x = y"
 by(auto simp add: flat_ord_def)
 
-lemma antisymP_flat_ord: "antisymP (flat_ord a)"
-by(rule antisymI)(auto dest: flat_ord_antisym)
+lemma antisymp_flat_ord: "antisymp (flat_ord a)"
+by(rule antisympI)(auto dest: flat_ord_antisym)
 
 interpretation tailrec:
   partial_function_definitions "flat_ord undefined" "flat_lub undefined"
