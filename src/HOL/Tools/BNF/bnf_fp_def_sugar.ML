@@ -168,9 +168,9 @@ sig
     term list * ((term * (term * term)) list * (int * term)) list * term
   val finish_induct_prem: Proof.context -> int -> term list ->
     term list * ((term * (term * term)) list * (int * term)) list * term -> term
-  val mk_coinduct_prem: Proof.context -> typ list -> typ list -> term list -> term -> term ->
-    term -> int -> term list -> term list list -> term list -> term list list -> typ list list ->
-    term
+  val mk_coinduct_prem: Proof.context -> typ list list -> typ list list -> term list -> term ->
+    term -> term -> int -> term list -> term list list -> term list -> term list list ->
+    typ list list -> term
   val mk_induct_attrs: term list list -> Token.src list
   val mk_coinduct_attrs: typ list -> term list list -> term list list -> int list list ->
     Token.src list * Token.src list
@@ -1646,12 +1646,12 @@ fun mk_induct_raw_prem_prems names_ctxt Xss setss_fp_nesting (x as Free (s, Type
     [([], (find_index (fn Xs => member (op =) Xs X) Xss + 1, x))]
   | mk_induct_raw_prem_prems _ _ _ _ _ = [];
 
-fun mk_induct_raw_prem modify_x names_ctxt Xss setss_fp_nesting p ctr ctr_Ts ctrXs_Ts =
+fun mk_induct_raw_prem alter_x names_ctxt Xss setss_fp_nesting p ctr ctr_Ts ctrXs_Ts =
   let
     val (xs, names_ctxt') = names_ctxt |> mk_Frees "x" ctr_Ts;
     val pprems =
       flat (map2 (mk_induct_raw_prem_prems names_ctxt' Xss setss_fp_nesting) xs ctrXs_Ts);
-    val y = Term.list_comb (ctr, map modify_x xs);
+    val y = Term.list_comb (ctr, map alter_x xs);
     val p' = enforce_type names_ctxt domain_type (fastype_of y) p;
   in (xs, pprems, HOLogic.mk_Trueprop (p' $ y)) end;
 
@@ -1670,31 +1670,34 @@ fun finish_induct_prem ctxt nn ps (xs, raw_pprems, concl) =
   fold_rev Logic.all xs (Logic.list_implies
     (map (finish_induct_prem_prem ctxt nn ps xs) raw_pprems, concl));
 
-fun mk_coinduct_prem_ctr_concls ctxt Xs fpTs rs' n k udisc usels vdisc vsels ctrXs_Ts =
+fun mk_coinduct_prem_ctr_concls ctxt Xss fpTss rs' n k udisc usels vdisc vsels ctrXs_Ts =
   let
-    fun build_the_rel rs' T Xs_T =
-      build_rel [] ctxt [] [] (fn (_, X) => nth rs' (find_index (curry (op =) X) Xs)) (T, Xs_T)
-      |> Term.subst_atomic_types (Xs ~~ fpTs);
-    fun build_rel_app rs' usel vsel Xs_T =
-      fold rapp [usel, vsel] (build_the_rel rs' (fastype_of usel) Xs_T);
+    fun build_the_rel T Xs_T =
+      build_rel [] ctxt [] [] (fn (T, X) =>
+          nth rs' (find_index (fn Xs => member (op =) Xs X) Xss)
+          |> enforce_type ctxt domain_type T)
+        (T, Xs_T)
+      |> Term.subst_atomic_types (flat Xss ~~ flat fpTss);
+    fun build_rel_app usel vsel Xs_T =
+      fold rapp [usel, vsel] (build_the_rel (fastype_of usel) Xs_T);
   in
     (if k = n then [] else [HOLogic.mk_eq (udisc, vdisc)]) @
     (if null usels then
        []
      else
        [Library.foldr HOLogic.mk_imp (if n = 1 then [] else [udisc, vdisc],
-          Library.foldr1 HOLogic.mk_conj (@{map 3} (build_rel_app rs') usels vsels ctrXs_Ts))])
+          Library.foldr1 HOLogic.mk_conj (@{map 3} build_rel_app usels vsels ctrXs_Ts))])
   end;
 
-fun mk_coinduct_prem_concl ctxt Xs fpTs rs' n udiscs uselss vdiscs vselss ctrXs_Tss =
-  @{map 6} (mk_coinduct_prem_ctr_concls ctxt Xs fpTs rs' n)
+fun mk_coinduct_prem_concl ctxt Xss fpTss rs' n udiscs uselss vdiscs vselss ctrXs_Tss =
+  @{map 6} (mk_coinduct_prem_ctr_concls ctxt Xss fpTss rs' n)
     (1 upto n) udiscs uselss vdiscs vselss ctrXs_Tss
   |> flat |> Library.foldr1 HOLogic.mk_conj
   handle List.Empty => @{term True};
 
-fun mk_coinduct_prem ctxt Xs fpTs rs' uvr u v n udiscs uselss vdiscs vselss ctrXs_Tss =
+fun mk_coinduct_prem ctxt Xss fpTss rs' uvr u v n udiscs uselss vdiscs vselss ctrXs_Tss =
   fold_rev Logic.all [u, v] (Logic.mk_implies (HOLogic.mk_Trueprop uvr,
-    HOLogic.mk_Trueprop (mk_coinduct_prem_concl ctxt Xs fpTs rs' n udiscs uselss vdiscs vselss
+    HOLogic.mk_Trueprop (mk_coinduct_prem_concl ctxt Xss fpTss rs' n udiscs uselss vdiscs vselss
       ctrXs_Tss)));
 
 fun postproc_co_induct ctxt nn prop prop_conj =
@@ -2105,7 +2108,8 @@ fun derive_coinduct_thms_for_types ctxt strong alter_r pre_bnfs dtor_coinduct dt
            uvrs us vs))
 
     fun mk_goal rs0' =
-      Logic.list_implies (@{map 9} (mk_coinduct_prem ctxt Xs fpTs (map alter_r rs0'))
+      Logic.list_implies (@{map 9} (mk_coinduct_prem ctxt (map single Xs) (map single fpTs)
+            (map alter_r rs0'))
           uvrs us vs ns udiscss uselsss vdiscss vselsss ctrXs_Tsss,
         concl);
 
