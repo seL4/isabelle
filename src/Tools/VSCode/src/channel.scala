@@ -91,7 +91,7 @@ class Channel(in: InputStream, out: OutputStream, log_file: Option[Path] = None)
   /* display message */
 
   def display_message(message_type: Int, message: String, show: Boolean = true): Unit =
-    write(Protocol.DisplayMessage(message_type, message, show))
+    write(Protocol.DisplayMessage(message_type, Output.clean_yxml(message), show))
 
   def error_message(message: String, show: Boolean = true): Unit =
     display_message(Protocol.MessageType.Error, message, show)
