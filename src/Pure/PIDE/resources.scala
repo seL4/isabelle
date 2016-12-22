@@ -52,15 +52,6 @@ class Resources(
     else raw_name
 
 
-  def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
-  {
-    val path = Path.explode(name.node)
-    if (!path.is_file) error("No such file: " + path.toString)
-
-    val reader = Scan.byte_reader(path.file)
-    try { f(reader) } finally { reader.close }
-  }
-
 
   /* theory files */
 
@@ -94,6 +85,15 @@ class Resources(
           Document.Node.Name(node, master_dir, Long_Name.qualify(no_qualifier, theory))
         }
     }
+  }
+
+  def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
+  {
+    val path = Path.explode(name.node)
+    if (!path.is_file) error("No such file: " + path.toString)
+
+    val reader = Scan.byte_reader(path.file)
+    try { f(reader) } finally { reader.close }
   }
 
   def check_thy_reader(qualifier: String, node_name: Document.Node.Name,
