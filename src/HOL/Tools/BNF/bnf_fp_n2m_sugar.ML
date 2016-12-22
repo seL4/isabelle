@@ -283,10 +283,10 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               ([induct], [inducts], rec_thmss, replicate nn [], replicate nn []))
             ||> (fn info => (SOME info, NONE))
           else
-            derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types)
+            derive_coinduct_corecs_thms_for_types lthy pre_bnfs (the corecs_args_types)
               xtor_co_induct dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs
               ctrXs_Tsss kss mss ns fp_abs_inverses abs_inverses
-              (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss ctr_sugars co_recs co_rec_defs lthy
+              (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss ctr_sugars co_recs co_rec_defs
             |> `(fn ((coinduct_thms_pairs, _), corec_thmss, corec_disc_thmss, _,
                      (corec_sel_thmsss, _)) =>
               (map snd coinduct_thms_pairs, map fst coinduct_thms_pairs, corec_thmss,

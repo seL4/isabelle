@@ -685,9 +685,9 @@ fun derive_coinduct ctxt (fpT as Type (fpT_name, fpT_args)) dtor_coinduct =
     fun mk_applied_cong arg =
       enforce_type ctxt domain_type (fastype_of arg) cong0 $ arg;
 
-    val thm = derive_coinduct_thms_for_types false mk_applied_cong [pre_bnf] dtor_coinduct
+    val thm = derive_coinduct_thms_for_types ctxt false mk_applied_cong [pre_bnf] dtor_coinduct
         dtor_ctors live_nesting_bnfs [fpT] [substXAT X] [map (map substXAT) ctrXs_Tss] [n]
-        [abs_inverse] [abs_inverse] I [ctr_defs] [morph_ctr_sugar phi ctr_sugar0] ctxt
+        [abs_inverse] [abs_inverse] I [ctr_defs] [morph_ctr_sugar phi ctr_sugar0]
       |> map snd |> the_single;
     val (attrs, _) = mk_coinduct_attrs [fpT] [ctrs0] [discs0] [ms];
   in
