@@ -466,7 +466,8 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
       range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
-            val link = PIDE.editor.hyperlink_file(true, resolve_file(name))
+            val file = resources.append_file(snapshot.node_name.master_dir, name)
+            val link = PIDE.editor.hyperlink_file(true, file)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
@@ -477,11 +478,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
             val link = PIDE.editor.hyperlink_url(name)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
-          if !props.exists(
-            { case (Markup.KIND, Markup.ML_OPEN) => true
-              case (Markup.KIND, Markup.ML_STRUCTURE) => true
-              case _ => false }) =>
+          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
             val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 

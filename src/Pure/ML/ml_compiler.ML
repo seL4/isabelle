@@ -86,7 +86,7 @@ fun report_parse_tree redirect depth name_space parse_tree =
       let
         val pos = Exn_Properties.position_of_polyml_location loc;
       in
-        is_reported pos ?
+        (is_reported pos andalso id <> 0) ?
           let
             fun markup () =
               (Markup.entityN, [(if def then Markup.defN else Markup.refN, Value.print_int id)]);
@@ -109,8 +109,6 @@ fun report_parse_tree redirect depth name_space parse_tree =
       | reported loc (PolyML.PTrefId id) = reported_entity_id false (FixedInt.toLarge id) loc
       | reported loc (PolyML.PTtype types) = reported_types loc types
       | reported loc (PolyML.PTdeclaredAt decl) = reported_entity Markup.ML_defN loc decl
-      | reported loc (PolyML.PTopenedAt decl) = reported_entity Markup.ML_openN loc decl
-      | reported loc (PolyML.PTstructureAt decl) = reported_entity Markup.ML_structureN loc decl
       | reported loc (PolyML.PTcompletions names) = reported_completions loc names
       | reported _ _ = I
     and reported_tree (loc, props) = fold (reported loc) props;

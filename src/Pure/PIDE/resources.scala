@@ -43,13 +43,37 @@ class Resources(
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
-  def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
-  {
-    val path = Path.explode(name.node)
-    if (!path.is_file) error("No such file: " + path.toString)
+  def append_file(dir: String, raw_name: String): String =
+    if (Path.is_valid(raw_name)) append(dir, Path.explode(raw_name))
+    else raw_name
 
-    val reader = Scan.byte_reader(path.file)
-    try { f(reader) } finally { reader.close }
+  def append_file_url(dir: String, raw_name: String): String =
+    if (Path.is_valid(raw_name)) "file://" + append(dir, Path.explode(raw_name))
+    else raw_name
+
+
+
+  /* source files of Isabelle/ML bootstrap */
+
+  def source_file(raw_name: String): Option[String] =
+  {
+    if (Path.is_wellformed(raw_name)) {
+      if (Path.is_valid(raw_name)) {
+        def check(p: Path): Option[Path] = if (p.is_file) Some(p) else None
+
+        val path = Path.explode(raw_name)
+        val path1 =
+          if (path.is_absolute || path.is_current) check(path)
+          else {
+            check(Path.explode("~~/src/Pure") + path) orElse
+              (if (Isabelle_System.getenv("ML_SOURCES") == "") None
+               else check(Path.explode("$ML_SOURCES") + path))
+          }
+        Some(File.platform_path(path1 getOrElse path))
+      }
+      else None
+    }
+    else Some(raw_name)
   }
 
 
@@ -85,6 +109,15 @@ class Resources(
           Document.Node.Name(node, master_dir, Long_Name.qualify(no_qualifier, theory))
         }
     }
+  }
+
+  def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
+  {
+    val path = Path.explode(name.node)
+    if (!path.is_file) error("No such file: " + path.toString)
+
+    val reader = Scan.byte_reader(path.file)
+    try { f(reader) } finally { reader.close }
   }
 
   def check_thy_reader(qualifier: String, node_name: Document.Node.Name,
@@ -133,4 +166,3 @@ class Resources(
 
   def commit(change: Session.Change) { }
 }
-

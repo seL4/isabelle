@@ -16,10 +16,10 @@ object Line
 
   object Position
   {
-    val zero: Position = Position(0, 0)
+    val zero: Position = Position()
   }
 
-  sealed case class Position(line: Int, column: Int)
+  sealed case class Position(line: Int = 0, column: Int = 0)
   {
     def line1: Int = line + 1
     def column1: Int = column + 1
@@ -44,12 +44,35 @@ object Line
 
   /* range (right-open interval) */
 
+  object Range
+  {
+    def apply(start: Position): Range = Range(start, start)
+    val zero: Range = Range(Position.zero)
+  }
+
   sealed case class Range(start: Position, stop: Position)
   {
     if (start.compare(stop) > 0)
       error("Bad line range: " + start.print + ".." + stop.print)
 
-    def print: String = start.print + ".." + stop.print
+    def print: String =
+      if (start == stop) start.print
+      else start.print + ".." + stop.print
+  }
+
+
+  /* positions within document node */
+
+  sealed case class Node_Position(name: String, pos: Position = Position.zero)
+  {
+    def line: Int = pos.line
+    def column: Int = pos.column
+  }
+
+  sealed case class Node_Range(name: String, range: Range = Range.zero)
+  {
+    def start: Position = range.start
+    def stop: Position = range.stop
   }
 
 
@@ -86,11 +109,11 @@ object Line
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
         lines_rest match {
-          case Nil => require(i == 0); Position(lines_count, 0)
+          case Nil => require(i == 0); Position(lines_count)
           case line :: ls =>
             val n = line.text.length
             if (ls.isEmpty || i <= n)
-              Position(lines_count, 0).advance(line.text.substring(n - i), length)
+              Position(lines_count).advance(line.text.substring(n - i), length)
             else move(i - (n + 1), lines_count + 1, ls)
         }
       }

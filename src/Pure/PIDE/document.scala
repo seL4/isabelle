@@ -454,6 +454,10 @@ object Document
     val load_commands: List[Command]
     def is_loaded: Boolean
 
+    def find_command(id: Document_ID.Generic): Option[(Node, Command)]
+    def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
+      : Option[Line.Node_Position]
+
     def cumulate[A](
       range: Text.Range,
       info: A,
@@ -545,15 +549,6 @@ object Document
     }
 
     def defined_command(id: Document_ID.Command): Boolean = commands.isDefinedAt(id)
-
-    def find_command(version: Version, id: Document_ID.Generic): Option[(Node, Command)] =
-      commands.get(id) orElse execs.get(id) match {
-        case None => None
-        case Some(st) =>
-          val command = st.command
-          val node = version.nodes(command.node_name)
-          if (node.commands.contains(command)) Some((node, command)) else None
-      }
 
     def the_version(id: Document_ID.Version): Version = versions.getOrElse(id, fail)
     def the_static_state(id: Document_ID.Command): Command.State = commands.getOrElse(id, fail)
@@ -793,6 +788,31 @@ object Document
         val is_loaded: Boolean = node_name.is_theory || load_commands.nonEmpty
 
 
+        /* find command */
+
+        def find_command(id: Document_ID.Generic): Option[(Node, Command)] =
+          state.commands.get(id) orElse state.execs.get(id) match {
+            case None => None
+            case Some(st) =>
+              val command = st.command
+              val node = version.nodes(command.node_name)
+              if (node.commands.contains(command)) Some((node, command)) else None
+          }
+
+        def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
+            : Option[Line.Node_Position] =
+          for ((node, command) <- find_command(id))
+          yield {
+            val name = command.node_name.node
+            val sources_iterator =
+              node.commands.iterator.takeWhile(_ != command).map(_.source) ++
+                (if (offset == 0) Iterator.empty
+                 else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
+            val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
+            Line.Node_Position(name, pos)
+          }
+
+
         /* cumulate markup */
 
         def cumulate[A](
@@ -853,4 +873,3 @@ object Document
     }
   }
 }
-

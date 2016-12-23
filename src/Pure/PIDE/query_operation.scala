@@ -208,7 +208,7 @@ class Query_Operation[Editor_Context](
     for {
       command <- state.location
       snapshot = editor.node_snapshot(command.node_name)
-      link <- editor.hyperlink_command(true, snapshot, command)
+      link <- editor.hyperlink_command(true, snapshot, command.id)
     } link.follow(editor_context)
   }
 

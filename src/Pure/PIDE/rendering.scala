@@ -39,14 +39,6 @@ abstract class Rendering(
   override def toString: String = "Rendering(" + snapshot.toString + ")"
 
 
-  /* resources */
-
-  def resolve_file(name: String): String =
-    if (Path.is_valid(name))
-      resources.append(snapshot.node_name.master_dir, Path.explode(name))
-    else name
-
-
   /* tooltips */
 
   def tooltip_margin: Int
@@ -72,10 +64,7 @@ abstract class Rendering(
             Some(Text.Info(r, (t1 + t2, info)))
 
           case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _)))
-          if kind != "" &&
-            kind != Markup.ML_DEF &&
-            kind != Markup.ML_OPEN &&
-            kind != Markup.ML_STRUCTURE =>
+          if kind != "" && kind != Markup.ML_DEF =>
             val kind1 = Word.implode(Word.explode('_', kind))
             val txt1 =
               if (name == "") kind1
@@ -89,7 +78,7 @@ abstract class Rendering(
             Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
 
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _))) =>
-            val file = resolve_file(name)
+            val file = resources.append_file(snapshot.node_name.master_dir, name)
             val text =
               if (name == file) "file " + quote(file)
               else "path " + quote(name) + "\nfile " + quote(file)

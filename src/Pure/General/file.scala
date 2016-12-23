@@ -99,11 +99,17 @@ object File
   {
     val path = raw_path.expand
     require(path.is_absolute)
-    val s = platform_path(path).replaceAll(" ", "%20")
-    if (!Platform.is_windows) "file://" + s
-    else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
-    else "file:///" + s.replace('\\', '/')
+    platform_url(platform_path(path))
   }
+
+  def platform_url(name: String): String =
+    if (name.startsWith("file://")) name
+    else {
+      val s = name.replaceAll(" ", "%20")
+      if (!Platform.is_windows) "file://" + s
+      else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
+      else "file:///" + s.replace('\\', '/')
+    }
 
 
   /* bash path */

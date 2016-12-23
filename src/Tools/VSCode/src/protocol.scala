@@ -80,6 +80,16 @@ object Protocol
       }
   }
 
+  class RequestTextDocumentPosition(name: String)
+  {
+    def unapply(json: JSON.T): Option[(Id, Line.Node_Position)] =
+      json match {
+        case RequestMessage(id, method, Some(TextDocumentPosition(node_pos))) if method == name =>
+          Some((id, node_pos))
+        case _ => None
+      }
+  }
+
 
   /* response message */
 
@@ -125,7 +135,10 @@ object Protocol
   object ServerCapabilities
   {
     val json: JSON.T =
-      Map("textDocumentSync" -> 1, "hoverProvider" -> true)
+      Map(
+        "textDocumentSync" -> 1,
+        "hoverProvider" -> true,
+        "definitionProvider" -> true)
   }
 
   object Shutdown extends Request0("shutdown")
@@ -165,26 +178,26 @@ object Protocol
 
   object Location
   {
-    def apply(uri: String, range: Line.Range): JSON.T =
-      Map("uri" -> uri, "range" -> Range(range))
+    def apply(loc: Line.Node_Range): JSON.T =
+      Map("uri" -> loc.name, "range" -> Range(loc.range))
 
-    def unapply(json: JSON.T): Option[(String, Line.Range)] =
+    def unapply(json: JSON.T): Option[Line.Node_Range] =
       for {
         uri <- JSON.string(json, "uri")
         range_json <- JSON.value(json, "range")
         range <- Range.unapply(range_json)
-      } yield (uri, range)
+      } yield Line.Node_Range(uri, range)
   }
 
   object TextDocumentPosition
   {
-    def unapply(json: JSON.T): Option[(String, Line.Position)] =
+    def unapply(json: JSON.T): Option[Line.Node_Position] =
       for {
         doc <- JSON.value(json, "textDocument")
         uri <- JSON.string(doc, "uri")
         pos_json <- JSON.value(json, "position")
         pos <- Position.unapply(pos_json)
-      } yield (uri, pos)
+      } yield Line.Node_Position(uri, pos)
   }
 
 
@@ -277,15 +290,8 @@ object Protocol
 
   /* hover request */
 
-  object Hover
+  object Hover extends RequestTextDocumentPosition("textDocument/hover")
   {
-    def unapply(json: JSON.T): Option[(Id, String, Line.Position)] =
-      json match {
-        case RequestMessage(id, "textDocument/hover", Some(TextDocumentPosition(uri, pos))) =>
-          Some((id, uri, pos))
-        case _ => None
-      }
-
     def reply(id: Id, result: Option[(Line.Range, List[String])]): JSON.T =
     {
       val res =
@@ -295,5 +301,14 @@ object Protocol
         }
       ResponseMessage(id, Some(res))
     }
+  }
+
+
+  /* goto definition request */
+
+  object GotoDefinition extends RequestTextDocumentPosition("textDocument/definition")
+  {
+    def reply(id: Id, result: List[Line.Node_Range]): JSON.T =
+      ResponseMessage(id, Some(result.map(Location.apply(_))))
   }
 }

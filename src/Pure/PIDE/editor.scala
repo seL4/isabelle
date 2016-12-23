@@ -24,11 +24,11 @@ abstract class Editor[Context]
   def remove_overlay(command: Command, fn: String, args: List[String]): Unit
 
   abstract class Hyperlink {
-    def external: Boolean
+    def external: Boolean = false
     def follow(context: Context): Unit
   }
   def hyperlink_command(
-    focus: Boolean, snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0)
+    focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
       : Option[Hyperlink]
 }
 
