@@ -64,10 +64,7 @@ abstract class Rendering(
             Some(Text.Info(r, (t1 + t2, info)))
 
           case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _)))
-          if kind != "" &&
-            kind != Markup.ML_DEF &&
-            kind != Markup.ML_OPEN &&
-            kind != Markup.ML_STRUCTURE =>
+          if kind != "" && kind != Markup.ML_DEF =>
             val kind1 = Word.implode(Word.explode('_', kind))
             val txt1 =
               if (name == "") kind1
