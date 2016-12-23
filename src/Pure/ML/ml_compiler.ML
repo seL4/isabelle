@@ -86,7 +86,7 @@ fun report_parse_tree redirect depth name_space parse_tree =
       let
         val pos = Exn_Properties.position_of_polyml_location loc;
       in
-        is_reported pos ?
+        (is_reported pos andalso id <> 0) ?
           let
             fun markup () =
               (Markup.entityN, [(if def then Markup.defN else Markup.refN, Value.print_int id)]);
