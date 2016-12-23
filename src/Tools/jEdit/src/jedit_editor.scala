@@ -280,14 +280,14 @@ class JEdit_Editor extends Editor[View]
   }
 
   override def hyperlink_command(
-    focus: Boolean, snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0)
+    focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
       : Option[Hyperlink] =
   {
     if (snapshot.is_outdated) None
     else {
-      snapshot.state.find_command(snapshot.version, command.id) match {
+      snapshot.state.find_command(snapshot.version, id) match {
         case None => None
-        case Some((node, _)) =>
+        case Some((node, command)) =>
           val name = command.node_name.node
           val sources_iterator =
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
@@ -296,16 +296,6 @@ class JEdit_Editor extends Editor[View]
           val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
           Some(hyperlink_file(focus, Line.Node_Position(name, pos)))
       }
-    }
-  }
-
-  def hyperlink_command_id(
-    focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
-      : Option[Hyperlink] =
-  {
-    snapshot.state.find_command(snapshot.version, id) match {
-      case Some((node, command)) => hyperlink_command(focus, snapshot, command, offset)
-      case None => None
     }
   }
 
@@ -332,7 +322,7 @@ class JEdit_Editor extends Editor[View]
       case Position.Item_File(name, line, offset) =>
         hyperlink_source_file(focus, name, line, offset)
       case Position.Item_Id(id, offset) =>
-        hyperlink_command_id(focus, snapshot, id, offset)
+        hyperlink_command(focus, snapshot, id, offset)
       case _ => None
     }
 
@@ -342,7 +332,7 @@ class JEdit_Editor extends Editor[View]
       case Position.Item_Def_File(name, line, offset) =>
         hyperlink_source_file(focus, name, line, offset)
       case Position.Item_Def_Id(id, offset) =>
-        hyperlink_command_id(focus, snapshot, id, offset)
+        hyperlink_command(focus, snapshot, id, offset)
       case _ => None
     }
 }
