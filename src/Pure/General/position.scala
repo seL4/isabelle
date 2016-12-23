@@ -66,40 +66,48 @@ object Position
 
   object Item_Id
   {
-    def unapply(pos: T): Option[(Long, Symbol.Offset)] =
+    def unapply(pos: T): Option[(Long, Symbol.Range)] =
       pos match {
-        case Id(id) => Some((id, Offset.unapply(pos) getOrElse 0))
+        case Id(id) =>
+          val offset = Offset.unapply(pos) getOrElse 0
+          val end_offset = End_Offset.unapply(pos) getOrElse (offset + 1)
+          Some((id, Text.Range(offset, end_offset)))
         case _ => None
       }
   }
 
   object Item_Def_Id
   {
-    def unapply(pos: T): Option[(Long, Symbol.Offset)] =
+    def unapply(pos: T): Option[(Long, Symbol.Range)] =
       pos match {
-        case Def_Id(id) => Some((id, Def_Offset.unapply(pos) getOrElse 0))
+        case Def_Id(id) =>
+          val offset = Def_Offset.unapply(pos) getOrElse 0
+          val end_offset = Def_End_Offset.unapply(pos) getOrElse (offset + 1)
+          Some((id, Text.Range(offset, end_offset)))
         case _ => None
       }
   }
 
   object Item_File
   {
-    def unapply(pos: T): Option[(String, Int, Symbol.Offset)] =
+    def unapply(pos: T): Option[(String, Int, Symbol.Range)] =
       pos match {
         case Line_File(line, name) =>
-          val offset = Position.Offset.unapply(pos) getOrElse 0
-          Some((name, line, offset))
+          val offset = Offset.unapply(pos) getOrElse 0
+          val end_offset = End_Offset.unapply(pos) getOrElse (offset + 1)
+          Some((name, line, Text.Range(offset, end_offset)))
         case _ => None
       }
   }
 
   object Item_Def_File
   {
-    def unapply(pos: T): Option[(String, Int, Symbol.Offset)] =
+    def unapply(pos: T): Option[(String, Int, Symbol.Range)] =
       pos match {
         case Def_Line_File(line, name) =>
-          val offset = Position.Def_Offset.unapply(pos) getOrElse 0
-          Some((name, line, offset))
+          val offset = Def_Offset.unapply(pos) getOrElse 0
+          val end_offset = Def_End_Offset.unapply(pos) getOrElse (offset + 1)
+          Some((name, line, Text.Range(offset, end_offset)))
         case _ => None
       }
   }

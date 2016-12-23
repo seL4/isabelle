@@ -291,11 +291,11 @@ class JEdit_Editor extends Editor[View]
     text_offset: Text.Offset, pos: Position.T): Boolean =
   {
     pos match {
-      case Position.Item_Id(id, offset) if offset > 0 =>
+      case Position.Item_Id(id, range) if range.start > 0 =>
         snapshot.find_command(id) match {
           case Some((node, command)) if snapshot.version.nodes(command.node_name) eq node =>
             node.command_start(command) match {
-              case Some(start) => text_offset == start + command.chunk.decode(offset)
+              case Some(start) => text_offset == start + command.chunk.decode(range.start)
               case None => false
             }
           case _ => false
@@ -307,20 +307,20 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_position(focus: Boolean, snapshot: Document.Snapshot, pos: Position.T)
       : Option[Hyperlink] =
     pos match {
-      case Position.Item_File(name, line, offset) =>
-        hyperlink_source_file(focus, name, line, offset)
-      case Position.Item_Id(id, offset) =>
-        hyperlink_command(focus, snapshot, id, offset)
+      case Position.Item_File(name, line, range) =>
+        hyperlink_source_file(focus, name, line, range.start)
+      case Position.Item_Id(id, range) =>
+        hyperlink_command(focus, snapshot, id, range.start)
       case _ => None
     }
 
   def hyperlink_def_position(focus: Boolean, snapshot: Document.Snapshot, pos: Position.T)
       : Option[Hyperlink] =
     pos match {
-      case Position.Item_Def_File(name, line, offset) =>
-        hyperlink_source_file(focus, name, line, offset)
-      case Position.Item_Def_Id(id, offset) =>
-        hyperlink_command(focus, snapshot, id, offset)
+      case Position.Item_Def_File(name, line, range) =>
+        hyperlink_source_file(focus, name, line, range.start)
+      case Position.Item_Def_Id(id, range) =>
+        hyperlink_command(focus, snapshot, id, range.start)
       case _ => None
     }
 }

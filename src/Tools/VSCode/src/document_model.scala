@@ -56,6 +56,6 @@ case class Document_Model(
 
   def snapshot(): Document.Snapshot = session.snapshot(node_name, text_edits)
 
-  def rendering(options: Options): VSCode_Rendering =
-    new VSCode_Rendering(this, snapshot(), options, session.resources)
+  def rendering(options: Options, text_length: Length): VSCode_Rendering =
+    new VSCode_Rendering(this, snapshot(), options, text_length, session.resources)
 }
