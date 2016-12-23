@@ -476,13 +476,18 @@ instance ..
 
 end
 
-(* FIXME instantiation char :: check_all
+instantiation char :: check_all
 begin
 
-definition
-  "check_all f = check_all (\<lambda>(x, t1). check_all (\<lambda>(y, t2).
-     f (Char x y, \<lambda>_. Code_Evaluation.App
-       (Code_Evaluation.App (Code_Evaluation.term_of Char) (t1 ())) (t2 ()))))"
+primrec check_all_char' ::
+  "(char \<times> (unit \<Rightarrow> term) \<Rightarrow> (bool \<times> term list) option) \<Rightarrow> char list \<Rightarrow> (bool \<times> term list) option"
+  where "check_all_char' f [] = None"
+  | "check_all_char' f (c # cs) = f (c, \<lambda>_. Code_Evaluation.term_of c)
+      orelse check_all_char' f cs"
+
+definition check_all_char ::
+  "(char \<times> (unit \<Rightarrow> term) \<Rightarrow> (bool \<times> term list) option) \<Rightarrow> (bool \<times> term list) option"
+  where "check_all f = check_all_char' f Enum.enum"
 
 definition enum_term_of_char :: "char itself \<Rightarrow> unit \<Rightarrow> term list"
 where
@@ -490,7 +495,7 @@ where
 
 instance ..
 
-end *)
+end
 
 instantiation option :: (check_all) check_all
 begin
