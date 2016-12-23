@@ -24,7 +24,7 @@ abstract class Editor[Context]
   def remove_overlay(command: Command, fn: String, args: List[String]): Unit
 
   abstract class Hyperlink {
-    def external: Boolean
+    def external: Boolean = false
     def follow(context: Context): Unit
   }
   def hyperlink_command(

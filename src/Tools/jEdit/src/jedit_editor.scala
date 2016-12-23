@@ -224,14 +224,14 @@ class JEdit_Editor extends Editor[View]
       case doc: Doc.Text_File if doc.name == name => doc.path
       case doc: Doc.Doc if doc.name == name => doc.path}).map(path =>
         new Hyperlink {
-          val external = !path.is_file
+          override val external = !path.is_file
           def follow(view: View): Unit = goto_doc(view, path)
           override def toString: String = "doc " + quote(name)
         })
 
   def hyperlink_url(name: String): Hyperlink =
     new Hyperlink {
-      val external = true
+      override val external = true
       def follow(view: View): Unit =
         Standard_Thread.fork("hyperlink_url") {
           try { Isabelle_System.open(Url.escape(name)) }
@@ -247,7 +247,6 @@ class JEdit_Editor extends Editor[View]
 
   def hyperlink_buffer(focus: Boolean, buffer: Buffer, offset: Text.Offset): Hyperlink =
     new Hyperlink {
-      val external = false
       def follow(view: View): Unit = goto_buffer(focus, view, buffer, offset)
       override def toString: String = "buffer " + quote(JEdit_Lib.buffer_name(buffer))
     }
@@ -257,7 +256,6 @@ class JEdit_Editor extends Editor[View]
 
   def hyperlink_file(focus: Boolean, pos: Line.Node_Position): Hyperlink =
     new Hyperlink {
-      val external = false
       def follow(view: View): Unit = goto_file(focus, view, pos)
       override def toString: String = "file " + quote(pos.name)
     }
