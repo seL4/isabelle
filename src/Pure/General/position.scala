@@ -64,7 +64,7 @@ object Position
       }
   }
 
-  object Id_Offset0
+  object Item_Id
   {
     def unapply(pos: T): Option[(Long, Symbol.Offset)] =
       pos match {
@@ -73,11 +73,33 @@ object Position
       }
   }
 
-  object Def_Id_Offset0
+  object Item_Def_Id
   {
     def unapply(pos: T): Option[(Long, Symbol.Offset)] =
       pos match {
         case Def_Id(id) => Some((id, Def_Offset.unapply(pos) getOrElse 0))
+        case _ => None
+      }
+  }
+
+  object Item_File
+  {
+    def unapply(pos: T): Option[(String, Int, Symbol.Offset)] =
+      pos match {
+        case Line_File(line, name) =>
+          val offset = Position.Offset.unapply(pos) getOrElse 0
+          Some((name, line, offset))
+        case _ => None
+      }
+  }
+
+  object Item_Def_File
+  {
+    def unapply(pos: T): Option[(String, Int, Symbol.Offset)] =
+      pos match {
+        case Def_Line_File(line, name) =>
+          val offset = Position.Def_Offset.unapply(pos) getOrElse 0
+          Some((name, line, offset))
         case _ => None
       }
   }
