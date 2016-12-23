@@ -40,19 +40,7 @@ class VSCode_Rendering(
             val file = resources.append_file_url(snapshot.node_name.master_dir, name)
             Some(Line.Node_Range(file) :: links)
 
-/* FIXME
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
-          if !props.exists(
-            { case (Markup.KIND, Markup.ML_OPEN) => true
-              case (Markup.KIND, Markup.ML_STRUCTURE) => true
-              case _ => false }) =>
-            val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
-            opt_link.map(_ :: links)
-
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_position(true, snapshot, props)
-            opt_link.map(_ :: links)
-*/
+          // FIXME more cases
 
           case _ => None
         }) match { case Text.Info(_, links) :: _ => links.reverse case _ => Nil }
