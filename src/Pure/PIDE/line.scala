@@ -46,7 +46,8 @@ object Line
 
   object Range
   {
-    val zero: Range = Range(Position.zero, Position.zero)
+    def apply(start: Position): Range = Range(start, start)
+    val zero: Range = Range(Position.zero)
   }
 
   sealed case class Range(start: Position, stop: Position)
