@@ -40,7 +40,7 @@ class VSCode_Rendering(
       val opt_text =
         try { Some(File.read(Path.explode(name))) } // FIXME content from resources/models
         catch { case ERROR(_) => None }
-      Line.Node_Range(name,
+      Line.Node_Range(File.platform_url(name),
         opt_text match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)
