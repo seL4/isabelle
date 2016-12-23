@@ -284,19 +284,7 @@ class JEdit_Editor extends Editor[View]
       : Option[Hyperlink] =
   {
     if (snapshot.is_outdated) None
-    else {
-      snapshot.state.find_command(snapshot.version, id) match {
-        case None => None
-        case Some((node, command)) =>
-          val name = command.node_name.node
-          val sources_iterator =
-            node.commands.iterator.takeWhile(_ != command).map(_.source) ++
-              (if (offset == 0) Iterator.empty
-               else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
-          val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
-          Some(hyperlink_file(focus, Line.Node_Position(name, pos)))
-      }
-    }
+    else snapshot.find_command_position(id, offset).map(hyperlink_file(focus, _))
   }
 
   def is_hyperlink_position(snapshot: Document.Snapshot,
@@ -304,7 +292,7 @@ class JEdit_Editor extends Editor[View]
   {
     pos match {
       case Position.Item_Id(id, offset) if offset > 0 =>
-        snapshot.state.find_command(snapshot.version, id) match {
+        snapshot.find_command(id) match {
           case Some((node, command)) if snapshot.version.nodes(command.node_name) eq node =>
             node.command_start(command) match {
               case Some(start) => text_offset == start + command.chunk.decode(offset)

@@ -329,7 +329,7 @@ object Isabelle
   {
     val buffer = text_area.getBuffer
     if (!snapshot.is_outdated && text != "") {
-      (snapshot.state.find_command(snapshot.version, id), PIDE.document_model(buffer)) match {
+      (snapshot.find_command(id), PIDE.document_model(buffer)) match {
         case (Some((node, command)), Some(model)) if command.node_name == model.node_name =>
           node.command_start(command) match {
             case Some(start) =>
