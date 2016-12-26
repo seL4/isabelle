@@ -200,7 +200,7 @@ class Server(
         {
           val models = st.models
           val changed = (for { entry <- models.iterator if entry._2.changed } yield entry).toList
-          val edits = for { (_, model) <- changed; edit <- model.node_edits } yield edit
+          val edits = for { (_, model) <- changed; edit <- model.node_edits(resources) } yield edit
           val models1 =
             (models /: changed)({ case (m, (uri, model)) => m + (uri -> model.unchanged) })
 

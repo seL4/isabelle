@@ -69,7 +69,7 @@ object Thy_Header extends Parse.Parser
     Outer_Syntax.init().add_keywords(bootstrap_header)
 
 
-  /* file name */
+  /* file name vs. theory name */
 
   val PURE = "Pure"
   val ML_BOOTSTRAP = "ML_Bootstrap"
@@ -93,6 +93,12 @@ object Thy_Header extends Parse.Parser
       case Base_Name(name) => ml_roots.collectFirst({ case (a, b) if a == name => b })
       case _ => None
     }
+
+  def is_ml_root(theory: String): Boolean =
+    ml_roots.exists({ case (_, b) => b == theory })
+
+  def is_bootstrap(theory: String): Boolean =
+    bootstrap_thys.exists({ case (_, b) => b == theory })
 
 
   /* header */

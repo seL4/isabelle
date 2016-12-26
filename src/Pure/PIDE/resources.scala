@@ -155,6 +155,16 @@ class Resources(
     catch { case ERROR(_) => false }
 
 
+  /* special header */
+
+  def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
+    if (Thy_Header.is_ml_root(name.theory))
+      Some(Document.Node.Header(List((import_name("", name, Thy_Header.ML_BOOTSTRAP), Position.none))))
+    else if (Thy_Header.is_bootstrap(name.theory))
+      Some(Document.Node.Header(List((import_name("", name, Thy_Header.PURE), Position.none))))
+    else None
+
+
   /* document changes */
 
   def parse_change(

@@ -20,11 +20,14 @@ case class Document_Model(
 
   def is_theory: Boolean = node_name.is_theory
 
-  lazy val node_header: Document.Node.Header =
-    if (is_theory)
-      session.resources.check_thy_reader(
-        "", node_name, new CharSequenceReader(Thy_Header.header_text(doc)), Token.Pos.command)
-    else Document.Node.no_header
+  def node_header(resources: VSCode_Resources): Document.Node.Header =
+    resources.special_header(node_name) getOrElse
+    {
+      if (is_theory)
+        session.resources.check_thy_reader(
+          "", node_name, new CharSequenceReader(Thy_Header.header_text(doc)), Token.Pos.command)
+      else Document.Node.no_header
+    }
 
 
   /* edits */
@@ -32,9 +35,9 @@ case class Document_Model(
   def text_edits: List[Text.Edit] =
     if (changed) List(Text.Edit.insert(0, doc.make_text)) else Nil
 
-  def node_edits: List[Document.Edit_Text] =
+  def node_edits(resources: VSCode_Resources): List[Document.Edit_Text] =
     if (changed) {
-      List(session.header_edit(node_name, node_header),
+      List(session.header_edit(node_name, node_header(resources)),
         node_name -> Document.Node.Clear(),
         node_name -> Document.Node.Edits(text_edits),
         node_name ->
