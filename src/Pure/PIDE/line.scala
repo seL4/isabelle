@@ -80,22 +80,25 @@ object Line
 
   object Document
   {
-    val empty: Document = new Document("", Nil)
+    val empty: Document = new Document(Nil)
 
     def apply(lines: List[Line]): Document =
       if (lines.isEmpty) empty
-      else new Document(lines.mkString("", "\n", ""), lines)
+      else new Document(lines)
 
     def apply(text: String): Document =
-      if (text.contains('\r'))
-        apply(Library.cat_lines(Library.split_lines(text).map(Library.trim_line(_))))
-      else if (text == "") Document.empty
-      else new Document(text, Library.split_lines(text).map(Line(_)))
+      if (text == "") empty
+      else if (text.contains('\r'))
+        new Document(Library.split_lines(text).map(s => Line(Library.trim_line(s))))
+      else
+        new Document(Library.split_lines(text).map(s => Line(s)))
   }
 
-  final class Document private(val text: String, val lines: List[Line])
+  final class Document private(val lines: List[Line])
   {
-    override def toString: String = text
+    def make_text: String = lines.mkString("", "\n", "")
+
+    override def toString: String = make_text
 
     override def equals(that: Any): Boolean =
       that match {

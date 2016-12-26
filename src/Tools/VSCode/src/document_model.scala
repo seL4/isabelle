@@ -30,7 +30,7 @@ case class Document_Model(
   /* edits */
 
   def text_edits: List[Text.Edit] =
-    if (changed) List(Text.Edit.insert(0, doc.text)) else Nil
+    if (changed) List(Text.Edit.insert(0, doc.make_text)) else Nil
 
   def node_edits: List[Document.Edit_Text] =
     if (changed) {
