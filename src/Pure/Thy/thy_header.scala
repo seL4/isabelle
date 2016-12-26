@@ -172,6 +172,35 @@ object Thy_Header extends Parse.Parser
 
   def read(source: CharSequence, start: Token.Pos): Thy_Header =
     read(new CharSequenceReader(source), start)
+
+
+  /* line-oriented text */
+
+  def header_text(doc: Line.Document): String =
+  {
+    val keywords = bootstrap_syntax.keywords
+    val toks = new mutable.ListBuffer[Token]
+    val iterator =
+      (for {
+        (toks, _) <-
+          doc.lines.iterator.scanLeft((List.empty[Token], Scan.Finished: Scan.Line_Context))(
+            {
+              case ((_, ctxt), line) => Token.explode_line(keywords, line.text, ctxt)
+            })
+        tok <- toks.iterator ++ Iterator.single(Token.newline)
+      } yield tok).dropWhile(tok => !tok.is_command(Thy_Header.THEORY))
+
+    @tailrec def until_begin
+    {
+      if (iterator.hasNext) {
+        val tok = iterator.next
+        toks += tok
+        if (!tok.is_begin) until_begin
+      }
+    }
+    until_begin
+    Token.implode(toks.toList)
+  }
 }
 
 

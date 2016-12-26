@@ -152,6 +152,8 @@ object Token
     (toks.toList, ctxt)
   }
 
+  val newline: Token = explode(Keyword.Keywords.empty, "\n").head
+
 
   /* implode */
 

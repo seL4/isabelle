@@ -21,16 +21,9 @@ case class Document_Model(
   def is_theory: Boolean = node_name.is_theory
 
   lazy val node_header: Document.Node.Header =
-    if (is_theory) {
-      val toks = Token.explode(Thy_Header.bootstrap_syntax.keywords, doc.text)
-      val toks1 = toks.dropWhile(tok => !tok.is_command(Thy_Header.THEORY))
-      toks1.iterator.zipWithIndex.collectFirst({ case (tok, i) if tok.is_begin => i }) match {
-        case Some(i) =>
-          session.resources.check_thy_reader("", node_name,
-            new CharSequenceReader(toks1.take(i + 1).map(_.source).mkString), Token.Pos.command)
-        case None => Document.Node.no_header
-      }
-    }
+    if (is_theory)
+      session.resources.check_thy_reader(
+        "", node_name, new CharSequenceReader(Thy_Header.header_text(doc)), Token.Pos.command)
     else Document.Node.no_header
 
 
