@@ -25,33 +25,6 @@ object JEdit_Rendering
     new JEdit_Rendering(snapshot, options)
 
 
-  /* message priorities */
-
-  private val state_pri = 1
-  private val writeln_pri = 2
-  private val information_pri = 3
-  private val tracing_pri = 4
-  private val warning_pri = 5
-  private val legacy_pri = 6
-  private val error_pri = 7
-
-  private val message_pri = Map(
-    Markup.STATE -> state_pri,
-    Markup.STATE_MESSAGE -> state_pri,
-    Markup.WRITELN -> writeln_pri,
-    Markup.WRITELN_MESSAGE -> writeln_pri,
-    Markup.INFORMATION -> information_pri,
-    Markup.INFORMATION_MESSAGE -> information_pri,
-    Markup.TRACING -> tracing_pri,
-    Markup.TRACING_MESSAGE -> tracing_pri,
-    Markup.WARNING -> warning_pri,
-    Markup.WARNING_MESSAGE -> warning_pri,
-    Markup.LEGACY -> legacy_pri,
-    Markup.LEGACY_MESSAGE -> legacy_pri,
-    Markup.ERROR -> error_pri,
-    Markup.ERROR_MESSAGE -> error_pri)
-
-
   /* popup window bounds */
 
   def popup_bounds: Double = (PIDE.options.real("jedit_popup_bounds") max 0.2) min 0.8
@@ -563,20 +536,20 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   /* gutter */
 
   private def gutter_message_pri(msg: XML.Tree): Int =
-    if (Protocol.is_error(msg)) JEdit_Rendering.error_pri
-    else if (Protocol.is_legacy(msg)) JEdit_Rendering.legacy_pri
-    else if (Protocol.is_warning(msg)) JEdit_Rendering.warning_pri
-    else if (Protocol.is_information(msg)) JEdit_Rendering.information_pri
+    if (Protocol.is_error(msg)) Rendering.error_pri
+    else if (Protocol.is_legacy(msg)) Rendering.legacy_pri
+    else if (Protocol.is_warning(msg)) Rendering.warning_pri
+    else if (Protocol.is_information(msg)) Rendering.information_pri
     else 0
 
   private lazy val gutter_message_content = Map(
-    JEdit_Rendering.information_pri ->
+    Rendering.information_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_information_icon")), information_message_color),
-    JEdit_Rendering.warning_pri ->
+    Rendering.warning_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_warning_icon")), warning_message_color),
-    JEdit_Rendering.legacy_pri ->
+    Rendering.legacy_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_legacy_icon")), warning_message_color),
-    JEdit_Rendering.error_pri ->
+    Rendering.error_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_error_icon")), error_message_color))
 
   def gutter_content(range: Text.Range): Option[(Icon, Color)] =
@@ -596,18 +569,18 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   /* squiggly underline */
 
   private lazy val squiggly_colors = Map(
-    JEdit_Rendering.writeln_pri -> writeln_color,
-    JEdit_Rendering.information_pri -> information_color,
-    JEdit_Rendering.warning_pri -> warning_color,
-    JEdit_Rendering.legacy_pri -> legacy_color,
-    JEdit_Rendering.error_pri -> error_color)
+    Rendering.writeln_pri -> writeln_color,
+    Rendering.information_pri -> information_color,
+    Rendering.warning_pri -> warning_color,
+    Rendering.legacy_pri -> legacy_color,
+    Rendering.error_pri -> error_color)
 
   def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
   {
     val results =
       snapshot.cumulate[Int](range, 0, JEdit_Rendering.squiggly_elements, _ =>
         {
-          case (pri, Text.Info(_, elem)) => Some(pri max JEdit_Rendering.message_pri(elem.name))
+          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
         })
     for {
       Text.Info(r, pri) <- results
@@ -619,19 +592,19 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   /* message output */
 
   private lazy val message_colors = Map(
-    JEdit_Rendering.writeln_pri -> writeln_message_color,
-    JEdit_Rendering.information_pri -> information_message_color,
-    JEdit_Rendering.tracing_pri -> tracing_message_color,
-    JEdit_Rendering.warning_pri -> warning_message_color,
-    JEdit_Rendering.legacy_pri -> legacy_message_color,
-    JEdit_Rendering.error_pri -> error_message_color)
+    Rendering.writeln_pri -> writeln_message_color,
+    Rendering.information_pri -> information_message_color,
+    Rendering.tracing_pri -> tracing_message_color,
+    Rendering.warning_pri -> warning_message_color,
+    Rendering.legacy_pri -> legacy_message_color,
+    Rendering.error_pri -> error_message_color)
 
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
     val results =
       snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ =>
         {
-          case (pri, Text.Info(_, elem)) => Some(pri max JEdit_Rendering.message_pri(elem.name))
+          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 

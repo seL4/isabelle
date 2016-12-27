@@ -10,6 +10,35 @@ package isabelle
 
 object Rendering
 {
+  /* message priorities */
+
+  val state_pri = 1
+  val writeln_pri = 2
+  val information_pri = 3
+  val tracing_pri = 4
+  val warning_pri = 5
+  val legacy_pri = 6
+  val error_pri = 7
+
+  val message_pri = Map(
+    Markup.STATE -> state_pri,
+    Markup.STATE_MESSAGE -> state_pri,
+    Markup.WRITELN -> writeln_pri,
+    Markup.WRITELN_MESSAGE -> writeln_pri,
+    Markup.INFORMATION -> information_pri,
+    Markup.INFORMATION_MESSAGE -> information_pri,
+    Markup.TRACING -> tracing_pri,
+    Markup.TRACING_MESSAGE -> tracing_pri,
+    Markup.WARNING -> warning_pri,
+    Markup.WARNING_MESSAGE -> warning_pri,
+    Markup.LEGACY -> legacy_pri,
+    Markup.LEGACY_MESSAGE -> legacy_pri,
+    Markup.ERROR -> error_pri,
+    Markup.ERROR_MESSAGE -> error_pri)
+
+
+  /* markup elements */
+
   private val tooltip_descriptions =
     Map(
       Markup.CITATION -> "citation",
