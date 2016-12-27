@@ -311,4 +311,43 @@ object Protocol
     def reply(id: Id, result: List[Line.Node_Range]): JSON.T =
       ResponseMessage(id, Some(result.map(Location.apply(_))))
   }
+
+
+  /* diagnostics */
+
+  object Diagnostic
+  {
+    def message(range: Line.Range, msg: String, severity: Int): Diagnostic =
+      Diagnostic(range, msg, severity = Some(severity))
+
+    val error: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Error)
+    val warning: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Warning)
+    val information: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Information)
+    val hint: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Hint)
+  }
+
+  sealed case class Diagnostic(range: Line.Range, message: String,
+    severity: Option[Int] = None, code: Option[Int] = None, source: Option[String] = None)
+  {
+    def json: JSON.T =
+      Message.empty + ("range" -> Range(range)) + ("message" -> message) ++
+      (severity match { case Some(x) => Map("severity" -> x) case None => Map.empty }) ++
+      (code match { case Some(x) => Map("code" -> x) case None => Map.empty }) ++
+      (source match { case Some(x) => Map("source" -> x) case None => Map.empty })
+  }
+
+  object DiagnosticSeverity
+  {
+    val Error = 1
+    val Warning = 2
+    val Information = 3
+    val Hint = 4
+  }
+
+  object PublishDiagnostics
+  {
+    def apply(uri: String, diagnostics: List[Diagnostic]): JSON.T =
+      Notification("textDocument/publishDiagnostics",
+        Map("uri" -> uri, "diagnostics" -> diagnostics.map(_.json)))
+  }
 }

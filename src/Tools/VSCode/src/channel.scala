@@ -99,4 +99,10 @@ class Channel(in: InputStream, out: OutputStream, log_file: Option[Path] = None)
     display_message(Protocol.MessageType.Warning, message, show)
   def writeln(message: String, show: Boolean = true): Unit =
     display_message(Protocol.MessageType.Info, message, show)
+
+
+  /* diagnostics */
+
+  def diagnostics(uri: String, diagnostics: List[Protocol.Diagnostic]): Unit =
+    write(Protocol.PublishDiagnostics(uri, diagnostics))
 }
