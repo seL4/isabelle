@@ -308,7 +308,7 @@ class Server(
           case _ => channel.log("### IGNORED")
         }
       }
-      catch { case exn: Throwable => channel.error_message(Exn.message(exn)) }
+      catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
     }
 
     @tailrec def loop()
