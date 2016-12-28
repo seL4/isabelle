@@ -183,6 +183,16 @@ class Server(
     }
 
 
+  /* syslog */
+
+  private val all_messages =
+    Session.Consumer[Prover.Message](getClass.getName) {
+      case output: Prover.Output if output.is_syslog =>
+        channel.log_writeln(XML.content(output.message))
+      case _ =>
+    }
+
+
   /* init and exit */
 
   def init(id: Protocol.Id)
@@ -226,6 +236,7 @@ class Server(
       session.phase_changed += session_phase
 
       session.commands_changed += commands_changed
+      session.all_messages += all_messages
 
       session.start(receiver =>
         Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
@@ -248,11 +259,12 @@ class Server(
             Session.Consumer(getClass.getName) {
               case Session.Inactive =>
                 session.phase_changed -= session_phase
+                session.commands_changed -= commands_changed
+                session.all_messages -= all_messages
                 reply("")
               case _ =>
             }
           session.phase_changed += session_phase
-          session.commands_changed -= commands_changed
           session.stop()
           delay_input.revoke()
           delay_output.revoke()
