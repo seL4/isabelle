@@ -31,7 +31,7 @@ object Line
         case i => i
       }
 
-    def advance(text: String, text_length: Length): Position =
+    def advance(text: String, text_length: Text.Length): Position =
       if (text.isEmpty) this
       else {
         val lines = Library.split_lines(text)
@@ -107,7 +107,7 @@ object Line
       }
     override def hashCode(): Int = lines.hashCode
 
-    def position(text_offset: Text.Offset, text_length: Length): Position =
+    def position(text_offset: Text.Offset, text_length: Text.Length): Position =
     {
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
@@ -123,12 +123,12 @@ object Line
       move(text_offset, 0, lines)
     }
 
-    def range(text_range: Text.Range, text_length: Length): Range =
+    def range(text_range: Text.Range, text_length: Text.Length): Range =
       Range(
         position(text_range.start, text_length),
         position(text_range.stop, text_length))
 
-    def offset(pos: Position, text_length: Length): Option[Text.Offset] =
+    def offset(pos: Position, text_length: Text.Length): Option[Text.Offset] =
     {
       val l = pos.line
       val c = pos.column

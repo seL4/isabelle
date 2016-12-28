@@ -27,14 +27,14 @@ object Server
   {
     try {
       var log_file: Option[Path] = None
-      var text_length = Length.encoding(default_text_length)
+      var text_length = Text.Length.encoding(default_text_length)
       var dirs: List[Path] = Nil
       var logic = default_logic
       var modes: List[String] = Nil
       var options = Options.init()
 
       def text_length_choice: String =
-        commas(Length.encodings.map(
+        commas(Text.Length.encodings.map(
           { case (a, _) => if (a == default_text_length) a + " (default)" else a }))
 
       val getopts = Getopts("""
@@ -51,7 +51,7 @@ Usage: isabelle vscode_server [OPTIONS]
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
         "L:" -> (arg => log_file = Some(Path.explode(arg))),
-        "T:" -> (arg => Length.encoding(arg)),
+        "T:" -> (arg => Text.Length.encoding(arg)),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
@@ -95,7 +95,7 @@ Usage: isabelle vscode_server [OPTIONS]
 class Server(
   channel: Channel,
   options: Options,
-  text_length: Length = Length.encoding(Server.default_text_length),
+  text_length: Text.Length = Text.Length.encoding(Server.default_text_length),
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
   modes: List[String] = Nil)
