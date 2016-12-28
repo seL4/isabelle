@@ -12,6 +12,24 @@ import isabelle._
 
 object VSCode_Rendering
 {
+  /* diagnostic messages */
+
+  private val message_severity =
+    Map(
+      Markup.WRITELN -> Protocol.DiagnosticSeverity.Hint,
+      Markup.INFORMATION -> Protocol.DiagnosticSeverity.Information,
+      Markup.WARNING -> Protocol.DiagnosticSeverity.Warning,
+      Markup.LEGACY -> Protocol.DiagnosticSeverity.Warning,
+      Markup.ERROR -> Protocol.DiagnosticSeverity.Error,
+      Markup.BAD -> Protocol.DiagnosticSeverity.Error)
+
+
+  /* markup elements */
+
+  private val diagnostics_elements =
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
+      Markup.BAD)
+
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION)
 }
@@ -20,10 +38,37 @@ class VSCode_Rendering(
     val model: Document_Model,
     snapshot: Document.Snapshot,
     options: Options,
-    text_length: Length,
     resources: Resources)
   extends Rendering(snapshot, options, resources)
 {
+  /* diagnostics */
+
+  def diagnostics: List[Text.Info[Command.Results]] =
+    snapshot.cumulate[Command.Results](
+      model.doc.full_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
+      {
+        case (res, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(i)), body)))
+        if body.nonEmpty => Some(res + (i -> msg))
+
+        case _ => None
+      })
+
+  val diagnostics_margin = options.int("vscode_diagnostics_margin")
+
+  def diagnostics_output(results: List[Text.Info[Command.Results]]): List[Protocol.Diagnostic] =
+  {
+    (for {
+      Text.Info(text_range, res) <- results.iterator
+      range = model.doc.range(text_range)
+      (_, XML.Elem(Markup(name, _), body)) <- res.iterator
+    } yield {
+      val message = Pretty.string_of(body, margin = diagnostics_margin)
+      val severity = VSCode_Rendering.message_severity.get(name)
+      Protocol.Diagnostic(range, message, severity = severity)
+    }).toList
+  }
+
+
   /* tooltips */
 
   def tooltip_margin: Int = options.int("vscode_tooltip_margin")
@@ -44,9 +89,8 @@ class VSCode_Rendering(
         opt_text match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)
-            val doc = Line.Document(text)
-            def position(offset: Symbol.Offset) = doc.position(chunk.decode(offset), text_length)
-            Line.Range(position(range.start), position(range.stop))
+            val doc = Line.Document(text, model.doc.text_length)
+            doc.range(chunk.decode(range))
           case _ =>
             Line.Range(Line.Position((line1 - 1) max 0))
         })

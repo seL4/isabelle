@@ -90,13 +90,20 @@ class Channel(in: InputStream, out: OutputStream, log_file: Option[Path] = None)
 
   /* display message */
 
-  def display_message(message_type: Int, message: String, show: Boolean = true): Unit =
-    write(Protocol.DisplayMessage(message_type, Output.clean_yxml(message), show))
+  def display_message(message_type: Int, msg: String, show: Boolean = true): Unit =
+    write(Protocol.DisplayMessage(message_type, Output.clean_yxml(msg), show))
 
-  def error_message(message: String, show: Boolean = true): Unit =
-    display_message(Protocol.MessageType.Error, message, show)
-  def warning(message: String, show: Boolean = true): Unit =
-    display_message(Protocol.MessageType.Warning, message, show)
-  def writeln(message: String, show: Boolean = true): Unit =
-    display_message(Protocol.MessageType.Info, message, show)
+  def error_message(msg: String) { display_message(Protocol.MessageType.Error, msg, true) }
+  def warning(msg: String) { display_message(Protocol.MessageType.Warning, msg, true) }
+  def writeln(msg: String) { display_message(Protocol.MessageType.Info, msg, true) }
+
+  def log_error_message(msg: String) { display_message(Protocol.MessageType.Error, msg, false) }
+  def log_warning(msg: String) { display_message(Protocol.MessageType.Warning, msg, false) }
+  def log_writeln(msg: String) { display_message(Protocol.MessageType.Info, msg, false) }
+
+
+  /* diagnostics */
+
+  def diagnostics(uri: String, diagnostics: List[Protocol.Diagnostic]): Unit =
+    write(Protocol.PublishDiagnostics(uri, diagnostics))
 }

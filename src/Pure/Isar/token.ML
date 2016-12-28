@@ -275,7 +275,7 @@ val token_kind_markup =
   | Verbatim => (Markup.verbatim, "")
   | Cartouche => (Markup.cartouche, "")
   | Comment => (Markup.comment, "")
-  | Error msg => (Markup.bad, msg)
+  | Error msg => (Markup.bad (), msg)
   | _ => (Markup.empty, "");
 
 fun keyword_reports tok = map (fn markup => ((pos_of tok, markup), ""));

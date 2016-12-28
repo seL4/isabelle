@@ -173,7 +173,7 @@ sig
   val protocolN: string
   val reportN: string val report: T
   val no_reportN: string val no_report: T
-  val badN: string val bad: T
+  val badN: string val bad: unit -> T
   val intensifyN: string val intensify: T
   val browserN: string
   val graphviewN: string
@@ -573,7 +573,8 @@ val protocolN = "protocol";
 val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
 
-val (badN, bad) = markup_elem "bad";
+val badN = "bad";
+fun bad () = (badN, serial_properties (serial ()));
 
 val (intensifyN, intensify) = markup_elem "intensify";
 

@@ -27,14 +27,14 @@ object Server
   {
     try {
       var log_file: Option[Path] = None
-      var text_length = Length.encoding(default_text_length)
+      var text_length = Text.Length.encoding(default_text_length)
       var dirs: List[Path] = Nil
       var logic = default_logic
       var modes: List[String] = Nil
       var options = Options.init()
 
       def text_length_choice: String =
-        commas(Length.encodings.map(
+        commas(Text.Length.encodings.map(
           { case (a, _) => if (a == default_text_length) a + " (default)" else a }))
 
       val getopts = Getopts("""
@@ -51,7 +51,7 @@ Usage: isabelle vscode_server [OPTIONS]
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
         "L:" -> (arg => log_file = Some(Path.explode(arg))),
-        "T:" -> (arg => Length.encoding(arg)),
+        "T:" -> (arg => Text.Length.encoding(arg)),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
@@ -88,13 +88,15 @@ Usage: isabelle vscode_server [OPTIONS]
 
   sealed case class State(
     session: Option[Session] = None,
-    models: Map[String, Document_Model] = Map.empty)
+    models: Map[String, Document_Model] = Map.empty,
+    pending_input: Set[Document.Node.Name] = Set.empty,
+    pending_output: Set[Document.Node.Name] = Set.empty)
 }
 
 class Server(
   channel: Channel,
   options: Options,
-  text_length: Length = Length.encoding(Server.default_text_length),
+  text_length: Text.Length = Text.Length.encoding(Server.default_text_length),
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
   modes: List[String] = Nil)
@@ -109,9 +111,86 @@ class Server(
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
       model <- state.value.models.get(node_pos.name)
-      rendering = model.rendering(options, text_length)
-      offset <- model.doc.offset(node_pos.pos, text_length)
+      rendering = model.rendering(options)
+      offset <- model.doc.offset(node_pos.pos)
     } yield (rendering, offset)
+
+
+  /* input from client */
+
+  private val delay_input =
+    Standard_Thread.delay_last(options.seconds("vscode_input_delay")) {
+      state.change(st =>
+        {
+          val changed =
+            (for {
+              node_name <- st.pending_input.iterator
+              model <- st.models.get(node_name.node)
+              if model.changed } yield model).toList
+          session.update(Document.Blobs.empty,
+            for { model <- changed; edit <- model.node_edits(resources) } yield edit)
+          st.copy(
+            models = (st.models /: changed) { case (ms, m) => ms + (m.uri -> m.unchanged) },
+            pending_input = Set.empty)
+        })
+    }
+
+  def update_document(uri: String, text: String)
+  {
+    state.change(st =>
+      {
+        val node_name = resources.node_name(uri)
+        val model = Document_Model(session, Line.Document(text, text_length), node_name)
+        st.copy(
+          models = st.models + (uri -> model),
+          pending_input = st.pending_input + node_name)
+      })
+    delay_input.invoke()
+  }
+
+
+  /* output to client */
+
+  private val commands_changed =
+    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+      case changed =>
+        state.change(st => st.copy(pending_output = st.pending_output ++ changed.nodes))
+        delay_output.invoke()
+    }
+
+  private val delay_output: Standard_Thread.Delay =
+    Standard_Thread.delay_last(options.seconds("vscode_output_delay")) {
+      if (session.current_state().stable_tip_version.isEmpty) delay_output.invoke()
+      else {
+        state.change(st =>
+          {
+            val changed_iterator =
+              for {
+                node_name <- st.pending_output.iterator
+                model <- st.models.get(node_name.node)
+                rendering = model.rendering(options)
+                (diagnostics, model1) <- model.publish_diagnostics(rendering)
+              } yield {
+                channel.diagnostics(model1.uri, rendering.diagnostics_output(diagnostics))
+                model1
+              }
+            st.copy(
+              models = (st.models /: changed_iterator) { case (ms, m) => ms + (m.uri -> m) },
+              pending_output = Set.empty)
+          }
+        )
+      }
+    }
+
+
+  /* syslog */
+
+  private val all_messages =
+    Session.Consumer[Prover.Message](getClass.getName) {
+      case output: Prover.Output if output.is_syslog =>
+        channel.log_writeln(XML.content(output.message))
+      case _ =>
+    }
 
 
   /* init and exit */
@@ -156,6 +235,9 @@ class Server(
         }
       session.phase_changed += session_phase
 
+      session.commands_changed += commands_changed
+      session.all_messages += all_messages
+
       session.start(receiver =>
         Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
           modes = modes, receiver = receiver))
@@ -177,11 +259,15 @@ class Server(
             Session.Consumer(getClass.getName) {
               case Session.Inactive =>
                 session.phase_changed -= session_phase
+                session.commands_changed -= commands_changed
+                session.all_messages -= all_messages
                 reply("")
               case _ =>
             }
           session.phase_changed += session_phase
           session.stop()
+          delay_input.revoke()
+          delay_output.revoke()
           st.copy(session = None)
       })
   }
@@ -189,35 +275,6 @@ class Server(
   def exit() {
     channel.log("\n")
     sys.exit(if (state.value.session.isDefined) 1 else 0)
-  }
-
-
-  /* document management */
-
-  private val delay_flush =
-    Standard_Thread.delay_last(options.seconds("editor_input_delay")) {
-      state.change(st =>
-        {
-          val models = st.models
-          val changed = (for { entry <- models.iterator if entry._2.changed } yield entry).toList
-          val edits = for { (_, model) <- changed; edit <- model.node_edits(resources) } yield edit
-          val models1 =
-            (models /: changed)({ case (m, (uri, model)) => m + (uri -> model.unchanged) })
-
-          session.update(Document.Blobs.empty, edits)
-          st.copy(models = models1)
-        })
-    }
-
-  def update_document(uri: String, text: String)
-  {
-    state.change(st =>
-      {
-        val node_name = resources.node_name(uri)
-        val model = Document_Model(session, Line.Document(text), node_name)
-        st.copy(models = st.models + (uri -> model))
-      })
-    delay_flush.invoke()
   }
 
 
@@ -231,10 +288,9 @@ class Server(
         info <- rendering.tooltip(Text.Range(offset, offset + 1))
       } yield {
         val doc = rendering.model.doc
-        val start = doc.position(info.range.start, text_length)
-        val stop = doc.position(info.range.stop, text_length)
+        val range = doc.range(info.range)
         val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
-        (Line.Range(start, stop), List("```\n" + s + "\n```"))  // FIXME proper content format
+        (range, List("```\n" + s + "\n```"))  // FIXME proper content format
       }
     channel.write(Protocol.Hover.reply(id, result))
   }
@@ -275,7 +331,7 @@ class Server(
           case _ => channel.log("### IGNORED")
         }
       }
-      catch { case exn: Throwable => channel.error_message(Exn.message(exn)) }
+      catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
     }
 
     @tailrec def loop()

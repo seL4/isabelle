@@ -31,12 +31,12 @@ object Line
         case i => i
       }
 
-    def advance(text: String, length: Length = Length): Position =
+    def advance(text: String, text_length: Text.Length): Position =
       if (text.isEmpty) this
       else {
         val lines = Library.split_lines(text)
         val l = line + lines.length - 1
-        val c = (if (l == line) column else 0) + length(Library.trim_line(lines.last))
+        val c = (if (l == line) column else 0) + text_length(Library.trim_line(lines.last))
         Position(l, c)
       }
   }
@@ -80,21 +80,14 @@ object Line
 
   object Document
   {
-    val empty: Document = new Document(Nil)
-
-    def apply(lines: List[Line]): Document =
-      if (lines.isEmpty) empty
-      else new Document(lines)
-
-    def apply(text: String): Document =
-      if (text == "") empty
-      else if (text.contains('\r'))
-        new Document(Library.split_lines(text).map(s => Line(Library.trim_line(s))))
+    def apply(text: String, text_length: Text.Length): Document =
+      if (text.contains('\r'))
+        Document(Library.split_lines(text).map(s => Line(Library.trim_line(s))), text_length)
       else
-        new Document(Library.split_lines(text).map(s => Line(s)))
+        Document(Library.split_lines(text).map(s => Line(s)), text_length)
   }
 
-  final class Document private(val lines: List[Line])
+  sealed case class Document(lines: List[Line], text_length: Text.Length)
   {
     def make_text: String = lines.mkString("", "\n", "")
 
@@ -107,7 +100,7 @@ object Line
       }
     override def hashCode(): Int = lines.hashCode
 
-    def position(offset: Text.Offset, length: Length = Length): Position =
+    def position(text_offset: Text.Offset): Position =
     {
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
@@ -116,25 +109,34 @@ object Line
           case line :: ls =>
             val n = line.text.length
             if (ls.isEmpty || i <= n)
-              Position(lines_count).advance(line.text.substring(n - i), length)
+              Position(lines_count).advance(line.text.substring(n - i), text_length)
             else move(i - (n + 1), lines_count + 1, ls)
         }
       }
-      move(offset, 0, lines)
+      move(text_offset, 0, lines)
     }
 
-    def offset(pos: Position, length: Length = Length): Option[Text.Offset] =
+    def range(text_range: Text.Range): Range =
+      Range(position(text_range.start), position(text_range.stop))
+
+    def offset(pos: Position): Option[Text.Offset] =
     {
       val l = pos.line
       val c = pos.column
       if (0 <= l && l < lines.length) {
         val line_offset =
           if (l == 0) 0
-          else (0 /: lines.iterator.take(l - 1))({ case (n, line) => n + length(line.text) + 1 })
-        length.offset(lines(l).text, c).map(line_offset + _)
+          else (0 /: lines.iterator.take(l - 1)) { case (n, line) => n + text_length(line.text) + 1 }
+        text_length.offset(lines(l).text, c).map(line_offset + _)
       }
       else None
     }
+
+    lazy val end_offset: Text.Offset =
+      if (lines.isEmpty) 0
+      else ((0 /: lines) { case (n, line) => n + text_length(line.text) + 1 }) - 1
+
+    def full_range: Text.Range = Text.Range(0, end_offset)
   }
 
 
@@ -147,8 +149,6 @@ object Line
 final class Line private(val text: String)
 {
   require(text.forall(c => c != '\r' && c != '\n'))
-
-  lazy val length_codepoints: Int = Codepoint.iterator(text).length
 
   override def equals(that: Any): Boolean =
     that match {

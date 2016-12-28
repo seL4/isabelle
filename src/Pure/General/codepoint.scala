@@ -25,7 +25,7 @@ object Codepoint
 
   def length(s: String): Int = iterator(s).length
 
-  trait Length extends isabelle.Length
+  trait Length extends Text.Length
   {
     protected def codepoint_length(c: Int): Int = 1
 
@@ -34,7 +34,7 @@ object Codepoint
 
     def offset(s: String, i: Int): Option[Text.Offset] =
     {
-      if (i <= 0 || s.forall(_ < 0x80)) isabelle.Length.offset(s, i)
+      if (i <= 0 || s.forall(_ < 0x80)) Text.Length.offset(s, i)
       else {
         val length = s.length
         var offset = 0

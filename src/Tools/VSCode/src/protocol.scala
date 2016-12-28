@@ -311,4 +311,32 @@ object Protocol
     def reply(id: Id, result: List[Line.Node_Range]): JSON.T =
       ResponseMessage(id, Some(result.map(Location.apply(_))))
   }
+
+
+  /* diagnostics */
+
+  sealed case class Diagnostic(range: Line.Range, message: String,
+    severity: Option[Int] = None, code: Option[Int] = None, source: Option[String] = None)
+  {
+    def json: JSON.T =
+      Message.empty + ("range" -> Range(range)) + ("message" -> message) ++
+      (severity match { case Some(x) => Map("severity" -> x) case None => Map.empty }) ++
+      (code match { case Some(x) => Map("code" -> x) case None => Map.empty }) ++
+      (source match { case Some(x) => Map("source" -> x) case None => Map.empty })
+  }
+
+  object DiagnosticSeverity
+  {
+    val Error = 0
+    val Warning = 1
+    val Information = 2
+    val Hint = 3
+  }
+
+  object PublishDiagnostics
+  {
+    def apply(uri: String, diagnostics: List[Diagnostic]): JSON.T =
+      Notification("textDocument/publishDiagnostics",
+        Map("uri" -> uri, "diagnostics" -> diagnostics.map(_.json)))
+  }
 }

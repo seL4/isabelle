@@ -991,7 +991,7 @@ ML \<open>
 local
 
 fun report_back () =
-  Output.report [Markup.markup Markup.bad "Explicit backtracking"];
+  Output.report [Markup.markup (Markup.bad ()) "Explicit backtracking"];
 
 val _ =
   Outer_Syntax.command @{command_keyword back} "explicit backtracking of proof command"
