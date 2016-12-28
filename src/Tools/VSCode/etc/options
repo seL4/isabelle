@@ -1,5 +1,11 @@
 (* :mode=isabelle-options: *)
 
+option vscode_input_delay : real = 0.3
+  -- "delay for client input (edits)"
+
+option vscode_output_delay : real = 0.5
+  -- "delay for client output (rendering)"
+
 option vscode_tooltip_margin : int = 60
   -- "margin for pretty-printing of tooltips"
 

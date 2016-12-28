@@ -118,7 +118,7 @@ class Server(
   /* input from client */
 
   private val delay_input =
-    Standard_Thread.delay_last(options.seconds("editor_input_delay")) {
+    Standard_Thread.delay_last(options.seconds("vscode_input_delay")) {
       state.change(st =>
         {
           val changed = (for { entry <- st.models.iterator if entry._2.changed } yield entry).toList
@@ -151,7 +151,7 @@ class Server(
     }
 
   private val delay_output =
-    Standard_Thread.delay_last(options.seconds("editor_update_delay")) {
+    Standard_Thread.delay_last(options.seconds("vscode_output_delay")) {
       state.change(st =>
         {
           val changed_iterator =
