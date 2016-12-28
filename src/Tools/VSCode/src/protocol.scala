@@ -315,17 +315,6 @@ object Protocol
 
   /* diagnostics */
 
-  object Diagnostic
-  {
-    def message(range: Line.Range, msg: String, severity: Int): Diagnostic =
-      Diagnostic(range, msg, severity = Some(severity))
-
-    val error: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Error)
-    val warning: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Warning)
-    val information: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Information)
-    val hint: (Line.Range, String) => Diagnostic = message(_, _, DiagnosticSeverity.Hint)
-  }
-
   sealed case class Diagnostic(range: Line.Range, message: String,
     severity: Option[Int] = None, code: Option[Int] = None, source: Option[String] = None)
   {
