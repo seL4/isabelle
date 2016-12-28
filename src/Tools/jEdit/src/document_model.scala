@@ -69,6 +69,9 @@ object Document_Model
 
 class Document_Model(val session: Session, val buffer: Buffer, val node_name: Document.Node.Name)
 {
+  override def toString: String = node_name.toString
+
+
   /* header */
 
   def is_theory: Boolean = node_name.is_theory

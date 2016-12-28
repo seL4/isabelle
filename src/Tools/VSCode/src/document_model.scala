@@ -17,6 +17,9 @@ case class Document_Model(
   changed: Boolean = true,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil)
 {
+  override def toString: String = node_name.toString
+
+
   /* header */
 
   def is_theory: Boolean = node_name.is_theory
