@@ -152,7 +152,7 @@ lemma MOST_INFM: "infinite (UNIV::'a set) \<Longrightarrow> MOST x::'a. P x \<Lo
   by (simp add: eventually_frequently)
 
 lemma MOST_Suc_iff: "(MOST n. P (Suc n)) \<longleftrightarrow> (MOST n. P n)"
-  by (simp add: cofinite_eq_sequentially eventually_sequentially_Suc)
+  by (simp add: cofinite_eq_sequentially)
 
 lemma
   shows MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
@@ -317,7 +317,7 @@ using \<open>finite A\<close> A
 proof (induction A)
   case (insert a A)
   with R show ?case
-    by (metis empty_iff insert_iff) 
+    by (metis empty_iff insert_iff)
 qed simp
 
 corollary Union_maximal_sets:
