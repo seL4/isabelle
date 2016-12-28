@@ -116,7 +116,7 @@ fun reports_of_token keywords tok =
       Input.source_explode (Token.input_of tok)
       |> map_filter (fn (sym, pos) =>
           if Symbol.is_malformed sym
-          then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
+          then SOME ((pos, Markup.bad ()), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
     val reports = Token.reports keywords tok @ Token.completion_report tok @ malformed_symbols;
   in (is_malformed, reports) end;
@@ -242,7 +242,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
         let
           val _ = status tr Markup.failed;
           val _ = status tr Markup.finished;
-          val _ = if null errs then (report tr Markup.bad; Exn.interrupt ()) else ();
+          val _ = if null errs then (report tr (Markup.bad ()); Exn.interrupt ()) else ();
         in {failed = true, command = tr, state = st} end
     | SOME st' =>
         let

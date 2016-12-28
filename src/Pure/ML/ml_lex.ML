@@ -147,7 +147,7 @@ fun token_kind_markup SML =
   | Char => (Markup.ML_char, "")
   | String => (if SML then Markup.SML_string else Markup.ML_string, "")
   | Comment => (if SML then Markup.SML_comment else Markup.ML_comment, "")
-  | Error msg => (Markup.bad, msg)
+  | Error msg => (Markup.bad (), msg)
   | _ => (Markup.empty, "");
 
 in

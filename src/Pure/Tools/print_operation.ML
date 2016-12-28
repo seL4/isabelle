@@ -49,7 +49,7 @@ val _ =
     (fn {state, args, writeln_result, ...} =>
       let
         val _ = Toplevel.context_of state handle Toplevel.UNDEF => error "Unknown context";
-        fun err s = Pretty.mark_str (Markup.bad, s);
+        fun err s = Pretty.mark_str (Markup.bad (), s);
         fun print name =
           (case AList.lookup (op =) (Synchronized.value print_operations) name of
             SOME (_, pr) => (pr state handle Toplevel.UNDEF => [err "Unknown context"])

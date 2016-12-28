@@ -375,7 +375,7 @@ fun parse_tree ctxt root input =
 
 fun parse_failed ctxt pos msg kind =
   cat_error msg ("Failed to parse " ^ kind ^
-    Markup.markup_report (Context_Position.reported_text ctxt pos Markup.bad ""));
+    Markup.markup_report (Context_Position.reported_text ctxt pos (Markup.bad ()) ""));
 
 fun parse_sort ctxt =
   Syntax.parse_input ctxt Term_XML.Decode.sort Markup.language_sort
@@ -746,7 +746,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
       | token_trans "_free" x = SOME (Pretty.marks_str (free_or_skolem ctxt x))
       | token_trans "_bound" x = SOME (Pretty.mark_str (Markup.bound, x))
-      | token_trans "_loose" x = SOME (Pretty.mark_str (Markup.bad, x))
+      | token_trans "_loose" x = SOME (Pretty.mark_str (Markup.bad (), x))
       | token_trans "_var" x = SOME (Pretty.mark_str (var_or_skolem x))
       | token_trans "_numeral" x = SOME (Pretty.mark_str (Markup.numeral, x))
       | token_trans "_inner_string" x = SOME (Pretty.mark_str (Markup.inner_string, x))

@@ -217,7 +217,7 @@ fun reports_text_of (xsym, pos) =
   (case xsym of
     Delim s =>
       if Position.is_reported pos andalso exists Symbol.is_utf8 (Symbol.explode s) then
-        [((pos, Markup.bad),
+        [((pos, Markup.bad ()),
           "Mixfix delimiter contains raw Unicode -- this is non-portable and unreliable")]
       else []
   | _ => []);

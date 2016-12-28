@@ -502,13 +502,9 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
       snapshot.cumulate[List[Text.Info[Command.Results.Entry]]](
         range, Nil, JEdit_Rendering.tooltip_message_elements, _ =>
         {
-          case (msgs, Text.Info(info_range, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
-          if body.nonEmpty =>
-            val entry: Command.Results.Entry = (Document_ID.make(), msg)
-            Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
-
           case (msgs, Text.Info(info_range,
-            XML.Elem(Markup(name, props @ Markup.Serial(serial)), body))) =>
+            XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
+          if body.nonEmpty =>
             val entry: Command.Results.Entry =
               serial -> XML.Elem(Markup(Markup.message(name), props), body)
             Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
