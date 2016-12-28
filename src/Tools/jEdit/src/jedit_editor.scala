@@ -270,7 +270,7 @@ class JEdit_Editor extends Editor[View]
             JEdit_Lib.buffer_lock(buffer) {
               (Line.Position.zero /:
                 (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
-                  zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_))
+                  zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_, Length))
             }
           hyperlink_file(focus, Line.Node_Position(name, pos))
         case _ =>

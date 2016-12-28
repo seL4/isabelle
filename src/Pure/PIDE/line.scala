@@ -31,12 +31,12 @@ object Line
         case i => i
       }
 
-    def advance(text: String, length: Length = Length): Position =
+    def advance(text: String, text_length: Length): Position =
       if (text.isEmpty) this
       else {
         val lines = Library.split_lines(text)
         val l = line + lines.length - 1
-        val c = (if (l == line) column else 0) + length(Library.trim_line(lines.last))
+        val c = (if (l == line) column else 0) + text_length(Library.trim_line(lines.last))
         Position(l, c)
       }
   }
@@ -107,7 +107,7 @@ object Line
       }
     override def hashCode(): Int = lines.hashCode
 
-    def position(offset: Text.Offset, length: Length = Length): Position =
+    def position(text_offset: Text.Offset, text_length: Length): Position =
     {
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
@@ -116,27 +116,27 @@ object Line
           case line :: ls =>
             val n = line.text.length
             if (ls.isEmpty || i <= n)
-              Position(lines_count).advance(line.text.substring(n - i), length)
+              Position(lines_count).advance(line.text.substring(n - i), text_length)
             else move(i - (n + 1), lines_count + 1, ls)
         }
       }
-      move(offset, 0, lines)
+      move(text_offset, 0, lines)
     }
 
-    def range(text_range: Text.Range, length: Length = Length): Range =
+    def range(text_range: Text.Range, text_length: Length): Range =
       Range(
-        position(text_range.start, length),
-        position(text_range.stop, length))
+        position(text_range.start, text_length),
+        position(text_range.stop, text_length))
 
-    def offset(pos: Position, length: Length = Length): Option[Text.Offset] =
+    def offset(pos: Position, text_length: Length): Option[Text.Offset] =
     {
       val l = pos.line
       val c = pos.column
       if (0 <= l && l < lines.length) {
         val line_offset =
           if (l == 0) 0
-          else (0 /: lines.iterator.take(l - 1))({ case (n, line) => n + length(line.text) + 1 })
-        length.offset(lines(l).text, c).map(line_offset + _)
+          else (0 /: lines.iterator.take(l - 1)) { case (n, line) => n + text_length(line.text) + 1 }
+        text_length.offset(lines(l).text, c).map(line_offset + _)
       }
       else None
     }
