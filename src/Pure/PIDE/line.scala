@@ -150,8 +150,6 @@ final class Line private(val text: String)
 {
   require(text.forall(c => c != '\r' && c != '\n'))
 
-  lazy val length_codepoints: Int = Codepoint.iterator(text).length
-
   override def equals(that: Any): Boolean =
     that match {
       case other: Line => text == other.text
