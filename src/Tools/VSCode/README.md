@@ -13,7 +13,7 @@
 * Preferences / User settings / edit settings.json: e.g.
     `"isabelle.home": "/home/makarius/isabelle/repos"`
 
-* Extensions / ... / Install from VSIX: `src/Tools/VSCode/extension/isabelle-0.0.1.vsix`
+* Extensions / ... / Install from VSIX: `src/Tools/VSCode/extension/isabelle-0.1.0.vsix`
 
 * File / Open Folder: e.g. `src/HOL/Isar_Examples/` then open .thy files
 
