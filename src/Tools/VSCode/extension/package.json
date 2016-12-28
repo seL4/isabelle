@@ -11,7 +11,7 @@
         ],
     "icon": "isabelle.png",
     "version": "0.1.0",
-    "publisher": "Makarius",
+    "publisher": "makarius",
     "license": "BSD-3-Clause",
     "repository": { "url": "http://isabelle.in.tum.de/repos/isabelle" },
     "engines": { "vscode": "^1.5.0" },

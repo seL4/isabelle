@@ -4,27 +4,30 @@
 * Language Server protocol implementation ([Isabelle/Scala](src/server.scala))
 
 
-## Build and run ##
+## Run ##
 
 * shell> `isabelle build -b HOL`
 
-* shell> `cd src/Tools/VSCode/extension; vsce package`
+* Extensions: search "Isabelle 0.1.0", click "Install"
 
 * Preferences / User settings / edit settings.json: e.g.
     `"isabelle.home": "/home/makarius/isabelle/repos"`
 
-* Extensions / ... / Install from VSIX: `src/Tools/VSCode/extension/isabelle-0.1.0.vsix`
-
 * File / Open Folder: e.g. `src/HOL/Isar_Examples/` then open .thy files
 
 
-## Debug
+## Debug ##
 
 * shell> `code src/Tools/VSCode/extension`
 
 * View / Debug / Launch Extension
 
 * File / Open Folder: e.g. `src/HOL/Isar_Examples/` then open .thy files
+
+
+## Build ##
+
+* shell> `cd src/Tools/VSCode/extension; vsce package`
 
 
 ## Relevant links ##
