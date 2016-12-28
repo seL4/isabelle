@@ -89,6 +89,7 @@ Usage: isabelle vscode_server [OPTIONS]
   sealed case class State(
     session: Option[Session] = None,
     models: Map[String, Document_Model] = Map.empty,
+    pending_input: Set[Document.Node.Name] = Set.empty,
     pending_output: Set[Document.Node.Name] = Set.empty)
 }
 
@@ -121,11 +122,16 @@ class Server(
     Standard_Thread.delay_last(options.seconds("vscode_input_delay")) {
       state.change(st =>
         {
-          val changed = (for { entry <- st.models.iterator if entry._2.changed } yield entry).toList
-          val edits = for { (_, model) <- changed; edit <- model.node_edits(resources) } yield edit
-          session.update(Document.Blobs.empty, edits)
+          val changed =
+            (for {
+              node_name <- st.pending_input.iterator
+              model <- st.models.get(node_name.node)
+              if model.changed } yield model).toList
+          session.update(Document.Blobs.empty,
+            for { model <- changed; edit <- model.node_edits(resources) } yield edit)
           st.copy(
-            models = (st.models /: changed)({ case (ms, (uri, m)) => ms + (uri -> m.unchanged) }))
+            models = (st.models /: changed) { case (ms, m) => ms + (m.uri -> m.unchanged) },
+            pending_input = Set.empty)
         })
     }
 
@@ -135,7 +141,9 @@ class Server(
       {
         val node_name = resources.node_name(uri)
         val model = Document_Model(session, Line.Document(text, text_length), node_name)
-        st.copy(models = st.models + (uri -> model))
+        st.copy(
+          models = st.models + (uri -> model),
+          pending_input = st.pending_input + node_name)
       })
     delay_input.invoke()
   }
@@ -157,16 +165,15 @@ class Server(
           val changed_iterator =
             for {
               node_name <- st.pending_output.iterator
-              uri = node_name.node
-              model <- st.models.get(uri)
+              model <- st.models.get(node_name.node)
               rendering = model.rendering(options)
               (diagnostics, model1) <- model.publish_diagnostics(rendering)
             } yield {
-              channel.diagnostics(uri, rendering.diagnostics_output(diagnostics))
-              (uri, model1)
+              channel.diagnostics(model1.uri, rendering.diagnostics_output(diagnostics))
+              model1
             }
           st.copy(
-            models = (st.models /: changed_iterator) { case (ms, (uri, m)) => ms + (uri -> m) },
+            models = (st.models /: changed_iterator) { case (ms, m) => ms + (m.uri -> m) },
             pending_output = Set.empty)
         })
     }

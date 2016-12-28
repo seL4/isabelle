@@ -20,9 +20,13 @@ case class Document_Model(
   override def toString: String = node_name.toString
 
 
-  /* header */
+  /* name */
 
+  def uri: String = node_name.node
   def is_theory: Boolean = node_name.is_theory
+
+
+  /* header */
 
   def node_header(resources: VSCode_Resources): Document.Node.Header =
     resources.special_header(node_name) getOrElse
