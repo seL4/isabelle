@@ -59,7 +59,7 @@ class VSCode_Rendering(
   {
     (for {
       Text.Info(text_range, res) <- results.iterator
-      range = model.doc.range(text_range, model.text_length)
+      range = model.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
       val message = Pretty.string_of(body, margin = diagnostics_margin)
@@ -89,10 +89,8 @@ class VSCode_Rendering(
         opt_text match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)
-            val doc = Line.Document(text)
-            def position(offset: Symbol.Offset) =
-              doc.position(chunk.decode(offset), model.text_length)
-            Line.Range(position(range.start), position(range.stop))
+            val doc = Line.Document(text, model.doc.text_length)
+            doc.range(chunk.decode(range))
           case _ =>
             Line.Range(Line.Position((line1 - 1) max 0))
         })

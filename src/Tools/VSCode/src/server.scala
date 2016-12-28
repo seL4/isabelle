@@ -111,7 +111,7 @@ class Server(
     for {
       model <- state.value.models.get(node_pos.name)
       rendering = model.rendering(options)
-      offset <- model.doc.offset(node_pos.pos, text_length)
+      offset <- model.doc.offset(node_pos.pos)
     } yield (rendering, offset)
 
 
@@ -134,7 +134,7 @@ class Server(
     state.change(st =>
       {
         val node_name = resources.node_name(uri)
-        val model = Document_Model(session, Line.Document(text), node_name, text_length)
+        val model = Document_Model(session, Line.Document(text, text_length), node_name)
         st.copy(models = st.models + (uri -> model))
       })
     delay_input.invoke()
@@ -265,7 +265,7 @@ class Server(
         info <- rendering.tooltip(Text.Range(offset, offset + 1))
       } yield {
         val doc = rendering.model.doc
-        val range = doc.range(info.range, text_length)
+        val range = doc.range(info.range)
         val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
         (range, List("```\n" + s + "\n```"))  // FIXME proper content format
       }

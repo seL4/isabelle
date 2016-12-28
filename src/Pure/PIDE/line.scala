@@ -80,21 +80,14 @@ object Line
 
   object Document
   {
-    val empty: Document = new Document(Nil)
-
-    def apply(lines: List[Line]): Document =
-      if (lines.isEmpty) empty
-      else new Document(lines)
-
-    def apply(text: String): Document =
-      if (text == "") empty
-      else if (text.contains('\r'))
-        new Document(Library.split_lines(text).map(s => Line(Library.trim_line(s))))
+    def apply(text: String, text_length: Text.Length): Document =
+      if (text.contains('\r'))
+        Document(Library.split_lines(text).map(s => Line(Library.trim_line(s))), text_length)
       else
-        new Document(Library.split_lines(text).map(s => Line(s)))
+        Document(Library.split_lines(text).map(s => Line(s)), text_length)
   }
 
-  final class Document private(val lines: List[Line])
+  sealed case class Document(lines: List[Line], text_length: Text.Length)
   {
     def make_text: String = lines.mkString("", "\n", "")
 
@@ -107,7 +100,7 @@ object Line
       }
     override def hashCode(): Int = lines.hashCode
 
-    def position(text_offset: Text.Offset, text_length: Text.Length): Position =
+    def position(text_offset: Text.Offset): Position =
     {
       @tailrec def move(i: Text.Offset, lines_count: Int, lines_rest: List[Line]): Position =
       {
@@ -123,12 +116,10 @@ object Line
       move(text_offset, 0, lines)
     }
 
-    def range(text_range: Text.Range, text_length: Text.Length): Range =
-      Range(
-        position(text_range.start, text_length),
-        position(text_range.stop, text_length))
+    def range(text_range: Text.Range): Range =
+      Range(position(text_range.start), position(text_range.stop))
 
-    def offset(pos: Position, text_length: Text.Length): Option[Text.Offset] =
+    def offset(pos: Position): Option[Text.Offset] =
     {
       val l = pos.line
       val c = pos.column

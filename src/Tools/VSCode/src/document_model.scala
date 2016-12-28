@@ -13,7 +13,7 @@ import scala.util.parsing.input.CharSequenceReader
 
 
 case class Document_Model(
-  session: Session, doc: Line.Document, node_name: Document.Node.Name, text_length: Text.Length,
+  session: Session, doc: Line.Document, node_name: Document.Node.Name,
   changed: Boolean = true,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil)
 {
