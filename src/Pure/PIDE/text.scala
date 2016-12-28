@@ -25,6 +25,7 @@ object Text
   {
     def apply(start: Offset): Range = Range(start, start)
 
+    val full: Range = apply(0, Integer.MAX_VALUE / 2)
     val offside: Range = apply(-1)
 
     object Ordering extends scala.math.Ordering[Text.Range]
@@ -79,7 +80,7 @@ object Text
   {
     val empty: Perspective = Perspective(Nil)
 
-    def full: Perspective = Perspective(List(Range(0, Integer.MAX_VALUE / 2)))
+    def full: Perspective = Perspective(List(Range.full))
 
     def apply(ranges: Seq[Range]): Perspective =
     {
