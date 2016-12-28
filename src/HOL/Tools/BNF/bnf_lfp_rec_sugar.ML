@@ -62,21 +62,20 @@ sig
   val lfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val primrec: rec_option list -> (binding * typ option * mixfix) list ->
+  val primrec: bool -> rec_option list -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> local_theory ->
     (term list * thm list * thm list list) * local_theory
-  val primrec_cmd: rec_option list -> (binding * string option * mixfix) list ->
+  val primrec_cmd: bool -> rec_option list -> (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> local_theory ->
     (term list * thm list * thm list list) * local_theory
-  val primrec_global: rec_option list -> (binding * typ option * mixfix) list ->
+  val primrec_global: bool -> rec_option list -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
-  val primrec_overloaded: rec_option list -> (string * (string * typ) * bool) list ->
+  val primrec_overloaded: bool -> rec_option list -> (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
-  val primrec_simple: ((binding * typ) * mixfix) list -> term list ->
-    local_theory ->
-    ((string list * (binding -> binding) list) *
-    (term list * thm list * (int list list * thm list list))) * local_theory
+  val primrec_simple: bool -> ((binding * typ) * mixfix) list -> term list -> local_theory ->
+    ((string list * (binding -> binding) list)
+     * (term list * thm list * (int list list * thm list list))) * local_theory
 end;
 
 structure BNF_LFP_Rec_Sugar : BNF_LFP_REC_SUGAR =
@@ -179,6 +178,8 @@ fun default_basic_lfp_sugars_of _ [Type (arg_T_name, _)] _ _ ctxt =
     in
       ([], [0], [basic_lfp_sugar], [], [], [], TrueI (*dummy*), [], false, ctxt)
     end
+  | default_basic_lfp_sugars_of _ [T] _ _ ctxt =
+    error ("Cannot recurse through type " ^ quote (Syntax.string_of_typ ctxt T))
   | default_basic_lfp_sugars_of _ _ _ _ _ = error "Unsupported mutual recursion at this stage";
 
 fun basic_lfp_sugars_of bs arg_Ts callers callssss lthy =
@@ -605,7 +606,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
       lthy |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;
 
-fun primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
+fun primrec_simple0 int plugins nonexhaustive transfer fixes ts lthy =
   let
     val actual_nn = length fixes;
 
@@ -617,20 +618,21 @@ fun primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
   in
     lthy'
     |> fold_map Local_Theory.define defs
+    |> tap (uncurry (print_def_consts int))
     |-> (fn defs => fn lthy =>
       let val ((jss, simpss), lthy) = prove lthy defs in
         (((names, qualifys), (map fst defs, map (snd o snd) defs, (jss, simpss))), lthy)
       end)
   end;
 
-fun primrec_simple fixes ts lthy =
-  primrec_simple0 Plugin_Name.default_filter false false fixes ts lthy
+fun primrec_simple int fixes ts lthy =
+  primrec_simple0 int Plugin_Name.default_filter false false fixes ts lthy
   handle OLD_PRIMREC () =>
-    Old_Primrec.primrec_simple fixes ts lthy
+    Old_Primrec.primrec_simple int fixes ts lthy
     |>> apsnd (fn (ts, thms) => (ts, [], ([], [thms]))) o apfst single
     |>> apfst (map_split (rpair I));
 
-fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
+fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
   let
     val dups = duplicates (op =) (map (fn (x, _, _) => Binding.name_of x) raw_fixes);
     val _ = null dups orelse error ("Duplicate function name " ^ quote (hd dups));
@@ -658,27 +660,27 @@ fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
         end);
   in
     lthy
-    |> primrec_simple0 plugins nonexhaustive transfer fixes (map snd specs)
+    |> primrec_simple0 int plugins nonexhaustive transfer fixes (map snd specs)
     |-> (fn ((names, qualifys), (ts, defs, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
       #> Local_Theory.notes (mk_notes jss names qualifys simpss)
       #>> (fn notes => (ts, defs, map_filter (fn ("", _) => NONE | (_, thms) => SOME thms) notes)))
   end
   handle OLD_PRIMREC () =>
-    old_primrec raw_fixes raw_specs lthy
+    old_primrec int raw_fixes raw_specs lthy
     |>> (fn (ts, thms) => (ts, [], [thms]));
 
 val primrec = gen_primrec Old_Primrec.primrec Specification.check_multi_specs;
 val primrec_cmd = gen_primrec Old_Primrec.primrec_cmd Specification.read_multi_specs;
 
-fun primrec_global opts fixes specs =
+fun primrec_global int opts fixes specs =
   Named_Target.theory_init
-  #> primrec opts fixes specs
+  #> primrec int opts fixes specs
   ##> Local_Theory.exit_global;
 
-fun primrec_overloaded opts ops fixes specs =
+fun primrec_overloaded int opts ops fixes specs =
   Overloading.overloading ops
-  #> primrec opts fixes specs
+  #> primrec int opts fixes specs
   ##> Local_Theory.exit_global;
 
 val rec_option_parser = Parse.group (K "option")
@@ -690,6 +692,6 @@ val _ = Outer_Syntax.local_theory @{command_keyword primrec}
   "define primitive recursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 rec_option_parser)
       --| @{keyword ")"}) []) -- Parse_Spec.specification
-    >> (fn (opts, (fixes, specs)) => snd o primrec_cmd opts fixes specs));
+    >> (fn (opts, (fixes, specs)) => snd o primrec_cmd true opts fixes specs));
 
 end;

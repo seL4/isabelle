@@ -8,16 +8,16 @@ Primitive recursive functions on datatypes.
 
 signature OLD_PRIMREC =
 sig
-  val primrec: (binding * typ option * mixfix) list ->
+  val primrec: bool -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> local_theory -> (term list * thm list) * local_theory
-  val primrec_cmd: (binding * string option * mixfix) list ->
+  val primrec_cmd: bool -> (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> local_theory -> (term list * thm list) * local_theory
-  val primrec_global: (binding * typ option * mixfix) list ->
+  val primrec_global: bool -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list) * theory
-  val primrec_overloaded: (string * (string * typ) * bool) list ->
+  val primrec_overloaded: bool -> (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list) * theory
-  val primrec_simple: ((binding * typ) * mixfix) list -> term list ->
+  val primrec_simple: bool -> ((binding * typ) * mixfix) list -> term list ->
     local_theory -> (string * (term list * thm list)) * local_theory
 end;
 
@@ -188,12 +188,12 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
       in
         (dummy_fns @ fs, defs)
       end
-  | SOME (fname, ls, fs') => (fs' @ fs, (fname, ls, rec_name, tname) :: defs));
+  | SOME (fname, ls, fs') => (fs' @ fs, (fname, ls, rec_name) :: defs));
 
 
 (* make definition *)
 
-fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
+fun make_def ctxt fixes fs (fname, ls, rec_name) =
   let
     val SOME (var, varT) = get_first (fn ((b, T), mx) =>
       if Binding.name_of b = fname then SOME ((b, mx), T) else NONE) fixes;
@@ -260,18 +260,19 @@ fun distill ctxt fixes eqs =
 
 (* primrec definition *)
 
-fun primrec_simple fixes ts lthy =
+fun primrec_simple int fixes ts lthy =
   let
     val ((prefix, (_, defs)), prove) = distill lthy fixes ts;
   in
     lthy
     |> fold_map Local_Theory.define defs
+    |> tap (uncurry (BNF_FP_Rec_Sugar_Util.print_def_consts int))
     |-> (fn defs => `(fn lthy => (prefix, (map fst defs, prove lthy defs))))
   end;
 
 local
 
-fun gen_primrec prep_spec raw_fixes raw_spec lthy =
+fun gen_primrec prep_spec int raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
     fun attr_bindings prefix = map (fn ((b, attrs), _) =>
@@ -280,7 +281,7 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
       (Binding.qualify true prefix (Binding.name "simps"), @{attributes [simp, nitpick_simp]});
   in
     lthy
-    |> primrec_simple fixes (map snd spec)
+    |> primrec_simple int fixes (map snd spec)
     |-> (fn (prefix, (ts, simps)) =>
       Spec_Rules.add Spec_Rules.Equational (ts, simps)
       #> fold_map Local_Theory.note (attr_bindings prefix ~~ map single simps)
@@ -295,17 +296,17 @@ val primrec_cmd = gen_primrec Specification.read_multi_specs;
 
 end;
 
-fun primrec_global fixes specs thy =
+fun primrec_global int fixes specs thy =
   let
     val lthy = Named_Target.theory_init thy;
-    val ((ts, simps), lthy') = primrec fixes specs lthy;
+    val ((ts, simps), lthy') = primrec int fixes specs lthy;
     val simps' = Proof_Context.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;
 
-fun primrec_overloaded ops fixes specs thy =
+fun primrec_overloaded int ops fixes specs thy =
   let
     val lthy = Overloading.overloading ops thy;
-    val ((ts, simps), lthy') = primrec fixes specs lthy;
+    val ((ts, simps), lthy') = primrec int fixes specs lthy;
     val simps' = Proof_Context.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;
 
