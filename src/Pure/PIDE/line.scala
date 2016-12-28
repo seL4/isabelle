@@ -123,6 +123,11 @@ object Line
       move(offset, 0, lines)
     }
 
+    def range(text_range: Text.Range, length: Length = Length): Range =
+      Range(
+        position(text_range.start, length),
+        position(text_range.stop, length))
+
     def offset(pos: Position, length: Length = Length): Option[Text.Offset] =
     {
       val l = pos.line

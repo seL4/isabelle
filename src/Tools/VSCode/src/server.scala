@@ -88,7 +88,8 @@ Usage: isabelle vscode_server [OPTIONS]
 
   sealed case class State(
     session: Option[Session] = None,
-    models: Map[String, Document_Model] = Map.empty)
+    models: Map[String, Document_Model] = Map.empty,
+    pending_output: Set[Document.Node.Name] = Set.empty)
 }
 
 class Server(
@@ -109,9 +110,66 @@ class Server(
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
       model <- state.value.models.get(node_pos.name)
-      rendering = model.rendering(options, text_length)
+      rendering = model.rendering(options)
       offset <- model.doc.offset(node_pos.pos, text_length)
     } yield (rendering, offset)
+
+
+  /* input from client */
+
+  private val delay_input =
+    Standard_Thread.delay_last(options.seconds("editor_input_delay")) {
+      state.change(st =>
+        {
+          val changed = (for { entry <- st.models.iterator if entry._2.changed } yield entry).toList
+          val edits = for { (_, model) <- changed; edit <- model.node_edits(resources) } yield edit
+          session.update(Document.Blobs.empty, edits)
+          st.copy(
+            models = (st.models /: changed)({ case (ms, (uri, m)) => ms + (uri -> m.unchanged) }))
+        })
+    }
+
+  def update_document(uri: String, text: String)
+  {
+    state.change(st =>
+      {
+        val node_name = resources.node_name(uri)
+        val model = Document_Model(session, Line.Document(text), node_name, text_length)
+        st.copy(models = st.models + (uri -> model))
+      })
+    delay_input.invoke()
+  }
+
+
+  /* output to client */
+
+  private val commands_changed =
+    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+      case changed =>
+        state.change(st => st.copy(pending_output = st.pending_output ++ changed.nodes))
+        delay_output.invoke()
+    }
+
+  private val delay_output =
+    Standard_Thread.delay_last(options.seconds("editor_update_delay")) {
+      state.change(st =>
+        {
+          val changed_iterator =
+            for {
+              node_name <- st.pending_output.iterator
+              uri = node_name.node
+              model <- st.models.get(uri)
+              rendering = model.rendering(options)
+              (diagnostics, model1) <- model.publish_diagnostics(rendering)
+            } yield {
+              channel.diagnostics(uri, rendering.diagnostics_output(diagnostics))
+              (uri, model1)
+            }
+          st.copy(
+            models = (st.models /: changed_iterator) { case (ms, (uri, m)) => ms + (uri -> m) },
+            pending_output = Set.empty)
+        })
+    }
 
 
   /* init and exit */
@@ -156,6 +214,8 @@ class Server(
         }
       session.phase_changed += session_phase
 
+      session.commands_changed += commands_changed
+
       session.start(receiver =>
         Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
           modes = modes, receiver = receiver))
@@ -181,7 +241,10 @@ class Server(
               case _ =>
             }
           session.phase_changed += session_phase
+          session.commands_changed -= commands_changed
           session.stop()
+          delay_input.revoke()
+          delay_output.revoke()
           st.copy(session = None)
       })
   }
@@ -189,35 +252,6 @@ class Server(
   def exit() {
     channel.log("\n")
     sys.exit(if (state.value.session.isDefined) 1 else 0)
-  }
-
-
-  /* document management */
-
-  private val delay_flush =
-    Standard_Thread.delay_last(options.seconds("editor_input_delay")) {
-      state.change(st =>
-        {
-          val models = st.models
-          val changed = (for { entry <- models.iterator if entry._2.changed } yield entry).toList
-          val edits = for { (_, model) <- changed; edit <- model.node_edits(resources) } yield edit
-          val models1 =
-            (models /: changed)({ case (m, (uri, model)) => m + (uri -> model.unchanged) })
-
-          session.update(Document.Blobs.empty, edits)
-          st.copy(models = models1)
-        })
-    }
-
-  def update_document(uri: String, text: String)
-  {
-    state.change(st =>
-      {
-        val node_name = resources.node_name(uri)
-        val model = Document_Model(session, Line.Document(text), node_name)
-        st.copy(models = st.models + (uri -> model))
-      })
-    delay_flush.invoke()
   }
 
 
@@ -231,10 +265,9 @@ class Server(
         info <- rendering.tooltip(Text.Range(offset, offset + 1))
       } yield {
         val doc = rendering.model.doc
-        val start = doc.position(info.range.start, text_length)
-        val stop = doc.position(info.range.stop, text_length)
+        val range = doc.range(info.range, text_length)
         val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
-        (Line.Range(start, stop), List("```\n" + s + "\n```"))  // FIXME proper content format
+        (range, List("```\n" + s + "\n```"))  // FIXME proper content format
       }
     channel.write(Protocol.Hover.reply(id, result))
   }

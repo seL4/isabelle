@@ -13,8 +13,9 @@ import scala.util.parsing.input.CharSequenceReader
 
 
 case class Document_Model(
-  session: Session, doc: Line.Document, node_name: Document.Node.Name,
-  changed: Boolean = true)
+  session: Session, doc: Line.Document, node_name: Document.Node.Name, text_length: Length,
+  changed: Boolean = true,
+  published_diagnostics: List[Text.Info[Command.Results]] = Nil)
 {
   /* header */
 
@@ -48,10 +49,21 @@ case class Document_Model(
   def unchanged: Document_Model = if (changed) copy(changed = false) else this
 
 
+  /* diagnostics */
+
+  def publish_diagnostics(rendering: VSCode_Rendering)
+    : Option[(List[Text.Info[Command.Results]], Document_Model)] =
+  {
+    val diagnostics = rendering.diagnostics
+    if (diagnostics == published_diagnostics) None
+    else Some(diagnostics, copy(published_diagnostics = diagnostics))
+  }
+
+
   /* snapshot and rendering */
 
   def snapshot(): Document.Snapshot = session.snapshot(node_name, text_edits)
 
-  def rendering(options: Options, text_length: Length): VSCode_Rendering =
-    new VSCode_Rendering(this, snapshot(), options, text_length, session.resources)
+  def rendering(options: Options): VSCode_Rendering =
+    new VSCode_Rendering(this, snapshot(), options, session.resources)
 }
