@@ -158,24 +158,28 @@ class Server(
         delay_output.invoke()
     }
 
-  private val delay_output =
+  private val delay_output: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_output_delay")) {
-      state.change(st =>
-        {
-          val changed_iterator =
-            for {
-              node_name <- st.pending_output.iterator
-              model <- st.models.get(node_name.node)
-              rendering = model.rendering(options)
-              (diagnostics, model1) <- model.publish_diagnostics(rendering)
-            } yield {
-              channel.diagnostics(model1.uri, rendering.diagnostics_output(diagnostics))
-              model1
-            }
-          st.copy(
-            models = (st.models /: changed_iterator) { case (ms, m) => ms + (m.uri -> m) },
-            pending_output = Set.empty)
-        })
+      if (session.current_state().stable_tip_version.isEmpty) delay_output.invoke()
+      else {
+        state.change(st =>
+          {
+            val changed_iterator =
+              for {
+                node_name <- st.pending_output.iterator
+                model <- st.models.get(node_name.node)
+                rendering = model.rendering(options)
+                (diagnostics, model1) <- model.publish_diagnostics(rendering)
+              } yield {
+                channel.diagnostics(model1.uri, rendering.diagnostics_output(diagnostics))
+                model1
+              }
+            st.copy(
+              models = (st.models /: changed_iterator) { case (ms, m) => ms + (m.uri -> m) },
+              pending_output = Set.empty)
+          }
+        )
+      }
     }
 
 
