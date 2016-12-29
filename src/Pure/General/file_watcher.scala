@@ -65,32 +65,35 @@ class File_Watcher private(handle: Set[JFile] => Unit, delay: Time)
 
   private val watcher_thread = Standard_Thread.fork("File_Watcher", daemon = true)
   {
-    while (true) {
-      val key = watcher.take
-      val has_changed =
-        state.change_result(st =>
-          {
-            val (remove, changed) =
-              st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
-                case Some(dir) =>
-                  val events =
-                    JavaConversions.collectionAsScalaIterable(
-                      key.pollEvents.asInstanceOf[java.util.List[WatchEvent[JPath]]])
-                  val remove = if (key.reset) None else Some(dir)
-                  val changed =
-                    (Set.empty[JFile] /: events.iterator) {
-                      case (set, event) => set + dir.toPath.resolve(event.context).toFile
-                    }
-                  (remove, changed)
-                case None =>
-                  key.pollEvents
-                  key.reset
-                  (None, Set.empty[JFile])
-              }
-            (changed.nonEmpty, st.copy(dirs = st.dirs -- remove, changed = st.changed ++ changed))
-          })
-      if (has_changed) delay_changed.invoke()
+    try {
+      while (true) {
+        val key = watcher.take
+        val has_changed =
+          state.change_result(st =>
+            {
+              val (remove, changed) =
+                st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
+                  case Some(dir) =>
+                    val events =
+                      JavaConversions.collectionAsScalaIterable(
+                        key.pollEvents.asInstanceOf[java.util.List[WatchEvent[JPath]]])
+                    val remove = if (key.reset) None else Some(dir)
+                    val changed =
+                      (Set.empty[JFile] /: events.iterator) {
+                        case (set, event) => set + dir.toPath.resolve(event.context).toFile
+                      }
+                    (remove, changed)
+                  case None =>
+                    key.pollEvents
+                    key.reset
+                    (None, Set.empty[JFile])
+                }
+              (changed.nonEmpty, st.copy(dirs = st.dirs -- remove, changed = st.changed ++ changed))
+            })
+        if (has_changed) delay_changed.invoke()
+      }
     }
+    catch { case Exn.Interrupt() => }
   }
 
 
