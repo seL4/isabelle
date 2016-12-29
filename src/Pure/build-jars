@@ -44,6 +44,7 @@ declare -a SOURCES=(
   General/date.scala
   General/exn.scala
   General/file.scala
+  General/file_watcher.scala
   General/graph.scala
   General/graph_display.scala
   General/graphics_file.scala
