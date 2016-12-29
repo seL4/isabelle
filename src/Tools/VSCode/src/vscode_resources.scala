@@ -101,7 +101,7 @@ class VSCode_Resources(
           for {
             node_name <- st.pending_output.iterator
             model <- st.models.get(node_name.node)
-            rendering = model.rendering(options)
+            rendering = model.rendering()
             (diagnostics, model1) <- model.publish_diagnostics(rendering)
           } yield {
             channel.diagnostics(model1.uri, rendering.diagnostics_output(diagnostics))

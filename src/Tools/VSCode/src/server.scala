@@ -101,7 +101,7 @@ class Server(
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
       model <- resources.get_model(node_pos.name)
-      rendering = model.rendering(options)
+      rendering = model.rendering()
       offset <- model.doc.offset(node_pos.pos)
     } yield (rendering, offset)
 
