@@ -82,15 +82,6 @@ Usage: isabelle vscode_server [OPTIONS]
         throw(exn)
     }
   })
-
-
-  /* server state */
-
-  sealed case class State(
-    session: Option[Session] = None,
-    models: Map[String, Document_Model] = Map.empty,
-    pending_input: Set[Document.Node.Name] = Set.empty,
-    pending_output: Set[Document.Node.Name] = Set.empty)
 }
 
 class Server(
@@ -101,16 +92,15 @@ class Server(
   session_dirs: List[Path] = Nil,
   modes: List[String] = Nil)
 {
-  /* server state */
+  /* server session */
 
-  private val state = Synchronized(Server.State())
-
-  def session: Session = state.value.session getOrElse error("Session inactive")
+  private val session_ = Synchronized(None: Option[Session])
+  def session: Session = session_.value getOrElse error("Server inactive")
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
-      model <- state.value.models.get(node_pos.name)
+      model <- resources.get_model(node_pos.name)
       rendering = model.rendering(options)
       offset <- model.doc.offset(node_pos.pos)
     } yield (rendering, offset)
@@ -119,32 +109,13 @@ class Server(
   /* input from client */
 
   private val delay_input =
-    Standard_Thread.delay_last(options.seconds("vscode_input_delay")) {
-      state.change(st =>
-        {
-          val changed =
-            (for {
-              node_name <- st.pending_input.iterator
-              model <- st.models.get(node_name.node)
-              if model.changed } yield model).toList
-          session.update(Document.Blobs.empty,
-            for { model <- changed; edit <- model.node_edits } yield edit)
-          st.copy(
-            models = (st.models /: changed) { case (ms, m) => ms + (m.uri -> m.unchanged) },
-            pending_input = Set.empty)
-        })
-    }
+    Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
+    { resources.flush_input(session) }
 
-  def update_document(uri: String, text: String)
+  private def update_document(uri: String, text: String)
   {
-    state.change(st =>
-      {
-        val node_name = resources.node_name(uri)
-        val model = Document_Model(session, Line.Document(text, text_length), node_name)
-        st.copy(
-          models = st.models + (uri -> model),
-          pending_input = st.pending_input + node_name)
-      })
+    val model = Document_Model(session, resources.node_name(uri), Line.Document(text, text_length))
+    resources.update_model(model)
     delay_input.invoke()
   }
 
@@ -153,33 +124,17 @@ class Server(
 
   private val commands_changed =
     Session.Consumer[Session.Commands_Changed](getClass.getName) {
-      case changed =>
-        state.change(st => st.copy(pending_output = st.pending_output ++ changed.nodes))
+      case changed if changed.nodes.nonEmpty =>
+        resources.update_output(changed.nodes)
         delay_output.invoke()
+      case _ =>
     }
 
   private val delay_output: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_output_delay")) {
+    Standard_Thread.delay_last(options.seconds("vscode_output_delay"))
+    {
       if (session.current_state().stable_tip_version.isEmpty) delay_output.invoke()
-      else {
-        state.change(st =>
-          {
-            val changed_iterator =
-              for {
-                node_name <- st.pending_output.iterator
-                model <- st.models.get(node_name.node)
-                rendering = model.rendering(options)
-                (diagnostics, model1) <- model.publish_diagnostics(rendering)
-              } yield {
-                channel.diagnostics(model1.uri, rendering.diagnostics_output(diagnostics))
-                model1
-              }
-            st.copy(
-              models = (st.models /: changed_iterator) { case (ms, m) => ms + (m.uri -> m) },
-              pending_output = Set.empty)
-          }
-        )
-      }
+      else resources.flush_output(channel)
     }
 
 
@@ -209,7 +164,8 @@ class Server(
       try {
         val content = Build.session_content(options, false, session_dirs, session_name)
         val resources =
-          new VSCode_Resources(content.loaded_theories, content.known_theories, content.syntax)
+          new VSCode_Resources(
+            options, content.loaded_theories, content.known_theories, content.syntax)
 
         Some(new Session(resources) {
           override def output_delay = options.seconds("editor_output_delay")
@@ -242,7 +198,7 @@ class Server(
         Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
           modes = modes, receiver = receiver))
 
-      state.change(_.copy(session = Some(session)))
+      session_.change(_ => Some(session))
     }
   }
 
@@ -250,31 +206,32 @@ class Server(
   {
     def reply(err: String): Unit = channel.write(Protocol.Shutdown.reply(id, err))
 
-    state.change(st =>
-      st.session match {
-        case None => reply("Prover inactive"); st
-        case Some(session) =>
-          var session_phase: Session.Consumer[Session.Phase] = null
-          session_phase =
-            Session.Consumer(getClass.getName) {
-              case Session.Inactive =>
-                session.phase_changed -= session_phase
-                session.commands_changed -= commands_changed
-                session.all_messages -= all_messages
-                reply("")
-              case _ =>
-            }
-          session.phase_changed += session_phase
-          session.stop()
-          delay_input.revoke()
-          delay_output.revoke()
-          st.copy(session = None)
-      })
+    session_.change({
+      case Some(session) =>
+        var session_phase: Session.Consumer[Session.Phase] = null
+        session_phase =
+          Session.Consumer(getClass.getName) {
+            case Session.Inactive =>
+              session.phase_changed -= session_phase
+              session.commands_changed -= commands_changed
+              session.all_messages -= all_messages
+              reply("")
+            case _ =>
+          }
+        session.phase_changed += session_phase
+        session.stop()
+        delay_input.revoke()
+        delay_output.revoke()
+        None
+      case None =>
+        reply("Prover inactive")
+        None
+    })
   }
 
   def exit() {
     channel.log("\n")
-    sys.exit(if (state.value.session.isDefined) 1 else 0)
+    sys.exit(if (session_.value.isDefined) 1 else 0)
   }
 
 
