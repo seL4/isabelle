@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/file.scala
     Author:     Makarius
 
-File system operations.
+File-system operations.
 */
 
 package isabelle

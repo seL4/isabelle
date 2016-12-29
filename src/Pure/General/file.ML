@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/file.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-File system operations.
+File-system operations.
 *)
 
 signature FILE =
