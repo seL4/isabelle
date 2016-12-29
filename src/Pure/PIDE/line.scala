@@ -132,11 +132,11 @@ object Line
       else None
     }
 
-    lazy val end_offset: Text.Offset =
+    lazy val length: Int =
       if (lines.isEmpty) 0
-      else ((0 /: lines) { case (n, line) => n + text_length(line.text) + 1 }) - 1
+      else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
 
-    def full_range: Text.Range = Text.Range(0, end_offset)
+    def full_range: Text.Range = Text.Range(0, length)
   }
 
 
