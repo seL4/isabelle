@@ -17,10 +17,9 @@ case class Document_Model(
   changed: Boolean = true,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil)
 {
-  override def toString: String = node_name.toString
-
-
   /* name */
+
+  override def toString: String = node_name.toString
 
   def uri: String = node_name.node
   def is_theory: Boolean = node_name.is_theory
@@ -28,11 +27,11 @@ case class Document_Model(
 
   /* header */
 
-  def node_header(resources: VSCode_Resources): Document.Node.Header =
+  def node_header: Document.Node.Header =
     resources.special_header(node_name) getOrElse
     {
       if (is_theory)
-        session.resources.check_thy_reader(
+        resources.check_thy_reader(
           "", node_name, new CharSequenceReader(Thy_Header.header_text(doc)), Token.Pos.command)
       else Document.Node.no_header
     }
@@ -43,9 +42,9 @@ case class Document_Model(
   def text_edits: List[Text.Edit] =
     if (changed) List(Text.Edit.insert(0, doc.make_text)) else Nil
 
-  def node_edits(resources: VSCode_Resources): List[Document.Edit_Text] =
+  def node_edits: List[Document.Edit_Text] =
     if (changed) {
-      List(session.header_edit(node_name, node_header(resources)),
+      List(session.header_edit(node_name, node_header),
         node_name -> Document.Node.Clear(),
         node_name -> Document.Node.Edits(text_edits),
         node_name ->
@@ -67,10 +66,12 @@ case class Document_Model(
   }
 
 
-  /* snapshot and rendering */
+  /* session */
+
+  def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
   def snapshot(): Document.Snapshot = session.snapshot(node_name, text_edits)
 
   def rendering(options: Options): VSCode_Rendering =
-    new VSCode_Rendering(this, snapshot(), options, session.resources)
+    new VSCode_Rendering(this, snapshot(), options, resources)
 }

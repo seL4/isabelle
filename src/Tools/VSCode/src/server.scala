@@ -128,7 +128,7 @@ class Server(
               model <- st.models.get(node_name.node)
               if model.changed } yield model).toList
           session.update(Document.Blobs.empty,
-            for { model <- changed; edit <- model.node_edits(resources) } yield edit)
+            for { model <- changed; edit <- model.node_edits } yield edit)
           st.copy(
             models = (st.models /: changed) { case (ms, m) => ms + (m.uri -> m.unchanged) },
             pending_input = Set.empty)

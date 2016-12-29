@@ -38,7 +38,7 @@ class VSCode_Rendering(
     val model: Document_Model,
     snapshot: Document.Snapshot,
     options: Options,
-    resources: Resources)
+    resources: VSCode_Resources)
   extends Rendering(snapshot, options, resources)
 {
   /* diagnostics */
