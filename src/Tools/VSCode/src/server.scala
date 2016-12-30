@@ -114,8 +114,7 @@ class Server(
 
   private def update_document(uri: String, text: String)
   {
-    val model = Document_Model.init(session, resources.node_name(uri), text)
-    resources.update_model(model)
+    resources.update_model(session, uri, text)
     delay_input.invoke()
   }
 

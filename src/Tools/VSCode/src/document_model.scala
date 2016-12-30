@@ -14,12 +14,12 @@ import scala.util.parsing.input.CharSequenceReader
 
 object Document_Model
 {
-  def init(session: Session, node_name: Document.Node.Name, text: String): Document_Model =
+  def init(session: Session, uri: String): Document_Model =
   {
     val resources = session.resources.asInstanceOf[VSCode_Resources]
-    Document_Model(session, node_name, Line.Document(text, resources.text_length),
-      pending_clear = true,
-      pending_edits = List(Text.Edit.insert(0, text)))
+    val node_name = resources.node_name(uri)
+    val doc = Line.Document("", resources.text_length)
+    Document_Model(session, node_name, doc)
   }
 }
 
@@ -30,8 +30,7 @@ sealed case class Document_Model private(
   node_visible: Boolean = true,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
-  pending_clear: Boolean = false,
-  pending_edits: List[Text.Edit] = Nil,
+  pending_edits: Vector[Text.Edit] = Vector.empty,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil)
 {
   /* name */
@@ -65,25 +64,31 @@ sealed case class Document_Model private(
 
   /* edits */
 
+  def update_text(new_text: String): Document_Model =
+  {
+    val old_text = doc.make_text
+    if (new_text == old_text) this
+    else {
+      val doc1 = Line.Document(new_text, doc.text_length)
+      val pending_edits1 =
+        if (old_text != "") pending_edits :+ Text.Edit.remove(0, old_text) else pending_edits
+      val pending_edits2 = pending_edits1 :+ Text.Edit.insert(0, new_text)
+      copy(doc = doc1, pending_edits = pending_edits2)
+    }
+  }
+
   def flush_edits: Option[(List[Document.Edit_Text], Document_Model)] =
   {
     val perspective = node_perspective
-    if (pending_clear || pending_edits.nonEmpty || last_perspective != perspective) {
-      val model1 = copy(pending_clear = false, pending_edits = Nil, last_perspective = perspective)
-
-      val header_edit = session.header_edit(node_name, node_header)
-      val edits: List[Document.Edit_Text] =
-        if (pending_clear)
-          List(header_edit,
-            node_name -> Document.Node.Clear(),
-            node_name -> Document.Node.Edits(pending_edits),
-            node_name -> perspective)
-        else
-          List(header_edit,
-            node_name -> Document.Node.Edits(pending_edits),
-            node_name -> perspective)
-
-      Some((edits.filterNot(_._2.is_void), model1))
+    if (pending_edits.nonEmpty || last_perspective != perspective) {
+      val text_edits = pending_edits.toList
+      val edits =
+        session.header_edit(node_name, node_header) ::
+        (if (text_edits.isEmpty) Nil
+         else List[Document.Edit_Text](node_name -> Document.Node.Edits(text_edits))) :::
+        (if (last_perspective == perspective) Nil
+         else List[Document.Edit_Text](node_name -> perspective))
+      Some((edits, copy(pending_edits = Vector.empty, last_perspective = perspective)))
     }
     else None
   }
@@ -104,7 +109,7 @@ sealed case class Document_Model private(
 
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
+  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.toList)
 
   def rendering(): VSCode_Rendering = new VSCode_Rendering(this, snapshot(), resources)
 }

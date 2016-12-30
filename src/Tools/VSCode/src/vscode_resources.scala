@@ -60,12 +60,15 @@ class VSCode_Resources(
 
   def get_model(uri: String): Option[Document_Model] = state.value.models.get(uri)
 
-  def update_model(model: Document_Model)
+  def update_model(session: Session, uri: String, text: String)
   {
     state.change(st =>
-      st.copy(
-        models = st.models + (model.uri -> model),
-        pending_input = st.pending_input + model.uri))
+      {
+        val model = st.models.getOrElse(uri, Document_Model.init(session, uri)).update_text(text)
+        st.copy(
+          models = st.models + (uri -> model),
+          pending_input = st.pending_input + uri)
+      })
   }
 
 
