@@ -64,12 +64,34 @@ class VSCode_Resources(
   {
     state.change(st =>
       {
-        val model = st.models.getOrElse(uri, Document_Model.init(session, uri)).update_text(text)
+        val model = st.models.getOrElse(uri, Document_Model.init(session, uri))
+        val model1 = (model.update_text(text) getOrElse model).copy(external = false)
         st.copy(
-          models = st.models + (uri -> model),
+          models = st.models + (uri -> model1),
           pending_input = st.pending_input + uri)
       })
   }
+
+  def close_model(uri: String): Option[Document_Model] =
+    state.change_result(st =>
+      st.models.get(uri) match {
+        case None => (None, st)
+        case Some(model) =>
+          (Some(model), st.copy(models = st.models + (uri -> model.copy(external = true))))
+      })
+
+  def sync_external(changed_files: Set[JFile]): Boolean =
+    state.change_result(st =>
+      {
+        val changed =
+          (for {
+            (uri, model) <- st.models.iterator
+            if changed_files(model.file)
+            model1 <- model.update_file
+          } yield (uri, model)).toList
+        if (changed.isEmpty) (false, st)
+        else (true, st.copy(models = (st.models /: changed)(_ + _)))
+      })
 
 
   /* pending input */

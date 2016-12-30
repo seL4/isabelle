@@ -9,6 +9,8 @@ package isabelle.vscode
 
 import isabelle._
 
+import java.io.{File => JFile}
+
 import scala.util.parsing.input.CharSequenceReader
 
 
@@ -23,10 +25,11 @@ object Document_Model
   }
 }
 
-sealed case class Document_Model private(
+sealed case class Document_Model(
   session: Session,
   node_name: Document.Node.Name,
   doc: Line.Document,
+  external: Boolean = false,
   node_visible: Boolean = true,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
@@ -39,6 +42,17 @@ sealed case class Document_Model private(
 
   def uri: String = node_name.node
   def is_theory: Boolean = node_name.is_theory
+
+
+  /* external file */
+
+  val file: JFile = VSCode_Resources.canonical_file(uri)
+
+  def register(watcher: File_Watcher)
+  {
+    val dir = file.getParentFile
+    if (dir != null && dir.isDirectory) watcher.register(dir)
+  }
 
 
   /* header */
@@ -64,18 +78,25 @@ sealed case class Document_Model private(
 
   /* edits */
 
-  def update_text(new_text: String): Document_Model =
+  def update_text(new_text: String): Option[Document_Model] =
   {
     val old_text = doc.make_text
-    if (new_text == old_text) this
+    if (new_text == old_text) None
     else {
       val doc1 = Line.Document(new_text, doc.text_length)
       val pending_edits1 =
         if (old_text != "") pending_edits :+ Text.Edit.remove(0, old_text) else pending_edits
       val pending_edits2 = pending_edits1 :+ Text.Edit.insert(0, new_text)
-      copy(doc = doc1, pending_edits = pending_edits2)
+      Some(copy(doc = doc1, pending_edits = pending_edits2))
     }
   }
+
+  def update_file: Option[Document_Model] =
+    if (external) {
+      try { update_text(File.read(file)) }
+      catch { case ERROR(_) => None }
+    }
+    else None
 
   def flush_edits: Option[(List[Document.Edit_Text], Document_Model)] =
   {

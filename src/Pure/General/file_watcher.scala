@@ -99,7 +99,7 @@ class File_Watcher private(handle: Set[JFile] => Unit, delay: Time)
 
   /* shutdown */
 
-  def shutdown
+  def shutdown()
   {
     watcher_thread.interrupt
     watcher_thread.join
