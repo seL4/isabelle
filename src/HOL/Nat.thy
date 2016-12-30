@@ -2,9 +2,6 @@
     Author:     Tobias Nipkow
     Author:     Lawrence C Paulson
     Author:     Markus Wenzel
-
-Type "nat" is a linear order, and a datatype; arithmetic operators + -
-and * (for div and mod, see theory Divides).
 *)
 
 section \<open>Natural numbers\<close>
