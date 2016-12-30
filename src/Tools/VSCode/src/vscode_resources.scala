@@ -35,6 +35,7 @@ object VSCode_Resources
 
 class VSCode_Resources(
     val options: Options,
+    val text_length: Text.Length,
     loaded_theories: Set[String],
     known_theories: Map[String, Document.Node.Name],
     base_syntax: Outer_Syntax)
