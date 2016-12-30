@@ -2126,6 +2126,49 @@ lemma abs_sgn_eq_1 [simp]:
 lemma abs_sgn_eq: "\<bar>sgn a\<bar> = (if a = 0 then 0 else 1)"
   by (simp add: sgn_if)
 
+lemma sgn_mult_self_eq [simp]:
+  "sgn a * sgn a = of_bool (a \<noteq> 0)"
+  by (cases "a > 0") simp_all
+
+lemma abs_mult_self_eq [simp]:
+  "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
+  by (cases "a > 0") simp_all
+
+lemma same_sgn_sgn_add:
+  "sgn (a + b) = sgn a" if "sgn b = sgn a"
+proof (cases a 0 rule: linorder_cases)
+  case equal
+  with that show ?thesis
+    by simp
+next
+  case less
+  with that have "b < 0"
+    by (simp add: sgn_1_neg)
+  with \<open>a < 0\<close> have "a + b < 0"
+    by (rule add_neg_neg)
+  with \<open>a < 0\<close> show ?thesis
+    by simp
+next
+  case greater
+  with that have "b > 0"
+    by (simp add: sgn_1_pos)
+  with \<open>a > 0\<close> have "a + b > 0"
+    by (rule add_pos_pos)
+  with \<open>a > 0\<close> show ?thesis
+    by simp
+qed
+
+lemma same_sgn_abs_add:
+  "\<bar>a + b\<bar> = \<bar>a\<bar> + \<bar>b\<bar>" if "sgn b = sgn a"
+proof -
+  have "a + b = sgn a * \<bar>a\<bar> + sgn b * \<bar>b\<bar>"
+    by (simp add: sgn_mult_abs)
+  also have "\<dots> = sgn a * (\<bar>a\<bar> + \<bar>b\<bar>)"
+    using that by (simp add: algebra_simps)
+  finally show ?thesis
+    by (auto simp add: abs_mult)
+qed
+
 lemma abs_dvd_iff [simp]: "\<bar>m\<bar> dvd k \<longleftrightarrow> m dvd k"
   by (simp add: abs_if)
 
