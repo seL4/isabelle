@@ -88,7 +88,7 @@ class VSCode_Rendering(
         opt_text match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)
-            val doc = Line.Document(text, model.doc.text_length)
+            val doc = Line.Document(text, resources.text_length)
             doc.range(chunk.decode(range))
           case _ =>
             Line.Range(Line.Position((line1 - 1) max 0))

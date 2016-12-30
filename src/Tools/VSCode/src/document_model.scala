@@ -9,12 +9,31 @@ package isabelle.vscode
 
 import isabelle._
 
+import java.io.{File => JFile}
+
 import scala.util.parsing.input.CharSequenceReader
 
 
-case class Document_Model(
-  session: Session, node_name: Document.Node.Name, doc: Line.Document,
-  changed: Boolean = true,
+object Document_Model
+{
+  def init(session: Session, uri: String): Document_Model =
+  {
+    val resources = session.resources.asInstanceOf[VSCode_Resources]
+    val node_name = resources.node_name(uri)
+    val doc = Line.Document("", resources.text_length)
+    Document_Model(session, node_name, doc)
+  }
+}
+
+sealed case class Document_Model(
+  session: Session,
+  node_name: Document.Node.Name,
+  doc: Line.Document,
+  external: Boolean = false,
+  node_visible: Boolean = true,
+  node_required: Boolean = false,
+  last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
+  pending_edits: Vector[Text.Edit] = Vector.empty,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil)
 {
   /* name */
@@ -23,6 +42,17 @@ case class Document_Model(
 
   def uri: String = node_name.node
   def is_theory: Boolean = node_name.is_theory
+
+
+  /* external file */
+
+  val file: JFile = VSCode_Resources.canonical_file(uri)
+
+  def register(watcher: File_Watcher)
+  {
+    val dir = file.getParentFile
+    if (dir != null && dir.isDirectory) watcher.register(dir)
+  }
 
 
   /* header */
@@ -37,22 +67,52 @@ case class Document_Model(
     }
 
 
+  /* perspective */
+
+  def text_perspective: Text.Perspective =
+    if (node_visible) Text.Perspective.full else Text.Perspective.empty
+
+  def node_perspective: Document.Node.Perspective_Text =
+    Document.Node.Perspective(node_required, text_perspective, Document.Node.Overlays.empty)
+
+
   /* edits */
 
-  def text_edits: List[Text.Edit] =
-    if (changed) List(Text.Edit.insert(0, doc.make_text)) else Nil
-
-  def node_edits: List[Document.Edit_Text] =
-    if (changed) {
-      List(session.header_edit(node_name, node_header),
-        node_name -> Document.Node.Clear(),
-        node_name -> Document.Node.Edits(text_edits),
-        node_name ->
-          Document.Node.Perspective(true, Text.Perspective.full, Document.Node.Overlays.empty))
+  def update_text(new_text: String): Option[Document_Model] =
+  {
+    val old_text = doc.make_text
+    if (new_text == old_text) None
+    else {
+      val doc1 = Line.Document(new_text, doc.text_length)
+      val pending_edits1 =
+        if (old_text != "") pending_edits :+ Text.Edit.remove(0, old_text) else pending_edits
+      val pending_edits2 = pending_edits1 :+ Text.Edit.insert(0, new_text)
+      Some(copy(doc = doc1, pending_edits = pending_edits2))
     }
-    else Nil
+  }
 
-  def unchanged: Document_Model = if (changed) copy(changed = false) else this
+  def update_file: Option[Document_Model] =
+    if (external) {
+      try { update_text(File.read(file)) }
+      catch { case ERROR(_) => None }
+    }
+    else None
+
+  def flush_edits: Option[(List[Document.Edit_Text], Document_Model)] =
+  {
+    val perspective = node_perspective
+    if (pending_edits.nonEmpty || last_perspective != perspective) {
+      val text_edits = pending_edits.toList
+      val edits =
+        session.header_edit(node_name, node_header) ::
+        (if (text_edits.isEmpty) Nil
+         else List[Document.Edit_Text](node_name -> Document.Node.Edits(text_edits))) :::
+        (if (last_perspective == perspective) Nil
+         else List[Document.Edit_Text](node_name -> perspective))
+      Some((edits, copy(pending_edits = Vector.empty, last_perspective = perspective)))
+    }
+    else None
+  }
 
 
   /* diagnostics */
@@ -70,7 +130,7 @@ case class Document_Model(
 
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, text_edits)
+  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.toList)
 
   def rendering(): VSCode_Rendering = new VSCode_Rendering(this, snapshot(), resources)
 }

@@ -11,7 +11,7 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.io.{PrintStream, OutputStream}
+import java.io.{PrintStream, OutputStream, File => JFile}
 
 import scala.annotation.tailrec
 
@@ -106,18 +106,35 @@ class Server(
     } yield (rendering, offset)
 
 
+  /* document content */
+
+  private def update_document(uri: String, text: String)
+  {
+    resources.update_model(session, uri, text)
+    delay_input.invoke()
+  }
+
+  private def close_document(uri: String)
+  {
+    resources.close_model(uri) match {
+      case Some(model) =>
+        model.register(watcher)
+        sync_external(Set(model.file))
+      case None =>
+    }
+  }
+
+  private def sync_external(changed: Set[JFile]): Unit =
+    if (resources.sync_external(changed)) delay_input.invoke()
+
+  private val watcher = File_Watcher(sync_external(_))
+
+
   /* input from client */
 
   private val delay_input =
     Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
     { resources.flush_input(session) }
-
-  private def update_document(uri: String, text: String)
-  {
-    val model = Document_Model(session, resources.node_name(uri), Line.Document(text, text_length))
-    resources.update_model(model)
-    delay_input.invoke()
-  }
 
 
   /* output to client */
@@ -125,7 +142,7 @@ class Server(
   private val commands_changed =
     Session.Consumer[Session.Commands_Changed](getClass.getName) {
       case changed if changed.nodes.nonEmpty =>
-        resources.update_output(changed.nodes)
+        resources.update_output(changed.nodes.toList.map(_.node))
         delay_output.invoke()
       case _ =>
     }
@@ -136,6 +153,9 @@ class Server(
       if (session.current_state().stable_tip_version.isEmpty) delay_output.invoke()
       else resources.flush_output(channel)
     }
+
+
+  /* file watcher */
 
 
   /* syslog */
@@ -165,7 +185,7 @@ class Server(
         val content = Build.session_content(options, false, session_dirs, session_name)
         val resources =
           new VSCode_Resources(
-            options, content.loaded_theories, content.known_theories, content.syntax)
+            options, text_length, content.loaded_theories, content.known_theories, content.syntax)
 
         Some(new Session(resources) {
           override def output_delay = options.seconds("editor_output_delay")
@@ -222,6 +242,7 @@ class Server(
         session.stop()
         delay_input.revoke()
         delay_output.revoke()
+        watcher.shutdown()
         None
       case None =>
         reply("Prover inactive")
@@ -281,7 +302,8 @@ class Server(
             update_document(uri, text)
           case Protocol.DidChangeTextDocument(uri, version, List(Protocol.TextDocumentContent(text))) =>
             update_document(uri, text)
-          case Protocol.DidCloseTextDocument(uri) => channel.log("CLOSE " + uri)
+          case Protocol.DidCloseTextDocument(uri) =>
+            close_document(uri)
           case Protocol.DidSaveTextDocument(uri) => channel.log("SAVE " + uri)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
