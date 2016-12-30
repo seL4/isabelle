@@ -87,14 +87,6 @@ fun unfold_id_bnf_etc lthy =
     #> Raw_Simplifier.rewrite_term thy @{thms BNF_Composition.id_bnf_def} []
   end;
 
-fun unexpected_corec_call ctxt eqns t =
-  error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
-fun unsupported_case_around_corec_call ctxt eqns t =
-  error_at ctxt eqns ("Unsupported corecursive call under case expression " ^
-    quote (Syntax.string_of_term ctxt t) ^ "\n(Define " ^
-    quote (Syntax.string_of_typ ctxt (domain_type (fastype_of t))) ^
-    " with  discriminators and selectors to circumvent this limitation.)");
-
 datatype corec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
   Friend_Option |
@@ -754,43 +746,24 @@ fun check_corec_equation ctxt fun_frees (lhs, rhs) =
 
     fun check_fun_name () =
       null fun_frees orelse member (op aconv) fun_frees fun_t orelse
-      error (quote (Syntax.string_of_term ctxt fun_t) ^
-        " is not the function currently being defined");
-
-    fun check_args_are_vars () =
-      let
-        fun is_ok_Free_or_Var (Free (s, _)) = not (String.isSuffix inner_fp_suffix s)
-          | is_ok_Free_or_Var (Var _) = true
-          | is_ok_Free_or_Var _ = false;
-
-        fun is_valid arg =
-          (is_ok_Free_or_Var arg andalso not (member (op aconv) fun_frees arg)) orelse
-          error ("Argument " ^ quote (Syntax.string_of_term ctxt arg) ^ " is not free");
-      in
-        forall is_valid arg_ts
-      end;
-
-    fun check_no_duplicate_arg () =
-      (case duplicates (op =) arg_ts of
-        [] => ()
-      | arg :: _ => error ("Repeated argument: " ^ quote (Syntax.string_of_term ctxt arg)));
+      ill_formed_equation_head ctxt [] fun_t;
 
     fun check_no_other_frees () =
       (case Term.add_frees rhs [] |> map Free |> subtract (op =) (fun_frees @ arg_ts)
-          |> filter_out (Variable.is_fixed ctxt o fst o dest_Free) of
-        [] => ()
-      | Free (s, _) :: _ => error ("Extra variable on right-hand side: " ^ quote s));
+          |> find_first (not o Variable.is_fixed ctxt o fst o dest_Free) of
+        NONE => ()
+      | SOME t => extra_variable_in_rhs ctxt [] t);
   in
-    check_no_duplicate_arg ();
+    check_duplicate_variables_in_lhs ctxt [] arg_ts;
     check_fun_name ();
-    check_args_are_vars ();
+    check_all_fun_arg_frees ctxt [] (filter_out is_Var arg_ts);
     check_no_other_frees ()
   end;
 
 fun parse_corec_equation ctxt fun_frees eq =
   let
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (drop_all eq))
-      handle TERM _ => error "Expected HOL equation";
+      handle TERM _ => ill_formed_equation_lhs_rhs ctxt [eq];
 
     val _ = check_corec_equation ctxt fun_frees (lhs, rhs);
 
@@ -1536,10 +1509,7 @@ fun extract_rho_from_equation
         | NONE => explore params t)
       | _ => explore params t)
     and explore_cond params t =
-      if has_self_call t then
-        error ("Unallowed corecursive call in condition " ^ quote (Syntax.string_of_term lthy t))
-      else
-        explore_inner params t
+      if has_self_call t then unexpected_rec_call_in lthy [] t else explore_inner params t
     and explore_inner params t =
       massage_rho explore_inner_general params t
     and explore_inner_general (params as {bound_Us, bound_Ts, T, ...}) t =
@@ -1560,7 +1530,7 @@ fun extract_rho_from_equation
                 disc' $ arg'
               else
                 error ("Discriminator " ^ quote (Syntax.string_of_term lthy fun_t) ^
-                  " cannot be applied to non-lhs argument " ^
+                  " cannot be applied to non-variable " ^
                   quote (Syntax.string_of_term lthy (hd arg_ts)))
             end
           | _ =>
@@ -1576,7 +1546,7 @@ fun extract_rho_from_equation
                   build_function_after_encapsulation fun_t sel' params arg_ts arg_ts'
                 else
                   error ("Selector " ^ quote (Syntax.string_of_term lthy fun_t) ^
-                    " cannot be applied to non-lhs argument " ^
+                    " cannot be applied to non-variable " ^
                     quote (Syntax.string_of_term lthy (hd arg_ts)))
               end
             | NONE =>
@@ -1615,8 +1585,7 @@ fun extract_rho_from_equation
         if is_some ctr_opt then
           rebuild_function_after_exploration fun_t (the ctr_opt) explore_inner params arg_ts
         else
-          error ("Constructor expected on right-hand side, " ^
-            quote (Syntax.string_of_term lthy fun_t) ^ " found instead")
+          not_constructor_in_rhs lthy [] fun_t
       end;
 
     val rho_rhs = rhs
@@ -1648,11 +1617,9 @@ fun mk_rho_parametricity_goal ctxt Y Z preT ssig_T dead_pre_rel dead_k_rel dead_
     HOLogic.mk_Trueprop (rho_rel $ rho_rhs $ rho_rhsZ)
   end;
 
-fun extract_rho_return_transfer_goals fun_b version dead_pre_bnf dead_k_bnf Y Z preT fun_T k_T
-    ssig_T ssig_fp_sugar friend_parse_info fun_t parsed_eq lthy =
+fun extract_rho_return_transfer_goals fun_b version dead_pre_bnf dead_k_bnf Y Z preT k_T ssig_T
+    ssig_fp_sugar friend_parse_info fun_t parsed_eq lthy =
   let
-    val Type (fpT_name, _) = body_type fun_T;
-
     fun mk_rel T bnf =
       let
         val ZT = Tsubst Y Z T;
@@ -1734,7 +1701,7 @@ fun explore_corec_equation ctxt could_be_friend friend fun_name fun_free
 
     fun massage_let_if_case_corec explore {bound_Ts, U, T, ...} t =
       massage_let_if_case ctxt has_self_call (fn bound_Ts => explore (build_params bound_Ts U T))
-        (K (unexpected_corec_call ctxt [t])) (K (unsupported_case_around_corec_call ctxt [t]))
+        (K (unexpected_corec_call_in ctxt [t])) (K (unsupported_case_around_corec_call ctxt [t]))
         bound_Ts t;
 
     val massage_map_let_if_case =
@@ -2004,8 +1971,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
     val ([((b, fun_T), mx)], [(_, eq)]) =
       fst (Specification.read_multi_specs raw_fixes [((Binding.empty_atts, raw_eq), [], [])] lthy);
 
-    val _ = Sign.of_sort (Proof_Context.theory_of lthy) (fun_T, @{sort type}) orelse
-      error ("Type of " ^ Binding.print b ^ " contains top sort");
+    val _ = check_top_sort lthy b fun_T;
 
     val (arg_Ts, res_T) = strip_type fun_T;
     val fpT_name = (case res_T of Type (s, _) => s | _ => not_codatatype lthy res_T);
@@ -2030,8 +1996,8 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         val parsed_eq' = parsed_eq ||> subst_atomic [(fun_free, fun_t)];
       in
         lthy
-        |> extract_rho_return_transfer_goals b version dead_pre_bnf dead_k_bnf Y Z preT fun_T k_T
-          ssig_T ssig_fp_sugar friend_parse_info fun_t parsed_eq'
+        |> extract_rho_return_transfer_goals b version dead_pre_bnf dead_k_bnf Y Z preT k_T ssig_T
+          ssig_fp_sugar friend_parse_info fun_t parsed_eq'
         |>> pair prepared
       end;
 
@@ -2277,7 +2243,7 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
     val fun_T =
       (case code_goal of
         @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t $ _) => fastype_of (head_of t)
-      | _ => error "Expected HOL equation");
+      | _ => ill_formed_equation_lhs_rhs lthy [code_goal]);
     val fun_t = Const (fun_name, fun_T);
 
     val (arg_Ts, res_T as Type (fpT_name, _)) = strip_type fun_T;
@@ -2294,8 +2260,8 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
     val parsed_eq = parse_corec_equation lthy [] code_goal;
 
     val (((rho, rho_def), (const_transfer_goals, rho_transfer_goal)), lthy) =
-      extract_rho_return_transfer_goals fun_b version dead_pre_bnf dead_k_bnf Y Z preT fun_T k_T
-        ssig_T ssig_fp_sugar friend_parse_info fun_t parsed_eq lthy;
+      extract_rho_return_transfer_goals fun_b version dead_pre_bnf dead_k_bnf Y Z preT k_T ssig_T
+        ssig_fp_sugar friend_parse_info fun_t parsed_eq lthy;
 
     fun register_friend_extra_and_note_thms code_goal code_thm const_transfers k_T friend_info
         lthy =

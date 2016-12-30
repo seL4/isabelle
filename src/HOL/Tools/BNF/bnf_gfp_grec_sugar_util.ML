@@ -49,9 +49,6 @@ open BNF_GFP_Grec_Tactics
 
 val mk_case_sumN_balanced = Balanced_Tree.make mk_case_sum;
 
-fun not_codatatype ctxt T =
-  error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
-
 fun generalize_types max_j T U =
   let
     val vars = Unsynchronized.ref [];

@@ -74,16 +74,9 @@ fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
 
 exception NO_MAP of term;
 
-fun ill_formed_rec_call ctxt t =
-  error ("Ill-formed recursive call: " ^ quote (Syntax.string_of_term ctxt t));
-fun invalid_map ctxt t =
-  error ("Invalid map function in " ^ quote (Syntax.string_of_term ctxt t));
-fun unexpected_rec_call ctxt eqns t =
-  error_at ctxt eqns ("Unexpected recursive call in " ^ quote (Syntax.string_of_term ctxt t));
-
 fun massage_nested_rec_call ctxt has_call massage_fun massage_nonfun bound_Ts y y' t0 =
   let
-    fun check_no_call t = if has_call t then unexpected_rec_call ctxt [t0] t else ();
+    fun check_no_call t = if has_call t then unexpected_rec_call_in ctxt [t0] t else ();
 
     val typof = curry fastype_of1 bound_Ts;
     val massage_no_call = build_map ctxt [] [] massage_nonfun;
@@ -133,11 +126,11 @@ fun massage_nested_rec_call ctxt has_call massage_fun massage_nonfun bound_Ts y 
         if has_call t then
           if t2 = y then
             massage_map yU yT (elim_y t1) $ y'
-            handle NO_MAP t' => invalid_map ctxt t'
+            handle NO_MAP t' => invalid_map ctxt [t0] t'
           else
             let val (g, xs) = Term.strip_comb t2 in
               if g = y then
-                if exists has_call xs then unexpected_rec_call ctxt [t0] t2
+                if exists has_call xs then unexpected_rec_call_in ctxt [t0] t2
                 else Term.list_comb (massage_outer_call (mk_compN (length xs) bound_Ts (t1, y)), xs)
               else
                 ill_formed_rec_call ctxt t
@@ -153,8 +146,8 @@ fun rewrite_map_fun ctxt get_ctr_pos U T t =
   let
     val _ =
       (case try HOLogic.dest_prodT U of
-        SOME (U1, _) => U1 = T orelse invalid_map ctxt t
-      | NONE => invalid_map ctxt t);
+        SOME (U1, _) => U1 = T orelse invalid_map ctxt [] t
+      | NONE => invalid_map ctxt [] t);
 
     fun subst d (t as Bound d') = t |> d = SOME d' ? curry (op $) (fst_const U)
       | subst d (Abs (v, T, b)) =
@@ -171,8 +164,7 @@ fun rewrite_map_fun ctxt get_ctr_pos U T t =
                 d = try (fn Bound n => n) (nth vs ctr_pos) then
               Term.list_comb (snd_const U $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
             else
-              error ("Recursive call not directly applied to constructor argument in " ^
-                quote (Syntax.string_of_term ctxt t))
+              rec_call_not_apply_to_ctr_arg ctxt [] t
           else
             Term.list_comb (u, map (subst (if d = SOME ~1 then NONE else d)) vs)
         end;

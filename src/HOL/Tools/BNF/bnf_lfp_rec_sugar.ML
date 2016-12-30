@@ -95,11 +95,6 @@ val nitpicksimp_simp_attrs = nitpicksimp_attrs @ simp_attrs;
 
 exception OLD_PRIMREC of unit;
 
-fun malformed_eqn_lhs_rhs ctxt eqn =
-  error_at ctxt [eqn] "Malformed equation (expected \"lhs = rhs\")";
-fun malformed_eqn_head ctxt eqn =
-  error_at ctxt [eqn] "Malformed function equation (expected function name on left-hand side)";
-
 datatype rec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
   Nonexhaustive_Option |
@@ -289,29 +284,25 @@ type eqn_data = {
 fun dissect_eqn ctxt fun_names eqn0 =
   let
     val eqn = drop_all eqn0 |> HOLogic.dest_Trueprop
-      handle TERM _ => malformed_eqn_lhs_rhs ctxt eqn0;
+      handle TERM _ => ill_formed_equation_lhs_rhs ctxt [eqn0];
     val (lhs, rhs) = HOLogic.dest_eq eqn
-      handle TERM _ => malformed_eqn_lhs_rhs ctxt eqn;
+      handle TERM _ => ill_formed_equation_lhs_rhs ctxt [eqn];
     val (fun_name, args) = strip_comb lhs
-      |>> (fn x => if is_Free x then fst (dest_Free x) else malformed_eqn_head ctxt eqn);
+      |>> (fn x => if is_Free x then fst (dest_Free x) else ill_formed_equation_head ctxt [eqn]);
     val (left_args, rest) = take_prefix is_Free args;
     val (nonfrees, right_args) = take_suffix is_Free rest;
     val num_nonfrees = length nonfrees;
     val _ = num_nonfrees = 1 orelse
-      error_at ctxt [eqn] (if num_nonfrees = 0 then "Constructor pattern missing in left-hand side"
-        else "More than one non-variable argument in left-hand side");
-    val _ = member (op =) fun_names fun_name orelse raise malformed_eqn_head ctxt eqn;
+      (if num_nonfrees = 0 then missing_pattern ctxt [eqn]
+       else more_than_one_nonvar_in_lhs ctxt [eqn]);
+    val _ = member (op =) fun_names fun_name orelse raise ill_formed_equation_head ctxt [eqn];
 
     val (ctr, ctr_args) = strip_comb (the_single nonfrees);
     val _ = try (num_binder_types o fastype_of) ctr = SOME (length ctr_args) orelse
-      error_at ctxt [eqn] "Partially applied constructor in pattern";
+      partially_applied_ctr_in_pattern ctxt [eqn];
 
-    val dups = duplicates (op =) (left_args @ ctr_args @ right_args)
-    val _ = null dups orelse
-      error_at ctxt [eqn] ("Duplicate variable \"" ^ Syntax.string_of_term ctxt (hd dups) ^
-        "\" in left-hand side");
-    val _ = forall is_Free ctr_args orelse
-      error_at ctxt [eqn] "Nonprimitive pattern in left-hand side";
+    val _ = check_duplicate_variables_in_lhs ctxt [eqn] (left_args @ ctr_args @ right_args)
+    val _ = forall is_Free ctr_args orelse nonprimitive_pattern_in_lhs ctxt [eqn];
     val _ =
       let
         val bads =
@@ -323,8 +314,7 @@ fun dissect_eqn ctxt fun_names eqn0 =
                 I
             | _ => I) rhs [];
       in
-        null bads orelse
-        error_at ctxt [eqn] ("Extra variable " ^ quote (Syntax.string_of_term ctxt (hd bads)))
+        null bads orelse extra_variable_in_rhs ctxt [eqn] (hd bads)
       end;
   in
     {fun_name = fun_name,
@@ -361,9 +351,7 @@ fun subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls
                 (case try (get_ctr_pos o fst o dest_Free) g of
                   SOME ~1 => subst_comb t
                 | SOME ctr_pos =>
-                  (length g_args >= ctr_pos orelse
-                   error ("Too few arguments in recursive call " ^
-                     quote (Syntax.string_of_term ctxt t));
+                  (length g_args >= ctr_pos orelse too_few_args_in_rec_call ctxt [] t;
                    (case AList.lookup (op =) mutual_calls y of
                      SOME y' => list_comb (y', map (subst bound_Ts) g_args)
                    | NONE => subst_comb t))
@@ -374,11 +362,8 @@ fun subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls
       | subst _ t = t
 
     fun subst' t =
-      if has_call t then
-        error ("Recursive call not directly applied to constructor argument in " ^
-          quote (Syntax.string_of_term ctxt t))
-      else
-        try_nested_rec [] (head_of t) t |> the_default t;
+      if has_call t then rec_call_not_apply_to_ctr_arg ctxt [] t
+      else try_nested_rec [] (head_of t) t |> the_default t;
   in
     subst' o subst []
   end;
@@ -437,20 +422,20 @@ fun build_defs ctxt nonexhaustives bs mxs (funs_data : eqn_data list list)
         let
           val zs = replicate (length xs) z;
           val (b, c) = finds (fn ((x, _), y) => #ctr x = #ctr y) (xs ~~ zs) ys;
-          val _ = null c orelse error_at ctxt (map #rhs_term c) "Excess equation(s)";
+          val _ = null c orelse excess_equations ctxt (map #rhs_term c);
         in b end) (map #ctr_specs (take n_funs rec_specs) ~~ funs_data ~~ nonexhaustives);
 
     val (_ : unit list) = ctr_spec_eqn_data_list' |> map (fn (({ctr, ...}, nonexhaustive), x) =>
       if length x > 1 then
-        error_at ctxt (map #user_eqn x) "Multiple equations for constructor"
+        multiple_equations_for_ctr ctxt (map #user_eqn x)
       else if length x = 1 orelse nonexhaustive orelse not (Context_Position.is_visible ctxt) then
         ()
       else
-        warning ("No equation for constructor " ^ Syntax.string_of_term ctxt ctr));
+        no_equation_for_ctr_warning ctxt [] ctr);
 
     val ctr_spec_eqn_data_list =
       map (apfst fst) ctr_spec_eqn_data_list' @
-        (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
+      (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
 
     val recs = take n_funs rec_specs |> map #recx;
     val rec_args = ctr_spec_eqn_data_list
@@ -458,7 +443,7 @@ fun build_defs ctxt nonexhaustives bs mxs (funs_data : eqn_data list list)
       |> map (uncurry (build_rec_arg ctxt funs_data has_call) o apsnd (try the_single));
     val ctr_poss = map (fn x =>
       if length (distinct (op = o apply2 (length o #left_args)) x) <> 1 then
-        error ("Inconstant constructor pattern position for function " ^ quote (#fun_name (hd x)))
+        inconstant_pattern_pos_for_fun ctxt [] (#fun_name (hd x))
       else
         hd x |> #left_args |> length) funs_data;
   in
@@ -519,7 +504,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
       |> partition_eq (op = o apply2 #fun_name)
       |> finds (fn (x, y) => x = #fun_name (hd y)) fun_names |> fst
       |> map (fn (x, y) => the_single y
-        handle List.Empty => error ("Missing equations for function " ^ quote x));
+        handle List.Empty => missing_equations_for_fun x);
 
     val frees = map (fst #>> Binding.name_of #> Free) fixes;
     val has_call = exists_subterm (member (op =) frees);
@@ -534,9 +519,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
       | is_only_old_datatype _ = false;
 
     val _ = if exists is_only_old_datatype arg_Ts then raise OLD_PRIMREC () else ();
-    val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, @{sort type})) (bs ~~ res_Ts) of
-        [] => ()
-      | (b, _) :: _ => error ("Type of " ^ Binding.print b ^ " contains top sort"));
+    val _ = List.app (uncurry (check_top_sort lthy0)) (bs ~~ res_Ts);
 
     val ((n2m, rec_specs, _, common_induct, inducts, induct_attrs, Ts), lthy) =
       rec_specs_of bs arg_Ts res_Ts frees callssss lthy0;
@@ -544,10 +527,9 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
     val actual_nn = length funs_data;
 
     val ctrs = maps (map #ctr o #ctr_specs) rec_specs;
-    val _ =
-      map (fn {ctr, user_eqn, ...} => member (op =) ctrs ctr orelse
-        error_at lthy0 [user_eqn] ("Argument " ^ quote (Syntax.string_of_term lthy ctr) ^
-          " is not a constructor in left-hand side")) eqns_data;
+    val _ = List.app (fn {ctr, user_eqn, ...} =>
+        ignore (member (op =) ctrs ctr orelse not_constructor_in_pattern lthy0 [user_eqn] ctr))
+      eqns_data;
 
     val defs = build_defs lthy nonexhaustives bs mxs funs_data rec_specs has_call;
 
@@ -608,6 +590,8 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
 
 fun primrec_simple0 int plugins nonexhaustive transfer fixes ts lthy =
   let
+    val _ = check_duplicate_const_names (map (fst o fst) fixes);
+
     val actual_nn = length fixes;
 
     val nonexhaustives = replicate actual_nn nonexhaustive;
@@ -634,9 +618,6 @@ fun primrec_simple int fixes ts lthy =
 
 fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
   let
-    val dups = duplicates (op =) (map (fn (x, _, _) => Binding.name_of x) raw_fixes);
-    val _ = null dups orelse error ("Duplicate function name " ^ quote (hd dups));
-
     val plugins = get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
       |> the_default Plugin_Name.default_filter;
     val nonexhaustive = exists (can (fn Nonexhaustive_Option => ())) opts;

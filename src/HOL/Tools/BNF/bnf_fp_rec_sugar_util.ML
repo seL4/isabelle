@@ -9,6 +9,44 @@ Library for recursor and corecursor sugar.
 signature BNF_FP_REC_SUGAR_UTIL =
 sig
   val error_at: Proof.context -> term list -> string -> 'a
+  val warning_at: Proof.context -> term list -> string -> unit
+
+  val excess_equations: Proof.context -> term list -> 'a
+  val extra_variable_in_rhs: Proof.context -> term list -> term -> 'a
+  val ill_formed_corec_call: Proof.context -> term -> 'a
+  val ill_formed_equation_head: Proof.context -> term list -> 'a
+  val ill_formed_equation_lhs_rhs: Proof.context -> term list -> 'a
+  val ill_formed_equation: Proof.context -> term -> 'a
+  val ill_formed_formula: Proof.context -> term -> 'a
+  val ill_formed_rec_call: Proof.context -> term -> 'a
+  val inconstant_pattern_pos_for_fun: Proof.context -> term list -> string -> 'a
+  val invalid_map: Proof.context -> term list -> term -> 'a
+  val missing_args_to_fun_on_lhs: Proof.context -> term list -> 'a
+  val missing_equations_for_const: string -> 'a
+  val missing_equations_for_fun: string -> 'a
+  val missing_pattern: Proof.context -> term list -> 'a
+  val more_than_one_nonvar_in_lhs: Proof.context -> term list -> 'a
+  val multiple_equations_for_ctr: Proof.context -> term list -> 'a
+  val nonprimitive_corec: Proof.context -> term list -> 'a
+  val nonprimitive_pattern_in_lhs: Proof.context -> term list -> 'a
+  val not_codatatype: Proof.context -> typ -> 'a
+  val not_datatype: Proof.context -> typ -> 'a
+  val not_constructor_in_pattern: Proof.context -> term list -> term -> 'a
+  val not_constructor_in_rhs: Proof.context -> term list -> term -> 'a
+  val rec_call_not_apply_to_ctr_arg: Proof.context -> term list -> term -> 'a
+  val partially_applied_ctr_in_pattern: Proof.context -> term list -> 'a
+  val partially_applied_ctr_in_rhs: Proof.context -> term list -> 'a
+  val too_few_args_in_rec_call: Proof.context -> term list -> term -> 'a
+  val unexpected_rec_call_in: Proof.context -> term list -> term -> 'a
+  val unexpected_corec_call_in: Proof.context -> term list -> term -> 'a
+  val unsupported_case_around_corec_call: Proof.context -> term list -> term -> 'a
+
+  val no_equation_for_ctr_warning: Proof.context -> term list -> term -> unit
+
+  val check_all_fun_arg_frees: Proof.context -> term list -> term list -> unit
+  val check_duplicate_const_names: binding list -> unit
+  val check_duplicate_variables_in_lhs: Proof.context -> term list -> term list -> unit
+  val check_top_sort: Proof.context -> binding -> typ -> unit
 
   datatype fp_kind = Least_FP | Greatest_FP
 
@@ -63,9 +101,109 @@ end;
 structure BNF_FP_Rec_Sugar_Util : BNF_FP_REC_SUGAR_UTIL =
 struct
 
-fun error_at ctxt ts str =
-  error (str ^ (if null ts then ""
-    else " at\n  " ^ space_implode "\n  " (map (quote o Syntax.string_of_term ctxt) ts)));
+fun error_at ctxt ats str =
+  error (str ^ (if null ats then ""
+    else " at\n" ^ cat_lines (map (prefix "  " o Syntax.string_of_term ctxt) ats)));
+fun warning_at ctxt ats str =
+  warning (str ^ (if null ats then ""
+    else " at\n" ^ cat_lines (map (prefix "  " o Syntax.string_of_term ctxt) ats)));
+
+fun excess_equations ctxt ats =
+  error ("Excess equation(s):\n" ^
+    cat_lines (map (prefix "  " o Syntax.string_of_term ctxt) ats));
+fun extra_variable_in_rhs ctxt ats var =
+  error_at ctxt ats ("Extra variable " ^ quote (Syntax.string_of_term ctxt var) ^
+    " in right-hand side");
+fun ill_formed_corec_call ctxt t =
+  error ("Ill-formed corecursive call " ^ quote (Syntax.string_of_term ctxt t));
+fun ill_formed_equation_head ctxt ats =
+  error_at ctxt ats "Ill-formed function equation (expected function name on left-hand side)";
+fun ill_formed_equation_lhs_rhs ctxt ats =
+  error_at ctxt ats "Ill-formed equation (expected \"lhs = rhs\")";
+fun ill_formed_equation ctxt t =
+  error_at ctxt [] ("Ill-formed equation:\n  " ^ Syntax.string_of_term ctxt t);
+fun ill_formed_formula ctxt t =
+  error_at ctxt [] ("Ill-formed formula:\n  " ^ Syntax.string_of_term ctxt t);
+fun ill_formed_rec_call ctxt t =
+  error ("Ill-formed recursive call: " ^ quote (Syntax.string_of_term ctxt t));
+fun inconstant_pattern_pos_for_fun ctxt ats fun_name =
+  error_at ctxt ats ("Inconstant constructor pattern position for function " ^ quote fun_name);
+fun invalid_map ctxt ats t =
+  error_at ctxt ats ("Invalid map function in " ^ quote (Syntax.string_of_term ctxt t));
+fun missing_args_to_fun_on_lhs ctxt ats =
+  error_at ctxt ats "Expected more arguments to function on left-hand side";
+fun missing_equations_for_const fun_name =
+  error ("Missing equations for constant " ^ quote fun_name);
+fun missing_equations_for_fun fun_name =
+  error ("Missing equations for function " ^ quote fun_name);
+fun missing_pattern ctxt ats =
+  error_at ctxt ats "Constructor pattern missing in left-hand side";
+fun more_than_one_nonvar_in_lhs ctxt ats =
+  error_at ctxt ats "More than one non-variable argument in left-hand side";
+fun multiple_equations_for_ctr ctxt ats =
+  error ("Multiple equations for constructor:\n" ^
+    cat_lines (map (prefix "  " o Syntax.string_of_term ctxt) ats));
+fun nonprimitive_corec ctxt ats =
+  error_at ctxt ats "Nonprimitive corecursive specification";
+fun nonprimitive_pattern_in_lhs ctxt ats =
+  error_at ctxt ats "Nonprimitive pattern in left-hand side";
+fun not_codatatype ctxt T =
+  error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
+fun not_datatype ctxt T =
+  error ("Not a datatype: " ^ Syntax.string_of_typ ctxt T);
+fun not_constructor_in_pattern ctxt ats t =
+  error_at ctxt ats ("Not a constructor " ^ quote (Syntax.string_of_term ctxt t) ^
+    " in pattern");
+fun not_constructor_in_rhs ctxt ats t =
+  error_at ctxt ats ("Not a constructor " ^ quote (Syntax.string_of_term ctxt t) ^
+    " in right-hand side");
+fun rec_call_not_apply_to_ctr_arg ctxt ats t =
+  error_at ctxt ats ("Recursive call not directly applied to constructor argument in " ^
+    quote (Syntax.string_of_term ctxt t));
+fun partially_applied_ctr_in_pattern ctxt ats =
+  error_at ctxt ats "Partially applied constructor in pattern";
+fun partially_applied_ctr_in_rhs ctxt ats =
+  error_at ctxt ats "Partially applied constructor in right-hand side";
+fun too_few_args_in_rec_call ctxt ats t =
+  error_at ctxt ats ("Too few arguments in recursive call " ^ quote (Syntax.string_of_term ctxt t));
+fun unexpected_rec_call_in ctxt ats t =
+  error_at ctxt ats ("Unexpected recursive call in " ^ quote (Syntax.string_of_term ctxt t));
+fun unexpected_corec_call_in ctxt ats t =
+  error_at ctxt ats ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
+fun unsupported_case_around_corec_call ctxt ats t =
+  error_at ctxt ats ("Unsupported corecursive call under case expression " ^
+    quote (Syntax.string_of_term ctxt t) ^ "\n(Define " ^
+    quote (Syntax.string_of_typ ctxt (domain_type (fastype_of t))) ^
+    " with discriminators and selectors to circumvent this limitation)");
+
+fun no_equation_for_ctr_warning ctxt ats ctr =
+  warning_at ctxt ats ("No equation for constructor " ^ quote (Syntax.string_of_term ctxt ctr));
+
+fun check_all_fun_arg_frees ctxt ats fun_args =
+  (case find_first (not o is_Free) fun_args of
+    SOME t => error_at ctxt ats ("Non-variable function argument on left-hand side " ^
+      quote (Syntax.string_of_term ctxt t))
+  | NONE =>
+    (case find_first (Variable.is_fixed ctxt o fst o dest_Free) fun_args of
+      SOME t => error_at ctxt ats ("Function argument " ^
+        quote (Syntax.string_of_term ctxt t) ^ " is fixed in context")
+    | NONE => ()));
+
+fun check_duplicate_const_names bs =
+  let val dups = duplicates (op =) (map Binding.name_of bs) in
+    ignore (null dups orelse error ("Duplicate constant name " ^ quote (hd dups)))
+  end;
+
+fun check_duplicate_variables_in_lhs ctxt ats vars =
+  let val dups = duplicates (op aconv) vars in
+    ignore (null dups orelse
+      error_at ctxt ats ("Duplicable variable " ^ quote (Syntax.string_of_term ctxt (hd dups)) ^
+        " in left-hand side"))
+  end;
+
+fun check_top_sort ctxt b T =
+  ignore (Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort type}) orelse
+    error ("Type of " ^ Binding.print b ^ " contains top sort"));
 
 datatype fp_kind = Least_FP | Greatest_FP;
 

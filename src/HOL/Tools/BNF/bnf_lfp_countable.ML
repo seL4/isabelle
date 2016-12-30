@@ -27,7 +27,7 @@ fun nchotomy_tac ctxt nchotomy =
   HEADGOAL (resolve_tac ctxt [nchotomy RS @{thm all_reg[rotated]}] THEN'
     REPEAT_ALL_NEW (resolve_tac ctxt [allI, impI] ORELSE' eresolve_tac ctxt [exE, disjE]));
 
-fun meta_spec_mp_tac ctxt 0 = K all_tac
+fun meta_spec_mp_tac _ 0 = K all_tac
   | meta_spec_mp_tac ctxt depth =
     dtac ctxt meta_spec THEN' meta_spec_mp_tac ctxt (depth - 1) THEN'
     dtac ctxt meta_mp THEN' assume_tac ctxt;
@@ -127,13 +127,14 @@ fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
 fun derive_encode_injectives_thms _ [] = []
   | derive_encode_injectives_thms ctxt fpT_names0 =
     let
-      fun not_datatype s = error (quote s ^ " is not a datatype");
+      fun not_datatype_name s =
+        error (quote s ^ " is not a datatype");
       fun not_mutually_recursive ss = error (commas ss ^ " are not mutually recursive datatypes");
 
       fun lfp_sugar_of s =
         (case fp_sugar_of ctxt s of
           SOME (fp_sugar as {fp = Least_FP, fp_co_induct_sugar = SOME _, ...}) => fp_sugar
-        | _ => not_datatype s);
+        | _ => not_datatype_name s);
 
       val fpTs0 as Type (_, var_As) :: _ =
         map (#T o lfp_sugar_of o fst o dest_Type) (#Ts (#fp_res (lfp_sugar_of (hd fpT_names0))));
