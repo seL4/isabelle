@@ -433,11 +433,57 @@ lemma nat_less_eq_zless: "0 \<le> w \<Longrightarrow> nat w < nat z \<longleftri
 lemma zless_nat_conj [simp]: "nat w < nat z \<longleftrightarrow> 0 < z \<and> w < z"
   by transfer (clarsimp, arith)
 
-lemma nonneg_eq_int:
-  fixes z :: int
-  assumes "0 \<le> z" and "\<And>m. z = int m \<Longrightarrow> P"
-  shows P
-  using assms by (blast dest: nat_0_le sym)
+lemma nonneg_int_cases:
+  assumes "0 \<le> k"
+  obtains n where "k = int n"
+proof -
+  from assms have "k = int (nat k)"
+    by simp
+  then show thesis
+    by (rule that)
+qed
+
+lemma pos_int_cases:
+  assumes "0 < k"
+  obtains n where "k = int n" and "n > 0"
+proof -
+  from assms have "0 \<le> k"
+    by simp
+  then obtain n where "k = int n"
+    by (rule nonneg_int_cases)
+  moreover have "n > 0"
+    using \<open>k = int n\<close> assms by simp
+  ultimately show thesis
+    by (rule that)
+qed
+
+lemma nonpos_int_cases:
+  assumes "k \<le> 0"
+  obtains n where "k = - int n"
+proof -
+  from assms have "- k \<ge> 0"
+    by simp
+  then obtain n where "- k = int n"
+    by (rule nonneg_int_cases)
+  then have "k = - int n"
+    by simp
+  then show thesis
+    by (rule that)
+qed
+
+lemma neg_int_cases:
+  assumes "k < 0"
+  obtains n where "k = - int n" and "n > 0"
+proof -
+  from assms have "- k > 0"
+    by simp
+  then obtain n where "- k = int n" and "- k > 0"
+    by (blast elim: pos_int_cases)
+  then have "k = - int n" and "n > 0"
+    by simp_all
+  then show thesis
+    by (rule that)
+qed
 
 lemma nat_eq_iff: "nat w = m \<longleftrightarrow> (if 0 \<le> w then w = int m else m = 0)"
   by transfer (clarsimp simp add: le_imp_diff_is_add)
@@ -614,11 +660,6 @@ qed
 lemma int_of_nat_induct [case_names nonneg neg, induct type: int]:
   "(\<And>n. P (int n)) \<Longrightarrow> (\<And>n. P (- (int (Suc n)))) \<Longrightarrow> P z"
   by (cases z) auto
-
-lemma nonneg_int_cases:
-  assumes "0 \<le> k"
-  obtains n where "k = int n"
-  using assms by (rule nonneg_eq_int)
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
   \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
@@ -880,14 +921,14 @@ lemma of_nat_prod [simp]: "of_nat (prod f A) = (\<Prod>x\<in>A. of_nat(f x))"
 lemma of_int_prod [simp]: "of_int (prod f A) = (\<Prod>x\<in>A. of_int(f x))"
   by (induct A rule: infinite_finite_induct) auto
 
-lemmas int_sum = of_nat_sum [where 'a=int]
-lemmas int_prod = of_nat_prod [where 'a=int]
-
 
 text \<open>Legacy theorems\<close>
 
+lemmas int_sum = of_nat_sum [where 'a=int]
+lemmas int_prod = of_nat_prod [where 'a=int]
 lemmas zle_int = of_nat_le_iff [where 'a=int]
 lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
+lemmas nonneg_eq_int = nonneg_int_cases
 
 
 subsection \<open>Setting up simplification procedures\<close>
