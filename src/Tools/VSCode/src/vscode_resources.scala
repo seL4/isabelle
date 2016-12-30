@@ -79,11 +79,12 @@ class VSCode_Resources(
           (for {
             node_name <- st.pending_input.iterator
             model <- st.models.get(node_name.node)
-            if model.changed } yield model).toList
-        val edits = for { model <- changed; edit <- model.node_edits } yield edit
-        session.update(Document.Blobs.empty, edits)
+            res <- model.flush_edits
+          } yield res).toList
+
+        session.update(Document.Blobs.empty, changed.flatMap(_._1))
         st.copy(
-          models = (st.models /: changed) { case (ms, m) => ms + (m.uri -> m.unchanged) },
+          models = (st.models /: changed) { case (ms, (_, m)) => ms + (m.uri -> m) },
           pending_input = Set.empty)
       })
   }
