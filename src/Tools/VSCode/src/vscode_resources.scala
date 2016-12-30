@@ -29,8 +29,8 @@ object VSCode_Resources
 
   sealed case class State(
     models: Map[String, Document_Model] = Map.empty,
-    pending_input: Set[Document.Node.Name] = Set.empty,
-    pending_output: Set[Document.Node.Name] = Set.empty)
+    pending_input: Set[String] = Set.empty,
+    pending_output: Set[String] = Set.empty)
 }
 
 class VSCode_Resources(
@@ -64,8 +64,8 @@ class VSCode_Resources(
   {
     state.change(st =>
       st.copy(
-        models = st.models + (model.node_name.node -> model),
-        pending_input = st.pending_input + model.node_name))
+        models = st.models + (model.uri -> model),
+        pending_input = st.pending_input + model.uri))
   }
 
 
@@ -77,8 +77,8 @@ class VSCode_Resources(
       {
         val changed =
           (for {
-            node_name <- st.pending_input.iterator
-            model <- st.models.get(node_name.node)
+            uri <- st.pending_input.iterator
+            model <- st.models.get(uri)
             res <- model.flush_edits
           } yield res).toList
 
@@ -92,7 +92,7 @@ class VSCode_Resources(
 
   /* pending output */
 
-  def update_output(changed_nodes: Set[Document.Node.Name]): Unit =
+  def update_output(changed_nodes: List[String]): Unit =
     state.change(st => st.copy(pending_output = st.pending_output ++ changed_nodes))
 
   def flush_output(channel: Channel)
@@ -101,8 +101,8 @@ class VSCode_Resources(
       {
         val changed_iterator =
           for {
-            node_name <- st.pending_output.iterator
-            model <- st.models.get(node_name.node)
+            uri <- st.pending_output.iterator
+            model <- st.models.get(uri)
             rendering = model.rendering()
             (diagnostics, model1) <- model.publish_diagnostics(rendering)
           } yield {

@@ -125,7 +125,7 @@ class Server(
   private val commands_changed =
     Session.Consumer[Session.Commands_Changed](getClass.getName) {
       case changed if changed.nodes.nonEmpty =>
-        resources.update_output(changed.nodes)
+        resources.update_output(changed.nodes.toList.map(_.node))
         delay_output.invoke()
       case _ =>
     }
