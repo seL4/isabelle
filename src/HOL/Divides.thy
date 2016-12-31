@@ -1823,6 +1823,103 @@ lemma is_unit_int:
   "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
   by auto
 
+lemma zdiv_int:
+  "int (a div b) = int a div int b"
+  by (simp add: divide_int_def)
+
+lemma zmod_int:
+  "int (a mod b) = int a mod int b"
+  by (simp add: modulo_int_def int_dvd_iff)
+
+lemma div_abs_eq_div_nat:
+  "\<bar>k\<bar> div \<bar>l\<bar> = int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)"
+  by (simp add: divide_int_def)
+
+lemma mod_abs_eq_div_nat:
+  "\<bar>k\<bar> mod \<bar>l\<bar> = int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)"
+  by (simp add: modulo_int_def dvd_int_unfold_dvd_nat)
+
+lemma div_sgn_abs_cancel:
+  fixes k l v :: int
+  assumes "v \<noteq> 0"
+  shows "(sgn v * \<bar>k\<bar>) div (sgn v * \<bar>l\<bar>) = \<bar>k\<bar> div \<bar>l\<bar>"
+proof -
+  from assms have "sgn v = - 1 \<or> sgn v = 1"
+    by (cases "v \<ge> 0") auto
+  then show ?thesis
+  using assms unfolding divide_int_def [of "sgn v * \<bar>k\<bar>" "sgn v * \<bar>l\<bar>"]
+    by (auto simp add: not_less div_abs_eq_div_nat)
+qed
+
+lemma div_eq_sgn_abs:
+  fixes k l v :: int
+  assumes "sgn k = sgn l"
+  shows "k div l = \<bar>k\<bar> div \<bar>l\<bar>"
+proof (cases "l = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  with assms have "(sgn k * \<bar>k\<bar>) div (sgn l * \<bar>l\<bar>) = \<bar>k\<bar> div \<bar>l\<bar>"
+    by (simp add: div_sgn_abs_cancel)
+  then show ?thesis
+    by (simp add: sgn_mult_abs)
+qed
+
+lemma div_dvd_sgn_abs:
+  fixes k l :: int
+  assumes "l dvd k"
+  shows "k div l = (sgn k * sgn l) * (\<bar>k\<bar> div \<bar>l\<bar>)"
+proof (cases "k = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  show ?thesis
+  proof (cases "sgn l = sgn k")
+    case True
+    then show ?thesis
+      by (simp add: div_eq_sgn_abs)
+  next
+    case False
+    with \<open>k \<noteq> 0\<close> assms show ?thesis
+      unfolding divide_int_def [of k l]
+        by (auto simp add: zdiv_int)
+  qed
+qed
+
+lemma div_noneq_sgn_abs:
+  fixes k l :: int
+  assumes "l \<noteq> 0"
+  assumes "sgn k \<noteq> sgn l"
+  shows "k div l = - (\<bar>k\<bar> div \<bar>l\<bar>) - of_bool (\<not> l dvd k)"
+  using assms
+  by (simp only: divide_int_def [of k l], auto simp add: not_less zdiv_int)
+  
+lemma sgn_mod:
+  fixes k l :: int
+  assumes "l \<noteq> 0" "\<not> l dvd k"
+  shows "sgn (k mod l) = sgn l"
+proof -
+  from \<open>\<not> l dvd k\<close>
+  have "k mod l \<noteq> 0"
+    by (simp add: dvd_eq_mod_eq_0)
+  show ?thesis
+    using \<open>l \<noteq> 0\<close> \<open>\<not> l dvd k\<close>
+    unfolding modulo_int_def [of k l]
+    by (auto simp add: sgn_1_pos sgn_1_neg mod_greater_zero_iff_not_dvd nat_dvd_iff not_less
+      zless_nat_eq_int_zless [symmetric] elim: nonpos_int_cases)
+qed
+
+lemma abs_mod_less:
+  fixes k l :: int
+  assumes "l \<noteq> 0"
+  shows "\<bar>k mod l\<bar> < \<bar>l\<bar>"
+  using assms unfolding modulo_int_def [of k l]
+  by (auto simp add: not_less int_dvd_iff mod_greater_zero_iff_not_dvd elim: pos_int_cases neg_int_cases nonneg_int_cases nonpos_int_cases)
+
 instance int :: ring_div
 proof
   fix k l s :: int
@@ -1869,12 +1966,6 @@ simproc_setup cancel_div_mod_int ("(k::int) + l") =
 
 
 text\<open>Basic laws about division and remainder\<close>
-
-lemma zdiv_int: "int (a div b) = int a div int b"
-  by (simp add: divide_int_def)
-
-lemma zmod_int: "int (a mod b) = int a mod int b"
-  by (simp add: modulo_int_def int_dvd_iff)
 
 lemma pos_mod_conj: "(0::int) < b \<Longrightarrow> 0 \<le> a mod b \<and> a mod b < b"
   using eucl_rel_int [of a b]

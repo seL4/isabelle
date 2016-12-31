@@ -582,10 +582,22 @@ end
 context linordered_idom
 begin
 
-lemma power_abs: "\<bar>a ^ n\<bar> = \<bar>a\<bar> ^ n"
-  by (induct n) (auto simp add: abs_mult)
+lemma zero_le_power2 [simp]: "0 \<le> a\<^sup>2"
+  by (simp add: power2_eq_square)
 
-lemma abs_power_minus [simp]: "\<bar>(-a) ^ n\<bar> = \<bar>a ^ n\<bar>"
+lemma zero_less_power2 [simp]: "0 < a\<^sup>2 \<longleftrightarrow> a \<noteq> 0"
+  by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
+
+lemma power2_less_0 [simp]: "\<not> a\<^sup>2 < 0"
+  by (force simp add: power2_eq_square mult_less_0_iff)
+
+lemma power_abs: "\<bar>a ^ n\<bar> = \<bar>a\<bar> ^ n" -- \<open>FIXME simp?\<close>
+  by (induct n) (simp_all add: abs_mult)
+
+lemma power_sgn [simp]: "sgn (a ^ n) = sgn a ^ n"
+  by (induct n) (simp_all add: sgn_mult)
+    
+lemma abs_power_minus [simp]: "\<bar>(- a) ^ n\<bar> = \<bar>a ^ n\<bar>"
   by (simp add: power_abs)
 
 lemma zero_less_power_abs_iff [simp]: "0 < \<bar>a\<bar> ^ n \<longleftrightarrow> a \<noteq> 0 \<or> n = 0"
@@ -600,15 +612,6 @@ qed
 lemma zero_le_power_abs [simp]: "0 \<le> \<bar>a\<bar> ^ n"
   by (rule zero_le_power [OF abs_ge_zero])
 
-lemma zero_le_power2 [simp]: "0 \<le> a\<^sup>2"
-  by (simp add: power2_eq_square)
-
-lemma zero_less_power2 [simp]: "0 < a\<^sup>2 \<longleftrightarrow> a \<noteq> 0"
-  by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
-
-lemma power2_less_0 [simp]: "\<not> a\<^sup>2 < 0"
-  by (force simp add: power2_eq_square mult_less_0_iff)
-
 lemma power2_less_eq_zero_iff [simp]: "a\<^sup>2 \<le> 0 \<longleftrightarrow> a = 0"
   by (simp add: le_less)
 
@@ -618,7 +621,7 @@ lemma abs_power2 [simp]: "\<bar>a\<^sup>2\<bar> = a\<^sup>2"
 lemma power2_abs [simp]: "\<bar>a\<bar>\<^sup>2 = a\<^sup>2"
   by (simp add: power2_eq_square)
 
-lemma odd_power_less_zero: "a < 0 \<Longrightarrow> a ^ Suc (2*n) < 0"
+lemma odd_power_less_zero: "a < 0 \<Longrightarrow> a ^ Suc (2 * n) < 0"
 proof (induct n)
   case 0
   then show ?case by simp
@@ -630,11 +633,11 @@ next
     by (simp del: power_Suc add: Suc mult_less_0_iff mult_neg_neg)
 qed
 
-lemma odd_0_le_power_imp_0_le: "0 \<le> a ^ Suc (2*n) \<Longrightarrow> 0 \<le> a"
+lemma odd_0_le_power_imp_0_le: "0 \<le> a ^ Suc (2 * n) \<Longrightarrow> 0 \<le> a"
   using odd_power_less_zero [of a n]
   by (force simp add: linorder_not_less [symmetric])
 
-lemma zero_le_even_power'[simp]: "0 \<le> a ^ (2*n)"
+lemma zero_le_even_power'[simp]: "0 \<le> a ^ (2 * n)"
 proof (induct n)
   case 0
   show ?case by simp
