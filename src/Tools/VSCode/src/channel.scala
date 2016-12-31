@@ -14,11 +14,8 @@ import java.io.{InputStream, OutputStream, FileOutputStream, ByteArrayOutputStre
 import scala.collection.mutable
 
 
-class Channel(in: InputStream, out: OutputStream, log_file: Option[Path] = None)
+class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
 {
-  val log: Logger = Logger.make(log_file)
-
-
   /* read message */
 
   private val Content_Length = """^\s*Content-Length:\s*(\d+)\s*$""".r

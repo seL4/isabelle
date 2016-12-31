@@ -64,8 +64,9 @@ Usage: isabelle vscode_server [OPTIONS]
             dirs = dirs, sessions = List(logic)).ok)
         error("Missing logic image " + quote(logic))
 
-      val channel = new Channel(System.in, System.out, log_file)
-      val server = new Server(channel, options, text_length, logic, dirs, modes)
+      val log = Logger.make(log_file)
+      val channel = new Channel(System.in, System.out, log)
+      val server = new Server(channel, options, text_length, logic, dirs, modes, log)
 
       // prevent spurious garbage on the main protocol channel
       val orig_out = System.out
@@ -77,7 +78,7 @@ Usage: isabelle vscode_server [OPTIONS]
     }
     catch {
       case exn: Throwable =>
-        val channel = new Channel(System.in, System.out, None)
+        val channel = new Channel(System.in, System.out, No_Logger)
         channel.error_message(Exn.message(exn))
         throw(exn)
     }
@@ -90,7 +91,8 @@ class Server(
   text_length: Text.Length = Text.Length.encoding(Server.default_text_length),
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
-  modes: List[String] = Nil)
+  modes: List[String] = Nil,
+  log: Logger = No_Logger)
 {
   /* server session */
 
@@ -251,7 +253,7 @@ class Server(
   }
 
   def exit() {
-    channel.log("\n")
+    log("\n")
     sys.exit(if (session_.value.isDefined) 1 else 0)
   }
 
@@ -289,7 +291,7 @@ class Server(
 
   def start()
   {
-    channel.log("Server started " + Date.now())
+    log("Server started " + Date.now())
 
     def handle(json: JSON.T)
     {
@@ -304,10 +306,10 @@ class Server(
             update_document(uri, text)
           case Protocol.DidCloseTextDocument(uri) =>
             close_document(uri)
-          case Protocol.DidSaveTextDocument(uri) => channel.log("SAVE " + uri)
+          case Protocol.DidSaveTextDocument(uri) => log("SAVE " + uri)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
-          case _ => channel.log("### IGNORED")
+          case _ => log("### IGNORED")
         }
       }
       catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
@@ -322,7 +324,7 @@ class Server(
             case _ => handle(json)
           }
           loop()
-        case None => channel.log("### TERMINATE")
+        case None => log("### TERMINATE")
       }
     }
     loop()
