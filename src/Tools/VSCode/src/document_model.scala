@@ -30,7 +30,6 @@ sealed case class Document_Model(
   node_name: Document.Node.Name,
   doc: Line.Document,
   external: Boolean = false,
-  node_visible: Boolean = true,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
   pending_edits: Vector[Text.Edit] = Vector.empty,
@@ -68,6 +67,8 @@ sealed case class Document_Model(
 
 
   /* perspective */
+
+  def node_visible: Boolean = !external
 
   def text_perspective: Text.Perspective =
     if (node_visible) Text.Perspective.full else Text.Perspective.empty
