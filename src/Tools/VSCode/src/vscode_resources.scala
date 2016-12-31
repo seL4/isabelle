@@ -92,14 +92,14 @@ class VSCode_Resources(
   def sync_external(changed_files: Set[JFile]): Boolean =
     state.change_result(st =>
       {
-        val changed =
+        val changed_models =
           (for {
             (uri, model) <- st.models.iterator
             if changed_files(model.file)
             model1 <- model.update_file
           } yield (uri, model)).toList
-        if (changed.isEmpty) (false, st)
-        else (true, st.copy(models = (st.models /: changed)(_ + _)))
+        if (changed_models.isEmpty) (false, st)
+        else (true, st.copy(models = (st.models /: changed_models)(_ + _)))
       })
 
 
@@ -109,16 +109,16 @@ class VSCode_Resources(
   {
     state.change(st =>
       {
-        val changed =
+        val changed_models =
           (for {
             uri <- st.pending_input.iterator
             model <- st.models.get(uri)
             res <- model.flush_edits
           } yield res).toList
 
-        session.update(Document.Blobs.empty, changed.flatMap(_._1))
+        session.update(Document.Blobs.empty, changed_models.flatMap(_._1))
         st.copy(
-          models = (st.models /: changed) { case (ms, (_, m)) => ms + (m.uri -> m) },
+          models = (st.models /: changed_models) { case (ms, (_, m)) => ms + (m.uri -> m) },
           pending_input = Set.empty)
       })
   }
