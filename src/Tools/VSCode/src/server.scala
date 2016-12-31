@@ -306,7 +306,6 @@ class Server(
             update_document(uri, text)
           case Protocol.DidCloseTextDocument(uri) =>
             close_document(uri)
-          case Protocol.DidSaveTextDocument(uri) => log("SAVE " + uri)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case _ => log("### IGNORED")
