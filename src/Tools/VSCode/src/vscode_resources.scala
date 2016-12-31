@@ -97,9 +97,12 @@ class VSCode_Resources(
             (uri, model) <- st.models.iterator
             if changed_files(model.file)
             model1 <- model.update_file
-          } yield (uri, model)).toList
+          } yield (uri, model1)).toList
         if (changed_models.isEmpty) (false, st)
-        else (true, st.copy(models = (st.models /: changed_models)(_ + _)))
+        else (true,
+          st.copy(
+            models = (st.models /: changed_models)(_ + _),
+            pending_input = (st.pending_input /: changed_models.iterator.map(_._1))(_ + _)))
       })
 
 
