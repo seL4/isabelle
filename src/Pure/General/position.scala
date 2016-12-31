@@ -132,21 +132,20 @@ object Position
 
   /* here: user output */
 
-  def here(pos: T): String =
-    Markup(Markup.POSITION, pos).markup(
-      (Line.unapply(pos), File.unapply(pos)) match {
-        case (Some(i), None) => " (line " + i.toString + ")"
-        case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"
-        case (None, Some(name)) => " (file " + quote(name) + ")"
-        case _ => ""
-      })
-
-  def here_undelimited(pos: T): String =
-    Markup(Markup.POSITION, pos).markup(
-      (Line.unapply(pos), File.unapply(pos)) match {
-        case (Some(i), None) => "line " + i.toString
-        case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
-        case (None, Some(name)) => "file " + quote(name)
-        case _ => ""
-      })
+  def here(props: T, delimited: Boolean = false): String =
+  {
+    val pos = props.filter(p => Markup.POSITION_PROPERTIES(p._1))
+    if (pos.isEmpty) ""
+    else {
+      val s0 =
+        (Line.unapply(pos), File.unapply(pos)) match {
+          case (Some(i), None) => "line " + i.toString
+          case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
+          case (None, Some(name)) => "file " + quote(name)
+          case _ => ""
+        }
+      val s = if (s0 == "") s0 else if (delimited) " (" + s0 + ")" else " " + s0
+      Markup(Markup.POSITION, pos).markup(s)
+    }
+  }
 }
