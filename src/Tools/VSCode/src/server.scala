@@ -114,7 +114,12 @@ class Server(
     Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
     { resources.flush_input(session) }
 
-  private val watcher = File_Watcher(sync_documents(_))
+  private val delay_load =
+    Standard_Thread.delay_last(options.seconds("vscode_load_delay"))
+    { if (resources.resolve_dependencies(session)) delay_input.invoke() }
+
+  private val watcher =
+    File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
 
   private def sync_documents(changed: Set[JFile]): Unit =
     if (resources.sync_models(changed)) delay_input.invoke()
@@ -178,7 +183,10 @@ class Server(
         val content = Build.session_content(options, false, session_dirs, session_name)
         val resources =
           new VSCode_Resources(options, text_length, content.loaded_theories,
-            content.known_theories, content.syntax, log)
+              content.known_theories, content.syntax, log) {
+            override def commit(change: Session.Change): Unit =
+              if (change.deps_changed) delay_load.invoke()
+          }
 
         Some(new Session(resources) {
           override def output_delay = options.seconds("editor_output_delay")

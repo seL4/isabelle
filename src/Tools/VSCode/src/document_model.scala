@@ -47,6 +47,8 @@ sealed case class Document_Model(
 
   val file: JFile = VSCode_Resources.canonical_file(uri)
 
+  def external(b: Boolean): Document_Model = copy(external_file = b)
+
   def register(watcher: File_Watcher)
   {
     val dir = file.getParentFile

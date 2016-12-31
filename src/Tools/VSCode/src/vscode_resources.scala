@@ -12,6 +12,8 @@ import isabelle._
 import java.net.{URI, URISyntaxException}
 import java.io.{File => JFile}
 
+import scala.util.parsing.input.{Reader, CharSequenceReader}
+
 
 object VSCode_Resources
 {
@@ -64,6 +66,23 @@ class VSCode_Resources(
     else name.copy(node = "file://" + name.node)
   }
 
+  override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
+  {
+    val uri = name.node
+    get_model(uri) match {
+      case Some(model) =>
+        val reader = new CharSequenceReader(model.doc.make_text)
+        f(reader)
+
+      case None =>
+        val file = VSCode_Resources.canonical_file(uri)
+        if (!file.isFile) error("No such file: " + quote(file.toString))
+
+        val reader = Scan.byte_reader(file)
+        try { f(reader) } finally { reader.close }
+    }
+  }
+
 
   /* document models */
 
@@ -74,7 +93,7 @@ class VSCode_Resources(
     state.change(st =>
       {
         val model = st.models.getOrElse(uri, Document_Model.init(session, uri))
-        val model1 = (model.update_text(text) getOrElse model).copy(external_file = false)
+        val model1 = (model.update_text(text) getOrElse model).external(false)
         st.copy(
           models = st.models + (uri -> model1),
           pending_input = st.pending_input + uri)
@@ -86,7 +105,7 @@ class VSCode_Resources(
       st.models.get(uri) match {
         case None => (None, st)
         case Some(model) =>
-          (Some(model), st.copy(models = st.models + (uri -> model.copy(external_file = true))))
+          (Some(model), st.copy(models = st.models + (uri -> model.external(true))))
       })
 
   def sync_models(changed_files: Set[JFile]): Boolean =
@@ -104,6 +123,40 @@ class VSCode_Resources(
             models = (st.models /: changed_models)(_ + _),
             pending_input = (st.pending_input /: changed_models.iterator.map(_._1))(_ + _)))
       })
+
+
+  /* resolve dependencies */
+
+  def resolve_dependencies(session: Session): Boolean =
+  {
+    val thys =
+      (for ((_, model) <- state.value.models.iterator if model.is_theory)
+       yield (model.node_name, Position.none)).toList
+    val deps = new Thy_Info(this).dependencies("", thys).deps
+
+    state.change_result(st =>
+      {
+        val loaded_models =
+          for {
+            uri <- deps.map(_.name.node)
+            if get_model(uri).isEmpty
+            text <-
+              try { Some(File.read(VSCode_Resources.canonical_file(uri))) }
+              catch { case ERROR(_) => None }
+          }
+          yield {
+            val model = Document_Model.init(session, uri)
+            val model1 = (model.update_text(text) getOrElse model).external(true)
+            (uri, model1)
+          }
+        if (loaded_models.isEmpty) (false, st)
+        else
+          (true,
+            st.copy(
+              models = st.models ++ loaded_models,
+              pending_input = st.pending_input ++ loaded_models.map(_._1)))
+      })
+  }
 
 
   /* pending input */

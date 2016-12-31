@@ -6,6 +6,9 @@ option vscode_input_delay : real = 0.3
 option vscode_output_delay : real = 0.5
   -- "delay for client output (rendering)"
 
+option vscode_load_delay : real = 0.5
+  -- "delay for file load operations"
+
 option vscode_tooltip_margin : int = 60
   -- "margin for pretty-printing of tooltips"
 
