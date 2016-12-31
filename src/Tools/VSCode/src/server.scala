@@ -127,7 +127,7 @@ class Server(
   }
 
   private def sync_external(changed: Set[JFile]): Unit =
-    if (resources.sync_external(changed)) delay_input.invoke()
+    if (resources.sync_models(changed)) delay_input.invoke()
 
   private val watcher = File_Watcher(sync_external(_))
 

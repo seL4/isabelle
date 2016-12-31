@@ -89,7 +89,7 @@ class VSCode_Resources(
           (Some(model), st.copy(models = st.models + (uri -> model.copy(external = true))))
       })
 
-  def sync_external(changed_files: Set[JFile]): Boolean =
+  def sync_models(changed_files: Set[JFile]): Boolean =
     state.change_result(st =>
       {
         val changed_models =
