@@ -55,6 +55,14 @@ class VSCode_Resources(
     Document.Node.Name(uri, master_dir, theory)
   }
 
+  override def import_name(qualifier: String, master: Document.Node.Name, s: String)
+    : Document.Node.Name =
+  {
+    val name = super.import_name(qualifier, master, s)
+    if (name.node.startsWith("file://") || name.node.forall(c => c != '/' && c != '\\')) name
+    else name.copy(node = "file://" + name.node)
+  }
+
 
   /* document models */
 
