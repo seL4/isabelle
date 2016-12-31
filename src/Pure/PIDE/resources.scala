@@ -23,7 +23,8 @@ object Resources
 class Resources(
   val loaded_theories: Set[String],
   val known_theories: Map[String, Document.Node.Name],
-  val base_syntax: Outer_Syntax)
+  val base_syntax: Outer_Syntax,
+  val log: Logger = No_Logger)
 {
   /* document node names */
 
