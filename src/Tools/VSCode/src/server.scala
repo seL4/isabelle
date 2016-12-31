@@ -186,8 +186,8 @@ class Server(
       try {
         val content = Build.session_content(options, false, session_dirs, session_name)
         val resources =
-          new VSCode_Resources(
-            options, text_length, content.loaded_theories, content.known_theories, content.syntax)
+          new VSCode_Resources(options, text_length, content.loaded_theories,
+            content.known_theories, content.syntax, log)
 
         Some(new Session(resources) {
           override def output_delay = options.seconds("editor_output_delay")
