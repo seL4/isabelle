@@ -74,7 +74,7 @@ class VSCode_Resources(
     state.change(st =>
       {
         val model = st.models.getOrElse(uri, Document_Model.init(session, uri))
-        val model1 = (model.update_text(text) getOrElse model).copy(external = false)
+        val model1 = (model.update_text(text) getOrElse model).copy(external_file = false)
         st.copy(
           models = st.models + (uri -> model1),
           pending_input = st.pending_input + uri)
@@ -86,7 +86,7 @@ class VSCode_Resources(
       st.models.get(uri) match {
         case None => (None, st)
         case Some(model) =>
-          (Some(model), st.copy(models = st.models + (uri -> model.copy(external = true))))
+          (Some(model), st.copy(models = st.models + (uri -> model.copy(external_file = true))))
       })
 
   def sync_models(changed_files: Set[JFile]): Boolean =
