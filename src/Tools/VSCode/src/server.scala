@@ -94,7 +94,7 @@ class Server(
   modes: List[String] = Nil,
   log: Logger = No_Logger)
 {
-  /* server session */
+  /* prover session */
 
   private val session_ = Synchronized(None: Option[Session])
   def session: Session = session_.value getOrElse error("Server inactive")
@@ -108,7 +108,16 @@ class Server(
     } yield (rendering, offset)
 
 
-  /* document content */
+  /* input from client or file-system */
+
+  private val delay_input =
+    Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
+    { resources.flush_input(session) }
+
+  private val watcher = File_Watcher(sync_documents(_))
+
+  private def sync_documents(changed: Set[JFile]): Unit =
+    if (resources.sync_models(changed)) delay_input.invoke()
 
   private def update_document(uri: String, text: String)
   {
@@ -121,33 +130,13 @@ class Server(
     resources.close_model(uri) match {
       case Some(model) =>
         model.register(watcher)
-        sync_external(Set(model.file))
+        sync_documents(Set(model.file))
       case None =>
     }
   }
 
-  private def sync_external(changed: Set[JFile]): Unit =
-    if (resources.sync_models(changed)) delay_input.invoke()
-
-  private val watcher = File_Watcher(sync_external(_))
-
-
-  /* input from client */
-
-  private val delay_input =
-    Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
-    { resources.flush_input(session) }
-
 
   /* output to client */
-
-  private val commands_changed =
-    Session.Consumer[Session.Commands_Changed](getClass.getName) {
-      case changed if changed.nodes.nonEmpty =>
-        resources.update_output(changed.nodes.toList.map(_.node))
-        delay_output.invoke()
-      case _ =>
-    }
 
   private val delay_output: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_output_delay"))
@@ -156,13 +145,15 @@ class Server(
       else resources.flush_output(channel)
     }
 
+  private val prover_output =
+    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+      case changed if changed.nodes.nonEmpty =>
+        resources.update_output(changed.nodes.toList.map(_.node))
+        delay_output.invoke()
+      case _ =>
+    }
 
-  /* file watcher */
-
-
-  /* syslog */
-
-  private val all_messages =
+  private val syslog =
     Session.Consumer[Prover.Message](getClass.getName) {
       case output: Prover.Output if output.is_syslog =>
         channel.log_writeln(XML.content(output.message))
@@ -213,8 +204,8 @@ class Server(
         }
       session.phase_changed += session_phase
 
-      session.commands_changed += commands_changed
-      session.all_messages += all_messages
+      session.commands_changed += prover_output
+      session.all_messages += syslog
 
       session.start(receiver =>
         Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
@@ -235,8 +226,8 @@ class Server(
           Session.Consumer(getClass.getName) {
             case Session.Inactive =>
               session.phase_changed -= session_phase
-              session.commands_changed -= commands_changed
-              session.all_messages -= all_messages
+              session.commands_changed -= prover_output
+              session.all_messages -= syslog
               reply("")
             case _ =>
           }

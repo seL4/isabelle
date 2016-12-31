@@ -127,7 +127,7 @@ sealed case class Document_Model(
   }
 
 
-  /* session */
+  /* prover session */
 
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
