@@ -45,7 +45,7 @@ Usage: isabelle vscode_server [OPTIONS]
     -L FILE      enable logging on FILE
     -T LENGTH    text length encoding: """ + text_length_choice + """
     -d DIR       include session directory
-    -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
+    -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode for session image
