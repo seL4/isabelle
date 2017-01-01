@@ -116,19 +116,21 @@ class VSCode_Resources(
 
   /* resolve dependencies */
 
+  val thy_info = new Thy_Info(this)
+
   def resolve_dependencies(session: Session): Boolean =
   {
-    val thys =
-      (for ((_, model) <- state.value.models.iterator if model.is_theory)
-       yield (model.node_name, Position.none)).toList
-    val deps = new Thy_Info(this).dependencies("", thys).deps
-
     state.change_result(st =>
       {
+        val thys =
+          (for ((_, model) <- st.models.iterator if model.is_theory)
+           yield (model.node_name, Position.none)).toList
+
         val loaded_models =
-          for {
-            uri <- deps.map(_.name.node)
-            if get_model(uri).isEmpty
+          (for {
+            dep <- thy_info.dependencies("", thys).deps.iterator
+            uri = dep.name.node
+            if !st.models.isDefinedAt(uri)
             text <-
               try { Some(File.read(Url.file(uri))) }
               catch { case ERROR(_) => None }
@@ -137,13 +139,14 @@ class VSCode_Resources(
             val model = Document_Model.init(session, uri)
             val model1 = (model.update_text(text) getOrElse model).external(true)
             (uri, model1)
-          }
+          }).toList
+
         if (loaded_models.isEmpty) (false, st)
         else
           (true,
             st.copy(
               models = st.models ++ loaded_models,
-              pending_input = st.pending_input ++ loaded_models.map(_._1)))
+              pending_input = st.pending_input ++ loaded_models.iterator.map(_._1)))
       })
   }
 
