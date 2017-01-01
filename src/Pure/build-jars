@@ -160,6 +160,7 @@ declare -a SOURCES=(
   ../Tools/Graphview/tree_panel.scala
   ../Tools/VSCode/src/channel.scala
   ../Tools/VSCode/src/document_model.scala
+  ../Tools/VSCode/src/grammar.scala
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
   ../Tools/VSCode/src/vscode_rendering.scala

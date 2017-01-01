@@ -29,6 +29,11 @@
                 "configuration": "./isabelle-language.json"
             }
         ],
+        "grammars": [{
+                "language": "isabelle",
+                "scopeName": "source.isabelle",
+                "path": "./isabelle-grammar.json"
+        }],
         "configuration": {
             "title": "Isabelle",
             "properties": {

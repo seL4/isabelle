@@ -235,8 +235,8 @@ object Build
     session_dependencies(options, inlined_files, dirs, List(session))(session)
   }
 
-  def outer_syntax(options: Options, session: String): Outer_Syntax =
-    session_content(options, false, Nil, session).syntax
+  def outer_syntax(options: Options, dirs: List[Path], session: String): Outer_Syntax =
+    session_content(options, false, dirs, session).syntax
 
 
   /* jobs */

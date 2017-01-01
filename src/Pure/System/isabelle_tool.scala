@@ -114,6 +114,7 @@ object Isabelle_Tool
       Update_Header.isabelle_tool,
       Update_Then.isabelle_tool,
       Update_Theorems.isabelle_tool,
+      isabelle.vscode.Grammar.isabelle_tool,
       isabelle.vscode.Server.isabelle_tool)
 
   private def list_internal(): List[(String, String)] =
