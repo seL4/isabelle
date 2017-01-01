@@ -95,22 +95,6 @@ object File
   def platform_path(path: Path): String = platform_path(standard_path(path))
   def platform_file(path: Path): JFile = new JFile(platform_path(path))
 
-  def platform_url(raw_path: Path): String =
-  {
-    val path = raw_path.expand
-    require(path.is_absolute)
-    platform_url(platform_path(path))
-  }
-
-  def platform_url(name: String): String =
-    if (name.startsWith("file://")) name
-    else {
-      val s = name.replaceAll(" ", "%20")
-      if (!Platform.is_windows) "file://" + s
-      else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
-      else "file:///" + s.replace('\\', '/')
-    }
-
 
   /* bash path */
 

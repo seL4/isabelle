@@ -56,4 +56,20 @@ object Url
   def is_wellformed_file(uri: String): Boolean =
     try { file(uri); true }
     catch { case _: URISyntaxException | _: IllegalArgumentException => false }
+
+  def platform_file(path: Path): String =
+  {
+    val path1 = path.expand
+    require(path1.is_absolute)
+    platform_file(File.platform_path(path1))
+  }
+
+  def platform_file(name: String): String =
+    if (name.startsWith("file://")) name
+    else {
+      val s = name.replaceAll(" ", "%20")
+      if (!Platform.is_windows) "file://" + s
+      else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
+      else "file:///" + s.replace('\\', '/')
+    }
 }
