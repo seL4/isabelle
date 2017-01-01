@@ -25,7 +25,11 @@
 
 ## Build ##
 
-* shell> `cd src/Tools/VSCode/extension; vsce package`
+* shell> `cd src/Tools/VSCode/extension`
+
+* shell> `isabelle vscode_grammar`
+
+* shell> `vsce package`
 
 
 ## Relevant links ##
