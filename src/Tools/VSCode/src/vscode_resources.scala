@@ -1,7 +1,7 @@
 /*  Title:      Tools/VSCode/src/vscode_resources.scala
     Author:     Makarius
 
-Resources for VSCode Language Server, based on file-system URIs.
+Resources for VSCode Language Server: file-system access and global state.
 */
 
 package isabelle.vscode
@@ -9,7 +9,6 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.net.{URI, URISyntaxException}
 import java.io.{File => JFile}
 
 import scala.util.parsing.input.{Reader, CharSequenceReader}
@@ -17,16 +16,6 @@ import scala.util.parsing.input.{Reader, CharSequenceReader}
 
 object VSCode_Resources
 {
-  /* file URIs */
-
-  def is_wellformed(uri: String): Boolean =
-    try { new JFile(new URI(uri)); true }
-    catch { case _: URISyntaxException | _: IllegalArgumentException => false }
-
-  def canonical_file(uri: String): JFile =
-    new JFile(new URI(uri)).getCanonicalFile
-
-
   /* internal state */
 
   sealed case class State(
@@ -53,8 +42,8 @@ class VSCode_Resources(
   {
     val theory = Thy_Header.thy_name(uri).getOrElse("")
     val master_dir =
-      if (!VSCode_Resources.is_wellformed(uri) || theory == "") ""
-      else VSCode_Resources.canonical_file(uri).getParent
+      if (!Url.is_wellformed_file(uri) || theory == "") ""
+      else Url.file(uri).getCanonicalFile.getParent
     Document.Node.Name(uri, master_dir, theory)
   }
 
@@ -75,7 +64,7 @@ class VSCode_Resources(
         f(reader)
 
       case None =>
-        val file = VSCode_Resources.canonical_file(uri)
+        val file = Url.file(uri)
         if (!file.isFile) error("No such file: " + quote(file.toString))
 
         val reader = Scan.byte_reader(file)
@@ -141,7 +130,7 @@ class VSCode_Resources(
             uri <- deps.map(_.name.node)
             if get_model(uri).isEmpty
             text <-
-              try { Some(File.read(VSCode_Resources.canonical_file(uri))) }
+              try { Some(File.read(Url.file(uri))) }
               catch { case ERROR(_) => None }
           }
           yield {

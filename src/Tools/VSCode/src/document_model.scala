@@ -45,7 +45,7 @@ sealed case class Document_Model(
 
   /* external file */
 
-  val file: JFile = VSCode_Resources.canonical_file(uri)
+  val file: JFile = Url.file(uri).getCanonicalFile
 
   def external(b: Boolean): Document_Model = copy(external_file = b)
 

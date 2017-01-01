@@ -7,6 +7,8 @@ Basic URL operations.
 package isabelle
 
 
+import java.io.{File => JFile}
+import java.net.{URI, URISyntaxException}
 import java.net.{URL, MalformedURLException}
 import java.util.zip.GZIPInputStream
 
@@ -45,4 +47,13 @@ object Url
 
   def read(name: String): String = read(Url(name), false)
   def read_gzip(name: String): String = read(Url(name), true)
+
+
+  /* file URIs */
+
+  def file(uri: String): JFile = new JFile(new URI(uri))
+
+  def is_wellformed_file(uri: String): Boolean =
+    try { file(uri); true }
+    catch { case _: URISyntaxException | _: IllegalArgumentException => false }
 }
