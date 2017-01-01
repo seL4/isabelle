@@ -85,7 +85,7 @@ object JEdit_Sessions
       try {
         Build.session_content(PIDE.options.value, inlined_files, session_dirs(), session_name())
       }
-      catch { case ERROR(_) => Build.Session_Content() }
+      catch { case ERROR(_) => Build.Session_Content.empty }
     content.copy(known_theories =
       content.known_theories.mapValues(name => name.map(File.platform_path(_))))
   }
