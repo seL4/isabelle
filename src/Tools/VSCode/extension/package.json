@@ -36,6 +36,12 @@
                     "type": "string",
                     "default": "",
                     "description": "ISABELLE_HOME directory"
+                },
+                "isabelle.arguments": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "default": [],
+                    "description": "command-line arguments for isabelle vscode_server"
                 }
             }
         }
