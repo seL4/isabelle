@@ -9,6 +9,8 @@ package isabelle.vscode
 
 import isabelle._
 
+import java.util.UUID
+
 
 object Grammar
 {
@@ -54,7 +56,7 @@ object Grammar
   "name": "Isabelle",
   "scopeName": "source.isabelle",
   "fileTypes": ["thy"],
-  "uuid": "fb16e918-d05b-11e6-918e-2bb94aa2c605",
+  "uuid": """ + JSON.Format(UUID.randomUUID().toString) + """,
   "repository": {
     "comments": {
       "patterns": [
