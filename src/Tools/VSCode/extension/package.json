@@ -26,7 +26,7 @@
                 "id": "isabelle",
                 "aliases": ["Isabelle"],
                 "extensions": [".thy"],
-                "configuration": "./language-configuration.json"
+                "configuration": "./isabelle-language.json"
             }
         ],
         "configuration": {
