@@ -6,8 +6,6 @@
 
 ## Run ##
 
-* shell> `isabelle build -b HOL`
-
 * Extensions: search "Isabelle 0.1.0", click "Install"
 
 * Preferences / User settings / edit settings.json: e.g.

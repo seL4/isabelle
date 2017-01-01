@@ -99,6 +99,16 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
   def log_writeln(msg: String) { display_message(Protocol.MessageType.Info, msg, false) }
 
 
+  /* progress */
+
+  def make_progress(verbose: Boolean = false): Progress =
+    new Progress {
+      override def echo(msg: String): Unit = log_writeln(msg)
+      override def theory(session: String, theory: String): Unit =
+        if (verbose) echo(session + ": theory " + theory)
+    }
+
+
   /* diagnostics */
 
   def diagnostics(uri: String, diagnostics: List[Protocol.Diagnostic]): Unit =

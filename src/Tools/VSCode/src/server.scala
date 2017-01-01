@@ -32,6 +32,7 @@ object Server
       var logic = default_logic
       var modes: List[String] = Nil
       var options = Options.init()
+      var system_mode = false
 
       def text_length_choice: String =
         commas(Text.Length.encodings.map(
@@ -47,6 +48,7 @@ Usage: isabelle vscode_server [OPTIONS]
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           system build mode for session image
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
@@ -55,18 +57,15 @@ Usage: isabelle vscode_server [OPTIONS]
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
-        "o:" -> (arg => options = options + arg))
+        "o:" -> (arg => options = options + arg),
+        "s" -> (_ => system_mode = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      if (!Build.build(options = options, build_heap = true, no_build = true,
-            dirs = dirs, sessions = List(logic)).ok)
-        error("Missing logic image " + quote(logic))
-
       val log = Logger.make(log_file)
       val channel = new Channel(System.in, System.out, log)
-      val server = new Server(channel, options, text_length, logic, dirs, modes, log)
+      val server = new Server(channel, options, text_length, logic, dirs, modes, system_mode, log)
 
       // prevent spurious garbage on the main protocol channel
       val orig_out = System.out
@@ -92,6 +91,7 @@ class Server(
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
   modes: List[String] = Nil,
+  system_mode: Boolean = false,
   log: Logger = No_Logger)
 {
   /* prover session */
@@ -180,6 +180,22 @@ class Server(
 
     val try_session =
       try {
+        if (!Build.build(options = options, build_heap = true, no_build = true,
+              system_mode = system_mode, dirs = session_dirs, sessions = List(session_name)).ok)
+        {
+          val start_msg = "Build started for Isabelle/" + session_name + " ..."
+          val fail_msg = "Session build failed -- prover process remains inactive!"
+
+          val progress = channel.make_progress(verbose = true)
+          progress.echo(start_msg); channel.writeln(start_msg)
+
+          if (!Build.build(options = options, progress = progress, build_heap = true,
+              system_mode = system_mode, dirs = session_dirs, sessions = List(session_name)).ok)
+          {
+            progress.echo(fail_msg); error(fail_msg)
+          }
+        }
+
         val content = Build.session_content(options, false, session_dirs, session_name)
         val resources =
           new VSCode_Resources(options, text_length, content.loaded_theories,
