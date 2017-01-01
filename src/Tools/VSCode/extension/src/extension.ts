@@ -26,8 +26,7 @@ export function activate(context: vscode.ExtensionContext)
   };
   let client_options: LanguageClientOptions = { documentSelector: "isabelle" };
 
-  let disposable =
-    new LanguageClient("Isabelle Language Service", server_options, client_options, false).start();
+  let disposable = new LanguageClient("Isabelle", server_options, client_options, false).start();
   context.subscriptions.push(disposable);
 }
 
