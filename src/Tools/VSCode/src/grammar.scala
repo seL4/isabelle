@@ -19,17 +19,11 @@ object Grammar
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   private def default_output(logic: String = ""): String =
-    if (logic == default_logic) "isabelle-grammar.json"
+    if (logic == "" || logic == default_logic) "isabelle-grammar.json"
     else "isabelle-" + logic + "-grammar.json"
 
-  def generate(
-    options: Options,
-    session_dirs: List[Path] = Nil,
-    session_name: String = default_logic,
-    output: Path = Path.explode(default_output()))
+  def generate(keywords: Keyword.Keywords): JSON.S =
   {
-    val keywords = Build.outer_syntax(options, session_dirs, session_name).keywords
-
     val (minor_keywords, operators) =
       keywords.minor.iterator.toList.partition(Symbol.is_ascii_identifier(_))
 
@@ -52,7 +46,7 @@ object Grammar
     def grouped_names(as: List[String]): String =
       JSON.Format("\\b(" + as.sorted.map(quote_name(_)).mkString("|") + ")\\b")
 
-    File.write(output, """{
+    """{
   "name": "Isabelle",
   "scopeName": "source.isabelle",
   "fileTypes": ["thy"],
@@ -118,7 +112,7 @@ object Grammar
     }
   ]
 }
-""")
+"""
   }
 
 
@@ -148,9 +142,10 @@ Usage: isabelle vscode_grammar [OPTIONS]
     val more_args = getopts(args)
     if (more_args.nonEmpty) getopts.usage()
 
+    val keywords = Build.outer_syntax(Options.init(), dirs, logic).keywords
     val output_path = output getOrElse Path.explode(default_output(logic))
-    Output.writeln(output_path.implode)
 
-    generate(Options.init(), dirs, logic, output_path)
+    Output.writeln(output_path.implode)
+    File.write(output_path, generate(keywords))
   })
 }
