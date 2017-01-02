@@ -10,12 +10,11 @@ import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, T
 export function activate(context: vscode.ExtensionContext)
 {
   let isabelle_home = vscode.workspace.getConfiguration("isabelle").get<string>("home");
-  let isabelle_arguments =
-    vscode.workspace.getConfiguration("isabelle").get<Array<string>>("arguments");
+  let isabelle_args = vscode.workspace.getConfiguration("isabelle").get<Array<string>>("args");
 
   let run = {
     command: path.join(isabelle_home, "bin", "isabelle"),
-    args: ["vscode_server"].concat(isabelle_arguments)
+    args: ["vscode_server"].concat(isabelle_args)
   };
   let server_options: ServerOptions =
   {

@@ -42,7 +42,7 @@
                     "default": "",
                     "description": "ISABELLE_HOME directory"
                 },
-                "isabelle.arguments": {
+                "isabelle.args": {
                     "type": "array",
                     "items": { "type": "string" },
                     "default": [],
