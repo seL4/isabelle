@@ -27,13 +27,27 @@
                 "aliases": ["Isabelle"],
                 "extensions": [".thy"],
                 "configuration": "./isabelle-language.json"
+            },
+            {
+                "id": "isabelle-ml",
+                "aliases": ["Isabelle/ML"],
+                "extensions": [".ML"],
+                "configuration": "./isabelle-language.json"
             }
+
         ],
-        "grammars": [{
+        "grammars": [
+            {
                 "language": "isabelle",
                 "scopeName": "source.isabelle",
                 "path": "./isabelle-grammar.json"
-        }],
+            },
+            {
+                "language": "isabelle-ml",
+                "scopeName": "source.isabelle-ml",
+                "path": "./isabelle-ml-grammar.json"
+            }
+        ],
         "configuration": {
             "title": "Isabelle",
             "properties": {

@@ -1,0 +1,288 @@
+{
+  "name": "Isabelle/ML",
+  "scopeName": "source.isabelle-ml",
+  "fileTypes": ["ML"],
+  "uuid": "aa32eb5e-d0d9-11e6-b7a4-37ba001f1e6e",
+  "keyEquivalent": "^~M",
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "end": "\\*\\)",
+          "begin": "\\(\\*",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.ml"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            }
+          ],
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.ml"
+            }
+          },
+          "name": "comment.block.ml"
+        }
+      ]
+    },
+    "spec": {
+      "patterns": [
+        {
+          "match": "\\b(exception|type)\\s+([a-zA-Z][a-zA-Z0-9'_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.ml"
+            },
+            "2": {
+              "name": "entity.name.type.abbrev.ml"
+            }
+          },
+          "name": "meta.spec.ml.type"
+        },
+        {
+          "end": "(?=val|type|eqtype|datatype|structure|include|exception)",
+          "begin": "\\b(datatype)\\s+([a-zA-Z][a-zA-Z0-9'_]*)\\s*(?==)",
+          "patterns": [
+            {
+              "match": "\\b(and)\\s+([a-zA-Z][a-zA-Z0-9'_]*)\\s*(?==)",
+              "captures": {
+                "1": {
+                  "name": "keyword.other.ml"
+                },
+                "2": {
+                  "name": "entity.name.type.datatype.ml"
+                }
+              },
+              "name": "meta.spec.ml.datatype"
+            },
+            {
+              "match": "(?x)\n\t\t\t\t\t\t\t=\\s*([a-zA-Z][a-zA-Z0-9'_]*)(\\s+of)?",
+              "captures": {
+                "1": {
+                  "name": "variable.other.dcon.ml"
+                },
+                "2": {
+                  "name": "keyword.other.ml"
+                }
+              },
+              "name": "meta.datatype.rule.main.ml"
+            },
+            {
+              "match": "\\|\\s*([a-zA-Z][a-zA-Z0-9'_]*)(\\s+of)?",
+              "captures": {
+                "1": {
+                  "name": "variable.other.dcon.ml"
+                },
+                "2": {
+                  "name": "keyword.other.ml"
+                }
+              },
+              "name": "meta.datatype.rule.other.ml"
+            }
+          ],
+          "captures": {
+            "1": {
+              "name": "keyword.other.ml"
+            },
+            "2": {
+              "name": "entity.name.type.datatype.ml"
+            }
+          },
+          "name": "meta.spec.ml.datatype"
+        },
+        {
+          "match": "\\b(val)\\s*([^:]+)\\s*:",
+          "captures": {
+            "1": {
+              "name": "keyword.other.ml"
+            }
+          },
+          "name": "meta.spec.ml.val"
+        },
+        {
+          "end": "(?=val|type|eqtype|datatype|structure|include)",
+          "begin": "\\b(structure)\\s*(\\w+)\\s*:",
+          "patterns": [
+            {
+              "match": "\\b(sharing)\\b",
+              "name": "keyword.other.ml"
+            }
+          ],
+          "captures": {
+            "1": {
+              "name": "keyword.other.ml"
+            },
+            "2": {
+              "name": "entity.name.type.module.ml"
+            }
+          },
+          "name": "meta.spec.ml.structure"
+        },
+        {
+          "match": "\\b(include)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.other.ml"
+            }
+          },
+          "name": "meta.spec.ml.include"
+        },
+        {
+          "include": "#comments"
+        }
+      ]
+    }
+  },
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "match": "\\b(val|datatype|signature|type|op|sharing|struct|as|let|in|abstype|local|where|case|of|fn|raise|exception|handle|ref|infix|infixr|before|end|structure|withtype)\\b",
+      "name": "keyword.other.ml"
+    },
+    {
+      "end": "\\b(end)\\b",
+      "begin": "\\b(let)\\b",
+      "patterns": [
+        {
+          "include": "$self"
+        }
+      ],
+      "captures": {
+        "1": {
+          "name": "keyword.other.ml"
+        },
+        "2": {
+          "name": "keyword.other.ml"
+        }
+      },
+      "name": "meta.exp.let.ml"
+    },
+    {
+      "end": "\\b(end)\\b",
+      "begin": "\\b(sig)\\b",
+      "patterns": [
+        {
+          "include": "#spec"
+        }
+      ],
+      "captures": {
+        "1": {
+          "name": "keyword.other.delimiter.ml"
+        },
+        "2": {
+          "name": "keyword.other.delimiter.ml"
+        }
+      },
+      "name": "meta.module.sigdec.ml"
+    },
+    {
+      "match": "\\b(if|then|else)\\b",
+      "name": "keyword.control.ml"
+    },
+    {
+      "end": "(?=val|type|eqtype|datatype|structure|local)",
+      "begin": "\\b(fun|and)\\s+([\\w]+)\\b",
+      "patterns": [
+        {
+          "include": "source.ml"
+        }
+      ],
+      "captures": {
+        "1": {
+          "name": "keyword.control.fun.ml"
+        },
+        "2": {
+          "name": "entity.name.function.ml"
+        }
+      },
+      "name": "meta.definition.fun.ml"
+    },
+    {
+      "end": "\"",
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.ml"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.ml"
+        }
+      ],
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.ml"
+        }
+      },
+      "name": "string.quoted.double.ml"
+    },
+    {
+      "match": "(#\")(\\\\)?.(\")",
+      "captures": {
+        "3": {
+          "name": "punctuation.definition.constant.ml"
+        },
+        "1": {
+          "name": "punctuation.definition.constant.ml"
+        }
+      },
+      "name": "constant.character.ml"
+    },
+    {
+      "match": "\\b\\d*\\.?\\d+\\b",
+      "name": "constant.numeric.ml"
+    },
+    {
+      "match": "\\b(andalso|orelse|not)\\b",
+      "name": "keyword.operator.logical.ml"
+    },
+    {
+      "end": "(?==|:|\\()",
+      "begin": "(?x)\\b\n\t\t\t\t\t(functor|structure|signature)\\s+\n\t\t\t\t\t(\\w+)\\s* # identifier",
+      "captures": {
+        "1": {
+          "name": "storage.type.module.binder.ml"
+        },
+        "2": {
+          "name": "entity.name.type.module.ml"
+        }
+      },
+      "name": "meta.module.dec.ml"
+    },
+    {
+      "match": "\\b(open)\\b",
+      "name": "keyword.other.module.ml"
+    },
+    {
+      "match": "\\b(nil|true|false|NONE|SOME)\\b",
+      "name": "constant.language.ml"
+    },
+    {
+      "end": "$",
+      "begin": "\\b(type|eqtype) .* =",
+      "patterns": [
+        {
+          "match": "(([a-zA-Z0-9\\.\\* ]|(\\->))*)",
+          "name": "meta.typeexp.ml"
+        }
+      ],
+      "captures": {
+        "1": {
+          "name": "keyword.other.typeabbrev.ml"
+        },
+        "2": {
+          "name": "variable.other.typename.ml"
+        }
+      },
+      "name": "meta.typeabbrev.ml"
+    }
+  ]
+}
