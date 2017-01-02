@@ -285,7 +285,7 @@ class Server(
         val doc = rendering.model.doc
         val range = doc.range(info.range)
         val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
-        (range, List("```\n" + s + "\n```"))  // FIXME proper content format
+        (range, List(s))
       }
     channel.write(Protocol.Hover.reply(id, result))
   }

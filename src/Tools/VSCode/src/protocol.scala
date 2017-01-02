@@ -296,7 +296,9 @@ object Protocol
     {
       val res =
         result match {
-          case Some((range, contents)) => Map("contents" -> contents, "range" -> Range(range))
+          case Some((range, contents)) =>
+            Map("contents" -> contents.map(s => Map("language" -> "plaintext", "value" -> s)),
+              "range" -> Range(range))
           case None => Map("contents" -> Nil)
         }
       ResponseMessage(id, Some(res))
