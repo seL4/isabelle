@@ -40,7 +40,7 @@ class VSCode_Resources(
 
   def node_name(uri: String): Document.Node.Name =
   {
-    val theory = Thy_Header.thy_name(uri).getOrElse("")
+    val theory = Thy_Header.thy_name_bootstrap(uri).getOrElse("")
     val master_dir =
       if (!Url.is_wellformed_file(uri) || theory == "") ""
       else Url.file(uri).getCanonicalFile.getParent
