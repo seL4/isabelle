@@ -36,7 +36,7 @@ object Grammar
 
     val keywords1 =
       major_keywords(k => k != Keyword.THY_END && k != Keyword.PRF_ASM && k != Keyword.PRF_ASM_GOAL)
-    val keywords2 = major_keywords(Set(Keyword.THY_END))
+    val keywords2 = minor_keywords ::: major_keywords(Set(Keyword.THY_END))
     val keywords3 = major_keywords(Set(Keyword.PRF_ASM, Keyword.PRF_ASM_GOAL))
 
 
