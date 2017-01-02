@@ -52,7 +52,7 @@ object Grammar
   "fileTypes": ["thy"],
   "uuid": """ + JSON.Format(UUID.randomUUID().toString) + """,
   "repository": {
-    "comments": {
+    "comment": {
       "patterns": [
         {
           "name": "comment.block.isabelle",
@@ -60,10 +60,26 @@ object Grammar
           "beginCaptures": {
             "0": { "name": "punctuation.definition.comment.begin.isabelle" }
           },
-          "patterns": [{ "include": "#comments" }],
+          "patterns": [{ "include": "#comment" }],
           "end": "\\*\\)",
           "endCaptures": {
             "0": { "name": "punctuation.definition.comment.end.isabelle" }
+          }
+        }
+      ]
+    },
+    "cartouche": {
+      "patterns": [
+        {
+          "name": "string.quoted.other.multiline.isabelle",
+          "begin": "(?:\\\\<open>|‹)",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.string.begin.isabelle" }
+          },
+          "patterns": [{ "include": "#cartouche" }],
+          "end": "(?:\\\\<close>|›)",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.isabelle" }
           }
         }
       ]
@@ -71,7 +87,10 @@ object Grammar
   },
   "patterns": [
     {
-      "include": "#comments"
+      "include": "#comment"
+    },
+    {
+      "include": "#cartouche"
     },
     {
       "name": "keyword.control.isabelle",
@@ -101,11 +120,28 @@ object Grammar
       },
       "patterns": [
         {
-          "match": "\\\\.",
+          "match": """ + JSON.Format("""\\[\"]|\\\d\d\d""") + """,
           "name": "constant.character.escape.isabelle"
         }
       ],
       "end": "\"",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.isabelle" }
+      }
+    },
+    {
+      "name": "string.quoted.backtick.isabelle",
+      "begin": "`",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.isabelle" }
+      },
+      "patterns": [
+        {
+          "match": """ + JSON.Format("""\\[\`]|\\\d\d\d""") + """,
+          "name": "constant.character.escape.isabelle"
+        }
+      ],
+      "end": "`",
       "endCaptures": {
         "0": { "name": "punctuation.definition.string.end.isabelle" }
       }
