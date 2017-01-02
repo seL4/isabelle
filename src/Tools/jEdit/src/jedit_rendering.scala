@@ -525,6 +525,10 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
   def timing_threshold: Double = options.real("jedit_timing_threshold")
 
+  def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
+    tooltips(range).map({ case Text.Info(r, all_tips) =>
+      Text.Info(r, Library.separate(Pretty.fbrk, all_tips)) })
+
   lazy val tooltip_close_icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
 

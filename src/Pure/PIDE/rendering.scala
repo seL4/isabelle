@@ -73,7 +73,7 @@ abstract class Rendering(
   def tooltip_margin: Int
   def timing_threshold: Double
 
-  def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
+  def tooltips(range: Text.Range): Option[Text.Info[List[XML.Tree]]] =
   {
     def add(prev: Text.Info[(Timing, Vector[(Boolean, XML.Tree)])],
       r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, Vector[(Boolean, XML.Tree)])] =
@@ -159,7 +159,7 @@ abstract class Rendering(
       case tips =>
         val r = Text.Range(results.head.range.start, results.last.range.stop)
         val all_tips = (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
-        Some(Text.Info(r, Library.separate(Pretty.fbrk, all_tips)))
+        Some(Text.Info(r, all_tips))
     }
   }
 }

@@ -280,12 +280,13 @@ class Server(
     val result =
       for {
         (rendering, offset) <- rendering_offset(node_pos)
-        info <- rendering.tooltip(Text.Range(offset, offset + 1))
+        info <- rendering.tooltips(Text.Range(offset, offset + 1))
       } yield {
         val doc = rendering.model.doc
         val range = doc.range(info.range)
-        val s = Pretty.string_of(info.info, margin = rendering.tooltip_margin)
-        (range, List(s))
+        val contents =
+          info.info.map(tree => Pretty.string_of(List(tree), margin = rendering.tooltip_margin))
+        (range, contents)
       }
     channel.write(Protocol.Hover.reply(id, result))
   }
