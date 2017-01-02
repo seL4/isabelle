@@ -29,13 +29,7 @@ export function activate(context: vscode.ExtensionContext)
         { command: isabelle_tool,
           args: ["vscode_server"].concat(isabelle_args) };
 
-    let server_options: ServerOptions =
-    {
-      run: run,
-      debug: {
-        command: run.command,
-        args: run.args.concat(["-L", path.join(context.extensionPath, "protocol.log")]) }
-    };
+    let server_options: ServerOptions = { run: run, debug: run };
     let client_options: LanguageClientOptions = {
       documentSelector: ["isabelle", "isabelle-ml"]
     };
