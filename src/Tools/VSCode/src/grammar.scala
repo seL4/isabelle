@@ -146,6 +146,6 @@ Usage: isabelle vscode_grammar [OPTIONS]
     val output_path = output getOrElse Path.explode(default_output(logic))
 
     Output.writeln(output_path.implode)
-    File.write(output_path, generate(keywords))
+    File.write_backup(output_path, generate(keywords))
   })
 }
