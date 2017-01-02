@@ -57,14 +57,8 @@ object Grammar
         {
           "name": "comment.block.isabelle",
           "begin": "\\(\\*",
-          "beginCaptures": {
-            "0": { "name": "punctuation.definition.comment.begin.isabelle" }
-          },
           "patterns": [{ "include": "#comment" }],
-          "end": "\\*\\)",
-          "endCaptures": {
-            "0": { "name": "punctuation.definition.comment.end.isabelle" }
-          }
+          "end": "\\*\\)"
         }
       ]
     },
@@ -73,14 +67,8 @@ object Grammar
         {
           "name": "string.quoted.other.multiline.isabelle",
           "begin": "(?:\\\\<open>|‹)",
-          "beginCaptures": {
-            "0": { "name": "punctuation.definition.string.begin.isabelle" }
-          },
           "patterns": [{ "include": "#cartouche" }],
-          "end": "(?:\\\\<close>|›)",
-          "endCaptures": {
-            "0": { "name": "punctuation.definition.string.end.isabelle" }
-          }
+          "end": "(?:\\\\<close>|›)"
         }
       ]
     }
@@ -109,42 +97,38 @@ object Grammar
       "match": """ + grouped_names(keywords3) + """
     },
     {
-      "match": "\\b\\d*\\.?\\d+\\b",
-      "name": "constant.numeric.isabelle"
+      "name": "constant.numeric.isabelle",
+      "match": "\\b\\d*\\.?\\d+\\b"
     },
     {
       "name": "string.quoted.double.isabelle",
       "begin": "\"",
-      "beginCaptures": {
-        "0": { "name": "punctuation.definition.string.begin.isabelle" }
-      },
       "patterns": [
         {
-          "match": """ + JSON.Format("""\\[\"]|\\\d\d\d""") + """,
-          "name": "constant.character.escape.isabelle"
+          "name": "constant.character.escape.isabelle",
+          "match": """ + JSON.Format("""\\[\"]|\\\d\d\d""") + """
         }
       ],
-      "end": "\"",
-      "endCaptures": {
-        "0": { "name": "punctuation.definition.string.end.isabelle" }
-      }
+      "end": "\""
     },
     {
       "name": "string.quoted.backtick.isabelle",
       "begin": "`",
-      "beginCaptures": {
-        "0": { "name": "punctuation.definition.string.begin.isabelle" }
-      },
       "patterns": [
         {
-          "match": """ + JSON.Format("""\\[\`]|\\\d\d\d""") + """,
-          "name": "constant.character.escape.isabelle"
+          "name": "constant.character.escape.isabelle",
+          "match": """ + JSON.Format("""\\[\`]|\\\d\d\d""") + """
         }
       ],
-      "end": "`",
-      "endCaptures": {
-        "0": { "name": "punctuation.definition.string.end.isabelle" }
-      }
+      "end": "`"
+    },
+    {
+      "name": "string.quoted.verbatim.isabelle",
+      "begin": """ + JSON.Format("""\{\*""") + """,
+      "patterns": [
+        { "match": """ + JSON.Format("""[^*]+|\*(?!\})""") + """ }
+      ],
+      "end": """ + JSON.Format("""\*\}""") + """
     }
   ]
 }
