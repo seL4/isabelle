@@ -17,7 +17,8 @@
     "engines": { "vscode": "^1.7.0" },
     "categories": ["Languages"],
     "activationEvents": [
-        "onLanguage:isabelle"
+        "onLanguage:isabelle",
+        "onLanguage:isabelle-ml"
     ],
     "main": "./out/src/extension",
     "contributes": {

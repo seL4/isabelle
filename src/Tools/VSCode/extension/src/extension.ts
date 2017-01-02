@@ -23,7 +23,9 @@ export function activate(context: vscode.ExtensionContext)
       command: run.command,
       args: run.args.concat(["-L", path.join(context.extensionPath, "protocol.log")]) }
   };
-  let client_options: LanguageClientOptions = { documentSelector: "isabelle" };
+  let client_options: LanguageClientOptions = {
+    documentSelector: ["isabelle", "isabelle-ml"]
+  };
 
   let disposable = new LanguageClient("Isabelle", server_options, client_options, false).start();
   context.subscriptions.push(disposable);
