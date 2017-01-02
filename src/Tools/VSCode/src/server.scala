@@ -52,9 +52,9 @@ Usage: isabelle vscode_server [OPTIONS]
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
-        "L:" -> (arg => log_file = Some(Path.explode(arg))),
+        "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
         "T:" -> (arg => Text.Length.encoding(arg)),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
         "o:" -> (arg => options = options + arg),

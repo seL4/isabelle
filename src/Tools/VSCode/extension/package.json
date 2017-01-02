@@ -52,16 +52,21 @@
         "configuration": {
             "title": "Isabelle",
             "properties": {
+                "isabelle.cygwin_root": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Root of Cygwin installation on Windows (e.g. ISABELLE_HOME/cygwin)."
+                },
                 "isabelle.home": {
                     "type": "string",
                     "default": "",
-                    "description": "ISABELLE_HOME directory"
+                    "description": "Main Isabelle directory (ISABELLE_HOME)."
                 },
                 "isabelle.args": {
                     "type": "array",
                     "items": { "type": "string" },
                     "default": [],
-                    "description": "command-line arguments for isabelle vscode_server"
+                    "description": "Command-line arguments for isabelle vscode_server process."
                 }
             }
         }
