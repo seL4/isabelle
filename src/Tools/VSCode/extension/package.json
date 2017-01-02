@@ -1,7 +1,7 @@
 {
     "name": "isabelle",
     "displayName": "Isabelle",
-    "description": "Isabelle Theorem Prover",
+    "description": "Isabelle Prover IDE",
     "keywords": [
         "theorem prover",
         "formalized mathematics",
@@ -10,11 +10,11 @@
         "document preparation"
         ],
     "icon": "isabelle.png",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "publisher": "makarius",
     "license": "BSD-3-Clause",
     "repository": { "url": "http://isabelle.in.tum.de/repos/isabelle" },
-    "engines": { "vscode": "^1.7.0" },
+    "engines": { "vscode": "^1.8.0" },
     "categories": ["Languages"],
     "activationEvents": [
         "onLanguage:isabelle",

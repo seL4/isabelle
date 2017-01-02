@@ -6,7 +6,7 @@
 
 ## Run ##
 
-* Extensions: search "Isabelle 0.1.0", click "Install"
+* Extensions: search for "Isabelle", click "Install"
 
 * Preferences / User settings / edit settings.json: e.g.
     `"isabelle.home": "/home/makarius/isabelle/repos"`
