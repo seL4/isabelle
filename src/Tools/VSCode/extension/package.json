@@ -33,7 +33,7 @@
                 "id": "isabelle-ml",
                 "aliases": ["Isabelle/ML"],
                 "extensions": [".ML"],
-                "configuration": "./isabelle-language.json"
+                "configuration": "./isabelle-ml-language.json"
             }
 
         ],
