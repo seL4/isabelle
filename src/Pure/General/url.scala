@@ -57,6 +57,19 @@ object Url
     try { file(uri); true }
     catch { case _: URISyntaxException | _: IllegalArgumentException => false }
 
+  def normalize_file(uri: String): String =
+    if (is_wellformed_file(uri)) {
+      val uri1 = new URI(uri).normalize.toASCIIString
+      if (uri1.startsWith("file://")) uri1
+      else {
+        Library.try_unprefix("file:/", uri1) match {
+          case Some(p) => "file:///" + p
+          case None => uri1
+        }
+      }
+    }
+    else uri
+
   def platform_file(path: Path): String =
   {
     val path1 = path.expand
@@ -68,8 +81,6 @@ object Url
     if (name.startsWith("file://")) name
     else {
       val s = name.replaceAll(" ", "%20")
-      if (!Platform.is_windows) "file://" + s
-      else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
-      else "file:///" + s.replace('\\', '/')
+      "file://" + (if (Platform.is_windows) s.replace('\\', '/') else s)
     }
 }

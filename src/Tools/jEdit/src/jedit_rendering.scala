@@ -127,8 +127,6 @@ object JEdit_Rendering
 
   private val breakpoint_elements = Markup.Elements(Markup.ML_BREAKPOINT)
 
-  private val caret_focus_elements = Markup.Elements(Markup.ENTITY)
-
   private val highlight_elements =
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.SORTING,
@@ -367,54 +365,8 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   /* caret focus */
 
-  def entity_focus(range: Text.Range,
-    check: (Boolean, Long) => Boolean = (is_def: Boolean, i: Long) => is_def): Set[Long] =
-  {
-    val results =
-      snapshot.cumulate[Set[Long]](range, Set.empty, JEdit_Rendering.caret_focus_elements, _ =>
-          {
-            case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-              props match {
-                case Markup.Entity.Def(i) if check(true, i) => Some(serials + i)
-                case Markup.Entity.Ref(i) if check(false, i) => Some(serials + i)
-                case _ => None
-              }
-            case _ => None
-          })
-    (Set.empty[Long] /: results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
-  }
-
-  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Set[Long] =
-  {
-    val focus_defs = entity_focus(caret_range)
-    if (focus_defs.nonEmpty) focus_defs
-    else {
-      val visible_defs = entity_focus(visible_range)
-      entity_focus(caret_range, (is_def: Boolean, i: Long) => !is_def && visible_defs.contains(i))
-    }
-  }
-
-  def caret_focus_ranges(caret_range: Text.Range, visible_range: Text.Range): List[Text.Range] =
-  {
-    val focus = caret_focus(caret_range, visible_range)
-    if (focus.nonEmpty) {
-      val results =
-        snapshot.cumulate[Boolean](visible_range, false, JEdit_Rendering.caret_focus_elements, _ =>
-          {
-            case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-              props match {
-                case Markup.Entity.Def(i) if focus(i) => Some(true)
-                case Markup.Entity.Ref(i) if focus(i) => Some(true)
-                case _ => None
-              }
-          })
-      for (info <- results if info.info) yield info.range
-    }
-    else Nil
-  }
-
   def entity_ref(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
-    snapshot.select(range, JEdit_Rendering.caret_focus_elements, _ =>
+    snapshot.select(range, Rendering.caret_focus_elements, _ =>
       {
         case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Entity.Ref(i)), _)) if focus(i) =>
           Some(entity_ref_color)

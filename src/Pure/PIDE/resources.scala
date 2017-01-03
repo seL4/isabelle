@@ -48,10 +48,6 @@ class Resources(
     if (Path.is_valid(raw_name)) append(dir, Path.explode(raw_name))
     else raw_name
 
-  def append_file_url(dir: String, raw_name: String): String =
-    if (Path.is_valid(raw_name)) "file://" + append(dir, Path.explode(raw_name))
-    else raw_name
-
 
 
   /* source files of Isabelle/ML bootstrap */

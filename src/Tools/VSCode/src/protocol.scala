@@ -138,7 +138,8 @@ object Protocol
       Map(
         "textDocumentSync" -> 1,
         "hoverProvider" -> true,
-        "definitionProvider" -> true)
+        "definitionProvider" -> true,
+        "documentHighlightProvider" -> true)
   }
 
   object Shutdown extends Request0("shutdown")
@@ -315,6 +316,31 @@ object Protocol
   }
 
 
+  /* document highlights request */
+
+  object DocumentHighlight
+  {
+    def text(range: Line.Range): DocumentHighlight = DocumentHighlight(range, Some(1))
+    def read(range: Line.Range): DocumentHighlight = DocumentHighlight(range, Some(2))
+    def write(range: Line.Range): DocumentHighlight = DocumentHighlight(range, Some(3))
+  }
+
+  sealed case class DocumentHighlight(range: Line.Range, kind: Option[Int] = None)
+  {
+    def json: JSON.T =
+      kind match {
+        case None => Map("range" -> Range(range))
+        case Some(k) => Map("range" -> Range(range), "kind" -> k)
+      }
+  }
+
+  object DocumentHighlights extends RequestTextDocumentPosition("textDocument/documentHighlight")
+  {
+    def reply(id: Id, result: List[DocumentHighlight]): JSON.T =
+      ResponseMessage(id, Some(result.map(_.json)))
+  }
+
+
   /* diagnostics */
 
   sealed case class Diagnostic(range: Line.Range, message: String,
@@ -329,10 +355,10 @@ object Protocol
 
   object DiagnosticSeverity
   {
-    val Error = 0
-    val Warning = 1
-    val Information = 2
-    val Hint = 3
+    val Error = 1
+    val Warning = 2
+    val Information = 3
+    val Hint = 4
   }
 
   object PublishDiagnostics

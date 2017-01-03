@@ -43,16 +43,17 @@ class VSCode_Resources(
     val theory = Thy_Header.thy_name_bootstrap(uri).getOrElse("")
     val master_dir =
       if (!Url.is_wellformed_file(uri) || theory == "") ""
-      else Url.file(uri).getCanonicalFile.getParent
+      else Thy_Header.dir_name(uri)
     Document.Node.Name(uri, master_dir, theory)
   }
 
-  override def import_name(qualifier: String, master: Document.Node.Name, s: String)
-    : Document.Node.Name =
+  override def append(dir: String, source_path: Path): String =
   {
-    val name = super.import_name(qualifier, master, s)
-    if (name.node.startsWith("file://") || name.node.forall(c => c != '/' && c != '\\')) name
-    else name.copy(node = "file://" + name.node)
+    val path = source_path.expand
+    if (path.is_absolute) Url.platform_file(path)
+    else if (dir == "") Url.platform_file(File.pwd() + path)
+    else if (path.is_current) dir
+    else Url.normalize_file(dir + "/" + path.implode)
   }
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =

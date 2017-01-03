@@ -303,6 +303,21 @@ class Server(
   }
 
 
+  /* document highlights */
+
+  def document_highlights(id: Protocol.Id, node_pos: Line.Node_Position)
+  {
+    val result =
+      (for ((rendering, offset) <- rendering_offset(node_pos))
+        yield {
+          val doc = rendering.model.doc
+          rendering.caret_focus_ranges(Text.Range(offset, offset + 1), doc.full_range)
+            .map(r => Protocol.DocumentHighlight.text(doc.range(r)))
+        }) getOrElse Nil
+    channel.write(Protocol.DocumentHighlights.reply(id, result))
+  }
+
+
   /* main loop */
 
   def start()
@@ -324,6 +339,7 @@ class Server(
             close_document(uri)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
+          case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case _ => log("### IGNORED")
         }
       }

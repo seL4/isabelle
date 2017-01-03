@@ -33,7 +33,7 @@ object File
     if (Platform.is_windows) {
       val Platform_Root = new Regex("(?i)" +
         Pattern.quote(Isabelle_System.cygwin_root()) + """(?:\\+|\z)(.*)""")
-      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
+      val Drive = new Regex("""\\?([a-zA-Z]):\\*(.*)""")
 
       platform_path.replace('/', '\\') match {
         case Platform_Root(rest) => "/" + rest.replace('\\', '/')
@@ -48,6 +48,7 @@ object File
   def standard_path(file: JFile): String = standard_path(file.getPath)
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
+  def pwd(): Path = path(Path.current.file.toPath.toAbsolutePath.toFile)
 
   def standard_url(name: String): String =
     try {

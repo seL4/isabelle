@@ -32,7 +32,19 @@ object JSON
       def string(s: String)
       {
         result += '"'
-        result ++= scala.util.parsing.json.JSONFormat.quoteString(s)
+        result ++=
+          s.iterator.map {
+            case '"'  => "\\\""
+            case '\\' => "\\\\"
+            case '\b' => "\\b"
+            case '\f' => "\\f"
+            case '\n' => "\\n"
+            case '\r' => "\\r"
+            case '\t' => "\\t"
+            case c =>
+              if (c <= '\u001f' || c >= '\u007f' && c <= '\u009f') "\\u%04x".format(c.toInt)
+              else c
+          }.mkString
         result += '"'
       }
 
