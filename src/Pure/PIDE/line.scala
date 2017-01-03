@@ -125,8 +125,7 @@ object Line
       val c = pos.column
       if (0 <= l && l < lines.length) {
         val line_offset =
-          if (l == 0) 0
-          else (0 /: lines.iterator.take(l - 1)) { case (n, line) => n + text_length(line.text) + 1 }
+          (0 /: lines.iterator.take(l)) { case (n, line) => n + text_length(line.text) + 1 }
         text_length.offset(lines(l).text, c).map(line_offset + _)
       }
       else None
