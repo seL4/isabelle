@@ -329,10 +329,10 @@ object Protocol
 
   object DiagnosticSeverity
   {
-    val Error = 0
-    val Warning = 1
-    val Information = 2
-    val Hint = 3
+    val Error = 1
+    val Warning = 2
+    val Information = 3
+    val Hint = 4
   }
 
   object PublishDiagnostics

@@ -16,7 +16,7 @@ object VSCode_Rendering
 
   private val message_severity =
     Map(
-      Markup.WRITELN -> Protocol.DiagnosticSeverity.Hint,
+      Markup.WRITELN -> Protocol.DiagnosticSeverity.Information,
       Markup.INFORMATION -> Protocol.DiagnosticSeverity.Information,
       Markup.WARNING -> Protocol.DiagnosticSeverity.Warning,
       Markup.LEGACY -> Protocol.DiagnosticSeverity.Warning,
