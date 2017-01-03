@@ -138,7 +138,8 @@ object Protocol
       Map(
         "textDocumentSync" -> 1,
         "hoverProvider" -> true,
-        "definitionProvider" -> true)
+        "definitionProvider" -> true,
+        "documentHighlightProvider" -> true)
   }
 
   object Shutdown extends Request0("shutdown")
@@ -312,6 +313,31 @@ object Protocol
   {
     def reply(id: Id, result: List[Line.Node_Range]): JSON.T =
       ResponseMessage(id, Some(result.map(Location.apply(_))))
+  }
+
+
+  /* document highlights request */
+
+  object DocumentHighlight
+  {
+    def text(range: Line.Range): DocumentHighlight = DocumentHighlight(range, Some(1))
+    def read(range: Line.Range): DocumentHighlight = DocumentHighlight(range, Some(2))
+    def write(range: Line.Range): DocumentHighlight = DocumentHighlight(range, Some(3))
+  }
+
+  sealed case class DocumentHighlight(range: Line.Range, kind: Option[Int] = None)
+  {
+    def json: JSON.T =
+      kind match {
+        case None => Map("range" -> Range(range))
+        case Some(k) => Map("range" -> Range(range), "kind" -> k)
+      }
+  }
+
+  object DocumentHighlights extends RequestTextDocumentPosition("textDocument/documentHighlight")
+  {
+    def reply(id: Id, result: List[DocumentHighlight]): JSON.T =
+      ResponseMessage(id, Some(result.map(_.json)))
   }
 
 

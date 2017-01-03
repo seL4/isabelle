@@ -58,6 +58,8 @@ object Rendering
 
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
     Pretty.block(XML.Text(kind) :: Pretty.brk(1) :: body)
+
+  val caret_focus_elements = Markup.Elements(Markup.ENTITY)
 }
 
 abstract class Rendering(
@@ -161,5 +163,54 @@ abstract class Rendering(
         val all_tips = (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
         Some(Text.Info(r, all_tips))
     }
+  }
+
+
+  /* caret focus */
+
+  private def entity_focus(range: Text.Range,
+    check: (Boolean, Long) => Boolean = (is_def: Boolean, i: Long) => is_def): Set[Long] =
+  {
+    val results =
+      snapshot.cumulate[Set[Long]](range, Set.empty, Rendering.caret_focus_elements, _ =>
+          {
+            case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+              props match {
+                case Markup.Entity.Def(i) if check(true, i) => Some(serials + i)
+                case Markup.Entity.Ref(i) if check(false, i) => Some(serials + i)
+                case _ => None
+              }
+            case _ => None
+          })
+    (Set.empty[Long] /: results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
+  }
+
+  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Set[Long] =
+  {
+    val focus_defs = entity_focus(caret_range)
+    if (focus_defs.nonEmpty) focus_defs
+    else {
+      val visible_defs = entity_focus(visible_range)
+      entity_focus(caret_range, (is_def: Boolean, i: Long) => !is_def && visible_defs.contains(i))
+    }
+  }
+
+  def caret_focus_ranges(caret_range: Text.Range, visible_range: Text.Range): List[Text.Range] =
+  {
+    val focus = caret_focus(caret_range, visible_range)
+    if (focus.nonEmpty) {
+      val results =
+        snapshot.cumulate[Boolean](visible_range, false, Rendering.caret_focus_elements, _ =>
+          {
+            case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+              props match {
+                case Markup.Entity.Def(i) if focus(i) => Some(true)
+                case Markup.Entity.Ref(i) if focus(i) => Some(true)
+                case _ => None
+              }
+          })
+      for (info <- results if info.info) yield info.range
+    }
+    else Nil
   }
 }
