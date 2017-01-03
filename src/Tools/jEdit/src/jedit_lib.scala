@@ -320,7 +320,7 @@ object JEdit_Lib
   {
     val name1 =
       if (name.startsWith("idea-icons/")) {
-        val file = Url.platform_file(Path.explode("$JEDIT_HOME/dist/jars/idea-icons.jar"))
+        val file = Path.explode("$JEDIT_HOME/dist/jars/idea-icons.jar").file.toURI.toASCIIString
         "jar:" + file + "!/" + name
       }
       else name
