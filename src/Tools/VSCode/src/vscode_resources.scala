@@ -50,8 +50,8 @@ class VSCode_Resources(
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
-    if (path.is_absolute) "file://" + path.implode
-    else if (dir == "") "file://" + (File.pwd() + path).implode
+    if (path.is_absolute) Url.platform_file(path)
+    else if (dir == "") Url.platform_file(File.pwd() + path)
     else if (path.is_current) dir
     else Url.normalize_file(dir + "/" + path.implode)
   }

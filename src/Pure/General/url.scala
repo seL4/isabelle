@@ -81,8 +81,6 @@ object Url
     if (name.startsWith("file://")) name
     else {
       val s = name.replaceAll(" ", "%20")
-      if (!Platform.is_windows) "file://" + s
-      else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
-      else "file:///" + s.replace('\\', '/')
+      "file://" + (if (Platform.is_windows) s.replace('\\', '/') else s)
     }
 }
