@@ -77,8 +77,12 @@ object Thy_Header extends Parse.Parser
   val ml_roots = List("ROOT0.ML" -> "ML_Root0", "ROOT.ML" -> ML_ROOT)
   val bootstrap_thys = List(PURE, ML_BOOTSTRAP).map(a => a -> ("Bootstrap_" + a))
 
+  private val Dir_Name = new Regex("""(.*?)[^/\\:]+""")
   private val Base_Name = new Regex(""".*?([^/\\:]+)""")
   private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+
+  def dir_name(s: String): String =
+    s match { case Dir_Name(name) => name case _ => "" }
 
   def base_name(s: String): String =
     s match { case Base_Name(name) => name case _ => error("Malformed import: " + quote(s)) }

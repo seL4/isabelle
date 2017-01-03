@@ -48,6 +48,7 @@ object File
   def standard_path(file: JFile): String = standard_path(file.getPath)
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
+  def pwd(): Path = path(Path.current.file.toPath.toAbsolutePath.toFile)
 
   def standard_url(name: String): String =
     try {
