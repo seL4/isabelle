@@ -832,6 +832,10 @@ qed
 
 end
 
+lemma (in linordered_idom) Ints_abs [simp]:
+  shows "a \<in> \<int> \<Longrightarrow> abs a \<in> \<int>"
+  by (auto simp: abs_if)
+
 lemma (in linordered_idom) Nats_altdef2: "\<nat> = {n \<in> \<int>. n \<ge> 0}"
 proof (intro subsetI equalityI)
   fix x :: 'a
@@ -968,6 +972,24 @@ lemma int_one_le_iff_zero_less: "1 \<le> z \<longleftrightarrow> 0 < z"
   for z :: int
   by arith
 
+lemma Ints_nonzero_abs_ge1:
+  fixes x:: "'a :: linordered_idom"
+    assumes "x \<in> Ints" "x \<noteq> 0"
+    shows "1 \<le> abs x"
+proof (rule Ints_cases [OF \<open>x \<in> Ints\<close>])
+  fix z::int
+  assume "x = of_int z"
+    with \<open>x \<noteq> 0\<close> 
+  show "1 \<le> \<bar>x\<bar>"
+    apply (auto simp add: abs_if)
+    by (metis diff_0 of_int_1 of_int_le_iff of_int_minus zle_diff1_eq)
+qed
+  
+lemma Ints_nonzero_abs_less1:
+  fixes x:: "'a :: linordered_idom"
+  shows "\<lbrakk>x \<in> Ints; abs x < 1\<rbrakk> \<Longrightarrow> x = 0"
+    using Ints_nonzero_abs_ge1 [of x] by auto
+    
 
 subsection \<open>The functions @{term nat} and @{term int}\<close>
 

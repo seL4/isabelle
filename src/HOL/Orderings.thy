@@ -405,6 +405,10 @@ unfolding not_less .
 lemma not_le_imp_less: "\<not> y \<le> x \<Longrightarrow> x < y"
 unfolding not_le .
 
+lemma linorder_less_wlog[case_names less refl sym]:
+     "\<lbrakk>\<And>a b. a < b \<Longrightarrow> P a b;  \<And>a. P a a;  \<And>a b. P b a \<Longrightarrow> P a b\<rbrakk> \<Longrightarrow> P a b"
+  using antisym_conv3 by blast
+
 text \<open>Dual order\<close>
 
 lemma dual_linorder:

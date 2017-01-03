@@ -824,8 +824,14 @@ lemma Rats_of_rat [simp]: "of_rat r \<in> \<rat>"
 lemma Rats_of_int [simp]: "of_int z \<in> \<rat>"
   by (subst of_rat_of_int_eq [symmetric]) (rule Rats_of_rat)
 
+lemma Ints_subset_Rats: "\<int> \<subseteq> \<rat>"
+  using Ints_cases Rats_of_int by blast
+
 lemma Rats_of_nat [simp]: "of_nat n \<in> \<rat>"
   by (subst of_rat_of_nat_eq [symmetric]) (rule Rats_of_rat)
+
+lemma Nats_subset_Rats: "\<nat> \<subseteq> \<rat>"
+  using Ints_subset_Rats Nats_subset_Ints by blast
 
 lemma Rats_number_of [simp]: "numeral w \<in> \<rat>"
   by (subst of_rat_numeral_eq [symmetric]) (rule Rats_of_rat)

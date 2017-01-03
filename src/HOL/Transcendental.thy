@@ -2370,6 +2370,53 @@ next
   qed (rule exp_at_top)
 qed
 
+subsubsection\<open> A couple of simple bounds\<close>
+
+lemma exp_plus_inverse_exp:
+  fixes x::real
+  shows "2 \<le> exp x + inverse (exp x)"
+proof -
+  have "2 \<le> exp x + exp (-x)"
+    using exp_ge_add_one_self [of x] exp_ge_add_one_self [of "-x"]
+    by linarith
+  then show ?thesis
+    by (simp add: exp_minus)
+qed
+
+lemma real_le_x_sinh:
+  fixes x::real
+  assumes "0 \<le> x"
+  shows "x \<le> (exp x - inverse(exp x)) / 2"
+proof -
+  have *: "exp a - inverse(exp a) - 2*a \<le> exp b - inverse(exp b) - 2*b" if "a \<le> b" for a b::real
+    apply (rule DERIV_nonneg_imp_nondecreasing [OF that])
+    using exp_plus_inverse_exp
+    apply (intro exI allI impI conjI derivative_eq_intros | force)+
+    done
+  show ?thesis
+    using*[OF assms] by simp
+qed
+
+lemma real_le_abs_sinh:
+  fixes x::real
+  shows "abs x \<le> abs((exp x - inverse(exp x)) / 2)"
+proof (cases "0 \<le> x")
+  case True
+  show ?thesis
+    using real_le_x_sinh [OF True] True by (simp add: abs_if)
+next
+  case False
+  have "-x \<le> (exp(-x) - inverse(exp(-x))) / 2"
+    by (meson False linear neg_le_0_iff_le real_le_x_sinh)
+  also have "... \<le> \<bar>(exp x - inverse (exp x)) / 2\<bar>"
+    by (metis (no_types, hide_lams) abs_divide abs_le_iff abs_minus_cancel
+       add.inverse_inverse exp_minus minus_diff_eq order_refl)
+  finally show ?thesis
+    using False by linarith
+qed
+
+subsection\<open>The general logarithm\<close>
+
 definition log :: "real \<Rightarrow> real \<Rightarrow> real"
   \<comment> \<open>logarithm of @{term x} to base @{term a}\<close>
   where "log a x = ln x / ln a"

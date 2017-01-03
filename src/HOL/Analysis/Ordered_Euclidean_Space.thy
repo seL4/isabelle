@@ -197,13 +197,13 @@ lemma closed_eucl_atLeast[simp, intro]:
   shows "closed {a..}"
   by (simp add: eucl_le_atLeast[symmetric])
 
-lemma bounded_closed_interval:
+lemma bounded_closed_interval [simp]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "bounded {a .. b}"
   using bounded_cbox[of a b]
   by (metis interval_cbox)
 
-lemma convex_closed_interval:
+lemma convex_closed_interval [simp]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "convex {a .. b}"
   using convex_box[of a b]
@@ -214,11 +214,11 @@ lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_sp
   using image_smult_cbox[of m a b]
   by (simp add: cbox_interval)
 
-lemma is_interval_closed_interval:
+lemma is_interval_closed_interval [simp]:
   "is_interval {a .. (b::'a::ordered_euclidean_space)}"
   by (metis cbox_interval is_interval_cbox)
 
-lemma compact_interval:
+lemma compact_interval [simp]:
   fixes a b::"'a::ordered_euclidean_space"
   shows "compact {a .. b}"
   by (metis compact_cbox interval_cbox)

@@ -1547,6 +1547,18 @@ lemma LIM_compose_eventually:
 lemma tendsto_compose_filtermap: "((g \<circ> f) \<longlongrightarrow> T) F \<longleftrightarrow> (g \<longlongrightarrow> T) (filtermap f F)"
   by (simp add: filterlim_def filtermap_filtermap comp_def)
 
+lemma tendsto_compose_at:
+  assumes f: "(f \<longlongrightarrow> y) F" and g: "(g \<longlongrightarrow> z) (at y)" and fg: "eventually (\<lambda>w. f w = y \<longrightarrow> g y = z) F"
+  shows "((g \<circ> f) \<longlongrightarrow> z) F"
+proof -
+  have "(\<forall>\<^sub>F a in F. f a \<noteq> y) \<or> g y = z"
+    using fg by force
+  moreover have "(g \<longlongrightarrow> z) (filtermap f F) \<or> \<not> (\<forall>\<^sub>F a in F. f a \<noteq> y)"
+    by (metis (no_types) filterlim_atI filterlim_def tendsto_mono f g)
+  ultimately show ?thesis
+    by (metis (no_types) f filterlim_compose filterlim_filtermap g tendsto_at_iff_tendsto_nhds tendsto_compose_filtermap)
+qed
+
 
 subsubsection \<open>Relation of \<open>LIM\<close> and \<open>LIMSEQ\<close>\<close>
 
@@ -2087,12 +2099,10 @@ lemma compactI:
 lemma compact_empty[simp]: "compact {}"
   by (auto intro!: compactI)
 
-lemma compactE:
-  assumes "compact s"
-    and "\<forall>t\<in>C. open t"
-    and "s \<subseteq> \<Union>C"
-  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> \<Union>C'"
-  using assms unfolding compact_eq_heine_borel by metis
+lemma compactE: (*related to COMPACT_IMP_HEINE_BOREL in HOL Light*)
+  assumes "compact S" "S \<subseteq> \<Union>\<T>" "\<And>B. B \<in> \<T> \<Longrightarrow> open B"
+  obtains \<T>' where "\<T>' \<subseteq> \<T>" "finite \<T>'" "S \<subseteq> \<Union>\<T>'"
+  by (meson assms compact_eq_heine_borel)
 
 lemma compactE_image:
   assumes "compact s"
@@ -2197,9 +2207,7 @@ proof (rule openI)
   fix y
   assume "y \<in> - s"
   let ?C = "\<Union>x\<in>s. {u. open u \<and> x \<in> u \<and> eventually (\<lambda>y. y \<notin> u) (nhds y)}"
-  note \<open>compact s\<close>
-  moreover have "\<forall>u\<in>?C. open u" by simp
-  moreover have "s \<subseteq> \<Union>?C"
+  have "s \<subseteq> \<Union>?C"
   proof
     fix x
     assume "x \<in> s"
@@ -2209,8 +2217,8 @@ proof (rule openI)
     with \<open>x \<in> s\<close> show "x \<in> \<Union>?C"
       unfolding eventually_nhds by auto
   qed
-  ultimately obtain D where "D \<subseteq> ?C" and "finite D" and "s \<subseteq> \<Union>D"
-    by (rule compactE)
+  then obtain D where "D \<subseteq> ?C" and "finite D" and "s \<subseteq> \<Union>D"
+    by (rule compactE [OF \<open>compact s\<close>]) auto
   from \<open>D \<subseteq> ?C\<close> have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)"
     by auto
   with \<open>finite D\<close> have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"

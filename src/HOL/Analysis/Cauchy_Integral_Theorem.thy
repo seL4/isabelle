@@ -4601,11 +4601,11 @@ proof -
     by metis
   note ee_rule = ee [THEN conjunct2, rule_format]
   define C where "C = (\<lambda>t. ball t (ee t / 3)) ` {0..1}"
-  have "\<forall>t \<in> C. open t" by (simp add: C_def)
-  moreover have "{0..1} \<subseteq> \<Union>C"
-    using ee [THEN conjunct1] by (auto simp: C_def dist_norm)
-  ultimately obtain C' where C': "C' \<subseteq> C" "finite C'" and C'01: "{0..1} \<subseteq> \<Union>C'"
-    by (rule compactE [OF compact_interval])
+  obtain C' where C': "C' \<subseteq> C" "finite C'" and C'01: "{0..1} \<subseteq> \<Union>C'"
+  proof (rule compactE [OF compact_interval])
+    show "{0..1} \<subseteq> \<Union>C"
+      using ee [THEN conjunct1] by (auto simp: C_def dist_norm)
+  qed (use C_def in auto)
   define kk where "kk = {t \<in> {0..1}. ball t (ee t / 3) \<in> C'}"
   have kk01: "kk \<subseteq> {0..1}" by (auto simp: kk_def)
   define e where "e = Min (ee ` kk)"

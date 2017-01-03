@@ -794,28 +794,28 @@ lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
   by (simp add: subtopology_superset)
 
 lemma openin_subtopology_empty:
-   "openin (subtopology U {}) s \<longleftrightarrow> s = {}"
+   "openin (subtopology U {}) S \<longleftrightarrow> S = {}"
 by (metis Int_empty_right openin_empty openin_subtopology)
 
 lemma closedin_subtopology_empty:
-   "closedin (subtopology U {}) s \<longleftrightarrow> s = {}"
+   "closedin (subtopology U {}) S \<longleftrightarrow> S = {}"
 by (metis Int_empty_right closedin_empty closedin_subtopology)
 
-lemma closedin_subtopology_refl:
-   "closedin (subtopology U u) u \<longleftrightarrow> u \<subseteq> topspace U"
+lemma closedin_subtopology_refl [simp]:
+   "closedin (subtopology U X) X \<longleftrightarrow> X \<subseteq> topspace U"
 by (metis closedin_def closedin_topspace inf.absorb_iff2 le_inf_iff topspace_subtopology)
 
 lemma openin_imp_subset:
-   "openin (subtopology U s) t \<Longrightarrow> t \<subseteq> s"
+   "openin (subtopology U S) T \<Longrightarrow> T \<subseteq> S"
 by (metis Int_iff openin_subtopology subsetI)
 
 lemma closedin_imp_subset:
-   "closedin (subtopology U s) t \<Longrightarrow> t \<subseteq> s"
+   "closedin (subtopology U S) T \<Longrightarrow> T \<subseteq> S"
 by (simp add: closedin_def topspace_subtopology)
 
 lemma openin_subtopology_Un:
-    "openin (subtopology U t) s \<and> openin (subtopology U u) s
-     \<Longrightarrow> openin (subtopology U (t \<union> u)) s"
+    "openin (subtopology U T) S \<and> openin (subtopology U u) S
+     \<Longrightarrow> openin (subtopology U (T \<union> u)) S"
 by (simp add: openin_subtopology) blast
 
 
@@ -1061,6 +1061,9 @@ lemma ball_subset_cball [simp, intro]: "ball x e \<subseteq> cball x e"
 lemma sphere_cball [simp,intro]: "sphere z r \<subseteq> cball z r"
   by force
 
+lemma cball_diff_sphere: "cball a r - sphere a r = ball a r"
+  by auto
+
 lemma subset_ball[intro]: "d \<le> e \<Longrightarrow> ball x d \<subseteq> ball x e"
   by (simp add: subset_eq)
 
@@ -1071,6 +1074,12 @@ lemma ball_max_Un: "ball a (max r s) = ball a r \<union> ball a s"
   by (simp add: set_eq_iff) arith
 
 lemma ball_min_Int: "ball a (min r s) = ball a r \<inter> ball a s"
+  by (simp add: set_eq_iff)
+
+lemma cball_max_Un: "cball a (max r s) = cball a r \<union> cball a s"
+  by (simp add: set_eq_iff) arith
+
+lemma cball_min_Int: "cball a (min r s) = cball a r \<inter> cball a s"
   by (simp add: set_eq_iff)
 
 lemma cball_diff_eq_sphere: "cball a r - ball a r =  {x. dist x a = r}"
@@ -2462,6 +2471,54 @@ lemma connected_component_intermediate_subset:
   apply (case_tac "a \<in> u")
   apply (simp add: connected_component_maximal connected_component_mono subset_antisym)
   using connected_component_eq_empty by blast
+
+proposition connected_Times:
+  assumes S: "connected S" and T: "connected T"
+  shows "connected (S \<times> T)"
+proof (clarsimp simp add: connected_iff_connected_component)
+  fix x y x' y'
+  assume xy: "x \<in> S" "y \<in> T" "x' \<in> S" "y' \<in> T"
+  with xy obtain U V where U: "connected U" "U \<subseteq> S" "x \<in> U" "x' \<in> U"
+                       and V: "connected V" "V \<subseteq> T" "y \<in> V" "y' \<in> V"
+    using S T \<open>x \<in> S\<close> \<open>x' \<in> S\<close> by blast+
+  show "connected_component (S \<times> T) (x, y) (x', y')"
+    unfolding connected_component_def
+  proof (intro exI conjI)
+    show "connected ((\<lambda>x. (x, y)) ` U \<union> Pair x' ` V)"
+    proof (rule connected_Un)
+      have "continuous_on U (\<lambda>x. (x, y))"
+        by (intro continuous_intros)
+      then show "connected ((\<lambda>x. (x, y)) ` U)"
+        by (rule connected_continuous_image) (rule \<open>connected U\<close>)
+      have "continuous_on V (Pair x')"
+        by (intro continuous_intros)
+      then show "connected (Pair x' ` V)"
+        by (rule connected_continuous_image) (rule \<open>connected V\<close>)
+    qed (use U V in auto)
+  qed (use U V in auto)
+qed
+
+corollary connected_Times_eq [simp]:
+   "connected (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> connected S \<and> connected T"  (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  show ?rhs
+  proof (cases "S = {} \<or> T = {}")
+    case True
+    then show ?thesis by auto
+  next
+    case False
+    have "connected (fst ` (S \<times> T))" "connected (snd ` (S \<times> T))"
+      using continuous_on_fst continuous_on_snd continuous_on_id
+      by (blast intro: connected_continuous_image [OF _ L])+
+    with False show ?thesis
+      by auto
+  qed
+next
+  assume ?rhs
+  then show ?lhs
+    by (auto simp: connected_Times)
+qed
 
 
 subsection \<open>The set of connected components of a set\<close>
@@ -7240,7 +7297,7 @@ proof safe
   then have "\<forall>c\<in>{T. open T \<and> S \<inter> T \<in> C}. open c" and "S \<subseteq> \<Union>{T. open T \<and> S \<inter> T \<in> C}"
     unfolding openin_open by force+
   with \<open>compact S\<close> obtain D where "D \<subseteq> {T. open T \<and> S \<inter> T \<in> C}" and "finite D" and "S \<subseteq> \<Union>D"
-    by (rule compactE)
+    by (meson compactE)
   then have "image (\<lambda>T. S \<inter> T) D \<subseteq> C \<and> finite (image (\<lambda>T. S \<inter> T) D) \<and> S \<subseteq> \<Union>(image (\<lambda>T. S \<inter> T) D)"
     by auto
   then show "\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D" ..
@@ -10189,7 +10246,7 @@ proof -
     by metis
   from * have "\<forall>t\<in>Y ` K. open t" "K \<subseteq> \<Union>(Y ` K)" by auto
   with \<open>compact K\<close> obtain CC where CC: "CC \<subseteq> Y ` K" "finite CC" "K \<subseteq> \<Union>CC"
-    by (rule compactE)
+    by (meson compactE)
   then obtain c where c: "\<And>C. C \<in> CC \<Longrightarrow> c C \<in> K \<and> C = Y (c C)"
     by (force intro!: choice)
   with * CC show ?thesis
