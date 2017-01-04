@@ -676,14 +676,15 @@ definition euclidean_size_field_poly :: "'a :: field poly \<Rightarrow> nat" whe
   "euclidean_size_field_poly p = (if p = 0 then 0 else 2 ^ degree p)" 
 
 lemma dvd_field_poly: "dvd.dvd (op * :: 'a :: field poly \<Rightarrow> _) = op dvd"
-    by (intro ext) (simp_all add: dvd.dvd_def dvd_def)
+  by (intro ext) (simp_all add: dvd.dvd_def dvd_def)
 
 interpretation field_poly: 
-  euclidean_ring where zero = "0 :: 'a :: field poly"
+  unique_euclidean_ring where zero = "0 :: 'a :: field poly"
     and one = 1 and plus = plus and uminus = uminus and minus = minus
     and times = times
     and normalize = normalize_field_poly and unit_factor = unit_factor_field_poly
     and euclidean_size = euclidean_size_field_poly
+    and uniqueness_constraint = top
     and divide = divide and modulo = modulo
 proof (standard, unfold dvd_field_poly)
   fix p :: "'a poly"
@@ -698,6 +699,17 @@ next
   fix p :: "'a poly" assume "p \<noteq> 0"
   thus "is_unit (unit_factor_field_poly p)"
     by (simp add: unit_factor_field_poly_def lead_coeff_nonzero is_unit_pCons_iff)
+next
+  fix p q s :: "'a poly" assume "s \<noteq> 0"
+  moreover assume "euclidean_size_field_poly p < euclidean_size_field_poly q"
+  ultimately show "euclidean_size_field_poly (p * s) < euclidean_size_field_poly (q * s)"
+    by (auto simp add: euclidean_size_field_poly_def degree_mult_eq)
+next
+  fix p q r :: "'a poly" assume "p \<noteq> 0"
+  moreover assume "euclidean_size_field_poly r < euclidean_size_field_poly p"
+  ultimately show "(q * p + r) div p = q"
+    by (cases "r = 0")
+      (auto simp add: unit_factor_field_poly_def euclidean_size_field_poly_def div_poly_less)
 qed (auto simp: unit_factor_field_poly_def normalize_field_poly_def lead_coeff_mult 
        euclidean_size_field_poly_def Rings.div_mult_mod_eq intro!: degree_mod_less' degree_mult_right_le)
 
@@ -1011,16 +1023,21 @@ instance by standard (simp_all add: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_p
 
 end
 
-instantiation poly :: ("{field,factorial_ring_gcd}") euclidean_ring
+instantiation poly :: ("{field,factorial_ring_gcd}") unique_euclidean_ring
 begin
 
-definition euclidean_size_poly :: "'a poly \<Rightarrow> nat" where
-  "euclidean_size_poly p = (if p = 0 then 0 else 2 ^ degree p)"
+definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
+  where "euclidean_size_poly p = (if p = 0 then 0 else 2 ^ degree p)"
+
+definition uniqueness_constraint_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
+  where [simp]: "uniqueness_constraint_poly = top"
 
 instance 
-  by standard (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq intro!: degree_mod_less' degree_mult_right_le)
-end
+  by standard
+   (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degree_mult_eq intro!: degree_mod_less' degree_mult_right_le
+    split: if_splits)
 
+end
 
 instance poly :: ("{field,factorial_ring_gcd}") euclidean_ring_gcd
   by standard (simp_all add: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_poly_def eucl_eq_factorial)

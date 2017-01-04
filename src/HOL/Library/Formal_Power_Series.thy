@@ -1400,7 +1400,7 @@ lemmas fps_numeral_simps =
 
 subsection \<open>Formal power series form a Euclidean ring\<close>
 
-instantiation fps :: (field) euclidean_ring
+instantiation fps :: (field) euclidean_ring_cancel
 begin
 
 definition fps_euclidean_size_def:

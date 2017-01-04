@@ -24,15 +24,19 @@ definition mod_field :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 
 end
 
-instantiation real :: euclidean_ring
+instantiation real :: unique_euclidean_ring
 begin
 
 definition [simp]: "normalize_real = (normalize_field :: real \<Rightarrow> _)"
 definition [simp]: "unit_factor_real = (unit_factor_field :: real \<Rightarrow> _)"
 definition [simp]: "euclidean_size_real = (euclidean_size_field :: real \<Rightarrow> _)"
+definition [simp]: "uniqueness_constraint_real = (top :: real \<Rightarrow> real \<Rightarrow> bool)"
 definition [simp]: "modulo_real = (mod_field :: real \<Rightarrow> _)"
 
-instance by standard (simp_all add: dvd_field_iff divide_simps)
+instance
+  by standard
+    (simp_all add: dvd_field_iff divide_simps split: if_splits)
+
 end
 
 instantiation real :: euclidean_ring_gcd
@@ -51,15 +55,19 @@ instance by standard (simp_all add: gcd_real_def lcm_real_def Gcd_real_def Lcm_r
 
 end
 
-instantiation rat :: euclidean_ring
+instantiation rat :: unique_euclidean_ring
 begin
 
 definition [simp]: "normalize_rat = (normalize_field :: rat \<Rightarrow> _)"
 definition [simp]: "unit_factor_rat = (unit_factor_field :: rat \<Rightarrow> _)"
 definition [simp]: "euclidean_size_rat = (euclidean_size_field :: rat \<Rightarrow> _)"
+definition [simp]: "uniqueness_constraint_rat = (top :: rat \<Rightarrow> rat \<Rightarrow> bool)"
 definition [simp]: "modulo_rat = (mod_field :: rat \<Rightarrow> _)"
 
-instance by standard (simp_all add: dvd_field_iff divide_simps)
+instance
+  by standard
+    (simp_all add: dvd_field_iff divide_simps split: if_splits)
+
 end
 
 instantiation rat :: euclidean_ring_gcd
@@ -78,15 +86,19 @@ instance by standard (simp_all add: gcd_rat_def lcm_rat_def Gcd_rat_def Lcm_rat_
 
 end
 
-instantiation complex :: euclidean_ring
+instantiation complex :: unique_euclidean_ring
 begin
 
 definition [simp]: "normalize_complex = (normalize_field :: complex \<Rightarrow> _)"
 definition [simp]: "unit_factor_complex = (unit_factor_field :: complex \<Rightarrow> _)"
 definition [simp]: "euclidean_size_complex = (euclidean_size_field :: complex \<Rightarrow> _)"
+definition [simp]: "uniqueness_constraint_complex = (top :: complex \<Rightarrow> complex \<Rightarrow> bool)"
 definition [simp]: "modulo_complex = (mod_field :: complex \<Rightarrow> _)"
 
-instance by standard (simp_all add: dvd_field_iff divide_simps)
+instance
+  by standard
+    (simp_all add: dvd_field_iff divide_simps split: if_splits)
+
 end
 
 instantiation complex :: euclidean_ring_gcd
