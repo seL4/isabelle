@@ -79,12 +79,16 @@ class VSCode_Rendering(
   def hyperlink_source_file(source_name: String, line1: Int, range: Symbol.Range)
     : Option[Line.Node_Range] =
   {
-    for (name <- resources.source_file(source_name))
+    for {
+      name <- resources.source_file(source_name)
+      if Path.is_wellformed(name)
+    }
     yield {
+      val file = Path.explode(name).file
       val opt_text =
-        try { Some(File.read(Path.explode(name))) } // FIXME content from resources/models
+        try { Some(File.read(file)) } // FIXME content from resources/models
         catch { case ERROR(_) => None }
-      Line.Node_Range(Url.platform_file(name),
+      Line.Node_Range(Url.print_file(file),
         opt_text match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)

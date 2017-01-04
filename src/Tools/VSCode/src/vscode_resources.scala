@@ -50,8 +50,7 @@ class VSCode_Resources(
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
-    if (path.is_absolute) Url.platform_file(path)
-    else if (dir == "") Url.platform_file(File.pwd() + path)
+    if (dir == "" || path.is_absolute) Url.print_file(path.file)
     else if (path.is_current) dir
     else Url.normalize_file(dir + "/" + path.implode)
   }
@@ -65,7 +64,7 @@ class VSCode_Resources(
         f(reader)
 
       case None =>
-        val file = Url.file(uri)
+        val file = Url.parse_file(uri)
         if (!file.isFile) error("No such file: " + quote(file.toString))
 
         val reader = Scan.byte_reader(file)
@@ -133,7 +132,7 @@ class VSCode_Resources(
             uri = dep.name.node
             if !st.models.isDefinedAt(uri)
             text <-
-              try { Some(File.read(Url.file(uri))) }
+              try { Some(File.read(Url.parse_file(uri))) }
               catch { case ERROR(_) => None }
           }
           yield {

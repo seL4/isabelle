@@ -45,7 +45,7 @@ sealed case class Document_Model(
 
   /* external file */
 
-  val file: JFile = Url.file(uri).getCanonicalFile
+  val file: JFile = Url.parse_file(uri).getCanonicalFile
 
   def external(b: Boolean): Document_Model = copy(external_file = b)
 
