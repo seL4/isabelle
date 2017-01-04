@@ -7,7 +7,6 @@ section \<open>Abstract euclidean algorithm in euclidean (semi)rings\<close>
 theory Euclidean_Algorithm
   imports "~~/src/HOL/GCD"
     "~~/src/HOL/Number_Theory/Factorial_Ring"
-    "~~/src/HOL/Number_Theory/Euclidean_Division"
 begin
 
 context euclidean_semiring

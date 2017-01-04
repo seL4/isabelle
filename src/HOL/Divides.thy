@@ -3,87 +3,11 @@
     Copyright   1999  University of Cambridge
 *)
 
-section \<open>Quotient and remainder\<close>
+section \<open>More on quotient and remainder\<close>
 
 theory Divides
 imports Parity
 begin
-
-subsection \<open>Quotient and remainder in integral domains\<close>
-
-class semidom_modulo = algebraic_semidom + semiring_modulo
-begin
-
-lemma mod_0 [simp]: "0 mod a = 0"
-  using div_mult_mod_eq [of 0 a] by simp
-
-lemma mod_by_0 [simp]: "a mod 0 = a"
-  using div_mult_mod_eq [of a 0] by simp
-
-lemma mod_by_1 [simp]:
-  "a mod 1 = 0"
-proof -
-  from div_mult_mod_eq [of a one] div_by_1 have "a + a mod 1 = a" by simp
-  then have "a + a mod 1 = a + 0" by simp
-  then show ?thesis by (rule add_left_imp_eq)
-qed
-
-lemma mod_self [simp]:
-  "a mod a = 0"
-  using div_mult_mod_eq [of a a] by simp
-
-lemma dvd_imp_mod_0 [simp]:
-  assumes "a dvd b"
-  shows "b mod a = 0"
-  using assms minus_div_mult_eq_mod [of b a] by simp
-
-lemma mod_0_imp_dvd: 
-  assumes "a mod b = 0"
-  shows   "b dvd a"
-proof -
-  have "b dvd ((a div b) * b)" by simp
-  also have "(a div b) * b = a"
-    using div_mult_mod_eq [of a b] by (simp add: assms)
-  finally show ?thesis .
-qed
-
-lemma mod_eq_0_iff_dvd:
-  "a mod b = 0 \<longleftrightarrow> b dvd a"
-  by (auto intro: mod_0_imp_dvd)
-
-lemma dvd_eq_mod_eq_0 [nitpick_unfold, code]:
-  "a dvd b \<longleftrightarrow> b mod a = 0"
-  by (simp add: mod_eq_0_iff_dvd)
-
-lemma dvd_mod_iff: 
-  assumes "c dvd b"
-  shows "c dvd a mod b \<longleftrightarrow> c dvd a"
-proof -
-  from assms have "(c dvd a mod b) \<longleftrightarrow> (c dvd ((a div b) * b + a mod b))" 
-    by (simp add: dvd_add_right_iff)
-  also have "(a div b) * b + a mod b = a"
-    using div_mult_mod_eq [of a b] by simp
-  finally show ?thesis .
-qed
-
-lemma dvd_mod_imp_dvd:
-  assumes "c dvd a mod b" and "c dvd b"
-  shows "c dvd a"
-  using assms dvd_mod_iff [of c b a] by simp
-
-end
-
-class idom_modulo = idom + semidom_modulo
-begin
-
-subclass idom_divide ..
-
-lemma div_diff [simp]:
-  "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> (a - b) div c = a div c - b div c"
-  using div_add [of _  _ "- b"] by (simp add: dvd_neg_div)
-
-end
-
 
 subsection \<open>Quotient and remainder in integral domains with additional properties\<close>
 
@@ -437,6 +361,65 @@ lemma minus_mod_self2 [simp]:
 lemma minus_mod_self1 [simp]:
   "(b - a) mod b = - a mod b"
   using mod_add_self2 [of "- a" b] by simp
+
+end
+
+  
+subsection \<open>Euclidean (semi)rings with cancel rules\<close>
+
+class euclidean_semiring_cancel = euclidean_semiring + semiring_div
+
+class euclidean_ring_cancel = euclidean_ring + ring_div
+
+context unique_euclidean_semiring
+begin
+
+subclass euclidean_semiring_cancel
+proof
+  show "(a + c * b) div b = c + a div b" if "b \<noteq> 0" for a b c
+  proof (cases a b rule: divmod_cases)
+    case by0
+    with \<open>b \<noteq> 0\<close> show ?thesis
+      by simp
+  next
+    case (divides q)
+    then show ?thesis
+      by (simp add: ac_simps)
+  next
+    case (remainder q r)
+    then show ?thesis
+      by (auto intro: div_eqI simp add: algebra_simps)
+  qed
+next
+  show"(c * a) div (c * b) = a div b" if "c \<noteq> 0" for a b c
+  proof (cases a b rule: divmod_cases)
+    case by0
+    then show ?thesis
+      by simp
+  next
+    case (divides q)
+    with \<open>c \<noteq> 0\<close> show ?thesis
+      by (simp add: mult.left_commute [of c])
+  next
+    case (remainder q r)
+    from \<open>b \<noteq> 0\<close> \<open>c \<noteq> 0\<close> have "b * c \<noteq> 0"
+      by simp
+    from remainder \<open>c \<noteq> 0\<close>
+    have "uniqueness_constraint (r * c) (b * c)"
+      and "euclidean_size (r * c) < euclidean_size (b * c)"
+      by (simp_all add: uniqueness_constraint_mono_mult uniqueness_constraint_mod size_mono_mult)
+    with remainder show ?thesis
+      by (auto intro!: div_eqI [of _ "c * (a mod b)"] simp add: algebra_simps)
+        (use \<open>b * c \<noteq> 0\<close> in simp)
+  qed
+qed
+
+end
+
+context unique_euclidean_ring
+begin
+
+subclass euclidean_ring_cancel ..
 
 end
 
@@ -1096,6 +1079,20 @@ lemma mod_greater_zero_iff_not_dvd:
   fixes m n :: nat
   shows "m mod n > 0 \<longleftrightarrow> \<not> n dvd m"
   by (simp add: dvd_eq_mod_eq_0)
+
+instantiation nat :: unique_euclidean_semiring
+begin
+
+definition [simp]:
+  "euclidean_size_nat = (id :: nat \<Rightarrow> nat)"
+
+definition [simp]:
+  "uniqueness_constraint_nat = (top :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+
+instance
+  by standard (use mult_le_mono2 [of 1] in \<open>simp_all add: unit_factor_nat_def mod_greater_zero_iff_not_dvd\<close>)
+
+end
 
 text \<open>Simproc for cancelling @{const divide} and @{const modulo}\<close>
 
@@ -2415,6 +2412,22 @@ proof -
     by simp
 qed
 
+instantiation int :: unique_euclidean_ring
+begin
+
+definition [simp]:
+  "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
+
+definition [simp]:
+  "uniqueness_constraint_int (k :: int) l \<longleftrightarrow> unit_factor k = unit_factor l"
+  
+instance
+  by standard
+    (use mult_le_mono2 [of 1] in \<open>auto simp add: abs_mult nat_mult_distrib sgn_mod zdiv_eq_0_iff sgn_1_pos sgn_mult split: abs_split\<close>)
+
+end
+
+  
 subsubsection \<open>Quotients of Signs\<close>
 
 lemma div_eq_minus1: "(0::int) < b ==> -1 div b = -1"

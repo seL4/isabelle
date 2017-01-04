@@ -6,7 +6,7 @@
 section \<open>Parity in rings and semirings\<close>
 
 theory Parity
-  imports Nat_Transfer
+  imports Nat_Transfer Euclidean_Division
 begin
 
 subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>

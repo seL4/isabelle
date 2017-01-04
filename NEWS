@@ -23,6 +23,11 @@ INCOMPATIBILITY.
 use constants transp, antisymp, single_valuedp instead.
 INCOMPATIBILITY.
 
+* Algebraic type class hierarchy of euclidean (semi)rings in HOL:
+euclidean_(semi)ring, euclidean_(semi)ring_cancel,
+unique_euclidean_(semi)ring; instantiation requires
+provision of a euclidean size.
+
 * Swapped orientation of congruence rules mod_add_left_eq,
 mod_add_right_eq, mod_add_eq, mod_mult_left_eq, mod_mult_right_eq,
 mod_mult_eq, mod_minus_eq, mod_diff_left_eq, mod_diff_right_eq,
