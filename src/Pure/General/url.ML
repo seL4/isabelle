@@ -8,7 +8,6 @@ signature URL =
 sig
   datatype T =
     File of Path.T |
-    RemoteFile of string * Path.T |
     Http of string * Path.T |
     Ftp of string * Path.T
   val append: T -> T -> T
@@ -25,17 +24,15 @@ struct
 
 datatype T =
   File of Path.T |
-  RemoteFile of string * Path.T |
   Http of string * Path.T |
   Ftp of string * Path.T;
 
 
 (* append *)
 
-fun append (File p)            (File p') = File (Path.append p p')
-  | append (RemoteFile (h, p)) (File p') = RemoteFile (h, Path.append p p')
-  | append (Http (h, p))       (File p') = Http (h, Path.append p p')
-  | append (Ftp (h, p))        (File p') = Ftp (h, Path.append p p')
+fun append (File p) (File p') = File (Path.append p p')
+  | append (Http (h, p)) (File p') = Http (h, Path.append p p')
+  | append (Ftp (h, p)) (File p') = Ftp (h, Path.append p p')
   | append _ url = url;
 
 
@@ -44,7 +41,6 @@ fun append (File p)            (File p') = File (Path.append p p')
 fun implode_path p = if Path.is_current p then "" else Path.implode p;
 
 fun implode_url (File p) = implode_path p
-  | implode_url (RemoteFile (h, p)) = "file://" ^ h ^ implode_path p
   | implode_url (Http (h, p)) = "http://" ^ h ^ implode_path p
   | implode_url (Ftp (h, p)) = "ftp://" ^ h ^ implode_path p;
 
@@ -65,7 +61,8 @@ val scan_url =
     Scan.this_string "http:" || Scan.this_string "ftp:") scan_path >> File ||
   Scan.this_string "file:///" |-- scan_path_root >> File ||
   Scan.this_string "file://localhost/" |-- scan_path_root >> File ||
-  Scan.this_string "file://" |-- scan_host -- scan_path >> RemoteFile ||
+  Scan.this_string "file://" |-- scan_host -- scan_path
+    >> (fn (h, p) => File (Path.append (Path.named_root h) p)) ||
   Scan.this_string "file:/" |-- scan_path_root >> File ||
   Scan.this_string "http://" |-- scan_host -- scan_path >> Http ||
   Scan.this_string "ftp://" |-- scan_host -- scan_path >> Ftp;
