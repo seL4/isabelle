@@ -116,7 +116,7 @@ class Server(
 
   private val delay_load =
     Standard_Thread.delay_last(options.seconds("vscode_load_delay"))
-    { if (resources.resolve_dependencies(session)) delay_input.invoke() }
+    { if (resources.resolve_dependencies(session, watcher)) delay_input.invoke() }
 
   private val watcher =
     File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))

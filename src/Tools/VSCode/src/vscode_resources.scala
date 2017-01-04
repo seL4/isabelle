@@ -134,7 +134,7 @@ class VSCode_Resources(
 
   val thy_info = new Thy_Info(this)
 
-  def resolve_dependencies(session: Session): Boolean =
+  def resolve_dependencies(session: Session, watcher: File_Watcher): Boolean =
   {
     state.change_result(st =>
       {
@@ -147,6 +147,7 @@ class VSCode_Resources(
             dep <- thy_info.dependencies("", thys).deps.iterator
             file = node_file(dep.name)
             if !st.models.isDefinedAt(file)
+            _ = watcher.register_parent(file)
             text <- try_read(file)
           }
           yield {
