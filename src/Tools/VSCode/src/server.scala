@@ -134,8 +134,7 @@ class Server(
   {
     resources.close_model(file) match {
       case Some(model) =>
-        val dir = file.getParentFile
-        if (dir != null && dir.isDirectory) watcher.register(dir)
+        watcher.register_parent(file)
         sync_documents(Set(file))
       case None =>
     }

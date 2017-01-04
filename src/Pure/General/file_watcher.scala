@@ -45,6 +45,12 @@ class File_Watcher private(handle: Set[JFile] => Unit, delay: Time)
           st.copy(dirs = st.dirs + (dir -> key))
       })
 
+  def register_parent(file: JFile): Unit =
+  {
+    val dir = file.getParentFile
+    if (dir != null && dir.isDirectory) register(dir)
+  }
+
   def deregister(dir: JFile): Unit =
     state.change(st =>
       st.dirs.get(dir) match {
