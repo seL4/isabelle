@@ -356,8 +356,6 @@ subsection \<open>@{const wbalanced}\<close>
 lemma wbalanced_subtrees: "\<lbrakk> wbalanced t; s \<in> subtrees t \<rbrakk> \<Longrightarrow> wbalanced s"
 using [[simp_depth_limit=1]] by(induction t arbitrary: s) auto
 
-(* show wbalanced \<Longrightarrow> balanced and use that in Balanced.thy *)
-
 
 subsection \<open>@{const path_len}\<close>
 
