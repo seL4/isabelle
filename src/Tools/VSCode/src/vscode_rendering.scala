@@ -83,17 +83,14 @@ class VSCode_Rendering(
     : Option[Line.Node_Range] =
   {
     for {
-      name <- resources.source_file(source_name)
+      platform_path <- resources.source_file(source_name)
       file <-
-        (try { Some(new JFile(name).getCanonicalFile) }
+        (try { Some(new JFile(platform_path).getCanonicalFile) }
          catch { case ERROR(_) => None })
     }
     yield {
-      val opt_text =
-        try { Some(File.read(file)) } // FIXME content from resources/models
-        catch { case ERROR(_) => None }
       Line.Node_Range(file.getPath,
-        opt_text match {
+        resources.get_file_content(file) match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)
             val doc = Line.Document(text, resources.text_length)

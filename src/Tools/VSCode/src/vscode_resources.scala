@@ -106,9 +106,8 @@ class VSCode_Resources(
           (for {
             (file, model) <- st.models.iterator
             if changed_files(file) && model.external_file
-            model1 <-
-              (try { model.update_text(File.read(file)) }
-               catch { case ERROR(_) => None })
+            text <- try_read(file)
+            model1 <- model.update_text(text)
           } yield (file, model1)).toList
         if (changed_models.isEmpty) (false, st)
         else (true,
@@ -116,6 +115,19 @@ class VSCode_Resources(
             models = (st.models /: changed_models)(_ + _),
             pending_input = (st.pending_input /: changed_models.iterator.map(_._1))(_ + _)))
       })
+
+
+  /* file content */
+
+  def try_read(file: JFile): Option[String] =
+    try { Some(File.read(file)) }
+    catch { case ERROR(_) => None }
+
+  def get_file_content(file: JFile): Option[String] =
+    get_model(file) match {
+      case Some(model) => Some(model.doc.make_text)
+      case None => try_read(file)
+    }
 
 
   /* resolve dependencies */
@@ -135,9 +147,7 @@ class VSCode_Resources(
             dep <- thy_info.dependencies("", thys).deps.iterator
             file = node_file(dep.name)
             if !st.models.isDefinedAt(file)
-            text <-
-              try { Some(File.read(file)) }
-              catch { case ERROR(_) => None }
+            text <- try_read(file)
           }
           yield {
             val model = Document_Model.init(session, node_name(file))
