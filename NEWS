@@ -19,7 +19,7 @@ used for formal checking.
 * Dropped aliasses RangeP, DomainP for Rangep, Domainp respectively.
 INCOMPATIBILITY.
 
-* Dropped abbreviation transP, antisymP, single_valuedP;
+* Dropped abbreviations transP, antisymP, single_valuedP;
 use constants transp, antisymp, single_valuedp instead.
 INCOMPATIBILITY.
 
@@ -37,6 +37,10 @@ provision of a euclidean size.
     available as "bezout_coefficients".
 INCOMPATIBILITY.
 
+* Named collection mod_simps covers various congruence rules
+concerning mod, replacing former zmod_simps.
+INCOMPATIBILITY.
+
 * Swapped orientation of congruence rules mod_add_left_eq,
 mod_add_right_eq, mod_add_eq, mod_mult_left_eq, mod_mult_right_eq,
 mod_mult_eq, mod_minus_eq, mod_diff_left_eq, mod_diff_right_eq,
@@ -47,10 +51,6 @@ mod_diff_eq.  INCOMPATIBILITY.
     zdiff_zmod_left ~> mod_diff_left_eq
     zdiff_zmod_right ~> mod_diff_right_eq
     zmod_eq_dvd_iff ~> mod_eq_dvd_iff
-INCOMPATIBILITY.
-
-* Named collection mod_simps covers various congruence rules
-concerning mod, replacing former zmod_simps.
 INCOMPATIBILITY.
 
 * (Co)datatype package:
