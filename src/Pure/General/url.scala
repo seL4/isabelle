@@ -52,8 +52,8 @@ object Url
 
   /* file URIs */
 
-  def print_file(file: JFile): String =
-    file.toPath.toAbsolutePath.toUri.normalize.toString
+  def print_file(file: JFile): String = file.toPath.toAbsolutePath.toUri.normalize.toString
+  def print_file_name(name: String): String = print_file(new JFile(name))
 
   def parse_file(uri: String): JFile = Paths.get(new URI(uri)).toFile
 
@@ -61,6 +61,6 @@ object Url
     try { parse_file(uri); true }
     catch { case _: URISyntaxException | _: IllegalArgumentException => false }
 
-  def normalize_file(uri: String): String =
-    if (is_wellformed_file(uri)) print_file(parse_file(uri)) else uri
+  def canonical_file(uri: String): JFile = parse_file(uri).getCanonicalFile
+  def canonical_file_name(uri: String): String = canonical_file(uri).getPath
 }

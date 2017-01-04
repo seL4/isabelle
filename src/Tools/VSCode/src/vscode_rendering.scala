@@ -84,11 +84,11 @@ class VSCode_Rendering(
       if Path.is_wellformed(name)
     }
     yield {
-      val file = Path.explode(name).file
+      val path = Path.explode(name)
       val opt_text =
-        try { Some(File.read(file)) } // FIXME content from resources/models
+        try { Some(File.read(path)) } // FIXME content from resources/models
         catch { case ERROR(_) => None }
-      Line.Node_Range(Url.print_file(file),
+      Line.Node_Range(File.platform_path(path),
         opt_text match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)

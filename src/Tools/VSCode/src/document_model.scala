@@ -16,10 +16,9 @@ import scala.util.parsing.input.CharSequenceReader
 
 object Document_Model
 {
-  def init(session: Session, uri: String): Document_Model =
+  def init(session: Session, node_name: Document.Node.Name): Document_Model =
   {
     val resources = session.resources.asInstanceOf[VSCode_Resources]
-    val node_name = resources.node_name(uri)
     val doc = Line.Document("", resources.text_length)
     Document_Model(session, node_name, doc)
   }
@@ -39,21 +38,12 @@ sealed case class Document_Model(
 
   override def toString: String = node_name.toString
 
-  def uri: String = node_name.node
   def is_theory: Boolean = node_name.is_theory
 
 
   /* external file */
 
-  val file: JFile = Url.parse_file(uri).getCanonicalFile
-
   def external(b: Boolean): Document_Model = copy(external_file = b)
-
-  def register(watcher: File_Watcher)
-  {
-    val dir = file.getParentFile
-    if (dir != null && dir.isDirectory) watcher.register(dir)
-  }
 
 
   /* header */
@@ -93,13 +83,6 @@ sealed case class Document_Model(
       Some(copy(doc = doc1, pending_edits = pending_edits2))
     }
   }
-
-  def update_file: Option[Document_Model] =
-    if (external_file) {
-      try { update_text(File.read(file)) }
-      catch { case ERROR(_) => None }
-    }
-    else None
 
   def flush_edits: Option[(List[Document.Edit_Text], Document_Model)] =
   {
