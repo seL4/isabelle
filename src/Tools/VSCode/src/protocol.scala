@@ -11,6 +11,9 @@ package isabelle.vscode
 import isabelle._
 
 
+import java.io.{File => JFile}
+
+
 object Protocol
 {
   /* abstract message */
@@ -180,14 +183,14 @@ object Protocol
   object Location
   {
     def apply(loc: Line.Node_Range): JSON.T =
-      Map("uri" -> loc.name, "range" -> Range(loc.range))
+      Map("uri" -> Url.print_file_name(loc.name), "range" -> Range(loc.range))
 
     def unapply(json: JSON.T): Option[Line.Node_Range] =
       for {
         uri <- JSON.string(json, "uri")
         range_json <- JSON.value(json, "range")
         range <- Range.unapply(range_json)
-      } yield Line.Node_Range(uri, range)
+      } yield Line.Node_Range(Url.canonical_file_name(uri), range)
   }
 
   object TextDocumentPosition
@@ -198,7 +201,7 @@ object Protocol
         uri <- JSON.string(doc, "uri")
         pos_json <- JSON.value(json, "position")
         pos <- Position.unapply(pos_json)
-      } yield Line.Node_Position(uri, pos)
+      } yield Line.Node_Position(Url.canonical_file_name(uri), pos)
   }
 
 
@@ -224,7 +227,7 @@ object Protocol
 
   object DidOpenTextDocument
   {
-    def unapply(json: JSON.T): Option[(String, String, Long, String)] =
+    def unapply(json: JSON.T): Option[(JFile, String, Long, String)] =
       json match {
         case Notification("textDocument/didOpen", Some(params)) =>
           for {
@@ -233,7 +236,7 @@ object Protocol
             lang <- JSON.string(doc, "languageId")
             version <- JSON.long(doc, "version")
             text <- JSON.string(doc, "text")
-          } yield (uri, lang, version, text)
+          } yield (Url.canonical_file(uri), lang, version, text)
         case _ => None
       }
   }
@@ -259,7 +262,7 @@ object Protocol
 
   object DidChangeTextDocument
   {
-    def unapply(json: JSON.T): Option[(String, Long, List[TextDocumentContentChange])] =
+    def unapply(json: JSON.T): Option[(JFile, Long, List[TextDocumentContentChange])] =
       json match {
         case Notification("textDocument/didChange", Some(params)) =>
           for {
@@ -267,20 +270,20 @@ object Protocol
             uri <- JSON.string(doc, "uri")
             version <- JSON.long(doc, "version")
             changes <- JSON.array(params, "contentChanges", TextDocumentContentChange.unapply _)
-          } yield (uri, version, changes)
+          } yield (Url.canonical_file(uri), version, changes)
         case _ => None
       }
   }
 
   class TextDocumentNotification(name: String)
   {
-    def unapply(json: JSON.T): Option[String] =
+    def unapply(json: JSON.T): Option[JFile] =
       json match {
         case Notification(method, Some(params)) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri")
-          } yield uri
+          } yield Url.canonical_file(uri)
         case _ => None
       }
   }
@@ -363,8 +366,8 @@ object Protocol
 
   object PublishDiagnostics
   {
-    def apply(uri: String, diagnostics: List[Diagnostic]): JSON.T =
+    def apply(file: JFile, diagnostics: List[Diagnostic]): JSON.T =
       Notification("textDocument/publishDiagnostics",
-        Map("uri" -> uri, "diagnostics" -> diagnostics.map(_.json)))
+        Map("uri" -> Url.print_file(file), "diagnostics" -> diagnostics.map(_.json)))
   }
 }

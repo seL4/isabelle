@@ -102,7 +102,7 @@ class Server(
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
-      model <- resources.get_model(node_pos.name)
+      model <- resources.get_model(new JFile(node_pos.name))
       rendering = model.rendering()
       offset <- model.doc.offset(node_pos.pos)
     } yield (rendering, offset)
@@ -124,18 +124,19 @@ class Server(
   private def sync_documents(changed: Set[JFile]): Unit =
     if (resources.sync_models(changed)) delay_input.invoke()
 
-  private def update_document(uri: String, text: String)
+  private def update_document(file: JFile, text: String)
   {
-    resources.update_model(session, uri, text)
+    resources.update_model(session, file, text)
     delay_input.invoke()
   }
 
-  private def close_document(uri: String)
+  private def close_document(file: JFile)
   {
-    resources.close_model(uri) match {
+    resources.close_model(file) match {
       case Some(model) =>
-        model.register(watcher)
-        sync_documents(Set(model.file))
+        val dir = file.getParentFile
+        if (dir != null && dir.isDirectory) watcher.register(dir)
+        sync_documents(Set(file))
       case None =>
     }
   }
@@ -153,7 +154,7 @@ class Server(
   private val prover_output =
     Session.Consumer[Session.Commands_Changed](getClass.getName) {
       case changed if changed.nodes.nonEmpty =>
-        resources.update_output(changed.nodes.toList.map(_.node))
+        resources.update_output(changed.nodes.toList.map(resources.node_file(_)))
         delay_output.invoke()
       case _ =>
     }

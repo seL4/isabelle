@@ -10,6 +10,9 @@ package isabelle.vscode
 
 import isabelle._
 
+import java.io.{File => JFile}
+
+
 object VSCode_Rendering
 {
   /* diagnostic messages */
@@ -79,13 +82,15 @@ class VSCode_Rendering(
   def hyperlink_source_file(source_name: String, line1: Int, range: Symbol.Range)
     : Option[Line.Node_Range] =
   {
-    for (name <- resources.source_file(source_name))
+    for {
+      platform_path <- resources.source_file(source_name)
+      file <-
+        (try { Some(new JFile(platform_path).getCanonicalFile) }
+         catch { case ERROR(_) => None })
+    }
     yield {
-      val opt_text =
-        try { Some(File.read(Path.explode(name))) } // FIXME content from resources/models
-        catch { case ERROR(_) => None }
-      Line.Node_Range(Url.platform_file(name),
-        opt_text match {
+      Line.Node_Range(file.getPath,
+        resources.get_file_content(file) match {
           case Some(text) if range.start > 0 =>
             val chunk = Symbol.Text_Chunk(text)
             val doc = Line.Document(text, resources.text_length)

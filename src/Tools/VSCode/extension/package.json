@@ -32,7 +32,7 @@
             {
                 "id": "isabelle-ml",
                 "aliases": ["Isabelle/ML"],
-                "extensions": [".ML"],
+                "extensions": [".ML", ".sml", ".sig"],
                 "configuration": "./isabelle-ml-language.json"
             }
 

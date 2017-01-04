@@ -19,9 +19,9 @@ object VSCode_Resources
   /* internal state */
 
   sealed case class State(
-    models: Map[String, Document_Model] = Map.empty,
-    pending_input: Set[String] = Set.empty,
-    pending_output: Set[String] = Set.empty)
+    models: Map[JFile, Document_Model] = Map.empty,
+    pending_input: Set[JFile] = Set.empty,
+    pending_output: Set[JFile] = Set.empty)
 }
 
 class VSCode_Resources(
@@ -38,64 +38,65 @@ class VSCode_Resources(
 
   /* document node name */
 
-  def node_name(uri: String): Document.Node.Name =
+  def node_file(name: Document.Node.Name): JFile = new JFile(name.node)
+
+  def node_name(file: JFile): Document.Node.Name =
   {
-    val theory = Thy_Header.thy_name_bootstrap(uri).getOrElse("")
-    val master_dir =
-      if (!Url.is_wellformed_file(uri) || theory == "") ""
-      else Thy_Header.dir_name(uri)
-    Document.Node.Name(uri, master_dir, theory)
+    val node = file.getPath
+    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
+    val master_dir = if (theory == "") "" else file.getParent
+    Document.Node.Name(node, master_dir, theory)
   }
 
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
-    if (path.is_absolute) Url.platform_file(path)
-    else if (dir == "") Url.platform_file(File.pwd() + path)
+    if (dir == "" || path.is_absolute) File.platform_path(path)
     else if (path.is_current) dir
-    else Url.normalize_file(dir + "/" + path.implode)
+    else if (path.is_basic && !dir.endsWith("/") && !dir.endsWith(JFile.separator))
+      dir + JFile.separator + File.platform_path(path)
+    else if (path.is_basic) dir + File.platform_path(path)
+    else new JFile(dir + JFile.separator + File.platform_path(path)).getCanonicalPath
   }
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
-    val uri = name.node
-    get_model(uri) match {
+    val file = node_file(name)
+    get_model(file) match {
       case Some(model) =>
-        val reader = new CharSequenceReader(model.doc.make_text)
-        f(reader)
-
-      case None =>
-        val file = Url.file(uri)
-        if (!file.isFile) error("No such file: " + quote(file.toString))
-
+        f(new CharSequenceReader(model.doc.make_text))
+      case None if file.isFile =>
         val reader = Scan.byte_reader(file)
         try { f(reader) } finally { reader.close }
+      case None =>
+        error("No such file: " + quote(file.toString))
     }
   }
 
 
   /* document models */
 
-  def get_model(uri: String): Option[Document_Model] = state.value.models.get(uri)
+  def get_model(file: JFile): Option[Document_Model] = state.value.models.get(file)
+  def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
 
-  def update_model(session: Session, uri: String, text: String)
+  def update_model(session: Session, file: JFile, text: String)
   {
     state.change(st =>
       {
-        val model = st.models.getOrElse(uri, Document_Model.init(session, uri))
+        val model = st.models.getOrElse(file, Document_Model.init(session, node_name(file)))
         val model1 = (model.update_text(text) getOrElse model).external(false)
         st.copy(
-          models = st.models + (uri -> model1),
-          pending_input = st.pending_input + uri)
+          models = st.models + (file -> model1),
+          pending_input = st.pending_input + file)
       })
   }
 
-  def close_model(uri: String): Option[Document_Model] =
+  def close_model(file: JFile): Option[Document_Model] =
     state.change_result(st =>
-      st.models.get(uri) match {
+      st.models.get(file) match {
         case None => (None, st)
         case Some(model) =>
-          (Some(model), st.copy(models = st.models + (uri -> model.external(true))))
+          (Some(model), st.copy(models = st.models + (file -> model.external(true))))
       })
 
   def sync_models(changed_files: Set[JFile]): Boolean =
@@ -103,16 +104,30 @@ class VSCode_Resources(
       {
         val changed_models =
           (for {
-            (uri, model) <- st.models.iterator
-            if changed_files(model.file)
-            model1 <- model.update_file
-          } yield (uri, model1)).toList
+            (file, model) <- st.models.iterator
+            if changed_files(file) && model.external_file
+            text <- try_read(file)
+            model1 <- model.update_text(text)
+          } yield (file, model1)).toList
         if (changed_models.isEmpty) (false, st)
         else (true,
           st.copy(
             models = (st.models /: changed_models)(_ + _),
             pending_input = (st.pending_input /: changed_models.iterator.map(_._1))(_ + _)))
       })
+
+
+  /* file content */
+
+  def try_read(file: JFile): Option[String] =
+    try { Some(File.read(file)) }
+    catch { case ERROR(_) => None }
+
+  def get_file_content(file: JFile): Option[String] =
+    get_model(file) match {
+      case Some(model) => Some(model.doc.make_text)
+      case None => try_read(file)
+    }
 
 
   /* resolve dependencies */
@@ -130,16 +145,14 @@ class VSCode_Resources(
         val loaded_models =
           (for {
             dep <- thy_info.dependencies("", thys).deps.iterator
-            uri = dep.name.node
-            if !st.models.isDefinedAt(uri)
-            text <-
-              try { Some(File.read(Url.file(uri))) }
-              catch { case ERROR(_) => None }
+            file = node_file(dep.name)
+            if !st.models.isDefinedAt(file)
+            text <- try_read(file)
           }
           yield {
-            val model = Document_Model.init(session, uri)
+            val model = Document_Model.init(session, node_name(file))
             val model1 = (model.update_text(text) getOrElse model).external(true)
-            (uri, model1)
+            (file, model1)
           }).toList
 
         if (loaded_models.isEmpty) (false, st)
@@ -160,14 +173,14 @@ class VSCode_Resources(
       {
         val changed_models =
           (for {
-            uri <- st.pending_input.iterator
-            model <- st.models.get(uri)
-            res <- model.flush_edits
-          } yield res).toList
+            file <- st.pending_input.iterator
+            model <- st.models.get(file)
+            (edits, model1) <- model.flush_edits
+          } yield (edits, (file, model1))).toList
 
         session.update(Document.Blobs.empty, changed_models.flatMap(_._1))
         st.copy(
-          models = (st.models /: changed_models) { case (ms, (_, m)) => ms + (m.uri -> m) },
+          models = (st.models /: changed_models.iterator.map(_._2))(_ + _),
           pending_input = Set.empty)
       })
   }
@@ -175,7 +188,7 @@ class VSCode_Resources(
 
   /* pending output */
 
-  def update_output(changed_nodes: List[String]): Unit =
+  def update_output(changed_nodes: List[JFile]): Unit =
     state.change(st => st.copy(pending_output = st.pending_output ++ changed_nodes))
 
   def flush_output(channel: Channel)
@@ -184,16 +197,16 @@ class VSCode_Resources(
       {
         val changed_iterator =
           for {
-            uri <- st.pending_output.iterator
-            model <- st.models.get(uri)
+            file <- st.pending_output.iterator
+            model <- st.models.get(file)
             rendering = model.rendering()
             (diagnostics, model1) <- model.publish_diagnostics(rendering)
           } yield {
-            channel.diagnostics(model1.uri, rendering.diagnostics_output(diagnostics))
-            model1
+            channel.diagnostics(file, rendering.diagnostics_output(diagnostics))
+            (file, model1)
           }
         st.copy(
-          models = (st.models /: changed_iterator) { case (ms, m) => ms + (m.uri -> m) },
+          models = (st.models /: changed_iterator)(_ + _),
           pending_output = Set.empty)
       }
     )

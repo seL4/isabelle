@@ -9,7 +9,7 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.io.{InputStream, OutputStream, FileOutputStream, ByteArrayOutputStream}
+import java.io.{InputStream, OutputStream, FileOutputStream, ByteArrayOutputStream, File => JFile}
 
 import scala.collection.mutable
 
@@ -111,6 +111,6 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
 
   /* diagnostics */
 
-  def diagnostics(uri: String, diagnostics: List[Protocol.Diagnostic]): Unit =
-    write(Protocol.PublishDiagnostics(uri, diagnostics))
+  def diagnostics(file: JFile, diagnostics: List[Protocol.Diagnostic]): Unit =
+    write(Protocol.PublishDiagnostics(file, diagnostics))
 }

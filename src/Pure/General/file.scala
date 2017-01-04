@@ -13,7 +13,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
 import java.nio.file.{StandardOpenOption, StandardCopyOption, Path => JPath,
   Files, SimpleFileVisitor, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
-import java.net.{URL, URLDecoder, MalformedURLException}
+import java.net.{URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.regex.Pattern
 
@@ -33,7 +33,7 @@ object File
     if (Platform.is_windows) {
       val Platform_Root = new Regex("(?i)" +
         Pattern.quote(Isabelle_System.cygwin_root()) + """(?:\\+|\z)(.*)""")
-      val Drive = new Regex("""\\?([a-zA-Z]):\\*(.*)""")
+      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
 
       platform_path.replace('/', '\\') match {
         case Platform_Root(rest) => "/" + rest.replace('\\', '/')
@@ -53,8 +53,8 @@ object File
   def standard_url(name: String): String =
     try {
       val url = new URL(name)
-      if (url.getProtocol == "file")
-        standard_path(URLDecoder.decode(url.getPath, UTF8.charset_name))
+      if (url.getProtocol == "file" && Url.is_wellformed_file(name))
+        standard_path(Url.parse_file(name))
       else name
     }
     catch { case _: MalformedURLException => standard_path(name) }
