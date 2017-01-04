@@ -6,6 +6,7 @@ theory Complex_Transcendental
 imports
   Complex_Analysis_Basics
   Summation_Tests
+   "~~/src/HOL/Library/Periodic_Fun"
 begin
 
 (* TODO: Figure out what to do with Möbius transformations *)
@@ -399,6 +400,89 @@ lemma dist_exp_ii_1: "norm(exp(\<i> * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<ba
   using cos_double_sin [of "t/2"]
   apply (simp add: real_sqrt_mult)
   done
+
+
+lemma complex_sin_eq:
+  fixes w :: complex
+  shows "sin w = sin z \<longleftrightarrow> (\<exists>n \<in> \<int>. w = z + of_real(2*n*pi) \<or> w = -z + of_real((2*n + 1)*pi))"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "sin w - sin z = 0"
+    by (auto simp: algebra_simps)
+  then have "sin ((w - z) / 2)*cos ((w + z) / 2) = 0"
+    by (auto simp: sin_diff_sin)
+  then consider "sin ((w - z) / 2) = 0" | "cos ((w + z) / 2) = 0"
+    using mult_eq_0_iff by blast
+  then show ?rhs
+  proof cases
+    case 1
+    then show ?thesis
+      apply (auto simp: sin_eq_0 algebra_simps)
+      by (metis Ints_of_int of_real_of_int_eq)
+  next
+    case 2
+    then show ?thesis
+      apply (auto simp: cos_eq_0 algebra_simps)
+      by (metis Ints_of_int of_real_of_int_eq)
+  qed
+next
+  assume ?rhs
+  then obtain n::int where w: "w = z + of_real (2* of_int n*pi) \<or>
+                               w = -z + of_real ((2* of_int n + 1)*pi)"
+    using Ints_cases by blast
+  then show ?lhs
+    using Periodic_Fun.sin.plus_of_int [of z n]
+    apply (auto simp: algebra_simps)
+    by (metis (no_types, hide_lams) add_diff_cancel_left add_diff_cancel_left' add_minus_cancel
+              mult.commute sin.plus_of_int sin_minus sin_plus_pi)
+qed
+
+lemma complex_cos_eq:
+  fixes w :: complex
+  shows "cos w = cos z \<longleftrightarrow>
+         (\<exists>n \<in> \<int>. w = z + of_real(2*n*pi) \<or> w = -z + of_real(2*n*pi))"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "cos w - cos z = 0"
+    by (auto simp: algebra_simps)
+  then have "sin ((w + z) / 2) * sin ((z - w) / 2) = 0"
+    by (auto simp: cos_diff_cos)
+  then consider "sin ((w + z) / 2) = 0" | "sin ((z - w) / 2) = 0"
+    using mult_eq_0_iff by blast
+  then show ?rhs
+  proof cases
+    case 1
+    then show ?thesis
+      apply (auto simp: sin_eq_0 algebra_simps)
+      by (metis Ints_of_int of_real_of_int_eq)
+  next
+    case 2
+    then show ?thesis
+      apply (auto simp: sin_eq_0 algebra_simps)
+      by (metis Ints_of_int add_minus_cancel distrib_right mult_of_int_commute mult_zero_right of_int_0 of_int_add of_real_of_int_eq)
+  qed
+next
+  assume ?rhs
+  then obtain n::int where w: "w = z + of_real (2* of_int n*pi) \<or>
+                               w = -z + of_real(2*n*pi)"
+    using Ints_cases  by (metis of_int_mult of_int_numeral)
+  then show ?lhs
+    using Periodic_Fun.cos.plus_of_int [of z n]
+    apply (auto simp: algebra_simps)
+    by (metis cos.plus_of_int cos_minus minus_add_cancel mult.commute)
+qed
+
+lemma sin_eq:
+   "sin x = sin y \<longleftrightarrow> (\<exists>n \<in> \<int>. x = y + 2*n*pi \<or> x = -y + (2*n + 1)*pi)"
+  using complex_sin_eq [of x y]
+  by (simp only: sin_of_real Re_complex_of_real of_real_add [symmetric] of_real_minus [symmetric] of_real_mult [symmetric] of_real_eq_iff)
+
+lemma cos_eq:
+   "cos x = cos y \<longleftrightarrow> (\<exists>n \<in> \<int>. x = y + 2*n*pi \<or> x = -y + 2*n*pi)"
+  using complex_cos_eq [of x y]
+  by (simp only: cos_of_real Re_complex_of_real of_real_add [symmetric] of_real_minus [symmetric] of_real_mult [symmetric] of_real_eq_iff)
 
 lemma sinh_complex:
   fixes z :: complex
@@ -2837,12 +2921,40 @@ lemma Re_Arccos_bounds: "-pi < Re(Arccos z) \<and> Re(Arccos z) \<le> pi"
 lemma Re_Arccos_bound: "\<bar>Re(Arccos z)\<bar> \<le> pi"
   by (meson Re_Arccos_bounds abs_le_iff less_eq_real_def minus_less_iff)
 
+lemma Im_Arccos_bound: "\<bar>Im (Arccos w)\<bar> \<le> cmod w"
+proof -
+  have "(Im (Arccos w))\<^sup>2 \<le> (cmod (cos (Arccos w)))\<^sup>2 - (cos (Re (Arccos w)))\<^sup>2"
+    using norm_cos_squared [of "Arccos w"] real_le_abs_sinh [of "Im (Arccos w)"]
+    apply (simp only: abs_le_square_iff)
+    apply (simp add: divide_simps)
+    done
+  also have "... \<le> (cmod w)\<^sup>2"
+    by (auto simp: cmod_power2)
+  finally show ?thesis
+    using abs_le_square_iff by force 
+qed
+  
 lemma Re_Arcsin_bounds: "-pi < Re(Arcsin z) & Re(Arcsin z) \<le> pi"
   unfolding Re_Arcsin
   by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arcsin_body_lemma)
 
 lemma Re_Arcsin_bound: "\<bar>Re(Arcsin z)\<bar> \<le> pi"
   by (meson Re_Arcsin_bounds abs_le_iff less_eq_real_def minus_less_iff)
+
+lemma norm_Arccos_bounded:
+  fixes w :: complex
+  shows "norm (Arccos w) \<le> pi + norm w"
+proof -
+  have Re: "(Re (Arccos w))\<^sup>2 \<le> pi\<^sup>2" "(Im (Arccos w))\<^sup>2 \<le> (cmod w)\<^sup>2"
+    using Re_Arccos_bound [of w] Im_Arccos_bound [of w] abs_le_square_iff by force+
+  have "Arccos w \<bullet> Arccos w \<le> pi\<^sup>2 + (cmod w)\<^sup>2"
+    using Re by (simp add: dot_square_norm cmod_power2 [of "Arccos w"])
+  then have "cmod (Arccos w) \<le> pi + cmod (cos (Arccos w))"
+    apply (simp add: norm_le_square)
+    by (metis dot_square_norm norm_ge_zero norm_le_square pi_ge_zero triangle_lemma)
+  then show "cmod (Arccos w) \<le> pi + cmod w"
+    by auto
+qed
 
 
 subsection\<open>Interrelations between Arcsin and Arccos\<close>

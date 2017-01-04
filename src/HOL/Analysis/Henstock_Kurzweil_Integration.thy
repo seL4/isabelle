@@ -10,21 +10,6 @@ imports
 begin
 
 (* BEGIN MOVE *)
-lemma swap_continuous:
-  assumes "continuous_on (cbox (a,c) (b,d)) (\<lambda>(x,y). f x y)"
-    shows "continuous_on (cbox (c,a) (d,b)) (\<lambda>(x, y). f y x)"
-proof -
-  have "(\<lambda>(x, y). f y x) = (\<lambda>(x, y). f x y) \<circ> prod.swap"
-    by auto
-  then show ?thesis
-    apply (rule ssubst)
-    apply (rule continuous_on_compose)
-    apply (simp add: split_def)
-    apply (rule continuous_intros | simp add: assms)+
-    done
-qed
-
-
 lemma norm_minus2: "norm (x1-x2, y1-y2) = norm (x2-x1, y2-y1)"
   by (simp add: norm_minus_eqI)
 
@@ -44,10 +29,6 @@ lemma Sigma_Int_Paircomp1: "(Sigma A B) \<inter> {(x, y). P x} = Sigma (A \<inte
 
 lemma Sigma_Int_Paircomp2: "(Sigma A B) \<inter> {(x, y). P y} = Sigma A (\<lambda>z. B z \<inter> {y. P y})"
   by blast
-
-lemma empty_as_interval: "{} = cbox One (0::'a::euclidean_space)"
-  using nonempty_Basis
-  by (fastforce simp add: set_eq_iff mem_box)
 (* END MOVE *)
 
 subsection \<open>Content (length, area, volume...) of an interval.\<close>
@@ -6191,7 +6172,6 @@ proof -
       apply (rule le_less_trans[of _ "sum (\<lambda>x. k / (real (card r) + 1)) r"])
       unfolding sum_subtractf[symmetric]
       apply (rule sum_norm_le)
-      apply rule
       apply (drule qq)
       defer
       unfolding divide_inverse sum_distrib_right[symmetric]
@@ -6536,7 +6516,7 @@ next
             m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x))) < e / 2"
             apply (rule le_less_trans[of _ "sum (\<lambda>i. e / 2^(i+2)) {0..s}"])
             apply (rule sum_norm_le)
-          proof
+          proof -
             show "(\<Sum>i = 0..s. e / 2 ^ (i + 2)) < e / 2"
               unfolding power_add divide_inverse inverse_mult_distrib
               unfolding sum_distrib_left[symmetric] sum_distrib_right[symmetric]

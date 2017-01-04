@@ -437,6 +437,14 @@ lemma continuous_complex_iff:
   "continuous F f \<longleftrightarrow> continuous F (\<lambda>x. Re (f x)) \<and> continuous F (\<lambda>x. Im (f x))"
   by (simp only: continuous_def tendsto_complex_iff)
 
+lemma continuous_on_of_real_o_iff [simp]:
+     "continuous_on S (\<lambda>x. complex_of_real (g x)) = continuous_on S g"
+  using continuous_on_Re continuous_on_of_real  by fastforce
+
+lemma continuous_on_of_real_id [simp]:
+     "continuous_on S (of_real :: real \<Rightarrow> 'a::real_normed_algebra_1)"
+  by (rule continuous_on_of_real [OF continuous_on_id])
+
 lemma has_vector_derivative_complex_iff: "(f has_vector_derivative x) F \<longleftrightarrow>
     ((\<lambda>x. Re (f x)) has_field_derivative (Re x)) F \<and>
     ((\<lambda>x. Im (f x)) has_field_derivative (Im x)) F"

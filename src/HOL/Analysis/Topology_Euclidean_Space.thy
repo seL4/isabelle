@@ -15,6 +15,23 @@ imports
   Norm_Arith
 begin
 
+(* FIXME: move to HOL/Real_Vector_Spaces.thy *)
+
+lemma scaleR_2:
+  fixes x :: "'a::real_vector"
+  shows "scaleR 2 x = x + x"
+  unfolding one_add_one [symmetric] scaleR_left_distrib by simp
+
+lemma scaleR_half_double [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "(1 / 2) *\<^sub>R (a + a) = a"
+proof -
+  have "\<And>r. r *\<^sub>R (a + a) = (r * 2) *\<^sub>R a"
+    by (metis scaleR_2 scaleR_scaleR)
+  then show ?thesis
+    by simp
+qed
+
 
 (* FIXME: move elsewhere *)
 
@@ -1674,6 +1691,9 @@ lemma cbox01_nonempty [simp]: "cbox 0 One \<noteq> {}"
 
 lemma box01_nonempty [simp]: "box 0 One \<noteq> {}"
   by (simp add: box_ne_empty inner_Basis inner_sum_left) (simp add: sum.remove)
+
+lemma empty_as_interval: "{} = cbox One (0::'a::euclidean_space)"
+  using nonempty_Basis box01_nonempty box_eq_empty(1) box_ne_empty(1) by blast
 
 
 subsection \<open>Connectedness\<close>
@@ -4338,6 +4358,16 @@ lemma islimpt_range_imp_convergent_subsequence:
   using l unfolding islimpt_eq_acc_point
   by (rule acc_point_range_imp_convergent_subsequence)
 
+lemma islimpt_eq_infinite_ball: "x islimpt S \<longleftrightarrow> (\<forall>e>0. infinite(S \<inter> ball x e))"
+  apply (simp add: islimpt_eq_acc_point, safe)
+   apply (metis Int_commute open_ball centre_in_ball)
+  by (metis open_contains_ball Int_mono finite_subset inf_commute subset_refl)
+
+lemma islimpt_eq_infinite_cball: "x islimpt S \<longleftrightarrow> (\<forall>e>0. infinite(S \<inter> cball x e))"
+  apply (simp add: islimpt_eq_infinite_ball, safe)
+   apply (meson Int_mono ball_subset_cball finite_subset order_refl)
+  by (metis open_ball centre_in_ball finite_Int inf.absorb_iff2 inf_assoc open_contains_cball_eq)
+
 lemma sequence_unique_limpt:
   fixes f :: "nat \<Rightarrow> 'a::t2_space"
   assumes "(f \<longlongrightarrow> l) sequentially"
@@ -4474,6 +4504,7 @@ lemma openin_delete:
   shows "openin (subtopology euclidean u) s
          \<Longrightarrow> openin (subtopology euclidean u) (s - {a})"
 by (metis Int_Diff open_delete openin_open)
+
 
 text\<open>Compactness expressed with filters\<close>
 
@@ -5032,6 +5063,7 @@ lemma bolzano_weierstrass_imp_bounded:
   "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> bounded s"
   using compact_imp_bounded unfolding compact_eq_bolzano_weierstrass .
 
+
 subsection \<open>Metric spaces with the Heine-Borel property\<close>
 
 text \<open>
@@ -5254,6 +5286,84 @@ proof
   show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     using l r by fast
 qed
+  
+subsubsection \<open>Intersecting chains of compact sets\<close>
+
+proposition bounded_closed_chain:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes "B \<in> \<F>" "bounded B" and \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> closed S" and "{} \<notin> \<F>"
+      and chain: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+    shows "\<Inter>\<F> \<noteq> {}"
+proof -
+  have "B \<inter> \<Inter>\<F> \<noteq> {}"
+  proof (rule compact_imp_fip)
+    show "compact B" "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
+      by (simp_all add: assms compact_eq_bounded_closed)
+    show "\<lbrakk>finite \<G>; \<G> \<subseteq> \<F>\<rbrakk> \<Longrightarrow> B \<inter> \<Inter>\<G> \<noteq> {}" for \<G>
+    proof (induction \<G> rule: finite_induct)
+      case empty
+      with assms show ?case by force
+    next
+      case (insert U \<G>)
+      then have "U \<in> \<F>" and ne: "B \<inter> \<Inter>\<G> \<noteq> {}" by auto
+      then consider "B \<subseteq> U" | "U \<subseteq> B"
+          using \<open>B \<in> \<F>\<close> chain by blast
+        then show ?case
+        proof cases
+          case 1
+          then show ?thesis
+            using Int_left_commute ne by auto
+        next
+          case 2
+          have "U \<noteq> {}"
+            using \<open>U \<in> \<F>\<close> \<open>{} \<notin> \<F>\<close> by blast
+          moreover
+          have False if "\<And>x. x \<in> U \<Longrightarrow> \<exists>Y\<in>\<G>. x \<notin> Y"
+          proof -
+            have "\<And>x. x \<in> U \<Longrightarrow> \<exists>Y\<in>\<G>. Y \<subseteq> U"
+              by (metis chain contra_subsetD insert.prems insert_subset that)
+            then obtain Y where "Y \<in> \<G>" "Y \<subseteq> U"
+              by (metis all_not_in_conv \<open>U \<noteq> {}\<close>)
+            moreover obtain x where "x \<in> \<Inter>\<G>"
+              by (metis Int_emptyI ne)
+            ultimately show ?thesis
+              by (metis Inf_lower subset_eq that)
+          qed
+          with 2 show ?thesis
+            by blast
+        qed
+      qed
+  qed
+  then show ?thesis by blast
+qed
+
+corollary compact_chain:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> compact S" "{} \<notin> \<F>"
+          "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+    shows "\<Inter> \<F> \<noteq> {}"
+proof (cases "\<F> = {}")
+  case True
+  then show ?thesis by auto
+next
+  case False
+  show ?thesis
+    by (metis False all_not_in_conv assms compact_imp_bounded compact_imp_closed bounded_closed_chain)
+qed
+
+lemma compact_nest:
+  fixes F :: "'a::linorder \<Rightarrow> 'b::heine_borel set"
+  assumes F: "\<And>n. compact(F n)" "\<And>n. F n \<noteq> {}" and mono: "\<And>m n. m \<le> n \<Longrightarrow> F n \<subseteq> F m"
+  shows "\<Inter>range F \<noteq> {}"
+proof -
+  have *: "\<And>S T. S \<in> range F \<and> T \<in> range F \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+    by (metis mono image_iff le_cases)
+  show ?thesis
+    apply (rule compact_chain [OF _ _ *])
+    using F apply (blast intro: dest: *)+
+    done
+qed
+
 
 subsubsection \<open>Completeness\<close>
 
@@ -7446,7 +7556,7 @@ proof -
 qed
 
 
-subsection \<open>Topological stuff lifted from and dropped to R\<close>
+subsection \<open>Topological stuff about the set of Reals\<close>
 
 lemma open_real:
   fixes s :: "real set"
@@ -7697,10 +7807,16 @@ proof -
     using continuous_attains_sup[of "s \<times> s" "\<lambda>x. dist (fst x) (snd x)"] by auto
 qed
 
-text \<open>We can state this in terms of diameter of a set.\<close>
+subsection \<open>The diameter of a set.\<close>
 
 definition diameter :: "'a::metric_space set \<Rightarrow> real" where
   "diameter S = (if S = {} then 0 else SUP (x,y):S\<times>S. dist x y)"
+
+lemma diameter_empty [simp]: "diameter{} = 0"
+  by (auto simp: diameter_def)
+
+lemma diameter_singleton [simp]: "diameter{x} = 0"
+  by (auto simp: diameter_def)
 
 lemma diameter_le:
   assumes "S \<noteq> {} \<or> 0 \<le> d"
@@ -7772,7 +7888,180 @@ proof -
     by (metis b diameter_bounded_bound order_antisym xys)
 qed
 
-text \<open>Related results with closure as the conclusion.\<close>
+lemma diameter_ge_0:
+  assumes "bounded S"  shows "0 \<le> diameter S"
+  by (metis all_not_in_conv assms diameter_bounded_bound diameter_empty dist_self order_refl)
+
+lemma diameter_subset:
+  assumes "S \<subseteq> T" "bounded T"
+  shows "diameter S \<le> diameter T"
+proof (cases "S = {} \<or> T = {}")
+  case True
+  with assms show ?thesis
+    by (force simp: diameter_ge_0)
+next
+  case False
+  then have "bdd_above ((\<lambda>x. case x of (x, xa) \<Rightarrow> dist x xa) ` (T \<times> T))"
+    using \<open>bounded T\<close> diameter_bounded_bound by (force simp: bdd_above_def)
+  with False \<open>S \<subseteq> T\<close> show ?thesis
+    apply (simp add: diameter_def)
+    apply (rule cSUP_subset_mono, auto)
+    done
+qed
+
+lemma diameter_closure:
+  assumes "bounded S"
+  shows "diameter(closure S) = diameter S"
+proof (rule order_antisym)
+  have "False" if "diameter S < diameter (closure S)"
+  proof -
+    define d where "d = diameter(closure S) - diameter(S)"
+    have "d > 0"
+      using that by (simp add: d_def)
+    then have "diameter(closure(S)) - d / 2 < diameter(closure(S))"
+      by simp
+    have dd: "diameter (closure S) - d / 2 = (diameter(closure(S)) + diameter(S)) / 2"
+      by (simp add: d_def divide_simps)
+     have bocl: "bounded (closure S)"
+      using assms by blast
+    moreover have "0 \<le> diameter S"
+      using assms diameter_ge_0 by blast
+    ultimately obtain x y where "x \<in> closure S" "y \<in> closure S" and xy: "diameter(closure(S)) - d / 2 < dist x y"
+      using diameter_bounded(2) [OF bocl, rule_format, of "diameter(closure(S)) - d / 2"] \<open>d > 0\<close> d_def by auto
+    then obtain x' y' where x'y': "x' \<in> S" "dist x' x < d/4" "y' \<in> S" "dist y' y < d/4"
+      using closure_approachable
+      by (metis \<open>0 < d\<close> zero_less_divide_iff zero_less_numeral)
+    then have "dist x' y' \<le> diameter S"
+      using assms diameter_bounded_bound by blast
+    with x'y' have "dist x y \<le> d / 4 + diameter S + d / 4"
+      by (meson add_mono_thms_linordered_semiring(1) dist_triangle dist_triangle3 less_eq_real_def order_trans)
+    then show ?thesis
+      using xy d_def by linarith
+  qed
+  then show "diameter (closure S) \<le> diameter S"
+    by fastforce
+  next
+    show "diameter S \<le> diameter (closure S)"
+      by (simp add: assms bounded_closure closure_subset diameter_subset)
+qed
+
+lemma diameter_cball [simp]:
+  fixes a :: "'a::euclidean_space"
+  shows "diameter(cball a r) = (if r < 0 then 0 else 2*r)"
+proof -
+  have "diameter(cball a r) = 2*r" if "r \<ge> 0"
+  proof (rule order_antisym)
+    show "diameter (cball a r) \<le> 2*r"
+    proof (rule diameter_le)
+      fix x y assume "x \<in> cball a r" "y \<in> cball a r"
+      then have "norm (x - a) \<le> r" "norm (a - y) \<le> r"
+        by (auto simp: dist_norm norm_minus_commute)
+      then have "norm (x - y) \<le> r+r"
+        using norm_diff_triangle_le by blast
+      then show "norm (x - y) \<le> 2*r" by simp
+    qed (simp add: that)
+    have "2*r = dist (a + r *\<^sub>R (SOME i. i \<in> Basis)) (a - r *\<^sub>R (SOME i. i \<in> Basis))"
+      apply (simp add: dist_norm)
+      by (metis abs_of_nonneg mult.right_neutral norm_numeral norm_scaleR norm_some_Basis real_norm_def scaleR_2 that)
+    also have "... \<le> diameter (cball a r)"
+      apply (rule diameter_bounded_bound)
+      using that by (auto simp: dist_norm)
+    finally show "2*r \<le> diameter (cball a r)" .
+  qed
+  then show ?thesis by simp
+qed
+
+lemma diameter_ball [simp]:
+  fixes a :: "'a::euclidean_space"
+  shows "diameter(ball a r) = (if r < 0 then 0 else 2*r)"
+proof -
+  have "diameter(ball a r) = 2*r" if "r > 0"
+    by (metis bounded_ball diameter_closure closure_ball diameter_cball less_eq_real_def linorder_not_less that)
+  then show ?thesis
+    by (simp add: diameter_def)
+qed
+
+lemma diameter_closed_interval [simp]: "diameter {a..b} = (if b < a then 0 else b-a)"
+proof -
+  have "{a .. b} = cball ((a+b)/2) ((b-a)/2)"
+    by (auto simp: dist_norm abs_if divide_simps split: if_split_asm)
+  then show ?thesis
+    by simp
+qed
+
+lemma diameter_open_interval [simp]: "diameter {a<..<b} = (if b < a then 0 else b-a)"
+proof -
+  have "{a <..< b} = ball ((a+b)/2) ((b-a)/2)"
+    by (auto simp: dist_norm abs_if divide_simps split: if_split_asm)
+  then show ?thesis
+    by simp
+qed
+
+proposition Lebesgue_number_lemma:
+  assumes "compact S" "\<C> \<noteq> {}" "S \<subseteq> \<Union>\<C>" and ope: "\<And>B. B \<in> \<C> \<Longrightarrow> open B"
+  obtains \<delta> where "0 < \<delta>" "\<And>T. \<lbrakk>T \<subseteq> S; diameter T < \<delta>\<rbrakk> \<Longrightarrow> \<exists>B \<in> \<C>. T \<subseteq> B"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by (metis \<open>\<C> \<noteq> {}\<close> zero_less_one empty_subsetI equals0I subset_trans that)
+next
+  case False
+  { fix x assume "x \<in> S"
+    then obtain C where C: "x \<in> C" "C \<in> \<C>"
+      using \<open>S \<subseteq> \<Union>\<C>\<close> by blast
+    then obtain r where r: "r>0" "ball x (2*r) \<subseteq> C"
+      by (metis mult.commute mult_2_right not_le ope openE real_sum_of_halves zero_le_numeral zero_less_mult_iff)
+    then have "\<exists>r C. r > 0 \<and> ball x (2*r) \<subseteq> C \<and> C \<in> \<C>"
+      using C by blast
+  }
+  then obtain r where r: "\<And>x. x \<in> S \<Longrightarrow> r x > 0 \<and> (\<exists>C \<in> \<C>. ball x (2*r x) \<subseteq> C)"
+    by metis
+  then have "S \<subseteq> (\<Union>x \<in> S. ball x (r x))"
+    by auto
+  then obtain \<T> where "finite \<T>" "S \<subseteq> \<Union>\<T>" and \<T>: "\<T> \<subseteq> (\<lambda>x. ball x (r x)) ` S"
+    by (rule compactE [OF \<open>compact S\<close>]) auto
+  then obtain S0 where "S0 \<subseteq> S" "finite S0" and S0: "\<T> = (\<lambda>x. ball x (r x)) ` S0"
+    by (meson finite_subset_image)
+  then have "S0 \<noteq> {}"
+    using False \<open>S \<subseteq> \<Union>\<T>\<close> by auto
+  define \<delta> where "\<delta> = Inf (r ` S0)"
+  have "\<delta> > 0"
+    using \<open>finite S0\<close> \<open>S0 \<subseteq> S\<close> \<open>S0 \<noteq> {}\<close> r by (auto simp: \<delta>_def finite_less_Inf_iff)
+  show ?thesis
+  proof
+    show "0 < \<delta>"
+      by (simp add: \<open>0 < \<delta>\<close>)
+    show "\<exists>B \<in> \<C>. T \<subseteq> B" if "T \<subseteq> S" and dia: "diameter T < \<delta>" for T
+    proof (cases "T = {}")
+      case True
+      then show ?thesis
+        using \<open>\<C> \<noteq> {}\<close> by blast
+    next
+      case False
+      then obtain y where "y \<in> T" by blast
+      then have "y \<in> S"
+        using \<open>T \<subseteq> S\<close> by auto
+      then obtain x where "x \<in> S0" and x: "y \<in> ball x (r x)"
+        using \<open>S \<subseteq> \<Union>\<T>\<close> S0 that by blast
+      have "ball y \<delta> \<subseteq> ball y (r x)"
+        by (metis \<delta>_def \<open>S0 \<noteq> {}\<close> \<open>finite S0\<close> \<open>x \<in> S0\<close> empty_is_image finite_imageI finite_less_Inf_iff imageI less_irrefl not_le subset_ball)
+      also have "... \<subseteq> ball x (2*r x)"
+        by clarsimp (metis dist_commute dist_triangle_less_add mem_ball mult_2 x)
+      finally obtain C where "C \<in> \<C>" "ball y \<delta> \<subseteq> C"
+        by (meson r \<open>S0 \<subseteq> S\<close> \<open>x \<in> S0\<close> dual_order.trans subsetCE)
+      have "bounded T"
+        using \<open>compact S\<close> bounded_subset compact_imp_bounded \<open>T \<subseteq> S\<close> by blast
+      then have "T \<subseteq> ball y \<delta>"
+        using \<open>y \<in> T\<close> dia diameter_bounded_bound by fastforce
+      then show ?thesis
+        apply (rule_tac x=C in bexI)
+        using \<open>ball y \<delta> \<subseteq> C\<close> \<open>C \<in> \<C>\<close> by auto
+    qed
+  qed
+qed
+
+
+subsection \<open>Compact sets and the closure operation.\<close>
 
 lemma closed_scaling:
   fixes s :: "'a::real_normed_vector set"
@@ -8395,6 +8684,63 @@ lemma compact_cbox [simp]:
   shows "compact (cbox a b)"
   using bounded_closed_imp_seq_compact[of "cbox a b"] using bounded_cbox[of a b]
   by (auto simp: compact_eq_seq_compact_metric)
+
+proposition is_interval_compact:
+   "is_interval S \<and> compact S \<longleftrightarrow> (\<exists>a b. S = cbox a b)"   (is "?lhs = ?rhs")
+proof (cases "S = {}")
+  case True
+  with empty_as_interval show ?thesis by auto
+next
+  case False
+  show ?thesis
+  proof
+    assume L: ?lhs
+    then have "is_interval S" "compact S" by auto
+    define a where "a \<equiv> \<Sum>i\<in>Basis. (INF x:S. x \<bullet> i) *\<^sub>R i"
+    define b where "b \<equiv> \<Sum>i\<in>Basis. (SUP x:S. x \<bullet> i) *\<^sub>R i"
+    have 1: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> (INF x:S. x \<bullet> i) \<le> x \<bullet> i"
+      by (simp add: cInf_lower bounded_inner_imp_bdd_below compact_imp_bounded L)
+    have 2: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> x \<bullet> i \<le> (SUP x:S. x \<bullet> i)"
+      by (simp add: cSup_upper bounded_inner_imp_bdd_above compact_imp_bounded L)
+    have 3: "x \<in> S" if inf: "\<And>i. i \<in> Basis \<Longrightarrow> (INF x:S. x \<bullet> i) \<le> x \<bullet> i"
+                   and sup: "\<And>i. i \<in> Basis \<Longrightarrow> x \<bullet> i \<le> (SUP x:S. x \<bullet> i)" for x
+    proof (rule mem_box_componentwiseI [OF \<open>is_interval S\<close>])
+      fix i::'a
+      assume i: "i \<in> Basis"
+      have cont: "continuous_on S (\<lambda>x. x \<bullet> i)"
+        by (intro continuous_intros)
+      obtain a where "a \<in> S" and a: "\<And>y. y\<in>S \<Longrightarrow> a \<bullet> i \<le> y \<bullet> i"
+        using continuous_attains_inf [OF \<open>compact S\<close> False cont] by blast
+      obtain b where "b \<in> S" and b: "\<And>y. y\<in>S \<Longrightarrow> y \<bullet> i \<le> b \<bullet> i"
+        using continuous_attains_sup [OF \<open>compact S\<close> False cont] by blast
+      have "a \<bullet> i \<le> (INF x:S. x \<bullet> i)"
+        by (simp add: False a cINF_greatest)
+      also have "\<dots> \<le> x \<bullet> i"
+        by (simp add: i inf)
+      finally have ai: "a \<bullet> i \<le> x \<bullet> i" .
+      have "x \<bullet> i \<le> (SUP x:S. x \<bullet> i)"
+        by (simp add: i sup)
+      also have "(SUP x:S. x \<bullet> i) \<le> b \<bullet> i"
+        by (simp add: False b cSUP_least)
+      finally have bi: "x \<bullet> i \<le> b \<bullet> i" .
+      show "x \<bullet> i \<in> (\<lambda>x. x \<bullet> i) ` S"
+        apply (rule_tac x="\<Sum>j\<in>Basis. (if j = i then x \<bullet> i else a \<bullet> j) *\<^sub>R j" in image_eqI)
+        apply (simp add: i)
+        apply (rule mem_is_intervalI [OF \<open>is_interval S\<close> \<open>a \<in> S\<close> \<open>b \<in> S\<close>])
+        using i ai bi apply force
+        done
+    qed
+    have "S = cbox a b"
+      by (auto simp: a_def b_def mem_box intro: 1 2 3)
+    then show ?rhs
+      by blast
+  next
+    assume R: ?rhs
+    then show ?lhs
+      using compact_cbox is_interval_cbox by blast
+  qed
+qed
+
 
 lemma box_midpoint:
   fixes a :: "'a::euclidean_space"
@@ -9959,6 +10305,20 @@ lemma closedin_compact_eq:
               compact T \<and> T \<subseteq> S)"
 by (metis closedin_imp_subset closedin_compact closed_subset compact_imp_closed)
 
+lemma continuous_imp_closed_map:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "closedin (subtopology euclidean S) U"
+          "continuous_on S f" "image f S = T" "compact S"
+    shows "closedin (subtopology euclidean T) (image f U)"
+  by (metis assms closedin_compact_eq compact_continuous_image continuous_on_subset subset_image_iff)
+
+lemma continuous_imp_quotient_map:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "continuous_on S f" "image f S = T" "compact S" "U \<subseteq> T"
+    shows "openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> U} \<longleftrightarrow>
+           openin (subtopology euclidean T) U"
+  by (metis (no_types, lifting) Collect_cong assms closed_map_imp_quotient_map continuous_imp_closed_map)
+
 subsection\<open> Finite intersection property\<close>
 
 text\<open>Also developed in HOL's toplogical spaces theory, but the Heine-Borel type class isn't available there.\<close>
@@ -10305,6 +10665,166 @@ proof -
   qed
   from X0(1,2) this show ?thesis ..
 qed
+  
+  
+subsection\<open>Constancy of a function from a connected set into a finite, disconnected or discrete set\<close>
+
+text\<open>Still missing: versions for a set that is smaller than R, or countable.\<close>
+
+lemma continuous_disconnected_range_constant:
+  assumes s: "connected s"
+      and conf: "continuous_on s f"
+      and fim: "f ` s \<subseteq> t"
+      and cct: "\<And>y. y \<in> t \<Longrightarrow> connected_component_set t y = {y}"
+    shows "\<exists>a. \<forall>x \<in> s. f x = a"
+proof (cases "s = {}")
+  case True then show ?thesis by force
+next
+  case False
+  { fix x assume "x \<in> s"
+    then have "f ` s \<subseteq> {f x}"
+    by (metis connected_continuous_image conf connected_component_maximal fim image_subset_iff rev_image_eqI s cct)
+  }
+  with False show ?thesis
+    by blast
+qed
+
+lemma discrete_subset_disconnected:
+  fixes s :: "'a::topological_space set"
+  fixes t :: "'b::real_normed_vector set"
+  assumes conf: "continuous_on s f"
+      and no: "\<And>x. x \<in> s \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
+   shows "f ` s \<subseteq> {y. connected_component_set (f ` s) y = {y}}"
+proof -
+  { fix x assume x: "x \<in> s"
+    then obtain e where "e>0" and ele: "\<And>y. \<lbrakk>y \<in> s; f y \<noteq> f x\<rbrakk> \<Longrightarrow> e \<le> norm (f y - f x)"
+      using conf no [OF x] by auto
+    then have e2: "0 \<le> e / 2"
+      by simp
+    have "f y = f x" if "y \<in> s" and ccs: "f y \<in> connected_component_set (f ` s) (f x)" for y
+      apply (rule ccontr)
+      using connected_closed [of "connected_component_set (f ` s) (f x)"] \<open>e>0\<close>
+      apply (simp add: del: ex_simps)
+      apply (drule spec [where x="cball (f x) (e / 2)"])
+      apply (drule spec [where x="- ball(f x) e"])
+      apply (auto simp: dist_norm open_closed [symmetric] simp del: le_divide_eq_numeral1 dest!: connected_component_in)
+        apply (metis diff_self e2 ele norm_minus_commute norm_zero not_less)
+       using centre_in_cball connected_component_refl_eq e2 x apply blast
+      using ccs
+      apply (force simp: cball_def dist_norm norm_minus_commute dest: ele [OF \<open>y \<in> s\<close>])
+      done
+    moreover have "connected_component_set (f ` s) (f x) \<subseteq> f ` s"
+      by (auto simp: connected_component_in)
+    ultimately have "connected_component_set (f ` s) (f x) = {f x}"
+      by (auto simp: x)
+  }
+  with assms show ?thesis
+    by blast
+qed
+
+lemma finite_implies_discrete:
+  fixes s :: "'a::topological_space set"
+  assumes "finite (f ` s)"
+  shows "(\<forall>x \<in> s. \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x))"
+proof -
+  have "\<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)" if "x \<in> s" for x
+  proof (cases "f ` s - {f x} = {}")
+    case True
+    with zero_less_numeral show ?thesis
+      by (fastforce simp add: Set.image_subset_iff cong: conj_cong)
+  next
+    case False
+    then obtain z where z: "z \<in> s" "f z \<noteq> f x"
+      by blast
+    have finn: "finite {norm (z - f x) |z. z \<in> f ` s - {f x}}"
+      using assms by simp
+    then have *: "0 < Inf{norm(z - f x) | z. z \<in> f ` s - {f x}}"
+      apply (rule finite_imp_less_Inf)
+      using z apply force+
+      done
+    show ?thesis
+      by (force intro!: * cInf_le_finite [OF finn])
+  qed
+  with assms show ?thesis
+    by blast
+qed
+
+text\<open>This proof requires the existence of two separate values of the range type.\<close>
+lemma finite_range_constant_imp_connected:
+  assumes "\<And>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+              \<lbrakk>continuous_on s f; finite(f ` s)\<rbrakk> \<Longrightarrow> \<exists>a. \<forall>x \<in> s. f x = a"
+    shows "connected s"
+proof -
+  { fix t u
+    assume clt: "closedin (subtopology euclidean s) t"
+       and clu: "closedin (subtopology euclidean s) u"
+       and tue: "t \<inter> u = {}" and tus: "t \<union> u = s"
+    have conif: "continuous_on s (\<lambda>x. if x \<in> t then 0 else 1)"
+      apply (subst tus [symmetric])
+      apply (rule continuous_on_cases_local)
+      using clt clu tue
+      apply (auto simp: tus continuous_on_const)
+      done
+    have fi: "finite ((\<lambda>x. if x \<in> t then 0 else 1) ` s)"
+      by (rule finite_subset [of _ "{0,1}"]) auto
+    have "t = {} \<or> u = {}"
+      using assms [OF conif fi] tus [symmetric]
+      by (auto simp: Ball_def) (metis IntI empty_iff one_neq_zero tue)
+  }
+  then show ?thesis
+    by (simp add: connected_closedin_eq)
+qed
+
+lemma continuous_disconnected_range_constant_eq:
+      "(connected s \<longleftrightarrow>
+           (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+            \<forall>t. continuous_on s f \<and> f ` s \<subseteq> t \<and> (\<forall>y \<in> t. connected_component_set t y = {y})
+            \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis1)
+  and continuous_discrete_range_constant_eq:
+      "(connected s \<longleftrightarrow>
+         (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+          continuous_on s f \<and>
+          (\<forall>x \<in> s. \<exists>e. 0 < e \<and> (\<forall>y. y \<in> s \<and> (f y \<noteq> f x) \<longrightarrow> e \<le> norm(f y - f x)))
+          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis2)
+  and continuous_finite_range_constant_eq:
+      "(connected s \<longleftrightarrow>
+         (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+          continuous_on s f \<and> finite (f ` s)
+          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis3)
+proof -
+  have *: "\<And>s t u v. \<lbrakk>s \<Longrightarrow> t; t \<Longrightarrow> u; u \<Longrightarrow> v; v \<Longrightarrow> s\<rbrakk>
+    \<Longrightarrow> (s \<longleftrightarrow> t) \<and> (s \<longleftrightarrow> u) \<and> (s \<longleftrightarrow> v)"
+    by blast
+  have "?thesis1 \<and> ?thesis2 \<and> ?thesis3"
+    apply (rule *)
+    using continuous_disconnected_range_constant apply metis
+    apply clarify
+    apply (frule discrete_subset_disconnected; blast)
+    apply (blast dest: finite_implies_discrete)
+    apply (blast intro!: finite_range_constant_imp_connected)
+    done
+  then show ?thesis1 ?thesis2 ?thesis3
+    by blast+
+qed
+
+lemma continuous_discrete_range_constant:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
+  assumes s: "connected s"
+      and "continuous_on s f"
+      and "\<And>x. x \<in> s \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
+    shows "\<exists>a. \<forall>x \<in> s. f x = a"
+  using continuous_discrete_range_constant_eq [THEN iffD1, OF s] assms
+  by blast
+
+lemma continuous_finite_range_constant:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
+  assumes "connected s"
+      and "continuous_on s f"
+      and "finite (f ` s)"
+    shows "\<exists>a. \<forall>x \<in> s. f x = a"
+  using assms continuous_finite_range_constant_eq
+  by blast
+
 
 no_notation
   eucl_less (infix "<e" 50)

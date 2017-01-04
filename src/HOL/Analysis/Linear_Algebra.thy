@@ -1482,14 +1482,14 @@ lemma sum_clauses:
 
 lemma sum_norm_le:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
+  assumes fg: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> g x"
   shows "norm (sum f S) \<le> sum g S"
   by (rule order_trans [OF norm_sum sum_mono]) (simp add: fg)
 
 lemma sum_norm_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes K: "\<forall>x \<in> S. norm (f x) \<le> K"
-  shows "norm (sum f S) \<le> of_nat (card S) * K"
+  assumes K: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> K"
+  shows "norm (sum f S) \<le> of_nat (card S)*K"
   using sum_norm_le[OF K] sum_constant[symmetric]
   by simp
 
@@ -1946,11 +1946,9 @@ proof
     also have "\<dots> = norm (sum ?g Basis)"
       by (simp add: linear_sum [OF lf] linear_cmul [OF lf])
     finally have th0: "norm (f x) = norm (sum ?g Basis)" .
-    have th: "\<forall>b\<in>Basis. norm (?g b) \<le> norm (f b) * norm x"
-    proof
-      fix i :: 'a
-      assume i: "i \<in> Basis"
-      from Basis_le_norm[OF i, of x]
+    have th: "norm (?g i) \<le> norm (f i) * norm x" if "i \<in> Basis" for i
+    proof -
+      from Basis_le_norm[OF that, of x]
       show "norm (?g i) \<le> norm (f i) * norm x"
         unfolding norm_scaleR
         apply (subst mult.commute)
@@ -2023,7 +2021,6 @@ proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i
   show "norm (h x y) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)) * norm x * norm y"
     apply (auto simp add: sum_distrib_right th sum.cartesian_product)
     apply (rule sum_norm_le)
-    apply simp
     apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]
       field_simps simp del: scaleR_scaleR)
     apply (rule mult_mono)

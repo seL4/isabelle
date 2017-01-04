@@ -194,6 +194,64 @@ lemma not_prime_eq_prod_nat:
   using assms irreducible_altdef[of m]
   by (auto simp: prime_elem_iff_irreducible prime_def irreducible_altdef)
 
+    
+subsection\<open>Largest exponent of a prime factor\<close>
+text\<open>Possibly duplicates other material, but avoid the complexities of multisets.\<close>
+  
+lemma prime_power_cancel_less:
+  assumes "prime p" and eq: "m * (p ^ k) = m' * (p ^ k')" and less: "k < k'" and "\<not> p dvd m"
+  shows False
+proof -
+  obtain l where l: "k' = k + l" and "l > 0"
+    using less less_imp_add_positive by auto
+  have "m = m * (p ^ k) div (p ^ k)"
+    using \<open>prime p\<close> by simp
+  also have "\<dots> = m' * (p ^ k') div (p ^ k)"
+    using eq by simp
+  also have "\<dots> = m' * (p ^ l) * (p ^ k) div (p ^ k)"
+    by (simp add: l mult.commute mult.left_commute power_add)
+  also have "... = m' * (p ^ l)"
+    using \<open>prime p\<close> by simp
+  finally have "p dvd m"
+    using \<open>l > 0\<close> by simp
+  with assms show False
+    by simp
+qed
+
+lemma prime_power_cancel:
+  assumes "prime p" and eq: "m * (p ^ k) = m' * (p ^ k')" and "\<not> p dvd m" "\<not> p dvd m'"
+  shows "k = k'"
+  using prime_power_cancel_less [OF \<open>prime p\<close>] assms
+  by (metis linorder_neqE_nat)
+
+lemma prime_power_cancel2:
+  assumes "prime p" "m * (p ^ k) = m' * (p ^ k')" "\<not> p dvd m" "\<not> p dvd m'"
+  obtains "m = m'" "k = k'"
+  using prime_power_cancel [OF assms] assms by auto
+
+lemma prime_power_canonical:
+  fixes m::nat
+  assumes "prime p" "m > 0"
+  shows "\<exists>k n. \<not> p dvd n \<and> m = n * p^k"
+using \<open>m > 0\<close>
+proof (induction m rule: less_induct)
+  case (less m)
+  show ?case
+  proof (cases "p dvd m")
+    case True
+    then obtain m' where m': "m = p * m'"
+      using dvdE by blast
+    with \<open>prime p\<close> have "0 < m'" "m' < m"
+      using less.prems prime_nat_iff by auto
+    with m' less show ?thesis
+      by (metis power_Suc mult.left_commute)
+  next
+    case False
+    then show ?thesis
+      by (metis mult.right_neutral power_0)
+  qed
+qed
+
 
 subsubsection \<open>Make prime naively executable\<close>
 

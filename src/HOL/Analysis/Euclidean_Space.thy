@@ -53,6 +53,9 @@ lemma (in euclidean_space) nonzero_Basis: "u \<in> Basis \<Longrightarrow> u \<n
 lemma (in euclidean_space) SOME_Basis: "(SOME i. i \<in> Basis) \<in> Basis"
   by (metis ex_in_conv nonempty_Basis someI_ex)
 
+lemma norm_some_Basis [simp]: "norm (SOME i. i \<in> Basis) = 1"
+  by (simp add: SOME_Basis)
+
 lemma (in euclidean_space) inner_sum_left_Basis[simp]:
     "b \<in> Basis \<Longrightarrow> inner (\<Sum>i\<in>Basis. f i *\<^sub>R i) b = f b"
   by (simp add: inner_sum_left inner_Basis if_distrib comm_monoid_add_class.sum.If_cases)

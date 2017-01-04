@@ -1530,9 +1530,6 @@ lemma tendsto_at_iff_tendsto_nhds: "g \<midarrow>l\<rightarrow> g l \<longleftri
 lemma tendsto_compose: "g \<midarrow>l\<rightarrow> g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"
   unfolding tendsto_at_iff_tendsto_nhds by (rule filterlim_compose[of g])
 
-lemma LIM_o: "g \<midarrow>l\<rightarrow> g l \<Longrightarrow> f \<midarrow>a\<rightarrow> l \<Longrightarrow> (g \<circ> f) \<midarrow>a\<rightarrow> g l"
-  unfolding o_def by (rule tendsto_compose)
-
 lemma tendsto_compose_eventually:
   "g \<midarrow>l\<rightarrow> m \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> eventually (\<lambda>x. f x \<noteq> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> m) F"
   by (rule filterlim_compose[of g _ "at l"]) (auto simp add: filterlim_at)

@@ -14,6 +14,20 @@ imports
   "~~/src/HOL/Library/Set_Algebras"
 begin
 
+lemma swap_continuous: (*move to Topological_Spaces?*)
+  assumes "continuous_on (cbox (a,c) (b,d)) (\<lambda>(x,y). f x y)"
+    shows "continuous_on (cbox (c,a) (d,b)) (\<lambda>(x, y). f y x)"
+proof -
+  have "(\<lambda>(x, y). f y x) = (\<lambda>(x, y). f x y) \<circ> prod.swap"
+    by auto
+  then show ?thesis
+    apply (rule ssubst)
+    apply (rule continuous_on_compose)
+    apply (simp add: split_def)
+    apply (rule continuous_intros | simp add: assms)+
+    done
+qed
+
 lemma dim_image_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
@@ -4651,7 +4665,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma interior_atLeastAtMost_real: "interior {a..b} = {a<..<b :: real}"
+lemma interior_atLeastAtMost_real [simp]: "interior {a..b} = {a<..<b :: real}"
 proof-
   have "{a..b} = {a..} \<inter> {..b}" by auto
   also have "interior ... = {a<..} \<inter> {..<b}"
@@ -4660,12 +4674,15 @@ proof-
   finally show ?thesis .
 qed
 
-lemma frontier_real_Iic:
+lemma interior_greaterThanLessThan_real [simp]: "interior {a<..<b} = {a<..<b :: real}"
+  by (metis interior_atLeastAtMost_real interior_interior)
+
+lemma frontier_real_Iic [simp]:
   fixes a :: real
   shows "frontier {..a} = {a}"
   unfolding frontier_def by (auto simp add: interior_real_semiline')
 
-lemma rel_interior_real_box:
+lemma rel_interior_real_box [simp]:
   fixes a b :: real
   assumes "a < b"
   shows "rel_interior {a .. b} = {a <..< b}"
@@ -4679,7 +4696,7 @@ proof -
     by (simp split: if_split_asm del: box_real add: box_real[symmetric] interior_cbox)
 qed
 
-lemma rel_interior_real_semiline:
+lemma rel_interior_real_semiline [simp]:
   fixes a :: real
   shows "rel_interior {a..} = {a<..}"
 proof -
@@ -6596,7 +6613,7 @@ lemma is_interval_connected_1:
   apply rule
   apply rule
   apply (erule conjE)
-  apply (rule ccontr)
+  apply (rule ccontr)       
 proof -
   fix a b x
   assume as: "connected s" "a \<in> s" "b \<in> s" "a \<le> x" "x \<le> b" "x \<notin> s"
@@ -6629,6 +6646,10 @@ lemma is_interval_convex_1:
   fixes s :: "real set"
   shows "is_interval s \<longleftrightarrow> convex s"
   by (metis is_interval_convex convex_connected is_interval_connected_1)
+
+lemma connected_compact_interval_1:
+     "connected S \<and> compact S \<longleftrightarrow> (\<exists>a b. S = {a..b::real})"
+  by (auto simp: is_interval_connected_1 [symmetric] is_interval_compact)
 
 lemma connected_convex_1:
   fixes s :: "real set"
@@ -7315,6 +7336,12 @@ proof -
     unfolding midpoint_def scaleR_2 [symmetric] by simp
 qed
 
+lemma
+  fixes a::real
+  assumes "a \<le> b" shows ge_midpoint_1: "a \<le> midpoint a b"
+                    and le_midpoint_1: "midpoint a b \<le> b"
+  by (simp_all add: midpoint_def assms)
+
 lemma dist_midpoint:
   fixes a b :: "'a::real_normed_vector" shows
   "dist a (midpoint a b) = (dist a b) / 2" (is ?t1)
@@ -7535,7 +7562,7 @@ proof (intro conjI)
   proof -
     have "norm ((1 - 1 * u) *\<^sub>R (a - b)) = (1 - 1 * u) * norm (a - b)"
       using \<open>u \<le> 1\<close> by force
-    then show ?thesis
+    then show ?thesis                     
       by (simp add: dist_norm real_vector.scale_right_diff_distrib)
   qed
   also have "... \<le> dist a b"
@@ -7638,6 +7665,19 @@ lemma notin_segment_midpoint:
   fixes a :: "'a :: euclidean_space"
   shows "a \<noteq> b \<Longrightarrow> a \<notin> closed_segment (midpoint a b) b"
 by (auto simp: dist_midpoint dest!: dist_in_closed_segment)
+
+lemma segment_to_closest_point:
+  fixes S :: "'a :: euclidean_space set"
+  shows "\<lbrakk>closed S; S \<noteq> {}\<rbrakk> \<Longrightarrow> open_segment a (closest_point S a) \<inter> S = {}"
+  apply (subst disjoint_iff_not_equal)
+  apply (clarify dest!: dist_in_open_segment)
+  by (metis closest_point_le dist_commute le_less_trans less_irrefl)
+
+lemma segment_to_point_exists:
+  fixes S :: "'a :: euclidean_space set"
+    assumes "closed S" "S \<noteq> {}"
+    obtains b where "b \<in> S" "open_segment a b \<inter> S = {}"
+  by (metis assms segment_to_closest_point closest_point_exists that)
 
 subsubsection\<open>More lemmas, especially for working with the underlying formula\<close>
 
@@ -8241,6 +8281,71 @@ proof (clarsimp simp: in_segment)
   also have "... \<in> interior S" using mem_interior_closure_convex_shrink [OF assms] u
     by simp
   finally show "(1 - u) *\<^sub>R a + u *\<^sub>R b \<in> interior S" .
+qed
+
+lemma closure_open_Int_superset:
+  assumes "open S" "S \<subseteq> closure T"
+  shows "closure(S \<inter> T) = closure S"
+proof -
+  have "closure S \<subseteq> closure(S \<inter> T)"
+    by (metis assms closed_closure closure_minimal inf.orderE open_Int_closure_subset)
+  then show ?thesis
+    by (simp add: closure_mono dual_order.antisym)
+qed
+
+lemma convex_closure_interior:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" and int: "interior S \<noteq> {}"
+  shows "closure(interior S) = closure S"
+proof -
+  obtain a where a: "a \<in> interior S"
+    using int by auto
+  have "closure S \<subseteq> closure(interior S)"
+  proof
+    fix x
+    assume x: "x \<in> closure S"
+    show "x \<in> closure (interior S)"
+    proof (cases "x=a")
+      case True
+      then show ?thesis
+        using \<open>a \<in> interior S\<close> closure_subset by blast
+    next
+      case False
+      show ?thesis
+      proof (clarsimp simp add: closure_def islimpt_approachable)
+        fix e::real
+        assume xnotS: "x \<notin> interior S" and "0 < e"
+        show "\<exists>x'\<in>interior S. x' \<noteq> x \<and> dist x' x < e"
+        proof (intro bexI conjI)
+          show "x - min (e/2 / norm (x - a)) 1 *\<^sub>R (x - a) \<noteq> x"
+            using False \<open>0 < e\<close> by (auto simp: algebra_simps min_def)
+          show "dist (x - min (e/2 / norm (x - a)) 1 *\<^sub>R (x - a)) x < e"
+            using \<open>0 < e\<close> by (auto simp: dist_norm min_def)
+          show "x - min (e/2 / norm (x - a)) 1 *\<^sub>R (x - a) \<in> interior S"
+            apply (clarsimp simp add: min_def a)
+            apply (rule mem_interior_closure_convex_shrink [OF \<open>convex S\<close> a x])
+            using \<open>0 < e\<close> False apply (auto simp: divide_simps)
+            done
+        qed
+      qed
+    qed
+  qed
+  then show ?thesis
+    by (simp add: closure_mono interior_subset subset_antisym)
+qed
+
+lemma closure_convex_Int_superset:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "interior S \<noteq> {}" "interior S \<subseteq> closure T"
+  shows "closure(S \<inter> T) = closure S"
+proof -
+  have "closure S \<subseteq> closure(interior S)"
+    by (simp add: convex_closure_interior assms)
+  also have "... \<subseteq> closure (S \<inter> T)"
+    using interior_subset [of S] assms
+    by (metis (no_types, lifting) Int_assoc Int_lower2 closure_mono closure_open_Int_superset inf.orderE open_interior)
+  finally show ?thesis
+    by (simp add: closure_mono dual_order.antisym)
 qed
 
 
@@ -14406,4 +14511,78 @@ corollary paracompact_closed:
 using paracompact_closedin [of UNIV S \<C>] assms
 by (auto simp: open_openin [symmetric] closed_closedin [symmetric])
 
+  
+subsection\<open>Closed-graph characterization of continuity\<close>
+
+lemma continuous_closed_graph_gen:
+  fixes T :: "'b::real_normed_vector set"
+  assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
+    shows "closedin (subtopology euclidean (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
+proof -
+  have eq: "((\<lambda>x. Pair x (f x)) ` S) = {z. z \<in> S \<times> T \<and> (f \<circ> fst)z - snd z \<in> {0}}"
+    using fim by auto
+  show ?thesis
+    apply (subst eq)
+    apply (intro continuous_intros continuous_closedin_preimage continuous_on_subset [OF contf])
+    by auto
+qed
+
+lemma continuous_closed_graph_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "compact T" and fim: "f ` S \<subseteq> T"
+  shows "continuous_on S f \<longleftrightarrow>
+         closedin (subtopology euclidean (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
+         (is "?lhs = ?rhs")
+proof -
+  have "?lhs" if ?rhs
+  proof (clarsimp simp add: continuous_on_closed_gen [OF fim])
+    fix U
+    assume U: "closedin (subtopology euclidean T) U"
+    have eq: "{x. x \<in> S \<and> f x \<in> U} = fst ` (((\<lambda>x. Pair x (f x)) ` S) \<inter> (S \<times> U))"
+      by (force simp: image_iff)
+    show "closedin (subtopology euclidean S) {x \<in> S. f x \<in> U}"
+      by (simp add: U closedin_Int closedin_Times closed_map_fst [OF \<open>compact T\<close>] that eq)
+  qed
+  with continuous_closed_graph_gen assms show ?thesis by blast
+qed
+
+lemma continuous_closed_graph:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "closed S" and contf: "continuous_on S f"
+  shows "closed ((\<lambda>x. Pair x (f x)) ` S)"
+  apply (rule closedin_closed_trans)
+   apply (rule continuous_closed_graph_gen [OF contf subset_UNIV])
+  by (simp add: \<open>closed S\<close> closed_Times)
+
+lemma continuous_from_closed_graph:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "compact T" and fim: "f ` S \<subseteq> T" and clo: "closed ((\<lambda>x. Pair x (f x)) ` S)"
+  shows "continuous_on S f"
+    using fim clo
+    by (auto intro: closed_subset simp: continuous_closed_graph_eq [OF \<open>compact T\<close> fim])
+
+lemma continuous_on_Un_local_open:
+  assumes opS: "openin (subtopology euclidean (S \<union> T)) S"
+      and opT: "openin (subtopology euclidean (S \<union> T)) T"
+      and contf: "continuous_on S f" and contg: "continuous_on T f"
+    shows "continuous_on (S \<union> T) f"
+using pasting_lemma [of "{S,T}" "S \<union> T" "\<lambda>i. i" "\<lambda>i. f" f] contf contg opS opT by blast
+
+lemma continuous_on_cases_local_open:
+  assumes opS: "openin (subtopology euclidean (S \<union> T)) S"
+      and opT: "openin (subtopology euclidean (S \<union> T)) T"
+      and contf: "continuous_on S f" and contg: "continuous_on T g"
+      and fg: "\<And>x. x \<in> S \<and> ~P x \<or> x \<in> T \<and> P x \<Longrightarrow> f x = g x"
+    shows "continuous_on (S \<union> T) (\<lambda>x. if P x then f x else g x)"
+proof -
+  have "\<And>x. x \<in> S \<Longrightarrow> (if P x then f x else g x) = f x"  "\<And>x. x \<in> T \<Longrightarrow> (if P x then f x else g x) = g x"
+    by (simp_all add: fg)
+  then have "continuous_on S (\<lambda>x. if P x then f x else g x)" "continuous_on T (\<lambda>x. if P x then f x else g x)"
+    by (simp_all add: contf contg cong: continuous_on_cong)
+  then show ?thesis
+    by (rule continuous_on_Un_local_open [OF opS opT])
+qed
+
+
+  
 end

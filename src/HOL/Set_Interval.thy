@@ -1090,6 +1090,19 @@ lemma finite_less_ub:
      "!!f::nat=>nat. (!!n. n \<le> f n) ==> finite {n. f n \<le> u}"
 by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
 
+lemma bounded_Max_nat:
+  fixes P :: "nat \<Rightarrow> bool"
+  assumes x: "P x" and M: "\<And>x. P x \<Longrightarrow> x \<le> M"
+  obtains m where "P m" "\<And>x. P x \<Longrightarrow> x \<le> m"
+proof -
+  have "finite {x. P x}"
+    using M finite_nat_set_iff_bounded_le by auto
+  then have "Max {x. P x} \<in> {x. P x}"
+    using Max_in x by auto
+  then show ?thesis
+    by (simp add: \<open>finite {x. P x}\<close> that)
+qed
+
 
 text\<open>Any subset of an interval of natural numbers the size of the
 subset is exactly that interval.\<close>
