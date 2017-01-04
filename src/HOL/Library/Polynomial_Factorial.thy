@@ -1040,7 +1040,8 @@ instance
 end
 
 instance poly :: ("{field,factorial_ring_gcd}") euclidean_ring_gcd
-  by standard (simp_all add: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_poly_def eucl_eq_factorial)
+  by (rule euclidean_ring_gcd_class.intro, rule factorial_euclidean_semiring_gcdI)
+    standard
 
   
 subsection \<open>Polynomial GCD\<close>

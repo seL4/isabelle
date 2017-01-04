@@ -1421,10 +1421,10 @@ end
 
 instantiation fps :: (field) euclidean_ring_gcd
 begin
-definition fps_gcd_def: "(gcd :: 'a fps \<Rightarrow> _) = gcd_eucl"
-definition fps_lcm_def: "(lcm :: 'a fps \<Rightarrow> _) = lcm_eucl"
-definition fps_Gcd_def: "(Gcd :: 'a fps set \<Rightarrow> _) = Gcd_eucl"
-definition fps_Lcm_def: "(Lcm :: 'a fps set \<Rightarrow> _) = Lcm_eucl"
+definition fps_gcd_def: "(gcd :: 'a fps \<Rightarrow> _) = Euclidean_Algorithm.gcd"
+definition fps_lcm_def: "(lcm :: 'a fps \<Rightarrow> _) = Euclidean_Algorithm.lcm"
+definition fps_Gcd_def: "(Gcd :: 'a fps set \<Rightarrow> _) = Euclidean_Algorithm.Gcd"
+definition fps_Lcm_def: "(Lcm :: 'a fps set \<Rightarrow> _) = Euclidean_Algorithm.Lcm"
 instance by standard (simp_all add: fps_gcd_def fps_lcm_def fps_Gcd_def fps_Lcm_def)
 end
 

@@ -28,6 +28,15 @@ euclidean_(semi)ring, euclidean_(semi)ring_cancel,
 unique_euclidean_(semi)ring; instantiation requires
 provision of a euclidean size.
 
+* Reworking of theory Euclidean_Algorithm in session HOL-Number_Theory:
+  - Euclidean induction is available as rule eucl_induct;
+  - Constants Euclidean_Algorithm.gcd, Euclidean_Algorithm.lcm,
+    Euclidean_Algorithm.Gcd and Euclidean_Algorithm.Lcm allow
+    easy instantiation of euclidean (semi)rings as GCD (semi)rings.
+  - Coefficients obtained by extended euclidean algorithm are
+    available as "bezout_coefficients".
+INCOMPATIBILITY.
+
 * Swapped orientation of congruence rules mod_add_left_eq,
 mod_add_right_eq, mod_add_eq, mod_mult_left_eq, mod_mult_right_eq,
 mod_mult_eq, mod_minus_eq, mod_diff_left_eq, mod_diff_right_eq,

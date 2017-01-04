@@ -9,24 +9,28 @@ theory Euclidean_Algorithm
     "~~/src/HOL/Number_Theory/Factorial_Ring"
 begin
 
+subsection \<open>Generic construction of the (simple) euclidean algorithm\<close>
+  
 context euclidean_semiring
 begin
 
-function gcd_eucl :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-where
-  "gcd_eucl a b = (if b = 0 then normalize a else gcd_eucl b (a mod b))"
+context
+begin
+
+qualified function gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  where "gcd a b = (if b = 0 then normalize a else gcd b (a mod b))"
   by pat_completeness simp
 termination
   by (relation "measure (euclidean_size \<circ> snd)") (simp_all add: mod_size_less)
 
-declare gcd_eucl.simps [simp del]
+declare gcd.simps [simp del]
 
-lemma gcd_eucl_induct [case_names zero mod]:
+lemma eucl_induct [case_names zero mod]:
   assumes H1: "\<And>b. P b 0"
   and H2: "\<And>a b. b \<noteq> 0 \<Longrightarrow> P b (a mod b) \<Longrightarrow> P a b"
   shows "P a b"
-proof (induct a b rule: gcd_eucl.induct)
-  case ("1" a b)
+proof (induct a b rule: gcd.induct)
+  case (1 a b)
   show ?case
   proof (cases "b = 0")
     case True then show "P a b" by simp (rule H1)
@@ -38,425 +42,305 @@ proof (induct a b rule: gcd_eucl.induct)
       by (blast intro: H2)
   qed
 qed
+  
+qualified lemma gcd_0:
+  "gcd a 0 = normalize a"
+  by (simp add: gcd.simps [of a 0])
+  
+qualified lemma gcd_mod:
+  "a \<noteq> 0 \<Longrightarrow> gcd a (b mod a) = gcd b a"
+  by (simp add: gcd.simps [of b 0] gcd.simps [of b a])
 
-definition lcm_eucl :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-where
-  "lcm_eucl a b = normalize (a * b) div gcd_eucl a b"
+qualified definition lcm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  where "lcm a b = normalize (a * b) div gcd a b"
 
-definition Lcm_eucl :: "'a set \<Rightarrow> 'a" \<comment> \<open>
-  Somewhat complicated definition of Lcm that has the advantage of working
-  for infinite sets as well\<close>
-where
-  "Lcm_eucl A = (if \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) then
+qualified definition Lcm :: "'a set \<Rightarrow> 'a" \<comment>
+    \<open>Somewhat complicated definition of Lcm that has the advantage of working
+    for infinite sets as well\<close>
+  where
+  [code del]: "Lcm A = (if \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) then
      let l = SOME l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l =
        (LEAST n. \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n)
        in normalize l 
       else 0)"
 
-definition Gcd_eucl :: "'a set \<Rightarrow> 'a"
-where
-  "Gcd_eucl A = Lcm_eucl {d. \<forall>a\<in>A. d dvd a}"
+qualified definition Gcd :: "'a set \<Rightarrow> 'a"
+  where [code del]: "Gcd A = Lcm {d. \<forall>a\<in>A. d dvd a}"
 
-declare Lcm_eucl_def Gcd_eucl_def [code del]
+end    
 
-lemma gcd_eucl_0:
-  "gcd_eucl a 0 = normalize a"
-  by (simp add: gcd_eucl.simps [of a 0])
-
-lemma gcd_eucl_0_left:
-  "gcd_eucl 0 a = normalize a"
-  by (simp_all add: gcd_eucl_0 gcd_eucl.simps [of 0 a])
-
-lemma gcd_eucl_non_0:
-  "b \<noteq> 0 \<Longrightarrow> gcd_eucl a b = gcd_eucl b (a mod b)"
-  by (simp add: gcd_eucl.simps [of a b] gcd_eucl.simps [of b 0])
-
-lemma gcd_eucl_dvd1 [iff]: "gcd_eucl a b dvd a"
-  and gcd_eucl_dvd2 [iff]: "gcd_eucl a b dvd b"
-  by (induct a b rule: gcd_eucl_induct)
-     (simp_all add: gcd_eucl_0 gcd_eucl_non_0 dvd_mod_iff)
-
-lemma normalize_gcd_eucl [simp]:
-  "normalize (gcd_eucl a b) = gcd_eucl a b"
-  by (induct a b rule: gcd_eucl_induct) (simp_all add: gcd_eucl_0 gcd_eucl_non_0)
-     
-lemma gcd_eucl_greatest:
-  fixes k a b :: 'a
-  shows "k dvd a \<Longrightarrow> k dvd b \<Longrightarrow> k dvd gcd_eucl a b"
-proof (induct a b rule: gcd_eucl_induct)
-  case (zero a) from zero(1) show ?case by (rule dvd_trans) (simp add: gcd_eucl_0)
+lemma semiring_gcd:
+  "class.semiring_gcd one zero times gcd lcm
+    divide plus minus normalize unit_factor"
+proof
+  show "gcd a b dvd a"
+    and "gcd a b dvd b" for a b
+    by (induct a b rule: eucl_induct)
+      (simp_all add: local.gcd_0 local.gcd_mod dvd_mod_iff)
 next
-  case (mod a b)
-  then show ?case
-    by (simp add: gcd_eucl_non_0 dvd_mod_iff)
-qed
-
-lemma gcd_euclI:
-  fixes gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  assumes "d dvd a" "d dvd b" "normalize d = d"
-          "\<And>k. k dvd a \<Longrightarrow> k dvd b \<Longrightarrow> k dvd d"
-  shows   "gcd_eucl a b = d"
-  by (rule associated_eqI) (simp_all add: gcd_eucl_greatest assms)
-
-lemma eq_gcd_euclI:
-  fixes gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  assumes "\<And>a b. gcd a b dvd a" "\<And>a b. gcd a b dvd b" "\<And>a b. normalize (gcd a b) = gcd a b"
-          "\<And>a b k. k dvd a \<Longrightarrow> k dvd b \<Longrightarrow> k dvd gcd a b"
-  shows   "gcd = gcd_eucl"
-  by (intro ext, rule associated_eqI) (simp_all add: gcd_eucl_greatest assms)
-
-lemma gcd_eucl_zero [simp]:
-  "gcd_eucl a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
-  by (metis dvd_0_left dvd_refl gcd_eucl_dvd1 gcd_eucl_dvd2 gcd_eucl_greatest)+
-
-  
-lemma dvd_Lcm_eucl [simp]: "a \<in> A \<Longrightarrow> a dvd Lcm_eucl A"
-  and Lcm_eucl_least: "(\<And>a. a \<in> A \<Longrightarrow> a dvd b) \<Longrightarrow> Lcm_eucl A dvd b"
-  and unit_factor_Lcm_eucl [simp]: 
-          "unit_factor (Lcm_eucl A) = (if Lcm_eucl A = 0 then 0 else 1)"
-proof -
-  have "(\<forall>a\<in>A. a dvd Lcm_eucl A) \<and> (\<forall>l'. (\<forall>a\<in>A. a dvd l') \<longrightarrow> Lcm_eucl A dvd l') \<and>
-    unit_factor (Lcm_eucl A) = (if Lcm_eucl A = 0 then 0 else 1)" (is ?thesis)
-  proof (cases "\<exists>l. l \<noteq>  0 \<and> (\<forall>a\<in>A. a dvd l)")
-    case False
-    hence "Lcm_eucl A = 0" by (auto simp: Lcm_eucl_def)
-    with False show ?thesis by auto
+  show "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> c dvd gcd a b" for a b c
+  proof (induct a b rule: eucl_induct)
+    case (zero a) from \<open>c dvd a\<close> show ?case
+      by (rule dvd_trans) (simp add: local.gcd_0)
   next
-    case True
-    then obtain l\<^sub>0 where l\<^sub>0_props: "l\<^sub>0 \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l\<^sub>0)" by blast
-    define n where "n = (LEAST n. \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n)"
-    define l where "l = (SOME l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n)"
-    have "\<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n"
-      apply (subst n_def)
-      apply (rule LeastI[of _ "euclidean_size l\<^sub>0"])
-      apply (rule exI[of _ l\<^sub>0])
-      apply (simp add: l\<^sub>0_props)
-      done
-    from someI_ex[OF this] have "l \<noteq> 0" and "\<forall>a\<in>A. a dvd l" and "euclidean_size l = n" 
-      unfolding l_def by simp_all
-    {
-      fix l' assume "\<forall>a\<in>A. a dvd l'"
-      with \<open>\<forall>a\<in>A. a dvd l\<close> have "\<forall>a\<in>A. a dvd gcd_eucl l l'" by (auto intro: gcd_eucl_greatest)
-      moreover from \<open>l \<noteq> 0\<close> have "gcd_eucl l l' \<noteq> 0" by simp
-      ultimately have "\<exists>b. b \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd b) \<and> 
-                          euclidean_size b = euclidean_size (gcd_eucl l l')"
-        by (intro exI[of _ "gcd_eucl l l'"], auto)
-      hence "euclidean_size (gcd_eucl l l') \<ge> n" by (subst n_def) (rule Least_le)
-      moreover have "euclidean_size (gcd_eucl l l') \<le> n"
-      proof -
-        have "gcd_eucl l l' dvd l" by simp
-        then obtain a where "l = gcd_eucl l l' * a" unfolding dvd_def by blast
-        with \<open>l \<noteq> 0\<close> have "a \<noteq> 0" by auto
-        hence "euclidean_size (gcd_eucl l l') \<le> euclidean_size (gcd_eucl l l' * a)"
-          by (rule size_mult_mono)
-        also have "gcd_eucl l l' * a = l" using \<open>l = gcd_eucl l l' * a\<close> ..
-        also note \<open>euclidean_size l = n\<close>
-        finally show "euclidean_size (gcd_eucl l l') \<le> n" .
-      qed
-      ultimately have *: "euclidean_size l = euclidean_size (gcd_eucl l l')" 
-        by (intro le_antisym, simp_all add: \<open>euclidean_size l = n\<close>)
-      from \<open>l \<noteq> 0\<close> have "l dvd gcd_eucl l l'"
-        by (rule dvd_euclidean_size_eq_imp_dvd) (auto simp add: *)
-      hence "l dvd l'" by (rule dvd_trans[OF _ gcd_eucl_dvd2])
-    }
-
-    with \<open>(\<forall>a\<in>A. a dvd l)\<close> and unit_factor_is_unit[OF \<open>l \<noteq> 0\<close>] and \<open>l \<noteq> 0\<close>
-      have "(\<forall>a\<in>A. a dvd normalize l) \<and> 
-        (\<forall>l'. (\<forall>a\<in>A. a dvd l') \<longrightarrow> normalize l dvd l') \<and>
-        unit_factor (normalize l) = 
-        (if normalize l = 0 then 0 else 1)"
-      by (auto simp: unit_simps)
-    also from True have "normalize l = Lcm_eucl A"
-      by (simp add: Lcm_eucl_def Let_def n_def l_def)
-    finally show ?thesis .
+    case (mod a b)
+    then show ?case
+      by (simp add: local.gcd_mod dvd_mod_iff)
   qed
-  note A = this
-
-  {fix a assume "a \<in> A" then show "a dvd Lcm_eucl A" using A by blast}
-  {fix b assume "\<And>a. a \<in> A \<Longrightarrow> a dvd b" then show "Lcm_eucl A dvd b" using A by blast}
-  from A show "unit_factor (Lcm_eucl A) = (if Lcm_eucl A = 0 then 0 else 1)" by blast
-qed
-
-lemma normalize_Lcm_eucl [simp]:
-  "normalize (Lcm_eucl A) = Lcm_eucl A"
-proof (cases "Lcm_eucl A = 0")
-  case True then show ?thesis by simp
 next
-  case False
-  have "unit_factor (Lcm_eucl A) * normalize (Lcm_eucl A) = Lcm_eucl A"
-    by (fact unit_factor_mult_normalize)
-  with False show ?thesis by simp
+  show "normalize (gcd a b) = gcd a b" for a b
+    by (induct a b rule: eucl_induct)
+      (simp_all add: local.gcd_0 local.gcd_mod)
+next
+  show "lcm a b = normalize (a * b) div gcd a b" for a b
+    by (fact local.lcm_def)
 qed
 
-lemma eq_Lcm_euclI:
-  fixes lcm :: "'a set \<Rightarrow> 'a"
-  assumes "\<And>A a. a \<in> A \<Longrightarrow> a dvd lcm A" and "\<And>A c. (\<And>a. a \<in> A \<Longrightarrow> a dvd c) \<Longrightarrow> lcm A dvd c"
-          "\<And>A. normalize (lcm A) = lcm A" shows "lcm = Lcm_eucl"
-  by (intro ext, rule associated_eqI) (auto simp: assms intro: Lcm_eucl_least)  
-
-lemma Gcd_eucl_dvd: "a \<in> A \<Longrightarrow> Gcd_eucl A dvd a"
-  unfolding Gcd_eucl_def by (auto intro: Lcm_eucl_least)
-
-lemma Gcd_eucl_greatest: "(\<And>x. x \<in> A \<Longrightarrow> d dvd x) \<Longrightarrow> d dvd Gcd_eucl A"
-  unfolding Gcd_eucl_def by auto
-
-lemma normalize_Gcd_eucl [simp]: "normalize (Gcd_eucl A) = Gcd_eucl A"
-  by (simp add: Gcd_eucl_def)
-
-lemma Lcm_euclI:
-  assumes "\<And>x. x \<in> A \<Longrightarrow> x dvd d" "\<And>d'. (\<And>x. x \<in> A \<Longrightarrow> x dvd d') \<Longrightarrow> d dvd d'" "normalize d = d"
-  shows   "Lcm_eucl A = d"
-proof -
-  have "normalize (Lcm_eucl A) = normalize d"
-    by (intro associatedI) (auto intro: dvd_Lcm_eucl Lcm_eucl_least assms)
-  thus ?thesis by (simp add: assms)
-qed
-
-lemma Gcd_euclI:
-  assumes "\<And>x. x \<in> A \<Longrightarrow> d dvd x" "\<And>d'. (\<And>x. x \<in> A \<Longrightarrow> d' dvd x) \<Longrightarrow> d' dvd d" "normalize d = d"
-  shows   "Gcd_eucl A = d"
-proof -
-  have "normalize (Gcd_eucl A) = normalize d"
-    by (intro associatedI) (auto intro: Gcd_eucl_dvd Gcd_eucl_greatest assms)
-  thus ?thesis by (simp add: assms)
-qed
+interpretation semiring_gcd one zero times gcd lcm
+  divide plus minus normalize unit_factor
+  by (fact semiring_gcd)
   
-lemmas lcm_gcd_eucl_facts = 
-  gcd_eucl_dvd1 gcd_eucl_dvd2 gcd_eucl_greatest normalize_gcd_eucl lcm_eucl_def
-  Gcd_eucl_def Gcd_eucl_dvd Gcd_eucl_greatest normalize_Gcd_eucl
-  dvd_Lcm_eucl Lcm_eucl_least normalize_Lcm_eucl
-
-lemma normalized_factors_product:
-  "{p. p dvd a * b \<and> normalize p = p} = 
-     (\<lambda>(x,y). x * y) ` ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})"
-proof safe
-  fix p assume p: "p dvd a * b" "normalize p = p"
-  interpret semiring_gcd 1 0 "op *" gcd_eucl lcm_eucl "op div" "op +" "op -" normalize unit_factor
-    by standard (rule lcm_gcd_eucl_facts; assumption)+
-  from dvd_productE[OF p(1)] guess x y . note xy = this
-  define x' y' where "x' = normalize x" and "y' = normalize y"
-  have "p = x' * y'"
-    by (subst p(2) [symmetric]) (simp add: xy x'_def y'_def normalize_mult)
-  moreover from xy have "normalize x' = x'" "normalize y' = y'" "x' dvd a" "y' dvd b" 
-    by (simp_all add: x'_def y'_def)
-  ultimately show "p \<in> (\<lambda>(x, y). x * y) ` 
-                     ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})"
-    by blast
-qed (auto simp: normalize_mult mult_dvd_mono)
-
-
-subclass factorial_semiring
-proof (standard, rule factorial_semiring_altI_aux)
-  fix x assume "x \<noteq> 0"
-  thus "finite {p. p dvd x \<and> normalize p = p}"
-  proof (induction "euclidean_size x" arbitrary: x rule: less_induct)
-    case (less x)
-    show ?case
-    proof (cases "\<exists>y. y dvd x \<and> \<not>x dvd y \<and> \<not>is_unit y")
+lemma semiring_Gcd:
+  "class.semiring_Gcd one zero times gcd lcm Gcd Lcm
+    divide plus minus normalize unit_factor"
+proof -
+  show ?thesis
+  proof
+    have "(\<forall>a\<in>A. a dvd Lcm A) \<and> (\<forall>b. (\<forall>a\<in>A. a dvd b) \<longrightarrow> Lcm A dvd b)" for A
+    proof (cases "\<exists>l. l \<noteq>  0 \<and> (\<forall>a\<in>A. a dvd l)")
       case False
-      have "{p. p dvd x \<and> normalize p = p} \<subseteq> {1, normalize x}"
-      proof
-        fix p assume p: "p \<in> {p. p dvd x \<and> normalize p = p}"
-        with False have "is_unit p \<or> x dvd p" by blast
-        thus "p \<in> {1, normalize x}"
-        proof (elim disjE)
-          assume "is_unit p"
-          hence "normalize p = 1" by (simp add: is_unit_normalize)
-          with p show ?thesis by simp
-        next
-          assume "x dvd p"
-          with p have "normalize p = normalize x" by (intro associatedI) simp_all
-          with p show ?thesis by simp
-        qed
-      qed
-      moreover have "finite \<dots>" by simp
-      ultimately show ?thesis by (rule finite_subset)
-      
+      then have "Lcm A = 0"
+        by (auto simp add: local.Lcm_def)
+      with False show ?thesis
+        by auto
     next
       case True
-      then obtain y where y: "y dvd x" "\<not>x dvd y" "\<not>is_unit y" by blast
-      define z where "z = x div y"
-      let ?fctrs = "\<lambda>x. {p. p dvd x \<and> normalize p = p}"
-      from y have x: "x = y * z" by (simp add: z_def)
-      with less.prems have "y \<noteq> 0" "z \<noteq> 0" by auto
-      from x y have "\<not>is_unit z" by (auto simp: mult_unit_dvd_iff)
-      have "?fctrs x = (\<lambda>(p,p'). p * p') ` (?fctrs y \<times> ?fctrs z)"
-        by (subst x) (rule normalized_factors_product)
-      also have "\<not>y * z dvd y * 1" "\<not>y * z dvd 1 * z"
-        by (subst dvd_times_left_cancel_iff dvd_times_right_cancel_iff; fact)+
-      hence "finite ((\<lambda>(p,p'). p * p') ` (?fctrs y \<times> ?fctrs z))"
-        by (intro finite_imageI finite_cartesian_product less dvd_proper_imp_size_less)
-           (auto simp: x)
+      then obtain l\<^sub>0 where l\<^sub>0_props: "l\<^sub>0 \<noteq> 0" "\<forall>a\<in>A. a dvd l\<^sub>0" by blast
+      define n where "n = (LEAST n. \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n)"
+      define l where "l = (SOME l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n)"
+      have "\<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n"
+        apply (subst n_def)
+        apply (rule LeastI [of _ "euclidean_size l\<^sub>0"])
+        apply (rule exI [of _ l\<^sub>0])
+        apply (simp add: l\<^sub>0_props)
+        done
+      from someI_ex [OF this] have "l \<noteq> 0" and "\<forall>a\<in>A. a dvd l"
+        and "euclidean_size l = n" 
+        unfolding l_def by simp_all
+      {
+        fix l' assume "\<forall>a\<in>A. a dvd l'"
+        with \<open>\<forall>a\<in>A. a dvd l\<close> have "\<forall>a\<in>A. a dvd gcd l l'"
+          by (auto intro: gcd_greatest)
+        moreover from \<open>l \<noteq> 0\<close> have "gcd l l' \<noteq> 0"
+          by simp
+        ultimately have "\<exists>b. b \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd b) \<and> 
+          euclidean_size b = euclidean_size (gcd l l')"
+          by (intro exI [of _ "gcd l l'"], auto)
+        then have "euclidean_size (gcd l l') \<ge> n"
+          by (subst n_def) (rule Least_le)
+        moreover have "euclidean_size (gcd l l') \<le> n"
+        proof -
+          have "gcd l l' dvd l"
+            by simp
+          then obtain a where "l = gcd l l' * a" ..
+          with \<open>l \<noteq> 0\<close> have "a \<noteq> 0"
+            by auto
+          hence "euclidean_size (gcd l l') \<le> euclidean_size (gcd l l' * a)"
+            by (rule size_mult_mono)
+          also have "gcd l l' * a = l" using \<open>l = gcd l l' * a\<close> ..
+          also note \<open>euclidean_size l = n\<close>
+          finally show "euclidean_size (gcd l l') \<le> n" .
+        qed
+        ultimately have *: "euclidean_size l = euclidean_size (gcd l l')" 
+          by (intro le_antisym, simp_all add: \<open>euclidean_size l = n\<close>)
+        from \<open>l \<noteq> 0\<close> have "l dvd gcd l l'"
+          by (rule dvd_euclidean_size_eq_imp_dvd) (auto simp add: *)
+        hence "l dvd l'" by (rule dvd_trans [OF _ gcd_dvd2])
+      }
+      with \<open>\<forall>a\<in>A. a dvd l\<close> and \<open>l \<noteq> 0\<close>
+        have "(\<forall>a\<in>A. a dvd normalize l) \<and> 
+          (\<forall>l'. (\<forall>a\<in>A. a dvd l') \<longrightarrow> normalize l dvd l')"
+        by auto
+      also from True have "normalize l = Lcm A"
+        by (simp add: local.Lcm_def Let_def n_def l_def)
       finally show ?thesis .
     qed
+    then show dvd_Lcm: "a \<in> A \<Longrightarrow> a dvd Lcm A"
+      and Lcm_least: "(\<And>a. a \<in> A \<Longrightarrow> a dvd b) \<Longrightarrow> Lcm A dvd b" for A and a b
+      by auto
+    show "a \<in> A \<Longrightarrow> Gcd A dvd a" for A and a
+      by (auto simp add: local.Gcd_def intro: Lcm_least)
+    show "(\<And>a. a \<in> A \<Longrightarrow> b dvd a) \<Longrightarrow> b dvd Gcd A" for A and b
+      by (auto simp add: local.Gcd_def intro: dvd_Lcm)
+    show [simp]: "normalize (Lcm A) = Lcm A" for A
+      by (simp add: local.Lcm_def)
+    show "normalize (Gcd A) = Gcd A" for A
+      by (simp add: local.Gcd_def)
   qed
-next
-  interpret semiring_gcd 1 0 "op *" gcd_eucl lcm_eucl "op div" "op +" "op -" normalize unit_factor
-    by standard (rule lcm_gcd_eucl_facts; assumption)+
-  fix p assume p: "irreducible p"
-  thus "prime_elem p" by (rule irreducible_imp_prime_elem_gcd)
 qed
 
-lemma gcd_eucl_eq_gcd_factorial: "gcd_eucl = gcd_factorial"
-  by (intro ext gcd_euclI gcd_lcm_factorial)
+interpretation semiring_Gcd one zero times gcd lcm Gcd Lcm
+    divide plus minus normalize unit_factor
+  by (fact semiring_Gcd)
 
-lemma lcm_eucl_eq_lcm_factorial: "lcm_eucl = lcm_factorial"
-  by (intro ext) (simp add: lcm_eucl_def lcm_factorial_gcd_factorial gcd_eucl_eq_gcd_factorial)
-
-lemma Gcd_eucl_eq_Gcd_factorial: "Gcd_eucl = Gcd_factorial"
-  by (intro ext Gcd_euclI gcd_lcm_factorial)
-
-lemma Lcm_eucl_eq_Lcm_factorial: "Lcm_eucl = Lcm_factorial"
-  by (intro ext Lcm_euclI gcd_lcm_factorial)
-
-lemmas eucl_eq_factorial = 
-  gcd_eucl_eq_gcd_factorial lcm_eucl_eq_lcm_factorial 
-  Gcd_eucl_eq_Gcd_factorial Lcm_eucl_eq_Lcm_factorial
-  
-end
-
-context euclidean_ring
-begin
-
-function euclid_ext_aux :: "'a \<Rightarrow> _" where
-  "euclid_ext_aux r' r s' s t' t = (
-     if r = 0 then let c = 1 div unit_factor r' in (s' * c, t' * c, normalize r')
-     else let q = r' div r
-          in  euclid_ext_aux r (r' mod r) s (s' - q * s) t (t' - q * t))"
-by auto
-termination by (relation "measure (\<lambda>(_,b,_,_,_,_). euclidean_size b)") (simp_all add: mod_size_less)
-
-declare euclid_ext_aux.simps [simp del]
-
-lemma euclid_ext_aux_correct:
-  assumes "gcd_eucl r' r = gcd_eucl a b"
-  assumes "s' * a + t' * b = r'"
-  assumes "s * a + t * b = r"
-  shows   "case euclid_ext_aux r' r s' s t' t of (x,y,c) \<Rightarrow>
-             x * a + y * b = c \<and> c = gcd_eucl a b" (is "?P (euclid_ext_aux r' r s' s t' t)")
-using assms
-proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
-  case (1 r' r s' s t' t)
-  show ?case
-  proof (cases "r = 0")
-    case True
-    hence "euclid_ext_aux r' r s' s t' t = 
-             (s' div unit_factor r', t' div unit_factor r', normalize r')"
-      by (subst euclid_ext_aux.simps) (simp add: Let_def)
-    also have "?P \<dots>"
-    proof safe
-      have "s' div unit_factor r' * a + t' div unit_factor r' * b = 
-                (s' * a + t' * b) div unit_factor r'"
-        by (cases "r' = 0") (simp_all add: unit_div_commute)
-      also have "s' * a + t' * b = r'" by fact
-      also have "\<dots> div unit_factor r' = normalize r'" by simp
-      finally show "s' div unit_factor r' * a + t' div unit_factor r' * b = normalize r'" .
-    next
-      from "1.prems" True show "normalize r' = gcd_eucl a b" by (simp add: gcd_eucl_0)
+subclass factorial_semiring
+proof -
+  show "class.factorial_semiring divide plus minus zero times one
+     normalize unit_factor"
+  proof (standard, rule factorial_semiring_altI_aux) -- \<open>FIXME rule\<close>
+    fix x assume "x \<noteq> 0"
+    thus "finite {p. p dvd x \<and> normalize p = p}"
+    proof (induction "euclidean_size x" arbitrary: x rule: less_induct)
+      case (less x)
+      show ?case
+      proof (cases "\<exists>y. y dvd x \<and> \<not>x dvd y \<and> \<not>is_unit y")
+        case False
+        have "{p. p dvd x \<and> normalize p = p} \<subseteq> {1, normalize x}"
+        proof
+          fix p assume p: "p \<in> {p. p dvd x \<and> normalize p = p}"
+          with False have "is_unit p \<or> x dvd p" by blast
+          thus "p \<in> {1, normalize x}"
+          proof (elim disjE)
+            assume "is_unit p"
+            hence "normalize p = 1" by (simp add: is_unit_normalize)
+            with p show ?thesis by simp
+          next
+            assume "x dvd p"
+            with p have "normalize p = normalize x" by (intro associatedI) simp_all
+            with p show ?thesis by simp
+          qed
+        qed
+        moreover have "finite \<dots>" by simp
+        ultimately show ?thesis by (rule finite_subset)
+      next
+        case True
+        then obtain y where y: "y dvd x" "\<not>x dvd y" "\<not>is_unit y" by blast
+        define z where "z = x div y"
+        let ?fctrs = "\<lambda>x. {p. p dvd x \<and> normalize p = p}"
+        from y have x: "x = y * z" by (simp add: z_def)
+        with less.prems have "y \<noteq> 0" "z \<noteq> 0" by auto
+        have normalized_factors_product:
+          "{p. p dvd a * b \<and> normalize p = p} = 
+             (\<lambda>(x,y). x * y) ` ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})" for a b
+        proof safe
+          fix p assume p: "p dvd a * b" "normalize p = p"
+          from dvd_productE[OF p(1)] guess x y . note xy = this
+          define x' y' where "x' = normalize x" and "y' = normalize y"
+          have "p = x' * y'"
+            by (subst p(2) [symmetric]) (simp add: xy x'_def y'_def normalize_mult)
+          moreover from xy have "normalize x' = x'" "normalize y' = y'" "x' dvd a" "y' dvd b" 
+            by (simp_all add: x'_def y'_def)
+          ultimately show "p \<in> (\<lambda>(x, y). x * y) ` 
+            ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})"
+            by blast
+        qed (auto simp: normalize_mult mult_dvd_mono)
+        from x y have "\<not>is_unit z" by (auto simp: mult_unit_dvd_iff)
+        have "?fctrs x = (\<lambda>(p,p'). p * p') ` (?fctrs y \<times> ?fctrs z)"
+          by (subst x) (rule normalized_factors_product)
+        also have "\<not>y * z dvd y * 1" "\<not>y * z dvd 1 * z"
+          by (subst dvd_times_left_cancel_iff dvd_times_right_cancel_iff; fact)+
+        hence "finite ((\<lambda>(p,p'). p * p') ` (?fctrs y \<times> ?fctrs z))"
+          by (intro finite_imageI finite_cartesian_product less dvd_proper_imp_size_less)
+             (auto simp: x)
+        finally show ?thesis .
+      qed
     qed
-    finally show ?thesis .
   next
-    case False
-    hence "euclid_ext_aux r' r s' s t' t = 
-             euclid_ext_aux r (r' mod r) s (s' - r' div r * s) t (t' - r' div r * t)"
-      by (subst euclid_ext_aux.simps) (simp add: Let_def)
-    also from "1.prems" False have "?P \<dots>"
-    proof (intro "1.IH")
-      have "(s' - r' div r * s) * a + (t' - r' div r * t) * b =
-              (s' * a + t' * b) - r' div r * (s * a + t * b)" by (simp add: algebra_simps)
-      also have "s' * a + t' * b = r'" by fact
-      also have "s * a + t * b = r" by fact
-      also have "r' - r' div r * r = r' mod r" using div_mult_mod_eq [of r' r]
-        by (simp add: algebra_simps)
-      finally show "(s' - r' div r * s) * a + (t' - r' div r * t) * b = r' mod r" .
-    qed (auto simp: gcd_eucl_non_0 algebra_simps minus_mod_eq_div_mult [symmetric])
-    finally show ?thesis .
+    fix p
+    assume "irreducible p"
+    then show "prime_elem p"
+      by (rule irreducible_imp_prime_elem_gcd)
   qed
 qed
 
-definition euclid_ext where
-  "euclid_ext a b = euclid_ext_aux a b 1 0 0 1"
+lemma Gcd_eucl_set [code]:
+  "Gcd (set xs) = foldl gcd 0 xs"
+  by (fact local.Gcd_set)
 
-lemma euclid_ext_0: 
-  "euclid_ext a 0 = (1 div unit_factor a, 0, normalize a)"
-  by (simp add: euclid_ext_def euclid_ext_aux.simps)
-
-lemma euclid_ext_left_0: 
-  "euclid_ext 0 a = (0, 1 div unit_factor a, normalize a)"
-  by (simp add: euclid_ext_def euclid_ext_aux.simps)
-
-lemma euclid_ext_correct':
-  "case euclid_ext a b of (x,y,c) \<Rightarrow> x * a + y * b = c \<and> c = gcd_eucl a b"
-  unfolding euclid_ext_def by (rule euclid_ext_aux_correct) simp_all
-
-lemma euclid_ext_gcd_eucl:
-  "(case euclid_ext a b of (x,y,c) \<Rightarrow> c) = gcd_eucl a b"
-  using euclid_ext_correct'[of a b] by (simp add: case_prod_unfold)
-
-definition euclid_ext' where
-  "euclid_ext' a b = (case euclid_ext a b of (x, y, _) \<Rightarrow> (x, y))"
-
-lemma euclid_ext'_correct':
-  "case euclid_ext' a b of (x,y) \<Rightarrow> x * a + y * b = gcd_eucl a b"
-  using euclid_ext_correct'[of a b] by (simp add: case_prod_unfold euclid_ext'_def)
-
-lemma euclid_ext'_0: "euclid_ext' a 0 = (1 div unit_factor a, 0)" 
-  by (simp add: euclid_ext'_def euclid_ext_0)
-
-lemma euclid_ext'_left_0: "euclid_ext' 0 a = (0, 1 div unit_factor a)" 
-  by (simp add: euclid_ext'_def euclid_ext_left_0)
-
+lemma Lcm_eucl_set [code]:
+  "Lcm (set xs) = foldl lcm 1 xs"
+  by (fact local.Lcm_set)
+ 
 end
 
+hide_const (open) gcd lcm Gcd Lcm
+
+lemma prime_elem_int_abs_iff [simp]:
+  fixes p :: int
+  shows "prime_elem \<bar>p\<bar> \<longleftrightarrow> prime_elem p"
+  using prime_elem_normalize_iff [of p] by simp
+  
+lemma prime_elem_int_minus_iff [simp]:
+  fixes p :: int
+  shows "prime_elem (- p) \<longleftrightarrow> prime_elem p"
+  using prime_elem_normalize_iff [of "- p"] by simp
+
+lemma prime_int_iff:
+  fixes p :: int
+  shows "prime p \<longleftrightarrow> p > 0 \<and> prime_elem p"
+  by (auto simp add: prime_def dest: prime_elem_not_zeroI)
+  
+  
+subsection \<open>The (simple) euclidean algorithm as gcd computation\<close>
+  
 class euclidean_semiring_gcd = euclidean_semiring + gcd + Gcd +
-  assumes gcd_gcd_eucl: "gcd = gcd_eucl" and lcm_lcm_eucl: "lcm = lcm_eucl"
-  assumes Gcd_Gcd_eucl: "Gcd = Gcd_eucl" and Lcm_Lcm_eucl: "Lcm = Lcm_eucl"
+  assumes gcd_eucl: "Euclidean_Algorithm.gcd = GCD.gcd"
+    and lcm_eucl: "Euclidean_Algorithm.lcm = GCD.lcm"
+  assumes Gcd_eucl: "Euclidean_Algorithm.Gcd = GCD.Gcd"
+    and Lcm_eucl: "Euclidean_Algorithm.Lcm = GCD.Lcm"
 begin
 
 subclass semiring_gcd
-  by standard (simp_all add: gcd_gcd_eucl gcd_eucl_greatest lcm_lcm_eucl lcm_eucl_def)
+  unfolding gcd_eucl [symmetric] lcm_eucl [symmetric]
+  by (fact semiring_gcd)
 
 subclass semiring_Gcd
-  by standard (auto simp: Gcd_Gcd_eucl Lcm_Lcm_eucl Gcd_eucl_def intro: Lcm_eucl_least)
+  unfolding  gcd_eucl [symmetric] lcm_eucl [symmetric]
+    Gcd_eucl [symmetric] Lcm_eucl [symmetric]
+  by (fact semiring_Gcd)
 
 subclass factorial_semiring_gcd
 proof
-  fix a b
-  show "gcd a b = gcd_factorial a b"
-    by (rule sym, rule gcdI) (rule gcd_lcm_factorial; assumption)+
-  thus "lcm a b = lcm_factorial a b"
+  show "gcd a b = gcd_factorial a b" for a b
+    apply (rule sym)
+    apply (rule gcdI)
+       apply (fact gcd_lcm_factorial)+
+    done
+  then show "lcm a b = lcm_factorial a b" for a b
     by (simp add: lcm_factorial_gcd_factorial lcm_gcd)
-next
-  fix A 
-  show "Gcd A = Gcd_factorial A"
-    by (rule sym, rule GcdI) (rule gcd_lcm_factorial; assumption)+
-  show "Lcm A = Lcm_factorial A"
-    by (rule sym, rule LcmI) (rule gcd_lcm_factorial; assumption)+
+  show "Gcd A = Gcd_factorial A" for A
+    apply (rule sym)
+    apply (rule GcdI)
+       apply (fact gcd_lcm_factorial)+
+    done
+  show "Lcm A = Lcm_factorial A" for A
+    apply (rule sym)
+    apply (rule LcmI)
+       apply (fact gcd_lcm_factorial)+
+    done
 qed
 
-lemma gcd_non_0:
-  "b \<noteq> 0 \<Longrightarrow> gcd a b = gcd b (a mod b)"
-  unfolding gcd_gcd_eucl by (fact gcd_eucl_non_0)
+lemma gcd_mod_right [simp]:
+  "a \<noteq> 0 \<Longrightarrow> gcd a (b mod a) = gcd a b"
+  unfolding gcd.commute [of a b]
+  by (simp add: gcd_eucl [symmetric] local.gcd_mod)
 
-lemmas gcd_0 = gcd_0_right
-lemmas dvd_gcd_iff = gcd_greatest_iff
-lemmas gcd_greatest_iff = dvd_gcd_iff
+lemma gcd_mod_left [simp]:
+  "b \<noteq> 0 \<Longrightarrow> gcd (a mod b) b = gcd a b"
+  by (drule gcd_mod_right [of _ a]) (simp add: gcd.commute)
 
-lemma gcd_mod1 [simp]:
-  "gcd (a mod b) b = gcd a b"
-  by (rule gcdI, metis dvd_mod_iff gcd_dvd1 gcd_dvd2, simp_all add: gcd_greatest dvd_mod_iff)
-
-lemma gcd_mod2 [simp]:
-  "gcd a (b mod a) = gcd a b"
-  by (rule gcdI, simp, metis dvd_mod_iff gcd_dvd1 gcd_dvd2, simp_all add: gcd_greatest dvd_mod_iff)
-         
 lemma euclidean_size_gcd_le1 [simp]:
   assumes "a \<noteq> 0"
   shows "euclidean_size (gcd a b) \<le> euclidean_size a"
 proof -
-   have "gcd a b dvd a" by (rule gcd_dvd1)
-   then obtain c where A: "a = gcd a b * c" unfolding dvd_def by blast
-   with \<open>a \<noteq> 0\<close> show ?thesis by (subst (2) A, intro size_mult_mono) auto
+  from gcd_dvd1 obtain c where A: "a = gcd a b * c" ..
+  with assms have "c \<noteq> 0"
+    by auto
+  moreover from this
+  have "euclidean_size (gcd a b) \<le> euclidean_size (gcd a b * c)"
+    by (rule size_mult_mono)
+  with A show ?thesis
+    by simp
 qed
 
 lemma euclidean_size_gcd_le2 [simp]:
@@ -464,7 +348,7 @@ lemma euclidean_size_gcd_le2 [simp]:
   by (subst gcd.commute, rule euclidean_size_gcd_le1)
 
 lemma euclidean_size_gcd_less1:
-  assumes "a \<noteq> 0" and "\<not>a dvd b"
+  assumes "a \<noteq> 0" and "\<not> a dvd b"
   shows "euclidean_size (gcd a b) < euclidean_size a"
 proof (rule ccontr)
   assume "\<not>euclidean_size (gcd a b) < euclidean_size a"
@@ -473,11 +357,11 @@ proof (rule ccontr)
   have "a dvd gcd a b"
     by (rule dvd_euclidean_size_eq_imp_dvd) (simp_all add: assms A)
   hence "a dvd b" using dvd_gcdD2 by blast
-  with \<open>\<not>a dvd b\<close> show False by contradiction
+  with \<open>\<not> a dvd b\<close> show False by contradiction
 qed
 
 lemma euclidean_size_gcd_less2:
-  assumes "b \<noteq> 0" and "\<not>b dvd a"
+  assumes "b \<noteq> 0" and "\<not> b dvd a"
   shows "euclidean_size (gcd a b) < euclidean_size b"
   using assms by (subst gcd.commute, rule euclidean_size_gcd_less1)
 
@@ -496,7 +380,7 @@ lemma euclidean_size_lcm_le2:
   using euclidean_size_lcm_le1 [of b a] by (simp add: ac_simps)
 
 lemma euclidean_size_lcm_less1:
-  assumes "b \<noteq> 0" and "\<not>b dvd a"
+  assumes "b \<noteq> 0" and "\<not> b dvd a"
   shows "euclidean_size a < euclidean_size (lcm a b)"
 proof (rule ccontr)
   from assms have "a \<noteq> 0" by auto
@@ -510,26 +394,49 @@ proof (rule ccontr)
 qed
 
 lemma euclidean_size_lcm_less2:
-  assumes "a \<noteq> 0" and "\<not>a dvd b"
+  assumes "a \<noteq> 0" and "\<not> a dvd b"
   shows "euclidean_size b < euclidean_size (lcm a b)"
   using assms euclidean_size_lcm_less1 [of a b] by (simp add: ac_simps)
 
-lemma Lcm_eucl_set [code]:
-  "Lcm_eucl (set xs) = foldl lcm_eucl 1 xs"
-  by (simp add: Lcm_Lcm_eucl [symmetric] lcm_lcm_eucl Lcm_set)
-
-lemma Gcd_eucl_set [code]:
-  "Gcd_eucl (set xs) = foldl gcd_eucl 0 xs"
-  by (simp add: Gcd_Gcd_eucl [symmetric] gcd_gcd_eucl Gcd_set)
-
 end
 
+lemma factorial_euclidean_semiring_gcdI:
+  "OFCLASS('a::{factorial_semiring_gcd, euclidean_semiring}, euclidean_semiring_gcd_class)"
+proof
+  interpret semiring_Gcd 1 0 times
+    Euclidean_Algorithm.gcd Euclidean_Algorithm.lcm
+    Euclidean_Algorithm.Gcd Euclidean_Algorithm.Lcm
+    divide plus minus normalize unit_factor
+    rewrites "dvd.dvd op * = Rings.dvd"
+    by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
+  show [simp]: "Euclidean_Algorithm.gcd = (gcd :: 'a \<Rightarrow> _)"
+  proof (rule ext)+
+    fix a b :: 'a
+    show "Euclidean_Algorithm.gcd a b = gcd a b"
+    proof (induct a b rule: eucl_induct)
+      case zero
+      then show ?case
+        by simp
+    next
+      case (mod a b)
+      moreover have "gcd b (a mod b) = gcd b a"
+        using GCD.gcd_add_mult [of b "a div b" "a mod b", symmetric]
+          by (simp add: div_mult_mod_eq)
+      ultimately show ?case
+        by (simp add: Euclidean_Algorithm.gcd_mod ac_simps)
+    qed
+  qed
+  show [simp]: "Euclidean_Algorithm.Lcm = (Lcm :: 'a set \<Rightarrow> _)"
+    by (auto intro!: Lcm_eqI GCD.dvd_Lcm GCD.Lcm_least)
+  show "Euclidean_Algorithm.lcm = (lcm :: 'a \<Rightarrow> _)"
+    by (simp add: fun_eq_iff Euclidean_Algorithm.lcm_def semiring_gcd_class.lcm_gcd)
+  show "Euclidean_Algorithm.Gcd = (Gcd :: 'a set \<Rightarrow> _)"
+    by (simp add: fun_eq_iff Euclidean_Algorithm.Gcd_def semiring_Gcd_class.Gcd_Lcm)
+qed
 
-text \<open>
-  A Euclidean ring is a Euclidean semiring with additive inverses. It provides a 
-  few more lemmas; in particular, Bezout's lemma holds for any Euclidean ring.
-\<close>
 
+subsection \<open>The extended euclidean algorithm\<close>
+  
 class euclidean_ring_gcd = euclidean_semiring_gcd + idom
 begin
 
@@ -537,26 +444,109 @@ subclass euclidean_ring ..
 subclass ring_gcd ..
 subclass factorial_ring_gcd ..
 
-lemma euclid_ext_gcd [simp]:
-  "(case euclid_ext a b of (_, _ , t) \<Rightarrow> t) = gcd a b"
-  using euclid_ext_correct'[of a b] by (simp add: case_prod_unfold Let_def gcd_gcd_eucl)
+function euclid_ext_aux :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> ('a \<times> 'a) \<times> 'a"
+  where "euclid_ext_aux s' s t' t r' r = (
+     if r = 0 then let c = 1 div unit_factor r' in ((s' * c, t' * c), normalize r')
+     else let q = r' div r
+          in euclid_ext_aux s (s' - q * s) t (t' - q * t) r (r' mod r))"
+  by auto
+termination
+  by (relation "measure (\<lambda>(_, _, _, _, _, b). euclidean_size b)")
+    (simp_all add: mod_size_less)
 
-lemma euclid_ext_gcd' [simp]:
-  "euclid_ext a b = (r, s, t) \<Longrightarrow> t = gcd a b"
-  by (insert euclid_ext_gcd[of a b], drule (1) subst, simp)
+abbreviation (input) euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<times> 'a) \<times> 'a"
+  where "euclid_ext \<equiv> euclid_ext_aux 1 0 0 1"
+    
+lemma
+  assumes "gcd r' r = gcd a b"
+  assumes "s' * a + t' * b = r'"
+  assumes "s * a + t * b = r"
+  assumes "euclid_ext_aux s' s t' t r' r = ((x, y), c)"
+  shows euclid_ext_aux_eq_gcd: "c = gcd a b"
+    and euclid_ext_aux_bezout: "x * a + y * b = gcd a b"
+proof -
+  have "case euclid_ext_aux s' s t' t r' r of ((x, y), c) \<Rightarrow> 
+    x * a + y * b = c \<and> c = gcd a b" (is "?P (euclid_ext_aux s' s t' t r' r)")
+    using assms(1-3)
+  proof (induction s' s t' t r' r rule: euclid_ext_aux.induct)
+    case (1 s' s t' t r' r)
+    show ?case
+    proof (cases "r = 0")
+      case True
+      hence "euclid_ext_aux s' s t' t r' r = 
+               ((s' div unit_factor r', t' div unit_factor r'), normalize r')"
+        by (subst euclid_ext_aux.simps) (simp add: Let_def)
+      also have "?P \<dots>"
+      proof safe
+        have "s' div unit_factor r' * a + t' div unit_factor r' * b = 
+                (s' * a + t' * b) div unit_factor r'"
+          by (cases "r' = 0") (simp_all add: unit_div_commute)
+        also have "s' * a + t' * b = r'" by fact
+        also have "\<dots> div unit_factor r' = normalize r'" by simp
+        finally show "s' div unit_factor r' * a + t' div unit_factor r' * b = normalize r'" .
+      next
+        from "1.prems" True show "normalize r' = gcd a b"
+          by simp
+      qed
+      finally show ?thesis .
+    next
+      case False
+      hence "euclid_ext_aux s' s t' t r' r = 
+             euclid_ext_aux s (s' - r' div r * s) t (t' - r' div r * t) r (r' mod r)"
+        by (subst euclid_ext_aux.simps) (simp add: Let_def)
+      also from "1.prems" False have "?P \<dots>"
+      proof (intro "1.IH")
+        have "(s' - r' div r * s) * a + (t' - r' div r * t) * b =
+              (s' * a + t' * b) - r' div r * (s * a + t * b)" by (simp add: algebra_simps)
+        also have "s' * a + t' * b = r'" by fact
+        also have "s * a + t * b = r" by fact
+        also have "r' - r' div r * r = r' mod r" using div_mult_mod_eq [of r' r]
+          by (simp add: algebra_simps)
+        finally show "(s' - r' div r * s) * a + (t' - r' div r * t) * b = r' mod r" .
+      qed (auto simp: gcd_mod_right algebra_simps minus_mod_eq_div_mult [symmetric] gcd.commute)
+      finally show ?thesis .
+    qed
+  qed
+  with assms(4) show "c = gcd a b" "x * a + y * b = gcd a b"
+    by simp_all
+qed
 
-lemma euclid_ext_correct:
-  "case euclid_ext a b of (x,y,c) \<Rightarrow> x * a + y * b = c \<and> c = gcd a b"
-  using euclid_ext_correct'[of a b]
-  by (simp add: gcd_gcd_eucl case_prod_unfold)
-  
-lemma euclid_ext'_correct:
-  "fst (euclid_ext' a b) * a + snd (euclid_ext' a b) * b = gcd a b"
-  using euclid_ext_correct'[of a b]
-  by (simp add: gcd_gcd_eucl case_prod_unfold euclid_ext'_def)
+declare euclid_ext_aux.simps [simp del]
 
-lemma bezout: "\<exists>s t. s * a + t * b = gcd a b"
-  using euclid_ext'_correct by blast
+definition bezout_coefficients :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a"
+  where [code]: "bezout_coefficients a b = fst (euclid_ext a b)"
+
+lemma bezout_coefficients_0: 
+  "bezout_coefficients a 0 = (1 div unit_factor a, 0)"
+  by (simp add: bezout_coefficients_def euclid_ext_aux.simps)
+
+lemma bezout_coefficients_left_0: 
+  "bezout_coefficients 0 a = (0, 1 div unit_factor a)"
+  by (simp add: bezout_coefficients_def euclid_ext_aux.simps)
+
+lemma bezout_coefficients:
+  assumes "bezout_coefficients a b = (x, y)"
+  shows "x * a + y * b = gcd a b"
+  using assms by (simp add: bezout_coefficients_def
+    euclid_ext_aux_bezout [of a b a b 1 0 0 1 x y] prod_eq_iff)
+
+lemma bezout_coefficients_fst_snd:
+  "fst (bezout_coefficients a b) * a + snd (bezout_coefficients a b) * b = gcd a b"
+  by (rule bezout_coefficients) simp
+
+lemma euclid_ext_eq [simp]:
+  "euclid_ext a b = (bezout_coefficients a b, gcd a b)" (is "?p = ?q")
+proof
+  show "fst ?p = fst ?q"
+    by (simp add: bezout_coefficients_def)
+  have "snd (euclid_ext_aux 1 0 0 1 a b) = gcd a b"
+    by (rule euclid_ext_aux_eq_gcd [of a b a b 1 0 0 1])
+      (simp_all add: prod_eq_iff)
+  then show "snd ?p = snd ?q"
+    by simp
+qed
+
+declare euclid_ext_eq [symmetric, code_unfold]
 
 end
 
@@ -565,19 +555,78 @@ subsection \<open>Typical instances\<close>
 
 instance nat :: euclidean_semiring_gcd
 proof
-  show [simp]: "gcd = (gcd_eucl :: nat \<Rightarrow> _)" "Lcm = (Lcm_eucl :: nat set \<Rightarrow> _)"
-    by (simp_all add: eq_gcd_euclI eq_Lcm_euclI)
-  show "lcm = (lcm_eucl :: nat \<Rightarrow> _)" "Gcd = (Gcd_eucl :: nat set \<Rightarrow> _)"
-    by (intro ext, simp add: lcm_eucl_def lcm_nat_def Gcd_nat_def Gcd_eucl_def)+
+  interpret semiring_Gcd 1 0 times
+    "Euclidean_Algorithm.gcd" "Euclidean_Algorithm.lcm"
+    "Euclidean_Algorithm.Gcd" "Euclidean_Algorithm.Lcm"
+    divide plus minus normalize unit_factor
+    rewrites "dvd.dvd op * = Rings.dvd"
+    by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
+  show [simp]: "(Euclidean_Algorithm.gcd :: nat \<Rightarrow> _) = gcd"
+  proof (rule ext)+
+    fix m n :: nat
+    show "Euclidean_Algorithm.gcd m n = gcd m n"
+    proof (induct m n rule: eucl_induct)
+      case zero
+      then show ?case
+        by simp
+    next
+      case (mod m n)
+      then have "gcd n (m mod n) = gcd n m"
+        using gcd_nat.simps [of m n] by (simp add: ac_simps)
+      with mod show ?case
+        by (simp add: Euclidean_Algorithm.gcd_mod ac_simps)
+    qed
+  qed
+  show [simp]: "(Euclidean_Algorithm.Lcm :: nat set \<Rightarrow> _) = Lcm"
+    by (auto intro!: ext Lcm_eqI)
+  show "(Euclidean_Algorithm.lcm :: nat \<Rightarrow> _) = lcm"
+    by (simp add: fun_eq_iff Euclidean_Algorithm.lcm_def semiring_gcd_class.lcm_gcd)
+  show "(Euclidean_Algorithm.Gcd :: nat set \<Rightarrow> _) = Gcd"
+    by (simp add: fun_eq_iff Euclidean_Algorithm.Gcd_def semiring_Gcd_class.Gcd_Lcm)
 qed
 
 instance int :: euclidean_ring_gcd
 proof
-  show [simp]: "gcd = (gcd_eucl :: int \<Rightarrow> _)" "Lcm = (Lcm_eucl :: int set \<Rightarrow> _)"
-    by (simp_all add: eq_gcd_euclI eq_Lcm_euclI)
-  show "lcm = (lcm_eucl :: int \<Rightarrow> _)" "Gcd = (Gcd_eucl :: int set \<Rightarrow> _)"
-    by (intro ext, simp add: lcm_eucl_def lcm_altdef_int 
-          semiring_Gcd_class.Gcd_Lcm Gcd_eucl_def abs_mult)+
+  interpret semiring_Gcd 1 0 times
+    "Euclidean_Algorithm.gcd" "Euclidean_Algorithm.lcm"
+    "Euclidean_Algorithm.Gcd" "Euclidean_Algorithm.Lcm"
+    divide plus minus normalize unit_factor
+    rewrites "dvd.dvd op * = Rings.dvd"
+    by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
+  show [simp]: "(Euclidean_Algorithm.gcd :: int \<Rightarrow> _) = gcd"
+  proof (rule ext)+
+    fix k l :: int
+    show "Euclidean_Algorithm.gcd k l = gcd k l"
+    proof (induct k l rule: eucl_induct)
+      case zero
+      then show ?case
+        by simp
+    next
+      case (mod k l)
+      have "gcd l (k mod l) = gcd l k"
+      proof (cases l "0::int" rule: linorder_cases)
+        case less
+        then show ?thesis
+          using gcd_non_0_int [of "- l" "- k"] by (simp add: ac_simps)
+      next
+        case equal
+        with mod show ?thesis
+          by simp
+      next
+        case greater
+        then show ?thesis
+          using gcd_non_0_int [of l k] by (simp add: ac_simps)
+      qed
+      with mod show ?case
+        by (simp add: Euclidean_Algorithm.gcd_mod ac_simps)
+    qed
+  qed
+  show [simp]: "(Euclidean_Algorithm.Lcm :: int set \<Rightarrow> _) = Lcm"
+    by (auto intro!: ext Lcm_eqI)
+  show "(Euclidean_Algorithm.lcm :: int \<Rightarrow> _) = lcm"
+    by (simp add: fun_eq_iff Euclidean_Algorithm.lcm_def semiring_gcd_class.lcm_gcd)
+  show "(Euclidean_Algorithm.Gcd :: int set \<Rightarrow> _) = Gcd"
+    by (simp add: fun_eq_iff Euclidean_Algorithm.Gcd_def semiring_Gcd_class.Gcd_Lcm)
 qed
 
 end

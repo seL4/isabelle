@@ -43,13 +43,13 @@ instantiation real :: euclidean_ring_gcd
 begin
 
 definition gcd_real :: "real \<Rightarrow> real \<Rightarrow> real" where
-  "gcd_real = gcd_eucl"
+  "gcd_real = Euclidean_Algorithm.gcd"
 definition lcm_real :: "real \<Rightarrow> real \<Rightarrow> real" where
-  "lcm_real = lcm_eucl"
+  "lcm_real = Euclidean_Algorithm.lcm"
 definition Gcd_real :: "real set \<Rightarrow> real" where
- "Gcd_real = Gcd_eucl"
+ "Gcd_real = Euclidean_Algorithm.Gcd"
 definition Lcm_real :: "real set \<Rightarrow> real" where
- "Lcm_real = Lcm_eucl"
+ "Lcm_real = Euclidean_Algorithm.Lcm"
 
 instance by standard (simp_all add: gcd_real_def lcm_real_def Gcd_real_def Lcm_real_def)
 
@@ -74,13 +74,13 @@ instantiation rat :: euclidean_ring_gcd
 begin
 
 definition gcd_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat" where
-  "gcd_rat = gcd_eucl"
+  "gcd_rat = Euclidean_Algorithm.gcd"
 definition lcm_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat" where
-  "lcm_rat = lcm_eucl"
+  "lcm_rat = Euclidean_Algorithm.lcm"
 definition Gcd_rat :: "rat set \<Rightarrow> rat" where
- "Gcd_rat = Gcd_eucl"
+ "Gcd_rat = Euclidean_Algorithm.Gcd"
 definition Lcm_rat :: "rat set \<Rightarrow> rat" where
- "Lcm_rat = Lcm_eucl"
+ "Lcm_rat = Euclidean_Algorithm.Lcm"
 
 instance by standard (simp_all add: gcd_rat_def lcm_rat_def Gcd_rat_def Lcm_rat_def)
 
@@ -105,13 +105,13 @@ instantiation complex :: euclidean_ring_gcd
 begin
 
 definition gcd_complex :: "complex \<Rightarrow> complex \<Rightarrow> complex" where
-  "gcd_complex = gcd_eucl"
+  "gcd_complex = Euclidean_Algorithm.gcd"
 definition lcm_complex :: "complex \<Rightarrow> complex \<Rightarrow> complex" where
-  "lcm_complex = lcm_eucl"
+  "lcm_complex = Euclidean_Algorithm.lcm"
 definition Gcd_complex :: "complex set \<Rightarrow> complex" where
- "Gcd_complex = Gcd_eucl"
+ "Gcd_complex = Euclidean_Algorithm.Gcd"
 definition Lcm_complex :: "complex set \<Rightarrow> complex" where
- "Lcm_complex = Lcm_eucl"
+ "Lcm_complex = Euclidean_Algorithm.Lcm"
 
 instance by standard (simp_all add: gcd_complex_def lcm_complex_def Gcd_complex_def Lcm_complex_def)
 
