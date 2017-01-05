@@ -119,7 +119,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
   }
 
-  def node_perspective(hidden: Boolean, doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
+  def node_perspective(hidden: Boolean, doc_blobs: Document.Blobs)
+    : (Boolean, Document.Node.Perspective_Text) =
   {
     GUI_Thread.require {}
 
@@ -132,17 +133,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           range <- doc_view.perspective(snapshot).ranges
         } yield range
 
-      val load_ranges =
-        for {
-          cmd <- snapshot.node.load_commands
-          blob_name <- cmd.blobs_names
-          blob_buffer <- JEdit_Lib.jedit_buffer(blob_name)
-          if JEdit_Lib.jedit_text_areas(blob_buffer).nonEmpty
-          start <- snapshot.node.command_start(cmd)
-          range = snapshot.convert(cmd.proper_range + start)
-        } yield range
-
-      val reparse = snapshot.node.load_commands.exists(_.blobs_changed(doc_blobs))
+      val load_ranges = snapshot.commands_loading_ranges(PIDE.editor.visible_node(_))
+      val reparse = snapshot.node.load_commands_changed(doc_blobs)
 
       (reparse,
         Document.Node.Perspective(node_required,
