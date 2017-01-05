@@ -136,6 +136,12 @@ object Line
       else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
 
     def full_range: Text.Range = Text.Range(0, length)
+
+    lazy val blob: (Bytes, Symbol.Text_Chunk) =
+    {
+      val text = make_text
+      (Bytes(text), Symbol.Text_Chunk(text))
+    }
   }
 
 

@@ -110,13 +110,16 @@ class Server(
 
   /* input from client or file-system */
 
-  private val delay_input =
+  private val delay_input: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
     { resources.flush_input(session) }
 
-  private val delay_load =
-    Standard_Thread.delay_last(options.seconds("vscode_load_delay"))
-    { if (resources.resolve_dependencies(session, watcher)) delay_input.invoke() }
+  private val delay_load: Standard_Thread.Delay =
+    Standard_Thread.delay_last(options.seconds("vscode_load_delay")) {
+      val (invoke_input, invoke_load) = resources.resolve_dependencies(session, watcher)
+      if (invoke_input) delay_input.invoke()
+      if (invoke_load) delay_load.invoke
+    }
 
   private val watcher =
     File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
@@ -201,7 +204,8 @@ class Server(
           new VSCode_Resources(options, text_length, content.loaded_theories,
               content.known_theories, content.syntax, log) {
             override def commit(change: Session.Change): Unit =
-              if (change.deps_changed) delay_load.invoke()
+              if (change.deps_changed || undefined_blobs(change.version.nodes).nonEmpty)
+                delay_load.invoke()
           }
 
         Some(new Session(resources) {
