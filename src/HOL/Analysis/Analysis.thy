@@ -12,6 +12,7 @@ imports
   Weierstrass_Theorems
   Polytope
   Further_Topology
+  Arcwise_Connected
   Poly_Roots
   Conformal_Mappings
   Generalised_Binomial_Theorem

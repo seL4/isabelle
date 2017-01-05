@@ -3042,6 +3042,67 @@ lemma not_simply_connected_circle:
   shows "0 < r \<Longrightarrow> \<not> simply_connected(sphere a r)"
 by (simp add: simply_connected_sphere_eq)
 
+  
+proposition simply_connected_punctured_convex:
+  fixes a :: "'a::euclidean_space"
+  assumes "convex S" and 3: "3 \<le> aff_dim S"
+    shows "simply_connected(S - {a})"
+proof (cases "a \<in> rel_interior S")
+  case True
+  then obtain e where "a \<in> S" "0 < e" and e: "cball a e \<inter> affine hull S \<subseteq> S"
+    by (auto simp: rel_interior_cball)
+  have con: "convex (cball a e \<inter> affine hull S)"
+    by (simp add: convex_Int)
+  have bo: "bounded (cball a e \<inter> affine hull S)"
+    by (simp add: bounded_Int)
+  have "affine hull S \<inter> interior (cball a e) \<noteq> {}"
+    using \<open>0 < e\<close> \<open>a \<in> S\<close> hull_subset by fastforce
+  then have "3 \<le> aff_dim (affine hull S \<inter> cball a e)"
+    by (simp add: 3 aff_dim_convex_Int_nonempty_interior [OF convex_affine_hull])
+  also have "... = aff_dim (cball a e \<inter> affine hull S)"
+    by (simp add: Int_commute)
+  finally have "3 \<le> aff_dim (cball a e \<inter> affine hull S)" .
+  moreover have "rel_frontier (cball a e \<inter> affine hull S) homotopy_eqv S - {a}"
+  proof (rule homotopy_eqv_rel_frontier_punctured_convex)
+    show "a \<in> rel_interior (cball a e \<inter> affine hull S)"
+      by (meson IntI Int_mono \<open>a \<in> S\<close> \<open>0 < e\<close> e \<open>cball a e \<inter> affine hull S \<subseteq> S\<close> ball_subset_cball centre_in_cball dual_order.strict_implies_order hull_inc hull_mono mem_rel_interior_ball)
+    have "closed (cball a e \<inter> affine hull S)"
+      by blast
+    then show "rel_frontier (cball a e \<inter> affine hull S) \<subseteq> S"
+      apply (simp add: rel_frontier_def)
+      using e by blast
+    show "S \<subseteq> affine hull (cball a e \<inter> affine hull S)"
+      by (metis (no_types, lifting) IntI \<open>a \<in> S\<close> \<open>0 < e\<close> affine_hull_convex_Int_nonempty_interior centre_in_ball convex_affine_hull empty_iff hull_subset inf_commute interior_cball subsetCE subsetI)
+    qed (auto simp: assms con bo)
+  ultimately show ?thesis
+    using homotopy_eqv_simple_connectedness simply_connected_sphere_gen [OF con bo]
+    by blast
+next
+  case False
+  show ?thesis
+    apply (rule contractible_imp_simply_connected)
+    apply (rule contractible_convex_tweak_boundary_points [OF \<open>convex S\<close>])
+     apply (simp add: False rel_interior_subset subset_Diff_insert)
+    by (meson Diff_subset closure_subset subset_trans)
+qed
+
+corollary simply_connected_punctured_universe:
+  fixes a :: "'a::euclidean_space"
+  assumes "3 \<le> DIM('a)"
+  shows "simply_connected(- {a})"
+proof -
+  have [simp]: "affine hull cball a 1 = UNIV"
+    apply auto
+    by (metis UNIV_I aff_dim_cball aff_dim_lt_full zero_less_one not_less_iff_gr_or_eq)
+  have "simply_connected (rel_frontier (cball a 1)) = simply_connected (affine hull cball a 1 - {a})"
+    apply (rule homotopy_eqv_simple_connectedness)
+    apply (rule homotopy_eqv_rel_frontier_punctured_affine_hull)
+      apply (force simp: rel_interior_cball intro: homotopy_eqv_simple_connectedness homotopy_eqv_rel_frontier_punctured_affine_hull)+
+    done
+  then show ?thesis
+    using simply_connected_sphere [of a 1, OF assms] by (auto simp: Compl_eq_Diff_UNIV)
+qed
+
 
 subsection\<open>The power, squaring and exponential functions as covering maps\<close>
 

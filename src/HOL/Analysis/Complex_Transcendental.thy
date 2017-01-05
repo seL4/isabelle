@@ -3559,4 +3559,70 @@ corollary homotopy_eqv_simple_connectedness:
   shows "S homotopy_eqv T \<Longrightarrow> simply_connected S \<longleftrightarrow> simply_connected T"
   by (simp add: simply_connected_eq_homotopic_circlemaps homotopy_eqv_homotopic_triviality)
 
+
+subsection\<open>Homeomorphism of simple closed curves to circles\<close>
+
+proposition homeomorphic_simple_path_image_circle:
+  fixes a :: complex and \<gamma> :: "real \<Rightarrow> 'a::t2_space"
+  assumes "simple_path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and "0 < r"
+  shows "(path_image \<gamma>) homeomorphic sphere a r"
+proof -
+  have "homotopic_loops (path_image \<gamma>) \<gamma> \<gamma>"
+    by (simp add: assms homotopic_loops_refl simple_path_imp_path)
+  then have hom: "homotopic_with (\<lambda>h. True) (sphere 0 1) (path_image \<gamma>)
+               (\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi))) (\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi)))"
+    by (rule homotopic_loops_imp_homotopic_circlemaps)
+  have "\<exists>g. homeomorphism (sphere 0 1) (path_image \<gamma>) (\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi))) g"
+  proof (rule homeomorphism_compact)
+    show "continuous_on (sphere 0 1) (\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi)))"
+      using hom homotopic_with_imp_continuous by blast
+    show "inj_on (\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi))) (sphere 0 1)"
+    proof
+      fix x y
+      assume xy: "x \<in> sphere 0 1" "y \<in> sphere 0 1"
+         and eq: "(\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi))) x = (\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi))) y"
+      then have "(Arg x / (2*pi)) = (Arg y / (2*pi))"
+      proof -
+        have "(Arg x / (2*pi)) \<in> {0..1}" "(Arg y / (2*pi)) \<in> {0..1}"
+          using Arg_ge_0 Arg_lt_2pi dual_order.strict_iff_order by fastforce+
+        with eq show ?thesis
+          using \<open>simple_path \<gamma>\<close> Arg_lt_2pi unfolding simple_path_def o_def
+          by (metis eq_divide_eq_1 not_less_iff_gr_or_eq)
+      qed
+      with xy show "x = y"
+        by (metis Arg Arg_0 dist_0_norm divide_cancel_right dual_order.strict_iff_order mem_sphere)
+    qed
+    have "\<And>z. cmod z = 1 \<Longrightarrow> \<exists>x\<in>{0..1}. \<gamma> (Arg z / (2*pi)) = \<gamma> x"
+       by (metis Arg_ge_0 Arg_lt_2pi atLeastAtMost_iff divide_less_eq_1 less_eq_real_def zero_less_mult_iff pi_gt_zero zero_le_divide_iff zero_less_numeral)
+     moreover have "\<exists>z\<in>sphere 0 1. \<gamma> x = \<gamma> (Arg z / (2*pi))" if "0 \<le> x" "x \<le> 1" for x
+     proof (cases "x=1")
+       case True
+       then show ?thesis
+         apply (rule_tac x=1 in bexI)
+         apply (metis loop Arg_of_real divide_eq_0_iff of_real_1 pathfinish_def pathstart_def \<open>0 \<le> x\<close>, auto)
+         done
+     next
+       case False
+       then have *: "(Arg (exp (\<i>*(2* of_real pi* of_real x))) / (2*pi)) = x"
+         using that by (auto simp: Arg_exp divide_simps)
+       show ?thesis
+         by (rule_tac x="exp(ii* of_real(2*pi*x))" in bexI) (auto simp: *)
+    qed
+    ultimately show "(\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi))) ` sphere 0 1 = path_image \<gamma>"
+      by (auto simp: path_image_def image_iff)
+    qed auto
+    then have "path_image \<gamma> homeomorphic sphere (0::complex) 1"
+      using homeomorphic_def homeomorphic_sym by blast
+  also have "... homeomorphic sphere a r"
+    by (simp add: assms homeomorphic_spheres)
+  finally show ?thesis .
+qed
+
+lemma homeomorphic_simple_path_images:
+  fixes \<gamma>1 :: "real \<Rightarrow> 'a::t2_space" and \<gamma>2 :: "real \<Rightarrow> 'b::t2_space"
+  assumes "simple_path \<gamma>1" and loop: "pathfinish \<gamma>1 = pathstart \<gamma>1"
+  assumes "simple_path \<gamma>2" and loop: "pathfinish \<gamma>2 = pathstart \<gamma>2"
+  shows "(path_image \<gamma>1) homeomorphic (path_image \<gamma>2)"
+  by (meson assms homeomorphic_simple_path_image_circle homeomorphic_sym homeomorphic_trans loop pi_gt_zero)
+
 end

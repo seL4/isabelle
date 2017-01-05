@@ -5302,6 +5302,106 @@ next
     using compact_eq_bounded_closed locally_mono by blast
 qed
 
+lemma locally_compact_openin_Un:
+  fixes S :: "'a::euclidean_space set"
+  assumes LCS: "locally compact S" and LCT:"locally compact T"
+      and opS: "openin (subtopology euclidean (S \<union> T)) S"
+      and opT: "openin (subtopology euclidean (S \<union> T)) T"
+    shows "locally compact (S \<union> T)"
+proof -
+  have "\<exists>e>0. closed (cball x e \<inter> (S \<union> T))" if "x \<in> S" for x
+  proof -
+    obtain e1 where "e1 > 0" and e1: "closed (cball x e1 \<inter> S)"
+      using LCS \<open>x \<in> S\<close> unfolding locally_compact_Int_cball by blast
+    moreover obtain e2 where "e2 > 0" and e2: "cball x e2 \<inter> (S \<union> T) \<subseteq> S"
+      by (meson \<open>x \<in> S\<close> opS openin_contains_cball)
+    then have "cball x e2 \<inter> (S \<union> T) = cball x e2 \<inter> S"
+      by force
+    ultimately show ?thesis
+      apply (rule_tac x="min e1 e2" in exI)
+      apply (auto simp: cball_min_Int \<open>e2 > 0\<close> inf_assoc closed_Int)
+      by (metis closed_Int closed_cball inf_left_commute)
+  qed
+  moreover have "\<exists>e>0. closed (cball x e \<inter> (S \<union> T))" if "x \<in> T" for x
+  proof -
+    obtain e1 where "e1 > 0" and e1: "closed (cball x e1 \<inter> T)"
+      using LCT \<open>x \<in> T\<close> unfolding locally_compact_Int_cball by blast
+    moreover obtain e2 where "e2 > 0" and e2: "cball x e2 \<inter> (S \<union> T) \<subseteq> T"
+      by (meson \<open>x \<in> T\<close> opT openin_contains_cball)
+    then have "cball x e2 \<inter> (S \<union> T) = cball x e2 \<inter> T"
+      by force
+    ultimately show ?thesis
+      apply (rule_tac x="min e1 e2" in exI)
+      apply (auto simp: cball_min_Int \<open>e2 > 0\<close> inf_assoc closed_Int)
+      by (metis closed_Int closed_cball inf_left_commute)
+  qed
+  ultimately show ?thesis
+    by (force simp: locally_compact_Int_cball)
+qed
+
+lemma locally_compact_closedin_Un:
+  fixes S :: "'a::euclidean_space set"
+  assumes LCS: "locally compact S" and LCT:"locally compact T"
+      and clS: "closedin (subtopology euclidean (S \<union> T)) S"
+      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+    shows "locally compact (S \<union> T)"
+proof -
+  have "\<exists>e>0. closed (cball x e \<inter> (S \<union> T))" if "x \<in> S" "x \<in> T" for x
+  proof -
+    obtain e1 where "e1 > 0" and e1: "closed (cball x e1 \<inter> S)"
+      using LCS \<open>x \<in> S\<close> unfolding locally_compact_Int_cball by blast
+    moreover
+    obtain e2 where "e2 > 0" and e2: "closed (cball x e2 \<inter> T)"
+      using LCT \<open>x \<in> T\<close> unfolding locally_compact_Int_cball by blast
+    ultimately show ?thesis
+      apply (rule_tac x="min e1 e2" in exI)
+      apply (auto simp: cball_min_Int \<open>e2 > 0\<close> inf_assoc closed_Int Int_Un_distrib)
+      by (metis closed_Int closed_Un closed_cball inf_left_commute)
+  qed
+  moreover
+  have "\<exists>e>0. closed (cball x e \<inter> (S \<union> T))" if x: "x \<in> S" "x \<notin> T" for x
+  proof -
+    obtain e1 where "e1 > 0" and e1: "closed (cball x e1 \<inter> S)"
+      using LCS \<open>x \<in> S\<close> unfolding locally_compact_Int_cball by blast
+    moreover
+    obtain e2 where "e2>0" and "cball x e2 \<inter> (S \<union> T) \<subseteq> S - T"
+      using clT x by (fastforce simp: openin_contains_cball closedin_def)
+    then have "closed (cball x e2 \<inter> T)"
+    proof -
+      have "{} = T - (T - cball x e2)"
+        using Diff_subset Int_Diff \<open>cball x e2 \<inter> (S \<union> T) \<subseteq> S - T\<close> by auto
+      then show ?thesis
+        by (simp add: Diff_Diff_Int inf_commute)
+    qed
+    ultimately show ?thesis
+      apply (rule_tac x="min e1 e2" in exI)
+      apply (auto simp: cball_min_Int \<open>e2 > 0\<close> inf_assoc closed_Int Int_Un_distrib)
+      by (metis closed_Int closed_Un closed_cball inf_left_commute)
+  qed
+  moreover
+  have "\<exists>e>0. closed (cball x e \<inter> (S \<union> T))" if x: "x \<notin> S" "x \<in> T" for x
+  proof -
+    obtain e1 where "e1 > 0" and e1: "closed (cball x e1 \<inter> T)"
+      using LCT \<open>x \<in> T\<close> unfolding locally_compact_Int_cball by blast
+    moreover
+    obtain e2 where "e2>0" and "cball x e2 \<inter> (S \<union> T) \<subseteq> S \<union> T - S"
+      using clS x by (fastforce simp: openin_contains_cball closedin_def)
+    then have "closed (cball x e2 \<inter> S)"
+      by (metis Diff_disjoint Int_empty_right closed_empty inf.left_commute inf.orderE inf_sup_absorb)
+    ultimately show ?thesis
+      apply (rule_tac x="min e1 e2" in exI)
+      apply (auto simp: cball_min_Int \<open>e2 > 0\<close> inf_assoc closed_Int Int_Un_distrib)
+      by (metis closed_Int closed_Un closed_cball inf_left_commute)
+  qed
+  ultimately show ?thesis
+    by (auto simp: locally_compact_Int_cball)
+qed
+
+lemma locally_compact_Times:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  shows "\<lbrakk>locally compact S; locally compact T\<rbrakk> \<Longrightarrow> locally compact (S \<times> T)"
+  by (auto simp: compact_Times locally_Times)
+
 subsection\<open>Important special cases of local connectedness and path connectedness\<close>
 
 lemma locally_connected_1:
