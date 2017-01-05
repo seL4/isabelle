@@ -335,12 +335,12 @@ class Server(
           case Protocol.Initialize(id) => init(id)
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
-          case Protocol.DidOpenTextDocument(uri, lang, version, text) =>
-            update_document(uri, text)
-          case Protocol.DidChangeTextDocument(uri, version, List(Protocol.TextDocumentContent(text))) =>
-            update_document(uri, text)
-          case Protocol.DidCloseTextDocument(uri) =>
-            close_document(uri)
+          case Protocol.DidOpenTextDocument(file, lang, version, text) =>
+            update_document(file, text)
+          case Protocol.DidChangeTextDocument(file, version, List(Protocol.TextDocumentContent(text))) =>
+            update_document(file, text)
+          case Protocol.DidCloseTextDocument(file) =>
+            close_document(file)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
