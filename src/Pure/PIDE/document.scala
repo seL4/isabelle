@@ -348,14 +348,6 @@ object Document
         if name == file_name
       } yield cmd).toList
 
-    def undefined_blobs(pred: Node.Name => Boolean): List[Node.Name] =
-      (for {
-        (node_name, node) <- iterator
-        if pred(node_name)
-        cmd <- node.load_commands.iterator
-        name <- cmd.blobs_undefined.iterator
-      } yield name).toList
-
     def descendants(names: List[Node.Name]): List[Node.Name] = graph.all_succs(names)
     def topological_order: List[Node.Name] = graph.topological_order
 
