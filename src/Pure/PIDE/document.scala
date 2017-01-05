@@ -432,18 +432,18 @@ object Document
 
   abstract class Snapshot
   {
-    val state: State
-    val version: Version
-    val is_outdated: Boolean
+    def state: State
+    def version: Version
+    def is_outdated: Boolean
 
     def convert(i: Text.Offset): Text.Offset
     def revert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
     def revert(range: Text.Range): Text.Range
 
-    val node_name: Node.Name
-    val node: Node
-    val load_commands: List[Command]
+    def node_name: Node.Name
+    def node: Node
+    def load_commands: List[Command]
     def is_loaded: Boolean
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
@@ -755,9 +755,9 @@ object Document
       {
         /* global information */
 
-        val state = State.this
-        val version = stable.version.get_finished
-        val is_outdated = pending_edits.nonEmpty || latest != stable
+        val state: State = State.this
+        val version: Version = stable.version.get_finished
+        val is_outdated: Boolean = pending_edits.nonEmpty || latest != stable
 
 
         /* local node content */
@@ -770,14 +770,14 @@ object Document
         def convert(range: Text.Range) = range.map(convert(_))
         def revert(range: Text.Range) = range.map(revert(_))
 
-        val node_name = name
-        val node = version.nodes(name)
+        val node_name: Node.Name = name
+        def node: Node = version.nodes(name)
 
         val load_commands: List[Command] =
           if (node_name.is_theory) Nil
           else version.nodes.load_commands(node_name)
 
-        val is_loaded: Boolean = node_name.is_theory || load_commands.nonEmpty
+        def is_loaded: Boolean = node_name.is_theory || load_commands.nonEmpty
 
 
         /* find command */
