@@ -8,6 +8,34 @@ theory Homeomorphism
 imports Path_Connected
 begin
 
+lemma homeomorphic_spheres':
+  fixes a ::"'a::euclidean_space" and b ::"'b::euclidean_space"
+  assumes "0 < \<delta>" and dimeq: "DIM('a) = DIM('b)"
+  shows "(sphere a \<delta>) homeomorphic (sphere b \<delta>)"
+proof -
+  obtain f :: "'a\<Rightarrow>'b" and g where "linear f" "linear g"
+     and fg: "\<And>x. norm(f x) = norm x" "\<And>y. norm(g y) = norm y" "\<And>x. g(f x) = x" "\<And>y. f(g y) = y"
+    by (blast intro: isomorphisms_UNIV_UNIV [OF dimeq])
+  then have "continuous_on UNIV f" "continuous_on UNIV g"
+    using linear_continuous_on linear_linear by blast+
+  then show ?thesis
+    unfolding homeomorphic_minimal
+    apply(rule_tac x="\<lambda>x. b + f(x - a)" in exI)
+    apply(rule_tac x="\<lambda>x. a + g(x - b)" in exI)
+    using assms
+    apply (force intro: continuous_intros
+                  continuous_on_compose2 [of _ f] continuous_on_compose2 [of _ g] simp: dist_commute dist_norm fg)
+    done
+qed
+
+lemma homeomorphic_spheres_gen:
+    fixes a :: "'a::euclidean_space" and b :: "'b::euclidean_space"
+  assumes "0 < r" "0 < s" "DIM('a::euclidean_space) = DIM('b::euclidean_space)"
+  shows "(sphere a r homeomorphic sphere b s)"
+  apply (rule homeomorphic_trans [OF homeomorphic_spheres homeomorphic_spheres'])
+  using assms  apply auto
+  done
+
 subsection \<open>Homeomorphism of all convex compact sets with nonempty interior\<close>
 
 proposition ray_to_rel_frontier:

@@ -2021,6 +2021,55 @@ next
     done
 qed
 
+lemma connected_sphere_eq:
+  fixes a :: "'a :: euclidean_space"
+  shows "connected(sphere a r) \<longleftrightarrow> 2 \<le> DIM('a) \<or> r \<le> 0"
+    (is "?lhs = ?rhs")
+proof (cases r "0::real" rule: linorder_cases)
+  case less
+  then show ?thesis by auto
+next
+  case equal
+  then show ?thesis by auto
+next
+  case greater
+  show ?thesis
+  proof
+    assume L: ?lhs
+    have "False" if 1: "DIM('a) = 1"
+    proof -
+      obtain x y where xy: "sphere a r = {x,y}" "x \<noteq> y"
+        using sphere_1D_doubleton [OF 1 greater]
+        by (metis dist_self greater insertI1 less_add_same_cancel1 mem_sphere mult_2 not_le zero_le_dist)
+      then have "finite (sphere a r)"
+        by auto
+      with L \<open>r > 0\<close> show "False"
+        apply (auto simp: connected_finite_iff_sing)
+        using xy by auto
+    qed
+    with greater show ?rhs
+      by (metis DIM_ge_Suc0 One_nat_def Suc_1 le_antisym not_less_eq_eq)
+  next
+    assume ?rhs
+    then show ?lhs
+      using connected_sphere greater by auto
+  qed
+qed
+
+lemma path_connected_sphere_eq:
+  fixes a :: "'a :: euclidean_space"
+  shows "path_connected(sphere a r) \<longleftrightarrow> 2 \<le> DIM('a) \<or> r \<le> 0"
+         (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    using connected_sphere_eq path_connected_imp_connected by blast
+next
+  assume R: ?rhs
+  then show ?lhs
+    by (auto simp: contractible_imp_path_connected contractible_sphere path_connected_sphere)
+qed
+
 proposition frontier_subset_retraction:
   fixes S :: "'a::euclidean_space set"
   assumes "bounded S" and fros: "frontier S \<subseteq> T"
@@ -2073,7 +2122,7 @@ proof (rule ccontr)
   ultimately show False by simp
 qed
 
-subsection\<open>Retractions\<close>
+subsection\<open>More Properties of Retractions\<close>
 
 lemma retraction:
    "retraction s t r \<longleftrightarrow>
@@ -2271,6 +2320,60 @@ lemma retract_of_locally_path_connected:
     shows "locally path_connected S"
   using assms
   by (auto simp: retract_of_def retraction intro!: retraction_imp_quotient_map elim!: locally_path_connected_quotient_image)
+
+subsubsection\<open>A few simple lemmas about deformation retracts\<close>
+
+lemma deformation_retract_imp_homotopy_eqv:
+  fixes S :: "'a::euclidean_space set"
+  assumes "homotopic_with (\<lambda>x. True) S S id r" "retraction S T r"
+    shows "S homotopy_eqv T"
+  apply (simp add: homotopy_eqv_def)
+  apply (rule_tac x=r in exI)
+  using assms apply (simp add: retraction_def)
+  apply (rule_tac x=id in exI)
+  apply (auto simp: continuous_on_id)
+   apply (metis homotopic_with_symD)
+  by (metis continuous_on_id' homotopic_with_equal homotopic_with_symD id_apply image_id subset_refl)
+
+lemma deformation_retract:
+  fixes S :: "'a::euclidean_space set"
+    shows "(\<exists>r. homotopic_with (\<lambda>x. True) S S id r \<and> retraction S T r) \<longleftrightarrow>
+           T retract_of S \<and> (\<exists>f. homotopic_with (\<lambda>x. True) S S id f \<and> f ` S \<subseteq> T)"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    by (auto simp: retract_of_def retraction_def)
+next
+  assume ?rhs
+  then show ?lhs
+    apply (clarsimp simp add: retract_of_def retraction_def)
+    apply (rule_tac x=r in exI, simp)
+     apply (rule homotopic_with_trans, assumption)
+     apply (rule_tac f = "r \<circ> f" and g="r \<circ> id" in homotopic_with_eq)
+        apply (rule_tac Y=S in homotopic_compose_continuous_left)
+         apply (auto simp: homotopic_with_sym)
+    done
+qed
+
+lemma deformation_retract_of_contractible_sing:
+  fixes S :: "'a::euclidean_space set"
+  assumes "contractible S" "a \<in> S"
+  obtains r where "homotopic_with (\<lambda>x. True) S S id r" "retraction S {a} r"
+proof -
+  have "{a} retract_of S"
+    by (simp add: \<open>a \<in> S\<close>)
+  moreover have "homotopic_with (\<lambda>x. True) S S id (\<lambda>x. a)"
+    using assms
+    apply (clarsimp simp add: contractible_def)
+    apply (rule homotopic_with_trans, assumption)
+    by (metis assms(1) contractible_imp_path_connected homotopic_constant_maps homotopic_with_sym homotopic_with_trans insert_absorb insert_not_empty path_component_mem(1) path_connected_component)
+  moreover have "(\<lambda>x. a) ` S \<subseteq> {a}"
+    by (simp add: image_subsetI)
+  ultimately show ?thesis
+    using that deformation_retract  by metis
+qed
+
 
 subsection\<open>Punctured affine hulls, etc.\<close>
 
@@ -2492,6 +2595,23 @@ corollary rel_boundary_retract_of_punctured_affine_hull:
     shows "(S - rel_interior S) retract_of (affine hull S - {a})"
 by (metis assms closure_closed compact_eq_bounded_closed rel_frontier_def
           rel_frontier_retract_of_punctured_affine_hull)
+
+lemma homotopy_eqv_rel_frontier_punctured_convex:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "bounded S" "a \<in> rel_interior S" "convex T" "rel_frontier S \<subseteq> T" "T \<subseteq> affine hull S"
+  shows "(rel_frontier S) homotopy_eqv (T - {a})"
+  apply (rule rel_frontier_deformation_retract_of_punctured_convex [of S T])
+  using assms
+  apply auto
+  apply (subst homotopy_eqv_sym)
+  using deformation_retract_imp_homotopy_eqv by blast
+
+lemma homotopy_eqv_rel_frontier_punctured_affine_hull:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "bounded S" "a \<in> rel_interior S"
+    shows "(rel_frontier S) homotopy_eqv (affine hull S - {a})"
+apply (rule homotopy_eqv_rel_frontier_punctured_convex)
+  using assms rel_frontier_affine_hull  by force+
 
 lemma path_connected_sphere_gen:
   assumes "convex S" "bounded S" "aff_dim S \<noteq> 1"

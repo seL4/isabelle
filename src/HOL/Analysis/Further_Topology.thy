@@ -2976,6 +2976,72 @@ next
     by (simp add: aff_dim_cball)
 qed
 
+lemma simply_connected_sphere_eq:
+  fixes a :: "'a::euclidean_space"
+  shows "simply_connected(sphere a r) \<longleftrightarrow> 3 \<le> DIM('a) \<or> r \<le> 0"  (is "?lhs = ?rhs")
+proof (cases "r \<le> 0")
+  case True
+  have "simply_connected (sphere a r)"
+    apply (rule convex_imp_simply_connected)
+    using True less_eq_real_def by auto
+  with True show ?thesis by auto
+next
+  case False
+  show ?thesis
+  proof
+    assume L: ?lhs
+    have "False" if "DIM('a) = 1 \<or> DIM('a) = 2"
+      using that
+    proof
+      assume "DIM('a) = 1"
+      with L show False
+        using connected_sphere_eq simply_connected_imp_connected
+        by (metis False Suc_1 not_less_eq_eq order_refl)
+    next
+      assume "DIM('a) = 2"
+      then have "sphere a r homeomorphic sphere (0::complex) 1"
+        by (metis DIM_complex False homeomorphic_spheres_gen not_less zero_less_one)
+      then have "simply_connected(sphere (0::complex) 1)"
+        using L homeomorphic_simply_connected_eq by blast
+      then obtain a::complex where "homotopic_with (\<lambda>h. True) (sphere 0 1) (sphere 0 1) id (\<lambda>x. a)"
+        apply (simp add: simply_connected_eq_contractible_circlemap)
+        by (metis continuous_on_id' id_apply image_id subset_refl)
+      then show False
+        using contractible_sphere contractible_def not_one_le_zero by blast
+    qed
+    with False show ?rhs
+      apply simp
+      by (metis DIM_ge_Suc0 le_antisym not_less_eq_eq numeral_2_eq_2 numeral_3_eq_3)
+  next
+    assume ?rhs
+    with False show ?lhs by (simp add: simply_connected_sphere)
+  qed
+qed
+
+
+lemma simply_connected_punctured_universe_eq:
+  fixes a :: "'a::euclidean_space"
+  shows "simply_connected(- {a}) \<longleftrightarrow> 3 \<le> DIM('a)"
+proof -
+  have [simp]: "a \<in> rel_interior (cball a 1)"
+    by (simp add: rel_interior_nonempty_interior)
+  have [simp]: "affine hull cball a 1 - {a} = -{a}"
+    by (metis Compl_eq_Diff_UNIV aff_dim_cball aff_dim_lt_full not_less_iff_gr_or_eq zero_less_one)
+  have "simply_connected(- {a}) \<longleftrightarrow> simply_connected(sphere a 1)"
+    apply (rule sym)
+    apply (rule homotopy_eqv_simple_connectedness)
+    using homotopy_eqv_rel_frontier_punctured_affine_hull [of "cball a 1" a] apply auto
+    done
+  also have "...  \<longleftrightarrow> 3 \<le> DIM('a)"
+    by (simp add: simply_connected_sphere_eq)
+  finally show ?thesis .
+qed
+
+lemma not_simply_connected_circle:
+  fixes a :: complex
+  shows "0 < r \<Longrightarrow> \<not> simply_connected(sphere a r)"
+by (simp add: simply_connected_sphere_eq)
+
 
 subsection\<open>The power, squaring and exponential functions as covering maps\<close>
 
