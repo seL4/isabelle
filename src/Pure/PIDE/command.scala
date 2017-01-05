@@ -36,6 +36,7 @@ object Command
 
   final class Results private(private val rep: SortedMap[Long, XML.Tree])
   {
+    def is_empty: Boolean = rep.isEmpty
     def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
     def get(serial: Long): Option[XML.Tree] = rep.get(serial)
     def iterator: Iterator[Results.Entry] = rep.iterator

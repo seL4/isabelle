@@ -53,7 +53,7 @@ class VSCode_Rendering(
         if body.nonEmpty => Some(res + (i -> msg))
 
         case _ => None
-      })
+      }).filterNot(info => info.info.is_empty)
 
   val diagnostics_margin = options.int("vscode_diagnostics_margin")
 
