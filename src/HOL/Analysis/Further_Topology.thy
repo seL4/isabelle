@@ -1134,11 +1134,6 @@ subsection\<open>Extending maps to spheres\<close>
 
 (*Up to extend_map_affine_to_sphere_cofinite_gen*)
 
-lemma closedin_closed_subset:
- "\<lbrakk>closedin (subtopology euclidean U) V; T \<subseteq> U; S = V \<inter> T\<rbrakk>
-             \<Longrightarrow> closedin (subtopology euclidean T) S"
-  by (metis (no_types, lifting) Int_assoc Int_commute closedin_closed inf.orderE)
-
 lemma extend_map_affine_to_sphere1:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::topological_space"
   assumes "finite K" "affine U" and contf: "continuous_on (U - K) f"

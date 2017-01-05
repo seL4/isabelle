@@ -1388,4 +1388,127 @@ proposition covering_space_lift_unique:
    shows "g1 x = g2 x"
 using covering_space_lift_unique_gen [of c p S] in_components_self assms ex_in_conv by blast
 
+
+lemma covering_space_locally:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes loc: "locally \<phi> C" and cov: "covering_space C p S"
+      and pim: "\<And>T. \<lbrakk>T \<subseteq> C; \<phi> T\<rbrakk> \<Longrightarrow> \<psi>(p ` T)"
+    shows "locally \<psi> S"
+proof -
+  have "locally \<psi> (p ` C)"
+    apply (rule locally_open_map_image [OF loc])
+    using cov covering_space_imp_continuous apply blast
+    using cov covering_space_imp_surjective covering_space_open_map apply blast
+    by (simp add: pim)
+  then show ?thesis
+    using covering_space_imp_surjective [OF cov] by metis
+qed
+
+
+proposition covering_space_locally_eq:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes cov: "covering_space C p S"
+      and pim: "\<And>T. \<lbrakk>T \<subseteq> C; \<phi> T\<rbrakk> \<Longrightarrow> \<psi>(p ` T)"
+      and qim: "\<And>q U. \<lbrakk>U \<subseteq> S; continuous_on U q; \<psi> U\<rbrakk> \<Longrightarrow> \<phi>(q ` U)"
+    shows "locally \<psi> S \<longleftrightarrow> locally \<phi> C"
+         (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  show ?rhs
+  proof (rule locallyI)
+    fix V x
+    assume V: "openin (subtopology euclidean C) V" and "x \<in> V"
+    have "p x \<in> p ` C"
+      by (metis IntE V \<open>x \<in> V\<close> imageI openin_open)
+    then obtain T \<V> where "p x \<in> T"
+                      and opeT: "openin (subtopology euclidean S) T"
+                      and veq: "\<Union>\<V> = {x \<in> C. p x \<in> T}"
+                      and ope: "\<forall>U\<in>\<V>. openin (subtopology euclidean C) U"
+                      and hom: "\<forall>U\<in>\<V>. \<exists>q. homeomorphism U T p q"
+      using cov unfolding covering_space_def by (blast intro: that)
+    have "x \<in> \<Union>\<V>"
+      using V veq \<open>p x \<in> T\<close> \<open>x \<in> V\<close> openin_imp_subset by fastforce
+    then obtain U where "x \<in> U" "U \<in> \<V>"
+      by blast
+    then obtain q where opeU: "openin (subtopology euclidean C) U" and q: "homeomorphism U T p q"
+      using ope hom by blast
+    with V have "openin (subtopology euclidean C) (U \<inter> V)"
+      by blast
+    then have UV: "openin (subtopology euclidean S) (p ` (U \<inter> V))"
+      using cov covering_space_open_map by blast
+    obtain W W' where opeW: "openin (subtopology euclidean S) W" and "\<psi> W'" "p x \<in> W" "W \<subseteq> W'" and W'sub: "W' \<subseteq> p ` (U \<inter> V)"
+      using locallyE [OF L UV] \<open>x \<in> U\<close> \<open>x \<in> V\<close> by blast
+    then have "W \<subseteq> T"
+      by (metis Int_lower1 q homeomorphism_image1 image_Int_subset order_trans)
+    show "\<exists>U Z. openin (subtopology euclidean C) U \<and>
+                 \<phi> Z \<and> x \<in> U \<and> U \<subseteq> Z \<and> Z \<subseteq> V"
+    proof (intro exI conjI)
+      have "openin (subtopology euclidean T) W"
+        by (meson opeW opeT openin_imp_subset openin_subset_trans \<open>W \<subseteq> T\<close>)
+      then have "openin (subtopology euclidean U) (q ` W)"
+        by (meson homeomorphism_imp_open_map homeomorphism_symD q)
+      then show "openin (subtopology euclidean C) (q ` W)"
+        using opeU openin_trans by blast
+      show "\<phi> (q ` W')"
+        by (metis (mono_tags, lifting) Int_subset_iff UV W'sub \<open>\<psi> W'\<close> continuous_on_subset dual_order.trans homeomorphism_def image_Int_subset openin_imp_subset q qim)
+      show "x \<in> q ` W"
+        by (metis \<open>p x \<in> W\<close> \<open>x \<in> U\<close> homeomorphism_def imageI q)
+      show "q ` W \<subseteq> q ` W'"
+        using \<open>W \<subseteq> W'\<close> by blast
+      have "W' \<subseteq> p ` V"
+        using W'sub by blast
+      then show "q ` W' \<subseteq> V"
+        using W'sub homeomorphism_apply1 [OF q] by auto
+      qed
+  qed
+next
+  assume ?rhs
+  then show ?lhs
+    using cov covering_space_locally pim by blast
+qed
+
+lemma covering_space_locally_compact_eq:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "covering_space C p S"
+  shows "locally compact S \<longleftrightarrow> locally compact C"
+  apply (rule covering_space_locally_eq [OF assms])
+   apply (meson assms compact_continuous_image continuous_on_subset covering_space_imp_continuous)
+  using compact_continuous_image by blast
+
+lemma covering_space_locally_connected_eq:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "covering_space C p S"
+    shows "locally connected S \<longleftrightarrow> locally connected C"
+  apply (rule covering_space_locally_eq [OF assms])
+   apply (meson connected_continuous_image assms continuous_on_subset covering_space_imp_continuous)
+  using connected_continuous_image by blast
+
+lemma covering_space_locally_path_connected_eq:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "covering_space C p S"
+    shows "locally path_connected S \<longleftrightarrow> locally path_connected C"
+  apply (rule covering_space_locally_eq [OF assms])
+   apply (meson path_connected_continuous_image assms continuous_on_subset covering_space_imp_continuous)
+  using path_connected_continuous_image by blast
+
+
+lemma covering_space_locally_compact:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "locally compact C" "covering_space C p S"
+  shows "locally compact S"
+  using assms covering_space_locally_compact_eq by blast
+
+
+lemma covering_space_locally_connected:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "locally connected C" "covering_space C p S"
+  shows "locally connected S"
+  using assms covering_space_locally_connected_eq by blast
+
+lemma covering_space_locally_path_connected:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "locally path_connected C" "covering_space C p S"
+  shows "locally path_connected S"
+  using assms covering_space_locally_path_connected_eq by blast
+
 end

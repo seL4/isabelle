@@ -4051,7 +4051,6 @@ lemma AR_Times:
   assumes "AR S" "AR T" shows "AR(S \<times> T)"
 using assms by (simp add: AR_ANR ANR_Times contractible_Times)
 
-
 lemma ENR_rel_frontier_convex:
   fixes S :: "'a::euclidean_space set"
   assumes "bounded S" "convex S"
@@ -4092,6 +4091,297 @@ lemma ANR_rel_frontier_convex:
   assumes "bounded S" "convex S"
     shows "ANR(rel_frontier S)"
 by (simp add: ENR_imp_ANR ENR_rel_frontier_convex assms)
+    
+lemma ENR_closedin_Un_local:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>ENR S; ENR T; ENR(S \<inter> T);
+          closedin (subtopology euclidean (S \<union> T)) S; closedin (subtopology euclidean (S \<union> T)) T\<rbrakk>
+        \<Longrightarrow> ENR(S \<union> T)"
+by (simp add: ENR_ANR ANR_closed_Un_local locally_compact_closedin_Un)
+
+lemma ENR_closed_Un:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>closed S; closed T; ENR S; ENR T; ENR(S \<inter> T)\<rbrakk> \<Longrightarrow> ENR(S \<union> T)"
+by (auto simp: closed_subset ENR_closedin_Un_local)
+
+lemma absolute_retract_Un:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>S retract_of UNIV; T retract_of UNIV; (S \<inter> T) retract_of UNIV\<rbrakk>
+         \<Longrightarrow> (S \<union> T) retract_of UNIV"
+  by (meson AR_closed_Un_local_aux closed_subset retract_of_UNIV retract_of_imp_subset)
+
+lemma retract_from_Un_Int:
+  fixes S :: "'a::euclidean_space set"
+  assumes clS: "closedin (subtopology euclidean (S \<union> T)) S"
+      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+      and Un: "(S \<union> T) retract_of U" and Int: "(S \<inter> T) retract_of T"
+    shows "S retract_of U"
+proof -
+  obtain r where r: "continuous_on T r" "r ` T \<subseteq> S \<inter> T" "\<forall>x\<in>S \<inter> T. r x = x"
+    using Int by (auto simp: retraction_def retract_of_def)
+  have "S retract_of S \<union> T"
+    unfolding retraction_def retract_of_def
+  proof (intro exI conjI)
+    show "continuous_on (S \<union> T) (\<lambda>x. if x \<in> S then x else r x)"
+      apply (rule continuous_on_cases_local [OF clS clT])
+      using r by (auto simp: continuous_on_id)
+  qed (use r in auto)
+  also have "... retract_of U"
+    by (rule Un)
+  finally show ?thesis .
+qed
+
+lemma AR_from_Un_Int_local:
+  fixes S :: "'a::euclidean_space set"
+  assumes clS: "closedin (subtopology euclidean (S \<union> T)) S"
+      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+      and Un: "AR(S \<union> T)" and Int: "AR(S \<inter> T)"
+    shows "AR S"
+  apply (rule AR_retract_of_AR [OF Un])
+  by (meson AR_imp_retract clS clT closedin_closed_subset local.Int retract_from_Un_Int retract_of_refl sup_ge2)
+
+lemma AR_from_Un_Int_local':
+  fixes S :: "'a::euclidean_space set"
+  assumes "closedin (subtopology euclidean (S \<union> T)) S"
+      and "closedin (subtopology euclidean (S \<union> T)) T"
+      and "AR(S \<union> T)" "AR(S \<inter> T)"
+    shows "AR T"
+  using AR_from_Un_Int_local [of T S] assms by (simp add: Un_commute Int_commute)
+
+lemma AR_from_Un_Int:
+  fixes S :: "'a::euclidean_space set"
+  assumes clo: "closed S" "closed T" and Un: "AR(S \<union> T)" and Int: "AR(S \<inter> T)"
+  shows "AR S"
+  by (metis AR_from_Un_Int_local [OF _ _ Un Int] Un_commute clo closed_closedin closedin_closed_subset inf_sup_absorb subtopology_UNIV top_greatest)
+
+lemma ANR_from_Un_Int_local:
+  fixes S :: "'a::euclidean_space set"
+  assumes clS: "closedin (subtopology euclidean (S \<union> T)) S"
+      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+      and Un: "ANR(S \<union> T)" and Int: "ANR(S \<inter> T)"
+    shows "ANR S"
+proof -
+  obtain V where clo: "closedin (subtopology euclidean (S \<union> T)) (S \<inter> T)"
+             and ope: "openin (subtopology euclidean (S \<union> T)) V"
+             and ret: "S \<inter> T retract_of V"
+    using ANR_imp_neighbourhood_retract [OF Int] by (metis clS clT closedin_Int)
+  then obtain r where r: "continuous_on V r" and rim: "r ` V \<subseteq> S \<inter> T" and req: "\<forall>x\<in>S \<inter> T. r x = x"
+    by (auto simp: retraction_def retract_of_def)
+  have Vsub: "V \<subseteq> S \<union> T"
+    by (meson ope openin_contains_cball)
+  have Vsup: "S \<inter> T \<subseteq> V"
+    by (simp add: retract_of_imp_subset ret)
+  then have eq: "S \<union> V = ((S \<union> T) - T) \<union> V"
+    by auto
+  have eq': "S \<union> V = S \<union> (V \<inter> T)"
+    using Vsub by blast
+  have "continuous_on (S \<union> V \<inter> T) (\<lambda>x. if x \<in> S then x else r x)"
+  proof (rule continuous_on_cases_local)
+    show "closedin (subtopology euclidean (S \<union> V \<inter> T)) S"
+      using clS closedin_subset_trans inf.boundedE by blast
+    show "closedin (subtopology euclidean (S \<union> V \<inter> T)) (V \<inter> T)"
+      using clT Vsup by (auto simp: closedin_closed)
+    show "continuous_on (V \<inter> T) r"
+      by (meson Int_lower1 continuous_on_subset r)
+  qed (use req continuous_on_id in auto)
+  with rim have "S retract_of S \<union> V"
+    unfolding retraction_def retract_of_def
+    apply (rule_tac x="\<lambda>x. if x \<in> S then x else r x" in exI)
+    apply (auto simp: eq')
+    done
+  then show ?thesis
+    using ANR_neighborhood_retract [OF Un]
+    using \<open>S \<union> V = S \<union> T - T \<union> V\<close> clT ope by fastforce
+qed
+
+lemma ANR_from_Un_Int:
+  fixes S :: "'a::euclidean_space set"
+  assumes clo: "closed S" "closed T" and Un: "ANR(S \<union> T)" and Int: "ANR(S \<inter> T)"
+  shows "ANR S"
+  by (metis ANR_from_Un_Int_local [OF _ _ Un Int] Un_commute clo closed_closedin closedin_closed_subset inf_sup_absorb subtopology_UNIV top_greatest)
+
+proposition ANR_finite_Union_convex_closed:
+  fixes \<T> :: "'a::euclidean_space set set"
+  assumes \<T>: "finite \<T>" and clo: "\<And>C. C \<in> \<T> \<Longrightarrow> closed C" and con: "\<And>C. C \<in> \<T> \<Longrightarrow> convex C"
+  shows "ANR(\<Union>\<T>)"
+proof -
+  have "ANR(\<Union>\<T>)" if "card \<T> < n" for n
+  using assms that
+  proof (induction n arbitrary: \<T>)
+    case 0 then show ?case by simp
+  next
+    case (Suc n)
+    have "ANR(\<Union>\<U>)" if "finite \<U>" "\<U> \<subseteq> \<T>" for \<U>
+      using that
+    proof (induction \<U>)
+      case empty
+      then show ?case  by simp
+    next
+      case (insert C \<U>)
+      have "ANR (C \<union> \<Union>\<U>)"
+      proof (rule ANR_closed_Un)
+        show "ANR (C \<inter> \<Union>\<U>)"
+          unfolding Int_Union
+        proof (rule Suc)
+          show "finite (op \<inter> C ` \<U>)"
+            by (simp add: insert.hyps(1))
+          show "\<And>Ca. Ca \<in> op \<inter> C ` \<U> \<Longrightarrow> closed Ca"
+            by (metis (no_types, hide_lams) Suc.prems(2) closed_Int subsetD imageE insert.prems insertI1 insertI2)
+          show "\<And>Ca. Ca \<in> op \<inter> C ` \<U> \<Longrightarrow> convex Ca"
+            by (metis (mono_tags, lifting) Suc.prems(3) convex_Int imageE insert.prems insert_subset subsetCE)
+          show "card (op \<inter> C ` \<U>) < n"
+          proof -
+            have "card \<T> \<le> n"
+              by (meson Suc.prems(4) not_less not_less_eq)
+            then show ?thesis
+              by (metis Suc.prems(1) card_image_le card_seteq insert.hyps insert.prems insert_subset le_trans not_less)
+          qed
+        qed
+        show "closed (\<Union>\<U>)"
+          using Suc.prems(2) insert.hyps(1) insert.prems by blast
+      qed (use Suc.prems convex_imp_ANR insert.prems insert.IH in auto)
+      then show ?case
+        by simp
+    qed
+    then show ?case
+      using Suc.prems(1) by blast
+  qed
+  then show ?thesis
+    by blast
+qed
+
+
+lemma finite_imp_ANR:
+  fixes S :: "'a::euclidean_space set"
+  assumes "finite S"
+  shows "ANR S"
+proof -
+  have "ANR(\<Union>x \<in> S. {x})"
+    by (blast intro: ANR_finite_Union_convex_closed assms)
+  then show ?thesis
+    by simp
+qed
+
+lemma ANR_insert:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR S" "closed S"
+  shows "ANR(insert a S)"
+  by (metis ANR_closed_Un ANR_empty ANR_singleton Diff_disjoint Diff_insert_absorb assms closed_singleton insert_absorb insert_is_Un)
+
+lemma ANR_path_component_ANR:
+  fixes S :: "'a::euclidean_space set"
+  shows "ANR S \<Longrightarrow> ANR(path_component_set S x)"
+  using ANR_imp_locally_path_connected ANR_openin openin_path_component_locally_path_connected by blast
+
+lemma ANR_connected_component_ANR:
+  fixes S :: "'a::euclidean_space set"
+  shows "ANR S \<Longrightarrow> ANR(connected_component_set S x)"
+  by (metis ANR_openin openin_connected_component_locally_connected ANR_imp_locally_connected)
+
+lemma ANR_component_ANR:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR S" "c \<in> components S"
+  shows "ANR c"
+  by (metis ANR_connected_component_ANR assms componentsE)
+
+subsection\<open>Original ANR material, now for ENRs.\<close>
+
+lemma ENR_bounded:
+  fixes S :: "'a::euclidean_space set"
+  assumes "bounded S"
+  shows "ENR S \<longleftrightarrow> (\<exists>U. open U \<and> bounded U \<and> S retract_of U)"
+         (is "?lhs = ?rhs")
+proof
+  obtain r where "0 < r" and r: "S \<subseteq> ball 0 r"
+    using bounded_subset_ballD assms by blast
+  assume ?lhs
+  then show ?rhs
+    apply (clarsimp simp: ENR_def)
+    apply (rule_tac x="ball 0 r \<inter> U" in exI, auto)
+    using r retract_of_imp_subset retract_of_subset by fastforce
+next
+  assume ?rhs
+  then show ?lhs
+    using ENR_def by blast
+qed
+
+lemma absolute_retract_imp_AR_gen:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "S retract_of T" "convex T" "T \<noteq> {}" "S homeomorphic S'" "closedin (subtopology euclidean U) S'"
+  shows "S' retract_of U"
+proof -
+  have "AR T"
+    by (simp add: assms convex_imp_AR)
+  then have "AR S"
+    using AR_retract_of_AR assms by auto
+  then show ?thesis
+    using assms AR_imp_absolute_retract by metis
+qed
+
+lemma absolute_retract_imp_AR:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "S retract_of UNIV" "S homeomorphic S'" "closed S'"
+  shows "S' retract_of UNIV"
+  using AR_imp_absolute_retract_UNIV assms retract_of_UNIV by blast
+
+lemma homeomorphic_compact_arness:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "S homeomorphic S'"
+  shows "compact S \<and> S retract_of UNIV \<longleftrightarrow> compact S' \<and> S' retract_of UNIV"
+  using assms homeomorphic_compactness
+  apply auto
+   apply (meson assms compact_AR homeomorphic_AR_iff_AR homeomorphic_compactness)+
+  done
+
+lemma absolute_retract_from_Un_Int:
+  fixes S :: "'a::euclidean_space set"
+  assumes "(S \<union> T) retract_of UNIV" "(S \<inter> T) retract_of UNIV" "closed S" "closed T"
+  shows "S retract_of UNIV"
+  using AR_from_Un_Int assms retract_of_UNIV by auto
+
+lemma ENR_from_Un_Int_gen:
+  fixes S :: "'a::euclidean_space set"
+  assumes "closedin (subtopology euclidean (S \<union> T)) S" "closedin (subtopology euclidean (S \<union> T)) T" "ENR(S \<union> T)" "ENR(S \<inter> T)"
+  shows "ENR S"
+  apply (simp add: ENR_ANR)
+  using ANR_from_Un_Int_local ENR_ANR assms locally_compact_closedin by blast
+
+
+lemma ENR_from_Un_Int:
+  fixes S :: "'a::euclidean_space set"
+  assumes "closed S" "closed T" "ENR(S \<union> T)" "ENR(S \<inter> T)"
+  shows "ENR S"
+  by (meson ENR_from_Un_Int_gen assms closed_subset sup_ge1 sup_ge2)
+
+
+lemma ENR_finite_Union_convex_closed:
+  fixes \<T> :: "'a::euclidean_space set set"
+  assumes \<T>: "finite \<T>" and clo: "\<And>C. C \<in> \<T> \<Longrightarrow> closed C" and con: "\<And>C. C \<in> \<T> \<Longrightarrow> convex C"
+  shows "ENR(\<Union> \<T>)"
+  by (simp add: ENR_ANR ANR_finite_Union_convex_closed \<T> clo closed_Union closed_imp_locally_compact con)
+
+lemma finite_imp_ENR:
+  fixes S :: "'a::euclidean_space set"
+  shows "finite S \<Longrightarrow> ENR S"
+  by (simp add: ENR_ANR finite_imp_ANR finite_imp_closed closed_imp_locally_compact)
+
+lemma ENR_insert:
+  fixes S :: "'a::euclidean_space set"
+  assumes "closed S" "ENR S"
+  shows "ENR(insert a S)"
+proof -
+  have "ENR ({a} \<union> S)"
+    by (metis ANR_insert ENR_ANR Un_commute Un_insert_right assms closed_imp_locally_compact closed_insert sup_bot_right)
+  then show ?thesis
+    by auto
+qed
+
+lemma ENR_path_component_ENR:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ENR S"
+  shows "ENR(path_component_set S x)"
+  by (metis ANR_imp_locally_path_connected ENR_empty ENR_imp_ANR ENR_openin assms
+            locally_path_connected_2 openin_subtopology_self path_component_eq_empty)
 
 (*UNUSED
 lemma ENR_Times:
@@ -4102,6 +4392,61 @@ thm locally_compact_Times
 oops
   SIMP_TAC[ENR_ANR; ANR_PCROSS; LOCALLY_COMPACT_PCROSS]);;
 *)
+
+subsection\<open>Finally, spheres are ANRs and ENRs\<close>
+
+lemma absolute_retract_homeomorphic_convex_compact:
+  fixes S :: "'a::euclidean_space set" and U :: "'b::euclidean_space set"
+  assumes "S homeomorphic U" "S \<noteq> {}" "S \<subseteq> T" "convex U" "compact U"
+  shows "S retract_of T"
+  by (metis UNIV_I assms compact_AR convex_imp_AR homeomorphic_AR_iff_AR homeomorphic_compactness homeomorphic_empty(1) retract_of_subset subsetI)
+
+lemma frontier_retract_of_punctured_universe:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "bounded S" "a \<in> interior S"
+  shows "(frontier S) retract_of (- {a})"
+  using rel_frontier_retract_of_punctured_affine_hull
+  by (metis Compl_eq_Diff_UNIV affine_hull_nonempty_interior assms empty_iff rel_frontier_frontier rel_interior_nonempty_interior)
+
+lemma sphere_retract_of_punctured_universe_gen:
+  fixes a :: "'a::euclidean_space"
+  assumes "b \<in> ball a r"
+  shows  "sphere a r retract_of (- {b})"
+proof -
+  have "frontier (cball a r) retract_of (- {b})"
+    apply (rule frontier_retract_of_punctured_universe)
+    using assms by auto
+  then show ?thesis
+    by simp
+qed
+
+lemma sphere_retract_of_punctured_universe:
+  fixes a :: "'a::euclidean_space"
+  assumes "0 < r"
+  shows "sphere a r retract_of (- {a})"
+  by (simp add: assms sphere_retract_of_punctured_universe_gen)
+
+proposition ENR_sphere:
+  fixes a :: "'a::euclidean_space"
+  shows "ENR(sphere a r)"
+proof (cases "0 < r")
+  case True
+  then have "sphere a r retract_of -{a}"
+    by (simp add: sphere_retract_of_punctured_universe)
+  with open_delete show ?thesis
+    by (auto simp: ENR_def)
+next
+  case False
+  then show ?thesis
+    using finite_imp_ENR
+    by (metis finite_insert infinite_imp_nonempty less_linear sphere_eq_empty sphere_trivial)
+qed
+
+corollary ANR_sphere:
+  fixes a :: "'a::euclidean_space"
+  shows "ANR(sphere a r)"
+  by (simp add: ENR_imp_ANR ENR_sphere)
+
 
 subsection\<open>Borsuk homotopy extension theorem\<close>
 
@@ -4378,6 +4723,78 @@ next
   qed
   then show ?thesis by blast
 qed
+
+lemma homotopic_Borsuk_maps_in_bounded_component:
+  fixes a :: "'a :: euclidean_space"
+  assumes "compact S" and "a \<notin> S"and "b \<notin> S"
+      and boc: "bounded (connected_component_set (- S) a)"
+      and hom: "homotopic_with (\<lambda>x. True) S (sphere 0 1)
+                               (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
+                               (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
+   shows "connected_component (- S) a b"
+proof (rule ccontr)
+  assume notcc: "\<not> connected_component (- S) a b"
+  let ?T = "S \<union> connected_component_set (- S) a"
+  have "\<nexists>g. continuous_on (S \<union> connected_component_set (- S) a) g \<and>
+            g ` (S \<union> connected_component_set (- S) a) \<subseteq> sphere 0 1 \<and>
+            (\<forall>x\<in>S. g x = (x - a) /\<^sub>R norm (x - a))"
+    by (simp add: \<open>a \<notin> S\<close> componentsI non_extensible_Borsuk_map [OF \<open>compact S\<close> _ boc])
+  moreover obtain g where "continuous_on (S \<union> connected_component_set (- S) a) g"
+                          "g ` (S \<union> connected_component_set (- S) a) \<subseteq> sphere 0 1"
+                          "\<And>x. x \<in> S \<Longrightarrow> g x = (x - a) /\<^sub>R norm (x - a)"
+  proof (rule Borsuk_homotopy_extension_homotopic)
+    show "closedin (subtopology euclidean ?T) S"
+      by (simp add: \<open>compact S\<close> closed_subset compact_imp_closed)
+    show "continuous_on ?T (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
+      by (simp add: \<open>b \<notin> S\<close> notcc continuous_on_Borsuk_map)
+    show "(\<lambda>x. (x - b) /\<^sub>R norm (x - b)) ` ?T \<subseteq> sphere 0 1"
+      by (simp add: \<open>b \<notin> S\<close> notcc Borsuk_map_into_sphere)
+    show "homotopic_with (\<lambda>x. True) S (sphere 0 1)
+             (\<lambda>x. (x - b) /\<^sub>R norm (x - b)) (\<lambda>x. (x - a) /\<^sub>R norm (x - a))"
+      by (simp add: hom homotopic_with_symD)
+    qed (auto simp: ANR_sphere intro: that)
+  ultimately show False by blast
+qed
+
+
+lemma Borsuk_maps_homotopic_in_connected_component_eq:
+  fixes a :: "'a :: euclidean_space"
+  assumes S: "compact S" "a \<notin> S" "b \<notin> S" and 2: "2 \<le> DIM('a)"
+    shows "(homotopic_with (\<lambda>x. True) S (sphere 0 1)
+                   (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
+                   (\<lambda>x. (x - b) /\<^sub>R norm (x - b)) \<longleftrightarrow>
+           connected_component (- S) a b)"
+         (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  show ?rhs
+  proof (cases "bounded(connected_component_set (- S) a)")
+    case True
+    show ?thesis
+      by (rule homotopic_Borsuk_maps_in_bounded_component [OF S True L])
+  next
+    case not_bo_a: False
+    show ?thesis
+    proof (cases "bounded(connected_component_set (- S) b)")
+      case True
+      show ?thesis
+        using homotopic_Borsuk_maps_in_bounded_component [OF S]
+        by (simp add: L True assms connected_component_sym homotopic_Borsuk_maps_in_bounded_component homotopic_with_sym)
+    next
+      case False
+      then show ?thesis
+        using cobounded_unique_unbounded_component [of "-S" a b] \<open>compact S\<close> not_bo_a
+        by (auto simp: compact_eq_bounded_closed assms connected_component_eq_eq)
+    qed
+  qed
+next
+  assume R: ?rhs
+  then have "path_component (- S) a b"
+    using assms(1) compact_eq_bounded_closed open_Compl open_path_connected_component_set by fastforce
+  then show ?lhs
+    by (simp add: Borsuk_maps_homotopic_in_path_component)
+qed
+
 
 subsection\<open>The complement of a set and path-connectedness\<close>
 

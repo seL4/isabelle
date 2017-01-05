@@ -876,6 +876,11 @@ lemma closedin_closed_Int: "closed S \<Longrightarrow> closedin (subtopology euc
 lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
   by (auto simp add: closedin_closed)
 
+lemma closedin_closed_subset:
+ "\<lbrakk>closedin (subtopology euclidean U) V; T \<subseteq> U; S = V \<inter> T\<rbrakk>
+             \<Longrightarrow> closedin (subtopology euclidean T) S"
+  by (metis (no_types, lifting) Int_assoc Int_commute closedin_closed inf.orderE)
+
 lemma finite_imp_closedin:
   fixes S :: "'a::t1_space set"
   shows "\<lbrakk>finite S; S \<subseteq> T\<rbrakk> \<Longrightarrow> closedin (subtopology euclidean T) S"
