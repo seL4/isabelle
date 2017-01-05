@@ -111,11 +111,11 @@ class Server(
   /* input from client or file-system */
 
   private val delay_input: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
+    Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
     { resources.flush_input(session) }
 
   private val delay_load: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_load_delay")) {
+    Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
       val (invoke_input, invoke_load) = resources.resolve_dependencies(session, watcher)
       if (invoke_input) delay_input.invoke()
       if (invoke_load) delay_load.invoke
@@ -147,7 +147,7 @@ class Server(
   /* output to client */
 
   private val delay_output: Standard_Thread.Delay =
-    Standard_Thread.delay_last(options.seconds("vscode_output_delay"))
+    Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
       if (session.current_state().stable_tip_version.isEmpty) delay_output.invoke()
       else resources.flush_output(channel)

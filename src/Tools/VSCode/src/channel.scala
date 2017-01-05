@@ -98,6 +98,11 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
   def log_warning(msg: String) { display_message(Protocol.MessageType.Warning, msg, false) }
   def log_writeln(msg: String) { display_message(Protocol.MessageType.Info, msg, false) }
 
+  object Error_Logger extends Logger
+  {
+    def apply(msg: => String) { log_error_message(msg) }
+  }
+
 
   /* progress */
 

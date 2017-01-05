@@ -50,7 +50,8 @@ object Standard_Thread
 
   /* delayed events */
 
-  final class Delay private[Standard_Thread](first: Boolean, delay: => Time, event: => Unit)
+  final class Delay private[Standard_Thread](
+    first: Boolean, delay: => Time, log: Logger, event: => Unit)
   {
     private var running: Option[Event_Timer.Request] = None
 
@@ -59,7 +60,10 @@ object Standard_Thread
       val do_run = synchronized {
         if (running.isDefined) { running = None; true } else false
       }
-      if (do_run) event
+      if (do_run) {
+        try { event }
+        catch { case exn: Throwable if !Exn.is_interrupt(exn) => log(Exn.message(exn)); throw exn }
+      }
     }
 
     def invoke(): Unit = synchronized
@@ -95,8 +99,10 @@ object Standard_Thread
   }
 
   // delayed event after first invocation
-  def delay_first(delay: => Time)(event: => Unit): Delay = new Delay(true, delay, event)
+  def delay_first(delay: => Time, log: Logger = No_Logger)(event: => Unit): Delay =
+    new Delay(true, delay, log, event)
 
   // delayed event after last invocation
-  def delay_last(delay: => Time)(event: => Unit): Delay = new Delay(false, delay, event)
+  def delay_last(delay: => Time, log: Logger = No_Logger)(event: => Unit): Delay =
+    new Delay(false, delay, log, event)
 }
