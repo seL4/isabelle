@@ -92,8 +92,9 @@ sealed case class Document_Model(
 
   /* edits */
 
-  def update_text(new_text: String): Option[Document_Model] =
+  def update_text(text: String): Option[Document_Model] =
   {
+    val new_text = Line.normalize(text)
     val old_text = doc.make_text
     if (new_text == old_text) None
     else {

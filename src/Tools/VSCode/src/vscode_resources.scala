@@ -134,7 +134,7 @@ class VSCode_Resources(
   /* file content */
 
   def try_read(file: JFile): Option[String] =
-    try { Some(File.read(file)) }
+    try { Some(Line.normalize(File.read(file))) }
     catch { case ERROR(_) => None }
 
   def get_file_content(file: JFile): Option[String] =
