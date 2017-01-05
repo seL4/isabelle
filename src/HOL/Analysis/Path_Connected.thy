@@ -134,11 +134,17 @@ lemma arc_linear_image_eq:
 
 subsection\<open>Basic lemmas about paths\<close>
 
+lemma continuous_on_path: "path f \<Longrightarrow> t \<subseteq> {0..1} \<Longrightarrow> continuous_on t f"
+  using continuous_on_subset path_def by blast
+
 lemma arc_imp_simple_path: "arc g \<Longrightarrow> simple_path g"
   by (simp add: arc_def inj_on_def simple_path_def)
 
 lemma arc_imp_path: "arc g \<Longrightarrow> path g"
   using arc_def by blast
+
+lemma arc_imp_inj_on: "arc g \<Longrightarrow> inj_on g {0..1}"
+  by (auto simp: arc_def)
 
 lemma simple_path_imp_path: "simple_path g \<Longrightarrow> path g"
   using simple_path_def by blast
@@ -1047,7 +1053,7 @@ proof -
     done
 qed
 
-subsection \<open>Reparametrizing a closed curve to start at some chosen point\<close>
+subsection \<open>shiftpath: Reparametrizing a closed curve to start at some chosen point\<close>
 
 definition shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "shiftpath a f = (\<lambda>x. if (a + x) \<le> 1 then f (a + x) else f (a + x - 1))"
@@ -1146,6 +1152,22 @@ proof -
     by (auto simp add: image_iff)
 qed
 
+lemma simple_path_shiftpath:
+  assumes "simple_path g" "pathfinish g = pathstart g" and a: "0 \<le> a" "a \<le> 1"
+    shows "simple_path (shiftpath a g)"
+  unfolding simple_path_def
+proof (intro conjI impI ballI)
+  show "path (shiftpath a g)"
+    by (simp add: assms path_shiftpath simple_path_imp_path)
+  have *: "\<And>x y. \<lbrakk>g x = g y; x \<in> {0..1}; y \<in> {0..1}\<rbrakk> \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
+    using assms by (simp add:  simple_path_def)
+  show "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
+    if "x \<in> {0..1}" "y \<in> {0..1}" "shiftpath a g x = shiftpath a g y" for x y
+    using that a unfolding shiftpath_def
+    apply (simp add: split: if_split_asm)
+      apply (drule *; auto)+
+    done
+qed
 
 subsection \<open>Special case of straight-line paths\<close>
 
@@ -1499,8 +1521,8 @@ lemma path_component_UNIV: "path_component_set UNIV x = (UNIV :: 'a::real_normed
   using path_connected_component_set by auto
 
 lemma path_connected_imp_connected:
-  assumes "path_connected s"
-  shows "connected s"
+  assumes "path_connected S"
+  shows "connected S"
   unfolding connected_def not_ex
   apply rule
   apply rule
@@ -1509,10 +1531,10 @@ lemma path_connected_imp_connected:
   apply (elim conjE)
 proof -
   fix e1 e2
-  assume as: "open e1" "open e2" "s \<subseteq> e1 \<union> e2" "e1 \<inter> e2 \<inter> s = {}" "e1 \<inter> s \<noteq> {}" "e2 \<inter> s \<noteq> {}"
-  then obtain x1 x2 where obt:"x1 \<in> e1 \<inter> s" "x2 \<in> e2 \<inter> s"
+  assume as: "open e1" "open e2" "S \<subseteq> e1 \<union> e2" "e1 \<inter> e2 \<inter> S = {}" "e1 \<inter> S \<noteq> {}" "e2 \<inter> S \<noteq> {}"
+  then obtain x1 x2 where obt:"x1 \<in> e1 \<inter> S" "x2 \<in> e2 \<inter> S"
     by auto
-  then obtain g where g: "path g" "path_image g \<subseteq> s" "pathstart g = x1" "pathfinish g = x2"
+  then obtain g where g: "path g" "path_image g \<subseteq> S" "pathstart g = x1" "pathfinish g = x2"
     using assms[unfolded path_connected_def,rule_format,of x1 x2] by auto
   have *: "connected {0..1::real}"
     by (auto intro!: convex_connected convex_real_interval)
@@ -1535,23 +1557,23 @@ proof -
 qed
 
 lemma open_path_component:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "open s"
-  shows "open (path_component_set s x)"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+  shows "open (path_component_set S x)"
   unfolding open_contains_ball
 proof
   fix y
-  assume as: "y \<in> path_component_set s x"
-  then have "y \<in> s"
+  assume as: "y \<in> path_component_set S x"
+  then have "y \<in> S"
     apply -
     apply (rule path_component_mem(2))
     unfolding mem_Collect_eq
     apply auto
     done
-  then obtain e where e: "e > 0" "ball y e \<subseteq> s"
+  then obtain e where e: "e > 0" "ball y e \<subseteq> S"
     using assms[unfolded open_contains_ball]
     by auto
-  show "\<exists>e > 0. ball y e \<subseteq> path_component_set s x"
+  show "\<exists>e > 0. ball y e \<subseteq> path_component_set S x"
     apply (rule_tac x=e in exI)
     apply (rule,rule \<open>e>0\<close>)
     apply rule
@@ -1559,7 +1581,7 @@ proof
   proof -
     fix z
     assume "dist y z < e"
-    then show "path_component s x z"
+    then show "path_component S x z"
       apply (rule_tac path_component_trans[of _ _ y])
       defer
       apply (rule path_component_of_subset[OF e(2)])
@@ -1571,17 +1593,17 @@ proof
 qed
 
 lemma open_non_path_component:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "open s"
-  shows "open (s - path_component_set s x)"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+  shows "open (S - path_component_set S x)"
   unfolding open_contains_ball
 proof
   fix y
-  assume as: "y \<in> s - path_component_set s x"
-  then obtain e where e: "e > 0" "ball y e \<subseteq> s"
+  assume as: "y \<in> S - path_component_set S x"
+  then obtain e where e: "e > 0" "ball y e \<subseteq> S"
     using assms [unfolded open_contains_ball]
     by auto
-  show "\<exists>e>0. ball y e \<subseteq> s - path_component_set s x"
+  show "\<exists>e>0. ball y e \<subseteq> S - path_component_set S x"
     apply (rule_tac x=e in exI)
     apply rule
     apply (rule \<open>e>0\<close>)
@@ -1590,8 +1612,8 @@ proof
     defer
   proof (rule ccontr)
     fix z
-    assume "z \<in> ball y e" "\<not> z \<notin> path_component_set s x"
-    then have "y \<in> path_component_set s x"
+    assume "z \<in> ball y e" "\<not> z \<notin> path_component_set S x"
+    then have "y \<in> path_component_set S x"
       unfolding not_not mem_Collect_eq using \<open>e>0\<close>
       apply -
       apply (rule path_component_trans, assumption)
@@ -1605,42 +1627,42 @@ proof
 qed
 
 lemma connected_open_path_connected:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "open s"
-    and "connected s"
-  shows "path_connected s"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+    and "connected S"
+  shows "path_connected S"
   unfolding path_connected_component_set
 proof (rule, rule, rule path_component_subset, rule)
   fix x y
-  assume "x \<in> s" and "y \<in> s"
-  show "y \<in> path_component_set s x"
+  assume "x \<in> S" and "y \<in> S"
+  show "y \<in> path_component_set S x"
   proof (rule ccontr)
     assume "\<not> ?thesis"
-    moreover have "path_component_set s x \<inter> s \<noteq> {}"
-      using \<open>x \<in> s\<close> path_component_eq_empty path_component_subset[of s x]
+    moreover have "path_component_set S x \<inter> S \<noteq> {}"
+      using \<open>x \<in> S\<close> path_component_eq_empty path_component_subset[of S x]
       by auto
     ultimately
     show False
-      using \<open>y \<in> s\<close> open_non_path_component[OF assms(1)] open_path_component[OF assms(1)]
+      using \<open>y \<in> S\<close> open_non_path_component[OF assms(1)] open_path_component[OF assms(1)]
       using assms(2)[unfolded connected_def not_ex, rule_format,
-        of "path_component_set s x" "s - path_component_set s x"]
+        of "path_component_set S x" "S - path_component_set S x"]
       by auto
   qed
 qed
 
 lemma path_connected_continuous_image:
-  assumes "continuous_on s f"
-    and "path_connected s"
-  shows "path_connected (f ` s)"
+  assumes "continuous_on S f"
+    and "path_connected S"
+  shows "path_connected (f ` S)"
   unfolding path_connected_def
 proof (rule, rule)
   fix x' y'
-  assume "x' \<in> f ` s" "y' \<in> f ` s"
-  then obtain x y where x: "x \<in> s" and y: "y \<in> s" and x': "x' = f x" and y': "y' = f y"
+  assume "x' \<in> f ` S" "y' \<in> f ` S"
+  then obtain x y where x: "x \<in> S" and y: "y \<in> S" and x': "x' = f x" and y': "y' = f y"
     by auto
-  from x y obtain g where "path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y"
+  from x y obtain g where "path g \<and> path_image g \<subseteq> S \<and> pathstart g = x \<and> pathfinish g = y"
     using assms(2)[unfolded path_connected_def] by fast
-  then show "\<exists>g. path g \<and> path_image g \<subseteq> f ` s \<and> pathstart g = x' \<and> pathfinish g = y'"
+  then show "\<exists>g. path g \<and> path_image g \<subseteq> f ` S \<and> pathstart g = x' \<and> pathfinish g = y'"
     unfolding x' y'
     apply (rule_tac x="f \<circ> g" in exI)
     unfolding path_defs
@@ -1649,12 +1671,27 @@ proof (rule, rule)
     done
 qed
 
-lemma path_connected_segment:
+lemma path_connected_translationI:
+  fixes a :: "'a :: topological_group_add"
+  assumes "path_connected S" shows "path_connected ((\<lambda>x. a + x) ` S)"
+  by (intro path_connected_continuous_image assms continuous_intros)
+
+lemma path_connected_translation:
+  fixes a :: "'a :: topological_group_add"
+  shows "path_connected ((\<lambda>x. a + x) ` S) = path_connected S"
+proof -
+  have "\<forall>x y. op + (x::'a) ` op + (0 - x) ` y = y"
+    by (simp add: image_image)
+  then show ?thesis
+    by (metis (no_types) path_connected_translationI)
+qed
+
+lemma path_connected_segment [simp]:
     fixes a :: "'a::real_normed_vector"
     shows "path_connected (closed_segment a b)"
   by (simp add: convex_imp_path_connected)
 
-lemma path_connected_open_segment:
+lemma path_connected_open_segment [simp]:
     fixes a :: "'a::real_normed_vector"
     shows "path_connected (open_segment a b)"
   by (simp add: convex_imp_path_connected)
@@ -1663,10 +1700,10 @@ lemma homeomorphic_path_connectedness:
   "s homeomorphic t \<Longrightarrow> path_connected s \<longleftrightarrow> path_connected t"
   unfolding homeomorphic_def homeomorphism_def by (metis path_connected_continuous_image)
 
-lemma path_connected_empty: "path_connected {}"
+lemma path_connected_empty [simp]: "path_connected {}"
   unfolding path_connected_def by auto
 
-lemma path_connected_singleton: "path_connected {a}"
+lemma path_connected_singleton [simp]: "path_connected {a}"
   unfolding path_connected_def pathstart_def pathfinish_def path_image_def
   apply clarify
   apply (rule_tac x="\<lambda>x. a" in exI)
@@ -1743,7 +1780,7 @@ lemma path_connected_path_image: "path p \<Longrightarrow> path_connected(path_i
   unfolding path_connected_component
   by (meson path_component_path_image_pathstart path_component_sym path_component_trans)
 
-lemma path_connected_path_component:
+lemma path_connected_path_component [simp]:
    "path_connected (path_component_set s x)"
 proof -
   { fix y z
@@ -1973,54 +2010,46 @@ corollary connected_punctured_universe:
   by (simp add: path_connected_punctured_universe path_connected_imp_connected)
 
 lemma path_connected_sphere:
-  assumes "2 \<le> DIM('a::euclidean_space)"
-  shows "path_connected {x::'a. norm (x - a) = r}"
-proof (rule linorder_cases [of r 0])
-  assume "r < 0"
-  then have "{x::'a. norm(x - a) = r} = {}"
+  fixes a :: "'a :: euclidean_space"
+  assumes "2 \<le> DIM('a)"
+  shows "path_connected(sphere a r)"
+proof (cases r "0::real" rule: linorder_cases)
+  case less
+  then show ?thesis
+    by (simp add: path_connected_empty)
+next
+  case equal
+  then show ?thesis
+    by (simp add: path_connected_singleton)
+next
+  case greater
+  then have eq: "(sphere (0::'a) r) = (\<lambda>x. (r / norm x) *\<^sub>R x) ` (- {0::'a})"
+    by (force simp: image_iff split: if_split_asm)
+  have "continuous_on (- {0::'a}) (\<lambda>x. (r / norm x) *\<^sub>R x)"
+    by (intro continuous_intros) auto
+  then have "path_connected ((\<lambda>x. (r / norm x) *\<^sub>R x) ` (- {0::'a}))"
+    by (intro path_connected_continuous_image path_connected_punctured_universe assms)
+  with eq have "path_connected (sphere (0::'a) r)"
     by auto
+  then have "path_connected(op +a ` (sphere (0::'a) r))"
+    by (simp add: path_connected_translation)
   then show ?thesis
-    using path_connected_empty by simp
-next
-  assume "r = 0"
-  then show ?thesis
-    using path_connected_singleton by simp
-next
-  assume r: "0 < r"
-  have *: "{x::'a. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}"
-    apply (rule set_eqI)
-    apply rule
-    unfolding image_iff
-    apply (rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI)
-    unfolding mem_Collect_eq norm_scaleR
-    using r
-    apply (auto simp add: scaleR_right_diff_distrib)
-    done
-  have **: "{x::'a. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (- {0})"
-    apply (rule set_eqI)
-    apply rule
-    unfolding image_iff
-    apply (rule_tac x=x in bexI)
-    unfolding mem_Collect_eq
-    apply (auto split: if_split_asm)
-    done
-  have "continuous_on (- {0}) (\<lambda>x::'a. 1 / norm x)"
-    by (auto intro!: continuous_intros)
-  then show ?thesis
-    unfolding * **
-    using path_connected_punctured_universe[OF assms]
-    by (auto intro!: path_connected_continuous_image continuous_intros)
+    by (metis add.right_neutral sphere_translation)
 qed
 
-corollary connected_sphere: "2 \<le> DIM('a::euclidean_space) \<Longrightarrow> connected {x::'a. norm (x - a) = r}"
-  using path_connected_sphere path_connected_imp_connected
-  by auto
+lemma connected_sphere:
+    fixes a :: "'a :: euclidean_space"
+    assumes "2 \<le> DIM('a)"
+      shows "connected(sphere a r)"
+  using path_connected_sphere [OF assms]
+  by (simp add: path_connected_imp_connected)
+
 
 corollary path_connected_complement_bounded_convex:
     fixes s :: "'a :: euclidean_space set"
     assumes "bounded s" "convex s" and 2: "2 \<le> DIM('a)"
     shows "path_connected (- s)"
-proof (cases "s={}")
+proof (cases "s = {}")
   case True then show ?thesis
     using convex_imp_path_connected by auto
 next
@@ -2104,11 +2133,11 @@ next
     then have pdy: "path_component (- s) y (a + D *\<^sub>R (y - a))"
       by (force simp: closed_segment_def intro!: path_connected_linepath)
     have pyx: "path_component (- s) (a + D *\<^sub>R (y - a)) (a + C *\<^sub>R (x - a))"
-      apply (rule path_component_of_subset [of "{x. norm(x - a) = B}"])
+      apply (rule path_component_of_subset [of "sphere a B"])
        using \<open>s \<subseteq> ball a B\<close>
        apply (force simp: ball_def dist_norm norm_minus_commute)
       apply (rule path_connected_sphere [OF 2, of a B, simplified path_connected_component, rule_format])
-      using \<open>x \<noteq> a\<close>  using \<open>y \<noteq> a\<close>  B apply (auto simp: C_def D_def)
+       using \<open>x \<noteq> a\<close>  using \<open>y \<noteq> a\<close>  B apply (auto simp: dist_norm C_def D_def)
       done
     have "path_component (- s) x y"
       by (metis path_component_trans path_component_sym pcx pdy pyx)
@@ -2193,6 +2222,52 @@ next
   thus ?case by (metis Diff_insert)
 qed
 
+lemma sphere_1D_doubleton_zero:
+  assumes 1: "DIM('a) = 1" and "r > 0"
+  obtains x y::"'a::euclidean_space"
+    where "sphere 0 r = {x,y} \<and> dist x y = 2*r"
+proof -
+  obtain b::'a where b: "Basis = {b}"
+    using 1 card_1_singletonE by blast
+  show ?thesis
+  proof (intro that conjI)
+    have "x = norm x *\<^sub>R b \<or> x = - norm x *\<^sub>R b" if "r = norm x" for x
+    proof -
+      have xb: "(x \<bullet> b) *\<^sub>R b = x"
+        using euclidean_representation [of x, unfolded b] by force
+      then have "norm ((x \<bullet> b) *\<^sub>R b) = norm x"
+        by simp
+      with b have "\<bar>x \<bullet> b\<bar> = norm x"
+        using norm_Basis by fastforce
+      with xb show ?thesis
+        apply (simp add: abs_if split: if_split_asm)
+        apply (metis add.inverse_inverse real_vector.scale_minus_left xb)
+        done
+    qed
+    with \<open>r > 0\<close> b show "sphere 0 r = {r *\<^sub>R b, - r *\<^sub>R b}"
+      by (force simp: sphere_def dist_norm)
+    have "dist (r *\<^sub>R b) (- r *\<^sub>R b) = norm (r *\<^sub>R b + r *\<^sub>R b)"
+      by (simp add: dist_norm)
+    also have "... = norm ((2*r) *\<^sub>R b)"
+      by (metis mult_2 scaleR_add_left)
+    also have "... = 2*r"
+      using \<open>r > 0\<close> b norm_Basis by fastforce
+    finally show "dist (r *\<^sub>R b) (- r *\<^sub>R b) = 2*r" .
+  qed
+qed
+
+lemma sphere_1D_doubleton:
+  fixes a :: "'a :: euclidean_space"
+  assumes "DIM('a) = 1" and "r > 0"
+  obtains x y where "sphere a r = {x,y} \<and> dist x y = 2*r"
+proof -
+  have "sphere a r = op +a ` sphere 0 r"
+    by (metis add.right_neutral sphere_translation)
+  then show ?thesis
+    using sphere_1D_doubleton_zero [OF assms]
+    by (metis (mono_tags, lifting) dist_add_cancel image_empty image_insert that)
+qed
+
 lemma psubset_sphere_Compl_connected:
   fixes S :: "'a::euclidean_space set"
   assumes S: "S \<subset> sphere a r" and "0 < r" and 2: "2 \<le> DIM('a)"
@@ -2218,6 +2293,7 @@ proof -
   ultimately show ?thesis
     by (simp add: CS connected_Un)
 qed
+
 
 subsection\<open>Relations between components and path components\<close>
 
@@ -2590,20 +2666,6 @@ apply (auto simp: inside_def)
 by (metis bounded_subset [of "connected_component_set (- s) _"] connected_component_maximal
        Compl_iff Un_iff assms subsetI)
 
-lemma frontier_interiors: "frontier s = - interior(s) - interior(-s)"
-  by (simp add: Int_commute frontier_def interior_closure)
-
-lemma frontier_interior_subset: "frontier(interior S) \<subseteq> frontier S"
-  by (simp add: Diff_mono frontier_interiors interior_mono interior_subset)
-
-lemma connected_Int_frontier:
-     "\<lbrakk>connected s; s \<inter> t \<noteq> {}; s - t \<noteq> {}\<rbrakk> \<Longrightarrow> (s \<inter> frontier t \<noteq> {})"
-  apply (simp add: frontier_interiors connected_openin, safe)
-  apply (drule_tac x="s \<inter> interior t" in spec, safe)
-   apply (drule_tac [2] x="s \<inter> interior (-t)" in spec)
-   apply (auto simp: disjoint_eq_subset_Compl dest: interior_subset [THEN subsetD])
-  done
-
 lemma frontier_not_empty:
   fixes S :: "'a :: real_normed_vector set"
   shows "\<lbrakk>S \<noteq> {}; S \<noteq> UNIV\<rbrakk> \<Longrightarrow> frontier S \<noteq> {}"
@@ -2735,7 +2797,7 @@ lemma connected_component_eq_UNIV:
     shows "connected_component_set s x = UNIV \<longleftrightarrow> s = UNIV"
   using connected_component_in connected_component_UNIV by blast
 
-lemma components_univ [simp]: "components UNIV = {UNIV :: 'a::real_normed_vector set}"
+lemma components_UNIV [simp]: "components UNIV = {UNIV :: 'a::real_normed_vector set}"
   by (auto simp: components_eq_sing_iff)
 
 lemma interior_inside_frontier:
@@ -2836,6 +2898,26 @@ lemma outside_subset_convex:
   fixes s :: "'a :: {real_normed_vector, perfect_space} set"
   shows "\<lbrakk>convex t; s \<subseteq> t\<rbrakk> \<Longrightarrow> - t \<subseteq> outside s"
   using outside_convex outside_mono by blast
+
+lemma outside_Un_outside_Un:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "S \<inter> outside(T \<union> U) = {}"
+  shows "outside(T \<union> U) \<subseteq> outside(T \<union> S)"
+proof
+  fix x
+  assume x: "x \<in> outside (T \<union> U)"
+  have "Y \<subseteq> - S" if "connected Y" "Y \<subseteq> - T" "Y \<subseteq> - U" "x \<in> Y" "u \<in> Y" for u Y
+  proof -
+    have "Y \<subseteq> connected_component_set (- (T \<union> U)) x"
+      by (simp add: connected_component_maximal that)
+    also have "... \<subseteq> outside(T \<union> U)"
+      by (metis (mono_tags, lifting) Collect_mono mem_Collect_eq outside outside_same_component x)
+    finally have "Y \<subseteq> outside(T \<union> U)" .
+    with assms show ?thesis by auto
+  qed
+  with x show "x \<in> outside (T \<union> S)"
+    by (simp add: outside_connected_component_lt connected_component_def) meson
+qed
 
 lemma outside_frontier_misses_closure:
     fixes s :: "'a::real_normed_vector set"
@@ -3558,6 +3640,56 @@ proposition homotopic_compose:
   apply (rule homotopic_with_trans [where g = "g o f'"])
   apply (metis homotopic_compose_continuous_left homotopic_with_imp_continuous homotopic_with_imp_subset1)
   by (metis homotopic_compose_continuous_right homotopic_with_imp_continuous homotopic_with_imp_subset2)
+
+
+text\<open>Homotopic triviality implicitly incorporates path-connectedness.\<close>
+lemma homotopic_triviality:
+  fixes S :: "'a::real_normed_vector set"
+  shows  "(\<forall>f g. continuous_on S f \<and> f ` S \<subseteq> T \<and>
+                 continuous_on S g \<and> g ` S \<subseteq> T
+                 \<longrightarrow> homotopic_with (\<lambda>x. True) S T f g) \<longleftrightarrow>
+          (S = {} \<or> path_connected T) \<and>
+          (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> T \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) S T f (\<lambda>x. c)))"
+          (is "?lhs = ?rhs")
+proof (cases "S = {} \<or> T = {}")
+  case True then show ?thesis by auto
+next
+  case False show ?thesis
+  proof
+    assume LHS [rule_format]: ?lhs
+    have pab: "path_component T a b" if "a \<in> T" "b \<in> T" for a b
+    proof -
+      have "homotopic_with (\<lambda>x. True) S T (\<lambda>x. a) (\<lambda>x. b)"
+        by (simp add: LHS continuous_on_const image_subset_iff that)
+      then show ?thesis
+        using False homotopic_constant_maps by blast
+    qed
+      moreover
+    have "\<exists>c. homotopic_with (\<lambda>x. True) S T f (\<lambda>x. c)" if "continuous_on S f" "f ` S \<subseteq> T" for f
+      by (metis (full_types) False LHS equals0I homotopic_constant_maps homotopic_with_imp_continuous homotopic_with_imp_subset2 pab that)
+    ultimately show ?rhs
+      by (simp add: path_connected_component)
+  next
+    assume RHS: ?rhs
+    with False have T: "path_connected T"
+      by blast
+    show ?lhs
+    proof clarify
+      fix f g
+      assume "continuous_on S f" "f ` S \<subseteq> T" "continuous_on S g" "g ` S \<subseteq> T"
+      obtain c d where c: "homotopic_with (\<lambda>x. True) S T f (\<lambda>x. c)" and d: "homotopic_with (\<lambda>x. True) S T g (\<lambda>x. d)"
+        using False \<open>continuous_on S f\<close> \<open>f ` S \<subseteq> T\<close>  RHS \<open>continuous_on S g\<close> \<open>g ` S \<subseteq> T\<close> by blast
+      then have "c \<in> T" "d \<in> T"
+        using False homotopic_with_imp_subset2 by fastforce+
+      with T have "path_component T c d"
+        using path_connected_component by blast
+      then have "homotopic_with (\<lambda>x. True) S T (\<lambda>x. c) (\<lambda>x. d)"
+        by (simp add: homotopic_constant_maps)
+      with c d show "homotopic_with (\<lambda>x. True) S T f g"
+        by (meson homotopic_with_symD homotopic_with_trans)
+    qed
+  qed
+qed
 
 
 subsection\<open>Homotopy of paths, maintaining the same endpoints.\<close>
@@ -4519,7 +4651,7 @@ lemma starlike_imp_contractible:
   shows "starlike S \<Longrightarrow> contractible S"
 using starlike_imp_contractible_gen contractible_def by (fastforce simp: id_def)
 
-lemma contractible_UNIV: "contractible (UNIV :: 'a::real_normed_vector set)"
+lemma contractible_UNIV [simp]: "contractible (UNIV :: 'a::real_normed_vector set)"
   by (simp add: starlike_imp_contractible)
 
 lemma starlike_imp_simply_connected:
@@ -4547,8 +4679,8 @@ lemma is_interval_simply_connected_1:
   shows "is_interval S \<longleftrightarrow> simply_connected S"
 using convex_imp_simply_connected is_interval_convex_1 is_interval_path_connected_1 simply_connected_imp_path_connected by auto
 
-lemma contractible_empty: "contractible {}"
-  by (simp add: continuous_on_empty contractible_def homotopic_with)
+lemma contractible_empty [simp]: "contractible {}"
+  by (simp add: contractible_def homotopic_with)
 
 lemma contractible_convex_tweak_boundary_points:
   fixes S :: "'a::euclidean_space set"
@@ -4557,7 +4689,7 @@ lemma contractible_convex_tweak_boundary_points:
 proof (cases "S = {}")
   case True
   with assms show ?thesis
-    by (simp add: contractible_empty subsetCE)
+    by (simp add: subsetCE)
 next
   case False
   show ?thesis
@@ -4569,9 +4701,9 @@ qed
 lemma convex_imp_contractible:
   fixes S :: "'a::real_normed_vector set"
   shows "convex S \<Longrightarrow> contractible S"
-using contractible_empty convex_imp_starlike starlike_imp_contractible by auto
+  using contractible_empty convex_imp_starlike starlike_imp_contractible by blast
 
-lemma contractible_sing:
+lemma contractible_sing [simp]:
   fixes a :: "'a::real_normed_vector"
   shows "contractible {a}"
 by (rule convex_imp_contractible [OF convex_singleton])
@@ -4704,6 +4836,28 @@ apply (simp add: open_Int)
 apply (rule_tac x="V1 \<inter> V2" in exI)
 apply (auto intro: P)
 done
+
+lemma locally_Times:
+  fixes S :: "('a::metric_space) set" and T :: "('b::metric_space) set"
+  assumes PS: "locally P S" and QT: "locally Q T" and R: "\<And>S T. P S \<and> Q T \<Longrightarrow> R(S \<times> T)"
+  shows "locally R (S \<times> T)"
+    unfolding locally_def
+proof (clarify)
+  fix W x y
+  assume W: "openin (subtopology euclidean (S \<times> T)) W" and xy: "(x, y) \<in> W"
+  then obtain U V where "openin (subtopology euclidean S) U" "x \<in> U"
+                        "openin (subtopology euclidean T) V" "y \<in> V" "U \<times> V \<subseteq> W"
+    using Times_in_interior_subtopology by metis
+  then obtain U1 U2 V1 V2
+         where opeS: "openin (subtopology euclidean S) U1 \<and> P U2 \<and> x \<in> U1 \<and> U1 \<subseteq> U2 \<and> U2 \<subseteq> U"
+           and opeT: "openin (subtopology euclidean T) V1 \<and> Q V2 \<and> y \<in> V1 \<and> V1 \<subseteq> V2 \<and> V2 \<subseteq> V"
+    by (meson PS QT locallyE)
+  with \<open>U \<times> V \<subseteq> W\<close> show "\<exists>u v. openin (subtopology euclidean (S \<times> T)) u \<and> R v \<and> (x,y) \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> W"
+    apply (rule_tac x="U1 \<times> V1" in exI)
+    apply (rule_tac x="U2 \<times> V2" in exI)
+    apply (auto simp: openin_Times R)
+    done
+qed
 
 
 proposition homeomorphism_locally_imp:
@@ -6518,6 +6672,64 @@ proof -
   then show ?thesis
     by (meson pwd countable_image_inj_on disjoint_image f inj_on_image pairwise_disjnt_countable)
 qed
+
+lemma connected_uncountable:
+  fixes S :: "'a::metric_space set"
+  assumes "connected S" "a \<in> S" "b \<in> S" "a \<noteq> b" shows "uncountable S"
+proof -
+  have "continuous_on S (dist a)"
+    by (intro continuous_intros)
+  then have "connected (dist a ` S)"
+    by (metis connected_continuous_image \<open>connected S\<close>)
+  then have "closed_segment 0 (dist a b) \<subseteq> (dist a ` S)"
+    by (simp add: assms closed_segment_subset is_interval_connected_1 is_interval_convex)
+  then have "uncountable (dist a ` S)"
+    by (metis \<open>a \<noteq> b\<close> countable_subset dist_eq_0_iff uncountable_closed_segment)
+  then show ?thesis
+    by blast
+qed
+
+lemma path_connected_uncountable:
+  fixes S :: "'a::metric_space set"
+  assumes "path_connected S" "a \<in> S" "b \<in> S" "a \<noteq> b" shows "uncountable S"
+  using path_connected_imp_connected assms connected_uncountable by metis
+
+lemma connected_finite_iff_sing:
+  fixes S :: "'a::metric_space set"
+  assumes "connected S"
+  shows "finite S \<longleftrightarrow> S = {} \<or> (\<exists>a. S = {a})"  (is "_ = ?rhs")
+proof -
+  have "uncountable S" if "\<not> ?rhs"
+    using connected_uncountable assms that by blast
+  then show ?thesis
+    using uncountable_infinite by auto
+qed
+
+lemma connected_card_eq_iff_nontrivial:
+  fixes S :: "'a::metric_space set"
+  shows "connected S \<Longrightarrow> uncountable S \<longleftrightarrow> ~(\<exists>a. S \<subseteq> {a})"
+  apply (auto simp: countable_finite finite_subset)
+  by (metis connected_uncountable is_singletonI' is_singleton_the_elem subset_singleton_iff)
+
+lemma simple_path_image_uncountable:
+  fixes g :: "real \<Rightarrow> 'a::metric_space"
+  assumes "simple_path g"
+  shows "uncountable (path_image g)"
+proof -
+  have "g 0 \<in> path_image g" "g (1/2) \<in> path_image g"
+    by (simp_all add: path_defs)
+  moreover have "g 0 \<noteq> g (1/2)"
+    using assms by (fastforce simp add: simple_path_def)
+  ultimately show ?thesis
+    apply (simp add: assms connected_card_eq_iff_nontrivial connected_simple_path_image)
+    by blast
+qed
+
+lemma arc_image_uncountable:
+  fixes g :: "real \<Rightarrow> 'a::metric_space"
+  assumes "arc g"
+  shows "uncountable (path_image g)"
+  by (simp add: arc_imp_simple_path assms simple_path_image_uncountable)
 
 
 subsection\<open> Some simple positive connection theorems\<close>

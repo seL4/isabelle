@@ -176,6 +176,21 @@ lemma scaleR_minus1_left [simp]: "scaleR (-1) x = - x"
   for x :: "'a::real_vector"
   using scaleR_minus_left [of 1 x] by simp
 
+lemma scaleR_2:
+  fixes x :: "'a::real_vector"
+  shows "scaleR 2 x = x + x"
+  unfolding one_add_one [symmetric] scaleR_left_distrib by simp
+
+lemma scaleR_half_double [simp]:
+  fixes a :: "'a::real_vector"
+  shows "(1 / 2) *\<^sub>R (a + a) = a"
+proof -
+  have "\<And>r. r *\<^sub>R (a + a) = (r * 2) *\<^sub>R a"
+    by (metis scaleR_2 scaleR_scaleR)
+  then show ?thesis
+    by simp
+qed
+
 class real_algebra = real_vector + ring +
   assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
     and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"

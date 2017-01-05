@@ -1314,21 +1314,6 @@ lemma snd_linear: "linear snd"
 lemma fst_snd_linear: "linear (\<lambda>(x,y). x + y)"
   unfolding linear_iff by (simp add: algebra_simps)
 
-lemma scaleR_2:
-  fixes x :: "'a::real_vector"
-  shows "scaleR 2 x = x + x"
-  unfolding one_add_one [symmetric] scaleR_left_distrib by simp
-
-lemma scaleR_half_double [simp]:
-  fixes a :: "'a::real_normed_vector"
-  shows "(1 / 2) *\<^sub>R (a + a) = a"
-proof -
-  have "\<And>r. r *\<^sub>R (a + a) = (r * 2) *\<^sub>R a"
-    by (metis scaleR_2 scaleR_scaleR)
-  then show ?thesis
-    by simp
-qed
-
 lemma vector_choose_size:
   assumes "0 \<le> c"
   obtains x :: "'a::{real_normed_vector, perfect_space}" where "norm x = c"

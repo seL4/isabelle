@@ -577,9 +577,6 @@ qed
 
 subsection \<open>Valid paths, and their start and finish\<close>
 
-lemma Diff_Un_eq: "A - (B \<union> C) = A - B - C"
-  by blast
-
 definition valid_path :: "(real \<Rightarrow> 'a :: real_normed_vector) \<Rightarrow> bool"
   where "valid_path f \<equiv> f piecewise_C1_differentiable_on {0..1::real}"
 

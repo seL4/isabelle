@@ -15,24 +15,6 @@ imports
   Norm_Arith
 begin
 
-(* FIXME: move to HOL/Real_Vector_Spaces.thy *)
-
-lemma scaleR_2:
-  fixes x :: "'a::real_vector"
-  shows "scaleR 2 x = x + x"
-  unfolding one_add_one [symmetric] scaleR_left_distrib by simp
-
-lemma scaleR_half_double [simp]:
-  fixes a :: "'a::real_normed_vector"
-  shows "(1 / 2) *\<^sub>R (a + a) = a"
-proof -
-  have "\<And>r. r *\<^sub>R (a + a) = (r * 2) *\<^sub>R a"
-    by (metis scaleR_2 scaleR_scaleR)
-  then show ?thesis
-    by simp
-qed
-
-
 (* FIXME: move elsewhere *)
 
 lemma Times_eq_image_sum:
@@ -1099,7 +1081,7 @@ lemma cball_max_Un: "cball a (max r s) = cball a r \<union> cball a s"
 lemma cball_min_Int: "cball a (min r s) = cball a r \<inter> cball a s"
   by (simp add: set_eq_iff)
 
-lemma cball_diff_eq_sphere: "cball a r - ball a r =  {x. dist x a = r}"
+lemma cball_diff_eq_sphere: "cball a r - ball a r =  sphere a r"
   by (auto simp: cball_def ball_def dist_commute)
 
 lemma image_add_ball [simp]:
@@ -2743,6 +2725,28 @@ lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> op
 
 lemma frontier_UNIV [simp]: "frontier UNIV = {}"
   using frontier_complement frontier_empty by fastforce
+
+lemma frontier_interiors: "frontier s = - interior(s) - interior(-s)"
+  by (simp add: Int_commute frontier_def interior_closure)
+
+lemma frontier_interior_subset: "frontier(interior S) \<subseteq> frontier S"
+  by (simp add: Diff_mono frontier_interiors interior_mono interior_subset)
+
+lemma connected_Int_frontier:
+     "\<lbrakk>connected s; s \<inter> t \<noteq> {}; s - t \<noteq> {}\<rbrakk> \<Longrightarrow> (s \<inter> frontier t \<noteq> {})"
+  apply (simp add: frontier_interiors connected_openin, safe)
+  apply (drule_tac x="s \<inter> interior t" in spec, safe)
+   apply (drule_tac [2] x="s \<inter> interior (-t)" in spec)
+   apply (auto simp: disjoint_eq_subset_Compl dest: interior_subset [THEN subsetD])
+  done
+
+lemma closure_Un_frontier: "closure S = S \<union> frontier S"
+proof -
+  have "S \<union> interior S = S"
+    using interior_subset by auto
+  then show ?thesis
+    using closure_subset by (auto simp: frontier_def)
+qed
 
 
 subsection \<open>Filters and the ``eventually true'' quantifier\<close>
