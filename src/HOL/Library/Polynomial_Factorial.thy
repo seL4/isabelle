@@ -188,7 +188,7 @@ proof (cases "p = 0")
   qed (auto simp: coeffs_def simp del: upt_Suc split: if_splits)
   also have "\<dots> \<longleftrightarrow> c dvd content p"
     by (simp add: content_def dvd_Gcd_iff mult.commute [of "unit_factor x" for x]
-          dvd_mult_unit_iff lead_coeff_nonzero)
+          dvd_mult_unit_iff)
   finally show ?thesis .
 qed simp_all
 
@@ -690,7 +690,7 @@ proof (standard, unfold dvd_field_poly)
   fix p :: "'a poly"
   show "unit_factor_field_poly p * normalize_field_poly p = p"
     by (cases "p = 0") 
-       (simp_all add: unit_factor_field_poly_def normalize_field_poly_def lead_coeff_nonzero)
+       (simp_all add: unit_factor_field_poly_def normalize_field_poly_def)
 next
   fix p :: "'a poly" assume "is_unit p"
   thus "normalize_field_poly p = 1"
@@ -698,7 +698,7 @@ next
 next
   fix p :: "'a poly" assume "p \<noteq> 0"
   thus "is_unit (unit_factor_field_poly p)"
-    by (simp add: unit_factor_field_poly_def lead_coeff_nonzero is_unit_pCons_iff)
+    by (simp add: unit_factor_field_poly_def is_unit_pCons_iff)
 next
   fix p q s :: "'a poly" assume "s \<noteq> 0"
   moreover assume "euclidean_size_field_poly p < euclidean_size_field_poly q"
@@ -943,7 +943,7 @@ proof -
   have "fract_poly p = unit_factor_field_poly (fract_poly p) * 
           normalize_field_poly (fract_poly p)" by simp
   also have "unit_factor_field_poly (fract_poly p) = [:to_fract (lead_coeff p):]" 
-    by (simp add: unit_factor_field_poly_def lead_coeff_def monom_0 degree_map_poly coeff_map_poly)
+    by (simp add: unit_factor_field_poly_def monom_0 degree_map_poly coeff_map_poly)
   also from assms have "normalize_field_poly (fract_poly p) = prod_mset ?P" 
     by (subst field_poly_prod_mset_prime_factorization) simp_all
   also have "\<dots> = prod_mset (image_mset id ?P)" by simp

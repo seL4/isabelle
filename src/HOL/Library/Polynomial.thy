@@ -1409,37 +1409,36 @@ text \<open>TODO: Simplification rules for comparisons\<close>
 
 subsection \<open>Leading coefficient\<close>
 
-definition lead_coeff:: "'a::zero poly \<Rightarrow> 'a" where
-  "lead_coeff p= coeff p (degree p)"
+abbreviation lead_coeff:: "'a::zero poly \<Rightarrow> 'a"
+  where "lead_coeff p \<equiv> coeff p (degree p)"
 
 lemma lead_coeff_pCons[simp]:
-    "p\<noteq>0 \<Longrightarrow>lead_coeff (pCons a p) = lead_coeff p"
-    "p=0 \<Longrightarrow> lead_coeff (pCons a p) = a"
-unfolding lead_coeff_def by auto
+  "p \<noteq> 0 \<Longrightarrow> lead_coeff (pCons a p) = lead_coeff p"
+  "p = 0 \<Longrightarrow> lead_coeff (pCons a p) = a"
+  by auto
 
-lemma lead_coeff_0[simp]:"lead_coeff 0 =0" 
-  unfolding lead_coeff_def by auto
-
-lemma coeff_0_prod_list: "coeff (prod_list xs) 0 = prod_list (map (\<lambda>p. coeff p 0) xs)"
+lemma coeff_0_prod_list:
+  "coeff (prod_list xs) 0 = prod_list (map (\<lambda>p. coeff p 0) xs)"
   by (induction xs) (simp_all add: coeff_mult)
 
-lemma coeff_0_power: "coeff (p ^ n) 0 = coeff p 0 ^ n"
+lemma coeff_0_power:
+  "coeff (p ^ n) 0 = coeff p 0 ^ n"
   by (induction n) (simp_all add: coeff_mult)
 
 lemma lead_coeff_mult:
-   fixes p q::"'a :: {comm_semiring_0,semiring_no_zero_divisors} poly"
-   shows "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
-by (unfold lead_coeff_def,cases "p=0 \<or> q=0",auto simp add:coeff_mult_degree_sum degree_mult_eq)
+  fixes p q :: "'a :: {comm_semiring_0, semiring_no_zero_divisors} poly"
+  shows "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
+  by (cases "p=0 \<or> q=0", auto simp add:coeff_mult_degree_sum degree_mult_eq)
 
 lemma lead_coeff_add_le:
   assumes "degree p < degree q"
-  shows "lead_coeff (p+q) = lead_coeff q" 
-using assms unfolding lead_coeff_def
-by (metis coeff_add coeff_eq_0 monoid_add_class.add.left_neutral degree_add_eq_right)
+  shows "lead_coeff (p + q) = lead_coeff q" 
+  using assms
+  by (metis coeff_add coeff_eq_0 monoid_add_class.add.left_neutral degree_add_eq_right)
 
 lemma lead_coeff_minus:
-  "lead_coeff (-p) = - lead_coeff p"
-by (metis coeff_minus degree_minus lead_coeff_def)
+  "lead_coeff (- p) = - lead_coeff p"
+  by (metis coeff_minus degree_minus)
 
 lemma lead_coeff_smult:
   "lead_coeff (smult c p :: 'a :: {comm_semiring_0,semiring_no_zero_divisors} poly) = c * lead_coeff p"
@@ -1450,30 +1449,23 @@ proof -
   finally show ?thesis .
 qed
 
-lemma lead_coeff_eq_zero_iff [simp]: "lead_coeff p = 0 \<longleftrightarrow> p = 0"
-  by (simp add: lead_coeff_def)
-
 lemma lead_coeff_1 [simp]: "lead_coeff 1 = 1"
-  by (simp add: lead_coeff_def)
+  by simp
 
 lemma lead_coeff_of_nat [simp]:
   "lead_coeff (of_nat n) = (of_nat n :: 'a :: {comm_semiring_1,semiring_char_0})"
-  by (induction n) (simp_all add: lead_coeff_def of_nat_poly)
+  by (simp add: of_nat_poly)
 
 lemma lead_coeff_numeral [simp]: 
   "lead_coeff (numeral n) = numeral n"
-  unfolding lead_coeff_def
-  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+  by (simp add: numeral_poly)
 
 lemma lead_coeff_power: 
   "lead_coeff (p ^ n :: 'a :: {comm_semiring_1,semiring_no_zero_divisors} poly) = lead_coeff p ^ n"
   by (induction n) (simp_all add: lead_coeff_mult)
 
-lemma lead_coeff_nonzero: "p \<noteq> 0 \<Longrightarrow> lead_coeff p \<noteq> 0"
-  by (simp add: lead_coeff_def)
-
 lemma lead_coeff_monom [simp]: "lead_coeff (monom c n) = c"
-  by (cases "c = 0") (simp_all add: lead_coeff_def degree_monom_eq)
+  by (cases "c = 0") (simp_all add: degree_monom_eq)
 
 
 subsection \<open>Synthetic division and polynomial roots\<close>
@@ -2170,7 +2162,7 @@ proof (cases "p = 0")
   case False
   thus ?thesis
     by (subst div_const_poly_conv_map_poly)
-       (auto simp: normalize_poly_def const_poly_dvd_iff lead_coeff_def )
+       (auto simp: normalize_poly_def const_poly_dvd_iff)
 qed (auto simp: normalize_poly_def)
 
 lemma unit_factor_pCons:
@@ -2179,11 +2171,11 @@ lemma unit_factor_pCons:
 
 lemma normalize_monom [simp]:
   "normalize (monom a n) = monom (normalize a) n"
-  by (simp add: map_poly_monom normalize_poly_def)
+  by (cases "a = 0") (simp_all add: map_poly_monom normalize_poly_def degree_monom_eq)
 
 lemma unit_factor_monom [simp]:
   "unit_factor (monom a n) = monom (unit_factor a) 0"
-  by (simp add: unit_factor_poly_def )
+  by (cases "a = 0") (simp_all add: unit_factor_poly_def degree_monom_eq)
 
 lemma normalize_const_poly: "normalize [:c:] = [:normalize c:]"
   by (simp add: normalize_poly_def map_poly_pCons)
@@ -3224,7 +3216,7 @@ lemma lead_coeff_comp:
   shows "lead_coeff (pcompose p q) = lead_coeff p * lead_coeff q ^ (degree p)"
 proof (induct p)
   case 0
-  thus ?case unfolding lead_coeff_def by auto
+  thus ?case by auto
 next
   case (pCons a p)
   have "degree ( q * pcompose p q) = 0 \<Longrightarrow> ?case"
@@ -3236,9 +3228,13 @@ next
     qed
   moreover have "degree ( q * pcompose p q) > 0 \<Longrightarrow> ?case" 
     proof -
-      assume "degree ( q * pcompose p q) > 0"
-      hence "lead_coeff (pcompose (pCons a p) q) =lead_coeff ( q * pcompose p q)"
-        by (auto simp add:pcompose_pCons lead_coeff_add_le)
+      assume "degree (q * pcompose p q) > 0"
+      then have "degree [:a:] < degree (q * pcompose p q)"
+        by simp
+      then have "lead_coeff ([:a:] + q * p \<circ>\<^sub>p q) = lead_coeff (q * p \<circ>\<^sub>p q)"
+        by (rule lead_coeff_add_le)
+      then have "lead_coeff (pcompose (pCons a p) q) = lead_coeff (q * pcompose p q)"
+        by (simp add: pcompose_pCons)
       also have "... = lead_coeff q * (lead_coeff p * lead_coeff q ^ degree p)"
         using pCons.hyps(2) lead_coeff_mult[of q "pcompose p q"] by simp
       also have "... = lead_coeff p * lead_coeff q ^ (degree p + 1)"
@@ -3365,7 +3361,7 @@ lemma poly_reflect_poly_nz:
   by (induction rule: pCons_induct) (simp_all add: field_simps reflect_poly_pCons' poly_monom)
 
 lemma coeff_0_reflect_poly [simp]: "coeff (reflect_poly p) 0 = lead_coeff p"
-  by (simp add: coeff_reflect_poly lead_coeff_def)
+  by (simp add: coeff_reflect_poly)
 
 lemma poly_reflect_poly_0 [simp]: "poly (reflect_poly p) 0 = lead_coeff p"
   by (simp add: poly_0_coeff_0)
