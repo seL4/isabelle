@@ -1388,7 +1388,6 @@ proposition covering_space_lift_unique:
    shows "g1 x = g2 x"
 using covering_space_lift_unique_gen [of c p S] in_components_self assms ex_in_conv by blast
 
-
 lemma covering_space_locally:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes loc: "locally \<phi> C" and cov: "covering_space C p S"
@@ -1510,5 +1509,915 @@ lemma covering_space_locally_path_connected:
   assumes "locally path_connected C" "covering_space C p S"
   shows "locally path_connected S"
   using assms covering_space_locally_path_connected_eq by blast
+
+proposition covering_space_lift_homotopy:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    and h :: "real \<times> 'c::real_normed_vector \<Rightarrow> 'b"
+  assumes cov: "covering_space C p S"
+      and conth: "continuous_on ({0..1} \<times> U) h"
+      and him: "h ` ({0..1} \<times> U) \<subseteq> S"
+      and heq: "\<And>y. y \<in> U \<Longrightarrow> h (0,y) = p(f y)"
+      and contf: "continuous_on U f" and fim: "f ` U \<subseteq> C"
+    obtains k where "continuous_on ({0..1} \<times> U) k"
+                    "k ` ({0..1} \<times> U) \<subseteq> C"
+                    "\<And>y. y \<in> U \<Longrightarrow> k(0, y) = f y"
+                    "\<And>z. z \<in> {0..1} \<times> U \<Longrightarrow> h z = p(k z)"
+proof -
+  have "\<exists>V k. openin (subtopology euclidean U) V \<and> y \<in> V \<and>
+              continuous_on ({0..1} \<times> V) k \<and> k ` ({0..1} \<times> V) \<subseteq> C \<and>
+              (\<forall>z \<in> V. k(0, z) = f z) \<and> (\<forall>z \<in> {0..1} \<times> V. h z = p(k z))"
+        if "y \<in> U" for y
+  proof -
+    obtain UU where UU: "\<And>s. s \<in> S \<Longrightarrow> s \<in> (UU s) \<and> openin (subtopology euclidean S) (UU s) \<and>
+                                        (\<exists>\<V>. \<Union>\<V> = {x. x \<in> C \<and> p x \<in> (UU s)} \<and>
+                                            (\<forall>U \<in> \<V>. openin (subtopology euclidean C) U) \<and>
+                                            pairwise disjnt \<V> \<and>
+                                            (\<forall>U \<in> \<V>. \<exists>q. homeomorphism U (UU s) p q))"
+      using cov unfolding covering_space_def by (metis (mono_tags))
+    then have ope: "\<And>s. s \<in> S \<Longrightarrow> s \<in> (UU s) \<and> openin (subtopology euclidean S) (UU s)"
+      by blast
+    have "\<exists>k n i. open k \<and> open n \<and>
+                  t \<in> k \<and> y \<in> n \<and> i \<in> S \<and> h ` (({0..1} \<inter> k) \<times> (U \<inter> n)) \<subseteq> UU i" if "t \<in> {0..1}" for t
+    proof -
+      have hinS: "h (t, y) \<in> S"
+        using \<open>y \<in> U\<close> him that by blast
+      then have "(t,y) \<in> {z \<in> {0..1} \<times> U. h z \<in> UU (h (t, y))}"
+        using \<open>y \<in> U\<close> \<open>t \<in> {0..1}\<close>  by (auto simp: ope)
+      moreover have ope_01U: "openin (subtopology euclidean ({0..1} \<times> U)) {z. z \<in> ({0..1} \<times> U) \<and> h z \<in> UU(h(t, y))}"
+        using hinS ope continuous_on_open_gen [OF him] conth by blast
+      ultimately obtain V W where opeV: "open V" and "t \<in> {0..1} \<inter> V" "t \<in> {0..1} \<inter> V"
+                              and opeW: "open W" and "y \<in> U" "y \<in> W"
+                              and VW: "({0..1} \<inter> V) \<times> (U \<inter> W)  \<subseteq> {z. z \<in> ({0..1} \<times> U) \<and> h z \<in> UU(h(t, y))}"
+        by (rule Times_in_interior_subtopology) (auto simp: openin_open)
+      then show ?thesis
+        using hinS by blast
+    qed
+    then obtain K NN X where
+              K: "\<And>t. t \<in> {0..1} \<Longrightarrow> open (K t)"
+          and NN: "\<And>t. t \<in> {0..1} \<Longrightarrow> open (NN t)"
+          and inUS: "\<And>t. t \<in> {0..1} \<Longrightarrow> t \<in> K t \<and> y \<in> NN t \<and> X t \<in> S"
+          and him: "\<And>t. t \<in> {0..1} \<Longrightarrow> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t)) \<subseteq> UU (X t)"
+    by (metis (mono_tags))
+    obtain \<T> where "\<T> \<subseteq> ((\<lambda>i. K i \<times> NN i)) ` {0..1}" "finite \<T>" "{0::real..1} \<times> {y} \<subseteq> \<Union>\<T>"
+    proof (rule compactE)
+      show "compact ({0::real..1} \<times> {y})"
+        by (simp add: compact_Times)
+      show "{0..1} \<times> {y} \<subseteq> (\<Union>i\<in>{0..1}. K i \<times> NN i)"
+        using K inUS by auto
+      show "\<And>B. B \<in> (\<lambda>i. K i \<times> NN i) ` {0..1} \<Longrightarrow> open B"
+        using K NN by (auto simp: open_Times)
+    qed blast
+    then obtain tk where "tk \<subseteq> {0..1}" "finite tk"
+                     and tk: "{0::real..1} \<times> {y} \<subseteq> (\<Union>i \<in> tk. K i \<times> NN i)"
+      by (metis (no_types, lifting) finite_subset_image)
+    then have "tk \<noteq> {}"
+      by auto
+    define n where "n = INTER tk NN"
+    have "y \<in> n" "open n"
+      using inUS NN \<open>tk \<subseteq> {0..1}\<close> \<open>finite tk\<close>
+      by (auto simp: n_def open_INT subset_iff)
+    obtain \<delta> where "0 < \<delta>" and \<delta>: "\<And>T. \<lbrakk>T \<subseteq> {0..1}; diameter T < \<delta>\<rbrakk> \<Longrightarrow> \<exists>B\<in>K ` tk. T \<subseteq> B"
+    proof (rule Lebesgue_number_lemma [of "{0..1}" "K ` tk"])
+      show "K ` tk \<noteq> {}"
+        using \<open>tk \<noteq> {}\<close> by auto
+      show "{0..1} \<subseteq> UNION tk K"
+        using tk by auto
+      show "\<And>B. B \<in> K ` tk \<Longrightarrow> open B"
+        using \<open>tk \<subseteq> {0..1}\<close> K by auto
+    qed auto
+    obtain N::nat where N: "N > 1 / \<delta>"
+      using reals_Archimedean2 by blast
+    then have "N > 0"
+      using \<open>0 < \<delta>\<close> order.asym by force
+    have *: "\<exists>V k. openin (subtopology euclidean U) V \<and> y \<in> V \<and>
+                   continuous_on ({0..of_nat n / N} \<times> V) k \<and>
+                   k ` ({0..of_nat n / N} \<times> V) \<subseteq> C \<and>
+                   (\<forall>z\<in>V. k (0, z) = f z) \<and>
+                   (\<forall>z\<in>{0..of_nat n / N} \<times> V. h z = p (k z))" if "n \<le> N" for n
+      using that
+    proof (induction n)
+      case 0
+      show ?case
+        apply (rule_tac x=U in exI)
+        apply (rule_tac x="f \<circ> snd" in exI)
+        apply (intro conjI \<open>y \<in> U\<close> continuous_intros continuous_on_subset [OF contf])
+        using fim  apply (auto simp: heq)
+        done
+    next
+      case (Suc n)
+      then obtain V k where opeUV: "openin (subtopology euclidean U) V"
+                        and "y \<in> V"
+                        and contk: "continuous_on ({0..real n / real N} \<times> V) k"
+                        and kim: "k ` ({0..real n / real N} \<times> V) \<subseteq> C"
+                        and keq: "\<And>z. z \<in> V \<Longrightarrow> k (0, z) = f z"
+                        and heq: "\<And>z. z \<in> {0..real n / real N} \<times> V \<Longrightarrow> h z = p (k z)"
+        using Suc_leD by auto
+      have "n \<le> N"
+        using Suc.prems by auto
+      obtain t where "t \<in> tk" and t: "{real n / real N .. (1 + real n) / real N} \<subseteq> K t"
+      proof (rule bexE [OF \<delta>])
+        show "{real n / real N .. (1 + real n) / real N} \<subseteq> {0..1}"
+          using Suc.prems by (auto simp: divide_simps algebra_simps)
+        show diameter_less: "diameter {real n / real N .. (1 + real n) / real N} < \<delta>"
+          using \<open>0 < \<delta>\<close> N by (auto simp: divide_simps algebra_simps)
+      qed blast
+      have t01: "t \<in> {0..1}"
+        using \<open>t \<in> tk\<close> \<open>tk \<subseteq> {0..1}\<close> by blast
+      obtain \<V> where "\<Union>\<V> = {x. x \<in> C \<and> p x \<in> (UU (X t))}"
+                 and opeC: "\<And>U. U \<in> \<V> \<Longrightarrow> openin (subtopology euclidean C) U"
+                 and "pairwise disjnt \<V>"
+                 and homuu: "\<And>U. U \<in> \<V> \<Longrightarrow> \<exists>q. homeomorphism U (UU (X t)) p q"
+        using inUS [OF t01] UU by meson
+      have n_div_N_in: "real n / real N \<in> {real n / real N .. (1 + real n) / real N}"
+        using N by (auto simp: divide_simps algebra_simps)
+      with t have nN_in_kkt: "real n / real N \<in> K t"
+        by blast
+      have "k (real n / real N, y) \<in> {x. x \<in> C \<and> p x \<in> (UU (X t))}"
+      proof (simp, rule conjI)
+        show "k (real n / real N, y) \<in> C"
+          using \<open>y \<in> V\<close> kim keq by force
+        have "p (k (real n / real N, y)) = h (real n / real N, y)"
+          by (simp add: \<open>y \<in> V\<close> heq)
+        also have "... \<in> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
+          apply (rule imageI)
+           using \<open>y \<in> V\<close> t01 \<open>n \<le> N\<close>
+          apply (simp add: nN_in_kkt \<open>y \<in> U\<close> inUS divide_simps)
+          done
+        also have "... \<subseteq> UU (X t)"
+          using him t01 by blast
+        finally show "p (k (real n / real N, y)) \<in> UU (X t)" .
+      qed
+      then have "k (real n / real N, y) \<in> \<Union>\<V>"
+        using \<open>\<Union>\<V> = {x \<in> C. p x \<in> UU (X t)}\<close> by blast
+      then obtain W where W: "k (real n / real N, y) \<in> W" and "W \<in> \<V>"
+        by blast
+      then obtain p' where opeC': "openin (subtopology euclidean C) W"
+                       and hom': "homeomorphism W (UU (X t)) p p'"
+        using homuu opeC by blast
+      then have "W \<subseteq> C"
+        using openin_imp_subset by blast
+      define W' where "W' = UU(X t)"
+      have opeVW: "openin (subtopology euclidean V) {z \<in> V. (k \<circ> Pair (real n / real N)) z \<in> W}"
+        apply (rule continuous_openin_preimage [OF _ _ opeC'])
+         apply (intro continuous_intros continuous_on_subset [OF contk])
+        using kim apply (auto simp: \<open>y \<in> V\<close> W)
+        done
+      obtain N' where opeUN': "openin (subtopology euclidean U) N'"
+                  and "y \<in> N'" and kimw: "k ` ({(real n / real N)} \<times> N') \<subseteq> W"
+        apply (rule_tac N' = "{z \<in> V. (k \<circ> Pair ((real n / real N))) z \<in> W}" in that)
+        apply (fastforce simp:  \<open>y \<in> V\<close> W intro!: openin_trans [OF opeVW opeUV])+
+        done
+      obtain Q Q' where opeUQ: "openin (subtopology euclidean U) Q"
+                    and cloUQ': "closedin (subtopology euclidean U) Q'"
+                    and "y \<in> Q" "Q \<subseteq> Q'"
+                    and Q': "Q' \<subseteq> (U \<inter> NN(t)) \<inter> N' \<inter> V"
+      proof -
+        obtain VO VX where "open VO" "open VX" and VO: "V = U \<inter> VO" and VX: "N' = U \<inter> VX"
+          using opeUV opeUN' by (auto simp: openin_open)
+        then have "open (NN(t) \<inter> VO \<inter> VX)"
+          using NN t01 by blast
+        then obtain e where "e > 0" and e: "cball y e \<subseteq> NN(t) \<inter> VO \<inter> VX"
+          by (metis Int_iff \<open>N' = U \<inter> VX\<close> \<open>V = U \<inter> VO\<close> \<open>y \<in> N'\<close> \<open>y \<in> V\<close> inUS open_contains_cball t01)
+        show ?thesis
+        proof
+          show "openin (subtopology euclidean U) (U \<inter> ball y e)"
+            by blast
+          show "closedin (subtopology euclidean U) (U \<inter> cball y e)"
+            using e by (auto simp: closedin_closed)
+        qed (use \<open>y \<in> U\<close> \<open>e > 0\<close> VO VX e in auto)
+      qed
+      then have "y \<in> Q'" "Q \<subseteq> (U \<inter> NN(t)) \<inter> N' \<inter> V"
+        by blast+
+      have neq: "{0..real n / real N} \<union> {real n / real N..(1 + real n) / real N} = {0..(1 + real n) / real N}"
+        apply (auto simp: divide_simps)
+        by (metis mult_zero_left of_nat_0_le_iff of_nat_0_less_iff order_trans real_mult_le_cancel_iff1)
+      then have neqQ': "{0..real n / real N} \<times> Q' \<union> {real n / real N..(1 + real n) / real N} \<times> Q' = {0..(1 + real n) / real N} \<times> Q'"
+        by blast
+      have cont: "continuous_on ({0..(1 + real n) / real N} \<times> Q')
+        (\<lambda>x. if x \<in> {0..real n / real N} \<times> Q' then k x else (p' \<circ> h) x)"
+        unfolding neqQ' [symmetric]
+      proof (rule continuous_on_cases_local, simp_all add: neqQ' del: comp_apply)
+        show "closedin (subtopology euclidean ({0..(1 + real n) / real N} \<times> Q'))
+                       ({0..real n / real N} \<times> Q')"
+          apply (simp add: closedin_closed)
+          apply (rule_tac x="{0 .. real n / real N} \<times> UNIV" in exI)
+          using n_div_N_in apply (auto simp: closed_Times)
+          done
+        show "closedin (subtopology euclidean ({0..(1 + real n) / real N} \<times> Q'))
+                       ({real n / real N..(1 + real n) / real N} \<times> Q')"
+          apply (simp add: closedin_closed)
+          apply (rule_tac x="{real n / real N .. (1 + real n) / real N} \<times> UNIV" in exI)
+          apply (auto simp: closed_Times)
+          by (meson divide_nonneg_nonneg of_nat_0_le_iff order_trans)
+        show "continuous_on ({0..real n / real N} \<times> Q') k"
+          apply (rule continuous_on_subset [OF contk])
+          using Q' by auto
+        have "continuous_on ({real n / real N..(1 + real n) / real N} \<times> Q') h"
+        proof (rule continuous_on_subset [OF conth])
+          show "{real n / real N..(1 + real n) / real N} \<times> Q' \<subseteq> {0..1} \<times> U"
+            using \<open>N > 0\<close>
+            apply auto
+              apply (meson divide_nonneg_nonneg of_nat_0_le_iff order_trans)
+            using Suc.prems order_trans apply fastforce
+            apply (metis IntE  cloUQ' closedin_closed)
+            done
+        qed
+        moreover have "continuous_on (h ` ({real n / real N..(1 + real n) / real N} \<times> Q')) p'"
+        proof (rule continuous_on_subset [OF homeomorphism_cont2 [OF hom']])
+          have "h ` ({real n / real N..(1 + real n) / real N} \<times> Q') \<subseteq> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
+            apply (rule image_mono)
+            using \<open>0 < \<delta>\<close> \<open>N > 0\<close> Suc.prems apply auto
+              apply (meson divide_nonneg_nonneg of_nat_0_le_iff order_trans)
+            using Suc.prems order_trans apply fastforce
+            using t Q' apply auto
+            done
+          with him show "h ` ({real n / real N..(1 + real n) / real N} \<times> Q') \<subseteq> UU (X t)"
+            using t01 by blast
+        qed
+        ultimately show "continuous_on ({real n / real N..(1 + real n) / real N} \<times> Q') (p' \<circ> h)"
+          by (rule continuous_on_compose)
+        have "k (real n / real N, b) = p' (h (real n / real N, b))" if "b \<in> Q'" for b
+        proof -
+          have "k (real n / real N, b) \<in> W"
+            using that Q' kimw  by force
+          then have "k (real n / real N, b) = p' (p (k (real n / real N, b)))"
+            by (simp add:  homeomorphism_apply1 [OF hom'])
+          then show ?thesis
+            using Q' that by (force simp: heq)
+        qed
+        then show "\<And>x. x \<in> {real n / real N..(1 + real n) / real N} \<times> Q' \<and>
+                  x \<in> {0..real n / real N} \<times> Q' \<Longrightarrow> k x = (p' \<circ> h) x"
+          by auto
+      qed
+      have h_in_UU: "h (x, y) \<in> UU (X t)" if "y \<in> Q" "\<not> x \<le> real n / real N" "0 \<le> x" "x \<le> (1 + real n) / real N" for x y
+      proof -
+        have "x \<le> 1"
+          using Suc.prems that order_trans by force
+        moreover have "x \<in> K t"
+          by (meson atLeastAtMost_iff le_less not_le subset_eq t that)
+        moreover have "y \<in> U"
+          using \<open>y \<in> Q\<close> opeUQ openin_imp_subset by blast
+        moreover have "y \<in> NN t"
+          using Q' \<open>Q \<subseteq> Q'\<close> \<open>y \<in> Q\<close> by auto
+        ultimately have "(x, y) \<in> (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
+          using that by auto
+        then have "h (x, y) \<in> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
+          by blast
+        also have "... \<subseteq> UU (X t)"
+          by (metis him t01)
+        finally show ?thesis .
+      qed
+      let ?k = "(\<lambda>x. if x \<in> {0..real n / real N} \<times> Q' then k x else (p' \<circ> h) x)"
+      show ?case
+      proof (intro exI conjI)
+        show "continuous_on ({0..real (Suc n) / real N} \<times> Q) ?k"
+          apply (rule continuous_on_subset [OF cont])
+          using \<open>Q \<subseteq> Q'\<close> by auto
+        have "\<And>a b. \<lbrakk>a \<le> real n / real N; b \<in> Q'; 0 \<le> a\<rbrakk> \<Longrightarrow> k (a, b) \<in> C"
+          using kim Q' by force
+        moreover have "\<And>a b. \<lbrakk>b \<in> Q; 0 \<le> a; a \<le> (1 + real n) / real N; \<not> a \<le> real n / real N\<rbrakk> \<Longrightarrow> p' (h (a, b)) \<in> C"
+          apply (rule \<open>W \<subseteq> C\<close> [THEN subsetD])
+          using homeomorphism_image2 [OF hom', symmetric]  h_in_UU  Q' \<open>Q \<subseteq> Q'\<close> \<open>W \<subseteq> C\<close>
+          apply auto
+          done
+        ultimately show "?k ` ({0..real (Suc n) / real N} \<times> Q) \<subseteq> C"
+          using Q' \<open>Q \<subseteq> Q'\<close> by force
+        show "\<forall>z\<in>Q. ?k (0, z) = f z"
+          using Q' keq  \<open>Q \<subseteq> Q'\<close> by auto
+        show "\<forall>z \<in> {0..real (Suc n) / real N} \<times> Q. h z = p(?k z)"
+          using \<open>Q \<subseteq> U \<inter> NN t \<inter> N' \<inter> V\<close> heq apply clarsimp
+          using h_in_UU Q' \<open>Q \<subseteq> Q'\<close> apply (auto simp: homeomorphism_apply2 [OF hom', symmetric])
+          done
+        qed (auto simp: \<open>y \<in> Q\<close> opeUQ)
+    qed
+    show ?thesis
+      using*[OF order_refl] N \<open>0 < \<delta>\<close> by (simp add: split: if_split_asm)
+  qed
+  then obtain V fs where opeV: "\<And>y. y \<in> U \<Longrightarrow> openin (subtopology euclidean U) (V y)"
+          and V: "\<And>y. y \<in> U \<Longrightarrow> y \<in> V y"
+          and contfs: "\<And>y. y \<in> U \<Longrightarrow> continuous_on ({0..1} \<times> V y) (fs y)"
+          and *: "\<And>y. y \<in> U \<Longrightarrow> (fs y) ` ({0..1} \<times> V y) \<subseteq> C \<and>
+                            (\<forall>z \<in> V y. fs y (0, z) = f z) \<and>
+                            (\<forall>z \<in> {0..1} \<times> V y. h z = p(fs y z))"
+    by (metis (mono_tags))
+  then have VU: "\<And>y. y \<in> U \<Longrightarrow> V y \<subseteq> U"
+    by (meson openin_imp_subset)
+  obtain k where contk: "continuous_on ({0..1} \<times> U) k"
+             and k: "\<And>x i. \<lbrakk>i \<in> U; x \<in> {0..1} \<times> U \<inter> {0..1} \<times> V i\<rbrakk> \<Longrightarrow> k x = fs i x"
+  proof (rule pasting_lemma_exists)
+    show "{0..1} \<times> U \<subseteq> (\<Union>i\<in>U. {0..1} \<times> V i)"
+      apply auto
+      using V by blast
+    show "\<And>i. i \<in> U \<Longrightarrow> openin (subtopology euclidean ({0..1} \<times> U)) ({0..1} \<times> V i)"
+      by (simp add: opeV openin_Times)
+    show "\<And>i. i \<in> U \<Longrightarrow> continuous_on ({0..1} \<times> V i) (fs i)"
+      using contfs by blast
+    show "fs i x = fs j x"  if "i \<in> U" "j \<in> U" and x: "x \<in> {0..1} \<times> U \<inter> {0..1} \<times> V i \<inter> {0..1} \<times> V j"
+         for i j x
+    proof -
+      obtain u y where "x = (u, y)" "y \<in> V i" "y \<in> V j" "0 \<le> u" "u \<le> 1"
+        using x by auto
+      show ?thesis
+      proof (rule covering_space_lift_unique [OF cov, of _ "(0,y)" _ "{0..1} \<times> {y}" h])
+        show "fs i (0, y) = fs j (0, y)"
+          using*V by (simp add: \<open>y \<in> V i\<close> \<open>y \<in> V j\<close> that)
+        show conth_y: "continuous_on ({0..1} \<times> {y}) h"
+          apply (rule continuous_on_subset [OF conth])
+          using VU \<open>y \<in> V j\<close> that by auto
+        show "h ` ({0..1} \<times> {y}) \<subseteq> S"
+          using \<open>y \<in> V i\<close> assms(3) VU that by fastforce
+        show "continuous_on ({0..1} \<times> {y}) (fs i)"
+          using continuous_on_subset [OF contfs] \<open>i \<in> U\<close>
+          by (simp add: \<open>y \<in> V i\<close> subset_iff)
+        show "fs i ` ({0..1} \<times> {y}) \<subseteq> C"
+          using "*" \<open>y \<in> V i\<close> \<open>i \<in> U\<close> by fastforce
+        show "\<And>x. x \<in> {0..1} \<times> {y} \<Longrightarrow> h x = p (fs i x)"
+          using "*" \<open>y \<in> V i\<close> \<open>i \<in> U\<close> by blast
+        show "continuous_on ({0..1} \<times> {y}) (fs j)"
+          using continuous_on_subset [OF contfs] \<open>j \<in> U\<close>
+          by (simp add: \<open>y \<in> V j\<close> subset_iff)
+        show "fs j ` ({0..1} \<times> {y}) \<subseteq> C"
+          using "*" \<open>y \<in> V j\<close> \<open>j \<in> U\<close> by fastforce
+        show "\<And>x. x \<in> {0..1} \<times> {y} \<Longrightarrow> h x = p (fs j x)"
+          using "*" \<open>y \<in> V j\<close> \<open>j \<in> U\<close> by blast
+        show "connected ({0..1::real} \<times> {y})"
+          using connected_Icc connected_Times connected_sing by blast
+        show "(0, y) \<in> {0..1::real} \<times> {y}"
+          by force
+        show "x \<in> {0..1} \<times> {y}"
+          using \<open>x = (u, y)\<close> x by blast
+      qed
+    qed
+  qed blast
+  show ?thesis
+  proof
+    show "k ` ({0..1} \<times> U) \<subseteq> C"
+      using V*k VU by fastforce
+    show "\<And>y. y \<in> U \<Longrightarrow> k (0, y) = f y"
+      by (simp add: V*k)
+    show "\<And>z. z \<in> {0..1} \<times> U \<Longrightarrow> h z = p (k z)"
+      using V*k by auto
+  qed (auto simp: contk)
+qed
+
+corollary covering_space_lift_homotopy_alt:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    and h :: "'c::real_normed_vector \<times> real \<Rightarrow> 'b"
+  assumes cov: "covering_space C p S"
+      and conth: "continuous_on (U \<times> {0..1}) h"
+      and him: "h ` (U \<times> {0..1}) \<subseteq> S"
+      and heq: "\<And>y. y \<in> U \<Longrightarrow> h (y,0) = p(f y)"
+      and contf: "continuous_on U f" and fim: "f ` U \<subseteq> C"
+  obtains k where "continuous_on (U \<times> {0..1}) k"
+                  "k ` (U \<times> {0..1}) \<subseteq> C"
+                  "\<And>y. y \<in> U \<Longrightarrow> k(y, 0) = f y"
+                  "\<And>z. z \<in> U \<times> {0..1} \<Longrightarrow> h z = p(k z)"
+proof -
+  have "continuous_on ({0..1} \<times> U) (h \<circ> (\<lambda>z. (snd z, fst z)))"
+    by (intro continuous_intros continuous_on_subset [OF conth]) auto
+  then obtain k where contk: "continuous_on ({0..1} \<times> U) k"
+                  and kim:  "k ` ({0..1} \<times> U) \<subseteq> C"
+                  and k0: "\<And>y. y \<in> U \<Longrightarrow> k(0, y) = f y"
+                  and heqp: "\<And>z. z \<in> {0..1} \<times> U \<Longrightarrow> (h \<circ> (\<lambda>z. Pair (snd z) (fst z))) z = p(k z)"
+    apply (rule covering_space_lift_homotopy [OF cov _ _ _ contf fim])
+    using him  by (auto simp: contf heq)
+  show ?thesis
+    apply (rule_tac k="k \<circ> (\<lambda>z. Pair (snd z) (fst z))" in that)
+       apply (intro continuous_intros continuous_on_subset [OF contk])
+    using kim heqp apply (auto simp: k0)
+    done
+qed
+
+corollary covering_space_lift_homotopic_function:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" and g:: "'c::real_normed_vector \<Rightarrow> 'a"
+  assumes cov: "covering_space C p S"
+      and contg: "continuous_on U g"
+      and gim: "g ` U \<subseteq> C"
+      and pgeq: "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+      and hom: "homotopic_with (\<lambda>x. True) U S f f'"
+    obtains g' where "continuous_on U g'" "image g' U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g' y) = f' y"
+proof -
+  obtain h where conth: "continuous_on ({0..1::real} \<times> U) h"
+             and him: "h ` ({0..1} \<times> U) \<subseteq> S"
+             and h0:  "\<And>x. h(0, x) = f x"
+             and h1: "\<And>x. h(1, x) = f' x"
+    using hom by (auto simp: homotopic_with_def)
+  have "\<And>y. y \<in> U \<Longrightarrow> h (0, y) = p (g y)"
+    by (simp add: h0 pgeq)
+  then obtain k where contk: "continuous_on ({0..1} \<times> U) k"
+                  and kim: "k ` ({0..1} \<times> U) \<subseteq> C"
+                  and k0: "\<And>y. y \<in> U \<Longrightarrow> k(0, y) = g y"
+                  and heq: "\<And>z. z \<in> {0..1} \<times> U \<Longrightarrow> h z = p(k z)"
+    using covering_space_lift_homotopy [OF cov conth him _ contg gim] by metis
+  show ?thesis
+  proof
+    show "continuous_on U (k \<circ> Pair 1)"
+      by (meson contk atLeastAtMost_iff continuous_on_o_Pair order_refl zero_le_one)
+    show "(k \<circ> Pair 1) ` U \<subseteq> C"
+      using kim by auto
+    show "\<And>y. y \<in> U \<Longrightarrow> p ((k \<circ> Pair 1) y) = f' y"
+      by (auto simp: h1 heq [symmetric])
+  qed
+qed
+
+corollary covering_space_lift_inessential_function:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" and U :: "'c::real_normed_vector set"
+  assumes cov: "covering_space C p S"
+      and hom: "homotopic_with (\<lambda>x. True) U S f (\<lambda>x. a)"
+  obtains g where "continuous_on U g" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+proof (cases "U = {}")
+  case True
+  then show ?thesis
+    using that continuous_on_empty by blast
+next
+  case False
+  then obtain b where b: "b \<in> C" "p b = a"
+    using covering_space_imp_surjective [OF cov] homotopic_with_imp_subset2 [OF hom]
+    by auto
+  then have gim: "(\<lambda>y. b) ` U \<subseteq> C"
+    by blast
+  show ?thesis
+    apply (rule covering_space_lift_homotopic_function
+                  [OF cov continuous_on_const gim _ homotopic_with_symD [OF hom]])
+    using b that apply auto
+    done
+qed
+
+subsection\<open> Lifting of general functions to covering space\<close>
+
+proposition covering_space_lift_path_strong:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    and f :: "'c::real_normed_vector \<Rightarrow> 'b"
+  assumes cov: "covering_space C p S" and "a \<in> C"
+      and "path g" and pag: "path_image g \<subseteq> S" and pas: "pathstart g = p a"
+    obtains h where "path h" "path_image h \<subseteq> C" "pathstart h = a"
+                and "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h t) = g t"
+proof -
+  obtain k:: "real \<times> 'c \<Rightarrow> 'a"
+    where contk: "continuous_on ({0..1} \<times> {undefined}) k"
+      and kim: "k ` ({0..1} \<times> {undefined}) \<subseteq> C"
+      and k0:  "k (0, undefined) = a"
+      and pk: "\<And>z. z \<in> {0..1} \<times> {undefined} \<Longrightarrow> p(k z) = (g \<circ> fst) z"
+  proof (rule covering_space_lift_homotopy [OF cov, of "{undefined}" "g \<circ> fst"])
+    show "continuous_on ({0..1::real} \<times> {undefined::'c}) (g \<circ> fst)"
+      apply (intro continuous_intros)
+      using \<open>path g\<close> by (simp add: path_def)
+    show "(g \<circ> fst) ` ({0..1} \<times> {undefined}) \<subseteq> S"
+      using pag by (auto simp: path_image_def)
+    show "(g \<circ> fst) (0, y) = p a" if "y \<in> {undefined}" for y::'c
+      by (metis comp_def fst_conv pas pathstart_def)
+  qed (use assms in auto)
+  show ?thesis
+  proof
+    show "path (k \<circ> (\<lambda>t. Pair t undefined))"
+      unfolding path_def
+      by (intro continuous_on_compose continuous_intros continuous_on_subset [OF contk]) auto
+    show "path_image (k \<circ> (\<lambda>t. (t, undefined))) \<subseteq> C"
+      using kim by (auto simp: path_image_def)
+    show "pathstart (k \<circ> (\<lambda>t. (t, undefined))) = a"
+      by (auto simp: pathstart_def k0)
+    show "\<And>t. t \<in> {0..1} \<Longrightarrow> p ((k \<circ> (\<lambda>t. (t, undefined))) t) = g t"
+      by (auto simp: pk)
+  qed
+qed
+
+corollary covering_space_lift_path:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes cov: "covering_space C p S" and "path g" and pig: "path_image g \<subseteq> S"
+  obtains h where "path h" "path_image h \<subseteq> C" "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h t) = g t"
+proof -
+  obtain a where "a \<in> C" "pathstart g = p a"
+    by (metis pig cov covering_space_imp_surjective imageE pathstart_in_path_image subsetCE)
+  show ?thesis
+    using covering_space_lift_path_strong [OF cov \<open>a \<in> C\<close> \<open>path g\<close> pig]
+    by (metis \<open>pathstart g = p a\<close> that)
+qed
+
+  
+proposition covering_space_lift_homotopic_paths:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes cov: "covering_space C p S"
+      and "path g1" and pig1: "path_image g1 \<subseteq> S"
+      and "path g2" and pig2: "path_image g2 \<subseteq> S"
+      and hom: "homotopic_paths S g1 g2"
+      and "path h1" and pih1: "path_image h1 \<subseteq> C" and ph1: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h1 t) = g1 t"
+      and "path h2" and pih2: "path_image h2 \<subseteq> C" and ph2: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h2 t) = g2 t"
+      and h1h2: "pathstart h1 = pathstart h2"
+    shows "homotopic_paths C h1 h2"
+proof -
+  obtain h :: "real \<times> real \<Rightarrow> 'b"
+     where conth: "continuous_on ({0..1} \<times> {0..1}) h"
+       and him: "h ` ({0..1} \<times> {0..1}) \<subseteq> S"
+       and h0: "\<And>x. h (0, x) = g1 x" and h1: "\<And>x. h (1, x) = g2 x"
+       and heq0: "\<And>t. t \<in> {0..1} \<Longrightarrow> h (t, 0) = g1 0"
+       and heq1: "\<And>t. t \<in> {0..1} \<Longrightarrow> h (t, 1) = g1 1"
+    using hom by (auto simp: homotopic_paths_def homotopic_with_def pathstart_def pathfinish_def)
+  obtain k where contk: "continuous_on ({0..1} \<times> {0..1}) k"
+             and kim: "k ` ({0..1} \<times> {0..1}) \<subseteq> C"
+             and kh2: "\<And>y. y \<in> {0..1} \<Longrightarrow> k (y, 0) = h2 0"
+             and hpk: "\<And>z. z \<in> {0..1} \<times> {0..1} \<Longrightarrow> h z = p (k z)"
+    apply (rule covering_space_lift_homotopy_alt [OF cov conth him, of "\<lambda>x. h2 0"])
+    using h1h2 ph1 ph2 apply (force simp: heq0 pathstart_def pathfinish_def)
+    using path_image_def pih2 continuous_on_const by fastforce+
+  have contg1: "continuous_on {0..1} g1" and contg2: "continuous_on {0..1} g2"
+    using \<open>path g1\<close> \<open>path g2\<close> path_def by blast+
+  have g1im: "g1 ` {0..1} \<subseteq> S" and g2im: "g2 ` {0..1} \<subseteq> S"
+    using path_image_def pig1 pig2 by auto
+  have conth1: "continuous_on {0..1} h1" and conth2: "continuous_on {0..1} h2"
+    using \<open>path h1\<close> \<open>path h2\<close> path_def by blast+
+  have h1im: "h1 ` {0..1} \<subseteq> C" and h2im: "h2 ` {0..1} \<subseteq> C"
+    using path_image_def pih1 pih2 by auto
+  show ?thesis
+    unfolding homotopic_paths pathstart_def pathfinish_def
+  proof (intro exI conjI ballI)
+    show keqh1: "k(0, x) = h1 x" if "x \<in> {0..1}" for x
+    proof (rule covering_space_lift_unique [OF cov _ contg1 g1im])
+      show "k (0,0) = h1 0"
+        by (metis atLeastAtMost_iff h1h2 kh2 order_refl pathstart_def zero_le_one)
+      show "continuous_on {0..1} (\<lambda>a. k (0, a))"
+        by (intro continuous_intros continuous_on_compose2 [OF contk]) auto
+      show "\<And>x. x \<in> {0..1} \<Longrightarrow> g1 x = p (k (0, x))"
+        by (metis atLeastAtMost_iff h0 hpk zero_le_one mem_Sigma_iff order_refl)
+    qed (use conth1 h1im kim that in \<open>auto simp: ph1\<close>)
+    show "k(1, x) = h2 x" if "x \<in> {0..1}" for x
+    proof (rule covering_space_lift_unique [OF cov _ contg2 g2im])
+      show "k (1,0) = h2 0"
+        by (metis atLeastAtMost_iff kh2 order_refl zero_le_one)
+      show "continuous_on {0..1} (\<lambda>a. k (1, a))"
+        by (intro continuous_intros continuous_on_compose2 [OF contk]) auto
+      show "\<And>x. x \<in> {0..1} \<Longrightarrow> g2 x = p (k (1, x))"
+        by (metis atLeastAtMost_iff h1 hpk mem_Sigma_iff order_refl zero_le_one)
+    qed (use conth2 h2im kim that in \<open>auto simp: ph2\<close>)
+    show "\<And>t. t \<in> {0..1} \<Longrightarrow> (k \<circ> Pair t) 0 = h1 0"
+      by (metis comp_apply h1h2 kh2 pathstart_def)
+    show "(k \<circ> Pair t) 1 = h1 1" if "t \<in> {0..1}" for t
+    proof (rule covering_space_lift_unique
+           [OF cov, of "\<lambda>a. (k \<circ> Pair a) 1" 0 "\<lambda>a. h1 1" "{0..1}"  "\<lambda>x. g1 1"])
+      show "(k \<circ> Pair 0) 1 = h1 1"
+        using keqh1 by auto
+      show "continuous_on {0..1} (\<lambda>a. (k \<circ> Pair a) 1)"
+        apply simp
+        by (intro continuous_intros continuous_on_compose2 [OF contk]) auto
+      show "\<And>x. x \<in> {0..1} \<Longrightarrow> g1 1 = p ((k \<circ> Pair x) 1)"
+        using heq1 hpk by auto
+    qed (use contk kim g1im h1im that in \<open>auto simp: ph1 continuous_on_const\<close>)
+  qed (use contk kim in auto)
+qed
+
+
+corollary covering_space_monodromy:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes cov: "covering_space C p S"
+      and "path g1" and pig1: "path_image g1 \<subseteq> S"
+      and "path g2" and pig2: "path_image g2 \<subseteq> S"
+      and hom: "homotopic_paths S g1 g2"
+      and "path h1" and pih1: "path_image h1 \<subseteq> C" and ph1: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h1 t) = g1 t"
+      and "path h2" and pih2: "path_image h2 \<subseteq> C" and ph2: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h2 t) = g2 t"
+      and h1h2: "pathstart h1 = pathstart h2"
+    shows "pathfinish h1 = pathfinish h2"
+  using covering_space_lift_homotopic_paths [OF assms] homotopic_paths_imp_pathfinish by blast
+
+
+corollary covering_space_lift_homotopic_path:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes cov: "covering_space C p S"
+      and hom: "homotopic_paths S f f'"
+      and "path g" and pig: "path_image g \<subseteq> C"
+      and a: "pathstart g = a" and b: "pathfinish g = b"
+      and pgeq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(g t) = f t"
+  obtains g' where "path g'" "path_image g' \<subseteq> C"
+                   "pathstart g' = a" "pathfinish g' = b" "\<And>t. t \<in> {0..1} \<Longrightarrow> p(g' t) = f' t"
+proof (rule covering_space_lift_path_strong [OF cov, of a f'])
+  show "a \<in> C"
+    using a pig by auto
+  show "path f'" "path_image f' \<subseteq> S"
+    using hom homotopic_paths_imp_path homotopic_paths_imp_subset by blast+
+  show "pathstart f' = p a"
+    by (metis a atLeastAtMost_iff hom homotopic_paths_imp_pathstart order_refl pathstart_def pgeq zero_le_one)
+qed (metis (mono_tags, lifting) assms cov covering_space_monodromy hom homotopic_paths_imp_path homotopic_paths_imp_subset pgeq pig)
+
+
+proposition covering_space_lift_general:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    and f :: "'c::real_normed_vector \<Rightarrow> 'b"
+  assumes cov: "covering_space C p S" and "a \<in> C" "z \<in> U"
+      and U: "path_connected U" "locally path_connected U"
+      and contf: "continuous_on U f" and fim: "f ` U \<subseteq> S"
+      and feq: "f z = p a"
+      and hom: "\<And>r. \<lbrakk>path r; path_image r \<subseteq> U; pathstart r = z; pathfinish r = z\<rbrakk>
+                     \<Longrightarrow> \<exists>q. path q \<and> path_image q \<subseteq> C \<and>
+                             pathstart q = a \<and> pathfinish q = a \<and>
+                             homotopic_paths S (f \<circ> r) (p \<circ> q)"
+  obtains g where "continuous_on U g" "g ` U \<subseteq> C" "g z = a" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+proof -
+  have *: "\<exists>g h. path g \<and> path_image g \<subseteq> U \<and>
+                 pathstart g = z \<and> pathfinish g = y \<and>
+                 path h \<and> path_image h \<subseteq> C \<and> pathstart h = a \<and>
+                 (\<forall>t \<in> {0..1}. p(h t) = f(g t))"
+          if "y \<in> U" for y
+  proof -
+    obtain g where "path g" "path_image g \<subseteq> U" and pastg: "pathstart g = z"
+               and pafig: "pathfinish g = y"
+      using U \<open>z \<in> U\<close> \<open>y \<in> U\<close> by (force simp: path_connected_def)
+    obtain h where "path h" "path_image h \<subseteq> C" "pathstart h = a"
+               and "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h t) = (f \<circ> g) t"
+    proof (rule covering_space_lift_path_strong [OF cov \<open>a \<in> C\<close>])
+      show "path (f \<circ> g)"
+        using \<open>path g\<close> \<open>path_image g \<subseteq> U\<close> contf continuous_on_subset path_continuous_image by blast
+      show "path_image (f \<circ> g) \<subseteq> S"
+        by (metis \<open>path_image g \<subseteq> U\<close> fim image_mono path_image_compose subset_trans)
+      show "pathstart (f \<circ> g) = p a"
+        by (simp add: feq pastg pathstart_compose)
+    qed auto
+    then show ?thesis
+      by (metis \<open>path g\<close> \<open>path_image g \<subseteq> U\<close> comp_apply pafig pastg)
+  qed
+  have "\<exists>l. \<forall>g h. path g \<and> path_image g \<subseteq> U \<and> pathstart g = z \<and> pathfinish g = y \<and>
+                  path h \<and> path_image h \<subseteq> C \<and> pathstart h = a \<and>
+                  (\<forall>t \<in> {0..1}. p(h t) = f(g t))  \<longrightarrow> pathfinish h = l" for y
+  proof -
+    have "pathfinish h = pathfinish h'"
+         if g: "path g" "path_image g \<subseteq> U" "pathstart g = z" "pathfinish g = y"
+            and h: "path h" "path_image h \<subseteq> C" "pathstart h = a"
+            and phg: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h t) = f(g t)"
+            and g': "path g'" "path_image g' \<subseteq> U" "pathstart g' = z" "pathfinish g' = y"
+            and h': "path h'" "path_image h' \<subseteq> C" "pathstart h' = a"
+            and phg': "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h' t) = f(g' t)"
+         for g h g' h'
+    proof -
+      obtain q where "path q" and piq: "path_image q \<subseteq> C" and pastq: "pathstart q = a" and pafiq: "pathfinish q = a"
+                 and homS: "homotopic_paths S (f \<circ> g +++ reversepath g') (p \<circ> q)"
+        using g g' hom [of "g +++ reversepath g'"] by (auto simp:  subset_path_image_join)
+              have papq: "path (p \<circ> q)"
+                using homS homotopic_paths_imp_path by blast
+              have pipq: "path_image (p \<circ> q) \<subseteq> S"
+                using homS homotopic_paths_imp_subset by blast
+      obtain q' where "path q'" "path_image q' \<subseteq> C"
+                and "pathstart q' = pathstart q" "pathfinish q' = pathfinish q"
+                and pq'_eq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p (q' t) = (f \<circ> g +++ reversepath g') t"
+        using covering_space_lift_homotopic_path [OF cov homotopic_paths_sym [OF homS] \<open>path q\<close> piq refl refl]
+        by auto
+      have "q' t = (h \<circ> op *\<^sub>R 2) t" if "0 \<le> t" "t \<le> 1/2" for t
+      proof (rule covering_space_lift_unique [OF cov, of q' 0 "h \<circ> op *\<^sub>R 2" "{0..1/2}" "f \<circ> g \<circ> op *\<^sub>R 2" t])
+        show "q' 0 = (h \<circ> op *\<^sub>R 2) 0"
+          by (metis \<open>pathstart q' = pathstart q\<close> comp_def g h pastq pathstart_def pth_4(2))
+        show "continuous_on {0..1/2} (f \<circ> g \<circ> op *\<^sub>R 2)"
+          apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path g\<close>] continuous_on_subset [OF contf])
+          using g(2) path_image_def by fastforce+
+        show "(f \<circ> g \<circ> op *\<^sub>R 2) ` {0..1/2} \<subseteq> S"
+          using g(2) path_image_def fim by fastforce
+        show "(h \<circ> op *\<^sub>R 2) ` {0..1/2} \<subseteq> C"
+          using h path_image_def by fastforce
+        show "q' ` {0..1/2} \<subseteq> C"
+          using \<open>path_image q' \<subseteq> C\<close> path_image_def by fastforce
+        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> op *\<^sub>R 2) x = p (q' x)"
+          by (auto simp: joinpaths_def pq'_eq)
+        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> op *\<^sub>R 2) x = p ((h \<circ> op *\<^sub>R 2) x)"
+          by (simp add: phg)
+        show "continuous_on {0..1/2} q'"
+          by (simp add: continuous_on_path \<open>path q'\<close>)
+        show "continuous_on {0..1/2} (h \<circ> op *\<^sub>R 2)"
+          apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path h\<close>], force)
+          done
+      qed (use that in auto)
+      moreover have "q' t = (reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) t" if "1/2 < t" "t \<le> 1" for t
+      proof (rule covering_space_lift_unique [OF cov, of q' 1 "reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)" "{1/2<..1}" "f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)" t])
+        show "q' 1 = (reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) 1"
+          using h' \<open>pathfinish q' = pathfinish q\<close> pafiq
+          by (simp add: pathstart_def pathfinish_def reversepath_def)
+        show "continuous_on {1/2<..1} (f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1))"
+          apply (intro continuous_intros continuous_on_compose continuous_on_path \<open>path g'\<close> continuous_on_subset [OF contf])
+          using g' apply simp_all
+          by (auto simp: path_image_def reversepath_def)
+        show "(f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) ` {1/2<..1} \<subseteq> S"
+          using g'(2) path_image_def fim by (auto simp: image_subset_iff path_image_def reversepath_def)
+        show "q' ` {1/2<..1} \<subseteq> C"
+          using \<open>path_image q' \<subseteq> C\<close> path_image_def by fastforce
+        show "(reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) ` {1/2<..1} \<subseteq> C"
+          using h' by (simp add: path_image_def reversepath_def subset_eq)
+        show "\<And>x. x \<in> {1/2<..1} \<Longrightarrow> (f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) x = p (q' x)"
+          by (auto simp: joinpaths_def pq'_eq)
+        show "\<And>x. x \<in> {1/2<..1} \<Longrightarrow>
+                  (f \<circ> reversepath g' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) x = p ((reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1)) x)"
+          by (simp add: phg' reversepath_def)
+        show "continuous_on {1/2<..1} q'"
+          by (auto intro: continuous_on_path [OF \<open>path q'\<close>])
+        show "continuous_on {1/2<..1} (reversepath h' \<circ> (\<lambda>t. 2 *\<^sub>R t - 1))"
+          apply (intro continuous_intros continuous_on_compose continuous_on_path \<open>path h'\<close>)
+          using h' apply auto
+          done
+      qed (use that in auto)
+      ultimately have "q' t = (h +++ reversepath h') t" if "0 \<le> t" "t \<le> 1" for t
+        using that by (simp add: joinpaths_def)
+      then have "path(h +++ reversepath h')"
+        by (auto intro: path_eq [OF \<open>path q'\<close>])
+      then show ?thesis
+        by (auto simp: \<open>path h\<close> \<open>path h'\<close>)
+    qed
+    then show ?thesis by metis
+  qed
+  then obtain l :: "'c \<Rightarrow> 'a"
+          where l: "\<And>y g h. \<lbrakk>path g; path_image g \<subseteq> U; pathstart g = z; pathfinish g = y;
+                             path h; path_image h \<subseteq> C; pathstart h = a;
+                             \<And>t. t \<in> {0..1} \<Longrightarrow> p(h t) = f(g t)\<rbrakk> \<Longrightarrow> pathfinish h = l y"
+    by metis
+  show ?thesis
+  proof
+    show pleq: "p (l y) = f y" if "y \<in> U" for y
+      using*[OF \<open>y \<in> U\<close>]  by (metis l atLeastAtMost_iff order_refl pathfinish_def zero_le_one)
+    show "l z = a"
+      using l [of "linepath z z" z "linepath a a"] by (auto simp: assms)
+    show LC: "l ` U \<subseteq> C"
+      by (clarify dest!: *) (metis (full_types) l pathfinish_in_path_image subsetCE)
+    have "\<exists>T. openin (subtopology euclidean U) T \<and> y \<in> T \<and> T \<subseteq> {x \<in> U. l x \<in> X}"
+         if X: "openin (subtopology euclidean C) X" and "y \<in> U" "l y \<in> X" for X y
+    proof -
+      have "X \<subseteq> C"
+        using X openin_euclidean_subtopology_iff by blast
+      have "f y \<in> S"
+        using fim \<open>y \<in> U\<close> by blast
+      then obtain W \<V>
+              where WV: "f y \<in> W \<and> openin (subtopology euclidean S) W \<and>
+                         (\<Union>\<V> = {x. x \<in> C \<and> p x \<in> W} \<and>
+                          (\<forall>U \<in> \<V>. openin (subtopology euclidean C) U) \<and>
+                          pairwise disjnt \<V> \<and>
+                          (\<forall>U \<in> \<V>. \<exists>q. homeomorphism U W p q))"
+        using cov by (force simp: covering_space_def)
+      then have "l y \<in> \<Union>\<V>"
+        using \<open>X \<subseteq> C\<close> pleq that by auto
+      then obtain W' where "l y \<in> W'" and "W' \<in> \<V>"
+        by blast
+      with WV obtain p' where opeCW': "openin (subtopology euclidean C) W'"
+                          and homUW': "homeomorphism W' W p p'"
+        by blast
+      then have contp': "continuous_on W p'" and p'im: "p' ` W \<subseteq> W'"
+        using homUW' homeomorphism_image2 homeomorphism_cont2 by fastforce+
+      obtain V where "y \<in> V" "y \<in> U" and fimW: "f ` V \<subseteq> W" "V \<subseteq> U"
+                 and "path_connected V" and opeUV: "openin (subtopology euclidean U) V"
+      proof -
+        have "openin (subtopology euclidean U) {c \<in> U. f c \<in> W}"
+          using WV contf continuous_on_open_gen fim by auto
+        then show ?thesis
+          using U WV
+          apply (auto simp: locally_path_connected)
+          apply (drule_tac x="{x. x \<in> U \<and> f x \<in> W}" in spec)
+          apply (drule_tac x=y in spec)
+          apply (auto simp: \<open>y \<in> U\<close> intro: that)
+          done
+      qed
+      have "W' \<subseteq> C" "W \<subseteq> S"
+        using opeCW' WV openin_imp_subset by auto
+      have p'im: "p' ` W \<subseteq> W'"
+        using homUW' homeomorphism_image2 by fastforce
+      show ?thesis
+      proof (intro exI conjI)
+        have "openin (subtopology euclidean S) {x \<in> W. p' x \<in> W' \<inter> X}"
+        proof (rule openin_trans)
+          show "openin (subtopology euclidean W) {x \<in> W. p' x \<in> W' \<inter> X}"
+            apply (rule continuous_openin_preimage [OF contp' p'im])
+            using X \<open>W' \<subseteq> C\<close> apply (auto simp: openin_open)
+            done
+          show "openin (subtopology euclidean S) W"
+            using WV by blast
+        qed
+        then show "openin (subtopology euclidean U) (V \<inter> {x. x \<in> U \<and> f x \<in> {x. x \<in> W \<and> p' x \<in> W' \<inter> X}})"
+          by (intro openin_Int opeUV continuous_openin_preimage [OF contf fim])
+        have "p' (f y) \<in> X"
+          using \<open>l y \<in> W'\<close> homeomorphism_apply1 [OF homUW'] pleq \<open>y \<in> U\<close> \<open>l y \<in> X\<close> by fastforce
+        then show "y \<in> V \<inter> {x \<in> U. f x \<in> {x \<in> W. p' x \<in> W' \<inter> X}}"
+          using \<open>y \<in> U\<close> \<open>y \<in> V\<close> WV p'im by auto
+        show "V \<inter> {x \<in> U. f x \<in> {x \<in> W. p' x \<in> W' \<inter> X}} \<subseteq> {x \<in> U. l x \<in> X}"
+        proof clarsimp
+          fix y'
+          assume y': "y' \<in> V" "y' \<in> U" "f y' \<in> W" "p' (f y') \<in> W'" "p' (f y') \<in> X"
+          then obtain \<gamma> where "path \<gamma>" "path_image \<gamma> \<subseteq> V" "pathstart \<gamma> = y" "pathfinish \<gamma> = y'"
+            by (meson \<open>path_connected V\<close> \<open>y \<in> V\<close> path_connected_def)
+          obtain pp qq where "path pp" "path_image pp \<subseteq> U"
+                             "pathstart pp = z" "pathfinish pp = y"
+                             "path qq" "path_image qq \<subseteq> C" "pathstart qq = a"
+                         and pqqeq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(qq t) = f(pp t)"
+            using*[OF \<open>y \<in> U\<close>] by blast
+          have finW: "\<And>x. \<lbrakk>0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> f (\<gamma> x) \<in> W"
+            using \<open>path_image \<gamma> \<subseteq> V\<close> by (auto simp: image_subset_iff path_image_def fimW [THEN subsetD])
+          have "pathfinish (qq +++ (p' \<circ> f \<circ> \<gamma>)) = l y'"
+          proof (rule l [of "pp +++ \<gamma>" y' "qq +++ (p' \<circ> f \<circ> \<gamma>)" ])
+            show "path (pp +++ \<gamma>)"
+              by (simp add: \<open>path \<gamma>\<close> \<open>path pp\<close> \<open>pathfinish pp = y\<close> \<open>pathstart \<gamma> = y\<close>)
+            show "path_image (pp +++ \<gamma>) \<subseteq> U"
+              using \<open>V \<subseteq> U\<close> \<open>path_image \<gamma> \<subseteq> V\<close> \<open>path_image pp \<subseteq> U\<close> not_in_path_image_join by blast
+            show "pathstart (pp +++ \<gamma>) = z"
+              by (simp add: \<open>pathstart pp = z\<close>)
+            show "pathfinish (pp +++ \<gamma>) = y'"
+              by (simp add: \<open>pathfinish \<gamma> = y'\<close>)
+            have paqq: "pathfinish qq = pathstart (p' \<circ> f \<circ> \<gamma>)"
+              apply (simp add: \<open>pathstart \<gamma> = y\<close> pathstart_compose)
+              apply (metis (mono_tags, lifting) \<open>l y \<in> W'\<close> \<open>path pp\<close> \<open>path qq\<close> \<open>path_image pp \<subseteq> U\<close> \<open>path_image qq \<subseteq> C\<close>
+                           \<open>pathfinish pp = y\<close> \<open>pathstart pp = z\<close> \<open>pathstart qq = a\<close>
+                           homeomorphism_apply1 [OF homUW'] l pleq pqqeq \<open>y \<in> U\<close>)
+              done
+            have "continuous_on (path_image \<gamma>) (p' \<circ> f)"
+            proof (rule continuous_on_compose)
+              show "continuous_on (path_image \<gamma>) f"
+                using \<open>path_image \<gamma> \<subseteq> V\<close> \<open>V \<subseteq> U\<close> contf continuous_on_subset by blast
+              show "continuous_on (f ` path_image \<gamma>) p'"
+                apply (rule continuous_on_subset [OF contp'])
+                apply (auto simp: path_image_def pathfinish_def pathstart_def finW)
+                done
+            qed
+            then show "path (qq +++ (p' \<circ> f \<circ> \<gamma>))"
+              using \<open>path \<gamma>\<close> \<open>path qq\<close> paqq path_continuous_image path_join_imp by blast
+            show "path_image (qq +++ (p' \<circ> f \<circ> \<gamma>)) \<subseteq> C"
+              apply (rule subset_path_image_join)
+               apply (simp add: \<open>path_image qq \<subseteq> C\<close>)
+              by (metis \<open>W' \<subseteq> C\<close> \<open>path_image \<gamma> \<subseteq> V\<close> dual_order.trans fimW(1) image_comp image_mono p'im path_image_compose)
+            show "pathstart (qq +++ (p' \<circ> f \<circ> \<gamma>)) = a"
+              by (simp add: \<open>pathstart qq = a\<close>)
+            show "p ((qq +++ (p' \<circ> f \<circ> \<gamma>)) \<xi>) = f ((pp +++ \<gamma>) \<xi>)" if \<xi>: "\<xi> \<in> {0..1}" for \<xi>
+            proof (simp add: joinpaths_def, safe)
+              show "p (qq (2*\<xi>)) = f (pp (2*\<xi>))" if "\<xi>*2 \<le> 1"
+                using \<open>\<xi> \<in> {0..1}\<close> pqqeq that by auto
+              show "p (p' (f (\<gamma> (2*\<xi> - 1)))) = f (\<gamma> (2*\<xi> - 1))" if "\<not> \<xi>*2 \<le> 1"
+                apply (rule homeomorphism_apply2 [OF homUW' finW])
+                using that \<xi> by auto
+            qed
+          qed
+          with \<open>pathfinish \<gamma> = y'\<close>  \<open>p' (f y') \<in> X\<close> show "l y' \<in> X"
+            unfolding pathfinish_join by (simp add: pathfinish_def)
+        qed
+      qed
+    qed
+    then show "continuous_on U l"
+      using openin_subopen continuous_on_open_gen [OF LC]
+      by (metis (no_types, lifting) mem_Collect_eq)
+  qed
+qed
+
+
+corollary covering_space_lift_stronger:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    and f :: "'c::real_normed_vector \<Rightarrow> 'b"
+  assumes cov: "covering_space C p S" "a \<in> C" "z \<in> U"
+      and U: "path_connected U" "locally path_connected U"
+      and contf: "continuous_on U f" and fim: "f ` U \<subseteq> S"
+      and feq: "f z = p a"
+      and hom: "\<And>r. \<lbrakk>path r; path_image r \<subseteq> U; pathstart r = z; pathfinish r = z\<rbrakk>
+                     \<Longrightarrow> \<exists>b. homotopic_paths S (f \<circ> r) (linepath b b)"
+  obtains g where "continuous_on U g" "g ` U \<subseteq> C" "g z = a" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+proof (rule covering_space_lift_general [OF cov U contf fim feq])
+  fix r
+  assume "path r" "path_image r \<subseteq> U" "pathstart r = z" "pathfinish r = z"
+  then obtain b where b: "homotopic_paths S (f \<circ> r) (linepath b b)"
+    using hom by blast
+  then have "f (pathstart r) = b"
+    by (metis homotopic_paths_imp_pathstart pathstart_compose pathstart_linepath)
+  then have "homotopic_paths S (f \<circ> r) (linepath (f z) (f z))"
+    by (simp add: b \<open>pathstart r = z\<close>)
+  then have "homotopic_paths S (f \<circ> r) (p \<circ> linepath a a)"
+    by (simp add: o_def feq linepath_def)
+  then show "\<exists>q. path q \<and>
+                  path_image q \<subseteq> C \<and>
+                  pathstart q = a \<and> pathfinish q = a \<and> homotopic_paths S (f \<circ> r) (p \<circ> q)"
+    by (force simp: \<open>a \<in> C\<close>)
+qed auto
+
+corollary covering_space_lift_strong:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    and f :: "'c::real_normed_vector \<Rightarrow> 'b"
+  assumes cov: "covering_space C p S" "a \<in> C" "z \<in> U"
+      and scU: "simply_connected U" and lpcU: "locally path_connected U"
+      and contf: "continuous_on U f" and fim: "f ` U \<subseteq> S"
+      and feq: "f z = p a"
+  obtains g where "continuous_on U g" "g ` U \<subseteq> C" "g z = a" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+proof (rule covering_space_lift_stronger [OF cov _ lpcU contf fim feq])
+  show "path_connected U"
+    using scU simply_connected_eq_contractible_loop_some by blast
+  fix r
+  assume r: "path r" "path_image r \<subseteq> U" "pathstart r = z" "pathfinish r = z"
+  have "linepath (f z) (f z) = f \<circ> linepath z z"
+    by (simp add: o_def linepath_def)
+  then have "homotopic_paths S (f \<circ> r) (linepath (f z) (f z))"
+    by (metis r contf fim homotopic_paths_continuous_image scU simply_connected_eq_contractible_path)
+  then show "\<exists>b. homotopic_paths S (f \<circ> r) (linepath b b)"
+    by blast
+qed blast
+
+corollary covering_space_lift:
+  fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    and f :: "'c::real_normed_vector \<Rightarrow> 'b"
+  assumes cov: "covering_space C p S"
+      and U: "simply_connected U"  "locally path_connected U"
+      and contf: "continuous_on U f" and fim: "f ` U \<subseteq> S"
+    obtains g where "continuous_on U g" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+proof (cases "U = {}")
+  case True
+  with that show ?thesis by auto
+next
+  case False
+  then obtain z where "z \<in> U" by blast
+  then obtain a where "a \<in> C" "f z = p a"
+    by (metis cov covering_space_imp_surjective fim image_iff image_subset_iff)
+  then show ?thesis
+    by (metis that covering_space_lift_strong [OF cov _ \<open>z \<in> U\<close> U contf fim])
+qed
 
 end
