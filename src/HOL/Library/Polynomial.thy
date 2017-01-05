@@ -1169,7 +1169,7 @@ lemma smult_conv_map_poly: "smult c p = map_poly (\<lambda>x. c * x) p"
   by (intro poly_eqI) (simp_all add: coeff_map_poly)
 
 
-subsection \<open>Conversions from natural numbers\<close>
+subsection \<open>Conversions from @{typ nat} and @{typ int} numbers\<close>
 
 lemma of_nat_poly: "of_nat n = [:of_nat n :: 'a :: comm_semiring_1:]"
 proof (induction n)
@@ -1185,10 +1185,16 @@ qed simp
 lemma degree_of_nat [simp]: "degree (of_nat n) = 0"
   by (simp add: of_nat_poly)
 
-lemma degree_numeral [simp]: "degree (numeral n) = 0"
-  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+lemma of_int_poly: "of_int n = [:of_int n :: 'a :: comm_ring_1:]"
+  by (simp only: of_int_of_nat of_nat_poly) simp
+
+lemma degree_of_int [simp]: "degree (of_int n) = 0"
+  by (simp add: of_int_poly)
 
 lemma numeral_poly: "numeral n = [:numeral n:]"
+  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+    
+lemma degree_numeral [simp]: "degree (numeral n) = 0"
   by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
 
 
@@ -3746,7 +3752,6 @@ text \<open>
   The equivalence is obvious since any rational polynomial can be multiplied with the 
   LCM of its coefficients, yielding an integer polynomial with the same roots.
 \<close>
-subsection \<open>Algebraic numbers\<close>
 
 definition algebraic :: "'a :: field_char_0 \<Rightarrow> bool" where
   "algebraic x \<longleftrightarrow> (\<exists>p. (\<forall>i. coeff p i \<in> \<int>) \<and> p \<noteq> 0 \<and> poly p x = 0)"
