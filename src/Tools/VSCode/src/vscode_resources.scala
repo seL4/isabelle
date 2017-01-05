@@ -147,8 +147,7 @@ class VSCode_Resources(
             dep <- thy_info.dependencies("", thys).deps.iterator
             file = node_file(dep.name)
             if !st.models.isDefinedAt(file)
-            _ = watcher.register_parent(file)
-            text <- try_read(file)
+            text <- { watcher.register_parent(file); try_read(file) }
           }
           yield {
             val model = Document_Model.init(session, node_name(file))
