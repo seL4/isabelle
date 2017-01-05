@@ -60,6 +60,12 @@ class JEdit_Editor extends Editor[View]
       else None
     }
 
+  def visible_node(name: Document.Node.Name): Boolean =
+    JEdit_Lib.jedit_buffer(name) match {
+      case Some(buffer) => JEdit_Lib.jedit_text_areas(buffer).nonEmpty
+      case None => false
+    }
+
 
   /* current situation */
 
@@ -109,7 +115,7 @@ class JEdit_Editor extends Editor[View]
       case _ =>
         PIDE.document_model(buffer) match {
           case Some(model) if !model.is_theory =>
-            snapshot.version.nodes.load_commands(model.node_name) match {
+            snapshot.version.nodes.commands_loading(model.node_name) match {
               case cmd :: _ => Some(cmd)
               case Nil => None
             }

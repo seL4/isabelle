@@ -24,7 +24,7 @@ object Document
 
   final class Overlays private(rep: Map[Node.Name, Node.Overlays])
   {
-    def apply(name: Document.Node.Name): Node.Overlays =
+    def apply(name: Node.Name): Node.Overlays =
       rep.getOrElse(name, Node.Overlays.empty)
 
     private def update(name: Node.Name, f: Node.Overlays => Node.Overlays): Overlays =
@@ -261,10 +261,12 @@ object Document
 
     def commands: Linear_Set[Command] = _commands.commands
     def load_commands: List[Command] = _commands.load_commands
+    def load_commands_changed(doc_blobs: Blobs): Boolean =
+      load_commands.exists(_.blobs_changed(doc_blobs))
 
     def clear: Node = new Node(header = header, syntax = syntax)
 
-    def init_blob(blob: Document.Blob): Node = new Node(get_blob = Some(blob.unchanged))
+    def init_blob(blob: Blob): Node = new Node(get_blob = Some(blob.unchanged))
 
     def update_header(new_header: Node.Header): Node =
       new Node(get_blob, new_header, syntax, text_perspective, perspective, _commands)
@@ -340,21 +342,13 @@ object Document
     def iterator: Iterator[(Node.Name, Node)] =
       graph.iterator.map({ case (name, (node, _)) => (name, node) })
 
-    def load_commands(file_name: Node.Name): List[Command] =
+    def commands_loading(file_name: Node.Name): List[Command] =
       (for {
         (_, node) <- iterator
         cmd <- node.load_commands.iterator
         name <- cmd.blobs_names.iterator
         if name == file_name
       } yield cmd).toList
-
-    def undefined_blobs(pred: Node.Name => Boolean): List[Node.Name] =
-      (for {
-        (node_name, node) <- iterator
-        if pred(node_name)
-        cmd <- node.load_commands.iterator
-        name <- cmd.blobs_undefined.iterator
-      } yield name).toList
 
     def descendants(names: List[Node.Name]): List[Node.Name] = graph.all_succs(names)
     def topological_order: List[Node.Name] = graph.topological_order
@@ -440,19 +434,19 @@ object Document
 
   abstract class Snapshot
   {
-    val state: State
-    val version: Version
-    val is_outdated: Boolean
+    def state: State
+    def version: Version
+    def is_outdated: Boolean
 
     def convert(i: Text.Offset): Text.Offset
     def revert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
     def revert(range: Text.Range): Text.Range
 
-    val node_name: Node.Name
-    val node: Node
-    val load_commands: List[Command]
-    def is_loaded: Boolean
+    def node_name: Node.Name
+    def node: Node
+    def commands_loading: List[Command]
+    def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -763,9 +757,9 @@ object Document
       {
         /* global information */
 
-        val state = State.this
-        val version = stable.version.get_finished
-        val is_outdated = pending_edits.nonEmpty || latest != stable
+        val state: State = State.this
+        val version: Version = stable.version.get_finished
+        val is_outdated: Boolean = pending_edits.nonEmpty || latest != stable
 
 
         /* local node content */
@@ -778,14 +772,20 @@ object Document
         def convert(range: Text.Range) = range.map(convert(_))
         def revert(range: Text.Range) = range.map(revert(_))
 
-        val node_name = name
-        val node = version.nodes(name)
+        val node_name: Node.Name = name
+        val node: Node = version.nodes(name)
 
-        val load_commands: List[Command] =
+        val commands_loading: List[Command] =
           if (node_name.is_theory) Nil
-          else version.nodes.load_commands(node_name)
+          else version.nodes.commands_loading(node_name)
 
-        val is_loaded: Boolean = node_name.is_theory || load_commands.nonEmpty
+        def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range] =
+          (for {
+            cmd <- node.load_commands.iterator
+            blob_name <- cmd.blobs_names.iterator
+            if pred(blob_name)
+            start <- node.command_start(cmd)
+          } yield convert(cmd.proper_range + start)).toList
 
 
         /* find command */
@@ -824,7 +824,7 @@ object Document
         {
           val former_range = revert(range).inflate_singularity
           val (chunk_name, command_iterator) =
-            load_commands match {
+            commands_loading match {
               case command :: _ => (Symbol.Text_Chunk.File(node_name.node), Iterator((command, 0)))
               case _ => (Symbol.Text_Chunk.Default, node.command_iterator(former_range))
             }

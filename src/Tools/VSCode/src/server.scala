@@ -110,13 +110,16 @@ class Server(
 
   /* input from client or file-system */
 
-  private val delay_input =
+  private val delay_input: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_input_delay"))
     { resources.flush_input(session) }
 
-  private val delay_load =
-    Standard_Thread.delay_last(options.seconds("vscode_load_delay"))
-    { if (resources.resolve_dependencies(session, watcher)) delay_input.invoke() }
+  private val delay_load: Standard_Thread.Delay =
+    Standard_Thread.delay_last(options.seconds("vscode_load_delay")) {
+      val (invoke_input, invoke_load) = resources.resolve_dependencies(session, watcher)
+      if (invoke_input) delay_input.invoke()
+      if (invoke_load) delay_load.invoke
+    }
 
   private val watcher =
     File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
@@ -201,7 +204,8 @@ class Server(
           new VSCode_Resources(options, text_length, content.loaded_theories,
               content.known_theories, content.syntax, log) {
             override def commit(change: Session.Change): Unit =
-              if (change.deps_changed) delay_load.invoke()
+              if (change.deps_changed || undefined_blobs(change.version.nodes).nonEmpty)
+                delay_load.invoke()
           }
 
         Some(new Session(resources) {
@@ -331,12 +335,12 @@ class Server(
           case Protocol.Initialize(id) => init(id)
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
-          case Protocol.DidOpenTextDocument(uri, lang, version, text) =>
-            update_document(uri, text)
-          case Protocol.DidChangeTextDocument(uri, version, List(Protocol.TextDocumentContent(text))) =>
-            update_document(uri, text)
-          case Protocol.DidCloseTextDocument(uri) =>
-            close_document(uri)
+          case Protocol.DidOpenTextDocument(file, lang, version, text) =>
+            update_document(file, text)
+          case Protocol.DidChangeTextDocument(file, version, List(Protocol.TextDocumentContent(text))) =>
+            update_document(file, text)
+          case Protocol.DidCloseTextDocument(file) =>
+            close_document(file)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)

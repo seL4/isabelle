@@ -45,6 +45,8 @@ sealed case class Document_Model(
 
   def external(b: Boolean): Document_Model = copy(external_file = b)
 
+  def node_visible: Boolean = !external_file
+
 
   /* header */
 
@@ -60,19 +62,39 @@ sealed case class Document_Model(
 
   /* perspective */
 
-  def node_visible: Boolean = !external_file
+  def node_perspective(doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
+  {
+    if (is_theory) {
+      val snapshot = this.snapshot()
 
-  def text_perspective: Text.Perspective =
-    if (node_visible) Text.Perspective.full else Text.Perspective.empty
+      val text_perspective =
+        if (node_visible || snapshot.commands_loading_ranges(resources.visible_node(_)).nonEmpty)
+          Text.Perspective.full
+        else Text.Perspective.empty
 
-  def node_perspective: Document.Node.Perspective_Text =
-    Document.Node.Perspective(node_required, text_perspective, Document.Node.Overlays.empty)
+      (snapshot.node.load_commands_changed(doc_blobs),
+        Document.Node.Perspective(node_required, text_perspective, Document.Node.Overlays.empty))
+    }
+    else (false, Document.Node.no_perspective_text)
+  }
+
+
+  /* blob */
+
+  def get_blob: Option[Document.Blob] =
+    if (is_theory) None
+    else {
+      val (bytes, chunk) = doc.blob
+      val changed = pending_edits.nonEmpty
+      Some((Document.Blob(bytes, chunk, changed)))
+    }
 
 
   /* edits */
 
-  def update_text(new_text: String): Option[Document_Model] =
+  def update_text(text: String): Option[Document_Model] =
   {
+    val new_text = Line.normalize(text)
     val old_text = doc.make_text
     if (new_text == old_text) None
     else {
@@ -84,17 +106,20 @@ sealed case class Document_Model(
     }
   }
 
-  def flush_edits: Option[(List[Document.Edit_Text], Document_Model)] =
+  def flush_edits(doc_blobs: Document.Blobs): Option[(List[Document.Edit_Text], Document_Model)] =
   {
-    val perspective = node_perspective
-    if (pending_edits.nonEmpty || last_perspective != perspective) {
-      val text_edits = pending_edits.toList
-      val edits =
-        session.header_edit(node_name, node_header) ::
-        (if (text_edits.isEmpty) Nil
-         else List[Document.Edit_Text](node_name -> Document.Node.Edits(text_edits))) :::
-        (if (last_perspective == perspective) Nil
-         else List[Document.Edit_Text](node_name -> perspective))
+    val (reparse, perspective) = node_perspective(doc_blobs)
+    if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
+      val edits: List[Document.Edit_Text] =
+        get_blob match {
+          case None =>
+            List(session.header_edit(node_name, node_header),
+              node_name -> Document.Node.Edits(pending_edits.toList),
+              node_name -> perspective)
+          case Some(blob) =>
+            List(node_name -> Document.Node.Blob(blob),
+              node_name -> Document.Node.Edits(pending_edits.toList))
+        }
       Some((edits, copy(pending_edits = Vector.empty, last_perspective = perspective)))
     }
     else None

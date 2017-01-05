@@ -111,9 +111,6 @@ class JEdit_Resources(
 
   /* theory text edits */
 
-  def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
-    nodes.undefined_blobs(node => !loaded_theories(node.theory))
-
   override def commit(change: Session.Change)
   {
     if (change.syntax_changed.nonEmpty)

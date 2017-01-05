@@ -12,6 +12,15 @@ import scala.annotation.tailrec
 
 object Line
 {
+  /* logical lines */
+
+  def normalize(text: String): String =
+    if (text.contains('\r')) text.replace("\r\n", "\n") else text
+
+  def logical_lines(text: String): List[String] =
+    Library.split_lines(normalize(text))
+
+
   /* position */
 
   object Position
@@ -34,7 +43,7 @@ object Line
     def advance(text: String, text_length: Text.Length): Position =
       if (text.isEmpty) this
       else {
-        val lines = Library.split_lines(text)
+        val lines = logical_lines(text)
         val l = line + lines.length - 1
         val c = (if (l == line) column else 0) + text_length(Library.trim_line(lines.last))
         Position(l, c)
@@ -81,10 +90,7 @@ object Line
   object Document
   {
     def apply(text: String, text_length: Text.Length): Document =
-      if (text.contains('\r'))
-        Document(Library.split_lines(text).map(s => Line(Library.trim_line(s))), text_length)
-      else
-        Document(Library.split_lines(text).map(s => Line(s)), text_length)
+      Document(logical_lines(text).map(Line(_)), text_length)
   }
 
   sealed case class Document(lines: List[Line], text_length: Text.Length)
@@ -136,6 +142,12 @@ object Line
       else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
 
     def full_range: Text.Range = Text.Range(0, length)
+
+    lazy val blob: (Bytes, Symbol.Text_Chunk) =
+    {
+      val text = make_text
+      (Bytes(text), Symbol.Text_Chunk(text))
+    }
   }
 
 

@@ -297,6 +297,7 @@ class Session(val resources: Resources)
       assignment |= assign
       for (command <- cmds) {
         nodes += command.node_name
+        command.blobs_names.foreach(nodes += _)
         commands += command
       }
       delay_flush.invoke()

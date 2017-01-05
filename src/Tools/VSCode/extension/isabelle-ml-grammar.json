@@ -1,7 +1,7 @@
 {
   "name": "Isabelle/ML",
   "scopeName": "source.isabelle-ml",
-  "fileTypes": ["ML"],
+  "fileTypes": ["ML", "sml", "sig"],
   "uuid": "aa32eb5e-d0d9-11e6-b7a4-37ba001f1e6e",
   "keyEquivalent": "^~M",
   "repository": {
@@ -190,7 +190,7 @@
       "begin": "\\b(fun|and)\\s+([\\w]+)\\b",
       "patterns": [
         {
-          "include": "source.ml"
+          "include": "source.isabelle-ml"
         }
       ],
       "captures": {

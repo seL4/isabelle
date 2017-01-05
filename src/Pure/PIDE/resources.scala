@@ -162,6 +162,17 @@ class Resources(
     else None
 
 
+  /* blobs */
+
+  def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
+    (for {
+      (node_name, node) <- nodes.iterator
+      if !loaded_theories(node_name.theory)
+      cmd <- node.load_commands.iterator
+      name <- cmd.blobs_undefined.iterator
+    } yield name).toList
+
+
   /* document changes */
 
   def parse_change(

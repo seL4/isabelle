@@ -307,7 +307,7 @@ object Thy_Syntax
         val reparse =
           (syntax_changed /: nodes0.iterator)({
             case (reparse, (name, node)) =>
-              if (node.load_commands.exists(_.blobs_changed(doc_blobs)) && !reparse.contains(name))
+              if (node.load_commands_changed(doc_blobs) && !reparse.contains(name))
                 name :: reparse
               else reparse
             })

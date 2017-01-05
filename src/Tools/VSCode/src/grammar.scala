@@ -93,7 +93,7 @@ object Grammar
       "match": """ + grouped_names(operators) + """
     },
     {
-      "name": "constant.language.isabelle",
+      "name": "entity.name.function.isabelle",
       "match": """ + grouped_names(keywords3) + """
     },
     {
