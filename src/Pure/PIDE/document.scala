@@ -467,6 +467,24 @@ object Document
   }
 
 
+  /* model */
+
+  trait Model
+  {
+    /*session*/
+    def session: Session
+    def snapshot(): Snapshot
+
+    /*name*/
+    def node_name: Document.Node.Name
+    def is_theory: Boolean = node_name.is_theory
+    override def toString: String = node_name.toString
+
+    /*content*/
+    def get_blob: Option[Document.Blob]
+  }
+
+
 
   /** global state -- document structure, execution process, editing history **/
 

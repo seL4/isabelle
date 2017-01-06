@@ -32,15 +32,8 @@ sealed case class Document_Model(
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
   pending_edits: Vector[Text.Edit] = Vector.empty,
-  published_diagnostics: List[Text.Info[Command.Results]] = Nil)
+  published_diagnostics: List[Text.Info[Command.Results]] = Nil) extends Document.Model
 {
-  /* name */
-
-  override def toString: String = node_name.toString
-
-  def is_theory: Boolean = node_name.is_theory
-
-
   /* external file */
 
   def external(b: Boolean): Document_Model = copy(external_file = b)
