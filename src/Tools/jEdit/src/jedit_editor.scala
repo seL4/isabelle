@@ -73,10 +73,10 @@ class JEdit_Editor extends Editor[View]
     GUI_Thread.require { jEdit.getActiveView() }
 
   override def current_node(view: View): Option[Document.Node.Name] =
-    GUI_Thread.require { PIDE.document_model(view.getBuffer).map(_.node_name) }
+    GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.node_name) }
 
   override def current_node_snapshot(view: View): Option[Document.Snapshot] =
-    GUI_Thread.require { PIDE.document_model(view.getBuffer).map(_.snapshot()) }
+    GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.snapshot()) }
 
   override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
   {
@@ -84,7 +84,7 @@ class JEdit_Editor extends Editor[View]
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
-        PIDE.document_model(buffer) match {
+        Document_Model.get(buffer) match {
           case Some(model) => model.snapshot
           case None => session.snapshot(name)
         }
@@ -113,7 +113,7 @@ class JEdit_Editor extends Editor[View]
         }
         else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
       case _ =>
-        PIDE.document_model(buffer) match {
+        Document_Model.get(buffer) match {
           case Some(model) if !model.is_theory =>
             snapshot.version.nodes.commands_loading(model.node_name) match {
               case cmd :: _ => Some(cmd)

@@ -64,7 +64,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   {
     GUI_Thread.require {}
 
-    PIDE.document_model(view.getBuffer).map(_.snapshot()) match {
+    Document_Model.get(view.getBuffer).map(_.snapshot()) match {
       case Some(snapshot) =>
         (PIDE.editor.current_command(view, snapshot), print_state.get_location) match {
           case (Some(command1), Some(command2)) if command1.id == command2.id =>

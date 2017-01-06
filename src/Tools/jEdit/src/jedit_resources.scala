@@ -118,7 +118,7 @@ class JEdit_Resources(
         val changed = change.syntax_changed.toSet
         for {
           buffer <- JEdit_Lib.jedit_buffers()
-          model <- PIDE.document_model(buffer)
+          model <- Document_Model.get(buffer)
           if changed(model.node_name)
         } model.syntax_changed()
       }

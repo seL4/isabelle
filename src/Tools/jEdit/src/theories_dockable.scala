@@ -41,7 +41,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
             if (clicks == 1) {
               for {
                 buffer <- JEdit_Lib.jedit_buffer(listData(index))
-                model <- PIDE.document_model(buffer)
+                model <- Document_Model.get(buffer)
               } model.node_required = !model.node_required
             }
           }
@@ -97,7 +97,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     nodes_required = Set.empty
     for {
       buffer <- JEdit_Lib.jedit_buffers
-      model <- PIDE.document_model(buffer)
+      model <- Document_Model.get(buffer)
       if model.node_required
     } nodes_required += model.node_name
   }

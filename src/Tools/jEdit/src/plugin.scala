@@ -63,12 +63,6 @@ object PIDE
 
   /* document model and view */
 
-  def document_model(buffer: JEditBuffer): Option[Document_Model] =
-    buffer match {
-      case b: Buffer => Document_Model(b)
-      case _ => None
-    }
-
   def document_view(text_area: TextArea): Option[Document_View] = Document_View(text_area)
 
   def document_views(buffer: Buffer): List[Document_View] =
@@ -80,15 +74,15 @@ object PIDE
   def document_models(): List[Document_Model] =
     for {
       buffer <- JEdit_Lib.jedit_buffers().toList
-      model <- document_model(buffer)
+      model <- Document_Model.get(buffer)
     } yield model
 
   def document_blobs(): Document.Blobs =
     Document.Blobs(
       (for {
         buffer <- JEdit_Lib.jedit_buffers()
-        model <- document_model(buffer)
-        blob <- model.get_blob()
+        model <- Document_Model.get(buffer)
+        blob <- model.get_blob
       } yield (model.node_name -> blob)).toMap)
 
   def exit_models(buffers: List[Buffer])
@@ -115,7 +109,7 @@ object PIDE
         if (buffer.isLoaded) {
           JEdit_Lib.buffer_lock(buffer) {
             val node_name = resources.node_name(buffer)
-            val model = Document_Model.init(session, buffer, node_name, document_model(buffer))
+            val model = Document_Model.init(session, buffer, node_name)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
               if document_view(text_area).map(_.model) != Some(model)
@@ -132,7 +126,7 @@ object PIDE
   def init_view(buffer: Buffer, text_area: JEditTextArea): Unit =
     GUI_Thread.now {
       JEdit_Lib.buffer_lock(buffer) {
-        document_model(buffer) match {
+        Document_Model.get(buffer) match {
           case Some(model) => Document_View.init(model, text_area)
           case None =>
         }
@@ -151,8 +145,7 @@ object PIDE
 
   def snapshot(view: View): Document.Snapshot = GUI_Thread.now
   {
-    val buffer = view.getBuffer
-    document_model(buffer) match {
+    Document_Model.get(view.getBuffer) match {
       case Some(model) => model.snapshot
       case None => error("No document model for current buffer")
     }
@@ -212,7 +205,7 @@ class Plugin extends EBPlugin
           val thys =
             for {
               buffer <- buffers
-              model <- PIDE.document_model(buffer)
+              model <- Document_Model.get(buffer)
               if model.is_theory
             } yield (model.node_name, Position.none)
 

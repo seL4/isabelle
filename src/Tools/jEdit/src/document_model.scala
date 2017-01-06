@@ -21,53 +21,55 @@ import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
 
 object Document_Model
 {
+  /* global state */
+
+  sealed case class State(buffer_models: Map[JEditBuffer, Document_Model] = Map.empty)
+
+  private val state = Synchronized(State())
+
+
   /* document model of buffer */
 
-  private val key = "PIDE.document_model"
-
-  def apply(buffer: Buffer): Option[Document_Model] =
-  {
-    buffer.getProperty(key) match {
-      case model: Document_Model => Some(model)
-      case _ => None
-    }
-  }
+  def get(buffer: JEditBuffer): Option[Document_Model] =
+    state.value.buffer_models.get(buffer)
 
   def exit(buffer: Buffer)
   {
     GUI_Thread.require {}
-    apply(buffer) match {
-      case None =>
-      case Some(model) =>
-        model.deactivate()
-        buffer.unsetProperty(key)
-        buffer.propertiesChanged
-    }
+    state.change(st =>
+      st.buffer_models.get(buffer) match {
+        case None => st
+        case Some(model) =>
+          model.deactivate()
+          buffer.propertiesChanged
+          st.copy(buffer_models = st.buffer_models - buffer)
+      })
   }
 
-  def init(session: Session, buffer: Buffer, node_name: Document.Node.Name,
-    old_model: Option[Document_Model]): Document_Model =
+  def init(session: Session, buffer: Buffer, node_name: Document.Node.Name): Document_Model =
   {
     GUI_Thread.require {}
-
     val model =
-      old_model match {
-        case Some(old) if old.node_name == node_name => old
-        case _ =>
-          apply(buffer).map(_.deactivate)
-          val model = new Document_Model(session, buffer, node_name)
-          buffer.setProperty(key, model)
-          model.activate()
-          buffer.propertiesChanged
-          model
-      }
+      state.change_result(st =>
+        {
+          val old_model = st.buffer_models.get(buffer)
+          old_model match {
+            case Some(model) if model.node_name == node_name => (model, st)
+            case _ =>
+              old_model.foreach(_.deactivate)
+              val model = new Document_Model(session, buffer, node_name)
+              model.activate()
+              buffer.propertiesChanged
+              (model, st.copy(st.buffer_models + (buffer -> model)))
+          }
+        })
     model.init_token_marker
     model
   }
 }
 
-
-class Document_Model(val session: Session, val buffer: Buffer, val node_name: Document.Node.Name)
+class Document_Model private(
+  val session: Session, val buffer: Buffer, val node_name: Document.Node.Name)
 {
   override def toString: String = node_name.toString
 

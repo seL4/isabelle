@@ -58,7 +58,7 @@ object Bibtex_JEdit
   def entries_iterator(): Iterator[(String, Buffer, Text.Offset)] =
     for {
       buffer <- JEdit_Lib.jedit_buffers()
-      model <- PIDE.document_model(buffer).iterator
+      model <- Document_Model.get(buffer).iterator
       (name, offset) <- model.bibtex_entries.iterator
     } yield (name, buffer, offset)
 
