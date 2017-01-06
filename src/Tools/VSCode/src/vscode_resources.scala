@@ -120,7 +120,7 @@ class VSCode_Resources(
           (for {
             (file, model) <- st.models.iterator
             if changed_files(file) && model.external_file
-            text <- try_read(file)
+            text <- read_file_content(file)
             model1 <- model.update_text(text)
           } yield (file, model1)).toList
         if (changed_models.isEmpty) (false, st)
@@ -133,14 +133,14 @@ class VSCode_Resources(
 
   /* file content */
 
-  def try_read(file: JFile): Option[String] =
+  def read_file_content(file: JFile): Option[String] =
     try { Some(Line.normalize(File.read(file))) }
     catch { case ERROR(_) => None }
 
   def get_file_content(file: JFile): Option[String] =
     get_model(file) match {
       case Some(model) => Some(model.doc.make_text)
-      case None => try_read(file)
+      case None => read_file_content(file)
     }
 
 
@@ -182,7 +182,7 @@ class VSCode_Resources(
             node_name <- thy_files.iterator ++ aux_files.iterator
             file = node_file(node_name)
             if !st.models.isDefinedAt(file)
-            text <- { watcher.register_parent(file); try_read(file) }
+            text <- { watcher.register_parent(file); read_file_content(file) }
           }
           yield {
             val model = Document_Model.init(session, node_name)
