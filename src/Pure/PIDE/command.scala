@@ -349,8 +349,8 @@ object Command
     span.name match {
       // inlined errors
       case Thy_Header.THEORY =>
-        val header =
-          resources.check_thy_reader("", node_name, Scan.char_reader(Token.implode(span.content)))
+        val reader = Scan.char_reader(Token.implode(span.content))
+        val header = resources.check_thy_reader("", node_name, reader)
         val errors =
           for ((imp, pos) <- header.imports if !can_import(imp)) yield {
             val msg =

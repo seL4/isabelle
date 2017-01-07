@@ -154,55 +154,26 @@ object Thy_Header extends Parse.Parser
 
   /* read -- lazy scanning */
 
-  def read(reader: Reader[Char], start: Token.Pos): Thy_Header =
+  def read(reader: Reader[Char], start: Token.Pos, strict: Boolean = true): Thy_Header =
   {
     val token = Token.Parsers.token(bootstrap_keywords)
-    val toks = new mutable.ListBuffer[Token]
-
-    @tailrec def scan_to_begin(in: Reader[Char])
-    {
+    def make_tokens(in: Reader[Char]): Stream[Token] =
       token(in) match {
-        case Token.Parsers.Success(tok, rest) =>
-          toks += tok
-          if (!tok.is_begin) scan_to_begin(rest)
-        case _ =>
+        case Token.Parsers.Success(tok, rest) => tok #:: make_tokens(rest)
+        case _ => Stream.empty
       }
-    }
-    scan_to_begin(reader)
 
-    parse(commit(header), Token.reader(toks.toList, start)) match {
+    val tokens =
+      if (strict) make_tokens(reader)
+      else make_tokens(reader).dropWhile(tok => !tok.is_command(Thy_Header.THEORY))
+
+    val tokens1 = tokens.takeWhile(tok => !tok.is_begin).toList
+    val tokens2 = tokens.dropWhile(tok => !tok.is_begin).headOption.toList
+
+    parse(commit(header), Token.reader(tokens1 ::: tokens2, start)) match {
       case Success(result, _) => result
       case bad => error(bad.toString)
     }
-  }
-
-
-  /* line-oriented text */
-
-  def header_text(doc: Line.Document): String =
-  {
-    val keywords = bootstrap_syntax.keywords
-    val toks = new mutable.ListBuffer[Token]
-    val iterator =
-      (for {
-        (toks, _) <-
-          doc.lines.iterator.scanLeft((List.empty[Token], Scan.Finished: Scan.Line_Context))(
-            {
-              case ((_, ctxt), line) => Token.explode_line(keywords, line.text, ctxt)
-            })
-        tok <- toks.iterator ++ Iterator.single(Token.newline)
-      } yield tok).dropWhile(tok => !tok.is_command(Thy_Header.THEORY))
-
-    @tailrec def until_begin
-    {
-      if (iterator.hasNext) {
-        val tok = iterator.next
-        toks += tok
-        if (!tok.is_begin) until_begin
-      }
-    }
-    until_begin
-    Token.implode(toks.toList)
   }
 }
 

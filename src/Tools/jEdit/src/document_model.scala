@@ -236,12 +236,12 @@ case class File_Model(
 {
   /* header */
 
-  // FIXME eliminate clone
   def node_header: Document.Node.Header =
     PIDE.resources.special_header(node_name) getOrElse
     {
       if (is_theory)
-        PIDE.resources.check_thy_reader("", node_name, Scan.char_reader(content.text))
+        PIDE.resources.check_thy_reader(
+          "", node_name, Scan.char_reader(content.text), strict = false)
       else Document.Node.no_header
     }
 
@@ -304,24 +304,12 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
   {
     GUI_Thread.require {}
 
-    // FIXME eliminate clone
     PIDE.resources.special_header(node_name) getOrElse
     {
       if (is_theory) {
         JEdit_Lib.buffer_lock(buffer) {
-          Token_Markup.line_token_iterator(
-            Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).collectFirst(
-              {
-                case Text.Info(range, tok) if tok.is_command(Thy_Header.THEORY) => range.start
-              })
-            match {
-              case Some(offset) =>
-                val length = buffer.getLength - offset
-                PIDE.resources.check_thy_reader("", node_name,
-                  Scan.char_reader(buffer.getSegment(offset, length)))
-              case None =>
-                Document.Node.no_header
-            }
+          PIDE.resources.check_thy_reader(
+            "", node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
         }
       }
       else Document.Node.no_header
