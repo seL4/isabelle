@@ -164,7 +164,7 @@ class VSCode_Resources(
         /* auxiliary files */
 
         val stable_tip_version =
-          if (st.models.forall({ case (_, model) => model.pending_edits.isEmpty }))
+          if (st.models.forall(entry => entry._2.is_stable))
             session.current_state().stable_tip_version
           else None
 

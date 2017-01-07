@@ -85,6 +85,8 @@ sealed case class Document_Model(
 
   /* edits */
 
+  def is_stable: Boolean = pending_edits.isEmpty
+
   def update_text(text: String): Option[Document_Model] =
   {
     val new_text = Line.normalize(text)

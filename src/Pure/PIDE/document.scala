@@ -471,17 +471,17 @@ object Document
 
   trait Model
   {
-    /*session*/
     def session: Session
-    def snapshot(): Snapshot
 
-    /*name*/
     def node_name: Document.Node.Name
     def is_theory: Boolean = node_name.is_theory
     override def toString: String = node_name.toString
 
-    /*content*/
+    def node_required: Boolean
     def get_blob: Option[Document.Blob]
+
+    def is_stable: Boolean
+    def snapshot(): Snapshot
   }
 
 
