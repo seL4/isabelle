@@ -47,8 +47,7 @@ sealed case class Document_Model(
     resources.special_header(node_name) getOrElse
     {
       if (is_theory)
-        resources.check_thy_reader(
-          "", node_name, new CharSequenceReader(Thy_Header.header_text(doc)), Token.Pos.command)
+        resources.check_thy_reader("", node_name, new CharSequenceReader(doc.text))
       else Document.Node.no_header
     }
 

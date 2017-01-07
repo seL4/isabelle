@@ -242,8 +242,7 @@ case class File_Model(
     PIDE.resources.special_header(node_name) getOrElse
     {
       if (is_theory)
-        PIDE.resources.check_thy_reader(
-          "", node_name, new CharSequenceReader(content.text), Token.Pos.command)
+        PIDE.resources.check_thy_reader("", node_name, new CharSequenceReader(content.text))
       else Document.Node.no_header
     }
 
@@ -320,7 +319,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
               case Some(offset) =>
                 val length = buffer.getLength - offset
                 PIDE.resources.check_thy_reader("", node_name,
-                  new CharSequenceReader(buffer.getSegment(offset, length)), Token.Pos.command)
+                  new CharSequenceReader(buffer.getSegment(offset, length)))
               case None =>
                 Document.Node.no_header
             }
