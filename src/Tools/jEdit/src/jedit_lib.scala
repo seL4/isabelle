@@ -99,7 +99,7 @@ object JEdit_Lib
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
   def buffer_reader(buffer: JEditBuffer): CharSequenceReader =
-    new CharSequenceReader(buffer.getSegment(0, buffer.getLength))
+    Scan.char_reader(buffer.getSegment(0, buffer.getLength))
 
   def buffer_mode(buffer: JEditBuffer): String =
   {

@@ -12,7 +12,6 @@ package isabelle.jedit
 import isabelle._
 
 import scala.collection.mutable
-import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.{jEdit, View}
 import org.gjt.sp.jedit.Buffer
@@ -242,7 +241,7 @@ case class File_Model(
     PIDE.resources.special_header(node_name) getOrElse
     {
       if (is_theory)
-        PIDE.resources.check_thy_reader("", node_name, new CharSequenceReader(content.text))
+        PIDE.resources.check_thy_reader("", node_name, Scan.char_reader(content.text))
       else Document.Node.no_header
     }
 
@@ -319,7 +318,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
               case Some(offset) =>
                 val length = buffer.getLength - offset
                 PIDE.resources.check_thy_reader("", node_name,
-                  new CharSequenceReader(buffer.getSegment(offset, length)))
+                  Scan.char_reader(buffer.getSegment(offset, length)))
               case None =>
                 Document.Node.no_header
             }

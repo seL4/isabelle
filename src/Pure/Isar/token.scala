@@ -128,18 +128,15 @@ object Token
   /* explode */
 
   def explode(keywords: Keyword.Keywords, inp: CharSequence): List[Token] =
-  {
-    val in: input.Reader[Char] = new input.CharSequenceReader(inp)
-    Parsers.parseAll(Parsers.rep(Parsers.token(keywords)), in) match {
+    Parsers.parseAll(Parsers.rep(Parsers.token(keywords)), Scan.char_reader(inp)) match {
       case Parsers.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
     }
-  }
 
   def explode_line(keywords: Keyword.Keywords, inp: CharSequence, context: Scan.Line_Context)
     : (List[Token], Scan.Line_Context) =
   {
-    var in: input.Reader[Char] = new input.CharSequenceReader(inp)
+    var in: input.Reader[Char] = Scan.char_reader(inp)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
@@ -180,7 +177,7 @@ object Token
       val offset: Symbol.Offset,
       val file: String,
       val id: String)
-    extends scala.util.parsing.input.Position
+    extends input.Position
   {
     def column = 0
     def lineContents = ""
@@ -210,7 +207,7 @@ object Token
     override def toString: String = Position.here(position(), delimited = false)
   }
 
-  abstract class Reader extends scala.util.parsing.input.Reader[Token]
+  abstract class Reader extends input.Reader[Token]
 
   private class Token_Reader(tokens: List[Token], val pos: Pos) extends Reader
   {

@@ -10,7 +10,6 @@ package isabelle
 
 import scala.collection.mutable
 import scala.collection.immutable.SortedMap
-import scala.util.parsing.input.CharSequenceReader
 
 
 object Command
@@ -351,8 +350,7 @@ object Command
       // inlined errors
       case Thy_Header.THEORY =>
         val header =
-          resources.check_thy_reader(
-            "", node_name, new CharSequenceReader(Token.implode(span.content)))
+          resources.check_thy_reader("", node_name, Scan.char_reader(Token.implode(span.content)))
         val errors =
           for ((imp, pos) <- header.imports if !can_import(imp)) yield {
             val msg =

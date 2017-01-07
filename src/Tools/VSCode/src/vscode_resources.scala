@@ -11,7 +11,7 @@ import isabelle._
 
 import java.io.{File => JFile}
 
-import scala.util.parsing.input.{Reader, CharSequenceReader}
+import scala.util.parsing.input.Reader
 
 
 object VSCode_Resources
@@ -71,8 +71,7 @@ class VSCode_Resources(
   {
     val file = node_file(name)
     get_model(file) match {
-      case Some(model) =>
-        f(new CharSequenceReader(model.doc.text))
+      case Some(model) => f(Scan.char_reader(model.doc.text))
       case None if file.isFile =>
         val reader = Scan.byte_reader(file)
         try { f(reader) } finally { reader.close }

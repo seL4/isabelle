@@ -7,9 +7,6 @@ Antiquotations within plain text.
 package isabelle
 
 
-import scala.util.parsing.input.CharSequenceReader
-
-
 object Antiquote
 {
   sealed abstract class Antiquote { def source: String }
@@ -50,7 +47,7 @@ object Antiquote
 
   def read(input: CharSequence): List[Antiquote] =
   {
-    Parsers.parseAll(Parsers.rep(Parsers.antiquote), new CharSequenceReader(input)) match {
+    Parsers.parseAll(Parsers.rep(Parsers.antiquote), Scan.char_reader(input)) match {
       case Parsers.Success(xs, _) => xs
       case Parsers.NoSuccess(_, next) =>
         error("Malformed quotation/antiquotation source" +

@@ -11,8 +11,6 @@ import isabelle._
 
 import java.io.{File => JFile}
 
-import scala.util.parsing.input.CharSequenceReader
-
 
 object Document_Model
 {
@@ -47,7 +45,7 @@ sealed case class Document_Model(
     resources.special_header(node_name) getOrElse
     {
       if (is_theory)
-        resources.check_thy_reader("", node_name, new CharSequenceReader(doc.text))
+        resources.check_thy_reader("", node_name, Scan.char_reader(doc.text))
       else Document.Node.no_header
     }
 

@@ -9,7 +9,7 @@ package isabelle
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.util.parsing.input.{Reader, CharSequenceReader}
+import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
 
@@ -175,9 +175,6 @@ object Thy_Header extends Parse.Parser
       case bad => error(bad.toString)
     }
   }
-
-  def read(source: CharSequence, start: Token.Pos): Thy_Header =
-    read(new CharSequenceReader(source), start)
 
 
   /* line-oriented text */

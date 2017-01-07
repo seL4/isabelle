@@ -8,8 +8,8 @@ package isabelle
 
 
 import scala.collection.mutable
-import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.input.Reader
 
 
 object Bibtex
@@ -383,17 +383,14 @@ object Bibtex
   /* parse */
 
   def parse(input: CharSequence): List[Chunk] =
-  {
-    val in: Reader[Char] = new CharSequenceReader(input)
-    Parsers.parseAll(Parsers.rep(Parsers.chunk), in) match {
+    Parsers.parseAll(Parsers.rep(Parsers.chunk), Scan.char_reader(input)) match {
       case Parsers.Success(result, _) => result
       case _ => error("Unexpected failure to parse input:\n" + input.toString)
     }
-  }
 
   def parse_line(input: CharSequence, context: Line_Context): (List[Chunk], Line_Context) =
   {
-    var in: Reader[Char] = new CharSequenceReader(input)
+    var in: Reader[Char] = Scan.char_reader(input)
     val chunks = new mutable.ListBuffer[Chunk]
     var ctxt = context
     while (!in.atEnd) {
