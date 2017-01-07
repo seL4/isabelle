@@ -31,7 +31,7 @@ sealed case class Document_Model(
   external_file: Boolean = false,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
-  pending_edits: Vector[Text.Edit] = Vector.empty,
+  pending_edits: List[Text.Edit] = Nil,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil) extends Document.Model
 {
   /* external file */
@@ -85,19 +85,16 @@ sealed case class Document_Model(
 
   /* edits */
 
-  def is_stable: Boolean = pending_edits.isEmpty
-
   def update_text(text: String): Option[Document_Model] =
   {
-    val new_text = Line.normalize(text)
     val old_text = doc.make_text
-    if (new_text == old_text) None
-    else {
-      val doc1 = Line.Document(new_text, doc.text_length)
-      val pending_edits1 =
-        if (old_text != "") pending_edits :+ Text.Edit.remove(0, old_text) else pending_edits
-      val pending_edits2 = pending_edits1 :+ Text.Edit.insert(0, new_text)
-      Some(copy(doc = doc1, pending_edits = pending_edits2))
+    val new_text = Line.normalize(text)
+    Text.Edit.replace(0, old_text, new_text) match {
+      case Nil => None
+      case edits =>
+        val doc1 = Line.Document(new_text, doc.text_length)
+        val pending_edits1 = pending_edits ::: edits
+        Some(copy(doc = doc1, pending_edits = pending_edits1))
     }
   }
 
@@ -109,13 +106,13 @@ sealed case class Document_Model(
         get_blob match {
           case None =>
             List(session.header_edit(node_name, node_header),
-              node_name -> Document.Node.Edits(pending_edits.toList),
+              node_name -> Document.Node.Edits(pending_edits),
               node_name -> perspective)
           case Some(blob) =>
             List(node_name -> Document.Node.Blob(blob),
-              node_name -> Document.Node.Edits(pending_edits.toList))
+              node_name -> Document.Node.Edits(pending_edits))
         }
-      Some((edits, copy(pending_edits = Vector.empty, last_perspective = perspective)))
+      Some((edits, copy(pending_edits = Nil, last_perspective = perspective)))
     }
     else None
   }
@@ -136,7 +133,8 @@ sealed case class Document_Model(
 
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.toList)
+  def is_stable: Boolean = pending_edits.isEmpty
+  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
 
   def rendering(): VSCode_Rendering = new VSCode_Rendering(this, snapshot(), resources)
 }
