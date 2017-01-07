@@ -34,13 +34,16 @@ object Bibtex_JEdit
   def check(buffer: Buffer): Boolean =
     JEdit_Lib.buffer_name(buffer).endsWith(".bib")
 
+  def check(name: Document.Node.Name): Boolean =
+    name.node.endsWith(".bib")
+
 
   /* parse entries */
 
-  def parse_buffer_entries(buffer: Buffer): List[(String, Text.Offset)] =
+  def parse_entries(text: String): List[(String, Text.Offset)] =
   {
     val chunks =
-      try { Bibtex.parse(JEdit_Lib.buffer_text(buffer)) }
+      try { Bibtex.parse(text) }
       catch { case ERROR(msg) => Output.warning(msg); Nil }
 
     val result = new mutable.ListBuffer[(String, Text.Offset)]

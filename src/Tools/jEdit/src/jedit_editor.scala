@@ -22,27 +22,11 @@ class JEdit_Editor extends Editor[View]
 
   override def session: Session = PIDE.session
 
-  // owned by GUI thread
-  private var removed_nodes = Set.empty[Document.Node.Name]
-
-  def remove_node(name: Document.Node.Name): Unit =
-    GUI_Thread.require { removed_nodes += name }
-
-  override def flush(hidden: Boolean = false)
-  {
-    GUI_Thread.require {}
-
-    val doc_blobs = PIDE.document_blobs()
-    val models = PIDE.document_models()
-
-    val removed = removed_nodes; removed_nodes = Set.empty
-    val removed_perspective =
-      (removed -- models.iterator.map(_.node_name)).toList.map(
-        name => (name, Document.Node.no_perspective_text))
-
-    val edits = models.flatMap(_.flushed_edits(hidden, doc_blobs)) ::: removed_perspective
-    session.update(doc_blobs, edits)
-  }
+  override def flush(hidden: Boolean = false): Unit =
+    GUI_Thread.require {
+      val (doc_blobs, edits) = Document_Model.flush_edits(hidden)
+      session.update(doc_blobs, edits)
+    }
 
   private val delay1_flush =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
@@ -55,7 +39,7 @@ class JEdit_Editor extends Editor[View]
 
   def stable_tip_version(): Option[Document.Version] =
     GUI_Thread.require {
-      if (removed_nodes.isEmpty && PIDE.document_models().forall(_.is_stable))
+      if (Document_Model.is_stable())
         session.current_state().stable_tip_version
       else None
     }
@@ -81,13 +65,8 @@ class JEdit_Editor extends Editor[View]
   override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
   {
     GUI_Thread.require {}
-
-    JEdit_Lib.jedit_buffer(name) match {
-      case Some(buffer) =>
-        Document_Model.get(buffer) match {
-          case Some(model) => model.snapshot
-          case None => session.snapshot(name)
-        }
+    Document_Model.get(name) match {
+      case Some(model) => model.snapshot
       case None => session.snapshot(name)
     }
   }

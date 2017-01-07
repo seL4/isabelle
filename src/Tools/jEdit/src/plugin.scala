@@ -71,20 +71,6 @@ object PIDE
       doc_view <- document_view(text_area)
     } yield doc_view
 
-  def document_models(): List[Document_Model] =
-    for {
-      buffer <- JEdit_Lib.jedit_buffers().toList
-      model <- Document_Model.get(buffer)
-    } yield model
-
-  def document_blobs(): Document.Blobs =
-    Document.Blobs(
-      (for {
-        buffer <- JEdit_Lib.jedit_buffers()
-        model <- Document_Model.get(buffer)
-        blob <- model.get_blob
-      } yield (model.node_name -> blob)).toMap)
-
   def exit_models(buffers: List[Buffer])
   {
     GUI_Thread.now {
@@ -109,7 +95,7 @@ object PIDE
         if (buffer.isLoaded) {
           JEdit_Lib.buffer_lock(buffer) {
             val node_name = resources.node_name(buffer)
-            val model = Document_Model.init(session, buffer, node_name)
+            val model = Document_Model.init(session, node_name, buffer)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
               if document_view(text_area).map(_.model) != Some(model)
@@ -340,10 +326,9 @@ class Plugin extends EBPlugin
           msg.getWhat == BufferUpdate.PROPERTIES_CHANGED ||
           msg.getWhat == BufferUpdate.CLOSING =>
 
-          if (msg.getWhat == BufferUpdate.CLOSING) {
-            val buffer = msg.getBuffer
-            if (buffer != null) PIDE.editor.remove_node(PIDE.resources.node_name(msg.getBuffer))
-          }
+          if (msg.getWhat == BufferUpdate.CLOSING && msg.getBuffer != null)
+            PIDE.exit_models(List(msg.getBuffer))
+
           if (PIDE.session.is_ready) {
             delay_init.invoke()
             delay_load.invoke()

@@ -228,19 +228,9 @@ object Isabelle
 
   /* required document nodes */
 
-  private def node_required_update(view: View, toggle: Boolean = false, set: Boolean = false)
-  {
-    GUI_Thread.require {}
-    Document_Model.get(view.getBuffer) match {
-      case Some(model) =>
-        model.node_required = (if (toggle) !model.node_required else set)
-      case None =>
-    }
-  }
-
-  def set_node_required(view: View) { node_required_update(view, set = true) }
-  def reset_node_required(view: View) { node_required_update(view, set = false) }
-  def toggle_node_required(view: View) { node_required_update(view, toggle = true) }
+  def set_node_required(view: View) { Document_Model.view_node_required(view, set = true) }
+  def reset_node_required(view: View) { Document_Model.view_node_required(view, set = false) }
+  def toggle_node_required(view: View) { Document_Model.view_node_required(view, toggle = true) }
 
 
   /* font size */
