@@ -95,9 +95,17 @@ object Line
 
   sealed case class Document(lines: List[Line], text_length: Text.Length)
   {
-    def make_text: String = lines.mkString("", "\n", "")
+    lazy val text: String = lines.mkString("", "\n", "")
+    lazy val bytes: Bytes = Bytes(text)
+    lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
 
-    override def toString: String = make_text
+    lazy val length: Int =
+      if (lines.isEmpty) 0
+      else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
+
+    def text_range: Text.Range = Text.Range(0, length)
+
+    override def toString: String = text
 
     override def equals(that: Any): Boolean =
       that match {
@@ -135,18 +143,6 @@ object Line
         text_length.offset(lines(l).text, c).map(line_offset + _)
       }
       else None
-    }
-
-    lazy val length: Int =
-      if (lines.isEmpty) 0
-      else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
-
-    def full_range: Text.Range = Text.Range(0, length)
-
-    lazy val blob: (Bytes, Symbol.Text_Chunk) =
-    {
-      val text = make_text
-      (Bytes(text), Symbol.Text_Chunk(text))
     }
   }
 

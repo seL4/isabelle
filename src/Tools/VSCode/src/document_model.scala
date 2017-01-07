@@ -76,18 +76,14 @@ sealed case class Document_Model(
 
   def get_blob: Option[Document.Blob] =
     if (is_theory) None
-    else {
-      val (bytes, chunk) = doc.blob
-      val changed = pending_edits.nonEmpty
-      Some((Document.Blob(bytes, chunk, changed)))
-    }
+    else Some((Document.Blob(doc.bytes, doc.chunk, pending_edits.nonEmpty)))
 
 
   /* edits */
 
   def update_text(text: String): Option[Document_Model] =
   {
-    val old_text = doc.make_text
+    val old_text = doc.text
     val new_text = Line.normalize(text)
     Text.Edit.replace(0, old_text, new_text) match {
       case Nil => None

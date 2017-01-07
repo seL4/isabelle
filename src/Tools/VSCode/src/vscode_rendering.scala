@@ -47,7 +47,7 @@ class VSCode_Rendering(
 
   def diagnostics: List[Text.Info[Command.Results]] =
     snapshot.cumulate[Command.Results](
-      model.doc.full_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
+      model.doc.text_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
       {
         case (res, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(i)), body)))
         if body.nonEmpty => Some(res + (i -> msg))

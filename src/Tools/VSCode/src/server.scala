@@ -315,7 +315,7 @@ class Server(
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield {
           val doc = rendering.model.doc
-          rendering.caret_focus_ranges(Text.Range(offset, offset + 1), doc.full_range)
+          rendering.caret_focus_ranges(Text.Range(offset, offset + 1), doc.text_range)
             .map(r => Protocol.DocumentHighlight.text(doc.range(r)))
         }) getOrElse Nil
     channel.write(Protocol.DocumentHighlights.reply(id, result))
