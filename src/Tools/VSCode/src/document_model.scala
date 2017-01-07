@@ -91,16 +91,7 @@ sealed case class Document_Model(
   {
     val (reparse, perspective) = node_perspective(doc_blobs)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
-      val edits: List[Document.Edit_Text] =
-        get_blob match {
-          case None =>
-            List(session.header_edit(node_name, node_header),
-              node_name -> Document.Node.Edits(pending_edits),
-              node_name -> perspective)
-          case Some(blob) =>
-            List(node_name -> Document.Node.Blob(blob),
-              node_name -> Document.Node.Edits(pending_edits))
-        }
+      val edits = node_edits(pending_edits, perspective)
       Some((edits, copy(pending_edits = Nil, last_perspective = perspective)))
     }
     else None

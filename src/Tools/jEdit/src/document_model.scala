@@ -267,17 +267,7 @@ case class File_Model(
   {
     val (reparse, perspective) = node_perspective(doc_blobs, hidden)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
-      // FIXME eliminate clone
-      val edits: List[Document.Edit_Text] =
-        get_blob match {
-          case None =>
-            List(session.header_edit(node_name, node_header),
-              node_name -> Document.Node.Edits(pending_edits),
-              node_name -> perspective)
-          case Some(blob) =>
-            List(node_name -> Document.Node.Blob(blob),
-              node_name -> Document.Node.Edits(pending_edits))
-        }
+      val edits = node_edits(pending_edits, perspective)
       Some((edits, copy(last_perspective = perspective, pending_edits = Nil)))
     }
     else None
@@ -370,25 +360,6 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
       }
       else Nil
     }
-
-
-  /* edits */
-
-  def node_edits(text_edits: List[Text.Edit], perspective: Document.Node.Perspective_Text)
-    : List[Document.Edit_Text] =
-  {
-    val edits: List[Document.Edit_Text] =
-      get_blob match {
-        case None =>
-          List(session.header_edit(node_name, node_header()),
-            node_name -> Document.Node.Edits(text_edits),
-            node_name -> perspective)
-        case Some(blob) =>
-          List(node_name -> Document.Node.Blob(blob),
-            node_name -> Document.Node.Edits(text_edits))
-      }
-    edits.filterNot(_._2.is_void)
-  }
 
 
   /* pending edits */
