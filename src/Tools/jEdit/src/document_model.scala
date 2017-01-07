@@ -279,11 +279,11 @@ case class File_Model(
         get_blob match {
           case None =>
             List(session.header_edit(node_name, node_header),
-              node_name -> Document.Node.Edits(pending_edits.toList),
+              node_name -> Document.Node.Edits(pending_edits),
               node_name -> perspective)
           case Some(blob) =>
             List(node_name -> Document.Node.Blob(blob),
-              node_name -> Document.Node.Edits(pending_edits.toList))
+              node_name -> Document.Node.Edits(pending_edits))
         }
       Some((edits, copy(last_perspective = perspective, pending_edits = Nil)))
     }
@@ -294,7 +294,7 @@ case class File_Model(
   /* snapshot */
 
   def is_stable: Boolean = pending_edits.isEmpty
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.toList)
+  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
 }
 
 case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
@@ -368,7 +368,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
               _blob = Some((bytes, chunk))
               (bytes, chunk)
           }
-        val changed = pending_edits.is_pending()
+        val changed = pending_edits.nonEmpty
         Some(Document.Blob(bytes, chunk, changed))
       }
     }
@@ -398,24 +398,15 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* edits */
 
-  def node_edits(
-      clear: Boolean,
-      text_edits: List[Text.Edit],
-      perspective: Document.Node.Perspective_Text): List[Document.Edit_Text] =
+  def node_edits(text_edits: List[Text.Edit], perspective: Document.Node.Perspective_Text)
+    : List[Document.Edit_Text] =
   {
     val edits: List[Document.Edit_Text] =
       get_blob match {
         case None =>
-          val header_edit = session.header_edit(node_name, node_header())
-          if (clear)
-            List(header_edit,
-              node_name -> Document.Node.Clear(),
-              node_name -> Document.Node.Edits(text_edits),
-              node_name -> perspective)
-          else
-            List(header_edit,
-              node_name -> Document.Node.Edits(text_edits),
-              node_name -> perspective)
+          List(session.header_edit(node_name, node_header()),
+            node_name -> Document.Node.Edits(text_edits),
+            node_name -> perspective)
         case Some(blob) =>
           List(node_name -> Document.Node.Blob(blob),
             node_name -> Document.Node.Edits(text_edits))
@@ -428,12 +419,11 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   private object pending_edits
   {
-    private var pending_clear = false
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var last_perspective = Document.Node.no_perspective_text
 
-    def is_pending(): Boolean = synchronized { pending_clear || pending.nonEmpty }
-    def get_edits(): List[Text.Edit] = synchronized { pending.toList }
+    def nonEmpty: Boolean = synchronized { pending.nonEmpty }
+    def get_edits: List[Text.Edit] = synchronized { pending.toList }
     def get_last_perspective: Document.Node.Perspective_Text = synchronized { last_perspective }
     def set_last_perspective(perspective: Document.Node.Perspective_Text): Unit =
       synchronized { last_perspective = perspective }
@@ -442,19 +432,17 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
       synchronized {
         GUI_Thread.require {}
 
-        val clear = pending_clear
-        val edits = get_edits()
+        val edits = get_edits
         val (reparse, perspective) = node_perspective(doc_blobs, hidden)
-        if (clear || reparse || edits.nonEmpty || last_perspective != perspective) {
-          pending_clear = false
+        if (reparse || edits.nonEmpty || last_perspective != perspective) {
           pending.clear
           last_perspective = perspective
-          node_edits(clear, edits, perspective)
+          node_edits(edits, perspective)
         }
         else Nil
       }
 
-    def edit(clear: Boolean, e: Text.Edit): Unit = synchronized
+    def edit(edits: List[Text.Edit]): Unit = synchronized
     {
       GUI_Thread.require {}
 
@@ -464,17 +452,13 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
       for (doc_view <- PIDE.document_views(buffer))
         doc_view.rich_text_area.active_reset()
 
-      if (clear) {
-        pending_clear = true
-        pending.clear
-      }
-      pending += e
+      pending ++= edits
       PIDE.editor.invoke()
     }
   }
 
-  def is_stable(): Boolean = !pending_edits.is_pending();
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.get_edits())
+  def is_stable(): Boolean = !pending_edits.nonEmpty
+  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.get_edits)
 
   def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean): List[Document.Edit_Text] =
     pending_edits.flush_edits(doc_blobs, hidden)
@@ -484,23 +468,16 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   private val buffer_listener: BufferListener = new BufferAdapter
   {
-    override def bufferLoaded(buffer: JEditBuffer)
-    {
-      pending_edits.edit(true, Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer)))
-    }
-
     override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
-      if (!buffer.isLoading)
-        pending_edits.edit(false, Text.Edit.insert(offset, buffer.getText(offset, length)))
+      pending_edits.edit(List(Text.Edit.insert(offset, buffer.getText(offset, length))))
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, removed_length: Int)
     {
-      if (!buffer.isLoading)
-        pending_edits.edit(false, Text.Edit.remove(offset, buffer.getText(offset, removed_length)))
+      pending_edits.edit(List(Text.Edit.remove(offset, buffer.getText(offset, removed_length))))
     }
   }
 
@@ -535,15 +512,13 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
     old_model match {
       case None =>
-        pending_edits.edit(true, Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer)))
+        pending_edits.edit(List(Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer))))
       case Some(file_model) =>
         set_node_required(file_model.node_required)
         pending_edits.set_last_perspective(file_model.last_perspective)
-        for {
-          edit <-
-            file_model.pending_edits :::
-              Text.Edit.replace(0, file_model.content.text, JEdit_Lib.buffer_text(buffer))
-        } pending_edits.edit(false, edit)
+        pending_edits.edit(
+          file_model.pending_edits :::
+            Text.Edit.replace(0, file_model.content.text, JEdit_Lib.buffer_text(buffer)))
     }
 
     buffer.addBufferListener(buffer_listener)
@@ -564,6 +539,6 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
     val content = Document_Model.File_Content(JEdit_Lib.buffer_text(buffer))
     File_Model(session, node_name, content, node_required,
-      pending_edits.get_last_perspective, pending_edits.get_edits())
+      pending_edits.get_last_perspective, pending_edits.get_edits)
   }
 }

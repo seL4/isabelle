@@ -322,13 +322,11 @@ class Plugin extends EBPlugin
             JEdit_Sessions.session_info().open_root).foreach(_.follow(view))
 
         case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.LOADED ||
-          msg.getWhat == BufferUpdate.PROPERTIES_CHANGED ||
-          msg.getWhat == BufferUpdate.CLOSING =>
+        if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
+          if (msg.getBuffer != null) PIDE.exit_models(List(msg.getBuffer))
 
-          if (msg.getWhat == BufferUpdate.CLOSING && msg.getBuffer != null)
-            PIDE.exit_models(List(msg.getBuffer))
-
+        case msg: BufferUpdate
+        if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED || msg.getWhat == BufferUpdate.LOADED =>
           if (PIDE.session.is_ready) {
             delay_init.invoke()
             delay_load.invoke()
