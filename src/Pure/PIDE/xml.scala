@@ -148,8 +148,6 @@ object XML
       x
     }
 
-    private def trim_bytes(s: String): String = new String(s.toCharArray)
-
     private def cache_string(x: String): String =
       if (x == "true") "true"
       else if (x == "false") "false"
@@ -159,7 +157,7 @@ object XML
         lookup(x) match {
           case Some(y) => y
           case None =>
-            val z = trim_bytes(x)
+            val z = Library.trim_substring(x)
             if (z.length > max_string) z else store(z)
         }
     private def cache_props(x: Properties.T): Properties.T =
@@ -167,7 +165,7 @@ object XML
       else
         lookup(x) match {
           case Some(y) => y
-          case None => store(x.map(p => (trim_bytes(p._1).intern, cache_string(p._2))))
+          case None => store(x.map(p => (Library.trim_substring(p._1).intern, cache_string(p._2))))
         }
     private def cache_markup(x: Markup): Markup =
       lookup(x) match {

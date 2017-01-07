@@ -90,7 +90,7 @@ object Line
   object Document
   {
     def apply(text: String, text_length: Text.Length): Document =
-      Document(logical_lines(text).map(Line(_)), text_length)
+      Document(logical_lines(text).map(s => Line(Library.trim_substring(s))), text_length)
   }
 
   sealed case class Document(lines: List[Line], text_length: Text.Length)
