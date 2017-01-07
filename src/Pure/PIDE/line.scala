@@ -95,15 +95,16 @@ object Line
 
   sealed case class Document(lines: List[Line], text_length: Text.Length)
   {
+    lazy val text_range: Text.Range =
+    {
+      val length =
+        if (lines.isEmpty) 0
+        else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
+      Text.Range(0, length)
+    }
     lazy val text: String = lines.mkString("", "\n", "")
     lazy val bytes: Bytes = Bytes(text)
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-
-    lazy val length: Int =
-      if (lines.isEmpty) 0
-      else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
-
-    def text_range: Text.Range = Text.Range(0, length)
 
     override def toString: String = text
 
