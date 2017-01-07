@@ -160,7 +160,6 @@ object Document
           case _ => false
         }
     }
-    case class Clear[A, B]() extends Edit[A, B]
     case class Blob[A, B](blob: Document.Blob) extends Edit[A, B]
 
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
@@ -263,8 +262,6 @@ object Document
     def load_commands: List[Command] = _commands.load_commands
     def load_commands_changed(doc_blobs: Blobs): Boolean =
       load_commands.exists(_.blobs_changed(doc_blobs))
-
-    def clear: Node = new Node(header = header, syntax = syntax)
 
     def init_blob(blob: Blob): Node = new Node(get_blob = Some(blob.unchanged))
 
@@ -761,14 +758,11 @@ object Document
           if a == name
         } yield edits
 
-      val is_cleared = rev_pending_changes.exists({ case Node.Clear() => true case _ => false })
       val edits =
-        if (is_cleared) Nil
-        else
-          (pending_edits /: rev_pending_changes)({
-            case (edits, Node.Edits(es)) => es ::: edits
-            case (edits, _) => edits
-          })
+        (pending_edits /: rev_pending_changes)({
+          case (edits, Node.Edits(es)) => es ::: edits
+          case (edits, _) => edits
+        })
       lazy val reverse_edits = edits.reverse
 
       new Snapshot
@@ -782,10 +776,8 @@ object Document
 
         /* local node content */
 
-        def convert(offset: Text.Offset) =
-          if (is_cleared) 0 else (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset) =
-          if (is_cleared) 0 else (offset /: reverse_edits)((i, edit) => edit.revert(i))
+        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
 
         def convert(range: Text.Range) = range.map(convert(_))
         def revert(range: Text.Range) = range.map(revert(_))
