@@ -121,7 +121,7 @@ class Resources(
       reader: Reader[Char], start: Token.Pos = Token.Pos.command, strict: Boolean = true)
     : Document.Node.Header =
   {
-    if (reader.source.length > 0) {
+    if (node_name.is_theory && reader.source.length > 0) {
       try {
         val header = Thy_Header.read(reader, start, strict).decode_symbols
 

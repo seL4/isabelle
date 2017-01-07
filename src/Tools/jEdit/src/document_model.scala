@@ -238,12 +238,7 @@ case class File_Model(
 
   def node_header: Document.Node.Header =
     PIDE.resources.special_header(node_name) getOrElse
-    {
-      if (is_theory)
-        PIDE.resources.check_thy_reader(
-          "", node_name, Scan.char_reader(content.text), strict = false)
-      else Document.Node.no_header
-    }
+      PIDE.resources.check_thy_reader("", node_name, Scan.char_reader(content.text), strict = false)
 
 
   /* content */
@@ -305,15 +300,10 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     GUI_Thread.require {}
 
     PIDE.resources.special_header(node_name) getOrElse
-    {
-      if (is_theory) {
-        JEdit_Lib.buffer_lock(buffer) {
-          PIDE.resources.check_thy_reader(
-            "", node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
-        }
+      JEdit_Lib.buffer_lock(buffer) {
+        PIDE.resources.check_thy_reader(
+          "", node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
       }
-      else Document.Node.no_header
-    }
   }
 
 

@@ -43,11 +43,7 @@ sealed case class Document_Model(
 
   def node_header: Document.Node.Header =
     resources.special_header(node_name) getOrElse
-    {
-      if (is_theory)
-        resources.check_thy_reader("", node_name, Scan.char_reader(doc.text))
-      else Document.Node.no_header
-    }
+      resources.check_thy_reader("", node_name, Scan.char_reader(doc.text))
 
 
   /* perspective */
