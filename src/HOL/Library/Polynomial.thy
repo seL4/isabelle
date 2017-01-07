@@ -2258,7 +2258,7 @@ lemma reflect_poly_1 [simp]: "reflect_poly 1 = 1"
 
 lemma coeff_reflect_poly:
   "coeff (reflect_poly p) n = (if n > degree p then 0 else coeff p (degree p - n))"
-  by (cases "p = 0") (auto simp add: reflect_poly_def coeff_Poly_eq nth_default_def
+  by (cases "p = 0") (auto simp add: reflect_poly_def nth_default_def
                                      rev_nth degree_eq_length_coeffs coeffs_nth not_less
                                 dest: le_imp_less_Suc)
 
@@ -2312,8 +2312,8 @@ proof (cases "p = 0 \<or> q = 0")
     show "coeff (reflect_poly (p * q)) i = coeff (reflect_poly p * reflect_poly q) i"
     proof (cases "i \<le> degree (p * q)")
       case True
-      def A \<equiv> "{..i} \<inter> {i - degree q..degree p}"
-      def B \<equiv> "{..degree p} \<inter> {degree p - i..degree (p*q) - i}"
+      define A where "A = {..i} \<inter> {i - degree q..degree p}"
+      define B where "B = {..degree p} \<inter> {degree p - i..degree (p*q) - i}"
       let ?f = "\<lambda>j. degree p - j"
 
       from True have "coeff (reflect_poly (p * q)) i = coeff (p * q) (degree (p * q) - i)"
@@ -3680,6 +3680,28 @@ qed
 
 end
 
+lemma div_pCons_eq:
+  "pCons a p div q = (if q = 0 then 0
+     else pCons (coeff (pCons a (p mod q)) (degree q) / lead_coeff q)
+       (p div q))"
+  using eucl_rel_poly_pCons [OF eucl_rel_poly _ refl, of q a p]
+  by (auto intro: div_poly_eq)
+
+lemma mod_pCons_eq:
+  "pCons a p mod q = (if q = 0 then pCons a p
+     else pCons a (p mod q) - smult (coeff (pCons a (p mod q)) (degree q) / lead_coeff q)
+       q)"
+  using eucl_rel_poly_pCons [OF eucl_rel_poly _ refl, of q a p]
+  by (auto intro: mod_poly_eq)
+
+lemma div_mod_fold_coeffs:
+  "(p div q, p mod q) = (if q = 0 then (0, p)
+    else fold_coeffs (\<lambda>a (s, r).
+      let b = coeff (pCons a r) (degree q) / coeff q (degree q)
+      in (pCons b s, pCons a r - smult b q)
+   ) p (0, 0))"
+  by (rule sym, induct p) (auto simp add: div_pCons_eq mod_pCons_eq Let_def)
+
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
   using eucl_rel_poly [of x y]
@@ -3810,45 +3832,6 @@ unfolding b
 apply (rule mod_poly_eq)
 apply (rule eucl_rel_poly_pCons [OF eucl_rel_poly y refl])
 done
-
-definition pdivmod :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly"
-where
-  "pdivmod p q = (p div q, p mod q)"
-
-lemma pdivmod_pdivmodrel: "eucl_rel_poly p q (r, s) \<longleftrightarrow> pdivmod p q = (r, s)"
-  by (metis pdivmod_def eucl_rel_poly eucl_rel_poly_unique)
-
-lemma pdivmod_0:
-  "pdivmod 0 q = (0, 0)"
-  by (simp add: pdivmod_def)
-
-lemma pdivmod_pCons:
-  "pdivmod (pCons a p) q =
-    (if q = 0 then (0, pCons a p) else
-      (let (s, r) = pdivmod p q;
-           b = coeff (pCons a r) (degree q) / coeff q (degree q)
-        in (pCons b s, pCons a r - smult b q)))"
-  apply (simp add: pdivmod_def Let_def, safe)
-  apply (rule div_poly_eq)
-  apply (erule eucl_rel_poly_pCons [OF eucl_rel_poly _ refl])
-  apply (rule mod_poly_eq)
-  apply (erule eucl_rel_poly_pCons [OF eucl_rel_poly _ refl])
-  done
-
-lemma pdivmod_fold_coeffs:
-  "pdivmod p q = (if q = 0 then (0, p)
-    else fold_coeffs (\<lambda>a (s, r).
-      let b = coeff (pCons a r) (degree q) / coeff q (degree q)
-      in (pCons b s, pCons a r - smult b q)
-   ) p (0, 0))"
-  apply (cases "q = 0")
-  apply (simp add: pdivmod_def)
-  apply (rule sym)
-  apply (induct p)
-  apply (simp_all add: pdivmod_0 pdivmod_pCons)
-  apply (case_tac "a = 0 \<and> p = 0")
-  apply (auto simp add: pdivmod_def)
-  done
 
     
 subsubsection \<open>List-based versions for fast implementation\<close>
@@ -4078,7 +4061,10 @@ qed
 (* *************** *)
 subsubsection \<open>Improved Code-Equations for Polynomial (Pseudo) Division\<close>
 
-lemma pdivmod_via_pseudo_divmod: "pdivmod f g = (if g = 0 then (0,f) 
+lemma pdivmod_pdivmodrel: "eucl_rel_poly p q (r, s) \<longleftrightarrow> (p div q, p mod q) = (r, s)"
+  by (metis eucl_rel_poly eucl_rel_poly_unique)
+
+lemma pdivmod_via_pseudo_divmod: "(f div g, f mod g) = (if g = 0 then (0,f) 
      else let 
        ilc = inverse (coeff g (degree g));       
        h = smult ilc g;
@@ -4096,14 +4082,14 @@ proof (cases "g = 0")
   from pseudo_divmod[OF h0 p, unfolded h1] 
   have f: "f = h * q + r" and r: "r = 0 \<or> degree r < degree h" by auto
   have "eucl_rel_poly f h (q, r)" unfolding eucl_rel_poly_iff using f r h0 by auto
-  hence "pdivmod f h = (q,r)" by (simp add: pdivmod_pdivmodrel)
-  hence "pdivmod f g = (smult lc q, r)" 
-    unfolding pdivmod_def h_def div_smult_right[OF lc] mod_smult_right[OF lc]
+  hence "(f div h, f mod h) = (q,r)" by (simp add: pdivmod_pdivmodrel)
+  hence "(f div g, f mod g) = (smult lc q, r)" 
+    unfolding h_def div_smult_right[OF lc] mod_smult_right[OF lc]
     using lc by auto
   with id show ?thesis by auto
-qed (auto simp: pdivmod_def)
+qed simp
 
-lemma pdivmod_via_pseudo_divmod_list: "pdivmod f g = (let 
+lemma pdivmod_via_pseudo_divmod_list: "(f div g, f mod g) = (let 
   cg = coeffs g
   in if cg = [] then (0,f)
      else let 
@@ -4158,7 +4144,6 @@ fun divide_poly_main_list :: "'a::idom_divide \<Rightarrow> 'a list \<Rightarrow
      in if hd rr = 0 then divide_poly_main_list lc qq (tl rr) d n else [])"
 | "divide_poly_main_list lc q r d 0 = q"
 
-
 lemma divide_poly_main_list_simp[simp]: "divide_poly_main_list lc q r d (Suc n) = (let
      cr = hd r;
      a = cr div lc;
@@ -4176,7 +4161,7 @@ definition divide_poly_list :: "'a::idom_divide poly \<Rightarrow> 'a poly \<Rig
         else let cf = coeffs f; cgr = rev cg
           in poly_of_list (divide_poly_main_list (hd cgr) [] (rev cf) cgr (1 + length cf - length cg)))"
 
-lemmas pdivmod_via_divmod_list[code] = pdivmod_via_pseudo_divmod_list[unfolded pseudo_divmod_main_list_1]
+lemmas pdivmod_via_divmod_list = pdivmod_via_pseudo_divmod_list[unfolded pseudo_divmod_main_list_1]
 
 lemma mod_poly_one_main_list: "snd (divmod_poly_one_main_list q r d n) = mod_poly_one_main_list r d n"
   by  (induct n arbitrary: q r d, auto simp: Let_def)
@@ -4188,10 +4173,10 @@ lemma mod_poly_code[code]: "f mod g =
                  r = mod_poly_one_main_list (rev cf) (rev ch) (1 + length cf - length cg)
              in poly_of_list (rev r))" (is "?l = ?r")
 proof -
-  have "?l = snd (pdivmod f g)" unfolding pdivmod_def by simp
-  also have "\<dots> = ?r" unfolding pdivmod_via_divmod_list Let_def
-     mod_poly_one_main_list[symmetric, of _ _ _ Nil] by (auto split: prod.splits)
-  finally show ?thesis .
+  have "snd (f div g, f mod g) = ?r" unfolding pdivmod_via_divmod_list Let_def
+     mod_poly_one_main_list [symmetric, of _ _ _ Nil] by (auto split: prod.splits)
+  then show ?thesis
+    by simp
 qed
 
 definition div_field_poly_impl :: "'a :: field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where 
@@ -4208,12 +4193,11 @@ text \<open>We do not declare the following lemma as code equation, since then p
 lemma div_field_poly_impl[code_unfold]: "op div = div_field_poly_impl"
 proof (intro ext)
   fix f g :: "'a poly"
-  have "f div g = fst (pdivmod f g)" unfolding pdivmod_def by simp
-  also have "\<dots> = div_field_poly_impl f g" unfolding 
+  have "fst (f div g, f mod g) = div_field_poly_impl f g" unfolding 
     div_field_poly_impl_def pdivmod_via_divmod_list Let_def by (auto split: prod.splits)
-  finally show "f div g =  div_field_poly_impl f g" .
+  then show "f div g =  div_field_poly_impl f g"
+    by simp
 qed
-
 
 lemma divide_poly_main_list:
   assumes lc0: "lc \<noteq> 0"
