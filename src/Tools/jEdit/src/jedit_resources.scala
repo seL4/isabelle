@@ -33,7 +33,7 @@ class JEdit_Resources(
     base_syntax: Outer_Syntax)
   extends Resources(loaded_theories, known_theories, base_syntax)
 {
-  /* document node names */
+  /* document node name */
 
   def node_name(buffer: Buffer): Document.Node.Name =
   {
@@ -49,9 +49,6 @@ class JEdit_Resources(
     if (name.is_theory) Some(name) else None
   }
 
-
-  /* file-system operations */
-
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
@@ -66,6 +63,9 @@ class JEdit_Resources(
       else vfs.constructPath(dir, File.standard_path(path))
     }
   }
+
+
+  /* file content */
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
@@ -85,8 +85,6 @@ class JEdit_Resources(
     }
   }
 
-
-  /* file content */
 
   private class File_Content_Output(buffer: Buffer) extends
     ByteArrayOutputStream(buffer.getLength + 1)

@@ -67,6 +67,28 @@ class VSCode_Resources(
     else new JFile(dir + JFile.separator + File.platform_path(path)).getCanonicalPath
   }
 
+  def get_model(file: JFile): Option[Document_Model] = state.value.models.get(file)
+  def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
+
+
+  /* file content */
+
+  def read_file_content(file: JFile): Option[String] =
+    try { Some(Line.normalize(File.read(file))) }
+    catch { case ERROR(_) => None }
+
+  def get_file_content(file: JFile): Option[String] =
+    get_model(file) match {
+      case Some(model) => Some(model.content.text)
+      case None => read_file_content(file)
+    }
+
+  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
+    for {
+      (_, model) <- state.value.models.iterator
+      Text.Info(range, entry) <- model.content.bibtex_entries.iterator
+    } yield Text.Info(range, (entry, model))
+
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     val file = node_file(name)
@@ -82,15 +104,6 @@ class VSCode_Resources(
 
 
   /* document models */
-
-  def get_model(file: JFile): Option[Document_Model] = state.value.models.get(file)
-  def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
-
-  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
-    for {
-      (_, model) <- state.value.models.iterator
-      Text.Info(range, entry) <- model.content.bibtex_entries.iterator
-    } yield Text.Info(range, (entry, model))
 
   def visible_node(name: Document.Node.Name): Boolean =
     get_model(name) match {
@@ -134,19 +147,6 @@ class VSCode_Resources(
             models = (st.models /: changed_models)(_ + _),
             pending_input = (st.pending_input /: changed_models.iterator.map(_._1))(_ + _)))
       })
-
-
-  /* file content */
-
-  def read_file_content(file: JFile): Option[String] =
-    try { Some(Line.normalize(File.read(file))) }
-    catch { case ERROR(_) => None }
-
-  def get_file_content(file: JFile): Option[String] =
-    get_model(file) match {
-      case Some(model) => Some(model.content.text)
-      case None => read_file_content(file)
-    }
 
 
   /* resolve dependencies */
