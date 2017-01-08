@@ -103,8 +103,6 @@ object Line
       Text.Range(0, length)
     }
     lazy val text: String = lines.mkString("", "\n", "")
-    lazy val bytes: Bytes = Bytes(text)
-    lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
 
     override def toString: String = text
 

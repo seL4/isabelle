@@ -104,7 +104,7 @@ class Server(
     for {
       model <- resources.get_model(new JFile(node_pos.name))
       rendering = model.rendering()
-      offset <- model.doc.offset(node_pos.pos)
+      offset <- model.content.doc.offset(node_pos.pos)
     } yield (rendering, offset)
 
 
@@ -286,7 +286,7 @@ class Server(
         (rendering, offset) <- rendering_offset(node_pos)
         info <- rendering.tooltips(Text.Range(offset, offset + 1))
       } yield {
-        val doc = rendering.model.doc
+        val doc = rendering.model.content.doc
         val range = doc.range(info.range)
         val contents =
           info.info.map(tree => Pretty.string_of(List(tree), margin = rendering.tooltip_margin))
@@ -314,7 +314,7 @@ class Server(
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield {
-          val doc = rendering.model.doc
+          val doc = rendering.model.content.doc
           rendering.caret_focus_ranges(Text.Range(offset, offset + 1), doc.text_range)
             .map(r => Protocol.DocumentHighlight.text(doc.range(r)))
         }) getOrElse Nil

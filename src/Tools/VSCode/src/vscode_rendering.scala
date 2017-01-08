@@ -47,7 +47,7 @@ class VSCode_Rendering(
 
   def diagnostics: List[Text.Info[Command.Results]] =
     snapshot.cumulate[Command.Results](
-      model.doc.text_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
+      model.content.text_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
       {
         case (res, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(i)), body)))
         if body.nonEmpty => Some(res + (i -> msg))
@@ -61,7 +61,7 @@ class VSCode_Rendering(
   {
     (for {
       Text.Info(text_range, res) <- results.iterator
-      range = model.doc.range(text_range)
+      range = model.content.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
       val message = Pretty.string_of(body, margin = diagnostics_margin)

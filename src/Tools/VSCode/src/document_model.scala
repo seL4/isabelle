@@ -14,18 +14,26 @@ import java.io.{File => JFile}
 
 object Document_Model
 {
+  sealed case class Content(doc: Line.Document)
+  {
+    def text_range: Text.Range = doc.text_range
+    def text: String = doc.text
+    lazy val bytes: Bytes = Bytes(text)
+    lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
+  }
+
   def init(session: Session, node_name: Document.Node.Name): Document_Model =
   {
     val resources = session.resources.asInstanceOf[VSCode_Resources]
-    val doc = Line.Document("", resources.text_length)
-    Document_Model(session, node_name, doc)
+    val content = Content(Line.Document("", resources.text_length))
+    Document_Model(session, node_name, content)
   }
 }
 
 sealed case class Document_Model(
   session: Session,
   node_name: Document.Node.Name,
-  doc: Line.Document,
+  content: Document_Model.Content,
   external_file: Boolean = false,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
@@ -43,7 +51,7 @@ sealed case class Document_Model(
 
   def node_header: Document.Node.Header =
     resources.special_header(node_name) getOrElse
-      resources.check_thy_reader("", node_name, Scan.char_reader(doc.text))
+      resources.check_thy_reader("", node_name, Scan.char_reader(content.text))
 
 
   /* perspective */
@@ -69,21 +77,21 @@ sealed case class Document_Model(
 
   def get_blob: Option[Document.Blob] =
     if (is_theory) None
-    else Some((Document.Blob(doc.bytes, doc.chunk, pending_edits.nonEmpty)))
+    else Some((Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty)))
 
 
   /* edits */
 
   def update_text(text: String): Option[Document_Model] =
   {
-    val old_text = doc.text
+    val old_text = content.text
     val new_text = Line.normalize(text)
     Text.Edit.replace(0, old_text, new_text) match {
       case Nil => None
       case edits =>
-        val doc1 = Line.Document(new_text, doc.text_length)
+        val content1 = Document_Model.Content(Line.Document(new_text, content.doc.text_length))
         val pending_edits1 = pending_edits ::: edits
-        Some(copy(doc = doc1, pending_edits = pending_edits1))
+        Some(copy(content = content1, pending_edits = pending_edits1))
     }
   }
 

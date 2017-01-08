@@ -71,7 +71,7 @@ class VSCode_Resources(
   {
     val file = node_file(name)
     get_model(file) match {
-      case Some(model) => f(Scan.char_reader(model.doc.text))
+      case Some(model) => f(Scan.char_reader(model.content.text))
       case None if file.isFile =>
         val reader = Scan.byte_reader(file)
         try { f(reader) } finally { reader.close }
@@ -138,7 +138,7 @@ class VSCode_Resources(
 
   def get_file_content(file: JFile): Option[String] =
     get_model(file) match {
-      case Some(model) => Some(model.doc.text)
+      case Some(model) => Some(model.content.text)
       case None => read_file_content(file)
     }
 
