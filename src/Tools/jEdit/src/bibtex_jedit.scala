@@ -31,7 +31,7 @@ object Bibtex_JEdit
 
   def complete(name: String): List[String] =
     (for {
-      (entry, _, _) <- Document_Model.bibtex_entries_iterator()
+      Text.Info(_, (entry, _)) <- Document_Model.bibtex_entries_iterator()
       if entry.toLowerCase.containsSlice(name.toLowerCase)
     } yield entry).toList
 

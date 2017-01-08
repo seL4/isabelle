@@ -19,16 +19,15 @@ object Bibtex
   def check_name(name: String): Boolean = name.endsWith(".bib")
   def check_name(name: Document.Node.Name): Boolean = check_name(name.node)
 
-
-  /* parse entries */
-
-  def parse_entries(text: String): List[(String, Text.Offset)] =
+  def document_entries(text: String): List[Text.Info[String]] =
   {
-    val result = new mutable.ListBuffer[(String, Text.Offset)]
+    val result = new mutable.ListBuffer[Text.Info[String]]
     var offset = 0
     for (chunk <- Bibtex.parse(text)) {
-      if (chunk.name != "" && !chunk.is_command) result += ((chunk.name, offset))
-      offset += chunk.source.length
+      val end_offset = offset + chunk.source.length
+      if (chunk.name != "" && !chunk.is_command)
+        result += Text.Info(Text.Range(offset, end_offset), chunk.name)
+      offset = end_offset
     }
     result.toList
   }

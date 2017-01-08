@@ -77,11 +77,11 @@ object Document_Model
   def is_stable(): Boolean =
     state.value.models_iterator.forall(_.is_stable)
 
-  def bibtex_entries_iterator(): Iterator[(String, Document_Model, Text.Offset)] =
+  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
     for {
       model <- state.value.models_iterator
-      (entry, offset) <- model.bibtex_entries
-    } yield (entry, model, offset)
+      Text.Info(range, entry) <- model.bibtex_entries
+    } yield Text.Info(range, (entry, model))
 
 
   /* init and exit */
@@ -193,8 +193,8 @@ object Document_Model
   {
     lazy val bytes: Bytes = Bytes(text)
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: List[(String, Text.Offset)] =
-      try { Bibtex.parse_entries(text) }
+    lazy val bibtex_entries: List[Text.Info[String]] =
+      try { Bibtex.document_entries(text) }
       catch { case ERROR(msg) => Output.warning(msg); Nil }
   }
 }
@@ -203,7 +203,7 @@ sealed abstract class Document_Model extends Document.Model
 {
   /* content */
 
-  def bibtex_entries: List[(String, Text.Offset)]
+  def bibtex_entries: List[Text.Info[String]]
 
 
   /* perspective */
@@ -259,7 +259,7 @@ case class File_Model(
     if (is_theory) None
     else Some(Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty))
 
-  def bibtex_entries: List[(String, Text.Offset)] =
+  def bibtex_entries: List[Text.Info[String]] =
     if (Bibtex.check_name(node_name)) content.bibtex_entries else Nil
 
 
@@ -354,11 +354,11 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* bibtex entries */
 
-  private var _bibtex_entries: Option[List[(String, Text.Offset)]] = None  // owned by GUI thread
+  private var _bibtex_entries: Option[List[Text.Info[String]]] = None  // owned by GUI thread
 
   private def reset_bibtex_entries(): Unit = GUI_Thread.require { _bibtex_entries = None }
 
-  def bibtex_entries: List[(String, Text.Offset)] =
+  def bibtex_entries: List[Text.Info[String]] =
     GUI_Thread.require {
       if (Bibtex.check_name(node_name)) {
         _bibtex_entries match {
@@ -366,7 +366,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
           case None =>
             val text = JEdit_Lib.buffer_text(buffer)
             val entries =
-              try { Bibtex.parse_entries(text) }
+              try { Bibtex.document_entries(text) }
               catch { case ERROR(msg) => Output.warning(msg); Nil }
             _bibtex_entries = Some(entries)
             entries
