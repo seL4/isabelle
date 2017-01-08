@@ -82,9 +82,11 @@ class JEdit_Resources(
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     GUI_Thread.now {
-      JEdit_Lib.jedit_buffer(name) match {
-        case Some(buffer) =>
+      Document_Model.get(name) match {
+        case Some(buffer_model: Buffer_Model) =>
+          val buffer = buffer_model.buffer
           JEdit_Lib.buffer_lock(buffer) { Some(f(JEdit_Lib.buffer_reader(buffer))) }
+        case Some(file_model: File_Model) => Some(f(Scan.char_reader(file_model.content.text)))
         case None => None
       }
     } getOrElse {
