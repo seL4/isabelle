@@ -69,6 +69,16 @@ INCOMPATIBILITY.
   bij_swap_ompose_bij ~> bij_swap_compose_bij
 
 
+*** System ***
+
+* Prover IDE support for the Visual Studio Code editor and language
+server protocol, via the "isabelle vscode_server" tool (see also
+src/Tools/VSCode/README.md). The example application within the VS code
+editor is called "Isabelle" and available from its online repository
+(the "Marketplace"). It serves as example for further potential IDE
+front-ends.
+
+
 New in Isabelle2016-1 (December 2016)
 -------------------------------------
 
