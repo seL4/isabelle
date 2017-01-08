@@ -87,6 +87,19 @@ object Document_Model
     } yield Text.Info(range, (entry, model))
 
 
+  /* syntax */
+
+  def syntax_changed(names: List[Document.Node.Name])
+  {
+    GUI_Thread.require {}
+
+    val models = state.value.models
+    for (name <- names.iterator; model <- models.get(name)) {
+      model match { case buffer_model: Buffer_Model => buffer_model.syntax_changed() case _ => }
+    }
+  }
+
+
   /* init and exit */
 
   def init(session: Session, node_name: Document.Node.Name, buffer: Buffer): Buffer_Model =

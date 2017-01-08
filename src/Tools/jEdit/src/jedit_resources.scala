@@ -124,14 +124,7 @@ class JEdit_Resources(
   override def commit(change: Session.Change)
   {
     if (change.syntax_changed.nonEmpty)
-      GUI_Thread.later {
-        val changed = change.syntax_changed.toSet
-        for {
-          buffer <- JEdit_Lib.jedit_buffers()
-          model <- Document_Model.get(buffer)
-          if changed(model.node_name)
-        } model.syntax_changed()
-      }
+      GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
     if (change.deps_changed ||
         PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version.nodes).nonEmpty)
       PIDE.deps_changed()
