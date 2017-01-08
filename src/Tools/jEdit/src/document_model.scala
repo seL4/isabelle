@@ -187,7 +187,9 @@ object Document_Model
   {
     lazy val bytes: Bytes = Bytes(text)
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
-    lazy val bibtex_entries: List[(String, Text.Offset)] = Bibtex_JEdit.parse_entries(text)
+    lazy val bibtex_entries: List[(String, Text.Offset)] =
+      try { Bibtex.parse_entries(text) }
+      catch { case ERROR(msg) => Output.warning(msg); Nil }
   }
 }
 
@@ -248,7 +250,7 @@ case class File_Model(
     else Some(Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty))
 
   def bibtex_entries: List[(String, Text.Offset)] =
-    if (Bibtex_JEdit.check(node_name)) content.bibtex_entries else Nil
+    if (Bibtex.check_name(node_name)) content.bibtex_entries else Nil
 
 
   /* edits */
@@ -348,12 +350,14 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   def bibtex_entries: List[(String, Text.Offset)] =
     GUI_Thread.require {
-      if (Bibtex_JEdit.check(buffer)) {
+      if (Bibtex.check_name(node_name)) {
         _bibtex_entries match {
           case Some(entries) => entries
           case None =>
             val text = JEdit_Lib.buffer_text(buffer)
-            val entries = Bibtex_JEdit.parse_entries(text)
+            val entries =
+              try { Bibtex.parse_entries(text) }
+              catch { case ERROR(msg) => Output.warning(msg); Nil }
             _bibtex_entries = Some(entries)
             entries
         }

@@ -29,33 +29,6 @@ object Bibtex_JEdit
 {
   /** buffer model **/
 
-  /* file type */
-
-  def check(buffer: Buffer): Boolean =
-    JEdit_Lib.buffer_name(buffer).endsWith(".bib")
-
-  def check(name: Document.Node.Name): Boolean =
-    name.node.endsWith(".bib")
-
-
-  /* parse entries */
-
-  def parse_entries(text: String): List[(String, Text.Offset)] =
-  {
-    val chunks =
-      try { Bibtex.parse(text) }
-      catch { case ERROR(msg) => Output.warning(msg); Nil }
-
-    val result = new mutable.ListBuffer[(String, Text.Offset)]
-    var offset = 0
-    for (chunk <- chunks) {
-      if (chunk.name != "" && !chunk.is_command) result += ((chunk.name, offset))
-      offset += chunk.source.length
-    }
-    result.toList
-  }
-
-
   /* retrieve entries */
 
   def entries_iterator(): Iterator[(String, Buffer, Text.Offset)] =
@@ -111,7 +84,7 @@ object Bibtex_JEdit
       case text_area: TextArea =>
         text_area.getBuffer match {
           case buffer: Buffer
-          if (check(buffer) && buffer.isEditable) =>
+          if (Bibtex.check_name(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable) =>
             val menu = new JMenu("BibTeX entries")
             for (entry <- Bibtex.entries) {
               val item = new JMenuItem(entry.kind)

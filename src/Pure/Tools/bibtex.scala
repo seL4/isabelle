@@ -14,6 +14,27 @@ import scala.util.parsing.input.Reader
 
 object Bibtex
 {
+  /** document model **/
+
+  def check_name(name: String): Boolean = name.endsWith(".bib")
+  def check_name(name: Document.Node.Name): Boolean = check_name(name.node)
+
+
+  /* parse entries */
+
+  def parse_entries(text: String): List[(String, Text.Offset)] =
+  {
+    val result = new mutable.ListBuffer[(String, Text.Offset)]
+    var offset = 0
+    for (chunk <- Bibtex.parse(text)) {
+      if (chunk.name != "" && !chunk.is_command) result += ((chunk.name, offset))
+      offset += chunk.source.length
+    }
+    result.toList
+  }
+
+
+
   /** content **/
 
   private val months = List(
