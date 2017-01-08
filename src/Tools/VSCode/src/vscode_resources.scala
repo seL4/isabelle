@@ -86,6 +86,12 @@ class VSCode_Resources(
   def get_model(file: JFile): Option[Document_Model] = state.value.models.get(file)
   def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
 
+  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
+    for {
+      (_, model) <- state.value.models.iterator
+      Text.Info(range, entry) <- model.content.bibtex_entries.iterator
+    } yield Text.Info(range, (entry, model))
+
   def visible_node(name: Document.Node.Name): Boolean =
     get_model(name) match {
       case Some(model) => model.node_visible

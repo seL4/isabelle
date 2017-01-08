@@ -18,8 +18,12 @@ object Document_Model
   {
     def text_range: Text.Range = doc.text_range
     def text: String = doc.text
+
     lazy val bytes: Bytes = Bytes(text)
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
+    lazy val bibtex_entries: List[Text.Info[String]] =
+      try { Bibtex.document_entries(text) }
+      catch { case ERROR(_) => Nil }
   }
 
   def init(session: Session, node_name: Document.Node.Name): Document_Model =

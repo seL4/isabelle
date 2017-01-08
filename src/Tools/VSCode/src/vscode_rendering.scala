@@ -34,7 +34,7 @@ object VSCode_Rendering
       Markup.BAD)
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
 }
 
 class VSCode_Rendering(
@@ -139,6 +139,14 @@ class VSCode_Rendering(
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             hyperlink_position(props).map(_ :: links)
+
+          case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
+            val iterator =
+              for {
+                Text.Info(entry_range, (entry, model)) <- resources.bibtex_entries_iterator
+                if entry == name
+              } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
+            if (iterator.isEmpty) None else Some((links /: iterator)(_ :+ _))
 
           case _ => None
         }) match { case Text.Info(_, links) :: _ => links.reverse case _ => Nil }
