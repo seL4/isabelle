@@ -180,65 +180,56 @@ class Plugin extends EBPlugin
     if (Isabelle.continuous_checking && delay_load_activated() &&
         PerspectiveManager.isPerspectiveEnabled)
     {
-      try {
-        val view = jEdit.getActiveView()
-
-        val buffers = JEdit_Lib.jedit_buffers().toList
-        if (buffers.forall(_.isLoaded)) {
-          def loaded_buffer(name: String): Boolean =
-            buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
+      if (JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
+      else {
+        val required_files =
+        {
+          val models = Document_Model.get_models()
 
           val thys =
-            for {
-              buffer <- buffers
-              model <- Document_Model.get(buffer)
-              if model.is_theory
-            } yield (model.node_name, Position.none)
+            (for ((node_name, model) <- models.iterator if model.is_theory)
+              yield (node_name, Position.none)).toList
 
           val thy_info = new Thy_Info(PIDE.resources)
-          val thy_files = thy_info.dependencies("", thys).deps.map(_.name.node)
+          val thy_files: List[Document.Node.Name] = thy_info.dependencies("", thys).deps.map(_.name)
 
-          val aux_files =
+          val aux_files: List[Document.Node.Name] =
             if (PIDE.options.bool("jedit_auto_resolve")) {
-              PIDE.editor.stable_tip_version() match {
-                case Some(version) => PIDE.resources.undefined_blobs(version.nodes).map(_.node)
+              val stable_tip_version =
+                if (models.forall(p => p._2.is_stable))
+                  PIDE.session.current_state().stable_tip_version
+                else None
+              stable_tip_version match {
+                case Some(version) => PIDE.resources.undefined_blobs(version.nodes)
                 case None => delay_load.invoke(); Nil
               }
             }
             else Nil
 
-          val files =
-            (thy_files ::: aux_files).filter(file =>
-              !loaded_buffer(file) && PIDE.resources.check_file(file))
+          (thy_files ::: aux_files).filterNot(models.isDefinedAt(_))
+        }
+        if (required_files.nonEmpty) {
+          try {
+            Standard_Thread.fork("resolve_dependencies") {
+              val loaded_files =
+                for {
+                  name <- required_files
+                  text <- PIDE.resources.read_file_content(name)
+                } yield (name, text)
 
-          if (files.nonEmpty) {
-            if (PIDE.options.bool("jedit_auto_load")) {
-              files.foreach(file => jEdit.openFile(null: View, file))
-            }
-            else {
-              val files_list = new ListView(files.sorted)
-              for (i <- 0 until files.length)
-                files_list.selection.indices += i
-
-              val answer =
-                GUI.confirm_dialog(view,
-                  "Auto loading of required files",
-                  JOptionPane.YES_NO_OPTION,
-                  "The following files are required to resolve theory imports.",
-                  "Reload selected files now?",
-                  new ScrollPane(files_list),
-                  new Isabelle.Continuous_Checking)
-              if (answer == 0) {
-                files.foreach(file =>
-                  if (files_list.selection.items.contains(file))
-                    jEdit.openFile(null: View, file))
+              GUI_Thread.later {
+                try {
+                  Document_Model.provide_files(PIDE.session, loaded_files)
+                  delay_init.invoke()
+                }
+                finally { delay_load_active.change(_ => false) }
               }
             }
           }
+          catch { case _: Throwable => delay_load_active.change(_ => false) }
         }
-        else delay_load.invoke()
+        else delay_load_active.change(_ => false)
       }
-      finally { delay_load_active.change(_ => false) }
     }
   }
 

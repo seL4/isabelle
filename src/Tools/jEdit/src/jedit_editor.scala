@@ -37,13 +37,6 @@ class JEdit_Editor extends Editor[View]
   def invoke(): Unit = delay1_flush.invoke()
   def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }
 
-  def stable_tip_version(): Option[Document.Version] =
-    GUI_Thread.require {
-      if (Document_Model.is_stable())
-        session.current_state().stable_tip_version
-      else None
-    }
-
   def visible_node(name: Document.Node.Name): Boolean =
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) => JEdit_Lib.jedit_text_areas(buffer).nonEmpty

@@ -64,18 +64,21 @@ object Document_Model
             buffer_models = buffer_models - buffer)
       }
     }
+
+    def provide_file(session: Session, node_name: Document.Node.Name, text: String): State =
+      if (models.isDefinedAt(node_name)) this
+      else {
+        val edit = Text.Edit.insert(0, text)
+        val model = File_Model(session, node_name, File_Content(text), pending_edits = List(edit))
+        copy(models = models + (node_name -> model))
+      }
   }
 
   private val state = Synchronized(State())  // owned by GUI thread
 
-  def get(name: Document.Node.Name): Option[Document_Model] =
-    state.value.models.get(name)
-
-  def get(buffer: JEditBuffer): Option[Buffer_Model] =
-    state.value.buffer_models.get(buffer)
-
-  def is_stable(): Boolean =
-    state.value.models_iterator.forall(_.is_stable)
+  def get_models(): Map[Document.Node.Name, Document_Model] = state.value.models
+  def get(name: Document.Node.Name): Option[Document_Model] = get_models.get(name)
+  def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
 
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
     for {
@@ -111,6 +114,13 @@ object Document_Model
         res
       }
       else st)
+  }
+
+  def provide_files(session: Session, files: List[(Document.Node.Name, String)])
+  {
+    GUI_Thread.require {}
+    state.change(st =>
+      (st /: files) { case (st1, (node_name, text)) => st1.provide_file(session, node_name, text) })
   }
 
 
@@ -191,7 +201,7 @@ object Document_Model
 
   sealed case class File_Content(text: String)
   {
-    lazy val bytes: Bytes = Bytes(text)
+    lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val bibtex_entries: List[Text.Info[String]] =
       try { Bibtex.document_entries(text) }
@@ -341,7 +351,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
           _blob match {
             case Some(x) => x
             case None =>
-              val bytes = PIDE.resources.file_content(buffer)
+              val bytes = PIDE.resources.make_file_content(buffer)
               val chunk = Symbol.Text_Chunk(buffer.getSegment(0, buffer.getLength))
               _blob = Some((bytes, chunk))
               (bytes, chunk)
@@ -418,7 +428,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     }
   }
 
-  def is_stable(): Boolean = !pending_edits.nonEmpty
+  def is_stable: Boolean = !pending_edits.nonEmpty
   def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.get_edits)
 
   def flush_edits(doc_blobs: Document.Blobs, hidden: Boolean): List[Document.Edit_Text] =

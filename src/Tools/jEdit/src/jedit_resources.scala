@@ -67,6 +67,18 @@ class JEdit_Resources(
 
   /* file content */
 
+  def read_file_content(node_name: Document.Node.Name): Option[String] =
+  {
+    val name = node_name.node
+    try {
+      val text =
+        if (Url.is_wellformed(name)) Url.read(Url(name))
+        else File.read(new JFile(name))
+      Some(Symbol.decode(Line.normalize(text)))
+    }
+    catch { case ERROR(_) => None }
+  }
+
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     GUI_Thread.now {
@@ -104,7 +116,7 @@ class JEdit_Resources(
     }
   }
 
-  def file_content(buffer: Buffer): Bytes = (new File_Content(buffer)).content()
+  def make_file_content(buffer: Buffer): Bytes = (new File_Content(buffer)).content()
 
 
   /* theory text edits */
