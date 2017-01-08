@@ -74,7 +74,6 @@ object PIDE
   def exit_models(buffers: List[Buffer])
   {
     GUI_Thread.now {
-      PIDE.editor.flush()
       buffers.foreach(buffer =>
         JEdit_Lib.buffer_lock(buffer) {
           JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
@@ -270,6 +269,8 @@ class Plugin extends EBPlugin
       case Session.Shutdown =>
         GUI_Thread.later {
           delay_load.revoke()
+          delay_init.revoke()
+          PIDE.editor.flush()
           PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
         }
 
@@ -314,7 +315,10 @@ class Plugin extends EBPlugin
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
-          if (msg.getBuffer != null) PIDE.exit_models(List(msg.getBuffer))
+          if (msg.getBuffer != null) {
+            PIDE.exit_models(List(msg.getBuffer))
+            PIDE.editor.invoke_generated()
+          }
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED || msg.getWhat == BufferUpdate.LOADED =>
