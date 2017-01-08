@@ -151,8 +151,6 @@ class VSCode_Resources(
 
   /* resolve dependencies */
 
-  val thy_info = new Thy_Info(this)
-
   def resolve_dependencies(session: Session, watcher: File_Watcher): (Boolean, Boolean) =
   {
     state.change_result(st =>

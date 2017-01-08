@@ -188,11 +188,9 @@ class Plugin extends EBPlugin
           val thys =
             (for ((node_name, model) <- models.iterator if model.is_theory)
               yield (node_name, Position.none)).toList
+          val thy_files = PIDE.resources.thy_info.dependencies("", thys).deps.map(_.name)
 
-          val thy_info = new Thy_Info(PIDE.resources)
-          val thy_files: List[Document.Node.Name] = thy_info.dependencies("", thys).deps.map(_.name)
-
-          val aux_files: List[Document.Node.Name] =
+          val aux_files =
             if (PIDE.options.bool("jedit_auto_resolve")) {
               val stable_tip_version =
                 if (models.forall(p => p._2.is_stable))

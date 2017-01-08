@@ -26,6 +26,9 @@ class Resources(
   val base_syntax: Outer_Syntax,
   val log: Logger = No_Logger)
 {
+  val thy_info = new Thy_Info(this)
+
+
   /* document node names */
 
   def node_name(qualifier: String, raw_path: Path): Document.Node.Name =
