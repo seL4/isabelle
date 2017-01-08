@@ -45,7 +45,7 @@ object Document_View
     }
   }
 
-  def init(model: Document_Model, text_area: JEditTextArea): Document_View =
+  def init(model: Buffer_Model, text_area: JEditTextArea): Document_View =
   {
     exit(text_area)
     val doc_view = new Document_View(model, text_area)
@@ -56,7 +56,7 @@ object Document_View
 }
 
 
-class Document_View(val model: Document_Model, val text_area: JEditTextArea)
+class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 {
   private val session = model.session
 

@@ -236,8 +236,6 @@ object Thy_Syntax
     }
 
     edit match {
-      case (_, Document.Node.Clear()) => node.clear
-
       case (_, Document.Node.Blob(blob)) => node.init_blob(blob)
 
       case (name, Document.Node.Edits(text_edits)) =>

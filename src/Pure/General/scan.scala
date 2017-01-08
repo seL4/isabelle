@@ -10,7 +10,8 @@ package isabelle
 import scala.annotation.tailrec
 import scala.collection.{IndexedSeq, Traversable, TraversableOnce}
 import scala.collection.immutable.PagedSeq
-import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
+import scala.util.parsing.input.{OffsetPosition, Position => InputPosition,
+  Reader, CharSequenceReader}
 import scala.util.parsing.combinator.RegexParsers
 
 import java.io.{File => JFile, BufferedInputStream, FileInputStream, InputStream}
@@ -489,4 +490,10 @@ object Scan
     val stream_length = connection.getContentLength
     make_byte_reader(stream, stream_length)
   }
+
+
+  /* plain text reader */
+
+  def char_reader(text: CharSequence): CharSequenceReader =
+    new CharSequenceReader(text)
 }

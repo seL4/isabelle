@@ -22,27 +22,11 @@ class JEdit_Editor extends Editor[View]
 
   override def session: Session = PIDE.session
 
-  // owned by GUI thread
-  private var removed_nodes = Set.empty[Document.Node.Name]
-
-  def remove_node(name: Document.Node.Name): Unit =
-    GUI_Thread.require { removed_nodes += name }
-
-  override def flush(hidden: Boolean = false)
-  {
-    GUI_Thread.require {}
-
-    val doc_blobs = PIDE.document_blobs()
-    val models = PIDE.document_models()
-
-    val removed = removed_nodes; removed_nodes = Set.empty
-    val removed_perspective =
-      (removed -- models.iterator.map(_.node_name)).toList.map(
-        name => (name, Document.Node.no_perspective_text))
-
-    val edits = models.flatMap(_.flushed_edits(hidden, doc_blobs)) ::: removed_perspective
-    session.update(doc_blobs, edits)
-  }
+  override def flush(hidden: Boolean = false): Unit =
+    GUI_Thread.require {
+      val (doc_blobs, edits) = Document_Model.flush_edits(hidden)
+      session.update(doc_blobs, edits)
+    }
 
   private val delay1_flush =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
@@ -53,18 +37,11 @@ class JEdit_Editor extends Editor[View]
   def invoke(): Unit = delay1_flush.invoke()
   def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }
 
-  def stable_tip_version(): Option[Document.Version] =
-    GUI_Thread.require {
-      if (removed_nodes.isEmpty && PIDE.document_models().forall(_.is_stable))
-        session.current_state().stable_tip_version
-      else None
-    }
-
   def visible_node(name: Document.Node.Name): Boolean =
-    JEdit_Lib.jedit_buffer(name) match {
-      case Some(buffer) => JEdit_Lib.jedit_text_areas(buffer).nonEmpty
-      case None => false
-    }
+    (for {
+      text_area <- JEdit_Lib.jedit_text_areas()
+      doc_view <- Document_View(text_area)
+    } yield doc_view.model.node_name).contains(name)
 
 
   /* current situation */
@@ -73,21 +50,16 @@ class JEdit_Editor extends Editor[View]
     GUI_Thread.require { jEdit.getActiveView() }
 
   override def current_node(view: View): Option[Document.Node.Name] =
-    GUI_Thread.require { PIDE.document_model(view.getBuffer).map(_.node_name) }
+    GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.node_name) }
 
   override def current_node_snapshot(view: View): Option[Document.Snapshot] =
-    GUI_Thread.require { PIDE.document_model(view.getBuffer).map(_.snapshot()) }
+    GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.snapshot()) }
 
   override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
   {
     GUI_Thread.require {}
-
-    JEdit_Lib.jedit_buffer(name) match {
-      case Some(buffer) =>
-        PIDE.document_model(buffer) match {
-          case Some(model) => model.snapshot
-          case None => session.snapshot(name)
-        }
+    Document_Model.get(name) match {
+      case Some(model) => model.snapshot
       case None => session.snapshot(name)
     }
   }
@@ -113,7 +85,7 @@ class JEdit_Editor extends Editor[View]
         }
         else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
       case _ =>
-        PIDE.document_model(buffer) match {
+        Document_Model.get(buffer) match {
           case Some(model) if !model.is_theory =>
             snapshot.version.nodes.commands_loading(model.node_name) match {
               case cmd :: _ => Some(cmd)
@@ -251,12 +223,6 @@ class JEdit_Editor extends Editor[View]
       override def toString: String = "URL " + quote(name)
     }
 
-  def hyperlink_buffer(focus: Boolean, buffer: Buffer, offset: Text.Offset): Hyperlink =
-    new Hyperlink {
-      def follow(view: View): Unit = goto_buffer(focus, view, buffer, offset)
-      override def toString: String = "buffer " + quote(JEdit_Lib.buffer_name(buffer))
-    }
-
   def hyperlink_file(focus: Boolean, name: String): Hyperlink =
     hyperlink_file(focus, Line.Node_Position(name))
 
@@ -266,23 +232,40 @@ class JEdit_Editor extends Editor[View]
       override def toString: String = "file " + quote(pos.name)
     }
 
+  def hyperlink_model(focus: Boolean, model: Document_Model, offset: Text.Offset): Hyperlink =
+    model match {
+      case file_model: File_Model =>
+        val pos =
+          try { file_model.node_position(offset) }
+          catch { case ERROR(_) => Line.Node_Position(file_model.node_name.node) }
+        hyperlink_file(focus, pos)
+      case buffer_model: Buffer_Model =>
+        new Hyperlink {
+          def follow(view: View): Unit = goto_buffer(focus, view, buffer_model.buffer, offset)
+          override def toString: String = "buffer " + quote(model.node_name.node)
+        }
+    }
+
   def hyperlink_source_file(focus: Boolean, source_name: String, line1: Int, offset: Symbol.Offset)
     : Option[Hyperlink] =
   {
     for (name <- PIDE.resources.source_file(source_name)) yield {
-      JEdit_Lib.jedit_buffer(name) match {
-        case Some(buffer) if offset > 0 =>
-          val pos =
-            JEdit_Lib.buffer_lock(buffer) {
+      def hyperlink(pos: Line.Position) =
+        hyperlink_file(focus, Line.Node_Position(name, pos))
+
+      if (offset > 0) {
+        PIDE.resources.get_file_content(PIDE.resources.node_name(name)) match {
+          case Some(text) =>
+            hyperlink(
               (Line.Position.zero /:
-                (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
+                (Symbol.iterator(text).
                   zipWithIndex.takeWhile(p => p._2 < offset - 1).
-                  map(_._1)))(_.advance(_, Text.Length))
-            }
-          hyperlink_file(focus, Line.Node_Position(name, pos))
-        case _ =>
-          hyperlink_file(focus, Line.Node_Position(name, Line.Position((line1 - 1) max 0)))
+                  map(_._1)))(_.advance(_, Text.Length)))
+          case None =>
+            hyperlink(Line.Position((line1 - 1) max 0))
+        }
       }
+      else hyperlink(Line.Position((line1 - 1) max 0))
     }
   }
 

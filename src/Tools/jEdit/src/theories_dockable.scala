@@ -38,12 +38,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         val index = peer.locationToIndex(point)
         if (index >= 0) {
           if (in_checkbox(peer.indexToLocation(index), point)) {
-            if (clicks == 1) {
-              for {
-                buffer <- JEdit_Lib.jedit_buffer(listData(index))
-                model <- PIDE.document_model(buffer)
-              } model.node_required = !model.node_required
-            }
+            if (clicks == 1) Document_Model.node_required(listData(index), toggle = true)
           }
           else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)
         }
@@ -90,18 +85,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   /* component state -- owned by GUI thread */
 
   private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
-  private var nodes_required: Set[Document.Node.Name] = Set.empty
-
-  private def update_nodes_required()
-  {
-    nodes_required = Set.empty
-    for {
-      buffer <- JEdit_Lib.jedit_buffers
-      model <- PIDE.document_model(buffer)
-      if model.node_required
-    } nodes_required += model.node_name
-  }
-  update_nodes_required()
+  private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
 
   private def in_checkbox(loc0: Point, p: Point): Boolean =
     Node_Renderer_Component != null &&
@@ -229,7 +213,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           continuous_checking.load()
           logic.load ()
-          update_nodes_required()
+          nodes_required = Document_Model.required_nodes()
           status.repaint()
         }
 

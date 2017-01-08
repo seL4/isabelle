@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext)
 
     let server_options: ServerOptions = { run: run, debug: run };
     let client_options: LanguageClientOptions = {
-      documentSelector: ["isabelle", "isabelle-ml"]
+      documentSelector: ["isabelle", "isabelle-ml", "bibtex"]
     };
 
     let disposable = new LanguageClient("Isabelle", server_options, client_options, false).start();

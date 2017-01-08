@@ -160,7 +160,6 @@ object Document
           case _ => false
         }
     }
-    case class Clear[A, B]() extends Edit[A, B]
     case class Blob[A, B](blob: Document.Blob) extends Edit[A, B]
 
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
@@ -263,8 +262,6 @@ object Document
     def load_commands: List[Command] = _commands.load_commands
     def load_commands_changed(doc_blobs: Blobs): Boolean =
       load_commands.exists(_.blobs_changed(doc_blobs))
-
-    def clear: Node = new Node(header = header, syntax = syntax)
 
     def init_blob(blob: Blob): Node = new Node(get_blob = Some(blob.unchanged))
 
@@ -466,6 +463,41 @@ object Document
       status: Boolean = false): List[Text.Info[A]]
   }
 
+
+  /* model */
+
+  trait Model
+  {
+    def session: Session
+    def is_stable: Boolean
+    def snapshot(): Snapshot
+
+    def node_name: Document.Node.Name
+    def is_theory: Boolean = node_name.is_theory
+    override def toString: String = node_name.toString
+
+    def node_required: Boolean
+    def get_blob: Option[Document.Blob]
+
+    def node_header: Node.Header
+    def node_edits(
+      text_edits: List[Text.Edit], perspective: Node.Perspective_Text): List[Edit_Text] =
+    {
+      val edits: List[Node.Edit[Text.Edit, Text.Perspective]] =
+        get_blob match {
+          case None =>
+            List(
+              Document.Node.Deps(
+                if (session.resources.loaded_theories(node_name.theory))
+                  node_header.error("Cannot update finished theory " + quote(node_name.theory))
+                else node_header),
+              Document.Node.Edits(text_edits), perspective)
+          case Some(blob) =>
+            List(Document.Node.Blob(blob), Document.Node.Edits(text_edits))
+        }
+      edits.flatMap(edit => if (edit.is_void) None else Some(node_name -> edit))
+    }
+  }
 
 
   /** global state -- document structure, execution process, editing history **/
@@ -743,14 +775,11 @@ object Document
           if a == name
         } yield edits
 
-      val is_cleared = rev_pending_changes.exists({ case Node.Clear() => true case _ => false })
       val edits =
-        if (is_cleared) Nil
-        else
-          (pending_edits /: rev_pending_changes)({
-            case (edits, Node.Edits(es)) => es ::: edits
-            case (edits, _) => edits
-          })
+        (pending_edits /: rev_pending_changes)({
+          case (edits, Node.Edits(es)) => es ::: edits
+          case (edits, _) => edits
+        })
       lazy val reverse_edits = edits.reverse
 
       new Snapshot
@@ -764,10 +793,8 @@ object Document
 
         /* local node content */
 
-        def convert(offset: Text.Offset) =
-          if (is_cleared) 0 else (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset) =
-          if (is_cleared) 0 else (offset /: reverse_edits)((i, edit) => edit.revert(i))
+        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
 
         def convert(range: Text.Range) = range.map(convert(_))
         def revert(range: Text.Range) = range.map(revert(_))

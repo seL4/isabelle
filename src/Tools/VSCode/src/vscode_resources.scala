@@ -11,7 +11,7 @@ import isabelle._
 
 import java.io.{File => JFile}
 
-import scala.util.parsing.input.{Reader, CharSequenceReader}
+import scala.util.parsing.input.Reader
 
 
 object VSCode_Resources
@@ -67,12 +67,33 @@ class VSCode_Resources(
     else new JFile(dir + JFile.separator + File.platform_path(path)).getCanonicalPath
   }
 
+  def get_model(file: JFile): Option[Document_Model] = state.value.models.get(file)
+  def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
+
+
+  /* file content */
+
+  def read_file_content(file: JFile): Option[String] =
+    try { Some(Line.normalize(File.read(file))) }
+    catch { case ERROR(_) => None }
+
+  def get_file_content(file: JFile): Option[String] =
+    get_model(file) match {
+      case Some(model) => Some(model.content.text)
+      case None => read_file_content(file)
+    }
+
+  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
+    for {
+      (_, model) <- state.value.models.iterator
+      Text.Info(range, entry) <- model.content.bibtex_entries.iterator
+    } yield Text.Info(range, (entry, model))
+
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     val file = node_file(name)
     get_model(file) match {
-      case Some(model) =>
-        f(new CharSequenceReader(model.doc.make_text))
+      case Some(model) => f(Scan.char_reader(model.content.text))
       case None if file.isFile =>
         val reader = Scan.byte_reader(file)
         try { f(reader) } finally { reader.close }
@@ -83,9 +104,6 @@ class VSCode_Resources(
 
 
   /* document models */
-
-  def get_model(file: JFile): Option[Document_Model] = state.value.models.get(file)
-  def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
 
   def visible_node(name: Document.Node.Name): Boolean =
     get_model(name) match {
@@ -120,7 +138,7 @@ class VSCode_Resources(
           (for {
             (file, model) <- st.models.iterator
             if changed_files(file) && model.external_file
-            text <- try_read(file)
+            text <- read_file_content(file)
             model1 <- model.update_text(text)
           } yield (file, model1)).toList
         if (changed_models.isEmpty) (false, st)
@@ -131,22 +149,7 @@ class VSCode_Resources(
       })
 
 
-  /* file content */
-
-  def try_read(file: JFile): Option[String] =
-    try { Some(Line.normalize(File.read(file))) }
-    catch { case ERROR(_) => None }
-
-  def get_file_content(file: JFile): Option[String] =
-    get_model(file) match {
-      case Some(model) => Some(model.doc.make_text)
-      case None => try_read(file)
-    }
-
-
   /* resolve dependencies */
-
-  val thy_info = new Thy_Info(this)
 
   def resolve_dependencies(session: Session, watcher: File_Watcher): (Boolean, Boolean) =
   {
@@ -164,7 +167,7 @@ class VSCode_Resources(
         /* auxiliary files */
 
         val stable_tip_version =
-          if (st.models.forall({ case (_, model) => model.pending_edits.isEmpty }))
+          if (st.models.forall(entry => entry._2.is_stable))
             session.current_state().stable_tip_version
           else None
 
@@ -182,7 +185,7 @@ class VSCode_Resources(
             node_name <- thy_files.iterator ++ aux_files.iterator
             file = node_file(node_name)
             if !st.models.isDefinedAt(file)
-            text <- { watcher.register_parent(file); try_read(file) }
+            text <- { watcher.register_parent(file); read_file_content(file) }
           }
           yield {
             val model = Document_Model.init(session, node_name)

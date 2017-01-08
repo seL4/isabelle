@@ -137,7 +137,6 @@ object Build
                   (parent.loaded_theories, parent.known_theories, parent.syntax)
               }
             val resources = new Resources(loaded_theories0, known_theories0, syntax0)
-            val thy_info = new Thy_Info(resources)
 
             if (verbose || list_files) {
               val groups =
@@ -155,7 +154,7 @@ object Build
                       (resources.node_name(
                         if (global) "" else name, info.dir + Resources.thy_path(thy)), info.pos))
                 })
-              val thy_deps = thy_info.dependencies(name, root_theories)
+              val thy_deps = resources.thy_info.dependencies(name, root_theories)
 
               thy_deps.errors match {
                 case Nil => thy_deps

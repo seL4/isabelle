@@ -11,36 +11,39 @@ import isabelle._
 
 import java.io.{File => JFile}
 
-import scala.util.parsing.input.CharSequenceReader
-
 
 object Document_Model
 {
+  sealed case class Content(doc: Line.Document)
+  {
+    def text_range: Text.Range = doc.text_range
+    def text: String = doc.text
+
+    lazy val bytes: Bytes = Bytes(text)
+    lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
+    lazy val bibtex_entries: List[Text.Info[String]] =
+      try { Bibtex.document_entries(text) }
+      catch { case ERROR(_) => Nil }
+  }
+
   def init(session: Session, node_name: Document.Node.Name): Document_Model =
   {
     val resources = session.resources.asInstanceOf[VSCode_Resources]
-    val doc = Line.Document("", resources.text_length)
-    Document_Model(session, node_name, doc)
+    val content = Content(Line.Document("", resources.text_length))
+    Document_Model(session, node_name, content)
   }
 }
 
 sealed case class Document_Model(
   session: Session,
   node_name: Document.Node.Name,
-  doc: Line.Document,
+  content: Document_Model.Content,
   external_file: Boolean = false,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
-  pending_edits: Vector[Text.Edit] = Vector.empty,
-  published_diagnostics: List[Text.Info[Command.Results]] = Nil)
+  pending_edits: List[Text.Edit] = Nil,
+  published_diagnostics: List[Text.Info[Command.Results]] = Nil) extends Document.Model
 {
-  /* name */
-
-  override def toString: String = node_name.toString
-
-  def is_theory: Boolean = node_name.is_theory
-
-
   /* external file */
 
   def external(b: Boolean): Document_Model = copy(external_file = b)
@@ -52,12 +55,7 @@ sealed case class Document_Model(
 
   def node_header: Document.Node.Header =
     resources.special_header(node_name) getOrElse
-    {
-      if (is_theory)
-        resources.check_thy_reader(
-          "", node_name, new CharSequenceReader(Thy_Header.header_text(doc)), Token.Pos.command)
-      else Document.Node.no_header
-    }
+      resources.check_thy_reader("", node_name, Scan.char_reader(content.text))
 
 
   /* perspective */
@@ -83,26 +81,21 @@ sealed case class Document_Model(
 
   def get_blob: Option[Document.Blob] =
     if (is_theory) None
-    else {
-      val (bytes, chunk) = doc.blob
-      val changed = pending_edits.nonEmpty
-      Some((Document.Blob(bytes, chunk, changed)))
-    }
+    else Some((Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty)))
 
 
   /* edits */
 
   def update_text(text: String): Option[Document_Model] =
   {
+    val old_text = content.text
     val new_text = Line.normalize(text)
-    val old_text = doc.make_text
-    if (new_text == old_text) None
-    else {
-      val doc1 = Line.Document(new_text, doc.text_length)
-      val pending_edits1 =
-        if (old_text != "") pending_edits :+ Text.Edit.remove(0, old_text) else pending_edits
-      val pending_edits2 = pending_edits1 :+ Text.Edit.insert(0, new_text)
-      Some(copy(doc = doc1, pending_edits = pending_edits2))
+    Text.Edit.replace(0, old_text, new_text) match {
+      case Nil => None
+      case edits =>
+        val content1 = Document_Model.Content(Line.Document(new_text, content.doc.text_length))
+        val pending_edits1 = pending_edits ::: edits
+        Some(copy(content = content1, pending_edits = pending_edits1))
     }
   }
 
@@ -110,17 +103,8 @@ sealed case class Document_Model(
   {
     val (reparse, perspective) = node_perspective(doc_blobs)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
-      val edits: List[Document.Edit_Text] =
-        get_blob match {
-          case None =>
-            List(session.header_edit(node_name, node_header),
-              node_name -> Document.Node.Edits(pending_edits.toList),
-              node_name -> perspective)
-          case Some(blob) =>
-            List(node_name -> Document.Node.Blob(blob),
-              node_name -> Document.Node.Edits(pending_edits.toList))
-        }
-      Some((edits, copy(pending_edits = Vector.empty, last_perspective = perspective)))
+      val edits = node_edits(pending_edits, perspective)
+      Some((edits, copy(pending_edits = Nil, last_perspective = perspective)))
     }
     else None
   }
@@ -141,7 +125,8 @@ sealed case class Document_Model(
 
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
 
-  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits.toList)
+  def is_stable: Boolean = pending_edits.isEmpty
+  def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
 
   def rendering(): VSCode_Rendering = new VSCode_Rendering(this, snapshot(), resources)
 }

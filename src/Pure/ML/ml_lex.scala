@@ -8,7 +8,7 @@ package isabelle
 
 
 import scala.collection.mutable
-import scala.util.parsing.input.{Reader, CharSequenceReader}
+import scala.util.parsing.input.Reader
 
 
 object ML_Lex
@@ -265,17 +265,15 @@ object ML_Lex
   /* tokenize */
 
   def tokenize(input: CharSequence): List[Token] =
-  {
-    Parsers.parseAll(Parsers.rep(Parsers.token), new CharSequenceReader(input)) match {
+    Parsers.parseAll(Parsers.rep(Parsers.token), Scan.char_reader(input)) match {
       case Parsers.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
     }
-  }
 
   def tokenize_line(SML: Boolean, input: CharSequence, context: Scan.Line_Context)
     : (List[Token], Scan.Line_Context) =
   {
-    var in: Reader[Char] = new CharSequenceReader(input)
+    var in: Reader[Char] = Scan.char_reader(input)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {

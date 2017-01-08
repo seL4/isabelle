@@ -26,6 +26,9 @@ class Resources(
   val base_syntax: Outer_Syntax,
   val log: Logger = No_Logger)
 {
+  val thy_info = new Thy_Info(this)
+
+
   /* document node names */
 
   def node_name(qualifier: String, raw_path: Path): Document.Node.Name =
@@ -118,11 +121,12 @@ class Resources(
   }
 
   def check_thy_reader(qualifier: String, node_name: Document.Node.Name,
-    reader: Reader[Char], start: Token.Pos): Document.Node.Header =
+      reader: Reader[Char], start: Token.Pos = Token.Pos.command, strict: Boolean = true)
+    : Document.Node.Header =
   {
-    if (reader.source.length > 0) {
+    if (node_name.is_theory && reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader, start).decode_symbols
+        val header = Thy_Header.read(reader, start, strict).decode_symbols
 
         val base_name = Long_Name.base_name(node_name.theory)
         val (name, pos) = header.name
@@ -140,16 +144,9 @@ class Resources(
     else Document.Node.no_header
   }
 
-  def check_thy(qualifier: String, name: Document.Node.Name, start: Token.Pos)
-    : Document.Node.Header =
-    with_thy_reader(name, check_thy_reader(qualifier, name, _, start))
-
-  def check_file(file: String): Boolean =
-    try {
-      if (Url.is_wellformed(file)) Url.is_readable(file)
-      else (new JFile(file)).isFile
-    }
-    catch { case ERROR(_) => false }
+  def check_thy(qualifier: String, name: Document.Node.Name,
+      start: Token.Pos = Token.Pos.command, strict: Boolean = true): Document.Node.Header =
+    with_thy_reader(name, check_thy_reader(qualifier, name, _, start, strict))
 
 
   /* special header */

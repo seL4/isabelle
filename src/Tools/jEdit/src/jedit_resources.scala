@@ -33,7 +33,7 @@ class JEdit_Resources(
     base_syntax: Outer_Syntax)
   extends Resources(loaded_theories, known_theories, base_syntax)
 {
-  /* document node names */
+  /* document node name */
 
   def node_name(buffer: Buffer): Document.Node.Name =
   {
@@ -43,14 +43,20 @@ class JEdit_Resources(
     Document.Node.Name(node, master_dir, theory)
   }
 
+  def node_name(path: String): Document.Node.Name =
+  {
+    val vfs = VFSManager.getVFSForPath(path)
+    val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
+    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
+    val master_dir = if (theory == "") "" else vfs.getParentOfPath(path)
+    Document.Node.Name(node, master_dir, theory)
+  }
+
   def theory_node_name(buffer: Buffer): Option[Document.Node.Name] =
   {
     val name = node_name(buffer)
     if (name.is_theory) Some(name) else None
   }
-
-
-  /* file-system operations */
 
   override def append(dir: String, source_path: Path): String =
   {
@@ -67,12 +73,35 @@ class JEdit_Resources(
     }
   }
 
+
+  /* file content */
+
+  def read_file_content(node_name: Document.Node.Name): Option[String] =
+  {
+    val name = node_name.node
+    try {
+      val text =
+        if (Url.is_wellformed(name)) Url.read(Url(name))
+        else File.read(new JFile(name))
+      Some(Symbol.decode(Line.normalize(text)))
+    }
+    catch { case ERROR(_) => None }
+  }
+
+  def get_file_content(node_name: Document.Node.Name): Option[String] =
+    Document_Model.get(node_name) match {
+      case Some(model: Buffer_Model) => Some(JEdit_Lib.buffer_text(model.buffer))
+      case Some(model: File_Model) => Some(model.content.text)
+      case None => read_file_content(node_name)
+    }
+
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     GUI_Thread.now {
-      JEdit_Lib.jedit_buffer(name) match {
-        case Some(buffer) =>
-          JEdit_Lib.buffer_lock(buffer) { Some(f(JEdit_Lib.buffer_reader(buffer))) }
+      Document_Model.get(name) match {
+        case Some(model: Buffer_Model) =>
+          JEdit_Lib.buffer_lock(model.buffer) { Some(f(JEdit_Lib.buffer_reader(model.buffer))) }
+        case Some(model: File_Model) => Some(f(Scan.char_reader(model.content.text)))
         case None => None
       }
     } getOrElse {
@@ -85,8 +114,6 @@ class JEdit_Resources(
     }
   }
 
-
-  /* file content */
 
   private class File_Content_Output(buffer: Buffer) extends
     ByteArrayOutputStream(buffer.getLength + 1)
@@ -106,7 +133,7 @@ class JEdit_Resources(
     }
   }
 
-  def file_content(buffer: Buffer): Bytes = (new File_Content(buffer)).content()
+  def make_file_content(buffer: Buffer): Bytes = (new File_Content(buffer)).content()
 
 
   /* theory text edits */
@@ -114,14 +141,7 @@ class JEdit_Resources(
   override def commit(change: Session.Change)
   {
     if (change.syntax_changed.nonEmpty)
-      GUI_Thread.later {
-        val changed = change.syntax_changed.toSet
-        for {
-          buffer <- JEdit_Lib.jedit_buffers()
-          model <- PIDE.document_model(buffer)
-          if changed(model.node_name)
-        } model.syntax_changed()
-      }
+      GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
     if (change.deps_changed ||
         PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version.nodes).nonEmpty)
       PIDE.deps_changed()

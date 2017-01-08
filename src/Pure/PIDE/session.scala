@@ -242,18 +242,6 @@ class Session(val resources: Resources)
     resources.base_syntax
 
 
-  /* theory files */
-
-  def header_edit(name: Document.Node.Name, header: Document.Node.Header): Document.Edit_Text =
-  {
-    val header1 =
-      if (resources.loaded_theories(name.theory))
-        header.error("Cannot update finished theory " + quote(name.theory))
-      else header
-    (name, Document.Node.Deps(header1))
-  }
-
-
   /* pipelined change parsing */
 
   private case class Text_Edits(

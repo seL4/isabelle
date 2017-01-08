@@ -63,12 +63,6 @@ object PIDE
 
   /* document model and view */
 
-  def document_model(buffer: JEditBuffer): Option[Document_Model] =
-    buffer match {
-      case b: Buffer => Document_Model(b)
-      case _ => None
-    }
-
   def document_view(text_area: TextArea): Option[Document_View] = Document_View(text_area)
 
   def document_views(buffer: Buffer): List[Document_View] =
@@ -77,24 +71,9 @@ object PIDE
       doc_view <- document_view(text_area)
     } yield doc_view
 
-  def document_models(): List[Document_Model] =
-    for {
-      buffer <- JEdit_Lib.jedit_buffers().toList
-      model <- document_model(buffer)
-    } yield model
-
-  def document_blobs(): Document.Blobs =
-    Document.Blobs(
-      (for {
-        buffer <- JEdit_Lib.jedit_buffers()
-        model <- document_model(buffer)
-        blob <- model.get_blob()
-      } yield (model.node_name -> blob)).toMap)
-
   def exit_models(buffers: List[Buffer])
   {
     GUI_Thread.now {
-      PIDE.editor.flush()
       buffers.foreach(buffer =>
         JEdit_Lib.buffer_lock(buffer) {
           JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
@@ -115,7 +94,7 @@ object PIDE
         if (buffer.isLoaded) {
           JEdit_Lib.buffer_lock(buffer) {
             val node_name = resources.node_name(buffer)
-            val model = Document_Model.init(session, buffer, node_name, document_model(buffer))
+            val model = Document_Model.init(session, node_name, buffer)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
               if document_view(text_area).map(_.model) != Some(model)
@@ -132,7 +111,7 @@ object PIDE
   def init_view(buffer: Buffer, text_area: JEditTextArea): Unit =
     GUI_Thread.now {
       JEdit_Lib.buffer_lock(buffer) {
-        document_model(buffer) match {
+        Document_Model.get(buffer) match {
           case Some(model) => Document_View.init(model, text_area)
           case None =>
         }
@@ -151,8 +130,7 @@ object PIDE
 
   def snapshot(view: View): Document.Snapshot = GUI_Thread.now
   {
-    val buffer = view.getBuffer
-    document_model(buffer) match {
+    Document_Model.get(view.getBuffer) match {
       case Some(model) => model.snapshot
       case None => error("No document model for current buffer")
     }
@@ -201,65 +179,54 @@ class Plugin extends EBPlugin
     if (Isabelle.continuous_checking && delay_load_activated() &&
         PerspectiveManager.isPerspectiveEnabled)
     {
-      try {
-        val view = jEdit.getActiveView()
-
-        val buffers = JEdit_Lib.jedit_buffers().toList
-        if (buffers.forall(_.isLoaded)) {
-          def loaded_buffer(name: String): Boolean =
-            buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
+      if (JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
+      else {
+        val required_files =
+        {
+          val models = Document_Model.get_models()
 
           val thys =
-            for {
-              buffer <- buffers
-              model <- PIDE.document_model(buffer)
-              if model.is_theory
-            } yield (model.node_name, Position.none)
-
-          val thy_info = new Thy_Info(PIDE.resources)
-          val thy_files = thy_info.dependencies("", thys).deps.map(_.name.node)
+            (for ((node_name, model) <- models.iterator if model.is_theory)
+              yield (node_name, Position.none)).toList
+          val thy_files = PIDE.resources.thy_info.dependencies("", thys).deps.map(_.name)
 
           val aux_files =
             if (PIDE.options.bool("jedit_auto_resolve")) {
-              PIDE.editor.stable_tip_version() match {
-                case Some(version) => PIDE.resources.undefined_blobs(version.nodes).map(_.node)
+              val stable_tip_version =
+                if (models.forall(p => p._2.is_stable))
+                  PIDE.session.current_state().stable_tip_version
+                else None
+              stable_tip_version match {
+                case Some(version) => PIDE.resources.undefined_blobs(version.nodes)
                 case None => delay_load.invoke(); Nil
               }
             }
             else Nil
 
-          val files =
-            (thy_files ::: aux_files).filter(file =>
-              !loaded_buffer(file) && PIDE.resources.check_file(file))
+          (thy_files ::: aux_files).filterNot(models.isDefinedAt(_))
+        }
+        if (required_files.nonEmpty) {
+          try {
+            Standard_Thread.fork("resolve_dependencies") {
+              val loaded_files =
+                for {
+                  name <- required_files
+                  text <- PIDE.resources.read_file_content(name)
+                } yield (name, text)
 
-          if (files.nonEmpty) {
-            if (PIDE.options.bool("jedit_auto_load")) {
-              files.foreach(file => jEdit.openFile(null: View, file))
-            }
-            else {
-              val files_list = new ListView(files.sorted)
-              for (i <- 0 until files.length)
-                files_list.selection.indices += i
-
-              val answer =
-                GUI.confirm_dialog(view,
-                  "Auto loading of required files",
-                  JOptionPane.YES_NO_OPTION,
-                  "The following files are required to resolve theory imports.",
-                  "Reload selected files now?",
-                  new ScrollPane(files_list),
-                  new Isabelle.Continuous_Checking)
-              if (answer == 0) {
-                files.foreach(file =>
-                  if (files_list.selection.items.contains(file))
-                    jEdit.openFile(null: View, file))
+              GUI_Thread.later {
+                try {
+                  Document_Model.provide_files(PIDE.session, loaded_files)
+                  delay_init.invoke()
+                }
+                finally { delay_load_active.change(_ => false) }
               }
             }
           }
+          catch { case _: Throwable => delay_load_active.change(_ => false) }
         }
-        else delay_load.invoke()
+        else delay_load_active.change(_ => false)
       }
-      finally { delay_load_active.change(_ => false) }
     }
   }
 
@@ -300,6 +267,8 @@ class Plugin extends EBPlugin
       case Session.Shutdown =>
         GUI_Thread.later {
           delay_load.revoke()
+          delay_init.revoke()
+          PIDE.editor.flush()
           PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
         }
 
@@ -343,14 +312,14 @@ class Plugin extends EBPlugin
             JEdit_Sessions.session_info().open_root).foreach(_.follow(view))
 
         case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.LOADED ||
-          msg.getWhat == BufferUpdate.PROPERTIES_CHANGED ||
-          msg.getWhat == BufferUpdate.CLOSING =>
-
-          if (msg.getWhat == BufferUpdate.CLOSING) {
-            val buffer = msg.getBuffer
-            if (buffer != null) PIDE.editor.remove_node(PIDE.resources.node_name(msg.getBuffer))
+        if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
+          if (msg.getBuffer != null) {
+            PIDE.exit_models(List(msg.getBuffer))
+            PIDE.editor.invoke_generated()
           }
+
+        case msg: BufferUpdate
+        if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED || msg.getWhat == BufferUpdate.LOADED =>
           if (PIDE.session.is_ready) {
             delay_init.invoke()
             delay_load.invoke()

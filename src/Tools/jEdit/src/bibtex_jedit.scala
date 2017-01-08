@@ -27,50 +27,13 @@ import sidekick.{SideKickParser, SideKickParsedData}
 
 object Bibtex_JEdit
 {
-  /** buffer model **/
-
-  /* file type */
-
-  def check(buffer: Buffer): Boolean =
-    JEdit_Lib.buffer_name(buffer).endsWith(".bib")
-
-
-  /* parse entries */
-
-  def parse_buffer_entries(buffer: Buffer): List[(String, Text.Offset)] =
-  {
-    val chunks =
-      try { Bibtex.parse(JEdit_Lib.buffer_text(buffer)) }
-      catch { case ERROR(msg) => Output.warning(msg); Nil }
-
-    val result = new mutable.ListBuffer[(String, Text.Offset)]
-    var offset = 0
-    for (chunk <- chunks) {
-      if (chunk.name != "" && !chunk.is_command) result += ((chunk.name, offset))
-      offset += chunk.source.length
-    }
-    result.toList
-  }
-
-
-  /* retrieve entries */
-
-  def entries_iterator(): Iterator[(String, Buffer, Text.Offset)] =
-    for {
-      buffer <- JEdit_Lib.jedit_buffers()
-      model <- PIDE.document_model(buffer).iterator
-      (name, offset) <- model.bibtex_entries.iterator
-    } yield (name, buffer, offset)
-
-
-  /* completion */
+  /** completion **/
 
   def complete(name: String): List[String] =
-  {
-    val name1 = name.toLowerCase
-    (for ((entry, _, _) <- entries_iterator() if entry.toLowerCase.containsSlice(name1))
-      yield entry).toList
-  }
+    (for {
+      Text.Info(_, (entry, _)) <- Document_Model.bibtex_entries_iterator()
+      if entry.toLowerCase.containsSlice(name.toLowerCase)
+    } yield entry).toList
 
   def completion(
     history: Completion.History,
@@ -108,7 +71,7 @@ object Bibtex_JEdit
       case text_area: TextArea =>
         text_area.getBuffer match {
           case buffer: Buffer
-          if (check(buffer) && buffer.isEditable) =>
+          if (Bibtex.check_name(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable) =>
             val menu = new JMenu("BibTeX entries")
             for (entry <- Bibtex.entries) {
               val item = new JMenuItem(entry.kind)

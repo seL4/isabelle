@@ -90,14 +90,21 @@ object Line
   object Document
   {
     def apply(text: String, text_length: Text.Length): Document =
-      Document(logical_lines(text).map(Line(_)), text_length)
+      Document(logical_lines(text).map(s => Line(Library.trim_substring(s))), text_length)
   }
 
   sealed case class Document(lines: List[Line], text_length: Text.Length)
   {
-    def make_text: String = lines.mkString("", "\n", "")
+    lazy val text_range: Text.Range =
+    {
+      val length =
+        if (lines.isEmpty) 0
+        else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
+      Text.Range(0, length)
+    }
+    lazy val text: String = lines.mkString("", "\n", "")
 
-    override def toString: String = make_text
+    override def toString: String = text
 
     override def equals(that: Any): Boolean =
       that match {
@@ -135,18 +142,6 @@ object Line
         text_length.offset(lines(l).text, c).map(line_offset + _)
       }
       else None
-    }
-
-    lazy val length: Int =
-      if (lines.isEmpty) 0
-      else ((0 /: lines) { case (n, line) => n + line.text.length + 1 }) - 1
-
-    def full_range: Text.Range = Text.Range(0, length)
-
-    lazy val blob: (Bytes, Symbol.Text_Chunk) =
-    {
-      val text = make_text
-      (Bytes(text), Symbol.Text_Chunk(text))
     }
   }
 

@@ -34,7 +34,7 @@ object VSCode_Rendering
       Markup.BAD)
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
 }
 
 class VSCode_Rendering(
@@ -47,7 +47,7 @@ class VSCode_Rendering(
 
   def diagnostics: List[Text.Info[Command.Results]] =
     snapshot.cumulate[Command.Results](
-      model.doc.full_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
+      model.content.text_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
       {
         case (res, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(i)), body)))
         if body.nonEmpty => Some(res + (i -> msg))
@@ -61,7 +61,7 @@ class VSCode_Rendering(
   {
     (for {
       Text.Info(text_range, res) <- results.iterator
-      range = model.doc.range(text_range)
+      range = model.content.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
       val message = Pretty.string_of(body, margin = diagnostics_margin)
@@ -90,14 +90,17 @@ class VSCode_Rendering(
     }
     yield {
       Line.Node_Range(file.getPath,
-        resources.get_file_content(file) match {
-          case Some(text) if range.start > 0 =>
-            val chunk = Symbol.Text_Chunk(text)
-            val doc = Line.Document(text, resources.text_length)
-            doc.range(chunk.decode(range))
-          case _ =>
-            Line.Range(Line.Position((line1 - 1) max 0))
-        })
+        if (range.start > 0) {
+          resources.get_file_content(file) match {
+            case Some(text) =>
+              val chunk = Symbol.Text_Chunk(text)
+              val doc = Line.Document(text, resources.text_length)
+              doc.range(chunk.decode(range))
+            case _ =>
+              Line.Range(Line.Position((line1 - 1) max 0))
+          }
+        }
+        else Line.Range(Line.Position((line1 - 1) max 0)))
     }
   }
 
@@ -139,6 +142,14 @@ class VSCode_Rendering(
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             hyperlink_position(props).map(_ :: links)
+
+          case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
+            val iterator =
+              for {
+                Text.Info(entry_range, (entry, model)) <- resources.bibtex_entries_iterator
+                if entry == name
+              } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
+            if (iterator.isEmpty) None else Some((links /: iterator)(_ :+ _))
 
           case _ => None
         }) match { case Text.Info(_, links) :: _ => links.reverse case _ => Nil }

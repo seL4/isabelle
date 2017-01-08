@@ -6,11 +6,8 @@ public option jedit_logic : string = ""
 public option jedit_print_mode : string = ""
   -- "default print modes for output, separated by commas (change requires restart)"
 
-public option jedit_auto_load : bool = false
-  -- "load all required files automatically to resolve theory imports"
-
 public option jedit_auto_resolve : bool = false
-  -- "automatically resolve auxiliary files within the editor"
+  -- "automatically resolve auxiliary files within the document model"
 
 public option jedit_reset_font_size : int = 18
   -- "reset main text font size"
