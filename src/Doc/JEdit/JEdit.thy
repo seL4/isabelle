@@ -850,12 +850,16 @@ text \<open>
   \label{fig:theories}
   \end{figure}
 
-  Certain events to open or update editor buffers cause Isabelle/jEdit to
-  resolve dependencies of theory imports. The system requests to load
-  additional files into editor buffers, in order to be included in the
-  document model for further checking. It is also possible to let the system
-  resolve dependencies automatically, according to the system option
-  @{system_option jedit_auto_load}.
+  Theory imports are resolved automatically by the PIDE document model: all
+  required files are loaded and stored internally, without the need to open
+  corresponding jEdit buffers. Opening or closing editor buffers later on has
+  no impact on the formal document content: it only affects visibility.
+
+  In contrast, auxiliary files (e.g.\ from \<^verbatim>\<open>ML_file\<close> commands) are \<^emph>\<open>not\<close>
+  resolved within the editor by default, but the prover process takes care of
+  that. This may be changed by enabling the system option @{system_option
+  jedit_auto_resolve}: it ensures that all files are uniformly provided by the
+  editor.
 
   \<^medskip>
   The visible \<^emph>\<open>perspective\<close> of Isabelle/jEdit is defined by the collective

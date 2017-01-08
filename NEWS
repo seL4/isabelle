@@ -13,6 +13,13 @@ New in this Isabelle version
 entry of the specified logic session in the editor, while its parent is
 used for formal checking.
 
+* The PIDE document model maintains file content independently of the
+status of jEdit editor buffers. Reloading jEdit buffers no longer causes
+changes of formal document content. Theory dependencies are always
+resolved internally, without the need for corresponding editor buffers.
+The system option "jedit_auto_load" has been discontinued: it is
+effectively always enabled.
+
 
 *** HOL ***
 
