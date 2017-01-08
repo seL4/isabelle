@@ -250,19 +250,22 @@ class JEdit_Editor extends Editor[View]
     : Option[Hyperlink] =
   {
     for (name <- PIDE.resources.source_file(source_name)) yield {
-      JEdit_Lib.jedit_buffer(name) match {
-        case Some(buffer) if offset > 0 =>
-          val pos =
-            JEdit_Lib.buffer_lock(buffer) {
+      def hyperlink(pos: Line.Position) =
+        hyperlink_file(focus, Line.Node_Position(name, pos))
+
+      if (offset > 0) {
+        PIDE.resources.get_file_content(PIDE.resources.node_name(name)) match {
+          case Some(text) =>
+            hyperlink(
               (Line.Position.zero /:
-                (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
+                (Symbol.iterator(text).
                   zipWithIndex.takeWhile(p => p._2 < offset - 1).
-                  map(_._1)))(_.advance(_, Text.Length))
-            }
-          hyperlink_file(focus, Line.Node_Position(name, pos))
-        case _ =>
-          hyperlink_file(focus, Line.Node_Position(name, Line.Position((line1 - 1) max 0)))
+                  map(_._1)))(_.advance(_, Text.Length)))
+          case None =>
+            hyperlink(Line.Position((line1 - 1) max 0))
+        }
       }
+      else hyperlink(Line.Position((line1 - 1) max 0))
     }
   }
 

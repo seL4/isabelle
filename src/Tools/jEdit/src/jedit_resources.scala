@@ -43,6 +43,15 @@ class JEdit_Resources(
     Document.Node.Name(node, master_dir, theory)
   }
 
+  def node_name(path: String): Document.Node.Name =
+  {
+    val vfs = VFSManager.getVFSForPath(path)
+    val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
+    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
+    val master_dir = if (theory == "") "" else vfs.getParentOfPath(path)
+    Document.Node.Name(node, master_dir, theory)
+  }
+
   def theory_node_name(buffer: Buffer): Option[Document.Node.Name] =
   {
     val name = node_name(buffer)
@@ -79,14 +88,20 @@ class JEdit_Resources(
     catch { case ERROR(_) => None }
   }
 
+  def get_file_content(node_name: Document.Node.Name): Option[String] =
+    Document_Model.get(node_name) match {
+      case Some(model: Buffer_Model) => Some(JEdit_Lib.buffer_text(model.buffer))
+      case Some(model: File_Model) => Some(model.content.text)
+      case None => read_file_content(node_name)
+    }
+
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     GUI_Thread.now {
       Document_Model.get(name) match {
-        case Some(buffer_model: Buffer_Model) =>
-          val buffer = buffer_model.buffer
-          JEdit_Lib.buffer_lock(buffer) { Some(f(JEdit_Lib.buffer_reader(buffer))) }
-        case Some(file_model: File_Model) => Some(f(Scan.char_reader(file_model.content.text)))
+        case Some(model: Buffer_Model) =>
+          JEdit_Lib.buffer_lock(model.buffer) { Some(f(JEdit_Lib.buffer_reader(model.buffer))) }
+        case Some(model: File_Model) => Some(f(Scan.char_reader(model.content.text)))
         case None => None
       }
     } getOrElse {
