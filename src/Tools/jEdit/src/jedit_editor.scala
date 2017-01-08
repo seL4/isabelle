@@ -38,10 +38,10 @@ class JEdit_Editor extends Editor[View]
   def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }
 
   def visible_node(name: Document.Node.Name): Boolean =
-    JEdit_Lib.jedit_buffer(name) match {
-      case Some(buffer) => JEdit_Lib.jedit_text_areas(buffer).nonEmpty
-      case None => false
-    }
+    (for {
+      text_area <- JEdit_Lib.jedit_text_areas()
+      doc_view <- Document_View(text_area)
+    } yield doc_view.model.node_name).contains(name)
 
 
   /* current situation */
