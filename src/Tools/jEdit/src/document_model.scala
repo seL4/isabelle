@@ -77,6 +77,12 @@ object Document_Model
   def is_stable(): Boolean =
     state.value.models_iterator.forall(_.is_stable)
 
+  def bibtex_entries_iterator(): Iterator[(String, Document_Model, Text.Offset)] =
+    for {
+      model <- state.value.models_iterator
+      (entry, offset) <- model.bibtex_entries
+    } yield (entry, model, offset)
+
 
   /* init and exit */
 
@@ -193,7 +199,7 @@ object Document_Model
   }
 }
 
-trait Document_Model extends Document.Model
+sealed abstract class Document_Model extends Document.Model
 {
   /* content */
 
@@ -244,6 +250,10 @@ case class File_Model(
 
 
   /* content */
+
+  def node_position(offset: Text.Offset): Line.Node_Position =
+    Line.Node_Position(node_name.node,
+      Line.Position.zero.advance(content.text.substring(0, offset), Text.Length))
 
   def get_blob: Option[Document.Blob] =
     if (is_theory) None

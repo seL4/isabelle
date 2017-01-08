@@ -27,26 +27,13 @@ import sidekick.{SideKickParser, SideKickParsedData}
 
 object Bibtex_JEdit
 {
-  /** buffer model **/
-
-  /* retrieve entries */
-
-  def entries_iterator(): Iterator[(String, Buffer, Text.Offset)] =
-    for {
-      buffer <- JEdit_Lib.jedit_buffers()
-      model <- Document_Model.get(buffer).iterator
-      (name, offset) <- model.bibtex_entries.iterator
-    } yield (name, buffer, offset)
-
-
-  /* completion */
+  /** completion **/
 
   def complete(name: String): List[String] =
-  {
-    val name1 = name.toLowerCase
-    (for ((entry, _, _) <- entries_iterator() if entry.toLowerCase.containsSlice(name1))
-      yield entry).toList
-  }
+    (for {
+      (entry, _, _) <- Document_Model.bibtex_entries_iterator()
+      if entry.toLowerCase.containsSlice(name.toLowerCase)
+    } yield entry).toList
 
   def completion(
     history: Completion.History,

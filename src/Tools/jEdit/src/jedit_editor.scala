@@ -230,12 +230,6 @@ class JEdit_Editor extends Editor[View]
       override def toString: String = "URL " + quote(name)
     }
 
-  def hyperlink_buffer(focus: Boolean, buffer: Buffer, offset: Text.Offset): Hyperlink =
-    new Hyperlink {
-      def follow(view: View): Unit = goto_buffer(focus, view, buffer, offset)
-      override def toString: String = "buffer " + quote(JEdit_Lib.buffer_name(buffer))
-    }
-
   def hyperlink_file(focus: Boolean, name: String): Hyperlink =
     hyperlink_file(focus, Line.Node_Position(name))
 
@@ -243,6 +237,20 @@ class JEdit_Editor extends Editor[View]
     new Hyperlink {
       def follow(view: View): Unit = goto_file(focus, view, pos)
       override def toString: String = "file " + quote(pos.name)
+    }
+
+  def hyperlink_model(focus: Boolean, model: Document_Model, offset: Text.Offset): Hyperlink =
+    model match {
+      case file_model: File_Model =>
+        val pos =
+          try { file_model.node_position(offset) }
+          catch { case ERROR(_) => Line.Node_Position(file_model.node_name.node) }
+        hyperlink_file(focus, pos)
+      case buffer_model: Buffer_Model =>
+        new Hyperlink {
+          def follow(view: View): Unit = goto_buffer(focus, view, buffer_model.buffer, offset)
+          override def toString: String = "buffer " + quote(model.node_name.node)
+        }
     }
 
   def hyperlink_source_file(focus: Boolean, source_name: String, line1: Int, offset: Symbol.Offset)
