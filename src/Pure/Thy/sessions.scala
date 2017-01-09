@@ -29,6 +29,25 @@ object Sessions
   }
 
 
+  /* base info */
+
+  object Base
+  {
+    val empty: Base = Base()
+
+    lazy val bootstrap: Base =
+      Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
+  }
+
+  sealed case class Base(
+    loaded_theories: Set[String] = Set.empty,
+    known_theories: Map[String, Document.Node.Name] = Map.empty,
+    keywords: Thy_Header.Keywords = Nil,
+    syntax: Outer_Syntax = Outer_Syntax.empty,
+    sources: List[(Path, SHA1.Digest)] = Nil,
+    session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
+
+
   /* info */
 
   sealed case class Info(

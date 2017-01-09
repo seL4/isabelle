@@ -79,15 +79,12 @@ object JEdit_Sessions
     main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
   }
 
-  def session_content(inlined_files: Boolean): Build.Session_Content =
+  def session_base(inlined_files: Boolean): Sessions.Base =
   {
-    val content =
-      try {
-        Build.session_content(PIDE.options.value, inlined_files, session_dirs(), session_name())
-      }
-      catch { case ERROR(_) => Build.Session_Content.empty }
-    content.copy(known_theories =
-      content.known_theories.mapValues(name => name.map(File.platform_path(_))))
+    val base =
+      try { Build.session_base(PIDE.options.value, inlined_files, session_dirs(), session_name()) }
+      catch { case ERROR(_) => Sessions.Base.empty }
+    base.copy(known_theories = base.known_theories.mapValues(a => a.map(File.platform_path(_))))
   }
 
 

@@ -386,7 +386,7 @@ class Plugin extends EBPlugin
 
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
-      val resources = new JEdit_Resources(JEdit_Sessions.session_content(false))
+      val resources = new JEdit_Resources(JEdit_Sessions.session_base(false))
 
       PIDE.session.stop()
       PIDE.session = new Session(resources) {

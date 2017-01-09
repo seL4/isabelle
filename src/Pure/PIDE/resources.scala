@@ -17,10 +17,10 @@ object Resources
 {
   def thy_path(path: Path): Path = path.ext("thy")
 
-  val empty: Resources = new Resources(Build.Session_Content.empty)
+  val empty: Resources = new Resources(Sessions.Base.empty)
 }
 
-class Resources(val base: Build.Session_Content, val log: Logger = No_Logger)
+class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
 

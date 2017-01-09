@@ -95,29 +95,10 @@ object Build
 
   /* source dependencies and static content */
 
-  object Session_Content
-  {
-    val empty: Session_Content =
-      Session_Content(Set.empty, Map.empty, Nil, Outer_Syntax.empty,
-        Nil, Graph_Display.empty_graph)
-
-    lazy val bootstrap: Session_Content =
-      Session_Content(Set.empty, Map.empty, Thy_Header.bootstrap_header,
-        Thy_Header.bootstrap_syntax, Nil, Graph_Display.empty_graph)
-  }
-
-  sealed case class Session_Content(
-    loaded_theories: Set[String],
-    known_theories: Map[String, Document.Node.Name],
-    keywords: Thy_Header.Keywords,
-    syntax: Outer_Syntax,
-    sources: List[(Path, SHA1.Digest)],
-    session_graph: Graph_Display.Graph)
-
-  sealed case class Deps(deps: Map[String, Session_Content])
+  sealed case class Deps(deps: Map[String, Sessions.Base])
   {
     def is_empty: Boolean = deps.isEmpty
-    def apply(name: String): Session_Content = deps(name)
+    def apply(name: String): Sessions.Base = deps(name)
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
@@ -128,17 +109,17 @@ object Build
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
       tree: Sessions.Tree): Deps =
-    Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
+    Deps((Map.empty[String, Sessions.Base] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
-            val base =
-              info.parent match {
-                case None => Session_Content.bootstrap
-                case Some(parent) => deps(parent)
-              }
-            val resources = new Resources(base)
+            val resources =
+              new Resources(
+                info.parent match {
+                  case None => Sessions.Base.bootstrap
+                  case Some(parent) => deps(parent)
+                })
 
             if (verbose || list_files) {
               val groups =
@@ -165,7 +146,7 @@ object Build
             }
 
             val known_theories =
-              (base.known_theories /: thy_deps.deps)({ case (known, dep) =>
+              (resources.base.known_theories /: thy_deps.deps)({ case (known, dep) =>
                 val name = dep.name
                 known.get(name.theory) match {
                   case Some(name1) if name != name1 =>
@@ -203,12 +184,13 @@ object Build
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 
             val session_graph =
-              Present.session_graph(info.parent getOrElse "", base.loaded_theories, thy_deps.deps)
+              Present.session_graph(info.parent getOrElse "",
+                resources.base.loaded_theories, thy_deps.deps)
 
-            val content =
-              Session_Content(loaded_theories, known_theories, keywords, syntax,
-                sources, session_graph)
-            deps + (name -> content)
+            val base =
+              Sessions.Base(
+                loaded_theories, known_theories, keywords, syntax, sources, session_graph)
+            deps + (name -> base)
           }
           catch {
             case ERROR(msg) =>
@@ -227,17 +209,17 @@ object Build
     dependencies(inlined_files = inlined_files, tree = tree)
   }
 
-  def session_content(
+  def session_base(
     options: Options,
     inlined_files: Boolean,
     dirs: List[Path],
-    session: String): Session_Content =
+    session: String): Sessions.Base =
   {
     session_dependencies(options, inlined_files, dirs, List(session))(session)
   }
 
   def outer_syntax(options: Options, dirs: List[Path], session: String): Outer_Syntax =
-    session_content(options, false, dirs, session).syntax
+    session_base(options, false, dirs, session).syntax
 
 
   /* jobs */
