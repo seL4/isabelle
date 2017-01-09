@@ -2,6 +2,8 @@
 
 theory Hoare_Examples imports Hoare begin
 
+hide_const (open) sum
+
 text{* Summing up the first @{text x} natural numbers in variable @{text y}. *}
 
 fun sum :: "int \<Rightarrow> int" where
