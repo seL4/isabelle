@@ -11,6 +11,8 @@ import isabelle._
 
 import javax.swing.JOptionPane
 
+import java.io.{File => JFile}
+
 import scala.swing.{ListView, ScrollPane}
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
@@ -42,6 +44,9 @@ object PIDE
 
   def resources(): JEdit_Resources =
     session.resources.asInstanceOf[JEdit_Resources]
+
+  def file_watcher(): File_Watcher =
+    if (plugin == null) File_Watcher.none else plugin.file_watcher
 
   lazy val editor = new JEdit_Editor
 
@@ -233,6 +238,12 @@ class Plugin extends EBPlugin
   private lazy val delay_load =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay")) { delay_load_action() }
 
+  private def file_watcher_action(changed: Set[JFile]): Unit =
+    if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()
+
+  lazy val file_watcher: File_Watcher =
+    File_Watcher(file_watcher_action _, PIDE.options.seconds("editor_load_delay"))
+
 
   /* session phase */
 
@@ -419,5 +430,6 @@ class Plugin extends EBPlugin
     PIDE.session.phase_changed -= session_phase
     PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
     PIDE.session.stop()
+    PIDE.file_watcher.shutdown()
   }
 }

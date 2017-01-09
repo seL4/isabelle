@@ -11,6 +11,8 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.io.{File => JFile}
+
 import scala.collection.mutable
 
 import org.gjt.sp.jedit.{jEdit, View}
@@ -70,6 +72,7 @@ object Document_Model
       else {
         val edit = Text.Edit.insert(0, text)
         val model = File_Model(session, node_name, File_Content(text), pending_edits = List(edit))
+        model.watch
         copy(models = models + (node_name -> model))
       }
   }
@@ -85,6 +88,31 @@ object Document_Model
       model <- state.value.models_iterator
       Text.Info(range, entry) <- model.bibtex_entries.iterator
     } yield Text.Info(range, (entry, model))
+
+
+  /* sync external files */
+
+  def sync_files(changed_files: Set[JFile]): Boolean =
+  {
+    state.change_result(st =>
+      {
+        val changed_models =
+          (for {
+            model <- st.file_models_iterator
+            node_name = model.node_name
+            file <- PIDE.resources.node_name_file(node_name)
+            if changed_files(file)
+            text <- PIDE.resources.read_file_content(node_name)
+            if model.content.text != text
+          } yield {
+            val content = Document_Model.File_Content(text)
+            val edits = Text.Edit.replace(0, model.content.text, text)
+            (node_name, model.copy(content = content, pending_edits = model.pending_edits ::: edits))
+          }).toList
+        if (changed_models.isEmpty) (false, st)
+        else (true, st.copy(models = (st.models /: changed_models)(_ + _)))
+      })
+  }
 
 
   /* syntax */
@@ -313,6 +341,13 @@ case class File_Model(
 
   def is_stable: Boolean = pending_edits.isEmpty
   def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
+
+
+  /* watch file-system content */
+
+  def watch: Unit =
+    for (file <- PIDE.resources.node_name_file(node_name))
+      PIDE.file_watcher.register_parent(file)
 }
 
 case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
@@ -522,7 +557,10 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     init_token_marker()
 
     val content = Document_Model.File_Content(JEdit_Lib.buffer_text(buffer))
-    File_Model(session, node_name, content, node_required,
-      pending_edits.get_last_perspective, pending_edits.get_edits)
+    val model =
+      File_Model(session, node_name, content, node_required,
+        pending_edits.get_last_perspective, pending_edits.get_edits)
+    model.watch
+    model
   }
 }

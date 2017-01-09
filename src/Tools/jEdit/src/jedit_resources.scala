@@ -47,6 +47,12 @@ class JEdit_Resources(base: Sessions.Base) extends Resources(base)
     Document.Node.Name(node, master_dir, theory)
   }
 
+  def node_name_file(name: Document.Node.Name): Option[JFile] =
+  {
+    val vfs = VFSManager.getVFSForPath(name.node)
+    if (vfs.isInstanceOf[FileVFS]) Some(new JFile(name.node)) else None
+  }
+
   def theory_node_name(buffer: Buffer): Option[Document.Node.Name] =
   {
     val name = node_name(buffer)

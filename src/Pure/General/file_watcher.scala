@@ -25,9 +25,10 @@ class File_Watcher private[File_Watcher]  // dummy template
 
 object File_Watcher
 {
+  val none: File_Watcher = new File_Watcher
+
   def apply(handle: Set[JFile] => Unit, delay: => Time = Time.seconds(0.5)): File_Watcher =
-    if (Platform.is_windows) new File_Watcher
-    else new Impl(handle, delay)
+    if (Platform.is_windows) none else new Impl(handle, delay)
 
 
   /* proper implementation */
