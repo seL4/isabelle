@@ -2102,31 +2102,34 @@ lemma compactE: (*related to COMPACT_IMP_HEINE_BOREL in HOL Light*)
   by (meson assms compact_eq_heine_borel)
 
 lemma compactE_image:
-  assumes "compact s"
-    and "\<forall>t\<in>C. open (f t)"
-    and "s \<subseteq> (\<Union>c\<in>C. f c)"
-  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> (\<Union>c\<in>C'. f c)"
+  assumes "compact S"
+    and "\<forall>T\<in>C. open (f T)"
+    and "S \<subseteq> (\<Union>c\<in>C. f c)"
+  obtains C' where "C' \<subseteq> C" and "finite C'" and "S \<subseteq> (\<Union>c\<in>C'. f c)"
   using assms unfolding ball_simps [symmetric]
-  by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s])
+  by (metis (lifting) finite_subset_image compact_eq_heine_borel[of S])
 
 lemma compact_Int_closed [intro]:
-  assumes "compact s"
-    and "closed t"
-  shows "compact (s \<inter> t)"
+  assumes "compact S"
+    and "closed T"
+  shows "compact (S \<inter> T)"
 proof (rule compactI)
   fix C
   assume C: "\<forall>c\<in>C. open c"
-  assume cover: "s \<inter> t \<subseteq> \<Union>C"
-  from C \<open>closed t\<close> have "\<forall>c\<in>C \<union> {- t}. open c"
+  assume cover: "S \<inter> T \<subseteq> \<Union>C"
+  from C \<open>closed T\<close> have "\<forall>c\<in>C \<union> {- T}. open c"
     by auto
-  moreover from cover have "s \<subseteq> \<Union>(C \<union> {- t})"
+  moreover from cover have "S \<subseteq> \<Union>(C \<union> {- T})"
     by auto
-  ultimately have "\<exists>D\<subseteq>C \<union> {- t}. finite D \<and> s \<subseteq> \<Union>D"
-    using \<open>compact s\<close> unfolding compact_eq_heine_borel by auto
-  then obtain D where "D \<subseteq> C \<union> {- t} \<and> finite D \<and> s \<subseteq> \<Union>D" ..
-  then show "\<exists>D\<subseteq>C. finite D \<and> s \<inter> t \<subseteq> \<Union>D"
-    by (intro exI[of _ "D - {-t}"]) auto
+  ultimately have "\<exists>D\<subseteq>C \<union> {- T}. finite D \<and> S \<subseteq> \<Union>D"
+    using \<open>compact S\<close> unfolding compact_eq_heine_borel by auto
+  then obtain D where "D \<subseteq> C \<union> {- T} \<and> finite D \<and> S \<subseteq> \<Union>D" ..
+  then show "\<exists>D\<subseteq>C. finite D \<and> S \<inter> T \<subseteq> \<Union>D"
+    by (intro exI[of _ "D - {-T}"]) auto
 qed
+
+lemma compact_diff: "\<lbrakk>compact S; open T\<rbrakk> \<Longrightarrow> compact(S - T)"
+  by (simp add: Diff_eq compact_Int_closed open_closed)
 
 lemma inj_setminus: "inj_on uminus (A::'a set set)"
   by (auto simp: inj_on_def)

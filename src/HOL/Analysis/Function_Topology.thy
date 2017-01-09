@@ -294,27 +294,6 @@ next
     unfolding topspace_pullback_topology by blast
 qed
 
-subsubsection {*Miscellaneous*}
-
-text {*The following could belong to \verb+Topology_Euclidean_Spaces.thy+, and will be needed
-below.*}
-lemma openin_INT [intro]:
-  assumes "finite I"
-          "\<And>i. i \<in> I \<Longrightarrow> openin T (U i)"
-  shows "openin T ((\<Inter>i \<in> I. U i) \<inter> topspace T)"
-using assms by (induct, auto simp add: inf_sup_aci(2) openin_Int)
-
-lemma openin_INT2 [intro]:
-  assumes "finite I" "I \<noteq> {}"
-          "\<And>i. i \<in> I \<Longrightarrow> openin T (U i)"
-  shows "openin T (\<Inter>i \<in> I. U i)"
-proof -
-  have "(\<Inter>i \<in> I. U i) \<subseteq> topspace T"
-    using `I \<noteq> {}` openin_subset[OF assms(3)] by auto
-  then show ?thesis
-    using openin_INT[of _ _ U, OF assms(1) assms(3)] by (simp add: inf.absorb2 inf_commute)
-qed
-
 
 subsection {*The product topology*}
 

@@ -3460,4 +3460,1119 @@ proof (simp add: covering_space_def, intro conjI ballI)
   qed
 qed
 
+
+subsection\<open>Hence the Borsukian results about mappings into circles\<close>
+
+lemma inessential_eq_continuous_logarithm:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
+         (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x)))"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs thus ?rhs
+    by (metis covering_space_lift_inessential_function covering_space_exp_punctured_plane)
+next
+  assume ?rhs
+  then obtain g where contg: "continuous_on S g" and f: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+    by metis
+  obtain a where "homotopic_with (\<lambda>h. True) S (- {of_real 0}) (exp \<circ> g) (\<lambda>x. a)"
+  proof (rule nullhomotopic_through_contractible [OF contg subset_UNIV _ _ contractible_UNIV])
+    show "continuous_on (UNIV::complex set) exp"
+      by (intro continuous_intros)
+    show "range exp \<subseteq> - {0}"
+      by auto
+  qed force
+  thus ?lhs
+    apply (rule_tac x=a in exI)
+    by (simp add: f homotopic_with_eq)
+qed
+
+corollary inessential_imp_continuous_logarithm_circle:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes "homotopic_with (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)"
+  obtains g where "continuous_on S g" and "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+proof -
+  have "homotopic_with (\<lambda>h. True) S (- {0}) f (\<lambda>t. a)"
+    using assms homotopic_with_subset_right by fastforce
+  then show ?thesis
+    by (metis inessential_eq_continuous_logarithm that)
+qed
+
+
+lemma inessential_eq_continuous_logarithm_circle:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)) \<longleftrightarrow>
+         (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(ii* of_real(g x))))"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume L: ?lhs
+  then obtain g where contg: "continuous_on S g" and g: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+    using inessential_imp_continuous_logarithm_circle by blast
+  have "f ` S \<subseteq> sphere 0 1"
+    by (metis L homotopic_with_imp_subset1)
+  then have "\<And>x. x \<in> S \<Longrightarrow> Re (g x) = 0"
+    using g by auto
+  then show ?rhs
+    apply (rule_tac x="Im \<circ> g" in exI)
+     apply (intro conjI contg continuous_intros)
+    apply (auto simp: Euler g)
+    done
+next
+  assume ?rhs
+  then obtain g where contg: "continuous_on S g" and g: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(ii* of_real(g x))"
+    by metis
+  obtain a where "homotopic_with (\<lambda>h. True) S (sphere 0 1) ((exp \<circ> (\<lambda>z. ii*z)) \<circ> (of_real \<circ> g)) (\<lambda>x. a)"
+  proof (rule nullhomotopic_through_contractible)
+    show "continuous_on S (complex_of_real \<circ> g)"
+      by (intro conjI contg continuous_intros)
+    show "(complex_of_real \<circ> g) ` S \<subseteq> \<real>"
+      by auto
+    show "continuous_on \<real> (exp \<circ> op*\<i>)"
+      by (intro continuous_intros)
+    show "(exp \<circ> op*\<i>) ` \<real> \<subseteq> sphere 0 1"
+      by (auto simp: complex_is_Real_iff)
+  qed (auto simp: convex_Reals convex_imp_contractible)
+  moreover have "\<And>x. x \<in> S \<Longrightarrow> (exp \<circ> op*\<i> \<circ> (complex_of_real \<circ> g)) x = f x"
+    by (simp add: g)
+  ultimately show ?lhs
+    apply (rule_tac x=a in exI)
+    by (simp add: homotopic_with_eq)
+qed
+
+lemma homotopic_with_sphere_times:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes hom: "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g" and conth: "continuous_on S h"
+      and hin: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> sphere 0 1"
+    shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x*h x) (\<lambda>x. g x*h x)"
+proof -
+  obtain k where contk: "continuous_on ({0..1::real} \<times> S) k"
+             and kim: "k ` ({0..1} \<times> S) \<subseteq> sphere 0 1"
+             and k0:  "\<And>x. k(0, x) = f x"
+             and k1: "\<And>x. k(1, x) = g x"
+    using hom by (auto simp: homotopic_with_def)
+  show ?thesis
+    apply (simp add: homotopic_with)
+    apply (rule_tac x="\<lambda>z. k z*(h \<circ> snd)z" in exI)
+    apply (intro conjI contk continuous_intros)
+       apply (simp add: conth)
+    using kim hin apply (force simp: norm_mult k0 k1)+
+    done
+qed
+
+
+lemma homotopic_circlemaps_divide:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+    shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
+           continuous_on S f \<and> f ` S \<subseteq> sphere 0 1 \<and>
+           continuous_on S g \<and> g ` S \<subseteq> sphere 0 1 \<and>
+           (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c))"
+proof -
+  have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+       if "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c)" for c
+  proof -
+    have "S = {} \<or> path_component (sphere 0 1) 1 c"
+      using homotopic_with_imp_subset2 [OF that] path_connected_sphere [of "0::complex" 1]
+      by (auto simp: path_connected_component)
+    then have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. 1) (\<lambda>x. c)"
+      by (metis homotopic_constant_maps)
+    then show ?thesis
+      using homotopic_with_symD homotopic_with_trans that by blast
+  qed
+  then have *: "(\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c)) \<longleftrightarrow>
+                homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+    by auto
+  have "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
+           continuous_on S f \<and> f ` S \<subseteq> sphere 0 1 \<and>
+           continuous_on S g \<and> g ` S \<subseteq> sphere 0 1 \<and>
+           homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+        (is "?lhs \<longleftrightarrow> ?rhs")
+  proof
+    assume L: ?lhs
+    have geq1 [simp]: "\<And>x. x \<in> S \<Longrightarrow> cmod (g x) = 1"
+      using homotopic_with_imp_subset2 [OF L]
+      by (simp add: image_subset_iff)
+    have cont: "continuous_on S (inverse \<circ> g)"
+      apply (rule continuous_intros)
+      using homotopic_with_imp_continuous [OF L] apply blast
+      apply (rule continuous_on_subset [of "sphere 0 1", OF continuous_on_inverse])
+        apply (auto simp: continuous_on_id)
+      done
+    have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+      using homotopic_with_sphere_times [OF L cont]
+      apply (rule homotopic_with_eq)
+         apply (auto simp: division_ring_class.divide_inverse norm_inverse)
+      by (metis geq1 norm_zero right_inverse zero_neq_one)
+    with L show ?rhs
+      by (auto simp: homotopic_with_imp_continuous dest: homotopic_with_imp_subset1 homotopic_with_imp_subset2)
+  next
+    assume ?rhs then show ?lhs
+      by (force simp: elim: homotopic_with_eq dest: homotopic_with_sphere_times [where h=g])+
+  qed
+  then show ?thesis
+    by (simp add: *)
+qed
+
+subsection\<open>Upper and lower hemicontinuous functions\<close>
+
+text\<open>And relation in the case of preimage map to open and closed maps, and fact that upper and lower
+hemicontinuity together imply continuity in the sense of the Hausdorff metric (at points where the
+function gives a bounded and nonempty set).\<close>
+
+
+text\<open>Many similar proofs below.\<close>
+lemma upper_hemicontinuous:
+  assumes "\<And>x. x \<in> S \<Longrightarrow> f x \<subseteq> T"
+    shows "((\<forall>U. openin (subtopology euclidean T) U
+                 \<longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}) \<longleftrightarrow>
+            (\<forall>U. closedin (subtopology euclidean T) U
+                 \<longrightarrow> closedin (subtopology euclidean S) {x \<in> S. f x \<inter> U \<noteq> {}}))"
+          (is "?lhs = ?rhs")
+proof (intro iffI allI impI)
+  fix U
+  assume * [rule_format]: ?lhs and "closedin (subtopology euclidean T) U"
+  then have "openin (subtopology euclidean T) (T - U)"
+    by (simp add: openin_diff)
+  then have "openin (subtopology euclidean S) {x \<in> S. f x \<subseteq> T - U}"
+    using * [of "T-U"] by blast
+  moreover have "S - {x \<in> S. f x \<subseteq> T - U} = {x \<in> S. f x \<inter> U \<noteq> {}}"
+    using assms by blast
+  ultimately show "closedin (subtopology euclidean S) {x \<in> S. f x \<inter> U \<noteq> {}}"
+    by (simp add: openin_closedin_eq)
+next
+  fix U
+  assume * [rule_format]: ?rhs and "openin (subtopology euclidean T) U"
+  then have "closedin (subtopology euclidean T) (T - U)"
+    by (simp add: closedin_diff)
+  then have "closedin (subtopology euclidean S) {x \<in> S. f x \<inter> (T - U) \<noteq> {}}"
+    using * [of "T-U"] by blast
+  moreover have "{x \<in> S. f x \<inter> (T - U) \<noteq> {}} = S - {x \<in> S. f x \<subseteq> U}"
+    using assms by auto
+  ultimately show "openin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}"
+    by (simp add: openin_closedin_eq)
+qed
+
+lemma lower_hemicontinuous:
+  assumes "\<And>x. x \<in> S \<Longrightarrow> f x \<subseteq> T"
+    shows "((\<forall>U. closedin (subtopology euclidean T) U
+                 \<longrightarrow> closedin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}) \<longleftrightarrow>
+            (\<forall>U. openin (subtopology euclidean T) U
+                 \<longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<inter> U \<noteq> {}}))"
+          (is "?lhs = ?rhs")
+proof (intro iffI allI impI)
+  fix U
+  assume * [rule_format]: ?lhs and "openin (subtopology euclidean T) U"
+  then have "closedin (subtopology euclidean T) (T - U)"
+    by (simp add: closedin_diff)
+  then have "closedin (subtopology euclidean S) {x \<in> S. f x \<subseteq> T-U}"
+    using * [of "T-U"] by blast
+  moreover have "{x \<in> S. f x \<subseteq> T-U} = S - {x \<in> S. f x \<inter> U \<noteq> {}}"
+    using assms by auto
+  ultimately show "openin (subtopology euclidean S) {x \<in> S. f x \<inter> U \<noteq> {}}"
+    by (simp add: openin_closedin_eq)
+next
+  fix U
+  assume * [rule_format]: ?rhs and "closedin (subtopology euclidean T) U"
+  then have "openin (subtopology euclidean T) (T - U)"
+    by (simp add: openin_diff)
+  then have "openin (subtopology euclidean S) {x \<in> S. f x \<inter> (T - U) \<noteq> {}}"
+    using * [of "T-U"] by blast
+  moreover have "S - {x \<in> S. f x \<inter> (T - U) \<noteq> {}} = {x \<in> S. f x \<subseteq> U}"
+    using assms by blast
+  ultimately show "closedin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}"
+    by (simp add: openin_closedin_eq)
+qed
+
+lemma open_map_iff_lower_hemicontinuous_preimage:
+  assumes "f ` S \<subseteq> T"
+    shows "((\<forall>U. openin (subtopology euclidean S) U
+                 \<longrightarrow> openin (subtopology euclidean T) (f ` U)) \<longleftrightarrow>
+            (\<forall>U. closedin (subtopology euclidean S) U
+                 \<longrightarrow> closedin (subtopology euclidean T) {y \<in> T. {x. x \<in> S \<and> f x = y} \<subseteq> U}))"
+          (is "?lhs = ?rhs")
+proof (intro iffI allI impI)
+  fix U
+  assume * [rule_format]: ?lhs and "closedin (subtopology euclidean S) U"
+  then have "openin (subtopology euclidean S) (S - U)"
+    by (simp add: openin_diff)
+  then have "openin (subtopology euclidean T) (f ` (S - U))"
+    using * [of "S-U"] by blast
+  moreover have "T - (f ` (S - U)) = {y \<in> T. {x \<in> S. f x = y} \<subseteq> U}"
+    using assms by blast
+  ultimately show "closedin (subtopology euclidean T) {y \<in> T. {x \<in> S. f x = y} \<subseteq> U}"
+    by (simp add: openin_closedin_eq)
+next
+  fix U
+  assume * [rule_format]: ?rhs and opeSU: "openin (subtopology euclidean S) U"
+  then have "closedin (subtopology euclidean S) (S - U)"
+    by (simp add: closedin_diff)
+  then have "closedin (subtopology euclidean T) {y \<in> T. {x \<in> S. f x = y} \<subseteq> S - U}"
+    using * [of "S-U"] by blast
+  moreover have "{y \<in> T. {x \<in> S. f x = y} \<subseteq> S - U} = T - (f ` U)"
+    using assms openin_imp_subset [OF opeSU] by auto
+  ultimately show "openin (subtopology euclidean T) (f ` U)"
+    using assms openin_imp_subset [OF opeSU] by (force simp: openin_closedin_eq)
+qed
+
+lemma closed_map_iff_upper_hemicontinuous_preimage:
+  assumes "f ` S \<subseteq> T"
+    shows "((\<forall>U. closedin (subtopology euclidean S) U
+                 \<longrightarrow> closedin (subtopology euclidean T) (f ` U)) \<longleftrightarrow>
+            (\<forall>U. openin (subtopology euclidean S) U
+                 \<longrightarrow> openin (subtopology euclidean T) {y \<in> T. {x. x \<in> S \<and> f x = y} \<subseteq> U}))"
+          (is "?lhs = ?rhs")
+proof (intro iffI allI impI)
+  fix U
+  assume * [rule_format]: ?lhs and opeSU: "openin (subtopology euclidean S) U"
+  then have "closedin (subtopology euclidean S) (S - U)"
+    by (simp add: closedin_diff)
+  then have "closedin (subtopology euclidean T) (f ` (S - U))"
+    using * [of "S-U"] by blast
+  moreover have "f ` (S - U) = T -  {y \<in> T. {x. x \<in> S \<and> f x = y} \<subseteq> U}"
+    using assms openin_imp_subset [OF opeSU] by auto
+  ultimately show "openin (subtopology euclidean T)  {y \<in> T. {x. x \<in> S \<and> f x = y} \<subseteq> U}"
+    using assms openin_imp_subset [OF opeSU] by (force simp: openin_closedin_eq)
+next
+  fix U
+  assume * [rule_format]: ?rhs and cloSU: "closedin (subtopology euclidean S) U"
+  then have "openin (subtopology euclidean S) (S - U)"
+    by (simp add: openin_diff)
+  then have "openin (subtopology euclidean T) {y \<in> T. {x \<in> S. f x = y} \<subseteq> S - U}"
+    using * [of "S-U"] by blast
+  moreover have "(f ` U) = T - {y \<in> T. {x \<in> S. f x = y} \<subseteq> S - U}"
+    using assms closedin_imp_subset [OF cloSU]  by auto
+  ultimately show "closedin (subtopology euclidean T) (f ` U)"
+    by (simp add: openin_closedin_eq)
+qed
+
+proposition upper_lower_hemicontinuous_explicit:
+  fixes T :: "('b::{real_normed_vector,heine_borel}) set"
+  assumes fST: "\<And>x. x \<in> S \<Longrightarrow> f x \<subseteq> T"
+      and ope: "\<And>U. openin (subtopology euclidean T) U
+                     \<Longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}"
+      and clo: "\<And>U. closedin (subtopology euclidean T) U
+                     \<Longrightarrow> closedin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}"
+      and "x \<in> S" "0 < e" and bofx: "bounded(f x)" and fx_ne: "f x \<noteq> {}"
+  obtains d where "0 < d"
+             "\<And>x'. \<lbrakk>x' \<in> S; dist x x' < d\<rbrakk>
+                           \<Longrightarrow> (\<forall>y \<in> f x. \<exists>y'. y' \<in> f x' \<and> dist y y' < e) \<and>
+                               (\<forall>y' \<in> f x'. \<exists>y. y \<in> f x \<and> dist y' y < e)"
+proof -
+  have "openin (subtopology euclidean T) (T \<inter> (\<Union>a\<in>f x. \<Union>b\<in>ball 0 e. {a + b}))"
+    by (auto simp: open_sums openin_open_Int)
+  with ope have "openin (subtopology euclidean S)
+                    {u \<in> S. f u \<subseteq> T \<inter> (\<Union>a\<in>f x. \<Union>b\<in>ball 0 e. {a + b})}" by blast
+  with \<open>0 < e\<close> \<open>x \<in> S\<close> obtain d1 where "d1 > 0" and
+         d1: "\<And>x'. \<lbrakk>x' \<in> S; dist x' x < d1\<rbrakk> \<Longrightarrow> f x' \<subseteq> T \<and> f x' \<subseteq> (\<Union>a \<in> f x. \<Union>b \<in> ball 0 e. {a + b})"
+    by (force simp: openin_euclidean_subtopology_iff dest: fST)
+  have oo: "\<And>U. openin (subtopology euclidean T) U \<Longrightarrow>
+                 openin (subtopology euclidean S) {x \<in> S. f x \<inter> U \<noteq> {}}"
+    apply (rule lower_hemicontinuous [THEN iffD1, rule_format])
+    using fST clo by auto
+  have "compact (closure(f x))"
+    by (simp add: bofx)
+  moreover have "closure(f x) \<subseteq> (\<Union>a \<in> f x. ball a (e/2))"
+    using \<open>0 < e\<close> by (force simp: closure_approachable simp del: divide_const_simps)
+  ultimately obtain C where "C \<subseteq> f x" "finite C" "closure(f x) \<subseteq> (\<Union>a \<in> C. ball a (e/2))"
+    apply (rule compactE, force)
+    by (metis finite_subset_image)
+  then have fx_cover: "f x \<subseteq> (\<Union>a \<in> C. ball a (e/2))"
+    by (meson closure_subset order_trans)
+  with fx_ne have "C \<noteq> {}"
+    by blast
+  have xin: "x \<in> (\<Inter>a \<in> C. {x \<in> S. f x \<inter> T \<inter> ball a (e/2) \<noteq> {}})"
+    using \<open>x \<in> S\<close> \<open>0 < e\<close> fST \<open>C \<subseteq> f x\<close> by force
+  have "openin (subtopology euclidean S) {x \<in> S. f x \<inter> (T \<inter> ball a (e/2)) \<noteq> {}}" for a
+    by (simp add: openin_open_Int oo)
+  then have "openin (subtopology euclidean S) (\<Inter>a \<in> C. {x \<in> S. f x \<inter> T \<inter> ball a (e/2) \<noteq> {}})"
+    by (simp add: Int_assoc openin_INT2 [OF \<open>finite C\<close> \<open>C \<noteq> {}\<close>])
+  with xin obtain d2 where "d2>0"
+              and d2: "\<And>u v. \<lbrakk>u \<in> S; dist u x < d2; v \<in> C\<rbrakk> \<Longrightarrow> f u \<inter> T \<inter> ball v (e/2) \<noteq> {}"
+    by (force simp: openin_euclidean_subtopology_iff)
+  show ?thesis
+  proof (intro that conjI ballI)
+    show "0 < min d1 d2"
+      using \<open>0 < d1\<close> \<open>0 < d2\<close> by linarith
+  next
+    fix x' y
+    assume "x' \<in> S" "dist x x' < min d1 d2" "y \<in> f x"
+    then have dd2: "dist x' x < d2"
+      by (auto simp: dist_commute)
+    obtain a where "a \<in> C" "y \<in> ball a (e/2)"
+      using fx_cover \<open>y \<in> f x\<close> by auto
+    then show "\<exists>y'. y' \<in> f x' \<and> dist y y' < e"
+      using d2 [OF \<open>x' \<in> S\<close> dd2] dist_triangle_half_r by fastforce
+  next
+    fix x' y'
+    assume "x' \<in> S" "dist x x' < min d1 d2" "y' \<in> f x'"
+    then have "dist x' x < d1"
+      by (auto simp: dist_commute)
+    then have "y' \<in> (\<Union>a\<in>f x. \<Union>b\<in>ball 0 e. {a + b})"
+      using d1 [OF \<open>x' \<in> S\<close>] \<open>y' \<in> f x'\<close> by force
+    then show "\<exists>y. y \<in> f x \<and> dist y' y < e"
+      apply auto
+      by (metis add_diff_cancel_left' dist_norm)
+  qed
+qed
+
+
+subsection\<open>complex logs exist on various "well-behaved" sets\<close>
+
+lemma continuous_logarithm_on_contractible:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes "continuous_on S f" "contractible S" "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+proof -
+  obtain c where hom: "homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>x. c)"
+    using nullhomotopic_from_contractible assms
+    by (metis imageE subset_Compl_singleton)
+  then show ?thesis
+    by (metis inessential_eq_continuous_logarithm of_real_0 that)
+qed
+
+lemma continuous_logarithm_on_simply_connected:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes contf: "continuous_on S f" and S: "simply_connected S" "locally path_connected S"
+      and f: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+  using covering_space_lift [OF covering_space_exp_punctured_plane S contf]
+  by (metis (full_types) f imageE subset_Compl_singleton)
+
+lemma continuous_logarithm_on_cball:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes "continuous_on (cball a r) f" and "\<And>z. z \<in> cball a r \<Longrightarrow> f z \<noteq> 0"
+    obtains h where "continuous_on (cball a r) h" "\<And>z. z \<in> cball a r \<Longrightarrow> f z = exp(h z)"
+  using assms continuous_logarithm_on_contractible convex_imp_contractible by blast
+
+lemma continuous_logarithm_on_ball:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes "continuous_on (ball a r) f" and "\<And>z. z \<in> ball a r \<Longrightarrow> f z \<noteq> 0"
+  obtains h where "continuous_on (ball a r) h" "\<And>z. z \<in> ball a r \<Longrightarrow> f z = exp(h z)"
+  using assms continuous_logarithm_on_contractible convex_imp_contractible by blast
+
+lemma continuous_sqrt_on_contractible:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes "continuous_on S f" "contractible S"
+      and "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = (g x) ^ 2"
+proof -
+  obtain g where contg: "continuous_on S g" and feq: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+    using continuous_logarithm_on_contractible [OF assms] by blast
+  show ?thesis
+  proof
+    show "continuous_on S (\<lambda>z. exp (g z / 2))"
+      by (rule continuous_on_compose2 [of UNIV exp]; intro continuous_intros contg subset_UNIV) auto
+    show "\<And>x. x \<in> S \<Longrightarrow> f x = (exp (g x / 2))\<^sup>2"
+      by (metis exp_double feq nonzero_mult_div_cancel_left times_divide_eq_right zero_neq_numeral)
+  qed
+qed
+
+lemma continuous_sqrt_on_simply_connected:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  assumes contf: "continuous_on S f" and S: "simply_connected S" "locally path_connected S"
+      and f: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = (g x) ^ 2"
+proof -
+  obtain g where contg: "continuous_on S g" and feq: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+    using continuous_logarithm_on_simply_connected [OF assms] by blast
+  show ?thesis
+  proof
+    show "continuous_on S (\<lambda>z. exp (g z / 2))"
+      by (rule continuous_on_compose2 [of UNIV exp]; intro continuous_intros contg subset_UNIV) auto
+    show "\<And>x. x \<in> S \<Longrightarrow> f x = (exp (g x / 2))\<^sup>2"
+      by (metis exp_double feq nonzero_mult_div_cancel_left times_divide_eq_right zero_neq_numeral)
+  qed
+qed
+
+
+subsection\<open>Holomorphic logarithms and square roots.\<close>
+
+lemma contractible_imp_holomorphic_log:
+  assumes holf: "f holomorphic_on S"
+      and S: "contractible S"
+      and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = exp(g z)"
+proof -
+  have contf: "continuous_on S f"
+    by (simp add: holf holomorphic_on_imp_continuous_on)
+  obtain g where contg: "continuous_on S g" and feq: "\<And>x. x \<in> S \<Longrightarrow> f x = exp (g x)"
+    by (metis continuous_logarithm_on_contractible [OF contf S fnz])
+  have "g field_differentiable at z within S" if "f field_differentiable at z within S" "z \<in> S" for z
+  proof -
+    obtain f' where f': "((\<lambda>y. (f y - f z) / (y - z)) \<longlongrightarrow> f') (at z within S)"
+      using \<open>f field_differentiable at z within S\<close> by (auto simp: field_differentiable_def DERIV_iff2)
+    then have ee: "((\<lambda>x. (exp(g x) - exp(g z)) / (x - z)) \<longlongrightarrow> f') (at z within S)"
+      by (simp add: feq \<open>z \<in> S\<close> Lim_transform_within [OF _ zero_less_one])
+    have "(((\<lambda>y. if y = g z then exp (g z) else (exp y - exp (g z)) / (y - g z)) \<circ> g) \<longlongrightarrow> exp (g z))
+          (at z within S)"
+    proof (rule tendsto_compose_at)
+      show "(g \<longlongrightarrow> g z) (at z within S)"
+        using contg continuous_on \<open>z \<in> S\<close> by blast
+      show "(\<lambda>y. if y = g z then exp (g z) else (exp y - exp (g z)) / (y - g z)) \<midarrow>g z\<rightarrow> exp (g z)"
+        apply (subst Lim_at_zero)
+        apply (simp add: DERIV_D cong: if_cong Lim_cong_within)
+        done
+      qed auto
+    then have dd: "((\<lambda>x. if g x = g z then exp(g z) else (exp(g x) - exp(g z)) / (g x - g z)) \<longlongrightarrow> exp(g z)) (at z within S)"
+      by (simp add: o_def)
+    have "continuous (at z within S) g"
+      using contg continuous_on_eq_continuous_within \<open>z \<in> S\<close> by blast
+    then have "(\<forall>\<^sub>F x in at z within S. dist (g x) (g z) < 2*pi)"
+      by (simp add: continuous_within tendsto_iff)
+    then have "\<forall>\<^sub>F x in at z within S. exp (g x) = exp (g z) \<longrightarrow> g x \<noteq> g z \<longrightarrow> x = z"
+      apply (rule eventually_mono)
+      apply (auto simp: exp_eq dist_norm norm_mult)
+      done
+    then have "((\<lambda>y. (g y - g z) / (y - z)) \<longlongrightarrow> f' / exp (g z)) (at z within S)"
+      by (auto intro!: Lim_transform_eventually [OF _ tendsto_divide [OF ee dd]])
+    then show ?thesis
+      by (auto simp: field_differentiable_def DERIV_iff2)
+  qed
+  then have "g holomorphic_on S"
+    using holf holomorphic_on_def by auto
+  then show ?thesis
+    using feq that by auto
+qed
+
+(*Identical proofs*)
+lemma simply_connected_imp_holomorphic_log:
+  assumes holf: "f holomorphic_on S"
+      and S: "simply_connected S" "locally path_connected S"
+      and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = exp(g z)"
+proof -
+  have contf: "continuous_on S f"
+    by (simp add: holf holomorphic_on_imp_continuous_on)
+  obtain g where contg: "continuous_on S g" and feq: "\<And>x. x \<in> S \<Longrightarrow> f x = exp (g x)"
+    by (metis continuous_logarithm_on_simply_connected [OF contf S fnz])
+  have "g field_differentiable at z within S" if "f field_differentiable at z within S" "z \<in> S" for z
+  proof -
+    obtain f' where f': "((\<lambda>y. (f y - f z) / (y - z)) \<longlongrightarrow> f') (at z within S)"
+      using \<open>f field_differentiable at z within S\<close> by (auto simp: field_differentiable_def DERIV_iff2)
+    then have ee: "((\<lambda>x. (exp(g x) - exp(g z)) / (x - z)) \<longlongrightarrow> f') (at z within S)"
+      by (simp add: feq \<open>z \<in> S\<close> Lim_transform_within [OF _ zero_less_one])
+    have "(((\<lambda>y. if y = g z then exp (g z) else (exp y - exp (g z)) / (y - g z)) \<circ> g) \<longlongrightarrow> exp (g z))
+          (at z within S)"
+    proof (rule tendsto_compose_at)
+      show "(g \<longlongrightarrow> g z) (at z within S)"
+        using contg continuous_on \<open>z \<in> S\<close> by blast
+      show "(\<lambda>y. if y = g z then exp (g z) else (exp y - exp (g z)) / (y - g z)) \<midarrow>g z\<rightarrow> exp (g z)"
+        apply (subst Lim_at_zero)
+        apply (simp add: DERIV_D cong: if_cong Lim_cong_within)
+        done
+      qed auto
+    then have dd: "((\<lambda>x. if g x = g z then exp(g z) else (exp(g x) - exp(g z)) / (g x - g z)) \<longlongrightarrow> exp(g z)) (at z within S)"
+      by (simp add: o_def)
+    have "continuous (at z within S) g"
+      using contg continuous_on_eq_continuous_within \<open>z \<in> S\<close> by blast
+    then have "(\<forall>\<^sub>F x in at z within S. dist (g x) (g z) < 2*pi)"
+      by (simp add: continuous_within tendsto_iff)
+    then have "\<forall>\<^sub>F x in at z within S. exp (g x) = exp (g z) \<longrightarrow> g x \<noteq> g z \<longrightarrow> x = z"
+      apply (rule eventually_mono)
+      apply (auto simp: exp_eq dist_norm norm_mult)
+      done
+    then have "((\<lambda>y. (g y - g z) / (y - z)) \<longlongrightarrow> f' / exp (g z)) (at z within S)"
+      by (auto intro!: Lim_transform_eventually [OF _ tendsto_divide [OF ee dd]])
+    then show ?thesis
+      by (auto simp: field_differentiable_def DERIV_iff2)
+  qed
+  then have "g holomorphic_on S"
+    using holf holomorphic_on_def by auto
+  then show ?thesis
+    using feq that by auto
+qed
+
+
+lemma contractible_imp_holomorphic_sqrt:
+  assumes holf: "f holomorphic_on S"
+      and S: "contractible S"
+      and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = g z ^ 2"
+proof -
+  obtain g where holg: "g holomorphic_on S" and feq: "\<And>z. z \<in> S \<Longrightarrow> f z = exp(g z)"
+    using contractible_imp_holomorphic_log [OF assms] by blast
+  show ?thesis
+  proof
+    show "exp \<circ> (\<lambda>z. z / 2) \<circ> g holomorphic_on S"
+      by (intro holomorphic_on_compose holg holomorphic_intros) auto
+    show "\<And>z. z \<in> S \<Longrightarrow> f z = ((exp \<circ> (\<lambda>z. z / 2) \<circ> g) z)\<^sup>2"
+      apply (auto simp: feq)
+      by (metis eq_divide_eq_numeral1(1) exp_double mult.commute zero_neq_numeral)
+  qed
+qed
+
+lemma simply_connected_imp_holomorphic_sqrt:
+  assumes holf: "f holomorphic_on S"
+      and S: "simply_connected S" "locally path_connected S"
+      and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
+  obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = g z ^ 2"
+proof -
+  obtain g where holg: "g holomorphic_on S" and feq: "\<And>z. z \<in> S \<Longrightarrow> f z = exp(g z)"
+    using simply_connected_imp_holomorphic_log [OF assms] by blast
+  show ?thesis
+  proof
+    show "exp \<circ> (\<lambda>z. z / 2) \<circ> g holomorphic_on S"
+      by (intro holomorphic_on_compose holg holomorphic_intros) auto
+    show "\<And>z. z \<in> S \<Longrightarrow> f z = ((exp \<circ> (\<lambda>z. z / 2) \<circ> g) z)\<^sup>2"
+      apply (auto simp: feq)
+      by (metis eq_divide_eq_numeral1(1) exp_double mult.commute zero_neq_numeral)
+  qed
+qed
+
+text\<open> Related theorems about holomorphic inverse cosines.\<close>
+
+lemma contractible_imp_holomorphic_arccos:
+  assumes holf: "f holomorphic_on S" and S: "contractible S"
+      and non1: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 1 \<and> f z \<noteq> -1"
+  obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = cos(g z)"
+proof -
+  have hol1f: "(\<lambda>z. 1 - f z ^ 2) holomorphic_on S"
+    by (intro holomorphic_intros holf)
+  obtain g where holg: "g holomorphic_on S" and eq: "\<And>z. z \<in> S \<Longrightarrow> 1 - (f z)\<^sup>2 = (g z)\<^sup>2"
+    using contractible_imp_holomorphic_sqrt [OF hol1f S]
+    by (metis eq_iff_diff_eq_0 non1 power2_eq_1_iff)
+  have holfg: "(\<lambda>z. f z + ii*g z) holomorphic_on S"
+    by (intro holf holg holomorphic_intros)
+  have "\<And>z. z \<in> S \<Longrightarrow> f z + \<i>*g z \<noteq> 0"
+    by (metis Arccos_body_lemma eq add.commute add.inverse_unique complex_i_mult_minus power2_csqrt power2_eq_iff)
+  then obtain h where holh: "h holomorphic_on S" and fgeq: "\<And>z. z \<in> S \<Longrightarrow> f z + \<i>*g z = exp (h z)"
+    using contractible_imp_holomorphic_log [OF holfg S] by metis
+  show ?thesis
+  proof
+    show "(\<lambda>z. -ii*h z) holomorphic_on S"
+      by (intro holh holomorphic_intros)
+    show "f z = cos (- \<i>*h z)" if "z \<in> S" for z
+    proof -
+      have "(f z + ii*g z)*(f z - ii*g z) = 1"
+        using that eq by (auto simp: algebra_simps power2_eq_square)
+      then have "f z - ii*g z = inverse (f z + ii*g z)"
+        using inverse_unique by force
+      also have "... = exp (- h z)"
+        by (simp add: exp_minus fgeq that)
+      finally have "f z = exp (- h z) + \<i>*g z"
+        by (simp add: diff_eq_eq)
+      then show ?thesis
+        apply (simp add: cos_exp_eq)
+        by (metis fgeq add.assoc mult_2_right that)
+    qed
+  qed
+qed
+
+
+lemma contractible_imp_holomorphic_arccos_bounded:
+  assumes holf: "f holomorphic_on S" and S: "contractible S" and "a \<in> S"
+      and non1: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 1 \<and> f z \<noteq> -1"
+  obtains g where "g holomorphic_on S" "norm(g a) \<le> pi + norm(f a)" "\<And>z. z \<in> S \<Longrightarrow> f z = cos(g z)"
+proof -
+  obtain g where holg: "g holomorphic_on S" and feq: "\<And>z. z \<in> S \<Longrightarrow> f z = cos (g z)"
+    using contractible_imp_holomorphic_arccos [OF holf S non1] by blast
+  obtain b where "cos b = f a" "norm b \<le> pi + norm (f a)"
+    using cos_Arccos norm_Arccos_bounded by blast
+  then have "cos b = cos (g a)"
+    by (simp add: \<open>a \<in> S\<close> feq)
+  then consider n where "n \<in> \<int>" "b = g a + of_real(2*n*pi)" | n where "n \<in> \<int>" "b = -g a + of_real(2*n*pi)"
+    by (auto simp: complex_cos_eq)
+  then show ?thesis
+  proof cases
+    case 1
+    show ?thesis
+    proof
+      show "(\<lambda>z. g z + of_real(2*n*pi)) holomorphic_on S"
+        by (intro holomorphic_intros holg)
+      show "cmod (g a + of_real(2*n*pi)) \<le> pi + cmod (f a)"
+        using "1" \<open>cmod b \<le> pi + cmod (f a)\<close> by blast
+      show "\<And>z. z \<in> S \<Longrightarrow> f z = cos (g z + complex_of_real (2*n*pi))"
+        by (metis \<open>n \<in> \<int>\<close> complex_cos_eq feq)
+    qed
+  next
+    case 2
+    show ?thesis
+    proof
+      show "(\<lambda>z. -g z + of_real(2*n*pi)) holomorphic_on S"
+        by (intro holomorphic_intros holg)
+      show "cmod (-g a + of_real(2*n*pi)) \<le> pi + cmod (f a)"
+        using "2" \<open>cmod b \<le> pi + cmod (f a)\<close> by blast
+      show "\<And>z. z \<in> S \<Longrightarrow> f z = cos (-g z + complex_of_real (2*n*pi))"
+        by (metis \<open>n \<in> \<int>\<close> complex_cos_eq feq)
+    qed
+  qed
+qed
+
+
+subsection\<open>The "Borsukian" property of sets\<close>
+
+text\<open>This doesn't have a standard name. Kuratowski uses "contractible with respect to [S^1]"
+ while Whyburn uses "property b". It's closely related to unicoherence.\<close>
+
+definition Borsukian where
+    "Borsukian S \<equiv>
+        \<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
+            \<longrightarrow> (\<exists>a. homotopic_with (\<lambda>h. True) S (- {0}) f (\<lambda>x. a))"
+
+lemma Borsukian_retraction_gen:
+  assumes "Borsukian S" "continuous_on S h" "h ` S = T"
+          "continuous_on T k"  "k ` T \<subseteq> S"  "\<And>y. y \<in> T \<Longrightarrow> h(k y) = y"
+    shows "Borsukian T"
+proof -
+  interpret R: Retracts S h T k
+    using assms by (simp add: Retracts.intro)
+  show ?thesis
+    using assms
+    apply (simp add: Borsukian_def, clarify)
+    apply (rule R.cohomotopically_trivial_retraction_null_gen [OF TrueI TrueI refl, of "-{0}"], auto)
+    done
+qed
+
+lemma retract_of_Borsukian: "\<lbrakk>Borsukian T; S retract_of T\<rbrakk> \<Longrightarrow> Borsukian S"
+  apply (auto simp: retract_of_def retraction_def)
+  apply (erule (1) Borsukian_retraction_gen)
+  apply (meson retraction retraction_def)
+    apply (auto simp: continuous_on_id)
+    done
+
+lemma homeomorphic_Borsukian: "\<lbrakk>Borsukian S; S homeomorphic T\<rbrakk> \<Longrightarrow> Borsukian T"
+  using Borsukian_retraction_gen order_refl
+  by (fastforce simp add: homeomorphism_def homeomorphic_def)
+
+lemma homeomorphic_Borsukian_eq:
+   "S homeomorphic T \<Longrightarrow> Borsukian S \<longleftrightarrow> Borsukian T"
+  by (meson homeomorphic_Borsukian homeomorphic_sym)
+
+lemma Borsukian_translation:
+  fixes S :: "'a::real_normed_vector set"
+  shows "Borsukian (image (\<lambda>x. a + x) S) \<longleftrightarrow> Borsukian S"
+  apply (rule homeomorphic_Borsukian_eq)
+    using homeomorphic_translation homeomorphic_sym by blast
+
+lemma Borsukian_injective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+    shows "Borsukian(f ` S) \<longleftrightarrow> Borsukian S"
+  apply (rule homeomorphic_Borsukian_eq)
+  using assms homeomorphic_sym linear_homeomorphic_image by blast
+
+lemma homotopy_eqv_Borsukianness:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+   assumes "S homotopy_eqv T"
+     shows "(Borsukian S \<longleftrightarrow> Borsukian T)"
+  by (meson Borsukian_def assms homotopy_eqv_cohomotopic_triviality_null)
+
+lemma Borsukian_alt:
+  fixes S :: "'a::real_normed_vector set"
+  shows
+   "Borsukian S \<longleftrightarrow>
+        (\<forall>f g. continuous_on S f \<and> f ` S \<subseteq> -{0} \<and>
+               continuous_on S g \<and> g ` S \<subseteq> -{0}
+               \<longrightarrow> homotopic_with (\<lambda>h. True) S (- {0::complex}) f g)"
+  unfolding Borsukian_def homotopic_triviality
+  by (simp add: path_connected_punctured_universe)
+
+lemma Borsukian_continuous_logarithm:
+  fixes S :: "'a::real_normed_vector set"
+  shows "Borsukian S \<longleftrightarrow>
+            (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
+                 \<longrightarrow> (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))))"
+  by (simp add: Borsukian_def inessential_eq_continuous_logarithm)
+
+lemma Borsukian_continuous_logarithm_circle:
+  fixes S :: "'a::real_normed_vector set"
+  shows "Borsukian S \<longleftrightarrow>
+             (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
+                  \<longrightarrow> (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))))"
+   (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (force simp: Borsukian_continuous_logarithm)
+next
+  assume RHS [rule_format]: ?rhs
+  show ?lhs
+  proof (clarsimp simp: Borsukian_continuous_logarithm)
+    fix f :: "'a \<Rightarrow> complex"
+    assume contf: "continuous_on S f" and 0: "0 \<notin> f ` S"
+    then have "continuous_on S (\<lambda>x. f x / complex_of_real (cmod (f x)))"
+      by (intro continuous_intros) auto
+    moreover have "(\<lambda>x. f x / complex_of_real (cmod (f x))) ` S \<subseteq> sphere 0 1"
+      using 0 by (auto simp: norm_divide)
+    ultimately obtain g where contg: "continuous_on S g"
+                  and fg: "\<forall>x \<in> S. f x / complex_of_real (cmod (f x)) = exp(g x)"
+      using RHS [of "\<lambda>x. f x / of_real(norm(f x))"] by auto
+    show "\<exists>g. continuous_on S g \<and> (\<forall>x\<in>S. f x = exp (g x))"
+    proof (intro exI ballI conjI)
+      show "continuous_on S (\<lambda>x. (Ln \<circ> of_real \<circ> norm \<circ> f)x + g x)"
+        by (intro continuous_intros contf contg conjI) (use "0" in auto)
+      show "f x = exp ((Ln \<circ> complex_of_real \<circ> cmod \<circ> f) x + g x)" if "x \<in> S" for x
+        using 0 that
+        apply (clarsimp simp: exp_add)
+        apply (subst exp_Ln, force)
+        by (metis eq_divide_eq exp_not_eq_zero fg mult.commute)
+    qed
+  qed
+qed
+
+
+lemma Borsukian_continuous_logarithm_circle_real:
+  fixes S :: "'a::real_normed_vector set"
+  shows "Borsukian S \<longleftrightarrow>
+         (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
+              \<longrightarrow> (\<exists>g. continuous_on S (complex_of_real \<circ> g) \<and> (\<forall>x \<in> S. f x = exp(ii * of_real(g x)))))"
+   (is "?lhs = ?rhs")
+proof
+  assume LHS: ?lhs
+  show ?rhs
+  proof (clarify)
+    fix f :: "'a \<Rightarrow> complex"
+    assume "continuous_on S f" and f01: "f ` S \<subseteq> sphere 0 1"
+    then obtain g where contg: "continuous_on S g" and "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+      using LHS by (auto simp: Borsukian_continuous_logarithm_circle)
+    then have "\<forall>x\<in>S. f x = exp (\<i> * complex_of_real ((Im \<circ> g) x))"
+      using f01 apply (simp add: image_iff subset_iff)
+        by (metis cis_conv_exp exp_eq_polar mult.left_neutral norm_exp_eq_Re of_real_1)
+    then show "\<exists>g. continuous_on S (complex_of_real \<circ> g) \<and> (\<forall>x\<in>S. f x = exp (\<i> * complex_of_real (g x)))"
+      by (rule_tac x="Im \<circ> g" in exI) (force intro: continuous_intros contg)
+  qed
+next
+  assume RHS [rule_format]: ?rhs
+  show ?lhs
+  proof (clarsimp simp: Borsukian_continuous_logarithm_circle)
+    fix f :: "'a \<Rightarrow> complex"
+    assume "continuous_on S f" and f01: "f ` S \<subseteq> sphere 0 1"
+    then obtain g where contg: "continuous_on S (complex_of_real \<circ> g)" and "\<And>x. x \<in> S \<Longrightarrow> f x =  exp(ii * of_real(g x))"
+      by (metis RHS)
+    then show "\<exists>g. continuous_on S g \<and> (\<forall>x\<in>S. f x = exp (g x))"
+      by (rule_tac x="\<lambda>x. ii* of_real(g x)" in exI) (auto simp: continuous_intros contg)
+  qed
+qed
+
+lemma Borsukian_circle:
+  fixes S :: "'a::real_normed_vector set"
+  shows "Borsukian S \<longleftrightarrow>
+         (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
+              \<longrightarrow> (\<exists>a. homotopic_with (\<lambda>h. True) S (sphere (0::complex) 1) f (\<lambda>x. a)))"
+by (simp add: inessential_eq_continuous_logarithm_circle Borsukian_continuous_logarithm_circle_real)
+
+lemma contractible_imp_Borsukian: "contractible S \<Longrightarrow> Borsukian S"
+  by (meson Borsukian_def nullhomotopic_from_contractible)
+
+lemma simply_connected_imp_Borsukian:
+  fixes S :: "'a::real_normed_vector set"
+  shows  "\<lbrakk>simply_connected S; locally path_connected S\<rbrakk> \<Longrightarrow> Borsukian S"
+  apply (simp add: Borsukian_continuous_logarithm)
+  by (metis (no_types, lifting) continuous_logarithm_on_simply_connected image_iff)
+
+lemma starlike_imp_Borsukian:
+  fixes S :: "'a::real_normed_vector set"
+  shows "starlike S \<Longrightarrow> Borsukian S"
+  by (simp add: contractible_imp_Borsukian starlike_imp_contractible)
+
+lemma Borsukian_empty: "Borsukian {}"
+  by (auto simp: contractible_imp_Borsukian)
+
+lemma Borsukian_UNIV: "Borsukian (UNIV :: 'a::real_normed_vector set)"
+  by (auto simp: contractible_imp_Borsukian)
+
+lemma convex_imp_Borsukian:
+  fixes S :: "'a::real_normed_vector set"
+  shows "convex S \<Longrightarrow> Borsukian S"
+  by (meson Borsukian_def convex_imp_contractible nullhomotopic_from_contractible)
+
+lemma Borsukian_sphere:
+  fixes a :: "'a::euclidean_space"
+  shows "3 \<le> DIM('a) \<Longrightarrow> Borsukian (sphere a r)"
+  apply (rule simply_connected_imp_Borsukian)
+  using simply_connected_sphere apply blast
+  using ENR_imp_locally_path_connected ENR_sphere by blast
+
+lemma Borsukian_open_Un:
+  fixes S :: "'a::real_normed_vector set"
+  assumes opeS: "openin (subtopology euclidean (S \<union> T)) S"
+      and opeT: "openin (subtopology euclidean (S \<union> T)) T"
+      and BS: "Borsukian S" and BT: "Borsukian T" and ST: "connected(S \<inter> T)"
+    shows "Borsukian(S \<union> T)"
+proof (clarsimp simp add: Borsukian_continuous_logarithm)
+  fix f :: "'a \<Rightarrow> complex"
+  assume contf: "continuous_on (S \<union> T) f" and 0: "0 \<notin> f ` (S \<union> T)"
+  then have contfS: "continuous_on S f" and contfT: "continuous_on T f"
+    using continuous_on_subset by auto
+  have "\<lbrakk>continuous_on S f; f ` S \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))"
+    using BS by (auto simp: Borsukian_continuous_logarithm)
+  then obtain g where contg: "continuous_on S g" and fg: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+    using "0" contfS by blast
+  have "\<lbrakk>continuous_on T f; f ` T \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on T g \<and> (\<forall>x \<in> T. f x = exp(g x))"
+    using BT by (auto simp: Borsukian_continuous_logarithm)
+  then obtain h where conth: "continuous_on T h" and fh: "\<And>x. x \<in> T \<Longrightarrow> f x = exp(h x)"
+    using "0" contfT by blast
+  show "\<exists>g. continuous_on (S \<union> T) g \<and> (\<forall>x\<in>S \<union> T. f x = exp (g x))"
+  proof (cases "S \<inter> T = {}")
+    case True
+    show ?thesis
+    proof (intro exI conjI)
+      show "continuous_on (S \<union> T) (\<lambda>x. if x \<in> S then g x else h x)"
+        apply (rule continuous_on_cases_local_open [OF opeS opeT contg conth])
+        using True by blast
+      show "\<forall>x\<in>S \<union> T. f x = exp (if x \<in> S then g x else h x)"
+        using fg fh by auto
+    qed
+  next
+    case False
+    have "\<exists>a. \<forall>x\<in>S \<inter> T. g x - h x = a"
+    proof (rule continuous_discrete_range_constant [OF ST])
+      show "continuous_on (S \<inter> T) (\<lambda>x. g x - h x)"
+        apply (intro continuous_intros)
+        apply (meson contg continuous_on_subset inf_le1)
+        by (meson conth continuous_on_subset inf_sup_ord(2))
+      show "\<exists>e>0. \<forall>y. y \<in> S \<inter> T \<and> g y - h y \<noteq> g x - h x \<longrightarrow> e \<le> cmod (g y - h y - (g x - h x))"
+           if "x \<in> S \<inter> T" for x
+      proof -
+        have "g y - g x = h y - h x"
+              if "y \<in> S" "y \<in> T" "cmod (g y - g x - (h y - h x)) < 2 * pi" for y
+        proof (rule exp_complex_eqI)
+          have "\<bar>Im (g y - g x) - Im (h y - h x)\<bar> \<le> cmod (g y - g x - (h y - h x))"
+            by (metis abs_Im_le_cmod minus_complex.simps(2))
+          then show "\<bar>Im (g y - g x) - Im (h y - h x)\<bar> < 2 * pi"
+            using that by linarith
+          have "exp (g x) = exp (h x)" "exp (g y) = exp (h y)"
+            using fg fh that \<open>x \<in> S \<inter> T\<close> by fastforce+
+          then show "exp (g y - g x) = exp (h y - h x)"
+            by (simp add: exp_diff)
+        qed
+        then show ?thesis
+          by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
+      qed
+    qed
+    then obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a" by blast
+    with False have "exp a = 1"
+      by (metis IntI disjoint_iff_not_equal divide_self_if exp_diff exp_not_eq_zero fg fh)
+    with a show ?thesis
+      apply (rule_tac x="\<lambda>x. if x \<in> S then g x else a + h x" in exI)
+      apply (intro continuous_on_cases_local_open opeS opeT contg conth continuous_intros conjI)
+       apply (auto simp: algebra_simps fg fh exp_add)
+        done
+  qed
+qed
+
+text\<open>The proof is a duplicate of that of @{text Borsukian_open_Un}.\<close>
+lemma Borsukian_closed_Un:
+  fixes S :: "'a::real_normed_vector set"
+  assumes cloS: "closedin (subtopology euclidean (S \<union> T)) S"
+      and cloT: "closedin (subtopology euclidean (S \<union> T)) T"
+      and BS: "Borsukian S" and BT: "Borsukian T" and ST: "connected(S \<inter> T)"
+    shows "Borsukian(S \<union> T)"
+proof (clarsimp simp add: Borsukian_continuous_logarithm)
+  fix f :: "'a \<Rightarrow> complex"
+  assume contf: "continuous_on (S \<union> T) f" and 0: "0 \<notin> f ` (S \<union> T)"
+  then have contfS: "continuous_on S f" and contfT: "continuous_on T f"
+    using continuous_on_subset by auto
+  have "\<lbrakk>continuous_on S f; f ` S \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))"
+    using BS by (auto simp: Borsukian_continuous_logarithm)
+  then obtain g where contg: "continuous_on S g" and fg: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
+    using "0" contfS by blast
+  have "\<lbrakk>continuous_on T f; f ` T \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on T g \<and> (\<forall>x \<in> T. f x = exp(g x))"
+    using BT by (auto simp: Borsukian_continuous_logarithm)
+  then obtain h where conth: "continuous_on T h" and fh: "\<And>x. x \<in> T \<Longrightarrow> f x = exp(h x)"
+    using "0" contfT by blast
+  show "\<exists>g. continuous_on (S \<union> T) g \<and> (\<forall>x\<in>S \<union> T. f x = exp (g x))"
+  proof (cases "S \<inter> T = {}")
+    case True
+    show ?thesis
+    proof (intro exI conjI)
+      show "continuous_on (S \<union> T) (\<lambda>x. if x \<in> S then g x else h x)"
+        apply (rule continuous_on_cases_local [OF cloS cloT contg conth])
+        using True by blast
+      show "\<forall>x\<in>S \<union> T. f x = exp (if x \<in> S then g x else h x)"
+        using fg fh by auto
+    qed
+  next
+    case False
+    have "\<exists>a. \<forall>x\<in>S \<inter> T. g x - h x = a"
+    proof (rule continuous_discrete_range_constant [OF ST])
+      show "continuous_on (S \<inter> T) (\<lambda>x. g x - h x)"
+        apply (intro continuous_intros)
+        apply (meson contg continuous_on_subset inf_le1)
+        by (meson conth continuous_on_subset inf_sup_ord(2))
+      show "\<exists>e>0. \<forall>y. y \<in> S \<inter> T \<and> g y - h y \<noteq> g x - h x \<longrightarrow> e \<le> cmod (g y - h y - (g x - h x))"
+           if "x \<in> S \<inter> T" for x
+      proof -
+        have "g y - g x = h y - h x"
+              if "y \<in> S" "y \<in> T" "cmod (g y - g x - (h y - h x)) < 2 * pi" for y
+        proof (rule exp_complex_eqI)
+          have "\<bar>Im (g y - g x) - Im (h y - h x)\<bar> \<le> cmod (g y - g x - (h y - h x))"
+            by (metis abs_Im_le_cmod minus_complex.simps(2))
+          then show "\<bar>Im (g y - g x) - Im (h y - h x)\<bar> < 2 * pi"
+            using that by linarith
+          have "exp (g x) = exp (h x)" "exp (g y) = exp (h y)"
+            using fg fh that \<open>x \<in> S \<inter> T\<close> by fastforce+
+          then show "exp (g y - g x) = exp (h y - h x)"
+            by (simp add: exp_diff)
+        qed
+        then show ?thesis
+          by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
+      qed
+    qed
+    then obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a" by blast
+    with False have "exp a = 1"
+      by (metis IntI disjoint_iff_not_equal divide_self_if exp_diff exp_not_eq_zero fg fh)
+    with a show ?thesis
+      apply (rule_tac x="\<lambda>x. if x \<in> S then g x else a + h x" in exI)
+      apply (intro continuous_on_cases_local cloS cloT contg conth continuous_intros conjI)
+       apply (auto simp: algebra_simps fg fh exp_add)
+        done
+  qed
+qed
+
+lemma Borsukian_separation_compact:
+  fixes S :: "complex set"
+  assumes "compact S"
+    shows "Borsukian S \<longleftrightarrow> connected(- S)"
+  by (simp add: Borsuk_separation_theorem Borsukian_circle assms)
+
+lemma Borsukian_monotone_image_compact:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "Borsukian S" and contf: "continuous_on S f" and fim: "f ` S = T"
+      and "compact S" and conn: "\<And>y. y \<in> T \<Longrightarrow> connected {x. x \<in> S \<and> f x = y}"
+    shows "Borsukian T"
+proof (clarsimp simp add: Borsukian_continuous_logarithm)
+  fix g :: "'b \<Rightarrow> complex"
+  assume contg: "continuous_on T g" and 0: "0 \<notin> g ` T"
+  have "continuous_on S (g \<circ> f)"
+    using contf contg continuous_on_compose fim by blast
+  moreover have "(g \<circ> f) ` S \<subseteq> -{0}"
+    using fim 0 by auto
+  ultimately obtain h where conth: "continuous_on S h" and gfh: "\<And>x. x \<in> S \<Longrightarrow> (g \<circ> f) x = exp(h x)"
+    using \<open>Borsukian S\<close> by (auto simp: Borsukian_continuous_logarithm)
+  have "\<And>y. \<exists>x. y \<in> T \<longrightarrow> x \<in> S \<and> f x = y"
+    using fim by auto
+  then obtain f' where f': "\<And>y. y \<in> T \<longrightarrow> f' y \<in> S \<and> f (f' y) = y"
+    by metis
+  have *: "\<exists>a. \<forall>x \<in> {x. x \<in> S \<and> f x = y}. h x - h(f' y) = a" if "y \<in> T" for y
+  proof (rule continuous_discrete_range_constant, simp_all add: algebra_simps)
+    show "\<exists>e>0. \<forall>u. u \<in> S \<and> f u = y \<and> h u \<noteq> h x \<longrightarrow> e \<le> cmod (h u - h x)"
+      if x: "x \<in> S \<and> f x = y" for x
+    proof -
+      have "h u = h x" if "u \<in> S" "f u = y" "cmod (h u - h x) < 2 * pi" for u
+      proof (rule exp_complex_eqI)
+        have "\<bar>Im (h u) - Im (h x)\<bar> \<le> cmod (h u - h x)"
+          by (metis abs_Im_le_cmod minus_complex.simps(2))
+        then show "\<bar>Im (h u) - Im (h x)\<bar> < 2 * pi"
+          using that by linarith
+        show "exp (h u) = exp (h x)"
+          by (simp add: gfh [symmetric] x that)
+      qed
+      then show ?thesis
+        by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
+    qed
+    show "continuous_on {x \<in> S. f x = y} (\<lambda>x. h x - h (f' y))"
+      by (intro continuous_intros continuous_on_subset [OF conth]) auto
+  qed (simp add: conn that)
+  have "h x = h (f' (f x))" if "x \<in> S" for x
+    using * [of "f x"] fim that apply clarsimp
+    by (metis f' imageI right_minus_eq)
+  moreover have "\<And>x. x \<in> T \<Longrightarrow> \<exists>u. u \<in> S \<and> x = f u \<and> h (f' x) = h u"
+    using f' by fastforce
+  ultimately
+  have eq: "((\<lambda>x. (x, (h \<circ> f') x)) ` T) =
+            {p. \<exists>x. x \<in> S \<and> (x, p) \<in> {z \<in> S \<times> UNIV. snd z - ((f \<circ> fst) z, (h \<circ> fst) z) \<in> {0}}}"
+    using fim by (auto simp: image_iff)
+  show "\<exists>h. continuous_on T h \<and> (\<forall>x\<in>T. g x = exp (h x))"
+  proof (intro exI conjI)
+    show "continuous_on T (h \<circ> f')"
+    proof (rule continuous_from_closed_graph [of "h ` S"])
+      show "compact (h ` S)"
+        by (simp add: \<open>compact S\<close> compact_continuous_image conth)
+      show "(h \<circ> f') ` T \<subseteq> h ` S"
+        by (auto simp: f')
+      show "closed ((\<lambda>x. (x, (h \<circ> f') x)) ` T)"
+        apply (subst eq)
+        apply (intro closed_compact_projection [OF \<open>compact S\<close>] continuous_closed_preimage
+                     continuous_intros continuous_on_subset [OF contf] continuous_on_subset [OF conth])
+           apply (auto simp: \<open>compact S\<close> closed_Times compact_imp_closed)
+        done
+    qed
+  qed (use f' gfh in fastforce)
+qed
+
+
+lemma Borsukian_open_map_image_compact:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "Borsukian S" and contf: "continuous_on S f" and fim: "f ` S = T" and "compact S"
+      and ope: "\<And>U. openin (subtopology euclidean S) U
+                     \<Longrightarrow> openin (subtopology euclidean T) (f ` U)"
+    shows "Borsukian T"
+proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
+  fix g :: "'b \<Rightarrow> complex"
+  assume contg: "continuous_on T g" and gim: "g ` T \<subseteq> sphere 0 1"
+  have "continuous_on S (g \<circ> f)"
+    using contf contg continuous_on_compose fim by blast
+  moreover have "(g \<circ> f) ` S \<subseteq> sphere 0 1"
+    using fim gim by auto
+  ultimately obtain h where cont_cxh: "continuous_on S (complex_of_real \<circ> h)"
+                       and gfh: "\<And>x. x \<in> S \<Longrightarrow> (g \<circ> f) x = exp(ii * of_real(h x))"
+    using \<open>Borsukian S\<close> Borsukian_continuous_logarithm_circle_real  by metis
+  then have conth: "continuous_on S h"
+    by simp
+  have "\<exists>x. x \<in> S \<and> f x = y \<and> (\<forall>x' \<in> S. f x' = y \<longrightarrow> h x \<le> h x')" if "y \<in> T" for y
+  proof -
+    have 1: "compact (h ` {x \<in> S. f x = y})"
+    proof (rule compact_continuous_image)
+      show "continuous_on {x \<in> S. f x = y} h"
+        by (rule continuous_on_subset [OF conth]) auto
+      have "compact {x \<in> S. f x \<in> {y}}"
+        by (rule proper_map_from_compact [OF contf _ \<open>compact S\<close>, of T]) (simp_all add: fim that)
+      then show "compact {x \<in> S. f x = y}" by simp
+    qed
+    have 2: "h ` {x \<in> S. f x = y} \<noteq> {}"
+      using fim that by auto
+    have "\<exists>s \<in> h ` {x \<in> S. f x = y}. \<forall>t \<in> h ` {x \<in> S. f x = y}. s \<le> t"
+      using compact_attains_inf [OF 1 2] by blast
+    then show ?thesis by auto
+  qed
+  then obtain k where kTS: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S"
+                  and fk:  "\<And>y. y \<in> T \<Longrightarrow> f (k y) = y "
+                  and hle: "\<And>x' y. \<lbrakk>y \<in> T; x' \<in> S; f x' = y\<rbrakk> \<Longrightarrow> h (k y) \<le> h x'"
+    by metis
+  have "continuous_on T (h \<circ> k)"
+  proof (clarsimp simp add: continuous_on_iff)
+    fix y and e::real
+    assume "y \<in> T" "0 < e"
+    moreover have "uniformly_continuous_on S (complex_of_real \<circ> h)"
+      using \<open>compact S\<close> cont_cxh compact_uniformly_continuous by blast
+    ultimately obtain d where "0 < d"
+                  and d: "\<And>x x'. \<lbrakk>x\<in>S; x'\<in>S; dist x' x < d\<rbrakk> \<Longrightarrow> dist (h x') (h x) < e"
+      by (force simp: uniformly_continuous_on_def)
+    obtain \<delta> where "0 < \<delta>" and \<delta>:
+      "\<And>x'. \<lbrakk>x' \<in> T; dist y x' < \<delta>\<rbrakk>
+               \<Longrightarrow> (\<forall>v \<in> {z \<in> S. f z = y}. \<exists>v'. v' \<in> {z \<in> S. f z = x'} \<and> dist v v' < d) \<and>
+                   (\<forall>v' \<in> {z \<in> S. f z = x'}. \<exists>v. v \<in> {z \<in> S. f z = y} \<and> dist v' v < d)"
+    proof (rule upper_lower_hemicontinuous_explicit [of T "\<lambda>y. {z \<in> S. f z = y}" S])
+      show "\<And>U. openin (subtopology euclidean S) U
+                 \<Longrightarrow> openin (subtopology euclidean T) {x \<in> T. {z \<in> S. f z = x} \<subseteq> U}"
+        using continuous_imp_closed_map closed_map_iff_upper_hemicontinuous_preimage [OF fim [THEN equalityD1]]
+        by (simp add: continuous_imp_closed_map \<open>compact S\<close> contf fim)
+      show "\<And>U. closedin (subtopology euclidean S) U \<Longrightarrow>
+                 closedin (subtopology euclidean T) {x \<in> T. {z \<in> S. f z = x} \<subseteq> U}"
+        using  ope open_map_iff_lower_hemicontinuous_preimage [OF fim [THEN equalityD1]]
+        by meson
+      show "bounded {z \<in> S. f z = y}"
+        by (metis (no_types, lifting) compact_imp_bounded [OF \<open>compact S\<close>] bounded_subset mem_Collect_eq subsetI)
+    qed (use \<open>y \<in> T\<close> \<open>0 < d\<close> fk kTS in \<open>force+\<close>)
+    have "dist (h (k y')) (h (k y)) < e" if "y' \<in> T" "dist y y' < \<delta>" for y'
+    proof -
+      have k1: "k y \<in> S" "f (k y) = y" and k2: "k y' \<in> S" "f (k y') = y'"
+        by (auto simp: \<open>y \<in> T\<close> \<open>y' \<in> T\<close> kTS fk)
+      have 1: "\<And>v. \<lbrakk>v \<in> S; f v = y\<rbrakk> \<Longrightarrow> \<exists>v'. v' \<in> {z \<in> S. f z = y'} \<and> dist v v' < d"
+       and 2: "\<And>v'. \<lbrakk>v' \<in> S; f v' = y'\<rbrakk> \<Longrightarrow> \<exists>v. v \<in> {z \<in> S. f z = y} \<and> dist v' v < d"
+        using \<delta> [OF that] by auto
+      then obtain w' w where "w' \<in> S" "f w' = y'" "dist (k y) w' < d"
+        and "w \<in> S" "f w = y" "dist (k y') w < d"
+        using 1 [OF k1] 2 [OF k2] by auto
+      then show ?thesis
+        using d [of w "k y'"] d [of w' "k y"] k1 k2 \<open>y' \<in> T\<close>  \<open>y \<in> T\<close> hle
+        by (fastforce simp: dist_norm abs_diff_less_iff algebra_simps)
+    qed
+    then show "\<exists>d>0. \<forall>x'\<in>T. dist x' y < d \<longrightarrow> dist (h (k x')) (h (k y)) < e"
+      using  \<open>0 < \<delta>\<close> by (auto simp: dist_commute)
+  qed
+  then show "\<exists>h. continuous_on T h \<and> (\<forall>x\<in>T. g x = exp (\<i> * complex_of_real (h x)))"
+    using fk gfh kTS by force
+qed
+
 end

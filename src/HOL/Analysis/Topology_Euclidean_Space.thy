@@ -98,6 +98,39 @@ lemma continuous_on_cases:
     continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
   by (rule continuous_on_If) auto
 
+lemma open_sums:
+  fixes T :: "('b::real_normed_vector) set"
+  assumes "open S \<or> open T"
+  shows "open (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+  using assms
+proof
+  assume S: "open S"
+  show ?thesis
+  proof (clarsimp simp: open_dist)
+    fix x y
+    assume "x \<in> S" "y \<in> T"
+    with S obtain e where "e > 0" and e: "\<And>x'. dist x' x < e \<Longrightarrow> x' \<in> S"
+      by (auto simp: open_dist)
+    then have "\<And>z. dist z (x + y) < e \<Longrightarrow> \<exists>x\<in>S. \<exists>y\<in>T. z = x + y"
+      by (metis \<open>y \<in> T\<close> diff_add_cancel dist_add_cancel2)
+    then show "\<exists>e>0. \<forall>z. dist z (x + y) < e \<longrightarrow> (\<exists>x\<in>S. \<exists>y\<in>T. z = x + y)"
+      using \<open>0 < e\<close> \<open>x \<in> S\<close> by blast
+  qed
+next
+  assume T: "open T"
+  show ?thesis
+  proof (clarsimp simp: open_dist)
+    fix x y
+    assume "x \<in> S" "y \<in> T"
+    with T obtain e where "e > 0" and e: "\<And>x'. dist x' y < e \<Longrightarrow> x' \<in> T"
+      by (auto simp: open_dist)
+    then have "\<And>z. dist z (x + y) < e \<Longrightarrow> \<exists>x\<in>S. \<exists>y\<in>T. z = x + y"
+      by (metis \<open>x \<in> S\<close> add_diff_cancel_left' add_diff_eq diff_diff_add dist_norm)
+    then show "\<exists>e>0. \<forall>z. dist z (x + y) < e \<longrightarrow> (\<exists>x\<in>S. \<exists>y\<in>T. z = x + y)"
+      using \<open>0 < e\<close> \<open>y \<in> T\<close> by blast
+  qed
+qed
+
 
 subsection \<open>Topological Basis\<close>
 
@@ -633,6 +666,23 @@ next
   have "openin U ?t" by (force simp add: openin_Union)
   also have "?t = S" using H by auto
   finally show "openin U S" .
+qed
+
+lemma openin_INT [intro]:
+  assumes "finite I"
+          "\<And>i. i \<in> I \<Longrightarrow> openin T (U i)"
+  shows "openin T ((\<Inter>i \<in> I. U i) \<inter> topspace T)"
+using assms by (induct, auto simp add: inf_sup_aci(2) openin_Int)
+
+lemma openin_INT2 [intro]:
+  assumes "finite I" "I \<noteq> {}"
+          "\<And>i. i \<in> I \<Longrightarrow> openin T (U i)"
+  shows "openin T (\<Inter>i \<in> I. U i)"
+proof -
+  have "(\<Inter>i \<in> I. U i) \<subseteq> topspace T"
+    using `I \<noteq> {}` openin_subset[OF assms(3)] by auto
+  then show ?thesis
+    using openin_INT[of _ _ U, OF assms(1) assms(3)] by (simp add: inf.absorb2 inf_commute)
 qed
 
 
@@ -2123,6 +2173,9 @@ lemma closure_complement: "closure (- S) = - interior S"
 
 lemma interior_complement: "interior (- S) = - closure S"
   by (simp add: closure_interior)
+   
+lemma interior_diff: "interior(S - T) = interior S - closure T"
+  by (simp add: Diff_eq interior_complement)
 
 lemma closure_Times: "closure (A \<times> B) = closure A \<times> closure B"
 proof (rule closure_unique)
