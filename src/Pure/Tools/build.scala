@@ -97,11 +97,11 @@ object Build
 
   object Session_Content
   {
-    def empty: Session_Content =
+    val empty: Session_Content =
       Session_Content(Set.empty, Map.empty, Nil, Outer_Syntax.empty,
         Nil, Graph_Display.empty_graph)
 
-    def bootstrap: Session_Content =
+    lazy val bootstrap: Session_Content =
       Session_Content(Set.empty, Map.empty, Thy_Header.bootstrap_header,
         Thy_Header.bootstrap_syntax, Nil, Graph_Display.empty_graph)
   }
