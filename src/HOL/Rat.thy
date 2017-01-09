@@ -401,6 +401,9 @@ lemma quotient_of_eq: "quotient_of (Fract a b) = (p, q) \<Longrightarrow> Fract 
 lemma quotient_of_denom_pos: "quotient_of r = (p, q) \<Longrightarrow> q > 0"
   by (cases r) (simp add: quotient_of_Fract normalize_denom_pos)
 
+lemma quotient_of_denom_pos': "snd (quotient_of r) > 0"
+  using quotient_of_denom_pos [of r] by (simp add: prod_eq_iff)
+    
 lemma quotient_of_coprime: "quotient_of r = (p, q) \<Longrightarrow> coprime p q"
   by (cases r) (simp add: quotient_of_Fract normalize_coprime)
 

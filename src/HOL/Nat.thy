@@ -170,6 +170,28 @@ end
 
 text \<open>Injectiveness and distinctness lemmas\<close>
 
+lemma (in semidom_divide) inj_times:
+  "inj (times a)" if "a \<noteq> 0"
+proof (rule injI)
+  fix b c
+  assume "a * b = a * c"
+  then have "a * b div a = a * c div a"
+    by (simp only:)
+  with that show "b = c"
+    by simp
+qed
+
+lemma (in cancel_ab_semigroup_add) inj_plus:
+  "inj (plus a)"
+proof (rule injI)
+  fix b c
+  assume "a + b = a + c"
+  then have "a + b - a = a + c - a"
+    by (simp only:)
+  then show "b = c"
+    by simp
+qed
+
 lemma inj_Suc[simp]: "inj_on Suc N"
   by (simp add: inj_on_def)
 

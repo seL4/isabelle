@@ -357,7 +357,6 @@ next
   then show ?thesis ..
 qed
 
-
 end
 
 text \<open>Comparisons involving @{term of_int}.\<close>
@@ -848,6 +847,13 @@ proof (intro subsetI equalityI)
     by simp
 qed (auto elim!: Nats_cases)
 
+lemma (in idom_divide) of_int_divide_in_Ints: 
+  "of_int a div of_int b \<in> \<int>" if "b dvd a"
+proof -
+  from that obtain c where "a = b * c" ..
+  then show ?thesis
+    by (cases "of_int b = 0") simp_all
+qed
 
 text \<open>The premise involving @{term Ints} prevents @{term "a = 1/2"}.\<close>
 

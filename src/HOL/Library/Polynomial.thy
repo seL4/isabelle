@@ -12,20 +12,6 @@ imports Main "~~/src/HOL/Deriv" "~~/src/HOL/Library/More_List"
   "~~/src/HOL/Library/Infinite_Set"
 begin
 
-subsection \<open>Misc\<close>
-
-lemma quotient_of_denom_pos': "snd (quotient_of x) > 0"
-  using quotient_of_denom_pos [OF surjective_pairing] .
-  
-lemma (in idom_divide) of_int_divide_in_Ints: 
-  "of_int a div of_int b \<in> \<int>" if "b dvd a"
-proof -
-  from that obtain c where "a = b * c" ..
-  then show ?thesis
-    by (cases "of_int b = 0") simp_all
-qed
-
-  
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>
 
 definition cCons :: "'a::zero \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "##" 65)
