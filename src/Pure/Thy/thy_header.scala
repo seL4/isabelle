@@ -37,7 +37,7 @@ object Thy_Header extends Parse.Parser
   val AND = "and"
   val BEGIN = "begin"
 
-  private val bootstrap_header: Keywords =
+  val bootstrap_header: Keywords =
     List(
       ("%", Keyword.no_spec),
       ("(", Keyword.no_spec),

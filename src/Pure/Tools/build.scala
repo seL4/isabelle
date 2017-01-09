@@ -98,7 +98,12 @@ object Build
   object Session_Content
   {
     def empty: Session_Content =
-      Session_Content(Set.empty, Map.empty, Nil, Outer_Syntax.empty, Nil, Graph_Display.empty_graph)
+      Session_Content(Set.empty, Map.empty, Nil, Outer_Syntax.empty,
+        Nil, Graph_Display.empty_graph)
+
+    def bootstrap: Session_Content =
+      Session_Content(Set.empty, Map.empty, Thy_Header.bootstrap_header,
+        Thy_Header.bootstrap_syntax, Nil, Graph_Display.empty_graph)
   }
 
   sealed case class Session_Content(
@@ -128,15 +133,12 @@ object Build
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
-            val (loaded_theories0, known_theories0, syntax0) =
-              info.parent.map(deps(_)) match {
-                case None =>
-                  (Set.empty[String], Map.empty[String, Document.Node.Name],
-                    Thy_Header.bootstrap_syntax)
-                case Some(parent) =>
-                  (parent.loaded_theories, parent.known_theories, parent.syntax)
+            val base =
+              info.parent match {
+                case None => Session_Content.bootstrap
+                case Some(parent) => deps(parent)
               }
-            val resources = new Resources(loaded_theories0, known_theories0, syntax0)
+            val resources = new Resources(base)
 
             if (verbose || list_files) {
               val groups =
@@ -163,7 +165,7 @@ object Build
             }
 
             val known_theories =
-              (known_theories0 /: thy_deps.deps)({ case (known, dep) =>
+              (base.known_theories /: thy_deps.deps)({ case (known, dep) =>
                 val name = dep.name
                 known.get(name.theory) match {
                   case Some(name1) if name != name1 =>
@@ -201,7 +203,7 @@ object Build
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 
             val session_graph =
-              Present.session_graph(info.parent getOrElse "", loaded_theories0, thy_deps.deps)
+              Present.session_graph(info.parent getOrElse "", base.loaded_theories, thy_deps.deps)
 
             val content =
               Session_Content(loaded_theories, known_theories, keywords, syntax,

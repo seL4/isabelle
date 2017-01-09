@@ -17,14 +17,10 @@ object Resources
 {
   def thy_path(path: Path): Path = path.ext("thy")
 
-  val empty: Resources = new Resources(Set.empty, Map.empty, Outer_Syntax.empty)
+  val empty: Resources = new Resources(Build.Session_Content.empty)
 }
 
-class Resources(
-  val loaded_theories: Set[String],
-  val known_theories: Map[String, Document.Node.Name],
-  val base_syntax: Outer_Syntax,
-  val log: Logger = No_Logger)
+class Resources(val base: Build.Session_Content, val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
 
@@ -94,10 +90,10 @@ class Resources(
     val no_qualifier = "" // FIXME
     val thy1 = Thy_Header.base_name(s)
     val thy2 = if (Long_Name.is_qualified(thy1)) thy1 else Long_Name.qualify(no_qualifier, thy1)
-    (known_theories.get(thy1) orElse
-     known_theories.get(thy2) orElse
-     known_theories.get(Long_Name.base_name(thy1))) match {
-      case Some(name) if loaded_theories(name.theory) => dummy_name(name.theory)
+    (base.known_theories.get(thy1) orElse
+     base.known_theories.get(thy2) orElse
+     base.known_theories.get(Long_Name.base_name(thy1))) match {
+      case Some(name) if base.loaded_theories(name.theory) => dummy_name(name.theory)
       case Some(name) => name
       case None =>
         val path = Path.explode(s)
@@ -164,7 +160,7 @@ class Resources(
   def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
     (for {
       (node_name, node) <- nodes.iterator
-      if !loaded_theories(node_name.theory)
+      if !base.loaded_theories(node_name.theory)
       cmd <- node.load_commands.iterator
       name <- cmd.blobs_undefined.iterator
     } yield name).toList

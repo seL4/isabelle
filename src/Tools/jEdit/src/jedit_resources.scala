@@ -23,15 +23,10 @@ import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 object JEdit_Resources
 {
-  val empty: JEdit_Resources =
-    new JEdit_Resources(Set.empty, Map.empty, Outer_Syntax.empty)
+  val empty: JEdit_Resources = new JEdit_Resources(Build.Session_Content.empty)
 }
 
-class JEdit_Resources(
-    loaded_theories: Set[String],
-    known_theories: Map[String, Document.Node.Name],
-    base_syntax: Outer_Syntax)
-  extends Resources(loaded_theories, known_theories, base_syntax)
+class JEdit_Resources(base: Build.Session_Content) extends Resources(base)
 {
   /* document node name */
 

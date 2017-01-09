@@ -29,11 +29,7 @@ object Batch_Session
       new RuntimeException
 
     val deps = Build.dependencies(verbose = verbose, tree = session_tree)
-    val resources =
-    {
-      val content = deps(parent_session)
-      new Resources(content.loaded_theories, content.known_theories, content.syntax)
-    }
+    val resources = new Resources(deps(parent_session))
 
     val progress = new Console_Progress(verbose = verbose)
 

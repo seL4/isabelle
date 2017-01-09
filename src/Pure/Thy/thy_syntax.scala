@@ -101,7 +101,7 @@ object Thy_Syntax
         else {
           val header = node.header
           val imports_syntax = header.imports.flatMap(a => nodes(a._1).syntax)
-          Some((resources.base_syntax /: imports_syntax)(_ ++ _)
+          Some((resources.base.syntax /: imports_syntax)(_ ++ _)
             .add_keywords(header.keywords).add_abbrevs(header.abbrevs))
         }
       nodes += (name -> node.update_syntax(syntax))
@@ -297,7 +297,7 @@ object Thy_Syntax
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     def can_import(name: Document.Node.Name): Boolean =
-      resources.loaded_theories(name.theory) || nodes0(name).has_header
+      resources.base.loaded_theories(name.theory) || nodes0(name).has_header
 
     val (doc_edits, version) =
       if (edits.isEmpty) (Nil, Document.Version.make(previous.nodes))
@@ -321,7 +321,7 @@ object Thy_Syntax
         node_edits foreach {
           case (name, edits) =>
             val node = nodes(name)
-            val syntax = node.syntax getOrElse resources.base_syntax
+            val syntax = node.syntax getOrElse resources.base.syntax
             val commands = node.commands
 
             val node1 =

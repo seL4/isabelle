@@ -33,13 +33,10 @@ object VSCode_Resources
 }
 
 class VSCode_Resources(
-    val options: Options,
-    val text_length: Text.Length,
-    loaded_theories: Set[String],
-    known_theories: Map[String, Document.Node.Name],
-    base_syntax: Outer_Syntax,
-    log: Logger = No_Logger)
-  extends Resources(loaded_theories, known_theories, base_syntax, log)
+  val options: Options,
+  val text_length: Text.Length,
+  base: Build.Session_Content,
+  log: Logger = No_Logger) extends Resources(base, log)
 {
   private val state = Synchronized(VSCode_Resources.State())
 

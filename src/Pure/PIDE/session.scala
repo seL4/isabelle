@@ -239,7 +239,7 @@ class Session(val resources: Resources)
 
   def recent_syntax(name: Document.Node.Name): Outer_Syntax =
     global_state.value.recent_finished.version.get_finished.nodes(name).syntax getOrElse
-    resources.base_syntax
+    resources.base.syntax
 
 
   /* pipelined change parsing */

@@ -488,7 +488,7 @@ object Document
           case None =>
             List(
               Document.Node.Deps(
-                if (session.resources.loaded_theories(node_name.theory))
+                if (session.resources.base.loaded_theories(node_name.theory))
                   node_header.error("Cannot update finished theory " + quote(node_name.theory))
                 else node_header),
               Document.Node.Edits(text_edits), perspective)
