@@ -11,8 +11,7 @@ imports
   Function_Topology
   Weierstrass_Theorems
   Polytope
-  Further_Topology
-  Arcwise_Connected
+  Jordan_Curve
   Poly_Roots
   Conformal_Mappings
   Generalised_Binomial_Theorem

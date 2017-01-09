@@ -3543,7 +3543,7 @@ lemma homotopic_with_sphere_times:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes hom: "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g" and conth: "continuous_on S h"
       and hin: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> sphere 0 1"
-    shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x*h x) (\<lambda>x. g x*h x)"
+    shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x * h x) (\<lambda>x. g x * h x)"
 proof -
   obtain k where contk: "continuous_on ({0..1::real} \<times> S) k"
              and kim: "k ` ({0..1} \<times> S) \<subseteq> sphere 0 1"

@@ -65,6 +65,9 @@ INCOMPATIBILITY.
     with type class annotations. As a result, the tactic that derives
     it no longer fails on nested datatypes. Slight INCOMPATIBILITY.
 
+* Session HOL-Analysis: more material involving arcs, paths, covering spaces,
+innessential maps, retracts. Major results include the Jordan Curve Theorem.
+
 * The theorem in Permutations has been renamed:
   bij_swap_ompose_bij ~> bij_swap_compose_bij
 
