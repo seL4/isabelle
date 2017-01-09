@@ -26,6 +26,9 @@ class File_Watcher private[File_Watcher]  // dummy template
 object File_Watcher
 {
   val none: File_Watcher = new File_Watcher
+  {
+    override def toString: String = "File_Watcher.none"
+  }
 
   def apply(handle: Set[JFile] => Unit, delay: => Time = Time.seconds(0.5)): File_Watcher =
     if (Platform.is_windows) none else new Impl(handle, delay)
@@ -41,6 +44,9 @@ object File_Watcher
   {
     private val state = Synchronized(File_Watcher.State())
     private val watcher = FileSystems.getDefault.newWatchService()
+
+    override def toString: String =
+      state.value.dirs.keySet.mkString("File_Watcher(", ", ", ")")
 
 
     /* registered directories */
