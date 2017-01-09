@@ -34,6 +34,8 @@ declare [[code drop:
   Cardinality.finite'
   Cardinality.subset'
   Cardinality.eq_set
+  Gcd_fin
+  Lcm_fin
   "Gcd :: nat set \<Rightarrow> nat"
   "Lcm :: nat set \<Rightarrow> nat"
   "Gcd :: int set \<Rightarrow> int"

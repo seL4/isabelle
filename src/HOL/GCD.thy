@@ -34,6 +34,108 @@ theory GCD
   imports Main
 begin
 
+subsection \<open>Abstract bounded quasi semilattices as common foundation\<close>
+  
+locale bounded_quasi_semilattice = abel_semigroup + 
+  fixes top :: 'a  ("\<top>") and bot :: 'a  ("\<bottom>")
+    and normalize :: "'a \<Rightarrow> 'a"
+  assumes idem_normalize [simp]: "a \<^bold>* a = normalize a"
+    and normalize_left_idem [simp]: "normalize a \<^bold>* b = a \<^bold>* b"
+    and normalize_idem [simp]: "normalize (a \<^bold>* b) = a \<^bold>* b"
+    and normalize_top [simp]: "normalize \<top> = \<top>"
+    and normalize_bottom [simp]: "normalize \<bottom> = \<bottom>"
+    and top_left_normalize [simp]: "\<top> \<^bold>* a = normalize a"
+    and bottom_left_bottom [simp]: "\<bottom> \<^bold>* a = \<bottom>"
+begin
+
+lemma left_idem [simp]:
+  "a \<^bold>* (a \<^bold>* b) = a \<^bold>* b"
+  using assoc [of a a b, symmetric] by simp
+
+lemma right_idem [simp]:
+  "(a \<^bold>* b) \<^bold>* b = a \<^bold>* b"
+  using left_idem [of b a] by (simp add: ac_simps)
+
+lemma comp_fun_idem: "comp_fun_idem f"
+  by standard (simp_all add: fun_eq_iff ac_simps)
+
+interpretation comp_fun_idem f
+  by (fact comp_fun_idem)
+
+lemma top_right_normalize [simp]:
+  "a \<^bold>* \<top> = normalize a"
+  using top_left_normalize [of a] by (simp add: ac_simps)
+  
+lemma bottom_right_bottom [simp]:
+  "a \<^bold>* \<bottom> = \<bottom>"
+  using bottom_left_bottom [of a] by (simp add: ac_simps)
+
+lemma normalize_right_idem [simp]:
+  "a \<^bold>* normalize b = a \<^bold>* b"
+  using normalize_left_idem [of b a] by (simp add: ac_simps)
+
+end    
+
+locale bounded_quasi_semilattice_set = bounded_quasi_semilattice
+begin
+
+interpretation comp_fun_idem f
+  by (fact comp_fun_idem)
+
+definition F :: "'a set \<Rightarrow> 'a"
+where
+  eq_fold: "F A = (if finite A then Finite_Set.fold f \<top> A else \<bottom>)"
+
+lemma set_eq_fold [code]:
+  "F (set xs) = fold f xs \<top>"
+  by (simp add: eq_fold fold_set_fold)
+
+lemma infinite [simp]:
+  "infinite A \<Longrightarrow> F A = \<bottom>"
+  by (simp add: eq_fold)
+
+lemma empty [simp]:
+  "F {} = \<top>"
+  by (simp add: eq_fold)
+
+lemma insert [simp]:
+  "F (insert a A) = a \<^bold>* F A"
+  by (cases "finite A") (simp_all add: eq_fold)
+
+lemma normalize [simp]:
+  "normalize (F A) = F A"
+  by (induct A rule: infinite_finite_induct) simp_all
+
+lemma in_idem:
+  assumes "a \<in> A"
+  shows "a \<^bold>* F A = F A"
+  using assms by (induct A rule: infinite_finite_induct)
+    (auto simp add: left_commute [of a])
+
+lemma union:
+  "F (A \<union> B) = F A \<^bold>* F B"
+  by (induct A rule: infinite_finite_induct)
+    (simp_all add: ac_simps)
+
+lemma remove:
+  assumes "a \<in> A"
+  shows "F A = a \<^bold>* F (A - {a})"
+proof -
+  from assms obtain B where "A = insert a B" and "a \<notin> B"
+    by (blast dest: mk_disjoint_insert)
+  with assms show ?thesis by simp
+qed
+
+lemma insert_remove:
+  "F (insert a A) = a \<^bold>* F (A - {a})"
+  by (cases "a \<in> A") (simp_all add: insert_absorb remove)
+
+lemma subset:
+  assumes "B \<subseteq> A"
+  shows "F B \<^bold>* F A = F A"
+  using assms by (simp add: union [symmetric] Un_absorb1)
+  
+end
 
 subsection \<open>Abstract GCD and LCM\<close>
 
@@ -165,25 +267,36 @@ proof
     by (rule associated_eqI) simp_all
 qed
 
-lemma gcd_self [simp]: "gcd a a = normalize a"
-proof -
-  have "a dvd gcd a a"
-    by (rule gcd_greatest) simp_all
-  then show ?thesis
+sublocale gcd: bounded_quasi_semilattice gcd 0 1 normalize
+proof
+  show "gcd a a = normalize a" for a
+  proof -
+    have "a dvd gcd a a"
+      by (rule gcd_greatest) simp_all
+    then show ?thesis
+      by (auto intro: associated_eqI)
+  qed
+  show "gcd (normalize a) b = gcd a b" for a b
+    using gcd_dvd1 [of "normalize a" b]
     by (auto intro: associated_eqI)
-qed
+  show "coprime 1 a" for a
+    by (rule associated_eqI) simp_all
+qed simp_all
+  
+lemma gcd_self: "gcd a a = normalize a"
+  by (fact gcd.idem_normalize)
 
-lemma gcd_left_idem [simp]: "gcd a (gcd a b) = gcd a b"
-  by (auto intro: associated_eqI)
+lemma gcd_left_idem: "gcd a (gcd a b) = gcd a b"
+  by (fact gcd.left_idem)
 
-lemma gcd_right_idem [simp]: "gcd (gcd a b) b = gcd a b"
-  unfolding gcd.commute [of a] gcd.commute [of "gcd b a"] by simp
+lemma gcd_right_idem: "gcd (gcd a b) b = gcd a b"
+  by (fact gcd.right_idem)
 
-lemma coprime_1_left [simp]: "coprime 1 a"
-  by (rule associated_eqI) simp_all
+lemma coprime_1_left: "coprime 1 a"
+  by (fact gcd.bottom_left_bottom)
 
-lemma coprime_1_right [simp]: "coprime a 1"
-  using coprime_1_left [of a] by (simp add: ac_simps)
+lemma coprime_1_right: "coprime a 1"
+  by (fact gcd.bottom_right_bottom)
 
 lemma gcd_mult_left: "gcd (c * a) (c * b) = normalize c * gcd a b"
 proof (cases "c = 0")
@@ -325,19 +438,30 @@ proof
     by (rule associated_eqI) simp_all
 qed
 
-lemma lcm_self [simp]: "lcm a a = normalize a"
-proof -
-  have "lcm a a dvd a"
-    by (rule lcm_least) simp_all
-  then show ?thesis
+sublocale lcm: bounded_quasi_semilattice lcm 1 0 normalize
+proof
+  show "lcm a a = normalize a" for a
+  proof -
+    have "lcm a a dvd a"
+      by (rule lcm_least) simp_all
+    then show ?thesis
+      by (auto intro: associated_eqI)
+  qed
+  show "lcm (normalize a) b = lcm a b" for a b
+    using dvd_lcm1 [of "normalize a" b] unfolding normalize_dvd_iff
     by (auto intro: associated_eqI)
-qed
+  show "lcm 1 a = normalize a" for a
+    by (rule associated_eqI) simp_all
+qed simp_all
 
-lemma lcm_left_idem [simp]: "lcm a (lcm a b) = lcm a b"
-  by (auto intro: associated_eqI)
+lemma lcm_self: "lcm a a = normalize a"
+  by (fact lcm.idem_normalize)
 
-lemma lcm_right_idem [simp]: "lcm (lcm a b) b = lcm a b"
-  unfolding lcm.commute [of a] lcm.commute [of "lcm b a"] by simp
+lemma lcm_left_idem: "lcm a (lcm a b) = lcm a b"
+  by (fact lcm.left_idem)
+
+lemma lcm_right_idem: "lcm (lcm a b) b = lcm a b"
+  by (fact lcm.right_idem)
 
 lemma gcd_mult_lcm [simp]: "gcd a b * lcm a b = normalize a * normalize b"
   by (simp add: lcm_gcd normalize_mult)
@@ -359,11 +483,11 @@ proof -
     using nonzero_mult_div_cancel_right [of "lcm a b" "gcd a b"] by simp
 qed
 
-lemma lcm_1_left [simp]: "lcm 1 a = normalize a"
-  by (simp add: lcm_gcd)
+lemma lcm_1_left: "lcm 1 a = normalize a"
+  by (fact lcm.top_left_normalize)
 
-lemma lcm_1_right [simp]: "lcm a 1 = normalize a"
-  by (simp add: lcm_gcd)
+lemma lcm_1_right: "lcm a 1 = normalize a"
+  by (fact lcm.top_right_normalize)
 
 lemma lcm_mult_left: "lcm (c * a) (c * b) = normalize c * lcm a b"
   by (cases "c = 0")
@@ -450,23 +574,11 @@ lemma lcm_div_unit1:
 lemma lcm_div_unit2: "is_unit a \<Longrightarrow> lcm b (c div a) = lcm b c"
   by (erule is_unitE [of _ c]) (simp add: lcm_mult_unit2)
 
-lemma normalize_lcm_left [simp]: "lcm (normalize a) b = lcm a b"
-proof (cases "a = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  then have "is_unit (unit_factor a)"
-    by simp
-  moreover have "normalize a = a div unit_factor a"
-    by simp
-  ultimately show ?thesis
-    by (simp only: lcm_div_unit1)
-qed
+lemma normalize_lcm_left: "lcm (normalize a) b = lcm a b"
+  by (fact lcm.normalize_left_idem)
 
-lemma normalize_lcm_right [simp]: "lcm a (normalize b) = lcm a b"
-  using normalize_lcm_left [of b a] by (simp add: ac_simps)
+lemma normalize_lcm_right: "lcm a (normalize b) = lcm a b"
+  by (fact lcm.normalize_right_idem)
 
 lemma gcd_mult_unit1: "is_unit a \<Longrightarrow> gcd (b * a) c = gcd b c"
   apply (rule gcdI)
@@ -489,23 +601,11 @@ lemma gcd_div_unit1: "is_unit a \<Longrightarrow> gcd (b div a) c = gcd b c"
 lemma gcd_div_unit2: "is_unit a \<Longrightarrow> gcd b (c div a) = gcd b c"
   by (erule is_unitE [of _ c]) (simp add: gcd_mult_unit2)
 
-lemma normalize_gcd_left [simp]: "gcd (normalize a) b = gcd a b"
-proof (cases "a = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  then have "is_unit (unit_factor a)"
-    by simp
-  moreover have "normalize a = a div unit_factor a"
-    by simp
-  ultimately show ?thesis
-    by (simp only: gcd_div_unit1)
-qed
+lemma normalize_gcd_left: "gcd (normalize a) b = gcd a b"
+  by (fact gcd.normalize_left_idem)
 
-lemma normalize_gcd_right [simp]: "gcd a (normalize b) = gcd a b"
-  using normalize_gcd_left [of b a] by (simp add: ac_simps)
+lemma normalize_gcd_right: "gcd a (normalize b) = gcd a b"
+  by (fact gcd.normalize_right_idem)
 
 lemma comp_fun_idem_gcd: "comp_fun_idem gcd"
   by standard (simp_all add: fun_eq_iff ac_simps)
@@ -942,6 +1042,21 @@ qed
 lemma lcm_proj2_iff: "lcm m n = normalize n \<longleftrightarrow> m dvd n"
   using lcm_proj1_iff [of n m] by (simp add: ac_simps)
 
+lemma lcm_mult_distrib': "normalize c * lcm a b = lcm (c * a) (c * b)"
+  by (rule lcmI) (auto simp: normalize_mult lcm_least mult_dvd_mono lcm_mult_left [symmetric])
+
+lemma lcm_mult_distrib: "k * lcm a b = lcm (k * a) (k * b) * unit_factor k"
+proof-
+  have "normalize k * lcm a b = lcm (k * a) (k * b)"
+    by (simp add: lcm_mult_distrib')
+  then have "normalize k * lcm a b * unit_factor k = lcm (k * a) (k * b) * unit_factor k"
+    by simp
+  then have "normalize k * unit_factor k * lcm a b  = lcm (k * a) (k * b) * unit_factor k"
+    by (simp only: ac_simps)
+  then show ?thesis
+    by simp
+qed
+
 lemma dvd_productE:
   assumes "p dvd (a * b)"
   obtains x y where "p = x * y" "x dvd a" "y dvd b"
@@ -1229,26 +1344,6 @@ next
     by (induct A rule: finite_ne_induct) (auto simp add: lcm_eq_0_iff)
 qed
 
-lemma Gcd_finite:
-  assumes "finite A"
-  shows "Gcd A = Finite_Set.fold gcd 0 A"
-  by (induct rule: finite.induct[OF \<open>finite A\<close>])
-    (simp_all add: comp_fun_idem.fold_insert_idem[OF comp_fun_idem_gcd])
-
-lemma Gcd_set [code_unfold]: "Gcd (set as) = foldl gcd 0 as"
-  by (simp add: Gcd_finite comp_fun_idem.fold_set_fold[OF comp_fun_idem_gcd]
-      foldl_conv_fold gcd.commute)
-
-lemma Lcm_finite:
-  assumes "finite A"
-  shows "Lcm A = Finite_Set.fold lcm 1 A"
-  by (induct rule: finite.induct[OF \<open>finite A\<close>])
-    (simp_all add: comp_fun_idem.fold_insert_idem[OF comp_fun_idem_lcm])
-
-lemma Lcm_set [code_unfold]: "Lcm (set as) = foldl lcm 1 as"
-  by (simp add: Lcm_finite comp_fun_idem.fold_set_fold[OF comp_fun_idem_lcm]
-      foldl_conv_fold lcm.commute)
-
 lemma Gcd_image_normalize [simp]: "Gcd (normalize ` A) = Gcd A"
 proof -
   have "Gcd (normalize ` A) dvd a" if "a \<in> A" for a
@@ -1432,6 +1527,145 @@ lemma pairwise_coprime_subset: "pairwise_coprime A \<Longrightarrow> B \<subsete
 
 end
 
+  
+subsection \<open>An aside: GCD and LCM on finite sets for incomplete gcd rings\<close>
+
+context semiring_gcd
+begin
+
+sublocale Gcd_fin: bounded_quasi_semilattice_set gcd 0 1 normalize
+defines
+  Gcd_fin ("Gcd\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = "Gcd_fin.F :: 'a set \<Rightarrow> 'a" ..
+
+abbreviation gcd_list :: "'a list \<Rightarrow> 'a"
+  where "gcd_list xs \<equiv> Gcd\<^sub>f\<^sub>i\<^sub>n (set xs)"
+
+sublocale Lcm_fin: bounded_quasi_semilattice_set lcm 1 0 normalize
+defines
+  Lcm_fin ("Lcm\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = Lcm_fin.F ..
+
+abbreviation lcm_list :: "'a list \<Rightarrow> 'a"
+  where "lcm_list xs \<equiv> Lcm\<^sub>f\<^sub>i\<^sub>n (set xs)"
+    
+lemma Gcd_fin_dvd:
+  "a \<in> A \<Longrightarrow> Gcd\<^sub>f\<^sub>i\<^sub>n A dvd a"
+  by (induct A rule: infinite_finite_induct) 
+    (auto intro: dvd_trans)
+
+lemma dvd_Lcm_fin:
+  "a \<in> A \<Longrightarrow> a dvd Lcm\<^sub>f\<^sub>i\<^sub>n A"
+  by (induct A rule: infinite_finite_induct) 
+    (auto intro: dvd_trans)
+
+lemma Gcd_fin_greatest:
+  "a dvd Gcd\<^sub>f\<^sub>i\<^sub>n A" if "finite A" and "\<And>b. b \<in> A \<Longrightarrow> a dvd b"
+  using that by (induct A) simp_all
+
+lemma Lcm_fin_least:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n A dvd a" if "finite A" and "\<And>b. b \<in> A \<Longrightarrow> b dvd a"
+  using that by (induct A) simp_all
+
+lemma gcd_list_greatest:
+  "a dvd gcd_list bs" if "\<And>b. b \<in> set bs \<Longrightarrow> a dvd b"
+  by (rule Gcd_fin_greatest) (simp_all add: that)
+
+lemma lcm_list_least:
+  "lcm_list bs dvd a" if "\<And>b. b \<in> set bs \<Longrightarrow> b dvd a"
+  by (rule Lcm_fin_least) (simp_all add: that)
+
+lemma dvd_Gcd_fin_iff:
+  "b dvd Gcd\<^sub>f\<^sub>i\<^sub>n A \<longleftrightarrow> (\<forall>a\<in>A. b dvd a)" if "finite A"
+  using that by (auto intro: Gcd_fin_greatest Gcd_fin_dvd dvd_trans [of b "Gcd\<^sub>f\<^sub>i\<^sub>n A"])
+
+lemma dvd_gcd_list_iff:
+  "b dvd gcd_list xs \<longleftrightarrow> (\<forall>a\<in>set xs. b dvd a)"
+  by (simp add: dvd_Gcd_fin_iff)
+  
+lemma Lcm_fin_dvd_iff:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n A dvd b  \<longleftrightarrow> (\<forall>a\<in>A. a dvd b)" if "finite A"
+  using that by (auto intro: Lcm_fin_least dvd_Lcm_fin dvd_trans [of _ "Lcm\<^sub>f\<^sub>i\<^sub>n A" b])
+
+lemma lcm_list_dvd_iff:
+  "lcm_list xs dvd b  \<longleftrightarrow> (\<forall>a\<in>set xs. a dvd b)"
+  by (simp add: Lcm_fin_dvd_iff)
+
+lemma Gcd_fin_mult:
+  "Gcd\<^sub>f\<^sub>i\<^sub>n (image (times b) A) = normalize b * Gcd\<^sub>f\<^sub>i\<^sub>n A" if "finite A"
+using that proof induct
+  case empty
+  then show ?case
+    by simp
+next
+  case (insert a A)
+  have "gcd (b * a) (b * Gcd\<^sub>f\<^sub>i\<^sub>n A) = gcd (b * a) (normalize (b * Gcd\<^sub>f\<^sub>i\<^sub>n A))"
+    by simp
+  also have "\<dots> = gcd (b * a) (normalize b * Gcd\<^sub>f\<^sub>i\<^sub>n A)"
+    by (simp add: normalize_mult)
+  finally show ?case
+    using insert by (simp add: gcd_mult_distrib')
+qed
+
+lemma Lcm_fin_mult:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n (image (times b) A) = normalize b * Lcm\<^sub>f\<^sub>i\<^sub>n A" if "A \<noteq> {}"
+proof (cases "b = 0")
+  case True
+  moreover from that have "times 0 ` A = {0}"
+    by auto
+  ultimately show ?thesis
+    by simp
+next
+  case False
+  then have "inj (times b)"
+    by (rule inj_times)
+  show ?thesis proof (cases "finite A")
+    case False
+    moreover from \<open>inj (times b)\<close>
+    have "inj_on (times b) A"
+      by (rule inj_on_subset) simp
+    ultimately have "infinite (times b ` A)"
+      by (simp add: finite_image_iff)
+    with False show ?thesis
+      by simp
+  next
+    case True
+    then show ?thesis using that proof (induct A rule: finite_ne_induct)
+      case (singleton a)
+      then show ?case
+        by (simp add: normalize_mult)
+    next
+      case (insert a A)
+      have "lcm (b * a) (b * Lcm\<^sub>f\<^sub>i\<^sub>n A) = lcm (b * a) (normalize (b * Lcm\<^sub>f\<^sub>i\<^sub>n A))"
+        by simp
+      also have "\<dots> = lcm (b * a) (normalize b * Lcm\<^sub>f\<^sub>i\<^sub>n A)"
+        by (simp add: normalize_mult)
+      finally show ?case
+        using insert by (simp add: lcm_mult_distrib')
+    qed
+  qed
+qed
+
+end
+
+context semiring_Gcd
+begin
+
+lemma Gcd_fin_eq_Gcd [simp]:
+  "Gcd\<^sub>f\<^sub>i\<^sub>n A = Gcd A" if "finite A" for A :: "'a set"
+  using that by induct simp_all
+
+lemma Gcd_set_eq_fold [code_unfold]:
+  "Gcd (set xs) = fold gcd xs 0"
+  by (simp add: Gcd_fin.set_eq_fold [symmetric])
+
+lemma Lcm_fin_eq_Lcm [simp]:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n A = Lcm A" if "finite A" for A :: "'a set"
+  using that by induct simp_all
+
+lemma Lcm_set_eq_fold [code_unfold]:
+  "Lcm (set xs) = fold lcm xs 1"
+  by (simp add: Lcm_fin.set_eq_fold [symmetric])
+
+end
 
 subsection \<open>GCD and LCM on @{typ nat} and @{typ int}\<close>
 
@@ -2514,11 +2748,10 @@ code_printing
 
 text \<open>Some code equations\<close>
 
-lemmas Lcm_set_nat [code, code_unfold] = Lcm_set[where ?'a = nat]
-lemmas Gcd_set_nat [code] = Gcd_set[where ?'a = nat]
-lemmas Lcm_set_int [code, code_unfold] = Lcm_set[where ?'a = int]
-lemmas Gcd_set_int [code] = Gcd_set[where ?'a = int]
-
+lemmas Gcd_nat_set_eq_fold [code] = Gcd_set_eq_fold [where ?'a = nat]
+lemmas Lcm_nat_set_eq_fold [code] = Lcm_set_eq_fold [where ?'a = nat]
+lemmas Gcd_int_set_eq_fold [code] = Gcd_set_eq_fold [where ?'a = int]
+lemmas Lcm_int_set_eq_fold [code] = Lcm_set_eq_fold [where ?'a = int]
 
 text \<open>Fact aliases.\<close>
 

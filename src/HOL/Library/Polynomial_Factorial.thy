@@ -981,12 +981,9 @@ lemma lcm_poly_code [code]:
   shows "lcm p q = normalize (p * q) div gcd p q"
   by (fact lcm_gcd)
 
-declare Gcd_set
-  [where ?'a = "'a :: factorial_ring_gcd poly", code]
-
-declare Lcm_set
-  [where ?'a = "'a :: factorial_ring_gcd poly", code]
-
+lemmas Gcd_poly_set_eq_fold [code] = Gcd_set_eq_fold [where ?'a = "'a :: factorial_ring_gcd poly"]
+lemmas Lcm_poly_set_eq_fold [code] = Lcm_set_eq_fold [where ?'a = "'a :: factorial_ring_gcd poly"]
+  
 text \<open>Example:
   @{lemma "Lcm {[:1, 2, 3:], [:2, 3, 4:]} = [:[:2:], [:7:], [:16:], [:17:], [:12 :: int:]:]" by eval}
 \<close>

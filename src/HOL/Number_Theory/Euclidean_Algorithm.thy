@@ -254,12 +254,12 @@ proof -
 qed
 
 lemma Gcd_eucl_set [code]:
-  "Gcd (set xs) = foldl gcd 0 xs"
-  by (fact local.Gcd_set)
+  "Gcd (set xs) = fold gcd xs 0"
+  by (fact Gcd_set_eq_fold)
 
 lemma Lcm_eucl_set [code]:
-  "Lcm (set xs) = foldl lcm 1 xs"
-  by (fact local.Lcm_set)
+  "Lcm (set xs) = fold lcm xs 1"
+  by (fact Lcm_set_eq_fold)
  
 end
 
