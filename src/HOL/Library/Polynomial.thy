@@ -17,14 +17,13 @@ subsection \<open>Misc\<close>
 lemma quotient_of_denom_pos': "snd (quotient_of x) > 0"
   using quotient_of_denom_pos [OF surjective_pairing] .
   
-lemma of_int_divide_in_Ints: 
-  "b dvd a \<Longrightarrow> of_int a div of_int b \<in> (\<int> :: 'a :: idom_divide set)"
-proof (cases "of_int b = (0 :: 'a)")
-  case False
-  assume "b dvd a"
-  then obtain c where "a = b * c" ..
-  with \<open>of_int b \<noteq> (0::'a)\<close> show ?thesis by simp
-qed auto
+lemma (in idom_divide) of_int_divide_in_Ints: 
+  "of_int a div of_int b \<in> \<int>" if "b dvd a"
+proof -
+  from that obtain c where "a = b * c" ..
+  then show ?thesis
+    by (cases "of_int b = 0") simp_all
+qed
 
   
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>
@@ -3423,59 +3422,104 @@ next
       by force
 qed
 
-instantiation poly :: ("{normalization_semidom, idom_divide}") normalization_semidom
+instantiation poly :: ("{semidom_divide_unit_factor, idom_divide}") normalization_semidom
 begin
 
 definition unit_factor_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "unit_factor_poly p = monom (unit_factor (lead_coeff p)) 0"
+  where "unit_factor_poly p = [:unit_factor (lead_coeff p):]"
 
 definition normalize_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "normalize_poly p = map_poly (\<lambda>x. x div unit_factor (lead_coeff p)) p"
+  where "normalize p = p div [:unit_factor (lead_coeff p):]"
 
 instance proof
   fix p :: "'a poly"
   show "unit_factor p * normalize p = p"
-    by (cases "p = 0")
-       (simp_all add: unit_factor_poly_def normalize_poly_def monom_0 
-          smult_conv_map_poly map_poly_map_poly o_def)
+  proof (cases "p = 0")
+    case True
+    then show ?thesis
+      by (simp add: unit_factor_poly_def normalize_poly_def)
+  next
+    case False
+    then have "lead_coeff p \<noteq> 0"
+      by simp
+    then have *: "unit_factor (lead_coeff p) \<noteq> 0"
+      using unit_factor_is_unit [of "lead_coeff p"] by auto
+    then have "unit_factor (lead_coeff p) dvd 1"
+      by (auto intro: unit_factor_is_unit)
+    then have **: "unit_factor (lead_coeff p) dvd c" for c
+      by (rule dvd_trans) simp
+    have ***: "unit_factor (lead_coeff p) * (c div unit_factor (lead_coeff p)) = c" for c
+    proof -
+      from ** obtain b where "c = unit_factor (lead_coeff p) * b" ..
+      then show ?thesis
+        using False * by simp
+    qed
+    have "p div [:unit_factor (lead_coeff p):] =
+      map_poly (\<lambda>c. c div unit_factor (lead_coeff p)) p"
+      by (simp add: const_poly_dvd_iff div_const_poly_conv_map_poly **)
+    then show ?thesis
+      by (simp add: normalize_poly_def unit_factor_poly_def
+        smult_conv_map_poly map_poly_map_poly o_def ***)
+  qed
 next
   fix p :: "'a poly"
   assume "is_unit p"
-  then obtain c where p: "p = [:c:]" "is_unit c"
+  then obtain c where p: "p = [:c:]" "c dvd 1"
     by (auto simp: is_unit_poly_iff)
-  thus "normalize p = 1"
-    by (simp add: normalize_poly_def map_poly_pCons is_unit_normalize one_poly_def)
+  then show "unit_factor p = p"
+    by (simp add: unit_factor_poly_def monom_0 is_unit_unit_factor)
 next
   fix p :: "'a poly" assume "p \<noteq> 0"
-  thus "is_unit (unit_factor p)"
-    by (simp add: unit_factor_poly_def monom_0 is_unit_poly_iff)
+  then show "is_unit (unit_factor p)"
+    by (simp add: unit_factor_poly_def monom_0 is_unit_poly_iff unit_factor_is_unit)
 qed (simp_all add: normalize_poly_def unit_factor_poly_def monom_0 lead_coeff_mult unit_factor_mult)
 
 end
 
-lemma normalize_poly_eq_div:
-  "normalize p = p div [:unit_factor (lead_coeff p):]"
-proof (cases "p = 0")
-  case False
-  thus ?thesis
-    by (subst div_const_poly_conv_map_poly)
-       (auto simp: normalize_poly_def const_poly_dvd_iff)
-qed (auto simp: normalize_poly_def)
+lemma normalize_poly_eq_map_poly:
+  "normalize p = map_poly (\<lambda>x. x div unit_factor (lead_coeff p)) p"
+proof -
+  have "[:unit_factor (lead_coeff p):] dvd p"
+    by (metis unit_factor_poly_def unit_factor_self)
+  then show ?thesis
+    by (simp add: normalize_poly_def div_const_poly_conv_map_poly)
+qed
+
+lemma coeff_normalize [simp]:
+  "coeff (normalize p) n = coeff p n div unit_factor (lead_coeff p)"
+  by (simp add: normalize_poly_eq_map_poly coeff_map_poly)
+
+class field_unit_factor = field + unit_factor +
+  assumes unit_factor_field [simp]: "unit_factor = id"
+begin
+
+subclass semidom_divide_unit_factor
+proof
+  fix a
+  assume "a \<noteq> 0"
+  then have "1 = a * inverse a"
+    by simp
+  then have "a dvd 1" ..
+  then show "unit_factor a dvd 1"
+    by simp
+qed simp_all
+
+end
 
 lemma unit_factor_pCons:
-  "unit_factor (pCons a p) = (if p = 0 then monom (unit_factor a) 0 else unit_factor p)"
+  "unit_factor (pCons a p) = (if p = 0 then [:unit_factor a:] else unit_factor p)"
   by (simp add: unit_factor_poly_def)
 
 lemma normalize_monom [simp]:
   "normalize (monom a n) = monom (normalize a) n"
-  by (cases "a = 0") (simp_all add: map_poly_monom normalize_poly_def degree_monom_eq)
+  by (cases "a = 0") (simp_all add: map_poly_monom normalize_poly_eq_map_poly degree_monom_eq)
 
 lemma unit_factor_monom [simp]:
-  "unit_factor (monom a n) = monom (unit_factor a) 0"
+  "unit_factor (monom a n) = [:unit_factor a:]"
   by (cases "a = 0") (simp_all add: unit_factor_poly_def degree_monom_eq)
 
 lemma normalize_const_poly: "normalize [:c:] = [:normalize c:]"
-  by (simp add: normalize_poly_def map_poly_pCons)
+  by (simp add: normalize_poly_eq_map_poly map_poly_pCons)
 
 lemma normalize_smult: "normalize (smult c p) = smult (normalize c) (normalize p)"
 proof -

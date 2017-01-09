@@ -1156,15 +1156,20 @@ lemma div_mult_unit2:
 
 end
 
-class normalization_semidom = algebraic_semidom +
+class unit_factor =
+  fixes unit_factor :: "'a \<Rightarrow> 'a"
+
+class semidom_divide_unit_factor = semidom_divide + unit_factor +
+  assumes unit_factor_0 [simp]: "unit_factor 0 = 0"
+    and is_unit_unit_factor: "a dvd 1 \<Longrightarrow> unit_factor a = a"
+    and unit_factor_is_unit: "a \<noteq> 0 \<Longrightarrow> unit_factor a dvd 1"
+    and unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
+  -- \<open>This fine-grained hierarchy will later on allow lean normalization of polynomials\<close>
+  
+class normalization_semidom = algebraic_semidom + semidom_divide_unit_factor +
   fixes normalize :: "'a \<Rightarrow> 'a"
-    and unit_factor :: "'a \<Rightarrow> 'a"
   assumes unit_factor_mult_normalize [simp]: "unit_factor a * normalize a = a"
     and normalize_0 [simp]: "normalize 0 = 0"
-    and unit_factor_0 [simp]: "unit_factor 0 = 0"
-    and is_unit_normalize: "is_unit a  \<Longrightarrow> normalize a = 1"
-    and unit_factor_is_unit [iff]: "a \<noteq> 0 \<Longrightarrow> is_unit (unit_factor a)"
-    and unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
 begin
 
 text \<open>
@@ -1176,6 +1181,8 @@ text \<open>
   think about equality of normalized values rather than associated elements.
 \<close>
 
+declare unit_factor_is_unit [iff]
+  
 lemma unit_factor_dvd [simp]: "a \<noteq> 0 \<Longrightarrow> unit_factor a dvd b"
   by (rule unit_imp_dvd) simp
 
@@ -1207,13 +1214,45 @@ next
   then show ?lhs by simp
 qed
 
-lemma is_unit_unit_factor:
+lemma div_unit_factor [simp]: "a div unit_factor a = normalize a"
+proof (cases "a = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then have "unit_factor a \<noteq> 0"
+    by simp
+  with nonzero_mult_div_cancel_left
+  have "unit_factor a * normalize a div unit_factor a = normalize a"
+    by blast
+  then show ?thesis by simp
+qed
+
+lemma normalize_div [simp]: "normalize a div a = 1 div unit_factor a"
+proof (cases "a = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  have "normalize a div a = normalize a div (unit_factor a * normalize a)"
+    by simp
+  also have "\<dots> = 1 div unit_factor a"
+    using False by (subst is_unit_div_mult_cancel_right) simp_all
+  finally show ?thesis .
+qed
+
+lemma is_unit_normalize:
   assumes "is_unit a"
-  shows "unit_factor a = a"
+  shows "normalize a = 1"
 proof -
-  from assms have "normalize a = 1" by (rule is_unit_normalize)
-  moreover from unit_factor_mult_normalize have "unit_factor a * normalize a = a" .
-  ultimately show ?thesis by simp
+  from assms have "unit_factor a = a"
+    by (rule is_unit_unit_factor)
+  moreover from assms have "a \<noteq> 0"
+    by auto
+  moreover have "normalize a = a div unit_factor a"
+    by simp
+  ultimately show ?thesis
+    by simp
 qed
 
 lemma unit_factor_1 [simp]: "unit_factor 1 = 1"
@@ -1249,32 +1288,6 @@ next
   with nonzero_mult_div_cancel_right
   have "unit_factor a * normalize a div normalize a = unit_factor a" by blast
   then show ?thesis by simp
-qed
-
-lemma div_unit_factor [simp]: "a div unit_factor a = normalize a"
-proof (cases "a = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then have "unit_factor a \<noteq> 0" by simp
-  with nonzero_mult_div_cancel_left
-  have "unit_factor a * normalize a div unit_factor a = normalize a"
-    by blast
-  then show ?thesis by simp
-qed
-
-lemma normalize_div [simp]: "normalize a div a = 1 div unit_factor a"
-proof (cases "a = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  have "normalize a div a = normalize a div (unit_factor a * normalize a)"
-    by simp
-  also have "\<dots> = 1 div unit_factor a"
-    using False by (subst is_unit_div_mult_cancel_right) simp_all
-  finally show ?thesis .
 qed
 
 lemma mult_one_div_unit_factor [simp]: "a * (1 div unit_factor b) = a div unit_factor b"
@@ -1822,6 +1835,14 @@ lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
 
 proposition abs_eq_iff: "\<bar>x\<bar> = \<bar>y\<bar> \<longleftrightarrow> x = y \<or> x = -y"
   by (auto simp add: abs_if split: if_split_asm)
+
+lemma abs_eq_iff':
+  "\<bar>a\<bar> = b \<longleftrightarrow> b \<ge> 0 \<and> (a = b \<or> a = - b)"
+  by (cases "a \<ge> 0") auto
+
+lemma eq_abs_iff':
+  "a = \<bar>b\<bar> \<longleftrightarrow> a \<ge> 0 \<and> (b = a \<or> b = - a)"
+  using abs_eq_iff' [of b a] by auto
 
 lemma sum_squares_ge_zero: "0 \<le> x * x + y * y"
   by (intro add_nonneg_nonneg zero_le_square)

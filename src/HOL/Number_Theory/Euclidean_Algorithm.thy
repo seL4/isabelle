@@ -71,7 +71,7 @@ end
 
 lemma semiring_gcd:
   "class.semiring_gcd one zero times gcd lcm
-    divide plus minus normalize unit_factor"
+    divide plus minus unit_factor normalize"
 proof
   show "gcd a b dvd a"
     and "gcd a b dvd b" for a b
@@ -97,12 +97,12 @@ next
 qed
 
 interpretation semiring_gcd one zero times gcd lcm
-  divide plus minus normalize unit_factor
+  divide plus minus unit_factor normalize
   by (fact semiring_gcd)
   
 lemma semiring_Gcd:
   "class.semiring_Gcd one zero times gcd lcm Gcd Lcm
-    divide plus minus normalize unit_factor"
+    divide plus minus unit_factor normalize"
 proof -
   show ?thesis
   proof
@@ -180,13 +180,13 @@ proof -
 qed
 
 interpretation semiring_Gcd one zero times gcd lcm Gcd Lcm
-    divide plus minus normalize unit_factor
+    divide plus minus unit_factor normalize
   by (fact semiring_Gcd)
 
 subclass factorial_semiring
 proof -
   show "class.factorial_semiring divide plus minus zero times one
-     normalize unit_factor"
+     unit_factor normalize"
   proof (standard, rule factorial_semiring_altI_aux) -- \<open>FIXME rule\<close>
     fix x assume "x \<noteq> 0"
     thus "finite {p. p dvd x \<and> normalize p = p}"
@@ -406,7 +406,7 @@ proof
   interpret semiring_Gcd 1 0 times
     Euclidean_Algorithm.gcd Euclidean_Algorithm.lcm
     Euclidean_Algorithm.Gcd Euclidean_Algorithm.Lcm
-    divide plus minus normalize unit_factor
+    divide plus minus unit_factor normalize
     rewrites "dvd.dvd op * = Rings.dvd"
     by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
   show [simp]: "Euclidean_Algorithm.gcd = (gcd :: 'a \<Rightarrow> _)"
@@ -558,7 +558,7 @@ proof
   interpret semiring_Gcd 1 0 times
     "Euclidean_Algorithm.gcd" "Euclidean_Algorithm.lcm"
     "Euclidean_Algorithm.Gcd" "Euclidean_Algorithm.Lcm"
-    divide plus minus normalize unit_factor
+    divide plus minus unit_factor normalize
     rewrites "dvd.dvd op * = Rings.dvd"
     by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
   show [simp]: "(Euclidean_Algorithm.gcd :: nat \<Rightarrow> _) = gcd"
@@ -590,7 +590,7 @@ proof
   interpret semiring_Gcd 1 0 times
     "Euclidean_Algorithm.gcd" "Euclidean_Algorithm.lcm"
     "Euclidean_Algorithm.Gcd" "Euclidean_Algorithm.Lcm"
-    divide plus minus normalize unit_factor
+    divide plus minus unit_factor normalize
     rewrites "dvd.dvd op * = Rings.dvd"
     by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
   show [simp]: "(Euclidean_Algorithm.gcd :: int \<Rightarrow> _) = gcd"

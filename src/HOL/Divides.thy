@@ -1812,7 +1812,7 @@ next
   assume "l \<noteq> 0"
   then show "k * l div l = k"
     by (auto simp add: eucl_rel_int_iff ac_simps intro: div_int_unique [of _ _ _ 0])
-qed (simp_all add: sgn_mult mult_sgn_abs abs_sgn_eq)
+qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
 
 end
 

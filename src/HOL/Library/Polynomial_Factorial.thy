@@ -520,8 +520,8 @@ proof (standard, unfold dvd_field_poly)
        (simp_all add: unit_factor_field_poly_def normalize_field_poly_def)
 next
   fix p :: "'a poly" assume "is_unit p"
-  thus "normalize_field_poly p = 1"
-    by (elim is_unit_polyE) (auto simp: normalize_field_poly_def monom_0 one_poly_def field_simps)
+  then show "unit_factor_field_poly p = p"
+    by (elim is_unit_polyE) (auto simp: unit_factor_field_poly_def monom_0 one_poly_def field_simps)
 next
   fix p :: "'a poly" assume "p \<noteq> 0"
   thus "is_unit (unit_factor_field_poly p)"
@@ -566,7 +566,7 @@ lemma field_poly_in_prime_factorization_imp_prime:
 proof -
   have A: "class.comm_semiring_1 op * 1 op + (0 :: 'a poly)" ..
   have B: "class.normalization_semidom op div op + op - (0 :: 'a poly) op * 1 
-             normalize_field_poly unit_factor_field_poly" ..
+             unit_factor_field_poly normalize_field_poly" ..
   from field_poly.in_prime_factors_imp_prime [of p x] assms
     show ?thesis unfolding prime_elem_def dvd_field_poly
       comm_semiring_1.prime_elem_def[OF A] normalization_semidom.prime_def[OF B] by blast

@@ -225,7 +225,7 @@ lemma of_nat_of_integer [simp]:
   "of_nat (nat_of_integer k) = max 0 k"
   by transfer auto
 
-instantiation integer :: "{ring_div, normalization_semidom}"
+instantiation integer :: normalization_semidom
 begin
 
 lift_definition normalize_integer :: "integer \<Rightarrow> integer"
@@ -245,7 +245,16 @@ lift_definition divide_integer :: "integer \<Rightarrow> integer \<Rightarrow> i
   .
 
 declare divide_integer.rep_eq [simp]
+  
+instance
+  by (standard; transfer)
+    (auto simp add: mult_sgn_abs sgn_mult abs_eq_iff')
 
+end
+
+instantiation integer :: ring_div
+begin
+  
 lift_definition modulo_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
   is "modulo :: int \<Rightarrow> int \<Rightarrow> int"
   .
@@ -253,7 +262,7 @@ lift_definition modulo_integer :: "integer \<Rightarrow> integer \<Rightarrow> i
 declare modulo_integer.rep_eq [simp]
 
 instance
-  by standard (transfer, simp add: mult_sgn_abs sgn_mult)+
+  by (standard; transfer) simp_all
 
 end
 
