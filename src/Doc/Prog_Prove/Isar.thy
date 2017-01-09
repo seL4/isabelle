@@ -109,7 +109,7 @@ rule, in the above case for @{text"\<not>"}:
 {\mbox{@{thm (concl) notI}}}
 \]
 In order to prove @{prop"~ P"}, assume @{text P} and show @{text False}.
-Thus we may assume @{prop"surj f"}. The proof shows that names of propositions
+Thus we may assume \mbox{\noquotes{@{prop [source] "surj f"}}}. The proof shows that names of propositions
 may be (single!) digits --- meaningful names are hard to invent and are often
 not necessary. Both \isacom{have} steps are obvious. The second one introduces
 the diagonal set @{term"{x. x \<notin> f x}"}, the key idea in the proof.
@@ -178,7 +178,7 @@ behind the proposition.
 \subsection{Structured Lemma Statements: \indexed{\isacom{fixes}}{fixes}, \indexed{\isacom{assumes}}{assumes}, \indexed{\isacom{shows}}{shows}}
 \index{lemma@\isacom{lemma}}
 Lemmas can also be stated in a more structured fashion. To demonstrate this
-feature with Cantor's theorem, we rephrase @{prop"\<not> surj f"}
+feature with Cantor's theorem, we rephrase \noquotes{@{prop[source]"\<not> surj f"}}
 a little:
 *}
 
@@ -193,8 +193,8 @@ formula with a type constraint. The key advantage of the structured format is
 the \isacom{assumes} part that allows you to name each assumption; multiple
 assumptions can be separated by \isacom{and}. The
 \isacom{shows} part gives the goal. The actual theorem that will come out of
-the proof is @{prop"surj f \<Longrightarrow> False"}, but during the proof the assumption
-@{prop"surj f"} is available under the name @{text s} like any other fact.
+the proof is \noquotes{@{prop[source]"surj f \<Longrightarrow> False"}}, but during the proof the assumption
+\noquotes{@{prop[source]"surj f"}} is available under the name @{text s} like any other fact.
 *}
 
 proof -
@@ -210,8 +210,8 @@ It is the null method that does nothing to the goal. Leaving it out would be ask
 Isabelle to try some suitable introduction rule on the goal @{const False} --- but
 there is no such rule and \isacom{proof} would fail.
 \end{warn}
-In the \isacom{have} step the assumption @{prop"surj f"} is now
-referenced by its name @{text s}. The duplication of @{prop"surj f"} in the
+In the \isacom{have} step the assumption \noquotes{@{prop[source]"surj f"}} is now
+referenced by its name @{text s}. The duplication of \noquotes{@{prop[source]"surj f"}} in the
 above proofs (once in the statement of the lemma, once in its proof) has been
 eliminated.
 
