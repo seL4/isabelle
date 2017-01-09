@@ -372,11 +372,16 @@ qed
 
 lemma length_coeffs: "p \<noteq> 0 \<Longrightarrow> length (coeffs p) = degree p + 1"
   by (simp add: coeffs_def)
-  
+
 lemma coeffs_nth:
   assumes "p \<noteq> 0" "n \<le> degree p"
   shows   "coeffs p ! n = coeff p n"
   using assms unfolding coeffs_def by (auto simp del: upt_Suc)
+
+lemma coeff_in_coeffs:
+  "p \<noteq> 0 \<Longrightarrow> n \<le> degree p \<Longrightarrow> coeff p n \<in> set (coeffs p)"
+  using coeffs_nth [of p n, symmetric]
+  by (simp add: length_coeffs)
 
 lemma not_0_cCons_eq [simp]:
   "p \<noteq> 0 \<Longrightarrow> a ## coeffs p = a # coeffs p"
@@ -2853,8 +2858,12 @@ qed
 
 subsection \<open>Content and primitive part of a polynomial\<close>
 
-definition content :: "('a :: semiring_Gcd poly) \<Rightarrow> 'a" where
-  "content p = Gcd (set (coeffs p))"
+definition content :: "('a :: semiring_gcd poly) \<Rightarrow> 'a" where
+  "content p = gcd_list (coeffs p)"
+
+lemma content_eq_fold_coeffs [code]:
+  "content p = fold_coeffs gcd p 0"
+  by (simp add: content_def Gcd_fin.set_eq_fold fold_coeffs_def foldr_fold fun_eq_iff ac_simps)
 
 lemma content_0 [simp]: "content 0 = 0"
   by (simp add: content_def)
@@ -2866,7 +2875,7 @@ lemma content_const [simp]: "content [:c:] = normalize c"
   by (simp add: content_def cCons_def)
 
 lemma const_poly_dvd_iff_dvd_content:
-  fixes c :: "'a :: semiring_Gcd"
+  fixes c :: "'a :: semiring_gcd"
   shows "[:c:] dvd p \<longleftrightarrow> c dvd content p"
 proof (cases "p = 0")
   case [simp]: False
@@ -2878,8 +2887,7 @@ proof (cases "p = 0")
       by (cases "n \<le> degree p") (auto simp: coeff_eq_0 coeffs_def split: if_splits)
   qed (auto simp: coeffs_def simp del: upt_Suc split: if_splits)
   also have "\<dots> \<longleftrightarrow> c dvd content p"
-    by (simp add: content_def dvd_Gcd_iff mult.commute [of "unit_factor x" for x]
-          dvd_mult_unit_iff)
+    by (simp add: content_def dvd_Gcd_fin_iff dvd_mult_unit_iff)
   finally show ?thesis .
 qed simp_all
 
@@ -2887,11 +2895,19 @@ lemma content_dvd [simp]: "[:content p:] dvd p"
   by (subst const_poly_dvd_iff_dvd_content) simp_all
   
 lemma content_dvd_coeff [simp]: "content p dvd coeff p n"
-  by (cases "n \<le> degree p") 
-     (auto simp: content_def coeffs_def not_le coeff_eq_0 simp del: upt_Suc intro: Gcd_dvd)
-
+proof (cases "p = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then show ?thesis
+    by (cases "n \<le> degree p")
+      (auto simp add: content_def not_le coeff_eq_0 coeff_in_coeffs intro: Gcd_fin_dvd)
+qed
+  
 lemma content_dvd_coeffs: "c \<in> set (coeffs p) \<Longrightarrow> content p dvd c"
-  by (simp add: content_def Gcd_dvd)
+  by (simp add: content_def Gcd_fin_dvd)
 
 lemma normalize_content [simp]: "normalize (content p) = content p"
   by (simp add: content_def)
@@ -2904,19 +2920,19 @@ proof
 qed auto
 
 lemma content_smult [simp]: "content (smult c p) = normalize c * content p"
-  by (simp add: content_def coeffs_smult Gcd_mult)
+  by (simp add: content_def coeffs_smult Gcd_fin_mult)
 
 lemma content_eq_zero_iff [simp]: "content p = 0 \<longleftrightarrow> p = 0"
   by (auto simp: content_def simp: poly_eq_iff coeffs_def)
 
-definition primitive_part :: "'a :: {semiring_Gcd,idom_divide} poly \<Rightarrow> 'a poly" where
-  "primitive_part p = (if p = 0 then 0 else map_poly (\<lambda>x. x div content p) p)"
-  
+definition primitive_part :: "'a :: semiring_gcd poly \<Rightarrow> 'a poly" where
+  "primitive_part p = map_poly (\<lambda>x. x div content p) p"
+
 lemma primitive_part_0 [simp]: "primitive_part 0 = 0"
   by (simp add: primitive_part_def)
 
 lemma content_times_primitive_part [simp]:
-  fixes p :: "'a :: {idom_divide, semiring_Gcd} poly"
+  fixes p :: "'a :: semiring_gcd poly"
   shows "smult (content p) (primitive_part p) = p"
 proof (cases "p = 0")
   case False
@@ -2941,13 +2957,18 @@ lemma content_primitive_part [simp]:
   shows   "content (primitive_part p) = 1"
 proof -
   have "p = smult (content p) (primitive_part p)" by simp
-  also have "content \<dots> = content p * content (primitive_part p)" 
-    by (simp del: content_times_primitive_part)
-  finally show ?thesis using assms by simp
+  also have "content \<dots> = content (primitive_part p) * content p" 
+    by (simp del: content_times_primitive_part add: ac_simps)
+  finally have "1 * content p = content (primitive_part p) * content p"
+    by simp
+  then have "1 * content p div content p = content (primitive_part p) * content p div content p"
+    by simp
+  with assms show ?thesis
+    by simp
 qed
 
 lemma content_decompose:
-  fixes p :: "'a :: semiring_Gcd poly"
+  fixes p :: "'a :: semiring_gcd poly"
   obtains p' where "p = smult (content p) p'" "content p' = 1"
 proof (cases "p = 0")
   case True
