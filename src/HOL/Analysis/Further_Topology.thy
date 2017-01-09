@@ -3037,7 +3037,7 @@ lemma not_simply_connected_circle:
   shows "0 < r \<Longrightarrow> \<not> simply_connected(sphere a r)"
 by (simp add: simply_connected_sphere_eq)
 
-  
+
 proposition simply_connected_punctured_convex:
   fixes a :: "'a::euclidean_space"
   assumes "convex S" and 3: "3 \<le> aff_dim S"
@@ -4100,8 +4100,8 @@ qed
 
 subsection\<open>The "Borsukian" property of sets\<close>
 
-text\<open>This doesn't have a standard name. Kuratowski uses "contractible with respect to [S^1]"
- while Whyburn uses "property b". It's closely related to unicoherence.\<close>
+text\<open>This doesn't have a standard name. Kuratowski uses ``contractible with respect to $[S^1]$''
+ while Whyburn uses ``property b''. It's closely related to unicoherence.\<close>
 
 definition Borsukian where
     "Borsukian S \<equiv>
