@@ -116,12 +116,12 @@ class Server(
 
   private val delay_load: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
-      val (invoke_input, invoke_load) = resources.resolve_dependencies(session, watcher)
+      val (invoke_input, invoke_load) = resources.resolve_dependencies(session, file_watcher)
       if (invoke_input) delay_input.invoke()
       if (invoke_load) delay_load.invoke
     }
 
-  private val watcher =
+  private val file_watcher =
     File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
 
   private def sync_documents(changed: Set[JFile]): Unit =
@@ -137,7 +137,7 @@ class Server(
   {
     resources.close_model(file) match {
       case Some(model) =>
-        watcher.register_parent(file)
+        file_watcher.register_parent(file)
         sync_documents(Set(file))
       case None =>
     }
@@ -263,7 +263,7 @@ class Server(
         session.stop()
         delay_input.revoke()
         delay_output.revoke()
-        watcher.shutdown()
+        file_watcher.shutdown()
         None
       case None =>
         reply("Prover inactive")

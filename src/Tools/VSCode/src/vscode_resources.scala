@@ -148,7 +148,7 @@ class VSCode_Resources(
 
   /* resolve dependencies */
 
-  def resolve_dependencies(session: Session, watcher: File_Watcher): (Boolean, Boolean) =
+  def resolve_dependencies(session: Session, file_watcher: File_Watcher): (Boolean, Boolean) =
   {
     state.change_result(st =>
       {
@@ -182,7 +182,7 @@ class VSCode_Resources(
             node_name <- thy_files.iterator ++ aux_files.iterator
             file = node_file(node_name)
             if !st.models.isDefinedAt(file)
-            text <- { watcher.register_parent(file); read_file_content(file) }
+            text <- { file_watcher.register_parent(file); read_file_content(file) }
           }
           yield {
             val model = Document_Model.init(session, node_name)
