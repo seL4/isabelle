@@ -71,8 +71,7 @@ object Document_Model
       if (models.isDefinedAt(node_name)) this
       else {
         val edit = Text.Edit.insert(0, text)
-        val model = File_Model(session, node_name, File_Content(text), pending_edits = List(edit))
-        model.watch
+        val model = File_Model.init(session, node_name, text, pending_edits = List(edit))
         copy(models = models + (node_name -> model))
       }
   }
@@ -285,13 +284,33 @@ sealed abstract class Document_Model extends Document.Model
   }
 }
 
+object File_Model
+{
+  def init(session: Session,
+    node_name: Document.Node.Name,
+    text: String,
+    node_required: Boolean = false,
+    last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
+    pending_edits: List[Text.Edit] = Nil): File_Model =
+  {
+    val content = Document_Model.File_Content(text)
+    val model =
+      File_Model(session, node_name, content, node_required, last_perspective, pending_edits)
+
+    for (file <- PIDE.resources.node_name_file(node_name))
+      PIDE.file_watcher.register_parent(file)
+
+    model
+  }
+}
+
 case class File_Model(
   session: Session,
   node_name: Document.Node.Name,
   content: Document_Model.File_Content,
-  node_required: Boolean = false,
-  last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
-  pending_edits: List[Text.Edit] = Nil) extends Document_Model
+  node_required: Boolean,
+  last_perspective: Document.Node.Perspective_Text,
+  pending_edits: List[Text.Edit]) extends Document_Model
 {
   /* header */
 
@@ -341,13 +360,6 @@ case class File_Model(
 
   def is_stable: Boolean = pending_edits.isEmpty
   def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
-
-
-  /* watch file-system content */
-
-  def watch: Unit =
-    for (file <- PIDE.resources.node_name_file(node_name))
-      PIDE.file_watcher.register_parent(file)
 }
 
 case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
@@ -556,11 +568,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     buffer.removeBufferListener(buffer_listener)
     init_token_marker()
 
-    val content = Document_Model.File_Content(JEdit_Lib.buffer_text(buffer))
-    val model =
-      File_Model(session, node_name, content, node_required,
-        pending_edits.get_last_perspective, pending_edits.get_edits)
-    model.watch
-    model
+    File_Model.init(session, node_name, JEdit_Lib.buffer_text(buffer), node_required,
+      pending_edits.get_last_perspective, pending_edits.get_edits)
   }
 }
