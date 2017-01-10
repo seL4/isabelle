@@ -28,18 +28,11 @@ object Document_Model
     models: Map[Document.Node.Name, Document_Model] = Map.empty,
     buffer_models: Map[JEditBuffer, Buffer_Model] = Map.empty)
   {
-    def models_iterator: Iterator[Document_Model] =
-      for ((_, model) <- models.iterator) yield model
-
-    def file_models_iterator: Iterator[File_Model] =
+    def file_models_iterator: Iterator[(Document.Node.Name, File_Model)] =
       for {
-        (_, model) <- models.iterator
+        (node_name, model) <- models.iterator
         if model.isInstanceOf[File_Model]
-      } yield model.asInstanceOf[File_Model]
-
-    def buffer_models_iterator: Iterator[Buffer_Model] =
-      for ((_, model) <- buffer_models.iterator) yield model
-
+      } yield (node_name, model.asInstanceOf[File_Model])
 
     def open_buffer(session: Session, node_name: Document.Node.Name, buffer: Buffer)
       : (Buffer_Model, State) =
@@ -84,7 +77,7 @@ object Document_Model
 
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
     for {
-      model <- state.value.models_iterator
+      (_, model) <- state.value.models.iterator
       Text.Info(range, entry) <- model.bibtex_entries.iterator
     } yield Text.Info(range, (entry, model))
 
@@ -97,15 +90,14 @@ object Document_Model
       {
         val changed_models =
           (for {
-            model <- st.file_models_iterator
+            (node_name, model) <- st.file_models_iterator
             file <- model.file if changed_files(file)
-            text <- PIDE.resources.read_file_content(model.node_name)
+            text <- PIDE.resources.read_file_content(node_name)
             if model.content.text != text
           } yield {
             val content = Document_Model.File_Content(text)
             val edits = Text.Edit.replace(0, model.content.text, text)
-            val model1 = model.copy(content = content, pending_edits = model.pending_edits ::: edits)
-            (model.node_name, model1)
+            (node_name, model.copy(content = content, pending_edits = model.pending_edits ::: edits))
           }).toList
         if (changed_models.isEmpty) (false, st)
         else (true, st.copy(models = (st.models /: changed_models)(_ + _)))
@@ -167,9 +159,9 @@ object Document_Model
 
   def required_nodes(): Set[Document.Node.Name] =
     (for {
-      model <- state.value.models_iterator
+      (node_name, model) <- state.value.models.iterator
       if model.node_required
-    } yield model.node_name).toSet
+    } yield node_name).toSet
 
   def node_required(name: Document.Node.Name, toggle: Boolean = false, set: Boolean = false)
   {
@@ -211,33 +203,34 @@ object Document_Model
         val doc_blobs =
           Document.Blobs(
             (for {
-              model <- st.models_iterator
+              (node_name, model) <- st.models.iterator
               blob <- model.get_blob
-            } yield (model.node_name -> blob)).toMap)
+            } yield (node_name -> blob)).toMap)
 
         val buffer_edits =
           (for {
-            model <- st.buffer_models_iterator
+            (_, model) <- st.buffer_models.iterator
             edit <- model.flush_edits(doc_blobs, hidden).iterator
           } yield edit).toList
 
         val file_edits =
           (for {
-            model <- st.file_models_iterator
+            (node_name, model) <- st.file_models_iterator
             (edits, model1) <- model.flush_edits(doc_blobs, hidden)
-          } yield (edits, model.node_name -> model1)).toList
+          } yield (edits, node_name -> model1)).toList
 
         val model_edits = buffer_edits ::: file_edits.flatMap(_._1)
 
         val purge_edits =
           if (purge) {
             val purged =
-              (for (model <- st.file_models_iterator)
-               yield (model.node_name -> model.purge_edits(doc_blobs))).toList
+              (for ((node_name, model) <- st.file_models_iterator)
+               yield (node_name -> model.purge_edits(doc_blobs))).toList
 
             val imports =
             {
-              val open_nodes = st.buffer_models_iterator.map(_.node_name).toList
+              val open_nodes =
+                (for ((_, model) <- st.buffer_models.iterator) yield model.node_name).toList
               val touched_nodes = model_edits.map(_._1)
               val pending_nodes = for ((node_name, None) <- purged) yield node_name
               (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
@@ -252,7 +245,7 @@ object Document_Model
         val st1 = st.copy(models = st.models ++ file_edits.map(_._2) -- purge_edits.map(_._1))
         PIDE.file_watcher.purge(
           (for {
-            model <- st1.file_models_iterator
+            (_, model) <- st1.file_models_iterator
             file <- model.file
           } yield file.getParentFile).toSet)
 
