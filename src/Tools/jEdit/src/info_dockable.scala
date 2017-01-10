@@ -9,9 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.Button
-import scala.swing.event.ButtonClicked
-
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter, WindowFocusListener, WindowEvent}
 
