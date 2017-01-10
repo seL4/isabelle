@@ -218,9 +218,10 @@ Starting from the type @{text "'a tree"} defined in the text, define
 a function @{text "contents ::"} @{typ "'a tree \<Rightarrow> 'a list"}
 that collects all values in a tree in a list, in any order,
 without removing duplicates.
-Then define a function @{text "treesum ::"} @{typ "nat tree \<Rightarrow> nat"}
+Then define a function @{text "sum_tree ::"} @{typ "nat tree \<Rightarrow> nat"}
 that sums up all values in a tree of natural numbers
-and prove @{prop "treesum t = listsum(contents t)"}.
+and prove @{prop "sum_tree t = sum_list(contents t)"}
+(where @{const sum_list} is predefined).
 \end{exercise}
 
 \begin{exercise}
