@@ -178,6 +178,11 @@ object Document
     val no_perspective_command: Perspective_Command =
       Perspective(false, Command.Perspective.empty, Overlays.empty)
 
+    def is_no_perspective_text(perspective: Perspective_Text): Boolean =
+      !perspective.required &&
+      perspective.visible.is_empty &&
+      perspective.overlays.is_empty
+
     def is_no_perspective_command(perspective: Perspective_Command): Boolean =
       !perspective.required &&
       perspective.visible.is_empty &&
@@ -479,9 +484,10 @@ object Document
     def node_required: Boolean
     def get_blob: Option[Document.Blob]
 
-    def node_header: Node.Header
     def node_edits(
-      text_edits: List[Text.Edit], perspective: Node.Perspective_Text): List[Edit_Text] =
+      node_header: Node.Header,
+      text_edits: List[Text.Edit],
+      perspective: Node.Perspective_Text): List[Edit_Text] =
     {
       val edits: List[Node.Edit[Text.Edit, Text.Perspective]] =
         get_blob match {

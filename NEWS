@@ -20,6 +20,10 @@ resolved internally, without the need for corresponding editor buffers.
 The system option "jedit_auto_load" has been discontinued: it is
 effectively always enabled.
 
+* The Theories dockable provides a "Purge" button, in order to restrict
+the document model to theories that are required for open editor
+buffers.
+
 
 *** HOL ***
 

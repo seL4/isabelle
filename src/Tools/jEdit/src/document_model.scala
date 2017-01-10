@@ -202,7 +202,7 @@ object Document_Model
 
   /* flushed edits */
 
-  def flush_edits(hidden: Boolean): (Document.Blobs, List[Document.Edit_Text]) =
+  def flush_edits(hidden: Boolean, purge: Boolean): (Document.Blobs, List[Document.Edit_Text]) =
   {
     GUI_Thread.require {}
 
@@ -224,14 +224,39 @@ object Document_Model
         val file_edits =
           (for {
             model <- st.file_models_iterator
-            change <- model.flush_edits(doc_blobs, hidden)
-          } yield change).toList
+            (edits, model1) <- model.flush_edits(doc_blobs, hidden)
+          } yield (edits, model.node_name -> model1)).toList
 
-        val edits = buffer_edits ::: file_edits.flatMap(_._1)
+        val model_edits = buffer_edits ::: file_edits.flatMap(_._1)
 
-        ((doc_blobs, edits),
-          st.copy(
-            models = (st.models /: file_edits) { case (ms, (_, m)) => ms + (m.node_name -> m) }))
+        val purge_edits =
+          if (purge) {
+            val purged =
+              (for (model <- st.file_models_iterator)
+               yield (model.node_name -> model.purge_edits(doc_blobs))).toList
+
+            val imports =
+            {
+              val open_nodes = st.buffer_models_iterator.map(_.node_name).toList
+              val touched_nodes = model_edits.map(_._1)
+              val pending_nodes = for ((node_name, None) <- purged) yield node_name
+              (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
+            }
+            val retain = PIDE.resources.thy_info.dependencies("", imports).deps.map(_.name).toSet
+
+            for ((node_name, Some(edits)) <- purged; if !retain(node_name); edit <- edits)
+              yield edit
+          }
+          else Nil
+
+        val st1 = st.copy(models = st.models ++ file_edits.map(_._2) -- purge_edits.map(_._1))
+        PIDE.file_watcher.purge(
+          (for {
+            model <- st1.file_models_iterator
+            file <- model.file
+          } yield file.getParentFile).toSet)
+
+        ((doc_blobs, model_edits ::: purge_edits), st1)
       })
   }
 
@@ -346,11 +371,19 @@ case class File_Model(
   {
     val (reparse, perspective) = node_perspective(doc_blobs, hidden)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
-      val edits = node_edits(pending_edits, perspective)
+      val edits = node_edits(node_header, pending_edits, perspective)
       Some((edits, copy(last_perspective = perspective, pending_edits = Nil)))
     }
     else None
   }
+
+  def purge_edits(doc_blobs: Document.Blobs): Option[List[Document.Edit_Text]] =
+    if (node_required || !Document.Node.is_no_perspective_text(last_perspective) ||
+        pending_edits.nonEmpty) None
+    else {
+      val text_edits = List(Text.Edit.remove(0, content.text))
+      Some(node_edits(Document.Node.no_header, text_edits, Document.Node.no_perspective_text))
+    }
 
 
   /* snapshot */
@@ -465,7 +498,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
         if (reparse || edits.nonEmpty || last_perspective != perspective) {
           pending.clear
           last_perspective = perspective
-          node_edits(edits, perspective)
+          node_edits(node_header, edits, perspective)
         }
         else Nil
       }
