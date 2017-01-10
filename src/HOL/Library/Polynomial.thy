@@ -3650,29 +3650,36 @@ lemmas eucl_rel_poly_unique_div = eucl_rel_poly_unique [THEN conjunct1]
 
 lemmas eucl_rel_poly_unique_mod = eucl_rel_poly_unique [THEN conjunct2]
 
-instantiation poly :: (field) ring_div
+instantiation poly :: (field) semidom_modulo
 begin
+ 
+definition modulo_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
+  where mod_poly_def: "f mod g = (if g = 0 then f
+    else pseudo_mod (smult ((1 / lead_coeff g) ^ (Suc (degree f) - degree g)) f) g)"
 
-definition modulo_poly where
-  mod_poly_def: "f mod g \<equiv>
-    if g = 0 then f
-    else pseudo_mod (smult ((1/coeff g (degree g)) ^ (Suc (degree f) - degree g)) f) g"
-
-lemma eucl_rel_poly: "eucl_rel_poly (x::'a::field poly) y (x div y, x mod y)"
-  unfolding eucl_rel_poly_iff
-proof (intro conjI)
-  show "x = x div y * y + x mod y"
-  proof(cases "y = 0")
-    case True show ?thesis by(simp add: True divide_poly_def divide_poly_0 mod_poly_def)
+instance proof
+  fix x y :: "'a poly"
+  show "x div y * y + x mod y = x"
+  proof (cases "y = 0")
+    case True then show ?thesis
+      by (simp add: divide_poly_0 mod_poly_def)
   next
     case False
-    then have "pseudo_divmod (smult ((1 / coeff y (degree y)) ^ (Suc (degree x) - degree y)) x) y =
-          (x div y, x mod y)"
-      unfolding divide_poly_field mod_poly_def pseudo_mod_def by simp
-    from pseudo_divmod[OF False this]
+    then have "pseudo_divmod (smult ((1 / lead_coeff y) ^ (Suc (degree x) - degree y)) x) y =
+      (x div y, x mod y)"
+      by (simp add: divide_poly_field mod_poly_def pseudo_mod_def)
+    from pseudo_divmod [OF False this]
     show ?thesis using False
-      by (simp add: power_mult_distrib[symmetric] mult.commute)
+      by (simp add: power_mult_distrib [symmetric] ac_simps)
   qed
+qed
+  
+end
+    
+lemma eucl_rel_poly: "eucl_rel_poly x y (x div y, x mod y)"
+unfolding eucl_rel_poly_iff proof
+  show "x = x div y * y + x mod y"
+    by (simp add: div_mult_mod_eq)
   show "if y = 0 then x div y = 0 else x mod y = 0 \<or> degree (x mod y) < degree y"
   proof (cases "y = 0")
     case True then show ?thesis by auto
@@ -3684,18 +3691,14 @@ qed
 
 lemma div_poly_eq:
   "eucl_rel_poly (x::'a::field poly) y (q, r) \<Longrightarrow> x div y = q"
-  by(rule eucl_rel_poly_unique_div[OF eucl_rel_poly])
+  by(rule eucl_rel_poly_unique_div [OF eucl_rel_poly])
 
 lemma mod_poly_eq:
   "eucl_rel_poly (x::'a::field poly) y (q, r) \<Longrightarrow> x mod y = r"
-  by (rule eucl_rel_poly_unique_mod[OF eucl_rel_poly])
+  by (rule eucl_rel_poly_unique_mod [OF eucl_rel_poly])
 
-instance
+instance poly :: (field) ring_div
 proof
-  fix x y :: "'a poly"
-  from eucl_rel_poly[of x y,unfolded eucl_rel_poly_iff]
-  show "x div y * y + x mod y = x" by auto
-next
   fix x y z :: "'a poly"
   assume "y \<noteq> 0"
   hence "eucl_rel_poly (x + z * y) y (z + x div y, x mod y)"
@@ -3728,8 +3731,6 @@ next
     then show ?thesis by (simp add: div_poly_eq)
   qed
 qed
-
-end
 
 lemma div_pCons_eq:
   "pCons a p div q = (if q = 0 then 0
