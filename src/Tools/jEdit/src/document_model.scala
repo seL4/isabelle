@@ -98,15 +98,14 @@ object Document_Model
         val changed_models =
           (for {
             model <- st.file_models_iterator
-            node_name = model.node_name
-            file <- PIDE.resources.node_name_file(node_name)
-            if changed_files(file)
-            text <- PIDE.resources.read_file_content(node_name)
+            file <- model.file if changed_files(file)
+            text <- PIDE.resources.read_file_content(model.node_name)
             if model.content.text != text
           } yield {
             val content = Document_Model.File_Content(text)
             val edits = Text.Edit.replace(0, model.content.text, text)
-            (node_name, model.copy(content = content, pending_edits = model.pending_edits ::: edits))
+            val model1 = model.copy(content = content, pending_edits = model.pending_edits ::: edits)
+            (model.node_name, model1)
           }).toList
         if (changed_models.isEmpty) (false, st)
         else (true, st.copy(models = (st.models /: changed_models)(_ + _)))
@@ -293,20 +292,18 @@ object File_Model
     last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
     pending_edits: List[Text.Edit] = Nil): File_Model =
   {
+    val file = PIDE.resources.node_name_file(node_name)
+    file.foreach(PIDE.file_watcher.register_parent(_))
+
     val content = Document_Model.File_Content(text)
-    val model =
-      File_Model(session, node_name, content, node_required, last_perspective, pending_edits)
-
-    for (file <- PIDE.resources.node_name_file(node_name))
-      PIDE.file_watcher.register_parent(file)
-
-    model
+    File_Model(session, node_name, file, content, node_required, last_perspective, pending_edits)
   }
 }
 
 case class File_Model(
   session: Session,
   node_name: Document.Node.Name,
+  file: Option[JFile],
   content: Document_Model.File_Content,
   node_required: Boolean,
   last_perspective: Document.Node.Perspective_Text,
