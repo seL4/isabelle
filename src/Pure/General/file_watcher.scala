@@ -20,6 +20,7 @@ class File_Watcher private[File_Watcher]  // dummy template
   def register(dir: JFile) { }
   def register_parent(file: JFile) { }
   def deregister(dir: JFile) { }
+  def purge(retain: Set[JFile]) { }
   def shutdown() { }
 }
 
@@ -74,6 +75,11 @@ object File_Watcher
             key.cancel
             st.copy(dirs = st.dirs - dir)
         })
+
+    override def purge(retain: Set[JFile]): Unit =
+      state.change(st =>
+        st.copy(dirs = st.dirs --
+          (for ((dir, key) <- st.dirs.iterator if !retain(dir)) yield { key.cancel; dir })))
 
 
     /* changed directory entries */

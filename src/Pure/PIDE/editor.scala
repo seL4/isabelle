@@ -10,7 +10,7 @@ package isabelle
 abstract class Editor[Context]
 {
   def session: Session
-  def flush(hidden: Boolean = true): Unit
+  def flush(hidden: Boolean = false, purge: Boolean = false): Unit
   def invoke(): Unit
   def invoke_generated(): Unit
   def current_context: Context
