@@ -163,6 +163,7 @@ declare -a SOURCES=(
   ../Tools/VSCode/src/grammar.scala
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
+  ../Tools/VSCode/src/symbols.scala
   ../Tools/VSCode/src/vscode_rendering.scala
   ../Tools/VSCode/src/vscode_resources.scala
 )

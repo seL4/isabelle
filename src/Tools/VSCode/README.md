@@ -29,6 +29,8 @@
 
 * shell> `isabelle vscode_grammar`
 
+* shell> `isabelle vscode_symbols`
+
 * shell> `vsce package`
 
 
