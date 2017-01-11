@@ -164,7 +164,7 @@ class Server(
   private val syslog =
     Session.Consumer[Prover.Message](getClass.getName) {
       case output: Prover.Output if output.is_syslog =>
-        channel.log_writeln(XML.content(output.message))
+        channel.log_writeln(resources.output_xml(output.message))
       case _ =>
     }
 
@@ -289,7 +289,7 @@ class Server(
         val doc = rendering.model.content.doc
         val range = doc.range(info.range)
         val contents =
-          info.info.map(tree => Pretty.string_of(List(tree), margin = rendering.tooltip_margin))
+          info.info.map(tree => resources.output_pretty(List(tree), rendering.tooltip_margin))
         (range, contents)
       }
     channel.write(Protocol.Hover.reply(id, result))

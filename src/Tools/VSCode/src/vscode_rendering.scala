@@ -64,7 +64,7 @@ class VSCode_Rendering(
       range = model.content.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
-      val message = Pretty.string_of(body, margin = diagnostics_margin)
+      val message = resources.output_pretty(body, diagnostics_margin)
       val severity = VSCode_Rendering.message_severity.get(name)
       Protocol.Diagnostic(range, message, severity = severity)
     }).toList

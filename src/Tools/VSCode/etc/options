@@ -17,3 +17,6 @@ option vscode_diagnostics_margin : int = 80
 
 option vscode_timing_threshold : real = 0.1
   -- "default threshold for timing display (seconds)"
+
+option vscode_unicode_symbols : bool = false
+  -- "output Isabelle symbols via Unicode (according to etc/symbols)"

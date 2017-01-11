@@ -247,4 +247,16 @@ class VSCode_Resources(
       }
     )
   }
+
+
+  /* output text */
+
+  def output_text(s: String): String =
+    if (options.bool("vscode_unicode_symbols")) Symbol.decode(s) else Symbol.encode(s)
+
+  def output_pretty(body: XML.Body, margin: Int): String =
+    output_text(Pretty.string_of(body, margin))
+
+  def output_xml(xml: XML.Tree): String =
+    output_text(XML.content(xml))
 }
