@@ -104,6 +104,10 @@ object Line
     }
     lazy val text: String = lines.mkString("", "\n", "")
 
+    def try_get_text(range: Text.Range): Option[String] =
+      if (text_range.contains(range)) Some(text.substring(range.start, range.stop))
+      else None
+
     override def toString: String = text
 
     override def equals(that: Any): Boolean =

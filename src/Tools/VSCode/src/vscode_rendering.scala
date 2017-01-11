@@ -43,6 +43,29 @@ class VSCode_Rendering(
     resources: VSCode_Resources)
   extends Rendering(snapshot, resources.options, resources)
 {
+  /* completion */
+
+  def completion(range: Text.Range): List[Protocol.CompletionItem] =
+    semantic_completion(None, range) match {
+      case Some(Text.Info(complete_range, names: Completion.Names)) =>
+        model.content.try_get_text(complete_range) match {
+          case Some(original) =>
+            names.complete(complete_range, Completion.History.empty,
+                resources.decode_text, original) match {
+              case Some(result) =>
+                result.items.map(item =>
+                  Protocol.CompletionItem(
+                    label = item.replacement,
+                    detail = Some(item.description.mkString(" ")),
+                    range = Some(model.content.doc.range(item.range))))
+              case None => Nil
+            }
+          case None => Nil
+        }
+      case _ => Nil
+    }
+
+
   /* diagnostics */
 
   def diagnostics: List[Text.Info[Command.Results]] =

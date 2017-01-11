@@ -113,9 +113,6 @@ object JEdit_Rendering
   private val indentation_elements =
     Markup.Elements(Markup.Command_Indent.name)
 
-  private val semantic_completion_elements =
-    Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
-
   private val language_context_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
@@ -261,21 +258,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
 
   /* completion */
-
-  def semantic_completion(completed_range: Option[Text.Range], range: Text.Range)
-      : Option[Text.Info[Completion.Semantic]] =
-    if (snapshot.is_outdated) None
-    else {
-      snapshot.select(range, JEdit_Rendering.semantic_completion_elements, _ =>
-        {
-          case Completion.Semantic.Info(info) =>
-            completed_range match {
-              case Some(range0) if range0.contains(info.range) && range0 != info.range => None
-              case _ => Some(info)
-            }
-          case _ => None
-        }).headOption.map(_.info)
-    }
 
   def language_context(range: Text.Range): Option[Completion.Language_Context] =
     snapshot.select(range, JEdit_Rendering.language_context_elements, _ =>

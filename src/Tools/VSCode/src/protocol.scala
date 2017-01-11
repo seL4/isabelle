@@ -140,6 +140,7 @@ object Protocol
     val json: JSON.T =
       Map(
         "textDocumentSync" -> 1,
+        "completionProvider" -> Map("resolveProvider" -> false, "triggerCharacters" -> Nil),
         "hoverProvider" -> true,
         "definitionProvider" -> true,
         "documentHighlightProvider" -> true)
@@ -290,6 +291,32 @@ object Protocol
 
   object DidCloseTextDocument extends TextDocumentNotification("textDocument/didClose")
   object DidSaveTextDocument extends TextDocumentNotification("textDocument/didSave")
+
+
+  /* completion */
+
+  sealed case class CompletionItem(
+    label: String,
+    kind: Option[Int] = None,
+    detail: Option[String] = None,
+    documentation: Option[String] = None,
+    insertText: Option[String] = None,
+    range: Option[Line.Range] = None)
+  {
+    def json: JSON.T =
+      Message.empty + ("label" -> label) ++
+      (kind match { case Some(x) => Map("kind" -> x) case None => Map.empty }) ++
+      (detail match { case Some(x) => Map("detail" -> x) case None => Map.empty }) ++
+      (documentation match { case Some(x) => Map("documentation" -> x) case None => Map.empty }) ++
+      (insertText match { case Some(x) => Map("insertText" -> x) case None => Map.empty }) ++
+      (range match { case Some(x) => Map("range" -> Range(x)) case None => Map.empty })
+  }
+
+  object Completion extends RequestTextDocumentPosition("textDocument/completion")
+  {
+    def reply(id: Id, result: List[CompletionItem]): JSON.T =
+      ResponseMessage(id, Some(result.map(_.json)))
+  }
 
 
   /* hover request */

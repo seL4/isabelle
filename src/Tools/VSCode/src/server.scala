@@ -277,6 +277,17 @@ class Server(
   }
 
 
+  /* completion */
+
+  def completion(id: Protocol.Id, node_pos: Line.Node_Position)
+  {
+    val result =
+      (for ((rendering, offset) <- rendering_offset(node_pos))
+        yield rendering.completion(Text.Range(offset - 1, offset))) getOrElse Nil
+    channel.write(Protocol.Completion.reply(id, result))
+  }
+
+
   /* hover */
 
   def hover(id: Protocol.Id, node_pos: Line.Node_Position)
@@ -341,6 +352,7 @@ class Server(
             update_document(file, text)
           case Protocol.DidCloseTextDocument(file) =>
             close_document(file)
+          case Protocol.Completion(id, node_pos) => completion(id, node_pos)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)

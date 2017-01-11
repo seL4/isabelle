@@ -251,8 +251,10 @@ class VSCode_Resources(
 
   /* output text */
 
+  def decode_text: Boolean = options.bool("vscode_unicode_symbols")
+
   def output_text(s: String): String =
-    if (options.bool("vscode_unicode_symbols")) Symbol.decode(s) else Symbol.encode(s)
+    if (decode_text) Symbol.decode(s) else Symbol.encode(s)
 
   def output_pretty(body: XML.Body, margin: Int): String =
     output_text(Pretty.string_of(body, margin))
