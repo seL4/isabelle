@@ -11,7 +11,7 @@ theme.get_options()
 data = []
 
 for line in sys.stdin.readlines():
-    match = re_entry.match(line)
+    match = re_entry.match(unicode(line, 'utf-8'))
     data.append((match.group(1), int(match.group(2))))
 
 plot = pie_plot.T(data = data, arc_offsets = [],
