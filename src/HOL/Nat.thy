@@ -1013,14 +1013,14 @@ lemma nat_less_induct:
   using assms less_induct by blast
 
 lemma measure_induct_rule [case_names less]:
-  fixes f :: "'a \<Rightarrow> nat"
+  fixes f :: "'a \<Rightarrow> 'b::wellorder"
   assumes step: "\<And>x. (\<And>y. f y < f x \<Longrightarrow> P y) \<Longrightarrow> P x"
   shows "P a"
   by (induct m \<equiv> "f a" arbitrary: a rule: less_induct) (auto intro: step)
 
 text \<open>old style induction rules:\<close>
 lemma measure_induct:
-  fixes f :: "'a \<Rightarrow> nat"
+  fixes f :: "'a \<Rightarrow> 'b::wellorder"
   shows "(\<And>x. \<forall>y. f y < f x \<longrightarrow> P y \<Longrightarrow> P x) \<Longrightarrow> P a"
   by (rule measure_induct_rule [of f P a]) iprover
 

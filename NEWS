@@ -58,6 +58,8 @@ mod_mult_eq, mod_minus_eq, mod_diff_left_eq, mod_diff_right_eq,
 mod_diff_eq.  INCOMPATIBILITY.
 
 * Generalized some facts:
+    measure_induct_rule
+    measure_induct
     zminus_zmod ~> mod_minus_eq
     zdiff_zmod_left ~> mod_diff_left_eq
     zdiff_zmod_right ~> mod_diff_right_eq
