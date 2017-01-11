@@ -196,6 +196,15 @@ object Library
   def make_regex(s: String): Option[Regex] =
     try { Some(new Regex(s)) } catch { case ERROR(_) => None }
 
+  def is_regex_meta(c: Char): Boolean = """()[]{}\^$|?*+.<>-=!""".contains(c)
+
+  def escape_regex(s: String): String =
+    if (s.exists(is_regex_meta(_))) {
+      (for (c <- s.iterator)
+       yield { if (is_regex_meta(c)) "\\" + c.toString else c.toString }).mkString
+    }
+    else s
+
 
   /* lists */
 

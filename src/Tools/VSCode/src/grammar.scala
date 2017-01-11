@@ -40,11 +40,8 @@ object Grammar
     val keywords3 = major_keywords(Set(Keyword.PRF_ASM, Keyword.PRF_ASM_GOAL))
 
 
-    def quote_name(a: String): String =
-      if (Symbol.is_ascii_identifier(a)) a else "\\Q" + a + "\\E"
-
     def grouped_names(as: List[String]): String =
-      JSON.Format("\\b(" + as.sorted.map(quote_name(_)).mkString("|") + ")\\b")
+      JSON.Format("\\b(" + as.sorted.map(Library.escape_regex(_)).mkString("|") + ")\\b")
 
     """{
   "name": "Isabelle",
