@@ -100,8 +100,8 @@ object Protocol
   {
     def apply(id: Id, result: Option[JSON.T] = None, error: Option[ResponseError] = None): JSON.T =
       Message.empty + ("id" -> id.id) ++
-      (result match { case Some(x) => Map("result" -> x) case None => Map.empty }) ++
-      (error match { case Some(x) => Map("error" -> x.json) case None => Map.empty })
+        JSON.optional("result" -> result) ++
+        JSON.optional("error" -> error.map(_.json))
 
     def strict(id: Id, result: Option[JSON.T] = None, error: String = ""): JSON.T =
       if (error == "") apply(id, result = result)
@@ -111,8 +111,7 @@ object Protocol
   sealed case class ResponseError(code: Int, message: String, data: Option[JSON.T] = None)
   {
     def json: JSON.T =
-      Map("code" -> code, "message" -> message) ++
-      (data match { case Some(x) => Map("data" -> x) case None => Map.empty })
+      Map("code" -> code, "message" -> message) ++ JSON.optional("data" -> data)
   }
 
   object ErrorCodes
@@ -305,11 +304,11 @@ object Protocol
   {
     def json: JSON.T =
       Message.empty + ("label" -> label) ++
-      (kind match { case Some(x) => Map("kind" -> x) case None => Map.empty }) ++
-      (detail match { case Some(x) => Map("detail" -> x) case None => Map.empty }) ++
-      (documentation match { case Some(x) => Map("documentation" -> x) case None => Map.empty }) ++
-      (insertText match { case Some(x) => Map("insertText" -> x) case None => Map.empty }) ++
-      (range match { case Some(x) => Map("range" -> Range(x)) case None => Map.empty })
+        JSON.optional("kind" -> kind) ++
+        JSON.optional("detail" -> detail) ++
+        JSON.optional("documentation" -> documentation) ++
+        JSON.optional("insertText" -> insertText) ++
+        JSON.optional("range" -> range.map(Range(_)))
   }
 
   object Completion extends RequestTextDocumentPosition("textDocument/completion")
@@ -378,9 +377,9 @@ object Protocol
   {
     def json: JSON.T =
       Message.empty + ("range" -> Range(range)) + ("message" -> message) ++
-      (severity match { case Some(x) => Map("severity" -> x) case None => Map.empty }) ++
-      (code match { case Some(x) => Map("code" -> x) case None => Map.empty }) ++
-      (source match { case Some(x) => Map("source" -> x) case None => Map.empty })
+      JSON.optional("severity" -> severity) ++
+      JSON.optional("code" -> code) ++
+      JSON.optional("source" -> source)
   }
 
   object DiagnosticSeverity

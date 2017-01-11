@@ -133,6 +133,12 @@ object JSON
 
   /* object values */
 
+  def optional(entry: (String, Option[T])): Map[String, T] =
+    entry match {
+      case (name, Some(x)) => Map(name -> x)
+      case (_, None) => Map.empty
+    }
+
   def value(obj: T, name: String): Option[T] =
     obj match {
       case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
