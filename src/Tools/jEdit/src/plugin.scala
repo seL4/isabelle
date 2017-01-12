@@ -68,12 +68,6 @@ object PIDE
 
   /* document model and view */
 
-  def document_views(buffer: Buffer): List[Document_View] =
-    for {
-      text_area <- JEdit_Lib.jedit_text_areas(buffer).toList
-      doc_view <- Document_View.get(text_area)
-    } yield doc_view
-
   def exit_models(buffers: List[Buffer])
   {
     GUI_Thread.now {

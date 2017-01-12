@@ -409,12 +409,18 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
   def node_required: Boolean = _node_required
   def set_node_required(b: Boolean) { GUI_Thread.require { _node_required = b } }
 
+  def document_view_iterator: Iterator[Document_View] =
+    for {
+      text_area <- JEdit_Lib.jedit_text_areas(buffer)
+      doc_view <- Document_View.get(text_area)
+    } yield doc_view
+
   override def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] =
   {
     GUI_Thread.require {}
 
     (for {
-      doc_view <- PIDE.document_views(buffer).iterator
+      doc_view <- document_view_iterator
       range <- doc_view.perspective(snapshot).ranges.iterator
     } yield range).toList
   }
@@ -503,7 +509,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
       reset_blob()
       reset_bibtex_entries()
 
-      for (doc_view <- PIDE.document_views(buffer))
+      for (doc_view <- document_view_iterator)
         doc_view.rich_text_area.active_reset()
 
       pending ++= edits
