@@ -41,11 +41,13 @@ class Rich_Text_Area(
 
   /* robust extension body */
 
+  def check_robust_body: Boolean =
+    GUI_Thread.require { buffer == text_area.getBuffer }
+
   def robust_body[A](default: A)(body: => A): A =
   {
     try {
-      GUI_Thread.require {}
-      if (buffer == text_area.getBuffer) body
+      if (check_robust_body) body
       else {
         Log.log(Log.ERROR, this, ERROR("Implicit change of text area buffer"))
         default

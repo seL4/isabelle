@@ -115,7 +115,8 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   private val delay_refresh =
     GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) {
-      doc_view.rich_text_area.robust_body(()) {
+      if (!doc_view.rich_text_area.check_robust_body) invoke()
+      else {
         JEdit_Lib.buffer_lock(buffer) {
           val rendering = doc_view.get_rendering()
           val overview = get_overview()
