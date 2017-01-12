@@ -353,7 +353,7 @@ object Isabelle
   def select_entity(text_area: JEditTextArea)
   {
     for {
-      doc_view <- PIDE.document_view(text_area)
+      doc_view <- Document_View.get(text_area)
       rendering = doc_view.get_rendering()
     } {
       val caret_range = JEdit_Lib.caret_range(text_area)
@@ -416,7 +416,7 @@ object Isabelle
   {
     for {
       spell_checker <- PIDE.spell_checker.get
-      doc_view <- PIDE.document_view(text_area)
+      doc_view <- Document_View.get(text_area)
       rendering = doc_view.get_rendering()
       range = JEdit_Lib.caret_range(text_area)
       Text.Info(_, word) <- Spell_Checker.current_word(text_area, rendering, range)

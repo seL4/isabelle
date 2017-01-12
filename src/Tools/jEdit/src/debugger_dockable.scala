@@ -42,7 +42,7 @@ object Debugger_Dockable
   {
     GUI_Thread.require {}
 
-    PIDE.document_view(text_area) match {
+    Document_View.get(text_area) match {
       case Some(doc_view) =>
         val rendering = doc_view.get_rendering()
         val range = JEdit_Lib.point_range(text_area.getBuffer, offset)

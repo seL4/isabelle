@@ -18,7 +18,7 @@ object Active
   {
     GUI_Thread.require {}
 
-    Document_View(view.getTextArea) match {
+    Document_View.get(view.getTextArea) match {
       case Some(doc_view) =>
         doc_view.rich_text_area.robust_body() {
           val text_area = doc_view.text_area

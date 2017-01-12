@@ -68,12 +68,10 @@ object PIDE
 
   /* document model and view */
 
-  def document_view(text_area: TextArea): Option[Document_View] = Document_View(text_area)
-
   def document_views(buffer: Buffer): List[Document_View] =
     for {
       text_area <- JEdit_Lib.jedit_text_areas(buffer).toList
-      doc_view <- document_view(text_area)
+      doc_view <- Document_View.get(text_area)
     } yield doc_view
 
   def exit_models(buffers: List[Buffer])
@@ -102,7 +100,7 @@ object PIDE
             val model = Document_Model.init(session, node_name, buffer)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
-              if document_view(text_area).map(_.model) != Some(model)
+              if Document_View.get(text_area).map(_.model) != Some(model)
             } Document_View.init(model, text_area)
           }
         }
@@ -144,7 +142,7 @@ object PIDE
   def rendering(view: View): JEdit_Rendering = GUI_Thread.now
   {
     val text_area = view.getTextArea
-    document_view(text_area) match {
+    Document_View.get(text_area) match {
       case Some(doc_view) => doc_view.get_rendering()
       case None => error("No document view for current text area")
     }

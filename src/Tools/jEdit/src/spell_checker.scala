@@ -100,7 +100,7 @@ object Spell_Checker
     val result =
       for {
         spell_checker <- PIDE.spell_checker.get
-        doc_view <- PIDE.document_view(text_area)
+        doc_view <- Document_View.get(text_area)
         rendering = doc_view.get_rendering()
         range = JEdit_Lib.point_range(text_area.getBuffer, offset)
         Text.Info(_, word) <- current_word(text_area, rendering, range)

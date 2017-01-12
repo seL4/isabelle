@@ -42,7 +42,7 @@ class JEdit_Editor extends Editor[View]
   def visible_node(name: Document.Node.Name): Boolean =
     (for {
       text_area <- JEdit_Lib.jedit_text_areas()
-      doc_view <- Document_View(text_area)
+      doc_view <- Document_View.get(text_area)
     } yield doc_view.model.node_name).contains(name)
 
 
@@ -73,7 +73,7 @@ class JEdit_Editor extends Editor[View]
     val text_area = view.getTextArea
     val buffer = view.getBuffer
 
-    PIDE.document_view(text_area) match {
+    Document_View.get(text_area) match {
       case Some(doc_view) if doc_view.model.is_theory =>
         val node = snapshot.version.nodes(doc_view.model.node_name)
         val caret = snapshot.revert(text_area.getCaretPosition)

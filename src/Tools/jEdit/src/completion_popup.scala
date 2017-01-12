@@ -350,7 +350,7 @@ object Completion_Popup
       }
 
       if (buffer.isEditable) {
-        val opt_rendering = PIDE.document_view(text_area).map(_.get_rendering())
+        val opt_rendering = Document_View.get(text_area).map(_.get_rendering())
         val result0 = syntax_completion(history, explicit, opt_rendering)
         val (no_completion, semantic_completion) =
         {

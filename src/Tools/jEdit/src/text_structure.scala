@@ -91,7 +91,7 @@ object Text_Structure
                 GUI_Thread.now {
                   (for {
                     text_area <- JEdit_Lib.jedit_text_areas(buffer)
-                    doc_view <- PIDE.document_view(text_area)
+                    doc_view <- Document_View.get(text_area)
                   } yield doc_view.get_rendering).toStream.headOption
                 }
               else None

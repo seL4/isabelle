@@ -25,7 +25,7 @@ object Document_View
 
   private val key = new Object
 
-  def apply(text_area: TextArea): Option[Document_View] =
+  def get(text_area: TextArea): Option[Document_View] =
   {
     GUI_Thread.require {}
     text_area.getClientProperty(key) match {
@@ -37,7 +37,7 @@ object Document_View
   def exit(text_area: JEditTextArea)
   {
     GUI_Thread.require {}
-    apply(text_area) match {
+    get(text_area) match {
       case None =>
       case Some(doc_view) =>
         doc_view.deactivate()
