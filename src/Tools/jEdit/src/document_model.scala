@@ -428,7 +428,8 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* blob */
 
-  private var _blob: Option[(Bytes, Symbol.Text_Chunk)] = None  // owned by GUI thread
+  // owned by GUI thread
+  private var _blob: Option[(Bytes, Symbol.Text_Chunk)] = None
 
   private def reset_blob(): Unit = GUI_Thread.require { _blob = None }
 
@@ -453,7 +454,8 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   /* bibtex entries */
 
-  private var _bibtex_entries: Option[List[Text.Info[String]]] = None  // owned by GUI thread
+  // owned by GUI thread
+  private var _bibtex_entries: Option[List[Text.Info[String]]] = None
 
   private def reset_bibtex_entries(): Unit = GUI_Thread.require { _bibtex_entries = None }
 
