@@ -92,7 +92,7 @@ lemma same_prefix_nil [iff]: "prefix (xs @ ys) xs = (ys = [])"
   by (metis append_Nil2 append_self_conv prefix_order.eq_iff prefixI)
 
 lemma prefix_prefix [simp]: "prefix xs ys \<Longrightarrow> prefix xs (ys @ zs)"
-  by (metis prefix_order.le_less_trans prefixI strict_prefixE strict_prefixI)
+  unfolding prefix_def by fastforce
 
 lemma append_prefixD: "prefix (xs @ ys) zs \<Longrightarrow> prefix xs zs"
   by (auto simp add: prefix_def)
@@ -765,6 +765,9 @@ lemma sublisteq_trans: "sublisteq xs ys \<Longrightarrow> sublisteq ys zs \<Long
 
 lemma sublisteq_append_le_same_iff: "sublisteq (xs @ ys) ys \<longleftrightarrow> xs = []"
   by (auto dest: list_emb_length)
+
+lemma sublisteq_singleton_left: "sublisteq [x] ys \<longleftrightarrow> x \<in> set ys"
+  by (fastforce dest: list_emb_ConsD split_list_last)
 
 lemma list_emb_append_mono:
   "\<lbrakk> list_emb P xs xs'; list_emb P ys ys' \<rbrakk> \<Longrightarrow> list_emb P (xs@ys) (xs'@ys')"

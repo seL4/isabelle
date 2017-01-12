@@ -4210,7 +4210,7 @@ lemma enumerate_replicate_eq:
 lemma enumerate_Suc_eq:
   "enumerate (Suc n) xs = map (apfst Suc) (enumerate n xs)"
   by (rule pair_list_eqI)
-    (simp_all add: not_le, simp del: map_map [simp del] add: map_Suc_upt map_map [symmetric])
+    (simp_all add: not_le, simp del: map_map add: map_Suc_upt map_map [symmetric])
 
 lemma distinct_enumerate [simp]:
   "distinct (enumerate n xs)"
@@ -5889,6 +5889,10 @@ lemma lexordp_linorder: "class.linorder lexordp_eq lexordp"
 by unfold_locales(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp_eq_antisym intro: lexordp_eq_trans del: disjCI intro: lexordp_eq_linear)
 
 end
+
+lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
+  by (induct rule: sorted.induct) (auto dest!: insort_is_Cons)
+
 
 subsubsection \<open>Lexicographic combination of measure functions\<close>
 
