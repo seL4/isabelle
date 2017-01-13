@@ -1,8 +1,5 @@
 (* Author: Tobias Nipkow *)
-(* Todo:
- (min_)height of balanced trees via floorlog
- minimal path_len of balanced trees
-*)
+(* Todo: minimal ipl of balanced trees *)
 
 section \<open>Binary Tree\<close>
 
@@ -11,11 +8,8 @@ imports Main
 begin
 
 datatype 'a tree =
-  is_Leaf: Leaf ("\<langle>\<rangle>") |
-  Node (left: "'a tree") (val: 'a) (right: "'a tree") ("(1\<langle>_,/ _,/ _\<rangle>)")
-  where
-    "left Leaf = Leaf"
-  | "right Leaf = Leaf"
+  Leaf ("\<langle>\<rangle>") |
+  Node "'a tree" (root_val: 'a) "'a tree" ("(1\<langle>_,/ _,/ _\<rangle>)")
 datatype_compat tree
 
 text\<open>Can be seen as counting the number of leaves rather than nodes:\<close>
@@ -61,9 +55,9 @@ fun wbalanced :: "'a tree \<Rightarrow> bool" where
 "wbalanced (Node l x r) = (abs(int(size l) - int(size r)) \<le> 1 \<and> wbalanced l \<and> wbalanced r)"
 
 text \<open>Internal path length:\<close>
-fun path_len :: "'a tree \<Rightarrow> nat" where
-"path_len Leaf = 0 " |
-"path_len (Node l _ r) = path_len l + size l + path_len r + size r"
+fun ipl :: "'a tree \<Rightarrow> nat" where
+"ipl Leaf = 0 " |
+"ipl (Node l _ r) = ipl l + size l + ipl r + size r"
 
 fun preorder :: "'a tree \<Rightarrow> 'a list" where
 "preorder \<langle>\<rangle> = []" |
@@ -357,12 +351,12 @@ lemma wbalanced_subtrees: "\<lbrakk> wbalanced t; s \<in> subtrees t \<rbrakk> \
 using [[simp_depth_limit=1]] by(induction t arbitrary: s) auto
 
 
-subsection \<open>@{const path_len}\<close>
+subsection \<open>@{const ipl}\<close>
 
 text \<open>The internal path length of a tree:\<close>
 
-lemma path_len_if_bal: "complete t
-  \<Longrightarrow> path_len t = (let n = height t in 2 + n*2^n - 2^(n+1))"
+lemma ipl_if_complete: "complete t
+  \<Longrightarrow> ipl t = (let n = height t in 2 + n*2^n - 2^(n+1))"
 proof(induction t)
   case (Node l x r)
   have *: "2^(n+1) \<le> 2 + n*2^n" for n :: nat
