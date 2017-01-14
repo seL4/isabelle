@@ -37,7 +37,7 @@ object Symbols
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("vscode_symbols",
-    "generate configuration for VSCode editor extension Prettify Symbols Mode", args =>
+    "generate configuration for VSCode Prettify Symbols Mode", args =>
   {
     val getopts = Getopts("""
 Usage: isabelle vscode_symbols
