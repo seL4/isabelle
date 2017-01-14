@@ -11,6 +11,12 @@ object Build_Docker
 {
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
+  private val standard_packages =
+    List("less", "lib32stdc++6", "libwww-perl", "rlwrap", "unzip")
+
+  private val package_collections =
+    Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"))
+
   def build_docker(progress: Progress,
     app_archive: Path,
     logic: String = default_logic,
@@ -36,8 +42,7 @@ SHELL ["/bin/bash", "-c"]
 
 # packages
 RUN apt-get -y update && \
-  apt-get install -y less lib32stdc++6 libwww-perl rlwrap unzip """ +
-    packages.map(Bash.string(_)).mkString(" ") + """ && \
+  apt-get install -y  """ + (standard_packages ::: packages).map(Bash.string(_)).mkString(" ") + """ && \
   apt-get clean
 
 # user
@@ -88,9 +93,11 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
 Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Options are:
+    -P NAME      additional Ubuntu package collection (""" +
+          package_collections.keySet.toList.sorted.mkString(", ") + """)
     -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -o FILE      output generated Dockerfile
-    -p PACKAGE   additional Ubuntu package
+    -p NAME      additional Ubuntu package
     -t TAG       docker build tag
     -v           verbose
 
@@ -99,6 +106,11 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   The remaining DOCKER_ARGS are passed directly to "docker build".
 """,
+          "P:" -> (arg =>
+            package_collections.get(arg) match {
+              case Some(ps) => packages :::= ps
+              case None => error("Unknown package collection " + quote(arg))
+            }),
           "l:" -> (arg => logic = arg),
           "o:" -> (arg => output = Some(Path.explode(arg))),
           "p:" -> (arg => packages ::= arg),
