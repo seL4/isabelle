@@ -1,7 +1,7 @@
 (*  Title:      HOL/Analysis/ex/Circle_Area.thy
     Author:     Manuel Eberl, TU Muenchen
 
-A proof that the area of a circle with radius R is R\<^sup>²\<pi>.
+A proof that the area of a circle with radius R is R\<^sup>2\<pi>.
 *)
 
 section {* The area of a circle *}
