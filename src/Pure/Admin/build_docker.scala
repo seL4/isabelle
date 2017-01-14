@@ -15,6 +15,7 @@ object Build_Docker
     app_archive: Path,
     logic: String = default_logic,
     output: Option[Path] = None,
+    packages: List[String] = Nil,
     tag: String = "",
     verbose: Boolean = false)
   {
@@ -35,7 +36,8 @@ SHELL ["/bin/bash", "-c"]
 
 # packages
 RUN apt-get -y update && \
-  apt-get install -y less lib32stdc++6 libwww-perl rlwrap unzip && \
+  apt-get install -y less lib32stdc++6 libwww-perl rlwrap unzip """ +
+    packages.map(Bash.string(_)).mkString(" ") + """ && \
   apt-get clean
 
 # user
@@ -77,6 +79,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
     {
       var logic = default_logic
       var output: Option[Path] = None
+      var packages: List[String] = Nil
       var verbose = false
       var tag = ""
 
@@ -87,6 +90,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
   Options are:
     -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -o FILE      output generated Dockerfile
+    -p PACKAGE   additional Ubuntu package
     -t TAG       docker build tag
     -v           verbose
 
@@ -97,6 +101,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 """,
           "l:" -> (arg => logic = arg),
           "o:" -> (arg => output = Some(Path.explode(arg))),
+          "p:" -> (arg => packages ::= arg),
           "t:" -> (arg => tag = arg),
           "v" -> (_ => verbose = true))
 
@@ -107,6 +112,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
           case _ => getopts.usage()
         }
 
-      build_docker(new Console_Progress(), app_archive, logic, output, tag, verbose)
+      build_docker(new Console_Progress(), app_archive, logic = logic, output = output,
+        packages = packages, tag = tag, verbose = verbose)
     }, admin = true)
 }
