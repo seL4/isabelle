@@ -1,10 +1,11 @@
-(*
-  File: Circle_Area.thy
-  Author: Manuel Eberl <eberlm@in.tum.de>
+(*  Title:      HOL/Analysis/ex/Circle_Area.thy
+    Author:     Manuel Eberl, TU Muenchen
 
-  An proof that the area of a circle with radius R is R²\<pi>.
+A proof that the area of a circle with radius R is R\<^sup>²\<pi>.
 *)
+
 section {* The area of a circle *}
+
 theory Circle_Area
 imports Complex_Main Interval_Integral
 begin
@@ -34,7 +35,7 @@ proof-
   also have "... = LBINT x=-pi/2..pi/2. cos x *\<^sub>R (2 * sqrt (1 - (sin x)\<^sup>2))"
     by (rule interval_integral_substitution_finite[symmetric])
        (auto intro: DERIV_subset[OF DERIV_sin] intro!: continuous_intros)
-  also have "... = LBINT x=-pi/2..pi/2. 2 * cos x * sqrt ((cos x)^2)" 
+  also have "... = LBINT x=-pi/2..pi/2. 2 * cos x * sqrt ((cos x)^2)"
     by (simp add: cos_squared_eq field_simps)
   also {
     fix x assume "x \<in> {-pi/2<..<pi/2}"
@@ -49,30 +50,30 @@ proof-
     have "(?F has_real_derivative 1 - (sin x)^2 + (cos x)^2) (at x)"
       by (auto simp: power2_eq_square intro!: derivative_eq_intros)
     also have "1 - (sin x)^2 + (cos x)^2 = 2 * (cos x)^2" by (simp add: cos_squared_eq)
-    finally have "(?F has_real_derivative 2 * (cos x)^2) (at x within A)" 
+    finally have "(?F has_real_derivative 2 * (cos x)^2) (at x within A)"
       by (rule DERIV_subset) simp
   }
   hence "LBINT x=-pi/2..pi/2. 2 * (cos x)^2 = ?F (pi/2) - ?F (-pi/2)"
-    by (intro interval_integral_FTC_finite) 
+    by (intro interval_integral_FTC_finite)
        (auto simp: has_field_derivative_iff_has_vector_derivative intro!: continuous_intros)
   also have "... = pi" by simp
   finally show ?thesis .
 qed
- 
+
 lemma unit_circle_area:
   "emeasure lborel {z::real\<times>real. norm z \<le> 1} = pi" (is "emeasure _ ?A = _")
 proof-
   let ?A1 = "{(x,y)\<in>?A. y \<ge> 0}" and ?A2 = "{(x,y)\<in>?A. y \<le> 0}"
   have [measurable]: "(\<lambda>x. snd (x :: real \<times> real)) \<in> measurable borel borel"
     by (simp add: borel_prod[symmetric])
-  
+
   have "?A1 = ?A \<inter> {x\<in>space lborel. snd x \<ge> 0}" by auto
   also have "?A \<inter> {x\<in>space lborel. snd x \<ge> 0} \<in> sets borel"
     by (intro sets.Int pred_Collect_borel) simp_all
   finally have A1_in_sets: "?A1 \<in> sets lborel" by (subst sets_lborel)
 
   have "?A2 = ?A \<inter> {x\<in>space lborel. snd x \<le> 0}" by auto
-  also have "... \<in> sets borel" 
+  also have "... \<in> sets borel"
     by (intro sets.Int pred_Collect_borel) simp_all
   finally have A2_in_sets: "?A2 \<in> sets lborel" by (subst sets_lborel)
 
@@ -86,10 +87,10 @@ proof-
     by (subst A12, rule plus_emeasure'[OF A1_in_sets A2_in_sets, symmetric])
 
   also have "emeasure lborel ?A1 = \<integral>\<^sup>+x. \<integral>\<^sup>+y. indicator ?A1 (x,y) \<partial>lborel \<partial>lborel"
-    by (subst lborel_prod[symmetric], subst lborel.emeasure_pair_measure) 
+    by (subst lborel_prod[symmetric], subst lborel.emeasure_pair_measure)
        (simp_all only: lborel_prod A1_in_sets)
   also have "emeasure lborel ?A2 = \<integral>\<^sup>+x. \<integral>\<^sup>+y. indicator ?A2 (x,y) \<partial>lborel \<partial>lborel"
-    by (subst lborel_prod[symmetric], subst lborel.emeasure_pair_measure) 
+    by (subst lborel_prod[symmetric], subst lborel.emeasure_pair_measure)
        (simp_all only: lborel_prod A2_in_sets)
   also have "distr lborel lborel uminus = (lborel :: real measure)"
     by (subst (3) lborel_real_affine[of "-1" 0])
@@ -123,7 +124,7 @@ proof-
       by (intro nn_integral_cong) (auto split: split_indicator)
     also from x have "... = sqrt (1-x\<^sup>2)" using x by simp
     finally have "(\<integral>\<^sup>+y. indicator ?A1 (x,y) \<partial>lborel) = sqrt (1-x\<^sup>2)" .
-  } 
+  }
   hence "(\<integral>\<^sup>+x. 2 * (\<integral>\<^sup>+y. indicator ?A1 (x,y) \<partial>lborel) * indicator {-1..1} x \<partial>lborel) =
             \<integral>\<^sup>+x. 2 * sqrt (1-x\<^sup>2) * indicator {-1..1} x \<partial>lborel"
     by (intro nn_integral_cong) (simp split: split_indicator add: ennreal_mult')
@@ -131,9 +132,9 @@ proof-
     by (subst not_less, subst sq_le_1_iff) (simp add: abs_real_def)
   have "integrable lborel (\<lambda>x. 2 * sqrt (1-x\<^sup>2) * indicator {-1..1::real} x)"
     by (intro borel_integrable_atLeastAtMost continuous_intros)
-  hence "(\<integral>\<^sup>+x. 2 * sqrt (1-x\<^sup>2) * indicator {-1..1} x \<partial>lborel) = 
+  hence "(\<integral>\<^sup>+x. 2 * sqrt (1-x\<^sup>2) * indicator {-1..1} x \<partial>lborel) =
              ennreal (\<integral>x. 2 * sqrt (1-x\<^sup>2) * indicator {-1..1} x \<partial>lborel)"
-    by (intro nn_integral_eq_integral AE_I2) 
+    by (intro nn_integral_eq_integral AE_I2)
        (auto split: split_indicator simp: field_simps sq_le_1_iff)
   also have "(\<integral>x. 2 * sqrt (1-x\<^sup>2) * indicator {-1..1} x \<partial>lborel) =
                LBINT x:{-1..1}. 2 * sqrt (1-x\<^sup>2)" by (simp add: field_simps)
@@ -173,8 +174,8 @@ proof (cases "R = 0")
                \<integral>\<^sup>+x. \<integral>\<^sup>+y. indicator ?A' (x,y) \<partial>lborel \<partial>lborel"
     by (intro nn_integral_cong) (simp split: split_indicator)
   also have "... = emeasure lborel ?A'"
-    by (subst lborel_prod[symmetric], subst lborel.emeasure_pair_measure, subst lborel_prod) 
-       simp_all 
+    by (subst lborel_prod[symmetric], subst lborel.emeasure_pair_measure, subst lborel_prod)
+       simp_all
   also have "... = pi" by (rule unit_circle_area)
   finally show ?thesis using assms by (simp add: power2_eq_square ennreal_mult mult_ac)
 qed simp
