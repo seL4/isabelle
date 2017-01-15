@@ -465,7 +465,7 @@ val _ = Theory.setup
       check = { env_var = "SCALA_HOME",
         make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
         make_command = fn _ =>
-          "env JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' \"$SCALA_HOME/bin/scalac\" ROOT.scala" } })
+          "env JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' \"$SCALA_HOME/bin/scalac\" $ISABELLE_SCALAC_OPTIONS ROOT.scala" } })
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (

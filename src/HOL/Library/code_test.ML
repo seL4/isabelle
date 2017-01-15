@@ -551,7 +551,7 @@ fun mk_driver_scala _ path _ value_name =
       "}\n"
 
     val compile_cmd =
-      "\"$SCALA_HOME/bin/scalac\" -d " ^ File.bash_path path ^
+      "\"$SCALA_HOME/bin/scalac\" $ISABELLE_SCALAC_OPTIONS -d " ^ File.bash_path path ^
       " -classpath " ^ File.bash_path path ^ " " ^
       File.bash_path code_path ^ " " ^ File.bash_path driver_path
 
