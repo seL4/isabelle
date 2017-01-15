@@ -15,7 +15,8 @@ object Build_Docker
     List("less", "lib32stdc++6", "libwww-perl", "rlwrap", "unzip")
 
   private val package_collections =
-    Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"))
+    Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
+      "latex" -> List("texlive-fonts-extra", "texlive-latex-extra", "texlive-math-extra"))
 
   def build_docker(progress: Progress,
     app_archive: Path,
@@ -94,7 +95,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Options are:
     -P NAME      additional Ubuntu package collection (""" +
-          package_collections.keySet.toList.sorted.mkString(", ") + """)
+          package_collections.keySet.toList.sorted.map(quote(_)).mkString(", ") + """)
     -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -o FILE      output generated Dockerfile
     -p NAME      additional Ubuntu package
@@ -104,7 +105,9 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
   Build Isabelle docker image with default logic image, using a standard
   Isabelle application archive for Linux.
 
-  The remaining DOCKER_ARGS are passed directly to "docker build".
+  Example:
+
+    isabelle build_docker -t isabelle/Isabelle2016-1 Isabelle2016-1_app.tar.gz
 """,
           "P:" -> (arg =>
             package_collections.get(arg) match {
