@@ -88,6 +88,10 @@ editor is called "Isabelle" and available from its online repository
 (the "Marketplace"). It serves as example for further potential IDE
 front-ends.
 
+* ISABELLE_SCALA_BUILD_OPTIONS has been renamed to
+ISABELLE_SCALAC_OPTIONS. Rare INCOMPATIBILITY.
+
+
 
 New in Isabelle2016-1 (December 2016)
 -------------------------------------

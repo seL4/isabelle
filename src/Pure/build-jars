@@ -260,7 +260,7 @@ then
   rm -f "$TARGET"
   rm -rf classes && mkdir classes
 
-  SCALAC_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -d classes"
+  SCALAC_OPTIONS="$ISABELLE_SCALAC_OPTIONS -d classes"
 
   (
     classpath "$JAVA_HOME/lib/jfxrt.jar"
