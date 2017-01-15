@@ -11,10 +11,10 @@ object Build_Docker
 {
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
-  private val standard_packages =
+  val packages: List[String] =
     List("less", "lib32stdc++6", "libgomp1", "libwww-perl", "rlwrap", "unzip")
 
-  private val package_collections =
+  val package_collections: Map[String, List[String]] =
     Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
       "latex" -> List("texlive-fonts-extra", "texlive-latex-extra", "texlive-math-extra"))
 
@@ -22,7 +22,7 @@ object Build_Docker
     app_archive: Path,
     logic: String = default_logic,
     output: Option[Path] = None,
-    packages: List[String] = Nil,
+    more_packages: List[String] = Nil,
     tag: String = "",
     verbose: Boolean = false)
   {
@@ -43,7 +43,7 @@ SHELL ["/bin/bash", "-c"]
 
 # packages
 RUN apt-get -y update && \
-  apt-get install -y  """ + (standard_packages ::: packages).map(Bash.string(_)).mkString(" ") + """ && \
+  apt-get install -y  """ + (packages ::: more_packages).map(Bash.string(_)).mkString(" ") + """ && \
   apt-get clean
 
 # user
@@ -85,7 +85,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
     {
       var logic = default_logic
       var output: Option[Path] = None
-      var packages: List[String] = Nil
+      var more_packages: List[String] = Nil
       var verbose = false
       var tag = ""
 
@@ -111,12 +111,12 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 """,
           "P:" -> (arg =>
             package_collections.get(arg) match {
-              case Some(ps) => packages :::= ps
+              case Some(ps) => more_packages :::= ps
               case None => error("Unknown package collection " + quote(arg))
             }),
           "l:" -> (arg => logic = arg),
           "o:" -> (arg => output = Some(Path.explode(arg))),
-          "p:" -> (arg => packages ::= arg),
+          "p:" -> (arg => more_packages ::= arg),
           "t:" -> (arg => tag = arg),
           "v" -> (_ => verbose = true))
 
@@ -128,6 +128,6 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
         }
 
       build_docker(new Console_Progress(), app_archive, logic = logic, output = output,
-        packages = packages, tag = tag, verbose = verbose)
+        more_packages = more_packages, tag = tag, verbose = verbose)
     }, admin = true)
 }
