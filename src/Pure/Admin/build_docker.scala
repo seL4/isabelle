@@ -12,7 +12,7 @@ object Build_Docker
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   val packages: List[String] =
-    List("less", "lib32stdc++6", "libgomp1", "libwww-perl", "rlwrap", "unzip")
+    List("curl", "less", "lib32stdc++6", "libgomp1", "libwww-perl", "rlwrap", "unzip")
 
   val package_collections: Map[String, List[String]] =
     Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
