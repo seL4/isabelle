@@ -107,7 +107,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Example:
 
-    isabelle build_docker -t isabelle/Isabelle2016-1 Isabelle2016-1_app.tar.gz
+    isabelle build_docker -t test/isabelle:Isabelle2016-1 Isabelle2016-1_app.tar.gz
 """,
           "P:" -> (arg =>
             package_collections.get(arg) match {
