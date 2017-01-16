@@ -23,6 +23,7 @@ object Build_Docker
   def build_docker(progress: Progress,
     app_archive: String,
     logic: String = default_logic,
+    no_build: Boolean = false,
     output: Option[Path] = None,
     more_packages: List[String] = Nil,
     tag: String = "",
@@ -69,21 +70,23 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
 
     output.foreach(File.write(_, dockerfile))
 
-    Isabelle_System.with_tmp_dir("docker")(tmp_dir =>
-      {
-        File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
+    if (!no_build) {
+      Isabelle_System.with_tmp_dir("docker")(tmp_dir =>
+        {
+          File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
 
-        if (is_remote) {
-          if (!Url.is_readable(app_archive))
-            error("Cannot access remote archive " + app_archive)
-        }
-        else File.copy(Path.explode(app_archive), tmp_dir + Path.explode("Isabelle.tar.gz"))
+          if (is_remote) {
+            if (!Url.is_readable(app_archive))
+              error("Cannot access remote archive " + app_archive)
+          }
+          else File.copy(Path.explode(app_archive), tmp_dir + Path.explode("Isabelle.tar.gz"))
 
-        val quiet_option = if (verbose) "" else " -q"
-        val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)
-        progress.bash("docker build" + quiet_option + tag_option + " " + File.bash_path(tmp_dir),
-          echo = true).check
-      })
+          val quiet_option = if (verbose) "" else " -q"
+          val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)
+          progress.bash("docker build" + quiet_option + tag_option + " " + File.bash_path(tmp_dir),
+            echo = true).check
+        })
+    }
   }
 
 
@@ -93,6 +96,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
     Isabelle_Tool("build_docker", "build Isabelle docker image", args =>
     {
       var logic = default_logic
+      var no_build = false
       var output: Option[Path] = None
       var more_packages: List[String] = Nil
       var verbose = false
@@ -106,6 +110,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
     -P NAME      additional Ubuntu package collection (""" +
           package_collections.keySet.toList.sorted.map(quote(_)).mkString(", ") + """)
     -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
+    -n           no docker build
     -o FILE      output generated Dockerfile
     -p NAME      additional Ubuntu package
     -t TAG       docker build tag
@@ -118,7 +123,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
     isabelle build_docker -t test/isabelle:Isabelle2016-1 Isabelle2016-1_app.tar.gz
 
-    isabelle build_docker -t test/isabelle:Isabelle2016-1 -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2016-1_app.tar.gz
+    isabelle build_docker -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2016-1_app.tar.gz
 
 """,
           "P:" -> (arg =>
@@ -127,6 +132,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
               case None => error("Unknown package collection " + quote(arg))
             }),
           "l:" -> (arg => logic = arg),
+          "n" -> (_ => no_build = true),
           "o:" -> (arg => output = Some(Path.explode(arg))),
           "p:" -> (arg => more_packages ::= arg),
           "t:" -> (arg => tag = arg),
@@ -139,7 +145,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
           case _ => getopts.usage()
         }
 
-      build_docker(new Console_Progress(), app_archive, logic = logic, output = output,
-        more_packages = more_packages, tag = tag, verbose = verbose)
+      build_docker(new Console_Progress(), app_archive, logic = logic, no_build = no_build,
+        output = output, more_packages = more_packages, tag = tag, verbose = verbose)
     }, admin = true)
 }
