@@ -312,27 +312,21 @@ locale classical =
   \<comment> \<open>predicate definition and hypothetical context\<close>
 begin
 
-theorem Peirce's_Law: "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
-proof
-  assume *: "(A \<longrightarrow> B) \<longrightarrow> A"
-  show A
-  proof (rule classical)
-    assume "\<not> A"
-    have "A \<longrightarrow> B"
-    proof
-      assume A
-      with \<open>\<not> A\<close> show B by (rule contradiction)
-    qed
-    with * show A ..
-  qed
+lemma classical_contradiction:
+  assumes "\<not> A \<Longrightarrow> False"
+  shows A
+proof (rule classical)
+  assume "\<not> A"
+  then have False by (rule assms)
+  then show A ..
 qed
 
 lemma double_negation:
   assumes "\<not> \<not> A"
   shows A
-proof (rule classical)
+proof (rule classical_contradiction)
   assume "\<not> A"
-  with \<open>\<not> \<not> A\<close> show ?thesis by (rule contradiction)
+  with \<open>\<not> \<not> A\<close> show False by (rule contradiction)
 qed
 
 lemma tertium_non_datur: "A \<or> \<not> A"
@@ -375,6 +369,29 @@ proof
   next
     assume "\<not> A"
     then show A by (rule *)
+  qed
+qed
+
+
+section \<open>Peirce's Law\<close>
+
+text \<open>
+  Peirce's Law is another characterization of classical reasoning. Its
+  statement only requires implication.
+\<close>
+
+theorem (in classical) Peirce's_Law: "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
+proof
+  assume *: "(A \<longrightarrow> B) \<longrightarrow> A"
+  show A
+  proof (rule classical)
+    assume "\<not> A"
+    have "A \<longrightarrow> B"
+    proof
+      assume A
+      with \<open>\<not> A\<close> show B by (rule contradiction)
+    qed
+    with * show A ..
   qed
 qed
 
@@ -493,9 +510,10 @@ proof (rule classical_if_cases)
 qed
 
 thm classical
-  Peirce's_Law
+  classical_contradiction
   double_negation
   tertium_non_datur
   classical_cases
+  Peirce's_Law
 
 end
