@@ -11,6 +11,8 @@ object Build_Docker
 {
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
+  private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_(?:app|linux)\.tar\.gz$""".r
+
   val packages: List[String] =
     List("curl", "less", "lib32stdc++6", "libgomp1", "libwww-perl", "rlwrap", "unzip")
 
@@ -19,31 +21,29 @@ object Build_Docker
       "latex" -> List("texlive-fonts-extra", "texlive-latex-extra", "texlive-math-extra"))
 
   def build_docker(progress: Progress,
-    app_archive: Path,
+    app_archive: String,
     logic: String = default_logic,
     output: Option[Path] = None,
     more_packages: List[String] = Nil,
     tag: String = "",
     verbose: Boolean = false)
   {
-    val distname =
-    {
-      val Name = "^(Isabelle[^/]*)/?.*$".r
-      Isabelle_System.bash("tar tzf " + File.bash_path(app_archive)).check.out_lines match {
-        case Name(name) :: _ => name
+    val isabelle_name =
+      app_archive match {
+        case Isabelle_Name(name) => name
         case _ => error("Cannot determine Isabelle distribution name from " + app_archive)
       }
-    }
+    val is_remote = Url.is_wellformed(app_archive)
 
     val dockerfile =
-      """## Dockerfile for """ + distname + """
+      """## Dockerfile for """ + isabelle_name + """
 
 FROM ubuntu
 SHELL ["/bin/bash", "-c"]
 
 # packages
 RUN apt-get -y update && \
-  apt-get install -y  """ + (packages ::: more_packages).map(Bash.string(_)).mkString(" ") + """ && \
+  apt-get install -y """ + (packages ::: more_packages).map(Bash.string(_)).mkString(" ") + """ && \
   apt-get clean
 
 # user
@@ -52,9 +52,13 @@ USER isabelle
 
 # Isabelle
 WORKDIR /home/isabelle
-COPY Isabelle.tar.gz .
+""" +
+ (if (is_remote)
+   "RUN curl --fail --silent " + Bash.string(app_archive) + " > Isabelle.tar.gz"
+  else "COPY Isabelle.tar.gz .") +
+"""
 RUN tar xzf Isabelle.tar.gz && \
-  mv """ + distname + """ Isabelle && \
+  mv """ + isabelle_name + """ Isabelle && \
   rm -rf Isabelle.tar.gz Isabelle/contrib/jdk/x86-linux && \
   perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
   perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
@@ -68,7 +72,12 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
     Isabelle_System.with_tmp_dir("docker")(tmp_dir =>
       {
         File.write(tmp_dir + Path.explode("Dockerfile"), dockerfile)
-        File.copy(app_archive, tmp_dir + Path.explode("Isabelle.tar.gz"))
+
+        if (is_remote) {
+          if (!Url.is_readable(app_archive))
+            error("Cannot access remote archive " + app_archive)
+        }
+        else File.copy(Path.explode(app_archive), tmp_dir + Path.explode("Isabelle.tar.gz"))
 
         val quiet_option = if (verbose) "" else " -q"
         val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)
@@ -103,11 +112,14 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
     -v           verbose
 
   Build Isabelle docker image with default logic image, using a standard
-  Isabelle application archive for Linux.
+  Isabelle application archive for Linux (local file or remote URL).
 
-  Example:
+  Examples:
 
     isabelle build_docker -t test/isabelle:Isabelle2016-1 Isabelle2016-1_app.tar.gz
+
+    isabelle build_docker -t test/isabelle:Isabelle2016-1 -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2016-1_app.tar.gz
+
 """,
           "P:" -> (arg =>
             package_collections.get(arg) match {
@@ -123,7 +135,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
       val more_args = getopts(args)
       val app_archive =
         more_args match {
-          case List(arg) => Path.explode(arg)
+          case List(arg) => arg
           case _ => getopts.usage()
         }
 
