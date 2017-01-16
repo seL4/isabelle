@@ -63,7 +63,7 @@ object Build_PolyML
   def build_polyml(
     root: Path,
     sha1_root: Option[Path] = None,
-    progress: Progress = Ignore_Progress,
+    progress: Progress = No_Progress,
     arch_64: Boolean = false,
     options: List[String] = Nil,
     msys_root: Option[Path] = None,

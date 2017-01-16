@@ -102,7 +102,7 @@ object Build_History
 
   def build_history(
     hg: Mercurial.Repository,
-    progress: Progress = Ignore_Progress,
+    progress: Progress = No_Progress,
     rev: String = default_rev,
     isabelle_identifier: String = default_isabelle_identifier,
     components_base: String = "",
@@ -372,7 +372,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
     self_update: Boolean = false,
     push_isabelle_home: Boolean = false,
-    progress: Progress = Ignore_Progress,
+    progress: Progress = No_Progress,
     options: String = "",
     args: String = ""): (List[(String, Bytes)], Process_Result) =
   {

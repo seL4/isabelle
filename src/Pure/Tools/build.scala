@@ -103,7 +103,7 @@ object Build
   }
 
   def dependencies(
-      progress: Progress = Ignore_Progress,
+      progress: Progress = No_Progress,
       inlined_files: Boolean = false,
       verbose: Boolean = false,
       list_files: Boolean = false,
@@ -387,7 +387,7 @@ object Build
 
   def build(
     options: Options,
-    progress: Progress = Ignore_Progress,
+    progress: Progress = No_Progress,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
@@ -427,7 +427,7 @@ object Build
 
   def build_selection(
     options: Options,
-    progress: Progress = Ignore_Progress,
+    progress: Progress = No_Progress,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,

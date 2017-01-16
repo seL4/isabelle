@@ -16,7 +16,7 @@ object Build_Doc
 
   def build_doc(
     options: Options,
-    progress: Progress = Ignore_Progress,
+    progress: Progress = No_Progress,
     all_docs: Boolean = false,
     max_jobs: Int = 1,
     system_mode: Boolean = false,

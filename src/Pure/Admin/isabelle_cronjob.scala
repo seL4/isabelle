@@ -318,7 +318,7 @@ Usage: Admin/cronjob/main [OPTIONS]
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      val progress = if (verbose) new Console_Progress() else Ignore_Progress
+      val progress = if (verbose) new Console_Progress() else No_Progress
 
       if (force) cronjob(progress, exclude_task)
       else error("Need to apply force to do anything")

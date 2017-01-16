@@ -50,7 +50,7 @@ object JEdit_Sessions
 
   def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
 
-  def session_build(progress: Progress = Ignore_Progress, no_build: Boolean = false): Int =
+  def session_build(progress: Progress = No_Progress, no_build: Boolean = false): Int =
   {
     val mode = session_build_mode()
 

@@ -37,7 +37,7 @@ object Build_Release
   private val default_platform_families = List("linux", "windows", "windows64", "macos")
 
   def build_release(base_dir: Path,
-    progress: Progress = Ignore_Progress,
+    progress: Progress = No_Progress,
     rev: String = "",
     afp_rev: String = "",
     official_release: Boolean = false,
