@@ -145,25 +145,28 @@ end
 
 subsubsection \<open>Introduction and Destruct Rules for \<open>H\<close>\<close>
 
-lemma (in sylow_central) H_I: "\<lbrakk>g \<in> carrier G; M1 #> g = M1\<rbrakk> \<Longrightarrow> g \<in> H"
+context sylow_central
+begin
+
+lemma H_I: "\<lbrakk>g \<in> carrier G; M1 #> g = M1\<rbrakk> \<Longrightarrow> g \<in> H"
   by (simp add: H_def)
 
-lemma (in sylow_central) H_into_carrier_G: "x \<in> H \<Longrightarrow> x \<in> carrier G"
+lemma H_into_carrier_G: "x \<in> H \<Longrightarrow> x \<in> carrier G"
   by (simp add: H_def)
 
-lemma (in sylow_central) in_H_imp_eq: "g \<in> H \<Longrightarrow> M1 #> g = M1"
+lemma in_H_imp_eq: "g \<in> H \<Longrightarrow> M1 #> g = M1"
   by (simp add: H_def)
 
-lemma (in sylow_central) H_m_closed: "\<lbrakk>x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> x \<otimes> y \<in> H"
+lemma H_m_closed: "\<lbrakk>x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> x \<otimes> y \<in> H"
   by (simp add: H_def coset_mult_assoc [symmetric])
 
-lemma (in sylow_central) H_not_empty: "H \<noteq> {}"
+lemma H_not_empty: "H \<noteq> {}"
   apply (simp add: H_def)
   apply (rule exI [of _ \<one>])
   apply simp
   done
 
-lemma (in sylow_central) H_is_subgroup: "subgroup H G"
+lemma H_is_subgroup: "subgroup H G"
   apply (rule subgroupI)
      apply (rule subsetI)
      apply (erule H_into_carrier_G)
@@ -176,26 +179,27 @@ lemma (in sylow_central) H_is_subgroup: "subgroup H G"
   done
 
 
-lemma (in sylow_central) rcosetGM1g_subset_G:
-  "\<lbrakk>g \<in> carrier G; x \<in> M1 #> g\<rbrakk> \<Longrightarrow> x \<in> carrier G"
+lemma rcosetGM1g_subset_G: "\<lbrakk>g \<in> carrier G; x \<in> M1 #> g\<rbrakk> \<Longrightarrow> x \<in> carrier G"
   by (blast intro: M1_subset_G [THEN r_coset_subset_G, THEN subsetD])
 
-lemma (in sylow_central) finite_M1: "finite M1"
+lemma finite_M1: "finite M1"
   by (rule finite_subset [OF M1_subset_G finite_G])
 
-lemma (in sylow_central) finite_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> finite (M1 #> g)"
+lemma finite_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> finite (M1 #> g)"
   using rcosetGM1g_subset_G finite_G M1_subset_G cosets_finite rcosetsI by blast
 
-lemma (in sylow_central) M1_cardeq_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> card (M1 #> g) = card M1"
+lemma M1_cardeq_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> card (M1 #> g) = card M1"
   by (simp add: card_cosets_equal rcosetsI)
 
-lemma (in sylow_central) M1_RelM_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> (M1, M1 #> g) \<in> RelM"
+lemma M1_RelM_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> (M1, M1 #> g) \<in> RelM"
   apply (simp add: RelM_def calM_def card_M1)
   apply (rule conjI)
    apply (blast intro: rcosetGM1g_subset_G)
   apply (simp add: card_M1 M1_cardeq_rcosetGM1g)
   apply (metis M1_subset_G coset_mult_assoc coset_mult_one r_inv_ex)
   done
+
+end
 
 
 subsection \<open>Equal Cardinalities of \<open>M\<close> and the Set of Cosets\<close>
@@ -206,21 +210,22 @@ text \<open>Injections between @{term M} and @{term "rcosets\<^bsub>G\<^esub> H"
 lemma ElemClassEquiv: "\<lbrakk>equiv A r; C \<in> A // r\<rbrakk> \<Longrightarrow> \<forall>x \<in> C. \<forall>y \<in> C. (x, y) \<in> r"
   unfolding equiv_def quotient_def sym_def trans_def by blast
 
-lemma (in sylow_central) M_elem_map: "M2 \<in> M \<Longrightarrow> \<exists>g. g \<in> carrier G \<and> M1 #> g = M2"
+context sylow_central
+begin
+
+lemma M_elem_map: "M2 \<in> M \<Longrightarrow> \<exists>g. g \<in> carrier G \<and> M1 #> g = M2"
   using M1_in_M M_in_quot [THEN RelM_equiv [THEN ElemClassEquiv]]
   by (simp add: RelM_def) (blast dest!: bspec)
 
-lemmas (in sylow_central) M_elem_map_carrier =
-  M_elem_map [THEN someI_ex, THEN conjunct1]
+lemmas M_elem_map_carrier = M_elem_map [THEN someI_ex, THEN conjunct1]
 
-lemmas (in sylow_central) M_elem_map_eq =
-  M_elem_map [THEN someI_ex, THEN conjunct2]
+lemmas M_elem_map_eq = M_elem_map [THEN someI_ex, THEN conjunct2]
 
-lemma (in sylow_central) M_funcset_rcosets_H:
+lemma M_funcset_rcosets_H:
   "(\<lambda>x\<in>M. H #> (SOME g. g \<in> carrier G \<and> M1 #> g = x)) \<in> M \<rightarrow> rcosets H"
   by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup_imp_subset)
 
-lemma (in sylow_central) inj_M_GmodH: "\<exists>f \<in> M \<rightarrow> rcosets H. inj_on f M"
+lemma inj_M_GmodH: "\<exists>f \<in> M \<rightarrow> rcosets H. inj_on f M"
   apply (rule bexI)
    apply (rule_tac [2] M_funcset_rcosets_H)
   apply (rule inj_onI, simp)
@@ -236,19 +241,22 @@ lemma (in sylow_central) inj_M_GmodH: "\<exists>f \<in> M \<rightarrow> rcosets 
   apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_eq)
   done
 
+end
 
-subsubsection\<open>The Opposite Injection\<close>
 
-lemma (in sylow_central) H_elem_map: "H1 \<in> rcosets H \<Longrightarrow> \<exists>g. g \<in> carrier G \<and> H #> g = H1"
+subsubsection \<open>The Opposite Injection\<close>
+
+context sylow_central
+begin
+
+lemma H_elem_map: "H1 \<in> rcosets H \<Longrightarrow> \<exists>g. g \<in> carrier G \<and> H #> g = H1"
   by (auto simp: RCOSETS_def)
 
-lemmas (in sylow_central) H_elem_map_carrier =
-  H_elem_map [THEN someI_ex, THEN conjunct1]
+lemmas H_elem_map_carrier = H_elem_map [THEN someI_ex, THEN conjunct1]
 
-lemmas (in sylow_central) H_elem_map_eq =
-  H_elem_map [THEN someI_ex, THEN conjunct2]
+lemmas H_elem_map_eq = H_elem_map [THEN someI_ex, THEN conjunct2]
 
-lemma (in sylow_central) rcosets_H_funcset_M:
+lemma rcosets_H_funcset_M:
   "(\<lambda>C \<in> rcosets H. M1 #> (@g. g \<in> carrier G \<and> H #> g = C)) \<in> rcosets H \<rightarrow> M"
   apply (simp add: RCOSETS_def)
   apply (fast intro: someI2
@@ -256,7 +264,7 @@ lemma (in sylow_central) rcosets_H_funcset_M:
   done
 
 text \<open>Close to a duplicate of \<open>inj_M_GmodH\<close>.\<close>
-lemma (in sylow_central) inj_GmodH_M: "\<exists>g \<in> rcosets H\<rightarrow>M. inj_on g (rcosets H)"
+lemma inj_GmodH_M: "\<exists>g \<in> rcosets H\<rightarrow>M. inj_on g (rcosets H)"
   apply (rule bexI)
    apply (rule_tac [2] rcosets_H_funcset_M)
   apply (rule inj_onI)
@@ -273,38 +281,40 @@ lemma (in sylow_central) inj_GmodH_M: "\<exists>g \<in> rcosets H\<rightarrow>M.
   apply (simp add: H_I coset_mult_inv2 H_elem_map_carrier)
   done
 
-lemma (in sylow_central) calM_subset_PowG: "calM \<subseteq> Pow (carrier G)"
+lemma calM_subset_PowG: "calM \<subseteq> Pow (carrier G)"
   by (auto simp: calM_def)
 
 
-lemma (in sylow_central) finite_M: "finite M"
+lemma finite_M: "finite M"
   by (metis M_subset_calM finite_calM rev_finite_subset)
 
-lemma (in sylow_central) cardMeqIndexH: "card M = card (rcosets H)"
+lemma cardMeqIndexH: "card M = card (rcosets H)"
   apply (insert inj_M_GmodH inj_GmodH_M)
   apply (blast intro: card_bij finite_M H_is_subgroup
       rcosets_subset_PowG [THEN finite_subset]
       finite_Pow_iff [THEN iffD2])
   done
 
-lemma (in sylow_central) index_lem: "card M * card H = order G"
+lemma index_lem: "card M * card H = order G"
   by (simp add: cardMeqIndexH lagrange H_is_subgroup)
 
-lemma (in sylow_central) lemma_leq1: "p^a \<le> card H"
+lemma lemma_leq1: "p^a \<le> card H"
   apply (rule dvd_imp_le)
    apply (rule div_combine [OF prime_imp_prime_elem[OF prime_p] not_dvd_M])
    prefer 2 apply (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
   apply (simp add: index_lem order_G power_add mult_dvd_mono multiplicity_dvd zero_less_m)
   done
 
-lemma (in sylow_central) lemma_leq2: "card H \<le> p^a"
+lemma lemma_leq2: "card H \<le> p^a"
   apply (subst card_M1 [symmetric])
   apply (cut_tac M1_inj_H)
   apply (blast intro!: M1_subset_G intro: card_inj H_into_carrier_G finite_subset [OF _ finite_G])
   done
 
-lemma (in sylow_central) card_H_eq: "card H = p^a"
+lemma card_H_eq: "card H = p^a"
   by (blast intro: le_antisym lemma_leq1 lemma_leq2)
+
+end
 
 lemma (in sylow) sylow_thm: "\<exists>H. subgroup H G \<and> card H = p^a"
   using lemma_A1
