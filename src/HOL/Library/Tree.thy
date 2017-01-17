@@ -145,16 +145,16 @@ proof(induction t)
   proof (cases "height l \<le> height r")
     case True
     have "size1(Node l a r) = size1 l + size1 r" by simp
-    also have "size1 l \<le> 2 ^ height l" by(rule Node.IH(1))
-    also have "size1 r \<le> 2 ^ height r" by(rule Node.IH(2))
-    also have "(2::nat) ^ height l \<le> 2 ^ height r" using True by simp
-    finally show ?thesis using True by (auto simp: max_def mult_2)
+    also have "\<dots> \<le> 2 ^ height l + 2 ^ height r" using Node.IH by arith
+    also have "\<dots> \<le> 2 ^ height r + 2 ^ height r" using True by simp
+    also have "\<dots> \<le> 2 ^ height (Node l a r)"
+      using True by (auto simp: max_def mult_2)
+    finally show ?thesis .
   next
     case False
     have "size1(Node l a r) = size1 l + size1 r" by simp
-    also have "size1 l \<le> 2 ^ height l" by(rule Node.IH(1))
-    also have "size1 r \<le> 2 ^ height r" by(rule Node.IH(2))
-    also have "(2::nat) ^ height r \<le> 2 ^ height l" using False by simp
+    also have "\<dots> \<le> 2 ^ height l + 2 ^ height r" using Node.IH by arith
+    also have "\<dots> \<le> 2 ^ height l + 2 ^ height l" using False by simp
     finally show ?thesis using False by (auto simp: max_def mult_2)
   qed
 qed simp
@@ -209,27 +209,27 @@ next
   proof
     assume 0: "height l < h"
     have "size1 t = size1 l + size1 r" by simp
-    also note size1_height[of l]
-    also note size1_height[of r]
-    also have "(2::nat) ^ height l < 2 ^ h"
-        using 0 by (simp add: diff_less_mono)
-    also have "(2::nat) ^ height r \<le> 2 ^ h" using 2 by simp
-    also have "(2::nat) ^ h  + 2 ^ h = 2 ^ (Suc h)" by (simp)
+    also have "\<dots> \<le> 2 ^ height l + 2 ^ height r"
+      using size1_height[of l] size1_height[of r] by arith
+    also have " \<dots> < 2 ^ h + 2 ^ height r" using 0 by (simp)
+    also have " \<dots> \<le> 2 ^ h + 2 ^ h" using 2 by (simp)
+    also have "\<dots> = 2 ^ (Suc h)" by (simp)
     also have "\<dots> = size1 t" using Suc(2,3) by simp
-    finally show False by (simp add: diff_le_mono)
+    finally have "size1 t < size1 t" .
+    thus False by (simp)
   qed
-  have 4: "~ height r < h"
+  have 4: "\<not> height r < h"
   proof
     assume 0: "height r < h"
     have "size1 t = size1 l + size1 r" by simp
-    also note size1_height[of r]
-    also note size1_height[of l]
-    also have "(2::nat) ^ height r < 2 ^ h"
-        using 0 by (simp add: diff_less_mono)
-    also have "(2::nat) ^ height l \<le> 2 ^ h" using 1 by simp
-    also have "(2::nat) ^ h +2 ^ h = 2 ^ (Suc h)" by (simp)
+    also have "\<dots> \<le> 2 ^ height l + 2 ^ height r"
+      using size1_height[of l] size1_height[of r] by arith
+    also have " \<dots> < 2 ^ height l + 2 ^ h" using 0 by (simp)
+    also have " \<dots> \<le> 2 ^ h + 2 ^ h" using 1 by (simp)
+    also have "\<dots> = 2 ^ (Suc h)" by (simp)
     also have "\<dots> = size1 t" using Suc(2,3) by simp
-    finally show False by (simp add: diff_le_mono)
+    finally have "size1 t < size1 t" .
+    thus False by (simp)
   qed
   from 1 2 3 4 have *: "height l = h" "height r = h" by linarith+
   hence "size1 l = 2 ^ height l" "size1 r = 2 ^ height r"
@@ -319,10 +319,10 @@ proof (cases "complete t")
   case True
   have "(2::nat) ^ height t - 1 \<le> 2 ^ height t' - 1"
   proof -
-    have "(2::nat) ^ height t - 1 = size t"
+    have "2 ^ height t - 1 = size t"
       using True by (simp add: complete_iff_height size_if_complete)
-    also note assms(2)
-    also have "size t' \<le> 2 ^ height t' - 1" by (rule size_height)
+    also have "\<dots> \<le> size t'" by(rule assms(2))
+    also have "\<dots> \<le> 2 ^ height t' - 1" by (rule size_height)
     finally show ?thesis .
   qed
   thus ?thesis by (simp add: le_diff_iff)
@@ -332,9 +332,10 @@ next
   proof -
     have "(2::nat) ^ min_height t < size1 t"
       by(rule min_height_size1_if_incomplete[OF False])
-    also have "size1 t \<le> size1 t'" using assms(2) by (simp add: size1_def)
-    also have "size1 t' \<le> 2 ^ height t'"  by(rule size1_height)
-    finally show ?thesis
+    also have "\<dots> \<le> size1 t'" using assms(2) by (simp add: size1_def)
+    also have "\<dots> \<le> 2 ^ height t'"  by(rule size1_height)
+    finally have "(2::nat) ^ min_height t < (2::nat) ^ height t'" .
+    thus ?thesis
       using power_eq_0_iff[of "2::nat" "height t'"] by linarith
   qed
   hence *: "min_height t < height t'" by simp
