@@ -34,17 +34,17 @@ definition greatest :: "['a => bool, 'a potype] => 'a" where
                           (\<forall>y \<in> pset po. P y --> (y,x): order po)"
 
 definition lub  :: "['a set, 'a potype] => 'a" where
-  "lub S po == least (%x. \<forall>y\<in>S. (y,x): order po) po"
+  "lub S po == least (\<lambda>x. \<forall>y\<in>S. (y,x): order po) po"
 
 definition glb  :: "['a set, 'a potype] => 'a" where
-  "glb S po == greatest (%x. \<forall>y\<in>S. (x,y): order po) po"
+  "glb S po == greatest (\<lambda>x. \<forall>y\<in>S. (x,y): order po) po"
 
 definition isLub :: "['a set, 'a potype, 'a] => bool" where
-  "isLub S po == %L. (L: pset po & (\<forall>y\<in>S. (y,L): order po) &
+  "isLub S po == \<lambda>L. (L: pset po & (\<forall>y\<in>S. (y,L): order po) &
                    (\<forall>z\<in>pset po. (\<forall>y\<in>S. (y,z): order po) --> (L,z): order po))"
 
 definition isGlb :: "['a set, 'a potype, 'a] => bool" where
-  "isGlb S po == %G. (G: pset po & (\<forall>y\<in>S. (G,y): order po) &
+  "isGlb S po == \<lambda>G. (G: pset po & (\<forall>y\<in>S. (G,y): order po) &
                  (\<forall>z \<in> pset po. (\<forall>y\<in>S. (z,y): order po) --> (z,G): order po))"
 
 definition "fix"    :: "[('a => 'a), 'a set] => 'a set" where
@@ -54,10 +54,10 @@ definition interval :: "[('a*'a) set,'a, 'a ] => 'a set" where
   "interval r a b == {x. (a,x): r & (x,b): r}"
 
 definition Bot :: "'a potype => 'a" where
-  "Bot po == least (%x. True) po"
+  "Bot po == least (\<lambda>x. True) po"
 
 definition Top :: "'a potype => 'a" where
-  "Top po == greatest (%x. True) po"
+  "Top po == greatest (\<lambda>x. True) po"
 
 definition PartialOrder :: "('a potype) set" where
   "PartialOrder == {P. refl_on (pset P) (order P) & antisym (order P) &
@@ -113,7 +113,7 @@ locale Tarski = CLF +
     Y_ss: "Y \<subseteq> P"
   defines
     intY1_def: "intY1 == interval r (lub Y cl) (Top cl)"
-    and v_def: "v == glb {x. ((%x: intY1. f x) x, x): induced intY1 r &
+    and v_def: "v == glb {x. ((\<lambda>x \<in> intY1. f x) x, x): induced intY1 r &
                              x: intY1}
                       (| pset=intY1, order=induced intY1 r|)"
 
@@ -442,7 +442,7 @@ lemma fix_imp_eq: "x \<in> fix f A ==> f x = x"
 by (simp add: fix_def)
 
 lemma fixf_subset:
-     "[| A \<subseteq> B; x \<in> fix (%y: A. f y) A |] ==> x \<in> fix f B"
+     "[| A \<subseteq> B; x \<in> fix (\<lambda>y \<in> A. f y) A |] ==> x \<in> fix f B"
 by (simp add: fix_def, auto)
 
 subsection \<open>lemmas for Tarski, lub\<close>
@@ -517,7 +517,7 @@ next
     by (metis Collect_conj_eq Collect_mem_eq)
   have F3: "\<forall>x v. {R. v R \<in> x} = v -` x" by (metis vimage_def)
   hence F4: "A \<inter> (\<lambda>R. (R, f R)) -` r = H" using A1 by auto
-  hence F5: "(f (lub H cl), lub H cl) \<in> r" 
+  hence F5: "(f (lub H cl), lub H cl) \<in> r"
     by (metis A1 flubH_le_lubH)
   have F6: "(lub H cl, f (lub H cl)) \<in> r"
     by (metis A1 lubH_le_flubH)
@@ -904,14 +904,14 @@ apply (simp add: intY1_def interval_def  intY1_elem)
 done
 
 
-lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 \<rightarrow> intY1"
+lemma (in Tarski) intY1_func: "(\<lambda>x \<in> intY1. f x) \<in> intY1 \<rightarrow> intY1"
 apply (rule restrict_in_funcset)
 apply (metis intY1_f_closed restrict_in_funcset)
 done
 
 
 lemma (in Tarski) intY1_mono:
-     "monotone (%x: intY1. f x) intY1 (induced intY1 r)"
+     "monotone (\<lambda>x \<in> intY1. f x) intY1 (induced intY1 r)"
 (*sledgehammer *)
 apply (auto simp add: monotone_def induced_def intY1_f_closed)
 apply (blast intro: intY1_elem monotone_f [THEN monotoneE])
@@ -957,7 +957,7 @@ done
 
 
 lemma (in Tarski) f'z_in_int_rel: "[| z \<in> P; \<forall>y\<in>Y. (y, z) \<in> induced P r |]
-      ==> ((%x: intY1. f x) z, z) \<in> induced intY1 r"
+      ==> ((\<lambda>x \<in> intY1. f x) z, z) \<in> induced intY1 r"
 using P_def fix_imp_eq indI intY1_elem reflE z_in_interval by fastforce
 
 (*never proved, 2007-01-22*)
