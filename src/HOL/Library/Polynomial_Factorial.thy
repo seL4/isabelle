@@ -52,7 +52,7 @@ qed
 subsection \<open>Lifting elements into the field of fractions\<close>
 
 definition to_fract :: "'a :: idom \<Rightarrow> 'a fract" where "to_fract x = Fract x 1"
-  -- \<open>FIXME: name \<open>of_idom\<close>, abbreviation\<close>
+  \<comment> \<open>FIXME: name \<open>of_idom\<close>, abbreviation\<close>
 
 lemma to_fract_0 [simp]: "to_fract 0 = 0"
   by (simp add: to_fract_def eq_fract Zero_fract_def)

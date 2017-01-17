@@ -4350,7 +4350,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
   qed
 qed
 
-text\<open>The proof is a duplicate of that of @{text Borsukian_open_Un}.\<close>
+text\<open>The proof is a duplicate of that of \<open>Borsukian_open_Un\<close>.\<close>
 lemma Borsukian_closed_Un:
   fixes S :: "'a::real_normed_vector set"
   assumes cloS: "closedin (subtopology euclidean (S \<union> T)) S"

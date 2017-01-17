@@ -7099,7 +7099,7 @@ by (simp add: assms path_connected_imp_connected path_connected_open_diff_counta
 
 subsection\<open> Self-homeomorphisms shuffling points about in various ways.\<close>
 
-subsubsection\<open>The theorem @{text homeomorphism_moving_points_exists}\<close>
+subsubsection\<open>The theorem \<open>homeomorphism_moving_points_exists\<close>\<close>
 
 lemma homeomorphism_moving_point_1:
   fixes a :: "'a::euclidean_space"
@@ -7521,7 +7521,7 @@ next
 qed
 
 
-subsubsection\<open>The theorem @{text homeomorphism_grouping_points_exists}\<close>
+subsubsection\<open>The theorem \<open>homeomorphism_grouping_points_exists\<close>\<close>
 
 lemma homeomorphism_grouping_point_1:
   fixes a::real and c::real

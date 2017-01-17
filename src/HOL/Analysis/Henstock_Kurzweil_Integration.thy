@@ -109,7 +109,7 @@ lemma content_split:
   fixes a :: "'a::euclidean_space"
   assumes "k \<in> Basis"
   shows "content (cbox a b) = content(cbox a b \<inter> {x. x\<bullet>k \<le> c}) + content(cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-  -- \<open>Prove using measure theory\<close>
+  \<comment> \<open>Prove using measure theory\<close>
 proof cases
   note simps = interval_split[OF assms] content_cbox_cases
   have *: "Basis = insert k (Basis - {k})" "\<And>x. finite (Basis-{x})" "\<And>x. x\<notin>Basis-{x}"

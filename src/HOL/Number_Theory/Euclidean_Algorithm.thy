@@ -187,7 +187,7 @@ subclass factorial_semiring
 proof -
   show "class.factorial_semiring divide plus minus zero times one
      unit_factor normalize"
-  proof (standard, rule factorial_semiring_altI_aux) -- \<open>FIXME rule\<close>
+  proof (standard, rule factorial_semiring_altI_aux) \<comment> \<open>FIXME rule\<close>
     fix x assume "x \<noteq> 0"
     thus "finite {p. p dvd x \<and> normalize p = p}"
     proof (induction "euclidean_size x" arbitrary: x rule: less_induct)

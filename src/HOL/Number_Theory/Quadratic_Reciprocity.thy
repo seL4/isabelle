@@ -4,7 +4,7 @@ theory Quadratic_Reciprocity
 imports Gauss
 begin
 
-text {* The proof is based on Gauss's fifth proof, which can be found at http://www.lehigh.edu/~shw2/q-recip/gauss5.pdf *}
+text \<open>The proof is based on Gauss's fifth proof, which can be found at http://www.lehigh.edu/~shw2/q-recip/gauss5.pdf\<close>
 
 locale QR =
   fixes p :: "nat"

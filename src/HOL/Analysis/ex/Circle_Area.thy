@@ -4,7 +4,7 @@
 A proof that the area of a circle with radius R is R\<^sup>2\<pi>.
 *)
 
-section {* The area of a circle *}
+section \<open>The area of a circle\<close>
 
 theory Circle_Area
 imports Complex_Main Interval_Integral
@@ -157,13 +157,13 @@ proof (cases "R = 0")
   also have "... = \<integral>\<^sup>+x. R * \<integral>\<^sup>+y. indicator ?A (x,R*y) \<partial>lborel \<partial>lborel"
   proof (rule nn_integral_cong)
     fix x from R show "(\<integral>\<^sup>+y. indicator ?A (x,y) \<partial>lborel) = R * \<integral>\<^sup>+y. indicator ?A (x,R*y) \<partial>lborel"
-      by (subst nn_integral_real_affine[OF _ `R \<noteq> 0`, of _ 0]) simp_all
+      by (subst nn_integral_real_affine[OF _ \<open>R \<noteq> 0\<close>, of _ 0]) simp_all
   qed
   also have "... = R * \<integral>\<^sup>+x. \<integral>\<^sup>+y. indicator ?A (x,R*y) \<partial>lborel \<partial>lborel"
     using R by (intro nn_integral_cmult) simp_all
   also from R have "(\<integral>\<^sup>+x. \<integral>\<^sup>+y. indicator ?A (x,R*y) \<partial>lborel \<partial>lborel) =
                         R * \<integral>\<^sup>+x. \<integral>\<^sup>+y. indicator ?A (R*x,R*y) \<partial>lborel \<partial>lborel"
-    by (subst nn_integral_real_affine[OF _ `R \<noteq> 0`, of _ 0]) simp_all
+    by (subst nn_integral_real_affine[OF _ \<open>R \<noteq> 0\<close>, of _ 0]) simp_all
   also {
     fix x y
     have A: "(R*x, R*y) = R *\<^sub>R (x,y)" by simp

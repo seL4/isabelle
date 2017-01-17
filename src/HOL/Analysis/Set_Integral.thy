@@ -14,7 +14,7 @@ begin
 lemma bij_inv_eq_iff: "bij p \<Longrightarrow> x = inv p y \<longleftrightarrow> p x = y" (* COPIED FROM Permutations *)
   using surj_f_inv_f[of p] by (auto simp add: bij_def)
 
-subsection {*Fun.thy*}
+subsection \<open>Fun.thy\<close>
 
 lemma inj_fn:
   fixes f::"'a \<Rightarrow> 'a"
@@ -129,7 +129,7 @@ lemma Inf_nat_def1:
   shows "Inf K \<in> K"
 by (auto simp add: Min_def Inf_nat_def) (meson LeastI assms bot.extremum_unique subsetI)
 
-subsection {*Liminf-Limsup.thy*}
+subsection \<open>Liminf-Limsup.thy\<close>
 
 lemma limsup_shift:
   "limsup (\<lambda>n. u (n+1)) = limsup u"
@@ -140,7 +140,7 @@ proof -
   have b: "(INF n. (SUP m:{n+1..}. u m)) = (INF n:{1..}. (SUP m:{n..}. u m))"
     apply (rule INF_eq) using Suc_le_D by auto
   have "(INF n:{1..}. v n) = (INF n. v n)" if "decseq v" for v::"nat \<Rightarrow> 'a"
-    apply (rule INF_eq) using `decseq v` decseq_Suc_iff by auto
+    apply (rule INF_eq) using \<open>decseq v\<close> decseq_Suc_iff by auto
   moreover have "decseq (\<lambda>n. (SUP m:{n..}. u m))" by (simp add: SUP_subset_mono decseq_def)
   ultimately have c: "(INF n:{1..}. (SUP m:{n..}. u m)) = (INF n. (SUP m:{n..}. u m))" by simp
   have "(INF n. SUPREMUM {n..} u) = (INF n. SUP m:{n..}. u (m + 1))" using a b c by simp
@@ -164,7 +164,7 @@ proof -
   have b: "(SUP n. (INF m:{n+1..}. u m)) = (SUP n:{1..}. (INF m:{n..}. u m))"
     apply (rule SUP_eq) using Suc_le_D by (auto)
   have "(SUP n:{1..}. v n) = (SUP n. v n)" if "incseq v" for v::"nat \<Rightarrow> 'a"
-    apply (rule SUP_eq) using `incseq v` incseq_Suc_iff by auto
+    apply (rule SUP_eq) using \<open>incseq v\<close> incseq_Suc_iff by auto
   moreover have "incseq (\<lambda>n. (INF m:{n..}. u m))" by (simp add: INF_superset_mono mono_def)
   ultimately have c: "(SUP n:{1..}. (INF m:{n..}. u m)) = (SUP n. (INF m:{n..}. u m))" by simp
   have "(SUP n. INFIMUM {n..} u) = (SUP n. INF m:{n..}. u (m + 1))" using a b c by simp
@@ -188,8 +188,8 @@ proof -
   then show ?thesis by (metis eventually_True mem_Collect_eq less_INF_D less_SUP_iff)
 qed
 
-text {* The next lemma is extremely useful, as it often makes it possible to reduce statements
-about limsups to statements about limits.*}
+text \<open>The next lemma is extremely useful, as it often makes it possible to reduce statements
+about limsups to statements about limits.\<close>
 
 lemma limsup_subseq_lim:
   fixes u::"nat \<Rightarrow> 'a :: {complete_linorder, linorder_topology}"
@@ -203,12 +203,12 @@ proof (cases)
   define umax where "umax = (\<lambda>n. (SUP m:{n..}. u m))"
   have "decseq umax" unfolding umax_def by (simp add: SUP_subset_mono antimono_def)
   then have "umax \<longlonglongrightarrow> limsup u" unfolding umax_def by (metis LIMSEQ_INF limsup_INF_SUP)
-  then have *: "(umax o r) \<longlonglongrightarrow> limsup u" by (simp add: LIMSEQ_subseq_LIMSEQ `subseq r`)
+  then have *: "(umax o r) \<longlonglongrightarrow> limsup u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>subseq r\<close>)
   have "\<And>n. umax(r n) = u(r n)" unfolding umax_def using mono
     by (metis SUP_le_iff antisym atLeast_def mem_Collect_eq order_refl)
   then have "umax o r = u o r" unfolding o_def by simp
   then have "(u o r) \<longlonglongrightarrow> limsup u" using * by simp
-  then show ?thesis using `subseq r` by blast
+  then show ?thesis using \<open>subseq r\<close> by blast
 next
   assume "\<not> (\<forall>n. \<exists>p>n. (\<forall>m\<ge>p. u m \<le> u p))"
   then obtain N where N: "\<And>p. p > N \<Longrightarrow> \<exists>m>p. u p < u m" by (force simp: not_le le_less)
@@ -219,18 +219,18 @@ next
     have "Max {u i |i. i \<in> {N<..x}} \<in> {u i |i. i \<in> {N<..x}}" apply (rule Max_in) using a by (auto)
     then obtain p where "p \<in> {N<..x}" and upmax: "u p = Max{u i |i. i \<in> {N<..x}}" by auto
     define U where "U = {m. m > p \<and> u p < u m}"
-    have "U \<noteq> {}" unfolding U_def using N[of p] `p \<in> {N<..x}` by auto
+    have "U \<noteq> {}" unfolding U_def using N[of p] \<open>p \<in> {N<..x}\<close> by auto
     define y where "y = Inf U"
-    then have "y \<in> U" using `U \<noteq> {}` by (simp add: Inf_nat_def1)
+    then have "y \<in> U" using \<open>U \<noteq> {}\<close> by (simp add: Inf_nat_def1)
     have a: "\<And>i. i \<in> {N<..x} \<Longrightarrow> u i \<le> u p"
     proof -
       fix i assume "i \<in> {N<..x}"
       then have "u i \<in> {u i |i. i \<in> {N<..x}}" by blast
       then show "u i \<le> u p" using upmax by simp
     qed
-    moreover have "u p < u y" using `y \<in> U` U_def by auto
+    moreover have "u p < u y" using \<open>y \<in> U\<close> U_def by auto
     ultimately have "y \<notin> {N<..x}" using not_le by blast
-    moreover have "y > N" using `y \<in> U` U_def `p \<in> {N<..x}` by auto
+    moreover have "y > N" using \<open>y \<in> U\<close> U_def \<open>p \<in> {N<..x}\<close> by auto
     ultimately have "y > x" by auto
 
     have "\<And>i. i \<in> {N<..y} \<Longrightarrow> u i \<le> u y"
@@ -241,7 +241,7 @@ next
         then show ?thesis by simp
       next
         assume "\<not>(i=y)"
-        then have i:"i \<in> {N<..<y}" using `i \<in> {N<..y}` by simp
+        then have i:"i \<in> {N<..<y}" using \<open>i \<in> {N<..y}\<close> by simp
         have "u i \<le> u p"
         proof (cases)
           assume "i \<le> x"
@@ -250,15 +250,15 @@ next
         next
           assume "\<not>(i \<le> x)"
           then have "i > x" by simp
-          then have *: "i > p" using `p \<in> {N<..x}` by simp
+          then have *: "i > p" using \<open>p \<in> {N<..x}\<close> by simp
           have "i < Inf U" using i y_def by simp
           then have "i \<notin> U" using Inf_nat_def not_less_Least by auto
           then show ?thesis using U_def * by auto
         qed
-        then show "u i \<le> u y" using `u p < u y` by auto
+        then show "u i \<le> u y" using \<open>u p < u y\<close> by auto
       qed
     qed
-    then have "N < y \<and> x < y \<and> (\<forall>i\<in>{N<..y}. u i \<le> u y)" using `y > x` `y > N` by auto
+    then have "N < y \<and> x < y \<and> (\<forall>i\<in>{N<..y}. u i \<le> u y)" using \<open>y > x\<close> \<open>y > N\<close> by auto
     then show "\<exists>y>N. x < y \<and> (\<forall>i\<in>{N<..y}. u i \<le> u y)" by auto
   qed (auto)
   then obtain r where r: "\<forall>n. N < r n \<and> r n < r (Suc n) \<and> (\<forall>i\<in> {N<..r (Suc n)}. u i \<le> u (r (Suc n)))" by auto
@@ -266,12 +266,12 @@ next
   have "incseq (u o r)" unfolding o_def using r by (simp add: incseq_SucI order.strict_implies_order)
   then have "(u o r) \<longlonglongrightarrow> (SUP n. (u o r) n)" using LIMSEQ_SUP by blast
   then have "limsup (u o r) = (SUP n. (u o r) n)" by (simp add: lim_imp_Limsup)
-  moreover have "limsup (u o r) \<le> limsup u" using `subseq r` by (simp add: limsup_subseq_mono)
+  moreover have "limsup (u o r) \<le> limsup u" using \<open>subseq r\<close> by (simp add: limsup_subseq_mono)
   ultimately have "(SUP n. (u o r) n) \<le> limsup u" by simp
 
   {
     fix i assume i: "i \<in> {N<..}"
-    obtain n where "i < r (Suc n)" using `subseq r` using Suc_le_eq seq_suble by blast
+    obtain n where "i < r (Suc n)" using \<open>subseq r\<close> using Suc_le_eq seq_suble by blast
     then have "i \<in> {N<..r(Suc n)}" using i by simp
     then have "u i \<le> u (r(Suc n))" using r by simp
     then have "u i \<le> (SUP n. (u o r) n)" unfolding o_def by (meson SUP_upper2 UNIV_I)
@@ -279,9 +279,9 @@ next
   then have "(SUP i:{N<..}. u i) \<le> (SUP n. (u o r) n)" using SUP_least by blast
   then have "limsup u \<le> (SUP n. (u o r) n)" unfolding Limsup_def
     by (metis (mono_tags, lifting) INF_lower2 atLeast_Suc_greaterThan atLeast_def eventually_ge_at_top mem_Collect_eq)
-  then have "limsup u = (SUP n. (u o r) n)" using `(SUP n. (u o r) n) \<le> limsup u` by simp
-  then have "(u o r) \<longlonglongrightarrow> limsup u" using `(u o r) \<longlonglongrightarrow> (SUP n. (u o r) n)` by simp
-  then show ?thesis using `subseq r` by auto
+  then have "limsup u = (SUP n. (u o r) n)" using \<open>(SUP n. (u o r) n) \<le> limsup u\<close> by simp
+  then have "(u o r) \<longlonglongrightarrow> limsup u" using \<open>(u o r) \<longlonglongrightarrow> (SUP n. (u o r) n)\<close> by simp
+  then show ?thesis using \<open>subseq r\<close> by auto
 qed
 
 lemma liminf_subseq_lim:
@@ -296,12 +296,12 @@ proof (cases)
   define umin where "umin = (\<lambda>n. (INF m:{n..}. u m))"
   have "incseq umin" unfolding umin_def by (simp add: INF_superset_mono incseq_def)
   then have "umin \<longlonglongrightarrow> liminf u" unfolding umin_def by (metis LIMSEQ_SUP liminf_SUP_INF)
-  then have *: "(umin o r) \<longlonglongrightarrow> liminf u" by (simp add: LIMSEQ_subseq_LIMSEQ `subseq r`)
+  then have *: "(umin o r) \<longlonglongrightarrow> liminf u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>subseq r\<close>)
   have "\<And>n. umin(r n) = u(r n)" unfolding umin_def using mono
     by (metis le_INF_iff antisym atLeast_def mem_Collect_eq order_refl)
   then have "umin o r = u o r" unfolding o_def by simp
   then have "(u o r) \<longlonglongrightarrow> liminf u" using * by simp
-  then show ?thesis using `subseq r` by blast
+  then show ?thesis using \<open>subseq r\<close> by blast
 next
   assume "\<not> (\<forall>n. \<exists>p>n. (\<forall>m\<ge>p. u m \<ge> u p))"
   then obtain N where N: "\<And>p. p > N \<Longrightarrow> \<exists>m>p. u p > u m" by (force simp: not_le le_less)
@@ -312,18 +312,18 @@ next
     have "Min {u i |i. i \<in> {N<..x}} \<in> {u i |i. i \<in> {N<..x}}" apply (rule Min_in) using a by (auto)
     then obtain p where "p \<in> {N<..x}" and upmin: "u p = Min{u i |i. i \<in> {N<..x}}" by auto
     define U where "U = {m. m > p \<and> u p > u m}"
-    have "U \<noteq> {}" unfolding U_def using N[of p] `p \<in> {N<..x}` by auto
+    have "U \<noteq> {}" unfolding U_def using N[of p] \<open>p \<in> {N<..x}\<close> by auto
     define y where "y = Inf U"
-    then have "y \<in> U" using `U \<noteq> {}` by (simp add: Inf_nat_def1)
+    then have "y \<in> U" using \<open>U \<noteq> {}\<close> by (simp add: Inf_nat_def1)
     have a: "\<And>i. i \<in> {N<..x} \<Longrightarrow> u i \<ge> u p"
     proof -
       fix i assume "i \<in> {N<..x}"
       then have "u i \<in> {u i |i. i \<in> {N<..x}}" by blast
       then show "u i \<ge> u p" using upmin by simp
     qed
-    moreover have "u p > u y" using `y \<in> U` U_def by auto
+    moreover have "u p > u y" using \<open>y \<in> U\<close> U_def by auto
     ultimately have "y \<notin> {N<..x}" using not_le by blast
-    moreover have "y > N" using `y \<in> U` U_def `p \<in> {N<..x}` by auto
+    moreover have "y > N" using \<open>y \<in> U\<close> U_def \<open>p \<in> {N<..x}\<close> by auto
     ultimately have "y > x" by auto
 
     have "\<And>i. i \<in> {N<..y} \<Longrightarrow> u i \<ge> u y"
@@ -334,7 +334,7 @@ next
         then show ?thesis by simp
       next
         assume "\<not>(i=y)"
-        then have i:"i \<in> {N<..<y}" using `i \<in> {N<..y}` by simp
+        then have i:"i \<in> {N<..<y}" using \<open>i \<in> {N<..y}\<close> by simp
         have "u i \<ge> u p"
         proof (cases)
           assume "i \<le> x"
@@ -343,15 +343,15 @@ next
         next
           assume "\<not>(i \<le> x)"
           then have "i > x" by simp
-          then have *: "i > p" using `p \<in> {N<..x}` by simp
+          then have *: "i > p" using \<open>p \<in> {N<..x}\<close> by simp
           have "i < Inf U" using i y_def by simp
           then have "i \<notin> U" using Inf_nat_def not_less_Least by auto
           then show ?thesis using U_def * by auto
         qed
-        then show "u i \<ge> u y" using `u p > u y` by auto
+        then show "u i \<ge> u y" using \<open>u p > u y\<close> by auto
       qed
     qed
-    then have "N < y \<and> x < y \<and> (\<forall>i\<in>{N<..y}. u i \<ge> u y)" using `y > x` `y > N` by auto
+    then have "N < y \<and> x < y \<and> (\<forall>i\<in>{N<..y}. u i \<ge> u y)" using \<open>y > x\<close> \<open>y > N\<close> by auto
     then show "\<exists>y>N. x < y \<and> (\<forall>i\<in>{N<..y}. u i \<ge> u y)" by auto
   qed (auto)
   then obtain r where r: "\<forall>n. N < r n \<and> r n < r (Suc n) \<and> (\<forall>i\<in> {N<..r (Suc n)}. u i \<ge> u (r (Suc n)))" by auto
@@ -359,12 +359,12 @@ next
   have "decseq (u o r)" unfolding o_def using r by (simp add: decseq_SucI order.strict_implies_order)
   then have "(u o r) \<longlonglongrightarrow> (INF n. (u o r) n)" using LIMSEQ_INF by blast
   then have "liminf (u o r) = (INF n. (u o r) n)" by (simp add: lim_imp_Liminf)
-  moreover have "liminf (u o r) \<ge> liminf u" using `subseq r` by (simp add: liminf_subseq_mono)
+  moreover have "liminf (u o r) \<ge> liminf u" using \<open>subseq r\<close> by (simp add: liminf_subseq_mono)
   ultimately have "(INF n. (u o r) n) \<ge> liminf u" by simp
 
   {
     fix i assume i: "i \<in> {N<..}"
-    obtain n where "i < r (Suc n)" using `subseq r` using Suc_le_eq seq_suble by blast
+    obtain n where "i < r (Suc n)" using \<open>subseq r\<close> using Suc_le_eq seq_suble by blast
     then have "i \<in> {N<..r(Suc n)}" using i by simp
     then have "u i \<ge> u (r(Suc n))" using r by simp
     then have "u i \<ge> (INF n. (u o r) n)" unfolding o_def by (meson INF_lower2 UNIV_I)
@@ -372,15 +372,15 @@ next
   then have "(INF i:{N<..}. u i) \<ge> (INF n. (u o r) n)" using INF_greatest by blast
   then have "liminf u \<ge> (INF n. (u o r) n)" unfolding Liminf_def
     by (metis (mono_tags, lifting) SUP_upper2 atLeast_Suc_greaterThan atLeast_def eventually_ge_at_top mem_Collect_eq)
-  then have "liminf u = (INF n. (u o r) n)" using `(INF n. (u o r) n) \<ge> liminf u` by simp
-  then have "(u o r) \<longlonglongrightarrow> liminf u" using `(u o r) \<longlonglongrightarrow> (INF n. (u o r) n)` by simp
-  then show ?thesis using `subseq r` by auto
+  then have "liminf u = (INF n. (u o r) n)" using \<open>(INF n. (u o r) n) \<ge> liminf u\<close> by simp
+  then have "(u o r) \<longlonglongrightarrow> liminf u" using \<open>(u o r) \<longlonglongrightarrow> (INF n. (u o r) n)\<close> by simp
+  then show ?thesis using \<open>subseq r\<close> by auto
 qed
 
 
-subsection {*Extended-Real.thy*}
+subsection \<open>Extended-Real.thy\<close>
 
-text{* The proof of this one is copied from \verb+ereal_add_mono+. *}
+text\<open>The proof of this one is copied from \verb+ereal_add_mono+.\<close>
 lemma ereal_add_strict_mono2:
   fixes a b c d :: ereal
   assumes "a < b"
@@ -392,7 +392,7 @@ apply (cases rule: ereal3_cases[of b c d], auto)
 apply (cases rule: ereal3_cases[of b c d], auto)
 done
 
-text {* The next ones are analogues of \verb+mult_mono+ and \verb+mult_mono'+ in ereal.*}
+text \<open>The next ones are analogues of \verb+mult_mono+ and \verb+mult_mono'+ in ereal.\<close>
 
 lemma ereal_mult_mono:
   fixes a b c d::ereal
@@ -411,7 +411,7 @@ lemma ereal_mult_mono_strict:
   assumes "b > 0" "c > 0" "a < b" "c < d"
   shows "a * c < b * d"
 proof -
-  have "c < \<infinity>" using `c < d` by auto
+  have "c < \<infinity>" using \<open>c < d\<close> by auto
   then have "a * c < b * c" by (metis ereal_mult_strict_left_mono[OF assms(3) assms(2)] mult.commute)
   moreover have "b * c \<le> b * d" using assms(2) assms(4) by (simp add: assms(1) ereal_mult_left_mono less_imp_le)
   ultimately show ?thesis by simp
@@ -465,13 +465,13 @@ proof -
 qed
 
 
-subsubsection {*Continuity of addition*}
+subsubsection \<open>Continuity of addition\<close>
 
-text {*The next few lemmas remove an unnecessary assumption in \verb+tendsto_add_ereal+, culminating
+text \<open>The next few lemmas remove an unnecessary assumption in \verb+tendsto_add_ereal+, culminating
 in \verb+tendsto_add_ereal_general+ which essentially says that the addition
 is continuous on ereal times ereal, except at $(-\infty, \infty)$ and $(\infty, -\infty)$.
 It is much more convenient in many situations, see for instance the proof of
-\verb+tendsto_sum_ereal+ below. *}
+\verb+tendsto_sum_ereal+ below.\<close>
 
 lemma tendsto_add_ereal_PInf:
   fixes y :: ereal
@@ -507,9 +507,9 @@ proof -
   then show ?thesis by (simp add: tendsto_PInfty)
 qed
 
-text{* One would like to deduce the next lemma from the previous one, but the fact
+text\<open>One would like to deduce the next lemma from the previous one, but the fact
 that $-(x+y)$ is in general different from $(-x) + (-y)$ in ereal creates difficulties,
-so it is more efficient to copy the previous proof.*}
+so it is more efficient to copy the previous proof.\<close>
 
 lemma tendsto_add_ereal_MInf:
   fixes y :: ereal
@@ -574,8 +574,8 @@ proof -
   ultimately show ?thesis by simp
 qed
 
-text {* The next lemma says that the addition is continuous on ereal, except at
-the pairs $(-\infty, \infty)$ and $(\infty, -\infty)$. *}
+text \<open>The next lemma says that the addition is continuous on ereal, except at
+the pairs $(-\infty, \infty)$ and $(\infty, -\infty)$.\<close>
 
 lemma tendsto_add_ereal_general [tendsto_intros]:
   fixes x y :: ereal
@@ -596,11 +596,11 @@ next
   then show ?thesis using tendsto_add_ereal_MInf MInf f g by (metis ereal_MInfty_eq_plus)
 qed
 
-subsubsection {*Continuity of multiplication*}
+subsubsection \<open>Continuity of multiplication\<close>
 
-text {* In the same way as for addition, we prove that the multiplication is continuous on
+text \<open>In the same way as for addition, we prove that the multiplication is continuous on
 ereal times ereal, except at $(\infty, 0)$ and $(-\infty, 0)$ and $(0, \infty)$ and $(0, -\infty)$,
-starting with specific situations.*}
+starting with specific situations.\<close>
 
 lemma tendsto_mult_real_ereal:
   assumes "(u \<longlongrightarrow> ereal l) F" "(v \<longlongrightarrow> ereal m) F"
@@ -631,15 +631,15 @@ lemma tendsto_mult_ereal_PInf:
   shows "((\<lambda>x. f x * g x) \<longlongrightarrow> \<infinity>) F"
 proof -
   obtain a::real where "0 < ereal a" "a < l" using assms(2) using ereal_dense2 by blast
-  have *: "eventually (\<lambda>x. f x > a) F" using `a < l` assms(1) by (simp add: order_tendsto_iff)
+  have *: "eventually (\<lambda>x. f x > a) F" using \<open>a < l\<close> assms(1) by (simp add: order_tendsto_iff)
   {
     fix K::real
     define M where "M = max K 1"
     then have "M > 0" by simp
-    then have "ereal(M/a) > 0" using `ereal a > 0` by simp
+    then have "ereal(M/a) > 0" using \<open>ereal a > 0\<close> by simp
     then have "\<And>x. ((f x > a) \<and> (g x > M/a)) \<Longrightarrow> (f x * g x > ereal a * ereal(M/a))"
-      using ereal_mult_mono_strict'[where ?c = "M/a", OF `0 < ereal a`] by auto
-    moreover have "ereal a * ereal(M/a) = M" using `ereal a > 0` by simp
+      using ereal_mult_mono_strict'[where ?c = "M/a", OF \<open>0 < ereal a\<close>] by auto
+    moreover have "ereal a * ereal(M/a) = M" using \<open>ereal a > 0\<close> by simp
     ultimately have "\<And>x. ((f x > a) \<and> (g x > M/a)) \<Longrightarrow> (f x * g x > M)" by simp
     moreover have "M \<ge> K" unfolding M_def by simp
     ultimately have Imp: "\<And>x. ((f x > a) \<and> (g x > M/a)) \<Longrightarrow> (f x * g x > K)"
@@ -674,13 +674,13 @@ next
   assume "\<not>(l = \<infinity> \<or> m = \<infinity>)"
   then have "l < \<infinity>" "m < \<infinity>" by auto
   then obtain lr mr where "l = ereal lr" "m = ereal mr"
-    using `l>0` `m>0` by (metis ereal_cases ereal_less(6) not_less_iff_gr_or_eq)
+    using \<open>l>0\<close> \<open>m>0\<close> by (metis ereal_cases ereal_less(6) not_less_iff_gr_or_eq)
   then show ?thesis using tendsto_mult_real_ereal assms by auto
 qed
 
-text {*We reduce the general situation to the positive case by multiplying by suitable signs.
+text \<open>We reduce the general situation to the positive case by multiplying by suitable signs.
 Unfortunately, as ereal is not a ring, all the neat sign lemmas are not available there. We
-give the bare minimum we need.*}
+give the bare minimum we need.\<close>
 
 lemma ereal_sgn_abs:
   fixes l::ereal
@@ -720,9 +720,9 @@ next
   have "((\<lambda>x. (sgn(l) * sgn(m)) * ((sgn(l) * f x) * (sgn(m) * g x))) \<longlongrightarrow> (sgn(l) * sgn(m)) * ((sgn(l) * l) * (sgn(m) * m))) F"
     by (rule tendsto_cmult_ereal, auto simp add: sgn_finite2 *)
   moreover have "\<And>x. (sgn(l) * sgn(m)) * ((sgn(l) * f x) * (sgn(m) * g x)) = f x * g x"
-    by (metis mult.left_neutral sgn_squared_ereal[OF `l \<noteq> 0`] sgn_squared_ereal[OF `m \<noteq> 0`] mult.assoc mult.commute)
+    by (metis mult.left_neutral sgn_squared_ereal[OF \<open>l \<noteq> 0\<close>] sgn_squared_ereal[OF \<open>m \<noteq> 0\<close>] mult.assoc mult.commute)
   moreover have "(sgn(l) * sgn(m)) * ((sgn(l) * l) * (sgn(m) * m)) = l * m"
-    by (metis mult.left_neutral sgn_squared_ereal[OF `l \<noteq> 0`] sgn_squared_ereal[OF `m \<noteq> 0`] mult.assoc mult.commute)
+    by (metis mult.left_neutral sgn_squared_ereal[OF \<open>l \<noteq> 0\<close>] sgn_squared_ereal[OF \<open>m \<noteq> 0\<close>] mult.assoc mult.commute)
   ultimately show ?thesis by auto
 qed
 
@@ -733,7 +733,7 @@ lemma tendsto_cmult_ereal_general [tendsto_intros]:
 by (cases "c = 0", auto simp add: assms tendsto_mult_ereal)
 
 
-subsubsection {*Continuity of division*}
+subsubsection \<open>Continuity of division\<close>
 
 lemma tendsto_inverse_ereal_PInf:
   fixes u::"_ \<Rightarrow> ereal"
@@ -747,9 +747,9 @@ proof -
     moreover
     {
       fix z::ereal assume "z>1/e"
-      then have "z>0" using `e>0` using less_le_trans not_le by fastforce
+      then have "z>0" using \<open>e>0\<close> using less_le_trans not_le by fastforce
       then have "1/z \<ge> 0" by auto
-      moreover have "1/z < e" using `e>0` `z>1/e`
+      moreover have "1/z < e" using \<open>e>0\<close> \<open>z>1/e\<close>
         apply (cases z) apply auto
         by (metis (mono_tags, hide_lams) less_ereal.simps(2) less_ereal.simps(4) divide_less_eq ereal_divide_less_pos ereal_less(4)
             ereal_less_eq(4) less_le_trans mult_eq_0_iff not_le not_one_less_zero times_ereal.simps(1))
@@ -765,11 +765,11 @@ proof -
     fix a::ereal assume "a>0"
     then obtain e::real where "e>0" "a>e" using ereal_dense2 ereal_less(2) by blast
     then have "eventually (\<lambda>n. 1/u n < e) F" using *(1) by auto
-    then show "eventually (\<lambda>n. 1/u n < a) F" using `a>e` by (metis (mono_tags, lifting) eventually_mono less_trans)
+    then show "eventually (\<lambda>n. 1/u n < a) F" using \<open>a>e\<close> by (metis (mono_tags, lifting) eventually_mono less_trans)
   qed
 qed
 
-text {* The next lemma deserves to exist by itself, as it is so common and useful. *}
+text \<open>The next lemma deserves to exist by itself, as it is so common and useful.\<close>
 
 lemma tendsto_inverse_real [tendsto_intros]:
   fixes u::"_ \<Rightarrow> real"
@@ -836,7 +836,7 @@ proof -
 qed
 
 
-subsubsection {*Further limits*}
+subsubsection \<open>Further limits\<close>
 
 lemma id_nat_ereal_tendsto_PInf [tendsto_intros]:
   "(\<lambda> n::nat. real n) \<longlonglongrightarrow> \<infinity>"
@@ -860,8 +860,8 @@ proof -
       proof (rule ccontr)
         assume "\<not>(N > C)"
         have "u N \<le> Max {u n| n. n \<le> C}"
-          apply (rule Max_ge) using `\<not>(N > C)` by auto
-        then show False using `u N \<ge> n` `n \<ge> M` unfolding M_def by auto
+          apply (rule Max_ge) using \<open>\<not>(N > C)\<close> by auto
+        then show False using \<open>u N \<ge> n\<close> \<open>n \<ge> M\<close> unfolding M_def by auto
       qed
       then have **: "{N. u N \<ge> n} \<subseteq> {C..}" by fastforce
       have "Inf {N. u N \<ge> n} \<ge> C"
@@ -981,7 +981,7 @@ next
   ultimately show ?thesis using MInf by auto
 qed (simp add: assms)
 
-text {* the next one is copied from \verb+tendsto_sum+. *}
+text \<open>the next one is copied from \verb+tendsto_sum+.\<close>
 lemma tendsto_sum_ereal [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
@@ -992,7 +992,7 @@ proof (cases "finite S")
     by (induct, simp, simp add: tendsto_add_ereal_general2 assms)
 qed(simp)
 
-subsubsection {*Limsups and liminfs*}
+subsubsection \<open>Limsups and liminfs\<close>
 
 lemma limsup_finite_then_bounded:
   fixes u::"nat \<Rightarrow> real"
@@ -1017,7 +1017,7 @@ proof -
       assume "\<not>(n \<le> N)"
       then have "n \<ge> N" by simp
       then have "u n < C" using N by auto
-      then have "u n < real_of_ereal C" using `C = ereal(real_of_ereal C)` less_ereal.simps(1) by fastforce
+      then have "u n < real_of_ereal C" using \<open>C = ereal(real_of_ereal C)\<close> less_ereal.simps(1) by fastforce
       then show "u n \<le> D" unfolding D_def by linarith
     qed
   qed
@@ -1047,7 +1047,7 @@ proof -
       assume "\<not>(n \<le> N)"
       then have "n \<ge> N" by simp
       then have "u n > C" using N by auto
-      then have "u n > real_of_ereal C" using `C = ereal(real_of_ereal C)` less_ereal.simps(1) by fastforce
+      then have "u n > real_of_ereal C" using \<open>C = ereal(real_of_ereal C)\<close> less_ereal.simps(1) by fastforce
       then show "u n \<ge> D" unfolding D_def by linarith
     qed
   qed
@@ -1060,9 +1060,9 @@ lemma liminf_upper_bound:
   shows "\<exists>N>k. u N < l"
 by (metis assms gt_ex less_le_trans liminf_bounded_iff not_less)
 
-text {* The following statement about limsups is reduced to a statement about limits using
+text \<open>The following statement about limsups is reduced to a statement about limits using
 subsequences thanks to \verb+limsup_subseq_lim+. The statement for limits follows for instance from
-\verb+tendsto_add_ereal_general+.*}
+\verb+tendsto_add_ereal_general+.\<close>
 
 lemma ereal_limsup_add_mono:
   fixes u v::"nat \<Rightarrow> ereal"
@@ -1091,9 +1091,9 @@ next
   done
 
   have "limsup (u o r) \<le> limsup u" by (simp add: limsup_subseq_mono r(1))
-  then have a: "limsup (u o r) \<noteq> \<infinity>" using `limsup u < \<infinity>` by auto
+  then have a: "limsup (u o r) \<noteq> \<infinity>" using \<open>limsup u < \<infinity>\<close> by auto
   have "limsup (v o r o s) \<le> limsup v" by (simp add: comp_assoc limsup_subseq_mono r(1) s(1) subseq_o)
-  then have b: "limsup (v o r o s) \<noteq> \<infinity>" using `limsup v < \<infinity>` by auto
+  then have b: "limsup (v o r o s) \<noteq> \<infinity>" using \<open>limsup v < \<infinity>\<close> by auto
 
   have "(\<lambda>n. (u o a) n + (v o a) n) \<longlonglongrightarrow> limsup (u o r) + limsup (v o r o s)"
     using l tendsto_add_ereal_general a b by fastforce
@@ -1101,13 +1101,13 @@ next
   ultimately have "(w o a) \<longlonglongrightarrow> limsup (u o r) + limsup (v o r o s)" by simp
   then have "limsup w = limsup (u o r) + limsup (v o r o s)" using l(1) LIMSEQ_unique by blast
   then have "limsup w \<le> limsup u + limsup v"
-    using `limsup (u o r) \<le> limsup u` `limsup (v o r o s) \<le> limsup v` ereal_add_mono by simp
+    using \<open>limsup (u o r) \<le> limsup u\<close> \<open>limsup (v o r o s) \<le> limsup v\<close> ereal_add_mono by simp
   then show ?thesis unfolding w_def by simp
 qed
 
-text {* There is an asymmetry between liminfs and limsups in ereal, as $\infty + (-\infty) = \infty$.
+text \<open>There is an asymmetry between liminfs and limsups in ereal, as $\infty + (-\infty) = \infty$.
 This explains why there are more assumptions in the next lemma dealing with liminfs that in the
-previous one about limsups.*}
+previous one about limsups.\<close>
 
 lemma ereal_liminf_add_mono:
   fixes u v::"nat \<Rightarrow> ereal"
@@ -1137,9 +1137,9 @@ next
   done
 
   have "liminf (u o r) \<ge> liminf u" by (simp add: liminf_subseq_mono r(1))
-  then have a: "liminf (u o r) \<noteq> -\<infinity>" using `liminf u > -\<infinity>` by auto
+  then have a: "liminf (u o r) \<noteq> -\<infinity>" using \<open>liminf u > -\<infinity>\<close> by auto
   have "liminf (v o r o s) \<ge> liminf v" by (simp add: comp_assoc liminf_subseq_mono r(1) s(1) subseq_o)
-  then have b: "liminf (v o r o s) \<noteq> -\<infinity>" using `liminf v > -\<infinity>` by auto
+  then have b: "liminf (v o r o s) \<noteq> -\<infinity>" using \<open>liminf v > -\<infinity>\<close> by auto
 
   have "(\<lambda>n. (u o a) n + (v o a) n) \<longlonglongrightarrow> liminf (u o r) + liminf (v o r o s)"
     using l tendsto_add_ereal_general a b by fastforce
@@ -1147,7 +1147,7 @@ next
   ultimately have "(w o a) \<longlonglongrightarrow> liminf (u o r) + liminf (v o r o s)" by simp
   then have "liminf w = liminf (u o r) + liminf (v o r o s)" using l(1) LIMSEQ_unique by blast
   then have "liminf w \<ge> liminf u + liminf v"
-    using `liminf (u o r) \<ge> liminf u` `liminf (v o r o s) \<ge> liminf v` ereal_add_mono by simp
+    using \<open>liminf (u o r) \<ge> liminf u\<close> \<open>liminf (v o r o s) \<ge> liminf v\<close> ereal_add_mono by simp
   then show ?thesis unfolding w_def by simp
 qed
 
@@ -1162,7 +1162,7 @@ proof -
 
   have "limsup (\<lambda>n. u n + v n) \<le> limsup u + limsup v"
     by (rule ereal_limsup_add_mono)
-  then have up: "limsup (\<lambda>n. u n + v n) \<le> a + limsup v" using `limsup u = a` by simp
+  then have up: "limsup (\<lambda>n. u n + v n) \<le> a + limsup v" using \<open>limsup u = a\<close> by simp
 
   have a: "limsup (\<lambda>n. (u n + v n) + (-u n)) \<le> limsup (\<lambda>n. u n + v n) + limsup (\<lambda>n. -u n)"
     by (rule ereal_limsup_add_mono)
@@ -1177,7 +1177,7 @@ proof -
   ultimately have "eventually (\<lambda>n. u n + v n + (-u n) = v n) sequentially"
     using eventually_mono by force
   then have "limsup v = limsup (\<lambda>n. u n + v n + (-u n))" using Limsup_eq by force
-  then have "limsup v \<le> limsup (\<lambda>n. u n + v n) -a" using a `limsup (\<lambda>n. -u n) = -a` by (simp add: minus_ereal_def)
+  then have "limsup v \<le> limsup (\<lambda>n. u n + v n) -a" using a \<open>limsup (\<lambda>n. -u n) = -a\<close> by (simp add: minus_ereal_def)
   then have "limsup (\<lambda>n. u n + v n) \<ge> a + limsup v" using assms(2) by (metis add.commute ereal_le_minus)
   then show ?thesis using up by simp
 qed
@@ -1255,7 +1255,7 @@ proof -
 
   have "liminf (\<lambda>n. u n + v n) \<ge> liminf u + liminf v"
     apply (rule ereal_liminf_add_mono) using * by auto
-  then have up: "liminf (\<lambda>n. u n + v n) \<ge> a + liminf v" using `liminf u = a` by simp
+  then have up: "liminf (\<lambda>n. u n + v n) \<ge> a + liminf v" using \<open>liminf u = a\<close> by simp
 
   have a: "liminf (\<lambda>n. (u n + v n) + (-u n)) \<ge> liminf (\<lambda>n. u n + v n) + liminf (\<lambda>n. -u n)"
     apply (rule ereal_liminf_add_mono) using ** by auto
@@ -1270,7 +1270,7 @@ proof -
   ultimately have "eventually (\<lambda>n. u n + v n + (-u n) = v n) sequentially"
     using eventually_mono by force
   then have "liminf v = liminf (\<lambda>n. u n + v n + (-u n))" using Liminf_eq by force
-  then have "liminf v \<ge> liminf (\<lambda>n. u n + v n) -a" using a `liminf (\<lambda>n. -u n) = -a` by (simp add: minus_ereal_def)
+  then have "liminf v \<ge> liminf (\<lambda>n. u n + v n) -a" using a \<open>liminf (\<lambda>n. -u n) = -a\<close> by (simp add: minus_ereal_def)
   then have "liminf (\<lambda>n. u n + v n) \<le> a + liminf v" using assms(2) by (metis add.commute ereal_minus_le)
   then show ?thesis using up by simp
 qed
@@ -1302,15 +1302,15 @@ next
 
   have "liminf (w o r) \<ge> liminf w" by (simp add: liminf_subseq_mono r(1))
   have "limsup (v o r o s) \<le> limsup v" by (simp add: comp_assoc limsup_subseq_mono r(1) s(1) subseq_o)
-  then have b: "limsup (v o r o s) < \<infinity>" using `limsup v < \<infinity>` by auto
+  then have b: "limsup (v o r o s) < \<infinity>" using \<open>limsup v < \<infinity>\<close> by auto
 
   have "(\<lambda>n. (u o a) n + (v o a) n) \<longlonglongrightarrow> liminf u + limsup (v o r o s)"
-    apply (rule tendsto_add_ereal_general) using b `liminf u < \<infinity>` l(1) l(3) by force+
+    apply (rule tendsto_add_ereal_general) using b \<open>liminf u < \<infinity>\<close> l(1) l(3) by force+
   moreover have "(\<lambda>n. (u o a) n + (v o a) n) = (w o a)" unfolding w_def by auto
   ultimately have "(w o a) \<longlonglongrightarrow> liminf u + limsup (v o r o s)" by simp
   then have "liminf (w o r) = liminf u + limsup (v o r o s)" using l(2) using LIMSEQ_unique by blast
   then have "liminf w \<le> liminf u + limsup v"
-    using `liminf (w o r) \<ge> liminf w` `limsup (v o r o s) \<le> limsup v`
+    using \<open>liminf (w o r) \<ge> liminf w\<close> \<open>limsup (v o r o s) \<le> limsup v\<close>
     by (metis add_mono_thms_linordered_semiring(2) le_less_trans not_less)
   then show ?thesis unfolding w_def by simp
 qed
@@ -1858,8 +1858,8 @@ lemma set_measurable_continuous_on_ivl:
   by (rule set_borel_measurable_continuous[OF _ assms]) simp
 
 
-text{* This notation is from Sébastien Gouëzel: His use is not directly in line with the
-notations in this file, they are more in line with sum, and more readable he thinks. *}
+text\<open>This notation is from Sébastien Gouëzel: His use is not directly in line with the
+notations in this file, they are more in line with sum, and more readable he thinks.\<close>
 
 abbreviation "set_nn_integral M A f \<equiv> nn_integral M (\<lambda>x. f x * indicator A x)"
 
@@ -1921,7 +1921,7 @@ proof -
     assume "x \<in> (\<Union>n. B n)"
     then obtain n where "x \<in> B n" by blast
     have a: "finite {n}" by simp
-    have "\<And>i. i \<noteq> n \<Longrightarrow> x \<notin> B i" using `x \<in> B n` assms(3) disjoint_family_on_def
+    have "\<And>i. i \<noteq> n \<Longrightarrow> x \<notin> B i" using \<open>x \<in> B n\<close> assms(3) disjoint_family_on_def
       by (metis IntI UNIV_I empty_iff)
     then have "\<And>i. i \<notin> {n} \<Longrightarrow> indicator (B i) x = (0::ennreal)" using indicator_def by simp
     then have b: "\<And>i. i \<notin> {n} \<Longrightarrow> f x * indicator (B i) x = (0::ennreal)" by simp
@@ -1932,14 +1932,14 @@ proof -
       by (metis sums_unique[OF sums_finite[OF a]])
     then have "(\<Sum>i. h i) = h n" by simp
     then have "(\<Sum>n. f x * indicator (B n) x) = f x * indicator (B n) x" using h_def by simp
-    then have "(\<Sum>n. f x * indicator (B n) x) = f x" using `x \<in> B n` indicator_def by simp
-    then show ?thesis using `x \<in> (\<Union>n. B n)` by auto
+    then have "(\<Sum>n. f x * indicator (B n) x) = f x" using \<open>x \<in> B n\<close> indicator_def by simp
+    then show ?thesis using \<open>x \<in> (\<Union>n. B n)\<close> by auto
   next
     assume "x \<notin> (\<Union>n. B n)"
     then have "\<And>n. f x * indicator (B n) x = 0" by simp
     have "(\<Sum>n. f x * indicator (B n) x) = 0"
-      by (simp add: `\<And>n. f x * indicator (B n) x = 0`)
-    then show ?thesis using `x \<notin> (\<Union>n. B n)` by auto
+      by (simp add: \<open>\<And>n. f x * indicator (B n) x = 0\<close>)
+    then show ?thesis using \<open>x \<notin> (\<Union>n. B n)\<close> by auto
   qed
   ultimately show ?thesis by simp
 qed
@@ -2035,14 +2035,14 @@ lemma null_if_pos_func_has_zero_int:
 proof -
   have "AE x in M. indicator A x * f x = 0"
     apply (subst integral_nonneg_eq_0_iff_AE[symmetric])
-    using assms integrable_mult_indicator[OF `A \<in> sets M` assms(1)] by auto
+    using assms integrable_mult_indicator[OF \<open>A \<in> sets M\<close> assms(1)] by auto
   then have "AE x\<in>A in M. f x = 0" by auto
   then have "AE x\<in>A in M. False" using assms(3) by auto
   then show "A \<in> null_sets M" using assms(2) by (simp add: AE_iff_null_sets)
 qed
 
-text{*The next lemma is a variant of \<open>density_unique\<close>. Note that it uses the notation
-for nonnegative set integrals introduced earlier.*}
+text\<open>The next lemma is a variant of \<open>density_unique\<close>. Note that it uses the notation
+for nonnegative set integrals introduced earlier.\<close>
 
 lemma (in sigma_finite_measure) density_unique2:
   assumes [measurable]: "f \<in> borel_measurable M" "f' \<in> borel_measurable M"
@@ -2054,9 +2054,9 @@ proof (rule density_unique)
 qed (auto simp add: assms)
 
 
-text {* The next lemma implies the same statement for Banach-space valued functions
+text \<open>The next lemma implies the same statement for Banach-space valued functions
 using Hahn-Banach theorem and linear forms. Since they are not yet easily available, I
-only formulate it for real-valued functions.*}
+only formulate it for real-valued functions.\<close>
 
 lemma density_unique_real:
   fixes f f'::"_ \<Rightarrow> real"
@@ -2067,7 +2067,7 @@ proof -
   define A where "A = {x \<in> space M. f x < f' x}"
   then have [measurable]: "A \<in> sets M" by simp
   have "(\<integral>x \<in> A. (f' x - f x) \<partial>M) = (\<integral>x \<in> A. f' x \<partial>M) - (\<integral>x \<in> A. f x \<partial>M)"
-    using `A \<in> sets M` assms(1) assms(2) integrable_mult_indicator by blast
+    using \<open>A \<in> sets M\<close> assms(1) assms(2) integrable_mult_indicator by blast
   then have "(\<integral>x \<in> A. (f' x - f x) \<partial>M) = 0" using assms(3) by simp
   then have "A \<in> null_sets M"
     using A_def null_if_pos_func_has_zero_int[where ?f = "\<lambda>x. f' x - f x" and ?A = A] assms by auto
@@ -2078,7 +2078,7 @@ proof -
   define B where "B = {x \<in> space M. f' x < f x}"
   then have [measurable]: "B \<in> sets M" by simp
   have "(\<integral>x \<in> B. (f x - f' x) \<partial>M) = (\<integral>x \<in> B. f x \<partial>M) - (\<integral>x \<in> B. f' x \<partial>M)"
-    using `B \<in> sets M` assms(1) assms(2) integrable_mult_indicator by blast
+    using \<open>B \<in> sets M\<close> assms(1) assms(2) integrable_mult_indicator by blast
   then have "(\<integral>x \<in> B. (f x - f' x) \<partial>M) = 0" using assms(3) by simp
   then have "B \<in> null_sets M"
     using B_def null_if_pos_func_has_zero_int[where ?f = "\<lambda>x. f x - f' x" and ?A = B] assms by auto
@@ -2088,13 +2088,13 @@ proof -
   then show ?thesis using * by auto
 qed
 
-text {* The next lemma shows that $L^1$ convergence of a sequence of functions follows from almost
+text \<open>The next lemma shows that $L^1$ convergence of a sequence of functions follows from almost
 everywhere convergence and the weaker condition of the convergence of the integrated norms (or even
 just the nontrivial inequality about them). Useful in a lot of contexts! This statement (or its
 variations) are known as Scheffe lemma.
 
 The formalization is more painful as one should jump back and forth between reals and ereals and justify
-all the time positivity or integrability (thankfully, measurability is handled more or less automatically).*}
+all the time positivity or integrability (thankfully, measurability is handled more or less automatically).\<close>
 
 lemma Scheffe_lemma1:
   assumes "\<And>n. integrable M (F n)" "integrable M f"

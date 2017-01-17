@@ -44,9 +44,9 @@ proof (rule emeasure_measure_of_sigma)
   qed
 qed fact
 
-text {*An equivalent characterization of sigma-finite spaces is the existence of integrable
+text \<open>An equivalent characterization of sigma-finite spaces is the existence of integrable
 positive functions (or, still equivalently, the existence of a probability measure which is in
-the same measure class as the original measure).*}
+the same measure class as the original measure).\<close>
 
 lemma (in sigma_finite_measure) obtain_positive_integrable_function:
   obtains f::"'a \<Rightarrow> real" where
@@ -69,7 +69,7 @@ proof -
 
   have g_pos: "g x > 0" if "x \<in> space M" for x
   unfolding g_def proof (subst suminf_pos_iff[OF *[of x]], auto)
-    obtain i where "x \<in> A i" using `(\<Union>i. A i) = space M` `x \<in> space M` by auto
+    obtain i where "x \<in> A i" using \<open>(\<Union>i. A i) = space M\<close> \<open>x \<in> space M\<close> by auto
     then have "0 < (1 / 2) ^ Suc i * indicator (A i) x / (1 + Sigma_Algebra.measure M (A i))"
       unfolding indicator_def apply (auto simp add: divide_simps) using measure_nonneg[of M "A i"]
       by (auto, meson add_nonneg_nonneg linorder_not_le mult_nonneg_nonneg zero_le_numeral zero_le_one zero_le_power)
@@ -81,7 +81,7 @@ proof -
   unfolding g_def proof (rule integrable_suminf)
     fix n
     show "integrable M (\<lambda>x. (1 / 2) ^ Suc n * indicator (A n) x / (1 + Sigma_Algebra.measure M (A n)))"
-      using `emeasure M (A n) \<noteq> \<infinity>`
+      using \<open>emeasure M (A n) \<noteq> \<infinity>\<close>
       by (auto intro!: integrable_mult_right integrable_divide_zero integrable_real_indicator simp add: top.not_eq_extremum)
   next
     show "AE x in M. summable (\<lambda>n. norm ((1 / 2) ^ Suc n * indicator (A n) x / (1 + Sigma_Algebra.measure M (A n))))"
@@ -97,7 +97,7 @@ proof -
   moreover have "f x \<le> 1" for x unfolding f_def using g_le_1 by auto
   moreover have [measurable]: "f \<in> borel_measurable M" unfolding f_def by auto
   moreover have "integrable M f"
-    apply (subst integrable_cong[of _ _ _ g]) unfolding f_def using `integrable M g` by auto
+    apply (subst integrable_cong[of _ _ _ g]) unfolding f_def using \<open>integrable M g\<close> by auto
   ultimately show "(\<And>f. f \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 < f x) \<Longrightarrow> (\<And>x. f x \<le> 1) \<Longrightarrow> integrable M f \<Longrightarrow> thesis) \<Longrightarrow> thesis"
     by (meson that)
 qed
@@ -314,7 +314,7 @@ proof -
 
     let ?f = "\<lambda>x. f x + b"
     have "nn_integral M f \<noteq> top"
-      using `f \<in> G`[THEN G_D, of "space M"] by (auto simp: top_unique cong: nn_integral_cong)
+      using \<open>f \<in> G\<close>[THEN G_D, of "space M"] by (auto simp: top_unique cong: nn_integral_cong)
     with \<open>b \<noteq> top\<close> interpret Mf: finite_measure "density M ?f"
       by (intro finite_measureI)
          (auto simp: field_simps mult_indicator_subset ennreal_mult_eq_top_iff

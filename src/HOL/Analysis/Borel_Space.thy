@@ -2126,7 +2126,7 @@ lemma measurable_abs_powr [measurable]:
   shows "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> borel_measurable M"
 unfolding powr_def by auto
 
-text {* The next one is a variation around \verb+measurable_restrict_space+.*}
+text \<open>The next one is a variation around \verb+measurable_restrict_space+.\<close>
 
 lemma measurable_restrict_space3:
   assumes "f \<in> measurable M N" and
@@ -2138,7 +2138,7 @@ proof -
       measurable_restrict_space2[of f, of "restrict_space M A", of B, of N] assms(2) space_restrict_space)
 qed
 
-text {* The next one is a variation around \verb+measurable_piecewise_restrict+.*}
+text \<open>The next one is a variation around \verb+measurable_piecewise_restrict+.\<close>
 
 lemma measurable_piecewise_restrict2:
   assumes [measurable]: "\<And>n. A n \<in> sets M"
@@ -2162,8 +2162,8 @@ next
   fix x assume "x \<in> space M"
   then obtain n where "x \<in> A n" using assms(2) by blast
   obtain h where [measurable]: "h \<in> measurable M N" and "\<forall>x \<in> A n. f x = h x" using assms(3) by blast
-  then have "f x = h x" using `x \<in> A n` by blast
-  moreover have "h x \<in> space N" by (metis measurable_space `x \<in> space M` `h \<in> measurable M N`)
+  then have "f x = h x" using \<open>x \<in> A n\<close> by blast
+  moreover have "h x \<in> space N" by (metis measurable_space \<open>x \<in> space M\<close> \<open>h \<in> measurable M N\<close>)
   ultimately show "f x \<in> space N" by simp
 qed
 

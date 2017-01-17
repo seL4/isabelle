@@ -163,7 +163,7 @@ text \<open>
   The following simproc can reduce the equality of two polynomial FPSs two equality of the
   respective polynomials. A polynomial FPS is one that only has finitely many non-zero 
   coefficients and can therefore be written as @{term "fps_of_poly p"} for some 
-  polynomial @{text "p"}.
+  polynomial \<open>p\<close>.
   
   This may sound trivial, but it covers a number of annoying side conditions like 
   @{term "1 + X \<noteq> 0"} that would otherwise not be solved automatically.

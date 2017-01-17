@@ -1092,9 +1092,9 @@ proof -
   qed
 qed
 
-text {*The next lemma is convenient to combine with a lemma whose conclusion is of the
+text \<open>The next lemma is convenient to combine with a lemma whose conclusion is of the
 form \<open>AE x in M. P x = Q x\<close>: for such a lemma, there is no \verb+[symmetric]+ variant,
-but using \<open>AE_symmetric[OF...]\<close> will replace it.*}
+but using \<open>AE_symmetric[OF...]\<close> will replace it.\<close>
 
 (* depricated replace by laws about eventually *)
 lemma
@@ -1361,19 +1361,19 @@ proof -
     where A: "range A \<subseteq> sets M" "(\<Union>i. A i) = space M" "\<And>i. emeasure M (A i) \<noteq> \<infinity>" "incseq A"
     using sigma_finite_incseq by blast
   define B where "B = (\<lambda>i. W \<inter> A i)"
-  have B_meas: "\<And>i. B i \<in> sets M" using W_meas `range A \<subseteq> sets M` B_def by blast
+  have B_meas: "\<And>i. B i \<in> sets M" using W_meas \<open>range A \<subseteq> sets M\<close> B_def by blast
   have b: "\<And>i. B i \<subseteq> W" using B_def by blast
 
   { fix i
     have "emeasure M (B i) \<le> emeasure M (A i)"
       using A by (intro emeasure_mono) (auto simp: B_def)
     also have "emeasure M (A i) < \<infinity>"
-      using `\<And>i. emeasure M (A i) \<noteq> \<infinity>` by (simp add: less_top)
+      using \<open>\<And>i. emeasure M (A i) \<noteq> \<infinity>\<close> by (simp add: less_top)
     finally have "emeasure M (B i) < \<infinity>" . }
   note c = this
 
-  have "W = (\<Union>i. B i)" using B_def `(\<Union>i. A i) = space M` W_meas by auto
-  moreover have "incseq B" using B_def `incseq A` by (simp add: incseq_def subset_eq)
+  have "W = (\<Union>i. B i)" using B_def \<open>(\<Union>i. A i) = space M\<close> W_meas by auto
+  moreover have "incseq B" using B_def \<open>incseq A\<close> by (simp add: incseq_def subset_eq)
   ultimately have "(\<lambda>i. emeasure M (B i)) \<longlonglongrightarrow> emeasure M W" using W_meas B_meas
     by (simp add: B_meas Lim_emeasure_incseq image_subset_iff)
   then have "(\<lambda>i. emeasure M (B i)) \<longlonglongrightarrow> \<infinity>" using W_inf by simp

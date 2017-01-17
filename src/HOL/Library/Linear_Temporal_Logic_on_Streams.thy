@@ -773,8 +773,8 @@ lemma pigeonhole_stream:
   shows "\<exists>x\<in>s. alw (ev (HLD {x})) \<omega>"
 proof -
   have "\<forall>i\<in>UNIV. \<exists>x\<in>s. \<omega> !! i = x"
-    using `alw (HLD s) \<omega>` by (simp add: alw_iff_sdrop HLD_iff)
-  from pigeonhole_infinite_rel[OF infinite_UNIV_nat `finite s` this]
+    using \<open>alw (HLD s) \<omega>\<close> by (simp add: alw_iff_sdrop HLD_iff)
+  from pigeonhole_infinite_rel[OF infinite_UNIV_nat \<open>finite s\<close> this]
   show ?thesis
     by (simp add: HLD_iff infinite_iff_alw_ev[symmetric])
 qed

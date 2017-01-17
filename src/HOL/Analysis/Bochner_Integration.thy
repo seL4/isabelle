@@ -1931,9 +1931,9 @@ lemma integral_mono:
     integral\<^sup>L M f \<le> integral\<^sup>L M g"
   by (intro integral_mono_AE) auto
 
-text {*The next two statements are useful to bound Lebesgue integrals, as they avoid one
+text \<open>The next two statements are useful to bound Lebesgue integrals, as they avoid one
 integrability assumption. The price to pay is that the upper function has to be nonnegative,
-but this is often true and easy to check in computations.*}
+but this is often true and easy to check in computations.\<close>
 
 lemma integral_mono_AE':
   fixes f::"_ \<Rightarrow> real"
@@ -2047,20 +2047,20 @@ lemma integral_Markov_inequality:
   shows "(emeasure M) {x\<in>space M. u x \<ge> c} \<le> (1/c) * (\<integral>x. u x \<partial>M)"
 proof -
   have "(\<integral>\<^sup>+ x. ennreal(u x) * indicator (space M) x \<partial>M) \<le> (\<integral>\<^sup>+ x. u x \<partial>M)"
-    by (rule nn_integral_mono_AE, auto simp add: `c>0` less_eq_real_def)
+    by (rule nn_integral_mono_AE, auto simp add: \<open>c>0\<close> less_eq_real_def)
   also have "... = (\<integral>x. u x \<partial>M)"
     by (rule nn_integral_eq_integral, auto simp add: assms)
   finally have *: "(\<integral>\<^sup>+ x. ennreal(u x) * indicator (space M) x \<partial>M) \<le> (\<integral>x. u x \<partial>M)"
     by simp
 
   have "{x \<in> space M. u x \<ge> c} = {x \<in> space M. ennreal(1/c) * u x \<ge> 1} \<inter> (space M)"
-    using `c>0` by (auto simp: ennreal_mult'[symmetric])
+    using \<open>c>0\<close> by (auto simp: ennreal_mult'[symmetric])
   then have "emeasure M {x \<in> space M. u x \<ge> c} = emeasure M ({x \<in> space M. ennreal(1/c) * u x \<ge> 1} \<inter> (space M))"
     by simp
   also have "... \<le> ennreal(1/c) * (\<integral>\<^sup>+ x. ennreal(u x) * indicator (space M) x \<partial>M)"
     by (rule nn_integral_Markov_inequality) (auto simp add: assms)
   also have "... \<le> ennreal(1/c) * (\<integral>x. u x \<partial>M)"
-    apply (rule mult_left_mono) using * `c>0` by auto
+    apply (rule mult_left_mono) using * \<open>c>0\<close> by auto
   finally show ?thesis
     using \<open>0<c\<close> by (simp add: ennreal_mult'[symmetric])
 qed
@@ -2121,8 +2121,8 @@ proof -
   then show ?thesis using Lim_null by auto
 qed
 
-text {*The next lemma asserts that, if a sequence of functions converges in $L^1$, then
-it admits a subsequence that converges almost everywhere.*}
+text \<open>The next lemma asserts that, if a sequence of functions converges in $L^1$, then
+it admits a subsequence that converges almost everywhere.\<close>
 
 lemma tendsto_L1_AE_subseq:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -2146,8 +2146,8 @@ proof -
   have "subseq r" unfolding r_def using r0(1) by (simp add: subseq_Suc_iff)
   have I: "(\<integral>\<^sup>+x. norm(u (r n) x) \<partial>M) < ennreal((1/2)^n)" for n
   proof -
-    have "r0 n \<ge> n" using `subseq r0` by (simp add: seq_suble)
-    have "(1/2::real)^(r0 n) \<le> (1/2)^n" by (rule power_decreasing[OF `r0 n \<ge> n`], auto)
+    have "r0 n \<ge> n" using \<open>subseq r0\<close> by (simp add: seq_suble)
+    have "(1/2::real)^(r0 n) \<le> (1/2)^n" by (rule power_decreasing[OF \<open>r0 n \<ge> n\<close>], auto)
     then have "(\<integral>x. norm(u (r0 (Suc n)) x) \<partial>M) < (1/2)^n" using r0(2) less_le_trans by auto
     then have "(\<integral>x. norm(u (r n) x) \<partial>M) < (1/2)^n" unfolding r_def by auto
     moreover have "(\<integral>\<^sup>+x. norm(u (r n) x) \<partial>M) = (\<integral>x. norm(u (r n) x) \<partial>M)"
@@ -2168,13 +2168,13 @@ proof -
       also have "... \<le> (\<integral>\<^sup>+x. (1/e) * ennreal(norm(u (r n) x)) \<partial>M)"
         apply (rule nn_integral_mono) using * by auto
       also have "... = (1/e) * (\<integral>\<^sup>+x. norm(u (r n) x) \<partial>M)"
-        apply (rule nn_integral_cmult) using `e > 0` by auto
+        apply (rule nn_integral_cmult) using \<open>e > 0\<close> by auto
       also have "... < (1/e) * ennreal((1/2)^n)"
-        using I[of n] `e > 0` by (intro ennreal_mult_strict_left_mono) auto
+        using I[of n] \<open>e > 0\<close> by (intro ennreal_mult_strict_left_mono) auto
       finally show ?thesis by simp
     qed
     have A_fin: "emeasure M (A n) < \<infinity>" for n
-      using `e > 0` A_bound[of n]
+      using \<open>e > 0\<close> A_bound[of n]
       by (auto simp add: ennreal_mult less_top[symmetric])
 
     have A_sum: "summable (\<lambda>n. measure M (A n))"
@@ -2219,7 +2219,7 @@ proof -
       by (simp add: tendsto_norm_zero_iff)
   }
   ultimately have "AE x in M. (\<lambda>n. u (r n) x) \<longlonglongrightarrow> 0" by auto
-  then show ?thesis using `subseq r` by auto
+  then show ?thesis using \<open>subseq r\<close> by auto
 qed
 
 subsection \<open>Restricted measure spaces\<close>

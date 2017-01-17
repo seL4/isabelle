@@ -2805,7 +2805,7 @@ proof
     case (add z Z)
     obtain X' Y' Z' where *: "add_mset z X + Z = Z' + X'" "add_mset z Y + Z = Z' + Y'" "Y' \<noteq> {#}"
       "\<forall>x \<in> set_mset X'. \<exists>y \<in> set_mset Y'. (x, y) \<in> s"
-      using mult_implies_one_step[OF `trans s` add(2)] by auto
+      using mult_implies_one_step[OF \<open>trans s\<close> add(2)] by auto
     consider Z2 where "Z' = add_mset z Z2" | X2 Y2 where "X' = add_mset z X2" "Y' = add_mset z Y2"
       using *(1,2) by (metis add_mset_remove_trivial_If insert_iff set_mset_add_mset_insert union_iff)
     thus ?case
@@ -2813,9 +2813,9 @@ proof
       case 1 thus ?thesis using * one_step_implies_mult[of Y' X' s Z2]
         by (auto simp: add.commute[of _ "{#_#}"] add.assoc intro: add(1))
     next
-      case 2 then obtain y where "y \<in> set_mset Y2" "(z, y) \<in> s" using *(4) `irrefl s`
+      case 2 then obtain y where "y \<in> set_mset Y2" "(z, y) \<in> s" using *(4) \<open>irrefl s\<close>
         by (auto simp: irrefl_def)
-      moreover from this transD[OF `trans s` _ this(2)]
+      moreover from this transD[OF \<open>trans s\<close> _ this(2)]
       have "x' \<in> set_mset X2 \<Longrightarrow> \<exists>y \<in> set_mset Y2. (x', y) \<in> s" for x'
         using 2 *(4)[rule_format, of x'] by auto
       ultimately show ?thesis using  * one_step_implies_mult[of Y2 X2 s Z'] 2
@@ -2825,7 +2825,7 @@ proof
 next
   assume ?R then obtain I J K
     where "Y = I + J" "X = I + K" "J \<noteq> {#}" "\<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> s"
-    using mult_implies_one_step[OF `trans s`] by blast
+    using mult_implies_one_step[OF \<open>trans s\<close>] by blast
   thus ?L using one_step_implies_mult[of J K s "I + Z"] by (auto simp: ac_simps)
 qed
 
@@ -2887,7 +2887,7 @@ lemma multeqp_iff:
 proof -
   { assume "N \<noteq> M" "M - M \<inter># N = {#}"
     then obtain y where "count N y \<noteq> count M y" by (auto simp: count_inject[symmetric])
-    then have "\<exists>y. count M y < count N y" using `M - M \<inter># N = {#}`
+    then have "\<exists>y. count M y < count N y" using \<open>M - M \<inter># N = {#}\<close>
       by (auto simp: count_inject[symmetric] dest!: le_neq_implies_less fun_cong[of _ _ y])
   }
   then have "multeqp P N M \<longleftrightarrow> multp P N M \<or> N = M"

@@ -12,7 +12,7 @@ text \<open>
   Grieviously missing are cycles since these would require more
   elaboration, e.g. the concept of distinct lists equivalent
   under rotation, which maybe would also deserve its own theory.
-  But see theory @{text "src/HOL/ex/Perm_Fragments.thy"} for
+  But see theory \<open>src/HOL/ex/Perm_Fragments.thy\<close> for
   fragments on that.
 \<close>
 

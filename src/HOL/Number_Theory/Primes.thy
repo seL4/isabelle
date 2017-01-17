@@ -310,7 +310,7 @@ lemma prime_nat_numeral_eq [simp]:
   "prime (numeral m :: nat) \<longleftrightarrow>
     (1::nat) < numeral m \<and>
     (\<forall>n::nat\<in>set [2..<numeral m]. \<not> n dvd numeral m)"
-  by (fact prime_nat_simp) -- \<open>TODO Sieve Of Erathosthenes might speed this up\<close>
+  by (fact prime_nat_simp) \<comment> \<open>TODO Sieve Of Erathosthenes might speed this up\<close>
 
 
 text\<open>A bit of regression testing:\<close>

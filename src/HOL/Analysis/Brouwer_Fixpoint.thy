@@ -2572,7 +2572,7 @@ proof -
         moreover have False if "1 < dd (x - a)"
           using x that dd2 [of "x - a" 1] \<open>x \<noteq> a\<close> closure_affine_hull
           by (auto simp: rel_frontier_def)
-        ultimately have "dd (x - a) = 1" --\<open>similar to another proof above\<close>
+        ultimately have "dd (x - a) = 1" \<comment>\<open>similar to another proof above\<close>
           by fastforce
         with that show ?thesis
           by (simp add: rel_frontier_def)
