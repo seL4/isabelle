@@ -22,9 +22,6 @@ definition "restrict" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarro
 abbreviation funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (infixr "\<rightarrow>" 60)
   where "A \<rightarrow> B \<equiv> Pi A (\<lambda>_. B)"
 
-syntax (ASCII)
-  "_Pi"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PI _:_./ _)" 10)
-  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3%_:_./ _)" [0,0,3] 3)
 syntax
   "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
   "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
@@ -349,8 +346,6 @@ definition PiE :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 
 
 abbreviation "Pi\<^sub>E A B \<equiv> PiE A B"
 
-syntax (ASCII)
-  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PIE _:_./ _)" 10)
 syntax
   "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
 translations

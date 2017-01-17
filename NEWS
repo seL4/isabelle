@@ -27,6 +27,16 @@ buffers.
 
 *** HOL ***
 
+* Some old and rarely used ASCII replacement syntax has been removed.
+INCOMPATIBILITY, standard syntax with symbols should be used instead.
+The subsequent commands help to reproduce the old forms, e.g. to
+simplify porting old theories:
+
+syntax (ASCII)
+  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PIE _:_./ _)" 10)
+  "_Pi"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PI _:_./ _)" 10)
+  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3%_:_./ _)" [0,0,3] 3)
+
 * Dropped aliasses RangeP, DomainP for Rangep, Domainp respectively.
 INCOMPATIBILITY.
 
