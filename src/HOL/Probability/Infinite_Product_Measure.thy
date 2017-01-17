@@ -14,7 +14,7 @@ lemma (in product_prob_space) distr_PiM_restrict_finite:
 proof (rule PiM_eqI)
   fix X assume X: "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
   { fix J X assume J: "J \<noteq> {} \<or> I = {}" "finite J" "J \<subseteq> I" and X: "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
-    have "emeasure (PiM I M) (emb I J (PiE J X)) = (\<Prod>i\<in>J. M i (X i))"
+    have "emeasure (PiM I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod>i\<in>J. M i (X i))"
     proof (subst emeasure_extend_measure_Pair[OF PiM_def, where \<mu>'=lim], goal_cases)
       case 1 then show ?case
         by (simp add: M.emeasure_space_1 emeasure_PiM Pi_iff sets_PiM_I_finite emeasure_lim_emb)
@@ -28,7 +28,7 @@ proof (rule PiM_eqI)
       add: M.emeasure_space_1 sets_lim[symmetric] emeasure_countably_additive emeasure_positive) }
   note * = this
 
-  have "emeasure (PiM I M) (emb I J (PiE J X)) = (\<Prod>i\<in>J. M i (X i))"
+  have "emeasure (PiM I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod>i\<in>J. M i (X i))"
   proof (cases "J \<noteq> {} \<or> I = {}")
     case False
     then obtain i where i: "J = {}" "i \<in> I" by auto
@@ -340,8 +340,8 @@ proof (rule PiM_eq)
   have "\<And>j x. j \<in> J \<Longrightarrow> x \<in> E j \<Longrightarrow> x \<in> space M"
     using J(3)[THEN sets.sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
   with J have "?f -` ?X \<inter> space (S \<Otimes>\<^sub>M S) =
-    (prod_emb ?I ?M (J \<inter> {..<i}) (PIE j:J \<inter> {..<i}. E j)) \<times>
-    (prod_emb ?I ?M ((op + i) -` J) (PIE j:(op + i) -` J. E (i + j)))" (is "_ = ?E \<times> ?F")
+    (prod_emb ?I ?M (J \<inter> {..<i}) (\<Pi>\<^sub>E j\<in>J \<inter> {..<i}. E j)) \<times>
+    (prod_emb ?I ?M ((op + i) -` J) (\<Pi>\<^sub>E j\<in>(op + i) -` J. E (i + j)))" (is "_ = ?E \<times> ?F")
    by (auto simp: space_pair_measure space_PiM prod_emb_def all_conj_distrib PiE_iff
                split: split_comb_seq split_comb_seq_asm)
   then have "emeasure ?D ?X = emeasure (S \<Otimes>\<^sub>M S) (?E \<times> ?F)"
@@ -368,11 +368,11 @@ proof (rule PiM_eq)
   let "distr _ _ ?f" = "?D"
 
   fix J E assume J: "finite J" "J \<subseteq> ?I" "\<And>j. j \<in> J \<Longrightarrow> E j \<in> sets M"
-  let ?X = "prod_emb ?I ?M J (PIE j:J. E j)"
+  let ?X = "prod_emb ?I ?M J (\<Pi>\<^sub>E j\<in>J. E j)"
   have "\<And>j x. j \<in> J \<Longrightarrow> x \<in> E j \<Longrightarrow> x \<in> space M"
     using J(3)[THEN sets.sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
   with J have "?f -` ?X \<inter> space (M \<Otimes>\<^sub>M S) = (if 0 \<in> J then E 0 else space M) \<times>
-    (prod_emb ?I ?M (Suc -` J) (PIE j:Suc -` J. E (Suc j)))" (is "_ = ?E \<times> ?F")
+    (prod_emb ?I ?M (Suc -` J) (\<Pi>\<^sub>E j\<in>Suc -` J. E (Suc j)))" (is "_ = ?E \<times> ?F")
    by (auto simp: space_pair_measure space_PiM PiE_iff prod_emb_def all_conj_distrib
       split: nat.split nat.split_asm)
   then have "emeasure ?D ?X = emeasure (M \<Otimes>\<^sub>M S) (?E \<times> ?F)"

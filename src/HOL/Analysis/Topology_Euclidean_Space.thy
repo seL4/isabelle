@@ -89,7 +89,7 @@ lemma image_affinity_interval:
   done
 
 lemma countable_PiE:
-  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (Pi\<^sub>E I F)"
   by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
 
 lemma continuous_on_cases:
@@ -2173,7 +2173,7 @@ lemma closure_complement: "closure (- S) = - interior S"
 
 lemma interior_complement: "interior (- S) = - closure S"
   by (simp add: closure_interior)
-   
+
 lemma interior_diff: "interior(S - T) = interior S - closure T"
   by (simp add: Diff_eq interior_complement)
 
@@ -5348,7 +5348,7 @@ proof
   show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     using l r by fast
 qed
-  
+
 subsubsection \<open>Intersecting chains of compact sets\<close>
 
 proposition bounded_closed_chain:
@@ -10727,8 +10727,8 @@ proof -
   qed
   from X0(1,2) this show ?thesis ..
 qed
-  
-  
+
+
 subsection\<open>Constancy of a function from a connected set into a finite, disconnected or discrete set\<close>
 
 text\<open>Still missing: versions for a set that is smaller than R, or countable.\<close>

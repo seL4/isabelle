@@ -8,7 +8,7 @@ theory Finite_Product_Measure
 imports Binary_Product_Measure
 begin
 
-lemma PiE_choice: "(\<exists>f\<in>PiE I F. \<forall>i\<in>I. P i (f i)) \<longleftrightarrow> (\<forall>i\<in>I. \<exists>x\<in>F i. P i x)"
+lemma PiE_choice: "(\<exists>f\<in>Pi\<^sub>E I F. \<forall>i\<in>I. P i (f i)) \<longleftrightarrow> (\<forall>i\<in>I. \<exists>x\<in>F i. P i x)"
   by (auto simp: Bex_def PiE_iff Ball_def dest!: choice_iff'[THEN iffD1])
      (force intro: exI[of _ "restrict f I" for f])
 
@@ -61,7 +61,7 @@ lemma split_merge: "P (merge I J (x,y) i) \<longleftrightarrow> (i \<in> I \<lon
 
 lemma PiE_cancel_merge[simp]:
   "I \<inter> J = {} \<Longrightarrow>
-    merge I J (x, y) \<in> PiE (I \<union> J) B \<longleftrightarrow> x \<in> Pi I B \<and> y \<in> Pi J B"
+    merge I J (x, y) \<in> Pi\<^sub>E (I \<union> J) B \<longleftrightarrow> x \<in> Pi I B \<and> y \<in> Pi J B"
   by (auto simp: PiE_def restrict_Pi_cancel)
 
 lemma merge_singleton[simp]: "i \<notin> I \<Longrightarrow> merge I {i} (x,y) = restrict (x(i := y i)) (insert i I)"
@@ -114,7 +114,7 @@ subsection \<open>Finite product spaces\<close>
 subsubsection \<open>Products\<close>
 
 definition prod_emb where
-  "prod_emb I M K X = (\<lambda>x. restrict x K) -` X \<inter> (PIE i:I. space (M i))"
+  "prod_emb I M K X = (\<lambda>x. restrict x K) -` X \<inter> (\<Pi>\<^sub>E i\<in>I. space (M i))"
 
 lemma prod_emb_iff:
   "f \<in> prod_emb I M K X \<longleftrightarrow> f \<in> extensional I \<and> (restrict f K \<in> X) \<and> (\<forall>i\<in>I. f i \<in> space (M i))"
@@ -216,7 +216,7 @@ lemma prod_algebra_eq_finite:
 proof (intro iffI set_eqI)
   fix A assume "A \<in> ?L"
   then obtain J E where J: "J \<noteq> {} \<or> I = {}" "finite J" "J \<subseteq> I" "\<forall>i\<in>J. E i \<in> sets (M i)"
-    and A: "A = prod_emb I M J (PIE j:J. E j)"
+    and A: "A = prod_emb I M J (\<Pi>\<^sub>E j\<in>J. E j)"
     by (auto simp: prod_algebra_def)
   let ?A = "\<Pi>\<^sub>E i\<in>I. if i \<in> J then E i else space (M i)"
   have A: "A = ?A"
@@ -234,7 +234,7 @@ qed
 
 lemma prod_algebraI:
   "finite J \<Longrightarrow> (J \<noteq> {} \<or> I = {}) \<Longrightarrow> J \<subseteq> I \<Longrightarrow> (\<And>i. i \<in> J \<Longrightarrow> E i \<in> sets (M i))
-    \<Longrightarrow> prod_emb I M J (PIE j:J. E j) \<in> prod_algebra I M"
+    \<Longrightarrow> prod_emb I M J (\<Pi>\<^sub>E j\<in>J. E j) \<in> prod_algebra I M"
   by (auto simp: prod_algebra_def)
 
 lemma prod_algebraI_finite:
@@ -250,7 +250,7 @@ qed
 
 lemma prod_algebraE:
   assumes A: "A \<in> prod_algebra I M"
-  obtains J E where "A = prod_emb I M J (PIE j:J. E j)"
+  obtains J E where "A = prod_emb I M J (\<Pi>\<^sub>E j\<in>J. E j)"
     "finite J" "J \<noteq> {} \<or> I = {}" "J \<subseteq> I" "\<And>i. i \<in> J \<Longrightarrow> E i \<in> sets (M i)"
   using A by (auto simp: prod_algebra_def)
 
@@ -459,9 +459,9 @@ next
         by (auto simp: PiE_def Pi_def)
       then obtain s where s: "\<And>i. i \<in> j \<Longrightarrow> s i \<in> S i" "\<And>i. i \<in> j \<Longrightarrow> x i \<in> s i"
         by metis
-      with \<open>x i \<in> A\<close> have "\<exists>n\<in>PiE (j-{i}) S. \<forall>i\<in>j. x i \<in> A' n i"
+      with \<open>x i \<in> A\<close> have "\<exists>n\<in>Pi\<^sub>E (j-{i}) S. \<forall>i\<in>j. x i \<in> A' n i"
         by (intro bexI[of _ "restrict (s(i := A)) (j-{i})"]) (auto simp: A'_def split: if_splits) }
-    then have "Z = (\<Union>n\<in>PiE (j-{i}) S. {f\<in>(\<Pi>\<^sub>E i\<in>I. \<Omega> i). \<forall>i\<in>j. f i \<in> A' n i})"
+    then have "Z = (\<Union>n\<in>Pi\<^sub>E (j-{i}) S. {f\<in>(\<Pi>\<^sub>E i\<in>I. \<Omega> i). \<forall>i\<in>j. f i \<in> A' n i})"
       unfolding Z_def
       by (auto simp add: set_eq_iff ball_conj_distrib \<open>i\<in>j\<close> A'_i dest: bspec[OF _ \<open>i\<in>j\<close>]
                cong: conj_cong)
@@ -509,10 +509,10 @@ lemma sets_PiM_cong[measurable_cong]:
 
 lemma sets_PiM_I:
   assumes "finite J" "J \<subseteq> I" "\<forall>i\<in>J. E i \<in> sets (M i)"
-  shows "prod_emb I M J (PIE j:J. E j) \<in> sets (\<Pi>\<^sub>M i\<in>I. M i)"
+  shows "prod_emb I M J (\<Pi>\<^sub>E j\<in>J. E j) \<in> sets (\<Pi>\<^sub>M i\<in>I. M i)"
 proof cases
   assume "J = {}"
-  then have "prod_emb I M J (PIE j:J. E j) = (PIE j:I. space (M j))"
+  then have "prod_emb I M J (\<Pi>\<^sub>E j\<in>J. E j) = (\<Pi>\<^sub>E j\<in>I. space (M j))"
     by (auto simp: prod_emb_def)
   then show ?thesis
     by (auto simp add: sets_PiM intro!: sigma_sets_top)
@@ -576,7 +576,7 @@ qed fact
 
 lemma sets_PiM_I_finite[measurable]:
   assumes "finite I" and sets: "(\<And>i. i \<in> I \<Longrightarrow> E i \<in> sets (M i))"
-  shows "(PIE j:I. E j) \<in> sets (\<Pi>\<^sub>M i\<in>I. M i)"
+  shows "(\<Pi>\<^sub>E j\<in>I. E j) \<in> sets (\<Pi>\<^sub>M i\<in>I. M i)"
   using sets_PiM_I[of I I E M] sets.sets_into_space[OF sets] \<open>finite I\<close> sets by auto
 
 lemma measurable_component_singleton[measurable (raw)]:
@@ -741,7 +741,7 @@ lemma sets_PiM_I_countable:
   assumes I: "countable I" and E: "\<And>i. i \<in> I \<Longrightarrow> E i \<in> sets (M i)" shows "Pi\<^sub>E I E \<in> sets (Pi\<^sub>M I M)"
 proof cases
   assume "I \<noteq> {}"
-  then have "PiE I E = (\<Inter>i\<in>I. prod_emb I M {i} (PiE {i} E))"
+  then have "Pi\<^sub>E I E = (\<Inter>i\<in>I. prod_emb I M {i} (Pi\<^sub>E {i} E))"
     using E[THEN sets.sets_into_space] by (auto simp: PiE_iff prod_emb_def fun_eq_iff)
   also have "\<dots> \<in> sets (PiM I M)"
     using I \<open>I \<noteq> {}\<close> by (safe intro!: sets.countable_INT' measurable_prod_emb sets_PiM_I_finite E)
@@ -793,7 +793,7 @@ proof (rule measure_eqI_generator_eq[OF Int_stable_prod_algebra prod_algebra_set
   show "range A \<subseteq> prod_algebra I M" "(\<Union>i. A i) = (\<Pi>\<^sub>E i\<in>I. space (M i))" "\<And>i. P (A i) \<noteq> \<infinity>"
     unfolding space_PiM[symmetric] by fact+
   fix X assume "X \<in> prod_algebra I M"
-  then obtain J E where X: "X = prod_emb I M J (PIE j:J. E j)"
+  then obtain J E where X: "X = prod_emb I M J (\<Pi>\<^sub>E j\<in>J. E j)"
     and J: "finite J" "J \<subseteq> I" "\<And>j. j \<in> J \<Longrightarrow> E j \<in> sets (M j)"
     by (force elim!: prod_algebraE)
   then show "emeasure P X = emeasure Q X"
@@ -822,7 +822,7 @@ proof (rule measure_eqI_generator_eq[OF Int_stable_prod_algebra prod_algebra_set
     by (auto simp: space_PiM)
 next
   fix X assume X: "X \<in> prod_algebra I M"
-  then obtain J E where X: "X = prod_emb I M J (PIE j:J. E j)"
+  then obtain J E where X: "X = prod_emb I M J (\<Pi>\<^sub>E j\<in>J. E j)"
     and J: "finite J" "J \<subseteq> I" "\<And>j. j \<in> J \<Longrightarrow> E j \<in> sets (M j)"
     by (force elim!: prod_algebraE)
   then show "emeasure P X = emeasure Q X"
@@ -976,10 +976,10 @@ proof
     "\<And>j f. f \<in> F j \<Longrightarrow> emeasure (M j) f \<noteq> \<infinity>" and
     in_space: "\<And>j. space (M j) = (\<Union>F j)"
     using sigma_finite_countable by (metis subset_eq)
-  moreover have "(\<Union>(PiE I ` PiE I F)) = space (Pi\<^sub>M I M)"
+  moreover have "(\<Union>(Pi\<^sub>E I ` Pi\<^sub>E I F)) = space (Pi\<^sub>M I M)"
     using in_space by (auto simp: space_PiM PiE_iff intro!: PiE_choice[THEN iffD2])
   ultimately show "\<exists>A. countable A \<and> A \<subseteq> sets (Pi\<^sub>M I M) \<and> \<Union>A = space (Pi\<^sub>M I M) \<and> (\<forall>a\<in>A. emeasure (Pi\<^sub>M I M) a \<noteq> \<infinity>)"
-    by (intro exI[of _ "PiE I ` PiE I F"])
+    by (intro exI[of _ "Pi\<^sub>E I ` Pi\<^sub>E I F"])
        (auto intro!: countable_PiE sets_PiM_I_finite
              simp: PiE_iff emeasure_PiM finite_index ennreal_prod_eq_top)
 qed
@@ -1003,7 +1003,7 @@ proof (rule PiM_eqI)
   interpret I: finite_product_sigma_finite M I by standard fact
   interpret J: finite_product_sigma_finite M J by standard fact
   fix A assume A: "\<And>i. i \<in> I \<union> J \<Longrightarrow> A i \<in> sets (M i)"
-  have *: "(merge I J -` Pi\<^sub>E (I \<union> J) A \<inter> space (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M)) = PiE I A \<times> PiE J A"
+  have *: "(merge I J -` Pi\<^sub>E (I \<union> J) A \<inter> space (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M)) = Pi\<^sub>E I A \<times> Pi\<^sub>E J A"
     using A[THEN sets.sets_into_space] by (auto simp: space_PiM space_pair_measure)
   from A fin show "emeasure (distr (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M) (Pi\<^sub>M (I \<union> J) M) (merge I J)) (Pi\<^sub>E (I \<union> J) A) =
       (\<Prod>i\<in>I \<union> J. emeasure (M i) (A i))"

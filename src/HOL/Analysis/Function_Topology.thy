@@ -17,7 +17,7 @@ space along the other coordinates. This is the coarsest topology for which the p
 to each factor is continuous.
 
 To form a product of objects in Isabelle/HOL, all these objects should be subsets of a common type
-'a. The product is then @{term "PiE I X"}, the set of elements from 'i to 'a such that the $i$-th
+'a. The product is then @{term "Pi\<^sub>E I X"}, the set of elements from 'i to 'a such that the $i$-th
 coordinate belongs to $X\;i$ for all $i \in I$.
 
 Hence, to form a product of topological spaces, all these spaces should be subsets of a common type.
@@ -696,7 +696,7 @@ qed
 lemma product_topology_countable_basis:
   shows "\<exists>K::(('a::countable \<Rightarrow> 'b::second_countable_topology) set set).
           topological_basis K \<and> countable K \<and>
-          (\<forall>k\<in>K. \<exists>X. (k = PiE UNIV X) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV})"
+          (\<forall>k\<in>K. \<exists>X. (k = Pi\<^sub>E UNIV X) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV})"
 proof -
   obtain B::"'b set set" where B: "countable B \<and> topological_basis B"
     using ex_countable_basis by auto
@@ -708,7 +708,7 @@ proof -
     using that unfolding B2_def using B topological_basis_open by auto
 
   define K where "K = {Pi\<^sub>E UNIV X | X. (\<forall>i::'a. X i \<in> B2) \<and> finite {i. X i \<noteq> UNIV}}"
-  have i: "\<forall>k\<in>K. \<exists>X. (k = PiE UNIV X) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV}"
+  have i: "\<forall>k\<in>K. \<exists>X. (k = Pi\<^sub>E UNIV X) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV}"
     unfolding K_def using `\<And>U. U \<in> B2 \<Longrightarrow> open U` by auto
 
   have "countable {X. (\<forall>(i::'a). X i \<in> B2) \<and> finite {i. X i \<noteq> UNIV}}"
@@ -1335,11 +1335,11 @@ lemma sets_PiM_equal_borel:
   "sets (Pi\<^sub>M UNIV (\<lambda>i::('a::countable). borel::('b::second_countable_topology measure))) = sets borel"
 proof
   obtain K::"('a \<Rightarrow> 'b) set set" where K: "topological_basis K" "countable K"
-            "\<And>k. k \<in> K \<Longrightarrow> \<exists>X. (k = PiE UNIV X) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV}"
+            "\<And>k. k \<in> K \<Longrightarrow> \<exists>X. (k = Pi\<^sub>E UNIV X) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV}"
     using product_topology_countable_basis by fast
   have *: "k \<in> sets (Pi\<^sub>M UNIV (\<lambda>_. borel))" if "k \<in> K" for k
   proof -
-    obtain X where H: "k = PiE UNIV X" "\<And>i. open (X i)" "finite {i. X i \<noteq> UNIV}"
+    obtain X where H: "k = Pi\<^sub>E UNIV X" "\<And>i. open (X i)" "finite {i. X i \<noteq> UNIV}"
       using K(3)[OF `k \<in> K`] by blast
     show ?thesis unfolding H(1) sets_PiM_finite space_borel using borel_open[OF H(2)] H(3) by auto
   qed

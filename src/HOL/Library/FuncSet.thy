@@ -5,7 +5,9 @@
 section \<open>Pi and Function Sets\<close>
 
 theory FuncSet
-imports Hilbert_Choice Main
+  imports Hilbert_Choice Main
+  abbrevs PiE = "Pi\<^sub>E"
+    PIE = "\<Pi>\<^sub>E"
 begin
 
 definition Pi :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<Rightarrow> 'b) set"
@@ -360,10 +362,10 @@ abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> (
 lemma extensional_funcset_def: "extensional_funcset S T = (S \<rightarrow> T) \<inter> extensional S"
   by (simp add: PiE_def)
 
-lemma PiE_empty_domain[simp]: "PiE {} T = {\<lambda>x. undefined}"
+lemma PiE_empty_domain[simp]: "Pi\<^sub>E {} T = {\<lambda>x. undefined}"
   unfolding PiE_def by simp
 
-lemma PiE_UNIV_domain: "PiE UNIV T = Pi UNIV T"
+lemma PiE_UNIV_domain: "Pi\<^sub>E UNIV T = Pi UNIV T"
   unfolding PiE_def by simp
 
 lemma PiE_empty_range[simp]: "i \<in> I \<Longrightarrow> F i = {} \<Longrightarrow> (\<Pi>\<^sub>E i\<in>I. F i) = {}"
@@ -386,29 +388,29 @@ proof
   qed
 qed (auto simp: PiE_def)
 
-lemma PiE_arb: "f \<in> PiE S T \<Longrightarrow> x \<notin> S \<Longrightarrow> f x = undefined"
+lemma PiE_arb: "f \<in> Pi\<^sub>E S T \<Longrightarrow> x \<notin> S \<Longrightarrow> f x = undefined"
   unfolding PiE_def by auto (auto dest!: extensional_arb)
 
-lemma PiE_mem: "f \<in> PiE S T \<Longrightarrow> x \<in> S \<Longrightarrow> f x \<in> T x"
+lemma PiE_mem: "f \<in> Pi\<^sub>E S T \<Longrightarrow> x \<in> S \<Longrightarrow> f x \<in> T x"
   unfolding PiE_def by auto
 
-lemma PiE_fun_upd: "y \<in> T x \<Longrightarrow> f \<in> PiE S T \<Longrightarrow> f(x := y) \<in> PiE (insert x S) T"
+lemma PiE_fun_upd: "y \<in> T x \<Longrightarrow> f \<in> Pi\<^sub>E S T \<Longrightarrow> f(x := y) \<in> Pi\<^sub>E (insert x S) T"
   unfolding PiE_def extensional_def by auto
 
-lemma fun_upd_in_PiE: "x \<notin> S \<Longrightarrow> f \<in> PiE (insert x S) T \<Longrightarrow> f(x := undefined) \<in> PiE S T"
+lemma fun_upd_in_PiE: "x \<notin> S \<Longrightarrow> f \<in> Pi\<^sub>E (insert x S) T \<Longrightarrow> f(x := undefined) \<in> Pi\<^sub>E S T"
   unfolding PiE_def extensional_def by auto
 
-lemma PiE_insert_eq: "PiE (insert x S) T = (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+lemma PiE_insert_eq: "Pi\<^sub>E (insert x S) T = (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)"
 proof -
   {
-    fix f assume "f \<in> PiE (insert x S) T" "x \<notin> S"
-    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+    fix f assume "f \<in> Pi\<^sub>E (insert x S) T" "x \<notin> S"
+    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)"
       by (auto intro!: image_eqI[where x="(f x, f(x := undefined))"] intro: fun_upd_in_PiE PiE_mem)
   }
   moreover
   {
-    fix f assume "f \<in> PiE (insert x S) T" "x \<in> S"
-    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+    fix f assume "f \<in> Pi\<^sub>E (insert x S) T" "x \<in> S"
+    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)"
       by (auto intro!: image_eqI[where x="(f x, f)"] intro: fun_upd_in_PiE PiE_mem simp: insert_absorb)
   }
   ultimately show ?thesis
@@ -422,25 +424,25 @@ lemma PiE_cong: "(\<And>i. i\<in>I \<Longrightarrow> A i = B i) \<Longrightarrow
   unfolding PiE_def by (auto simp: Pi_cong)
 
 lemma PiE_E [elim]:
-  assumes "f \<in> PiE A B"
+  assumes "f \<in> Pi\<^sub>E A B"
   obtains "x \<in> A" and "f x \<in> B x"
     | "x \<notin> A" and "f x = undefined"
   using assms by (auto simp: Pi_def PiE_def extensional_def)
 
 lemma PiE_I[intro!]:
-  "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B x) \<Longrightarrow> (\<And>x. x \<notin> A \<Longrightarrow> f x = undefined) \<Longrightarrow> f \<in> PiE A B"
+  "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B x) \<Longrightarrow> (\<And>x. x \<notin> A \<Longrightarrow> f x = undefined) \<Longrightarrow> f \<in> Pi\<^sub>E A B"
   by (simp add: PiE_def extensional_def)
 
-lemma PiE_mono: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C x) \<Longrightarrow> PiE A B \<subseteq> PiE A C"
+lemma PiE_mono: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C x) \<Longrightarrow> Pi\<^sub>E A B \<subseteq> Pi\<^sub>E A C"
   by auto
 
-lemma PiE_iff: "f \<in> PiE I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i) \<and> f \<in> extensional I"
+lemma PiE_iff: "f \<in> Pi\<^sub>E I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i) \<and> f \<in> extensional I"
   by (simp add: PiE_def Pi_iff)
 
-lemma PiE_restrict[simp]:  "f \<in> PiE A B \<Longrightarrow> restrict f A = f"
+lemma PiE_restrict[simp]:  "f \<in> Pi\<^sub>E A B \<Longrightarrow> restrict f A = f"
   by (simp add: extensional_restrict PiE_def)
 
-lemma restrict_PiE[simp]: "restrict f I \<in> PiE I S \<longleftrightarrow> f \<in> Pi I S"
+lemma restrict_PiE[simp]: "restrict f I \<in> Pi\<^sub>E I S \<longleftrightarrow> f \<in> Pi I S"
   by (auto simp: PiE_iff)
 
 lemma PiE_eq_subset:

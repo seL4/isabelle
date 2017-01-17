@@ -2539,7 +2539,7 @@ proof -
   let ?K0 = "\<lambda>(n, f::'a\<Rightarrow>nat).
                     cbox (\<Sum>i \<in> Basis. (a \<bullet> i + (f i / 2^n) * (b \<bullet> i - a \<bullet> i)) *\<^sub>R i)
                          (\<Sum>i \<in> Basis. (a \<bullet> i + ((f i + 1) / 2^n) * (b \<bullet> i - a \<bullet> i)) *\<^sub>R i)"
-  let ?D0 = "?K0 ` (SIGMA n:UNIV. PiE Basis (\<lambda>i::'a. lessThan (2^n)))"
+  let ?D0 = "?K0 ` (SIGMA n:UNIV. Pi\<^sub>E Basis (\<lambda>i::'a. lessThan (2^n)))"
   obtain \<D>0 where count: "countable \<D>0"
              and sub: "\<Union>\<D>0 \<subseteq> cbox a b"
              and int:  "\<And>K. K \<in> \<D>0 \<Longrightarrow> (interior K \<noteq> {}) \<and> (\<exists>c d. K = cbox c d)"
@@ -2698,7 +2698,7 @@ proof -
     proof (rule finite_subset)
       let ?B = "(\<lambda>(n, f::'a\<Rightarrow>nat). cbox (\<Sum>i\<in>Basis. (a \<bullet> i + (f i) / 2^n * (b \<bullet> i - a \<bullet> i)) *\<^sub>R i)
                                         (\<Sum>i\<in>Basis. (a \<bullet> i + ((f i) + 1) / 2^n * (b \<bullet> i - a \<bullet> i)) *\<^sub>R i))
-                ` (SIGMA m:atMost n. PiE Basis (\<lambda>i::'a. lessThan (2^m)))"
+                ` (SIGMA m:atMost n. Pi\<^sub>E Basis (\<lambda>i::'a. lessThan (2^m)))"
       have "?K0(m,g) \<in> ?B" if "g \<in> Basis \<rightarrow>\<^sub>E {..<2 ^ m}" "?K0(n,f) \<subseteq> ?K0(m,g)" for m g
       proof -
         have dd: "w / m \<le> v / n \<and> (v+1) / n \<le> (w+1) / m
