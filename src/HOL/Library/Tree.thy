@@ -357,7 +357,7 @@ subsection \<open>@{const ipl}\<close>
 text \<open>The internal path length of a tree:\<close>
 
 lemma ipl_if_complete: "complete t
-  \<Longrightarrow> ipl t = (let n = height t in 2 + n*2^n - 2^(n+1))"
+  \<Longrightarrow> ipl t = (let h = height t in 2 + h*2^h - 2^(h+1))"
 proof(induction t)
   case (Node l x r)
   have *: "2^(n+1) \<le> 2 + n*2^n" for n :: nat
