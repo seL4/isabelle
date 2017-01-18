@@ -262,38 +262,89 @@ next
   then have "mono (times (Max {m. m\<^sup>2 \<le> n}))" by (auto intro: mono_times_nat simp add: sqrt_def)
   then have *: "Max {m. m\<^sup>2 \<le> n} * Max {m. m\<^sup>2 \<le> n} = Max (times (Max {m. m\<^sup>2 \<le> n}) ` {m. m\<^sup>2 \<le> n})"
     using sqrt_aux [of n] by (rule mono_Max_commute)
-  have "Max (op * (Max {m. m * m \<le> n}) ` {m. m * m \<le> n}) \<le> n"
-    apply (subst Max_le_iff)
-    apply (metis (mono_tags) finite_imageI finite_less_ub le_square)
-    apply simp
-    apply (metis le0 mult_0_right)
-    apply auto
-    proof -
-      fix q
-      assume "q * q \<le> n"
-      show "Max {m. m * m \<le> n} * q \<le> n"
-      proof (cases "q > 0")
-        case False then show ?thesis by simp
-      next
-        case True then have "mono (times q)" by (rule mono_times_nat)
-        then have "q * Max {m. m * m \<le> n} = Max (times q ` {m. m * m \<le> n})"
-          using sqrt_aux [of n] by (auto simp add: power2_eq_square intro: mono_Max_commute)
-        then have "Max {m. m * m \<le> n} * q = Max (times q ` {m. m * m \<le> n})" by (simp add: ac_simps)
-        then show ?thesis
-          apply simp
-          apply (subst Max_le_iff)
-          apply auto
-          apply (metis (mono_tags) finite_imageI finite_less_ub le_square)
-          apply (metis \<open>q * q \<le> n\<close>)
-          apply (metis \<open>q * q \<le> n\<close> le_cases mult_le_mono1 mult_le_mono2 order_trans)
-          done
-      qed
+  have "\<And>a. a * a \<le> n \<Longrightarrow> Max {m. m * m \<le> n} * a \<le> n"
+  proof -
+    fix q
+    assume "q * q \<le> n"
+    show "Max {m. m * m \<le> n} * q \<le> n"
+    proof (cases "q > 0")
+      case False then show ?thesis by simp
+    next
+      case True then have "mono (times q)" by (rule mono_times_nat)
+      then have "q * Max {m. m * m \<le> n} = Max (times q ` {m. m * m \<le> n})"
+        using sqrt_aux [of n] by (auto simp add: power2_eq_square intro: mono_Max_commute)
+      then have "Max {m. m * m \<le> n} * q = Max (times q ` {m. m * m \<le> n})" by (simp add: ac_simps)
+      moreover have "finite (op * q ` {m. m * m \<le> n})"
+        by (metis (mono_tags) finite_imageI finite_less_ub le_square)
+      moreover have "\<exists>x. x * x \<le> n"
+        by (metis \<open>q * q \<le> n\<close>)
+      ultimately show ?thesis
+        by simp (metis \<open>q * q \<le> n\<close> le_cases mult_le_mono1 mult_le_mono2 order_trans)
     qed
+  qed
+  then have "Max (op * (Max {m. m * m \<le> n}) ` {m. m * m \<le> n}) \<le> n"
+    apply (subst Max_le_iff)
+      apply (metis (mono_tags) finite_imageI finite_less_ub le_square)
+     apply auto
+    apply (metis le0 mult_0_right)
+    done
   with * show ?thesis by (simp add: sqrt_def power2_eq_square)
 qed
 
 lemma sqrt_le: "sqrt n \<le> n"
   using sqrt_aux [of n] by (auto simp add: sqrt_def intro: power2_nat_le_imp_le)
+
+text \<open>Additional facts about the discrete square root, thanks to Julian Biendarra, Manuel Eberl\<close>
+  
+lemma Suc_sqrt_power2_gt: "n < (Suc (Discrete.sqrt n))^2"
+  using Max_ge[OF Discrete.sqrt_aux(1), of "Discrete.sqrt n + 1" n]
+  by (cases "n < (Suc (Discrete.sqrt n))^2") (simp_all add: Discrete.sqrt_def)
+
+lemma le_sqrt_iff: "x \<le> Discrete.sqrt y \<longleftrightarrow> x^2 \<le> y"
+proof -
+  have "x \<le> Discrete.sqrt y \<longleftrightarrow> (\<exists>z. z\<^sup>2 \<le> y \<and> x \<le> z)"    
+    using Max_ge_iff[OF Discrete.sqrt_aux, of x y] by (simp add: Discrete.sqrt_def)
+  also have "\<dots> \<longleftrightarrow> x^2 \<le> y"
+  proof safe
+    fix z assume "x \<le> z" "z ^ 2 \<le> y"
+    thus "x^2 \<le> y" by (intro le_trans[of "x^2" "z^2" y]) (simp_all add: power2_nat_le_eq_le)
+  qed auto
+  finally show ?thesis .
+qed
+  
+lemma le_sqrtI: "x^2 \<le> y \<Longrightarrow> x \<le> Discrete.sqrt y"
+  by (simp add: le_sqrt_iff)
+
+lemma sqrt_le_iff: "Discrete.sqrt y \<le> x \<longleftrightarrow> (\<forall>z. z^2 \<le> y \<longrightarrow> z \<le> x)"
+  using Max.bounded_iff[OF Discrete.sqrt_aux] by (simp add: Discrete.sqrt_def)
+
+lemma sqrt_leI:
+  "(\<And>z. z^2 \<le> y \<Longrightarrow> z \<le> x) \<Longrightarrow> Discrete.sqrt y \<le> x"
+  by (simp add: sqrt_le_iff)
+    
+lemma sqrt_Suc:
+  "Discrete.sqrt (Suc n) = (if \<exists>m. Suc n = m^2 then Suc (Discrete.sqrt n) else Discrete.sqrt n)"
+proof cases
+  assume "\<exists> m. Suc n = m^2"
+  then obtain m where m_def: "Suc n = m^2" by blast
+  then have lhs: "Discrete.sqrt (Suc n) = m" by simp
+  from m_def sqrt_power2_le[of n] 
+    have "(Discrete.sqrt n)^2 < m^2" by linarith
+  with power2_less_imp_less have lt_m: "Discrete.sqrt n < m" by blast
+  from m_def Suc_sqrt_power2_gt[of "n"]
+    have "m^2 \<le> (Suc(Discrete.sqrt n))^2" by simp
+  with power2_nat_le_eq_le have "m \<le> Suc (Discrete.sqrt n)" by blast
+  with lt_m have "m = Suc (Discrete.sqrt n)" by simp
+  with lhs m_def show ?thesis by fastforce
+next
+  assume asm: "\<not> (\<exists> m. Suc n = m^2)"
+  hence "Suc n \<noteq> (Discrete.sqrt (Suc n))^2" by simp
+  with sqrt_power2_le[of "Suc n"] 
+    have "Discrete.sqrt (Suc n) \<le> Discrete.sqrt n" by (intro le_sqrtI) linarith
+  moreover have "Discrete.sqrt (Suc n) \<ge> Discrete.sqrt n"
+    by (intro monoD[OF mono_sqrt]) simp_all
+  ultimately show ?thesis using asm by simp
+qed
 
 end
 
