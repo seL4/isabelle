@@ -541,7 +541,7 @@ session "HOL-ex" in ex = HOL +
     Adhoc_Overloading_Examples
     Iff_Oracle
     Coercion_Examples
-    Abstract_NAT
+    Peano_Axioms
     Guess
     Functions
     Induction_Schema

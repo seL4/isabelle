@@ -1,22 +1,16 @@
-(*  Title:      HOL/ex/Abstract_NAT.thy
-    Author:     Makarius
-*)
+section \<open>Peano's axioms for Natural Numbers\<close>
 
-section \<open>Abstract Natural Numbers primitive recursion\<close>
-
-theory Abstract_NAT
-imports Main
+theory Peano_Axioms
+  imports Main
 begin
 
-text \<open>Axiomatic Natural Numbers (Peano) -- a monomorphic theory.\<close>
-
-locale NAT =
+locale peano =
   fixes zero :: 'n
-    and succ :: "'n \<Rightarrow> 'n"
+  fixes succ :: "'n \<Rightarrow> 'n"
+  assumes succ_neq_zero [simp]: "succ m \<noteq> zero"
   assumes succ_inject [simp]: "succ m = succ n \<longleftrightarrow> m = n"
-    and succ_neq_zero [simp]: "succ m \<noteq> zero"
-    and induct [case_names zero succ, induct type: 'n]:
-      "P zero \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (succ n)) \<Longrightarrow> P n"
+  assumes induct [case_names zero succ, induct type: 'n]:
+    "P zero \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (succ n)) \<Longrightarrow> P n"
 begin
 
 lemma zero_neq_succ [simp]: "zero \<noteq> succ m"
@@ -31,9 +25,7 @@ where
   Rec_zero: "Rec e r zero e"
 | Rec_succ: "Rec e r m n \<Longrightarrow> Rec e r (succ m) (r m n)"
 
-lemma Rec_functional:
-  fixes x :: 'n
-  shows "\<exists>!y::'a. Rec e r x y"
+lemma Rec_functional: "\<exists>!y::'a. Rec e r x y" for x :: 'n
 proof -
   let ?R = "Rec e r"
   show ?thesis
@@ -130,11 +122,11 @@ end
 
 text \<open>\<^medskip> Just see that our abstract specification makes sense \dots\<close>
 
-interpretation NAT 0 Suc
-proof (rule NAT.intro)
+interpretation peano 0 Suc
+proof
   fix m n
-  show "Suc m = Suc n \<longleftrightarrow> m = n" by simp
   show "Suc m \<noteq> 0" by simp
+  show "Suc m = Suc n \<longleftrightarrow> m = n" by simp
   show "P n"
     if zero: "P 0"
     and succ: "\<And>n. P n \<Longrightarrow> P (Suc n)"
