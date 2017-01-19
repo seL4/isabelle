@@ -147,7 +147,7 @@ proof(induction t)
     have "size1(Node l a r) = size1 l + size1 r" by simp
     also have "\<dots> \<le> 2 ^ height l + 2 ^ height r" using Node.IH by arith
     also have "\<dots> \<le> 2 ^ height r + 2 ^ height r" using True by simp
-    also have "\<dots> \<le> 2 ^ height (Node l a r)"
+    also have "\<dots> = 2 ^ height (Node l a r)"
       using True by (auto simp: max_def mult_2)
     finally show ?thesis .
   next
