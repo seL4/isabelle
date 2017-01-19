@@ -356,16 +356,13 @@ subsection \<open>@{const ipl}\<close>
 
 text \<open>The internal path length of a tree:\<close>
 
-lemma ipl_if_complete: "complete t
-  \<Longrightarrow> ipl t = (let h = height t in 2 + h*2^h - 2^(h+1))"
-proof(induction t)
-  case (Node l x r)
-  have *: "2^(n+1) \<le> 2 + n*2^n" for n :: nat
-    by(induction n) auto
-  have **: "(0::nat) < 2^n" for n :: nat by simp
-  let ?h = "height r"
-  show ?case using Node *[of ?h] **[of ?h] by (simp add: size_if_complete Let_def)
-qed simp
+lemma ipl_if_complete_int:
+  "complete t \<Longrightarrow> int(ipl t) = (int(height t) - 2) * 2^(height t) + 2"
+apply(induction t)
+ apply simp
+apply simp
+apply (simp add: algebra_simps size_if_complete of_nat_diff)
+done
 
 
 subsection "List of entries"
