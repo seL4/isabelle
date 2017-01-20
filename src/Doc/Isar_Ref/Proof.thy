@@ -16,10 +16,10 @@ text \<open>
     \<^descr> \<open>proof(prove)\<close> means that a new goal has just been stated that is now to
     be \<^emph>\<open>proven\<close>; the next command may refine it by some proof method, and
     enter a sub-proof to establish the actual result.
-  
+
     \<^descr> \<open>proof(state)\<close> is like a nested theory mode: the context may be
     augmented by \<^emph>\<open>stating\<close> additional assumptions, intermediate results etc.
-  
+
     \<^descr> \<open>proof(chain)\<close> is intermediate between \<open>proof(state)\<close> and
     \<open>proof(prove)\<close>: existing facts (i.e.\ the contents of the special
     @{fact_ref this} register) have been just picked up in order to be used
@@ -544,7 +544,7 @@ text \<open>
 
   \begin{matharray}{rcl}
     @{command "also"}\<open>\<^sub>0\<close> & \equiv & @{command "note"}~\<open>calculation = this\<close> \\
-    @{command "also"}\<open>\<^sub>n+1\<close> & \equiv & @{command "note"}~\<open>calculation = trans [OF calculation this]\<close> \\[0.5ex]
+    @{command "also"}\<open>\<^sub>n\<^sub>+\<^sub>1\<close> & \equiv & @{command "note"}~\<open>calculation = trans [OF calculation this]\<close> \\[0.5ex]
     @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~\<open>calculation\<close> \\[0.5ex]
     @{command "moreover"} & \equiv & @{command "note"}~\<open>calculation = calculation this\<close> \\
     @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~\<open>calculation\<close> \\
@@ -565,10 +565,10 @@ text \<open>
   from the current context, unless alternative rules are given as explicit
   arguments.
 
-  \<^descr> @{command "finally"}~\<open>(a\<^sub>1 \<dots> a\<^sub>n)\<close> maintaining @{fact calculation} in the
-  same way as @{command "also"}, and concludes the current calculational
+  \<^descr> @{command "finally"}~\<open>(a\<^sub>1 \<dots> a\<^sub>n)\<close> maintains @{fact calculation} in the
+  same way as @{command "also"} and then concludes the current calculational
   thread. The final result is exhibited as fact for forward chaining towards
-  the next goal. Basically, @{command "finally"} just abbreviates @{command
+  the next goal. Basically, @{command "finally"} abbreviates @{command
   "also"}~@{command "from"}~@{fact calculation}. Typical idioms for concluding
   calculational proofs are ``@{command "finally"}~@{command
   "show"}~\<open>?thesis\<close>~@{command "."}'' and ``@{command "finally"}~@{command
@@ -678,7 +678,7 @@ text \<open>
     newly stated goal to a number of sub-goals that are to be solved later.
     Facts are passed to \<open>m\<^sub>1\<close> for forward chaining, if so indicated by
     \<open>proof(chain)\<close> mode.
-  
+
     \<^enum> A \<^emph>\<open>terminal\<close> conclusion step @{command_ref "qed"}~\<open>m\<^sub>2\<close> is intended to
     solve remaining goals. No facts are passed to \<open>m\<^sub>2\<close>.
 
