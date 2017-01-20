@@ -20,6 +20,7 @@ sig
   datatype tautology =
     Taut_And_1 of int | Taut_And_2 of int * int | Taut_Or_1 of int * int | Taut_Or_2 of int |
     Taut_Iff_1 | Taut_Iff_2 | Taut_Iff_3 | Taut_Iff_4 | Taut_Ite_Then | Taut_Ite_Else
+  datatype side = Left | Right
   datatype inequality = Le | Lt
   datatype rewrite =
     Rewr_Not_True | Rewr_Not_False | Rewr_Not_Not | Rewr_Not_And of int | Rewr_Not_Or of int |
@@ -32,11 +33,14 @@ sig
     Rewr_Eq_Refl | Rewr_Eq_Symm |
     Rewr_Neg | Rewr_Add of (Rat.rat * int option) list * (Rat.rat * int option) list | Rewr_Sub |
     Rewr_Mul_Nums of Rat.rat * Rat.rat | Rewr_Mul_Zero | Rewr_Mul_One | Rewr_Mul_Comm |
-    Rewr_Mul_Assoc | Rewr_Mul_Sum | Rewr_Div_Nums of Rat.rat * Rat.rat | Rewr_Div_Zero |
-    Rewr_Div_One | Rewr_Div_Mul | Rewr_Div_Inv | Rewr_Div_Left | Rewr_Div_Right | Rewr_Min |
-    Rewr_Max | Rewr_Abs | Rewr_Eq_Le | Rewr_Ineq_Nums of inequality * bool |
-    Rewr_Ineq_Add of inequality * Rat.rat | Rewr_Ineq_Sub of inequality |
-    Rewr_Ineq_Mul of inequality * Rat.rat | Rewr_Not_Ineq of inequality
+    Rewr_Mul_Assoc of side | Rewr_Mul_Sum of side | Rewr_Mul_Div of side |
+    Rewr_Div_Zero | Rewr_Div_One | Rewr_Div_Nums of Rat.rat * Rat.rat |
+    Rewr_Div_Num of side * Rat.rat | Rewr_Div_Mul of side * Rat.rat | Rewr_Div_Div of side |
+    Rewr_Div_Sum | Rewr_Min_Eq | Rewr_Min_Lt | Rewr_Min_Gt | Rewr_Max_Eq | Rewr_Max_Lt |
+    Rewr_Max_Gt | Rewr_Abs | Rewr_Eq_Nums of bool | Rewr_Eq_Sub | Rewr_Eq_Le |
+    Rewr_Ineq_Nums of inequality * bool | Rewr_Ineq_Add of inequality * Rat.rat |
+    Rewr_Ineq_Sub of inequality | Rewr_Ineq_Mul of inequality * Rat.rat |
+    Rewr_Not_Ineq of inequality
   datatype conv =
     Keep_Conv | Then_Conv of conv * conv | Args_Conv of conv list | Rewr_Conv of rewrite
   datatype rule =
@@ -101,6 +105,8 @@ datatype tautology =
   Taut_And_1 of int | Taut_And_2 of int * int | Taut_Or_1 of int * int | Taut_Or_2 of int |
   Taut_Iff_1 | Taut_Iff_2 | Taut_Iff_3 | Taut_Iff_4 | Taut_Ite_Then | Taut_Ite_Else
 
+datatype side = Left | Right
+
 datatype inequality = Le | Lt
 
 datatype rewrite =
@@ -114,11 +120,14 @@ datatype rewrite =
   Rewr_Eq_Refl | Rewr_Eq_Symm |
   Rewr_Neg | Rewr_Add of (Rat.rat * int option) list * (Rat.rat * int option) list | Rewr_Sub |
   Rewr_Mul_Nums of Rat.rat * Rat.rat | Rewr_Mul_Zero | Rewr_Mul_One | Rewr_Mul_Comm |
-  Rewr_Mul_Assoc | Rewr_Mul_Sum | Rewr_Div_Nums of Rat.rat * Rat.rat | Rewr_Div_Zero |
-  Rewr_Div_One | Rewr_Div_Mul | Rewr_Div_Inv | Rewr_Div_Left | Rewr_Div_Right | Rewr_Min |
-  Rewr_Max | Rewr_Abs | Rewr_Eq_Le | Rewr_Ineq_Nums of inequality * bool |
-  Rewr_Ineq_Add of inequality * Rat.rat | Rewr_Ineq_Sub of inequality |
-  Rewr_Ineq_Mul of inequality * Rat.rat | Rewr_Not_Ineq of inequality
+  Rewr_Mul_Assoc of side | Rewr_Mul_Sum of side | Rewr_Mul_Div of side |
+  Rewr_Div_Zero | Rewr_Div_One | Rewr_Div_Nums of Rat.rat * Rat.rat |
+  Rewr_Div_Num of side * Rat.rat | Rewr_Div_Mul of side * Rat.rat | Rewr_Div_Div of side |
+  Rewr_Div_Sum | Rewr_Min_Eq | Rewr_Min_Lt | Rewr_Min_Gt | Rewr_Max_Eq | Rewr_Max_Lt |
+  Rewr_Max_Gt | Rewr_Abs | Rewr_Eq_Nums of bool | Rewr_Eq_Sub | Rewr_Eq_Le |
+  Rewr_Ineq_Nums of inequality * bool | Rewr_Ineq_Add of inequality * Rat.rat |
+  Rewr_Ineq_Sub of inequality | Rewr_Ineq_Mul of inequality * Rat.rat |
+  Rewr_Not_Ineq of inequality
 
 datatype conv =
   Keep_Conv | Then_Conv of conv * conv | Args_Conv of conv list | Rewr_Conv of rewrite
@@ -326,19 +335,37 @@ fun string_of_rewr Rewr_Not_True = "~T = F"
   | string_of_rewr Rewr_Mul_Zero = "0 * e = 0"
   | string_of_rewr Rewr_Mul_One = "1 * e = e"
   | string_of_rewr Rewr_Mul_Comm = "e1 * e2 = e2 * e1"
-  | string_of_rewr Rewr_Mul_Assoc = "n1 * (n2 * e) = (n1 * n2) * e"
-  | string_of_rewr Rewr_Mul_Sum = "n * (e1 + ... + em) = n * e1 + ... n * em"
-  | string_of_rewr (Rewr_Div_Nums (n1, n2)) =
-      Rat.string_of_rat n1 ^ " / " ^ Rat.string_of_rat n2 ^ " = " ^ Rat.string_of_rat (n1 / n2)
+  | string_of_rewr (Rewr_Mul_Assoc Left) = "(e1 * e2) * e3 = e1 * (e2 * e3)"
+  | string_of_rewr (Rewr_Mul_Assoc Right) = "e1 * (n * e2) = (e1 * n) * e2"
+  | string_of_rewr (Rewr_Mul_Sum Left) = "(e1 + ... + em) * e = e1 * e + ... em * e"
+  | string_of_rewr (Rewr_Mul_Sum Right) = "e * (e1 + ... + em) = e * e1 + ... e * em"
+  | string_of_rewr (Rewr_Mul_Div Left) = "(e1 / e2) * e3 = (e1 * e3) / e2"
+  | string_of_rewr (Rewr_Mul_Div Right) = "e1 * (e2 / * e3) = (e1 * e2) / e3"
   | string_of_rewr Rewr_Div_Zero = "0 / e = 0"
   | string_of_rewr Rewr_Div_One = "e / 1 = e"
-  | string_of_rewr Rewr_Div_Mul = "n / e = n * (1 / e)"
-  | string_of_rewr Rewr_Div_Inv = "e / n = 1/n * e"
-  | string_of_rewr Rewr_Div_Left = "(n * e1) / e2 = n * (e1 / e2)"
-  | string_of_rewr Rewr_Div_Right = "e1 / (n * e2) = 1/n * (e1 / e2)"
-  | string_of_rewr Rewr_Min = "min e1 e2 = (if e1 <= e2 then e1 else e2)"
-  | string_of_rewr Rewr_Max = "max e1 e2 = (if e1 < e2 then e2 else e1)"
+  | string_of_rewr (Rewr_Div_Nums (n1, n2)) =
+      Rat.string_of_rat n1 ^ " / " ^ Rat.string_of_rat n2 ^ " = " ^ Rat.string_of_rat (n1 / n2)
+  | string_of_rewr (Rewr_Div_Num (Left, n)) =
+      Rat.string_of_rat n ^ " / e = " ^ Rat.string_of_rat n ^ " * (1 / e)"
+  | string_of_rewr (Rewr_Div_Num (Right, n)) =
+      "e / " ^ Rat.string_of_rat n ^ " = " ^ Rat.string_of_rat (Rat.inv n) ^ " * e"
+  | string_of_rewr (Rewr_Div_Mul (Left, n)) =
+     "(" ^ Rat.string_of_rat n ^ " * e1) / e2 = " ^ Rat.string_of_rat n ^ " * (e1 / e2)"
+  | string_of_rewr (Rewr_Div_Mul (Right, n)) =
+    "e1 / (" ^ Rat.string_of_rat n ^ " * e2) = " ^ Rat.string_of_rat (Rat.inv n) ^ " * (e1 / e2)"
+  | string_of_rewr (Rewr_Div_Div Left) = "(e1 / e2) / e3 = e1 / (e2 * e3)"
+  | string_of_rewr (Rewr_Div_Div Right) = "e1 / (e2 / e3) = (e1 * e3) / e2"
+  | string_of_rewr Rewr_Div_Sum = "(e1 + ... + em) / e = e1 / e + ... + em / e"
+  | string_of_rewr Rewr_Min_Eq = "min e e = e"
+  | string_of_rewr Rewr_Min_Lt = "min e1 e2 = (if e1 <= e2 then e1 else e2)"
+  | string_of_rewr Rewr_Min_Gt = "min e1 e2 = (if e2 <= e1 then e2 else e1)"
+  | string_of_rewr Rewr_Max_Eq = "max e e = e"
+  | string_of_rewr Rewr_Max_Lt = "max e1 e2 = (if e1 < e2 then e2 else e1)"
+  | string_of_rewr Rewr_Max_Gt = "max e1 e2 = (if e2 < e1 then e1 else e2)"
   | string_of_rewr Rewr_Abs = "abs e = (if 0 <= e then e else -e)"
+  | string_of_rewr (Rewr_Eq_Nums true) = "(n1 = n2) = true"
+  | string_of_rewr (Rewr_Eq_Nums false) = "(n1 ~= n2) = false"
+  | string_of_rewr Rewr_Eq_Sub = "(e1 = e2) = (e1 - e2 = 0)"
   | string_of_rewr Rewr_Eq_Le = "(e1 = e2) = (and (e1 <= e2) (e2 <= e1))"
   | string_of_rewr (Rewr_Ineq_Nums (Le, true)) = "(n1 <= n2) = true"
   | string_of_rewr (Rewr_Ineq_Nums (Le, false)) = "(n1 <= n2) = false"

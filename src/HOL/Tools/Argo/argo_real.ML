@@ -90,6 +90,7 @@ fun nums_conv mk f ctxt n m =
 val add_nums_conv = nums_conv mk_plus (op +)
 val mul_nums_conv = nums_conv mk_times (op *)
 val div_nums_conv = nums_conv mk_divide (op /)
+fun inv_num_conv ctxt = nums_conv mk_divide (fn (_, n) => Rat.inv n) ctxt @1
 
 fun cmp_nums_conv ctxt b ct =
   let val t = if b then @{const HOL.True} else @{const HOL.False}
@@ -192,9 +193,15 @@ fun add_conv ctxt (ms1, ms2 as [(n, NONE)]) =
 
 end
 
-val mul_sum_thm = mk_rewr @{lemma "(x::real) * (y + z) = x * y + x * z" by (rule ring_distribs)}
-fun mul_sum_conv ct =
-  Conv.try_conv (Conv.rewr_conv mul_sum_thm then_conv Conv.binop_conv mul_sum_conv) ct
+val mul_suml_thm = mk_rewr @{lemma "((x::real) + y) * z = x * z + y * z" by (rule ring_distribs)}
+val mul_sumr_thm = mk_rewr @{lemma "(x::real) * (y + z) = x * y + x * z" by (rule ring_distribs)}
+fun mul_sum_conv thm ct =
+  Conv.try_conv (Conv.rewr_conv thm then_conv Conv.binop_conv (mul_sum_conv thm)) ct
+
+val div_sum_thm = mk_rewr @{lemma "((x::real) + y) / z = x / z + y / z"
+  by (rule add_divide_distrib)}
+fun div_sum_conv ct =
+  Conv.try_conv (Conv.rewr_conv div_sum_thm then_conv Conv.binop_conv div_sum_conv) ct
 
 fun var_of_add_cmp (_ $ _ $ (_ $ _ $ (_ $ _ $ Var v))) = v
   | var_of_add_cmp t = raise TERM ("var_of_add_cmp", [t])
@@ -212,16 +219,28 @@ val sub_thm = mk_rewr @{lemma "(x::real) - y = x + -1 * y" by simp}
 val mul_zero_thm = mk_rewr @{lemma "0 * (x::real) = 0" by (rule mult_zero_left)}
 val mul_one_thm = mk_rewr @{lemma "1 * (x::real) = x" by (rule mult_1)}
 val mul_comm_thm = mk_rewr @{lemma "(x::real) * y = y * x" by simp}
-val mul_assoc_thm = mk_rewr @{lemma "(x::real) * (y * z) = (x * y) * z" by simp}
-val div_zero_thm = mk_rewr @{lemma "0 / (x::real) = 0" by simp}
-val div_one_thm = mk_rewr @{lemma "(x::real) / 1 = x" by simp}
-val div_mul_thm = mk_rewr @{lemma "(x::real) / y = x * (1 / y)" by simp}
-val div_inv_thm = mk_rewr @{lemma "(x::real) / y = (1 / y) * x" by simp}
-val div_left_thm = mk_rewr @{lemma "((x::real) * y) / z = x * (y / z)" by simp}
-val div_right_thm = mk_rewr @{lemma "(x::real) / (y * z) = (1 / y) * (x / z)" by simp}
-val min_thm = mk_rewr @{lemma "min (x::real) y = (if x <= y then x else y)" by (rule min_def)}
-val max_thm = mk_rewr @{lemma "max (x::real) y = (if x <= y then y else x)" by (rule max_def)}
+val mul_assocl_thm = mk_rewr @{lemma "((x::real) * y) * z = x * (y * z)" by simp}
+val mul_assocr_thm = mk_rewr @{lemma "(x::real) * (y * z) = (x * y) * z" by simp}
+val mul_divl_thm = mk_rewr @{lemma "((x::real) / y) * z = (x * z) / y" by simp}
+val mul_divr_thm = mk_rewr @{lemma "(x::real) * (y / z) = (x * y) / z" by simp}
+val div_zero_thm = mk_rewr @{lemma "0 / (x::real) = 0" by (rule div_0)}
+val div_one_thm = mk_rewr @{lemma "(x::real) / 1 = x" by (rule div_by_1)}
+val div_numl_thm = mk_rewr @{lemma "(x::real) / y = x * (1 / y)" by simp}
+val div_numr_thm = mk_rewr @{lemma "(x::real) / y = (1 / y) * x" by simp}
+val div_mull_thm = mk_rewr @{lemma "((x::real) * y) / z = x * (y / z)" by simp}
+val div_mulr_thm = mk_rewr @{lemma "(x::real) / (y * z) = (1 / y) * (x / z)" by simp}
+val div_divl_thm = mk_rewr @{lemma "((x::real) / y) / z = x / (y * z)" by simp}
+val div_divr_thm = mk_rewr @{lemma "(x::real) / (y / z) = (x * z) / y" by simp}
+val min_eq_thm = mk_rewr @{lemma "min (x::real) x = x" by (simp add: min_def)}
+val min_lt_thm = mk_rewr @{lemma "min (x::real) y = (if x <= y then x else y)" by (rule min_def)}
+val min_gt_thm = mk_rewr @{lemma "min (x::real) y = (if y <= x then y else x)"
+  by (simp add: min_def)}
+val max_eq_thm = mk_rewr @{lemma "max (x::real) x = x" by (simp add: max_def)}
+val max_lt_thm = mk_rewr @{lemma "max (x::real) y = (if x <= y then y else x)" by (rule max_def)}
+val max_gt_thm = mk_rewr @{lemma "max (x::real) y = (if y <= x then x else y)"
+  by (simp add: max_def)}
 val abs_thm = mk_rewr @{lemma "abs (x::real) = (if 0 <= x then x else -x)" by simp}
+val sub_eq_thm = mk_rewr @{lemma "((x::real) = y) = (x - y = 0)" by simp}
 val eq_le_thm = mk_rewr @{lemma "((x::real) = y) = ((x <= y) & (y <= x))" by (rule order_eq_iff)}
 val add_le_thm = mk_rewr @{lemma "((x::real) <= y) = (x + n <= y + n)" by simp}
 val add_lt_thm = mk_rewr @{lemma "((x::real) < y) = (x + n < y + n)" by simp}
@@ -241,18 +260,33 @@ fun replay_rewr _ Argo_Proof.Rewr_Neg = Conv.rewr_conv neg_thm
   | replay_rewr _ Argo_Proof.Rewr_Mul_One = Conv.rewr_conv mul_one_thm
   | replay_rewr ctxt (Argo_Proof.Rewr_Mul_Nums (n, m)) = mul_nums_conv ctxt n m
   | replay_rewr _ Argo_Proof.Rewr_Mul_Comm = Conv.rewr_conv mul_comm_thm
-  | replay_rewr _ Argo_Proof.Rewr_Mul_Assoc = Conv.rewr_conv mul_assoc_thm
-  | replay_rewr _ Argo_Proof.Rewr_Mul_Sum = mul_sum_conv
-  | replay_rewr ctxt (Argo_Proof.Rewr_Div_Nums (n, m)) = div_nums_conv ctxt n m
+  | replay_rewr _ (Argo_Proof.Rewr_Mul_Assoc Argo_Proof.Left) = Conv.rewr_conv mul_assocl_thm
+  | replay_rewr _ (Argo_Proof.Rewr_Mul_Assoc Argo_Proof.Right) = Conv.rewr_conv mul_assocr_thm
+  | replay_rewr _ (Argo_Proof.Rewr_Mul_Sum Argo_Proof.Left) = mul_sum_conv mul_suml_thm
+  | replay_rewr _ (Argo_Proof.Rewr_Mul_Sum Argo_Proof.Right) = mul_sum_conv mul_sumr_thm
+  | replay_rewr _ (Argo_Proof.Rewr_Mul_Div Argo_Proof.Left) = Conv.rewr_conv mul_divl_thm
+  | replay_rewr _ (Argo_Proof.Rewr_Mul_Div Argo_Proof.Right) = Conv.rewr_conv mul_divr_thm
   | replay_rewr _ Argo_Proof.Rewr_Div_Zero = Conv.rewr_conv div_zero_thm
   | replay_rewr _ Argo_Proof.Rewr_Div_One = Conv.rewr_conv div_one_thm
-  | replay_rewr _ Argo_Proof.Rewr_Div_Mul = Conv.rewr_conv div_mul_thm
-  | replay_rewr _ Argo_Proof.Rewr_Div_Inv = Conv.rewr_conv div_inv_thm
-  | replay_rewr _ Argo_Proof.Rewr_Div_Left = Conv.rewr_conv div_left_thm
-  | replay_rewr _ Argo_Proof.Rewr_Div_Right = Conv.rewr_conv div_right_thm
-  | replay_rewr _ Argo_Proof.Rewr_Min = Conv.rewr_conv min_thm
-  | replay_rewr _ Argo_Proof.Rewr_Max = Conv.rewr_conv max_thm
+  | replay_rewr ctxt (Argo_Proof.Rewr_Div_Nums (n, m)) = div_nums_conv ctxt n m
+  | replay_rewr _ (Argo_Proof.Rewr_Div_Num (Argo_Proof.Left, _)) = Conv.rewr_conv div_numl_thm
+  | replay_rewr ctxt (Argo_Proof.Rewr_Div_Num (Argo_Proof.Right, n)) =
+      Conv.rewr_conv div_numr_thm then_conv Conv.arg1_conv (inv_num_conv ctxt n)
+  | replay_rewr _ (Argo_Proof.Rewr_Div_Mul (Argo_Proof.Left, _)) = Conv.rewr_conv div_mull_thm
+  | replay_rewr ctxt (Argo_Proof.Rewr_Div_Mul (Argo_Proof.Right, n)) =
+      Conv.rewr_conv div_mulr_thm then_conv Conv.arg1_conv (inv_num_conv ctxt n)
+  | replay_rewr _ (Argo_Proof.Rewr_Div_Div Argo_Proof.Left) = Conv.rewr_conv div_divl_thm
+  | replay_rewr _ (Argo_Proof.Rewr_Div_Div Argo_Proof.Right) = Conv.rewr_conv div_divr_thm
+  | replay_rewr _ Argo_Proof.Rewr_Div_Sum = div_sum_conv
+  | replay_rewr _ Argo_Proof.Rewr_Min_Eq = Conv.rewr_conv min_eq_thm
+  | replay_rewr _ Argo_Proof.Rewr_Min_Lt = Conv.rewr_conv min_lt_thm
+  | replay_rewr _ Argo_Proof.Rewr_Min_Gt = Conv.rewr_conv min_gt_thm
+  | replay_rewr _ Argo_Proof.Rewr_Max_Eq = Conv.rewr_conv max_eq_thm
+  | replay_rewr _ Argo_Proof.Rewr_Max_Lt = Conv.rewr_conv max_lt_thm
+  | replay_rewr _ Argo_Proof.Rewr_Max_Gt = Conv.rewr_conv max_gt_thm
   | replay_rewr _ Argo_Proof.Rewr_Abs = Conv.rewr_conv abs_thm
+  | replay_rewr ctxt (Argo_Proof.Rewr_Eq_Nums b) = cmp_nums_conv ctxt b
+  | replay_rewr _ Argo_Proof.Rewr_Eq_Sub = Conv.rewr_conv sub_eq_thm
   | replay_rewr _ Argo_Proof.Rewr_Eq_Le = Conv.rewr_conv eq_le_thm
   | replay_rewr ctxt (Argo_Proof.Rewr_Ineq_Nums (_, b)) = cmp_nums_conv ctxt b
   | replay_rewr ctxt (Argo_Proof.Rewr_Ineq_Add (Argo_Proof.Le, n)) =

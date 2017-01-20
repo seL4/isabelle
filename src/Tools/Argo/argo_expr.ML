@@ -55,6 +55,9 @@ sig
   exception EXPR of expr
   val type_of: expr -> typ (* raises EXPR *)
   val check: expr -> bool (* raises TYPE and EXPR *)
+
+  (* testers *)
+  val is_nary: kind -> bool
 end
 
 structure Argo_Expr: ARGO_EXPR =
@@ -238,6 +241,11 @@ and raw_check (E (True, [])) = true
   | raw_check (e as E (Max, [_, _])) = all_real e
   | raw_check (e as E (Abs, [_])) = all_real e
   | raw_check e = raise EXPR e
+
+
+(* testers *)
+
+fun is_nary k = member (op =) [And, Or, Add] k
 
 end
 

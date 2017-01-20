@@ -33,9 +33,6 @@ sig
   type context
   val context: context
 
-  (* simplification *)
-  val simplify: Argo_Rewr.context -> Argo_Rewr.context
-  
   (* enriching the context *)
   val add_atom: Argo_Term.term -> context -> Argo_Lit.literal option * context
 
@@ -465,27 +462,6 @@ fun flat_neq (lp as (lit, _)) (tp as (t1, t2)) cx =
       in (Argo_Common.Conflict cls, cx) end
     else without lit (note_neq (Flat (lp, tp)) rp tp cx)
   end
-
-
-(* simplification *)
-
-(*
-  Only equalities are subject to normalizations. An equality between two expressions e1 and e2
-  is normalized, if e1 is less than e2 based on the expression ordering. If e1 and e2 are
-  syntactically equal, the equality between these two expressions is normalized to the true
-  expression.
-*)
-
-fun norm_eq env =
-  let val e1 = Argo_Rewr.get env 1 and e2 = Argo_Rewr.get env 2
-  in
-    (case Argo_Expr.expr_ord (e1, e2) of
-      EQUAL => SOME (Argo_Proof.Rewr_Eq_Refl, Argo_Rewr.E Argo_Expr.true_expr)
-    | LESS => NONE
-    | GREATER => SOME (Argo_Proof.Rewr_Eq_Symm, Argo_Rewr.E (Argo_Expr.mk_eq e2 e1)))
-  end
-
-val simplify = Argo_Rewr.func "(eq (? 1) (? 2))" norm_eq
 
 
 (* declaring atoms *)

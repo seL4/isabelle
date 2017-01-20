@@ -21,9 +21,6 @@ The implementation is inspired by:
 
 signature ARGO_SIMPLEX =
 sig
-  (* simplification *)
-  val simplify: Argo_Rewr.context -> Argo_Rewr.context
-  
   (* context *)
   type context
   val context: context
@@ -42,235 +39,6 @@ end
 
 structure Argo_Simplex: ARGO_SIMPLEX =
 struct
-
-(* expression functions *)
-
-fun mk_mul n e =
-  if n = @0 then Argo_Expr.mk_num n
-  else if n = @1 then e
-  else Argo_Expr.mk_mul (Argo_Expr.mk_num n) e
-
-fun dest_mul (Argo_Expr.E (Argo_Expr.Mul, [Argo_Expr.E (Argo_Expr.Num n, _), e])) = (n, e)
-  | dest_mul e = (@1, e)
-
-fun dest_factor e = fst (dest_mul e)
-
-fun mk_add [] = raise Fail "bad addition"
-  | mk_add [e] = e
-  | mk_add es = Argo_Expr.mk_add es
-
-fun dest_ineq (Argo_Expr.E (Argo_Expr.Le, [e1, e2])) = SOME (false, e1, e2)
-  | dest_ineq (Argo_Expr.E (Argo_Expr.Lt, [e1, e2])) = SOME (true, e1, e2)
-  | dest_ineq _ = NONE
-
-
-(* simplification *)
-
-(*
-  Products are normalized either to a number or to the monomial form
-    a * x
-  where a is a non-zero number and x is a variable. If x is a product,
-  it contains no number factors. The coefficient a is dropped if it is equal
-  to one; instead of 1 * x the expression x is used.
-
-  No further normalization to non-linear products is applied. Hence, the
-  products x * y and y * x will be treated as two different variables by the
-  arithmetic decision procedure.
-*)
-
-val mul_comm_rhs = Argo_Rewr.scan "(mul (? 2) (? 1))"
-
-fun norm_mul env =
-  (case apply2 (Argo_Rewr.get env) (1, 2) of
-    (Argo_Expr.E (Argo_Expr.Num n1, _), Argo_Expr.E (Argo_Expr.Num n2, _)) =>
-      SOME (Argo_Proof.Rewr_Mul_Nums (n1, n2), Argo_Rewr.E (Argo_Expr.mk_num (n1 * n2)))
-  | (Argo_Expr.E (Argo_Expr.Num n, _), _) =>
-      if n = @0 then SOME (Argo_Proof.Rewr_Mul_Zero, Argo_Rewr.V 1)
-      else if n = @1 then SOME (Argo_Proof.Rewr_Mul_One, Argo_Rewr.V 2)
-      else NONE
-  | (_, Argo_Expr.E (Argo_Expr.Num _, _)) => SOME (Argo_Proof.Rewr_Mul_Comm, mul_comm_rhs)
-  | _ => NONE)
-
-(*
-  Quotients are normalized either to a number or to the monomial form
-    a * x
-  where a is a non-zero number and x is a variable. If x is a quotient,
-  both divident and divisor are not a number. The coefficient a is dropped
-  if it is equal to one; instead of 1 * x the expression x is used.
-
-  No further normalization to quotients is applied. Hence, the
-  expressions (x * z) / y and x * (z / y) will be treated as two different
-  variables by the arithmetic decision procedure.
-*)
-
-fun div_mul_rhs n e =
-  let val pat = Argo_Rewr.P (Argo_Expr.Div, [Argo_Rewr.E e, Argo_Rewr.V 2])
-  in Argo_Rewr.P (Argo_Expr.Mul, [Argo_Rewr.E (Argo_Expr.mk_num n), pat])  end
-
-fun div_inv_rhs n pat =
-  let val inv_pat = Argo_Rewr.P (Argo_Expr.Div, map (Argo_Rewr.E o Argo_Expr.mk_num) [@1, n]) 
-  in Argo_Rewr.P (Argo_Expr.Mul, [inv_pat, pat]) end
-
-fun norm_div env =
-  (case apply2 (Argo_Rewr.get env) (1, 2) of
-    (Argo_Expr.E (Argo_Expr.Num n1, _), Argo_Expr.E (Argo_Expr.Num n2, _)) =>
-      if n2 = @0 then NONE
-      else SOME (Argo_Proof.Rewr_Div_Nums (n1, n2), Argo_Rewr.E (Argo_Expr.mk_num (n1 / n2)))
-  | (Argo_Expr.E (Argo_Expr.Num n, _), _) =>
-      if n = @0 then SOME (Argo_Proof.Rewr_Div_Zero, Argo_Rewr.E (Argo_Expr.mk_num @0))
-      else if n = @1 then NONE
-      else SOME (Argo_Proof.Rewr_Div_Mul, div_mul_rhs n (Argo_Expr.mk_num @1))
-  | (Argo_Expr.E (Argo_Expr.Mul, [Argo_Expr.E (Argo_Expr.Num n, _), e]), _) =>
-      if n = @1 then NONE
-      else SOME (Argo_Proof.Rewr_Div_Left, div_mul_rhs n e)
-  | (_, Argo_Expr.E (Argo_Expr.Num n, _)) =>
-      if n = @0 then NONE
-      else if n = @1 then SOME (Argo_Proof.Rewr_Div_One, Argo_Rewr.V 1)
-      else SOME (Argo_Proof.Rewr_Div_Inv, div_inv_rhs n (Argo_Rewr.V 1))
-  | (_, Argo_Expr.E (Argo_Expr.Mul, [Argo_Expr.E (Argo_Expr.Num n, _), e])) =>
-      let val pat = Argo_Rewr.P (Argo_Expr.Div, [Argo_Rewr.V 1, Argo_Rewr.E e])
-      in SOME (Argo_Proof.Rewr_Div_Right, div_inv_rhs n pat) end
-  | _ => NONE)
-
-(*
-  Sums are flatten and normalized to the polynomial form
-    a_0 + a_1 * x_1 + ... + a_n * x_n
-  where all variables x_i are disjoint and where all coefficients a_i are
-  non-zero numbers. Coefficients equal to one are dropped; instead of 1 * x_i
-  the reduced monom x_i is used. The variables x_i are ordered based on the
-  expression order to reduce the number of problem literals by sharing equal
-  expressions.
-*)
-
-fun add_monom_expr i n e (p, s, etab) =
-  let val etab = Argo_Exprtab.map_default (e, (i, @0)) (apsnd (Rat.add n)) etab
-  in ((n, Option.map fst (Argo_Exprtab.lookup etab e)) :: p, s, etab) end
-
-fun add_monom (_, Argo_Expr.E (Argo_Expr.Num n, _)) (p, s, etab) = ((n, NONE) :: p, s + n, etab)
-  | add_monom (i, Argo_Expr.E (Argo_Expr.Mul, [Argo_Expr.E (Argo_Expr.Num n, _), e])) x =
-      add_monom_expr i n e x
-  | add_monom (i, e) x = add_monom_expr i @1 e x
-
-fun norm_add d es =
-  let
-    val (p1, s, etab) = fold_index add_monom es ([], @0, Argo_Exprtab.empty)
-    val (p2, es) =
-      []
-      |> Argo_Exprtab.fold_rev (fn (e, (i, n)) => n <> @0 ? cons ((n, SOME i), mk_mul n e)) etab
-      |> s <> @0 ? cons ((s, NONE), Argo_Expr.mk_num s)
-      |> (fn [] => [((@0, NONE), Argo_Expr.mk_num @0)] | xs => xs)
-      |> split_list
-    val ps = (rev p1, p2)
-  in
-    if d = 1 andalso eq_list (op =) ps then NONE
-    else SOME (Argo_Proof.Rewr_Add ps, mk_add es)
-  end
-
-(*
-  An equation between two arithmetic expressions is rewritten to a conjunction of two
-  non-strict inequalities.
-*)
-
-val eq_rhs = Argo_Rewr.scan "(and (le (? 1) (? 2)) (le (? 2) (? 1)))"
-fun is_arith e = member (op =) [Argo_Expr.Real] (Argo_Expr.type_of e)
-
-fun norm_eq env =
-  if is_arith (Argo_Rewr.get env 1) then SOME (Argo_Proof.Rewr_Eq_Le, eq_rhs)
-  else NONE
-
-(*
-  Arithmetic inequalities (less and less-than) are normalized to the normal form
-    a_0 + a_1 * x_1 + ... + a_n * x_n ~ b
-  or
-    b ~ a_0 + a_1 * x_1 + ... + a_n * x_n
-  such that most of the coefficients a_i are positive.
-
-  Arithmetic inequalities of the form
-    a * x ~ b
-  or
-    b ~ a * x
-  are normalized to the form
-    x ~ c
-  or
-    c ~ x
-  where c is a number.
-*)
-
-fun mk_num_pat n = Argo_Rewr.E (Argo_Expr.mk_num n)
-fun mk_cmp_pat k ps = Argo_Rewr.P (k, ps)
-
-fun norm_cmp_mul k r n =
-  let
-    fun mult i = Argo_Rewr.P (Argo_Expr.Mul, [mk_num_pat n, Argo_Rewr.V i])
-    val ps = if n > @0 then [mult 1, mult 2] else [mult 2, mult 1]
-  in SOME (Argo_Proof.Rewr_Ineq_Mul (r, n), mk_cmp_pat k ps) end
-
-fun count_factors pred es = fold (fn e => if pred (dest_factor e) then Integer.add 1 else I) es 0
-
-fun norm_cmp_swap k r es =
-  let
-    val pos = count_factors (fn n => n > @0) es
-    val neg = count_factors (fn n => n < @0) es
-    val keep = pos > neg orelse (pos = neg andalso dest_factor (hd es) > @0)
-  in if keep then NONE else norm_cmp_mul k r @~1 end
-
-fun norm_cmp1 k r (Argo_Expr.E (Argo_Expr.Mul, [Argo_Expr.E (Argo_Expr.Num n, _), _])) =
-      norm_cmp_mul k r (Rat.inv n)
-  | norm_cmp1 k r (Argo_Expr.E (Argo_Expr.Add, Argo_Expr.E (Argo_Expr.Num n, _) :: _)) =
-      let fun mk i = Argo_Rewr.P (Argo_Expr.Add, [Argo_Rewr.V i, mk_num_pat (~ n)])
-      in SOME (Argo_Proof.Rewr_Ineq_Add (r, ~ n), mk_cmp_pat k [mk 1, mk 2]) end
-  | norm_cmp1 k r (Argo_Expr.E (Argo_Expr.Add, es)) = norm_cmp_swap k r es
-  | norm_cmp1 _ _ _ = NONE
-
-val nums_true_rhs = Argo_Rewr.scan "true"
-val nums_false_rhs = Argo_Rewr.scan "false"
-
-val cmp_sub_rhs = map Argo_Rewr.scan ["(sub (? 1) (? 2))", "(num 0)"]
-
-fun norm_cmp k r pred env =
-  (case apply2 (Argo_Rewr.get env) (1, 2) of
-    (Argo_Expr.E (Argo_Expr.Num n1, _), Argo_Expr.E (Argo_Expr.Num n2, _)) =>
-      let val b = pred n1 n2
-      in SOME (Argo_Proof.Rewr_Ineq_Nums (r, b), if b then nums_true_rhs else nums_false_rhs) end
-  | (Argo_Expr.E (Argo_Expr.Num _, _), e) => norm_cmp1 k r e
-  | (e, Argo_Expr.E (Argo_Expr.Num _, _)) => norm_cmp1 k r e
-  | _ => SOME (Argo_Proof.Rewr_Ineq_Sub r, mk_cmp_pat k cmp_sub_rhs))
-
-(*
-  Arithmetic expressions are normalized in order to reduce the number of
-  problem literals. Arithmetically equal expressions are normalized into
-  syntactically equal expressions as much as possible.
-*)
-
-val simplify =
-  Argo_Rewr.rule Argo_Proof.Rewr_Neg
-    "(neg (? 1))"
-    "(mul (num -1) (? 1))" #>
-  Argo_Rewr.rule Argo_Proof.Rewr_Sub
-    "(sub (? 1) (? 2))"
-    "(add (? 1) (mul (num -1) (? 2)))" #>
-  Argo_Rewr.func "(mul (? 1) (? 2))" norm_mul #>
-  Argo_Rewr.rule Argo_Proof.Rewr_Mul_Assoc
-    "(mul (? 1) (mul (? 2) (? 3)))"
-    "(mul (mul (? 1) (? 2)) (? 3))" #>
-  Argo_Rewr.rule Argo_Proof.Rewr_Mul_Sum
-    "(mul (? 1) (add _))"
-    "(add (# (mul (? 1) !)))" #>
-  Argo_Rewr.func "(div (? 1) (? 2))" norm_div #>
-  Argo_Rewr.flat "(add _)" norm_add #>
-  Argo_Rewr.rule Argo_Proof.Rewr_Min
-    "(min (? 1) (? 2))"
-    "(ite (le (? 1) (? 2)) (? 1) (? 2))" #>
-  Argo_Rewr.rule Argo_Proof.Rewr_Max
-    "(max (? 1) (? 2))"
-    "(ite (le (? 1) (? 2)) (? 2) (? 1))" #>
-  Argo_Rewr.rule Argo_Proof.Rewr_Abs
-    "(abs (? 1))"
-    "(ite (le (num 0) (? 1)) (? 1) (neg (? 1)))" #>
-  Argo_Rewr.func "(eq (? 1) (? 2))" norm_eq #>
-  Argo_Rewr.func "(le (? 1) (? 2))" (norm_cmp Argo_Expr.Le Argo_Proof.Le Rat.le) #>
-  Argo_Rewr.func "(lt (? 1) (? 2))" (norm_cmp Argo_Expr.Lt Argo_Proof.Lt Rat.lt)
-
 
 (* extended rationals *)
 
@@ -339,18 +107,16 @@ fun unnegate_conv (e as Argo_Expr.E (Argo_Expr.Not, [Argo_Expr.E (Argo_Expr.Le, 
       Argo_Rewr.rewr (Argo_Proof.Rewr_Not_Ineq Argo_Proof.Lt) (Argo_Expr.mk_le e2 e1) e
   | unnegate_conv e = Argo_Rewr.keep e
 
-val norm_scale_conv = rewrite_top (
-  Argo_Rewr.rule Argo_Proof.Rewr_Mul_Sum
-    "(mul (? 1) (add _))"
-    "(add (# (mul (? 1) !)))" #>
-  Argo_Rewr.func "(mul (? 1) (? 2))" norm_mul)
-
 fun scale_conv r mk n e1 e2 =
   let
     fun scale e = Argo_Expr.mk_mul (Argo_Expr.mk_num n) e
     val (e1, e2) = if n > @0 then (scale e1, scale e2) else (scale e2, scale e1)
     val conv = Argo_Rewr.rewr (Argo_Proof.Rewr_Ineq_Mul (r, n)) (mk e1 e2)
-  in Argo_Rewr.seq [conv, Argo_Rewr.args norm_scale_conv] end
+  in Argo_Rewr.seq [conv, Argo_Rewr.args (rewrite_top Argo_Rewr.norm_mul)] end
+
+fun dest_ineq (Argo_Expr.E (Argo_Expr.Le, [e1, e2])) = SOME (false, e1, e2)
+  | dest_ineq (Argo_Expr.E (Argo_Expr.Lt, [e1, e2])) = SOME (true, e1, e2)
+  | dest_ineq _ = NONE
 
 fun scale_ineq_conv n e =
   if n = @1 then Argo_Rewr.keep e
@@ -363,7 +129,7 @@ fun simp_lit (n, (lit, p)) =
   let val conv = Argo_Rewr.seq [unnegate_conv, scale_ineq_conv n]
   in Argo_Rewr.with_proof conv (Argo_Lit.signed_expr_of lit, p) end
 
-val combine_conv = rewrite_top (Argo_Rewr.flat "(add _)" norm_add)
+val combine_conv = rewrite_top Argo_Rewr.norm_add
 fun reduce_conv r = Argo_Rewr.rewr (Argo_Proof.Rewr_Ineq_Nums (r, false)) Argo_Expr.false_expr
 
 fun simp_combine es p prf =

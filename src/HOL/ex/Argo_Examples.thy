@@ -145,6 +145,10 @@ next
      and "~(d | False) | c"
      and "~(c | (~p & (p | (q & ~q))))"
   then have "False" by argo
+next
+  have "(True & True & True) = True" by argo
+next
+  have "(False | False | False) = False" by argo
 end
 
 
@@ -322,11 +326,16 @@ begin
     "2 * a = a * 2"
     "2 * a * 3 = 6 * a"
     "2 * a * 3 * 5 = 30 * a"
+    "2 * (a * (3 * 5)) = 30 * a"
     "a * 0 * b = 0"
     "a * (0 * b) = 0"
+    "a * b = b * a"
+    "a * b * a = b * a * a"
     "a * (b * c) = (a * b) * c"
     "a * (b * (c * d)) = ((a * b) * c) * d"
+    "a * (b * (c * d)) = ((d * c) * b) * a"
     "a * (b + c + d) = a * b + a * c + a * d"
+    "(a + b + c) * d = a * d + b * d + c * d"
     by argo+
 end
 
@@ -335,7 +344,7 @@ subsubsection \<open>Division\<close>
 
 notepad
 begin
-  fix a b c :: real
+  fix a b c d :: real
   have
     "(6::real) / 2 = 3"
     "a / 0 = a / 0"
@@ -345,12 +354,19 @@ begin
     "a / 1 = a"
     "a / 3 = 1/3 * a"
     "6 * a / 2 = 3 * a"
+    "(6 * a) / 2 = 3 * a"
     "a / ((5 * b) / 2) = 2/5 * a / b"
     "a / (5 * (b / 2)) = 2/5 * a / b"
     "(a / 5) * (b / 2) = 1/10 * a * b"
     "a / (3 * b) = 1/3 * a / b"
     "(a + b) / 5 = 1/5 * a + 1/5 * b"
     "a / (5 * 1/5) = a"
+    "a * (b / c) = (b * a) / c"
+    "(a / b) * c = (c * a) / b"
+    "(a / b) / (c / d) = (a * d) / (c * b)"
+    "1 / (a * b) = 1 / (b * a)"
+    "a / (3 * b) = 1 / 3 * a / b"
+    "(a + b + c) / d = a / d + b / d + c / d"
     by argo+
 end
 

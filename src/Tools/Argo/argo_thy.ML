@@ -19,9 +19,6 @@ sig
   type context
   val context: context
 
-  (* simplification *)
-  val simplify: Argo_Rewr.context -> Argo_Rewr.context
-  
   (* enriching the context *)
   val add_atom: Argo_Term.term -> context -> Argo_Lit.literal option * context
 
@@ -50,11 +47,6 @@ fun map_cc f (cc, simplex) =
 fun map_simplex f (cc, simplex) =
   let val (x, simplex) = f simplex
   in (x, (cc, simplex)) end
-
-
-(* simplification *)
-
-val simplify = Argo_Cc.simplify #> Argo_Simplex.simplify
 
 
 (* enriching the context *)
