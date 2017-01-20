@@ -317,15 +317,15 @@ fixes t :: "'a tree" and t' :: "'b tree"
 assumes "balanced t" "size t \<le> size t'" shows "height t \<le> height t'"
 proof (cases "complete t")
   case True
-  have "(2::nat) ^ height t - 1 \<le> 2 ^ height t' - 1"
+  have "(2::nat) ^ height t \<le> 2 ^ height t'"
   proof -
-    have "2 ^ height t - 1 = size t"
-      using True by (simp add: complete_iff_height size_if_complete)
-    also have "\<dots> \<le> size t'" by(rule assms(2))
-    also have "\<dots> \<le> 2 ^ height t' - 1" by (rule size_height)
+    have "2 ^ height t = size1 t"
+      using True by (simp add: complete_iff_height size1_if_complete)
+    also have "\<dots> \<le> size1 t'" using assms(2) by(simp add: size1_def)
+    also have "\<dots> \<le> 2 ^ height t'" by (rule size1_height)
     finally show ?thesis .
   qed
-  thus ?thesis by (simp add: le_diff_iff)
+  thus ?thesis by (simp)
 next
   case False
   have "(2::nat) ^ min_height t < 2 ^ height t'"
@@ -335,8 +335,7 @@ next
     also have "\<dots> \<le> size1 t'" using assms(2) by (simp add: size1_def)
     also have "\<dots> \<le> 2 ^ height t'"  by(rule size1_height)
     finally have "(2::nat) ^ min_height t < (2::nat) ^ height t'" .
-    thus ?thesis
-      using power_eq_0_iff[of "2::nat" "height t'"] by linarith
+    thus ?thesis .
   qed
   hence *: "min_height t < height t'" by simp
   have "min_height t + 1 = height t"
