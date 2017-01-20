@@ -72,6 +72,10 @@ fun inorder2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "inorder2 \<langle>\<rangle> xs = xs" |
 "inorder2 \<langle>l, x, r\<rangle> xs = inorder2 l (x # inorder2 r xs)"
 
+fun postorder :: "'a tree \<Rightarrow> 'a list" where
+"postorder \<langle>\<rangle> = []" |
+"postorder \<langle>l, x, r\<rangle> = postorder l @ postorder r @ [x]"
+
 text\<open>Binary Search Tree:\<close>
 fun (in linorder) bst :: "'a tree \<Rightarrow> bool" where
 "bst \<langle>\<rangle> \<longleftrightarrow> True" |
@@ -372,16 +376,25 @@ by (induction t) auto
 lemma set_preorder[simp]: "set (preorder t) = set_tree t"
 by (induction t) auto
 
+lemma set_postorder[simp]: "set (postorder t) = set_tree t"
+by (induction t) auto
+
 lemma length_preorder[simp]: "length (preorder t) = size t"
 by (induction t) auto
 
 lemma length_inorder[simp]: "length (inorder t) = size t"
 by (induction t) auto
 
+lemma length_postorder[simp]: "length (postorder t) = size t"
+by (induction t) auto
+
 lemma preorder_map: "preorder (map_tree f t) = map f (preorder t)"
 by (induction t) auto
 
 lemma inorder_map: "inorder (map_tree f t) = map f (inorder t)"
+by (induction t) auto
+
+lemma postorder_map: "postorder (map_tree f t) = map f (postorder t)"
 by (induction t) auto
 
 lemma inorder2_inorder: "inorder2 t xs = inorder t @ xs"
