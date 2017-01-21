@@ -148,9 +148,9 @@ fun static_value_exn cookie { ctxt, target, lift_postproc, consts } =
       computation';
   in fn ctxt' => computation ctxt' o reject_vars ctxt' end;
 
-fun static_value_strict cookie = Exn.release ooo static_value_exn cookie;
+fun static_value_strict cookie x = Exn.release oo static_value_exn cookie x;
 
-fun static_value cookie = partiality_as_none ooo static_value_exn cookie;
+fun static_value cookie x = partiality_as_none oo static_value_exn cookie x;
 
 
 (* evaluation for truth or nothing *)
@@ -319,9 +319,9 @@ fun fully_static_value_exn cookie { ctxt, lift_postproc, consts, T } =
     computation ctxt' o reject_vars ctxt' o Syntax.check_term ctxt' o Type.constraint T
   end;
 
-fun fully_static_value_strict cookie = Exn.release ooo fully_static_value_exn cookie;
+fun fully_static_value_strict cookie x = Exn.release oo fully_static_value_exn cookie x;
 
-fun fully_static_value cookie = partiality_as_none ooo fully_static_value_exn cookie;
+fun fully_static_value cookie x = partiality_as_none oo fully_static_value_exn cookie x;
 
 
 (** code antiquotation **)
