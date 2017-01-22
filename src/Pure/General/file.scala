@@ -122,18 +122,26 @@ object File
     else files.toList.map(_.getName)
   }
 
-  def find_files(start: JFile, pred: JFile => Boolean = _ => true): List[JFile] =
+  def find_files(
+    start: JFile,
+    pred: JFile => Boolean = _ => true,
+    include_dirs: Boolean = false): List[JFile] =
   {
     val result = new mutable.ListBuffer[JFile]
+    def check(file: JFile) { if (pred(file)) result += file }
 
-    if (start.isFile && pred(start)) result += start
+    if (start.isFile) check(start)
     else if (start.isDirectory) {
       Files.walkFileTree(start.toPath,
         new SimpleFileVisitor[JPath] {
+          override def preVisitDirectory(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
+          {
+            if (include_dirs) check(path.toFile)
+            FileVisitResult.CONTINUE
+          }
           override def visitFile(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
           {
-            val file = path.toFile
-            if (pred(file)) result += file
+            check(path.toFile)
             FileVisitResult.CONTINUE
           }
         }
@@ -238,6 +246,16 @@ object File
     catch { case ERROR(_) => false }
 
   def eq(path1: Path, path2: Path): Boolean = eq(path1.file, path2.file)
+
+
+  /* eq_content */
+
+  def eq_content(file1: JFile, file2: JFile): Boolean =
+    if (eq(file1, file2)) true
+    else if (file1.length != file2.length) false
+    else Bytes.read(file1) == Bytes.read(file2)
+
+  def eq_content(path1: Path, path2: Path): Boolean = eq_content(path1.file, path2.file)
 
 
   /* copy */

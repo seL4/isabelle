@@ -12,6 +12,7 @@ declare -a SOURCES=(
   Admin/build_doc.scala
   Admin/build_docker.scala
   Admin/build_history.scala
+  Admin/build_jdk.scala
   Admin/build_log.scala
   Admin/build_polyml.scala
   Admin/build_release.scala
