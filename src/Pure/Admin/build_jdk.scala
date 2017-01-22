@@ -204,8 +204,8 @@ esac
         }
 
         progress.echo("Archiving ...")
-        Isabelle_System.gnutar("-C " + File.bash_path(dir) + " -czf " +
-          File.bash_path(target_dir + jdk_path.ext("tar.gz")) + " " + jdk_name).check
+        Isabelle_System.gnutar("--owner=root --group=root -C " + File.bash_path(dir) +
+          " -czf " + File.bash_path(target_dir + jdk_path.ext("tar.gz")) + " " + jdk_name).check
       })
   }
 

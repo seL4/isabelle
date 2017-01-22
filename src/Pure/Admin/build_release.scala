@@ -173,7 +173,8 @@ object Build_Release
 
             execute("chmod -R a+r " + Bash.string(name))
             execute("chmod -R g=o " + Bash.string(name))
-            execute_tar("czf " + File.bash_path(release_info.dist_library_archive) +
+            execute_tar("--owner=root --group=root -czf " +
+              File.bash_path(release_info.dist_library_archive) +
               " " + Bash.string(name + "/browser_info"))
           })
       }
