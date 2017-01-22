@@ -7,6 +7,8 @@ Build Isabelle jdk component from original platform installations.
 package isabelle
 
 
+import java.nio.file.Files
+
 import scala.util.matching.Regex
 
 
@@ -165,10 +167,20 @@ esac
         for ((_, platform) <- extracted)
           File.move(dir + Path.explode(platform.name), component_dir)
 
-        Isabelle_System.bash(cwd = component_dir.file,
-          script = """
-            chmod -R a+r . &&
-            chmod -R a+X . """).check
+        for (file <- File.find_files(component_dir.file, include_dirs = true)) {
+          import java.nio.file.attribute.PosixFilePermission._
+          val path = file.toPath
+          val perms = Files.getPosixFilePermissions(path)
+          perms.add(OWNER_READ)
+          perms.add(GROUP_READ)
+          perms.add(OTHERS_READ)
+          if (file.isDirectory) {
+            perms.add(OWNER_EXECUTE)
+            perms.add(GROUP_EXECUTE)
+            perms.add(OTHERS_EXECUTE)
+          }
+          Files.setPosixFilePermissions(path, perms)
+        }
 
         File.find_files((component_dir + Path.explode("x86_64-darwin")).file,
           file => file.getName.startsWith("._")).foreach(_.delete)
