@@ -118,8 +118,7 @@ esac
 
       val platform_dir = dir + Path.explode(platform.name)
       if (platform_dir.is_dir) error("Directory already exists: " + platform_dir)
-      Isabelle_System.bash(
-        "mv " + File.bash_path(jdk_dir) + " " + File.bash_path(platform_dir)).check
+      File.move(jdk_dir, platform_dir)
 
       (version, platform)
     }
@@ -163,11 +162,8 @@ esac
         File.write(component_dir + Path.explode("etc/settings"), settings)
         File.write(component_dir + Path.explode("README"), readme(version))
 
-        for ((_, platform) <- extracted) {
-          Isabelle_System.bash("mv " +
-            File.bash_path(dir + Path.explode(platform.name)) + " " +
-            File.bash_path(component_dir)).check
-        }
+        for ((_, platform) <- extracted)
+          File.move(dir + Path.explode(platform.name), component_dir)
 
         Isabelle_System.bash(cwd = component_dir.file,
           script = """
