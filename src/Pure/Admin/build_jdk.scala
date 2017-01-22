@@ -168,9 +168,10 @@ esac
         Isabelle_System.bash(cwd = component_dir.file,
           script = """
             chmod -R a+r . &&
-            chmod -R a+X . &&
-            find x86_64-darwin -name "._*" -exec rm -f {} ";"
-          """).check
+            chmod -R a+X . """).check
+
+        File.find_files((component_dir + Path.explode("x86_64-darwin")).file,
+          file => file.getName.startsWith("._")).foreach(_.delete)
 
         progress.echo("Sharing ...")
         Isabelle_System.bash(cwd = component_dir.file,
