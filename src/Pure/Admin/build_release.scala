@@ -155,11 +155,13 @@ object Build_Release
           {
             def execute(script: String): Unit =
               Isabelle_System.bash(script, cwd = tmp_dir.file).check
+            def execute_tar(args: String): Unit =
+              Isabelle_System.gnutar(args, cwd = tmp_dir.file).check
 
             val name = release_info.name
             val platform = Isabelle_System.getenv_strict("ISABELLE_PLATFORM_FAMILY")
             val bundle = release_info.dist_dir + Path.explode(name + "_" + platform + ".tar.gz")
-            execute("tar xzf " + File.bash_path(bundle))
+            execute_tar("xzf " + File.bash_path(bundle))
 
             val other_isabelle =
               new Other_Isabelle(progress, tmp_dir + Path.explode(name), name + "-build")
@@ -171,7 +173,7 @@ object Build_Release
 
             execute("chmod -R a+r " + Bash.string(name))
             execute("chmod -R g=o " + Bash.string(name))
-            execute("tar czf " + File.bash_path(release_info.dist_library_archive) +
+            execute_tar("czf " + File.bash_path(release_info.dist_library_archive) +
               " " + Bash.string(name + "/browser_info"))
           })
       }

@@ -302,6 +302,16 @@ object Isabelle_System
       result(progress_stdout, progress_stderr, progress_limit, strict)
   }
 
+  private lazy val gnutar_check: Boolean =
+    try { bash("tar --version").check.out.containsSlice("GNU tar") || error("") }
+    catch { case ERROR(_) => false }
+
+  def gnutar(args: String, cwd: JFile = null, redirect: Boolean = false): Process_Result =
+  {
+    if (gnutar_check) bash("tar " + args, cwd = cwd, redirect = redirect)
+    else error("Expected to find GNU tar executable")
+  }
+
   def hostname(): String = bash("hostname -s").check.out
 
   def open(arg: String): Unit =

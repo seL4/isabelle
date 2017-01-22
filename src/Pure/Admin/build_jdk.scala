@@ -106,8 +106,8 @@ esac
     try {
       val tmp_dir = dir + Path.explode("tmp")
       Isabelle_System.mkdirs(tmp_dir)
-      Isabelle_System.bash(
-        "tar -C " + File.bash_path(tmp_dir) + " -xzf " + File.bash_path(archive)).check
+      Isabelle_System.gnutar(
+        "-C " + File.bash_path(tmp_dir) + " -xzf " + File.bash_path(archive)).check
       val dir_entry =
         File.read_dir(tmp_dir) match {
           case List(s) => s
@@ -204,7 +204,7 @@ esac
         }
 
         progress.echo("Archiving ...")
-        Isabelle_System.bash("tar -C " + File.bash_path(dir) + " -czf " +
+        Isabelle_System.gnutar("-C " + File.bash_path(dir) + " -czf " +
           File.bash_path(target_dir + jdk_path.ext("tar.gz")) + " " + jdk_name).check
       })
   }
