@@ -8,6 +8,7 @@ package isabelle
 
 
 import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 
 import scala.util.matching.Regex
 
@@ -168,16 +169,17 @@ esac
           File.move(dir + Path.explode(platform.name), component_dir)
 
         for (file <- File.find_files(component_dir.file, include_dirs = true)) {
-          import java.nio.file.attribute.PosixFilePermission._
           val path = file.toPath
           val perms = Files.getPosixFilePermissions(path)
-          perms.add(OWNER_READ)
-          perms.add(GROUP_READ)
-          perms.add(OTHERS_READ)
+          perms.add(PosixFilePermission.OWNER_READ)
+          perms.add(PosixFilePermission.GROUP_READ)
+          perms.add(PosixFilePermission.OTHERS_READ)
+          perms.add(PosixFilePermission.OWNER_WRITE)
           if (file.isDirectory) {
-            perms.add(OWNER_EXECUTE)
-            perms.add(GROUP_EXECUTE)
-            perms.add(OTHERS_EXECUTE)
+            perms.add(PosixFilePermission.OWNER_WRITE)
+            perms.add(PosixFilePermission.OWNER_EXECUTE)
+            perms.add(PosixFilePermission.GROUP_EXECUTE)
+            perms.add(PosixFilePermission.OTHERS_EXECUTE)
           }
           Files.setPosixFilePermissions(path, perms)
         }
@@ -186,24 +188,20 @@ esac
           file => file.getName.startsWith("._")).foreach(_.delete)
 
         progress.echo("Sharing ...")
-        Isabelle_System.bash(cwd = component_dir.file,
-          script = """
-            cd x86-linux
-            for FILE in $(find . -type f)
-            do
-              for OTHER in \
-                "../x86_64-linux/$FILE" \
-                "../x86-windows/$FILE" \
-                "../x86_64-windows/$FILE" \
-                "../x86_64-darwin/Contents/Home/$FILE"
-              do
-                if cmp -s "$FILE" "$OTHER"
-                then
-                  ln -f "$FILE" "$OTHER"
-                fi
-              done
-            done
-          """).check
+        val main_dir :: other_dirs =
+          jdk_platforms.map(platform => (component_dir + Path.explode(platform.name)).file.toPath)
+        for {
+          file1 <- File.find_files(main_dir.toFile).iterator
+          path1 = file1.toPath
+          dir2 <- other_dirs.iterator
+        } {
+          val path2 = dir2.resolve(main_dir.relativize(path1))
+          val file2 = path2.toFile
+          if (file2.isFile && File.eq_content(file1, file2)) {
+            file2.delete
+            Files.createLink(path2, path1)
+          }
+        }
 
         progress.echo("Archiving ...")
         Isabelle_System.bash("tar -C " + File.bash_path(dir) + " -czf " +

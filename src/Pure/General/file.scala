@@ -248,6 +248,16 @@ object File
   def eq(path1: Path, path2: Path): Boolean = eq(path1.file, path2.file)
 
 
+  /* eq_content */
+
+  def eq_content(file1: JFile, file2: JFile): Boolean =
+    if (eq(file1, file2)) true
+    else if (file1.length != file2.length) false
+    else Bytes.read(file1) == Bytes.read(file2)
+
+  def eq_content(path1: Path, path2: Path): Boolean = eq_content(path1.file, path2.file)
+
+
   /* copy */
 
   def copy(src: JFile, dst: JFile)
