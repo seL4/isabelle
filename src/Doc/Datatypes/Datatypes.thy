@@ -477,9 +477,9 @@ text \<open>
   @{syntax_def plugins}: 'plugins' ('only' | 'del') ':' (name +)
   ;
   @{syntax_def dt_spec}: (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') \<newline>
-     @{syntax map_rel}? (@'where' (prop + '|'))? + @'and')
+     @{syntax map_rel_pred}? (@'where' (prop + '|'))? + @'and')
   ;
-  @{syntax_def map_rel}: @'for' ((('map' | 'rel') ':' name) +)
+  @{syntax_def map_rel_pred}: @'for' ((('map' | 'rel' | 'pred') ':' name) +)
 \<close>}
 
 \medskip
@@ -3020,7 +3020,7 @@ text \<open>
 @{rail \<open>
   @@{command lift_bnf} target? lb_options? \<newline>
     @{syntax tyargs} name wit_terms?  \<newline>
-    ('via' thm)? @{syntax map_rel}?
+    ('via' thm)? @{syntax map_rel_pred}?
   ;
   @{syntax_def lb_options}: '(' ((@{syntax plugins} | 'no_warn_wits') + ',') ')'
   ;
@@ -3055,7 +3055,7 @@ text \<open>
 
 @{rail \<open>
   @@{command copy_bnf} target? ('(' @{syntax plugins} ')')? \<newline>
-    @{syntax tyargs} name ('via' thm)? @{syntax map_rel}?
+    @{syntax tyargs} name ('via' thm)? @{syntax map_rel_pred}?
 \<close>}
 \medskip
 
@@ -3077,7 +3077,7 @@ text \<open>
 @{rail \<open>
   @@{command bnf_axiomatization} target? ('(' @{syntax plugins} ')')? \<newline>
     @{syntax tyargs}? name @{syntax wit_types}? \<newline>
-    mixfix? @{syntax map_rel}?
+    mixfix? @{syntax map_rel_pred}?
   ;
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
 \<close>}
