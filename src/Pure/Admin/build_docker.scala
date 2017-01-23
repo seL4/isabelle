@@ -44,7 +44,7 @@ SHELL ["/bin/bash", "-c"]
 
 # packages
 RUN apt-get -y update && \
-  apt-get install -y """ + (packages ::: more_packages).map(Bash.string(_)).mkString(" ") + """ && \
+  apt-get install -y """ + Bash.strings(packages ::: more_packages) + """ && \
   apt-get clean
 
 # user
