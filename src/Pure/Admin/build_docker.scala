@@ -9,6 +9,7 @@ package isabelle
 
 object Build_Docker
 {
+  private val default_base = "ubuntu"
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_(?:app|linux)\.tar\.gz$""".r
@@ -22,8 +23,10 @@ object Build_Docker
 
   def build_docker(progress: Progress,
     app_archive: String,
+    base: String = default_base,
     logic: String = default_logic,
     no_build: Boolean = false,
+    entrypoint: Boolean = false,
     output: Option[Path] = None,
     more_packages: List[String] = Nil,
     tag: String = "",
@@ -39,7 +42,7 @@ object Build_Docker
     val dockerfile =
       """## Dockerfile for """ + isabelle_name + """
 
-FROM ubuntu
+FROM """ + base + """
 SHELL ["/bin/bash", "-c"]
 
 # packages
@@ -63,10 +66,12 @@ RUN tar xzf Isabelle.tar.gz && \
   rm -rf Isabelle.tar.gz Isabelle/contrib/jdk/x86-linux && \
   perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
   perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
-  Isabelle/bin/isabelle build -s -b """ + logic + """
+  Isabelle/bin/isabelle build -s -b """ + logic +
+ (if (entrypoint) """
 
 ENTRYPOINT ["Isabelle/bin/isabelle"]
 """
+  else "")
 
     output.foreach(File.write(_, dockerfile))
 
@@ -95,6 +100,8 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
   val isabelle_tool =
     Isabelle_Tool("build_docker", "build Isabelle docker image", args =>
     {
+      var base = default_base
+      var entrypoint = false
       var logic = default_logic
       var no_build = false
       var output: Option[Path] = None
@@ -107,6 +114,8 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
 Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Options are:
+    -B NAME      base image (default """ + quote(default_base) + """)
+    -E           set bin/isabelle as entrypoint
     -P NAME      additional Ubuntu package collection (""" +
           package_collections.keySet.toList.sorted.map(quote(_)).mkString(", ") + """)
     -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
@@ -121,11 +130,13 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Examples:
 
-    isabelle build_docker -t test/isabelle:Isabelle2016-1 Isabelle2016-1_app.tar.gz
+    isabelle build_docker -E -t test/isabelle:Isabelle2016-1 Isabelle2016-1_app.tar.gz
 
-    isabelle build_docker -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2016-1_app.tar.gz
+    isabelle build_docker -E -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2016-1_app.tar.gz
 
 """,
+          "B:" -> (arg => base = arg),
+          "E" -> (_ => entrypoint = true),
           "P:" -> (arg =>
             package_collections.get(arg) match {
               case Some(ps) => more_packages :::= ps
@@ -145,7 +156,8 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
           case _ => getopts.usage()
         }
 
-      build_docker(new Console_Progress(), app_archive, logic = logic, no_build = no_build,
-        output = output, more_packages = more_packages, tag = tag, verbose = verbose)
+      build_docker(new Console_Progress(), app_archive, base = base, logic = logic,
+        no_build = no_build, entrypoint = entrypoint, output = output,
+        more_packages = more_packages, tag = tag, verbose = verbose)
     }, admin = true)
 }
