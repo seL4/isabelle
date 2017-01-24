@@ -399,26 +399,25 @@ local
 
 structure Code_Antiq_Data = Proof_Data
 (
-  type T = (string list * string list) * (bool
+  type T = string list * (bool
     * (string * (string * string) list) lazy);
-  val empty: T = (([], []), (true, (Lazy.value ("", []))));
+  val empty: T = ([], (true, (Lazy.value ("", []))));
   fun init _ = empty;
 );
 
 val is_first_occ = fst o snd o Code_Antiq_Data.get;
 
-fun register_code new_tycos new_consts ctxt =
+fun register_code new_consts ctxt =
   let
-    val ((tycos, consts), _) = Code_Antiq_Data.get ctxt;
-    val tycos' = fold (insert (op =)) new_tycos tycos;
+    val (consts, _) = Code_Antiq_Data.get ctxt;
     val consts' = fold (insert (op =)) new_consts consts;
     val program = Code_Thingol.consts_program ctxt consts';
     val acc_code = Lazy.lazy (fn () =>
-      evaluation_code ctxt Code_Target.generatedN program tycos' consts'
+      evaluation_code ctxt Code_Target.generatedN program [] consts'
       |> apsnd snd);
-  in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
+  in Code_Antiq_Data.put (consts', (false, acc_code)) ctxt end;
 
-fun register_const const = register_code [] [const];
+fun register_const const = register_code [const];
 
 fun print_code is_first const ctxt =
   let
