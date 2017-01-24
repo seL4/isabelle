@@ -272,7 +272,8 @@ val generated_computationN = "Generated_Computation";
 
 fun print_computation_code ctxt compiled_value requested_Ts cTs =
   let
-    val typ_sign_for = typ_signatures cTs;
+    val proper_cTs = map_filter I cTs;
+    val typ_sign_for = typ_signatures proper_cTs;
     fun add_typ T Ts =
       if member (op =) Ts T
       then Ts
@@ -281,10 +282,12 @@ fun print_computation_code ctxt compiled_value requested_Ts cTs =
         |> fold (fold add_typ o snd) (typ_sign_for T);
     val required_Ts = fold add_typ requested_Ts [];
     val of_term_for_typ' = of_term_for_typ required_Ts;
-    val eval_for_const' = eval_for_const ctxt cTs;
-    val evals = map eval_for_const' cTs;
-    val eval_tuple = enclose "(" ")" (commas evals);
-    val eval_abs = space_implode "" (map (fn s => "fn " ^ s ^ " => ") evals);
+    val eval_for_const' = eval_for_const ctxt proper_cTs;
+    val eval_for_const'' = the_default "_" o Option.map eval_for_const';
+    val eval_tuple = enclose "(" ")" (commas (map eval_for_const' proper_cTs));
+    fun mk_abs s = "fn " ^ s ^ " => ";
+    val eval_abs = space_implode ""
+      (map (mk_abs o eval_for_const'') cTs);
     val of_term_code = print_of_term_funs {
       typ_sign_for = typ_sign_for,
       eval_for_const = eval_for_const',
@@ -327,11 +330,13 @@ fun check_computation_input ctxt cTs t =
 
 fun compile_computation cookie ctxt T program evals vs_ty_evals deps =
   let
+    fun the_const (Const cT) = cT
+      | the_const t = error ("No constant after preprocessing: " ^ Syntax.string_of_term ctxt t)
     val raw_cTs = case evals of
-        Abs (_, _, t) => (snd o strip_comb) t
+        Abs (_, _, t) => (map the_const o snd o strip_comb) t
       | _ => error ("Bad term after preprocessing: " ^ Syntax.string_of_term ctxt evals);
-    val cTs = map (fn Const cT => cT
-      | t => error ("No constant after preprocessing: " ^ Syntax.string_of_term ctxt t)) raw_cTs;
+    val cTs = fold_rev (fn cT => fn cTs =>
+      (if member (op =) cTs (SOME cT) then NONE else SOME cT) :: cTs) raw_cTs [];
     fun comp' vs_ty_evals =
       let
         val (generated_code, compiled_value) =
@@ -346,7 +351,7 @@ fun compile_computation cookie ctxt T program evals vs_ty_evals deps =
   in fn ctxt' =>
     check_typ ctxt' T
     #> reject_vars ctxt'
-    #> check_computation_input ctxt cTs
+    #> check_computation_input ctxt (map_filter I cTs)
     #> compiled_computation
   end;
 
