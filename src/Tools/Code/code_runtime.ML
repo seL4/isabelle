@@ -270,7 +270,7 @@ end;
 
 val generated_computationN = "Generated_Computation";
 
-fun print_computation_code ctxt compiled_value T cTs =
+fun print_computation_code ctxt compiled_value requested_Ts cTs =
   let
     val typ_sign_for = typ_signatures cTs;
     fun add_typ T Ts =
@@ -279,9 +279,8 @@ fun print_computation_code ctxt compiled_value T cTs =
       else Ts
         |> cons T
         |> fold (fold add_typ o snd) (typ_sign_for T);
-    val Ts = add_typ T [];
-    val of_term_for_typ' = of_term_for_typ Ts;
-    val of_terms = map of_term_for_typ' Ts;
+    val required_Ts = fold add_typ requested_Ts [];
+    val of_term_for_typ' = of_term_for_typ required_Ts;
     val eval_for_const' = eval_for_const ctxt cTs;
     val evals = map eval_for_const' cTs;
     val eval_tuple = enclose "(" ")" (commas evals);
@@ -289,7 +288,7 @@ fun print_computation_code ctxt compiled_value T cTs =
     val of_term_code = print_of_term_funs {
       typ_sign_for = typ_sign_for,
       eval_for_const = eval_for_const',
-      of_term_for_typ = of_term_for_typ' } Ts;
+      of_term_for_typ = of_term_for_typ' } required_Ts;
   in
     (cat_lines [
       "structure " ^ generated_computationN ^ " =",
@@ -302,7 +301,7 @@ fun print_computation_code ctxt compiled_value T cTs =
       of_term_code,
       "",
       "end"
-    ], map (prefix (generated_computationN ^ ".")) of_terms)
+    ], map (prefix (generated_computationN ^ ".") o of_term_for_typ') requested_Ts)
   end;
 
 fun check_typ ctxt T t =
@@ -337,10 +336,10 @@ fun compile_computation cookie ctxt T program evals vs_ty_evals deps =
       let
         val (generated_code, compiled_value) =
           build_computation_text ctxt NONE program deps vs_ty_evals;
-        val (of_term_code, of_terms) = print_computation_code ctxt compiled_value T cTs;
+        val (of_term_code, [of_term]) = print_computation_code ctxt compiled_value [T] cTs;
       in
         (generated_code ^ "\n" ^ of_term_code,
-          enclose "(" ")" ("fn () => " ^ List.last of_terms))
+          enclose "(" ")" ("fn () => " ^ of_term))
       end;
     val compiled_computation =
       Exn.release (run_computation_text cookie ctxt comp' vs_ty_evals []);
@@ -353,14 +352,14 @@ fun compile_computation cookie ctxt T program evals vs_ty_evals deps =
 
 fun experimental_computation cookie { ctxt, lift_postproc, terms = ts, T } =
   let
+    val _ = if not (monomorphic T)
+      then error ("Polymorphic type: " ^ Syntax.string_of_typ ctxt T)
+      else ();
     val cTs = (fold o fold_aterms)
       (fn (t as Const (cT as (_, T))) =>
         if not (monomorphic T) then error ("Polymorphic constant:" ^ Syntax.string_of_term ctxt t)
         else insert (op =) cT | _ => I) ts [];
-    val vT = TFree (singleton (Name.variant_list
-      (fold (fn (_, T) => fold_atyps (fn TFree (v, _) => insert (op =) v | _ => I)
-        T) cTs [])) Name.aT, []);
-    val evals = Abs ("eval", map snd cTs ---> vT, list_comb (Bound 0, map Const cTs));
+    val evals = Abs ("eval", map snd cTs ---> TFree (Name.aT, []), list_comb (Bound 0, map Const cTs));
     val computation = Code_Thingol.dynamic_value ctxt
       (K I) (compile_computation cookie ctxt T) evals;
   in
