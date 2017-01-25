@@ -103,7 +103,7 @@ fun bheight :: "'a rbt \<Rightarrow> nat" where
 fun invc :: "'a rbt \<Rightarrow> bool" where
 "invc Leaf = True" |
 "invc (Node c l a r) =
-  (invc l \<and> invc r \<and> (c = Black \<or> color l = Black \<and> color r = Black))"
+  (invc l \<and> invc r \<and> (c = Red \<longrightarrow> color l = Black \<and> color r = Black))"
 
 fun invc_sons :: "'a rbt \<Rightarrow> bool" \<comment> \<open>Weaker version\<close> where
 "invc_sons Leaf = True" |
