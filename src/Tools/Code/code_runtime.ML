@@ -419,14 +419,14 @@ structure Code_Antiq_Data = Proof_Data
     first_occurrence: bool,
     generated_code: {
       code: string,
-      consts_map: (string * string) list
+      name_for_const: string -> string
     } lazy
   };
   val empty: T = { named_consts = [],
     first_occurrence = true,
     generated_code = Lazy.value {
       code = "",
-      consts_map = []
+      name_for_const = I
     }
   };
   fun init _ = empty;
@@ -439,7 +439,7 @@ fun lazy_code ctxt consts = Lazy.lazy (fn () =>
     val program = Code_Thingol.consts_program ctxt consts;
     val (code, (_, consts_map)) =
       runtime_code ctxt Code_Target.generatedN program [] consts
-  in { code = code, consts_map = consts_map } end);
+  in { code = code, name_for_const = the o AList.lookup (op =) consts_map } end);
 
 fun register_const const ctxt =
   let
@@ -455,10 +455,10 @@ fun register_const const ctxt =
 
 fun print_code is_first_occ const ctxt =
   let
-    val { code, consts_map } = (Lazy.force o #generated_code o Code_Antiq_Data.get) ctxt;
-    val effective_code = if is_first_occ then code else "";
-    val body = ML_Context.struct_name ctxt ^ "." ^ the (AList.lookup (op =) consts_map const);
-  in (effective_code, body) end;
+    val { code, name_for_const } = (Lazy.force o #generated_code o Code_Antiq_Data.get) ctxt;
+    val context_code = if is_first_occ then code else "";
+    val body_code = ML_Context.struct_name ctxt ^ "." ^ name_for_const const;
+  in (context_code, body_code) end;
 
 in
 
