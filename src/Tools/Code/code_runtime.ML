@@ -45,7 +45,7 @@ struct
 
 open Basic_Code_Symbol;
 
-(** computation **)
+(** ML compiler as evaluation environment **)
 
 (* technical prerequisites *)
 
@@ -82,24 +82,24 @@ fun value ctxt (get, put, put_ml) (prelude, value) =
       prelude ^ "\nval _ = Context.put_generic_context (SOME (Context.map_proof (" ^
       put_ml ^ " (fn () => " ^ value ^ ")) (Context.the_generic_context ())))";
     val ctxt' = ctxt
-      |> put (fn () => error ("Bad computation for " ^ quote put_ml))
+      |> put (fn () => error ("Bad compilation for " ^ quote put_ml))
       |> Context.proof_map (compile_ML false code);
     val computator = get ctxt';
   in Code_Preproc.timed_exec "running ML" computator ctxt' end;
 
 
-(* computation as evaluation into ML language values *)
+(* evaluation into ML language values *)
 
 type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string;
 
 fun reject_vars ctxt t =
   ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t);
 
-fun build_computation_text ctxt some_target program consts =
-  Code_Target.computation_text ctxt (the_default target some_target) program consts false
+fun build_compilation_text ctxt some_target program consts =
+  Code_Target.compilation_text ctxt (the_default target some_target) program consts false
   #>> (fn ml_modules => space_implode "\n\n" (map snd ml_modules));
 
-fun run_computation_text cookie ctxt comp vs_t args =
+fun run_compilation_text cookie ctxt comp vs_t args =
   let
     val (program_code, value_name) = comp vs_t;
     val value_code = space_implode " "
@@ -118,7 +118,7 @@ fun dynamic_value_exn cookie ctxt some_target postproc t args =
       then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term ctxt t))
       else ()
     fun comp program _ vs_ty_t deps =
-      run_computation_text cookie ctxt (build_computation_text ctxt some_target program deps) vs_ty_t args;
+      run_compilation_text cookie ctxt (build_compilation_text ctxt some_target program deps) vs_ty_t args;
   in Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) comp t end;
 
 fun dynamic_value_strict cookie ctxt some_target postproc t args =
@@ -129,15 +129,15 @@ fun dynamic_value cookie ctxt some_target postproc t args =
 
 fun static_value_exn cookie { ctxt, target, lift_postproc, consts } =
   let
-    fun computation' { program, deps } =
+    fun compilation' { program, deps } =
       let
-        val computation'' = run_computation_text cookie ctxt
-          (build_computation_text ctxt target program (map Constant deps));
-      in fn _ => fn _ => fn vs_ty_t => fn _ => computation'' vs_ty_t [] end;
-    val computation = Code_Thingol.static_value { ctxt = ctxt,
+        val compilation'' = run_compilation_text cookie ctxt
+          (build_compilation_text ctxt target program (map Constant deps));
+      in fn _ => fn _ => fn vs_ty_t => fn _ => compilation'' vs_ty_t [] end;
+    val compilation = Code_Thingol.static_value { ctxt = ctxt,
       lift_postproc = Exn.map_res o lift_postproc, consts = consts }
-      computation';
-  in fn ctxt' => computation ctxt' o reject_vars ctxt' end;
+      compilation';
+  in fn ctxt' => compilation ctxt' o reject_vars ctxt' end;
 
 fun static_value_strict cookie x = Exn.release oo static_value_exn cookie x;
 
@@ -166,7 +166,7 @@ fun check_holds ctxt evaluator vs_t ct =
       then error ("Not a proposition: " ^ Syntax.string_of_term ctxt t)
       else ();
     val iff = Thm.cterm_of ctxt (Term.Const (@{const_name Pure.eq}, propT --> propT --> propT));
-    val result = case partiality_as_none (run_computation_text truth_cookie ctxt evaluator vs_t [])
+    val result = case partiality_as_none (run_compilation_text truth_cookie ctxt evaluator vs_t [])
      of SOME Holds => true
       | _ => false;
   in
@@ -184,19 +184,24 @@ in
 
 fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
   (fn program => fn vs_t => fn deps =>
-    check_holds_oracle ctxt (build_computation_text ctxt NONE program deps) vs_t)
+    check_holds_oracle ctxt (build_compilation_text ctxt NONE program deps) vs_t)
       o reject_vars ctxt;
 
 fun static_holds_conv (ctxt_consts as { ctxt, ... }) =
   Code_Thingol.static_conv_thingol ctxt_consts (fn { program, deps } => fn ctxt' => fn vs_t =>
-    K (check_holds_oracle ctxt' (build_computation_text ctxt NONE program (map Constant deps)) vs_t o reject_vars ctxt'));
+    K (check_holds_oracle ctxt' (build_compilation_text ctxt NONE program (map Constant deps)) vs_t o reject_vars ctxt'));
 
 end; (*local*)
 
 
-(** computations -- experimental! **)
+(** generator for computations -- partial implementations of the universal morphism from Isabelle to ML terms **)
 
-fun monomorphic T = fold_atyps ((K o K) false) T true;
+(* auxiliary *)
+
+val generated_computationN = "Generated_Computation";
+
+
+(* possible type signatures of constants *)
 
 fun typ_signatures_for T =
   let
@@ -213,6 +218,64 @@ fun typ_signatures cTs =
     |> fold add cTs
     |> Typtab.lookup_list
   end;
+
+
+(* name mangling *)
+
+local
+
+fun tycos_of (Type (tyco, Ts)) = maps tycos_of Ts @ [tyco]
+  | tycos_of _ = [];
+
+val ml_name_of = Name.desymbolize NONE o Long_Name.base_name;
+
+in
+
+fun of_term_for_typ Ts =
+  let
+    val names = Ts
+      |> map (suffix "_of_term" o space_implode "_" o map ml_name_of o tycos_of)
+      |> Name.variant_list [];
+  in the o AList.lookup (op =) (Ts ~~ names) end;
+
+fun eval_for_const ctxt cTs =
+  let
+    fun symbol_list (c, T) = c :: maps tycos_of (Sign.const_typargs (Proof_Context.theory_of ctxt) (c, T))
+    val names = cTs
+      |> map (prefix "eval_" o space_implode "_" o map ml_name_of o symbol_list)
+      |> Name.variant_list [];
+  in the o AList.lookup (op =) (cTs ~~ names) end;
+
+end;
+
+
+(* checks for input terms *)
+
+fun monomorphic T = fold_atyps ((K o K) false) T true;
+
+fun check_typ ctxt T t =
+  Syntax.check_term ctxt (Type.constraint T t);
+
+fun check_computation_input ctxt cTs t =
+  let
+    fun check t = check_comb (strip_comb t)
+    and check_comb (t as Abs _, _) =
+          error ("Bad term, contains abstraction: " ^ Syntax.string_of_term ctxt t)
+      | check_comb (t as Const (cT as (c, T)), ts) =
+          let
+            val _ = if not (member (op =) cTs cT)
+              then error ("Bad term, computation cannot proceed on constant " ^ Syntax.string_of_term ctxt t)
+              else ();
+            val _ = if not (monomorphic T)
+              then error ("Bad term, contains polymorphic constant " ^ Syntax.string_of_term ctxt t)
+              else ();
+            val _ = map check ts;
+          in () end;
+    val _ = check t;
+  in t end;
+
+
+(* code generation for of the universal morphism *)
 
 fun print_of_term_funs { typ_sign_for, eval_for_const, of_term_for_typ } Ts =
   let
@@ -241,34 +304,6 @@ fun print_of_term_funs { typ_sign_for, eval_for_const, of_term_for_typ } Ts =
     |> space_implode "\nand "
     |> prefix "fun "
   end;
-
-local
-
-fun tycos_of (Type (tyco, Ts)) = maps tycos_of Ts @ [tyco]
-  | tycos_of _ = [];
-
-val ml_name_of = Name.desymbolize NONE o Long_Name.base_name;
-
-in
-
-fun of_term_for_typ Ts =
-  let
-    val names = Ts
-      |> map (suffix "_of_term" o space_implode "_" o map ml_name_of o tycos_of)
-      |> Name.variant_list [];
-  in the o AList.lookup (op =) (Ts ~~ names) end;
-
-fun eval_for_const ctxt cTs =
-  let
-    fun symbol_list (c, T) = c :: maps tycos_of (Sign.const_typargs (Proof_Context.theory_of ctxt) (c, T))
-    val names = cTs
-      |> map (prefix "eval_" o space_implode "_" o map ml_name_of o symbol_list)
-      |> Name.variant_list [];
-  in the o AList.lookup (op =) (cTs ~~ names) end;
-
-end;
-
-val generated_computationN = "Generated_Computation";
 
 fun print_computation_code ctxt compiled_value requested_Ts cTs =
   let
@@ -307,26 +342,13 @@ fun print_computation_code ctxt compiled_value requested_Ts cTs =
     ], map (prefix (generated_computationN ^ ".") o of_term_for_typ') requested_Ts)
   end;
 
-fun check_typ ctxt T t =
-  Syntax.check_term ctxt (Type.constraint T t);
-
-fun check_computation_input ctxt cTs t =
-  let
-    fun check t = check_comb (strip_comb t)
-    and check_comb (t as Abs _, _) =
-          error ("Bad term, contains abstraction: " ^ Syntax.string_of_term ctxt t)
-      | check_comb (t as Const (cT as (c, T)), ts) =
-          let
-            val _ = if not (member (op =) cTs cT)
-              then error ("Bad term, computation cannot proceed on constant " ^ Syntax.string_of_term ctxt t)
-              else ();
-            val _ = if not (monomorphic T)
-              then error ("Bad term, contains polymorphic constant " ^ Syntax.string_of_term ctxt t)
-              else ();
-            val _ = map check ts;
-          in () end;
-    val _ = check t;
-  in t end;
+fun mount_computation ctxt cTs T raw_computation lift_postproc =
+  Code_Preproc.static_value { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
+    (fn _ => fn ctxt' =>
+      check_typ ctxt' T
+      #> reject_vars ctxt'
+      #> check_computation_input ctxt' cTs
+      #> raw_computation);
 
 fun compile_computation cookie ctxt T program evals vs_ty_evals deps =
   let
@@ -340,20 +362,15 @@ fun compile_computation cookie ctxt T program evals vs_ty_evals deps =
     fun comp' vs_ty_evals =
       let
         val (generated_code, compiled_value) =
-          build_computation_text ctxt NONE program deps vs_ty_evals;
+          build_compilation_text ctxt NONE program deps vs_ty_evals;
         val (of_term_code, [of_term]) = print_computation_code ctxt compiled_value [T] cTs;
       in
         (generated_code ^ "\n" ^ of_term_code,
           enclose "(" ")" ("fn () => " ^ of_term))
       end;
     val compiled_computation =
-      Exn.release (run_computation_text cookie ctxt comp' vs_ty_evals []);
-  in fn ctxt' =>
-    check_typ ctxt' T
-    #> reject_vars ctxt'
-    #> check_computation_input ctxt (map_filter I cTs)
-    #> compiled_computation
-  end;
+      Exn.release (run_compilation_text cookie ctxt comp' vs_ty_evals []);
+  in (map_filter I cTs, compiled_computation) end;
 
 fun experimental_computation cookie { ctxt, lift_postproc, terms = ts, T } =
   let
@@ -365,17 +382,16 @@ fun experimental_computation cookie { ctxt, lift_postproc, terms = ts, T } =
         if not (monomorphic T) then error ("Polymorphic constant:" ^ Syntax.string_of_term ctxt t)
         else insert (op =) cT | _ => I) ts [];
     val evals = Abs ("eval", map snd cTs ---> TFree (Name.aT, []), list_comb (Bound 0, map Const cTs));
-    val computation = Code_Thingol.dynamic_value ctxt
+    val (cTs, raw_computation) = Code_Thingol.dynamic_value ctxt
       (K I) (compile_computation cookie ctxt T) evals;
   in
-    Code_Preproc.static_value { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
-      (K computation)
+    mount_computation ctxt cTs T raw_computation lift_postproc
   end;
 
 
 (** code antiquotation **)
 
-fun evaluation_code ctxt module_name program tycos consts =
+fun runtime_code ctxt module_name program tycos consts =
   let
     val thy = Proof_Context.theory_of ctxt;
     val (ml_modules, target_names) =
@@ -422,7 +438,7 @@ fun lazy_code ctxt consts = Lazy.lazy (fn () =>
   let
     val program = Code_Thingol.consts_program ctxt consts;
     val (code, (_, consts_map)) =
-      evaluation_code ctxt Code_Target.generatedN program [] consts
+      runtime_code ctxt Code_Target.generatedN program [] consts
   in { code = code, consts_map = consts_map } end);
 
 fun register_const const ctxt =
@@ -532,7 +548,7 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
     val functions = map (prep_const thy) raw_functions;
     val consts = constrs @ functions;
     val program = Code_Thingol.consts_program ctxt consts;
-    val result = evaluation_code ctxt module_name program tycos consts
+    val result = runtime_code ctxt module_name program tycos consts
       |> (apsnd o apsnd) (chop (length constrs));
   in
     thy

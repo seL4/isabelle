@@ -28,7 +28,7 @@ sig
     -> ((string * bool) * Token.T list) list -> unit
 
   val generatedN: string
-  val computation_text: Proof.context -> string -> Code_Thingol.program
+  val compilation_text: Proof.context -> string -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> (string * string) list * string
 
@@ -399,7 +399,7 @@ fun check_code_for ctxt target_name strict args program all_public syms =
     else Isabelle_System.with_tmp_dir "Code_Test" ext_check
   end;
 
-fun dynamic_computation_text mounted_serializer prepared_program syms all_public ((vs, ty), t) =
+fun dynamic_compilation_text mounted_serializer prepared_program syms all_public ((vs, ty), t) =
   let
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
@@ -416,13 +416,13 @@ fun dynamic_computation_text mounted_serializer prepared_program syms all_public
     val value_name = the (deresolve Code_Symbol.value);
   in (program_code, value_name) end;
 
-fun computation_text ctxt target_name program syms =
+fun compilation_text ctxt target_name program syms =
   let
     val (mounted_serializer, (_, prepared_program)) =
       mount_serializer ctxt target_name NONE generatedN [] program syms;
   in
     Code_Preproc.timed_exec "serializing"
-    (fn () => dynamic_computation_text mounted_serializer prepared_program syms) ctxt
+    (fn () => dynamic_compilation_text mounted_serializer prepared_program syms) ctxt
   end;
 
 end; (* local *)

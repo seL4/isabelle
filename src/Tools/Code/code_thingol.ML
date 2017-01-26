@@ -872,14 +872,14 @@ fun ensure_value ctxt algbr eqngr t =
     #> term_value
   end;
 
-fun dynamic_evaluation eval ctxt algebra eqngr t =
+fun dynamic_evaluation comp ctxt algebra eqngr t =
   let
     val ((program, (vs_ty_t', deps)), _) =
       Code_Preproc.timed "translating term" #ctxt
       (fn { ctxt, algebra, eqngr, t } =>
         invoke_generation false ctxt (ensure_value ctxt algebra eqngr) t)
         { ctxt = ctxt, algebra = algebra, eqngr = eqngr, t = t };
-  in eval program t vs_ty_t' deps end;
+  in comp program t vs_ty_t' deps end;
 
 fun dynamic_conv ctxt conv =
   Code_Preproc.dynamic_conv ctxt
