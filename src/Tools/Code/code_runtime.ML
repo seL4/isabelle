@@ -407,17 +407,15 @@ structure Code_Antiq_Data = Proof_Data
 
 val is_first_occ = fst o snd o Code_Antiq_Data.get;
 
-fun register_code new_consts ctxt =
+fun register_const const ctxt =
   let
     val (consts, _) = Code_Antiq_Data.get ctxt;
-    val consts' = fold (insert (op =)) new_consts consts;
+    val consts' = insert (op =) const consts;
     val program = Code_Thingol.consts_program ctxt consts';
     val acc_code = Lazy.lazy (fn () =>
       evaluation_code ctxt Code_Target.generatedN program [] consts'
       |> apsnd snd);
   in Code_Antiq_Data.put (consts', (false, acc_code)) ctxt end;
-
-fun register_const const = register_code [const];
 
 fun print_code is_first const ctxt =
   let
