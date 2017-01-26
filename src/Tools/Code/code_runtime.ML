@@ -399,31 +399,50 @@ local
 
 structure Code_Antiq_Data = Proof_Data
 (
-  type T = string list * (bool
-    * (string * (string * string) list) lazy);
-  val empty: T = ([], (true, (Lazy.value ("", []))));
+  type T = { named_consts: string list,
+    first_occurrence: bool,
+    generated_code: {
+      code: string,
+      consts_map: (string * string) list
+    } lazy
+  };
+  val empty: T = { named_consts = [],
+    first_occurrence = true,
+    generated_code = Lazy.value {
+      code = "",
+      consts_map = []
+    }
+  };
   fun init _ = empty;
 );
 
-val is_first_occ = fst o snd o Code_Antiq_Data.get;
+val is_first_occurrence = #first_occurrence o Code_Antiq_Data.get;
+
+fun lazy_code ctxt program consts = Lazy.lazy (fn () =>
+  let
+    val (code, (_, consts_map)) =
+      evaluation_code ctxt Code_Target.generatedN program [] consts
+  in { code = code, consts_map = consts_map } end);
 
 fun register_const const ctxt =
   let
-    val (consts, _) = Code_Antiq_Data.get ctxt;
-    val consts' = insert (op =) const consts;
-    val program = Code_Thingol.consts_program ctxt consts';
-    val acc_code = Lazy.lazy (fn () =>
-      evaluation_code ctxt Code_Target.generatedN program [] consts'
-      |> apsnd snd);
-  in Code_Antiq_Data.put (consts', (false, acc_code)) ctxt end;
+    val consts = insert (op =) const ((#named_consts o Code_Antiq_Data.get) ctxt);
+    val program = Code_Thingol.consts_program ctxt consts;
+  in
+    ctxt
+    |> Code_Antiq_Data.put { 
+        named_consts = consts,
+        first_occurrence = false,
+        generated_code = lazy_code ctxt program consts
+      }
+  end;
 
-fun print_code is_first const ctxt =
+fun print_code is_first_occ const ctxt =
   let
-    val (_, (_, acc_code)) = Code_Antiq_Data.get ctxt;
-    val (ml_code, consts_map) = Lazy.force acc_code;
-    val ml_code = if is_first then ml_code else "";
+    val { code, consts_map } = (Lazy.force o #generated_code o Code_Antiq_Data.get) ctxt;
+    val effective_code = if is_first_occ then code else "";
     val body = ML_Context.struct_name ctxt ^ "." ^ the (AList.lookup (op =) consts_map const);
-  in (ml_code, body) end;
+  in (effective_code, body) end;
 
 in
 
@@ -431,7 +450,7 @@ fun ml_code_antiq raw_const ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val const = Code.check_const thy raw_const;
-    val is_first = is_first_occ ctxt;
+    val is_first = is_first_occurrence ctxt;
   in (print_code is_first const, register_const const ctxt) end;
 
 end; (*local*)
