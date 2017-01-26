@@ -418,8 +418,9 @@ structure Code_Antiq_Data = Proof_Data
 
 val is_first_occurrence = #first_occurrence o Code_Antiq_Data.get;
 
-fun lazy_code ctxt program consts = Lazy.lazy (fn () =>
+fun lazy_code ctxt consts = Lazy.lazy (fn () =>
   let
+    val program = Code_Thingol.consts_program ctxt consts;
     val (code, (_, consts_map)) =
       evaluation_code ctxt Code_Target.generatedN program [] consts
   in { code = code, consts_map = consts_map } end);
@@ -427,13 +428,12 @@ fun lazy_code ctxt program consts = Lazy.lazy (fn () =>
 fun register_const const ctxt =
   let
     val consts = insert (op =) const ((#named_consts o Code_Antiq_Data.get) ctxt);
-    val program = Code_Thingol.consts_program ctxt consts;
   in
     ctxt
     |> Code_Antiq_Data.put { 
         named_consts = consts,
         first_occurrence = false,
-        generated_code = lazy_code ctxt program consts
+        generated_code = lazy_code ctxt consts
       }
   end;
 
