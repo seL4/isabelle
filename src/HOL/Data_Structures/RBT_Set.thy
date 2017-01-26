@@ -4,6 +4,7 @@ section \<open>Red-Black Tree Implementation of Sets\<close>
 
 theory RBT_Set
 imports
+  Complex_Main
   RBT
   Cmp
   Isin2
@@ -284,6 +285,35 @@ qed
 
 subsection \<open>Height-Size Relation\<close>
 
+lemma neq_Black[simp]: "(c \<noteq> Black) = (c = Red)"
+by (cases c) auto
+
+lemma rbt_height_bheight_if_nat: "invc t \<Longrightarrow> invh t \<Longrightarrow>
+  height t \<le> (if color t = Black then 2 * bheight t else 2 * bheight t + 1)"
+by(induction t) (auto split: if_split_asm)
+
+lemma rbt_height_bheight_if: "invc t \<Longrightarrow> invh t \<Longrightarrow>
+  (if color t = Black then height t / 2 else (height t - 1) / 2) \<le> bheight t"
+by(induction t) (auto split: if_split_asm)
+
+lemma rbt_height_bheight: "rbt t \<Longrightarrow> height t / 2 \<le> bheight t "
+by(auto simp: rbt_def dest: rbt_height_bheight_if)
+
+lemma bheight_size_bound:  "invc t \<Longrightarrow> invh t \<Longrightarrow> size1 t \<ge>  2 ^ (bheight t)"
+by (induction t) auto
+
+lemma rbt_height_le: assumes "rbt t" shows "height t \<le> 2 * log 2 (size1 t)"
+proof -
+  have "2 powr (height t / 2) \<le> 2 powr bheight t"
+    using rbt_height_bheight[OF assms] by (simp)
+  also have "\<dots> \<le> size1 t" using assms
+    by (simp add: powr_realpow bheight_size_bound rbt_def)
+  finally have "2 powr (height t / 2) \<le> size1 t" .
+  hence "height t / 2 \<le> log 2 (size1 t)"
+    by(simp add: le_log_iff size1_def del: Int.divide_le_eq_numeral1(1))
+  thus ?thesis by simp
+qed
+
 text \<open>By Daniel St\"uwe\<close>
 
 lemma color_RedE:"color t = Red \<Longrightarrow> invc t =
@@ -335,9 +365,6 @@ by (induction t) auto
 
 lemma "rbt t \<Longrightarrow> size1 t \<le>  4 ^ (bheight t)"
 by(induction t rule: rbt_induct[where Q="\<lambda> t. size1 t \<le>  2 * 4 ^ (bheight t)"]) auto
-
-lemma bheight_size_bound:  "rbt t \<Longrightarrow> size1 t \<ge>  2 ^ (bheight t)"
-by (induction t rule: rbt_induct[where Q="\<lambda> t. size1 t \<ge>  2 ^ (bheight t)"]) auto
 
 text \<open>Balanced red-balck tree with all black nodes:\<close>
 inductive balB :: "nat \<Rightarrow> unit rbt \<Rightarrow> bool"  where
