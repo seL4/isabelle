@@ -106,15 +106,15 @@ fun invc :: "'a rbt \<Rightarrow> bool" where
 "invc (Node c l a r) =
   (invc l \<and> invc r \<and> (c = Red \<longrightarrow> color l = Black \<and> color r = Black))"
 
-fun invc_sons :: "'a rbt \<Rightarrow> bool" \<comment> \<open>Weaker version\<close> where
-"invc_sons Leaf = True" |
-"invc_sons (Node c l a r) = (invc l \<and> invc r)"
+fun invc2 :: "'a rbt \<Rightarrow> bool" \<comment> \<open>Weaker version\<close> where
+"invc2 Leaf = True" |
+"invc2 (Node c l a r) = (invc l \<and> invc r)"
 
 fun invh :: "'a rbt \<Rightarrow> bool" where
 "invh Leaf = True" |
 "invh (Node c l x r) = (invh l \<and> invh r \<and> bheight l = bheight r)"
 
-lemma invc_sonsI: "invc t \<Longrightarrow> invc_sons t"
+lemma invc2I: "invc t \<Longrightarrow> invc2 t"
 by (cases t) simp+
 
 definition rbt :: "'a rbt \<Rightarrow> bool" where
@@ -126,17 +126,17 @@ by (cases t) auto
 theorem rbt_Leaf: "rbt Leaf"
 by (simp add: rbt_def)
 
-lemma paint_invc_sons: "invc_sons t \<Longrightarrow> invc_sons (paint c t)"
+lemma paint_invc2: "invc2 t \<Longrightarrow> invc2 (paint c t)"
 by (cases t) auto
 
-lemma invc_paint_Black: "invc_sons t \<Longrightarrow> invc (paint Black t)"
+lemma invc_paint_Black: "invc2 t \<Longrightarrow> invc (paint Black t)"
 by (cases t) auto
 
 lemma invh_paint: "invh t \<Longrightarrow> invh (paint c t)"
 by (cases t) auto
 
 lemma invc_bal:
-  "\<lbrakk>invc l \<and> invc_sons r \<or> invc_sons l \<and> invc r\<rbrakk> \<Longrightarrow> invc (bal l a r)" 
+  "\<lbrakk>invc l \<and> invc2 r \<or> invc2 l \<and> invc r\<rbrakk> \<Longrightarrow> invc (bal l a r)" 
 by (induct l a r rule: bal.induct) auto
 
 lemma bheight_bal:
@@ -151,9 +151,9 @@ by (induct l a r rule: bal.induct) auto
 subsubsection \<open>Insertion\<close>
 
 lemma invc_ins: assumes "invc t"
-  shows "color t = Black \<Longrightarrow> invc (ins x t)" "invc_sons (ins x t)"
+  shows "color t = Black \<Longrightarrow> invc (ins x t)" "invc2 (ins x t)"
 using assms
-by (induct x t rule: ins.induct) (auto simp: invc_bal invc_sonsI)
+by (induct x t rule: ins.induct) (auto simp: invc_bal invc2I)
 
 lemma invh_ins: assumes "invh t"
   shows "invh (ins x t)" "bheight (ins x t) = bheight t"
@@ -185,11 +185,11 @@ lemma balL_invh_app:
 using assms 
 by (induct lt a rt rule: balL.induct) (auto simp add: invh_bal bheight_bal) 
 
-lemma balL_invc: "\<lbrakk>invc_sons l; invc r; color r = Black\<rbrakk> \<Longrightarrow> invc (balL l a r)"
+lemma balL_invc: "\<lbrakk>invc2 l; invc r; color r = Black\<rbrakk> \<Longrightarrow> invc (balL l a r)"
 by (induct l a r rule: balL.induct) (simp_all add: invc_bal)
 
-lemma balL_invc_sons: "\<lbrakk> invc_sons lt; invc rt \<rbrakk> \<Longrightarrow> invc_sons (balL lt a rt)"
-by (induct lt a rt rule: balL.induct) (auto simp: invc_bal paint_invc_sons invc_sonsI)
+lemma balL_invc2: "\<lbrakk> invc2 lt; invc rt \<rbrakk> \<Longrightarrow> invc2 (balL lt a rt)"
+by (induct lt a rt rule: balL.induct) (auto simp: invc_bal paint_invc2 invc2I)
 
 lemma balR_invh_with_invc:
   assumes "invh lt" "invh rt" "bheight lt = bheight rt + 1" "invc lt"
@@ -198,11 +198,11 @@ using assms
 by(induct lt a rt rule: balR.induct)
   (auto simp: invh_bal bheight_bal invh_paint bheight_paint_Red)
 
-lemma invc_balR: "\<lbrakk>invc a; invc_sons b; color a = Black\<rbrakk> \<Longrightarrow> invc (balR a x b)"
+lemma invc_balR: "\<lbrakk>invc a; invc2 b; color a = Black\<rbrakk> \<Longrightarrow> invc (balR a x b)"
 by (induct a x b rule: balR.induct) (simp_all add: invc_bal)
 
-lemma invc_sons_balR: "\<lbrakk> invc lt; invc_sons rt \<rbrakk> \<Longrightarrow>invc_sons (balR lt x rt)"
-by (induct lt x rt rule: balR.induct) (auto simp: invc_bal paint_invc_sons invc_sonsI)
+lemma invc2_balR: "\<lbrakk> invc lt; invc2 rt \<rbrakk> \<Longrightarrow>invc2 (balR lt x rt)"
+by (induct lt x rt rule: balR.induct) (auto simp: invc_bal paint_invc2 invc2I)
 
 lemma invh_combine:
   assumes "invh lt" "invh rt" "bheight lt = bheight rt"
@@ -214,26 +214,26 @@ by (induct lt rt rule: combine.induct)
 lemma invc_combine: 
   assumes "invc lt" "invc rt"
   shows "color lt = Black \<Longrightarrow> color rt = Black \<Longrightarrow> invc (combine lt rt)"
-         "invc_sons (combine lt rt)"
+         "invc2 (combine lt rt)"
 using assms 
 by (induct lt rt rule: combine.induct)
-   (auto simp: balL_invc invc_sonsI split: tree.splits color.splits)
+   (auto simp: balL_invc invc2I split: tree.splits color.splits)
 
 
 lemma assumes "invh lt" "invc lt"
   shows
   del_invc_invh: "invh (del x lt) \<and> (color lt = Red \<and> bheight (del x lt) = bheight lt \<and> invc (del x lt) 
-  \<or> color lt = Black \<and> bheight (del x lt) = bheight lt - 1 \<and> invc_sons (del x lt))"
+  \<or> color lt = Black \<and> bheight (del x lt) = bheight lt - 1 \<and> invc2 (del x lt))"
 and  "\<lbrakk>invh rt; bheight lt = bheight rt; invc rt\<rbrakk> \<Longrightarrow>
    invh (delL x lt k rt) \<and> 
    bheight (delL x lt k rt) = bheight lt \<and> 
    (color lt = Black \<and> color rt = Black \<and> invc (delL x lt k rt) \<or> 
-    (color lt \<noteq> Black \<or> color rt \<noteq> Black) \<and> invc_sons (delL x lt k rt))"
+    (color lt \<noteq> Black \<or> color rt \<noteq> Black) \<and> invc2 (delL x lt k rt))"
   and "\<lbrakk>invh rt; bheight lt = bheight rt; invc rt\<rbrakk> \<Longrightarrow>
   invh (delR x lt k rt) \<and> 
   bheight (delR x lt k rt) = bheight lt \<and> 
   (color lt = Black \<and> color rt = Black \<and> invc (delR x lt k rt) \<or> 
-   (color lt \<noteq> Black \<or> color rt \<noteq> Black) \<and> invc_sons (delR x lt k rt))"
+   (color lt \<noteq> Black \<or> color rt \<noteq> Black) \<and> invc2 (delR x lt k rt))"
 using assms
 proof (induct x lt and x lt k rt and x lt k rt rule: del_delL_delR.induct)
 case (2 y c _ y')
@@ -244,23 +244,23 @@ case (2 y c _ y')
     by (cases c) (simp_all add: invh_combine invc_combine)
   next
     assume "y < y'"
-    with 2 show ?thesis by (cases c) (auto simp: invc_sonsI)
+    with 2 show ?thesis by (cases c) (auto simp: invc2I)
   next
     assume "y' < y"
-    with 2 show ?thesis by (cases c) (auto simp: invc_sonsI)
+    with 2 show ?thesis by (cases c) (auto simp: invc2I)
   qed
 next
   case (3 y lt z rta y' bb)
-  thus ?case by (cases "color (Node Black lt z rta) = Black \<and> color bb = Black") (simp add: balL_invh_with_invc balL_invc balL_invc_sons)+
+  thus ?case by (cases "color (Node Black lt z rta) = Black \<and> color bb = Black") (simp add: balL_invh_with_invc balL_invc balL_invc2)+
 next
   case (5 y a y' lt z rta)
-  thus ?case by (cases "color a = Black \<and> color (Node Black lt z rta) = Black") (simp add: balR_invh_with_invc invc_balR invc_sons_balR)+
+  thus ?case by (cases "color a = Black \<and> color (Node Black lt z rta) = Black") (simp add: balR_invh_with_invc invc_balR invc2_balR)+
 next
   case ("6_1" y a y') thus ?case by (cases "color a = Black \<and> color Leaf = Black") simp+
 qed auto
 
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete k t)"
-by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black invc_sonsI invh_paint)
+by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black invc2I invh_paint)
 
 text \<open>Overall correctness:\<close>
 
