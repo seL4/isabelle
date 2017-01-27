@@ -14,13 +14,18 @@ abbreviation R where "R l a r \<equiv> Node Red l a r"
 abbreviation B where "B l a r \<equiv> Node Black l a r"
 
 fun bal :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
-(* The first line is superfluous; it merely speeds up pattern compilation *)
-"bal (R t1 a1 t2) a2 (R t3 a3 t4) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
 "bal (R (R t1 a1 t2) a2 t3) a3 t4 = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
 "bal (R t1 a1 (R t2 a2 t3)) a3 t4 = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
-"bal t1 a1 (R t2 a2 (R t3 a3 t4)) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
 "bal t1 a1 (R (R t2 a2 t3) a3 t4) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
+"bal t1 a1 (R t2 a2 (R t3 a3 t4)) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
 "bal t1 a t2 = B t1 a t2"
+(* Warning: takes 30 secs to compile (2017) *)
+text\<open>Markus Reiter and Alexander Krauss added a first line not found in Okasaki:
+@{prop "bal (R t1 a1 t2) a2 (R t3 a3 t4) = R (B t1 a1 t2) a2 (B t3 a3 t4)"}
+The motivation is unclear. However: it speeds up pattern compilation
+and lemma \<open>invc_bal\<close> below can be simplified to
+  @{prop "\<lbrakk>invc_sons l; invc_sons r\<rbrakk> \<Longrightarrow> invc (bal l a r)"}
+All other proofs are unaffected.\<close>
 
 fun paint :: "color \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "paint c Leaf = Leaf" |
