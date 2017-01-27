@@ -31,6 +31,9 @@ sig
   val compilation_text: Proof.context -> string -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> (string * string) list * string
+  val compilation_text': Proof.context -> string -> string option -> Code_Thingol.program
+    -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
+    -> ((string * string) list * string) * (Code_Symbol.T -> string option)
 
   type serializer
   type literals = Code_Printer.literals
@@ -414,17 +417,20 @@ fun dynamic_compilation_text mounted_serializer prepared_program syms all_public
     val (program_code, deresolve) =
       produce (mounted_serializer program (if all_public then [] else [Code_Symbol.value]));
     val value_name = the (deresolve Code_Symbol.value);
-  in (program_code, value_name) end;
+  in ((program_code, value_name), deresolve) end;
 
-fun compilation_text ctxt target_name program syms =
+fun compilation_text' ctxt target_name some_module_name program syms =
   let
     val (mounted_serializer, (_, prepared_program)) =
-      mount_serializer ctxt target_name NONE generatedN [] program syms;
+      mount_serializer ctxt target_name NONE (the_default generatedN some_module_name) [] program syms;
   in
     Code_Preproc.timed_exec "serializing"
     (fn () => dynamic_compilation_text mounted_serializer prepared_program syms) ctxt
   end;
 
+fun compilation_text ctxt target_name program syms =
+  fst oo compilation_text' ctxt target_name NONE program syms
+  
 end; (* local *)
 
 

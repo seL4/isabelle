@@ -536,6 +536,7 @@ session "HOL-ex" in ex = HOL +
     "~~/src/HOL/Library/Refute"
     "~~/src/HOL/Library/Transitive_Closure_Table"
     Cartouche_Examples
+    Computations
   theories
     Commands
     Adhoc_Overloading_Examples
