@@ -1,4 +1,4 @@
-(* Author: Tobias Nipkow, Daniel Stüwe *)
+(* Author: Tobias Nipkow *)
 
 section \<open>Red-Black Tree Implementation of Sets\<close>
 
@@ -99,7 +99,7 @@ fun color :: "'a rbt \<Rightarrow> color" where
 
 fun bheight :: "'a rbt \<Rightarrow> nat" where
 "bheight Leaf = 0" |
-"bheight (Node c l x r) = (if c = Black then Suc(bheight l) else bheight l)"
+"bheight (Node c l x r) = (if c = Black then bheight l + 1 else bheight l)"
 
 fun invc :: "'a rbt \<Rightarrow> bool" where
 "invc Leaf = True" |
