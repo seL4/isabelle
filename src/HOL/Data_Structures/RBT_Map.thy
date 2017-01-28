@@ -11,8 +11,8 @@ begin
 fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
 "upd x y Leaf = R Leaf (x,y) Leaf" |
 "upd x y (B l (a,b) r) = (case cmp x a of
-  LT \<Rightarrow> bal (upd x y l) (a,b) r |
-  GT \<Rightarrow> bal l (a,b) (upd x y r) |
+  LT \<Rightarrow> baliL (upd x y l) (a,b) r |
+  GT \<Rightarrow> baliR l (a,b) (upd x y r) |
   EQ \<Rightarrow> B l (x,y) r)" |
 "upd x y (R l (a,b) r) = (case cmp x a of
   LT \<Rightarrow> R (upd x y l) (a,b) r |
@@ -31,9 +31,9 @@ where
   LT \<Rightarrow> delL x t1 (a,b) t2 |
   GT \<Rightarrow> delR x t1 (a,b) t2 |
   EQ \<Rightarrow> combine t1 t2)" |
-"delL x (B t1 a t2) b t3 = balL (del x (B t1 a t2)) b t3" |
+"delL x (B t1 a t2) b t3 = baldL (del x (B t1 a t2)) b t3" |
 "delL x t1 a t2 = R (del x t1) a t2" |
-"delR x t1 a (B t2 b t3) = balR t1 a (del x (B t2 b t3))" | 
+"delR x t1 a (B t2 b t3) = baldR t1 a (del x (B t2 b t3))" | 
 "delR x t1 a t2 = R t1 a (del x t2)"
 
 definition delete :: "'a::linorder \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
@@ -45,7 +45,7 @@ subsection "Functional Correctness Proofs"
 lemma inorder_upd:
   "sorted1(inorder t) \<Longrightarrow> inorder(upd x y t) = upd_list x y (inorder t)"
 by(induction x y t rule: upd.induct)
-  (auto simp: upd_list_simps inorder_bal)
+  (auto simp: upd_list_simps inorder_baliL inorder_baliR)
 
 lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
@@ -58,7 +58,7 @@ lemma inorder_del:
  "sorted1(inorder t2) \<Longrightarrow>  inorder(delR x t1 a t2) =
     inorder t1 @ a # del_list x (inorder t2)"
 by(induction x t1 and x t1 a t2 and x t1 a t2 rule: del_delL_delR.induct)
-  (auto simp: del_list_simps inorder_combine inorder_balL inorder_balR)
+  (auto simp: del_list_simps inorder_combine inorder_baldL inorder_baldR)
 
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
