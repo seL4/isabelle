@@ -1175,11 +1175,12 @@ lemma inj_mapI: "inj f ==> inj (map f)"
 by (iprover dest: map_injective injD intro: inj_onI)
 
 lemma inj_mapD: "inj (map f) ==> inj f"
-apply (unfold inj_on_def, clarify)
-apply (erule_tac x = "[x]" in ballE)
- apply (erule_tac x = "[y]" in ballE, simp, blast)
-apply blast
-done
+  apply (unfold inj_def)
+  apply clarify
+  apply (erule_tac x = "[x]" in allE)
+  apply (erule_tac x = "[y]" in allE)
+  apply auto
+  done
 
 lemma inj_map[iff]: "inj (map f) = inj f"
 by (blast dest: inj_mapD intro: inj_mapI)

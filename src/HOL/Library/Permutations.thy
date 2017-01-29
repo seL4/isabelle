@@ -60,7 +60,7 @@ lemma permutes_image: "p permutes S \<Longrightarrow> p ` S = S"
   done
 
 lemma permutes_inj: "p permutes S \<Longrightarrow> inj p"
-  unfolding permutes_def inj_on_def by blast
+  unfolding permutes_def inj_def by blast
 
 lemma permutes_inj_on: "f permutes S \<Longrightarrow> inj_on f A"
   unfolding permutes_def inj_on_def by auto
@@ -699,7 +699,7 @@ qed
 subsection \<open>A more abstract characterization of permutations\<close>
 
 lemma bij_iff: "bij f \<longleftrightarrow> (\<forall>x. \<exists>!y. f y = x)"
-  unfolding bij_def inj_on_def surj_def
+  unfolding bij_def inj_def surj_def
   apply auto
   apply metis
   apply metis
@@ -758,7 +758,7 @@ next
     by (simp add: Fun.swap_def)
   from bij_swap_compose_bij[OF insert(4)] have br: "bij ?r"  .
   from insert raa have th: "\<forall>x. x \<notin> F \<longrightarrow> ?r x = x"
-    by (metis bij_pointE comp_apply id_apply insert_iff swap_apply(3))    
+    by (metis bij_pointE comp_apply id_apply insert_iff swap_apply(3))
   from insert(3)[OF br th] have rp: "permutation ?r" .
   have "permutation ?q"
     by (simp add: permutation_compose permutation_swap_id rp)
@@ -1104,7 +1104,7 @@ proof -
           from H h have "p (p n) = p n"
             by metis
           with permutes_inj[OF H(2)] have "p n = n"
-            unfolding inj_on_def by blast
+            unfolding inj_def by blast
           with h have False
             by simp
         }

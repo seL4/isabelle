@@ -155,29 +155,32 @@ abbreviation (input) surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
 
 abbreviation "bij f \<equiv> bij_betw f UNIV UNIV"
 
-lemma injI: "(\<And>x y. f x = f y \<Longrightarrow> x = y) \<Longrightarrow> inj f"
-  unfolding inj_on_def by auto
-
-theorem range_ex1_eq: "inj f \<Longrightarrow> b \<in> range f \<longleftrightarrow> (\<exists>!x. b = f x)"
+lemma inj_def: "inj f \<longleftrightarrow> (\<forall>x y. f x = f y \<longrightarrow> x = y)"
   unfolding inj_on_def by blast
 
+lemma injI: "(\<And>x y. f x = f y \<Longrightarrow> x = y) \<Longrightarrow> inj f"
+  unfolding inj_def by blast
+
+theorem range_ex1_eq: "inj f \<Longrightarrow> b \<in> range f \<longleftrightarrow> (\<exists>!x. b = f x)"
+  unfolding inj_def by blast
+
 lemma injD: "inj f \<Longrightarrow> f x = f y \<Longrightarrow> x = y"
-  by (simp add: inj_on_def)
+  by (simp add: inj_def)
 
 lemma inj_on_eq_iff: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x = f y \<longleftrightarrow> x = y"
-  by (force simp add: inj_on_def)
+  by (auto simp: inj_on_def)
 
 lemma inj_on_cong: "(\<And>a. a \<in> A \<Longrightarrow> f a = g a) \<Longrightarrow> inj_on f A \<longleftrightarrow> inj_on g A"
-  unfolding inj_on_def by auto
+  by (auto simp: inj_on_def)
 
 lemma inj_on_strict_subset: "inj_on f B \<Longrightarrow> A \<subset> B \<Longrightarrow> f ` A \<subset> f ` B"
   unfolding inj_on_def by blast
 
 lemma inj_comp: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (f \<circ> g)"
-  by (simp add: inj_on_def)
+  by (simp add: inj_def)
 
 lemma inj_fun: "inj f \<Longrightarrow> inj (\<lambda>x y. f x)"
-  by (simp add: inj_on_def fun_eq_iff)
+  by (simp add: inj_def fun_eq_iff)
 
 lemma inj_eq: "inj f \<Longrightarrow> f x = f y \<longleftrightarrow> x = y"
   by (simp add: inj_on_eq_iff)
@@ -423,7 +426,7 @@ lemma bij_betw_combine:
   "bij_betw f A B \<Longrightarrow> bij_betw f C D \<Longrightarrow> B \<inter> D = {} \<Longrightarrow> bij_betw f (A \<union> C) (B \<union> D)"
   unfolding bij_betw_def inj_on_Un image_Un by auto
 
-lemma bij_betw_subset: "bij_betw f A A' \<Longrightarrow> B \<le> A \<Longrightarrow> f ` B = B' \<Longrightarrow> bij_betw f B B'"
+lemma bij_betw_subset: "bij_betw f A A' \<Longrightarrow> B \<subseteq> A \<Longrightarrow> f ` B = B' \<Longrightarrow> bij_betw f B B'"
   by (auto simp add: bij_betw_def inj_on_def)
 
 lemma bij_pointE:
@@ -447,13 +450,13 @@ lemma surj_vimage_empty:
   by (intro iffI) fastforce+
 
 lemma inj_vimage_image_eq: "inj f \<Longrightarrow> f -` (f ` A) = A"
-  unfolding inj_on_def by blast
+  unfolding inj_def by blast
 
 lemma vimage_subsetD: "surj f \<Longrightarrow> f -` B \<subseteq> A \<Longrightarrow> B \<subseteq> f ` A"
   by (blast intro: sym)
 
 lemma vimage_subsetI: "inj f \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> f -` B \<subseteq> A"
-  unfolding inj_on_def by blast
+  unfolding inj_def by blast
 
 lemma vimage_subset_eq: "bij f \<Longrightarrow> f -` B \<subseteq> A \<longleftrightarrow> B \<subseteq> f ` A"
   unfolding bij_def by (blast del: subsetI intro: vimage_subsetI vimage_subsetD)
@@ -471,10 +474,10 @@ lemma inj_on_image_set_diff: "inj_on f C \<Longrightarrow> A - B \<subseteq> C \
   unfolding inj_on_def by blast
 
 lemma image_Int: "inj f \<Longrightarrow> f ` (A \<inter> B) = f ` A \<inter> f ` B"
-  unfolding inj_on_def by blast
+  unfolding inj_def by blast
 
 lemma image_set_diff: "inj f \<Longrightarrow> f ` (A - B) = f ` A - f ` B"
-  unfolding inj_on_def by blast
+  unfolding inj_def by blast
 
 lemma inj_on_image_mem_iff: "inj_on f B \<Longrightarrow> a \<in> B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> f a \<in> f ` A \<longleftrightarrow> a \<in> A"
   by (auto simp: inj_on_def)
@@ -496,14 +499,14 @@ lemma surj_Compl_image_subset: "surj f \<Longrightarrow> - (f ` A) \<subseteq> f
   by auto
 
 lemma inj_image_Compl_subset: "inj f \<Longrightarrow> f ` (- A) \<subseteq> - (f ` A)"
-  by (auto simp add: inj_on_def)
+  by (auto simp: inj_def)
 
 lemma bij_image_Compl_eq: "bij f \<Longrightarrow> f ` (- A) = - (f ` A)"
   by (simp add: bij_def inj_image_Compl_subset surj_Compl_image_subset equalityI)
 
 lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x. f x = a}"
   \<comment> \<open>The inverse image of a singleton under an injective function is included in a singleton.\<close>
-  by (simp add: inj_on_def) (blast intro: the_equality [symmetric])
+  by (simp add: inj_def) (blast intro: the_equality [symmetric])
 
 lemma inj_on_vimage_singleton: "inj_on f A \<Longrightarrow> f -` {a} \<inter> A \<subseteq> {THE x. x \<in> A \<and> f x = a}"
   by (auto simp add: inj_on_def intro: the_equality [symmetric])
@@ -642,7 +645,7 @@ lemma fun_upd_twist: "a \<noteq> c \<Longrightarrow> (m(a := b))(c := d) = (m(c 
   by (rule ext) auto
 
 lemma inj_on_fun_updI: "inj_on f A \<Longrightarrow> y \<notin> f ` A \<Longrightarrow> inj_on (f(x := y)) A"
-  by (fastforce simp: inj_on_def)
+  by (auto simp: inj_on_def)
 
 lemma fun_upd_image: "f(x := y) ` A = (if x \<in> A then insert y (f ` (A - {x})) else f ` A)"
   by auto

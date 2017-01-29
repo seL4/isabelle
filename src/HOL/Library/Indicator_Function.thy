@@ -69,7 +69,7 @@ lemma indicator_sum:
   unfolding indicator_def by (cases x) auto
 
 lemma indicator_image: "inj f \<Longrightarrow> indicator (f ` X) (f x) = (indicator X x::_::zero_neq_one)"
-  by (auto simp: indicator_def inj_on_def)
+  by (auto simp: indicator_def inj_def)
 
 lemma indicator_vimage: "indicator (f -` A) x = indicator A (f x)"
   by (auto split: split_indicator)

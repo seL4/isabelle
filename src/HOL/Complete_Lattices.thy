@@ -1320,11 +1320,7 @@ lemma image_INT: "inj_on f C \<Longrightarrow> \<forall>x\<in>A. B x \<subseteq>
   by (auto simp add: inj_on_def) blast
 
 lemma bij_image_INT: "bij f \<Longrightarrow> f ` (INTER A B) = (INT x:A. f ` B x)"
-  apply (simp only: bij_def)
-  apply (simp only: inj_on_def surj_def)
-  apply auto
-  apply blast
-  done
+  by (auto simp: bij_def inj_def surj_def) blast
 
 lemma UNION_fun_upd: "UNION J (A(i := B)) = UNION (J - {i}) A \<union> (if i \<in> J then B else {})"
   by (auto simp add: set_eq_iff)
