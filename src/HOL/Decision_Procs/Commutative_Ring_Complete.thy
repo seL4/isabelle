@@ -1,8 +1,8 @@
 (*  Author:     Bernhard Haeupler
 
-This theory is about of the relative completeness of method comm-ring
-method.  As long as the reified atomic polynomials of type 'a pol are
-in normal form, the cring method is complete.
+This theory is about of the relative completeness of the ring
+method.  As long as the reified atomic polynomials of type pol are
+in normal form, the ring method is complete.
 *)
 
 section \<open>Proof of the relative completeness of method comm-ring\<close>
@@ -12,7 +12,7 @@ imports Commutative_Ring
 begin
 
 text \<open>Formalization of normal form\<close>
-fun isnorm :: "'a::comm_ring pol \<Rightarrow> bool"
+fun isnorm :: "pol \<Rightarrow> bool"
 where
   "isnorm (Pc c) \<longleftrightarrow> True"
 | "isnorm (Pinj i (Pc c)) \<longleftrightarrow> False"
@@ -130,7 +130,7 @@ next
 qed
 
 text \<open>add conserves normalizedness\<close>
-lemma add_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<oplus> Q)"
+lemma add_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<langle>+\<rangle> Q)"
 proof (induct P Q rule: add.induct)
   case 1
   then show ?case by simp
@@ -219,7 +219,7 @@ next
     case x: 2
     from 7 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 7 x have "isnorm (R \<oplus> P2)"
+    with 7 x have "isnorm (R \<langle>+\<rangle> P2)"
       by simp
     with 7 x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
@@ -229,7 +229,7 @@ next
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with 7 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 7 x NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
+    with 7 x NR have "isnorm (R \<langle>+\<rangle> Pinj (x - 1) P2)"
       by simp
     with \<open>isnorm (PX Q2 y R)\<close> x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
@@ -247,7 +247,7 @@ next
     case x: 2
     with 8 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 8 x have "isnorm (R \<oplus> P2)"
+    with 8 x have "isnorm (R \<langle>+\<rangle> P2)"
       by simp
     with 8 x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
@@ -258,7 +258,7 @@ next
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with 8 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 8 x NR have "isnorm (R \<oplus> Pinj (x - 1) P2)"
+    with 8 x NR have "isnorm (R \<langle>+\<rangle> Pinj (x - 1) P2)"
       by simp
     with \<open>isnorm (PX Q2 y R)\<close> x show ?thesis
       by (simp add: norm_PXtrans[of Q2 y _])
@@ -291,13 +291,13 @@ next
       with 9 xy x show ?thesis
         by (cases d) auto
     qed
-    with 9 NQ1 NP1 NP2 NQ2 xy x have "isnorm (P2 \<oplus> Q2)" "isnorm (PX P1 (x - y) (Pc 0) \<oplus> Q1)"
+    with 9 NQ1 NP1 NP2 NQ2 xy x have "isnorm (P2 \<langle>+\<rangle> Q2)" "isnorm (PX P1 (x - y) (Pc 0) \<langle>+\<rangle> Q1)"
       by auto
     with Y0 xy x show ?thesis
       by (simp add: mkPX_cn)
   next
     case xy: 2
-    with 9 NP1 NP2 NQ1 NQ2 have "isnorm (P2 \<oplus> Q2)" "isnorm (P1 \<oplus> Q1)"
+    with 9 NP1 NP2 NQ1 NQ2 have "isnorm (P2 \<langle>+\<rangle> Q2)" "isnorm (P1 \<langle>+\<rangle> Q1)"
       by auto
     with xy Y0 show ?thesis
       by (simp add: mkPX_cn)
@@ -319,7 +319,7 @@ next
       with 9 xy y show ?thesis
         by (cases d) auto
     qed
-    with 9 NQ1 NP1 NP2 NQ2 xy y have "isnorm (P2 \<oplus> Q2)" "isnorm (PX Q1 (y - x) (Pc 0) \<oplus> P1)"
+    with 9 NQ1 NP1 NP2 NQ2 xy y have "isnorm (P2 \<langle>+\<rangle> Q2)" "isnorm (PX Q1 (y - x) (Pc 0) \<langle>+\<rangle> P1)"
       by auto
     with X0 xy y show ?thesis
       by (simp add: mkPX_cn)
@@ -327,7 +327,7 @@ next
 qed
 
 text \<open>mul concerves normalizedness\<close>
-lemma mul_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<otimes> Q)"
+lemma mul_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<langle>*\<rangle> Q)"
 proof (induct P Q rule: mul.induct)
   case 1
   then show ?case by simp
@@ -426,7 +426,7 @@ next
     case x: 2
     from 7 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 7 x have "isnorm (R \<otimes> P2)" "isnorm Q2"
+    with 7 x have "isnorm (R \<langle>*\<rangle> P2)" "isnorm Q2"
       by (auto simp add: norm_PX1[of Q2 y R])
     with 7 x Y0 show ?thesis
       by (simp add: mkPX_cn)
@@ -436,7 +436,7 @@ next
       by (auto simp add: norm_PX2[of Q2 y R] norm_PX1[of Q2 y R])
     from 7 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 7 x * have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)"
+    with 7 x * have "isnorm (R \<langle>*\<rangle> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<langle>*\<rangle> Q2)"
       by auto
     with Y0 x show ?thesis
       by (simp add: mkPX_cn)
@@ -456,7 +456,7 @@ next
     case x: 2
     from 8 have "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with 8 x have "isnorm (R \<otimes> P2)" "isnorm Q2"
+    with 8 x have "isnorm (R \<langle>*\<rangle> P2)" "isnorm Q2"
       by (auto simp add: norm_PX1[of Q2 y R])
     with 8 x Y0 show ?thesis
       by (simp add: mkPX_cn)
@@ -466,7 +466,7 @@ next
       by (auto simp add: norm_PX2[of Q2 y R] norm_PX1[of Q2 y R])
     from 8 x have "isnorm (Pinj (x - 1) P2)"
       by (cases P2) auto
-    with 8 x * have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)"
+    with 8 x * have "isnorm (R \<langle>*\<rangle> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<langle>*\<rangle> Q2)"
       by auto
     with Y0 x show ?thesis
       by (simp add: mkPX_cn)
@@ -479,13 +479,13 @@ next
     by (auto simp add: norm_PX1[of P1 x P2] norm_PX2[of P1 x P2])
   from 9 have "isnorm Q1" "isnorm Q2"
     by (auto simp add: norm_PX1[of Q1 y Q2] norm_PX2[of Q1 y Q2])
-  with 9 * have "isnorm (P1 \<otimes> Q1)" "isnorm (P2 \<otimes> Q2)"
-    "isnorm (P1 \<otimes> mkPinj 1 Q2)" "isnorm (Q1 \<otimes> mkPinj 1 P2)"
+  with 9 * have "isnorm (P1 \<langle>*\<rangle> Q1)" "isnorm (P2 \<langle>*\<rangle> Q2)"
+    "isnorm (P1 \<langle>*\<rangle> mkPinj 1 Q2)" "isnorm (Q1 \<langle>*\<rangle> mkPinj 1 P2)"
     by (auto simp add: mkPinj_cn)
   with 9 X0 Y0 have
-    "isnorm (mkPX (P1 \<otimes> Q1) (x + y) (P2 \<otimes> Q2))"
-    "isnorm (mkPX (P1 \<otimes> mkPinj (Suc 0) Q2) x (Pc 0))"
-    "isnorm (mkPX (Q1 \<otimes> mkPinj (Suc 0) P2) y (Pc 0))"
+    "isnorm (mkPX (P1 \<langle>*\<rangle> Q1) (x + y) (P2 \<langle>*\<rangle> Q2))"
+    "isnorm (mkPX (P1 \<langle>*\<rangle> mkPinj (Suc 0) Q2) x (Pc 0))"
+    "isnorm (mkPX (Q1 \<langle>*\<rangle> mkPinj (Suc 0) P2) y (Pc 0))"
     by (auto simp add: mkPX_cn)
   then show ?case
     by (simp add: add_cn)
@@ -519,7 +519,7 @@ next
 qed
 
 text \<open>sub conserves normalizedness\<close>
-lemma sub_cn: "isnorm p \<Longrightarrow> isnorm q \<Longrightarrow> isnorm (p \<ominus> q)"
+lemma sub_cn: "isnorm p \<Longrightarrow> isnorm q \<Longrightarrow> isnorm (p \<langle>-\<rangle> q)"
   by (simp add: sub_def add_cn neg_cn)
 
 text \<open>sqr conserves normalizizedness\<close>
@@ -542,7 +542,7 @@ next
     using PX
     apply (auto simp add: norm_PX1[of P1 x P2] norm_PX2[of P1 x P2])
     done
-  with PX have "isnorm (mkPX (Pc (1 + 1) \<otimes> P1 \<otimes> mkPinj (Suc 0) P2) x (Pc 0))"
+  with PX have "isnorm (mkPX (Pc (1 + 1) \<langle>*\<rangle> P1 \<langle>*\<rangle> mkPinj (Suc 0) P2) x (Pc 0))"
     and "isnorm (mkPX (sqr P1) (x + x) (sqr P2))"
     by (auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
   then show ?case
