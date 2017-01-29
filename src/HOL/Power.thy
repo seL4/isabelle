@@ -596,7 +596,7 @@ lemma power_abs: "\<bar>a ^ n\<bar> = \<bar>a\<bar> ^ n" -- \<open>FIXME simp?\<
 
 lemma power_sgn [simp]: "sgn (a ^ n) = sgn a ^ n"
   by (induct n) (simp_all add: sgn_mult)
-    
+
 lemma abs_power_minus [simp]: "\<bar>(- a) ^ n\<bar> = \<bar>a ^ n\<bar>"
   by (simp add: power_abs)
 
@@ -842,18 +842,24 @@ lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"
 lemma card_Pow: "finite A \<Longrightarrow> card (Pow A) = 2 ^ card A"
 proof (induct rule: finite_induct)
   case empty
-  show ?case by auto
+  show ?case by simp
 next
   case (insert x A)
-  then have "inj_on (insert x) (Pow A)"
-    unfolding inj_on_def by (blast elim!: equalityE)
-  then have "card (Pow A) + card (insert x ` Pow A) = 2 * 2 ^ card A"
-    by (simp add: mult_2 card_image Pow_insert insert.hyps)
-  with insert show ?case
-    apply (simp add: Pow_insert)
-    apply (subst card_Un_disjoint)
-       apply auto
-    done
+  from \<open>x \<notin> A\<close> have disjoint: "Pow A \<inter> insert x ` Pow A = {}" by blast
+  from \<open>x \<notin> A\<close> have inj_on: "inj_on (insert x) (Pow A)"
+    unfolding inj_on_def by auto
+
+  have "card (Pow (insert x A)) = card (Pow A \<union> insert x ` Pow A)"
+    by (simp only: Pow_insert)
+  also have "\<dots> = card (Pow A) + card (insert x ` Pow A)"
+    by (rule card_Un_disjoint) (use \<open>finite A\<close> disjoint in simp_all)
+  also from inj_on have "card (insert x ` Pow A) = card (Pow A)"
+    by (rule card_image)
+  also have "\<dots> + \<dots> = 2 * \<dots>" by (simp add: mult_2)
+  also from insert(3) have "\<dots> = 2 ^ Suc (card A)" by simp
+  also from insert(1,2) have "Suc (card A) = card (insert x A)"
+    by (rule card_insert_disjoint [symmetric])
+  finally show ?case .
 qed
 
 
