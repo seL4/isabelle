@@ -167,7 +167,7 @@ lemma injD: "inj f \<Longrightarrow> f x = f y \<Longrightarrow> x = y"
 lemma inj_on_eq_iff: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x = f y \<longleftrightarrow> x = y"
   by (force simp add: inj_on_def)
 
-lemma inj_on_cong: "(\<And>a. a \<in> A \<Longrightarrow> f a = g a) \<Longrightarrow> inj_on f A = inj_on g A"
+lemma inj_on_cong: "(\<And>a. a \<in> A \<Longrightarrow> f a = g a) \<Longrightarrow> inj_on f A \<longleftrightarrow> inj_on g A"
   unfolding inj_on_def by auto
 
 lemma inj_on_strict_subset: "inj_on f B \<Longrightarrow> A \<subset> B \<Longrightarrow> f ` A \<subset> f ` B"
@@ -205,7 +205,7 @@ lemma inj_onI [intro?]: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Lon
   by (simp add: inj_on_def)
 
 lemma inj_on_inverseI: "(\<And>x. x \<in> A \<Longrightarrow> g (f x) = x) \<Longrightarrow> inj_on f A"
-  by (auto dest:  arg_cong [of concl: g] simp add: inj_on_def)
+  by (auto dest: arg_cong [of concl: g] simp add: inj_on_def)
 
 lemma inj_onD: "inj_on f A \<Longrightarrow> f x = f y \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x = y"
   unfolding inj_on_def by blast
@@ -220,8 +220,8 @@ proof (rule inj_onI)
   with assms have "a \<in> A" and "b \<in> A"
     by auto
   moreover assume "f a = f b"
-  ultimately show "a = b" using assms
-    by (auto dest: inj_onD)
+  ultimately show "a = b"
+    using assms by (auto dest: inj_onD)
 qed
 
 lemma comp_inj_on: "inj_on f A \<Longrightarrow> inj_on g (f ` A) \<Longrightarrow> inj_on (g \<circ> f) A"
@@ -231,7 +231,7 @@ lemma inj_on_imageI: "inj_on (g \<circ> f) A \<Longrightarrow> inj_on g (f ` A)"
   by (auto simp add: inj_on_def)
 
 lemma inj_on_image_iff:
-  "\<forall>x\<in>A. \<forall>y\<in>A. g (f x) = g (f y) \<longleftrightarrow> g x = g y \<Longrightarrow> inj_on f A \<Longrightarrow> inj_on g (f ` A) = inj_on g A"
+  "\<forall>x\<in>A. \<forall>y\<in>A. g (f x) = g (f y) \<longleftrightarrow> g x = g y \<Longrightarrow> inj_on f A \<Longrightarrow> inj_on g (f ` A) \<longleftrightarrow> inj_on g A"
   unfolding inj_on_def by blast
 
 lemma inj_on_contraD: "inj_on f A \<Longrightarrow> x \<noteq> y \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x \<noteq> f y"
@@ -256,10 +256,10 @@ lemma inj_on_diff: "inj_on f A \<Longrightarrow> inj_on f (A - B)"
   unfolding inj_on_def by blast
 
 lemma comp_inj_on_iff: "inj_on f A \<Longrightarrow> inj_on f' (f ` A) \<longleftrightarrow> inj_on (f' \<circ> f) A"
-  by (auto simp add: comp_inj_on inj_on_def)
+  by (auto simp: comp_inj_on inj_on_def)
 
 lemma inj_on_imageI2: "inj_on (f' \<circ> f) A \<Longrightarrow> inj_on f A"
-  by (auto simp add: comp_inj_on inj_on_def)
+  by (auto simp: comp_inj_on inj_on_def)
 
 lemma inj_img_insertE:
   assumes "inj_on f A"
@@ -276,21 +276,21 @@ proof -
 qed
 
 lemma linorder_injI:
-  assumes hyp: "\<And>x y::'a::linorder. x < y \<Longrightarrow> f x \<noteq> f y"
+  assumes "\<And>x y::'a::linorder. x < y \<Longrightarrow> f x \<noteq> f y"
   shows "inj f"
   \<comment> \<open>Courtesy of Stephan Merz\<close>
 proof (rule inj_onI)
   show "x = y" if "f x = f y" for x y
-   by (rule linorder_cases) (auto dest: hyp simp: that)
+   by (rule linorder_cases) (auto dest: assms simp: that)
 qed
 
 lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
   by auto
 
 lemma surjI:
-  assumes *: "\<And> x. g (f x) = x"
+  assumes "\<And>x. g (f x) = x"
   shows "surj g"
-  using *[symmetric] by auto
+  using assms [symmetric] by auto
 
 lemma surjD: "surj f \<Longrightarrow> \<exists>x. y = f x"
   by (simp add: surj_def)
@@ -320,10 +320,10 @@ lemma inj_on_imp_bij_betw: "inj_on f A \<Longrightarrow> bij_betw f A (f ` A)"
   unfolding bij_betw_def by simp
 
 lemma bij_def: "bij f \<longleftrightarrow> inj f \<and> surj f"
-  unfolding bij_betw_def ..
+  by (rule bij_betw_def)
 
 lemma bijI: "inj f \<Longrightarrow> surj f \<Longrightarrow> bij f"
-  by (simp add: bij_def)
+  by (rule bij_betw_imageI)
 
 lemma bij_is_inj: "bij f \<Longrightarrow> inj f"
   by (simp add: bij_def)
@@ -459,7 +459,7 @@ lemma vimage_subset_eq: "bij f \<Longrightarrow> f -` B \<subseteq> A \<longleft
   unfolding bij_def by (blast del: subsetI intro: vimage_subsetI vimage_subsetD)
 
 lemma inj_on_image_eq_iff: "inj_on f C \<Longrightarrow> A \<subseteq> C \<Longrightarrow> B \<subseteq> C \<Longrightarrow> f ` A = f ` B \<longleftrightarrow> A = B"
-  by (fastforce simp add: inj_on_def)
+  by (fastforce simp: inj_on_def)
 
 lemma inj_on_Un_image_eq_iff: "inj_on f (A \<union> B) \<Longrightarrow> f ` A = f ` B \<longleftrightarrow> A = B"
   by (erule inj_on_image_eq_iff) simp_all
@@ -660,19 +660,19 @@ definition override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow>
   where "override_on f g A = (\<lambda>a. if a \<in> A then g a else f a)"
 
 lemma override_on_emptyset[simp]: "override_on f g {} = f"
-  by (simp add:override_on_def)
+  by (simp add: override_on_def)
 
 lemma override_on_apply_notin[simp]: "a \<notin> A \<Longrightarrow> (override_on f g A) a = f a"
-  by (simp add:override_on_def)
+  by (simp add: override_on_def)
 
 lemma override_on_apply_in[simp]: "a \<in> A \<Longrightarrow> (override_on f g A) a = g a"
-  by (simp add:override_on_def)
+  by (simp add: override_on_def)
 
 lemma override_on_insert: "override_on f g (insert x X) = (override_on f g X)(x:=g x)"
-  unfolding override_on_def by (simp add: fun_eq_iff)
+  by (simp add: override_on_def fun_eq_iff)
 
 lemma override_on_insert': "override_on f g (insert x X) = (override_on (f(x:=g x)) g X)"
-  unfolding override_on_def by (simp add: fun_eq_iff)
+  by (simp add: override_on_def fun_eq_iff)
 
 
 subsection \<open>\<open>swap\<close>\<close>
@@ -797,10 +797,8 @@ lemma bij_betw_the_inv_into: "bij_betw f A B \<Longrightarrow> bij_betw (the_inv
 abbreviation the_inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"
   where "the_inv f \<equiv> the_inv_into UNIV f"
 
-lemma the_inv_f_f:
-  assumes "inj f"
-  shows "the_inv f (f x) = x"
-  using assms UNIV_I by (rule the_inv_into_f_f)
+lemma the_inv_f_f: "the_inv f (f x) = x" if "inj f"
+  using that UNIV_I by (rule the_inv_into_f_f)
 
 
 subsection \<open>Cantor's Paradox\<close>
