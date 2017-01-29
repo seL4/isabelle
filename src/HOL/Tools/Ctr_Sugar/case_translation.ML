@@ -498,18 +498,18 @@ fun dest_case ctxt d used t =
           SOME (_, constructors) =>
             if length fs = length constructors then
               let
+                val R = fastype_of x;
                 val cases = map (fn (Const (s, U), t) =>
                   let
                     val Us = binder_types U;
                     val k = length Us;
                     val p as (xs, _) = strip_abs k t;
                   in
-                    (Const (s, map fastype_of xs ---> fastype_of x), p, is_dependent k t)
+                    (Const (s, map fastype_of xs ---> R), p, is_dependent k t)
                   end) (constructors ~~ fs);
                 val cases' =
                   sort (int_ord o swap o apply2 (length o snd))
                     (fold_rev count_cases cases []);
-                val R = fastype_of t;
                 val dummy =
                   if d then Term.dummy_pattern R
                   else Free (Name.variant "x" used |> fst, R);
