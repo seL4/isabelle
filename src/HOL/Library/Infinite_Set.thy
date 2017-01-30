@@ -5,26 +5,31 @@
 section \<open>Infinite Sets and Related Concepts\<close>
 
 theory Infinite_Set
-imports Main
+  imports Main
 begin
 
-text \<open>The set of natural numbers is infinite.\<close>
+subsection \<open>The set of natural numbers is infinite\<close>
 
-lemma infinite_nat_iff_unbounded_le: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. n \<in> S)"
+lemma infinite_nat_iff_unbounded_le: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. n \<in> S)"
+  for S :: "nat set"
   using frequently_cofinite[of "\<lambda>x. x \<in> S"]
   by (simp add: cofinite_eq_sequentially frequently_def eventually_sequentially)
 
-lemma infinite_nat_iff_unbounded: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n>m. n \<in> S)"
+lemma infinite_nat_iff_unbounded: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n>m. n \<in> S)"
+  for S :: "nat set"
   using frequently_cofinite[of "\<lambda>x. x \<in> S"]
   by (simp add: cofinite_eq_sequentially frequently_def eventually_at_top_dense)
 
-lemma finite_nat_iff_bounded: "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..<k})"
+lemma finite_nat_iff_bounded: "finite S \<longleftrightarrow> (\<exists>k. S \<subseteq> {..<k})"
+  for S :: "nat set"
   using infinite_nat_iff_unbounded_le[of S] by (simp add: subset_eq) (metis not_le)
 
-lemma finite_nat_iff_bounded_le: "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {.. k})"
+lemma finite_nat_iff_bounded_le: "finite S \<longleftrightarrow> (\<exists>k. S \<subseteq> {.. k})"
+  for S :: "nat set"
   using infinite_nat_iff_unbounded[of S] by (simp add: subset_eq) (metis not_le)
 
-lemma finite_nat_bounded: "finite (S::nat set) \<Longrightarrow> \<exists>k. S \<subseteq> {..<k}"
+lemma finite_nat_bounded: "finite S \<Longrightarrow> \<exists>k. S \<subseteq> {..<k}"
+  for S :: "nat set"
   by (simp add: finite_nat_iff_bounded)
 
 
@@ -35,44 +40,52 @@ text \<open>
 \<close>
 
 lemma unbounded_k_infinite: "\<forall>m>k. \<exists>n>m. n \<in> S \<Longrightarrow> infinite (S::nat set)"
-apply (clarsimp simp add: finite_nat_set_iff_bounded)
-apply (drule_tac x="Suc (max m k)" in spec)
-using less_Suc_eq by fastforce
+  apply (clarsimp simp add: finite_nat_set_iff_bounded)
+  apply (drule_tac x="Suc (max m k)" in spec)
+  using less_Suc_eq apply fastforce
+  done
 
 lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
 
 lemma range_inj_infinite:
-  "inj (f::nat \<Rightarrow> 'a) \<Longrightarrow> infinite (range f)"
+  fixes f :: "nat \<Rightarrow> 'a"
+  assumes "inj f"
+  shows "infinite (range f)"
 proof
-  assume "finite (range f)" and "inj f"
-  then have "finite (UNIV::nat set)"
+  assume "finite (range f)"
+  from this assms have "finite (UNIV::nat set)"
     by (rule finite_imageD)
   then show False by simp
 qed
 
-text \<open>The set of integers is also infinite.\<close>
 
-lemma infinite_int_iff_infinite_nat_abs: "infinite (S::int set) \<longleftrightarrow> infinite ((nat o abs) ` S)"
+subsection \<open>The set of integers is also infinite\<close>
+
+lemma infinite_int_iff_infinite_nat_abs: "infinite S \<longleftrightarrow> infinite ((nat \<circ> abs) ` S)"
+  for S :: "int set"
   by (auto simp: transfer_nat_int_set_relations o_def image_comp dest: finite_image_absD)
 
-proposition infinite_int_iff_unbounded_le: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> \<ge> m \<and> n \<in> S)"
-  apply (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded_le o_def image_def)
-  apply (metis abs_ge_zero nat_le_eq_zle le_nat_iff)
-  done
+proposition infinite_int_iff_unbounded_le: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> \<ge> m \<and> n \<in> S)"
+  for S :: "int set"
+  by (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded_le o_def image_def)
+    (metis abs_ge_zero nat_le_eq_zle le_nat_iff)
 
-proposition infinite_int_iff_unbounded: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> > m \<and> n \<in> S)"
-  apply (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded o_def image_def)
-  apply (metis (full_types) nat_le_iff nat_mono not_le)
-  done
+proposition infinite_int_iff_unbounded: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> > m \<and> n \<in> S)"
+  for S :: "int set"
+  by (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded o_def image_def)
+    (metis (full_types) nat_le_iff nat_mono not_le)
 
-proposition finite_int_iff_bounded: "finite (S::int set) \<longleftrightarrow> (\<exists>k. abs ` S \<subseteq> {..<k})"
+proposition finite_int_iff_bounded: "finite S \<longleftrightarrow> (\<exists>k. abs ` S \<subseteq> {..<k})"
+  for S :: "int set"
   using infinite_int_iff_unbounded_le[of S] by (simp add: subset_eq) (metis not_le)
 
-proposition finite_int_iff_bounded_le: "finite (S::int set) \<longleftrightarrow> (\<exists>k. abs ` S \<subseteq> {.. k})"
+proposition finite_int_iff_bounded_le: "finite S \<longleftrightarrow> (\<exists>k. abs ` S \<subseteq> {.. k})"
+  for S :: "int set"
   using infinite_int_iff_unbounded[of S] by (simp add: subset_eq) (metis not_le)
 
-subsection "Infinitely Many and Almost All"
+
+subsection \<open>Infinitely Many and Almost All\<close>
 
 text \<open>
   We often need to reason about the existence of infinitely many
@@ -80,9 +93,11 @@ text \<open>
   we introduce corresponding binders and their proof rules.
 \<close>
 
-(* The following two lemmas are available as filter-rules, but not in the simp-set *)
-lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)" by (fact not_frequently)
-lemma not_MOST [simp]: "\<not> (MOST x. P x) \<longleftrightarrow> (INFM x. \<not> P x)" by (fact not_eventually)
+lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)"
+  by (rule not_frequently)
+
+lemma not_MOST [simp]: "\<not> (MOST x. P x) \<longleftrightarrow> (INFM x. \<not> P x)"
+  by (rule not_eventually)
 
 lemma INFM_const [simp]: "(INFM x::'a. P) \<longleftrightarrow> P \<and> infinite (UNIV::'a set)"
   by (simp add: frequently_const_iff)
@@ -91,13 +106,14 @@ lemma MOST_const [simp]: "(MOST x::'a. P) \<longleftrightarrow> P \<or> finite (
   by (simp add: eventually_const_iff)
 
 lemma INFM_imp_distrib: "(INFM x. P x \<longrightarrow> Q x) \<longleftrightarrow> ((MOST x. P x) \<longrightarrow> (INFM x. Q x))"
-  by (simp only: imp_conv_disj frequently_disj_iff not_eventually)
+  by (rule frequently_imp_iff)
 
 lemma MOST_imp_iff: "MOST x. P x \<Longrightarrow> (MOST x. P x \<longrightarrow> Q x) \<longleftrightarrow> (MOST x. Q x)"
   by (auto intro: eventually_rev_mp eventually_mono)
 
 lemma INFM_conjI: "INFM x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> INFM x. P x \<and> Q x"
   by (rule frequently_rev_mp[of P]) (auto elim: eventually_mono)
+
 
 text \<open>Properties of quantifiers with injective functions.\<close>
 
@@ -106,6 +122,7 @@ lemma INFM_inj: "INFM x. P (f x) \<Longrightarrow> inj f \<Longrightarrow> INFM 
 
 lemma MOST_inj: "MOST x. P x \<Longrightarrow> inj f \<Longrightarrow> MOST x. P (f x)"
   using finite_vimageI[of "{x. \<not> P x}" f] by (auto simp: eventually_cofinite)
+
 
 text \<open>Properties of quantifiers with singletons.\<close>
 
@@ -134,18 +151,23 @@ lemma MOST_eq_imp:
   "MOST x. a = x \<longrightarrow> P x"
   unfolding eventually_cofinite by simp_all
 
+
 text \<open>Properties of quantifiers over the naturals.\<close>
 
-lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n>m. P n)"
+lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P n) \<longleftrightarrow> (\<exists>m. \<forall>n>m. P n)"
+  for P :: "nat \<Rightarrow> bool"
   by (auto simp add: eventually_cofinite finite_nat_iff_bounded_le subset_eq not_le[symmetric])
 
-lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n\<ge>m. P n)"
+lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P n) \<longleftrightarrow> (\<exists>m. \<forall>n\<ge>m. P n)"
+  for P :: "nat \<Rightarrow> bool"
   by (auto simp add: eventually_cofinite finite_nat_iff_bounded subset_eq not_le[symmetric])
 
-lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n>m. P n)"
+lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P n) \<longleftrightarrow> (\<forall>m. \<exists>n>m. P n)"
+  for P :: "nat \<Rightarrow> bool"
   by (simp add: frequently_cofinite infinite_nat_iff_unbounded)
 
-lemma INFM_nat_le: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. P n)"
+lemma INFM_nat_le: "(\<exists>\<^sub>\<infinity>n. P n) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. P n)"
+  for P :: "nat \<Rightarrow> bool"
   by (simp add: frequently_cofinite infinite_nat_iff_unbounded_le)
 
 lemma MOST_INFM: "infinite (UNIV::'a set) \<Longrightarrow> MOST x::'a. P x \<Longrightarrow> INFM x::'a. P x"
@@ -154,9 +176,8 @@ lemma MOST_INFM: "infinite (UNIV::'a set) \<Longrightarrow> MOST x::'a. P x \<Lo
 lemma MOST_Suc_iff: "(MOST n. P (Suc n)) \<longleftrightarrow> (MOST n. P n)"
   by (simp add: cofinite_eq_sequentially)
 
-lemma
-  shows MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
-    and MOST_SucD: "MOST n. P (Suc n) \<Longrightarrow> MOST n. P n"
+lemma MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
+  and MOST_SucD: "MOST n. P (Suc n) \<Longrightarrow> MOST n. P n"
   by (simp_all add: MOST_Suc_iff)
 
 lemma MOST_ge_nat: "MOST n::nat. m \<le> n"
@@ -181,31 +202,34 @@ lemma INFM_E: "INFM x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> the
 lemma MOST_I: "(\<And>x. P x) \<Longrightarrow> MOST x. P x" by (rule eventuallyI)
 lemmas MOST_iff_finiteNeg = MOST_iff_cofinite
 
-subsection "Enumeration of an Infinite Set"
 
-text \<open>
-  The set's element type must be wellordered (e.g. the natural numbers).
-\<close>
+subsection \<open>Enumeration of an Infinite Set\<close>
+
+text \<open>The set's element type must be wellordered (e.g. the natural numbers).\<close>
 
 text \<open>
   Could be generalized to
-    @{term "enumerate' S n = (SOME t. t \<in> s \<and> finite {s\<in>S. s < t} \<and> card {s\<in>S. s < t} = n)"}.
+    @{prop "enumerate' S n = (SOME t. t \<in> s \<and> finite {s\<in>S. s < t} \<and> card {s\<in>S. s < t} = n)"}.
 \<close>
 
 primrec (in wellorder) enumerate :: "'a set \<Rightarrow> nat \<Rightarrow> 'a"
-where
-  enumerate_0: "enumerate S 0 = (LEAST n. n \<in> S)"
-| enumerate_Suc: "enumerate S (Suc n) = enumerate (S - {LEAST n. n \<in> S}) n"
+  where
+    enumerate_0: "enumerate S 0 = (LEAST n. n \<in> S)"
+  | enumerate_Suc: "enumerate S (Suc n) = enumerate (S - {LEAST n. n \<in> S}) n"
 
 lemma enumerate_Suc': "enumerate S (Suc n) = enumerate (S - {enumerate S 0}) n"
   by simp
 
 lemma enumerate_in_set: "infinite S \<Longrightarrow> enumerate S n \<in> S"
-  apply (induct n arbitrary: S)
-   apply (fastforce intro: LeastI dest!: infinite_imp_nonempty)
-  apply simp
-  apply (metis DiffE infinite_remove)
-  done
+proof (induct n arbitrary: S)
+  case 0
+  then show ?case
+    by (fastforce intro: LeastI dest!: infinite_imp_nonempty)
+next
+  case (Suc n)
+  then show ?case
+    by simp (metis DiffE infinite_remove)
+qed
 
 declare enumerate_0 [simp del] enumerate_Suc [simp del]
 
@@ -221,10 +245,7 @@ lemma enumerate_step: "infinite S \<Longrightarrow> enumerate S n < enumerate S 
   done
 
 lemma enumerate_mono: "m < n \<Longrightarrow> infinite S \<Longrightarrow> enumerate S m < enumerate S n"
-  apply (erule less_Suc_induct)
-  apply (auto intro: enumerate_step)
-  done
-
+  by (induct m n rule: less_Suc_induct) (auto intro: enumerate_step)
 
 lemma le_enumerate:
   assumes S: "infinite S"
@@ -258,23 +279,25 @@ next
     using enumerate_mono[OF zero_less_Suc \<open>infinite S\<close>, of n] \<open>infinite S\<close>
     apply (subst (1 2) enumerate_Suc')
     apply (subst Suc)
-    using \<open>infinite S\<close>
-    apply simp
+     apply (use \<open>infinite S\<close> in simp)
     apply (intro arg_cong[where f = Least] ext)
     apply (auto simp: enumerate_Suc'[symmetric])
     done
 qed
 
 lemma enumerate_Ex:
-  assumes S: "infinite (S::nat set)"
-  shows "s \<in> S \<Longrightarrow> \<exists>n. enumerate S n = s"
+  fixes S :: "nat set"
+  assumes S: "infinite S"
+    and s: "s \<in> S"
+  shows "\<exists>n. enumerate S n = s"
+  using s
 proof (induct s rule: less_induct)
   case (less s)
   show ?case
-  proof cases
+  proof (cases "\<exists>y\<in>S. y < s")
+    case True
     let ?y = "Max {s'\<in>S. s' < s}"
-    assume "\<exists>y\<in>S. y < s"
-    then have y: "\<And>x. ?y < x \<longleftrightarrow> (\<forall>s'\<in>S. s' < s \<longrightarrow> s' < x)"
+    from True have y: "\<And>x. ?y < x \<longleftrightarrow> (\<forall>s'\<in>S. s' < s \<longrightarrow> s' < x)"
       by (subst Max_less_iff) auto
     then have y_in: "?y \<in> {s'\<in>S. s' < s}"
       by (intro Max_in) auto
@@ -282,9 +305,9 @@ proof (induct s rule: less_induct)
       by auto
     with S have "enumerate S (Suc n) = s"
       by (auto simp: y less enumerate_Suc'' intro!: Least_equality)
-    then show ?case by auto
+    then show ?thesis by auto
   next
-    assume *: "\<not> (\<exists>y\<in>S. y < s)"
+    case False
     then have "\<forall>t\<in>S. s \<le> t" by auto
     with \<open>s \<in> S\<close> show ?thesis
       by (auto intro!: exI[of _ 0] Least_equality simp: enumerate_0)
@@ -307,36 +330,41 @@ proof -
     unfolding bij_betw_def by (auto intro: enumerate_in_set)
 qed
 
-text\<open>A pair of weird and wonderful lemmas from HOL Light\<close>
+text \<open>A pair of weird and wonderful lemmas from HOL Light.\<close>
 lemma finite_transitivity_chain:
   assumes "finite A"
-      and R: "\<And>x. ~ R x x" "\<And>x y z. \<lbrakk>R x y; R y z\<rbrakk> \<Longrightarrow> R x z"
-      and A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y. y \<in> A \<and> R x y"
+    and R: "\<And>x. \<not> R x x" "\<And>x y z. \<lbrakk>R x y; R y z\<rbrakk> \<Longrightarrow> R x z"
+    and A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y. y \<in> A \<and> R x y"
   shows "A = {}"
-using \<open>finite A\<close> A
-proof (induction A)
+  using \<open>finite A\<close> A
+proof (induct A)
+  case empty
+  then show ?case by simp
+next
   case (insert a A)
   with R show ?case
-    by (metis empty_iff insert_iff)
-qed simp
+    by (metis empty_iff insert_iff)   (* somewhat slow *)
+qed
 
 corollary Union_maximal_sets:
   assumes "finite \<F>"
-    shows "\<Union>{T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} = \<Union>\<F>"
+  shows "\<Union>{T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} = \<Union>\<F>"
     (is "?lhs = ?rhs")
 proof
+  show "?lhs \<subseteq> ?rhs" by force
   show "?rhs \<subseteq> ?lhs"
   proof (rule Union_subsetI)
     fix S
     assume "S \<in> \<F>"
-    have "{T \<in> \<F>. S \<subseteq> T} = {}" if "~ (\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y)"
+    have "{T \<in> \<F>. S \<subseteq> T} = {}"
+      if "\<not> (\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y)"
       apply (rule finite_transitivity_chain [of _ "\<lambda>T U. S \<subseteq> T \<and> T \<subset> U"])
-      using assms that apply auto
-      by (blast intro: dual_order.trans psubset_imp_subset)
-    then show "\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y"
-      using \<open>S \<in> \<F>\<close> by blast
+         apply (use assms that in auto)
+      apply (blast intro: dual_order.trans psubset_imp_subset)
+      done
+    with \<open>S \<in> \<F>\<close> show "\<exists>y. y \<in> {T \<in> \<F>. \<forall>U\<in>\<F>. \<not> T \<subset> U} \<and> S \<subseteq> y"
+      by blast
   qed
-qed force
+qed
 
 end
-
