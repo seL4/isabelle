@@ -6,6 +6,10 @@ theory Leftist_Heap
 imports Tree2 "~~/src/HOL/Library/Multiset" Complex_Main
 begin
 
+fun mset_tree :: "('a,'b) tree \<Rightarrow> 'a multiset" where
+"mset_tree Leaf = {#}" |
+"mset_tree (Node _ l a r) = {#a#} + mset_tree l + mset_tree r"
+
 type_synonym 'a lheap = "('a,nat)tree"
 
 fun rank :: "'a lheap \<Rightarrow> nat" where
@@ -16,7 +20,12 @@ fun rk :: "'a lheap \<Rightarrow> nat" where
 "rk Leaf = 0" |
 "rk (Node n _ _ _) = n"
 
-text{* The invariant: *}
+text{* The invariants: *}
+
+fun (in linorder) heap :: "('a,'b) tree \<Rightarrow> bool" where
+"heap Leaf = True" |
+"heap (Node _ l m r) =
+  (heap l \<and> heap r \<and> (\<forall>x \<in> set_mset(mset_tree l + mset_tree r). m \<le> x))"
 
 fun lheap :: "'a lheap \<Rightarrow> bool" where
 "lheap Leaf = True" |
@@ -65,37 +74,42 @@ by(cases t) auto
 lemma lheap_node: "lheap (node l a r) \<longleftrightarrow> lheap l \<and> lheap r"
 by(auto simp add: node_def)
 
+lemma heap_node: "heap (node l a r) \<longleftrightarrow>
+  heap l \<and> heap r \<and> (\<forall>x \<in> set_mset(mset_tree l + mset_tree r). a \<le> x)"
+by(auto simp add: node_def)
+
 
 subsection "Functional Correctness"
 
 locale Priority_Queue =
 fixes empty :: "'pq"
-and insert :: "'a \<Rightarrow> 'pq \<Rightarrow> 'pq"
+and insert :: "'a::linorder \<Rightarrow> 'pq \<Rightarrow> 'pq"
 and get_min :: "'pq \<Rightarrow> 'a"
 and del_min :: "'pq \<Rightarrow> 'pq"
 and invar :: "'pq \<Rightarrow> bool"
 and mset :: "'pq \<Rightarrow> 'a multiset"
 assumes mset_empty: "mset empty = {#}"
-and mset_insert: "invar pq \<Longrightarrow> mset (insert x pq) = {#x#} + mset pq"
+and mset_insert: "invar pq \<Longrightarrow> mset (insert x pq) = mset pq + {#x#}"
 and mset_del_min: "invar pq \<Longrightarrow> mset (del_min pq) = mset pq - {#get_min pq#}"
+and get_min: "invar pq \<Longrightarrow> pq \<noteq> empty \<Longrightarrow>
+   get_min pq \<in> set_mset(mset pq) \<and> (\<forall>x \<in># mset pq. get_min pq \<le> x)"
 and invar_insert: "invar pq \<Longrightarrow> invar (insert x pq)"
 and invar_del_min: "invar pq \<Longrightarrow> invar (del_min pq)"
-
-
-fun mset_tree :: "('a,'b) tree \<Rightarrow> 'a multiset" where
-"mset_tree Leaf = {#}" |
-"mset_tree (Node _ l a r) = {#a#} + mset_tree l + mset_tree r"
 
 
 lemma mset_meld: "mset_tree (meld h1 h2) = mset_tree h1 + mset_tree h2"
 by (induction h1 h2 rule: meld.induct) (auto simp add: node_def ac_simps)
 
-lemma mset_insert: "mset_tree (insert x t) = {#x#} + mset_tree t"
+lemma mset_insert: "mset_tree (insert x t) = mset_tree t + {#x#}"
 by (auto simp add: insert_def mset_meld)
 
-lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
-by (cases h) (auto simp: mset_meld ac_simps subset_mset.diff_add_assoc)
+lemma get_min:
+  "heap h \<Longrightarrow> h \<noteq> Leaf \<Longrightarrow>
+   get_min h \<in> set_mset(mset_tree h) \<and> (\<forall>x \<in># mset_tree h. get_min h \<le> x)"
+by (induction h) (auto)
 
+lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
+by (cases h) (auto simp: mset_meld)
 
 lemma lheap_meld: "\<lbrakk> lheap l; lheap r \<rbrakk> \<Longrightarrow> lheap (meld l r)"
 proof(induction l r rule: meld.induct)
@@ -114,16 +128,28 @@ proof(induction l r rule: meld.induct)
   qed
 qed simp_all
 
+lemma heap_meld: "\<lbrakk> heap l; heap r \<rbrakk> \<Longrightarrow> heap (meld l r)"
+proof(induction l r rule: meld.induct)
+  case 3 thus ?case by(auto simp: heap_node mset_meld ball_Un)
+qed simp_all
+
 lemma lheap_insert: "lheap t \<Longrightarrow> lheap(insert x t)"
 by(simp add: insert_def lheap_meld del: meld.simps split: tree.split)
+
+lemma heap_insert: "heap t \<Longrightarrow> heap(insert x t)"
+by(simp add: insert_def heap_meld del: meld.simps split: tree.split)
 
 lemma lheap_del_min: "lheap t \<Longrightarrow> lheap(del_min t)"
 by(cases t)(auto simp add: lheap_meld simp del: meld.simps)
 
+lemma heap_del_min: "heap t \<Longrightarrow> heap(del_min t)"
+by(cases t)(auto simp add: heap_meld simp del: meld.simps)
+
 
 interpretation lheap: Priority_Queue
 where empty = Leaf and insert = insert and del_min = del_min
-and get_min = get_min and invar = lheap and mset = mset_tree
+and get_min = get_min and invar = "\<lambda>h. heap h \<and> lheap h"
+and mset = mset_tree
 proof(standard, goal_cases)
   case 1 show ?case by simp
 next
@@ -131,9 +157,11 @@ next
 next
   case 3 show ?case by(rule mset_del_min)
 next
-  case 4 thus ?case by(rule lheap_insert)
+  case 4 thus ?case by(simp add: get_min)
 next
-  case 5 thus ?case by(rule lheap_del_min)
+  case 5 thus ?case by(simp add: heap_insert lheap_insert)
+next
+  case 6 thus ?case by(simp add: heap_del_min lheap_del_min)
 qed
 
 
