@@ -468,6 +468,10 @@ lemma (in topological_space) eventually_nhds:
   "eventually P (nhds a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
   unfolding nhds_def by (subst eventually_INF_base) (auto simp: eventually_principal)
 
+lemma eventually_eventually: 
+  "eventually (\<lambda>y. eventually P (nhds y)) (nhds x) = eventually P (nhds x)"
+  by (auto simp: eventually_nhds)    
+
 lemma (in topological_space) eventually_nhds_in_open:
   "open s \<Longrightarrow> x \<in> s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
   by (subst eventually_nhds) blast

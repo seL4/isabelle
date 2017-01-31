@@ -2412,6 +2412,15 @@ lemma DERIV_deriv_iff_real_differentiable:
   shows "DERIV f x :> deriv f x \<longleftrightarrow> f differentiable at x"
   unfolding differentiable_def by (metis DERIV_imp_deriv has_real_derivative_iff)
 
+lemma deriv_cong_ev:
+  assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
+  shows   "deriv f x = deriv g y"
+proof -
+  have "(\<lambda>D. (f has_field_derivative D) (at x)) = (\<lambda>D. (g has_field_derivative D) (at y))"
+    by (intro ext DERIV_cong_ev refl assms)
+  thus ?thesis by (simp add: deriv_def assms)
+qed
+
 lemma real_derivative_chain:
   fixes x :: real
   shows "f differentiable at x \<Longrightarrow> g differentiable at (f x)
