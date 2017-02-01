@@ -27,10 +27,10 @@ fun (in linorder) heap :: "('a,'b) tree \<Rightarrow> bool" where
 "heap (Node _ l m r) =
   (heap l \<and> heap r \<and> (\<forall>x \<in> set_mset(mset_tree l + mset_tree r). m \<le> x))"
 
-fun lheap :: "'a lheap \<Rightarrow> bool" where
-"lheap Leaf = True" |
-"lheap (Node n l a r) =
- (n = rank r + 1 \<and> rank l \<ge> rank r \<and> lheap l & lheap r)"
+fun ltree :: "'a lheap \<Rightarrow> bool" where
+"ltree Leaf = True" |
+"ltree (Node n l a r) =
+ (n = rank r + 1 \<and> rank l \<ge> rank r \<and> ltree l & ltree r)"
 
 definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "node l a r =
@@ -68,10 +68,10 @@ subsection "Lemmas"
 
 declare Let_def [simp]
 
-lemma rk_eq_rank[simp]: "lheap t \<Longrightarrow> rk t = rank t"
+lemma rk_eq_rank[simp]: "ltree t \<Longrightarrow> rk t = rank t"
 by(cases t) auto
 
-lemma lheap_node: "lheap (node l a r) \<longleftrightarrow> lheap l \<and> lheap r"
+lemma ltree_node: "ltree (node l a r) \<longleftrightarrow> ltree l \<and> ltree r"
 by(auto simp add: node_def)
 
 lemma heap_node: "heap (node l a r) \<longleftrightarrow>
@@ -111,20 +111,20 @@ by (induction h) (auto)
 lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
 by (cases h) (auto simp: mset_meld)
 
-lemma lheap_meld: "\<lbrakk> lheap l; lheap r \<rbrakk> \<Longrightarrow> lheap (meld l r)"
+lemma ltree_meld: "\<lbrakk> ltree l; ltree r \<rbrakk> \<Longrightarrow> ltree (meld l r)"
 proof(induction l r rule: meld.induct)
   case (3 n1 l1 a1 r1 n2 l2 a2 r2)
-  show ?case (is "lheap(meld ?t1 ?t2)")
+  show ?case (is "ltree(meld ?t1 ?t2)")
   proof cases
     assume "a1 \<le> a2"
-    hence "lheap (meld ?t1 ?t2) = lheap (node l1 a1 (meld r1 ?t2))" by simp
-    also have "\<dots> = (lheap l1 \<and> lheap(meld r1 ?t2))"
-      by(simp add: lheap_node)
+    hence "ltree (meld ?t1 ?t2) = ltree (node l1 a1 (meld r1 ?t2))" by simp
+    also have "\<dots> = (ltree l1 \<and> ltree(meld r1 ?t2))"
+      by(simp add: ltree_node)
     also have "..." using "3.prems" "3.IH"(1)[OF `a1 \<le> a2`] by (simp)
     finally show ?thesis .
   next (* analogous but automatic *)
     assume "\<not> a1 \<le> a2"
-    thus ?thesis using 3 by(simp)(auto simp: lheap_node)
+    thus ?thesis using 3 by(simp)(auto simp: ltree_node)
   qed
 qed simp_all
 
@@ -133,14 +133,14 @@ proof(induction l r rule: meld.induct)
   case 3 thus ?case by(auto simp: heap_node mset_meld ball_Un)
 qed simp_all
 
-lemma lheap_insert: "lheap t \<Longrightarrow> lheap(insert x t)"
-by(simp add: insert_def lheap_meld del: meld.simps split: tree.split)
+lemma ltree_insert: "ltree t \<Longrightarrow> ltree(insert x t)"
+by(simp add: insert_def ltree_meld del: meld.simps split: tree.split)
 
 lemma heap_insert: "heap t \<Longrightarrow> heap(insert x t)"
 by(simp add: insert_def heap_meld del: meld.simps split: tree.split)
 
-lemma lheap_del_min: "lheap t \<Longrightarrow> lheap(del_min t)"
-by(cases t)(auto simp add: lheap_meld simp del: meld.simps)
+lemma ltree_del_min: "ltree t \<Longrightarrow> ltree(del_min t)"
+by(cases t)(auto simp add: ltree_meld simp del: meld.simps)
 
 lemma heap_del_min: "heap t \<Longrightarrow> heap(del_min t)"
 by(cases t)(auto simp add: heap_meld simp del: meld.simps)
@@ -148,7 +148,7 @@ by(cases t)(auto simp add: heap_meld simp del: meld.simps)
 
 interpretation lheap: Priority_Queue
 where empty = Leaf and insert = insert and del_min = del_min
-and get_min = get_min and invar = "\<lambda>h. heap h \<and> lheap h"
+and get_min = get_min and invar = "\<lambda>h. heap h \<and> ltree h"
 and mset = mset_tree
 proof(standard, goal_cases)
   case 1 show ?case by simp
@@ -159,15 +159,15 @@ next
 next
   case 4 thus ?case by(simp add: get_min)
 next
-  case 5 thus ?case by(simp add: heap_insert lheap_insert)
+  case 5 thus ?case by(simp add: heap_insert ltree_insert)
 next
-  case 6 thus ?case by(simp add: heap_del_min lheap_del_min)
+  case 6 thus ?case by(simp add: heap_del_min ltree_del_min)
 qed
 
 
 subsection "Complexity"
 
-lemma pow2_rank_size1: "lheap t \<Longrightarrow> 2 ^ rank t \<le> size1 t"
+lemma pow2_rank_size1: "ltree t \<Longrightarrow> 2 ^ rank t \<le> size1 t"
 proof(induction t)
   case Leaf show ?case by simp
 next
@@ -204,13 +204,13 @@ proof(induction l r rule: meld.induct)
     by(simp)(fastforce split: tree.splits simp del: t_meld.simps)
 qed simp_all
 
-corollary t_meld_log: assumes "lheap l" "lheap r"
+corollary t_meld_log: assumes "ltree l" "ltree r"
   shows "t_meld l r \<le> log 2 (size1 l) + log 2 (size1 r) + 1"
 using le_log2_of_power[OF pow2_rank_size1[OF assms(1)]]
   le_log2_of_power[OF pow2_rank_size1[OF assms(2)]] t_meld_rank[of l r]
 by linarith
 
-corollary t_insert_log: "lheap t \<Longrightarrow> t_insert x t \<le> log 2 (size1 t) + 2"
+corollary t_insert_log: "ltree t \<Longrightarrow> t_insert x t \<le> log 2 (size1 t) + 2"
 using t_meld_log[of "Node 1 Leaf x Leaf" t]
 by(simp add: t_insert_def split: tree.split)
 
@@ -225,7 +225,7 @@ proof -
     using assms 1 by(simp add: powr_add log_powr[symmetric] powr_numeral)
 qed
 
-corollary t_del_min_log: assumes "lheap t"
+corollary t_del_min_log: assumes "ltree t"
   shows "t_del_min t \<le> 2 * log 2 (size1 t) + 1"
 proof(cases t)
   case Leaf thus ?thesis using assms by simp
@@ -233,7 +233,7 @@ next
   case [simp]: (Node _ t1 _ t2)
   have "t_del_min t = t_meld t1 t2" by simp
   also have "\<dots> \<le> log 2 (size1 t1) + log 2 (size1 t2) + 1"
-    using \<open>lheap t\<close> by (auto simp: t_meld_log simp del: t_meld.simps)
+    using \<open>ltree t\<close> by (auto simp: t_meld_log simp del: t_meld.simps)
   also have "\<dots> \<le> 2 * log 2 (size1 t) + 1"
     using ld_ld_1_less[of "size1 t1" "size1 t2"] by (simp)
   finally show ?thesis .
