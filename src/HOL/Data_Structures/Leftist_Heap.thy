@@ -82,19 +82,19 @@ by(auto simp add: node_def)
 subsection "Functional Correctness"
 
 locale Priority_Queue =
-fixes empty :: "'pq"
-and insert :: "'a::linorder \<Rightarrow> 'pq \<Rightarrow> 'pq"
-and get_min :: "'pq \<Rightarrow> 'a"
-and del_min :: "'pq \<Rightarrow> 'pq"
-and invar :: "'pq \<Rightarrow> bool"
-and mset :: "'pq \<Rightarrow> 'a multiset"
+fixes empty :: "'q"
+and insert :: "'a::linorder \<Rightarrow> 'q \<Rightarrow> 'q"
+and get_min :: "'q \<Rightarrow> 'a"
+and del_min :: "'q \<Rightarrow> 'q"
+and invar :: "'q \<Rightarrow> bool"
+and mset :: "'q \<Rightarrow> 'a multiset"
 assumes mset_empty: "mset empty = {#}"
-and mset_insert: "invar pq \<Longrightarrow> mset (insert x pq) = mset pq + {#x#}"
-and mset_del_min: "invar pq \<Longrightarrow> mset (del_min pq) = mset pq - {#get_min pq#}"
-and get_min: "invar pq \<Longrightarrow> pq \<noteq> empty \<Longrightarrow>
-   get_min pq \<in> set_mset(mset pq) \<and> (\<forall>x \<in># mset pq. get_min pq \<le> x)"
-and invar_insert: "invar pq \<Longrightarrow> invar (insert x pq)"
-and invar_del_min: "invar pq \<Longrightarrow> invar (del_min pq)"
+and mset_insert: "invar q \<Longrightarrow> mset (insert x q) = mset q + {#x#}"
+and mset_del_min: "invar q \<Longrightarrow> mset (del_min q) = mset q - {#get_min q#}"
+and get_min: "invar q \<Longrightarrow> q \<noteq> empty \<Longrightarrow>
+   get_min q \<in> set_mset(mset q) \<and> (\<forall>x \<in># mset q. get_min q \<le> x)"
+and invar_insert: "invar q \<Longrightarrow> invar (insert x q)"
+and invar_del_min: "invar q \<Longrightarrow> invar (del_min q)"
 
 
 lemma mset_meld: "mset_tree (meld h1 h2) = mset_tree h1 + mset_tree h2"
