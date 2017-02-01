@@ -40,28 +40,28 @@ definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarro
 fun get_min :: "'a lheap \<Rightarrow> 'a" where
 "get_min(Node n l a r) = a"
 
-function meld :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
-"meld Leaf t2 = t2" |
-"meld t1 Leaf = t1" |
-"meld (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
-   (if a1 \<le> a2 then node l1 a1 (meld r1 (Node n2 l2 a2 r2))
-    else node l2 a2 (meld r2 (Node n1 l1 a1 r1)))"
+function merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
+"merge Leaf t2 = t2" |
+"merge t1 Leaf = t1" |
+"merge (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
+   (if a1 \<le> a2 then node l1 a1 (merge r1 (Node n2 l2 a2 r2))
+    else node l2 a2 (merge r2 (Node n1 l1 a1 r1)))"
 by pat_completeness auto
 termination by (relation "measure (%(t1,t2). rank t1 + rank t2)") auto
 
-lemma meld_code: "meld t1 t2 = (case (t1,t2) of
+lemma merge_code: "merge t1 t2 = (case (t1,t2) of
   (Leaf, _) \<Rightarrow> t2 |
   (_, Leaf) \<Rightarrow> t1 |
   (Node n1 l1 a1 r1, Node n2 l2 a2 r2) \<Rightarrow>
-    if a1 \<le> a2 then node l1 a1 (meld r1 t2) else node l2 a2 (meld r2 t1))"
-by(induction t1 t2 rule: meld.induct) (simp_all split: tree.split)
+    if a1 \<le> a2 then node l1 a1 (merge r1 t2) else node l2 a2 (merge r2 t1))"
+by(induction t1 t2 rule: merge.induct) (simp_all split: tree.split)
 
 definition insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
-"insert x t = meld (Node 1 Leaf x Leaf) t"
+"insert x t = merge (Node 1 Leaf x Leaf) t"
 
 fun del_min :: "'a::ord lheap \<Rightarrow> 'a lheap" where
 "del_min Leaf = Leaf" |
-"del_min (Node n l x r) = meld l r"
+"del_min (Node n l x r) = merge l r"
 
 
 subsection "Lemmas"
@@ -99,11 +99,11 @@ and invar_insert: "invar q \<Longrightarrow> invar (insert x q)"
 and invar_del_min: "invar q \<Longrightarrow> invar (del_min q)"
 
 
-lemma mset_meld: "mset_tree (meld h1 h2) = mset_tree h1 + mset_tree h2"
-by (induction h1 h2 rule: meld.induct) (auto simp add: node_def ac_simps)
+lemma mset_merge: "mset_tree (merge h1 h2) = mset_tree h1 + mset_tree h2"
+by (induction h1 h2 rule: merge.induct) (auto simp add: node_def ac_simps)
 
 lemma mset_insert: "mset_tree (insert x t) = mset_tree t + {#x#}"
-by (auto simp add: insert_def mset_meld)
+by (auto simp add: insert_def mset_merge)
 
 lemma get_min:
   "heap h \<Longrightarrow> h \<noteq> Leaf \<Longrightarrow>
@@ -111,16 +111,16 @@ lemma get_min:
 by (induction h) (auto)
 
 lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
-by (cases h) (auto simp: mset_meld)
+by (cases h) (auto simp: mset_merge)
 
-lemma ltree_meld: "\<lbrakk> ltree l; ltree r \<rbrakk> \<Longrightarrow> ltree (meld l r)"
-proof(induction l r rule: meld.induct)
+lemma ltree_merge: "\<lbrakk> ltree l; ltree r \<rbrakk> \<Longrightarrow> ltree (merge l r)"
+proof(induction l r rule: merge.induct)
   case (3 n1 l1 a1 r1 n2 l2 a2 r2)
-  show ?case (is "ltree(meld ?t1 ?t2)")
+  show ?case (is "ltree(merge ?t1 ?t2)")
   proof cases
     assume "a1 \<le> a2"
-    hence "ltree (meld ?t1 ?t2) = ltree (node l1 a1 (meld r1 ?t2))" by simp
-    also have "\<dots> = (ltree l1 \<and> ltree(meld r1 ?t2))"
+    hence "ltree (merge ?t1 ?t2) = ltree (node l1 a1 (merge r1 ?t2))" by simp
+    also have "\<dots> = (ltree l1 \<and> ltree(merge r1 ?t2))"
       by(simp add: ltree_node)
     also have "..." using "3.prems" "3.IH"(1)[OF `a1 \<le> a2`] by (simp)
     finally show ?thesis .
@@ -130,22 +130,22 @@ proof(induction l r rule: meld.induct)
   qed
 qed simp_all
 
-lemma heap_meld: "\<lbrakk> heap l; heap r \<rbrakk> \<Longrightarrow> heap (meld l r)"
-proof(induction l r rule: meld.induct)
-  case 3 thus ?case by(auto simp: heap_node mset_meld ball_Un)
+lemma heap_merge: "\<lbrakk> heap l; heap r \<rbrakk> \<Longrightarrow> heap (merge l r)"
+proof(induction l r rule: merge.induct)
+  case 3 thus ?case by(auto simp: heap_node mset_merge ball_Un)
 qed simp_all
 
 lemma ltree_insert: "ltree t \<Longrightarrow> ltree(insert x t)"
-by(simp add: insert_def ltree_meld del: meld.simps split: tree.split)
+by(simp add: insert_def ltree_merge del: merge.simps split: tree.split)
 
 lemma heap_insert: "heap t \<Longrightarrow> heap(insert x t)"
-by(simp add: insert_def heap_meld del: meld.simps split: tree.split)
+by(simp add: insert_def heap_merge del: merge.simps split: tree.split)
 
 lemma ltree_del_min: "ltree t \<Longrightarrow> ltree(del_min t)"
-by(cases t)(auto simp add: ltree_meld simp del: meld.simps)
+by(cases t)(auto simp add: ltree_merge simp del: merge.simps)
 
 lemma heap_del_min: "heap t \<Longrightarrow> heap(del_min t)"
-by(cases t)(auto simp add: heap_meld simp del: meld.simps)
+by(cases t)(auto simp add: heap_merge simp del: merge.simps)
 
 
 interpretation lheap: Priority_Queue
@@ -187,36 +187,36 @@ next
   finally show ?case .
 qed
 
-function t_meld :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
-"t_meld Leaf t2 = 1" |
-"t_meld t2 Leaf = 1" |
-"t_meld (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
-  (if a1 \<le> a2 then 1 + t_meld r1 (Node n2 l2 a2 r2)
-   else 1 + t_meld r2 (Node n1 l1 a1 r1))"
+function t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
+"t_merge Leaf t2 = 1" |
+"t_merge t2 Leaf = 1" |
+"t_merge (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
+  (if a1 \<le> a2 then 1 + t_merge r1 (Node n2 l2 a2 r2)
+   else 1 + t_merge r2 (Node n1 l1 a1 r1))"
 by pat_completeness auto
 termination by (relation "measure (%(t1,t2). rank t1 + rank t2)") auto
 
 definition t_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
-"t_insert x t = t_meld (Node 1 Leaf x Leaf) t"
+"t_insert x t = t_merge (Node 1 Leaf x Leaf) t"
 
 fun t_del_min :: "'a::ord lheap \<Rightarrow> nat" where
 "t_del_min Leaf = 1" |
-"t_del_min (Node n l a r) = t_meld l r"
+"t_del_min (Node n l a r) = t_merge l r"
 
-lemma t_meld_rank: "t_meld l r \<le> rank l + rank r + 1"
-proof(induction l r rule: meld.induct)
+lemma t_merge_rank: "t_merge l r \<le> rank l + rank r + 1"
+proof(induction l r rule: merge.induct)
   case 3 thus ?case
-    by(simp)(fastforce split: tree.splits simp del: t_meld.simps)
+    by(simp)(fastforce split: tree.splits simp del: t_merge.simps)
 qed simp_all
 
-corollary t_meld_log: assumes "ltree l" "ltree r"
-  shows "t_meld l r \<le> log 2 (size1 l) + log 2 (size1 r) + 1"
+corollary t_merge_log: assumes "ltree l" "ltree r"
+  shows "t_merge l r \<le> log 2 (size1 l) + log 2 (size1 r) + 1"
 using le_log2_of_power[OF pow2_rank_size1[OF assms(1)]]
-  le_log2_of_power[OF pow2_rank_size1[OF assms(2)]] t_meld_rank[of l r]
+  le_log2_of_power[OF pow2_rank_size1[OF assms(2)]] t_merge_rank[of l r]
 by linarith
 
 corollary t_insert_log: "ltree t \<Longrightarrow> t_insert x t \<le> log 2 (size1 t) + 2"
-using t_meld_log[of "Node 1 Leaf x Leaf" t]
+using t_merge_log[of "Node 1 Leaf x Leaf" t]
 by(simp add: t_insert_def split: tree.split)
 
 lemma ld_ld_1_less:
@@ -236,9 +236,9 @@ proof(cases t)
   case Leaf thus ?thesis using assms by simp
 next
   case [simp]: (Node _ t1 _ t2)
-  have "t_del_min t = t_meld t1 t2" by simp
+  have "t_del_min t = t_merge t1 t2" by simp
   also have "\<dots> \<le> log 2 (size1 t1) + log 2 (size1 t2) + 1"
-    using \<open>ltree t\<close> by (auto simp: t_meld_log simp del: t_meld.simps)
+    using \<open>ltree t\<close> by (auto simp: t_merge_log simp del: t_merge.simps)
   also have "\<dots> \<le> 2 * log 2 (size1 t) + 1"
     using ld_ld_1_less[of "size1 t1" "size1 t2"] by (simp)
   finally show ?thesis .
