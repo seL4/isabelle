@@ -83,12 +83,14 @@ subsection "Functional Correctness"
 
 locale Priority_Queue =
 fixes empty :: "'q"
+and is_empty :: "'q \<Rightarrow> bool"
 and insert :: "'a::linorder \<Rightarrow> 'q \<Rightarrow> 'q"
 and get_min :: "'q \<Rightarrow> 'a"
 and del_min :: "'q \<Rightarrow> 'q"
 and invar :: "'q \<Rightarrow> bool"
 and mset :: "'q \<Rightarrow> 'a multiset"
 assumes mset_empty: "mset empty = {#}"
+and is_empty: "invar q \<Longrightarrow> is_empty q = (mset q = {#})"
 and mset_insert: "invar q \<Longrightarrow> mset (insert x q) = mset q + {#x#}"
 and mset_del_min: "invar q \<Longrightarrow> mset (del_min q) = mset q - {#get_min q#}"
 and get_min: "invar q \<Longrightarrow> q \<noteq> empty \<Longrightarrow>
@@ -147,21 +149,24 @@ by(cases t)(auto simp add: heap_meld simp del: meld.simps)
 
 
 interpretation lheap: Priority_Queue
-where empty = Leaf and insert = insert and del_min = del_min
+where empty = Leaf and is_empty = "\<lambda>h. h = Leaf"
+and insert = insert and del_min = del_min
 and get_min = get_min and invar = "\<lambda>h. heap h \<and> ltree h"
 and mset = mset_tree
 proof(standard, goal_cases)
   case 1 show ?case by simp
 next
-  case 2 show ?case by(rule mset_insert)
+  case (2 q) show ?case by (cases q) auto
 next
-  case 3 show ?case by(rule mset_del_min)
+  case 3 show ?case by(rule mset_insert)
 next
-  case 4 thus ?case by(simp add: get_min)
+  case 4 show ?case by(rule mset_del_min)
 next
-  case 5 thus ?case by(simp add: heap_insert ltree_insert)
+  case 5 thus ?case by(simp add: get_min)
 next
-  case 6 thus ?case by(simp add: heap_del_min ltree_del_min)
+  case 6 thus ?case by(simp add: heap_insert ltree_insert)
+next
+  case 7 thus ?case by(simp add: heap_del_min ltree_del_min)
 qed
 
 
