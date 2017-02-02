@@ -239,6 +239,20 @@ lemma mono_neutral_left: "finite T \<Longrightarrow> S \<subseteq> T \<Longright
 lemma mono_neutral_right: "finite T \<Longrightarrow> S \<subseteq> T \<Longrightarrow> \<forall>i \<in> T - S. g i = \<^bold>1 \<Longrightarrow> F g T = F g S"
   by (blast intro!: mono_neutral_left [symmetric])
 
+lemma mono_neutral_cong:
+  assumes [simp]: "finite T" "finite S"
+    and *: "\<And>i. i \<in> T - S \<Longrightarrow> h i = \<^bold>1" "\<And>i. i \<in> S - T \<Longrightarrow> g i = \<^bold>1"
+    and gh: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x = h x"
+ shows "F g S = F h T"
+proof-
+  have "F g S = F g (S \<inter> T)"
+    by(rule mono_neutral_right)(auto intro: *)
+  also have "\<dots> = F h (S \<inter> T)" using refl gh by(rule cong)
+  also have "\<dots> = F h T"
+    by(rule mono_neutral_left)(auto intro: *)
+  finally show ?thesis .
+qed
+
 lemma reindex_bij_betw: "bij_betw h S T \<Longrightarrow> F (\<lambda>x. g (h x)) S = F g T"
   by (auto simp: bij_betw_def reindex)
 
