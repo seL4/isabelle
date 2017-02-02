@@ -611,6 +611,7 @@ session "HOL-ex" in ex = HOL +
     Perm_Fragments
     Argo_Examples
     Word_Type
+    veriT_Preprocessing
   theories [skip_proofs = false]
     Meson_Test
   document_files "root.bib" "root.tex"

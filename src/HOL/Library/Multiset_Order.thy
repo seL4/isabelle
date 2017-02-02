@@ -166,7 +166,6 @@ lemmas mult\<^sub>H\<^sub>O = mult_less_multiset\<^sub>H\<^sub>O[unfolded less_m
 
 end
 
-
 lemma less_multiset_less_multiset\<^sub>H\<^sub>O:
   "M < N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
   unfolding less_multiset_def mult\<^sub>H\<^sub>O less_multiset\<^sub>H\<^sub>O_def ..
