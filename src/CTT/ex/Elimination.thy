@@ -135,8 +135,7 @@ schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
-  shows "?a : \<Prod>h: (\<Prod>x:A. \<Sum>y:B(x). C(x,y)).
-                         (\<Sum>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
+  shows "?a : (\<Prod>x:A. \<Sum>y:B(x). C(x,y)) \<longrightarrow> (\<Sum>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
 apply (intr assms)
 prefer 2 apply add_mp
 prefer 2 apply add_mp
@@ -153,8 +152,7 @@ schematic_goal [folded basic_defs]:
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
-  shows "?a : \<Prod>h: (\<Prod>x:A. \<Sum>y:B(x). C(x,y)).
-                         (\<Sum>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
+  shows "?a : (\<Prod>x:A. \<Sum>y:B(x). C(x,y)) \<longrightarrow> (\<Sum>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
 apply (intr assms)
 (*Must not use add_mp as subst_prodE hides the construction.*)
 apply (rule ProdE [THEN SumE])

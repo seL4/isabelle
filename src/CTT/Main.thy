@@ -1,6 +1,6 @@
 section \<open>Main includes everything\<close>
 
 theory Main
-  imports CTT Arith Bool
+  imports CTT Bool Arith
 begin
 end

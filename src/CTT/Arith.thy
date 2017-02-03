@@ -289,7 +289,7 @@ lemma absdiff_commute: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> a |-| b = b
   done
 
 text \<open>If \<open>a + b = 0\<close> then \<open>a = 0\<close>. Surprisingly tedious.\<close>
-schematic_goal add_eq0_lemma: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> ?c : \<Prod>u: Eq(N,a#+b,0) .  Eq(N,a,0)"
+schematic_goal add_eq0_lemma: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> ?c : Eq(N,a#+b,0) \<longrightarrow> Eq(N,a,0)"
   apply (NE a)
     apply (rule_tac [3] replace_type)
      apply arith_rew
@@ -312,7 +312,7 @@ lemma add_eq0: "\<lbrakk>a:N; b:N; a #+ b = 0 : N\<rbrakk> \<Longrightarrow> a =
 
 text \<open>Here is a lemma to infer \<open>a - b = 0\<close> and \<open>b - a = 0\<close> from \<open>a |-| b = 0\<close>, below.\<close>
 schematic_goal absdiff_eq0_lem:
-  "\<lbrakk>a:N; b:N; a |-| b = 0 : N\<rbrakk> \<Longrightarrow> ?a : \<Sum>v: Eq(N, a-b, 0) . Eq(N, b-a, 0)"
+  "\<lbrakk>a:N; b:N; a |-| b = 0 : N\<rbrakk> \<Longrightarrow> ?a : Eq(N, a-b, 0) \<times> Eq(N, b-a, 0)"
   apply (unfold absdiff_def)
   apply intr
    apply eqintr

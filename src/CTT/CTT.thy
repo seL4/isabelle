@@ -208,7 +208,7 @@ where
     \<Longrightarrow> when(p, \<lambda>x. c(x), \<lambda>y. d(y)) = when(q, \<lambda>x. e(x), \<lambda>y. f(y)) : C(p)" and
 
   PlusC_inl:
-    "\<And>a c d A C. \<lbrakk>a: A;
+    "\<And>a c d A B C. \<lbrakk>a: A;
       \<And>x. x:A \<Longrightarrow> c(x): C(inl(x));
       \<And>y. y:B \<Longrightarrow> d(y): C(inr(y)) \<rbrakk>
     \<Longrightarrow> when(inl(a), \<lambda>x. c(x), \<lambda>y. d(y)) = c(a) : C(inl(a))" and

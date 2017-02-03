@@ -19,7 +19,7 @@ definition false :: "i"
   where "false \<equiv> inr(tt)"
 
 definition cond :: "[i,i,i]\<Rightarrow>i"
-  where "cond(a,b,c) \<equiv> when(a, \<lambda>u. b, \<lambda>u. c)"
+  where "cond(a,b,c) \<equiv> when(a, \<lambda>_. b, \<lambda>_. c)"
 
 lemmas bool_defs = Bool_def true_def false_def cond_def
 
