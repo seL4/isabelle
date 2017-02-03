@@ -506,6 +506,12 @@ fun make_context ths NONE cert =
         else raise CONTEXT ("Bad context", [], [], ths, SOME (Context.Proof ctxt))
       end;
 
+fun make_context_certificate ths opt_ctxt cert =
+  let
+    val context = make_context ths opt_ctxt cert;
+    val cert' = Context.Certificate (Context.theory_of context);
+  in (context, cert') end;
+
 (*explicit weakening: maps |- B to A |- B*)
 fun weaken raw_ct th =
   let
@@ -1082,22 +1088,24 @@ fun equal_elim th1 th2 =
   sequence may contain multiple elements if the tpairs are not all
   flex-flex.*)
 fun flexflex_rule opt_ctxt (th as Thm (der, {cert, maxidx, shyps, hyps, tpairs, prop, ...})) =
-  Unify.smash_unifiers (make_context [th] opt_ctxt cert) tpairs (Envir.empty maxidx)
-  |> Seq.map (fn env =>
-      if Envir.is_empty env then th
-      else
-        let
-          val tpairs' = tpairs |> map (apply2 (Envir.norm_term env))
-            (*remove trivial tpairs, of the form t==t*)
-            |> filter_out (op aconv);
-          val der' = deriv_rule1 (Proofterm.norm_proof' env) der;
-          val prop' = Envir.norm_term env prop;
-          val maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop');
-          val shyps = Envir.insert_sorts env shyps;
-        in
-          Thm (der', {cert = cert, tags = [], maxidx = maxidx,
-            shyps = shyps, hyps = hyps, tpairs = tpairs', prop = prop'})
-        end);
+  let val (context, cert') = make_context_certificate [th] opt_ctxt cert in
+    Unify.smash_unifiers context tpairs (Envir.empty maxidx)
+    |> Seq.map (fn env =>
+        if Envir.is_empty env then th
+        else
+          let
+            val tpairs' = tpairs |> map (apply2 (Envir.norm_term env))
+              (*remove trivial tpairs, of the form t==t*)
+              |> filter_out (op aconv);
+            val der' = deriv_rule1 (Proofterm.norm_proof' env) der;
+            val prop' = Envir.norm_term env prop;
+            val maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop');
+            val shyps = Envir.insert_sorts env shyps;
+          in
+            Thm (der', {cert = cert', tags = [], maxidx = maxidx,
+              shyps = shyps, hyps = hyps, tpairs = tpairs', prop = prop'})
+          end)
+  end;
 
 
 (*Generalization of fixed variables
@@ -1404,7 +1412,7 @@ fun incr_indexes i (thm as Thm (der, {cert, maxidx, shyps, hyps, tpairs, prop, .
 fun assumption opt_ctxt i state =
   let
     val Thm (der, {cert, maxidx, shyps, hyps, ...}) = state;
-    val context = make_context [state] opt_ctxt cert;
+    val (context, cert') = make_context_certificate [state] opt_ctxt cert;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env, tpairs) =
       Thm (deriv_rule1
@@ -1422,7 +1430,7 @@ fun assumption opt_ctxt i state =
             Logic.list_implies (Bs, C)
           else (*normalize the new rule fully*)
             Envir.norm_term env (Logic.list_implies (Bs, C)),
-        cert = cert});
+        cert = cert'});
 
     val (close, asms, concl) = Logic.assum_problems (~1, Bi);
     val concl' = close concl;
@@ -1631,8 +1639,8 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
              tpairs=rtpairs, prop=rprop,...}) = orule
          (*How many hyps to skip over during normalization*)
      and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
-     val cert = join_certificate2 (state, orule);
-     val context = make_context [state, orule] opt_ctxt cert;
+     val (context, cert) =
+       make_context_certificate [state, orule] opt_ctxt (join_certificate2 (state, orule));
      (*Add new theorem with prop = '[| Bs; As |] ==> C' to thq*)
      fun addth A (As, oldAs, rder', n) ((env, tpairs), thq) =
        let val normt = Envir.norm_term env;
