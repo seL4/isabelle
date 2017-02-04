@@ -61,9 +61,9 @@ fun do_solve_direct mode state =
       end;
 
     fun seek_against_goal () =
-      (case try Proof.simple_goal state of
+      (case try (#goal o Proof.simple_goal) state of
         NONE => NONE
-      | SOME {goal, ...} =>
+      | SOME goal =>
           let
             val subgoals = Drule.strip_imp_prems (Thm.cprop_of goal);
             val rs =

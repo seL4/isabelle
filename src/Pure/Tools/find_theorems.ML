@@ -475,7 +475,7 @@ fun pretty_thm ctxt (thmref, thm) =
 fun pretty_theorems state opt_limit rem_dups raw_criteria =
   let
     val ctxt = Proof.context_of state;
-    val opt_goal = try Proof.simple_goal state |> Option.map #goal;
+    val opt_goal = try (#goal o Proof.simple_goal) state;
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
 
     val (opt_found, theorems) =
