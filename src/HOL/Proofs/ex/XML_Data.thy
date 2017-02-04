@@ -6,25 +6,14 @@ XML data representation of proof terms.
 *)
 
 theory XML_Data
-imports "~~/src/HOL/Isar_Examples/Drinker"
+  imports "~~/src/HOL/Isar_Examples/Drinker"
 begin
 
 subsection \<open>Export and re-import of global proof terms\<close>
 
 ML \<open>
   fun export_proof ctxt thm =
-    let
-      val thy = Proof_Context.theory_of ctxt;
-      val (_, prop) =
-        Logic.unconstrainT (Thm.shyps_of thm)
-          (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
-      val prf =
-        Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm)) |>
-        Reconstruct.reconstruct_proof ctxt prop |>
-        Reconstruct.expand_proof ctxt [("", NONE)] |>
-        Proofterm.rew_proof thy |>
-        Proofterm.no_thm_proofs;
-    in Proofterm.encode prf end;
+    Proofterm.encode (Reconstruct.clean_proof_of ctxt true thm);
 
   fun import_proof thy xml =
     let

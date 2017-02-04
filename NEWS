@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Document antiquotations @{prf} and @{full_prf} output proof terms
+(again) in the same way as commands 'prf' and 'full_prf'.
+
+
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
 * Command-line invocation "isabelle jedit -R -l LOGIC" opens the ROOT

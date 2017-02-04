@@ -13,6 +13,7 @@ sig
   val proof_of : Proof.context -> thm -> Proofterm.proof
   val expand_proof : Proof.context -> (string * term option) list ->
     Proofterm.proof -> Proofterm.proof
+  val clean_proof_of : Proof.context -> bool -> thm -> Proofterm.proof
 end;
 
 structure Reconstruct : RECONSTRUCT =
@@ -387,5 +388,22 @@ fun expand_proof ctxt thms prf =
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 
   in #3 (expand (Proofterm.maxidx_proof prf ~1) [] prf) end;
+
+
+(* cleanup for output etc. *)
+
+fun clean_proof_of ctxt full thm =
+  let
+    val (_, prop) =
+      Logic.unconstrainT (Thm.shyps_of thm)
+        (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
+  in
+    Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm))
+    |> reconstruct_proof ctxt prop
+    |> expand_proof ctxt [("", NONE)]
+    |> Proofterm.rew_proof (Proof_Context.theory_of ctxt)
+    |> Proofterm.no_thm_proofs
+    |> not full ? Proofterm.shrink_proof
+  end;
 
 end;
