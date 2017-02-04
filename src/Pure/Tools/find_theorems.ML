@@ -183,10 +183,10 @@ fun filter_elim ctxt goal (_, thm) =
 
 fun filter_solves ctxt goal =
   let
-    val thy' =
-      Proof_Context.theory_of ctxt
-      |> Context_Position.set_visible_global (Context_Position.is_visible ctxt);
-    val ctxt' = Proof_Context.transfer thy' ctxt;
+    val thy' = Proof_Context.theory_of ctxt
+      |> Context_Position.set_visible_global false;
+    val ctxt' = Proof_Context.transfer thy' ctxt
+      |> Context_Position.set_visible false;
     val goal' = Thm.transfer thy' goal;
 
     fun limited_etac thm i =

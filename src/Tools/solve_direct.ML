@@ -42,12 +42,10 @@ val strict_warnings = Attrib.setup_config_bool @{binding solve_direct_strict_war
 fun do_solve_direct mode state =
   let
     val ctxt = Proof.context_of state;
-    val find_ctxt =
-      if mode = Auto_Try then Context_Position.set_visible false ctxt else ctxt;
 
     fun find goal =
-      #2 (Find_Theorems.find_theorems find_ctxt (SOME goal)
-        (SOME (Config.get find_ctxt max_solutions)) false [(true, Find_Theorems.Solves)]);
+      #2 (Find_Theorems.find_theorems ctxt (SOME goal)
+        (SOME (Config.get ctxt max_solutions)) false [(true, Find_Theorems.Solves)]);
 
     fun prt_result (goal, results) =
       let
