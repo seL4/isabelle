@@ -42,12 +42,12 @@ val strict_warnings = Attrib.setup_config_bool @{binding solve_direct_strict_war
 fun do_solve_direct mode state =
   let
     val ctxt = Proof.context_of state;
-    val find_ctxt = if mode = Auto_Try then Context_Position.set_visible false ctxt else ctxt;
+    val find_ctxt =
+      if mode = Auto_Try then Context_Position.set_visible false ctxt else ctxt;
 
-    val crits = [(true, Find_Theorems.Solves)];
-    fun find g =
-      snd (Find_Theorems.find_theorems find_ctxt (SOME g)
-        (SOME (Config.get find_ctxt max_solutions)) false crits);
+    fun find goal =
+      #2 (Find_Theorems.find_theorems find_ctxt (SOME goal)
+        (SOME (Config.get find_ctxt max_solutions)) false [(true, Find_Theorems.Solves)]);
 
     fun prt_result (goal, results) =
       let
@@ -65,14 +65,14 @@ fun do_solve_direct mode state =
     fun seek_against_goal () =
       (case try Proof.simple_goal state of
         NONE => NONE
-      | SOME {goal = st, ...} =>
+      | SOME {goal, ...} =>
           let
-            val subgoals = Drule.strip_imp_prems (Thm.cprop_of st);
+            val subgoals = Drule.strip_imp_prems (Thm.cprop_of goal);
             val rs =
               if length subgoals = 1
-              then [(NONE, find st)]
+              then [(NONE, find goal)]
               else map (fn sg => (SOME sg, find (Goal.init sg))) subgoals;
-            val results = filter_out (null o snd) rs;
+            val results = filter_out (null o #2) rs;
           in if null results then NONE else SOME results end);
     fun message results = separate (Pretty.brk 0) (map prt_result results);
   in
@@ -82,19 +82,15 @@ fun do_solve_direct mode state =
           let
             val msg = Pretty.string_of (Pretty.chunks (message results))
           in
-            if Config.get ctxt strict_warnings
-            then (warning msg; [])
-            else if mode = Auto_Try
-              then [msg]
-              else (writeln msg; [])
+            if Config.get ctxt strict_warnings then (warning msg; [])
+            else if mode = Auto_Try then [msg]
+            else (writeln msg; [])
           end)
     | SOME NONE =>
-        (if mode = Normal then writeln "No proof found"
-         else ();
+        (if mode = Normal then writeln "No proof found" else ();
          (noneN, []))
     | NONE =>
-        (if mode = Normal then writeln "An error occurred"
-         else ();
+        (if mode = Normal then writeln "An error occurred" else ();
          (unknownN, [])))
   end
   |> `(fn (outcome_code, _) => outcome_code = someN);
@@ -111,6 +107,7 @@ val _ =
 
 fun try_solve_direct auto = do_solve_direct (if auto then Auto_Try else Try)
 
-val _ = Try.tool_setup (solve_directN, (10, @{system_option auto_solve_direct}, try_solve_direct));
+val _ =
+  Try.tool_setup (solve_directN, (10, @{system_option auto_solve_direct}, try_solve_direct));
 
 end;
