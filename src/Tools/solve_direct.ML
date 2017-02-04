@@ -47,18 +47,12 @@ fun do_solve_direct mode state =
       #2 (Find_Theorems.find_theorems ctxt (SOME goal)
         (SOME (Config.get ctxt max_solutions)) false [(true, Find_Theorems.Solves)]);
 
-    fun prt_result (goal, results) =
-      let
-        val msg =
-          (if mode = Auto_Try then "Auto " else "") ^ solve_directN ^ ": " ^
-          (case goal of
-            NONE => "The current goal"
-          | SOME sg => Syntax.string_of_term ctxt (Thm.term_of sg));
-      in
-        Pretty.big_list
-          (msg ^ " can be solved directly with")
-          (map (Find_Theorems.pretty_thm ctxt) results)
-      end;
+    fun prt_result (subgoal, results) =
+      Pretty.big_list
+        ((if mode = Auto_Try then "Auto " else "") ^ solve_directN ^ ": " ^
+          (case subgoal of NONE => "the current goal" | SOME i => "subgoal #" ^ string_of_int i) ^
+          " can be solved directly with")
+        (map (Find_Theorems.pretty_thm ctxt) results);
 
     fun seek_against_goal () =
       (case try (#goal o Proof.simple_goal) state of
@@ -69,16 +63,16 @@ fun do_solve_direct mode state =
             val rs =
               if length subgoals = 1
               then [(NONE, find goal)]
-              else map (fn sg => (SOME sg, find (Goal.init sg))) subgoals;
+              else map_index (fn (i, sg) => (SOME (i + 1), find (Goal.init sg))) subgoals;
             val results = filter_out (null o #2) rs;
           in if null results then NONE else SOME results end);
-    fun message results = separate (Pretty.brk 0) (map prt_result results);
   in
     (case try seek_against_goal () of
       SOME (SOME results) =>
         (someN,
           let
-            val msg = Pretty.string_of (Pretty.chunks (message results))
+            val chunks = separate (Pretty.str "") (map prt_result results);
+            val msg = Pretty.string_of (Pretty.chunks chunks);
           in
             if Config.get ctxt strict_warnings then (warning msg; [])
             else if mode = Auto_Try then [msg]
