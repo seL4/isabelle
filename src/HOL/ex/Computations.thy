@@ -36,8 +36,10 @@ val comp_numeral = @{computation "0 :: nat" "1 :: nat" "2 :: nat" "3 :: nat" :: 
   (fn post => post o HOLogic.mk_nat o int_of_nat o the);
 
 val comp_bool = @{computation True False HOL.conj HOL.disj HOL.implies
-  HOL.iff even "less_eq :: nat \<Rightarrow> _" "less :: nat \<Rightarrow> _" "HOL.eq :: nat \<Rightarrow> _" :: bool }
+  HOL.iff even "less_eq :: nat \<Rightarrow> _" "less :: nat \<Rightarrow> _" "HOL.eq :: nat \<Rightarrow> _" :: bool}
   (K the);
+
+val comp_check = @{computation_check Trueprop};
 
 end
 \<close>
@@ -54,6 +56,10 @@ ML_val \<open>
   comp_bool @{context} @{term "fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0 < fib (Suc (Suc 0))"}
 \<close>
 
+ML_val \<open>
+  comp_check @{context} @{cprop "fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0 > fib (Suc (Suc 0))"}
+\<close>
+  
 ML_val \<open>
   comp_numeral @{context} @{term "Suc 42 + 7"}
   |> Syntax.string_of_term @{context}
