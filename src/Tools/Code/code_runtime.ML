@@ -33,7 +33,7 @@ sig
   datatype truth = Holds
   val put_truth: (unit -> truth) -> Proof.context -> Proof.context
   val mount_computation: Proof.context -> (string * typ) list -> typ
-    -> (term -> 'ml) -> ((term -> term) -> 'ml -> 'a) -> Proof.context -> term -> 'a
+    -> (term -> 'ml) -> ((term -> term) -> 'ml option -> 'a) -> Proof.context -> term -> 'a
   val polyml_as_definition: (binding * typ) list -> Path.T list -> theory -> theory
   val trace: bool Config.T
 end;
@@ -354,7 +354,8 @@ fun checked_computation cTs T raw_computation ctxt =
   check_typ ctxt T
   #> reject_vars ctxt
   #> check_computation_input ctxt cTs
-  #> raw_computation;
+  #> Exn.capture raw_computation
+  #> partiality_as_none;
 
 fun mount_computation ctxt cTs T raw_computation lift_postproc =
   Code_Preproc.static_value { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }

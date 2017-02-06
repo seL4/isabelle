@@ -30,14 +30,14 @@ in
 
 val comp_nat = @{computation "0 :: nat" Suc
   "plus :: nat \<Rightarrow>_" "times :: nat \<Rightarrow> _" fib :: nat}
-  (fn post => post o HOLogic.mk_nat o int_of_nat);
+  (fn post => post o HOLogic.mk_nat o int_of_nat o the);
 
 val comp_numeral = @{computation "0 :: nat" "1 :: nat" "2 :: nat" "3 :: nat" :: nat}
-  (fn post => post o HOLogic.mk_nat o int_of_nat);
+  (fn post => post o HOLogic.mk_nat o int_of_nat o the);
 
 val comp_bool = @{computation True False HOL.conj HOL.disj HOL.implies
   HOL.iff even "less_eq :: nat \<Rightarrow> _" "less :: nat \<Rightarrow> _" "HOL.eq :: nat \<Rightarrow> _" :: bool }
-  (K I);
+  (K the);
 
 end
 \<close>
