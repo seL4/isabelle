@@ -28,14 +28,14 @@ sig
     -> Proof.context -> term -> 'a Exn.result
   val dynamic_holds_conv: Proof.context -> conv
   val static_holds_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
-  val mount_computation: Proof.context -> (string * typ) list -> typ
-    -> (term -> 'b) -> ((term -> term) -> 'b -> 'a) -> Proof.context -> term -> 'a
   val code_reflect: (string * string list option) list -> string list -> string
     -> string option -> theory -> theory
   datatype truth = Holds
   val put_truth: (unit -> truth) -> Proof.context -> Proof.context
-  val trace: bool Config.T
+  val mount_computation: Proof.context -> (string * typ) list -> typ
+    -> (term -> 'ml) -> ((term -> term) -> 'ml -> 'a) -> Proof.context -> term -> 'a
   val polyml_as_definition: (binding * typ) list -> Path.T list -> theory -> theory
+  val trace: bool Config.T
 end;
 
 structure Code_Runtime : CODE_RUNTIME =
@@ -48,8 +48,9 @@ open Basic_Code_Symbol;
 (* technical prerequisites *)
 
 val thisN = "Code_Runtime";
-val truthN = Long_Name.append thisN "truth";
-val HoldsN = Long_Name.append thisN "Holds";
+val prefix_this = Long_Name.append thisN;
+val truthN = prefix_this "truth";
+val HoldsN = prefix_this "Holds";
 
 val target = "Eval";
 
@@ -151,7 +152,7 @@ structure Truth_Result = Proof_Data
   fun init _ = empty;
 );
 val put_truth = Truth_Result.put;
-val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append thisN "put_truth");
+val truth_cookie = (Truth_Result.get, put_truth, prefix_this "put_truth");
 
 local
 
@@ -349,13 +350,15 @@ fun print_computation_code ctxt compiled_value [] requested_Ts = ("", [])
         ] |> rpair of_term_names
       end;
 
+fun checked_computation cTs T raw_computation ctxt =
+  check_typ ctxt T
+  #> reject_vars ctxt
+  #> check_computation_input ctxt cTs
+  #> raw_computation;
+
 fun mount_computation ctxt cTs T raw_computation lift_postproc =
   Code_Preproc.static_value { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
-    (fn _ => fn ctxt' =>
-      check_typ ctxt' T
-      #> reject_vars ctxt'
-      #> check_computation_input ctxt' cTs
-      #> raw_computation);
+    (K (checked_computation cTs T raw_computation));
 
 
 (** variants of universal runtime code generation **)
@@ -433,7 +436,7 @@ fun runtime_code ctxt some_module_name named_tycos named_consts computation_Ts p
 
 (** code and computation antiquotations **)
 
-val mount_computationN = Long_Name.append thisN "mount_computation";
+val mount_computationN = prefix_this "mount_computation";
 
 local
 
@@ -526,14 +529,14 @@ fun ml_code_antiq raw_const ctxt =
 fun ml_computation_antiq (raw_ts, raw_T) ctxt =
   let
     val ts = map (Syntax.check_term ctxt) raw_ts;
-    val T = Syntax.check_typ ctxt raw_T;
-    val _ = if not (monomorphic T)
-      then error ("Polymorphic type: " ^ Syntax.string_of_typ ctxt T)
-      else ();
     val cTs = (fold o fold_aterms)
       (fn (t as Const (cT as (_, T))) =>
         if not (monomorphic T) then error ("Polymorphic constant: " ^ Syntax.string_of_term ctxt t)
         else insert (op =) cT | _ => I) ts [];
+    val T = Syntax.check_typ ctxt raw_T;
+    val _ = if not (monomorphic T)
+      then error ("Polymorphic type: " ^ Syntax.string_of_typ ctxt T)
+      else ();
   in (print_computation ctxt T, register_computation cTs T ctxt) end;
 
 end; (*local*)
@@ -634,7 +637,8 @@ val _ =
 
 val _ =
   Theory.setup (ML_Antiquotation.declaration @{binding computation}
-    (Scan.repeat Args.term --| Scan.lift (Args.$$$ "::") -- Args.typ) (fn _ => ml_computation_antiq));
+    (Scan.repeat Args.term --| Scan.lift (Args.$$$ "::") -- Args.typ)
+       (fn _ => ml_computation_antiq));
 
 local
 
