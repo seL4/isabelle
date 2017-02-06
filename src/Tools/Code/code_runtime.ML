@@ -361,6 +361,48 @@ fun print_computation_code ctxt compiled_value [] requested_Ts =
         ] |> rpair of_term_names
       end;
 
+
+(* dedicated preprocessor for computations *)
+
+structure Computation_Preproc_Data = Theory_Data
+(
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  val merge = Library.merge Thm.eq_thm_prop;
+);
+
+local
+
+fun add thm thy =
+  let
+    val thms = Simplifier.mksimps (Proof_Context.init_global thy) thm;
+  in
+    thy
+    |> Computation_Preproc_Data.map (union Thm.eq_thm_prop thms)
+  end;
+
+fun get ctxt = Computation_Preproc_Data.get (Proof_Context.theory_of ctxt);
+
+in
+
+fun preprocess_conv ctxt = 
+  Raw_Simplifier.rewrite ctxt false (get ctxt);
+
+fun preprocess_term ctxt =
+  Pattern.rewrite_term (Proof_Context.theory_of ctxt)
+    (map (Logic.dest_equals o Thm.plain_prop_of) (get ctxt)) [];
+
+val _ = Theory.setup
+  (Attrib.setup @{binding code_computation_unfold}
+    (Scan.succeed (Thm.declaration_attribute (fn thm => Context.mapping (add thm) I)))
+    "preprocessing equations for computation");
+
+end;
+
+
+(* mounting computations *)
+
 fun prechecked_computation T raw_computation ctxt =
   check_typ ctxt T
   #> reject_vars ctxt
@@ -376,17 +418,21 @@ fun checked_computation cTs raw_computation ctxt =
   #> partiality_as_none;
 
 fun mount_computation ctxt cTs T raw_computation lift_postproc =
-  prechecked_computation T (Code_Preproc.static_value
-    { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
-    (K (checked_computation cTs raw_computation)));
+  let
+    val computation = prechecked_computation T (Code_Preproc.static_value
+      { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
+      (K (checked_computation cTs raw_computation)));
+  in fn ctxt' => preprocess_term ctxt' #> computation ctxt' end;
 
 fun mount_computation_conv ctxt cTs T raw_computation conv =
-  prechecked_conv T (Code_Preproc.static_conv
-    { ctxt = ctxt, consts = [] }
-    (K (fn ctxt' => fn t =>
-      case checked_computation cTs raw_computation ctxt' t of
-        SOME x => conv x
-      | NONE => Conv.all_conv)));
+  let
+    val computation_conv = prechecked_conv T (Code_Preproc.static_conv
+      { ctxt = ctxt, consts = [] }
+      (K (fn ctxt' => fn t =>
+        case checked_computation cTs raw_computation ctxt' t of
+          SOME x => conv x
+        | NONE => Conv.all_conv)));
+  in fn ctxt' => preprocess_conv ctxt' then_conv computation_conv ctxt' end;
 
 local
 
@@ -517,7 +563,8 @@ fun register { named_consts, computation_Ts, computation_cTs } ctxt =
     fun generated_code' () =
       let
         val evals = Abs ("eval", map snd computation_cTs' --->
-          TFree (Name.aT, []), list_comb (Bound 0, map Const computation_cTs'));
+          TFree (Name.aT, []), list_comb (Bound 0, map Const computation_cTs'))
+          |> preprocess_term ctxt
       in Code_Thingol.dynamic_value ctxt
         (K I) (runtime_code ctxt NONE [] named_consts' computation_Ts') evals
       end;
@@ -727,24 +774,15 @@ val parse_consts_spec =
 
 in
 
-val _ =
-  Theory.setup (ML_Antiquotation.declaration @{binding code}
-    Args.term (fn _ => ml_code_antiq));
-
-val _ =
-  Theory.setup (ML_Antiquotation.declaration @{binding computation}
-    (Args.typ -- parse_consts_spec)
-       (fn _ => ml_computation_antiq));
-
-val _ =
-  Theory.setup (ML_Antiquotation.declaration @{binding computation_conv}
-    (Args.typ -- parse_consts_spec)
-       (fn _ => ml_computation_conv_antiq));
-
-val _ =
-  Theory.setup (ML_Antiquotation.declaration @{binding computation_check}
-    parse_consts_spec 
-       (fn _ => ml_computation_check_antiq));
+val _ = Theory.setup
+  (ML_Antiquotation.declaration @{binding code}
+    Args.term (K ml_code_antiq)
+  #> ML_Antiquotation.declaration @{binding computation}
+    (Args.typ -- parse_consts_spec) (K ml_computation_antiq)
+  #> ML_Antiquotation.declaration @{binding computation_conv}
+    (Args.typ -- parse_consts_spec) (K ml_computation_conv_antiq)
+  #> ML_Antiquotation.declaration @{binding computation_check}
+    parse_consts_spec (K ml_computation_check_antiq));
 
 end;
 
