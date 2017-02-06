@@ -361,23 +361,32 @@ fun print_computation_code ctxt compiled_value [] requested_Ts =
         ] |> rpair of_term_names
       end;
 
-fun checked_computation cTs T raw_computation ctxt =
+fun prechecked_computation T raw_computation ctxt =
   check_typ ctxt T
   #> reject_vars ctxt
-  #> check_computation_input ctxt cTs
+  #> raw_computation ctxt;
+
+fun prechecked_conv T raw_conv ctxt =
+  tap (check_typ ctxt T o reject_vars ctxt o Thm.term_of)
+  #> raw_conv ctxt;
+
+fun checked_computation cTs raw_computation ctxt =
+  check_computation_input ctxt cTs
   #> Exn.capture raw_computation
   #> partiality_as_none;
 
 fun mount_computation ctxt cTs T raw_computation lift_postproc =
-  Code_Preproc.static_value { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
-    (K (checked_computation cTs T raw_computation));
+  prechecked_computation T (Code_Preproc.static_value
+    { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
+    (K (checked_computation cTs raw_computation)));
 
 fun mount_computation_conv ctxt cTs T raw_computation conv =
-  Code_Preproc.static_conv { ctxt = ctxt, consts = [] }
+  prechecked_conv T (Code_Preproc.static_conv
+    { ctxt = ctxt, consts = [] }
     (K (fn ctxt' => fn t =>
-      case checked_computation cTs T raw_computation ctxt' t of
+      case checked_computation cTs raw_computation ctxt' t of
         SOME x => conv x
-      | NONE => Conv.all_conv));
+      | NONE => Conv.all_conv)));
 
 local
 
