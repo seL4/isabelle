@@ -28,18 +28,25 @@ fun int_of_nat @{code "0 :: nat"} = 0
 
 in
 
-val comp_nat = @{computation "0 :: nat" Suc
-  "plus :: nat \<Rightarrow>_" "times :: nat \<Rightarrow> _" fib :: nat}
+val comp_nat = @{computation nat
+  terms: "plus :: nat \<Rightarrow>_" "times :: nat \<Rightarrow> _" fib
+  datatypes: nat}
   (fn post => post o HOLogic.mk_nat o int_of_nat o the);
 
-val comp_numeral = @{computation "0 :: nat" "1 :: nat" "2 :: nat" "3 :: nat" :: nat}
+val comp_numeral = @{computation nat
+  terms: "0 :: nat" "1 :: nat" "2 :: nat" "3 :: nat"}
   (fn post => post o HOLogic.mk_nat o int_of_nat o the);
 
-val comp_bool = @{computation True False HOL.conj HOL.disj HOL.implies
-  HOL.iff even "less_eq :: nat \<Rightarrow> _" "less :: nat \<Rightarrow> _" "HOL.eq :: nat \<Rightarrow> _" :: bool}
+val comp_bool = @{computation bool
+  terms: HOL.conj HOL.disj HOL.implies
+    HOL.iff even "less_eq :: nat \<Rightarrow> _" "less :: nat \<Rightarrow> _" "HOL.eq :: nat \<Rightarrow> _"
+  datatypes: bool}
   (K the);
 
-val comp_check = @{computation_check Trueprop};
+val comp_check = @{computation_check terms: Trueprop};
+
+val comp_dummy = @{computation "(nat \<times> unit) option"
+  datatypes: "(nat \<times> unit) option"}
 
 end
 \<close>
