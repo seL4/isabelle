@@ -375,6 +375,17 @@ lemma [code nbe]:
 lifting_update literal.lifting
 lifting_forget literal.lifting
 
+  
+subsection \<open>Dedicated conversion for generated computations\<close>
+
+definition char_of_num :: "num \<Rightarrow> char"
+  where "char_of_num = char_of_nat o nat_of_num"
+
+lemma [code_computation_unfold]:
+  "Char = char_of_num"
+  by (simp add: fun_eq_iff char_of_num_def nat_of_num_numeral Char_def)
+
+
 subsection \<open>Code generator\<close>
 
 ML_file "Tools/string_code.ML"

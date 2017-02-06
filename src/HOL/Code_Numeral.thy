@@ -342,6 +342,26 @@ lemma [transfer_rule]:
 
 code_datatype "0::integer" Pos Neg
 
+  
+text \<open>A further pair of constructors for generated computations\<close>
+
+context
+begin  
+
+qualified definition positive :: "num \<Rightarrow> integer"
+  where [simp]: "positive = numeral"
+
+qualified definition negative :: "num \<Rightarrow> integer"
+  where [simp]: "negative = uminus \<circ> numeral"
+
+lemma [code_computation_unfold]:
+  "numeral = positive"
+  "Pos = positive"
+  "Neg = negative"
+  by (simp_all add: fun_eq_iff)
+
+end
+
 
 text \<open>Auxiliary operations\<close>
 
