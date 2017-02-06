@@ -206,7 +206,7 @@ val generated_computationN = "Generated_Computation";
 
 (* possible type signatures of constants *)
 
-fun typ_signatures_for T =
+fun typ_signatures' T =
   let
     val (Ts, T') = strip_type T;
   in map_range (fn n => (drop n Ts ---> T', take n Ts)) (length Ts + 1) end;
@@ -215,7 +215,7 @@ fun typ_signatures cTs =
   let
     fun add (c, T) =
       fold (fn (T, Ts) => Typtab.map_default (T, []) (cons (c, Ts)))
-        (typ_signatures_for T);
+        (typ_signatures' T);
   in
     Typtab.empty
     |> fold add cTs
@@ -284,7 +284,7 @@ fun check_computation_input ctxt cTs t =
 
 val print_const = ML_Syntax.print_pair ML_Syntax.print_string ML_Syntax.print_typ;
 
-fun print_of_term_funs { typ_sign_for, eval_for_const, of_term_for_typ } Ts =
+fun print_of_term_funs { typ_signatures_for, eval_for_const, of_term_for_typ } Ts =
   let
     val var_names = map_range (fn n => "t" ^ string_of_int (n + 1));
     fun print_lhs c xs = "Const (" ^ quote c ^ ", _)"
@@ -299,7 +299,7 @@ fun print_of_term_funs { typ_sign_for, eval_for_const, of_term_for_typ } Ts =
       in print_lhs c xs ^ " = " ^ print_rhs c Ts T xs end;
     fun print_eqs T =
       let
-        val typ_signs = typ_sign_for T;
+        val typ_signs = typ_signatures_for T;
         val name = of_term_for_typ T;
       in
         map (print_eq T) typ_signs
@@ -312,17 +312,24 @@ fun print_of_term_funs { typ_sign_for, eval_for_const, of_term_for_typ } Ts =
     |> prefix "fun "
   end;
 
-fun print_computation_code ctxt compiled_value [] requested_Ts = ("", [])
+fun print_computation_code ctxt compiled_value [] requested_Ts =
+      if null requested_Ts then ("", [])
+      else error ("No equation available for requested type "
+        ^ Syntax.string_of_typ ctxt (hd requested_Ts))
   | print_computation_code ctxt compiled_value cTs requested_Ts =
       let
         val proper_cTs = map_filter I cTs;
-        val typ_sign_for = typ_signatures proper_cTs;
+        val typ_signatures_for = typ_signatures proper_cTs;
         fun add_typ T Ts =
           if member (op =) Ts T
           then Ts
-          else Ts
-            |> cons T
-            |> fold (fold add_typ o snd) (typ_sign_for T);
+          else case typ_signatures_for T of
+            [] => error ("No equation available for requested type "
+              ^ Syntax.string_of_typ ctxt T)
+          | typ_signs =>
+              Ts
+              |> cons T
+              |> fold (fold add_typ o snd) typ_signs;
         val required_Ts = fold add_typ requested_Ts [];
         val of_term_for_typ' = of_term_for_typ required_Ts;
         val eval_for_const' = eval_for_const ctxt proper_cTs;
@@ -332,7 +339,7 @@ fun print_computation_code ctxt compiled_value [] requested_Ts = ("", [])
         val eval_abs = space_implode ""
           (map (mk_abs o eval_for_const'') cTs);
         val of_term_code = print_of_term_funs {
-          typ_sign_for = typ_sign_for,
+          typ_signatures_for = typ_signatures_for,
           eval_for_const = eval_for_const',
           of_term_for_typ = of_term_for_typ' } required_Ts;
         val of_term_names = map (Long_Name.append generated_computationN
