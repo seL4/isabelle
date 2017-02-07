@@ -1721,7 +1721,7 @@ lemma sub_code [code]:
 
 text \<open>Implementations.\<close>
 
-lemma one_int_code [code, code_unfold]: "1 = Pos Num.One"
+lemma one_int_code [code]: "1 = Pos Num.One"
   by simp
 
 lemma plus_int_code [code]:
