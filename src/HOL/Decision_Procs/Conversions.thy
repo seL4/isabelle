@@ -6,24 +6,24 @@ theory Conversions
 imports Main
 begin
 
-ML {*
+ML \<open>
 fun tactic_of_conv cv i st =
   if i > Thm.nprems_of st then Seq.empty
   else Seq.single (Conv.gconv_rule cv i st);
 
 fun binop_conv cv cv' = Conv.combination_conv (Conv.arg_conv cv) cv';
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun err s ct =
    error (s ^ ": " ^ Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct));
-*}
+\<close>
 
 attribute_setup meta =
-  {* Scan.succeed (fn (ctxt, th) => (NONE, SOME (mk_meta_eq th))) *}
-  {* convert equality to meta equality *}
+  \<open>Scan.succeed (fn (ctxt, th) => (NONE, SOME (mk_meta_eq th)))\<close>
+  \<open>convert equality to meta equality\<close>
 
-ML {*
+ML \<open>
 fun mk_obj_eq th = th RS @{thm meta_eq_to_obj_eq};
 
 fun strip_app ct = ct |> Drule.strip_comb |>> Thm.term_of |>> dest_Const |>> fst;
@@ -77,20 +77,20 @@ fun cong2'' conv eqn1 eqn2 =
 
 fun args1 conv ct = conv (Thm.dest_arg ct);
 fun args2 conv ct = conv (Thm.dest_arg1 ct) (Thm.dest_arg ct);
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun strip_numeral ct = (case strip_app ct of
     (@{const_name uminus}, [n]) => (case strip_app n of
       (@{const_name numeral}, [b]) => (@{const_name uminus}, [b])
     | _ => ("", []))
   | x => x);
-*}
+\<close>
 
 lemma nat_minus1_eq: "nat (- 1) = 0"
   by simp
 
-ML {*
+ML \<open>
 fun nat_conv i = (case strip_app i of
     (@{const_name zero_class.zero}, []) => @{thm nat_0 [meta]}
   | (@{const_name one_class.one}, []) => @{thm transfer_nat_int_numerals(2) [meta, symmetric]}
@@ -98,9 +98,9 @@ fun nat_conv i = (case strip_app i of
   | (@{const_name uminus}, [b]) => (case strip_app b of
       (@{const_name one_class.one}, []) => @{thm nat_minus1_eq [meta]}
     | (@{const_name numeral}, [b']) => inst [] [b'] @{thm nat_neg_numeral [meta]}));
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun add_num_conv b b' = (case (strip_app b, strip_app b') of
     ((@{const_name Num.One}, []), (@{const_name Num.One}, [])) =>
       @{thm add_num_simps(1) [meta]}
@@ -132,9 +132,9 @@ fun add_num_conv b b' = (case (strip_app b, strip_app b') of
       transitive'
         (inst [] [m, n] @{thm add_num_simps(9) [meta]})
         (cong1 (cong2' add_num_conv (args2 add_num_conv) Thm.reflexive)));
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun BitM_conv m = (case strip_app m of
     (@{const_name Num.One}, []) => @{thm BitM.simps(1) [meta]}
   | (@{const_name Num.Bit0}, [n]) =>
@@ -143,13 +143,13 @@ fun BitM_conv m = (case strip_app m of
         (cong1 (args1 BitM_conv))
   | (@{const_name Num.Bit1}, [n]) =>
       inst [] [n] @{thm BitM.simps(3) [meta]});
-*}
+\<close>
 
 lemma dbl_neg_numeral:
   "Num.dbl (- Num.numeral k) = - Num.numeral (Num.Bit0 k)"
   by simp
 
-ML {*
+ML \<open>
 fun dbl_conv a =
   let
     val dbl_neg_numeral_a = inst [a] [] @{thm dbl_neg_numeral [meta]};
@@ -162,13 +162,13 @@ fun dbl_conv a =
       | (@{const_name numeral}, [k]) => inst [] [k] dbl_numeral_a
       | (@{const_name uminus}, [k]) => inst [] [k] dbl_neg_numeral_a
   end;
-*}
+\<close>
 
 lemma dbl_inc_neg_numeral:
   "Num.dbl_inc (- Num.numeral k) = - Num.numeral (Num.BitM k)"
   by simp
 
-ML {*
+ML \<open>
 fun dbl_inc_conv a =
   let
     val dbl_inc_neg_numeral_a = inst [a] [] @{thm dbl_inc_neg_numeral [meta]};
@@ -184,13 +184,13 @@ fun dbl_inc_conv a =
             (inst [] [k] dbl_inc_neg_numeral_a)
             (cong1 (cong1 (args1 BitM_conv)))
   end;
-*}
+\<close>
 
 lemma dbl_dec_neg_numeral:
   "Num.dbl_dec (- Num.numeral k) = - Num.numeral (Num.Bit1 k)"
   by simp
 
-ML {*
+ML \<open>
 fun dbl_dec_conv a =
   let
     val dbl_dec_neg_numeral_a = inst [a] [] @{thm dbl_dec_neg_numeral [meta]};
@@ -206,9 +206,9 @@ fun dbl_dec_conv a =
             (inst [] [k] dbl_dec_numeral_a)
             (cong1 (args1 BitM_conv))
   end;
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun sub_conv a =
   let
     val [sub_One_One, sub_One_Bit0, sub_One_Bit1,
@@ -251,9 +251,9 @@ fun sub_conv a =
             (inst [] [k, l] sub_Bit1_Bit1)
             (cong1' dbl_conv_a (args2 conv)))
   in conv end;
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun expand1 a =
   let val numeral_1_eq_1_a = inst [a] [] @{thm numeral_One [meta, symmetric]}
   in
@@ -283,9 +283,9 @@ fun norm1_eq a =
                  numeral_1_eq_1_a)
       | _ => eq
   end;
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun plus_conv f a =
   let
     val add_0_a = inst [a] [] @{thm add_0 [meta]};
@@ -304,13 +304,13 @@ fun plus_conv f a =
   in f conv end;
 
 val nat_plus_conv = plus_conv I @{ctyp nat};
-*}
+\<close>
 
 lemma neg_numeral_plus_neg_numeral:
   "- Num.numeral m + - Num.numeral n = (- Num.numeral (m + n) ::'a::neg_numeral)"
   by simp
 
-ML {*
+ML \<open>
 fun plus_neg_conv a =
   let
     val numeral_plus_neg_numeral_a =
@@ -341,12 +341,12 @@ fun plus_neg_conv a =
 fun plus_conv' a = norm1_eq a oo plus_conv (plus_neg_conv a) a;
 
 val int_plus_conv = plus_conv' @{ctyp int};
-*}
+\<close>
 
 lemma minus_one: "- 1 = - 1" by simp
 lemma minus_numeral: "- numeral b = - numeral b" by simp
 
-ML {*
+ML \<open>
 fun uminus_conv a =
   let
     val minus_zero_a = inst [a] [] @{thm minus_zero [meta]};
@@ -363,9 +363,9 @@ fun uminus_conv a =
   end;
 
 val int_neg_conv = uminus_conv @{ctyp int};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun minus_conv a =
   let
     val [numeral_minus_numeral_a, numeral_minus_neg_numeral_a,
@@ -402,9 +402,9 @@ fun minus_conv a =
   in norm1_eq_a oo conv end;
 
 val int_minus_conv = minus_conv @{ctyp int};
-*}
+\<close>
 
-ML {*
+ML \<open>
 val int_numeral = Thm.apply @{cterm "numeral :: num \<Rightarrow> int"};
 
 val nat_minus_refl = Thm.reflexive @{cterm "minus :: nat \<Rightarrow> nat \<Rightarrow> nat"};
@@ -421,9 +421,9 @@ fun nat_minus_conv m n = (case (strip_app m, strip_app n) of
         (inst [] [m, n] @{thm diff_nat_numeral [meta]})
         (cong1' nat_conv (args2 int_minus_conv))
   | _ => cong2'' nat_minus_conv (expand1_nat m) (expand1_nat n));
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun mult_num_conv m n = (case (strip_app m, strip_app n) of
     (_, (@{const_name Num.One}, [])) =>
       inst [] [m] @{thm mult_num_simps(1) [meta]}
@@ -447,9 +447,9 @@ fun mult_num_conv m n = (case (strip_app m, strip_app n) of
         (cong1 (cong2' add_num_conv
            (args2 add_num_conv)
            (cong1 (args2 mult_num_conv)))));
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun mult_conv f a =
   let
     val mult_zero_left_a = inst [a] [] @{thm mult_zero_left [meta]};
@@ -469,9 +469,9 @@ fun mult_conv f a =
   in norm1_eq_a oo f conv end;
 
 val nat_mult_conv = mult_conv I @{ctyp nat};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun mult_neg_conv a =
   let
     val [neg_numeral_times_neg_numeral_a, neg_numeral_times_numeral_a,
@@ -498,9 +498,9 @@ fun mult_neg_conv a =
 fun mult_conv' a = mult_conv (mult_neg_conv a) a;
 
 val int_mult_conv = mult_conv' @{ctyp int};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun eq_num_conv m n = (case (strip_app m, strip_app n) of
     ((@{const_name Num.One}, []), (@{const_name Num.One}, [])) =>
       @{thm eq_num_simps(1) [meta]}
@@ -524,9 +524,9 @@ fun eq_num_conv m n = (case (strip_app m, strip_app n) of
       Thm.transitive
         (inst [] [m, n] @{thm eq_num_simps(9) [meta]})
         (eq_num_conv m n));
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun eq_conv f a =
   let
     val zero_eq_zero_a = inst [a] [] @{thm refl [of 0, THEN Eq_TrueI]};
@@ -552,9 +552,9 @@ fun eq_conv f a =
   in f conv end;
 
 val nat_eq_conv = eq_conv I @{ctyp nat};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun eq_neg_conv a =
   let
     val neg_numeral_neq_zero_a =
@@ -587,9 +587,9 @@ fun eq_neg_conv a =
 fun eq_conv' a = eq_conv (eq_neg_conv a) a;
 
 val int_eq_conv = eq_conv' @{ctyp int};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun le_num_conv m n = (case (strip_app m, strip_app n) of
     ((@{const_name Num.One}, []), _) =>
       inst [] [n] @{thm le_num_simps(1) [meta]}
@@ -637,9 +637,9 @@ and less_num_conv m n = (case (strip_app m, strip_app n) of
       Thm.transitive
         (inst [] [m, n] @{thm less_num_simps(7) [meta]})
         (less_num_conv m n));
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun le_conv f a =
   let
     val zero_le_zero_a = inst [a] [] @{thm order_refl [of 0, THEN Eq_TrueI]};
@@ -665,9 +665,9 @@ fun le_conv f a =
   in f conv end;
 
 val nat_le_conv = le_conv I @{ctyp nat};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun le_neg_conv a =
   let
     val neg_numeral_le_zero_a =
@@ -700,9 +700,9 @@ fun le_neg_conv a =
 fun le_conv' a = le_conv (le_neg_conv a) a;
 
 val int_le_conv = le_conv' @{ctyp int};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun less_conv f a =
   let
     val not_zero_less_zero_a = inst [a] [] @{thm less_irrefl [of 0, THEN Eq_FalseI]};
@@ -728,9 +728,9 @@ fun less_conv f a =
   in f conv end;
 
 val nat_less_conv = less_conv I @{ctyp nat};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun less_neg_conv a =
   let
     val neg_numeral_less_zero_a =
@@ -763,9 +763,9 @@ fun less_neg_conv a =
 fun less_conv' a = less_conv (less_neg_conv a) a;
 
 val int_less_conv = less_conv' @{ctyp int};
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun If_conv a =
   let
     val if_True = inst [a] [] @{thm if_True [meta]};
@@ -804,9 +804,9 @@ fun If_conv a =
             | _ => err "If_conv" (Thm.rhs_of p_eq)
           end
   end;
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun drop_conv a =
   let
     val drop_0_a = inst [a] [] @{thm drop_0 [meta]};
@@ -823,9 +823,9 @@ fun drop_conv a =
                  Thm.reflexive
                  (cong2' conv (args2 nat_minus_conv) Thm.reflexive))))
   in conv end;
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun nth_conv a =
   let
     val nth_Cons_a = inst [a] [] @{thm nth_Cons' [meta]};
@@ -839,6 +839,6 @@ fun nth_conv a =
                Thm.reflexive
                (cong2' conv Thm.reflexive (args2 nat_minus_conv))))
   in conv end;
-*}
+\<close>
 
 end

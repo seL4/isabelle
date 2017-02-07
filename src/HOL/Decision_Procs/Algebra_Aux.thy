@@ -59,7 +59,7 @@ proof (cases "0 \<le> i")
   show ?thesis
   proof (cases "0 \<le> j")
     case True
-    with `0 \<le> i` show ?thesis by (simp add: of_integer_def nat_add_distrib)
+    with \<open>0 \<le> i\<close> show ?thesis by (simp add: of_integer_def nat_add_distrib)
   next
     case False
     show ?thesis
@@ -67,19 +67,19 @@ proof (cases "0 \<le> i")
       case True
       then have "\<guillemotleft>i + j\<guillemotright> = \<guillemotleft>nat (i - (- j))\<guillemotright>\<^sub>\<nat>"
         by (simp add: of_integer_def)
-      also from True `0 \<le> i` `\<not> 0 \<le> j`
+      also from True \<open>0 \<le> i\<close> \<open>\<not> 0 \<le> j\<close>
       have "nat (i - (- j)) = nat i - nat (- j)"
         by (simp add: nat_diff_distrib)
-      finally show ?thesis using True `0 \<le> i` `\<not> 0 \<le> j`
+      finally show ?thesis using True \<open>0 \<le> i\<close> \<open>\<not> 0 \<le> j\<close>
         by (simp add: minus_eq of_integer_def)
     next
       case False
       then have "\<guillemotleft>i + j\<guillemotright> = \<ominus> \<guillemotleft>nat (- j - i)\<guillemotright>\<^sub>\<nat>"
         by (simp add: of_integer_def) (simp only: diff_conv_add_uminus add_ac)
-      also from False `0 \<le> i` `\<not> 0 \<le> j`
+      also from False \<open>0 \<le> i\<close> \<open>\<not> 0 \<le> j\<close>
       have "nat (- j - i) = nat (- j) - nat i"
         by (simp add: nat_diff_distrib)
-      finally show ?thesis using False `0 \<le> i` `\<not> 0 \<le> j`
+      finally show ?thesis using False \<open>0 \<le> i\<close> \<open>\<not> 0 \<le> j\<close>
         by (simp add: minus_eq minus_add a_ac of_integer_def)
     qed
   qed
@@ -93,24 +93,24 @@ next
       case True
       then have "\<guillemotleft>i + j\<guillemotright> = \<guillemotleft>nat (j - (- i))\<guillemotright>\<^sub>\<nat>"
         by (simp add: of_integer_def add_ac)
-      also from True `\<not> 0 \<le> i` `0 \<le> j`
+      also from True \<open>\<not> 0 \<le> i\<close> \<open>0 \<le> j\<close>
       have "nat (j - (- i)) = nat j - nat (- i)"
         by (simp add: nat_diff_distrib)
-      finally show ?thesis using True `\<not> 0 \<le> i` `0 \<le> j`
+      finally show ?thesis using True \<open>\<not> 0 \<le> i\<close> \<open>0 \<le> j\<close>
         by (simp add: minus_eq minus_add a_ac of_integer_def)
     next
       case False
       then have "\<guillemotleft>i + j\<guillemotright> = \<ominus> \<guillemotleft>nat (- i - j)\<guillemotright>\<^sub>\<nat>"
         by (simp add: of_integer_def)
-      also from False `\<not> 0 \<le> i` `0 \<le> j`
+      also from False \<open>\<not> 0 \<le> i\<close> \<open>0 \<le> j\<close>
       have "nat (- i - j) = nat (- i) - nat j"
         by (simp add: nat_diff_distrib)
-      finally show ?thesis using False `\<not> 0 \<le> i` `0 \<le> j`
+      finally show ?thesis using False \<open>\<not> 0 \<le> i\<close> \<open>0 \<le> j\<close>
         by (simp add: minus_eq minus_add of_integer_def)
     qed
   next
     case False
-    with `\<not> 0 \<le> i` show ?thesis
+    with \<open>\<not> 0 \<le> i\<close> show ?thesis
       by (simp add: of_integer_def nat_add_distrib minus_add diff_conv_add_uminus
         del: add_uminus_conv_diff uminus_add_conv_diff)
   qed
@@ -128,11 +128,11 @@ proof (cases "0 \<le> i")
   show ?thesis
   proof (cases "0 \<le> j")
     case True
-    with `0 \<le> i` show ?thesis
+    with \<open>0 \<le> i\<close> show ?thesis
       by (simp add: of_integer_def nat_mult_distrib zero_le_mult_iff)
   next
     case False
-    with `0 \<le> i` show ?thesis
+    with \<open>0 \<le> i\<close> show ?thesis
       by (simp add: of_integer_def zero_le_mult_iff
         minus_mult_right nat_mult_distrib r_minus
         del: minus_mult_right [symmetric])
@@ -142,13 +142,13 @@ next
   show ?thesis
   proof (cases "0 \<le> j")
     case True
-    with `\<not> 0 \<le> i` show ?thesis
+    with \<open>\<not> 0 \<le> i\<close> show ?thesis
       by (simp add: of_integer_def zero_le_mult_iff
         minus_mult_left nat_mult_distrib l_minus
         del: minus_mult_left [symmetric])
   next
     case False
-    with `\<not> 0 \<le> i` show ?thesis
+    with \<open>\<not> 0 \<le> i\<close> show ?thesis
       by (simp add: of_integer_def zero_le_mult_iff
         minus_mult_minus [of i j, symmetric] nat_mult_distrib
         l_minus r_minus

@@ -597,14 +597,14 @@ proof (induct e)
   then have "feval xs e1 \<in> carrier R" "feval xs e2 \<in> carrier R"
     "peval xs (Num e2) \<noteq> \<zero>" "nonzero xs (Cond e2)"
     by (simp_all add: nonzero_union nonzero_insert split: prod.split_asm)
-  from `in_carrier xs` `nonzero xs (Cond e2)`
+  from \<open>in_carrier xs\<close> \<open>nonzero xs (Cond e2)\<close>
   have "feval xs e2 = peval xs (Num e2) \<oslash> peval xs (Denom e2)"
     by (rule fnorm_correct)
-  moreover from `in_carrier xs` `nonzero xs (Cond e2)`
+  moreover from \<open>in_carrier xs\<close> \<open>nonzero xs (Cond e2)\<close>
   have "peval xs (Denom e2) \<noteq> \<zero>" by (rule fnorm_correct)
-  ultimately have "feval xs e2 \<noteq> \<zero>" using `peval xs (Num e2) \<noteq> \<zero>` `in_carrier xs`
+  ultimately have "feval xs e2 \<noteq> \<zero>" using \<open>peval xs (Num e2) \<noteq> \<zero>\<close> \<open>in_carrier xs\<close>
     by (simp add: divide_eq_0_iff)
-  with `feval xs e1 \<in> carrier R` `feval xs e2 \<in> carrier R`
+  with \<open>feval xs e1 \<in> carrier R\<close> \<open>feval xs e2 \<in> carrier R\<close>
   show ?case by simp
 qed (simp_all add: nonzero_union split: prod.split_asm)
 
@@ -623,17 +623,17 @@ proof -
   show ?thesis
   proof
     assume "feval xs e = feval xs e'"
-    with `feval xs e \<ominus> feval xs e' = peval xs n \<oslash> peval xs d`
-      `in_carrier xs` `nonzero xs (Cond e')`
+    with \<open>feval xs e \<ominus> feval xs e' = peval xs n \<oslash> peval xs d\<close>
+      \<open>in_carrier xs\<close> \<open>nonzero xs (Cond e')\<close>
     have "peval xs n \<oslash> peval xs d = \<zero>"
       by (simp add: fexpr_in_carrier minus_eq r_neg)
-    with `peval xs d \<noteq> \<zero>` `in_carrier xs`
+    with \<open>peval xs d \<noteq> \<zero>\<close> \<open>in_carrier xs\<close>
     show "peval xs n = \<zero>"
       by (simp add: divide_eq_0_iff)
   next
     assume "peval xs n = \<zero>"
-    with `feval xs e \<ominus> feval xs e' = peval xs n \<oslash> peval xs d` `peval xs d \<noteq> \<zero>`
-      `nonzero xs (Cond e)` `nonzero xs (Cond e')` `in_carrier xs`
+    with \<open>feval xs e \<ominus> feval xs e' = peval xs n \<oslash> peval xs d\<close> \<open>peval xs d \<noteq> \<zero>\<close>
+      \<open>nonzero xs (Cond e)\<close> \<open>nonzero xs (Cond e')\<close> \<open>in_carrier xs\<close>
     show "feval xs e = feval xs e'"
       by (simp add: eq_diff0 fexpr_in_carrier)
   qed
@@ -652,7 +652,7 @@ code_reflect Field_Code
 definition field_codegen_aux :: "(pexpr \<times> pexpr list) itself" where
   "field_codegen_aux = (Code_Evaluation.TERM_OF_EQUAL::(pexpr \<times> pexpr list) itself)"
 
-ML {*
+ML \<open>
 signature FIELD_TAC =
 sig
   structure Field_Simps:
@@ -916,11 +916,11 @@ fun field_tac in_prem ctxt =
     end);
 
 end
-*}
+\<close>
 
 context field begin
 
-local_setup {*
+local_setup \<open>
 Local_Theory.declaration {syntax = false, pervasive = false}
   (fn phi => Field_Tac.Field_Simps.map (Ring_Tac.insert_rules Field_Tac.eq_field_simps
     (Morphism.term phi @{term R},
@@ -929,13 +929,13 @@ Local_Theory.declaration {syntax = false, pervasive = false}
       Morphism.fact phi @{thms nonzero.simps [meta] nonzero_singleton [meta]},
       singleton (Morphism.fact phi) @{thm nth_el_Cons [meta]},
       singleton (Morphism.fact phi) @{thm feval_eq}))))
-*}
+\<close>
 
 end
 
-method_setup field = {*
+method_setup field = \<open>
   Scan.lift (Args.mode "prems") -- Attrib.thms >> (fn (in_prem, thms) => fn ctxt =>
     SIMPLE_METHOD' (Field_Tac.field_tac in_prem ctxt THEN' Ring_Tac.ring_tac in_prem thms ctxt))
-*} "reduce equations over fields to equations over rings"
+\<close> "reduce equations over fields to equations over rings"
 
 end
