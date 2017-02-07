@@ -5,7 +5,7 @@ Reducing equalities in fields to equalities in rings.
 *)
 
 theory Reflective_Field
-imports Commutative_Ring
+imports "~~/src/HOL/Decision_Procs/Commutative_Ring"
 begin
 
 datatype fexpr =
@@ -639,18 +639,46 @@ proof -
   qed
 qed
 
-code_reflect Field_Code
-  datatypes fexpr = FCnst | FVar | FAdd | FSub | FMul | FNeg | FDiv | FPow
-  and pexpr = PExpr1 | PExpr2
-  and pexpr1 = PCnst | PVar | PAdd | PSub | PNeg
-  and pexpr2 = PMul | PPow
-  functions fnorm
-    term_of_fexpr_inst.term_of_fexpr
-    term_of_pexpr_inst.term_of_pexpr
-    equal_pexpr_inst.equal_pexpr
+ML \<open>
+val term_of_nat = HOLogic.mk_number @{typ nat} o @{code integer_of_nat};
 
-definition field_codegen_aux :: "(pexpr \<times> pexpr list) itself" where
-  "field_codegen_aux = (Code_Evaluation.TERM_OF_EQUAL::(pexpr \<times> pexpr list) itself)"
+val term_of_int = HOLogic.mk_number @{typ int} o @{code integer_of_int};
+
+fun term_of_pexpr (@{code PExpr1} x) = @{term PExpr1} $ term_of_pexpr1 x
+  | term_of_pexpr (@{code PExpr2} x) = @{term PExpr2} $ term_of_pexpr2 x
+and term_of_pexpr1 (@{code PCnst} k) = @{term PCnst} $ term_of_int k
+  | term_of_pexpr1 (@{code PVar} n) = @{term PVar} $ term_of_nat n
+  | term_of_pexpr1 (@{code PAdd} (x, y)) = @{term PAdd} $ term_of_pexpr x $ term_of_pexpr y
+  | term_of_pexpr1 (@{code PSub} (x, y)) = @{term PSub} $ term_of_pexpr x $ term_of_pexpr y
+  | term_of_pexpr1 (@{code PNeg} x) = @{term PNeg} $ term_of_pexpr x
+and term_of_pexpr2 (@{code PMul} (x, y)) = @{term PMul} $ term_of_pexpr x $ term_of_pexpr y
+  | term_of_pexpr2 (@{code PPow} (x, n)) = @{term PPow} $ term_of_pexpr x $ term_of_nat n
+
+fun term_of_result (x, (y, zs)) =
+  HOLogic.mk_prod (term_of_pexpr x, HOLogic.mk_prod
+    (term_of_pexpr y, HOLogic.mk_list @{typ pexpr} (map term_of_pexpr zs)));
+
+local
+
+fun fnorm (ctxt, ct, t) = Thm.mk_binop @{cterm "Pure.eq :: pexpr \<times> pexpr \<times> pexpr list \<Rightarrow> pexpr \<times> pexpr \<times> pexpr list \<Rightarrow> prop"}
+  ct (Thm.cterm_of ctxt t);
+
+val (_, raw_fnorm_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (@{binding fnorm}, fnorm)));
+
+fun fnorm_oracle ctxt ct t = raw_fnorm_oracle (ctxt, ct, t);
+
+in
+
+val cv = @{computation_conv "pexpr \<times> pexpr \<times> pexpr list"
+  terms: fnorm nat_of_integer Code_Target_Nat.natural
+    "0::nat" "1::nat" "2::nat" "3::nat"
+    "0::int" "1::int" "2::int" "3::int" "-1::int"
+  datatypes: fexpr int integer num}
+  (fn result => fn ct => fnorm_oracle @{context} ct (term_of_result result))
+
+end
+\<close>
 
 ML \<open>
 signature FIELD_TAC =
@@ -860,12 +888,6 @@ fun nonzero_conv (rls as
           | _ => transitive' (inst [] [xs, p, ps] nonzero_Cons)
               (cong2 (cong1 (cong2 (args2 peval_conv') Thm.reflexive)) (args2 conv))))
   in conv end;
-
-val cv = Code_Evaluation.static_conv
-  {ctxt = @{context},
-   consts =
-     [@{const_name nat_of_integer},
-      @{const_name fnorm}, @{const_name field_codegen_aux}]};
 
 fun field_tac in_prem ctxt =
   SUBGOAL (fn (g, i) =>

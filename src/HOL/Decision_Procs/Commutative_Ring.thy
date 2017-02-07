@@ -655,22 +655,37 @@ lemma (in cring) norm_subst_correct:
 lemma in_carrier_trivial: "cring_class.in_carrier l"
   by (induct l) (simp_all add: cring_class.in_carrier_def carrier_class)
 
-code_reflect Ring_Code
-  datatypes pol = Pc | Pinj | PX
-  and polex = Var | Const | Add | Sub | Mul | Pow | Neg
-  and nat and int
-  functions norm pnsubstl mk_monpol_list
-    Nat.zero_nat_inst.zero_nat Nat.one_nat_inst.one_nat
-    Nat.minus_nat_inst.minus_nat Nat.times_nat_inst.times_nat nat_of_integer integer_of_nat
-    Int.zero_int_inst.zero_int Int.one_int_inst.one_int
-    Int.uminus_int_inst.uminus_int
-    int_of_integer
-    term_of_pol_inst.term_of_pol
-    term_of_polex_inst.term_of_polex
-    equal_pol_inst.equal_pol
+ML \<open>
+val term_of_nat = HOLogic.mk_number @{typ nat} o @{code integer_of_nat};
 
-definition ring_codegen_aux :: "pol itself" where
-  "ring_codegen_aux = (Code_Evaluation.TERM_OF_EQUAL::pol itself)"
+val term_of_int = HOLogic.mk_number @{typ int} o @{code integer_of_int};
+
+fun term_of_pol (@{code Pc} k) = @{term Pc} $ term_of_int k
+  | term_of_pol (@{code Pinj} (n, p)) = @{term Pinj} $ term_of_nat n $ term_of_pol p
+  | term_of_pol (@{code PX} (p, n, q)) = @{term PX} $ term_of_pol p $ term_of_nat n $ term_of_pol q;
+
+local
+
+fun pol (ctxt, ct, t) = Thm.mk_binop @{cterm "Pure.eq :: pol \<Rightarrow> pol \<Rightarrow> prop"}
+  ct (Thm.cterm_of ctxt t);
+
+val (_, raw_pol_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (@{binding pnsubstl}, pol)));
+
+fun pol_oracle ctxt ct t = raw_pol_oracle (ctxt, ct, t);
+
+in
+
+val cv = @{computation_conv pol
+  terms: pnsubstl mk_monpol_list norm
+    nat_of_integer Code_Target_Nat.natural
+      "0::nat" "1::nat" "2::nat" "3::nat"
+      "0::int" "1::int" "2::int" "3::int" "-1::int"
+  datatypes: polex "(polex * polex) list" int integer num}
+  (fn p => fn ct => pol_oracle @{context} ct (term_of_pol p))
+
+end
+\<close>
 
 ML \<open>
 signature RING_TAC =
@@ -905,14 +920,6 @@ fun mk_ring T =
 
 val iterations = @{cterm "1000::nat"};
 val Trueprop_cong = Thm.combination (Thm.reflexive @{cterm Trueprop});
-
-val cv = Code_Evaluation.static_conv
-  {ctxt = @{context},
-   consts =
-     [@{const_name pnsubstl},
-      @{const_name norm},
-      @{const_name mk_monpol_list},
-      @{const_name ring_codegen_aux}]};
 
 fun commutative_ring_conv ctxt prems eqs ct =
   let
