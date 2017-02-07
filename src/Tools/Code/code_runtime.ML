@@ -386,12 +386,15 @@ fun get ctxt = Computation_Preproc_Data.get (Proof_Context.theory_of ctxt);
 
 in
 
-fun preprocess_conv ctxt = 
-  Raw_Simplifier.rewrite ctxt false (get ctxt);
+fun preprocess_conv { ctxt } = 
+  let
+    val rules = get ctxt;
+  in fn ctxt' => Raw_Simplifier.rewrite ctxt' false rules end;
 
-fun preprocess_term ctxt =
-  Pattern.rewrite_term (Proof_Context.theory_of ctxt)
-    (map (Logic.dest_equals o Thm.plain_prop_of) (get ctxt)) [];
+fun preprocess_term { ctxt } =
+  let
+    val rules = map (Logic.dest_equals o Thm.plain_prop_of) (get ctxt);
+  in fn ctxt' => Pattern.rewrite_term (Proof_Context.theory_of ctxt') rules [] end;
 
 val _ = Theory.setup
   (Attrib.setup @{binding code_computation_unfold}
@@ -419,20 +422,22 @@ fun checked_computation cTs raw_computation ctxt =
 
 fun mount_computation ctxt cTs T raw_computation lift_postproc =
   let
+    val preprocess = preprocess_term { ctxt = ctxt };
     val computation = prechecked_computation T (Code_Preproc.static_value
       { ctxt = ctxt, lift_postproc = lift_postproc, consts = [] }
       (K (checked_computation cTs raw_computation)));
-  in fn ctxt' => preprocess_term ctxt' #> computation ctxt' end;
+  in fn ctxt' => preprocess ctxt' #> computation ctxt' end;
 
 fun mount_computation_conv ctxt cTs T raw_computation conv =
   let
+    val preprocess = preprocess_conv { ctxt = ctxt };
     val computation_conv = prechecked_conv T (Code_Preproc.static_conv
       { ctxt = ctxt, consts = [] }
       (K (fn ctxt' => fn t =>
         case checked_computation cTs raw_computation ctxt' t of
           SOME x => conv x
         | NONE => Conv.all_conv)));
-  in fn ctxt' => preprocess_conv ctxt' then_conv computation_conv ctxt' end;
+  in fn ctxt' => preprocess ctxt' then_conv computation_conv ctxt' end;
 
 local
 
@@ -564,7 +569,7 @@ fun register { named_consts, computation_Ts, computation_cTs } ctxt =
       let
         val evals = Abs ("eval", map snd computation_cTs' --->
           TFree (Name.aT, []), list_comb (Bound 0, map Const computation_cTs'))
-          |> preprocess_term ctxt
+          |> preprocess_term { ctxt = ctxt } ctxt
       in Code_Thingol.dynamic_value ctxt
         (K I) (runtime_code ctxt NONE [] named_consts' computation_Ts') evals
       end;
