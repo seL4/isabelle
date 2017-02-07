@@ -35,7 +35,24 @@ lemma [code_abbrev]:
 lemma [code_abbrev]:
   "int_of_integer (- numeral k) = Int.Neg k"
   by transfer simp
-  
+
+context
+begin  
+
+qualified definition positive :: "num \<Rightarrow> int"
+  where [simp]: "positive = numeral"
+
+qualified definition negative :: "num \<Rightarrow> int"
+  where [simp]: "negative = uminus \<circ> numeral"
+
+lemma [code_computation_unfold]:
+  "numeral = positive"
+  "Int.Pos = positive"
+  "Int.Neg = negative"
+  by (simp_all add: fun_eq_iff)
+
+end
+
 lemma [code, symmetric, code_post]:
   "0 = int_of_integer 0"
   by transfer simp

@@ -44,6 +44,19 @@ lemma [code_abbrev]:
   "nat_of_integer (numeral k) = nat_of_num k"
   by transfer (simp add: nat_of_num_numeral)
 
+context
+begin  
+
+qualified definition natural :: "num \<Rightarrow> nat"
+  where [simp]: "natural = nat_of_num"
+
+lemma [code_computation_unfold]:
+  "numeral = natural"
+  "nat_of_num = natural"
+  by (simp_all add: nat_of_num_numeral)
+
+end
+
 lemma [code abstract]:
   "integer_of_nat (nat_of_num n) = integer_of_num n"
   by transfer (simp add: nat_of_num_numeral)
