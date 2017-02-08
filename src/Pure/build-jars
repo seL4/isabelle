@@ -60,6 +60,7 @@ declare -a SOURCES=(
   General/output.scala
   General/path.scala
   General/position.scala
+  General/postgresql.scala
   General/pretty.scala
   General/properties.scala
   General/scan.scala
