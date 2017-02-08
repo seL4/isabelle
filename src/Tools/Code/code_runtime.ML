@@ -417,7 +417,7 @@ fun prechecked_conv T raw_conv ctxt =
 
 fun checked_computation cTs raw_computation ctxt =
   check_computation_input ctxt cTs
-  #> Exn.capture raw_computation
+  #> Exn.interruptible_capture raw_computation
   #> partiality_as_none;
 
 fun mount_computation ctxt cTs T raw_computation lift_postproc =
