@@ -66,6 +66,7 @@ declare -a SOURCES=(
   General/scan.scala
   General/sha1.scala
   General/sql.scala
+  General/sql_database.scala
   General/sqlite.scala
   General/ssh.scala
   General/symbol.scala

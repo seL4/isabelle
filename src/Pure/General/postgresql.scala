@@ -12,9 +12,6 @@ import java.sql.{DriverManager, Connection}
 
 object PostgreSQL
 {
-  /** database connection **/
-
-  val default_host = "localhost"
   val default_port = 5432
 
   def open_database(
@@ -34,7 +31,7 @@ object PostgreSQL
     new Database(spec, connection)
   }
 
-  class Database private[PostgreSQL](spec: String, val connection: Connection)
+  class Database private[PostgreSQL](spec: String, val connection: Connection) extends SQL_Database
   {
     override def toString: String = spec
   }
