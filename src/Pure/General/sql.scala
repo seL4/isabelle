@@ -32,10 +32,7 @@ object SQL
     quote(s.map(quote_char(_)).mkString)
 
   def quote_ident(s: String): String =
-  {
-    require(!s.contains('`'))
-    "`" + s + "`"
-  }
+    quote(s.replace("\"", "\"\""))
 
   def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
 
