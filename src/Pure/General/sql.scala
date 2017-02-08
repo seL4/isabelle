@@ -50,7 +50,9 @@ object SQL
     def string(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[String] =
       new Column_String(name, strict, primary_key)
     def bytes(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Bytes] =
-      new Column_Bytes(name, strict, primary_key)
+      new Column_Bytes(name, strict, primary_key, "BLOB")  // SQL standard
+    def bytea(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Bytes] =
+      new Column_Bytes(name, strict, primary_key, "BYTEA")  // PostgreSQL
   }
 
   abstract class Column[+A] private[SQL](
@@ -89,14 +91,14 @@ object SQL
   class Column_Long private[SQL](name: String, strict: Boolean, primary_key: Boolean)
     extends Column[Long](name, strict, primary_key)
   {
-    def sql_type: String = "INTEGER"
+    def sql_type: String = "BIGINT"
     def apply(rs: ResultSet): Long = rs.getLong(name)
   }
 
   class Column_Double private[SQL](name: String, strict: Boolean, primary_key: Boolean)
     extends Column[Double](name, strict, primary_key)
   {
-    def sql_type: String = "REAL"
+    def sql_type: String = "DOUBLE PRECISION"
     def apply(rs: ResultSet): Double = rs.getDouble(name)
   }
 
@@ -111,10 +113,10 @@ object SQL
     }
   }
 
-  class Column_Bytes private[SQL](name: String, strict: Boolean, primary_key: Boolean)
+  class Column_Bytes private[SQL](
+    name: String, strict: Boolean, primary_key: Boolean, val sql_type: String)
     extends Column[Bytes](name, strict, primary_key)
   {
-    def sql_type: String = "BLOB"
     def apply(rs: ResultSet): Bytes =
     {
       val bs = rs.getBytes(name)
