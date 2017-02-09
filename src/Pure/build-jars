@@ -60,14 +60,11 @@ declare -a SOURCES=(
   General/output.scala
   General/path.scala
   General/position.scala
-  General/postgresql.scala
   General/pretty.scala
   General/properties.scala
   General/scan.scala
   General/sha1.scala
   General/sql.scala
-  General/sql_database.scala
-  General/sqlite.scala
   General/ssh.scala
   General/symbol.scala
   General/time.scala
