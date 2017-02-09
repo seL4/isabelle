@@ -129,6 +129,14 @@ object SSH
   }
 
 
+  /* port forwarding */
+
+  sealed case class Port_Forwarding(ssh: SSH.Session, host: String, port: Int)
+  {
+    def close() { ssh.session.delPortForwardingL(host, port) }
+  }
+
+
   /* Sftp channel */
 
   type Attrs = SftpATTRS
@@ -233,6 +241,15 @@ object SSH
 
     override def toString: String =
       user_prefix + host + port_suffix + (if (session.isConnected) "" else " (disconnected)")
+
+
+    /* port forwarding */
+
+    def port_forwarding(
+        remote_port: Int, remote_host: String = "localhost",
+        local_port: Int = 0, local_host: String = "localhost"): Port_Forwarding =
+      Port_Forwarding(this, local_host,
+        session.setPortForwardingL(local_host, local_port, remote_host, remote_port))
 
 
     /* sftp channel */
