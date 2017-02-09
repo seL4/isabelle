@@ -257,12 +257,12 @@ object SQLite
     val s0 = File.platform_path(path0)
     val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
     val connection = DriverManager.getConnection("jdbc:sqlite:" + s1)
-    new Database(path0, connection)
+    new Database(path0.toString, connection)
   }
 
-  class Database private[SQLite](path: Path, val connection: Connection) extends SQL.Database
+  class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database
   {
-    override def toString: String = path.toString
+    override def toString: String = name
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
@@ -289,11 +289,11 @@ object PostgreSQL
       (if (port != default_port) ":" + port else "") + "/" +
       (if (database != "") database else user)
     val connection = DriverManager.getConnection("jdbc:postgresql://" + spec, user, password)
-    new Database(spec, connection)
+    new Database(user + "@" + spec, connection)
   }
 
-  class Database private[PostgreSQL](spec: String, val connection: Connection) extends SQL.Database
+  class Database private[PostgreSQL](name: String, val connection: Connection) extends SQL.Database
   {
-    override def toString: String = spec
+    override def toString: String = name
   }
 }
