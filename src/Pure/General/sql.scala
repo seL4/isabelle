@@ -7,7 +7,7 @@ Support for SQL databases: SQLite and PostgreSQL.
 package isabelle
 
 
-import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
+import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet, Timestamp}
 
 
 object SQL
@@ -49,6 +49,7 @@ object SQL
     val Double = Value("DOUBLE PRECISION")
     val String = Value("TEXT")
     val Bytes = Value("BLOB")
+    val Date = Value("TIMESTAMP WITH TIME ZONE")
   }
 
   type Type_Name = Type.Value => String
@@ -57,6 +58,7 @@ object SQL
 
   def type_name_sqlite(t: Type.Value): String =
     if (t == Type.Boolean) "INTEGER"
+    else if (t == Type.Date) "TEXT"
     else type_name_default(t)
 
   def type_name_postgresql(t: Type.Value): String =
@@ -80,6 +82,8 @@ object SQL
       new Column_String(name, strict, primary_key)
     def bytes(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Bytes] =
       new Column_Bytes(name, strict, primary_key)
+    def date(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Date] =
+      new Column_Date(name, strict, primary_key)
   }
 
   abstract class Column[+A] private[SQL](
@@ -150,6 +154,15 @@ object SQL
     {
       val bs = rs.getBytes(name)
       if (bs == null) Bytes.empty else Bytes(bs)
+    }
+  }
+
+  class Column_Date private[SQL](name: String, strict: Boolean, primary_key: Boolean)
+    extends Column[Date](name, strict, primary_key, Type.Date)
+  {
+    def apply(rs: ResultSet): Date =
+    {
+      Date.instant(rs.getTimestamp(name).toInstant)
     }
   }
 

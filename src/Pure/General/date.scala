@@ -8,7 +8,8 @@ package isabelle
 
 
 import java.util.Locale
-import java.time.{Instant, ZonedDateTime, LocalTime, ZoneId}
+import java.sql.Timestamp
+import java.time.{Instant, ZonedDateTime, LocalTime, ZoneId, OffsetDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
 
@@ -79,8 +80,10 @@ object Date
 
   def now(zone: ZoneId = timezone()): Date = new Date(ZonedDateTime.now(zone))
 
-  def apply(t: Time, zone: ZoneId = timezone()): Date =
-    new Date(ZonedDateTime.ofInstant(t.instant, zone))
+  def instant(t: Instant, zone: ZoneId = timezone()): Date =
+    new Date(ZonedDateTime.ofInstant(t, zone))
+
+  def apply(t: Time, zone: ZoneId = timezone()): Date = instant(t.instant, zone)
 }
 
 sealed case class Date(rep: ZonedDateTime)
@@ -91,7 +94,9 @@ sealed case class Date(rep: ZonedDateTime)
   def to(zone: ZoneId): Date = new Date(rep.withZoneSameInstant(zone))
   def to_utc: Date = to(ZoneId.of("UTC"))
 
-  def time: Time = Time.instant(Instant.from(rep))
+  def instant: Instant = Instant.from(rep)
+  def timestamp: Timestamp = Timestamp.from(instant)
+  def time: Time = Time.instant(instant)
   def timezone: ZoneId = rep.getZone
 
   def format(fmt: Date.Format = Date.Format.default): String = fmt(this)
