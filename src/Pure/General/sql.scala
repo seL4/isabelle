@@ -52,7 +52,16 @@ object SQL
   }
 
   type Type_Name = Type.Value => String
-  def default_type_name(t: Type.Value): String = t.toString
+
+  def type_name_default(t: Type.Value): String = t.toString
+
+  def type_name_sqlite(t: Type.Value): String =
+    if (t == Type.Boolean) "INTEGER"
+    else type_name_default(t)
+
+  def type_name_postgresql(t: Type.Value): String =
+    if (t == Type.Bytes) "BYTEA"
+    else type_name_default(t)
 
 
   /* columns */
@@ -97,7 +106,7 @@ object SQL
       if (rs.wasNull) None else Some(x)
     }
 
-    override def toString: String = sql_decl(default_type_name)
+    override def toString: String = sql_decl(type_name_default)
   }
 
   class Column_Boolean private[SQL](name: String, strict: Boolean, primary_key: Boolean)
@@ -286,9 +295,7 @@ object SQLite
   {
     override def toString: String = name
 
-    def type_name(t: SQL.Type.Value): String =
-      if (t == SQL.Type.Boolean) "INTEGER"
-      else SQL.default_type_name(t)
+    def type_name(t: SQL.Type.Value): String = SQL.type_name_sqlite(t)
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
@@ -342,9 +349,7 @@ object PostgreSQL
   {
     override def toString: String = name
 
-    def type_name(t: SQL.Type.Value): String =
-      if (t == SQL.Type.Bytes) "BYTEA"
-      else SQL.default_type_name(t)
+    def type_name(t: SQL.Type.Value): String = SQL.type_name_postgresql(t)
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }
