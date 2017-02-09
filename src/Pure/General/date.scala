@@ -39,6 +39,7 @@ object Date
     val default: Format = Format("dd-MMM-uuuu HH:mm:ss xx")
     val date: Format = Format("dd-MMM-uuuu")
     val time: Format = Format("HH:mm:ss")
+    val timestamp: Format = Format("uuuu-MM-dd HH:mm:ss.SSS x")
   }
 
   abstract class Format private
