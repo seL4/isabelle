@@ -304,16 +304,22 @@ object PostgreSQL
     val db_port = if (port != default_port) ":" + port else ""
     val db_name = "/" + (if (database != "") database else user)
 
-    val (spec, port_forwarding) =
+    val (url, name, port_forwarding) =
       ssh match {
-        case None => (db_host + db_port + db_name, None)
+        case None =>
+          val spec = db_host + db_port + db_name
+          val url = "jdbc:postgresql://" + spec
+          val name = user + "@" + spec
+          (url, name, None)
         case Some(ssh) =>
           val fw = ssh.port_forwarding(remote_host = db_host, remote_port = port)
-          ("localhost:" + fw.port + db_name, Some(fw))
+          val url = "jdbc:postgresql://localhost:" + fw.local_port + db_name
+          val name = user + "@" + fw + db_name + " via ssh " + ssh
+          (url, name, Some(fw))
       }
     try {
-      val connection = DriverManager.getConnection("jdbc:postgresql://" + spec, user, password)
-      new Database(user + "@" + spec, connection, port_forwarding)
+      val connection = DriverManager.getConnection(url, user, password)
+      new Database(name, connection, port_forwarding)
     }
     catch { case exn: Throwable => port_forwarding.foreach(_.close); throw exn }
   }
@@ -322,11 +328,7 @@ object PostgreSQL
       name: String, val connection: Connection, port_forwarding: Option[SSH.Port_Forwarding])
     extends SQL.Database
   {
-    override def toString: String =
-      port_forwarding match {
-        case None => name
-        case Some(fw) => name + " via ssh " + fw.ssh
-      }
+    override def toString: String = name
 
     override def type_name(t: SQL.Type.Value): String =
       if (t == SQL.Type.Bytes) "BYTEA"

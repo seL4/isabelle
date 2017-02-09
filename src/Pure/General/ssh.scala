@@ -131,9 +131,27 @@ object SSH
 
   /* port forwarding */
 
-  sealed case class Port_Forwarding(ssh: SSH.Session, host: String, port: Int)
+  object Port_Forwarding
   {
-    def close() { ssh.session.delPortForwardingL(host, port) }
+    def open(ssh: Session,
+      local_host: String, local_port: Int, remote_host: String, remote_port: Int): Port_Forwarding =
+    {
+      val port = ssh.session.setPortForwardingL(local_host, local_port, remote_host, remote_port)
+      new Port_Forwarding(ssh, local_host, port, remote_host, remote_port)
+    }
+  }
+
+  class Port_Forwarding private[SSH](
+    ssh: SSH.Session,
+    val local_host: String,
+    val local_port: Int,
+    val remote_host: String,
+    val remote_port: Int)
+  {
+    override def toString: String =
+      local_host + ":" + local_port + ":" + remote_host + ":" + remote_port
+
+    def close() { ssh.session.delPortForwardingL(local_host, local_port) }
   }
 
 
@@ -245,11 +263,9 @@ object SSH
 
     /* port forwarding */
 
-    def port_forwarding(
-        remote_port: Int, remote_host: String = "localhost",
+    def port_forwarding(remote_port: Int, remote_host: String = "localhost",
         local_port: Int = 0, local_host: String = "localhost"): Port_Forwarding =
-      Port_Forwarding(this, local_host,
-        session.setPortForwardingL(local_host, local_port, remote_host, remote_port))
+      Port_Forwarding.open(this, local_host, local_port, remote_host, remote_port)
 
 
     /* sftp channel */
