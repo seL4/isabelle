@@ -43,6 +43,7 @@ object SQL
 
   object Type extends Enumeration
   {
+    val Boolean = Value("BOOLEAN")
     val Int = Value("INTEGER")
     val Long = Value("BIGINT")
     val Double = Value("DOUBLE PRECISION")
@@ -58,6 +59,8 @@ object SQL
 
   object Column
   {
+    def bool(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Boolean] =
+      new Column_Boolean(name, strict, primary_key)
     def int(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Int] =
       new Column_Int(name, strict, primary_key)
     def long(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Long] =
@@ -95,6 +98,12 @@ object SQL
     }
 
     override def toString: String = sql_decl(default_type_name)
+  }
+
+  class Column_Boolean private[SQL](name: String, strict: Boolean, primary_key: Boolean)
+    extends Column[Boolean](name, strict, primary_key, Type.Boolean)
+  {
+    def apply(rs: ResultSet): Boolean = rs.getBoolean(name)
   }
 
   class Column_Int private[SQL](name: String, strict: Boolean, primary_key: Boolean)
@@ -203,7 +212,7 @@ object SQL
   {
     /* types */
 
-    def type_name(t: Type.Value): String = default_type_name(t)
+    def type_name(t: Type.Value): String
 
 
     /* connection */
@@ -278,6 +287,10 @@ object SQLite
   {
     override def toString: String = name
 
+    def type_name(t: SQL.Type.Value): String =
+      if (t == SQL.Type.Boolean) "INTEGER"
+      else SQL.default_type_name(t)
+
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
 }
@@ -330,7 +343,7 @@ object PostgreSQL
   {
     override def toString: String = name
 
-    override def type_name(t: SQL.Type.Value): String =
+    def type_name(t: SQL.Type.Value): String =
       if (t == SQL.Type.Bytes) "BYTEA"
       else SQL.default_type_name(t)
 
