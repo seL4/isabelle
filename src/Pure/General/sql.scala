@@ -195,6 +195,9 @@ object SQL
   }
 
 
+
+  /** SQL database operations **/
+
   /* results */
 
   def iterator[A](rs: ResultSet)(get: ResultSet => A): Iterator[A] = new Iterator[A]
@@ -203,10 +206,6 @@ object SQL
     def hasNext: Boolean = _next
     def next: A = { val x = get(rs); _next = rs.next(); x }
   }
-
-
-
-  /** SQL database operations **/
 
   trait Database
   {
