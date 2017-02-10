@@ -52,8 +52,6 @@ object SQL
     val Date = Value("TIMESTAMP WITH TIME ZONE")
   }
 
-  type Type_Name = Type.Value => String
-
   def type_name_default(t: Type.Value): String = t.toString
 
   def type_name_sqlite(t: Type.Value): String =
@@ -70,108 +68,38 @@ object SQL
 
   object Column
   {
-    def bool(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Boolean] =
-      new Column_Boolean(name, strict, primary_key)
-    def int(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Int] =
-      new Column_Int(name, strict, primary_key)
-    def long(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Long] =
-      new Column_Long(name, strict, primary_key)
-    def double(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Double] =
-      new Column_Double(name, strict, primary_key)
-    def string(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[String] =
-      new Column_String(name, strict, primary_key)
-    def bytes(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Bytes] =
-      new Column_Bytes(name, strict, primary_key)
-    def date(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Date] =
-      new Column_Date(name, strict, primary_key)
+    def bool(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Boolean, strict, primary_key)
+    def int(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Int, strict, primary_key)
+    def long(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Long, strict, primary_key)
+    def double(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Double, strict, primary_key)
+    def string(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.String, strict, primary_key)
+    def bytes(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Bytes, strict, primary_key)
+    def date(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Date, strict, primary_key)
   }
 
-  abstract class Column[+A] private[SQL](
-      val name: String,
-      val strict: Boolean,
-      val primary_key: Boolean,
-      val sql_type: Type.Value) extends Function[ResultSet, A]
+  sealed case class Column(
+    name: String, t: Type.Value, strict: Boolean = true, primary_key: Boolean = false)
   {
     def sql_name: String = quote_ident(name)
-    def sql_decl(type_name: Type_Name): String =
-      sql_name + " " + type_name(sql_type) +
+    def sql_decl(type_name: Type.Value => String): String =
+      sql_name + " " + type_name(t) +
       (if (strict) " NOT NULL" else "") +
       (if (primary_key) " PRIMARY KEY" else "")
 
-    def string(rs: ResultSet): String =
-    {
-      val s = rs.getString(name)
-      if (s == null) "" else s
-    }
-    def apply(rs: ResultSet): A
-    def get(rs: ResultSet): Option[A] =
-    {
-      val x = apply(rs)
-      if (rs.wasNull) None else Some(x)
-    }
-
     override def toString: String = sql_decl(type_name_default)
-  }
-
-  class Column_Boolean private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Boolean](name, strict, primary_key, Type.Boolean)
-  {
-    def apply(rs: ResultSet): Boolean = rs.getBoolean(name)
-  }
-
-  class Column_Int private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Int](name, strict, primary_key, Type.Int)
-  {
-    def apply(rs: ResultSet): Int = rs.getInt(name)
-  }
-
-  class Column_Long private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Long](name, strict, primary_key, Type.Long)
-  {
-    def apply(rs: ResultSet): Long = rs.getLong(name)
-  }
-
-  class Column_Double private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Double](name, strict, primary_key, Type.Double)
-  {
-    def apply(rs: ResultSet): Double = rs.getDouble(name)
-  }
-
-  class Column_String private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[String](name, strict, primary_key, Type.String)
-  {
-    def apply(rs: ResultSet): String =
-    {
-      val s = rs.getString(name)
-      if (s == null) "" else s
-    }
-  }
-
-  class Column_Bytes private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Bytes](name, strict, primary_key, Type.Bytes)
-  {
-    def apply(rs: ResultSet): Bytes =
-    {
-      val bs = rs.getBytes(name)
-      if (bs == null) Bytes.empty else Bytes(bs)
-    }
-  }
-
-  class Column_Date private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Date](name, strict, primary_key, Type.Date)
-  {
-    def apply(rs: ResultSet): Date =
-    {
-      Date.instant(rs.getTimestamp(name).toInstant)
-    }
   }
 
 
   /* tables */
 
-  def table(name: String, columns: List[Column[Any]]): Table = new Table(name, columns)
-
-  class Table private[SQL](name: String, columns: List[Column[Any]])
+  sealed case class Table(name: String, columns: List[Column])
   {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
@@ -187,7 +115,7 @@ object SQL
       case _ =>
     }
 
-    def sql_create(strict: Boolean, rowid: Boolean, type_name: Type_Name): String =
+    def sql_create(strict: Boolean, rowid: Boolean, type_name: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
         quote_ident(name) + " " + enclosure(columns.map(_.sql_decl(type_name))) +
         (if (rowid) "" else " WITHOUT ROWID")
@@ -196,7 +124,7 @@ object SQL
       "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + quote_ident(name)
 
     def sql_create_index(
-        index_name: String, index_columns: List[Column[Any]],
+        index_name: String, index_columns: List[Column],
         strict: Boolean, unique: Boolean): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
         (if (strict) "" else "IF NOT EXISTS ") + quote_ident(index_name) + " ON " +
@@ -208,7 +136,7 @@ object SQL
     def sql_insert: String =
       "INSERT INTO " + quote_ident(name) + " VALUES " + enclosure(columns.map(_ => "?"))
 
-    def sql_select(select_columns: List[Column[Any]], distinct: Boolean): String =
+    def sql_select(select_columns: List[Column], distinct: Boolean): String =
       "SELECT " + (if (distinct) "DISTINCT " else "") +
       commas(select_columns.map(_.sql_name)) + " FROM " + quote_ident(name)
 
@@ -264,9 +192,35 @@ object SQL
 
     def insert_statement(table: Table): PreparedStatement = statement(table.sql_insert)
 
-    def select_statement(table: Table, columns: List[Column[Any]],
+    def select_statement(table: Table, columns: List[Column],
         sql: String = "", distinct: Boolean = false): PreparedStatement =
       statement(table.sql_select(columns, distinct) + (if (sql == "") "" else " " + sql))
+
+
+    /* results */
+
+    def bool(rs: ResultSet, name: String): Boolean = rs.getBoolean(name)
+    def int(rs: ResultSet, name: String): Int = rs.getInt(name)
+    def long(rs: ResultSet, name: String): Long = rs.getLong(name)
+    def double(rs: ResultSet, name: String): Double = rs.getDouble(name)
+    def string(rs: ResultSet, name: String): String =
+    {
+      val s = rs.getString(name)
+      if (s == null) "" else s
+    }
+    def bytes(rs: ResultSet, name: String): Bytes =
+    {
+      val bs = rs.getBytes(name)
+      if (bs == null) Bytes.empty else Bytes(bs)
+    }
+    def date(rs: ResultSet, name: String): Date =
+      Date.instant(rs.getTimestamp(name).toInstant)
+
+    def get[A](rs: ResultSet, name: String, f: (ResultSet, String) => A): Option[A] =
+    {
+      val x = f(rs, name)
+      if (rs.wasNull) None else Some(x)
+    }
 
 
     /* tables */
@@ -280,7 +234,7 @@ object SQL
     def drop_table(table: Table, strict: Boolean = true): Unit =
       using(statement(table.sql_drop(strict)))(_.execute())
 
-    def create_index(table: Table, name: String, columns: List[Column[Any]],
+    def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = true, unique: Boolean = false): Unit =
       using(statement(table.sql_create_index(name, columns, strict, unique)))(_.execute())
 
