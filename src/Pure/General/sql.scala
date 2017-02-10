@@ -6,8 +6,8 @@ Support for SQL databases: SQLite and PostgreSQL.
 
 package isabelle
 
-
-import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet, Timestamp}
+import java.time.OffsetDateTime
+import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
 
 
 object SQL
@@ -207,8 +207,6 @@ object SQL
     def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
     { stmt.setBinaryStream(i, bytes.stream(), bytes.length) }
     def set_date(stmt: PreparedStatement, i: Int, date: Date)
-    { stmt.setTimestamp(i, date.timestamp) }
-
 
     /* output */
 
@@ -226,8 +224,7 @@ object SQL
       val bs = rs.getBytes(name)
       if (bs == null) Bytes.empty else Bytes(bs)
     }
-    def date(rs: ResultSet, name: String): Date =
-      Date.instant(rs.getTimestamp(name).toInstant)
+    def date(rs: ResultSet, name: String): Date
 
     def get[A](rs: ResultSet, name: String, f: (ResultSet, String) => A): Option[A] =
     {
@@ -262,6 +259,9 @@ object SQL
 
 object SQLite
 {
+  // see https://www.sqlite.org/lang_datefunc.html
+  val date_format: Date.Format = Date.Format("uuuu-MM-dd HH:mm:ss.SSS x")
+
   def open_database(path: Path): Database =
   {
     val path0 = path.expand
@@ -276,6 +276,11 @@ object SQLite
     override def toString: String = name
 
     def sql_type(T: SQL.Type.Value): String = SQL.sql_type_sqlite(T)
+
+    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
+      set_string(stmt, i, date_format(date))
+    def date(rs: ResultSet, name: String): Date =
+      date_format.parse(string(rs, name))
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
@@ -330,6 +335,12 @@ object PostgreSQL
     override def toString: String = name
 
     def sql_type(T: SQL.Type.Value): String = SQL.sql_type_postgresql(T)
+
+    // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
+    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
+      stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
+    def date(rs: ResultSet, name: String): Date =
+      Date.instant(rs.getObject(name, classOf[OffsetDateTime]).toInstant)
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }
