@@ -173,15 +173,16 @@ object SQL
     def transaction[A](body: => A): A =
     {
       val auto_commit = connection.getAutoCommit
-      val savepoint = connection.setSavepoint
-
       try {
         connection.setAutoCommit(false)
-        val result = body
-        connection.commit
-        result
+        val savepoint = connection.setSavepoint
+        try {
+          val result = body
+          connection.commit
+          result
+        }
+        catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
       }
-      catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
       finally { connection.setAutoCommit(auto_commit) }
     }
 
@@ -207,6 +208,7 @@ object SQL
     def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
     { stmt.setBinaryStream(i, bytes.stream(), bytes.length) }
     def set_date(stmt: PreparedStatement, i: Int, date: Date)
+
 
     /* output */
 
