@@ -78,7 +78,7 @@ fun str_of_rule_name Refl = "Refl"
   | str_of_rule_name (Let ts) =
     "Let[" ^ commas (map (Syntax.string_of_term @{context}) ts) ^ "]";
 
-datatype rule = Rule of rule_name * rule list;
+datatype node = Node of rule_name * node list;
 
 fun lambda_count (Abs (_, _, t)) = lambda_count t + 1
   | lambda_count ((t as Abs _) $ _) = lambda_count t - 1
@@ -162,7 +162,7 @@ fun apply_Let_right ts bound_Ts (lhs, rhs) =
     | _ => raise TERM ("apply_Let_right", [lhs, rhs]))
   end;
 
-fun reconstruct_proof ctxt (lrhs as (_, rhs), Rule (rule_name, prems)) =
+fun reconstruct_proof ctxt (lrhs as (_, rhs), Node (rule_name, prems)) =
   let
     val goal = HOLogic.mk_Trueprop (HOLogic.mk_eq lrhs);
     val ary = length prems;
@@ -221,7 +221,7 @@ ML \<open>
 val proof0 =
   ((@{term "\<exists>x :: nat. p x"},
     @{term "p (SOME x :: nat. p x)"}),
-   Rule (Sko_Ex, [Rule (Refl, [])]));
+   Node (Sko_Ex, [Node (Refl, [])]));
 
 reconstruct_proof @{context} proof0;
 \<close>
@@ -230,7 +230,7 @@ ML \<open>
 val proof1 =
   ((@{term "\<not> (\<forall>x :: nat. \<exists>y :: nat. p x y)"},
     @{term "\<not> (\<exists>y :: nat. p (SOME x :: nat. \<not> (\<exists>y :: nat. p x y)) y)"}),
-   Rule (Cong, [Rule (Sko_All, [Rule (Bind, [Rule (Refl, [])])])]));
+   Node (Cong, [Node (Sko_All, [Node (Bind, [Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof1;
 \<close>
@@ -240,7 +240,7 @@ val proof2 =
   ((@{term "\<forall>x :: nat. \<exists>y :: nat. \<exists>z :: nat. p x y z"},
     @{term "\<forall>x :: nat. p x (SOME y :: nat. \<exists>z :: nat. p x y z)
         (SOME z :: nat. p x (SOME y :: nat. \<exists>z :: nat. p x y z) z)"}),
-   Rule (Bind, [Rule (Sko_Ex, [Rule (Sko_Ex, [Rule (Refl, [])])])]));
+   Node (Bind, [Node (Sko_Ex, [Node (Sko_Ex, [Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof2
 \<close>
@@ -249,7 +249,7 @@ ML \<open>
 val proof3 =
   ((@{term "\<forall>x :: nat. \<exists>x :: nat. \<exists>x :: nat. p x x x"},
     @{term "\<forall>x :: nat. p (SOME x :: nat. p x x x) (SOME x. p x x x) (SOME x. p x x x)"}),
-   Rule (Bind, [Rule (Sko_Ex, [Rule (Sko_Ex, [Rule (Refl, [])])])]));
+   Node (Bind, [Node (Sko_Ex, [Node (Sko_Ex, [Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof3
 \<close>
@@ -258,7 +258,7 @@ ML \<open>
 val proof4 =
   ((@{term "\<forall>x :: nat. \<exists>x :: nat. \<exists>x :: nat. p x x x"},
     @{term "\<forall>x :: nat. \<exists>x :: nat. p (SOME x :: nat. p x x x) (SOME x. p x x x) (SOME x. p x x x)"}),
-   Rule (Bind, [Rule (Bind, [Rule (Sko_Ex, [Rule (Refl, [])])])]));
+   Node (Bind, [Node (Bind, [Node (Sko_Ex, [Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof4
 \<close>
@@ -268,19 +268,19 @@ val proof5 =
   ((@{term "\<forall>x :: nat. q \<and> (\<exists>x :: nat. \<exists>x :: nat. p x x x)"},
     @{term "\<forall>x :: nat. q \<and>
         (\<exists>x :: nat. p (SOME x :: nat. p x x x) (SOME x. p x x x) (SOME x. p x x x))"}),
-   Rule (Bind, [Rule (Cong, [Rule (Refl, []), Rule (Bind, [Rule (Sko_Ex,
-     [Rule (Refl, [])])])])]));
+   Node (Bind, [Node (Cong, [Node (Refl, []), Node (Bind, [Node (Sko_Ex,
+     [Node (Refl, [])])])])]));
 
 reconstruct_proof @{context} proof5
 \<close>
 
 ML \<open>
 val proof6 =
-  ((@{term "\<not> (\<forall>x :: nat. q \<and> (\<exists>x :: nat. \<forall>x :: nat. p x x x))"},
-    @{term "\<not> (\<forall>x :: nat. q \<and>
-        (\<exists>x :: nat. p (SOME x :: nat. \<not> p x x x) (SOME x. \<not> p x x x) (SOME x. \<not> p x x x)))"}),
-   Rule (Cong, [Rule (Bind, [Rule (Cong, [Rule (Refl, []), Rule (Bind, [Rule (Sko_All,
-     [Rule (Refl, [])])])])])]));
+  ((@{term "\<not> (\<forall>x :: nat. p \<and> (\<exists>x :: nat. \<forall>x :: nat. q x x))"},
+    @{term "\<not> (\<forall>x :: nat. p \<and>
+        (\<exists>x :: nat. q (SOME x :: nat. \<not> q x x) (SOME x. \<not> q x x)))"}),
+   Node (Cong, [Node (Bind, [Node (Cong, [Node (Refl, []), Node (Bind, [Node (Sko_All,
+     [Node (Refl, [])])])])])]));
 
 reconstruct_proof @{context} proof6
 \<close>
@@ -289,7 +289,7 @@ ML \<open>
 val proof7 =
   ((@{term "\<not> \<not> (\<exists>x. p x)"},
     @{term "\<not> \<not> p (SOME x. p x)"}),
-   Rule (Cong, [Rule (Cong, [Rule (Sko_Ex, [Rule (Refl, [])])])]));
+   Node (Cong, [Node (Cong, [Node (Sko_Ex, [Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof7
 \<close>
@@ -298,8 +298,8 @@ ML \<open>
 val proof8 =
   ((@{term "\<not> \<not> (let x = Suc x in x = 0)"},
     @{term "\<not> \<not> Suc x = 0"}),
-   Rule (Cong, [Rule (Cong, [Rule (Let [@{term "Suc x"}],
-     [Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Cong, [Node (Cong, [Node (Let [@{term "Suc x"}],
+     [Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof8
 \<close>
@@ -308,7 +308,7 @@ ML \<open>
 val proof9 =
   ((@{term "\<not> (let x = Suc x in x = 0)"},
     @{term "\<not> Suc x = 0"}),
-   Rule (Cong, [Rule (Let [@{term "Suc x"}], [Rule (Refl, []), Rule (Refl, [])])]));
+   Node (Cong, [Node (Let [@{term "Suc x"}], [Node (Refl, []), Node (Refl, [])])]));
 
 reconstruct_proof @{context} proof9
 \<close>
@@ -317,7 +317,7 @@ ML \<open>
 val proof10 =
   ((@{term "\<exists>x :: nat. p (x + 0)"},
     @{term "\<exists>x :: nat. p x"}),
-   Rule (Bind, [Rule (Cong, [Rule (Taut @{thm add_0_right}, [])])]));
+   Node (Bind, [Node (Cong, [Node (Taut @{thm add_0_right}, [])])]));
 
 reconstruct_proof @{context} proof10;
 \<close>
@@ -326,8 +326,8 @@ ML \<open>
 val proof11 =
   ((@{term "\<not> (let (x, y) = (Suc y, Suc x) in y = 0)"},
     @{term "\<not> Suc x = 0"}),
-   Rule (Cong, [Rule (Let [@{term "Suc y"}, @{term "Suc x"}],
-     [Rule (Refl, []), Rule (Refl, []), Rule (Refl, [])])]));
+   Node (Cong, [Node (Let [@{term "Suc y"}, @{term "Suc x"}],
+     [Node (Refl, []), Node (Refl, []), Node (Refl, [])])]));
 
 reconstruct_proof @{context} proof11
 \<close>
@@ -336,10 +336,10 @@ ML \<open>
 val proof12 =
   ((@{term "\<not> (let (x, y) = (Suc y, Suc x); (u, v, w) = (y, x, y) in w = 0)"},
     @{term "\<not> Suc x = 0"}),
-   Rule (Cong, [Rule (Let [@{term "Suc y"}, @{term "Suc x"}],
-     [Rule (Refl, []), Rule (Refl, []),
-       Rule (Let [@{term "Suc x"}, @{term "Suc y"}, @{term "Suc x"}],
-         [Rule (Refl, []), Rule (Refl, []), Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Cong, [Node (Let [@{term "Suc y"}, @{term "Suc x"}],
+     [Node (Refl, []), Node (Refl, []),
+       Node (Let [@{term "Suc x"}, @{term "Suc y"}, @{term "Suc x"}],
+         [Node (Refl, []), Node (Refl, []), Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof12
 \<close>
@@ -348,8 +348,8 @@ ML \<open>
 val proof13 =
   ((@{term "\<not> \<not> (let x = Suc x in x = 0)"},
     @{term "\<not> \<not> Suc x = 0"}),
-   Rule (Cong, [Rule (Cong, [Rule (Let [@{term "Suc x"}],
-     [Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Cong, [Node (Cong, [Node (Let [@{term "Suc x"}],
+     [Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof13
 \<close>
@@ -358,8 +358,8 @@ ML \<open>
 val proof14 =
   ((@{term "let (x, y) = (f (a :: nat), b :: nat) in x > a"},
     @{term "f (a :: nat) > a"}),
-   Rule (Let [@{term "f (a :: nat) :: nat"}, @{term "b :: nat"}],
-     [Rule (Cong, [Rule (Refl, [])]), Rule (Refl, []), Rule (Refl, [])]));
+   Node (Let [@{term "f (a :: nat) :: nat"}, @{term "b :: nat"}],
+     [Node (Cong, [Node (Refl, [])]), Node (Refl, []), Node (Refl, [])]));
 
 reconstruct_proof @{context} proof14
 \<close>
@@ -368,9 +368,9 @@ ML \<open>
 val proof15 =
   ((@{term "let x = (let y = g (z :: nat) in f (y :: nat)) in x = Suc 0"},
     @{term "f (g (z :: nat) :: nat) = Suc 0"}),
-   Rule (Let [@{term "f (g (z :: nat) :: nat) :: nat"}],
-     [Rule (Let [@{term "g (z :: nat) :: nat"}], [Rule (Refl, []), Rule (Refl, [])]),
-      Rule (Refl, [])]));
+   Node (Let [@{term "f (g (z :: nat) :: nat) :: nat"}],
+     [Node (Let [@{term "g (z :: nat) :: nat"}], [Node (Refl, []), Node (Refl, [])]),
+      Node (Refl, [])]));
 
 reconstruct_proof @{context} proof15
 \<close>
@@ -379,7 +379,7 @@ ML \<open>
 val proof16 =
   ((@{term "a > Suc b"},
     @{term "a > Suc b"}),
-   Rule (Trans @{term "a > Suc b"}, [Rule (Refl, []), Rule (Refl, [])]));
+   Node (Trans @{term "a > Suc b"}, [Node (Refl, []), Node (Refl, [])]));
 
 reconstruct_proof @{context} proof16
 \<close>
@@ -392,8 +392,8 @@ ML \<open>
 val proof17 =
   ((@{term "2 :: nat"},
     @{term "Suc (Suc 0) :: nat"}),
-   Rule (Trans @{term "Suc 1"}, [Rule (Taut @{thm Suc_1[symmetric]}, []),
-     Rule (Cong, [Rule (Taut @{thm One_nat_def}, [])])]));
+   Node (Trans @{term "Suc 1"}, [Node (Taut @{thm Suc_1[symmetric]}, []),
+     Node (Cong, [Node (Taut @{thm One_nat_def}, [])])]));
 
 reconstruct_proof @{context} proof17
 \<close>
@@ -402,9 +402,9 @@ ML \<open>
 val proof18 =
   ((@{term "let x = a in let y = b in Suc x + y"},
     @{term "Suc a + b"}),
-   Rule (Trans @{term "let y = b in Suc a + y"},
-     [Rule (Let [@{term "a :: nat"}], [Rule (Refl, []), Rule (Refl, [])]),
-      Rule (Let [@{term "b :: nat"}], [Rule (Refl, []), Rule (Refl, [])])]));
+   Node (Trans @{term "let y = b in Suc a + y"},
+     [Node (Let [@{term "a :: nat"}], [Node (Refl, []), Node (Refl, [])]),
+      Node (Let [@{term "b :: nat"}], [Node (Refl, []), Node (Refl, [])])]));
 
 reconstruct_proof @{context} proof18
 \<close>
@@ -413,8 +413,8 @@ ML \<open>
 val proof19 =
   ((@{term "\<forall>x. let x = f (x :: nat) :: nat in g x"},
     @{term "\<forall>x. g (f (x :: nat) :: nat)"}),
-   Rule (Bind, [Rule (Let [@{term "f :: nat \<Rightarrow> nat"} $ Bound 0],
-     [Rule (Refl, []), Rule (Refl, [])])]));
+   Node (Bind, [Node (Let [@{term "f :: nat \<Rightarrow> nat"} $ Bound 0],
+     [Node (Refl, []), Node (Refl, [])])]));
 
 reconstruct_proof @{context} proof19
 \<close>
@@ -423,9 +423,9 @@ ML \<open>
 val proof20 =
   ((@{term "\<forall>x. let y = Suc 0 in let x = f (x :: nat) :: nat in g x"},
     @{term "\<forall>x. g (f (x :: nat) :: nat)"}),
-   Rule (Bind, [Rule (Let [@{term "Suc 0"}],
-     [Rule (Refl, []), Rule (Let [@{term "f (x :: nat) :: nat"}],
-        [Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Bind, [Node (Let [@{term "Suc 0"}],
+     [Node (Refl, []), Node (Let [@{term "f (x :: nat) :: nat"}],
+        [Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof20
 \<close>
@@ -434,9 +434,9 @@ ML \<open>
 val proof21 =
   ((@{term "\<forall>x :: nat. let x = f x :: nat in let y = x in p y"},
     @{term "\<forall>z :: nat. p (f z :: nat)"}),
-   Rule (Bind, [Rule (Let [@{term "f (z :: nat) :: nat"}],
-     [Rule (Refl, []), Rule (Let [@{term "f (z :: nat) :: nat"}],
-        [Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Bind, [Node (Let [@{term "f (z :: nat) :: nat"}],
+     [Node (Refl, []), Node (Let [@{term "f (z :: nat) :: nat"}],
+        [Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof21
 \<close>
@@ -445,9 +445,9 @@ ML \<open>
 val proof22 =
   ((@{term "\<forall>x :: nat. let x = f x :: nat in let y = x in p y"},
     @{term "\<forall>x :: nat. p (f x :: nat)"}),
-   Rule (Bind, [Rule (Let [@{term "f (x :: nat) :: nat"}],
-     [Rule (Refl, []), Rule (Let [@{term "f (x :: nat) :: nat"}],
-        [Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Bind, [Node (Let [@{term "f (x :: nat) :: nat"}],
+     [Node (Refl, []), Node (Let [@{term "f (x :: nat) :: nat"}],
+        [Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof22
 \<close>
@@ -456,9 +456,9 @@ ML \<open>
 val proof23 =
   ((@{term "\<forall>x :: nat. let (x, a) = (f x :: nat, 0 ::nat) in let y = x in p y"},
     @{term "\<forall>z :: nat. p (f z :: nat)"}),
-   Rule (Bind, [Rule (Let [@{term "f (z :: nat) :: nat"}, @{term "0 :: nat"}],
-     [Rule (Refl, []), Rule (Refl, []), Rule (Let [@{term "f (z :: nat) :: nat"}],
-        [Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Bind, [Node (Let [@{term "f (z :: nat) :: nat"}, @{term "0 :: nat"}],
+     [Node (Refl, []), Node (Refl, []), Node (Let [@{term "f (z :: nat) :: nat"}],
+        [Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof23
 \<close>
@@ -467,9 +467,9 @@ ML \<open>
 val proof24 =
   ((@{term "\<forall>x :: nat. let (x, a) = (f x :: nat, 0 ::nat) in let y = x in p y"},
     @{term "\<forall>x :: nat. p (f x :: nat)"}),
-   Rule (Bind, [Rule (Let [@{term "f (x :: nat) :: nat"}, @{term "0 :: nat"}],
-     [Rule (Refl, []), Rule (Refl, []), Rule (Let [@{term "f (x :: nat) :: nat"}],
-        [Rule (Refl, []), Rule (Refl, [])])])]));
+   Node (Bind, [Node (Let [@{term "f (x :: nat) :: nat"}, @{term "0 :: nat"}],
+     [Node (Refl, []), Node (Refl, []), Node (Let [@{term "f (x :: nat) :: nat"}],
+        [Node (Refl, []), Node (Refl, [])])])]));
 
 reconstruct_proof @{context} proof24
 \<close>
