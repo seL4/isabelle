@@ -52,16 +52,16 @@ object SQL
     val Date = Value("TIMESTAMP WITH TIME ZONE")
   }
 
-  def type_name_default(t: Type.Value): String = t.toString
+  def sql_type_default(T: Type.Value): String = T.toString
 
-  def type_name_sqlite(t: Type.Value): String =
-    if (t == Type.Boolean) "INTEGER"
-    else if (t == Type.Date) "TEXT"
-    else type_name_default(t)
+  def sql_type_sqlite(T: Type.Value): String =
+    if (T == Type.Boolean) "INTEGER"
+    else if (T == Type.Date) "TEXT"
+    else sql_type_default(T)
 
-  def type_name_postgresql(t: Type.Value): String =
-    if (t == Type.Bytes) "BYTEA"
-    else type_name_default(t)
+  def sql_type_postgresql(T: Type.Value): String =
+    if (T == Type.Bytes) "BYTEA"
+    else sql_type_default(T)
 
 
   /* columns */
@@ -85,15 +85,15 @@ object SQL
   }
 
   sealed case class Column(
-    name: String, t: Type.Value, strict: Boolean = true, primary_key: Boolean = false)
+    name: String, T: Type.Value, strict: Boolean = true, primary_key: Boolean = false)
   {
     def sql_name: String = quote_ident(name)
-    def sql_decl(type_name: Type.Value => String): String =
-      sql_name + " " + type_name(t) +
+    def sql_decl(sql_type: Type.Value => String): String =
+      sql_name + " " + sql_type(T) +
       (if (strict) " NOT NULL" else "") +
       (if (primary_key) " PRIMARY KEY" else "")
 
-    override def toString: String = sql_decl(type_name_default)
+    override def toString: String = sql_decl(sql_type_default)
   }
 
 
@@ -115,9 +115,9 @@ object SQL
       case _ =>
     }
 
-    def sql_create(strict: Boolean, rowid: Boolean, type_name: Type.Value => String): String =
+    def sql_create(strict: Boolean, rowid: Boolean, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        quote_ident(name) + " " + enclosure(columns.map(_.sql_decl(type_name))) +
+        quote_ident(name) + " " + enclosure(columns.map(_.sql_decl(sql_type))) +
         (if (rowid) "" else " WITHOUT ROWID")
 
     def sql_drop(strict: Boolean): String =
@@ -161,7 +161,7 @@ object SQL
   {
     /* types */
 
-    def type_name(t: Type.Value): String
+    def sql_type(T: Type.Value): String
 
 
     /* connection */
@@ -229,7 +229,7 @@ object SQL
       iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
 
     def create_table(table: Table, strict: Boolean = true, rowid: Boolean = true): Unit =
-      using(statement(table.sql_create(strict, rowid, type_name)))(_.execute())
+      using(statement(table.sql_create(strict, rowid, sql_type)))(_.execute())
 
     def drop_table(table: Table, strict: Boolean = true): Unit =
       using(statement(table.sql_drop(strict)))(_.execute())
@@ -262,7 +262,7 @@ object SQLite
   {
     override def toString: String = name
 
-    def type_name(t: SQL.Type.Value): String = SQL.type_name_sqlite(t)
+    def sql_type(T: SQL.Type.Value): String = SQL.sql_type_sqlite(T)
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
@@ -316,7 +316,7 @@ object PostgreSQL
   {
     override def toString: String = name
 
-    def type_name(t: SQL.Type.Value): String = SQL.type_name_postgresql(t)
+    def sql_type(T: SQL.Type.Value): String = SQL.sql_type_postgresql(T)
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }
