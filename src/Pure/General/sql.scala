@@ -197,7 +197,20 @@ object SQL
       statement(table.sql_select(columns, distinct) + (if (sql == "") "" else " " + sql))
 
 
-    /* results */
+    /* input */
+
+    def set_bool(stmt: PreparedStatement, i: Int, x: Boolean) { stmt.setBoolean(i, x) }
+    def set_int(stmt: PreparedStatement, i: Int, x: Int) { stmt.setInt(i, x) }
+    def set_long(stmt: PreparedStatement, i: Int, x: Long) { stmt.setLong(i, x) }
+    def set_double(stmt: PreparedStatement, i: Int, x: Double) { stmt.setDouble(i, x) }
+    def set_string(stmt: PreparedStatement, i: Int, x: String) { stmt.setString(i, x) }
+    def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
+    { stmt.setBinaryStream(i, bytes.stream(), bytes.length) }
+    def set_date(stmt: PreparedStatement, i: Int, date: Date)
+    { stmt.setTimestamp(i, date.timestamp) }
+
+
+    /* output */
 
     def bool(rs: ResultSet, name: String): Boolean = rs.getBoolean(name)
     def int(rs: ResultSet, name: String): Int = rs.getInt(name)
