@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.util.Locale
-import java.sql.Timestamp
 import java.time.{Instant, ZonedDateTime, LocalTime, ZoneId, OffsetDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
@@ -39,7 +38,6 @@ object Date
     val default: Format = Format("dd-MMM-uuuu HH:mm:ss xx")
     val date: Format = Format("dd-MMM-uuuu")
     val time: Format = Format("HH:mm:ss")
-    val timestamp: Format = Format("uuuu-MM-dd HH:mm:ss.SSS x")
   }
 
   abstract class Format private
@@ -96,7 +94,6 @@ sealed case class Date(rep: ZonedDateTime)
   def to_utc: Date = to(ZoneId.of("UTC"))
 
   def instant: Instant = Instant.from(rep)
-  def timestamp: Timestamp = Timestamp.from(instant)
   def time: Time = Time.instant(instant)
   def timezone: ZoneId = rep.getZone
 

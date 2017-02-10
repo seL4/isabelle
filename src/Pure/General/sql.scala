@@ -6,8 +6,8 @@ Support for SQL databases: SQLite and PostgreSQL.
 
 package isabelle
 
-
-import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet, Timestamp}
+import java.time.OffsetDateTime
+import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
 
 
 object SQL
@@ -52,126 +52,54 @@ object SQL
     val Date = Value("TIMESTAMP WITH TIME ZONE")
   }
 
-  type Type_Name = Type.Value => String
+  def sql_type_default(T: Type.Value): String = T.toString
 
-  def type_name_default(t: Type.Value): String = t.toString
+  def sql_type_sqlite(T: Type.Value): String =
+    if (T == Type.Boolean) "INTEGER"
+    else if (T == Type.Date) "TEXT"
+    else sql_type_default(T)
 
-  def type_name_sqlite(t: Type.Value): String =
-    if (t == Type.Boolean) "INTEGER"
-    else if (t == Type.Date) "TEXT"
-    else type_name_default(t)
-
-  def type_name_postgresql(t: Type.Value): String =
-    if (t == Type.Bytes) "BYTEA"
-    else type_name_default(t)
+  def sql_type_postgresql(T: Type.Value): String =
+    if (T == Type.Bytes) "BYTEA"
+    else sql_type_default(T)
 
 
   /* columns */
 
   object Column
   {
-    def bool(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Boolean] =
-      new Column_Boolean(name, strict, primary_key)
-    def int(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Int] =
-      new Column_Int(name, strict, primary_key)
-    def long(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Long] =
-      new Column_Long(name, strict, primary_key)
-    def double(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Double] =
-      new Column_Double(name, strict, primary_key)
-    def string(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[String] =
-      new Column_String(name, strict, primary_key)
-    def bytes(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Bytes] =
-      new Column_Bytes(name, strict, primary_key)
-    def date(name: String, strict: Boolean = true, primary_key: Boolean = false): Column[Date] =
-      new Column_Date(name, strict, primary_key)
+    def bool(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Boolean, strict, primary_key)
+    def int(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Int, strict, primary_key)
+    def long(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Long, strict, primary_key)
+    def double(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Double, strict, primary_key)
+    def string(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.String, strict, primary_key)
+    def bytes(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Bytes, strict, primary_key)
+    def date(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+      Column(name, Type.Date, strict, primary_key)
   }
 
-  abstract class Column[+A] private[SQL](
-      val name: String,
-      val strict: Boolean,
-      val primary_key: Boolean,
-      val sql_type: Type.Value) extends Function[ResultSet, A]
+  sealed case class Column(
+    name: String, T: Type.Value, strict: Boolean = true, primary_key: Boolean = false)
   {
     def sql_name: String = quote_ident(name)
-    def sql_decl(type_name: Type_Name): String =
-      sql_name + " " + type_name(sql_type) +
+    def sql_decl(sql_type: Type.Value => String): String =
+      sql_name + " " + sql_type(T) +
       (if (strict) " NOT NULL" else "") +
       (if (primary_key) " PRIMARY KEY" else "")
 
-    def string(rs: ResultSet): String =
-    {
-      val s = rs.getString(name)
-      if (s == null) "" else s
-    }
-    def apply(rs: ResultSet): A
-    def get(rs: ResultSet): Option[A] =
-    {
-      val x = apply(rs)
-      if (rs.wasNull) None else Some(x)
-    }
-
-    override def toString: String = sql_decl(type_name_default)
-  }
-
-  class Column_Boolean private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Boolean](name, strict, primary_key, Type.Boolean)
-  {
-    def apply(rs: ResultSet): Boolean = rs.getBoolean(name)
-  }
-
-  class Column_Int private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Int](name, strict, primary_key, Type.Int)
-  {
-    def apply(rs: ResultSet): Int = rs.getInt(name)
-  }
-
-  class Column_Long private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Long](name, strict, primary_key, Type.Long)
-  {
-    def apply(rs: ResultSet): Long = rs.getLong(name)
-  }
-
-  class Column_Double private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Double](name, strict, primary_key, Type.Double)
-  {
-    def apply(rs: ResultSet): Double = rs.getDouble(name)
-  }
-
-  class Column_String private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[String](name, strict, primary_key, Type.String)
-  {
-    def apply(rs: ResultSet): String =
-    {
-      val s = rs.getString(name)
-      if (s == null) "" else s
-    }
-  }
-
-  class Column_Bytes private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Bytes](name, strict, primary_key, Type.Bytes)
-  {
-    def apply(rs: ResultSet): Bytes =
-    {
-      val bs = rs.getBytes(name)
-      if (bs == null) Bytes.empty else Bytes(bs)
-    }
-  }
-
-  class Column_Date private[SQL](name: String, strict: Boolean, primary_key: Boolean)
-    extends Column[Date](name, strict, primary_key, Type.Date)
-  {
-    def apply(rs: ResultSet): Date =
-    {
-      Date.instant(rs.getTimestamp(name).toInstant)
-    }
+    override def toString: String = sql_decl(sql_type_default)
   }
 
 
   /* tables */
 
-  def table(name: String, columns: List[Column[Any]]): Table = new Table(name, columns)
-
-  class Table private[SQL](name: String, columns: List[Column[Any]])
+  sealed case class Table(name: String, columns: List[Column])
   {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
@@ -187,16 +115,16 @@ object SQL
       case _ =>
     }
 
-    def sql_create(strict: Boolean, rowid: Boolean, type_name: Type_Name): String =
+    def sql_create(strict: Boolean, rowid: Boolean, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        quote_ident(name) + " " + enclosure(columns.map(_.sql_decl(type_name))) +
+        quote_ident(name) + " " + enclosure(columns.map(_.sql_decl(sql_type))) +
         (if (rowid) "" else " WITHOUT ROWID")
 
     def sql_drop(strict: Boolean): String =
       "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + quote_ident(name)
 
     def sql_create_index(
-        index_name: String, index_columns: List[Column[Any]],
+        index_name: String, index_columns: List[Column],
         strict: Boolean, unique: Boolean): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
         (if (strict) "" else "IF NOT EXISTS ") + quote_ident(index_name) + " ON " +
@@ -208,7 +136,7 @@ object SQL
     def sql_insert: String =
       "INSERT INTO " + quote_ident(name) + " VALUES " + enclosure(columns.map(_ => "?"))
 
-    def sql_select(select_columns: List[Column[Any]], distinct: Boolean): String =
+    def sql_select(select_columns: List[Column], distinct: Boolean): String =
       "SELECT " + (if (distinct) "DISTINCT " else "") +
       commas(select_columns.map(_.sql_name)) + " FROM " + quote_ident(name)
 
@@ -233,7 +161,7 @@ object SQL
   {
     /* types */
 
-    def type_name(t: Type.Value): String
+    def sql_type(T: Type.Value): String
 
 
     /* connection */
@@ -245,15 +173,16 @@ object SQL
     def transaction[A](body: => A): A =
     {
       val auto_commit = connection.getAutoCommit
-      val savepoint = connection.setSavepoint
-
       try {
         connection.setAutoCommit(false)
-        val result = body
-        connection.commit
-        result
+        val savepoint = connection.setSavepoint
+        try {
+          val result = body
+          connection.commit
+          result
+        }
+        catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
       }
-      catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
       finally { connection.setAutoCommit(auto_commit) }
     }
 
@@ -264,9 +193,46 @@ object SQL
 
     def insert_statement(table: Table): PreparedStatement = statement(table.sql_insert)
 
-    def select_statement(table: Table, columns: List[Column[Any]],
+    def select_statement(table: Table, columns: List[Column],
         sql: String = "", distinct: Boolean = false): PreparedStatement =
       statement(table.sql_select(columns, distinct) + (if (sql == "") "" else " " + sql))
+
+
+    /* input */
+
+    def set_bool(stmt: PreparedStatement, i: Int, x: Boolean) { stmt.setBoolean(i, x) }
+    def set_int(stmt: PreparedStatement, i: Int, x: Int) { stmt.setInt(i, x) }
+    def set_long(stmt: PreparedStatement, i: Int, x: Long) { stmt.setLong(i, x) }
+    def set_double(stmt: PreparedStatement, i: Int, x: Double) { stmt.setDouble(i, x) }
+    def set_string(stmt: PreparedStatement, i: Int, x: String) { stmt.setString(i, x) }
+    def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
+    { stmt.setBinaryStream(i, bytes.stream(), bytes.length) }
+    def set_date(stmt: PreparedStatement, i: Int, date: Date)
+
+
+    /* output */
+
+    def bool(rs: ResultSet, name: String): Boolean = rs.getBoolean(name)
+    def int(rs: ResultSet, name: String): Int = rs.getInt(name)
+    def long(rs: ResultSet, name: String): Long = rs.getLong(name)
+    def double(rs: ResultSet, name: String): Double = rs.getDouble(name)
+    def string(rs: ResultSet, name: String): String =
+    {
+      val s = rs.getString(name)
+      if (s == null) "" else s
+    }
+    def bytes(rs: ResultSet, name: String): Bytes =
+    {
+      val bs = rs.getBytes(name)
+      if (bs == null) Bytes.empty else Bytes(bs)
+    }
+    def date(rs: ResultSet, name: String): Date
+
+    def get[A](rs: ResultSet, name: String, f: (ResultSet, String) => A): Option[A] =
+    {
+      val x = f(rs, name)
+      if (rs.wasNull) None else Some(x)
+    }
 
 
     /* tables */
@@ -275,12 +241,12 @@ object SQL
       iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
 
     def create_table(table: Table, strict: Boolean = true, rowid: Boolean = true): Unit =
-      using(statement(table.sql_create(strict, rowid, type_name)))(_.execute())
+      using(statement(table.sql_create(strict, rowid, sql_type)))(_.execute())
 
     def drop_table(table: Table, strict: Boolean = true): Unit =
       using(statement(table.sql_drop(strict)))(_.execute())
 
-    def create_index(table: Table, name: String, columns: List[Column[Any]],
+    def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = true, unique: Boolean = false): Unit =
       using(statement(table.sql_create_index(name, columns, strict, unique)))(_.execute())
 
@@ -295,6 +261,9 @@ object SQL
 
 object SQLite
 {
+  // see https://www.sqlite.org/lang_datefunc.html
+  val date_format: Date.Format = Date.Format("uuuu-MM-dd HH:mm:ss.SSS x")
+
   def open_database(path: Path): Database =
   {
     val path0 = path.expand
@@ -308,7 +277,12 @@ object SQLite
   {
     override def toString: String = name
 
-    def type_name(t: SQL.Type.Value): String = SQL.type_name_sqlite(t)
+    def sql_type(T: SQL.Type.Value): String = SQL.sql_type_sqlite(T)
+
+    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
+      set_string(stmt, i, date_format(date))
+    def date(rs: ResultSet, name: String): Date =
+      date_format.parse(string(rs, name))
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
@@ -362,7 +336,13 @@ object PostgreSQL
   {
     override def toString: String = name
 
-    def type_name(t: SQL.Type.Value): String = SQL.type_name_postgresql(t)
+    def sql_type(T: SQL.Type.Value): String = SQL.sql_type_postgresql(T)
+
+    // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
+    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
+      stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
+    def date(rs: ResultSet, name: String): Date =
+      Date.instant(rs.getObject(name, classOf[OffsetDateTime]).toInstant)
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }
