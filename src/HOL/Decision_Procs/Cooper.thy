@@ -82,32 +82,35 @@ where
 | "Ifm bbs bs (Closed n) \<longleftrightarrow> bbs!n"
 | "Ifm bbs bs (NClosed n) \<longleftrightarrow> \<not> bbs!n"
 
-consts prep :: "fm \<Rightarrow> fm"
-recdef prep "measure fmsize"
+function (sequential) prep :: "fm \<Rightarrow> fm"
+where
   "prep (E T) = T"
-  "prep (E F) = F"
-  "prep (E (Or p q)) = Or (prep (E p)) (prep (E q))"
-  "prep (E (Imp p q)) = Or (prep (E (NOT p))) (prep (E q))"
-  "prep (E (Iff p q)) = Or (prep (E (And p q))) (prep (E (And (NOT p) (NOT q))))"
-  "prep (E (NOT (And p q))) = Or (prep (E (NOT p))) (prep (E(NOT q)))"
-  "prep (E (NOT (Imp p q))) = prep (E (And p (NOT q)))"
-  "prep (E (NOT (Iff p q))) = Or (prep (E (And p (NOT q)))) (prep (E(And (NOT p) q)))"
-  "prep (E p) = E (prep p)"
-  "prep (A (And p q)) = And (prep (A p)) (prep (A q))"
-  "prep (A p) = prep (NOT (E (NOT p)))"
-  "prep (NOT (NOT p)) = prep p"
-  "prep (NOT (And p q)) = Or (prep (NOT p)) (prep (NOT q))"
-  "prep (NOT (A p)) = prep (E (NOT p))"
-  "prep (NOT (Or p q)) = And (prep (NOT p)) (prep (NOT q))"
-  "prep (NOT (Imp p q)) = And (prep p) (prep (NOT q))"
-  "prep (NOT (Iff p q)) = Or (prep (And p (NOT q))) (prep (And (NOT p) q))"
-  "prep (NOT p) = NOT (prep p)"
-  "prep (Or p q) = Or (prep p) (prep q)"
-  "prep (And p q) = And (prep p) (prep q)"
-  "prep (Imp p q) = prep (Or (NOT p) q)"
-  "prep (Iff p q) = Or (prep (And p q)) (prep (And (NOT p) (NOT q)))"
-  "prep p = p"
-  (hints simp add: fmsize_pos)
+| "prep (E F) = F"
+| "prep (E (Or p q)) = Or (prep (E p)) (prep (E q))"
+| "prep (E (Imp p q)) = Or (prep (E (NOT p))) (prep (E q))"
+| "prep (E (Iff p q)) = Or (prep (E (And p q))) (prep (E (And (NOT p) (NOT q))))"
+| "prep (E (NOT (And p q))) = Or (prep (E (NOT p))) (prep (E(NOT q)))"
+| "prep (E (NOT (Imp p q))) = prep (E (And p (NOT q)))"
+| "prep (E (NOT (Iff p q))) = Or (prep (E (And p (NOT q)))) (prep (E(And (NOT p) q)))"
+| "prep (E p) = E (prep p)"
+| "prep (A (And p q)) = And (prep (A p)) (prep (A q))"
+| "prep (A p) = prep (NOT (E (NOT p)))"
+| "prep (NOT (NOT p)) = prep p"
+| "prep (NOT (And p q)) = Or (prep (NOT p)) (prep (NOT q))"
+| "prep (NOT (A p)) = prep (E (NOT p))"
+| "prep (NOT (Or p q)) = And (prep (NOT p)) (prep (NOT q))"
+| "prep (NOT (Imp p q)) = And (prep p) (prep (NOT q))"
+| "prep (NOT (Iff p q)) = Or (prep (And p (NOT q))) (prep (And (NOT p) q))"
+| "prep (NOT p) = NOT (prep p)"
+| "prep (Or p q) = Or (prep p) (prep q)"
+| "prep (And p q) = And (prep p) (prep q)"
+| "prep (Imp p q) = prep (Or (NOT p) q)"
+| "prep (Iff p q) = Or (prep (And p q)) (prep (And (NOT p) (NOT q)))"
+| "prep p = p"
+  by pat_completeness auto
+
+termination
+  by (relation "measure fmsize") (simp_all add: fmsize_pos)
 
 lemma prep: "Ifm bbs bs (prep p) = Ifm bbs bs p"
   by (induct p arbitrary: bs rule: prep.induct) auto
@@ -433,25 +436,6 @@ recdef numadd "measure (\<lambda>(t, s). num_size t + num_size s)"
   "numadd (t, CN n2 c2 r2) = CN n2 c2 (numadd (t, r2))"
   "numadd (C b1, C b2) = C (b1 + b2)"
   "numadd (a, b) = Add a b"
-
-(*function (sequential)
-  numadd :: "num \<Rightarrow> num \<Rightarrow> num"
-where
-  "numadd (Add (Mul c1 (Bound n1)) r1) (Add (Mul c2 (Bound n2)) r2) =
-      (if n1 = n2 then (let c = c1 + c2
-      in (if c = 0 then numadd r1 r2 else
-        Add (Mul c (Bound n1)) (numadd r1 r2)))
-      else if n1 \<le> n2 then
-        Add (Mul c1 (Bound n1)) (numadd r1 (Add (Mul c2 (Bound n2)) r2))
-      else
-        Add (Mul c2 (Bound n2)) (numadd (Add (Mul c1 (Bound n1)) r1) r2))"
-  | "numadd (Add (Mul c1 (Bound n1)) r1) t =
-      Add (Mul c1 (Bound n1)) (numadd r1 t)"
-  | "numadd t (Add (Mul c2 (Bound n2)) r2) =
-      Add (Mul c2 (Bound n2)) (numadd t r2)"
-  | "numadd (C b1) (C b2) = C (b1 + b2)"
-  | "numadd a b = Add a b"
-apply pat_completeness apply auto*)
 
 lemma numadd: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
   apply (induct t s rule: numadd.induct)
@@ -989,91 +973,95 @@ next
     by simp
 qed
 
-consts iszlfm :: "fm \<Rightarrow> bool"  \<comment> \<open>Linearity test for fm\<close>
-recdef iszlfm "measure size"
+fun iszlfm :: "fm \<Rightarrow> bool"  \<comment> \<open>Linearity test for fm\<close>
+where
   "iszlfm (And p q) \<longleftrightarrow> iszlfm p \<and> iszlfm q"
-  "iszlfm (Or p q) \<longleftrightarrow> iszlfm p \<and> iszlfm q"
-  "iszlfm (Eq  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
-  "iszlfm (NEq (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
-  "iszlfm (Lt  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
-  "iszlfm (Le  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
-  "iszlfm (Gt  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
-  "iszlfm (Ge  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
-  "iszlfm (Dvd i (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> i > 0 \<and> numbound0 e"
-  "iszlfm (NDvd i (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> i > 0 \<and> numbound0 e"
-  "iszlfm p \<longleftrightarrow> isatom p \<and> bound0 p"
+| "iszlfm (Or p q) \<longleftrightarrow> iszlfm p \<and> iszlfm q"
+| "iszlfm (Eq  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
+| "iszlfm (NEq (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
+| "iszlfm (Lt  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
+| "iszlfm (Le  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
+| "iszlfm (Gt  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
+| "iszlfm (Ge  (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> numbound0 e"
+| "iszlfm (Dvd i (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> i > 0 \<and> numbound0 e"
+| "iszlfm (NDvd i (CN 0 c e)) \<longleftrightarrow> c > 0 \<and> i > 0 \<and> numbound0 e"
+| "iszlfm p \<longleftrightarrow> isatom p \<and> bound0 p"
 
 lemma zlin_qfree: "iszlfm p \<Longrightarrow> qfree p"
   by (induct p rule: iszlfm.induct) auto
 
-consts zlfm :: "fm \<Rightarrow> fm"  \<comment> \<open>Linearity transformation for fm\<close>
-recdef zlfm "measure fmsize"
+function (sequential) zlfm :: "fm \<Rightarrow> fm"  \<comment> \<open>Linearity transformation for fm\<close>
+where
   "zlfm (And p q) = And (zlfm p) (zlfm q)"
-  "zlfm (Or p q) = Or (zlfm p) (zlfm q)"
-  "zlfm (Imp p q) = Or (zlfm (NOT p)) (zlfm q)"
-  "zlfm (Iff p q) = Or (And (zlfm p) (zlfm q)) (And (zlfm (NOT p)) (zlfm (NOT q)))"
-  "zlfm (Lt a) =
+| "zlfm (Or p q) = Or (zlfm p) (zlfm q)"
+| "zlfm (Imp p q) = Or (zlfm (NOT p)) (zlfm q)"
+| "zlfm (Iff p q) = Or (And (zlfm p) (zlfm q)) (And (zlfm (NOT p)) (zlfm (NOT q)))"
+| "zlfm (Lt a) =
     (let (c, r) = zsplit0 a in
       if c = 0 then Lt r else
       if c > 0 then (Lt (CN 0 c r))
       else Gt (CN 0 (- c) (Neg r)))"
-  "zlfm (Le a) =
+| "zlfm (Le a) =
     (let (c, r) = zsplit0 a in
       if c = 0 then Le r
       else if c > 0 then Le (CN 0 c r)
       else Ge (CN 0 (- c) (Neg r)))"
-  "zlfm (Gt a) =
+| "zlfm (Gt a) =
     (let (c, r) = zsplit0 a in
       if c = 0 then Gt r else
       if c > 0 then Gt (CN 0 c r)
       else Lt (CN 0 (- c) (Neg r)))"
-  "zlfm (Ge a) =
+| "zlfm (Ge a) =
     (let (c, r) = zsplit0 a in
       if c = 0 then Ge r
       else if c > 0 then Ge (CN 0 c r)
       else Le (CN 0 (- c) (Neg r)))"
-  "zlfm (Eq a) =
+| "zlfm (Eq a) =
     (let (c, r) = zsplit0 a in
       if c = 0 then Eq r
       else if c > 0 then Eq (CN 0 c r)
       else Eq (CN 0 (- c) (Neg r)))"
-  "zlfm (NEq a) =
+| "zlfm (NEq a) =
     (let (c, r) = zsplit0 a in
       if c = 0 then NEq r
       else if c > 0 then NEq (CN 0 c r)
       else NEq (CN 0 (- c) (Neg r)))"
-  "zlfm (Dvd i a) =
+| "zlfm (Dvd i a) =
     (if i = 0 then zlfm (Eq a)
      else
       let (c, r) = zsplit0 a in
         if c = 0 then Dvd \<bar>i\<bar> r
         else if c > 0 then Dvd \<bar>i\<bar> (CN 0 c r)
         else Dvd \<bar>i\<bar> (CN 0 (- c) (Neg r)))"
-  "zlfm (NDvd i a) =
+| "zlfm (NDvd i a) =
     (if i = 0 then zlfm (NEq a)
      else
       let (c, r) = zsplit0 a in
         if c = 0 then NDvd \<bar>i\<bar> r
         else if c > 0 then NDvd \<bar>i\<bar> (CN 0 c r)
         else NDvd \<bar>i\<bar> (CN 0 (- c) (Neg r)))"
-  "zlfm (NOT (And p q)) = Or (zlfm (NOT p)) (zlfm (NOT q))"
-  "zlfm (NOT (Or p q)) = And (zlfm (NOT p)) (zlfm (NOT q))"
-  "zlfm (NOT (Imp p q)) = And (zlfm p) (zlfm (NOT q))"
-  "zlfm (NOT (Iff p q)) = Or (And(zlfm p) (zlfm(NOT q))) (And (zlfm(NOT p)) (zlfm q))"
-  "zlfm (NOT (NOT p)) = zlfm p"
-  "zlfm (NOT T) = F"
-  "zlfm (NOT F) = T"
-  "zlfm (NOT (Lt a)) = zlfm (Ge a)"
-  "zlfm (NOT (Le a)) = zlfm (Gt a)"
-  "zlfm (NOT (Gt a)) = zlfm (Le a)"
-  "zlfm (NOT (Ge a)) = zlfm (Lt a)"
-  "zlfm (NOT (Eq a)) = zlfm (NEq a)"
-  "zlfm (NOT (NEq a)) = zlfm (Eq a)"
-  "zlfm (NOT (Dvd i a)) = zlfm (NDvd i a)"
-  "zlfm (NOT (NDvd i a)) = zlfm (Dvd i a)"
-  "zlfm (NOT (Closed P)) = NClosed P"
-  "zlfm (NOT (NClosed P)) = Closed P"
-  "zlfm p = p" (hints simp add: fmsize_pos)
+| "zlfm (NOT (And p q)) = Or (zlfm (NOT p)) (zlfm (NOT q))"
+| "zlfm (NOT (Or p q)) = And (zlfm (NOT p)) (zlfm (NOT q))"
+| "zlfm (NOT (Imp p q)) = And (zlfm p) (zlfm (NOT q))"
+| "zlfm (NOT (Iff p q)) = Or (And(zlfm p) (zlfm(NOT q))) (And (zlfm(NOT p)) (zlfm q))"
+| "zlfm (NOT (NOT p)) = zlfm p"
+| "zlfm (NOT T) = F"
+| "zlfm (NOT F) = T"
+| "zlfm (NOT (Lt a)) = zlfm (Ge a)"
+| "zlfm (NOT (Le a)) = zlfm (Gt a)"
+| "zlfm (NOT (Gt a)) = zlfm (Le a)"
+| "zlfm (NOT (Ge a)) = zlfm (Lt a)"
+| "zlfm (NOT (Eq a)) = zlfm (NEq a)"
+| "zlfm (NOT (NEq a)) = zlfm (Eq a)"
+| "zlfm (NOT (Dvd i a)) = zlfm (NDvd i a)"
+| "zlfm (NOT (NDvd i a)) = zlfm (Dvd i a)"
+| "zlfm (NOT (Closed P)) = NClosed P"
+| "zlfm (NOT (NClosed P)) = Closed P"
+| "zlfm p = p"
+  by pat_completeness auto
+
+termination
+  by (relation "measure fmsize") (simp_all add: fmsize_pos)
 
 lemma zlfm_I:
   assumes qfp: "qfree p"
@@ -1258,48 +1246,48 @@ next
   qed
 qed auto
 
-consts minusinf :: "fm \<Rightarrow> fm" \<comment> \<open>Virtual substitution of \<open>-\<infinity>\<close>\<close>
-recdef minusinf "measure size"
+fun minusinf :: "fm \<Rightarrow> fm" \<comment> \<open>Virtual substitution of \<open>-\<infinity>\<close>\<close>
+where
   "minusinf (And p q) = And (minusinf p) (minusinf q)"
-  "minusinf (Or p q) = Or (minusinf p) (minusinf q)"
-  "minusinf (Eq  (CN 0 c e)) = F"
-  "minusinf (NEq (CN 0 c e)) = T"
-  "minusinf (Lt  (CN 0 c e)) = T"
-  "minusinf (Le  (CN 0 c e)) = T"
-  "minusinf (Gt  (CN 0 c e)) = F"
-  "minusinf (Ge  (CN 0 c e)) = F"
-  "minusinf p = p"
+| "minusinf (Or p q) = Or (minusinf p) (minusinf q)"
+| "minusinf (Eq  (CN 0 c e)) = F"
+| "minusinf (NEq (CN 0 c e)) = T"
+| "minusinf (Lt  (CN 0 c e)) = T"
+| "minusinf (Le  (CN 0 c e)) = T"
+| "minusinf (Gt  (CN 0 c e)) = F"
+| "minusinf (Ge  (CN 0 c e)) = F"
+| "minusinf p = p"
 
 lemma minusinf_qfree: "qfree p \<Longrightarrow> qfree (minusinf p)"
   by (induct p rule: minusinf.induct) auto
 
-consts plusinf :: "fm \<Rightarrow> fm"  \<comment> \<open>Virtual substitution of \<open>+\<infinity>\<close>\<close>
-recdef plusinf "measure size"
+fun plusinf :: "fm \<Rightarrow> fm"  \<comment> \<open>Virtual substitution of \<open>+\<infinity>\<close>\<close>
+where
   "plusinf (And p q) = And (plusinf p) (plusinf q)"
-  "plusinf (Or p q) = Or (plusinf p) (plusinf q)"
-  "plusinf (Eq  (CN 0 c e)) = F"
-  "plusinf (NEq (CN 0 c e)) = T"
-  "plusinf (Lt  (CN 0 c e)) = F"
-  "plusinf (Le  (CN 0 c e)) = F"
-  "plusinf (Gt  (CN 0 c e)) = T"
-  "plusinf (Ge  (CN 0 c e)) = T"
-  "plusinf p = p"
+| "plusinf (Or p q) = Or (plusinf p) (plusinf q)"
+| "plusinf (Eq  (CN 0 c e)) = F"
+| "plusinf (NEq (CN 0 c e)) = T"
+| "plusinf (Lt  (CN 0 c e)) = F"
+| "plusinf (Le  (CN 0 c e)) = F"
+| "plusinf (Gt  (CN 0 c e)) = T"
+| "plusinf (Ge  (CN 0 c e)) = T"
+| "plusinf p = p"
 
-consts \<delta> :: "fm \<Rightarrow> int"  \<comment> \<open>Compute \<open>lcm {d| N\<^sup>? Dvd c*x+t \<in> p}\<close>\<close>
-recdef \<delta> "measure size"
+fun \<delta> :: "fm \<Rightarrow> int"  \<comment> \<open>Compute \<open>lcm {d| N\<^sup>? Dvd c*x+t \<in> p}\<close>\<close>
+where
   "\<delta> (And p q) = lcm (\<delta> p) (\<delta> q)"
-  "\<delta> (Or p q) = lcm (\<delta> p) (\<delta> q)"
-  "\<delta> (Dvd i (CN 0 c e)) = i"
-  "\<delta> (NDvd i (CN 0 c e)) = i"
-  "\<delta> p = 1"
+| "\<delta> (Or p q) = lcm (\<delta> p) (\<delta> q)"
+| "\<delta> (Dvd i (CN 0 c e)) = i"
+| "\<delta> (NDvd i (CN 0 c e)) = i"
+| "\<delta> p = 1"
 
-consts d_\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  \<comment> \<open>check if a given l divides all the ds above\<close>
-recdef d_\<delta> "measure size"
-  "d_\<delta> (And p q) = (\<lambda>d. d_\<delta> p d \<and> d_\<delta> q d)"
-  "d_\<delta> (Or p q) = (\<lambda>d. d_\<delta> p d \<and> d_\<delta> q d)"
-  "d_\<delta> (Dvd i (CN 0 c e)) = (\<lambda>d. i dvd d)"
-  "d_\<delta> (NDvd i (CN 0 c e)) = (\<lambda>d. i dvd d)"
-  "d_\<delta> p = (\<lambda>d. True)"
+fun d_\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  \<comment> \<open>check if a given l divides all the ds above\<close>
+where
+  "d_\<delta> (And p q) d \<longleftrightarrow> d_\<delta> p d \<and> d_\<delta> q d"
+| "d_\<delta> (Or p q) d \<longleftrightarrow> d_\<delta> p d \<and> d_\<delta> q d"
+| "d_\<delta> (Dvd i (CN 0 c e)) d \<longleftrightarrow> i dvd d"
+| "d_\<delta> (NDvd i (CN 0 c e)) d \<longleftrightarrow> i dvd d"
+| "d_\<delta> p d \<longleftrightarrow> True"
 
 lemma delta_mono:
   assumes lin: "iszlfm p"
@@ -1321,118 +1309,87 @@ lemma \<delta>:
   assumes lin: "iszlfm p"
   shows "d_\<delta> p (\<delta> p) \<and> \<delta> p >0"
   using lin
-proof (induct p rule: iszlfm.induct)
-  case (1 p q)
-  let ?d = "\<delta> (And p q)"
-  from 1 lcm_pos_int have dp: "?d > 0"
-    by simp
-  have d1: "\<delta> p dvd \<delta> (And p q)"
-    using 1 by simp
-  then have th: "d_\<delta> p ?d"
-    using delta_mono 1(2,3) by (simp only: iszlfm.simps)
-  have "\<delta> q dvd \<delta> (And p q)"
-    using 1 by simp
-  then have th': "d_\<delta> q ?d"
-    using delta_mono 1 by (simp only: iszlfm.simps)
-  from th th' dp show ?case
-    by simp
-next
-  case (2 p q)
-  let ?d = "\<delta> (And p q)"
-  from 2 lcm_pos_int have dp: "?d > 0"
-    by simp
-  have "\<delta> p dvd \<delta> (And p q)"
-    using 2 by simp
-  then have th: "d_\<delta> p ?d"
-    using delta_mono 2 by (simp only: iszlfm.simps)
-  have "\<delta> q dvd \<delta> (And p q)"
-    using 2 by simp
-  then have th': "d_\<delta> q ?d"
-    using delta_mono 2 by (simp only: iszlfm.simps)
-  from th th' dp show ?case
-    by simp
-qed simp_all
+  by (induct p rule: iszlfm.induct)  (auto intro: delta_mono simp add: lcm_pos_int)
 
+fun a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm"  \<comment> \<open>adjust the coefficients of a formula\<close>
+where
+  "a_\<beta> (And p q) k = And (a_\<beta> p k) (a_\<beta> q k)"
+| "a_\<beta> (Or p q) k = Or (a_\<beta> p k) (a_\<beta> q k)"
+| "a_\<beta> (Eq  (CN 0 c e)) k = Eq (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> (NEq (CN 0 c e)) k = NEq (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> (Lt  (CN 0 c e)) k = Lt (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> (Le  (CN 0 c e)) k = Le (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> (Gt  (CN 0 c e)) k = Gt (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> (Ge  (CN 0 c e)) k = Ge (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> (Dvd i (CN 0 c e)) k = Dvd ((k div c)*i) (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> (NDvd i (CN 0 c e)) k = NDvd ((k div c)*i) (CN 0 1 (Mul (k div c) e))"
+| "a_\<beta> p k = p"
 
-consts a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm"  \<comment> \<open>adjust the coefficients of a formula\<close>
-recdef a_\<beta> "measure size"
-  "a_\<beta> (And p q) = (\<lambda>k. And (a_\<beta> p k) (a_\<beta> q k))"
-  "a_\<beta> (Or p q) = (\<lambda>k. Or (a_\<beta> p k) (a_\<beta> q k))"
-  "a_\<beta> (Eq  (CN 0 c e)) = (\<lambda>k. Eq (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> (NEq (CN 0 c e)) = (\<lambda>k. NEq (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> (Lt  (CN 0 c e)) = (\<lambda>k. Lt (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> (Le  (CN 0 c e)) = (\<lambda>k. Le (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> (Gt  (CN 0 c e)) = (\<lambda>k. Gt (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> (Ge  (CN 0 c e)) = (\<lambda>k. Ge (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> (Dvd i (CN 0 c e)) =(\<lambda>k. Dvd ((k div c)*i) (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> (NDvd i (CN 0 c e))=(\<lambda>k. NDvd ((k div c)*i) (CN 0 1 (Mul (k div c) e)))"
-  "a_\<beta> p = (\<lambda>k. p)"
+fun d_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  \<comment> \<open>test if all coeffs c of c divide a given l\<close>
+where
+  "d_\<beta> (And p q) k \<longleftrightarrow> d_\<beta> p k \<and> d_\<beta> q k"
+| "d_\<beta> (Or p q) k \<longleftrightarrow> d_\<beta> p k \<and> d_\<beta> q k"
+| "d_\<beta> (Eq  (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> (NEq (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> (Lt  (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> (Le  (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> (Gt  (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> (Ge  (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> (Dvd i (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> (NDvd i (CN 0 c e)) k \<longleftrightarrow> c dvd k"
+| "d_\<beta> p k \<longleftrightarrow> True"
 
-consts d_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool"  \<comment> \<open>test if all coeffs c of c divide a given l\<close>
-recdef d_\<beta> "measure size"
-  "d_\<beta> (And p q) = (\<lambda>k. (d_\<beta> p k) \<and> (d_\<beta> q k))"
-  "d_\<beta> (Or p q) = (\<lambda>k. (d_\<beta> p k) \<and> (d_\<beta> q k))"
-  "d_\<beta> (Eq  (CN 0 c e)) = (\<lambda>k. c dvd k)"
-  "d_\<beta> (NEq (CN 0 c e)) = (\<lambda>k. c dvd k)"
-  "d_\<beta> (Lt  (CN 0 c e)) = (\<lambda>k. c dvd k)"
-  "d_\<beta> (Le  (CN 0 c e)) = (\<lambda>k. c dvd k)"
-  "d_\<beta> (Gt  (CN 0 c e)) = (\<lambda>k. c dvd k)"
-  "d_\<beta> (Ge  (CN 0 c e)) = (\<lambda>k. c dvd k)"
-  "d_\<beta> (Dvd i (CN 0 c e)) =(\<lambda>k. c dvd k)"
-  "d_\<beta> (NDvd i (CN 0 c e))=(\<lambda>k. c dvd k)"
-  "d_\<beta> p = (\<lambda>k. True)"
-
-consts \<zeta> :: "fm \<Rightarrow> int"  \<comment> \<open>computes the lcm of all coefficients of x\<close>
-recdef \<zeta> "measure size"
+fun \<zeta> :: "fm \<Rightarrow> int"  \<comment> \<open>computes the lcm of all coefficients of x\<close>
+where
   "\<zeta> (And p q) = lcm (\<zeta> p) (\<zeta> q)"
-  "\<zeta> (Or p q) = lcm (\<zeta> p) (\<zeta> q)"
-  "\<zeta> (Eq  (CN 0 c e)) = c"
-  "\<zeta> (NEq (CN 0 c e)) = c"
-  "\<zeta> (Lt  (CN 0 c e)) = c"
-  "\<zeta> (Le  (CN 0 c e)) = c"
-  "\<zeta> (Gt  (CN 0 c e)) = c"
-  "\<zeta> (Ge  (CN 0 c e)) = c"
-  "\<zeta> (Dvd i (CN 0 c e)) = c"
-  "\<zeta> (NDvd i (CN 0 c e))= c"
-  "\<zeta> p = 1"
+| "\<zeta> (Or p q) = lcm (\<zeta> p) (\<zeta> q)"
+| "\<zeta> (Eq  (CN 0 c e)) = c"
+| "\<zeta> (NEq (CN 0 c e)) = c"
+| "\<zeta> (Lt  (CN 0 c e)) = c"
+| "\<zeta> (Le  (CN 0 c e)) = c"
+| "\<zeta> (Gt  (CN 0 c e)) = c"
+| "\<zeta> (Ge  (CN 0 c e)) = c"
+| "\<zeta> (Dvd i (CN 0 c e)) = c"
+| "\<zeta> (NDvd i (CN 0 c e))= c"
+| "\<zeta> p = 1"
 
-consts \<beta> :: "fm \<Rightarrow> num list"
-recdef \<beta> "measure size"
+fun \<beta> :: "fm \<Rightarrow> num list"
+where
   "\<beta> (And p q) = (\<beta> p @ \<beta> q)"
-  "\<beta> (Or p q) = (\<beta> p @ \<beta> q)"
-  "\<beta> (Eq  (CN 0 c e)) = [Sub (C (- 1)) e]"
-  "\<beta> (NEq (CN 0 c e)) = [Neg e]"
-  "\<beta> (Lt  (CN 0 c e)) = []"
-  "\<beta> (Le  (CN 0 c e)) = []"
-  "\<beta> (Gt  (CN 0 c e)) = [Neg e]"
-  "\<beta> (Ge  (CN 0 c e)) = [Sub (C (- 1)) e]"
-  "\<beta> p = []"
+| "\<beta> (Or p q) = (\<beta> p @ \<beta> q)"
+| "\<beta> (Eq  (CN 0 c e)) = [Sub (C (- 1)) e]"
+| "\<beta> (NEq (CN 0 c e)) = [Neg e]"
+| "\<beta> (Lt  (CN 0 c e)) = []"
+| "\<beta> (Le  (CN 0 c e)) = []"
+| "\<beta> (Gt  (CN 0 c e)) = [Neg e]"
+| "\<beta> (Ge  (CN 0 c e)) = [Sub (C (- 1)) e]"
+| "\<beta> p = []"
 
-consts \<alpha> :: "fm \<Rightarrow> num list"
-recdef \<alpha> "measure size"
+fun \<alpha> :: "fm \<Rightarrow> num list"
+where
   "\<alpha> (And p q) = \<alpha> p @ \<alpha> q"
-  "\<alpha> (Or p q) = \<alpha> p @ \<alpha> q"
-  "\<alpha> (Eq  (CN 0 c e)) = [Add (C (- 1)) e]"
-  "\<alpha> (NEq (CN 0 c e)) = [e]"
-  "\<alpha> (Lt  (CN 0 c e)) = [e]"
-  "\<alpha> (Le  (CN 0 c e)) = [Add (C (- 1)) e]"
-  "\<alpha> (Gt  (CN 0 c e)) = []"
-  "\<alpha> (Ge  (CN 0 c e)) = []"
-  "\<alpha> p = []"
+| "\<alpha> (Or p q) = \<alpha> p @ \<alpha> q"
+| "\<alpha> (Eq  (CN 0 c e)) = [Add (C (- 1)) e]"
+| "\<alpha> (NEq (CN 0 c e)) = [e]"
+| "\<alpha> (Lt  (CN 0 c e)) = [e]"
+| "\<alpha> (Le  (CN 0 c e)) = [Add (C (- 1)) e]"
+| "\<alpha> (Gt  (CN 0 c e)) = []"
+| "\<alpha> (Ge  (CN 0 c e)) = []"
+| "\<alpha> p = []"
 
-consts mirror :: "fm \<Rightarrow> fm"
-recdef mirror "measure size"
+fun mirror :: "fm \<Rightarrow> fm"
+where
   "mirror (And p q) = And (mirror p) (mirror q)"
-  "mirror (Or p q) = Or (mirror p) (mirror q)"
-  "mirror (Eq  (CN 0 c e)) = Eq (CN 0 c (Neg e))"
-  "mirror (NEq (CN 0 c e)) = NEq (CN 0 c (Neg e))"
-  "mirror (Lt  (CN 0 c e)) = Gt (CN 0 c (Neg e))"
-  "mirror (Le  (CN 0 c e)) = Ge (CN 0 c (Neg e))"
-  "mirror (Gt  (CN 0 c e)) = Lt (CN 0 c (Neg e))"
-  "mirror (Ge  (CN 0 c e)) = Le (CN 0 c (Neg e))"
-  "mirror (Dvd i (CN 0 c e)) = Dvd i (CN 0 c (Neg e))"
-  "mirror (NDvd i (CN 0 c e)) = NDvd i (CN 0 c (Neg e))"
-  "mirror p = p"
+| "mirror (Or p q) = Or (mirror p) (mirror q)"
+| "mirror (Eq  (CN 0 c e)) = Eq (CN 0 c (Neg e))"
+| "mirror (NEq (CN 0 c e)) = NEq (CN 0 c (Neg e))"
+| "mirror (Lt  (CN 0 c e)) = Gt (CN 0 c (Neg e))"
+| "mirror (Le  (CN 0 c e)) = Ge (CN 0 c (Neg e))"
+| "mirror (Gt  (CN 0 c e)) = Lt (CN 0 c (Neg e))"
+| "mirror (Ge  (CN 0 c e)) = Le (CN 0 c (Neg e))"
+| "mirror (Dvd i (CN 0 c e)) = Dvd i (CN 0 c (Neg e))"
+| "mirror (NDvd i (CN 0 c e)) = NDvd i (CN 0 c (Neg e))"
+| "mirror p = p"
 
 text \<open>Lemmas for the correctness of \<open>\<sigma>_\<rho>\<close>\<close>
 

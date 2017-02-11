@@ -47,56 +47,6 @@ val one = #one : 'a one -> 'a;
 
 val one_int = {one = one_inta} : inta one;
 
-fun sgn_integer k =
-  (if k = (0 : IntInf.int) then (0 : IntInf.int)
-    else (if k < (0 : IntInf.int) then (~1 : IntInf.int)
-           else (1 : IntInf.int)));
-
-fun abs_integer k = (if k < (0 : IntInf.int) then ~ k else k);
-
-fun apsnd f (x, y) = (x, f y);
-
-fun divmod_integer k l =
-  (if k = (0 : IntInf.int) then ((0 : IntInf.int), (0 : IntInf.int))
-    else (if l = (0 : IntInf.int) then ((0 : IntInf.int), k)
-           else (apsnd o (fn a => fn b => a * b) o sgn_integer) l
-                  (if sgn_integer k = sgn_integer l
-                    then Integer.div_mod (abs k) (abs l)
-                    else let
-                           val (r, s) = Integer.div_mod (abs k) (abs l);
-                         in
-                           (if s = (0 : IntInf.int) then (~ r, (0 : IntInf.int))
-                             else (~ r - (1 : IntInf.int), abs_integer l - s))
-                         end)));
-
-fun fst (x1, x2) = x1;
-
-fun divide_integer k l = fst (divmod_integer k l);
-
-fun divide_inta k l =
-  Int_of_integer (divide_integer (integer_of_int k) (integer_of_int l));
-
-fun snd (x1, x2) = x2;
-
-fun mod_integer k l = snd (divmod_integer k l);
-
-fun mod_int k l =
-  Int_of_integer (mod_integer (integer_of_int k) (integer_of_int l));
-
-type 'a divide = {divide : 'a -> 'a -> 'a};
-val divide = #divide : 'a divide -> 'a -> 'a -> 'a;
-
-type 'a diva =
-  {divide_div : 'a divide, dvd_div : 'a dvd, moda : 'a -> 'a -> 'a};
-val divide_div = #divide_div : 'a diva -> 'a divide;
-val dvd_div = #dvd_div : 'a diva -> 'a dvd;
-val moda = #moda : 'a diva -> 'a -> 'a -> 'a;
-
-val divide_int = {divide = divide_inta} : inta divide;
-
-val div_int = {divide_div = divide_int, dvd_div = dvd_int, moda = mod_int} :
-  inta diva;
-
 fun plus_inta k l = Int_of_integer (integer_of_int k + integer_of_int l);
 
 type 'a plus = {plus : 'a -> 'a -> 'a};
@@ -138,6 +88,55 @@ type 'a minus = {minus : 'a -> 'a -> 'a};
 val minus = #minus : 'a minus -> 'a -> 'a -> 'a;
 
 val minus_int = {minus = minus_inta} : inta minus;
+
+fun sgn_integer k =
+  (if k = (0 : IntInf.int) then (0 : IntInf.int)
+    else (if k < (0 : IntInf.int) then (~1 : IntInf.int)
+           else (1 : IntInf.int)));
+
+fun apsnd f (x, y) = (x, f y);
+
+fun divmod_integer k l =
+  (if k = (0 : IntInf.int) then ((0 : IntInf.int), (0 : IntInf.int))
+    else (if l = (0 : IntInf.int) then ((0 : IntInf.int), k)
+           else (apsnd o (fn a => fn b => a * b) o sgn_integer) l
+                  (if sgn_integer k = sgn_integer l
+                    then Integer.div_mod (abs k) (abs l)
+                    else let
+                           val (r, s) = Integer.div_mod (abs k) (abs l);
+                         in
+                           (if s = (0 : IntInf.int) then (~ r, (0 : IntInf.int))
+                             else (~ r - (1 : IntInf.int), abs l - s))
+                         end)));
+
+fun fst (x1, x2) = x1;
+
+fun divide_integer k l = fst (divmod_integer k l);
+
+fun divide_inta k l =
+  Int_of_integer (divide_integer (integer_of_int k) (integer_of_int l));
+
+type 'a divide = {divide : 'a -> 'a -> 'a};
+val divide = #divide : 'a divide -> 'a -> 'a -> 'a;
+
+val divide_int = {divide = divide_inta} : inta divide;
+
+fun snd (x1, x2) = x2;
+
+fun modulo_integer k l = snd (divmod_integer k l);
+
+fun modulo_inta k l =
+  Int_of_integer (modulo_integer (integer_of_int k) (integer_of_int l));
+
+type 'a modulo =
+  {divide_modulo : 'a divide, dvd_modulo : 'a dvd, modulo : 'a -> 'a -> 'a};
+val divide_modulo = #divide_modulo : 'a modulo -> 'a divide;
+val dvd_modulo = #dvd_modulo : 'a modulo -> 'a dvd;
+val modulo = #modulo : 'a modulo -> 'a -> 'a -> 'a;
+
+val modulo_int =
+  {divide_modulo = divide_int, dvd_modulo = dvd_int, modulo = modulo_inta} :
+  inta modulo;
 
 type 'a ab_semigroup_add = {semigroup_add_ab_semigroup_add : 'a semigroup_add};
 val semigroup_add_ab_semigroup_add = #semigroup_add_ab_semigroup_add :
@@ -344,12 +343,12 @@ val semiring_1_cancel_comm_semiring_1_cancel =
   'a comm_semiring_1_cancel -> 'a semiring_1_cancel;
 
 type 'a semidom =
-  {semiring_1_no_zero_divisors_semidom : 'a semiring_1_no_zero_divisors,
-    comm_semiring_1_cancel_semidom : 'a comm_semiring_1_cancel};
-val semiring_1_no_zero_divisors_semidom = #semiring_1_no_zero_divisors_semidom :
-  'a semidom -> 'a semiring_1_no_zero_divisors;
+  {comm_semiring_1_cancel_semidom : 'a comm_semiring_1_cancel,
+    semiring_1_no_zero_divisors_semidom : 'a semiring_1_no_zero_divisors};
 val comm_semiring_1_cancel_semidom = #comm_semiring_1_cancel_semidom :
   'a semidom -> 'a comm_semiring_1_cancel;
+val semiring_1_no_zero_divisors_semidom = #semiring_1_no_zero_divisors_semidom :
+  'a semidom -> 'a semiring_1_no_zero_divisors;
 
 val ab_semigroup_add_int = {semigroup_add_ab_semigroup_add = semigroup_add_int}
   : inta ab_semigroup_add;
@@ -473,8 +472,8 @@ val comm_semiring_1_cancel_int =
   : inta comm_semiring_1_cancel;
 
 val semidom_int =
-  {semiring_1_no_zero_divisors_semidom = semiring_1_no_zero_divisors_int,
-    comm_semiring_1_cancel_semidom = comm_semiring_1_cancel_int}
+  {comm_semiring_1_cancel_semidom = comm_semiring_1_cancel_int,
+    semiring_1_no_zero_divisors_semidom = semiring_1_no_zero_divisors_int}
   : inta semidom;
 
 type 'a semiring_no_zero_divisors_cancel =
@@ -496,18 +495,6 @@ val semiring_no_zero_divisors_cancel_semidom_divide =
   #semiring_no_zero_divisors_cancel_semidom_divide :
   'a semidom_divide -> 'a semiring_no_zero_divisors_cancel;
 
-type 'a algebraic_semidom =
-  {semidom_divide_algebraic_semidom : 'a semidom_divide};
-val semidom_divide_algebraic_semidom = #semidom_divide_algebraic_semidom :
-  'a algebraic_semidom -> 'a semidom_divide;
-
-type 'a semiring_div =
-  {div_semiring_div : 'a diva,
-    algebraic_semidom_semiring_div : 'a algebraic_semidom};
-val div_semiring_div = #div_semiring_div : 'a semiring_div -> 'a diva;
-val algebraic_semidom_semiring_div = #algebraic_semidom_semiring_div :
-  'a semiring_div -> 'a algebraic_semidom;
-
 val semiring_no_zero_divisors_cancel_int =
   {semiring_no_zero_divisors_semiring_no_zero_divisors_cancel =
      semiring_no_zero_divisors_int}
@@ -519,14 +506,41 @@ val semidom_divide_int =
       semiring_no_zero_divisors_cancel_int}
   : inta semidom_divide;
 
+type 'a semiring_modulo =
+  {comm_semiring_1_cancel_semiring_modulo : 'a comm_semiring_1_cancel,
+    modulo_semiring_modulo : 'a modulo};
+val comm_semiring_1_cancel_semiring_modulo =
+  #comm_semiring_1_cancel_semiring_modulo :
+  'a semiring_modulo -> 'a comm_semiring_1_cancel;
+val modulo_semiring_modulo = #modulo_semiring_modulo :
+  'a semiring_modulo -> 'a modulo;
+
+val semiring_modulo_int =
+  {comm_semiring_1_cancel_semiring_modulo = comm_semiring_1_cancel_int,
+    modulo_semiring_modulo = modulo_int}
+  : inta semiring_modulo;
+
+type 'a algebraic_semidom =
+  {semidom_divide_algebraic_semidom : 'a semidom_divide};
+val semidom_divide_algebraic_semidom = #semidom_divide_algebraic_semidom :
+  'a algebraic_semidom -> 'a semidom_divide;
+
 val algebraic_semidom_int =
   {semidom_divide_algebraic_semidom = semidom_divide_int} :
   inta algebraic_semidom;
 
-val semiring_div_int =
-  {div_semiring_div = div_int,
-    algebraic_semidom_semiring_div = algebraic_semidom_int}
-  : inta semiring_div;
+type 'a semidom_modulo =
+  {algebraic_semidom_semidom_modulo : 'a algebraic_semidom,
+    semiring_modulo_semidom_modulo : 'a semiring_modulo};
+val algebraic_semidom_semidom_modulo = #algebraic_semidom_semidom_modulo :
+  'a semidom_modulo -> 'a algebraic_semidom;
+val semiring_modulo_semidom_modulo = #semiring_modulo_semidom_modulo :
+  'a semidom_modulo -> 'a semiring_modulo;
+
+val semidom_modulo_int =
+  {algebraic_semidom_semidom_modulo = algebraic_semidom_int,
+    semiring_modulo_semidom_modulo = semiring_modulo_int}
+  : inta semidom_modulo;
 
 datatype nat = Nat of int;
 
@@ -1035,69 +1049,69 @@ fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
   | minusinf (Or (p, q)) = Or (minusinf p, minusinf q)
   | minusinf T = T
   | minusinf F = F
-  | minusinf (Lt (C bo)) = Lt (C bo)
-  | minusinf (Lt (Bound bp)) = Lt (Bound bp)
-  | minusinf (Lt (Neg bt)) = Lt (Neg bt)
-  | minusinf (Lt (Add (bu, bv))) = Lt (Add (bu, bv))
-  | minusinf (Lt (Sub (bw, bx))) = Lt (Sub (bw, bx))
-  | minusinf (Lt (Mul (by, bz))) = Lt (Mul (by, bz))
-  | minusinf (Le (C co)) = Le (C co)
-  | minusinf (Le (Bound cp)) = Le (Bound cp)
-  | minusinf (Le (Neg ct)) = Le (Neg ct)
-  | minusinf (Le (Add (cu, cv))) = Le (Add (cu, cv))
-  | minusinf (Le (Sub (cw, cx))) = Le (Sub (cw, cx))
-  | minusinf (Le (Mul (cy, cz))) = Le (Mul (cy, cz))
-  | minusinf (Gt (C doa)) = Gt (C doa)
-  | minusinf (Gt (Bound dp)) = Gt (Bound dp)
-  | minusinf (Gt (Neg dt)) = Gt (Neg dt)
-  | minusinf (Gt (Add (du, dv))) = Gt (Add (du, dv))
-  | minusinf (Gt (Sub (dw, dx))) = Gt (Sub (dw, dx))
-  | minusinf (Gt (Mul (dy, dz))) = Gt (Mul (dy, dz))
-  | minusinf (Ge (C eo)) = Ge (C eo)
-  | minusinf (Ge (Bound ep)) = Ge (Bound ep)
-  | minusinf (Ge (Neg et)) = Ge (Neg et)
-  | minusinf (Ge (Add (eu, ev))) = Ge (Add (eu, ev))
-  | minusinf (Ge (Sub (ew, ex))) = Ge (Sub (ew, ex))
-  | minusinf (Ge (Mul (ey, ez))) = Ge (Mul (ey, ez))
-  | minusinf (Eq (C fo)) = Eq (C fo)
-  | minusinf (Eq (Bound fp)) = Eq (Bound fp)
-  | minusinf (Eq (Neg ft)) = Eq (Neg ft)
-  | minusinf (Eq (Add (fu, fv))) = Eq (Add (fu, fv))
-  | minusinf (Eq (Sub (fw, fx))) = Eq (Sub (fw, fx))
-  | minusinf (Eq (Mul (fy, fz))) = Eq (Mul (fy, fz))
-  | minusinf (NEq (C go)) = NEq (C go)
-  | minusinf (NEq (Bound gp)) = NEq (Bound gp)
-  | minusinf (NEq (Neg gt)) = NEq (Neg gt)
-  | minusinf (NEq (Add (gu, gv))) = NEq (Add (gu, gv))
-  | minusinf (NEq (Sub (gw, gx))) = NEq (Sub (gw, gx))
-  | minusinf (NEq (Mul (gy, gz))) = NEq (Mul (gy, gz))
-  | minusinf (Dvd (aa, ab)) = Dvd (aa, ab)
-  | minusinf (NDvd (ac, ad)) = NDvd (ac, ad)
-  | minusinf (NOT ae) = NOT ae
-  | minusinf (Imp (aj, ak)) = Imp (aj, ak)
-  | minusinf (Iff (al, am)) = Iff (al, am)
-  | minusinf (E an) = E an
-  | minusinf (A ao) = A ao
-  | minusinf (Closed ap) = Closed ap
-  | minusinf (NClosed aq) = NClosed aq
-  | minusinf (Lt (CN (cm, c, e))) =
-    (if equal_nat cm zero_nat then T
-      else Lt (CN (suc (minus_nat cm one_nat), c, e)))
-  | minusinf (Le (CN (dm, c, e))) =
-    (if equal_nat dm zero_nat then T
-      else Le (CN (suc (minus_nat dm one_nat), c, e)))
-  | minusinf (Gt (CN (em, c, e))) =
-    (if equal_nat em zero_nat then F
-      else Gt (CN (suc (minus_nat em one_nat), c, e)))
-  | minusinf (Ge (CN (fm, c, e))) =
-    (if equal_nat fm zero_nat then F
-      else Ge (CN (suc (minus_nat fm one_nat), c, e)))
-  | minusinf (Eq (CN (gm, c, e))) =
-    (if equal_nat gm zero_nat then F
-      else Eq (CN (suc (minus_nat gm one_nat), c, e)))
-  | minusinf (NEq (CN (hm, c, e))) =
-    (if equal_nat hm zero_nat then T
-      else NEq (CN (suc (minus_nat hm one_nat), c, e)));
+  | minusinf (Lt (C va)) = Lt (C va)
+  | minusinf (Lt (Bound va)) = Lt (Bound va)
+  | minusinf (Lt (Neg va)) = Lt (Neg va)
+  | minusinf (Lt (Add (va, vb))) = Lt (Add (va, vb))
+  | minusinf (Lt (Sub (va, vb))) = Lt (Sub (va, vb))
+  | minusinf (Lt (Mul (va, vb))) = Lt (Mul (va, vb))
+  | minusinf (Le (C va)) = Le (C va)
+  | minusinf (Le (Bound va)) = Le (Bound va)
+  | minusinf (Le (Neg va)) = Le (Neg va)
+  | minusinf (Le (Add (va, vb))) = Le (Add (va, vb))
+  | minusinf (Le (Sub (va, vb))) = Le (Sub (va, vb))
+  | minusinf (Le (Mul (va, vb))) = Le (Mul (va, vb))
+  | minusinf (Gt (C va)) = Gt (C va)
+  | minusinf (Gt (Bound va)) = Gt (Bound va)
+  | minusinf (Gt (Neg va)) = Gt (Neg va)
+  | minusinf (Gt (Add (va, vb))) = Gt (Add (va, vb))
+  | minusinf (Gt (Sub (va, vb))) = Gt (Sub (va, vb))
+  | minusinf (Gt (Mul (va, vb))) = Gt (Mul (va, vb))
+  | minusinf (Ge (C va)) = Ge (C va)
+  | minusinf (Ge (Bound va)) = Ge (Bound va)
+  | minusinf (Ge (Neg va)) = Ge (Neg va)
+  | minusinf (Ge (Add (va, vb))) = Ge (Add (va, vb))
+  | minusinf (Ge (Sub (va, vb))) = Ge (Sub (va, vb))
+  | minusinf (Ge (Mul (va, vb))) = Ge (Mul (va, vb))
+  | minusinf (Eq (C va)) = Eq (C va)
+  | minusinf (Eq (Bound va)) = Eq (Bound va)
+  | minusinf (Eq (Neg va)) = Eq (Neg va)
+  | minusinf (Eq (Add (va, vb))) = Eq (Add (va, vb))
+  | minusinf (Eq (Sub (va, vb))) = Eq (Sub (va, vb))
+  | minusinf (Eq (Mul (va, vb))) = Eq (Mul (va, vb))
+  | minusinf (NEq (C va)) = NEq (C va)
+  | minusinf (NEq (Bound va)) = NEq (Bound va)
+  | minusinf (NEq (Neg va)) = NEq (Neg va)
+  | minusinf (NEq (Add (va, vb))) = NEq (Add (va, vb))
+  | minusinf (NEq (Sub (va, vb))) = NEq (Sub (va, vb))
+  | minusinf (NEq (Mul (va, vb))) = NEq (Mul (va, vb))
+  | minusinf (Dvd (v, va)) = Dvd (v, va)
+  | minusinf (NDvd (v, va)) = NDvd (v, va)
+  | minusinf (NOT v) = NOT v
+  | minusinf (Imp (v, va)) = Imp (v, va)
+  | minusinf (Iff (v, va)) = Iff (v, va)
+  | minusinf (E v) = E v
+  | minusinf (A v) = A v
+  | minusinf (Closed v) = Closed v
+  | minusinf (NClosed v) = NClosed v
+  | minusinf (Lt (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then T
+      else Lt (CN (suc (minus_nat vd one_nat), c, e)))
+  | minusinf (Le (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then T
+      else Le (CN (suc (minus_nat vd one_nat), c, e)))
+  | minusinf (Gt (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then F
+      else Gt (CN (suc (minus_nat vd one_nat), c, e)))
+  | minusinf (Ge (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then F
+      else Ge (CN (suc (minus_nat vd one_nat), c, e)))
+  | minusinf (Eq (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then F
+      else Eq (CN (suc (minus_nat vd one_nat), c, e)))
+  | minusinf (NEq (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then T
+      else NEq (CN (suc (minus_nat vd one_nat), c, e)));
 
 fun map f [] = []
   | map f (x21 :: x22) = f x21 :: map f x22;
@@ -1139,12 +1153,14 @@ fun uminus_int k = Int_of_integer (~ (integer_of_int k));
 fun abs_int i = (if less_int i zero_inta then uminus_int i else i);
 
 fun dvd (A1_, A2_) a b =
-  eq A2_ (moda (div_semiring_div A1_) b a)
+  eq A2_
+    (modulo ((modulo_semiring_modulo o semiring_modulo_semidom_modulo) A1_) b a)
     (zero ((zero_mult_zero o mult_zero_semiring_0 o semiring_0_semiring_1 o
              semiring_1_comm_semiring_1 o
              comm_semiring_1_comm_semiring_1_cancel o
              comm_semiring_1_cancel_semidom o semidom_semidom_divide o
-             semidom_divide_algebraic_semidom o algebraic_semidom_semiring_div)
+             semidom_divide_algebraic_semidom o
+             algebraic_semidom_semidom_modulo)
             A1_));
 
 fun nummul i (C j) = C (times_inta i j)
@@ -1155,7 +1171,7 @@ fun nummul i (C j) = C (times_inta i j)
   | nummul i (Sub (v, va)) = Mul (i, Sub (v, va))
   | nummul i (Mul (v, va)) = Mul (i, Mul (v, va));
 
-fun numneg t = nummul (uminus_int (Int_of_integer (1 : IntInf.int))) t;
+fun numneg t = nummul (uminus_int one_inta) t;
 
 fun less_eq_nat m n = integer_of_nat m <= integer_of_nat n;
 
@@ -1228,7 +1244,7 @@ fun numadd (CN (n1, c1, r1), CN (n2, c2, r2)) =
 fun numsub s t = (if equal_numa s t then C zero_inta else numadd (s, numneg t));
 
 fun simpnum (C j) = C j
-  | simpnum (Bound n) = CN (n, Int_of_integer (1 : IntInf.int), C zero_inta)
+  | simpnum (Bound n) = CN (n, one_inta, C zero_inta)
   | simpnum (Neg t) = numneg (simpnum t)
   | simpnum (Add (t, s)) = numadd (simpnum t, simpnum s)
   | simpnum (Sub (t, s)) = numsub (simpnum t) (simpnum s)
@@ -1334,26 +1350,27 @@ fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
     end
   | simpfm (Dvd (i, a)) =
     (if equal_inta i zero_inta then simpfm (Eq a)
-      else (if equal_inta (abs_int i) (Int_of_integer (1 : IntInf.int)) then T
+      else (if equal_inta (abs_int i) one_inta then T
              else let
                     val aa = simpnum a;
                   in
                     (case aa
                       of C v =>
-                        (if dvd (semiring_div_int, equal_int) i v then T else F)
+                        (if dvd (semidom_modulo_int, equal_int) i v then T
+                          else F)
                       | Bound _ => Dvd (i, aa) | CN (_, _, _) => Dvd (i, aa)
                       | Neg _ => Dvd (i, aa) | Add (_, _) => Dvd (i, aa)
                       | Sub (_, _) => Dvd (i, aa) | Mul (_, _) => Dvd (i, aa))
                   end))
   | simpfm (NDvd (i, a)) =
     (if equal_inta i zero_inta then simpfm (NEq a)
-      else (if equal_inta (abs_int i) (Int_of_integer (1 : IntInf.int)) then F
+      else (if equal_inta (abs_int i) one_inta then F
              else let
                     val aa = simpnum a;
                   in
                     (case aa
                       of C v =>
-                        (if not (dvd (semiring_div_int, equal_int) i v) then T
+                        (if not (dvd (semidom_modulo_int, equal_int) i v) then T
                           else F)
                       | Bound _ => NDvd (i, aa) | CN (_, _, _) => NDvd (i, aa)
                       | Neg _ => NDvd (i, aa) | Add (_, _) => NDvd (i, aa)
@@ -1371,438 +1388,413 @@ fun gen_length n (x :: xs) = gen_length (suc n) xs
 
 fun size_list x = gen_length zero_nat x;
 
-fun a_beta (And (p, q)) = (fn k => And (a_beta p k, a_beta q k))
-  | a_beta (Or (p, q)) = (fn k => Or (a_beta p k, a_beta q k))
-  | a_beta T = (fn _ => T)
-  | a_beta F = (fn _ => F)
-  | a_beta (Lt (C bo)) = (fn _ => Lt (C bo))
-  | a_beta (Lt (Bound bp)) = (fn _ => Lt (Bound bp))
-  | a_beta (Lt (Neg bt)) = (fn _ => Lt (Neg bt))
-  | a_beta (Lt (Add (bu, bv))) = (fn _ => Lt (Add (bu, bv)))
-  | a_beta (Lt (Sub (bw, bx))) = (fn _ => Lt (Sub (bw, bx)))
-  | a_beta (Lt (Mul (by, bz))) = (fn _ => Lt (Mul (by, bz)))
-  | a_beta (Le (C co)) = (fn _ => Le (C co))
-  | a_beta (Le (Bound cp)) = (fn _ => Le (Bound cp))
-  | a_beta (Le (Neg ct)) = (fn _ => Le (Neg ct))
-  | a_beta (Le (Add (cu, cv))) = (fn _ => Le (Add (cu, cv)))
-  | a_beta (Le (Sub (cw, cx))) = (fn _ => Le (Sub (cw, cx)))
-  | a_beta (Le (Mul (cy, cz))) = (fn _ => Le (Mul (cy, cz)))
-  | a_beta (Gt (C doa)) = (fn _ => Gt (C doa))
-  | a_beta (Gt (Bound dp)) = (fn _ => Gt (Bound dp))
-  | a_beta (Gt (Neg dt)) = (fn _ => Gt (Neg dt))
-  | a_beta (Gt (Add (du, dv))) = (fn _ => Gt (Add (du, dv)))
-  | a_beta (Gt (Sub (dw, dx))) = (fn _ => Gt (Sub (dw, dx)))
-  | a_beta (Gt (Mul (dy, dz))) = (fn _ => Gt (Mul (dy, dz)))
-  | a_beta (Ge (C eo)) = (fn _ => Ge (C eo))
-  | a_beta (Ge (Bound ep)) = (fn _ => Ge (Bound ep))
-  | a_beta (Ge (Neg et)) = (fn _ => Ge (Neg et))
-  | a_beta (Ge (Add (eu, ev))) = (fn _ => Ge (Add (eu, ev)))
-  | a_beta (Ge (Sub (ew, ex))) = (fn _ => Ge (Sub (ew, ex)))
-  | a_beta (Ge (Mul (ey, ez))) = (fn _ => Ge (Mul (ey, ez)))
-  | a_beta (Eq (C fo)) = (fn _ => Eq (C fo))
-  | a_beta (Eq (Bound fp)) = (fn _ => Eq (Bound fp))
-  | a_beta (Eq (Neg ft)) = (fn _ => Eq (Neg ft))
-  | a_beta (Eq (Add (fu, fv))) = (fn _ => Eq (Add (fu, fv)))
-  | a_beta (Eq (Sub (fw, fx))) = (fn _ => Eq (Sub (fw, fx)))
-  | a_beta (Eq (Mul (fy, fz))) = (fn _ => Eq (Mul (fy, fz)))
-  | a_beta (NEq (C go)) = (fn _ => NEq (C go))
-  | a_beta (NEq (Bound gp)) = (fn _ => NEq (Bound gp))
-  | a_beta (NEq (Neg gt)) = (fn _ => NEq (Neg gt))
-  | a_beta (NEq (Add (gu, gv))) = (fn _ => NEq (Add (gu, gv)))
-  | a_beta (NEq (Sub (gw, gx))) = (fn _ => NEq (Sub (gw, gx)))
-  | a_beta (NEq (Mul (gy, gz))) = (fn _ => NEq (Mul (gy, gz)))
-  | a_beta (Dvd (aa, C ho)) = (fn _ => Dvd (aa, C ho))
-  | a_beta (Dvd (aa, Bound hp)) = (fn _ => Dvd (aa, Bound hp))
-  | a_beta (Dvd (aa, Neg ht)) = (fn _ => Dvd (aa, Neg ht))
-  | a_beta (Dvd (aa, Add (hu, hv))) = (fn _ => Dvd (aa, Add (hu, hv)))
-  | a_beta (Dvd (aa, Sub (hw, hx))) = (fn _ => Dvd (aa, Sub (hw, hx)))
-  | a_beta (Dvd (aa, Mul (hy, hz))) = (fn _ => Dvd (aa, Mul (hy, hz)))
-  | a_beta (NDvd (ac, C io)) = (fn _ => NDvd (ac, C io))
-  | a_beta (NDvd (ac, Bound ip)) = (fn _ => NDvd (ac, Bound ip))
-  | a_beta (NDvd (ac, Neg it)) = (fn _ => NDvd (ac, Neg it))
-  | a_beta (NDvd (ac, Add (iu, iv))) = (fn _ => NDvd (ac, Add (iu, iv)))
-  | a_beta (NDvd (ac, Sub (iw, ix))) = (fn _ => NDvd (ac, Sub (iw, ix)))
-  | a_beta (NDvd (ac, Mul (iy, iz))) = (fn _ => NDvd (ac, Mul (iy, iz)))
-  | a_beta (NOT ae) = (fn _ => NOT ae)
-  | a_beta (Imp (aj, ak)) = (fn _ => Imp (aj, ak))
-  | a_beta (Iff (al, am)) = (fn _ => Iff (al, am))
-  | a_beta (E an) = (fn _ => E an)
-  | a_beta (A ao) = (fn _ => A ao)
-  | a_beta (Closed ap) = (fn _ => Closed ap)
-  | a_beta (NClosed aq) = (fn _ => NClosed aq)
-  | a_beta (Lt (CN (cm, c, e))) =
-    (if equal_nat cm zero_nat
-      then (fn k =>
-             Lt (CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                      Mul (divide_inta k c, e))))
-      else (fn _ => Lt (CN (suc (minus_nat cm one_nat), c, e))))
-  | a_beta (Le (CN (dm, c, e))) =
-    (if equal_nat dm zero_nat
-      then (fn k =>
-             Le (CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                      Mul (divide_inta k c, e))))
-      else (fn _ => Le (CN (suc (minus_nat dm one_nat), c, e))))
-  | a_beta (Gt (CN (em, c, e))) =
-    (if equal_nat em zero_nat
-      then (fn k =>
-             Gt (CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                      Mul (divide_inta k c, e))))
-      else (fn _ => Gt (CN (suc (minus_nat em one_nat), c, e))))
-  | a_beta (Ge (CN (fm, c, e))) =
-    (if equal_nat fm zero_nat
-      then (fn k =>
-             Ge (CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                      Mul (divide_inta k c, e))))
-      else (fn _ => Ge (CN (suc (minus_nat fm one_nat), c, e))))
-  | a_beta (Eq (CN (gm, c, e))) =
-    (if equal_nat gm zero_nat
-      then (fn k =>
-             Eq (CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                      Mul (divide_inta k c, e))))
-      else (fn _ => Eq (CN (suc (minus_nat gm one_nat), c, e))))
-  | a_beta (NEq (CN (hm, c, e))) =
-    (if equal_nat hm zero_nat
-      then (fn k =>
-             NEq (CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                       Mul (divide_inta k c, e))))
-      else (fn _ => NEq (CN (suc (minus_nat hm one_nat), c, e))))
-  | a_beta (Dvd (i, CN (im, c, e))) =
-    (if equal_nat im zero_nat
-      then (fn k =>
-             Dvd (times_inta (divide_inta k c) i,
-                   CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                        Mul (divide_inta k c, e))))
-      else (fn _ => Dvd (i, CN (suc (minus_nat im one_nat), c, e))))
-  | a_beta (NDvd (i, CN (jm, c, e))) =
-    (if equal_nat jm zero_nat
-      then (fn k =>
-             NDvd (times_inta (divide_inta k c) i,
-                    CN (zero_nat, Int_of_integer (1 : IntInf.int),
-                         Mul (divide_inta k c, e))))
-      else (fn _ => NDvd (i, CN (suc (minus_nat jm one_nat), c, e))));
+fun a_beta (And (p, q)) k = And (a_beta p k, a_beta q k)
+  | a_beta (Or (p, q)) k = Or (a_beta p k, a_beta q k)
+  | a_beta T k = T
+  | a_beta F k = F
+  | a_beta (Lt (C va)) k = Lt (C va)
+  | a_beta (Lt (Bound va)) k = Lt (Bound va)
+  | a_beta (Lt (Neg va)) k = Lt (Neg va)
+  | a_beta (Lt (Add (va, vb))) k = Lt (Add (va, vb))
+  | a_beta (Lt (Sub (va, vb))) k = Lt (Sub (va, vb))
+  | a_beta (Lt (Mul (va, vb))) k = Lt (Mul (va, vb))
+  | a_beta (Le (C va)) k = Le (C va)
+  | a_beta (Le (Bound va)) k = Le (Bound va)
+  | a_beta (Le (Neg va)) k = Le (Neg va)
+  | a_beta (Le (Add (va, vb))) k = Le (Add (va, vb))
+  | a_beta (Le (Sub (va, vb))) k = Le (Sub (va, vb))
+  | a_beta (Le (Mul (va, vb))) k = Le (Mul (va, vb))
+  | a_beta (Gt (C va)) k = Gt (C va)
+  | a_beta (Gt (Bound va)) k = Gt (Bound va)
+  | a_beta (Gt (Neg va)) k = Gt (Neg va)
+  | a_beta (Gt (Add (va, vb))) k = Gt (Add (va, vb))
+  | a_beta (Gt (Sub (va, vb))) k = Gt (Sub (va, vb))
+  | a_beta (Gt (Mul (va, vb))) k = Gt (Mul (va, vb))
+  | a_beta (Ge (C va)) k = Ge (C va)
+  | a_beta (Ge (Bound va)) k = Ge (Bound va)
+  | a_beta (Ge (Neg va)) k = Ge (Neg va)
+  | a_beta (Ge (Add (va, vb))) k = Ge (Add (va, vb))
+  | a_beta (Ge (Sub (va, vb))) k = Ge (Sub (va, vb))
+  | a_beta (Ge (Mul (va, vb))) k = Ge (Mul (va, vb))
+  | a_beta (Eq (C va)) k = Eq (C va)
+  | a_beta (Eq (Bound va)) k = Eq (Bound va)
+  | a_beta (Eq (Neg va)) k = Eq (Neg va)
+  | a_beta (Eq (Add (va, vb))) k = Eq (Add (va, vb))
+  | a_beta (Eq (Sub (va, vb))) k = Eq (Sub (va, vb))
+  | a_beta (Eq (Mul (va, vb))) k = Eq (Mul (va, vb))
+  | a_beta (NEq (C va)) k = NEq (C va)
+  | a_beta (NEq (Bound va)) k = NEq (Bound va)
+  | a_beta (NEq (Neg va)) k = NEq (Neg va)
+  | a_beta (NEq (Add (va, vb))) k = NEq (Add (va, vb))
+  | a_beta (NEq (Sub (va, vb))) k = NEq (Sub (va, vb))
+  | a_beta (NEq (Mul (va, vb))) k = NEq (Mul (va, vb))
+  | a_beta (Dvd (v, C vb)) k = Dvd (v, C vb)
+  | a_beta (Dvd (v, Bound vb)) k = Dvd (v, Bound vb)
+  | a_beta (Dvd (v, Neg vb)) k = Dvd (v, Neg vb)
+  | a_beta (Dvd (v, Add (vb, vc))) k = Dvd (v, Add (vb, vc))
+  | a_beta (Dvd (v, Sub (vb, vc))) k = Dvd (v, Sub (vb, vc))
+  | a_beta (Dvd (v, Mul (vb, vc))) k = Dvd (v, Mul (vb, vc))
+  | a_beta (NDvd (v, C vb)) k = NDvd (v, C vb)
+  | a_beta (NDvd (v, Bound vb)) k = NDvd (v, Bound vb)
+  | a_beta (NDvd (v, Neg vb)) k = NDvd (v, Neg vb)
+  | a_beta (NDvd (v, Add (vb, vc))) k = NDvd (v, Add (vb, vc))
+  | a_beta (NDvd (v, Sub (vb, vc))) k = NDvd (v, Sub (vb, vc))
+  | a_beta (NDvd (v, Mul (vb, vc))) k = NDvd (v, Mul (vb, vc))
+  | a_beta (NOT v) k = NOT v
+  | a_beta (Imp (v, va)) k = Imp (v, va)
+  | a_beta (Iff (v, va)) k = Iff (v, va)
+  | a_beta (E v) k = E v
+  | a_beta (A v) k = A v
+  | a_beta (Closed v) k = Closed v
+  | a_beta (NClosed v) k = NClosed v
+  | a_beta (Lt (CN (vd, c, e))) k =
+    (if equal_nat vd zero_nat
+      then Lt (CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else Lt (CN (suc (minus_nat vd one_nat), c, e)))
+  | a_beta (Le (CN (vd, c, e))) k =
+    (if equal_nat vd zero_nat
+      then Le (CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else Le (CN (suc (minus_nat vd one_nat), c, e)))
+  | a_beta (Gt (CN (vd, c, e))) k =
+    (if equal_nat vd zero_nat
+      then Gt (CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else Gt (CN (suc (minus_nat vd one_nat), c, e)))
+  | a_beta (Ge (CN (vd, c, e))) k =
+    (if equal_nat vd zero_nat
+      then Ge (CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else Ge (CN (suc (minus_nat vd one_nat), c, e)))
+  | a_beta (Eq (CN (vd, c, e))) k =
+    (if equal_nat vd zero_nat
+      then Eq (CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else Eq (CN (suc (minus_nat vd one_nat), c, e)))
+  | a_beta (NEq (CN (vd, c, e))) k =
+    (if equal_nat vd zero_nat
+      then NEq (CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else NEq (CN (suc (minus_nat vd one_nat), c, e)))
+  | a_beta (Dvd (i, CN (ve, c, e))) k =
+    (if equal_nat ve zero_nat
+      then Dvd (times_inta (divide_inta k c) i,
+                 CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else Dvd (i, CN (suc (minus_nat ve one_nat), c, e)))
+  | a_beta (NDvd (i, CN (ve, c, e))) k =
+    (if equal_nat ve zero_nat
+      then NDvd (times_inta (divide_inta k c) i,
+                  CN (zero_nat, one_inta, Mul (divide_inta k c, e)))
+      else NDvd (i, CN (suc (minus_nat ve one_nat), c, e)));
 
-fun gcd_int k l =
-  abs_int
-    (if equal_inta l zero_inta then k
-      else gcd_int l (mod_int (abs_int k) (abs_int l)));
+fun gcd_integer k l =
+  abs (if l = (0 : IntInf.int) then k
+        else gcd_integer l (modulo_integer (abs k) (abs l)));
 
-fun lcm_int a b =
-  divide_inta (times_inta (abs_int a) (abs_int b)) (gcd_int a b);
+fun lcm_integer a b = divide_integer (abs a * abs b) (gcd_integer a b);
+
+fun lcm_int (Int_of_integer x) (Int_of_integer y) =
+  Int_of_integer (lcm_integer x y);
 
 fun delta (And (p, q)) = lcm_int (delta p) (delta q)
   | delta (Or (p, q)) = lcm_int (delta p) (delta q)
-  | delta T = Int_of_integer (1 : IntInf.int)
-  | delta F = Int_of_integer (1 : IntInf.int)
-  | delta (Lt u) = Int_of_integer (1 : IntInf.int)
-  | delta (Le v) = Int_of_integer (1 : IntInf.int)
-  | delta (Gt w) = Int_of_integer (1 : IntInf.int)
-  | delta (Ge x) = Int_of_integer (1 : IntInf.int)
-  | delta (Eq y) = Int_of_integer (1 : IntInf.int)
-  | delta (NEq z) = Int_of_integer (1 : IntInf.int)
-  | delta (Dvd (aa, C bo)) = Int_of_integer (1 : IntInf.int)
-  | delta (Dvd (aa, Bound bp)) = Int_of_integer (1 : IntInf.int)
-  | delta (Dvd (aa, Neg bt)) = Int_of_integer (1 : IntInf.int)
-  | delta (Dvd (aa, Add (bu, bv))) = Int_of_integer (1 : IntInf.int)
-  | delta (Dvd (aa, Sub (bw, bx))) = Int_of_integer (1 : IntInf.int)
-  | delta (Dvd (aa, Mul (by, bz))) = Int_of_integer (1 : IntInf.int)
-  | delta (NDvd (ac, C co)) = Int_of_integer (1 : IntInf.int)
-  | delta (NDvd (ac, Bound cp)) = Int_of_integer (1 : IntInf.int)
-  | delta (NDvd (ac, Neg ct)) = Int_of_integer (1 : IntInf.int)
-  | delta (NDvd (ac, Add (cu, cv))) = Int_of_integer (1 : IntInf.int)
-  | delta (NDvd (ac, Sub (cw, cx))) = Int_of_integer (1 : IntInf.int)
-  | delta (NDvd (ac, Mul (cy, cz))) = Int_of_integer (1 : IntInf.int)
-  | delta (NOT ae) = Int_of_integer (1 : IntInf.int)
-  | delta (Imp (aj, ak)) = Int_of_integer (1 : IntInf.int)
-  | delta (Iff (al, am)) = Int_of_integer (1 : IntInf.int)
-  | delta (E an) = Int_of_integer (1 : IntInf.int)
-  | delta (A ao) = Int_of_integer (1 : IntInf.int)
-  | delta (Closed ap) = Int_of_integer (1 : IntInf.int)
-  | delta (NClosed aq) = Int_of_integer (1 : IntInf.int)
-  | delta (Dvd (i, CN (cm, c, e))) =
-    (if equal_nat cm zero_nat then i else Int_of_integer (1 : IntInf.int))
-  | delta (NDvd (i, CN (dm, c, e))) =
-    (if equal_nat dm zero_nat then i else Int_of_integer (1 : IntInf.int));
+  | delta T = one_inta
+  | delta F = one_inta
+  | delta (Lt v) = one_inta
+  | delta (Le v) = one_inta
+  | delta (Gt v) = one_inta
+  | delta (Ge v) = one_inta
+  | delta (Eq v) = one_inta
+  | delta (NEq v) = one_inta
+  | delta (Dvd (v, C vb)) = one_inta
+  | delta (Dvd (v, Bound vb)) = one_inta
+  | delta (Dvd (v, Neg vb)) = one_inta
+  | delta (Dvd (v, Add (vb, vc))) = one_inta
+  | delta (Dvd (v, Sub (vb, vc))) = one_inta
+  | delta (Dvd (v, Mul (vb, vc))) = one_inta
+  | delta (NDvd (v, C vb)) = one_inta
+  | delta (NDvd (v, Bound vb)) = one_inta
+  | delta (NDvd (v, Neg vb)) = one_inta
+  | delta (NDvd (v, Add (vb, vc))) = one_inta
+  | delta (NDvd (v, Sub (vb, vc))) = one_inta
+  | delta (NDvd (v, Mul (vb, vc))) = one_inta
+  | delta (NOT v) = one_inta
+  | delta (Imp (v, va)) = one_inta
+  | delta (Iff (v, va)) = one_inta
+  | delta (E v) = one_inta
+  | delta (A v) = one_inta
+  | delta (Closed v) = one_inta
+  | delta (NClosed v) = one_inta
+  | delta (Dvd (i, CN (ve, c, e))) =
+    (if equal_nat ve zero_nat then i else one_inta)
+  | delta (NDvd (i, CN (ve, c, e))) =
+    (if equal_nat ve zero_nat then i else one_inta);
 
 fun alpha (And (p, q)) = alpha p @ alpha q
   | alpha (Or (p, q)) = alpha p @ alpha q
   | alpha T = []
   | alpha F = []
-  | alpha (Lt (C bo)) = []
-  | alpha (Lt (Bound bp)) = []
-  | alpha (Lt (Neg bt)) = []
-  | alpha (Lt (Add (bu, bv))) = []
-  | alpha (Lt (Sub (bw, bx))) = []
-  | alpha (Lt (Mul (by, bz))) = []
-  | alpha (Le (C co)) = []
-  | alpha (Le (Bound cp)) = []
-  | alpha (Le (Neg ct)) = []
-  | alpha (Le (Add (cu, cv))) = []
-  | alpha (Le (Sub (cw, cx))) = []
-  | alpha (Le (Mul (cy, cz))) = []
-  | alpha (Gt (C doa)) = []
-  | alpha (Gt (Bound dp)) = []
-  | alpha (Gt (Neg dt)) = []
-  | alpha (Gt (Add (du, dv))) = []
-  | alpha (Gt (Sub (dw, dx))) = []
-  | alpha (Gt (Mul (dy, dz))) = []
-  | alpha (Ge (C eo)) = []
-  | alpha (Ge (Bound ep)) = []
-  | alpha (Ge (Neg et)) = []
-  | alpha (Ge (Add (eu, ev))) = []
-  | alpha (Ge (Sub (ew, ex))) = []
-  | alpha (Ge (Mul (ey, ez))) = []
-  | alpha (Eq (C fo)) = []
-  | alpha (Eq (Bound fp)) = []
-  | alpha (Eq (Neg ft)) = []
-  | alpha (Eq (Add (fu, fv))) = []
-  | alpha (Eq (Sub (fw, fx))) = []
-  | alpha (Eq (Mul (fy, fz))) = []
-  | alpha (NEq (C go)) = []
-  | alpha (NEq (Bound gp)) = []
-  | alpha (NEq (Neg gt)) = []
-  | alpha (NEq (Add (gu, gv))) = []
-  | alpha (NEq (Sub (gw, gx))) = []
-  | alpha (NEq (Mul (gy, gz))) = []
-  | alpha (Dvd (aa, ab)) = []
-  | alpha (NDvd (ac, ad)) = []
-  | alpha (NOT ae) = []
-  | alpha (Imp (aj, ak)) = []
-  | alpha (Iff (al, am)) = []
-  | alpha (E an) = []
-  | alpha (A ao) = []
-  | alpha (Closed ap) = []
-  | alpha (NClosed aq) = []
-  | alpha (Lt (CN (cm, c, e))) = (if equal_nat cm zero_nat then [e] else [])
-  | alpha (Le (CN (dm, c, e))) =
-    (if equal_nat dm zero_nat
-      then [Add (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
-  | alpha (Gt (CN (em, c, e))) = (if equal_nat em zero_nat then [] else [])
-  | alpha (Ge (CN (fm, c, e))) = (if equal_nat fm zero_nat then [] else [])
-  | alpha (Eq (CN (gm, c, e))) =
-    (if equal_nat gm zero_nat
-      then [Add (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
-  | alpha (NEq (CN (hm, c, e))) = (if equal_nat hm zero_nat then [e] else []);
+  | alpha (Lt (C va)) = []
+  | alpha (Lt (Bound va)) = []
+  | alpha (Lt (Neg va)) = []
+  | alpha (Lt (Add (va, vb))) = []
+  | alpha (Lt (Sub (va, vb))) = []
+  | alpha (Lt (Mul (va, vb))) = []
+  | alpha (Le (C va)) = []
+  | alpha (Le (Bound va)) = []
+  | alpha (Le (Neg va)) = []
+  | alpha (Le (Add (va, vb))) = []
+  | alpha (Le (Sub (va, vb))) = []
+  | alpha (Le (Mul (va, vb))) = []
+  | alpha (Gt (C va)) = []
+  | alpha (Gt (Bound va)) = []
+  | alpha (Gt (Neg va)) = []
+  | alpha (Gt (Add (va, vb))) = []
+  | alpha (Gt (Sub (va, vb))) = []
+  | alpha (Gt (Mul (va, vb))) = []
+  | alpha (Ge (C va)) = []
+  | alpha (Ge (Bound va)) = []
+  | alpha (Ge (Neg va)) = []
+  | alpha (Ge (Add (va, vb))) = []
+  | alpha (Ge (Sub (va, vb))) = []
+  | alpha (Ge (Mul (va, vb))) = []
+  | alpha (Eq (C va)) = []
+  | alpha (Eq (Bound va)) = []
+  | alpha (Eq (Neg va)) = []
+  | alpha (Eq (Add (va, vb))) = []
+  | alpha (Eq (Sub (va, vb))) = []
+  | alpha (Eq (Mul (va, vb))) = []
+  | alpha (NEq (C va)) = []
+  | alpha (NEq (Bound va)) = []
+  | alpha (NEq (Neg va)) = []
+  | alpha (NEq (Add (va, vb))) = []
+  | alpha (NEq (Sub (va, vb))) = []
+  | alpha (NEq (Mul (va, vb))) = []
+  | alpha (Dvd (v, va)) = []
+  | alpha (NDvd (v, va)) = []
+  | alpha (NOT v) = []
+  | alpha (Imp (v, va)) = []
+  | alpha (Iff (v, va)) = []
+  | alpha (E v) = []
+  | alpha (A v) = []
+  | alpha (Closed v) = []
+  | alpha (NClosed v) = []
+  | alpha (Lt (CN (vd, c, e))) = (if equal_nat vd zero_nat then [e] else [])
+  | alpha (Le (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then [Add (C (uminus_int one_inta), e)] else [])
+  | alpha (Gt (CN (vd, c, e))) = (if equal_nat vd zero_nat then [] else [])
+  | alpha (Ge (CN (vd, c, e))) = (if equal_nat vd zero_nat then [] else [])
+  | alpha (Eq (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then [Add (C (uminus_int one_inta), e)] else [])
+  | alpha (NEq (CN (vd, c, e))) = (if equal_nat vd zero_nat then [e] else []);
 
 fun zeta (And (p, q)) = lcm_int (zeta p) (zeta q)
   | zeta (Or (p, q)) = lcm_int (zeta p) (zeta q)
-  | zeta T = Int_of_integer (1 : IntInf.int)
-  | zeta F = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (C bo)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Bound bp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Neg bt)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Add (bu, bv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Sub (bw, bx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Mul (by, bz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (C co)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Bound cp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Neg ct)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Add (cu, cv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Sub (cw, cx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Mul (cy, cz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (C doa)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Bound dp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Neg dt)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Add (du, dv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Sub (dw, dx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Mul (dy, dz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (C eo)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Bound ep)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Neg et)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Add (eu, ev))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Sub (ew, ex))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Mul (ey, ez))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (C fo)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Bound fp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Neg ft)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Add (fu, fv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Sub (fw, fx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Mul (fy, fz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (C go)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Bound gp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Neg gt)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Add (gu, gv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Sub (gw, gx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Mul (gy, gz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, C ho)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Bound hp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Neg ht)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Add (hu, hv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Sub (hw, hx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Mul (hy, hz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, C io)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Bound ip)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Neg it)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Add (iu, iv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Sub (iw, ix))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Mul (iy, iz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NOT ae) = Int_of_integer (1 : IntInf.int)
-  | zeta (Imp (aj, ak)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Iff (al, am)) = Int_of_integer (1 : IntInf.int)
-  | zeta (E an) = Int_of_integer (1 : IntInf.int)
-  | zeta (A ao) = Int_of_integer (1 : IntInf.int)
-  | zeta (Closed ap) = Int_of_integer (1 : IntInf.int)
-  | zeta (NClosed aq) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (CN (cm, c, e))) =
-    (if equal_nat cm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Le (CN (dm, c, e))) =
-    (if equal_nat dm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Gt (CN (em, c, e))) =
-    (if equal_nat em zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Ge (CN (fm, c, e))) =
-    (if equal_nat fm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Eq (CN (gm, c, e))) =
-    (if equal_nat gm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (NEq (CN (hm, c, e))) =
-    (if equal_nat hm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Dvd (i, CN (im, c, e))) =
-    (if equal_nat im zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (NDvd (i, CN (jm, c, e))) =
-    (if equal_nat jm zero_nat then c else Int_of_integer (1 : IntInf.int));
+  | zeta T = one_inta
+  | zeta F = one_inta
+  | zeta (Lt (C va)) = one_inta
+  | zeta (Lt (Bound va)) = one_inta
+  | zeta (Lt (Neg va)) = one_inta
+  | zeta (Lt (Add (va, vb))) = one_inta
+  | zeta (Lt (Sub (va, vb))) = one_inta
+  | zeta (Lt (Mul (va, vb))) = one_inta
+  | zeta (Le (C va)) = one_inta
+  | zeta (Le (Bound va)) = one_inta
+  | zeta (Le (Neg va)) = one_inta
+  | zeta (Le (Add (va, vb))) = one_inta
+  | zeta (Le (Sub (va, vb))) = one_inta
+  | zeta (Le (Mul (va, vb))) = one_inta
+  | zeta (Gt (C va)) = one_inta
+  | zeta (Gt (Bound va)) = one_inta
+  | zeta (Gt (Neg va)) = one_inta
+  | zeta (Gt (Add (va, vb))) = one_inta
+  | zeta (Gt (Sub (va, vb))) = one_inta
+  | zeta (Gt (Mul (va, vb))) = one_inta
+  | zeta (Ge (C va)) = one_inta
+  | zeta (Ge (Bound va)) = one_inta
+  | zeta (Ge (Neg va)) = one_inta
+  | zeta (Ge (Add (va, vb))) = one_inta
+  | zeta (Ge (Sub (va, vb))) = one_inta
+  | zeta (Ge (Mul (va, vb))) = one_inta
+  | zeta (Eq (C va)) = one_inta
+  | zeta (Eq (Bound va)) = one_inta
+  | zeta (Eq (Neg va)) = one_inta
+  | zeta (Eq (Add (va, vb))) = one_inta
+  | zeta (Eq (Sub (va, vb))) = one_inta
+  | zeta (Eq (Mul (va, vb))) = one_inta
+  | zeta (NEq (C va)) = one_inta
+  | zeta (NEq (Bound va)) = one_inta
+  | zeta (NEq (Neg va)) = one_inta
+  | zeta (NEq (Add (va, vb))) = one_inta
+  | zeta (NEq (Sub (va, vb))) = one_inta
+  | zeta (NEq (Mul (va, vb))) = one_inta
+  | zeta (Dvd (v, C vb)) = one_inta
+  | zeta (Dvd (v, Bound vb)) = one_inta
+  | zeta (Dvd (v, Neg vb)) = one_inta
+  | zeta (Dvd (v, Add (vb, vc))) = one_inta
+  | zeta (Dvd (v, Sub (vb, vc))) = one_inta
+  | zeta (Dvd (v, Mul (vb, vc))) = one_inta
+  | zeta (NDvd (v, C vb)) = one_inta
+  | zeta (NDvd (v, Bound vb)) = one_inta
+  | zeta (NDvd (v, Neg vb)) = one_inta
+  | zeta (NDvd (v, Add (vb, vc))) = one_inta
+  | zeta (NDvd (v, Sub (vb, vc))) = one_inta
+  | zeta (NDvd (v, Mul (vb, vc))) = one_inta
+  | zeta (NOT v) = one_inta
+  | zeta (Imp (v, va)) = one_inta
+  | zeta (Iff (v, va)) = one_inta
+  | zeta (E v) = one_inta
+  | zeta (A v) = one_inta
+  | zeta (Closed v) = one_inta
+  | zeta (NClosed v) = one_inta
+  | zeta (Lt (CN (vd, c, e))) = (if equal_nat vd zero_nat then c else one_inta)
+  | zeta (Le (CN (vd, c, e))) = (if equal_nat vd zero_nat then c else one_inta)
+  | zeta (Gt (CN (vd, c, e))) = (if equal_nat vd zero_nat then c else one_inta)
+  | zeta (Ge (CN (vd, c, e))) = (if equal_nat vd zero_nat then c else one_inta)
+  | zeta (Eq (CN (vd, c, e))) = (if equal_nat vd zero_nat then c else one_inta)
+  | zeta (NEq (CN (vd, c, e))) = (if equal_nat vd zero_nat then c else one_inta)
+  | zeta (Dvd (i, CN (ve, c, e))) =
+    (if equal_nat ve zero_nat then c else one_inta)
+  | zeta (NDvd (i, CN (ve, c, e))) =
+    (if equal_nat ve zero_nat then c else one_inta);
 
 fun beta (And (p, q)) = beta p @ beta q
   | beta (Or (p, q)) = beta p @ beta q
   | beta T = []
   | beta F = []
-  | beta (Lt (C bo)) = []
-  | beta (Lt (Bound bp)) = []
-  | beta (Lt (Neg bt)) = []
-  | beta (Lt (Add (bu, bv))) = []
-  | beta (Lt (Sub (bw, bx))) = []
-  | beta (Lt (Mul (by, bz))) = []
-  | beta (Le (C co)) = []
-  | beta (Le (Bound cp)) = []
-  | beta (Le (Neg ct)) = []
-  | beta (Le (Add (cu, cv))) = []
-  | beta (Le (Sub (cw, cx))) = []
-  | beta (Le (Mul (cy, cz))) = []
-  | beta (Gt (C doa)) = []
-  | beta (Gt (Bound dp)) = []
-  | beta (Gt (Neg dt)) = []
-  | beta (Gt (Add (du, dv))) = []
-  | beta (Gt (Sub (dw, dx))) = []
-  | beta (Gt (Mul (dy, dz))) = []
-  | beta (Ge (C eo)) = []
-  | beta (Ge (Bound ep)) = []
-  | beta (Ge (Neg et)) = []
-  | beta (Ge (Add (eu, ev))) = []
-  | beta (Ge (Sub (ew, ex))) = []
-  | beta (Ge (Mul (ey, ez))) = []
-  | beta (Eq (C fo)) = []
-  | beta (Eq (Bound fp)) = []
-  | beta (Eq (Neg ft)) = []
-  | beta (Eq (Add (fu, fv))) = []
-  | beta (Eq (Sub (fw, fx))) = []
-  | beta (Eq (Mul (fy, fz))) = []
-  | beta (NEq (C go)) = []
-  | beta (NEq (Bound gp)) = []
-  | beta (NEq (Neg gt)) = []
-  | beta (NEq (Add (gu, gv))) = []
-  | beta (NEq (Sub (gw, gx))) = []
-  | beta (NEq (Mul (gy, gz))) = []
-  | beta (Dvd (aa, ab)) = []
-  | beta (NDvd (ac, ad)) = []
-  | beta (NOT ae) = []
-  | beta (Imp (aj, ak)) = []
-  | beta (Iff (al, am)) = []
-  | beta (E an) = []
-  | beta (A ao) = []
-  | beta (Closed ap) = []
-  | beta (NClosed aq) = []
-  | beta (Lt (CN (cm, c, e))) = (if equal_nat cm zero_nat then [] else [])
-  | beta (Le (CN (dm, c, e))) = (if equal_nat dm zero_nat then [] else [])
-  | beta (Gt (CN (em, c, e))) = (if equal_nat em zero_nat then [Neg e] else [])
-  | beta (Ge (CN (fm, c, e))) =
-    (if equal_nat fm zero_nat
-      then [Sub (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
-  | beta (Eq (CN (gm, c, e))) =
-    (if equal_nat gm zero_nat
-      then [Sub (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
-  | beta (NEq (CN (hm, c, e))) =
-    (if equal_nat hm zero_nat then [Neg e] else []);
+  | beta (Lt (C va)) = []
+  | beta (Lt (Bound va)) = []
+  | beta (Lt (Neg va)) = []
+  | beta (Lt (Add (va, vb))) = []
+  | beta (Lt (Sub (va, vb))) = []
+  | beta (Lt (Mul (va, vb))) = []
+  | beta (Le (C va)) = []
+  | beta (Le (Bound va)) = []
+  | beta (Le (Neg va)) = []
+  | beta (Le (Add (va, vb))) = []
+  | beta (Le (Sub (va, vb))) = []
+  | beta (Le (Mul (va, vb))) = []
+  | beta (Gt (C va)) = []
+  | beta (Gt (Bound va)) = []
+  | beta (Gt (Neg va)) = []
+  | beta (Gt (Add (va, vb))) = []
+  | beta (Gt (Sub (va, vb))) = []
+  | beta (Gt (Mul (va, vb))) = []
+  | beta (Ge (C va)) = []
+  | beta (Ge (Bound va)) = []
+  | beta (Ge (Neg va)) = []
+  | beta (Ge (Add (va, vb))) = []
+  | beta (Ge (Sub (va, vb))) = []
+  | beta (Ge (Mul (va, vb))) = []
+  | beta (Eq (C va)) = []
+  | beta (Eq (Bound va)) = []
+  | beta (Eq (Neg va)) = []
+  | beta (Eq (Add (va, vb))) = []
+  | beta (Eq (Sub (va, vb))) = []
+  | beta (Eq (Mul (va, vb))) = []
+  | beta (NEq (C va)) = []
+  | beta (NEq (Bound va)) = []
+  | beta (NEq (Neg va)) = []
+  | beta (NEq (Add (va, vb))) = []
+  | beta (NEq (Sub (va, vb))) = []
+  | beta (NEq (Mul (va, vb))) = []
+  | beta (Dvd (v, va)) = []
+  | beta (NDvd (v, va)) = []
+  | beta (NOT v) = []
+  | beta (Imp (v, va)) = []
+  | beta (Iff (v, va)) = []
+  | beta (E v) = []
+  | beta (A v) = []
+  | beta (Closed v) = []
+  | beta (NClosed v) = []
+  | beta (Lt (CN (vd, c, e))) = (if equal_nat vd zero_nat then [] else [])
+  | beta (Le (CN (vd, c, e))) = (if equal_nat vd zero_nat then [] else [])
+  | beta (Gt (CN (vd, c, e))) = (if equal_nat vd zero_nat then [Neg e] else [])
+  | beta (Ge (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then [Sub (C (uminus_int one_inta), e)] else [])
+  | beta (Eq (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then [Sub (C (uminus_int one_inta), e)] else [])
+  | beta (NEq (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then [Neg e] else []);
 
 fun mirror (And (p, q)) = And (mirror p, mirror q)
   | mirror (Or (p, q)) = Or (mirror p, mirror q)
   | mirror T = T
   | mirror F = F
-  | mirror (Lt (C bo)) = Lt (C bo)
-  | mirror (Lt (Bound bp)) = Lt (Bound bp)
-  | mirror (Lt (Neg bt)) = Lt (Neg bt)
-  | mirror (Lt (Add (bu, bv))) = Lt (Add (bu, bv))
-  | mirror (Lt (Sub (bw, bx))) = Lt (Sub (bw, bx))
-  | mirror (Lt (Mul (by, bz))) = Lt (Mul (by, bz))
-  | mirror (Le (C co)) = Le (C co)
-  | mirror (Le (Bound cp)) = Le (Bound cp)
-  | mirror (Le (Neg ct)) = Le (Neg ct)
-  | mirror (Le (Add (cu, cv))) = Le (Add (cu, cv))
-  | mirror (Le (Sub (cw, cx))) = Le (Sub (cw, cx))
-  | mirror (Le (Mul (cy, cz))) = Le (Mul (cy, cz))
-  | mirror (Gt (C doa)) = Gt (C doa)
-  | mirror (Gt (Bound dp)) = Gt (Bound dp)
-  | mirror (Gt (Neg dt)) = Gt (Neg dt)
-  | mirror (Gt (Add (du, dv))) = Gt (Add (du, dv))
-  | mirror (Gt (Sub (dw, dx))) = Gt (Sub (dw, dx))
-  | mirror (Gt (Mul (dy, dz))) = Gt (Mul (dy, dz))
-  | mirror (Ge (C eo)) = Ge (C eo)
-  | mirror (Ge (Bound ep)) = Ge (Bound ep)
-  | mirror (Ge (Neg et)) = Ge (Neg et)
-  | mirror (Ge (Add (eu, ev))) = Ge (Add (eu, ev))
-  | mirror (Ge (Sub (ew, ex))) = Ge (Sub (ew, ex))
-  | mirror (Ge (Mul (ey, ez))) = Ge (Mul (ey, ez))
-  | mirror (Eq (C fo)) = Eq (C fo)
-  | mirror (Eq (Bound fp)) = Eq (Bound fp)
-  | mirror (Eq (Neg ft)) = Eq (Neg ft)
-  | mirror (Eq (Add (fu, fv))) = Eq (Add (fu, fv))
-  | mirror (Eq (Sub (fw, fx))) = Eq (Sub (fw, fx))
-  | mirror (Eq (Mul (fy, fz))) = Eq (Mul (fy, fz))
-  | mirror (NEq (C go)) = NEq (C go)
-  | mirror (NEq (Bound gp)) = NEq (Bound gp)
-  | mirror (NEq (Neg gt)) = NEq (Neg gt)
-  | mirror (NEq (Add (gu, gv))) = NEq (Add (gu, gv))
-  | mirror (NEq (Sub (gw, gx))) = NEq (Sub (gw, gx))
-  | mirror (NEq (Mul (gy, gz))) = NEq (Mul (gy, gz))
-  | mirror (Dvd (aa, C ho)) = Dvd (aa, C ho)
-  | mirror (Dvd (aa, Bound hp)) = Dvd (aa, Bound hp)
-  | mirror (Dvd (aa, Neg ht)) = Dvd (aa, Neg ht)
-  | mirror (Dvd (aa, Add (hu, hv))) = Dvd (aa, Add (hu, hv))
-  | mirror (Dvd (aa, Sub (hw, hx))) = Dvd (aa, Sub (hw, hx))
-  | mirror (Dvd (aa, Mul (hy, hz))) = Dvd (aa, Mul (hy, hz))
-  | mirror (NDvd (ac, C io)) = NDvd (ac, C io)
-  | mirror (NDvd (ac, Bound ip)) = NDvd (ac, Bound ip)
-  | mirror (NDvd (ac, Neg it)) = NDvd (ac, Neg it)
-  | mirror (NDvd (ac, Add (iu, iv))) = NDvd (ac, Add (iu, iv))
-  | mirror (NDvd (ac, Sub (iw, ix))) = NDvd (ac, Sub (iw, ix))
-  | mirror (NDvd (ac, Mul (iy, iz))) = NDvd (ac, Mul (iy, iz))
-  | mirror (NOT ae) = NOT ae
-  | mirror (Imp (aj, ak)) = Imp (aj, ak)
-  | mirror (Iff (al, am)) = Iff (al, am)
-  | mirror (E an) = E an
-  | mirror (A ao) = A ao
-  | mirror (Closed ap) = Closed ap
-  | mirror (NClosed aq) = NClosed aq
-  | mirror (Lt (CN (cm, c, e))) =
-    (if equal_nat cm zero_nat then Gt (CN (zero_nat, c, Neg e))
-      else Lt (CN (suc (minus_nat cm one_nat), c, e)))
-  | mirror (Le (CN (dm, c, e))) =
-    (if equal_nat dm zero_nat then Ge (CN (zero_nat, c, Neg e))
-      else Le (CN (suc (minus_nat dm one_nat), c, e)))
-  | mirror (Gt (CN (em, c, e))) =
-    (if equal_nat em zero_nat then Lt (CN (zero_nat, c, Neg e))
-      else Gt (CN (suc (minus_nat em one_nat), c, e)))
-  | mirror (Ge (CN (fm, c, e))) =
-    (if equal_nat fm zero_nat then Le (CN (zero_nat, c, Neg e))
-      else Ge (CN (suc (minus_nat fm one_nat), c, e)))
-  | mirror (Eq (CN (gm, c, e))) =
-    (if equal_nat gm zero_nat then Eq (CN (zero_nat, c, Neg e))
-      else Eq (CN (suc (minus_nat gm one_nat), c, e)))
-  | mirror (NEq (CN (hm, c, e))) =
-    (if equal_nat hm zero_nat then NEq (CN (zero_nat, c, Neg e))
-      else NEq (CN (suc (minus_nat hm one_nat), c, e)))
-  | mirror (Dvd (i, CN (im, c, e))) =
-    (if equal_nat im zero_nat then Dvd (i, CN (zero_nat, c, Neg e))
-      else Dvd (i, CN (suc (minus_nat im one_nat), c, e)))
-  | mirror (NDvd (i, CN (jm, c, e))) =
-    (if equal_nat jm zero_nat then NDvd (i, CN (zero_nat, c, Neg e))
-      else NDvd (i, CN (suc (minus_nat jm one_nat), c, e)));
+  | mirror (Lt (C va)) = Lt (C va)
+  | mirror (Lt (Bound va)) = Lt (Bound va)
+  | mirror (Lt (Neg va)) = Lt (Neg va)
+  | mirror (Lt (Add (va, vb))) = Lt (Add (va, vb))
+  | mirror (Lt (Sub (va, vb))) = Lt (Sub (va, vb))
+  | mirror (Lt (Mul (va, vb))) = Lt (Mul (va, vb))
+  | mirror (Le (C va)) = Le (C va)
+  | mirror (Le (Bound va)) = Le (Bound va)
+  | mirror (Le (Neg va)) = Le (Neg va)
+  | mirror (Le (Add (va, vb))) = Le (Add (va, vb))
+  | mirror (Le (Sub (va, vb))) = Le (Sub (va, vb))
+  | mirror (Le (Mul (va, vb))) = Le (Mul (va, vb))
+  | mirror (Gt (C va)) = Gt (C va)
+  | mirror (Gt (Bound va)) = Gt (Bound va)
+  | mirror (Gt (Neg va)) = Gt (Neg va)
+  | mirror (Gt (Add (va, vb))) = Gt (Add (va, vb))
+  | mirror (Gt (Sub (va, vb))) = Gt (Sub (va, vb))
+  | mirror (Gt (Mul (va, vb))) = Gt (Mul (va, vb))
+  | mirror (Ge (C va)) = Ge (C va)
+  | mirror (Ge (Bound va)) = Ge (Bound va)
+  | mirror (Ge (Neg va)) = Ge (Neg va)
+  | mirror (Ge (Add (va, vb))) = Ge (Add (va, vb))
+  | mirror (Ge (Sub (va, vb))) = Ge (Sub (va, vb))
+  | mirror (Ge (Mul (va, vb))) = Ge (Mul (va, vb))
+  | mirror (Eq (C va)) = Eq (C va)
+  | mirror (Eq (Bound va)) = Eq (Bound va)
+  | mirror (Eq (Neg va)) = Eq (Neg va)
+  | mirror (Eq (Add (va, vb))) = Eq (Add (va, vb))
+  | mirror (Eq (Sub (va, vb))) = Eq (Sub (va, vb))
+  | mirror (Eq (Mul (va, vb))) = Eq (Mul (va, vb))
+  | mirror (NEq (C va)) = NEq (C va)
+  | mirror (NEq (Bound va)) = NEq (Bound va)
+  | mirror (NEq (Neg va)) = NEq (Neg va)
+  | mirror (NEq (Add (va, vb))) = NEq (Add (va, vb))
+  | mirror (NEq (Sub (va, vb))) = NEq (Sub (va, vb))
+  | mirror (NEq (Mul (va, vb))) = NEq (Mul (va, vb))
+  | mirror (Dvd (v, C vb)) = Dvd (v, C vb)
+  | mirror (Dvd (v, Bound vb)) = Dvd (v, Bound vb)
+  | mirror (Dvd (v, Neg vb)) = Dvd (v, Neg vb)
+  | mirror (Dvd (v, Add (vb, vc))) = Dvd (v, Add (vb, vc))
+  | mirror (Dvd (v, Sub (vb, vc))) = Dvd (v, Sub (vb, vc))
+  | mirror (Dvd (v, Mul (vb, vc))) = Dvd (v, Mul (vb, vc))
+  | mirror (NDvd (v, C vb)) = NDvd (v, C vb)
+  | mirror (NDvd (v, Bound vb)) = NDvd (v, Bound vb)
+  | mirror (NDvd (v, Neg vb)) = NDvd (v, Neg vb)
+  | mirror (NDvd (v, Add (vb, vc))) = NDvd (v, Add (vb, vc))
+  | mirror (NDvd (v, Sub (vb, vc))) = NDvd (v, Sub (vb, vc))
+  | mirror (NDvd (v, Mul (vb, vc))) = NDvd (v, Mul (vb, vc))
+  | mirror (NOT v) = NOT v
+  | mirror (Imp (v, va)) = Imp (v, va)
+  | mirror (Iff (v, va)) = Iff (v, va)
+  | mirror (E v) = E v
+  | mirror (A v) = A v
+  | mirror (Closed v) = Closed v
+  | mirror (NClosed v) = NClosed v
+  | mirror (Lt (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then Gt (CN (zero_nat, c, Neg e))
+      else Lt (CN (suc (minus_nat vd one_nat), c, e)))
+  | mirror (Le (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then Ge (CN (zero_nat, c, Neg e))
+      else Le (CN (suc (minus_nat vd one_nat), c, e)))
+  | mirror (Gt (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then Lt (CN (zero_nat, c, Neg e))
+      else Gt (CN (suc (minus_nat vd one_nat), c, e)))
+  | mirror (Ge (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then Le (CN (zero_nat, c, Neg e))
+      else Ge (CN (suc (minus_nat vd one_nat), c, e)))
+  | mirror (Eq (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then Eq (CN (zero_nat, c, Neg e))
+      else Eq (CN (suc (minus_nat vd one_nat), c, e)))
+  | mirror (NEq (CN (vd, c, e))) =
+    (if equal_nat vd zero_nat then NEq (CN (zero_nat, c, Neg e))
+      else NEq (CN (suc (minus_nat vd one_nat), c, e)))
+  | mirror (Dvd (i, CN (ve, c, e))) =
+    (if equal_nat ve zero_nat then Dvd (i, CN (zero_nat, c, Neg e))
+      else Dvd (i, CN (suc (minus_nat ve one_nat), c, e)))
+  | mirror (NDvd (i, CN (ve, c, e))) =
+    (if equal_nat ve zero_nat then NDvd (i, CN (zero_nat, c, Neg e))
+      else NDvd (i, CN (suc (minus_nat ve one_nat), c, e)));
 
 fun member A_ [] y = false
   | member A_ (x :: xs) y = eq A_ x y orelse member A_ xs y;
@@ -1813,7 +1805,7 @@ fun remdups A_ [] = []
 
 fun zsplit0 (C c) = (zero_inta, C c)
   | zsplit0 (Bound n) =
-    (if equal_nat n zero_nat then (Int_of_integer (1 : IntInf.int), C zero_inta)
+    (if equal_nat n zero_nat then (one_inta, C zero_inta)
       else (zero_inta, Bound n))
   | zsplit0 (CN (n, i, a)) =
     let
@@ -1823,38 +1815,34 @@ fun zsplit0 (C c) = (zero_inta, C c)
       (if equal_nat n zero_nat then (plus_inta i ia, ab)
         else (ia, CN (n, i, ab)))
     end
-  | zsplit0 (Neg a) =
-    let
-      val aa = zsplit0 a;
-      val (i, ab) = aa;
-    in
-      (uminus_int i, Neg ab)
-    end
-  | zsplit0 (Add (a, b)) =
-    let
-      val aa = zsplit0 a;
-      val (ia, ab) = aa;
-      val ba = zsplit0 b;
-      val (ib, bb) = ba;
-    in
-      (plus_inta ia ib, Add (ab, bb))
-    end
-  | zsplit0 (Sub (a, b)) =
-    let
-      val aa = zsplit0 a;
-      val (ia, ab) = aa;
-      val ba = zsplit0 b;
-      val (ib, bb) = ba;
-    in
-      (minus_inta ia ib, Sub (ab, bb))
-    end
-  | zsplit0 (Mul (i, a)) =
-    let
-      val aa = zsplit0 a;
-      val (ia, ab) = aa;
-    in
-      (times_inta i ia, Mul (i, ab))
-    end;
+  | zsplit0 (Neg a) = let
+                        val aa = zsplit0 a;
+                        val (i, ab) = aa;
+                      in
+                        (uminus_int i, Neg ab)
+                      end
+  | zsplit0 (Add (a, b)) = let
+                             val aa = zsplit0 a;
+                             val (ia, ab) = aa;
+                             val ba = zsplit0 b;
+                             val (ib, bb) = ba;
+                           in
+                             (plus_inta ia ib, Add (ab, bb))
+                           end
+  | zsplit0 (Sub (a, b)) = let
+                             val aa = zsplit0 a;
+                             val (ia, ab) = aa;
+                             val ba = zsplit0 b;
+                             val (ib, bb) = ba;
+                           in
+                             (minus_inta ia ib, Sub (ab, bb))
+                           end
+  | zsplit0 (Mul (i, a)) = let
+                             val aa = zsplit0 a;
+                             val (ia, ab) = aa;
+                           in
+                             (times_inta i ia, Mul (i, ab))
+                           end;
 
 fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
   | zlfm (Or (p, q)) = Or (zlfm p, zlfm q)
@@ -1950,20 +1938,18 @@ fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
   | zlfm (NOT (NClosed p)) = Closed p
   | zlfm T = T
   | zlfm F = F
-  | zlfm (NOT (E ci)) = NOT (E ci)
-  | zlfm (NOT (A cj)) = NOT (A cj)
-  | zlfm (E ao) = E ao
-  | zlfm (A ap) = A ap
-  | zlfm (Closed aq) = Closed aq
-  | zlfm (NClosed ar) = NClosed ar;
+  | zlfm (NOT (E va)) = NOT (E va)
+  | zlfm (NOT (A va)) = NOT (A va)
+  | zlfm (E v) = E v
+  | zlfm (A v) = A v
+  | zlfm (Closed v) = Closed v
+  | zlfm (NClosed v) = NClosed v;
 
 fun unita p =
   let
     val pa = zlfm p;
     val l = zeta pa;
-    val q =
-      And (Dvd (l, CN (zero_nat, Int_of_integer (1 : IntInf.int), C zero_inta)),
-            a_beta pa l);
+    val q = And (Dvd (l, CN (zero_nat, one_inta, C zero_inta)), a_beta pa l);
     val d = delta q;
     val b = remdups equal_num (map simpnum (beta q));
     val a = remdups equal_num (map simpnum (alpha q));
@@ -2001,8 +1987,7 @@ fun decr (Lt a) = Lt (decrnum a)
   | decr (NClosed v) = NClosed v;
 
 fun upto_aux i j js =
-  (if less_int j i then js
-    else upto_aux i (minus_inta j (Int_of_integer (1 : IntInf.int))) (j :: js));
+  (if less_int j i then js else upto_aux i (minus_inta j one_inta) (j :: js));
 
 fun uptoa i j = upto_aux i j [];
 
@@ -2012,7 +1997,7 @@ fun maps f [] = []
 fun cooper p =
   let
     val (q, (b, d)) = unita p;
-    val js = uptoa (Int_of_integer (1 : IntInf.int)) d;
+    val js = uptoa one_inta d;
     val mq = simpfm (minusinf q);
     val md = evaldjf (fn j => simpfm (subst0 (C j) mq)) js;
   in
@@ -2056,54 +2041,54 @@ fun prep (E T) = T
   | prep (E (NOT (Imp (p, q)))) = prep (E (And (p, NOT q)))
   | prep (E (NOT (Iff (p, q)))) =
     Or (prep (E (And (p, NOT q))), prep (E (And (NOT p, q))))
-  | prep (E (Lt ef)) = E (prep (Lt ef))
-  | prep (E (Le eg)) = E (prep (Le eg))
-  | prep (E (Gt eh)) = E (prep (Gt eh))
-  | prep (E (Ge ei)) = E (prep (Ge ei))
-  | prep (E (Eq ej)) = E (prep (Eq ej))
-  | prep (E (NEq ek)) = E (prep (NEq ek))
-  | prep (E (Dvd (el, em))) = E (prep (Dvd (el, em)))
-  | prep (E (NDvd (en, eo))) = E (prep (NDvd (en, eo)))
+  | prep (E (Lt v)) = E (prep (Lt v))
+  | prep (E (Le v)) = E (prep (Le v))
+  | prep (E (Gt v)) = E (prep (Gt v))
+  | prep (E (Ge v)) = E (prep (Ge v))
+  | prep (E (Eq v)) = E (prep (Eq v))
+  | prep (E (NEq v)) = E (prep (NEq v))
+  | prep (E (Dvd (v, va))) = E (prep (Dvd (v, va)))
+  | prep (E (NDvd (v, va))) = E (prep (NDvd (v, va)))
   | prep (E (NOT T)) = E (prep (NOT T))
   | prep (E (NOT F)) = E (prep (NOT F))
-  | prep (E (NOT (Lt gw))) = E (prep (NOT (Lt gw)))
-  | prep (E (NOT (Le gx))) = E (prep (NOT (Le gx)))
-  | prep (E (NOT (Gt gy))) = E (prep (NOT (Gt gy)))
-  | prep (E (NOT (Ge gz))) = E (prep (NOT (Ge gz)))
-  | prep (E (NOT (Eq ha))) = E (prep (NOT (Eq ha)))
-  | prep (E (NOT (NEq hb))) = E (prep (NOT (NEq hb)))
-  | prep (E (NOT (Dvd (hc, hd)))) = E (prep (NOT (Dvd (hc, hd))))
-  | prep (E (NOT (NDvd (he, hf)))) = E (prep (NOT (NDvd (he, hf))))
-  | prep (E (NOT (NOT hg))) = E (prep (NOT (NOT hg)))
-  | prep (E (NOT (Or (hj, hk)))) = E (prep (NOT (Or (hj, hk))))
-  | prep (E (NOT (E hp))) = E (prep (NOT (E hp)))
-  | prep (E (NOT (A hq))) = E (prep (NOT (A hq)))
-  | prep (E (NOT (Closed hr))) = E (prep (NOT (Closed hr)))
-  | prep (E (NOT (NClosed hs))) = E (prep (NOT (NClosed hs)))
-  | prep (E (And (eq, er))) = E (prep (And (eq, er)))
-  | prep (E (E ey)) = E (prep (E ey))
-  | prep (E (A ez)) = E (prep (A ez))
-  | prep (E (Closed fa)) = E (prep (Closed fa))
-  | prep (E (NClosed fb)) = E (prep (NClosed fb))
+  | prep (E (NOT (Lt va))) = E (prep (NOT (Lt va)))
+  | prep (E (NOT (Le va))) = E (prep (NOT (Le va)))
+  | prep (E (NOT (Gt va))) = E (prep (NOT (Gt va)))
+  | prep (E (NOT (Ge va))) = E (prep (NOT (Ge va)))
+  | prep (E (NOT (Eq va))) = E (prep (NOT (Eq va)))
+  | prep (E (NOT (NEq va))) = E (prep (NOT (NEq va)))
+  | prep (E (NOT (Dvd (va, vb)))) = E (prep (NOT (Dvd (va, vb))))
+  | prep (E (NOT (NDvd (va, vb)))) = E (prep (NOT (NDvd (va, vb))))
+  | prep (E (NOT (NOT va))) = E (prep (NOT (NOT va)))
+  | prep (E (NOT (Or (va, vb)))) = E (prep (NOT (Or (va, vb))))
+  | prep (E (NOT (E va))) = E (prep (NOT (E va)))
+  | prep (E (NOT (A va))) = E (prep (NOT (A va)))
+  | prep (E (NOT (Closed va))) = E (prep (NOT (Closed va)))
+  | prep (E (NOT (NClosed va))) = E (prep (NOT (NClosed va)))
+  | prep (E (And (v, va))) = E (prep (And (v, va)))
+  | prep (E (E v)) = E (prep (E v))
+  | prep (E (A v)) = E (prep (A v))
+  | prep (E (Closed v)) = E (prep (Closed v))
+  | prep (E (NClosed v)) = E (prep (NClosed v))
   | prep (A (And (p, q))) = And (prep (A p), prep (A q))
   | prep (A T) = prep (NOT (E (NOT T)))
   | prep (A F) = prep (NOT (E (NOT F)))
-  | prep (A (Lt jn)) = prep (NOT (E (NOT (Lt jn))))
-  | prep (A (Le jo)) = prep (NOT (E (NOT (Le jo))))
-  | prep (A (Gt jp)) = prep (NOT (E (NOT (Gt jp))))
-  | prep (A (Ge jq)) = prep (NOT (E (NOT (Ge jq))))
-  | prep (A (Eq jr)) = prep (NOT (E (NOT (Eq jr))))
-  | prep (A (NEq js)) = prep (NOT (E (NOT (NEq js))))
-  | prep (A (Dvd (jt, ju))) = prep (NOT (E (NOT (Dvd (jt, ju)))))
-  | prep (A (NDvd (jv, jw))) = prep (NOT (E (NOT (NDvd (jv, jw)))))
-  | prep (A (NOT jx)) = prep (NOT (E (NOT (NOT jx))))
-  | prep (A (Or (ka, kb))) = prep (NOT (E (NOT (Or (ka, kb)))))
-  | prep (A (Imp (kc, kd))) = prep (NOT (E (NOT (Imp (kc, kd)))))
-  | prep (A (Iff (ke, kf))) = prep (NOT (E (NOT (Iff (ke, kf)))))
-  | prep (A (E kg)) = prep (NOT (E (NOT (E kg))))
-  | prep (A (A kh)) = prep (NOT (E (NOT (A kh))))
-  | prep (A (Closed ki)) = prep (NOT (E (NOT (Closed ki))))
-  | prep (A (NClosed kj)) = prep (NOT (E (NOT (NClosed kj))))
+  | prep (A (Lt v)) = prep (NOT (E (NOT (Lt v))))
+  | prep (A (Le v)) = prep (NOT (E (NOT (Le v))))
+  | prep (A (Gt v)) = prep (NOT (E (NOT (Gt v))))
+  | prep (A (Ge v)) = prep (NOT (E (NOT (Ge v))))
+  | prep (A (Eq v)) = prep (NOT (E (NOT (Eq v))))
+  | prep (A (NEq v)) = prep (NOT (E (NOT (NEq v))))
+  | prep (A (Dvd (v, va))) = prep (NOT (E (NOT (Dvd (v, va)))))
+  | prep (A (NDvd (v, va))) = prep (NOT (E (NOT (NDvd (v, va)))))
+  | prep (A (NOT v)) = prep (NOT (E (NOT (NOT v))))
+  | prep (A (Or (v, va))) = prep (NOT (E (NOT (Or (v, va)))))
+  | prep (A (Imp (v, va))) = prep (NOT (E (NOT (Imp (v, va)))))
+  | prep (A (Iff (v, va))) = prep (NOT (E (NOT (Iff (v, va)))))
+  | prep (A (E v)) = prep (NOT (E (NOT (E v))))
+  | prep (A (A v)) = prep (NOT (E (NOT (A v))))
+  | prep (A (Closed v)) = prep (NOT (E (NOT (Closed v))))
+  | prep (A (NClosed v)) = prep (NOT (E (NOT (NClosed v))))
   | prep (NOT (NOT p)) = prep p
   | prep (NOT (And (p, q))) = Or (prep (NOT p), prep (NOT q))
   | prep (NOT (A p)) = prep (E (NOT p))
@@ -2112,33 +2097,33 @@ fun prep (E T) = T
   | prep (NOT (Iff (p, q))) = Or (prep (And (p, NOT q)), prep (And (NOT p, q)))
   | prep (NOT T) = NOT (prep T)
   | prep (NOT F) = NOT (prep F)
-  | prep (NOT (Lt bo)) = NOT (prep (Lt bo))
-  | prep (NOT (Le bp)) = NOT (prep (Le bp))
-  | prep (NOT (Gt bq)) = NOT (prep (Gt bq))
-  | prep (NOT (Ge br)) = NOT (prep (Ge br))
-  | prep (NOT (Eq bs)) = NOT (prep (Eq bs))
-  | prep (NOT (NEq bt)) = NOT (prep (NEq bt))
-  | prep (NOT (Dvd (bu, bv))) = NOT (prep (Dvd (bu, bv)))
-  | prep (NOT (NDvd (bw, bx))) = NOT (prep (NDvd (bw, bx)))
-  | prep (NOT (E ch)) = NOT (prep (E ch))
-  | prep (NOT (Closed cj)) = NOT (prep (Closed cj))
-  | prep (NOT (NClosed ck)) = NOT (prep (NClosed ck))
+  | prep (NOT (Lt v)) = NOT (prep (Lt v))
+  | prep (NOT (Le v)) = NOT (prep (Le v))
+  | prep (NOT (Gt v)) = NOT (prep (Gt v))
+  | prep (NOT (Ge v)) = NOT (prep (Ge v))
+  | prep (NOT (Eq v)) = NOT (prep (Eq v))
+  | prep (NOT (NEq v)) = NOT (prep (NEq v))
+  | prep (NOT (Dvd (v, va))) = NOT (prep (Dvd (v, va)))
+  | prep (NOT (NDvd (v, va))) = NOT (prep (NDvd (v, va)))
+  | prep (NOT (E v)) = NOT (prep (E v))
+  | prep (NOT (Closed v)) = NOT (prep (Closed v))
+  | prep (NOT (NClosed v)) = NOT (prep (NClosed v))
   | prep (Or (p, q)) = Or (prep p, prep q)
   | prep (And (p, q)) = And (prep p, prep q)
   | prep (Imp (p, q)) = prep (Or (NOT p, q))
   | prep (Iff (p, q)) = Or (prep (And (p, q)), prep (And (NOT p, NOT q)))
   | prep T = T
   | prep F = F
-  | prep (Lt u) = Lt u
+  | prep (Lt v) = Lt v
   | prep (Le v) = Le v
-  | prep (Gt w) = Gt w
-  | prep (Ge x) = Ge x
-  | prep (Eq y) = Eq y
-  | prep (NEq z) = NEq z
-  | prep (Dvd (aa, ab)) = Dvd (aa, ab)
-  | prep (NDvd (ac, ad)) = NDvd (ac, ad)
-  | prep (Closed ap) = Closed ap
-  | prep (NClosed aq) = NClosed aq;
+  | prep (Gt v) = Gt v
+  | prep (Ge v) = Ge v
+  | prep (Eq v) = Eq v
+  | prep (NEq v) = NEq v
+  | prep (Dvd (v, va)) = Dvd (v, va)
+  | prep (NDvd (v, va)) = NDvd (v, va)
+  | prep (Closed v) = Closed v
+  | prep (NClosed v) = NClosed v;
 
 fun pa p = qelim (prep p) cooper;
 
