@@ -239,9 +239,10 @@ fun simplifier_conv_sandwich ctxt =
     fun pre_conv ctxt' =
       Simplifier.rewrite (put_simpset pre ctxt')
       #> trans_conv_rule (Axclass.unoverload_conv ctxt')
+      #> trans_conv_rule (Thm.eta_conversion);
     fun post_conv ctxt'' =
       Axclass.overload_conv ctxt''
-      #> trans_conv_rule (Simplifier.rewrite (put_simpset post ctxt''))
+      #> trans_conv_rule (Simplifier.rewrite (put_simpset post ctxt''));
   in
     fn ctxt' => timed_conv "preprocessing term" pre_conv ctxt'
       #> pair (timed_conv "postprocessing term" post_conv)
