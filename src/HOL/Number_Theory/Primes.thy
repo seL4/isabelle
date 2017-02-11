@@ -259,66 +259,50 @@ lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
   unfolding One_nat_def [symmetric] by (rule not_prime_1)
 
 lemma prime_nat_iff':
-  "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
+  "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. ~ n dvd p)"
 proof safe
-  assume "p > 1" and *: "\<forall>n\<in>{1<..<p}. \<not>n dvd p"
+  assume "p > 1" and *: "\<forall>n\<in>{2..<p}. \<not>n dvd p"
   show "prime p" unfolding prime_nat_iff
   proof (intro conjI allI impI)
     fix m assume "m dvd p"
     with \<open>p > 1\<close> have "m \<noteq> 0" by (intro notI) auto
     hence "m \<ge> 1" by simp
-    moreover from \<open>m dvd p\<close> and * have "m \<notin> {1<..<p}" by blast
+    moreover from \<open>m dvd p\<close> and * have "m \<notin> {2..<p}" by blast
     with \<open>m dvd p\<close> and \<open>p > 1\<close> have "m \<le> 1 \<or> m = p" by (auto dest: dvd_imp_le)
     ultimately show "m = 1 \<or> m = p" by simp
   qed fact+
 qed (auto simp: prime_nat_iff)
 
-lemma prime_nat_code [code_unfold]:
-  "(prime :: nat \<Rightarrow> bool) = (\<lambda>p. p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p))"
-  by (rule ext, rule prime_nat_iff')
-
 lemma prime_int_iff':
-  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?lhs = ?rhs")
+  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. ~ n dvd p)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
-  thus "?rhs" by (auto simp: prime_int_nat_transfer dvd_int_unfold_dvd_nat prime_nat_code)
+  thus "?rhs"
+      by (auto simp: prime_int_nat_transfer dvd_int_unfold_dvd_nat prime_nat_iff')
 next
   assume "?rhs"
-  thus "?lhs" by (auto simp: prime_int_nat_transfer zdvd_int prime_nat_code)
+  thus "?lhs"
+    by (auto simp: prime_int_nat_transfer zdvd_int prime_nat_iff')
 qed
-
-lemma prime_int_code [code_unfold]:
-  "(prime :: int \<Rightarrow> bool) = (\<lambda>p. p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p))" 
-  by (rule ext, rule prime_int_iff')
-
-lemma prime_nat_simp:
-    "prime p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..<p]. \<not> n dvd p)"
-  by (auto simp add: prime_nat_code)
-
-lemma prime_int_simp:
-    "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)"
-  by (auto simp add: prime_int_code)
 
 lemma prime_int_numeral_eq [simp]:
   "prime (numeral m :: int) \<longleftrightarrow> prime (numeral m :: nat)"
   by (simp add: prime_int_nat_transfer)
 
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
-  by (simp add: prime_nat_simp)
+  by (simp add: prime_nat_iff')
 
 lemma prime_nat_numeral_eq [simp]:
   "prime (numeral m :: nat) \<longleftrightarrow>
     (1::nat) < numeral m \<and>
-    (\<forall>n::nat\<in>set [2..<numeral m]. \<not> n dvd numeral m)"
-  by (fact prime_nat_simp) \<comment> \<open>TODO Sieve Of Erathosthenes might speed this up\<close>
+    (\<forall>n::nat \<in> set [2..<numeral m]. \<not> n dvd numeral m)"
+  by (simp only: prime_nat_iff' set_upt)  \<comment> \<open>TODO Sieve Of Erathosthenes might speed this up\<close>
 
 
 text\<open>A bit of regression testing:\<close>
 
 lemma "prime(97::nat)" by simp
-lemma "prime(997::nat)" by eval
 lemma "prime(97::int)" by simp
-lemma "prime(997::int)" by eval
 
 lemma prime_factor_nat: 
   "n \<noteq> (1::nat) \<Longrightarrow> \<exists>p. prime p \<and> p dvd n"
@@ -712,5 +696,30 @@ lemmas primes_coprime_nat = primes_coprime[where ?'a = nat]
 lemmas primes_coprime_int = primes_coprime[where ?'a = nat]
 lemmas prime_divprod_pow_nat = prime_elem_divprod_pow[where ?'a = nat]
 lemmas prime_exp = prime_elem_power_iff[where ?'a = nat]
+
+text \<open>Code generation\<close>
+  
+context
+begin
+
+qualified definition prime_nat :: "nat \<Rightarrow> bool"
+  where [simp, code_abbrev]: "prime_nat = prime"
+
+lemma prime_nat_naive [code]:
+  "prime_nat p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in>{1<..<p}. \<not> n dvd p)"
+  by (auto simp add: prime_nat_iff')
+
+qualified definition prime_int :: "int \<Rightarrow> bool"
+  where [simp, code_abbrev]: "prime_int = prime"
+
+lemma prime_int_naive [code]:
+  "prime_int p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in>{1<..<p}. \<not> n dvd p)"
+  by (auto simp add: prime_int_iff')
+
+lemma "prime(997::nat)" by eval
+
+lemma "prime(997::int)" by eval
+  
+end
 
 end
