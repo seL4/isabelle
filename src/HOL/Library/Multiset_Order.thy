@@ -263,12 +263,16 @@ ML_file "multiset_order_simprocs.ML"
 
 simproc_setup msetless_cancel
   ("(l::'a::preorder multiset) + m < n" | "(l::'a multiset) < m + n" |
-   "add_mset a m < n" | "m < add_mset a n") =
+   "add_mset a m < n" | "m < add_mset a n" |
+   "replicate_mset p a < n" | "m < replicate_mset p a" |
+   "repeat_mset p m < n" | "m < repeat_mset p n") =
   \<open>fn phi => Multiset_Order_Simprocs.less_cancel_msets\<close>
 
 simproc_setup msetle_cancel
   ("(l::'a::preorder multiset) + m \<le> n" | "(l::'a multiset) \<le> m + n" |
-   "add_mset a m \<le> n" | "m \<le> add_mset a n") =
+   "add_mset a m \<le> n" | "m \<le> add_mset a n" |
+   "replicate_mset p a \<le> n" | "m \<le> replicate_mset p a" |
+   "repeat_mset p m \<le> n" | "m \<le> repeat_mset p n") =
   \<open>fn phi => Multiset_Order_Simprocs.le_cancel_msets\<close>
 
 
