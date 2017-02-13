@@ -975,28 +975,28 @@ lemma mset_subset_add_iff2:
 ML_file "multiset_simprocs_util.ML"
 ML_file "multiset_simprocs.ML"
 
-simproc_setup mseteq_cancel_numerals
+simproc_setup mseteq_cancel
   ("(l::'a multiset) + m = n" | "(l::'a multiset) = m + n" |
    "add_mset a m = n" | "m = add_mset a n" |
    "replicate_mset p a = n" | "m = replicate_mset p a" |
    "repeat_mset p m = n" | "m = repeat_mset p m") =
   \<open>fn phi => Multiset_Simprocs.eq_cancel_msets\<close>
 
-simproc_setup msetless_cancel_numerals
+simproc_setup msetsubset_cancel
   ("(l::'a multiset) + m \<subset># n" | "(l::'a multiset) \<subset># m + n" |
    "add_mset a m \<subset># n" | "m \<subset># add_mset a n" |
    "replicate_mset p r \<subset># n" | "m \<subset># replicate_mset p r" |
    "repeat_mset p m \<subset># n" | "m \<subset># repeat_mset p m") =
   \<open>fn phi => Multiset_Simprocs.subset_cancel_msets\<close>
 
-simproc_setup msetle_cancel_numerals
+simproc_setup msetsubset_eq_cancel
   ("(l::'a multiset) + m \<subseteq># n" | "(l::'a multiset) \<subseteq># m + n" |
    "add_mset a m \<subseteq># n" | "m \<subseteq># add_mset a n" |
    "replicate_mset p r \<subseteq># n" | "m \<subseteq># replicate_mset p r" |
    "repeat_mset p m \<subseteq># n" | "m \<subseteq># repeat_mset p m") =
   \<open>fn phi => Multiset_Simprocs.subseteq_cancel_msets\<close>
 
-simproc_setup msetdiff_cancel_numerals
+simproc_setup msetdiff_cancel
   ("((l::'a multiset) + m) - n" | "(l::'a multiset) - (m + n)" |
    "add_mset a m - n" | "m - add_mset a n" |
    "replicate_mset p r - n" | "m - replicate_mset p r" |

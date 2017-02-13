@@ -94,6 +94,14 @@ Curve Theorem.
 * The theorem in Permutations has been renamed:
   bij_swap_ompose_bij ~> bij_swap_compose_bij
 
+* Session HOL-Library: The simprocs on subsets operators of multisets have been renamed:
+  msetless_cancel_numerals ~> msetsubset_cancel
+  msetle_cancel_numerals ~> msetsubset_eq_cancel
+INCOMPATIBILITY.
+
+* Session HOL-Library: The suffix _numerals has been removed from the name of the simprocs on multisets.
+INCOMPATIBILITY.
+
 
 *** System ***
 
