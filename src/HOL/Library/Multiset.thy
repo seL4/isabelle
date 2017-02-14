@@ -9,7 +9,7 @@
 section \<open>(Finite) multisets\<close>
 
 theory Multiset
-imports Main
+imports Cancellation
 begin
 
 subsection \<open>The type of multisets\<close>
@@ -972,15 +972,33 @@ lemma mset_subset_add_iff2:
   "i \<le> (j::nat) \<Longrightarrow> (repeat_mset i u + m \<subset># repeat_mset j u + n) = (m \<subset># repeat_mset (j-i) u + n)"
   unfolding subset_mset_def by (simp add: mset_eq_add_iff2 mset_subseteq_add_iff2)
 
-ML_file "multiset_simprocs_util.ML"
+lemma repeat_mset_iterate_add: \<open>repeat_mset n M = iterate_add n M\<close>
+  unfolding iterate_add_def by (induction n) auto
+
 ML_file "multiset_simprocs.ML"
+
+lemma add_mset_replicate_mset_safe[cancelation_simproc_pre]: \<open>NO_MATCH {#} M \<Longrightarrow> add_mset a M = {#a#} + M\<close>
+  by simp
+
+declare repeat_mset_iterate_add[cancelation_simproc_pre]
+
+declare iterate_add_distrib[cancelation_simproc_pre]
+declare repeat_mset_iterate_add[symmetric, cancelation_simproc_post]
+
+declare add_mset_not_empty[cancelation_simproc_eq_elim]
+    empty_not_add_mset[cancelation_simproc_eq_elim]
+    subset_mset.le_zero_eq[cancelation_simproc_eq_elim]
+    empty_not_add_mset[cancelation_simproc_eq_elim]
+    add_mset_not_empty[cancelation_simproc_eq_elim]
+    subset_mset.le_zero_eq[cancelation_simproc_eq_elim]
+    le_zero_eq[cancelation_simproc_eq_elim]
 
 simproc_setup mseteq_cancel
   ("(l::'a multiset) + m = n" | "(l::'a multiset) = m + n" |
    "add_mset a m = n" | "m = add_mset a n" |
    "replicate_mset p a = n" | "m = replicate_mset p a" |
    "repeat_mset p m = n" | "m = repeat_mset p m") =
-  \<open>fn phi => Multiset_Simprocs.eq_cancel_msets\<close>
+  \<open>fn phi => Cancel_Simprocs.eq_cancel\<close>
 
 simproc_setup msetsubset_cancel
   ("(l::'a multiset) + m \<subset># n" | "(l::'a multiset) \<subset># m + n" |
@@ -1001,7 +1019,7 @@ simproc_setup msetdiff_cancel
    "add_mset a m - n" | "m - add_mset a n" |
    "replicate_mset p r - n" | "m - replicate_mset p r" |
    "repeat_mset p m - n" | "m - repeat_mset p m") =
-  \<open>fn phi => Multiset_Simprocs.diff_cancel_msets\<close>
+  \<open>fn phi => Cancel_Simprocs.diff_cancel\<close>
 
 
 subsubsection \<open>Conditionally complete lattice\<close>

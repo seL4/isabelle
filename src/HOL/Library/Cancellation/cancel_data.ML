@@ -1,10 +1,15 @@
-(* Author: Mathias Fleury, MPII
+(*  Title:      Provers/Arith/cancel_data.ML
+    Author:     Mathias Fleury, MPII
+    Copyright   2017
 
+Based on:
+    Title:      Tools/nat_numeral_simprocs.ML
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Datatructure for the cancelation simprocs for multisets, based on Larry Paulson's simprocs for
-natural numbers and numerals.
+Datastructure for the cancelation simprocs.
+
 *)
-signature MULTISET_CANCEL_COMMON =
+signature CANCEL_DATA =
 sig
   val mk_sum : typ -> term list -> term
   val dest_sum : term -> term list
@@ -22,21 +27,22 @@ sig
   val prove_conv : tactic list -> Proof.context -> thm list -> term * term -> thm option
 end;
 
-structure Multiset_Cancel_Common : MULTISET_CANCEL_COMMON =
+structure Cancel_Data : CANCEL_DATA =
 struct
 
 (*** Utilities ***)
 
 (*No reordering of the arguments.*)
-fun fast_mk_repeat_mset (n, mset) =
-  let val T = fastype_of mset in
-    Const (@{const_name "repeat_mset"}, @{typ nat} --> T --> T) $ n $ mset
+fun fast_mk_iterate_add (n, mset) =
+  let val T = fastype_of mset
+  in
+    Const (@{const_name "iterate_add"}, @{typ nat} --> T --> T) $ n $ mset
   end;
 
-(*repeat_mset is not symmetric, unlike multiplication over natural numbers.*)
-fun mk_repeat_mset (t, u) =
+(*iterate_add is not symmetric, unlike multiplication over natural numbers.*)
+fun mk_iterate_add (t, u) =
   (if fastype_of t = @{typ nat} then (t, u) else (u, t))
-  |> fast_mk_repeat_mset;
+  |> fast_mk_iterate_add;
 
 (*Maps n to #n for n = 1, 2*)
 val numeral_syms =
@@ -55,6 +61,7 @@ fun find_first_numeral past (t::terms) =
   | find_first_numeral _ [] = raise TERM("find_first_numeral", []);
 
 fun typed_zero T = Const (@{const_name "Groups.zero"}, T);
+fun typed_one T = HOLogic.numeral_const T $ HOLogic.one_const
 val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero.*)
@@ -70,37 +77,36 @@ val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} dummyT;
 val bin_simps =
   (@{thm numeral_One} RS sym) ::
   @{thms add_numeral_left diff_nat_numeral diff_0_eq_0 mult_numeral_left(1)
-      if_True if_False not_False_eq_True
-      nat_0 nat_numeral nat_neg_numeral add_mset_commute repeat_mset.simps(1)
-      replicate_mset_0 repeat_mset_empty
-      arith_simps rel_simps};
+      if_True if_False not_False_eq_True nat_0 nat_numeral nat_neg_numeral iterate_add_simps(1)
+      iterate_add_empty arith_simps rel_simps of_nat_numeral};
 
 
 (*** CancelNumerals simprocs ***)
 
 val one = mk_number 1;
 
-fun mk_prod [] = one
-  | mk_prod [t] = t
-  | mk_prod (t :: ts) = if t = one then mk_prod ts else mk_repeat_mset (t, mk_prod ts);
+fun mk_prod T [] = typed_one T
+  | mk_prod _ [t] = t
+  | mk_prod T (t :: ts) = if t = one then mk_prod T ts else mk_iterate_add (t, mk_prod T ts);
 
-val dest_repeat_mset = HOLogic.dest_bin @{const_name repeat_mset} dummyT;
+val dest_iterate_add = HOLogic.dest_bin @{const_name iterate_add} dummyT;
 
-fun dest_repeat_msets t =
-  let val (t,u) = dest_repeat_mset t in
-    t :: dest_repeat_msets u end
+fun dest_iterate_adds t =
+  let val (t,u) = dest_iterate_add t in
+    t :: dest_iterate_adds u end
   handle TERM _ => [t];
 
-fun mk_coeff (k,t) = mk_repeat_mset (mk_number k, t);
+fun mk_coeff (k,t) = mk_iterate_add (mk_number k, t);
 
 (*Express t as a product of (possibly) a numeral with other factors, sorted*)
 fun dest_coeff t =
   let
-    val ts = sort Term_Ord.term_ord (dest_repeat_msets t);
+    val T = fastype_of t
+    val ts = sort Term_Ord.term_ord (dest_iterate_adds t);
     val (n, _, ts') =
       find_first_numeral [] ts
       handle TERM _ => (1, one, ts);
-  in (n, mk_prod ts') end;
+  in (n, mk_prod T ts') end;
 
 (*Find first coefficient-term THAT MATCHES u*)
 fun find_first_coeff _ _ [] = raise TERM("find_first_coeff", [])
@@ -110,49 +116,36 @@ fun find_first_coeff _ _ [] = raise TERM("find_first_coeff", [])
     handle TERM _ => find_first_coeff (t::past) u terms;
 
 (*
-  Split up a sum into the list of its constituent terms, on the way replace:
-  * the \<open>add_mset a C\<close> by \<open>add_mset a {#}\<close> and \<open>C\<close>, iff C was not already the empty set;
-  * the \<open>replicate_mset n a\<close> by \<open>repeat_mset n {#a#}\<close>.
+  Split up a sum into the list of its constituent terms.
 *)
-fun dest_add_mset (Const (@{const_name add_mset}, T) $ a $
-      Const (@{const_name "Groups.zero_class.zero"}, U), ts) =
-    Const (@{const_name add_mset}, T) $ a $ typed_zero U :: ts
-  | dest_add_mset (Const (@{const_name add_mset}, T) $ a $ mset, ts) =
-    dest_add_mset (mset, Const (@{const_name add_mset}, T) $ a $
-      typed_zero (fastype_of mset) :: ts)
-  | dest_add_mset (Const (@{const_name replicate_mset},
-      Type (_, [_, Type (_, [T, U])])) $ n $ a, ts) =
-    let val single_a = Const (@{const_name add_mset}, T --> U --> U) $ a $ typed_zero U in
-      fast_mk_repeat_mset (n, single_a) :: ts end
-  | dest_add_mset (t, ts) =
+fun dest_summation (t, ts) =
     let val (t1,t2) = dest_plus t in
-      dest_add_mset (t1, dest_add_mset (t2, ts)) end
+      dest_summation (t1, dest_summation (t2, ts)) end
     handle TERM _ => t :: ts;
 
-fun dest_add_mset_sum t = dest_add_mset (t, []);
+fun dest_sum t = dest_summation (t, []);
 
 val rename_numerals = simplify (put_simpset numeral_sym_ss @{context}) o Thm.transfer @{theory};
 
-(*Simplify \<open>repeat_mset (Suc 0) n\<close>, \<open>n+0\<close>, and \<open>0+n\<close> to \<open>n\<close>*)
-val add_0s  = map rename_numerals @{thms Groups.add_0 Groups.add_0_right};
-val mult_1s = map rename_numerals @{thms repeat_mset.simps(2)[of 0]};
-
+(*Simplify \<open>iterate_add (Suc 0) n\<close>, \<open>iterate_add n (Suc 0)\<close>, \<open>n+0\<close>, and \<open>0+n\<close> to \<open>n\<close>*)
+val add_0s  = map rename_numerals @{thms monoid_add_class.add_0_left monoid_add_class.add_0_right};
+val mult_1s = map rename_numerals @{thms iterate_add_1 iterate_add_simps(2)[of 0]};
 
 (*And these help the simproc return False when appropriate. We use the same list as the
-simproc for natural numbers, but adapted to multisets.*)
-val contra_rules =
-  @{thms union_mset_add_mset_left union_mset_add_mset_right
-      empty_not_add_mset add_mset_not_empty subset_mset.le_zero_eq le_zero_eq};
+simproc for natural numbers, but adapted.*)
+fun contra_rules ctxt =
+  @{thms le_zero_eq}  @ Named_Theorems.get ctxt @{named_theorems cancelation_simproc_eq_elim};
 
-val simplify_meta_eq =
+fun simplify_meta_eq ctxt =
   Arith_Data.simplify_meta_eq
     (@{thms numeral_1_eq_Suc_0 Nat.add_0_right
-         mult_0 mult_0_right mult_1 mult_1_right
-         Groups.add_0 repeat_mset.simps(1) monoid_add_class.add_0_right} @
-     contra_rules);
+         mult_0 mult_0_right mult_1 mult_1_right iterate_add_Numeral1 of_nat_numeral
+         monoid_add_class.add_0_left iterate_add_simps(1) monoid_add_class.add_0_right
+         iterate_add_Numeral1} @
+     contra_rules ctxt) ctxt;
 
 val mk_sum = mk_sum;
-val dest_sum = dest_add_mset_sum;
+val dest_sum = dest_sum;
 val mk_coeff = mk_coeff;
 val dest_coeff = dest_coeff;
 val find_first_coeff = find_first_coeff [];
@@ -160,13 +153,12 @@ val trans_tac = Numeral_Simprocs.trans_tac;
 
 val norm_ss1 =
   simpset_of (put_simpset Numeral_Simprocs.num_ss @{context} addsimps
-    numeral_syms @ add_0s @ mult_1s @ @{thms ac_simps});
+    numeral_syms @ add_0s @ mult_1s @ @{thms ac_simps iterate_add_simps});
 
 val norm_ss2 =
   simpset_of (put_simpset Numeral_Simprocs.num_ss @{context} addsimps
     bin_simps @
-    @{thms union_mset_add_mset_left union_mset_add_mset_right
-        repeat_mset_replicate_mset ac_simps});
+    @{thms ac_simps});
 
 fun norm_tac ctxt =
   ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
@@ -181,3 +173,4 @@ val simplify_meta_eq = simplify_meta_eq;
 val prove_conv = Arith_Data.prove_conv;
 
 end
+
