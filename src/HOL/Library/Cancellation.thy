@@ -80,22 +80,5 @@ ML_file "Cancellation/cancel.ML"
 ML_file "Cancellation/cancel_data.ML"
 ML_file "Cancellation/cancel_simprocs.ML"
 
-simproc_setup comm_monoid_cancel_numerals
-  ("(l::'a::cancel_comm_monoid_add) + m = n" | "l = m + n") =
-  \<open>fn phi => Cancel_Simprocs.eq_cancel\<close>
-
-text \<open>Can we reduce the sorts?\<close>
-simproc_setup comm_monoid_cancel_less_numerals
-  ("(l::'a::{cancel_comm_monoid_add, ordered_ab_semigroup_add_imp_le}) + m < n" | "l < m + n") =
-  \<open>fn phi => Cancel_Simprocs.less_cancel\<close>
-
-simproc_setup comm_monoid_cancel_less_eq_numerals
-  ("(l::'a::{cancel_comm_monoid_add, ordered_ab_semigroup_add_imp_le}) + m \<le> n" | "l \<le> m + n") =
-  \<open>fn phi => Cancel_Simprocs.less_eq_cancel\<close>
-
-simproc_setup comm_monoid_cancel_cancel_numerals
-  ("((l::'a :: cancel_comm_monoid_add) + m) - n" | "l - (m + n)") =
-  \<open>fn phi => Cancel_Simprocs.diff_cancel\<close>
-
 end
 
