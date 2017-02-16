@@ -940,21 +940,8 @@ lemma repeat_mset_empty[simp]: "repeat_mset n {#} = {#}"
 
 subsubsection \<open>Simprocs\<close>
 
-lemma mset_diff_add_eq1:
-  "j \<le> (i::nat) \<Longrightarrow> ((repeat_mset i u + m) - (repeat_mset j u + n)) = ((repeat_mset (i-j) u + m) - n)"
-  by (auto simp: multiset_eq_iff nat_diff_add_eq1)
-
-lemma mset_diff_add_eq2:
-  "i \<le> (j::nat) \<Longrightarrow> ((repeat_mset i u + m) - (repeat_mset j u + n)) = (m - (repeat_mset (j-i) u + n))"
-  by (auto simp: multiset_eq_iff nat_diff_add_eq2)
-
-lemma mset_eq_add_iff1:
-   "j \<le> (i::nat) \<Longrightarrow> (repeat_mset i u + m = repeat_mset j u + n) = (repeat_mset (i-j) u + m = n)"
-  by (auto simp: multiset_eq_iff nat_eq_add_iff1)
-
-lemma mset_eq_add_iff2:
-   "i \<le> (j::nat) \<Longrightarrow> (repeat_mset i u + m = repeat_mset j u + n) = (m = repeat_mset (j-i) u + n)"
-  by (auto simp: multiset_eq_iff nat_eq_add_iff2)
+lemma repeat_mset_iterate_add: \<open>repeat_mset n M = iterate_add n M\<close>
+  unfolding iterate_add_def by (induction n) auto
 
 lemma mset_subseteq_add_iff1:
   "j \<le> (i::nat) \<Longrightarrow> (repeat_mset i u + m \<subseteq># repeat_mset j u + n) = (repeat_mset (i-j) u + m \<subseteq># n)"
@@ -966,14 +953,13 @@ lemma mset_subseteq_add_iff2:
 
 lemma mset_subset_add_iff1:
   "j \<le> (i::nat) \<Longrightarrow> (repeat_mset i u + m \<subset># repeat_mset j u + n) = (repeat_mset (i-j) u + m \<subset># n)"
-  unfolding subset_mset_def by (simp add: mset_eq_add_iff1 mset_subseteq_add_iff1)
+  unfolding subset_mset_def repeat_mset_iterate_add
+  by (simp add: iterate_add_eq_add_iff1 mset_subseteq_add_iff1[unfolded repeat_mset_iterate_add])
 
 lemma mset_subset_add_iff2:
   "i \<le> (j::nat) \<Longrightarrow> (repeat_mset i u + m \<subset># repeat_mset j u + n) = (m \<subset># repeat_mset (j-i) u + n)"
-  unfolding subset_mset_def by (simp add: mset_eq_add_iff2 mset_subseteq_add_iff2)
-
-lemma repeat_mset_iterate_add: \<open>repeat_mset n M = iterate_add n M\<close>
-  unfolding iterate_add_def by (induction n) auto
+  unfolding subset_mset_def repeat_mset_iterate_add
+  by (simp add: iterate_add_eq_add_iff2 mset_subseteq_add_iff2[unfolded repeat_mset_iterate_add])
 
 ML_file "multiset_simprocs.ML"
 

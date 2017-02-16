@@ -251,29 +251,19 @@ proof -
     by (metis (no_types) add_le_cancel_left left_add_mult_distrib_mset)
 qed
 
-lemma mset_less_add_iff1:
-  "j \<le> (i::nat) \<Longrightarrow> (repeat_mset i u + m < repeat_mset j u + n) = (repeat_mset (i-j) u + m < n)"
-  by (simp add: less_le_not_le mset_le_add_iff1 mset_le_add_iff2)
-
-lemma mset_less_add_iff2:
-     "i \<le> (j::nat) \<Longrightarrow> (repeat_mset i u + m < repeat_mset j u + n) = (m < repeat_mset (j-i) u + n)"
-  by (simp add: less_le_not_le mset_le_add_iff1 mset_le_add_iff2)
-
-ML_file "multiset_order_simprocs.ML"
-
 simproc_setup msetless_cancel
   ("(l::'a::preorder multiset) + m < n" | "(l::'a multiset) < m + n" |
    "add_mset a m < n" | "m < add_mset a n" |
    "replicate_mset p a < n" | "m < replicate_mset p a" |
    "repeat_mset p m < n" | "m < repeat_mset p n") =
-  \<open>fn phi => Multiset_Order_Simprocs.less_cancel_msets\<close>
+  \<open>fn phi => Cancel_Simprocs.less_cancel\<close>
 
 simproc_setup msetle_cancel
   ("(l::'a::preorder multiset) + m \<le> n" | "(l::'a multiset) \<le> m + n" |
    "add_mset a m \<le> n" | "m \<le> add_mset a n" |
    "replicate_mset p a \<le> n" | "m \<le> replicate_mset p a" |
    "repeat_mset p m \<le> n" | "m \<le> repeat_mset p n") =
-  \<open>fn phi => Multiset_Order_Simprocs.le_cancel_msets\<close>
+  \<open>fn phi => Cancel_Simprocs.less_eq_cancel\<close>
 
 
 subsection \<open>Additional facts and instantiations\<close>
