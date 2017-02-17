@@ -2,7 +2,7 @@ Poly/ML for Isabelle
 ====================
 
 This compilation of Poly/ML (http://www.polyml.org) is based on the repository
-version https://github.com/polyml/polyml/commit/8529546198aa
+version https://github.com/polyml/polyml/commit/6307085deb18
 
 The Isabelle repository provides the administrative tool "build_polyml", which
 can be used in the polyml component directory as follows.
@@ -24,4 +24,4 @@ can be used in the polyml component directory as follows.
 
 
         Makarius
-        10-Dec-2016
+        17-Feb-2017

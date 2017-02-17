@@ -1,14 +1,8 @@
 Notes on building Poly/ML as Isabelle component
 ===============================================
 
-* copy README
+* include full source (without symlink):
+  $ wget https://github.com/polyml/polyml/archive/master.zip
 
-* copy build
-
-* copy etc/settings
-
-* include full source (without symlink)
-
-* include sha1 source and binary for each platform
-
-* linux: include copy of libgmp.so with symlinks from build host
+* component outline:
+  $ isabelle build_polyml -C component ...

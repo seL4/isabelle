@@ -31,4 +31,3 @@ val _ =
         in "\\" ^ Config.get ctxt cite_macro ^ opt_arg ^ arg end));
 
 end;
-
