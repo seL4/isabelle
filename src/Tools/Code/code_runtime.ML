@@ -494,8 +494,9 @@ fun runtime_code' ctxt some_module_name named_tycos named_consts computation_Ts 
       computation_cTs named_consts;
     val program' = Code_Thingol.consts_program ctxt consts';
       (*FIXME insufficient interfaces require double invocation of code generator*)
+    val program'' = Code_Symbol.Graph.merge (K true) (program, program');
     val ((ml_modules, compiled_value), deresolve) =
-      Code_Target.compilation_text' ctxt target some_module_name program'
+      Code_Target.compilation_text' ctxt target some_module_name program''
         (map Code_Symbol.Type_Constructor named_tycos @ map Code_Symbol.Constant consts' @ deps) true vs_ty_evals;
         (*FIXME constrain signature*)
     fun deresolve_const c = case (deresolve o Code_Symbol.Constant) c of
