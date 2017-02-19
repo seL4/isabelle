@@ -15,16 +15,16 @@ definition
   where "H #>\<^bsub>G\<^esub> a = (\<Union>h\<in>H. {h \<otimes>\<^bsub>G\<^esub> a})"
 
 definition
-  l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "\<subset>#\<index>" 60)
-  where "a \<subset>#\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h})"
+  l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<#\<index>" 60)
+  where "a <#\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h})"
 
 definition
   RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("rcosets\<index> _" [81] 80)
   where "rcosets\<^bsub>G\<^esub> H = (\<Union>a\<in>carrier G. {H #>\<^bsub>G\<^esub> a})"
 
 definition
-  set_mult  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "\<subset>#>\<index>" 60)
-  where "H \<subset>#>\<^bsub>G\<^esub> K = (\<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k})"
+  set_mult  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<#>\<index>" 60)
+  where "H <#>\<^bsub>G\<^esub> K = (\<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k})"
 
 definition
   SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("set'_inv\<index> _" [81] 80)
@@ -32,7 +32,7 @@ definition
 
 
 locale normal = subgroup + group +
-  assumes coset_eq: "(\<forall>x \<in> carrier G. H #> x = x \<subset># H)"
+  assumes coset_eq: "(\<forall>x \<in> carrier G. H #> x = x <# H)"
 
 abbreviation
   normal_rel :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl "\<lhd>" 60) where
@@ -287,7 +287,7 @@ text \<open>Multiplication of general subsets\<close>
 lemma (in monoid) set_mult_closed:
   assumes Acarr: "A \<subseteq> carrier G"
       and Bcarr: "B \<subseteq> carrier G"
-  shows "A \<subset>#> B \<subseteq> carrier G"
+  shows "A <#> B \<subseteq> carrier G"
 apply rule apply (simp add: set_mult_def, clarsimp)
 proof -
   fix a b
@@ -306,7 +306,7 @@ qed
 lemma (in comm_group) mult_subgroups:
   assumes subH: "subgroup H G"
       and subK: "subgroup K G"
-  shows "subgroup (H \<subset>#> K) G"
+  shows "subgroup (H <#> K) G"
 apply (rule subgroup.intro)
    apply (intro set_mult_closed subgroup.subset[OF subH] subgroup.subset[OF subK])
   apply (simp add: set_mult_def) apply clarsimp defer 1
@@ -351,7 +351,7 @@ lemma (in subgroup) lcos_module_rev:
   assumes "group G"
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
       and xixH: "(inv x \<otimes> x') \<in> H"
-  shows "x' \<in> x \<subset># H"
+  shows "x' \<in> x <# H"
 proof -
   interpret group G by fact
   from xixH
@@ -375,7 +375,7 @@ proof -
       have "x \<otimes> h = x'" by simp
 
   from this[symmetric] and hH
-      show "x' \<in> x \<subset># H"
+      show "x' \<in> x <# H"
       unfolding l_coset_def
       by fast
 qed
@@ -387,7 +387,7 @@ lemma normal_imp_subgroup: "H \<lhd> G \<Longrightarrow> subgroup H G"
   by (simp add: normal_def subgroup_def)
 
 lemma (in group) normalI: 
-  "subgroup H G \<Longrightarrow> (\<forall>x \<in> carrier G. H #> x = x \<subset># H) \<Longrightarrow> H \<lhd> G"
+  "subgroup H G \<Longrightarrow> (\<forall>x \<in> carrier G. H #> x = x <# H) \<Longrightarrow> H \<lhd> G"
   by (simp add: normal_def normal_axioms_def is_group)
 
 lemma (in normal) inv_op_closed1:
@@ -460,18 +460,18 @@ subsection\<open>More Properties of Cosets\<close>
 
 lemma (in group) lcos_m_assoc:
      "[| M \<subseteq> carrier G; g \<in> carrier G; h \<in> carrier G |]
-      ==> g \<subset># (h \<subset># M) = (g \<otimes> h) \<subset># M"
+      ==> g <# (h <# M) = (g \<otimes> h) <# M"
 by (force simp add: l_coset_def m_assoc)
 
-lemma (in group) lcos_mult_one: "M \<subseteq> carrier G ==> \<one> \<subset># M = M"
+lemma (in group) lcos_mult_one: "M \<subseteq> carrier G ==> \<one> <# M = M"
 by (force simp add: l_coset_def)
 
 lemma (in group) l_coset_subset_G:
-     "[| H \<subseteq> carrier G; x \<in> carrier G |] ==> x \<subset># H \<subseteq> carrier G"
+     "[| H \<subseteq> carrier G; x \<in> carrier G |] ==> x <# H \<subseteq> carrier G"
 by (auto simp add: l_coset_def subsetD)
 
 lemma (in group) l_coset_swap:
-     "\<lbrakk>y \<in> x \<subset># H;  x \<in> carrier G;  subgroup H G\<rbrakk> \<Longrightarrow> x \<in> y \<subset># H"
+     "\<lbrakk>y \<in> x <# H;  x \<in> carrier G;  subgroup H G\<rbrakk> \<Longrightarrow> x \<in> y <# H"
 proof (simp add: l_coset_def)
   assume "\<exists>h\<in>H. y = x \<otimes> h"
     and x: "x \<in> carrier G"
@@ -487,13 +487,13 @@ proof (simp add: l_coset_def)
 qed
 
 lemma (in group) l_coset_carrier:
-     "[| y \<in> x \<subset># H;  x \<in> carrier G;  subgroup H G |] ==> y \<in> carrier G"
+     "[| y \<in> x <# H;  x \<in> carrier G;  subgroup H G |] ==> y \<in> carrier G"
 by (auto simp add: l_coset_def m_assoc
                    subgroup.subset [THEN subsetD] subgroup.m_closed)
 
 lemma (in group) l_repr_imp_subset:
-  assumes y: "y \<in> x \<subset># H" and x: "x \<in> carrier G" and sb: "subgroup H G"
-  shows "y \<subset># H \<subseteq> x \<subset># H"
+  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G"
+  shows "y <# H \<subseteq> x <# H"
 proof -
   from y
   obtain h' where "h' \<in> H" "x \<otimes> h' = y" by (auto simp add: l_coset_def)
@@ -503,20 +503,20 @@ proof -
 qed
 
 lemma (in group) l_repr_independence:
-  assumes y: "y \<in> x \<subset># H" and x: "x \<in> carrier G" and sb: "subgroup H G"
-  shows "x \<subset># H = y \<subset># H"
+  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G"
+  shows "x <# H = y <# H"
 proof
-  show "x \<subset># H \<subseteq> y \<subset># H"
+  show "x <# H \<subseteq> y <# H"
     by (rule l_repr_imp_subset,
         (blast intro: l_coset_swap l_coset_carrier y x sb)+)
-  show "y \<subset># H \<subseteq> x \<subset># H" by (rule l_repr_imp_subset [OF y x sb])
+  show "y <# H \<subseteq> x <# H" by (rule l_repr_imp_subset [OF y x sb])
 qed
 
 lemma (in group) setmult_subset_G:
-     "\<lbrakk>H \<subseteq> carrier G; K \<subseteq> carrier G\<rbrakk> \<Longrightarrow> H \<subset>#> K \<subseteq> carrier G"
+     "\<lbrakk>H \<subseteq> carrier G; K \<subseteq> carrier G\<rbrakk> \<Longrightarrow> H <#> K \<subseteq> carrier G"
 by (auto simp add: set_mult_def subsetD)
 
-lemma (in group) subgroup_mult_id: "subgroup H G \<Longrightarrow> H \<subset>#> H = H"
+lemma (in group) subgroup_mult_id: "subgroup H G \<Longrightarrow> H <#> H = H"
 apply (auto simp add: subgroup.m_closed set_mult_def Sigma_def)
 apply (rule_tac x = x in bexI)
 apply (rule bexI [of _ "\<one>"])
@@ -549,41 +549,41 @@ proof (simp add: r_coset_def SET_INV_def x inv_mult_group, safe)
 qed
 
 
-subsubsection \<open>Theorems for \<open>\<subset>#>\<close> with \<open>#>\<close> or \<open>\<subset>#\<close>.\<close>
+subsubsection \<open>Theorems for \<open><#>\<close> with \<open>#>\<close> or \<open><#\<close>.\<close>
 
 lemma (in group) setmult_rcos_assoc:
      "\<lbrakk>H \<subseteq> carrier G; K \<subseteq> carrier G; x \<in> carrier G\<rbrakk>
-      \<Longrightarrow> H \<subset>#> (K #> x) = (H \<subset>#> K) #> x"
+      \<Longrightarrow> H <#> (K #> x) = (H <#> K) #> x"
 by (force simp add: r_coset_def set_mult_def m_assoc)
 
 lemma (in group) rcos_assoc_lcos:
      "\<lbrakk>H \<subseteq> carrier G; K \<subseteq> carrier G; x \<in> carrier G\<rbrakk>
-      \<Longrightarrow> (H #> x) \<subset>#> K = H \<subset>#> (x \<subset># K)"
+      \<Longrightarrow> (H #> x) <#> K = H <#> (x <# K)"
 by (force simp add: r_coset_def l_coset_def set_mult_def m_assoc)
 
 lemma (in normal) rcos_mult_step1:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
-      \<Longrightarrow> (H #> x) \<subset>#> (H #> y) = (H \<subset>#> (x \<subset># H)) #> y"
+      \<Longrightarrow> (H #> x) <#> (H #> y) = (H <#> (x <# H)) #> y"
 by (simp add: setmult_rcos_assoc subset
               r_coset_subset_G l_coset_subset_G rcos_assoc_lcos)
 
 lemma (in normal) rcos_mult_step2:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
-      \<Longrightarrow> (H \<subset>#> (x \<subset># H)) #> y = (H \<subset>#> (H #> x)) #> y"
+      \<Longrightarrow> (H <#> (x <# H)) #> y = (H <#> (H #> x)) #> y"
 by (insert coset_eq, simp add: normal_def)
 
 lemma (in normal) rcos_mult_step3:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
-      \<Longrightarrow> (H \<subset>#> (H #> x)) #> y = H #> (x \<otimes> y)"
+      \<Longrightarrow> (H <#> (H #> x)) #> y = H #> (x \<otimes> y)"
 by (simp add: setmult_rcos_assoc coset_mult_assoc
               subgroup_mult_id normal.axioms subset normal_axioms)
 
 lemma (in normal) rcos_sum:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
-      \<Longrightarrow> (H #> x) \<subset>#> (H #> y) = H #> (x \<otimes> y)"
+      \<Longrightarrow> (H #> x) <#> (H #> y) = H #> (x \<otimes> y)"
 by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 
-lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H \<subset>#> M = M"
+lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
   \<comment> \<open>generalizes \<open>subgroup_mult_id\<close>\<close>
   by (auto simp add: RCOSETS_def subset
         setmult_rcos_assoc subgroup_mult_id normal.axioms normal_axioms)
@@ -645,7 +645,7 @@ text\<open>Equivalence classes of \<open>rcong\<close> correspond to left cosets
 lemma (in subgroup) l_coset_eq_rcong:
   assumes "group G"
   assumes a: "a \<in> carrier G"
-  shows "a \<subset># H = rcong H `` {a}"
+  shows "a <# H = rcong H `` {a}"
 proof -
   interpret group G by fact
   show ?thesis by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a ) 
@@ -684,7 +684,7 @@ subsection \<open>Further lemmas for \<open>r_congruent\<close>\<close>
 text \<open>The relation is a congruence\<close>
 
 lemma (in normal) congruent_rcong:
-  shows "congruent2 (rcong H) (rcong H) (\<lambda>a b. a \<otimes> b \<subset># H)"
+  shows "congruent2 (rcong H) (rcong H) (\<lambda>a b. a \<otimes> b <# H)"
 proof (intro congruent2I[of "carrier G" _ "carrier G" _] equiv_rcong is_group)
   fix a b c
   assume abrcong: "(a, b) \<in> rcong H"
@@ -712,10 +712,10 @@ proof (intro congruent2I[of "carrier G" _ "carrier G" _] equiv_rcong is_group)
   ultimately
       have "(inv (a \<otimes> c)) \<otimes> (b \<otimes> c) \<in> H" by simp
   from carr and this
-     have "(b \<otimes> c) \<in> (a \<otimes> c) \<subset># H"
+     have "(b \<otimes> c) \<in> (a \<otimes> c) <# H"
      by (simp add: lcos_module_rev[OF is_group])
   from carr and this and is_subgroup
-     show "(a \<otimes> c) \<subset># H = (b \<otimes> c) \<subset># H" by (intro l_repr_independence, simp+)
+     show "(a \<otimes> c) <# H = (b \<otimes> c) <# H" by (intro l_repr_independence, simp+)
 next
   fix a b c
   assume abrcong: "(a, b) \<in> rcong H"
@@ -746,10 +746,10 @@ next
       have "inv (c \<otimes> a) \<otimes> (c \<otimes> b) \<in> H" by simp
 
   from carr and this
-     have "(c \<otimes> b) \<in> (c \<otimes> a) \<subset># H"
+     have "(c \<otimes> b) \<in> (c \<otimes> a) <# H"
      by (simp add: lcos_module_rev[OF is_group])
   from carr and this and is_subgroup
-     show "(c \<otimes> a) \<subset># H = (c \<otimes> b) \<subset># H" by (intro l_repr_independence, simp+)
+     show "(c \<otimes> a) <# H = (c \<otimes> b) <# H" by (intro l_repr_independence, simp+)
 qed
 
 
@@ -835,7 +835,7 @@ definition
    where "FactGroup G H = \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
 
 lemma (in normal) setmult_closed:
-     "\<lbrakk>K1 \<in> rcosets H; K2 \<in> rcosets H\<rbrakk> \<Longrightarrow> K1 \<subset>#> K2 \<in> rcosets H"
+     "\<lbrakk>K1 \<in> rcosets H; K2 \<in> rcosets H\<rbrakk> \<Longrightarrow> K1 <#> K2 \<in> rcosets H"
 by (auto simp add: rcos_sum RCOSETS_def)
 
 lemma (in normal) setinv_closed:
@@ -844,7 +844,7 @@ by (auto simp add: rcos_inv RCOSETS_def)
 
 lemma (in normal) rcosets_assoc:
      "\<lbrakk>M1 \<in> rcosets H; M2 \<in> rcosets H; M3 \<in> rcosets H\<rbrakk>
-      \<Longrightarrow> M1 \<subset>#> M2 \<subset>#> M3 = M1 \<subset>#> (M2 \<subset>#> M3)"
+      \<Longrightarrow> M1 <#> M2 <#> M3 = M1 <#> (M2 <#> M3)"
 by (auto simp add: RCOSETS_def rcos_sum m_assoc)
 
 lemma (in subgroup) subgroup_in_rcosets:
@@ -859,7 +859,7 @@ proof -
 qed
 
 lemma (in normal) rcosets_inv_mult_group_eq:
-     "M \<in> rcosets H \<Longrightarrow> set_inv M \<subset>#> M = H"
+     "M \<in> rcosets H \<Longrightarrow> set_inv M <#> M = H"
 by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset normal.axioms normal_axioms)
 
 theorem (in normal) factorgroup_is_group:
@@ -874,7 +874,7 @@ apply (rule groupI)
 apply (auto dest: rcosets_inv_mult_group_eq simp add: setinv_closed)
 done
 
-lemma mult_FactGroup [simp]: "X \<otimes>\<^bsub>(G Mod H)\<^esub> X' = X \<subset>#>\<^bsub>G\<^esub> X'"
+lemma mult_FactGroup [simp]: "X \<otimes>\<^bsub>(G Mod H)\<^esub> X' = X <#>\<^bsub>G\<^esub> X'"
   by (simp add: FactGroup_def) 
 
 lemma (in normal) inv_FactGroup:
@@ -951,11 +951,11 @@ proof (intro ballI)
   hence all: "\<forall>x\<in>X. h x = h g" "\<forall>x\<in>X'. h x = h g'" 
     and Xsub: "X \<subseteq> carrier G" and X'sub: "X' \<subseteq> carrier G"
     by (force simp add: kernel_def r_coset_def image_def)+
-  hence "h ` (X \<subset>#> X') = {h g \<otimes>\<^bsub>H\<^esub> h g'}" using X X'
+  hence "h ` (X <#> X') = {h g \<otimes>\<^bsub>H\<^esub> h g'}" using X X'
     by (auto dest!: FactGroup_nonempty intro!: image_eqI
              simp add: set_mult_def 
                        subsetD [OF Xsub] subsetD [OF X'sub]) 
-  then show "the_elem (h ` (X \<subset>#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
+  then show "the_elem (h ` (X <#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
     by (auto simp add: all FactGroup_nonempty X X' the_elem_image_unique)
 qed
 
