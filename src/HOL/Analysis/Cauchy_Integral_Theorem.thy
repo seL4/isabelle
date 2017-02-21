@@ -38,6 +38,53 @@ proof -
   finally show ?thesis .
 qed
 
+lemma path_connected_arc_complement:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "arc \<gamma>" "2 \<le> DIM('a)"
+  shows "path_connected(- path_image \<gamma>)"
+proof -
+  have "path_image \<gamma> homeomorphic {0..1::real}"
+    by (simp add: assms homeomorphic_arc_image_interval)
+  then
+  show ?thesis
+    apply (rule path_connected_complement_homeomorphic_convex_compact)
+      apply (auto simp: assms)
+    done
+qed
+
+lemma connected_arc_complement:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "arc \<gamma>" "2 \<le> DIM('a)"
+  shows "connected(- path_image \<gamma>)"
+  by (simp add: assms path_connected_arc_complement path_connected_imp_connected)
+
+lemma inside_arc_empty:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "arc \<gamma>"
+    shows "inside(path_image \<gamma>) = {}"
+proof (cases "DIM('a) = 1")
+  case True
+  then show ?thesis
+    using assms connected_arc_image connected_convex_1_gen inside_convex by blast
+next
+  case False
+  show ?thesis
+  proof (rule inside_bounded_complement_connected_empty)
+    show "connected (- path_image \<gamma>)"
+      apply (rule connected_arc_complement [OF assms])
+      using False
+      by (metis DIM_ge_Suc0 One_nat_def Suc_1 not_less_eq_eq order_class.order.antisym)
+    show "bounded (path_image \<gamma>)"
+      by (simp add: assms bounded_arc_image)
+  qed
+qed
+
+lemma inside_simple_curve_imp_closed:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+    shows "\<lbrakk>simple_path \<gamma>; x \<in> inside(path_image \<gamma>)\<rbrakk> \<Longrightarrow> pathfinish \<gamma> = pathstart \<gamma>"
+  using arc_simple_path  inside_arc_empty by blast
+
+    
 subsection \<open>Piecewise differentiable functions\<close>
 
 definition piecewise_differentiable_on
@@ -3998,29 +4045,29 @@ subsection\<open>The winding number is constant on a connected region\<close>
 
 lemma winding_number_constant:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and cs: "connected s" and sg: "s \<inter> path_image \<gamma> = {}"
-    shows "\<exists>k. \<forall>z \<in> s. winding_number \<gamma> z = k"
+  obtains k where "\<And>z. z \<in> s \<Longrightarrow> winding_number \<gamma> z = k"
 proof -
-  { fix y z
-    assume ne: "winding_number \<gamma> y \<noteq> winding_number \<gamma> z"
-    assume "y \<in> s" "z \<in> s"
-    then have "winding_number \<gamma> y \<in> \<int>"  "winding_number \<gamma> z \<in>  \<int>"
-      using integer_winding_number [OF \<gamma> loop] sg \<open>y \<in> s\<close> by auto
-    with ne have "1 \<le> cmod (winding_number \<gamma> y - winding_number \<gamma> z)"
+  have *: "1 \<le> cmod (winding_number \<gamma> y - winding_number \<gamma> z)"
+      if ne: "winding_number \<gamma> y \<noteq> winding_number \<gamma> z" and "y \<in> s" "z \<in> s" for y z
+  proof -
+    have "winding_number \<gamma> y \<in> \<int>"  "winding_number \<gamma> z \<in>  \<int>"
+      using that integer_winding_number [OF \<gamma> loop] sg \<open>y \<in> s\<close> by auto
+    with ne show ?thesis
       by (auto simp: Ints_def of_int_diff [symmetric] simp del: of_int_diff)
-  } note * = this
-  show ?thesis
-    apply (rule continuous_discrete_range_constant [OF cs])
+  qed
+  have cont: "continuous_on s (\<lambda>w. winding_number \<gamma> w)"
     using continuous_on_winding_number [OF \<gamma>] sg
-    apply (metis Diff_Compl Diff_eq_empty_iff continuous_on_subset)
-    apply (rule_tac x=1 in exI)
-    apply (auto simp: *)
-    done
+    by (meson continuous_on_subset disjoint_eq_subset_Compl)
+  show ?thesis
+    apply (rule continuous_discrete_range_constant [OF cs cont])
+    using "*" zero_less_one apply blast
+    by (simp add: that)
 qed
 
 lemma winding_number_eq:
      "\<lbrakk>path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; w \<in> s; z \<in> s; connected s; s \<inter> path_image \<gamma> = {}\<rbrakk>
       \<Longrightarrow> winding_number \<gamma> w = winding_number \<gamma> z"
-using winding_number_constant by fastforce
+  using winding_number_constant by blast
 
 lemma open_winding_number_levelsets:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"

@@ -4314,7 +4314,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     qed
   next
     case False
-    have "\<exists>a. \<forall>x\<in>S \<inter> T. g x - h x = a"
+    obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a"
     proof (rule continuous_discrete_range_constant [OF ST])
       show "continuous_on (S \<inter> T) (\<lambda>x. g x - h x)"
         apply (intro continuous_intros)
@@ -4338,15 +4338,14 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
         then show ?thesis
           by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
       qed
-    qed
-    then obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a" by blast
+    qed blast
     with False have "exp a = 1"
       by (metis IntI disjoint_iff_not_equal divide_self_if exp_diff exp_not_eq_zero fg fh)
     with a show ?thesis
       apply (rule_tac x="\<lambda>x. if x \<in> S then g x else a + h x" in exI)
       apply (intro continuous_on_cases_local_open opeS opeT contg conth continuous_intros conjI)
        apply (auto simp: algebra_simps fg fh exp_add)
-        done
+      done
   qed
 qed
 
@@ -4383,7 +4382,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     qed
   next
     case False
-    have "\<exists>a. \<forall>x\<in>S \<inter> T. g x - h x = a"
+    obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a"
     proof (rule continuous_discrete_range_constant [OF ST])
       show "continuous_on (S \<inter> T) (\<lambda>x. g x - h x)"
         apply (intro continuous_intros)
@@ -4407,15 +4406,14 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
         then show ?thesis
           by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
       qed
-    qed
-    then obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a" by blast
+    qed blast
     with False have "exp a = 1"
       by (metis IntI disjoint_iff_not_equal divide_self_if exp_diff exp_not_eq_zero fg fh)
     with a show ?thesis
       apply (rule_tac x="\<lambda>x. if x \<in> S then g x else a + h x" in exI)
       apply (intro continuous_on_cases_local cloS cloT contg conth continuous_intros conjI)
        apply (auto simp: algebra_simps fg fh exp_add)
-        done
+      done
   qed
 qed
 
@@ -4444,7 +4442,9 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
   then obtain f' where f': "\<And>y. y \<in> T \<longrightarrow> f' y \<in> S \<and> f (f' y) = y"
     by metis
   have *: "\<exists>a. \<forall>x \<in> {x. x \<in> S \<and> f x = y}. h x - h(f' y) = a" if "y \<in> T" for y
-  proof (rule continuous_discrete_range_constant, simp_all add: algebra_simps)
+  proof (rule continuous_discrete_range_constant [OF conn [OF that], of "\<lambda>x. h x - h (f' y)"], simp_all add: algebra_simps)
+    show "continuous_on {x \<in> S. f x = y} (\<lambda>x. h x - h (f' y))"
+      by (intro continuous_intros continuous_on_subset [OF conth]) auto
     show "\<exists>e>0. \<forall>u. u \<in> S \<and> f u = y \<and> h u \<noteq> h x \<longrightarrow> e \<le> cmod (h u - h x)"
       if x: "x \<in> S \<and> f x = y" for x
     proof -
@@ -4460,9 +4460,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
       then show ?thesis
         by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
     qed
-    show "continuous_on {x \<in> S. f x = y} (\<lambda>x. h x - h (f' y))"
-      by (intro continuous_intros continuous_on_subset [OF conth]) auto
-  qed (simp add: conn that)
+  qed 
   have "h x = h (f' (f x))" if "x \<in> S" for x
     using * [of "f x"] fim that apply clarsimp
     by (metis f' imageI right_minus_eq)

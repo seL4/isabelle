@@ -519,7 +519,7 @@ proof (rule uniform_limitI)
     using lte by (force intro: eventually_mono)
 qed
 
-lemma uniform_lim_div:
+lemma uniform_lim_divide:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_field"
   assumes f: "uniform_limit S f l F"
       and g: "uniform_limit S g m F"

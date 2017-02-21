@@ -7527,47 +7527,97 @@ using connected_continuous_image assms linear_continuous_on linear_conv_bounded_
 
 text \<open>Continuity implies uniform continuity on a compact domain.\<close>
 
-lemma compact_uniformly_continuous:
+subsection \<open>Continuity implies uniform continuity on a compact domain.\<close>
+
+text\<open>From the proof of the Heine-Borel theorem: Lemma 2 in section 3.7, page 69 of
+J. C. Burkill and H. Burkill. A Second Course in Mathematical Analysis (CUP, 2002)\<close>
+
+lemma Heine_Borel_lemma:
+  assumes "compact S" and Ssub: "S \<subseteq> \<Union>\<G>" and op: "\<And>G. G \<in> \<G> \<Longrightarrow> open G"
+  obtains e where "0 < e" "\<And>x. x \<in> S \<Longrightarrow> \<exists>G \<in> \<G>. ball x e \<subseteq> G"
+proof -
+  have False if neg: "\<And>e. 0 < e \<Longrightarrow> \<exists>x \<in> S. \<forall>G \<in> \<G>. \<not> ball x e \<subseteq> G"
+  proof -
+    have "\<exists>x \<in> S. \<forall>G \<in> \<G>. \<not> ball x (1 / Suc n) \<subseteq> G" for n
+      using neg by simp
+    then obtain f where "\<And>n. f n \<in> S" and fG: "\<And>G n. G \<in> \<G> \<Longrightarrow> \<not> ball (f n) (1 / Suc n) \<subseteq> G"
+      by metis
+    then obtain l r where "l \<in> S" "subseq r" and to_l: "(f \<circ> r) \<longlonglongrightarrow> l"
+      using \<open>compact S\<close> compact_def that by metis
+    then obtain G where "l \<in> G" "G \<in> \<G>"
+      using Ssub by auto
+    then obtain e where "0 < e" and e: "\<And>z. dist z l < e \<Longrightarrow> z \<in> G"
+      using op open_dist by blast
+    obtain N1 where N1: "\<And>n. n \<ge> N1 \<Longrightarrow> dist (f (r n)) l < e/2"
+      using to_l apply (simp add: lim_sequentially)
+      using \<open>0 < e\<close> half_gt_zero that by blast
+    obtain N2 where N2: "of_nat N2 > 2/e"
+      using reals_Archimedean2 by blast
+    obtain x where "x \<in> ball (f (r (max N1 N2))) (1 / real (Suc (r (max N1 N2))))" and "x \<notin> G"
+      using fG [OF \<open>G \<in> \<G>\<close>, of "r (max N1 N2)"] by blast
+    then have "dist (f (r (max N1 N2))) x < 1 / real (Suc (r (max N1 N2)))"
+      by simp
+    also have "... \<le> 1 / real (Suc (max N1 N2))"
+      apply (simp add: divide_simps del: max.bounded_iff)
+      using \<open>subseq r\<close> seq_suble by blast
+    also have "... \<le> 1 / real (Suc N2)"
+      by (simp add: field_simps)
+    also have "... < e/2"
+      using N2 \<open>0 < e\<close> by (simp add: field_simps)
+    finally have "dist (f (r (max N1 N2))) x < e / 2" .
+    moreover have "dist (f (r (max N1 N2))) l < e/2"
+      using N1 max.cobounded1 by blast
+    ultimately have "dist x l < e"
+      using dist_triangle_half_r by blast
+    then show ?thesis
+      using e \<open>x \<notin> G\<close> by blast
+  qed
+  then show ?thesis
+    by (meson that)
+qed
+
+lemma compact_uniformly_equicontinuous:
+  assumes "compact S"
+      and cont: "\<And>x e. \<lbrakk>x \<in> S; 0 < e\<rbrakk>
+                        \<Longrightarrow> \<exists>d. 0 < d \<and>
+                                (\<forall>f \<in> \<F>. \<forall>x' \<in> S. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
+      and "0 < e"
+  obtains d where "0 < d"
+                  "\<And>f x x'. \<lbrakk>f \<in> \<F>; x \<in> S; x' \<in> S; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+proof -
+  obtain d where d_pos: "\<And>x e. \<lbrakk>x \<in> S; 0 < e\<rbrakk> \<Longrightarrow> 0 < d x e"
+     and d_dist : "\<And>x x' e f. \<lbrakk>dist x' x < d x e; x \<in> S; x' \<in> S; 0 < e; f \<in> \<F>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+    using cont by metis
+  let ?\<G> = "((\<lambda>x. ball x (d x (e / 2))) ` S)"
+  have Ssub: "S \<subseteq> \<Union> ?\<G>"
+    by clarsimp (metis d_pos \<open>0 < e\<close> dist_self half_gt_zero_iff)
+  then obtain k where "0 < k" and k: "\<And>x. x \<in> S \<Longrightarrow> \<exists>G \<in> ?\<G>. ball x k \<subseteq> G"
+    by (rule Heine_Borel_lemma [OF \<open>compact S\<close>]) auto
+  moreover have "dist (f v) (f u) < e" if "f \<in> \<F>" "u \<in> S" "v \<in> S" "dist v u < k" for f u v
+  proof -
+    obtain G where "G \<in> ?\<G>" "u \<in> G" "v \<in> G"
+      using k that
+      by (metis \<open>dist v u < k\<close> \<open>u \<in> S\<close> \<open>0 < k\<close> centre_in_ball subsetD dist_commute mem_ball)
+    then obtain w where w: "dist w u < d w (e / 2)" "dist w v < d w (e / 2)" "w \<in> S"
+      by auto
+    with that d_dist have "dist (f w) (f v) < e/2"
+      by (metis \<open>0 < e\<close> dist_commute half_gt_zero)
+    moreover
+    have "dist (f w) (f u) < e/2"
+      using that d_dist w by (metis \<open>0 < e\<close> dist_commute divide_pos_pos zero_less_numeral)
+    ultimately show ?thesis
+      using dist_triangle_half_r by blast
+  qed
+  ultimately show ?thesis using that by blast
+qed
+
+corollary compact_uniformly_continuous:
   fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
-  assumes f: "continuous_on s f"
-    and s: "compact s"
-  shows "uniformly_continuous_on s f"
-  unfolding uniformly_continuous_on_def
-proof (cases, safe)
-  fix e :: real
-  assume "0 < e" "s \<noteq> {}"
-  define R where [simp]:
-    "R = {(y, d). y \<in> s \<and> 0 < d \<and> ball y d \<inter> s \<subseteq> {x \<in> s. f x \<in> ball (f y) (e/2)}}"
-  let ?b = "(\<lambda>(y, d). ball y (d/2))"
-  have "(\<forall>r\<in>R. open (?b r))" "s \<subseteq> (\<Union>r\<in>R. ?b r)"
-  proof safe
-    fix y
-    assume "y \<in> s"
-    from continuous_openin_preimage_gen[OF f open_ball]
-    obtain T where "open T" and T: "{x \<in> s. f x \<in> ball (f y) (e/2)} = T \<inter> s"
-      unfolding openin_subtopology open_openin by metis
-    then obtain d where "ball y d \<subseteq> T" "0 < d"
-      using \<open>0 < e\<close> \<open>y \<in> s\<close> by (auto elim!: openE)
-    with T \<open>y \<in> s\<close> show "y \<in> (\<Union>r\<in>R. ?b r)"
-      by (intro UN_I[of "(y, d)"]) auto
-  qed auto
-  with s obtain D where D: "finite D" "D \<subseteq> R" "s \<subseteq> (\<Union>(y, d)\<in>D. ball y (d/2))"
-    by (rule compactE_image)
-  with \<open>s \<noteq> {}\<close> have [simp]: "\<And>x. x < Min (snd ` D) \<longleftrightarrow> (\<forall>(y, d)\<in>D. x < d)"
-    by (subst Min_gr_iff) auto
-  show "\<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
-  proof (rule, safe)
-    fix x x'
-    assume in_s: "x' \<in> s" "x \<in> s"
-    with D obtain y d where x: "x \<in> ball y (d/2)" "(y, d) \<in> D"
-      by blast
-    moreover assume "dist x x' < Min (snd`D) / 2"
-    ultimately have "dist y x' < d"
-      by (intro dist_triangle_half_r[of x _ d]) (auto simp: dist_commute)
-    with D x in_s show  "dist (f x) (f x') < e"
-      by (intro dist_triangle_half_r[of "f y" _ e]) (auto simp: dist_commute subset_eq)
-  qed (insert D, auto)
-qed auto
+  assumes f: "continuous_on S f" and S: "compact S"
+  shows "uniformly_continuous_on S f"
+  using f
+    unfolding continuous_on_iff uniformly_continuous_on_def
+    by (force intro: compact_uniformly_equicontinuous [OF S, of "{f}"])
 
 subsection \<open>Topological stuff about the set of Reals\<close>
 
@@ -10207,6 +10257,46 @@ lemma univ_second_countable:
        "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
 by (metis ex_countable_basis topological_basis_def)
 
+lemma subset_second_countable:
+  obtains \<B> :: "'a:: euclidean_space set set"
+    where "countable \<B>"
+          "{} \<notin> \<B>"
+          "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
+          "\<And>T. openin(subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
+proof -
+  obtain \<B> :: "'a set set"
+    where "countable \<B>"
+      and opeB: "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
+      and \<B>:    "\<And>T. openin(subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
+  proof -
+    obtain \<C> :: "'a set set"
+      where "countable \<C>" and ope: "\<And>C. C \<in> \<C> \<Longrightarrow> open C"
+        and \<C>: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<C> \<and> S = \<Union>U"
+      by (metis univ_second_countable that)
+    show ?thesis
+    proof
+      show "countable ((\<lambda>C. S \<inter> C) ` \<C>)"
+        by (simp add: \<open>countable \<C>\<close>)
+      show "\<And>C. C \<in> op \<inter> S ` \<C> \<Longrightarrow> openin (subtopology euclidean S) C"
+        using ope by auto
+      show "\<And>T. openin (subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>\<subseteq>op \<inter> S ` \<C>. T = \<Union>\<U>"
+        by (metis \<C> image_mono inf_Sup openin_open)
+    qed
+  qed
+  show ?thesis
+  proof
+    show "countable (\<B> - {{}})"
+      using \<open>countable \<B>\<close> by blast
+    show "\<And>C. \<lbrakk>C \<in> \<B> - {{}}\<rbrakk> \<Longrightarrow> openin (subtopology euclidean S) C"
+      by (simp add: \<open>\<And>C. C \<in> \<B> \<Longrightarrow> openin (subtopology euclidean S) C\<close>)
+    show "\<exists>\<U>\<subseteq>\<B> - {{}}. T = \<Union>\<U>" if "openin (subtopology euclidean S) T" for T
+      using \<B> [OF that]
+      apply clarify
+      apply (rule_tac x="\<U> - {{}}" in exI, auto)
+        done
+  qed auto
+qed
+
 lemma univ_second_countable_sequence:
   obtains B :: "nat \<Rightarrow> 'a::euclidean_space set"
     where "inj B" "\<And>n. open(B n)" "\<And>S. open S \<Longrightarrow> \<exists>k. S = \<Union>{B n |n. n \<in> k}"
@@ -10242,6 +10332,52 @@ proof -
     apply (rule that [OF \<open>inj f\<close> _ *])
     apply (auto simp: \<open>\<B> = range f\<close> op)
     done
+qed
+
+proposition separable:
+  fixes S :: "'a:: euclidean_space set"
+  obtains T where "countable T" "T \<subseteq> S" "S \<subseteq> closure T"
+proof -
+  obtain \<B> :: "'a:: euclidean_space set set"
+    where "countable \<B>"
+      and "{} \<notin> \<B>"
+      and ope: "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
+      and if_ope: "\<And>T. openin(subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
+    by (meson subset_second_countable)
+  then obtain f where f: "\<And>C. C \<in> \<B> \<Longrightarrow> f C \<in> C"
+    by (metis equals0I)
+  show ?thesis
+  proof
+    show "countable (f ` \<B>)"
+      by (simp add: \<open>countable \<B>\<close>)
+    show "f ` \<B> \<subseteq> S"
+      using ope f openin_imp_subset by blast
+    show "S \<subseteq> closure (f ` \<B>)"
+    proof (clarsimp simp: closure_approachable)
+      fix x and e::real
+      assume "x \<in> S" "0 < e"
+      have "openin (subtopology euclidean S) (S \<inter> ball x e)"
+        by (simp add: openin_Int_open)
+      with if_ope obtain \<U> where  \<U>: "\<U> \<subseteq> \<B>" "S \<inter> ball x e = \<Union>\<U>"
+        by meson
+      show "\<exists>C \<in> \<B>. dist (f C) x < e"
+      proof (cases "\<U> = {}")
+        case True
+        then show ?thesis
+          using \<open>0 < e\<close>  \<U> \<open>x \<in> S\<close> by auto
+      next
+        case False
+        then obtain C where "C \<in> \<U>" by blast
+        show ?thesis
+        proof
+          show "dist (f C) x < e"
+            by (metis Int_iff Union_iff \<U> \<open>C \<in> \<U>\<close> dist_commute f mem_ball subsetCE)
+          show "C \<in> \<B>"
+            using \<open>\<U> \<subseteq> \<B>\<close> \<open>C \<in> \<U>\<close> by blast
+        qed
+      qed
+    qed
+  qed
 qed
 
 proposition Lindelof:
@@ -10789,21 +10925,21 @@ proof -
 qed
 
 lemma continuous_disconnected_range_constant_eq:
-      "(connected s \<longleftrightarrow>
+      "(connected S \<longleftrightarrow>
            (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-            \<forall>t. continuous_on s f \<and> f ` s \<subseteq> t \<and> (\<forall>y \<in> t. connected_component_set t y = {y})
-            \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis1)
+            \<forall>t. continuous_on S f \<and> f ` S \<subseteq> t \<and> (\<forall>y \<in> t. connected_component_set t y = {y})
+            \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> S. f x = a)))" (is ?thesis1)
   and continuous_discrete_range_constant_eq:
-      "(connected s \<longleftrightarrow>
+      "(connected S \<longleftrightarrow>
          (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-          continuous_on s f \<and>
-          (\<forall>x \<in> s. \<exists>e. 0 < e \<and> (\<forall>y. y \<in> s \<and> (f y \<noteq> f x) \<longrightarrow> e \<le> norm(f y - f x)))
-          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis2)
+          continuous_on S f \<and>
+          (\<forall>x \<in> S. \<exists>e. 0 < e \<and> (\<forall>y. y \<in> S \<and> (f y \<noteq> f x) \<longrightarrow> e \<le> norm(f y - f x)))
+          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> S. f x = a)))" (is ?thesis2)
   and continuous_finite_range_constant_eq:
-      "(connected s \<longleftrightarrow>
+      "(connected S \<longleftrightarrow>
          (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-          continuous_on s f \<and> finite (f ` s)
-          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis3)
+          continuous_on S f \<and> finite (f ` S)
+          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> S. f x = a)))" (is ?thesis3)
 proof -
   have *: "\<And>s t u v. \<lbrakk>s \<Longrightarrow> t; t \<Longrightarrow> u; u \<Longrightarrow> v; v \<Longrightarrow> s\<rbrakk>
     \<Longrightarrow> (s \<longleftrightarrow> t) \<and> (s \<longleftrightarrow> u) \<and> (s \<longleftrightarrow> v)"
@@ -10822,19 +10958,19 @@ qed
 
 lemma continuous_discrete_range_constant:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
-  assumes s: "connected s"
-      and "continuous_on s f"
-      and "\<And>x. x \<in> s \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
-    shows "\<exists>a. \<forall>x \<in> s. f x = a"
-  using continuous_discrete_range_constant_eq [THEN iffD1, OF s] assms
+  assumes S: "connected S"
+      and "continuous_on S f"
+      and "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
+    obtains a where "\<And>x. x \<in> S \<Longrightarrow> f x = a"
+  using continuous_discrete_range_constant_eq [THEN iffD1, OF S] assms
   by blast
 
 lemma continuous_finite_range_constant:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
-  assumes "connected s"
-      and "continuous_on s f"
-      and "finite (f ` s)"
-    shows "\<exists>a. \<forall>x \<in> s. f x = a"
+  assumes "connected S"
+      and "continuous_on S f"
+      and "finite (f ` S)"
+    obtains a where "\<And>x. x \<in> S \<Longrightarrow> f x = a"
   using assms continuous_finite_range_constant_eq
   by blast
 
