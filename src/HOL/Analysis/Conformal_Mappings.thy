@@ -14,8 +14,8 @@ subsection\<open>Cauchy's inequality and more versions of Liouville\<close>
 lemma Cauchy_higher_deriv_bound:
     assumes holf: "f holomorphic_on (ball z r)"
         and contf: "continuous_on (cball z r) f"
-        and "0 < r" and "0 < n"
         and fin : "\<And>w. w \<in> ball z r \<Longrightarrow> f w \<in> ball y B0"
+        and "0 < r" and "0 < n"
       shows "norm ((deriv ^^ n) f z) \<le> (fact n) * B0 / r^n"
 proof -
   have "0 < B0" using \<open>0 < r\<close> fin [of z]

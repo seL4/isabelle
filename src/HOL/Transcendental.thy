@@ -3194,6 +3194,12 @@ lemma diffs_sin_coeff: "diffs sin_coeff = cos_coeff"
 lemma diffs_cos_coeff: "diffs cos_coeff = (\<lambda>n. - sin_coeff n)"
   by (simp add: diffs_def cos_coeff_Suc del: of_nat_Suc)
 
+lemma sin_int_times_real: "sin (of_int m * of_real x) = of_real (sin (of_int m * x))"
+  by (metis sin_of_real of_real_mult of_real_of_int_eq)
+
+lemma cos_int_times_real: "cos (of_int m * of_real x) = of_real (cos (of_int m * x))"
+  by (metis cos_of_real of_real_mult of_real_of_int_eq)
+
 text \<open>Now at last we can get the derivatives of exp, sin and cos.\<close>
 
 lemma DERIV_sin [simp]: "DERIV sin x :> cos x"
@@ -4077,6 +4083,9 @@ lemma sin_zero_iff_int2: "sin x = 0 \<longleftrightarrow> (\<exists>n::int. x = 
   using dvd_triv_left apply fastforce
   done
 
+lemma sin_npi_int [simp]: "sin (pi * of_int n) = 0"
+  by (simp add: sin_zero_iff_int2)
+
 lemma cos_monotone_0_pi:
   assumes "0 \<le> y" and "y < x" and "x \<le> pi"
   shows "cos x < cos y"
@@ -4271,13 +4280,23 @@ next
     by (metis cos_2npi cos_minus mult.assoc mult.left_commute)
 qed
 
-lemma cos_one_2pi_int: "cos x = 1 \<longleftrightarrow> (\<exists>n::int. x = n * 2 * pi)"
-  apply auto  (* FIXME simproc bug? *)
-   apply (auto simp: cos_one_2pi)
-    apply (metis of_int_of_nat_eq)
-   apply (metis mult_minus_right of_int_minus of_int_of_nat_eq)
-  apply (metis mult_minus_right of_int_of_nat)
-  done
+lemma cos_one_2pi_int: "cos x = 1 \<longleftrightarrow> (\<exists>n::int. x = n * 2 * pi)" (is "?lhs = ?rhs")
+proof
+  assume "cos x = 1"
+  then show ?rhs
+    apply (auto simp: cos_one_2pi)
+     apply (metis of_int_of_nat_eq)
+    apply (metis mult_minus_right of_int_minus of_int_of_nat_eq)
+    done
+next
+  assume ?rhs
+  then show "cos x = 1"
+    by (clarsimp simp add: cos_one_2pi) (metis mult_minus_right of_int_of_nat)
+qed
+
+lemma cos_npi_int [simp]:
+  fixes n::int shows "cos (pi * of_int n) = (if even n then 1 else -1)"
+    by (auto simp: algebra_simps cos_one_2pi_int elim!: oddE evenE)
 
 lemma sin_cos_sqrt: "0 \<le> sin x \<Longrightarrow> sin x = sqrt (1 - (cos(x) ^ 2))"
   using sin_squared_eq real_sqrt_unique by fastforce

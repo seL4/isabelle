@@ -92,12 +92,6 @@ lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (Pi\<^sub>E I F)"
   by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
 
-lemma continuous_on_cases:
-  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t g \<Longrightarrow>
-    \<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x \<Longrightarrow>
-    continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
-  by (rule continuous_on_If) auto
-
 lemma open_sums:
   fixes T :: "('b::real_normed_vector) set"
   assumes "open S \<or> open T"
@@ -3946,11 +3940,10 @@ lemma bounded_iff: "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>
 lemma bdd_above_norm: "bdd_above (norm ` X) \<longleftrightarrow> bounded X"
   by (simp add: bounded_iff bdd_above_def)
 
-lemma bounded_realI:
-  assumes "\<forall>x\<in>s. \<bar>x::real\<bar> \<le> B"
-  shows "bounded s"
-  unfolding bounded_def dist_real_def
-  by (metis abs_minus_commute assms diff_0_right)
+lemma boundedI:
+  assumes "\<And>x. x \<in> S \<Longrightarrow> norm x \<le> B"
+  shows "bounded S"
+  using assms bounded_iff by blast
 
 lemma bounded_empty [simp]: "bounded {}"
   by (simp add: bounded_def)
@@ -5100,7 +5093,7 @@ lemma compact_eq_seq_compact_metric:
   "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
   using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
 
-lemma compact_def:
+lemma compact_def: --\<open>this is the definition of compactness in HOL Light\<close>
   "compact (S :: 'a::metric_space set) \<longleftrightarrow>
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l))"
   unfolding compact_eq_seq_compact_metric seq_compact_def by auto
@@ -7575,48 +7568,6 @@ proof (cases, safe)
       by (intro dist_triangle_half_r[of "f y" _ e]) (auto simp: dist_commute subset_eq)
   qed (insert D, auto)
 qed auto
-
-text \<open>A uniformly convergent limit of continuous functions is continuous.\<close>
-
-lemma continuous_uniform_limit:
-  fixes f :: "'a \<Rightarrow> 'b::metric_space \<Rightarrow> 'c::metric_space"
-  assumes "\<not> trivial_limit F"
-    and "eventually (\<lambda>n. continuous_on s (f n)) F"
-    and "\<forall>e>0. eventually (\<lambda>n. \<forall>x\<in>s. dist (f n x) (g x) < e) F"
-  shows "continuous_on s g"
-proof -
-  {
-    fix x and e :: real
-    assume "x\<in>s" "e>0"
-    have "eventually (\<lambda>n. \<forall>x\<in>s. dist (f n x) (g x) < e / 3) F"
-      using \<open>e>0\<close> assms(3)[THEN spec[where x="e/3"]] by auto
-    from eventually_happens [OF eventually_conj [OF this assms(2)]]
-    obtain n where n:"\<forall>x\<in>s. dist (f n x) (g x) < e / 3"  "continuous_on s (f n)"
-      using assms(1) by blast
-    have "e / 3 > 0" using \<open>e>0\<close> by auto
-    then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f n x') (f n x) < e / 3"
-      using n(2)[unfolded continuous_on_iff, THEN bspec[where x=x], OF \<open>x\<in>s\<close>, THEN spec[where x="e/3"]] by blast
-    {
-      fix y
-      assume "y \<in> s" and "dist y x < d"
-      then have "dist (f n y) (f n x) < e / 3"
-        by (rule d [rule_format])
-      then have "dist (f n y) (g x) < 2 * e / 3"
-        using dist_triangle [of "f n y" "g x" "f n x"]
-        using n(1)[THEN bspec[where x=x], OF \<open>x\<in>s\<close>]
-        by auto
-      then have "dist (g y) (g x) < e"
-        using n(1)[THEN bspec[where x=y], OF \<open>y\<in>s\<close>]
-        using dist_triangle3 [of "g y" "g x" "f n y"]
-        by auto
-    }
-    then have "\<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (g x') (g x) < e"
-      using \<open>d>0\<close> by auto
-  }
-  then show ?thesis
-    unfolding continuous_on_iff by auto
-qed
-
 
 subsection \<open>Topological stuff about the set of Reals\<close>
 

@@ -1135,7 +1135,7 @@ lemma (in product_sigma_finite) distr_component:
 proof (intro PiM_eqI)
   fix A assume A: "\<And>ia. ia \<in> {i} \<Longrightarrow> A ia \<in> sets (M ia)"
   then have "(\<lambda>x. \<lambda>i\<in>{i}. x) -` Pi\<^sub>E {i} A \<inter> space (M i) = A i"
-    by (auto dest: sets.sets_into_space)
+    by (fastforce dest: sets.sets_into_space)
   with A show "emeasure (distr (M i) (Pi\<^sub>M {i} M) (\<lambda>x. \<lambda>i\<in>{i}. x)) (Pi\<^sub>E {i} A) = (\<Prod>i\<in>{i}. emeasure (M i) (A i))"
     by (subst emeasure_distr) (auto intro!: sets_PiM_I_finite measurable_restrict)
 qed simp_all

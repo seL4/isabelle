@@ -967,7 +967,7 @@ proof -
     by blast
   define m where "m = Min {(1/2)^(to_nat i) * e i|i. i \<in> I}"
   have "m > 0" if "I\<noteq>{}"
-    unfolding m_def apply (rule Min_grI) using \<open>finite I\<close> \<open>I \<noteq> {}\<close> \<open>\<And>i. e i > 0\<close> by auto
+    unfolding m_def Min_gr_iff using \<open>finite I\<close> \<open>I \<noteq> {}\<close> \<open>\<And>i. e i > 0\<close> by auto
   moreover have "{y. dist x y < m} \<subseteq> U"
   proof (auto)
     fix y assume "dist x y < m"

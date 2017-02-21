@@ -190,9 +190,9 @@ proof
   have "g \<in> bcontfun"  \<comment> \<open>The limit function is bounded and continuous\<close>
   proof (intro bcontfunI)
     show "continuous_on UNIV g"
-      using bcontfunE[OF Rep_bcontfun] limit_function
-      by (intro continuous_uniform_limit[where f="\<lambda>n. Rep_bcontfun (f n)" and F="sequentially"])
-        (auto simp add: eventually_sequentially trivial_limit_def dist_norm)
+      apply (rule bcontfunE[OF Rep_bcontfun])
+      using limit_function
+      by (auto simp add: uniform_limit_sequentially_iff intro: uniform_limit_theorem[where f="\<lambda>n. Rep_bcontfun (f n)" and F="sequentially"])
   next
     fix x
     from fg_dist have "dist (g x) (Rep_bcontfun (f N) x) < 1"

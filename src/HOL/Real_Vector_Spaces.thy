@@ -1128,6 +1128,18 @@ lemma dist_triangle_half_l: "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e /
 lemma dist_triangle_half_r: "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
   by (rule dist_triangle_half_l) (simp_all add: dist_commute)
 
+lemma dist_triangle_third:
+  assumes "dist x1 x2 < e/3" "dist x2 x3 < e/3" "dist x3 x4 < e/3"
+  shows "dist x1 x4 < e"
+proof -
+  have "dist x1 x3 < e/3 + e/3"
+    by (metis assms(1) assms(2) dist_commute dist_triangle_less_add)
+  then have "dist x1 x4 < (e/3 + e/3) + e/3"
+    by (metis assms(3) dist_commute dist_triangle_less_add)
+  then show ?thesis
+    by simp
+qed
+
 subclass uniform_space
 proof
   fix E x

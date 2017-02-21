@@ -9,10 +9,7 @@ imports
   Lebesgue_Measure Tagged_Division
 begin
 
-(* BEGIN MOVE *)
-lemma norm_minus2: "norm (x1-x2, y1-y2) = norm (x2-x1, y2-y1)"
-  by (simp add: norm_minus_eqI)
-
+(* try instead structured proofs below *)
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
   \<Longrightarrow> norm(y - x) \<le> e"
   using norm_triangle_mono [of "y1 - x1" "e1" "y2 - x2" "e2"]
@@ -7696,10 +7693,12 @@ next
         assume xuvwz: "x1 \<in> cbox u v" "x2 \<in> cbox w z"
         then have x: "x1 \<in> cbox a b" "x2 \<in> cbox c d"
           using uwvz_sub by auto
-        have "norm (x1 - t1, x2 - t2) < k"
+        have "norm (x1 - t1, x2 - t2) = norm (t1 - x1, t2 - x2)"
+          by (simp add: norm_Pair norm_minus_commute)
+        also have "norm (t1 - x1, t2 - x2) < k"
           using xuvwz ls uwvz_sub unfolding ball_def
-          by (force simp add: cbox_Pair_eq dist_norm norm_minus2)
-        then have "norm (f (x1,x2) - f (t1,t2)) \<le> e / content ?CBOX / 2"
+          by (force simp add: cbox_Pair_eq dist_norm )
+        finally have "norm (f (x1,x2) - f (t1,t2)) \<le> e / content ?CBOX / 2"
           using nf [OF t x]  by simp
       } note nf' = this
       have f_int_uwvz: "f integrable_on cbox (u,w) (v,z)"
@@ -7852,7 +7851,7 @@ proof -
       finally show ?thesis .
     qed (insert a, simp_all add: integral_f)
     thus "bounded {integral {c..} (f k) |k. True}"
-      by (intro bounded_realI[of _ "exp (-a*c)/a"]) auto
+      by (intro boundedI[of _ "exp (-a*c)/a"]) auto
   qed (auto simp: f_def)
 
   from eventually_gt_at_top[of "nat \<lceil>c\<rceil>"] have "eventually (\<lambda>k. of_nat k > c) sequentially"
@@ -7945,7 +7944,7 @@ proof (cases "c = 0")
       finally have "abs (F k) \<le>  c powr (a + 1) / (a + 1)" .
     }
     thus "bounded {integral {0..c} (f k) |k. True}"
-      by (intro bounded_realI[of _ "c powr (a+1) / (a+1)"]) (auto simp: integral_f)
+      by (intro boundedI[of _ "c powr (a+1) / (a+1)"]) (auto simp: integral_f)
   qed
 
   from False c have "c > 0" by simp

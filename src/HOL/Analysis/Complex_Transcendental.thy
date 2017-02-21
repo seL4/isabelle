@@ -1386,7 +1386,7 @@ lemma Ln_times_ii:
                           else Ln(z) - \<i> * of_real(3 * pi/2))"
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z] Re_Ln_pos_le [of z]
-  by (auto simp: Ln_times)
+  by (simp add: Ln_times) auto 
 
 lemma Ln_of_nat: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
   by (subst of_real_of_nat_eq[symmetric], subst Ln_of_real[symmetric]) simp_all

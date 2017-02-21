@@ -468,9 +468,9 @@ lemma (in topological_space) eventually_nhds:
   "eventually P (nhds a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
   unfolding nhds_def by (subst eventually_INF_base) (auto simp: eventually_principal)
 
-lemma eventually_eventually: 
+lemma eventually_eventually:
   "eventually (\<lambda>y. eventually P (nhds y)) (nhds x) = eventually P (nhds x)"
-  by (auto simp: eventually_nhds)    
+  by (auto simp: eventually_nhds)
 
 lemma (in topological_space) eventually_nhds_in_open:
   "open s \<Longrightarrow> x \<in> s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
@@ -1049,6 +1049,12 @@ lemma decseq_def: "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m.
 text \<open>Definition of subsequence.\<close>
 definition subseq :: "(nat \<Rightarrow> nat) \<Rightarrow> bool"
   where "subseq f \<longleftrightarrow> (\<forall>m. \<forall>n>m. f m < f n)"
+
+lemma subseq_le_mono: "subseq r \<Longrightarrow> m \<le> n \<Longrightarrow> r m \<le> r n"
+  by (simp add: less_mono_imp_le_mono subseq_def)
+
+lemma subseq_id: "subseq id"
+  by (simp add: subseq_def)
 
 lemma incseq_SucI: "(\<And>n. X n \<le> X (Suc n)) \<Longrightarrow> incseq X"
   using lift_Suc_mono_le[of X] by (auto simp: incseq_def)
@@ -1817,6 +1823,12 @@ proof-
   with closed show ?thesis
     by (rule continuous_on_closed_Un)
 qed
+
+lemma continuous_on_cases:
+  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t g \<Longrightarrow>
+    \<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x \<Longrightarrow>
+    continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
+  by (rule continuous_on_If) auto
 
 lemma continuous_on_id[continuous_intros]: "continuous_on s (\<lambda>x. x)"
   unfolding continuous_on_def by fast

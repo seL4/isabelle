@@ -472,6 +472,73 @@ lemmas bounded_bilinear_bounded_uniform_limit_intros[uniform_limit_intros] =
   bounded_bilinear.bounded_uniform_limit[OF Real_Vector_Spaces.bounded_bilinear_mult]
   bounded_bilinear.bounded_uniform_limit[OF Real_Vector_Spaces.bounded_bilinear_scaleR]
 
+lemma uniform_lim_mult:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_algebra"
+  assumes f: "uniform_limit S f l F"
+      and g: "uniform_limit S g m F"
+      and l: "bounded (l ` S)"
+      and m: "bounded (m ` S)"
+    shows "uniform_limit S (\<lambda>a b. f a b * g a b) (\<lambda>a. l a * m a) F"
+  by (intro bounded_bilinear_bounded_uniform_limit_intros assms)
+
+lemma uniform_lim_inverse:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_field"
+  assumes f: "uniform_limit S f l F"
+      and b: "\<And>x. x \<in> S \<Longrightarrow> b \<le> norm(l x)"
+      and "b > 0"
+    shows "uniform_limit S (\<lambda>x y. inverse (f x y)) (inverse \<circ> l) F"
+proof (rule uniform_limitI)
+  fix e::real
+  assume "e > 0"
+  have lte: "dist (inverse (f x y)) ((inverse \<circ> l) y) < e"
+           if "b/2 \<le> norm (f x y)" "norm (f x y - l y) < e * b\<^sup>2 / 2" "y \<in> S"
+           for x y
+  proof -
+    have [simp]: "l y \<noteq> 0" "f x y \<noteq> 0"
+      using \<open>b > 0\<close> that b [OF \<open>y \<in> S\<close>] by fastforce+
+    have "norm (l y - f x y) <  e * b\<^sup>2 / 2"
+      by (metis norm_minus_commute that(2))
+    also have "... \<le> e * (norm (f x y) * norm (l y))"
+      using \<open>e > 0\<close> that b [OF \<open>y \<in> S\<close>] apply (simp add: power2_eq_square)
+      by (metis \<open>b > 0\<close> less_eq_real_def mult.left_commute mult_mono')
+    finally show ?thesis
+      by (auto simp: dist_norm divide_simps norm_mult norm_divide)
+  qed
+  have "\<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (f n x) (l x) < b/2"
+    using uniform_limitD [OF f, of "b/2"] by (simp add: \<open>b > 0\<close>)
+  then have "\<forall>\<^sub>F x in F. \<forall>y\<in>S. b/2 \<le> norm (f x y)"
+    apply (rule eventually_mono)
+    using b apply (simp only: dist_norm)
+    by (metis (no_types, hide_lams) diff_zero dist_commute dist_norm norm_triangle_half_l not_less)
+  then have "\<forall>\<^sub>F x in F. \<forall>y\<in>S. b/2 \<le> norm (f x y) \<and> norm (f x y - l y) < e * b\<^sup>2 / 2"
+    apply (simp only: ball_conj_distrib dist_norm [symmetric])
+    apply (rule eventually_conj, assumption)
+      apply (rule uniform_limitD [OF f, of "e * b ^ 2 / 2"])
+    using \<open>b > 0\<close> \<open>e > 0\<close> by auto
+  then show "\<forall>\<^sub>F x in F. \<forall>y\<in>S. dist (inverse (f x y)) ((inverse \<circ> l) y) < e"
+    using lte by (force intro: eventually_mono)
+qed
+
+lemma uniform_lim_div:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_field"
+  assumes f: "uniform_limit S f l F"
+      and g: "uniform_limit S g m F"
+      and l: "bounded (l ` S)"
+      and b: "\<And>x. x \<in> S \<Longrightarrow> b \<le> norm(m x)"
+      and "b > 0"
+    shows "uniform_limit S (\<lambda>a b. f a b / g a b) (\<lambda>a. l a / m a) F"
+proof -
+  have m: "bounded ((inverse \<circ> m) ` S)"
+    using b \<open>b > 0\<close>
+    apply (simp add: bounded_iff)
+    by (metis le_imp_inverse_le norm_inverse)
+  have "uniform_limit S (\<lambda>a b. f a b * inverse (g a b))
+         (\<lambda>a. l a * (inverse \<circ> m) a) F"
+    by (rule uniform_lim_mult [OF f uniform_lim_inverse [OF g b \<open>b > 0\<close>] l m])
+  then show ?thesis
+    by (simp add: field_class.field_divide_inverse)
+qed
+
 lemma uniform_limit_null_comparison:
   assumes "\<forall>\<^sub>F x in F. \<forall>a\<in>S. norm (f x a) \<le> g x a"
   assumes "uniform_limit S g (\<lambda>_. 0) F"
@@ -482,7 +549,7 @@ proof (rule metric_uniform_limit_imp_uniform_limit)
     using assms(1) by (rule eventually_mono) (force simp add: dist_norm)
 qed
 
-lemma uniform_limit_on_union:
+lemma uniform_limit_on_Un:
   "uniform_limit I f g F \<Longrightarrow> uniform_limit J f g F \<Longrightarrow> uniform_limit (I \<union> J) f g F"
   by (auto intro!: uniform_limitI dest!: uniform_limitD elim: eventually_elim2)
 
@@ -495,7 +562,7 @@ lemma uniform_limit_on_UNION:
   assumes "\<And>s. s \<in> S \<Longrightarrow> uniform_limit (h s) f g F"
   shows "uniform_limit (UNION S h) f g F"
   using assms
-  by induct (auto intro: uniform_limit_on_empty uniform_limit_on_union)
+  by induct (auto intro: uniform_limit_on_empty uniform_limit_on_Un)
 
 lemma uniform_limit_on_Union:
   assumes "finite I"
@@ -522,7 +589,6 @@ lemma uniformly_convergent_mult:
       uniformly_convergent_on A (\<lambda>k x. c * f k x :: 'a :: {real_normed_algebra})"
   unfolding uniformly_convergent_on_def
   by (blast dest: bounded_linear_uniform_limit_intros(13))
-
 
 subsection\<open>Power series and uniform convergence\<close>
 

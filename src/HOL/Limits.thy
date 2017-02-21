@@ -1696,7 +1696,7 @@ lemma LIMSEQ_linear: "X \<longlonglongrightarrow> x \<Longrightarrow> l > 0 \<Lo
   unfolding tendsto_def eventually_sequentially
   by (metis div_le_dividend div_mult_self1_is_m le_trans mult.commute)
 
-lemma Bseq_inverse_lemma: "r \<le> norm x \<Longrightarrow> 0 < r \<Longrightarrow> norm (inverse x) \<le> inverse r"
+lemma norm_inverse_le_norm: "r \<le> norm x \<Longrightarrow> 0 < r \<Longrightarrow> norm (inverse x) \<le> inverse r"
   for x :: "'a::real_normed_div_algebra"
   apply (subst nonzero_norm_inverse, clarsimp)
   apply (erule (1) le_imp_inverse_le)

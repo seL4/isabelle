@@ -1369,19 +1369,6 @@ proof -
     by (auto simp add:norm_minus_commute)
 qed
 
-lemma norm_minus_eqI: "x = - y \<Longrightarrow> norm x = norm y" by auto
-
-lemma Min_grI:
-  assumes "finite A" "A \<noteq> {}" "\<forall>a\<in>A. x < a"
-  shows "x < Min A"
-  unfolding Min_gr_iff[OF assms(1,2)] using assms(3) by auto
-
-lemma norm_lt: "norm x < norm y \<longleftrightarrow> inner x x < inner y y"
-  unfolding norm_eq_sqrt_inner by simp
-
-lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> inner x x \<le> inner y y"
-  unfolding norm_eq_sqrt_inner by simp
-
 
 subsection \<open>Affine set and affine hull\<close>
 
@@ -8474,19 +8461,8 @@ next
   assume as: "\<forall>i\<in>Basis. 0 < x \<bullet> i" "sum (op \<bullet> x) Basis < 1"
   obtain a :: 'b where "a \<in> UNIV" using UNIV_witness ..
   let ?d = "(1 - sum (op \<bullet> x) Basis) / real (DIM('a))"
-  have "Min ((op \<bullet> x) ` Basis) > 0"
-    apply (rule Min_grI)
-    using as(1)
-    apply auto
-    done
-  moreover have "?d > 0"
-    using as(2) by (auto simp: Suc_le_eq DIM_positive)
-  ultimately show "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> (\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> sum (op \<bullet> y) Basis \<le> 1"
-    apply (rule_tac x="min (Min ((op \<bullet> x) ` Basis)) D" for D in exI)
-    apply rule
-    defer
-    apply (rule, rule)
-  proof -
+  show "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> (\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> sum (op \<bullet> y) Basis \<le> 1"
+  proof (rule_tac x="min (Min ((op \<bullet> x) ` Basis)) D" for D in exI, intro conjI impI allI)
     fix y
     assume y: "dist x y < min (Min (op \<bullet> x ` Basis)) ?d"
     have "sum (op \<bullet> y) Basis \<le> sum (\<lambda>i. x\<bullet>i + ?d) Basis"
@@ -8505,7 +8481,8 @@ next
     also have "\<dots> \<le> 1"
       unfolding sum.distrib sum_constant
       by (auto simp add: Suc_le_eq)
-    finally show "(\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> sum (op \<bullet> y) Basis \<le> 1"
+    finally show "sum (op \<bullet> y) Basis \<le> 1" .
+    show "(\<forall>i\<in>Basis. 0 \<le> y \<bullet> i)"
     proof safe
       fix i :: 'a
       assume i: "i \<in> Basis"
@@ -8519,7 +8496,14 @@ next
         using Basis_le_norm[OF i, of "x - y"] and as(1)[rule_format, OF i]
         by (auto simp: inner_simps)
     qed
-  qed auto
+  next
+    have "Min ((op \<bullet> x) ` Basis) > 0"
+      using as by simp
+    moreover have "?d > 0"
+      using as by (auto simp: Suc_le_eq)
+    ultimately show "0 < min (Min (op \<bullet> x ` Basis)) ((1 - sum (op \<bullet> x) Basis) / real DIM('a))"
+      by linarith
+  qed 
 qed
 
 lemma interior_std_simplex_nonempty:
@@ -8655,7 +8639,7 @@ proof -
       have "0 < card d" using \<open>d \<noteq> {}\<close> \<open>finite d\<close>
         by (simp add: card_gt_0_iff)
       have "Min ((op \<bullet> x) ` d) > 0"
-        using as \<open>d \<noteq> {}\<close> \<open>finite d\<close> by (simp add: Min_grI)
+        using as \<open>d \<noteq> {}\<close> \<open>finite d\<close> by (simp add: Min_gr_iff)
       moreover have "?d > 0" using as using \<open>0 < card d\<close> by auto
       ultimately have h3: "min (Min ((op \<bullet> x) ` d)) ?d > 0"
         by auto
