@@ -17,11 +17,12 @@ directly into ML, alongside with @{code} antiquotations, using
 the following antiquotations:
 
   @{computation … terms: … datatypes: …} : ((term -> term) -> 'ml option -> 'a) -> Proof.context -> term -> 'a
-  @{computation_conv … terms: … datatypes: …} : ('ml -> conv) -> Proof.context -> conv
+  @{computation_conv … terms: … datatypes: …} : (Proof.context -> 'ml -> conv) -> Proof.context -> conv
   @{computation_check terms: … datatypes: …} : Proof.context -> conv
 
 See src/HOL/ex/Computations.thy, src/HOL/Decision_Procs/Commutative_Ring.thy
-and src/HOL/Decision_Procs/Reflective_Field.thy for examples.
+and src/HOL/Decision_Procs/Reflective_Field.thy for examples and
+the tutorial on code generation.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
