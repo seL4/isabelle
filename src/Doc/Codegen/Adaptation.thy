@@ -148,7 +148,7 @@ text \<open>
   discretion of the user to take care for this.
 \<close>
 
-subsection \<open>Common adaptation applications\<close>
+subsection \<open>Common adaptation applications \label{sec:common_adaptation}\<close>
 
 text \<open>
   The @{theory HOL} @{theory Main} theory already provides a code

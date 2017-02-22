@@ -4,6 +4,57 @@ begin
 
 section \<open>Further issues \label{sec:further}\<close>
 
+subsection \<open>Incorporating generated code directly into the system runtime -- @{text code_reflect}\<close>
+
+subsubsection \<open>Static embedding of generated code into the system runtime\<close>
+
+text \<open>
+  The @{ML_antiquotation code} antiquotation is lightweight, but the generated code
+  is only accessible while the ML section is processed.  Sometimes this
+  is not appropriate, especially if the generated code contains datatype
+  declarations which are shared with other parts of the system.  In these
+  cases, @{command_def code_reflect} can be used:
+\<close>
+
+code_reflect %quote Sum_Type
+  datatypes sum = Inl | Inr
+  functions "Sum_Type.sum.projl" "Sum_Type.sum.projr"
+
+text \<open>
+  \noindent @{command code_reflect} takes a structure name and
+  references to datatypes and functions; for these code is compiled
+  into the named ML structure and the \emph{Eval} target is modified
+  in a way that future code generation will reference these
+  precompiled versions of the given datatypes and functions.  This
+  also allows to refer to the referenced datatypes and functions from
+  arbitrary ML code as well.
+
+  A typical example for @{command code_reflect} can be found in the
+  @{theory Predicate} theory.
+\<close>
+
+
+subsubsection \<open>Separate compilation\<close>
+
+text \<open>
+  For technical reasons it is sometimes necessary to separate
+  generation and compilation of code which is supposed to be used in
+  the system runtime.  For this @{command code_reflect} with an
+  optional \<^theory_text>\<open>file\<close> argument can be used:
+\<close>
+
+code_reflect %quote Rat
+  datatypes rat
+  functions Fract
+    "(plus :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(minus :: rat \<Rightarrow> rat \<Rightarrow> rat)"
+    "(times :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(divide :: rat \<Rightarrow> rat \<Rightarrow> rat)"
+  file "$ISABELLE_TMP/examples/rat.ML"
+
+text \<open>
+  \noindent This merely generates the referenced code to the given
+  file which can be included into the system runtime later on.
+\<close>
+
 subsection \<open>Specialities of the @{text Scala} target language \label{sec:scala}\<close>
 
 text \<open>

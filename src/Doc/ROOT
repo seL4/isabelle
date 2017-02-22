@@ -29,6 +29,7 @@ session Codegen (doc) in "Codegen" = "Codegen_Basics" +
     Refinement
     Inductive_Predicate
     Evaluation
+    Computations
     Adaptation
     Further
   document_files (in "..")

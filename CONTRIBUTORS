@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* February 2017: Florian Haftmann, TUM
+  Statically embedded computatations implementated by generated code.
+
 
 Contributions to Isabelle2016-1
 -------------------------------
