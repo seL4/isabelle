@@ -682,7 +682,7 @@ val cv = @{computation_conv pol
       "0::nat" "1::nat" "2::nat" "3::nat"
       "0::int" "1::int" "2::int" "3::int" "-1::int"
   datatypes: polex "(polex * polex) list" int integer num}
-  (fn p => fn ct => pol_oracle @{context} ct (term_of_pol p))
+  (fn ctxt => fn p => fn ct => pol_oracle ctxt ct (term_of_pol p))
 
 end
 \<close>

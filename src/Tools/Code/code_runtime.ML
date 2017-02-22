@@ -35,7 +35,7 @@ sig
   val mount_computation: Proof.context -> (string * typ) list -> typ
     -> (term -> 'ml) -> ((term -> term) -> 'ml option -> 'a) -> Proof.context -> term -> 'a
   val mount_computation_conv: Proof.context -> (string * typ) list -> typ
-    -> (term -> 'ml) -> ('ml -> conv) -> Proof.context -> conv
+    -> (term -> 'ml) -> (Proof.context -> 'ml -> conv) -> Proof.context -> conv
   val mount_computation_check: Proof.context -> (string * typ) list
     -> (term -> truth) -> Proof.context -> conv
   val polyml_as_definition: (binding * typ) list -> Path.T list -> theory -> theory
@@ -435,7 +435,7 @@ fun mount_computation_conv ctxt cTs T raw_computation conv =
       { ctxt = ctxt, consts = [] }
       (K (fn ctxt' => fn t =>
         case checked_computation cTs raw_computation ctxt' t of
-          SOME x => conv x
+          SOME x => conv ctxt' x
         | NONE => Conv.all_conv)));
   in fn ctxt' => preprocess ctxt' then_conv computation_conv ctxt' end;
 
@@ -451,7 +451,7 @@ in
 
 fun mount_computation_check ctxt cTs raw_computation =
   mount_computation_conv ctxt cTs @{typ prop} raw_computation
-    (K holds_oracle);
+    ((K o K) holds_oracle);
 
 end;
 

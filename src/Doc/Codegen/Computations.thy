@@ -286,7 +286,7 @@ ML %quotetypewriter \<open>
     "minus :: int \<Rightarrow> int \<Rightarrow> int"
     "times :: int \<Rightarrow> int \<Rightarrow> int"
     "0 :: int" "1 :: int" "2 :: int" "3 :: int" "-1 :: int"
-  } (curry dvd_oracle)
+  } (K (curry dvd_oracle))
 
   end
 \<close>
@@ -345,15 +345,15 @@ ML %quotetypewriter \<open>
 
   val divisor = Thm.dest_arg o Thm.dest_arg;
 
-  fun evaluate thm = 
-    Simplifier.rewrite_rule 
-      (Proof_Context.transfer (Thm.theory_of_thm thm) @{context})
-      (map mk_eq @{thms arith_simps positive_mult}) thm; (*FIXME proper ctxt*)
+  val evaluate_simps = map mk_eq @{thms arith_simps positive_mult};
 
-  fun revaluate k ct =
+  fun evaluate ctxt = 
+    Simplifier.rewrite_rule ctxt evaluate_simps;
+
+  fun revaluate ctxt k ct =
     @{thm conv_div_cert}
     |> Thm.instantiate' [] [SOME (cterm_of_int k), SOME (divisor ct)]
-    |> evaluate;
+    |> evaluate ctxt;
 
   in
 

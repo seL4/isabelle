@@ -675,7 +675,7 @@ val cv = @{computation_conv "pexpr \<times> pexpr \<times> pexpr list"
     "0::nat" "1::nat" "2::nat" "3::nat"
     "0::int" "1::int" "2::int" "3::int" "-1::int"
   datatypes: fexpr int integer num}
-  (fn result => fn ct => fnorm_oracle @{context} ct (term_of_result result))
+  (fn ctxt => fn result => fn ct => fnorm_oracle ctxt ct (term_of_result result))
 
 end
 \<close>
