@@ -145,7 +145,7 @@ text \<open>
         \<^item> Both statically specified input constants and dynamically provided input
           terms are subject to preprocessing.  Likewise the result
           is supposed to be subject to postprocessing; the implementor
-          is expected this out explicitly.
+          is expected to take care for this explicitly.
 
         \<^item> Computations follow the partiality principle (cf.~\secref{sec:partiality_principle}):
           failures due to pattern matching or unspecified functions
