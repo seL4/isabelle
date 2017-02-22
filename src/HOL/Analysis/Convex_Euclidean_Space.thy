@@ -625,64 +625,64 @@ proof -
 qed
 
 lemma convex_scaled:
-  assumes "convex s"
-  shows "convex ((\<lambda>x. x *\<^sub>R c) ` s)"
+  assumes "convex S"
+  shows "convex ((\<lambda>x. x *\<^sub>R c) ` S)"
 proof -
   have "linear (\<lambda>x. x *\<^sub>R c)"
     by (simp add: linearI scaleR_add_left)
   then show ?thesis
-    using \<open>convex s\<close> by (rule convex_linear_image)
+    using \<open>convex S\<close> by (rule convex_linear_image)
 qed
 
 lemma convex_negations:
-  assumes "convex s"
-  shows "convex ((\<lambda>x. - x) ` s)"
+  assumes "convex S"
+  shows "convex ((\<lambda>x. - x) ` S)"
 proof -
   have "linear (\<lambda>x. - x)"
     by (simp add: linearI)
   then show ?thesis
-    using \<open>convex s\<close> by (rule convex_linear_image)
+    using \<open>convex S\<close> by (rule convex_linear_image)
 qed
 
 lemma convex_sums:
-  assumes "convex s"
-    and "convex t"
-  shows "convex {x + y| x y. x \<in> s \<and> y \<in> t}"
+  assumes "convex S"
+    and "convex T"
+  shows "convex (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
 proof -
   have "linear (\<lambda>(x, y). x + y)"
     by (auto intro: linearI simp: scaleR_add_right)
-  with assms have "convex ((\<lambda>(x, y). x + y) ` (s \<times> t))"
+  with assms have "convex ((\<lambda>(x, y). x + y) ` (S \<times> T))"
     by (intro convex_linear_image convex_Times)
-  also have "((\<lambda>(x, y). x + y) ` (s \<times> t)) = {x + y| x y. x \<in> s \<and> y \<in> t}"
+  also have "((\<lambda>(x, y). x + y) ` (S \<times> T)) = (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
     by auto
   finally show ?thesis .
 qed
 
 lemma convex_differences:
-  assumes "convex s" "convex t"
-  shows "convex {x - y| x y. x \<in> s \<and> y \<in> t}"
+  assumes "convex S" "convex T"
+  shows "convex (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
 proof -
-  have "{x - y| x y. x \<in> s \<and> y \<in> t} = {x + y |x y. x \<in> s \<and> y \<in> uminus ` t}"
+  have "{x - y| x y. x \<in> S \<and> y \<in> T} = {x + y |x y. x \<in> S \<and> y \<in> uminus ` T}"
     by (auto simp: diff_conv_add_uminus simp del: add_uminus_conv_diff)
   then show ?thesis
     using convex_sums[OF assms(1) convex_negations[OF assms(2)]] by auto
 qed
 
 lemma convex_translation:
-  assumes "convex s"
-  shows "convex ((\<lambda>x. a + x) ` s)"
+  assumes "convex S"
+  shows "convex ((\<lambda>x. a + x) ` S)"
 proof -
-  have "{a + y |y. y \<in> s} = (\<lambda>x. a + x) ` s"
+  have "(\<Union> x\<in> {a}. \<Union>y \<in> S. {x + y}) = (\<lambda>x. a + x) ` S"
     by auto
   then show ?thesis
     using convex_sums[OF convex_singleton[of a] assms] by auto
 qed
 
 lemma convex_affinity:
-  assumes "convex s"
-  shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` s)"
+  assumes "convex S"
+  shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` S)"
 proof -
-  have "(\<lambda>x. a + c *\<^sub>R x) ` s = op + a ` op *\<^sub>R c ` s"
+  have "(\<lambda>x. a + c *\<^sub>R x) ` S = op + a ` op *\<^sub>R c ` S"
     by auto
   then show ?thesis
     using convex_translation[OF convex_scaling[OF assms], of a c] by auto
@@ -5847,61 +5847,61 @@ qed
 subsubsection \<open>Now set-to-set for closed/compact sets\<close>
 
 lemma separating_hyperplane_closed_compact:
-  fixes s :: "'a::euclidean_space set"
-  assumes "convex s"
-    and "closed s"
-    and "convex t"
-    and "compact t"
-    and "t \<noteq> {}"
-    and "s \<inter> t = {}"
-  shows "\<exists>a b. (\<forall>x\<in>s. inner a x < b) \<and> (\<forall>x\<in>t. inner a x > b)"
-proof (cases "s = {}")
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S"
+    and "closed S"
+    and "convex T"
+    and "compact T"
+    and "T \<noteq> {}"
+    and "S \<inter> T = {}"
+  shows "\<exists>a b. (\<forall>x\<in>S. inner a x < b) \<and> (\<forall>x\<in>T. inner a x > b)"
+proof (cases "S = {}")
   case True
-  obtain b where b: "b > 0" "\<forall>x\<in>t. norm x \<le> b"
+  obtain b where b: "b > 0" "\<forall>x\<in>T. norm x \<le> b"
     using compact_imp_bounded[OF assms(4)] unfolding bounded_pos by auto
   obtain z :: 'a where z: "norm z = b + 1"
     using vector_choose_size[of "b + 1"] and b(1) by auto
-  then have "z \<notin> t" using b(2)[THEN bspec[where x=z]] by auto
-  then obtain a b where ab: "inner a z < b" "\<forall>x\<in>t. b < inner a x"
+  then have "z \<notin> T" using b(2)[THEN bspec[where x=z]] by auto
+  then obtain a b where ab: "inner a z < b" "\<forall>x\<in>T. b < inner a x"
     using separating_hyperplane_closed_point[OF assms(3) compact_imp_closed[OF assms(4)], of z]
     by auto
   then show ?thesis
     using True by auto
 next
   case False
-  then obtain y where "y \<in> s" by auto
-  obtain a b where "0 < b" "\<forall>x\<in>{x - y |x y. x \<in> s \<and> y \<in> t}. b < inner a x"
+  then obtain y where "y \<in> S" by auto
+  obtain a b where "0 < b" "\<forall>x \<in> (\<Union>x\<in> S. \<Union>y \<in> T. {x - y}). b < inner a x"
     using separating_hyperplane_closed_point[OF convex_differences[OF assms(1,3)], of 0]
     using closed_compact_differences[OF assms(2,4)]
-    using assms(6) by auto blast
-  then have ab: "\<forall>x\<in>s. \<forall>y\<in>t. b + inner a y < inner a x"
+    using assms(6) by auto 
+  then have ab: "\<forall>x\<in>S. \<forall>y\<in>T. b + inner a y < inner a x"
     apply -
     apply rule
     apply rule
     apply (erule_tac x="x - y" in ballE)
     apply (auto simp add: inner_diff)
     done
-  define k where "k = (SUP x:t. a \<bullet> x)"
+  define k where "k = (SUP x:T. a \<bullet> x)"
   show ?thesis
     apply (rule_tac x="-a" in exI)
     apply (rule_tac x="-(k + b / 2)" in exI)
     apply (intro conjI ballI)
     unfolding inner_minus_left and neg_less_iff_less
   proof -
-    fix x assume "x \<in> t"
+    fix x assume "x \<in> T"
     then have "inner a x - b / 2 < k"
       unfolding k_def
     proof (subst less_cSUP_iff)
-      show "t \<noteq> {}" by fact
-      show "bdd_above (op \<bullet> a ` t)"
-        using ab[rule_format, of y] \<open>y \<in> s\<close>
+      show "T \<noteq> {}" by fact
+      show "bdd_above (op \<bullet> a ` T)"
+        using ab[rule_format, of y] \<open>y \<in> S\<close>
         by (intro bdd_aboveI2[where M="inner a y - b"]) (auto simp: field_simps intro: less_imp_le)
     qed (auto intro!: bexI[of _ x] \<open>0<b\<close>)
     then show "inner a x < k + b / 2"
       by auto
   next
     fix x
-    assume "x \<in> s"
+    assume "x \<in> S"
     then have "k \<le> inner a x - b"
       unfolding k_def
       apply (rule_tac cSUP_least)
@@ -5915,16 +5915,16 @@ next
 qed
 
 lemma separating_hyperplane_compact_closed:
-  fixes s :: "'a::euclidean_space set"
-  assumes "convex s"
-    and "compact s"
-    and "s \<noteq> {}"
-    and "convex t"
-    and "closed t"
-    and "s \<inter> t = {}"
-  shows "\<exists>a b. (\<forall>x\<in>s. inner a x < b) \<and> (\<forall>x\<in>t. inner a x > b)"
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S"
+    and "compact S"
+    and "S \<noteq> {}"
+    and "convex T"
+    and "closed T"
+    and "S \<inter> T = {}"
+  shows "\<exists>a b. (\<forall>x\<in>S. inner a x < b) \<and> (\<forall>x\<in>T. inner a x > b)"
 proof -
-  obtain a b where "(\<forall>x\<in>t. inner a x < b) \<and> (\<forall>x\<in>s. b < inner a x)"
+  obtain a b where "(\<forall>x\<in>T. inner a x < b) \<and> (\<forall>x\<in>S. b < inner a x)"
     using separating_hyperplane_closed_compact[OF assms(4-5,1-2,3)] and assms(6)
     by auto
   then show ?thesis
@@ -6718,13 +6718,13 @@ lemma inner_sum_Basis[simp]: "i \<in> Basis \<Longrightarrow> (\<Sum>Basis) \<bu
   by (simp add: inner_sum_left sum.If_cases inner_Basis)
 
 lemma convex_set_plus:
-  assumes "convex s" and "convex t" shows "convex (s + t)"
+  assumes "convex S" and "convex T" shows "convex (S + T)"
 proof -
-  have "convex {x + y |x y. x \<in> s \<and> y \<in> t}"
+  have "convex (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
     using assms by (rule convex_sums)
-  moreover have "{x + y |x y. x \<in> s \<and> y \<in> t} = s + t"
+  moreover have "(\<Union>x\<in> S. \<Union>y \<in> T. {x + y}) = S + T"
     unfolding set_plus_def by auto
-  finally show "convex (s + t)" .
+  finally show "convex (S + T)" .
 qed
 
 lemma convex_set_sum:
@@ -7291,6 +7291,16 @@ lemma open_segment_translation_eq [simp]:
     "d + x \<in> open_segment (d + a) (d + b) \<longleftrightarrow> x \<in> open_segment a b"
   by (simp add: open_segment_def)
 
+lemma of_real_closed_segment [simp]:
+  "of_real x \<in> closed_segment (of_real a) (of_real b) \<longleftrightarrow> x \<in> closed_segment a b"
+  apply (auto simp: in_segment scaleR_conv_of_real elim!: ex_forward)
+  using of_real_eq_iff by fastforce
+
+lemma of_real_open_segment [simp]:
+  "of_real x \<in> open_segment (of_real a) (of_real b) \<longleftrightarrow> x \<in> open_segment a b"
+  apply (auto simp: in_segment scaleR_conv_of_real elim!: ex_forward del: exE)
+  using of_real_eq_iff by fastforce
+
 lemma midpoint_idem [simp]: "midpoint x x = x"
   unfolding midpoint_def
   unfolding scaleR_right_distrib
@@ -7613,7 +7623,13 @@ proof -
     by (simp add: dist_norm)
 qed
 
-lemma dist_decreases_closed_segment:
+corollary open_segment_furthest_le:
+  fixes a b x y :: "'a::euclidean_space"
+  assumes "x \<in> open_segment a b"
+  shows "norm (y - x) < norm (y - a) \<or>  norm (y - x) < norm (y - b)"
+  by (metis assms dist_decreases_open_segment dist_norm)
+
+corollary dist_decreases_closed_segment:
   fixes a :: "'a :: euclidean_space"
   assumes "x \<in> closed_segment a b"
     shows "dist c x \<le> dist c a \<or> dist c x \<le> dist c b"
@@ -11948,16 +11964,15 @@ lemma setdist_closure_2 [simp]: "setdist t (closure s) = setdist t s"
 by (metis setdist_closure_1 setdist_sym)
 
 lemma setdist_compact_closed:
-  fixes s :: "'a::euclidean_space set"
-  assumes s: "compact s" and t: "closed t"
-      and "s \<noteq> {}" "t \<noteq> {}"
-    shows "\<exists>x \<in> s. \<exists>y \<in> t. dist x y = setdist s t"
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "compact S" and T: "closed T"
+      and "S \<noteq> {}" "T \<noteq> {}"
+    shows "\<exists>x \<in> S. \<exists>y \<in> T. dist x y = setdist S T"
 proof -
-  have "{x - y |x y. x \<in> s \<and> y \<in> t} \<noteq> {}"
+  have "(\<Union>x\<in> S. \<Union>y \<in> T. {x - y}) \<noteq> {}"
     using assms by blast
-  then
-  have "\<exists>x \<in> s. \<exists>y \<in> t. dist x y \<le> setdist s t"
-    apply (rule distance_attains_inf [where a=0, OF compact_closed_differences [OF s t]])
+  then have "\<exists>x \<in> S. \<exists>y \<in> T. dist x y \<le> setdist S T"
+    apply (rule distance_attains_inf [where a=0, OF compact_closed_differences [OF S T]])
     apply (simp add: dist_norm le_setdist_iff)
     apply blast
     done
@@ -11966,98 +11981,98 @@ proof -
 qed
 
 lemma setdist_closed_compact:
-  fixes s :: "'a::euclidean_space set"
-  assumes s: "closed s" and t: "compact t"
-      and "s \<noteq> {}" "t \<noteq> {}"
-    shows "\<exists>x \<in> s. \<exists>y \<in> t. dist x y = setdist s t"
-  using setdist_compact_closed [OF t s \<open>t \<noteq> {}\<close> \<open>s \<noteq> {}\<close>]
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "closed S" and T: "compact T"
+      and "S \<noteq> {}" "T \<noteq> {}"
+    shows "\<exists>x \<in> S. \<exists>y \<in> T. dist x y = setdist S T"
+  using setdist_compact_closed [OF T S \<open>T \<noteq> {}\<close> \<open>S \<noteq> {}\<close>]
   by (metis dist_commute setdist_sym)
 
-lemma setdist_eq_0I: "\<lbrakk>x \<in> s; x \<in> t\<rbrakk> \<Longrightarrow> setdist s t = 0"
+lemma setdist_eq_0I: "\<lbrakk>x \<in> S; x \<in> T\<rbrakk> \<Longrightarrow> setdist S T = 0"
   by (metis antisym dist_self setdist_le_dist setdist_pos_le)
 
 lemma setdist_eq_0_compact_closed:
-  fixes s :: "'a::euclidean_space set"
-  assumes s: "compact s" and t: "closed t"
-    shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> s \<inter> t \<noteq> {}"
-  apply (cases "s = {} \<or> t = {}", force)
-  using setdist_compact_closed [OF s t]
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "compact S" and T: "closed T"
+    shows "setdist S T = 0 \<longleftrightarrow> S = {} \<or> T = {} \<or> S \<inter> T \<noteq> {}"
+  apply (cases "S = {} \<or> T = {}", force)
+  using setdist_compact_closed [OF S T]
   apply (force intro: setdist_eq_0I )
   done
 
 corollary setdist_gt_0_compact_closed:
-  fixes s :: "'a::euclidean_space set"
-  assumes s: "compact s" and t: "closed t"
-    shows "setdist s t > 0 \<longleftrightarrow> (s \<noteq> {} \<and> t \<noteq> {} \<and> s \<inter> t = {})"
-  using setdist_pos_le [of s t] setdist_eq_0_compact_closed [OF assms]
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "compact S" and T: "closed T"
+    shows "setdist S T > 0 \<longleftrightarrow> (S \<noteq> {} \<and> T \<noteq> {} \<and> S \<inter> T = {})"
+  using setdist_pos_le [of S T] setdist_eq_0_compact_closed [OF assms]
   by linarith
 
 lemma setdist_eq_0_closed_compact:
-  fixes s :: "'a::euclidean_space set"
-  assumes s: "closed s" and t: "compact t"
-    shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> s \<inter> t \<noteq> {}"
-  using setdist_eq_0_compact_closed [OF t s]
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "closed S" and T: "compact T"
+    shows "setdist S T = 0 \<longleftrightarrow> S = {} \<or> T = {} \<or> S \<inter> T \<noteq> {}"
+  using setdist_eq_0_compact_closed [OF T S]
   by (metis Int_commute setdist_sym)
 
 lemma setdist_eq_0_bounded:
-  fixes s :: "'a::euclidean_space set"
-  assumes "bounded s \<or> bounded t"
-    shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> closure s \<inter> closure t \<noteq> {}"
-  apply (cases "s = {} \<or> t = {}", force)
-  using setdist_eq_0_compact_closed [of "closure s" "closure t"]
-        setdist_eq_0_closed_compact [of "closure s" "closure t"] assms
+  fixes S :: "'a::euclidean_space set"
+  assumes "bounded S \<or> bounded T"
+    shows "setdist S T = 0 \<longleftrightarrow> S = {} \<or> T = {} \<or> closure S \<inter> closure T \<noteq> {}"
+  apply (cases "S = {} \<or> T = {}", force)
+  using setdist_eq_0_compact_closed [of "closure S" "closure T"]
+        setdist_eq_0_closed_compact [of "closure S" "closure T"] assms
   apply (force simp add:  bounded_closure compact_eq_bounded_closed)
   done
 
 lemma setdist_unique:
-  "\<lbrakk>a \<in> s; b \<in> t; \<And>x y. x \<in> s \<and> y \<in> t ==> dist a b \<le> dist x y\<rbrakk>
-   \<Longrightarrow> setdist s t = dist a b"
+  "\<lbrakk>a \<in> S; b \<in> T; \<And>x y. x \<in> S \<and> y \<in> T ==> dist a b \<le> dist x y\<rbrakk>
+   \<Longrightarrow> setdist S T = dist a b"
   by (force simp add: setdist_le_dist le_setdist_iff intro: antisym)
 
 lemma setdist_closest_point:
-    "\<lbrakk>closed s; s \<noteq> {}\<rbrakk> \<Longrightarrow> setdist {a} s = dist a (closest_point s a)"
+    "\<lbrakk>closed S; S \<noteq> {}\<rbrakk> \<Longrightarrow> setdist {a} S = dist a (closest_point S a)"
   apply (rule setdist_unique)
   using closest_point_le
   apply (auto simp: closest_point_in_set)
   done
 
 lemma setdist_eq_0_sing_1:
-    fixes s :: "'a::euclidean_space set"
-    shows "setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
+    fixes S :: "'a::euclidean_space set"
+    shows "setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> closure S"
   by (auto simp: setdist_eq_0_bounded)
 
 lemma setdist_eq_0_sing_2:
-    fixes s :: "'a::euclidean_space set"
-    shows "setdist s {x} = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
+    fixes S :: "'a::euclidean_space set"
+    shows "setdist S {x} = 0 \<longleftrightarrow> S = {} \<or> x \<in> closure S"
   by (auto simp: setdist_eq_0_bounded)
 
 lemma setdist_neq_0_sing_1:
-    fixes s :: "'a::euclidean_space set"
-    shows "\<lbrakk>setdist {x} s = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> s \<noteq> {} \<and> x \<notin> closure s"
+    fixes S :: "'a::euclidean_space set"
+    shows "\<lbrakk>setdist {x} S = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> S \<noteq> {} \<and> x \<notin> closure S"
   by (auto simp: setdist_eq_0_sing_1)
 
 lemma setdist_neq_0_sing_2:
-    fixes s :: "'a::euclidean_space set"
-    shows "\<lbrakk>setdist s {x} = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> s \<noteq> {} \<and> x \<notin> closure s"
+    fixes S :: "'a::euclidean_space set"
+    shows "\<lbrakk>setdist S {x} = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> S \<noteq> {} \<and> x \<notin> closure S"
   by (auto simp: setdist_eq_0_sing_2)
 
 lemma setdist_sing_in_set:
-    fixes s :: "'a::euclidean_space set"
-    shows "x \<in> s \<Longrightarrow> setdist {x} s = 0"
+    fixes S :: "'a::euclidean_space set"
+    shows "x \<in> S \<Longrightarrow> setdist {x} S = 0"
   using closure_subset by (auto simp: setdist_eq_0_sing_1)
 
-lemma setdist_le_sing: "x \<in> s ==> setdist s t \<le> setdist {x} t"
+lemma setdist_le_sing: "x \<in> S ==> setdist S T \<le> setdist {x} T"
   using setdist_subset_left by auto
 
 lemma setdist_eq_0_closed:
-  fixes s :: "'a::euclidean_space set"
-  shows  "closed s \<Longrightarrow> (setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> s)"
+  fixes S :: "'a::euclidean_space set"
+  shows  "closed S \<Longrightarrow> (setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> S)"
 by (simp add: setdist_eq_0_sing_1)
 
 lemma setdist_eq_0_closedin:
-  fixes s :: "'a::euclidean_space set"
-  shows "\<lbrakk>closedin (subtopology euclidean u) s; x \<in> u\<rbrakk>
-         \<Longrightarrow> (setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> s)"
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>closedin (subtopology euclidean u) S; x \<in> u\<rbrakk>
+         \<Longrightarrow> (setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> S)"
   by (auto simp: closedin_limpt setdist_eq_0_sing_1 closure_def)
 
 subsection\<open>Basic lemmas about hyperplanes and halfspaces\<close>
@@ -12077,7 +12092,7 @@ proof -
   have "UNIV \<subseteq> {x. a \<bullet> x = b} \<Longrightarrow> a = 0 \<and> b = 0"
     apply (drule_tac c = "((b+1) / (a \<bullet> a)) *\<^sub>R a" in subsetD)
     apply simp_all
-    by (metis add_cancel_right_right div_by_1 zero_neq_one)
+    by (metis add_cancel_right_right zero_neq_one)
   then show ?thesis by force
 qed
 
@@ -14551,7 +14566,281 @@ proof -
   then show ?thesis
     by (rule continuous_on_Un_local_open [OF opS opT])
 qed
+  
+subsection\<open>The union of two collinear segments is another segment\<close>
 
+proposition in_convex_hull_exchange:
+  fixes a :: "'a::euclidean_space"
+  assumes a: "a \<in> convex hull S" and xS: "x \<in> convex hull S"
+  obtains b where "b \<in> S" "x \<in> convex hull (insert a (S - {b}))"
+proof (cases "a \<in> S")
+  case True
+  with xS insert_Diff that  show ?thesis by fastforce
+next
+  case False
+  show ?thesis
+  proof (cases "finite S \<and> card S \<le> Suc (DIM('a))")
+    case True
+    then obtain u where u0: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> u i" and u1: "sum u S = 1"
+                    and ua: "(\<Sum>i\<in>S. u i *\<^sub>R i) = a"
+        using a by (auto simp: convex_hull_finite)
+    obtain v where v0: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> v i" and v1: "sum v S = 1"
+               and vx: "(\<Sum>i\<in>S. v i *\<^sub>R i) = x"
+      using True xS by (auto simp: convex_hull_finite)
+    show ?thesis
+    proof (cases "\<exists>b. b \<in> S \<and> v b = 0")
+      case True
+      then obtain b where b: "b \<in> S" "v b = 0"
+        by blast
+      show ?thesis
+      proof
+        have fin: "finite (insert a (S - {b}))"
+          using sum.infinite v1 by fastforce
+        show "x \<in> convex hull insert a (S - {b})"
+          unfolding convex_hull_finite [OF fin] mem_Collect_eq
+        proof (intro conjI exI ballI)
+          have "(\<Sum>x \<in> insert a (S - {b}). if x = a then 0 else v x) =
+                (\<Sum>x \<in> S - {b}. if x = a then 0 else v x)"
+            apply (rule sum.mono_neutral_right)
+            using fin by auto
+          also have "... = (\<Sum>x \<in> S - {b}. v x)"
+            using b False by (auto intro!: sum.cong split: if_split_asm)
+          also have "... = (\<Sum>x\<in>S. v x)"
+            by (metis \<open>v b = 0\<close> diff_zero sum.infinite sum_diff1 u1 zero_neq_one)
+          finally show "(\<Sum>x\<in>insert a (S - {b}). if x = a then 0 else v x) = 1"
+            by (simp add: v1)
+          show "\<And>x. x \<in> insert a (S - {b}) \<Longrightarrow> 0 \<le> (if x = a then 0 else v x)"
+            by (auto simp: v0)
+          have "(\<Sum>x \<in> insert a (S - {b}). (if x = a then 0 else v x) *\<^sub>R x) =
+                (\<Sum>x \<in> S - {b}. (if x = a then 0 else v x) *\<^sub>R x)"
+            apply (rule sum.mono_neutral_right)
+            using fin by auto
+          also have "... = (\<Sum>x \<in> S - {b}. v x *\<^sub>R x)"
+            using b False by (auto intro!: sum.cong split: if_split_asm)
+          also have "... = (\<Sum>x\<in>S. v x *\<^sub>R x)"
+            by (metis (no_types, lifting) b(2) diff_zero fin finite.emptyI finite_Diff2 finite_insert real_vector.scale_eq_0_iff sum_diff1)
+          finally show "(\<Sum>x\<in>insert a (S - {b}). (if x = a then 0 else v x) *\<^sub>R x) = x"
+            by (simp add: vx)
+        qed
+      qed (rule \<open>b \<in> S\<close>)
+    next
+      case False
+      have le_Max: "u i / v i \<le> Max ((\<lambda>i. u i / v i) ` S)" if "i \<in> S" for i
+        by (simp add: True that)
+      have "Max ((\<lambda>i. u i / v i) ` S) \<in> (\<lambda>i. u i / v i) ` S"
+        using True v1 by (auto intro: Max_in)
+      then obtain b where "b \<in> S" and beq: "Max ((\<lambda>b. u b / v b) ` S) = u b / v b"
+        by blast
+      then have "0 \<noteq> u b / v b"
+        using le_Max beq divide_le_0_iff le_numeral_extra(2) sum_nonpos u1
+        by (metis False eq_iff v0)
+      then have  "0 < u b" "0 < v b"
+        using False \<open>b \<in> S\<close> u0 v0 by force+
+      have fin: "finite (insert a (S - {b}))"
+        using sum.infinite v1 by fastforce
+      show ?thesis
+      proof
+        show "x \<in> convex hull insert a (S - {b})"
+          unfolding convex_hull_finite [OF fin] mem_Collect_eq
+        proof (intro conjI exI ballI)
+          have "(\<Sum>x \<in> insert a (S - {b}). if x=a then v b / u b else v x - (v b / u b) * u x) =
+                v b / u b + (\<Sum>x \<in> S - {b}. v x - (v b / u b) * u x)"
+            using \<open>a \<notin> S\<close> \<open>b \<in> S\<close> True  apply simp
+            apply (rule sum.cong, auto)
+            done
+          also have "... = v b / u b + (\<Sum>x \<in> S - {b}. v x) - (v b / u b) * (\<Sum>x \<in> S - {b}. u x)"
+            by (simp add: Groups_Big.sum_subtractf sum_distrib_left)
+          also have "... = (\<Sum>x\<in>S. v x)"
+            using \<open>0 < u b\<close> True  by (simp add: Groups_Big.sum_diff1 u1 field_simps)
+          finally show "sum (\<lambda>x. if x=a then v b / u b else v x - (v b / u b) * u x) (insert a (S - {b})) = 1"
+            by (simp add: v1)
+          show "0 \<le> (if i = a then v b / u b else v i - v b / u b * u i)"
+            if "i \<in> insert a (S - {b})" for i
+            using \<open>0 < u b\<close> \<open>0 < v b\<close> v0 [of i] le_Max [of i] beq that False
+            by (auto simp: field_simps split: if_split_asm)
+          have "(\<Sum>x\<in>insert a (S - {b}). (if x=a then v b / u b else v x - v b / u b * u x) *\<^sub>R x) =
+                (v b / u b) *\<^sub>R a + (\<Sum>x\<in>S - {b}. (v x - v b / u b * u x) *\<^sub>R x)"
+            using \<open>a \<notin> S\<close> \<open>b \<in> S\<close> True  apply simp
+            apply (rule sum.cong, auto)
+            done
+          also have "... = (v b / u b) *\<^sub>R a + (\<Sum>x \<in> S - {b}. v x *\<^sub>R x) - (v b / u b) *\<^sub>R (\<Sum>x \<in> S - {b}. u x *\<^sub>R x)"
+            by (simp add: Groups_Big.sum_subtractf scaleR_left_diff_distrib sum_distrib_left real_vector.scale_sum_right)
+          also have "... = (\<Sum>x\<in>S. v x *\<^sub>R x)"
+            using \<open>0 < u b\<close> True  by (simp add: ua vx Groups_Big.sum_diff1 algebra_simps)
+          finally
+          show "(\<Sum>x\<in>insert a (S - {b}). (if x=a then v b / u b else v x - v b / u b * u x) *\<^sub>R x) = x"
+            by (simp add: vx)
+        qed
+      qed (rule \<open>b \<in> S\<close>)
+    qed
+  next
+    case False
+    obtain T where "finite T" "T \<subseteq> S" and caT: "card T \<le> Suc (DIM('a))" and xT: "x \<in> convex hull T"
+      using xS by (auto simp: caratheodory [of S])
+    with False obtain b where b: "b \<in> S" "b \<notin> T"
+      by (metis antisym subsetI)
+    show ?thesis
+    proof
+      show "x \<in> convex hull insert a (S - {b})"
+        using  \<open>T \<subseteq> S\<close> b by (blast intro: subsetD [OF hull_mono xT])
+    qed (rule \<open>b \<in> S\<close>)
+  qed
+qed
 
+lemma convex_hull_exchange_Union:
+  fixes a :: "'a::euclidean_space"
+  assumes "a \<in> convex hull S"
+  shows "convex hull S = (\<Union>b \<in> S. convex hull (insert a (S - {b})))" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<subseteq> ?rhs"
+    by (blast intro: in_convex_hull_exchange [OF assms])
+  show "?rhs \<subseteq> ?lhs"
+  proof clarify
+    fix x b
+    assume"b \<in> S" "x \<in> convex hull insert a (S - {b})"
+    then show "x \<in> convex hull S" if "b \<in> S"
+      by (metis (no_types) that assms order_refl hull_mono hull_redundant insert_Diff_single insert_subset subsetCE)
+  qed
+qed
+
+lemma Un_closed_segment:
+  fixes a :: "'a::euclidean_space"
+  assumes "b \<in> closed_segment a c"
+    shows "closed_segment a b \<union> closed_segment b c = closed_segment a c"
+proof (cases "c = a")
+  case True
+  with assms show ?thesis by simp
+next
+  case False
+  with assms have "convex hull {a, b} \<union> convex hull {b, c} = (\<Union>ba\<in>{a, c}. convex hull insert b ({a, c} - {ba}))"
+    by (auto simp: insert_Diff_if insert_commute)
+  then show ?thesis
+    using convex_hull_exchange_Union
+    by (metis assms segment_convex_hull)
+qed
+
+lemma Un_open_segment:
+  fixes a :: "'a::euclidean_space"
+  assumes "b \<in> open_segment a c"
+  shows "open_segment a b \<union> {b} \<union> open_segment b c = open_segment a c"
+proof -
+  have b: "b \<in> closed_segment a c"
+    by (simp add: assms open_closed_segment)
+  have *: "open_segment a c \<subseteq> insert b (open_segment a b \<union> open_segment b c)"
+          if "{b,c,a} \<union> open_segment a b \<union> open_segment b c = {c,a} \<union> open_segment a c"
+  proof -
+    have "insert a (insert c (insert b (open_segment a b \<union> open_segment b c))) = insert a (insert c (open_segment a c))"
+      using that by (simp add: insert_commute)
+    then show ?thesis
+      by (metis (no_types) Diff_cancel Diff_eq_empty_iff Diff_insert2 open_segment_def)
+  qed
+  show ?thesis
+    using Un_closed_segment [OF b]
+    apply (simp add: closed_segment_eq_open)
+      apply (rule equalityI)
+    using assms
+     apply (simp add: b subset_open_segment)
+      using * by (simp add: insert_commute)
+qed
+
+subsection\<open>Covering an open set by a countable chain of compact sets\<close>
+  
+proposition open_Union_compact_subsets:
+  fixes S :: "'a::euclidean_space set"
+  assumes "open S"
+  obtains C where "\<And>n. compact(C n)" "\<And>n. C n \<subseteq> S"
+                  "\<And>n. C n \<subseteq> interior(C(Suc n))"
+                  "\<Union>(range C) = S"
+                  "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. K \<subseteq> (C n)"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by (rule_tac C = "\<lambda>n. {}" in that) auto
+next
+  case False
+  then obtain a where "a \<in> S"
+    by auto
+  let ?C = "\<lambda>n. cball a (real n) - (\<Union>x \<in> -S. \<Union>e \<in> ball 0 (1 / real(Suc n)). {x + e})"
+  have "\<exists>N. \<forall>n\<ge>N. K \<subseteq> (f n)"
+        if "\<And>n. compact(f n)" and sub_int: "\<And>n. f n \<subseteq> interior (f(Suc n))"
+            and eq: "\<Union>(range f) = S" and "compact K" "K \<subseteq> S" for f K
+  proof -
+    have *: "\<forall>n. f n \<subseteq> (\<Union>n. interior (f n))"
+      by (meson Sup_upper2 UNIV_I \<open>\<And>n. f n \<subseteq> interior (f (Suc n))\<close> image_iff)
+    have mono: "\<And>m n. m \<le> n \<Longrightarrow>f m \<subseteq> f n"
+      by (meson dual_order.trans interior_subset lift_Suc_mono_le sub_int)
+    obtain I where "finite I" and I: "K \<subseteq> (\<Union>i\<in>I. interior (f i))"
+    proof (rule compactE_image [OF \<open>compact K\<close>])
+      show "K \<subseteq> (\<Union>n. interior (f n))"
+        using \<open>K \<subseteq> S\<close> \<open>UNION UNIV f = S\<close> * by blast
+    qed auto
+    { fix n
+      assume n: "Max I \<le> n"
+      have "(\<Union>i\<in>I. interior (f i)) \<subseteq> f n"
+        by (rule UN_least) (meson dual_order.trans interior_subset mono I Max_ge [OF \<open>finite I\<close>] n)
+      then have "K \<subseteq> f n"
+        using I by auto
+    }
+    then show ?thesis
+      by blast
+  qed
+  moreover have "\<exists>f. (\<forall>n. compact(f n)) \<and> (\<forall>n. (f n) \<subseteq> S) \<and> (\<forall>n. (f n) \<subseteq> interior(f(Suc n))) \<and>
+                     ((\<Union>(range f) = S))"
+  proof (intro exI conjI allI)
+    show "\<And>n. compact (?C n)"
+      by (auto simp: compact_diff open_sums)
+    show "\<And>n. ?C n \<subseteq> S"
+      by auto
+    show "?C n \<subseteq> interior (?C (Suc n))" for n
+    proof (simp add: interior_diff, rule Diff_mono)
+      show "cball a (real n) \<subseteq> ball a (1 + real n)"
+        by (simp add: cball_subset_ball_iff)
+      have cl: "closed (\<Union>x\<in>- S. \<Union>e\<in>cball 0 (1 / (2 + real n)). {x + e})"
+        using assms by (auto intro: closed_compact_sums)
+      have "closure (\<Union>x\<in>- S. \<Union>y\<in>ball 0 (1 / (2 + real n)). {x + y})
+            \<subseteq> (\<Union>x \<in> -S. \<Union>e \<in> cball 0 (1 / (2 + real n)). {x + e})"
+        by (intro closure_minimal UN_mono ball_subset_cball order_refl cl)
+      also have "... \<subseteq> (\<Union>x \<in> -S. \<Union>y\<in>ball 0 (1 / (1 + real n)). {x + y})"
+        apply (intro UN_mono order_refl)
+        apply (simp add: cball_subset_ball_iff divide_simps)
+        done
+      finally show "closure (\<Union>x\<in>- S. \<Union>y\<in>ball 0 (1 / (2 + real n)). {x + y})
+                    \<subseteq> (\<Union>x \<in> -S. \<Union>y\<in>ball 0 (1 / (1 + real n)). {x + y})" .
+    qed
+    have "S \<subseteq> UNION UNIV ?C"
+    proof
+      fix x
+      assume x: "x \<in> S"
+      then obtain e where "e > 0" and e: "ball x e \<subseteq> S"
+        using assms open_contains_ball by blast
+      then obtain N1 where "N1 > 0" and N1: "real N1 > 1/e"
+        using reals_Archimedean2
+        by (metis divide_less_0_iff less_eq_real_def neq0_conv not_le of_nat_0 of_nat_1 of_nat_less_0_iff)
+      obtain N2 where N2: "norm(x - a) \<le> real N2"
+        by (meson real_arch_simple)
+      have N12: "inverse((N1 + N2) + 1) \<le> inverse(N1)"
+        using \<open>N1 > 0\<close> by (auto simp: divide_simps)
+      have "x \<noteq> y + z" if "y \<notin> S" "norm z < 1 / (1 + (real N1 + real N2))" for y z
+      proof -
+        have "e * real N1 < e * (1 + (real N1 + real N2))"
+          by (simp add: \<open>0 < e\<close>)
+        then have "1 / (1 + (real N1 + real N2)) < e"
+          using N1 \<open>e > 0\<close>
+          by (metis divide_less_eq less_trans mult.commute of_nat_add of_nat_less_0_iff of_nat_Suc)
+        then have "x - z \<in> ball x e"
+          using that by simp
+        then have "x - z \<in> S"
+          using e by blast
+        with that show ?thesis
+          by auto
+      qed
+      with N2 show "x \<in> UNION UNIV ?C"
+        by (rule_tac a = "N1+N2" in UN_I) (auto simp: dist_norm norm_minus_commute)
+    qed
+    then show "UNION UNIV ?C = S" by auto
+  qed
+  ultimately show ?thesis
+    using that by metis
+qed
   
 end

@@ -8127,119 +8127,104 @@ qed
 subsection \<open>Compact sets and the closure operation.\<close>
 
 lemma closed_scaling:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "closed s"
-  shows "closed ((\<lambda>x. c *\<^sub>R x) ` s)"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "closed S"
+  shows "closed ((\<lambda>x. c *\<^sub>R x) ` S)"
 proof (cases "c = 0")
   case True then show ?thesis
     by (auto simp add: image_constant_conv)
 next
   case False
-  from assms have "closed ((\<lambda>x. inverse c *\<^sub>R x) -` s)"
+  from assms have "closed ((\<lambda>x. inverse c *\<^sub>R x) -` S)"
     by (simp add: continuous_closed_vimage)
-  also have "(\<lambda>x. inverse c *\<^sub>R x) -` s = (\<lambda>x. c *\<^sub>R x) ` s"
+  also have "(\<lambda>x. inverse c *\<^sub>R x) -` S = (\<lambda>x. c *\<^sub>R x) ` S"
     using \<open>c \<noteq> 0\<close> by (auto elim: image_eqI [rotated])
   finally show ?thesis .
 qed
 
 lemma closed_negations:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "closed s"
-  shows "closed ((\<lambda>x. -x) ` s)"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "closed S"
+  shows "closed ((\<lambda>x. -x) ` S)"
   using closed_scaling[OF assms, of "- 1"] by simp
 
 lemma compact_closed_sums:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "compact s" and "closed t"
-  shows "closed {x + y | x y. x \<in> s \<and> y \<in> t}"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "compact S" and "closed T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
 proof -
-  let ?S = "{x + y |x y. x \<in> s \<and> y \<in> t}"
+  let ?S = "{x + y |x y. x \<in> S \<and> y \<in> T}"
   {
     fix x l
     assume as: "\<forall>n. x n \<in> ?S"  "(x \<longlongrightarrow> l) sequentially"
-    from as(1) obtain f where f: "\<forall>n. x n = fst (f n) + snd (f n)"  "\<forall>n. fst (f n) \<in> s"  "\<forall>n. snd (f n) \<in> t"
-      using choice[of "\<lambda>n y. x n = (fst y) + (snd y) \<and> fst y \<in> s \<and> snd y \<in> t"] by auto
-    obtain l' r where "l'\<in>s" and r: "subseq r" and lr: "(((\<lambda>n. fst (f n)) \<circ> r) \<longlongrightarrow> l') sequentially"
+    from as(1) obtain f where f: "\<forall>n. x n = fst (f n) + snd (f n)"  "\<forall>n. fst (f n) \<in> S"  "\<forall>n. snd (f n) \<in> T"
+      using choice[of "\<lambda>n y. x n = (fst y) + (snd y) \<and> fst y \<in> S \<and> snd y \<in> T"] by auto
+    obtain l' r where "l'\<in>S" and r: "subseq r" and lr: "(((\<lambda>n. fst (f n)) \<circ> r) \<longlongrightarrow> l') sequentially"
       using assms(1)[unfolded compact_def, THEN spec[where x="\<lambda> n. fst (f n)"]] using f(2) by auto
     have "((\<lambda>n. snd (f (r n))) \<longlongrightarrow> l - l') sequentially"
       using tendsto_diff[OF LIMSEQ_subseq_LIMSEQ[OF as(2) r] lr] and f(1)
       unfolding o_def
       by auto
-    then have "l - l' \<in> t"
+    then have "l - l' \<in> T"
       using assms(2)[unfolded closed_sequential_limits,
         THEN spec[where x="\<lambda> n. snd (f (r n))"],
         THEN spec[where x="l - l'"]]
       using f(3)
       by auto
     then have "l \<in> ?S"
-      using \<open>l' \<in> s\<close>
+      using \<open>l' \<in> S\<close>
       apply auto
       apply (rule_tac x=l' in exI)
       apply (rule_tac x="l - l'" in exI)
       apply auto
       done
   }
-  then show ?thesis
-    unfolding closed_sequential_limits by fast
+  moreover have "?S = (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+    by force
+  ultimately show ?thesis
+    unfolding closed_sequential_limits
+    by (metis (no_types, lifting))
 qed
 
 lemma closed_compact_sums:
-  fixes s t :: "'a::real_normed_vector set"
-  assumes "closed s"
-    and "compact t"
-  shows "closed {x + y | x y. x \<in> s \<and> y \<in> t}"
+  fixes S T :: "'a::real_normed_vector set"
+  assumes "closed S" "compact T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
 proof -
-  have "{x + y |x y. x \<in> t \<and> y \<in> s} = {x + y |x y. x \<in> s \<and> y \<in> t}"
-    apply auto
-    apply (rule_tac x=y in exI)
-    apply auto
-    apply (rule_tac x=y in exI)
-    apply auto
-    done
+  have "(\<Union>x\<in> T. \<Union>y \<in> S. {x + y}) = (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+    by auto
   then show ?thesis
     using compact_closed_sums[OF assms(2,1)] by simp
 qed
 
 lemma compact_closed_differences:
-  fixes s t :: "'a::real_normed_vector set"
-  assumes "compact s"
-    and "closed t"
-  shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
+  fixes S T :: "'a::real_normed_vector set"
+  assumes "compact S" "closed T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
 proof -
-  have "{x + y |x y. x \<in> s \<and> y \<in> uminus ` t} =  {x - y |x y. x \<in> s \<and> y \<in> t}"
-    apply auto
-    apply (rule_tac x=xa in exI)
-    apply auto
-    apply (rule_tac x=xa in exI)
-    apply auto
-    done
+  have "(\<Union>x\<in> S. \<Union>y \<in> uminus ` T. {x + y}) = (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
+    by force
   then show ?thesis
     using compact_closed_sums[OF assms(1) closed_negations[OF assms(2)]] by auto
 qed
 
 lemma closed_compact_differences:
-  fixes s t :: "'a::real_normed_vector set"
-  assumes "closed s"
-    and "compact t"
-  shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
+  fixes S T :: "'a::real_normed_vector set"
+  assumes "closed S" "compact T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
 proof -
-  have "{x + y |x y. x \<in> s \<and> y \<in> uminus ` t} = {x - y |x y. x \<in> s \<and> y \<in> t}"
-    apply auto
-    apply (rule_tac x=xa in exI)
-    apply auto
-    apply (rule_tac x=xa in exI)
-    apply auto
-    done
+  have "(\<Union>x\<in> S. \<Union>y \<in> uminus ` T. {x + y}) = {x - y |x y. x \<in> S \<and> y \<in> T}"
+    by auto
  then show ?thesis
   using closed_compact_sums[OF assms(1) compact_negations[OF assms(2)]] by simp
 qed
 
 lemma closed_translation:
   fixes a :: "'a::real_normed_vector"
-  assumes "closed s"
-  shows "closed ((\<lambda>x. a + x) ` s)"
+  assumes "closed S"
+  shows "closed ((\<lambda>x. a + x) ` S)"
 proof -
-  have "{a + y |y. y \<in> s} = (op + a ` s)" by auto
+  have "(\<Union>x\<in> {a}. \<Union>y \<in> S. {x + y}) = (op + a ` S)" by auto
   then show ?thesis
     using compact_closed_sums[OF compact_sing[of a] assms] by auto
 qed

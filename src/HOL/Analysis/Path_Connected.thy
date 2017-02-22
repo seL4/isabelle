@@ -780,6 +780,11 @@ lemma path_image_subpath:
   shows "path_image(subpath u v g) = (if u \<le> v then g ` {u..v} else g ` {v..u})"
   by (simp add: path_image_subpath_gen closed_segment_eq_real_ivl)
 
+lemma path_image_subpath_commute:
+  fixes g :: "real \<Rightarrow> 'a::real_normed_vector"
+  shows "path_image(subpath u v g) = path_image(subpath v u g)"
+  by (simp add: path_image_subpath_gen closed_segment_eq_real_ivl)
+
 lemma path_subpath [simp]:
   fixes g :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "path g" "u \<in> {0..1}" "v \<in> {0..1}"
