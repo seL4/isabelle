@@ -13,6 +13,7 @@ imports
   Polytope
   Jordan_Curve
   Winding_Numbers
+  Great_Picard
   Poly_Roots
   Conformal_Mappings
   Generalised_Binomial_Theorem
