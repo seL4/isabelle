@@ -12,6 +12,7 @@ imports
   Weierstrass_Theorems
   Polytope
   Jordan_Curve
+  Winding_Numbers
   Poly_Roots
   Conformal_Mappings
   Generalised_Binomial_Theorem
