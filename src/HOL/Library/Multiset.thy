@@ -6,7 +6,7 @@
     Author:     Mathias Fleury, MPII
 *)
 
-section \<open>(Finite) multisets\<close>
+section \<open>(Finite) Multisets\<close>
 
 theory Multiset
 imports Cancellation
@@ -1687,6 +1687,10 @@ qed
 
 lemma image_mset_subseteq_mono: "A \<subseteq># B \<Longrightarrow> image_mset f A \<subseteq># image_mset f B"
   by (metis image_mset_union subset_mset.le_iff_add)
+
+lemma image_mset_subset_mono: "M \<subset># N \<Longrightarrow> image_mset f M \<subset># image_mset f N"
+  by (metis (no_types) Diff_eq_empty_iff_mset image_mset_Diff image_mset_is_empty_iff
+    image_mset_subseteq_mono subset_mset.less_le_not_le)
 
 syntax (ASCII)
   "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ :# _#})")
