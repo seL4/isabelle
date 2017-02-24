@@ -29,4 +29,3 @@ fun create empty lookup update f =
   in apply end;
 
 end;
-
