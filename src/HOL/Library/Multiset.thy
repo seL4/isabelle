@@ -2797,6 +2797,18 @@ next
   qed
 qed
 
+lemma subset_implies_mult:
+  assumes sub: "A \<subset># B"
+  shows "(A, B) \<in> mult r"
+proof -
+  have ApBmA: "A + (B - A) = B"
+    using sub by simp
+  have BmA: "B - A \<noteq> {#}"
+    using sub by (simp add: Diff_eq_empty_iff_mset subset_mset.less_le_not_le)
+  thus ?thesis
+    by (rule one_step_implies_mult[of "B - A" "{#}" _ A, unfolded ApBmA, simplified])
+qed
+
 
 subsection \<open>The multiset extension is cancellative for multiset union\<close>
 
