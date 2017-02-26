@@ -23,7 +23,6 @@ imports
   Extended_Nat
   Extended_Nonnegative_Real
   Extended_Real
-  FinFun
   Finite_Map
   Float
   Formal_Power_Series

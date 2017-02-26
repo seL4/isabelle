@@ -45,6 +45,8 @@ buffers.
 
 *** HOL ***
 
+* Theory Library/FinFun has been moved to AFP (again).  INCOMPATIBILITY.
+
 * Some old and rarely used ASCII replacement syntax has been removed.
 INCOMPATIBILITY, standard syntax with symbols should be used instead.
 The subsequent commands help to reproduce the old forms, e.g. to
