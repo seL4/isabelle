@@ -714,10 +714,10 @@ fun is_univ_typedef ctxt (Type (s, _)) =
        in
          case t_opt of
            SOME (Const (@{const_name top}, _)) => true
-           (* "Multiset.multiset" *)
+           (* "Multiset.multiset" FIXME unchecked *)
          | SOME (Const (@{const_name Collect}, _)
                  $ Abs (_, _, Const (@{const_name finite}, _) $ _)) => true
-           (* "FinFun.finfun" *)
+           (* "FinFun.finfun" FIXME unchecked *)
          | SOME (Const (@{const_name Collect}, _) $ Abs (_, _,
                      Const (@{const_name Ex}, _) $ Abs (_, _,
                          Const (@{const_name finite}, _) $ _))) => true
