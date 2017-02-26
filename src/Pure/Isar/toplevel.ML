@@ -427,7 +427,7 @@ fun local_theory' restricted target f = present_transaction (fn int =>
 
 fun local_theory restricted target f = local_theory' restricted target (K f);
 
-fun present_local_theory target = present_transaction (fn int =>
+fun present_local_theory target = present_transaction (fn _ =>
   (fn Theory (gthy, _) =>
         let val (finish, lthy) = Named_Target.switch target gthy;
         in Theory (finish lthy, SOME lthy) end
@@ -561,7 +561,7 @@ fun put_timing timing = map_transition (fn (name, pos, _, trans) => (name, pos, 
 
 local
 
-fun app int (tr as Transition {name, trans, ...}) =
+fun app int (tr as Transition {trans, ...}) =
   setmp_thread_position tr (fn state =>
     let
       val timing_start = Timing.start ();
