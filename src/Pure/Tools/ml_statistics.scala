@@ -33,28 +33,33 @@ object ML_Statistics
 
   /* standard fields */
 
-  val tasks_fields =
+  type Fields = (String, Iterable[String])
+
+  val tasks_fields: Fields =
     ("Future tasks",
       List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive", "tasks_urgent"))
 
-  val workers_fields =
+  val workers_fields: Fields =
     ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
 
-  val GC_fields = ("GCs", List("partial_GCs", "full_GCs"))
+  val GC_fields: Fields =
+    ("GCs", List("partial_GCs", "full_GCs"))
 
-  val heap_fields =
+  val heap_fields: Fields =
     ("Heap", List("size_heap", "size_allocation", "size_allocation_free",
       "size_heap_free_last_full_GC", "size_heap_free_last_GC"))
 
-  val threads_fields =
+  val threads_fields: Fields =
     ("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
       "threads_wait_IO", "threads_wait_mutex", "threads_wait_signal"))
 
-  val time_fields = ("Time", List("time_CPU", "time_GC"))
+  val time_fields: Fields =
+    ("Time", List("time_CPU", "time_GC"))
 
-  val speed_fields = ("Speed", List("speed_CPU", "speed_GC"))
+  val speed_fields: Fields =
+    ("Speed", List("speed_CPU", "speed_GC"))
 
-  val standard_fields =
+  val standard_fields: List[Fields] =
     List(tasks_fields, workers_fields, GC_fields, heap_fields, threads_fields,
       time_fields, speed_fields)
 }
@@ -128,10 +133,11 @@ final class ML_Statistics private(val session_name: String, val ml_statistics: L
       PlotOrientation.VERTICAL, true, true, true)
   }
 
-  def chart(arg: (String, Iterable[String])): JFreeChart = chart(arg._1, arg._2)
+  def chart(fields: ML_Statistics.Fields): JFreeChart =
+    chart(fields._1, fields._2)
 
-  def show_standard_frames(): Unit =
-    ML_Statistics.standard_fields.map(chart(_)).foreach(c =>
+  def show_frames(fields: List[ML_Statistics.Fields] = ML_Statistics.standard_fields): Unit =
+    fields.map(chart(_)).foreach(c =>
       GUI_Thread.later {
         new Frame {
           iconImage = GUI.isabelle_image()
