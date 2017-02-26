@@ -47,12 +47,12 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     statistics_length = 0
   }
 
-  private var data_name = ML_Statistics.standard_fields(0)._1
+  private var data_name = ML_Statistics.all_fields(0)._1
   private val chart = ML_Statistics.empty.chart(null, Nil)
   private val data = chart.getXYPlot.getDataset.asInstanceOf[XYSeriesCollection]
 
   private def update_chart: Unit =
-    ML_Statistics.standard_fields.find(_._1 == data_name) match {
+    ML_Statistics.all_fields.find(_._1 == data_name) match {
       case None =>
       case Some((_, fields)) => ML_Statistics("", statistics.toList).update_data(data, fields)
     }
@@ -68,8 +68,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private val ml_stats = new Isabelle.ML_Stats
 
-  private val select_data = new ComboBox[String](
-    ML_Statistics.standard_fields.map(_._1))
+  private val select_data = new ComboBox[String](ML_Statistics.all_fields.map(_._1))
   {
     tooltip = "Select visualized data collection"
     listenTo(selection)

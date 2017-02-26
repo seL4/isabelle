@@ -59,9 +59,13 @@ object ML_Statistics
   val speed_fields: Fields =
     ("Speed", List("speed_CPU", "speed_GC"))
 
-  val standard_fields: List[Fields] =
+
+  val all_fields: List[Fields] =
     List(tasks_fields, workers_fields, GC_fields, heap_fields, threads_fields,
       time_fields, speed_fields)
+
+  val main_fields: List[Fields] =
+    List(tasks_fields, workers_fields, heap_fields)
 }
 
 final class ML_Statistics private(val session_name: String, val ml_statistics: List[Properties.T])
@@ -136,7 +140,7 @@ final class ML_Statistics private(val session_name: String, val ml_statistics: L
   def chart(fields: ML_Statistics.Fields): JFreeChart =
     chart(fields._1, fields._2)
 
-  def show_frames(fields: List[ML_Statistics.Fields] = ML_Statistics.standard_fields): Unit =
+  def show_frames(fields: List[ML_Statistics.Fields] = ML_Statistics.main_fields): Unit =
     fields.map(chart(_)).foreach(c =>
       GUI_Thread.later {
         new Frame {
