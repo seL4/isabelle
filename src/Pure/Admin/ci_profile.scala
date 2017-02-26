@@ -92,7 +92,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 
     val options =
       with_documents(Options.init())
-        .int.update("parallel_proofs", 2)
+        .int.update("parallel_proofs", 1)
         .int.update("threads", threads)
 
     print_section("BUILD")

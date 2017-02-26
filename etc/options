@@ -71,7 +71,7 @@ option threads_stack_limit : real = 0.25
 
 public option parallel_print : bool = true
   -- "parallel and asynchronous printing of results"
-public option parallel_proofs : int = 2
+public option parallel_proofs : int = 1
   -- "level of parallel proof checking: 0, 1, 2"
 option parallel_subproofs_threshold : real = 0.01
   -- "lower bound of timing estimate for forked nested proofs (seconds)"

@@ -123,6 +123,11 @@ name of the simprocs on multisets. INCOMPATIBILITY.
 
 *** System ***
 
+* Option parallel_proofs is 1 by default (instead of more aggressive 2).
+This requires less heap space and avoids burning parallel CPU cycles,
+while full subproof parallelization is enabled for repeated builds
+(according to parallel_subproofs_threshold).
+
 * Prover IDE support for the Visual Studio Code editor and language
 server protocol, via the "isabelle vscode_server" tool (see also
 src/Tools/VSCode/README.md). The example application within the VS code
