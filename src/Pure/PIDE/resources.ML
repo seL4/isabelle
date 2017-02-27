@@ -17,7 +17,7 @@ sig
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val loaded_files_current: theory -> bool
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
-  val load_thy: bool -> HTML.symbols -> (Toplevel.transition -> Time.time option) -> int ->
+  val load_thy: bool -> HTML.symbols -> (Toplevel.transition -> Time.time) -> int ->
     Path.T -> Thy_Header.header -> Position.T -> string -> theory list ->
     theory * (unit -> unit) * int
 end;

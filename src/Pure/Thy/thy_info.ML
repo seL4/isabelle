@@ -16,7 +16,7 @@ sig
   val use_theories:
     {document: bool,
      symbols: HTML.symbols,
-     last_timing: Toplevel.transition -> Time.time option,
+     last_timing: Toplevel.transition -> Time.time,
      master_dir: Path.T} -> (string * Position.T) list -> unit
   val use_thys: (string * Position.T) list -> unit
   val use_thy: string * Position.T -> unit
@@ -350,7 +350,8 @@ fun use_theories {document, symbols, last_timing, master_dir} imports =
 
 val use_thys =
   use_theories
-    {document = false, symbols = HTML.no_symbols, last_timing = K NONE, master_dir = Path.current};
+    {document = false, symbols = HTML.no_symbols, last_timing = K Time.zeroTime,
+      master_dir = Path.current};
 
 val use_thy = use_thys o single;
 

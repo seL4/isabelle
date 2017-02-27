@@ -31,7 +31,7 @@ fun approximative_id name pos =
       if name = "" then NONE else SOME {file = file, offset = offset, name = name}
   | _ => NONE);
 
-fun lookup_timings timings tr =
+fun get_timings timings tr =
   (case approximative_id (Toplevel.name_of tr) (Toplevel.pos_of tr) of
     SOME {file, offset, name} =>
       (case Symtab.lookup timings file of
@@ -40,7 +40,8 @@ fun lookup_timings timings tr =
             SOME (name', time) => if name = name' then SOME time else NONE
           | NONE => NONE)
       | NONE => NONE)
-  | NONE => NONE);
+  | NONE => NONE)
+  |> the_default Time.zeroTime;
 
 
 (* session timing *)
@@ -161,7 +162,7 @@ fun build args_file =
         parent_name (chapter, name)
         verbose;
 
-    val last_timing = lookup_timings (fold update_timings command_timings empty_timings);
+    val last_timing = get_timings (fold update_timings command_timings empty_timings);
 
     val res1 =
       theories |>
@@ -191,8 +192,10 @@ val _ =
             let open XML.Decode
             in list (pair Options.decode (list (string #> rpair Position.none))) end;
         val res1 =
-          Exn.capture (fn () =>
-            theories |> List.app (build_theories symbols (K NONE) (Path.explode master_dir))) ();
+          Exn.capture
+            (fn () =>
+              theories
+              |> List.app (build_theories symbols (K Time.zeroTime) (Path.explode master_dir))) ();
         val res2 = Exn.capture Session.shutdown ();
         val result =
           (Par_Exn.release_all [res1, res2]; "") handle exn =>

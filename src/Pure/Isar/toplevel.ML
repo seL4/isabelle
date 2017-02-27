@@ -75,8 +75,8 @@ sig
   val exec_id: Document_ID.exec -> transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val add_hook: (transition -> state -> state -> unit) -> unit
-  val get_timing: transition -> Time.time option
-  val put_timing: Time.time option -> transition -> transition
+  val get_timing: transition -> Time.time
+  val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> state * (exn * string) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
@@ -286,7 +286,7 @@ end;
 datatype transition = Transition of
  {name: string,              (*command name*)
   pos: Position.T,           (*source position*)
-  timing: Time.time option,  (*prescient timing information*)
+  timing: Time.time,         (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
 
 fun make_transition (name, pos, timing, trans) =
@@ -295,7 +295,7 @@ fun make_transition (name, pos, timing, trans) =
 fun map_transition f (Transition {name, pos, timing, trans}) =
   make_transition (f (name, pos, timing, trans));
 
-val empty = make_transition ("", Position.none, NONE, []);
+val empty = make_transition ("", Position.none, Time.zeroTime, []);
 
 
 (* diagnostics *)
@@ -649,18 +649,11 @@ val get_result = Result.get o Proof.context_of;
 val put_result = Proof.map_context o Result.put;
 
 fun timing_estimate include_head elem =
-  let
-    val trs = Thy_Syntax.flat_element elem |> not include_head ? tl;
-    val timings = map get_timing trs;
-  in
-    if forall is_some timings then
-      SOME (fold (curry (op +) o the) timings Time.zeroTime)
-    else NONE
-  end;
+  let val trs = Thy_Syntax.flat_element elem |> not include_head ? tl
+  in fold (fn tr => fn t => get_timing tr + t) trs Time.zeroTime end;
 
-fun priority NONE = ~1
-  | priority (SOME estimate) =
-      Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
+fun priority estimate =
+  Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
 
 fun proof_future_enabled estimate st =
   (case try proof_of st of
@@ -669,10 +662,7 @@ fun proof_future_enabled estimate st =
       not (Proof.is_relevant state) andalso
        (if can (Proof.assert_bottom true) state
         then Goal.future_enabled 1
-        else
-          (case estimate of
-            NONE => Goal.future_enabled 2
-          | SOME t => Goal.future_enabled_timing t)));
+        else Goal.future_enabled 2 orelse Goal.future_enabled_timing estimate));
 
 fun atom_result keywords tr st =
   let
