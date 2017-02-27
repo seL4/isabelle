@@ -4926,7 +4926,12 @@ lemma arccos_minus: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> ar
   by (metis arccos_cos arccos_cos2 cos_minus_pi cos_total diff_le_0_iff_le le_add_same_cancel1
       minus_diff_eq uminus_add_conv_diff)
 
-lemma sin_arccos_nonzero: "- 1 < x \<Longrightarrow> x < 1 \<Longrightarrow> \<not> sin (arccos x) = 0"
+corollary arccos_minus_abs:
+  assumes "\<bar>x\<bar> \<le> 1"
+  shows "arccos (- x) = pi - arccos x"
+using assms by (simp add: arccos_minus)
+
+lemma sin_arccos_nonzero: "- 1 < x \<Longrightarrow> x < 1 \<Longrightarrow> sin (arccos x) \<noteq> 0"
   using arccos_lt_bounded sin_gt_zero by force
 
 lemma arctan: "- (pi/2) < arctan y \<and> arctan y < pi/2 \<and> tan (arctan y) = y"
@@ -4958,11 +4963,7 @@ lemma arctan_zero_zero [simp]: "arctan 0 = 0"
   by (rule arctan_unique) simp_all
 
 lemma arctan_minus: "arctan (- x) = - arctan x"
-  apply (rule arctan_unique)
-    apply (simp only: neg_less_iff_less arctan_ubound)
-   apply (metis minus_less_iff arctan_lbound)
-  apply (simp add: arctan)
-  done
+  using arctan [of "x"] by (auto simp: arctan_unique)
 
 lemma cos_arctan_not_zero [simp]: "cos (arctan x) \<noteq> 0"
   by (intro less_imp_neq [symmetric] cos_gt_zero_pi arctan_lbound arctan_ubound)

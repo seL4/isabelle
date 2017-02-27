@@ -8030,6 +8030,37 @@ subsection\<open>Betweenness\<close>
 
 definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
+lemma betweenI:
+  assumes "0 \<le> u" "u \<le> 1" "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
+  shows "between (a, b) x"
+using assms unfolding between_def closed_segment_def by auto
+
+lemma betweenE:
+  assumes "between (a, b) x"
+  obtains u where "0 \<le> u" "u \<le> 1" "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
+using assms unfolding between_def closed_segment_def by auto
+
+lemma between_implies_scaled_diff:
+  assumes "between (S, T) X" "between (S, T) Y" "S \<noteq> Y"
+  obtains c where "(X - Y) = c *\<^sub>R (S - Y)"
+proof -
+  from \<open>between (S, T) X\<close> obtain u\<^sub>X where X: "X = u\<^sub>X *\<^sub>R S + (1 - u\<^sub>X) *\<^sub>R T"
+    by (metis add.commute betweenE eq_diff_eq)
+  from \<open>between (S, T) Y\<close> obtain u\<^sub>Y where Y: "Y = u\<^sub>Y *\<^sub>R S + (1 - u\<^sub>Y) *\<^sub>R T"
+    by (metis add.commute betweenE eq_diff_eq)
+  have "X - Y = (u\<^sub>X - u\<^sub>Y) *\<^sub>R (S - T)"
+  proof -
+    from X Y have "X - Y =  u\<^sub>X *\<^sub>R S - u\<^sub>Y *\<^sub>R S + ((1 - u\<^sub>X) *\<^sub>R T - (1 - u\<^sub>Y) *\<^sub>R T)" by simp
+    also have "\<dots> = (u\<^sub>X - u\<^sub>Y) *\<^sub>R S - (u\<^sub>X - u\<^sub>Y) *\<^sub>R T" by (simp add: scaleR_left.diff)
+    finally show ?thesis by (simp add: real_vector.scale_right_diff_distrib)
+  qed
+  moreover from Y have "S - Y = (1 - u\<^sub>Y) *\<^sub>R (S - T)"
+    by (simp add: real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
+  moreover note \<open>S \<noteq> Y\<close>
+  ultimately have "(X - Y) = ((u\<^sub>X - u\<^sub>Y) / (1 - u\<^sub>Y)) *\<^sub>R (S - Y)" by auto
+  from this that show thesis by blast
+qed
+
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
   unfolding between_def by auto
 
@@ -8141,6 +8172,13 @@ lemma between_norm:
     fixes a :: "'a :: euclidean_space"
     shows "between (a,b) x \<longleftrightarrow> norm(x - a) *\<^sub>R (b - x) = norm(b - x) *\<^sub>R (x - a)"
   by (auto simp: between dist_triangle_eq norm_minus_commute algebra_simps)
+
+lemma between_swap:
+  fixes A B X Y :: "'a::euclidean_space"
+  assumes "between (A, B) X"
+  assumes "between (A, B) Y"
+  shows "between (X, B) Y \<longleftrightarrow> between (A, Y) X"
+using assms by (auto simp add: between)
 
 
 subsection \<open>Shrinking towards the interior of a convex set\<close>

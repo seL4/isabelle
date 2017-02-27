@@ -106,7 +106,7 @@ INCOMPATIBILITY.
 
 * Session HOL-Analysis: more material involving arcs, paths, covering
 spaces, innessential maps, retracts. Major results include the Jordan
-Curve Theorem.
+Curve Theorem and the Great Picard Theorem.
 
 * The theorem in Permutations has been renamed:
   bij_swap_ompose_bij ~> bij_swap_compose_bij

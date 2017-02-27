@@ -494,6 +494,10 @@ lemma one_eq_divide_iff [simp]:
   "1 = a / b \<longleftrightarrow> b \<noteq> 0 \<and> a = b"
   by (simp add: eq_commute [of 1])
 
+lemma divide_eq_minus_1_iff:
+   "(a / b = - 1) \<longleftrightarrow> b \<noteq> 0 \<and> a = - b"
+using divide_eq_1_iff by fastforce
+
 lemma times_divide_times_eq:
   "(x / y) * (z / w) = (x * z) / (y * w)"
   by simp

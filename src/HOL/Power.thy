@@ -563,6 +563,11 @@ lemma power2_eq_imp_eq: "x\<^sup>2 = y\<^sup>2 \<Longrightarrow> 0 \<le> x \<Lon
 lemma power_Suc_le_self: "0 \<le> a \<Longrightarrow> a \<le> 1 \<Longrightarrow> a ^ Suc n \<le> a"
   using power_decreasing [of 1 "Suc n" a] by simp
 
+lemma power2_eq_iff_nonneg [simp]:
+  assumes "0 \<le> x" "0 \<le> y"
+  shows "(x ^ 2 = y ^ 2) \<longleftrightarrow> x = y"
+using assms power2_eq_imp_eq by blast
+
 end
 
 context linordered_ring_strict
