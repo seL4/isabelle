@@ -42,6 +42,7 @@
 * https://code.visualstudio.com/docs/extensionAPI/extension-points
 * https://code.visualstudio.com/docs/extensions/example-language-server
 * https://github.com/Microsoft/vscode-languageserver-node-example
+* https://github.com/Microsoft/vscode
 
 
 ### Protocol ###
@@ -56,6 +57,7 @@
 
 ### Similar projects ###
 
+* Lean Prover: https://github.com/leanprover/vscode-lean
 * Coq: https://github.com/siegebell/vscoq
 * OCaml: https://github.com/freebroccolo/vscode-reasonml
 * Scala: https://github.com/dragos/dragos-vscode-scala
