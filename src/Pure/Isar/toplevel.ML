@@ -653,7 +653,8 @@ fun timing_estimate include_head elem =
   in fold (fn tr => fn t => get_timing tr + t) trs Time.zeroTime end;
 
 fun priority estimate =
-  Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
+  if estimate = Time.zeroTime then ~1
+  else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
 
 fun proof_future_enabled estimate st =
   (case try proof_of st of
