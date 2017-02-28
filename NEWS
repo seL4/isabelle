@@ -63,6 +63,10 @@ syntax (ASCII)
 * Dropped aliasses RangeP, DomainP for Rangep, Domainp respectively.
 INCOMPATIBILITY.
 
+* Renamed ii to imaginary_unit in order to free up ii as a variable name.
+The syntax \<i> remains available.
+INCOMPATIBILITY.
+
 * Dropped abbreviations transP, antisymP, single_valuedP;
 use constants transp, antisymp, single_valuedp instead.
 INCOMPATIBILITY.

@@ -1330,7 +1330,7 @@ lemma covering_space_lift_unique_gen:
     shows "g1 x = g2 x"
 proof -
   have "U \<subseteq> T" by (rule in_components_subset [OF u_compt])
-  def G12 \<equiv> "{x \<in> U. g1 x - g2 x = 0}"
+  define G12 where "G12 \<equiv> {x \<in> U. g1 x - g2 x = 0}"
   have "connected U" by (rule in_components_connected [OF u_compt])
   have contu: "continuous_on U g1" "continuous_on U g2"
        using \<open>U \<subseteq> T\<close> continuous_on_subset g1 g2 by blast+

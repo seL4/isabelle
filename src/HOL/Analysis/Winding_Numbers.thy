@@ -39,7 +39,7 @@ proof -
         assume "0 \<in> interior {z. Im z * Re b \<le> Im b * Re z}"
         then obtain e where "e>0" and e: "ball 0 e \<subseteq> {z. Im z * Re b \<le> Im b * Re z}"
           by (meson mem_interior)
-        def z \<equiv> "- sgn (Im b) * (e/3) + sgn (Re b) * (e/3) * ii"
+        define z where "z \<equiv> - sgn (Im b) * (e/3) + sgn (Re b) * (e/3) * \<i>"
         have "z \<in> ball 0 e"
           using `e>0`
           apply (simp add: z_def dist_norm)

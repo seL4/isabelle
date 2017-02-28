@@ -90,7 +90,7 @@ proof -
     qed
     ultimately obtain z where z: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = z"
       using continuous_discrete_range_constant [OF conST contgh] by blast
-    obtain w where "exp(ii* of_real(h w)) = exp (ii* of_real(z + h w))"
+    obtain w where "exp(\<i> * of_real(h w)) = exp (\<i> * of_real(z + h w))"
       using disc z False
       by auto (metis diff_add_cancel g h of_real_add)
     then have [simp]: "exp (\<i>* of_real z) = 1"

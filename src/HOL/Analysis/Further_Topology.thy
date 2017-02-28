@@ -3131,7 +3131,7 @@ proof -
       then have "cmod (exp (\<i> * of_real (2 * pi * j / n)) - 1) < 2 * sin (pi / real n)"
         by (simp add: j field_simps)
       then have "2 * \<bar>sin((2 * pi * j / n) / 2)\<bar> < 2 * sin (pi / real n)"
-        by (simp only: dist_exp_ii_1)
+        by (simp only: dist_exp_i_1)
       then have sin_less: "sin((pi * j / n)) < sin (pi / real n)"
         by (simp add: field_simps)
       then have "w / z = 1"
@@ -3179,7 +3179,7 @@ proof -
                     (\<forall>u\<in>v. Ex (homeomorphism u T (\<lambda>z. z^n))))"
            if "z \<noteq> 0" for z::complex
   proof -
-    def d \<equiv> "min (1/2) (e/4) * norm z"
+    define d where "d \<equiv> min (1/2) (e/4) * norm z"
     have "0 < d"
       by (simp add: d_def \<open>0 < e\<close> \<open>z \<noteq> 0\<close>)
     have iff_x_eq_y: "x^n = y^n \<longleftrightarrow> x = y"
@@ -3502,7 +3502,7 @@ qed
 lemma inessential_eq_continuous_logarithm_circle:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)) \<longleftrightarrow>
-         (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(ii* of_real(g x))))"
+         (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(\<i> * of_real(g x))))"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume L: ?lhs
@@ -3519,9 +3519,9 @@ proof
     done
 next
   assume ?rhs
-  then obtain g where contg: "continuous_on S g" and g: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(ii* of_real(g x))"
+  then obtain g where contg: "continuous_on S g" and g: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(\<i>* of_real(g x))"
     by metis
-  obtain a where "homotopic_with (\<lambda>h. True) S (sphere 0 1) ((exp \<circ> (\<lambda>z. ii*z)) \<circ> (of_real \<circ> g)) (\<lambda>x. a)"
+  obtain a where "homotopic_with (\<lambda>h. True) S (sphere 0 1) ((exp \<circ> (\<lambda>z. \<i>*z)) \<circ> (of_real \<circ> g)) (\<lambda>x. a)"
   proof (rule nullhomotopic_through_contractible)
     show "continuous_on S (complex_of_real \<circ> g)"
       by (intro conjI contg continuous_intros)
@@ -4030,7 +4030,7 @@ proof -
   obtain g where holg: "g holomorphic_on S" and eq: "\<And>z. z \<in> S \<Longrightarrow> 1 - (f z)\<^sup>2 = (g z)\<^sup>2"
     using contractible_imp_holomorphic_sqrt [OF hol1f S]
     by (metis eq_iff_diff_eq_0 non1 power2_eq_1_iff)
-  have holfg: "(\<lambda>z. f z + ii*g z) holomorphic_on S"
+  have holfg: "(\<lambda>z. f z + \<i>*g z) holomorphic_on S"
     by (intro holf holg holomorphic_intros)
   have "\<And>z. z \<in> S \<Longrightarrow> f z + \<i>*g z \<noteq> 0"
     by (metis Arccos_body_lemma eq add.commute add.inverse_unique complex_i_mult_minus power2_csqrt power2_eq_iff)
@@ -4038,13 +4038,13 @@ proof -
     using contractible_imp_holomorphic_log [OF holfg S] by metis
   show ?thesis
   proof
-    show "(\<lambda>z. -ii*h z) holomorphic_on S"
+    show "(\<lambda>z. -\<i>*h z) holomorphic_on S"
       by (intro holh holomorphic_intros)
     show "f z = cos (- \<i>*h z)" if "z \<in> S" for z
     proof -
-      have "(f z + ii*g z)*(f z - ii*g z) = 1"
+      have "(f z + \<i>*g z)*(f z - \<i>*g z) = 1"
         using that eq by (auto simp: algebra_simps power2_eq_square)
-      then have "f z - ii*g z = inverse (f z + ii*g z)"
+      then have "f z - \<i>*g z = inverse (f z + \<i>*g z)"
         using inverse_unique by force
       also have "... = exp (- h z)"
         by (simp add: exp_minus fgeq that)
@@ -4214,7 +4214,7 @@ lemma Borsukian_continuous_logarithm_circle_real:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
          (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
-              \<longrightarrow> (\<exists>g. continuous_on S (complex_of_real \<circ> g) \<and> (\<forall>x \<in> S. f x = exp(ii * of_real(g x)))))"
+              \<longrightarrow> (\<exists>g. continuous_on S (complex_of_real \<circ> g) \<and> (\<forall>x \<in> S. f x = exp(\<i> * of_real(g x)))))"
    (is "?lhs = ?rhs")
 proof
   assume LHS: ?lhs
@@ -4236,10 +4236,10 @@ next
   proof (clarsimp simp: Borsukian_continuous_logarithm_circle)
     fix f :: "'a \<Rightarrow> complex"
     assume "continuous_on S f" and f01: "f ` S \<subseteq> sphere 0 1"
-    then obtain g where contg: "continuous_on S (complex_of_real \<circ> g)" and "\<And>x. x \<in> S \<Longrightarrow> f x =  exp(ii * of_real(g x))"
+    then obtain g where contg: "continuous_on S (complex_of_real \<circ> g)" and "\<And>x. x \<in> S \<Longrightarrow> f x =  exp(\<i> * of_real(g x))"
       by (metis RHS)
     then show "\<exists>g. continuous_on S g \<and> (\<forall>x\<in>S. f x = exp (g x))"
-      by (rule_tac x="\<lambda>x. ii* of_real(g x)" in exI) (auto simp: continuous_intros contg)
+      by (rule_tac x="\<lambda>x. \<i>* of_real(g x)" in exI) (auto simp: continuous_intros contg)
   qed
 qed
 
@@ -4503,7 +4503,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
   moreover have "(g \<circ> f) ` S \<subseteq> sphere 0 1"
     using fim gim by auto
   ultimately obtain h where cont_cxh: "continuous_on S (complex_of_real \<circ> h)"
-                       and gfh: "\<And>x. x \<in> S \<Longrightarrow> (g \<circ> f) x = exp(ii * of_real(h x))"
+                       and gfh: "\<And>x. x \<in> S \<Longrightarrow> (g \<circ> f) x = exp(\<i> * of_real(h x))"
     using \<open>Borsukian S\<close> Borsukian_continuous_logarithm_circle_real  by metis
   then have conth: "continuous_on S h"
     by simp

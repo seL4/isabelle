@@ -69,7 +69,7 @@ proof (intro integrable_const_bound [of _ 1])
   from f have "\<And>x. of_real (Re (f x)) = f x"
     by (simp add: complex_eq_iff)
   then show "AE x in M. cmod (exp (\<i> * f x)) \<le> 1"
-    using norm_exp_ii_times[of "Re (f x)" for x] by simp
+    using norm_exp_i_times[of "Re (f x)" for x] by simp
 qed (insert f, simp)
 
 lemma (in real_distribution) cmod_char_le_1: "norm (char M t) \<le> 1"

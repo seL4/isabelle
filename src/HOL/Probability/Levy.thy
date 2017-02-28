@@ -60,7 +60,7 @@ proof -
   have "?F = cmod (iexp (t * a) * (iexp (t * (b - a)) - 1) / (\<i> * t))"
     using \<open>t \<noteq> 0\<close> by (intro arg_cong[where f=norm]) (simp add: field_simps exp_diff exp_minus)
   also have "\<dots> = cmod (iexp (t * (b - a)) - 1) / abs t"
-    unfolding norm_divide norm_mult norm_exp_ii_times using \<open>t \<noteq> 0\<close>
+    unfolding norm_divide norm_mult norm_exp_i_times using \<open>t \<noteq> 0\<close>
     by (simp add: complex_eq_iff norm_mult)
   also have "\<dots> \<le> abs (t * (b - a)) / abs t"
     using iexp_approx1 [of "t * (b - a)" 0]

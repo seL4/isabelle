@@ -76,7 +76,7 @@ lemma holomorphic_on_exp [holomorphic_intros]: "exp holomorphic_on s"
 subsection\<open>Euler and de Moivre formulas.\<close>
 
 text\<open>The sine series times @{term i}\<close>
-lemma sin_ii_eq: "(\<lambda>n. (\<i> * sin_coeff n) * z^n) sums (\<i> * sin z)"
+lemma sin_i_eq: "(\<lambda>n. (\<i> * sin_coeff n) * z^n) sums (\<i> * sin z)"
 proof -
   have "(\<lambda>n. \<i> * sin_coeff n *\<^sub>R z^n) sums (\<i> * sin z)"
     using sin_converges sums_mult by blast
@@ -97,7 +97,7 @@ proof -
     by (rule exp_converges)
   finally have "(\<lambda>n. (cos_coeff n + \<i> * sin_coeff n) * z^n) sums (exp (\<i> * z))" .
   moreover have "(\<lambda>n. (cos_coeff n + \<i> * sin_coeff n) * z^n) sums (cos z + \<i> * sin z)"
-    using sums_add [OF cos_converges [of z] sin_ii_eq [of z]]
+    using sums_add [OF cos_converges [of z] sin_i_eq [of z]]
     by (simp add: field_simps scaleR_conv_of_real)
   ultimately show ?thesis
     using sums_unique2 by blast
@@ -395,7 +395,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma dist_exp_ii_1: "norm(exp(\<i> * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>"
+lemma dist_exp_i_1: "norm(exp(\<i> * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>"
   apply (simp add: exp_Euler cmod_def power2_diff sin_of_real cos_of_real algebra_simps)
   using cos_double_sin [of "t/2"]
   apply (simp add: real_sqrt_mult)
@@ -489,7 +489,7 @@ lemma sinh_complex:
   shows "(exp z - inverse (exp z)) / 2 = -\<i> * sin(\<i> * z)"
   by (simp add: sin_exp_eq divide_simps exp_minus of_real_numeral)
 
-lemma sin_ii_times:
+lemma sin_i_times:
   fixes z :: complex
   shows "sin(\<i> * z) = \<i> * ((exp z - inverse (exp z)) / 2)"
   using sinh_complex by auto
@@ -497,7 +497,7 @@ lemma sin_ii_times:
 lemma sinh_real:
   fixes x :: real
   shows "of_real((exp x - inverse (exp x)) / 2) = -\<i> * sin(\<i> * of_real x)"
-  by (simp add: exp_of_real sin_ii_times of_real_numeral)
+  by (simp add: exp_of_real sin_i_times of_real_numeral)
 
 lemma cosh_complex:
   fixes z :: complex
@@ -509,7 +509,7 @@ lemma cosh_real:
   shows "of_real((exp x + inverse (exp x)) / 2) = cos(\<i> * of_real x)"
   by (simp add: cos_exp_eq divide_simps exp_minus of_real_numeral exp_of_real)
 
-lemmas cos_ii_times = cosh_complex [symmetric]
+lemmas cos_i_times = cosh_complex [symmetric]
 
 lemma norm_cos_squared:
     "norm(cos z) ^ 2 = cos(Re z) ^ 2 + (exp(Im z) - inverse(exp(Im z))) ^ 2 / 4"
@@ -1386,7 +1386,7 @@ lemma Ln_times_ii:
                           else Ln(z) - \<i> * of_real(3 * pi/2))"
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z] Re_Ln_pos_le [of z]
-  by (simp add: Ln_times) auto 
+  by (simp add: Ln_times) auto
 
 lemma Ln_of_nat: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
   by (subst of_real_of_nat_eq[symmetric], subst Ln_of_real[symmetric]) simp_all
@@ -1500,7 +1500,7 @@ qed
 lemma Ln_series': "cmod z < 1 \<Longrightarrow> (\<lambda>n. - ((-z)^n) / of_nat n) sums ln (1 + z)"
   by (drule Ln_series) (simp add: power_minus')
 
-lemma ln_series': 
+lemma ln_series':
   assumes "abs (x::real) < 1"
   shows   "(\<lambda>n. - ((-x)^n) / of_nat n) sums ln (1 + x)"
 proof -
@@ -1508,7 +1508,7 @@ proof -
     by (intro Ln_series') simp_all
   also have "(\<lambda>n. - ((-of_real x)^n) / of_nat n) = (\<lambda>n. complex_of_real (- ((-x)^n) / of_nat n))"
     by (rule ext) simp
-  also from assms have "ln (1 + complex_of_real x) = of_real (ln (1 + x))" 
+  also from assms have "ln (1 + complex_of_real x) = of_real (ln (1 + x))"
     by (subst Ln_of_real [symmetric]) simp_all
   finally show ?thesis by (subst (asm) sums_of_real_iff)
 qed
@@ -2197,7 +2197,7 @@ proof -
   show ?thesis
     using assms *
     apply (simp add: Arctan_def tan_def sin_exp_eq cos_exp_eq exp_minus divide_simps
-                     ii_times_eq_iff power2_eq_square [symmetric])
+                     i_times_eq_iff power2_eq_square [symmetric])
     apply (rule Ln_unique)
     apply (auto simp: divide_simps exp_minus)
     apply (simp add: algebra_simps exp_double [symmetric])
@@ -2211,14 +2211,14 @@ lemma
 proof -
   have nz0: "1 + \<i>*z \<noteq> 0"
     using assms
-    by (metis abs_one complex_i_mult_minus diff_0_right diff_minus_eq_add ii.simps(1) ii.simps(2)
+    by (metis abs_one complex_i_mult_minus diff_0_right diff_minus_eq_add imaginary_unit.simps
               less_irrefl minus_diff_eq mult.right_neutral right_minus_eq)
   have "z \<noteq> -\<i>" using assms
     by auto
   then have zz: "1 + z * z \<noteq> 0"
-    by (metis abs_one assms i_squared ii.simps less_irrefl minus_unique square_eq_iff)
+    by (metis abs_one assms i_squared imaginary_unit.simps less_irrefl minus_unique square_eq_iff)
   have nz1: "1 - \<i>*z \<noteq> 0"
-    using assms by (force simp add: ii_times_eq_iff)
+    using assms by (force simp add: i_times_eq_iff)
   have nz2: "inverse (1 + \<i>*z) \<noteq> 0"
     using assms
     by (metis Im_complex_div_lemma Re_complex_div_lemma cmod_eq_Im divide_complex_def
@@ -2380,7 +2380,7 @@ qed
 
 subsection \<open>Real arctangent\<close>
 
-lemma norm_exp_ii_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
+lemma norm_exp_i_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
   by simp
 
 lemma norm_exp_imaginary: "norm(exp z) = 1 \<Longrightarrow> Re z = 0"
@@ -2647,7 +2647,7 @@ qed
 lemma Re_eq_pihalf_lemma:
     "\<bar>Re z\<bar> = pi/2 \<Longrightarrow> Im z = 0 \<Longrightarrow>
       Re ((exp (\<i>*z) + inverse (exp (\<i>*z))) / 2) = 0 \<and> 0 \<le> Im ((exp (\<i>*z) + inverse (exp (\<i>*z))) / 2)"
-  apply (simp add: cos_ii_times [symmetric] Re_cos Im_cos abs_if del: eq_divide_eq_numeral1)
+  apply (simp add: cos_i_times [symmetric] Re_cos Im_cos abs_if del: eq_divide_eq_numeral1)
   by (metis cos_minus cos_pi_half)
 
 lemma Re_less_pihalf_lemma:
@@ -2657,7 +2657,7 @@ proof -
   have "0 < cos (Re z)" using assms
     using cos_gt_zero_pi by auto
   then show ?thesis
-    by (simp add: cos_ii_times [symmetric] Re_cos Im_cos add_pos_pos)
+    by (simp add: cos_i_times [symmetric] Re_cos Im_cos add_pos_pos)
 qed
 
 lemma Arcsin_sin:
@@ -2931,9 +2931,9 @@ proof -
   also have "... \<le> (cmod w)\<^sup>2"
     by (auto simp: cmod_power2)
   finally show ?thesis
-    using abs_le_square_iff by force 
+    using abs_le_square_iff by force
 qed
-  
+
 lemma Re_Arcsin_bounds: "-pi < Re(Arcsin z) & Re(Arcsin z) \<le> pi"
   unfolding Re_Arcsin
   by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arcsin_body_lemma)
@@ -3606,7 +3606,7 @@ proof -
        then have *: "(Arg (exp (\<i>*(2* of_real pi* of_real x))) / (2*pi)) = x"
          using that by (auto simp: Arg_exp divide_simps)
        show ?thesis
-         by (rule_tac x="exp(ii* of_real(2*pi*x))" in bexI) (auto simp: *)
+         by (rule_tac x="exp(\<i> * of_real(2*pi*x))" in bexI) (auto simp: *)
     qed
     ultimately show "(\<gamma> \<circ> (\<lambda>z. Arg z / (2*pi))) ` sphere 0 1 = path_image \<gamma>"
       by (auto simp: path_image_def image_iff)

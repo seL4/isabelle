@@ -202,7 +202,7 @@ lemma complex_Im_fact [simp]: "Im (fact n) = 0"
 
 subsection \<open>The Complex Number $i$\<close>
 
-primcorec "ii" :: complex  ("\<i>")
+primcorec imaginary_unit :: complex  ("\<i>")
   where
     "Re \<i> = 0"
   | "Im \<i> = 1"
@@ -249,13 +249,13 @@ lemma complex_split_polar: "\<exists>r a. z = complex_of_real r * (cos a + \<i> 
 lemma i_even_power [simp]: "\<i> ^ (n * 2) = (-1) ^ n"
   by (metis mult.commute power2_i power_mult)
 
-lemma Re_ii_times [simp]: "Re (\<i> * z) = - Im z"
+lemma Re_i_times [simp]: "Re (\<i> * z) = - Im z"
   by simp
 
-lemma Im_ii_times [simp]: "Im (\<i> * z) = Re z"
+lemma Im_i_times [simp]: "Im (\<i> * z) = Re z"
   by simp
 
-lemma ii_times_eq_iff: "\<i> * w = z \<longleftrightarrow> w = - (\<i> * z)"
+lemma i_times_eq_iff: "\<i> * w = z \<longleftrightarrow> w = - (\<i> * z)"
   by auto
 
 lemma divide_numeral_i [simp]: "z / (numeral n * \<i>) = - (\<i> * z) / numeral n"

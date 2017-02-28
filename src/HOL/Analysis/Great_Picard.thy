@@ -1146,7 +1146,7 @@ proof
   qed
   moreover
   have "contour_integral (circlepath z0 (r/2)) (\<lambda>z. m / (z - z0) + deriv h z / h z) =
-        2 * of_real pi * ii * m + 0"
+        2 * of_real pi * \<i> * m + 0"
   proof (rule contour_integral_unique [OF has_contour_integral_add])
     show "((\<lambda>x. m / (x - z0)) has_contour_integral 2 * of_real pi * \<i> * m) (circlepath z0 (r/2))"
       by (force simp: \<open>0 < r\<close> intro: Cauchy_integral_circlepath_simple)
