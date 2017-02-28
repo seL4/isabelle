@@ -212,8 +212,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -W WEBSITE   produce minimal website in given directory
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
-    -p NAMES     platform families (comma separated list, default: """ +
-      default_platform_families.mkString(",") + """)
+    -p NAMES     platform families (default: """ + default_platform_families.mkString(",") + """)
     -r REV       Mercurial changeset id (default: RELEASE or tip)
 
   Build Isabelle release in base directory, using the local repository clone.
