@@ -37,11 +37,8 @@ object Url
   /* read */
 
   private def read(url: URL, gzip: Boolean): String =
-  {
-    val stream = url.openStream
-    try { File.read_stream(if (gzip) new GZIPInputStream(stream) else stream) }
-    finally { stream.close }
-  }
+    using(url.openStream)(stream =>
+      File.read_stream(if (gzip) new GZIPInputStream(stream) else stream))
 
   def read(url: URL): String = read(url, false)
   def read_gzip(url: URL): String = read(url, true)
