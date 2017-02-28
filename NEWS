@@ -142,6 +142,11 @@ front-ends.
 * ISABELLE_SCALA_BUILD_OPTIONS has been renamed to
 ISABELLE_SCALAC_OPTIONS. Rare INCOMPATIBILITY.
 
+* Isabelle settings ISABELLE_WINDOWS_PLATFORM32 and
+ISABELLE_WINDOWS_PLATFORM64 indicate the native Windows platform
+(independently of the Cygwin installation). This is analogous to
+ISABELLE_PLATFORM32 and ISABELLE_PLATFORM64.
+
 
 
 New in Isabelle2016-1 (December 2016)
