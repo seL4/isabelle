@@ -9,15 +9,6 @@ sig
   val dynamic_value: Proof.context -> term -> term option
   val dynamic_value_strict: Proof.context -> term -> term
   val dynamic_value_exn: Proof.context -> term -> term Exn.result
-  val static_value: { ctxt: Proof.context, consts: string list }
-    -> Proof.context -> term -> term option
-  val static_value_strict: { ctxt: Proof.context, consts: string list }
-    -> Proof.context -> term -> term
-  val static_value_exn: { ctxt: Proof.context, consts: string list }
-    -> Proof.context -> term -> term Exn.result
-  val dynamic_conv: Proof.context -> conv
-  val static_conv: { ctxt: Proof.context, consts: string list }
-    -> Proof.context -> conv
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
 end;
@@ -189,42 +180,6 @@ fun gen_dynamic_value computation ctxt t =
 val dynamic_value = gen_dynamic_value Code_Runtime.dynamic_value;
 val dynamic_value_strict = gen_dynamic_value Code_Runtime.dynamic_value_strict;
 val dynamic_value_exn = gen_dynamic_value Code_Runtime.dynamic_value_exn;
-
-fun gen_static_value computation { ctxt, consts } =
-  let
-    val computation' = computation cookie
-      { ctxt = ctxt, target = NONE, lift_postproc = I, consts = consts }
-  in fn ctxt' => computation' ctxt' o mk_term_of end;
-
-val static_value = gen_static_value Code_Runtime.static_value;
-val static_value_strict = gen_static_value Code_Runtime.static_value_strict;
-val static_value_exn = gen_static_value Code_Runtime.static_value_exn;
-
-fun certify_eval ctxt value conv ct =
-  let
-    val t = Thm.term_of ct;
-    val T = fastype_of t;
-    val mk_eq =
-      Thm.mk_binop (Thm.cterm_of ctxt (Const (@{const_name Pure.eq}, T --> T --> propT)));
-  in case value ctxt t
-   of NONE => Thm.reflexive ct
-    | SOME t' => conv ctxt (mk_eq ct (Thm.cterm_of ctxt t')) RS @{thm eq_eq_TrueD}
-        handle THM _ =>
-          error ("Failed to certify evaluation result of " ^ Syntax.string_of_term ctxt t)
-  end;
-
-fun dynamic_conv ctxt = certify_eval ctxt dynamic_value
-  Code_Runtime.dynamic_holds_conv;
-
-fun static_conv { ctxt, consts }  =
-  let
-    val value = static_value { ctxt = ctxt, consts = consts };
-    val holds = Code_Runtime.static_holds_conv { ctxt = ctxt,
-      consts = insert (op =) @{const_name Pure.eq} consts
-        (*assumes particular code equation for Pure.eq*) };
-  in
-    fn ctxt' => certify_eval ctxt' value holds
-  end;
 
 
 (** diagnostic **)

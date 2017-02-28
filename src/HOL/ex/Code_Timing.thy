@@ -27,8 +27,6 @@ in
     { ctxt = ctxt, consts = consts, simpset = NONE };
   val nbe = Nbe.static_conv
     { ctxt = ctxt, consts = consts };
-  val eval = Code_Evaluation.static_conv
-    { ctxt = ctxt, consts = consts };
 end;
 \<close>
 
@@ -50,14 +48,6 @@ ML_val \<open>
 
 ML_val \<open>
   nbe @{context} @{cterm "primes_upto 600"}
-\<close>
-
-ML_val \<open>
-  eval @{context} @{cterm "primes_upto 800"}
-\<close>
-
-ML_val \<open>
-  eval @{context} @{cterm "primes_upto 1000"}
 \<close>
 
 end

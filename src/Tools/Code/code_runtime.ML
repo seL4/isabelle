@@ -17,17 +17,7 @@ sig
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a
   val dynamic_value_exn: 'a cookie -> Proof.context -> string option
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a Exn.result
-  val static_value: 'a cookie -> { ctxt: Proof.context, target: string option,
-    lift_postproc: (term -> term) -> 'a -> 'a, consts: string list }
-    -> Proof.context -> term -> 'a option
-  val static_value_strict: 'a cookie -> { ctxt: Proof.context, target: string option,
-    lift_postproc: (term -> term) -> 'a -> 'a, consts: string list }
-    -> Proof.context -> term -> 'a
-  val static_value_exn: 'a cookie -> { ctxt: Proof.context, target: string option,
-    lift_postproc: (term -> term) -> 'a -> 'a, consts: string list }
-    -> Proof.context -> term -> 'a Exn.result
   val dynamic_holds_conv: Proof.context -> conv
-  val static_holds_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
   val code_reflect: (string * string list option) list -> string list -> string
     -> string option -> theory -> theory
   datatype truth = Holds
@@ -130,22 +120,6 @@ fun dynamic_value_strict cookie ctxt some_target postproc t args =
 fun dynamic_value cookie ctxt some_target postproc t args =
   partiality_as_none (dynamic_value_exn cookie ctxt some_target postproc t args);
 
-fun static_value_exn cookie { ctxt, target, lift_postproc, consts } =
-  let
-    fun compilation' { program, deps } =
-      let
-        val compilation'' = run_compilation_text cookie ctxt
-          (build_compilation_text ctxt target program (map Constant deps));
-      in fn _ => fn _ => fn vs_ty_t => fn _ => compilation'' vs_ty_t [] end;
-    val compilation = Code_Thingol.static_value { ctxt = ctxt,
-      lift_postproc = Exn.map_res o lift_postproc, consts = consts }
-      compilation';
-  in fn ctxt' => compilation ctxt' o reject_vars ctxt' end;
-
-fun static_value_strict cookie x = Exn.release oo static_value_exn cookie x;
-
-fun static_value cookie x = partiality_as_none oo static_value_exn cookie x;
-
 
 (* evaluation for truth or nothing *)
 
@@ -189,10 +163,6 @@ fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
   (fn program => fn vs_t => fn deps =>
     check_holds_oracle ctxt (build_compilation_text ctxt NONE program deps) vs_t)
       o reject_vars ctxt;
-
-fun static_holds_conv (ctxt_consts as { ctxt, ... }) =
-  Code_Thingol.static_conv_thingol ctxt_consts (fn { program, deps } => fn ctxt' => fn vs_t =>
-    K (check_holds_oracle ctxt' (build_compilation_text ctxt NONE program (map Constant deps)) vs_t o reject_vars ctxt'));
 
 end; (*local*)
 
