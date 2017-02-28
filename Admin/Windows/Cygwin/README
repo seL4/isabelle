@@ -15,7 +15,7 @@ Cygwin
   http://isabelle.in.tum.de/cygwin_2016  (Isabelle2016)
   http://isabelle.in.tum.de/cygwin_2016-1  (Isabelle2016-1)
 
-* Quasi-component: "isabelle makedist_cygwin" (as administrator)
+* Quasi-component: "isabelle build_cygwin" (as Administrator)
 
 * SSH server:
 

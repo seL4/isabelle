@@ -100,6 +100,7 @@ object Isabelle_Tool
   private val internal_tools: List[Isabelle_Tool] =
     List(
       Build.isabelle_tool,
+      Build_Cygwin.isabelle_tool,
       Build_Doc.isabelle_tool,
       Build_Docker.isabelle_tool,
       Build_JDK.isabelle_tool,
