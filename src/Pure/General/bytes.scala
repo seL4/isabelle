@@ -9,6 +9,7 @@ package isabelle
 
 import java.io.{File => JFile, ByteArrayOutputStream, ByteArrayInputStream,
   OutputStream, InputStream, FileInputStream, FileOutputStream}
+import java.net.URL
 
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
@@ -59,6 +60,8 @@ object Bytes
     using(new FileInputStream(file))(read_stream(_, file.length.toInt))
 
   def read(path: Path): Bytes = read(path.file)
+
+  def read(url: URL): Bytes = using(url.openStream)(read_stream(_))
 
 
   /* write */
