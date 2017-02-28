@@ -37,37 +37,34 @@ locale residues =
 begin
 
 lemma abelian_group: "abelian_group R"
-  apply (insert m_gt_one)
-  apply (rule abelian_groupI)
-  apply (unfold R_def residue_ring_def)
-  apply (auto simp add: mod_add_right_eq ac_simps)
-  apply (case_tac "x = 0")
-  apply force
-  apply (subgoal_tac "(x + (m - x)) mod m = 0")
-  apply (erule bexI)
-  apply auto
-  done
+proof -
+  have "\<exists>y\<in>{0..m - 1}. (x + y) mod m = 0" if "0 \<le> x" "x < m" for x
+  proof (cases "x = 0")
+    case True
+    with m_gt_one show ?thesis by simp
+  next
+    case False
+    then have "(x + (m - x)) mod m = 0"
+      by simp
+    with m_gt_one that show ?thesis
+      by (metis False atLeastAtMost_iff diff_ge_0_iff_ge diff_left_mono int_one_le_iff_zero_less less_le)
+  qed
+  with m_gt_one show ?thesis
+    by (fastforce simp add: R_def residue_ring_def mod_add_right_eq ac_simps  intro!: abelian_groupI)
+qed    
 
 lemma comm_monoid: "comm_monoid R"
-  apply (insert m_gt_one)
-  apply (unfold R_def residue_ring_def)
+  unfolding R_def residue_ring_def
   apply (rule comm_monoidI)
-  apply auto
-  apply (subgoal_tac "x * y mod m * z mod m = z * (x * y mod m) mod m")
-  apply (erule ssubst)
-  apply (subst mod_mult_right_eq)+
-  apply (simp_all only: ac_simps)
+    using m_gt_one  apply auto
+  apply (metis mod_mult_right_eq mult.assoc mult.commute)
+  apply (metis mult.commute)
   done
 
 lemma cring: "cring R"
-  apply (rule cringI)
-  apply (rule abelian_group)
-  apply (rule comm_monoid)
-  apply (unfold R_def residue_ring_def, auto)
-  apply (subst mod_add_eq)
-  apply (subst mult.commute)
-  apply (subst mod_mult_right_eq)
-  apply (simp add: field_simps)
+  apply (intro cringI abelian_group comm_monoid)
+  unfolding R_def residue_ring_def
+  apply (auto simp add: comm_semiring_class.distrib mod_add_eq mod_mult_left_eq)
   done
 
 end
@@ -100,8 +97,8 @@ lemma res_one_eq: "\<one> = 1"
   unfolding R_def residue_ring_def units_of_def by auto
 
 lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}"
-  apply (insert m_gt_one)
-  apply (unfold Units_def R_def residue_ring_def)
+  using m_gt_one
+  unfolding Units_def R_def residue_ring_def
   apply auto
   apply (subgoal_tac "x \<noteq> 0")
   apply auto
@@ -111,18 +108,12 @@ lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}"
   done
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
-  apply (insert m_gt_one)
-  apply (unfold R_def a_inv_def m_inv_def residue_ring_def)
-  apply auto
-  apply (rule the_equality)
-  apply auto
-  apply (subst mod_add_right_eq)
-  apply auto
-  apply (subst mod_add_left_eq)
-  apply auto
-  apply (subgoal_tac "y mod m = - x mod m")
+  using m_gt_one unfolding R_def a_inv_def m_inv_def residue_ring_def
   apply simp
-  apply (metis minus_add_cancel mod_mult_self1 mult.commute)
+  apply (rule the_equality)
+  apply (simp add: mod_add_right_eq)
+  apply (simp add: add.commute mod_add_right_eq)
+  apply (metis add.right_neutral minus_add_cancel mod_add_right_eq mod_pos_pos_trivial)
   done
 
 lemma finite [iff]: "finite (carrier R)"
@@ -157,7 +148,7 @@ lemma one_cong: "\<one> = 1 mod m"
 
 (* FIXME revise algebra library to use 1? *)
 lemma pow_cong: "(x mod m) (^) n = x^n mod m"
-  apply (insert m_gt_one)
+  using m_gt_one
   apply (induct n)
   apply (auto simp add: nat_pow_def one_cong)
   apply (metis mult.commute mult_cong)
@@ -213,7 +204,7 @@ locale residues_prime =
   defines "R \<equiv> residue_ring (int p)"
 
 sublocale residues_prime < residues p
-  apply (unfold R_def residues_def)
+  unfolding R_def residues_def
   using p_prime apply auto
   apply (metis (full_types) of_nat_1 of_nat_less_iff prime_gt_1_nat)
   done
@@ -222,18 +213,14 @@ context residues_prime
 begin
 
 lemma is_field: "field R"
-  apply (rule cring.field_intro2)
-  apply (rule cring)
+proof -
+  have "\<And>x. \<lbrakk>gcd x (int p) \<noteq> 1; 0 \<le> x; x < int p\<rbrakk> \<Longrightarrow> x = 0"
+    by (metis dual_order.order_iff_strict gcd.commute less_le_not_le p_prime prime_imp_coprime prime_nat_int_transfer zdvd_imp_le)
+  then show ?thesis
+  apply (intro cring.field_intro2 cring)
   apply (auto simp add: res_carrier_eq res_one_eq res_zero_eq res_units_eq)
-  apply (rule classical)
-  apply (erule notE)
-  apply (subst gcd.commute)
-  apply (rule prime_imp_coprime_int)
-  apply (simp add: p_prime)
-  apply (rule notI)
-  apply (frule zdvd_imp_le)
-  apply auto
-  done
+    done
+qed
 
 lemma res_prime_units_eq: "Units R = {1..p - 1}"
   apply (subst res_units_eq)
@@ -252,20 +239,22 @@ section \<open>Test cases: Euler's theorem and Wilson's theorem\<close>
 
 subsection \<open>Euler's theorem\<close>
 
-text \<open>The definition of the phi function.\<close>
+text \<open>The definition of the totient function.\<close>
 
 definition phi :: "int \<Rightarrow> nat"
-  where "phi m = card {x. 0 < x \<and> x < m \<and> gcd x m = 1}"
+  where "phi m = card {x. 0 < x \<and> x < m \<and> coprime x m}"
 
-lemma phi_def_nat: "phi m = card {x. 0 < x \<and> x < nat m \<and> gcd x (nat m) = 1}"
-  apply (simp add: phi_def)
-  apply (rule bij_betw_same_card [of nat])
-  apply (auto simp add: inj_on_def bij_betw_def image_def)
-  apply (metis dual_order.irrefl dual_order.strict_trans leI nat_1 transfer_nat_int_gcd(1))
-  apply (metis One_nat_def of_nat_0 of_nat_1 of_nat_less_0_iff int_nat_eq nat_int
-    transfer_int_nat_gcd(1) of_nat_less_iff)
-  done
-
+lemma phi_def_nat: "phi m = card {x. 0 < x \<and> x < nat m \<and> coprime x (nat m)}"
+  unfolding phi_def
+proof (rule bij_betw_same_card [of nat])
+  show "bij_betw nat {x. 0 < x \<and> x < m \<and> coprime x m} {x. 0 < x \<and> x < nat m \<and> coprime x (nat m)}"
+    apply (auto simp add: inj_on_def bij_betw_def image_def)
+     apply (metis dual_order.irrefl dual_order.strict_trans leI nat_1 transfer_nat_int_gcd(1))
+    apply (metis One_nat_def of_nat_0 of_nat_1 of_nat_less_0_iff int_nat_eq nat_int
+        transfer_int_nat_gcd(1) of_nat_less_iff)
+    done
+qed
+  
 lemma prime_phi:
   assumes "2 \<le> p" "phi p = p - 1"
   shows "prime p"
@@ -292,12 +281,7 @@ proof -
 qed
 
 lemma phi_zero [simp]: "phi 0 = 0"
-  unfolding phi_def
-(* Auto hangs here. Once again, where is the simplification rule
-   1 \<equiv> Suc 0 coming from? *)
-  apply (auto simp add: card_eq_0_iff)
-(* Add card_eq_0_iff as a simp rule? delete card_empty_imp? *)
-  done
+  unfolding phi_def by (auto simp add: card_eq_0_iff)
 
 lemma phi_one [simp]: "phi 1 = 0"
   by (auto simp add: phi_def card_eq_0_iff)
@@ -309,29 +293,11 @@ lemma (in residues) euler_theorem1:
   assumes a: "gcd a m = 1"
   shows "[a^phi m = 1] (mod m)"
 proof -
-  from a m_gt_one have [simp]: "a mod m \<in> Units R"
-    by (intro mod_in_res_units)
-  from phi_eq have "(a mod m) (^) (phi m) = (a mod m) (^) (card (Units R))"
-    by simp
-  also have "\<dots> = \<one>"
-    by (intro units_power_order_eq_one) auto
-  finally show ?thesis
-    by (simp add: res_to_cong_simps)
-qed
-
-(* In fact, there is a two line proof!
-
-lemma (in residues) euler_theorem1:
-  assumes a: "gcd a m = 1"
-  shows "[a^phi m = 1] (mod m)"
-proof -
-  have "(a mod m) (^) (phi m) = \<one>"
-    by (simp add: phi_eq units_power_order_eq_one a m_gt_one)
+  have "a ^ phi m mod m = 1 mod m"
+    by (metis assms finite_Units m_gt_one mod_in_res_units one_cong phi_eq pow_cong units_power_order_eq_one)
   then show ?thesis
-    by (simp add: res_to_cong_simps)
+    using res_eq_to_cong by blast
 qed
-
-*)
 
 text \<open>Outside the locale, we can relax the restriction \<open>m > 1\<close>.\<close>
 lemma euler_theorem:
@@ -348,16 +314,10 @@ next
 qed
 
 lemma (in residues_prime) phi_prime: "phi p = nat p - 1"
-  apply (subst phi_eq)
-  apply (subst res_prime_units_eq)
-  apply auto
-  done
+  by (simp add: residues.phi_eq residues_axioms residues_prime.res_prime_units_eq residues_prime_axioms)
 
 lemma phi_prime: "prime (int p) \<Longrightarrow> phi p = nat p - 1"
-  apply (rule residues_prime.phi_prime)
-  apply simp
-  apply (erule residues_prime.intro)
-  done
+  by (simp add: residues_prime.intro residues_prime.phi_prime)
 
 lemma fermat_theorem:
   fixes a :: int
@@ -424,18 +384,12 @@ proof -
   finally have "(\<Otimes>i\<in>Units R. i) = \<ominus> \<one>"
     by simp
   also have "(\<Otimes>i\<in>Units R. i) = (\<Otimes>i\<in>Units R. i mod p)"
-    apply (rule finprod_cong')
-    apply auto
-    apply (subst (asm) res_prime_units_eq)
-    apply auto
-    done
+    by (rule finprod_cong') (auto simp: res_units_eq)
   also have "\<dots> = (\<Prod>i\<in>Units R. i) mod p"
-    apply (rule prod_cong)
-    apply auto
-    done
+    by (rule prod_cong) auto
   also have "\<dots> = fact (p - 1) mod p"
     apply (simp add: fact_prod)
-    apply (insert assms)
+    using assms
     apply (subst res_prime_units_eq)
     apply (simp add: int_prod zmod_int prod_int_eq)
     done
