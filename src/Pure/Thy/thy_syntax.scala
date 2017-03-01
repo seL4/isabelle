@@ -120,6 +120,9 @@ object Thy_Syntax
   {
     eds match {
       case e :: es =>
+        def insert_text(cmd: Option[Command], text: String): Linear_Set[Command] =
+          if (text == "") commands else commands.insert_after(cmd, Command.unparsed(text))
+
         Document.Node.Commands.starts(commands.iterator).find {
           case (cmd, cmd_start) =>
             e.can_edit(cmd.source, cmd_start) ||
@@ -127,15 +130,15 @@ object Thy_Syntax
         } match {
           case Some((cmd, cmd_start)) if e.can_edit(cmd.source, cmd_start) =>
             val (rest, text) = e.edit(cmd.source, cmd_start)
-            val new_commands = commands.insert_after(Some(cmd), Command.unparsed(text)) - cmd
+            val new_commands = insert_text(Some(cmd), text) - cmd
             edit_text(rest.toList ::: es, new_commands)
 
           case Some((cmd, cmd_start)) =>
-            edit_text(es, commands.insert_after(Some(cmd), Command.unparsed(e.text)))
+            edit_text(es, insert_text(Some(cmd), e.text))
 
           case None =>
             require(e.is_insert && e.start == 0)
-            edit_text(es, commands.insert_after(None, Command.unparsed(e.text)))
+            edit_text(es, insert_text(None, e.text))
         }
       case Nil => commands
     }
