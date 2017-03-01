@@ -57,11 +57,12 @@ system by default.  For Linux this usually means missing 32 bit shared
 libraries, so native x86_64-linux needs to be used by default, despite
 its doubled space requirements for Poly/ML heaps.  For Mac OS X, the
 x86-darwin personality usually works seamlessly for C/C++ programs,
-but the Java platform is only available for x86_64-darwin.
+but the Java platform is always for x86_64-darwin.
 
 Add-on executables are expected to work without manual user
 configuration.  Each component settings script needs to determine the
 platform details appropriately.
+
 
 The Isabelle settings environment provides the following variables to
 help configuring platform-dependent tools:
@@ -76,6 +77,21 @@ tools may express their preference for 64 bit with a fall-back for 32
 bit as follows:
 
   "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
+
+
+There is a second set of settings for native Windows (instead of the
+POSIX emulation of Cygwin used before):
+
+  ISABELLE_WINDOWS_PLATFORM64  (potentially empty)
+  ISABELLE_WINDOWS_PLATFORM32
+  ISABELLE_WINDOWS_PLATFORM
+
+It can be used like this:
+
+  "${ISABELLE_WINDOWS_PLATFORM:-$ISABELLE_PLATFORM}"
+
+  "${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}}"
+
 
 Moreover note that ML and JVM usually have a different idea of the
 platform, depending on the respective binaries that are actually run.
