@@ -2,116 +2,112 @@
     Author:     Tom Ridge.  Converted to structured Isar by L C Paulson
 *)
 
-section "Ramsey's Theorem"
+section \<open>Ramsey's Theorem\<close>
 
 theory Ramsey
-imports Main Infinite_Set
+  imports Infinite_Set
 begin
 
-subsection\<open>Finite Ramsey theorem(s)\<close>
+subsection \<open>Finite Ramsey theorem(s)\<close>
 
-text\<open>To distinguish the finite and infinite ones, lower and upper case
-names are used.
+text \<open>
+  To distinguish the finite and infinite ones, lower and upper case
+  names are used.
 
-This is the most basic version in terms of cliques and independent
-sets, i.e. the version for graphs and 2 colours.\<close>
+  This is the most basic version in terms of cliques and independent
+  sets, i.e. the version for graphs and 2 colours.
+\<close>
 
-definition "clique V E = (\<forall>v\<in>V. \<forall>w\<in>V. v\<noteq>w \<longrightarrow> {v,w} : E)"
-definition "indep V E = (\<forall>v\<in>V. \<forall>w\<in>V. v\<noteq>w \<longrightarrow> \<not> {v,w} : E)"
+definition "clique V E \<longleftrightarrow> (\<forall>v\<in>V. \<forall>w\<in>V. v \<noteq> w \<longrightarrow> {v, w} \<in> E)"
+definition "indep V E \<longleftrightarrow> (\<forall>v\<in>V. \<forall>w\<in>V. v \<noteq> w \<longrightarrow> {v, w} \<notin> E)"
 
 lemma ramsey2:
-  "\<exists>r\<ge>1. \<forall> (V::'a set) (E::'a set set). finite V \<and> card V \<ge> r \<longrightarrow>
-  (\<exists> R \<subseteq> V. card R = m \<and> clique R E \<or> card R = n \<and> indep R E)"
+  "\<exists>r\<ge>1. \<forall>(V::'a set) (E::'a set set). finite V \<and> card V \<ge> r \<longrightarrow>
+    (\<exists>R \<subseteq> V. card R = m \<and> clique R E \<or> card R = n \<and> indep R E)"
   (is "\<exists>r\<ge>1. ?R m n r")
-proof(induct k == "m+n" arbitrary: m n)
+proof (induct k \<equiv> "m + n" arbitrary: m n)
   case 0
-  show ?case (is "EX r. ?R r")
+  show ?case (is "EX r. ?Q r")
   proof
-    show "?R 1" using 0
-      by (clarsimp simp: indep_def)(metis card.empty emptyE empty_subsetI)
+    from 0 show "?Q 1"
+      by (clarsimp simp: indep_def) (metis card.empty emptyE empty_subsetI)
   qed
 next
   case (Suc k)
-  { assume "m=0"
-    have ?case (is "EX r. ?R r")
-    proof
-      show "?R 1" using \<open>m=0\<close>
-        by (simp add:clique_def)(metis card.empty emptyE empty_subsetI)
-    qed
-  } moreover
-  { assume "n=0"
-    have ?case (is "EX r. ?R r")
-    proof
-      show "?R 1" using \<open>n=0\<close>
-        by (simp add:indep_def)(metis card.empty emptyE empty_subsetI)
-    qed
-  } moreover
-  { assume "m\<noteq>0" "n\<noteq>0"
-    then have "k = (m - 1) + n" "k = m + (n - 1)" using \<open>Suc k = m+n\<close> by auto
-    from Suc(1)[OF this(1)] Suc(1)[OF this(2)]
-    obtain r1 r2 where "r1\<ge>1" "r2\<ge>1" "?R (m - 1) n r1" "?R m (n - 1) r2"
-      by auto
-    then have "r1+r2 \<ge> 1" by arith
-    moreover
-    have "?R m n (r1+r2)" (is "ALL V E. _ \<longrightarrow> ?EX V E m n")
+  consider "m = 0 \<or> n = 0" | "m \<noteq> 0" "n \<noteq> 0" by auto
+  then show ?case (is "EX r. ?Q r")
+  proof cases
+    case 1
+    then have "?Q 1"
+      by (simp add: clique_def) (meson card_empty empty_iff empty_subsetI indep_def)
+    then show ?thesis ..
+  next
+    case 2
+    with Suc(2) have "k = (m - 1) + n" "k = m + (n - 1)" by auto
+    from this [THEN Suc(1)]
+    obtain r1 r2 where "r1 \<ge> 1" "r2 \<ge> 1" "?R (m - 1) n r1" "?R m (n - 1) r2" by auto
+    then have "r1 + r2 \<ge> 1" by arith
+    moreover have "?R m n (r1 + r2)" (is "\<forall>V E. _ \<longrightarrow> ?EX V E m n")
     proof clarify
-      fix V :: "'a set" and E :: "'a set set"
-      assume "finite V" "r1+r2 \<le> card V"
-      with \<open>r1\<ge>1\<close> have "V \<noteq> {}" by auto
-      then obtain v where "v : V" by blast
-      let ?M = "{w : V. w\<noteq>v & {v,w} : E}"
-      let ?N = "{w : V. w\<noteq>v & {v,w} ~: E}"
-      have "V = insert v (?M \<union> ?N)" using \<open>v : V\<close> by auto
-      then have "card V = card(insert v (?M \<union> ?N))" by metis
-      also have "\<dots> = card ?M + card ?N + 1" using \<open>finite V\<close>
-        by(fastforce intro: card_Un_disjoint)
+      fix V :: "'a set"
+      fix E :: "'a set set"
+      assume "finite V" "r1 + r2 \<le> card V"
+      with \<open>r1 \<ge> 1\<close> have "V \<noteq> {}" by auto
+      then obtain v where "v \<in> V" by blast
+      let ?M = "{w \<in> V. w \<noteq> v \<and> {v, w} \<in> E}"
+      let ?N = "{w \<in> V. w \<noteq> v \<and> {v, w} \<notin> E}"
+      from \<open>v \<in> V\<close> have "V = insert v (?M \<union> ?N)" by auto
+      then have "card V = card (insert v (?M \<union> ?N))" by metis
+      also from \<open>finite V\<close> have "\<dots> = card ?M + card ?N + 1"
+        by (fastforce intro: card_Un_disjoint)
       finally have "card V = card ?M + card ?N + 1" .
-      then have "r1+r2 \<le> card ?M + card ?N + 1" using \<open>r1+r2 \<le> card V\<close> by simp
-      then have "r1 \<le> card ?M \<or> r2 \<le> card ?N" by arith
-      moreover
-      { assume "r1 \<le> card ?M"
-        moreover have "finite ?M" using \<open>finite V\<close> by auto
-        ultimately have "?EX ?M E (m - 1) n" using \<open>?R (m - 1) n r1\<close> by blast
-        then obtain R where "R \<subseteq> ?M" "v ~: R" and
-          CI: "card R = m - 1 \<and> clique R E \<or>
-               card R = n \<and> indep R E" (is "?C \<or> ?I")
+      with \<open>r1 + r2 \<le> card V\<close> have "r1 + r2 \<le> card ?M + card ?N + 1" by simp
+      then consider "r1 \<le> card ?M" | "r2 \<le> card ?N" by arith
+      then show "?EX V E m n"
+      proof cases
+        case 1
+        from \<open>finite V\<close> have "finite ?M" by auto
+        with \<open>?R (m - 1) n r1\<close> and 1 have "?EX ?M E (m - 1) n" by blast
+        then obtain R where "R \<subseteq> ?M" "v \<notin> R"
+          and CI: "card R = m - 1 \<and> clique R E \<or> card R = n \<and> indep R E" (is "?C \<or> ?I")
           by blast
-        have "R <= V" using \<open>R <= ?M\<close> by auto
-        have "finite R" using \<open>finite V\<close> \<open>R \<subseteq> V\<close> by (metis finite_subset)
-        { assume "?I"
-          with \<open>R <= V\<close> have "?EX V E m n" by blast
-        } moreover
-        { assume "?C"
-          then have "clique (insert v R) E" using \<open>R <= ?M\<close>
-           by(auto simp:clique_def insert_commute)
-          moreover have "card(insert v R) = m"
-            using \<open>?C\<close> \<open>finite R\<close> \<open>v ~: R\<close> \<open>m\<noteq>0\<close> by simp
-          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by (metis insert_subset)
-        } ultimately have "?EX V E m n" using CI by blast
-      } moreover
-      { assume "r2 \<le> card ?N"
-        moreover have "finite ?N" using \<open>finite V\<close> by auto
-        ultimately have "?EX ?N E m (n - 1)" using \<open>?R m (n - 1) r2\<close> by blast
-        then obtain R where "R \<subseteq> ?N" "v ~: R" and
-          CI: "card R = m \<and> clique R E \<or>
-               card R = n - 1 \<and> indep R E" (is "?C \<or> ?I")
+        from \<open>R \<subseteq> ?M\<close> have "R \<subseteq> V" by auto
+        with \<open>finite V\<close> have "finite R" by (metis finite_subset)
+        from CI show ?thesis
+        proof
+          assume "?I"
+          with \<open>R \<subseteq> V\<close> show ?thesis by blast
+        next
+          assume "?C"
+          with \<open>R \<subseteq> ?M\<close> have *: "clique (insert v R) E"
+            by (auto simp: clique_def insert_commute)
+          from \<open>?C\<close> \<open>finite R\<close> \<open>v \<notin> R\<close> \<open>m \<noteq> 0\<close> have "card (insert v R) = m" by simp
+          with \<open>R \<subseteq> V\<close> \<open>v \<in> V\<close> * show ?thesis by (metis insert_subset)
+        qed
+      next
+        case 2
+        from \<open>finite V\<close> have "finite ?N" by auto
+        with \<open>?R m (n - 1) r2\<close> 2 have "?EX ?N E m (n - 1)" by blast
+        then obtain R where "R \<subseteq> ?N" "v \<notin> R"
+          and CI: "card R = m \<and> clique R E \<or> card R = n - 1 \<and> indep R E" (is "?C \<or> ?I")
           by blast
-        have "R <= V" using \<open>R <= ?N\<close> by auto
-        have "finite R" using \<open>finite V\<close> \<open>R \<subseteq> V\<close> by (metis finite_subset)
-        { assume "?C"
-          with \<open>R <= V\<close> have "?EX V E m n" by blast
-        } moreover
-        { assume "?I"
-          then have "indep (insert v R) E" using \<open>R <= ?N\<close>
-            by(auto simp:indep_def insert_commute)
-          moreover have "card(insert v R) = n"
-            using \<open>?I\<close> \<open>finite R\<close> \<open>v ~: R\<close> \<open>n\<noteq>0\<close> by simp
-          ultimately have "?EX V E m n" using \<open>R <= V\<close> \<open>v : V\<close> by (metis insert_subset)
-        } ultimately have "?EX V E m n" using CI by blast
-      } ultimately show "?EX V E m n" by blast
+        from \<open>R \<subseteq> ?N\<close> have "R \<subseteq> V" by auto
+        with \<open>finite V\<close> have "finite R" by (metis finite_subset)
+        from CI show ?thesis
+        proof
+          assume "?C"
+          with \<open>R \<subseteq> V\<close> show ?thesis by blast
+        next
+          assume "?I"
+          with \<open>R \<subseteq> ?N\<close> have *: "indep (insert v R) E"
+            by (auto simp: indep_def insert_commute)
+          from \<open>?I\<close> \<open>finite R\<close> \<open>v \<notin> R\<close> \<open>n \<noteq> 0\<close> have "card (insert v R) = n" by simp
+          with \<open>R \<subseteq> V\<close> \<open>v \<in> V\<close> * show ?thesis by (metis insert_subset)
+        qed
+      qed
     qed
-    ultimately have ?case by blast
-  } ultimately show ?case by blast
+    ultimately show ?thesis by blast
+  qed
 qed
 
 
@@ -119,122 +115,115 @@ subsection \<open>Preliminaries\<close>
 
 subsubsection \<open>``Axiom'' of Dependent Choice\<close>
 
-primrec choice :: "('a => bool) => ('a * 'a) set => nat => 'a" where
-  \<comment>\<open>An integer-indexed chain of choices\<close>
-    choice_0:   "choice P r 0 = (SOME x. P x)"
-  | choice_Suc: "choice P r (Suc n) = (SOME y. P y & (choice P r n, y) \<in> r)"
+primrec choice :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> 'a"
+  where \<comment> \<open>An integer-indexed chain of choices\<close>
+    choice_0: "choice P r 0 = (SOME x. P x)"
+  | choice_Suc: "choice P r (Suc n) = (SOME y. P y \<and> (choice P r n, y) \<in> r)"
 
 lemma choice_n:
   assumes P0: "P x0"
-      and Pstep: "!!x. P x ==> \<exists>y. P y & (x,y) \<in> r"
+    and Pstep: "\<And>x. P x \<Longrightarrow> \<exists>y. P y \<and> (x, y) \<in> r"
   shows "P (choice P r n)"
 proof (induct n)
-  case 0 show ?case by (force intro: someI P0)
+  case 0
+  show ?case by (force intro: someI P0)
 next
-  case Suc then show ?case by (auto intro: someI2_ex [OF Pstep])
+  case Suc
+  then show ?case by (auto intro: someI2_ex [OF Pstep])
 qed
 
 lemma dependent_choice:
   assumes trans: "trans r"
-      and P0: "P x0"
-      and Pstep: "!!x. P x ==> \<exists>y. P y & (x,y) \<in> r"
-  obtains f :: "nat => 'a" where
-    "!!n. P (f n)" and "!!n m. n < m ==> (f n, f m) \<in> r"
+    and P0: "P x0"
+    and Pstep: "\<And>x. P x \<Longrightarrow> \<exists>y. P y \<and> (x, y) \<in> r"
+  obtains f :: "nat \<Rightarrow> 'a" where "\<And>n. P (f n)" and "\<And>n m. n < m \<Longrightarrow> (f n, f m) \<in> r"
 proof
   fix n
-  show "P (choice P r n)" by (blast intro: choice_n [OF P0 Pstep])
+  show "P (choice P r n)"
+    by (blast intro: choice_n [OF P0 Pstep])
 next
-  have PSuc: "\<forall>n. (choice P r n, choice P r (Suc n)) \<in> r"
-    using Pstep [OF choice_n [OF P0 Pstep]]
-    by (auto intro: someI2_ex)
   fix n m :: nat
-  assume less: "n < m"
-  show "(choice P r n, choice P r m) \<in> r" using PSuc
-    by (auto intro: less_Suc_induct [OF less] transD [OF trans])
+  assume "n < m"
+  from Pstep [OF choice_n [OF P0 Pstep]] have "(choice P r k, choice P r (Suc k)) \<in> r" for k
+    by (auto intro: someI2_ex)
+  then show "(choice P r n, choice P r m) \<in> r"
+    by (auto intro: less_Suc_induct [OF \<open>n < m\<close>] transD [OF trans])
 qed
 
 
 subsubsection \<open>Partitions of a Set\<close>
 
-definition part :: "nat => nat => 'a set => ('a set => nat) => bool"
-  \<comment>\<open>the function @{term f} partitions the @{term r}-subsets of the typically
-       infinite set @{term Y} into @{term s} distinct categories.\<close>
-where
-  "part r s Y f = (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X < s)"
+definition part :: "nat \<Rightarrow> nat \<Rightarrow> 'a set \<Rightarrow> ('a set \<Rightarrow> nat) \<Rightarrow> bool"
+  \<comment> \<open>the function @{term f} partitions the @{term r}-subsets of the typically
+      infinite set @{term Y} into @{term s} distinct categories.\<close>
+  where "part r s Y f \<longleftrightarrow> (\<forall>X. X \<subseteq> Y \<and> finite X \<and> card X = r \<longrightarrow> f X < s)"
 
-text\<open>For induction, we decrease the value of @{term r} in partitions.\<close>
+text \<open>For induction, we decrease the value of @{term r} in partitions.\<close>
 lemma part_Suc_imp_part:
-     "[| infinite Y; part (Suc r) s Y f; y \<in> Y |]
-      ==> part r s (Y - {y}) (%u. f (insert y u))"
-  apply(simp add: part_def, clarify)
-  apply(drule_tac x="insert y X" in spec)
-  apply(force)
+  "\<lbrakk>infinite Y; part (Suc r) s Y f; y \<in> Y\<rbrakk> \<Longrightarrow> part r s (Y - {y}) (\<lambda>u. f (insert y u))"
+  apply (simp add: part_def)
+  apply clarify
+  apply (drule_tac x="insert y X" in spec)
+  apply force
   done
 
-lemma part_subset: "part r s YY f ==> Y \<subseteq> YY ==> part r s Y f"
+lemma part_subset: "part r s YY f \<Longrightarrow> Y \<subseteq> YY \<Longrightarrow> part r s Y f"
   unfolding part_def by blast
 
 
 subsection \<open>Ramsey's Theorem: Infinitary Version\<close>
 
 lemma Ramsey_induction:
-  fixes s and r::nat
-  shows
-  "!!(YY::'a set) (f::'a set => nat).
-      [|infinite YY; part r s YY f|]
-      ==> \<exists>Y' t'. Y' \<subseteq> YY & infinite Y' & t' < s &
-                  (\<forall>X. X \<subseteq> Y' & finite X & card X = r --> f X = t')"
-proof (induct r)
+  fixes s r :: nat
+    and YY :: "'a set"
+    and f :: "'a set \<Rightarrow> nat"
+  assumes "infinite YY" "part r s YY f"
+  shows "\<exists>Y' t'. Y' \<subseteq> YY \<and> infinite Y' \<and> t' < s \<and> (\<forall>X. X \<subseteq> Y' \<and> finite X \<and> card X = r \<longrightarrow> f X = t')"
+  using assms
+proof (induct r arbitrary: YY f)
   case 0
-  then show ?case by (auto simp add: part_def card_eq_0_iff cong: conj_cong)
+  then show ?case
+    by (auto simp add: part_def card_eq_0_iff cong: conj_cong)
 next
   case (Suc r)
   show ?case
   proof -
-    from Suc.prems infinite_imp_nonempty obtain yy where yy: "yy \<in> YY" by blast
-    let ?ramr = "{((y,Y,t),(y',Y',t')). y' \<in> Y & Y' \<subseteq> Y}"
-    let ?propr = "%(y,Y,t).
-                 y \<in> YY & y \<notin> Y & Y \<subseteq> YY & infinite Y & t < s
-                 & (\<forall>X. X\<subseteq>Y & finite X & card X = r --> (f o insert y) X = t)"
-    have infYY': "infinite (YY-{yy})" using Suc.prems by auto
-    have partf': "part r s (YY - {yy}) (f \<circ> insert yy)"
-      by (simp add: o_def part_Suc_imp_part yy Suc.prems)
+    from Suc.prems infinite_imp_nonempty obtain yy where yy: "yy \<in> YY"
+      by blast
+    let ?ramr = "{((y, Y, t), (y', Y', t')). y' \<in> Y \<and> Y' \<subseteq> Y}"
+    let ?propr = "\<lambda>(y, Y, t).
+                 y \<in> YY \<and> y \<notin> Y \<and> Y \<subseteq> YY \<and> infinite Y \<and> t < s
+                 \<and> (\<forall>X. X\<subseteq>Y \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert y) X = t)"
+    from Suc.prems have infYY': "infinite (YY - {yy})" by auto
+    from Suc.prems have partf': "part r s (YY - {yy}) (f \<circ> insert yy)"
+      by (simp add: o_def part_Suc_imp_part yy)
     have transr: "trans ?ramr" by (force simp add: trans_def)
     from Suc.hyps [OF infYY' partf']
-    obtain Y0 and t0
-    where "Y0 \<subseteq> YY - {yy}"  "infinite Y0"  "t0 < s"
-          "\<forall>X. X\<subseteq>Y0 \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert yy) X = t0"
+    obtain Y0 and t0 where "Y0 \<subseteq> YY - {yy}" "infinite Y0" "t0 < s"
+      "X \<subseteq> Y0 \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert yy) X = t0" for X
+      by blast
+    with yy have propr0: "?propr(yy, Y0, t0)" by blast
+    have proprstep: "\<exists>y. ?propr y \<and> (x, y) \<in> ?ramr" if x: "?propr x" for x
+    proof (cases x)
+      case (fields yx Yx tx)
+      with x obtain yx' where yx': "yx' \<in> Yx"
+        by (blast dest: infinite_imp_nonempty)
+      from fields x have infYx': "infinite (Yx - {yx'})" by auto
+      with fields x yx' Suc.prems have partfx': "part r s (Yx - {yx'}) (f \<circ> insert yx')"
+        by (simp add: o_def part_Suc_imp_part part_subset [where YY=YY and Y=Yx])
+      from Suc.hyps [OF infYx' partfx'] obtain Y' and t'
+        where Y': "Y' \<subseteq> Yx - {yx'}" "infinite Y'" "t' < s"
+          "X \<subseteq> Y' \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert yx') X = t'" for X
         by blast
-    with yy have propr0: "?propr(yy,Y0,t0)" by blast
-    have proprstep: "\<And>x. ?propr x \<Longrightarrow> \<exists>y. ?propr y \<and> (x, y) \<in> ?ramr"
-    proof -
-      fix x
-      assume px: "?propr x" then show "?thesis x"
-      proof (cases x)
-        case (fields yx Yx tx)
-        then obtain yx' where yx': "yx' \<in> Yx" using px
-               by (blast dest: infinite_imp_nonempty)
-        have infYx': "infinite (Yx-{yx'})" using fields px by auto
-        with fields px yx' Suc.prems
-        have partfx': "part r s (Yx - {yx'}) (f \<circ> insert yx')"
-          by (simp add: o_def part_Suc_imp_part part_subset [where YY=YY and Y=Yx])
-        from Suc.hyps [OF infYx' partfx']
-        obtain Y' and t'
-        where Y': "Y' \<subseteq> Yx - {yx'}"  "infinite Y'"  "t' < s"
-               "\<forall>X. X\<subseteq>Y' \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert yx') X = t'"
-            by blast
-        show ?thesis
-        proof
-          show "?propr (yx',Y',t') & (x, (yx',Y',t')) \<in> ?ramr"
-            using fields Y' yx' px by blast
-        qed
-      qed
+      from fields x Y' yx' have "?propr (yx', Y', t') \<and> (x, (yx', Y', t')) \<in> ?ramr"
+        by blast
+      then show ?thesis ..
     qed
     from dependent_choice [OF transr propr0 proprstep]
-    obtain g where pg: "?propr (g n)" and rg: "n<m ==> (g n, g m) \<in> ?ramr" for n m :: nat
+    obtain g where pg: "?propr (g n)" and rg: "n < m \<Longrightarrow> (g n, g m) \<in> ?ramr" for n m :: nat
       by blast
-    let ?gy = "fst o g"
-    let ?gt = "snd o snd o g"
+    let ?gy = "fst \<circ> g"
+    let ?gt = "snd \<circ> snd \<circ> g"
     have rangeg: "\<exists>k. range ?gt \<subseteq> {..<k}"
     proof (intro exI subsetI)
       fix x
@@ -244,61 +233,60 @@ next
     qed
     have "finite (range ?gt)"
       by (simp add: finite_nat_iff_bounded rangeg)
-    then obtain s' and n'
-      where s': "s' = ?gt n'"
-        and infeqs': "infinite {n. ?gt n = s'}"
+    then obtain s' and n' where s': "s' = ?gt n'" and infeqs': "infinite {n. ?gt n = s'}"
       by (rule inf_img_fin_domE) (auto simp add: vimage_def intro: infinite_UNIV_nat)
     with pg [of n'] have less': "s'<s" by (cases "g n'") auto
     have inj_gy: "inj ?gy"
     proof (rule linorder_injI)
-      fix m m' :: nat assume less: "m < m'" show "?gy m \<noteq> ?gy m'"
-        using rg [OF less] pg [of m] by (cases "g m", cases "g m'") auto
+      fix m m' :: nat
+      assume "m < m'"
+      from rg [OF this] pg [of m] show "?gy m \<noteq> ?gy m'"
+        by (cases "g m", cases "g m'") auto
     qed
     show ?thesis
     proof (intro exI conjI)
-      show "?gy ` {n. ?gt n = s'} \<subseteq> YY" using pg
+      from pg show "?gy ` {n. ?gt n = s'} \<subseteq> YY"
         by (auto simp add: Let_def split_beta)
-      show "infinite (?gy ` {n. ?gt n = s'})" using infeqs'
+      from infeqs' show "infinite (?gy ` {n. ?gt n = s'})"
         by (blast intro: inj_gy [THEN subset_inj_on] dest: finite_imageD)
       show "s' < s" by (rule less')
-      show "\<forall>X. X \<subseteq> ?gy ` {n. ?gt n = s'} & finite X & card X = Suc r
-          --> f X = s'"
+      show "\<forall>X. X \<subseteq> ?gy ` {n. ?gt n = s'} \<and> finite X \<and> card X = Suc r \<longrightarrow> f X = s'"
       proof -
-        {fix X
-         assume "X \<subseteq> ?gy ` {n. ?gt n = s'}"
-            and cardX: "finite X" "card X = Suc r"
-         then obtain AA where AA: "AA \<subseteq> {n. ?gt n = s'}" and Xeq: "X = ?gy`AA"
-             by (auto simp add: subset_image_iff)
-         with cardX have "AA\<noteq>{}" by auto
-         then have AAleast: "(LEAST x. x \<in> AA) \<in> AA" by (auto intro: LeastI_ex)
-         have "f X = s'"
-         proof (cases "g (LEAST x. x \<in> AA)")
-           case (fields ya Ya ta)
-           with AAleast Xeq
-           have ya: "ya \<in> X" by (force intro!: rev_image_eqI)
-           then have "f X = f (insert ya (X - {ya}))" by (simp add: insert_absorb)
-           also have "... = ta"
-           proof -
-             have "X - {ya} \<subseteq> Ya"
-             proof
-               fix x assume x: "x \<in> X - {ya}"
-               then obtain a' where xeq: "x = ?gy a'" and a': "a' \<in> AA"
-                 by (auto simp add: Xeq)
-               then have "a' \<noteq> (LEAST x. x \<in> AA)" using x fields by auto
-               then have lessa': "(LEAST x. x \<in> AA) < a'"
-                 using Least_le [of "%x. x \<in> AA", OF a'] by arith
-               show "x \<in> Ya" using xeq fields rg [OF lessa'] by auto
-             qed
-             moreover
-             have "card (X - {ya}) = r"
-               by (simp add: cardX ya)
-             ultimately show ?thesis
-               using pg [of "LEAST x. x \<in> AA"] fields cardX
-               by (clarsimp simp del:insert_Diff_single)
-           qed
-           also have "... = s'" using AA AAleast fields by auto
-           finally show ?thesis .
-         qed}
+        have "f X = s'"
+          if X: "X \<subseteq> ?gy ` {n. ?gt n = s'}"
+          and cardX: "finite X" "card X = Suc r"
+          for X
+        proof -
+          from X obtain AA where AA: "AA \<subseteq> {n. ?gt n = s'}" and Xeq: "X = ?gy`AA"
+            by (auto simp add: subset_image_iff)
+          with cardX have "AA \<noteq> {}" by auto
+          then have AAleast: "(LEAST x. x \<in> AA) \<in> AA" by (auto intro: LeastI_ex)
+          show ?thesis
+          proof (cases "g (LEAST x. x \<in> AA)")
+            case (fields ya Ya ta)
+            with AAleast Xeq have ya: "ya \<in> X" by (force intro!: rev_image_eqI)
+            then have "f X = f (insert ya (X - {ya}))" by (simp add: insert_absorb)
+            also have "\<dots> = ta"
+            proof -
+              have *: "X - {ya} \<subseteq> Ya"
+              proof
+                fix x assume x: "x \<in> X - {ya}"
+                then obtain a' where xeq: "x = ?gy a'" and a': "a' \<in> AA"
+                  by (auto simp add: Xeq)
+                with fields x have "a' \<noteq> (LEAST x. x \<in> AA)" by auto
+                with Least_le [of "\<lambda>x. x \<in> AA", OF a'] have "(LEAST x. x \<in> AA) < a'"
+                  by arith
+                from xeq fields rg [OF this] show "x \<in> Ya" by auto
+              qed
+              have "card (X - {ya}) = r"
+                by (simp add: cardX ya)
+              with pg [of "LEAST x. x \<in> AA"] fields cardX * show ?thesis
+                by (auto simp del: insert_Diff_single)
+            qed
+            also from AA AAleast fields have "\<dots> = s'" by auto
+            finally show ?thesis .
+          qed
+        qed
         then show ?thesis by blast
       qed
     qed
@@ -307,27 +295,29 @@ qed
 
 
 theorem Ramsey:
-  fixes s r :: nat and Z::"'a set" and f::"'a set => nat"
+  fixes s r :: nat
+    and Z :: "'a set"
+    and f :: "'a set \<Rightarrow> nat"
   shows
-   "[|infinite Z;
-      \<forall>X. X \<subseteq> Z & finite X & card X = r --> f X < s|]
-  ==> \<exists>Y t. Y \<subseteq> Z & infinite Y & t < s
-            & (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X = t)"
-by (blast intro: Ramsey_induction [unfolded part_def])
+   "\<lbrakk>infinite Z;
+      \<forall>X. X \<subseteq> Z \<and> finite X \<and> card X = r \<longrightarrow> f X < s\<rbrakk>
+    \<Longrightarrow> \<exists>Y t. Y \<subseteq> Z \<and> infinite Y \<and> t < s
+            \<and> (\<forall>X. X \<subseteq> Y \<and> finite X \<and> card X = r \<longrightarrow> f X = t)"
+  by (blast intro: Ramsey_induction [unfolded part_def])
 
 
 corollary Ramsey2:
-  fixes s::nat and Z::"'a set" and f::"'a set => nat"
+  fixes s :: nat
+    and Z :: "'a set"
+    and f :: "'a set \<Rightarrow> nat"
   assumes infZ: "infinite Z"
-      and part: "\<forall>x\<in>Z. \<forall>y\<in>Z. x\<noteq>y --> f{x,y} < s"
-  shows
-   "\<exists>Y t. Y \<subseteq> Z & infinite Y & t < s & (\<forall>x\<in>Y. \<forall>y\<in>Y. x\<noteq>y --> f{x,y} = t)"
+    and part: "\<forall>x\<in>Z. \<forall>y\<in>Z. x \<noteq> y \<longrightarrow> f {x, y} < s"
+  shows "\<exists>Y t. Y \<subseteq> Z \<and> infinite Y \<and> t < s \<and> (\<forall>x\<in>Y. \<forall>y\<in>Y. x\<noteq>y \<longrightarrow> f {x, y} = t)"
 proof -
-  have part2: "\<forall>X. X \<subseteq> Z & finite X & card X = 2 --> f X < s"
-    using part by (fastforce simp add: eval_nat_numeral card_Suc_eq)
-  obtain Y t
-    where *: "Y \<subseteq> Z" "infinite Y" "t < s"
-          "(\<forall>X. X \<subseteq> Y & finite X & card X = 2 --> f X = t)"
+  from part have part2: "\<forall>X. X \<subseteq> Z \<and> finite X \<and> card X = 2 \<longrightarrow> f X < s"
+    by (fastforce simp add: eval_nat_numeral card_Suc_eq)
+  obtain Y t where *:
+    "Y \<subseteq> Z" "infinite Y" "t < s" "(\<forall>X. X \<subseteq> Y \<and> finite X \<and> card X = 2 \<longrightarrow> f X = t)"
     by (insert Ramsey [OF infZ part2]) auto
   then have "\<forall>x\<in>Y. \<forall>y\<in>Y. x \<noteq> y \<longrightarrow> f {x, y} = t" by auto
   with * show ?thesis by iprover
@@ -341,97 +331,84 @@ text \<open>
   @{cite "Podelski-Rybalchenko"}.
 \<close>
 
-definition disj_wf :: "('a * 'a)set => bool"
-  where "disj_wf r = (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r = (\<Union>i<n. T i))"
+definition disj_wf :: "('a \<times> 'a) set \<Rightarrow> bool"
+  where "disj_wf r \<longleftrightarrow> (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf (T i)) \<and> r = (\<Union>i<n. T i))"
 
-definition transition_idx :: "[nat => 'a, nat => ('a*'a)set, nat set] => nat"
-  where
-    "transition_idx s T A =
-      (LEAST k. \<exists>i j. A = {i,j} & i<j & (s j, s i) \<in> T k)"
+definition transition_idx :: "(nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> ('a \<times> 'a) set) \<Rightarrow> nat set \<Rightarrow> nat"
+  where "transition_idx s T A = (LEAST k. \<exists>i j. A = {i, j} \<and> i < j \<and> (s j, s i) \<in> T k)"
 
 
 lemma transition_idx_less:
-    "[|i<j; (s j, s i) \<in> T k; k<n|] ==> transition_idx s T {i,j} < n"
-apply (subgoal_tac "transition_idx s T {i, j} \<le> k", simp)
-apply (simp add: transition_idx_def, blast intro: Least_le)
-done
+  assumes "i < j" "(s j, s i) \<in> T k" "k < n"
+  shows "transition_idx s T {i, j} < n"
+proof -
+  from assms(1,2) have "transition_idx s T {i, j} \<le> k"
+    by (simp add: transition_idx_def, blast intro: Least_le)
+  with assms(3) show ?thesis by simp
+qed
 
 lemma transition_idx_in:
-    "[|i<j; (s j, s i) \<in> T k|] ==> (s j, s i) \<in> T (transition_idx s T {i,j})"
-apply (simp add: transition_idx_def doubleton_eq_iff conj_disj_distribR
-            cong: conj_cong)
-apply (erule LeastI)
-done
+  assumes "i < j" "(s j, s i) \<in> T k"
+  shows "(s j, s i) \<in> T (transition_idx s T {i, j})"
+  using assms
+  by (simp add: transition_idx_def doubleton_eq_iff conj_disj_distribR cong: conj_cong) (erule LeastI)
 
-text\<open>To be equal to the union of some well-founded relations is equivalent
-to being the subset of such a union.\<close>
-lemma disj_wf:
-     "disj_wf(r) = (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r \<subseteq> (\<Union>i<n. T i))"
-apply (auto simp add: disj_wf_def)
-apply (rule_tac x="%i. T i Int r" in exI)
-apply (rule_tac x=n in exI)
-apply (force simp add: wf_Int1)
-done
+text \<open>To be equal to the union of some well-founded relations is equivalent
+  to being the subset of such a union.\<close>
+lemma disj_wf: "disj_wf r \<longleftrightarrow> (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) \<and> r \<subseteq> (\<Union>i<n. T i))"
+  apply (auto simp add: disj_wf_def)
+  apply (rule_tac x="\<lambda>i. T i Int r" in exI)
+  apply (rule_tac x=n in exI)
+  apply (force simp add: wf_Int1)
+  done
 
 theorem trans_disj_wf_implies_wf:
-  assumes transr: "trans r"
-      and dwf:    "disj_wf(r)"
+  assumes "trans r"
+    and "disj_wf r"
   shows "wf r"
 proof (simp only: wf_iff_no_infinite_down_chain, rule notI)
   assume "\<exists>s. \<forall>i. (s (Suc i), s i) \<in> r"
   then obtain s where sSuc: "\<forall>i. (s (Suc i), s i) \<in> r" ..
-  have s: "!!i j. i < j ==> (s j, s i) \<in> r"
-  proof -
-    fix i and j::nat
-    assume less: "i<j"
-    then show "(s j, s i) \<in> r"
-    proof (rule less_Suc_induct)
-      show "\<And>i. (s (Suc i), s i) \<in> r" by (simp add: sSuc)
-      show "\<And>i j k. \<lbrakk>(s j, s i) \<in> r; (s k, s j) \<in> r\<rbrakk> \<Longrightarrow> (s k, s i) \<in> r"
-        using transr by (unfold trans_def, blast)
-    qed
-  qed
-  from dwf
-  obtain T and n::nat where wfT: "\<forall>k<n. wf(T k)" and r: "r = (\<Union>k<n. T k)"
+  from \<open>disj_wf r\<close> obtain T and n :: nat where wfT: "\<forall>k<n. wf(T k)" and r: "r = (\<Union>k<n. T k)"
     by (auto simp add: disj_wf_def)
-  have s_in_T: "\<And>i j. i<j ==> \<exists>k. (s j, s i) \<in> T k & k<n"
+  have s_in_T: "\<exists>k. (s j, s i) \<in> T k \<and> k<n" if "i < j" for i j
   proof -
-    fix i and j::nat
-    assume less: "i<j"
-    then have "(s j, s i) \<in> r" by (rule s [of i j])
-    then show "\<exists>k. (s j, s i) \<in> T k & k<n" by (auto simp add: r)
+    from \<open>i < j\<close> have "(s j, s i) \<in> r"
+    proof (induct rule: less_Suc_induct)
+      case 1
+      then show ?case by (simp add: sSuc)
+    next
+      case 2
+      with \<open>trans r\<close> show ?case
+        unfolding trans_def by blast
+    qed
+    then show ?thesis by (auto simp add: r)
   qed
-  have trless: "!!i j. i\<noteq>j ==> transition_idx s T {i,j} < n"
+  have trless: "i \<noteq> j \<Longrightarrow> transition_idx s T {i, j} < n" for i j
     apply (auto simp add: linorder_neq_iff)
-    apply (blast dest: s_in_T transition_idx_less)
+     apply (blast dest: s_in_T transition_idx_less)
     apply (subst insert_commute)
     apply (blast dest: s_in_T transition_idx_less)
     done
-  have
-   "\<exists>K k. K \<subseteq> UNIV & infinite K & k < n &
-          (\<forall>i\<in>K. \<forall>j\<in>K. i\<noteq>j --> transition_idx s T {i,j} = k)"
+  have "\<exists>K k. K \<subseteq> UNIV \<and> infinite K \<and> k < n \<and>
+      (\<forall>i\<in>K. \<forall>j\<in>K. i \<noteq> j \<longrightarrow> transition_idx s T {i, j} = k)"
     by (rule Ramsey2) (auto intro: trless infinite_UNIV_nat)
-  then obtain K and k
-    where infK: "infinite K" and less: "k < n" and
-          allk: "\<forall>i\<in>K. \<forall>j\<in>K. i\<noteq>j --> transition_idx s T {i,j} = k"
+  then obtain K and k where infK: "infinite K" and "k < n"
+    and allk: "\<forall>i\<in>K. \<forall>j\<in>K. i \<noteq> j \<longrightarrow> transition_idx s T {i, j} = k"
     by auto
-  have "\<forall>m. (s (enumerate K (Suc m)), s(enumerate K m)) \<in> T k"
-  proof
-    fix m::nat
+  have "(s (enumerate K (Suc m)), s (enumerate K m)) \<in> T k" for m :: nat
+  proof -
     let ?j = "enumerate K (Suc m)"
     let ?i = "enumerate K m"
-    have jK: "?j \<in> K" by (simp add: enumerate_in_set infK)
-    have iK: "?i \<in> K" by (simp add: enumerate_in_set infK)
     have ij: "?i < ?j" by (simp add: enumerate_step infK)
-    have ijk: "transition_idx s T {?i,?j} = k" using iK jK ij
-      by (simp add: allk)
-    obtain k' where "(s ?j, s ?i) \<in> T k'" "k'<n"
-      using s_in_T [OF ij] by blast
-    then show "(s ?j, s ?i) \<in> T k"
-      by (simp add: ijk [symmetric] transition_idx_in ij)
+    have "?j \<in> K" "?i \<in> K" by (simp_all add: enumerate_in_set infK)
+    with ij have k: "k = transition_idx s T {?i, ?j}" by (simp add: allk)
+    from s_in_T [OF ij] obtain k' where "(s ?j, s ?i) \<in> T k'" "k'<n" by blast
+    then show "(s ?j, s ?i) \<in> T k" by (simp add: k transition_idx_in ij)
   qed
-  then have "~ wf(T k)" by (force simp add: wf_iff_no_infinite_down_chain)
-  then show False using wfT less by blast
+  then have "\<not> wf (T k)"
+    unfolding wf_iff_no_infinite_down_chain by fast
+  with wfT \<open>k < n\<close> show False by blast
 qed
 
 end
