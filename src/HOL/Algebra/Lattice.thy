@@ -3,406 +3,16 @@
     Copyright:  Clemens Ballarin
 
 Most congruence rules by Stephan Hohe.
+With additional contributions from Alasdair Armstrong and Simon Foster.
 *)
 
 theory Lattice
-imports Congruence
+imports Order
 begin
 
-section \<open>Orders and Lattices\<close>
-
-subsection \<open>Partial Orders\<close>
-
-record 'a gorder = "'a eq_object" +
-  le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>\<index>" 50)
-
-locale weak_partial_order = equivalence L for L (structure) +
-  assumes le_refl [intro, simp]:
-      "x \<in> carrier L ==> x \<sqsubseteq> x"
-    and weak_le_antisym [intro]:
-      "[| x \<sqsubseteq> y; y \<sqsubseteq> x; x \<in> carrier L; y \<in> carrier L |] ==> x .= y"
-    and le_trans [trans]:
-      "[| x \<sqsubseteq> y; y \<sqsubseteq> z; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L |] ==> x \<sqsubseteq> z"
-    and le_cong:
-      "\<lbrakk> x .= y; z .= w; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L; w \<in> carrier L \<rbrakk> \<Longrightarrow>
-      x \<sqsubseteq> z \<longleftrightarrow> y \<sqsubseteq> w"
-
-definition
-  lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
-  where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
-
-
-subsubsection \<open>The order relation\<close>
-
-context weak_partial_order
-begin
-
-lemma le_cong_l [intro, trans]:
-  "\<lbrakk> x .= y; y \<sqsubseteq> z; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
-  by (auto intro: le_cong [THEN iffD2])
-
-lemma le_cong_r [intro, trans]:
-  "\<lbrakk> x \<sqsubseteq> y; y .= z; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
-  by (auto intro: le_cong [THEN iffD1])
-
-lemma weak_refl [intro, simp]: "\<lbrakk> x .= y; x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y"
-  by (simp add: le_cong_l)
-
-end
-
-lemma weak_llessI:
-  fixes R (structure)
-  assumes "x \<sqsubseteq> y" and "~(x .= y)"
-  shows "x \<sqsubset> y"
-  using assms unfolding lless_def by simp
-
-lemma lless_imp_le:
-  fixes R (structure)
-  assumes "x \<sqsubset> y"
-  shows "x \<sqsubseteq> y"
-  using assms unfolding lless_def by simp
-
-lemma weak_lless_imp_not_eq:
-  fixes R (structure)
-  assumes "x \<sqsubset> y"
-  shows "\<not> (x .= y)"
-  using assms unfolding lless_def by simp
-
-lemma weak_llessE:
-  fixes R (structure)
-  assumes p: "x \<sqsubset> y" and e: "\<lbrakk>x \<sqsubseteq> y; \<not> (x .= y)\<rbrakk> \<Longrightarrow> P"
-  shows "P"
-  using p by (blast dest: lless_imp_le weak_lless_imp_not_eq e)
-
-lemma (in weak_partial_order) lless_cong_l [trans]:
-  assumes xx': "x .= x'"
-    and xy: "x' \<sqsubset> y"
-    and carr: "x \<in> carrier L" "x' \<in> carrier L" "y \<in> carrier L"
-  shows "x \<sqsubset> y"
-  using assms unfolding lless_def by (auto intro: trans sym)
-
-lemma (in weak_partial_order) lless_cong_r [trans]:
-  assumes xy: "x \<sqsubset> y"
-    and  yy': "y .= y'"
-    and carr: "x \<in> carrier L" "y \<in> carrier L" "y' \<in> carrier L"
-  shows "x \<sqsubset> y'"
-  using assms unfolding lless_def by (auto intro: trans sym)  (*slow*)
-
-
-lemma (in weak_partial_order) lless_antisym:
-  assumes "a \<in> carrier L" "b \<in> carrier L"
-    and "a \<sqsubset> b" "b \<sqsubset> a"
-  shows "P"
-  using assms
-  by (elim weak_llessE) auto
-
-lemma (in weak_partial_order) lless_trans [trans]:
-  assumes "a \<sqsubset> b" "b \<sqsubset> c"
-    and carr[simp]: "a \<in> carrier L" "b \<in> carrier L" "c \<in> carrier L"
-  shows "a \<sqsubset> c"
-  using assms unfolding lless_def by (blast dest: le_trans intro: sym)
-
-
-subsubsection \<open>Upper and lower bounds of a set\<close>
-
-definition
-  Upper :: "[_, 'a set] => 'a set"
-  where "Upper L A = {u. (ALL x. x \<in> A \<inter> carrier L --> x \<sqsubseteq>\<^bsub>L\<^esub> u)} \<inter> carrier L"
-
-definition
-  Lower :: "[_, 'a set] => 'a set"
-  where "Lower L A = {l. (ALL x. x \<in> A \<inter> carrier L --> l \<sqsubseteq>\<^bsub>L\<^esub> x)} \<inter> carrier L"
-
-lemma Upper_closed [intro!, simp]:
-  "Upper L A \<subseteq> carrier L"
-  by (unfold Upper_def) clarify
-
-lemma Upper_memD [dest]:
-  fixes L (structure)
-  shows "[| u \<in> Upper L A; x \<in> A; A \<subseteq> carrier L |] ==> x \<sqsubseteq> u \<and> u \<in> carrier L"
-  by (unfold Upper_def) blast
-
-lemma (in weak_partial_order) Upper_elemD [dest]:
-  "[| u .\<in> Upper L A; u \<in> carrier L; x \<in> A; A \<subseteq> carrier L |] ==> x \<sqsubseteq> u"
-  unfolding Upper_def elem_def
-  by (blast dest: sym)
-
-lemma Upper_memI:
-  fixes L (structure)
-  shows "[| !! y. y \<in> A ==> y \<sqsubseteq> x; x \<in> carrier L |] ==> x \<in> Upper L A"
-  by (unfold Upper_def) blast
-
-lemma (in weak_partial_order) Upper_elemI:
-  "[| !! y. y \<in> A ==> y \<sqsubseteq> x; x \<in> carrier L |] ==> x .\<in> Upper L A"
-  unfolding Upper_def by blast
-
-lemma Upper_antimono:
-  "A \<subseteq> B ==> Upper L B \<subseteq> Upper L A"
-  by (unfold Upper_def) blast
-
-lemma (in weak_partial_order) Upper_is_closed [simp]:
-  "A \<subseteq> carrier L ==> is_closed (Upper L A)"
-  by (rule is_closedI) (blast intro: Upper_memI)+
-
-lemma (in weak_partial_order) Upper_mem_cong:
-  assumes a'carr: "a' \<in> carrier L" and Acarr: "A \<subseteq> carrier L"
-    and aa': "a .= a'"
-    and aelem: "a \<in> Upper L A"
-  shows "a' \<in> Upper L A"
-proof (rule Upper_memI[OF _ a'carr])
-  fix y
-  assume yA: "y \<in> A"
-  hence "y \<sqsubseteq> a" by (intro Upper_memD[OF aelem, THEN conjunct1] Acarr)
-  also note aa'
-  finally
-      show "y \<sqsubseteq> a'"
-      by (simp add: a'carr subsetD[OF Acarr yA] subsetD[OF Upper_closed aelem])
-qed
-
-lemma (in weak_partial_order) Upper_cong:
-  assumes Acarr: "A \<subseteq> carrier L" and A'carr: "A' \<subseteq> carrier L"
-    and AA': "A {.=} A'"
-  shows "Upper L A = Upper L A'"
-unfolding Upper_def
-apply rule
- apply (rule, clarsimp) defer 1
- apply (rule, clarsimp) defer 1
-proof -
-  fix x a'
-  assume carr: "x \<in> carrier L" "a' \<in> carrier L"
-    and a'A': "a' \<in> A'"
-  assume aLxCond[rule_format]: "\<forall>a. a \<in> A \<and> a \<in> carrier L \<longrightarrow> a \<sqsubseteq> x"
-
-  from AA' and a'A' have "\<exists>a\<in>A. a' .= a" by (rule set_eqD2)
-  from this obtain a
-      where aA: "a \<in> A"
-      and a'a: "a' .= a"
-      by auto
-  note [simp] = subsetD[OF Acarr aA] carr
-
-  note a'a
-  also have "a \<sqsubseteq> x" by (simp add: aLxCond aA)
-  finally show "a' \<sqsubseteq> x" by simp
-next
-  fix x a
-  assume carr: "x \<in> carrier L" "a \<in> carrier L"
-    and aA: "a \<in> A"
-  assume a'LxCond[rule_format]: "\<forall>a'. a' \<in> A' \<and> a' \<in> carrier L \<longrightarrow> a' \<sqsubseteq> x"
-
-  from AA' and aA have "\<exists>a'\<in>A'. a .= a'" by (rule set_eqD1)
-  from this obtain a'
-      where a'A': "a' \<in> A'"
-      and aa': "a .= a'"
-      by auto
-  note [simp] = subsetD[OF A'carr a'A'] carr
-
-  note aa'
-  also have "a' \<sqsubseteq> x" by (simp add: a'LxCond a'A')
-  finally show "a \<sqsubseteq> x" by simp
-qed
-
-lemma Lower_closed [intro!, simp]:
-  "Lower L A \<subseteq> carrier L"
-  by (unfold Lower_def) clarify
-
-lemma Lower_memD [dest]:
-  fixes L (structure)
-  shows "[| l \<in> Lower L A; x \<in> A; A \<subseteq> carrier L |] ==> l \<sqsubseteq> x \<and> l \<in> carrier L"
-  by (unfold Lower_def) blast
-
-lemma Lower_memI:
-  fixes L (structure)
-  shows "[| !! y. y \<in> A ==> x \<sqsubseteq> y; x \<in> carrier L |] ==> x \<in> Lower L A"
-  by (unfold Lower_def) blast
-
-lemma Lower_antimono:
-  "A \<subseteq> B ==> Lower L B \<subseteq> Lower L A"
-  by (unfold Lower_def) blast
-
-lemma (in weak_partial_order) Lower_is_closed [simp]:
-  "A \<subseteq> carrier L \<Longrightarrow> is_closed (Lower L A)"
-  by (rule is_closedI) (blast intro: Lower_memI dest: sym)+
-
-lemma (in weak_partial_order) Lower_mem_cong:
-  assumes a'carr: "a' \<in> carrier L" and Acarr: "A \<subseteq> carrier L"
-    and aa': "a .= a'"
-    and aelem: "a \<in> Lower L A"
-  shows "a' \<in> Lower L A"
-using assms Lower_closed[of L A]
-by (intro Lower_memI) (blast intro: le_cong_l[OF aa'[symmetric]])
-
-lemma (in weak_partial_order) Lower_cong:
-  assumes Acarr: "A \<subseteq> carrier L" and A'carr: "A' \<subseteq> carrier L"
-    and AA': "A {.=} A'"
-  shows "Lower L A = Lower L A'"
-unfolding Lower_def
-apply rule
- apply clarsimp defer 1
- apply clarsimp defer 1
-proof -
-  fix x a'
-  assume carr: "x \<in> carrier L" "a' \<in> carrier L"
-    and a'A': "a' \<in> A'"
-  assume "\<forall>a. a \<in> A \<and> a \<in> carrier L \<longrightarrow> x \<sqsubseteq> a"
-  hence aLxCond: "\<And>a. \<lbrakk>a \<in> A; a \<in> carrier L\<rbrakk> \<Longrightarrow> x \<sqsubseteq> a" by fast
-
-  from AA' and a'A' have "\<exists>a\<in>A. a' .= a" by (rule set_eqD2)
-  from this obtain a
-      where aA: "a \<in> A"
-      and a'a: "a' .= a"
-      by auto
-
-  from aA and subsetD[OF Acarr aA]
-      have "x \<sqsubseteq> a" by (rule aLxCond)
-  also note a'a[symmetric]
-  finally
-      show "x \<sqsubseteq> a'" by (simp add: carr subsetD[OF Acarr aA])
-next
-  fix x a
-  assume carr: "x \<in> carrier L" "a \<in> carrier L"
-    and aA: "a \<in> A"
-  assume "\<forall>a'. a' \<in> A' \<and> a' \<in> carrier L \<longrightarrow> x \<sqsubseteq> a'"
-  hence a'LxCond: "\<And>a'. \<lbrakk>a' \<in> A'; a' \<in> carrier L\<rbrakk> \<Longrightarrow> x \<sqsubseteq> a'" by fast+
-
-  from AA' and aA have "\<exists>a'\<in>A'. a .= a'" by (rule set_eqD1)
-  from this obtain a'
-      where a'A': "a' \<in> A'"
-      and aa': "a .= a'"
-      by auto
-  from a'A' and subsetD[OF A'carr a'A']
-      have "x \<sqsubseteq> a'" by (rule a'LxCond)
-  also note aa'[symmetric]
-  finally show "x \<sqsubseteq> a" by (simp add: carr subsetD[OF A'carr a'A'])
-qed
-
-
-subsubsection \<open>Least and greatest, as predicate\<close>
-
-definition
-  least :: "[_, 'a, 'a set] => bool"
-  where "least L l A \<longleftrightarrow> A \<subseteq> carrier L & l \<in> A & (ALL x : A. l \<sqsubseteq>\<^bsub>L\<^esub> x)"
-
-definition
-  greatest :: "[_, 'a, 'a set] => bool"
-  where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
-
-text (in weak_partial_order) \<open>Could weaken these to @{term "l \<in> carrier L \<and> l
-  .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}.\<close>
-
-lemma least_closed [intro, simp]:
-  "least L l A ==> l \<in> carrier L"
-  by (unfold least_def) fast
-
-lemma least_mem:
-  "least L l A ==> l \<in> A"
-  by (unfold least_def) fast
-
-lemma (in weak_partial_order) weak_least_unique:
-  "[| least L x A; least L y A |] ==> x .= y"
-  by (unfold least_def) blast
-
-lemma least_le:
-  fixes L (structure)
-  shows "[| least L x A; a \<in> A |] ==> x \<sqsubseteq> a"
-  by (unfold least_def) fast
-
-lemma (in weak_partial_order) least_cong:
-  "[| x .= x'; x \<in> carrier L; x' \<in> carrier L; is_closed A |] ==> least L x A = least L x' A"
-  by (unfold least_def) (auto dest: sym)
-
-text (in weak_partial_order) \<open>@{const least} is not congruent in the second parameter for 
-  @{term "A {.=} A'"}\<close>
-
-lemma (in weak_partial_order) least_Upper_cong_l:
-  assumes "x .= x'"
-    and "x \<in> carrier L" "x' \<in> carrier L"
-    and "A \<subseteq> carrier L"
-  shows "least L x (Upper L A) = least L x' (Upper L A)"
-  apply (rule least_cong) using assms by auto
-
-lemma (in weak_partial_order) least_Upper_cong_r:
-  assumes Acarrs: "A \<subseteq> carrier L" "A' \<subseteq> carrier L" (* unneccessary with current Upper? *)
-    and AA': "A {.=} A'"
-  shows "least L x (Upper L A) = least L x (Upper L A')"
-apply (subgoal_tac "Upper L A = Upper L A'", simp)
-by (rule Upper_cong) fact+
-
-lemma least_UpperI:
-  fixes L (structure)
-  assumes above: "!! x. x \<in> A ==> x \<sqsubseteq> s"
-    and below: "!! y. y \<in> Upper L A ==> s \<sqsubseteq> y"
-    and L: "A \<subseteq> carrier L"  "s \<in> carrier L"
-  shows "least L s (Upper L A)"
-proof -
-  have "Upper L A \<subseteq> carrier L" by simp
-  moreover from above L have "s \<in> Upper L A" by (simp add: Upper_def)
-  moreover from below have "ALL x : Upper L A. s \<sqsubseteq> x" by fast
-  ultimately show ?thesis by (simp add: least_def)
-qed
-
-lemma least_Upper_above:
-  fixes L (structure)
-  shows "[| least L s (Upper L A); x \<in> A; A \<subseteq> carrier L |] ==> x \<sqsubseteq> s"
-  by (unfold least_def) blast
-
-lemma greatest_closed [intro, simp]:
-  "greatest L l A ==> l \<in> carrier L"
-  by (unfold greatest_def) fast
-
-lemma greatest_mem:
-  "greatest L l A ==> l \<in> A"
-  by (unfold greatest_def) fast
-
-lemma (in weak_partial_order) weak_greatest_unique:
-  "[| greatest L x A; greatest L y A |] ==> x .= y"
-  by (unfold greatest_def) blast
-
-lemma greatest_le:
-  fixes L (structure)
-  shows "[| greatest L x A; a \<in> A |] ==> a \<sqsubseteq> x"
-  by (unfold greatest_def) fast
-
-lemma (in weak_partial_order) greatest_cong:
-  "[| x .= x'; x \<in> carrier L; x' \<in> carrier L; is_closed A |] ==>
-  greatest L x A = greatest L x' A"
-  by (unfold greatest_def) (auto dest: sym)
-
-text (in weak_partial_order) \<open>@{const greatest} is not congruent in the second parameter for 
-  @{term "A {.=} A'"}\<close>
-
-lemma (in weak_partial_order) greatest_Lower_cong_l:
-  assumes "x .= x'"
-    and "x \<in> carrier L" "x' \<in> carrier L"
-    and "A \<subseteq> carrier L" (* unneccessary with current Lower *)
-  shows "greatest L x (Lower L A) = greatest L x' (Lower L A)"
-  apply (rule greatest_cong) using assms by auto
-
-lemma (in weak_partial_order) greatest_Lower_cong_r:
-  assumes Acarrs: "A \<subseteq> carrier L" "A' \<subseteq> carrier L"
-    and AA': "A {.=} A'"
-  shows "greatest L x (Lower L A) = greatest L x (Lower L A')"
-apply (subgoal_tac "Lower L A = Lower L A'", simp)
-by (rule Lower_cong) fact+
-
-lemma greatest_LowerI:
-  fixes L (structure)
-  assumes below: "!! x. x \<in> A ==> i \<sqsubseteq> x"
-    and above: "!! y. y \<in> Lower L A ==> y \<sqsubseteq> i"
-    and L: "A \<subseteq> carrier L"  "i \<in> carrier L"
-  shows "greatest L i (Lower L A)"
-proof -
-  have "Lower L A \<subseteq> carrier L" by simp
-  moreover from below L have "i \<in> Lower L A" by (simp add: Lower_def)
-  moreover from above have "ALL x : Lower L A. x \<sqsubseteq> i" by fast
-  ultimately show ?thesis by (simp add: greatest_def)
-qed
-
-lemma greatest_Lower_below:
-  fixes L (structure)
-  shows "[| greatest L i (Lower L A); x \<in> A; A \<subseteq> carrier L |] ==> i \<sqsubseteq> x"
-  by (unfold greatest_def) blast
-
-text \<open>Supremum and infimum\<close>
+section \<open>Lattices\<close>
+  
+subsection \<open>Supremum and infimum\<close>
 
 definition
   sup :: "[_, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
@@ -412,6 +22,26 @@ definition
   inf :: "[_, 'a set] => 'a" ("\<Sqinter>\<index>_" [90] 90)
   where "\<Sqinter>\<^bsub>L\<^esub>A = (SOME x. greatest L x (Lower L A))"
 
+definition supr :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a "
+  where "supr L A f = \<Squnion>\<^bsub>L\<^esub>(f ` A)"
+
+definition infi :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a "
+  where "infi L A f = \<Sqinter>\<^bsub>L\<^esub>(f ` A)"
+
+syntax
+  "_inf1"     :: "('a, 'b) gorder_scheme \<Rightarrow> pttrns \<Rightarrow> 'a \<Rightarrow> 'a" ("(3IINF\<index> _./ _)" [0, 10] 10)
+  "_inf"      :: "('a, 'b) gorder_scheme \<Rightarrow> pttrn \<Rightarrow> 'c set \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3IINF\<index> _:_./ _)" [0, 0, 10] 10)
+  "_sup1"     :: "('a, 'b) gorder_scheme \<Rightarrow> pttrns \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SSUP\<index> _./ _)" [0, 10] 10)
+  "_sup"      :: "('a, 'b) gorder_scheme \<Rightarrow> pttrn \<Rightarrow> 'c set \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SSUP\<index> _:_./ _)" [0, 0, 10] 10)
+
+translations
+  "IINF\<^bsub>L\<^esub> x. B"     == "CONST infi L CONST UNIV (%x. B)"
+  "IINF\<^bsub>L\<^esub> x:A. B"   == "CONST infi L A (%x. B)"
+  "SSUP\<^bsub>L\<^esub> x. B"     == "CONST supr L CONST UNIV (%x. B)"
+  "SSUP\<^bsub>L\<^esub> x:A. B"   == "CONST supr L A (%x. B)"
+
 definition
   join :: "[_, 'a, 'a] => 'a" (infixl "\<squnion>\<index>" 65)
   where "x \<squnion>\<^bsub>L\<^esub> y = \<Squnion>\<^bsub>L\<^esub>{x, y}"
@@ -419,6 +49,49 @@ definition
 definition
   meet :: "[_, 'a, 'a] => 'a" (infixl "\<sqinter>\<index>" 70)
   where "x \<sqinter>\<^bsub>L\<^esub> y = \<Sqinter>\<^bsub>L\<^esub>{x, y}"
+
+definition
+  LFP :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("\<mu>\<index>") where
+  "LFP L f = \<Sqinter>\<^bsub>L\<^esub> {u \<in> carrier L. f u \<sqsubseteq>\<^bsub>L\<^esub> u}"    --\<open>least fixed point\<close>
+
+definition
+  GFP:: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("\<nu>\<index>") where
+  "GFP L f = \<Squnion>\<^bsub>L\<^esub> {u \<in> carrier L. u \<sqsubseteq>\<^bsub>L\<^esub> f u}"    --\<open>greatest fixed point\<close>
+
+
+subsection \<open>Dual operators\<close>
+
+lemma sup_dual [simp]: 
+  "\<Squnion>\<^bsub>inv_gorder L\<^esub>A = \<Sqinter>\<^bsub>L\<^esub>A"
+  by (simp add: sup_def inf_def)
+
+lemma inf_dual [simp]: 
+  "\<Sqinter>\<^bsub>inv_gorder L\<^esub>A = \<Squnion>\<^bsub>L\<^esub>A"
+  by (simp add: sup_def inf_def)
+
+lemma join_dual [simp]:
+  "p \<squnion>\<^bsub>inv_gorder L\<^esub> q = p \<sqinter>\<^bsub>L\<^esub> q"
+  by (simp add:join_def meet_def)
+
+lemma meet_dual [simp]:
+  "p \<sqinter>\<^bsub>inv_gorder L\<^esub> q = p \<squnion>\<^bsub>L\<^esub> q"
+  by (simp add:join_def meet_def)
+
+lemma top_dual [simp]:
+  "\<top>\<^bsub>inv_gorder L\<^esub> = \<bottom>\<^bsub>L\<^esub>"
+  by (simp add: top_def bottom_def)
+
+lemma bottom_dual [simp]:
+  "\<bottom>\<^bsub>inv_gorder L\<^esub> = \<top>\<^bsub>L\<^esub>"
+  by (simp add: top_def bottom_def)
+
+lemma LFP_dual [simp]:
+  "LFP (inv_gorder L) f = GFP L f"
+  by (simp add:LFP_def GFP_def)
+
+lemma GFP_dual [simp]:
+  "GFP (inv_gorder L) f = LFP L f"
+  by (simp add:LFP_def GFP_def)
 
 
 subsection \<open>Lattices\<close>
@@ -432,6 +105,18 @@ locale weak_lower_semilattice = weak_partial_order +
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
 
 locale weak_lattice = weak_upper_semilattice + weak_lower_semilattice
+
+lemma (in weak_lattice) dual_weak_lattice:
+  "weak_lattice (inv_gorder L)"
+proof -
+  interpret dual: weak_partial_order "inv_gorder L"
+    by (metis dual_weak_order)
+
+  show ?thesis
+    apply (unfold_locales)
+    apply (simp_all add: inf_of_two_exists sup_of_two_exists)
+  done
+qed
 
 
 subsubsection \<open>Supremum\<close>
@@ -589,7 +274,7 @@ qed
 lemma (in weak_upper_semilattice) finite_sup_insertI:
   assumes P: "!!l. least L l (Upper L (insert x A)) ==> P l"
     and xA: "finite A"  "x \<in> carrier L"  "A \<subseteq> carrier L"
-  shows "P (\<Squnion>(insert x A))"
+  shows "P (\<Squnion> (insert x A))"
 proof (cases "A = {}")
   case True with P and xA show ?thesis
     by (simp add: finite_sup_least)
@@ -634,6 +319,11 @@ proof (rule joinI [OF _ x y])
   with sub z show "s \<sqsubseteq> z" by (fast elim: least_le intro: Upper_memI)
 qed
 
+lemma (in weak_lattice) weak_le_iff_meet:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> (x \<squnion> y) .= y"
+  by (meson assms(1) assms(2) join_closed join_le join_left join_right le_cong_r local.le_refl weak_le_antisym)
+  
 lemma (in weak_upper_semilattice) weak_join_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<squnion> (y \<squnion> z) .= \<Squnion>{x, y, z}"
@@ -828,7 +518,7 @@ qed
 lemma (in weak_lower_semilattice) finite_inf_insertI:
   assumes P: "!!i. greatest L i (Lower L (insert x A)) ==> P i"
     and xA: "finite A"  "x \<in> carrier L"  "A \<subseteq> carrier L"
-  shows "P (\<Sqinter>(insert x A))"
+  shows "P (\<Sqinter> (insert x A))"
 proof (cases "A = {}")
   case True with P and xA show ?thesis
     by (simp add: finite_inf_greatest)
@@ -875,6 +565,11 @@ proof (rule meetI [OF _ x y])
   with sub z show "z \<sqsubseteq> i" by (fast elim: greatest_le intro: Lower_memI)
 qed
 
+lemma (in weak_lattice) weak_le_iff_join:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> x .= (x \<sqinter> y)"
+  by (meson assms(1) assms(2) local.le_refl local.le_trans meet_closed meet_le meet_left meet_right weak_le_antisym weak_refl)
+  
 lemma (in weak_lower_semilattice) weak_meet_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<sqinter> (y \<sqinter> z) .= \<Sqinter>{x, y, z}"
@@ -904,28 +599,15 @@ lemma (in weak_lower_semilattice) weak_meet_assoc:
 proof -
   (* FIXME: improved simp, see weak_join_assoc above *)
   have "(x \<sqinter> y) \<sqinter> z = z \<sqinter> (x \<sqinter> y)" by (simp only: meet_comm)
-  also from L have "... .= \<Sqinter>{z, x, y}" by (simp add: weak_meet_assoc_lemma)
-  also from L have "... = \<Sqinter>{x, y, z}" by (simp add: insert_commute)
+  also from L have "... .= \<Sqinter> {z, x, y}" by (simp add: weak_meet_assoc_lemma)
+  also from L have "... = \<Sqinter> {x, y, z}" by (simp add: insert_commute)
   also from L have "... .= x \<sqinter> (y \<sqinter> z)" by (simp add: weak_meet_assoc_lemma [symmetric])
   finally show ?thesis by (simp add: L)
 qed
 
-
-subsection \<open>Total Orders\<close>
-
-locale weak_total_order = weak_partial_order +
-  assumes total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
-
-text \<open>Introduction rule: the usual definition of total order\<close>
-
-lemma (in weak_partial_order) weak_total_orderI:
-  assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
-  shows "weak_total_order L"
-  by standard (rule total)
-
 text \<open>Total orders are lattices.\<close>
 
-sublocale weak_total_order < weak?: weak_lattice
+sublocale weak_total_order \<subseteq> weak?: weak_lattice
 proof
   fix x y
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
@@ -969,337 +651,136 @@ next
 qed
 
 
-subsection \<open>Complete Lattices\<close>
+subsection \<open>Weak Bounded Lattices\<close>
 
-locale weak_complete_lattice = weak_lattice +
-  assumes sup_exists:
-    "[| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
-    and inf_exists:
-    "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
-
-text \<open>Introduction rule: the usual definition of complete lattice\<close>
-
-lemma (in weak_partial_order) weak_complete_latticeI:
-  assumes sup_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
-    and inf_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
-  shows "weak_complete_lattice L"
-  by standard (auto intro: sup_exists inf_exists)
-
-definition
-  top :: "_ => 'a" ("\<top>\<index>")
-  where "\<top>\<^bsub>L\<^esub> = sup L (carrier L)"
-
-definition
-  bottom :: "_ => 'a" ("\<bottom>\<index>")
-  where "\<bottom>\<^bsub>L\<^esub> = inf L (carrier L)"
-
-
-lemma (in weak_complete_lattice) supI:
-  "[| !!l. least L l (Upper L A) ==> P l; A \<subseteq> carrier L |]
-  ==> P (\<Squnion>A)"
-proof (unfold sup_def)
-  assume L: "A \<subseteq> carrier L"
-    and P: "!!l. least L l (Upper L A) ==> P l"
-  with sup_exists obtain s where "least L s (Upper L A)" by blast
-  with L show "P (SOME l. least L l (Upper L A))"
-  by (fast intro: someI2 weak_least_unique P)
-qed
-
-lemma (in weak_complete_lattice) sup_closed [simp]:
-  "A \<subseteq> carrier L ==> \<Squnion>A \<in> carrier L"
-  by (rule supI) simp_all
-
-lemma (in weak_complete_lattice) top_closed [simp, intro]:
-  "\<top> \<in> carrier L"
-  by (unfold top_def) simp
-
-lemma (in weak_complete_lattice) infI:
-  "[| !!i. greatest L i (Lower L A) ==> P i; A \<subseteq> carrier L |]
-  ==> P (\<Sqinter>A)"
-proof (unfold inf_def)
-  assume L: "A \<subseteq> carrier L"
-    and P: "!!l. greatest L l (Lower L A) ==> P l"
-  with inf_exists obtain s where "greatest L s (Lower L A)" by blast
-  with L show "P (SOME l. greatest L l (Lower L A))"
-  by (fast intro: someI2 weak_greatest_unique P)
-qed
-
-lemma (in weak_complete_lattice) inf_closed [simp]:
-  "A \<subseteq> carrier L ==> \<Sqinter>A \<in> carrier L"
-  by (rule infI) simp_all
-
-lemma (in weak_complete_lattice) bottom_closed [simp, intro]:
-  "\<bottom> \<in> carrier L"
-  by (unfold bottom_def) simp
-
-text \<open>Jacobson: Theorem 8.1\<close>
-
-lemma Lower_empty [simp]:
-  "Lower L {} = carrier L"
-  by (unfold Lower_def) simp
-
-lemma Upper_empty [simp]:
-  "Upper L {} = carrier L"
-  by (unfold Upper_def) simp
-
-theorem (in weak_partial_order) weak_complete_lattice_criterion1:
-  assumes top_exists: "EX g. greatest L g (carrier L)"
-    and inf_exists:
-      "!!A. [| A \<subseteq> carrier L; A ~= {} |] ==> EX i. greatest L i (Lower L A)"
-  shows "weak_complete_lattice L"
-proof (rule weak_complete_latticeI)
-  from top_exists obtain top where top: "greatest L top (carrier L)" ..
-  fix A
-  assume L: "A \<subseteq> carrier L"
-  let ?B = "Upper L A"
-  from L top have "top \<in> ?B" by (fast intro!: Upper_memI intro: greatest_le)
-  then have B_non_empty: "?B ~= {}" by fast
-  have B_L: "?B \<subseteq> carrier L" by simp
-  from inf_exists [OF B_L B_non_empty]
-  obtain b where b_inf_B: "greatest L b (Lower L ?B)" ..
-  have "least L b (Upper L A)"
-apply (rule least_UpperI)
-   apply (rule greatest_le [where A = "Lower L ?B"])
-    apply (rule b_inf_B)
-   apply (rule Lower_memI)
-    apply (erule Upper_memD [THEN conjunct1])
-     apply assumption
-    apply (rule L)
-   apply (fast intro: L [THEN subsetD])
-  apply (erule greatest_Lower_below [OF b_inf_B])
-  apply simp
- apply (rule L)
-apply (rule greatest_closed [OF b_inf_B])
-done
-  then show "EX s. least L s (Upper L A)" ..
-next
-  fix A
-  assume L: "A \<subseteq> carrier L"
-  show "EX i. greatest L i (Lower L A)"
-  proof (cases "A = {}")
-    case True then show ?thesis
-      by (simp add: top_exists)
-  next
-    case False with L show ?thesis
-      by (rule inf_exists)
-  qed
-qed
-
-(* TODO: prove dual version *)
-
-
-subsection \<open>Orders and Lattices where \<open>eq\<close> is the Equality\<close>
-
-locale partial_order = weak_partial_order +
-  assumes eq_is_equal: "op .= = op ="
+locale weak_bounded_lattice = 
+  weak_lattice + 
+  weak_partial_order_bottom + 
+  weak_partial_order_top
 begin
 
-declare weak_le_antisym [rule del]
+lemma bottom_meet: "x \<in> carrier L \<Longrightarrow> \<bottom> \<sqinter> x .= \<bottom>"
+  by (metis bottom_least least_def meet_closed meet_left weak_le_antisym)
 
-lemma le_antisym [intro]:
-  "[| x \<sqsubseteq> y; y \<sqsubseteq> x; x \<in> carrier L; y \<in> carrier L |] ==> x = y"
-  using weak_le_antisym unfolding eq_is_equal .
+lemma bottom_join: "x \<in> carrier L \<Longrightarrow> \<bottom> \<squnion> x .= x"
+  by (metis bottom_least join_closed join_le join_right le_refl least_def weak_le_antisym)
 
-lemma lless_eq:
-  "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y & x \<noteq> y"
-  unfolding lless_def by (simp add: eq_is_equal)
+lemma bottom_weak_eq:
+  "\<lbrakk> b \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> b \<sqsubseteq> x \<rbrakk> \<Longrightarrow> b .= \<bottom>"
+  by (metis bottom_closed bottom_lower weak_le_antisym)
 
-lemma lless_asym:
-  assumes "a \<in> carrier L" "b \<in> carrier L"
-    and "a \<sqsubset> b" "b \<sqsubset> a"
-  shows "P"
-  using assms unfolding lless_eq by auto
+lemma top_join: "x \<in> carrier L \<Longrightarrow> \<top> \<squnion> x .= \<top>"
+  by (metis join_closed join_left top_closed top_higher weak_le_antisym)
+
+lemma top_meet: "x \<in> carrier L \<Longrightarrow> \<top> \<sqinter> x .= x"
+  by (metis le_refl meet_closed meet_le meet_right top_closed top_higher weak_le_antisym)
+
+lemma top_weak_eq:  "\<lbrakk> t \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> x \<sqsubseteq> t \<rbrakk> \<Longrightarrow> t .= \<top>"
+  by (metis top_closed top_higher weak_le_antisym)
 
 end
 
-
-text \<open>Least and greatest, as predicate\<close>
-
-lemma (in partial_order) least_unique:
-  "[| least L x A; least L y A |] ==> x = y"
-  using weak_least_unique unfolding eq_is_equal .
-
-lemma (in partial_order) greatest_unique:
-  "[| greatest L x A; greatest L y A |] ==> x = y"
-  using weak_greatest_unique unfolding eq_is_equal .
+sublocale weak_bounded_lattice \<subseteq> weak_partial_order ..
 
 
-text \<open>Lattices\<close>
+subsection \<open>Lattices where \<open>eq\<close> is the Equality\<close>
 
 locale upper_semilattice = partial_order +
   assumes sup_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. least L s (Upper L {x, y})"
 
-sublocale upper_semilattice < weak?: weak_upper_semilattice
-  by standard (rule sup_of_two_exists)
+sublocale upper_semilattice \<subseteq> weak?: weak_upper_semilattice
+  by unfold_locales (rule sup_of_two_exists)
 
 locale lower_semilattice = partial_order +
   assumes inf_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
 
-sublocale lower_semilattice < weak?: weak_lower_semilattice
-  by standard (rule inf_of_two_exists)
+sublocale lower_semilattice \<subseteq> weak?: weak_lower_semilattice
+  by unfold_locales (rule inf_of_two_exists)
 
 locale lattice = upper_semilattice + lower_semilattice
 
+sublocale lattice \<subseteq> weak_lattice ..
 
-text \<open>Supremum\<close>
+lemma (in lattice) dual_lattice:
+  "lattice (inv_gorder L)"
+proof -
+  interpret dual: weak_lattice "inv_gorder L"
+    by (metis dual_weak_lattice)
 
-declare (in partial_order) weak_sup_of_singleton [simp del]
+  show ?thesis
+    apply (unfold_locales)
+    apply (simp_all add: inf_of_two_exists sup_of_two_exists)
+    apply (simp add:eq_is_equal)
+  done
+qed
+  
+lemma (in lattice) le_iff_join:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> x = (x \<sqinter> y)"
+  by (simp add: assms(1) assms(2) eq_is_equal weak_le_iff_join)
 
-lemma (in partial_order) sup_of_singleton [simp]:
-  "x \<in> carrier L ==> \<Squnion>{x} = x"
-  using weak_sup_of_singleton unfolding eq_is_equal .
+lemma (in lattice) le_iff_meet:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> (x \<squnion> y) = y"
+  by (simp add: assms(1) assms(2) eq_is_equal weak_le_iff_meet)
 
-lemma (in upper_semilattice) join_assoc_lemma:
-  assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
-  shows "x \<squnion> (y \<squnion> z) = \<Squnion>{x, y, z}"
-  using weak_join_assoc_lemma L unfolding eq_is_equal .
+text \<open> Total orders are lattices. \<close>
 
-lemma (in upper_semilattice) join_assoc:
-  assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
-  shows "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
-  using weak_join_assoc L unfolding eq_is_equal .
+sublocale total_order \<subseteq> weak?: lattice
+  by standard (auto intro: weak.weak.sup_of_two_exists weak.weak.inf_of_two_exists)
+    
+text \<open>Functions that preserve joins and meets\<close>
+  
+definition join_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"join_pres X Y f \<equiv> lattice X \<and> lattice Y \<and> (\<forall> x \<in> carrier X. \<forall> y \<in> carrier X. f (x \<squnion>\<^bsub>X\<^esub> y) = f x \<squnion>\<^bsub>Y\<^esub> f y)"
 
+definition meet_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"meet_pres X Y f \<equiv> lattice X \<and> lattice Y \<and> (\<forall> x \<in> carrier X. \<forall> y \<in> carrier X. f (x \<sqinter>\<^bsub>X\<^esub> y) = f x \<sqinter>\<^bsub>Y\<^esub> f y)"
 
-text \<open>Infimum\<close>
-
-declare (in partial_order) weak_inf_of_singleton [simp del]
-
-lemma (in partial_order) inf_of_singleton [simp]:
-  "x \<in> carrier L ==> \<Sqinter>{x} = x"
-  using weak_inf_of_singleton unfolding eq_is_equal .
-
-text \<open>Condition on \<open>A\<close>: infimum exists.\<close>
-
-lemma (in lower_semilattice) meet_assoc_lemma:
-  assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
-  shows "x \<sqinter> (y \<sqinter> z) = \<Sqinter>{x, y, z}"
-  using weak_meet_assoc_lemma L unfolding eq_is_equal .
-
-lemma (in lower_semilattice) meet_assoc:
-  assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
-  shows "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
-  using weak_meet_assoc L unfolding eq_is_equal .
-
-
-text \<open>Total Orders\<close>
-
-locale total_order = partial_order +
-  assumes total_order_total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
-
-sublocale total_order < weak?: weak_total_order
-  by standard (rule total_order_total)
-
-text \<open>Introduction rule: the usual definition of total order\<close>
-
-lemma (in partial_order) total_orderI:
-  assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
-  shows "total_order L"
-  by standard (rule total)
-
-text \<open>Total orders are lattices.\<close>
-
-sublocale total_order < weak?: lattice
-  by standard (auto intro: sup_of_two_exists inf_of_two_exists)
-
-
-text \<open>Complete lattices\<close>
-
-locale complete_lattice = lattice +
-  assumes sup_exists:
-    "[| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
-    and inf_exists:
-    "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
-
-sublocale complete_lattice < weak?: weak_complete_lattice
-  by standard (auto intro: sup_exists inf_exists)
-
-text \<open>Introduction rule: the usual definition of complete lattice\<close>
-
-lemma (in partial_order) complete_latticeI:
-  assumes sup_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
-    and inf_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
-  shows "complete_lattice L"
-  by standard (auto intro: sup_exists inf_exists)
-
-theorem (in partial_order) complete_lattice_criterion1:
-  assumes top_exists: "EX g. greatest L g (carrier L)"
-    and inf_exists:
-      "!!A. [| A \<subseteq> carrier L; A ~= {} |] ==> EX i. greatest L i (Lower L A)"
-  shows "complete_lattice L"
-proof (rule complete_latticeI)
-  from top_exists obtain top where top: "greatest L top (carrier L)" ..
-  fix A
-  assume L: "A \<subseteq> carrier L"
-  let ?B = "Upper L A"
-  from L top have "top \<in> ?B" by (fast intro!: Upper_memI intro: greatest_le)
-  then have B_non_empty: "?B ~= {}" by fast
-  have B_L: "?B \<subseteq> carrier L" by simp
-  from inf_exists [OF B_L B_non_empty]
-  obtain b where b_inf_B: "greatest L b (Lower L ?B)" ..
-  have "least L b (Upper L A)"
-apply (rule least_UpperI)
-   apply (rule greatest_le [where A = "Lower L ?B"])
-    apply (rule b_inf_B)
-   apply (rule Lower_memI)
-    apply (erule Upper_memD [THEN conjunct1])
-     apply assumption
-    apply (rule L)
-   apply (fast intro: L [THEN subsetD])
-  apply (erule greatest_Lower_below [OF b_inf_B])
-  apply simp
- apply (rule L)
-apply (rule greatest_closed [OF b_inf_B])
+lemma join_pres_isotone:
+  assumes "f \<in> carrier X \<rightarrow> carrier Y" "join_pres X Y f"
+  shows "isotone X Y f"
+  using assms
+  apply (rule_tac isotoneI)
+  apply (auto simp add: join_pres_def lattice.le_iff_meet funcset_carrier)
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  apply fastforce
 done
-  then show "EX s. least L s (Upper L A)" ..
-next
-  fix A
-  assume L: "A \<subseteq> carrier L"
-  show "EX i. greatest L i (Lower L A)"
-  proof (cases "A = {}")
-    case True then show ?thesis
-      by (simp add: top_exists)
-  next
-    case False with L show ?thesis
-      by (rule inf_exists)
-  qed
-qed
 
-(* TODO: prove dual version *)
+lemma meet_pres_isotone:
+  assumes "f \<in> carrier X \<rightarrow> carrier Y" "meet_pres X Y f"
+  shows "isotone X Y f"
+  using assms
+  apply (rule_tac isotoneI)
+  apply (auto simp add: meet_pres_def lattice.le_iff_join funcset_carrier)
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  apply fastforce
+done
 
 
-subsection \<open>Examples\<close>
+subsection \<open>Bounded Lattices\<close>
 
-subsubsection \<open>The Powerset of a Set is a Complete Lattice\<close>
+locale bounded_lattice = 
+  lattice + 
+  weak_partial_order_bottom + 
+  weak_partial_order_top
 
-theorem powerset_is_complete_lattice:
-  "complete_lattice \<lparr>carrier = Pow A, eq = op =, le = op \<subseteq>\<rparr>"
-  (is "complete_lattice ?L")
-proof (rule partial_order.complete_latticeI)
-  show "partial_order ?L"
-    by standard auto
-next
-  fix B
-  assume "B \<subseteq> carrier ?L"
-  then have "least ?L (\<Union>B) (Upper ?L B)"
-    by (fastforce intro!: least_UpperI simp: Upper_def)
-  then show "EX s. least ?L s (Upper ?L B)" ..
-next
-  fix B
-  assume "B \<subseteq> carrier ?L"
-  then have "greatest ?L (\<Inter>B \<inter> A) (Lower ?L B)"
-    txt \<open>@{term "\<Inter>B"} is not the infimum of @{term B}:
-      @{term "\<Inter>{} = UNIV"} which is in general bigger than @{term "A"}!\<close>
-    by (fastforce intro!: greatest_LowerI simp: Lower_def)
-  then show "EX i. greatest ?L i (Lower ?L B)" ..
-qed
+sublocale bounded_lattice \<subseteq> weak_bounded_lattice ..
 
-text \<open>An other example, that of the lattice of subgroups of a group,
-  can be found in Group theory (Section~\ref{sec:subgroup-lattice}).\<close>
+context bounded_lattice
+begin
+
+lemma bottom_eq:  
+  "\<lbrakk> b \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> b \<sqsubseteq> x \<rbrakk> \<Longrightarrow> b = \<bottom>"
+  by (metis bottom_closed bottom_lower le_antisym)
+
+lemma top_eq:  "\<lbrakk> t \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> x \<sqsubseteq> t \<rbrakk> \<Longrightarrow> t = \<top>"
+  by (metis le_antisym top_closed top_higher)
+
+end
 
 end

@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2017: Alasdair Armstrong and Simon Foster, University of York
+  Fixed-point theory and Galois Connections in HOL-Algebra.
+
 * February 2017: Florian Haftmann, TUM
   Statically embedded computations implemented by generated code.
 

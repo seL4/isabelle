@@ -297,7 +297,9 @@ session "HOL-Algebra" (main timing) in Algebra = HOL +
     "~~/src/HOL/Number_Theory/Primes"
     "~~/src/HOL/Library/Permutation"
   theories
-    (*** New development, based on explicit structures ***)
+    (* Orders and Lattices *)
+    Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
+
     (* Groups *)
     FiniteProduct        (* Product operator for commutative groups *)
     Sylow                (* Sylow's theorem *)

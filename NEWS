@@ -108,6 +108,9 @@ INCOMPATIBILITY.
     with type class annotations. As a result, the tactic that derives
     it no longer fails on nested datatypes. Slight INCOMPATIBILITY.
 
+* Session HOL-Algebra extended by additional lattice theory: the
+Knaster-Tarski fixed point theorem and Galois Connections.
+
 * Session HOL-Analysis: more material involving arcs, paths, covering
 spaces, innessential maps, retracts. Major results include the Jordan
 Curve Theorem and the Great Picard Theorem.

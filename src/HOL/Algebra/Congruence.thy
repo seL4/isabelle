@@ -4,7 +4,9 @@
 *)
 
 theory Congruence
-imports Main
+imports 
+  Main
+  "~~/src/HOL/Library/FuncSet"
 begin
 
 section \<open>Objects\<close>
@@ -13,6 +15,14 @@ subsection \<open>Structure with Carrier Set.\<close>
 
 record 'a partial_object =
   carrier :: "'a set"
+
+lemma funcset_carrier:
+  "\<lbrakk> f \<in> carrier X \<rightarrow> carrier Y; x \<in> carrier X \<rbrakk> \<Longrightarrow> f x \<in> carrier Y"
+  by (fact funcset_mem)
+
+lemma funcset_carrier':
+  "\<lbrakk> f \<in> carrier A \<rightarrow> carrier A; x \<in> carrier A \<rbrakk> \<Longrightarrow> f x \<in> carrier A"
+  by (fact funcset_mem)
 
 
 subsection \<open>Structure with Carrier and Equivalence Relation \<open>eq\<close>\<close>
@@ -413,4 +423,14 @@ using assms
 by (blast intro: closure_of_memI elem_exact dest: is_closedD1 is_closedD2 closure_of_memE)
 *)
 
+lemma equivalence_subset:
+  assumes "equivalence L" "A \<subseteq> carrier L"
+  shows "equivalence (L\<lparr> carrier := A \<rparr>)"
+proof -
+  interpret L: equivalence L
+    by (simp add: assms)
+  show ?thesis
+    by (unfold_locales, simp_all add: L.sym assms rev_subsetD, meson L.trans assms(2) contra_subsetD)
+qed
+  
 end
