@@ -56,16 +56,16 @@ object HTTP
 
   /* handler */
 
-  class Handler private[HTTP](val path: String, val handler: HttpHandler)
+  class Handler private[HTTP](val root: String, val handler: HttpHandler)
   {
-    override def toString: String = path
+    override def toString: String = root
   }
 
-  def handler(path: String, body: Exchange => Unit): Handler =
-    new Handler(path, new HttpHandler { def handle(x: HttpExchange) { body(new Exchange(x)) } })
+  def handler(root: String, body: Exchange => Unit): Handler =
+    new Handler(root, new HttpHandler { def handle(x: HttpExchange) { body(new Exchange(x)) } })
 
-  def get(path: String, body: URI => Option[Response]): Handler =
-    handler(path, http =>
+  def get(root: String, body: URI => Option[Response]): Handler =
+    handler(root, http =>
       {
         http.read_request()
         if (http.request_method == "GET")
@@ -81,8 +81,8 @@ object HTTP
 
   class Server private[HTTP](val http_server: HttpServer)
   {
-    def += (handler: Handler) { http_server.createContext(handler.path, handler.handler) }
-    def -= (handler: Handler) { http_server.removeContext(handler.path) }
+    def += (handler: Handler) { http_server.createContext(handler.root, handler.handler) }
+    def -= (handler: Handler) { http_server.removeContext(handler.root) }
 
     def start: Unit = http_server.start
     def stop: Unit = http_server.stop(0)
