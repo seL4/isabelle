@@ -10,6 +10,8 @@ package isabelle
 import java.net.{InetAddress, InetSocketAddress, URI}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
+import scala.collection.immutable.SortedMap
+
 
 object HTTP
 {
@@ -99,5 +101,27 @@ object HTTP
     val server = new Server(http_server)
     for (handler <- handlers) server += handler
     server
+  }
+
+
+  /* Isabelle resources */
+
+  private lazy val isabelle_fonts: SortedMap[String, Bytes] =
+    SortedMap(
+      (for {
+        variable <- List("ISABELLE_FONTS", "ISABELLE_FONTS_HTML")
+        path <- Path.split(Isabelle_System.getenv_strict(variable))
+      } yield (path.base.implode -> Bytes.read(path))): _*)
+
+  def fonts(root: String = "/fonts"): Handler =
+  {
+    get(root, uri =>
+      {
+        val uri_name = uri.toString
+        if (uri_name == root) Some(Response.text(cat_lines(isabelle_fonts.map(_._1))))
+        else
+          isabelle_fonts.collectFirst(
+            { case (name, file) if uri_name == root + "/" + name => Response(file) })
+      })
   }
 }
