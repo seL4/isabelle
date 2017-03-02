@@ -110,9 +110,7 @@ object Present
 
       File.copy(Path.explode("~~/etc/isabelle.css"), session_prefix)
 
-      for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS")))
-        File.copy(font, session_prefix)
-      for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS_HTML")))
+      for (font <- Isabelle_System.fonts(html = true))
         File.copy(font, session_prefix)
     }
   }

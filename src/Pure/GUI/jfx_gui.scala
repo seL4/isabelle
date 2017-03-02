@@ -44,7 +44,7 @@ object JFX_GUI
 
   def install_fonts()
   {
-    for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS"))) {
+    for (font <- Isabelle_System.fonts()) {
       val stream = new BufferedInputStream(new FileInputStream(font.file))
       try { JFX_Font.loadFont(stream, 1.0) }
       finally { stream.close }

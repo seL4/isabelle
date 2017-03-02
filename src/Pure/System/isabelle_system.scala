@@ -335,6 +335,19 @@ object Isabelle_System
     Path.split(getenv_strict("ISABELLE_COMPONENTS"))
 
 
+  /* fonts */
+
+  def fonts(html: Boolean = false): List[Path] =
+  {
+    val variables =
+      if (html) List("ISABELLE_FONTS", "ISABELLE_FONTS_HTML") else List("ISABELLE_FONTS")
+    for {
+      variable <- variables
+      path <- Path.split(Isabelle_System.getenv_strict(variable))
+    } yield path
+  }
+
+
   /* default logic */
 
   def default_logic(args: String*): String =

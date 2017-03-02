@@ -22,8 +22,7 @@ object NEWS
       "</pre>\n" +
       HTML.end_document)
 
-    for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS")))
-      File.copy(font, target)
+    for (font <- Isabelle_System.fonts()) File.copy(font, target)
 
     File.copy(Path.explode("~~/etc/isabelle.css"), target)
   }

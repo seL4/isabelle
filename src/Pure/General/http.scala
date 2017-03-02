@@ -132,10 +132,7 @@ object HTTP
 
   private lazy val isabelle_fonts: SortedMap[String, Bytes] =
     SortedMap(
-      (for {
-        variable <- List("ISABELLE_FONTS", "ISABELLE_FONTS_HTML")
-        path <- Path.split(Isabelle_System.getenv_strict(variable))
-      } yield (path.base.implode -> Bytes.read(path))): _*)
+      Isabelle_System.fonts(html = true).map(path => (path.base.implode -> Bytes.read(path))): _*)
 
   def fonts(root: String = "/fonts"): Handler =
   {
