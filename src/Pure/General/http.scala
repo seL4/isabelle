@@ -15,6 +15,8 @@ import scala.collection.immutable.SortedMap
 
 object HTTP
 {
+  /** server **/
+
   /* response */
 
   object Response
@@ -92,7 +94,7 @@ object HTTP
     override def toString: String = url
   }
 
-  def server(handlers: Handler*): Server =
+  def server(handlers: List[Handler] = isabelle_resources): Server =
   {
     val localhost = InetAddress.getByName("127.0.0.1")
     val http_server = HttpServer.create(new InetSocketAddress(localhost, 0), 0)
@@ -104,7 +106,29 @@ object HTTP
   }
 
 
-  /* Isabelle resources */
+
+  /** Isabelle resources **/
+
+  lazy val isabelle_resources: List[Handler] =
+    List(welcome(), fonts())
+
+
+  /* welcome */
+
+  def welcome(root: String = "/"): Handler =
+    get(root, uri =>
+      if (uri.toString == "/") {
+        val id =
+          Isabelle_System.getenv("ISABELLE_ID") match {
+            case "" => Mercurial.repository(Path.explode("~~")).id()
+            case id => id
+          }
+        Some(Response.text("Welcome to Isabelle (" + id + ")"))
+      }
+      else None)
+
+
+  /* fonts */
 
   private lazy val isabelle_fonts: SortedMap[String, Bytes] =
     SortedMap(
