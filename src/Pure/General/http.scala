@@ -140,12 +140,10 @@ object HTTP
       Isabelle_System.fonts(html = true).map(path => (path.base.implode -> Bytes.read(path))): _*)
 
   def fonts(root: String = "/fonts"): Handler =
-  {
     get(root, uri =>
       {
         val uri_name = uri.toString
         if (uri_name == root) Some(Response.text(cat_lines(html_fonts.map(_._1))))
         else html_fonts.collectFirst({ case (a, b) if uri_name == root + "/" + a => Response(b) })
       })
-  }
 }
