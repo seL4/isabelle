@@ -130,7 +130,7 @@ object HTTP
 
   /* fonts */
 
-  private lazy val isabelle_fonts: SortedMap[String, Bytes] =
+  private lazy val html_fonts: SortedMap[String, Bytes] =
     SortedMap(
       Isabelle_System.fonts(html = true).map(path => (path.base.implode -> Bytes.read(path))): _*)
 
@@ -139,10 +139,8 @@ object HTTP
     get(root, uri =>
       {
         val uri_name = uri.toString
-        if (uri_name == root) Some(Response.text(cat_lines(isabelle_fonts.map(_._1))))
-        else
-          isabelle_fonts.collectFirst(
-            { case (name, file) if uri_name == root + "/" + name => Response(file) })
+        if (uri_name == root) Some(Response.text(cat_lines(html_fonts.map(_._1))))
+        else html_fonts.collectFirst({ case (a, b) if uri_name == root + "/" + a => Response(b) })
       })
   }
 }

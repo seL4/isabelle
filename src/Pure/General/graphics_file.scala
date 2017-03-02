@@ -45,7 +45,7 @@ object Graphics_File
   {
     val mapper = new DefaultFontMapper
     for {
-      font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS"))
+      font <- Isabelle_System.fonts()
       name <- Library.try_unsuffix(".ttf", font.base.implode)
     } {
       val parameters = new DefaultFontMapper.BaseFontParameters(File.platform_path(font))
