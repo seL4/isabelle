@@ -54,7 +54,7 @@ object Build_Doc
               progress, clean_build = true, max_jobs = max_jobs, system_mode = system_mode,
               sessions = sessions)
           if (res2.ok) {
-            val doc_dir = Path.explode("$ISABELLE_HOME/doc")
+            val doc_dir = Path.explode("~~/doc")
             for (doc <- selected_docs) {
               val name = Path.explode(doc + ".pdf")
               File.copy(output + name, doc_dir + name)
