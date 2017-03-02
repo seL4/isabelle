@@ -51,7 +51,7 @@ declare -a SOURCES=(
   General/graph.scala
   General/graph_display.scala
   General/graphics_file.scala
-  General/http_server.scala
+  General/http.scala
   General/json.scala
   General/linear_set.scala
   General/logger.scala
