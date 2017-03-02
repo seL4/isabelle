@@ -71,9 +71,14 @@ object HTTP
       {
         http.read_request()
         if (http.request_method == "GET")
-          body(http.request_uri) match {
-            case None => http.write_response(404, Response.empty)
-            case Some(response) => http.write_response(200, response)
+          Exn.capture(body(http.request_uri)) match {
+            case Exn.Res(Some(response)) =>
+              http.write_response(200, response)
+            case Exn.Res(None) =>
+              http.write_response(404, Response.empty)
+            case Exn.Exn(ERROR(msg)) =>
+              http.write_response(500, Response.text(Output.error_text(msg)))
+            case Exn.Exn(exn) => throw exn
           }
         else http.write_response(400, Response.empty)
       })
