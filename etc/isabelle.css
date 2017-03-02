@@ -2,18 +2,18 @@
 
 @font-face {
   font-family: 'IsabelleText';
-  src: url('IsabelleText.ttf') format('truetype');
+  src: url('fonts/IsabelleText.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'IsabelleText';
-  src: url('IsabelleTextBold.ttf') format('truetype');
+  src: url('fonts/IsabelleTextBold.ttf') format('truetype');
   font-weight: bold;
 }
 
 @font-face {
   font-family: 'Vacuous';
-  src: url('Vacuous.ttf') format('truetype');
+  src: url('fonts/Vacuous.ttf') format('truetype');
 }
 
 body { background-color: #FFFFFF; }

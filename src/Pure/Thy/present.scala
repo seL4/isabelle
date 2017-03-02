@@ -100,9 +100,10 @@ object Present
     name: String)
   {
     val session_prefix = browser_info + Path.basic(info.chapter) + Path.basic(name)
+    val session_fonts = session_prefix + Path.explode("fonts")
 
     if (info.options.bool("browser_info")) {
-      Isabelle_System.mkdirs(session_prefix)
+      Isabelle_System.mkdirs(session_fonts)
 
       val session_graph = session_prefix + Path.basic("session_graph.pdf")
       File.copy(graph_file, session_graph.file)
@@ -111,7 +112,7 @@ object Present
       File.copy(Path.explode("~~/etc/isabelle.css"), session_prefix)
 
       for (font <- Isabelle_System.fonts(html = true))
-        File.copy(font, session_prefix)
+        File.copy(font, session_fonts)
     }
   }
 }

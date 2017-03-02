@@ -14,6 +14,8 @@ object NEWS
   def generate_html()
   {
     val target = Path.explode("~~/doc")
+    val target_fonts = target + Path.explode("fonts")
+    Isabelle_System.mkdirs(target_fonts)
 
     File.write(target + Path.explode("NEWS.html"),
       HTML.begin_document("NEWS") +
@@ -22,7 +24,9 @@ object NEWS
       "</pre>\n" +
       HTML.end_document)
 
-    for (font <- Isabelle_System.fonts()) File.copy(font, target)
+
+    for (font <- Isabelle_System.fonts(html = true))
+      File.copy(font, target_fonts)
 
     File.copy(Path.explode("~~/etc/isabelle.css"), target)
   }
