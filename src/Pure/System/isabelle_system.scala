@@ -209,14 +209,14 @@ object Isabelle_System
         new SimpleFileVisitor[JPath] {
           override def visitFile(file: JPath, attrs: BasicFileAttributes): FileVisitResult =
           {
-            Files.delete(file)
+            Files.deleteIfExists(file)
             FileVisitResult.CONTINUE
           }
 
           override def postVisitDirectory(dir: JPath, e: IOException): FileVisitResult =
           {
             if (e == null) {
-              Files.delete(dir)
+              Files.deleteIfExists(dir)
               FileVisitResult.CONTINUE
             }
             else throw e
