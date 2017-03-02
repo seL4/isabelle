@@ -123,7 +123,7 @@ object HTTP
             case "" => Mercurial.repository(Path.explode("~~")).id()
             case id => id
           }
-        Some(Response.text("Welcome to Isabelle (" + id + ")"))
+        Some(Response.text("Welcome to Isabelle/" + id + ": " + Distribution.version))
       }
       else None)
 
