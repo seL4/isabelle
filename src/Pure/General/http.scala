@@ -110,13 +110,13 @@ object HTTP
   /** Isabelle resources **/
 
   lazy val isabelle_resources: List[Handler] =
-    List(welcome(), fonts())
+    List(welcome, fonts())
 
 
   /* welcome */
 
-  def welcome(root: String = "/"): Handler =
-    get(root, uri =>
+  val welcome: Handler =
+    get("/", uri =>
       if (uri.toString == "/") {
         val id =
           Isabelle_System.getenv("ISABELLE_ID") match {
