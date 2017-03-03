@@ -39,8 +39,7 @@ export function activate(context: vscode.ExtensionContext)
     let client = new LanguageClient("Isabelle", server_options, client_options, false)
 
     decorations.init(context)
-    client.onNotification<Decoration>({method: "PIDE/decoration"},
-      function (decoration: Decoration) { return decorations.apply(decoration) })
+    client.onNotification<Decoration>({method: "PIDE/decoration"}, decorations.apply)
 
     context.subscriptions.push(client.start());
   }
