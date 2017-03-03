@@ -12,7 +12,7 @@ export interface Decorations
   bad: TextEditorDecorationType
 }
 
-export let types: Readonly<Decorations>
+export let types: Decorations
 
 export function init(context: ExtensionContext)
 {
