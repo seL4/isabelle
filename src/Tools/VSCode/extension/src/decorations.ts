@@ -9,7 +9,7 @@ import { Range, MarkedString, DecorationOptions, DecorationRenderOptions,
 
 export interface Decorations
 {
-  test: TextEditorDecorationType
+  bad: TextEditorDecorationType
 }
 
 export let types: Readonly<Decorations>
@@ -26,7 +26,7 @@ export function init(context: ExtensionContext)
   if (!types)
     types =
     {
-      test: decoration({ backgroundColor: 'rgba(255,0,0,0.3)' })
+      bad: decoration({ backgroundColor: 'rgba(255, 106, 106, 0.4)' })
     }
 }
 

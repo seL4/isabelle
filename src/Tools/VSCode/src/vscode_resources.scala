@@ -236,9 +236,16 @@ class VSCode_Resources(
             file <- st.pending_output.iterator
             model <- st.models.get(file)
             rendering = model.rendering()
-            (diagnostics, model1) <- model.publish_diagnostics(rendering)
-          } yield {
-            channel.diagnostics(file, rendering.diagnostics_output(diagnostics))
+            ((diagnostics, decorations), model1) <- model.publish(rendering)
+          }
+          yield {
+            if (diagnostics.nonEmpty)
+              channel.write(
+                Protocol.PublishDiagnostics(file, rendering.diagnostics_output(diagnostics)))
+
+            for (decoration <- decorations)
+              channel.write(rendering.decoration_output(decoration).json(file))
+
             (file, model1)
           }
         st.copy(

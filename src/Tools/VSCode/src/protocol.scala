@@ -407,6 +407,11 @@ object Protocol
 
   /* decorations */
 
+  object Decorations
+  {
+    val bad = "bad"
+  }
+
   sealed case class DecorationOptions(range: Line.Range, hover_message: List[MarkedString])
   {
     def json: JSON.T =
@@ -415,9 +420,9 @@ object Protocol
         (if (hover_message.isEmpty) None else Some(hover_message.map(_.json))))
   }
 
-  object Decoration
+  sealed case class Decoration(typ: String, content: List[DecorationOptions])
   {
-    def apply(file: JFile, typ: String, content: List[DecorationOptions]): JSON.T =
+    def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
         Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
   }

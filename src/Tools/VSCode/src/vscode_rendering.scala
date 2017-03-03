@@ -23,15 +23,15 @@ object VSCode_Rendering
       Markup.INFORMATION -> Protocol.DiagnosticSeverity.Information,
       Markup.WARNING -> Protocol.DiagnosticSeverity.Warning,
       Markup.LEGACY -> Protocol.DiagnosticSeverity.Warning,
-      Markup.ERROR -> Protocol.DiagnosticSeverity.Error,
-      Markup.BAD -> Protocol.DiagnosticSeverity.Error)
+      Markup.ERROR -> Protocol.DiagnosticSeverity.Error)
 
 
   /* markup elements */
 
   private val diagnostics_elements =
-    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
-      Markup.BAD)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
+
+  private val bad_elements = Markup.Elements(Markup.BAD)
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
@@ -91,6 +91,30 @@ class VSCode_Rendering(
       val severity = VSCode_Rendering.message_severity.get(name)
       Protocol.Diagnostic(range, message, severity = severity)
     }).toList
+  }
+
+
+  /* decorations */
+
+  def decorations: List[Document_Model.Decoration] =
+    List(Document_Model.Decoration(Protocol.Decorations.bad, decorations_bad))
+
+  def decorations_bad: List[Text.Info[XML.Body]] =
+    snapshot.select(model.content.text_range, VSCode_Rendering.bad_elements, _ =>
+      {
+        case Text.Info(_, XML.Elem(_, body)) => Some(body)
+      })
+
+  def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
+  {
+    val content =
+      for (Text.Info(text_range, body) <- decoration.content)
+      yield {
+        val range = model.content.doc.range(text_range)
+        val msg = resources.output_pretty(body, diagnostics_margin)
+        Protocol.DecorationOptions(range, if (msg == "") Nil else List(Protocol.MarkedString(msg)))
+      }
+    Protocol.Decoration(decoration.typ, content)
   }
 
 

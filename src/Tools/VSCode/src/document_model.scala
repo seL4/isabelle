@@ -14,6 +14,13 @@ import java.io.{File => JFile}
 
 object Document_Model
 {
+  /* decorations */
+
+  sealed case class Decoration(typ: String, content: List[Text.Info[XML.Body]])
+
+
+  /* content */
+
   sealed case class Content(doc: Line.Document)
   {
     def text_range: Text.Range = doc.text_range
@@ -43,7 +50,8 @@ sealed case class Document_Model(
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
   pending_edits: List[Text.Edit] = Nil,
-  published_diagnostics: List[Text.Info[Command.Results]] = Nil) extends Document.Model
+  published_diagnostics: List[Text.Info[Command.Results]] = Nil,
+  published_decorations: List[Document_Model.Decoration] = Nil) extends Document.Model
 {
   /* external file */
 
@@ -111,14 +119,22 @@ sealed case class Document_Model(
   }
 
 
-  /* diagnostics */
+  /* publish annotations */
 
-  def publish_diagnostics(rendering: VSCode_Rendering)
-    : Option[(List[Text.Info[Command.Results]], Document_Model)] =
+  def publish(rendering: VSCode_Rendering)
+    : Option[((List[Text.Info[Command.Results]], List[Document_Model.Decoration]), Document_Model)] =
   {
     val diagnostics = rendering.diagnostics
-    if (diagnostics == published_diagnostics) None
-    else Some(diagnostics, copy(published_diagnostics = diagnostics))
+    val decorations = rendering.decorations
+    if (diagnostics == published_diagnostics && decorations == published_decorations) None
+    else {
+      val new_decorations =
+        if (decorations.length != published_decorations.length) decorations
+        else for { (a, b) <- decorations zip published_decorations if a != b } yield a
+
+      Some((diagnostics, new_decorations),
+        copy(published_diagnostics = diagnostics, published_decorations = decorations))
+    }
   }
 
 

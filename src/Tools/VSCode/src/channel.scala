@@ -112,10 +112,4 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
       override def theory(session: String, theory: String): Unit =
         if (verbose) echo(session + ": theory " + theory)
     }
-
-
-  /* diagnostics */
-
-  def diagnostics(file: JFile, diagnostics: List[Protocol.Diagnostic]): Unit =
-    write(Protocol.PublishDiagnostics(file, diagnostics))
 }
