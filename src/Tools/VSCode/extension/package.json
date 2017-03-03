@@ -12,7 +12,7 @@
     "icon": "isabelle.png",
     "version": "0.6.0",
     "publisher": "makarius",
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "repository": { "url": "http://isabelle.in.tum.de/repos/isabelle" },
     "engines": { "vscode": "^1.8.0" },
     "categories": ["Languages"],
