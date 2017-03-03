@@ -44,9 +44,10 @@ export function apply(decoration: Decoration)
 {
   let typ = types[decoration.type]
   if (typ) {
+    let uri = Uri.parse(decoration.uri).toString()
     let editor =
       vscode.window.visibleTextEditors.find(
-        function (editor) { return decoration.uri == editor.document.uri.toString() })
+        function (editor) { return uri == editor.document.uri.toString() })
     if (editor) editor.setDecorations(typ, decoration.content)
   }
 }
