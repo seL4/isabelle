@@ -403,4 +403,22 @@ object Protocol
       Notification("textDocument/publishDiagnostics",
         Map("uri" -> Url.print_file(file), "diagnostics" -> diagnostics.map(_.json)))
   }
+
+
+  /* decorations */
+
+  sealed case class DecorationOptions(range: Line.Range, hover_message: List[MarkedString])
+  {
+    def json: JSON.T =
+      Map("range" -> Range(range)) ++
+      JSON.optional("hoverMessage" ->
+        (if (hover_message.isEmpty) None else Some(hover_message.map(_.json))))
+  }
+
+  object Decoration
+  {
+    def apply(file: JFile, typ: String, content: List[DecorationOptions]): JSON.T =
+      Notification("PIDE/decoration",
+        Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
+  }
 }

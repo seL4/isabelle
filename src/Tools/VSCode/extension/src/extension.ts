@@ -3,7 +3,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
-
+import * as decorations from './decorations';
+import { Decoration } from './decorations'
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind }
   from 'vscode-languageclient';
 
@@ -35,9 +36,14 @@ export function activate(context: vscode.ExtensionContext)
       documentSelector: ["isabelle", "isabelle-ml", "bibtex"]
     };
 
-    let disposable = new LanguageClient("Isabelle", server_options, client_options, false).start();
-    context.subscriptions.push(disposable);
-    }
+    let client = new LanguageClient("Isabelle", server_options, client_options, false)
+
+    decorations.init(context)
+    client.onNotification<Decoration>({method: "PIDE/decoration"},
+      function (decoration: Decoration) { return decorations.apply(decoration) })
+
+    context.subscriptions.push(client.start());
+  }
 }
 
 export function deactivate() { }
