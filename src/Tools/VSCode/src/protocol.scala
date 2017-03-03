@@ -205,6 +205,14 @@ object Protocol
   }
 
 
+  /* marked string */
+
+  sealed case class MarkedString(text: String, language: String = "plaintext")
+  {
+    def json: JSON.T = Map("language" -> language, "value" -> text)
+  }
+
+
   /* diagnostic messages */
 
   object MessageType
@@ -322,13 +330,12 @@ object Protocol
 
   object Hover extends RequestTextDocumentPosition("textDocument/hover")
   {
-    def reply(id: Id, result: Option[(Line.Range, List[String])]): JSON.T =
+    def reply(id: Id, result: Option[(Line.Range, List[MarkedString])]): JSON.T =
     {
       val res =
         result match {
           case Some((range, contents)) =>
-            Map("contents" -> contents.map(s => Map("language" -> "plaintext", "value" -> s)),
-              "range" -> Range(range))
+            Map("contents" -> contents.map(_.json), "range" -> Range(range))
           case None => Map("contents" -> Nil)
         }
       ResponseMessage(id, Some(res))

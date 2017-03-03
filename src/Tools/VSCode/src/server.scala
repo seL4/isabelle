@@ -300,7 +300,8 @@ class Server(
         val doc = rendering.model.content.doc
         val range = doc.range(info.range)
         val contents =
-          info.info.map(tree => resources.output_pretty(List(tree), rendering.tooltip_margin))
+          info.info.map(tree =>
+            Protocol.MarkedString(resources.output_pretty(List(tree), rendering.tooltip_margin)))
         (range, contents)
       }
     channel.write(Protocol.Hover.reply(id, result))
