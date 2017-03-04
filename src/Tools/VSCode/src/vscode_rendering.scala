@@ -17,20 +17,16 @@ object VSCode_Rendering
 {
   /* decorations */
 
-  def color_decorations(prefix: String, types: Rendering.Color.ValueSet,
+  private def color_decorations(prefix: String, types: Rendering.Color.ValueSet,
     colors: List[Text.Info[Rendering.Color.Value]]): List[Document_Model.Decoration] =
   {
     val color_ranges =
       (Map.empty[Rendering.Color.Value, List[Text.Range]] /: colors) {
         case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
       }
-    for (c <- types.toList)
-    yield {
-      val typ = prefix + c.toString
-      val content =
-        color_ranges.getOrElse(c, Nil).reverse.map(r => Text.Info(r, Nil: XML.Body))
-      Document_Model.Decoration(typ, content)
-    }
+    types.toList.map(c =>
+      Document_Model.Decoration(prefix + c.toString,
+        color_ranges.getOrElse(c, Nil).reverse.map(r => Text.Info(r, Nil: List[XML.Body]))))
   }
 
 
@@ -127,7 +123,7 @@ class VSCode_Rendering(
     val content =
       snapshot.select(model.content.text_range, VSCode_Rendering.bad_elements, _ =>
         {
-          case Text.Info(_, XML.Elem(_, body)) => Some(body)
+          case Text.Info(_, XML.Elem(_, body)) => Some(List(body))
         })
     List(Document_Model.Decoration(Protocol.Decorations.bad, content))
   }
@@ -135,11 +131,12 @@ class VSCode_Rendering(
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {
     val content =
-      for (Text.Info(text_range, body) <- decoration.content)
+      for (Text.Info(text_range, msgs) <- decoration.content)
       yield {
         val range = model.content.doc.range(text_range)
-        val msg = resources.output_pretty(body, diagnostics_margin)
-        Protocol.DecorationOptions(range, if (msg == "") Nil else List(Protocol.MarkedString(msg)))
+        Protocol.DecorationOptions(range,
+          msgs.map(msg =>
+            Protocol.MarkedString(resources.output_pretty(msg, diagnostics_margin))))
       }
     Protocol.Decoration(decoration.typ, content)
   }

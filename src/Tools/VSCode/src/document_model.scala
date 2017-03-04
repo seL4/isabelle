@@ -16,7 +16,7 @@ object Document_Model
 {
   /* decorations */
 
-  sealed case class Decoration(typ: String, content: List[Text.Info[XML.Body]])
+  sealed case class Decoration(typ: String, content: List[Text.Info[List[XML.Body]]])
 
 
   /* content */
