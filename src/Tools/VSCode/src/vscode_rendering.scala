@@ -15,6 +15,25 @@ import java.io.{File => JFile}
 
 object VSCode_Rendering
 {
+  /* decorations */
+
+  def color_decorations(prefix: String, types: Rendering.Color.ValueSet,
+    colors: List[Text.Info[Rendering.Color.Value]]): List[Document_Model.Decoration] =
+  {
+    val color_ranges =
+      (Map.empty[Rendering.Color.Value, List[Text.Range]] /: colors) {
+        case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
+      }
+    for (c <- types.toList)
+    yield {
+      val typ = prefix + c.toString
+      val content =
+        color_ranges.getOrElse(c, Nil).reverse.map(r => Text.Info(r, Nil: XML.Body))
+      Document_Model.Decoration(typ, content)
+    }
+  }
+
+
   /* diagnostic messages */
 
   private val message_severity =
@@ -97,13 +116,21 @@ class VSCode_Rendering(
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] =
-    List(Document_Model.Decoration(Protocol.Decorations.bad, decorations_bad))
+    decorations_bad :::
+    VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
+      background(model.content.text_range, Set.empty)) :::
+    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,
+      foreground(model.content.text_range))
 
-  def decorations_bad: List[Text.Info[XML.Body]] =
-    snapshot.select(model.content.text_range, VSCode_Rendering.bad_elements, _ =>
-      {
-        case Text.Info(_, XML.Elem(_, body)) => Some(body)
-      })
+  def decorations_bad: List[Document_Model.Decoration] =
+  {
+    val content =
+      snapshot.select(model.content.text_range, VSCode_Rendering.bad_elements, _ =>
+        {
+          case Text.Info(_, XML.Elem(_, body)) => Some(body)
+        })
+    List(Document_Model.Decoration(Protocol.Decorations.bad, content))
+  }
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {

@@ -14,19 +14,24 @@ object Rendering
 
   object Color extends Enumeration
   {
+    // background
     val unprocessed1 = Value("unprocessed1")
     val running1 = Value("running1")
     val bad = Value("bad")
     val intensify = Value("intensify")
     val entity = Value("entity")
-    val quoted = Value("quoted")
-    val antiquoted = Value("antiquoted")
     val active = Value("active")
     val active_result = Value("active_result")
     val markdown_item1 = Value("markdown_item1")
     val markdown_item2 = Value("markdown_item2")
     val markdown_item3 = Value("markdown_item3")
     val markdown_item4 = Value("markdown_item4")
+    val background = values
+
+    // foreground
+    val quoted = Value("quoted")
+    val antiquoted = Value("antiquoted")
+    val foreground = values -- background
   }
 
 
