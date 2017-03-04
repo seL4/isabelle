@@ -46,7 +46,7 @@ object VSCode_Rendering
   private val diagnostics_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
 
-  private val bad_elements = Markup.Elements(Markup.BAD)
+  private val hover_message_elements = Markup.Elements(Markup.BAD)
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
@@ -111,22 +111,31 @@ class VSCode_Rendering(
 
   /* decorations */
 
+  def hover_message: Document_Model.Decoration =
+  {
+    val results =
+      snapshot.cumulate[Command.Results](
+        model.content.text_range, Command.Results.empty,
+        VSCode_Rendering.hover_message_elements, _ =>
+          {
+            case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
+            if body.nonEmpty =>
+              Some(msgs + (serial -> XML.Elem(Markup(Markup.message(name), props), body)))
+
+            case _ => None
+          })
+    val content =
+      for (Text.Info(r, msgs) <- results if !msgs.is_empty)
+      yield Text.Info(r, (for ((_, t) <- msgs.iterator) yield List(t)).toList)
+    Document_Model.Decoration("hover_message", content)
+  }
+
   def decorations: List[Document_Model.Decoration] =
-    decorations_bad :::
+    hover_message ::
     VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
       background(model.content.text_range, Set.empty)) :::
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,
       foreground(model.content.text_range))
-
-  def decorations_bad: List[Document_Model.Decoration] =
-  {
-    val content =
-      snapshot.select(model.content.text_range, VSCode_Rendering.bad_elements, _ =>
-        {
-          case Text.Info(_, XML.Elem(_, body)) => Some(List(body))
-        })
-    List(Document_Model.Decoration(Protocol.Decorations.bad, content))
-  }
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {

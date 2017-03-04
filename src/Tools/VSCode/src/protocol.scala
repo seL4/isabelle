@@ -417,11 +417,6 @@ object Protocol
 
   /* decorations */
 
-  object Decorations
-  {
-    val bad = "bad"
-  }
-
   sealed case class DecorationOptions(range: Line.Range, hover_message: List[MarkedString])
   {
     def no_hover_message: Boolean = hover_message.isEmpty

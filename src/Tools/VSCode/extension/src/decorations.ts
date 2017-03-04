@@ -61,7 +61,7 @@ export function init(context: ExtensionContext)
   for (let color of foreground_colors) {
     types["foreground_".concat(color)] = background(color) // approximation
   }
-  types["bad"] = decoration({})
+  types["hover_message"] = decoration({})
 }
 
 
