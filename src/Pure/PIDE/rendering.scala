@@ -134,7 +134,6 @@ abstract class Rendering(
 
   /* tooltips */
 
-  def tooltip_margin: Int
   def timing_threshold: Double
 
   def tooltips(range: Text.Range): Option[Text.Info[List[XML.Tree]]] =

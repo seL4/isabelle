@@ -93,8 +93,6 @@ class VSCode_Rendering(
         case _ => None
       }).filterNot(info => info.info.is_empty)
 
-  val diagnostics_margin = options.int("vscode_diagnostics_margin")
-
   def diagnostics_output(results: List[Text.Info[Command.Results]]): List[Protocol.Diagnostic] =
   {
     (for {
@@ -102,7 +100,7 @@ class VSCode_Rendering(
       range = model.content.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
-      val message = resources.output_pretty(body, diagnostics_margin)
+      val message = resources.output_pretty_message(body)
       val severity = VSCode_Rendering.message_severity.get(name)
       Protocol.Diagnostic(range, message, severity = severity)
     }).toList
@@ -144,8 +142,7 @@ class VSCode_Rendering(
       yield {
         val range = model.content.doc.range(text_range)
         Protocol.DecorationOptions(range,
-          msgs.map(msg =>
-            Protocol.MarkedString(resources.output_pretty(msg, diagnostics_margin))))
+          msgs.map(msg => Protocol.MarkedString(resources.output_pretty_tooltip(msg))))
       }
     Protocol.Decoration(decoration.typ, content)
   }
@@ -153,7 +150,6 @@ class VSCode_Rendering(
 
   /* tooltips */
 
-  def tooltip_margin: Int = options.int("vscode_tooltip_margin")
   def timing_threshold: Double = options.real("vscode_timing_threshold")
 
 
