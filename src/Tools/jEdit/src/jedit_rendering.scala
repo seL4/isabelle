@@ -572,9 +572,9 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
           range, (List(Markup.Empty), None), JEdit_Rendering.background_elements,
           command_states =>
             {
-              case (((status, color), Text.Info(_, XML.Elem(markup, _))))
-              if status.nonEmpty && Protocol.proper_status_elements(markup.name) =>
-                Some((markup :: status, color))
+              case (((markups, color), Text.Info(_, XML.Elem(markup, _))))
+              if markups.nonEmpty && Protocol.proper_status_elements(markup.name) =>
+                Some((markup :: markups, color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
                 Some((Nil, Some(bad_color)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
