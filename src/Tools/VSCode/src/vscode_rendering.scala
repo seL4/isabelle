@@ -15,6 +15,21 @@ import java.io.{File => JFile}
 
 object VSCode_Rendering
 {
+  /* decorations */
+
+  private def color_decorations(prefix: String, types: Rendering.Color.ValueSet,
+    colors: List[Text.Info[Rendering.Color.Value]]): List[Document_Model.Decoration] =
+  {
+    val color_ranges =
+      (Map.empty[Rendering.Color.Value, List[Text.Range]] /: colors) {
+        case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
+      }
+    types.toList.map(c =>
+      Document_Model.Decoration(prefix + c.toString,
+        color_ranges.getOrElse(c, Nil).reverse.map(r => Text.Info(r, Nil: List[XML.Body]))))
+  }
+
+
   /* diagnostic messages */
 
   private val message_severity =
@@ -31,7 +46,7 @@ object VSCode_Rendering
   private val diagnostics_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
 
-  private val bad_elements = Markup.Elements(Markup.BAD)
+  private val hover_message_elements = Markup.Elements(Markup.BAD)
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
@@ -78,8 +93,6 @@ class VSCode_Rendering(
         case _ => None
       }).filterNot(info => info.info.is_empty)
 
-  val diagnostics_margin = options.int("vscode_diagnostics_margin")
-
   def diagnostics_output(results: List[Text.Info[Command.Results]]): List[Protocol.Diagnostic] =
   {
     (for {
@@ -87,7 +100,7 @@ class VSCode_Rendering(
       range = model.content.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
-      val message = resources.output_pretty(body, diagnostics_margin)
+      val message = resources.output_pretty_message(body)
       val severity = VSCode_Rendering.message_severity.get(name)
       Protocol.Diagnostic(range, message, severity = severity)
     }).toList
@@ -96,23 +109,40 @@ class VSCode_Rendering(
 
   /* decorations */
 
-  def decorations: List[Document_Model.Decoration] =
-    List(Document_Model.Decoration(Protocol.Decorations.bad, decorations_bad))
+  def hover_message: Document_Model.Decoration =
+  {
+    val results =
+      snapshot.cumulate[Command.Results](
+        model.content.text_range, Command.Results.empty,
+        VSCode_Rendering.hover_message_elements, _ =>
+          {
+            case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
+            if body.nonEmpty =>
+              Some(msgs + (serial -> XML.Elem(Markup(Markup.message(name), props), body)))
 
-  def decorations_bad: List[Text.Info[XML.Body]] =
-    snapshot.select(model.content.text_range, VSCode_Rendering.bad_elements, _ =>
-      {
-        case Text.Info(_, XML.Elem(_, body)) => Some(body)
-      })
+            case _ => None
+          })
+    val content =
+      for (Text.Info(r, msgs) <- results if !msgs.is_empty)
+      yield Text.Info(r, (for ((_, t) <- msgs.iterator) yield List(t)).toList)
+    Document_Model.Decoration("hover_message", content)
+  }
+
+  def decorations: List[Document_Model.Decoration] =
+    hover_message ::
+    VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
+      background(model.content.text_range, Set.empty)) :::
+    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,
+      foreground(model.content.text_range))
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {
     val content =
-      for (Text.Info(text_range, body) <- decoration.content)
+      for (Text.Info(text_range, msgs) <- decoration.content)
       yield {
         val range = model.content.doc.range(text_range)
-        val msg = resources.output_pretty(body, diagnostics_margin)
-        Protocol.DecorationOptions(range, if (msg == "") Nil else List(Protocol.MarkedString(msg)))
+        Protocol.DecorationOptions(range,
+          msgs.map(msg => Protocol.MarkedString(resources.output_pretty_tooltip(msg))))
       }
     Protocol.Decoration(decoration.typ, content)
   }
@@ -120,7 +150,6 @@ class VSCode_Rendering(
 
   /* tooltips */
 
-  def tooltip_margin: Int = options.int("vscode_tooltip_margin")
   def timing_threshold: Double = options.real("vscode_timing_threshold")
 
 

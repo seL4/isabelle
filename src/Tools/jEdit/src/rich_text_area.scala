@@ -309,10 +309,10 @@ class Rich_Text_Area(
 
             // background color
             for {
-              Text.Info(range, color) <- rendering.background(line_range, caret_focus)
+              Text.Info(range, c) <- rendering.background(line_range, caret_focus)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
-              gfx.setColor(color)
+              gfx.setColor(rendering.color(c))
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 
@@ -533,10 +533,10 @@ class Rich_Text_Area(
 
             // foreground color
             for {
-              Text.Info(range, color) <- rendering.foreground(line_range)
+              Text.Info(range, c) <- rendering.foreground(line_range)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
-              gfx.setColor(color)
+              gfx.setColor(rendering.color(c))
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 

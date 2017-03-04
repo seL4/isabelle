@@ -205,11 +205,21 @@ object Protocol
   }
 
 
-  /* marked string */
+  /* marked strings */
 
   sealed case class MarkedString(text: String, language: String = "plaintext")
   {
     def json: JSON.T = Map("language" -> language, "value" -> text)
+  }
+
+  object MarkedStrings
+  {
+    def json(msgs: List[MarkedString]): Option[JSON.T] =
+      msgs match {
+        case Nil => None
+        case List(msg) => Some(msg.json)
+        case _ => Some(msgs.map(_.json))
+      }
   }
 
 
@@ -335,7 +345,7 @@ object Protocol
       val res =
         result match {
           case Some((range, contents)) =>
-            Map("contents" -> contents.map(_.json), "range" -> Range(range))
+            Map("contents" -> MarkedStrings.json(contents).getOrElse(Nil), "range" -> Range(range))
           case None => Map("contents" -> Nil)
         }
       ResponseMessage(id, Some(res))
@@ -407,23 +417,21 @@ object Protocol
 
   /* decorations */
 
-  object Decorations
-  {
-    val bad = "bad"
-  }
-
   sealed case class DecorationOptions(range: Line.Range, hover_message: List[MarkedString])
   {
+    def no_hover_message: Boolean = hover_message.isEmpty
+    def json_range: JSON.T = Range(range)
     def json: JSON.T =
-      Map("range" -> Range(range)) ++
-      JSON.optional("hoverMessage" ->
-        (if (hover_message.isEmpty) None else Some(hover_message.map(_.json))))
+      Map("range" -> json_range) ++
+      JSON.optional("hoverMessage" -> MarkedStrings.json(hover_message))
   }
 
   sealed case class Decoration(typ: String, content: List[DecorationOptions])
   {
+    def json_content: JSON.T =
+      if (content.forall(_.no_hover_message)) content.map(_.json_range) else content.map(_.json)
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
-        Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
+        Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> json_content))
   }
 }

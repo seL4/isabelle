@@ -259,13 +259,17 @@ class VSCode_Resources(
   /* output text */
 
   def decode_text: Boolean = options.bool("vscode_unicode_symbols")
+  def tooltip_margin: Int = options.int("vscode_tooltip_margin")
+  def message_margin: Int = options.int("vscode_message_margin")
 
   def output_text(s: String): String =
     if (decode_text) Symbol.decode(s) else Symbol.encode(s)
 
-  def output_pretty(body: XML.Body, margin: Int): String =
-    output_text(Pretty.string_of(body, margin))
-
   def output_xml(xml: XML.Tree): String =
     output_text(XML.content(xml))
+
+  def output_pretty(body: XML.Body, margin: Int): String =
+    output_text(Pretty.string_of(body, margin))
+  def output_pretty_tooltip(body: XML.Body): String = output_pretty(body, tooltip_margin)
+  def output_pretty_message(body: XML.Body): String = output_pretty(body, message_margin)
 }

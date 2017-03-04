@@ -10,6 +10,31 @@ package isabelle
 
 object Rendering
 {
+  /* color */
+
+  object Color extends Enumeration
+  {
+    // background
+    val unprocessed1 = Value("unprocessed1")
+    val running1 = Value("running1")
+    val bad = Value("bad")
+    val intensify = Value("intensify")
+    val entity = Value("entity")
+    val active = Value("active")
+    val active_result = Value("active_result")
+    val markdown_item1 = Value("markdown_item1")
+    val markdown_item2 = Value("markdown_item2")
+    val markdown_item3 = Value("markdown_item3")
+    val markdown_item4 = Value("markdown_item4")
+    val background = values
+
+    // foreground
+    val quoted = Value("quoted")
+    val antiquoted = Value("antiquoted")
+    val foreground = values -- background
+  }
+
+
   /* message priorities */
 
   val state_pri = 1
@@ -38,6 +63,22 @@ object Rendering
 
 
   /* markup elements */
+
+  val active_elements =
+    Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
+      Markup.SENDBACK, Markup.JEDIT_ACTION, Markup.SIMP_TRACE_PANEL)
+
+  private val background_elements =
+    Protocol.proper_status_elements + Markup.WRITELN_MESSAGE +
+      Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
+      Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
+      Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
+      Markup.BAD + Markup.INTENSIFY + Markup.ENTITY +
+      Markup.Markdown_Item.name ++ active_elements
+
+  private val foreground_elements =
+    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
+      Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
   private val semantic_completion_elements =
     Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
@@ -93,7 +134,6 @@ abstract class Rendering(
 
   /* tooltips */
 
-  def tooltip_margin: Int
   def timing_threshold: Double
 
   def tooltips(range: Text.Range): Option[Text.Info[List[XML.Tree]]] =
@@ -185,6 +225,76 @@ abstract class Rendering(
         Some(Text.Info(r, all_tips))
     }
   }
+
+
+  /* text background */
+
+  def background(range: Text.Range, focus: Set[Long]): List[Text.Info[Rendering.Color.Value]] =
+  {
+    for {
+      Text.Info(r, result) <-
+        snapshot.cumulate[(List[Markup], Option[Rendering.Color.Value])](
+          range, (List(Markup.Empty), None), Rendering.background_elements,
+          command_states =>
+            {
+              case (((markups, color), Text.Info(_, XML.Elem(markup, _))))
+              if markups.nonEmpty && Protocol.proper_status_elements(markup.name) =>
+                Some((markup :: markups, color))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
+                Some((Nil, Some(Rendering.Color.bad)))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
+                Some((Nil, Some(Rendering.Color.intensify)))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+                props match {
+                  case Markup.Entity.Def(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
+                  case Markup.Entity.Ref(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
+                  case _ => None
+                }
+              case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
+                val color =
+                  depth match {
+                    case 1 => Rendering.Color.markdown_item1
+                    case 2 => Rendering.Color.markdown_item2
+                    case 3 => Rendering.Color.markdown_item3
+                    case _ => Rendering.Color.markdown_item4
+                  }
+                Some((Nil, Some(color)))
+              case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
+                command_states.collectFirst(
+                  { case st if st.results.defined(serial) => st.results.get(serial).get }) match
+                {
+                  case Some(Protocol.Dialog_Result(res)) if res == result =>
+                    Some((Nil, Some(Rendering.Color.active_result)))
+                  case _ =>
+                    Some((Nil, Some(Rendering.Color.active)))
+                }
+              case (_, Text.Info(_, elem)) =>
+                if (Rendering.active_elements(elem.name))
+                  Some((Nil, Some(Rendering.Color.active)))
+                else None
+            })
+      color <-
+        (result match {
+          case (markups, opt_color) if markups.nonEmpty =>
+            val status = Protocol.Status.make(markups.iterator)
+            if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
+            else if (status.is_running) Some(Rendering.Color.running1)
+            else opt_color
+          case (_, opt_color) => opt_color
+        })
+    } yield Text.Info(r, color)
+  }
+
+
+  /* text foreground */
+
+  def foreground(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
+    snapshot.select(range, Rendering.foreground_elements, _ =>
+      {
+        case Text.Info(_, elem) =>
+          if (elem.name == Markup.ANTIQUOTED) Some(Rendering.Color.antiquoted)
+          else Some(Rendering.Color.quoted)
+      })
 
 
   /* caret focus */

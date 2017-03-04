@@ -135,10 +135,6 @@ object JEdit_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.POSITION,
       Markup.CITATION, Markup.URL)
 
-  private val active_elements =
-    Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
-      Markup.SENDBACK, Markup.JEDIT_ACTION, Markup.SIMP_TRACE_PANEL)
-
   private val tooltip_message_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
       Markup.BAD)
@@ -157,18 +153,6 @@ object JEdit_Rendering
   private val separator_elements =
     Markup.Elements(Markup.SEPARATOR)
 
-  private val background_elements =
-    Protocol.proper_status_elements + Markup.WRITELN_MESSAGE +
-      Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
-      Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
-      Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
-      Markup.BAD + Markup.INTENSIFY + Markup.ENTITY +
-      Markup.Markdown_Item.name ++ active_elements
-
-  private val foreground_elements =
-    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
-      Markup.CARTOUCHE, Markup.ANTIQUOTED)
-
   private val bullet_elements =
     Markup.Elements(Markup.BULLET, Markup.ML_BREAKPOINT)
 
@@ -182,69 +166,60 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 {
   /* colors */
 
-  def color_value(s: String): Color = Color_Value(options.string(s))
+  def color(s: String): Color = Color_Value(options.string(s))
 
-  val outdated_color = color_value("outdated_color")
-  val unprocessed_color = color_value("unprocessed_color")
-  val unprocessed1_color = color_value("unprocessed1_color")
-  val running_color = color_value("running_color")
-  val running1_color = color_value("running1_color")
-  val bullet_color = color_value("bullet_color")
-  val tooltip_color = color_value("tooltip_color")
-  val writeln_color = color_value("writeln_color")
-  val information_color = color_value("information_color")
-  val warning_color = color_value("warning_color")
-  val legacy_color = color_value("legacy_color")
-  val error_color = color_value("error_color")
-  val writeln_message_color = color_value("writeln_message_color")
-  val information_message_color = color_value("information_message_color")
-  val tracing_message_color = color_value("tracing_message_color")
-  val warning_message_color = color_value("warning_message_color")
-  val legacy_message_color = color_value("legacy_message_color")
-  val error_message_color = color_value("error_message_color")
-  val spell_checker_color = color_value("spell_checker_color")
-  val bad_color = color_value("bad_color")
-  val intensify_color = color_value("intensify_color")
-  val entity_color = color_value("entity_color")
-  val entity_ref_color = color_value("entity_ref_color")
-  val breakpoint_disabled_color = color_value("breakpoint_disabled_color")
-  val breakpoint_enabled_color = color_value("breakpoint_enabled_color")
-  val caret_debugger_color = color_value("caret_debugger_color")
-  val quoted_color = color_value("quoted_color")
-  val antiquoted_color = color_value("antiquoted_color")
-  val antiquote_color = color_value("antiquote_color")
-  val highlight_color = color_value("highlight_color")
-  val hyperlink_color = color_value("hyperlink_color")
-  val active_color = color_value("active_color")
-  val active_hover_color = color_value("active_hover_color")
-  val active_result_color = color_value("active_result_color")
-  val keyword1_color = color_value("keyword1_color")
-  val keyword2_color = color_value("keyword2_color")
-  val keyword3_color = color_value("keyword3_color")
-  val quasi_keyword_color = color_value("quasi_keyword_color")
-  val improper_color = color_value("improper_color")
-  val operator_color = color_value("operator_color")
-  val caret_invisible_color = color_value("caret_invisible_color")
-  val completion_color = color_value("completion_color")
-  val search_color = color_value("search_color")
+  lazy val _rendering_colors: Map[Rendering.Color.Value, Color] =
+    Rendering.Color.values.iterator.map(c => c -> color(c.toString + "_color")).toMap
 
-  val tfree_color = color_value("tfree_color")
-  val tvar_color = color_value("tvar_color")
-  val free_color = color_value("free_color")
-  val skolem_color = color_value("skolem_color")
-  val bound_color = color_value("bound_color")
-  val var_color = color_value("var_color")
-  val inner_numeral_color = color_value("inner_numeral_color")
-  val inner_quoted_color = color_value("inner_quoted_color")
-  val inner_cartouche_color = color_value("inner_cartouche_color")
-  val inner_comment_color = color_value("inner_comment_color")
-  val dynamic_color = color_value("dynamic_color")
-  val class_parameter_color = color_value("class_parameter_color")
+  def color(c: Rendering.Color.Value): Color = _rendering_colors(c)
 
-  val markdown_item_color1 = color_value("markdown_item_color1")
-  val markdown_item_color2 = color_value("markdown_item_color2")
-  val markdown_item_color3 = color_value("markdown_item_color3")
-  val markdown_item_color4 = color_value("markdown_item_color4")
+  val outdated_color = color("outdated_color")
+  val unprocessed_color = color("unprocessed_color")
+  val running_color = color("running_color")
+  val bullet_color = color("bullet_color")
+  val tooltip_color = color("tooltip_color")
+  val writeln_color = color("writeln_color")
+  val information_color = color("information_color")
+  val warning_color = color("warning_color")
+  val legacy_color = color("legacy_color")
+  val error_color = color("error_color")
+  val writeln_message_color = color("writeln_message_color")
+  val information_message_color = color("information_message_color")
+  val tracing_message_color = color("tracing_message_color")
+  val warning_message_color = color("warning_message_color")
+  val legacy_message_color = color("legacy_message_color")
+  val error_message_color = color("error_message_color")
+  val spell_checker_color = color("spell_checker_color")
+  val entity_ref_color = color("entity_ref_color")
+  val breakpoint_disabled_color = color("breakpoint_disabled_color")
+  val breakpoint_enabled_color = color("breakpoint_enabled_color")
+  val caret_debugger_color = color("caret_debugger_color")
+  val antiquote_color = color("antiquote_color")
+  val highlight_color = color("highlight_color")
+  val hyperlink_color = color("hyperlink_color")
+  val active_hover_color = color("active_hover_color")
+  val keyword1_color = color("keyword1_color")
+  val keyword2_color = color("keyword2_color")
+  val keyword3_color = color("keyword3_color")
+  val quasi_keyword_color = color("quasi_keyword_color")
+  val improper_color = color("improper_color")
+  val operator_color = color("operator_color")
+  val caret_invisible_color = color("caret_invisible_color")
+  val completion_color = color("completion_color")
+  val search_color = color("search_color")
+
+  val tfree_color = color("tfree_color")
+  val tvar_color = color("tvar_color")
+  val free_color = color("free_color")
+  val skolem_color = color("skolem_color")
+  val bound_color = color("bound_color")
+  val var_color = color("var_color")
+  val inner_numeral_color = color("inner_numeral_color")
+  val inner_quoted_color = color("inner_quoted_color")
+  val inner_cartouche_color = color("inner_cartouche_color")
+  val inner_comment_color = color("inner_comment_color")
+  val dynamic_color = color("dynamic_color")
+  val class_parameter_color = color("class_parameter_color")
 
 
   /* indentation */
@@ -408,7 +383,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   /* active elements */
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
-    snapshot.select(range, JEdit_Rendering.active_elements, command_states =>
+    snapshot.select(range, Rendering.active_elements, command_states =>
       {
         case Text.Info(info_range, elem) =>
           if (elem.name == Markup.DIALOG) {
@@ -560,74 +535,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
         .partition(Protocol.is_state(_))
     states ::: other
   }
-
-
-  /* text background */
-
-  def background(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
-  {
-    for {
-      Text.Info(r, result) <-
-        snapshot.cumulate[(List[Markup], Option[Color])](
-          range, (List(Markup.Empty), None), JEdit_Rendering.background_elements,
-          command_states =>
-            {
-              case (((status, color), Text.Info(_, XML.Elem(markup, _))))
-              if status.nonEmpty && Protocol.proper_status_elements(markup.name) =>
-                Some((markup :: status, color))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
-                Some((Nil, Some(bad_color)))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
-                Some((Nil, Some(intensify_color)))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-                props match {
-                  case Markup.Entity.Def(i) if focus(i) => Some((Nil, Some(entity_color)))
-                  case Markup.Entity.Ref(i) if focus(i) => Some((Nil, Some(entity_color)))
-                  case _ => None
-                }
-              case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
-                val color =
-                  depth match {
-                    case 1 => markdown_item_color1
-                    case 2 => markdown_item_color2
-                    case 3 => markdown_item_color3
-                    case _ => markdown_item_color4
-                  }
-                Some((Nil, Some(color)))
-              case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
-                command_states.collectFirst(
-                  { case st if st.results.defined(serial) => st.results.get(serial).get }) match
-                {
-                  case Some(Protocol.Dialog_Result(res)) if res == result =>
-                    Some((Nil, Some(active_result_color)))
-                  case _ =>
-                    Some((Nil, Some(active_color)))
-                }
-              case (_, Text.Info(_, elem)) =>
-                if (JEdit_Rendering.active_elements(elem.name)) Some((Nil, Some(active_color)))
-                else None
-            })
-      color <-
-        (result match {
-          case (markups, opt_color) if markups.nonEmpty =>
-            val status = Protocol.Status.make(markups.iterator)
-            if (status.is_unprocessed) Some(unprocessed1_color)
-            else if (status.is_running) Some(running1_color)
-            else opt_color
-          case (_, opt_color) => opt_color
-        })
-    } yield Text.Info(r, color)
-  }
-
-
-  /* text foreground */
-
-  def foreground(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select(range, JEdit_Rendering.foreground_elements, _ =>
-      {
-        case Text.Info(_, elem) =>
-          if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color) else Some(quoted_color)
-      })
 
 
   /* text color */
