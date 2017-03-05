@@ -161,10 +161,9 @@ class Server(
 
   private val prover_output =
     Session.Consumer[Session.Commands_Changed](getClass.getName) {
-      case changed if changed.nodes.nonEmpty =>
+      case changed =>
         resources.update_output(changed.nodes.toList.map(resources.node_file(_)))
         delay_output.invoke()
-      case _ =>
     }
 
   private val syslog =
