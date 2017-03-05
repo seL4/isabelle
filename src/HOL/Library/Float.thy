@@ -1646,7 +1646,7 @@ proof -
       powr_realpow[symmetric] powr_mult_base)
 
   have "\<bar>?m2\<bar> * 2 < 2 powr (bitlen \<bar>m2\<bar> + ?shift + 1)"
-    by (auto simp: field_simps powr_add powr_mult_base powr_numeral powr_divide2[symmetric] abs_mult)
+    by (auto simp: field_simps powr_add powr_mult_base powr_divide2[symmetric] abs_mult)
   also have "\<dots> \<le> 2 powr 0"
     using H by (intro powr_mono) auto
   finally have abs_m2_less_half: "\<bar>?m2\<bar> < 1 / 2"
@@ -1657,7 +1657,7 @@ proof -
   also have "\<dots> \<le> 2 powr real_of_int (e1 - e2 - 2)"
     by simp
   finally have b_less_quarter: "\<bar>?b\<bar> < 1/4 * 2 powr real_of_int e1"
-    by (simp add: powr_add field_simps powr_divide2[symmetric] powr_numeral abs_mult)
+    by (simp add: powr_add field_simps powr_divide2[symmetric] abs_mult)
   also have "1/4 < \<bar>real_of_int m1\<bar> / 2" using \<open>m1 \<noteq> 0\<close> by simp
   finally have b_less_half_a: "\<bar>?b\<bar> < 1/2 * \<bar>?a\<bar>"
     by (simp add: algebra_simps powr_mult_base abs_mult)

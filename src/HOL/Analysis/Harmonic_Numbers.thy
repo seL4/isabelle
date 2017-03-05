@@ -533,7 +533,7 @@ text \<open>
 lemma euler_mascheroni_gt_19_over_33: "(euler_mascheroni :: real) > 19/33" (is ?th1)
   and euler_mascheroni_less_13_over_22: "(euler_mascheroni :: real) < 13/22" (is ?th2)
 proof -
-  have "ln (real (Suc 7)) = 3 * ln 2" by (simp add: ln_powr [symmetric] powr_numeral)
+  have "ln (real (Suc 7)) = 3 * ln 2" by (simp add: ln_powr [symmetric])
   also from ln_approx_bounds[of 2 3] have "\<dots> \<in> {3*307/443<..<3*4615/6658}"
     by (simp add: eval_nat_numeral)
   finally have "ln (real (Suc 7)) \<in> \<dots>" .
