@@ -121,20 +121,21 @@ sealed case class Document_Model(
 
   /* publish annotations */
 
-  def publish(rendering: VSCode_Rendering)
-    : Option[((List[Text.Info[Command.Results]], List[Document_Model.Decoration]), Document_Model)] =
+  def publish(rendering: VSCode_Rendering):
+    (Option[List[Text.Info[Command.Results]]], Option[List[Document_Model.Decoration]], Document_Model) =
   {
     val diagnostics = rendering.diagnostics
     val decorations = if (node_visible) rendering.decorations else Nil
-    if (diagnostics == published_diagnostics && decorations == published_decorations) None
-    else {
-      val new_decorations =
-        if (decorations.length != published_decorations.length) decorations
-        else for { (a, b) <- decorations zip published_decorations if a != b } yield a
 
-      Some((diagnostics, new_decorations),
-        copy(published_diagnostics = diagnostics, published_decorations = decorations))
-    }
+    val changed_diagnostics =
+      if (diagnostics == published_diagnostics) None else Some(diagnostics)
+    val changed_decorations =
+      if (decorations == published_decorations) None
+      else if (decorations.length != published_decorations.length) Some(decorations)
+      else Some(for { (a, b) <- decorations zip published_decorations if a != b } yield a)
+
+    (changed_diagnostics, changed_decorations,
+      copy(published_diagnostics = diagnostics, published_decorations = decorations))
   }
 
 

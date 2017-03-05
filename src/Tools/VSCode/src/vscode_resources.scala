@@ -233,16 +233,14 @@ class VSCode_Resources(
             file <- st.pending_output.iterator
             model <- st.models.get(file)
             rendering = model.rendering()
-            ((diagnostics, decorations), model1) <- model.publish(rendering)
+            (changed_diags, changed_decos, model1) = model.publish(rendering)
+            if changed_diags.isDefined || changed_decos.isDefined
           }
           yield {
-            if (diagnostics.nonEmpty)
-              channel.write(
-                Protocol.PublishDiagnostics(file, rendering.diagnostics_output(diagnostics)))
-
-            for (decoration <- decorations)
-              channel.write(rendering.decoration_output(decoration).json(file))
-
+            for (diags <- changed_diags)
+              channel.write(Protocol.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
+            for (decos <- changed_decos; deco <- decos)
+              channel.write(rendering.decoration_output(deco).json(file))
             (file, model1)
           }
         st.copy(
