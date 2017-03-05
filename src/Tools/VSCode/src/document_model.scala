@@ -125,7 +125,7 @@ sealed case class Document_Model(
     : Option[((List[Text.Info[Command.Results]], List[Document_Model.Decoration]), Document_Model)] =
   {
     val diagnostics = rendering.diagnostics
-    val decorations = rendering.decorations
+    val decorations = if (node_visible) rendering.decorations else Nil
     if (diagnostics == published_diagnostics && decorations == published_decorations) None
     else {
       val new_decorations =

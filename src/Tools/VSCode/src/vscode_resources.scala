@@ -23,6 +23,11 @@ object VSCode_Resources
     pending_input: Set[JFile] = Set.empty,
     pending_output: Set[JFile] = Set.empty)
   {
+    def pending(changed: Traversable[JFile]) =
+      copy(
+        pending_input = pending_input ++ changed,
+        pending_output = pending_output ++ changed)
+
     lazy val document_blobs: Document.Blobs =
       Document.Blobs(
         (for {
@@ -116,16 +121,19 @@ class VSCode_Resources(
         val model1 = (model.update_text(text) getOrElse model).external(false)
         st.copy(
           models = st.models + (file -> model1),
-          pending_input = st.pending_input + file)
+          pending_input = st.pending_input + file,
+          pending_output = st.pending_output ++
+            (if (model.node_visible == model1.node_visible) None else Some(file)))
       })
   }
 
-  def close_model(file: JFile): Option[Document_Model] =
+  def close_model(file: JFile): Boolean =
     state.change_result(st =>
       st.models.get(file) match {
-        case None => (None, st)
+        case None => (false, st)
         case Some(model) =>
-          (Some(model), st.copy(models = st.models + (file -> model.external(true))))
+          val model1 = model.external(true)
+          (true, st.copy(models = st.models + (file -> model1)).pending(Some(file)))
       })
 
   def sync_models(changed_files: Set[JFile]): Boolean =
@@ -137,12 +145,9 @@ class VSCode_Resources(
             if changed_files(file) && model.external_file
             text <- read_file_content(file)
             model1 <- model.update_text(text)
-          } yield (file, model1)).toList
+          } yield (file, model1)).toMap
         if (changed_models.isEmpty) (false, st)
-        else (true,
-          st.copy(
-            models = (st.models /: changed_models)(_ + _),
-            pending_input = (st.pending_input /: changed_models.iterator.map(_._1))(_ + _)))
+        else (true, st.copy(models = st.models ++ changed_models).pending(changed_models.keySet))
       })
 
 
@@ -188,15 +193,13 @@ class VSCode_Resources(
             val model = Document_Model.init(session, node_name)
             val model1 = (model.update_text(text) getOrElse model).external(true)
             (file, model1)
-          }).toList
+          }).toMap
 
         val invoke_input = loaded_models.nonEmpty
         val invoke_load = stable_tip_version.isEmpty
 
         ((invoke_input, invoke_load),
-          st.copy(
-            models = st.models ++ loaded_models,
-            pending_input = st.pending_input ++ loaded_models.iterator.map(_._1)))
+          st.copy(models = st.models ++ loaded_models).pending(loaded_models.keySet))
       })
   }
 

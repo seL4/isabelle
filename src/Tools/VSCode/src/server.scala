@@ -124,24 +124,32 @@ class Server(
   private val file_watcher =
     File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
 
-  private def sync_documents(changed: Set[JFile]): Unit =
-    if (resources.sync_models(changed)) delay_input.invoke()
+  private def close_document(file: JFile)
+  {
+    if (resources.close_model(file)) {
+      file_watcher.register_parent(file)
+      if (!sync_documents(Set(file))) {
+        delay_input.invoke()
+        delay_output.invoke()
+      }
+    }
+  }
+
+  private def sync_documents(changed: Set[JFile]): Boolean =
+    if (resources.sync_models(changed)) {
+      delay_input.invoke()
+      delay_output.invoke()
+      true
+    }
+    else false
 
   private def update_document(file: JFile, text: String)
   {
     resources.update_model(session, file, text)
     delay_input.invoke()
+    delay_output.invoke()
   }
 
-  private def close_document(file: JFile)
-  {
-    resources.close_model(file) match {
-      case Some(model) =>
-        file_watcher.register_parent(file)
-        sync_documents(Set(file))
-      case None =>
-    }
-  }
 
 
   /* output to client */
