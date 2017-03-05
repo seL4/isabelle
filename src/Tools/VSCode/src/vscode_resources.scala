@@ -219,7 +219,7 @@ class VSCode_Resources(
 
         session.update(st.document_blobs, changed_models.flatMap(_._1))
         st.copy(
-          models = (st.models /: changed_models.iterator.map(_._2))(_ + _),
+          models = st.models ++ changed_models.iterator.map(_._2),
           pending_input = Set.empty)
       })
   }
@@ -252,7 +252,7 @@ class VSCode_Resources(
             (file, model1)
           }
         st.copy(
-          models = (st.models /: changed_iterator)(_ + _),
+          models = st.models ++ changed_iterator,
           pending_output = Set.empty)
       }
     )
