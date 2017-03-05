@@ -128,20 +128,18 @@ class Server(
   {
     if (resources.close_model(file)) {
       file_watcher.register_parent(file)
-      if (!sync_documents(Set(file))) {
-        delay_input.invoke()
-        delay_output.invoke()
-      }
+      sync_documents(Set(file))
+      delay_input.invoke()
+      delay_output.invoke()
     }
   }
 
-  private def sync_documents(changed: Set[JFile]): Boolean =
-    if (resources.sync_models(changed)) {
-      delay_input.invoke()
-      delay_output.invoke()
-      true
-    }
-    else false
+  private def sync_documents(changed: Set[JFile])
+  {
+    resources.sync_models(changed)
+    delay_input.invoke()
+    delay_output.invoke()
+  }
 
   private def update_document(file: JFile, text: String)
   {

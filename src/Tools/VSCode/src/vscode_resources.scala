@@ -131,8 +131,8 @@ class VSCode_Resources(
         case Some(model) => (true, st.update_models(Some(file -> model.external(true))))
       })
 
-  def sync_models(changed_files: Set[JFile]): Boolean =
-    state.change_result(st =>
+  def sync_models(changed_files: Set[JFile]): Unit =
+    state.change(st =>
       {
         val changed_models =
           (for {
@@ -140,9 +140,8 @@ class VSCode_Resources(
             if changed_files(file) && model.external_file
             text <- read_file_content(file)
             model1 <- model.update_text(text)
-          } yield (file, model1)).toMap
-        if (changed_models.isEmpty) (false, st)
-        else (true, st.update_models(changed_models))
+          } yield (file, model1)).toList
+        st.update_models(changed_models)
       })
 
 
