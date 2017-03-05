@@ -23,10 +23,11 @@ object VSCode_Resources
     pending_input: Set[JFile] = Set.empty,
     pending_output: Set[JFile] = Set.empty)
   {
-    def pending(changed: Traversable[JFile]) =
+    def update_models(changed: Traversable[(JFile, Document_Model)]): State =
       copy(
-        pending_input = pending_input ++ changed,
-        pending_output = pending_output ++ changed)
+        models = models ++ changed,
+        pending_input = (pending_input /: changed) { case (set, (file, _)) => set + file },
+        pending_output = (pending_output /: changed) { case (set, (file, _)) => set + file })
 
     lazy val document_blobs: Document.Blobs =
       Document.Blobs(
@@ -131,9 +132,7 @@ class VSCode_Resources(
     state.change_result(st =>
       st.models.get(file) match {
         case None => (false, st)
-        case Some(model) =>
-          val model1 = model.external(true)
-          (true, st.copy(models = st.models + (file -> model1)).pending(Some(file)))
+        case Some(model) => (true, st.update_models(Some(file -> model.external(true))))
       })
 
   def sync_models(changed_files: Set[JFile]): Boolean =
@@ -147,7 +146,7 @@ class VSCode_Resources(
             model1 <- model.update_text(text)
           } yield (file, model1)).toMap
         if (changed_models.isEmpty) (false, st)
-        else (true, st.copy(models = st.models ++ changed_models).pending(changed_models.keySet))
+        else (true, st.update_models(changed_models))
       })
 
 
@@ -198,8 +197,7 @@ class VSCode_Resources(
         val invoke_input = loaded_models.nonEmpty
         val invoke_load = stable_tip_version.isEmpty
 
-        ((invoke_input, invoke_load),
-          st.copy(models = st.models ++ loaded_models).pending(loaded_models.keySet))
+        ((invoke_input, invoke_load), st.update_models(loaded_models))
       })
   }
 
