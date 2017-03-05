@@ -17,7 +17,7 @@ object VSCode_Rendering
 {
   /* decorations */
 
-  private def color_decorations(prefix: String, types: Rendering.Color.ValueSet,
+  private def color_decorations(prefix: String, types: Set[Rendering.Color.Value],
     colors: List[Text.Info[Rendering.Color.Value]]): List[Document_Model.Decoration] =
   {
     val color_ranges =
@@ -29,13 +29,16 @@ object VSCode_Rendering
         color_ranges.getOrElse(c, Nil).reverse.map(r => Text.Info(r, Nil: List[XML.Body]))))
   }
 
+  private val dotted_colors =
+    Set(Rendering.Color.writeln, Rendering.Color.information)
+
 
   /* diagnostic messages */
 
   private val message_severity =
     Map(
-      Markup.WRITELN -> Protocol.DiagnosticSeverity.Information,
-      Markup.INFORMATION -> Protocol.DiagnosticSeverity.Information,
+      Markup.WRITELN -> Protocol.DiagnosticSeverity.Hint,
+      Markup.INFORMATION -> Protocol.DiagnosticSeverity.Hint,
       Markup.WARNING -> Protocol.DiagnosticSeverity.Warning,
       Markup.LEGACY -> Protocol.DiagnosticSeverity.Warning,
       Markup.ERROR -> Protocol.DiagnosticSeverity.Error)
@@ -45,6 +48,9 @@ object VSCode_Rendering
 
   private val diagnostics_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
+
+  private val dotted_elements =
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION)
 
   private val hover_message_elements = Markup.Elements(Markup.BAD)
 
@@ -107,6 +113,12 @@ class VSCode_Rendering(
   }
 
 
+  /* dotted underline */
+
+  def dotted(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
+    message_underline_color(VSCode_Rendering.dotted_elements, range)
+
+
   /* decorations */
 
   def hover_message: Document_Model.Decoration =
@@ -133,7 +145,9 @@ class VSCode_Rendering(
     VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
       background(model.content.text_range, Set.empty)) :::
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,
-      foreground(model.content.text_range))
+      foreground(model.content.text_range)) :::
+    VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
+      dotted(model.content.text_range))
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {

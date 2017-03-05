@@ -30,11 +30,15 @@ const foreground_colors = [
   "antiquoted"
 ]
 
-function property(prop: string, config: string): Object
+const dotted_colors = [
+  "writeln",
+  "information"
+]
+
+function get_color(color: string, light: boolean): string
 {
-  let res = {}
-  res[prop] = vscode.workspace.getConfiguration("isabelle").get<string>(config)
-  return res
+  const config = color.concat(light ? "_light" : "_dark").concat("_color")
+  return vscode.workspace.getConfiguration("isabelle").get<string>(config)
 }
 
 export function init(context: ExtensionContext)
@@ -48,10 +52,17 @@ export function init(context: ExtensionContext)
 
   function background(color: string): TextEditorDecorationType
   {
-    const prop = "backgroundColor"
-    const light = property(prop, color.concat("_light_color"))
-    const dark = property(prop, color.concat("_dark_color"))
-    return decoration({ light: light, dark: dark })
+    return decoration(
+      { light: { backgroundColor: get_color(color, true) },
+        dark: { backgroundColor: get_color(color, false) } })
+  }
+
+  function dotted(color: string): TextEditorDecorationType
+  {
+    const border = "2px none; border-bottom-style: dotted; border-color: "
+    return decoration(
+      { light: { border: border.concat(get_color(color, true)) },
+        dark: { border: border.concat(get_color(color, false)) } })
   }
 
   types.clear
@@ -60,6 +71,9 @@ export function init(context: ExtensionContext)
   }
   for (let color of foreground_colors) {
     types["foreground_".concat(color)] = background(color) // approximation
+  }
+  for (let color of dotted_colors) {
+    types["dotted_".concat(color)] = dotted(color)
   }
   types["hover_message"] = decoration({})
 }
