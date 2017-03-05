@@ -125,13 +125,15 @@ sealed case class Document_Model(
     (Option[List[Text.Info[Command.Results]]], Option[List[Document_Model.Decoration]], Document_Model) =
   {
     val diagnostics = rendering.diagnostics
-    val decorations = if (node_visible) rendering.decorations else Nil
+    val decorations =
+      if (node_visible) rendering.decorations
+      else { for (deco <- published_decorations) yield Document_Model.Decoration(deco.typ, Nil) }
 
     val changed_diagnostics =
       if (diagnostics == published_diagnostics) None else Some(diagnostics)
     val changed_decorations =
       if (decorations == published_decorations) None
-      else if (decorations.length != published_decorations.length) Some(decorations)
+      else if (published_decorations.isEmpty) Some(decorations)
       else Some(for { (a, b) <- decorations zip published_decorations if a != b } yield a)
 
     (changed_diagnostics, changed_decorations,

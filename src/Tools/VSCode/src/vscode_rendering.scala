@@ -128,7 +128,7 @@ class VSCode_Rendering(
     Document_Model.Decoration("hover_message", content)
   }
 
-  def decorations: List[Document_Model.Decoration] =
+  def decorations: List[Document_Model.Decoration] = // list of canonical length and order
     hover_message ::
     VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
       background(model.content.text_range, Set.empty)) :::
