@@ -1,6 +1,6 @@
 (* :mode=isabelle-options: *)
 
-option vscode_input_delay : real = 0.3
+option vscode_input_delay : real = 0.1
   -- "delay for client input (edits)"
 
 option vscode_output_delay : real = 0.5
