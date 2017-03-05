@@ -187,7 +187,7 @@ class VSCode_Resources(
             val model = Document_Model.init(session, node_name)
             val model1 = (model.update_text(text) getOrElse model).external(true)
             (file, model1)
-          }).toMap
+          }).toList
 
         val invoke_input = loaded_models.nonEmpty
         val invoke_load = stable_tip_version.isEmpty
