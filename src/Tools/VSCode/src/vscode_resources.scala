@@ -120,11 +120,7 @@ class VSCode_Resources(
       {
         val model = st.models.getOrElse(file, Document_Model.init(session, node_name(file)))
         val model1 = (model.update_text(text) getOrElse model).external(false)
-        st.copy(
-          models = st.models + (file -> model1),
-          pending_input = st.pending_input + file,
-          pending_output = st.pending_output ++
-            (if (model.node_visible == model1.node_visible) None else Some(file)))
+        st.update_models(Some(file -> model1))
       })
   }
 
