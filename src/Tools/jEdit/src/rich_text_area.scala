@@ -328,10 +328,10 @@ class Rich_Text_Area(
 
             // squiggly underline
             for {
-              Text.Info(range, color) <- rendering.squiggly_underline(line_range)
+              Text.Info(range, c) <- rendering.squiggly_underline(line_range)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
-              gfx.setColor(color)
+              gfx.setColor(rendering.color(c))
               val x0 = (r.x / 2) * 2
               val y0 = r.y + fm.getAscent + 1
               for (x1 <- Range(x0, x0 + r.length, 2)) {

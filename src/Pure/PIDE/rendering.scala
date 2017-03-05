@@ -32,6 +32,14 @@ object Rendering
     val quoted = Value("quoted")
     val antiquoted = Value("antiquoted")
     val foreground = values -- background
+
+    // underline
+    val writeln = Value("writeln")
+    val information = Value("information")
+    val warning = Value("warning")
+    val legacy = Value("legacy")
+    val error = Value("error")
+    val underline = values -- background -- foreground
   }
 
 
@@ -60,6 +68,13 @@ object Rendering
     Markup.LEGACY_MESSAGE -> legacy_pri,
     Markup.ERROR -> error_pri,
     Markup.ERROR_MESSAGE -> error_pri)
+
+  val message_underline_color = Map(
+    writeln_pri -> Color.writeln,
+    information_pri -> Color.information,
+    warning_pri -> Color.warning,
+    legacy_pri -> Color.legacy,
+    error_pri -> Color.error)
 
 
   /* markup elements */
@@ -343,5 +358,22 @@ abstract class Rendering(
       for (info <- results if info.info) yield info.range
     }
     else Nil
+  }
+
+
+  /* message underline color */
+
+  def message_underline_color(
+    elements: Markup.Elements, range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
+  {
+    val results =
+      snapshot.cumulate[Int](range, 0, elements, _ =>
+        {
+          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
+        })
+    for {
+      Text.Info(r, pri) <- results
+      color <- Rendering.message_underline_color.get(pri)
+    } yield Text.Info(r, color)
   }
 }

@@ -178,10 +178,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   val running_color = color("running_color")
   val bullet_color = color("bullet_color")
   val tooltip_color = color("tooltip_color")
-  val writeln_color = color("writeln_color")
-  val information_color = color("information_color")
   val warning_color = color("warning_color")
-  val legacy_color = color("legacy_color")
   val error_color = color("error_color")
   val writeln_message_color = color("writeln_message_color")
   val information_message_color = color("information_message_color")
@@ -477,25 +474,8 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   /* squiggly underline */
 
-  private lazy val squiggly_colors = Map(
-    Rendering.writeln_pri -> writeln_color,
-    Rendering.information_pri -> information_color,
-    Rendering.warning_pri -> warning_color,
-    Rendering.legacy_pri -> legacy_color,
-    Rendering.error_pri -> error_color)
-
-  def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
-  {
-    val results =
-      snapshot.cumulate[Int](range, 0, JEdit_Rendering.squiggly_elements, _ =>
-        {
-          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
-        })
-    for {
-      Text.Info(r, pri) <- results
-      color <- squiggly_colors.get(pri)
-    } yield Text.Info(r, color)
-  }
+  def squiggly_underline(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
+    message_underline_color(JEdit_Rendering.squiggly_elements, range)
 
 
   /* message output */
