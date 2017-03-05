@@ -220,7 +220,7 @@ class VSCode_Resources(
 
   /* pending output */
 
-  def update_output(changed_nodes: List[JFile]): Unit =
+  def update_output(changed_nodes: Traversable[JFile]): Unit =
     state.change(st => st.copy(pending_output = st.pending_output ++ changed_nodes))
 
   def flush_output(channel: Channel)
