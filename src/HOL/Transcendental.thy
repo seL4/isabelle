@@ -2694,6 +2694,10 @@ lemma powr_realpow: "0 < x \<Longrightarrow> x powr (real n) = x^n"
 lemma powr_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   by (metis of_nat_numeral powr_realpow)
 
+lemma numeral_powr_numeral[simp]:
+  "(numeral m :: real) powr (numeral n :: real) = numeral m ^ (numeral n)"
+by(simp add: powr_numeral)
+
 lemma powr_real_of_int:
   "x > 0 \<Longrightarrow> x powr real_of_int n = (if n \<ge> 0 then x ^ nat n else inverse (x ^ nat (- n)))"
   using powr_realpow[of x "nat n"] powr_realpow[of x "nat (-n)"]
@@ -2755,7 +2759,7 @@ lemma ln_root: "n > 0 \<Longrightarrow> b > 0 \<Longrightarrow> ln (root n b) = 
   by (simp add: root_powr_inverse ln_powr)
 
 lemma ln_sqrt: "0 < x \<Longrightarrow> ln (sqrt x) = ln x / 2"
-  by (simp add: ln_powr powr_numeral ln_powr[symmetric] mult.commute)
+  by (simp add: ln_powr ln_powr[symmetric] mult.commute)
 
 lemma log_root: "n > 0 \<Longrightarrow> a > 0 \<Longrightarrow> log b (root n a) =  log b a / n"
   by (simp add: log_def ln_root)

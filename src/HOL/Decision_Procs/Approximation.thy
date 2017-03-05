@@ -12,7 +12,6 @@ imports
 keywords "approximate" :: diag
 begin
 
-declare powr_numeral [simp]
 declare powr_neg_one [simp]
 declare powr_neg_numeral [simp]
 
