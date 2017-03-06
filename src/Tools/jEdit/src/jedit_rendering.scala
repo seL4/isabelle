@@ -135,10 +135,6 @@ object JEdit_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.POSITION,
       Markup.CITATION, Markup.URL)
 
-  private val tooltip_message_elements =
-    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
-      Markup.BAD)
-
   private val gutter_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
 
@@ -394,40 +390,18 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
         { case _ => Some(command_states) }).flatMap(_.info))
 
 
-  /* tooltip messages */
-
-  def tooltip_message(range: Text.Range): Option[Text.Info[XML.Body]] =
-  {
-    val results =
-      snapshot.cumulate[List[Text.Info[Command.Results.Entry]]](
-        range, Nil, JEdit_Rendering.tooltip_message_elements, _ =>
-        {
-          case (msgs, Text.Info(info_range,
-            XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
-          if body.nonEmpty =>
-            val entry: Command.Results.Entry =
-              serial -> XML.Elem(Markup(Markup.message(name), props), body)
-            Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
-
-          case _ => None
-        }).flatMap(_.info)
-    if (results.isEmpty) None
-    else {
-      val r = Text.Range(results.head.range.start, results.last.range.stop)
-      val msgs = Command.Results.make(results.map(_.info))
-      Some(Text.Info(r, Pretty.separate(msgs.iterator.map(_._2).toList)))
-    }
-  }
-
-
   /* tooltips */
 
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
   def timing_threshold: Double = options.real("jedit_timing_threshold")
 
   def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
-    tooltips(range).map({ case Text.Info(r, all_tips) =>
-      Text.Info(r, Library.separate(Pretty.fbrk, all_tips)) })
+    for (Text.Info(r, tips) <- tooltips(Rendering.tooltip_elements, range))
+    yield Text.Info(r, Library.separate(Pretty.fbrk, tips))
+
+  def tooltip_message(range: Text.Range): Option[Text.Info[XML.Body]] =
+    for (Text.Info(r, tips) <- tooltips(Rendering.tooltip_message_elements, range))
+    yield Text.Info(r, Library.separate(Pretty.fbrk, tips))
 
   lazy val tooltip_close_icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))

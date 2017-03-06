@@ -300,7 +300,7 @@ class Server(
     val result =
       for {
         (rendering, offset) <- rendering_offset(node_pos)
-        info <- rendering.tooltips(Text.Range(offset, offset + 1))
+        info <- rendering.tooltips(Rendering.tooltip_elements, Text.Range(offset, offset + 1))
       } yield {
         val doc = rendering.model.content.doc
         val range = doc.range(info.range)
