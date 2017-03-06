@@ -470,13 +470,10 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   }
 
 
-  /* squiggly underline */
+  /* message output */
 
   def squiggly_underline(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
     message_underline_color(JEdit_Rendering.squiggly_elements, range)
-
-
-  /* message output */
 
   def line_background(range: Text.Range): Option[(Rendering.Color.Value, Boolean)] =
   {
