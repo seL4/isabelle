@@ -89,8 +89,8 @@ class VSCode_Resources(
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
     for {
       (_, model) <- state.value.models.iterator
-      Text.Info(range, entry) <- model.content.bibtex_entries.iterator
-    } yield Text.Info(range, (entry, model))
+      info <- model.content.bibtex_entries.iterator
+    } yield info.map((_, model))
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {

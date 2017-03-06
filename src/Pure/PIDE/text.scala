@@ -128,6 +128,8 @@ object Text
   {
     def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
     def try_restrict(r: Text.Range): Option[Info[A]] = range.try_restrict(r).map(Info(_, info))
+
+    def map[B](f: A => B): Info[B] = Info(range, f(info))
   }
 
   type Markup = Info[XML.Elem]

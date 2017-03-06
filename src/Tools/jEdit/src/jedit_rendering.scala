@@ -396,12 +396,10 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   def timing_threshold: Double = options.real("jedit_timing_threshold")
 
   def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
-    for (Text.Info(r, tips) <- tooltips(Rendering.tooltip_elements, range))
-    yield Text.Info(r, Library.separate(Pretty.fbrk, tips))
+    tooltips(Rendering.tooltip_elements, range).map(info => info.map(Pretty.fbreaks(_)))
 
   def tooltip_message(range: Text.Range): Option[Text.Info[XML.Body]] =
-    for (Text.Info(r, tips) <- tooltips(Rendering.tooltip_message_elements, range))
-    yield Text.Info(r, Library.separate(Pretty.fbrk, tips))
+    tooltips(Rendering.tooltip_message_elements, range).map(info => info.map(Pretty.fbreaks(_)))
 
   lazy val tooltip_close_icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))

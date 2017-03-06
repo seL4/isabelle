@@ -78,8 +78,8 @@ object Document_Model
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
     for {
       (_, model) <- state.value.models.iterator
-      Text.Info(range, entry) <- model.bibtex_entries.iterator
-    } yield Text.Info(range, (entry, model))
+      info <- model.bibtex_entries.iterator
+    } yield info.map((_, model))
 
 
   /* sync external files */
