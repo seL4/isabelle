@@ -76,7 +76,8 @@ object Rendering
     Markup.LEGACY -> legacy_pri,
     Markup.LEGACY_MESSAGE -> legacy_pri,
     Markup.ERROR -> error_pri,
-    Markup.ERROR_MESSAGE -> error_pri)
+    Markup.ERROR_MESSAGE -> error_pri
+  ).withDefaultValue(0)
 
   val message_underline_color = Map(
     writeln_pri -> Color.writeln,
