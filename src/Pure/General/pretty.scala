@@ -26,6 +26,7 @@ object Pretty
     XML.Elem(Markup.Break(width, indent), spaces(width))
 
   val fbrk: XML.Tree = XML.Text("\n")
+  def fbreaks(ts: List[XML.Tree]): XML.Body = Library.separate(fbrk, ts)
 
   val Separator: XML.Body = List(XML.elem(Markup.SEPARATOR, space), fbrk)
   def separate(ts: List[XML.Tree]): XML.Body = Library.separate(Separator, ts.map(List(_))).flatten
