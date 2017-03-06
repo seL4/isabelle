@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode'
 import { Range, MarkedString, DecorationOptions, DecorationRenderOptions,
-  TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
+  TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
 
 
 /* known decoration types */
@@ -88,14 +88,45 @@ export interface Decoration
   content: DecorationOptions[]
 }
 
-export function apply(decoration: Decoration)
+type Content = Range[] | DecorationOptions[]
+const document_decorations = new Map<string, Map<string, Content>>()
+
+export function close_document(document: TextDocument)
 {
-  let typ = types[decoration.type]
+  document_decorations.delete(document.uri.toString())
+}
+
+export function apply_decoration(decoration0: Decoration)
+{
+  const typ = types[decoration0.type]
   if (typ) {
-    let uri = Uri.parse(decoration.uri).toString()
-    let editor =
-      vscode.window.visibleTextEditors.find(
-        function (editor) { return uri == editor.document.uri.toString() })
-    if (editor) editor.setDecorations(typ, decoration.content)
+    const decoration =
+    {
+      uri: Uri.parse(decoration0.uri).toString(),
+      "type": decoration0.type,
+      content: decoration0.content
+    }
+
+    let document = document_decorations.get(decoration.uri) || new Map<string, Content>()
+    document.set(decoration.type, decoration.content)
+    document_decorations.set(decoration.uri, document)
+
+    for (let editor of vscode.window.visibleTextEditors) {
+      if (decoration.uri == editor.document.uri.toString()) {
+        editor.setDecorations(typ, decoration.content)
+      }
+    }
+  }
+}
+
+export function update_editor(editor: TextEditor)
+{
+  if (editor) {
+    let decorations = document_decorations.get(editor.document.uri.toString())
+    if (decorations) {
+      for (let [typ, content] of decorations) {
+        editor.setDecorations(types[typ], content)
+      }
+    }
   }
 }
