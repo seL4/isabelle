@@ -33,13 +33,23 @@ object Rendering
     val antiquoted = Value("antiquoted")
     val foreground = values -- background
 
-    // underline
+    // message underline
     val writeln = Value("writeln")
     val information = Value("information")
     val warning = Value("warning")
     val legacy = Value("legacy")
     val error = Value("error")
-    val underline = values -- background -- foreground
+    val message_underline = values -- background -- foreground
+
+    // message background
+
+    val writeln_message = Value("writeln_message")
+    val information_message = Value("information_message")
+    val tracing_message = Value("tracing_message")
+    val warning_message = Value("warning_message")
+    val legacy_message = Value("legacy_message")
+    val error_message = Value("error_message")
+    val message_background = values -- background -- foreground -- message_underline
   }
 
 
@@ -75,6 +85,14 @@ object Rendering
     warning_pri -> Color.warning,
     legacy_pri -> Color.legacy,
     error_pri -> Color.error)
+
+  val message_background_color = Map(
+    writeln_pri -> Color.writeln_message,
+    information_pri -> Color.information_message,
+    tracing_pri -> Color.tracing_message,
+    warning_pri -> Color.warning_message,
+    legacy_pri -> Color.legacy_message,
+    error_pri -> Color.error_message)
 
 
   /* markup elements */

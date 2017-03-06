@@ -180,9 +180,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   val tooltip_color = color("tooltip_color")
   val warning_color = color("warning_color")
   val error_color = color("error_color")
-  val writeln_message_color = color("writeln_message_color")
   val information_message_color = color("information_message_color")
-  val tracing_message_color = color("tracing_message_color")
   val warning_message_color = color("warning_message_color")
   val legacy_message_color = color("legacy_message_color")
   val error_message_color = color("error_message_color")
@@ -480,15 +478,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   /* message output */
 
-  private lazy val message_colors = Map(
-    Rendering.writeln_pri -> writeln_message_color,
-    Rendering.information_pri -> information_message_color,
-    Rendering.tracing_pri -> tracing_message_color,
-    Rendering.warning_pri -> warning_message_color,
-    Rendering.legacy_pri -> legacy_message_color,
-    Rendering.error_pri -> error_message_color)
-
-  def line_background(range: Text.Range): Option[(Color, Boolean)] =
+  def line_background(range: Text.Range): Option[(Rendering.Color.Value, Boolean)] =
   {
     val results =
       snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ =>
@@ -497,7 +487,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
-    message_colors.get(pri).map(message_color =>
+    Rendering.message_background_color.get(pri).map(message_color =>
       {
         val is_separator =
           snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ =>
