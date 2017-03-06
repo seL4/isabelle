@@ -452,7 +452,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
     Rendering.warning_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_warning_icon")), warning_message_color),
     Rendering.legacy_pri ->
-      (JEdit_Lib.load_icon(options.string("gutter_legacy_icon")), warning_message_color),
+      (JEdit_Lib.load_icon(options.string("gutter_legacy_icon")), legacy_message_color),
     Rendering.error_pri ->
       (JEdit_Lib.load_icon(options.string("gutter_error_icon")), error_message_color))
 
