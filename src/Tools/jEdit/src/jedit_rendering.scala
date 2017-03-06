@@ -180,10 +180,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   val tooltip_color = color("tooltip_color")
   val warning_color = color("warning_color")
   val error_color = color("error_color")
-  val information_message_color = color("information_message_color")
-  val warning_message_color = color("warning_message_color")
-  val legacy_message_color = color("legacy_message_color")
-  val error_message_color = color("error_message_color")
   val spell_checker_color = color("spell_checker_color")
   val entity_ref_color = color("entity_ref_color")
   val breakpoint_disabled_color = color("breakpoint_disabled_color")
@@ -448,13 +444,17 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   private lazy val gutter_message_content = Map(
     Rendering.information_pri ->
-      (JEdit_Lib.load_icon(options.string("gutter_information_icon")), information_message_color),
+      (JEdit_Lib.load_icon(options.string("gutter_information_icon")),
+        color(Rendering.Color.information_message)),
     Rendering.warning_pri ->
-      (JEdit_Lib.load_icon(options.string("gutter_warning_icon")), warning_message_color),
+      (JEdit_Lib.load_icon(options.string("gutter_warning_icon")),
+        color(Rendering.Color.warning_message)),
     Rendering.legacy_pri ->
-      (JEdit_Lib.load_icon(options.string("gutter_legacy_icon")), legacy_message_color),
+      (JEdit_Lib.load_icon(options.string("gutter_legacy_icon")),
+        color(Rendering.Color.legacy_message)),
     Rendering.error_pri ->
-      (JEdit_Lib.load_icon(options.string("gutter_error_icon")), error_message_color))
+      (JEdit_Lib.load_icon(options.string("gutter_error_icon")),
+        color(Rendering.Color.error_message)))
 
   def gutter_content(range: Text.Range): Option[(Icon, Color)] =
   {
