@@ -30,16 +30,13 @@ object VSCode_Rendering
   }
 
   private val dotted_colors =
-    Set(Rendering.Color.writeln, Rendering.Color.information)
+    Set(Rendering.Color.writeln, Rendering.Color.information, Rendering.Color.warning)
 
 
   /* diagnostic messages */
 
   private val message_severity =
     Map(
-      Markup.WRITELN -> Protocol.DiagnosticSeverity.Hint,
-      Markup.INFORMATION -> Protocol.DiagnosticSeverity.Hint,
-      Markup.WARNING -> Protocol.DiagnosticSeverity.Warning,
       Markup.LEGACY -> Protocol.DiagnosticSeverity.Warning,
       Markup.ERROR -> Protocol.DiagnosticSeverity.Error)
 
@@ -47,12 +44,14 @@ object VSCode_Rendering
   /* markup elements */
 
   private val diagnostics_elements =
-    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
+    Markup.Elements(Markup.LEGACY, Markup.ERROR)
 
   private val dotted_elements =
-    Markup.Elements(Markup.WRITELN, Markup.INFORMATION)
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING)
 
-  private val hover_message_elements = Markup.Elements(Markup.BAD)
+  val tooltip_elements =
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.BAD) ++
+    Rendering.tooltip_elements
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
@@ -121,27 +120,7 @@ class VSCode_Rendering(
 
   /* decorations */
 
-  def hover_message: Document_Model.Decoration =
-  {
-    val results =
-      snapshot.cumulate[Command.Results](
-        model.content.text_range, Command.Results.empty,
-        VSCode_Rendering.hover_message_elements, _ =>
-          {
-            case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
-            if body.nonEmpty =>
-              Some(msgs + (serial -> XML.Elem(Markup(Markup.message(name), props), body)))
-
-            case _ => None
-          })
-    val content =
-      for (Text.Info(r, msgs) <- results if !msgs.is_empty)
-      yield Text.Info(r, (for ((_, t) <- msgs.iterator) yield List(t)).toList)
-    Document_Model.Decoration("hover_message", content)
-  }
-
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
-    hover_message ::
     VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
       background(model.content.text_range, Set.empty)) :::
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,

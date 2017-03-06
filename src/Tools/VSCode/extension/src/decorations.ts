@@ -32,7 +32,8 @@ const foreground_colors = [
 
 const dotted_colors = [
   "writeln",
-  "information"
+  "information",
+  "warning"
 ]
 
 function get_color(color: string, light: boolean): string
@@ -75,7 +76,6 @@ export function init(context: ExtensionContext)
   for (let color of dotted_colors) {
     types["dotted_".concat(color)] = dotted(color)
   }
-  types["hover_message"] = decoration({})
 }
 
 

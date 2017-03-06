@@ -97,7 +97,9 @@
                 "isabelle.writeln_light_color": { "type": "string", "default": "rgba(192, 192, 192, 1.0)" },
                 "isabelle.writeln_dark_color": { "type": "string", "default": "rgba(192, 192, 192, 1.0)" },
                 "isabelle.information_light_color": { "type": "string", "default": "rgba(193, 223, 238, 1.0)" },
-                "isabelle.information_dark_color": { "type": "string", "default": "rgba(193, 223, 238, 1.0)" }
+                "isabelle.information_dark_color": { "type": "string", "default": "rgba(193, 223, 238, 1.0)" },
+                "isabelle.warning_light_color": { "type": "string", "default": "rgba(255, 140, 0, 1.0)" },
+                "isabelle.warning_dark_color": { "type": "string", "default": "rgba(255, 140, 0, 1.0)" }
             }
         }
     },
