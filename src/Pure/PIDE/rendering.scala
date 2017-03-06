@@ -42,7 +42,6 @@ object Rendering
     val message_underline = values -- background -- foreground
 
     // message background
-
     val writeln_message = Value("writeln_message")
     val information_message = Value("information_message")
     val tracing_message = Value("tracing_message")
