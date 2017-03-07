@@ -16,9 +16,9 @@ object Grammar
 {
   /* generate grammar */
 
-  private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+  lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
-  private def default_output(logic: String = ""): String =
+  def default_output(logic: String = ""): String =
     if (logic == "" || logic == default_logic) "isabelle-grammar.json"
     else "isabelle-" + logic + "-grammar.json"
 

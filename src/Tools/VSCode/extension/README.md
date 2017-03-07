@@ -28,5 +28,5 @@ Isabelle symbols like `\<forall>` may be rendered using the extension Prettify
 Symbols Mode. It needs to be configured manually as follows:
 
 $ISABELLE_HOME/src/Tools/VSCode/extension/isabelle-symbols.json contains a
-configuration (generated via `isabelle vscode_symbols`). Its content needs to
+configuration (generated via `isabelle build_vscode`). Its content needs to
 be copied carefully into the regular VSCode User Preferences.
