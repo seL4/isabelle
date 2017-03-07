@@ -52,7 +52,7 @@ object Rendering
       values -- background_colors -- foreground_colors -- message_underline_colors
 
     // text
-    val text = Value("text")
+    val main = Value("main")
     val keyword1 = Value("keyword1")
     val keyword2 = Value("keyword2")
     val keyword3 = Value("keyword3")
@@ -130,12 +130,12 @@ object Rendering
     Markup.QUASI_KEYWORD -> Color.quasi_keyword,
     Markup.IMPROPER -> Color.improper,
     Markup.OPERATOR -> Color.operator,
-    Markup.STRING -> Color.text,
-    Markup.ALT_STRING -> Color.text,
-    Markup.VERBATIM -> Color.text,
-    Markup.CARTOUCHE -> Color.text,
+    Markup.STRING -> Color.main,
+    Markup.ALT_STRING -> Color.main,
+    Markup.VERBATIM -> Color.main,
+    Markup.CARTOUCHE -> Color.main,
     Markup.LITERAL -> Color.keyword1,
-    Markup.DELIMITER -> Color.text,
+    Markup.DELIMITER -> Color.main,
     Markup.TFREE -> Color.tfree,
     Markup.TVAR -> Color.tvar,
     Markup.FREE -> Color.free,
@@ -151,7 +151,7 @@ object Rendering
     Markup.ML_KEYWORD1 -> Color.keyword1,
     Markup.ML_KEYWORD2 -> Color.keyword2,
     Markup.ML_KEYWORD3 -> Color.keyword3,
-    Markup.ML_DELIMITER -> Color.text,
+    Markup.ML_DELIMITER -> Color.main,
     Markup.ML_NUMERAL -> Color.inner_numeral,
     Markup.ML_CHAR -> Color.inner_quoted,
     Markup.ML_STRING -> Color.inner_quoted,

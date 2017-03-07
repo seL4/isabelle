@@ -163,7 +163,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   /* colors */
 
   def color(s: String): Color =
-    if (s == "text_color") text_color
+    if (s == "main_color") main_color
     else Color_Value(options.string(s))
 
   def color(c: Rendering.Color.Value): Color = _rendering_colors(c)
@@ -171,7 +171,8 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   lazy val _rendering_colors: Map[Rendering.Color.Value, Color] =
     Rendering.Color.values.iterator.map(c => c -> color(c.toString + "_color")).toMap
 
-  val text_color = jEdit.getColorProperty("view.fgColor")
+  val main_color = jEdit.getColorProperty("view.fgColor")
+
   val outdated_color = color("outdated_color")
   val unprocessed_color = color("unprocessed_color")
   val running_color = color("running_color")
