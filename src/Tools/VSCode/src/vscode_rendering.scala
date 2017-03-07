@@ -25,8 +25,7 @@ object VSCode_Rendering
         case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
       }
     types.toList.map(c =>
-      Document_Model.Decoration(prefix + c.toString,
-        color_ranges.getOrElse(c, Nil).reverse.map(r => Text.Info(r, Nil: List[XML.Body]))))
+      Document_Model.Decoration.ranges(prefix + c.toString, color_ranges.getOrElse(c, Nil).reverse))
   }
 
   private val dotted_colors =
