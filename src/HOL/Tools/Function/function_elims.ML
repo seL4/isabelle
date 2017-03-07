@@ -55,18 +55,18 @@ val boolE = @{thms HOL.TrueE HOL.FalseE};
 val boolD = @{lemma "\<And>P. True = P \<Longrightarrow> P" "\<And>P. False = P \<Longrightarrow> \<not> P" by iprover+};
 val eq_bool = @{thms HOL.eq_True HOL.eq_False HOL.not_False_eq_True HOL.not_True_eq_False};
 
-fun bool_subst_tac ctxt i =
-  REPEAT (EqSubst.eqsubst_asm_tac ctxt [1] eq_bool i)
-  THEN REPEAT (dresolve_tac ctxt boolD i)
-  THEN REPEAT (eresolve_tac ctxt boolE i);
+fun bool_subst_tac ctxt =
+  TRY o REPEAT_ALL_NEW (EqSubst.eqsubst_asm_tac ctxt [1] eq_bool)
+  THEN_ALL_NEW TRY o REPEAT_ALL_NEW (dresolve_tac ctxt boolD)
+  THEN_ALL_NEW TRY o REPEAT_ALL_NEW (eresolve_tac ctxt boolE);
 
 fun mk_bool_elims ctxt elim =
   let
     fun mk_bool_elim b =
       elim
       |> Thm.forall_elim b
-      |> Tactic.rule_by_tactic ctxt (TRY (resolve_tac ctxt eq_boolI 1))
-      |> Tactic.rule_by_tactic ctxt (ALLGOALS (bool_subst_tac ctxt));
+      |> Tactic.rule_by_tactic ctxt (distinct_subgoals_tac THEN TRY (resolve_tac ctxt eq_boolI 1))
+      |> Tactic.rule_by_tactic ctxt (distinct_subgoals_tac THEN ALLGOALS (bool_subst_tac ctxt));
   in
     map mk_bool_elim [@{cterm True}, @{cterm False}]
   end;
@@ -119,18 +119,20 @@ fun mk_partial_elim_rules ctxt result =
         val asms = [cprop, Thm.cterm_of ctxt (HOLogic.mk_Trueprop (dom $ sumtree_inj))];
         val asms_thms = map Thm.assume asms;
 
-        fun prep_subgoal_tac i =
-          REPEAT (eresolve_tac ctxt @{thms Pair_inject} i)
-          THEN Method.insert_tac ctxt (case asms_thms of thm :: thms => (thm RS sym) :: thms) i
-          THEN propagate_tac ctxt i
-          THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN assume_tac ctxt i)
-          THEN bool_subst_tac ctxt i;
+        val prep_subgoal_tac =
+          TRY o REPEAT_ALL_NEW (eresolve_tac ctxt @{thms Pair_inject})
+          THEN' Method.insert_tac ctxt 
+            (case asms_thms of thm :: thms => (thm RS sym) :: thms)
+          THEN' propagate_tac ctxt
+          THEN_ALL_NEW
+            ((TRY o (EqSubst.eqsubst_asm_tac ctxt [1] psimps THEN' assume_tac ctxt)))
+          THEN_ALL_NEW bool_subst_tac ctxt;
 
         val elim_stripped =
           nth cases idx
           |> Thm.forall_elim P
           |> Thm.forall_elim (Thm.cterm_of ctxt args)
-          |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
+          |> Tactic.rule_by_tactic ctxt (distinct_subgoals_tac THEN ALLGOALS prep_subgoal_tac)
           |> fold_rev Thm.implies_intr asms
           |> Thm.forall_intr (Thm.cterm_of ctxt rhs_var);
 
