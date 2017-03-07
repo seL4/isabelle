@@ -111,6 +111,17 @@ class VSCode_Rendering(
   }
 
 
+  /* text color */
+
+  def text_color(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
+  {
+    snapshot.select(range, Rendering.text_color_elements, _ =>
+      {
+        case Text.Info(_, elem) => Rendering.text_color.get(elem.name)
+      })
+  }
+
+
   /* dotted underline */
 
   def dotted(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
@@ -139,6 +150,8 @@ class VSCode_Rendering(
       background(model.content.text_range, Set.empty)) :::
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
       foreground(model.content.text_range)) :::
+    VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
+      text_color(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
       dotted(model.content.text_range)) :::
     List(spell_checker)
