@@ -71,7 +71,7 @@ class VSCode_Rendering(
         model.content.try_get_text(complete_range) match {
           case Some(original) =>
             names.complete(complete_range, Completion.History.empty,
-                resources.decode_text, original) match {
+                resources.unicode_symbols, original) match {
               case Some(result) =>
                 result.items.map(item =>
                   Protocol.CompletionItem(

@@ -47,6 +47,14 @@ class VSCode_Resources(
   private val state = Synchronized(VSCode_Resources.State())
 
 
+  /* options */
+
+  def pide_extensions: Boolean = options.bool("vscode_pide_extensions")
+  def unicode_symbols: Boolean = options.bool("vscode_unicode_symbols")
+  def tooltip_margin: Int = options.int("vscode_tooltip_margin")
+  def message_margin: Int = options.int("vscode_message_margin")
+
+
   /* document node name */
 
   def node_file(name: Document.Node.Name): JFile = new JFile(name.node)
@@ -238,8 +246,10 @@ class VSCode_Resources(
           yield {
             for (diags <- changed_diags)
               channel.write(Protocol.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
-            for (decos <- changed_decos; deco <- decos)
-              channel.write(rendering.decoration_output(deco).json(file))
+            if (pide_extensions) {
+              for (decos <- changed_decos; deco <- decos)
+                channel.write(rendering.decoration_output(deco).json(file))
+            }
             (file, model1)
           }
         st.copy(
@@ -252,12 +262,8 @@ class VSCode_Resources(
 
   /* output text */
 
-  def decode_text: Boolean = options.bool("vscode_unicode_symbols")
-  def tooltip_margin: Int = options.int("vscode_tooltip_margin")
-  def message_margin: Int = options.int("vscode_message_margin")
-
   def output_text(s: String): String =
-    if (decode_text) Symbol.decode(s) else Symbol.encode(s)
+    if (unicode_symbols) Symbol.decode(s) else Symbol.encode(s)
 
   def output_xml(xml: XML.Tree): String =
     output_text(XML.content(xml))

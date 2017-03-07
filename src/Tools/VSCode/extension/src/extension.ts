@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext)
     vscode.window.showErrorMessage("Missing user settings: isabelle.home")
   else {
     let isabelle_tool = isabelle_home.concat("/bin/isabelle")
-    let standard_args = ["-o", "vscode_unicode_symbols"]
+    let standard_args = ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
     let run =
       is_windows ?
         { command: cygwin_root.concat("/bin/bash"),
