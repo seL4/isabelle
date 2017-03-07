@@ -73,18 +73,6 @@ public option jedit_completion_path_ignore : string = "*~:*.marks:*.orig:*.rej:.
   -- "glob patterns to ignore in file-system path completion (separated by colons)"
 
 
-section "Spell Checker"
-
-public option spell_checker : bool = true
-  -- "enable spell-checker for prose words within document text, comments etc."
-
-public option spell_checker_dictionary : string = "en"
-  -- "spell-checker dictionary name"
-
-public option spell_checker_elements : string = "words,comment,inner_comment,ML_comment,SML_comment"
-  -- "relevant markup elements for spell-checker, separated by commas"
-
-
 section "Rendering of Document Content"
 
 option outdated_color : string = "EEE3E3FF"
