@@ -169,6 +169,21 @@ abstract class Rendering(
     }
 
 
+  /* spell checker */
+
+  private lazy val spell_checker_elements =
+    Markup.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
+
+  def spell_checker_ranges(range: Text.Range): List[Text.Range] =
+    snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
+
+  def spell_checker_point(range: Text.Range): Option[Text.Range] =
+    snapshot.select(range, spell_checker_elements, _ =>
+      {
+        case info => Some(snapshot.convert(info.range))
+      }).headOption.map(_.info)
+
+
   /* tooltips */
 
   def timing_threshold: Double

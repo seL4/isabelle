@@ -381,7 +381,7 @@ object Completion_Popup
               case Some(rendering) =>
                 Completion.Result.merge(history, result1,
                   Completion.Result.merge(history,
-                    Spell_Checker.completion(text_area, explicit, rendering),
+                    JEdit_Spell_Checker.completion(text_area, explicit, rendering),
                     Completion.Result.merge(history,
                       path_completion(rendering),
                       Bibtex_JEdit.completion(history, text_area, rendering))))
