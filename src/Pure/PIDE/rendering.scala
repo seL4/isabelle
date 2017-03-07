@@ -26,12 +26,12 @@ object Rendering
     val markdown_item2 = Value("markdown_item2")
     val markdown_item3 = Value("markdown_item3")
     val markdown_item4 = Value("markdown_item4")
-    val background = values
+    val background_colors = values
 
     // foreground
     val quoted = Value("quoted")
     val antiquoted = Value("antiquoted")
-    val foreground = values -- background
+    val foreground_colors = values -- background_colors
 
     // message underline
     val writeln = Value("writeln")
@@ -39,7 +39,7 @@ object Rendering
     val warning = Value("warning")
     val legacy = Value("legacy")
     val error = Value("error")
-    val message_underline = values -- background -- foreground
+    val message_underline_colors = values -- background_colors -- foreground_colors
 
     // message background
     val writeln_message = Value("writeln_message")
@@ -48,7 +48,8 @@ object Rendering
     val warning_message = Value("warning_message")
     val legacy_message = Value("legacy_message")
     val error_message = Value("error_message")
-    val message_background = values -- background -- foreground -- message_underline
+    val message_background_colors =
+      values -- background_colors -- foreground_colors -- message_underline_colors
   }
 
 

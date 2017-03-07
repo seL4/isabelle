@@ -135,9 +135,9 @@ class VSCode_Rendering(
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
-    VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
+    VSCode_Rendering.color_decorations("background_", Rendering.Color.background_colors,
       background(model.content.text_range, Set.empty)) :::
-    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,
+    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
       foreground(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
       dotted(model.content.text_range)) :::
