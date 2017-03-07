@@ -272,4 +272,10 @@ class VSCode_Resources(
     output_text(Pretty.string_of(body, margin))
   def output_pretty_tooltip(body: XML.Body): String = output_pretty(body, tooltip_margin)
   def output_pretty_message(body: XML.Body): String = output_pretty(body, message_margin)
+
+
+  /* spell checker */
+
+  val spell_checker = new Spell_Checker_Variable
+  spell_checker.update(options)
 }

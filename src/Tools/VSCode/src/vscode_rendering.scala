@@ -117,6 +117,21 @@ class VSCode_Rendering(
     message_underline_color(VSCode_Rendering.dotted_elements, range)
 
 
+  /* spell checker */
+
+  def spell_checker: Document_Model.Decoration =
+  {
+    val ranges =
+      (for {
+        spell_checker <- resources.spell_checker.get.iterator
+        spell_range <- spell_checker_ranges(model.content.text_range).iterator
+        text <- model.content.try_get_text(spell_range).iterator
+        info <- spell_checker.marked_words(spell_range.start, text).iterator
+      } yield info.range).toList
+    Document_Model.Decoration.ranges("spell_checker", ranges)
+  }
+
+
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
@@ -125,7 +140,8 @@ class VSCode_Rendering(
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,
       foreground(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
-      dotted(model.content.text_range))
+      dotted(model.content.text_range)) :::
+    List(spell_checker)
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {
