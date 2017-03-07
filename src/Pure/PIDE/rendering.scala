@@ -50,6 +50,31 @@ object Rendering
     val error_message = Value("error_message")
     val message_background_colors =
       values -- background_colors -- foreground_colors -- message_underline_colors
+
+    // text
+    val text = Value("text")
+    val keyword1 = Value("keyword1")
+    val keyword2 = Value("keyword2")
+    val keyword3 = Value("keyword3")
+    val quasi_keyword = Value("quasi_keyword")
+    val improper = Value("improper")
+    val operator = Value("operator")
+    val tfree = Value("tfree")
+    val tvar = Value("tvar")
+    val free = Value("free")
+    val skolem = Value("skolem")
+    val bound = Value("bound")
+    val var_ = Value("var")
+    val inner_numeral = Value("inner_numeral")
+    val inner_quoted = Value("inner_quoted")
+    val inner_cartouche = Value("inner_cartouche")
+    val inner_comment = Value("inner_comment")
+    val dynamic = Value("dynamic")
+    val class_parameter = Value("class_parameter")
+    val antiquote = Value("antiquote")
+    val text_colors =
+      values -- background_colors -- foreground_colors -- message_underline_colors --
+      message_background_colors
   }
 
 
@@ -94,6 +119,45 @@ object Rendering
     warning_pri -> Color.warning_message,
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
+
+
+  /* text color */
+
+  val text_color = Map(
+    Markup.KEYWORD1 -> Color.keyword1,
+    Markup.KEYWORD2 -> Color.keyword2,
+    Markup.KEYWORD3 -> Color.keyword3,
+    Markup.QUASI_KEYWORD -> Color.quasi_keyword,
+    Markup.IMPROPER -> Color.improper,
+    Markup.OPERATOR -> Color.operator,
+    Markup.STRING -> Color.text,
+    Markup.ALT_STRING -> Color.text,
+    Markup.VERBATIM -> Color.text,
+    Markup.CARTOUCHE -> Color.text,
+    Markup.LITERAL -> Color.keyword1,
+    Markup.DELIMITER -> Color.text,
+    Markup.TFREE -> Color.tfree,
+    Markup.TVAR -> Color.tvar,
+    Markup.FREE -> Color.free,
+    Markup.SKOLEM -> Color.skolem,
+    Markup.BOUND -> Color.bound,
+    Markup.VAR -> Color.var_,
+    Markup.INNER_STRING -> Color.inner_quoted,
+    Markup.INNER_CARTOUCHE -> Color.inner_cartouche,
+    Markup.INNER_COMMENT -> Color.inner_comment,
+    Markup.DYNAMIC_FACT -> Color.dynamic,
+    Markup.CLASS_PARAMETER -> Color.class_parameter,
+    Markup.ANTIQUOTE -> Color.antiquote,
+    Markup.ML_KEYWORD1 -> Color.keyword1,
+    Markup.ML_KEYWORD2 -> Color.keyword2,
+    Markup.ML_KEYWORD3 -> Color.keyword3,
+    Markup.ML_DELIMITER -> Color.text,
+    Markup.ML_NUMERAL -> Color.inner_numeral,
+    Markup.ML_CHAR -> Color.inner_quoted,
+    Markup.ML_STRING -> Color.inner_quoted,
+    Markup.ML_COMMENT -> Color.inner_comment,
+    Markup.SML_STRING -> Color.inner_quoted,
+    Markup.SML_COMMENT -> Color.inner_comment)
 
 
   /* markup elements */
@@ -142,6 +206,8 @@ object Rendering
     Pretty.block(XML.Text(kind) :: Pretty.brk(1) :: body)
 
   val caret_focus_elements = Markup.Elements(Markup.ENTITY)
+
+  val text_color_elements = Markup.Elements(text_color.keySet)
 }
 
 abstract class Rendering(
