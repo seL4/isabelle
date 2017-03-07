@@ -26,12 +26,12 @@ object Rendering
     val markdown_item2 = Value("markdown_item2")
     val markdown_item3 = Value("markdown_item3")
     val markdown_item4 = Value("markdown_item4")
-    val background = values
+    val background_colors = values
 
     // foreground
     val quoted = Value("quoted")
     val antiquoted = Value("antiquoted")
-    val foreground = values -- background
+    val foreground_colors = values -- background_colors
 
     // message underline
     val writeln = Value("writeln")
@@ -39,7 +39,7 @@ object Rendering
     val warning = Value("warning")
     val legacy = Value("legacy")
     val error = Value("error")
-    val message_underline = values -- background -- foreground
+    val message_underline_colors = values -- background_colors -- foreground_colors
 
     // message background
     val writeln_message = Value("writeln_message")
@@ -48,7 +48,33 @@ object Rendering
     val warning_message = Value("warning_message")
     val legacy_message = Value("legacy_message")
     val error_message = Value("error_message")
-    val message_background = values -- background -- foreground -- message_underline
+    val message_background_colors =
+      values -- background_colors -- foreground_colors -- message_underline_colors
+
+    // text
+    val main = Value("main")
+    val keyword1 = Value("keyword1")
+    val keyword2 = Value("keyword2")
+    val keyword3 = Value("keyword3")
+    val quasi_keyword = Value("quasi_keyword")
+    val improper = Value("improper")
+    val operator = Value("operator")
+    val tfree = Value("tfree")
+    val tvar = Value("tvar")
+    val free = Value("free")
+    val skolem = Value("skolem")
+    val bound = Value("bound")
+    val var_ = Value("var")
+    val inner_numeral = Value("inner_numeral")
+    val inner_quoted = Value("inner_quoted")
+    val inner_cartouche = Value("inner_cartouche")
+    val inner_comment = Value("inner_comment")
+    val dynamic = Value("dynamic")
+    val class_parameter = Value("class_parameter")
+    val antiquote = Value("antiquote")
+    val text_colors =
+      values -- background_colors -- foreground_colors -- message_underline_colors --
+      message_background_colors
   }
 
 
@@ -93,6 +119,45 @@ object Rendering
     warning_pri -> Color.warning_message,
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
+
+
+  /* text color */
+
+  val text_color = Map(
+    Markup.KEYWORD1 -> Color.keyword1,
+    Markup.KEYWORD2 -> Color.keyword2,
+    Markup.KEYWORD3 -> Color.keyword3,
+    Markup.QUASI_KEYWORD -> Color.quasi_keyword,
+    Markup.IMPROPER -> Color.improper,
+    Markup.OPERATOR -> Color.operator,
+    Markup.STRING -> Color.main,
+    Markup.ALT_STRING -> Color.main,
+    Markup.VERBATIM -> Color.main,
+    Markup.CARTOUCHE -> Color.main,
+    Markup.LITERAL -> Color.keyword1,
+    Markup.DELIMITER -> Color.main,
+    Markup.TFREE -> Color.tfree,
+    Markup.TVAR -> Color.tvar,
+    Markup.FREE -> Color.free,
+    Markup.SKOLEM -> Color.skolem,
+    Markup.BOUND -> Color.bound,
+    Markup.VAR -> Color.var_,
+    Markup.INNER_STRING -> Color.inner_quoted,
+    Markup.INNER_CARTOUCHE -> Color.inner_cartouche,
+    Markup.INNER_COMMENT -> Color.inner_comment,
+    Markup.DYNAMIC_FACT -> Color.dynamic,
+    Markup.CLASS_PARAMETER -> Color.class_parameter,
+    Markup.ANTIQUOTE -> Color.antiquote,
+    Markup.ML_KEYWORD1 -> Color.keyword1,
+    Markup.ML_KEYWORD2 -> Color.keyword2,
+    Markup.ML_KEYWORD3 -> Color.keyword3,
+    Markup.ML_DELIMITER -> Color.main,
+    Markup.ML_NUMERAL -> Color.inner_numeral,
+    Markup.ML_CHAR -> Color.inner_quoted,
+    Markup.ML_STRING -> Color.inner_quoted,
+    Markup.ML_COMMENT -> Color.inner_comment,
+    Markup.SML_STRING -> Color.inner_quoted,
+    Markup.SML_COMMENT -> Color.inner_comment)
 
 
   /* markup elements */
@@ -141,6 +206,8 @@ object Rendering
     Pretty.block(XML.Text(kind) :: Pretty.brk(1) :: body)
 
   val caret_focus_elements = Markup.Elements(Markup.ENTITY)
+
+  val text_color_elements = Markup.Elements(text_color.keySet)
 }
 
 abstract class Rendering(
@@ -167,6 +234,21 @@ abstract class Rendering(
           case _ => None
         }).headOption.map(_.info)
     }
+
+
+  /* spell checker */
+
+  private lazy val spell_checker_elements =
+    Markup.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
+
+  def spell_checker_ranges(range: Text.Range): List[Text.Range] =
+    snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
+
+  def spell_checker_point(range: Text.Range): Option[Text.Range] =
+    snapshot.select(range, spell_checker_elements, _ =>
+      {
+        case info => Some(snapshot.convert(info.range))
+      }).headOption.map(_.info)
 
 
   /* tooltips */

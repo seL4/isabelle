@@ -16,6 +16,13 @@ object Document_Model
 {
   /* decorations */
 
+  object Decoration
+  {
+    def empty(typ: String): Decoration = Decoration(typ, Nil)
+
+    def ranges(typ: String, ranges: List[Text.Range]): Decoration =
+      Decoration(typ, ranges.map(Text.Info(_, List.empty[XML.Body])))
+  }
   sealed case class Decoration(typ: String, content: List[Text.Info[List[XML.Body]]])
 
 
@@ -127,7 +134,7 @@ sealed case class Document_Model(
     val diagnostics = rendering.diagnostics
     val decorations =
       if (node_visible) rendering.decorations
-      else { for (deco <- published_decorations) yield Document_Model.Decoration(deco.typ, Nil) }
+      else { for (deco <- published_decorations) yield Document_Model.Decoration.empty(deco.typ) }
 
     val changed_diagnostics =
       if (diagnostics == published_diagnostics) None else Some(diagnostics)

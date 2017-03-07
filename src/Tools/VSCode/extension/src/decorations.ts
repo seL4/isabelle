@@ -36,6 +36,28 @@ const dotted_colors = [
   "warning"
 ]
 
+const text_colors = [
+  "keyword1",
+  "keyword2",
+  "keyword3",
+  "quasi_keyword",
+  "improper",
+  "operator",
+  "tfree",
+  "tvar",
+  "free",
+  "skolem",
+  "bound",
+  "var",
+  "inner_numeral",
+  "inner_quoted",
+  "inner_cartouche",
+  "inner_comment",
+  "dynamic",
+  "class_parameter",
+  "antiquote"
+]
+
 function get_color(color: string, light: boolean): string
 {
   const config = color.concat(light ? "_light" : "_dark").concat("_color")
@@ -58,9 +80,16 @@ export function init(context: ExtensionContext)
         dark: { backgroundColor: get_color(color, false) } })
   }
 
-  function dotted(color: string): TextEditorDecorationType
+  function text_color(color: string): TextEditorDecorationType
   {
-    const border = "2px none; border-bottom-style: dotted; border-color: "
+    return decoration(
+      { light: { color: get_color(color, true) },
+        dark: { color: get_color(color, false) } })
+  }
+
+  function bottom_border(width: string, style: string, color: string): TextEditorDecorationType
+  {
+    const border = `${width} none; border-bottom-style: ${style}; border-color: `
     return decoration(
       { light: { border: border.concat(get_color(color, true)) },
         dark: { border: border.concat(get_color(color, false)) } })
@@ -74,8 +103,12 @@ export function init(context: ExtensionContext)
     types["foreground_".concat(color)] = background(color) // approximation
   }
   for (let color of dotted_colors) {
-    types["dotted_".concat(color)] = dotted(color)
+    types["dotted_".concat(color)] = bottom_border("2px", "dotted", color)
   }
+  for (let color of text_colors) {
+    types["text_".concat(color)] = text_color(color)
+  }
+  types["spell_checker"] = bottom_border("1px", "solid", "spell_checker")
 }
 
 

@@ -419,7 +419,7 @@ object Isabelle
       doc_view <- Document_View.get(text_area)
       rendering = doc_view.get_rendering()
       range = JEdit_Lib.caret_range(text_area)
-      Text.Info(_, word) <- Spell_Checker.current_word(text_area, rendering, range)
+      Text.Info(_, word) <- JEdit_Spell_Checker.current_word(text_area, rendering, range)
     } {
       spell_checker.update(word, include, permanent)
       JEdit_Lib.jedit_views().foreach(_.repaint())

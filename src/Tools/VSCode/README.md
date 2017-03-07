@@ -25,13 +25,9 @@
 
 ## Build ##
 
-* shell> `cd src/Tools/VSCode/extension`
+* shell> `isabelle build_vscode`
 
-* shell> `isabelle vscode_grammar`
-
-* shell> `isabelle vscode_symbols`
-
-* shell> `vsce package`
+* Extensions / ... / Install from VSIX: src/Tools/VSCode/extension/isabelle-X.Y.Z.vsix
 
 
 ## Relevant links ##

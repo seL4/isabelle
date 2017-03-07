@@ -25,8 +25,7 @@ object VSCode_Rendering
         case (m, Text.Info(range, c)) => m + (c -> (range :: m.getOrElse(c, Nil)))
       }
     types.toList.map(c =>
-      Document_Model.Decoration(prefix + c.toString,
-        color_ranges.getOrElse(c, Nil).reverse.map(r => Text.Info(r, Nil: List[XML.Body]))))
+      Document_Model.Decoration.ranges(prefix + c.toString, color_ranges.getOrElse(c, Nil).reverse))
   }
 
   private val dotted_colors =
@@ -71,7 +70,7 @@ class VSCode_Rendering(
         model.content.try_get_text(complete_range) match {
           case Some(original) =>
             names.complete(complete_range, Completion.History.empty,
-                resources.decode_text, original) match {
+                resources.unicode_symbols, original) match {
               case Some(result) =>
                 result.items.map(item =>
                   Protocol.CompletionItem(
@@ -112,21 +111,50 @@ class VSCode_Rendering(
   }
 
 
+  /* text color */
+
+  def text_color(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
+  {
+    snapshot.select(range, Rendering.text_color_elements, _ =>
+      {
+        case Text.Info(_, elem) => Rendering.text_color.get(elem.name)
+      })
+  }
+
+
   /* dotted underline */
 
   def dotted(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
     message_underline_color(VSCode_Rendering.dotted_elements, range)
 
 
+  /* spell checker */
+
+  def spell_checker: Document_Model.Decoration =
+  {
+    val ranges =
+      (for {
+        spell_checker <- resources.spell_checker.get.iterator
+        spell_range <- spell_checker_ranges(model.content.text_range).iterator
+        text <- model.content.try_get_text(spell_range).iterator
+        info <- spell_checker.marked_words(spell_range.start, text).iterator
+      } yield info.range).toList
+    Document_Model.Decoration.ranges("spell_checker", ranges)
+  }
+
+
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
-    VSCode_Rendering.color_decorations("background_", Rendering.Color.background,
+    VSCode_Rendering.color_decorations("background_", Rendering.Color.background_colors,
       background(model.content.text_range, Set.empty)) :::
-    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground,
+    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
       foreground(model.content.text_range)) :::
+    VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
+      text_color(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
-      dotted(model.content.text_range))
+      dotted(model.content.text_range)) :::
+    List(spell_checker)
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {

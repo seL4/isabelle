@@ -139,6 +139,7 @@ declare -a SOURCES=(
   Tools/print_operation.scala
   Tools/profiling_report.scala
   Tools/simplifier_trace.scala
+  Tools/spell_checker.scala
   Tools/task_statistics.scala
   Tools/update_cartouches.scala
   Tools/update_header.scala
@@ -160,12 +161,12 @@ declare -a SOURCES=(
   ../Tools/Graphview/popups.scala
   ../Tools/Graphview/shapes.scala
   ../Tools/Graphview/tree_panel.scala
+  ../Tools/VSCode/src/build_vscode.scala
   ../Tools/VSCode/src/channel.scala
   ../Tools/VSCode/src/document_model.scala
   ../Tools/VSCode/src/grammar.scala
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
-  ../Tools/VSCode/src/symbols.scala
   ../Tools/VSCode/src/vscode_rendering.scala
   ../Tools/VSCode/src/vscode_resources.scala
 )

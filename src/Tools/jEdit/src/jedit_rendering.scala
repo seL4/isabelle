@@ -162,12 +162,16 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 {
   /* colors */
 
-  def color(s: String): Color = Color_Value(options.string(s))
+  def color(s: String): Color =
+    if (s == "main_color") main_color
+    else Color_Value(options.string(s))
+
+  def color(c: Rendering.Color.Value): Color = _rendering_colors(c)
 
   lazy val _rendering_colors: Map[Rendering.Color.Value, Color] =
     Rendering.Color.values.iterator.map(c => c -> color(c.toString + "_color")).toMap
 
-  def color(c: Rendering.Color.Value): Color = _rendering_colors(c)
+  val main_color = jEdit.getColorProperty("view.fgColor")
 
   val outdated_color = color("outdated_color")
   val unprocessed_color = color("unprocessed_color")
@@ -181,32 +185,12 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   val breakpoint_disabled_color = color("breakpoint_disabled_color")
   val breakpoint_enabled_color = color("breakpoint_enabled_color")
   val caret_debugger_color = color("caret_debugger_color")
-  val antiquote_color = color("antiquote_color")
   val highlight_color = color("highlight_color")
   val hyperlink_color = color("hyperlink_color")
   val active_hover_color = color("active_hover_color")
-  val keyword1_color = color("keyword1_color")
-  val keyword2_color = color("keyword2_color")
-  val keyword3_color = color("keyword3_color")
-  val quasi_keyword_color = color("quasi_keyword_color")
-  val improper_color = color("improper_color")
-  val operator_color = color("operator_color")
   val caret_invisible_color = color("caret_invisible_color")
   val completion_color = color("completion_color")
   val search_color = color("search_color")
-
-  val tfree_color = color("tfree_color")
-  val tvar_color = color("tvar_color")
-  val free_color = color("free_color")
-  val skolem_color = color("skolem_color")
-  val bound_color = color("bound_color")
-  val var_color = color("var_color")
-  val inner_numeral_color = color("inner_numeral_color")
-  val inner_quoted_color = color("inner_quoted_color")
-  val inner_cartouche_color = color("inner_cartouche_color")
-  val inner_comment_color = color("inner_comment_color")
-  val dynamic_color = color("dynamic_color")
-  val class_parameter_color = color("class_parameter_color")
 
 
   /* indentation */
@@ -248,21 +232,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
         case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
           Some(Text.Info(snapshot.convert(info_range), name))
         case _ => None
-      }).headOption.map(_.info)
-
-
-  /* spell checker */
-
-  private lazy val spell_checker_elements =
-    Markup.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
-
-  def spell_checker_ranges(range: Text.Range): List[Text.Range] =
-    snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
-
-  def spell_checker_point(range: Text.Range): Option[Text.Range] =
-    snapshot.select(range, spell_checker_elements, _ =>
-      {
-        case info => Some(snapshot.convert(info.range))
       }).headOption.map(_.info)
 
 
@@ -478,54 +447,13 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   /* text color */
 
-  val foreground_color = jEdit.getColorProperty("view.fgColor")
-
-  private lazy val text_colors: Map[String, Color] = Map(
-      Markup.KEYWORD1 -> keyword1_color,
-      Markup.KEYWORD2 -> keyword2_color,
-      Markup.KEYWORD3 -> keyword3_color,
-      Markup.QUASI_KEYWORD -> quasi_keyword_color,
-      Markup.IMPROPER -> improper_color,
-      Markup.OPERATOR -> operator_color,
-      Markup.STRING -> foreground_color,
-      Markup.ALT_STRING -> foreground_color,
-      Markup.VERBATIM -> foreground_color,
-      Markup.CARTOUCHE -> foreground_color,
-      Markup.LITERAL -> keyword1_color,
-      Markup.DELIMITER -> foreground_color,
-      Markup.TFREE -> tfree_color,
-      Markup.TVAR -> tvar_color,
-      Markup.FREE -> free_color,
-      Markup.SKOLEM -> skolem_color,
-      Markup.BOUND -> bound_color,
-      Markup.VAR -> var_color,
-      Markup.INNER_STRING -> inner_quoted_color,
-      Markup.INNER_CARTOUCHE -> inner_cartouche_color,
-      Markup.INNER_COMMENT -> inner_comment_color,
-      Markup.DYNAMIC_FACT -> dynamic_color,
-      Markup.CLASS_PARAMETER -> class_parameter_color,
-      Markup.ANTIQUOTE -> antiquote_color,
-      Markup.ML_KEYWORD1 -> keyword1_color,
-      Markup.ML_KEYWORD2 -> keyword2_color,
-      Markup.ML_KEYWORD3 -> keyword3_color,
-      Markup.ML_DELIMITER -> foreground_color,
-      Markup.ML_NUMERAL -> inner_numeral_color,
-      Markup.ML_CHAR -> inner_quoted_color,
-      Markup.ML_STRING -> inner_quoted_color,
-      Markup.ML_COMMENT -> inner_comment_color,
-      Markup.SML_STRING -> inner_quoted_color,
-      Markup.SML_COMMENT -> inner_comment_color)
-
-  private lazy val text_color_elements =
-    Markup.Elements(text_colors.keySet)
-
-  def text_color(range: Text.Range, color: Color): List[Text.Info[Color]] =
+  def text_color(range: Text.Range, current_color: Color): List[Text.Info[Color]] =
   {
-    if (color == Token_Markup.hidden_color) List(Text.Info(range, color))
+    if (current_color == Token_Markup.hidden_color) List(Text.Info(range, current_color))
     else
-      snapshot.cumulate(range, color, text_color_elements, _ =>
+      snapshot.cumulate(range, current_color, Rendering.text_color_elements, _ =>
         {
-          case (_, Text.Info(_, elem)) => text_colors.get(elem.name)
+          case (_, Text.Info(_, elem)) => Rendering.text_color.get(elem.name).map(color(_))
         })
   }
 
