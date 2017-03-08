@@ -141,10 +141,13 @@ object Text
   {
     def insert(start: Offset, text: String): Edit = new Edit(true, start, text)
     def remove(start: Offset, text: String): Edit = new Edit(false, start, text)
+    def inserts(start: Offset, text: String): List[Edit] =
+      if (text == "") Nil else List(insert(start, text))
+    def removes(start: Offset, text: String): List[Edit] =
+      if (text == "") Nil else List(remove(start, text))
     def replace(start: Offset, old_text: String, new_text: String): List[Edit] =
       if (old_text == new_text) Nil
-      else if (old_text == "") List(insert(start, new_text))
-      else List(remove(start, old_text), insert(start, new_text))
+      else removes(start, old_text) ::: inserts(start, new_text)
   }
 
   final class Edit private(val is_insert: Boolean, val start: Offset, val text: String)
