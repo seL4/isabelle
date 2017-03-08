@@ -28,9 +28,9 @@ object Text
     val full: Range = apply(0, Integer.MAX_VALUE / 2)
     val offside: Range = apply(-1)
 
-    object Ordering extends scala.math.Ordering[Text.Range]
+    object Ordering extends scala.math.Ordering[Range]
     {
-      def compare(r1: Text.Range, r2: Text.Range): Int = r1 compare r2
+      def compare(r1: Range, r2: Range): Int = r1 compare r2
     }
   }
 
@@ -84,8 +84,8 @@ object Text
 
     def apply(ranges: Seq[Range]): Perspective =
     {
-      val result = new mutable.ListBuffer[Text.Range]
-      var last: Option[Text.Range] = None
+      val result = new mutable.ListBuffer[Range]
+      var last: Option[Range] = None
       def ship(next: Option[Range]) { result ++= last; last = next }
 
       for (range <- ranges.sortBy(_.start))
@@ -124,10 +124,10 @@ object Text
 
   /* information associated with text range */
 
-  sealed case class Info[A](range: Text.Range, info: A)
+  sealed case class Info[A](range: Range, info: A)
   {
-    def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
-    def try_restrict(r: Text.Range): Option[Info[A]] = range.try_restrict(r).map(Info(_, info))
+    def restrict(r: Range): Info[A] = Info(range.restrict(r), info)
+    def try_restrict(r: Range): Option[Info[A]] = range.try_restrict(r).map(Info(_, info))
 
     def map[B](f: A => B): Info[B] = Info(range, f(info))
   }
@@ -194,13 +194,13 @@ object Text
   trait Length
   {
     def apply(text: String): Int
-    def offset(text: String, i: Int): Option[Text.Offset]
+    def offset(text: String, i: Int): Option[Offset]
   }
 
   object Length extends Length
   {
     def apply(text: String): Int = text.length
-    def offset(text: String, i: Int): Option[Text.Offset] =
+    def offset(text: String, i: Int): Option[Offset] =
       if (0 <= i && i <= text.length) Some(i) else None
 
     val encodings: List[(String, Length)] =
