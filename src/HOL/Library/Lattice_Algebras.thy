@@ -3,7 +3,7 @@
 section \<open>Various algebraic structures combined with a lattice\<close>
 
 theory Lattice_Algebras
-imports Complex_Main
+  imports Complex_Main
 begin
 
 class semilattice_inf_ab_group_add = ordered_ab_group_add + semilattice_inf
@@ -11,7 +11,7 @@ begin
 
 lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + c)"
   apply (rule antisym)
-  apply (simp_all add: le_infI)
+   apply (simp_all add: le_infI)
   apply (rule add_le_imp_le_left [of "uminus a"])
   apply (simp only: add.assoc [symmetric], simp add: diff_le_eq add.commute)
   done
@@ -31,11 +31,11 @@ begin
 
 lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a + c)"
   apply (rule antisym)
-  apply (rule add_le_imp_le_left [of "uminus a"])
-  apply (simp only: add.assoc [symmetric], simp)
-  apply (simp add: le_diff_eq add.commute)
+   apply (rule add_le_imp_le_left [of "uminus a"])
+   apply (simp only: add.assoc [symmetric], simp)
+   apply (simp add: le_diff_eq add.commute)
   apply (rule le_supI)
-  apply (rule add_le_imp_le_left [of "a"], simp only: add.assoc[symmetric], simp)+
+   apply (rule add_le_imp_le_left [of "a"], simp only: add.assoc[symmetric], simp)+
   done
 
 lemma add_sup_distrib_right: "sup a b + c = sup (a + c) (b + c)"
@@ -80,9 +80,8 @@ proof (rule sup_unique)
   show "b \<le> - inf (- a) (- b)"
     by (rule add_le_imp_le_right [of _ "inf (uminus a) (uminus b)"])
       (simp, simp add: add_inf_distrib_left)
-  assume "a \<le> c" "b \<le> c"
-  then show "- inf (- a) (- b) \<le> c"
-    by (subst neg_le_iff_le [symmetric]) (simp add: le_infI)
+  show "- inf (- a) (- b) \<le> c" if "a \<le> c" "b \<le> c"
+    using that by (subst neg_le_iff_le [symmetric]) (simp add: le_infI)
 qed
 
 lemma neg_inf_eq_sup: "- inf a b = sup (- a) (- b)"
@@ -121,12 +120,12 @@ definition pprt :: "'a \<Rightarrow> 'a"
 lemma pprt_neg: "pprt (- x) = - nprt x"
 proof -
   have "sup (- x) 0 = sup (- x) (- 0)"
-    unfolding minus_zero ..
+    by (simp only: minus_zero)
   also have "\<dots> = - inf x 0"
-    unfolding neg_inf_eq_sup ..
+    by (simp only: neg_inf_eq_sup)
   finally have "sup (- x) 0 = - inf x 0" .
   then show ?thesis
-    unfolding pprt_def nprt_def .
+    by (simp only: pprt_def nprt_def)
 qed
 
 lemma nprt_neg: "nprt (- x) = - pprt x"
@@ -146,21 +145,15 @@ lemma nprt_le_zero[simp]: "nprt a \<le> 0"
   by (simp add: nprt_def)
 
 lemma le_eq_neg: "a \<le> - b \<longleftrightarrow> a + b \<le> 0"
-  (is "?l = ?r")
+  (is "?lhs = ?rhs")
 proof
-  assume ?l
-  then show ?r
-    apply -
-    apply (rule add_le_imp_le_right[of _ "uminus b" _])
-    apply (simp add: add.assoc)
-    done
+  assume ?lhs
+  show ?rhs
+    by (rule add_le_imp_le_right[of _ "uminus b" _]) (simp add: add.assoc \<open>?lhs\<close>)
 next
-  assume ?r
-  then show ?l
-    apply -
-    apply (rule add_le_imp_le_right[of _ "b" _])
-    apply simp
-    done
+  assume ?rhs
+  show ?lhs
+    by (rule add_le_imp_le_right[of _ "b" _]) (simp add: \<open>?rhs\<close>)
 qed
 
 lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
@@ -182,7 +175,7 @@ lemma sup_0_imp_0:
   assumes "sup a (- a) = 0"
   shows "a = 0"
 proof -
-  have p: "0 \<le> a" if "sup a (- a) = 0" for a :: 'a
+  have pos: "0 \<le> a" if "sup a (- a) = 0" for a :: 'a
   proof -
     from that have "sup a (- a) + a = a"
       by simp
@@ -195,7 +188,7 @@ proof -
   qed
   from assms have **: "sup (-a) (-(-a)) = 0"
     by (simp add: sup_commute)
-  from p[OF assms] p[OF **] show "a = 0"
+  from pos[OF assms] pos[OF **] show "a = 0"
     by simp
 qed
 
@@ -206,14 +199,14 @@ lemma inf_0_imp_0: "inf a (- a) = 0 \<Longrightarrow> a = 0"
   done
 
 lemma inf_0_eq_0 [simp, no_atp]: "inf a (- a) = 0 \<longleftrightarrow> a = 0"
-  apply rule
-  apply (erule inf_0_imp_0)
+  apply (rule iffI)
+   apply (erule inf_0_imp_0)
   apply simp
   done
 
 lemma sup_0_eq_0 [simp, no_atp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
-  apply rule
-  apply (erule sup_0_imp_0)
+  apply (rule iffI)
+   apply (erule sup_0_imp_0)
   apply simp
   done
 
@@ -238,49 +231,11 @@ proof
 qed
 
 lemma double_zero [simp]: "a + a = 0 \<longleftrightarrow> a = 0"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  show ?rhs if ?lhs
-  proof -
-    from that have "a + a + - a = - a"
-      by simp
-    then have "a + (a + - a) = - a"
-      by (simp only: add.assoc)
-    then have a: "- a = a"
-      by simp
-    show ?thesis
-      apply (rule antisym)
-      apply (unfold neg_le_iff_le [symmetric, of a])
-      unfolding a
-      apply simp
-      unfolding zero_le_double_add_iff_zero_le_single_add [symmetric, of a]
-      unfolding that
-      unfolding le_less
-      apply simp_all
-      done
-  qed
-  show ?lhs if ?rhs
-    using that by simp
-qed
+  using add_nonneg_eq_0_iff eq_iff by auto
 
 lemma zero_less_double_add_iff_zero_less_single_add [simp]: "0 < a + a \<longleftrightarrow> 0 < a"
-proof (cases "a = 0")
-  case True
-  then show ?thesis by auto
-next
-  case False
-  then show ?thesis
-    unfolding less_le
-    apply simp
-    apply rule
-    apply clarify
-    apply rule
-    apply assumption
-    apply (rule notI)
-    unfolding double_zero [symmetric, of a]
-    apply blast
-    done
-qed
+  by (meson le_less_trans less_add_same_cancel2 less_le_not_le
+      zero_le_double_add_iff_zero_le_single_add)
 
 lemma double_add_le_zero_iff_single_add_le_zero [simp]: "a + a \<le> 0 \<longleftrightarrow> a \<le> 0"
 proof -
@@ -302,7 +257,10 @@ proof -
     by blast
 qed
 
-declare neg_inf_eq_sup [simp] neg_sup_eq_inf [simp] diff_inf_eq_sup [simp] diff_sup_eq_inf [simp]
+declare neg_inf_eq_sup [simp]
+  and neg_sup_eq_inf [simp]
+  and diff_inf_eq_sup [simp]
+  and diff_sup_eq_inf [simp]
 
 lemma le_minus_self_iff: "a \<le> - a \<longleftrightarrow> a \<le> 0"
 proof -
@@ -405,7 +363,7 @@ proof
     from a d e have "\<bar>a + b\<bar> \<le> sup ?m ?n"
       apply -
       apply (drule abs_leI)
-      apply (simp_all only: algebra_simps minus_add)
+       apply (simp_all only: algebra_simps minus_add)
       apply (metis add_uminus_conv_diff d sup_commute uminus_add_conv_diff)
       done
     with g[symmetric] show ?thesis by simp
@@ -606,15 +564,13 @@ qed
 
 instance int :: lattice_ring
 proof
-  fix k :: int
-  show "\<bar>k\<bar> = sup k (- k)"
+  show "\<bar>k\<bar> = sup k (- k)" for k :: int
     by (auto simp add: sup_int_def)
 qed
 
 instance real :: lattice_ring
 proof
-  fix a :: real
-  show "\<bar>a\<bar> = sup a (- a)"
+  show "\<bar>a\<bar> = sup a (- a)" for a :: real
     by (auto simp add: sup_real_def)
 qed
 
