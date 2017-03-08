@@ -60,7 +60,7 @@ const text_colors = [
 
 function get_color(color: string, light: boolean): string
 {
-  const config = color.concat(light ? "_light" : "_dark").concat("_color")
+  const config = color + (light ? "_light" : "_dark") + "_color"
   return vscode.workspace.getConfiguration("isabelle").get<string>(config)
 }
 
@@ -91,22 +91,22 @@ export function init(context: ExtensionContext)
   {
     const border = `${width} none; border-bottom-style: ${style}; border-color: `
     return decoration(
-      { light: { border: border.concat(get_color(color, true)) },
-        dark: { border: border.concat(get_color(color, false)) } })
+      { light: { border: border + get_color(color, true) },
+        dark: { border: border + get_color(color, false) } })
   }
 
   types.clear
   for (let color of background_colors) {
-    types["background_".concat(color)] = background(color)
+    types["background_" + color] = background(color)
   }
   for (let color of foreground_colors) {
-    types["foreground_".concat(color)] = background(color) // approximation
+    types["foreground_" + color] = background(color) // approximation
   }
   for (let color of dotted_colors) {
-    types["dotted_".concat(color)] = bottom_border("2px", "dotted", color)
+    types["dotted_" + color] = bottom_border("2px", "dotted", color)
   }
   for (let color of text_colors) {
-    types["text_".concat(color)] = text_color(color)
+    types["text_" + color] = text_color(color)
   }
   types["spell_checker"] = bottom_border("1px", "solid", "spell_checker")
 }
