@@ -59,7 +59,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
         s match {
           case Value.Int(n) if n >= 0 =>
             val msg = read_content(n)
-            log("IN:\n" + msg)
+            log("IN: " + n + "\n" + msg)
             Some(JSON.parse(msg))
           case _ => error("Bad Content-Length: " + s)
         }
@@ -73,10 +73,11 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
   def write(json: JSON.T)
   {
     val msg = JSON.Format(json)
-    log("OUT:\n" + msg)
-
     val content = UTF8.bytes(msg)
-    val header = UTF8.bytes("Content-Length: " + content.length + "\r\n\r\n")
+    val n = content.length
+    val header = UTF8.bytes("Content-Length: " + n + "\r\n\r\n")
+
+    log("OUT: " + n + "\n" + msg)
     out.synchronized {
       out.write(header)
       out.write(content)
