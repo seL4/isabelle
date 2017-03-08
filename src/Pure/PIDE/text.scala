@@ -42,7 +42,7 @@ object Text
 
     override def toString: String = "[" + start.toString + ".." + stop.toString + "]"
 
-    def length: Int = stop - start
+    def length: Offset = stop - start
 
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = if (i == 0) this else map(_ + i)
@@ -169,13 +169,13 @@ object Text
     private def insert(i: Offset, string: String): String =
       string.substring(0, i) + text + string.substring(i)
 
-    private def remove(i: Offset, count: Int, string: String): String =
+    private def remove(i: Offset, count: Offset, string: String): String =
       string.substring(0, i) + string.substring(i + count)
 
-    def can_edit(string: String, shift: Int): Boolean =
+    def can_edit(string: String, shift: Offset): Boolean =
       shift <= start && start < shift + string.length
 
-    def edit(string: String, shift: Int): (Option[Edit], String) =
+    def edit(string: String, shift: Offset): (Option[Edit], String) =
       if (!can_edit(string, shift)) (Some(this), string)
       else if (is_insert) (None, insert(start - shift, string))
       else {
