@@ -276,7 +276,7 @@ abstract class Rendering(
                 }
               case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
                 val color =
-                  depth match {
+                  depth % 4 match {
                     case 1 => Rendering.Color.markdown_item1
                     case 2 => Rendering.Color.markdown_item2
                     case 3 => Rendering.Color.markdown_item3
