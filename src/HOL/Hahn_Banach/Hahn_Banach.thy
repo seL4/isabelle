@@ -475,8 +475,7 @@ proof -
       proof -
         from a x have "g x = f x" ..
         then have "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
-        also from g_cont
-        have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
+        also from g_cont have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
         proof (rule fn_norm_le_cong [OF _ linearformE, folded B_def fn_norm_def])
           from FE x show "x \<in> E" ..
         qed
@@ -484,8 +483,7 @@ proof -
       qed
     next
       show "0 \<le> \<parallel>g\<parallel>\<hyphen>E"
-        using g_cont
-        by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
+        using g_cont by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
       show "continuous F f norm" by fact
     qed
   qed
