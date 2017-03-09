@@ -92,13 +92,14 @@ object Line
     def apply(text: String, text_length: Text.Length): Document =
       Document(logical_lines(text).map(s => Line(Library.trim_substring(s))), text_length)
 
-    def lines(text: String): List[Line] = apply(text, Text.Length).lines
+    private def split(line_text: String): List[Line] =
+      if (line_text == "") List(Line.empty)
+      else apply(line_text, Text.Length).lines
 
     private def chop(lines: List[Line]): (String, List[Line]) =
       lines match {
         case Nil => ("", Nil)
-        case List(line) => (line.text, Nil)
-        case line :: rest => (line.text + "\n", rest)
+        case line :: rest => (line.text, rest)
       }
 
     private def length(lines: List[Line]): Int =
@@ -167,7 +168,7 @@ object Line
         l1 = remove.start.line
         l2 = remove.stop.line
         if l1 <= l2
-        (removed_text, changed_lines) <-
+        (removed_text, new_lines) <-
         {
           val (prefix, lines1) = lines.splitAt(l1)
           val (s1, rest1) = Document.chop(lines1)
@@ -179,9 +180,12 @@ object Line
               if c1 <= c2
             }
             yield {
-              val removed_text = s1.substring(c1, c2)
-              val changed_text = s1.substring(0, c1) + insert + Library.trim_line(s1.substring(c2))
-              (removed_text, prefix ::: Document.lines(changed_text) ::: rest1)
+              if (lines1.isEmpty) ("", prefix)
+              else {
+                val removed_text = s1.substring(c1, c2)
+                val changed_text = s1.substring(0, c1) + insert + s1.substring(c2)
+                (removed_text, prefix ::: Document.split(changed_text) ::: rest1)
+              }
             }
           }
           else {
@@ -192,21 +196,23 @@ object Line
               c2 <- text_length.offset(s2, remove.stop.column)
             }
             yield {
-              val r1 = Library.trim_line(s1.substring(c1))
-              val r2 = s2.substring(0, c2)
-              val removed_text =
-                if (lines1.isEmpty) ""
-                else if (lines2.isEmpty) Document.text(Line(r1) :: middle)
-                else Document.text(Line(r1) :: middle ::: List(Line(r2)))
-              val changed_text = s1.substring(0, c1) + insert + Library.trim_line(s2.substring(c2))
-              (removed_text, prefix ::: Document.lines(changed_text) ::: rest2)
+              if (lines1.isEmpty) ("", prefix)
+              else {
+                val r1 = s1.substring(c1)
+                val r2 = s2.substring(0, c2)
+                val removed_text =
+                  if (lines2.isEmpty) Document.text(Line(r1) :: middle)
+                  else Document.text(Line(r1) :: middle ::: List(Line(r2)))
+                val changed_text = s1.substring(0, c1) + insert + s2.substring(c2)
+                (removed_text, prefix ::: Document.split(changed_text) ::: rest2)
+              }
             }
           }
         }
       }
       yield
         (Text.Edit.removes(edit_start, removed_text) ::: Text.Edit.inserts(edit_start, insert),
-          Document(changed_lines, text_length))
+          Document(new_lines, text_length))
     }
   }
 
