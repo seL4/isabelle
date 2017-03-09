@@ -24,14 +24,13 @@ export function activate(context: vscode.ExtensionContext)
   else {
     let isabelle_tool = isabelle_home + "/bin/isabelle"
     let standard_args = ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
-    let run =
+
+    let server_options: ServerOptions =
       is_windows ?
         { command: cygwin_root + "/bin/bash",
           args: ["-l", isabelle_tool, "vscode_server"].concat(standard_args, isabelle_args) } :
         { command: isabelle_tool,
           args: ["vscode_server"].concat(standard_args, isabelle_args) };
-
-    let server_options: ServerOptions = { run: run, debug: run };
     let client_options: LanguageClientOptions = {
       documentSelector: ["isabelle", "isabelle-ml", "bibtex"]
     };
