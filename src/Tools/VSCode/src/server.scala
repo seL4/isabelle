@@ -1,9 +1,11 @@
 /*  Title:      Tools/VSCode/src/server.scala
     Author:     Makarius
 
-Server for VS Code Language Server Protocol 2.0, see also
+Server for VS Code Language Server Protocol 2.0/3.0, see also
 https://github.com/Microsoft/language-server-protocol
 https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md
+
+PIDE protocol extensions depend on system option "vscode_pide_extensions".
 */
 
 package isabelle.vscode
@@ -143,7 +145,14 @@ class Server(
 
   private def update_document(file: JFile, text: String)
   {
-    resources.update_model(session, file, text)
+    resources.change_model(session, file, text)
+    delay_input.invoke()
+    delay_output.invoke()
+  }
+
+  private def change_document(file: JFile, changes: List[Protocol.TextDocumentChange])
+  {
+    changes.foreach(change => resources.change_model(session, file, change.text, change.range))
     delay_input.invoke()
     delay_output.invoke()
   }
@@ -351,12 +360,9 @@ class Server(
           case Protocol.Initialize(id) => init(id)
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
-          case Protocol.DidOpenTextDocument(file, lang, version, text) =>
-            update_document(file, text)
-          case Protocol.DidChangeTextDocument(file, version, List(Protocol.TextDocumentContent(text))) =>
-            update_document(file, text)
-          case Protocol.DidCloseTextDocument(file) =>
-            close_document(file)
+          case Protocol.DidOpenTextDocument(file, _, _, text) => update_document(file, text)
+          case Protocol.DidChangeTextDocument(file, _, changes) => change_document(file, changes)
+          case Protocol.DidCloseTextDocument(file) => close_document(file)
           case Protocol.Completion(id, node_pos) => completion(id, node_pos)
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)

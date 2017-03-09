@@ -122,12 +122,12 @@ class VSCode_Resources(
       case None => false
     }
 
-  def update_model(session: Session, file: JFile, text: String)
+  def change_model(session: Session, file: JFile, text: String, range: Option[Line.Range] = None)
   {
     state.change(st =>
       {
         val model = st.models.getOrElse(file, Document_Model.init(session, node_name(file)))
-        val model1 = (model.update_text(text) getOrElse model).external(false)
+        val model1 = (model.change_text(text, range) getOrElse model).external(false)
         st.update_models(Some(file -> model1))
       })
   }
@@ -147,7 +147,7 @@ class VSCode_Resources(
             (file, model) <- st.models.iterator
             if changed_files(file) && model.external_file
             text <- read_file_content(file)
-            model1 <- model.update_text(text)
+            model1 <- model.change_text(text)
           } yield (file, model1)).toList
         st.update_models(changed_models)
       })
@@ -193,7 +193,7 @@ class VSCode_Resources(
           }
           yield {
             val model = Document_Model.init(session, node_name)
-            val model1 = (model.update_text(text) getOrElse model).external(true)
+            val model1 = (model.change_text(text) getOrElse model).external(true)
             (file, model1)
           }).toList
 

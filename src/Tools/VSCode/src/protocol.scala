@@ -10,7 +10,6 @@ package isabelle.vscode
 
 import isabelle._
 
-
 import java.io.{File => JFile}
 
 
@@ -138,7 +137,7 @@ object Protocol
   {
     val json: JSON.T =
       Map(
-        "textDocumentSync" -> 1,
+        "textDocumentSync" -> 2,
         "completionProvider" -> Map("resolveProvider" -> false, "triggerCharacters" -> Nil),
         "hoverProvider" -> true,
         "definitionProvider" -> true,
@@ -260,34 +259,22 @@ object Protocol
   }
 
 
-  sealed abstract class TextDocumentContentChange
-  case class TextDocumentContent(text: String) extends TextDocumentContentChange
-  case class TextDocumentChange(range: Line.Range, range_length: Int, text: String)
-    extends TextDocumentContentChange
-
-  object TextDocumentContentChange
-  {
-    def unapply(json: JSON.T): Option[TextDocumentContentChange] =
-      for { text <- JSON.string(json, "text") }
-      yield {
-        (JSON.value(json, "range"), JSON.int(json, "rangeLength")) match {
-          case (Some(Range(range)), Some(range_length)) =>
-            TextDocumentChange(range, range_length, text)
-          case _ => TextDocumentContent(text)
-        }
-      }
-  }
+  sealed case class TextDocumentChange(range: Option[Line.Range], text: String)
 
   object DidChangeTextDocument
   {
-    def unapply(json: JSON.T): Option[(JFile, Long, List[TextDocumentContentChange])] =
+    def unapply_change(json: JSON.T): Option[TextDocumentChange] =
+      for { text <- JSON.string(json, "text") }
+      yield TextDocumentChange(JSON.value(json, "range", Range.unapply _), text)
+
+    def unapply(json: JSON.T): Option[(JFile, Long, List[TextDocumentChange])] =
       json match {
         case Notification("textDocument/didChange", Some(params)) =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri")
             version <- JSON.long(doc, "version")
-            changes <- JSON.array(params, "contentChanges", TextDocumentContentChange.unapply _)
+            changes <- JSON.array(params, "contentChanges", unapply_change _)
           } yield (Url.canonical_file(uri), version, changes)
         case _ => None
       }

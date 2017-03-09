@@ -102,16 +102,25 @@ sealed case class Document_Model(
 
   /* edits */
 
-  def update_text(text: String): Option[Document_Model] =
+  def change_text(text: String, range: Option[Line.Range] = None): Option[Document_Model] =
   {
-    val old_text = content.text
-    val new_text = Line.normalize(text)
-    Text.Edit.replace(0, old_text, new_text) match {
-      case Nil => None
-      case edits =>
-        val content1 = Document_Model.Content(Line.Document(new_text, content.doc.text_length))
-        val pending_edits1 = pending_edits ::: edits
-        Some(copy(content = content1, pending_edits = pending_edits1))
+    val insert = Line.normalize(text)
+    range match {
+      case None =>
+        Text.Edit.replace(0, content.text, insert) match {
+          case Nil => None
+          case edits =>
+            val content1 = Document_Model.Content(Line.Document(insert, content.doc.text_length))
+            Some(copy(content = content1, pending_edits = pending_edits ::: edits))
+        }
+      case Some(remove) =>
+        content.doc.change(remove, insert) match {
+          case None => error("Failed to apply document change: " + remove)
+          case Some((Nil, _)) => None
+          case Some((edits, doc1)) =>
+            val content1 = Document_Model.Content(doc1)
+            Some(copy(content = content1, pending_edits = pending_edits ::: edits))
+        }
     }
   }
 
