@@ -96,16 +96,16 @@ export function init(context: ExtensionContext)
   }
 
   types.clear
-  for (let color of background_colors) {
+  for (const color of background_colors) {
     types["background_" + color] = background(color)
   }
-  for (let color of foreground_colors) {
+  for (const color of foreground_colors) {
     types["foreground_" + color] = background(color) // approximation
   }
-  for (let color of dotted_colors) {
+  for (const color of dotted_colors) {
     types["dotted_" + color] = bottom_border("2px", "dotted", color)
   }
-  for (let color of text_colors) {
+  for (const color of text_colors) {
     types["text_" + color] = text_color(color)
   }
   types["spell_checker"] = bottom_border("1px", "solid", "spell_checker")
@@ -140,11 +140,11 @@ export function apply_decoration(decoration0: Decoration)
       content: decoration0.content
     }
 
-    let document = document_decorations.get(decoration.uri) || new Map<string, Content>()
+    const document = document_decorations.get(decoration.uri) || new Map<string, Content>()
     document.set(decoration.type, decoration.content)
     document_decorations.set(decoration.uri, document)
 
-    for (let editor of vscode.window.visibleTextEditors) {
+    for (const editor of vscode.window.visibleTextEditors) {
       if (decoration.uri == editor.document.uri.toString()) {
         editor.setDecorations(typ, decoration.content)
       }
@@ -155,9 +155,9 @@ export function apply_decoration(decoration0: Decoration)
 export function update_editor(editor: TextEditor)
 {
   if (editor) {
-    let decorations = document_decorations.get(editor.document.uri.toString())
+    const decorations = document_decorations.get(editor.document.uri.toString())
     if (decorations) {
-      for (let [typ, content] of decorations) {
+      for (const [typ, content] of decorations) {
         editor.setDecorations(types[typ], content)
       }
     }
