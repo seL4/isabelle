@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as decorations from './decorations';
 import { Decoration } from './decorations'
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind }
+import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
 
 
@@ -41,7 +41,9 @@ export function activate(context: vscode.ExtensionContext)
     decorations.init(context)
     vscode.window.onDidChangeActiveTextEditor(decorations.update_editor)
     vscode.workspace.onDidCloseTextDocument(decorations.close_document)
-    client.onNotification<Decoration>({method: "PIDE/decoration"}, decorations.apply_decoration)
+    client.onReady().then(() =>
+      client.onNotification(
+        new NotificationType<Decoration, void>("PIDE/decoration"), decorations.apply_decoration))
 
     context.subscriptions.push(client.start());
   }

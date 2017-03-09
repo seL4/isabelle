@@ -1,7 +1,7 @@
 /*  Title:      Tools/VSCode/src/protocol.scala
     Author:     Makarius
 
-Message formats for Language Server Protocol 2.0, see
+Message formats for Language Server Protocol 3.0, see
 https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md
 */
 
