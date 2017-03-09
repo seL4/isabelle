@@ -27,7 +27,7 @@
 
 * shell> `isabelle build_vscode`
 
-* Extensions / ... / Install from VSIX: src/Tools/VSCode/extension/isabelle-X.Y.Z.vsix
+* Extensions / ... / Install from VSIX: `src/Tools/VSCode/extension/isabelle-X.Y.Z.vsix`
 
 
 ## Relevant links ##
