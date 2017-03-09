@@ -143,13 +143,6 @@ class Server(
     delay_output.invoke()
   }
 
-  private def update_document(file: JFile, text: String)
-  {
-    resources.change_model(session, file, text)
-    delay_input.invoke()
-    delay_output.invoke()
-  }
-
   private def change_document(file: JFile, changes: List[Protocol.TextDocumentChange])
   {
     changes.foreach(change => resources.change_model(session, file, change.text, change.range))
@@ -360,7 +353,8 @@ class Server(
           case Protocol.Initialize(id) => init(id)
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
-          case Protocol.DidOpenTextDocument(file, _, _, text) => update_document(file, text)
+          case Protocol.DidOpenTextDocument(file, _, _, text) =>
+            change_document(file, List(Protocol.TextDocumentChange(None, text)))
           case Protocol.DidChangeTextDocument(file, _, changes) => change_document(file, changes)
           case Protocol.DidCloseTextDocument(file) => close_document(file)
           case Protocol.Completion(id, node_pos) => completion(id, node_pos)
