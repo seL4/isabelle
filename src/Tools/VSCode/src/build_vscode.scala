@@ -64,8 +64,9 @@ object Build_VSCode
     val output_path = extension_dir + Path.explode("out")
     progress.echo(output_path.implode)
 
-    val cmd = "vsce " + (if (publish) "publish" else "package")
-    progress.bash(cmd, cwd = extension_dir.file, echo = true).check
+    progress.bash(
+      "npm install && npm update --dev && vsce " + (if (publish) "publish" else "package"),
+      cwd = extension_dir.file, echo = true).check
   }
 
 
