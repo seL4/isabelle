@@ -282,9 +282,11 @@ fun keyword_reports tok = map (fn markup => ((pos_of tok, markup), ""));
 
 fun command_markups keywords x =
   if Keyword.is_theory_end keywords x then [Markup.keyword2]
-  else if Keyword.is_proof_asm keywords x then [Markup.keyword3]
-  else if Keyword.is_improper keywords x then [Markup.keyword1, Markup.improper]
-  else [Markup.keyword1];
+  else
+    (if Keyword.is_proof_asm keywords x then [Markup.keyword3]
+     else if Keyword.is_improper keywords x then [Markup.keyword1, Markup.improper]
+     else [Markup.keyword1])
+    |> map (Markup.properties [(Markup.kindN, Markup.commandN)]);
 
 in
 
