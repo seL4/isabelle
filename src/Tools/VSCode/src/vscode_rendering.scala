@@ -28,6 +28,10 @@ object VSCode_Rendering
       Document_Model.Decoration.ranges(prefix + c.toString, color_ranges.getOrElse(c, Nil).reverse))
   }
 
+  private val background_colors =
+    Rendering.Color.background_colors - Rendering.Color.active - Rendering.Color.active_result -
+      Rendering.Color.entity
+
   private val dotted_colors =
     Set(Rendering.Color.writeln, Rendering.Color.information, Rendering.Color.warning)
 
@@ -44,6 +48,9 @@ object VSCode_Rendering
 
   private val diagnostics_elements =
     Markup.Elements(Markup.LEGACY, Markup.ERROR)
+
+  private val background_elements =
+    Rendering.background_elements - Markup.ENTITY -- Rendering.active_elements
 
   private val dotted_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING)
@@ -148,8 +155,8 @@ class VSCode_Rendering(
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
-    VSCode_Rendering.color_decorations("background_", Rendering.Color.background_colors,
-      background(model.content.text_range, Set.empty)) :::
+    VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
+      background(VSCode_Rendering.background_elements, model.content.text_range, Set.empty)) :::
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
       foreground(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,

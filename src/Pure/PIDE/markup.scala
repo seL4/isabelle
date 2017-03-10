@@ -29,6 +29,8 @@ object Markup
     def apply(elem: String): Boolean = rep.contains(elem)
     def + (elem: String): Elements = new Elements(rep + elem)
     def ++ (elems: Elements): Elements = new Elements(rep ++ elems.rep)
+    def - (elem: String): Elements = new Elements(rep - elem)
+    def -- (elems: Elements): Elements = new Elements(rep -- elems.rep)
     override def toString: String = rep.mkString("Elements(", ",", ")")
   }
 

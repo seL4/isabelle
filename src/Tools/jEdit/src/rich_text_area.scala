@@ -309,7 +309,8 @@ class Rich_Text_Area(
 
             // background color
             for {
-              Text.Info(range, c) <- rendering.background(line_range, caret_focus)
+              Text.Info(range, c) <-
+                rendering.background(Rendering.background_elements, line_range, caret_focus)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(rendering.color(c))
