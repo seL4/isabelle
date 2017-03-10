@@ -162,7 +162,7 @@ class VSCode_Rendering(
       for (Text.Info(text_range, msgs) <- decoration.content)
       yield {
         val range = model.content.doc.range(text_range)
-        Protocol.DecorationOptions(range,
+        Protocol.DecorationOpts(range,
           msgs.map(msg => Protocol.MarkedString(resources.output_pretty_tooltip(msg))))
       }
     Protocol.Decoration(decoration.typ, content)
