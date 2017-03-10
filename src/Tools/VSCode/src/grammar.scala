@@ -82,7 +82,7 @@ object Grammar
       "match": """ + grouped_names(keywords1) + """
     },
     {
-      "name": "keyword.other.isabelle",
+      "name": "keyword.other.unit.isabelle",
       "match": """ + grouped_names(keywords2) + """
     },
     {
@@ -90,7 +90,7 @@ object Grammar
       "match": """ + grouped_names(operators) + """
     },
     {
-      "name": "entity.name.function.isabelle",
+      "name": "entity.name.type.isabelle",
       "match": """ + grouped_names(keywords3) + """
     },
     {
