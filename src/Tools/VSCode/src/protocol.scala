@@ -169,6 +169,9 @@ object Protocol
 
   object Range
   {
+    def compact(range: Line.Range): List[Int] =
+      List(range.start.line, range.start.column, range.stop.line, range.stop.column)
+
     def apply(range: Line.Range): JSON.T =
       Map("start" -> Position(range.start), "end" -> Position(range.stop))
 
@@ -404,21 +407,17 @@ object Protocol
 
   /* decorations */
 
-  sealed case class DecorationOptions(range: Line.Range, hover_message: List[MarkedString])
+  sealed case class DecorationOpts(range: Line.Range, hover_message: List[MarkedString])
   {
-    def no_hover_message: Boolean = hover_message.isEmpty
-    def json_range: JSON.T = Range(range)
     def json: JSON.T =
-      Map("range" -> json_range) ++
-      JSON.optional("hoverMessage" -> MarkedStrings.json(hover_message))
+      Map("range" -> Range.compact(range)) ++
+      JSON.optional("hover_message" -> MarkedStrings.json(hover_message))
   }
 
-  sealed case class Decoration(typ: String, content: List[DecorationOptions])
+  sealed case class Decoration(typ: String, content: List[DecorationOpts])
   {
-    def json_content: JSON.T =
-      if (content.forall(_.no_hover_message)) content.map(_.json_range) else content.map(_.json)
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
-        Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> json_content))
+        Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
   }
 }

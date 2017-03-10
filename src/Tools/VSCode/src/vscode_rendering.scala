@@ -28,6 +28,10 @@ object VSCode_Rendering
       Document_Model.Decoration.ranges(prefix + c.toString, color_ranges.getOrElse(c, Nil).reverse))
   }
 
+  private val background_colors =
+    Rendering.Color.background_colors - Rendering.Color.active - Rendering.Color.active_result -
+      Rendering.Color.entity
+
   private val dotted_colors =
     Set(Rendering.Color.writeln, Rendering.Color.information, Rendering.Color.warning)
 
@@ -44,6 +48,9 @@ object VSCode_Rendering
 
   private val diagnostics_elements =
     Markup.Elements(Markup.LEGACY, Markup.ERROR)
+
+  private val background_elements =
+    Rendering.background_elements - Markup.ENTITY -- Rendering.active_elements
 
   private val dotted_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING)
@@ -117,7 +124,9 @@ class VSCode_Rendering(
   {
     snapshot.select(range, Rendering.text_color_elements, _ =>
       {
-        case Text.Info(_, elem) => Rendering.text_color.get(elem.name)
+        case Text.Info(_, XML.Elem(Markup(name, props), _)) =>
+          if (name != Markup.IMPROPER && props.contains((Markup.KIND, Markup.COMMAND))) None
+          else Rendering.text_color.get(name)
       })
   }
 
@@ -146,8 +155,8 @@ class VSCode_Rendering(
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
-    VSCode_Rendering.color_decorations("background_", Rendering.Color.background_colors,
-      background(model.content.text_range, Set.empty)) :::
+    VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
+      background(VSCode_Rendering.background_elements, model.content.text_range, Set.empty)) :::
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
       foreground(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
@@ -162,7 +171,7 @@ class VSCode_Rendering(
       for (Text.Info(text_range, msgs) <- decoration.content)
       yield {
         val range = model.content.doc.range(text_range)
-        Protocol.DecorationOptions(range,
+        Protocol.DecorationOpts(range,
           msgs.map(msg => Protocol.MarkedString(resources.output_pretty_tooltip(msg))))
       }
     Protocol.Decoration(decoration.typ, content)

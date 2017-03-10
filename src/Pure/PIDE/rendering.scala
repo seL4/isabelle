@@ -253,7 +253,8 @@ abstract class Rendering(
 
   /* text background */
 
-  def background(range: Text.Range, focus: Set[Long]): List[Text.Info[Rendering.Color.Value]] =
+  def background(elements: Markup.Elements, range: Text.Range, focus: Set[Long])
+    : List[Text.Info[Rendering.Color.Value]] =
   {
     for {
       Text.Info(r, result) <-
