@@ -148,12 +148,17 @@ text \<open>
   the entire domain type.
 \<close>
 
-abbreviation "inj f \<equiv> inj_on f UNIV"
+abbreviation inj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
+  where "inj f \<equiv> inj_on f UNIV"
 
-abbreviation (input) surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
+abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
   where "surj f \<equiv> range f = UNIV"
 
-abbreviation "bij f \<equiv> bij_betw f UNIV UNIV"
+translations -- \<open>The negated case:\<close>
+  "\<not> CONST surj f" \<leftharpoondown> "CONST range f \<noteq> CONST UNIV"
+
+abbreviation bij :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
+  where "bij f \<equiv> bij_betw f UNIV UNIV"
 
 lemma inj_def: "inj f \<longleftrightarrow> (\<forall>x y. f x = f y \<longrightarrow> x = y)"
   unfolding inj_on_def by blast

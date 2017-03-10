@@ -48,6 +48,9 @@ buffers.
 
 *** HOL ***
 
+* Constant "surj" is a full input/output abbreviation (again).
+Minor INCOMPATIBILITY.
+
 * Theory Library/FinFun has been moved to AFP (again).  INCOMPATIBILITY.
 
 * Some old and rarely used ASCII replacement syntax has been removed.
