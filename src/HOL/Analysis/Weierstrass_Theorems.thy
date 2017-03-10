@@ -1140,6 +1140,29 @@ proof -
     done
 qed
 
+lemma Stone_Weierstrass_uniform_limit:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes S: "compact S"
+    and f: "continuous_on S f"
+  obtains g where "uniform_limit S g f sequentially" "\<And>n. polynomial_function (g n)"
+proof -
+  have pos: "inverse (Suc n) > 0" for n by auto
+  obtain g where g: "\<And>n. polynomial_function (g n)" "\<And>x n. x \<in> S \<Longrightarrow> norm(f x - g n x) < inverse (Suc n)"
+    using Stone_Weierstrass_polynomial_function[OF S f pos]
+    by metis
+  have "uniform_limit S g f sequentially"
+  proof (rule uniform_limitI)
+    fix e::real assume "0 < e"
+    with LIMSEQ_inverse_real_of_nat have "\<forall>\<^sub>F n in sequentially. inverse (Suc n) < e"
+      by (rule order_tendstoD)
+    moreover have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>S. dist (g n x) (f x) < inverse (Suc n)"
+      using g by (simp add: dist_norm norm_minus_commute)
+    ultimately show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>S. dist (g n x) (f x) < e"
+      by (eventually_elim) auto
+  qed
+  then show ?thesis using g(1) ..
+qed
+
 
 subsection\<open>Polynomial functions as paths\<close>
 

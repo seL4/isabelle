@@ -586,6 +586,33 @@ proof
   ultimately show False by contradiction
 qed
 
+lemma mem_closed_if_AE_lebesgue_open:
+  assumes "open S" "closed C"
+  assumes "AE x \<in> S in lebesgue. x \<in> C"
+  assumes "x \<in> S"
+  shows "x \<in> C"
+proof (rule ccontr)
+  assume xC: "x \<notin> C"
+  with openE[of "S - C"] assms
+  obtain e where e: "0 < e" "ball x e \<subseteq> S - C"
+    by blast
+  then obtain a b where box: "x \<in> box a b" "box a b \<subseteq> S - C"
+    by (metis rational_boxes order_trans)
+  then have "0 < emeasure lebesgue (box a b)"
+    by (auto simp: emeasure_lborel_box_eq mem_box algebra_simps intro!: prod_pos)
+  also have "\<dots> \<le> emeasure lebesgue (S - C)"
+    using assms box
+    by (auto intro!: emeasure_mono)
+  also have "\<dots> = 0"
+    using assms
+    by (auto simp: eventually_ae_filter completion.complete2 set_diff_eq null_setsD1)
+  finally show False by simp
+qed
+
+lemma mem_closed_if_AE_lebesgue: "closed C \<Longrightarrow> (AE x in lebesgue. x \<in> C) \<Longrightarrow> x \<in> C"
+  using mem_closed_if_AE_lebesgue_open[OF open_UNIV] by simp
+
+
 subsection \<open>Affine transformation on the Lebesgue-Borel\<close>
 
 lemma lborel_eqI:

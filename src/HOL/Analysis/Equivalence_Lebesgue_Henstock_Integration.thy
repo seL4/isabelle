@@ -2543,4 +2543,69 @@ proof -
     by simp
 qed
 
+lemma has_integral_0_closure_imp_0:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes f: "continuous_on (closure S) f"
+    and nonneg_interior: "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> f x"
+    and pos: "0 < emeasure lborel S"
+    and finite: "emeasure lborel S < \<infinity>"
+    and regular: "emeasure lborel (closure S) = emeasure lborel S"
+    and opn: "open S"
+  assumes int: "(f has_integral 0) (closure S)"
+  assumes x: "x \<in> closure S"
+  shows "f x = 0"
+proof -
+  have zero: "emeasure lborel (frontier S) = 0"
+    using finite closure_subset regular
+    unfolding frontier_def
+    by (subst emeasure_Diff) (auto simp: frontier_def interior_open \<open>open S\<close> )
+  have nonneg: "0 \<le> f x" if "x \<in> closure S" for x
+    using continuous_ge_on_closure[OF f that nonneg_interior] by simp
+  have "0 = integral (closure S) f"
+    by (blast intro: int sym)
+  also
+  note intl = has_integral_integrable[OF int]
+  have af: "f absolutely_integrable_on (closure S)"
+    using nonneg
+    by (intro absolutely_integrable_onI intl integrable_eq[OF _ intl]) simp
+  then have "integral (closure S) f = set_lebesgue_integral lebesgue (closure S) f"
+    by (intro set_lebesgue_integral_eq_integral(2)[symmetric])
+  also have "\<dots> = 0 \<longleftrightarrow> (AE x in lebesgue. indicator (closure S) x *\<^sub>R f x = 0)"
+    by (rule integral_nonneg_eq_0_iff_AE[OF af]) (use nonneg in \<open>auto simp: indicator_def\<close>)
+  also have "\<dots> \<longleftrightarrow> (AE x in lebesgue. x \<in> {x. x \<in> closure S \<longrightarrow> f x = 0})"
+    by (auto simp: indicator_def)
+  finally have "(AE x in lebesgue. x \<in> {x. x \<in> closure S \<longrightarrow> f x = 0})" by simp
+  moreover have "(AE x in lebesgue. x \<in> - frontier S)"
+    using zero
+    by (auto simp: eventually_ae_filter null_sets_def intro!: exI[where x="frontier S"])
+  ultimately have ae: "AE x \<in> S in lebesgue. x \<in> {x \<in> closure S. f x = 0}" (is ?th)
+    by eventually_elim (use closure_subset in \<open>auto simp: \<close>)
+  have "closed {0::real}" by simp
+  with continuous_on_closed_vimage[OF closed_closure, of S f] f
+  have "closed (f -` {0} \<inter> closure S)" by blast
+  then have "closed {x \<in> closure S. f x = 0}" by (auto simp: vimage_def Int_def conj_commute)
+  with \<open>open S\<close> have "x \<in> {x \<in> closure S. f x = 0}" if "x \<in> S" for x using ae that
+    by (rule mem_closed_if_AE_lebesgue_open)
+  then have "f x = 0" if "x \<in> S" for x using that by auto
+  from continuous_constant_on_closure[OF f this \<open>x \<in> closure S\<close>]
+  show "f x = 0" .
+qed
+
+lemma has_integral_0_cbox_imp_0:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes f: "continuous_on (cbox a b) f"
+    and nonneg_interior: "\<And>x. x \<in> box a b \<Longrightarrow> 0 \<le> f x"
+  assumes int: "(f has_integral 0) (cbox a b)"
+  assumes ne: "box a b \<noteq> {}"
+  assumes x: "x \<in> cbox a b"
+  shows "f x = 0"
+proof -
+  have "0 < emeasure lborel (box a b)"
+    using ne x unfolding emeasure_lborel_box_eq
+    by (force intro!: prod_pos simp: mem_box algebra_simps)
+  then show ?thesis using assms
+    by (intro has_integral_0_closure_imp_0[of "box a b" f x])
+      (auto simp: emeasure_lborel_box_eq emeasure_lborel_cbox_eq algebra_simps mem_box)
+qed
+
 end

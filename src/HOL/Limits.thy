@@ -729,7 +729,7 @@ proof
     by (intro Zfun_minus) (simp add: tendsto_Zfun_iff)
 qed
 
-lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
+lemmas real_tendsto_sandwich = tendsto_sandwich[where 'a=real]
 
 
 subsubsection \<open>Linear operators and multiplication\<close>

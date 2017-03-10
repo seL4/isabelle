@@ -268,6 +268,9 @@ lemma has_integral_integral: "f integrable_on s \<longleftrightarrow> (f has_int
 
 subsection \<open>Basic theorems about integrals.\<close>
 
+lemma has_integral_eq_rhs: "(f has_integral j) S \<Longrightarrow> i = j \<Longrightarrow> (f has_integral i) S"
+  by (rule forw_subst)
+
 lemma has_integral_unique:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
   assumes "(f has_integral k1) i"
@@ -498,6 +501,9 @@ qed
 
 lemma has_integral_neg: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral -k) s"
   by (drule_tac c="-1" in has_integral_cmul) auto
+
+lemma has_integral_neg_iff: "((\<lambda>x. - f x) has_integral k) s \<longleftrightarrow> (f has_integral - k) s"
+  using has_integral_neg[of f "- k"] has_integral_neg[of "\<lambda>x. - f x" k] by auto
 
 lemma has_integral_add:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
@@ -2604,11 +2610,14 @@ proof (rule integrable_uniform_limit, safe)
     by auto
 qed
 
-lemma integrable_continuous_real:
-  fixes f :: "real \<Rightarrow> 'a::banach"
+lemma integrable_continuous_interval:
+  fixes f :: "'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
   assumes "continuous_on {a .. b} f"
   shows "f integrable_on {a .. b}"
-  by (metis assms box_real(2) integrable_continuous)
+  by (metis assms integrable_continuous interval_cbox)
+
+lemmas integrable_continuous_real = integrable_continuous_interval[where 'b=real]
+
 
 subsection \<open>Specialization of additivity to one dimension.\<close>
 
@@ -4564,6 +4573,18 @@ proof (unfold continuous_on_iff, safe)
         done
     qed
   qed
+qed
+
+lemma indefinite_integral_continuous':
+  fixes f::"real \<Rightarrow> 'a::banach"
+  assumes "f integrable_on {a..b}"
+  shows "continuous_on {a..b} (\<lambda>x. integral {x..b} f)"
+proof -
+  have "integral {a .. b} f - integral {a .. x} f = integral {x .. b} f" if "x \<in> {a .. b}" for x
+    using integral_combine[OF _ _ assms, of x] that
+    by (auto simp: algebra_simps)
+  with _ show ?thesis
+    by (rule continuous_on_eq) (auto intro!: continuous_intros indefinite_integral_continuous assms)
 qed
 
 
@@ -7282,7 +7303,7 @@ qed
 
 subsection \<open>Exchange uniform limit and integral\<close>
 
-lemma uniform_limit_integral:
+lemma uniform_limit_integral_cbox:
   fixes f::"'a \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::banach"
   assumes u: "uniform_limit (cbox a b) f g F"
   assumes c: "\<And>n. continuous_on (cbox a b) (f n)"
@@ -7343,6 +7364,17 @@ proof -
   qed
   ultimately show ?thesis ..
 qed
+
+lemma uniform_limit_integral:
+  fixes f::"'a \<Rightarrow> 'b::ordered_euclidean_space \<Rightarrow> 'c::banach"
+  assumes u: "uniform_limit {a .. b} f g F"
+  assumes c: "\<And>n. continuous_on {a .. b} (f n)"
+  assumes [simp]: "F \<noteq> bot"
+  obtains I J where
+    "\<And>n. (f n has_integral I n) {a .. b}"
+    "(g has_integral J) {a .. b}"
+    "(I \<longlongrightarrow> J) F"
+  by (metis interval_cbox assms uniform_limit_integral_cbox)
 
 
 subsection \<open>Integration by parts\<close>
@@ -7428,15 +7460,15 @@ lemma integrable_by_parts:
 subsection \<open>Integration by substitution\<close>
 
 
-lemma has_integral_substitution_strong:
+lemma has_integral_substitution_general:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
-  assumes s: "finite s" and le: "a \<le> b" "c \<le> d" "g a \<le> g b"
+  assumes s: "finite s" and le: "a \<le> b"
       and subset: "g ` {a..b} \<subseteq> {c..d}"
       and f [continuous_intros]: "continuous_on {c..d} f"
       and g [continuous_intros]: "continuous_on {a..b} g"
       and deriv [derivative_intros]:
               "\<And>x. x \<in> {a..b} - s \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
-    shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
+    shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f - integral {g b..g a} f)) {a..b}"
 proof -
   let ?F = "\<lambda>x. integral {c..g x} f"
   have cont_int: "continuous_on {a..b} ?F"
@@ -7461,22 +7493,48 @@ proof -
   have "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (?F b - ?F a)) {a..b}"
     using le cont_int s deriv cont_int
     by (intro fundamental_theorem_of_calculus_interior_strong[of "s \<union> {a,b}"]) simp_all
-  also from subset have "g x \<in> {c..d}" if "x \<in> {a..b}" for x using that by blast
-  from this[of a] this[of b] le have "c \<le> g a" "g b \<le> d" by auto
-  hence "integral {c..g a} f + integral {g a..g b} f = integral {c..g b} f"
-    by (intro integral_combine integrable_continuous_real continuous_on_subset[OF f] le) simp_all
-  hence "integral {c..g b} f - integral {c..g a} f = integral {g a..g b} f"
-    by (simp add: algebra_simps)
+  also
+  from subset have "g x \<in> {c..d}" if "x \<in> {a..b}" for x using that by blast
+  from this[of a] this[of b] le have cd: "c \<le> g a" "g b \<le> d" "c \<le> g b" "g a \<le> d" by auto
+  have "integral {c..g b} f - integral {c..g a} f = integral {g a..g b} f - integral {g b..g a} f"
+  proof cases
+    assume "g a \<le> g b"
+    note le = le this
+    from cd have "integral {c..g a} f + integral {g a..g b} f = integral {c..g b} f"
+      by (intro integral_combine integrable_continuous_real continuous_on_subset[OF f] le) simp_all
+    with le show ?thesis
+      by (cases "g a = g b") (simp_all add: algebra_simps)
+  next
+    assume less: "\<not>g a \<le> g b"
+    then have "g a \<ge> g b" by simp
+    note le = le this
+    from cd have "integral {c..g b} f + integral {g b..g a} f = integral {c..g a} f"
+      by (intro integral_combine integrable_continuous_real continuous_on_subset[OF f] le) simp_all
+    with less show ?thesis
+      by (simp_all add: algebra_simps)
+  qed
   finally show ?thesis .
 qed
 
+lemma has_integral_substitution_strong:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes s: "finite s" and le: "a \<le> b" "g a \<le> g b"
+    and subset: "g ` {a..b} \<subseteq> {c..d}"
+    and f [continuous_intros]: "continuous_on {c..d} f"
+    and g [continuous_intros]: "continuous_on {a..b} g"
+    and deriv [derivative_intros]:
+    "\<And>x. x \<in> {a..b} - s \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
+  shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
+  using has_integral_substitution_general[OF s le(1) subset f g deriv] le(2)
+  by (cases "g a = g b") auto
+
 lemma has_integral_substitution:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
-  assumes "a \<le> b" "c \<le> d" "g a \<le> g b" "g ` {a..b} \<subseteq> {c..d}"
+  assumes "a \<le> b" "g a \<le> g b" "g ` {a..b} \<subseteq> {c..d}"
       and "continuous_on {c..d} f"
       and "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
     shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
-  by (intro has_integral_substitution_strong[of "{}" a b c d] assms)
+  by (intro has_integral_substitution_strong[of "{}" a b g c d] assms)
      (auto intro: DERIV_continuous_on assms)
 
 

@@ -3940,6 +3940,9 @@ lemma bounded_iff: "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>
 lemma bdd_above_norm: "bdd_above (norm ` X) \<longleftrightarrow> bounded X"
   by (simp add: bounded_iff bdd_above_def)
 
+lemma bounded_norm_comp: "bounded ((\<lambda>x. norm (f x)) ` S) = bounded (f ` S)"
+  by (simp add: bounded_iff)
+
 lemma boundedI:
   assumes "\<And>x. x \<in> S \<Longrightarrow> norm x \<le> B"
   shows "bounded S"
@@ -4056,6 +4059,19 @@ corollary cobounded_imp_unbounded:
     shows "bounded (- S) \<Longrightarrow> ~ (bounded S)"
   using bounded_Un [of S "-S"]  by (simp add: sup_compl_top)
 
+lemma bounded_dist_comp:
+  assumes "bounded (f ` S)" "bounded (g ` S)"
+  shows "bounded ((\<lambda>x. dist (f x) (g x)) ` S)"
+proof -
+  from assms obtain M1 M2 where *: "dist (f x) undefined \<le> M1" "dist undefined (g x) \<le> M2" if "x \<in> S" for x
+    by (auto simp: bounded_any_center[of _ undefined] dist_commute)
+  have "dist (f x) (g x) \<le> M1 + M2" if "x \<in> S" for x
+    using *[OF that]
+    by (rule order_trans[OF dist_triangle add_mono])
+  then show ?thesis
+    by (auto intro!: boundedI)
+qed
+
 lemma bounded_linear_image:
   assumes "bounded S"
     and "bounded_linear f"
@@ -4090,6 +4106,13 @@ lemma bounded_scaling:
   apply (rule bounded_linear_scaleR_right)
   done
 
+lemma bounded_scaleR_comp:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  assumes "bounded (f ` S)"
+  shows "bounded ((\<lambda>x. r *\<^sub>R f x) ` S)"
+  using bounded_scaling[of "f ` S" r] assms
+  by (auto simp: image_image)
+
 lemma bounded_translation:
   fixes S :: "'a::real_normed_vector set"
   assumes "bounded S"
@@ -4118,6 +4141,33 @@ lemma bounded_uminus [simp]:
   fixes X :: "'a::real_normed_vector set"
   shows "bounded (uminus ` X) \<longleftrightarrow> bounded X"
 by (auto simp: bounded_def dist_norm; rule_tac x="-x" in exI; force simp add: add.commute norm_minus_commute)
+
+lemma uminus_bounded_comp [simp]:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "bounded ((\<lambda>x. - f x) ` S) \<longleftrightarrow> bounded (f ` S)"
+  using bounded_uminus[of "f ` S"]
+  by (auto simp: image_image)
+
+lemma bounded_plus_comp:
+  fixes f g::"'a \<Rightarrow> 'b::real_normed_vector"
+  assumes "bounded (f ` S)"
+  assumes "bounded (g ` S)"
+  shows "bounded ((\<lambda>x. f x + g x) ` S)"
+proof -
+  {
+    fix B C
+    assume "\<And>x. x\<in>S \<Longrightarrow> norm (f x) \<le> B" "\<And>x. x\<in>S \<Longrightarrow> norm (g x) \<le> C"
+    then have "\<And>x. x \<in> S \<Longrightarrow> norm (f x + g x) \<le> B + C"
+      by (auto intro!: norm_triangle_le add_mono)
+  } then show ?thesis
+    using assms by (fastforce simp: bounded_iff)
+qed
+
+lemma bounded_minus_comp:
+  "bounded (f ` S) \<Longrightarrow> bounded (g ` S) \<Longrightarrow> bounded ((\<lambda>x. f x - g x) ` S)"
+  for f g::"'a \<Rightarrow> 'b::real_normed_vector"
+  using bounded_plus_comp[of "f" S "\<lambda>x. - g x"]
+  by (auto simp: )
 
 
 subsection\<open>Some theorems on sups and infs using the notion "bounded".\<close>
@@ -5913,89 +5963,6 @@ proof -
   with a have "\<Inter>(range s) = {a}"
     unfolding image_def by auto
   then show ?thesis ..
-qed
-
-text\<open>Cauchy-type criteria for uniform convergence.\<close>
-
-lemma uniformly_convergent_eq_cauchy:
-  fixes s::"nat \<Rightarrow> 'b \<Rightarrow> 'a::complete_space"
-  shows
-    "(\<exists>l. \<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e) \<longleftrightarrow>
-      (\<forall>e>0. \<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  \<longrightarrow> dist (s m x) (s n x) < e)"
-  (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  then obtain l where l:"\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist (s n x) (l x) < e"
-    by auto
-  {
-    fix e :: real
-    assume "e > 0"
-    then obtain N :: nat where N: "\<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist (s n x) (l x) < e / 2"
-      using l[THEN spec[where x="e/2"]] by auto
-    {
-      fix n m :: nat and x :: "'b"
-      assume "N \<le> m \<and> N \<le> n \<and> P x"
-      then have "dist (s m x) (s n x) < e"
-        using N[THEN spec[where x=m], THEN spec[where x=x]]
-        using N[THEN spec[where x=n], THEN spec[where x=x]]
-        using dist_triangle_half_l[of "s m x" "l x" e "s n x"] by auto
-    }
-    then have "\<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  --> dist (s m x) (s n x) < e"  by auto
-  }
-  then show ?rhs by auto
-next
-  assume ?rhs
-  then have "\<forall>x. P x \<longrightarrow> Cauchy (\<lambda>n. s n x)"
-    unfolding cauchy_def
-    apply auto
-    apply (erule_tac x=e in allE)
-    apply auto
-    done
-  then obtain l where l: "\<forall>x. P x \<longrightarrow> ((\<lambda>n. s n x) \<longlongrightarrow> l x) sequentially"
-    unfolding convergent_eq_Cauchy[symmetric]
-    using choice[of "\<lambda>x l. P x \<longrightarrow> ((\<lambda>n. s n x) \<longlongrightarrow> l) sequentially"]
-    by auto
-  {
-    fix e :: real
-    assume "e > 0"
-    then obtain N where N:"\<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x \<longrightarrow> dist (s m x) (s n x) < e/2"
-      using \<open>?rhs\<close>[THEN spec[where x="e/2"]] by auto
-    {
-      fix x
-      assume "P x"
-      then obtain M where M:"\<forall>n\<ge>M. dist (s n x) (l x) < e/2"
-        using l[THEN spec[where x=x], unfolded lim_sequentially] and \<open>e > 0\<close>
-        by (auto elim!: allE[where x="e/2"])
-      fix n :: nat
-      assume "n \<ge> N"
-      then have "dist(s n x)(l x) < e"
-        using \<open>P x\<close>and N[THEN spec[where x=n], THEN spec[where x="N+M"], THEN spec[where x=x]]
-        using M[THEN spec[where x="N+M"]] and dist_triangle_half_l[of "s n x" "s (N+M) x" e "l x"]
-        by (auto simp add: dist_commute)
-    }
-    then have "\<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e"
-      by auto
-  }
-  then show ?lhs by auto
-qed
-
-lemma uniformly_cauchy_imp_uniformly_convergent:
-  fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::complete_space"
-  assumes "\<forall>e>0.\<exists>N. \<forall>m (n::nat) x. N \<le> m \<and> N \<le> n \<and> P x --> dist(s m x)(s n x) < e"
-    and "\<forall>x. P x --> (\<forall>e>0. \<exists>N. \<forall>n. N \<le> n \<longrightarrow> dist(s n x)(l x) < e)"
-  shows "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e"
-proof -
-  obtain l' where l:"\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist (s n x) (l' x) < e"
-    using assms(1) unfolding uniformly_convergent_eq_cauchy[symmetric] by auto
-  moreover
-  {
-    fix x
-    assume "P x"
-    then have "l x = l' x"
-      using tendsto_unique[OF trivial_limit_sequentially, of "\<lambda>n. s n x" "l x" "l' x"]
-      using l and assms(2) unfolding lim_sequentially by blast
-  }
-  ultimately show ?thesis by auto
 qed
 
 
@@ -10959,6 +10926,109 @@ lemma continuous_finite_range_constant:
   using assms continuous_finite_range_constant_eq
   by blast
 
+
+
+subsection \<open>Continuous Extension\<close>
+
+definition clamp :: "'a::euclidean_space \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "clamp a b x = (if (\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)
+    then (\<Sum>i\<in>Basis. (if x\<bullet>i < a\<bullet>i then a\<bullet>i else if x\<bullet>i \<le> b\<bullet>i then x\<bullet>i else b\<bullet>i) *\<^sub>R i)
+    else a)"
+
+lemma clamp_in_interval[simp]:
+  assumes "\<And>i. i \<in> Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i"
+  shows "clamp a b x \<in> cbox a b"
+  unfolding clamp_def
+  using box_ne_empty(1)[of a b] assms by (auto simp: cbox_def)
+
+lemma clamp_cancel_cbox[simp]:
+  fixes x a b :: "'a::euclidean_space"
+  assumes x: "x \<in> cbox a b"
+  shows "clamp a b x = x"
+  using assms
+  by (auto simp: clamp_def mem_box intro!: euclidean_eqI[where 'a='a])
+
+lemma clamp_empty_interval:
+  assumes "i \<in> Basis" "a \<bullet> i > b \<bullet> i"
+  shows "clamp a b = (\<lambda>_. a)"
+  using assms
+  by (force simp: clamp_def[abs_def] split: if_splits intro!: ext)
+
+lemma dist_clamps_le_dist_args:
+  fixes x :: "'a::euclidean_space"
+  shows "dist (clamp a b y) (clamp a b x) \<le> dist y x"
+proof cases
+  assume le: "(\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  then have "(\<Sum>i\<in>Basis. (dist (clamp a b y \<bullet> i) (clamp a b x \<bullet> i))\<^sup>2) \<le>
+    (\<Sum>i\<in>Basis. (dist (y \<bullet> i) (x \<bullet> i))\<^sup>2)"
+    by (auto intro!: sum_mono simp: clamp_def dist_real_def abs_le_square_iff[symmetric])
+  then show ?thesis
+    by (auto intro: real_sqrt_le_mono
+      simp: euclidean_dist_l2[where y=x] euclidean_dist_l2[where y="clamp a b x"] setL2_def)
+qed (auto simp: clamp_def)
+
+lemma clamp_continuous_at:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::metric_space"
+    and x :: 'a
+  assumes f_cont: "continuous_on (cbox a b) f"
+  shows "continuous (at x) (\<lambda>x. f (clamp a b x))"
+proof cases
+  assume le: "(\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  show ?thesis
+    unfolding continuous_at_eps_delta
+  proof safe
+    fix x :: 'a
+    fix e :: real
+    assume "e > 0"
+    moreover have "clamp a b x \<in> cbox a b"
+      by (simp add: clamp_in_interval le)
+    moreover note f_cont[simplified continuous_on_iff]
+    ultimately
+    obtain d where d: "0 < d"
+      "\<And>x'. x' \<in> cbox a b \<Longrightarrow> dist x' (clamp a b x) < d \<Longrightarrow> dist (f x') (f (clamp a b x)) < e"
+      by force
+    show "\<exists>d>0. \<forall>x'. dist x' x < d \<longrightarrow>
+      dist (f (clamp a b x')) (f (clamp a b x)) < e"
+      using le
+      by (auto intro!: d clamp_in_interval dist_clamps_le_dist_args[THEN le_less_trans])
+  qed
+qed (auto simp: clamp_empty_interval)
+
+lemma clamp_continuous_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::metric_space"
+  assumes f_cont: "continuous_on (cbox a b) f"
+  shows "continuous_on S (\<lambda>x. f (clamp a b x))"
+  using assms
+  by (auto intro: continuous_at_imp_continuous_on clamp_continuous_at)
+
+lemma clamp_bounded:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::metric_space"
+  assumes bounded: "bounded (f ` (cbox a b))"
+  shows "bounded (range (\<lambda>x. f (clamp a b x)))"
+proof cases
+  assume le: "(\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  from bounded obtain c where f_bound: "\<forall>x\<in>f ` cbox a b. dist undefined x \<le> c"
+    by (auto simp add: bounded_any_center[where a=undefined])
+  then show ?thesis
+    by (auto intro!: exI[where x=c] clamp_in_interval[OF le[rule_format]]
+        simp: bounded_any_center[where a=undefined])
+qed (auto simp: clamp_empty_interval image_def)
+
+
+definition ext_cont :: "('a::euclidean_space \<Rightarrow> 'b::metric_space) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b"
+  where "ext_cont f a b = (\<lambda>x. f (clamp a b x))"
+
+lemma ext_cont_cancel_cbox[simp]:
+  fixes x a b :: "'a::euclidean_space"
+  assumes x: "x \<in> cbox a b"
+  shows "ext_cont f a b x = f x"
+  using assms
+  unfolding ext_cont_def
+  by (auto simp: clamp_def mem_box intro!: euclidean_eqI[where 'a='a] arg_cong[where f=f])
+
+lemma continuous_on_ext_cont[continuous_intros]:
+  "continuous_on (cbox a b) f \<Longrightarrow> continuous_on S (ext_cont f a b)"
+  by (auto intro!: clamp_continuous_on simp: ext_cont_def)
 
 no_notation
   eucl_less (infix "<e" 50)

@@ -203,6 +203,8 @@ lemma uniformly_convergentI: "uniform_limit X f l sequentially \<Longrightarrow>
 lemma uniformly_convergent_on_empty [iff]: "uniformly_convergent_on {} f"
   by (simp add: uniformly_convergent_on_def uniform_limit_sequentially_iff)
 
+text\<open>Cauchy-type criteria for uniform convergence.\<close>
+
 lemma Cauchy_uniformly_convergent:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b :: complete_space"
   assumes "uniformly_Cauchy_on X f"
@@ -234,6 +236,62 @@ proof safe
     qed
   qed
 qed
+
+lemma uniformly_convergent_Cauchy:
+  assumes "uniformly_convergent_on X f"
+  shows "uniformly_Cauchy_on X f"
+proof (rule uniformly_Cauchy_onI)
+  fix e::real assume "e > 0"
+  then have "0 < e / 2" by simp
+  with assms[unfolded uniformly_convergent_on_def uniform_limit_sequentially_iff]
+  obtain l N where l:"x \<in> X \<Longrightarrow> n \<ge> N \<Longrightarrow> dist (f n x) (l x) < e / 2" for n x
+    by metis
+  from l l have "x \<in> X \<Longrightarrow> n \<ge> N \<Longrightarrow> m \<ge> N \<Longrightarrow> dist (f n x) (f m x) < e" for n m x
+    by (rule dist_triangle_half_l)
+  then show "\<exists>M. \<forall>x\<in>X. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e" by blast
+qed
+
+lemma uniformly_convergent_eq_Cauchy:
+  "uniformly_convergent_on X f = uniformly_Cauchy_on X f" for f::"nat \<Rightarrow> 'b \<Rightarrow> 'a::complete_space"
+  using Cauchy_uniformly_convergent uniformly_convergent_Cauchy by blast
+
+lemma uniformly_convergent_eq_cauchy:
+  fixes s::"nat \<Rightarrow> 'b \<Rightarrow> 'a::complete_space"
+  shows
+    "(\<exists>l. \<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e) \<longleftrightarrow>
+      (\<forall>e>0. \<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  \<longrightarrow> dist (s m x) (s n x) < e)"
+proof -
+  have *: "(\<forall>n\<ge>N. \<forall>x. Q x \<longrightarrow> R n x) \<longleftrightarrow> (\<forall>n x. N \<le> n \<and> Q x \<longrightarrow> R n x)"
+    "(\<forall>x. Q x \<longrightarrow> (\<forall>m\<ge>N. \<forall>n\<ge>N. S n m x)) \<longleftrightarrow> (\<forall>m n x. N \<le> m \<and> N \<le> n \<and> Q x \<longrightarrow> S n m x)"
+    for N::nat and Q::"'b \<Rightarrow> bool" and R S
+    by blast+
+  show ?thesis
+    using uniformly_convergent_eq_Cauchy[of "Collect P" s]
+    unfolding uniformly_convergent_on_def uniformly_Cauchy_on_def uniform_limit_sequentially_iff
+    by (simp add: *)
+qed
+
+lemma uniformly_cauchy_imp_uniformly_convergent:
+  fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::complete_space"
+  assumes "\<forall>e>0.\<exists>N. \<forall>m (n::nat) x. N \<le> m \<and> N \<le> n \<and> P x --> dist(s m x)(s n x) < e"
+    and "\<forall>x. P x --> (\<forall>e>0. \<exists>N. \<forall>n. N \<le> n \<longrightarrow> dist(s n x)(l x) < e)"
+  shows "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e"
+proof -
+  obtain l' where l:"\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist (s n x) (l' x) < e"
+    using assms(1) unfolding uniformly_convergent_eq_cauchy[symmetric] by auto
+  moreover
+  {
+    fix x
+    assume "P x"
+    then have "l x = l' x"
+      using tendsto_unique[OF trivial_limit_sequentially, of "\<lambda>n. s n x" "l x" "l' x"]
+      using l and assms(2) unfolding lim_sequentially by blast
+  }
+  ultimately show ?thesis by auto
+qed
+
+text \<open>TODO: remove explicit formulations
+  @{thm uniformly_convergent_eq_cauchy uniformly_cauchy_imp_uniformly_convergent}?!\<close>
 
 lemma uniformly_convergent_imp_convergent:
   "uniformly_convergent_on X f \<Longrightarrow> x \<in> X \<Longrightarrow> convergent (\<lambda>n. f n x)"
@@ -363,7 +421,7 @@ lemmas bounded_linear_uniform_limit_intros[uniform_limit_intros] =
 lemmas uniform_limit_uminus[uniform_limit_intros] =
   bounded_linear.uniform_limit[OF bounded_linear_minus[OF bounded_linear_ident]]
 
-lemma uniform_limit_const[uniform_limit_intros]: "uniform_limit S (\<lambda>x y. c) (\<lambda>x. c) f"
+lemma uniform_limit_const[uniform_limit_intros]: "uniform_limit S (\<lambda>x. c) c f"
   by (auto intro!: uniform_limitI)
 
 lemma uniform_limit_add[uniform_limit_intros]:
@@ -573,6 +631,24 @@ lemma uniform_limit_on_Union:
 lemma uniform_limit_on_subset:
   "uniform_limit J f g F \<Longrightarrow> I \<subseteq> J \<Longrightarrow> uniform_limit I f g F"
   by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_mono)
+
+lemma uniform_limit_bounded:
+  fixes f::"'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::metric_space"
+  assumes l: "uniform_limit S f l F"
+  assumes bnd: "\<forall>\<^sub>F i in F. bounded (f i ` S)"
+  assumes "F \<noteq> bot"
+  shows "bounded (l ` S)"
+proof -
+  from l have "\<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (l x) (f n x) < 1"
+    by (auto simp: uniform_limit_iff dist_commute dest!: spec[where x=1])
+  with bnd
+  have "\<forall>\<^sub>F n in F. \<exists>M. \<forall>x\<in>S. dist undefined (l x) \<le> M + 1"
+    by eventually_elim
+      (auto intro!: order_trans[OF dist_triangle2 add_mono] intro: less_imp_le
+        simp: bounded_any_center[where a=undefined])
+  then show ?thesis using assms
+    by (auto simp: bounded_any_center[where a=undefined] dest!: eventually_happens)
+qed
 
 lemma uniformly_convergent_add:
   "uniformly_convergent_on A f \<Longrightarrow> uniformly_convergent_on A g\<Longrightarrow>

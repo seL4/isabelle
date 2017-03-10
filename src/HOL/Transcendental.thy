@@ -1493,6 +1493,8 @@ lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
   apply (simp add: scaleR_conv_of_real)
   done
 
+lemmas of_real_exp = exp_of_real[symmetric]
+
 corollary exp_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> exp z \<in> \<real>"
   by (metis Reals_cases Reals_of_real exp_of_real)
 
@@ -1794,6 +1796,10 @@ lemma ln_ge_zero_iff [simp]: "0 < x \<Longrightarrow> 0 \<le> ln x \<longleftrig
 lemma ln_less_zero_iff [simp]: "0 < x \<Longrightarrow> ln x < 0 \<longleftrightarrow> x < 1"
   for x :: real
   using ln_less_cancel_iff [of x 1] by simp
+
+lemma ln_le_zero_iff [simp]: "0 < x \<Longrightarrow> ln x \<le> 0 \<longleftrightarrow> x \<le> 1"
+  for x :: real
+  by (metis less_numeral_extra(1) ln_le_cancel_iff ln_one)
 
 lemma ln_gt_zero: "1 < x \<Longrightarrow> 0 < ln x"
   for x :: real
@@ -2346,6 +2352,10 @@ lemma filtermap_ln_at_top: "filtermap (ln::real \<Rightarrow> real) at_top = at_
 lemma filtermap_exp_at_top: "filtermap (exp::real \<Rightarrow> real) at_top = at_top"
   by (intro filtermap_fun_inverse[of ln] exp_at_top ln_at_top)
      (auto simp: eventually_at_top_dense)
+
+lemma filtermap_ln_at_right: "filtermap ln (at_right (0::real)) = at_bot"
+  by (auto intro!: filtermap_fun_inverse[where g="\<lambda>x. exp x"] ln_at_0
+      simp: filterlim_at exp_at_bot)
 
 lemma tendsto_power_div_exp_0: "((\<lambda>x. x ^ k / exp x) \<longlongrightarrow> (0::real)) at_top"
 proof (induct k)
