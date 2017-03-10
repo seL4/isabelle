@@ -52,11 +52,6 @@
         "configuration": {
             "title": "Isabelle",
             "properties": {
-                "isabelle.cygwin_root": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Root of Cygwin installation on Windows (e.g. ISABELLE_HOME/cygwin)."
-                },
                 "isabelle.home": {
                     "type": "string",
                     "default": "",
@@ -67,6 +62,11 @@
                     "items": { "type": "string" },
                     "default": [],
                     "description": "Command-line arguments for isabelle vscode_server process."
+                },
+                "isabelle.cygwin_root": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Cygwin installation on Windows (only relevant when running directly from the Isabelle repository)."
                 },
                 "isabelle.unprocessed1_light_color": { "type": "string", "default": "rgba(255, 160, 160, 0.20)" },
                 "isabelle.unprocessed1_dark_color": { "type": "string", "default": "rgba(255, 160, 160, 0.20)" },
