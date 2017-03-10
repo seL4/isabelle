@@ -145,7 +145,7 @@ export function apply_decoration(decoration0: Decoration)
     document_decorations.set(decoration.uri, document)
 
     for (const editor of vscode.window.visibleTextEditors) {
-      if (decoration.uri == editor.document.uri.toString()) {
+      if (decoration.uri === editor.document.uri.toString()) {
         editor.setDecorations(typ, decoration.content)
       }
     }

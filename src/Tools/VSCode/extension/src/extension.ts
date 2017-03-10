@@ -17,9 +17,9 @@ export function activate(context: vscode.ExtensionContext)
   const isabelle_home = vscode.workspace.getConfiguration("isabelle").get<string>("home");
   const isabelle_args = vscode.workspace.getConfiguration("isabelle").get<Array<string>>("args");
 
-  if (is_windows && cygwin_root == "")
+  if (is_windows && cygwin_root === "")
     vscode.window.showErrorMessage("Missing user settings: isabelle.cygwin_root")
-  else if (isabelle_home == "")
+  else if (isabelle_home === "")
     vscode.window.showErrorMessage("Missing user settings: isabelle.home")
   else {
     const isabelle_tool = isabelle_home + "/bin/isabelle"
