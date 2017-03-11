@@ -6,17 +6,34 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as decorations from './decorations';
 import { Decoration } from './decorations'
+import { WorkspaceConfiguration} from 'vscode'
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
 
+
+/* Isabelle configuration */
+
+export function get_configuration(): WorkspaceConfiguration
+{
+  return vscode.workspace.getConfiguration("isabelle")
+}
+
+export function get_color(color: string, light: boolean): string
+{
+  const config = color + (light ? "_light" : "_dark") + "_color"
+  return get_configuration().get<string>(config)
+}
+
+
+/* activate extension */
 
 export function activate(context: vscode.ExtensionContext)
 {
   const is_windows = os.type().startsWith("Windows")
 
-  const isabelle_home = vscode.workspace.getConfiguration("isabelle").get<string>("home")
-  const isabelle_args = vscode.workspace.getConfiguration("isabelle").get<Array<string>>("args")
-  const cygwin_root = vscode.workspace.getConfiguration("isabelle").get<string>("cygwin_root")
+  const isabelle_home = get_configuration().get<string>("home")
+  const isabelle_args = get_configuration().get<Array<string>>("args")
+  const cygwin_root = get_configuration().get<string>("cygwin_root")
 
   if (isabelle_home === "")
     vscode.window.showErrorMessage("Missing user settings: isabelle.home")

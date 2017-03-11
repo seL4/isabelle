@@ -3,6 +3,7 @@
 import * as vscode from 'vscode'
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
+import { get_color } from './extension'
 
 
 /* known decoration types */
@@ -54,12 +55,6 @@ const text_colors = [
   "class_parameter",
   "antiquote"
 ]
-
-function get_color(color: string, light: boolean): string
-{
-  const config = color + (light ? "_light" : "_dark") + "_color"
-  return vscode.workspace.getConfiguration("isabelle").get<string>(config)
-}
 
 export function init(context: ExtensionContext)
 {
