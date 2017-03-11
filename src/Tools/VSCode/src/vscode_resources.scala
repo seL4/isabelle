@@ -21,7 +21,8 @@ object VSCode_Resources
   sealed case class State(
     models: Map[JFile, Document_Model] = Map.empty,
     pending_input: Set[JFile] = Set.empty,
-    pending_output: Set[JFile] = Set.empty)
+    pending_output: Set[JFile] = Set.empty,
+    caret: Option[(JFile, Line.Position)] = None)
   {
     def update_models(changed: Traversable[(JFile, Document_Model)]): State =
       copy(
@@ -272,6 +273,22 @@ class VSCode_Resources(
     output_text(Pretty.string_of(body, margin))
   def output_pretty_tooltip(body: XML.Body): String = output_pretty(body, tooltip_margin)
   def output_pretty_message(body: XML.Body): String = output_pretty(body, message_margin)
+
+
+  /* caret handling */
+
+  def update_caret(new_caret: Option[(JFile, Line.Position)])
+  { state.change(_.copy(caret = new_caret)) }
+
+  def caret_position: Option[(Document_Model, Line.Position)] =
+  {
+    val st = state.value
+    for {
+      (file, pos) <- st.caret
+      model <- st.models.get(file)
+    }
+    yield (model, pos)
+  }
 
 
   /* spell checker */

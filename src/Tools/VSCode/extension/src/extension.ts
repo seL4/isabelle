@@ -24,6 +24,23 @@ export function get_color(color: string, light: boolean): string
 }
 
 
+/* caret handling and dynamic output */
+
+interface Caret_Update
+{
+  uri?: string
+  line?: number
+  character?: number
+}
+
+const caret_update_type = new NotificationType<Caret_Update, void>("PIDE/caret_update")
+const dynamic_output_type = new NotificationType<string, void>("PIDE/dynamic_output")
+
+let last_caret_update: Caret_Update = {}
+let dynamic_output: string = ""
+
+
+
 /* activate extension */
 
 export function activate(context: vscode.ExtensionContext)
@@ -56,6 +73,33 @@ export function activate(context: vscode.ExtensionContext)
     };
 
     const client = new LanguageClient("Isabelle", server_options, client_options, false)
+
+
+    /* caret handling and dynamic output */
+
+    function update_caret()
+    {
+      const editor = vscode.window.activeTextEditor
+      let caret_update: Caret_Update = {}
+      if (editor) {
+        const uri = editor.document.uri
+        const cursor = editor.selection.active
+        if (uri.scheme === "file" && cursor)
+          caret_update = { uri: uri.toString(), line: cursor.line, character: cursor.character }
+      }
+      if (last_caret_update !== caret_update) {
+        client.sendNotification(caret_update_type, caret_update)
+        last_caret_update = caret_update
+      }
+    }
+
+    client.onReady().then(() =>
+    {
+      client.onNotification(dynamic_output_type, body => { dynamic_output = body })
+      vscode.window.onDidChangeActiveTextEditor(_ => update_caret())
+      vscode.window.onDidChangeTextEditorSelection(_ => update_caret())
+      update_caret()
+    })
 
 
     /* decorations */

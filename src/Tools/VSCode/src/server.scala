@@ -152,6 +152,18 @@ class Server(
   }
 
 
+  /* caret handling */
+
+  private val delay_caret_update: Standard_Thread.Delay =
+    Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
+    { session.caret_focus.post(Session.Caret_Focus) }
+
+  private def update_caret(caret: Option[(JFile, Line.Position)])
+  {
+    resources.update_caret(caret)
+    delay_caret_update.invoke()
+  }
+
 
   /* output to client */
 
@@ -362,6 +374,7 @@ class Server(
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
+          case Protocol.Caret_Update(caret) => update_caret(caret)
           case _ => log("### IGNORED")
         }
       }

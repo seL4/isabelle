@@ -420,4 +420,29 @@ object Protocol
       Notification("PIDE/decoration",
         Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
   }
+
+
+  /* caret handling and dynamic output */
+
+  object Caret_Update
+  {
+    def unapply(json: JSON.T): Option[Option[(JFile, Line.Position)]] =
+      json match {
+        case Notification("PIDE/caret_update", Some(params)) =>
+          val caret =
+            for {
+              uri <- JSON.string(params, "uri")
+              if Url.is_wellformed_file(uri)
+              pos <- Position.unapply(params)
+            } yield (Url.canonical_file(uri), pos)
+          Some(caret)
+        case _ => None
+      }
+  }
+
+  object Dynamic_Output
+  {
+    def apply(body: String): JSON.T =
+      Notification("PIDE/dynamic_output", body)
+  }
 }
