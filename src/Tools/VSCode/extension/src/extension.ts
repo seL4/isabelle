@@ -35,6 +35,9 @@ export function activate(context: vscode.ExtensionContext)
   const isabelle_args = get_configuration().get<Array<string>>("args")
   const cygwin_root = get_configuration().get<string>("cygwin_root")
 
+
+  /* server */
+
   if (isabelle_home === "")
     vscode.window.showErrorMessage("Missing user settings: isabelle.home")
   else {
@@ -55,12 +58,20 @@ export function activate(context: vscode.ExtensionContext)
 
     const client = new LanguageClient("Isabelle", server_options, client_options, false)
 
+
+    /* decorations */
+
     decorations.init(context)
+    vscode.workspace.onDidChangeConfiguration(() => decorations.init(context))
     vscode.window.onDidChangeActiveTextEditor(decorations.update_editor)
     vscode.workspace.onDidCloseTextDocument(decorations.close_document)
+
     client.onReady().then(() =>
       client.onNotification(
         new NotificationType<Decoration, void>("PIDE/decoration"), decorations.apply_decoration))
+
+
+    /* start server */
 
     context.subscriptions.push(client.start());
   }

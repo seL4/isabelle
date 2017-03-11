@@ -8,8 +8,6 @@ import { get_color } from './extension'
 
 /* known decoration types */
 
-export const types = new Map<string, TextEditorDecorationType>()
-
 const background_colors = [
   "unprocessed1",
   "running1",
@@ -57,6 +55,11 @@ const text_colors = [
   "antiquote"
 ]
 
+
+/* init */
+
+const types = new Map<string, TextEditorDecorationType>()
+
 export function init(context: ExtensionContext)
 {
   function decoration(options: DecorationRenderOptions): TextEditorDecorationType
@@ -88,20 +91,43 @@ export function init(context: ExtensionContext)
         dark: { border: border + get_color(color, false) } })
   }
 
-  types.clear
+
+  /* reset */
+
+  types.forEach(typ =>
+  {
+    for (const editor of vscode.window.visibleTextEditors) {
+      editor.setDecorations(typ, [])
+    }
+    const i = context.subscriptions.indexOf(typ)
+    if (i >= 0) context.subscriptions.splice(i, 1)
+    typ.dispose()
+  })
+  types.clear()
+
+
+  /* init */
+
   for (const color of background_colors) {
-    types["background_" + color] = background(color)
+    types.set("background_" + color, background(color))
   }
   for (const color of foreground_colors) {
-    types["foreground_" + color] = background(color) // approximation
+    types.set("foreground_" + color, background(color)) // approximation
   }
   for (const color of dotted_colors) {
-    types["dotted_" + color] = bottom_border("2px", "dotted", color)
+    types.set("dotted_" + color, bottom_border("2px", "dotted", color))
   }
   for (const color of text_colors) {
-    types["text_" + color] = text_color(color)
+    types.set("text_" + color, text_color(color))
   }
-  types["spell_checker"] = bottom_border("1px", "solid", "spell_checker")
+  types.set("spell_checker", bottom_border("1px", "solid", "spell_checker"))
+
+
+  /* update editors */
+
+  for (const editor of vscode.window.visibleTextEditors) {
+    update_editor(editor)
+  }
 }
 
 
@@ -129,7 +155,7 @@ export function close_document(document: TextDocument)
 
 export function apply_decoration(decoration: Decoration)
 {
-  const typ = types[decoration.type]
+  const typ = types.get(decoration.type)
   if (typ) {
     const uri = Uri.parse(decoration.uri).toString()
     const content: DecorationOptions[] = decoration.content.map(opt =>
@@ -159,7 +185,7 @@ export function update_editor(editor: TextEditor)
     const decorations = document_decorations.get(editor.document.uri.toString())
     if (decorations) {
       for (const [typ, content] of decorations) {
-        editor.setDecorations(types[typ], content)
+        editor.setDecorations(types.get(typ), content)
       }
     }
   }
