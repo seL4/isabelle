@@ -35,6 +35,7 @@ const dotted_colors = [
 ]
 
 const text_colors = [
+  "main",
   "keyword1",
   "keyword2",
   "keyword3",

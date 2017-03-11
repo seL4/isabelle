@@ -96,6 +96,8 @@
                 "isabelle.warning_dark_color": { "type": "string", "default": "rgba(255, 140, 0, 1.0)" },
                 "isabelle.spell_checker_light_color": { "type": "string", "default": "rgba(0, 0, 255, 1.0)" },
                 "isabelle.spell_checker_dark_color": { "type": "string", "default": "rgba(86, 156, 214, 1.00)" },
+                "isabelle.main_light_color": { "type": "string", "default": "rgba(0, 0, 0, 1.00)" },
+                "isabelle.main_dark_color": { "type": "string", "default": "rgba(212, 212, 212, 1.00)" },
                 "isabelle.keyword1_light_color": { "type": "string", "default": "rgba(175, 0, 219, 1.00)" },
                 "isabelle.keyword1_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" },
                 "isabelle.keyword2_light_color": { "type": "string", "default": "rgba(9, 136, 90, 1.00)" },
