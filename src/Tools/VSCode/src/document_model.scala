@@ -158,6 +158,24 @@ sealed case class Document_Model(
   }
 
 
+  /* current command */
+
+  def current_command(snapshot: Document.Snapshot, current_offset: Text.Offset): Option[Command] =
+  {
+    if (is_theory) {
+      val node = snapshot.version.nodes(node_name)
+      val caret = snapshot.revert(current_offset)
+      val caret_command_iterator = node.command_iterator(caret)
+      if (caret_command_iterator.hasNext) {
+        val (cmd0, _) = caret_command_iterator.next
+        node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
+      }
+      else None
+    }
+    else snapshot.version.nodes.commands_loading(node_name).headOption
+  }
+
+
   /* prover session */
 
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
@@ -165,5 +183,7 @@ sealed case class Document_Model(
   def is_stable: Boolean = pending_edits.isEmpty
   def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
 
-  def rendering(): VSCode_Rendering = new VSCode_Rendering(this, snapshot(), resources)
+  def rendering(snapshot: Document.Snapshot): VSCode_Rendering =
+    new VSCode_Rendering(this, snapshot, resources)
+  def rendering(): VSCode_Rendering = rendering(snapshot())
 }

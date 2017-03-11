@@ -87,7 +87,7 @@ Usage: isabelle vscode_server [OPTIONS]
 }
 
 class Server(
-  channel: Channel,
+  val channel: Channel,
   options: Options,
   text_length: Text.Length = Text.Length.encoding(Server.default_text_length),
   session_name: String = Server.default_logic,
@@ -108,6 +108,8 @@ class Server(
       rendering = model.rendering()
       offset <- model.content.doc.offset(node_pos.pos)
     } yield (rendering, offset)
+
+  private val dynamic_output = Dynamic_Output(this)
 
 
   /* input from client or file-system */
@@ -238,6 +240,8 @@ class Server(
       catch { case ERROR(msg) => reply(msg); None }
 
     for (session <- try_session) {
+      session_.change(_ => Some(session))
+
       var session_phase: Session.Consumer[Session.Phase] = null
       session_phase =
         Session.Consumer(getClass.getName) {
@@ -255,11 +259,11 @@ class Server(
       session.commands_changed += prover_output
       session.all_messages += syslog
 
+      dynamic_output.init()
+
       session.start(receiver =>
         Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
           modes = modes, receiver = receiver))
-
-      session_.change(_ => Some(session))
     }
   }
 
@@ -269,6 +273,7 @@ class Server(
 
     session_.change({
       case Some(session) =>
+        dynamic_output.exit()
         var session_phase: Session.Consumer[Session.Phase] = null
         session_phase =
           Session.Consumer(getClass.getName) {
