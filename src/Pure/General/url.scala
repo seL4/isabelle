@@ -8,7 +8,7 @@ package isabelle
 
 
 import java.io.{File => JFile}
-import java.nio.file.Paths
+import java.nio.file.{Paths, FileSystemNotFoundException}
 import java.net.{URI, URISyntaxException}
 import java.net.{URL, MalformedURLException}
 import java.util.zip.GZIPInputStream
@@ -56,7 +56,10 @@ object Url
 
   def is_wellformed_file(uri: String): Boolean =
     try { parse_file(uri); true }
-    catch { case _: URISyntaxException | _: IllegalArgumentException => false }
+    catch {
+      case _: URISyntaxException | _: IllegalArgumentException | _: FileSystemNotFoundException =>
+        false
+    }
 
   def canonical_file(uri: String): JFile = parse_file(uri).getCanonicalFile
   def canonical_file_name(uri: String): String = canonical_file(uri).getPath
