@@ -6,22 +6,21 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as decorations from './decorations';
 import { Decoration } from './decorations'
-import { WorkspaceConfiguration} from 'vscode'
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
 
 
 /* Isabelle configuration */
 
-export function get_configuration(): WorkspaceConfiguration
+export function get_configuration<T>(name: string): T
 {
-  return vscode.workspace.getConfiguration("isabelle")
+  return vscode.workspace.getConfiguration("isabelle").get<T>(name)
 }
 
 export function get_color(color: string, light: boolean): string
 {
   const config = color + (light ? "_light" : "_dark") + "_color"
-  return get_configuration().get<string>(config)
+  return get_configuration<string>(config)
 }
 
 
@@ -31,9 +30,9 @@ export function activate(context: vscode.ExtensionContext)
 {
   const is_windows = os.type().startsWith("Windows")
 
-  const isabelle_home = get_configuration().get<string>("home")
-  const isabelle_args = get_configuration().get<Array<string>>("args")
-  const cygwin_root = get_configuration().get<string>("cygwin_root")
+  const isabelle_home = get_configuration<string>("home")
+  const isabelle_args = get_configuration<Array<string>>("args")
+  const cygwin_root = get_configuration<string>("cygwin_root")
 
 
   /* server */
