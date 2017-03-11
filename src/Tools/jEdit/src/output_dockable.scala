@@ -65,10 +65,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       }
 
     val new_output =
-      if (!restriction.isDefined || restriction.get.contains(new_command)) {
-        val rendering = JEdit_Rendering(new_snapshot, PIDE.options.value)
-        rendering.output_messages(new_results)
-      }
+      if (!restriction.isDefined || restriction.get.contains(new_command))
+        Rendering.output_messages(new_results)
       else current_output
 
     if (new_output != current_output)

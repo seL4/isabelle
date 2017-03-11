@@ -78,7 +78,7 @@ object Rendering
   }
 
 
-  /* message priorities */
+  /* output messages */
 
   val state_pri = 1
   val writeln_pri = 2
@@ -119,6 +119,14 @@ object Rendering
     warning_pri -> Color.warning_message,
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
+
+  def output_messages(results: Command.Results): List[XML.Tree] =
+  {
+    val (states, other) =
+      results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
+        .partition(Protocol.is_state(_))
+    states ::: other
+  }
 
 
   /* text color */

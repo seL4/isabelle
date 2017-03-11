@@ -436,14 +436,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
       })
   }
 
-  def output_messages(results: Command.Results): List[XML.Tree] =
-  {
-    val (states, other) =
-      results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
-        .partition(Protocol.is_state(_))
-    states ::: other
-  }
-
 
   /* text color */
 
