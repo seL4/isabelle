@@ -145,7 +145,8 @@ class Server(
 
   private def change_document(file: JFile, changes: List[Protocol.TextDocumentChange])
   {
-    changes.foreach(change => resources.change_model(session, file, change.text, change.range))
+    changes.reverse.foreach(change =>
+      resources.change_model(session, file, change.text, change.range))
     delay_input.invoke()
     delay_output.invoke()
   }
