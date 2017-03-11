@@ -857,9 +857,9 @@ object Document
         {
           val former_range = revert(range).inflate_singularity
           val (chunk_name, command_iterator) =
-            commands_loading match {
-              case command :: _ => (Symbol.Text_Chunk.File(node_name.node), Iterator((command, 0)))
-              case _ => (Symbol.Text_Chunk.Default, node.command_iterator(former_range))
+            commands_loading.headOption match {
+              case None => (Symbol.Text_Chunk.Default, node.command_iterator(former_range))
+              case Some(command) => (Symbol.Text_Chunk.File(node_name.node), Iterator((command, 0)))
             }
           val markup_index = Command.Markup_Index(status, chunk_name)
           (for {
