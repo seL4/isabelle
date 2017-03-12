@@ -23,9 +23,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* component state -- owned by GUI thread */
 
   private var do_update = true
-  private var current_snapshot = Document.Snapshot.init
-  private var current_command = Command.empty
-  private var current_results = Command.Results.empty
   private var current_output: List[XML.Tree] = Nil
 
 
@@ -49,39 +46,31 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     GUI_Thread.require {}
 
-    val (new_snapshot, new_command, new_results) =
-      PIDE.editor.current_node_snapshot(view) match {
-        case Some(snapshot) =>
-          if (follow && !snapshot.is_outdated) {
-            PIDE.editor.current_command(view, snapshot) match {
-              case Some(cmd) =>
-                (snapshot, cmd, snapshot.state.command_results(snapshot.version, cmd))
-              case None =>
-                (Document.Snapshot.init, Command.empty, Command.Results.empty)
-            }
-          }
-          else (current_snapshot, current_command, current_results)
-        case None => (current_snapshot, current_command, current_results)
+    for {
+      snapshot <- PIDE.editor.current_node_snapshot(view)
+      if follow && !snapshot.is_outdated
+    } {
+      val (command, results) =
+        PIDE.editor.current_command(view, snapshot) match {
+          case Some(command) =>
+            (command, snapshot.state.command_results(snapshot.version, command))
+          case None => (Command.empty, Command.Results.empty)
+        }
+
+      val new_output =
+        if (!restriction.isDefined || restriction.get.contains(command))
+          Rendering.output_messages(results)
+        else current_output
+
+      if (current_output != new_output) {
+        pretty_text_area.update(snapshot, results, Pretty.separate(new_output))
+        current_output = new_output
       }
-
-    val new_output =
-      if (!restriction.isDefined || restriction.get.contains(new_command))
-        Rendering.output_messages(new_results)
-      else current_output
-
-    if (new_output != current_output)
-      pretty_text_area.update(new_snapshot, new_results, Pretty.separate(new_output))
-
-    current_snapshot = new_snapshot
-    current_command = new_command
-    current_results = new_results
-    current_output = new_output
+    }
   }
 
 
   /* controls */
-
-  /* output state */
 
   private def output_state: Boolean = PIDE.options.bool("editor_output_state")
   private def output_state_=(b: Boolean)
