@@ -89,7 +89,8 @@ export function activate(context: vscode.ExtensionContext)
           caret_update = { uri: uri.toString(), line: cursor.line, character: cursor.character }
       }
       if (last_caret_update !== caret_update) {
-        client.sendNotification(protocol.caret_update_type, caret_update)
+        if (caret_update.uri)
+          client.sendNotification(protocol.caret_update_type, caret_update)
         last_caret_update = caret_update
       }
     }
