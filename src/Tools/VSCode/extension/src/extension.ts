@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as decorations from './decorations';
-import { Decoration } from './decorations'
+import * as protocol from './protocol';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
 
@@ -24,29 +24,9 @@ export function get_color(color: string, light: boolean): string
 }
 
 
-/* caret handling and dynamic output */
-
-interface Caret_Update
-{
-  uri?: string
-  line?: number
-  character?: number
-}
-
-const caret_update_type = new NotificationType<Caret_Update, void>("PIDE/caret_update")
-let last_caret_update: Caret_Update = {}
-
-
-interface Dynamic_Output
-{
-  body: string
-}
-
-const dynamic_output_type = new NotificationType<Dynamic_Output, void>("PIDE/dynamic_output")
-
-
-
 /* activate extension */
+
+let last_caret_update: protocol.Caret_Update = {}
 
 export function activate(context: vscode.ExtensionContext)
 {
@@ -80,6 +60,17 @@ export function activate(context: vscode.ExtensionContext)
     const client = new LanguageClient("Isabelle", server_options, client_options, false)
 
 
+    /* decorations */
+
+    decorations.init(context)
+    vscode.workspace.onDidChangeConfiguration(() => decorations.init(context))
+    vscode.window.onDidChangeActiveTextEditor(decorations.update_editor)
+    vscode.workspace.onDidCloseTextDocument(decorations.close_document)
+
+    client.onReady().then(() =>
+      client.onNotification(protocol.decoration_type, decorations.apply_decoration))
+
+
     /* caret handling and dynamic output */
 
     const dynamic_output = vscode.window.createOutputChannel("Isabelle Output")
@@ -90,7 +81,7 @@ export function activate(context: vscode.ExtensionContext)
     function update_caret()
     {
       const editor = vscode.window.activeTextEditor
-      let caret_update: Caret_Update = {}
+      let caret_update: protocol.Caret_Update = {}
       if (editor) {
         const uri = editor.document.uri
         const cursor = editor.selection.active
@@ -98,31 +89,19 @@ export function activate(context: vscode.ExtensionContext)
           caret_update = { uri: uri.toString(), line: cursor.line, character: cursor.character }
       }
       if (last_caret_update !== caret_update) {
-        client.sendNotification(caret_update_type, caret_update)
+        client.sendNotification(protocol.caret_update_type, caret_update)
         last_caret_update = caret_update
       }
     }
 
     client.onReady().then(() =>
     {
-      client.onNotification(dynamic_output_type,
+      client.onNotification(protocol.dynamic_output_type,
         params => { dynamic_output.clear(); dynamic_output.appendLine(params.body) })
       vscode.window.onDidChangeActiveTextEditor(_ => update_caret())
       vscode.window.onDidChangeTextEditorSelection(_ => update_caret())
       update_caret()
     })
-
-
-    /* decorations */
-
-    decorations.init(context)
-    vscode.workspace.onDidChangeConfiguration(() => decorations.init(context))
-    vscode.window.onDidChangeActiveTextEditor(decorations.update_editor)
-    vscode.workspace.onDidCloseTextDocument(decorations.close_document)
-
-    client.onReady().then(() =>
-      client.onNotification(
-        new NotificationType<Decoration, void>("PIDE/decoration"), decorations.apply_decoration))
 
 
     /* start server */

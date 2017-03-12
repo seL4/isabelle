@@ -4,6 +4,7 @@ import * as vscode from 'vscode'
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
 import { get_color } from './extension'
+import { Decoration } from './protocol'
 
 
 /* known decoration types */
@@ -132,18 +133,6 @@ export function init(context: ExtensionContext)
 
 
 /* decoration for document node */
-
-interface DecorationOpts {
-  range: number[],
-  hover_message?: MarkedString | MarkedString[]
-}
-
-export interface Decoration
-{
-  uri: string,
-  "type": string,
-  content: DecorationOpts[]
-}
 
 type Content = Range[] | DecorationOptions[]
 const document_decorations = new Map<string, Map<string, Content>>()

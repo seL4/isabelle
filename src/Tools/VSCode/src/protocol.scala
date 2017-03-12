@@ -422,7 +422,7 @@ object Protocol
   }
 
 
-  /* caret handling and dynamic output */
+  /* caret handling */
 
   object Caret_Update
   {
@@ -439,6 +439,9 @@ object Protocol
         case _ => None
       }
   }
+
+
+  /* dynamic output */
 
   object Dynamic_Output
   {
