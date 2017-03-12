@@ -12,12 +12,36 @@ import isabelle._
 
 object Dynamic_Output
 {
-  case class State(
-    do_update: Boolean = true,
-    snapshot: Document.Snapshot = Document.Snapshot.init,
-    command: Command = Command.empty,
-    results: Command.Results = Command.Results.empty,
-    output: List[XML.Tree] = Nil)
+  case class State(do_update: Boolean = true, output: List[XML.Tree] = Nil)
+  {
+    def handle_update(
+      resources: VSCode_Resources, channel: Channel, restriction: Option[Set[Command]]): State =
+    {
+      val st1 =
+        resources.caret_range() match {
+          case None => copy(output = Nil)
+          case Some((model, caret_range)) =>
+            val snapshot = model.snapshot()
+            if (do_update && !snapshot.is_outdated) {
+              model.current_command(snapshot, caret_range.start) match {
+                case None => copy(output = Nil)
+                case Some(command) =>
+                  copy(output =
+                    if (!restriction.isDefined || restriction.get.contains(command))
+                      Rendering.output_messages(
+                        snapshot.state.command_results(snapshot.version, command))
+                    else output)
+              }
+            }
+            else this
+        }
+      if (st1.output != output) {
+        channel.write(Protocol.Dynamic_Output(
+          resources.output_pretty_message(Pretty.separate(st1.output))))
+      }
+      st1
+    }
+  }
 
   def apply(server: Server): Dynamic_Output = new Dynamic_Output(server)
 }
@@ -28,38 +52,7 @@ class Dynamic_Output private(server: Server)
   private val state = Synchronized(Dynamic_Output.State())
 
   private def handle_update(restriction: Option[Set[Command]])
-  {
-    state.change(st =>
-      {
-        val resources = server.resources
-        def init_st = Dynamic_Output.State(st.do_update)
-        val st1 =
-          resources.caret_range() match {
-            case None => init_st
-            case Some((model, caret_range)) =>
-              val snapshot = model.snapshot()
-              if (st.do_update && !snapshot.is_outdated) {
-                model.current_command(snapshot, caret_range.start) match {
-                  case None => init_st
-                  case Some(command) =>
-                    val results = snapshot.state.command_results(snapshot.version, command)
-                    val output =
-                      if (!restriction.isDefined || restriction.get.contains(command))
-                        Rendering.output_messages(results)
-                      else st.output
-                    st.copy(
-                      snapshot = snapshot, command = command, results = results, output = output)
-                }
-              }
-              else st
-          }
-        if (st1.output != st.output) {
-          server.channel.write(Protocol.Dynamic_Output(
-            resources.output_pretty_message(Pretty.separate(st1.output))))
-        }
-        st1
-      })
-  }
+  { state.change(_.handle_update(server.resources, server.channel, restriction)) }
 
 
   /* main */
