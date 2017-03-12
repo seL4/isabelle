@@ -185,7 +185,7 @@ object Line
           if (l1 == l2) {
             if (0 <= c1 && c1 <= c2 && c2 <= s1.length) {
               Some(
-                if (lines1.isEmpty) ("", prefix)
+                if (lines1.isEmpty) ("", prefix ::: Document.split(insert))
                 else {
                   val removed_text = s1.substring(c1, c2)
                   val changed_text = s1.substring(0, c1) + insert + s1.substring(c2)
@@ -199,7 +199,7 @@ object Line
             val (s2, rest2) = Document.chop(lines2)
             if (0 <= c1 && c1 <= s1.length && 0 <= c2 && c2 <= s2.length) {
               Some(
-                if (lines1.isEmpty) ("", prefix)
+                if (lines1.isEmpty) ("", prefix ::: Document.split(insert))
                 else {
                   val r1 = s1.substring(c1)
                   val r2 = s2.substring(0, c2)
