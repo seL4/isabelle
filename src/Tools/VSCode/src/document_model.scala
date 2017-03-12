@@ -159,27 +159,6 @@ sealed case class Document_Model(
   }
 
 
-  /* current command */
-
-  def current_command(snapshot: Document.Snapshot, current_offset: Text.Offset): Option[Command] =
-  {
-    if (is_theory) {
-      val node = snapshot.version.nodes(node_name)
-      val caret = snapshot.revert(current_offset)
-      if (caret < content.text_length) {
-        val caret_command_iterator = node.command_iterator(caret)
-        if (caret_command_iterator.hasNext) {
-          val (cmd0, _) = caret_command_iterator.next
-          node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
-        }
-        else None
-      }
-      else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
-    }
-    else snapshot.version.nodes.commands_loading(node_name).headOption
-  }
-
-
   /* prover session */
 
   def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]

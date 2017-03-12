@@ -450,6 +450,7 @@ object Document
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def command_results(command: Command): Command.Results
+    def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -823,6 +824,18 @@ object Document
 
         def command_results(command: Command): Command.Results =
           state.command_results(version, command)
+
+        def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
+          if (other_node_name.is_theory) {
+            val other_node = version.nodes(other_node_name)
+            val iterator = other_node.command_iterator(revert(offset) max 0)
+            if (iterator.hasNext) {
+              val (command0, _) = iterator.next
+              other_node.commands.reverse.iterator(command0).find(command => !command.is_ignored)
+            }
+            else other_node.commands.reverse.iterator.find(command => !command.is_ignored)
+          }
+          else version.nodes.commands_loading(other_node_name).headOption
 
 
         /* find command */

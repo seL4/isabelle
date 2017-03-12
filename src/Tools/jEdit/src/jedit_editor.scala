@@ -75,17 +75,7 @@ class JEdit_Editor extends Editor[View]
 
     Document_View.get(text_area) match {
       case Some(doc_view) if doc_view.model.is_theory =>
-        val node = snapshot.version.nodes(doc_view.model.node_name)
-        val caret = snapshot.revert(text_area.getCaretPosition)
-        if (caret < buffer.getLength) {
-          val caret_command_iterator = node.command_iterator(caret)
-          if (caret_command_iterator.hasNext) {
-            val (cmd0, _) = caret_command_iterator.next
-            node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
-          }
-          else None
-        }
-        else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
+        snapshot.current_command(doc_view.model.node_name, text_area.getCaretPosition)
       case _ =>
         Document_Model.get(buffer) match {
           case Some(model) if !model.is_theory =>

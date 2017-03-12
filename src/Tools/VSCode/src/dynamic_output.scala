@@ -23,7 +23,7 @@ object Dynamic_Output
           case Some((model, caret_offset)) =>
             val snapshot = model.snapshot()
             if (do_update && !snapshot.is_outdated) {
-              model.current_command(snapshot, caret_offset) match {
+              snapshot.current_command(model.node_name, caret_offset) match {
                 case None => copy(output = Nil)
                 case Some(command) =>
                   copy(output =
