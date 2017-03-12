@@ -279,16 +279,15 @@ class VSCode_Resources(
   def update_caret(caret: Option[(JFile, Line.Position)])
   { state.change(_.copy(caret = caret)) }
 
-  def caret_range(): Option[(Document_Model, Text.Range)] =
+  def caret_offset(): Option[(Document_Model, Text.Offset)] =
   {
     val st = state.value
     for {
       (file, pos) <- st.caret
       model <- st.models.get(file)
       offset <- model.content.doc.offset(pos)
-      if offset < model.content.text_length
     }
-    yield (model, Text.Range(offset, offset + 1))
+    yield (model, offset)
   }
 
 

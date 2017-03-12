@@ -166,12 +166,15 @@ sealed case class Document_Model(
     if (is_theory) {
       val node = snapshot.version.nodes(node_name)
       val caret = snapshot.revert(current_offset)
-      val caret_command_iterator = node.command_iterator(caret)
-      if (caret_command_iterator.hasNext) {
-        val (cmd0, _) = caret_command_iterator.next
-        node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
+      if (caret < content.text_length) {
+        val caret_command_iterator = node.command_iterator(caret)
+        if (caret_command_iterator.hasNext) {
+          val (cmd0, _) = caret_command_iterator.next
+          node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
+        }
+        else None
       }
-      else None
+      else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
     }
     else snapshot.version.nodes.commands_loading(node_name).headOption
   }
