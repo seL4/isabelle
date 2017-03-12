@@ -87,7 +87,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
           if (follow && !snapshot.is_outdated) {
             PIDE.editor.current_command(view, snapshot) match {
               case Some(cmd) =>
-                (snapshot, cmd, snapshot.state.command_results(snapshot.version, cmd), cmd.id)
+                (snapshot, cmd, snapshot.command_results(cmd), cmd.id)
               case None =>
                 (Document.State.init.snapshot(), Command.empty, Command.Results.empty, 0L)
             }

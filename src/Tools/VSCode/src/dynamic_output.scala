@@ -28,8 +28,7 @@ object Dynamic_Output
                 case Some(command) =>
                   copy(output =
                     if (!restriction.isDefined || restriction.get.contains(command))
-                      Rendering.output_messages(
-                        snapshot.state.command_results(snapshot.version, command))
+                      Rendering.output_messages(snapshot.command_results(command))
                     else output)
               }
             }

@@ -52,8 +52,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     } {
       val (command, results) =
         PIDE.editor.current_command(view, snapshot) match {
-          case Some(command) =>
-            (command, snapshot.state.command_results(snapshot.version, command))
+          case Some(command) => (command, snapshot.command_results(command))
           case None => (Command.empty, Command.Results.empty)
         }
 

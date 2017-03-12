@@ -78,7 +78,7 @@ class Query_Operation[Editor_Context](
       state0.location match {
         case Some(cmd) =>
           val snapshot = editor.node_snapshot(cmd.node_name)
-          val command_results = snapshot.state.command_results(snapshot.version, cmd)
+          val command_results = snapshot.command_results(cmd)
           val results =
             (for {
               (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator

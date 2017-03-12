@@ -449,6 +449,7 @@ object Document
     def node: Node
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
+    def command_results(command: Command): Command.Results
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -819,6 +820,9 @@ object Document
             if pred(blob_name)
             start <- node.command_start(cmd)
           } yield convert(cmd.proper_range + start)).toList
+
+        def command_results(command: Command): Command.Results =
+          state.command_results(version, command)
 
 
         /* find command */
