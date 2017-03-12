@@ -443,6 +443,6 @@ object Protocol
   object Dynamic_Output
   {
     def apply(body: String): JSON.T =
-      Notification("PIDE/dynamic_output", body)
+      Notification("PIDE/dynamic_output", Map("body" -> body))
   }
 }

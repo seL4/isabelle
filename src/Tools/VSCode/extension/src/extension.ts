@@ -34,9 +34,16 @@ interface Caret_Update
 }
 
 const caret_update_type = new NotificationType<Caret_Update, void>("PIDE/caret_update")
-const dynamic_output_type = new NotificationType<string, void>("PIDE/dynamic_output")
-
 let last_caret_update: Caret_Update = {}
+
+
+interface Dynamic_Output
+{
+  body: string
+}
+
+const dynamic_output_type = new NotificationType<Dynamic_Output, void>("PIDE/dynamic_output")
+
 
 
 /* activate extension */
@@ -99,12 +106,7 @@ export function activate(context: vscode.ExtensionContext)
     client.onReady().then(() =>
     {
       client.onNotification(dynamic_output_type,
-        body => {
-          if (body) {
-            dynamic_output.clear()
-            dynamic_output.appendLine(body)
-          }
-        })
+        params => { dynamic_output.clear(); dynamic_output.appendLine(params.body) })
       vscode.window.onDidChangeActiveTextEditor(_ => update_caret())
       vscode.window.onDidChangeTextEditorSelection(_ => update_caret())
       update_caret()
