@@ -41,7 +41,6 @@ object VSCode_Resources
 
 class VSCode_Resources(
   val options: Options,
-  val text_length: Text.Length,
   base: Sessions.Base,
   log: Logger = No_Logger) extends Resources(base, log)
 {

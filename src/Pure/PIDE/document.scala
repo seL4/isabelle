@@ -845,7 +845,7 @@ object Document
               node.commands.iterator.takeWhile(_ != command).map(_.source) ++
                 (if (offset == 0) Iterator.empty
                  else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
-            val pos = (Line.Position.zero /: sources_iterator)(_.advance(_, Text.Length))
+            val pos = (Line.Position.zero /: sources_iterator)(_.advance(_))
             Line.Node_Position(name, pos)
           }
 

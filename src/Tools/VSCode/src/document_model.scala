@@ -45,7 +45,7 @@ object Document_Model
   def init(session: Session, node_name: Document.Node.Name): Document_Model =
   {
     val resources = session.resources.asInstanceOf[VSCode_Resources]
-    val content = Content(Line.Document("", resources.text_length))
+    val content = Content(Line.Document.empty)
     Document_Model(session, node_name, content)
   }
 }
@@ -111,7 +111,7 @@ sealed case class Document_Model(
         Text.Edit.replace(0, content.text, insert) match {
           case Nil => None
           case edits =>
-            val content1 = Document_Model.Content(Line.Document(insert, content.doc.text_length))
+            val content1 = Document_Model.Content(Line.Document(insert))
             Some(copy(content = content1, pending_edits = pending_edits ::: edits))
         }
       case Some(remove) =>

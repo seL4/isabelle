@@ -200,7 +200,7 @@ class VSCode_Rendering(
           resources.get_file_content(file) match {
             case Some(text) =>
               val chunk = Symbol.Text_Chunk(text)
-              val doc = Line.Document(text, resources.text_length)
+              val doc = Line.Document(text)
               doc.range(chunk.decode(range))
             case _ =>
               Line.Range(Line.Position((line1 - 1) max 0))

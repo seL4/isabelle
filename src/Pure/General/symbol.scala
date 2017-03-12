@@ -130,15 +130,6 @@ object Symbol
 
   def length(text: CharSequence): Int = iterator(text).length
 
-  object Length extends Text.Length
-  {
-    def apply(text: String): Int = length(text)
-    def offset(text: String, i: Int): Option[Text.Offset] =
-      if (i <= 0 || iterator(text).forall(s => s.length == 1)) Text.Length.offset(text, i)
-      else if (i <= length(text)) Some(iterator(text).take(i).mkString.length)
-      else None
-  }
-
 
   /* decoding offsets */
 

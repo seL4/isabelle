@@ -258,8 +258,7 @@ class JEdit_Editor extends Editor[View]
             hyperlink(
               (Line.Position.zero /:
                 (Symbol.iterator(text).
-                  zipWithIndex.takeWhile(p => p._2 < offset - 1).
-                  map(_._1)))(_.advance(_, Text.Length)))
+                  zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(_.advance(_)))
           case None =>
             hyperlink(Line.Position((line1 - 1) max 0))
         }

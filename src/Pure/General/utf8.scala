@@ -21,15 +21,6 @@ object UTF8
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
-  object Length extends Codepoint.Length
-  {
-    override def codepoint_length(c: Int): Int =
-      if (c < 0x80) 1
-      else if (c < 0x800) 2
-      else if (c < 0x10000) 3
-      else 4
-  }
-
 
   /* permissive UTF-8 decoding */
 

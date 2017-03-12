@@ -40,12 +40,12 @@ object Line
         case i => i
       }
 
-    def advance(text: String, text_length: Text.Length): Position =
+    def advance(text: String): Position =
       if (text.isEmpty) this
       else {
         val lines = logical_lines(text)
         val l = line + lines.length - 1
-        val c = (if (l == line) column else 0) + text_length(Library.trim_line(lines.last))
+        val c = (if (l == line) column else 0) + Library.trim_line(lines.last).length
         Position(l, c)
       }
   }
@@ -89,12 +89,13 @@ object Line
 
   object Document
   {
-    def apply(text: String, text_length: Text.Length): Document =
-      Document(logical_lines(text).map(s => Line(Library.trim_substring(s))), text_length)
+    def apply(text: String): Document =
+      Document(logical_lines(text).map(s => Line(Library.trim_substring(s))))
+
+    val empty: Document = apply("")
 
     private def split(line_text: String): List[Line] =
-      if (line_text == "") List(Line.empty)
-      else apply(line_text, Text.Length).lines
+      if (line_text == "") List(Line.empty) else apply(line_text).lines
 
     private def chop(lines: List[Line]): (String, List[Line]) =
       lines match {
@@ -109,7 +110,7 @@ object Line
     def text(lines: List[Line]): String = lines.mkString("", "\n", "")
   }
 
-  sealed case class Document(lines: List[Line], text_length: Text.Length)
+  sealed case class Document(lines: List[Line])
   {
     lazy val text_range: Text.Range = Text.Range(0, Document.length(lines))
     lazy val text: String = Document.text(lines)
@@ -136,7 +137,7 @@ object Line
           case line :: ls =>
             val n = line.text.length
             if (ls.isEmpty || i <= n)
-              Position(lines_count).advance(line.text.substring(n - i), text_length)
+              Position(lines_count).advance(line.text.substring(n - i))
             else move(i - (n + 1), lines_count + 1, ls)
         }
       }
@@ -152,9 +153,12 @@ object Line
       val c = pos.column
       val n = lines.length
       if (0 <= l && l < n) {
-        val line_offset =
-          (0 /: lines.iterator.take(l)) { case (n, line) => n + line.text.length + 1 }
-        text_length.offset(lines(l).text, c).map(line_offset + _)
+        if (0 <= c && c <= lines(l).text.length) {
+          val line_offset =
+            (0 /: lines.iterator.take(l)) { case (n, line) => n + line.text.length + 1 }
+          Some(line_offset + c)
+        }
+        else None
       }
       else if (l == n && c == 0) Some(text_range.length)
       else None
@@ -170,49 +174,47 @@ object Line
         if l1 <= l2
         (removed_text, new_lines) <-
         {
+          val c1 = remove.start.column
+          val c2 = remove.stop.column
+
           val (prefix, lines1) = lines.splitAt(l1)
           val (s1, rest1) = Document.chop(lines1)
 
           if (l1 == l2) {
-            for {
-              c1 <- text_length.offset(s1, remove.start.column)
-              c2 <- text_length.offset(s1, remove.stop.column)
-              if c1 <= c2
+            if (0 <= c1 && c1 <= c2 && c2 <= s1.length) {
+              Some(
+                if (lines1.isEmpty) ("", prefix)
+                else {
+                  val removed_text = s1.substring(c1, c2)
+                  val changed_text = s1.substring(0, c1) + insert + s1.substring(c2)
+                  (removed_text, prefix ::: Document.split(changed_text) ::: rest1)
+                })
             }
-            yield {
-              if (lines1.isEmpty) ("", prefix)
-              else {
-                val removed_text = s1.substring(c1, c2)
-                val changed_text = s1.substring(0, c1) + insert + s1.substring(c2)
-                (removed_text, prefix ::: Document.split(changed_text) ::: rest1)
-              }
-            }
+            else None
           }
           else {
             val (middle, lines2) = rest1.splitAt(l2 - l1 - 1)
             val (s2, rest2) = Document.chop(lines2)
-            for {
-              c1 <- text_length.offset(s1, remove.start.column)
-              c2 <- text_length.offset(s2, remove.stop.column)
+            if (0 <= c1 && c1 <= s1.length && 0 <= c2 && c2 <= s2.length) {
+              Some(
+                if (lines1.isEmpty) ("", prefix)
+                else {
+                  val r1 = s1.substring(c1)
+                  val r2 = s2.substring(0, c2)
+                  val removed_text =
+                    if (lines2.isEmpty) Document.text(Line(r1) :: middle)
+                    else Document.text(Line(r1) :: middle ::: List(Line(r2)))
+                  val changed_text = s1.substring(0, c1) + insert + s2.substring(c2)
+                  (removed_text, prefix ::: Document.split(changed_text) ::: rest2)
+                })
             }
-            yield {
-              if (lines1.isEmpty) ("", prefix)
-              else {
-                val r1 = s1.substring(c1)
-                val r2 = s2.substring(0, c2)
-                val removed_text =
-                  if (lines2.isEmpty) Document.text(Line(r1) :: middle)
-                  else Document.text(Line(r1) :: middle ::: List(Line(r2)))
-                val changed_text = s1.substring(0, c1) + insert + s2.substring(c2)
-                (removed_text, prefix ::: Document.split(changed_text) ::: rest2)
-              }
-            }
+            else None
           }
         }
       }
       yield
         (Text.Edit.removes(edit_start, removed_text) ::: Text.Edit.inserts(edit_start, insert),
-          Document(new_lines, text_length))
+          Document(new_lines))
     }
   }
 
