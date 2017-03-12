@@ -112,7 +112,9 @@ object Line
 
   sealed case class Document(lines: List[Line])
   {
-    lazy val text_range: Text.Range = Text.Range(0, Document.length(lines))
+    lazy val text_length: Text.Offset = Document.length(lines)
+    def text_range: Text.Range = Text.Range(0, text_length)
+
     lazy val text: String = Document.text(lines)
 
     def try_get_text(range: Text.Range): Option[String] =
@@ -160,7 +162,7 @@ object Line
         }
         else None
       }
-      else if (l == n && c == 0) Some(text_range.length)
+      else if (l == n && c == 0) Some(text_length)
       else None
     }
 

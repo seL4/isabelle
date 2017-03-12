@@ -312,8 +312,7 @@ class Server(
         (rendering, offset) <- rendering_offset(node_pos)
         info <- rendering.tooltips(VSCode_Rendering.tooltip_elements, Text.Range(offset, offset + 1))
       } yield {
-        val doc = rendering.model.content.doc
-        val range = doc.range(info.range)
+        val range = rendering.model.content.doc.range(info.range)
         val contents =
           info.info.map(t => Protocol.MarkedString(resources.output_pretty_tooltip(List(t))))
         (range, contents)
@@ -340,9 +339,9 @@ class Server(
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
         yield {
-          val doc = rendering.model.content.doc
-          rendering.caret_focus_ranges(Text.Range(offset, offset + 1), doc.text_range)
-            .map(r => Protocol.DocumentHighlight.text(doc.range(r)))
+          val model = rendering.model
+          rendering.caret_focus_ranges(Text.Range(offset, offset + 1), model.content.text_range)
+            .map(r => Protocol.DocumentHighlight.text(model.content.doc.range(r)))
         }) getOrElse Nil
     channel.write(Protocol.DocumentHighlights.reply(id, result))
   }

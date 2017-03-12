@@ -31,6 +31,7 @@ object Document_Model
   sealed case class Content(doc: Line.Document)
   {
     override def toString: String = doc.toString
+    def text_length: Text.Offset = doc.text_length
     def text_range: Text.Range = doc.text_range
     def text: String = doc.text
     def try_get_text(range: Text.Range): Option[String] = doc.try_get_text(range)

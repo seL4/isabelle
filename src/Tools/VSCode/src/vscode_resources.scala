@@ -286,7 +286,7 @@ class VSCode_Resources(
       (file, pos) <- st.caret
       model <- st.models.get(file)
       offset <- model.content.doc.offset(pos)
-      if offset < model.content.doc.text_range.stop
+      if offset < model.content.text_length
     }
     yield (model, Text.Range(offset, offset + 1))
   }
