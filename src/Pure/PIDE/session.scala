@@ -118,6 +118,8 @@ class Session(val resources: Resources)
 {
   session =>
 
+  val xml_cache: XML.Cache = new XML.Cache()
+
 
   /* global flags */
 
@@ -391,7 +393,7 @@ class Session(val resources: Resources)
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
-                accumulate(state_id, prover.get.xml_cache.elem(message))
+                accumulate(state_id, xml_cache.elem(message))
 
               case Markup.Assign_Update =>
                 msg.text match {

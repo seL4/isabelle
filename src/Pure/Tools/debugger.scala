@@ -154,9 +154,9 @@ object Debugger
         case Markup.Debugger_Output(thread_name) =>
           YXML.parse_body_failsafe(Symbol.decode(UTF8.decode_permissive(msg.bytes))) match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
-              val message =
-                prover.xml_cache.elem(XML.Elem(Markup(Markup.message(name), props), body))
-              the_debugger.add_output(thread_name, i -> message)
+              val debugger = the_debugger
+              val message = XML.Elem(Markup(Markup.message(name), props), body)
+              debugger.add_output(thread_name, i -> debugger.session.xml_cache.elem(message))
               true
             case _ => false
           }
@@ -171,7 +171,7 @@ object Debugger
   }
 }
 
-class Debugger private(session: Session)
+class Debugger private(val session: Session)
 {
   /* debugger state */
 
