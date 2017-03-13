@@ -71,43 +71,47 @@ object Invoke_Scala
 
 class Invoke_Scala extends Session.Protocol_Handler
 {
+  private var session: Session = null
   private var futures = Map.empty[String, Future[Unit]]
 
-  private def fulfill(prover: Prover, id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit =
+  override def init(init_session: Session): Unit =
+    synchronized { session = init_session }
+
+  private def fulfill(id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit =
     synchronized
     {
       if (futures.isDefinedAt(id)) {
-        prover.protocol_command("Invoke_Scala.fulfill", id, tag.toString, res)
+        session.protocol_command("Invoke_Scala.fulfill", id, tag.toString, res)
         futures -= id
       }
     }
 
-  private def cancel(prover: Prover, id: String, future: Future[Unit])
+  private def cancel(id: String, future: Future[Unit])
   {
     future.cancel
-    fulfill(prover, id, Invoke_Scala.Tag.INTERRUPT, "")
+    fulfill(id, Invoke_Scala.Tag.INTERRUPT, "")
   }
 
-  private def invoke_scala(prover: Prover, msg: Prover.Protocol_Output): Boolean = synchronized
+  private def invoke_scala(msg: Prover.Protocol_Output): Boolean = synchronized
   {
     msg.properties match {
       case Markup.Invoke_Scala(name, id) =>
         futures += (id ->
           Future.fork {
             val (tag, result) = Invoke_Scala.method(name, msg.text)
-            fulfill(prover, id, tag, result)
+            fulfill(id, tag, result)
           })
         true
       case _ => false
     }
   }
 
-  private def cancel_scala(prover: Prover, msg: Prover.Protocol_Output): Boolean = synchronized
+  private def cancel_scala(msg: Prover.Protocol_Output): Boolean = synchronized
   {
     msg.properties match {
       case Markup.Cancel_Scala(id) =>
         futures.get(id) match {
-          case Some(future) => cancel(prover, id, future)
+          case Some(future) => cancel(id, future)
           case None =>
         }
         true
@@ -115,13 +119,14 @@ class Invoke_Scala extends Session.Protocol_Handler
     }
   }
 
-  override def stop(prover: Prover): Unit = synchronized
+  override def exit(): Unit = synchronized
   {
-    for ((id, future) <- futures) cancel(prover, id, future)
+    for ((id, future) <- futures) cancel(id, future)
     futures = Map.empty
   }
 
-  val functions = Map(
-    Markup.INVOKE_SCALA -> invoke_scala _,
-    Markup.CANCEL_SCALA -> cancel_scala _)
+  val functions =
+    List(
+      Markup.INVOKE_SCALA -> invoke_scala _,
+      Markup.CANCEL_SCALA -> cancel_scala _)
 }

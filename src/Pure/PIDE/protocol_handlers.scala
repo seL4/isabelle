@@ -20,7 +20,7 @@ object Protocol_Handlers
   {
     def get(name: String): Option[Session.Protocol_Handler] = handlers.get(name)
 
-    def add(prover: Prover, handler: Session.Protocol_Handler): State =
+    def add(handler: Session.Protocol_Handler): State =
     {
       val name = handler.getClass.getName
 
@@ -28,23 +28,19 @@ object Protocol_Handlers
         handlers.get(name) match {
           case Some(old_handler) =>
             Output.warning("Redefining protocol handler: " + name)
-            old_handler.stop(prover)
-            (handlers - name, functions -- old_handler.functions.keys)
+            old_handler.exit()
+            (handlers - name, functions -- old_handler.functions.map(_._1))
           case None => (handlers, functions)
         }
 
       val (handlers2, functions2) =
         try {
-          handler.start(session, prover)
+          handler.init(session)
 
-          val new_functions =
-            for ((a, f) <- handler.functions.toList) yield
-              (a, (msg: Prover.Protocol_Output) => f(prover, msg))
-
-          val dups = for ((a, _) <- new_functions if functions1.isDefinedAt(a)) yield a
+          val dups = for ((a, _) <- handler.functions if functions1.isDefinedAt(a)) yield a
           if (dups.nonEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
 
-          (handlers1 + (name -> handler), functions1 ++ new_functions)
+          (handlers1 + (name -> handler), functions1 ++ handler.functions)
         }
         catch {
           case exn: Throwable => bad_handler(exn, name); (handlers1, functions1)
@@ -52,15 +48,12 @@ object Protocol_Handlers
       copy(handlers = handlers2, functions = functions2)
     }
 
-    def add(prover: Prover, name: String): State =
+    def add(name: String): State =
     {
       val new_handler =
         try { Some(Class.forName(name).newInstance.asInstanceOf[Session.Protocol_Handler]) }
         catch { case exn: Throwable => bad_handler(exn, name); None }
-      new_handler match {
-        case Some(handler) => add(prover, handler)
-        case None => this
-      }
+      new_handler match { case Some(handler) => add(handler) case None => this }
     }
 
     def invoke(msg: Prover.Protocol_Output): Boolean =
@@ -76,9 +69,9 @@ object Protocol_Handlers
         case _ => false
       }
 
-    def stop(prover: Prover): State =
+    def exit(): State =
     {
-      for ((_, handler) <- handlers) handler.stop(prover)
+      for ((_, handler) <- handlers) handler.exit()
       copy(handlers = Map.empty, functions = Map.empty)
     }
   }
@@ -91,18 +84,9 @@ class Protocol_Handlers private(session: Session)
 {
   private val state = Synchronized(Protocol_Handlers.State(session))
 
-  def get(name: String): Option[Session.Protocol_Handler] =
-    state.value.get(name)
-
-  def add(prover: Prover, handler: Session.Protocol_Handler): Unit =
-    state.change(_.add(prover, handler))
-
-  def add(prover: Prover, name: String): Unit =
-    state.change(_.add(prover, name))
-
-  def invoke(msg: Prover.Protocol_Output): Boolean =
-    state.value.invoke(msg)
-
-  def stop(prover: Prover): Unit =
-    state.change(_.stop(prover))
+  def get(name: String): Option[Session.Protocol_Handler] = state.value.get(name)
+  def add(handler: Session.Protocol_Handler): Unit = state.change(_.add(handler))
+  def add(name: String): Unit = state.change(_.add(name))
+  def invoke(msg: Prover.Protocol_Output): Boolean = state.value.invoke(msg)
+  def exit(): Unit = state.change(_.exit())
 }

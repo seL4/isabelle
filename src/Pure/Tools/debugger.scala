@@ -120,7 +120,7 @@ object Debugger
     def get_debugger: Option[Debugger] = _debugger_.value
     def the_debugger: Debugger = get_debugger getOrElse error("Debugger not initialized")
 
-    override def start(session: Session, prover: Prover)
+    override def init(session: Session)
     {
       _debugger_.change(
         {
@@ -129,7 +129,7 @@ object Debugger
         })
     }
 
-    private def debugger_state(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def debugger_state(msg: Prover.Protocol_Output): Boolean =
     {
       msg.properties match {
         case Markup.Debugger_State(thread_name) =>
@@ -148,7 +148,7 @@ object Debugger
       }
     }
 
-    private def debugger_output(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def debugger_output(msg: Prover.Protocol_Output): Boolean =
     {
       msg.properties match {
         case Markup.Debugger_Output(thread_name) =>
@@ -165,7 +165,7 @@ object Debugger
     }
 
     val functions =
-      Map(
+      List(
         Markup.DEBUGGER_STATE -> debugger_state _,
         Markup.DEBUGGER_OUTPUT -> debugger_output _)
   }

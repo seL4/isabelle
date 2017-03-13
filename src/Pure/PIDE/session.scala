@@ -107,9 +107,9 @@ object Session
 
   abstract class Protocol_Handler
   {
-    def start(session: Session, prover: Prover): Unit = {}
-    def stop(prover: Prover): Unit = {}
-    val functions: Map[String, (Prover, Prover.Protocol_Output) => Boolean]
+    def init(session: Session): Unit = {}
+    def exit(): Unit = {}
+    val functions: List[(String, Prover.Protocol_Output => Boolean)]
   }
 }
 
@@ -289,10 +289,10 @@ class Session(val resources: Resources)
     protocol_handlers.get(name)
 
   def add_protocol_handler(handler: Session.Protocol_Handler): Unit =
-    protocol_handlers.add(prover.get, handler)
+    protocol_handlers.add(handler)
 
   def add_protocol_handler(name: String): Unit =
-    protocol_handlers.add(prover.get, name)
+    protocol_handlers.add(name)
 
 
   /* manager thread */
@@ -476,7 +476,7 @@ class Session(val resources: Resources)
           case Stop =>
             delay_prune.revoke()
             if (prover.defined) {
-              protocol_handlers.stop(prover.get)
+              protocol_handlers.exit()
               global_state.change(_ => Document.State.init)
               prover.get.terminate
             }

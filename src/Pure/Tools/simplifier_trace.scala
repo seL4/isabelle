@@ -290,7 +290,7 @@ object Simplifier_Trace
   {
     assert(manager.is_active)
 
-    private def cancel(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def cancel(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Simp_Trace_Cancel(serial) =>
           manager.send(Cancel(serial))
@@ -299,12 +299,12 @@ object Simplifier_Trace
           false
       }
 
-    override def stop(prover: Prover) =
+    override def exit() =
     {
       manager.send(Clear_Memory)
       manager.shutdown()
     }
 
-    val functions = Map(Markup.SIMP_TRACE_CANCEL -> cancel _)
+    val functions = List(Markup.SIMP_TRACE_CANCEL -> cancel _)
   }
 }

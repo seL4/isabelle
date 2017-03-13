@@ -816,13 +816,13 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       promise
     }
 
-    private def loading_theory(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def loading_theory(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Loading_Theory(name) => progress.theory(session_name, name); true
         case _ => false
       }
 
-    private def build_theories_result(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def build_theories_result(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Build_Theories_Result(id) =>
           pending.change_result(promises =>
@@ -839,11 +839,11 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         case _ => false
       }
 
-    override def stop(prover: Prover): Unit =
+    override def exit(): Unit =
       pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
 
     val functions =
-      Map(
+      List(
         Markup.BUILD_THEORIES_RESULT -> build_theories_result _,
         Markup.LOADING_THEORY -> loading_theory _)
   }
