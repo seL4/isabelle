@@ -609,7 +609,7 @@ class Session(val resources: Resources)
       })
   }
 
-  def stop()
+  def stop(): Int =
   {
     val was_ready =
       _phase.guarded_access(phase =>
@@ -626,6 +626,11 @@ class Session(val resources: Resources)
     change_buffer.shutdown()
     manager.shutdown()
     dispatcher.shutdown()
+
+    phase match {
+      case Session.Terminated(rc) => rc
+      case phase => error("Bad session phase after shutdown: " + quote(phase.print))
+    }
   }
 
   def protocol_command(name: String, args: String*)
