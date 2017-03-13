@@ -232,13 +232,12 @@ class Session(val resources: Resources)
   private val syslog = new Session.Syslog(syslog_limit)
   def syslog_content(): String = syslog.content
 
-  @volatile private var _phase: Session.Phase = Session.Inactive
+  private val _phase = Synchronized[Session.Phase](Session.Inactive)
   private def phase_=(new_phase: Session.Phase)
   {
-    _phase = new_phase
-    phase_changed.post(new_phase)
+    _phase.change(_ => { phase_changed.post(new_phase); new_phase })
   }
-  def phase = _phase
+  def phase = _phase.value
   def is_ready: Boolean = phase == Session.Ready
 
   private val global_state = Synchronized(Document.State.init)
@@ -528,12 +527,7 @@ class Session(val resources: Resources)
             all_messages.post(input)
 
           case Start(start_prover) if !prover.defined =>
-            phase match {
-              case Session.Inactive | Session.Terminated(_) =>
-                phase = Session.Startup
-                prover.set(start_prover(manager.send(_)))
-              case _ =>
-            }
+            prover.set(start_prover(manager.send(_)))
 
           case Stop =>
             if (prover.defined && is_ready) {
@@ -599,7 +593,15 @@ class Session(val resources: Resources)
     global_state.value.snapshot(name, pending_edits)
 
   def start(start_prover: Prover.Receiver => Prover)
-  { manager.send(Start(start_prover)) }
+  {
+    _phase.change(
+      {
+        case Session.Inactive =>
+          manager.send(Start(start_prover))
+          Session.Startup
+        case phase => error("Cannot start prover in phase " + quote(phase.print))
+      })
+  }
 
   def stop()
   {
