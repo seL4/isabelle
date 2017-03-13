@@ -111,76 +111,14 @@ object Session
     def stop(prover: Prover): Unit = {}
     val functions: Map[String, (Prover, Prover.Protocol_Output) => Boolean]
   }
-
-  def bad_protocol_handler(exn: Throwable, name: String): Unit =
-    Output.error_message(
-      "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
-
-  private class Protocol_Handlers(
-    handlers: Map[String, Session.Protocol_Handler] = Map.empty,
-    functions: Map[String, Prover.Protocol_Output => Boolean] = Map.empty)
-  {
-    def get(name: String): Option[Protocol_Handler] = handlers.get(name)
-
-    def add(session: Session, prover: Prover, handler: Protocol_Handler): Protocol_Handlers =
-    {
-      val name = handler.getClass.getName
-
-      val (handlers1, functions1) =
-        handlers.get(name) match {
-          case Some(old_handler) =>
-            Output.warning("Redefining protocol handler: " + name)
-            old_handler.stop(prover)
-            (handlers - name, functions -- old_handler.functions.keys)
-          case None => (handlers, functions)
-        }
-
-      val (handlers2, functions2) =
-        try {
-          handler.start(session, prover)
-
-          val new_functions =
-            for ((a, f) <- handler.functions.toList) yield
-              (a, (msg: Prover.Protocol_Output) => f(prover, msg))
-
-          val dups = for ((a, _) <- new_functions if functions1.isDefinedAt(a)) yield a
-          if (dups.nonEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
-
-          (handlers1 + (name -> handler), functions1 ++ new_functions)
-        }
-        catch {
-          case exn: Throwable =>
-            Session.bad_protocol_handler(exn, name)
-            (handlers1, functions1)
-        }
-
-      new Protocol_Handlers(handlers2, functions2)
-    }
-
-    def invoke(msg: Prover.Protocol_Output): Boolean =
-      msg.properties match {
-        case Markup.Function(a) if functions.isDefinedAt(a) =>
-          try { functions(a)(msg) }
-          catch {
-            case exn: Throwable =>
-              Output.error_message(
-                "Failed invocation of protocol function: " + quote(a) + "\n" + Exn.message(exn))
-            false
-          }
-        case _ => false
-      }
-
-    def stop(prover: Prover): Protocol_Handlers =
-    {
-      for ((_, handler) <- handlers) handler.stop(prover)
-      new Protocol_Handlers()
-    }
-  }
 }
 
 
 class Session(val resources: Resources)
 {
+  session =>
+
+
   /* global flags */
 
   @volatile var timing: Boolean = false
@@ -343,13 +281,16 @@ class Session(val resources: Resources)
 
   /* protocol handlers */
 
-  private val _protocol_handlers = Synchronized(new Session.Protocol_Handlers)
+  private val protocol_handlers = Protocol_Handlers.init()
 
   def get_protocol_handler(name: String): Option[Session.Protocol_Handler] =
-    _protocol_handlers.value.get(name)
+    protocol_handlers.get(name)
 
   def add_protocol_handler(handler: Session.Protocol_Handler): Unit =
-    _protocol_handlers.change(_.add(this, prover.get, handler))
+    protocol_handlers.add(session, prover.get, handler)
+
+  def add_protocol_handler(name: String): Unit =
+    protocol_handlers.add(session, prover.get, name)
 
 
   /* manager thread */
@@ -442,16 +383,11 @@ class Session(val resources: Resources)
 
       output match {
         case msg: Prover.Protocol_Output =>
-          val handled = _protocol_handlers.value.invoke(msg)
+          val handled = protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
               case Markup.Protocol_Handler(name) if prover.defined =>
-                try {
-                  val handler =
-                    Class.forName(name).newInstance.asInstanceOf[Session.Protocol_Handler]
-                  add_protocol_handler(handler)
-                }
-                catch { case exn: Throwable => Session.bad_protocol_handler(exn, name) }
+                add_protocol_handler(name)
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
@@ -538,7 +474,7 @@ class Session(val resources: Resources)
           case Stop =>
             delay_prune.revoke()
             if (prover.defined) {
-              _protocol_handlers.change(_.stop(prover.get))
+              protocol_handlers.stop(prover.get)
               global_state.change(_ => Document.State.init)
               prover.get.terminate
             }
