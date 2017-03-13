@@ -75,11 +75,11 @@ object Session
         case _ => Word.lowercase(this.toString)
       }
   }
-  case object Inactive extends Phase
+  case object Inactive extends Phase  // stable
   case object Startup extends Phase  // transient
-  case object Ready extends Phase
+  case object Ready extends Phase  // metastable
   case object Shutdown extends Phase  // transient
-  case class Terminated(rc: Int) extends Phase
+  case class Terminated(rc: Int) extends Phase  // stable
   //}}}
 
 
@@ -227,18 +227,24 @@ class Session(val resources: Resources)
   private case object Prune_History
 
 
+  /* phase */
+
+  private def post_phase(new_phase: Session.Phase): Session.Phase =
+  {
+    phase_changed.post(new_phase)
+    new_phase
+  }
+  private val _phase = Synchronized[Session.Phase](Session.Inactive)
+  private def phase_=(new_phase: Session.Phase): Unit = _phase.change(_ => post_phase(new_phase))
+
+  def phase = _phase.value
+  def is_ready: Boolean = phase == Session.Ready
+
+
   /* global state */
 
   private val syslog = new Session.Syslog(syslog_limit)
   def syslog_content(): String = syslog.content
-
-  private val _phase = Synchronized[Session.Phase](Session.Inactive)
-  private def phase_=(new_phase: Session.Phase)
-  {
-    _phase.change(_ => { phase_changed.post(new_phase); new_phase })
-  }
-  def phase = _phase.value
-  def is_ready: Boolean = phase == Session.Ready
 
   private val global_state = Synchronized(Document.State.init)
   def current_state(): Document.State = global_state.value
@@ -530,10 +536,10 @@ class Session(val resources: Resources)
             prover.set(start_prover(manager.send(_)))
 
           case Stop =>
-            if (prover.defined && is_ready) {
+            delay_prune.revoke()
+            if (prover.defined) {
               _protocol_handlers.change(_.stop(prover.get))
               global_state.change(_ => Document.State.init)
-              phase = Session.Shutdown
               prover.get.terminate
             }
 
@@ -598,16 +604,24 @@ class Session(val resources: Resources)
       {
         case Session.Inactive =>
           manager.send(Start(start_prover))
-          Session.Startup
+          post_phase(Session.Startup)
         case phase => error("Cannot start prover in phase " + quote(phase.print))
       })
   }
 
   def stop()
   {
-    delay_prune.revoke()
-    manager.send_wait(Stop)
+    val was_ready =
+      _phase.guarded_access(phase =>
+        phase match {
+          case Session.Startup | Session.Shutdown => None
+          case Session.Terminated(_) => Some((false, phase))
+          case Session.Inactive => Some((false, post_phase(Session.Terminated(0))))
+          case Session.Ready => Some((true, post_phase(Session.Shutdown)))
+        })
+    if (was_ready) manager.send_wait(Stop)
     prover.await_reset()
+
     change_parser.shutdown()
     change_buffer.shutdown()
     manager.shutdown()
