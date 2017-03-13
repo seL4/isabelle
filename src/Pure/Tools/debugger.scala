@@ -152,12 +152,10 @@ object Debugger
     {
       msg.properties match {
         case Markup.Debugger_Output(thread_name) =>
-          val msg_body =
-            prover.xml_cache.body(
-              YXML.parse_body_failsafe(Symbol.decode(UTF8.decode_permissive(msg.bytes))))
-          msg_body match {
+          YXML.parse_body_failsafe(Symbol.decode(UTF8.decode_permissive(msg.bytes))) match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
-              val message = XML.Elem(Markup(Markup.message(name), props), body)
+              val message =
+                prover.xml_cache.elem(XML.Elem(Markup(Markup.message(name), props), body))
               the_debugger.add_output(thread_name, i -> message)
               true
             case _ => false
