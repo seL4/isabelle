@@ -13,15 +13,14 @@ object Protocol_Handlers
     Output.error_message(
       "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
 
-  private val init_state = State()
-
   sealed case class State(
+    session: Session,
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
     functions: Map[String, Prover.Protocol_Output => Boolean] = Map.empty)
   {
     def get(name: String): Option[Session.Protocol_Handler] = handlers.get(name)
 
-    def add(session: Session, prover: Prover, handler: Session.Protocol_Handler): State =
+    def add(prover: Prover, handler: Session.Protocol_Handler): State =
     {
       val name = handler.getClass.getName
 
@@ -50,16 +49,16 @@ object Protocol_Handlers
         catch {
           case exn: Throwable => bad_handler(exn, name); (handlers1, functions1)
         }
-      State(handlers2, functions2)
+      copy(handlers = handlers2, functions = functions2)
     }
 
-    def add(session: Session, prover: Prover, name: String): State =
+    def add(prover: Prover, name: String): State =
     {
       val new_handler =
         try { Some(Class.forName(name).newInstance.asInstanceOf[Session.Protocol_Handler]) }
         catch { case exn: Throwable => bad_handler(exn, name); None }
       new_handler match {
-        case Some(handler) => add(session, prover, handler)
+        case Some(handler) => add(prover, handler)
         case None => this
       }
     }
@@ -80,25 +79,26 @@ object Protocol_Handlers
     def stop(prover: Prover): State =
     {
       for ((_, handler) <- handlers) handler.stop(prover)
-      init_state
+      copy(handlers = Map.empty, functions = Map.empty)
     }
   }
 
-  def init(): Protocol_Handlers = new Protocol_Handlers()
+  def init(session: Session): Protocol_Handlers =
+    new Protocol_Handlers(session)
 }
 
-class Protocol_Handlers private()
+class Protocol_Handlers private(session: Session)
 {
-  private val state = Synchronized(Protocol_Handlers.init_state)
+  private val state = Synchronized(Protocol_Handlers.State(session))
 
   def get(name: String): Option[Session.Protocol_Handler] =
     state.value.get(name)
 
-  def add(session: Session, prover: Prover, handler: Session.Protocol_Handler): Unit =
-    state.change(_.add(session, prover, handler))
+  def add(prover: Prover, handler: Session.Protocol_Handler): Unit =
+    state.change(_.add(prover, handler))
 
-  def add(session: Session, prover: Prover, name: String): Unit =
-    state.change(_.add(session, prover, name))
+  def add(prover: Prover, name: String): Unit =
+    state.change(_.add(prover, name))
 
   def invoke(msg: Prover.Protocol_Output): Boolean =
     state.value.invoke(msg)

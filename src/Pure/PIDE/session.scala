@@ -281,16 +281,16 @@ class Session(val resources: Resources)
 
   /* protocol handlers */
 
-  private val protocol_handlers = Protocol_Handlers.init()
+  private val protocol_handlers = Protocol_Handlers.init(session)
 
   def get_protocol_handler(name: String): Option[Session.Protocol_Handler] =
     protocol_handlers.get(name)
 
   def add_protocol_handler(handler: Session.Protocol_Handler): Unit =
-    protocol_handlers.add(session, prover.get, handler)
+    protocol_handlers.add(prover.get, handler)
 
   def add_protocol_handler(name: String): Unit =
-    protocol_handlers.add(session, prover.get, name)
+    protocol_handlers.add(prover.get, name)
 
 
   /* manager thread */
