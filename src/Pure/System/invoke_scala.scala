@@ -77,6 +77,12 @@ class Invoke_Scala extends Session.Protocol_Handler
   override def init(init_session: Session): Unit =
     synchronized { session = init_session }
 
+  override def exit(): Unit = synchronized
+  {
+    for ((id, future) <- futures) cancel(id, future)
+    futures = Map.empty
+  }
+
   private def fulfill(id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit =
     synchronized
     {
@@ -117,12 +123,6 @@ class Invoke_Scala extends Session.Protocol_Handler
         true
       case _ => false
     }
-  }
-
-  override def exit(): Unit = synchronized
-  {
-    for ((id, future) <- futures) cancel(id, future)
-    futures = Map.empty
   }
 
   val functions =

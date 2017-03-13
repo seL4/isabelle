@@ -806,6 +806,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   {
     private val pending = Synchronized(Map.empty[String, Promise[XML.Body]])
 
+    override def exit(): Unit =
+      pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
+
     def build_theories(
       session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[XML.Body] =
     {
@@ -838,9 +841,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             })
         case _ => false
       }
-
-    override def exit(): Unit =
-      pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
 
     val functions =
       List(
