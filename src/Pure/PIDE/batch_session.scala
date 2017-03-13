@@ -46,7 +46,7 @@ object Batch_Session
           val theories = session_info.theories.map({ case (_, opts, thys) => (opts, thys) })
           batch_session.build_theories_result =
             Some(Build.build_theories(prover_session, master_dir, theories))
-        case Session.Inactive | Session.Failed =>
+        case Session.Terminated(_) =>
           batch_session.session_result.fulfill_result(Exn.Exn(ERROR("Prover process terminated")))
         case Session.Shutdown =>
           batch_session.session_result.fulfill(())

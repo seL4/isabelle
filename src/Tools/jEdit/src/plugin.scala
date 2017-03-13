@@ -241,7 +241,7 @@ class Plugin extends EBPlugin
 
   private val session_phase =
     Session.Consumer[Session.Phase](getClass.getName) {
-      case Session.Inactive | Session.Failed =>
+      case Session.Terminated(_) =>
         GUI_Thread.later {
           GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
             "Isabelle Syslog", GUI.scrollable_text(PIDE.session.syslog_content()))

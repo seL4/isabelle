@@ -239,7 +239,7 @@ class Server(
             session.phase_changed -= session_phase
             session.update_options(options)
             reply("")
-          case Session.Failed =>
+          case Session.Terminated(rc) if rc != 0 =>
             session.phase_changed -= session_phase
             reply("Prover startup failed")
           case _ =>
@@ -267,7 +267,7 @@ class Server(
         var session_phase: Session.Consumer[Session.Phase] = null
         session_phase =
           Session.Consumer(getClass.getName) {
-            case Session.Inactive =>
+            case Session.Terminated(_) =>
               session.phase_changed -= session_phase
               session.commands_changed -= prover_output
               session.all_messages -= syslog

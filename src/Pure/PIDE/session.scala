@@ -68,11 +68,18 @@ object Session
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
   sealed abstract class Phase
+  {
+    def print: String =
+      this match {
+        case Terminated(rc) => if (rc == 0) "finished" else "failed"
+        case _ => Word.lowercase(this.toString)
+      }
+  }
   case object Inactive extends Phase
   case object Startup extends Phase  // transient
-  case object Failed extends Phase
   case object Ready extends Phase
   case object Shutdown extends Phase  // transient
+  case class Terminated(rc: Int) extends Phase
   //}}}
 
 
@@ -487,8 +494,7 @@ class Session(val resources: Resources)
               phase = Session.Ready
 
             case Markup.Return_Code(rc) if output.is_exit =>
-              if (rc == 0) phase = Session.Inactive
-              else phase = Session.Failed
+              phase = Session.Terminated(rc)
               prover.reset
 
             case _ =>
@@ -522,9 +528,11 @@ class Session(val resources: Resources)
             all_messages.post(input)
 
           case Start(start_prover) if !prover.defined =>
-            if (phase == Session.Inactive || phase == Session.Failed) {
-              phase = Session.Startup
-              prover.set(start_prover(manager.send(_)))
+            phase match {
+              case Session.Inactive | Session.Terminated(_) =>
+                phase = Session.Startup
+                prover.set(start_prover(manager.send(_)))
+              case _ =>
             }
 
           case Stop =>
