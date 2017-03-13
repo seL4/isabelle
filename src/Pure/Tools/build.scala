@@ -211,15 +211,12 @@ object Build
 
   def session_base(
     options: Options,
-    inlined_files: Boolean,
-    dirs: List[Path],
-    session: String): Sessions.Base =
+    session_name: String,
+    session_dirs: List[Path] = Nil,
+    inlined_files: Boolean = false): Sessions.Base =
   {
-    session_dependencies(options, inlined_files, dirs, List(session))(session)
+    session_dependencies(options, inlined_files, session_dirs, List(session_name))(session_name)
   }
-
-  def outer_syntax(options: Options, dirs: List[Path], session: String): Outer_Syntax =
-    session_base(options, false, dirs, session).syntax
 
 
   /* jobs */
