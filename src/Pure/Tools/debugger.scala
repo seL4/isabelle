@@ -12,11 +12,12 @@ import scala.collection.immutable.SortedMap
 
 object Debugger
 {
-  /* context */
+  /* thread context */
 
-  sealed case class Debug_State(
-    pos: Position.T,
-    function: String)
+  case object Update
+
+  sealed case class Debug_State(pos: Position.T, function: String)
+  type Threads = SortedMap[String, List[Debug_State]]
 
   sealed case class Context(thread_name: String, debug_states: List[Debug_State], index: Int = 0)
   {
@@ -47,12 +48,10 @@ object Debugger
   }
 
 
-  /* global state */
-
-  type Threads = SortedMap[String, List[Debug_State]]
+  /* debugger state */
 
   sealed case class State(
-    session: Session = new Session(Resources.empty),  // implicit session
+    session: Session,
     active: Int = 0,  // active views
     break: Boolean = false,  // break at next possible breakpoint
     active_breakpoints: Set[Long] = Set.empty,  // explicit breakpoint state
@@ -60,12 +59,6 @@ object Debugger
     focus: Map[String, Context] = Map.empty,  // thread name ~> focus
     output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
   {
-    def set_session(new_session: Session): State =
-    {
-      session.stop()
-      copy(session = new_session)
-    }
-
     def set_break(b: Boolean): State = copy(break = b)
 
     def is_active: Boolean = active > 0 && session.is_ready
@@ -109,23 +102,33 @@ object Debugger
       copy(output = output - thread_name)
   }
 
-  private val global_state = Synchronized(State())
-
-
-  /* update events */
-
-  case object Update
-
-  private val delay_update =
-    Standard_Thread.delay_first(global_state.value.session.output_delay) {
-      global_state.value.session.debugger_updates.post(Update)
-    }
-
 
   /* protocol handler */
 
+  def get(session: Session): Option[Debugger] =
+    session.get_protocol_handler("isabelle.Debugger$Handler") match {
+      case Some(handler: Handler) => handler.get_debugger
+      case _ => None
+    }
+
+  def apply(session: Session): Debugger =
+    get(session) getOrElse error("Debugger not initialized")
+
   class Handler extends Session.Protocol_Handler
   {
+    private val _debugger_ = Synchronized[Option[Debugger]](None)
+    def get_debugger: Option[Debugger] = _debugger_.value
+    def the_debugger: Debugger = get_debugger getOrElse error("Debugger not initialized")
+
+    override def start(session: Session, prover: Prover)
+    {
+      _debugger_.change(
+        {
+          case None => Some(new Debugger(session))
+          case Some(_) => error("Debugger already initialized")
+        })
+    }
+
     private def debugger_state(prover: Prover, msg: Prover.Protocol_Output): Boolean =
     {
       msg.properties match {
@@ -139,8 +142,7 @@ object Debugger
               case (pos, function) => Debug_State(pos, function)
             })
           }
-          global_state.change(_.update_thread(thread_name, debug_states))
-          delay_update.invoke()
+          the_debugger.update_thread(thread_name, debug_states)
           true
         case _ => false
       }
@@ -156,8 +158,7 @@ object Debugger
           msg_body match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
               val message = XML.Elem(Markup(Markup.message(name), props), body)
-              global_state.change(_.add_output(thread_name, i -> message))
-              delay_update.invoke()
+              the_debugger.add_output(thread_name, i -> message)
               true
             case _ => false
           }
@@ -170,101 +171,114 @@ object Debugger
         Markup.DEBUGGER_STATE -> debugger_state _,
         Markup.DEBUGGER_OUTPUT -> debugger_output _)
   }
+}
+
+class Debugger private(session: Session)
+{
+  /* debugger state */
+
+  private val state = Synchronized(Debugger.State(session))
+
+  private val delay_update =
+    Standard_Thread.delay_first(session.output_delay) {
+      session.debugger_updates.post(Debugger.Update)
+    }
 
 
   /* protocol commands */
 
-  def is_active(): Boolean = global_state.value.is_active
-
-  def init_session(session: Session)
+  def update_thread(thread_name: String, debug_states: List[Debugger.Debug_State])
   {
-    global_state.change(state =>
-    {
-      val state1 = state.set_session(session)
-      if (!state.session.is_ready && state1.session.is_ready && state1.is_active)
-        state1.session.protocol_command("Debugger.init")
-      state1
-    })
+    state.change(_.update_thread(thread_name, debug_states))
+    delay_update.invoke()
   }
 
+  def add_output(thread_name: String, entry: Command.Results.Entry)
+  {
+    state.change(_.add_output(thread_name, entry))
+    delay_update.invoke()
+  }
+
+  def is_active(): Boolean = state.value.is_active
+
   def init(): Unit =
-    global_state.change(state =>
+    state.change(st =>
     {
-      val state1 = state.inc_active
-      if (!state.is_active && state1.is_active)
-        state1.session.protocol_command("Debugger.init")
-      state1
+      val st1 = st.inc_active
+      if (!st.is_active && st1.is_active)
+        session.protocol_command("Debugger.init")
+      st1
     })
 
   def exit(): Unit =
-    global_state.change(state =>
+    state.change(st =>
     {
-      val state1 = state.dec_active
-      if (state.is_active && !state1.is_active)
-        state1.session.protocol_command("Debugger.exit")
-      state1
+      val st1 = st.dec_active
+      if (st.is_active && !st1.is_active)
+        session.protocol_command("Debugger.exit")
+      st1
     })
 
-  def is_break(): Boolean = global_state.value.break
+  def is_break(): Boolean = state.value.break
   def set_break(b: Boolean)
   {
-    global_state.change(state => {
-      val state1 = state.set_break(b)
-      state1.session.protocol_command("Debugger.break", b.toString)
-      state1
+    state.change(st => {
+      val st1 = st.set_break(b)
+      session.protocol_command("Debugger.break", b.toString)
+      st1
     })
     delay_update.invoke()
   }
 
   def active_breakpoint_state(breakpoint: Long): Option[Boolean] =
   {
-    val state = global_state.value
-    if (state.is_active) Some(state.active_breakpoints(breakpoint)) else None
+    val st = state.value
+    if (st.is_active) Some(st.active_breakpoints(breakpoint)) else None
   }
 
   def breakpoint_state(breakpoint: Long): Boolean =
-    global_state.value.active_breakpoints(breakpoint)
+    state.value.active_breakpoints(breakpoint)
 
   def toggle_breakpoint(command: Command, breakpoint: Long)
   {
-    global_state.change(state =>
-    {
-      val (breakpoint_state, state1) = state.toggle_breakpoint(breakpoint)
-      state1.session.protocol_command(
-        "Debugger.breakpoint",
-        Symbol.encode(command.node_name.node),
-        Document_ID(command.id),
-        Value.Long(breakpoint),
-        Value.Boolean(breakpoint_state))
-      state1
-    })
+    state.change(st =>
+      {
+        val (breakpoint_state, st1) = st.toggle_breakpoint(breakpoint)
+        session.protocol_command(
+          "Debugger.breakpoint",
+          Symbol.encode(command.node_name.node),
+          Document_ID(command.id),
+          Value.Long(breakpoint),
+          Value.Boolean(breakpoint_state))
+        st1
+      })
   }
 
-  def status(focus: Option[Context]): (Threads, List[XML.Tree]) =
+  def status(focus: Option[Debugger.Context]): (Debugger.Threads, List[XML.Tree]) =
   {
-    val state = global_state.value
+    val st = state.value
     val output =
       focus match {
         case None => Nil
         case Some(c) =>
           (for {
-            (thread_name, results) <- state.output
+            (thread_name, results) <- st.output
             if thread_name == c.thread_name
             (_, tree) <- results.iterator
           } yield tree).toList
       }
-    (state.threads, output)
+    (st.threads, output)
   }
 
-  def focus(): List[Context] = global_state.value.focus.toList.map(_._2)
-  def set_focus(c: Context)
+  def focus(): List[Debugger.Context] = state.value.focus.toList.map(_._2)
+  def set_focus(c: Debugger.Context)
   {
-    global_state.change(_.set_focus(c))
+    state.change(_.set_focus(c))
     delay_update.invoke()
   }
 
   def input(thread_name: String, msg: String*): Unit =
-    global_state.value.session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
+    session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
 
   def continue(thread_name: String): Unit = input(thread_name, "continue")
   def step(thread_name: String): Unit = input(thread_name, "step")
@@ -273,28 +287,28 @@ object Debugger
 
   def clear_output(thread_name: String)
   {
-    global_state.change(_.clear_output(thread_name))
+    state.change(_.clear_output(thread_name))
     delay_update.invoke()
   }
 
-  def eval(c: Context, SML: Boolean, context: String, expression: String)
+  def eval(c: Debugger.Context, SML: Boolean, context: String, expression: String)
   {
-    global_state.change(state => {
+    state.change(st => {
       input(c.thread_name, "eval", c.debug_index.getOrElse(0).toString,
         SML.toString, Symbol.encode(context), Symbol.encode(expression))
-      state.clear_output(c.thread_name)
+      st.clear_output(c.thread_name)
     })
     delay_update.invoke()
   }
 
-  def print_vals(c: Context, SML: Boolean, context: String)
+  def print_vals(c: Debugger.Context, SML: Boolean, context: String)
   {
     require(c.debug_index.isDefined)
 
-    global_state.change(state => {
+    state.change(st => {
       input(c.thread_name, "print_vals", c.debug_index.getOrElse(0).toString,
         SML.toString, Symbol.encode(context))
-      state.clear_output(c.thread_name)
+      st.clear_output(c.thread_name)
     })
     delay_update.invoke()
   }

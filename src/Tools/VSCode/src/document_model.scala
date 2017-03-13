@@ -167,6 +167,6 @@ sealed case class Document_Model(
   def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
 
   def rendering(snapshot: Document.Snapshot): VSCode_Rendering =
-    new VSCode_Rendering(this, snapshot, resources)
+    new VSCode_Rendering(this, snapshot)
   def rendering(): VSCode_Rendering = rendering(snapshot())
 }

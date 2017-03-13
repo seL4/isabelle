@@ -34,7 +34,7 @@ object Debugger_Dockable
   {
     GUI_Thread.require {}
 
-    Debugger.toggle_breakpoint(command, breakpoint)
+    PIDE.debugger.toggle_breakpoint(command, breakpoint)
     jEdit.propertiesChanged()
   }
 
@@ -55,7 +55,7 @@ object Debugger_Dockable
   /* context menu */
 
   def context_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] =
-    if (Debugger.is_active() && get_breakpoint(text_area, offset).isDefined) {
+    if (PIDE.debugger.is_active() && get_breakpoint(text_area, offset).isDefined) {
       val context = jEdit.getActionContext()
       val name = "isabelle.toggle-breakpoint"
       List(new EnhancedMenuItem(context.getAction(name).getLabel, name, context))
@@ -94,7 +94,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     GUI_Thread.require {}
 
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
-    val (new_threads, new_output) = Debugger.status(tree_selection())
+    val (new_threads, new_output) = PIDE.debugger.status(tree_selection())
 
     if (new_threads != current_threads)
       update_tree(new_threads)
@@ -173,9 +173,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   {
     tree_selection() match {
       case Some(c) if c.stack_state.isDefined =>
-        Debugger.print_vals(c, sml_button.selected, context_field.getText)
+        PIDE.debugger.print_vals(c, sml_button.selected, context_field.getText)
       case Some(c) =>
-        Debugger.clear_output(c.thread_name)
+        PIDE.debugger.clear_output(c.thread_name)
       case None =>
     }
   }
@@ -207,28 +207,28 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val break_button = new CheckBox("Break") {
     tooltip = "Break running threads at next possible breakpoint"
-    selected = Debugger.is_break()
-    reactions += { case ButtonClicked(_) => Debugger.set_break(selected) }
+    selected = PIDE.debugger.is_break()
+    reactions += { case ButtonClicked(_) => PIDE.debugger.set_break(selected) }
   }
 
   private val continue_button = new Button("Continue") {
     tooltip = "Continue program on current thread, until next breakpoint"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.continue(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(PIDE.debugger.continue(_)) }
   }
 
   private val step_button = new Button("Step") {
     tooltip = "Single-step in depth-first order"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(PIDE.debugger.step(_)) }
   }
 
   private val step_over_button = new Button("Step over") {
     tooltip = "Single-step within this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_over(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(PIDE.debugger.step_over(_)) }
   }
 
   private val step_out_button = new Button("Step out") {
     tooltip = "Single-step outside this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_out(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(PIDE.debugger.step_out(_)) }
   }
 
   private val context_label = new Label("Context:") {
@@ -277,7 +277,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     expression_field.addCurrentToHistory()
     tree_selection() match {
       case Some(c) if c.debug_index.isDefined =>
-        Debugger.eval(c, sml_button.selected, context_field.getText, expression_field.getText)
+        PIDE.debugger.eval(c, sml_button.selected, context_field.getText, expression_field.getText)
       case _ =>
     }
   }
@@ -309,7 +309,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private def update_focus()
   {
     for (c <- tree_selection()) {
-      Debugger.set_focus(c)
+      PIDE.debugger.set_focus(c)
       for {
         pos <- c.debug_position
         link <- PIDE.editor.hyperlink_position(false, current_snapshot, pos)
@@ -338,7 +338,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
       case Debugger.Update =>
         GUI_Thread.later {
-          break_button.selected = Debugger.is_break()
+          break_button.selected = PIDE.debugger.is_break()
           handle_update()
         }
     }
@@ -347,7 +347,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   {
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
-    Debugger.init()
+    PIDE.debugger.init()
     handle_update()
     jEdit.propertiesChanged()
   }
@@ -357,7 +357,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()
-    Debugger.exit()
+    PIDE.debugger.exit()
     jEdit.propertiesChanged()
   }
 

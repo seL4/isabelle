@@ -158,7 +158,7 @@ object JEdit_Rendering
 
 
 class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
-  extends Rendering(snapshot, options, PIDE.resources)
+  extends Rendering(snapshot, options, PIDE.session)
 {
   /* colors */
 
@@ -304,7 +304,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
       range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
-            val file = resources.append_file(snapshot.node_name.master_dir, name)
+            val file = PIDE.resources.append_file(snapshot.node_name.master_dir, name)
             val link = PIDE.editor.hyperlink_file(true, file)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
@@ -456,7 +456,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
     snapshot.select(range, JEdit_Rendering.bullet_elements, _ =>
       {
         case Text.Info(_, Protocol.ML_Breakpoint(breakpoint)) =>
-          Debugger.active_breakpoint_state(breakpoint).map(b =>
+          PIDE.debugger.active_breakpoint_state(breakpoint).map(b =>
             if (b) breakpoint_enabled_color else breakpoint_disabled_color)
         case _ => Some(bullet_color)
       })

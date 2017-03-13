@@ -107,7 +107,7 @@ object Session
 
   abstract class Protocol_Handler
   {
-    def start(prover: Prover): Unit = {}
+    def start(session: Session, prover: Prover): Unit = {}
     def stop(prover: Prover): Unit = {}
     val functions: Map[String, (Prover, Prover.Protocol_Output) => Boolean]
   }
@@ -122,7 +122,7 @@ object Session
   {
     def get(name: String): Option[Protocol_Handler] = handlers.get(name)
 
-    def add(prover: Prover, handler: Protocol_Handler): Protocol_Handlers =
+    def add(session: Session, prover: Prover, handler: Protocol_Handler): Protocol_Handlers =
     {
       val name = handler.getClass.getName
 
@@ -137,7 +137,7 @@ object Session
 
       val (handlers2, functions2) =
         try {
-          handler.start(prover)
+          handler.start(session, prover)
 
           val new_functions =
             for ((a, f) <- handler.functions.toList) yield
@@ -349,7 +349,7 @@ class Session(val resources: Resources)
     _protocol_handlers.value.get(name)
 
   def add_protocol_handler(handler: Session.Protocol_Handler): Unit =
-    _protocol_handlers.change(_.add(prover.get, handler))
+    _protocol_handlers.change(_.add(this, prover.get, handler))
 
 
   /* manager thread */

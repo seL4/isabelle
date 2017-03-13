@@ -221,7 +221,7 @@ object Rendering
 abstract class Rendering(
   val snapshot: Document.Snapshot,
   val options: Options,
-  val resources: Resources)
+  val session: Session)
 {
   override def toString: String = "Rendering(" + snapshot.toString + ")"
 
@@ -448,7 +448,7 @@ abstract class Rendering(
             Some(info + (r0, true, XML.Text(txt1 + txt2)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Path(name), _))) =>
-            val file = resources.append_file(snapshot.node_name.master_dir, name)
+            val file = session.resources.append_file(snapshot.node_name.master_dir, name)
             val text =
               if (name == file) "file " + quote(file)
               else "path " + quote(name) + "\nfile " + quote(file)
@@ -472,11 +472,14 @@ abstract class Rendering(
             Some(info + (r0, false, Pretty.block(XML.Text("ML:") :: Pretty.brk(1) :: body)))
 
           case (info, Text.Info(r0, Protocol.ML_Breakpoint(breakpoint))) =>
-            val text =
-              if (Debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
-              else "breakpoint (disabled)"
-            Some(info + (r0, true, XML.Text(text)))
-
+            Debugger.get(session) match {
+              case None => None
+              case Some(debugger) =>
+                val text =
+                  if (debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
+                  else "breakpoint (disabled)"
+                Some(info + (r0, true, XML.Text(text)))
+            }
           case (info, Text.Info(r0, XML.Elem(Markup.Language(language, _, _, _), _))) =>
             val lang = Word.implode(Word.explode('_', language))
             Some(info + (r0, true, XML.Text("language: " + lang)))

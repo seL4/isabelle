@@ -45,6 +45,8 @@ object PIDE
   def resources(): JEdit_Resources =
     session.resources.asInstanceOf[JEdit_Resources]
 
+  def debugger: Debugger = Debugger(session)
+
   def file_watcher(): File_Watcher =
     if (plugin == null) File_Watcher.none else plugin.file_watcher
 
@@ -248,7 +250,6 @@ class Plugin extends EBPlugin
         }
 
       case Session.Ready =>
-        Debugger.init_session(PIDE.session)
         PIDE.session.update_options(PIDE.options.value)
         PIDE.init_models()
 

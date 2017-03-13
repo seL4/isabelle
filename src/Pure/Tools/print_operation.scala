@@ -35,7 +35,7 @@ object Print_Operation
       true
     }
 
-    override def start(prover: Prover): Unit =
+    override def start(session: Session, prover: Prover): Unit =
       prover.protocol_command(Markup.PRINT_OPERATIONS)
 
     val functions = Map(Markup.PRINT_OPERATIONS -> put _)
