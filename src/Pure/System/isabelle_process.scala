@@ -9,6 +9,19 @@ package isabelle
 
 object Isabelle_Process
 {
+  def start(session: Session,
+    options: Options,
+    logic: String = "",
+    args: List[String] = Nil,
+    dirs: List[Path] = Nil,
+    modes: List[String] = Nil,
+    store: Sessions.Store = Sessions.store())
+  {
+    session.start(receiver =>
+      Isabelle_Process(options, logic = logic, args = args, dirs = dirs, modes = modes,
+        receiver = receiver, store = store))
+  }
+
   def apply(
     options: Options,
     logic: String = "",

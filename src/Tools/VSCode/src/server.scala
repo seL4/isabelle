@@ -251,9 +251,8 @@ class Server(
 
       dynamic_output.init()
 
-      session.start(receiver =>
-        Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
-          modes = modes, receiver = receiver))
+      Isabelle_Process.start(session, options,
+        logic = session_name, dirs = session_dirs, modes = modes)
     }
   }
 

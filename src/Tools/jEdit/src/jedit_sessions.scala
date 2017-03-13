@@ -65,10 +65,9 @@ object JEdit_Sessions
       (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
        space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
 
-    PIDE.session.start(receiver =>
-      Isabelle_Process(options = session_options(), logic = session_name(), dirs = session_dirs(),
-        modes = modes, receiver = receiver,
-        store = Sessions.store(session_build_mode() == "system")))
+    Isabelle_Process.start(PIDE.session, session_options(),
+      logic = session_name(), dirs = session_dirs(), modes = modes,
+      store = Sessions.store(session_build_mode() == "system"))
   }
 
   def session_list(): List[String] =
