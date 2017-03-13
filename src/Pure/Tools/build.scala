@@ -199,23 +199,10 @@ object Build
           }
       }))
 
-  def session_dependencies(
-    options: Options,
-    inlined_files: Boolean,
-    dirs: List[Path],
-    sessions: List[String]): Deps =
+  def session_base(options: Options, session: String, dirs: List[Path] = Nil): Sessions.Base =
   {
-    val (_, tree) = Sessions.load(options, dirs = dirs).selection(sessions = sessions)
-    dependencies(inlined_files = inlined_files, tree = tree)
-  }
-
-  def session_base(
-    options: Options,
-    session_name: String,
-    session_dirs: List[Path] = Nil,
-    inlined_files: Boolean = false): Sessions.Base =
-  {
-    session_dependencies(options, inlined_files, session_dirs, List(session_name))(session_name)
+    val (_, tree) = Sessions.load(options, dirs = dirs).selection(sessions = List(session))
+    dependencies(tree = tree)(session)
   }
 
 
