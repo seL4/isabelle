@@ -374,7 +374,7 @@ class Plugin extends EBPlugin
             if (buffer != null && text_area != null) PIDE.init_view(buffer, text_area)
           }
 
-          PIDE.plugin.spell_checker.update(PIDE.options.value)
+          spell_checker.update(PIDE.options.value)
           PIDE.session.update_options(PIDE.options.value)
 
         case _ =>
@@ -387,8 +387,8 @@ class Plugin extends EBPlugin
     try {
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
-      PIDE.plugin.completion_history.load()
-      PIDE.plugin.spell_checker.update(PIDE.options.value)
+      completion_history.load()
+      spell_checker.update(PIDE.options.value)
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
@@ -422,7 +422,7 @@ class Plugin extends EBPlugin
 
     if (startup_failure.isEmpty) {
       PIDE.options.value.save_prefs()
-      PIDE.plugin.completion_history.value.save()
+      completion_history.value.save()
     }
 
     PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
