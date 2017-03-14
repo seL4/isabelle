@@ -443,6 +443,7 @@ class Session(val resources: Resources) extends Document.Session
 
             case _ if output.is_init =>
               phase = Session.Ready
+              debugger.ready()
 
             case Markup.Return_Code(rc) if output.is_exit =>
               phase = Session.Terminated(rc)

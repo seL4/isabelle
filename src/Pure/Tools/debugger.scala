@@ -51,7 +51,6 @@ object Debugger
   /* debugger state */
 
   sealed case class State(
-    session: Session,
     active: Int = 0,  // active views
     break: Boolean = false,  // break at next possible breakpoint
     active_breakpoints: Set[Long] = Set.empty,  // explicit breakpoint state
@@ -61,7 +60,7 @@ object Debugger
   {
     def set_break(b: Boolean): State = copy(break = b)
 
-    def is_active: Boolean = active > 0 && session.is_ready
+    def is_active: Boolean = active > 0
     def inc_active: State = copy(active = active + 1)
     def dec_active: State = copy(active = active - 1)
 
@@ -154,7 +153,7 @@ class Debugger private(session: Session)
 {
   /* debugger state */
 
-  private val state = Synchronized(Debugger.State(session))
+  private val state = Synchronized(Debugger.State())
 
   private val delay_update =
     Standard_Thread.delay_first(session.output_delay) {
@@ -176,13 +175,19 @@ class Debugger private(session: Session)
     delay_update.invoke()
   }
 
-  def is_active(): Boolean = state.value.is_active
+  def is_active(): Boolean = session.is_ready && state.value.is_active
+
+  def ready()
+  {
+    if (is_active())
+      session.protocol_command("Debugger.init")
+  }
 
   def init(): Unit =
     state.change(st =>
     {
       val st1 = st.inc_active
-      if (!st.is_active && st1.is_active)
+      if (session.is_ready && !st.is_active && st1.is_active)
         session.protocol_command("Debugger.init")
       st1
     })
@@ -191,7 +196,7 @@ class Debugger private(session: Session)
     state.change(st =>
     {
       val st1 = st.dec_active
-      if (st.is_active && !st1.is_active)
+      if (session.is_ready && st.is_active && !st1.is_active)
         session.protocol_command("Debugger.exit")
       st1
     })
