@@ -246,7 +246,7 @@ class Server(
             reply("")
           case Session.Terminated(rc) if rc != 0 =>
             session.phase_changed -= session_phase
-            reply("Prover startup failed")
+            reply("Prover startup failed: return code " + rc)
           case _ =>
         }
       session.phase_changed += session_phase
@@ -262,22 +262,21 @@ class Server(
 
     session_.change({
       case Some(session) =>
+        session.commands_changed -= prover_output
+        session.all_messages -= syslog
+
         dynamic_output.exit()
-        var session_phase: Session.Consumer[Session.Phase] = null
-        session_phase =
-          Session.Consumer(getClass.getName) {
-            case Session.Terminated(_) =>
-              session.phase_changed -= session_phase
-              session.commands_changed -= prover_output
-              session.all_messages -= syslog
-              reply("")
-            case _ =>
-          }
-        session.phase_changed += session_phase
-        session.stop()
+
+        delay_load.revoke()
+        file_watcher.shutdown()
         delay_input.revoke()
         delay_output.revoke()
-        file_watcher.shutdown()
+        delay_caret_update.revoke()
+
+        val rc = session.stop()
+        if (rc == 0) reply("")
+        else reply("Prover shutdown failed: return code " + rc)
+
         None
       case None =>
         reply("Prover inactive")
