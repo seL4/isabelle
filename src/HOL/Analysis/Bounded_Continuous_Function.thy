@@ -7,13 +7,12 @@ begin
 
 subsection \<open>Definition\<close>
 
-definition bcontfun :: "('a::topological_space \<Rightarrow> 'b::metric_space) set"
-  where "bcontfun = {f. continuous_on UNIV f \<and> bounded (range f)}"
+definition "bcontfun = {f. continuous_on UNIV f \<and> bounded (range f)}"
 
 typedef (overloaded) ('a, 'b) bcontfun ("(_ \<Rightarrow>\<^sub>C /_)" [22, 21] 21) =
-    "{f::'a::topological_space \<Rightarrow> 'b::metric_space. continuous_on UNIV f \<and> bounded (range f)}"
+  "bcontfun::('a::topological_space \<Rightarrow> 'b::metric_space) set"
   morphisms apply_bcontfun Bcontfun
-  by (auto intro: continuous_intros simp: bounded_def)
+  by (auto intro: continuous_intros simp: bounded_def bcontfun_def)
 
 declare [[coercion "apply_bcontfun :: ('a::topological_space \<Rightarrow>\<^sub>C'b::metric_space) \<Rightarrow> 'a \<Rightarrow> 'b"]]
 
@@ -22,18 +21,21 @@ setup_lifting type_definition_bcontfun
 lemma continuous_on_apply_bcontfun[intro, simp]: "continuous_on T (apply_bcontfun x)"
   and bounded_apply_bcontfun[intro, simp]: "bounded (range (apply_bcontfun x))"
   using apply_bcontfun[of x]
-  by (auto simp: intro: continuous_on_subset)
+  by (auto simp: bcontfun_def intro: continuous_on_subset)
 
 lemma bcontfun_eqI: "(\<And>x. apply_bcontfun f x = apply_bcontfun g x) \<Longrightarrow> f = g"
   by transfer auto
 
 lemma bcontfunE:
-  assumes "continuous_on UNIV f" "bounded (range f)"
+  assumes "f \<in> bcontfun"
   obtains g where "f = apply_bcontfun g"
-  by (blast intro: apply_bcontfun_cases assms)
+  by (blast intro: apply_bcontfun_cases assms )
+
+lemma const_bcontfun: "(\<lambda>x. b) \<in> bcontfun"
+  by (auto simp: bcontfun_def continuous_on_const image_def)
 
 lift_definition const_bcontfun::"'b::metric_space \<Rightarrow> ('a::topological_space \<Rightarrow>\<^sub>C 'b)" is "\<lambda>c _. c"
-  by (auto intro!: continuous_intros simp: image_def)
+  by (rule const_bcontfun)
 
 (* TODO: Generalize to uniform spaces? *)
 instantiation bcontfun :: (topological_space, metric_space) metric_space
@@ -55,7 +57,7 @@ lemma bounded_dist_le_SUP_dist:
 lemma dist_bounded:
   fixes f g :: "'a \<Rightarrow>\<^sub>C 'b"
   shows "dist (f x) (g x) \<le> dist f g"
-  by transfer (auto intro!: bounded_dist_le_SUP_dist)
+  by transfer (auto intro!: bounded_dist_le_SUP_dist simp: bcontfun_def)
 
 lemma dist_bound:
   fixes f g :: "'a \<Rightarrow>\<^sub>C 'b"
@@ -98,7 +100,7 @@ qed (rule open_bcontfun_def uniformity_bcontfun_def)+
 end
 
 lift_definition PiC::"'a::topological_space set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<Rightarrow>\<^sub>C 'b::metric_space) set"
-  is "\<lambda>I X. Pi I X \<inter> {f. continuous_on UNIV f \<and> bounded (range f)}"
+  is "\<lambda>I X. Pi I X \<inter> bcontfun"
   by auto
 
 lemma mem_PiC_iff: "x \<in> PiC I X \<longleftrightarrow> apply_bcontfun x \<in> Pi I X"
@@ -141,7 +143,8 @@ lemma uniform_limit_bcontfunE:
   obtains l'::"'a::topological_space \<Rightarrow>\<^sub>C 'b::metric_space"
   where "l = l'" "(f \<longlongrightarrow> l') F"
   by (metis (mono_tags, lifting) always_eventually apply_bcontfun apply_bcontfun_cases assms
-      mem_Collect_eq uniform_limit_bounded uniform_limit_tendsto_bcontfun uniform_limit_theorem)
+      bcontfun_def mem_Collect_eq uniform_limit_bounded uniform_limit_tendsto_bcontfun
+      uniform_limit_theorem)
 
 lemma closed_PiC:
   fixes I :: "'a::metric_space set"
@@ -193,23 +196,38 @@ subsection \<open>Supremum norm for a normed vector space\<close>
 instantiation bcontfun :: (topological_space, real_normed_vector) real_vector
 begin
 
+lemma uminus_cont: "f \<in> bcontfun \<Longrightarrow> (\<lambda>x. - f x) \<in> bcontfun" for f::"'a \<Rightarrow> 'b"
+  by (auto simp: bcontfun_def intro!: continuous_intros)
+
+lemma plus_cont: "f \<in> bcontfun \<Longrightarrow> g \<in> bcontfun \<Longrightarrow> (\<lambda>x. f x + g x) \<in> bcontfun" for f g::"'a \<Rightarrow> 'b"
+  by (auto simp: bcontfun_def intro!: continuous_intros bounded_plus_comp)
+
+lemma minus_cont: "f \<in> bcontfun \<Longrightarrow> g \<in> bcontfun \<Longrightarrow> (\<lambda>x. f x - g x) \<in> bcontfun" for f g::"'a \<Rightarrow> 'b"
+  by (auto simp: bcontfun_def intro!: continuous_intros bounded_minus_comp)
+
+lemma scaleR_cont: "f \<in> bcontfun \<Longrightarrow> (\<lambda>x. a *\<^sub>R f x) \<in> bcontfun" for f :: "'a \<Rightarrow> 'b"
+  by (auto simp: bcontfun_def intro!: continuous_intros bounded_scaleR_comp)
+
+lemma bcontfun_normI: "continuous_on UNIV f \<Longrightarrow> (\<And>x. norm (f x) \<le> b) \<Longrightarrow> f \<in> bcontfun"
+  by (auto simp: bcontfun_def intro: boundedI)
+
 lift_definition uminus_bcontfun::"('a \<Rightarrow>\<^sub>C 'b) \<Rightarrow> 'a \<Rightarrow>\<^sub>C 'b" is "\<lambda>f x. - f x"
-  by (auto intro!: continuous_intros)
+  by (rule uminus_cont)
 
 lift_definition plus_bcontfun::"('a \<Rightarrow>\<^sub>C 'b) \<Rightarrow> ('a \<Rightarrow>\<^sub>C 'b) \<Rightarrow> 'a \<Rightarrow>\<^sub>C 'b"  is "\<lambda>f g x. f x + g x"
-  by (auto simp: intro!: continuous_intros bounded_plus_comp)
+  by (rule plus_cont)
 
 lift_definition minus_bcontfun::"('a \<Rightarrow>\<^sub>C 'b) \<Rightarrow> ('a \<Rightarrow>\<^sub>C 'b) \<Rightarrow> 'a \<Rightarrow>\<^sub>C 'b"  is "\<lambda>f g x. f x - g x"
-  by (auto simp: intro!: continuous_intros bounded_minus_comp)
+  by (rule minus_cont)
 
 lift_definition zero_bcontfun::"'a \<Rightarrow>\<^sub>C 'b" is "\<lambda>_. 0"
-  by (auto intro!: continuous_intros simp: image_def)
+  by (rule const_bcontfun)
 
 lemma const_bcontfun_0_eq_0[simp]: "const_bcontfun 0 = 0"
   by transfer simp
 
 lift_definition scaleR_bcontfun::"real \<Rightarrow> ('a \<Rightarrow>\<^sub>C 'b) \<Rightarrow> 'a \<Rightarrow>\<^sub>C 'b"  is "\<lambda>r g x. r *\<^sub>R g x"
-  by (auto simp: intro!: continuous_intros bounded_scaleR_comp)
+  by (rule scaleR_cont)
 
 lemmas [simp] =
   const_bcontfun.rep_eq
@@ -247,13 +265,14 @@ proof
   show "norm (f + g) \<le> norm f + norm g"
     unfolding norm_bcontfun_def
     by transfer
-      (auto intro!: cSUP_least norm_triangle_le add_mono bounded_norm_le_SUP_norm simp: dist_norm)
+      (auto intro!: cSUP_least norm_triangle_le add_mono bounded_norm_le_SUP_norm
+        simp: dist_norm bcontfun_def)
   show "norm (a *\<^sub>R f) = \<bar>a\<bar> * norm f"
     unfolding norm_bcontfun_def
     apply transfer
     by (rule trans[OF _ continuous_at_Sup_mono[symmetric]])
       (auto intro!: monoI mult_left_mono continuous_intros bounded_imp_bdd_above
-        simp: bounded_norm_comp)
+        simp: bounded_norm_comp bcontfun_def)
 qed (auto simp: norm_bcontfun_def sgn_bcontfun_def)
 
 end
@@ -286,15 +305,12 @@ lemma continuous_on_interval_bcontfunE:
     "\<And>x. g x = f (clamp a b x)"
 proof -
   define g where "g \<equiv> ext_cont f a b"
-  have "continuous_on UNIV g"
+  have "g \<in> bcontfun"
     using assms
-    by (auto intro!: continuous_on_ext_cont simp: g_def cbox_interval)
-  moreover
-  have "bounded (range g)"
-    by (auto simp: g_def ext_cont_def cbox_interval
+    by (auto intro!: continuous_on_ext_cont simp: g_def cbox_interval bcontfun_def)
+      (auto simp: g_def ext_cont_def cbox_interval
         intro!: compact_interval clamp_bounded compact_imp_bounded[OF compact_continuous_image] assms)
-  ultimately
-  obtain h where h: "g = apply_bcontfun h" by (rule bcontfunE)
+  then obtain h where h: "g = apply_bcontfun h" by (rule bcontfunE)
   then have "h x = f x" if "a \<le> x" "x \<le> b" for x
     by (auto simp: h[symmetric] g_def cbox_interval that)
   moreover
