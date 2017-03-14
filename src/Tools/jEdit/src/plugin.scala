@@ -86,7 +86,7 @@ class Plugin extends EBPlugin
 
   def options_changed()
   {
-    PIDE.session.global_options.post(Session.Global_Options(PIDE.options.value))
+    PIDE.session.global_options.post(Session.Global_Options(options.value))
     delay_load.invoke()
   }
 
@@ -99,7 +99,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   lazy val delay_init =
-    GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
+    GUI_Thread.delay_last(options.seconds("editor_load_delay"))
     {
       init_models()
     }
@@ -124,7 +124,7 @@ class Plugin extends EBPlugin
           val thy_files = PIDE.resources.thy_info.dependencies("", thys).deps.map(_.name)
 
           val aux_files =
-            if (PIDE.options.bool("jedit_auto_resolve")) {
+            if (options.bool("jedit_auto_resolve")) {
               val stable_tip_version =
                 if (models.forall(p => p._2.is_stable))
                   PIDE.session.current_state().stable_tip_version
@@ -164,13 +164,13 @@ class Plugin extends EBPlugin
   }
 
   private lazy val delay_load =
-    GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay")) { delay_load_action() }
+    GUI_Thread.delay_last(options.seconds("editor_load_delay")) { delay_load_action() }
 
   private def file_watcher_action(changed: Set[JFile]): Unit =
     if (Document_Model.sync_files(changed)) JEdit_Editor.invoke_generated()
 
   lazy val file_watcher: File_Watcher =
-    File_Watcher(file_watcher_action _, PIDE.options.seconds("editor_load_delay"))
+    File_Watcher(file_watcher_action _, options.seconds("editor_load_delay"))
 
 
   /* session phase */
@@ -184,7 +184,7 @@ class Plugin extends EBPlugin
       }
 
     case Session.Ready =>
-      PIDE.session.update_options(PIDE.options.value)
+      PIDE.session.update_options(options.value)
       init_models()
 
       if (!Isabelle.continuous_checking) {
@@ -360,8 +360,8 @@ class Plugin extends EBPlugin
             if (buffer != null && text_area != null) init_view(buffer, text_area)
           }
 
-          spell_checker.update(PIDE.options.value)
-          PIDE.session.update_options(PIDE.options.value)
+          spell_checker.update(options.value)
+          PIDE.session.update_options(options.value)
 
         case _ =>
       }
@@ -374,7 +374,7 @@ class Plugin extends EBPlugin
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
       completion_history.load()
-      spell_checker.update(PIDE.options.value)
+      spell_checker.update(options.value)
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
@@ -386,10 +386,10 @@ class Plugin extends EBPlugin
 
       PIDE.session.stop()
       PIDE.session = new Session(resources) {
-        override def output_delay = PIDE.options.seconds("editor_output_delay")
-        override def prune_delay = PIDE.options.seconds("editor_prune_delay")
-        override def syslog_limit = PIDE.options.int("editor_syslog_limit")
-        override def reparse_limit = PIDE.options.int("editor_reparse_limit")
+        override def output_delay = options.seconds("editor_output_delay")
+        override def prune_delay = options.seconds("editor_prune_delay")
+        override def syslog_limit = options.int("editor_syslog_limit")
+        override def reparse_limit = options.int("editor_reparse_limit")
       }
 
       startup_failure = None
@@ -407,7 +407,7 @@ class Plugin extends EBPlugin
     JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
 
     if (startup_failure.isEmpty) {
-      PIDE.options.value.save_prefs()
+      options.value.save_prefs()
       completion_history.value.save()
     }
 
