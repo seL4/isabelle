@@ -36,9 +36,6 @@ object PIDE
     else _plugin
   def options: JEdit_Options = plugin.options
 
-  @volatile var startup_failure: Option[Throwable] = None
-  @volatile var startup_notified = false
-
   @volatile var session: Session = new Session(JEdit_Resources.empty)
 
   def options_changed() { if (plugin != null) plugin.options_changed() }
@@ -290,22 +287,25 @@ class Plugin extends EBPlugin
 
   /* main plugin plumbing */
 
+  @volatile private var startup_failure: Option[Throwable] = None
+  @volatile private var startup_notified = false
+
   override def handleMessage(message: EBMessage)
   {
     GUI_Thread.assert {}
 
-    if (PIDE.startup_failure.isDefined && !PIDE.startup_notified) {
+    if (startup_failure.isDefined && !startup_notified) {
       message match {
         case msg: EditorStarted =>
           GUI.error_dialog(null, "Isabelle plugin startup failure",
-            GUI.scrollable_text(Exn.message(PIDE.startup_failure.get)),
+            GUI.scrollable_text(Exn.message(startup_failure.get)),
             "Prover IDE inactive!")
-          PIDE.startup_notified = true
+          startup_notified = true
         case _ =>
       }
     }
 
-    if (PIDE.startup_failure.isEmpty) {
+    if (startup_failure.isEmpty) {
       message match {
         case msg: EditorStarted =>
           if (Distribution.is_identified && !Distribution.is_official) {
@@ -406,12 +406,12 @@ class Plugin extends EBPlugin
         override def reparse_limit = PIDE.options.int("editor_reparse_limit")
       }
 
-      PIDE.startup_failure = None
+      startup_failure = None
     }
     catch {
       case exn: Throwable =>
-        PIDE.startup_failure = Some(exn)
-        PIDE.startup_notified = false
+        startup_failure = Some(exn)
+        startup_notified = false
         Log.log(Log.ERROR, this, exn)
     }
   }
@@ -420,7 +420,7 @@ class Plugin extends EBPlugin
   {
     JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
 
-    if (PIDE.startup_failure.isEmpty) {
+    if (startup_failure.isEmpty) {
       PIDE.options.value.save_prefs()
       PIDE.plugin.completion_history.value.save()
     }
