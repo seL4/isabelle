@@ -439,11 +439,18 @@ object Isabelle
   /* debugger */
 
   def toggle_breakpoint(text_area: JEditTextArea): Unit =
+  {
+    GUI_Thread.require {}
+
     if (PIDE.debugger.is_active()) {
-      for {
-        (command, serial) <- Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition)
-      } Debugger_Dockable.toggle_breakpoint(command, serial)
+      Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition) match {
+        case Some((command, breakpoint)) =>
+          PIDE.debugger.toggle_breakpoint(command, breakpoint)
+          jEdit.propertiesChanged()
+        case None =>
+      }
     }
+  }
 
 
   /* plugin options */

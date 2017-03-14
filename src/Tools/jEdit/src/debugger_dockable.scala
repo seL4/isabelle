@@ -30,14 +30,6 @@ object Debugger_Dockable
 {
   /* breakpoints */
 
-  def toggle_breakpoint(command: Command, breakpoint: Long)
-  {
-    GUI_Thread.require {}
-
-    PIDE.debugger.toggle_breakpoint(command, breakpoint)
-    jEdit.propertiesChanged()
-  }
-
   def get_breakpoint(text_area: JEditTextArea, offset: Text.Offset): Option[(Command, Long)] =
   {
     GUI_Thread.require {}
