@@ -442,10 +442,10 @@ object Isabelle
   {
     GUI_Thread.require {}
 
-    if (PIDE.debugger.is_active()) {
+    if (PIDE.session.debugger.is_active()) {
       Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition) match {
         case Some((command, breakpoint)) =>
-          PIDE.debugger.toggle_breakpoint(command, breakpoint)
+          PIDE.session.debugger.toggle_breakpoint(command, breakpoint)
           jEdit.propertiesChanged()
         case None =>
       }

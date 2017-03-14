@@ -456,7 +456,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
     snapshot.select(range, JEdit_Rendering.bullet_elements, _ =>
       {
         case Text.Info(_, Protocol.ML_Breakpoint(breakpoint)) =>
-          PIDE.debugger.active_breakpoint_state(breakpoint).map(b =>
+          PIDE.session.debugger.active_breakpoint_state(breakpoint).map(b =>
             if (b) breakpoint_enabled_color else breakpoint_disabled_color)
         case _ => Some(bullet_color)
       })

@@ -41,8 +41,6 @@ object PIDE
   def resources(): JEdit_Resources =
     session.resources.asInstanceOf[JEdit_Resources]
 
-  def debugger: Debugger = session.debugger
-
 
   /* current document content */
 

@@ -371,7 +371,7 @@ class Rich_Text_Area(
     else {
       val debug_positions =
         (for {
-          c <- PIDE.debugger.focus().iterator
+          c <- PIDE.session.debugger.focus().iterator
           pos <- c.debug_position.iterator
         } yield pos).toList
       if (debug_positions.exists(JEdit_Editor.is_hyperlink_position(rendering.snapshot, offset, _)))
