@@ -49,7 +49,7 @@ object JEdit_Options
   }
 }
 
-class JEdit_Options extends Options_Variable
+class JEdit_Options(init_options: Options) extends Options_Variable(init_options)
 {
   def color_value(s: String): Color = Color_Value(string(s))
 
@@ -96,7 +96,7 @@ class JEdit_Options extends Options_Variable
             val title = opt_title
             def load = text = value.check_name(opt_name).value
             def save =
-              try { store(value + (opt_name, text)) }
+              try { JEdit_Options.this += (opt_name, text) }
               catch {
                 case ERROR(msg) =>
                   GUI.error_dialog(this.peer, "Failed to update options",

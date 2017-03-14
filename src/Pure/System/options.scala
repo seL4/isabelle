@@ -415,22 +415,14 @@ final class Options private(
 }
 
 
-class Options_Variable
+class Options_Variable(init_options: Options)
 {
-  private var options: Option[Options] = None
+  private var options = init_options
 
-  def store(new_options: Options): Unit = synchronized { options = Some(new_options) }
+  def value: Options = synchronized { options }
 
-  def value: Options = synchronized {
-    options match {
-      case Some(opts) => opts
-      case None => error("Uninitialized Isabelle system options")
-    }
-  }
-
-  private def upd(f: Options => Options): Unit = synchronized { options = Some(f(value)) }
-
-  def + (name: String, x: String): Unit = upd(opts => opts + (name, x))
+  private def upd(f: Options => Options): Unit = synchronized { options = f(options) }
+  def += (name: String, x: String): Unit = upd(opts => opts + (name, x))
 
   class Bool_Access
   {

@@ -29,7 +29,7 @@ object PIDE
 {
   /* plugin instance */
 
-  val options = new JEdit_Options
+  lazy val options = new JEdit_Options(Options.init())
   val completion_history = new Completion.History_Variable
   val spell_checker = new Spell_Checker_Variable
 
@@ -380,7 +380,6 @@ class Plugin extends EBPlugin
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
       PIDE.plugin = this
-      PIDE.options.store(Options.init())
       PIDE.completion_history.load()
       PIDE.spell_checker.update(PIDE.options.value)
 
