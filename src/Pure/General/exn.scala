@@ -20,7 +20,7 @@ object Exn
       }
     override def hashCode: Int = message.hashCode
 
-    override def toString: String = "ERROR(" + message + ")"
+    override def toString: String = "ERROR(" + Output.clean_yxml(message) + ")"
   }
 
   object ERROR
