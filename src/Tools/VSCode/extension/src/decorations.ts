@@ -1,5 +1,6 @@
 'use strict';
 
+import * as timers from 'timers';
 import * as vscode from 'vscode'
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
@@ -178,4 +179,30 @@ export function update_editor(editor: TextEditor)
       }
     }
   }
+}
+
+
+/* decorations vs. document changes */
+
+const touched_documents = new Set<TextDocument>()
+
+function update_touched_documents()
+{
+  const touched_editors: TextEditor[] = []
+  for (const editor of vscode.window.visibleTextEditors) {
+    if (touched_documents.has(editor.document)) {
+      touched_editors.push(editor)
+    }
+  }
+  touched_documents.clear
+  touched_editors.forEach(update_editor)
+}
+
+let touched_timer: NodeJS.Timer
+
+export function touch_document(document: TextDocument)
+{
+  if (touched_timer) timers.clearTimeout(touched_timer)
+  touched_documents.add(document)
+  touched_timer = timers.setTimeout(update_touched_documents, 1000)
 }
