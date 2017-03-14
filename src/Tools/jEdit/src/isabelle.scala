@@ -461,4 +461,19 @@ object Isabelle
     jEdit.setProperty("Plugin Options.last", "isabelle-general")
     new CombinedOptions(frame, 1)
   }
+
+
+  /* popups */
+
+  def dismissed_popups(view: View): Boolean =
+  {
+    var dismissed = false
+
+    JEdit_Lib.jedit_text_areas(view).foreach(text_area =>
+      if (Completion_Popup.Text_Area.dismissed(text_area)) dismissed = true)
+
+    if (Pretty_Tooltip.dismissed_all()) dismissed = true
+
+    dismissed
+  }
 }

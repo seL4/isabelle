@@ -251,7 +251,7 @@ class Pretty_Text_Area(
             evt.consume
 
           case KeyEvent.VK_ESCAPE =>
-            if (PIDE.dismissed_popups(view)) evt.consume
+            if (Isabelle.dismissed_popups(view)) evt.consume
 
           case _ =>
         }

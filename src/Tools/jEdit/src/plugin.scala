@@ -55,21 +55,6 @@ object PIDE
   lazy val editor = new JEdit_Editor
 
 
-  /* popups */
-
-  def dismissed_popups(view: View): Boolean =
-  {
-    var dismissed = false
-
-    JEdit_Lib.jedit_text_areas(view).foreach(text_area =>
-      if (Completion_Popup.Text_Area.dismissed(text_area)) dismissed = true)
-
-    if (Pretty_Tooltip.dismissed_all()) dismissed = true
-
-    dismissed
-  }
-
-
   /* document model and view */
 
   def exit_models(buffers: List[Buffer])
@@ -368,7 +353,7 @@ class Plugin extends EBPlugin
                 PIDE.init_view(buffer, text_area)
             }
             else {
-              PIDE.dismissed_popups(text_area.getView)
+              Isabelle.dismissed_popups(text_area.getView)
               PIDE.exit_view(buffer, text_area)
             }
 

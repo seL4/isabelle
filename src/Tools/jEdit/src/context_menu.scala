@@ -23,7 +23,7 @@ class Context_Menu extends DynamicContextMenuService
   def createMenu(text_area: JEditTextArea, evt: MouseEvent): Array[JMenuItem] =
     if (evt == null) null
     else {
-      PIDE.dismissed_popups(text_area.getView)
+      Isabelle.dismissed_popups(text_area.getView)
 
       val items1 =
         if (evt != null && evt.getSource == text_area.getPainter) {
