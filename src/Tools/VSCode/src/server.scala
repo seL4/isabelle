@@ -356,6 +356,7 @@ class Server(
       try {
         json match {
           case Protocol.Initialize(id) => init(id)
+          case Protocol.Initialized(()) =>
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
           case Protocol.DidOpenTextDocument(file, _, _, text) =>
