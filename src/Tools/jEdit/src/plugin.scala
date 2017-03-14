@@ -43,9 +43,6 @@ object PIDE
 
   def debugger: Debugger = session.debugger
 
-  def file_watcher(): File_Watcher =
-    if (plugin == null) File_Watcher.none else plugin.file_watcher
-
   lazy val editor = new JEdit_Editor
 
 
@@ -424,6 +421,6 @@ class Plugin extends EBPlugin
 
     exit_models(JEdit_Lib.jedit_buffers().toList)
     PIDE.session.stop()
-    PIDE.file_watcher.shutdown()
+    file_watcher.shutdown()
   }
 }

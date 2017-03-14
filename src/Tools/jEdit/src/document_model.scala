@@ -243,7 +243,7 @@ object Document_Model
           else Nil
 
         val st1 = st.copy(models = st.models ++ file_edits.map(_._2) -- purge_edits.map(_._1))
-        PIDE.file_watcher.purge(
+        PIDE.plugin.file_watcher.purge(
           (for {
             (_, model) <- st1.file_models_iterator
             file <- model.file
@@ -311,7 +311,7 @@ object File_Model
     pending_edits: List[Text.Edit] = Nil): File_Model =
   {
     val file = PIDE.resources.node_name_file(node_name)
-    file.foreach(PIDE.file_watcher.register_parent(_))
+    file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val content = Document_Model.File_Content(text)
     File_Model(session, node_name, file, content, node_required, last_perspective, pending_edits)
