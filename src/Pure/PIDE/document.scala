@@ -473,6 +473,11 @@ object Document
 
   /* model */
 
+  trait Session
+  {
+    def resources: Resources
+  }
+
   trait Model
   {
     def session: Session

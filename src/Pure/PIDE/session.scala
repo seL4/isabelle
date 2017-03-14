@@ -114,7 +114,7 @@ object Session
 }
 
 
-class Session(val resources: Resources)
+class Session(val resources: Resources) extends Document.Session
 {
   session =>
 
