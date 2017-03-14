@@ -231,15 +231,19 @@ class VSCode_Resources(
   def update_output(changed_nodes: Traversable[JFile]): Unit =
     state.change(st => st.copy(pending_output = st.pending_output ++ changed_nodes))
 
-  def flush_output(channel: Channel)
+  def flush_output(channel: Channel): Boolean =
   {
-    state.change(st =>
+    state.change_result(st =>
       {
-        val changed_iterator =
-          for {
+        val (postponed, flushed) =
+          (for {
             file <- st.pending_output.iterator
             model <- st.models.get(file)
-            rendering = model.rendering()
+          } yield (file, model, model.rendering())).toList.partition(_._3.snapshot.is_outdated)
+
+        val changed_iterator =
+          for {
+            (file, model, rendering) <- flushed.iterator
             (changed_diags, changed_decos, model1) = model.publish(rendering)
             if changed_diags.isDefined || changed_decos.isDefined
           }
@@ -252,9 +256,11 @@ class VSCode_Resources(
             }
             (file, model1)
           }
-        st.copy(
-          models = st.models ++ changed_iterator,
-          pending_output = Set.empty)
+
+        (postponed.nonEmpty,
+          st.copy(
+            models = st.models ++ changed_iterator,
+            pending_output = postponed.map(_._1).toSet))
       }
     )
   }

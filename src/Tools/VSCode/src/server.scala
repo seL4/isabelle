@@ -163,8 +163,7 @@ class Server(
   private val delay_output: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
-      if (session.current_state().stable_tip_version.isEmpty) delay_output.invoke()
-      else resources.flush_output(channel)
+      if (resources.flush_output(channel)) delay_output.invoke()
     }
 
   private val prover_output =
