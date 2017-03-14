@@ -182,7 +182,7 @@ object Document_Model
             }
         })
     if (changed) {
-      PIDE.options_changed()
+      PIDE.plugin.options_changed()
       PIDE.editor.flush()
     }
   }

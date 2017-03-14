@@ -145,6 +145,6 @@ class JEdit_Resources(base: Sessions.Base) extends Resources(base)
       GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
     if (change.deps_changed ||
         PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version.nodes).nonEmpty)
-      PIDE.deps_changed()
+      PIDE.plugin.deps_changed()
   }
 }
