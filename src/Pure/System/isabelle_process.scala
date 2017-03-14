@@ -15,8 +15,12 @@ object Isabelle_Process
     args: List[String] = Nil,
     dirs: List[Path] = Nil,
     modes: List[String] = Nil,
-    store: Sessions.Store = Sessions.store())
+    store: Sessions.Store = Sessions.store(),
+    phase_changed: Session.Phase => Unit = null)
   {
+    if (phase_changed != null)
+      session.phase_changed += Session.Consumer("Isabelle_Process")(phase_changed)
+
     session.start(receiver =>
       Isabelle_Process(options, logic = logic, args = args, dirs = dirs, modes = modes,
         receiver = receiver, xml_cache = session.xml_cache, store = store))
