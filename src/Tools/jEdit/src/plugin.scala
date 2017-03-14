@@ -49,63 +49,6 @@ object PIDE
   lazy val editor = new JEdit_Editor
 
 
-  /* document model and view */
-
-  def exit_models(buffers: List[Buffer])
-  {
-    GUI_Thread.now {
-      buffers.foreach(buffer =>
-        JEdit_Lib.buffer_lock(buffer) {
-          JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
-          Document_Model.exit(buffer)
-        })
-      }
-  }
-
-  def init_models()
-  {
-    GUI_Thread.now {
-      PIDE.editor.flush()
-
-      for {
-        buffer <- JEdit_Lib.jedit_buffers()
-        if buffer != null && !buffer.getBooleanProperty(Buffer.GZIPPED)
-      } {
-        if (buffer.isLoaded) {
-          JEdit_Lib.buffer_lock(buffer) {
-            val node_name = resources.node_name(buffer)
-            val model = Document_Model.init(session, node_name, buffer)
-            for {
-              text_area <- JEdit_Lib.jedit_text_areas(buffer)
-              if Document_View.get(text_area).map(_.model) != Some(model)
-            } Document_View.init(model, text_area)
-          }
-        }
-        else if (plugin != null) plugin.delay_init.invoke()
-      }
-
-      PIDE.editor.invoke_generated()
-    }
-  }
-
-  def init_view(buffer: Buffer, text_area: JEditTextArea): Unit =
-    GUI_Thread.now {
-      JEdit_Lib.buffer_lock(buffer) {
-        Document_Model.get(buffer) match {
-          case Some(model) => Document_View.init(model, text_area)
-          case None =>
-        }
-      }
-    }
-
-  def exit_view(buffer: Buffer, text_area: JEditTextArea): Unit =
-    GUI_Thread.now {
-      JEdit_Lib.buffer_lock(buffer) {
-        Document_View.exit(text_area)
-      }
-    }
-
-
   /* current document content */
 
   def snapshot(view: View): Document.Snapshot = GUI_Thread.now
@@ -169,7 +112,7 @@ class Plugin extends EBPlugin
   lazy val delay_init =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
-      PIDE.init_models()
+      init_models()
     }
 
   private val delay_load_active = Synchronized(false)
@@ -253,7 +196,7 @@ class Plugin extends EBPlugin
 
     case Session.Ready =>
       PIDE.session.update_options(PIDE.options.value)
-      PIDE.init_models()
+      init_models()
 
       if (!Isabelle.continuous_checking) {
         GUI_Thread.later {
@@ -275,11 +218,68 @@ class Plugin extends EBPlugin
         delay_load.revoke()
         delay_init.revoke()
         PIDE.editor.flush()
-        PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
+        exit_models(JEdit_Lib.jedit_buffers().toList)
       }
 
     case _ =>
   }
+
+
+  /* document model and view */
+
+  def exit_models(buffers: List[Buffer])
+  {
+    GUI_Thread.now {
+      buffers.foreach(buffer =>
+        JEdit_Lib.buffer_lock(buffer) {
+          JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
+          Document_Model.exit(buffer)
+        })
+      }
+  }
+
+  def init_models()
+  {
+    GUI_Thread.now {
+      PIDE.editor.flush()
+
+      for {
+        buffer <- JEdit_Lib.jedit_buffers()
+        if buffer != null && !buffer.getBooleanProperty(Buffer.GZIPPED)
+      } {
+        if (buffer.isLoaded) {
+          JEdit_Lib.buffer_lock(buffer) {
+            val node_name = PIDE.resources.node_name(buffer)
+            val model = Document_Model.init(PIDE.session, node_name, buffer)
+            for {
+              text_area <- JEdit_Lib.jedit_text_areas(buffer)
+              if Document_View.get(text_area).map(_.model) != Some(model)
+            } Document_View.init(model, text_area)
+          }
+        }
+        else delay_init.invoke()
+      }
+
+      PIDE.editor.invoke_generated()
+    }
+  }
+
+  def init_view(buffer: Buffer, text_area: JEditTextArea): Unit =
+    GUI_Thread.now {
+      JEdit_Lib.buffer_lock(buffer) {
+        Document_Model.get(buffer) match {
+          case Some(model) => Document_View.init(model, text_area)
+          case None =>
+        }
+      }
+    }
+
+  def exit_view(buffer: Buffer, text_area: JEditTextArea): Unit =
+    GUI_Thread.now {
+      JEdit_Lib.buffer_lock(buffer) {
+        Document_View.exit(text_area)
+      }
+    }
 
 
   /* main plugin plumbing */
@@ -323,7 +323,7 @@ class Plugin extends EBPlugin
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
           if (msg.getBuffer != null) {
-            PIDE.exit_models(List(msg.getBuffer))
+            exit_models(List(msg.getBuffer))
             PIDE.editor.invoke_generated()
           }
 
@@ -347,11 +347,11 @@ class Plugin extends EBPlugin
             if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
                 msg.getWhat == EditPaneUpdate.CREATED) {
               if (PIDE.session.is_ready)
-                PIDE.init_view(buffer, text_area)
+                init_view(buffer, text_area)
             }
             else {
               Isabelle.dismissed_popups(text_area.getView)
-              PIDE.exit_view(buffer, text_area)
+              exit_view(buffer, text_area)
             }
 
             if (msg.getWhat == EditPaneUpdate.CREATED)
@@ -368,7 +368,7 @@ class Plugin extends EBPlugin
           } {
             val buffer = edit_pane.getBuffer
             val text_area = edit_pane.getTextArea
-            if (buffer != null && text_area != null) PIDE.init_view(buffer, text_area)
+            if (buffer != null && text_area != null) init_view(buffer, text_area)
           }
 
           spell_checker.update(PIDE.options.value)
@@ -422,7 +422,7 @@ class Plugin extends EBPlugin
       completion_history.value.save()
     }
 
-    PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
+    exit_models(JEdit_Lib.jedit_buffers().toList)
     PIDE.session.stop()
     PIDE.file_watcher.shutdown()
   }
