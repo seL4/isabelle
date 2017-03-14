@@ -40,7 +40,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           if (in_checkbox(peer.indexToLocation(index), point)) {
             if (clicks == 1) Document_Model.node_required(listData(index), toggle = true)
           }
-          else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)
+          else if (clicks == 2) JEdit_Editor.goto_file(true, view, listData(index).node)
         }
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)
@@ -73,7 +73,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val purge = new Button("Purge") {
     tooltip = "Restrict document model to theories required for open editor buffers"
-    reactions += { case ButtonClicked(_) => PIDE.editor.purge() }
+    reactions += { case ButtonClicked(_) => JEdit_Editor.purge() }
   }
 
   private val continuous_checking = new Isabelle.Continuous_Checking

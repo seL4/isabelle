@@ -54,9 +54,9 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   {
     node.getUserObject match {
       case Text_File(_, path) =>
-        PIDE.editor.goto_file(true, view, File.platform_path(path))
+        JEdit_Editor.goto_file(true, view, File.platform_path(path))
       case Documentation(_, _, path) =>
-        PIDE.editor.goto_doc(view, path)
+        JEdit_Editor.goto_doc(view, path)
       case _ =>
     }
   }

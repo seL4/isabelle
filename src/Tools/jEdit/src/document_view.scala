@@ -77,7 +77,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     {
       val view = text_area.getView
       if (view != null && view.getTextArea == text_area) {
-        PIDE.editor.current_command(view, snapshot) match {
+        JEdit_Editor.current_command(view, snapshot) match {
           case Some(command) =>
             snapshot.node.command_start(command) match {
               case Some(start) => List(snapshot.convert(command.proper_range + start))
@@ -111,7 +111,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       // no robust_body
-      PIDE.editor.invoke_generated()
+      JEdit_Editor.invoke_generated()
     }
   }
 

@@ -183,7 +183,7 @@ object Document_Model
         })
     if (changed) {
       PIDE.plugin.options_changed()
-      PIDE.editor.flush()
+      JEdit_Editor.flush()
     }
   }
 
@@ -290,10 +290,10 @@ sealed abstract class Document_Model extends Document.Model
         if (hidden) Text.Perspective.empty
         else {
           val view_ranges = document_view_ranges(snapshot)
-          val load_ranges = snapshot.commands_loading_ranges(PIDE.editor.visible_node(_))
+          val load_ranges = snapshot.commands_loading_ranges(JEdit_Editor.visible_node(_))
           Text.Perspective(view_ranges ::: load_ranges)
         }
-      val overlays = PIDE.editor.node_overlays(node_name)
+      val overlays = JEdit_Editor.node_overlays(node_name)
 
       (reparse, Document.Node.Perspective(node_required, perspective, overlays))
     }
@@ -515,7 +515,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
         doc_view.rich_text_area.active_reset()
 
       pending ++= edits
-      PIDE.editor.invoke()
+      JEdit_Editor.invoke()
     }
   }
 

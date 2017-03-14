@@ -43,8 +43,6 @@ object PIDE
 
   def debugger: Debugger = session.debugger
 
-  lazy val editor = new JEdit_Editor
-
 
   /* current document content */
 
@@ -175,7 +173,7 @@ class Plugin extends EBPlugin
     GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay")) { delay_load_action() }
 
   private def file_watcher_action(changed: Set[JFile]): Unit =
-    if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()
+    if (Document_Model.sync_files(changed)) JEdit_Editor.invoke_generated()
 
   lazy val file_watcher: File_Watcher =
     File_Watcher(file_watcher_action _, PIDE.options.seconds("editor_load_delay"))
@@ -214,7 +212,7 @@ class Plugin extends EBPlugin
       GUI_Thread.later {
         delay_load.revoke()
         delay_init.revoke()
-        PIDE.editor.flush()
+        JEdit_Editor.flush()
         exit_models(JEdit_Lib.jedit_buffers().toList)
       }
 
@@ -238,7 +236,7 @@ class Plugin extends EBPlugin
   def init_models()
   {
     GUI_Thread.now {
-      PIDE.editor.flush()
+      JEdit_Editor.flush()
 
       for {
         buffer <- JEdit_Lib.jedit_buffers()
@@ -257,7 +255,7 @@ class Plugin extends EBPlugin
         else delay_init.invoke()
       }
 
-      PIDE.editor.invoke_generated()
+      JEdit_Editor.invoke_generated()
     }
   }
 
@@ -314,14 +312,14 @@ class Plugin extends EBPlugin
 
           Keymap_Merge.check_dialog(view)
 
-          PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
+          JEdit_Editor.hyperlink_position(true, Document.Snapshot.init,
             JEdit_Sessions.session_info().open_root).foreach(_.follow(view))
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
           if (msg.getBuffer != null) {
             exit_models(List(msg.getBuffer))
-            PIDE.editor.invoke_generated()
+            JEdit_Editor.invoke_generated()
           }
 
         case msg: BufferUpdate
