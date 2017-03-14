@@ -472,14 +472,10 @@ abstract class Rendering(
             Some(info + (r0, false, Pretty.block(XML.Text("ML:") :: Pretty.brk(1) :: body)))
 
           case (info, Text.Info(r0, Protocol.ML_Breakpoint(breakpoint))) =>
-            Debugger.get(session) match {
-              case None => None
-              case Some(debugger) =>
-                val text =
-                  if (debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
-                  else "breakpoint (disabled)"
-                Some(info + (r0, true, XML.Text(text)))
-            }
+              val text =
+                if (session.debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
+                else "breakpoint (disabled)"
+              Some(info + (r0, true, XML.Text(text)))
           case (info, Text.Info(r0, XML.Elem(Markup.Language(language, _, _, _), _))) =>
             val lang = Word.implode(Word.explode('_', language))
             Some(info + (r0, true, XML.Text("language: " + lang)))

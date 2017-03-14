@@ -105,29 +105,9 @@ object Debugger
 
   /* protocol handler */
 
-  def get(session: Session): Option[Debugger] =
-    session.get_protocol_handler("isabelle.Debugger$Handler") match {
-      case Some(handler: Handler) => handler.get_debugger
-      case _ => None
-    }
-
-  def apply(session: Session): Debugger =
-    get(session) getOrElse error("Debugger not initialized")
-
-  class Handler extends Session.Protocol_Handler
+  class Handler(session: Session) extends Session.Protocol_Handler
   {
-    private val _debugger_ = Synchronized[Option[Debugger]](None)
-    def get_debugger: Option[Debugger] = _debugger_.value
-    def the_debugger: Debugger = get_debugger getOrElse error("Debugger not initialized")
-
-    override def init(session: Session)
-    {
-      _debugger_.change(
-        {
-          case None => Some(new Debugger(session))
-          case Some(_) => error("Debugger already initialized")
-        })
-    }
+    val debugger: Debugger = new Debugger(session)
 
     private def debugger_state(msg: Prover.Protocol_Output): Boolean =
     {
@@ -142,7 +122,7 @@ object Debugger
               case (pos, function) => Debug_State(pos, function)
             })
           }
-          the_debugger.update_thread(thread_name, debug_states)
+          debugger.update_thread(thread_name, debug_states)
           true
         case _ => false
       }
@@ -154,9 +134,8 @@ object Debugger
         case Markup.Debugger_Output(thread_name) =>
           YXML.parse_body_failsafe(Symbol.decode(UTF8.decode_permissive(msg.bytes))) match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
-              val debugger = the_debugger
               val message = XML.Elem(Markup(Markup.message(name), props), body)
-              debugger.add_output(thread_name, i -> debugger.session.xml_cache.elem(message))
+              debugger.add_output(thread_name, i -> session.xml_cache.elem(message))
               true
             case _ => false
           }
@@ -171,7 +150,7 @@ object Debugger
   }
 }
 
-class Debugger private(val session: Session)
+class Debugger private(session: Session)
 {
   /* debugger state */
 

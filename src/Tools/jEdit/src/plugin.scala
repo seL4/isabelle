@@ -45,7 +45,7 @@ object PIDE
   def resources(): JEdit_Resources =
     session.resources.asInstanceOf[JEdit_Resources]
 
-  def debugger: Debugger = Debugger(session)
+  def debugger: Debugger = session.debugger
 
   def file_watcher(): File_Watcher =
     if (plugin == null) File_Watcher.none else plugin.file_watcher

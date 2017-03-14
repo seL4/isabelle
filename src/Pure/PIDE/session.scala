@@ -295,6 +295,14 @@ class Session(val resources: Resources) extends Document.Session
     protocol_handlers.add(name)
 
 
+  /* debugger */
+
+  private val debugger_handler = new Debugger.Handler(this)
+  add_protocol_handler(debugger_handler)
+
+  def debugger: Debugger = debugger_handler.debugger
+
+
   /* manager thread */
 
   private val delay_prune =
