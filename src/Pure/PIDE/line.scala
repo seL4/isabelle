@@ -26,6 +26,11 @@ object Line
   object Position
   {
     val zero: Position = Position()
+
+    object Ordering extends scala.math.Ordering[Position]
+    {
+      def compare(p1: Position, p2: Position): Int = p1 compare p2
+    }
   }
 
   sealed case class Position(line: Int = 0, column: Int = 0)

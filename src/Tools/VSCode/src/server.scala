@@ -16,6 +16,7 @@ import isabelle._
 import java.io.{PrintStream, OutputStream, File => JFile}
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 
 object Server
@@ -138,8 +139,21 @@ class Server(
 
   private def change_document(file: JFile, changes: List[Protocol.TextDocumentChange])
   {
-    changes.reverse.foreach(change =>
+    val norm_changes = new mutable.ListBuffer[Protocol.TextDocumentChange]
+    @tailrec def norm(chs: List[Protocol.TextDocumentChange])
+    {
+      if (chs.nonEmpty) {
+        val (full_texts, rest1) = chs.span(_.range.isEmpty)
+        val (edits, rest2) = rest1.span(_.range.nonEmpty)
+        norm_changes ++= full_texts
+        norm_changes ++= edits.sortBy(_.range.get.start)(Line.Position.Ordering).reverse
+        norm(rest2)
+      }
+    }
+    norm(changes)
+    norm_changes.foreach(change =>
       resources.change_model(session, file, change.text, change.range))
+
     delay_input.invoke()
     delay_output.invoke()
   }
