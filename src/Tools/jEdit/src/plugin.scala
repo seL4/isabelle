@@ -36,9 +36,6 @@ object PIDE
     else _plugin
   def options: JEdit_Options = plugin.options
 
-  val completion_history = new Completion.History_Variable
-  val spell_checker = new Spell_Checker_Variable
-
   @volatile var startup_failure: Option[Throwable] = None
   @volatile var startup_notified = false
 
@@ -167,6 +164,10 @@ class Plugin extends EBPlugin
 
     options
   }
+
+  val completion_history = new Completion.History_Variable
+  val spell_checker = new Spell_Checker_Variable
+
   PIDE._plugin = this
 
 
@@ -388,7 +389,7 @@ class Plugin extends EBPlugin
             if (buffer != null && text_area != null) PIDE.init_view(buffer, text_area)
           }
 
-          PIDE.spell_checker.update(PIDE.options.value)
+          PIDE.plugin.spell_checker.update(PIDE.options.value)
           PIDE.session.update_options(PIDE.options.value)
 
         case _ =>
@@ -401,8 +402,8 @@ class Plugin extends EBPlugin
     try {
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
-      PIDE.completion_history.load()
-      PIDE.spell_checker.update(PIDE.options.value)
+      PIDE.plugin.completion_history.load()
+      PIDE.plugin.spell_checker.update(PIDE.options.value)
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
@@ -436,7 +437,7 @@ class Plugin extends EBPlugin
 
     if (PIDE.startup_failure.isEmpty) {
       PIDE.options.value.save_prefs()
-      PIDE.completion_history.value.save()
+      PIDE.plugin.completion_history.value.save()
     }
 
     PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)

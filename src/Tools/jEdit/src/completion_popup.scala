@@ -294,7 +294,7 @@ object Completion_Popup
       val buffer = text_area.getBuffer
       val painter = text_area.getPainter
 
-      val history = PIDE.completion_history.value
+      val history = PIDE.plugin.completion_history.value
       val decode = Isabelle_Encoding.is_active(buffer)
 
       def open_popup(result: Completion.Result)
@@ -316,7 +316,7 @@ object Completion_Popup
             new Completion_Popup(Some(range), layered, loc2, font, items)
             {
               override def complete(item: Completion.Item) {
-                PIDE.completion_history.update(item)
+                PIDE.plugin.completion_history.update(item)
                 insert(item)
               }
               override def propagate(evt: KeyEvent) {
@@ -536,7 +536,7 @@ object Completion_Popup
     {
       GUI.layered_pane(text_field) match {
         case Some(layered) if text_field.isEditable =>
-          val history = PIDE.completion_history.value
+          val history = PIDE.plugin.completion_history.value
 
           val caret = text_field.getCaret.getDot
           val text = text_field.getText
@@ -554,7 +554,7 @@ object Completion_Popup
                 new Completion_Popup(None, layered, loc, text_field.getFont, items)
                 {
                   override def complete(item: Completion.Item) {
-                    PIDE.completion_history.update(item)
+                    PIDE.plugin.completion_history.update(item)
                     insert(item)
                   }
                   override def propagate(evt: KeyEvent) {

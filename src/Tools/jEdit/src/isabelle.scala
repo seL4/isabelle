@@ -415,7 +415,7 @@ object Isabelle
   def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean)
   {
     for {
-      spell_checker <- PIDE.spell_checker.get
+      spell_checker <- PIDE.plugin.spell_checker.get
       doc_view <- Document_View.get(text_area)
       rendering = doc_view.get_rendering()
       range = JEdit_Lib.caret_range(text_area)
@@ -428,7 +428,7 @@ object Isabelle
 
   def reset_dictionary()
   {
-    for (spell_checker <- PIDE.spell_checker.get)
+    for (spell_checker <- PIDE.plugin.spell_checker.get)
     {
       spell_checker.reset()
       JEdit_Lib.jedit_views().foreach(_.repaint())

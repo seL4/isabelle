@@ -39,7 +39,7 @@ object JEdit_Spell_Checker
       : Option[Completion.Result] =
   {
     for {
-      spell_checker <- PIDE.spell_checker.get
+      spell_checker <- PIDE.plugin.spell_checker.get
       if explicit
       range = JEdit_Lib.before_caret_range(text_area, rendering)
       word <- current_word(text_area, rendering, range)
@@ -58,7 +58,7 @@ object JEdit_Spell_Checker
   {
     val result =
       for {
-        spell_checker <- PIDE.spell_checker.get
+        spell_checker <- PIDE.plugin.spell_checker.get
         doc_view <- Document_View.get(text_area)
         rendering = doc_view.get_rendering()
         range = JEdit_Lib.point_range(text_area.getBuffer, offset)
