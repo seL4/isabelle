@@ -13,12 +13,8 @@ import javax.swing.JOptionPane
 
 import java.io.{File => JFile}
 
-import scala.swing.{ListView, ScrollPane}
-
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
-import org.gjt.sp.jedit.gui.AboutDialog
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
-import org.gjt.sp.jedit.buffer.JEditBuffer
+import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.util.SyntaxUtilities
@@ -42,7 +38,7 @@ object PIDE
     session.resources.asInstanceOf[JEdit_Resources]
 
 
-  /* current document content */
+  /* semantic document content */
 
   def snapshot(view: View): Document.Snapshot = GUI_Thread.now
   {
