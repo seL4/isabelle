@@ -232,6 +232,11 @@ class Server(
     for (session <- try_session) {
       session_.change(_ => Some(session))
 
+      session.commands_changed += prover_output
+      session.all_messages += syslog
+
+      dynamic_output.init()
+
       var session_phase: Session.Consumer[Session.Phase] = null
       session_phase =
         Session.Consumer(getClass.getName) {
@@ -245,11 +250,6 @@ class Server(
           case _ =>
         }
       session.phase_changed += session_phase
-
-      session.commands_changed += prover_output
-      session.all_messages += syslog
-
-      dynamic_output.init()
 
       Isabelle_Process.start(session, options,
         logic = session_name, dirs = session_dirs, modes = modes)
