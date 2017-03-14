@@ -29,14 +29,19 @@ object PIDE
 {
   /* plugin instance */
 
-  lazy val options = new JEdit_Options(Options.init())
+  @volatile var _plugin: Plugin = null
+
+  def plugin: Plugin =
+    if (_plugin == null) error("Uninitialized Isabelle/jEdit plugin")
+    else _plugin
+  def options: JEdit_Options = plugin.options
+
   val completion_history = new Completion.History_Variable
   val spell_checker = new Spell_Checker_Variable
 
   @volatile var startup_failure: Option[Throwable] = None
   @volatile var startup_notified = false
 
-  @volatile var plugin: Plugin = null
   @volatile var session: Session = new Session(JEdit_Resources.empty)
 
   def options_changed() { if (plugin != null) plugin.options_changed() }
@@ -148,6 +153,23 @@ object PIDE
 
 class Plugin extends EBPlugin
 {
+  /* early initialization */
+
+  val options: JEdit_Options =
+  {
+    // adhoc patch of confusing message
+    val plugin_error = jEdit.getProperty("plugin-error.start-error")
+    jEdit.setProperty("plugin-error.start-error", "Cannot start plugin:\n{0}")
+
+    val options = new JEdit_Options(Options.init())
+
+    jEdit.setProperty("plugin-error.start-error", plugin_error)
+
+    options
+  }
+  PIDE._plugin = this
+
+
   /* global changes */
 
   def options_changed()
@@ -379,7 +401,6 @@ class Plugin extends EBPlugin
     try {
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
-      PIDE.plugin = this
       PIDE.completion_history.load()
       PIDE.spell_checker.update(PIDE.options.value)
 
