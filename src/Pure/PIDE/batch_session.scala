@@ -38,8 +38,9 @@ object Batch_Session
 
     val handler = new Build.Handler(progress, session)
 
-    prover_session.phase_changed +=
-      Session.Consumer[Session.Phase](getClass.getName) {
+    Isabelle_Process.start(prover_session, options, logic = parent_session,
+      phase_changed =
+      {
         case Session.Ready =>
           prover_session.add_protocol_handler(handler)
           val master_dir = session_info.dir
@@ -51,9 +52,7 @@ object Batch_Session
         case Session.Shutdown =>
           batch_session.session_result.fulfill(())
         case _ =>
-      }
-
-    Isabelle_Process.start(prover_session, options, logic = parent_session)
+      })
 
     batch_session
   }

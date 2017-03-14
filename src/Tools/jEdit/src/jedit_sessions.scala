@@ -67,7 +67,8 @@ object JEdit_Sessions
 
     Isabelle_Process.start(PIDE.session, session_options(),
       logic = session_name(), dirs = session_dirs(), modes = modes,
-      store = Sessions.store(session_build_mode() == "system"))
+      store = Sessions.store(session_build_mode() == "system"),
+      phase_changed = PIDE.plugin.session_phase_changed)
   }
 
   def session_list(): List[String] =

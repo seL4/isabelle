@@ -241,43 +241,43 @@ class Plugin extends EBPlugin
 
   /* session phase */
 
-  private val session_phase =
-    Session.Consumer[Session.Phase](getClass.getName) {
-      case Session.Terminated(_) =>
+  val session_phase_changed: Session.Phase => Unit =
+  {
+    case Session.Terminated(_) =>
+      GUI_Thread.later {
+        GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
+          "Isabelle Syslog", GUI.scrollable_text(PIDE.session.syslog_content()))
+      }
+
+    case Session.Ready =>
+      PIDE.session.update_options(PIDE.options.value)
+      PIDE.init_models()
+
+      if (!Isabelle.continuous_checking) {
         GUI_Thread.later {
-          GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
-            "Isabelle Syslog", GUI.scrollable_text(PIDE.session.syslog_content()))
+          val answer =
+            GUI.confirm_dialog(jEdit.getActiveView,
+              "Continuous checking of PIDE document",
+              JOptionPane.YES_NO_OPTION,
+              "Continuous checking is presently disabled:",
+              "editor buffers will remain inactive!",
+              "Enable continuous checking now?")
+          if (answer == 0) Isabelle.continuous_checking = true
         }
+      }
 
-      case Session.Ready =>
-        PIDE.session.update_options(PIDE.options.value)
-        PIDE.init_models()
+      delay_load.invoke()
 
-        if (!Isabelle.continuous_checking) {
-          GUI_Thread.later {
-            val answer =
-              GUI.confirm_dialog(jEdit.getActiveView,
-                "Continuous checking of PIDE document",
-                JOptionPane.YES_NO_OPTION,
-                "Continuous checking is presently disabled:",
-                "editor buffers will remain inactive!",
-                "Enable continuous checking now?")
-            if (answer == 0) Isabelle.continuous_checking = true
-          }
-        }
+    case Session.Shutdown =>
+      GUI_Thread.later {
+        delay_load.revoke()
+        delay_init.revoke()
+        PIDE.editor.flush()
+        PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
+      }
 
-        delay_load.invoke()
-
-      case Session.Shutdown =>
-        GUI_Thread.later {
-          delay_load.revoke()
-          delay_init.revoke()
-          PIDE.editor.flush()
-          PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
-        }
-
-      case _ =>
-    }
+    case _ =>
+  }
 
 
   /* main plugin plumbing */
@@ -400,7 +400,6 @@ class Plugin extends EBPlugin
         override def reparse_limit = PIDE.options.int("editor_reparse_limit")
       }
 
-      PIDE.session.phase_changed += session_phase
       PIDE.startup_failure = None
     }
     catch {
@@ -420,7 +419,6 @@ class Plugin extends EBPlugin
       PIDE.completion_history.value.save()
     }
 
-    PIDE.session.phase_changed -= session_phase
     PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
     PIDE.session.stop()
     PIDE.file_watcher.shutdown()
