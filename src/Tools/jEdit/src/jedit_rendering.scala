@@ -441,7 +441,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   def text_color(range: Text.Range, current_color: Color): List[Text.Info[Color]] =
   {
-    if (current_color == Token_Markup.hidden_color) List(Text.Info(range, current_color))
+    if (current_color == Syntax_Style.hidden_color) List(Text.Info(range, current_color))
     else
       snapshot.cumulate(range, current_color, Rendering.text_color_elements, _ =>
         {

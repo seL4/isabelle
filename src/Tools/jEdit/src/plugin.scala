@@ -381,7 +381,7 @@ class Plugin extends EBPlugin
       completion_history.load()
       spell_checker.update(options.value)
 
-      SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
+      SyntaxUtilities.setStyleExtender(new Syntax_Style.Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
         ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
 
