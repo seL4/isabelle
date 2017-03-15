@@ -250,7 +250,9 @@ object Build
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
     def info(name: String): Sessions.Info = results(name)._2
-    val rc = (0 /: results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
+    val rc =
+      (0 /: results.iterator.map(
+        { case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
     def ok: Boolean = rc == 0
 
     override def toString: String = rc.toString
@@ -507,7 +509,8 @@ object Build
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, heap_stamp, None, info)))
+                  loop(pending - name, running,
+                    results + (name -> Result(false, heap_stamp, None, info)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
