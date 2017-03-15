@@ -1,7 +1,8 @@
 /*  Title:      Tools/jEdit/src/jedit_sessions.scala
     Author:     Makarius
 
-Isabelle/jEdit session information.
+Isabelle/jEdit session information, based on implicit process environment
+and explicit options.
 */
 
 package isabelle.jedit
@@ -23,22 +24,22 @@ object JEdit_Sessions
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
 
-  def session_options(): Options =
+  def session_options(options: Options): Options =
     Isabelle_System.getenv("JEDIT_ML_PROCESS_POLICY") match {
-      case "" => PIDE.options.value
-      case s => PIDE.options.value.string("ML_process_policy") = s
+      case "" => options
+      case s => options.string("ML_process_policy") = s
     }
 
-  def session_info(): Info =
+  def session_info(options: Options): Info =
   {
     val logic =
       Isabelle_System.default_logic(
         Isabelle_System.getenv("JEDIT_LOGIC"),
-        PIDE.options.string(option_name))
+        options.string(option_name))
 
     (for {
       tree <-
-        try { Some(Sessions.load(session_options(), dirs = session_dirs())) }
+        try { Some(Sessions.load(session_options(options), dirs = session_dirs())) }
         catch { case ERROR(_) => None }
       info <- tree.lift(logic)
       parent <- info.parent
@@ -46,44 +47,45 @@ object JEdit_Sessions
     } yield Info(parent, info.pos)) getOrElse Info(logic, Position.none)
   }
 
-  def session_name(): String = session_info().name
+  def session_name(options: Options): String = session_info(options).name
 
   def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
 
-  def session_build(progress: Progress = No_Progress, no_build: Boolean = false): Int =
+  def session_build(
+    options: Options, progress: Progress = No_Progress, no_build: Boolean = false): Int =
   {
     val mode = session_build_mode()
 
-    Build.build(options = session_options(), progress = progress,
+    Build.build(options = session_options(options), progress = progress,
       build_heap = true, no_build = no_build, system_mode = mode == "" || mode == "system",
-      dirs = session_dirs(), sessions = List(session_name())).rc
+      dirs = session_dirs(), sessions = List(session_name(options))).rc
   }
 
-  def session_start()
+  def session_start(options: Options)
   {
     val modes =
-      (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
+      (space_explode(',', options.string("jedit_print_mode")) :::
        space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
 
-    Isabelle_Process.start(PIDE.session, session_options(),
-      logic = session_name(), dirs = session_dirs(), modes = modes,
+    Isabelle_Process.start(PIDE.session, session_options(options),
+      logic = session_name(options), dirs = session_dirs(), modes = modes,
       store = Sessions.store(session_build_mode() == "system"),
       phase_changed = PIDE.plugin.session_phase_changed)
   }
 
-  def session_list(): List[String] =
+  def session_list(options: Options): List[String] =
   {
-    val session_tree = Sessions.load(PIDE.options.value, dirs = session_dirs())
+    val session_tree = Sessions.load(options, dirs = session_dirs())
     val (main_sessions, other_sessions) =
       session_tree.topological_order.partition(p => p._2.groups.contains("main"))
     main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
   }
 
-  def session_base(): Sessions.Base =
+  def session_base(options: Options): Sessions.Base =
   {
     val base =
-      try { Sessions.session_base(PIDE.options.value, session_name(), session_dirs()) }
-      catch { case ERROR(_) => Sessions.pure_base(PIDE.options.value) }
+      try { Sessions.session_base(options, session_name(options), session_dirs()) }
+      catch { case ERROR(_) => Sessions.pure_base(options) }
     base.copy(known_theories =
       for ((a, b) <- base.known_theories) yield (a, b.map(File.platform_path(_))))
   }
@@ -96,26 +98,26 @@ object JEdit_Sessions
     override def toString: String = description
   }
 
-  def logic_selector(autosave: Boolean): Option_Component =
+  def logic_selector(options: Options, autosave: Boolean): Option_Component =
   {
     GUI_Thread.require {}
 
     val entries =
-      new Logic_Entry("", "default (" + session_name() + ")") ::
-        session_list().map(name => new Logic_Entry(name, name))
+      new Logic_Entry("", "default (" + session_name(options) + ")") ::
+        session_list(options).map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
       name = option_name
       val title = "Logic"
       def load: Unit =
       {
-        val logic = PIDE.options.string(option_name)
+        val logic = options.string(option_name)
         entries.find(_.name == logic) match {
           case Some(entry) => selection.item = entry
           case None =>
         }
       }
-      def save: Unit = PIDE.options.string(option_name) = selection.item.name
+      def save: Unit = options.string(option_name) = selection.item.name
     }
 
     component.load()

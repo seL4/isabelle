@@ -79,7 +79,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val continuous_checking = new Isabelle.Continuous_Checking
   continuous_checking.focusable = false
 
-  private val logic = JEdit_Sessions.logic_selector(true)
+  private val logic = JEdit_Sessions.logic_selector(PIDE.options.value, true)
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(purge, continuous_checking, session_phase, logic)

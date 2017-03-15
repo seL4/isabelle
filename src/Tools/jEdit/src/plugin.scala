@@ -302,12 +302,12 @@ class Plugin extends EBPlugin
 
           val view = jEdit.getActiveView()
 
-          Session_Build.session_build(view)
+          Session_Build.check_dialog(view)
 
           Keymap_Merge.check_dialog(view)
 
           JEdit_Editor.hyperlink_position(true, Document.Snapshot.init,
-            JEdit_Sessions.session_info().open_root).foreach(_.follow(view))
+            JEdit_Sessions.session_info(options.value).open_root).foreach(_.follow(view))
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
@@ -382,7 +382,7 @@ class Plugin extends EBPlugin
 
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
-      val resources = new JEdit_Resources(JEdit_Sessions.session_base())
+      val resources = new JEdit_Resources(JEdit_Sessions.session_base(options.value))
 
       PIDE.session.stop()
       PIDE.session = new Session(resources) {
