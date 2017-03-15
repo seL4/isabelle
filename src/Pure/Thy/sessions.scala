@@ -28,6 +28,8 @@ object Sessions
     (roots ::: loaded_files).map(file => dir + Path.explode(file))
   }
 
+  def pure_base(options: Options): Base = session_base(options, Thy_Header.PURE)
+
 
   /* base info and source dependencies */
 
