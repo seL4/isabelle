@@ -405,7 +405,7 @@ class Plugin extends EBPlugin
       completion_history.load()
       spell_checker.update(options.value)
 
-      SyntaxUtilities.setStyleExtender(new Syntax_Style.Extender)
+      SyntaxUtilities.setStyleExtender(Syntax_Style.Extender)
       init_mode_provider()
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
@@ -431,8 +431,9 @@ class Plugin extends EBPlugin
 
   override def stop()
   {
-    JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
+    SyntaxUtilities.setStyleExtender(Syntax_Style.No_Extender)
     exit_mode_provider()
+    JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
 
     if (startup_failure.isEmpty) {
       options.value.save_prefs()
