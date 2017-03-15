@@ -35,8 +35,6 @@ object Sessions
 
   object Base
   {
-    val empty: Base = Base()
-
     lazy val bootstrap: Base =
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
   }

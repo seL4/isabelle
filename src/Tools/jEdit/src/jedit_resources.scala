@@ -21,11 +21,6 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
-object JEdit_Resources
-{
-  val empty: JEdit_Resources = new JEdit_Resources(Sessions.Base.empty)
-}
-
 class JEdit_Resources(base: Sessions.Base) extends Resources(base)
 {
   /* document node name */
