@@ -233,7 +233,8 @@ class Server(
                 delay_load.invoke()
           }
 
-        Some(new Session(options, resources))
+        val session_options = options.bool("editor_output_state") = true
+        Some(new Session(session_options, resources))
       }
       catch { case ERROR(msg) => reply(msg); None }
 
