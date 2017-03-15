@@ -458,7 +458,5 @@ class Plugin extends EBPlugin
     exit_models(JEdit_Lib.jedit_buffers().toList)
     session.stop()
     file_watcher.shutdown()
-
-    PIDE._plugin = null
   }
 }
