@@ -233,12 +233,7 @@ class Server(
                 delay_load.invoke()
           }
 
-        Some(new Session(resources) {
-          override def output_delay = options.seconds("editor_output_delay")
-          override def prune_delay = options.seconds("editor_prune_delay")
-          override def syslog_limit = options.int("editor_syslog_limit")
-          override def reparse_limit = options.int("editor_reparse_limit")
-        })
+        Some(new Session(options, resources))
       }
       catch { case ERROR(msg) => reply(msg); None }
 
@@ -255,7 +250,6 @@ class Server(
         Session.Consumer(getClass.getName) {
           case Session.Ready =>
             session.phase_changed -= session_phase
-            session.update_options(options)
             reply("")
           case Session.Terminated(rc) if rc != 0 =>
             session.phase_changed -= session_phase

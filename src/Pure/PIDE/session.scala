@@ -114,7 +114,7 @@ object Session
 }
 
 
-class Session(val resources: Resources) extends Document.Session
+class Session(session_options: => Options, val resources: Resources) extends Document.Session
 {
   session =>
 
@@ -127,13 +127,13 @@ class Session(val resources: Resources) extends Document.Session
   @volatile var verbose: Boolean = false
 
 
-  /* tuning parameters */
+  /* dynamic session options */
 
-  def output_delay: Time = Time.seconds(0.1)  // prover output (markup, common messages)
-  def prune_delay: Time = Time.seconds(15.0)  // prune history (delete old versions)
-  def prune_size: Int = 0  // size of retained history
-  def syslog_limit: Int = 100
-  def reparse_limit: Int = 0
+  def output_delay: Time = session_options.seconds("editor_output_delay")
+  def prune_delay: Time = session_options.seconds("editor_prune_delay")
+  def prune_size: Int = session_options.int("editor_prune_size")
+  def syslog_limit: Int = session_options.int("editor_syslog_limit")
+  def reparse_limit: Int = session_options.int("editor_reparse_limit")
 
 
   /* outlets */
@@ -442,6 +442,7 @@ class Session(val resources: Resources) extends Document.Session
               accumulate(state_id, output.message)
 
             case _ if output.is_init =>
+              prover.get.options(session_options)
               phase = Session.Ready
               debugger.ready()
 

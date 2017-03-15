@@ -153,6 +153,9 @@ public option editor_output_delay : real = 0.1
 public option editor_prune_delay : real = 15
   -- "delay to prune history (delete old versions)"
 
+option editor_prune_size : int = 0
+  -- "retained size of pruned history (delete old versions)"
+
 public option editor_update_delay : real = 0.5
   -- "delay for physical GUI updates"
 

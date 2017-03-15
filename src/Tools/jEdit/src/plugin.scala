@@ -87,16 +87,7 @@ class Plugin extends EBPlugin
   /* session */
 
   private var _session: Session = null
-  private def init_session()
-  {
-    _session =
-      new Session(resources) {
-        override def output_delay = options.seconds("editor_output_delay")
-        override def prune_delay = options.seconds("editor_prune_delay")
-        override def syslog_limit = options.int("editor_syslog_limit")
-        override def reparse_limit = options.int("editor_reparse_limit")
-      }
-  }
+  private def init_session(): Unit = _session = new Session(options.value, resources)
   def session: Session = _session
 
 
@@ -208,7 +199,6 @@ class Plugin extends EBPlugin
       }
 
     case Session.Ready =>
-      session.update_options(options.value)
       init_models()
 
       if (!Isabelle.continuous_checking) {

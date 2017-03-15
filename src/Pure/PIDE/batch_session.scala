@@ -33,7 +33,7 @@ object Batch_Session
 
     val progress = new Console_Progress(verbose = verbose)
 
-    val prover_session = new Session(resources)
+    val prover_session = new Session(options, resources)
     val batch_session = new Batch_Session(prover_session)
 
     val handler = new Build.Handler(progress, session)
