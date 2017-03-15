@@ -225,7 +225,7 @@ class Server(
           }
         }
 
-        val base = Build.session_base(options, session_name, session_dirs)
+        val base = Sessions.session_base(options, session_name, session_dirs)
         val resources = new VSCode_Resources(options, base, log)
           {
             override def commit(change: Session.Change): Unit =

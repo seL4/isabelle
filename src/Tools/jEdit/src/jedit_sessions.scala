@@ -82,7 +82,7 @@ object JEdit_Sessions
   def session_base(): Sessions.Base =
   {
     val base =
-      try { Build.session_base(PIDE.options.value, session_name(), session_dirs()) }
+      try { Sessions.session_base(PIDE.options.value, session_name(), session_dirs()) }
       catch { case ERROR(_) => Sessions.Base.empty }
     base.copy(known_theories = base.known_theories.mapValues(a => a.map(File.platform_path(_))))
   }
