@@ -81,15 +81,6 @@ object JEdit_Sessions
     main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
   }
 
-  def session_base(options: Options): Sessions.Base =
-  {
-    val base =
-      try { Sessions.session_base(options, session_name(options), session_dirs()) }
-      catch { case ERROR(_) => Sessions.pure_base(options) }
-    base.copy(known_theories =
-      for ((a, b) <- base.known_theories) yield (a, b.map(File.platform_path(_))))
-  }
-
 
   /* logic selector */
 

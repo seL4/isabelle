@@ -30,12 +30,11 @@ object PIDE
   def plugin: Plugin =
     if (_plugin == null) error("Uninitialized Isabelle/jEdit plugin")
     else _plugin
+
   def options: JEdit_Options = plugin.options
+  def resources: JEdit_Resources = plugin.resources
 
   @volatile var session: Session = new Session(JEdit_Resources.empty)
-
-  def resources(): JEdit_Resources =
-    session.resources.asInstanceOf[JEdit_Resources]
 
 
   /* semantic document content */
@@ -61,10 +60,32 @@ object PIDE
 
 class Plugin extends EBPlugin
 {
-  /* key parts */
+  /* options */
 
   private var _options: JEdit_Options = null
+  private def init_options(): Unit = _options = new JEdit_Options(Options.init())
   def options: JEdit_Options = _options
+
+
+  /* resources */
+
+  private var _resources: JEdit_Resources = null
+  private def init_resources()
+  {
+    val options = this.options.value
+    val session_name = JEdit_Sessions.session_name(options)
+    val session_base =
+      try { Sessions.session_base(options, session_name, JEdit_Sessions.session_dirs()) }
+      catch { case ERROR(_) => Sessions.pure_base(options) }
+
+    _resources =
+      new JEdit_Resources(session_base.copy(known_theories =
+        for ((a, b) <- session_base.known_theories) yield (a, b.map(File.platform_path(_)))))
+  }
+  def resources: JEdit_Resources = _resources
+
+
+  /* misc support */
 
   val completion_history = new Completion.History_Variable
   val spell_checker = new Spell_Checker_Variable
@@ -109,7 +130,7 @@ class Plugin extends EBPlugin
           val thys =
             (for ((node_name, model) <- models.iterator if model.is_theory)
               yield (node_name, Position.none)).toList
-          val thy_files = PIDE.resources.thy_info.dependencies("", thys).deps.map(_.name)
+          val thy_files = resources.thy_info.dependencies("", thys).deps.map(_.name)
 
           val aux_files =
             if (options.bool("jedit_auto_resolve")) {
@@ -118,7 +139,7 @@ class Plugin extends EBPlugin
                   PIDE.session.current_state().stable_tip_version
                 else None
               stable_tip_version match {
-                case Some(version) => PIDE.resources.undefined_blobs(version.nodes)
+                case Some(version) => resources.undefined_blobs(version.nodes)
                 case None => delay_load.invoke(); Nil
               }
             }
@@ -132,7 +153,7 @@ class Plugin extends EBPlugin
               val loaded_files =
                 for {
                   name <- required_files
-                  text <- PIDE.resources.read_file_content(name)
+                  text <- resources.read_file_content(name)
                 } yield (name, text)
 
               GUI_Thread.later {
@@ -226,7 +247,7 @@ class Plugin extends EBPlugin
       } {
         if (buffer.isLoaded) {
           JEdit_Lib.buffer_lock(buffer) {
-            val node_name = PIDE.resources.node_name(buffer)
+            val node_name = resources.node_name(buffer)
             val model = Document_Model.init(PIDE.session, node_name, buffer)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
@@ -382,21 +403,20 @@ class Plugin extends EBPlugin
 
   override def start()
   {
+    Debug.DISABLE_SEARCH_DIALOG_POOL = true
+
+
     /* strict initialization */
 
     // adhoc patch of confusing message
     val orig_plugin_error = jEdit.getProperty("plugin-error.start-error")
     jEdit.setProperty("plugin-error.start-error", "Cannot start plugin:\n{0}")
 
-
-    Debug.DISABLE_SEARCH_DIALOG_POOL = true
-
-    _options = new JEdit_Options(Options.init())
-
+    init_options()
+    init_resources()
+    PIDE._plugin = this
 
     jEdit.setProperty("plugin-error.start-error", orig_plugin_error)
-
-    PIDE._plugin = this
 
 
     /* non-strict initialization */
@@ -408,8 +428,6 @@ class Plugin extends EBPlugin
       SyntaxUtilities.setStyleExtender(Syntax_Style.Extender)
       init_mode_provider()
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
-
-      val resources = new JEdit_Resources(JEdit_Sessions.session_base(options.value))
 
       PIDE.session.stop()
       PIDE.session = new Session(resources) {
@@ -443,5 +461,7 @@ class Plugin extends EBPlugin
     exit_models(JEdit_Lib.jedit_buffers().toList)
     PIDE.session.stop()
     file_watcher.shutdown()
+
+    PIDE._plugin = null
   }
 }
