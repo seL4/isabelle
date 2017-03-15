@@ -135,7 +135,7 @@ object Build
                   case (global, _, thys) =>
                     thys.map(thy =>
                       (resources.node_name(
-                        if (global) "" else name, info.dir + Resources.thy_path(thy)), info.pos))
+                        if (global) "" else name, info.dir + resources.thy_path(thy)), info.pos))
                 })
               val thy_deps = resources.thy_info.dependencies(name, root_theories)
 
