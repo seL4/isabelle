@@ -28,33 +28,31 @@ object Batch_Session
         dirs = dirs, sessions = List(parent_session)).ok)
       new RuntimeException
 
-    val deps = Build.dependencies(verbose = verbose, tree = session_tree)
+    val deps = Sessions.dependencies(verbose = verbose, tree = session_tree)
     val resources = new Resources(deps(parent_session))
 
     val progress = new Console_Progress(verbose = verbose)
 
-    val prover_session = new Session(resources)
+    val prover_session = new Session(options, resources)
     val batch_session = new Batch_Session(prover_session)
 
     val handler = new Build.Handler(progress, session)
 
-    prover_session.phase_changed +=
-      Session.Consumer[Session.Phase](getClass.getName) {
+    Isabelle_Process.start(prover_session, options, logic = parent_session,
+      phase_changed =
+      {
         case Session.Ready =>
           prover_session.add_protocol_handler(handler)
           val master_dir = session_info.dir
           val theories = session_info.theories.map({ case (_, opts, thys) => (opts, thys) })
           batch_session.build_theories_result =
             Some(Build.build_theories(prover_session, master_dir, theories))
-        case Session.Inactive | Session.Failed =>
+        case Session.Terminated(_) =>
           batch_session.session_result.fulfill_result(Exn.Exn(ERROR("Prover process terminated")))
         case Session.Shutdown =>
           batch_session.session_result.fulfill(())
         case _ =>
-      }
-
-    prover_session.start(receiver =>
-      Isabelle_Process(options, logic = parent_session, receiver = receiver))
+      })
 
     batch_session
   }

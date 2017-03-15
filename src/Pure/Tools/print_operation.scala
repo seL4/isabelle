@@ -22,9 +22,12 @@ object Print_Operation
   {
     private val print_operations = Synchronized[List[(String, String)]](Nil)
 
+    override def init(session: Session): Unit =
+      session.protocol_command(Markup.PRINT_OPERATIONS)
+
     def get: List[(String, String)] = print_operations.value
 
-    private def put(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def put(msg: Prover.Protocol_Output): Boolean =
     {
       val ops =
       {
@@ -35,9 +38,6 @@ object Print_Operation
       true
     }
 
-    override def start(prover: Prover): Unit =
-      prover.protocol_command(Markup.PRINT_OPERATIONS)
-
-    val functions = Map(Markup.PRINT_OPERATIONS -> put _)
+    val functions = List(Markup.PRINT_OPERATIONS -> put _)
   }
 }

@@ -97,7 +97,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       Action(Symbol.decode(symbol)) {
         val text_area = view.getTextArea
         if (is_control && HTML.control.isDefinedAt(symbol))
-          Token_Markup.edit_control_style(text_area, symbol)
+          Syntax_Style.edit_control_style(text_area, symbol)
         else
           text_area.setSelectedText(Isabelle_Encoding.maybe_decode(text_area.getBuffer, symbol))
         text_area.requestFocus
@@ -111,7 +111,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   {
     action = Action("Reset") {
       val text_area = view.getTextArea
-      Token_Markup.edit_control_style(text_area, "")
+      Syntax_Style.edit_control_style(text_area, "")
       text_area.requestFocus
     }
     tooltip = "Reset control symbols within text"

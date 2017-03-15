@@ -63,6 +63,7 @@ declare -a SOURCES=(
   "src/sledgehammer_dockable.scala"
   "src/state_dockable.scala"
   "src/symbols_dockable.scala"
+  "src/syntax_style.scala"
   "src/syslog_dockable.scala"
   "src/text_overview.scala"
   "src/text_structure.scala"

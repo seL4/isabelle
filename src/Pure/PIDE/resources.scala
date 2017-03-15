@@ -13,16 +13,11 @@ import scala.util.parsing.input.Reader
 import java.io.{File => JFile}
 
 
-object Resources
-{
-  def thy_path(path: Path): Path = path.ext("thy")
-
-  val empty: Resources = new Resources(Sessions.Base.empty)
-}
-
 class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
+
+  def thy_path(path: Path): Path = path.ext("thy")
 
 
   /* document node names */
@@ -100,7 +95,7 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
         val theory = path.base.implode
         if (Long_Name.is_qualified(theory)) dummy_name(theory)
         else {
-          val node = append(master.master_dir, Resources.thy_path(path))
+          val node = append(master.master_dir, thy_path(path))
           val master_dir = append(master.master_dir, path.dir)
           Document.Node.Name(node, master_dir, Long_Name.qualify(no_qualifier, theory))
         }
@@ -128,7 +123,7 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
         val (name, pos) = header.name
         if (base_name != name)
           error("Bad theory name " + quote(name) +
-            " for file " + Resources.thy_path(Path.basic(base_name)) + Position.here(pos) +
+            " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
             Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
 
         val imports =

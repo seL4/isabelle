@@ -162,7 +162,7 @@ class Rich_Text_Area(
       (rendering: JEdit_Rendering) => rendering.highlight _, None)
 
   private val hyperlink_area =
-    new Active_Area[PIDE.editor.Hyperlink](
+    new Active_Area[JEdit_Editor.Hyperlink](
       (rendering: JEdit_Rendering) => rendering.hyperlink _, Some(Cursor.HAND_CURSOR))
 
   private val active_area =
@@ -343,7 +343,7 @@ class Rich_Text_Area(
 
             // spell checker
             for {
-              spell_checker <- PIDE.spell_checker.get
+              spell_checker <- PIDE.plugin.spell_checker.get
               spell_range <- rendering.spell_checker_ranges(line_range)
               text <- JEdit_Lib.try_get_text(buffer, spell_range)
               info <- spell_checker.marked_words(spell_range.start, text)
@@ -371,10 +371,10 @@ class Rich_Text_Area(
     else {
       val debug_positions =
         (for {
-          c <- Debugger.focus().iterator
+          c <- PIDE.session.debugger.focus().iterator
           pos <- c.debug_position.iterator
         } yield pos).toList
-      if (debug_positions.exists(PIDE.editor.is_hyperlink_position(rendering.snapshot, offset, _)))
+      if (debug_positions.exists(JEdit_Editor.is_hyperlink_position(rendering.snapshot, offset, _)))
         rendering.caret_debugger_color
       else rendering.caret_invisible_color
     }

@@ -130,6 +130,8 @@ fun init_channels channel =
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
     Private_Output.system_message_fn := message Markup.systemN [];
     Private_Output.protocol_message_fn := message Markup.protocolN;
+
+    Session.init_protocol_handlers ();
     message Markup.initN [] [Session.welcome ()];
     msg_channel
   end;
@@ -202,7 +204,6 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
 
     val channel = System_Channel.rendezvous socket;
     val msg_channel = init_channels channel;
-    val _ = Session.init_protocol_handlers ();
     val _ = loop channel;
   in Message_Channel.shutdown msg_channel end);
 

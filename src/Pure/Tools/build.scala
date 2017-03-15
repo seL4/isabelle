@@ -93,135 +93,6 @@ object Build
   }
 
 
-  /* source dependencies and static content */
-
-  sealed case class Deps(deps: Map[String, Sessions.Base])
-  {
-    def is_empty: Boolean = deps.isEmpty
-    def apply(name: String): Sessions.Base = deps(name)
-    def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
-  }
-
-  def dependencies(
-      progress: Progress = No_Progress,
-      inlined_files: Boolean = false,
-      verbose: Boolean = false,
-      list_files: Boolean = false,
-      check_keywords: Set[String] = Set.empty,
-      tree: Sessions.Tree): Deps =
-    Deps((Map.empty[String, Sessions.Base] /: tree.topological_order)(
-      { case (deps, (name, info)) =>
-          if (progress.stopped) throw Exn.Interrupt()
-
-          try {
-            val resources =
-              new Resources(
-                info.parent match {
-                  case None => Sessions.Base.bootstrap
-                  case Some(parent) => deps(parent)
-                })
-
-            if (verbose || list_files) {
-              val groups =
-                if (info.groups.isEmpty) ""
-                else info.groups.mkString(" (", " ", ")")
-              progress.echo("Session " + info.chapter + "/" + name + groups)
-            }
-
-            val thy_deps =
-            {
-              val root_theories =
-                info.theories.flatMap({
-                  case (global, _, thys) =>
-                    thys.map(thy =>
-                      (resources.node_name(
-                        if (global) "" else name, info.dir + Resources.thy_path(thy)), info.pos))
-                })
-              val thy_deps = resources.thy_info.dependencies(name, root_theories)
-
-              thy_deps.errors match {
-                case Nil => thy_deps
-                case errs => error(cat_lines(errs))
-              }
-            }
-
-            val known_theories =
-              (resources.base.known_theories /: thy_deps.deps)({ case (known, dep) =>
-                val name = dep.name
-                known.get(name.theory) match {
-                  case Some(name1) if name != name1 =>
-                    error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-                  case _ =>
-                    known + (name.theory -> name) + (Long_Name.base_name(name.theory) -> name)
-                }
-              })
-
-            val loaded_theories = thy_deps.loaded_theories
-            val keywords = thy_deps.keywords
-            val syntax = thy_deps.syntax
-
-            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
-            val loaded_files =
-              if (inlined_files) {
-                val pure_files =
-                  if (Sessions.pure_name(name)) Sessions.pure_files(resources, syntax, info.dir)
-                  else Nil
-                pure_files ::: thy_deps.loaded_files
-              }
-              else Nil
-
-            val all_files =
-              (theory_files ::: loaded_files :::
-                info.files.map(file => info.dir + file) :::
-                info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
-
-            if (list_files)
-              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
-
-            if (check_keywords.nonEmpty)
-              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
-
-            val sources = all_files.map(p => (p, SHA1.digest(p.file)))
-
-            val session_graph =
-              Present.session_graph(info.parent getOrElse "",
-                resources.base.loaded_theories, thy_deps.deps)
-
-            val base =
-              Sessions.Base(
-                loaded_theories, known_theories, keywords, syntax, sources, session_graph)
-            deps + (name -> base)
-          }
-          catch {
-            case ERROR(msg) =>
-              cat_error(msg, "The error(s) above occurred in session " +
-                quote(name) + Position.here(info.pos))
-          }
-      }))
-
-  def session_dependencies(
-    options: Options,
-    inlined_files: Boolean,
-    dirs: List[Path],
-    sessions: List[String]): Deps =
-  {
-    val (_, tree) = Sessions.load(options, dirs = dirs).selection(sessions = sessions)
-    dependencies(inlined_files = inlined_files, tree = tree)
-  }
-
-  def session_base(
-    options: Options,
-    inlined_files: Boolean,
-    dirs: List[Path],
-    session: String): Sessions.Base =
-  {
-    session_dependencies(options, inlined_files, dirs, List(session))(session)
-  }
-
-  def outer_syntax(options: Options, dirs: List[Path], session: String): Outer_Syntax =
-    session_base(options, false, dirs, session).syntax
-
-
   /* jobs */
 
   private class Job(progress: Progress, name: String, val info: Sessions.Info, tree: Sessions.Tree,
@@ -379,7 +250,9 @@ object Build
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
     def info(name: String): Sessions.Info = results(name)._2
-    val rc = (0 /: results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
+    val rc =
+      (0 /: results.iterator.map(
+        { case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
     def ok: Boolean = rc == 0
 
     override def toString: String = rc.toString
@@ -447,7 +320,8 @@ object Build
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
     val full_tree = Sessions.load(build_options, dirs, select_dirs)
     val (selected, selected_tree) = selection(full_tree)
-    val deps = dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
+    val deps =
+      Sessions.dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
     def session_sources_stamp(name: String): String =
       sources_stamp(selected_tree(name).meta_digest :: deps.sources(name))
@@ -635,7 +509,8 @@ object Build
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, heap_stamp, None, info)))
+                  loop(pending - name, running,
+                    results + (name -> Result(false, heap_stamp, None, info)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -822,6 +697,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   {
     private val pending = Synchronized(Map.empty[String, Promise[XML.Body]])
 
+    override def exit(): Unit =
+      pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
+
     def build_theories(
       session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[XML.Body] =
     {
@@ -832,13 +710,13 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       promise
     }
 
-    private def loading_theory(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def loading_theory(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Loading_Theory(name) => progress.theory(session_name, name); true
         case _ => false
       }
 
-    private def build_theories_result(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    private def build_theories_result(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Build_Theories_Result(id) =>
           pending.change_result(promises =>
@@ -855,11 +733,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         case _ => false
       }
 
-    override def stop(prover: Prover): Unit =
-      pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
-
     val functions =
-      Map(
+      List(
         Markup.BUILD_THEORIES_RESULT -> build_theories_result _,
         Markup.LOADING_THEORY -> loading_theory _)
   }

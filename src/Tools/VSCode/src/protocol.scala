@@ -144,6 +144,8 @@ object Protocol
         "documentHighlightProvider" -> true)
   }
 
+  object Initialized extends Notification0("initialized")
+
   object Shutdown extends Request0("shutdown")
   {
     def reply(id: Id, error: String): JSON.T =

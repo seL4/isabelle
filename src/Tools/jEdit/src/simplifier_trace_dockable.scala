@@ -82,10 +82,10 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private def handle_update(follow: Boolean)
   {
     val (new_snapshot, new_command, new_results, new_id) =
-      PIDE.editor.current_node_snapshot(view) match {
+      JEdit_Editor.current_node_snapshot(view) match {
         case Some(snapshot) =>
           if (follow && !snapshot.is_outdated) {
-            PIDE.editor.current_command(view, snapshot) match {
+            JEdit_Editor.current_command(view, snapshot) match {
               case Some(cmd) =>
                 (snapshot, cmd, snapshot.command_results(cmd), cmd.id)
               case None =>

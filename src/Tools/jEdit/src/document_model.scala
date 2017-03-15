@@ -182,8 +182,8 @@ object Document_Model
             }
         })
     if (changed) {
-      PIDE.options_changed()
-      PIDE.editor.flush()
+      PIDE.plugin.options_changed()
+      JEdit_Editor.flush()
     }
   }
 
@@ -243,7 +243,7 @@ object Document_Model
           else Nil
 
         val st1 = st.copy(models = st.models ++ file_edits.map(_._2) -- purge_edits.map(_._1))
-        PIDE.file_watcher.purge(
+        PIDE.plugin.file_watcher.purge(
           (for {
             (_, model) <- st1.file_models_iterator
             file <- model.file
@@ -290,10 +290,10 @@ sealed abstract class Document_Model extends Document.Model
         if (hidden) Text.Perspective.empty
         else {
           val view_ranges = document_view_ranges(snapshot)
-          val load_ranges = snapshot.commands_loading_ranges(PIDE.editor.visible_node(_))
+          val load_ranges = snapshot.commands_loading_ranges(JEdit_Editor.visible_node(_))
           Text.Perspective(view_ranges ::: load_ranges)
         }
-      val overlays = PIDE.editor.node_overlays(node_name)
+      val overlays = JEdit_Editor.node_overlays(node_name)
 
       (reparse, Document.Node.Perspective(node_required, perspective, overlays))
     }
@@ -311,7 +311,7 @@ object File_Model
     pending_edits: List[Text.Edit] = Nil): File_Model =
   {
     val file = PIDE.resources.node_name_file(node_name)
-    file.foreach(PIDE.file_watcher.register_parent(_))
+    file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val content = Document_Model.File_Content(text)
     File_Model(session, node_name, file, content, node_required, last_perspective, pending_edits)
@@ -515,7 +515,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
         doc_view.rich_text_area.active_reset()
 
       pending ++= edits
-      PIDE.editor.invoke()
+      JEdit_Editor.invoke()
     }
   }
 

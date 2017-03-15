@@ -16,6 +16,7 @@ import isabelle._
 import java.io.{PrintStream, OutputStream, File => JFile}
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 
 object Server
@@ -138,8 +139,21 @@ class Server(
 
   private def change_document(file: JFile, changes: List[Protocol.TextDocumentChange])
   {
-    changes.reverse.foreach(change =>
+    val norm_changes = new mutable.ListBuffer[Protocol.TextDocumentChange]
+    @tailrec def norm(chs: List[Protocol.TextDocumentChange])
+    {
+      if (chs.nonEmpty) {
+        val (full_texts, rest1) = chs.span(_.range.isEmpty)
+        val (edits, rest2) = rest1.span(_.range.nonEmpty)
+        norm_changes ++= full_texts
+        norm_changes ++= edits.sortBy(_.range.get.start)(Line.Position.Ordering).reverse
+        norm(rest2)
+      }
+    }
+    norm(changes)
+    norm_changes.foreach(change =>
       resources.change_model(session, file, change.text, change.range))
+
     delay_input.invoke()
     delay_output.invoke()
   }
@@ -163,8 +177,7 @@ class Server(
   private val delay_output: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
-      if (session.current_state().stable_tip_version.isEmpty) delay_output.invoke()
-      else resources.flush_output(channel)
+      if (resources.flush_output(channel)) delay_output.invoke()
     }
 
   private val prover_output =
@@ -212,7 +225,7 @@ class Server(
           }
         }
 
-        val base = Build.session_base(options, false, session_dirs, session_name)
+        val base = Sessions.session_base(options, session_name, session_dirs)
         val resources = new VSCode_Resources(options, base, log)
           {
             override def commit(change: Session.Change): Unit =
@@ -220,40 +233,33 @@ class Server(
                 delay_load.invoke()
           }
 
-        Some(new Session(resources) {
-          override def output_delay = options.seconds("editor_output_delay")
-          override def prune_delay = options.seconds("editor_prune_delay")
-          override def syslog_limit = options.int("editor_syslog_limit")
-          override def reparse_limit = options.int("editor_reparse_limit")
-        })
+        Some(new Session(options, resources))
       }
       catch { case ERROR(msg) => reply(msg); None }
 
     for (session <- try_session) {
       session_.change(_ => Some(session))
 
-      var session_phase: Session.Consumer[Session.Phase] = null
-      session_phase =
-        Session.Consumer(getClass.getName) {
-          case Session.Ready =>
-            session.phase_changed -= session_phase
-            session.update_options(options)
-            reply("")
-          case Session.Failed =>
-            session.phase_changed -= session_phase
-            reply("Prover startup failed")
-          case _ =>
-        }
-      session.phase_changed += session_phase
-
       session.commands_changed += prover_output
       session.all_messages += syslog
 
       dynamic_output.init()
 
-      session.start(receiver =>
-        Isabelle_Process(options = options, logic = session_name, dirs = session_dirs,
-          modes = modes, receiver = receiver))
+      var session_phase: Session.Consumer[Session.Phase] = null
+      session_phase =
+        Session.Consumer(getClass.getName) {
+          case Session.Ready =>
+            session.phase_changed -= session_phase
+            reply("")
+          case Session.Terminated(rc) if rc != 0 =>
+            session.phase_changed -= session_phase
+            reply("Prover startup failed: return code " + rc)
+          case _ =>
+        }
+      session.phase_changed += session_phase
+
+      Isabelle_Process.start(session, options,
+        logic = session_name, dirs = session_dirs, modes = modes)
     }
   }
 
@@ -263,22 +269,19 @@ class Server(
 
     session_.change({
       case Some(session) =>
+        session.commands_changed -= prover_output
+        session.all_messages -= syslog
+
         dynamic_output.exit()
-        var session_phase: Session.Consumer[Session.Phase] = null
-        session_phase =
-          Session.Consumer(getClass.getName) {
-            case Session.Inactive =>
-              session.phase_changed -= session_phase
-              session.commands_changed -= prover_output
-              session.all_messages -= syslog
-              reply("")
-            case _ =>
-          }
-        session.phase_changed += session_phase
-        session.stop()
+
+        delay_load.revoke()
+        file_watcher.shutdown()
         delay_input.revoke()
         delay_output.revoke()
-        file_watcher.shutdown()
+        delay_caret_update.revoke()
+
+        val rc = session.stop()
+        if (rc == 0) reply("") else reply("Prover shutdown failed: return code " + rc)
         None
       case None =>
         reply("Prover inactive")
@@ -358,6 +361,7 @@ class Server(
       try {
         json match {
           case Protocol.Initialize(id) => init(id)
+          case Protocol.Initialized(()) =>
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
           case Protocol.DidOpenTextDocument(file, _, _, text) =>

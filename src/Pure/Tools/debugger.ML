@@ -18,8 +18,6 @@ struct
 
 (* output messages *)
 
-val _ = Session.protocol_handler "isabelle.Debugger$Handler";
-
 fun output_message kind msg =
   if msg = "" then ()
   else

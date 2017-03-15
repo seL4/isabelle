@@ -64,6 +64,7 @@ export function activate(context: vscode.ExtensionContext)
 
     decorations.init(context)
     vscode.workspace.onDidChangeConfiguration(() => decorations.init(context))
+    vscode.workspace.onDidChangeTextDocument(event => decorations.touch_document(event.document))
     vscode.window.onDidChangeActiveTextEditor(decorations.update_editor)
     vscode.workspace.onDidCloseTextDocument(decorations.close_document)
 

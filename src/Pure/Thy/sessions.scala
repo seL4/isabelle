@@ -28,13 +28,13 @@ object Sessions
     (roots ::: loaded_files).map(file => dir + Path.explode(file))
   }
 
+  def pure_base(options: Options): Base = session_base(options, Thy_Header.PURE)
 
-  /* base info */
+
+  /* base info and source dependencies */
 
   object Base
   {
-    val empty: Base = Base()
-
     lazy val bootstrap: Base =
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
   }
@@ -47,8 +47,117 @@ object Sessions
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
 
+  sealed case class Deps(deps: Map[String, Base])
+  {
+    def is_empty: Boolean = deps.isEmpty
+    def apply(name: String): Base = deps(name)
+    def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
+  }
 
-  /* info */
+  def dependencies(
+      progress: Progress = No_Progress,
+      inlined_files: Boolean = false,
+      verbose: Boolean = false,
+      list_files: Boolean = false,
+      check_keywords: Set[String] = Set.empty,
+      tree: Tree): Deps =
+    Deps((Map.empty[String, Base] /: tree.topological_order)(
+      { case (deps, (name, info)) =>
+          if (progress.stopped) throw Exn.Interrupt()
+
+          try {
+            val resources =
+              new Resources(
+                info.parent match {
+                  case None => Base.bootstrap
+                  case Some(parent) => deps(parent)
+                })
+
+            if (verbose || list_files) {
+              val groups =
+                if (info.groups.isEmpty) ""
+                else info.groups.mkString(" (", " ", ")")
+              progress.echo("Session " + info.chapter + "/" + name + groups)
+            }
+
+            val thy_deps =
+            {
+              val root_theories =
+                info.theories.flatMap({
+                  case (global, _, thys) =>
+                    thys.map(thy =>
+                      (resources.node_name(
+                        if (global) "" else name, info.dir + resources.thy_path(thy)), info.pos))
+                })
+              val thy_deps = resources.thy_info.dependencies(name, root_theories)
+
+              thy_deps.errors match {
+                case Nil => thy_deps
+                case errs => error(cat_lines(errs))
+              }
+            }
+
+            val known_theories =
+              (resources.base.known_theories /: thy_deps.deps)({ case (known, dep) =>
+                val name = dep.name
+                known.get(name.theory) match {
+                  case Some(name1) if name != name1 =>
+                    error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+                  case _ =>
+                    known + (name.theory -> name) + (Long_Name.base_name(name.theory) -> name)
+                }
+              })
+
+            val loaded_theories = thy_deps.loaded_theories
+            val keywords = thy_deps.keywords
+            val syntax = thy_deps.syntax
+
+            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
+            val loaded_files =
+              if (inlined_files) {
+                val pure_files =
+                  if (pure_name(name)) Sessions.pure_files(resources, syntax, info.dir)
+                  else Nil
+                pure_files ::: thy_deps.loaded_files
+              }
+              else Nil
+
+            val all_files =
+              (theory_files ::: loaded_files :::
+                info.files.map(file => info.dir + file) :::
+                info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
+
+            if (list_files)
+              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+
+            if (check_keywords.nonEmpty)
+              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
+
+            val sources = all_files.map(p => (p, SHA1.digest(p.file)))
+
+            val session_graph =
+              Present.session_graph(info.parent getOrElse "",
+                resources.base.loaded_theories, thy_deps.deps)
+
+            val base =
+              Base(loaded_theories, known_theories, keywords, syntax, sources, session_graph)
+            deps + (name -> base)
+          }
+          catch {
+            case ERROR(msg) =>
+              cat_error(msg, "The error(s) above occurred in session " +
+                quote(name) + Position.here(info.pos))
+          }
+      }))
+
+  def session_base(options: Options, session: String, dirs: List[Path] = Nil): Base =
+  {
+    val (_, tree) = load(options, dirs = dirs).selection(sessions = List(session))
+    dependencies(tree = tree)(session)
+  }
+
+
+  /* session tree */
 
   sealed case class Info(
     chapter: String,
@@ -66,9 +175,6 @@ object Sessions
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
   }
-
-
-  /* session tree */
 
   object Tree
   {

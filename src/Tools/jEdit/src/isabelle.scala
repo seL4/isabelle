@@ -379,19 +379,19 @@ object Isabelle
   /* control styles */
 
   def control_sub(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.sub) }
+  { Syntax_Style.edit_control_style(text_area, Symbol.sub) }
 
   def control_sup(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.sup) }
+  { Syntax_Style.edit_control_style(text_area, Symbol.sup) }
 
   def control_bold(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.bold) }
+  { Syntax_Style.edit_control_style(text_area, Symbol.bold) }
 
   def control_emph(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.emph) }
+  { Syntax_Style.edit_control_style(text_area, Symbol.emph) }
 
   def control_reset(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, "") }
+  { Syntax_Style.edit_control_style(text_area, "") }
 
 
   /* block styles */
@@ -415,7 +415,7 @@ object Isabelle
   def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean)
   {
     for {
-      spell_checker <- PIDE.spell_checker.get
+      spell_checker <- PIDE.plugin.spell_checker.get
       doc_view <- Document_View.get(text_area)
       rendering = doc_view.get_rendering()
       range = JEdit_Lib.caret_range(text_area)
@@ -428,7 +428,7 @@ object Isabelle
 
   def reset_dictionary()
   {
-    for (spell_checker <- PIDE.spell_checker.get)
+    for (spell_checker <- PIDE.plugin.spell_checker.get)
     {
       spell_checker.reset()
       JEdit_Lib.jedit_views().foreach(_.repaint())
@@ -439,11 +439,18 @@ object Isabelle
   /* debugger */
 
   def toggle_breakpoint(text_area: JEditTextArea): Unit =
-    if (Debugger.is_active()) {
-      for {
-        (command, serial) <- Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition)
-      } Debugger_Dockable.toggle_breakpoint(command, serial)
+  {
+    GUI_Thread.require {}
+
+    if (PIDE.session.debugger.is_active()) {
+      Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition) match {
+        case Some((command, breakpoint)) =>
+          PIDE.session.debugger.toggle_breakpoint(command, breakpoint)
+          jEdit.propertiesChanged()
+        case None =>
+      }
     }
+  }
 
 
   /* plugin options */
@@ -453,5 +460,20 @@ object Isabelle
     GUI_Thread.require {}
     jEdit.setProperty("Plugin Options.last", "isabelle-general")
     new CombinedOptions(frame, 1)
+  }
+
+
+  /* popups */
+
+  def dismissed_popups(view: View): Boolean =
+  {
+    var dismissed = false
+
+    JEdit_Lib.jedit_text_areas(view).foreach(text_area =>
+      if (Completion_Popup.Text_Area.dismissed(text_area)) dismissed = true)
+
+    if (Pretty_Tooltip.dismissed_all()) dismissed = true
+
+    dismissed
   }
 }

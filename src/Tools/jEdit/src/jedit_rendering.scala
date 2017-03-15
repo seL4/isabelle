@@ -158,7 +158,7 @@ object JEdit_Rendering
 
 
 class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
-  extends Rendering(snapshot, options, PIDE.resources)
+  extends Rendering(snapshot, options, PIDE.session)
 {
   /* colors */
 
@@ -298,37 +298,37 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   /* hyperlinks */
 
-  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
+  def hyperlink(range: Text.Range): Option[Text.Info[JEdit_Editor.Hyperlink]] =
   {
-    snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
+    snapshot.cumulate[Vector[Text.Info[JEdit_Editor.Hyperlink]]](
       range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
-            val file = resources.append_file(snapshot.node_name.master_dir, name)
-            val link = PIDE.editor.hyperlink_file(true, file)
+            val file = PIDE.resources.append_file(snapshot.node_name.master_dir, name)
+            val link = JEdit_Editor.hyperlink_file(true, file)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
-            PIDE.editor.hyperlink_doc(name).map(link =>
+            JEdit_Editor.hyperlink_doc(name).map(link =>
               (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
-            val link = PIDE.editor.hyperlink_url(name)
+            val link = JEdit_Editor.hyperlink_url(name)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
+            val opt_link = JEdit_Editor.hyperlink_def_position(true, snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_position(true, snapshot, props)
+            val opt_link = JEdit_Editor.hyperlink_position(true, snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val opt_link =
               Document_Model.bibtex_entries_iterator.collectFirst(
                 { case Text.Info(entry_range, (entry, model)) if entry == name =>
-                    PIDE.editor.hyperlink_model(true, model, entry_range.start) })
+                    JEdit_Editor.hyperlink_model(true, model, entry_range.start) })
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case _ => None
@@ -441,7 +441,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   def text_color(range: Text.Range, current_color: Color): List[Text.Info[Color]] =
   {
-    if (current_color == Token_Markup.hidden_color) List(Text.Info(range, current_color))
+    if (current_color == Syntax_Style.hidden_color) List(Text.Info(range, current_color))
     else
       snapshot.cumulate(range, current_color, Rendering.text_color_elements, _ =>
         {
@@ -456,7 +456,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
     snapshot.select(range, JEdit_Rendering.bullet_elements, _ =>
       {
         case Text.Info(_, Protocol.ML_Breakpoint(breakpoint)) =>
-          Debugger.active_breakpoint_state(breakpoint).map(b =>
+          PIDE.session.debugger.active_breakpoint_state(breakpoint).map(b =>
             if (b) breakpoint_enabled_color else breakpoint_disabled_color)
         case _ => Some(bullet_color)
       })

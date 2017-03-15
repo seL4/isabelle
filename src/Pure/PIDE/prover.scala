@@ -75,12 +75,11 @@ object Prover
 
 abstract class Prover(
   receiver: Prover.Receiver,
+  xml_cache: XML.Cache,
   system_channel: System_Channel,
   system_process: Prover.System_Process) extends Protocol
 {
   /** receiver output **/
-
-  val xml_cache: XML.Cache = new XML.Cache()
 
   private def system_output(text: String)
   {

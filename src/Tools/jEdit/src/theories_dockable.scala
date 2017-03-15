@@ -40,7 +40,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           if (in_checkbox(peer.indexToLocation(index), point)) {
             if (clicks == 1) Document_Model.node_required(listData(index), toggle = true)
           }
-          else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)
+          else if (clicks == 2) JEdit_Editor.goto_file(true, view, listData(index).node)
         }
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)
@@ -59,8 +59,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
-  def phase_text(phase: Session.Phase): String =
-    "Prover: " + Word.lowercase(phase.toString)
+  def phase_text(phase: Session.Phase): String = "Prover: " + phase.print
 
   private val session_phase = new Label(phase_text(PIDE.session.phase))
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
@@ -74,13 +73,13 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val purge = new Button("Purge") {
     tooltip = "Restrict document model to theories required for open editor buffers"
-    reactions += { case ButtonClicked(_) => PIDE.editor.purge() }
+    reactions += { case ButtonClicked(_) => JEdit_Editor.purge() }
   }
 
   private val continuous_checking = new Isabelle.Continuous_Checking
   continuous_checking.focusable = false
 
-  private val logic = JEdit_Sessions.logic_selector(true)
+  private val logic = JEdit_Sessions.logic_selector(PIDE.options.value, true)
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(purge, continuous_checking, session_phase, logic)

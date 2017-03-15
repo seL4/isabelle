@@ -47,11 +47,11 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     GUI_Thread.require {}
 
     for {
-      snapshot <- PIDE.editor.current_node_snapshot(view)
+      snapshot <- JEdit_Editor.current_node_snapshot(view)
       if follow && !snapshot.is_outdated
     } {
       val (command, results) =
-        PIDE.editor.current_command(view, snapshot) match {
+        JEdit_Editor.current_command(view, snapshot) match {
           case Some(command) => (command, snapshot.command_results(command))
           case None => (Command.empty, Command.Results.empty)
         }
@@ -77,8 +77,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     if (output_state != b) {
       PIDE.options.bool("editor_output_state") = b
       PIDE.session.update_options(PIDE.options.value)
-      PIDE.editor.flush(hidden = true)
-      PIDE.editor.flush()
+      JEdit_Editor.flush(hidden = true)
+      JEdit_Editor.flush()
     }
   }
 

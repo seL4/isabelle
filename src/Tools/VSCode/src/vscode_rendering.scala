@@ -63,11 +63,8 @@ object VSCode_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
 }
 
-class VSCode_Rendering(
-    val model: Document_Model,
-    snapshot: Document.Snapshot,
-    resources: VSCode_Resources)
-  extends Rendering(snapshot, resources.options, resources)
+class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
+  extends Rendering(snapshot, model.resources.options, model.session)
 {
   /* completion */
 
@@ -77,7 +74,7 @@ class VSCode_Rendering(
         model.content.try_get_text(complete_range) match {
           case Some(original) =>
             names.complete(complete_range, Completion.History.empty,
-                resources.unicode_symbols, original) match {
+                model.resources.unicode_symbols, original) match {
               case Some(result) =>
                 result.items.map(item =>
                   Protocol.CompletionItem(
@@ -111,7 +108,7 @@ class VSCode_Rendering(
       range = model.content.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
-      val message = resources.output_pretty_message(body)
+      val message = model.resources.output_pretty_message(body)
       val severity = VSCode_Rendering.message_severity.get(name)
       Protocol.Diagnostic(range, message, severity = severity)
     }).toList
@@ -143,7 +140,7 @@ class VSCode_Rendering(
   {
     val ranges =
       (for {
-        spell_checker <- resources.spell_checker.get.iterator
+        spell_checker <- model.resources.spell_checker.get.iterator
         spell_range <- spell_checker_ranges(model.content.text_range).iterator
         text <- model.content.try_get_text(spell_range).iterator
         info <- spell_checker.marked_words(spell_range.start, text).iterator
@@ -172,7 +169,7 @@ class VSCode_Rendering(
       yield {
         val range = model.content.doc.range(text_range)
         Protocol.DecorationOpts(range,
-          msgs.map(msg => Protocol.MarkedString(resources.output_pretty_tooltip(msg))))
+          msgs.map(msg => Protocol.MarkedString(model.resources.output_pretty_tooltip(msg))))
       }
     Protocol.Decoration(decoration.typ, content)
   }
@@ -189,7 +186,7 @@ class VSCode_Rendering(
     : Option[Line.Node_Range] =
   {
     for {
-      platform_path <- resources.source_file(source_name)
+      platform_path <- model.resources.source_file(source_name)
       file <-
         (try { Some(new JFile(platform_path).getCanonicalFile) }
          catch { case ERROR(_) => None })
@@ -197,7 +194,7 @@ class VSCode_Rendering(
     yield {
       Line.Node_Range(file.getPath,
         if (range.start > 0) {
-          resources.get_file_content(file) match {
+          model.resources.get_file_content(file) match {
             case Some(text) =>
               val chunk = Symbol.Text_Chunk(text)
               val doc = Line.Document(text)
@@ -240,7 +237,7 @@ class VSCode_Rendering(
       range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(_, XML.Elem(Markup.Path(name), _))) =>
-            val file = resources.append_file(snapshot.node_name.master_dir, name)
+            val file = model.resources.append_file(snapshot.node_name.master_dir, name)
             Some(Line.Node_Range(file) :: links)
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
@@ -252,7 +249,7 @@ class VSCode_Rendering(
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val iterator =
               for {
-                Text.Info(entry_range, (entry, model)) <- resources.bibtex_entries_iterator
+                Text.Info(entry_range, (entry, model)) <- model.resources.bibtex_entries_iterator
                 if entry == name
               } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
             if (iterator.isEmpty) None else Some((links /: iterator)(_ :+ _))

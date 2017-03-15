@@ -21,13 +21,15 @@ import org.gjt.sp.jedit.View
 
 object Session_Build
 {
-  def session_build(view: View)
+  def check_dialog(view: View)
   {
     GUI_Thread.require {}
 
+    val options = PIDE.options.value
     try {
       if (JEdit_Sessions.session_build_mode() == "none" ||
-          JEdit_Sessions.session_build(no_build = true) == 0) JEdit_Sessions.session_start()
+          JEdit_Sessions.session_build(options, no_build = true) == 0)
+            JEdit_Sessions.session_start(options)
       else new Dialog(view)
     }
     catch {
@@ -38,6 +40,9 @@ object Session_Build
 
   private class Dialog(view: View) extends JDialog(view)
   {
+    val options = PIDE.options.value
+
+
     /* text */
 
     private val text = new TextArea {
@@ -162,10 +167,10 @@ object Session_Build
     setVisible(true)
 
     Standard_Thread.fork("session_build") {
-      progress.echo("Build started for Isabelle/" + JEdit_Sessions.session_name() + " ...")
+      progress.echo("Build started for Isabelle/" + JEdit_Sessions.session_name(options) + " ...")
 
       val (out, rc) =
-        try { ("", JEdit_Sessions.session_build(progress = progress)) }
+        try { ("", JEdit_Sessions.session_build(options, progress = progress)) }
         catch {
           case exn: Throwable =>
             (Output.error_text(Exn.message(exn)) + "\n", Exn.return_code(exn, 2))
@@ -173,7 +178,7 @@ object Session_Build
 
       progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
 
-      if (rc == 0) JEdit_Sessions.session_start()
+      if (rc == 0) JEdit_Sessions.session_start(options)
       else progress.echo("Session build failed -- prover process remains inactive!")
 
       return_code(rc)

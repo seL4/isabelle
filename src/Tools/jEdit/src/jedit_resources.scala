@@ -21,11 +21,6 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
-object JEdit_Resources
-{
-  val empty: JEdit_Resources = new JEdit_Resources(Sessions.Base.empty)
-}
-
 class JEdit_Resources(base: Sessions.Base) extends Resources(base)
 {
   /* document node name */
@@ -145,6 +140,6 @@ class JEdit_Resources(base: Sessions.Base) extends Resources(base)
       GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
     if (change.deps_changed ||
         PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version.nodes).nonEmpty)
-      PIDE.deps_changed()
+      PIDE.plugin.deps_changed()
   }
 }
