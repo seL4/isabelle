@@ -84,7 +84,8 @@ object JEdit_Sessions
     val base =
       try { Sessions.session_base(PIDE.options.value, session_name(), session_dirs()) }
       catch { case ERROR(_) => Sessions.Base.empty }
-    base.copy(known_theories = base.known_theories.mapValues(a => a.map(File.platform_path(_))))
+    base.copy(known_theories =
+      for ((a, b) <- base.known_theories) yield (a, b.map(File.platform_path(_))))
   }
 
 
