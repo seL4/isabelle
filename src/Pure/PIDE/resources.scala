@@ -13,11 +13,6 @@ import scala.util.parsing.input.Reader
 import java.io.{File => JFile}
 
 
-object Resources
-{
-  val empty: Resources = new Resources(Sessions.Base.empty)
-}
-
 class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
