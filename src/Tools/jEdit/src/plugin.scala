@@ -61,25 +61,13 @@ object PIDE
 
 class Plugin extends EBPlugin
 {
-  /* early initialization */
+  /* key parts */
 
-  val options: JEdit_Options =
-  {
-    // adhoc patch of confusing message
-    val plugin_error = jEdit.getProperty("plugin-error.start-error")
-    jEdit.setProperty("plugin-error.start-error", "Cannot start plugin:\n{0}")
-
-    val options = new JEdit_Options(Options.init())
-
-    jEdit.setProperty("plugin-error.start-error", plugin_error)
-
-    options
-  }
+  private var _options: JEdit_Options = null
+  def options: JEdit_Options = _options
 
   val completion_history = new Completion.History_Variable
   val spell_checker = new Spell_Checker_Variable
-
-  PIDE._plugin = this
 
 
   /* global changes */
@@ -370,9 +358,26 @@ class Plugin extends EBPlugin
 
   override def start()
   {
-    try {
-      Debug.DISABLE_SEARCH_DIALOG_POOL = true
+    /* strict initialization */
 
+    // adhoc patch of confusing message
+    val orig_plugin_error = jEdit.getProperty("plugin-error.start-error")
+    jEdit.setProperty("plugin-error.start-error", "Cannot start plugin:\n{0}")
+
+
+    Debug.DISABLE_SEARCH_DIALOG_POOL = true
+
+    _options = new JEdit_Options(Options.init())
+
+
+    jEdit.setProperty("plugin-error.start-error", orig_plugin_error)
+
+    PIDE._plugin = this
+
+
+    /* non-strict initialization */
+
+    try {
       completion_history.load()
       spell_checker.update(options.value)
 
