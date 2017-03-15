@@ -356,6 +356,30 @@ class Plugin extends EBPlugin
     }
   }
 
+
+  /* mode provider */
+
+  private var orig_mode_provider: ModeProvider = null
+  private var pide_mode_provider: ModeProvider = null
+
+  def init_mode_provider()
+  {
+    orig_mode_provider = ModeProvider.instance
+    if (orig_mode_provider.isInstanceOf[ModeProvider]) {
+      pide_mode_provider = new Token_Markup.Mode_Provider(orig_mode_provider)
+      ModeProvider.instance = pide_mode_provider
+    }
+  }
+
+  def exit_mode_provider()
+  {
+    if (ModeProvider.instance == pide_mode_provider)
+      ModeProvider.instance = orig_mode_provider
+  }
+
+
+  /* start and stop */
+
   override def start()
   {
     /* strict initialization */
@@ -382,9 +406,7 @@ class Plugin extends EBPlugin
       spell_checker.update(options.value)
 
       SyntaxUtilities.setStyleExtender(new Syntax_Style.Extender)
-      if (ModeProvider.instance.isInstanceOf[ModeProvider])
-        ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
-
+      init_mode_provider()
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
       val resources = new JEdit_Resources(JEdit_Sessions.session_base(options.value))
@@ -410,6 +432,7 @@ class Plugin extends EBPlugin
   override def stop()
   {
     JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
+    exit_mode_provider()
 
     if (startup_failure.isEmpty) {
       options.value.save_prefs()
