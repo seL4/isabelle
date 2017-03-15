@@ -33,8 +33,7 @@ object PIDE
 
   def options: JEdit_Options = plugin.options
   def resources: JEdit_Resources = plugin.resources
-
-  @volatile var session: Session = new Session(JEdit_Resources.empty)
+  def session: Session = plugin.session
 
 
   /* semantic document content */
@@ -85,6 +84,22 @@ class Plugin extends EBPlugin
   def resources: JEdit_Resources = _resources
 
 
+  /* session */
+
+  private var _session: Session = null
+  private def init_session()
+  {
+    _session =
+      new Session(resources) {
+        override def output_delay = options.seconds("editor_output_delay")
+        override def prune_delay = options.seconds("editor_prune_delay")
+        override def syslog_limit = options.int("editor_syslog_limit")
+        override def reparse_limit = options.int("editor_reparse_limit")
+      }
+  }
+  def session: Session = _session
+
+
   /* misc support */
 
   val completion_history = new Completion.History_Variable
@@ -95,7 +110,7 @@ class Plugin extends EBPlugin
 
   def options_changed()
   {
-    PIDE.session.global_options.post(Session.Global_Options(options.value))
+    session.global_options.post(Session.Global_Options(options.value))
     delay_load.invoke()
   }
 
@@ -136,7 +151,7 @@ class Plugin extends EBPlugin
             if (options.bool("jedit_auto_resolve")) {
               val stable_tip_version =
                 if (models.forall(p => p._2.is_stable))
-                  PIDE.session.current_state().stable_tip_version
+                  session.current_state().stable_tip_version
                 else None
               stable_tip_version match {
                 case Some(version) => resources.undefined_blobs(version.nodes)
@@ -158,7 +173,7 @@ class Plugin extends EBPlugin
 
               GUI_Thread.later {
                 try {
-                  Document_Model.provide_files(PIDE.session, loaded_files)
+                  Document_Model.provide_files(session, loaded_files)
                   delay_init.invoke()
                 }
                 finally { delay_load_active.change(_ => false) }
@@ -189,11 +204,11 @@ class Plugin extends EBPlugin
     case Session.Terminated(_) =>
       GUI_Thread.later {
         GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
-          "Isabelle Syslog", GUI.scrollable_text(PIDE.session.syslog_content()))
+          "Isabelle Syslog", GUI.scrollable_text(session.syslog_content()))
       }
 
     case Session.Ready =>
-      PIDE.session.update_options(options.value)
+      session.update_options(options.value)
       init_models()
 
       if (!Isabelle.continuous_checking) {
@@ -248,7 +263,7 @@ class Plugin extends EBPlugin
         if (buffer.isLoaded) {
           JEdit_Lib.buffer_lock(buffer) {
             val node_name = resources.node_name(buffer)
-            val model = Document_Model.init(PIDE.session, node_name, buffer)
+            val model = Document_Model.init(session, node_name, buffer)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
               if Document_View.get(text_area).map(_.model) != Some(model)
@@ -327,7 +342,7 @@ class Plugin extends EBPlugin
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED || msg.getWhat == BufferUpdate.LOADED =>
-          if (PIDE.session.is_ready) {
+          if (session.is_ready) {
             delay_init.invoke()
             delay_load.invoke()
           }
@@ -344,7 +359,7 @@ class Plugin extends EBPlugin
           if (buffer != null && text_area != null) {
             if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
                 msg.getWhat == EditPaneUpdate.CREATED) {
-              if (PIDE.session.is_ready)
+              if (session.is_ready)
                 init_view(buffer, text_area)
             }
             else {
@@ -370,7 +385,7 @@ class Plugin extends EBPlugin
           }
 
           spell_checker.update(options.value)
-          PIDE.session.update_options(options.value)
+          session.update_options(options.value)
 
         case _ =>
       }
@@ -414,6 +429,7 @@ class Plugin extends EBPlugin
 
     init_options()
     init_resources()
+    init_session()
     PIDE._plugin = this
 
     jEdit.setProperty("plugin-error.start-error", orig_plugin_error)
@@ -428,14 +444,6 @@ class Plugin extends EBPlugin
       SyntaxUtilities.setStyleExtender(Syntax_Style.Extender)
       init_mode_provider()
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
-
-      PIDE.session.stop()
-      PIDE.session = new Session(resources) {
-        override def output_delay = options.seconds("editor_output_delay")
-        override def prune_delay = options.seconds("editor_prune_delay")
-        override def syslog_limit = options.int("editor_syslog_limit")
-        override def reparse_limit = options.int("editor_reparse_limit")
-      }
 
       startup_failure = None
     }
@@ -459,7 +467,7 @@ class Plugin extends EBPlugin
     }
 
     exit_models(JEdit_Lib.jedit_buffers().toList)
-    PIDE.session.stop()
+    session.stop()
     file_watcher.shutdown()
 
     PIDE._plugin = null
