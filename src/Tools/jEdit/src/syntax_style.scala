@@ -15,10 +15,13 @@ import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, SyntaxStyle}
+import org.gjt.sp.jedit.textarea.TextArea
 
 
 object Syntax_Style
 {
+  /* extended syntax styles */
+
   private val plain_range: Int = JEditToken.ID_COUNT
   private val full_range = 6 * plain_range + 1
   private def check_range(i: Int) { require(0 <= i && i < plain_range) }
@@ -119,5 +122,46 @@ object Syntax_Style
       offset += sym.length
     }
     result
+  }
+
+
+  /* editing support for control symbols */
+
+  def edit_control_style(text_area: TextArea, control: String)
+  {
+    GUI_Thread.assert {}
+
+    val buffer = text_area.getBuffer
+
+    val control_decoded = Isabelle_Encoding.maybe_decode(buffer, control)
+
+    def update_style(text: String): String =
+    {
+      val result = new StringBuilder
+      for (sym <- Symbol.iterator(text) if !HTML.control.isDefinedAt(sym)) {
+        if (Symbol.is_controllable(sym)) result ++= control_decoded
+        result ++= sym
+      }
+      result.toString
+    }
+
+    text_area.getSelection.foreach(sel => {
+      val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)
+      JEdit_Lib.try_get_text(buffer, before) match {
+        case Some(s) if HTML.control.isDefinedAt(s) =>
+          text_area.extendSelection(before.start, before.stop)
+        case _ =>
+      }
+    })
+
+    text_area.getSelection.toList match {
+      case Nil =>
+        text_area.setSelectedText(control_decoded)
+      case sels =>
+        JEdit_Lib.buffer_edit(buffer) {
+          sels.foreach(sel =>
+            text_area.setSelectedText(sel, update_style(text_area.getSelectedText(sel))))
+        }
+    }
   }
 }
