@@ -447,7 +447,6 @@ class Plugin extends EBPlugin
 
   override def stop()
   {
-    SyntaxUtilities.setStyleExtender(Syntax_Style.No_Extender)
     exit_mode_provider()
     JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
 

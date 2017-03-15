@@ -60,8 +60,6 @@ object Syntax_Style
 
   val hidden_color: Color = new Color(255, 255, 255, 0)
 
-  object No_Extender extends SyntaxUtilities.StyleExtender
-
   object Extender extends SyntaxUtilities.StyleExtender
   {
     val max_user_fonts = 2
