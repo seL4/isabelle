@@ -23,19 +23,6 @@ import org.gjt.sp.util.Log
 
 object PIDE
 {
-  /* plugin instance */
-
-  @volatile var _plugin: Plugin = null
-
-  def plugin: Plugin =
-    if (_plugin == null) error("Uninitialized Isabelle/jEdit plugin")
-    else _plugin
-
-  def options: JEdit_Options = plugin.options
-  def resources: JEdit_Resources = plugin.resources
-  def session: Session = plugin.session
-
-
   /* semantic document content */
 
   def snapshot(view: View): Document.Snapshot = GUI_Thread.now
@@ -54,8 +41,20 @@ object PIDE
       case None => error("No document view for current text area")
     }
   }
-}
 
+
+  /* plugin instance */
+
+  @volatile var _plugin: Plugin = null
+
+  def plugin: Plugin =
+    if (_plugin == null) error("Uninitialized Isabelle/jEdit plugin")
+    else _plugin
+
+  def options: JEdit_Options = plugin.options
+  def resources: JEdit_Resources = plugin.resources
+  def session: Session = plugin.session
+}
 
 class Plugin extends EBPlugin
 {
