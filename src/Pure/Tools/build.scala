@@ -372,7 +372,7 @@ object Build
     if (clean_build) {
       for (name <- full_tree.graph.all_succs(selected)) {
         val files =
-          List(Path.basic(name), Sessions.log(name), Sessions.log_gz(name)).
+          List(Path.basic(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
         if (files.nonEmpty) progress.echo("Cleaning " + name + " ...")
         if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
@@ -429,18 +429,18 @@ object Build
               val lines1 = if (tail == 0) lines else lines.drop(lines.length - tail max 0)
               process_result.copy(
                 out_lines =
-                  "(see also " + (store.output_dir + Sessions.log(name)).file.toString + ")" ::
+                  "(see also " + (store.output_dir + store.log(name)).file.toString + ")" ::
                   lines1)
             }
 
             val heap_stamp =
               if (process_result.ok) {
-                (store.output_dir + Sessions.log(name)).file.delete
+                (store.output_dir + store.log(name)).file.delete
                 val heap_stamp =
                   for (path <- job.output_path if path.is_file)
                     yield Sessions.write_heap_digest(path)
 
-                File.write_gzip(store.output_dir + Sessions.log_gz(name),
+                File.write_gzip(store.output_dir + store.log_gz(name),
                   terminate_lines(
                     session_sources_stamp(name) ::
                     input_heaps.map(INPUT_HEAP + _) :::
@@ -451,9 +451,9 @@ object Build
               }
               else {
                 (store.output_dir + Path.basic(name)).file.delete
-                (store.output_dir + Sessions.log_gz(name)).file.delete
+                (store.output_dir + store.log_gz(name)).file.delete
 
-                File.write(store.output_dir + Sessions.log(name),
+                File.write(store.output_dir + store.log(name),
                   terminate_lines(process_result.out_lines))
                 progress.echo(name + " FAILED")
                 if (!process_result.interrupted) progress.echo(process_result_tail.out)

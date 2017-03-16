@@ -515,13 +515,16 @@ object Sessions
 
   /** persistent store **/
 
-  def log(name: String): Path = Path.basic("log") + Path.basic(name)
-  def log_gz(name: String): Path = log(name).ext("gz")
-
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
 
   class Store private[Sessions](system_mode: Boolean)
   {
+    /* file names */
+
+    def log(name: String): Path = Path.basic("log") + Path.basic(name)
+    def log_gz(name: String): Path = log(name).ext("gz")
+
+
     /* output */
 
     val browser_info: Path =
