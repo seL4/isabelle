@@ -521,6 +521,7 @@ object Sessions
   {
     /* file names */
 
+    def database(name: String): Path = Path.basic("log") + Path.basic(name).ext("db")
     def log(name: String): Path = Path.basic("log") + Path.basic(name)
     def log_gz(name: String): Path = log(name).ext("gz")
 
@@ -551,6 +552,9 @@ object Sessions
       input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
         (dir + log_gz(name), read_heap_digest(dir + Path.basic(name))))
 
+    def find_database(name: String): Option[Path] =
+      input_dirs.map(_ + database(name)).find(_.is_file)
+
     def find_log(name: String): Option[Path] =
       input_dirs.map(_ + log(name)).find(_.is_file)
 
@@ -564,5 +568,92 @@ object Sessions
       find_heap(name) getOrElse
         error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
           cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
+  }
+
+
+  /* SQL database operations */
+
+  def encode_properties(ps: Properties.T): Bytes =
+    Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+
+  def decode_properties(bs: Bytes): Properties.T =
+    XML.Decode.properties(YXML.parse_body(bs.text))
+
+  def compress_properties(ps: List[Properties.T], options: XZ.Options = XZ.options()): Bytes =
+  {
+    if (ps.isEmpty) Bytes.empty
+    else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
+  }
+
+  def uncompress_properties(bs: Bytes): List[Properties.T] =
+  {
+    if (bs.isEmpty) Nil
+    else XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text))
+  }
+
+  object Session_Info
+  {
+    // Build_Log.Session_Info
+    val session_name = SQL.Column.string("session_name")
+    val session_timing = SQL.Column.bytes("session_timing")
+    val command_timings = SQL.Column.bytes("command_timings")
+    val ml_statistics = SQL.Column.bytes("ml_statistics")
+    val task_statistics = SQL.Column.bytes("task_statistics")
+
+    // Build.Session_Info
+    val sources = SQL.Column.string("sources")
+    val input_heap = SQL.Column.string("input_heap")
+    val output_heap = SQL.Column.string("output_heap")
+    val return_code = SQL.Column.int("return_code")
+
+    val table = SQL.Table("isabelle_session_info",
+      List(session_name, session_timing, command_timings, ml_statistics, task_statistics,
+        sources, input_heap, output_heap, return_code))
+
+    def write_data(db: SQLite.Database, info1: Build_Log.Session_Info, info2: Build.Session_Info)
+    {
+      db.transaction {
+        db.drop_table(table)
+        db.create_table(table)
+        using(db.insert_statement(table))(stmt =>
+        {
+          db.set_string(stmt, 1, info1.session_name)
+          db.set_bytes(stmt, 2, encode_properties(info1.session_timing))
+          db.set_bytes(stmt, 3, compress_properties(info1.command_timings))
+          db.set_bytes(stmt, 4, compress_properties(info1.ml_statistics))
+          db.set_bytes(stmt, 5, compress_properties(info1.task_statistics))
+          db.set_string(stmt, 6, info2.sources)
+          db.set_string(stmt, 7, info2.input_heap)
+          db.set_string(stmt, 8, info2.output_heap)
+          db.set_int(stmt, 9, info2.return_code)
+          stmt.execute()
+        })
+      }
+    }
+
+    def read_data(db: SQLite.Database): Option[(Build_Log.Session_Info, Build.Session_Info)] =
+    {
+      using(db.select_statement(table, table.columns))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) None
+        else {
+          val info1 =
+            Build_Log.Session_Info(
+              db.string(rs, session_name.name),
+              decode_properties(db.bytes(rs, session_timing.name)),
+              uncompress_properties(db.bytes(rs, command_timings.name)),
+              uncompress_properties(db.bytes(rs, ml_statistics.name)),
+              uncompress_properties(db.bytes(rs, task_statistics.name)))
+          val info2 =
+            Build.Session_Info(
+              db.string(rs, sources.name),
+              db.string(rs, input_heap.name),
+              db.string(rs, output_heap.name),
+              db.int(rs, return_code.name))
+          Some((info1, info2))
+        }
+      })
+    }
   }
 }
