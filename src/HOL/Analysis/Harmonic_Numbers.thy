@@ -17,21 +17,6 @@ text \<open>
   and the Euler-Mascheroni constant.
 \<close>
 
-lemma ln_2_less_1: "ln 2 < (1::real)"
-proof -
-  have "2 < 5/(2::real)" by simp
-  also have "5/2 \<le> exp (1::real)" using exp_lower_taylor_quadratic[of 1, simplified] by simp
-  finally have "exp (ln 2) < exp (1::real)" by simp
-  thus "ln 2 < (1::real)" by (subst (asm) exp_less_cancel_iff) simp
-qed
-
-lemma sum_Suc_diff':
-  fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
-  assumes "m \<le> n"
-  shows "(\<Sum>i = m..<n. f (Suc i) - f i) = f n - f m"
-using assms by (induct n) (auto simp: le_Suc_eq)
-
-
 subsection \<open>The Harmonic numbers\<close>
 
 definition harm :: "nat \<Rightarrow> 'a :: real_normed_field" where

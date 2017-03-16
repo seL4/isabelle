@@ -709,7 +709,7 @@ by blast
 
 subsubsection \<open>The Constant @{term greaterThan}\<close>
 
-lemma greaterThan_0 [simp]: "greaterThan 0 = range Suc"
+lemma greaterThan_0: "greaterThan 0 = range Suc"
 apply (simp add: greaterThan_def)
 apply (blast dest: gr0_conv_Suc [THEN iffD1])
 done
@@ -1844,6 +1844,12 @@ lemma sum_Suc_diff:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
   assumes "m \<le> Suc n"
   shows "(\<Sum>i = m..n. f(Suc i) - f i) = f (Suc n) - f m"
+using assms by (induct n) (auto simp: le_Suc_eq)
+
+lemma sum_Suc_diff':
+  fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
+  assumes "m \<le> n"
+  shows "(\<Sum>i = m..<n. f (Suc i) - f i) = f n - f m"
 using assms by (induct n) (auto simp: le_Suc_eq)
 
 lemma nested_sum_swap:
