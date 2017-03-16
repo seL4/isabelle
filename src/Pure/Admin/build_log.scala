@@ -265,7 +265,7 @@ object Build_Log
 
 
 
-  /** meta info **/
+  /** digested meta info: produced by Admin/build_history in log.xz file **/
 
   object Meta_Info
   {
@@ -379,7 +379,7 @@ object Build_Log
 
 
 
-  /** build info: produced by isabelle build or build_history **/
+  /** build info: toplevel output of isabelle build or Admin/build_history **/
 
   val ML_STATISTICS_MARKER = "\fML_statistics = "
   val SESSION_NAME = "session_name"
@@ -539,7 +539,7 @@ object Build_Log
 
 
 
-  /** session info: produced by "isabelle build" **/
+  /** session info: produced by isabelle build as session log.gz file **/
 
   sealed case class Session_Info(
     session_name: String,
