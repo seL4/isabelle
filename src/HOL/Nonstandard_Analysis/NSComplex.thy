@@ -438,20 +438,17 @@ lemma hcmod_mult_i2 [simp]: "\<And>y. hcmod (hcomplex_of_hypreal y * iii) = \<ba
 subsubsection \<open>\<open>harg\<close>\<close>
 
 lemma cos_harg_i_mult_zero [simp]: "\<And>y. y \<noteq> 0 \<Longrightarrow> ( *f* cos) (harg (HComplex 0 y)) = 0"
-  by transfer simp
-
-lemma hcomplex_of_hypreal_zero_iff [simp]: "\<And>y. hcomplex_of_hypreal y = 0 \<longleftrightarrow> y = 0"
-  by transfer (rule of_real_eq_0_iff)
+  by transfer (simp add: Complex_eq)
 
 
 subsection \<open>Polar Form for Nonstandard Complex Numbers\<close>
 
 lemma complex_split_polar2: "\<forall>n. \<exists>r a. (z n) = complex_of_real r * Complex (cos a) (sin a)"
-  by (auto intro: complex_split_polar)
+  unfolding Complex_eq by (auto intro: complex_split_polar)
 
 lemma hcomplex_split_polar:
   "\<And>z. \<exists>r a. z = hcomplex_of_hypreal r * (HComplex (( *f* cos) a) (( *f* sin) a))"
-  by transfer (simp add: complex_split_polar)
+  by transfer (simp add: Complex_eq complex_split_polar)
 
 lemma hcis_eq:
   "\<And>a. hcis a = hcomplex_of_hypreal (( *f* cos) a) + iii * hcomplex_of_hypreal (( *f* sin) a)"
@@ -479,7 +476,7 @@ lemma hcmod_unit_one [simp]: "\<And>a. hcmod (HComplex (( *f* cos) a) (( *f* sin
 
 lemma hcmod_complex_polar [simp]:
   "\<And>r a. hcmod (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = \<bar>r\<bar>"
-  by transfer (simp add: cmod_complex_polar)
+  by transfer (simp add: Complex_eq cmod_complex_polar)
 
 lemma hcmod_hrcis [simp]: "\<And>r a. hcmod(hrcis r a) = \<bar>r\<bar>"
   by transfer (rule complex_mod_rcis)

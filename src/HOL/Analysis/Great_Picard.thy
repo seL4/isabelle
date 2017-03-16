@@ -211,7 +211,7 @@ proof -
   have "\<exists>x. cos (complex_of_real pi * z) = of_int x"
     using assms
     apply safe
-      apply (auto simp: Ints_def cos_exp_eq exp_minus)
+      apply (auto simp: Ints_def cos_exp_eq exp_minus Complex_eq)
      apply (auto simp: algebra_simps dest: 1 2)
       done
   then have "sin(pi * cos(pi * z)) ^ 2 = 0"

@@ -207,7 +207,7 @@ primcorec imaginary_unit :: complex  ("\<i>")
     "Re \<i> = 0"
   | "Im \<i> = 1"
 
-lemma Complex_eq[simp]: "Complex a b = a + \<i> * b"
+lemma Complex_eq: "Complex a b = a + \<i> * b"
   by (simp add: complex_eq_iff)
 
 lemma complex_eq: "a = Re a + \<i> * Im a"
@@ -423,7 +423,7 @@ lemmas sums_Im = bounded_linear.sums [OF bounded_linear_Im]
 
 lemma tendsto_Complex [tendsto_intros]:
   "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> ((\<lambda>x. Complex (f x) (g x)) \<longlongrightarrow> Complex a b) F"
-  by (auto intro!: tendsto_intros)
+  unfolding Complex_eq by (auto intro!: tendsto_intros)
 
 lemma tendsto_complex_iff:
   "(f \<longlongrightarrow> x) F \<longleftrightarrow> (((\<lambda>x. Re (f x)) \<longlongrightarrow> Re x) F \<and> ((\<lambda>x. Im (f x)) \<longlongrightarrow> Im x) F)"
@@ -819,13 +819,13 @@ proof -
   qed
   then show ?thesis
     using sin_converges [of b] cos_converges [of b]
-    by (auto simp add: cis.ctr exp_def simp del: of_real_mult
+    by (auto simp add: Complex_eq cis.ctr exp_def simp del: of_real_mult
         intro!: sums_unique sums_add sums_mult sums_of_real)
 qed
 
 lemma exp_eq_polar: "exp z = exp (Re z) * cis (Im z)"
   unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp
-  by (cases z) simp
+  by (cases z) (simp add: Complex_eq)
 
 lemma Re_exp: "Re (exp z) = exp (Re z) * cos (Im z)"
   unfolding exp_eq_polar by simp
@@ -837,7 +837,7 @@ lemma norm_cos_sin [simp]: "norm (Complex (cos t) (sin t)) = 1"
   by (simp add: norm_complex_def)
 
 lemma norm_exp_eq_Re [simp]: "norm (exp z) = exp (Re z)"
-  by (simp add: cis.code cmod_complex_polar exp_eq_polar)
+  by (simp add: cis.code cmod_complex_polar exp_eq_polar Complex_eq)
 
 lemma complex_exp_exists: "\<exists>a r. z = complex_of_real r * exp a"
   apply (insert rcis_Ex [of z])
@@ -1057,7 +1057,7 @@ lemma legacy_Complex_simps:
     and Complex_sum: "Complex (sum f s) 0 = sum (\<lambda>x. Complex (f x) 0) s"
     and complex_of_real_def: "complex_of_real r = Complex r 0"
     and complex_norm: "cmod (Complex x y) = sqrt (x\<^sup>2 + y\<^sup>2)"
-  by (simp_all add: norm_complex_def field_simps complex_eq_iff Re_divide Im_divide del: Complex_eq)
+  by (simp_all add: norm_complex_def field_simps complex_eq_iff Re_divide Im_divide)
 
 lemma Complex_in_Reals: "Complex x 0 \<in> \<real>"
   by (metis Reals_of_real complex_of_real_def)

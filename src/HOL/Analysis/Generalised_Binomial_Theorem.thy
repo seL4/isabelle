@@ -123,7 +123,7 @@ proof -
     hence z: "norm z < K" by simp
     with K have nz: "1 + z \<noteq> 0" by (auto dest!: minus_unique)
     from z K have "norm z < 1" by simp
-    hence "(1 + z) \<notin> \<real>\<^sub>\<le>\<^sub>0" by (cases z) (auto simp: complex_nonpos_Reals_iff)
+    hence "(1 + z) \<notin> \<real>\<^sub>\<le>\<^sub>0" by (cases z) (auto simp: Complex_eq complex_nonpos_Reals_iff)
     hence "((\<lambda>z. f z * (1 + z) powr (-a)) has_field_derivative
               f' z * (1 + z) powr (-a) - a * f z * (1 + z) powr (-a-1)) (at z)" using z
       by (auto intro!: derivative_eq_intros)

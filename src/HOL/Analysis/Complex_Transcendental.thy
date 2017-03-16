@@ -176,7 +176,7 @@ subsection\<open>Get a nice real/imaginary separation in Euler's formula.\<close
 
 lemma Euler: "exp(z) = of_real(exp(Re z)) *
               (of_real(cos(Im z)) + \<i> * of_real(sin(Im z)))"
-by (cases z) (simp add: exp_add exp_Euler cos_of_real exp_of_real sin_of_real)
+by (cases z) (simp add: exp_add exp_Euler cos_of_real exp_of_real sin_of_real Complex_eq)
 
 lemma Re_sin: "Re(sin z) = sin(Re z) * (exp(Im z) + exp(-(Im z))) / 2"
   by (simp add: sin_exp_eq field_simps Re_divide Im_exp)
@@ -202,13 +202,20 @@ lemma Im_sin_nonneg2: "Re z = pi \<Longrightarrow> Im z \<le> 0 \<Longrightarrow
 subsection\<open>More on the Polar Representation of Complex Numbers\<close>
 
 lemma exp_Complex: "exp(Complex r t) = of_real(exp r) * Complex (cos t) (sin t)"
-  by (simp add: exp_add exp_Euler exp_of_real sin_of_real cos_of_real)
+  by (simp add: Complex_eq exp_add exp_Euler exp_of_real sin_of_real cos_of_real)
 
 lemma exp_eq_1: "exp z = 1 \<longleftrightarrow> Re(z) = 0 \<and> (\<exists>n::int. Im(z) = of_int (2 * n) * pi)"
-apply auto
-apply (metis exp_eq_one_iff norm_exp_eq_Re norm_one)
-apply (metis Re_exp cos_one_2pi_int mult.commute mult.left_neutral norm_exp_eq_Re norm_one one_complex.simps(1))
-by (metis Im_exp Re_exp complex_Re_Im_cancel_iff cos_one_2pi_int sin_double Re_complex_of_real complex_Re_numeral exp_zero mult.assoc mult.left_commute mult_eq_0_iff mult_numeral_1 numeral_One of_real_0 sin_zero_iff_int2)
+                 (is "?lhs = ?rhs")
+proof 
+  assume "exp z = 1"
+  then have "Re z = 0"
+    by (metis exp_eq_one_iff norm_exp_eq_Re norm_one)
+  with \<open>?lhs\<close> show ?rhs
+    by (metis Re_exp complex_Re_of_int cos_one_2pi_int exp_zero mult.commute mult_numeral_1 numeral_One of_int_mult of_int_numeral)
+next
+  assume ?rhs then show ?lhs
+    using Im_exp Re_exp complex_Re_Im_cancel_iff by force
+qed
 
 lemma exp_eq: "exp w = exp z \<longleftrightarrow> (\<exists>n::int. w = z + (of_int (2 * n) * pi) * \<i>)"
                 (is "?lhs = ?rhs")
@@ -487,7 +494,7 @@ lemma cos_eq:
 lemma sinh_complex:
   fixes z :: complex
   shows "(exp z - inverse (exp z)) / 2 = -\<i> * sin(\<i> * z)"
-  by (simp add: sin_exp_eq divide_simps exp_minus of_real_numeral)
+  by (simp add: sin_exp_eq divide_simps exp_minus)
 
 lemma sin_i_times:
   fixes z :: complex
@@ -497,24 +504,24 @@ lemma sin_i_times:
 lemma sinh_real:
   fixes x :: real
   shows "of_real((exp x - inverse (exp x)) / 2) = -\<i> * sin(\<i> * of_real x)"
-  by (simp add: exp_of_real sin_i_times of_real_numeral)
+  by (simp add: exp_of_real sin_i_times)
 
 lemma cosh_complex:
   fixes z :: complex
   shows "(exp z + inverse (exp z)) / 2 = cos(\<i> * z)"
-  by (simp add: cos_exp_eq divide_simps exp_minus of_real_numeral exp_of_real)
+  by (simp add: cos_exp_eq divide_simps exp_minus exp_of_real)
 
 lemma cosh_real:
   fixes x :: real
   shows "of_real((exp x + inverse (exp x)) / 2) = cos(\<i> * of_real x)"
-  by (simp add: cos_exp_eq divide_simps exp_minus of_real_numeral exp_of_real)
+  by (simp add: cos_exp_eq divide_simps exp_minus exp_of_real)
 
 lemmas cos_i_times = cosh_complex [symmetric]
 
 lemma norm_cos_squared:
     "norm(cos z) ^ 2 = cos(Re z) ^ 2 + (exp(Im z) - inverse(exp(Im z))) ^ 2 / 4"
   apply (cases z)
-  apply (simp add: cos_add cmod_power2 cos_of_real sin_of_real)
+  apply (simp add: cos_add cmod_power2 cos_of_real sin_of_real Complex_eq)
   apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib)
   apply (simp add: sin_squared_eq)
@@ -524,7 +531,7 @@ lemma norm_cos_squared:
 lemma norm_sin_squared:
     "norm(sin z) ^ 2 = (exp(2 * Im z) + inverse(exp(2 * Im z)) - 2 * cos(2 * Re z)) / 4"
   apply (cases z)
-  apply (simp add: sin_add cmod_power2 cos_of_real sin_of_real cos_double_cos exp_double)
+  apply (simp add: sin_add cmod_power2 cos_of_real sin_of_real cos_double_cos exp_double Complex_eq)
   apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib)
   apply (simp add: cos_squared_eq)
@@ -969,7 +976,7 @@ lemma Arg_exp: "0 \<le> Im z \<Longrightarrow> Im z < 2*pi \<Longrightarrow> Arg
 
 lemma complex_split_polar:
   obtains r a::real where "z = complex_of_real r * (cos a + \<i> * sin a)" "0 \<le> r" "0 \<le> a" "a < 2*pi"
-  using Arg cis.ctr cis_conv_exp by fastforce
+  using Arg cis.ctr cis_conv_exp unfolding Complex_eq by fastforce
 
 lemma Re_Im_le_cmod: "Im w * sin \<phi> + Re w * cos \<phi> \<le> cmod w"
 proof (cases w rule: complex_split_polar)
@@ -2112,7 +2119,7 @@ lemma continuous_within_csqrt_posreal:
 proof (cases "z \<in> \<real>\<^sub>\<le>\<^sub>0")
   case True
   then have "Im z = 0" "Re z < 0 \<or> z = 0"
-    using cnj.code complex_cnj_zero_iff  by (auto simp: complex_nonpos_Reals_iff) fastforce
+    using cnj.code complex_cnj_zero_iff  by (auto simp: Complex_eq complex_nonpos_Reals_iff) fastforce
   then show ?thesis
     apply (auto simp: continuous_within_closed_nontrivial [OF closed_Real_halfspace_Re_ge])
     apply (auto simp: continuous_within_eps_delta norm_conv_dist [symmetric])
