@@ -415,7 +415,7 @@ class Plugin extends EBPlugin
 
     // adhoc patch of confusing message
     val orig_plugin_error = jEdit.getProperty("plugin-error.start-error")
-    jEdit.setProperty("plugin-error.start-error", "Cannot start plugin:\n{0}")
+    jEdit.setProperty("plugin-error.start-error", "Cannot start plugin: {0}")
 
     init_options()
     init_resources()
