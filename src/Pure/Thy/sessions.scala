@@ -526,7 +526,7 @@ object Sessions
     def log_gz(name: String): Path = log(name).ext("gz")
 
 
-    /* data representation */
+    /* SQL data representation */
 
     val xml_cache: XML.Cache = new XML.Cache()
 
@@ -548,6 +548,17 @@ object Sessions
       else
         XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text)).
           map(xml_cache.props(_))
+    }
+
+    def read_properties(db: SQLite.Database, table: SQL.Table, column: SQL.Column)
+      : List[Properties.T] =
+    {
+      using(db.select_statement(table, List(column)))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) Nil
+        else uncompress_properties(db.bytes(rs, column.name))
+      })
     }
 
 
@@ -606,18 +617,19 @@ object Sessions
     val command_timings = SQL.Column.bytes("command_timings")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
     val task_statistics = SQL.Column.bytes("task_statistics")
+    val build_log_columns =
+      List(session_name, session_timing, command_timings, ml_statistics, task_statistics)
 
     // Build.Session_Info
     val sources = SQL.Column.string("sources")
     val input_heaps = SQL.Column.string("input_heaps")
     val output_heap = SQL.Column.string("output_heap")
     val return_code = SQL.Column.int("return_code")
+    val build_columns = List(sources, input_heaps, output_heap, return_code)
 
-    val table = SQL.Table("isabelle_session_info",
-      List(session_name, session_timing, command_timings, ml_statistics, task_statistics,
-        sources, input_heaps, output_heap, return_code))
+    val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
 
-    def write_data(store: Store, db: SQLite.Database,
+    def write(store: Store, db: SQLite.Database,
       build_log: Build_Log.Session_Info, build: Build.Session_Info)
     {
       db.transaction {
@@ -639,30 +651,42 @@ object Sessions
       }
     }
 
-    def read_data(store: Store, db: SQLite.Database)
-      : Option[(Build_Log.Session_Info, Build.Session_Info)] =
-    {
-      using(db.select_statement(table, table.columns))(stmt =>
+    def read_build_log(store: Store, db: SQLite.Database): Option[Build_Log.Session_Info] =
+      using(db.select_statement(table, build_log_columns))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
         else {
-          val build_log =
+          Some(
             Build_Log.Session_Info(
               db.string(rs, session_name.name),
               store.decode_properties(db.bytes(rs, session_timing.name)),
               store.uncompress_properties(db.bytes(rs, command_timings.name)),
               store.uncompress_properties(db.bytes(rs, ml_statistics.name)),
-              store.uncompress_properties(db.bytes(rs, task_statistics.name)))
-          val build =
+              store.uncompress_properties(db.bytes(rs, task_statistics.name))))
+        }
+      })
+
+    def read_build(store: Store, db: SQLite.Database): Option[Build.Session_Info] =
+      using(db.select_statement(table, table.columns))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) None
+        else {
+          Some(
             Build.Session_Info(
               split_lines(db.string(rs, sources.name)),
               split_lines(db.string(rs, input_heaps.name)),
               db.string(rs, output_heap.name),
-              db.int(rs, return_code.name))
-          Some((build_log, build))
+              db.int(rs, return_code.name)))
         }
       })
-    }
+
+    def read_command_timings(store: Store, db: SQLite.Database): List[Properties.T] =
+      store.read_properties(db, table, command_timings)
+    def read_ml_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
+      store.read_properties(db, table, ml_statistics)
+    def read_task_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
+      store.read_properties(db, table, task_statistics)
   }
 }
