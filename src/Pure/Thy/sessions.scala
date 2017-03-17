@@ -550,21 +550,21 @@ object Sessions
           map(xml_cache.props(_))
     }
 
-    def read_string(db: SQLite.Database, table: SQL.Table, column: SQL.Column): String =
+    def read_string(db: SQL.Database, table: SQL.Table, column: SQL.Column): String =
       using(db.select_statement(table, List(column)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) "" else db.string(rs, column.name)
       })
 
-    def read_bytes(db: SQLite.Database, table: SQL.Table, column: SQL.Column): Bytes =
+    def read_bytes(db: SQL.Database, table: SQL.Table, column: SQL.Column): Bytes =
       using(db.select_statement(table, List(column)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) Bytes.empty else db.bytes(rs, column.name)
       })
 
-    def read_properties(db: SQLite.Database, table: SQL.Table, column: SQL.Column)
+    def read_properties(db: SQL.Database, table: SQL.Table, column: SQL.Column)
       : List[Properties.T] = uncompress_properties(read_bytes(db, table, column))
 
 
@@ -631,7 +631,7 @@ object Sessions
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
 
-    def write(store: Store, db: SQLite.Database,
+    def write(store: Store, db: SQL.Database,
       build_log: Build_Log.Session_Info, build: Build.Session_Info)
     {
       db.transaction {
@@ -653,19 +653,19 @@ object Sessions
       }
     }
 
-    def read_session_timing(store: Store, db: SQLite.Database): Properties.T =
+    def read_session_timing(store: Store, db: SQL.Database): Properties.T =
       store.decode_properties(store.read_bytes(db, table, session_timing))
 
-    def read_command_timings(store: Store, db: SQLite.Database): List[Properties.T] =
+    def read_command_timings(store: Store, db: SQL.Database): List[Properties.T] =
       store.read_properties(db, table, command_timings)
 
-    def read_ml_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
+    def read_ml_statistics(store: Store, db: SQL.Database): List[Properties.T] =
       store.read_properties(db, table, ml_statistics)
 
-    def read_task_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
+    def read_task_statistics(store: Store, db: SQL.Database): List[Properties.T] =
       store.read_properties(db, table, task_statistics)
 
-    def read_build_log(store: Store, db: SQLite.Database,
+    def read_build_log(store: Store, db: SQL.Database,
       default_name: String = "",
       command_timings: Boolean = false,
       ml_statistics: Boolean = false,
@@ -683,7 +683,7 @@ object Sessions
         task_statistics = if (task_statistics) read_task_statistics(store, db) else Nil)
     }
 
-    def read_build(store: Store, db: SQLite.Database): Option[Build.Session_Info] =
+    def read_build(store: Store, db: SQL.Database): Option[Build.Session_Info] =
       using(db.select_statement(table, table.columns))(stmt =>
       {
         val rs = stmt.executeQuery
