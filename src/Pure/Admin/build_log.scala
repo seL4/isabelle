@@ -555,22 +555,16 @@ object Build_Log
     ml_statistics: Boolean,
     task_statistics: Boolean): Session_Info =
   {
-    val xml_cache = new XML.Cache()
-
-    val session_name =
-      log_file.find_line("\fSession.name = ") match {
-        case None => default_name
-        case Some(name) if default_name == "" || default_name == name => name
-        case Some(name) => log_file.err("log from different session " + quote(name))
-      }
-    val session_timing = log_file.find_props("\fTiming = ") getOrElse Nil
-    val command_timings_ =
-      if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil
-    val ml_statistics_ =
-      if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil
-    val task_statistics_ =
-      if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil
-
-    Session_Info(session_name, session_timing, command_timings_, ml_statistics_, task_statistics_)
+    Session_Info(
+      session_name =
+        log_file.find_line("\fSession.name = ") match {
+          case None => default_name
+          case Some(name) if default_name == "" || default_name == name => name
+          case Some(name) => log_file.err("log from different session " + quote(name))
+        },
+      session_timing = log_file.find_props("\fTiming = ") getOrElse Nil,
+      command_timings = if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil,
+      ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
+      task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil)
   }
 }
