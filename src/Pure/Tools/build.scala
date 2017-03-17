@@ -386,15 +386,14 @@ object Build
             if (process_result.ok)
               progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
 
+            val log_lines = process_result.out_lines.filterNot(_.startsWith("\f"))
             val process_result_tail =
             {
-              val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
               val tail = job.info.options.int("process_output_tail")
-              val lines1 = if (tail == 0) lines else lines.drop(lines.length - tail max 0)
               process_result.copy(
                 out_lines =
                   "(see also " + (store.output_dir + store.log(name)).file.toString + ")" ::
-                  lines1)
+                  (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
             }
 
             val heap_stamp =
@@ -404,8 +403,7 @@ object Build
                   for (path <- job.output_path if path.is_file)
                     yield Sessions.write_heap_digest(path)
 
-                File.write_gzip(store.output_dir + store.log_gz(name),
-                  terminate_lines(process_result.out_lines))
+                File.write_gzip(store.output_dir + store.log_gz(name), terminate_lines(log_lines))
 
                 heap_stamp
               }
@@ -413,8 +411,7 @@ object Build
                 (store.output_dir + Path.basic(name)).file.delete
                 (store.output_dir + store.log_gz(name)).file.delete
 
-                File.write(store.output_dir + store.log(name),
-                  terminate_lines(process_result.out_lines))
+                File.write(store.output_dir + store.log(name), terminate_lines(log_lines))
                 progress.echo(name + " FAILED")
                 if (!process_result.interrupted) progress.echo(process_result_tail.out)
 
