@@ -207,6 +207,8 @@ object Build_History
 
       /* output log */
 
+      val store = Sessions.store()
+
       val meta_info =
         Build_Log.Prop.multiple(Build_Log.Prop.build_tags, build_tags) :::
         Build_Log.Prop.multiple(Build_Log.Prop.build_args, build_args1) :::
@@ -222,12 +224,21 @@ object Build_History
       val ml_statistics =
         build_info.finished_sessions.flatMap(session_name =>
           {
-            val session_log = isabelle_output_log + Path.explode(session_name).ext("gz")
-            if (session_log.is_file) {
-              Build_Log.Log_File(session_log).parse_session_info(ml_statistics = true).
-                ml_statistics.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
-            }
-            else Nil
+            val database = isabelle_output + store.database(session_name)
+            val log_gz = isabelle_output + store.log_gz(session_name)
+
+            val properties =
+              if (database.is_file) {
+                using(SQLite.open_database(database))(db =>
+                  Sessions.Session_Info.read_build_log(
+                    store, db, session_name, ml_statistics = true)).ml_statistics
+              }
+              else if (log_gz.is_file) {
+                Build_Log.Log_File(log_gz).
+                  parse_session_info(session_name, ml_statistics = true).ml_statistics
+              }
+              else Nil
+            properties.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
           })
 
       val heap_sizes =
