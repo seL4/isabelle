@@ -599,6 +599,8 @@ object Sessions
       if (system_mode) Path.explode("~~/heaps/$ML_IDENTIFIER")
       else Path.explode("$ISABELLE_OUTPUT")
 
+    override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
+
     def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
 
 
@@ -622,11 +624,6 @@ object Sessions
       input_dirs.map(_ + Path.basic(name)).find(_.is_file) getOrElse
         error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
           cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
-
-
-    /* print */
-
-    override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
 
 
     /* session info */
