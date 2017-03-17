@@ -526,7 +526,7 @@ object Sessions
     def log_gz(name: String): Path = log(name).ext("gz")
 
 
-    /* SQL data representation */
+    /* SQL database content */
 
     val xml_cache: XML.Cache = new XML.Cache()
 
@@ -550,16 +550,18 @@ object Sessions
           map(xml_cache.props(_))
     }
 
-    def read_properties(db: SQLite.Database, table: SQL.Table, column: SQL.Column)
-      : List[Properties.T] =
+    def read_bytes(db: SQLite.Database, table: SQL.Table, column: SQL.Column): Bytes =
     {
       using(db.select_statement(table, List(column)))(stmt =>
       {
         val rs = stmt.executeQuery
-        if (!rs.next) Nil
-        else uncompress_properties(db.bytes(rs, column.name))
+        if (!rs.next) Bytes.empty
+        else db.bytes(rs, column.name)
       })
     }
+
+    def read_properties(db: SQLite.Database, table: SQL.Table, column: SQL.Column)
+      : List[Properties.T] = uncompress_properties(read_bytes(db, table, column))
 
 
     /* output */
@@ -651,6 +653,18 @@ object Sessions
       }
     }
 
+    def read_session_timing(store: Store, db: SQLite.Database): Properties.T =
+      store.decode_properties(store.read_bytes(db, table, session_timing))
+
+    def read_command_timings(store: Store, db: SQLite.Database): List[Properties.T] =
+      store.read_properties(db, table, command_timings)
+
+    def read_ml_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
+      store.read_properties(db, table, ml_statistics)
+
+    def read_task_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
+      store.read_properties(db, table, task_statistics)
+
     def read_build_log(store: Store, db: SQLite.Database): Option[Build_Log.Session_Info] =
       using(db.select_statement(table, build_log_columns))(stmt =>
       {
@@ -681,12 +695,5 @@ object Sessions
               db.int(rs, return_code.name)))
         }
       })
-
-    def read_command_timings(store: Store, db: SQLite.Database): List[Properties.T] =
-      store.read_properties(db, table, command_timings)
-    def read_ml_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
-      store.read_properties(db, table, ml_statistics)
-    def read_task_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
-      store.read_properties(db, table, task_statistics)
   }
 }
