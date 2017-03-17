@@ -602,13 +602,13 @@ object Sessions
 
     // Build.Session_Info
     val sources = SQL.Column.string("sources")
-    val input_heap = SQL.Column.string("input_heap")
+    val input_heaps = SQL.Column.string("input_heaps")
     val output_heap = SQL.Column.string("output_heap")
     val return_code = SQL.Column.int("return_code")
 
     val table = SQL.Table("isabelle_session_info",
       List(session_name, session_timing, command_timings, ml_statistics, task_statistics,
-        sources, input_heap, output_heap, return_code))
+        sources, input_heaps, output_heap, return_code))
 
     def write_data(db: SQLite.Database, info1: Build_Log.Session_Info, info2: Build.Session_Info)
     {
@@ -623,7 +623,7 @@ object Sessions
           db.set_bytes(stmt, 4, compress_properties(info1.ml_statistics))
           db.set_bytes(stmt, 5, compress_properties(info1.task_statistics))
           db.set_string(stmt, 6, info2.sources)
-          db.set_string(stmt, 7, info2.input_heap)
+          db.set_string(stmt, 7, info2.input_heaps)
           db.set_string(stmt, 8, info2.output_heap)
           db.set_int(stmt, 9, info2.return_code)
           stmt.execute()
@@ -648,7 +648,7 @@ object Sessions
           val info2 =
             Build.Session_Info(
               db.string(rs, sources.name),
-              db.string(rs, input_heap.name),
+              db.string(rs, input_heaps.name),
               db.string(rs, output_heap.name),
               db.int(rs, return_code.name))
           Some((info1, info2))

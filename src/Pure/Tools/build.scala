@@ -204,7 +204,7 @@ object Build
   /* sources and heaps */
 
   sealed case class Session_Info(
-    sources: String, input_heap: String, output_heap: String, return_code: Int)
+    sources: String, input_heaps: String, output_heap: String, return_code: Int)
 
   private val SOURCES = "sources: "
   private val INPUT_HEAP = "input_heap: "
