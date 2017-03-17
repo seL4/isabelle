@@ -264,8 +264,11 @@ object SQLite
   // see https://www.sqlite.org/lang_datefunc.html
   val date_format: Date.Format = Date.Format("uuuu-MM-dd HH:mm:ss.SSS x")
 
+  lazy val init_jdbc: Unit = Class.forName("org.sqlite.JDBC")
+
   def open_database(path: Path): Database =
   {
+    init_jdbc
     val path0 = path.expand
     val s0 = File.platform_path(path0)
     val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
@@ -296,6 +299,8 @@ object PostgreSQL
 {
   val default_port = 5432
 
+  lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
+
   def open_database(
     user: String,
     password: String,
@@ -304,6 +309,8 @@ object PostgreSQL
     port: Int = default_port,
     ssh: Option[SSH.Session] = None): Database =
   {
+    init_jdbc
+
     require(user != "")
 
     val db_host = if (host != "") host else "localhost"
