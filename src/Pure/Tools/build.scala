@@ -21,16 +21,46 @@ object Build
 {
   /** auxiliary **/
 
-  /* queue */
+  /* queue with scheduling information */
 
   private object Queue
   {
-    def apply(tree: Sessions.Tree, load_timings: String => (List[Properties.T], Double)): Queue =
+    def load_timings(store: Sessions.Store, name: String): (List[Properties.T], Double) =
+    {
+      val (path, text) =
+        store.find_log_gz(name) match {
+          case Some(path) => (path, File.read_gzip(path))
+          case None =>
+            store.find_log(name) match {
+              case Some(path) => (path, File.read(path))
+              case None => (Path.current, "")
+            }
+        }
+
+      def ignore_error(msg: String): (List[Properties.T], Double) =
+      {
+        Output.warning("Ignoring bad log file: " + path + (if (msg == "") "" else "\n" + msg))
+        (Nil, 0.0)
+      }
+
+      try {
+        val info = Build_Log.Log_File(name, text).parse_session_info(name, command_timings = true)
+        val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
+        (info.command_timings, session_timing)
+      }
+      catch {
+        case ERROR(msg) => ignore_error(msg)
+        case exn: java.lang.Error => ignore_error(Exn.message(exn))
+        case _: XML.Error => ignore_error("")
+      }
+    }
+
+    def apply(tree: Sessions.Tree, store: Sessions.Store): Queue =
     {
       val graph = tree.graph
       val sessions = graph.keys
 
-      val timings = Par_List.map((name: String) => (name, load_timings(name)), sessions)
+      val timings = Par_List.map((name: String) => (name, load_timings(store, name)), sessions)
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
@@ -329,45 +359,11 @@ object Build
     def session_sources_stamp(name: String): String =
       sources_stamp(selected_tree(name).meta_digest :: deps.sources(name))
 
-    val store = Sessions.store(system_mode)
-
-
-    /* queue with scheduling information */
-
-    def load_timings(name: String): (List[Properties.T], Double) =
-    {
-      val (path, text) =
-        store.find_log_gz(name) match {
-          case Some(path) => (path, File.read_gzip(path))
-          case None =>
-            store.find_log(name) match {
-              case Some(path) => (path, File.read(path))
-              case None => (Path.current, "")
-            }
-        }
-
-      def ignore_error(msg: String): (List[Properties.T], Double) =
-      {
-        Output.warning("Ignoring bad log file: " + path + (if (msg == "") "" else "\n" + msg))
-        (Nil, 0.0)
-      }
-
-      try {
-        val info = Build_Log.Log_File(name, text).parse_session_info(name, command_timings = true)
-        val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
-        (info.command_timings, session_timing)
-      }
-      catch {
-        case ERROR(msg) => ignore_error(msg)
-        case exn: java.lang.Error => ignore_error(Exn.message(exn))
-        case _: XML.Error => ignore_error("")
-      }
-    }
-
-    val queue = Queue(selected_tree, load_timings)
-
 
     /* main build process */
+
+    val store = Sessions.store(system_mode)
+    val queue = Queue(selected_tree, store)
 
     store.prepare_output()
 
