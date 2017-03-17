@@ -21,37 +21,45 @@ object Build
 {
   /** auxiliary **/
 
+  /* persistent build info */
+
+  sealed case class Session_Info(
+    sources: List[String],
+    input_heaps: List[String],
+    output_heap: Option[String],
+    return_code: Int)
+
+
   /* queue with scheduling information */
 
   private object Queue
   {
     def load_timings(store: Sessions.Store, name: String): (List[Properties.T], Double) =
     {
-      val (path, text) =
-        store.find_log_gz(name) match {
-          case Some(path) => (path, File.read_gzip(path))
-          case None =>
-            store.find_log(name) match {
-              case Some(path) => (path, File.read(path))
-              case None => (Path.current, "")
-            }
-        }
+      val no_timings: (List[Properties.T], Double) = (Nil, 0.0)
 
-      def ignore_error(msg: String): (List[Properties.T], Double) =
-      {
-        Output.warning("Ignoring bad log file: " + path + (if (msg == "") "" else "\n" + msg))
-        (Nil, 0.0)
-      }
-
-      try {
-        val info = Build_Log.Log_File(name, text).parse_session_info(name, command_timings = true)
-        val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
-        (info.command_timings, session_timing)
-      }
-      catch {
-        case ERROR(msg) => ignore_error(msg)
-        case exn: java.lang.Error => ignore_error(Exn.message(exn))
-        case _: XML.Error => ignore_error("")
+      store.find_database(name) match {
+        case None => no_timings
+        case Some(database) =>
+          def ignore_error(msg: String) =
+          {
+            Output.warning("Ignoring bad database: " + database + (if (msg == "") "" else "\n" + msg))
+            no_timings
+          }
+          try {
+            using(SQLite.open_database(database))(db =>
+            {
+              val build_log =
+                Sessions.Session_Info.read_build_log(store, db, name, command_timings = true)
+              val session_timing = Markup.Elapsed.unapply(build_log.session_timing) getOrElse 0.0
+              (build_log.command_timings, session_timing)
+            })
+          }
+          catch {
+            case ERROR(msg) => ignore_error(msg)
+            case exn: java.lang.Error => ignore_error(Exn.message(exn))
+            case _: XML.Error => ignore_error("")
+          }
       }
     }
 
@@ -60,7 +68,7 @@ object Build
       val graph = tree.graph
       val sessions = graph.keys
 
-      val timings = Par_List.map((name: String) => (name, load_timings(store, name)), sessions)
+      val timings = sessions.map(name => (name, load_timings(store, name)))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
@@ -231,49 +239,6 @@ object Build
   }
 
 
-  /* sources and heaps */
-
-  sealed case class Session_Info(
-    sources: List[String], input_heaps: List[String], output_heap: String, return_code: Int)
-
-  private val SOURCES = "sources: "
-  private val INPUT_HEAP = "input_heap: "
-  private val OUTPUT_HEAP = "output_heap: "
-  private val LOG_START = "log:"
-  private val line_prefixes = List(SOURCES, INPUT_HEAP, OUTPUT_HEAP, LOG_START)
-
-  private def sources_stamp(digests: List[SHA1.Digest]): String =
-    digests.map(_.toString).sorted.mkString(SOURCES, " ", "")
-
-  private def read_stamps(path: Path): Option[(String, List[String], List[String])] =
-    if (path.is_file) {
-      val stream = new GZIPInputStream(new BufferedInputStream(new FileInputStream(path.file)))
-      val reader = new BufferedReader(new InputStreamReader(stream, UTF8.charset))
-      val lines =
-      {
-        val lines = new mutable.ListBuffer[String]
-        try {
-          var finished = false
-          while (!finished) {
-            val line = reader.readLine
-            if (line != null && line_prefixes.exists(line.startsWith(_)))
-              lines += line
-            else finished = true
-          }
-        }
-        finally { reader.close }
-        lines.toList
-      }
-
-      if (!lines.isEmpty && lines.last.startsWith(LOG_START)) {
-        lines.find(_.startsWith(SOURCES)).map(s =>
-          (s, lines.filter(_.startsWith(INPUT_HEAP)), lines.filter(_.startsWith(OUTPUT_HEAP))))
-      }
-      else None
-    }
-    else None
-
-
 
   /** build with results **/
 
@@ -356,8 +321,8 @@ object Build
     val deps =
       Sessions.dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
-    def session_sources_stamp(name: String): String =
-      sources_stamp(selected_tree(name).meta_digest :: deps.sources(name))
+    def sources_stamp(name: String): List[String] =
+      (selected_tree(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
 
 
     /* main build process */
@@ -371,7 +336,7 @@ object Build
     if (clean_build) {
       for (name <- full_tree.graph.all_succs(selected)) {
         val files =
-          List(Path.basic(name), store.log(name), store.log_gz(name)).
+          List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
         if (files.nonEmpty) progress.echo("Cleaning " + name + " ...")
         if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
@@ -440,11 +405,7 @@ object Build
                     yield Sessions.write_heap_digest(path)
 
                 File.write_gzip(store.output_dir + store.log_gz(name),
-                  terminate_lines(
-                    session_sources_stamp(name) ::
-                    input_heaps.map(INPUT_HEAP + _) :::
-                    heap_stamp.toList.map(OUTPUT_HEAP + _) :::
-                    List(LOG_START) ::: process_result.out_lines))
+                  terminate_lines(process_result.out_lines))
 
                 heap_stamp
               }
@@ -459,6 +420,22 @@ object Build
 
                 None
               }
+
+            // write database
+            {
+              val database = store.output_dir + store.database(name)
+              database.file.delete
+
+              using(SQLite.open_database(database))(db =>
+                Sessions.Session_Info.write(store, db,
+                  build_log =
+                    Build_Log.Log_File(name, process_result.out_lines).
+                      parse_session_info(name,
+                        command_timings = true, ml_statistics = true, task_statistics = true),
+                  build =
+                    Session_Info(sources_stamp(name), input_heaps, heap_stamp, process_result.rc)))
+            }
+
             loop(pending - name, running - name,
               results + (name -> Result(false, heap_stamp, Some(process_result_tail), job.info)))
             //}}}
@@ -473,15 +450,18 @@ object Build
 
                 val (current, heap_stamp) =
                 {
-                  store.find(name) match {
-                    case Some((log_gz, heap_stamp)) =>
-                      read_stamps(log_gz) match {
-                        case Some((sources, input_heaps, output_heaps)) =>
+                  store.find_database_heap(name) match {
+                    case Some((database, heap_stamp)) =>
+                      using(SQLite.open_database(database))(
+                        Sessions.Session_Info.read_build(store, _)) match
+                      {
+                        case Some(build) =>
                           val current =
-                            sources == session_sources_stamp(name) &&
-                            input_heaps == ancestor_heaps.map(INPUT_HEAP + _) &&
-                            output_heaps == heap_stamp.toList.map(OUTPUT_HEAP + _) &&
-                            !(do_output && heap_stamp.isEmpty)
+                            build.sources == sources_stamp(name) &&
+                            build.input_heaps == ancestor_heaps &&
+                            build.output_heap == heap_stamp &&
+                            !(do_output && heap_stamp.isEmpty) &&
+                            build.return_code == 0
                           (current, heap_stamp)
                         case None => (false, None)
                       }

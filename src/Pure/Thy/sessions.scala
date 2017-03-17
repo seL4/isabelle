@@ -550,15 +550,19 @@ object Sessions
           map(xml_cache.props(_))
     }
 
-    def read_bytes(db: SQLite.Database, table: SQL.Table, column: SQL.Column): Bytes =
-    {
+    def read_string(db: SQLite.Database, table: SQL.Table, column: SQL.Column): String =
       using(db.select_statement(table, List(column)))(stmt =>
       {
         val rs = stmt.executeQuery
-        if (!rs.next) Bytes.empty
-        else db.bytes(rs, column.name)
+        if (!rs.next) "" else db.string(rs, column.name)
       })
-    }
+
+    def read_bytes(db: SQLite.Database, table: SQL.Table, column: SQL.Column): Bytes =
+      using(db.select_statement(table, List(column)))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) Bytes.empty else db.bytes(rs, column.name)
+      })
 
     def read_properties(db: SQLite.Database, table: SQL.Table, column: SQL.Column)
       : List[Properties.T] = uncompress_properties(read_bytes(db, table, column))
@@ -586,18 +590,12 @@ object Sessions
         output_dir :: Path.split(Isabelle_System.getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
       }
 
-    def find(name: String): Option[(Path, Option[String])] =
-      input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
-        (dir + log_gz(name), read_heap_digest(dir + Path.basic(name))))
+    def find_database_heap(name: String): Option[(Path, Option[String])] =
+      input_dirs.find(dir => (dir + database(name)).is_file).map(dir =>
+        (dir + database(name), read_heap_digest(dir + Path.basic(name))))
 
     def find_database(name: String): Option[Path] =
       input_dirs.map(_ + database(name)).find(_.is_file)
-
-    def find_log(name: String): Option[Path] =
-      input_dirs.map(_ + log(name)).find(_.is_file)
-
-    def find_log_gz(name: String): Option[Path] =
-      input_dirs.map(_ + log_gz(name)).find(_.is_file)
 
     def heap(name: String): Path =
       input_dirs.map(_ + Path.basic(name)).find(_.is_file) getOrElse
@@ -648,7 +646,7 @@ object Sessions
           db.set_bytes(stmt, 5, store.compress_properties(build_log.task_statistics))
           db.set_string(stmt, 6, cat_lines(build.sources))
           db.set_string(stmt, 7, cat_lines(build.input_heaps))
-          db.set_string(stmt, 8, build.output_heap)
+          db.set_string(stmt, 8, build.output_heap getOrElse "")
           db.set_int(stmt, 9, build.return_code)
           stmt.execute()
         })
@@ -667,21 +665,23 @@ object Sessions
     def read_task_statistics(store: Store, db: SQLite.Database): List[Properties.T] =
       store.read_properties(db, table, task_statistics)
 
-    def read_build_log(store: Store, db: SQLite.Database): Option[Build_Log.Session_Info] =
-      using(db.select_statement(table, build_log_columns))(stmt =>
-      {
-        val rs = stmt.executeQuery
-        if (!rs.next) None
-        else {
-          Some(
-            Build_Log.Session_Info(
-              db.string(rs, session_name.name),
-              store.decode_properties(db.bytes(rs, session_timing.name)),
-              store.uncompress_properties(db.bytes(rs, command_timings.name)),
-              store.uncompress_properties(db.bytes(rs, ml_statistics.name)),
-              store.uncompress_properties(db.bytes(rs, task_statistics.name))))
-        }
-      })
+    def read_build_log(store: Store, db: SQLite.Database,
+      default_name: String = "",
+      command_timings: Boolean = false,
+      ml_statistics: Boolean = false,
+      task_statistics: Boolean = false): Build_Log.Session_Info =
+    {
+      val name = store.read_string(db, table, session_name)
+      Build_Log.Session_Info(
+        session_name =
+          if (name == "") default_name
+          else if (default_name == "" || default_name == name) name
+          else error("Database from different session " + quote(name)),
+        session_timing = read_session_timing(store, db),
+        command_timings = if (command_timings) read_command_timings(store, db) else Nil,
+        ml_statistics = if (ml_statistics) read_ml_statistics(store, db) else Nil,
+        task_statistics = if (task_statistics) read_task_statistics(store, db) else Nil)
+    }
 
     def read_build(store: Store, db: SQLite.Database): Option[Build.Session_Info] =
       using(db.select_statement(table, table.columns))(stmt =>
@@ -693,7 +693,7 @@ object Sessions
             Build.Session_Info(
               split_lines(db.string(rs, sources.name)),
               split_lines(db.string(rs, input_heaps.name)),
-              db.string(rs, output_heap.name),
+              db.string(rs, output_heap.name) match { case "" => None case s => Some(s) },
               db.int(rs, return_code.name)))
         }
       })
