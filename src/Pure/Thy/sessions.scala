@@ -606,6 +606,11 @@ object Sessions
       find_heap(name) getOrElse
         error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
           cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
+
+
+    /* print */
+
+    override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
   }
 
 
