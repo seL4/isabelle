@@ -68,24 +68,24 @@ object SQL
 
   object Column
   {
-    def bool(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+    def bool(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.Boolean, strict, primary_key)
-    def int(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+    def int(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.Int, strict, primary_key)
-    def long(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+    def long(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.Long, strict, primary_key)
-    def double(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+    def double(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.Double, strict, primary_key)
-    def string(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+    def string(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.String, strict, primary_key)
-    def bytes(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+    def bytes(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.Bytes, strict, primary_key)
-    def date(name: String, strict: Boolean = true, primary_key: Boolean = false): Column =
+    def date(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
       Column(name, Type.Date, strict, primary_key)
   }
 
   sealed case class Column(
-    name: String, T: Type.Value, strict: Boolean = true, primary_key: Boolean = false)
+    name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false)
   {
     def sql_name: String = quote_ident(name)
     def sql_decl(sql_type: Type.Value => String): String =
@@ -240,17 +240,17 @@ object SQL
     def tables: List[String] =
       iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
 
-    def create_table(table: Table, strict: Boolean = true, rowid: Boolean = true): Unit =
+    def create_table(table: Table, strict: Boolean = false, rowid: Boolean = true): Unit =
       using(statement(table.sql_create(strict, rowid, sql_type)))(_.execute())
 
-    def drop_table(table: Table, strict: Boolean = true): Unit =
+    def drop_table(table: Table, strict: Boolean = false): Unit =
       using(statement(table.sql_drop(strict)))(_.execute())
 
     def create_index(table: Table, name: String, columns: List[Column],
-        strict: Boolean = true, unique: Boolean = false): Unit =
+        strict: Boolean = false, unique: Boolean = false): Unit =
       using(statement(table.sql_create_index(name, columns, strict, unique)))(_.execute())
 
-    def drop_index(table: Table, name: String, strict: Boolean = true): Unit =
+    def drop_index(table: Table, name: String, strict: Boolean = false): Unit =
       using(statement(table.sql_drop_index(name, strict)))(_.execute())
   }
 }
@@ -264,8 +264,11 @@ object SQLite
   // see https://www.sqlite.org/lang_datefunc.html
   val date_format: Date.Format = Date.Format("uuuu-MM-dd HH:mm:ss.SSS x")
 
+  lazy val init_jdbc: Unit = Class.forName("org.sqlite.JDBC")
+
   def open_database(path: Path): Database =
   {
+    init_jdbc
     val path0 = path.expand
     val s0 = File.platform_path(path0)
     val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
@@ -296,6 +299,8 @@ object PostgreSQL
 {
   val default_port = 5432
 
+  lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
+
   def open_database(
     user: String,
     password: String,
@@ -304,6 +309,8 @@ object PostgreSQL
     port: Int = default_port,
     ssh: Option[SSH.Session] = None): Database =
   {
+    init_jdbc
+
     require(user != "")
 
     val db_host = if (host != "") host else "localhost"

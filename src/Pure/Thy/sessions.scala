@@ -515,13 +515,80 @@ object Sessions
 
   /** persistent store **/
 
-  def log(name: String): Path = Path.basic("log") + Path.basic(name)
-  def log_gz(name: String): Path = log(name).ext("gz")
+  object Session_Info
+  {
+    // Build_Log.Session_Info
+    val session_name = SQL.Column.string("session_name")
+    val session_timing = SQL.Column.bytes("session_timing")
+    val command_timings = SQL.Column.bytes("command_timings")
+    val ml_statistics = SQL.Column.bytes("ml_statistics")
+    val task_statistics = SQL.Column.bytes("task_statistics")
+    val build_log_columns =
+      List(session_name, session_timing, command_timings, ml_statistics, task_statistics)
+
+    // Build.Session_Info
+    val sources = SQL.Column.string("sources")
+    val input_heaps = SQL.Column.string("input_heaps")
+    val output_heap = SQL.Column.string("output_heap")
+    val return_code = SQL.Column.int("return_code")
+    val build_columns = List(sources, input_heaps, output_heap, return_code)
+
+    val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
+  }
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
 
   class Store private[Sessions](system_mode: Boolean)
   {
+    /* file names */
+
+    def database(name: String): Path = Path.basic("log") + Path.basic(name).ext("db")
+    def log(name: String): Path = Path.basic("log") + Path.basic(name)
+    def log_gz(name: String): Path = log(name).ext("gz")
+
+
+    /* SQL database content */
+
+    val xml_cache: XML.Cache = new XML.Cache()
+
+    def encode_properties(ps: Properties.T): Bytes =
+      Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+
+    def decode_properties(bs: Bytes): Properties.T =
+      xml_cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
+
+    def compress_properties(ps: List[Properties.T], options: XZ.Options = XZ.options()): Bytes =
+    {
+      if (ps.isEmpty) Bytes.empty
+      else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
+    }
+
+    def uncompress_properties(bs: Bytes): List[Properties.T] =
+    {
+      if (bs.isEmpty) Nil
+      else
+        XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text)).
+          map(xml_cache.props(_))
+    }
+
+    def read_string(db: SQL.Database, table: SQL.Table, column: SQL.Column): String =
+      using(db.select_statement(table, List(column)))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) "" else db.string(rs, column.name)
+      })
+
+    def read_bytes(db: SQL.Database, table: SQL.Table, column: SQL.Column): Bytes =
+      using(db.select_statement(table, List(column)))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) Bytes.empty else db.bytes(rs, column.name)
+      })
+
+    def read_properties(db: SQL.Database, table: SQL.Table, column: SQL.Column)
+      : List[Properties.T] = uncompress_properties(read_bytes(db, table, column))
+
+
     /* output */
 
     val browser_info: Path =
@@ -531,6 +598,8 @@ object Sessions
     val output_dir: Path =
       if (system_mode) Path.explode("~~/heaps/$ML_IDENTIFIER")
       else Path.explode("$ISABELLE_OUTPUT")
+
+    override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
 
     def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
 
@@ -544,22 +613,87 @@ object Sessions
         output_dir :: Path.split(Isabelle_System.getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
       }
 
-    def find(name: String): Option[(Path, Option[String])] =
-      input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
-        (dir + log_gz(name), read_heap_digest(dir + Path.basic(name))))
+    def find_database_heap(name: String): Option[(Path, Option[String])] =
+      input_dirs.find(dir => (dir + database(name)).is_file).map(dir =>
+        (dir + database(name), read_heap_digest(dir + Path.basic(name))))
 
-    def find_log(name: String): Option[Path] =
-      input_dirs.map(_ + log(name)).find(_.is_file)
-
-    def find_log_gz(name: String): Option[Path] =
-      input_dirs.map(_ + log_gz(name)).find(_.is_file)
-
-    def find_heap(name: String): Option[Path] =
-      input_dirs.map(_ + Path.basic(name)).find(_.is_file)
+    def find_database(name: String): Option[Path] =
+      input_dirs.map(_ + database(name)).find(_.is_file)
 
     def heap(name: String): Path =
-      find_heap(name) getOrElse
+      input_dirs.map(_ + Path.basic(name)).find(_.is_file) getOrElse
         error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
           cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
+
+
+    /* session info */
+
+    def write_session_info(
+      db: SQL.Database, build_log: Build_Log.Session_Info, build: Build.Session_Info)
+    {
+      db.transaction {
+        db.drop_table(Session_Info.table)
+        db.create_table(Session_Info.table)
+        using(db.insert_statement(Session_Info.table))(stmt =>
+        {
+          db.set_string(stmt, 1, build_log.session_name)
+          db.set_bytes(stmt, 2, encode_properties(build_log.session_timing))
+          db.set_bytes(stmt, 3, compress_properties(build_log.command_timings))
+          db.set_bytes(stmt, 4, compress_properties(build_log.ml_statistics))
+          db.set_bytes(stmt, 5, compress_properties(build_log.task_statistics))
+          db.set_string(stmt, 6, cat_lines(build.sources))
+          db.set_string(stmt, 7, cat_lines(build.input_heaps))
+          db.set_string(stmt, 8, build.output_heap getOrElse "")
+          db.set_int(stmt, 9, build.return_code)
+          stmt.execute()
+        })
+      }
+    }
+
+    def read_session_timing(db: SQL.Database): Properties.T =
+      decode_properties(read_bytes(db, Session_Info.table, Session_Info.session_timing))
+
+    def read_command_timings(db: SQL.Database): List[Properties.T] =
+      read_properties(db, Session_Info.table, Session_Info.command_timings)
+
+    def read_ml_statistics(db: SQL.Database): List[Properties.T] =
+      read_properties(db, Session_Info.table, Session_Info.ml_statistics)
+
+    def read_task_statistics(db: SQL.Database): List[Properties.T] =
+      read_properties(db, Session_Info.table, Session_Info.task_statistics)
+
+    def read_build_log(db: SQL.Database,
+      default_name: String = "",
+      command_timings: Boolean = false,
+      ml_statistics: Boolean = false,
+      task_statistics: Boolean = false): Build_Log.Session_Info =
+    {
+      val name = read_string(db, Session_Info.table, Session_Info.session_name)
+      Build_Log.Session_Info(
+        session_name =
+          if (name == "") default_name
+          else if (default_name == "" || default_name == name) name
+          else error("Database from different session " + quote(name)),
+        session_timing = read_session_timing(db),
+        command_timings = if (command_timings) read_command_timings(db) else Nil,
+        ml_statistics = if (ml_statistics) read_ml_statistics(db) else Nil,
+        task_statistics = if (task_statistics) read_task_statistics(db) else Nil)
+    }
+
+    def read_build(db: SQL.Database): Option[Build.Session_Info] =
+      using(db.select_statement(Session_Info.table, Session_Info.build_columns))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) None
+        else {
+          Some(
+            Build.Session_Info(
+              split_lines(db.string(rs, Session_Info.sources.name)),
+              split_lines(db.string(rs, Session_Info.input_heaps.name)),
+              db.string(rs,
+                Session_Info.output_heap.name) match { case "" => None case s => Some(s) },
+              db.int(rs, Session_Info.return_code.name)))
+        }
+      })
   }
 }

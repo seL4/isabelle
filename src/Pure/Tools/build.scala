@@ -21,16 +21,53 @@ object Build
 {
   /** auxiliary **/
 
-  /* queue */
+  /* persistent build info */
+
+  sealed case class Session_Info(
+    sources: List[String],
+    input_heaps: List[String],
+    output_heap: Option[String],
+    return_code: Int)
+
+
+  /* queue with scheduling information */
 
   private object Queue
   {
-    def apply(tree: Sessions.Tree, load_timings: String => (List[Properties.T], Double)): Queue =
+    def load_timings(store: Sessions.Store, name: String): (List[Properties.T], Double) =
+    {
+      val no_timings: (List[Properties.T], Double) = (Nil, 0.0)
+
+      store.find_database(name) match {
+        case None => no_timings
+        case Some(database) =>
+          def ignore_error(msg: String) =
+          {
+            Output.warning("Ignoring bad database: " + database + (if (msg == "") "" else "\n" + msg))
+            no_timings
+          }
+          try {
+            using(SQLite.open_database(database))(db =>
+            {
+              val build_log = store.read_build_log(db, name, command_timings = true)
+              val session_timing = Markup.Elapsed.unapply(build_log.session_timing) getOrElse 0.0
+              (build_log.command_timings, session_timing)
+            })
+          }
+          catch {
+            case ERROR(msg) => ignore_error(msg)
+            case exn: java.lang.Error => ignore_error(Exn.message(exn))
+            case _: XML.Error => ignore_error("")
+          }
+      }
+    }
+
+    def apply(tree: Sessions.Tree, store: Sessions.Store): Queue =
     {
       val graph = tree.graph
       val sessions = graph.keys
 
-      val timings = Par_List.map((name: String) => (name, load_timings(name)), sessions)
+      val timings = sessions.map(name => (name, load_timings(store, name)))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
@@ -201,46 +238,6 @@ object Build
   }
 
 
-  /* sources and heaps */
-
-  private val SOURCES = "sources: "
-  private val INPUT_HEAP = "input_heap: "
-  private val OUTPUT_HEAP = "output_heap: "
-  private val LOG_START = "log:"
-  private val line_prefixes = List(SOURCES, INPUT_HEAP, OUTPUT_HEAP, LOG_START)
-
-  private def sources_stamp(digests: List[SHA1.Digest]): String =
-    digests.map(_.toString).sorted.mkString(SOURCES, " ", "")
-
-  private def read_stamps(path: Path): Option[(String, List[String], List[String])] =
-    if (path.is_file) {
-      val stream = new GZIPInputStream(new BufferedInputStream(new FileInputStream(path.file)))
-      val reader = new BufferedReader(new InputStreamReader(stream, UTF8.charset))
-      val lines =
-      {
-        val lines = new mutable.ListBuffer[String]
-        try {
-          var finished = false
-          while (!finished) {
-            val line = reader.readLine
-            if (line != null && line_prefixes.exists(line.startsWith(_)))
-              lines += line
-            else finished = true
-          }
-        }
-        finally { reader.close }
-        lines.toList
-      }
-
-      if (!lines.isEmpty && lines.last.startsWith(LOG_START)) {
-        lines.find(_.startsWith(SOURCES)).map(s =>
-          (s, lines.filter(_.startsWith(INPUT_HEAP)), lines.filter(_.startsWith(OUTPUT_HEAP))))
-      }
-      else None
-    }
-    else None
-
-
 
   /** build with results **/
 
@@ -323,48 +320,14 @@ object Build
     val deps =
       Sessions.dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
-    def session_sources_stamp(name: String): String =
-      sources_stamp(selected_tree(name).meta_digest :: deps.sources(name))
-
-    val store = Sessions.store(system_mode)
-
-
-    /* queue with scheduling information */
-
-    def load_timings(name: String): (List[Properties.T], Double) =
-    {
-      val (path, text) =
-        store.find_log_gz(name) match {
-          case Some(path) => (path, File.read_gzip(path))
-          case None =>
-            store.find_log(name) match {
-              case Some(path) => (path, File.read(path))
-              case None => (Path.current, "")
-            }
-        }
-
-      def ignore_error(msg: String): (List[Properties.T], Double) =
-      {
-        Output.warning("Ignoring bad log file: " + path + (if (msg == "") "" else "\n" + msg))
-        (Nil, 0.0)
-      }
-
-      try {
-        val info = Build_Log.Log_File(name, text).parse_session_info(name, command_timings = true)
-        val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
-        (info.command_timings, session_timing)
-      }
-      catch {
-        case ERROR(msg) => ignore_error(msg)
-        case exn: java.lang.Error => ignore_error(Exn.message(exn))
-        case _: XML.Error => ignore_error("")
-      }
-    }
-
-    val queue = Queue(selected_tree, load_timings)
+    def sources_stamp(name: String): List[String] =
+      (selected_tree(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
 
 
     /* main build process */
+
+    val store = Sessions.store(system_mode)
+    val queue = Queue(selected_tree, store)
 
     store.prepare_output()
 
@@ -372,7 +335,7 @@ object Build
     if (clean_build) {
       for (name <- full_tree.graph.all_succs(selected)) {
         val files =
-          List(Path.basic(name), Sessions.log(name), Sessions.log_gz(name)).
+          List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
         if (files.nonEmpty) progress.echo("Cleaning " + name + " ...")
         if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
@@ -422,44 +385,53 @@ object Build
             if (process_result.ok)
               progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
 
+            val log_lines = process_result.out_lines.filterNot(_.startsWith("\f"))
             val process_result_tail =
             {
-              val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
               val tail = job.info.options.int("process_output_tail")
-              val lines1 = if (tail == 0) lines else lines.drop(lines.length - tail max 0)
               process_result.copy(
                 out_lines =
-                  "(see also " + (store.output_dir + Sessions.log(name)).file.toString + ")" ::
-                  lines1)
+                  "(see also " + (store.output_dir + store.log(name)).file.toString + ")" ::
+                  (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
             }
 
             val heap_stamp =
               if (process_result.ok) {
-                (store.output_dir + Sessions.log(name)).file.delete
+                (store.output_dir + store.log(name)).file.delete
                 val heap_stamp =
                   for (path <- job.output_path if path.is_file)
                     yield Sessions.write_heap_digest(path)
 
-                File.write_gzip(store.output_dir + Sessions.log_gz(name),
-                  terminate_lines(
-                    session_sources_stamp(name) ::
-                    input_heaps.map(INPUT_HEAP + _) :::
-                    heap_stamp.toList.map(OUTPUT_HEAP + _) :::
-                    List(LOG_START) ::: process_result.out_lines))
+                File.write_gzip(store.output_dir + store.log_gz(name), terminate_lines(log_lines))
 
                 heap_stamp
               }
               else {
                 (store.output_dir + Path.basic(name)).file.delete
-                (store.output_dir + Sessions.log_gz(name)).file.delete
+                (store.output_dir + store.log_gz(name)).file.delete
 
-                File.write(store.output_dir + Sessions.log(name),
-                  terminate_lines(process_result.out_lines))
+                File.write(store.output_dir + store.log(name), terminate_lines(log_lines))
                 progress.echo(name + " FAILED")
                 if (!process_result.interrupted) progress.echo(process_result_tail.out)
 
                 None
               }
+
+            // write database
+            {
+              val database = store.output_dir + store.database(name)
+              database.file.delete
+
+              using(SQLite.open_database(database))(db =>
+                store.write_session_info(db,
+                  build_log =
+                    Build_Log.Log_File(name, process_result.out_lines).
+                      parse_session_info(name,
+                        command_timings = true, ml_statistics = true, task_statistics = true),
+                  build =
+                    Session_Info(sources_stamp(name), input_heaps, heap_stamp, process_result.rc)))
+            }
+
             loop(pending - name, running - name,
               results + (name -> Result(false, heap_stamp, Some(process_result_tail), job.info)))
             //}}}
@@ -474,15 +446,16 @@ object Build
 
                 val (current, heap_stamp) =
                 {
-                  store.find(name) match {
-                    case Some((log_gz, heap_stamp)) =>
-                      read_stamps(log_gz) match {
-                        case Some((sources, input_heaps, output_heaps)) =>
+                  store.find_database_heap(name) match {
+                    case Some((database, heap_stamp)) =>
+                      using(SQLite.open_database(database))(store.read_build(_)) match {
+                        case Some(build) =>
                           val current =
-                            sources == session_sources_stamp(name) &&
-                            input_heaps == ancestor_heaps.map(INPUT_HEAP + _) &&
-                            output_heaps == heap_stamp.toList.map(OUTPUT_HEAP + _) &&
-                            !(do_output && heap_stamp.isEmpty)
+                            build.sources == sources_stamp(name) &&
+                            build.input_heaps == ancestor_heaps &&
+                            build.output_heap == heap_stamp &&
+                            !(do_output && heap_stamp.isEmpty) &&
+                            build.return_code == 0
                           (current, heap_stamp)
                         case None => (false, None)
                       }
