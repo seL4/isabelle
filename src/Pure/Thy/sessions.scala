@@ -684,7 +684,7 @@ object Sessions
     }
 
     def read_build(db: SQL.Database): Option[Build.Session_Info] =
-      using(db.select_statement(Session_Info.table, Session_Info.table.columns))(stmt =>
+      using(db.select_statement(Session_Info.table, Session_Info.build_columns))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
