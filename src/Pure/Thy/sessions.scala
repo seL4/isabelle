@@ -526,6 +526,31 @@ object Sessions
     def log_gz(name: String): Path = log(name).ext("gz")
 
 
+    /* data representation */
+
+    val xml_cache: XML.Cache = new XML.Cache()
+
+    def encode_properties(ps: Properties.T): Bytes =
+      Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+
+    def decode_properties(bs: Bytes): Properties.T =
+      xml_cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
+
+    def compress_properties(ps: List[Properties.T], options: XZ.Options = XZ.options()): Bytes =
+    {
+      if (ps.isEmpty) Bytes.empty
+      else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
+    }
+
+    def uncompress_properties(bs: Bytes): List[Properties.T] =
+    {
+      if (bs.isEmpty) Nil
+      else
+        XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text)).
+          map(xml_cache.props(_))
+    }
+
+
     /* output */
 
     val browser_info: Path =
@@ -571,25 +596,7 @@ object Sessions
   }
 
 
-  /* SQL database operations */
-
-  def encode_properties(ps: Properties.T): Bytes =
-    Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
-
-  def decode_properties(bs: Bytes): Properties.T =
-    XML.Decode.properties(YXML.parse_body(bs.text))
-
-  def compress_properties(ps: List[Properties.T], options: XZ.Options = XZ.options()): Bytes =
-  {
-    if (ps.isEmpty) Bytes.empty
-    else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
-  }
-
-  def uncompress_properties(bs: Bytes): List[Properties.T] =
-  {
-    if (bs.isEmpty) Nil
-    else XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text))
-  }
+  /* session info */
 
   object Session_Info
   {
@@ -610,48 +617,50 @@ object Sessions
       List(session_name, session_timing, command_timings, ml_statistics, task_statistics,
         sources, input_heaps, output_heap, return_code))
 
-    def write_data(db: SQLite.Database, info1: Build_Log.Session_Info, info2: Build.Session_Info)
+    def write_data(store: Store, db: SQLite.Database,
+      build_log: Build_Log.Session_Info, build: Build.Session_Info)
     {
       db.transaction {
         db.drop_table(table)
         db.create_table(table)
         using(db.insert_statement(table))(stmt =>
         {
-          db.set_string(stmt, 1, info1.session_name)
-          db.set_bytes(stmt, 2, encode_properties(info1.session_timing))
-          db.set_bytes(stmt, 3, compress_properties(info1.command_timings))
-          db.set_bytes(stmt, 4, compress_properties(info1.ml_statistics))
-          db.set_bytes(stmt, 5, compress_properties(info1.task_statistics))
-          db.set_string(stmt, 6, info2.sources)
-          db.set_string(stmt, 7, info2.input_heaps)
-          db.set_string(stmt, 8, info2.output_heap)
-          db.set_int(stmt, 9, info2.return_code)
+          db.set_string(stmt, 1, build_log.session_name)
+          db.set_bytes(stmt, 2, store.encode_properties(build_log.session_timing))
+          db.set_bytes(stmt, 3, store.compress_properties(build_log.command_timings))
+          db.set_bytes(stmt, 4, store.compress_properties(build_log.ml_statistics))
+          db.set_bytes(stmt, 5, store.compress_properties(build_log.task_statistics))
+          db.set_string(stmt, 6, build.sources)
+          db.set_string(stmt, 7, build.input_heaps)
+          db.set_string(stmt, 8, build.output_heap)
+          db.set_int(stmt, 9, build.return_code)
           stmt.execute()
         })
       }
     }
 
-    def read_data(db: SQLite.Database): Option[(Build_Log.Session_Info, Build.Session_Info)] =
+    def read_data(store: Store, db: SQLite.Database)
+      : Option[(Build_Log.Session_Info, Build.Session_Info)] =
     {
       using(db.select_statement(table, table.columns))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
         else {
-          val info1 =
+          val build_log =
             Build_Log.Session_Info(
               db.string(rs, session_name.name),
-              decode_properties(db.bytes(rs, session_timing.name)),
-              uncompress_properties(db.bytes(rs, command_timings.name)),
-              uncompress_properties(db.bytes(rs, ml_statistics.name)),
-              uncompress_properties(db.bytes(rs, task_statistics.name)))
-          val info2 =
+              store.decode_properties(db.bytes(rs, session_timing.name)),
+              store.uncompress_properties(db.bytes(rs, command_timings.name)),
+              store.uncompress_properties(db.bytes(rs, ml_statistics.name)),
+              store.uncompress_properties(db.bytes(rs, task_statistics.name)))
+          val build =
             Build.Session_Info(
               db.string(rs, sources.name),
               db.string(rs, input_heaps.name),
               db.string(rs, output_heap.name),
               db.int(rs, return_code.name))
-          Some((info1, info2))
+          Some((build_log, build))
         }
       })
     }
