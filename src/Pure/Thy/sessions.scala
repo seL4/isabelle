@@ -515,6 +515,27 @@ object Sessions
 
   /** persistent store **/
 
+  object Session_Info
+  {
+    // Build_Log.Session_Info
+    val session_name = SQL.Column.string("session_name")
+    val session_timing = SQL.Column.bytes("session_timing")
+    val command_timings = SQL.Column.bytes("command_timings")
+    val ml_statistics = SQL.Column.bytes("ml_statistics")
+    val task_statistics = SQL.Column.bytes("task_statistics")
+    val build_log_columns =
+      List(session_name, session_timing, command_timings, ml_statistics, task_statistics)
+
+    // Build.Session_Info
+    val sources = SQL.Column.string("sources")
+    val input_heaps = SQL.Column.string("input_heaps")
+    val output_heap = SQL.Column.string("output_heap")
+    val return_code = SQL.Column.int("return_code")
+    val build_columns = List(sources, input_heaps, output_heap, return_code)
+
+    val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
+  }
+
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
 
   class Store private[Sessions](system_mode: Boolean)
@@ -606,44 +627,23 @@ object Sessions
     /* print */
 
     override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
-  }
 
 
-  /* session info */
+    /* session info */
 
-  object Session_Info
-  {
-    // Build_Log.Session_Info
-    val session_name = SQL.Column.string("session_name")
-    val session_timing = SQL.Column.bytes("session_timing")
-    val command_timings = SQL.Column.bytes("command_timings")
-    val ml_statistics = SQL.Column.bytes("ml_statistics")
-    val task_statistics = SQL.Column.bytes("task_statistics")
-    val build_log_columns =
-      List(session_name, session_timing, command_timings, ml_statistics, task_statistics)
-
-    // Build.Session_Info
-    val sources = SQL.Column.string("sources")
-    val input_heaps = SQL.Column.string("input_heaps")
-    val output_heap = SQL.Column.string("output_heap")
-    val return_code = SQL.Column.int("return_code")
-    val build_columns = List(sources, input_heaps, output_heap, return_code)
-
-    val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
-
-    def write(store: Store, db: SQL.Database,
-      build_log: Build_Log.Session_Info, build: Build.Session_Info)
+    def write_session_info(
+      db: SQL.Database, build_log: Build_Log.Session_Info, build: Build.Session_Info)
     {
       db.transaction {
-        db.drop_table(table)
-        db.create_table(table)
-        using(db.insert_statement(table))(stmt =>
+        db.drop_table(Session_Info.table)
+        db.create_table(Session_Info.table)
+        using(db.insert_statement(Session_Info.table))(stmt =>
         {
           db.set_string(stmt, 1, build_log.session_name)
-          db.set_bytes(stmt, 2, store.encode_properties(build_log.session_timing))
-          db.set_bytes(stmt, 3, store.compress_properties(build_log.command_timings))
-          db.set_bytes(stmt, 4, store.compress_properties(build_log.ml_statistics))
-          db.set_bytes(stmt, 5, store.compress_properties(build_log.task_statistics))
+          db.set_bytes(stmt, 2, encode_properties(build_log.session_timing))
+          db.set_bytes(stmt, 3, compress_properties(build_log.command_timings))
+          db.set_bytes(stmt, 4, compress_properties(build_log.ml_statistics))
+          db.set_bytes(stmt, 5, compress_properties(build_log.task_statistics))
           db.set_string(stmt, 6, cat_lines(build.sources))
           db.set_string(stmt, 7, cat_lines(build.input_heaps))
           db.set_string(stmt, 8, build.output_heap getOrElse "")
@@ -653,48 +653,49 @@ object Sessions
       }
     }
 
-    def read_session_timing(store: Store, db: SQL.Database): Properties.T =
-      store.decode_properties(store.read_bytes(db, table, session_timing))
+    def read_session_timing(db: SQL.Database): Properties.T =
+      decode_properties(read_bytes(db, Session_Info.table, Session_Info.session_timing))
 
-    def read_command_timings(store: Store, db: SQL.Database): List[Properties.T] =
-      store.read_properties(db, table, command_timings)
+    def read_command_timings(db: SQL.Database): List[Properties.T] =
+      read_properties(db, Session_Info.table, Session_Info.command_timings)
 
-    def read_ml_statistics(store: Store, db: SQL.Database): List[Properties.T] =
-      store.read_properties(db, table, ml_statistics)
+    def read_ml_statistics(db: SQL.Database): List[Properties.T] =
+      read_properties(db, Session_Info.table, Session_Info.ml_statistics)
 
-    def read_task_statistics(store: Store, db: SQL.Database): List[Properties.T] =
-      store.read_properties(db, table, task_statistics)
+    def read_task_statistics(db: SQL.Database): List[Properties.T] =
+      read_properties(db, Session_Info.table, Session_Info.task_statistics)
 
-    def read_build_log(store: Store, db: SQL.Database,
+    def read_build_log(db: SQL.Database,
       default_name: String = "",
       command_timings: Boolean = false,
       ml_statistics: Boolean = false,
       task_statistics: Boolean = false): Build_Log.Session_Info =
     {
-      val name = store.read_string(db, table, session_name)
+      val name = read_string(db, Session_Info.table, Session_Info.session_name)
       Build_Log.Session_Info(
         session_name =
           if (name == "") default_name
           else if (default_name == "" || default_name == name) name
           else error("Database from different session " + quote(name)),
-        session_timing = read_session_timing(store, db),
-        command_timings = if (command_timings) read_command_timings(store, db) else Nil,
-        ml_statistics = if (ml_statistics) read_ml_statistics(store, db) else Nil,
-        task_statistics = if (task_statistics) read_task_statistics(store, db) else Nil)
+        session_timing = read_session_timing(db),
+        command_timings = if (command_timings) read_command_timings(db) else Nil,
+        ml_statistics = if (ml_statistics) read_ml_statistics(db) else Nil,
+        task_statistics = if (task_statistics) read_task_statistics(db) else Nil)
     }
 
-    def read_build(store: Store, db: SQL.Database): Option[Build.Session_Info] =
-      using(db.select_statement(table, table.columns))(stmt =>
+    def read_build(db: SQL.Database): Option[Build.Session_Info] =
+      using(db.select_statement(Session_Info.table, Session_Info.table.columns))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
         else {
           Some(
             Build.Session_Info(
-              split_lines(db.string(rs, sources.name)),
-              split_lines(db.string(rs, input_heaps.name)),
-              db.string(rs, output_heap.name) match { case "" => None case s => Some(s) },
-              db.int(rs, return_code.name)))
+              split_lines(db.string(rs, Session_Info.sources.name)),
+              split_lines(db.string(rs, Session_Info.input_heaps.name)),
+              db.string(rs,
+                Session_Info.output_heap.name) match { case "" => None case s => Some(s) },
+              db.int(rs, Session_Info.return_code.name)))
         }
       })
   }

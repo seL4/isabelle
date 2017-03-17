@@ -49,8 +49,7 @@ object Build
           try {
             using(SQLite.open_database(database))(db =>
             {
-              val build_log =
-                Sessions.Session_Info.read_build_log(store, db, name, command_timings = true)
+              val build_log = store.read_build_log(db, name, command_timings = true)
               val session_timing = Markup.Elapsed.unapply(build_log.session_timing) getOrElse 0.0
               (build_log.command_timings, session_timing)
             })
@@ -424,7 +423,7 @@ object Build
               database.file.delete
 
               using(SQLite.open_database(database))(db =>
-                Sessions.Session_Info.write(store, db,
+                store.write_session_info(db,
                   build_log =
                     Build_Log.Log_File(name, process_result.out_lines).
                       parse_session_info(name,
@@ -449,9 +448,7 @@ object Build
                 {
                   store.find_database_heap(name) match {
                     case Some((database, heap_stamp)) =>
-                      using(SQLite.open_database(database))(
-                        Sessions.Session_Info.read_build(store, _)) match
-                      {
+                      using(SQLite.open_database(database))(store.read_build(_)) match {
                         case Some(build) =>
                           val current =
                             build.sources == sources_stamp(name) &&

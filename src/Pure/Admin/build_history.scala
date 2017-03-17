@@ -230,8 +230,7 @@ object Build_History
             val properties =
               if (database.is_file) {
                 using(SQLite.open_database(database))(db =>
-                  Sessions.Session_Info.read_build_log(
-                    store, db, session_name, ml_statistics = true)).ml_statistics
+                  store.read_build_log(db, session_name, ml_statistics = true)).ml_statistics
               }
               else if (log_gz.is_file) {
                 Build_Log.Log_File(log_gz).
