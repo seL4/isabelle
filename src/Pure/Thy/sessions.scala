@@ -599,11 +599,8 @@ object Sessions
     def find_log_gz(name: String): Option[Path] =
       input_dirs.map(_ + log_gz(name)).find(_.is_file)
 
-    def find_heap(name: String): Option[Path] =
-      input_dirs.map(_ + Path.basic(name)).find(_.is_file)
-
     def heap(name: String): Path =
-      find_heap(name) getOrElse
+      input_dirs.map(_ + Path.basic(name)).find(_.is_file) getOrElse
         error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
           cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
 
