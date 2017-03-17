@@ -630,8 +630,8 @@ object Sessions
           db.set_bytes(stmt, 3, store.compress_properties(build_log.command_timings))
           db.set_bytes(stmt, 4, store.compress_properties(build_log.ml_statistics))
           db.set_bytes(stmt, 5, store.compress_properties(build_log.task_statistics))
-          db.set_string(stmt, 6, build.sources)
-          db.set_string(stmt, 7, build.input_heaps)
+          db.set_string(stmt, 6, cat_lines(build.sources))
+          db.set_string(stmt, 7, cat_lines(build.input_heaps))
           db.set_string(stmt, 8, build.output_heap)
           db.set_int(stmt, 9, build.return_code)
           stmt.execute()
@@ -656,8 +656,8 @@ object Sessions
               store.uncompress_properties(db.bytes(rs, task_statistics.name)))
           val build =
             Build.Session_Info(
-              db.string(rs, sources.name),
-              db.string(rs, input_heaps.name),
+              split_lines(db.string(rs, sources.name)),
+              split_lines(db.string(rs, input_heaps.name)),
               db.string(rs, output_heap.name),
               db.int(rs, return_code.name))
           Some((build_log, build))
