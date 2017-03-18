@@ -162,12 +162,12 @@ object Build
               import XML.Encode._
               pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
-                pair(string, pair(string, pair(string,
-                list(pair(Options.encode, list(Path.encode)))))))))))))(
+                pair(string, pair(string, pair(string, pair(Path.encode,
+                list(pair(Options.encode, list(Path.encode))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
-                (parent, (info.chapter, (name,
-                theories)))))))))))
+                (parent, (info.chapter, (name, (Path.current,
+                theories))))))))))))
             }))
 
         val eval =

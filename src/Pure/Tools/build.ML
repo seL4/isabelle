@@ -99,7 +99,7 @@ fun protocol_message props output =
   | [] => raise Output.Protocol_Message props);
 
 
-(* build *)
+(* build theories *)
 
 fun build_theories symbols last_timing master_dir (options, thys) =
   let
@@ -129,23 +129,44 @@ fun build_theories symbols last_timing master_dir (options, thys) =
         " (undefined " ^ commas conds ^ ")\n")
   end;
 
-fun build args_file =
+
+(* build session *)
+
+datatype args = Args of
+ {symbol_codes: (string * int) list,
+  command_timings: Properties.T list,
+  do_output: bool,
+  verbose: bool,
+  browser_info: Path.T,
+  document_files: (Path.T * Path.T) list,
+  graph_file: Path.T,
+  parent_name: string,
+  chapter: string,
+  name: string,
+  master_dir: Path.T,
+  theories: (Options.T * (string * Position.T) list) list};
+
+fun decode_args yxml =
   let
-    val _ = SHA1.test_samples ();
-
+    open XML.Decode;
     val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
-          (document_files, (graph_file, (parent_name, (chapter, (name, theories)))))))))) =
-      File.read (Path.explode args_file) |> YXML.parse_body |>
-        let open XML.Decode in
-          pair (list (pair string int)) (pair (list properties) (pair bool
-            (pair bool (pair string (pair (list (pair string string)) (pair string
-              (pair string (pair string (pair string
-              ((list (pair Options.decode (list (string #> rpair Position.none))))))))))))))
-        end;
+      (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir, theories))))))))))) =
+      pair (list (pair string int)) (pair (list properties) (pair bool (pair bool (pair string
+        (pair (list (pair string string)) (pair string (pair string (pair string (pair string
+          (pair string (((list (pair Options.decode (list (string #> rpair Position.none))))))))))))))))
+      (YXML.parse_body yxml);
+  in
+    Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,
+      verbose = verbose, browser_info = Path.explode browser_info,
+      document_files = map (apply2 Path.explode) document_files,
+      graph_file = Path.explode graph_file, parent_name = parent_name, chapter = chapter,
+      name = name, master_dir = Path.explode master_dir, theories = theories}
+  end;
 
+fun build_session (Args {symbol_codes, command_timings, do_output, verbose, browser_info,
+    document_files, graph_file, parent_name, chapter, name, master_dir, theories}) =
+  let
     val symbols = HTML.make_symbols symbol_codes;
-    val _ = Options.load_default ();
-    val _ = Isabelle_Process.init_options ();
 
     val _ = writeln ("\fSession.name = " ^ name);
     val _ =
@@ -153,31 +174,50 @@ fun build args_file =
         symbols
         do_output
         (Options.default_bool "browser_info")
-        (Path.explode browser_info)
+        browser_info
         (Options.default_string "document")
         (Options.default_string "document_output")
         (Present.document_variants (Options.default_string "document_variants"))
-        (map (apply2 Path.explode) document_files)
-        (Path.explode graph_file)
-        parent_name (chapter, name)
+        document_files
+        graph_file
+        parent_name
+        (chapter, name)
         verbose;
 
     val last_timing = get_timings (fold update_timings command_timings empty_timings);
 
     val res1 =
       theories |>
-        (List.app (build_theories symbols last_timing Path.current)
+        (List.app (build_theories symbols last_timing master_dir)
           |> session_timing name verbose
-          |> Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
     val _ = Par_Exn.release_all [res1, res2];
+  in () end;
 
+(*command-line tool*)
+fun build args_file =
+  let
+    val _ = SHA1.test_samples ();
+    val _ = Options.load_default ();
+    val _ = Isabelle_Process.init_options ();
+    val args = decode_args (File.read (Path.explode args_file));
+    val _ =
+      Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
+        build_session args;
     val _ = Options.reset_default ();
   in () end;
 
-
-(* PIDE protocol *)
+(*PIDE version*)
+val _ =
+  Isabelle_Process.protocol_command "build_session"
+    (fn [id, yxml] =>
+      let
+        val args = decode_args yxml;
+        val result = (build_session args; "") handle exn =>
+          (Runtime.exn_message exn handle _ (*sic!*) =>
+            "Exception raised, but failed to print details!");
+    in Output.protocol_message (Markup.build_theories_result id) [result] end | _ => raise Match);
 
 val _ =
   Isabelle_Process.protocol_command "build_theories"
