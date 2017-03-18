@@ -223,7 +223,7 @@ object Build
           val resources = new Resources(deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
-          session.add_protocol_handler(handler)
+          session.init_protocol_handler(handler)
 
           val session_result = Future.promise[Int]
 

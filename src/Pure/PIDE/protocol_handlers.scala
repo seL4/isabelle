@@ -20,7 +20,7 @@ object Protocol_Handlers
   {
     def get(name: String): Option[Session.Protocol_Handler] = handlers.get(name)
 
-    def add(handler: Session.Protocol_Handler): State =
+    def init(handler: Session.Protocol_Handler): State =
     {
       val name = handler.getClass.getName
 
@@ -48,12 +48,12 @@ object Protocol_Handlers
       copy(handlers = handlers2, functions = functions2)
     }
 
-    def add(name: String): State =
+    def init(name: String): State =
     {
       val new_handler =
         try { Some(Class.forName(name).newInstance.asInstanceOf[Session.Protocol_Handler]) }
         catch { case exn: Throwable => bad_handler(exn, name); None }
-      new_handler match { case Some(handler) => add(handler) case None => this }
+      new_handler match { case Some(handler) => init(handler) case None => this }
     }
 
     def invoke(msg: Prover.Protocol_Output): Boolean =
@@ -85,8 +85,8 @@ class Protocol_Handlers private(session: Session)
   private val state = Synchronized(Protocol_Handlers.State(session))
 
   def get(name: String): Option[Session.Protocol_Handler] = state.value.get(name)
-  def add(handler: Session.Protocol_Handler): Unit = state.change(_.add(handler))
-  def add(name: String): Unit = state.change(_.add(name))
+  def init(handler: Session.Protocol_Handler): Unit = state.change(_.init(handler))
+  def init(name: String): Unit = state.change(_.init(name))
   def invoke(msg: Prover.Protocol_Output): Boolean = state.value.invoke(msg)
   def exit(): Unit = state.change(_.exit())
 }

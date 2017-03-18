@@ -288,17 +288,17 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   def get_protocol_handler(name: String): Option[Session.Protocol_Handler] =
     protocol_handlers.get(name)
 
-  def add_protocol_handler(handler: Session.Protocol_Handler): Unit =
-    protocol_handlers.add(handler)
+  def init_protocol_handler(handler: Session.Protocol_Handler): Unit =
+    protocol_handlers.init(handler)
 
-  def add_protocol_handler(name: String): Unit =
-    protocol_handlers.add(name)
+  def init_protocol_handler(name: String): Unit =
+    protocol_handlers.init(name)
 
 
   /* debugger */
 
   private val debugger_handler = new Debugger.Handler(this)
-  add_protocol_handler(debugger_handler)
+  init_protocol_handler(debugger_handler)
 
   def debugger: Debugger = debugger_handler.debugger
 
@@ -397,7 +397,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
           if (!handled) {
             msg.properties match {
               case Markup.Protocol_Handler(name) if prover.defined =>
-                add_protocol_handler(name)
+                init_protocol_handler(name)
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
