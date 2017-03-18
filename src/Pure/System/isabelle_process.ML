@@ -196,7 +196,6 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
       handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
     val _ = Output.physical_stderr Symbol.STX;
 
-    val _ = Printer.show_markup_default := true;
     val _ = Context.put_generic_context NONE;
     val _ =
       Unsynchronized.change print_mode
@@ -217,10 +216,12 @@ fun init_options () =
   Future.ML_statistics := Options.default_bool "ML_statistics";
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
-  Goal.parallel_proofs := Options.default_int "parallel_proofs");
+  Goal.parallel_proofs := Options.default_int "parallel_proofs";
+  Printer.show_markup_default := false);
 
 fun init_options_interactive () =
  (init_options ();
-  Goal.parallel_proofs := (if Options.default_int "parallel_proofs" > 0 then 3 else 0));
+  Goal.parallel_proofs := (if Options.default_int "parallel_proofs" > 0 then 3 else 0);
+  Printer.show_markup_default := true);
 
 end;
