@@ -206,6 +206,8 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
     val _ = loop channel;
     val _ = Message_Channel.shutdown msg_channel;
     val _ = Private_Output.init_channels ();
+
+    val _ = print_mode := [];
   in () end);
 
 
