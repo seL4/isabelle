@@ -26,7 +26,7 @@ object Batch_Session
     if (!Build.build(options, new Console_Progress(verbose = verbose),
         verbose = verbose, build_heap = true,
         dirs = dirs, sessions = List(parent_session)).ok)
-      new RuntimeException
+      throw new RuntimeException
 
     val deps = Sessions.dependencies(verbose = verbose, tree = session_tree)
     val resources = new Resources(deps(parent_session))
