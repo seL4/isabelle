@@ -9,6 +9,7 @@ sig
   type output = string
   type serial = int
   type properties = (string * string) list
+  val ignore_outputs: output list -> unit
   val writeln_fn: output list -> unit
   val state_fn: output list -> unit
   val information_fn: output list -> unit

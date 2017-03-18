@@ -57,6 +57,7 @@ sig
   val report_fn: (output list -> unit) Unsynchronized.ref
   val result_fn: (Properties.T -> output list -> unit) Unsynchronized.ref
   val protocol_message_fn: (Properties.T -> output list -> unit) Unsynchronized.ref
+  val init_channels: unit -> unit
 end;
 
 structure Private_Output: PRIVATE_OUTPUT =
@@ -119,17 +120,21 @@ fun physical_writeln "" = ()
 
 exception Protocol_Message of Properties.T;
 
-val _ =
-  if Thread_Data.is_virtual then ()
-  else
-   (writeln_fn := (physical_writeln o implode);
-    state_fn := (fn ss => ! writeln_fn ss);
-    tracing_fn := (fn ss => ! writeln_fn ss);
-    warning_fn := (physical_writeln o prefix_lines "### " o implode);
-    legacy_fn := (fn ss => ! warning_fn ss);
-    error_message_fn := (fn (_, ss) => physical_writeln (prefix_lines "*** " (implode ss)));
-    system_message_fn := (fn ss => ! writeln_fn ss);
-    protocol_message_fn := (fn props => fn _ => raise Protocol_Message props));
+fun init_channels () =
+ (writeln_fn := (physical_writeln o implode);
+  state_fn := (fn ss => ! writeln_fn ss);
+  information_fn := Output_Primitives.ignore_outputs;
+  tracing_fn := (fn ss => ! writeln_fn ss);
+  warning_fn := (physical_writeln o prefix_lines "### " o implode);
+  legacy_fn := (fn ss => ! warning_fn ss);
+  error_message_fn := (fn (_, ss) => physical_writeln (prefix_lines "*** " (implode ss)));
+  system_message_fn := (fn ss => ! writeln_fn ss);
+  status_fn := Output_Primitives.ignore_outputs;
+  report_fn := Output_Primitives.ignore_outputs;
+  result_fn := (fn _ => Output_Primitives.ignore_outputs);
+  protocol_message_fn := (fn props => fn _ => raise Protocol_Message props));
+
+val _ = if Thread_Data.is_virtual then () else init_channels ();
 
 fun writelns ss = ! writeln_fn (map output ss);
 fun writeln s = writelns [s];

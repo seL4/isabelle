@@ -205,7 +205,9 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
     val channel = System_Channel.rendezvous socket;
     val msg_channel = init_channels channel;
     val _ = loop channel;
-  in Message_Channel.shutdown msg_channel end);
+    val _ = Message_Channel.shutdown msg_channel;
+    val _ = Private_Output.init_channels ();
+  in () end);
 
 
 (* init options *)
