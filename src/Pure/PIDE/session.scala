@@ -557,7 +557,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
       })
   }
 
-  def stop(): Int =
+  def send_stop()
   {
     val was_ready =
       _phase.guarded_access(phase =>
@@ -567,7 +567,12 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
           case Session.Inactive => Some((false, post_phase(Session.Terminated(0))))
           case Session.Ready => Some((true, post_phase(Session.Shutdown)))
         })
-    if (was_ready) manager.send_wait(Stop)
+    if (was_ready) manager.send(Stop)
+  }
+
+  def stop(): Int =
+  {
+    send_stop()
     prover.await_reset()
 
     change_parser.shutdown()
