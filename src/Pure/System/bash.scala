@@ -72,6 +72,7 @@ object Bash
   {
     private val timing_file = Isabelle_System.tmp_file("bash_timing")
     private val timing = Synchronized[Option[Timing]](None)
+    def get_timing: Timing = timing.value getOrElse Timing.zero
 
     private val script_file = Isabelle_System.tmp_file("bash_script")
     File.write(script_file, script)
@@ -199,7 +200,7 @@ object Bash
         catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
-      Process_Result(rc, out_lines.join, err_lines.join, false, timing.value getOrElse Timing.zero)
+      Process_Result(rc, out_lines.join, err_lines.join, false, get_timing)
     }
   }
 }

@@ -225,22 +225,24 @@ object Build
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
 
-          val session_result = Future.promise[Int]
+          val session_result = Future.promise[Process_Result]
 
           Isabelle_Process.start(session, options, logic = parent,
             cwd = info.dir.file, env = env, tree = Some(tree), store = store,
             phase_changed =
             {
               case Session.Ready => session.protocol_command("build_session", args_yxml)
-              case Session.Terminated(rc) => session_result.fulfill(rc)
+              case Session.Terminated(result) => session_result.fulfill(result)
               case _ =>
             })
 
-          val rc = session_result.join
-
+          val result = session_result.join
           handler.result_error.join match {
-            case "" => Process_Result(rc)
-            case msg => Process_Result(rc max 1, out_lines = split_lines(Output.error_text(msg)))
+            case "" => result
+            case msg =>
+              result.copy(
+                rc = result.rc max 1,
+                out_lines = result.out_lines ::: split_lines(Output.error_text(msg)))
           }
         }
         else {

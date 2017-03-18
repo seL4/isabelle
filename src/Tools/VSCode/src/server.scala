@@ -252,9 +252,9 @@ class Server(
           case Session.Ready =>
             session.phase_changed -= session_phase
             reply("")
-          case Session.Terminated(rc) if rc != 0 =>
+          case Session.Terminated(result) if !result.ok =>
             session.phase_changed -= session_phase
-            reply("Prover startup failed: return code " + rc)
+            reply("Prover startup failed: return code " + result.rc)
           case _ =>
         }
       session.phase_changed += session_phase

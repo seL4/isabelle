@@ -71,7 +71,7 @@ object Session
   {
     def print: String =
       this match {
-        case Terminated(rc) => if (rc == 0) "finished" else "failed"
+        case Terminated(result) => if (result.ok) "finished" else "failed"
         case _ => Word.lowercase(this.toString)
       }
   }
@@ -79,7 +79,7 @@ object Session
   case object Startup extends Phase  // transient
   case object Ready extends Phase  // metastable
   case object Shutdown extends Phase  // transient
-  case class Terminated(rc: Int) extends Phase  // stable
+  case class Terminated(result: Process_Result) extends Phase  // stable
   //}}}
 
 
@@ -446,8 +446,8 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
               phase = Session.Ready
               debugger.ready()
 
-            case Markup.Return_Code(rc) if output.is_exit =>
-              phase = Session.Terminated(rc)
+            case Markup.Process_Result(result) if output.is_exit =>
+              phase = Session.Terminated(result)
               prover.reset
 
             case _ =>
@@ -561,13 +561,13 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
         phase match {
           case Session.Startup | Session.Shutdown => None
           case Session.Terminated(_) => Some((false, phase))
-          case Session.Inactive => Some((false, post_phase(Session.Terminated(0))))
+          case Session.Inactive => Some((false, post_phase(Session.Terminated(Process_Result(0)))))
           case Session.Ready => Some((true, post_phase(Session.Shutdown)))
         })
     if (was_ready) manager.send(Stop)
   }
 
-  def stop(): Int =
+  def stop(): Process_Result =
   {
     send_stop()
     prover.await_reset()
@@ -578,7 +578,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     dispatcher.shutdown()
 
     phase match {
-      case Session.Terminated(rc) => rc
+      case Session.Terminated(result) => result
       case phase => error("Bad session phase after shutdown: " + quote(phase.print))
     }
   }

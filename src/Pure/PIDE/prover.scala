@@ -89,17 +89,22 @@ abstract class Prover(
     for (msg <- main :: reports) receiver(new Prover.Output(xml_cache.elem(msg)))
   }
 
-  private def exit_message(rc: Int)
+  private def exit_message(result: Process_Result)
   {
-    output(Markup.EXIT, Markup.Return_Code(rc), List(XML.Text("Return code: " + rc.toString)))
+    output(Markup.EXIT, Markup.Process_Result(result),
+      List(XML.Text("Return code: " + result.rc.toString)))
   }
 
 
 
   /** process manager **/
 
-  private val process_result: Future[Int] =
-    Future.thread("process_result") { process.join }
+  private val process_result: Future[Process_Result] =
+    Future.thread("process_result") {
+      val rc = process.join
+      val timing = process.get_timing
+      Process_Result(rc, timing = timing)
+    }
 
   private def terminate_process()
   {
@@ -133,7 +138,7 @@ abstract class Prover(
     if (startup_failed) {
       terminate_process()
       process_result.join
-      exit_message(127)
+      exit_message(Process_Result(127))
     }
     else {
       val (command_stream, message_stream) = channel.rendezvous()
@@ -143,12 +148,12 @@ abstract class Prover(
       val stderr = physical_output(true)
       val message = message_output(message_stream)
 
-      val rc = process_result.join
+      val result = process_result.join
       system_output("process terminated")
       command_input_close()
       for (thread <- List(stdout, stderr, message)) thread.join
       system_output("process_manager terminated")
-      exit_message(rc)
+      exit_message(result)
     }
     channel.accepted()
   }

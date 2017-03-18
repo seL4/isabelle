@@ -368,6 +368,26 @@ object Markup
   }
 
 
+  /* process result */
+
+  val Return_Code = new Properties.Int("return_code")
+
+  object Process_Result
+  {
+    def apply(result: Process_Result): Properties.T =
+      Return_Code(result.rc) :::
+        (if (result.timing.is_zero) Nil else Timing_Properties(result.timing))
+
+    def unapply(props: Properties.T): Option[Process_Result] =
+      props match {
+        case Return_Code(rc) =>
+          val timing = Timing_Properties.unapply(props).getOrElse(isabelle.Timing.zero)
+          Some(isabelle.Process_Result(rc, timing = timing))
+        case _ => None
+      }
+  }
+
+
   /* command timing */
 
   val COMMAND_TIMING = "command_timing"
@@ -450,8 +470,6 @@ object Markup
     ERROR -> ERROR_MESSAGE)
 
   val message: String => String = messages.withDefault((s: String) => s)
-
-  val Return_Code = new Properties.Int("return_code")
 
   val NO_REPORT = "no_report"
 
