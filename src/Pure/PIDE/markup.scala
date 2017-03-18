@@ -541,15 +541,8 @@ object Markup
       }
   }
 
-  val BUILD_THEORIES_RESULT = "build_theories_result"
-  object Build_Theories_Result
-  {
-    def unapply(props: Properties.T): Option[String] =
-      props match {
-        case List((FUNCTION, BUILD_THEORIES_RESULT), (ID, id)) => Some(id)
-        case _ => None
-      }
-  }
+  val BUILD_SESSION_FINISHED = "build_session_finished"
+  val Build_Session_Finished: Properties.T = List((FUNCTION, BUILD_SESSION_FINISHED))
 
   val PRINT_OPERATIONS = "print_operations"
 

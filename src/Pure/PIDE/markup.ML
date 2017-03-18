@@ -194,7 +194,7 @@ sig
   val command_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
-  val build_theories_result: string -> Properties.T
+  val build_session_finished: Properties.T
   val print_operationsN: string
   val print_operations: Properties.T
   val debugger_state: string -> Properties.T
@@ -618,7 +618,7 @@ fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
   | dest_loading_theory _ = NONE;
 
-fun build_theories_result id = [("function", "build_theories_result"), ("id", id)];
+val build_session_finished = [("function", "build_session_finished")];
 
 val print_operationsN = "print_operations";
 val print_operations = [(functionN, print_operationsN)];

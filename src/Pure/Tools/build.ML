@@ -211,36 +211,12 @@ fun build args_file =
 (*PIDE version*)
 val _ =
   Isabelle_Process.protocol_command "build_session"
-    (fn [id, yxml] =>
+    (fn [args_yxml] =>
       let
-        val args = decode_args yxml;
+        val args = decode_args args_yxml;
         val result = (build_session args; "") handle exn =>
           (Runtime.exn_message exn handle _ (*sic!*) =>
             "Exception raised, but failed to print details!");
-    in Output.protocol_message (Markup.build_theories_result id) [result] end | _ => raise Match);
-
-val _ =
-  Isabelle_Process.protocol_command "build_theories"
-    (fn [id, symbol_codes_yxml, master_dir, theories_yxml] =>
-      let
-        val symbols =
-          YXML.parse_body symbol_codes_yxml
-          |> let open XML.Decode in list (pair string int) end
-          |> HTML.make_symbols;
-        val theories =
-          YXML.parse_body theories_yxml |>
-            let open XML.Decode
-            in list (pair Options.decode (list (string #> rpair Position.none))) end;
-        val res1 =
-          Exn.capture
-            (fn () =>
-              theories
-              |> List.app (build_theories symbols (K Time.zeroTime) (Path.explode master_dir))) ();
-        val res2 = Exn.capture Session.shutdown ();
-        val result =
-          (Par_Exn.release_all [res1, res2]; "") handle exn =>
-            (Runtime.exn_message exn handle _ (*sic!*) =>
-              "Exception raised, but failed to print details!");
-    in Output.protocol_message (Markup.build_theories_result id) [result] end | _ => raise Match);
+    in Output.protocol_message Markup.build_session_finished [result] end | _ => raise Match);
 
 end;

@@ -404,18 +404,4 @@ trait Protocol
 
   def dialog_result(serial: Long, result: String): Unit =
     protocol_command("Document.dialog_result", Value.Long(serial), result)
-
-
-  /* build_theories */
-
-  def build_theories(id: String, master_dir: Path, theories: List[(Options, List[Path])])
-  {
-    val symbol_codes_yxml =
-    { import XML.Encode._
-      YXML.string_of_body(list(pair(string, int))(Symbol.codes)) }
-    val theories_yxml =
-    { import XML.Encode._
-      YXML.string_of_body(list(pair(Options.encode, list(Path.encode)))(theories)) }
-    protocol_command("build_theories", id, master_dir.implode, theories_yxml)
-  }
 }

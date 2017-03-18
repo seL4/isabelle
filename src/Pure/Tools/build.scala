@@ -130,18 +130,52 @@ object Build
   }
 
 
+  /* PIDE protocol handler */
+
+  class Handler(progress: Progress, session: Session, session_name: String)
+    extends Session.Protocol_Handler
+  {
+    val result_error: Promise[String] = Future.promise
+
+    override def exit() { result_error.cancel }
+
+    private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
+    {
+      val error_message =
+        try { Pretty.string_of(YXML.parse_body(Symbol.decode(msg.text))) }
+        catch { case ERROR(msg) => msg }
+      result_error.fulfill(error_message)
+      session.send_stop()
+      true
+    }
+
+    private def loading_theory(msg: Prover.Protocol_Output): Boolean =
+      msg.properties match {
+        case Markup.Loading_Theory(name) =>
+          progress.theory(session_name, name)
+          true
+        case _ => false
+      }
+
+    val functions =
+      List(
+        Markup.BUILD_SESSION_FINISHED -> build_session_finished _,
+        Markup.LOADING_THEORY -> loading_theory _)
+  }
+
+
   /* job: running prover process */
 
   private class Job(progress: Progress,
     name: String,
     val info: Sessions.Info,
     tree: Sessions.Tree,
+    deps: Sessions.Deps,
     store: Sessions.Store,
     do_output: Boolean,
     verbose: Boolean,
     pide: Boolean,
     val numa_node: Option[Int],
-    session_graph: Graph_Display.Graph,
     command_timings: List[Properties.T])
   {
     val output = store.output_dir + Path.basic(name)
@@ -155,7 +189,7 @@ object Build
       }
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
-    try { isabelle.graphview.Graph_File.write(options, graph_file, session_graph) }
+    try { isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph) }
     catch { case ERROR(_) => /*error should be exposed in ML*/ }
 
     private val future_result: Future[Process_Result] =
@@ -185,8 +219,29 @@ object Build
           "ML_Heap.share_common_data (); ML_Heap.save_child " +
             ML_Syntax.print_string0(File.platform_path(output))
 
-        if (pide) {
-          error("FIXME")
+        if (pide && !Sessions.pure_name(name)) {
+          val resources = new Resources(deps(parent))
+          val session = new Session(options, resources)
+          val handler = new Handler(progress, session, name)
+          session.add_protocol_handler(handler)
+
+          val session_result = Future.promise[Int]
+
+          Isabelle_Process.start(session, options, logic = parent,
+            cwd = info.dir.file, env = env, tree = Some(tree), store = store,
+            phase_changed =
+            {
+              case Session.Ready => session.protocol_command("build_session", args_yxml)
+              case Session.Terminated(rc) => session_result.fulfill(rc)
+              case _ =>
+            })
+
+          val rc = session_result.join
+
+          handler.result_error.join match {
+            case "" => Process_Result(rc)
+            case msg => Process_Result(rc max 1, out_lines = split_lines(Output.error_text(msg)))
+          }
         }
         else {
           val args_file = Isabelle_System.tmp_file("build")
@@ -496,8 +551,8 @@ object Build
                   val numa_node = numa_nodes.next(used_node(_))
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
-                    new Job(progress, name, info, selected_tree, store, do_output, verbose,
-                      pide, numa_node, deps(name).session_graph, queue.command_timings(name))
+                    new Job(progress, name, info, selected_tree, deps, store, do_output, verbose,
+                      pide, numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
                 else {
@@ -679,60 +734,4 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     sys.exit(results.rc)
   })
-
-
-  /* PIDE protocol */
-
-  def build_theories(
-    session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[XML.Body] =
-      session.get_protocol_handler(classOf[Handler].getName) match {
-        case Some(handler: Handler) => handler.build_theories(session, master_dir, theories)
-        case _ => error("Cannot invoke build_theories: bad protocol handler")
-      }
-
-  class Handler(progress: Progress, session_name: String) extends Session.Protocol_Handler
-  {
-    private val pending = Synchronized(Map.empty[String, Promise[XML.Body]])
-
-    override def exit(): Unit =
-      pending.change(promises => { for ((_, promise) <- promises) promise.cancel; Map.empty })
-
-    def build_theories(
-      session: Session, master_dir: Path, theories: List[(Options, List[Path])]): Promise[XML.Body] =
-    {
-      val promise = Future.promise[XML.Body]
-      val id = Document_ID.make().toString
-      pending.change(promises => promises + (id -> promise))
-      session.build_theories(id, master_dir, theories)
-      promise
-    }
-
-    private def loading_theory(msg: Prover.Protocol_Output): Boolean =
-      msg.properties match {
-        case Markup.Loading_Theory(name) => progress.theory(session_name, name); true
-        case _ => false
-      }
-
-    private def build_theories_result(msg: Prover.Protocol_Output): Boolean =
-      msg.properties match {
-        case Markup.Build_Theories_Result(id) =>
-          pending.change_result(promises =>
-            promises.get(id) match {
-              case Some(promise) =>
-                val error_message =
-                  try { YXML.parse_body(Symbol.decode(msg.text)) }
-                  catch { case exn: Throwable => List(XML.Text(Exn.message(exn))) }
-                promise.fulfill(error_message)
-                (true, promises - id)
-              case None =>
-                (false, promises)
-            })
-        case _ => false
-      }
-
-    val functions =
-      List(
-        Markup.BUILD_THEORIES_RESULT -> build_theories_result _,
-        Markup.LOADING_THEORY -> loading_theory _)
-  }
 }

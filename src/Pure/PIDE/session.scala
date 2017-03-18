@@ -514,9 +514,6 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
             prover.get.dialog_result(serial, result)
             handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
-          case Session.Build_Theories(id, master_dir, theories) if prover.defined =>
-            prover.get.build_theories(id, master_dir, theories)
-
           case Protocol_Command(name, args) if prover.defined =>
             prover.get.protocol_command(name, args:_*)
 
@@ -600,7 +597,4 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String)
   { manager.send(Session.Dialog_Result(id, serial, result)) }
-
-  def build_theories(id: String, master_dir: Path, theories: List[(Options, List[Path])])
-  { manager.send(Session.Build_Theories(id, master_dir, theories)) }
 }
