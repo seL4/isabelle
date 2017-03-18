@@ -104,7 +104,7 @@ object Build
     }
   }
 
-  private final class Queue private(
+  private class Queue(
     graph: Graph[String, Sessions.Info],
     order: SortedSet[String],
     val command_timings: String => List[Properties.T])
