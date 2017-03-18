@@ -148,8 +148,14 @@ object Build
     def output_path: Option[Path] = if (do_output) Some(output) else None
     output.file.delete
 
+    val options =
+      numa_node match {
+        case None => info.options
+        case Some(n) => info.options.string("ML_process_policy") = NUMA.policy(n)
+      }
+
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
-    try { isabelle.graphview.Graph_File.write(info.options, graph_file, session_graph) }
+    try { isabelle.graphview.Graph_File.write(options, graph_file, session_graph) }
     catch { case ERROR(_) => /*error should be exposed in ML*/ }
 
     private val future_result: Future[Process_Result] =
@@ -173,7 +179,7 @@ object Build
 
         val env =
           Isabelle_System.settings() +
-            ("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
+            ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
         def save_heap: String =
           "ML_Heap.share_common_data (); ML_Heap.save_child " +
@@ -191,21 +197,16 @@ object Build
             "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
             (if (do_output) "; " + save_heap else "") + "));"
 
-          val process_options =
-            numa_node match {
-              case None => info.options
-              case Some(n) => info.options.string("ML_process_policy") = NUMA.policy(n)
-            }
           val process =
             if (Sessions.pure_name(name)) {
-              ML_Process(process_options, raw_ml_system = true, cwd = info.dir.file,
+              ML_Process(options, raw_ml_system = true, cwd = info.dir.file,
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
                   List("--eval", eval),
                 env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
             }
             else {
-              ML_Process(process_options, parent, List("--eval", eval), cwd = info.dir.file,
+              ML_Process(options, parent, List("--eval", eval), cwd = info.dir.file,
                 env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
             }
 
@@ -216,7 +217,7 @@ object Build
                 case None =>
               },
             progress_limit =
-              info.options.int("process_output_limit") match {
+              options.int("process_output_limit") match {
                 case 0 => None
                 case m => Some(m * 1000000L)
               },
