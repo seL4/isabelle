@@ -68,7 +68,7 @@ object Prover
   class Protocol_Output(props: Properties.T, val bytes: Bytes)
     extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil))
   {
-    lazy val text: String = bytes.toString
+    lazy val text: String = bytes.text
   }
 }
 
