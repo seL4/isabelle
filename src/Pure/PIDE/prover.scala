@@ -13,17 +13,6 @@ import java.io.{InputStream, OutputStream, BufferedReader, BufferedOutputStream,
 
 object Prover
 {
-  /* underlying system process */
-
-  trait System_Process
-  {
-    def stdout: BufferedReader
-    def stderr: BufferedReader
-    def terminate: Unit
-    def join: Int
-  }
-
-
   /* messages */
 
   sealed abstract class Message
@@ -76,8 +65,8 @@ object Prover
 abstract class Prover(
   receiver: Prover.Receiver,
   xml_cache: XML.Cache,
-  system_channel: System_Channel,
-  system_process: Prover.System_Process) extends Protocol
+  channel: System_Channel,
+  process: Bash.Process) extends Protocol
 {
   /** receiver output **/
 
@@ -93,7 +82,7 @@ abstract class Prover(
 
   private def output(kind: String, props: Properties.T, body: XML.Body)
   {
-    if (kind == Markup.INIT) system_channel.accepted()
+    if (kind == Markup.INIT) channel.accepted()
 
     val main = XML.Elem(Markup(kind, props), Protocol_Message.clean_reports(body))
     val reports = Protocol_Message.reports(props, body)
@@ -110,11 +99,11 @@ abstract class Prover(
   /** process manager **/
 
   private val process_result: Future[Int] =
-    Future.thread("process_result") { system_process.join }
+    Future.thread("process_result") { process.join }
 
   private def terminate_process()
   {
-    try { system_process.terminate }
+    try { process.terminate }
     catch {
       case exn @ ERROR(_) => system_output("Failed to terminate prover process: " + exn.getMessage)
     }
@@ -126,10 +115,10 @@ abstract class Prover(
     {
       var finished: Option[Boolean] = None
       val result = new StringBuilder(100)
-      while (finished.isEmpty && (system_process.stderr.ready || !process_result.is_finished)) {
-        while (finished.isEmpty && system_process.stderr.ready) {
+      while (finished.isEmpty && (process.stderr.ready || !process_result.is_finished)) {
+        while (finished.isEmpty && process.stderr.ready) {
           try {
-            val c = system_process.stderr.read
+            val c = process.stderr.read
             if (c == 2) finished = Some(true)
             else result += c.toChar
           }
@@ -147,7 +136,7 @@ abstract class Prover(
       exit_message(127)
     }
     else {
-      val (command_stream, message_stream) = system_channel.rendezvous()
+      val (command_stream, message_stream) = channel.rendezvous()
 
       command_input_init(command_stream)
       val stdout = physical_output(false)
@@ -161,7 +150,7 @@ abstract class Prover(
       system_output("process_manager terminated")
       exit_message(rc)
     }
-    system_channel.accepted()
+    channel.accepted()
   }
 
 
@@ -221,8 +210,8 @@ abstract class Prover(
   private def physical_output(err: Boolean): Thread =
   {
     val (name, reader, markup) =
-      if (err) ("standard_error", system_process.stderr, Markup.STDERR)
-      else ("standard_output", system_process.stdout, Markup.STDOUT)
+      if (err) ("standard_error", process.stderr, Markup.STDERR)
+      else ("standard_output", process.stdout, Markup.STDOUT)
 
     Standard_Thread.fork(name) {
       try {

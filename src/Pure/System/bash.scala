@@ -69,7 +69,6 @@ object Bash
       env: Map[String, String],
       redirect: Boolean,
       cleanup: () => Unit)
-    extends Prover.System_Process
   {
     private val timing_file = Isabelle_System.tmp_file("bash_timing")
     private val timing = Synchronized[Option[Timing]](None)

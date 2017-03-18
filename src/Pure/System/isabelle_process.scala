@@ -63,7 +63,7 @@ class Isabelle_Process private(
     receiver: Prover.Receiver,
     xml_cache: XML.Cache,
     channel: System_Channel,
-    process: Prover.System_Process)
+    process: Bash.Process)
   extends Prover(receiver, xml_cache, channel, process)
 {
   def encode(s: String): String = Symbol.encode(s)
