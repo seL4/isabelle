@@ -201,6 +201,6 @@ val _ =
           (Par_Exn.release_all [res1, res2]; "") handle exn =>
             (Runtime.exn_message exn handle _ (*sic!*) =>
               "Exception raised, but failed to print details!");
-    in Output.protocol_message (Markup.build_theories_result id) [result] end);
+    in Output.protocol_message (Markup.build_theories_result id) [result] end | _ => raise Match);
 
 end;
