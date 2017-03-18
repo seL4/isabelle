@@ -130,33 +130,34 @@ object Build
   }
 
 
-  /* jobs */
+  /* job: running prover process */
 
-  private class Job(progress: Progress, name: String, val info: Sessions.Info, tree: Sessions.Tree,
-    store: Sessions.Store, do_output: Boolean, verbose: Boolean, val numa_node: Option[Int],
-    session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
+  private class Job(progress: Progress,
+    name: String,
+    val info: Sessions.Info,
+    tree: Sessions.Tree,
+    store: Sessions.Store,
+    do_output: Boolean,
+    verbose: Boolean,
+    pide: Boolean,
+    val numa_node: Option[Int],
+    session_graph: Graph_Display.Graph,
+    command_timings: List[Properties.T])
   {
     val output = store.output_dir + Path.basic(name)
     def output_path: Option[Path] = if (do_output) Some(output) else None
-    def output_save_state: String =
-      if (do_output) "ML_Heap.save_child " + ML_Syntax.print_string0(File.platform_path(output))
-      else ""
     output.file.delete
-
-    private val parent = info.parent.getOrElse("")
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     try { isabelle.graphview.Graph_File.write(info.options, graph_file, session_graph) }
     catch { case ERROR(_) => /*error should be exposed in ML*/ }
 
-    private val env =
-      Isabelle_System.settings() +
-        ("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
-
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
-        val args_file = Isabelle_System.tmp_file("build")
-        File.write(args_file, YXML.string_of_body(
+        val parent = info.parent.getOrElse("")
+
+        val args_yxml =
+          YXML.string_of_body(
             {
               val theories = info.theories.map(x => (x._2, x._3))
               import XML.Encode._
@@ -168,44 +169,59 @@ object Build
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
                 theories))))))))))))
-            }))
+            })
 
-        val eval =
-          "Command_Line.tool0 (fn () => (" +
-          "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
-          (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
-           else "") + "));"
+        val env =
+          Isabelle_System.settings() +
+            ("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
 
-        val process_options =
-          numa_node match {
-            case None => info.options
-            case Some(n) => info.options.string("ML_process_policy") = NUMA.policy(n)
-          }
-        val process =
-          if (Sessions.pure_name(name)) {
-            ML_Process(process_options, raw_ml_system = true, cwd = info.dir.file,
-              args =
-                (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
-                List("--eval", eval),
-              env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
-          }
-          else {
-            ML_Process(process_options, parent, List("--eval", eval), cwd = info.dir.file,
-              env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
-          }
+        def save_heap: String =
+          "ML_Heap.share_common_data (); ML_Heap.save_child " +
+            ML_Syntax.print_string0(File.platform_path(output))
 
-        process.result(
-          progress_stdout = (line: String) =>
-            Library.try_unprefix("\floading_theory = ", line) match {
-              case Some(theory) => progress.theory(name, theory)
-              case None =>
-            },
-          progress_limit =
-            info.options.int("process_output_limit") match {
-              case 0 => None
-              case m => Some(m * 1000000L)
-            },
-          strict = false)
+        if (pide) {
+          error("FIXME")
+        }
+        else {
+          val args_file = Isabelle_System.tmp_file("build")
+          File.write(args_file, args_yxml)
+
+          val eval =
+            "Command_Line.tool0 (fn () => (" +
+            "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
+            (if (do_output) "; " + save_heap else "") + "));"
+
+          val process_options =
+            numa_node match {
+              case None => info.options
+              case Some(n) => info.options.string("ML_process_policy") = NUMA.policy(n)
+            }
+          val process =
+            if (Sessions.pure_name(name)) {
+              ML_Process(process_options, raw_ml_system = true, cwd = info.dir.file,
+                args =
+                  (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
+                  List("--eval", eval),
+                env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
+            }
+            else {
+              ML_Process(process_options, parent, List("--eval", eval), cwd = info.dir.file,
+                env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
+            }
+
+          process.result(
+            progress_stdout = (line: String) =>
+              Library.try_unprefix("\floading_theory = ", line) match {
+                case Some(theory) => progress.theory(name, theory)
+                case None =>
+              },
+            progress_limit =
+              info.options.int("process_output_limit") match {
+                case 0 => None
+                case m => Some(m * 1000000L)
+              },
+            strict = false)
+        }
       }
 
     def terminate: Unit = future_result.cancel
@@ -269,6 +285,7 @@ object Build
     no_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
+    pide: Boolean = false,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     exclude_session_groups: List[String] = Nil,
@@ -290,6 +307,7 @@ object Build
       no_build = no_build,
       system_mode = system_mode,
       verbose = verbose,
+      pide = pide,
       selection = { full_tree =>
         full_tree.selection(requirements, all_sessions,
           exclude_session_groups, exclude_sessions, session_groups, sessions) })
@@ -309,6 +327,7 @@ object Build
     no_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
+    pide: Boolean = false,
     selection: Sessions.Tree => (List[String], Sessions.Tree) =
       (_.selection(all_sessions = true))): Results =
   {
@@ -477,7 +496,7 @@ object Build
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
                     new Job(progress, name, info, selected_tree, store, do_output, verbose,
-                      numa_node, deps(name).session_graph, queue.command_timings(name))
+                      pide, numa_node, deps(name).session_graph, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
                 else {
@@ -548,6 +567,7 @@ object Build
 
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
+    var pide = false
     var requirements = false
     var exclude_session_groups: List[String] = Nil
     var all_sessions = false
@@ -570,6 +590,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Options are:
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
+    -P           build via PIDE protocol
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -591,6 +612,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 """ + Library.prefix_lines("  ", Build_Log.Settings.show()) + "\n",
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
+      "P" -> (_ => pide = true),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
@@ -634,6 +656,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           no_build = no_build,
           system_mode = system_mode,
           verbose = verbose,
+          pide = pide,
           requirements = requirements,
           all_sessions = all_sessions,
           exclude_session_groups = exclude_session_groups,
