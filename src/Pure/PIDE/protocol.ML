@@ -14,7 +14,8 @@ val _ =
 val _ =
   Isabelle_Process.protocol_command "Prover.options"
     (fn [options_yxml] =>
-      Isabelle_Process.init_protocol_options (Options.decode (YXML.parse_body options_yxml)));
+      (Options.set_default (Options.decode (YXML.parse_body options_yxml));
+       Isabelle_Process.init_options_interactive ()));
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_blob"

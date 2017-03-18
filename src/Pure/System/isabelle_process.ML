@@ -12,7 +12,7 @@ sig
   val crashes: exn list Synchronized.var
   val init_protocol: string -> unit
   val init_options: unit -> unit
-  val init_protocol_options: Options.T -> unit
+  val init_options_interactive: unit -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -217,9 +217,8 @@ fun init_options () =
   Multithreading.max_threads_update (Options.default_int "threads");
   Goal.parallel_proofs := Options.default_int "parallel_proofs");
 
-fun init_protocol_options options =
- (Options.set_default options;
-  init_options ();
-  Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0));
+fun init_options_interactive () =
+ (init_options ();
+  Goal.parallel_proofs := (if Options.default_int "parallel_proofs" > 0 then 3 else 0));
 
 end;
