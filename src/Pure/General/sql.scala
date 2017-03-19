@@ -117,9 +117,9 @@ object SQL
       enclosure(columns.map(_.sql_decl(sql_type)) ::: primary_key)
     }
 
-    def sql_create(strict: Boolean, rowid: Boolean, sql_type: Type.Value => String): String =
+    def sql_create(strict: Boolean, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        quote_ident(name) + " " + sql_columns(sql_type) + (if (rowid) "" else " WITHOUT ROWID")
+        quote_ident(name) + " " + sql_columns(sql_type)
 
     def sql_drop(strict: Boolean): String =
       "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + quote_ident(name)
@@ -255,8 +255,9 @@ object SQL
     def tables: List[String] =
       iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
 
-    def create_table(table: Table, strict: Boolean = false, rowid: Boolean = true): Unit =
-      using(statement(table.sql_create(strict, rowid, sql_type)))(_.execute())
+    def create_table(table: Table, strict: Boolean = false, sql: String = ""): Unit =
+      using(statement(table.sql_create(strict, sql_type) + (if (sql == "") "" else " " + sql)))(
+        _.execute())
 
     def drop_table(table: Table, strict: Boolean = false): Unit =
       using(statement(table.sql_drop(strict)))(_.execute())
