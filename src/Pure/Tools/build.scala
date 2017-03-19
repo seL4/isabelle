@@ -49,7 +49,7 @@ object Build
           try {
             using(SQLite.open_database(database))(db =>
             {
-              val build_log = store.read_build_log(db, command_timings = true)
+              val build_log = store.read_build_log(db, name, command_timings = true)
               val session_timing = Markup.Elapsed.unapply(build_log.session_timing) getOrElse 0.0
               (build_log.command_timings, session_timing)
             })
@@ -525,7 +525,7 @@ object Build
                 {
                   store.find_database_heap(name) match {
                     case Some((database, heap_stamp)) =>
-                      using(SQLite.open_database(database))(store.read_build(_)) match {
+                      using(SQLite.open_database(database))(store.read_build(_, name)) match {
                         case Some(build) =>
                           val current =
                             build.sources == sources_stamp(name) &&

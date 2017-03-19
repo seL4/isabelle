@@ -9,6 +9,7 @@ package isabelle
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
+import java.sql.PreparedStatement
 
 import scala.collection.SortedSet
 import scala.collection.mutable
@@ -534,6 +535,16 @@ object Sessions
     val build_columns = List(sources, input_heaps, output_heap, return_code)
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
+
+    def where_session_name(name: String): String =
+      "WHERE " + SQL.quote_ident(session_name.name) + " = " + SQL.quote_string(name)
+
+    def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
+        : PreparedStatement =
+      db.select_statement(table, columns, where_session_name(name))
+
+    def delete_statement(db: SQL.Database, name: String): PreparedStatement =
+      db.delete_statement(table, where_session_name(name))
   }
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
@@ -571,22 +582,15 @@ object Sessions
           map(xml_cache.props(_))
     }
 
-    def read_string(db: SQL.Database, table: SQL.Table, column: SQL.Column): String =
-      using(db.select_statement(table, List(column)))(stmt =>
-      {
-        val rs = stmt.executeQuery
-        if (!rs.next) "" else db.string(rs, column.name)
-      })
-
-    def read_bytes(db: SQL.Database, table: SQL.Table, column: SQL.Column): Bytes =
-      using(db.select_statement(table, List(column)))(stmt =>
+    def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
+      using(Session_Info.select_statement(db, name, List(column)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) Bytes.empty else db.bytes(rs, column.name)
       })
 
-    def read_properties(db: SQL.Database, table: SQL.Table, column: SQL.Column)
-      : List[Properties.T] = uncompress_properties(read_bytes(db, table, column))
+    def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
+      uncompress_properties(read_bytes(db, name, column))
 
 
     /* output */
@@ -630,16 +634,16 @@ object Sessions
 
     def write_session_info(
       db: SQL.Database,
-      session_name: String,
+      name: String,
       build_log: Build_Log.Session_Info,
       build: Build.Session_Info)
     {
       db.transaction {
-        db.drop_table(Session_Info.table)
         db.create_table(Session_Info.table)
+        using(Session_Info.delete_statement(db, name))(_.execute)
         using(db.insert_statement(Session_Info.table))(stmt =>
         {
-          db.set_string(stmt, 1, session_name)
+          db.set_string(stmt, 1, name)
           db.set_bytes(stmt, 2, encode_properties(build_log.session_timing))
           db.set_bytes(stmt, 3, compress_properties(build_log.command_timings))
           db.set_bytes(stmt, 4, compress_properties(build_log.ml_statistics))
@@ -653,32 +657,32 @@ object Sessions
       }
     }
 
-    def read_session_timing(db: SQL.Database): Properties.T =
-      decode_properties(read_bytes(db, Session_Info.table, Session_Info.session_timing))
+    def read_session_timing(db: SQL.Database, name: String): Properties.T =
+      decode_properties(read_bytes(db, name, Session_Info.session_timing))
 
-    def read_command_timings(db: SQL.Database): List[Properties.T] =
-      read_properties(db, Session_Info.table, Session_Info.command_timings)
+    def read_command_timings(db: SQL.Database, name: String): List[Properties.T] =
+      read_properties(db, name, Session_Info.command_timings)
 
-    def read_ml_statistics(db: SQL.Database): List[Properties.T] =
-      read_properties(db, Session_Info.table, Session_Info.ml_statistics)
+    def read_ml_statistics(db: SQL.Database, name: String): List[Properties.T] =
+      read_properties(db, name, Session_Info.ml_statistics)
 
-    def read_task_statistics(db: SQL.Database): List[Properties.T] =
-      read_properties(db, Session_Info.table, Session_Info.task_statistics)
+    def read_task_statistics(db: SQL.Database, name: String): List[Properties.T] =
+      read_properties(db, name, Session_Info.task_statistics)
 
-    def read_build_log(db: SQL.Database,
+    def read_build_log(db: SQL.Database, name: String,
       command_timings: Boolean = false,
       ml_statistics: Boolean = false,
       task_statistics: Boolean = false): Build_Log.Session_Info =
     {
       Build_Log.Session_Info(
-        session_timing = read_session_timing(db),
-        command_timings = if (command_timings) read_command_timings(db) else Nil,
-        ml_statistics = if (ml_statistics) read_ml_statistics(db) else Nil,
-        task_statistics = if (task_statistics) read_task_statistics(db) else Nil)
+        session_timing = read_session_timing(db, name),
+        command_timings = if (command_timings) read_command_timings(db, name) else Nil,
+        ml_statistics = if (ml_statistics) read_ml_statistics(db, name) else Nil,
+        task_statistics = if (task_statistics) read_task_statistics(db, name) else Nil)
     }
 
-    def read_build(db: SQL.Database): Option[Build.Session_Info] =
-      using(db.select_statement(Session_Info.table, Session_Info.build_columns))(stmt =>
+    def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
+      using(Session_Info.select_statement(db, name, Session_Info.build_columns))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
