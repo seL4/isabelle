@@ -1,7 +1,7 @@
-diff -ru 5.3.0/jEdit/org/gjt/sp/jedit/buffer/JEditBuffer.java 5.3.0/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java
---- 5.3.0/jEdit/org/gjt/sp/jedit/buffer/JEditBuffer.java	2015-10-20 19:56:02.000000000 +0200
-+++ 5.3.0/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java	2015-10-23 20:02:38.897330618 +0200
-@@ -1956,29 +1956,23 @@
+diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/buffer/JEditBuffer.java 5.4.0/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java
+--- 5.4.0/jEdit-orig/org/gjt/sp/jedit/buffer/JEditBuffer.java	2017-03-18 14:30:28.000000000 +0100
++++ 5.4.0/jEdit-patched/org/gjt/sp/jedit/buffer/JEditBuffer.java	2017-03-19 19:27:45.734945702 +0100
+@@ -1950,29 +1950,23 @@
  			{
  				Segment seg = new Segment();
  				newFoldLevel = foldHandler.getFoldLevel(this,i,seg);

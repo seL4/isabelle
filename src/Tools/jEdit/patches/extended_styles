@@ -1,0 +1,84 @@
+diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java 5.4.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
+--- 5.4.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java	2017-03-18 14:30:28.000000000 +0100
++++ 5.4.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2017-03-19 19:27:45.730945687 +0100
+@@ -259,9 +259,9 @@
+ 	//{{{ Package private members
+ 
+ 	//{{{ Instance variables
+-	SyntaxStyle style;
++	public SyntaxStyle style;
+ 	// set up after init()
+-	float width;
++	public float width;
+ 	//}}}
+ 
+ 	//{{{ Chunk constructor
+@@ -509,7 +509,7 @@
+ 	// this is either style.getBackgroundColor() or
+ 	// styles[defaultID].getBackgroundColor()
+ 	private Color background;
+-	private String str;
++	public String str;
+ 	private GlyphVector[] glyphs;
+ 	//}}}
+ 
+diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java 5.4.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
+--- 5.4.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java	2017-03-18 14:30:28.000000000 +0100
++++ 5.4.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2017-03-19 19:27:45.734945702 +0100
+@@ -917,6 +917,11 @@
+ 		return chunkCache.getLineInfo(screenLine).physicalLine;
+ 	} //}}}
+ 
++        public Chunk getChunksOfScreenLine(int screenLine)
++        {
++                return chunkCache.getLineInfo(screenLine).chunks;
++        }
++
+ 	//{{{ getScreenLineOfOffset() method
+ 	/**
+ 	 * Returns the screen (wrapped) line containing the specified offset.
+Only in 5.4.0/jEdit-patched/org/gjt/sp/jedit/textarea: TextArea.java.orig
+diff -ru 5.4.0/jEdit-orig/org/gjt/sp/util/SyntaxUtilities.java 5.4.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+--- 5.4.0/jEdit-orig/org/gjt/sp/util/SyntaxUtilities.java	2017-03-18 14:30:34.000000000 +0100
++++ 5.4.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2017-03-19 19:27:45.734945702 +0100
+@@ -200,7 +200,24 @@
+ 	{
+ 		return loadStyles(family,size,true);
+ 	}
+-	
++
++	/**
++	 * Extended styles derived from the user-specified style array.
++	 */
++
++	public static class StyleExtender
++	{
++		public SyntaxStyle[] extendStyles(SyntaxStyle[] styles)
++		{
++			return styles;
++		}
++	}
++	volatile private static StyleExtender _styleExtender = new StyleExtender();
++	public static void setStyleExtender(StyleExtender ext)
++	{
++		_styleExtender = ext;
++	}
++
+ 	/**
+ 	 * Loads the syntax styles from the properties, giving them the specified
+ 	 * base font family and size.
+@@ -230,9 +247,11 @@
+ 				Log.log(Log.ERROR,StandardUtilities.class,e);
+ 			}
+ 		}
+-
+-		return styles;
++		styles[0] =
++			new SyntaxStyle(org.gjt.sp.jedit.jEdit.getColorProperty("view.fgColor", Color.BLACK),
++				null, new Font(family, 0, size));
++		return _styleExtender.extendStyles(styles);
+ 	} //}}}
+-	
++
+ 	private SyntaxUtilities(){}
+ }

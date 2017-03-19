@@ -45,6 +45,8 @@ effectively always enabled.
 the document model to theories that are required for open editor
 buffers.
 
+* Update to jedit-5.4.0.
+
 
 *** HOL ***
 

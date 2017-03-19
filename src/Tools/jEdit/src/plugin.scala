@@ -412,16 +412,10 @@ class Plugin extends EBPlugin
 
     /* strict initialization */
 
-    // adhoc patch of confusing message
-    val orig_plugin_error = jEdit.getProperty("plugin-error.start-error")
-    jEdit.setProperty("plugin-error.start-error", "Cannot start plugin: {0}")
-
     init_options()
     init_resources()
     init_session()
     PIDE._plugin = this
-
-    jEdit.setProperty("plugin-error.start-error", orig_plugin_error)
 
 
     /* non-strict initialization */
