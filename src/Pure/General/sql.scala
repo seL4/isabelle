@@ -136,6 +136,9 @@ object SQL
     def sql_insert: String =
       "INSERT INTO " + quote_ident(name) + " VALUES " + enclosure(columns.map(_ => "?"))
 
+    def sql_delete: String =
+      "DELETE FROM " + quote_ident(name)
+
     def sql_select(select_columns: List[Column], distinct: Boolean): String =
       "SELECT " + (if (distinct) "DISTINCT " else "") +
       commas(select_columns.map(_.sql_name)) + " FROM " + quote_ident(name)
@@ -192,6 +195,9 @@ object SQL
     def statement(sql: String): PreparedStatement = connection.prepareStatement(sql)
 
     def insert_statement(table: Table): PreparedStatement = statement(table.sql_insert)
+
+    def delete_statement(table: Table, sql: String = ""): PreparedStatement =
+      statement(table.sql_delete + (if (sql == "") "" else " " + sql))
 
     def select_statement(table: Table, columns: List[Column],
         sql: String = "", distinct: Boolean = false): PreparedStatement =
