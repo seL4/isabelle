@@ -518,8 +518,9 @@ object Sessions
 
   object Session_Info
   {
+    val session_name = SQL.Column.string("session_name", primary_key = true)
+
     // Build_Log.Session_Info
-    val session_name = SQL.Column.string("session_name")
     val session_timing = SQL.Column.bytes("session_timing")
     val command_timings = SQL.Column.bytes("command_timings")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
