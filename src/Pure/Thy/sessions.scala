@@ -537,7 +537,7 @@ object Sessions
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
 
     def where_session_name(name: String): String =
-      "WHERE " + SQL.quote_ident(session_name.name) + " = " + SQL.quote_string(name)
+      "WHERE " + session_name.sql_name + " = " + SQL.quote_string(name)
 
     def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
         : PreparedStatement =
