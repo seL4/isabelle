@@ -629,14 +629,17 @@ object Sessions
     /* session info */
 
     def write_session_info(
-      db: SQL.Database, build_log: Build_Log.Session_Info, build: Build.Session_Info)
+      db: SQL.Database,
+      session_name: String,
+      build_log: Build_Log.Session_Info,
+      build: Build.Session_Info)
     {
       db.transaction {
         db.drop_table(Session_Info.table)
         db.create_table(Session_Info.table)
         using(db.insert_statement(Session_Info.table))(stmt =>
         {
-          db.set_string(stmt, 1, build_log.session_name)
+          db.set_string(stmt, 1, session_name)
           db.set_bytes(stmt, 2, encode_properties(build_log.session_timing))
           db.set_bytes(stmt, 3, compress_properties(build_log.command_timings))
           db.set_bytes(stmt, 4, compress_properties(build_log.ml_statistics))
@@ -663,17 +666,11 @@ object Sessions
       read_properties(db, Session_Info.table, Session_Info.task_statistics)
 
     def read_build_log(db: SQL.Database,
-      default_name: String = "",
       command_timings: Boolean = false,
       ml_statistics: Boolean = false,
       task_statistics: Boolean = false): Build_Log.Session_Info =
     {
-      val name = read_string(db, Session_Info.table, Session_Info.session_name)
       Build_Log.Session_Info(
-        session_name =
-          if (name == "") default_name
-          else if (default_name == "" || default_name == name) name
-          else error("Database from different session " + quote(name)),
         session_timing = read_session_timing(db),
         command_timings = if (command_timings) read_command_timings(db) else Nil,
         ml_statistics = if (ml_statistics) read_ml_statistics(db) else Nil,

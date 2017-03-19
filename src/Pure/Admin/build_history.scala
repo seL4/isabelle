@@ -230,11 +230,10 @@ object Build_History
             val properties =
               if (database.is_file) {
                 using(SQLite.open_database(database))(db =>
-                  store.read_build_log(db, session_name, ml_statistics = true)).ml_statistics
+                  store.read_build_log(db, ml_statistics = true)).ml_statistics
               }
               else if (log_gz.is_file) {
-                Build_Log.Log_File(log_gz).
-                  parse_session_info(session_name, ml_statistics = true).ml_statistics
+                Build_Log.Log_File(log_gz).parse_session_info(ml_statistics = true).ml_statistics
               }
               else Nil
             properties.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)

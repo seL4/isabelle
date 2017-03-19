@@ -49,7 +49,7 @@ object Build
           try {
             using(SQLite.open_database(database))(db =>
             {
-              val build_log = store.read_build_log(db, name, command_timings = true)
+              val build_log = store.read_build_log(db, command_timings = true)
               val session_timing = Markup.Elapsed.unapply(build_log.session_timing) getOrElse 0.0
               (build_log.command_timings, session_timing)
             })
@@ -500,10 +500,10 @@ object Build
               database.file.delete
 
               using(SQLite.open_database(database))(db =>
-                store.write_session_info(db,
+                store.write_session_info(db, name,
                   build_log =
                     Build_Log.Log_File(name, process_result.out_lines).
-                      parse_session_info(name,
+                      parse_session_info(
                         command_timings = true, ml_statistics = true, task_statistics = true),
                   build =
                     Session_Info(sources_stamp(name), input_heaps, heap_stamp, process_result.rc)))

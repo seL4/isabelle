@@ -168,7 +168,6 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
   let
     val symbols = HTML.make_symbols symbol_codes;
 
-    val _ = writeln ("\fSession.name = " ^ name);
     val _ =
       Session.init
         symbols

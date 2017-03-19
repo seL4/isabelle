@@ -19,9 +19,6 @@ object Task_Statistics
 {
   def apply(session_name: String, task_statistics: List[Properties.T]): Task_Statistics =
     new Task_Statistics(session_name, task_statistics)
-
-  def apply(info: Build_Log.Session_Info): Task_Statistics =
-    apply(info.session_name, info.task_statistics)
 }
 
 final class Task_Statistics private(

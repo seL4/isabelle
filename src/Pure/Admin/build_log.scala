@@ -255,12 +255,10 @@ object Build_Log
     def parse_build_info(): Build_Info = Build_Log.parse_build_info(log_file)
 
     def parse_session_info(
-        default_name: String = "",
         command_timings: Boolean = false,
         ml_statistics: Boolean = false,
         task_statistics: Boolean = false): Session_Info =
-      Build_Log.parse_session_info(
-        log_file, default_name, command_timings, ml_statistics, task_statistics)
+      Build_Log.parse_session_info(log_file, command_timings, ml_statistics, task_statistics)
   }
 
 
@@ -542,7 +540,6 @@ object Build_Log
   /** session info: produced by isabelle build as session log.gz file **/
 
   sealed case class Session_Info(
-    session_name: String,
     session_timing: Properties.T,
     command_timings: List[Properties.T],
     ml_statistics: List[Properties.T],
@@ -550,18 +547,11 @@ object Build_Log
 
   private def parse_session_info(
     log_file: Log_File,
-    default_name: String,
     command_timings: Boolean,
     ml_statistics: Boolean,
     task_statistics: Boolean): Session_Info =
   {
     Session_Info(
-      session_name =
-        log_file.find_line("\fSession.name = ") match {
-          case None => default_name
-          case Some(name) if default_name == "" || default_name == name => name
-          case Some(name) => log_file.err("log from different session " + quote(name))
-        },
       session_timing = log_file.find_props("\fTiming = ") getOrElse Nil,
       command_timings = if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil,
       ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
