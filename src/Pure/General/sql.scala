@@ -16,7 +16,7 @@ object SQL
 
   /* concrete syntax */
 
-  def quote_char(c: Char): String =
+  def escape_char(c: Char): String =
     c match {
       case '\u0000' => "\\0"
       case '\'' => "\\'"
@@ -31,7 +31,7 @@ object SQL
     }
 
   def quote_string(s: String): String =
-    quote(s.map(quote_char(_)).mkString)
+    "'" + s.map(escape_char(_)).mkString + "'"
 
   def quote_ident(s: String): String =
     quote(s.replace("\"", "\"\""))
