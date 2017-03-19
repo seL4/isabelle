@@ -89,9 +89,7 @@ object SQL
   {
     def sql_name: String = quote_ident(name)
     def sql_decl(sql_type: Type.Value => String): String =
-      sql_name + " " + sql_type(T) +
-      (if (strict) " NOT NULL" else "") +
-      (if (primary_key) " PRIMARY KEY" else "")
+      sql_name + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
     override def toString: String = sql_decl(sql_type_default)
   }
@@ -109,16 +107,19 @@ object SQL
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
     }
 
-    columns.filter(_.primary_key) match {
-      case bad if bad.length > 1 =>
-        error("Multiple primary keys " + commas_quote(bad.map(_.name)) + " for table " + quote(name))
-      case _ =>
+    def sql_columns(sql_type: Type.Value => String): String =
+    {
+      val primary_key =
+        columns.filter(_.primary_key).map(_.name) match {
+          case Nil => Nil
+          case keys => List("PRIMARY KEY " + enclosure(keys))
+        }
+      enclosure(columns.map(_.sql_decl(sql_type)) ::: primary_key)
     }
 
     def sql_create(strict: Boolean, rowid: Boolean, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        quote_ident(name) + " " + enclosure(columns.map(_.sql_decl(sql_type))) +
-        (if (rowid) "" else " WITHOUT ROWID")
+        quote_ident(name) + " " + sql_columns(sql_type) + (if (rowid) "" else " WITHOUT ROWID")
 
     def sql_drop(strict: Boolean): String =
       "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + quote_ident(name)
@@ -144,7 +145,7 @@ object SQL
       commas(select_columns.map(_.sql_name)) + " FROM " + quote_ident(name)
 
     override def toString: String =
-      "TABLE " + quote_ident(name) + " " + enclosure(columns.map(_.toString))
+      "TABLE " + quote_ident(name) + " " + sql_columns(sql_type_default)
   }
 
 
