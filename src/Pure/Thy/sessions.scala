@@ -586,7 +586,7 @@ object Sessions
       using(Session_Info.select_statement(db, name, List(column)))(stmt =>
       {
         val rs = stmt.executeQuery
-        if (!rs.next) Bytes.empty else db.bytes(rs, column.name)
+        if (!rs.next) Bytes.empty else db.bytes(rs, column)
       })
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
@@ -689,11 +689,10 @@ object Sessions
         else {
           Some(
             Build.Session_Info(
-              split_lines(db.string(rs, Session_Info.sources.name)),
-              split_lines(db.string(rs, Session_Info.input_heaps.name)),
-              db.string(rs,
-                Session_Info.output_heap.name) match { case "" => None case s => Some(s) },
-              db.int(rs, Session_Info.return_code.name)))
+              split_lines(db.string(rs, Session_Info.sources)),
+              split_lines(db.string(rs, Session_Info.input_heaps)),
+              db.string(rs, Session_Info.output_heap) match { case "" => None case s => Some(s) },
+              db.int(rs, Session_Info.return_code)))
         }
       })
   }
