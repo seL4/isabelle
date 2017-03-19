@@ -234,9 +234,17 @@ object SQL
     }
     def date(rs: ResultSet, name: String): Date
 
-    def get[A](rs: ResultSet, name: String, f: (ResultSet, String) => A): Option[A] =
+    def bool(rs: ResultSet, column: Column): Boolean = bool(rs, column.name)
+    def int(rs: ResultSet, column: Column): Int = int(rs, column.name)
+    def long(rs: ResultSet, column: Column): Long = long(rs, column.name)
+    def double(rs: ResultSet, column: Column): Double = double(rs, column.name)
+    def string(rs: ResultSet, column: Column): String = string(rs, column.name)
+    def bytes(rs: ResultSet, column: Column): Bytes = bytes(rs, column.name)
+    def date(rs: ResultSet, column: Column): Date = date(rs, column.name)
+
+    def get[A, B](rs: ResultSet, a: A, f: (ResultSet, A) => B): Option[B] =
     {
-      val x = f(rs, name)
+      val x = f(rs, a)
       if (rs.wasNull) None else Some(x)
     }
 
