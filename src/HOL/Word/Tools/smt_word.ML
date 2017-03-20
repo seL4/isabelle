@@ -99,30 +99,30 @@ in
 val setup_builtins =
   SMT_Builtin.add_builtin_typ smtlibC (wordT, word_typ, word_num) #>
   fold (add_word_fun if_fixed_all) [
-    (@{term "uminus :: 'a::len word => _"}, "bvneg"),
-    (@{term "plus :: 'a::len word => _"}, "bvadd"),
-    (@{term "minus :: 'a::len word => _"}, "bvsub"),
-    (@{term "times :: 'a::len word => _"}, "bvmul"),
-    (@{term "bitNOT :: 'a::len word => _"}, "bvnot"),
-    (@{term "bitAND :: 'a::len word => _"}, "bvand"),
-    (@{term "bitOR :: 'a::len word => _"}, "bvor"),
-    (@{term "bitXOR :: 'a::len word => _"}, "bvxor"),
-    (@{term "word_cat :: 'a::len word => _"}, "concat") ] #>
+    (@{term "uminus :: 'a::len word \<Rightarrow> _"}, "bvneg"),
+    (@{term "plus :: 'a::len word \<Rightarrow> _"}, "bvadd"),
+    (@{term "minus :: 'a::len word \<Rightarrow> _"}, "bvsub"),
+    (@{term "times :: 'a::len word \<Rightarrow> _"}, "bvmul"),
+    (@{term "bitNOT :: 'a::len word \<Rightarrow> _"}, "bvnot"),
+    (@{term "bitAND :: 'a::len word \<Rightarrow> _"}, "bvand"),
+    (@{term "bitOR :: 'a::len word \<Rightarrow> _"}, "bvor"),
+    (@{term "bitXOR :: 'a::len word \<Rightarrow> _"}, "bvxor"),
+    (@{term "word_cat :: 'a::len word \<Rightarrow> _"}, "concat") ] #>
   fold (add_word_fun shift) [
-    (@{term "shiftl :: 'a::len word => _ "}, "bvshl"),
-    (@{term "shiftr :: 'a::len word => _"}, "bvlshr"),
-    (@{term "sshiftr :: 'a::len word => _"}, "bvashr") ] #>
+    (@{term "shiftl :: 'a::len word \<Rightarrow> _ "}, "bvshl"),
+    (@{term "shiftr :: 'a::len word \<Rightarrow> _"}, "bvlshr"),
+    (@{term "sshiftr :: 'a::len word \<Rightarrow> _"}, "bvashr") ] #>
   add_word_fun extract
-    (@{term "slice :: _ => 'a::len word => _"}, "extract") #>
+    (@{term "slice :: _ \<Rightarrow> 'a::len word \<Rightarrow> _"}, "extract") #>
   fold (add_word_fun extend) [
-    (@{term "ucast :: 'a::len word => _"}, "zero_extend"),
-    (@{term "scast :: 'a::len word => _"}, "sign_extend") ] #>
+    (@{term "ucast :: 'a::len word \<Rightarrow> _"}, "zero_extend"),
+    (@{term "scast :: 'a::len word \<Rightarrow> _"}, "sign_extend") ] #>
   fold (add_word_fun rotate) [
     (@{term word_rotl}, "rotate_left"),
     (@{term word_rotr}, "rotate_right") ] #>
   fold (add_word_fun if_fixed_args) [
-    (@{term "less :: 'a::len word => _"}, "bvult"),
-    (@{term "less_eq :: 'a::len word => _"}, "bvule"),
+    (@{term "less :: 'a::len word \<Rightarrow> _"}, "bvult"),
+    (@{term "less_eq :: 'a::len word \<Rightarrow> _"}, "bvule"),
     (@{term word_sless}, "bvslt"),
     (@{term word_sle}, "bvsle") ]
 
