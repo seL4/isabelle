@@ -607,6 +607,22 @@ object Markup
         case _ => None
       }
   }
+
+
+  /* XML data representation */
+
+  def encode: XML.Encode.T[Markup] = (markup: Markup) =>
+  {
+    import XML.Encode._
+    pair(string, properties)((markup.name, markup.properties))
+  }
+
+  def decode: XML.Decode.T[Markup] = (body: XML.Body) =>
+  {
+    import XML.Decode._
+    val (name, props) = pair(string, properties)(body)
+    Markup(name, props)
+  }
 }
 
 

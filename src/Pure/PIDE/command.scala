@@ -31,6 +31,15 @@ object Command
     val empty = new Results(SortedMap.empty)
     def make(args: TraversableOnce[Results.Entry]): Results = (empty /: args)(_ + _)
     def merge(args: TraversableOnce[Results]): Results = (empty /: args)(_ ++ _)
+
+
+    /* XML data representation */
+
+    val encode: XML.Encode.T[Results] = (results: Results) =>
+    { import XML.Encode._; list(pair(long, tree))(results.rep.toList) }
+
+    val decode: XML.Decode.T[Results] = (body: XML.Body) =>
+    { import XML.Decode._; make(list(pair(long, tree))(body)) }
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Tree])
@@ -71,9 +80,37 @@ object Command
   object Markups
   {
     val empty: Markups = new Markups(Map.empty)
+    def init(markup: Markup_Tree): Markups = new Markups(Map(Markup_Index.markup -> markup))
+    def merge(args: TraversableOnce[Markups]): Markups = (empty /: args)(_ ++ _)
 
-    def init(markup: Markup_Tree): Markups =
-      new Markups(Map(Markup_Index.markup -> markup))
+
+    /* XML data representation */
+
+    def encode(source_length: Int): XML.Encode.T[Markups] = (markups: Markups) =>
+    {
+      import XML.Encode._
+
+      val markup_index: T[Markup_Index] = (index: Markup_Index) =>
+        pair(bool, Symbol.Text_Chunk.encode_name)(index.status, index.chunk_name)
+
+      val markup_tree: T[Markup_Tree] =
+        _.to_XML(Text.Range(0, source_length), Symbol.spaces(source_length), Markup.Elements.full)
+
+      list(pair(markup_index, markup_tree))(markups.rep.toList)
+    }
+
+    val decode: XML.Decode.T[Markups] = (body: XML.Body) =>
+    {
+      import XML.Decode._
+
+      val markup_index: T[Markup_Index] = (body: XML.Body) =>
+      {
+        val (status, chunk_name) = pair(bool, Symbol.Text_Chunk.decode_name)(body)
+        Markup_Index(status, chunk_name)
+      }
+
+      (Markups.empty /: list(pair(markup_index, Markup_Tree.from_XML(_)))(body))(_ + _)
+    }
   }
 
   final class Markups private(private val rep: Map[Markup_Index, Markup_Tree])
@@ -85,6 +122,17 @@ object Command
 
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
+
+    def + (entry: (Markup_Index, Markup_Tree)): Markups =
+    {
+      val (index, tree) = entry
+      new Markups(rep + (index -> (this(index).merge(tree, Text.Range.full, Markup.Elements.full))))
+    }
+
+    def ++ (other: Markups): Markups =
+      if (this eq other) this
+      else if (rep.isEmpty) other
+      else (this /: other.rep.iterator)(_ + _)
 
     def redirection_iterator: Iterator[Document_ID.Generic] =
       for (Markup_Index(_, Symbol.Text_Chunk.Id(id)) <- rep.keysIterator)
@@ -114,12 +162,49 @@ object Command
 
   object State
   {
-    def merge_results(states: List[State]): Command.Results =
+    def merge_results(states: List[State]): Results =
       Results.merge(states.map(_.results))
+
+    def merge_markups(states: List[State]): Markups =
+      Markups.merge(states.map(_.markups))
 
     def merge_markup(states: List[State], index: Markup_Index,
         range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Markup_Tree.merge(states.map(_.markup(index)), range, elements)
+
+    def merge(command: Command, states: List[State]): State =
+      State(command, states.flatMap(_.status), merge_results(states), merge_markups(states))
+
+
+    /* XML data representation */
+
+    val encode: XML.Encode.T[State] = (st: State) =>
+    {
+      import XML.Encode._
+
+      val command = st.command
+      val blobs_names = command.blobs_names.map(_.node)
+      val blobs_index = command.blobs_index
+      require(command.blobs_ok)
+
+      pair(long, pair(string, pair(pair(list(string), int), pair(Command_Span.encode,
+          pair(list(Markup.encode), pair(Results.encode, Markups.encode(command.source.length)))))))(
+        (command.id, (command.node_name.node, ((blobs_names, blobs_index), (command.span,
+          (st.status, (st.results, st.markups)))))))
+    }
+
+    def decode(node_name: String => Document.Node.Name): XML.Decode.T[State] = (body: XML.Body) =>
+    {
+      import XML.Decode._
+      val (id, (node, ((blobs_names, blobs_index), (span, (status, (results, markups)))))) =
+        pair(long, pair(string, pair(pair(list(string), int), pair(Command_Span.decode,
+          pair(list(Markup.decode), pair(Results.decode, Markups.decode))))))(body)
+
+      val blobs_info: Blobs_Info =
+        (blobs_names.map(name => Exn.Res((node_name(name), None)): Blob), blobs_index)
+      val command = Command(id, node_name(node), blobs_info, span)
+      State(command, status, results, markups)
+    }
   }
 
   sealed case class State(
@@ -403,6 +488,9 @@ final class Command private(
 
   def blobs: List[Command.Blob] = blobs_info._1
   def blobs_index: Int = blobs_info._2
+
+  def blobs_ok: Boolean =
+    blobs.forall({ case Exn.Res(_) => true case _ => false })
 
   def blobs_names: List[Document.Node.Name] =
     for (Exn.Res((name, _)) <- blobs) yield name
