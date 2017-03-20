@@ -214,6 +214,7 @@ object XML
   object Encode
   {
     type T[A] = A => XML.Body
+    type V[A] = PartialFunction[A, (List[String], XML.Body)]
 
 
     /* atomic values */
@@ -270,7 +271,7 @@ object XML
       case Some(x) => List(node(f(x)))
     }
 
-    def variant[A](fs: List[PartialFunction[A, (List[String], XML.Body)]]): T[A] =
+    def variant[A](fs: List[V[A]]): T[A] =
     {
       case x =>
         val (f, tag) = fs.iterator.zipWithIndex.find(p => p._1.isDefinedAt(x)).get
