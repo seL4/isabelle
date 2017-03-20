@@ -449,7 +449,6 @@ object Document
     def node: Node
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
-    def command_results(command: Command): Command.Results
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
@@ -468,6 +467,9 @@ object Document
       elements: Markup.Elements,
       result: List[Command.State] => Text.Markup => Option[A],
       status: Boolean = false): List[Text.Info[A]]
+
+    def command_results(range: Text.Range): Command.Results
+    def command_results(command: Command): Command.Results
   }
 
 
@@ -827,9 +829,6 @@ object Document
             start <- node.command_start(cmd)
           } yield convert(cmd.proper_range + start)).toList
 
-        def command_results(command: Command): Command.Results =
-          state.command_results(version, command)
-
         def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
           if (other_node_name.is_theory) {
             val other_node = version.nodes(other_node_name)
@@ -917,6 +916,17 @@ object Document
           for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1 _, status))
             yield Text.Info(r, x)
         }
+
+
+        /* command results */
+
+        def command_results(range: Text.Range): Command.Results =
+          Command.State.merge_results(
+            select[List[Command.State]](range, Markup.Elements.full, command_states =>
+              { case _ => Some(command_states) }).flatMap(_.info))
+
+        def command_results(command: Command): Command.Results =
+          state.command_results(version, command)
 
 
         /* output */

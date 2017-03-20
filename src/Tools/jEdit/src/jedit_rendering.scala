@@ -353,11 +353,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
           else Some(Text.Info(snapshot.convert(info_range), elem))
       }).headOption.map(_.info)
 
-  def command_results(range: Text.Range): Command.Results =
-    Command.State.merge_results(
-      snapshot.select[List[Command.State]](range, Markup.Elements.full, command_states =>
-        { case _ => Some(command_states) }).flatMap(_.info))
-
 
   /* tooltips */
 

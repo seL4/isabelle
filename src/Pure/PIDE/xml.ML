@@ -52,8 +52,16 @@ sig
   val parse: string -> tree
   exception XML_ATOM of string
   exception XML_BODY of body
-  structure Encode: XML_DATA_OPS
-  structure Decode: XML_DATA_OPS
+  structure Encode:
+  sig
+    include XML_DATA_OPS
+    val tree: tree T
+  end
+  structure Decode:
+  sig
+    include XML_DATA_OPS
+    val tree: tree T
+  end
 end;
 
 structure XML: XML =
@@ -302,6 +310,8 @@ fun tagged (tag, (xs, ts)) = Elem ((int_atom tag, vector xs), ts);
 
 (* representation of standard types *)
 
+fun tree (t: tree) = [t];
+
 fun properties props = [Elem ((":", props), [])];
 
 fun string "" = []
@@ -363,6 +373,9 @@ fun tagged (Elem ((name, atts), ts)) = (int_atom name, (vector atts, ts))
 
 
 (* representation of standard types *)
+
+fun tree [t] = t
+  | tree ts = raise XML_BODY ts;
 
 fun properties [Elem ((":", props), [])] = props
   | properties ts = raise XML_BODY ts;
