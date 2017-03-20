@@ -213,7 +213,6 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
               val snapshot = model.snapshot()
 
               if (changed.assignment ||
-                  snapshot.commands_loading.exists(changed.commands.contains) ||
                   (changed.nodes.contains(model.node_name) &&
                    changed.commands.exists(snapshot.node.commands.contains)))
                 text_overview.invoke()
