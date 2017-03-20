@@ -240,6 +240,8 @@ object XML
 
     /* representation of standard types */
 
+    val tree: T[XML.Tree] = (t => List(t))
+
     val properties: T[Properties.T] =
       (props => List(XML.Elem(Markup(":", props), Nil)))
 
@@ -321,6 +323,12 @@ object XML
 
 
     /* representation of standard types */
+
+    val tree: T[XML.Tree] =
+    {
+      case List(t) => t
+      case ts => throw new XML_Body(ts)
+    }
 
     val properties: T[Properties.T] =
     {
