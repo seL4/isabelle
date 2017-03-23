@@ -285,11 +285,7 @@ lemmas basic_defs = fst_def snd_def
 
 text \<open>Compare with standard version: \<open>B\<close> is applied to UNSIMPLIFIED expression!\<close>
 lemma SumIL2: "\<lbrakk>c = a : A; d = b : B(a)\<rbrakk> \<Longrightarrow> <c,d> = <a,b> : Sum(A,B)"
-  apply (rule sym_elem)
-  apply (rule SumIL)
-   apply (rule_tac [!] sym_elem)
-   apply assumption+
-  done
+  by (rule sym_elem) (rule SumIL; rule sym_elem)
 
 lemmas intrL2_rls = NI_succL ProdIL SumIL2 PlusI_inlL PlusI_inrL
 
