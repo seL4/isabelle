@@ -93,6 +93,15 @@ fun (in linorder) heap :: "'a tree \<Rightarrow> bool" where
   (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
 
 
+subsection \<open>@{const map_tree}\<close>
+
+lemma map_tree_Leaf[simp]: "map_tree f t = Leaf \<longleftrightarrow> t = Leaf"
+by (rule tree.map_disc_iff)
+
+lemma Leaf_map_tree[simp]: "Leaf = map_tree f t \<longleftrightarrow> t = Leaf"
+by (cases t) auto
+
+
 subsection \<open>@{const size}\<close>
 
 lemma size1_simps[simp]:
@@ -103,20 +112,32 @@ by (simp_all add: size1_def)
 lemma size1_ge0[simp]: "0 < size1 t"
 by (simp add: size1_def)
 
-lemma size_0_iff_Leaf: "size t = 0 \<longleftrightarrow> t = Leaf"
+lemma size_0_iff_Leaf[simp]: "size t = 0 \<longleftrightarrow> t = Leaf"
+by(cases t) auto
+
+lemma Z_size_iff_Leaf[simp]: "0 = size t \<longleftrightarrow> t = Leaf"
 by(cases t) auto
 
 lemma neq_Leaf_iff: "(t \<noteq> \<langle>\<rangle>) = (\<exists>l a r. t = \<langle>l, a, r\<rangle>)"
 by (cases t) auto
-
-lemma finite_set_tree[simp]: "finite(set_tree t)"
-by(induction t) auto
 
 lemma size_map_tree[simp]: "size (map_tree f t) = size t"
 by (induction t) auto
 
 lemma size1_map_tree[simp]: "size1 (map_tree f t) = size1 t"
 by (simp add: size1_def)
+
+
+subsection \<open>@{const set_tree}\<close>
+
+lemma set_tree_empty[simp]: "set_tree t = {} \<longleftrightarrow> t = Leaf"
+by (cases t) auto
+
+lemma empty_set_tree[simp]: "{} = set_tree t \<longleftrightarrow> t = Leaf"
+by (cases t) auto
+
+lemma finite_set_tree[simp]: "finite(set_tree t)"
+by(induction t) auto
 
 
 subsection \<open>@{const subtrees}\<close>
@@ -133,7 +154,10 @@ by (metis Node_notin_subtrees_if)
 
 subsection \<open>@{const height} and @{const min_height}\<close>
 
-lemma height_0_iff_Leaf: "height t = 0 \<longleftrightarrow> t = Leaf"
+lemma height_0_iff_Leaf[simp]: "height t = 0 \<longleftrightarrow> t = Leaf"
+by(cases t) auto
+
+lemma Z_height_iff_Leaf[simp]: "0 = height t \<longleftrightarrow> t = Leaf"
 by(cases t) auto
 
 lemma height_map_tree[simp]: "height (map_tree f t) = height t"
@@ -370,6 +394,12 @@ done
 
 subsection "List of entries"
 
+lemma inorder_Nil_iff[simp]: "inorder t = [] \<longleftrightarrow> t = Leaf"
+by (cases t) auto
+
+lemma Nil_inorder_iff[simp]: "[] = inorder t \<longleftrightarrow> t = Leaf"
+by (cases t) auto
+
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
 by (induction t) auto
 
@@ -431,6 +461,9 @@ subsection \<open>@{const mirror}\<close>
 
 lemma mirror_Leaf[simp]: "mirror t = \<langle>\<rangle> \<longleftrightarrow> t = \<langle>\<rangle>"
 by (induction t) simp_all
+
+lemma Leaf_mirror[simp]: "\<langle>\<rangle> = mirror t \<longleftrightarrow> t = \<langle>\<rangle>"
+using mirror_Leaf by fastforce
 
 lemma size_mirror[simp]: "size(mirror t) = size t"
 by (induction t) simp_all
