@@ -142,7 +142,7 @@ object Build
     private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
     {
       val error_message =
-        try { Pretty.string_of(YXML.parse_body(Symbol.decode(msg.text))) }
+        try { Pretty.string_of(Symbol.decode_yxml(msg.text)) }
         catch { case ERROR(msg) => msg }
       result_error.fulfill(error_message)
       session.send_stop()

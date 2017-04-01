@@ -506,8 +506,9 @@ object Symbol
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
 
-  def decode_string: XML.Decode.T[String] = (x => decode(XML.Decode.string(x)))
-  def encode_string: XML.Encode.T[String] = (x => XML.Encode.string(encode(x)))
+  def decode_yxml(text: String): XML.Body = YXML.parse_body(decode(text))
+  def decode_yxml_failsafe(text: String): XML.Body = YXML.parse_body_failsafe(decode(text))
+  def encode_yxml(body: XML.Body): String = encode(YXML.string_of_body(body))
 
   def decode_strict(text: String): String =
   {

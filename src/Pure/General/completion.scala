@@ -70,8 +70,7 @@ object Completion
         if (COMPLETION_HISTORY.is_file) {
           try {
             import XML.Decode._
-            list(pair(Symbol.decode_string, int))(
-              YXML.parse_body(File.read(COMPLETION_HISTORY)))
+            list(pair(string, int))(Symbol.decode_yxml(File.read(COMPLETION_HISTORY)))
           }
           catch {
             case ERROR(msg) => ignore_error(msg); Nil
@@ -110,7 +109,7 @@ object Completion
       File.write_backup(COMPLETION_HISTORY,
         {
           import XML.Encode._
-          YXML.string_of_body(list(pair(Symbol.encode_string, int))(rep.toList))
+          Symbol.encode_yxml(list(pair(string, int))(rep.toList))
         })
     }
   }

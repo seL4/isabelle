@@ -50,7 +50,7 @@ object Present
     val path = dir + sessions_path
     if (path.is_file) {
       import XML.Decode._
-      list(pair(string, string))(YXML.parse_body(File.read(path)))
+      list(pair(string, string))(Symbol.decode_yxml(File.read(path)))
     }
     else Nil
   }
