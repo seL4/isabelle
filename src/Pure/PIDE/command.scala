@@ -355,7 +355,7 @@ object Command
     new Command(id, Document.Node.Name.empty, no_blobs, span1, source1, results, markup)
   }
 
-  def unparsed(source: String): Command =
+  def text(source: String): Command =
     unparsed(Document_ID.none, source, Results.empty, Markup_Tree.empty)
 
   def rich_text(id: Document_ID.Command, results: Results, body: XML.Body): Command =
