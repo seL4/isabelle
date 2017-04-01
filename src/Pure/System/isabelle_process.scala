@@ -44,7 +44,7 @@ object Isabelle_Process
     receiver: Prover.Receiver = Console.println(_),
     xml_cache: XML.Cache = new XML.Cache(),
     tree: Option[Sessions.Tree] = None,
-    store: Sessions.Store = Sessions.store()): Isabelle_Process =
+    store: Sessions.Store = Sessions.store()): Prover =
   {
     val channel = System_Channel()
     val process =
@@ -55,17 +55,6 @@ object Isabelle_Process
       catch { case exn @ ERROR(_) => channel.accepted(); throw exn }
     process.stdin.close
 
-    new Isabelle_Process(receiver, xml_cache, channel, process)
+    new Prover(receiver, xml_cache, channel, process)
   }
-}
-
-class Isabelle_Process private(
-    receiver: Prover.Receiver,
-    xml_cache: XML.Cache,
-    channel: System_Channel,
-    process: Bash.Process)
-  extends Prover(receiver, xml_cache, channel, process)
-{
-  def encode(s: String): String = Symbol.encode(s)
-  def decode(s: String): String = Symbol.decode(s)
 }

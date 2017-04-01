@@ -62,7 +62,7 @@ object Prover
 }
 
 
-abstract class Prover(
+class Prover(
   receiver: Prover.Receiver,
   xml_cache: XML.Cache,
   channel: System_Channel,
@@ -232,7 +232,7 @@ abstract class Prover(
             else done = true
           }
           if (result.length > 0) {
-            output(markup, Nil, List(XML.Text(decode(result.toString))))
+            output(markup, Nil, List(XML.Text(Symbol.decode(result.toString))))
             result.length = 0
           }
           else {
@@ -302,7 +302,7 @@ abstract class Prover(
       def read_chunk(): XML.Body =
       {
         val (buf, n) = read_chunk_bytes()
-        YXML.parse_body_failsafe(UTF8.decode_chars(decode, buf, 0, n))
+        YXML.parse_body_failsafe(UTF8.decode_chars(Symbol.decode, buf, 0, n))
       }
 
       try {

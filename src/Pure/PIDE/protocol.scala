@@ -16,8 +16,7 @@ object Protocol
     def unapply(text: String): Option[(Document_ID.Version, Document.Assign_Update)] =
       try {
         import XML.Decode._
-        val body = YXML.parse_body(text)
-        Some(pair(long, list(pair(long, list(long))))(body))
+        Some(pair(long, list(pair(long, list(long))))(Symbol.decode_yxml(text)))
       }
       catch {
         case ERROR(_) => None
@@ -30,7 +29,7 @@ object Protocol
     def unapply(text: String): Option[List[Document_ID.Version]] =
       try {
         import XML.Decode._
-        Some(list(long)(YXML.parse_body(text)))
+        Some(list(long)(Symbol.decode_yxml(text)))
       }
       catch {
         case ERROR(_) => None
@@ -291,17 +290,6 @@ object Protocol
 
 trait Protocol
 {
-  /* text */
-
-  def encode(s: String): String
-  def decode(s: String): String
-
-  object Encode
-  {
-    val string: XML.Encode.T[String] = (s => XML.Encode.string(encode(s)))
-  }
-
-
   /* protocol commands */
 
   def protocol_command_bytes(name: String, args: Bytes*): Unit
@@ -311,7 +299,7 @@ trait Protocol
   /* options */
 
   def options(opts: Options): Unit =
-    protocol_command("Prover.options", YXML.string_of_body(opts.encode))
+    protocol_command("Prover.options", Symbol.encode_yxml(opts.encode))
 
 
   /* interned items */
@@ -327,10 +315,10 @@ trait Protocol
       val encode_blob: T[Command.Blob] =
         variant(List(
           { case Exn.Res((a, b)) =>
-              (Nil, pair(Encode.string, option(string))((a.node, b.map(p => p._1.toString)))) },
-          { case Exn.Exn(e) => (Nil, Encode.string(Exn.message(e))) }))
+              (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
+          { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
 
-      YXML.string_of_body(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
+      Symbol.encode_yxml(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
     }
 
     val toks = command.span.content
@@ -338,12 +326,12 @@ trait Protocol
     {
       import XML.Encode._
       val encode_tok: T[Token] = (tok => pair(int, int)((tok.kind.id, Symbol.length(tok.source))))
-      YXML.string_of_body(list(encode_tok)(toks))
+      Symbol.encode_yxml(list(encode_tok)(toks))
     }
 
     protocol_command("Document.define_command",
-      (Document_ID(command.id) :: encode(command.span.name) :: blobs_yxml :: toks_yxml ::
-        toks.map(tok => encode(tok.source))): _*)
+      (Document_ID(command.id) :: Symbol.encode(command.span.name) :: blobs_yxml :: toks_yxml ::
+        toks.map(tok => Symbol.encode(tok.source))): _*)
   }
 
 
@@ -374,20 +362,18 @@ trait Protocol
               val theory = Long_Name.base_name(name.theory)
               val imports = header.imports.map({ case (a, _) => a.node })
               (Nil,
-                pair(Encode.string, pair(Encode.string, pair(list(Encode.string),
-                  pair(list(pair(Encode.string,
-                    pair(pair(Encode.string, list(Encode.string)), list(Encode.string)))),
-                  list(Encode.string)))))(
+                pair(string, pair(string, pair(list(string), pair(list(pair(string,
+                    pair(pair(string, list(string)), list(string)))), list(string)))))(
                 (master_dir, (theory, (imports, (header.keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
-                list(pair(id, pair(Encode.string, list(Encode.string))))(c.dest)) }))
+                list(pair(id, pair(string, list(string))))(c.dest)) }))
       def encode_edits: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
       {
         val (name, edit) = node_edit
-        pair(Encode.string, encode_edit(name))(name.node, edit)
+        pair(string, encode_edit(name))(name.node, edit)
       })
-      YXML.string_of_body(encode_edits(edits)) }
+      Symbol.encode_yxml(encode_edits(edits)) }
     protocol_command("Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml)
   }
 
@@ -395,7 +381,7 @@ trait Protocol
   {
     val versions_yxml =
     { import XML.Encode._
-      YXML.string_of_body(list(long)(versions.map(_.id))) }
+      Symbol.encode_yxml(list(long)(versions.map(_.id))) }
     protocol_command("Document.remove_versions", versions_yxml)
   }
 
