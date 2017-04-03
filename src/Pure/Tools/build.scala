@@ -43,7 +43,8 @@ object Build
         case Some(database) =>
           def ignore_error(msg: String) =
           {
-            Output.warning("Ignoring bad database: " + database + (if (msg == "") "" else "\n" + msg))
+            Output.warning("Ignoring bad database: " +
+              database.expand + (if (msg == "") "" else "\n" + msg))
             no_timings
           }
           try {
