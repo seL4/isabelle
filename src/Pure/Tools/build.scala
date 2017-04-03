@@ -220,7 +220,7 @@ object Build
             ML_Syntax.print_string0(File.platform_path(output))
 
         if (pide && !Sessions.pure_name(name)) {
-          val resources = new Resources(deps(parent))
+          val resources = new Resources(name, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)

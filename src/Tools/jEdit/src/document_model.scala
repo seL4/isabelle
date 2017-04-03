@@ -235,7 +235,7 @@ object Document_Model
               val pending_nodes = for ((node_name, None) <- purged) yield node_name
               (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
             }
-            val retain = PIDE.resources.thy_info.dependencies("", imports).deps.map(_.name).toSet
+            val retain = PIDE.resources.thy_info.dependencies(imports).deps.map(_.name).toSet
 
             for ((node_name, Some(edits)) <- purged; if !retain(node_name); edit <- edits)
               yield edit
@@ -331,7 +331,7 @@ case class File_Model(
 
   def node_header: Document.Node.Header =
     PIDE.resources.special_header(node_name) getOrElse
-      PIDE.resources.check_thy_reader("", node_name, Scan.char_reader(content.text), strict = false)
+      PIDE.resources.check_thy_reader(node_name, Scan.char_reader(content.text), strict = false)
 
 
   /* content */
@@ -396,8 +396,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
     PIDE.resources.special_header(node_name) getOrElse
       JEdit_Lib.buffer_lock(buffer) {
-        PIDE.resources.check_thy_reader(
-          "", node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
+        PIDE.resources.check_thy_reader(node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
       }
   }
 

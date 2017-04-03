@@ -104,12 +104,12 @@ class Thy_Info(resources: Resources)
     override def toString: String = deps.toString
   }
 
-  private def require_thys(session: String, initiators: List[Document.Node.Name],
-      required: Dependencies, thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    (required /: thys)(require_thy(session, initiators, _, _))
+  private def require_thys(initiators: List[Document.Node.Name], required: Dependencies,
+      thys: List[(Document.Node.Name, Position.T)]): Dependencies =
+    (required /: thys)(require_thy(initiators, _, _))
 
-  private def require_thy(session: String, initiators: List[Document.Node.Name],
-      required: Dependencies, thy: (Document.Node.Name, Position.T)): Dependencies =
+  private def require_thy(initiators: List[Document.Node.Name], required: Dependencies,
+    thy: (Document.Node.Name, Position.T)): Dependencies =
   {
     val (name, require_pos) = thy
 
@@ -123,10 +123,9 @@ class Thy_Info(resources: Resources)
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
         val header =
-          try { resources.check_thy(session, name, Token.Pos.file(name.node)).cat_errors(message) }
+          try { resources.check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
           catch { case ERROR(msg) => cat_error(msg, message) }
-        Thy_Info.Dep(name, header) ::
-          require_thys(session, name :: initiators, required1, header.imports)
+        Thy_Info.Dep(name, header) :: require_thys(name :: initiators, required1, header.imports)
       }
       catch {
         case e: Throwable =>
@@ -135,6 +134,6 @@ class Thy_Info(resources: Resources)
     }
   }
 
-  def dependencies(session: String, thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    require_thys(session, Nil, Dependencies.empty, thys)
+  def dependencies(thys: List[(Document.Node.Name, Position.T)]): Dependencies =
+    require_thys(Nil, Dependencies.empty, thys)
 }
