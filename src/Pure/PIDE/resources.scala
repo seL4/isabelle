@@ -88,7 +88,7 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
     (base.known_theories.get(thy1) orElse
      base.known_theories.get(thy2) orElse
      base.known_theories.get(Long_Name.base_name(thy1))) match {
-      case Some(name) if base.loaded_theories(name.theory) => dummy_name(name.theory)
+      case Some(name) if base.loaded_theory(name) => dummy_name(name.theory)
       case Some(name) => name
       case None =>
         val path = Path.explode(s)
@@ -155,7 +155,7 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
   def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
     (for {
       (node_name, node) <- nodes.iterator
-      if !base.loaded_theories(node_name.theory)
+      if !base.loaded_theory(node_name)
       cmd <- node.load_commands.iterator
       name <- cmd.blobs_undefined.iterator
     } yield name).toList

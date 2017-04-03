@@ -300,7 +300,7 @@ object Thy_Syntax
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     def can_import(name: Document.Node.Name): Boolean =
-      resources.base.loaded_theories(name.theory) || nodes0(name).has_header
+      resources.base.loaded_theory(name) || nodes0(name).has_header
 
     val (doc_edits, version) =
       if (edits.isEmpty) (Nil, Document.Version.make(previous.nodes))

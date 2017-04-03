@@ -118,7 +118,7 @@ class Thy_Info(resources: Resources)
         required_by(initiators) + Position.here(require_pos)
 
     val required1 = required + thy
-    if (required.seen(name) || resources.base.loaded_theories(name.theory)) required1
+    if (required.seen(name) || resources.base.loaded_theory(name)) required1
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))

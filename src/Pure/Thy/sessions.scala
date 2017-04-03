@@ -47,6 +47,10 @@ object Sessions
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
+  {
+    def loaded_theory(name: Document.Node.Name): Boolean =
+      loaded_theories.contains(name.theory)
+  }
 
   sealed case class Deps(deps: Map[String, Base])
   {
