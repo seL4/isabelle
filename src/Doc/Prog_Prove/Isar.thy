@@ -450,7 +450,7 @@ The Isar equivalent is this:
 \isakeyword{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
 \quad $\vdots$\\
 \isakeyword{also have} \<open>"... = t\<^sub>n"\<close> \isasymproof \\
-\isakeyword{finally have} \<open>"t\<^sub>1 = t\<^sub>n"\<close>\ \texttt{.}
+\isakeyword{finally show} \<open>"t\<^sub>1 = t\<^sub>n"\<close>\ \texttt{.}
 \end{quote}
 \end{samepage}
 
@@ -461,7 +461,11 @@ The ``\<open>...\<close>'' and ``\<open>.\<close>'' deserve some explanation:
 automatically instantiates with the right-hand side of the previous equation.
 In general, if \<open>this\<close> is the theorem @{term "p t\<^sub>1 t\<^sub>2"} then ``\<open>...\<close>''
 stands for \<open>t\<^sub>2\<close>.
-\item[``\<open>.\<close>''] (a single dot) is a proof method that solves a goal by one of the assumptions.
+\item[``\<open>.\<close>''] (a single dot) is a proof method that solves a goal by one of the
+assumptions. This works because the result of \isakeyword{finally}
+is the theorem \mbox{\<open>t\<^sub>1 = t\<^sub>n\<close>},
+\isakeyword{show} \<open>"t\<^sub>1 = t\<^sub>n"\<close> states the theorem explicitly,
+and ``\<open>.\<close>'' proves the theorem with the result of \isakeyword{finally}.
 \end{description}
 The above proof template also works for arbitrary mixtures of \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close>,
 for example:
@@ -470,10 +474,10 @@ for example:
 \isakeyword{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
 \quad $\vdots$\\
 \isakeyword{also have} \<open>"... \<le> t\<^sub>n"\<close> \isasymproof \\
-\isakeyword{finally have} \<open>"t\<^sub>1 < t\<^sub>n"\<close>\ \texttt{.}
+\isakeyword{finally show} \<open>"t\<^sub>1 < t\<^sub>n"\<close>\ \texttt{.}
 \end{quote}
-The relation symbol in the \isakeyword{finally} step needs to be the most precise one possible.
-For example, you cannot write \<open>t\<^sub>1 \<le> t\<^sub>n\<close> instead of \<open>t\<^sub>1 < t\<^sub>n\<close>.
+The relation symbol in the \isakeyword{finally} step needs to be the most precise one
+possible. In the example above, you must not write \<open>t\<^sub>1 \<le> t\<^sub>n\<close> instead of \mbox{\<open>t\<^sub>1 < t\<^sub>n\<close>}.
 
 \begin{warn}
 Isabelle only supports \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close> but not \<open>\<ge>\<close> and \<open>>\<close>
@@ -493,7 +497,7 @@ The result of this composition is assigned to \<open>calculation\<close>. Consid
 \isakeyword{have} \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close> \isasymproof\\
 \isakeyword{also} \isakeyword{have} \<open>"... < t\<^sub>3"\<close> \isasymproof\\
 \isakeyword{also} \isakeyword{have} \<open>"... = t\<^sub>4"\<close> \isasymproof\\
-\isakeyword{finally have} \<open>"t\<^sub>1 < t\<^sub>4"\<close>\ \texttt{.}
+\isakeyword{finally show} \<open>"t\<^sub>1 < t\<^sub>4"\<close>\ \texttt{.}
 \end{quote}
 After the first \isakeyword{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close>,
 and after the second \isakeyword{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 < t\<^sub>3"\<close>.
