@@ -462,7 +462,7 @@ automatically instantiates with the right-hand side of the previous equation.
 In general, if \<open>this\<close> is the theorem @{term "p t\<^sub>1 t\<^sub>2"} then ``\<open>...\<close>''
 stands for \<open>t\<^sub>2\<close>.
 \item[``\<open>.\<close>''] (a single dot) is a proof method that solves a goal by one of the
-assumptions. This works because the result of \isakeyword{finally}
+assumptions. This works here because the result of \isakeyword{finally}
 is the theorem \mbox{\<open>t\<^sub>1 = t\<^sub>n\<close>},
 \isakeyword{show} \<open>"t\<^sub>1 = t\<^sub>n"\<close> states the theorem explicitly,
 and ``\<open>.\<close>'' proves the theorem with the result of \isakeyword{finally}.
