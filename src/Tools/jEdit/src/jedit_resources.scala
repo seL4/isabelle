@@ -21,7 +21,8 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
-class JEdit_Resources(base: Sessions.Base) extends Resources(session_name = "", base)
+class JEdit_Resources(session_base: Sessions.Base)
+  extends Resources(session_name = "", session_base)
 {
   /* document node name */
 

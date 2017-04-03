@@ -187,7 +187,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       }
     val nodes_timing1 =
       (nodes_timing /: iterator)({ case (timing1, (name, node)) =>
-          if (PIDE.resources.base.loaded_theory(name)) timing1
+          if (PIDE.resources.session_base.loaded_theory(name)) timing1
           else {
             val node_timing =
               Protocol.node_timing(snapshot.state, snapshot.version, node, timing_threshold)

@@ -40,9 +40,10 @@ object VSCode_Resources
 }
 
 class VSCode_Resources(
-  val options: Options,
-  base: Sessions.Base,
-  log: Logger = No_Logger) extends Resources(session_name = "", base, log)
+    val options: Options,
+    session_base: Sessions.Base,
+    log: Logger = No_Logger)
+  extends Resources(session_name = "", session_base, log)
 {
   private val state = Synchronized(VSCode_Resources.State())
 

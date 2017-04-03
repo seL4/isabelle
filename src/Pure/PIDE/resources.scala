@@ -15,7 +15,7 @@ import java.io.{File => JFile}
 
 class Resources(
   val session_name: String,
-  val base: Sessions.Base,
+  val session_base: Sessions.Base,
   val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
@@ -81,10 +81,10 @@ class Resources(
   {
     val thy1 = Thy_Header.base_name(s)
     val thy2 = if (Long_Name.is_qualified(thy1)) thy1 else Long_Name.qualify(session_name, thy1)
-    (base.known_theories.get(thy1) orElse
-     base.known_theories.get(thy2) orElse
-     base.known_theories.get(Long_Name.base_name(thy1))) match {
-      case Some(name) if base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
+    (session_base.known_theories.get(thy1) orElse
+     session_base.known_theories.get(thy2) orElse
+     session_base.known_theories.get(Long_Name.base_name(thy1))) match {
+      case Some(name) if session_base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
       case Some(name) => name
       case None =>
         val path = Path.explode(s)
@@ -150,7 +150,7 @@ class Resources(
   def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
     (for {
       (node_name, node) <- nodes.iterator
-      if !base.loaded_theory(node_name)
+      if !session_base.loaded_theory(node_name)
       cmd <- node.load_commands.iterator
       name <- cmd.blobs_undefined.iterator
     } yield name).toList
