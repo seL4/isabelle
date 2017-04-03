@@ -13,24 +13,14 @@ import scala.util.parsing.input.Reader
 import java.io.{File => JFile}
 
 
-class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
+class Resources(
+  val session_name: String,
+  val session_base: Sessions.Base,
+  val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
 
   def thy_path(path: Path): Path = path.ext("thy")
-
-
-  /* document node names */
-
-  def node_name(qualifier: String, raw_path: Path): Document.Node.Name =
-  {
-    val no_qualifier = "" // FIXME
-    val path = raw_path.expand
-    val node = path.implode
-    val theory = Long_Name.qualify(no_qualifier, Thy_Header.thy_name(node).getOrElse(""))
-    val master_dir = if (theory == "") "" else path.dir.implode
-    Document.Node.Name(node, master_dir, theory)
-  }
 
 
   /* file-system operations */
@@ -77,28 +67,38 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
     }
     else Nil
 
-  private def dummy_name(theory: String): Document.Node.Name =
-    Document.Node.Name(theory + ".thy", "", theory)
-
-  def import_name(qualifier: String, master: Document.Node.Name, s: String): Document.Node.Name =
+  def init_name(global: Boolean, raw_path: Path): Document.Node.Name =
   {
-    val no_qualifier = "" // FIXME
-    val thy1 = Thy_Header.base_name(s)
-    val thy2 = if (Long_Name.is_qualified(thy1)) thy1 else Long_Name.qualify(no_qualifier, thy1)
-    (base.known_theories.get(thy1) orElse
-     base.known_theories.get(thy2) orElse
-     base.known_theories.get(Long_Name.base_name(thy1))) match {
-      case Some(name) if base.loaded_theories(name.theory) => dummy_name(name.theory)
+    val path = raw_path.expand
+    val node = path.implode
+    val qualifier = if (global) "" else session_name
+    val theory = Long_Name.qualify(qualifier, Thy_Header.thy_name(node).getOrElse(""))
+    val master_dir = if (theory == "") "" else path.dir.implode
+    Document.Node.Name(node, master_dir, theory)
+  }
+
+  def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
+  {
+    val theory = Thy_Header.base_name(s)
+    val is_base_name = Thy_Header.is_base_name(s)
+    val is_qualified = is_base_name && Long_Name.is_qualified(s)
+
+    val known_theory =
+      if (is_base_name)
+        session_base.known_theories.get(theory) orElse
+        (if (is_qualified) session_base.known_theories.get(Long_Name.base_name(theory))
+         else session_base.known_theories.get(Long_Name.qualify(session_name, theory)))
+      else None
+
+    known_theory match {
+      case Some(name) if session_base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
       case Some(name) => name
+      case None if is_qualified => Document.Node.Name.theory(theory)
       case None =>
         val path = Path.explode(s)
-        val theory = path.base.implode
-        if (Long_Name.is_qualified(theory)) dummy_name(theory)
-        else {
-          val node = append(master.master_dir, thy_path(path))
-          val master_dir = append(master.master_dir, path.dir)
-          Document.Node.Name(node, master_dir, Long_Name.qualify(no_qualifier, theory))
-        }
+        val node = append(master.master_dir, thy_path(path))
+        val master_dir = append(master.master_dir, path.dir)
+        Document.Node.Name(node, master_dir, Long_Name.qualify(session_name, theory))
     }
   }
 
@@ -111,9 +111,8 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
     try { f(reader) } finally { reader.close }
   }
 
-  def check_thy_reader(qualifier: String, node_name: Document.Node.Name,
-      reader: Reader[Char], start: Token.Pos = Token.Pos.command, strict: Boolean = true)
-    : Document.Node.Header =
+  def check_thy_reader(node_name: Document.Node.Name, reader: Reader[Char],
+    start: Token.Pos = Token.Pos.command, strict: Boolean = true): Document.Node.Header =
   {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
@@ -127,7 +126,7 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
             Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
 
         val imports =
-          header.imports.map({ case (s, pos) => (import_name(qualifier, node_name, s), pos) })
+          header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
@@ -135,18 +134,18 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
     else Document.Node.no_header
   }
 
-  def check_thy(qualifier: String, name: Document.Node.Name,
-      start: Token.Pos = Token.Pos.command, strict: Boolean = true): Document.Node.Header =
-    with_thy_reader(name, check_thy_reader(qualifier, name, _, start, strict))
+  def check_thy(name: Document.Node.Name, start: Token.Pos = Token.Pos.command,
+      strict: Boolean = true): Document.Node.Header =
+    with_thy_reader(name, check_thy_reader(name, _, start, strict))
 
 
   /* special header */
 
   def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
     if (Thy_Header.is_ml_root(name.theory))
-      Some(Document.Node.Header(List((import_name("", name, Thy_Header.ML_BOOTSTRAP), Position.none))))
+      Some(Document.Node.Header(List((import_name(name, Thy_Header.ML_BOOTSTRAP), Position.none))))
     else if (Thy_Header.is_bootstrap(name.theory))
-      Some(Document.Node.Header(List((import_name("", name, Thy_Header.PURE), Position.none))))
+      Some(Document.Node.Header(List((import_name(name, Thy_Header.PURE), Position.none))))
     else None
 
 
@@ -155,7 +154,7 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
   def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
     (for {
       (node_name, node) <- nodes.iterator
-      if !base.loaded_theories(node_name.theory)
+      if !session_base.loaded_theory(node_name)
       cmd <- node.load_commands.iterator
       name <- cmd.blobs_undefined.iterator
     } yield name).toList

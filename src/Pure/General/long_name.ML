@@ -64,4 +64,3 @@ fun map_base_name _ "" = ""
       in implode (nth_map (length names - 1) f names) end;
 
 end;
-

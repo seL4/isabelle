@@ -1,15 +1,15 @@
-(* 
-  Author: Jeremy Dawson and Gerwin Klein, NICTA
+(*  Title:      HOL/Word/Bits_Int.thy
+    Author:     Jeremy Dawson and Gerwin Klein, NICTA
 
-  Definitions and basic theorems for bit-wise logical operations 
-  for integers expressed using Pls, Min, BIT,
-  and converting them to and from lists of bools.
-*) 
+Definitions and basic theorems for bit-wise logical operations
+for integers expressed using Pls, Min, BIT,
+and converting them to and from lists of bools.
+*)
 
 section \<open>Bitwise Operations on Binary Integers\<close>
 
 theory Bits_Int
-imports Bits Bit_Representation
+  imports Bits Bit_Representation
 begin
 
 subsection \<open>Logical operations\<close>
@@ -19,17 +19,16 @@ text "bit-wise logical operations on the int type"
 instantiation int :: bit
 begin
 
-definition int_not_def:
-  "bitNOT = (\<lambda>x::int. - x - 1)"
+definition int_not_def: "bitNOT = (\<lambda>x::int. - x - 1)"
 
-function bitAND_int where
-  "bitAND_int x y =
-    (if x = 0 then 0 else if x = -1 then y else
-      (bin_rest x AND bin_rest y) BIT (bin_last x \<and> bin_last y))"
+function bitAND_int
+  where "bitAND_int x y =
+    (if x = 0 then 0 else if x = -1 then y
+     else (bin_rest x AND bin_rest y) BIT (bin_last x \<and> bin_last y))"
   by pat_completeness simp
 
 termination
-  by (relation "measure (nat o abs o fst)", simp_all add: bin_rest_def)
+  by (relation "measure (nat \<circ> abs \<circ> fst)", simp_all add: bin_rest_def)
 
 declare bitAND_int.simps [simp del]
 
@@ -67,8 +66,8 @@ lemma int_and_0 [simp]: "(0::int) AND x = 0"
 lemma int_and_m1 [simp]: "(-1::int) AND x = x"
   by (simp add: bitAND_int.simps)
 
-lemma int_and_Bits [simp]: 
-  "(x BIT b) AND (y BIT c) = (x AND y) BIT (b \<and> c)" 
+lemma int_and_Bits [simp]:
+  "(x BIT b) AND (y BIT c) = (x AND y) BIT (b \<and> c)"
   by (subst bitAND_int.simps, simp add: Bit_eq_0_iff Bit_eq_m1_iff)
 
 lemma int_or_zero [simp]: "(0::int) OR x = x"
@@ -77,14 +76,14 @@ lemma int_or_zero [simp]: "(0::int) OR x = x"
 lemma int_or_minus1 [simp]: "(-1::int) OR x = -1"
   unfolding int_or_def by simp
 
-lemma int_or_Bits [simp]: 
+lemma int_or_Bits [simp]:
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b \<or> c)"
   unfolding int_or_def by simp
 
 lemma int_xor_zero [simp]: "(0::int) XOR x = x"
   unfolding int_xor_def by simp
 
-lemma int_xor_Bits [simp]: 
+lemma int_xor_Bits [simp]:
   "(x BIT b) XOR (y BIT c) = (x XOR y) BIT ((b \<or> c) \<and> \<not> (b \<and> c))"
   unfolding int_xor_def by auto
 
@@ -115,9 +114,9 @@ lemma bin_last_XOR [simp]: "bin_last (x XOR y) \<longleftrightarrow> (bin_last x
   by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
 
 lemma bin_nth_ops:
-  "!!x y. bin_nth (x AND y) n = (bin_nth x n & bin_nth y n)" 
+  "!!x y. bin_nth (x AND y) n = (bin_nth x n & bin_nth y n)"
   "!!x y. bin_nth (x OR y) n = (bin_nth x n | bin_nth y n)"
-  "!!x y. bin_nth (x XOR y) n = (bin_nth x n ~= bin_nth y n)" 
+  "!!x y. bin_nth (x XOR y) n = (bin_nth x n ~= bin_nth y n)"
   "!!x. bin_nth (NOT x) n = (~ bin_nth x n)"
   by (induct n) auto
 
@@ -150,18 +149,18 @@ lemma bin_ops_comm:
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 lemma bin_ops_same [simp]:
-  "(x::int) AND x = x" 
-  "(x::int) OR x = x" 
+  "(x::int) AND x = x"
+  "(x::int) OR x = x"
   "(x::int) XOR x = 0"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
-lemmas bin_log_esimps = 
+lemmas bin_log_esimps =
   int_and_extra_simps  int_or_extra_simps  int_xor_extra_simps
   int_and_0 int_and_m1 int_or_zero int_or_minus1 int_xor_zero int_xor_minus1
 
 (* basic properties of logical (bit-wise) operations *)
 
-lemma bbw_ao_absorb: 
+lemma bbw_ao_absorb:
   "!!y::int. x AND (y OR x) = x & x OR (y AND x) = x"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
@@ -174,7 +173,7 @@ lemma bbw_ao_absorbs_other:
 lemmas bbw_ao_absorbs [simp] = bbw_ao_absorb bbw_ao_absorbs_other
 
 lemma int_xor_not:
-  "!!y::int. (NOT x) XOR y = NOT (x XOR y) & 
+  "!!y::int. (NOT x) XOR y = NOT (x XOR y) &
         x XOR (NOT y) = NOT (x XOR y)"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
@@ -193,30 +192,30 @@ lemma int_xor_assoc:
 lemmas bbw_assocs = int_and_assoc int_or_assoc int_xor_assoc
 
 (* BH: Why are these declared as simp rules??? *)
-lemma bbw_lcs [simp]: 
+lemma bbw_lcs [simp]:
   "(y::int) AND (x AND z) = x AND (y AND z)"
   "(y::int) OR (x OR z) = x OR (y OR z)"
-  "(y::int) XOR (x XOR z) = x XOR (y XOR z)" 
+  "(y::int) XOR (x XOR z) = x XOR (y XOR z)"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
-lemma bbw_not_dist: 
-  "!!y::int. NOT (x OR y) = (NOT x) AND (NOT y)" 
+lemma bbw_not_dist:
+  "!!y::int. NOT (x OR y) = (NOT x) AND (NOT y)"
   "!!y::int. NOT (x AND y) = (NOT x) OR (NOT y)"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
-lemma bbw_oa_dist: 
-  "!!y z::int. (x AND y) OR z = 
+lemma bbw_oa_dist:
+  "!!y z::int. (x AND y) OR z =
           (x OR z) AND (y OR z)"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
-lemma bbw_ao_dist: 
-  "!!y z::int. (x OR y) AND z = 
+lemma bbw_ao_dist:
+  "!!y z::int. (x OR y) AND z =
           (x AND z) OR (y AND z)"
   by (auto simp add: bin_eq_iff bin_nth_ops)
 
 (*
 Why were these declared simp???
-declare bin_ops_comm [simp] bbw_assocs [simp] 
+declare bin_ops_comm [simp] bbw_assocs [simp]
 *)
 
 subsubsection \<open>Simplification with numerals\<close>
@@ -360,17 +359,17 @@ lemma bin_add_not: "x + NOT x = (-1::int)"
 
 subsubsection \<open>Truncating results of bit-wise operations\<close>
 
-lemma bin_trunc_ao: 
-  "!!x y. (bintrunc n x) AND (bintrunc n y) = bintrunc n (x AND y)" 
+lemma bin_trunc_ao:
+  "!!x y. (bintrunc n x) AND (bintrunc n y) = bintrunc n (x AND y)"
   "!!x y. (bintrunc n x) OR (bintrunc n y) = bintrunc n (x OR y)"
   by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
 
-lemma bin_trunc_xor: 
-  "!!x y. bintrunc n (bintrunc n x XOR bintrunc n y) = 
+lemma bin_trunc_xor:
+  "!!x y. bintrunc n (bintrunc n x XOR bintrunc n y) =
           bintrunc n (x XOR y)"
   by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
 
-lemma bin_trunc_not: 
+lemma bin_trunc_not:
   "!!x. bintrunc n (NOT (bintrunc n x)) = bintrunc n (NOT x)"
   by (auto simp add: bin_eq_iff bin_nth_ops nth_bintr)
 
@@ -392,26 +391,26 @@ where
   Z: "bin_sc 0 b w = bin_rest w BIT b"
   | Suc: "bin_sc (Suc n) b w = bin_sc n b (bin_rest w) BIT bin_last w"
 
-lemma bin_nth_sc [simp]: 
+lemma bin_nth_sc [simp]:
   "bin_nth (bin_sc n b w) n \<longleftrightarrow> b"
   by (induct n arbitrary: w) auto
 
-lemma bin_sc_sc_same [simp]: 
+lemma bin_sc_sc_same [simp]:
   "bin_sc n c (bin_sc n b w) = bin_sc n c w"
   by (induct n arbitrary: w) auto
 
 lemma bin_sc_sc_diff:
-  "m ~= n ==> 
+  "m ~= n ==>
     bin_sc m c (bin_sc n b w) = bin_sc n b (bin_sc m c w)"
   apply (induct n arbitrary: w m)
    apply (case_tac [!] m)
      apply auto
   done
 
-lemma bin_nth_sc_gen: 
+lemma bin_nth_sc_gen:
   "bin_nth (bin_sc n b w) m = (if m = n then b else bin_nth w m)"
   by (induct n arbitrary: w m) (case_tac [!] m, auto)
-  
+
 lemma bin_sc_nth [simp]:
   "(bin_sc n (bin_nth w n) w) = w"
   by (induct n arbitrary: w) auto
@@ -419,8 +418,8 @@ lemma bin_sc_nth [simp]:
 lemma bin_sign_sc [simp]:
   "bin_sign (bin_sc n b w) = bin_sign w"
   by (induct n arbitrary: w) auto
-  
-lemma bin_sc_bintr [simp]: 
+
+lemma bin_sc_bintr [simp]:
   "bintrunc m (bin_sc n x (bintrunc m (w))) = bintrunc m (bin_sc n x w)"
   apply (induct n arbitrary: w m)
    apply (case_tac [!] w rule: bin_exhaust)
@@ -464,14 +463,14 @@ lemma bin_sc_FP [simp]: "bin_sc n False 0 = 0"
 
 lemma bin_sc_TM [simp]: "bin_sc n True (- 1) = - 1"
   by (induct n) auto
-  
+
 lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
 
 lemma bin_sc_minus:
   "0 < n ==> bin_sc (Suc (n - 1)) b w = bin_sc n b w"
   by auto
 
-lemmas bin_sc_Suc_minus = 
+lemmas bin_sc_Suc_minus =
   trans [OF bin_sc_minus [symmetric] bin_sc.Suc]
 
 lemma bin_sc_numeral [simp]:
@@ -490,7 +489,7 @@ fun bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int
 where
   "bin_rsplit_aux n m c bs =
     (if m = 0 | n = 0 then bs else
-      let (a, b) = bin_split n c 
+      let (a, b) = bin_split n c
       in bin_rsplit_aux n (m - n) a (b # bs))"
 
 definition bin_rsplit :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list"
@@ -501,7 +500,7 @@ fun bin_rsplitl_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> in
 where
   "bin_rsplitl_aux n m c bs =
     (if m = 0 | n = 0 then bs else
-      let (a, b) = bin_split (min m n) c 
+      let (a, b) = bin_split (min m n) c
       in bin_rsplitl_aux n (m - n) a (b # bs))"
 
 definition bin_rsplitl :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list"
@@ -511,7 +510,7 @@ where
 declare bin_rsplit_aux.simps [simp del]
 declare bin_rsplitl_aux.simps [simp del]
 
-lemma bin_sign_cat: 
+lemma bin_sign_cat:
   "bin_sign (bin_cat x n y) = bin_sign x"
   by (induct n arbitrary: y) auto
 
@@ -519,8 +518,8 @@ lemma bin_cat_Suc_Bit:
   "bin_cat w (Suc n) (v BIT b) = bin_cat w n v BIT b"
   by auto
 
-lemma bin_nth_cat: 
-  "bin_nth (bin_cat x k y) n = 
+lemma bin_nth_cat:
+  "bin_nth (bin_cat x k y) n =
     (if n < k then bin_nth y n else bin_nth x (n - k))"
   apply (induct k arbitrary: n y)
    apply clarsimp
@@ -528,8 +527,8 @@ lemma bin_nth_cat:
   done
 
 lemma bin_nth_split:
-  "bin_split n c = (a, b) ==> 
-    (ALL k. bin_nth a k = bin_nth c (n + k)) & 
+  "bin_split n c = (a, b) ==>
+    (ALL k. bin_nth a k = bin_nth c (n + k)) &
     (ALL k. bin_nth b k = (k < n & bin_nth c k))"
   apply (induct n arbitrary: b c)
    apply clarsimp
@@ -538,8 +537,8 @@ lemma bin_nth_split:
   apply auto
   done
 
-lemma bin_cat_assoc: 
-  "bin_cat (bin_cat x m y) n z = bin_cat x (m + n) (bin_cat y n z)" 
+lemma bin_cat_assoc:
+  "bin_cat (bin_cat x m y) n z = bin_cat x (m + n) (bin_cat y n z)"
   by (induct n arbitrary: z) auto
 
 lemma bin_cat_assoc_sym:
@@ -551,23 +550,23 @@ lemma bin_cat_assoc_sym:
 lemma bin_cat_zero [simp]: "bin_cat 0 n w = bintrunc n w"
   by (induct n arbitrary: w) auto
 
-lemma bintr_cat1: 
+lemma bintr_cat1:
   "bintrunc (k + n) (bin_cat a n b) = bin_cat (bintrunc k a) n b"
   by (induct n arbitrary: b) auto
-    
-lemma bintr_cat: "bintrunc m (bin_cat a n b) = 
+
+lemma bintr_cat: "bintrunc m (bin_cat a n b) =
     bin_cat (bintrunc (m - n) a) n (bintrunc (min m n) b)"
   by (rule bin_eqI) (auto simp: bin_nth_cat nth_bintr)
-    
-lemma bintr_cat_same [simp]: 
+
+lemma bintr_cat_same [simp]:
   "bintrunc n (bin_cat a n b) = bintrunc n b"
   by (auto simp add : bintr_cat)
 
-lemma cat_bintr [simp]: 
+lemma cat_bintr [simp]:
   "bin_cat a n (bintrunc n b) = bin_cat a n b"
   by (induct n arbitrary: b) auto
 
-lemma split_bintrunc: 
+lemma split_bintrunc:
   "bin_split n c = (a, b) ==> b = bintrunc n c"
   by (induct n arbitrary: b c) (auto simp: Let_def split: prod.split_asm)
 
@@ -587,7 +586,7 @@ lemma bin_split_minus1 [simp]:
   by (induct n) auto
 
 lemma bin_split_trunc:
-  "bin_split (min m n) c = (a, b) ==> 
+  "bin_split (min m n) c = (a, b) ==>
     bin_split n (bintrunc m c) = (bintrunc (m - n) a, b)"
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
@@ -596,7 +595,7 @@ lemma bin_split_trunc:
   done
 
 lemma bin_split_trunc1:
-  "bin_split n c = (a, b) ==> 
+  "bin_split n c = (a, b) ==>
     bin_split n (bintrunc m c) = (bintrunc (m - n) a, bintrunc m b)"
   apply (induct n arbitrary: m b c, clarsimp)
   apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
@@ -621,12 +620,12 @@ lemma bin_split_num:
 
 subsection \<open>Miscellaneous lemmas\<close>
 
-lemma nth_2p_bin: 
+lemma nth_2p_bin:
   "bin_nth (2 ^ n) m = (m = n)"
   apply (induct n arbitrary: m)
    apply clarsimp
    apply safe
-   apply (case_tac m) 
+   apply (case_tac m)
     apply (auto simp: Bit_B0_2t [symmetric])
   done
 

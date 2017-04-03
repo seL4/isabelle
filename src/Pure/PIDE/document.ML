@@ -178,9 +178,7 @@ fun finished_result node =
   | NONE => false);
 
 fun loaded_theory name =
-  (case try (unsuffix ".thy") name of
-    SOME a => get_first Thy_Info.lookup_theory [a, Long_Name.base_name a]
-  | NONE => NONE);
+  get_first Thy_Info.lookup_theory [name, Long_Name.base_name name];
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;

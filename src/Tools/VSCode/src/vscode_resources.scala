@@ -40,9 +40,10 @@ object VSCode_Resources
 }
 
 class VSCode_Resources(
-  val options: Options,
-  base: Sessions.Base,
-  log: Logger = No_Logger) extends Resources(base, log)
+    val options: Options,
+    session_base: Sessions.Base,
+    log: Logger = No_Logger)
+  extends Resources(session_name = "", session_base, log)
 {
   private val state = Synchronized(VSCode_Resources.State())
 
@@ -165,7 +166,7 @@ class VSCode_Resources(
           (for ((_, model) <- st.models.iterator if model.is_theory)
            yield (model.node_name, Position.none)).toList
 
-        val thy_files = thy_info.dependencies("", thys).deps.map(_.name)
+        val thy_files = thy_info.dependencies(thys).deps.map(_.name)
 
 
         /* auxiliary files */

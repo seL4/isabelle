@@ -25,4 +25,3 @@ object Long_Name
     if (name == "") ""
     else explode(name).last
 }
-

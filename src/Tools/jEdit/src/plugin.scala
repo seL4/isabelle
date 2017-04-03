@@ -74,7 +74,7 @@ class Plugin extends EBPlugin
     val session_name = JEdit_Sessions.session_name(options)
     val session_base =
       try { Sessions.session_base(options, session_name, JEdit_Sessions.session_dirs()) }
-      catch { case ERROR(_) => Sessions.pure_base(options) }
+      catch { case ERROR(_) => Sessions.Base.pure(options) }
 
     _resources =
       new JEdit_Resources(session_base.copy(known_theories =
@@ -135,7 +135,7 @@ class Plugin extends EBPlugin
           val thys =
             (for ((node_name, model) <- models.iterator if model.is_theory)
               yield (node_name, Position.none)).toList
-          val thy_files = resources.thy_info.dependencies("", thys).deps.map(_.name)
+          val thy_files = resources.thy_info.dependencies(thys).deps.map(_.name)
 
           val aux_files =
             if (options.bool("jedit_auto_resolve")) {
