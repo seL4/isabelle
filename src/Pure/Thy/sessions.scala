@@ -17,25 +17,14 @@ import scala.collection.mutable
 
 object Sessions
 {
-  /* Pure */
-
-  def pure_name(name: String): Boolean = name == Thy_Header.PURE
-
-  def pure_files(resources: Resources, syntax: Outer_Syntax, dir: Path): List[Path] =
-  {
-    val roots = Thy_Header.ml_roots.map(_._1)
-    val loaded_files =
-      roots.flatMap(root => resources.loaded_files(syntax, File.read(dir + Path.explode(root))))
-    (roots ::: loaded_files).map(file => dir + Path.explode(file))
-  }
-
-  def pure_base(options: Options): Base = session_base(options, Thy_Header.PURE)
-
-
   /* base info and source dependencies */
+
+  def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
   object Base
   {
+    def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
+
     lazy val bootstrap: Base =
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
   }
@@ -120,7 +109,13 @@ object Sessions
             val loaded_files =
               if (inlined_files) {
                 val pure_files =
-                  if (pure_name(name)) Sessions.pure_files(resources, syntax, info.dir)
+                  if (is_pure(name)) {
+                    val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
+                    val files =
+                      roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
+                        map(file => info.dir + Path.explode(file))
+                    roots ::: files
+                  }
                   else Nil
                 pure_files ::: thy_deps.loaded_files
               }
@@ -368,8 +363,8 @@ object Sessions
           val name = entry.name
 
           if (name == "") error("Bad session name")
-          if (pure_name(name) && entry.parent.isDefined) error("Illegal parent session")
-          if (!pure_name(name) && !entry.parent.isDefined) error("Missing parent session")
+          if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
+          if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
           val session_options = options ++ entry.options
 

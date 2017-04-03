@@ -219,7 +219,7 @@ object Build
           "ML_Heap.share_common_data (); ML_Heap.save_child " +
             ML_Syntax.print_string0(File.platform_path(output))
 
-        if (pide && !Sessions.pure_name(name)) {
+        if (pide && !Sessions.is_pure(name)) {
           val resources = new Resources(name, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
@@ -255,7 +255,7 @@ object Build
             (if (do_output) "; " + save_heap else "") + "));"
 
           val process =
-            if (Sessions.pure_name(name)) {
+            if (Sessions.is_pure(name)) {
               ML_Process(options, raw_ml_system = true, cwd = info.dir.file,
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
@@ -519,7 +519,7 @@ object Build
                 val ancestor_results = selected_tree.ancestors(name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
-                val do_output = build_heap || Sessions.pure_name(name) || queue.is_inner(name)
+                val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
                 val (current, heap_stamp) =
                 {
