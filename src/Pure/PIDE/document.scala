@@ -98,6 +98,7 @@ object Document
     object Name
     {
       val empty = Name("")
+      def theory(theory: String): Name = Name(theory, "", theory)
 
       object Ordering extends scala.math.Ordering[Name]
       {

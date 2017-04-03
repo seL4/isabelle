@@ -77,9 +77,6 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
     }
     else Nil
 
-  private def dummy_name(theory: String): Document.Node.Name =
-    Document.Node.Name(theory + ".thy", "", theory)
-
   def import_name(qualifier: String, master: Document.Node.Name, s: String): Document.Node.Name =
   {
     val no_qualifier = "" // FIXME
@@ -88,12 +85,12 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
     (base.known_theories.get(thy1) orElse
      base.known_theories.get(thy2) orElse
      base.known_theories.get(Long_Name.base_name(thy1))) match {
-      case Some(name) if base.loaded_theory(name) => dummy_name(name.theory)
+      case Some(name) if base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
       case Some(name) => name
       case None =>
         val path = Path.explode(s)
         val theory = path.base.implode
-        if (Long_Name.is_qualified(theory)) dummy_name(theory)
+        if (Long_Name.is_qualified(theory)) Document.Node.Name.theory(theory)
         else {
           val node = append(master.master_dir, thy_path(path))
           val master_dir = append(master.master_dir, path.dir)
