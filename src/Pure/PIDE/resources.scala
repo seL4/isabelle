@@ -79,22 +79,26 @@ class Resources(
 
   def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
   {
-    val thy1 = Thy_Header.base_name(s)
-    val thy2 = if (Long_Name.is_qualified(thy1)) thy1 else Long_Name.qualify(session_name, thy1)
-    (session_base.known_theories.get(thy1) orElse
-     session_base.known_theories.get(thy2) orElse
-     session_base.known_theories.get(Long_Name.base_name(thy1))) match {
+    val theory = Thy_Header.base_name(s)
+    val is_base_name = Thy_Header.is_base_name(s)
+    val is_qualified = is_base_name && Long_Name.is_qualified(s)
+
+    val known_theory =
+      if (is_base_name)
+        session_base.known_theories.get(theory) orElse
+        (if (is_qualified) session_base.known_theories.get(Long_Name.base_name(theory))
+         else session_base.known_theories.get(Long_Name.qualify(session_name, theory)))
+      else None
+
+    known_theory match {
       case Some(name) if session_base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
       case Some(name) => name
+      case None if is_qualified => Document.Node.Name.theory(theory)
       case None =>
         val path = Path.explode(s)
-        val theory = path.base.implode
-        if (Long_Name.is_qualified(theory)) Document.Node.Name.theory(theory)
-        else {
-          val node = append(master.master_dir, thy_path(path))
-          val master_dir = append(master.master_dir, path.dir)
-          Document.Node.Name(node, master_dir, Long_Name.qualify(session_name, theory))
-        }
+        val node = append(master.master_dir, thy_path(path))
+        val master_dir = append(master.master_dir, path.dir)
+        Document.Node.Name(node, master_dir, Long_Name.qualify(session_name, theory))
     }
   }
 
