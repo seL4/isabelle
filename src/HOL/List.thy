@@ -260,6 +260,13 @@ fun splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "splice xs [] = xs" |
 "splice (x#xs) (y#ys) = x # y # splice xs ys"
 
+function shuffle where
+  "shuffle [] ys = {ys}"
+| "shuffle xs [] = {xs}"
+| "shuffle (x # xs) (y # ys) = op # x ` shuffle xs (y # ys) \<union> op # y ` shuffle (x # xs) ys"
+  by pat_completeness simp_all
+termination by lexicographic_order
+
 text\<open>
 \begin{figure}[htbp]
 \fbox{
@@ -285,6 +292,8 @@ text\<open>
 @{lemma "product_lists [[a,b], [c], [d,e]] = [[a,c,d], [a,c,e], [b,c,d], [b,c,e]]" by simp}\\
 @{lemma "splice [a,b,c] [x,y,z] = [a,x,b,y,c,z]" by simp}\\
 @{lemma "splice [a,b,c,d] [x,y] = [a,x,b,y,c,d]" by simp}\\
+@{lemma "shuffle [a,b] [c,d] =  {[a,b,c,d],[a,c,b,d],[a,c,d,b],[c,a,b,d],[c,a,d,b],[c,d,a,b]}" 
+    by (simp add: insert_commute)}\\
 @{lemma "take 2 [a,b,c,d] = [a,b]" by simp}\\
 @{lemma "take 6 [a,b,c,d] = [a,b,c,d]" by simp}\\
 @{lemma "drop 2 [a,b,c,d] = [c,d]" by simp}\\
@@ -4481,7 +4490,149 @@ declare splice.simps(1,3)[code]
 declare splice.simps(2)[simp del]
 
 lemma length_splice[simp]: "length(splice xs ys) = length xs + length ys"
-by (induct xs ys rule: splice.induct) auto
+  by (induct xs ys rule: splice.induct) auto
+
+
+subsubsection \<open>@{const shuffle}\<close>
+
+lemma Nil_in_shuffle[simp]: "[] \<in> shuffle xs ys \<longleftrightarrow> xs = [] \<and> ys = []"
+  by (induct xs ys rule: shuffle.induct) auto
+
+lemma shuffleE:
+  "zs \<in> shuffle xs ys \<Longrightarrow>
+    (zs = xs \<Longrightarrow> ys = [] \<Longrightarrow> P) \<Longrightarrow>
+    (zs = ys \<Longrightarrow> xs = [] \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>x xs' z zs'. xs = x # xs' \<Longrightarrow> zs = z # zs' \<Longrightarrow> x = z \<Longrightarrow> zs' \<in> shuffle xs' ys \<Longrightarrow> P) \<Longrightarrow>
+    (\<And>y ys' z zs'. ys = y # ys' \<Longrightarrow> zs = z # zs' \<Longrightarrow> y = z \<Longrightarrow> zs' \<in> shuffle xs ys' \<Longrightarrow> P) \<Longrightarrow> P"
+  by (induct xs ys rule: shuffle.induct) auto
+
+lemma Cons_in_shuffle_iff:
+  "z # zs \<in> shuffle xs ys \<longleftrightarrow>
+    (xs \<noteq> [] \<and> hd xs = z \<and> zs \<in> shuffle (tl xs) ys \<or>
+     ys \<noteq> [] \<and> hd ys = z \<and> zs \<in> shuffle xs (tl ys))"
+  by (induct xs ys rule: shuffle.induct) auto
+  
+lemma splice_in_shuffle [simp, intro]: "splice xs ys \<in> shuffle xs ys"
+  by (induction xs ys rule: splice.induct) (simp_all add: Cons_in_shuffle_iff)
+
+lemma Nil_in_shuffleI: "xs = [] \<Longrightarrow> ys = [] \<Longrightarrow> [] \<in> shuffle xs ys" 
+  by simp
+    
+lemma Cons_in_shuffle_leftI: "zs \<in> shuffle xs ys \<Longrightarrow> z # zs \<in> shuffle (z # xs) ys"
+  by (cases ys) auto
+
+lemma Cons_in_shuffle_rightI: "zs \<in> shuffle xs ys \<Longrightarrow> z # zs \<in> shuffle xs (z # ys)"
+  by (cases xs) auto
+
+lemma finite_shuffle [simp, intro]: "finite (shuffle xs ys)"
+  by (induction xs ys rule: shuffle.induct) simp_all
+    
+lemma length_shuffle: "zs \<in> shuffle xs ys \<Longrightarrow> length zs = length xs + length ys"
+  by (induction xs ys arbitrary: zs rule: shuffle.induct) auto
+  
+lemma set_shuffle: "zs \<in> shuffle xs ys \<Longrightarrow> set zs = set xs \<union> set ys"
+  by (induction xs ys arbitrary: zs rule: shuffle.induct) auto
+
+lemma distinct_disjoint_shuffle:
+  assumes "distinct xs" "distinct ys" "set xs \<inter> set ys = {}" "zs \<in> shuffle xs ys"
+  shows   "distinct zs"
+using assms
+proof (induction xs ys arbitrary: zs rule: shuffle.induct)
+  case (3 x xs y ys)
+  show ?case
+  proof (cases zs)
+    case (Cons z zs')
+    with "3.prems" and "3.IH"[of zs'] show ?thesis by (force dest: set_shuffle)
+  qed simp_all
+qed simp_all
+
+lemma shuffle_commutes: "shuffle xs ys = shuffle ys xs"
+  by (induction xs ys rule: shuffle.induct) (simp_all add: Un_commute)
+    
+lemma Cons_shuffle_subset1: "op # x ` shuffle xs ys \<subseteq> shuffle (x # xs) ys"
+  by (cases ys) auto
+    
+lemma Cons_shuffle_subset2: "op # y ` shuffle xs ys \<subseteq> shuffle xs (y # ys)"
+  by (cases xs) auto
+
+lemma filter_shuffle:
+  "filter P ` shuffle xs ys = shuffle (filter P xs) (filter P ys)"
+proof -
+  have *: "filter P ` op # x ` A = (if P x then op # x ` filter P ` A else filter P ` A)" for x A
+    by (auto simp: image_image)
+  show ?thesis
+  by (induction xs ys rule: shuffle.induct)
+     (simp_all split: if_splits add: image_Un * Un_absorb1 Un_absorb2 
+           Cons_shuffle_subset1 Cons_shuffle_subset2)
+qed
+
+lemma filter_shuffle_disjoint1:
+  assumes "set xs \<inter> set ys = {}" "zs \<in> shuffle xs ys"
+  shows   "filter (\<lambda>x. x \<in> set xs) zs = xs" (is "filter ?P _ = _")
+    and   "filter (\<lambda>x. x \<notin> set xs) zs = ys" (is "filter ?Q _ = _")
+  using assms
+proof -
+  from assms have "filter ?P zs \<in> filter ?P ` shuffle xs ys" by blast
+  also have "filter ?P ` shuffle xs ys = shuffle (filter ?P xs) (filter ?P ys)"
+    by (rule filter_shuffle)
+  also have "filter ?P xs = xs" by (rule filter_True) simp_all
+  also have "filter ?P ys = []" by (rule filter_False) (insert assms(1), auto)
+  also have "shuffle xs [] = {xs}" by simp
+  finally show "filter ?P zs = xs" by simp
+next
+  from assms have "filter ?Q zs \<in> filter ?Q ` shuffle xs ys" by blast
+  also have "filter ?Q ` shuffle xs ys = shuffle (filter ?Q xs) (filter ?Q ys)"
+    by (rule filter_shuffle)
+  also have "filter ?Q ys = ys" by (rule filter_True) (insert assms(1), auto)
+  also have "filter ?Q xs = []" by (rule filter_False) (insert assms(1), auto)
+  also have "shuffle [] ys = {ys}" by simp
+  finally show "filter ?Q zs = ys" by simp
+qed
+
+lemma filter_shuffle_disjoint2:
+  assumes "set xs \<inter> set ys = {}" "zs \<in> shuffle xs ys"
+  shows   "filter (\<lambda>x. x \<in> set ys) zs = ys" "filter (\<lambda>x. x \<notin> set ys) zs = xs"
+  using filter_shuffle_disjoint1[of ys xs zs] assms 
+  by (simp_all add: shuffle_commutes Int_commute)
+
+lemma partition_in_shuffle:
+  "xs \<in> shuffle (filter P xs) (filter (\<lambda>x. \<not>P x) xs)"
+proof (induction xs)
+  case (Cons x xs)
+  show ?case
+  proof (cases "P x")
+    case True
+    hence "x # xs \<in> op # x ` shuffle (filter P xs) (filter (\<lambda>x. \<not>P x) xs)"
+      by (intro imageI Cons.IH)
+    also have "\<dots> \<subseteq> shuffle (filter P (x # xs)) (filter (\<lambda>x. \<not>P x) (x # xs))"
+      by (simp add: True Cons_shuffle_subset1)
+    finally show ?thesis .
+  next
+    case False
+    hence "x # xs \<in> op # x ` shuffle (filter P xs) (filter (\<lambda>x. \<not>P x) xs)"
+      by (intro imageI Cons.IH)
+    also have "\<dots> \<subseteq> shuffle (filter P (x # xs)) (filter (\<lambda>x. \<not>P x) (x # xs))"
+      by (simp add: False Cons_shuffle_subset2)
+    finally show ?thesis .
+  qed
+qed auto
+
+lemma inv_image_partition:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> P x" "\<And>y. y \<in> set ys \<Longrightarrow> \<not>P y"
+  shows   "partition P -` {(xs, ys)} = shuffle xs ys"
+proof (intro equalityI subsetI)
+  fix zs assume zs: "zs \<in> shuffle xs ys"
+  hence [simp]: "set zs = set xs \<union> set ys" by (rule set_shuffle)
+  from assms have "filter P zs = filter (\<lambda>x. x \<in> set xs) zs" 
+                  "filter (\<lambda>x. \<not>P x) zs = filter (\<lambda>x. x \<in> set ys) zs"
+    by (intro filter_cong refl; force)+
+  moreover from assms have "set xs \<inter> set ys = {}" by auto
+  ultimately show "zs \<in> partition P -` {(xs, ys)}" using zs
+    by (simp add: o_def filter_shuffle_disjoint1 filter_shuffle_disjoint2)
+next
+  fix zs assume "zs \<in> partition P -` {(xs, ys)}"
+  thus "zs \<in> shuffle xs ys" using partition_in_shuffle[of zs] by (auto simp: o_def)
+qed
 
 
 subsubsection \<open>Transpose\<close>
@@ -4862,14 +5013,14 @@ lemma insort_remove1:
   assumes "a \<in> set xs" and "sorted xs"
   shows "insort a (remove1 a xs) = xs"
 proof (rule insort_key_remove1)
+  define n where "n = length (filter (op = a) xs) - 1"
   from \<open>a \<in> set xs\<close> show "a \<in> set xs" .
   from \<open>sorted xs\<close> show "sorted (map (\<lambda>x. x) xs)" by simp
   from \<open>a \<in> set xs\<close> have "a \<in> set (filter (op = a) xs)" by auto
   then have "set (filter (op = a) xs) \<noteq> {}" by auto
   then have "filter (op = a) xs \<noteq> []" by (auto simp only: set_empty)
   then have "length (filter (op = a) xs) > 0" by simp
-  then obtain n where n: "Suc n = length (filter (op = a) xs)"
-    by (cases "length (filter (op = a) xs)") simp_all
+  then have n: "Suc n = length (filter (op = a) xs)" by (simp add: n_def)
   moreover have "replicate (Suc n) a = a # replicate n a"
     by simp
   ultimately show "hd (filter (op = a) xs) = a" by (simp add: replicate_length_filter)
@@ -7045,6 +7196,26 @@ lemma splice_transfer [transfer_rule]:
   apply (rule rel_funI)
   apply (erule_tac xs=x in list_all2_induct, simp, simp add: rel_fun_def)
   done
+    
+lemma shuffle_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A ===> rel_set (list_all2 A)) shuffle shuffle"
+proof (intro rel_funI, goal_cases)
+  case (1 xs xs' ys ys')
+  thus ?case
+  proof (induction xs ys arbitrary: xs' ys' rule: shuffle.induct)
+    case (3 x xs y ys xs' ys')
+    from "3.prems" obtain x' xs'' where xs': "xs' = x' # xs''" by (cases xs') auto
+    from "3.prems" obtain y' ys'' where ys': "ys' = y' # ys''" by (cases ys') auto
+    have [transfer_rule]: "A x x'" "A y y'" "list_all2 A xs xs''" "list_all2 A ys ys''"
+      using "3.prems" by (simp_all add: xs' ys')
+    have [transfer_rule]: "rel_set (list_all2 A) (shuffle xs (y # ys)) (shuffle xs'' ys')" and
+         [transfer_rule]: "rel_set (list_all2 A) (shuffle (x # xs) ys) (shuffle xs' ys'')"
+      using "3.prems" by (auto intro!: "3.IH" simp: xs' ys')
+    have "rel_set (list_all2 A) (op # x ` shuffle xs (y # ys) \<union> op # y ` shuffle (x # xs) ys)
+               (op # x' ` shuffle xs'' ys' \<union> op # y' ` shuffle xs' ys'')" by transfer_prover
+    thus ?case by (simp add: xs' ys')
+  qed (auto simp: rel_set_def)
+qed 
 
 lemma rtrancl_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A" "bi_total A"

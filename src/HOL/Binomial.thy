@@ -755,13 +755,8 @@ proof (cases "k \<le> n")
     by (simp add: binomial_eq_0 gbinomial_prod_rev prod_zero)
 next
   case True
-  then have "inj_on (op - n) {0..<k}"
-    by (auto intro: inj_onI)
-  then have "\<Prod>(op - n ` {0..<k}) = prod (op - n) {0..<k}"
-    by (auto dest: prod.reindex)
-  also have "op - n ` {0..<k} = {Suc (n - k)..n}"
-    using True by (auto simp add: image_def Bex_def) presburger  (* FIXME slow *)
-  finally have *: "prod (\<lambda>q. n - q) {0..<k} = \<Prod>{Suc (n - k)..n}" ..
+  from True have *: "prod (op - n) {0..<k} = \<Prod>{Suc (n - k)..n}"
+    by (intro prod.reindex_bij_witness[of _ "\<lambda>i. n - i" "\<lambda>i. n - i"]) auto
   from True have "n choose k = fact n div (fact k * fact (n - k))"
     by (rule binomial_fact')
   with * show ?thesis
@@ -1558,8 +1553,7 @@ proof -
       (auto simp: member_le_sum_list_nat less_Suc_eq_le fin)
   have uni: "?C = ?A' \<union> ?B'"
     by auto
-  have disj: "?A' \<inter> ?B' = {}"
-    by auto
+  have disj: "?A' \<inter> ?B' = {}" by blast
   have "card ?C = card(?A' \<union> ?B')"
     using uni by simp
   also have "\<dots> = card ?A + card ?B"
@@ -1621,6 +1615,29 @@ next
       using card_length_sum_list_rec[OF Suc.prems] by auto
   qed
 qed
+
+lemma card_disjoint_shuffle: 
+  assumes "set xs \<inter> set ys = {}"
+  shows   "card (shuffle xs ys) = (length xs + length ys) choose length xs"
+using assms
+proof (induction xs ys rule: shuffle.induct)
+  case (3 x xs y ys)
+  have "shuffle (x # xs) (y # ys) = op # x ` shuffle xs (y # ys) \<union> op # y ` shuffle (x # xs) ys"
+    by (rule shuffle.simps)
+  also have "card \<dots> = card (op # x ` shuffle xs (y # ys)) + card (op # y ` shuffle (x # xs) ys)"
+    by (rule card_Un_disjoint) (insert "3.prems", auto)
+  also have "card (op # x ` shuffle xs (y # ys)) = card (shuffle xs (y # ys))"
+    by (rule card_image) auto
+  also have "\<dots> = (length xs + length (y # ys)) choose length xs"
+    using "3.prems" by (intro "3.IH") auto
+  also have "card (op # y ` shuffle (x # xs) ys) = card (shuffle (x # xs) ys)"
+    by (rule card_image) auto
+  also have "\<dots> = (length (x # xs) + length ys) choose length (x # xs)"
+    using "3.prems" by (intro "3.IH") auto
+  also have "length xs + length (y # ys) choose length xs + \<dots> = 
+               (length (x # xs) + length (y # ys)) choose length (x # xs)" by simp
+  finally show ?case .
+qed auto
 
 lemma Suc_times_binomial_add: "Suc a * (Suc (a + b) choose Suc a) = Suc b * (Suc (a + b) choose a)"
   \<comment> \<open>by Lukas Bulwahn\<close>
