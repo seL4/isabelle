@@ -24,10 +24,9 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
 
   def node_name(qualifier: String, raw_path: Path): Document.Node.Name =
   {
-    val no_qualifier = "" // FIXME
     val path = raw_path.expand
     val node = path.implode
-    val theory = Long_Name.qualify(no_qualifier, Thy_Header.thy_name(node).getOrElse(""))
+    val theory = Long_Name.qualify(qualifier, Thy_Header.thy_name(node).getOrElse(""))
     val master_dir = if (theory == "") "" else path.dir.implode
     Document.Node.Name(node, master_dir, theory)
   }
@@ -79,9 +78,8 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
 
   def import_name(qualifier: String, master: Document.Node.Name, s: String): Document.Node.Name =
   {
-    val no_qualifier = "" // FIXME
     val thy1 = Thy_Header.base_name(s)
-    val thy2 = if (Long_Name.is_qualified(thy1)) thy1 else Long_Name.qualify(no_qualifier, thy1)
+    val thy2 = if (Long_Name.is_qualified(thy1)) thy1 else Long_Name.qualify(qualifier, thy1)
     (base.known_theories.get(thy1) orElse
      base.known_theories.get(thy2) orElse
      base.known_theories.get(Long_Name.base_name(thy1))) match {
@@ -94,7 +92,7 @@ class Resources(val base: Sessions.Base, val log: Logger = No_Logger)
         else {
           val node = append(master.master_dir, thy_path(path))
           val master_dir = append(master.master_dir, path.dir)
-          Document.Node.Name(node, master_dir, Long_Name.qualify(no_qualifier, theory))
+          Document.Node.Name(node, master_dir, Long_Name.qualify(qualifier, theory))
         }
     }
   }
