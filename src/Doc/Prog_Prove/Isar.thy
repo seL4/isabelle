@@ -227,6 +227,10 @@ the rules of natural deduction that are applied by \isacom{proof} by
 default. The patterns are phrased in terms of \isacom{show} but work for
 \isacom{have} and \isacom{lemma}, too.
 
+\ifsem\else
+\subsection{Logic}
+\fi
+
 We start with two forms of \concept{case analysis}:
 starting from a formula @{text P} we have the two cases @{text P} and
 @{prop"~P"}, and starting from a fact @{prop"P \<or> Q"}
@@ -241,11 +245,11 @@ show "R"
 proof cases
   assume "P"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 next
   assume "\<not> P"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)oops(*>*)
 text_raw {* }
 \end{minipage}\index{cases@@{text cases}}
@@ -254,16 +258,16 @@ text_raw {* }
 \isa{%
 *}
 (*<*)lemma "R" proof-(*>*)
-have "P \<or> Q" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+have "P \<or> Q" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 then show "R"
 proof
   assume "P"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 next
   assume "Q"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -280,11 +284,11 @@ show "P \<longleftrightarrow> Q"
 proof
   assume "P"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "Q" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
+  show "Q" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
 next
   assume "Q"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
+  show "P" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
 qed(*<*)qed(*>*)
 text_raw {* }
 \medskip
@@ -300,7 +304,7 @@ show "\<not> P"
 proof
   assume "P"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "False" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "False" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -314,7 +318,7 @@ show "P"
 proof (rule ccontr)
   assume "\<not>P"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "False" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "False" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -333,7 +337,7 @@ show "\<forall>x. P(x)"
 proof
   fix x
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P(x)" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "P(x)" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)oops(*>*)
 
 text_raw {* }
@@ -346,7 +350,7 @@ text_raw {* }
 show "\<exists>x. P(x)"
 proof
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P(witness)" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "P(witness)" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed
 (*<*)oops(*>*)
 
@@ -367,7 +371,7 @@ How to reason forward from \noquotes{@{prop[source] "\<exists>x. P(x)"}}:
 \end{isamarkuptext}%
 *}
 (*<*)lemma True proof- assume 1: "EX x. P x"(*>*)
-have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)text_raw{*\ $\dots$\\*}
+have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)text_raw{*\ \isasymproof\\*}
 then obtain x where p: "P(x)" by blast
 (*<*)oops(*>*)
 text{*
@@ -401,9 +405,9 @@ Finally, how to prove set equality and subset relationship:
 (*<*)lemma "A = (B::'a set)" proof-(*>*)
 show "A = B"
 proof
-  show "A \<subseteq> B" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "A \<subseteq> B" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 next
-  show "B \<subseteq> A" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "B \<subseteq> A" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)qed(*>*)
 
 text_raw {* }
@@ -418,13 +422,88 @@ proof
   fix x
   assume "x \<in> A"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "x \<in> B" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show "x \<in> B" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)qed(*>*)
 
 text_raw {* }
 \end{minipage}
 \end{tabular}
 \begin{isamarkuptext}%
+
+\ifsem\else
+\subsection{Chains of (In)Equations}
+
+In textbooks, chains of equations (and inequations) are often displayed like this:
+\begin{quote}
+\begin{tabular}{@ {}l@ {\qquad}l@ {}}
+$t_1 = t_2$ & \isamath{\,\langle\mathit{justification}\rangle}\\
+$\phantom{t_1} = t_3$ & \isamath{\,\langle\mathit{justification}\rangle}\\
+\quad $\vdots$\\
+$\phantom{t_1} = t_n$ & \isamath{\,\langle\mathit{justification}\rangle}
+\end{tabular}
+\end{quote}
+The Isar equivalent is this:
+
+\begin{samepage}
+\begin{quote}
+\isakeyword{have} \<open>"t\<^sub>1 = t\<^sub>2"\<close> \isasymproof\\
+\isakeyword{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
+\quad $\vdots$\\
+\isakeyword{also have} \<open>"... = t\<^sub>n"\<close> \isasymproof \\
+\isakeyword{finally have} \<open>"t\<^sub>1 = t\<^sub>n"\<close>\ \texttt{.}
+\end{quote}
+\end{samepage}
+
+\noindent
+The ``\<open>...\<close>'' and ``\<open>.\<close>'' deserve some explanation:
+\begin{description}
+\item[``\<open>...\<close>''] is literally three dots. It is the name of an unknown that Isar
+automatically instantiates with the right-hand side of the previous equation.
+In general, if \<open>this\<close> is the theorem @{term "p t\<^sub>1 t\<^sub>2"} then ``\<open>...\<close>''
+stands for \<open>t\<^sub>2\<close>.
+\item[``\<open>.\<close>''] (a single dot) is a proof method that solves a goal by one of the assumptions.
+\end{description}
+The above proof template also works for arbitrary mixtures of \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close>,
+for example:
+\begin{quote}
+\isakeyword{have} \<open>"t\<^sub>1 < t\<^sub>2"\<close> \isasymproof\\
+\isakeyword{also have} \<open>"... = t\<^sub>3"\<close> \isasymproof\\
+\quad $\vdots$\\
+\isakeyword{also have} \<open>"... \<le> t\<^sub>n"\<close> \isasymproof \\
+\isakeyword{finally have} \<open>"t\<^sub>1 < t\<^sub>n"\<close>\ \texttt{.}
+\end{quote}
+The relation symbol in the \isakeyword{finally} step needs to be the most precise one possible.
+For example, you cannot write \<open>t\<^sub>1 \<le> t\<^sub>n\<close> instead of \<open>t\<^sub>1 < t\<^sub>n\<close>.
+
+\begin{warn}
+Isabelle only supports \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close> but not \<open>\<ge>\<close> and \<open>>\<close>
+in (in)equation chains (by default).
+\end{warn}
+
+If you want to go beyond merely using the above proof patterns and want to
+understand what \isakeyword{also} and \isakeyword{finally} mean, read on.
+There is an Isar theorem variable called \<open>calculation\<close>, similar to \<open>this\<close>.
+When the first \isakeyword{also} in a chain is encountered, Isabelle sets
+\<open>calculation := this\<close>. In each subsequent \isakeyword{also} step,
+Isabelle composes the theorems \<open>calculation\<close> and \<open>this\<close> (i.e.\ the two previous
+(in)equalities) using some predefined set of rules including transitivity
+of \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close> but also mixed rules like @{prop"\<lbrakk> x \<le> y; y < z \<rbrakk> \<Longrightarrow> x < z"}.
+The result of this composition is assigned to \<open>calculation\<close>. Consider
+\begin{quote}
+\isakeyword{have} \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close> \isasymproof\\
+\isakeyword{also} \isakeyword{have} \<open>"... < t\<^sub>3"\<close> \isasymproof\\
+\isakeyword{also} \isakeyword{have} \<open>"... = t\<^sub>4"\<close> \isasymproof\\
+\isakeyword{finally have} \<open>"t\<^sub>1 < t\<^sub>4"\<close>\ \texttt{.}
+\end{quote}
+After the first \isakeyword{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close>,
+and after the second \isakeyword{also}, \<open>calculation\<close> is \<open>"t\<^sub>1 < t\<^sub>3"\<close>.
+The command \isakeyword{finally} is short for \isakeyword{also from} \<open>calculation\<close>.
+Therefore the \isakeyword{also} hidden in \isakeyword{finally} sets \<open>calculation\<close>
+to \<open>t\<^sub>1 < t\<^sub>4\<close> and the final ``\texttt{.}'' succeeds.
+
+For more information on this style of proof see \cite{BauerW-TPHOLs01}.
+\fi
+
 \section{Streamlining Proofs}
 
 \subsection{Pattern Matching and Quotations}
@@ -445,11 +524,11 @@ show "formula\<^sub>1 \<longleftrightarrow> formula\<^sub>2" (is "?L \<longleftr
 proof
   assume "?L"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "?R" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
+  show "?R" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
 next
   assume "?R"
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "?L" (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
+  show "?L" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
 qed(*<*)qed(*>*)
 
 text{* Instead of duplicating @{text"formula\<^sub>i"} in the text, we introduce
@@ -463,7 +542,7 @@ The unknown \indexed{@{text"?thesis"}}{thesis} is implicitly matched against any
 lemma "formula"
 proof -
   text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show ?thesis (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
+  show ?thesis (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
 qed
 
 text{* 
@@ -511,12 +590,12 @@ but one can also combine them with \isacom{moreover}, as shown on the left:
 \isa{%
 *}
 (*<*)lemma "P" proof-(*>*)
-have "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
-moreover have "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+have "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+moreover have "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 moreover
 text_raw{*\\$\vdots$\\\hspace{-1.4ex}*}(*<*)have "True" ..(*>*)
-moreover have "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
-ultimately have "P"  (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+moreover have "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+ultimately have "P"  (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 (*<*)oops(*>*)
 
 text_raw {* }
@@ -527,20 +606,20 @@ text_raw {* }
 \isa{%
 *}
 (*<*)lemma "P" proof-(*>*)
-have lab\<^sub>1: "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
-have lab\<^sub>2: "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ $\dots$*}
+have lab\<^sub>1: "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+have lab\<^sub>2: "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ \isasymproof*}
 text_raw{*\\$\vdots$\\\hspace{-1.4ex}*}
-have lab\<^sub>n: "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+have lab\<^sub>n: "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 from lab\<^sub>1 lab\<^sub>2 text_raw{*\ $\dots$\\*}
-have "P"  (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+have "P"  (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 (*<*)oops(*>*)
 
 text_raw {* }
 \end{minipage}
 \end{tabular}
 \begin{isamarkuptext}%
-The \isacom{moreover} version is no shorter but expresses the structure more
-clearly and avoids new names.
+The \isacom{moreover} version is no shorter but expresses the structure
+a bit more clearly and avoids new names.
 
 \subsection{Raw Proof Blocks}
 
@@ -550,9 +629,9 @@ has its own assumptions and is generalized over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
 \begin{quote}\index{$IMP053@@{text"{ ... }"} (proof block)}
 @{text"{"} \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}\\
-\mbox{}\ \ \ \isacom{assume} @{text"A\<^sub>1 \<dots> A\<^sub>m"}\\
-\mbox{}\ \ \ $\vdots$\\
-\mbox{}\ \ \ \isacom{have} @{text"B"}\\
+\mbox{}\ \ \isacom{assume} @{text"A\<^sub>1 \<dots> A\<^sub>m"}\\
+\mbox{}\ \ $\vdots$\\
+\mbox{}\ \ \isacom{have} @{text"B"}\ \isasymproof\\
 @{text"}"}
 \end{quote}
 proves @{text"\<lbrakk> A\<^sub>1; \<dots> ; A\<^sub>m \<rbrakk> \<Longrightarrow> B"}
@@ -734,11 +813,11 @@ show "P(n)"
 proof (induction n)
   case 0
   text_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
+  show ?case (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
 next
   case (Suc n)
   text_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*) text_raw{*\ $\dots$\\*}
+  show ?case (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
 qed(*<*)qed(*>*)
 
 text_raw {* }
@@ -905,7 +984,7 @@ show "I x \<Longrightarrow> P x"
 proof(induction rule: I.induct)
   case rule\<^sub>1
   text_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show ?case (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 next
   text_raw{*\\[-.4ex]$\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
 (*<*)
@@ -915,7 +994,7 @@ next
 next
   case rule\<^sub>n
   text_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*)text_raw{*\ $\dots$\\*}
+  show ?case (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
 qed(*<*)qed(*>*)
 
 text{*
