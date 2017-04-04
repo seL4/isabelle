@@ -80,15 +80,12 @@ class Resources(
   def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
   {
     val theory = Thy_Header.base_name(s)
-    val is_base_name = Thy_Header.is_base_name(s)
-    val is_qualified = is_base_name && Long_Name.is_qualified(s)
+    val is_qualified = Thy_Header.is_base_name(s) && Long_Name.is_qualified(s)
 
     val known_theory =
-      if (is_base_name)
-        session_base.known_theories.get(theory) orElse
-        (if (is_qualified) session_base.known_theories.get(Long_Name.base_name(theory))
-         else session_base.known_theories.get(Long_Name.qualify(session_name, theory)))
-      else None
+      session_base.known_theories.get(theory) orElse
+      (if (is_qualified) session_base.known_theories.get(Long_Name.base_name(theory))
+       else session_base.known_theories.get(Long_Name.qualify(session_name, theory)))
 
     known_theory match {
       case Some(name) if session_base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
