@@ -62,7 +62,7 @@ session "HOL-Library" (main timing) in Library = HOL +
 
 session "HOL-Analysis" (main timing) in Analysis = HOL +
   theories
-    Analysis
+    Analysis (global)
   document_files
     "root.tex"
 
@@ -716,7 +716,7 @@ session "HOL-TPTP" in TPTP = HOL +
   theories
     ATP_Problem_Import
 
-session "HOL-Probability" (timing) in "Probability" = "HOL-Analysis" +
+session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Permutation"
@@ -724,7 +724,7 @@ session "HOL-Probability" (timing) in "Probability" = "HOL-Analysis" +
     "~~/src/HOL/Library/Diagonal_Subsequence"
     "~~/src/HOL/Library/Finite_Map"
   theories
-    Probability
+    Probability (global)
   document_files "root.tex"
 
 session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
@@ -820,7 +820,8 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = HOL +
     "Tests/Type_Class"
 
 session "HOL-Word" (main timing) in Word = HOL +
-  theories Word
+  theories
+    Word (global)
   document_files "root.bib" "root.tex"
 
 session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
@@ -868,7 +869,8 @@ session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
 
 session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
   options [document = false]
-  theories SPARK
+  theories
+    SPARK (global)
 
 session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
   options [document = false, spark_prv = false]
@@ -1035,7 +1037,7 @@ session HOLCF (main timing) in HOLCF = HOL +
     "~~/src/HOL/Library/Nat_Bijection"
     "~~/src/HOL/Library/Countable"
   theories
-    HOLCF
+    HOLCF (global)
   document_files "root.tex"
 
 session "HOLCF-Tutorial" in "HOLCF/Tutorial" = HOLCF +
