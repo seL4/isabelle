@@ -5,8 +5,8 @@
 section \<open>Abstract euclidean algorithm in euclidean (semi)rings\<close>
 
 theory Euclidean_Algorithm
-  imports "~~/src/HOL/GCD"
-    "~~/src/HOL/Number_Theory/Factorial_Ring"
+imports
+  "~~/src/HOL/Number_Theory/Factorial_Ring"
 begin
 
 subsection \<open>Generic construction of the (simple) euclidean algorithm\<close>

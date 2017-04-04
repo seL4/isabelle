@@ -1536,6 +1536,10 @@ definition "fps_deriv f = Abs_fps (\<lambda>n. of_nat (n + 1) * f $ (n + 1))"
 lemma fps_deriv_nth[simp]: "fps_deriv f $ n = of_nat (n +1) * f $ (n + 1)"
   by (simp add: fps_deriv_def)
 
+lemma fps_0th_higher_deriv: 
+  "(fps_deriv ^^ n) f $ 0 = (fact n * f $ n :: 'a :: {comm_ring_1, semiring_char_0})"
+  by (induction n arbitrary: f) (simp_all del: funpow.simps add: funpow_Suc_right algebra_simps)
+
 lemma fps_deriv_linear[simp]:
   "fps_deriv (fps_const (a::'a::comm_semiring_1) * f + fps_const b * g) =
     fps_const a * fps_deriv f + fps_const b * fps_deriv g"
