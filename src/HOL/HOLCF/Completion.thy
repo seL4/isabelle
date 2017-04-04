@@ -137,7 +137,10 @@ done
 lemma is_lub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
 by (erule exE, drule is_lub_lub, erule is_lubD2)
 
+
 subsection \<open>Locale for ideal completion\<close>
+
+hide_const (open) Filter.principal
 
 locale ideal_completion = preorder +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
