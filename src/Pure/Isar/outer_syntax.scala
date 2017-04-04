@@ -71,8 +71,10 @@ final class Outer_Syntax private(
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, (name, ((kind, exts), _))) =>
-        syntax + (Symbol.decode(name), kind, exts) + (Symbol.encode(name), kind, exts)
+      case (syntax, (name, spec)) =>
+        syntax +
+          (Symbol.decode(name), spec.kind, spec.exts) +
+          (Symbol.encode(name), spec.kind, spec.exts)
     }
 
 

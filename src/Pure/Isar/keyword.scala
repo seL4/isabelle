@@ -93,11 +93,14 @@ object Keyword
 
   /** keyword tables **/
 
-  type Spec = ((String, List[String]), List[String])
-
-  val no_spec: Spec = (("", Nil), Nil)
-  val before_command_spec: Spec = ((BEFORE_COMMAND, Nil), Nil)
-  val quasi_command_spec: Spec = ((QUASI_COMMAND, Nil), Nil)
+  object Spec
+  {
+    val none: Spec = Spec("")
+  }
+  sealed case class Spec(kind: String, exts: List[String] = Nil, tags: List[String] = Nil)
+  {
+    def is_none: Boolean = kind == ""
+  }
 
   object Keywords
   {
@@ -165,9 +168,13 @@ object Keyword
 
     def add_keywords(header: Thy_Header.Keywords): Keywords =
       (this /: header) {
-        case (keywords, (name, ((kind, exts), _))) =>
-          if (kind == "") keywords + Symbol.decode(name) + Symbol.encode(name)
-          else keywords + (Symbol.decode(name), kind, exts) + (Symbol.encode(name), kind, exts)
+        case (keywords, (name, spec)) =>
+          if (spec.is_none)
+            keywords + Symbol.decode(name) + Symbol.encode(name)
+          else
+            keywords +
+              (Symbol.decode(name), spec.kind, spec.exts) +
+              (Symbol.encode(name), spec.kind, spec.exts)
       }
 
 
