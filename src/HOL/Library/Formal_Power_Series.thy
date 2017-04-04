@@ -393,6 +393,11 @@ lemma fps_numeral_nth_0 [simp]: "numeral n $ 0 = numeral n"
 lemma fps_of_nat: "fps_const (of_nat c) = of_nat c"
   by (induction c) (simp_all add: fps_const_add [symmetric] del: fps_const_add)
 
+lemma numeral_neq_fps_zero [simp]: "(numeral f :: 'a :: field_char_0 fps) \<noteq> 0"
+proof
+  assume "numeral f = (0 :: 'a fps)"
+  from arg_cong[of _ _ "\<lambda>F. F $ 0", OF this] show False by simp
+qed 
 
 
 subsection \<open>The eXtractor series X\<close>
@@ -1592,6 +1597,12 @@ lemma fps_deriv_sub[simp]:
 
 lemma fps_deriv_const[simp]: "fps_deriv (fps_const c) = 0"
   by (simp add: fps_ext fps_deriv_def fps_const_def)
+
+lemma fps_deriv_of_nat [simp]: "fps_deriv (of_nat n) = 0"
+  by (simp add: fps_of_nat [symmetric])
+
+lemma fps_deriv_numeral [simp]: "fps_deriv (numeral n) = 0"
+  by (simp add: numeral_fps_const)    
 
 lemma fps_deriv_mult_const_left[simp]:
   "fps_deriv (fps_const (c::'a::comm_ring_1) * f) = fps_const c * fps_deriv f"
@@ -3424,7 +3435,7 @@ qed
 
 lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
   by (simp add: fps_eq_iff fps_compose_nth field_simps sum_negf[symmetric])
-
+    
 lemma fps_compose_sub_distrib: "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b oo c)"
   using fps_compose_add_distrib [of a "- b" c] by (simp add: fps_compose_uminus)
 
@@ -3692,17 +3703,23 @@ lemma fps_compose_linear:
   "fps_compose (f :: 'a :: comm_ring_1 fps) (fps_const c * X) = Abs_fps (\<lambda>n. c^n * f $ n)"
   by (simp add: fps_eq_iff fps_compose_def power_mult_distrib
                 if_distrib sum.delta' cong: if_cong)
+              
+lemma fps_compose_uminus': 
+  "fps_compose f (-X :: 'a :: comm_ring_1 fps) = Abs_fps (\<lambda>n. (-1)^n * f $ n)"
+  using fps_compose_linear[of f "-1"] 
+  by (simp only: fps_const_neg [symmetric] fps_const_1_eq_1) simp
 
 subsection \<open>Elementary series\<close>
 
 subsubsection \<open>Exponential series\<close>
 
-definition "E x = Abs_fps (\<lambda>n. x^n / of_nat (fact n))"
+definition "fps_exp x = Abs_fps (\<lambda>n. x^n / of_nat (fact n))"
 
-lemma E_deriv[simp]: "fps_deriv (E a) = fps_const (a::'a::field_char_0) * E a" (is "?l = ?r")
+lemma fps_exp_deriv[simp]: "fps_deriv (fps_exp a) = fps_const (a::'a::field_char_0) * fps_exp a" 
+  (is "?l = ?r")
 proof -
   have "?l$n = ?r $ n" for n
-    apply (auto simp add: E_def field_simps power_Suc[symmetric]
+    apply (auto simp add: fps_exp_def field_simps power_Suc[symmetric]
       simp del: fact_Suc of_nat_Suc power_Suc)
     apply (simp add: field_simps)
     done
@@ -3710,8 +3727,8 @@ proof -
     by (simp add: fps_eq_iff)
 qed
 
-lemma E_unique_ODE:
-  "fps_deriv a = fps_const c * a \<longleftrightarrow> a = fps_const (a$0) * E (c::'a::field_char_0)"
+lemma fps_exp_unique_ODE:
+  "fps_deriv a = fps_const c * a \<longleftrightarrow> a = fps_const (a$0) * fps_exp (c::'a::field_char_0)"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   show ?rhs if ?lhs
@@ -3732,75 +3749,107 @@ proof
         done
     qed
     show ?thesis
-      by (auto simp add: fps_eq_iff fps_const_mult_left E_def intro: th')
+      by (auto simp add: fps_eq_iff fps_const_mult_left fps_exp_def intro: th')
   qed
   show ?lhs if ?rhs
-    using that by (metis E_deriv fps_deriv_mult_const_left mult.left_commute)
+    using that by (metis fps_exp_deriv fps_deriv_mult_const_left mult.left_commute)
 qed
 
-lemma E_add_mult: "E (a + b) = E (a::'a::field_char_0) * E b" (is "?l = ?r")
+lemma fps_exp_add_mult: "fps_exp (a + b) = fps_exp (a::'a::field_char_0) * fps_exp b" (is "?l = ?r")
 proof -
   have "fps_deriv ?r = fps_const (a + b) * ?r"
     by (simp add: fps_const_add[symmetric] field_simps del: fps_const_add)
   then have "?r = ?l"
-    by (simp only: E_unique_ODE) (simp add: fps_mult_nth E_def)
+    by (simp only: fps_exp_unique_ODE) (simp add: fps_mult_nth fps_exp_def)
   then show ?thesis ..
 qed
 
-lemma E_nth[simp]: "E a $ n = a^n / of_nat (fact n)"
-  by (simp add: E_def)
+lemma fps_exp_nth[simp]: "fps_exp a $ n = a^n / of_nat (fact n)"
+  by (simp add: fps_exp_def)
 
-lemma E0[simp]: "E (0::'a::field) = 1"
+lemma fps_exp_0[simp]: "fps_exp (0::'a::field) = 1"
   by (simp add: fps_eq_iff power_0_left)
 
-lemma E_neg: "E (- a) = inverse (E (a::'a::field_char_0))"
+lemma fps_exp_neg: "fps_exp (- a) = inverse (fps_exp (a::'a::field_char_0))"
 proof -
-  from E_add_mult[of a "- a"] have th0: "E a * E (- a) = 1" by simp
+  from fps_exp_add_mult[of a "- a"] have th0: "fps_exp a * fps_exp (- a) = 1" by simp
   from fps_inverse_unique[OF th0] show ?thesis by simp
 qed
 
-lemma E_nth_deriv[simp]: "fps_nth_deriv n (E (a::'a::field_char_0)) = (fps_const a)^n * (E a)"
+lemma fps_exp_nth_deriv[simp]: 
+  "fps_nth_deriv n (fps_exp (a::'a::field_char_0)) = (fps_const a)^n * (fps_exp a)"
   by (induct n) auto
 
-lemma X_compose_E[simp]: "X oo E (a::'a::field) = E a - 1"
+lemma X_compose_fps_exp[simp]: "X oo fps_exp (a::'a::field) = fps_exp a - 1"
   by (simp add: fps_eq_iff X_fps_compose)
 
-lemma LE_compose:
+lemma fps_inv_fps_exp_compose:
   assumes a: "a \<noteq> 0"
-  shows "fps_inv (E a - 1) oo (E a - 1) = X"
-    and "(E a - 1) oo fps_inv (E a - 1) = X"
+  shows "fps_inv (fps_exp a - 1) oo (fps_exp a - 1) = X"
+    and "(fps_exp a - 1) oo fps_inv (fps_exp a - 1) = X"
 proof -
-  let ?b = "E a - 1"
+  let ?b = "fps_exp a - 1"
   have b0: "?b $ 0 = 0"
     by simp
   have b1: "?b $ 1 \<noteq> 0"
     by (simp add: a)
-  from fps_inv[OF b0 b1] show "fps_inv (E a - 1) oo (E a - 1) = X" .
-  from fps_inv_right[OF b0 b1] show "(E a - 1) oo fps_inv (E a - 1) = X" .
+  from fps_inv[OF b0 b1] show "fps_inv (fps_exp a - 1) oo (fps_exp a - 1) = X" .
+  from fps_inv_right[OF b0 b1] show "(fps_exp a - 1) oo fps_inv (fps_exp a - 1) = X" .
 qed
 
-lemma E_power_mult: "(E (c::'a::field_char_0))^n = E (of_nat n * c)"
-  by (induct n) (auto simp add: field_simps E_add_mult)
+lemma fps_exp_power_mult: "(fps_exp (c::'a::field_char_0))^n = fps_exp (of_nat n * c)"
+  by (induct n) (auto simp add: field_simps fps_exp_add_mult)
 
-lemma radical_E:
+lemma radical_fps_exp:
   assumes r: "r (Suc k) 1 = 1"
-  shows "fps_radical r (Suc k) (E (c::'a::field_char_0)) = E (c / of_nat (Suc k))"
+  shows "fps_radical r (Suc k) (fps_exp (c::'a::field_char_0)) = fps_exp (c / of_nat (Suc k))"
 proof -
   let ?ck = "(c / of_nat (Suc k))"
   let ?r = "fps_radical r (Suc k)"
   have eq0[simp]: "?ck * of_nat (Suc k) = c" "of_nat (Suc k) * ?ck = c"
     by (simp_all del: of_nat_Suc)
-  have th0: "E ?ck ^ (Suc k) = E c" unfolding E_power_mult eq0 ..
-  have th: "r (Suc k) (E c $0) ^ Suc k = E c $ 0"
-    "r (Suc k) (E c $ 0) = E ?ck $ 0" "E c $ 0 \<noteq> 0" using r by simp_all
+  have th0: "fps_exp ?ck ^ (Suc k) = fps_exp c" unfolding fps_exp_power_mult eq0 ..
+  have th: "r (Suc k) (fps_exp c $0) ^ Suc k = fps_exp c $ 0"
+    "r (Suc k) (fps_exp c $ 0) = fps_exp ?ck $ 0" "fps_exp c $ 0 \<noteq> 0" using r by simp_all
   from th0 radical_unique[where r=r and k=k, OF th] show ?thesis
     by auto
 qed
 
-lemma Ec_E1_eq: "E (1::'a::field_char_0) oo (fps_const c * X) = E c"
-  apply (auto simp add: fps_eq_iff E_def fps_compose_def power_mult_distrib)
-  apply (simp add: cond_value_iff cond_application_beta sum.delta' cong del: if_weak_cong)
-  done
+lemma fps_exp_compose_linear [simp]: 
+  "fps_exp (d::'a::field_char_0) oo (fps_const c * X) = fps_exp (c * d)"
+  by (simp add: fps_compose_linear fps_exp_def fps_eq_iff power_mult_distrib)
+  
+lemma fps_fps_exp_compose_minus [simp]: 
+  "fps_compose (fps_exp c) (-X) = fps_exp (-c :: 'a :: field_char_0)"
+  using fps_exp_compose_linear[of c "-1 :: 'a"] 
+  unfolding fps_const_neg [symmetric] fps_const_1_eq_1 by simp
+
+lemma fps_exp_eq_iff [simp]: "fps_exp c = fps_exp d \<longleftrightarrow> c = (d :: 'a :: field_char_0)"
+proof
+  assume "fps_exp c = fps_exp d"
+  from arg_cong[of _ _ "\<lambda>F. F $ 1", OF this] show "c = d" by simp
+qed simp_all
+
+lemma fps_exp_eq_fps_const_iff [simp]: 
+  "fps_exp (c :: 'a :: field_char_0) = fps_const c' \<longleftrightarrow> c = 0 \<and> c' = 1"
+proof
+  assume "c = 0 \<and> c' = 1"
+  thus "fps_exp c = fps_const c'" by (auto simp: fps_eq_iff)
+next
+  assume "fps_exp c = fps_const c'"
+  from arg_cong[of _ _ "\<lambda>F. F $ 1", OF this] arg_cong[of _ _ "\<lambda>F. F $ 0", OF this] 
+    show "c = 0 \<and> c' = 1" by simp_all
+qed
+
+lemma fps_exp_neq_0 [simp]: "\<not>fps_exp (c :: 'a :: field_char_0) = 0"
+  unfolding fps_const_0_eq_0 [symmetric] fps_exp_eq_fps_const_iff by simp  
+
+lemma fps_exp_eq_1_iff [simp]: "fps_exp (c :: 'a :: field_char_0) = 1 \<longleftrightarrow> c = 0"
+  unfolding fps_const_1_eq_1 [symmetric] fps_exp_eq_fps_const_iff by simp
+    
+lemma fps_exp_neq_numeral_iff [simp]: 
+  "fps_exp (c :: 'a :: field_char_0) = numeral n \<longleftrightarrow> c = 0 \<and> n = Num.One"
+  unfolding numeral_fps_const fps_exp_eq_fps_const_iff by simp
 
 
 subsubsection \<open>Logarithmic series\<close>
@@ -3810,59 +3859,65 @@ lemma Abs_fps_if_0:
     fps_const v + X * Abs_fps (\<lambda>n. f (Suc n))"
   by (auto simp add: fps_eq_iff)
 
-definition L :: "'a::field_char_0 \<Rightarrow> 'a fps"
-  where "L c = fps_const (1/c) * Abs_fps (\<lambda>n. if n = 0 then 0 else (- 1) ^ (n - 1) / of_nat n)"
+definition fps_ln :: "'a::field_char_0 \<Rightarrow> 'a fps"
+  where "fps_ln c = fps_const (1/c) * Abs_fps (\<lambda>n. if n = 0 then 0 else (- 1) ^ (n - 1) / of_nat n)"
 
-lemma fps_deriv_L: "fps_deriv (L c) = fps_const (1/c) * inverse (1 + X)"
+lemma fps_ln_deriv: "fps_deriv (fps_ln c) = fps_const (1/c) * inverse (1 + X)"
   unfolding fps_inverse_X_plus1
-  by (simp add: L_def fps_eq_iff del: of_nat_Suc)
+  by (simp add: fps_ln_def fps_eq_iff del: of_nat_Suc)
 
-lemma L_nth: "L c $ n = (if n = 0 then 0 else 1/c * ((- 1) ^ (n - 1) / of_nat n))"
-  by (simp add: L_def field_simps)
+lemma fps_ln_nth: "fps_ln c $ n = (if n = 0 then 0 else 1/c * ((- 1) ^ (n - 1) / of_nat n))"
+  by (simp add: fps_ln_def field_simps)
 
-lemma L_0[simp]: "L c $ 0 = 0" by (simp add: L_def)
+lemma fps_ln_0 [simp]: "fps_ln c $ 0 = 0" by (simp add: fps_ln_def)
 
-lemma L_E_inv:
+lemma fps_ln_fps_exp_inv:
   fixes a :: "'a::field_char_0"
   assumes a: "a \<noteq> 0"
-  shows "L a = fps_inv (E a - 1)"  (is "?l = ?r")
+  shows "fps_ln a = fps_inv (fps_exp a - 1)"  (is "?l = ?r")
 proof -
-  let ?b = "E a - 1"
+  let ?b = "fps_exp a - 1"
   have b0: "?b $ 0 = 0" by simp
   have b1: "?b $ 1 \<noteq> 0" by (simp add: a)
-  have "fps_deriv (E a - 1) oo fps_inv (E a - 1) =
-    (fps_const a * (E a - 1) + fps_const a) oo fps_inv (E a - 1)"
+  have "fps_deriv (fps_exp a - 1) oo fps_inv (fps_exp a - 1) =
+    (fps_const a * (fps_exp a - 1) + fps_const a) oo fps_inv (fps_exp a - 1)"
     by (simp add: field_simps)
   also have "\<dots> = fps_const a * (X + 1)"
     apply (simp add: fps_compose_add_distrib fps_const_mult_apply_left[symmetric] fps_inv_right[OF b0 b1])
     apply (simp add: field_simps)
     done
-  finally have eq: "fps_deriv (E a - 1) oo fps_inv (E a - 1) = fps_const a * (X + 1)" .
+  finally have eq: "fps_deriv (fps_exp a - 1) oo fps_inv (fps_exp a - 1) = fps_const a * (X + 1)" .
   from fps_inv_deriv[OF b0 b1, unfolded eq]
   have "fps_deriv (fps_inv ?b) = fps_const (inverse a) / (X + 1)"
-    using a
-    by (simp add: fps_const_inverse eq fps_divide_def fps_inverse_mult)
+    using a by (simp add: fps_const_inverse eq fps_divide_def fps_inverse_mult)
   then have "fps_deriv ?l = fps_deriv ?r"
-    by (simp add: fps_deriv_L add.commute fps_divide_def divide_inverse)
+    by (simp add: fps_ln_deriv add.commute fps_divide_def divide_inverse)
   then show ?thesis unfolding fps_deriv_eq_iff
-    by (simp add: L_nth fps_inv_def)
+    by (simp add: fps_ln_nth fps_inv_def)
 qed
 
-lemma L_mult_add:
+lemma fps_ln_mult_add:
   assumes c0: "c\<noteq>0"
     and d0: "d\<noteq>0"
-  shows "L c + L d = fps_const (c+d) * L (c*d)"
+  shows "fps_ln c + fps_ln d = fps_const (c+d) * fps_ln (c*d)"
   (is "?r = ?l")
 proof-
   from c0 d0 have eq: "1/c + 1/d = (c+d)/(c*d)" by (simp add: field_simps)
   have "fps_deriv ?r = fps_const (1/c + 1/d) * inverse (1 + X)"
-    by (simp add: fps_deriv_L fps_const_add[symmetric] algebra_simps del: fps_const_add)
+    by (simp add: fps_ln_deriv fps_const_add[symmetric] algebra_simps del: fps_const_add)
   also have "\<dots> = fps_deriv ?l"
-    apply (simp add: fps_deriv_L)
+    apply (simp add: fps_ln_deriv)
     apply (simp add: fps_eq_iff eq)
     done
   finally show ?thesis
     unfolding fps_deriv_eq_iff by simp
+qed
+
+lemma X_dvd_fps_ln [simp]: "X dvd fps_ln c"
+proof -
+  have "fps_ln c = X * Abs_fps (\<lambda>n. (-1) ^ n / (of_nat (Suc n) * c))"
+    by (intro fps_ext) (auto simp: fps_ln_def of_nat_diff)
+  thus ?thesis by simp
 qed
 
 
@@ -4458,9 +4513,9 @@ proof -
   finally show ?thesis by simp
 qed
 
-text \<open>Connection to E c over the complex numbers --- Euler and de Moivre.\<close>
+text \<open>Connection to @{const "fps_exp"} over the complex numbers --- Euler and de Moivre.\<close>
 
-lemma Eii_sin_cos: "E (\<i> * c) = fps_cos c + fps_const \<i> * fps_sin c"
+lemma fps_exp_ii_sin_cos: "fps_exp (\<i> * c) = fps_cos c + fps_const \<i> * fps_sin c"
   (is "?l = ?r")
 proof -
   have "?l $ n = ?r $ n" for n
@@ -4480,8 +4535,8 @@ proof -
     by (simp add: fps_eq_iff)
 qed
 
-lemma E_minus_ii_sin_cos: "E (- (\<i> * c)) = fps_cos c - fps_const \<i> * fps_sin c"
-  unfolding minus_mult_right Eii_sin_cos by (simp add: fps_sin_even fps_cos_odd)
+lemma fps_exp_minus_ii_sin_cos: "fps_exp (- (\<i> * c)) = fps_cos c - fps_const \<i> * fps_sin c"
+  unfolding minus_mult_right fps_exp_ii_sin_cos by (simp add: fps_sin_even fps_cos_odd)
 
 lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (c - d)"
   by (fact fps_const_sub)
@@ -4490,30 +4545,34 @@ lemma fps_of_int: "fps_const (of_int c) = of_int c"
   by (induction c) (simp_all add: fps_const_minus [symmetric] fps_of_nat fps_const_neg [symmetric] 
                              del: fps_const_minus fps_const_neg)
 
+lemma fps_deriv_of_int [simp]: "fps_deriv (of_int n) = 0"
+  by (simp add: fps_of_int [symmetric])
+
 lemma fps_numeral_fps_const: "numeral i = fps_const (numeral i :: 'a::comm_ring_1)"
   by (fact numeral_fps_const) (* FIXME: duplicate *)
 
-lemma fps_cos_Eii: "fps_cos c = (E (\<i> * c) + E (- \<i> * c)) / fps_const 2"
+lemma fps_cos_fps_exp_ii: "fps_cos c = (fps_exp (\<i> * c) + fps_exp (- \<i> * c)) / fps_const 2"
 proof -
   have th: "fps_cos c + fps_cos c = fps_cos c * fps_const 2"
     by (simp add: numeral_fps_const)
   show ?thesis
-    unfolding Eii_sin_cos minus_mult_commute
+    unfolding fps_exp_ii_sin_cos minus_mult_commute
     by (simp add: fps_sin_even fps_cos_odd numeral_fps_const fps_divide_unit fps_const_inverse th)
 qed
 
-lemma fps_sin_Eii: "fps_sin c = (E (\<i> * c) - E (- \<i> * c)) / fps_const (2*\<i>)"
+lemma fps_sin_fps_exp_ii: "fps_sin c = (fps_exp (\<i> * c) - fps_exp (- \<i> * c)) / fps_const (2*\<i>)"
 proof -
   have th: "fps_const \<i> * fps_sin c + fps_const \<i> * fps_sin c = fps_sin c * fps_const (2 * \<i>)"
     by (simp add: fps_eq_iff numeral_fps_const)
   show ?thesis
-    unfolding Eii_sin_cos minus_mult_commute
+    unfolding fps_exp_ii_sin_cos minus_mult_commute
     by (simp add: fps_sin_even fps_cos_odd fps_divide_unit fps_const_inverse th)
 qed
 
-lemma fps_tan_Eii:
-  "fps_tan c = (E (\<i> * c) - E (- \<i> * c)) / (fps_const \<i> * (E (\<i> * c) + E (- \<i> * c)))"
-  unfolding fps_tan_def fps_sin_Eii fps_cos_Eii mult_minus_left E_neg
+lemma fps_tan_fps_exp_ii:
+  "fps_tan c = (fps_exp (\<i> * c) - fps_exp (- \<i> * c)) / 
+      (fps_const \<i> * (fps_exp (\<i> * c) + fps_exp (- \<i> * c)))"
+  unfolding fps_tan_def fps_sin_fps_exp_ii fps_cos_fps_exp_ii mult_minus_left fps_exp_neg
   apply (simp add: fps_divide_unit fps_inverse_mult fps_const_mult[symmetric] fps_const_inverse del: fps_const_mult)
   apply simp
   done
@@ -4521,21 +4580,20 @@ lemma fps_tan_Eii:
 lemma fps_demoivre:
   "(fps_cos a + fps_const \<i> * fps_sin a)^n =
     fps_cos (of_nat n * a) + fps_const \<i> * fps_sin (of_nat n * a)"
-  unfolding Eii_sin_cos[symmetric] E_power_mult
+  unfolding fps_exp_ii_sin_cos[symmetric] fps_exp_power_mult
   by (simp add: ac_simps)
 
 
 subsection \<open>Hypergeometric series\<close>
 
-(* TODO: Rename this *)
-definition "F as bs (c::'a::{field_char_0,field}) =
+definition "fps_hypergeo as bs (c::'a::{field_char_0,field}) =
   Abs_fps (\<lambda>n. (foldl (\<lambda>r a. r* pochhammer a n) 1 as * c^n) /
     (foldl (\<lambda>r b. r * pochhammer b n) 1 bs * of_nat (fact n)))"
 
-lemma F_nth[simp]: "F as bs c $ n =
+lemma fps_hypergeo_nth[simp]: "fps_hypergeo as bs c $ n =
   (foldl (\<lambda>r a. r* pochhammer a n) 1 as * c^n) /
     (foldl (\<lambda>r b. r * pochhammer b n) 1 bs * of_nat (fact n))"
-  by (simp add: F_def)
+  by (simp add: fps_hypergeo_def)
 
 lemma foldl_mult_start:
   fixes v :: "'a::comm_ring_1"
@@ -4547,15 +4605,15 @@ lemma foldr_mult_foldl:
   shows "foldr (\<lambda>x r. r * f x) as v = foldl (\<lambda>r x. r * f x) v as"
   by (induct as arbitrary: v) (auto simp add: foldl_mult_start)
 
-lemma F_nth_alt:
-  "F as bs c $ n = foldr (\<lambda>a r. r * pochhammer a n) as (c ^ n) /
+lemma fps_hypergeo_nth_alt:
+  "fps_hypergeo as bs c $ n = foldr (\<lambda>a r. r * pochhammer a n) as (c ^ n) /
     foldr (\<lambda>b r. r * pochhammer b n) bs (of_nat (fact n))"
   by (simp add: foldl_mult_start foldr_mult_foldl)
 
-lemma F_E[simp]: "F [] [] c = E c"
+lemma fps_hypergeo_fps_exp[simp]: "fps_hypergeo [] [] c = fps_exp c"
   by (simp add: fps_eq_iff)
 
-lemma F_1_0[simp]: "F [1] [] c = 1/(1 - fps_const c * X)"
+lemma fps_hypergeo_1_0[simp]: "fps_hypergeo [1] [] c = 1/(1 - fps_const c * X)"
 proof -
   let ?a = "(Abs_fps (\<lambda>n. 1)) oo (fps_const c * X)"
   have th0: "(fps_const c * X) $ 0 = 0" by simp
@@ -4564,10 +4622,10 @@ proof -
       fps_compose_nth power_mult_distrib cond_value_iff sum.delta' cong del: if_weak_cong)
 qed
 
-lemma F_B[simp]: "F [-a] [] (- 1) = fps_binomial a"
+lemma fps_hypergeo_B[simp]: "fps_hypergeo [-a] [] (- 1) = fps_binomial a"
   by (simp add: fps_eq_iff gbinomial_pochhammer algebra_simps)
 
-lemma F_0[simp]: "F as bs c $ 0 = 1"
+lemma fps_hypergeo_0[simp]: "fps_hypergeo as bs c $ 0 = 1"
   apply simp
   apply (subgoal_tac "\<forall>as. foldl (\<lambda>(r::'a) (a::'a). r) 1 as = 1")
   apply auto
@@ -4581,9 +4639,9 @@ lemma foldl_prod_prod:
   by (induct as arbitrary: v w) (auto simp add: algebra_simps)
 
 
-lemma F_rec:
-  "F as bs c $ Suc n = ((foldl (\<lambda>r a. r* (a + of_nat n)) c as) /
-    (foldl (\<lambda>r b. r * (b + of_nat n)) (of_nat (Suc n)) bs )) * F as bs c $ n"
+lemma fps_hypergeo_rec:
+  "fps_hypergeo as bs c $ Suc n = ((foldl (\<lambda>r a. r* (a + of_nat n)) c as) /
+    (foldl (\<lambda>r b. r * (b + of_nat n)) (of_nat (Suc n)) bs )) * fps_hypergeo as bs c $ n"
   apply (simp del: of_nat_Suc of_nat_add fact_Suc)
   apply (simp add: foldl_mult_start del: fact_Suc of_nat_Suc)
   unfolding foldl_prod_prod[unfolded foldl_mult_start] pochhammer_Suc
@@ -4612,12 +4670,12 @@ lemma XDp0 [simp]: "XDp 0 = XD"
 lemma XDp_fps_integral [simp]: "XDp 0 (fps_integral a c) = X * a"
   by (simp add: fps_eq_iff fps_integral_def)
 
-lemma F_minus_nat:
-  "F [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0,field}) $ k =
+lemma fps_hypergeo_minus_nat:
+  "fps_hypergeo [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0,field}) $ k =
     (if k \<le> n then
       pochhammer (- of_nat n) k * c ^ k / (pochhammer (- of_nat (n + m)) k * of_nat (fact k))
      else 0)"
-  "F [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0,field}) $ k =
+  "fps_hypergeo [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0,field}) $ k =
     (if k \<le> m then
       pochhammer (- of_nat m) k * c ^ k / (pochhammer (- of_nat (m + n)) k * of_nat (fact k))
      else 0)"
