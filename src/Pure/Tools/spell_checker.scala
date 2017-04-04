@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/spell_checker.scala
+/*  Title:      Pure/Tools/spell_checker.scala
     Author:     Makarius
 
 Spell checker with completion, based on JOrtho (see

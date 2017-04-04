@@ -1,10 +1,6 @@
-(*  Title:      Provers/Arith/cancel_simprocs.ML
-    Author:     Mathias Fleury, MPII
-    Copyright   2017
-
-Base on:
-    Title:      Provers/Arith/nat_numeral_simprocs.ML
+(*  Title:      HOL/Library/Cancellation/cancel_simprocs.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Mathias Fleury, MPII
 
 Cancelation simprocs declaration.
 *)

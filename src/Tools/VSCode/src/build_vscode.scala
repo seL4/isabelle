@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_vscode.scala
+/*  Title:      Tools/VSCode/src/build_vscode.scala
     Author:     Makarius
 
 Build VSCode configuration and extension module for Isabelle.

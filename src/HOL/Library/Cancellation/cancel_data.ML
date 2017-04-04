@@ -1,14 +1,10 @@
-(*  Title:      Provers/Arith/cancel_data.ML
-    Author:     Mathias Fleury, MPII
-    Copyright   2017
-
-Based on:
-    Title:      Tools/nat_numeral_simprocs.ML
+(*  Title:      HOL/Library/Cancellation/cancel_data.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Mathias Fleury, MPII
 
 Datastructure for the cancelation simprocs.
-
 *)
+
 signature CANCEL_DATA =
 sig
   val mk_sum : typ -> term list -> term

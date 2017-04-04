@@ -1,16 +1,9 @@
-(*  Title:      Provers/Arith/cancel.ML
-    Author:     Mathias Fleury, MPII
-    Copyright   2017
-
-Based on:
-
-    Title:      Provers/Arith/cancel_numerals.ML
+(*  Title:      HOL/Library/Cancellation/cancel.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2000  University of Cambridge
+    Author:     Mathias Fleury, MPII
 
-
-This simproc allows handling of types with constructors (e.g., add_mset for multisets) and iteration
-of the addition (e.g., repeat_mset for multisets).
+This simproc allows handling of types with constructors (e.g., add_mset for
+multisets) and iteration of the addition (e.g., repeat_mset for multisets).
 
 Beware that this simproc should not compete with any more specialised especially:
   - nat: the handling for Suc is more complicated than what can be done here
