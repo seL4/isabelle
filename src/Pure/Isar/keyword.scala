@@ -100,6 +100,11 @@ object Keyword
   sealed case class Spec(kind: String, exts: List[String] = Nil, tags: List[String] = Nil)
   {
     def is_none: Boolean = kind == ""
+
+    override def toString: String =
+      kind +
+        (if (exts.isEmpty) "" else " (" + commas_quote(exts) + ")") +
+        (if (tags.isEmpty) "" else tags.map(quote).mkString(" % ", " % ", ""))
   }
 
   object Keywords
