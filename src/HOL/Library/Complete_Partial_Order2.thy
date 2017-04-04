@@ -5,8 +5,7 @@
 section \<open>Formalisation of chain-complete partial orders, continuity and admissibility\<close>
 
 theory Complete_Partial_Order2 imports 
-  Main
-  "~~/src/HOL/Library/Lattice_Syntax"
+  Main Lattice_Syntax
 begin
 
 lemma chain_transfer [transfer_rule]:

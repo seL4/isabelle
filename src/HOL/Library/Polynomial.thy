@@ -10,8 +10,8 @@ section \<open>Polynomials as type over a ring structure\<close>
 theory Polynomial
   imports
     "~~/src/HOL/Deriv"
-    "~~/src/HOL/Library/More_List"
-    "~~/src/HOL/Library/Infinite_Set"
+    More_List
+    Infinite_Set
 begin
 
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>

@@ -1,13 +1,13 @@
-(*
-  File:      Polynomial_FPS.thy
-  Author:    Manuel Eberl (TUM)
+(*  Title:      HOL/Library/Polynomial_FPS.thy
+    Author:     Manuel Eberl, TU München
   
-  Converting polynomials to formal power series
+Converting polynomials to formal power series.
 *)
 
 section \<open>Converting polynomials to formal power series\<close>
+
 theory Polynomial_FPS
-imports Polynomial Formal_Power_Series
+  imports Polynomial Formal_Power_Series
 begin
 
 definition fps_of_poly where

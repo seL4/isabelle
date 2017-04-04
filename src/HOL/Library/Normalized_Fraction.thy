@@ -6,7 +6,7 @@ theory Normalized_Fraction
 imports 
   Main 
   "~~/src/HOL/Number_Theory/Euclidean_Algorithm" 
-  "~~/src/HOL/Library/Fraction_Field"
+  Fraction_Field
 begin
 
 definition quot_to_fract :: "'a :: {idom} \<times> 'a \<Rightarrow> 'a fract" where

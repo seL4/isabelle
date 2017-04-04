@@ -9,7 +9,7 @@ Infinite streams.
 section \<open>Infinite Streams\<close>
 
 theory Stream
-imports "~~/src/HOL/Library/Nat_Bijection"
+  imports Nat_Bijection
 begin
 
 codatatype (sset: 'a) stream =

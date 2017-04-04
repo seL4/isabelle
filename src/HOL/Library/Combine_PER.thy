@@ -3,7 +3,7 @@
 section \<open>A combinator to build partial equivalence relations from a predicate and an equivalence relation\<close>
 
 theory Combine_PER
-  imports Main "~~/src/HOL/Library/Lattice_Syntax"
+  imports Main Lattice_Syntax
 begin
 
 definition combine_per :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"

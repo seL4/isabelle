@@ -9,9 +9,9 @@
 theory Polynomial_Factorial
 imports 
   Complex_Main
-  "~~/src/HOL/Library/Polynomial"
-  "~~/src/HOL/Library/Normalized_Fraction"
-  "~~/src/HOL/Library/Field_as_Ring"
+  Polynomial
+  Normalized_Fraction
+  Field_as_Ring
 begin
 
 subsection \<open>Various facts about polynomials\<close>

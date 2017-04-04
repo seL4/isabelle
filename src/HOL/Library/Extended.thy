@@ -5,9 +5,7 @@ Oriented towards numeric types, hence "\<infinity>" and "-\<infinity>".
 *)
 
 theory Extended
-imports
-  Main
-  "~~/src/HOL/Library/Simps_Case_Conv"
+  imports Simps_Case_Conv
 begin
 
 datatype 'a extended = Fin 'a | Pinf ("\<infinity>") | Minf ("-\<infinity>")
