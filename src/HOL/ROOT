@@ -216,11 +216,7 @@ session "HOL-Number_Theory" (timing) in Number_Theory = HOL +
     "~~/src/HOL/Algebra/Ring"
     "~~/src/HOL/Algebra/FiniteProduct"
   theories
-    Pocklington
-    Gauss
     Number_Theory
-    Euclidean_Algorithm
-    Factorial_Ring
   document_files
     "root.tex"
 
@@ -1039,7 +1035,6 @@ session HOLCF (main timing) in HOLCF = HOL +
     "~~/src/HOL/Library/Nat_Bijection"
     "~~/src/HOL/Library/Countable"
   theories
-    Fixrec
     HOLCF
   document_files "root.tex"
 
