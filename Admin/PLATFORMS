@@ -33,11 +33,10 @@ too old nor too new):
   x86-linux         Ubuntu 12.04 LTS
   x86_64-linux      Ubuntu 12.04 LTS
 
-  x86_64-darwin     Mac OS X 10.8 Mountain Lion (macbroy30 MacBookPro6,2)
-                    Mac OS X 10.9 Mavericks (macbroy2 MacPro4,1)
+  x86_64-darwin     Mac OS X 10.9 Mavericks (macbroy2 MacPro4,1)
                     Mac OS X 10.10 Yosemite (macbroy31 MacBookPro6,2)
                     Mac OS X 10.11 El Capitan (?)
-                    macOS 10.12 Sierra (?)
+                    macOS 10.12 Sierra (macbroy30 MacBookPro6,2)
 
   x86-windows       Windows 7
   x86_64-windows    Windows 7
