@@ -57,9 +57,9 @@ final class Outer_Syntax private(
 
   /* keywords */
 
-  def + (name: String, kind: String = "", tags: List[String] = Nil): Outer_Syntax =
+  def + (name: String, kind: String = "", exts: List[String] = Nil): Outer_Syntax =
   {
-    val keywords1 = keywords + (name, kind, tags)
+    val keywords1 = keywords + (name, kind, exts)
     val completion1 =
       completion.add_keyword(name).
         add_abbrevs(
@@ -71,8 +71,8 @@ final class Outer_Syntax private(
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, (name, ((kind, tags), _))) =>
-        syntax + (Symbol.decode(name), kind, tags) + (Symbol.encode(name), kind, tags)
+      case (syntax, (name, ((kind, exts), _))) =>
+        syntax + (Symbol.decode(name), kind, exts) + (Symbol.encode(name), kind, exts)
     }
 
 
