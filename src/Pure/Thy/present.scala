@@ -26,7 +26,7 @@ object Present
 
     def node(name: Document.Node.Name): Graph_Display.Node =
       if (parent_loaded(name.theory)) parent_session_node
-      else Graph_Display.Node(name.theory, "theory." + name.theory)
+      else Graph_Display.Node(Long_Name.base_name(name.theory), "theory." + name.theory)
 
     (Graph_Display.empty_graph /: deps) {
       case (g, dep) =>
