@@ -185,7 +185,12 @@ object Sessions
 
     def global_theories: List[String] =
       for { (global, _, paths) <- theories if global; path <- paths }
-      yield path.base.implode
+      yield {
+        val name = path.base.implode
+        if (Long_Name.is_qualified(name))
+          error("Bad qualified name for global theory " + quote(name))
+        else name
+      }
   }
 
   object Tree

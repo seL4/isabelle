@@ -68,8 +68,7 @@ class Resources(
     else Nil
 
   def qualify(name: String): String =
-    if (Long_Name.is_qualified(name)) error("Bad qualified theory name " + quote(name))
-    else if (session_base.global_theories.contains(name)) name
+    if (session_base.global_theories.contains(name) || Long_Name.is_qualified(name)) name
     else Long_Name.qualify(session_name, name)
 
   def init_name(raw_path: Path): Document.Node.Name =
