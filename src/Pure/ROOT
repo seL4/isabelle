@@ -5,7 +5,6 @@ session Pure =
     The Pure logical framework
   *}
   options [threads = 1]
-  global_theories
-    Pure
   theories
+    Pure (global)
     ML_Bootstrap

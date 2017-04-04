@@ -4,9 +4,9 @@ session HOL (main) = Pure +
   description {*
     Classical Higher-order Logic.
   *}
-  global_theories
-    Main
-    Complex_Main
+  theories
+    Main (global)
+    Complex_Main (global)
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"

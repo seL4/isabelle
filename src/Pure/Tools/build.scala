@@ -200,7 +200,6 @@ object Build
         val args_yxml =
           YXML.string_of_body(
             {
-              val theories = info.theories.map(x => (x._2, x._3))
               import XML.Encode._
               pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
@@ -209,7 +208,7 @@ object Build
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
-                theories))))))))))))
+                info.theories))))))))))))
             })
 
         val env =
