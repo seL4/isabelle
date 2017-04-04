@@ -60,6 +60,17 @@ session "HOL-Library" (main timing) in Library = HOL +
     Refute
   document_files "root.bib" "root.tex"
 
+session "HOL-Analysis" (main timing) in Analysis = HOL +
+  theories
+    Analysis
+  document_files
+    "root.tex"
+
+session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
+  theories
+    Approximations
+    Circle_Area
+
 session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
   description {*
     Author:     Gertrud Bauer, TU Munich
@@ -708,17 +719,6 @@ session "HOL-TPTP" in TPTP = HOL +
     TPTP_Proof_Reconstruction
   theories
     ATP_Problem_Import
-
-session "HOL-Analysis" (main timing) in Analysis = HOL +
-  theories
-    Analysis
-  document_files
-    "root.tex"
-
-session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
-  theories
-    Approximations
-    Circle_Area
 
 session "HOL-Probability" (timing) in "Probability" = "HOL-Analysis" +
   theories [document = false]
