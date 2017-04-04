@@ -1039,7 +1039,6 @@ session HOLCF (main timing) in HOLCF = HOL +
     "~~/src/HOL/Library/Nat_Bijection"
     "~~/src/HOL/Library/Countable"
   theories
-    Plain_HOLCF
     Fixrec
     HOLCF
   document_files "root.tex"

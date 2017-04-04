@@ -5,7 +5,7 @@
 section \<open>Map functions for various types\<close>
 
 theory Map_Functions
-imports Deflation
+imports Deflation Sprod Ssum Sfun Up
 begin
 
 subsection \<open>Map operator for continuous function space\<close>

@@ -5,7 +5,7 @@
 section \<open>Defining algebraic domains by ideal completion\<close>
 
 theory Completion
-imports Plain_HOLCF
+imports Cfun
 begin
 
 subsection \<open>Ideals over a preorder\<close>

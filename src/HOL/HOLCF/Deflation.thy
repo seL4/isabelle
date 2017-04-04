@@ -5,7 +5,7 @@
 section \<open>Continuous deflations and ep-pairs\<close>
 
 theory Deflation
-imports Plain_HOLCF
+imports Cfun
 begin
 
 default_sort cpo

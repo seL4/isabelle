@@ -5,7 +5,7 @@
 section "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
-imports Plain_HOLCF
+imports Cprod Sprod Ssum Up One Tr Fix
 keywords "fixrec" :: thy_decl
 begin
 
@@ -139,7 +139,7 @@ definition
   match_TT :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
 where
   "match_TT = (\<Lambda> x k. If x then k else fail)"
- 
+
 definition
   match_FF :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
 where
