@@ -98,6 +98,7 @@ object Document
     object Name
     {
       val empty = Name("")
+      def theory(theory: String): Name = Name(theory, "", theory)
 
       object Ordering extends scala.math.Ordering[Name]
       {
@@ -486,12 +487,12 @@ object Document
     def is_stable: Boolean
     def snapshot(): Snapshot
 
-    def node_name: Document.Node.Name
+    def node_name: Node.Name
     def is_theory: Boolean = node_name.is_theory
     override def toString: String = node_name.toString
 
     def node_required: Boolean
-    def get_blob: Option[Document.Blob]
+    def get_blob: Option[Blob]
 
     def node_edits(
       node_header: Node.Header,
@@ -502,13 +503,12 @@ object Document
         get_blob match {
           case None =>
             List(
-              Document.Node.Deps(
-                if (session.resources.base.loaded_theories(node_name.theory))
+              Node.Deps(
+                if (session.resources.session_base.loaded_theory(node_name))
                   node_header.error("Cannot update finished theory " + quote(node_name.theory))
                 else node_header),
-              Document.Node.Edits(text_edits), perspective)
-          case Some(blob) =>
-            List(Document.Node.Blob(blob), Document.Node.Edits(text_edits))
+              Node.Edits(text_edits), perspective)
+          case Some(blob) => List(Node.Blob(blob), Node.Edits(text_edits))
         }
       edits.flatMap(edit => if (edit.is_void) None else Some(node_name -> edit))
     }

@@ -191,7 +191,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
   def recent_syntax(name: Document.Node.Name): Outer_Syntax =
     global_state.value.recent_finished.version.get_finished.nodes(name).syntax getOrElse
-    resources.base.syntax
+    resources.session_base.syntax
 
 
   /* pipelined change parsing */

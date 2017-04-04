@@ -71,7 +71,7 @@ class Thy_Info(resources: Resources)
       val import_errors =
         (for {
           (theory, names) <- seen_names.iterator_list
-          if !resources.base.loaded_theories(theory)
+          if !resources.session_base.loaded_theories(theory)
           if names.length > 1
         } yield
           "Incoherent imports for theory " + quote(theory) + ":\n" +
@@ -83,10 +83,12 @@ class Thy_Info(resources: Resources)
     }
 
     lazy val syntax: Outer_Syntax =
-      resources.base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
+      resources.session_base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
 
     def loaded_theories: Set[String] =
-      (resources.base.loaded_theories /: rev_deps) { case (loaded, dep) => loaded + dep.name.theory }
+      (resources.session_base.loaded_theories /: rev_deps) {
+        case (loaded, dep) => loaded + dep.name.theory
+      }
 
     def loaded_files: List[Path] =
     {
@@ -104,12 +106,12 @@ class Thy_Info(resources: Resources)
     override def toString: String = deps.toString
   }
 
-  private def require_thys(session: String, initiators: List[Document.Node.Name],
-      required: Dependencies, thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    (required /: thys)(require_thy(session, initiators, _, _))
+  private def require_thys(initiators: List[Document.Node.Name], required: Dependencies,
+      thys: List[(Document.Node.Name, Position.T)]): Dependencies =
+    (required /: thys)(require_thy(initiators, _, _))
 
-  private def require_thy(session: String, initiators: List[Document.Node.Name],
-      required: Dependencies, thy: (Document.Node.Name, Position.T)): Dependencies =
+  private def require_thy(initiators: List[Document.Node.Name], required: Dependencies,
+    thy: (Document.Node.Name, Position.T)): Dependencies =
   {
     val (name, require_pos) = thy
 
@@ -118,15 +120,14 @@ class Thy_Info(resources: Resources)
         required_by(initiators) + Position.here(require_pos)
 
     val required1 = required + thy
-    if (required.seen(name) || resources.base.loaded_theories(name.theory)) required1
+    if (required.seen(name) || resources.session_base.loaded_theory(name)) required1
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
         val header =
-          try { resources.check_thy(session, name, Token.Pos.file(name.node)).cat_errors(message) }
+          try { resources.check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
           catch { case ERROR(msg) => cat_error(msg, message) }
-        Thy_Info.Dep(name, header) ::
-          require_thys(session, name :: initiators, required1, header.imports)
+        Thy_Info.Dep(name, header) :: require_thys(name :: initiators, required1, header.imports)
       }
       catch {
         case e: Throwable =>
@@ -135,6 +136,6 @@ class Thy_Info(resources: Resources)
     }
   }
 
-  def dependencies(session: String, thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    require_thys(session, Nil, Dependencies.empty, thys)
+  def dependencies(thys: List[(Document.Node.Name, Position.T)]): Dependencies =
+    require_thys(Nil, Dependencies.empty, thys)
 }

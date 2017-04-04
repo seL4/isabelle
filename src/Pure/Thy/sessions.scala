@@ -17,25 +17,14 @@ import scala.collection.mutable
 
 object Sessions
 {
-  /* Pure */
-
-  def pure_name(name: String): Boolean = name == Thy_Header.PURE
-
-  def pure_files(resources: Resources, syntax: Outer_Syntax, dir: Path): List[Path] =
-  {
-    val roots = Thy_Header.ml_roots.map(_._1)
-    val loaded_files =
-      roots.flatMap(root => resources.loaded_files(syntax, File.read(dir + Path.explode(root))))
-    (roots ::: loaded_files).map(file => dir + Path.explode(file))
-  }
-
-  def pure_base(options: Options): Base = session_base(options, Thy_Header.PURE)
-
-
   /* base info and source dependencies */
+
+  def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
   object Base
   {
+    def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
+
     lazy val bootstrap: Base =
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
   }
@@ -47,6 +36,10 @@ object Sessions
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
+  {
+    def loaded_theory(name: Document.Node.Name): Boolean =
+      loaded_theories.contains(name.theory)
+  }
 
   sealed case class Deps(deps: Map[String, Base])
   {
@@ -67,12 +60,12 @@ object Sessions
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
-            val resources =
-              new Resources(
-                info.parent match {
-                  case None => Base.bootstrap
-                  case Some(parent) => deps(parent)
-                })
+            val parent_base =
+              info.parent match {
+                case None => Base.bootstrap
+                case Some(parent) => deps(parent)
+              }
+            val resources = new Resources(name, parent_base)
 
             if (verbose || list_files) {
               val groups =
@@ -87,10 +80,9 @@ object Sessions
                 info.theories.flatMap({
                   case (global, _, thys) =>
                     thys.map(thy =>
-                      (resources.node_name(
-                        if (global) "" else name, info.dir + resources.thy_path(thy)), info.pos))
+                      (resources.init_name(global, info.dir + resources.thy_path(thy)), info.pos))
                 })
-              val thy_deps = resources.thy_info.dependencies(name, root_theories)
+              val thy_deps = resources.thy_info.dependencies(root_theories)
 
               thy_deps.errors match {
                 case Nil => thy_deps
@@ -99,7 +91,7 @@ object Sessions
             }
 
             val known_theories =
-              (resources.base.known_theories /: thy_deps.deps)({ case (known, dep) =>
+              (parent_base.known_theories /: thy_deps.deps)({ case (known, dep) =>
                 val name = dep.name
                 known.get(name.theory) match {
                   case Some(name1) if name != name1 =>
@@ -117,7 +109,13 @@ object Sessions
             val loaded_files =
               if (inlined_files) {
                 val pure_files =
-                  if (pure_name(name)) Sessions.pure_files(resources, syntax, info.dir)
+                  if (is_pure(name)) {
+                    val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
+                    val files =
+                      roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
+                        map(file => info.dir + Path.explode(file))
+                    roots ::: files
+                  }
                   else Nil
                 pure_files ::: thy_deps.loaded_files
               }
@@ -138,7 +136,7 @@ object Sessions
 
             val session_graph =
               Present.session_graph(info.parent getOrElse "",
-                resources.base.loaded_theories, thy_deps.deps)
+                parent_base.loaded_theories, thy_deps.deps)
 
             val base =
               Base(loaded_theories, known_theories, keywords, syntax, sources, session_graph)
@@ -365,8 +363,8 @@ object Sessions
           val name = entry.name
 
           if (name == "") error("Bad session name")
-          if (pure_name(name) && entry.parent.isDefined) error("Illegal parent session")
-          if (!pure_name(name) && !entry.parent.isDefined) error("Missing parent session")
+          if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
+          if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
           val session_options = options ++ entry.options
 

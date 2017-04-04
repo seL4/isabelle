@@ -225,8 +225,8 @@ class Server(
           }
         }
 
-        val base = Sessions.session_base(options, session_name, session_dirs)
-        val resources = new VSCode_Resources(options, base, log)
+        val session_base = Sessions.session_base(options, session_name, session_dirs)
+        val resources = new VSCode_Resources(options, session_base, log)
           {
             override def commit(change: Session.Change): Unit =
               if (change.deps_changed || undefined_blobs(change.version.nodes).nonEmpty)

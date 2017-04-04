@@ -2,24 +2,17 @@
     Authors:    Thomas Sewell, NICTA and Sascha Boehme, TU Muenchen
 *)
 
-
 theory WordBitwise
-
-imports Word
-
+  imports Word
 begin
 
 text \<open>Helper constants used in defining addition\<close>
 
-definition
-  xor3 :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool"
-where
- "xor3 a b c = (a = (b = c))"
+definition xor3 :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool"
+  where "xor3 a b c = (a = (b = c))"
 
-definition
-  carry :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool"
-where
- "carry a b c = ((a \<and> (b \<or> c)) \<or> (b \<and> c))"
+definition carry :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool"
+  where "carry a b c = ((a \<and> (b \<or> c)) \<or> (b \<and> c))"
 
 lemma carry_simps:
   "carry True a b = (a \<or> b)"
@@ -40,36 +33,28 @@ lemma xor3_simps:
   by (simp_all add: xor3_def)
 
 text \<open>Breaking up word equalities into equalities on their
-bit lists. Equalities are generated and manipulated in the
-reverse order to to_bl.\<close>
+  bit lists. Equalities are generated and manipulated in the
+  reverse order to to_bl.\<close>
 
-lemma word_eq_rbl_eq:
-  "(x = y) = (rev (to_bl x) = rev (to_bl y))"
+lemma word_eq_rbl_eq: "x = y \<longleftrightarrow> rev (to_bl x) = rev (to_bl y)"
   by simp
 
-lemma rbl_word_or:
-  "rev (to_bl (x OR y)) = map2 op \<or> (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_or: "rev (to_bl (x OR y)) = map2 op \<or> (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: map2_def zip_rev bl_word_or rev_map)
 
-lemma rbl_word_and:
-  "rev (to_bl (x AND y)) = map2 op \<and> (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_and: "rev (to_bl (x AND y)) = map2 op \<and> (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: map2_def zip_rev bl_word_and rev_map)
 
-lemma rbl_word_xor:
-  "rev (to_bl (x XOR y)) = map2 op \<noteq> (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 op \<noteq> (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: map2_def zip_rev bl_word_xor rev_map)
 
-lemma rbl_word_not:
-  "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
+lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
   by (simp add: bl_word_not rev_map)
 
-lemma bl_word_sub:
-  "to_bl (x - y) = to_bl (x + (- y))"
+lemma bl_word_sub: "to_bl (x - y) = to_bl (x + (- y))"
   by simp
 
-lemma rbl_word_1:
-  "rev (to_bl (1 :: ('a :: len0) word))
-     = takefill False (len_of TYPE('a)) [True]"
+lemma rbl_word_1: "rev (to_bl (1 :: 'a::len0 word)) = takefill False (len_of TYPE('a)) [True]"
   apply (rule_tac s="rev (to_bl (word_succ (0 :: 'a word)))" in trans)
    apply simp
   apply (simp only: rtb_rbl_ariths(1)[OF refl])
@@ -79,22 +64,18 @@ lemma rbl_word_1:
   apply (simp add: takefill_alt)
   done
 
-lemma rbl_word_if:
-  "rev (to_bl (if P then x else y))
-      = map2 (If P) (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_if: "rev (to_bl (if P then x else y)) = map2 (If P) (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: map2_def split_def)
 
 lemma rbl_add_carry_Cons:
-  "(if car then rbl_succ else id) (rbl_add (x # xs) (y # ys))
-        = xor3 x y car # (if carry x y car then rbl_succ else id)
-             (rbl_add xs ys)"
+  "(if car then rbl_succ else id) (rbl_add (x # xs) (y # ys)) =
+    xor3 x y car # (if carry x y car then rbl_succ else id) (rbl_add xs ys)"
   by (simp add: carry_def xor3_def)
 
 lemma rbl_add_suc_carry_fold:
   "length xs = length ys \<Longrightarrow>
-   \<forall>car. (if car then rbl_succ else id) (rbl_add xs ys)
-        = (foldr (\<lambda>(x, y) res car. xor3 x y car # res (carry x y car))
-                 (zip xs ys) (\<lambda>_. [])) car"
+    \<forall>car. (if car then rbl_succ else id) (rbl_add xs ys) =
+      (foldr (\<lambda>(x, y) res car. xor3 x y car # res (carry x y car)) (zip xs ys) (\<lambda>_. [])) car"
   apply (erule list_induct2)
    apply simp
   apply (simp only: rbl_add_carry_Cons)
@@ -102,84 +83,70 @@ lemma rbl_add_suc_carry_fold:
   done
 
 lemma to_bl_plus_carry:
-  "to_bl (x + y)
-     = rev (foldr (\<lambda>(x, y) res car. xor3 x y car # res (carry x y car))
-                 (rev (zip (to_bl x) (to_bl y))) (\<lambda>_. []) False)"
+  "to_bl (x + y) =
+    rev (foldr (\<lambda>(x, y) res car. xor3 x y car # res (carry x y car))
+      (rev (zip (to_bl x) (to_bl y))) (\<lambda>_. []) False)"
   using rbl_add_suc_carry_fold[where xs="rev (to_bl x)" and ys="rev (to_bl y)"]
   apply (simp add: word_add_rbl[OF refl refl])
   apply (drule_tac x=False in spec)
   apply (simp add: zip_rev)
   done
 
-definition
- "rbl_plus cin xs ys = foldr
-       (\<lambda>(x, y) res car. xor3 x y car # res (carry x y car))
-       (zip xs ys) (\<lambda>_. []) cin"
+definition "rbl_plus cin xs ys =
+  foldr (\<lambda>(x, y) res car. xor3 x y car # res (carry x y car)) (zip xs ys) (\<lambda>_. []) cin"
 
 lemma rbl_plus_simps:
-  "rbl_plus cin (x # xs) (y # ys)
-      = xor3 x y cin # rbl_plus (carry x y cin) xs ys"
+  "rbl_plus cin (x # xs) (y # ys) = xor3 x y cin # rbl_plus (carry x y cin) xs ys"
   "rbl_plus cin [] ys = []"
   "rbl_plus cin xs [] = []"
   by (simp_all add: rbl_plus_def)
 
-lemma rbl_word_plus:
-  "rev (to_bl (x + y)) = rbl_plus False (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_plus: "rev (to_bl (x + y)) = rbl_plus False (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: rbl_plus_def to_bl_plus_carry zip_rev)
 
-definition
- "rbl_succ2 b xs = (if b then rbl_succ xs else xs)"
+definition "rbl_succ2 b xs = (if b then rbl_succ xs else xs)"
 
 lemma rbl_succ2_simps:
   "rbl_succ2 b [] = []"
   "rbl_succ2 b (x # xs) = (b \<noteq> x) # rbl_succ2 (x \<and> b) xs"
   by (simp_all add: rbl_succ2_def)
 
-lemma twos_complement:
-  "- x = word_succ (NOT x)"
+lemma twos_complement: "- x = word_succ (NOT x)"
   using arg_cong[OF word_add_not[where x=x], where f="\<lambda>a. a - x + 1"]
-  by (simp add: word_succ_p1 word_sp_01[unfolded word_succ_p1]
-           del: word_add_not)
+  by (simp add: word_succ_p1 word_sp_01[unfolded word_succ_p1] del: word_add_not)
 
-lemma rbl_word_neg:
-  "rev (to_bl (- x)) = rbl_succ2 True (map Not (rev (to_bl x)))"
-  by (simp add: twos_complement word_succ_rbl[OF refl]
-                bl_word_not rev_map rbl_succ2_def)
+lemma rbl_word_neg: "rev (to_bl (- x)) = rbl_succ2 True (map Not (rev (to_bl x)))"
+  by (simp add: twos_complement word_succ_rbl[OF refl] bl_word_not rev_map rbl_succ2_def)
 
 lemma rbl_word_cat:
-  "rev (to_bl (word_cat x y :: ('a :: len0) word))
-     = takefill False (len_of TYPE('a)) (rev (to_bl y) @ rev (to_bl x))"
+  "rev (to_bl (word_cat x y :: 'a::len0 word)) =
+    takefill False (len_of TYPE('a)) (rev (to_bl y) @ rev (to_bl x))"
   by (simp add: word_cat_bl word_rev_tf)
 
 lemma rbl_word_slice:
-  "rev (to_bl (slice n w :: ('a :: len0) word))
-     = takefill False (len_of TYPE('a)) (drop n (rev (to_bl w)))"
+  "rev (to_bl (slice n w :: 'a::len0 word)) =
+    takefill False (len_of TYPE('a)) (drop n (rev (to_bl w)))"
   apply (simp add: slice_take word_rev_tf rev_take)
   apply (cases "n < len_of TYPE('b)", simp_all)
   done
 
 lemma rbl_word_ucast:
-  "rev (to_bl (ucast x :: ('a :: len0) word))
-     = takefill False (len_of TYPE('a)) (rev (to_bl x))"
+  "rev (to_bl (ucast x :: 'a::len0 word)) = takefill False (len_of TYPE('a)) (rev (to_bl x))"
   apply (simp add: to_bl_ucast takefill_alt)
   apply (simp add: rev_drop)
-  apply (case_tac "len_of TYPE('a) < len_of TYPE('b)")
+  apply (cases "len_of TYPE('a) < len_of TYPE('b)")
    apply simp_all
   done
 
 lemma rbl_shiftl:
-  "rev (to_bl (w << n)) = takefill False (size w)
-     (replicate n False @ rev (to_bl w))"
+  "rev (to_bl (w << n)) = takefill False (size w) (replicate n False @ rev (to_bl w))"
   by (simp add: bl_shiftl takefill_alt word_size rev_drop)
 
 lemma rbl_shiftr:
-  "rev (to_bl (w >> n)) = takefill False (size w)
-     (drop n (rev (to_bl w)))"
+  "rev (to_bl (w >> n)) = takefill False (size w) (drop n (rev (to_bl w)))"
   by (simp add: shiftr_slice rbl_word_slice word_size)
 
-definition
- "drop_nonempty v n xs
-     = (if n < length xs then drop n xs else [last (v # xs)])"
+definition "drop_nonempty v n xs = (if n < length xs then drop n xs else [last (v # xs)])"
 
 lemma drop_nonempty_simps:
   "drop_nonempty v (Suc n) (x # xs) = drop_nonempty x n xs"
@@ -187,86 +154,69 @@ lemma drop_nonempty_simps:
   "drop_nonempty v n [] = [v]"
   by (simp_all add: drop_nonempty_def)
 
-definition
-  "takefill_last x n xs = takefill (last (x # xs)) n xs"
+definition "takefill_last x n xs = takefill (last (x # xs)) n xs"
 
 lemma takefill_last_simps:
   "takefill_last z (Suc n) (x # xs) = x # takefill_last x n xs"
   "takefill_last z 0 xs = []"
   "takefill_last z n [] = replicate n z"
-  apply (simp_all add: takefill_last_def)
-  apply (simp_all add: takefill_alt)
-  done
+  by (simp_all add: takefill_last_def) (simp_all add: takefill_alt)
 
 lemma rbl_sshiftr:
-  "rev (to_bl (w >>> n)) = 
-     takefill_last False (size w) 
-        (drop_nonempty False n (rev (to_bl w)))"
+  "rev (to_bl (w >>> n)) = takefill_last False (size w) (drop_nonempty False n (rev (to_bl w)))"
   apply (cases "n < size w")
    apply (simp add: bl_sshiftr takefill_last_def word_size
-                    takefill_alt rev_take last_rev
-                    drop_nonempty_def)
+      takefill_alt rev_take last_rev
+      drop_nonempty_def)
   apply (subgoal_tac "(w >>> n) = of_bl (replicate (size w) (msb w))")
    apply (simp add: word_size takefill_last_def takefill_alt
-                    last_rev word_msb_alt word_rev_tf
-                    drop_nonempty_def take_Cons')
+      last_rev word_msb_alt word_rev_tf
+      drop_nonempty_def take_Cons')
    apply (case_tac "len_of TYPE('a)", simp_all)
   apply (rule word_eqI)
   apply (simp add: nth_sshiftr word_size test_bit_of_bl
-                   msb_nth)
+      msb_nth)
   done
 
 lemma nth_word_of_int:
-  "(word_of_int x :: ('a :: len0) word) !! n
-      = (n < len_of TYPE('a) \<and> bin_nth x n)"
+  "(word_of_int x :: 'a::len0 word) !! n = (n < len_of TYPE('a) \<and> bin_nth x n)"
   apply (simp add: test_bit_bl word_size to_bl_of_bin)
   apply (subst conj_cong[OF refl], erule bin_nth_bl)
-  apply (auto)
+  apply auto
   done
 
 lemma nth_scast:
-  "(scast (x :: ('a :: len) word) :: ('b :: len) word) !! n
-     = (n < len_of TYPE('b) \<and>
-          (if n < len_of TYPE('a) - 1 then x !! n
-           else x !! (len_of TYPE('a) - 1)))"
-  by (simp add: scast_def nth_word_of_int nth_sint)
+  "(scast (x :: 'a::len word) :: 'b::len word) !! n =
+    (n < len_of TYPE('b) \<and>
+    (if n < len_of TYPE('a) - 1 then x !! n
+     else x !! (len_of TYPE('a) - 1)))"
+  by (simp add: scast_def nth_sint)
 
 lemma rbl_word_scast:
-  "rev (to_bl (scast x :: ('a :: len) word))
-     = takefill_last False (len_of TYPE('a))
-           (rev (to_bl x))"
+  "rev (to_bl (scast x :: 'a::len word)) = takefill_last False (len_of TYPE('a)) (rev (to_bl x))"
   apply (rule nth_equalityI)
    apply (simp add: word_size takefill_last_def)
   apply (clarsimp simp: nth_scast takefill_last_def
-                        nth_takefill word_size nth_rev to_bl_nth)
+      nth_takefill word_size nth_rev to_bl_nth)
   apply (cases "len_of TYPE('b)")
    apply simp
   apply (clarsimp simp: less_Suc_eq_le linorder_not_less
-                        last_rev word_msb_alt[symmetric]
-                        msb_nth)
+      last_rev word_msb_alt[symmetric]
+      msb_nth)
   done
 
-definition
-  rbl_mul :: "bool list \<Rightarrow> bool list \<Rightarrow> bool list"
-where
- "rbl_mul xs ys = foldr (\<lambda>x sm. rbl_plus False (map (op \<and> x) ys) (False # sm))
-    xs []"
+definition rbl_mul :: "bool list \<Rightarrow> bool list \<Rightarrow> bool list"
+  where "rbl_mul xs ys = foldr (\<lambda>x sm. rbl_plus False (map (op \<and> x) ys) (False # sm)) xs []"
 
 lemma rbl_mul_simps:
-  "rbl_mul (x # xs) ys
-     = rbl_plus False (map (op \<and> x) ys) (False # rbl_mul xs ys)"
+  "rbl_mul (x # xs) ys = rbl_plus False (map (op \<and> x) ys) (False # rbl_mul xs ys)"
   "rbl_mul [] ys = []"
   by (simp_all add: rbl_mul_def)
 
-lemma takefill_le2:
-  "length xs \<le> n \<Longrightarrow>
-   takefill x m (takefill x n xs)
-     = takefill x m xs"
+lemma takefill_le2: "length xs \<le> n \<Longrightarrow> takefill x m (takefill x n xs) = takefill x m xs"
   by (simp add: takefill_alt replicate_add[symmetric])
 
-lemma take_rbl_plus:
-  "\<forall>n b. take n (rbl_plus b xs ys)
-    = rbl_plus b (take n xs) (take n ys)"
+lemma take_rbl_plus: "\<forall>n b. take n (rbl_plus b xs ys) = rbl_plus b (take n xs) (take n ys)"
   apply (simp add: rbl_plus_def take_zip[symmetric])
   apply (rule_tac list="zip xs ys" in list.induct)
    apply simp
@@ -275,52 +225,39 @@ lemma take_rbl_plus:
   done
 
 lemma word_rbl_mul_induct:
-  fixes y :: "'a :: len word" shows
-  "length xs \<le> size y
-   \<Longrightarrow> rbl_mul xs (rev (to_bl y))
-     = take (length xs) (rev (to_bl (of_bl (rev xs) * y)))"
+  "length xs \<le> size y \<Longrightarrow>
+    rbl_mul xs (rev (to_bl y)) = take (length xs) (rev (to_bl (of_bl (rev xs) * y)))"
+  for y :: "'a::len word"
 proof (induct xs)
   case Nil
-  show ?case
-    by (simp add: rbl_mul_simps)
+  show ?case by (simp add: rbl_mul_simps)
 next
   case (Cons z zs)
 
-  have rbl_word_plus':
-    "\<And>(x :: 'a word) y.
-      to_bl (x + y) = rev (rbl_plus False (rev (to_bl x)) (rev (to_bl y)))"
+  have rbl_word_plus': "to_bl (x + y) = rev (rbl_plus False (rev (to_bl x)) (rev (to_bl y)))"
+    for x y :: "'a word"
     by (simp add: rbl_word_plus[symmetric])
-  
+
   have mult_bit: "to_bl (of_bl [z] * y) = map (op \<and> z) (to_bl y)"
-    apply (cases z)
-     apply (simp cong: map_cong)
-    apply (simp add: map_replicate_const cong: map_cong)
-    done
- 
-  have shiftl: "\<And>xs. of_bl xs * 2 * y = (of_bl xs * y) << 1"
+    by (cases z) (simp cong: map_cong, simp add: map_replicate_const cong: map_cong)
+
+  have shiftl: "of_bl xs * 2 * y = (of_bl xs * y) << 1" for xs
     by (simp add: shiftl_t2n)
 
-  have zip_take_triv: "\<And>xs ys n. n = length ys
-      \<Longrightarrow> zip (take n xs) ys = zip xs ys"
-    by (rule nth_equalityI, simp_all)
+  have zip_take_triv: "\<And>xs ys n. n = length ys \<Longrightarrow> zip (take n xs) ys = zip xs ys"
+    by (rule nth_equalityI) simp_all
 
-  show ?case
-    using Cons
+  from Cons show ?case
     apply (simp add: trans [OF of_bl_append add.commute]
-                     rbl_mul_simps rbl_word_plus'
-                     Cons.hyps distrib_right mult_bit
-                     shiftl rbl_shiftl)
-    apply (simp add: takefill_alt word_size rev_map take_rbl_plus
-                     min_def)
+        rbl_mul_simps rbl_word_plus' distrib_right mult_bit shiftl rbl_shiftl)
+    apply (simp add: takefill_alt word_size rev_map take_rbl_plus min_def)
     apply (simp add: rbl_plus_def zip_take_triv)
     done
 qed
 
-lemma rbl_word_mul:
-  fixes x :: "'a :: len word"
-  shows "rev (to_bl (x * y)) = rbl_mul (rev (to_bl x)) (rev (to_bl y))"
-  using word_rbl_mul_induct[where xs="rev (to_bl x)" and y=y]
-  by (simp add: word_size)
+lemma rbl_word_mul: "rev (to_bl (x * y)) = rbl_mul (rev (to_bl x)) (rev (to_bl y))"
+  for x :: "'a::len word"
+  using word_rbl_mul_induct[where xs="rev (to_bl x)" and y=y] by (simp add: word_size)
 
 text \<open>Breaking up inequalities into bitlist properties.\<close>
 
@@ -333,9 +270,8 @@ definition
 
 lemma rev_bl_order_simps:
   "rev_bl_order F [] [] = F"
-  "rev_bl_order F (x # xs) (y # ys)
-     = rev_bl_order ((y \<and> \<not> x) \<or> ((y \<or> \<not> x) \<and> F)) xs ys"
-  apply (simp_all add: rev_bl_order_def)
+  "rev_bl_order F (x # xs) (y # ys) = rev_bl_order ((y \<and> \<not> x) \<or> ((y \<or> \<not> x) \<and> F)) xs ys"
+   apply (simp_all add: rev_bl_order_def)
   apply (rule conj_cong[OF refl])
   apply (cases "xs = ys")
    apply (simp add: nth_Cons')
@@ -350,39 +286,30 @@ lemma rev_bl_order_simps:
 
 lemma rev_bl_order_rev_simp:
   "length xs = length ys \<Longrightarrow>
-   rev_bl_order F (xs @ [x]) (ys @ [y])
-     = ((y \<and> \<not> x) \<or> ((y \<or> \<not> x) \<and> rev_bl_order F xs ys))"
-  apply (induct arbitrary: F rule: list_induct2)
-   apply (auto simp add: rev_bl_order_simps)
-  done
+   rev_bl_order F (xs @ [x]) (ys @ [y]) = ((y \<and> \<not> x) \<or> ((y \<or> \<not> x) \<and> rev_bl_order F xs ys))"
+  by (induct arbitrary: F rule: list_induct2) (auto simp: rev_bl_order_simps)
 
 lemma rev_bl_order_bl_to_bin:
-  "length xs = length ys
-     \<Longrightarrow> rev_bl_order True xs ys
-            = (bl_to_bin (rev xs) \<le> bl_to_bin (rev ys))
-       \<and> rev_bl_order False xs ys
-            = (bl_to_bin (rev xs) < bl_to_bin (rev ys))"
+  "length xs = length ys \<Longrightarrow>
+    rev_bl_order True xs ys = (bl_to_bin (rev xs) \<le> bl_to_bin (rev ys)) \<and>
+    rev_bl_order False xs ys = (bl_to_bin (rev xs) < bl_to_bin (rev ys))"
   apply (induct xs ys rule: list_induct2)
    apply (simp_all add: rev_bl_order_simps bl_to_bin_app_cat)
   apply (auto simp add: bl_to_bin_def Bit_B0 Bit_B1 add1_zle_eq Bit_def)
   done
 
-lemma word_le_rbl:
-  fixes x :: "('a :: len0) word"
-  shows "(x \<le> y) = rev_bl_order True (rev (to_bl x)) (rev (to_bl y))"
+lemma word_le_rbl: "x \<le> y \<longleftrightarrow> rev_bl_order True (rev (to_bl x)) (rev (to_bl y))"
+  for x y :: "'a::len0 word"
   by (simp add: rev_bl_order_bl_to_bin word_le_def)
 
-lemma word_less_rbl:
-  fixes x :: "('a :: len0) word"
-  shows "(x < y) = rev_bl_order False (rev (to_bl x)) (rev (to_bl y))"
+lemma word_less_rbl: "x < y \<longleftrightarrow> rev_bl_order False (rev (to_bl x)) (rev (to_bl y))"
+  for x y :: "'a::len0 word"
   by (simp add: word_less_alt rev_bl_order_bl_to_bin)
 
-lemma word_sint_msb_eq:
-  "sint x = uint x - (if msb x then 2 ^ size x else 0)"
+lemma word_sint_msb_eq: "sint x = uint x - (if msb x then 2 ^ size x else 0)"
   apply (cases "msb x")
    apply (rule word_sint.Abs_eqD[where 'a='a], simp_all)
-    apply (simp add: word_size wi_hom_syms
-                     word_of_int_2p_len)
+    apply (simp add: word_size wi_hom_syms word_of_int_2p_len)
    apply (simp add: sints_num word_size)
    apply (rule conjI)
     apply (simp add: le_diff_eq')
@@ -398,11 +325,8 @@ lemma word_sint_msb_eq:
   apply simp
   done
 
-lemma word_sle_msb_le:
-  "(x <=s y) = ((msb y --> msb x) \<and> 
-                  ((msb x \<and> \<not> msb y) \<or> (x <= y)))"
-  apply (simp add: word_sle_def word_sint_msb_eq word_size
-                   word_le_def)
+lemma word_sle_msb_le: "x <=s y \<longleftrightarrow> (msb y \<longrightarrow> msb x) \<and> ((msb x \<and> \<not> msb y) \<or> x \<le> y)"
+  apply (simp add: word_sle_def word_sint_msb_eq word_size word_le_def)
   apply safe
    apply (rule order_trans[OF _ uint_ge_0])
    apply (simp add: order_less_imp_le)
@@ -411,13 +335,10 @@ lemma word_sle_msb_le:
   apply simp
   done
 
-lemma word_sless_msb_less:
-  "(x <s y) = ((msb y --> msb x) \<and> 
-                  ((msb x \<and> \<not> msb y) \<or> (x < y)))"
+lemma word_sless_msb_less: "x <s y \<longleftrightarrow> (msb y \<longrightarrow> msb x) \<and> ((msb x \<and> \<not> msb y) \<or> x < y)"
   by (auto simp add: word_sless_def word_sle_msb_le)
 
-definition
-  "map_last f xs = (if xs = [] then [] else butlast xs @ [f (last xs)])"
+definition "map_last f xs = (if xs = [] then [] else butlast xs @ [f (last xs)])"
 
 lemma map_last_simps:
   "map_last f [] = []"
@@ -426,8 +347,7 @@ lemma map_last_simps:
   by (simp_all add: map_last_def)
 
 lemma word_sle_rbl:
-  "(x <=s y) = rev_bl_order True (map_last Not (rev (to_bl x)))
-     (map_last Not (rev (to_bl y)))"
+  "x <=s y \<longleftrightarrow> rev_bl_order True (map_last Not (rev (to_bl x))) (map_last Not (rev (to_bl y)))"
   using word_msb_alt[where w=x] word_msb_alt[where w=y]
   apply (simp add: word_sle_msb_le word_le_rbl)
   apply (subgoal_tac "length (to_bl x) = length (to_bl y)")
@@ -438,8 +358,7 @@ lemma word_sle_rbl:
   done
 
 lemma word_sless_rbl:
-  "(x <s y) = rev_bl_order False (map_last Not (rev (to_bl x)))
-     (map_last Not (rev (to_bl y)))"
+  "x <s y \<longleftrightarrow> rev_bl_order False (map_last Not (rev (to_bl x))) (map_last Not (rev (to_bl y)))"
   using word_msb_alt[where w=x] word_msb_alt[where w=y]
   apply (simp add: word_sless_msb_less word_less_rbl)
   apply (subgoal_tac "length (to_bl x) = length (to_bl y)")
@@ -450,51 +369,45 @@ lemma word_sless_rbl:
   done
 
 text \<open>Lemmas for unpacking rev (to_bl n) for numerals n and also
-for irreducible values and expressions.\<close>
+  for irreducible values and expressions.\<close>
 
 lemma rev_bin_to_bl_simps:
   "rev (bin_to_bl 0 x) = []"
-  "rev (bin_to_bl (Suc n) (numeral (num.Bit0 nm)))
-    = False # rev (bin_to_bl n (numeral nm))"
-  "rev (bin_to_bl (Suc n) (numeral (num.Bit1 nm)))
-    = True # rev (bin_to_bl n (numeral nm))"
-  "rev (bin_to_bl (Suc n) (numeral (num.One)))
-    = True # replicate n False"
-  "rev (bin_to_bl (Suc n) (- numeral (num.Bit0 nm)))
-    = False # rev (bin_to_bl n (- numeral nm))"
-  "rev (bin_to_bl (Suc n) (- numeral (num.Bit1 nm)))
-    = True # rev (bin_to_bl n (- numeral (nm + num.One)))"
-  "rev (bin_to_bl (Suc n) (- numeral (num.One)))
-    = True # replicate n True"
-  "rev (bin_to_bl (Suc n) (- numeral (num.Bit0 nm + num.One)))
-    = True # rev (bin_to_bl n (- numeral (nm + num.One)))"
-  "rev (bin_to_bl (Suc n) (- numeral (num.Bit1 nm + num.One)))
-    = False # rev (bin_to_bl n (- numeral (nm + num.One)))"
-  "rev (bin_to_bl (Suc n) (- numeral (num.One + num.One)))
-    = False # rev (bin_to_bl n (- numeral num.One))"
-  apply (simp_all add: bin_to_bl_def)
+  "rev (bin_to_bl (Suc n) (numeral (num.Bit0 nm))) = False # rev (bin_to_bl n (numeral nm))"
+  "rev (bin_to_bl (Suc n) (numeral (num.Bit1 nm))) = True # rev (bin_to_bl n (numeral nm))"
+  "rev (bin_to_bl (Suc n) (numeral (num.One))) = True # replicate n False"
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit0 nm))) = False # rev (bin_to_bl n (- numeral nm))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit1 nm))) =
+    True # rev (bin_to_bl n (- numeral (nm + num.One)))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.One))) = True # replicate n True"
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit0 nm + num.One))) =
+    True # rev (bin_to_bl n (- numeral (nm + num.One)))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit1 nm + num.One))) =
+    False # rev (bin_to_bl n (- numeral (nm + num.One)))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.One + num.One))) =
+    False # rev (bin_to_bl n (- numeral num.One))"
+  apply simp_all
   apply (simp_all only: bin_to_bl_aux_alt)
   apply (simp_all)
   apply (simp_all add: bin_to_bl_zero_aux bin_to_bl_minus1_aux)
   done
 
-lemma to_bl_upt:
-  "to_bl x = rev (map (op !! x) [0 ..< size x])"
+lemma to_bl_upt: "to_bl x = rev (map (op !! x) [0 ..< size x])"
   apply (rule nth_equalityI)
    apply (simp add: word_size)
-  apply (clarsimp simp: to_bl_nth word_size nth_rev)
+  apply (auto simp: to_bl_nth word_size nth_rev)
   done
 
-lemma rev_to_bl_upt:
-  "rev (to_bl x) = map (op !! x) [0 ..< size x]"
+lemma rev_to_bl_upt: "rev (to_bl x) = map (op !! x) [0 ..< size x]"
   by (simp add: to_bl_upt)
 
 lemma upt_eq_list_intros:
-  "j <= i \<Longrightarrow> [i ..< j] = []"
-  "\<lbrakk> i = x; x < j; [x + 1 ..< j] = xs \<rbrakk> \<Longrightarrow> [i ..< j] = (x # xs)"
-  by (simp_all add: upt_eq_Nil_conv upt_eq_Cons_conv)
+  "j \<le> i \<Longrightarrow> [i ..< j] = []"
+  "i = x \<Longrightarrow> x < j \<Longrightarrow> [x + 1 ..< j] = xs \<Longrightarrow> [i ..< j] = (x # xs)"
+  by (simp_all add: upt_eq_Cons_conv)
 
-text \<open>Tactic definition\<close>
+
+subsection \<open>Tactic definition\<close>
 
 ML \<open>
 structure Word_Bitwise_Tac =
@@ -517,7 +430,7 @@ fun upt_conv ctxt ct =
                      |> Thm.apply @{cterm Trueprop};
       in
         try (fn () =>
-          Goal.prove_internal ctxt [] prop 
+          Goal.prove_internal ctxt [] prop
             (K (REPEAT_DETERM (resolve_tac ctxt @{thms upt_eq_list_intros} 1
                 ORELSE simp_tac (put_simpset word_ss ctxt) 1))) |> mk_meta_eq) ()
       end
@@ -616,7 +529,6 @@ fun tac ctxt =
   end;
 
 end
-
 \<close>
 
 method_setup word_bitwise =

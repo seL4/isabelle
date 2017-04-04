@@ -11,20 +11,24 @@ begin
 instantiation bit :: bit
 begin
 
-primrec bitNOT_bit where
-  "NOT 0 = (1::bit)"
+primrec bitNOT_bit
+  where
+    "NOT 0 = (1::bit)"
   | "NOT 1 = (0::bit)"
 
-primrec bitAND_bit where
-  "0 AND y = (0::bit)"
+primrec bitAND_bit
+  where
+    "0 AND y = (0::bit)"
   | "1 AND y = (y::bit)"
 
-primrec bitOR_bit where
-  "0 OR y = (y::bit)"
+primrec bitOR_bit
+  where
+    "0 OR y = (y::bit)"
   | "1 OR y = (1::bit)"
 
-primrec bitXOR_bit where
-  "0 XOR y = (y::bit)"
+primrec bitXOR_bit
+  where
+    "0 XOR y = (y::bit)"
   | "1 XOR y = (NOT y :: bit)"
 
 instance  ..
@@ -34,40 +38,48 @@ end
 lemmas bit_simps =
   bitNOT_bit.simps bitAND_bit.simps bitOR_bit.simps bitXOR_bit.simps
 
-lemma bit_extra_simps [simp]: 
-  "x AND 0 = (0::bit)"
-  "x AND 1 = (x::bit)"
-  "x OR 1 = (1::bit)"
-  "x OR 0 = (x::bit)"
-  "x XOR 1 = NOT (x::bit)"
-  "x XOR 0 = (x::bit)"
+lemma bit_extra_simps [simp]:
+  "x AND 0 = 0"
+  "x AND 1 = x"
+  "x OR 1 = 1"
+  "x OR 0 = x"
+  "x XOR 1 = NOT x"
+  "x XOR 0 = x"
+  for x :: bit
   by (cases x, auto)+
 
-lemma bit_ops_comm: 
-  "(x::bit) AND y = y AND x"
-  "(x::bit) OR y = y OR x"
-  "(x::bit) XOR y = y XOR x"
+lemma bit_ops_comm:
+  "x AND y = y AND x"
+  "x OR y = y OR x"
+  "x XOR y = y XOR x"
+  for x :: bit
   by (cases y, auto)+
 
-lemma bit_ops_same [simp]: 
-  "(x::bit) AND x = x"
-  "(x::bit) OR x = x"
-  "(x::bit) XOR x = 0"
+lemma bit_ops_same [simp]:
+  "x AND x = x"
+  "x OR x = x"
+  "x XOR x = 0"
+  for x :: bit
   by (cases x, auto)+
 
-lemma bit_not_not [simp]: "NOT (NOT (x::bit)) = x"
+lemma bit_not_not [simp]: "NOT (NOT x) = x"
+  for x :: bit
   by (cases x) auto
 
-lemma bit_or_def: "(b::bit) OR c = NOT (NOT b AND NOT c)"
-  by (induct b, simp_all)
+lemma bit_or_def: "b OR c = NOT (NOT b AND NOT c)"
+  for b c :: bit
+  by (induct b) simp_all
 
-lemma bit_xor_def: "(b::bit) XOR c = (b AND NOT c) OR (NOT b AND c)"
-  by (induct b, simp_all)
+lemma bit_xor_def: "b XOR c = (b AND NOT c) OR (NOT b AND c)"
+  for b c :: bit
+  by (induct b) simp_all
 
-lemma bit_NOT_eq_1_iff [simp]: "NOT (b::bit) = 1 \<longleftrightarrow> b = 0"
-  by (induct b, simp_all)
+lemma bit_NOT_eq_1_iff [simp]: "NOT b = 1 \<longleftrightarrow> b = 0"
+  for b :: bit
+  by (induct b) simp_all
 
-lemma bit_AND_eq_1_iff [simp]: "(a::bit) AND b = 1 \<longleftrightarrow> a = 1 \<and> b = 1"
-  by (induct a, simp_all)
+lemma bit_AND_eq_1_iff [simp]: "a AND b = 1 \<longleftrightarrow> a = 1 \<and> b = 1"
+  for a b :: bit
+  by (induct a) simp_all
 
 end
