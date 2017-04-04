@@ -30,6 +30,7 @@ object Sessions
   }
 
   sealed case class Base(
+    global_theories: Set[String] = Set.empty,
     loaded_theories: Set[String] = Set.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
     keywords: Thy_Header.Keywords = Nil,
@@ -54,7 +55,9 @@ object Sessions
       verbose: Boolean = false,
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
+      global_theories: Set[String] = Set.empty,
       tree: Tree): Deps =
+  {
     Deps((Map.empty[String, Base] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           if (progress.stopped) throw Exn.Interrupt()
@@ -78,9 +81,9 @@ object Sessions
             {
               val root_theories =
                 info.theories.flatMap({
-                  case (global, _, thys) =>
+                  case (_, _, thys) =>
                     thys.map(thy =>
-                      (resources.init_name(global, info.dir + resources.thy_path(thy)), info.pos))
+                      (resources.init_name(info.dir + resources.thy_path(thy)), info.pos))
                 })
               val thy_deps = resources.thy_info.dependencies(root_theories)
 
@@ -132,14 +135,17 @@ object Sessions
             if (check_keywords.nonEmpty)
               Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
 
-            val sources = all_files.map(p => (p, SHA1.digest(p.file)))
-
-            val session_graph =
-              Present.session_graph(info.parent getOrElse "",
-                parent_base.loaded_theories, thy_deps.deps)
-
             val base =
-              Base(loaded_theories, known_theories, keywords, syntax, sources, session_graph)
+              Base(global_theories = global_theories,
+                loaded_theories = loaded_theories,
+                known_theories = known_theories,
+                keywords = keywords,
+                syntax = syntax,
+                sources = all_files.map(p => (p, SHA1.digest(p.file))),
+                session_graph =
+                  Present.session_graph(info.parent getOrElse "",
+                    parent_base.loaded_theories, thy_deps.deps))
+
             deps + (name -> base)
           }
           catch {
@@ -148,11 +154,14 @@ object Sessions
                 quote(name) + Position.here(info.pos))
           }
       }))
+  }
 
   def session_base(options: Options, session: String, dirs: List[Path] = Nil): Base =
   {
-    val (_, tree) = load(options, dirs = dirs).selection(sessions = List(session))
-    dependencies(tree = tree)(session)
+    val full_tree = load(options, dirs = dirs)
+    val (_, tree) = full_tree.selection(sessions = List(session))
+
+    dependencies(global_theories = full_tree.global_theories, tree = tree)(session)
   }
 
 
@@ -173,6 +182,10 @@ object Sessions
     meta_digest: SHA1.Digest)
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
+
+    def global_theories: List[String] =
+      for { (global, _, paths) <- theories if global; path <- paths }
+      yield path.base.implode
   }
 
   object Tree
@@ -207,6 +220,7 @@ object Sessions
                 }
             }
         }
+
       new Tree(graph2)
     }
   }
@@ -216,6 +230,12 @@ object Sessions
   {
     def apply(name: String): Info = graph.get_node(name)
     def isDefinedAt(name: String): Boolean = graph.defined(name)
+
+    def global_theories: Set[String] =
+      (for {
+        (_, (info, _)) <- graph.iterator
+        name <- info.global_theories.iterator }
+       yield name).toSet
 
     def selection(
       requirements: Boolean = false,

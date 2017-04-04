@@ -67,12 +67,16 @@ class Resources(
     }
     else Nil
 
-  def init_name(global: Boolean, raw_path: Path): Document.Node.Name =
+  def qualify(name: String): String =
+    if (Long_Name.is_qualified(name)) error("Bad qualified theory name " + quote(name))
+    else if (session_base.global_theories.contains(name)) name
+    else Long_Name.qualify(session_name, name)
+
+  def init_name(raw_path: Path): Document.Node.Name =
   {
     val path = raw_path.expand
     val node = path.implode
-    val qualifier = if (global) "" else session_name
-    val theory = Long_Name.qualify(qualifier, Thy_Header.thy_name(node).getOrElse(""))
+    val theory = qualify(Thy_Header.thy_name(node).getOrElse(""))
     val master_dir = if (theory == "") "" else path.dir.implode
     Document.Node.Name(node, master_dir, theory)
   }

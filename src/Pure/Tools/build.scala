@@ -396,7 +396,9 @@ object Build
     val full_tree = Sessions.load(build_options, dirs, select_dirs)
     val (selected, selected_tree) = selection(full_tree)
     val deps =
-      Sessions.dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
+      Sessions.dependencies(
+        progress, true, verbose, list_files, check_keywords,
+          full_tree.global_theories, selected_tree)
 
     def sources_stamp(name: String): List[String] =
       (selected_tree(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
