@@ -177,7 +177,7 @@ object Sessions
 
   object Tree
   {
-    def apply(infos: Seq[(String, Info)]): Tree =
+    def apply(infos: Traversable[(String, Info)]): Tree =
     {
       val graph1 =
         (Graph.string[Info] /: infos) {
