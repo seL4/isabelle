@@ -217,7 +217,7 @@ definition field :: "i \<Rightarrow> i"
 definition relation :: "i \<Rightarrow> o"  \<comment> \<open>recognizes sets of pairs\<close>
   where "relation(r) == \<forall>z\<in>r. \<exists>x y. z = \<langle>x,y\<rangle>"
 
-definition function :: "i \<Rightarrow> o"  \<comment> \<open>recognizes functions; can have non-pairs\<close>
+definition "function" :: "i \<Rightarrow> o"  \<comment> \<open>recognizes functions; can have non-pairs\<close>
   where "function(r) == \<forall>x y. \<langle>x,y\<rangle> \<in> r \<longrightarrow> (\<forall>y'. \<langle>x,y'\<rangle> \<in> r \<longrightarrow> y = y')"
 
 definition Image :: "[i, i] \<Rightarrow> i"  (infixl "``" 90)  \<comment> \<open>image\<close>
