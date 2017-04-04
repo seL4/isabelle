@@ -93,12 +93,13 @@ object GUI
   }
 
   private def simple_dialog(kind: Int, default_title: String,
-    parent: Component, title: String, message: Seq[Any])
+    parent: Component, title: String, message: Iterable[Any])
   {
     GUI_Thread.now {
-      val java_message = message map { case x: scala.swing.Component => x.peer case x => x }
-      JOptionPane.showMessageDialog(parent,
-        java_message.toArray.asInstanceOf[Array[AnyRef]],
+      val java_message =
+        message.iterator.map({ case x: scala.swing.Component => x.peer case x => x }).
+          toArray.asInstanceOf[Array[AnyRef]]
+      JOptionPane.showMessageDialog(parent, java_message,
         if (title == null) default_title else title, kind)
     }
   }
