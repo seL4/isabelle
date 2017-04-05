@@ -39,10 +39,6 @@ lemma strip_while_eq_Cons_rec:
   "strip_while P (x # xs) = x # strip_while P xs \<longleftrightarrow> \<not> (P x \<and> (\<forall>x\<in>set xs. P x))"
   by (induct xs rule: rev_induct) (simp_all add: strip_while_def)
 
-lemma strip_while_not_last [simp]:
-  "\<not> P (last xs) \<Longrightarrow> strip_while P xs = xs"
-  by (cases xs rule: rev_cases) simp_all
-
 lemma split_strip_while_append:
   fixes xs :: "'a list"
   obtains ys zs :: "'a list"
@@ -63,6 +59,32 @@ lemma strip_while_snoc [simp]:
 lemma strip_while_map:
   "strip_while P (map f xs) = map f (strip_while (P \<circ> f) xs)"
   by (simp add: strip_while_def rev_map dropWhile_map)
+
+lemma strip_while_dropWhile_commute:
+  "strip_while P (dropWhile Q xs) = dropWhile Q (strip_while P xs)"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "\<forall>y\<in>set xs. P y")
+    case True
+    with dropWhile_append2 [of "rev xs"] show ?thesis
+      by (auto simp add: strip_while_def dest: set_dropWhileD)
+  next
+    case False
+    then obtain y where "y \<in> set xs" and "\<not> P y"
+      by blast
+    with Cons dropWhile_append3 [of P y "rev xs"] show ?thesis
+      by (simp add: strip_while_def)
+  qed
+qed
+
+lemma dropWhile_strip_while_commute:
+  "dropWhile P (strip_while Q xs) = strip_while Q (dropWhile P xs)"
+  by (simp add: strip_while_dropWhile_commute)
 
 
 definition no_leading :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -134,6 +156,10 @@ lemma no_trailing_Cons [simp]:
   "no_trailing P (x # xs) \<longleftrightarrow> no_trailing P xs \<and> (xs = [] \<longrightarrow> \<not> P x)"
   by simp
 
+lemma no_trailing_append:
+  "no_trailing P (xs @ ys) \<longleftrightarrow> no_trailing P ys \<and> (ys = [] \<longrightarrow> no_trailing P xs)"
+  by (induct xs) simp_all
+
 lemma no_trailing_append_Cons [simp]:
   "no_trailing P (xs @ y # ys) \<longleftrightarrow> no_trailing P (y # ys)"
   by simp
@@ -141,6 +167,10 @@ lemma no_trailing_append_Cons [simp]:
 lemma no_trailing_strip_while [simp]:
   "no_trailing P (strip_while P xs)"
   by (induct xs rule: rev_induct) simp_all
+
+lemma strip_while_idem [simp]:
+  "no_trailing P xs \<Longrightarrow> strip_while P xs = xs"
+  by (cases xs rule: rev_cases) simp_all
 
 lemma strip_while_eq_obtain_trailing:
   assumes "strip_while P xs = ys"
@@ -172,8 +202,17 @@ proof -
 qed
 
 lemma no_trailing_map:
-  "no_trailing P (map f xs) = no_trailing (P \<circ> f) xs"
+  "no_trailing P (map f xs) \<longleftrightarrow> no_trailing (P \<circ> f) xs"
   by (simp add: last_map no_trailing_unfold)
+
+lemma no_trailing_drop [simp]:
+  "no_trailing P (drop n xs)" if "no_trailing P xs"
+proof -
+  from that have "no_trailing P (take n xs @ drop n xs)"
+    by simp
+  then show ?thesis
+    by (simp only: no_trailing_append)
+qed
 
 lemma no_trailing_upt [simp]:
   "no_trailing P [n..<m] \<longleftrightarrow> (n < m \<longrightarrow> \<not> P (m - 1))"
