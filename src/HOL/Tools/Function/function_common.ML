@@ -22,6 +22,7 @@ sig
     simps : thm list option,
     inducts : thm list option,
     termination : thm,
+    totality : thm option,
     cases : thm list,
     pelims: thm list list,
     elims: thm list list option}
@@ -46,6 +47,7 @@ type info =
   simps : thm list option,
   inducts : thm list option,
   termination : thm,
+  totality : thm option,
   cases : thm list,
   pelims : thm list list,
   elims : thm list list option}
@@ -291,7 +293,7 @@ datatype function_result = FunctionResult of
   domintros : thm list option}
 
 fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
-  simps, inducts, termination, defname, is_partial, cases, pelims, elims} : info) =
+  simps, inducts, termination, totality, defname, is_partial, cases, pelims, elims} : info) =
     let
       val term = Morphism.term phi
       val thm = Morphism.thm phi
@@ -301,7 +303,8 @@ fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psi
         fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
         pinducts = fact pinducts, simps = Option.map fact simps,
         inducts = Option.map fact inducts, termination = thm termination,
-        defname = Morphism.binding phi defname, is_partial=is_partial, cases = fact cases,
+        totality = Option.map thm totality, defname = Morphism.binding phi defname,
+        is_partial = is_partial, cases = fact cases,
         elims = Option.map (map fact) elims, pelims = map fact pelims }
     end
 

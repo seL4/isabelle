@@ -120,7 +120,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
 
         val info =
           { add_simps=addsmps, fnames=fnames, case_names=cnames, psimps=psimps',
-          pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
+          pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination', totality=NONE,
           fs=fs, R=R, dom=dom, defname=defname, is_partial=true, cases=flat cases',
           pelims=pelims',elims=NONE}
 
@@ -202,7 +202,8 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
         |-> (fn ((simps,(_,inducts)), elims) => fn lthy =>
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,
             case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
-            simps=SOME simps, inducts=SOME inducts, termination=termination, cases=cases, pelims=pelims, elims=SOME elims}
+            simps=SOME simps, inducts=SOME inducts, termination=termination, totality=SOME totality,
+            cases=cases, pelims=pelims, elims=SOME elims}
           in
             (info',
              lthy
