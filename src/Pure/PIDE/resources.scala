@@ -67,38 +67,27 @@ class Resources(
     }
     else Nil
 
-  def qualify(name: String): String =
-    if (session_base.global_theories.contains(name) || Long_Name.is_qualified(name)) name
-    else Long_Name.qualify(session_name, name)
-
-  def init_name(raw_path: Path): Document.Node.Name =
+  def import_name(dir: String, s: String): Document.Node.Name =
   {
-    val path = raw_path.expand
-    val node = path.implode
-    val theory = qualify(Thy_Header.thy_name(node).getOrElse(""))
-    val master_dir = if (theory == "") "" else path.dir.implode
-    Document.Node.Name(node, master_dir, theory)
-  }
-
-  def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
-  {
-    val theory = Thy_Header.base_name(s)
-    val is_qualified = Thy_Header.is_base_name(s) && Long_Name.is_qualified(s)
+    val thy = Thy_Header.base_name(s)
+    val is_global = session_base.global_theories.contains(thy)
+    val is_qualified = Long_Name.is_qualified(thy)
 
     val known_theory =
-      session_base.known_theories.get(theory) orElse
-      (if (is_qualified) session_base.known_theories.get(Long_Name.base_name(theory))
-       else session_base.known_theories.get(Long_Name.qualify(session_name, theory)))
+      session_base.known_theories.get(thy) orElse
+      (if (is_global) None
+       else if (is_qualified) session_base.known_theories.get(Long_Name.base_name(thy))
+       else session_base.known_theories.get(Long_Name.qualify(session_name, thy)))
 
     known_theory match {
       case Some(name) if session_base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
       case Some(name) => name
-      case None if is_qualified => Document.Node.Name.theory(theory)
       case None =>
         val path = Path.explode(s)
-        val node = append(master.master_dir, thy_path(path))
-        val master_dir = append(master.master_dir, path.dir)
-        Document.Node.Name(node, master_dir, Long_Name.qualify(session_name, theory))
+        val node = append(dir, thy_path(path))
+        val master_dir = append(dir, path.dir)
+        val theory = if (is_global || is_qualified) thy else Long_Name.qualify(session_name, thy)
+        Document.Node.Name(node, master_dir, theory)
     }
   }
 
@@ -126,7 +115,7 @@ class Resources(
             Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
 
         val imports =
-          header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
+          header.imports.map({ case (s, pos) => (import_name(node_name.master_dir, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
@@ -143,9 +132,11 @@ class Resources(
 
   def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
     if (Thy_Header.is_ml_root(name.theory))
-      Some(Document.Node.Header(List((import_name(name, Thy_Header.ML_BOOTSTRAP), Position.none))))
+      Some(Document.Node.Header(
+        List((import_name(name.master_dir, Thy_Header.ML_BOOTSTRAP), Position.none))))
     else if (Thy_Header.is_bootstrap(name.theory))
-      Some(Document.Node.Header(List((import_name(name, Thy_Header.PURE), Position.none))))
+      Some(Document.Node.Header(
+        List((import_name(name.master_dir, Thy_Header.PURE), Position.none))))
     else None
 
 

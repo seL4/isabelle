@@ -81,8 +81,7 @@ object Sessions
             {
               val root_theories =
                 info.theories.flatMap({ case (_, thys) =>
-                  thys.map(thy =>
-                    (resources.init_name(info.dir + resources.thy_path(thy)), info.pos))
+                  thys.map(thy => (resources.import_name(info.dir.implode, thy), info.pos))
                 })
               val thy_deps = resources.thy_info.dependencies(root_theories)
 
@@ -142,8 +141,7 @@ object Sessions
                 syntax = syntax,
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
                 session_graph =
-                  Present.session_graph(info.parent getOrElse "",
-                    parent_base.loaded_theory _, thy_deps.deps))
+                  Present.session_graph(info.parent getOrElse "", parent_base, thy_deps.deps))
 
             deps + (name -> base)
           }
@@ -175,7 +173,7 @@ object Sessions
     parent: Option[String],
     description: String,
     options: Options,
-    theories: List[(Options, List[Path])],
+    theories: List[(Options, List[String])],
     global_theories: List[String],
     files: List[Path],
     document_files: List[(Path, Path)],
@@ -390,8 +388,7 @@ object Sessions
           val session_options = options ++ entry.options
 
           val theories =
-            entry.theories.map({ case (opts, thys) =>
-              (session_options ++ opts, thys.map(thy => Path.explode(thy._1))) })
+            entry.theories.map({ case (opts, thys) => (session_options ++ opts, thys.map(_._1)) })
 
           val global_theories =
             for { (_, thys) <- entry.theories; (thy, global) <- thys if global }
