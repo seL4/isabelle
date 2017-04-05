@@ -80,9 +80,6 @@ object Thy_Header extends Parse.Parser
   private val Base_Name = new Regex(""".*?([^/\\:]+)""")
   private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
 
-  def is_base_name(s: String): Boolean =
-    s != "" && !s.exists("/\\:".contains(_))
-
   def base_name(s: String): String =
     s match { case Base_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
 
