@@ -25,7 +25,8 @@ sig
      induct: thm, inducts: thm list, intrs: thm list, eqs: thm list}
   val transform_result: morphism -> inductive_result -> inductive_result
   type inductive_info = {names: string list, coind: bool} * inductive_result
-  val the_inductive: Proof.context -> string -> inductive_info
+  val the_inductive: Proof.context -> term -> inductive_info
+  val the_inductive_global: Proof.context -> string -> inductive_info
   val print_inductives: bool -> Proof.context -> unit
   val get_monos: Proof.context -> thm list
   val mono_add: attribute
@@ -202,12 +203,15 @@ fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs,
 
 type inductive_info = {names: string list, coind: bool} * inductive_result;
 
+val empty_infos =
+  Item_Net.init (op = o apply2 (#names o fst)) (#preds o snd)
+
 val empty_equations =
   Item_Net.init Thm.eq_thm_prop
     (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);
 
 datatype data = Data of
- {infos: inductive_info Symtab.table,
+ {infos: inductive_info Item_Net.T,
   monos: thm list,
   equations: thm Item_Net.T};
 
@@ -217,11 +221,11 @@ fun make_data (infos, monos, equations) =
 structure Data = Generic_Data
 (
   type T = data;
-  val empty = make_data (Symtab.empty, [], empty_equations);
+  val empty = make_data (empty_infos, [], empty_equations);
   val extend = I;
   fun merge (Data {infos = infos1, monos = monos1, equations = equations1},
       Data {infos = infos2, monos = monos2, equations = equations2}) =
-    make_data (Symtab.merge (K true) (infos1, infos2),
+    make_data (Item_Net.merge (infos1, infos2),
       Thm.merge_thms (monos1, monos2),
       Item_Net.merge (equations1, equations2));
 );
@@ -235,26 +239,34 @@ fun print_inductives verbose ctxt =
   let
     val {infos, monos, ...} = rep_data ctxt;
     val space = Consts.space_of (Proof_Context.consts_of ctxt);
+    val consts =
+      Item_Net.content infos
+      |> maps (fn ({names, ...}, result) => map (rpair result) names)
   in
     [Pretty.block
       (Pretty.breaks
         (Pretty.str "(co)inductives:" ::
           map (Pretty.mark_str o #1)
-            (Name_Space.markup_entries verbose ctxt space (Symtab.dest infos)))),
+            (Name_Space.markup_entries verbose ctxt space consts))),
      Pretty.big_list "monotonicity rules:" (map (Thm.pretty_thm_item ctxt) monos)]
   end |> Pretty.writeln_chunks;
 
 
 (* inductive info *)
 
-fun the_inductive ctxt name =
-  (case Symtab.lookup (#infos (rep_data ctxt)) name of
-    NONE => error ("Unknown (co)inductive predicate " ^ quote name)
-  | SOME info => info);
+fun the_inductive ctxt term =
+  Item_Net.retrieve (#infos (rep_data ctxt)) term
+  |> the_single
 
-fun put_inductives names info =
+fun the_inductive_global ctxt name =
+  #infos (rep_data ctxt)
+  |> Item_Net.content
+  |> filter (fn ({names, ...}, _) => member op = names name)
+  |> the_single
+
+fun put_inductives info =
   map_data (fn (infos, monos, equations) =>
-    (fold (fn name => Symtab.update (name, info)) names infos, monos, equations));
+    (Item_Net.update info infos, monos, equations));
 
 
 (* monotonicity rules *)
@@ -1133,7 +1145,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val lthy4 = lthy3
       |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi =>
         let val result' = transform_result phi result;
-        in put_inductives cnames (*global names!?*) ({names = cnames, coind = coind}, result') end);
+        in put_inductives ({names = cnames, coind = coind}, result') end);
   in (result, lthy4) end;
 
 
@@ -1218,7 +1230,7 @@ fun add_inductive_global flags cnames_syn pnames pre_intros monos thy =
       |> Named_Target.theory_init
       |> add_inductive_i flags cnames_syn pnames pre_intros monos |> snd
       |> Local_Theory.exit;
-    val info = #2 (the_inductive ctxt' name);
+    val info = #2 (the_inductive_global ctxt' name);
   in (info, Proof_Context.theory_of ctxt') end;
 
 

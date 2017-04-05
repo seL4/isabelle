@@ -150,7 +150,7 @@ fun prove_strong_ind s avoids ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
-      Inductive.the_inductive ctxt (Sign.intern_const thy s);
+      Inductive.the_inductive_global ctxt (Sign.intern_const thy s);
     val ind_params = Inductive.params_of raw_induct;
     val raw_induct = atomize_induct ctxt raw_induct;
     val elims = map (atomize_induct ctxt) elims;
@@ -591,7 +591,7 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
   let
     val thy = Proof_Context.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
-      Inductive.the_inductive ctxt (Sign.intern_const thy s);
+      Inductive.the_inductive_global ctxt (Sign.intern_const thy s);
     val raw_induct = atomize_induct ctxt raw_induct;
     val elims = map (atomize_induct ctxt) elims;
     val intrs = map (atomize_intr ctxt) intrs;

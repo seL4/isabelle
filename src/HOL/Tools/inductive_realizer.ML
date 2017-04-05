@@ -149,7 +149,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
       | is_meta (Const (@{const_name Pure.imp}, _) $ _ $ Q) = is_meta Q
       | is_meta (Const (@{const_name Trueprop}, _) $ t) =
           (case head_of t of
-            Const (s, _) => can (Inductive.the_inductive ctxt) s
+            Const (s, _) => can (Inductive.the_inductive_global ctxt) s
           | _ => true)
       | is_meta _ = false;
 
@@ -493,7 +493,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 fun add_ind_realizers name rsets thy =
   let
     val (_, {intrs, induct, raw_induct, elims, ...}) =
-      Inductive.the_inductive (Proof_Context.init_global thy) name;
+      Inductive.the_inductive_global (Proof_Context.init_global thy) name;
     val vss = sort (int_ord o apply2 length)
       (subsets (map fst (relevant_vars (Thm.concl_of (hd intrs)))))
   in

@@ -176,7 +176,7 @@ ML \<open>
           (case HOLogic.dest_Trueprop (Thm.concl_of typedef_thm) of
             (_ $ _ $ _ $ (_ $ Const (n, _))) => n
           | _ => raise Match)
-        val induct_info = Inductive.the_inductive ctxt pred_name
+        val induct_info = Inductive.the_inductive_global ctxt pred_name
         val pred_names = #names (fst induct_info)
         val induct_thms = #inducts (snd induct_info)
         val alist = pred_names ~~ induct_thms

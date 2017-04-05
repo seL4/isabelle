@@ -265,7 +265,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
 val no_compilation = ([], ([], []))
 
 fun fetch_pred_data ctxt name =
-  (case try (Inductive.the_inductive ctxt) name of
+  (case try (Inductive.the_inductive_global ctxt) name of
     SOME (info as (_, result)) =>
       let
         val thy = Proof_Context.theory_of ctxt
@@ -293,7 +293,7 @@ fun add_predfun_data name mode data =
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
 fun is_inductive_predicate ctxt name =
-  is_some (try (Inductive.the_inductive ctxt) name)
+  is_some (try (Inductive.the_inductive_global ctxt) name)
 
 fun depending_preds_of ctxt (key, value) =
   let
