@@ -142,8 +142,7 @@ object Sessions
                 syntax = syntax,
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
                 session_graph =
-                  Present.session_graph(info.parent getOrElse "",
-                    parent_base.loaded_theory _, thy_deps.deps))
+                  Present.session_graph(info.parent getOrElse "", parent_base, thy_deps.deps))
 
             deps + (name -> base)
           }
