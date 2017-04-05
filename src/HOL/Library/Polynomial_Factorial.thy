@@ -168,8 +168,8 @@ lemma fract_poly_dvd: "p dvd q \<Longrightarrow> fract_poly p dvd fract_poly q"
   by (auto elim!: dvdE)
 
 lemma prod_mset_fract_poly: 
-  "prod_mset (image_mset (\<lambda>x. fract_poly (f x)) A) = fract_poly (prod_mset (image_mset f A))"
-  by (induct A) (simp_all add: one_poly_def ac_simps)
+  "(\<Prod>x\<in>#A. map_poly to_fract (f x)) = fract_poly (prod_mset (image_mset f A))"
+  by (induct A) (simp_all add: ac_simps)
   
 lemma is_unit_fract_poly_iff:
   "p dvd 1 \<longleftrightarrow> fract_poly p dvd 1 \<and> content p = 1"
