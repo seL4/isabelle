@@ -176,4 +176,56 @@ lemma fold_bind_random_permutation_fold:
   using assms by (simp add: fold_bind_random_permutation_altdef bind_assoc_pmf
                             fold_random_permutation_fold bind_return_pmf map_pmf_def)
 
+text \<open>
+  The following useful lemma allows us to swap partitioning a set w.\,r.\,t.\ a 
+  predicate and drawing a random permutation of that set.
+\<close>
+lemma partition_random_permutations:
+  assumes "finite A"
+  shows   "map_pmf (partition P) (pmf_of_set (permutations_of_set A)) = 
+             pair_pmf (pmf_of_set (permutations_of_set {x\<in>A. P x}))
+                      (pmf_of_set (permutations_of_set {x\<in>A. \<not>P x}))" (is "?lhs = ?rhs")
+proof (rule pmf_eqI, clarify, goal_cases)
+  case (1 xs ys)
+  show ?case
+  proof (cases "xs \<in> permutations_of_set {x\<in>A. P x} \<and> ys \<in> permutations_of_set {x\<in>A. \<not>P x}")
+    case True
+    let ?n1 = "card {x\<in>A. P x}" and ?n2 = "card {x\<in>A. \<not>P x}"
+    have card_eq: "card A = ?n1 + ?n2"
+    proof -
+      have "?n1 + ?n2 = card ({x\<in>A. P x} \<union> {x\<in>A. \<not>P x})"
+        using assms by (intro card_Un_disjoint [symmetric]) auto
+      also have "{x\<in>A. P x} \<union> {x\<in>A. \<not>P x} = A" by blast
+      finally show ?thesis ..
+    qed
+
+    from True have lengths [simp]: "length xs = ?n1" "length ys = ?n2"
+      by (auto intro!: length_finite_permutations_of_set)
+    have "pmf ?lhs (xs, ys) = 
+            real (card (permutations_of_set A \<inter> partition P -` {(xs, ys)})) / fact (card A)"
+      using assms by (auto simp: pmf_map measure_pmf_of_set)
+    also have "partition P -` {(xs, ys)} = shuffle xs ys" 
+      using True by (intro inv_image_partition) (auto simp: permutations_of_set_def)
+    also have "permutations_of_set A \<inter> shuffle xs ys = shuffle xs ys"
+      using True distinct_disjoint_shuffle[of xs ys] 
+      by (auto simp: permutations_of_set_def dest: set_shuffle)
+    also have "card (shuffle xs ys) = length xs + length ys choose length xs"
+      using True by (intro card_disjoint_shuffle) (auto simp: permutations_of_set_def)
+    also have "length xs + length ys = card A" by (simp add: card_eq)
+    also have "real (card A choose length xs) = fact (card A) / (fact ?n1 * fact (card A - ?n1))"
+      by (subst binomial_fact) (auto intro!: card_mono assms)
+    also have "\<dots> / fact (card A) = 1 / (fact ?n1 * fact ?n2)"
+      by (simp add: divide_simps card_eq)
+    also have "\<dots> = pmf ?rhs (xs, ys)" using True assms by (simp add: pmf_pair)
+    finally show ?thesis .
+  next
+    case False
+    hence *: "xs \<notin> permutations_of_set {x\<in>A. P x} \<or> ys \<notin> permutations_of_set {x\<in>A. \<not>P x}" by blast
+    hence eq: "permutations_of_set A \<inter> (partition P -` {(xs, ys)}) = {}"
+      by (auto simp: o_def permutations_of_set_def)
+    from * show ?thesis
+      by (elim disjE) (insert assms eq, simp_all add: pmf_pair pmf_map measure_pmf_of_set)
+  qed
+qed
+
 end
