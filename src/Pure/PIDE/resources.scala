@@ -69,24 +69,19 @@ class Resources(
 
   def import_name(dir: String, s: String): Document.Node.Name =
   {
-    val thy = Thy_Header.base_name(s)
-    val is_global = session_base.global_theories.contains(thy)
-    val is_qualified = Long_Name.is_qualified(thy)
+    val theory0 = Thy_Header.base_name(s)
+    val theory =
+      if (Long_Name.is_qualified(theory0) || session_base.global_theories.contains(theory0)) theory0
+      else Long_Name.qualify(session_name, theory0)
 
-    val known_theory =
-      session_base.known_theories.get(thy) orElse
-      (if (is_global) None
-       else if (is_qualified) session_base.known_theories.get(Long_Name.base_name(thy))
-       else session_base.known_theories.get(Long_Name.qualify(session_name, thy)))
-
-    known_theory match {
-      case Some(name) if session_base.loaded_theory(name) => Document.Node.Name.theory(name.theory)
+    session_base.known_theories.get(theory) orElse session_base.known_theories.get(theory0) match
+    {
+      case Some(name) if session_base.loaded_theory(name) => name.loaded_theory
       case Some(name) => name
       case None =>
         val path = Path.explode(s)
         val node = append(dir, thy_path(path))
         val master_dir = append(dir, path.dir)
-        val theory = if (is_global || is_qualified) thy else Long_Name.qualify(session_name, thy)
         Document.Node.Name(node, master_dir, theory)
     }
   }

@@ -663,6 +663,7 @@ lemma pmf_map_outside: "x \<notin> f ` set_pmf M \<Longrightarrow> pmf (map_pmf 
 lemma measurable_set_pmf[measurable]: "Measurable.pred (count_space UNIV) (\<lambda>x. x \<in> set_pmf M)"
   by simp
 
+
 subsection \<open> PMFs as function \<close>
 
 context
@@ -754,6 +755,39 @@ lemma integral_measure_pmf:
   apply (subst lebesgue_integral_count_space_finite_support)
   apply (auto intro!: finite_subset[OF _ \<open>finite A\<close>] sum.mono_neutral_left simp: pmf_eq_0_set_pmf)
   done
+    
+lemma expectation_return_pmf [simp]:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "measure_pmf.expectation (return_pmf x) f = f x"
+  by (subst integral_measure_pmf[of "{x}"]) simp_all
+
+lemma pmf_expectation_bind:
+  fixes p :: "'a pmf" and f :: "'a \<Rightarrow> 'b pmf"
+    and  h :: "'b \<Rightarrow> 'c::{banach, second_countable_topology}"
+  assumes "finite A" "\<And>x. x \<in> A \<Longrightarrow> finite (set_pmf (f x))" "set_pmf p \<subseteq> A"
+  shows "measure_pmf.expectation (p \<bind> f) h =
+           (\<Sum>a\<in>A. pmf p a *\<^sub>R measure_pmf.expectation (f a) h)"
+proof -
+  have "measure_pmf.expectation (p \<bind> f) h = (\<Sum>a\<in>(\<Union>x\<in>A. set_pmf (f x)). pmf (p \<bind> f) a *\<^sub>R h a)"
+    using assms by (intro integral_measure_pmf) auto
+  also have "\<dots> = (\<Sum>x\<in>(\<Union>x\<in>A. set_pmf (f x)). (\<Sum>a\<in>A. (pmf p a * pmf (f a) x) *\<^sub>R h x))"
+  proof (intro sum.cong refl, goal_cases)
+    case (1 x)
+    thus ?case
+      by (subst pmf_bind, subst integral_measure_pmf[of A]) 
+         (insert assms, auto simp: scaleR_sum_left)
+  qed
+  also have "\<dots> = (\<Sum>j\<in>A. pmf p j *\<^sub>R (\<Sum>i\<in>(\<Union>x\<in>A. set_pmf (f x)). pmf (f j) i *\<^sub>R h i))"
+    by (subst sum.commute) (simp add: scaleR_sum_right)
+  also have "\<dots> = (\<Sum>j\<in>A. pmf p j *\<^sub>R measure_pmf.expectation (f j) h)"
+  proof (intro sum.cong refl, goal_cases)
+    case (1 x)
+    thus ?case
+      by (subst integral_measure_pmf[of "(\<Union>x\<in>A. set_pmf (f x))"]) 
+         (insert assms, auto simp: scaleR_sum_left)
+  qed
+  finally show ?thesis .
+qed
 
 lemma continuous_on_LINT_pmf: -- \<open>This is dominated convergence!?\<close>
   fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -1725,6 +1759,14 @@ lemma measure_pmf_of_set: "measure (measure_pmf pmf_of_set) A = card (S \<inter>
   by (simp add: measure_nonneg measure_pmf.emeasure_eq_measure)
 
 end
+  
+lemma pmf_expectation_bind_pmf_of_set:
+  fixes A :: "'a set" and f :: "'a \<Rightarrow> 'b pmf"
+    and  h :: "'b \<Rightarrow> 'c::{banach, second_countable_topology}"
+  assumes "A \<noteq> {}" "finite A" "\<And>x. x \<in> A \<Longrightarrow> finite (set_pmf (f x))"
+  shows "measure_pmf.expectation (pmf_of_set A \<bind> f) h =
+           (\<Sum>a\<in>A. measure_pmf.expectation (f a) h /\<^sub>R real (card A))"
+  using assms by (subst pmf_expectation_bind[of A]) (auto simp: divide_simps)
 
 lemma map_pmf_of_set:
   assumes "finite A" "A \<noteq> {}"
@@ -1771,6 +1813,16 @@ proof(rule pmf_eqI)
     moreover have "pmf ?rhs i = 0" using False by simp
     ultimately show ?thesis by simp
   qed
+qed
+
+lemma map_pmf_of_set_bij_betw:
+  assumes "bij_betw f A B" "A \<noteq> {}" "finite A"
+  shows   "map_pmf f (pmf_of_set A) = pmf_of_set B"
+proof -
+  have "map_pmf f (pmf_of_set A) = pmf_of_set (f ` A)"
+    by (intro map_pmf_of_set_inj assms bij_betw_imp_inj_on[OF assms(1)])
+  also from assms have "f ` A = B" by (simp add: bij_betw_def)
+  finally show ?thesis .
 qed
 
 text \<open>

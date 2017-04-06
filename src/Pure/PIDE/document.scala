@@ -98,7 +98,6 @@ object Document
     object Name
     {
       val empty = Name("")
-      def theory(theory: String): Name = Name(theory, "", theory)
 
       object Ordering extends scala.math.Ordering[Name]
       {
@@ -115,7 +114,9 @@ object Document
           case _ => false
         }
 
+      def loaded_theory: Name = Name(theory, "", theory)
       def is_theory: Boolean = theory.nonEmpty
+
       override def toString: String = if (is_theory) theory else node
 
       def map(f: String => String): Name = copy(f(node), f(master_dir), theory)

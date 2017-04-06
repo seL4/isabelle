@@ -8,7 +8,7 @@ section \<open>Factorial (semi)rings\<close>
 theory Factorial_Ring
 imports 
   Main
-  "~~/src/HOL/GCD"
+  "../GCD"
   "~~/src/HOL/Library/Multiset"
 begin
 

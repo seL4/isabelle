@@ -38,7 +38,7 @@ class Thy_Info(resources: Resources)
 
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Nil, Nil, Set.empty, Multi_Map.empty, Multi_Map.empty)
+    val empty = new Dependencies(Nil, Nil, Nil, Set.empty, Multi_Map.empty)
   }
 
   final class Dependencies private(
@@ -46,21 +46,17 @@ class Thy_Info(resources: Resources)
     val keywords: Thy_Header.Keywords,
     val abbrevs: Thy_Header.Abbrevs,
     val seen: Set[Document.Node.Name],
-    val seen_names: Multi_Map[String, Document.Node.Name],
-    val seen_positions: Multi_Map[String, Position.T])
+    val seen_theory: Multi_Map[String, (Document.Node.Name, Position.T)])
   {
     def :: (dep: Thy_Info.Dep): Dependencies =
       new Dependencies(
         dep :: rev_deps, dep.header.keywords ::: keywords, dep.header.abbrevs ::: abbrevs,
-        seen, seen_names, seen_positions)
+        seen, seen_theory)
 
     def + (thy: (Document.Node.Name, Position.T)): Dependencies =
     {
-      val (name, pos) = thy
-      new Dependencies(rev_deps, keywords, abbrevs,
-        seen + name,
-        seen_names + (name.theory -> name),
-        seen_positions + (name.theory -> pos))
+      val (name, _) = thy
+      new Dependencies(rev_deps, keywords, abbrevs, seen + name, seen_theory + (name.theory -> thy))
     }
 
     def deps: List[Thy_Info.Dep] = rev_deps.reverse
@@ -70,15 +66,14 @@ class Thy_Info(resources: Resources)
       val header_errors = deps.flatMap(dep => dep.header.errors)
       val import_errors =
         (for {
-          (theory, names) <- seen_names.iterator_list
+          (theory, imports) <- seen_theory.iterator_list
           if !resources.session_base.loaded_theories(theory)
-          if names.length > 1
-        } yield
+          if imports.length > 1
+        } yield {
           "Incoherent imports for theory " + quote(theory) + ":\n" +
-            cat_lines(names.flatMap(name =>
-              seen_positions.get_list(theory).map(pos =>
-                "  " + quote(name.node) + Position.here(pos))))
-        ).toList
+            cat_lines(imports.map({ case (name, pos) =>
+              "  " + quote(name.node) + Position.here(pos) }))
+        }).toList
       header_errors ::: import_errors
     }
 
@@ -87,7 +82,9 @@ class Thy_Info(resources: Resources)
 
     def loaded_theories: Set[String] =
       (resources.session_base.loaded_theories /: rev_deps) {
-        case (loaded, dep) => loaded + dep.name.theory
+        case (loaded, dep) =>
+          loaded + dep.name.theory +
+            Long_Name.base_name(dep.name.theory)  // legacy
       }
 
     def loaded_files: List[Path] =
@@ -101,6 +98,26 @@ class Thy_Info(resources: Resources)
       }
       val dep_files = Par_List.map(loaded _, rev_deps)
       ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
+    }
+
+    def session_graph(parent_session: String, parent_base: Sessions.Base): Graph_Display.Graph =
+    {
+      val parent_session_node =
+        Graph_Display.Node("[" + parent_session + "]", "session." + parent_session)
+
+      def node(name: Document.Node.Name): Graph_Display.Node =
+        if (parent_base.loaded_theory(name)) parent_session_node
+        else Graph_Display.Node(Long_Name.base_name(name.theory), "theory." + name.theory)
+
+      (Graph_Display.empty_graph /: deps) {
+        case (g, dep) =>
+          if (parent_base.loaded_theory(dep.name)) g
+          else {
+            val a = node(dep.name)
+            val bs = dep.header.imports.map({ case (name, _) => node(name) })
+            ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a))
+          }
+      }
     }
 
     override def toString: String = deps.toString
@@ -120,7 +137,8 @@ class Thy_Info(resources: Resources)
         required_by(initiators) + Position.here(require_pos)
 
     val required1 = required + thy
-    if (required.seen(name) || resources.session_base.loaded_theory(name)) required1
+    if (required.seen(name)) required
+    else if (resources.session_base.loaded_theory(name)) required1
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))

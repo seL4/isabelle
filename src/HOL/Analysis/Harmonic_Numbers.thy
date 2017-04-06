@@ -37,6 +37,9 @@ lemma harm_pos: "n > 0 \<Longrightarrow> harm n > (0 :: 'a :: {real_normed_field
 lemma of_real_harm: "of_real (harm n) = harm n"
   unfolding harm_def by simp
 
+lemma abs_harm [simp]: "(abs (harm n) :: real) = harm n"
+  using harm_nonneg[of n] by (rule abs_of_nonneg)    
+
 lemma norm_harm: "norm (harm n) = harm n"
   by (subst of_real_harm [symmetric]) (simp add: harm_nonneg)
 
@@ -90,6 +93,15 @@ proof (induction n)
   also have "harm n + 1 / real (Suc n) = harm (Suc n)" by (simp add: harm_Suc field_simps)
   finally show "ln (real (Suc n) + 1) \<le> harm (Suc n)" by - simp
 qed (simp_all add: harm_def)
+
+lemma harm_at_top: "filterlim (harm :: nat \<Rightarrow> real) at_top sequentially"
+proof (rule filterlim_at_top_mono)
+  show "eventually (\<lambda>n. harm n \<ge> ln (real (Suc n))) at_top"
+    using ln_le_harm by (intro always_eventually allI) (simp_all add: add_ac)
+  show "filterlim (\<lambda>n. ln (real (Suc n))) at_top sequentially"
+    by (intro filterlim_compose[OF ln_at_top] filterlim_compose[OF filterlim_real_sequentially] 
+              filterlim_Suc)
+qed
 
 
 subsection \<open>The Euler--Mascheroni constant\<close>
