@@ -146,5 +146,5 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   def pre_hook(args: List[String]): Unit
   def post_hook(results: Build.Results): Unit
 
-  def select_sessions(tree: Sessions.Tree): (List[String], Sessions.Tree)
+  def select_sessions(sessions: Sessions.T): (List[String], Sessions.T)
 }

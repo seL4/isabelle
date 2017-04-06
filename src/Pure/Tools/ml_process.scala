@@ -23,16 +23,16 @@ object ML_Process
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None,
-    tree: Option[Sessions.Tree] = None,
+    sessions: Option[Sessions.T] = None,
     store: Sessions.Store = Sessions.store()): Bash.Process =
   {
     val logic_name = Isabelle_System.default_logic(logic)
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
-        val (_, session_tree) =
-          tree.getOrElse(Sessions.load(options, dirs)).selection(sessions = List(logic_name))
-        (session_tree.ancestors(logic_name) ::: List(logic_name)).
+        val (_, selected_sessions) =
+          sessions.getOrElse(Sessions.load(options, dirs)).selection(sessions = List(logic_name))
+        (selected_sessions.ancestors(logic_name) ::: List(logic_name)).
           map(a => File.platform_path(store.heap(a)))
       }
 

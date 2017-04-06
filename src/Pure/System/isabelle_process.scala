@@ -20,7 +20,7 @@ object Isabelle_Process
     modes: List[String] = Nil,
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
-    tree: Option[Sessions.Tree] = None,
+    sessions: Option[Sessions.T] = None,
     store: Sessions.Store = Sessions.store(),
     phase_changed: Session.Phase => Unit = null)
   {
@@ -30,7 +30,7 @@ object Isabelle_Process
     session.start(receiver =>
       Isabelle_Process(options, logic = logic, args = args, dirs = dirs, modes = modes,
         cwd = cwd, env = env, receiver = receiver, xml_cache = session.xml_cache,
-        tree = tree, store = store))
+        sessions = sessions, store = store))
   }
 
   def apply(
@@ -43,14 +43,14 @@ object Isabelle_Process
     env: Map[String, String] = Isabelle_System.settings(),
     receiver: Prover.Receiver = Console.println(_),
     xml_cache: XML.Cache = new XML.Cache(),
-    tree: Option[Sessions.Tree] = None,
+    sessions: Option[Sessions.T] = None,
     store: Sessions.Store = Sessions.store()): Prover =
   {
     val channel = System_Channel()
     val process =
       try {
         ML_Process(options, logic = logic, args = args, dirs = dirs, modes = modes,
-          cwd = cwd, env = env, tree = tree, store = store, channel = Some(channel))
+          cwd = cwd, env = env, sessions = sessions, store = store, channel = Some(channel))
       }
       catch { case exn @ ERROR(_) => channel.accepted(); throw exn }
     process.stdin.close

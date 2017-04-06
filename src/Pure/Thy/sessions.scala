@@ -49,7 +49,7 @@ object Sessions
     def sources(name: String): List[SHA1.Digest] = sessions(name).sources.map(_._2)
   }
 
-  def deps(tree: Tree,
+  def deps(sessions: T,
       progress: Progress = No_Progress,
       inlined_files: Boolean = false,
       verbose: Boolean = false,
@@ -57,7 +57,8 @@ object Sessions
       check_keywords: Set[String] = Set.empty,
       global_theories: Set[String] = Set.empty): Deps =
   {
-    Deps((Map.empty[String, Base] /: tree.topological_order)({ case (sessions, (name, info)) =>
+    Deps((Map.empty[String, Base] /: sessions.topological_order)({
+      case (sessions, (name, info)) =>
         if (progress.stopped) throw Exn.Interrupt()
 
         try {
@@ -153,14 +154,14 @@ object Sessions
 
   def session_base(options: Options, session: String, dirs: List[Path] = Nil): Base =
   {
-    val full_tree = load(options, dirs = dirs)
-    val (_, tree) = full_tree.selection(sessions = List(session))
+    val full_sessions = load(options, dirs = dirs)
+    val (_, selected_sessions) = full_sessions.selection(sessions = List(session))
 
-    deps(tree, global_theories = full_tree.global_theories)(session)
+    deps(selected_sessions, global_theories = full_sessions.global_theories)(session)
   }
 
 
-  /* session tree */
+  /* cumulative session info */
 
   sealed case class Info(
     chapter: String,
@@ -180,44 +181,41 @@ object Sessions
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
   }
 
-  object Tree
+  def make(infos: Traversable[(String, Info)]): T =
   {
-    def apply(infos: Traversable[(String, Info)]): Tree =
-    {
-      val graph1 =
-        (Graph.string[Info] /: infos) {
-          case (graph, (name, info)) =>
-            if (graph.defined(name))
-              error("Duplicate session " + quote(name) + Position.here(info.pos) +
-                Position.here(graph.get_node(name).pos))
-            else graph.new_node(name, info)
-        }
-      val graph2 =
-        (graph1 /: graph1.iterator) {
-          case (graph, (name, (info, _))) =>
-            info.parent match {
-              case None => graph
-              case Some(parent) =>
-                if (!graph.defined(parent))
-                  error("Bad parent session " + quote(parent) + " for " +
-                    quote(name) + Position.here(info.pos))
+    val graph1 =
+      (Graph.string[Info] /: infos) {
+        case (graph, (name, info)) =>
+          if (graph.defined(name))
+            error("Duplicate session " + quote(name) + Position.here(info.pos) +
+              Position.here(graph.get_node(name).pos))
+          else graph.new_node(name, info)
+      }
+    val graph2 =
+      (graph1 /: graph1.iterator) {
+        case (graph, (name, (info, _))) =>
+          info.parent match {
+            case None => graph
+            case Some(parent) =>
+              if (!graph.defined(parent))
+                error("Bad parent session " + quote(parent) + " for " +
+                  quote(name) + Position.here(info.pos))
 
-                try { graph.add_edge_acyclic(parent, name) }
-                catch {
-                  case exn: Graph.Cycles[_] =>
-                    error(cat_lines(exn.cycles.map(cycle =>
-                      "Cyclic session dependency of " +
-                        cycle.map(c => quote(c.toString)).mkString(" via "))) +
-                          Position.here(info.pos))
-                }
-            }
-        }
+              try { graph.add_edge_acyclic(parent, name) }
+              catch {
+                case exn: Graph.Cycles[_] =>
+                  error(cat_lines(exn.cycles.map(cycle =>
+                    "Cyclic session dependency of " +
+                      cycle.map(c => quote(c.toString)).mkString(" via "))) +
+                        Position.here(info.pos))
+              }
+          }
+      }
 
-      new Tree(graph2)
-    }
+    new T(graph2)
   }
 
-  final class Tree private(val graph: Graph[String, Info])
+  final class T private[Sessions](val graph: Graph[String, Info])
     extends PartialFunction[String, Info]
   {
     def apply(name: String): Info = graph.get_node(name)
@@ -235,7 +233,7 @@ object Sessions
       exclude_session_groups: List[String] = Nil,
       exclude_sessions: List[String] = Nil,
       session_groups: List[String] = Nil,
-      sessions: List[String] = Nil): (List[String], Tree) =
+      sessions: List[String] = Nil): (List[String], T) =
     {
       val bad_sessions =
         SortedSet((exclude_sessions ::: sessions).filterNot(isDefinedAt(_)): _*).toList
@@ -270,7 +268,7 @@ object Sessions
         else pre_selected
 
       val graph1 = graph.restrict(graph.all_preds(selected).toSet)
-      (selected, new Tree(graph1))
+      (selected, new T(graph1))
     }
 
     def ancestors(name: String): List[String] =
@@ -279,7 +277,7 @@ object Sessions
     def topological_order: List[(String, Info)] =
       graph.topological_order.map(name => (name, apply(name)))
 
-    override def toString: String = graph.keys_iterator.mkString("Sessions.Tree(", ", ", ")")
+    override def toString: String = graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
   }
 
 
@@ -450,7 +448,7 @@ object Sessions
     if (is_session_dir(dir)) dir
     else error("Bad session root directory: " + dir.toString)
 
-  def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): Tree =
+  def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): T =
   {
     def load_dir(select: Boolean, dir: Path): List[(String, Info)] =
       load_root(select, dir) ::: load_roots(select, dir)
@@ -481,7 +479,7 @@ object Sessions
     dirs.foreach(check_session_dir(_))
     select_dirs.foreach(check_session_dir(_))
 
-    Tree(
+    make(
       for {
         (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
         info <- load_dir(select, dir)

@@ -63,12 +63,12 @@ object Build
       }
     }
 
-    def apply(tree: Sessions.Tree, store: Sessions.Store): Queue =
+    def apply(sessions: Sessions.T, store: Sessions.Store): Queue =
     {
-      val graph = tree.graph
-      val sessions = graph.keys
+      val graph = sessions.graph
+      val names = graph.keys
 
-      val timings = sessions.map(name => (name, load_timings(store, name)))
+      val timings = names.map(name => (name, load_timings(store, name)))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
@@ -91,7 +91,7 @@ object Build
             case 0 =>
               compare_timing(name2, name1) match {
                 case 0 =>
-                  tree(name2).timeout compare tree(name1).timeout match {
+                  sessions(name2).timeout compare sessions(name1).timeout match {
                     case 0 => name1 compare name2
                     case ord => ord
                   }
@@ -101,7 +101,7 @@ object Build
           }
       }
 
-      new Queue(graph, SortedSet(sessions: _*)(Ordering), command_timings)
+      new Queue(graph, SortedSet(names: _*)(Ordering), command_timings)
     }
   }
 
@@ -170,7 +170,7 @@ object Build
   private class Job(progress: Progress,
     name: String,
     val info: Sessions.Info,
-    tree: Sessions.Tree,
+    sessions: Sessions.T,
     deps: Sessions.Deps,
     store: Sessions.Store,
     do_output: Boolean,
@@ -228,7 +228,7 @@ object Build
           val session_result = Future.promise[Process_Result]
 
           Isabelle_Process.start(session, options, logic = parent,
-            cwd = info.dir.file, env = env, tree = Some(tree), store = store,
+            cwd = info.dir.file, env = env, sessions = Some(sessions), store = store,
             phase_changed =
             {
               case Session.Ready => session.protocol_command("build_session", args_yxml)
@@ -260,11 +260,13 @@ object Build
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
                   List("--eval", eval),
-                env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
+                env = env, sessions = Some(sessions), store = store,
+                cleanup = () => args_file.delete)
             }
             else {
               ML_Process(options, parent, List("--eval", eval), cwd = info.dir.file,
-                env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
+                env = env, sessions = Some(sessions), store = store,
+                cleanup = () => args_file.delete)
             }
 
           process.result(
@@ -366,53 +368,53 @@ object Build
       system_mode = system_mode,
       verbose = verbose,
       pide = pide,
-      selection = { full_tree =>
-        full_tree.selection(requirements, all_sessions,
+      selection = { full_sessions =>
+        full_sessions.selection(requirements, all_sessions,
           exclude_session_groups, exclude_sessions, session_groups, sessions) })
   }
 
   def build_selection(
-    options: Options,
-    progress: Progress = No_Progress,
-    build_heap: Boolean = false,
-    clean_build: Boolean = false,
-    dirs: List[Path] = Nil,
-    select_dirs: List[Path] = Nil,
-    numa_shuffling: Boolean = false,
-    max_jobs: Int = 1,
-    list_files: Boolean = false,
-    check_keywords: Set[String] = Set.empty,
-    no_build: Boolean = false,
-    system_mode: Boolean = false,
-    verbose: Boolean = false,
-    pide: Boolean = false,
-    selection: Sessions.Tree => (List[String], Sessions.Tree) =
-      (_.selection(all_sessions = true))): Results =
+      options: Options,
+      progress: Progress = No_Progress,
+      build_heap: Boolean = false,
+      clean_build: Boolean = false,
+      dirs: List[Path] = Nil,
+      select_dirs: List[Path] = Nil,
+      numa_shuffling: Boolean = false,
+      max_jobs: Int = 1,
+      list_files: Boolean = false,
+      check_keywords: Set[String] = Set.empty,
+      no_build: Boolean = false,
+      system_mode: Boolean = false,
+      verbose: Boolean = false,
+      pide: Boolean = false,
+      selection: Sessions.T => (List[String], Sessions.T) = (_.selection(all_sessions = true))
+    ): Results =
   {
     /* session selection and dependencies */
 
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
-    val full_tree = Sessions.load(build_options, dirs, select_dirs)
-    val (selected, selected_tree) = selection(full_tree)
+    val full_sessions = Sessions.load(build_options, dirs, select_dirs)
+    val (selected, selected_sessions) = selection(full_sessions)
     val deps =
-      Sessions.deps(selected_tree, progress = progress, inlined_files = true,
+      Sessions.deps(selected_sessions, progress = progress, inlined_files = true,
         verbose = verbose, list_files = list_files, check_keywords = check_keywords,
-        global_theories = full_tree.global_theories)
+        global_theories = full_sessions.global_theories)
 
     def sources_stamp(name: String): List[String] =
-      (selected_tree(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
+      (selected_sessions(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
 
 
     /* main build process */
 
     val store = Sessions.store(system_mode)
-    val queue = Queue(selected_tree, store)
+    val queue = Queue(selected_sessions, store)
 
     store.prepare_output()
 
     // optional cleanup
     if (clean_build) {
-      for (name <- full_tree.graph.all_succs(selected)) {
+      for (name <- full_sessions.graph.all_succs(selected)) {
         val files =
           List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
@@ -518,7 +520,7 @@ object Build
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
-                val ancestor_results = selected_tree.ancestors(name).map(results(_))
+                val ancestor_results = selected_sessions.ancestors(name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
@@ -555,8 +557,8 @@ object Build
                   val numa_node = numa_nodes.next(used_node(_))
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
-                    new Job(progress, name, info, selected_tree, deps, store, do_output, verbose,
-                      pide, numa_node, queue.command_timings(name))
+                    new Job(progress, name, info, selected_sessions, deps, store, do_output,
+                      verbose, pide, numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
                 else {
@@ -604,7 +606,7 @@ object Build
         (for {
           (name, result) <- results0.iterator
           if result.ok
-          info = full_tree(name)
+          info = full_sessions(name)
           if info.options.bool("browser_info")
         } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
             map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
