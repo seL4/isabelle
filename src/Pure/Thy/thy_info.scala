@@ -56,9 +56,7 @@ class Thy_Info(resources: Resources)
     def + (thy: (Document.Node.Name, Position.T)): Dependencies =
     {
       val (name, _) = thy
-      new Dependencies(rev_deps, keywords, abbrevs,
-        seen + name,
-        seen_theory + (name.theory -> thy))
+      new Dependencies(rev_deps, keywords, abbrevs, seen + name, seen_theory + (name.theory -> thy))
     }
 
     def deps: List[Thy_Info.Dep] = rev_deps.reverse
