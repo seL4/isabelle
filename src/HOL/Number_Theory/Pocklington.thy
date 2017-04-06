@@ -131,14 +131,18 @@ qed
 lemma phi_lowerbound_1: assumes n: "n \<ge> 2"
   shows "phi n \<ge> 1"
 proof -
-  have "1 \<le> card {0::int <.. 1}"
-    by auto
-  also have "... \<le> card {x. 0 < x \<and> x < n \<and> coprime x n}"
-    apply (rule card_mono) using assms
-    by auto (metis dual_order.antisym gcd_1_int gcd.commute int_one_le_iff_zero_less)
+  have "finite {x. 0 < x \<and> x < n}"
+    by simp
+  then have "finite {x. 0 < x \<and> x < n \<and> coprime x n}"
+    by (auto intro: rev_finite_subset)
+  moreover have "{0::int <.. 1} \<subseteq> {x. 0 < x \<and> x < n \<and> coprime x n}"
+    using n by (auto simp add: antisym_conv) 
+  ultimately have "card {0::int <.. 1} \<le> card {x. 0 < x \<and> x < n \<and> coprime x n}"
+    by (rule card_mono)
   also have "... = phi n"
     by (simp add: phi_def)
-  finally show ?thesis .
+  finally show ?thesis
+    by simp
 qed
 
 lemma phi_lowerbound_1_nat: assumes n: "n \<ge> 2"

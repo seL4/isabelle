@@ -178,6 +178,7 @@ definition g_1 :: "int \<times> int \<Rightarrow> int"
   where "g_1 res = (THE x. P_1 res x)"
 
 lemma P_1_lemma:
+  fixes res :: "int \<times> int"
   assumes "0 \<le> fst res" "fst res < p" "0 \<le> snd res" "snd res < q"
   shows "\<exists>!x. P_1 res x"
 proof -
@@ -204,11 +205,34 @@ proof -
 qed
 
 lemma g_1_lemma:
+  fixes res :: "int \<times> int"
   assumes "0 \<le> fst res" "fst res < p" "0 \<le> snd res" "snd res < q"
   shows "P_1 res (g_1 res)"
-  using assms P_1_lemma theI'[of "P_1 res"] g_1_def by presburger
+  using assms P_1_lemma [of res] theI' [of "P_1 res"] g_1_def
+  by auto
 
 definition "BuC = Sets_pq Res_ge_0 Res_h Res_l"
+
+lemma finite_BuC [simp]:
+  "finite BuC"
+proof -
+  {
+    fix p q :: nat
+    have "finite {x. 0 < x \<and> x < int p * int q}"
+      by simp
+    then have "finite {x.
+      0 < x \<and>
+      x < int p * int q \<and>
+      (int p - 1) div 2
+      < x mod int p \<and>
+      x mod int p < int p \<and>
+      0 < x mod int q \<and>
+      x mod int q \<le> (int q - 1) div 2}"
+      by (auto intro: rev_finite_subset)
+  }
+  then show ?thesis
+    by (simp add: BuC_def)
+qed
 
 lemma QR_lemma_04: "card BuC = card (Res_h p \<times> Res_l q)"
   using card_bij_eq[of f_1 "BuC" "Res_h p \<times> Res_l q" g_1]
@@ -245,7 +269,7 @@ proof
     with x show "y \<in> BuC"
       unfolding P_1_def BuC_def mem_Collect_eq using SigmaE prod.sel by fastforce
   qed
-qed (auto simp: BuC_def finite_subset f_1_def)
+qed (auto simp: finite_subset f_1_def, simp_all add: BuC_def)
 
 lemma QR_lemma_05: "card (Res_h p \<times> Res_l q) = r"
 proof -
