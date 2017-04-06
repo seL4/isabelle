@@ -82,7 +82,9 @@ class Thy_Info(resources: Resources)
 
     def loaded_theories: Set[String] =
       (resources.session_base.loaded_theories /: rev_deps) {
-        case (loaded, dep) => loaded + dep.name.theory
+        case (loaded, dep) =>
+          loaded + dep.name.theory +
+            Long_Name.base_name(dep.name.theory)  // legacy
       }
 
     def loaded_files: List[Path] =

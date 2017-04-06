@@ -97,7 +97,8 @@ object Sessions
                   case Some(name1) if name != name1 =>
                     error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
                   case _ =>
-                    known + (name.theory -> name) + (Long_Name.base_name(name.theory) -> name)
+                    known + (name.theory -> name) +
+                      (Long_Name.base_name(name.theory) -> name)  // legacy
                 }
               })
 
