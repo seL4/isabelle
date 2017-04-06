@@ -132,7 +132,7 @@ object Position
 
   /* here: user output */
 
-  def here(props: T, delimited: Boolean = false): String =
+  def here(props: T, delimited: Boolean = true): String =
   {
     val pos = props.filter(p => Markup.POSITION_PROPERTIES(p._1))
     if (pos.isEmpty) ""
