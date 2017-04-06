@@ -32,10 +32,8 @@ session "HOL-Library" (main timing) in Library = HOL +
   theories
     Library
     (*conflicting type class instantiations and dependent applications*)
-    Field_as_Ring
     Finite_Lattice
     List_lexord
-    Polynomial_Factorial
     Prefix_Order
     Product_Lexorder
     Product_Order
@@ -70,6 +68,13 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories
     Approximations
     Circle_Area
+
+session "HOL-Computation_Algebra" in "Computational_Algebra" = HOL +
+  theories
+    Computational_Algebra
+    (*conflicting type class instantiations and dependent applications*)
+    Field_as_Ring
+    Polynomial_Factorial
 
 session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
   description {*
@@ -301,7 +306,7 @@ session "HOL-Algebra" (main timing) in Algebra = HOL +
   theories [document = false]
     (* Preliminaries from set and number theory *)
     "~~/src/HOL/Library/FuncSet"
-    "~~/src/HOL/Number_Theory/Primes"
+    "~~/src/HOL/Computational_Algebra/Primes"
     "~~/src/HOL/Library/Permutation"
   theories
     (* Orders and Lattices *)
@@ -418,7 +423,7 @@ session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
-    "~~/src/HOL/Number_Theory/Primes"
+    "~~/src/HOL/Computational_Algebra/Primes"
     "~~/src/HOL/Library/State_Monad"
   theories
     Greatest_Common_Divisor
@@ -635,7 +640,7 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
   options [quick_and_dirty]
   theories [document = false]
     "~~/src/HOL/Library/Lattice_Syntax"
-    "../Number_Theory/Primes"
+    "../Computational_Algebra/Primes"
   theories
     Knaster_Tarski
     Peirce

@@ -5,7 +5,7 @@
 section \<open>The sieve of Eratosthenes\<close>
 
 theory Eratosthenes
-imports Main Primes
+  imports Main "~~/src/HOL/Computational_Algebra/Primes"
 begin
 
 

@@ -15,7 +15,7 @@ Fibonacci numbers: proofs of laws taken from
 section \<open>Fib and Gcd commute\<close>
 
 theory Fibonacci
-  imports "../Number_Theory/Primes"
+  imports "../Computational_Algebra/Primes"
 begin
 
 text_raw \<open>\<^footnote>\<open>Isar version by Gertrud Bauer. Original tactic script by Larry

@@ -5,7 +5,9 @@
 section \<open>A formalization of formal power series\<close>
 
 theory Formal_Power_Series
-imports Complex_Main "~~/src/HOL/Number_Theory/Euclidean_Algorithm"
+imports
+  Complex_Main
+  Euclidean_Algorithm
 begin
 
 

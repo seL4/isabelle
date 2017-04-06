@@ -5,7 +5,7 @@
 theory Field_as_Ring
 imports 
   Complex_Main
-  "~~/src/HOL/Number_Theory/Euclidean_Algorithm"
+  Euclidean_Algorithm
 begin
 
 context field

@@ -8,7 +8,7 @@ section \<open>Euclid's theorem\<close>
 
 theory Euclid
 imports
-  "~~/src/HOL/Number_Theory/Primes"
+  "~~/src/HOL/Computational_Algebra/Primes"
   Util
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin

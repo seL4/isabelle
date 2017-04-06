@@ -25,13 +25,10 @@ imports
   Extended_Real
   Finite_Map
   Float
-  Formal_Power_Series
-  Fraction_Field
   FSet
   FuncSet
   Function_Division
   Function_Growth
-  Fundamental_Theorem_Algebra
   Fun_Lexorder
   Groups_Big_Fun
   Indicator_Function
@@ -59,8 +56,6 @@ imports
   Perm
   Permutation
   Permutations
-  Polynomial
-  Polynomial_FPS
   Preorder
   Product_Plus
   Quadratic_Discriminant

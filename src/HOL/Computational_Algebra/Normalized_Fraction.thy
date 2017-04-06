@@ -5,7 +5,7 @@
 theory Normalized_Fraction
 imports 
   Main 
-  "~~/src/HOL/Number_Theory/Euclidean_Algorithm" 
+  Euclidean_Algorithm
   Fraction_Field
 begin
 
