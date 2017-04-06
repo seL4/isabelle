@@ -140,8 +140,7 @@ object Sessions
                 keywords = keywords,
                 syntax = syntax,
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
-                session_graph =
-                  Present.session_graph(info.parent getOrElse "", parent_base, thy_deps.deps))
+                session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
 
             deps + (name -> base)
           }
