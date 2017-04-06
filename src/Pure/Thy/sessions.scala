@@ -42,31 +42,30 @@ object Sessions
       loaded_theories.contains(name.theory)
   }
 
-  sealed case class Deps(deps: Map[String, Base])
+  sealed case class Deps(sessions: Map[String, Base])
   {
-    def is_empty: Boolean = deps.isEmpty
-    def apply(name: String): Base = deps(name)
-    def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
+    def is_empty: Boolean = sessions.isEmpty
+    def apply(name: String): Base = sessions(name)
+    def sources(name: String): List[SHA1.Digest] = sessions(name).sources.map(_._2)
   }
 
-  def dependencies(
+  def deps(tree: Tree,
       progress: Progress = No_Progress,
       inlined_files: Boolean = false,
       verbose: Boolean = false,
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
-      global_theories: Set[String] = Set.empty,
-      tree: Tree): Deps =
+      global_theories: Set[String] = Set.empty): Deps =
   {
     Deps((Map.empty[String, Base] /: tree.topological_order)(
-      { case (deps, (name, info)) =>
+      { case (sessions, (name, info)) =>
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
             val parent_base =
               info.parent match {
                 case None => Base.bootstrap
-                case Some(parent) => deps(parent)
+                case Some(parent) => sessions(parent)
               }
             val resources = new Resources(name, parent_base)
 
@@ -142,7 +141,7 @@ object Sessions
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
                 session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
 
-            deps + (name -> base)
+            sessions + (name -> base)
           }
           catch {
             case ERROR(msg) =>
@@ -157,7 +156,7 @@ object Sessions
     val full_tree = load(options, dirs = dirs)
     val (_, tree) = full_tree.selection(sessions = List(session))
 
-    dependencies(global_theories = full_tree.global_theories, tree = tree)(session)
+    deps(tree, global_theories = full_tree.global_theories)(session)
   }
 
 
