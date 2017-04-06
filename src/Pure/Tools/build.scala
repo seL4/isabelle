@@ -200,16 +200,15 @@ object Build
         val args_yxml =
           YXML.string_of_body(
             {
-              val theories = info.theories.map(x => (x._2, x._3))
               import XML.Encode._
               pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
-                list(pair(Options.encode, list(Path.encode))))))))))))))(
+                list(pair(Options.encode, list(string))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
-                theories))))))))))))
+                info.theories))))))))))))
             })
 
         val env =
@@ -396,7 +395,9 @@ object Build
     val full_tree = Sessions.load(build_options, dirs, select_dirs)
     val (selected, selected_tree) = selection(full_tree)
     val deps =
-      Sessions.dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
+      Sessions.dependencies(
+        progress, true, verbose, list_files, check_keywords,
+          full_tree.global_theories, selected_tree)
 
     def sources_stamp(name: String): List[String] =
       (selected_tree(name).meta_digest :: deps.sources(name)).map(_.toString).sorted

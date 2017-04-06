@@ -16,8 +16,8 @@ begin
 
 subsection \<open>Various facts about polynomials\<close>
 
-lemma prod_mset_const_poly: "prod_mset (image_mset (\<lambda>x. [:f x:]) A) = [:prod_mset (image_mset f A):]"
-  by (induction A) (simp_all add: one_poly_def mult_ac)
+lemma prod_mset_const_poly: " (\<Prod>x\<in>#A. [:f x:]) = [:prod_mset (image_mset f A):]"
+  by (induct A) (simp_all add: one_poly_def ac_simps)
 
 lemma irreducible_const_poly_iff:
   fixes c :: "'a :: {comm_semiring_1,semiring_no_zero_divisors}"
@@ -168,14 +168,15 @@ lemma fract_poly_dvd: "p dvd q \<Longrightarrow> fract_poly p dvd fract_poly q"
   by (auto elim!: dvdE)
 
 lemma prod_mset_fract_poly: 
-  "prod_mset (image_mset (\<lambda>x. fract_poly (f x)) A) = fract_poly (prod_mset (image_mset f A))"
-  by (induction A) (simp_all add: mult_ac)
+  "(\<Prod>x\<in>#A. map_poly to_fract (f x)) = fract_poly (prod_mset (image_mset f A))"
+  by (induct A) (simp_all add: ac_simps)
   
 lemma is_unit_fract_poly_iff:
   "p dvd 1 \<longleftrightarrow> fract_poly p dvd 1 \<and> content p = 1"
 proof safe
   assume A: "p dvd 1"
-  with fract_poly_dvd[of p 1] show "is_unit (fract_poly p)" by simp
+  with fract_poly_dvd [of p 1] show "is_unit (fract_poly p)"
+    by simp
   from A show "content p = 1"
     by (auto simp: is_unit_poly_iff normalize_1_iff)
 next

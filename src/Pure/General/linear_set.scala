@@ -78,7 +78,7 @@ final class Linear_Set[A] private(
             }
       }
 
-  def append_after(hook: Option[A], elems: Seq[A]): Linear_Set[A] =  // FIXME reverse fold
+  def append_after(hook: Option[A], elems: Traversable[A]): Linear_Set[A] =  // FIXME reverse fold
     ((hook, this) /: elems) {
       case ((last, set), elem) => (Some(elem), set.insert_after(last, elem))
     }._2

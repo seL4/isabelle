@@ -82,7 +82,7 @@ object Text
 
     def full: Perspective = Perspective(List(Range.full))
 
-    def apply(ranges: Seq[Range]): Perspective =
+    def apply(ranges: List[Range]): Perspective =
     {
       val result = new mutable.ListBuffer[Range]
       var last: Option[Range] = None

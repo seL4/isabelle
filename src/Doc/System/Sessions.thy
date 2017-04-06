@@ -70,7 +70,9 @@ text \<open>
     ;
     value: @{syntax name} | @{syntax real}
     ;
-    theories: @'theories' opts? ( @{syntax name} * )
+    theory_entry: @{syntax name} ('(' @'global' ')')?
+    ;
+    theories: @'theories' opts? (theory_entry*)
     ;
     files: @'files' (@{syntax name}+)
     ;
@@ -115,6 +117,11 @@ text \<open>
   in addition to the global session options given before. Any number of blocks
   of \isakeyword{theories} may be given. Options are only active for each
   \isakeyword{theories} block separately.
+
+  A theory name that is followed by \<open>(\<close>\isakeyword{global}\<open>)\<close> is treated
+  literally in other session specifications or theory imports. In contrast,
+  the default is to qualify theory names by the session name, in order to
+  ensure globally unique names in big session trees.
 
   \<^descr> \isakeyword{files}~\<open>files\<close> lists additional source files that are involved
   in the processing of this session. This should cover anything outside the

@@ -18,19 +18,19 @@ object Present
 
   def session_graph(
     parent_session: String,
-    parent_loaded: String => Boolean,
+    parent_base: Sessions.Base,
     deps: List[Thy_Info.Dep]): Graph_Display.Graph =
   {
     val parent_session_node =
       Graph_Display.Node("[" + parent_session + "]", "session." + parent_session)
 
     def node(name: Document.Node.Name): Graph_Display.Node =
-      if (parent_loaded(name.theory)) parent_session_node
-      else Graph_Display.Node(name.theory, "theory." + name.theory)
+      if (parent_base.loaded_theory(name)) parent_session_node
+      else Graph_Display.Node(Long_Name.base_name(name.theory), "theory." + name.theory)
 
     (Graph_Display.empty_graph /: deps) {
       case (g, dep) =>
-        if (parent_loaded(dep.name.theory)) g
+        if (parent_base.loaded_theory(dep.name)) g
         else {
           val a = node(dep.name)
           val bs = dep.header.imports.map({ case (name, _) => node(name) })

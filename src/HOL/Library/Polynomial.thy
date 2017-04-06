@@ -103,7 +103,8 @@ instantiation poly :: (zero) zero
 begin
 
 lift_definition zero_poly :: "'a poly"
-  is "\<lambda>_. 0" by (rule MOST_I) simp
+  is "\<lambda>_. 0"
+  by (rule MOST_I) simp
 
 instance ..
 
@@ -377,11 +378,13 @@ next
   with Cons show ?case by auto
 qed
 
-lemma last_coeffs_not_0: "p \<noteq> 0 \<Longrightarrow> last (coeffs p) \<noteq> 0"
-  by (induct p) (auto simp add: cCons_def)
+lemma no_trailing_coeffs [simp]:
+  "no_trailing (HOL.eq 0) (coeffs p)"
+  by (induct p)  auto
 
-lemma strip_while_coeffs [simp]: "strip_while (HOL.eq 0) (coeffs p) = coeffs p"
-  by (cases "p = 0") (auto dest: last_coeffs_not_0 intro: strip_while_not_last)
+lemma strip_while_coeffs [simp]:
+  "strip_while (HOL.eq 0) (coeffs p) = coeffs p"
+  by simp
 
 lemma coeffs_eq_iff: "p = q \<longleftrightarrow> coeffs p = coeffs q"
   (is "?P \<longleftrightarrow> ?Q")
@@ -402,11 +405,12 @@ lemma [code]: "coeff p = nth_default 0 (coeffs p)"
 
 lemma coeffs_eqI:
   assumes coeff: "\<And>n. coeff p n = nth_default 0 xs n"
-  assumes zero: "xs \<noteq> [] \<Longrightarrow> last xs \<noteq> 0"
+  assumes zero: "no_trailing (HOL.eq 0) xs"
   shows "coeffs p = xs"
 proof -
-  from coeff have "p = Poly xs" by (simp add: poly_eq_iff)
-  with zero show ?thesis by simp (cases xs; simp)
+  from coeff have "p = Poly xs"
+    by (simp add: poly_eq_iff)
+  with zero show ?thesis by simp
 qed
 
 lemma degree_eq_length_coeffs [code]: "degree p = length (coeffs p) - 1"
@@ -737,28 +741,26 @@ proof -
   have *: "nth_default 0 (plus_coeffs xs ys) n = nth_default 0 xs n + nth_default 0 ys n"
     for xs ys :: "'a list" and n
   proof (induct xs ys arbitrary: n rule: plus_coeffs.induct)
-    case 3
-    then show ?case by (cases n) (auto simp: cCons_def)
+    case (3 x xs y ys n)
+    then show ?case
+      by (cases n) (auto simp add: cCons_def)
   qed simp_all
-  have **: "last (plus_coeffs xs ys) \<noteq> 0"
-    if "xs \<noteq> [] \<Longrightarrow> last xs \<noteq> 0" and "ys \<noteq> [] \<Longrightarrow> last ys \<noteq> 0" and "plus_coeffs xs ys \<noteq> []"
+  have **: "no_trailing (HOL.eq 0) (plus_coeffs xs ys)"
+    if "no_trailing (HOL.eq 0) xs" and "no_trailing (HOL.eq 0) ys"
     for xs ys :: "'a list"
-    using that
-  proof (induct xs ys rule: plus_coeffs.induct)
-    case 3
-    then show ?case by (auto simp add: cCons_def) metis
-  qed simp_all
+    using that by (induct xs ys rule: plus_coeffs.induct) (simp_all add: cCons_def)
   show ?thesis
-    apply (rule coeffs_eqI)
-     apply (simp add: * nth_default_coeffs_eq)
-    apply (rule **)
-      apply (auto dest: last_coeffs_not_0)
-    done
+    by (rule coeffs_eqI) (auto simp add: * nth_default_coeffs_eq intro: **)
 qed
 
-lemma coeffs_uminus [code abstract]: "coeffs (- p) = map (\<lambda>a. - a) (coeffs p)"
-  by (rule coeffs_eqI)
-    (simp_all add: not_0_coeffs_not_Nil last_map last_coeffs_not_0 nth_default_map_eq nth_default_coeffs_eq)
+lemma coeffs_uminus [code abstract]:
+  "coeffs (- p) = map uminus (coeffs p)"
+proof -
+  have eq_0: "HOL.eq 0 \<circ> uminus = HOL.eq (0::'a)"
+    by (simp add: fun_eq_iff)
+  show ?thesis
+    by (rule coeffs_eqI) (simp_all add: nth_default_map_eq nth_default_coeffs_eq no_trailing_map eq_0)
+qed
 
 lemma [code]: "p - q = p + - q"
   for p q :: "'a::ab_group_add poly"
@@ -885,9 +887,12 @@ lemma smult_eq_0_iff [simp]: "smult a p = 0 \<longleftrightarrow> a = 0 \<or> p 
 lemma coeffs_smult [code abstract]:
   "coeffs (smult a p) = (if a = 0 then [] else map (Groups.times a) (coeffs p))"
   for p :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
-  by (rule coeffs_eqI)
-    (auto simp add: not_0_coeffs_not_Nil last_map last_coeffs_not_0
-      nth_default_map_eq nth_default_coeffs_eq)
+proof -
+  have eq_0: "HOL.eq 0 \<circ> times a = HOL.eq (0::'a)" if "a \<noteq> 0"
+    using that by (simp add: fun_eq_iff)
+  show ?thesis
+    by (rule coeffs_eqI) (auto simp add: no_trailing_map nth_default_map_eq nth_default_coeffs_eq eq_0)
+qed  
 
 lemma smult_eq_iff:
   fixes b :: "'a :: field"
@@ -1120,16 +1125,15 @@ lemma coeffs_map_poly [code abstract]:
   "coeffs (map_poly f p) = strip_while (op = 0) (map f (coeffs p))"
   by (simp add: map_poly_def)
 
-lemma set_coeffs_map_poly:
-  "(\<And>x. f x = 0 \<longleftrightarrow> x = 0) \<Longrightarrow> set (coeffs (map_poly f p)) = f ` set (coeffs p)"
-  by (cases "p = 0") (auto simp: coeffs_map_poly last_map last_coeffs_not_0)
-
 lemma coeffs_map_poly':
   assumes "\<And>x. x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0"
   shows "coeffs (map_poly f p) = map f (coeffs p)"
-  by (cases "p = 0")
-    (auto simp: assms coeffs_map_poly last_map last_coeffs_not_0
-      intro!: strip_while_not_last split: if_splits)
+  using assms by (simp add: coeffs_map_poly no_trailing_map strip_while_idem_iff)
+    (metis comp_def no_leading_def no_trailing_coeffs)
+
+lemma set_coeffs_map_poly:
+  "(\<And>x. f x = 0 \<longleftrightarrow> x = 0) \<Longrightarrow> set (coeffs (map_poly f p)) = f ` set (coeffs p)"
+  by (simp add: coeffs_map_poly')
 
 lemma degree_map_poly:
   assumes "\<And>x. x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0"
@@ -2146,7 +2150,8 @@ lemma poly_shift_1: "poly_shift n 1 = (if n = 0 then 1 else 0)"
 lemma poly_shift_monom: "poly_shift n (monom c m) = (if m \<ge> n then monom c (m - n) else 0)"
   by (auto simp add: poly_eq_iff coeff_poly_shift)
 
-lemma coeffs_shift_poly [code abstract]: "coeffs (poly_shift n p) = drop n (coeffs p)"
+lemma coeffs_shift_poly [code abstract]:
+  "coeffs (poly_shift n p) = drop n (coeffs p)"
 proof (cases "p = 0")
   case True
   then show ?thesis by simp
@@ -2154,7 +2159,7 @@ next
   case False
   then show ?thesis
     by (intro coeffs_eqI)
-      (simp_all add: coeff_poly_shift nth_default_drop last_coeffs_not_0 nth_default_coeffs_eq)
+      (simp_all add: coeff_poly_shift nth_default_drop nth_default_coeffs_eq)
 qed
 
 
@@ -2192,7 +2197,7 @@ next
     unfolding no_trailing_unfold by auto
   then show ?thesis
     by (intro coeffs_eqI)
-      (simp_all add: coeff_poly_cutoff last_coeffs_not_0 nth_default_take nth_default_coeffs_eq)
+      (simp_all add: coeff_poly_cutoff nth_default_take nth_default_coeffs_eq)
 qed
 
 
@@ -2308,7 +2313,8 @@ lemma reflect_poly_prod_list: "reflect_poly (prod_list xs) = prod_list (map refl
   for xs :: "_::{comm_semiring_0,semiring_no_zero_divisors} poly list"
   by (induct xs) (simp_all add: reflect_poly_mult)
 
-lemma reflect_poly_Poly_nz: "xs \<noteq> [] \<Longrightarrow> last xs \<noteq> 0 \<Longrightarrow> reflect_poly (Poly xs) = Poly (rev xs)"
+lemma reflect_poly_Poly_nz:
+  "no_trailing (HOL.eq 0) xs \<Longrightarrow> reflect_poly (Poly xs) = Poly (rev xs)"
   by (simp add: reflect_poly_def)
 
 lemmas reflect_poly_simps =
@@ -4137,39 +4143,36 @@ proof (induct n arbitrary: r q)
   qed simp
 qed simp
 
-lemma pseudo_divmod_impl[code]: "pseudo_divmod (f::'a::comm_ring_1 poly) g =
-  map_prod poly_of_list poly_of_list (pseudo_divmod_list (coeffs f) (coeffs g))"
+lemma pseudo_divmod_impl [code]:
+  "pseudo_divmod f g = map_prod poly_of_list poly_of_list (pseudo_divmod_list (coeffs f) (coeffs g))"
+    for f g :: "'a::comm_ring_1 poly"
 proof (cases "g = 0")
   case False
-  then have coeffs_g_nonempty:"(coeffs g) \<noteq> []"
-    by simp
-  then have lastcoeffs: "last (coeffs g) = coeff g (degree g)"
-    by (simp add: hd_rev last_coeffs_eq_coeff_degree not_0_coeffs_not_Nil)
-  obtain q r where qr:
-    "pseudo_divmod_main_list
-      (last (coeffs g)) (rev [])
-      (rev (coeffs f)) (rev (coeffs g))
-      (1 + length (coeffs f) - length (coeffs g)) = (q, rev (rev r))"
+  then have "last (coeffs g) \<noteq> 0"
+    and "last (coeffs g) = lead_coeff g"
+    and "coeffs g \<noteq> []"
+    by (simp_all add: last_coeffs_eq_coeff_degree)
+  moreover obtain q r where qr: "pseudo_divmod_main_list
+    (last (coeffs g)) (rev [])
+    (rev (coeffs f)) (rev (coeffs g))
+    (1 + length (coeffs f) -
+    length (coeffs g)) = (q, rev (rev r))"
     by force
-  then have qr':
-    "pseudo_divmod_main_list
-      (hd (rev (coeffs g))) []
-      (rev (coeffs f)) (rev (coeffs g))
-      (1 + length (coeffs f) - length (coeffs g)) = (q, r)"
-    using hd_rev[OF coeffs_g_nonempty] by auto
-  from False have cg: "coeffs g = [] \<longleftrightarrow> False"
-    by auto
-  from False have last_non0: "last (coeffs g) \<noteq> 0"
-    by (simp add: last_coeffs_not_0)
-  from False show ?thesis
-    unfolding pseudo_divmod_def pseudo_divmod_list_def Let_def qr' map_prod_def split cg if_False
-    pseudo_divmod_main_list_invar[OF last_non0 _ _ qr,unfolded lastcoeffs,simplified,symmetric,OF False]
-    poly_of_list_def
-    by (auto simp: degree_eq_length_coeffs)
+  ultimately have "(Poly q, Poly (rev r)) = pseudo_divmod_main (lead_coeff g) 0 f g
+    (length (coeffs f) - Suc 0) (Suc (length (coeffs f)) - length (coeffs g))"
+    by (subst pseudo_divmod_main_list_invar [symmetric]) auto
+  moreover have "pseudo_divmod_main_list
+    (hd (rev (coeffs g))) []
+    (rev (coeffs f)) (rev (coeffs g))
+    (1 + length (coeffs f) -
+    length (coeffs g)) = (q, r)"
+    using qr hd_rev [OF \<open>coeffs g \<noteq> []\<close>] by simp
+  ultimately show ?thesis
+    by (auto simp: degree_eq_length_coeffs pseudo_divmod_def pseudo_divmod_list_def Let_def)
 next
   case True
   then show ?thesis
-    by (auto simp: pseudo_divmod_def pseudo_divmod_list_def)
+    by (auto simp add: pseudo_divmod_def pseudo_divmod_list_def)
 qed
 
 lemma pseudo_mod_main_list:

@@ -39,28 +39,28 @@ object Thy_Header extends Parse.Parser
 
   val bootstrap_header: Keywords =
     List(
-      ("%", Keyword.no_spec),
-      ("(", Keyword.no_spec),
-      (")", Keyword.no_spec),
-      (",", Keyword.no_spec),
-      ("::", Keyword.no_spec),
-      ("=", Keyword.no_spec),
-      (AND, Keyword.no_spec),
-      (BEGIN, Keyword.quasi_command_spec),
-      (IMPORTS, Keyword.quasi_command_spec),
-      (KEYWORDS, Keyword.quasi_command_spec),
-      (ABBREVS, Keyword.quasi_command_spec),
-      (CHAPTER, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
-      (SECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
-      (SUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
-      (SUBSUBSECTION, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
-      (PARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
-      (SUBPARAGRAPH, (((Keyword.DOCUMENT_HEADING, Nil), Nil))),
-      (TEXT, (((Keyword.DOCUMENT_BODY, Nil), Nil))),
-      (TXT, (((Keyword.DOCUMENT_BODY, Nil), Nil))),
-      (TEXT_RAW, (((Keyword.DOCUMENT_RAW, Nil), Nil))),
-      (THEORY, ((Keyword.THY_BEGIN, Nil), List("theory"))),
-      ("ML", ((Keyword.THY_DECL, Nil), List("ML"))))
+      ("%", Keyword.Spec.none),
+      ("(", Keyword.Spec.none),
+      (")", Keyword.Spec.none),
+      (",", Keyword.Spec.none),
+      ("::", Keyword.Spec.none),
+      ("=", Keyword.Spec.none),
+      (AND, Keyword.Spec.none),
+      (BEGIN, Keyword.Spec(Keyword.QUASI_COMMAND)),
+      (IMPORTS, Keyword.Spec(Keyword.QUASI_COMMAND)),
+      (KEYWORDS, Keyword.Spec(Keyword.QUASI_COMMAND)),
+      (ABBREVS, Keyword.Spec(Keyword.QUASI_COMMAND)),
+      (CHAPTER, Keyword.Spec(Keyword.DOCUMENT_HEADING)),
+      (SECTION, Keyword.Spec(Keyword.DOCUMENT_HEADING)),
+      (SUBSECTION, Keyword.Spec(Keyword.DOCUMENT_HEADING)),
+      (SUBSUBSECTION, Keyword.Spec(Keyword.DOCUMENT_HEADING)),
+      (PARAGRAPH, Keyword.Spec(Keyword.DOCUMENT_HEADING)),
+      (SUBPARAGRAPH, Keyword.Spec(Keyword.DOCUMENT_HEADING)),
+      (TEXT, Keyword.Spec(Keyword.DOCUMENT_BODY)),
+      (TXT, Keyword.Spec(Keyword.DOCUMENT_BODY)),
+      (TEXT_RAW, Keyword.Spec(Keyword.DOCUMENT_RAW)),
+      (THEORY, Keyword.Spec(Keyword.THY_BEGIN, tags = List("theory"))),
+      ("ML", Keyword.Spec(Keyword.THY_DECL, tags = List("ML"))))
 
   private val bootstrap_keywords =
     Keyword.Keywords.empty.add_keywords(bootstrap_header)
@@ -79,9 +79,6 @@ object Thy_Header extends Parse.Parser
 
   private val Base_Name = new Regex(""".*?([^/\\:]+)""")
   private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
-
-  def is_base_name(s: String): Boolean =
-    s != "" && !s.exists("/\\:".contains(_))
 
   def base_name(s: String): String =
     s match { case Base_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
@@ -114,12 +111,12 @@ object Thy_Header extends Parse.Parser
 
     val keyword_spec =
       atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
-      { case x ~ y ~ z => ((x, y), z) }
+      { case x ~ y ~ z => Keyword.Spec(x, y, z) }
 
     val keyword_decl =
       rep1(string) ~
       opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ^^
-      { case xs ~ y => xs.map((_, y.getOrElse(Keyword.no_spec))) }
+      { case xs ~ y => xs.map((_, y.getOrElse(Keyword.Spec.none))) }
 
     val keyword_decls =
       keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
@@ -192,7 +189,8 @@ sealed case class Thy_Header(
     val f = Symbol.decode _
     Thy_Header((f(name._1), name._2),
       imports.map({ case (a, b) => (f(a), b) }),
-      keywords.map({ case (a, ((b, c), d)) => (f(a), ((f(b), c.map(f)), d.map(f))) }),
+      keywords.map({ case (a, Keyword.Spec(b, c, d)) =>
+        (f(a), Keyword.Spec(f(b), c.map(f), d.map(f))) }),
       abbrevs.map({ case (a, b) => (f(a), f(b)) }))
   }
 }
