@@ -38,7 +38,7 @@ class Thy_Info(resources: Resources)
 
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Nil, Nil, Set.empty, Multi_Map.empty, Multi_Map.empty)
+    val empty = new Dependencies(Nil, Nil, Nil, Set.empty, Multi_Map.empty)
   }
 
   final class Dependencies private(
@@ -46,21 +46,19 @@ class Thy_Info(resources: Resources)
     val keywords: Thy_Header.Keywords,
     val abbrevs: Thy_Header.Abbrevs,
     val seen: Set[Document.Node.Name],
-    val seen_names: Multi_Map[String, Document.Node.Name],
-    val seen_positions: Multi_Map[String, Position.T])
+    val seen_theory: Multi_Map[String, (Document.Node.Name, Position.T)])
   {
     def :: (dep: Thy_Info.Dep): Dependencies =
       new Dependencies(
         dep :: rev_deps, dep.header.keywords ::: keywords, dep.header.abbrevs ::: abbrevs,
-        seen, seen_names, seen_positions)
+        seen, seen_theory)
 
     def + (thy: (Document.Node.Name, Position.T)): Dependencies =
     {
-      val (name, pos) = thy
+      val (name, _) = thy
       new Dependencies(rev_deps, keywords, abbrevs,
         seen + name,
-        seen_names + (name.theory -> name),
-        seen_positions + (name.theory -> pos))
+        seen_theory + (name.theory -> thy))
     }
 
     def deps: List[Thy_Info.Dep] = rev_deps.reverse
@@ -70,15 +68,14 @@ class Thy_Info(resources: Resources)
       val header_errors = deps.flatMap(dep => dep.header.errors)
       val import_errors =
         (for {
-          (theory, names) <- seen_names.iterator_list
+          (theory, imports) <- seen_theory.iterator_list
           if !resources.session_base.loaded_theories(theory)
-          if names.length > 1
-        } yield
+          if imports.length > 1
+        } yield {
           "Incoherent imports for theory " + quote(theory) + ":\n" +
-            cat_lines(names.flatMap(name =>
-              seen_positions.get_list(theory).map(pos =>
-                "  " + quote(name.node) + Position.here(pos))))
-        ).toList
+            cat_lines(imports.map({ case (name, pos) =>
+              "  " + quote(name.node) + Position.here(pos) }))
+        }).toList
       header_errors ::: import_errors
     }
 
@@ -120,7 +117,8 @@ class Thy_Info(resources: Resources)
         required_by(initiators) + Position.here(require_pos)
 
     val required1 = required + thy
-    if (required.seen(name) || resources.session_base.loaded_theory(name)) required1
+    if (required.seen(name)) required
+    else if (resources.session_base.loaded_theory(name)) required1
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
