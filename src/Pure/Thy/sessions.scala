@@ -57,99 +57,98 @@ object Sessions
       check_keywords: Set[String] = Set.empty,
       global_theories: Set[String] = Set.empty): Deps =
   {
-    Deps((Map.empty[String, Base] /: tree.topological_order)(
-      { case (sessions, (name, info)) =>
-          if (progress.stopped) throw Exn.Interrupt()
+    Deps((Map.empty[String, Base] /: tree.topological_order)({ case (sessions, (name, info)) =>
+        if (progress.stopped) throw Exn.Interrupt()
 
-          try {
-            val parent_base =
-              info.parent match {
-                case None => Base.bootstrap
-                case Some(parent) => sessions(parent)
-              }
-            val resources = new Resources(name, parent_base)
-
-            if (verbose || list_files) {
-              val groups =
-                if (info.groups.isEmpty) ""
-                else info.groups.mkString(" (", " ", ")")
-              progress.echo("Session " + info.chapter + "/" + name + groups)
+        try {
+          val parent_base =
+            info.parent match {
+              case None => Base.bootstrap
+              case Some(parent) => sessions(parent)
             }
+          val resources = new Resources(name, parent_base)
 
-            val thy_deps =
-            {
-              val root_theories =
-                info.theories.flatMap({ case (_, thys) =>
-                  thys.map(thy => (resources.import_name(info.dir.implode, thy), info.pos))
-                })
-              val thy_deps = resources.thy_info.dependencies(root_theories)
+          if (verbose || list_files) {
+            val groups =
+              if (info.groups.isEmpty) ""
+              else info.groups.mkString(" (", " ", ")")
+            progress.echo("Session " + info.chapter + "/" + name + groups)
+          }
 
-              thy_deps.errors match {
-                case Nil => thy_deps
-                case errs => error(cat_lines(errs))
-              }
-            }
-
-            val known_theories =
-              (parent_base.known_theories /: thy_deps.deps)({ case (known, dep) =>
-                val name = dep.name
-                known.get(name.theory) match {
-                  case Some(name1) if name != name1 =>
-                    error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-                  case _ =>
-                    known + (name.theory -> name) +
-                      (Long_Name.base_name(name.theory) -> name)  // legacy
-                }
+          val thy_deps =
+          {
+            val root_theories =
+              info.theories.flatMap({ case (_, thys) =>
+                thys.map(thy => (resources.import_name(info.dir.implode, thy), info.pos))
               })
+            val thy_deps = resources.thy_info.dependencies(root_theories)
 
-            val loaded_theories = thy_deps.loaded_theories
-            val keywords = thy_deps.keywords
-            val syntax = thy_deps.syntax
+            thy_deps.errors match {
+              case Nil => thy_deps
+              case errs => error(cat_lines(errs))
+            }
+          }
 
-            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
-            val loaded_files =
-              if (inlined_files) {
-                val pure_files =
-                  if (is_pure(name)) {
-                    val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
-                    val files =
-                      roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
-                        map(file => info.dir + Path.explode(file))
-                    roots ::: files
-                  }
-                  else Nil
-                pure_files ::: thy_deps.loaded_files
+          val known_theories =
+            (parent_base.known_theories /: thy_deps.deps)({ case (known, dep) =>
+              val name = dep.name
+              known.get(name.theory) match {
+                case Some(name1) if name != name1 =>
+                  error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+                case _ =>
+                  known + (name.theory -> name) +
+                    (Long_Name.base_name(name.theory) -> name)  // legacy
               }
-              else Nil
+            })
 
-            val all_files =
-              (theory_files ::: loaded_files :::
-                info.files.map(file => info.dir + file) :::
-                info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
+          val loaded_theories = thy_deps.loaded_theories
+          val keywords = thy_deps.keywords
+          val syntax = thy_deps.syntax
 
-            if (list_files)
-              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+          val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
+          val loaded_files =
+            if (inlined_files) {
+              val pure_files =
+                if (is_pure(name)) {
+                  val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
+                  val files =
+                    roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
+                      map(file => info.dir + Path.explode(file))
+                  roots ::: files
+                }
+                else Nil
+              pure_files ::: thy_deps.loaded_files
+            }
+            else Nil
 
-            if (check_keywords.nonEmpty)
-              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
+          val all_files =
+            (theory_files ::: loaded_files :::
+              info.files.map(file => info.dir + file) :::
+              info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
-            val base =
-              Base(global_theories = global_theories,
-                loaded_theories = loaded_theories,
-                known_theories = known_theories,
-                keywords = keywords,
-                syntax = syntax,
-                sources = all_files.map(p => (p, SHA1.digest(p.file))),
-                session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
+          if (list_files)
+            progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
 
-            sessions + (name -> base)
-          }
-          catch {
-            case ERROR(msg) =>
-              cat_error(msg, "The error(s) above occurred in session " +
-                quote(name) + Position.here(info.pos))
-          }
-      }))
+          if (check_keywords.nonEmpty)
+            Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
+
+          val base =
+            Base(global_theories = global_theories,
+              loaded_theories = loaded_theories,
+              known_theories = known_theories,
+              keywords = keywords,
+              syntax = syntax,
+              sources = all_files.map(p => (p, SHA1.digest(p.file))),
+              session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
+
+          sessions + (name -> base)
+        }
+        catch {
+          case ERROR(msg) =>
+            cat_error(msg, "The error(s) above occurred in session " +
+              quote(name) + Position.here(info.pos))
+        }
+    }))
   }
 
   def session_base(options: Options, session: String, dirs: List[Path] = Nil): Base =
