@@ -12,7 +12,6 @@ object profile extends isabelle.CI_Profile
   def pre_hook(args: List[String]) = {}
   def post_hook(results: Build.Results) = {}
 
-  def select_sessions(sessions: Sessions.T) =
-    sessions.selection(session_groups = List("timing"))
+  def selection = Sessions.Selection(session_groups = List("timing"))
 
 }

@@ -19,7 +19,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     val progress = new Console_Progress(verbose = true)
     val start_time = Time.now()
     val results = progress.interrupt_handler {
-      Build.build_selection(
+      Build.build(
         options = options,
         progress = progress,
         clean_build = clean,
@@ -28,7 +28,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         dirs = include,
         select_dirs = select,
         system_mode = true,
-        selection = select_sessions _)
+        selection = selection)
     }
     val end_time = Time.now()
     (results, end_time - start_time)
@@ -146,5 +146,5 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   def pre_hook(args: List[String]): Unit
   def post_hook(results: Build.Results): Unit
 
-  def select_sessions(sessions: Sessions.T): (List[String], Sessions.T)
+  def selection: Sessions.Selection
 }

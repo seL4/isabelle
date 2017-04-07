@@ -65,7 +65,7 @@ object Build
 
     def apply(sessions: Sessions.T, store: Sessions.Store): Queue =
     {
-      val graph = sessions.graph
+      val graph = sessions.build_graph
       val names = graph.keys
 
       val timings = names.map(name => (name, load_timings(store, name)))
@@ -204,11 +204,13 @@ object Build
               pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
-                list(pair(Options.encode, list(string))))))))))))))(
+                pair(list(pair(Options.encode, list(string))),
+                list(pair(string, string))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
-                info.theories))))))))))))
+                (info.theories,
+                deps(name).dest_known_theories)))))))))))))
             })
 
         val env =
@@ -351,51 +353,20 @@ object Build
     exclude_session_groups: List[String] = Nil,
     exclude_sessions: List[String] = Nil,
     session_groups: List[String] = Nil,
-    sessions: List[String] = Nil): Results =
-  {
-    build_selection(
-      options = options,
-      progress = progress,
-      build_heap = build_heap,
-      clean_build = clean_build,
-      dirs = dirs,
-      select_dirs = select_dirs,
-      numa_shuffling = numa_shuffling,
-      max_jobs = max_jobs,
-      list_files = list_files,
-      check_keywords = check_keywords,
-      no_build = no_build,
-      system_mode = system_mode,
-      verbose = verbose,
-      pide = pide,
-      selection = { full_sessions =>
-        full_sessions.selection(requirements, all_sessions,
-          exclude_session_groups, exclude_sessions, session_groups, sessions) })
-  }
-
-  def build_selection(
-      options: Options,
-      progress: Progress = No_Progress,
-      build_heap: Boolean = false,
-      clean_build: Boolean = false,
-      dirs: List[Path] = Nil,
-      select_dirs: List[Path] = Nil,
-      numa_shuffling: Boolean = false,
-      max_jobs: Int = 1,
-      list_files: Boolean = false,
-      check_keywords: Set[String] = Set.empty,
-      no_build: Boolean = false,
-      system_mode: Boolean = false,
-      verbose: Boolean = false,
-      pide: Boolean = false,
-      selection: Sessions.T => (List[String], Sessions.T) = (_.selection(all_sessions = true))
-    ): Results =
+    sessions: List[String] = Nil,
+    selection: Sessions.Selection = Sessions.Selection.empty): Results =
   {
     /* session selection and dependencies */
 
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
+
     val full_sessions = Sessions.load(build_options, dirs, select_dirs)
-    val (selected, selected_sessions) = selection(full_sessions)
+
+    val (selected, selected_sessions) =
+      full_sessions.selection(
+          Sessions.Selection(requirements, all_sessions, exclude_session_groups,
+            exclude_sessions, session_groups, sessions) + selection)
+
     val deps =
       Sessions.deps(selected_sessions, progress = progress, inlined_files = true,
         verbose = verbose, list_files = list_files, check_keywords = check_keywords,
@@ -414,7 +385,7 @@ object Build
 
     // optional cleanup
     if (clean_build) {
-      for (name <- full_sessions.graph.all_succs(selected)) {
+      for (name <- full_sessions.build_descendants(selected)) {
         val files =
           List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
@@ -520,7 +491,7 @@ object Build
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
-                val ancestor_results = selected_sessions.ancestors(name).map(results(_))
+                val ancestor_results = selected_sessions.build_ancestors(name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)

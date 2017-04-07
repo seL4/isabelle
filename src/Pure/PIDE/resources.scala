@@ -74,15 +74,14 @@ class Resources(
       if (Long_Name.is_qualified(theory0) || session_base.global_theories.contains(theory0)) theory0
       else Long_Name.qualify(session_name, theory0)
 
-    session_base.known_theories.get(theory) orElse session_base.known_theories.get(theory0) match
-    {
-      case Some(name) if session_base.loaded_theory(name) => name.loaded_theory
-      case Some(name) => name
-      case None =>
-        val path = Path.explode(s)
-        val node = append(dir, thy_path(path))
-        val master_dir = append(dir, path.dir)
-        Document.Node.Name(node, master_dir, theory)
+    session_base.loaded_theories.get(theory) orElse
+    session_base.loaded_theories.get(theory0) orElse
+    session_base.known_theories.get(theory) orElse
+    session_base.known_theories.get(theory0) getOrElse {
+      val path = Path.explode(s)
+      val node = append(dir, thy_path(path))
+      val master_dir = append(dir, path.dir)
+      Document.Node.Name(node, master_dir, theory)
     }
   }
 

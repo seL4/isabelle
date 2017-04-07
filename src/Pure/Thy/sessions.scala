@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/sessions.scala
     Author:     Makarius
 
-Isabelle session information.
+Cumulative session information.
 */
 
 package isabelle
@@ -27,11 +27,28 @@ object Sessions
 
     lazy val bootstrap: Base =
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
+
+    private[Sessions] def known_theories(bases: Iterable[Base], names: Iterable[Document.Node.Name])
+      : Map[String, Document.Node.Name] =
+    {
+      val bases_iterator =
+        for { base <- bases.iterator; (_, name) <- base.known_theories.iterator }
+          yield name
+
+      (Map.empty[String, Document.Node.Name] /: (bases_iterator ++ names.iterator))({
+        case (known, name) =>
+          known.get(name.theory) match {
+            case Some(name1) if name != name1 =>
+              error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+            case _ => known + (name.theory -> name)
+          }
+        })
+    }
   }
 
   sealed case class Base(
     global_theories: Set[String] = Set.empty,
-    loaded_theories: Set[String] = Set.empty,
+    loaded_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
     keywords: Thy_Header.Keywords = Nil,
     syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -39,7 +56,11 @@ object Sessions
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
   {
     def loaded_theory(name: Document.Node.Name): Boolean =
-      loaded_theories.contains(name.theory)
+      loaded_theories.isDefinedAt(name.theory)
+
+    def dest_known_theories: List[(String, String)] =
+      for ((theory, node_name) <- known_theories.toList)
+        yield (theory, node_name.node)
   }
 
   sealed case class Deps(sessions: Map[String, Base])
@@ -47,6 +68,9 @@ object Sessions
     def is_empty: Boolean = sessions.isEmpty
     def apply(name: String): Base = sessions(name)
     def sources(name: String): List[SHA1.Digest] = sessions(name).sources.map(_._2)
+
+    def all_known_theories: Map[String, Document.Node.Name] =
+      Base.known_theories(sessions.toList.map(_._2), Nil)
   }
 
   def deps(sessions: T,
@@ -57,8 +81,8 @@ object Sessions
       check_keywords: Set[String] = Set.empty,
       global_theories: Set[String] = Set.empty): Deps =
   {
-    Deps((Map.empty[String, Base] /: sessions.topological_order)({
-      case (sessions, (name, info)) =>
+    Deps((Map.empty[String, Base] /: sessions.imports_topological_order)({
+      case (sessions, (session_name, info)) =>
         if (progress.stopped) throw Exn.Interrupt()
 
         try {
@@ -67,13 +91,13 @@ object Sessions
               case None => Base.bootstrap
               case Some(parent) => sessions(parent)
             }
-          val resources = new Resources(name, parent_base)
+          val resources = new Resources(session_name, parent_base)
 
           if (verbose || list_files) {
             val groups =
               if (info.groups.isEmpty) ""
               else info.groups.mkString(" (", " ", ")")
-            progress.echo("Session " + info.chapter + "/" + name + groups)
+            progress.echo("Session " + info.chapter + "/" + session_name + groups)
           }
 
           val thy_deps =
@@ -90,27 +114,13 @@ object Sessions
             }
           }
 
-          val known_theories =
-            (parent_base.known_theories /: thy_deps.deps)({ case (known, dep) =>
-              val name = dep.name
-              known.get(name.theory) match {
-                case Some(name1) if name != name1 =>
-                  error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-                case _ =>
-                  known + (name.theory -> name) +
-                    (Long_Name.base_name(name.theory) -> name)  // legacy
-              }
-            })
-
-          val loaded_theories = thy_deps.loaded_theories
-          val keywords = thy_deps.keywords
           val syntax = thy_deps.syntax
 
           val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
           val loaded_files =
             if (inlined_files) {
               val pure_files =
-                if (is_pure(name)) {
+                if (is_pure(session_name)) {
                   val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
                   val files =
                     roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
@@ -135,29 +145,41 @@ object Sessions
 
           val base =
             Base(global_theories = global_theories,
-              loaded_theories = loaded_theories,
-              known_theories = known_theories,
-              keywords = keywords,
+              loaded_theories = thy_deps.loaded_theories,
+              known_theories =
+                Base.known_theories(
+                  parent_base :: info.imports.map(sessions(_)), thy_deps.deps.map(_.name)),
+              keywords = thy_deps.keywords,
               syntax = syntax,
               sources = all_files.map(p => (p, SHA1.digest(p.file))),
               session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
 
-          sessions + (name -> base)
+          sessions + (session_name -> base)
         }
         catch {
           case ERROR(msg) =>
             cat_error(msg, "The error(s) above occurred in session " +
-              quote(name) + Position.here(info.pos))
+              quote(session_name) + Position.here(info.pos))
         }
     }))
   }
 
-  def session_base(options: Options, session: String, dirs: List[Path] = Nil): Base =
+  def session_base(
+    options: Options,
+    session: String,
+    dirs: List[Path] = Nil,
+    all_known_theories: Boolean = false): Base =
   {
     val full_sessions = load(options, dirs = dirs)
-    val (_, selected_sessions) = full_sessions.selection(sessions = List(session))
+    val global_theories = full_sessions.global_theories
+    val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
 
-    deps(selected_sessions, global_theories = full_sessions.global_theories)(session)
+    if (all_known_theories) {
+      val deps = Sessions.deps(full_sessions, global_theories = global_theories)
+      deps(session).copy(known_theories = deps.all_known_theories)
+    }
+    else
+      deps(selected_sessions, global_theories = global_theories)(session)
   }
 
 
@@ -172,6 +194,7 @@ object Sessions
     parent: Option[String],
     description: String,
     options: Options,
+    imports: List[String],
     theories: List[(Options, List[String])],
     global_theories: List[String],
     files: List[Path],
@@ -181,62 +204,32 @@ object Sessions
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
   }
 
-  def make(infos: Traversable[(String, Info)]): T =
+  object Selection
   {
-    val graph1 =
-      (Graph.string[Info] /: infos) {
-        case (graph, (name, info)) =>
-          if (graph.defined(name))
-            error("Duplicate session " + quote(name) + Position.here(info.pos) +
-              Position.here(graph.get_node(name).pos))
-          else graph.new_node(name, info)
-      }
-    val graph2 =
-      (graph1 /: graph1.iterator) {
-        case (graph, (name, (info, _))) =>
-          info.parent match {
-            case None => graph
-            case Some(parent) =>
-              if (!graph.defined(parent))
-                error("Bad parent session " + quote(parent) + " for " +
-                  quote(name) + Position.here(info.pos))
-
-              try { graph.add_edge_acyclic(parent, name) }
-              catch {
-                case exn: Graph.Cycles[_] =>
-                  error(cat_lines(exn.cycles.map(cycle =>
-                    "Cyclic session dependency of " +
-                      cycle.map(c => quote(c.toString)).mkString(" via "))) +
-                        Position.here(info.pos))
-              }
-          }
-      }
-
-    new T(graph2)
+    val empty: Selection = Selection()
   }
 
-  final class T private[Sessions](val graph: Graph[String, Info])
-    extends PartialFunction[String, Info]
+  sealed case class Selection(
+    requirements: Boolean = false,
+    all_sessions: Boolean = false,
+    exclude_session_groups: List[String] = Nil,
+    exclude_sessions: List[String] = Nil,
+    session_groups: List[String] = Nil,
+    sessions: List[String] = Nil)
   {
-    def apply(name: String): Info = graph.get_node(name)
-    def isDefinedAt(name: String): Boolean = graph.defined(name)
+    def + (other: Selection): Selection =
+      Selection(
+        requirements = requirements || other.requirements,
+        all_sessions = all_sessions || other.all_sessions,
+        exclude_session_groups = exclude_session_groups ::: other.exclude_session_groups,
+        exclude_sessions = exclude_sessions ::: other.exclude_sessions,
+        session_groups = session_groups ::: other.session_groups,
+        sessions = sessions ::: other.sessions)
 
-    def global_theories: Set[String] =
-      (for {
-        (_, (info, _)) <- graph.iterator
-        name <- info.global_theories.iterator }
-       yield name).toSet
-
-    def selection(
-      requirements: Boolean = false,
-      all_sessions: Boolean = false,
-      exclude_session_groups: List[String] = Nil,
-      exclude_sessions: List[String] = Nil,
-      session_groups: List[String] = Nil,
-      sessions: List[String] = Nil): (List[String], T) =
+    def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
     {
       val bad_sessions =
-        SortedSet((exclude_sessions ::: sessions).filterNot(isDefinedAt(_)): _*).toList
+        SortedSet((exclude_sessions ::: sessions).filterNot(graph.defined(_)): _*).toList
       if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
 
       val excluded =
@@ -245,7 +238,7 @@ object Sessions
         val exclude_group_sessions =
           (for {
             (name, (info, _)) <- graph.iterator
-            if apply(name).groups.exists(exclude_group)
+            if graph.get_node(name).groups.exists(exclude_group)
           } yield name).toList
         graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
       }
@@ -258,7 +251,7 @@ object Sessions
           val select = sessions.toSet
           (for {
             (name, (info, _)) <- graph.iterator
-            if info.select || select(name) || apply(name).groups.exists(select_group)
+            if info.select || select(name) || graph.get_node(name).groups.exists(select_group)
           } yield name).toList
         }
       }.filterNot(excluded)
@@ -267,17 +260,89 @@ object Sessions
         if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
         else pre_selected
 
-      val graph1 = graph.restrict(graph.all_preds(selected).toSet)
-      (selected, new T(graph1))
+      (selected, graph.restrict(graph.all_preds(selected).toSet))
+    }
+  }
+
+  def make(infos: Traversable[(String, Info)]): T =
+  {
+    def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])
+      : Graph[String, Info] =
+    {
+      def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) =
+      {
+        if (!g.defined(parent))
+          error("Bad " + kind + " session " + quote(parent) + " for " +
+            quote(name) + Position.here(pos))
+
+        try { g.add_edge_acyclic(parent, name) }
+        catch {
+          case exn: Graph.Cycles[_] =>
+            error(cat_lines(exn.cycles.map(cycle =>
+              "Cyclic session dependency of " +
+                cycle.map(c => quote(c.toString)).mkString(" via "))) + Position.here(pos))
+        }
+      }
+      (graph /: graph.iterator) {
+        case (g, (name, (info, _))) => (g /: edges(info))(add_edge(info.pos, name, _, _))
+      }
     }
 
-    def ancestors(name: String): List[String] =
-      graph.all_preds(List(name)).tail.reverse
+    val graph0 =
+      (Graph.string[Info] /: infos) {
+        case (graph, (name, info)) =>
+          if (graph.defined(name))
+            error("Duplicate session " + quote(name) + Position.here(info.pos) +
+              Position.here(graph.get_node(name).pos))
+          else graph.new_node(name, info)
+      }
+    val graph1 = add_edges(graph0, "parent", _.parent)
+    val graph2 = add_edges(graph1, "imports", _.imports)
 
-    def topological_order: List[(String, Info)] =
-      graph.topological_order.map(name => (name, apply(name)))
+    new T(graph1, graph2)
+  }
 
-    override def toString: String = graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
+  final class T private[Sessions](
+      val build_graph: Graph[String, Info],
+      val imports_graph: Graph[String, Info])
+  {
+    def apply(name: String): Info = imports_graph.get_node(name)
+    def get(name: String): Option[Info] =
+      if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
+
+    def global_theories: Set[String] =
+      (Set.empty[String] /:
+        (for {
+          (_, (info, _)) <- imports_graph.iterator
+          thy <- info.global_theories.iterator }
+         yield (thy, info.pos)))(
+          { case (set, (thy, pos)) =>
+             if (set.contains(thy))
+               error("Duplicate declaration of global theory " + quote(thy) + Position.here(pos))
+             else set + thy
+           })
+
+    def selection(select: Selection): (List[String], T) =
+    {
+      val (_, build_graph1) = select(build_graph)
+      val (selected, imports_graph1) = select(imports_graph)
+      (selected, new T(build_graph1, imports_graph1))
+    }
+
+    def build_ancestors(name: String): List[String] =
+      build_graph.all_preds(List(name)).tail.reverse
+
+    def build_descendants(names: List[String]): List[String] =
+      build_graph.all_succs(names)
+
+    def build_topological_order: List[(String, Info)] =
+      build_graph.topological_order.map(name => (name, apply(name)))
+
+    def imports_topological_order: List[(String, Info)] =
+      imports_graph.topological_order.map(name => (name, apply(name)))
+
+    override def toString: String =
+      imports_graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
   }
 
 
@@ -291,6 +356,7 @@ object Sessions
   private val IN = "in"
   private val DESCRIPTION = "description"
   private val OPTIONS = "options"
+  private val SESSIONS = "sessions"
   private val THEORIES = "theories"
   private val GLOBAL = "global"
   private val FILES = "files"
@@ -302,6 +368,7 @@ object Sessions
       (SESSION, Keyword.THY_DECL) +
       (DESCRIPTION, Keyword.QUASI_COMMAND) +
       (OPTIONS, Keyword.QUASI_COMMAND) +
+      (SESSIONS, Keyword.QUASI_COMMAND) +
       (THEORIES, Keyword.QUASI_COMMAND) +
       (FILES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_FILES, Keyword.QUASI_COMMAND)
@@ -318,6 +385,7 @@ object Sessions
       parent: Option[String],
       description: String,
       options: List[Options.Spec],
+      imports: List[String],
       theories: List[(List[Options.Spec], List[(String, Boolean)])],
       files: List[String],
       document_files: List[(String, String)]) extends Entry
@@ -363,11 +431,12 @@ object Sessions
             (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
               (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
+              (($$$(SESSIONS) ~! rep(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep1(theories) ~
               (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j) }
     }
 
     def parse(options: Options, select: Boolean, dir: Path): List[(String, Info)] =
@@ -401,12 +470,12 @@ object Sessions
 
           val meta_digest =
             SHA1.digest((entry_chapter, name, entry.parent, entry.options,
-              entry.theories, entry.files, entry.document_files).toString)
+              entry.imports, entry.theories, entry.files, entry.document_files).toString)
 
           val info =
             Info(entry_chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
-              entry.parent, entry.description, session_options, theories, global_theories,
-              files, document_files, meta_digest)
+              entry.parent, entry.description, session_options, entry.imports, theories,
+              global_theories, files, document_files, meta_digest)
 
           (name, info)
         }

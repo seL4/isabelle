@@ -46,6 +46,12 @@ object ML_Syntax
     quote(UTF8.bytes(str).iterator.map(print_chr(_)).mkString)
 
 
+  /* pair */
+
+  def print_pair[A, B](f: A => String, g: B => String)(pair: (A, B)): String =
+    "(" + f(pair._1) + ", " + g(pair._2) + ")"
+
+
   /* list */
 
   def print_list[A](f: A => String)(list: List[A]): String =

@@ -24,15 +24,17 @@ object ML_Process
     cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None,
     sessions: Option[Sessions.T] = None,
+    session_base: Option[Sessions.Base] = None,
     store: Sessions.Store = Sessions.store()): Bash.Process =
   {
     val logic_name = Isabelle_System.default_logic(logic)
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
+        val selection = Sessions.Selection(sessions = List(logic_name))
         val (_, selected_sessions) =
-          sessions.getOrElse(Sessions.load(options, dirs)).selection(sessions = List(logic_name))
-        (selected_sessions.ancestors(logic_name) ::: List(logic_name)).
+          sessions.getOrElse(Sessions.load(options, dirs)).selection(selection)
+        (selected_sessions.build_ancestors(logic_name) ::: List(logic_name)).
           map(a => File.platform_path(store.heap(a)))
       }
 
@@ -88,6 +90,18 @@ object ML_Process
     val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
+    // session base
+    val eval_session_base =
+      session_base match {
+        case None => Nil
+        case Some(base) =>
+          List("Resources.set_session_base {known_theories = " +
+            ML_Syntax.print_list(
+              ML_Syntax.print_pair(
+                ML_Syntax.print_string, ML_Syntax.print_string))(base.dest_known_theories) + "}")
+      }
+
+    // process
     val eval_process =
       if (heaps.isEmpty)
         List("PolyML.print_depth " + ML_Syntax.print_int(options.int("ML_print_depth")))
@@ -113,7 +127,7 @@ object ML_Process
     // bash
     val bash_args =
       ml_runtime_options :::
-      (eval_init ::: eval_modes ::: eval_options ::: eval_process).
+      (eval_init ::: eval_modes ::: eval_options ::: eval_session_base ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
     Bash.process(
