@@ -290,10 +290,16 @@ object Sessions
       if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
 
     def global_theories: Set[String] =
-      (for {
-        (_, (info, _)) <- imports_graph.iterator
-        name <- info.global_theories.iterator }
-       yield name).toSet
+      (Set.empty[String] /:
+        (for {
+          (_, (info, _)) <- imports_graph.iterator
+          thy <- info.global_theories.iterator }
+         yield (thy, info.pos)))(
+          { case (set, (thy, pos)) =>
+             if (set.contains(thy))
+               error("Duplicate declaration of global theory " + quote(thy) + Position.here(pos))
+             else set + thy
+           })
 
     def selection(select: Selection): (List[String], T) =
     {
