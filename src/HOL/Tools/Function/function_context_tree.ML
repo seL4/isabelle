@@ -16,7 +16,7 @@ sig
   val cong_add: attribute
   val cong_del: attribute
 
-  val mk_tree: (string * typ) -> term -> Proof.context -> term -> ctx_tree
+  val mk_tree: term -> term -> Proof.context -> term -> ctx_tree
 
   val inst_tree: Proof.context -> term -> term -> ctx_tree -> ctx_tree
 
@@ -114,7 +114,7 @@ fun find_cong_rule ctxt fvar h ((r,dep)::rs) t =
      (let
         val thy = Proof_Context.theory_of ctxt
 
-        val tt' = Logic.mk_equals (Pattern.rewrite_term thy [(Free fvar, h)] [] t, t)
+        val tt' = Logic.mk_equals (Pattern.rewrite_term thy [(fvar, h)] [] t, t)
         val (c, subs) = (Thm.concl_of r, Thm.prems_of r)
 
         val subst = Pattern.match thy (c, tt') (Vartab.empty, Vartab.empty)
@@ -135,14 +135,14 @@ fun mk_tree fvar h ctxt t =
     (* FIXME: Save in theory: *)
     val congs_deps = map (fn c => (c, cong_deps c)) (congs @ default_congs)
 
-    fun matchcall (a $ b) = if a = Free fvar then SOME b else NONE
+    fun matchcall (a $ b) = if a = fvar then SOME b else NONE
       | matchcall _ = NONE
 
     fun mk_tree' ctxt t =
       case matchcall t of
         SOME arg => RCall (t, mk_tree' ctxt arg)
       | NONE =>
-        if not (exists_subterm (fn Free v => v = fvar | _ => false) t) then Leaf t
+        if not (exists_subterm (fn v => v = fvar) t) then Leaf t
         else
           let
             val (r, dep, branches) = find_cong_rule ctxt fvar h congs_deps t
