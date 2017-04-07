@@ -1,4 +1,4 @@
-(*  Title:      HOL/Algebra/More_Group.thy
+(*  Title:      HOL/Algebra/More_Ring.thy
     Author:     Jeremy Avigad
 *)
 

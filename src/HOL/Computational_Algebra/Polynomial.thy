@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Polynomial.thy
+(*  Title:      HOL/Computational_Algebra/Polynomial.thy
     Author:     Brian Huffman
     Author:     Clemens Ballarin
     Author:     Amine Chaieb

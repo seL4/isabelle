@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Field_as_Ring.thy
+(*  Title:      HOL/Computational_Algebra/Field_as_Ring.thy
     Author:     Manuel Eberl
 *)
 

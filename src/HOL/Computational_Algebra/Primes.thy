@@ -1,9 +1,13 @@
-(*  Authors:    Christophe Tabacznyj, Lawrence C. Paulson, Amine Chaieb,
-                Thomas M. Rasmussen, Jeremy Avigad, Tobias Nipkow, 
-                Manuel Eberl
+(*  Title:      HOL/Computational_Algebra/Primes.thy
+    Author:     Christophe Tabacznyj
+    Author:     Lawrence C. Paulson
+    Author:     Amine Chaieb
+    Author:     Thomas M. Rasmussen
+    Author:     Jeremy Avigad
+    Author:     Tobias Nipkow
+    Author:     Manuel Eberl
 
-
-This file deals with properties of primes. Definitions and lemmas are
+This theory deals with properties of primes. Definitions and lemmas are
 proved uniformly for the natural numbers and integers.
 
 This file combines and revises a number of prior developments.
@@ -31,7 +35,6 @@ other rings, such as polynomials. (see also the Factorial_Ring theory).
 There were also previous formalisations of unique factorisation by 
 Thomas Marthedal Rasmussen, Jeremy Avigad, and David Gray.
 *)
-
 
 section \<open>Primes\<close>
 

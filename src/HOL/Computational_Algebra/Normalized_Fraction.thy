@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Normalized_Fraction.thy
+(*  Title:      HOL/Computational_Algebra/Normalized_Fraction.thy
     Author:     Manuel Eberl
 *)
 

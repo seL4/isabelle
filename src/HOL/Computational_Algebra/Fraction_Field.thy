@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Fraction_Field.thy
+(*  Title:      HOL/Computational_Algebra/Fraction_Field.thy
     Author:     Amine Chaieb, University of Cambridge
 *)
 

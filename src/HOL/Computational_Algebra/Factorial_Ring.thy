@@ -1,4 +1,4 @@
-(*  Title:      HOL/Number_Theory/Factorial_Ring.thy
+(*  Title:      HOL/Computational_Algebra/Factorial_Ring.thy
     Author:     Manuel Eberl, TU Muenchen
     Author:     Florian Haftmann, TU Muenchen
 *)

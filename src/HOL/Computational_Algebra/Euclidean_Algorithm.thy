@@ -1,4 +1,4 @@
-(*  Title:      HOL/Number_Theory/Euclidean_Algorithm.thy
+(*  Title:      HOL/Computational_Algebra/Euclidean_Algorithm.thy
     Author:     Manuel Eberl, TU Muenchen
 *)
 

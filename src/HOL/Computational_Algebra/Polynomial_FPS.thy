@@ -1,7 +1,5 @@
-(*  Title:      HOL/Library/Polynomial_FPS.thy
+(*  Title:      HOL/Computational_Algebra/Polynomial_FPS.thy
     Author:     Manuel Eberl, TU München
-  
-Converting polynomials to formal power series.
 *)
 
 section \<open>Converting polynomials to formal power series\<close>

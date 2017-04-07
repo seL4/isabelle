@@ -1,4 +1,4 @@
-(*  Title:      HOL/Number_Theory/Quadratic_Reciprocity.thy
+(*  Title:      HOL/Number_Theory/Gauss.thy
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 
 Ported by lcp but unfinished.

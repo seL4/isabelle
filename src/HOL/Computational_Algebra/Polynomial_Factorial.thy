@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Polynomial_Factorial.thy
+(*  Title:      HOL/Computational_Algebra/Polynomial_Factorial.thy
     Author:     Brian Huffman
     Author:     Clemens Ballarin
     Author:     Amine Chaieb

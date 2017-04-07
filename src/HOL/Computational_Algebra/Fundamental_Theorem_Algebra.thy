@@ -1,4 +1,6 @@
-(* Author: Amine Chaieb, TU Muenchen *)
+(*  Title:      HOL/Computational_Algebra/Fundamental_Theorem_Algebra.thy
+    Author:     Amine Chaieb, TU Muenchen
+*)
 
 section \<open>Fundamental Theorem of Algebra\<close>
 
