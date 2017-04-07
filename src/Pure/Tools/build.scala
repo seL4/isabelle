@@ -368,9 +368,9 @@ object Build
       system_mode = system_mode,
       verbose = verbose,
       pide = pide,
-      selection = { full_sessions =>
-        full_sessions.selection(requirements, all_sessions,
-          exclude_session_groups, exclude_sessions, session_groups, sessions) })
+      selection =
+        Sessions.Selection(requirements, all_sessions,
+          exclude_session_groups, exclude_sessions, session_groups, sessions))
   }
 
   def build_selection(
@@ -388,14 +388,13 @@ object Build
       system_mode: Boolean = false,
       verbose: Boolean = false,
       pide: Boolean = false,
-      selection: Sessions.T => (List[String], Sessions.T) = (_.selection(all_sessions = true))
-    ): Results =
+      selection: Sessions.Selection = Sessions.Selection.all): Results =
   {
     /* session selection and dependencies */
 
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
     val full_sessions = Sessions.load(build_options, dirs, select_dirs)
-    val (selected, selected_sessions) = selection(full_sessions)
+    val (selected, selected_sessions) = full_sessions.selection(selection)
     val deps =
       Sessions.deps(selected_sessions, progress = progress, inlined_files = true,
         verbose = verbose, list_files = list_files, check_keywords = check_keywords,

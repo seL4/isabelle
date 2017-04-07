@@ -155,7 +155,8 @@ object Sessions
   def session_base(options: Options, session: String, dirs: List[Path] = Nil): Base =
   {
     val full_sessions = load(options, dirs = dirs)
-    val (_, selected_sessions) = full_sessions.selection(sessions = List(session))
+    val (_, selected_sessions) =
+      full_sessions.selection(Selection(sessions = List(session)))
 
     deps(selected_sessions, global_theories = full_sessions.global_theories)(session)
   }
@@ -179,6 +180,57 @@ object Sessions
     meta_digest: SHA1.Digest)
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
+  }
+
+  object Selection
+  {
+    val all: Selection = Selection(all_sessions = true)
+  }
+
+  sealed case class Selection(
+    requirements: Boolean = false,
+    all_sessions: Boolean = false,
+    exclude_session_groups: List[String] = Nil,
+    exclude_sessions: List[String] = Nil,
+    session_groups: List[String] = Nil,
+    sessions: List[String] = Nil)
+  {
+    def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
+    {
+      val bad_sessions =
+        SortedSet((exclude_sessions ::: sessions).filterNot(graph.defined(_)): _*).toList
+      if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
+
+      val excluded =
+      {
+        val exclude_group = exclude_session_groups.toSet
+        val exclude_group_sessions =
+          (for {
+            (name, (info, _)) <- graph.iterator
+            if graph.get_node(name).groups.exists(exclude_group)
+          } yield name).toList
+        graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
+      }
+
+      val pre_selected =
+      {
+        if (all_sessions) graph.keys
+        else {
+          val select_group = session_groups.toSet
+          val select = sessions.toSet
+          (for {
+            (name, (info, _)) <- graph.iterator
+            if info.select || select(name) || graph.get_node(name).groups.exists(select_group)
+          } yield name).toList
+        }
+      }.filterNot(excluded)
+
+      val selected =
+        if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
+        else pre_selected
+
+      (selected, graph.restrict(graph.all_preds(selected).toSet))
+    }
   }
 
   def make(infos: Traversable[(String, Info)]): T =
@@ -227,47 +279,9 @@ object Sessions
         name <- info.global_theories.iterator }
        yield name).toSet
 
-    def selection(
-      requirements: Boolean = false,
-      all_sessions: Boolean = false,
-      exclude_session_groups: List[String] = Nil,
-      exclude_sessions: List[String] = Nil,
-      session_groups: List[String] = Nil,
-      sessions: List[String] = Nil): (List[String], T) =
+    def selection(select: Selection): (List[String], T) =
     {
-      val bad_sessions =
-        SortedSet((exclude_sessions ::: sessions).filterNot(isDefinedAt(_)): _*).toList
-      if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
-
-      val excluded =
-      {
-        val exclude_group = exclude_session_groups.toSet
-        val exclude_group_sessions =
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if apply(name).groups.exists(exclude_group)
-          } yield name).toList
-        graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
-      }
-
-      val pre_selected =
-      {
-        if (all_sessions) graph.keys
-        else {
-          val select_group = session_groups.toSet
-          val select = sessions.toSet
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if info.select || select(name) || apply(name).groups.exists(select_group)
-          } yield name).toList
-        }
-      }.filterNot(excluded)
-
-      val selected =
-        if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
-        else pre_selected
-
-      val graph1 = graph.restrict(graph.all_preds(selected).toSet)
+      val (selected, graph1) = select(graph)
       (selected, new T(graph1))
     }
 
