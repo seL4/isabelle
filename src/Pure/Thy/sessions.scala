@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/sessions.scala
     Author:     Makarius
 
-Isabelle session information.
+Cumulative session information.
 */
 
 package isabelle
