@@ -351,50 +351,20 @@ object Build
     exclude_session_groups: List[String] = Nil,
     exclude_sessions: List[String] = Nil,
     session_groups: List[String] = Nil,
-    sessions: List[String] = Nil): Results =
-  {
-    build_selection(
-      options = options,
-      progress = progress,
-      build_heap = build_heap,
-      clean_build = clean_build,
-      dirs = dirs,
-      select_dirs = select_dirs,
-      numa_shuffling = numa_shuffling,
-      max_jobs = max_jobs,
-      list_files = list_files,
-      check_keywords = check_keywords,
-      no_build = no_build,
-      system_mode = system_mode,
-      verbose = verbose,
-      pide = pide,
-      selection =
-        Sessions.Selection(requirements, all_sessions,
-          exclude_session_groups, exclude_sessions, session_groups, sessions))
-  }
-
-  def build_selection(
-      options: Options,
-      progress: Progress = No_Progress,
-      build_heap: Boolean = false,
-      clean_build: Boolean = false,
-      dirs: List[Path] = Nil,
-      select_dirs: List[Path] = Nil,
-      numa_shuffling: Boolean = false,
-      max_jobs: Int = 1,
-      list_files: Boolean = false,
-      check_keywords: Set[String] = Set.empty,
-      no_build: Boolean = false,
-      system_mode: Boolean = false,
-      verbose: Boolean = false,
-      pide: Boolean = false,
-      selection: Sessions.Selection = Sessions.Selection.all): Results =
+    sessions: List[String] = Nil,
+    selection: Sessions.Selection = Sessions.Selection.empty): Results =
   {
     /* session selection and dependencies */
 
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
+
     val full_sessions = Sessions.load(build_options, dirs, select_dirs)
-    val (selected, selected_sessions) = full_sessions.selection(selection)
+
+    val (selected, selected_sessions) =
+      full_sessions.selection(
+          Sessions.Selection(requirements, all_sessions, exclude_session_groups,
+            exclude_sessions, session_groups, sessions) + selection)
+
     val deps =
       Sessions.deps(selected_sessions, progress = progress, inlined_files = true,
         verbose = verbose, list_files = list_files, check_keywords = check_keywords,

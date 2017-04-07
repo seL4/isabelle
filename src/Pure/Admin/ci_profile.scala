@@ -19,7 +19,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     val progress = new Console_Progress(verbose = true)
     val start_time = Time.now()
     val results = progress.interrupt_handler {
-      Build.build_selection(
+      Build.build(
         options = options,
         progress = progress,
         clean_build = clean,

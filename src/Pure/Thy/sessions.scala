@@ -185,7 +185,7 @@ object Sessions
 
   object Selection
   {
-    val all: Selection = Selection(all_sessions = true)
+    val empty: Selection = Selection()
   }
 
   sealed case class Selection(
@@ -196,6 +196,15 @@ object Sessions
     session_groups: List[String] = Nil,
     sessions: List[String] = Nil)
   {
+    def + (other: Selection): Selection =
+      Selection(
+        requirements = requirements || other.requirements,
+        all_sessions = all_sessions || other.all_sessions,
+        exclude_session_groups = exclude_session_groups ::: other.exclude_session_groups,
+        exclude_sessions = exclude_sessions ::: other.exclude_sessions,
+        session_groups = session_groups ::: other.session_groups,
+        sessions = sessions ::: other.sessions)
+
     def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
     {
       val bad_sessions =
