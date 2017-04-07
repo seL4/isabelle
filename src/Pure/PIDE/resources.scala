@@ -76,8 +76,8 @@ class Resources(
 
     session_base.known_theories.get(theory) orElse session_base.known_theories.get(theory0) match
     {
-      case Some(name) if session_base.loaded_theory(name) => name.loaded_theory
-      case Some(name) => name
+      case Some(name) =>
+        if (session_base.loaded_theory(name)) name.loaded_theory else name
       case None =>
         val path = Path.explode(s)
         val node = append(dir, thy_path(path))
