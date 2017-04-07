@@ -66,6 +66,9 @@ object Sessions
     def is_empty: Boolean = sessions.isEmpty
     def apply(name: String): Base = sessions(name)
     def sources(name: String): List[SHA1.Digest] = sessions(name).sources.map(_._2)
+
+    def all_known_theories: Map[String, Document.Node.Name] =
+      Base.known_theories(sessions.toList.map(_._2), Nil)
   }
 
   def deps(sessions: T,
@@ -163,13 +166,22 @@ object Sessions
     }))
   }
 
-  def session_base(options: Options, session: String, dirs: List[Path] = Nil): Base =
+  def session_base(
+    options: Options,
+    session: String,
+    dirs: List[Path] = Nil,
+    all_known_theories: Boolean = false): Base =
   {
     val full_sessions = load(options, dirs = dirs)
-    val (_, selected_sessions) =
-      full_sessions.selection(Selection(sessions = List(session)))
+    val global_theories = full_sessions.global_theories
+    val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
 
-    deps(selected_sessions, global_theories = full_sessions.global_theories)(session)
+    if (all_known_theories) {
+      val deps = Sessions.deps(full_sessions, global_theories = global_theories)
+      deps(session).copy(known_theories = deps.all_known_theories)
+    }
+    else
+      deps(selected_sessions, global_theories = global_theories)(session)
   }
 
 
