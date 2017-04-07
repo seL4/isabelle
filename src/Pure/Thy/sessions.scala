@@ -57,7 +57,7 @@ object Sessions
       check_keywords: Set[String] = Set.empty,
       global_theories: Set[String] = Set.empty): Deps =
   {
-    Deps((Map.empty[String, Base] /: sessions.topological_order)({
+    Deps((Map.empty[String, Base] /: sessions.imports_topological_order)({
       case (sessions, (name, info)) =>
         if (progress.stopped) throw Exn.Interrupt()
 
@@ -173,6 +173,7 @@ object Sessions
     parent: Option[String],
     description: String,
     options: Options,
+    imports: List[String],
     theories: List[(Options, List[String])],
     global_theories: List[String],
     files: List[Path],
@@ -235,7 +236,29 @@ object Sessions
 
   def make(infos: Traversable[(String, Info)]): T =
   {
-    val graph1 =
+    def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])
+      : Graph[String, Info] =
+    {
+      def add_edge(pos: Position.T, name: String, g: Graph[String, Info], parent: String) =
+      {
+        if (!g.defined(parent))
+          error("Bad " + kind + " session " + quote(parent) + " for " +
+            quote(name) + Position.here(pos))
+
+        try { g.add_edge_acyclic(parent, name) }
+        catch {
+          case exn: Graph.Cycles[_] =>
+            error(cat_lines(exn.cycles.map(cycle =>
+              "Cyclic session dependency of " +
+                cycle.map(c => quote(c.toString)).mkString(" via "))) + Position.here(pos))
+        }
+      }
+      (graph /: graph.iterator) {
+        case (g, (name, (info, _))) => (g /: edges(info))(add_edge(info.pos, name, _, _))
+      }
+    }
+
+    val graph0 =
       (Graph.string[Info] /: infos) {
         case (graph, (name, info)) =>
           if (graph.defined(name))
@@ -243,55 +266,47 @@ object Sessions
               Position.here(graph.get_node(name).pos))
           else graph.new_node(name, info)
       }
-    val graph2 =
-      (graph1 /: graph1.iterator) {
-        case (graph, (name, (info, _))) =>
-          info.parent match {
-            case None => graph
-            case Some(parent) =>
-              if (!graph.defined(parent))
-                error("Bad parent session " + quote(parent) + " for " +
-                  quote(name) + Position.here(info.pos))
+    val graph1 = add_edges(graph0, "parent", _.parent)
+    val graph2 = add_edges(graph1, "imports", _.imports)
 
-              try { graph.add_edge_acyclic(parent, name) }
-              catch {
-                case exn: Graph.Cycles[_] =>
-                  error(cat_lines(exn.cycles.map(cycle =>
-                    "Cyclic session dependency of " +
-                      cycle.map(c => quote(c.toString)).mkString(" via "))) +
-                        Position.here(info.pos))
-              }
-          }
-      }
-
-    new T(graph2)
+    new T(graph1, graph2)
   }
 
-  final class T private[Sessions](val graph: Graph[String, Info])
-    extends PartialFunction[String, Info]
+  final class T private[Sessions](
+      val build_graph: Graph[String, Info],
+      val imports_graph: Graph[String, Info])
   {
-    def apply(name: String): Info = graph.get_node(name)
-    def isDefinedAt(name: String): Boolean = graph.defined(name)
+    def apply(name: String): Info = imports_graph.get_node(name)
+    def get(name: String): Option[Info] =
+      if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
 
     def global_theories: Set[String] =
       (for {
-        (_, (info, _)) <- graph.iterator
+        (_, (info, _)) <- imports_graph.iterator
         name <- info.global_theories.iterator }
        yield name).toSet
 
     def selection(select: Selection): (List[String], T) =
     {
-      val (selected, graph1) = select(graph)
-      (selected, new T(graph1))
+      val (_, build_graph1) = select(build_graph)
+      val (selected, imports_graph1) = select(imports_graph)
+      (selected, new T(build_graph1, imports_graph1))
     }
 
-    def ancestors(name: String): List[String] =
-      graph.all_preds(List(name)).tail.reverse
+    def build_ancestors(name: String): List[String] =
+      build_graph.all_preds(List(name)).tail.reverse
 
-    def topological_order: List[(String, Info)] =
-      graph.topological_order.map(name => (name, apply(name)))
+    def build_descendants(names: List[String]): List[String] =
+      build_graph.all_succs(names)
 
-    override def toString: String = graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
+    def build_topological_order: List[(String, Info)] =
+      build_graph.topological_order.map(name => (name, apply(name)))
+
+    def imports_topological_order: List[(String, Info)] =
+      imports_graph.topological_order.map(name => (name, apply(name)))
+
+    override def toString: String =
+      imports_graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
   }
 
 
@@ -305,6 +320,7 @@ object Sessions
   private val IN = "in"
   private val DESCRIPTION = "description"
   private val OPTIONS = "options"
+  private val SESSIONS = "sessions"
   private val THEORIES = "theories"
   private val GLOBAL = "global"
   private val FILES = "files"
@@ -316,6 +332,7 @@ object Sessions
       (SESSION, Keyword.THY_DECL) +
       (DESCRIPTION, Keyword.QUASI_COMMAND) +
       (OPTIONS, Keyword.QUASI_COMMAND) +
+      (SESSIONS, Keyword.QUASI_COMMAND) +
       (THEORIES, Keyword.QUASI_COMMAND) +
       (FILES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_FILES, Keyword.QUASI_COMMAND)
@@ -332,6 +349,7 @@ object Sessions
       parent: Option[String],
       description: String,
       options: List[Options.Spec],
+      imports: List[String],
       theories: List[(List[Options.Spec], List[(String, Boolean)])],
       files: List[String],
       document_files: List[(String, String)]) extends Entry
@@ -377,11 +395,12 @@ object Sessions
             (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
               (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
+              (($$$(SESSIONS) ~! rep(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep1(theories) ~
               (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j) }
     }
 
     def parse(options: Options, select: Boolean, dir: Path): List[(String, Info)] =
@@ -415,12 +434,12 @@ object Sessions
 
           val meta_digest =
             SHA1.digest((entry_chapter, name, entry.parent, entry.options,
-              entry.theories, entry.files, entry.document_files).toString)
+              entry.imports, entry.theories, entry.files, entry.document_files).toString)
 
           val info =
             Info(entry_chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
-              entry.parent, entry.description, session_options, theories, global_theories,
-              files, document_files, meta_digest)
+              entry.parent, entry.description, session_options, entry.imports, theories,
+              global_theories, files, document_files, meta_digest)
 
           (name, info)
         }

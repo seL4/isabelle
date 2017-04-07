@@ -65,7 +65,7 @@ object Build
 
     def apply(sessions: Sessions.T, store: Sessions.Store): Queue =
     {
-      val graph = sessions.graph
+      val graph = sessions.build_graph
       val names = graph.keys
 
       val timings = names.map(name => (name, load_timings(store, name)))
@@ -413,7 +413,7 @@ object Build
 
     // optional cleanup
     if (clean_build) {
-      for (name <- full_sessions.graph.all_succs(selected)) {
+      for (name <- full_sessions.build_descendants(selected)) {
         val files =
           List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
@@ -519,7 +519,7 @@ object Build
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
-                val ancestor_results = selected_sessions.ancestors(name).map(results(_))
+                val ancestor_results = selected_sessions.build_ancestors(name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)

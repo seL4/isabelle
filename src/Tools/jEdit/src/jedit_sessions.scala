@@ -41,7 +41,7 @@ object JEdit_Sessions
       tree <-
         try { Some(Sessions.load(session_options(options), dirs = session_dirs())) }
         catch { case ERROR(_) => None }
-      info <- tree.lift(logic)
+      info <- tree.get(logic)
       parent <- info.parent
       if Isabelle_System.getenv("JEDIT_LOGIC_ROOT") == "true"
     } yield Info(parent, info.pos)) getOrElse Info(logic, Position.none)
@@ -77,7 +77,7 @@ object JEdit_Sessions
   {
     val session_tree = Sessions.load(options, dirs = session_dirs())
     val (main_sessions, other_sessions) =
-      session_tree.topological_order.partition(p => p._2.groups.contains("main"))
+      session_tree.imports_topological_order.partition(p => p._2.groups.contains("main"))
     main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
   }
 
