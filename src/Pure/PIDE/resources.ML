@@ -6,6 +6,9 @@ Resources for theories and auxiliary files.
 
 signature RESOURCES =
 sig
+  val set_session_base: {known_theories: (string * string) list} -> unit
+  val reset_session_base: unit -> unit
+  val known_theory: string -> Path.T option
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
@@ -24,6 +27,23 @@ end;
 
 structure Resources: RESOURCES =
 struct
+
+(* session base *)
+
+val global_session_base =
+  Synchronized.var "Sessions.base"
+    ({known_theories = Symtab.empty: Path.T Symtab.table});
+
+fun set_session_base {known_theories} =
+  Synchronized.change global_session_base
+    (K {known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
+
+fun reset_session_base () =
+  set_session_base {known_theories = []};
+
+fun known_theory name =
+  Symtab.lookup (#known_theories (Synchronized.value global_session_base)) name;
+
 
 (* manage source files *)
 

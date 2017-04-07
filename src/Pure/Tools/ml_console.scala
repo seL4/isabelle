@@ -72,7 +72,10 @@ Usage: isabelle console [OPTIONS]
       val process =
         ML_Process(options, logic = logic, args = List("-i"), dirs = dirs, redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
-          raw_ml_system = raw_ml_system, store = Sessions.store(system_mode))
+          raw_ml_system = raw_ml_system, store = Sessions.store(system_mode),
+          session_base =
+            if (raw_ml_system) None
+            else Some(Sessions.session_base(options, logic, dirs)))
       val process_output = Future.thread[Unit]("process_output") {
         try {
           var result = new StringBuilder(100)

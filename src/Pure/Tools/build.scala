@@ -197,6 +197,10 @@ object Build
       Future.thread("build") {
         val parent = info.parent.getOrElse("")
 
+        val known_theories =
+          for ((theory, node_name) <- deps(name).known_theories.toList)
+            yield (theory, node_name.node)
+
         val args_yxml =
           YXML.string_of_body(
             {
@@ -204,11 +208,13 @@ object Build
               pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
-                list(pair(Options.encode, list(string))))))))))))))(
+                pair(list(pair(Options.encode, list(string))),
+                list(pair(string, string))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
-                info.theories))))))))))))
+                (info.theories,
+                known_theories)))))))))))))
             })
 
         val env =
