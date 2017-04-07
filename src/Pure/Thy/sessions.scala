@@ -40,9 +40,7 @@ object Sessions
           known.get(name.theory) match {
             case Some(name1) if name != name1 =>
               error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-            case _ =>
-              known + (name.theory -> name) +
-                (Long_Name.base_name(name.theory) -> name)  // legacy
+            case _ => known + (name.theory -> name)
           }
         })
     }
@@ -50,7 +48,7 @@ object Sessions
 
   sealed case class Base(
     global_theories: Set[String] = Set.empty,
-    loaded_theories: Set[String] = Set.empty,
+    loaded_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
     keywords: Thy_Header.Keywords = Nil,
     syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -58,7 +56,7 @@ object Sessions
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
   {
     def loaded_theory(name: Document.Node.Name): Boolean =
-      loaded_theories.contains(name.theory)
+      loaded_theories.isDefinedAt(name.theory)
   }
 
   sealed case class Deps(sessions: Map[String, Base])

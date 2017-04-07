@@ -67,7 +67,7 @@ class Thy_Info(resources: Resources)
       val import_errors =
         (for {
           (theory, imports) <- seen_theory.iterator_list
-          if !resources.session_base.loaded_theories(theory)
+          if !resources.session_base.loaded_theories.isDefinedAt(theory)
           if imports.length > 1
         } yield {
           "Incoherent imports for theory " + quote(theory) + ":\n" +
@@ -80,11 +80,12 @@ class Thy_Info(resources: Resources)
     lazy val syntax: Outer_Syntax =
       resources.session_base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
 
-    def loaded_theories: Set[String] =
+    def loaded_theories: Map[String, Document.Node.Name] =
       (resources.session_base.loaded_theories /: rev_deps) {
         case (loaded, dep) =>
-          loaded + dep.name.theory +
-            Long_Name.base_name(dep.name.theory)  // legacy
+          val name = dep.name.loaded_theory
+          loaded + (name.theory -> name) +
+            (Long_Name.base_name(name.theory) -> name)  // legacy
       }
 
     def loaded_files: List[Path] =
