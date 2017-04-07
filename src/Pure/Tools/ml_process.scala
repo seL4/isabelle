@@ -95,13 +95,10 @@ object ML_Process
       session_base match {
         case None => Nil
         case Some(base) =>
-          val known_theories =
-            for ((theory, node_name) <- base.known_theories.toList)
-              yield (theory, node_name.node)
           List("Resources.set_session_base {known_theories = " +
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
-                ML_Syntax.print_string, ML_Syntax.print_string))(known_theories) + "}")
+                ML_Syntax.print_string, ML_Syntax.print_string))(base.dest_known_theories) + "}")
       }
 
     // process

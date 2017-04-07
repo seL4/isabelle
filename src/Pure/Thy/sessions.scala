@@ -57,6 +57,10 @@ object Sessions
   {
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
+
+    def dest_known_theories: List[(String, String)] =
+      for ((theory, node_name) <- known_theories.toList)
+        yield (theory, node_name.node)
   }
 
   sealed case class Deps(sessions: Map[String, Base])
@@ -110,12 +114,6 @@ object Sessions
             }
           }
 
-          val known_theories =
-            Base.known_theories(
-              parent_base :: info.imports.map(sessions(_)), thy_deps.deps.map(_.name))
-
-          val loaded_theories = thy_deps.loaded_theories
-          val keywords = thy_deps.keywords
           val syntax = thy_deps.syntax
 
           val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
@@ -147,9 +145,11 @@ object Sessions
 
           val base =
             Base(global_theories = global_theories,
-              loaded_theories = loaded_theories,
-              known_theories = known_theories,
-              keywords = keywords,
+              loaded_theories = thy_deps.loaded_theories,
+              known_theories =
+                Base.known_theories(
+                  parent_base :: info.imports.map(sessions(_)), thy_deps.deps.map(_.name)),
+              keywords = thy_deps.keywords,
               syntax = syntax,
               sources = all_files.map(p => (p, SHA1.digest(p.file))),
               session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
