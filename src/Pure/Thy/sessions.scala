@@ -58,7 +58,7 @@ object Sessions
       global_theories: Set[String] = Set.empty): Deps =
   {
     Deps((Map.empty[String, Base] /: sessions.imports_topological_order)({
-      case (sessions, (name, info)) =>
+      case (sessions, (session_name, info)) =>
         if (progress.stopped) throw Exn.Interrupt()
 
         try {
@@ -67,13 +67,13 @@ object Sessions
               case None => Base.bootstrap
               case Some(parent) => sessions(parent)
             }
-          val resources = new Resources(name, parent_base)
+          val resources = new Resources(session_name, parent_base)
 
           if (verbose || list_files) {
             val groups =
               if (info.groups.isEmpty) ""
               else info.groups.mkString(" (", " ", ")")
-            progress.echo("Session " + info.chapter + "/" + name + groups)
+            progress.echo("Session " + info.chapter + "/" + session_name + groups)
           }
 
           val thy_deps =
@@ -110,7 +110,7 @@ object Sessions
           val loaded_files =
             if (inlined_files) {
               val pure_files =
-                if (is_pure(name)) {
+                if (is_pure(session_name)) {
                   val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
                   val files =
                     roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
@@ -142,12 +142,12 @@ object Sessions
               sources = all_files.map(p => (p, SHA1.digest(p.file))),
               session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
 
-          sessions + (name -> base)
+          sessions + (session_name -> base)
         }
         catch {
           case ERROR(msg) =>
             cat_error(msg, "The error(s) above occurred in session " +
-              quote(name) + Position.here(info.pos))
+              quote(session_name) + Position.here(info.pos))
         }
     }))
   }
