@@ -27,6 +27,25 @@ object Sessions
 
     lazy val bootstrap: Base =
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
+
+    private[Sessions] def known_theories(bases: Iterable[Base], names: Iterable[Document.Node.Name])
+      : Map[String, Document.Node.Name] =
+    {
+      val bases_iterator =
+        for { base <- bases.iterator; (_, name) <- base.known_theories.iterator }
+          yield name
+
+      (Map.empty[String, Document.Node.Name] /: (bases_iterator ++ names.iterator))({
+        case (known, name) =>
+          known.get(name.theory) match {
+            case Some(name1) if name != name1 =>
+              error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+            case _ =>
+              known + (name.theory -> name) +
+                (Long_Name.base_name(name.theory) -> name)  // legacy
+          }
+        })
+    }
   }
 
   sealed case class Base(
@@ -91,25 +110,8 @@ object Sessions
           }
 
           val known_theories =
-          {
-            val imports_iterator =
-              for {
-                import_session <- info.imports.iterator
-                (_, name) <- sessions(import_session).known_theories.iterator
-              } yield name
-            val deps_iterator = thy_deps.deps.iterator.map(_.name)
-
-            (parent_base.known_theories /: (imports_iterator ++ deps_iterator))({
-              case (known, name) =>
-                known.get(name.theory) match {
-                  case Some(name1) if name != name1 =>
-                    error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-                  case _ =>
-                    known + (name.theory -> name) +
-                      (Long_Name.base_name(name.theory) -> name)  // legacy
-                }
-              })
-          }
+            Base.known_theories(
+              parent_base :: info.imports.map(sessions(_)), thy_deps.deps.map(_.name))
 
           val loaded_theories = thy_deps.loaded_theories
           val keywords = thy_deps.keywords
