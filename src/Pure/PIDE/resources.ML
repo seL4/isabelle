@@ -82,15 +82,20 @@ fun check_file dir file = File.check_file (File.full_path dir file);
 
 fun check_thy dir thy_name =
   let
-    val path = thy_path (Path.basic thy_name);
-    val master_file = check_file dir path;
+    val thy_base_name = Long_Name.base_name thy_name;
+    val thy_path = thy_path (Path.basic thy_base_name);
+    val master_file =
+      (case known_theory thy_name of
+        NONE => check_file dir thy_path
+      | SOME known_path => check_file Path.current known_path);
     val text = File.read master_file;
 
     val {name = (name, pos), imports, keywords} =
       Thy_Header.read (Path.position master_file) text;
-    val _ = thy_name <> name andalso
-      error ("Bad theory name " ^ quote name ^
-        " for file " ^ Path.print path ^ Position.here pos);
+    val _ =
+      thy_base_name <> name andalso
+        error ("Bad theory name " ^ quote name ^
+          " for file " ^ Path.print thy_path ^ Position.here pos);
   in
    {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
     imports = imports, keywords = keywords}
