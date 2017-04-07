@@ -91,16 +91,25 @@ object Sessions
           }
 
           val known_theories =
-            (parent_base.known_theories /: thy_deps.deps)({ case (known, dep) =>
-              val name = dep.name
-              known.get(name.theory) match {
-                case Some(name1) if name != name1 =>
-                  error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-                case _ =>
-                  known + (name.theory -> name) +
-                    (Long_Name.base_name(name.theory) -> name)  // legacy
-              }
-            })
+          {
+            val imports_iterator =
+              for {
+                import_session <- info.imports.iterator
+                (_, name) <- sessions(import_session).known_theories.iterator
+              } yield name
+            val deps_iterator = thy_deps.deps.iterator.map(_.name)
+
+            (parent_base.known_theories /: (imports_iterator ++ deps_iterator))({
+              case (known, name) =>
+                known.get(name.theory) match {
+                  case Some(name1) if name != name1 =>
+                    error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+                  case _ =>
+                    known + (name.theory -> name) +
+                      (Long_Name.base_name(name.theory) -> name)  // legacy
+                }
+              })
+          }
 
           val loaded_theories = thy_deps.loaded_theories
           val keywords = thy_deps.keywords
