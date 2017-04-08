@@ -101,7 +101,7 @@ class Resources(
       try {
         val header = Thy_Header.read(reader, start, strict).decode_symbols
 
-        val base_name = Long_Name.base_name(node_name.theory)
+        val base_name = node_name.theory_base_name
         val (name, pos) = header.name
         if (base_name != name)
           error("Bad theory name " + quote(name) +

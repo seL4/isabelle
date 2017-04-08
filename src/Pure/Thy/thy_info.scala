@@ -85,7 +85,7 @@ class Thy_Info(resources: Resources)
         case (loaded, dep) =>
           val name = dep.name.loaded_theory
           loaded + (name.theory -> name) +
-            (Long_Name.base_name(name.theory) -> name)  // legacy
+            (name.theory_base_name -> name)  // legacy
       }
 
     def loaded_files: List[Path] =
@@ -108,7 +108,7 @@ class Thy_Info(resources: Resources)
 
       def node(name: Document.Node.Name): Graph_Display.Node =
         if (parent_base.loaded_theory(name)) parent_session_node
-        else Graph_Display.Node(Long_Name.base_name(name.theory), "theory." + name.theory)
+        else Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
 
       (Graph_Display.empty_graph /: deps) {
         case (g, dep) =>
