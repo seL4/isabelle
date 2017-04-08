@@ -17,6 +17,7 @@ sig
     {document: bool,
      symbols: HTML.symbols,
      last_timing: Toplevel.transition -> Time.time,
+     qualifier: string,
      master_dir: Path.T} -> (string * Position.T) list -> unit
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
@@ -285,12 +286,13 @@ fun check_deps dir name =
 
 in
 
-fun require_thys document symbols last_timing initiators dir strs tasks =
-      fold_map (require_thy document symbols last_timing initiators dir) strs tasks |>> forall I
-and require_thy document symbols last_timing initiators dir (str, require_pos) tasks =
+fun require_thys document symbols last_timing initiators qualifier dir strs tasks =
+      fold_map (require_thy document symbols last_timing initiators qualifier dir) strs tasks
+      |>> forall I
+and require_thy document symbols last_timing initiators qualifier dir (str, require_pos) tasks =
   let
     val path = Path.expand (Path.explode str);
-    val {node_name, theory_name} = Resources.import_name dir path;
+    val {node_name, theory_name} = Resources.import_name qualifier dir path;
     fun check_entry (Task (node_name', _, _)) =
           if op = (apply2 File.platform_path (node_name, node_name'))
           then ()
@@ -317,6 +319,7 @@ and require_thy document symbols last_timing initiators dir (str, require_pos) t
           val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =
             require_thys document symbols last_timing (theory_name :: initiators)
+              (Resources.theory_qualifier theory_name)
               (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
 
           val all_current = current andalso parents_current;
@@ -342,14 +345,16 @@ end;
 
 (* use theories *)
 
-fun use_theories {document, symbols, last_timing, master_dir} imports =
-  schedule_tasks
-    (snd (require_thys document symbols last_timing [] master_dir imports String_Graph.empty));
+fun use_theories {document, symbols, last_timing, qualifier, master_dir} imports =
+  let
+    val (_, tasks) =
+      require_thys document symbols last_timing [] qualifier master_dir imports String_Graph.empty;
+  in schedule_tasks tasks end;
 
 fun use_thy name =
   use_theories
     {document = false, symbols = HTML.no_symbols, last_timing = K Time.zeroTime,
-      master_dir = Path.current}
+     qualifier = Resources.default_qualifier (), master_dir = Path.current}
     [(name, Position.none)];
 
 

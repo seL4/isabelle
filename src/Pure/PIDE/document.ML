@@ -177,9 +177,6 @@ fun finished_result node =
     SOME eval => Command.eval_finished eval
   | NONE => false);
 
-fun loaded_theory name =
-  get_first Thy_Info.lookup_theory [name, Long_Name.base_name name];
-
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
 fun default_node name = String_Graph.default_node (name, empty_node);
@@ -463,7 +460,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
       val delay_request' = Event_Timer.future (Time.now () + delay);
 
       fun finished_import (name, (node, _)) =
-        finished_result node orelse is_some (loaded_theory name);
+        finished_result node orelse is_some (Thy_Info.lookup_theory name);
 
       val nodes = nodes_of (the_version state version_id);
       val required = make_required nodes;
@@ -530,7 +527,7 @@ fun init_theory deps node span =
         handle ERROR msg => (Output.error_message msg; NONE);
     val parents_reports =
       imports |> map_filter (fn (import, pos) =>
-        (case loaded_theory import of
+        (case Thy_Info.lookup_theory import of
           NONE =>
             maybe_end_theory pos
               (case get_result (snd (the (AList.lookup (op =) deps import))) of
@@ -554,7 +551,7 @@ fun check_ml_root node =
   else NONE;
 
 fun check_theory full name node =
-  is_some (loaded_theory name) orelse
+  is_some (Thy_Info.lookup_theory name) orelse
   null (#errors (get_header node)) andalso (not full orelse is_some (get_result node));
 
 fun last_common keywords state node_required node0 node =

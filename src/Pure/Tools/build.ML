@@ -101,7 +101,7 @@ fun protocol_message props output =
 
 (* build theories *)
 
-fun build_theories symbols last_timing master_dir (options, thys) =
+fun build_theories symbols last_timing qualifier master_dir (options, thys) =
   let
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
@@ -115,6 +115,7 @@ fun build_theories symbols last_timing master_dir (options, thys) =
           document = Present.document_enabled (Options.string options "document"),
           symbols = symbols,
           last_timing = last_timing,
+          qualifier = qualifier,
           master_dir = master_dir}
         |>
           (case Options.string options "profiling" of
@@ -180,7 +181,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
 
     val _ =
       Resources.set_session_base
-        {default_qualifier = "" (* FIXME *),
+        {default_qualifier = name,
          global_theories = global_theories,
          loaded_theories = loaded_theories,
          known_theories = known_theories};
@@ -204,7 +205,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
 
     val res1 =
       theories |>
-        (List.app (build_theories symbols last_timing master_dir)
+        (List.app (build_theories symbols last_timing name master_dir)
           |> session_timing name verbose
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();

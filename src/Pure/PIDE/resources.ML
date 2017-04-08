@@ -19,7 +19,8 @@ sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
-  val import_name: Path.T -> Path.T -> {node_name: Path.T, theory_name: string}
+  val theory_qualifier: string -> string
+  val import_name: string -> Path.T -> Path.T -> {node_name: Path.T, theory_name: string}
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
@@ -39,7 +40,7 @@ struct
 (* session base *)
 
 val init_session_base =
-  {default_qualifier = "",
+  {default_qualifier = "Draft",
    global_theories = Symtab.make_set [],
    loaded_theories = Symtab.empty: Path.T Symtab.table,
    known_theories = Symtab.empty: Path.T Symtab.table};
@@ -50,7 +51,9 @@ val global_session_base =
 fun set_session_base {default_qualifier, global_theories, loaded_theories, known_theories} =
   Synchronized.change global_session_base
     (fn _ =>
-      {default_qualifier = default_qualifier,
+      {default_qualifier =
+        if default_qualifier <> "" then default_qualifier
+        else #default_qualifier init_session_base,
        global_theories = Symtab.make_set global_theories,
        loaded_theories = Symtab.make (map (apsnd Path.explode) loaded_theories),
        known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
@@ -99,12 +102,16 @@ fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
 val thy_path = Path.ext "thy";
 
-fun import_name dir path =
+fun theory_qualifier theory =
+  Long_Name.qualifier theory;
+
+fun import_name qualifier dir path =
   let
     val theory0 = Path.implode (Path.base path);
     val theory =
-      if Long_Name.is_qualified theory0 orelse global_theory theory0 then theory0
-      else Long_Name.qualify (default_qualifier ()) theory0;
+      if Long_Name.is_qualified theory0 orelse global_theory theory0
+        orelse true (* FIXME *) then theory0
+      else Long_Name.qualify qualifier theory0;
     val node_name =
       the (get_first (fn e => e ())
         [fn () => loaded_theory theory,

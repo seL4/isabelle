@@ -19,6 +19,8 @@ object Sessions
 {
   /* base info and source dependencies */
 
+  val DRAFT = "Draft"
+
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
   object Base
@@ -108,7 +110,8 @@ object Sessions
           {
             val root_theories =
               info.theories.flatMap({ case (_, thys) =>
-                thys.map(thy => (resources.import_name(info.dir.implode, thy), info.pos))
+                thys.map(thy =>
+                  (resources.import_name(session_name, info.dir.implode, thy), info.pos))
               })
             val thy_deps = resources.thy_info.dependencies(root_theories)
 
@@ -450,7 +453,7 @@ object Sessions
         try {
           val name = entry.name
 
-          if (name == "") error("Bad session name")
+          if (name == "" || name == DRAFT) error("Bad session name")
           if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
           if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 

@@ -359,14 +359,13 @@ trait Protocol
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
           { case Document.Node.Deps(header) =>
               val master_dir = File.standard_url(name.master_dir)
-              val theory = name.theory_base_name  // FIXME
               val imports = header.imports.map({ case (a, _) => a.node })
               val keywords =
                 header.keywords.map({ case (a, Keyword.Spec(b, c, d)) => (a, ((b, c), d)) })
               (Nil,
                 pair(string, pair(string, pair(list(string), pair(list(pair(string,
                     pair(pair(string, list(string)), list(string)))), list(string)))))(
-                (master_dir, (theory, (imports, (keywords, header.errors)))))) },
+                (master_dir, (name.theory, (imports, (keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
                 list(pair(id, pair(string, list(string))))(c.dest)) }))
