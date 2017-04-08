@@ -196,7 +196,7 @@ object Build
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val parent = info.parent.getOrElse("")
-
+        val base = deps(name)
         val args_yxml =
           YXML.string_of_body(
             {
@@ -205,12 +205,14 @@ object Build
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
                 pair(list(pair(Options.encode, list(string))),
-                list(pair(string, string))))))))))))))(
+                pair(list(string),
+                pair(list(pair(string, string)), list(pair(string, string))))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
                 (info.theories,
-                deps(name).dest_known_theories)))))))))))))
+                (base.global_theories.toList,
+                (base.dest_loaded_theories, base.dest_known_theories)))))))))))))))
             })
 
         val env =
@@ -222,7 +224,7 @@ object Build
             ML_Syntax.print_string0(File.platform_path(output))
 
         if (pide && !Sessions.is_pure(name)) {
-          val resources = new Resources(name, deps(parent))
+          val resources = new Resources(deps(parent), default_qualifier = name)
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)

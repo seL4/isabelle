@@ -14,8 +14,8 @@ import java.io.{File => JFile}
 
 
 class Resources(
-  val session_name: String,
   val session_base: Sessions.Base,
+  val default_qualifier: String = "",
   val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
@@ -72,7 +72,7 @@ class Resources(
     val theory0 = Thy_Header.base_name(s)
     val theory =
       if (Long_Name.is_qualified(theory0) || session_base.global_theories.contains(theory0)) theory0
-      else Long_Name.qualify(session_name, theory0)
+      else Long_Name.qualify(default_qualifier, theory0)
 
     session_base.loaded_theories.get(theory) orElse
     session_base.loaded_theories.get(theory0) orElse

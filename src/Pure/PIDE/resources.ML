@@ -6,8 +6,15 @@ Resources for theories and auxiliary files.
 
 signature RESOURCES =
 sig
-  val set_session_base: {known_theories: (string * string) list} -> unit
+  val set_session_base:
+    {default_qualifier: string,
+     global_theories: string list,
+     loaded_theories: (string * string) list,
+     known_theories: (string * string) list} -> unit
   val reset_session_base: unit -> unit
+  val default_qualifier: unit -> string
+  val global_theory: string -> bool
+  val loaded_theory: string -> Path.T option
   val known_theory: string -> Path.T option
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
@@ -30,19 +37,32 @@ struct
 
 (* session base *)
 
-val global_session_base =
-  Synchronized.var "Sessions.base"
-    ({known_theories = Symtab.empty: Path.T Symtab.table});
+val init_session_base =
+  {default_qualifier = "",
+   global_theories = Symtab.make_set [],
+   loaded_theories = Symtab.empty: Path.T Symtab.table,
+   known_theories = Symtab.empty: Path.T Symtab.table};
 
-fun set_session_base {known_theories} =
+val global_session_base =
+  Synchronized.var "Sessions.base" init_session_base;
+
+fun set_session_base {default_qualifier, global_theories, loaded_theories, known_theories} =
   Synchronized.change global_session_base
-    (K {known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
+    (fn _ =>
+      {default_qualifier = default_qualifier,
+       global_theories = Symtab.make_set global_theories,
+       loaded_theories = Symtab.make (map (apsnd Path.explode) loaded_theories),
+       known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
 
 fun reset_session_base () =
-  set_session_base {known_theories = []};
+  Synchronized.change global_session_base (K init_session_base);
 
-fun known_theory name =
-  Symtab.lookup (#known_theories (Synchronized.value global_session_base)) name;
+fun get_session_base f = f (Synchronized.value global_session_base);
+
+fun default_qualifier () = get_session_base #default_qualifier;
+fun global_theory a = Symtab.defined (get_session_base #global_theories) a;
+fun loaded_theory a = Symtab.lookup (get_session_base #loaded_theories) a;
+fun known_theory a = Symtab.lookup (get_session_base #known_theories) a;
 
 
 (* manage source files *)

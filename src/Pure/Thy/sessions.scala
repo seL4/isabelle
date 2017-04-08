@@ -58,6 +58,10 @@ object Sessions
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
 
+    def dest_loaded_theories: List[(String, String)] =
+      for ((theory, node_name) <- loaded_theories.toList)
+        yield (theory, node_name.node)
+
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known_theories.toList)
         yield (theory, node_name.node)
@@ -91,7 +95,7 @@ object Sessions
               case None => Base.bootstrap
               case Some(parent) => sessions(parent)
             }
-          val resources = new Resources(session_name, parent_base)
+          val resources = new Resources(parent_base, default_qualifier = session_name)
 
           if (verbose || list_files) {
             val groups =

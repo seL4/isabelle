@@ -95,10 +95,15 @@ object ML_Process
       session_base match {
         case None => Nil
         case Some(base) =>
-          List("Resources.set_session_base {known_theories = " +
+          def print_table(table: List[(String, String)]): String =
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
-                ML_Syntax.print_string, ML_Syntax.print_string))(base.dest_known_theories) + "}")
+                ML_Syntax.print_string, ML_Syntax.print_string))(table)
+          List("Resources.set_session_base {default_qualifier = \"\"" +
+            ", global_theories = " +
+              ML_Syntax.print_list(ML_Syntax.print_string)(base.global_theories.toList) +
+            ", loaded_theories = " + print_table(base.dest_loaded_theories) +
+            ", known_theories = " + print_table(base.dest_known_theories) + "}")
       }
 
     // process
