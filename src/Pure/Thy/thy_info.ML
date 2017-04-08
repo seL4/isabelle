@@ -18,8 +18,7 @@ sig
      symbols: HTML.symbols,
      last_timing: Toplevel.transition -> Time.time,
      master_dir: Path.T} -> (string * Position.T) list -> unit
-  val use_thys: (string * Position.T) list -> unit
-  val use_thy: string * Position.T -> unit
+  val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
@@ -341,18 +340,17 @@ and require_thy document symbols last_timing initiators dir (str, require_pos) t
 end;
 
 
-(* use_thy *)
+(* use theories *)
 
 fun use_theories {document, symbols, last_timing, master_dir} imports =
   schedule_tasks
     (snd (require_thys document symbols last_timing [] master_dir imports String_Graph.empty));
 
-val use_thys =
+fun use_thy name =
   use_theories
     {document = false, symbols = HTML.no_symbols, last_timing = K Time.zeroTime,
-      master_dir = Path.current};
-
-val use_thy = use_thys o single;
+      master_dir = Path.current}
+    [(name, Position.none)];
 
 
 (* toplevel scripting -- without maintaining database *)
@@ -389,4 +387,4 @@ fun finish () = change_thys (String_Graph.map (fn _ => fn (_, entry) => (NONE, e
 
 end;
 
-fun use_thy name = Runtime.toplevel_program (fn () => Thy_Info.use_thy (name, Position.none));
+fun use_thy name = Runtime.toplevel_program (fn () => Thy_Info.use_thy name);
