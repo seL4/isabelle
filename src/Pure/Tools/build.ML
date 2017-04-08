@@ -180,7 +180,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
 
     val _ =
       Resources.set_session_base
-        {default_qualifier = name,
+        {default_qualifier = "" (* FIXME *),
          global_theories = global_theories,
          loaded_theories = loaded_theories,
          known_theories = known_theories};

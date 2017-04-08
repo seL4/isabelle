@@ -291,39 +291,38 @@ fun require_thys document symbols last_timing initiators dir strs tasks =
 and require_thy document symbols last_timing initiators dir (str, require_pos) tasks =
   let
     val path = Path.expand (Path.explode str);
-    val name = Path.implode (Path.base path);
-    val node_name = File.full_path dir (Resources.thy_path path);
+    val {node_name, theory_name} = Resources.import_name dir path;
     fun check_entry (Task (node_name', _, _)) =
           if op = (apply2 File.platform_path (node_name, node_name'))
           then ()
           else
-            error ("Incoherent imports for theory " ^ quote name ^
+            error ("Incoherent imports for theory " ^ quote theory_name ^
               Position.here require_pos ^ ":\n" ^
               "  " ^ Path.print node_name ^ "\n" ^
               "  " ^ Path.print node_name')
       | check_entry _ = ();
   in
-    (case try (String_Graph.get_node tasks) name of
+    (case try (String_Graph.get_node tasks) theory_name of
       SOME task => (check_entry task; (task_finished task, tasks))
     | NONE =>
         let
           val dir' = Path.append dir (Path.dir path);
-          val _ = member (op =) initiators name andalso error (cycle_msg initiators);
+          val _ = member (op =) initiators theory_name andalso error (cycle_msg initiators);
 
-          val (current, deps, theory_pos, imports, keywords) = check_deps dir' name
+          val (current, deps, theory_pos, imports, keywords) = check_deps dir' theory_name
             handle ERROR msg =>
               cat_error msg
-                ("The error(s) above occurred for theory " ^ quote name ^
+                ("The error(s) above occurred for theory " ^ quote theory_name ^
                   Position.here require_pos ^ required_by "\n" initiators);
 
           val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =
-            require_thys document symbols last_timing (name :: initiators)
+            require_thys document symbols last_timing (theory_name :: initiators)
               (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
-            if all_current then Finished (get_theory name)
+            if all_current then Finished (get_theory theory_name)
             else
               (case deps of
                 NONE => raise Fail "Malformed deps"
@@ -332,10 +331,10 @@ and require_thy document symbols last_timing initiators dir (str, require_pos) t
                     val update_time = serial ();
                     val load =
                       load_thy document symbols last_timing initiators update_time dep
-                        text (name, theory_pos) keywords;
+                        text (theory_name, theory_pos) keywords;
                   in Task (node_name, parents, load) end);
 
-          val tasks'' = new_entry name parents task tasks';
+          val tasks'' = new_entry theory_name parents task tasks';
         in (all_current, tasks'') end)
   end;
 
