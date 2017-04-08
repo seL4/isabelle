@@ -21,6 +21,10 @@ object Long_Name
     if (qual == "" || name == "") name
     else qual + separator + name
 
+  def qualifier(name: String): String =
+    if (name == "") ""
+    else implode(explode(name).dropRight(1))
+
   def base_name(name: String): String =
     if (name == "") ""
     else explode(name).last
