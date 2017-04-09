@@ -7,7 +7,7 @@ Composition of homomorphisms, Pastre's examples, ...
 
 section\<open>Miscellaneous ZF Examples\<close>
 
-theory misc imports Main begin
+theory misc imports ZF begin
 
 
 subsection\<open>Various Small Problems\<close>

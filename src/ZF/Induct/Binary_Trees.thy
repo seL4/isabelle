@@ -5,7 +5,7 @@
 
 section \<open>Binary trees\<close>
 
-theory Binary_Trees imports Main begin
+theory Binary_Trees imports ZF begin
 
 subsection \<open>Datatype definition\<close>
 

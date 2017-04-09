@@ -2,7 +2,7 @@
 
 section \<open>Groups\<close>
 
-theory Group imports Main begin
+theory Group imports ZF begin
 
 text\<open>Based on work by Clemens Ballarin, Florian Kammueller, L C Paulson and
 Markus Wenzel.\<close>

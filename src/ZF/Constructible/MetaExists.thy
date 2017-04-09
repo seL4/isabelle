@@ -4,7 +4,7 @@
 
 section\<open>The meta-existential quantifier\<close>
 
-theory MetaExists imports Main begin
+theory MetaExists imports ZF begin
 
 text\<open>Allows quantification over any term.  Used to quantify over classes.
 Yields a proposition rather than a FOL formula.\<close>

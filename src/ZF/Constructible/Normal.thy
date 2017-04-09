@@ -4,7 +4,7 @@
 
 section \<open>Closed Unbounded Classes and Normal Functions\<close>
 
-theory Normal imports Main begin
+theory Normal imports ZF begin
 
 text\<open>
 One source is the book

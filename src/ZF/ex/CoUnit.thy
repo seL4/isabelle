@@ -5,7 +5,7 @@
 
 section \<open>Trivial codatatype definitions, one of which goes wrong!\<close>
 
-theory CoUnit imports Main begin
+theory CoUnit imports ZF begin
 
 text \<open>
   See discussion in: L C Paulson.  A Concrete Final Coalgebra Theorem

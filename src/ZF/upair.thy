@@ -12,7 +12,7 @@ Observe the order of dependence:
 section\<open>Unordered Pairs\<close>
 
 theory upair
-imports ZF
+imports ZF_Base
 keywords "print_tcset" :: diag
 begin
 

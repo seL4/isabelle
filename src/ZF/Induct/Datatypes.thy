@@ -5,7 +5,7 @@
 
 section \<open>Sample datatype definitions\<close>
 
-theory Datatypes imports Main begin
+theory Datatypes imports ZF begin
 
 subsection \<open>A type with four constructors\<close>
 

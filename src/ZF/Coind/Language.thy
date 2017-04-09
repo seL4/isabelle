@@ -3,7 +3,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-theory Language imports Main begin
+theory Language imports ZF begin
 
 
 text\<open>these really can't be definitions without losing the abstraction\<close>

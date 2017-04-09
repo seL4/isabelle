@@ -1,6 +1,6 @@
 section{*Examples of Reasoning in ZF Set Theory*}
 
-theory ZF_examples imports Main_ZFC begin
+theory ZF_examples imports ZFC begin
 
 subsection {* Binary Trees *}
 

@@ -6,7 +6,7 @@
 section \<open>Combinatory Logic example: the Church-Rosser Theorem\<close>
 
 theory Comb
-imports Main
+imports ZF
 begin
 
 text \<open>

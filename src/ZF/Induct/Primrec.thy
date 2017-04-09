@@ -5,7 +5,7 @@
 
 section \<open>Primitive Recursive Functions: the inductive definition\<close>
 
-theory Primrec imports Main begin
+theory Primrec imports ZF begin
 
 text \<open>
   Proof adopted from @{cite szasz93}.

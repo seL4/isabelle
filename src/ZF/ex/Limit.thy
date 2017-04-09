@@ -17,7 +17,7 @@ Technical Report No. 369, University of Cambridge Computer
 Laboratory, 1995.
 *)
 
-theory Limit  imports  Main begin
+theory Limit  imports  ZF begin
 
 definition
   rel :: "[i,i,i]=>o"  where

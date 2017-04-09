@@ -43,8 +43,7 @@ session ZF (main timing ZF) = Pure +
     (North-Holland, 1980)
   *}
   theories
-    Main
-    Main_ZFC
+    ZFC
   document_files "root.tex"
 
 session "ZF-AC" (ZF) in AC = ZF +

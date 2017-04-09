@@ -5,7 +5,7 @@
 
 section\<open>The Divides Relation and Euclid's algorithm for the GCD\<close>
 
-theory Primes imports Main begin
+theory Primes imports ZF begin
 
 definition
   divides :: "[i,i]=>o"              (infixl "dvd" 50)  where

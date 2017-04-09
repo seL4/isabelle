@@ -5,7 +5,7 @@
 
 section \<open>The Mutilated Chess Board Problem, formalized inductively\<close>
 
-theory Mutil imports Main begin
+theory Mutil imports ZF begin
 
 text \<open>
   Originator is Max Black, according to J A Robinson.  Popularized as

@@ -4,7 +4,7 @@
 
 section \<open>First-Order Formulas and the Definition of the Class L\<close>
 
-theory Formula imports Main begin
+theory Formula imports ZF begin
 
 subsection\<open>Internalized formulas of FOL\<close>
 

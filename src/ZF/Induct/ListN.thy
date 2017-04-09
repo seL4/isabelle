@@ -5,7 +5,7 @@
 
 section \<open>Lists of n elements\<close>
 
-theory ListN imports Main begin
+theory ListN imports ZF begin
 
 text \<open>
   Inductive definition of lists of \<open>n\<close> elements; see

@@ -5,7 +5,7 @@
 
 section\<open>The Axiom of Choice\<close>
 
-theory AC imports Main_ZF begin
+theory AC imports ZF begin
 
 text\<open>This definition comes from Halmos (1960), page 59.\<close>
 axiomatization where

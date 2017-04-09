@@ -5,7 +5,7 @@
 
 section \<open>Infinite branching datatype definitions\<close>
 
-theory Brouwer imports Main_ZFC begin
+theory Brouwer imports ZFC begin
 
 subsection \<open>The Brouwer ordinals\<close>
 
