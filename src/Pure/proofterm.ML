@@ -8,8 +8,6 @@ infix 8 % %% %>;
 
 signature BASIC_PROOFTERM =
 sig
-  val proofs: int Unsynchronized.ref
-
   type thm_node
   datatype proof =
      MinProof
@@ -28,14 +26,13 @@ sig
     {oracles: (string * term) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
      proof: proof}
-
   val %> : proof * term -> proof
 end;
 
 signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
-
+  val proofs: int Unsynchronized.ref
   type pthm = serial * thm_node
   type oracle = string * term
   val proof_of: proof_body -> proof
