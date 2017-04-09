@@ -82,6 +82,8 @@ option command_timing_threshold : real = 0.01
 
 section "Detail of Proof Checking"
 
+option record_proofs : int = -1
+  -- "set level of proofterm recording: 0, 1, 2, negative means unchanged"
 option quick_and_dirty : bool = false
   -- "if true then some tools will OMIT some proofs"
 option skip_proofs : bool = false

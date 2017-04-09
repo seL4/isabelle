@@ -166,6 +166,14 @@ is analogous to ISABELLE_PLATFORM, ISABELLE_PLATFORM32,
 ISABELLE_PLATFORM64.
 
 
+*** System ***
+
+* System option "record_proofs" allows to change the global
+Proofterm.proofs variable for a session. Regular values are are 0, 1, 2;
+a negative value means the current state in the ML heap image remains
+unchanged.
+
+
 
 New in Isabelle2016-1 (December 2016)
 -------------------------------------
