@@ -18,7 +18,7 @@ session CTT = Pure +
   *}
   options [thy_output_source]
   theories
-    Main
+    CTT
     "ex/Typechecking"
     "ex/Elimination"
     "ex/Equality"
