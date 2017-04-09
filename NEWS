@@ -9,6 +9,18 @@ New in this Isabelle version
 
 *** General ***
 
+* The main theory entry points for some non-HOL sessions have changed,
+to avoid confusion with the global name "Main" of the session HOL. This
+leads to the follow renamings:
+
+  CTT/Main.thy    ~>  CTT/CTT.thy
+  ZF/Main.thy     ~>  ZF/ZF.thy
+  ZF/Main_ZF.thy  ~>  ZF/ZF.thy
+  ZF/Main_ZFC.thy ~>  ZF/ZFC.thy
+  ZF/ZF.thy       ~>  ZF/ZF_Base.thy
+
+INCOMPATIBILITY.
+
 * Document antiquotations @{prf} and @{full_prf} output proof terms
 (again) in the same way as commands 'prf' and 'full_prf'.
 
