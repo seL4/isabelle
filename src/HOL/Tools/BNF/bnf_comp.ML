@@ -18,7 +18,10 @@ sig
   val DEADID_bnf: BNF_Def.bnf
 
   type comp_cache
-  type unfold_set
+  type unfold_set =
+    {map_unfolds: thm list,
+     set_unfoldss: thm list list,
+     rel_unfolds: thm list}
 
   val empty_comp_cache: comp_cache
   val empty_unfolds: unfold_set
