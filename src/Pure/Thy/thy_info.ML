@@ -57,8 +57,6 @@ fun make_deps master imports : deps = {master = master, imports = imports};
 fun master_dir (d: deps option) =
   the_default Path.current (Option.map (Path.dir o #1 o #master) d);
 
-fun base_name s = Path.implode (Path.base (Path.explode s));
-
 local
   val global_thys =
     Synchronized.var "Thy_Info.thys"
@@ -316,7 +314,7 @@ and require_thy document symbols last_timing initiators qualifier dir (str, requ
                 ("The error(s) above occurred for theory " ^ quote theory_name ^
                   Position.here require_pos ^ required_by "\n" initiators);
 
-          val parents = map (base_name o #1) imports;
+          val parents = map (Thy_Header.import_name o #1) imports;
           val (parents_current, tasks') =
             require_thys document symbols last_timing (theory_name :: initiators)
               (Resources.theory_qualifier theory_name)

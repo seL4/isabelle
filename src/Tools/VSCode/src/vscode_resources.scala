@@ -63,7 +63,7 @@ class VSCode_Resources(
   def node_name(file: JFile): Document.Node.Name =
   {
     val node = file.getPath
-    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
+    val theory = Thy_Header.theory_name(node)
     val master_dir = if (theory == "") "" else file.getParent
     Document.Node.Name(node, master_dir, theory)
   }

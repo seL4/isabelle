@@ -77,21 +77,19 @@ object Thy_Header extends Parse.Parser
   val ml_roots = List("ROOT0.ML" -> "ML_Root0", "ROOT.ML" -> ML_ROOT)
   val bootstrap_thys = List(PURE, ML_BOOTSTRAP).map(a => a -> ("Bootstrap_" + a))
 
-  private val Base_Name = new Regex(""".*?([^/\\:]+)""")
-  private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+  private val Thy_File_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+  private val Import_Name = new Regex(""".*?([^/\\:]+)""")
 
-  def base_name(s: String): String =
-    s match { case Base_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
+  def import_name(s: String): String =
+    s match { case Import_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
 
-  def thy_name(s: String): Option[String] =
-    s match { case Thy_Name(name) => Some(name) case _ => None }
-
-  def thy_name_bootstrap(s: String): Option[String] =
+  def theory_name(s: String): String =
     s match {
-      case Thy_Name(name) =>
-        Some(bootstrap_thys.collectFirst({ case (a, b) if a == name => b }).getOrElse(name))
-      case Base_Name(name) => ml_roots.collectFirst({ case (a, b) if a == name => b })
-      case _ => None
+      case Thy_File_Name(name) =>
+        bootstrap_thys.collectFirst({ case (a, b) if a == name => b }).getOrElse(name)
+      case Import_Name(name) =>
+        ml_roots.collectFirst({ case (a, b) if a == name => b }).getOrElse("")
+      case _ => ""
     }
 
   def is_ml_root(theory: String): Boolean =

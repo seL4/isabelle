@@ -72,7 +72,7 @@ class Resources(
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
-    val theory0 = Thy_Header.base_name(s)
+    val theory0 = Thy_Header.import_name(s)
     val theory =
       if (Long_Name.is_qualified(theory0) || session_base.global_theories.contains(theory0)
         || true /* FIXME */) theory0
