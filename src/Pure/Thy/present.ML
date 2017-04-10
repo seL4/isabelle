@@ -67,7 +67,7 @@ fun session_graph parent_session parent_loaded =
         val name = Context.theory_name thy;
         val deps = map (node_name o Context.theory_name) (Theory.parents_of thy);
       in
-        if parent_loaded name then NONE
+        if parent_loaded (Context.theory_long_name thy) then NONE
         else SOME ((node_name name, Graph_Display.content_node name []), deps)
       end;
   in

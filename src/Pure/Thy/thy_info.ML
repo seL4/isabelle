@@ -128,8 +128,8 @@ val remove_thy = change_thys o remove;
 
 fun update deps theory thys =
   let
-    val name = Context.theory_name theory;
-    val parents = map Context.theory_name (Theory.parents_of theory);
+    val name = Context.theory_long_name theory;
+    val parents = map Context.theory_long_name (Theory.parents_of theory);
 
     val thys' = remove name thys;
     val _ = map (get thys') parents;
@@ -372,7 +372,7 @@ fun script_thy pos txt thy =
 
 fun register_thy theory =
   let
-    val name = Context.theory_name theory;
+    val name = Context.theory_long_name theory;
     val {master, ...} = Resources.check_thy (Resources.master_directory theory) name;
     val imports = Resources.imports_of theory;
   in
