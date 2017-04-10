@@ -165,7 +165,9 @@ val PureN = "Pure";
 val finished = ~1;
 
 fun display_name thy_id =
-  let val {name, stage} = history_of_id thy_id
+  let
+    val {name = long_name, stage} = history_of_id thy_id;
+    val name = Long_Name.base_name long_name;
   in if stage = finished then name else name ^ ":" ^ string_of_int stage end;
 
 fun display_names thy =
