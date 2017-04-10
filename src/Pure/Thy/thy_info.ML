@@ -312,11 +312,13 @@ and require_thy document symbols last_timing initiators qualifier dir (s, requir
                 ("The error(s) above occurred for theory " ^ quote theory_name ^
                   Position.here require_pos ^ required_by "\n" initiators);
 
-          val parents = map (Thy_Header.import_name o #1) imports;
+          val qualifier' = Resources.theory_qualifier theory_name;
+          val dir' = Path.append dir (master_dir_deps (Option.map #1 deps));
+
+          val parents = map (#theory_name o Resources.import_name qualifier' dir' o #1) imports;
           val (parents_current, tasks') =
             require_thys document symbols last_timing (theory_name :: initiators)
-              (Resources.theory_qualifier theory_name)
-              (Path.append dir (master_dir_deps (Option.map #1 deps))) imports tasks;
+              qualifier' dir' imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
