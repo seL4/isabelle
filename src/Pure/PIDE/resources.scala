@@ -68,13 +68,13 @@ class Resources(
     else Nil
 
   def theory_qualifier(name: Document.Node.Name): String =
-    Long_Name.qualifier(name.theory)
+    session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory0 = Thy_Header.import_name(s)
     val theory =
-      if (Long_Name.is_qualified(theory0) || session_base.global_theories.contains(theory0)
+      if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0)
         || true /* FIXME */) theory0
       else theory0 // FIXME Long_Name.qualify(qualifier, theory0)
 

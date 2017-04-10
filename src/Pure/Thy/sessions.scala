@@ -49,7 +49,7 @@ object Sessions
   }
 
   sealed case class Base(
-    global_theories: Set[String] = Set.empty,
+    global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
     keywords: Thy_Header.Keywords = Nil,
@@ -85,7 +85,7 @@ object Sessions
       verbose: Boolean = false,
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
-      global_theories: Set[String] = Set.empty): Deps =
+      global_theories: Map[String, String] = Map.empty): Deps =
   {
     Deps((Map.empty[String, Base] /: sessions.imports_topological_order)({
       case (sessions, (session_name, info)) =>
@@ -98,7 +98,7 @@ object Sessions
               case Some(parent) => sessions(parent)
             }
           val resources = new Resources(parent_base,
-            default_qualifier = info.theory_qualifier getOrElse session_name)
+            default_qualifier = info.theory_qualifier(session_name))
 
           if (verbose || list_files) {
             val groups =
@@ -211,10 +211,10 @@ object Sessions
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
-    def theory_qualifier: Option[String] =
+    def theory_qualifier(default_qualifier: String): String =
       options.string("theory_qualifier") match {
-        case "" => None
-        case qualifier => Some(qualifier)
+        case "" => default_qualifier
+        case qualifier => qualifier
       }
   }
 
@@ -324,17 +324,19 @@ object Sessions
     def get(name: String): Option[Info] =
       if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
 
-    def global_theories: Set[String] =
-      (Set.empty[String] /:
+    def global_theories: Map[String, String] =
+      (Map.empty[String, String] /:
         (for {
-          (_, (info, _)) <- imports_graph.iterator
-          thy <- info.global_theories.iterator }
-         yield (thy, info.pos)))(
-          { case (set, (thy, pos)) =>
-             if (set.contains(thy))
-               error("Duplicate declaration of global theory " + quote(thy) + Position.here(pos))
-             else set + thy
-           })
+          (session_name, (info, _)) <- imports_graph.iterator
+          thy <- info.global_theories.iterator } yield (thy, session_name, info)))({
+            case (global, (thy, session_name, info)) =>
+              val qualifier = info.theory_qualifier(session_name)
+              global.get(thy) match {
+                case Some(qualifier1) if qualifier != qualifier1 =>
+                  error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
+                case _ => global + (thy -> qualifier)
+              }
+          })
 
     def selection(select: Selection): (List[String], T) =
     {
