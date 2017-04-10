@@ -797,7 +797,7 @@ fun nickname_of_thm th =
       (* There must be a better way to detect local facts. *)
       (case Long_Name.dest_local hint of
         SOME suf =>
-        Long_Name.implode [Thm.theory_name_of_thm th, suf, crude_printed_term 25 (Thm.prop_of th)]
+        Long_Name.implode [Thm.theory_name th, suf, crude_printed_term 25 (Thm.prop_of th)]
       | NONE => hint)
     end
   else
@@ -838,7 +838,7 @@ fun crude_thm_ord ctxt =
         | _ => string_ord (apply2 Context.theory_id_name p))
   in
     fn p =>
-      (case crude_theory_ord (apply2 Thm.theory_id_of_thm p) of
+      (case crude_theory_ord (apply2 Thm.theory_id p) of
         EQUAL =>
         (* The hack below is necessary because of odd dependencies that are not reflected in the theory
            comparison. *)
@@ -851,7 +851,7 @@ fun crude_thm_ord ctxt =
       | ord => ord)
   end;
 
-val thm_less_eq = Context.subthy_id o apply2 Thm.theory_id_of_thm
+val thm_less_eq = Context.subthy_id o apply2 Thm.theory_id
 fun thm_less p = thm_less_eq p andalso not (thm_less_eq (swap p))
 
 val freezeT = Type.legacy_freeze_type
@@ -1124,7 +1124,7 @@ fun attach_parents_to_facts _ [] = []
             val chunks = app_hd (cons th) chunks
             val chunks_and_parents' =
               if thm_less_eq (th, th') andalso
-                Thm.theory_name_of_thm th = Thm.theory_name_of_thm th'
+                Thm.theory_name th = Thm.theory_name th'
               then (chunks, [nickname_of_thm th])
               else chunks_and_parents_for chunks th'
           in
@@ -1173,9 +1173,9 @@ fun maximal_wrt_access_graph _ [] = []
   | maximal_wrt_access_graph access_G (fact :: facts) =
     let
       fun cleanup_wrt (_, th) =
-        let val thy_id = Thm.theory_id_of_thm th in
+        let val thy_id = Thm.theory_id th in
           filter_out (fn (_, th') =>
-            Context.proper_subthy_id (Thm.theory_id_of_thm th', thy_id))
+            Context.proper_subthy_id (Thm.theory_id th', thy_id))
         end
 
       fun shuffle_cleanup accum [] = accum
@@ -1229,11 +1229,11 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
 
     val chained = filter (fn ((_, (scope, _)), _) => scope = Chained) facts
 
-    fun fact_has_right_theory (_, th) = thy_name = Thm.theory_name_of_thm th
+    fun fact_has_right_theory (_, th) = thy_name = Thm.theory_name th
 
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [Thm.prop_of th]
-      |> features_of ctxt (Thm.theory_name_of_thm th) stature
+      |> features_of ctxt (Thm.theory_name th) stature
       |> map (rpair (weight * factor))
   in
     (case get_state ctxt of
@@ -1454,7 +1454,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
                   (learns, (num_nontrivial, next_commit, _)) =
                 let
                   val name = nickname_of_thm th
-                  val feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
+                  val feats = features_of ctxt (Thm.theory_name th) stature [Thm.prop_of th]
                   val deps = these (deps_of status th)
                   val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
                   val learns = (name, parents, feats, deps) :: learns

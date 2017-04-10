@@ -56,8 +56,8 @@ sig
   val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
-  val theory_id_of_thm: thm -> Context.theory_id
-  val theory_name_of_thm: thm -> string
+  val theory_id: thm -> Context.theory_id
+  val theory_name: thm -> string
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
   val shyps_of: thm -> sort Ord_List.T
@@ -365,8 +365,8 @@ fun join_certificate2 (Thm (_, {cert = cert1, ...}), Thm (_, {cert = cert2, ...}
 (* basic components *)
 
 val cert_of = #cert o rep_thm;
-val theory_id_of_thm = Context.certificate_theory_id o cert_of;
-val theory_name_of_thm = Context.theory_id_name o theory_id_of_thm;
+val theory_id = Context.certificate_theory_id o cert_of;
+val theory_name = Context.theory_id_name o theory_id;
 
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);

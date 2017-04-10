@@ -216,7 +216,7 @@ val eq_thm_prop = op aconv o apply2 Thm.full_prop_of;
 
 fun eq_thm_strict ths =
   eq_thm ths andalso
-  Context.eq_thy_id (apply2 Thm.theory_id_of_thm ths) andalso
+  Context.eq_thy_id (apply2 Thm.theory_id ths) andalso
   op = (apply2 Thm.maxidx_of ths) andalso
   op = (apply2 Thm.get_tags ths);
 

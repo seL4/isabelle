@@ -556,7 +556,7 @@ val orphan_axioms_of =
   #> map snd
   #> filter (null o fst)
   #> maps snd
-  #> filter_out (is_builtin_theory o Thm.theory_id_of_thm)
+  #> filter_out (is_builtin_theory o Thm.theory_id)
   #> map Thm.prop_of;
 
 fun keys_of _ (ITVal (T, _)) = [key_of_typ T]

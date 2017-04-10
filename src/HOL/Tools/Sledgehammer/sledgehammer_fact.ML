@@ -347,7 +347,7 @@ fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (@{const_name HOL.eq}, 
   | normalize_eq t = t
 
 fun if_thm_before th th' =
-  if Context.subthy_id (apply2 Thm.theory_id_of_thm (th, th')) then th else th'
+  if Context.subthy_id (apply2 Thm.theory_id (th, th')) then th else th'
 
 (* Hack: Conflate the facts about a class as seen from the outside with the corresponding low-level
    facts, so that MaSh can learn from the low-level proofs. *)

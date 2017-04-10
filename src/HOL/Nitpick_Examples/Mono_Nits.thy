@@ -153,7 +153,7 @@ fun is_forbidden_theorem name =
 fun theorems_of thy =
   filter (fn (name, th) =>
              not (is_forbidden_theorem name) andalso
-             Thm.theory_name_of_thm th = Context.theory_name thy)
+             Thm.theory_name th = Context.theory_name thy)
          (Global_Theory.all_thms_of thy true)
 
 fun check_formulas tsp =
