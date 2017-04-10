@@ -54,7 +54,7 @@ type deps =
 
 fun make_deps master imports : deps = {master = master, imports = imports};
 
-fun master_dir (d: deps option) =
+fun master_dir_deps (d: deps option) =
   the_default Path.current (Option.map (Path.dir o #1 o #master) d);
 
 local
@@ -86,7 +86,7 @@ fun get_thy name = get (get_thys ()) name;
 
 val lookup_deps = Option.map #1 o lookup_thy;
 
-val master_directory = master_dir o #1 o get_thy;
+val master_directory = master_dir_deps o #1 o get_thy;
 
 
 (* access theory *)
@@ -287,10 +287,9 @@ in
 fun require_thys document symbols last_timing initiators qualifier dir strs tasks =
       fold_map (require_thy document symbols last_timing initiators qualifier dir) strs tasks
       |>> forall I
-and require_thy document symbols last_timing initiators qualifier dir (str, require_pos) tasks =
+and require_thy document symbols last_timing initiators qualifier dir (s, require_pos) tasks =
   let
-    val path = Path.expand (Path.explode str);
-    val {node_name, theory_name} = Resources.import_name qualifier dir path;
+    val {node_name, master_dir, theory_name} = Resources.import_name qualifier dir s;
     fun check_entry (Task (node_name', _, _)) =
           if op = (apply2 File.platform_path (node_name, node_name'))
           then ()
@@ -305,10 +304,9 @@ and require_thy document symbols last_timing initiators qualifier dir (str, requ
       SOME task => (check_entry task; (task_finished task, tasks))
     | NONE =>
         let
-          val dir' = Path.append dir (Path.dir path);
           val _ = member (op =) initiators theory_name andalso error (cycle_msg initiators);
 
-          val (current, deps, theory_pos, imports, keywords) = check_deps dir' theory_name
+          val (current, deps, theory_pos, imports, keywords) = check_deps master_dir theory_name
             handle ERROR msg =>
               cat_error msg
                 ("The error(s) above occurred for theory " ^ quote theory_name ^
@@ -318,7 +316,7 @@ and require_thy document symbols last_timing initiators qualifier dir (str, requ
           val (parents_current, tasks') =
             require_thys document symbols last_timing (theory_name :: initiators)
               (Resources.theory_qualifier theory_name)
-              (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
+              (Path.append dir (master_dir_deps (Option.map #1 deps))) imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
