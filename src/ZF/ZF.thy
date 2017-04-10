@@ -1,4 +1,4 @@
-section\<open>Theory Main: Everything Except AC\<close>
+section\<open>Main ZF Theory: Everything Except AC\<close>
 
 theory ZF imports List_ZF IntDiv_ZF CardinalArith begin
 
