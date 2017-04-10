@@ -97,7 +97,8 @@ object Sessions
               case None => Base.bootstrap
               case Some(parent) => sessions(parent)
             }
-          val resources = new Resources(parent_base, default_qualifier = session_name)
+          val resources = new Resources(parent_base,
+            default_qualifier = info.theory_qualifier getOrElse session_name)
 
           if (verbose || list_files) {
             val groups =
@@ -209,6 +210,12 @@ object Sessions
     meta_digest: SHA1.Digest)
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
+
+    def theory_qualifier: Option[String] =
+      options.string("theory_qualifier") match {
+        case "" => None
+        case qualifier => Some(qualifier)
+      }
   }
 
   object Selection
