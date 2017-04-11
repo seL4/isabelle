@@ -76,9 +76,7 @@ class Plugin extends EBPlugin
       try { Sessions.session_base(options, session_name, JEdit_Sessions.session_dirs()) }
       catch { case ERROR(_) => Sessions.Base.pure(options) }
 
-    _resources =
-      new JEdit_Resources(session_base.copy(known_theories =
-        for ((a, b) <- session_base.known_theories) yield (a, b.map(File.platform_path(_)))))
+    _resources = new JEdit_Resources(session_base.platform_path)
   }
   def resources: JEdit_Resources = _resources
 
