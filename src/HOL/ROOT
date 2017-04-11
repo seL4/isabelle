@@ -60,7 +60,7 @@ session "HOL-Library" (main timing) in Library = HOL +
 
 session "HOL-Analysis" (main timing) in Analysis = HOL +
   theories
-    Analysis (global)
+    Analysis
   document_files
     "root.tex"
 
@@ -830,7 +830,7 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = HOL +
 
 session "HOL-Word" (main timing) in Word = HOL +
   theories
-    Word (global)
+    Word
   document_files "root.bib" "root.tex"
 
 session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
