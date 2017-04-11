@@ -6,6 +6,7 @@ Cumulative session information.
 
 package isabelle
 
+import java.io.{File => JFile}
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
@@ -31,20 +32,31 @@ object Sessions
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
 
     private[Sessions] def known_theories(bases: Iterable[Base], names: Iterable[Document.Node.Name])
-      : Map[String, Document.Node.Name] =
+      : (Map[String, Document.Node.Name], Map[JFile, List[Document.Node.Name]]) =
     {
-      val bases_iterator =
+      def bases_iterator =
         for { base <- bases.iterator; (_, name) <- base.known_theories.iterator }
           yield name
 
-      (Map.empty[String, Document.Node.Name] /: (bases_iterator ++ names.iterator))({
-        case (known, name) =>
-          known.get(name.theory) match {
-            case Some(name1) if name != name1 =>
-              error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-            case _ => known + (name.theory -> name)
-          }
+      val known_theories =
+        (Map.empty[String, Document.Node.Name] /: (bases_iterator ++ names.iterator))({
+          case (known, name) =>
+            known.get(name.theory) match {
+              case Some(name1) if name != name1 =>
+                error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+              case _ => known + (name.theory -> name)
+            }
+          })
+      val known_files =
+        (Map.empty[JFile, List[Document.Node.Name]] /: (bases_iterator ++ names.iterator))({
+          case (known, name) =>
+            val file = Path.explode(name.node).file.getCanonicalFile
+            val names1 = known.getOrElse(file, Nil)
+            if (names1.exists(name1 => name.node == name1.node && name.theory == name1.theory))
+              known
+            else known + (file -> (name :: names1))
         })
+      (known_theories, known_files)
     }
   }
 
@@ -52,6 +64,7 @@ object Sessions
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
+    known_files: Map[JFile, List[Document.Node.Name]] = Multi_Map.empty,
     keywords: Thy_Header.Keywords = Nil,
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
@@ -75,7 +88,7 @@ object Sessions
     def apply(name: String): Base = sessions(name)
     def sources(name: String): List[SHA1.Digest] = sessions(name).sources.map(_._2)
 
-    def all_known_theories: Map[String, Document.Node.Name] =
+    def all_known_theories: (Map[String, Document.Node.Name], Map[JFile, List[Document.Node.Name]]) =
       Base.known_theories(sessions.toList.map(_._2), Nil)
   }
 
@@ -122,6 +135,10 @@ object Sessions
             }
           }
 
+          val (known_theories, known_files) =
+            Base.known_theories(
+              parent_base :: info.imports.map(sessions(_)), thy_deps.deps.map(_.name))
+
           val syntax = thy_deps.syntax
 
           val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
@@ -154,9 +171,8 @@ object Sessions
           val base =
             Base(global_theories = global_theories,
               loaded_theories = thy_deps.loaded_theories,
-              known_theories =
-                Base.known_theories(
-                  parent_base :: info.imports.map(sessions(_)), thy_deps.deps.map(_.name)),
+              known_theories = known_theories,
+              known_files = known_files,
               keywords = thy_deps.keywords,
               syntax = syntax,
               sources = all_files.map(p => (p, SHA1.digest(p.file))),
@@ -184,7 +200,8 @@ object Sessions
 
     if (all_known_theories) {
       val deps = Sessions.deps(full_sessions, global_theories = global_theories)
-      deps(session).copy(known_theories = deps.all_known_theories)
+      val (known_theories, known_files) = deps.all_known_theories
+      deps(session).copy(known_theories = known_theories, known_files = known_files)
     }
     else
       deps(selected_sessions, global_theories = global_theories)(session)
