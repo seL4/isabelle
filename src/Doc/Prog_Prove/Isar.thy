@@ -881,6 +881,45 @@ performs the following steps:
 \end{enumerate}
 \index{structural induction|)}
 
+
+\ifsem\else
+\subsection{Computation Induction}
+\index{rule induction}
+
+In \autoref{sec:recursive-funs} we introduced computation induction and
+its realization in Isabelle: the definition
+of a recursive function \<open>f\<close> via \isacom{fun} proves the corresponding computation
+induction rule called \<open>f.induct\<close>. Induction with this rule looks like in
+\autoref{sec:recursive-funs}, but now with \isacom{proof} instead of \isacom{apply}:
+\begin{quote}
+\isacom{proof} (\<open>induction x\<^sub>1 \<dots> x\<^sub>k rule: f.induct\<close>)
+\end{quote}
+Just as for structural induction, this creates several cases, one for each
+defining equation for \<open>f\<close>. By default (if the equations have not been named
+by the user), the cases are numbered. That is, they are started by
+\begin{quote}
+\isacom{case} (\<open>i x y ...\<close>)
+\end{quote}
+where \<open>i = 1,...,n\<close>, \<open>n\<close> is the number of equations defining \<open>f\<close>,
+and \<open>x y ...\<close> are the variables in equation \<open>i\<close>. Note the following:
+\begin{itemize}
+\item
+Although \<open>i\<close> is an Isar name, \<open>i.IH\<close> (or similar) is not. You need
+double quotes: "\<open>i.IH\<close>". When indexing the name, write "\<open>i.IH\<close>"(1),
+not "\<open>i.IH\<close>(1)".
+\item
+If defining equations for \<open>f\<close> overlap, \isacom{fun} instantiates them to make
+them nonoverlapping. This means that one user-provided equation may lead to
+several equations and thus to several cases in the induction rule.
+These have names of the form "\<open>i_j\<close>", where \<open>i\<close> is the number of the original
+equation and the system-generated \<open>j\<close> indicates the subcase.
+\end{itemize}
+In Isabelle/jEdit, the \<open>induction\<close> proof method displays a proof skeleton
+with all \isacom{case}s. This is particularly useful for computation induction
+and the following rule induction.
+\fi
+
+
 \subsection{Rule Induction}
 \index{rule induction|(}
 
