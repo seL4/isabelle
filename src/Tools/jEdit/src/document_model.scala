@@ -310,7 +310,7 @@ object File_Model
     last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
     pending_edits: List[Text.Edit] = Nil): File_Model =
   {
-    val file = PIDE.resources.node_name_file(node_name)
+    val file = JEdit_Lib.check_file(node_name.node)
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val content = Document_Model.File_Content(text)
