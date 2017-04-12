@@ -443,6 +443,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
             case _ if output.is_init =>
               prover.get.options(session_options)
+              prover.get.session_base(resources)
               phase = Session.Ready
               debugger.ready()
 
