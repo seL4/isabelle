@@ -76,7 +76,7 @@ class Resources(
     val theory =
       if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0)
         || true /* FIXME */) theory0
-      else theory0 // FIXME Long_Name.qualify(qualifier, theory0)
+      else Long_Name.qualify(qualifier, theory0)
 
     session_base.loaded_theories.get(theory) orElse
     session_base.loaded_theories.get(theory0) orElse
