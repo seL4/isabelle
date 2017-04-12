@@ -7,4 +7,4 @@ session Pure =
   options [threads = 1]
   theories
     Pure (global)
-    ML_Bootstrap
+    ML_Bootstrap (global)
