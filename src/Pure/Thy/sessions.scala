@@ -595,7 +595,7 @@ object Sessions
     (dir + ROOT).is_file || (dir + ROOTS).is_file
 
   private def check_session_dir(dir: Path): Path =
-    if (is_session_dir(dir)) dir
+    if (is_session_dir(dir)) File.pwd() + dir.expand
     else error("Bad session root directory: " + dir.toString)
 
   def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): T =
@@ -626,13 +626,11 @@ object Sessions
     }
 
     val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
-    dirs.foreach(check_session_dir(_))
-    select_dirs.foreach(check_session_dir(_))
 
     make(
       for {
         (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
-        info <- load_dir(select, dir)
+        info <- load_dir(select, check_session_dir(dir))
       } yield info)
   }
 
