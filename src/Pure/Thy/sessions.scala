@@ -33,8 +33,11 @@ object Sessions
   {
     def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
 
-    lazy val bootstrap: Base =
-      Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
+    def bootstrap(global_theories: Map[String, String]): Base =
+      Base(
+        global_theories = global_theories,
+        keywords = Thy_Header.bootstrap_header,
+        syntax = Thy_Header.bootstrap_syntax)
 
     private[Sessions] def known_theories(
         local_dir: Path,
@@ -137,7 +140,7 @@ object Sessions
           try {
             val parent_base =
               info.parent match {
-                case None => Base.bootstrap
+                case None => Base.bootstrap(global_theories)
                 case Some(parent) => session_bases(parent)
               }
             val resources = new Resources(parent_base,
