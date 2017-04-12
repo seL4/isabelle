@@ -6,12 +6,22 @@ Resources for theories and auxiliary files.
 
 signature RESOURCES =
 sig
-  val set_session_base: {known_theories: (string * string) list} -> unit
+  val set_session_base:
+    {default_qualifier: string,
+     global_theories: (string * string) list,
+     loaded_theories: (string * string) list,
+     known_theories: (string * string) list} -> unit
   val reset_session_base: unit -> unit
+  val default_qualifier: unit -> string
+  val global_theory: string -> string option
+  val loaded_theory: string -> Path.T option
   val known_theory: string -> Path.T option
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
+  val theory_qualifier: string -> string
+  val import_name: string -> Path.T -> string ->
+    {node_name: Path.T, master_dir: Path.T, theory_name: string}
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
@@ -30,19 +40,34 @@ struct
 
 (* session base *)
 
-val global_session_base =
-  Synchronized.var "Sessions.base"
-    ({known_theories = Symtab.empty: Path.T Symtab.table});
+val init_session_base =
+  {default_qualifier = "Draft",
+   global_theories = Symtab.empty: string Symtab.table,
+   loaded_theories = Symtab.empty: Path.T Symtab.table,
+   known_theories = Symtab.empty: Path.T Symtab.table};
 
-fun set_session_base {known_theories} =
+val global_session_base =
+  Synchronized.var "Sessions.base" init_session_base;
+
+fun set_session_base {default_qualifier, global_theories, loaded_theories, known_theories} =
   Synchronized.change global_session_base
-    (K {known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
+    (fn _ =>
+      {default_qualifier =
+        if default_qualifier <> "" then default_qualifier
+        else #default_qualifier init_session_base,
+       global_theories = Symtab.make global_theories,
+       loaded_theories = Symtab.make (map (apsnd Path.explode) loaded_theories),
+       known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
 
 fun reset_session_base () =
-  set_session_base {known_theories = []};
+  Synchronized.change global_session_base (K init_session_base);
 
-fun known_theory name =
-  Symtab.lookup (#known_theories (Synchronized.value global_session_base)) name;
+fun get_session_base f = f (Synchronized.value global_session_base);
+
+fun default_qualifier () = get_session_base #default_qualifier;
+fun global_theory a = Symtab.lookup (get_session_base #global_theories) a;
+fun loaded_theory a = Symtab.lookup (get_session_base #loaded_theories) a;
+fun known_theory a = Symtab.lookup (get_session_base #known_theories) a;
 
 
 (* manage source files *)
@@ -78,16 +103,36 @@ fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
 val thy_path = Path.ext "thy";
 
+fun theory_qualifier theory =
+  (case global_theory theory of
+    SOME qualifier => qualifier
+  | NONE => Long_Name.qualifier theory);
+
+fun import_name qualifier dir s =
+  let
+    val theory0 = Thy_Header.import_name s;
+    val theory =
+      if Long_Name.is_qualified theory0 orelse is_some (global_theory theory0)
+        orelse true (* FIXME *) then theory0
+      else Long_Name.qualify qualifier theory0;
+    val node_name =
+      the (get_first (fn e => e ())
+        [fn () => loaded_theory theory,
+         fn () => loaded_theory theory0,
+         fn () => known_theory theory,
+         fn () => known_theory theory0,
+         fn () => SOME (File.full_path dir (thy_path (Path.expand (Path.explode s))))])
+  in {node_name = node_name, master_dir = Path.dir node_name, theory_name = theory} end;
+
 fun check_file dir file = File.check_file (File.full_path dir file);
 
 fun check_thy dir thy_name =
   let
     val thy_base_name = Long_Name.base_name thy_name;
-    val thy_path = thy_path (Path.basic thy_base_name);
     val master_file =
       (case known_theory thy_name of
-        NONE => check_file dir thy_path
-      | SOME known_path => check_file Path.current known_path);
+        SOME known_path => check_file Path.current known_path
+      | NONE => check_file dir (thy_path (Path.basic thy_base_name)));
     val text = File.read master_file;
 
     val {name = (name, pos), imports, keywords} =
@@ -95,7 +140,7 @@ fun check_thy dir thy_name =
     val _ =
       thy_base_name <> name andalso
         error ("Bad theory name " ^ quote name ^
-          " for file " ^ Path.print thy_path ^ Position.here pos);
+          " for file " ^ Path.print (Path.base master_file) ^ Position.here pos);
   in
    {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
     imports = imports, keywords = keywords}

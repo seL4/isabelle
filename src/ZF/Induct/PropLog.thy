@@ -5,7 +5,7 @@
 
 section \<open>Meta-theory of propositional logic\<close>
 
-theory PropLog imports Main begin
+theory PropLog imports ZF begin
 
 text \<open>
   Datatype definition of propositional logic formulae and inductive

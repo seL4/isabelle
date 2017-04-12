@@ -80,7 +80,7 @@ fun transfer_theories thy =
       fold (fn thy' => Symtab.update (Context.theory_name thy', thy'))
         (Theory.nodes_of thy) Symtab.empty;
     fun transfer th =
-      Thm.transfer (the_default thy (Symtab.lookup theories (Thm.theory_name_of_thm th))) th;
+      Thm.transfer (the_default thy (Symtab.lookup theories (Thm.theory_name th))) th;
   in transfer end;
 
 fun all_thms_of thy verbose =

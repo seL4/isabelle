@@ -17,9 +17,9 @@ sig
     {document: bool,
      symbols: HTML.symbols,
      last_timing: Toplevel.transition -> Time.time,
+     qualifier: string,
      master_dir: Path.T} -> (string * Position.T) list -> unit
-  val use_thys: (string * Position.T) list -> unit
-  val use_thy: string * Position.T -> unit
+  val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
@@ -54,10 +54,8 @@ type deps =
 
 fun make_deps master imports : deps = {master = master, imports = imports};
 
-fun master_dir (d: deps option) =
+fun master_dir_deps (d: deps option) =
   the_default Path.current (Option.map (Path.dir o #1 o #master) d);
-
-fun base_name s = Path.implode (Path.base (Path.explode s));
 
 local
   val global_thys =
@@ -88,7 +86,7 @@ fun get_thy name = get (get_thys ()) name;
 
 val lookup_deps = Option.map #1 o lookup_thy;
 
-val master_directory = master_dir o #1 o get_thy;
+val master_directory = master_dir_deps o #1 o get_thy;
 
 
 (* access theory *)
@@ -130,8 +128,8 @@ val remove_thy = change_thys o remove;
 
 fun update deps theory thys =
   let
-    val name = Context.theory_name theory;
-    val parents = map Context.theory_name (Theory.parents_of theory);
+    val name = Context.theory_long_name theory;
+    val parents = map Context.theory_long_name (Theory.parents_of theory);
 
     val thys' = remove name thys;
     val _ = map (get thys') parents;
@@ -286,44 +284,45 @@ fun check_deps dir name =
 
 in
 
-fun require_thys document symbols last_timing initiators dir strs tasks =
-      fold_map (require_thy document symbols last_timing initiators dir) strs tasks |>> forall I
-and require_thy document symbols last_timing initiators dir (str, require_pos) tasks =
+fun require_thys document symbols last_timing initiators qualifier dir strs tasks =
+      fold_map (require_thy document symbols last_timing initiators qualifier dir) strs tasks
+      |>> forall I
+and require_thy document symbols last_timing initiators qualifier dir (s, require_pos) tasks =
   let
-    val path = Path.expand (Path.explode str);
-    val name = Path.implode (Path.base path);
-    val node_name = File.full_path dir (Resources.thy_path path);
+    val {node_name, master_dir, theory_name} = Resources.import_name qualifier dir s;
     fun check_entry (Task (node_name', _, _)) =
           if op = (apply2 File.platform_path (node_name, node_name'))
           then ()
           else
-            error ("Incoherent imports for theory " ^ quote name ^
+            error ("Incoherent imports for theory " ^ quote theory_name ^
               Position.here require_pos ^ ":\n" ^
               "  " ^ Path.print node_name ^ "\n" ^
               "  " ^ Path.print node_name')
       | check_entry _ = ();
   in
-    (case try (String_Graph.get_node tasks) name of
+    (case try (String_Graph.get_node tasks) theory_name of
       SOME task => (check_entry task; (task_finished task, tasks))
     | NONE =>
         let
-          val dir' = Path.append dir (Path.dir path);
-          val _ = member (op =) initiators name andalso error (cycle_msg initiators);
+          val _ = member (op =) initiators theory_name andalso error (cycle_msg initiators);
 
-          val (current, deps, theory_pos, imports, keywords) = check_deps dir' name
+          val (current, deps, theory_pos, imports, keywords) = check_deps master_dir theory_name
             handle ERROR msg =>
               cat_error msg
-                ("The error(s) above occurred for theory " ^ quote name ^
+                ("The error(s) above occurred for theory " ^ quote theory_name ^
                   Position.here require_pos ^ required_by "\n" initiators);
 
-          val parents = map (base_name o #1) imports;
+          val qualifier' = Resources.theory_qualifier theory_name;
+          val dir' = Path.append dir (master_dir_deps (Option.map #1 deps));
+
+          val parents = map (#theory_name o Resources.import_name qualifier' dir' o #1) imports;
           val (parents_current, tasks') =
-            require_thys document symbols last_timing (name :: initiators)
-              (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
+            require_thys document symbols last_timing (theory_name :: initiators)
+              qualifier' dir' imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
-            if all_current then Finished (get_theory name)
+            if all_current then Finished (get_theory theory_name)
             else
               (case deps of
                 NONE => raise Fail "Malformed deps"
@@ -332,28 +331,29 @@ and require_thy document symbols last_timing initiators dir (str, require_pos) t
                     val update_time = serial ();
                     val load =
                       load_thy document symbols last_timing initiators update_time dep
-                        text (name, theory_pos) keywords;
+                        text (theory_name, theory_pos) keywords;
                   in Task (node_name, parents, load) end);
 
-          val tasks'' = new_entry name parents task tasks';
+          val tasks'' = new_entry theory_name parents task tasks';
         in (all_current, tasks'') end)
   end;
 
 end;
 
 
-(* use_thy *)
+(* use theories *)
 
-fun use_theories {document, symbols, last_timing, master_dir} imports =
-  schedule_tasks
-    (snd (require_thys document symbols last_timing [] master_dir imports String_Graph.empty));
+fun use_theories {document, symbols, last_timing, qualifier, master_dir} imports =
+  let
+    val (_, tasks) =
+      require_thys document symbols last_timing [] qualifier master_dir imports String_Graph.empty;
+  in schedule_tasks tasks end;
 
-val use_thys =
+fun use_thy name =
   use_theories
     {document = false, symbols = HTML.no_symbols, last_timing = K Time.zeroTime,
-      master_dir = Path.current};
-
-val use_thy = use_thys o single;
+     qualifier = Resources.default_qualifier (), master_dir = Path.current}
+    [(name, Position.none)];
 
 
 (* toplevel scripting -- without maintaining database *)
@@ -372,7 +372,7 @@ fun script_thy pos txt thy =
 
 fun register_thy theory =
   let
-    val name = Context.theory_name theory;
+    val name = Context.theory_long_name theory;
     val {master, ...} = Resources.check_thy (Resources.master_directory theory) name;
     val imports = Resources.imports_of theory;
   in
@@ -390,4 +390,4 @@ fun finish () = change_thys (String_Graph.map (fn _ => fn (_, entry) => (NONE, e
 
 end;
 
-fun use_thy name = Runtime.toplevel_program (fn () => Thy_Info.use_thy (name, Position.none));
+fun use_thy name = Runtime.toplevel_program (fn () => Thy_Info.use_thy name);

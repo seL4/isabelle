@@ -117,6 +117,8 @@ object Document
       def loaded_theory: Name = Name(theory, "", theory)
       def is_theory: Boolean = theory.nonEmpty
 
+      def theory_base_name: String = Long_Name.base_name(theory)
+
       override def toString: String = if (is_theory) theory else node
 
       def map(f: String => String): Name = copy(f(node), f(master_dir), theory)

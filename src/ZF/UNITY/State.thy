@@ -10,7 +10,7 @@ Formalizes UNITY-program states using dependent types so that:
 
 section\<open>UNITY Program States\<close>
 
-theory State imports Main begin
+theory State imports ZF begin
 
 consts var :: i
 datatype var = Var("i \<in> list(nat)")

@@ -4,7 +4,7 @@
 
 section \<open>Relativization and Absoluteness\<close>
 
-theory Relative imports Main begin
+theory Relative imports ZF begin
 
 subsection\<open>Relativized versions of standard set-theoretic concepts\<close>
 
@@ -593,13 +593,13 @@ by (insert upair_in_M_iff [of a a], simp)
 
 lemma (in M_trivial) pair_abs [simp]:
      "M(z) ==> pair(M,a,b,z) \<longleftrightarrow> z=<a,b>"
-apply (simp add: pair_def ZF.Pair_def)
+apply (simp add: pair_def Pair_def)
 apply (blast intro: transM)
 done
 
 lemma (in M_trivial) pair_in_M_iff [iff]:
      "M(<a,b>) \<longleftrightarrow> M(a) & M(b)"
-by (simp add: ZF.Pair_def)
+by (simp add: Pair_def)
 
 lemma (in M_trivial) pair_components_in_M:
      "[| <x,y> \<in> A; M(A) |] ==> M(x) & M(y)"

@@ -5,7 +5,7 @@
 Some sample proofs of inclusions for the final coalgebra "U" (by lcp).
 *)
 
-theory Map imports Main begin
+theory Map imports ZF begin
 
 definition
   TMap :: "[i,i] => i"  where

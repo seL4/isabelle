@@ -21,15 +21,14 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
-class JEdit_Resources(session_base: Sessions.Base)
-  extends Resources(session_name = "", session_base)
+class JEdit_Resources(session_base: Sessions.Base) extends Resources(session_base)
 {
   /* document node name */
 
   def node_name(buffer: Buffer): Document.Node.Name =
   {
     val node = JEdit_Lib.buffer_name(buffer)
-    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
+    val theory = Thy_Header.theory_name(node)
     val master_dir = if (theory == "") "" else buffer.getDirectory
     Document.Node.Name(node, master_dir, theory)
   }
@@ -38,7 +37,7 @@ class JEdit_Resources(session_base: Sessions.Base)
   {
     val vfs = VFSManager.getVFSForPath(path)
     val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
-    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
+    val theory = Thy_Header.theory_name(node)
     val master_dir = if (theory == "") "" else vfs.getParentOfPath(path)
     Document.Node.Name(node, master_dir, theory)
   }

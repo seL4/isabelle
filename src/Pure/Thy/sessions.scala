@@ -6,6 +6,7 @@ Cumulative session information.
 
 package isabelle
 
+import java.io.{File => JFile}
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
@@ -19,7 +20,14 @@ object Sessions
 {
   /* base info and source dependencies */
 
+  val DRAFT = "Draft"
+
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
+
+  sealed case class Known_Theories(
+    known_theories: Map[String, Document.Node.Name] = Map.empty,
+    known_theories_local: Map[String, Document.Node.Name] = Map.empty,
+    known_files: Map[JFile, List[Document.Node.Name]] = Map.empty)
 
   object Base
   {
@@ -28,49 +36,94 @@ object Sessions
     lazy val bootstrap: Base =
       Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
 
-    private[Sessions] def known_theories(bases: Iterable[Base], names: Iterable[Document.Node.Name])
-      : Map[String, Document.Node.Name] =
+    private[Sessions] def known_theories(
+        local_dir: Path,
+        bases: List[Base],
+        theories: List[Document.Node.Name]): Known_Theories =
     {
-      val bases_iterator =
-        for { base <- bases.iterator; (_, name) <- base.known_theories.iterator }
-          yield name
+      def bases_iterator(local: Boolean) =
+        for {
+          base <- bases.iterator
+          (_, name) <- (if (local) base.known_theories_local else base.known_theories).iterator
+        } yield name
 
-      (Map.empty[String, Document.Node.Name] /: (bases_iterator ++ names.iterator))({
-        case (known, name) =>
-          known.get(name.theory) match {
-            case Some(name1) if name != name1 =>
-              error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-            case _ => known + (name.theory -> name)
-          }
+      def local_theories_iterator =
+      {
+        val local_path = local_dir.file.getCanonicalFile.toPath
+        theories.iterator.filter(name =>
+          Path.explode(name.node).file.getCanonicalFile.toPath.startsWith(local_path))
+      }
+
+      val known_theories =
+        (Map.empty[String, Document.Node.Name] /: (bases_iterator(false) ++ theories.iterator))({
+          case (known, name) =>
+            known.get(name.theory) match {
+              case Some(name1) if name != name1 =>
+                error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+              case _ => known + (name.theory -> name)
+            }
+          })
+      val known_theories_local =
+        (Map.empty[String, Document.Node.Name] /:
+            (bases_iterator(true) ++ local_theories_iterator))({
+          case (known, name) => known + (name.theory -> name)
         })
+      val known_files =
+        (Map.empty[JFile, List[Document.Node.Name]] /:
+            (bases_iterator(true) ++ bases_iterator(false) ++ theories.iterator))({
+          case (known, name) =>
+            val file = Path.explode(name.node).file.getCanonicalFile
+            val theories1 = known.getOrElse(file, Nil)
+            if (theories1.exists(name1 => name.node == name1.node && name.theory == name1.theory))
+              known
+            else known + (file -> (name :: theories1))
+        })
+      Known_Theories(known_theories, known_theories_local,
+        known_files.iterator.map(p => (p._1, p._2.reverse)).toMap)
     }
   }
 
   sealed case class Base(
-    global_theories: Set[String] = Set.empty,
+    global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
+    known_theories_local: Map[String, Document.Node.Name] = Map.empty,
+    known_files: Map[JFile, List[Document.Node.Name]] = Map.empty,
     keywords: Thy_Header.Keywords = Nil,
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
   {
+    def platform_path: Base =
+      copy(
+        loaded_theories =
+          for ((a, b) <- loaded_theories) yield (a, b.map(File.platform_path(_))),
+        known_theories =
+          for ((a, b) <- known_theories) yield (a, b.map(File.platform_path(_))),
+        known_theories_local =
+          for ((a, b) <- known_theories_local) yield (a, b.map(File.platform_path(_))),
+        known_files =
+          for ((a, b) <- known_files) yield (a, b.map(c => c.map(File.platform_path(_)))))
+
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
+
+    def dest_loaded_theories: List[(String, String)] =
+      for ((theory, node_name) <- loaded_theories.toList)
+        yield (theory, node_name.node)
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known_theories.toList)
         yield (theory, node_name.node)
   }
 
-  sealed case class Deps(sessions: Map[String, Base])
+  sealed case class Deps(
+    session_bases: Map[String, Base],
+    all_known_theories: Known_Theories)
   {
-    def is_empty: Boolean = sessions.isEmpty
-    def apply(name: String): Base = sessions(name)
-    def sources(name: String): List[SHA1.Digest] = sessions(name).sources.map(_._2)
-
-    def all_known_theories: Map[String, Document.Node.Name] =
-      Base.known_theories(sessions.toList.map(_._2), Nil)
+    def is_empty: Boolean = session_bases.isEmpty
+    def apply(name: String): Base = session_bases(name)
+    def sources(name: String): List[SHA1.Digest] = session_bases(name).sources.map(_._2)
   }
 
   def deps(sessions: T,
@@ -79,89 +132,105 @@ object Sessions
       verbose: Boolean = false,
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
-      global_theories: Set[String] = Set.empty): Deps =
+      global_theories: Map[String, String] = Map.empty,
+      all_known_theories: Boolean = false): Deps =
   {
-    Deps((Map.empty[String, Base] /: sessions.imports_topological_order)({
-      case (sessions, (session_name, info)) =>
-        if (progress.stopped) throw Exn.Interrupt()
+    val session_bases =
+      (Map.empty[String, Base] /: sessions.imports_topological_order)({
+        case (session_bases, (session_name, info)) =>
+          if (progress.stopped) throw Exn.Interrupt()
 
-        try {
-          val parent_base =
-            info.parent match {
-              case None => Base.bootstrap
-              case Some(parent) => sessions(parent)
+          try {
+            val parent_base =
+              info.parent match {
+                case None => Base.bootstrap
+                case Some(parent) => session_bases(parent)
+              }
+            val resources = new Resources(parent_base,
+              default_qualifier = info.theory_qualifier(session_name))
+
+            if (verbose || list_files) {
+              val groups =
+                if (info.groups.isEmpty) ""
+                else info.groups.mkString(" (", " ", ")")
+              progress.echo("Session " + info.chapter + "/" + session_name + groups)
             }
-          val resources = new Resources(session_name, parent_base)
 
-          if (verbose || list_files) {
-            val groups =
-              if (info.groups.isEmpty) ""
-              else info.groups.mkString(" (", " ", ")")
-            progress.echo("Session " + info.chapter + "/" + session_name + groups)
+            val thy_deps =
+            {
+              val root_theories =
+                info.theories.flatMap({ case (_, thys) =>
+                  thys.map(thy =>
+                    (resources.import_name(session_name, info.dir.implode, thy), info.pos))
+                })
+              val thy_deps = resources.thy_info.dependencies(root_theories)
+
+              thy_deps.errors match {
+                case Nil => thy_deps
+                case errs => error(cat_lines(errs))
+              }
+            }
+
+            val known_theories =
+              Base.known_theories(info.dir,
+                parent_base :: info.imports.map(session_bases(_)),
+                thy_deps.deps.map(_.name))
+
+            val syntax = thy_deps.syntax
+
+            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
+            val loaded_files =
+              if (inlined_files) {
+                val pure_files =
+                  if (is_pure(session_name)) {
+                    val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
+                    val files =
+                      roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
+                        map(file => info.dir + Path.explode(file))
+                    roots ::: files
+                  }
+                  else Nil
+                pure_files ::: thy_deps.loaded_files
+              }
+              else Nil
+
+            val all_files =
+              (theory_files ::: loaded_files :::
+                info.files.map(file => info.dir + file) :::
+                info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
+
+            if (list_files)
+              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+
+            if (check_keywords.nonEmpty)
+              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
+
+            val base =
+              Base(global_theories = global_theories,
+                loaded_theories = thy_deps.loaded_theories,
+                known_theories = known_theories.known_theories,
+                known_theories_local = known_theories.known_theories_local,
+                known_files = known_theories.known_files,
+                keywords = thy_deps.keywords,
+                syntax = syntax,
+                sources = all_files.map(p => (p, SHA1.digest(p.file))),
+                session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
+
+            session_bases + (session_name -> base)
           }
-
-          val thy_deps =
-          {
-            val root_theories =
-              info.theories.flatMap({ case (_, thys) =>
-                thys.map(thy => (resources.import_name(info.dir.implode, thy), info.pos))
-              })
-            val thy_deps = resources.thy_info.dependencies(root_theories)
-
-            thy_deps.errors match {
-              case Nil => thy_deps
-              case errs => error(cat_lines(errs))
-            }
+          catch {
+            case ERROR(msg) =>
+              cat_error(msg, "The error(s) above occurred in session " +
+                quote(session_name) + Position.here(info.pos))
           }
+      })
 
-          val syntax = thy_deps.syntax
+    val known_theories =
+      if (all_known_theories)
+        Base.known_theories(Path.current, session_bases.toList.map(_._2), Nil)
+      else Known_Theories()
 
-          val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
-          val loaded_files =
-            if (inlined_files) {
-              val pure_files =
-                if (is_pure(session_name)) {
-                  val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
-                  val files =
-                    roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
-                      map(file => info.dir + Path.explode(file))
-                  roots ::: files
-                }
-                else Nil
-              pure_files ::: thy_deps.loaded_files
-            }
-            else Nil
-
-          val all_files =
-            (theory_files ::: loaded_files :::
-              info.files.map(file => info.dir + file) :::
-              info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
-
-          if (list_files)
-            progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
-
-          if (check_keywords.nonEmpty)
-            Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
-
-          val base =
-            Base(global_theories = global_theories,
-              loaded_theories = thy_deps.loaded_theories,
-              known_theories =
-                Base.known_theories(
-                  parent_base :: info.imports.map(sessions(_)), thy_deps.deps.map(_.name)),
-              keywords = thy_deps.keywords,
-              syntax = syntax,
-              sources = all_files.map(p => (p, SHA1.digest(p.file))),
-              session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
-
-          sessions + (session_name -> base)
-        }
-        catch {
-          case ERROR(msg) =>
-            cat_error(msg, "The error(s) above occurred in session " +
-              quote(session_name) + Position.here(info.pos))
-        }
-    }))
+    Deps(session_bases, known_theories)
   }
 
   def session_base(
@@ -175,8 +244,12 @@ object Sessions
     val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
 
     if (all_known_theories) {
-      val deps = Sessions.deps(full_sessions, global_theories = global_theories)
-      deps(session).copy(known_theories = deps.all_known_theories)
+      val deps = Sessions.deps(
+        full_sessions, global_theories = global_theories, all_known_theories = all_known_theories)
+      deps(session).copy(
+        known_theories = deps.all_known_theories.known_theories,
+        known_theories_local = deps.all_known_theories.known_theories_local,
+        known_files = deps.all_known_theories.known_files)
     }
     else
       deps(selected_sessions, global_theories = global_theories)(session)
@@ -202,6 +275,12 @@ object Sessions
     meta_digest: SHA1.Digest)
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
+
+    def theory_qualifier(default_qualifier: String): String =
+      options.string("theory_qualifier") match {
+        case "" => default_qualifier
+        case qualifier => qualifier
+      }
   }
 
   object Selection
@@ -310,17 +389,19 @@ object Sessions
     def get(name: String): Option[Info] =
       if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
 
-    def global_theories: Set[String] =
-      (Set.empty[String] /:
+    def global_theories: Map[String, String] =
+      (Map.empty[String, String] /:
         (for {
-          (_, (info, _)) <- imports_graph.iterator
-          thy <- info.global_theories.iterator }
-         yield (thy, info.pos)))(
-          { case (set, (thy, pos)) =>
-             if (set.contains(thy))
-               error("Duplicate declaration of global theory " + quote(thy) + Position.here(pos))
-             else set + thy
-           })
+          (session_name, (info, _)) <- imports_graph.iterator
+          thy <- info.global_theories.iterator } yield (thy, session_name, info)))({
+            case (global, (thy, session_name, info)) =>
+              val qualifier = info.theory_qualifier(session_name)
+              global.get(thy) match {
+                case Some(qualifier1) if qualifier != qualifier1 =>
+                  error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
+                case _ => global + (thy -> qualifier)
+              }
+          })
 
     def selection(select: Selection): (List[String], T) =
     {
@@ -446,7 +527,7 @@ object Sessions
         try {
           val name = entry.name
 
-          if (name == "") error("Bad session name")
+          if (name == "" || name == DRAFT) error("Bad session name")
           if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
           if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 

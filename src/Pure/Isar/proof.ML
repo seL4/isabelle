@@ -515,7 +515,7 @@ fun conclude_goal ctxt goal propss =
     val thy = Proof_Context.theory_of ctxt;
 
     val _ =
-      Context.subthy_id (Thm.theory_id_of_thm goal, Context.theory_id thy) orelse
+      Context.subthy_id (Thm.theory_id goal, Context.theory_id thy) orelse
         error "Bad background theory of goal state";
     val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 

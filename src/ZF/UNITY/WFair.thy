@@ -6,7 +6,7 @@
 section\<open>Progress under Weak Fairness\<close>
 
 theory WFair
-imports UNITY Main_ZFC
+imports UNITY ZFC
 begin
 
 text\<open>This theory defines the operators transient, ensures and leadsTo,

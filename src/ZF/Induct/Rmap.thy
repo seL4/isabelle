@@ -5,7 +5,7 @@
 
 section \<open>An operator to ``map'' a relation over a list\<close>
 
-theory Rmap imports Main begin
+theory Rmap imports ZF begin
 
 consts
   rmap :: "i=>i"

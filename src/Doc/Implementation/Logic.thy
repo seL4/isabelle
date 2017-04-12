@@ -70,7 +70,7 @@ text \<open>
   For \<open>k = 1\<close> the parentheses are omitted, e.g.\ \<open>\<alpha> list\<close> instead of
   \<open>(\<alpha>)list\<close>. Further notation is provided for specific constructors, notably
   the right-associative infix \<open>\<alpha> \<Rightarrow> \<beta>\<close> instead of \<open>(\<alpha>, \<beta>)fun\<close>.
-  
+
   The logical category \<^emph>\<open>type\<close> is defined inductively over type variables and
   type constructors as follows: \<open>\<tau> = \<alpha>\<^sub>s | ?\<alpha>\<^sub>s | (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>\<close>.
 
@@ -1186,7 +1186,7 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type proof} \\
   @{index_ML_type proof_body} \\
-  @{index_ML proofs: "int Unsynchronized.ref"} \\
+  @{index_ML Proofterm.proofs: "int Unsynchronized.ref"} \\
   @{index_ML Reconstruct.reconstruct_proof:
   "Proof.context -> term -> proof -> proof"} \\
   @{index_ML Reconstruct.expand_proof: "Proof.context ->
@@ -1215,11 +1215,11 @@ text %mlref \<open>
   construction of proofs by introducing dynamic ad-hoc dependencies. Parallel
   performance may suffer by inspecting proof terms at run-time.
 
-  \<^descr> @{ML proofs} specifies the detail of proof recording within @{ML_type thm}
-  values produced by the inference kernel: @{ML 0} records only the names of
-  oracles, @{ML 1} records oracle names and propositions, @{ML 2} additionally
-  records full proof terms. Officially named theorems that contribute to a
-  result are recorded in any case.
+  \<^descr> @{ML Proofterm.proofs} specifies the detail of proof recording within
+  @{ML_type thm} values produced by the inference kernel: @{ML 0} records only
+  the names of oracles, @{ML 1} records oracle names and propositions, @{ML 2}
+  additionally records full proof terms. Officially named theorems that
+  contribute to a result are recorded in any case.
 
   \<^descr> @{ML Reconstruct.reconstruct_proof}~\<open>ctxt prop prf\<close> turns the implicit
   proof term \<open>prf\<close> into a full proof of the given proposition.

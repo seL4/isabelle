@@ -4,7 +4,7 @@
 
 section \<open>Arithmetic expressions, boolean expressions, commands\<close>
 
-theory Com imports Main begin
+theory Com imports ZF begin
 
 
 subsection \<open>Arithmetic expressions\<close>

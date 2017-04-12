@@ -24,7 +24,7 @@ fun ram 0 j = 1
   | ram i j = ram (i-1) j + ram i (j-1)
 *)
 
-theory Ramsey imports Main begin
+theory Ramsey imports ZF begin
 
 definition
   Symmetric :: "i=>o" where

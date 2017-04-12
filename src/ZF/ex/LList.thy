@@ -13,7 +13,7 @@ co_recursion for defining lconst, flip, etc.
 a typing rule for it, based on some notion of "productivity..."
 *)
 
-theory LList imports Main begin
+theory LList imports ZF begin
 
 consts
   llist  :: "i=>i"

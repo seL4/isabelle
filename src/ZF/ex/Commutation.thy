@@ -5,7 +5,7 @@
 Commutation theory for proving the Church Rosser theorem.
 *)
 
-theory Commutation imports Main begin
+theory Commutation imports ZF begin
 
 definition
   square  :: "[i, i, i, i] => o" where

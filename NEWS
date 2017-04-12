@@ -9,6 +9,18 @@ New in this Isabelle version
 
 *** General ***
 
+* The main theory entry points for some non-HOL sessions have changed,
+to avoid confusion with the global name "Main" of the session HOL. This
+leads to the follow renamings:
+
+  CTT/Main.thy    ~>  CTT/CTT.thy
+  ZF/Main.thy     ~>  ZF/ZF.thy
+  ZF/Main_ZF.thy  ~>  ZF/ZF.thy
+  ZF/Main_ZFC.thy ~>  ZF/ZFC.thy
+  ZF/ZF.thy       ~>  ZF/ZF_Base.thy
+
+INCOMPATIBILITY.
+
 * Document antiquotations @{prf} and @{full_prf} output proof terms
 (again) in the same way as commands 'prf' and 'full_prf'.
 
@@ -164,6 +176,14 @@ ISABELLE_WINDOWS_PLATFORM32, ISABELLE_WINDOWS_PLATFORM64 indicate the
 native Windows platform (independently of the Cygwin installation). This
 is analogous to ISABELLE_PLATFORM, ISABELLE_PLATFORM32,
 ISABELLE_PLATFORM64.
+
+
+*** System ***
+
+* System option "record_proofs" allows to change the global
+Proofterm.proofs variable for a session. Regular values are are 0, 1, 2;
+a negative value means the current state in the ML heap image remains
+unchanged.
 
 
 

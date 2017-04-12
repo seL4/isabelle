@@ -57,7 +57,7 @@ object Isabelle_Tool
 
   private def is_external(dir: Path, file_name: String): Boolean =
   {
-    val file = (dir + Path.basic(file_name)).file
+    val file = (dir + Path.explode(file_name)).file
     try {
       file.isFile && file.canRead &&
         (file_name.endsWith(".scala") || file.canExecute) &&
@@ -73,7 +73,7 @@ object Isabelle_Tool
       dir <- dirs() if dir.is_dir
       file_name <- File.read_dir(dir) if is_external(dir, file_name)
     } yield {
-      val source = File.read(dir + Path.basic(file_name))
+      val source = File.read(dir + Path.explode(file_name))
       val name = Library.try_unsuffix(".scala", file_name) getOrElse file_name
       val description =
         split_lines(source).collectFirst({ case Description(s) => s }) getOrElse ""
@@ -84,11 +84,11 @@ object Isabelle_Tool
   private def find_external(name: String): Option[List[String] => Unit] =
     dirs.collectFirst({
       case dir if is_external(dir, name + ".scala") =>
-        compile(dir + Path.basic(name + ".scala"))
+        compile(dir + Path.explode(name + ".scala"))
       case dir if is_external(dir, name) =>
         (args: List[String]) =>
           {
-            val tool = dir + Path.basic(name)
+            val tool = dir + Path.explode(name)
             val result = Isabelle_System.bash(File.bash_path(tool) + " " + Bash.strings(args))
             sys.exit(result.print_stdout.rc)
           }

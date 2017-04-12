@@ -18,8 +18,8 @@ session "HOL-Proofs" (timing) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false, quick_and_dirty = false, parallel_proofs = 0]
-  theories Proofs (*sequential change of global flag!*)
+  options [document = false, theory_qualifier = "HOL",
+    quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
   theories "~~/src/HOL/Library/Old_Datatype"
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
@@ -60,7 +60,7 @@ session "HOL-Library" (main timing) in Library = HOL +
 
 session "HOL-Analysis" (main timing) in Analysis = HOL +
   theories
-    Analysis (global)
+    Analysis
   document_files
     "root.tex"
 
@@ -830,7 +830,7 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = HOL +
 
 session "HOL-Word" (main timing) in Word = HOL +
   theories
-    Word (global)
+    Word
   document_files "root.bib" "root.tex"
 
 session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +

@@ -1360,7 +1360,7 @@ fun all_nondefs_of ctxt subst =
   ctxt |> Spec_Rules.get
        |> filter (curry (op =) Spec_Rules.Unknown o fst)
        |> maps (snd o snd)
-       |> filter_out (is_built_in_theory o Thm.theory_id_of_thm)
+       |> filter_out (is_built_in_theory o Thm.theory_id)
        |> map (subst_atomic subst o Thm.prop_of)
 
 fun arity_of_built_in_const (s, T) =

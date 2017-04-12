@@ -5,7 +5,7 @@
 
 section \<open>Terms over an alphabet\<close>
 
-theory Term imports Main begin
+theory Term imports ZF begin
 
 text \<open>
   Illustrates the list functor (essentially the same type as in \<open>Trees_Forest\<close>).

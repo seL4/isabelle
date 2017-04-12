@@ -12,8 +12,8 @@ but slightly changed.
 *)
 
 theory AC_Equiv
-imports Main
-begin (*obviously not Main_ZFC*)
+imports ZF
+begin (*obviously not ZFC*)
 
 (* Well Ordering Theorems *)
 

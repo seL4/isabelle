@@ -1,5 +1,5 @@
 theory ZF_Isar
-imports Main
+imports ZF
 begin
 
 (*<*)

@@ -14,8 +14,8 @@ import java.io.{File => JFile}
 
 
 class Resources(
-  val session_name: String,
   val session_base: Sessions.Base,
+  val default_qualifier: String = Sessions.DRAFT,
   val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
@@ -67,12 +67,16 @@ class Resources(
     }
     else Nil
 
-  def import_name(dir: String, s: String): Document.Node.Name =
+  def theory_qualifier(name: Document.Node.Name): String =
+    session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
+
+  def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
-    val theory0 = Thy_Header.base_name(s)
+    val theory0 = Thy_Header.import_name(s)
     val theory =
-      if (Long_Name.is_qualified(theory0) || session_base.global_theories.contains(theory0)) theory0
-      else Long_Name.qualify(session_name, theory0)
+      if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0)
+        || true /* FIXME */) theory0
+      else theory0 // FIXME Long_Name.qualify(qualifier, theory0)
 
     session_base.loaded_theories.get(theory) orElse
     session_base.loaded_theories.get(theory0) orElse
@@ -101,7 +105,7 @@ class Resources(
       try {
         val header = Thy_Header.read(reader, start, strict).decode_symbols
 
-        val base_name = Long_Name.base_name(node_name.theory)
+        val base_name = node_name.theory_base_name
         val (name, pos) = header.name
         if (base_name != name)
           error("Bad theory name " + quote(name) +
@@ -109,7 +113,8 @@ class Resources(
             Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
 
         val imports =
-          header.imports.map({ case (s, pos) => (import_name(node_name.master_dir, s), pos) })
+          header.imports.map({ case (s, pos) =>
+            (import_name(theory_qualifier(node_name), node_name.master_dir, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
@@ -125,13 +130,20 @@ class Resources(
   /* special header */
 
   def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
-    if (Thy_Header.is_ml_root(name.theory))
-      Some(Document.Node.Header(
-        List((import_name(name.master_dir, Thy_Header.ML_BOOTSTRAP), Position.none))))
-    else if (Thy_Header.is_bootstrap(name.theory))
-      Some(Document.Node.Header(
-        List((import_name(name.master_dir, Thy_Header.PURE), Position.none))))
-    else None
+  {
+    val qualifier = theory_qualifier(name)
+    val dir = name.master_dir
+
+    val imports =
+      if (Thy_Header.is_ml_root(name.theory))
+        List(import_name(qualifier, dir, Thy_Header.ML_BOOTSTRAP))
+      else if (Thy_Header.is_bootstrap(name.theory))
+        List(import_name(qualifier, dir, Thy_Header.PURE))
+      else Nil
+
+    if (imports.isEmpty) None
+    else Some(Document.Node.Header(imports.map((_, Position.none))))
+  }
 
 
   /* blobs */

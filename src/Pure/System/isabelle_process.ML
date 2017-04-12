@@ -219,6 +219,8 @@ fun init_options () =
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
   Goal.parallel_proofs := Options.default_int "parallel_proofs";
+  let val proofs = Options.default_int "record_proofs"
+  in if proofs < 0 then () else Proofterm.proofs := proofs end;
   Printer.show_markup_default := false);
 
 fun init_options_interactive () =

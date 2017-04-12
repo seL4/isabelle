@@ -220,7 +220,7 @@ fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...} :
     t
 
 fun theory_const_prop_of fudge th =
-  theory_constify fudge (Thm.theory_name_of_thm th) (Thm.prop_of th)
+  theory_constify fudge (Thm.theory_name th) (Thm.prop_of th)
 
 fun pair_consts_fact thy fudge fact =
   (case fact |> snd |> theory_const_prop_of fudge |> pconsts_in_fact thy of

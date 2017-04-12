@@ -5,7 +5,7 @@
 
 section \<open>Trees and forests, a mutually recursive type definition\<close>
 
-theory Tree_Forest imports Main begin
+theory Tree_Forest imports ZF begin
 
 subsection \<open>Datatype definition\<close>
 

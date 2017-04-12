@@ -5,7 +5,7 @@
 
 section \<open>Datatype definition n-ary branching trees\<close>
 
-theory Ntree imports Main begin
+theory Ntree imports ZF begin
 
 text \<open>
   Demonstrates a simple use of function space in a datatype

@@ -2,7 +2,7 @@
     Author:     Ole Rasmussen, University of Cambridge
 *)
 
-theory Redex imports Main begin
+theory Redex imports ZF begin
 consts
   redexes     :: i
 
