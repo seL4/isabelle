@@ -66,6 +66,10 @@ buffers.
 fps_exp/fps_ln/fps_hypergeo to avoid polluting the name space.
 INCOMPATIBILITY.
 
+* Theory Totient in session Number_Theory introduces basic notions
+about Euler's totient function previously hidden as solitary example
+in theory Residues.  Minor INCOMPATIBILITY.
+
 * Session "Computional_Algebra" covers many previously scattered
 theories, notably Euclidean_Algorithm, Factorial_Ring, Formal_Power_Series,
 Fraction_Field, Fundamental_Theorem_Algebra, Normalized_Fraction,

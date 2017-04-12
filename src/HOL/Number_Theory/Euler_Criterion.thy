@@ -17,17 +17,33 @@ private lemma odd_p: "odd p" using p_ge_2 p_prime prime_odd_nat by blast
 
 private lemma p_minus_1_int: "int (p - 1) = int p - 1" using p_prime prime_ge_1_nat by force
 
-private lemma E_1: assumes "QuadRes p a"
-  shows "[a ^ ((p - 1) div 2) = 1] (mod (int p))"
+private lemma E_1:
+  assumes "QuadRes (int p) a"
+  shows "[a ^ ((p - 1) div 2) = 1] (mod int p)"
 proof -
-  from assms obtain b where b: "[b ^ 2 = a] (mod p)" unfolding QuadRes_def by blast
-  hence "[a ^ ((p - 1) div 2) = b ^ (2 * ((p - 1) div 2))] (mod p)"
+  from assms obtain b where b: "[b ^ 2 = a] (mod int p)"
+    unfolding QuadRes_def by blast
+  then have "[a ^ ((p - 1) div 2) = b ^ (2 * ((p - 1) div 2))] (mod int p)"
     by (simp add: cong_exp_int cong_sym_int power_mult)
-  hence "[a ^ ((p - 1) div 2) = b ^ (p - 1)] (mod p)" using odd_p by force
-  moreover have "~ p dvd b"
-    using b cong_altdef_int[of a 0 p] cong_dvd_eq_int[of "b ^ 2" a "int p"] p_a_relprime p_prime
-    by (auto simp: prime_dvd_power_int_iff)
-  ultimately show ?thesis using fermat_theorem[of p b] p_prime 
+  then have "[a ^ ((p - 1) div 2) = b ^ (p - 1)] (mod int p)"
+    using odd_p by force
+  moreover have "[b ^ (p - 1) = 1] (mod int p)"
+  proof -
+    have "[nat \<bar>b\<bar> ^ (p - 1) = 1] (mod p)"
+    using p_prime proof (rule fermat_theorem)
+      show "\<not> p dvd nat \<bar>b\<bar>"
+        by (metis b cong_altdef_int cong_dvd_eq_int diff_zero int_dvd_iff p_a_relprime p_prime prime_dvd_power_int_iff prime_nat_int_transfer rel_simps(51))
+    qed
+    then have "nat \<bar>b\<bar> ^ (p - 1) mod p = 1 mod p"
+      by (simp add: cong_nat_def)
+    then have "int (nat \<bar>b\<bar> ^ (p - 1) mod p) = int (1 mod p)"
+      by simp
+    moreover from odd_p have "\<bar>b\<bar> ^ (p - Suc 0) = b ^ (p - Suc 0)"
+      by (simp add: power_even_abs)
+    ultimately show ?thesis
+      by (simp add: zmod_int cong_int_def)
+  qed
+  ultimately show ?thesis
     by (auto intro: cong_trans_int)
 qed
 

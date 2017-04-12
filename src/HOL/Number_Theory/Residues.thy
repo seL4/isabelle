@@ -14,6 +14,7 @@ imports
   "~~/src/HOL/Algebra/More_Ring"
   "~~/src/HOL/Algebra/More_Finite_Product"
   "~~/src/HOL/Algebra/Multiplicative_Group"
+  Totient
 begin
 
 definition QuadRes :: "int \<Rightarrow> int \<Rightarrow> bool" where
@@ -244,128 +245,62 @@ section \<open>Test cases: Euler's theorem and Wilson's theorem\<close>
 
 subsection \<open>Euler's theorem\<close>
 
-text \<open>The definition of the totient function.\<close>
-
-definition phi :: "int \<Rightarrow> nat"
-  where "phi m = card {x. 0 < x \<and> x < m \<and> coprime x m}"
-
-lemma phi_def_nat: "phi m = card {x. 0 < x \<and> x < nat m \<and> coprime x (nat m)}"
-  unfolding phi_def
-proof (rule bij_betw_same_card [of nat])
-  show "bij_betw nat {x. 0 < x \<and> x < m \<and> coprime x m} {x. 0 < x \<and> x < nat m \<and> coprime x (nat m)}"
-    apply (auto simp add: inj_on_def bij_betw_def image_def)
-     apply (metis dual_order.irrefl dual_order.strict_trans leI nat_1 transfer_nat_int_gcd(1))
-    apply (metis One_nat_def of_nat_0 of_nat_1 of_nat_less_0_iff int_nat_eq nat_int
-        transfer_int_nat_gcd(1) of_nat_less_iff)
-    done
-qed
-  
-lemma prime_phi:
-  assumes "2 \<le> p" "phi p = p - 1"
-  shows "prime p"
+lemma (in residues) totient_eq:
+  "totient (nat m) = card (Units R)"
 proof -
-  have *: "{x. 0 < x \<and> x < p \<and> coprime x p} = {1..p - 1}"
-    using assms unfolding phi_def_nat
-    by (intro card_seteq) fastforce+
-  have False if **: "1 < x" "x < p" and "x dvd p" for x :: nat
-  proof -
-    from * have cop: "x \<in> {1..p - 1} \<Longrightarrow> coprime x p"
-      by blast
-    have "coprime x p"
-      apply (rule cop)
-      using ** apply auto
-      done
-    with \<open>x dvd p\<close> \<open>1 < x\<close> show ?thesis
-      by auto
-  qed
-  then show ?thesis
-    using \<open>2 \<le> p\<close>
-    by (simp add: prime_nat_iff)
-       (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0
-              not_numeral_le_zero one_dvd)
-qed
-
-lemma phi_zero [simp]: "phi 0 = 0"
-  unfolding phi_def by (auto simp add: card_eq_0_iff)
-
-lemma phi_one [simp]: "phi 1 = 0"
-  by (auto simp add: phi_def card_eq_0_iff)
-
-lemma phi_leq: "phi x \<le> nat x - 1"
-proof -
-  have "phi x \<le> card {1..x - 1}"
-    unfolding phi_def by (rule card_mono) auto
-  then show ?thesis by simp
-qed
-
-lemma phi_nonzero:
-  "phi x > 0" if "2 \<le> x"
-proof -
-  have "finite {y. 0 < y \<and> y < x}"
+  have *: "inj_on nat (Units R)"
+    by (rule inj_onI) (auto simp add: res_units_eq)
+  have "totatives (nat m) = nat ` Units R"
+    by (auto simp add: res_units_eq totatives_def transfer_nat_int_gcd(1))
+      (smt One_nat_def image_def mem_Collect_eq nat_0 nat_eq_iff nat_less_iff of_nat_1 transfer_int_nat_gcd(1))
+  then have "card (totatives (nat m)) = card (nat ` Units R)"
     by simp
-  then have "finite {y. 0 < y \<and> y < x \<and> coprime y x}"
-    by (auto intro: rev_finite_subset)
-  moreover have "1 \<in> {y. 0 < y \<and> y < x \<and> coprime y x}"
-    using that by simp
-  ultimately have "card {y. 0 < y \<and> y < x \<and> coprime y x} \<noteq> 0"
-    by auto
-  then show ?thesis
-    by (simp add: phi_def)
+  also have "\<dots> = card (Units R)"
+    using * card_image [of nat "Units R"] by auto
+  finally show ?thesis
+    by simp
 qed
 
-lemma (in residues) phi_eq: "phi m = card (Units R)"
-  by (simp add: phi_def res_units_eq)
+lemma (in residues_prime) totient_eq: "totient p = p - 1"
+  using totient_eq by (simp add: res_prime_units_eq)
 
-lemma (in residues) euler_theorem1:
-  assumes a: "gcd a m = 1"
-  shows "[a^phi m = 1] (mod m)"
+lemma (in residues) euler_theorem:
+  assumes "coprime a m"
+  shows "[a ^ totient (nat m) = 1] (mod m)"
 proof -
-  have "a ^ phi m mod m = 1 mod m"
-    by (metis assms finite_Units m_gt_one mod_in_res_units one_cong phi_eq pow_cong units_power_order_eq_one)
+  have "a ^ totient (nat m) mod m = 1 mod m"
+    by (metis assms finite_Units m_gt_one mod_in_res_units one_cong totient_eq pow_cong units_power_order_eq_one)
   then show ?thesis
     using res_eq_to_cong by blast
 qed
 
-text \<open>Outside the locale, we can relax the restriction \<open>m > 1\<close>.\<close>
 lemma euler_theorem:
-  assumes "m \<ge> 0"
-    and "gcd a m = 1"
-  shows "[a^phi m = 1] (mod m)"
+  fixes a m :: nat
+  assumes "coprime a m"
+  shows "[a ^ totient m = 1] (mod m)"
 proof (cases "m = 0 | m = 1")
   case True
   then show ?thesis by auto
 next
   case False
   with assms show ?thesis
-    by (intro residues.euler_theorem1, unfold residues_def, auto)
+    using residues.euler_theorem [of "int m" "int a"] transfer_int_nat_cong
+    by (auto simp add: residues_def transfer_int_nat_gcd(1)) force
 qed
-
-lemma (in residues_prime) phi_prime: "phi p = nat p - 1"
-  by (simp add: residues.phi_eq residues_axioms residues_prime.res_prime_units_eq residues_prime_axioms)
-
-lemma phi_prime: "prime (int p) \<Longrightarrow> phi p = nat p - 1"
-  by (simp add: residues_prime.intro residues_prime.phi_prime)
 
 lemma fermat_theorem:
-  fixes a :: int
-  assumes "prime (int p)"
-    and "\<not> p dvd a"
-  shows "[a^(p - 1) = 1] (mod p)"
-proof -
-  from assms have "[a ^ phi p = 1] (mod p)"
-    by (auto intro!: euler_theorem intro!: prime_imp_coprime_int[of p]
-             simp: gcd.commute[of _ "int p"])
-  also have "phi p = nat p - 1"
-    by (rule phi_prime) (rule assms)
-  finally show ?thesis
-    by (metis nat_int)
-qed
-
-lemma fermat_theorem_nat:
-  assumes "prime (int p)" and "\<not> p dvd a"
+  fixes p a :: nat
+  assumes "prime p" and "\<not> p dvd a"
   shows "[a ^ (p - 1) = 1] (mod p)"
-  using fermat_theorem [of p a] assms
-  by (metis of_nat_1 of_nat_power transfer_int_nat_cong zdvd_int)
+proof -
+  from assms prime_imp_coprime [of p a] have "coprime a p"
+    by (auto simp add: ac_simps)
+  then have "[a ^ totient p = 1] (mod p)"
+     by (rule euler_theorem)
+  also have "totient p = p - 1"
+    by (rule prime_totient) (rule assms)
+  finally show ?thesis .
+qed
 
 
 subsection \<open>Wilson's theorem\<close>

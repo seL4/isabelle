@@ -115,46 +115,6 @@ qed
 
 subsection\<open>Lucas's theorem\<close>
 
-lemma phi_limit_strong: "phi(n) \<le> n - 1"
-proof -
-  have "phi n = card {x. 0 < x \<and> x < int n \<and> coprime x (int n)}"
-    by (simp add: phi_def)
-  also have "... \<le> card {0 <..< int n}"
-    by (rule card_mono) auto
-  also have "... = card {0 <..< n}"
-    by (simp add: transfer_nat_int_set_functions)
-  also have "... \<le> n - 1"
-    by (metis card_greaterThanLessThan le_refl One_nat_def)
-  finally show ?thesis .
-qed
-
-lemma phi_lowerbound_1: assumes n: "n \<ge> 2"
-  shows "phi n \<ge> 1"
-proof -
-  have "finite {x. 0 < x \<and> x < n}"
-    by simp
-  then have "finite {x. 0 < x \<and> x < n \<and> coprime x n}"
-    by (auto intro: rev_finite_subset)
-  moreover have "{0::int <.. 1} \<subseteq> {x. 0 < x \<and> x < n \<and> coprime x n}"
-    using n by (auto simp add: antisym_conv) 
-  ultimately have "card {0::int <.. 1} \<le> card {x. 0 < x \<and> x < n \<and> coprime x n}"
-    by (rule card_mono)
-  also have "... = phi n"
-    by (simp add: phi_def)
-  finally show ?thesis
-    by simp
-qed
-
-lemma phi_lowerbound_1_nat: assumes n: "n \<ge> 2"
-  shows "phi(int n) \<ge> 1"
-by (metis n nat_le_iff nat_numeral phi_lowerbound_1)
-
-lemma euler_theorem_nat:
-  fixes m::nat 
-  assumes "coprime a m"
-  shows "[a ^ phi m = 1] (mod m)"
-by (metis assms le0 euler_theorem [transferred])
-
 lemma lucas_coprime_lemma:
   fixes n::nat 
   assumes m: "m\<noteq>0" and am: "[a^m = 1] (mod n)"
@@ -181,22 +141,21 @@ qed
 
 lemma lucas_weak:
   fixes n::nat 
-  assumes n: "n \<ge> 2" and an:"[a^(n - 1) = 1] (mod n)"
-  and nm: "\<forall>m. 0 <m \<and> m < n - 1 \<longrightarrow> \<not> [a^m = 1] (mod n)"
+  assumes n: "n \<ge> 2" and an: "[a ^ (n - 1) = 1] (mod n)"
+  and nm: "\<forall>m. 0 < m \<and> m < n - 1 \<longrightarrow> \<not> [a ^ m = 1] (mod n)"
   shows "prime n"
-proof-
-  from n have n1: "n \<noteq> 1" "n\<noteq>0" "n - 1 \<noteq> 0" "n - 1 > 0" "n - 1 < n" by arith+
-  from lucas_coprime_lemma[OF n1(3) an] have can: "coprime a n" .
-  from euler_theorem_nat[OF can] have afn: "[a ^ phi n = 1] (mod n)"
-    by auto 
-  {assume "phi n \<noteq> n - 1"
-    with phi_limit_strong phi_lowerbound_1_nat [OF n]
-    have c:"phi n > 0 \<and> phi n < n - 1"
-      by (metis gr0I leD less_linear not_one_le_zero)
-    from nm[rule_format, OF c] afn have False ..}
-  hence "phi n = n - 1" by blast
-  with prime_phi phi_prime n1(1,2) show ?thesis
-    by auto
+using \<open>n \<ge> 2\<close> proof (rule totient_prime)
+  show "totient n = n - 1"
+  proof (rule ccontr)
+    have "[a ^ totient n = 1] (mod n)"
+      by (rule euler_theorem, rule lucas_coprime_lemma [of "n - 1"])
+        (use n an in auto)
+    moreover assume "totient n \<noteq> n - 1"
+    then have "totient n > 0 \<and> totient n < n - 1"
+      using \<open>n \<ge> 2\<close> by (simp add: order_less_le)
+    ultimately show False
+      using nm by auto
+  qed
 qed
 
 lemma nat_exists_least_iff: "(\<exists>(n::nat). P n) \<longleftrightarrow> (\<exists>n. P n \<and> (\<forall>m < n. \<not> P m))"
@@ -287,15 +246,22 @@ proof-
   let ?P = "\<lambda>d. 0 < d \<and> [a ^ d = 1] (mod n)"
   from bigger_prime[of a] obtain p where p: "prime p" "a < p" by blast
   from assms have o: "ord n a = Least ?P" by (simp add: ord_def)
-  {assume "n=0 \<or> n=1" with assms have "\<exists>m>0. ?P m" 
-      by auto}
-  moreover
-  {assume "n\<noteq>0 \<and> n\<noteq>1" hence n2:"n \<ge> 2" by arith
-    from assms have na': "coprime a n"
-      by (metis gcd.commute)
-    from phi_lowerbound_1_nat[OF n2] euler_theorem_nat [OF na']
-    have ex: "\<exists>m>0. ?P m" by - (rule exI[where x="phi n"], auto) }
-  ultimately have ex: "\<exists>m>0. ?P m" by blast
+  have ex: "\<exists>m>0. ?P m"
+  proof (cases "n \<ge> 2")
+    case True
+    moreover from assms have "coprime a n"
+      by (simp add: ac_simps)
+    then have "[a ^ totient n = 1] (mod n)"
+      by (rule euler_theorem)
+    ultimately show ?thesis
+      by (auto intro: exI [where x = "totient n"])
+  next
+    case False
+    then have "n = 0 \<or> n = 1"
+      by auto
+    with assms show ?thesis
+      by auto
+  qed
   from nat_exists_least_iff'[of ?P] ex assms show ?thesis
     unfolding o[symmetric] by auto
 qed
@@ -384,9 +350,9 @@ next
   ultimately  show ?rhs by blast
 qed
 
-lemma order_divides_phi: 
-  fixes n::nat shows "coprime n a \<Longrightarrow> ord n a dvd phi n"
-  by (metis ord_divides euler_theorem_nat gcd.commute)
+lemma order_divides_totient:
+  "ord n a dvd totient n" if "coprime n a"
+  by (metis euler_theorem gcd.commute ord_divides that)
 
 lemma order_divides_expdiff:
   fixes n::nat and a::nat assumes na: "coprime n a"
@@ -561,7 +527,8 @@ proof -
       by auto}
   hence d1: "d = 1" by blast
   hence o: "ord p (a^r) = q" using d by simp
-  from pp phi_prime[of p] have phip: "phi p = p - 1" by simp
+  from pp prime_totient [of p]
+  have totient_eq: "totient p = p - 1" by simp
   {fix d assume d: "d dvd p" "d dvd a" "d \<noteq> 1"
     from pp[unfolded prime_nat_iff] d have dp: "d = p" by blast
     from n have "n \<noteq> 0" by simp
@@ -570,7 +537,7 @@ proof -
   hence cpa: "coprime p a" by auto
   have arp: "coprime (a^r) p"
     by (metis coprime_exp cpa gcd.commute) 
-  from euler_theorem_nat[OF arp, simplified ord_divides] o phip
+  from euler_theorem [OF arp, simplified ord_divides] o totient_eq
   have "q dvd (p - 1)" by simp
   then obtain d where d:"p - 1 = q * d" 
     unfolding dvd_def by blast
