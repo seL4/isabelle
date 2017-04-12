@@ -503,10 +503,10 @@ lemma add_mset_eq_singleton_iff[iff]:
 subsubsection \<open>Pointwise ordering induced by count\<close>
 
 definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<subseteq>#" 50)
-  where "A \<subseteq># B = (\<forall>a. count A a \<le> count B a)"
+  where "A \<subseteq># B \<longleftrightarrow> (\<forall>a. count A a \<le> count B a)"
 
 definition subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subset>#" 50)
-  where "A \<subset># B = (A \<subseteq># B \<and> A \<noteq> B)"
+  where "A \<subset># B \<longleftrightarrow> A \<subseteq># B \<and> A \<noteq> B"
 
 abbreviation (input) supseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<supseteq>#" 50)
   where "supseteq_mset A B \<equiv> B \<subseteq># A"

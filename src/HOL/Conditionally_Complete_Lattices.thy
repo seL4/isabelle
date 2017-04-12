@@ -10,11 +10,18 @@ theory Conditionally_Complete_Lattices
 imports Finite_Set Lattices_Big Set_Interval
 begin
 
-lemma (in linorder) Sup_fin_eq_Max: "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup_fin X = Max X"
+context linorder
+begin
+  
+lemma Sup_fin_eq_Max:
+  "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup_fin X = Max X"
   by (induct X rule: finite_ne_induct) (simp_all add: sup_max)
 
-lemma (in linorder) Inf_fin_eq_Min: "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf_fin X = Min X"
+lemma Inf_fin_eq_Min:
+  "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf_fin X = Min X"
   by (induct X rule: finite_ne_induct) (simp_all add: inf_min)
+
+end
 
 context preorder
 begin
