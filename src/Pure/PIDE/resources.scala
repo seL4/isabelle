@@ -70,23 +70,30 @@ class Resources(
   def theory_qualifier(name: Document.Node.Name): String =
     session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
 
+  def theory_name(qualifier: String, theory0: String): (Boolean, String) =
+    session_base.loaded_theories.get(theory0) match {
+      case Some(theory) => (true, theory)
+      case None =>
+        val theory =
+          if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0)
+              || true /* FIXME */) theory0
+          else Long_Name.qualify(qualifier, theory0)
+        (false, theory)
+    }
+
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
-    val theory0 = Thy_Header.import_name(s)
-    val theory =
-      if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0)
-        || true /* FIXME */) theory0
-      else Long_Name.qualify(qualifier, theory0)
-
-    session_base.loaded_theories.get(theory) orElse
-    session_base.loaded_theories.get(theory0) orElse
-    session_base.known_theories.get(theory) orElse
-    session_base.known_theories.get(theory0) getOrElse {
-      val path = Path.explode(s)
-      val node = append(dir, thy_path(path))
-      val master_dir = append(dir, path.dir)
-      Document.Node.Name(node, master_dir, theory)
-    }
+    val (loaded, theory) = theory_name(qualifier, Thy_Header.import_name(s))
+    if (loaded) Document.Node.Name.loaded_theory(theory)
+    else
+      session_base.known_theories.get(theory) match {
+        case Some(node_name) => node_name
+        case None =>
+          val path = Path.explode(s)
+          val node = append(dir, thy_path(path))
+          val master_dir = append(dir, path.dir)
+          Document.Node.Name(node, master_dir, theory)
+      }
   }
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =

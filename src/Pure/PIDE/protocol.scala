@@ -314,7 +314,7 @@ trait Protocol
     protocol_command("Prover.session_base",
       Symbol.encode(resources.default_qualifier),
       encode_table(resources.session_base.global_theories.toList),
-      encode_table(resources.session_base.dest_loaded_theories),
+      encode_table(resources.session_base.loaded_theories.toList),
       encode_table(resources.session_base.dest_known_theories))
 
 

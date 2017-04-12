@@ -85,7 +85,7 @@ object Sessions
 
   sealed case class Base(
     global_theories: Map[String, String] = Map.empty,
-    loaded_theories: Map[String, Document.Node.Name] = Map.empty,
+    loaded_theories: Map[String, String] = Map.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories_local: Map[String, Document.Node.Name] = Map.empty,
     known_files: Map[JFile, List[Document.Node.Name]] = Map.empty,
@@ -96,8 +96,6 @@ object Sessions
   {
     def platform_path: Base =
       copy(
-        loaded_theories =
-          for ((a, b) <- loaded_theories) yield (a, b.map(File.platform_path(_))),
         known_theories =
           for ((a, b) <- known_theories) yield (a, b.map(File.platform_path(_))),
         known_theories_local =
@@ -107,10 +105,6 @@ object Sessions
 
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
-
-    def dest_loaded_theories: List[(String, String)] =
-      for ((theory, node_name) <- loaded_theories.toList)
-        yield (theory, node_name.node)
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known_theories.toList)
