@@ -47,7 +47,9 @@ sig
   val unfold_app: iterm -> iterm * iterm list
   val unfold_abs: iterm -> (vname option * itype) list * iterm
   val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option
+  val split_let_no_pat: iterm -> (((string option * itype) * iterm) * iterm) option
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm
+  val unfold_let_no_pat: iterm -> ((string option * itype) * iterm) list * iterm
   val split_pat_abs: iterm -> ((iterm * itype) * iterm) option
   val unfold_pat_abs: iterm -> (iterm * itype) list * iterm
   val unfold_const_app: iterm -> (const * iterm list) option
@@ -184,7 +186,13 @@ val split_let =
   (fn ICase { term = t, typ = ty, clauses = [(p, body)], ... } => SOME (((p, ty), t), body)
     | _ => NONE);
 
+val split_let_no_pat = 
+  (fn ICase { term = t, typ = ty, clauses = [(IVar v, body)], ... } => SOME (((v, ty), t), body)
+    | _ => NONE);
+
 val unfold_let = unfoldr split_let;
+
+val unfold_let_no_pat = unfoldr split_let_no_pat;
 
 fun unfold_const_app t =
  case unfold_app t

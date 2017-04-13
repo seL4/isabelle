@@ -103,14 +103,14 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
     and print_bind tyvars some_thm fxy p = gen_print_bind (print_term tyvars) some_thm fxy p
     and print_case tyvars some_thm vars fxy { clauses = [], ... } =
           (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""]
-      | print_case tyvars some_thm vars fxy (case_expr as { clauses = [_], ... }) =
+      | print_case tyvars some_thm vars fxy (case_expr as { clauses = [(IVar _, _)], ... }) =
           let
-            val (binds, body) = Code_Thingol.unfold_let (ICase case_expr);
-            fun print_match ((pat, _), t) vars =
+            val (vs, body) = Code_Thingol.unfold_let_no_pat (ICase case_expr);
+            fun print_assignment ((some_v, _), t) vars =
               vars
-              |> print_bind tyvars some_thm BR pat
+              |> print_bind tyvars some_thm BR (IVar some_v)
               |>> (fn p => semicolon [p, str "=", print_term tyvars some_thm vars NOBR t])
-            val (ps, vars') = fold_map print_match binds vars;
+            val (ps, vars') = fold_map print_assignment vs vars;
           in brackify_block fxy (str "let {")
             ps
             (concat [str "}", str "in", print_term tyvars some_thm vars' NOBR body])
@@ -451,9 +451,9 @@ fun pretty_haskell_monad c_bind =
     fun dest_monad (IConst { sym = Constant c, ... } `$ t1 `$ t2) =
           if c = c_bind then dest_bind t1 t2
           else NONE
-      | dest_monad t = case Code_Thingol.split_let t
-         of SOME (((pat, ty), tbind), t') =>
-              SOME ((SOME ((pat, ty), false), tbind), t')
+      | dest_monad t = case Code_Thingol.split_let_no_pat t
+         of SOME (((some_v, ty), tbind), t') =>
+              SOME ((SOME ((IVar some_v, ty), false), tbind), t')
           | NONE => NONE;
     val implode_monad = Code_Thingol.unfoldr dest_monad;
     fun print_monad print_bind print_term (NONE, t) vars =
