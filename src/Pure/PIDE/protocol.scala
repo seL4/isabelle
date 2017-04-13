@@ -302,6 +302,22 @@ trait Protocol
     protocol_command("Prover.options", Symbol.encode_yxml(opts.encode))
 
 
+  /* session base */
+
+  private def encode_table(table: List[(String, String)]): String =
+  {
+    import XML.Encode._
+    Symbol.encode_yxml(list(pair(string, string))(table))
+  }
+
+  def session_base(resources: Resources): Unit =
+    protocol_command("Prover.session_base",
+      Symbol.encode(resources.default_qualifier),
+      encode_table(resources.session_base.global_theories.toList),
+      encode_table(resources.session_base.loaded_theories.toList),
+      encode_table(resources.session_base.dest_known_theories))
+
+
   /* interned items */
 
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =

@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/ml_console.scala
+/*  Title:      Pure/ML/ml_console.scala
     Author:     Makarius
 
 The raw ML process in interactive mode.

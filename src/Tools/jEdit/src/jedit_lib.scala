@@ -9,6 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.io.{File => JFile}
 import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
@@ -16,6 +17,7 @@ import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
+import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
 import org.gjt.sp.jedit.gui.KeyEventWorkaround
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
@@ -93,6 +95,15 @@ object JEdit_Lib
   }
 
 
+  /* files */
+
+  def is_file(name: String): Boolean =
+    VFSManager.getVFSForPath(name).isInstanceOf[FileVFS]
+
+  def check_file(name: String): Option[JFile] =
+    if (is_file(name)) Some(new JFile(name)) else None
+
+
   /* buffers */
 
   def buffer_text(buffer: JEditBuffer): String =
@@ -111,10 +122,12 @@ object JEdit_Lib
     }
   }
 
-  def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
-
   def buffer_line_manager(buffer: JEditBuffer): LineManager =
     Untyped.get[LineManager](buffer, "lineMgr")
+
+  def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
+
+  def buffer_file(buffer: Buffer): Option[JFile] = check_file(buffer_name(buffer))
 
 
   /* main jEdit components */

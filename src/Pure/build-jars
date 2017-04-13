@@ -82,7 +82,10 @@ declare -a SOURCES=(
   Isar/outer_syntax.scala
   Isar/parse.scala
   Isar/token.scala
+  ML/ml_console.scala
   ML/ml_lex.scala
+  ML/ml_process.scala
+  ML/ml_statistics.scala
   ML/ml_syntax.scala
   PIDE/command.scala
   PIDE/command_span.scala
@@ -133,9 +136,6 @@ declare -a SOURCES=(
   Tools/debugger.scala
   Tools/doc.scala
   Tools/main.scala
-  Tools/ml_console.scala
-  Tools/ml_process.scala
-  Tools/ml_statistics.scala
   Tools/print_operation.scala
   Tools/profiling_report.scala
   Tools/simplifier_trace.scala

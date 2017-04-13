@@ -63,9 +63,12 @@ class VSCode_Resources(
   def node_name(file: JFile): Document.Node.Name =
   {
     val node = file.getPath
-    val theory = Thy_Header.theory_name(node)
-    val master_dir = if (theory == "") "" else file.getParent
-    Document.Node.Name(node, master_dir, theory)
+    theory_name(default_qualifier, Thy_Header.theory_name(node)) match {
+      case (true, theory) => Document.Node.Name.loaded_theory(theory)
+      case (false, theory) =>
+        val master_dir = if (theory == "") "" else file.getParent
+        Document.Node.Name(node, master_dir, theory)
+    }
   }
 
   override def append(dir: String, source_path: Path): String =

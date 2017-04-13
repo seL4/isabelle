@@ -33,8 +33,11 @@ object Sessions
   {
     def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
 
-    lazy val bootstrap: Base =
-      Base(keywords = Thy_Header.bootstrap_header, syntax = Thy_Header.bootstrap_syntax)
+    def bootstrap(global_theories: Map[String, String]): Base =
+      Base(
+        global_theories = global_theories,
+        keywords = Thy_Header.bootstrap_header,
+        syntax = Thy_Header.bootstrap_syntax)
 
     private[Sessions] def known_theories(
         local_dir: Path,
@@ -85,7 +88,7 @@ object Sessions
 
   sealed case class Base(
     global_theories: Map[String, String] = Map.empty,
-    loaded_theories: Map[String, Document.Node.Name] = Map.empty,
+    loaded_theories: Map[String, String] = Map.empty,
     known_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories_local: Map[String, Document.Node.Name] = Map.empty,
     known_files: Map[JFile, List[Document.Node.Name]] = Map.empty,
@@ -96,8 +99,6 @@ object Sessions
   {
     def platform_path: Base =
       copy(
-        loaded_theories =
-          for ((a, b) <- loaded_theories) yield (a, b.map(File.platform_path(_))),
         known_theories =
           for ((a, b) <- known_theories) yield (a, b.map(File.platform_path(_))),
         known_theories_local =
@@ -107,10 +108,6 @@ object Sessions
 
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
-
-    def dest_loaded_theories: List[(String, String)] =
-      for ((theory, node_name) <- loaded_theories.toList)
-        yield (theory, node_name.node)
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known_theories.toList)
@@ -143,7 +140,7 @@ object Sessions
           try {
             val parent_base =
               info.parent match {
-                case None => Base.bootstrap
+                case None => Base.bootstrap(global_theories)
                 case Some(parent) => session_bases(parent)
               }
             val resources = new Resources(parent_base,
@@ -595,7 +592,7 @@ object Sessions
     (dir + ROOT).is_file || (dir + ROOTS).is_file
 
   private def check_session_dir(dir: Path): Path =
-    if (is_session_dir(dir)) dir
+    if (is_session_dir(dir)) File.pwd() + dir.expand
     else error("Bad session root directory: " + dir.toString)
 
   def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): T =
@@ -626,13 +623,11 @@ object Sessions
     }
 
     val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
-    dirs.foreach(check_session_dir(_))
-    select_dirs.foreach(check_session_dir(_))
 
     make(
       for {
         (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
-        info <- load_dir(select, dir)
+        info <- load_dir(select, check_session_dir(dir))
       } yield info)
   }
 

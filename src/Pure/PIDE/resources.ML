@@ -6,15 +6,15 @@ Resources for theories and auxiliary files.
 
 signature RESOURCES =
 sig
-  val set_session_base:
+  val init_session_base:
     {default_qualifier: string,
      global_theories: (string * string) list,
      loaded_theories: (string * string) list,
      known_theories: (string * string) list} -> unit
-  val reset_session_base: unit -> unit
+  val finish_session_base: unit -> unit
   val default_qualifier: unit -> string
   val global_theory: string -> string option
-  val loaded_theory: string -> Path.T option
+  val loaded_theory: string -> string option
   val known_theory: string -> Path.T option
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
@@ -40,27 +40,32 @@ struct
 
 (* session base *)
 
-val init_session_base =
+val empty_session_base =
   {default_qualifier = "Draft",
    global_theories = Symtab.empty: string Symtab.table,
-   loaded_theories = Symtab.empty: Path.T Symtab.table,
+   loaded_theories = Symtab.empty: string Symtab.table,
    known_theories = Symtab.empty: Path.T Symtab.table};
 
 val global_session_base =
-  Synchronized.var "Sessions.base" init_session_base;
+  Synchronized.var "Sessions.base" empty_session_base;
 
-fun set_session_base {default_qualifier, global_theories, loaded_theories, known_theories} =
+fun init_session_base {default_qualifier, global_theories, loaded_theories, known_theories} =
   Synchronized.change global_session_base
     (fn _ =>
       {default_qualifier =
         if default_qualifier <> "" then default_qualifier
-        else #default_qualifier init_session_base,
+        else #default_qualifier empty_session_base,
        global_theories = Symtab.make global_theories,
-       loaded_theories = Symtab.make (map (apsnd Path.explode) loaded_theories),
+       loaded_theories = Symtab.make loaded_theories,
        known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
 
-fun reset_session_base () =
-  Synchronized.change global_session_base (K init_session_base);
+fun finish_session_base () =
+  Synchronized.change global_session_base
+    (fn {global_theories, loaded_theories, ...} =>
+      {default_qualifier = #default_qualifier empty_session_base,
+       global_theories = global_theories,
+       loaded_theories = loaded_theories,
+       known_theories = #known_theories empty_session_base});
 
 fun get_session_base f = f (Synchronized.value global_session_base);
 
@@ -108,21 +113,26 @@ fun theory_qualifier theory =
     SOME qualifier => qualifier
   | NONE => Long_Name.qualifier theory);
 
+fun theory_name qualifier theory0 =
+  (case loaded_theory theory0 of
+    SOME theory => (true, theory)
+  | NONE =>
+      let val theory =
+        if Long_Name.is_qualified theory0 orelse is_some (global_theory theory0)
+          orelse true (* FIXME *) then theory0
+        else Long_Name.qualify qualifier theory0
+      in (false, theory) end);
+
 fun import_name qualifier dir s =
-  let
-    val theory0 = Thy_Header.import_name s;
-    val theory =
-      if Long_Name.is_qualified theory0 orelse is_some (global_theory theory0)
-        orelse true (* FIXME *) then theory0
-      else Long_Name.qualify qualifier theory0;
-    val node_name =
-      the (get_first (fn e => e ())
-        [fn () => loaded_theory theory,
-         fn () => loaded_theory theory0,
-         fn () => known_theory theory,
-         fn () => known_theory theory0,
-         fn () => SOME (File.full_path dir (thy_path (Path.expand (Path.explode s))))])
-  in {node_name = node_name, master_dir = Path.dir node_name, theory_name = theory} end;
+  (case theory_name qualifier (Thy_Header.import_name s) of
+    (true, theory) =>
+      {node_name = Path.basic theory, master_dir = Path.current, theory_name = theory}
+  | (false, theory) =>
+      let val node_name =
+        (case known_theory theory of
+          SOME node_name => node_name
+        | NONE => File.full_path dir (thy_path (Path.expand (Path.explode s))))
+      in {node_name = node_name, master_dir = Path.dir node_name, theory_name = theory} end);
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 

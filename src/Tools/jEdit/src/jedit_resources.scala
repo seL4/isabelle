@@ -25,28 +25,20 @@ class JEdit_Resources(session_base: Sessions.Base) extends Resources(session_bas
 {
   /* document node name */
 
-  def node_name(buffer: Buffer): Document.Node.Name =
-  {
-    val node = JEdit_Lib.buffer_name(buffer)
-    val theory = Thy_Header.theory_name(node)
-    val master_dir = if (theory == "") "" else buffer.getDirectory
-    Document.Node.Name(node, master_dir, theory)
-  }
-
   def node_name(path: String): Document.Node.Name =
   {
     val vfs = VFSManager.getVFSForPath(path)
     val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
-    val theory = Thy_Header.theory_name(node)
-    val master_dir = if (theory == "") "" else vfs.getParentOfPath(path)
-    Document.Node.Name(node, master_dir, theory)
+    theory_name(default_qualifier, Thy_Header.theory_name(node)) match {
+      case (true, theory) => Document.Node.Name.loaded_theory(theory)
+      case (false, theory) =>
+        val master_dir = if (theory == "") "" else vfs.getParentOfPath(path)
+        Document.Node.Name(node, master_dir, theory)
+    }
   }
 
-  def node_name_file(name: Document.Node.Name): Option[JFile] =
-  {
-    val vfs = VFSManager.getVFSForPath(name.node)
-    if (vfs.isInstanceOf[FileVFS]) Some(new JFile(name.node)) else None
-  }
+  def node_name(buffer: Buffer): Document.Node.Name =
+    node_name(JEdit_Lib.buffer_name(buffer))
 
   def theory_node_name(buffer: Buffer): Option[Document.Node.Name] =
   {

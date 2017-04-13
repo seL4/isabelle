@@ -99,6 +99,8 @@ object Document
     {
       val empty = Name("")
 
+      def loaded_theory(theory: String): Name = Name(theory, "", theory)
+
       object Ordering extends scala.math.Ordering[Name]
       {
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
@@ -114,7 +116,6 @@ object Document
           case _ => false
         }
 
-      def loaded_theory: Name = Name(theory, "", theory)
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)
