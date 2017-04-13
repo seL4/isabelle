@@ -99,13 +99,14 @@ where
 
 definition "apply" :: "('a => 'b) narrowing => 'a narrowing => 'b narrowing"
 where
-  "apply f a d =
+  "apply f a d = (if d > 0 then
      (case f d of Narrowing_cons (Narrowing_sum_of_products ps) cfs \<Rightarrow>
        case a (d - 1) of Narrowing_cons ta cas \<Rightarrow>
        let
-         shallow = d > 0 \<and> non_empty ta;
+         shallow = non_empty ta;
          cs = [(\<lambda>(x # xs) \<Rightarrow> cf xs (conv cas x)). shallow, cf \<leftarrow> cfs]
-       in Narrowing_cons (Narrowing_sum_of_products [ta # p. shallow, p \<leftarrow> ps]) cs)"
+       in Narrowing_cons (Narrowing_sum_of_products [ta # p. shallow, p \<leftarrow> ps]) cs)
+     else Narrowing_cons (Narrowing_sum_of_products []) [])"
 
 definition sum :: "'a narrowing => 'a narrowing => 'a narrowing"
 where
