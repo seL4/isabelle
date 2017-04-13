@@ -70,7 +70,7 @@ class Resources(
   def theory_qualifier(name: Document.Node.Name): String =
     session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
 
-  def loaded_theory_name(qualifier: String, theory0: String): (Boolean, String) =
+  def theory_name(qualifier: String, theory0: String): (Boolean, String) =
     session_base.loaded_theories.get(theory0) match {
       case Some(theory) => (true, theory)
       case None =>
@@ -82,7 +82,7 @@ class Resources(
     }
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
-    loaded_theory_name(qualifier, Thy_Header.import_name(s)) match {
+    theory_name(qualifier, Thy_Header.import_name(s)) match {
       case (true, theory) => Document.Node.Name.loaded_theory(theory)
       case (false, theory) =>
         session_base.known_theories.get(theory) match {

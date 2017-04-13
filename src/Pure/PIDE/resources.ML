@@ -108,7 +108,7 @@ fun theory_qualifier theory =
     SOME qualifier => qualifier
   | NONE => Long_Name.qualifier theory);
 
-fun loaded_theory_name qualifier theory0 =
+fun theory_name qualifier theory0 =
   (case loaded_theory theory0 of
     SOME theory => (true, theory)
   | NONE =>
@@ -119,7 +119,7 @@ fun loaded_theory_name qualifier theory0 =
       in (false, theory) end);
 
 fun import_name qualifier dir s =
-  (case loaded_theory_name qualifier (Thy_Header.import_name s) of
+  (case theory_name qualifier (Thy_Header.import_name s) of
     (true, theory) =>
       {node_name = Path.basic theory, master_dir = Path.current, theory_name = theory}
   | (false, theory) =>

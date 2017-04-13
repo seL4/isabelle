@@ -29,7 +29,7 @@ class JEdit_Resources(session_base: Sessions.Base) extends Resources(session_bas
   {
     val vfs = VFSManager.getVFSForPath(path)
     val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
-    loaded_theory_name(default_qualifier, Thy_Header.theory_name(node)) match {
+    theory_name(default_qualifier, Thy_Header.theory_name(node)) match {
       case (true, theory) => Document.Node.Name.loaded_theory(theory)
       case (false, theory) =>
         val master_dir = if (theory == "") "" else vfs.getParentOfPath(path)
