@@ -99,7 +99,7 @@ object ML_Process
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
                 ML_Syntax.print_string, ML_Syntax.print_string))(table)
-          List("Resources.set_session_base {default_qualifier = \"\"" +
+          List("Resources.init_session_base {default_qualifier = \"\"" +
             ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_table(base.loaded_theories.toList) +
             ", known_theories = " + print_table(base.dest_known_theories) + "}")

@@ -180,7 +180,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
     val symbols = HTML.make_symbols symbol_codes;
 
     val _ =
-      Resources.set_session_base
+      Resources.init_session_base
         {default_qualifier = name,
          global_theories = global_theories,
          loaded_theories = loaded_theories,
@@ -210,7 +210,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
 
-    val _ = Resources.reset_session_base ();
+    val _ = Resources.finish_session_base ();
     val _ = Par_Exn.release_all [res1, res2];
   in () end;
 
