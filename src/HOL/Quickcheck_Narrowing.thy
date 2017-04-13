@@ -84,10 +84,6 @@ subsubsection \<open>Narrowing's basic operations\<close>
 
 type_synonym 'a narrowing = "integer => 'a narrowing_cons"
 
-definition empty :: "'a narrowing"
-where
-  "empty d = Narrowing_cons (Narrowing_sum_of_products []) []"
-  
 definition cons :: "'a => 'a narrowing"
 where
   "cons a d = (Narrowing_cons (Narrowing_sum_of_products [[]]) [(\<lambda>_. a)])"
