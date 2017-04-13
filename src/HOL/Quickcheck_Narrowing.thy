@@ -104,12 +104,12 @@ where
 definition "apply" :: "('a => 'b) narrowing => 'a narrowing => 'b narrowing"
 where
   "apply f a d =
-     (case f d of Narrowing_cons (Narrowing_sum_of_products ps) cfs =>
-       case a (d - 1) of Narrowing_cons ta cas =>
+     (case f d of Narrowing_cons (Narrowing_sum_of_products ps) cfs \<Rightarrow>
+       case a (d - 1) of Narrowing_cons ta cas \<Rightarrow>
        let
-         shallow = (d > 0 \<and> non_empty ta);
-         cs = [(\<lambda>xs'. (case xs' of [] => undefined | x # xs => cf xs (conv cas x))). shallow, cf <- cfs]
-       in Narrowing_cons (Narrowing_sum_of_products [ta # p. shallow, p <- ps]) cs)"
+         shallow = d > 0 \<and> non_empty ta;
+         cs = [(\<lambda>(x # xs) \<Rightarrow> cf xs (conv cas x)). shallow, cf \<leftarrow> cfs]
+       in Narrowing_cons (Narrowing_sum_of_products [ta # p. shallow, p \<leftarrow> ps]) cs)"
 
 definition sum :: "'a narrowing => 'a narrowing => 'a narrowing"
 where
