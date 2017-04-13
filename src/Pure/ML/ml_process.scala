@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/ml_process.scala
+/*  Title:      Pure/ML/ml_process.scala
     Author:     Makarius
 
 The raw ML process.
