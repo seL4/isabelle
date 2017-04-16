@@ -1213,46 +1213,57 @@ lemma smult_conv_map_poly: "smult c p = map_poly (\<lambda>x. c * x) p"
   by (intro poly_eqI) (simp_all add: coeff_map_poly)
 
 
-subsection \<open>Conversions from @{typ nat} and @{typ int} numbers\<close>
+subsection \<open>Conversions\<close>
 
-lemma of_nat_poly: "of_nat n = [:of_nat n :: 'a :: comm_semiring_1:]"
-proof (induct n)
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  then have "of_nat (Suc n) = 1 + (of_nat n :: 'a poly)"
-    by simp
-  also have "(of_nat n :: 'a poly) = [: of_nat n :]"
-    by (subst Suc) (rule refl)
-  also have "1 = [:1:]"
-    by (simp add: one_poly_def)
-  finally show ?case
-    by (subst (asm) add_pCons) simp
-qed
+lemma of_nat_poly:
+  "of_nat n = [:of_nat n:]"
+  by (induct n) (simp_all add: one_poly_def)
 
-lemma degree_of_nat [simp]: "degree (of_nat n) = 0"
+lemma of_nat_monom:
+  "of_nat n = monom (of_nat n) 0"
+  by (simp add: of_nat_poly monom_0)
+
+lemma degree_of_nat [simp]:
+  "degree (of_nat n) = 0"
   by (simp add: of_nat_poly)
 
 lemma lead_coeff_of_nat [simp]:
-  "lead_coeff (of_nat n) = (of_nat n :: 'a::{comm_semiring_1,semiring_char_0})"
+  "lead_coeff (of_nat n) = of_nat n"
   by (simp add: of_nat_poly)
 
-lemma of_int_poly: "of_int k = [:of_int k :: 'a :: comm_ring_1:]"
+lemma of_int_poly:
+  "of_int k = [:of_int k:]"
   by (simp only: of_int_of_nat of_nat_poly) simp
 
-lemma degree_of_int [simp]: "degree (of_int k) = 0"
+lemma of_int_monom:
+  "of_int k = monom (of_int k) 0"
+  by (simp add: of_int_poly monom_0)
+
+lemma degree_of_int [simp]:
+  "degree (of_int k) = 0"
   by (simp add: of_int_poly)
 
 lemma lead_coeff_of_int [simp]:
-  "lead_coeff (of_int k) = (of_int k :: 'a::{comm_ring_1,ring_char_0})"
+  "lead_coeff (of_int k) = of_int k"
   by (simp add: of_int_poly)
 
 lemma numeral_poly: "numeral n = [:numeral n:]"
-  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+proof -
+  have "numeral n = of_nat (numeral n)"
+    by simp
+  also have "\<dots> = [:of_nat (numeral n):]"
+    by (simp add: of_nat_poly)
+  finally show ?thesis
+    by simp
+qed
 
-lemma degree_numeral [simp]: "degree (numeral n) = 0"
-  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+lemma numeral_monom:
+  "numeral n = monom (numeral n) 0"
+  by (simp add: numeral_poly monom_0)
+
+lemma degree_numeral [simp]:
+  "degree (numeral n) = 0"
+  by (simp add: numeral_poly)
 
 lemma lead_coeff_numeral [simp]:
   "lead_coeff (numeral n) = numeral n"
