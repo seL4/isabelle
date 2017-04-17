@@ -172,7 +172,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       val component = Node_Renderer_Component
       component.node_name = name
       component.checkbox.selected = nodes_required.contains(name)
-      component.label.text = name.theory
+      component.label.text = name.theory_base_name
       component
     }
   }
