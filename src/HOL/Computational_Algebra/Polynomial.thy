@@ -998,40 +998,64 @@ lemma mult_monom: "monom a m * monom b n = monom (a * b) (m + n)"
 instantiation poly :: (comm_semiring_1) comm_semiring_1
 begin
 
-definition one_poly_def: "1 = pCons 1 0"
+lift_definition one_poly :: "'a poly"
+  is "\<lambda>n. of_bool (n = 0)"
+  by (rule MOST_SucD) simp
+
+lemma coeff_1 [simp]:
+  "coeff 1 n = of_bool (n = 0)"
+  by (simp add: one_poly.rep_eq)
+
+lemma one_pCons:
+  "1 = [:1:]"
+  by (simp add: poly_eq_iff coeff_pCons split: nat.splits)
+
+lemma pCons_one:
+  "[:1:] = 1"
+  by (simp add: one_pCons)
 
 instance
-proof
-  show "1 * p = p" for p :: "'a poly"
-    by (simp add: one_poly_def)
-  show "0 \<noteq> (1::'a poly)"
-    by (simp add: one_poly_def)
-qed
+  by standard (simp_all add: one_pCons)
 
 end
+
+lemma poly_1 [simp]:
+  "poly 1 x = 1"
+  by (simp add: one_pCons)
+
+lemma one_poly_eq_simps [simp]:
+  "1 = [:1:] \<longleftrightarrow> True"
+  "[:1:] = 1 \<longleftrightarrow> True"
+  by (simp_all add: one_pCons)
+
+lemma degree_1 [simp]:
+  "degree 1 = 0"
+  by (simp add: one_pCons)
+
+lemma coeffs_1_eq [simp, code abstract]:
+  "coeffs 1 = [1]"
+  by (simp add: one_pCons)
+
+lemma smult_one [simp]:
+  "smult c 1 = [:c:]"
+  by (simp add: one_pCons)
+
+lemma monom_eq_1 [simp]:
+  "monom 1 0 = 1"
+  by (simp add: monom_0 one_pCons)
+
+lemma monom_eq_1_iff:
+  "monom c n = 1 \<longleftrightarrow> c = 1 \<and> n = 0"
+  using monom_eq_const_iff [of c n 1] by auto
+
+lemma monom_altdef:
+  "monom c n = smult c ([:0, 1:] ^ n)"
+  by (induct n) (simp_all add: monom_0 monom_Suc)  
 
 instance poly :: ("{comm_semiring_1,semiring_1_no_zero_divisors}") semiring_1_no_zero_divisors ..
 instance poly :: (comm_ring) comm_ring ..
 instance poly :: (comm_ring_1) comm_ring_1 ..
 instance poly :: (comm_ring_1) comm_semiring_1_cancel ..
-
-lemma coeff_1 [simp]: "coeff 1 n = (if n = 0 then 1 else 0)"
-  by (simp add: one_poly_def coeff_pCons split: nat.split)
-
-lemma monom_eq_1 [simp]: "monom 1 0 = 1"
-  by (simp add: monom_0 one_poly_def)
-
-lemma monom_eq_1_iff: "monom c n = 1 \<longleftrightarrow> c = 1 \<and> n = 0"
-  using monom_eq_const_iff[of c n 1] by (auto simp: one_poly_def)
-
-lemma monom_altdef: "monom c n = smult c ([:0, 1:]^n)"
-  by (induct n) (simp_all add: monom_0 monom_Suc one_poly_def)
-
-lemma degree_1 [simp]: "degree 1 = 0"
-  unfolding one_poly_def by (rule degree_pCons_0)
-
-lemma coeffs_1_eq [simp, code abstract]: "coeffs 1 = [1]"
-  by (simp add: one_poly_def)
 
 lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
   by (induct n) (auto intro: order_trans degree_mult_le)
@@ -1044,9 +1068,6 @@ lemma poly_smult [simp]: "poly (smult a p) x = a * poly p x"
 
 lemma poly_mult [simp]: "poly (p * q) x = poly p x * poly q x"
   by (induct p) (simp_all add: algebra_simps)
-
-lemma poly_1 [simp]: "poly 1 x = 1"
-  by (simp add: one_poly_def)
 
 lemma poly_power [simp]: "poly (p ^ n) x = poly p x ^ n"
   for p :: "'a::comm_semiring_1 poly"
@@ -1113,7 +1134,7 @@ lemma map_poly_1: "map_poly f 1 = [:f 1:]"
   by (simp add: map_poly_def)
 
 lemma map_poly_1' [simp]: "f 1 = 1 \<Longrightarrow> map_poly f 1 = 1"
-  by (simp add: map_poly_def one_poly_def)
+  by (simp add: map_poly_def one_pCons)
 
 lemma coeff_map_poly:
   assumes "f 0 = 0"
@@ -1217,7 +1238,7 @@ subsection \<open>Conversions\<close>
 
 lemma of_nat_poly:
   "of_nat n = [:of_nat n:]"
-  by (induct n) (simp_all add: one_poly_def)
+  by (induct n) (simp_all add: one_pCons)
 
 lemma of_nat_monom:
   "of_nat n = monom (of_nat n) 0"
@@ -1328,7 +1349,7 @@ proof -
     from this(1) obtain d where "1 = c * d"
       by (rule dvdE)
     then have "1 = [:c:] * [:d:]"
-      by (simp add: one_poly_def mult_ac)
+      by (simp add: one_pCons ac_simps)
     then have "[:c:] dvd 1"
       by (rule dvdI)
     from mult_dvd_mono[OF this \<open>p dvd 1\<close>] show "[:c:] * p dvd 1"
@@ -1952,7 +1973,7 @@ lemma pcompose_pCons: "pcompose (pCons a p) q = [:a:] + q * pcompose p q"
 
 lemma pcompose_1: "pcompose 1 p = 1"
   for p :: "'a::comm_semiring_1 poly"
-  by (auto simp: one_poly_def pcompose_pCons)
+  by (auto simp: one_pCons pcompose_pCons)
 
 lemma poly_pcompose: "poly (pcompose p q) x = poly p (poly q x)"
   by (induct p) (simp_all add: pcompose_pCons)
@@ -2225,7 +2246,7 @@ lemma reflect_poly_0 [simp]: "reflect_poly 0 = 0"
   by (simp add: reflect_poly_def)
 
 lemma reflect_poly_1 [simp]: "reflect_poly 1 = 1"
-  by (simp add: reflect_poly_def one_poly_def)
+  by (simp add: reflect_poly_def one_pCons)
 
 lemma coeff_reflect_poly:
   "coeff (reflect_poly p) n = (if n > degree p then 0 else coeff p (degree p - n))"
@@ -2351,7 +2372,7 @@ lemma pderiv_pCons: "pderiv (pCons a p) = p + pCons 0 (pderiv p)"
   by (simp add: pderiv.simps)
 
 lemma pderiv_1 [simp]: "pderiv 1 = 0"
-  by (simp add: one_poly_def pderiv_pCons)
+  by (simp add: one_pCons pderiv_pCons)
 
 lemma pderiv_of_nat [simp]: "pderiv (of_nat n) = 0"
   and pderiv_numeral [simp]: "pderiv (numeral m) = 0"
@@ -3242,7 +3263,7 @@ lemma is_unit_monom_trival: "is_unit p \<Longrightarrow> monom (coeff p (degree 
 
 lemma is_unit_const_poly_iff: "[:c:] dvd 1 \<longleftrightarrow> c dvd 1"
   for c :: "'a::{comm_semiring_1,semiring_no_zero_divisors}"
-  by (auto simp: one_poly_def)
+  by (auto simp: one_pCons)
 
 lemma is_unit_polyE:
   fixes p :: "'a :: {comm_semiring_1,semiring_no_zero_divisors} poly"

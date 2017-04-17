@@ -27,8 +27,7 @@ lemma fps_of_poly_0 [simp]: "fps_of_poly 0 = 0"
   by (subst fps_const_0_eq_0 [symmetric], subst fps_of_poly_const [symmetric]) simp
 
 lemma fps_of_poly_1 [simp]: "fps_of_poly 1 = 1"
-  by (subst fps_const_1_eq_1 [symmetric], subst fps_of_poly_const [symmetric])
-     (simp add: one_poly_def)
+  by (simp add: fps_eq_iff)
 
 lemma fps_of_poly_1' [simp]: "fps_of_poly [:1:] = 1"
   by (subst fps_const_1_eq_1 [symmetric], subst fps_of_poly_const [symmetric])

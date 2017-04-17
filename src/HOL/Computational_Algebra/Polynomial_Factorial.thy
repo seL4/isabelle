@@ -17,7 +17,7 @@ begin
 subsection \<open>Various facts about polynomials\<close>
 
 lemma prod_mset_const_poly: " (\<Prod>x\<in>#A. [:f x:]) = [:prod_mset (image_mset f A):]"
-  by (induct A) (simp_all add: one_poly_def ac_simps)
+  by (induct A) (simp_all add: ac_simps)
 
 lemma irreducible_const_poly_iff:
   fixes c :: "'a :: {comm_semiring_1,semiring_no_zero_divisors}"
@@ -35,17 +35,21 @@ proof
     from ab have "coeff [:c:] 0 = coeff (a * b) 0" by (simp only: )
     hence "c = a' * b'" by (simp add: ab' mult_ac)
     from A and this have "a' dvd 1 \<or> b' dvd 1" by (rule irreducibleD)
-    with ab' show "a dvd 1 \<or> b dvd 1" by (auto simp: one_poly_def)
+    with ab' show "a dvd 1 \<or> b dvd 1"
+      by (auto simp add: is_unit_const_poly_iff)
   qed (insert A, auto simp: irreducible_def is_unit_poly_iff)
 next
   assume A: "irreducible [:c:]"
-  show "irreducible c"
+  then have "c \<noteq> 0" and "\<not> c dvd 1"
+    by (auto simp add: irreducible_def is_unit_const_poly_iff)
+  then show "irreducible c"
   proof (rule irreducibleI)
     fix a b assume ab: "c = a * b"
     hence "[:c:] = [:a:] * [:b:]" by (simp add: mult_ac)
     from A and this have "[:a:] dvd 1 \<or> [:b:] dvd 1" by (rule irreducibleD)
-    thus "a dvd 1 \<or> b dvd 1" by (simp add: one_poly_def)
-  qed (insert A, auto simp: irreducible_def one_poly_def)
+    then show "a dvd 1 \<or> b dvd 1"
+      by (auto simp add: is_unit_const_poly_iff)
+  qed
 qed
 
 
@@ -141,7 +145,7 @@ lemma fract_poly_0 [simp]: "fract_poly 0 = 0"
   by (simp add: poly_eqI coeff_map_poly)
 
 lemma fract_poly_1 [simp]: "fract_poly 1 = 1"
-  by (simp add: one_poly_def map_poly_pCons)
+  by (simp add: map_poly_pCons)
 
 lemma fract_poly_add [simp]:
   "fract_poly (p + q) = fract_poly p + fract_poly q"
@@ -363,8 +367,11 @@ proof (rule prime_elemI)
     qed
     hence "[:c:] dvd a" by (subst const_poly_dvd_iff) blast
   }
-  thus "[:c:] dvd a \<or> [:c:] dvd b" by blast
-qed (insert assms, simp_all add: prime_elem_def one_poly_def)
+  then show "[:c:] dvd a \<or> [:c:] dvd b" by blast
+next
+  from assms show "[:c:] \<noteq> 0" and "\<not> [:c:] dvd 1"
+    by (simp_all add: prime_elem_def is_unit_const_poly_iff)
+qed
 
 lemma prime_elem_const_poly_iff:
   fixes c :: "'a :: semidom"

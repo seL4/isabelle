@@ -1025,7 +1025,7 @@ proof -
     then have th1: "\<forall>x. poly p x \<noteq> 0"
       by simp
     from k dp(2) have "q ^ (degree p) = p * [:1/k:]"
-      by (simp add: one_poly_def)
+      by simp
     then have th2: "p dvd (q ^ (degree p))" ..
     from dp(1) th1 th2 show ?thesis
       by blast
