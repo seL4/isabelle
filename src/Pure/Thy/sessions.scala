@@ -33,7 +33,8 @@ object Sessions
       def bases_iterator(local: Boolean) =
         for {
           base <- bases.iterator
-          (_, name) <- (if (local) base.known_theories_local else base.known_theories).iterator
+          known = base.known
+          (_, name) <- (if (local) known.known_theories_local else known.known_theories).iterator
         } yield name
 
       def local_theories_iterator =
@@ -112,12 +113,14 @@ object Sessions
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
 
-    def known_theories: Map[String, Document.Node.Name] = known.known_theories
-    def known_theories_local: Map[String, Document.Node.Name] = known.known_theories_local
-    def known_files: Map[JFile, List[Document.Node.Name]] = known.known_files
+    def known_theory(name: String): Option[Document.Node.Name] =
+      known.known_theories.get(name)
+
+    def known_file(file: JFile): Option[Document.Node.Name] =
+      known.known_files.getOrElse(file, Nil).headOption
 
     def dest_known_theories: List[(String, String)] =
-      for ((theory, node_name) <- known_theories.toList)
+      for ((theory, node_name) <- known.known_theories.toList)
         yield (theory, node_name.node)
   }
 

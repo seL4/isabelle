@@ -83,7 +83,7 @@ class Resources(
     theory_name(qualifier, Thy_Header.import_name(s)) match {
       case (true, theory) => Document.Node.Name.loaded_theory(theory)
       case (false, theory) =>
-        session_base.known_theories.get(theory) match {
+        session_base.known_theory(theory) match {
           case Some(node_name) => node_name
           case None =>
             val path = Path.explode(s)
