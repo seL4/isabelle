@@ -93,6 +93,9 @@ class Resources(
         }
     }
 
+  def import_name(node_name: Document.Node.Name, s: String): Document.Node.Name =
+    import_name(theory_qualifier(node_name), node_name.master_dir, s)
+
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     val path = Path.explode(name.node)
@@ -116,9 +119,7 @@ class Resources(
             " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
             Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
 
-        val imports =
-          header.imports.map({ case (s, pos) =>
-            (import_name(theory_qualifier(node_name), node_name.master_dir, s), pos) })
+        val imports = header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
@@ -135,16 +136,10 @@ class Resources(
 
   def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
   {
-    val qualifier = theory_qualifier(name)
-    val dir = name.master_dir
-
     val imports =
-      if (Thy_Header.is_ml_root(name.theory))
-        List(import_name(qualifier, dir, Thy_Header.ML_BOOTSTRAP))
-      else if (Thy_Header.is_bootstrap(name.theory))
-        List(import_name(qualifier, dir, Thy_Header.PURE))
+      if (Thy_Header.is_ml_root(name.theory)) List(import_name(name, Thy_Header.ML_BOOTSTRAP))
+      else if (Thy_Header.is_bootstrap(name.theory)) List(import_name(name, Thy_Header.PURE))
       else Nil
-
     if (imports.isEmpty) None
     else Some(Document.Node.Header(imports.map((_, Position.none))))
   }
