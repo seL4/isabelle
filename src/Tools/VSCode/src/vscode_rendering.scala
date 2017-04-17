@@ -237,7 +237,7 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
       range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(_, XML.Elem(Markup.Path(name), _))) =>
-            val file = perhaps_append_file(snapshot.node_name.master_dir, name)
+            val file = perhaps_append_file(snapshot.node_name, name)
             Some(Line.Node_Range(file) :: links)
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>

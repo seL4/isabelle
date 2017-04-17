@@ -423,8 +423,8 @@ abstract class Rendering(
       rev_infos.filter(p => p._1 == important).reverse.map(_._2)
   }
 
-  def perhaps_append_file(dir: String, name: String): String =
-    if (Path.is_valid(name)) session.resources.append(dir, Path.explode(name)) else name
+  def perhaps_append_file(node_name: Document.Node.Name, name: String): String =
+    if (Path.is_valid(name)) session.resources.append(node_name, Path.explode(name)) else name
 
   def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Tree]]] =
   {
@@ -451,7 +451,7 @@ abstract class Rendering(
             Some(info + (r0, true, XML.Text(txt1 + txt2)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Path(name), _))) =>
-            val file = perhaps_append_file(snapshot.node_name.master_dir, name)
+            val file = perhaps_append_file(snapshot.node_name, name)
             val text =
               if (name == file) "file " + quote(file)
               else "path " + quote(name) + "\nfile " + quote(file)
