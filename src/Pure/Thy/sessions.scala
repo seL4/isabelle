@@ -143,12 +143,16 @@ object Sessions
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
-            val parent_base =
+            val parent_base: Sessions.Base =
               info.parent match {
                 case None => Base.bootstrap(global_theories)
                 case Some(parent) => session_bases(parent)
               }
-            val resources = new Resources(parent_base,
+            val imports_base: Sessions.Base =
+              parent_base.copy(known =
+                Known.make(info.dir, parent_base :: info.imports.map(session_bases(_)), Nil))
+
+            val resources = new Resources(imports_base,
               default_qualifier = info.theory_qualifier(session_name))
 
             if (verbose || list_files) {
@@ -172,11 +176,6 @@ object Sessions
                 case errs => error(cat_lines(errs))
               }
             }
-
-            val known =
-              Known.make(info.dir,
-                parent_base :: info.imports.map(session_bases(_)),
-                thy_deps.deps.map(_.name))
 
             val syntax = thy_deps.syntax
 
@@ -210,11 +209,11 @@ object Sessions
             val base =
               Base(global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
-                known = known,
+                known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
                 keywords = thy_deps.keywords,
                 syntax = syntax,
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
-                session_graph = thy_deps.session_graph(info.parent getOrElse "", parent_base))
+                session_graph = thy_deps.session_graph(info.parent getOrElse "", imports_base))
 
             session_bases + (session_name -> base)
           }
@@ -225,11 +224,9 @@ object Sessions
           }
       })
 
-    val known =
+    Deps(session_bases,
       if (all_known) Known.make(Path.current, session_bases.toList.map(_._2), Nil)
-      else Known.empty
-
-    Deps(session_bases, known)
+      else Known.empty)
   }
 
   def session_base(
