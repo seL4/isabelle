@@ -33,8 +33,7 @@ object Sessions
       def bases_iterator(local: Boolean) =
         for {
           base <- bases.iterator
-          known = base.known
-          (_, name) <- (if (local) known.known_theories_local else known.known_theories).iterator
+          (_, name) <- (if (local) base.known.theories_local else base.known.theories).iterator
         } yield name
 
       def local_theories_iterator =
@@ -74,18 +73,14 @@ object Sessions
   }
 
   sealed case class Known(
-    known_theories: Map[String, Document.Node.Name] = Map.empty,
-    known_theories_local: Map[String, Document.Node.Name] = Map.empty,
-    known_files: Map[JFile, List[Document.Node.Name]] = Map.empty)
+    theories: Map[String, Document.Node.Name] = Map.empty,
+    theories_local: Map[String, Document.Node.Name] = Map.empty,
+    files: Map[JFile, List[Document.Node.Name]] = Map.empty)
   {
     def platform_path: Known =
-      copy(
-        known_theories =
-          for ((a, b) <- known_theories) yield (a, b.map(File.platform_path(_))),
-        known_theories_local =
-          for ((a, b) <- known_theories_local) yield (a, b.map(File.platform_path(_))),
-        known_files =
-          for ((a, b) <- known_files) yield (a, b.map(c => c.map(File.platform_path(_)))))
+      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))),
+        theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.platform_path(_))),
+        files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.platform_path(_)))))
   }
 
   object Base
@@ -114,13 +109,13 @@ object Sessions
       loaded_theories.isDefinedAt(name.theory)
 
     def known_theory(name: String): Option[Document.Node.Name] =
-      known.known_theories.get(name)
+      known.theories.get(name)
 
     def known_file(file: JFile): Option[Document.Node.Name] =
-      known.known_files.getOrElse(file, Nil).headOption
+      known.files.getOrElse(file, Nil).headOption
 
     def dest_known_theories: List[(String, String)] =
-      for ((theory, node_name) <- known.known_theories.toList)
+      for ((theory, node_name) <- known.theories.toList)
         yield (theory, node_name.node)
   }
 
