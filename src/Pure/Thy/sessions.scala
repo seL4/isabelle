@@ -112,7 +112,7 @@ object Sessions
       known.theories.get(name)
 
     def known_file(file: JFile): Option[Document.Node.Name] =
-      known.files.getOrElse(file, Nil).headOption
+      known.files.getOrElse(file.getCanonicalFile, Nil).headOption
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known.theories.toList)
