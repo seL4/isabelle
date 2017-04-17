@@ -387,7 +387,7 @@ object Sessions
       if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
 
     def global_theories: Map[String, String] =
-      (Map.empty[String, String] /:
+      (Thy_Header.bootstrap_global_theories.toMap /:
         (for {
           (session_name, (info, _)) <- imports_graph.iterator
           thy <- info.global_theories.iterator } yield (thy, session_name, info)))({
