@@ -254,7 +254,7 @@ fun load_thy document symbols last_timing update_time master_dir header text_pos
           warning ("Cannot present theory with skipped proofs: " ^ quote name)
         else
           let val tex_source = Thy_Output.present_thy thy res toks |> Buffer.content;
-          in if document then Present.theory_output name tex_source else () end
+          in if document then Present.theory_output (Long_Name.base_name name) tex_source else () end
       end;
 
   in (thy, present, size text) end;
