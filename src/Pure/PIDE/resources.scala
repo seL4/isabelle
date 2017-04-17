@@ -98,9 +98,7 @@ class Resources(
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
-    val path = Path.explode(name.node)
-    if (!path.is_file) error("No such file: " + path.toString)
-
+    val path = File.check_file(Path.explode(name.node))
     val reader = Scan.byte_reader(path.file)
     try { f(reader) } finally { reader.close }
   }
