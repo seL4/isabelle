@@ -24,25 +24,11 @@ object Sessions
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
-  sealed case class Known_Theories(
-    known_theories: Map[String, Document.Node.Name] = Map.empty,
-    known_theories_local: Map[String, Document.Node.Name] = Map.empty,
-    known_files: Map[JFile, List[Document.Node.Name]] = Map.empty)
-
-  object Base
+  object Known
   {
-    def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
+    val empty: Known = Known()
 
-    def bootstrap(global_theories: Map[String, String]): Base =
-      Base(
-        global_theories = global_theories,
-        keywords = Thy_Header.bootstrap_header,
-        syntax = Thy_Header.bootstrap_syntax)
-
-    private[Sessions] def known_theories(
-        local_dir: Path,
-        bases: List[Base],
-        theories: List[Document.Node.Name]): Known_Theories =
+    def make(local_dir: Path, bases: List[Base], theories: List[Document.Node.Name]): Known =
     {
       def bases_iterator(local: Boolean) =
         for {
@@ -81,23 +67,17 @@ object Sessions
               known
             else known + (file -> (name :: theories1))
         })
-      Known_Theories(known_theories, known_theories_local,
+      Known(known_theories, known_theories_local,
         known_files.iterator.map(p => (p._1, p._2.reverse)).toMap)
     }
   }
 
-  sealed case class Base(
-    global_theories: Map[String, String] = Map.empty,
-    loaded_theories: Map[String, String] = Map.empty,
+  sealed case class Known(
     known_theories: Map[String, Document.Node.Name] = Map.empty,
     known_theories_local: Map[String, Document.Node.Name] = Map.empty,
-    known_files: Map[JFile, List[Document.Node.Name]] = Map.empty,
-    keywords: Thy_Header.Keywords = Nil,
-    syntax: Outer_Syntax = Outer_Syntax.empty,
-    sources: List[(Path, SHA1.Digest)] = Nil,
-    session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
+    known_files: Map[JFile, List[Document.Node.Name]] = Map.empty)
   {
-    def platform_path: Base =
+    def platform_path: Known =
       copy(
         known_theories =
           for ((a, b) <- known_theories) yield (a, b.map(File.platform_path(_))),
@@ -105,18 +85,43 @@ object Sessions
           for ((a, b) <- known_theories_local) yield (a, b.map(File.platform_path(_))),
         known_files =
           for ((a, b) <- known_files) yield (a, b.map(c => c.map(File.platform_path(_)))))
+  }
+
+  object Base
+  {
+    def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
+
+    def bootstrap(global_theories: Map[String, String]): Base =
+      Base(
+        global_theories = global_theories,
+        keywords = Thy_Header.bootstrap_header,
+        syntax = Thy_Header.bootstrap_syntax)
+  }
+
+  sealed case class Base(
+    global_theories: Map[String, String] = Map.empty,
+    loaded_theories: Map[String, String] = Map.empty,
+    known: Known = Known.empty,
+    keywords: Thy_Header.Keywords = Nil,
+    syntax: Outer_Syntax = Outer_Syntax.empty,
+    sources: List[(Path, SHA1.Digest)] = Nil,
+    session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
+  {
+    def platform_path: Base = copy(known = known.platform_path)
 
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
+
+    def known_theories: Map[String, Document.Node.Name] = known.known_theories
+    def known_theories_local: Map[String, Document.Node.Name] = known.known_theories_local
+    def known_files: Map[JFile, List[Document.Node.Name]] = known.known_files
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known_theories.toList)
         yield (theory, node_name.node)
   }
 
-  sealed case class Deps(
-    session_bases: Map[String, Base],
-    all_known_theories: Known_Theories)
+  sealed case class Deps(session_bases: Map[String, Base], all_known: Known)
   {
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
@@ -130,7 +135,7 @@ object Sessions
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
       global_theories: Map[String, String] = Map.empty,
-      all_known_theories: Boolean = false): Deps =
+      all_known: Boolean = false): Deps =
   {
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
@@ -168,8 +173,8 @@ object Sessions
               }
             }
 
-            val known_theories =
-              Base.known_theories(info.dir,
+            val known =
+              Known.make(info.dir,
                 parent_base :: info.imports.map(session_bases(_)),
                 thy_deps.deps.map(_.name))
 
@@ -205,9 +210,7 @@ object Sessions
             val base =
               Base(global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
-                known_theories = known_theories.known_theories,
-                known_theories_local = known_theories.known_theories_local,
-                known_files = known_theories.known_files,
+                known = known,
                 keywords = thy_deps.keywords,
                 syntax = syntax,
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
@@ -222,31 +225,27 @@ object Sessions
           }
       })
 
-    val known_theories =
-      if (all_known_theories)
-        Base.known_theories(Path.current, session_bases.toList.map(_._2), Nil)
-      else Known_Theories()
+    val known =
+      if (all_known) Known.make(Path.current, session_bases.toList.map(_._2), Nil)
+      else Known.empty
 
-    Deps(session_bases, known_theories)
+    Deps(session_bases, known)
   }
 
   def session_base(
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
-    all_known_theories: Boolean = false): Base =
+    all_known: Boolean = false): Base =
   {
     val full_sessions = load(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
     val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
 
-    if (all_known_theories) {
+    if (all_known) {
       val deps = Sessions.deps(
-        full_sessions, global_theories = global_theories, all_known_theories = all_known_theories)
-      deps(session).copy(
-        known_theories = deps.all_known_theories.known_theories,
-        known_theories_local = deps.all_known_theories.known_theories_local,
-        known_files = deps.all_known_theories.known_files)
+        full_sessions, global_theories = global_theories, all_known = all_known)
+      deps(session).copy(known = deps.all_known)
     }
     else
       deps(selected_sessions, global_theories = global_theories)(session)
