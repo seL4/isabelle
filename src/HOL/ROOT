@@ -69,7 +69,7 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
     Approximations
     Circle_Area
 
-session "HOL-Computation_Algebra" in "Computational_Algebra" = HOL +
+session "HOL-Computational_Algebra" in "Computational_Algebra" = HOL +
   theories
     Computational_Algebra
     (*conflicting type class instantiations and dependent applications*)
