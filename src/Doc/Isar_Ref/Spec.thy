@@ -101,16 +101,15 @@ text \<open>
   for syntactic completion. The default for a new keyword is just its name,
   but completion may be avoided by defining @{keyword "abbrevs"} with empty
   text.
-  
+
   \<^descr> @{command (global) "end"} concludes the current theory definition. Note
   that some other commands, e.g.\ local theory targets \<^theory_text>\<open>locale\<close> or \<^theory_text>\<open>class\<close>
   may involve a \<^theory_text>\<open>begin\<close> that needs to be matched by @{command (local) "end"},
   according to the usual rules for nested blocks.
 
   \<^descr> \<^theory_text>\<open>thy_deps\<close> visualizes the theory hierarchy as a directed acyclic graph.
-  By default, all imported theories are shown, taking the base session as a
-  starting point. Alternatively, it is possibly to restrict the full theory
-  graph by giving bounds, analogously to @{command_ref class_deps}.
+  By default, all imported theories are shown. This may be restricted by
+  specifying bounds wrt. the theory inclusion relation.
 \<close>
 
 
@@ -157,11 +156,11 @@ text \<open>
   means any results stemming from definitions and proofs in the extended
   context will be exported into the enclosing target by lifting over extra
   parameters and premises.
-  
+
   \<^descr> @{command (local) "end"} concludes the current local theory, according to
   the nesting of contexts. Note that a global @{command (global) "end"} has a
   different meaning: it concludes the theory itself (\secref{sec:begin-thy}).
-  
+
   \<^descr> \<^theory_text>\<open>private\<close> or \<^theory_text>\<open>qualified\<close> may be given as modifiers before any local
   theory command. This restricts name space accesses to the local scope, as
   determined by the enclosing \<^theory_text>\<open>context begin \<dots> end\<close> block. Outside its scope,
@@ -189,7 +188,7 @@ text \<open>
   on the underlying target infrastructure (locale, type class etc.). The
   general idea is as follows, considering a context named \<open>c\<close> with parameter
   \<open>x\<close> and assumption \<open>A[x]\<close>.
-  
+
   Definitions are exported by introducing a global version with additional
   arguments; a syntactic abbreviation links the long form with the abstract
   version of the target context. For example, \<open>a \<equiv> t[x]\<close> becomes \<open>c.a ?x \<equiv>
@@ -321,7 +320,7 @@ text \<open>
   object-logic. This usually covers object-level equality \<open>x = y\<close> and
   equivalence \<open>A \<longleftrightarrow> B\<close>. End-users normally need not change the @{attribute
   defn} setup.
-  
+
   Definitions may be presented with explicit arguments on the LHS, as well as
   additional conditions, e.g.\ \<open>f x y = t\<close> instead of \<open>f \<equiv> \<lambda>x y. t\<close> and \<open>y \<noteq> 0
   \<Longrightarrow> g x y = u\<close> instead of an unrestricted \<open>g \<equiv> \<lambda>x y. u\<close>.
@@ -331,18 +330,18 @@ text \<open>
 
   \<^descr> \<^theory_text>\<open>abbreviation c where eq\<close> introduces a syntactic constant which is
   associated with a certain term according to the meta-level equality \<open>eq\<close>.
-  
+
   Abbreviations participate in the usual type-inference process, but are
   expanded before the logic ever sees them. Pretty printing of terms involves
   higher-order rewriting with rules stemming from reverted abbreviations. This
   needs some care to avoid overlapping or looping syntactic replacements!
-  
+
   The optional \<open>mode\<close> specification restricts output to a particular print
   mode; using ``\<open>input\<close>'' here achieves the effect of one-way abbreviations.
   The mode may also include an ``\<^theory_text>\<open>output\<close>'' qualifier that affects the
   concrete syntax declared for abbreviations, cf.\ \<^theory_text>\<open>syntax\<close> in
   \secref{sec:syn-trans}.
-  
+
   \<^descr> \<^theory_text>\<open>print_abbrevs\<close> prints all constant abbreviations of the current context;
   the ``\<open>!\<close>'' option indicates extra verbosity.
 \<close>
@@ -574,12 +573,12 @@ text \<open>
   the locale specification. When defining an operation derived from the
   parameters, \<^theory_text>\<open>definition\<close> (\secref{sec:term-definitions}) is usually more
   appropriate.
-  
+
   Note that ``\<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close>'' patterns given in the syntax of @{element
   "assumes"} and @{element "defines"} above are illegal in locale definitions.
   In the long goal format of \secref{sec:goals}, term bindings may be included
   as expected, though.
-  
+
   \<^medskip>
   Locale specifications are ``closed up'' by turning the given text into a
   predicate definition \<open>loc_axioms\<close> and deriving the original assumptions as
@@ -587,7 +586,7 @@ text \<open>
   the newly specified assumptions, omitting the content of included locale
   expressions. The full cumulative view is only provided on export, involving
   another predicate \<open>loc\<close> that refers to the complete specification text.
-  
+
   In any case, the predicate arguments are those locale parameters that
   actually occur in the respective piece of text. Also these predicates
   operate at the meta-level in theory, but the locale packages attempts to
@@ -1111,7 +1110,7 @@ text \<open>
   \<^descr> \<^theory_text>\<open>ML_val\<close> and \<^theory_text>\<open>ML_command\<close> are diagnostic versions of \<^theory_text>\<open>ML\<close>, which means
   that the context may not be updated. \<^theory_text>\<open>ML_val\<close> echos the bindings produced
   at the ML toplevel, but \<^theory_text>\<open>ML_command\<close> is silent.
-  
+
   \<^descr> \<^theory_text>\<open>setup "text"\<close> changes the current theory context by applying \<open>text\<close>,
   which refers to an ML expression of type @{ML_type "theory -> theory"}. This
   enables to initialize any object-logic specific tools and packages written
@@ -1223,7 +1222,7 @@ text \<open>
   \<alpha>\<^sub>n) t\<close> for the existing type \<open>\<tau>\<close>. Unlike the semantic type definitions in
   Isabelle/HOL, type synonyms are merely syntactic abbreviations without any
   logical significance. Internally, type synonyms are fully expanded.
-  
+
   \<^descr> \<^theory_text>\<open>typedecl (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t\<close> declares a new type constructor \<open>t\<close>. If the
   object-logic defines a base sort \<open>s\<close>, then the constructor is declared to
   operate on that, via the axiomatic type-class instance \<open>t :: (s, \<dots>, s)s\<close>.
