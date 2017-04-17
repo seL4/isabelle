@@ -28,11 +28,6 @@ class Resources(
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
-  def append_file(dir: String, raw_name: String): String =
-    if (Path.is_valid(raw_name)) append(dir, Path.explode(raw_name))
-    else raw_name
-
-
 
   /* source files of Isabelle/ML bootstrap */
 
