@@ -7,7 +7,6 @@ Theory presentation: HTML and PDF-LaTeX documents.
 signature PRESENT =
 sig
   val session_name: theory -> string
-  val session_graph: string -> (string -> bool) -> theory -> Graph_Display.entry list
   val document_enabled: string -> bool
   val document_variants: string -> (string * string) list
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
@@ -53,28 +52,6 @@ val _ = Theory.setup
   (Browser_Info.put {chapter = Context.PureN, name = Context.PureN});
 
 val session_name = #name o Browser_Info.get;
-
-
-(* session graph *)
-
-fun session_graph parent_session parent_loaded =
-  let
-    val parent_session_name = "session." ^ parent_session;
-    val parent_session_node = Graph_Display.content_node ("[" ^ parent_session ^ "]") [];
-    fun node_name name = if parent_loaded name then parent_session_name else "theory." ^ name;
-    fun theory_entry thy =
-      let
-        val name = Context.theory_name thy;
-        val deps = map (node_name o Context.theory_name) (Theory.parents_of thy);
-      in
-        if parent_loaded (Context.theory_long_name thy) then NONE
-        else SOME ((node_name name, Graph_Display.content_node name []), deps)
-      end;
-  in
-    fn thy =>
-      ((parent_session_name, parent_session_node), []) ::
-        map_filter theory_entry (Theory.nodes_of thy)
-  end;
 
 
 

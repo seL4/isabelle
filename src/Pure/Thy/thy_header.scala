@@ -73,9 +73,10 @@ object Thy_Header extends Parse.Parser
 
   val PURE = "Pure"
   val ML_BOOTSTRAP = "ML_Bootstrap"
-  val ML_ROOT = "ML_Root"
-  val ml_roots = List("ROOT0.ML" -> "ML_Root0", "ROOT.ML" -> ML_ROOT)
+  val ml_roots = List("ROOT0.ML" -> "ML_Root0", "ROOT.ML" -> "ML_Root")
   val bootstrap_thys = List(PURE, ML_BOOTSTRAP).map(a => a -> ("Bootstrap_" + a))
+
+  val bootstrap_global_theories = (ml_roots ::: bootstrap_thys).map(p => (p._2 -> PURE))
 
   private val Thy_File_Name = new Regex(""".*?([^/\\:]+)\.thy""")
   private val Import_Name = new Regex(""".*?([^/\\:]+)""")

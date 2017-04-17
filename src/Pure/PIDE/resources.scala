@@ -28,10 +28,8 @@ class Resources(
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
-  def append_file(dir: String, raw_name: String): String =
-    if (Path.is_valid(raw_name)) append(dir, Path.explode(raw_name))
-    else raw_name
-
+  def append(node_name: Document.Node.Name, source_path: Path): String =
+    append(node_name.master_dir, source_path)
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -85,7 +83,7 @@ class Resources(
     theory_name(qualifier, Thy_Header.import_name(s)) match {
       case (true, theory) => Document.Node.Name.loaded_theory(theory)
       case (false, theory) =>
-        session_base.known_theories.get(theory) match {
+        session_base.known_theory(theory) match {
           case Some(node_name) => node_name
           case None =>
             val path = Path.explode(s)
@@ -95,11 +93,12 @@ class Resources(
         }
     }
 
+  def import_name(node_name: Document.Node.Name, s: String): Document.Node.Name =
+    import_name(theory_qualifier(node_name), node_name.master_dir, s)
+
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
-    val path = Path.explode(name.node)
-    if (!path.is_file) error("No such file: " + path.toString)
-
+    val path = File.check_file(Path.explode(name.node))
     val reader = Scan.byte_reader(path.file)
     try { f(reader) } finally { reader.close }
   }
@@ -118,9 +117,7 @@ class Resources(
             " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
             Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
 
-        val imports =
-          header.imports.map({ case (s, pos) =>
-            (import_name(theory_qualifier(node_name), node_name.master_dir, s), pos) })
+        val imports = header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
@@ -137,16 +134,10 @@ class Resources(
 
   def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
   {
-    val qualifier = theory_qualifier(name)
-    val dir = name.master_dir
-
     val imports =
-      if (Thy_Header.is_ml_root(name.theory))
-        List(import_name(qualifier, dir, Thy_Header.ML_BOOTSTRAP))
-      else if (Thy_Header.is_bootstrap(name.theory))
-        List(import_name(qualifier, dir, Thy_Header.PURE))
+      if (Thy_Header.is_ml_root(name.theory)) List(import_name(name, Thy_Header.ML_BOOTSTRAP))
+      else if (Thy_Header.is_bootstrap(name.theory)) List(import_name(name, Thy_Header.PURE))
       else Nil
-
     if (imports.isEmpty) None
     else Some(Document.Node.Header(imports.map((_, Position.none))))
   }
