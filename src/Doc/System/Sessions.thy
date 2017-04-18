@@ -121,6 +121,9 @@ text \<open>
   into the current ML process, which is in contrast to a theory that is
   already present in the \<^emph>\<open>parent\<close> session.
 
+  Theories that are imported from other sessions are excluded from the current
+  session document.
+
   \<^descr> \isakeyword{theories}~\<open>options names\<close> specifies a block of theories that
   are processed within an environment that is augmented by the given options,
   in addition to the global session options given before. Any number of blocks

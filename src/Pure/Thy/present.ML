@@ -12,7 +12,7 @@ sig
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
-  val theory_output: string -> string -> unit
+  val theory_output: theory -> string -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
   val display_drafts: Path.T list -> int
 end;
@@ -133,6 +133,10 @@ val session_info = Unsynchronized.ref (NONE: session_info option);
 
 fun with_session_info x f = (case ! session_info of NONE => x | SOME info => f info);
 
+fun is_session_theory thy =
+  (case ! session_info of
+    NONE => false
+  | SOME {name, ...} => name = Resources.theory_qualifier (Context.theory_long_name thy));
 
 
 (** document preparation **)
@@ -280,9 +284,12 @@ fun finish () =
 
 (* theory elements *)
 
-fun theory_output name s =
+fun theory_output thy tex =
   with_session_info () (fn _ =>
-    change_theory_info name (fn (_, html_source) => (Latex.isabelle_theory name s, html_source)));
+    if is_session_theory thy then
+      let val name = Context.theory_name thy;
+      in change_theory_info name (fn (_, html) => (Latex.isabelle_theory name tex, html)) end
+    else ());
 
 fun theory_link (curr_chapter, curr_session) thy =
   let
@@ -300,18 +307,20 @@ fun begin_theory update_time mk_text thy =
   with_session_info thy (fn {symbols, name = session_name, chapter, ...} =>
     let
       val name = Context.theory_name thy;
-      val parents = Theory.parents_of thy;
 
-      val parent_specs = parents |> map (fn parent =>
-        (Option.map Url.File (theory_link (chapter, session_name) parent),
-          (Context.theory_name parent)));
+      val parent_specs =
+        Theory.parents_of thy |> map (fn parent =>
+          (Option.map Url.File (theory_link (chapter, session_name) parent),
+            (Context.theory_name parent)));
       val html_source = HTML.theory symbols name parent_specs (mk_text ());
-    in
-      init_theory_info name (make_theory_info ("", html_source));
-      add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name));
-      add_tex_index (update_time, Latex.theory_entry name);
-      Browser_Info.put {chapter = chapter, name = session_name} thy
-    end);
+      val _ = init_theory_info name (make_theory_info ("", html_source));
+
+      val _ =
+        if is_session_theory thy then
+          (add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name));
+           add_tex_index (update_time, Latex.theory_entry name))
+        else ();
+    in Browser_Info.put {chapter = chapter, name = session_name} thy end);
 
 
 

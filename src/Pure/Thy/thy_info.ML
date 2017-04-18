@@ -230,6 +230,62 @@ fun schedule_tasks tasks =
 end;
 
 
+(* eval theory *)
+
+fun excursion keywords master_dir last_timing init elements =
+  let
+    fun prepare_span st span =
+      Command_Span.content span
+      |> Command.read keywords (Command.read_thy st) master_dir init ([], ~1)
+      |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
+
+    fun element_result span_elem (st, _) =
+      let
+        val elem = Thy_Syntax.map_element (prepare_span st) span_elem;
+        val (results, st') = Toplevel.element_result keywords elem st;
+        val pos' = Toplevel.pos_of (Thy_Syntax.last_element elem);
+      in (results, (st', pos')) end;
+
+    val (results, (end_state, end_pos)) =
+      fold_map element_result elements (Toplevel.toplevel, Position.none);
+
+    val thy = Toplevel.end_theory end_pos end_state;
+  in (results, thy) end;
+
+fun eval_thy document symbols last_timing update_time master_dir header text_pos text parents =
+  let
+    val (name, _) = #name header;
+    val keywords =
+      fold (curry Keyword.merge_keywords o Thy_Header.get_keywords) parents
+        (Keyword.add_keywords (#keywords header) Keyword.empty_keywords);
+
+    val toks = Token.explode keywords text_pos text;
+    val spans = Outer_Syntax.parse_spans toks;
+    val elements = Thy_Syntax.parse_elements keywords spans;
+
+    fun init () =
+      Resources.begin_theory master_dir header parents
+      |> Present.begin_theory update_time
+        (fn () => implode (map (HTML.present_span symbols keywords) spans));
+
+    val (results, thy) =
+      cond_timeit true ("theory " ^ quote name)
+        (fn () => excursion keywords master_dir last_timing init elements);
+
+    fun present () =
+      let
+        val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
+      in
+        if exists (Toplevel.is_skipped_proof o #2) res then
+          warning ("Cannot present theory with skipped proofs: " ^ quote name)
+        else
+          let val tex_source = Thy_Output.present_thy thy res toks |> Buffer.content;
+          in if document then Present.theory_output thy tex_source else () end
+      end;
+
+  in (thy, present, size text) end;
+
+
 (* require_thy -- checking database entries wrt. the file-system *)
 
 local
@@ -257,7 +313,7 @@ fun load_thy document symbols last_timing
 
     val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
-      Resources.load_thy document symbols last_timing update_time dir header text_pos text
+      eval_thy document symbols last_timing update_time dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
   in
