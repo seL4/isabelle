@@ -70,9 +70,11 @@ text \<open>
     ;
     value: @{syntax name} | @{syntax real}
     ;
-    theory_entry: @{syntax name} ('(' @'global' ')')?
+    sessions: @'sessions' (@{syntax name}+)
     ;
     theories: @'theories' opts? (theory_entry*)
+    ;
+    theory_entry: @{syntax name} ('(' @'global' ')')?
     ;
     files: @'files' (@{syntax name}+)
     ;
@@ -80,11 +82,12 @@ text \<open>
   \<close>}
 
   \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new session \<open>A\<close> based on
-  parent session \<open>B\<close>, with its content given in \<open>body\<close> (theories and auxiliary
-  source files). Note that a parent (like \<open>HOL\<close>) is mandatory in practical
-  applications: only Isabelle/Pure can bootstrap itself from nothing.
+  parent session \<open>B\<close>, with its content given in \<open>body\<close> (imported sessions,
+  theories and auxiliary source files). Note that a parent (like \<open>HOL\<close>) is
+  mandatory in practical applications: only Isabelle/Pure can bootstrap itself
+  from nothing.
 
-  All such session specifications together describe a hierarchy (tree) of
+  All such session specifications together describe a hierarchy (graph) of
   sessions, with globally unique names. The new session name \<open>A\<close> should be
   sufficiently long and descriptive to stand on its own in a potentially large
   library.
@@ -112,6 +115,12 @@ text \<open>
   but \<^emph>\<open>without\<close> propagation to child sessions. Note that \<open>z\<close> abbreviates \<open>z =
   true\<close> for Boolean options.
 
+  \<^descr> \isakeyword{sessions}~\<open>names\<close> specifies sessions that are \<^emph>\<open>imported\<close> into
+  the current name space of theories. This allows to refer to a theory \<open>A\<close>
+  from session \<open>B\<close> by the qualified name \<open>B.A\<close> --- although it is loaded again
+  into the current ML process, which is in contrast to a theory that is
+  already present in the \<^emph>\<open>parent\<close> session.
+
   \<^descr> \isakeyword{theories}~\<open>options names\<close> specifies a block of theories that
   are processed within an environment that is augmented by the given options,
   in addition to the global session options given before. Any number of blocks
@@ -121,7 +130,7 @@ text \<open>
   A theory name that is followed by \<open>(\<close>\isakeyword{global}\<open>)\<close> is treated
   literally in other session specifications or theory imports. In contrast,
   the default is to qualify theory names by the session name, in order to
-  ensure globally unique names in big session trees.
+  ensure globally unique names in big session graphs.
 
   \<^descr> \isakeyword{files}~\<open>files\<close> lists additional source files that are involved
   in the processing of this session. This should cover anything outside the

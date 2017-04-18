@@ -9,6 +9,13 @@ New in this Isabelle version
 
 *** General ***
 
+* Theory names are qualified by the session name that they belong to.
+This affects imports, but not the theory name space prefix: it remains
+the theory base name as before. In order to import theories from other
+sessions, the ROOT file format provides a new 'sessions' keyword. In
+contrast, a theory that is imported in the old-fashioned manner via an
+explicit file-system path belongs to the current session.
+
 * The main theory entry points for some non-HOL sessions have changed,
 to avoid confusion with the global name "Main" of the session HOL. This
 leads to the follow renamings:
