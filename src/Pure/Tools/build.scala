@@ -190,8 +190,7 @@ object Build
       }
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
-    try { isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph) }
-    catch { case ERROR(_) => /*error should be exposed in ML*/ }
+    isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph)
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
