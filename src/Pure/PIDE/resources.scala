@@ -73,8 +73,8 @@ class Resources(
       case Some(theory) => (true, theory)
       case None =>
         val theory =
-          if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0)
-              || true /* FIXME */) theory0
+          if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0))
+            theory0
           else Long_Name.qualify(qualifier, theory0)
         (false, theory)
     }

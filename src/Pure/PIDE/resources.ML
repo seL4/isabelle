@@ -119,7 +119,7 @@ fun theory_name qualifier theory0 =
   | NONE =>
       let val theory =
         if Long_Name.is_qualified theory0 orelse is_some (global_theory theory0)
-          orelse true (* FIXME *) then theory0
+        then theory0
         else Long_Name.qualify qualifier theory0
       in (false, theory) end);
 
