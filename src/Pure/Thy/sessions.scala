@@ -204,6 +204,39 @@ object Sessions
             if (check_keywords.nonEmpty)
               Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
 
+            val session_graph: Graph_Display.Graph =
+            {
+              def session_node(name: String): Graph_Display.Node =
+                Graph_Display.Node("[" + name + "]", "session." + name)
+
+              def node(name: Document.Node.Name): Graph_Display.Node =
+              {
+                val session = resources.theory_qualifier(name)
+                if (session == session_name)
+                  Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
+                else session_node(session)
+              }
+
+              val imports_subgraph =
+                sessions.imports_graph.restrict(
+                  sessions.imports_graph.all_preds(info.parent.toList ::: info.imports).toSet)
+
+              val graph0 =
+                (Graph_Display.empty_graph /: imports_subgraph.topological_order)(
+                  { case (g, session) =>
+                      val a = session_node(session)
+                      val bs = imports_subgraph.imm_preds(session).toList.map(session_node(_))
+                      ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
+
+              (graph0 /: thy_deps.deps)(
+                { case (g, dep) =>
+                    val a = node(dep.name)
+                    val bs =
+                      dep.header.imports.map({ case (name, _) => node(name) }).
+                        filterNot(_ == a)
+                    ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
+            }
+
             val base =
               Base(global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
@@ -211,7 +244,7 @@ object Sessions
                 keywords = thy_deps.keywords,
                 syntax = syntax,
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
-                session_graph = thy_deps.session_graph(info.parent getOrElse "", imports_base))
+                session_graph = session_graph)
 
             session_bases + (session_name -> base)
           }

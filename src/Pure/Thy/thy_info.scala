@@ -101,26 +101,6 @@ class Thy_Info(resources: Resources)
       ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
     }
 
-    def session_graph(parent_session: String, parent_base: Sessions.Base): Graph_Display.Graph =
-    {
-      val parent_session_node =
-        Graph_Display.Node("[" + parent_session + "]", "session." + parent_session)
-
-      def node(name: Document.Node.Name): Graph_Display.Node =
-        if (parent_base.loaded_theory(name)) parent_session_node
-        else Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
-
-      (Graph_Display.empty_graph /: deps) {
-        case (g, dep) =>
-          if (parent_base.loaded_theory(dep.name)) g
-          else {
-            val a = node(dep.name)
-            val bs = dep.header.imports.map({ case (name, _) => node(name) })
-            ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a))
-          }
-      }
-    }
-
     override def toString: String = deps.toString
   }
 
