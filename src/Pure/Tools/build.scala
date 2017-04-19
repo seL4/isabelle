@@ -203,7 +203,7 @@ object Build
               pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
-                pair(list(pair(Options.encode, list(string))),
+                pair(list(pair(Options.encode, list(pair(string, properties)))),
                 pair(list(pair(string, string)), pair(list(pair(string, string)),
                 list(pair(string, string))))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,

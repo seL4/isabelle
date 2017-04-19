@@ -153,13 +153,14 @@ datatype args = Args of
 fun decode_args yxml =
   let
     open XML.Decode;
+    val position = Position.of_properties o properties;
     val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
       (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir,
       (theories, (global_theories, (loaded_theories, known_theories)))))))))))))) =
       pair (list (pair string int)) (pair (list properties) (pair bool (pair bool (pair string
         (pair (list (pair string string)) (pair string (pair string (pair string (pair string
           (pair string
-            (pair (((list (pair Options.decode (list (string #> rpair Position.none))))))
+            (pair (((list (pair Options.decode (list (pair string position))))))
               (pair (list (pair string string))
                 (pair (list (pair string string)) (list (pair string string)))))))))))))))
       (YXML.parse_body yxml);

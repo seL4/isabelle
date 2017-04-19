@@ -164,8 +164,8 @@ object Sessions
             {
               val root_theories =
                 info.theories.flatMap({ case (_, thys) =>
-                  thys.map(thy =>
-                    (resources.import_name(session_name, info.dir.implode, thy), info.pos))
+                  thys.map({ case (thy, pos) =>
+                    (resources.import_name(session_name, info.dir.implode, thy), pos) })
                 })
               val thy_deps = resources.thy_info.dependencies(root_theories)
 
@@ -292,7 +292,7 @@ object Sessions
     description: String,
     options: Options,
     imports: List[String],
-    theories: List[(Options, List[String])],
+    theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
     files: List[Path],
     document_files: List[(Path, Path)],
@@ -491,7 +491,7 @@ object Sessions
       description: String,
       options: List[Options.Spec],
       imports: List[String],
-      theories: List[(List[Options.Spec], List[(String, Boolean)])],
+      theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
       files: List[String],
       document_files: List[(String, String)]) extends Entry
 
@@ -515,7 +515,7 @@ object Sessions
         ($$$("(") ~! $$$(GLOBAL) ~ $$$(")")) ^^ { case _ => true } | success(false)
 
       val theory_entry =
-        theory_name ~ global ^^ { case x ~ y => (x, y) }
+        position(theory_name) ~ global ^^ { case x ~ y => (x, y) }
 
       val theories =
         $$$(THEORIES) ~!
@@ -561,11 +561,12 @@ object Sessions
             entry.theories.map({ case (opts, thys) => (session_options ++ opts, thys.map(_._1)) })
 
           val global_theories =
-            for { (_, thys) <- entry.theories; (thy, global) <- thys if global }
+            for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
             yield {
               val thy_name = Path.explode(thy).expand.base.implode
               if (Long_Name.is_qualified(thy_name))
-                error("Bad qualified name for global theory " + quote(thy_name))
+                error("Bad qualified name for global theory " +
+                  quote(thy_name) + Position.here(pos))
               else thy_name
             }
 
