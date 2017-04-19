@@ -5,7 +5,7 @@
 section \<open>Inner Product Spaces and the Gradient Derivative\<close>
 
 theory Inner_Product
-imports "~~/src/HOL/Complex_Main"
+imports Complex_Main
 begin
 
 subsection \<open>Real inner product spaces\<close>

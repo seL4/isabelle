@@ -6,7 +6,7 @@
 section \<open>Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums\<close>
 
 theory Old_Datatype
-imports "../Main"
+imports Main
 keywords "old_datatype" :: thy_decl
 begin
 
