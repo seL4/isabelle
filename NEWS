@@ -56,6 +56,9 @@ tutorial on code generation.
 entry of the specified logic session in the editor, while its parent is
 used for formal checking.
 
+* Improved support for editing of a complex session hierarchy with
+session-qualified theory imports: "isabelle jedit -A".
+
 * The PIDE document model maintains file content independently of the
 status of jEdit editor buffers. Reloading jEdit buffers no longer causes
 changes of formal document content. Theory dependencies are always
