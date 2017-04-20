@@ -137,7 +137,7 @@ object Sessions
   {
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
-        case (session_bases, (session_name, info)) =>
+        case (session_bases, info) =>
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
@@ -151,13 +151,13 @@ object Sessions
                 Known.make(info.dir, parent_base :: info.imports.map(session_bases(_)), Nil))
 
             val resources = new Resources(imports_base,
-              default_qualifier = info.theory_qualifier(session_name))
+              default_qualifier = info.theory_qualifier(info.name))
 
             if (verbose || list_files) {
               val groups =
                 if (info.groups.isEmpty) ""
                 else info.groups.mkString(" (", " ", ")")
-              progress.echo("Session " + info.chapter + "/" + session_name + groups)
+              progress.echo("Session " + info.chapter + "/" + info.name + groups)
             }
 
             val thy_deps =
@@ -165,7 +165,7 @@ object Sessions
               val root_theories =
                 info.theories.flatMap({ case (_, thys) =>
                   thys.map({ case (thy, pos) =>
-                    (resources.import_name(session_name, info.dir.implode, thy), pos) })
+                    (resources.import_name(info.name, info.dir.implode, thy), pos) })
                 })
               val thy_deps = resources.thy_info.dependencies(root_theories)
 
@@ -181,7 +181,7 @@ object Sessions
             val loaded_files =
               if (inlined_files) {
                 val pure_files =
-                  if (is_pure(session_name)) {
+                  if (is_pure(info.name)) {
                     val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
                     val files =
                       roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
@@ -212,7 +212,7 @@ object Sessions
               def node(name: Document.Node.Name): Graph_Display.Node =
               {
                 val session = resources.theory_qualifier(name)
-                if (session == session_name)
+                if (session == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(session)
               }
@@ -246,12 +246,12 @@ object Sessions
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
                 session_graph = session_graph)
 
-            session_bases + (session_name -> base)
+            session_bases + (info.name -> base)
           }
           catch {
             case ERROR(msg) =>
               cat_error(msg, "The error(s) above occurred in session " +
-                quote(session_name) + Position.here(info.pos))
+                quote(info.name) + Position.here(info.pos))
           }
       })
 
@@ -283,6 +283,7 @@ object Sessions
   /* cumulative session info */
 
   sealed case class Info(
+    name: String,
     chapter: String,
     select: Boolean,
     pos: Position.T,
@@ -416,10 +417,11 @@ object Sessions
     def global_theories: Map[String, String] =
       (Thy_Header.bootstrap_global_theories.toMap /:
         (for {
-          (session_name, (info, _)) <- imports_graph.iterator
-          thy <- info.global_theories.iterator } yield (thy, session_name, info)))({
-            case (global, (thy, session_name, info)) =>
-              val qualifier = info.theory_qualifier(session_name)
+          (_, (info, _)) <- imports_graph.iterator
+          thy <- info.global_theories.iterator }
+         yield (thy, info)))({
+            case (global, (thy, info)) =>
+              val qualifier = info.theory_qualifier(info.name)
               global.get(thy) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
                   error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
@@ -440,11 +442,11 @@ object Sessions
     def build_descendants(names: List[String]): List[String] =
       build_graph.all_succs(names)
 
-    def build_topological_order: List[(String, Info)] =
-      build_graph.topological_order.map(name => (name, apply(name)))
+    def build_topological_order: List[Info] =
+      build_graph.topological_order.map(apply(_))
 
-    def imports_topological_order: List[(String, Info)] =
-      imports_graph.topological_order.map(name => (name, apply(name)))
+    def imports_topological_order: List[Info] =
+      imports_graph.topological_order.map(apply(_))
 
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
@@ -579,9 +581,9 @@ object Sessions
               entry.imports, entry.theories, entry.files, entry.document_files).toString)
 
           val info =
-            Info(entry_chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
-              entry.parent, entry.description, session_options, entry.imports, theories,
-              global_theories, files, document_files, meta_digest)
+            Info(name, entry_chapter, select, entry.pos, entry.groups,
+              dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
+              entry.imports, theories, global_theories, files, document_files, meta_digest)
 
           (name, info)
         }
