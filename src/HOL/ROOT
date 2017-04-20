@@ -55,7 +55,6 @@ session "HOL-Library" (main timing) in Library = HOL +
     (*legacy tools*)
     Old_Datatype
     Old_Recdef
-    Old_SMT
     Refute
   document_files "root.bib" "root.tex"
 
