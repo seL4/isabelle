@@ -310,6 +310,7 @@ object Sessions
   object Selection
   {
     val empty: Selection = Selection()
+    val all: Selection = Selection(all_sessions = true)
   }
 
   sealed case class Selection(
