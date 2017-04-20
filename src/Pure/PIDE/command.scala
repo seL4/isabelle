@@ -520,7 +520,7 @@ final class Command private(
     Text.Range(0,
       (length /: span.content.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
 
-  def source(range: Text.Range): String = source.substring(range.start, range.stop)
+  def source(range: Text.Range): String = range.substring(source)
 
 
   /* accumulated results */

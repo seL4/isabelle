@@ -71,6 +71,8 @@ object Text
     def try_join(that: Range): Option[Range] =
       if (this apart that) None
       else Some(Range(this.start min that.start, this.stop max that.stop))
+
+    def substring(text: String): String = text.substring(start, stop)
   }
 
 
