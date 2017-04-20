@@ -416,7 +416,7 @@ and the \concept{tail}, the rest of the list:
 @{prop"tl(x#xs) = xs"}
 \end{isabelle}
 Note that since HOL is a logic of total functions, @{term"hd []"} is defined,
-but we do now know what the result is. That is, @{term"hd []"} is not undefined
+but we do not know what the result is. That is, @{term"hd []"} is not undefined
 but underdefined.
 \fi
 %
