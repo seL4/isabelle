@@ -216,7 +216,6 @@ object Symbol
         { case (List(a), Nil) => File(a) }))
     }
 
-
     def apply(text: CharSequence): Text_Chunk =
       new Text_Chunk(Text.Range(0, text.length), Index(text))
   }
