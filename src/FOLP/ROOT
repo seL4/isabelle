@@ -10,7 +10,9 @@ session FOLP = Pure +
     Presence of unknown proof term means that matching does not behave as expected.
   *}
   options [document = false]
-  theories FOLP
+  theories
+    IFOLP (global)
+    FOLP (global)
 
 session "FOLP-ex" in ex = FOLP +
   description {*
