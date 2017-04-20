@@ -150,8 +150,7 @@ object Sessions
               parent_base.copy(known =
                 Known.make(info.dir, parent_base :: info.imports.map(session_bases(_)), Nil))
 
-            val resources = new Resources(imports_base,
-              default_qualifier = info.theory_qualifier(info.name))
+            val resources = new Resources(imports_base, default_qualifier = info.theory_qualifier)
 
             if (verbose || list_files) {
               val groups =
@@ -301,9 +300,9 @@ object Sessions
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
-    def theory_qualifier(default_qualifier: String): String =
+    def theory_qualifier: String =
       options.string("theory_qualifier") match {
-        case "" => default_qualifier
+        case "" => name
         case qualifier => qualifier
       }
   }
@@ -421,7 +420,7 @@ object Sessions
           thy <- info.global_theories.iterator }
          yield (thy, info)))({
             case (global, (thy, info)) =>
-              val qualifier = info.theory_qualifier(info.name)
+              val qualifier = info.theory_qualifier
               global.get(thy) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
                   error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
