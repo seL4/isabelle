@@ -81,6 +81,9 @@ object Sessions
       copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))),
         theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.platform_path(_))),
         files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.platform_path(_)))))
+
+    def get_file(file: JFile): Option[Document.Node.Name] =
+      files.getOrElse(file.getCanonicalFile, Nil).headOption
   }
 
   object Base
@@ -110,9 +113,6 @@ object Sessions
 
     def known_theory(name: String): Option[Document.Node.Name] =
       known.theories.get(name)
-
-    def known_file(file: JFile): Option[Document.Node.Name] =
-      known.files.getOrElse(file.getCanonicalFile, Nil).headOption
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known.theories.toList)
