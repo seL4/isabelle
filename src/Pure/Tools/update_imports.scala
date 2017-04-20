@@ -7,9 +7,47 @@ Update theory imports to use session qualifiers.
 package isabelle
 
 
+import java.io.{File => JFile}
+
+
 object Update_Imports
 {
   /* update imports */
+
+  sealed case class Update(range: Text.Range, old_text: String, new_text: String)
+  {
+    def edits: List[Text.Edit] =
+      Text.Edit.replace(range.start, old_text, new_text)
+
+    override def toString: String =
+      range.toString + ": " + old_text + " -> " + new_text
+  }
+
+  def update_name(keywords: Keyword.Keywords, pos: Position.T, update: String => String)
+    : Option[(JFile, Update)] =
+  {
+    val file =
+      pos match {
+        case Position.File(file) => Path.explode(file).file.getCanonicalFile
+        case _ => error("Missing file in position" + Position.here(pos))
+      }
+
+    val text = File.read(file)
+
+    val range =
+      pos match {
+        case Position.Range(symbol_range) => Symbol.Text_Chunk(text).decode(symbol_range)
+        case _ => error("Missing range in position" + Position.here(pos))
+      }
+
+    Token.read_name(keywords, range.substring(text)) match {
+      case Some(tok) =>
+        val s1 = tok.source
+        val s2 = Token.quote_name(keywords, update(tok.content))
+        if (s1 == s2) None else Some((file, Update(range, s1, s2)))
+      case None => error("Name token expected" + Position.here(pos))
+    }
+  }
 
   def update_imports(
     options: Options,
@@ -17,16 +55,84 @@ object Update_Imports
     selection: Sessions.Selection = Sessions.Selection.empty,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    verbose: Boolean = false)
+    verbose: Boolean = false): List[(JFile, Update)] =
   {
     val full_sessions = Sessions.load(options, dirs, select_dirs)
     val (selected, selected_sessions) = full_sessions.selection(selection)
+
     val deps =
       Sessions.deps(selected_sessions, progress = progress, verbose = verbose,
         global_theories = full_sessions.global_theories)
 
-    // FIXME
-    selected.foreach(progress.echo(_))
+    selected.flatMap(session_name =>
+    {
+      val info = full_sessions(session_name)
+      val session_base = deps(session_name)
+      val resources = new Resources(session_base, default_qualifier = info.theory_qualifier)
+      val local_theories = session_base.known.theories_local.iterator.map(_._2).toSet
+
+      def standard_import(qualifier: String, s: String): String =
+      {
+        val name = resources.import_name(qualifier, "", s)
+        if (!local_theories.contains(name)) s
+        if (resources.theory_qualifier(name) != qualifier) name.theory
+        else if (Thy_Header.is_base_name(s)) name.theory_base_name
+        else s
+      }
+
+      val updates_root =
+        for {
+          (_, pos) <- info.theories.flatMap(_._2)
+          upd <- update_name(Sessions.root_syntax.keywords, pos,
+            standard_import(info.theory_qualifier, _))
+        } yield upd
+
+      val updates_theories =
+        for {
+          (_, name) <- session_base.known.theories_local.toList
+          (_, pos) <-
+            // FIXME proper UTF8 positions for check_thy
+            resources.check_thy_reader(name,
+              Scan.char_reader(File.read(Path.explode(name.node))),
+              Token.Pos.file(name.node)).imports
+          upd <- update_name(session_base.syntax.keywords, pos,
+            standard_import(resources.theory_qualifier(name), _))
+        } yield upd
+
+      updates_root ::: updates_theories
+    })
+  }
+
+  def apply_updates(updates: List[(JFile, Update)])
+  {
+    val file_updates = (Multi_Map.empty[JFile, Update] /: updates)(_ + _)
+    val conflicts =
+      file_updates.iterator_list.flatMap({ case (file, upds) =>
+        Library.duplicates(upds.sortBy(_.range.start),
+          (x: Update, y: Update) => x.range overlaps y.range) match
+        {
+          case Nil => None
+          case bad => Some((file, bad))
+        }
+      })
+    if (conflicts.nonEmpty)
+      error(cat_lines(
+        conflicts.map({ case (file, bad) =>
+          "Conflicting updates for file " + file + bad.mkString("\n  ", "\n  ", "") })))
+
+    for ((file, upds) <- file_updates.iterator_list) {
+      val edits =
+        upds.sortBy(upd => - upd.range.start).flatMap(upd =>
+          Text.Edit.replace(upd.range.start, upd.old_text, upd.new_text))
+      val new_text =
+        (File.read(file) /: edits)({ case (text, edit) =>
+          edit.edit(text, 0) match {
+            case (None, text1) => text1
+            case (Some(_), _) => error("Failed to apply edit " + edit + " to file " + file)
+          }
+        })
+      File.write_backup(Path.explode(File.standard_path(file)), new_text)
+    }
   }
 
 
@@ -82,7 +188,10 @@ Usage: isabelle update_imports [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      update_imports(options, progress = progress, selection = selection,
-        dirs = dirs, select_dirs = select_dirs, verbose = verbose)
+      val updates =
+        update_imports(options, progress = progress, selection = selection,
+          dirs = dirs, select_dirs = select_dirs, verbose = verbose)
+
+      apply_updates(updates)
     })
 }

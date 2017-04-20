@@ -81,6 +81,9 @@ object Thy_Header extends Parse.Parser
   private val Thy_File_Name = new Regex(""".*?([^/\\:]+)\.thy""")
   private val Import_Name = new Regex(""".*?([^/\\:]+)""")
 
+  def is_base_name(s: String): Boolean =
+    s != "" && !s.exists("/\\:".contains(_))
+
   def import_name(s: String): String =
     s match { case Import_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
 
