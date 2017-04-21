@@ -71,9 +71,9 @@ object Update_Imports
       val resources = new Resources(session_base)
       val local_theories = session_base.known.theories_local.iterator.map(_._2).toSet
 
-      def standard_import(qualifier: String, s: String): String =
+      def standard_import(qualifier: String, dir: String, s: String): String =
       {
-        val name = resources.import_name(qualifier, "", s)
+        val name = resources.import_name(qualifier, dir, s)
         if (!local_theories.contains(name)) s
         if (resources.theory_qualifier(name) != qualifier) name.theory
         else if (Thy_Header.is_base_name(s)) name.theory_base_name
@@ -84,7 +84,7 @@ object Update_Imports
         for {
           (_, pos) <- info.theories.flatMap(_._2)
           upd <- update_name(Sessions.root_syntax.keywords, pos,
-            standard_import(info.theory_qualifier, _))
+            standard_import(info.theory_qualifier, info.dir.implode, _))
         } yield upd
 
       val updates_theories =
@@ -96,7 +96,7 @@ object Update_Imports
               Scan.char_reader(File.read(Path.explode(name.node))),
               Token.Pos.file(name.node)).imports
           upd <- update_name(session_base.syntax.keywords, pos,
-            standard_import(resources.theory_qualifier(name), _))
+            standard_import(resources.theory_qualifier(name), name.master_dir, _))
         } yield upd
 
       updates_root ::: updates_theories
