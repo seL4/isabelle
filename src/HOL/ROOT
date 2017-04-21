@@ -449,8 +449,7 @@ session "HOL-Proofs-Lambda" (timing) in "Proofs/Lambda" = "HOL-Proofs" +
   *}
   options [print_mode = "no_brackets",
     parallel_proofs = 0, quick_and_dirty = false]
-  theories [document = false]
-    "~~/src/HOL/Library/Code_Target_Int"
+  sessions "HOL-Library"
   theories
     Eta
     StrongNorm
