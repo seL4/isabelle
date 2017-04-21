@@ -93,8 +93,8 @@ class Resources(
         }
     }
 
-  def import_name(node_name: Document.Node.Name, s: String): Document.Node.Name =
-    import_name(theory_qualifier(node_name), node_name.master_dir, s)
+  def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
+    import_name(theory_qualifier(name), name.master_dir, s)
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
