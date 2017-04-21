@@ -582,85 +582,85 @@ session "HOL-ex" in ex = HOL +
     "HOL-Library"
     "HOL-Number_Theory"
   theories
-    Code_Binary_Nat_examples
-    Eval_Examples
-    Normalization_by_Evaluation
-    Hebrew
-    Chinese
-    Serbian
-    Cartouche_Examples
-    Computations
-    Commands
     Adhoc_Overloading_Examples
-    Iff_Oracle
-    Coercion_Examples
-    Peano_Axioms
-    Guess
-    Functions
-    Induction_Schema
-    LocaleTest2
-    Records
-    While_Combinator_Example
-    MonoidGroup
-    BinEx
-    Hex_Bin_Examples
     Antiquote
-    Multiquote
-    PER
-    NatSum
-    ThreeDivides
-    Cubic_Quartic
-    Pythagoras
-    Intuitionistic
-    CTL
+    Argo_Examples
     Arith_Examples
-    Tree23
-    Bubblesort
-    MergeSort
-    Lagrange
-    Groebner_Examples
-    Unification
-    Primrec
-    Tarski
-    Classical
-    Set_Theory
-    Termination
-    Coherent
-    PresburgerEx
-    Reflection_Examples
-    Sqrt
-    Sqrt_Script
-    Transfer_Debug
-    Transfer_Ex
-    Transfer_Int_Nat
-    Transitive_Closure_Table_Ex
-    HarmonicSeries
-    Refute_Examples
-    Execute_Choice
-    Gauge_Integration
-    Dedekind_Real
-    Quicksort
+    Ballot
+    BinEx
     Birthday_Paradox
-    List_to_Set_Comprehension_Examples
-    Seq
-    Simproc_Tests
+    Bubblesort
+    CTL
+    Cartouche_Examples
+    Chinese
+    Classical
+    Code_Binary_Nat_examples
+    Code_Timing
+    Coercion_Examples
+    Coherent
+    Commands
+    Computations
+    Cubic_Quartic
+    Dedekind_Real
+    Erdoes_Szekeres
+    Eval_Examples
     Executable_Relation
-    Set_Comprehension_Pointfree_Examples
-    Parallel_Example
+    Execute_Choice
+    Functions
+    Gauge_Integration
+    Groebner_Examples
+    Guess
+    HarmonicSeries
+    Hebrew
+    Hex_Bin_Examples
     IArray_Examples
-    Simps_Case_Conv_Examples
+    Iff_Oracle
+    Induction_Schema
+    Intuitionistic
+    Lagrange
+    List_to_Set_Comprehension_Examples
+    LocaleTest2
     ML
+    MergeSort
+    MonoidGroup
+    Multiquote
+    NatSum
+    Normalization_by_Evaluation
+    PER
+    Parallel_Example
+    Peano_Axioms
+    Perm_Fragments
+    PresburgerEx
+    Primrec
+    Pythagoras
+    Quicksort
+    Records
+    Reflection_Examples
+    Refute_Examples
     Rewrite_Examples
     SAT_Examples
     SOS
     SOS_Cert
-    Ballot
-    Erdoes_Szekeres
-    Sum_of_Powers
+    Seq
+    Serbian
+    Set_Comprehension_Pointfree_Examples
+    Set_Theory
+    Simproc_Tests
+    Simps_Case_Conv_Examples
+    Sqrt
+    Sqrt_Script
     Sudoku
-    Code_Timing
-    Perm_Fragments
-    Argo_Examples
+    Sum_of_Powers
+    Tarski
+    Termination
+    ThreeDivides
+    Transfer_Debug
+    Transfer_Ex
+    Transfer_Int_Nat
+    Transitive_Closure_Table_Ex
+    Tree23
+    Unification
+    While_Combinator_Example
     Word_Type
     veriT_Preprocessing
   theories [skip_proofs = false]
