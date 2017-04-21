@@ -150,7 +150,7 @@ object Sessions
               parent_base.copy(known =
                 Known.make(info.dir, parent_base :: info.imports.map(session_bases(_)), Nil))
 
-            val resources = new Resources(imports_base, default_qualifier = info.theory_qualifier)
+            val resources = new Resources(imports_base)
 
             if (verbose || list_files) {
               val groups =

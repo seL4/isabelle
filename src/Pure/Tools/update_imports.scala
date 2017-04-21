@@ -68,7 +68,7 @@ object Update_Imports
     {
       val info = full_sessions(session_name)
       val session_base = deps(session_name)
-      val resources = new Resources(session_base, default_qualifier = info.theory_qualifier)
+      val resources = new Resources(session_base)
       val local_theories = session_base.known.theories_local.iterator.map(_._2).toSet
 
       def standard_import(qualifier: String, s: String): String =

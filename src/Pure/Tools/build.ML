@@ -182,8 +182,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
 
     val _ =
       Resources.init_session_base
-        {default_qualifier = name,
-         global_theories = global_theories,
+        {global_theories = global_theories,
          loaded_theories = loaded_theories,
          known_theories = known_theories};
 

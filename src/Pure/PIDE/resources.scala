@@ -15,7 +15,6 @@ import java.io.{File => JFile}
 
 class Resources(
   val session_base: Sessions.Base,
-  val default_qualifier: String = Sessions.DRAFT,
   val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)

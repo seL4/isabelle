@@ -6,13 +6,12 @@ Resources for theories and auxiliary files.
 
 signature RESOURCES =
 sig
+  val default_qualifier: string
   val init_session_base:
-    {default_qualifier: string,
-     global_theories: (string * string) list,
+    {global_theories: (string * string) list,
      loaded_theories: (string * string) list,
      known_theories: (string * string) list} -> unit
   val finish_session_base: unit -> unit
-  val default_qualifier: unit -> string
   val global_theory: string -> string option
   val loaded_theory: string -> string option
   val known_theory: string -> Path.T option
@@ -37,36 +36,32 @@ struct
 
 (* session base *)
 
+val default_qualifier = "Draft";
+
 val empty_session_base =
-  {default_qualifier = "Draft",
-   global_theories = Symtab.empty: string Symtab.table,
+  {global_theories = Symtab.empty: string Symtab.table,
    loaded_theories = Symtab.empty: string Symtab.table,
    known_theories = Symtab.empty: Path.T Symtab.table};
 
 val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
-fun init_session_base {default_qualifier, global_theories, loaded_theories, known_theories} =
+fun init_session_base {global_theories, loaded_theories, known_theories} =
   Synchronized.change global_session_base
     (fn _ =>
-      {default_qualifier =
-        if default_qualifier <> "" then default_qualifier
-        else #default_qualifier empty_session_base,
-       global_theories = Symtab.make global_theories,
+      {global_theories = Symtab.make global_theories,
        loaded_theories = Symtab.make loaded_theories,
        known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
 
 fun finish_session_base () =
   Synchronized.change global_session_base
     (fn {global_theories, loaded_theories, ...} =>
-      {default_qualifier = #default_qualifier empty_session_base,
-       global_theories = global_theories,
+      {global_theories = global_theories,
        loaded_theories = loaded_theories,
        known_theories = #known_theories empty_session_base});
 
 fun get_session_base f = f (Synchronized.value global_session_base);
 
-fun default_qualifier () = get_session_base #default_qualifier;
 fun global_theory a = Symtab.lookup (get_session_base #global_theories) a;
 fun loaded_theory a = Symtab.lookup (get_session_base #loaded_theories) a;
 fun known_theory a = Symtab.lookup (get_session_base #known_theories) a;

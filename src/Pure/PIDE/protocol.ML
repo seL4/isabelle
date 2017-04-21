@@ -19,13 +19,12 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Prover.session_base"
-    (fn [default_qualifier, global_theories_yxml, loaded_theories_yxml, known_theories_yxml] =>
+    (fn [global_theories_yxml, loaded_theories_yxml, known_theories_yxml] =>
       let
         val decode_table = YXML.parse_body #> let open XML.Decode in list (pair string string) end;
       in
         Resources.init_session_base
-          {default_qualifier = default_qualifier,
-           global_theories = decode_table global_theories_yxml,
+          {global_theories = decode_table global_theories_yxml,
            loaded_theories = decode_table loaded_theories_yxml,
            known_theories = decode_table known_theories_yxml}
       end);
