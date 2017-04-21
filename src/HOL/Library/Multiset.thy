@@ -1449,7 +1449,7 @@ theorem multiset_induct [case_names empty add, induct type: multiset]:
   assumes empty: "P {#}"
   assumes add: "\<And>x M. P M \<Longrightarrow> P (add_mset x M)"
   shows "P M"
-proof (induct n \<equiv> "size M" arbitrary: M)
+proof (induct "size M" arbitrary: M)
   case 0 thus "P M" by (simp add: empty)
 next
   case (Suc k)
@@ -1458,6 +1458,48 @@ next
     using size_eq_Suc_imp_eq_union by fast
   with Suc add show "P M" by simp
 qed
+
+lemma multiset_induct_min[case_names empty add]:
+  fixes M :: "'a::linorder multiset"
+  assumes
+    empty: "P {#}" and
+    add: "\<And>x M. P M \<Longrightarrow> (\<forall>y \<in># M. y \<ge> x) \<Longrightarrow> P (add_mset x M)"
+  shows "P M"
+proof (induct "size M" arbitrary: M)
+  case (Suc k)
+  note ih = this(1) and Sk_eq_sz_M = this(2)
+
+  let ?y = "Min (set_mset M)"
+  let ?N = "M - {#?y#}"
+
+  have M: "M = add_mset ?y ?N"
+    by (metis Min_in Sk_eq_sz_M finite_set_mset insert_DiffM lessI not_less_zero
+      set_mset_eq_empty_iff size_empty)
+  show ?case
+    by (subst M, rule add, rule ih, metis M Sk_eq_sz_M nat.inject size_add_mset,
+      meson Min_le finite_set_mset in_diffD)
+qed (simp add: empty)
+
+lemma multiset_induct_max[case_names empty add]:
+  fixes M :: "'a::linorder multiset"
+  assumes
+    empty: "P {#}" and
+    add: "\<And>x M. P M \<Longrightarrow> (\<forall>y \<in># M. y \<le> x) \<Longrightarrow> P (add_mset x M)"
+  shows "P M"
+proof (induct "size M" arbitrary: M)
+  case (Suc k)
+  note ih = this(1) and Sk_eq_sz_M = this(2)
+
+  let ?y = "Max (set_mset M)"
+  let ?N = "M - {#?y#}"
+
+  have M: "M = add_mset ?y ?N"
+    by (metis Max_in Sk_eq_sz_M finite_set_mset insert_DiffM lessI not_less_zero
+      set_mset_eq_empty_iff size_empty)
+  show ?case
+    by (subst M, rule add, rule ih, metis M Sk_eq_sz_M nat.inject size_add_mset,
+      meson Max_ge finite_set_mset in_diffD)
+qed (simp add: empty)
 
 lemma multi_nonempty_split: "M \<noteq> {#} \<Longrightarrow> \<exists>A a. M = add_mset a A"
 by (induct M) auto
