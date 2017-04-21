@@ -9,7 +9,7 @@ theory Multiset_Order
 imports Multiset
 begin
 
-subsection \<open>Alternative characterizations\<close>
+subsection \<open>Alternative Characterizations\<close>
 
 context preorder
 begin
@@ -228,6 +228,95 @@ lemma
 
 end
 
+lemma all_lt_Max_imp_lt_mset: "N \<noteq> {#} \<Longrightarrow> (\<forall>a \<in># M. a < Max (set_mset N)) \<Longrightarrow> M < N"
+  by (meson Max_in[OF finite_set_mset] ex_gt_imp_less_multiset set_mset_eq_empty_iff)
+
+lemma lt_imp_ex_count_lt: "M < N \<Longrightarrow> \<exists>y. count M y < count N y"
+  by (meson less_eq_multiset\<^sub>H\<^sub>O less_le_not_le)
+
+lemma subset_imp_less_mset: "A \<subset># B \<Longrightarrow> A < B"
+  by (simp add: order.not_eq_order_implies_strict subset_eq_imp_le_multiset)
+
+lemma image_mset_strict_mono:
+  assumes
+    mono_f: "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset N. x < y \<longrightarrow> f x < f y" and
+    less: "M < N"
+  shows "image_mset f M < image_mset f N"
+proof -
+  obtain Y X where
+    y_nemp: "Y \<noteq> {#}" and y_sub_N: "Y \<subseteq># N" and M_eq: "M = N - Y + X" and
+    ex_y: "\<forall>x. x \<in># X \<longrightarrow> (\<exists>y. y \<in># Y \<and> x < y)"
+    using less[unfolded less_multiset\<^sub>D\<^sub>M] by blast
+
+  have x_sub_M: "X \<subseteq># M"
+    using M_eq by simp
+
+  let ?fY = "image_mset f Y"
+  let ?fX = "image_mset f X"
+
+  show ?thesis
+    unfolding less_multiset\<^sub>D\<^sub>M
+  proof (intro exI conjI)
+    show "image_mset f M = image_mset f N - ?fY + ?fX"
+      using M_eq[THEN arg_cong, of "image_mset f"] y_sub_N
+      by (metis image_mset_Diff image_mset_union)
+  next
+    obtain y where y: "\<forall>x. x \<in># X \<longrightarrow> y x \<in># Y \<and> x < y x"
+      using ex_y by moura
+
+    show "\<forall>fx. fx \<in># ?fX \<longrightarrow> (\<exists>fy. fy \<in># ?fY \<and> fx < fy)"
+    proof (intro allI impI)
+      fix fx
+      assume "fx \<in># ?fX"
+      then obtain x where fx: "fx = f x" and x_in: "x \<in># X"
+        by auto
+      hence y_in: "y x \<in># Y" and y_gt: "x < y x"
+        using y[rule_format, OF x_in] by blast+
+      hence "f (y x) \<in># ?fY \<and> f x < f (y x)"
+        using mono_f y_sub_N x_sub_M x_in
+        by (metis image_eqI in_image_mset mset_subset_eqD)
+      thus "\<exists>fy. fy \<in># ?fY \<and> fx < fy"
+        unfolding fx by auto
+    qed
+  qed (auto simp: y_nemp y_sub_N image_mset_subseteq_mono)
+qed
+
+lemma image_mset_mono:
+  assumes
+    mono_f: "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset N. x < y \<longrightarrow> f x < f y" and
+    less: "M \<le> N"
+  shows "image_mset f M \<le> image_mset f N"
+  by (metis eq_iff image_mset_strict_mono less less_imp_le mono_f order.not_eq_order_implies_strict)
+
+lemma mset_lt_single_right_iff[simp]: "M < {#y#} \<longleftrightarrow> (\<forall>x \<in># M. x < y)" for y :: "'a::linorder"
+proof (rule iffI)
+  assume M_lt_y: "M < {#y#}"
+  show "\<forall>x \<in># M. x < y"
+  proof
+    fix x
+    assume x_in: "x \<in># M"
+    hence M: "M - {#x#} + {#x#} = M"
+      by (meson insert_DiffM2)
+    hence "\<not> {#x#} < {#y#} \<Longrightarrow> x < y"
+      using x_in M_lt_y
+      by (metis diff_single_eq_union le_multiset_empty_left less_add_same_cancel2 mset_le_trans)
+    also have "\<not> {#y#} < M"
+      using M_lt_y mset_le_not_sym by blast
+    ultimately show "x < y"
+      by (metis (no_types) Max_ge all_lt_Max_imp_lt_mset empty_iff finite_set_mset insertE
+        less_le_trans linorder_less_linear mset_le_not_sym set_mset_add_mset_insert
+        set_mset_eq_empty_iff x_in)
+  qed
+next
+  assume y_max: "\<forall>x \<in># M. x < y"
+  show "M < {#y#}"
+    by (rule all_lt_Max_imp_lt_mset) (auto intro!: y_max)
+qed
+
+lemma mset_le_single_right_iff[simp]:
+  "M \<le> {#y#} \<longleftrightarrow> M = {#y#} \<or> (\<forall>x \<in># M. x < y)" for y :: "'a::linorder"
+  by (meson less_eq_multiset_def mset_lt_single_right_iff)
+
 
 subsection \<open>Simprocs\<close>
 
@@ -279,7 +368,6 @@ lemma mset_lt_single_iff[iff]: "{#x#} < {#y#} \<longleftrightarrow> x < y"
 lemma mset_le_single_iff[iff]: "{#x#} \<le> {#y#} \<longleftrightarrow> x \<le> y" for x y :: "'a::order"
   unfolding less_eq_multiset\<^sub>H\<^sub>O by force
 
-
 instance multiset :: (linorder) linordered_cancel_ab_semigroup_add
   by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
 
@@ -319,5 +407,19 @@ qed
 
 instance multiset :: (preorder) ordered_cancel_comm_monoid_add
   by standard
+
+instantiation multiset :: (linorder) distrib_lattice
+begin
+
+definition inf_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
+  "inf_multiset A B = (if A < B then A else B)"
+
+definition sup_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
+  "sup_multiset A B = (if B > A then B else A)"
+
+instance
+  by intro_classes (auto simp: inf_multiset_def sup_multiset_def)
+
+end
 
 end
