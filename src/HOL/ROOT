@@ -577,23 +577,19 @@ session "HOL-ex" in ex = HOL +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
+  options [document = false]
   sessions
     "HOL-Library"
     "HOL-Number_Theory"
-  theories [document = false]
-    "~~/src/HOL/Library/State_Monad"
+  theories
     Code_Binary_Nat_examples
-    "~~/src/HOL/Library/FuncSet"
     Eval_Examples
     Normalization_by_Evaluation
     Hebrew
     Chinese
     Serbian
-    "~~/src/HOL/Library/Refute"
-    "~~/src/HOL/Library/Transitive_Closure_Table"
     Cartouche_Examples
     Computations
-  theories
     Commands
     Adhoc_Overloading_Examples
     Iff_Oracle
@@ -669,7 +665,6 @@ session "HOL-ex" in ex = HOL +
     veriT_Preprocessing
   theories [skip_proofs = false]
     Meson_Test
-  document_files "root.bib" "root.tex"
 
 session "HOL-Isar_Examples" in Isar_Examples = HOL +
   description {*
