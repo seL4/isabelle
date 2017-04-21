@@ -98,6 +98,7 @@ object Sessions
   }
 
   sealed case class Base(
+    imports: Option[Base] = None,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, String] = Map.empty,
     known: Known = Known.empty,
@@ -106,6 +107,8 @@ object Sessions
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
   {
+    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
+
     def platform_path: Base = copy(known = known.platform_path)
 
     def loaded_theory(name: Document.Node.Name): Boolean =
@@ -237,7 +240,8 @@ object Sessions
             }
 
             val base =
-              Base(global_theories = global_theories,
+              Base(imports = Some(imports_base),
+                global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
                 keywords = thy_deps.keywords,

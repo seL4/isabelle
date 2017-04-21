@@ -68,22 +68,24 @@ object Update_Imports
     {
       val info = full_sessions(session_name)
       val session_base = deps(session_name)
-      val resources = new Resources(session_base)
+      val session_resources = new Resources(session_base)
+      val imports_resources = new Resources(session_base.get_imports)
+
       val local_theories =
         (for {
           (_, name) <- session_base.known.theories_local.iterator
-          if resources.theory_qualifier(name) == info.theory_qualifier
+          if session_resources.theory_qualifier(name) == info.theory_qualifier
         } yield name).toSet
 
       def standard_import(qualifier: String, dir: String, s: String): String =
       {
-        val name = resources.import_name(qualifier, dir, s)
+        val name = imports_resources.import_name(qualifier, dir, s)
         val s1 =
           if (!local_theories.contains(name)) s
-          else if (resources.theory_qualifier(name) != qualifier) name.theory
+          else if (session_resources.theory_qualifier(name) != qualifier) name.theory
           else if (Thy_Header.is_base_name(s)) name.theory_base_name
           else s
-        val name1 = resources.import_name(qualifier, dir, s1)
+        val name1 = imports_resources.import_name(qualifier, dir, s1)
         if (name == name1) s1 else s
       }
 
@@ -97,9 +99,9 @@ object Update_Imports
       val updates_theories =
         for {
           (_, name) <- session_base.known.theories_local.toList
-          (_, pos) <- resources.check_thy(name, Token.Pos.file(name.node)).imports
+          (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
           upd <- update_name(session_base.syntax.keywords, pos,
-            standard_import(resources.theory_qualifier(name), name.master_dir, _))
+            standard_import(session_resources.theory_qualifier(name), name.master_dir, _))
         } yield upd
 
       updates_root ::: updates_theories
