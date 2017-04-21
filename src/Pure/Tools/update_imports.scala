@@ -80,13 +80,17 @@ object Update_Imports
       def standard_import(qualifier: String, dir: String, s: String): String =
       {
         val name = imports_resources.import_name(qualifier, dir, s)
+        val file = Path.explode(name.node).file
         val s1 =
-          if (!local_theories.contains(name)) s
-          else if (session_resources.theory_qualifier(name) != qualifier) name.theory
-          else if (Thy_Header.is_base_name(s)) name.theory_base_name
-          else s
-        val name1 = imports_resources.import_name(qualifier, dir, s1)
-        if (name == name1) s1 else s
+          imports_resources.session_base.known.get_file(file) match {
+            case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
+              name1.theory
+            case Some(name1) if Thy_Header.is_base_name(s) =>
+              name1.theory_base_name
+            case _ => s
+          }
+        val name2 = imports_resources.import_name(qualifier, dir, s1)
+        if (name.node == name2.node) s1 else s
       }
 
       val updates_root =
