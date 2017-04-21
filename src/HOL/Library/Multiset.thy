@@ -3783,11 +3783,10 @@ lemmas rel_mset_induct[case_names empty add, induct pred: rel_mset] =
 
 subsection \<open>Size setup\<close>
 
-lemma multiset_size_o_map:
-  "size_multiset g \<circ> image_mset f = size_multiset (g \<circ> f)"
-apply (rule ext)
-subgoal for x by (induct x) auto
-done
+lemma multiset_size_o_map: "size_multiset g \<circ> image_mset f = size_multiset (g \<circ> f)"
+  apply (rule ext)
+  subgoal for x by (induct x) auto
+  done
 
 setup \<open>
   BNF_LFP_Size.register_size_global @{type_name multiset} @{const_name size_multiset}
@@ -3796,6 +3795,44 @@ setup \<open>
       size_union}
     @{thms multiset_size_o_map}
 \<close>
+
+subsection \<open>Lemmas about Size\<close>
+
+lemma size_mset_SucE: "size A = Suc n \<Longrightarrow> (\<And>a B. A = {#a#} + B \<Longrightarrow> size B = n \<Longrightarrow> P) \<Longrightarrow> P"
+  by (cases A) (auto simp add: ac_simps)
+
+lemma size_Suc_Diff1: "x \<in># M \<Longrightarrow> Suc (size (M - {#x#})) = size M"
+  using arg_cong[OF insert_DiffM, of _ _ size] by simp
+
+lemma size_Diff_singleton: "x \<in># M \<Longrightarrow> size (M - {#x#}) = size M - 1"
+  by (simp add: size_Suc_Diff1 [symmetric])
+
+lemma size_Diff_singleton_if: "size (A - {#x#}) = (if x \<in># A then size A - 1 else size A)"
+  by (simp add: diff_single_trivial size_Diff_singleton)
+
+lemma size_Un_Int: "size A + size B = size (A \<union># B) + size (A \<inter># B)"
+  by (metis inter_subset_eq_union size_union subset_mset.diff_add union_diff_inter_eq_sup)
+
+lemma size_Un_disjoint: "A \<inter># B = {#} \<Longrightarrow> size (A \<union># B) = size A + size B"
+  using size_Un_Int[of A B] by simp
+
+lemma size_Diff_subset_Int: "size (M - M') = size M - size (M \<inter># M')"
+  by (metis diff_intersect_left_idem size_Diff_submset subset_mset.inf_le1)
+
+lemma diff_size_le_size_Diff: "size (M :: _ multiset) - size M' \<le> size (M - M')"
+  by (simp add: diff_le_mono2 size_Diff_subset_Int size_mset_mono)
+
+lemma size_Diff1_less: "x\<in># M \<Longrightarrow> size (M - {#x#}) < size M"
+  by (rule Suc_less_SucD) (simp add: size_Suc_Diff1)
+
+lemma size_Diff2_less: "x\<in># M \<Longrightarrow> y\<in># M \<Longrightarrow> size (M - {#x#} - {#y#}) < size M"
+  by (metis less_imp_diff_less size_Diff1_less size_Diff_subset_Int)
+
+lemma size_Diff1_le: "size (M - {#x#}) \<le> size M"
+  by (cases "x \<in># M") (simp_all add: size_Diff1_less less_imp_le diff_single_trivial)
+
+lemma size_psubset: "M \<subseteq># M' \<Longrightarrow> size M < size M' \<Longrightarrow> M \<subset># M'"
+  using less_irrefl subset_mset_def by blast
 
 hide_const (open) wcount
 
