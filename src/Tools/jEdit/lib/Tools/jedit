@@ -97,7 +97,6 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
-  echo "    -A           explore theory imports of all known sessions"
   echo "    -D NAME=X    set JVM system property"
   echo "    -J OPTION    add JVM runtime option (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
   echo "    -R           open ROOT entry of logic session and use its parent"
@@ -134,7 +133,6 @@ function failed()
 
 # options
 
-JEDIT_ALL_KNOWN=""
 BUILD_ONLY=false
 BUILD_JARS="jars"
 ML_PROCESS_POLICY=""
@@ -147,12 +145,9 @@ JEDIT_BUILD_MODE="normal"
 function getoptions()
 {
   OPTIND=1
-  while getopts "AD:J:Rbd:fj:l:m:np:s" OPT
+  while getopts "D:J:Rbd:fj:l:m:np:s" OPT
   do
     case "$OPT" in
-      A)
-        JEDIT_ALL_KNOWN="true"
-        ;;
       D)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="-D$OPTARG"
         ;;
@@ -376,7 +371,7 @@ popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]
 then
-  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ROOT JEDIT_ALL_KNOWN JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ROOT JEDIT_PRINT_MODE JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"

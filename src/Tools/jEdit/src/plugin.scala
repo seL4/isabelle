@@ -74,9 +74,8 @@ class Plugin extends EBPlugin
     val session_name = JEdit_Sessions.session_name(options)
     val session_base =
       try {
-        Sessions.session_base(options, session_name,
-          dirs = JEdit_Sessions.session_dirs(),
-          all_known = Isabelle_System.getenv("JEDIT_ALL_KNOWN") == "true")
+        Sessions.session_base(
+          options, session_name, dirs = JEdit_Sessions.session_dirs(), all_known = true)
       }
       catch { case ERROR(_) => Sessions.Base.pure(options) }
 
