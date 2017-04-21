@@ -164,7 +164,7 @@ object Sessions
               val root_theories =
                 info.theories.flatMap({ case (_, thys) =>
                   thys.map({ case (thy, pos) =>
-                    (resources.import_name(info.name, info.dir.implode, thy), pos) })
+                    (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos) })
                 })
               val thy_deps = resources.thy_info.dependencies(root_theories)
 
@@ -210,10 +210,10 @@ object Sessions
 
               def node(name: Document.Node.Name): Graph_Display.Node =
               {
-                val session = resources.theory_qualifier(name)
-                if (session == info.name)
+                val qualifier = resources.theory_qualifier(name)
+                if (qualifier == info.theory_qualifier)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
-                else session_node(session)
+                else session_node(qualifier)
               }
 
               val imports_subgraph =
