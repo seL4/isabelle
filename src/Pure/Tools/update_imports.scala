@@ -97,11 +97,7 @@ object Update_Imports
       val updates_theories =
         for {
           (_, name) <- session_base.known.theories_local.toList
-          (_, pos) <-
-            // FIXME proper UTF8 positions for check_thy
-            resources.check_thy_reader(name,
-              Scan.char_reader(File.read(Path.explode(name.node))),
-              Token.Pos.file(name.node)).imports
+          (_, pos) <- resources.check_thy(name, Token.Pos.file(name.node)).imports
           upd <- update_name(session_base.syntax.keywords, pos,
             standard_import(resources.theory_qualifier(name), name.master_dir, _))
         } yield upd

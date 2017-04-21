@@ -156,7 +156,7 @@ object Thy_Header extends Parse.Parser
 
   /* read -- lazy scanning */
 
-  def read(reader: Reader[Char], start: Token.Pos, strict: Boolean = true): Thy_Header =
+  private def read_tokens(reader: Reader[Char], strict: Boolean): (List[Token], List[Token]) =
   {
     val token = Token.Parsers.token(bootstrap_keywords)
     def make_tokens(in: Reader[Char]): Stream[Token] =
@@ -165,14 +165,30 @@ object Thy_Header extends Parse.Parser
         case _ => Stream.empty
       }
 
-    val tokens =
-      if (strict) make_tokens(reader)
-      else make_tokens(reader).dropWhile(tok => !tok.is_command(Thy_Header.THEORY))
+    val all_tokens = make_tokens(reader)
+    val drop_tokens =
+      if (strict) Nil
+      else all_tokens.takeWhile(tok => !tok.is_command(Thy_Header.THEORY)).toList
 
+    val tokens = all_tokens.drop(drop_tokens.length)
     val tokens1 = tokens.takeWhile(tok => !tok.is_begin).toList
     val tokens2 = tokens.dropWhile(tok => !tok.is_begin).headOption.toList
 
-    parse(commit(header), Token.reader(tokens1 ::: tokens2, start)) match {
+    (drop_tokens, tokens1 ::: tokens2)
+  }
+
+  def read(reader: Reader[Char], start: Token.Pos, strict: Boolean = true): Thy_Header =
+  {
+    val (_, tokens0) = read_tokens(reader, true)
+    val text =
+      if (reader.isInstanceOf[Scan.Byte_Reader])
+        UTF8.decode_permissive(Token.implode(tokens0))
+      else Token.implode(tokens0)
+
+    val (drop_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
+    val pos = (start /: drop_tokens)(_.advance(_))
+
+    parse(commit(header), Token.reader(tokens, pos)) match {
       case Success(result, _) => result
       case bad => error(bad.toString)
     }
