@@ -138,7 +138,7 @@ object Update_Imports
             case (Some(_), _) => error("Failed to apply edit " + edit + " to file " + file)
           }
         })
-      File.write_backup(Path.explode(File.standard_path(file)), new_text)
+      File.write_backup2(Path.explode(File.standard_path(file)), new_text)
     }
   }
 
