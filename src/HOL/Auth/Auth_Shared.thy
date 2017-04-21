@@ -6,22 +6,22 @@ section \<open>Conventional protocols: rely on conventional Message, Event and P
 
 theory Auth_Shared
 imports
-  "NS_Shared"
-  "Kerberos_BAN"
-  "Kerberos_BAN_Gets"
-  "KerberosIV"
-  "KerberosIV_Gets"
-  "KerberosV"
-  "OtwayRees"
-  "OtwayRees_AN"
-  "OtwayRees_Bad"
-  "OtwayReesBella"
-  "WooLam"
-  "Recur"
-  "Yahalom"
-  "Yahalom2"
-  "Yahalom_Bad"
-  "ZhouGollmann"
+  NS_Shared
+  Kerberos_BAN
+  Kerberos_BAN_Gets
+  KerberosIV
+  KerberosIV_Gets
+  KerberosV
+  OtwayRees
+  OtwayRees_AN
+  OtwayRees_Bad
+  OtwayReesBella
+  WooLam
+  Recur
+  Yahalom
+  Yahalom2
+  Yahalom_Bad
+  ZhouGollmann
 begin
 
 end

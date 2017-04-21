@@ -152,6 +152,19 @@ object Token
   val newline: Token = explode(Keyword.Keywords.empty, "\n").head
 
 
+  /* names */
+
+  def read_name(keywords: Keyword.Keywords, inp: CharSequence): Option[Token] =
+    explode(keywords, inp) match {
+      case List(tok) if tok.is_name => Some(tok)
+      case _ => None
+    }
+
+  def quote_name(keywords: Keyword.Keywords, name: String): String =
+    if (read_name(keywords, name).isDefined) name
+    else quote(name.replace("\"", "\\\""))
+
+
   /* implode */
 
   def implode(toks: List[Token]): String =

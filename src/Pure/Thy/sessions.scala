@@ -81,6 +81,9 @@ object Sessions
       copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))),
         theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.platform_path(_))),
         files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.platform_path(_)))))
+
+    def get_file(file: JFile): Option[Document.Node.Name] =
+      files.getOrElse(file.getCanonicalFile, Nil).headOption
   }
 
   object Base
@@ -95,6 +98,7 @@ object Sessions
   }
 
   sealed case class Base(
+    imports: Option[Base] = None,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, String] = Map.empty,
     known: Known = Known.empty,
@@ -103,6 +107,8 @@ object Sessions
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
   {
+    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
+
     def platform_path: Base = copy(known = known.platform_path)
 
     def loaded_theory(name: Document.Node.Name): Boolean =
@@ -110,9 +116,6 @@ object Sessions
 
     def known_theory(name: String): Option[Document.Node.Name] =
       known.theories.get(name)
-
-    def known_file(file: JFile): Option[Document.Node.Name] =
-      known.files.getOrElse(file.getCanonicalFile, Nil).headOption
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known.theories.toList)
@@ -137,7 +140,7 @@ object Sessions
   {
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
-        case (session_bases, (session_name, info)) =>
+        case (session_bases, info) =>
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
@@ -150,22 +153,21 @@ object Sessions
               parent_base.copy(known =
                 Known.make(info.dir, parent_base :: info.imports.map(session_bases(_)), Nil))
 
-            val resources = new Resources(imports_base,
-              default_qualifier = info.theory_qualifier(session_name))
+            val resources = new Resources(imports_base)
 
             if (verbose || list_files) {
               val groups =
                 if (info.groups.isEmpty) ""
                 else info.groups.mkString(" (", " ", ")")
-              progress.echo("Session " + info.chapter + "/" + session_name + groups)
+              progress.echo("Session " + info.chapter + "/" + info.name + groups)
             }
 
             val thy_deps =
             {
               val root_theories =
                 info.theories.flatMap({ case (_, thys) =>
-                  thys.map(thy =>
-                    (resources.import_name(session_name, info.dir.implode, thy), info.pos))
+                  thys.map({ case (thy, pos) =>
+                    (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos) })
                 })
               val thy_deps = resources.thy_info.dependencies(root_theories)
 
@@ -181,7 +183,7 @@ object Sessions
             val loaded_files =
               if (inlined_files) {
                 val pure_files =
-                  if (is_pure(session_name)) {
+                  if (is_pure(info.name)) {
                     val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
                     val files =
                       roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
@@ -211,10 +213,10 @@ object Sessions
 
               def node(name: Document.Node.Name): Graph_Display.Node =
               {
-                val session = resources.theory_qualifier(name)
-                if (session == session_name)
+                val qualifier = resources.theory_qualifier(name)
+                if (qualifier == info.theory_qualifier)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
-                else session_node(session)
+                else session_node(qualifier)
               }
 
               val imports_subgraph =
@@ -238,7 +240,8 @@ object Sessions
             }
 
             val base =
-              Base(global_theories = global_theories,
+              Base(imports = Some(imports_base),
+                global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
                 keywords = thy_deps.keywords,
@@ -246,12 +249,12 @@ object Sessions
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
                 session_graph = session_graph)
 
-            session_bases + (session_name -> base)
+            session_bases + (info.name -> base)
           }
           catch {
             case ERROR(msg) =>
               cat_error(msg, "The error(s) above occurred in session " +
-                quote(session_name) + Position.here(info.pos))
+                quote(info.name) + Position.here(info.pos))
           }
       })
 
@@ -283,6 +286,7 @@ object Sessions
   /* cumulative session info */
 
   sealed case class Info(
+    name: String,
     chapter: String,
     select: Boolean,
     pos: Position.T,
@@ -292,7 +296,7 @@ object Sessions
     description: String,
     options: Options,
     imports: List[String],
-    theories: List[(Options, List[String])],
+    theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
     files: List[Path],
     document_files: List[(Path, Path)],
@@ -300,9 +304,9 @@ object Sessions
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
-    def theory_qualifier(default_qualifier: String): String =
+    def theory_qualifier: String =
       options.string("theory_qualifier") match {
-        case "" => default_qualifier
+        case "" => name
         case qualifier => qualifier
       }
   }
@@ -310,6 +314,7 @@ object Sessions
   object Selection
   {
     val empty: Selection = Selection()
+    val all: Selection = Selection(all_sessions = true)
   }
 
   sealed case class Selection(
@@ -416,10 +421,11 @@ object Sessions
     def global_theories: Map[String, String] =
       (Thy_Header.bootstrap_global_theories.toMap /:
         (for {
-          (session_name, (info, _)) <- imports_graph.iterator
-          thy <- info.global_theories.iterator } yield (thy, session_name, info)))({
-            case (global, (thy, session_name, info)) =>
-              val qualifier = info.theory_qualifier(session_name)
+          (_, (info, _)) <- imports_graph.iterator
+          thy <- info.global_theories.iterator }
+         yield (thy, info)))({
+            case (global, (thy, info)) =>
+              val qualifier = info.theory_qualifier
               global.get(thy) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
                   error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
@@ -440,11 +446,11 @@ object Sessions
     def build_descendants(names: List[String]): List[String] =
       build_graph.all_succs(names)
 
-    def build_topological_order: List[(String, Info)] =
-      build_graph.topological_order.map(name => (name, apply(name)))
+    def build_topological_order: List[Info] =
+      build_graph.topological_order.map(apply(_))
 
-    def imports_topological_order: List[(String, Info)] =
-      imports_graph.topological_order.map(name => (name, apply(name)))
+    def imports_topological_order: List[Info] =
+      imports_graph.topological_order.map(apply(_))
 
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
@@ -491,7 +497,7 @@ object Sessions
       description: String,
       options: List[Options.Spec],
       imports: List[String],
-      theories: List[(List[Options.Spec], List[(String, Boolean)])],
+      theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
       files: List[String],
       document_files: List[(String, String)]) extends Entry
 
@@ -515,7 +521,7 @@ object Sessions
         ($$$("(") ~! $$$(GLOBAL) ~ $$$(")")) ^^ { case _ => true } | success(false)
 
       val theory_entry =
-        theory_name ~ global ^^ { case x ~ y => (x, y) }
+        position(theory_name) ~ global ^^ { case x ~ y => (x, y) }
 
       val theories =
         $$$(THEORIES) ~!
@@ -561,11 +567,12 @@ object Sessions
             entry.theories.map({ case (opts, thys) => (session_options ++ opts, thys.map(_._1)) })
 
           val global_theories =
-            for { (_, thys) <- entry.theories; (thy, global) <- thys if global }
+            for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
             yield {
               val thy_name = Path.explode(thy).expand.base.implode
               if (Long_Name.is_qualified(thy_name))
-                error("Bad qualified name for global theory " + quote(thy_name))
+                error("Bad qualified name for global theory " +
+                  quote(thy_name) + Position.here(pos))
               else thy_name
             }
 
@@ -578,9 +585,9 @@ object Sessions
               entry.imports, entry.theories, entry.files, entry.document_files).toString)
 
           val info =
-            Info(entry_chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
-              entry.parent, entry.description, session_options, entry.imports, theories,
-              global_theories, files, document_files, meta_digest)
+            Info(name, entry_chapter, select, entry.pos, entry.groups,
+              dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
+              entry.imports, theories, global_theories, files, document_files, meta_digest)
 
           (name, info)
         }

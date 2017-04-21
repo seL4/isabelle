@@ -26,13 +26,13 @@ class JEdit_Resources(session_base: Sessions.Base) extends Resources(session_bas
   /* document node name */
 
   def known_file(path: String): Option[Document.Node.Name] =
-    JEdit_Lib.check_file(path).flatMap(session_base.known_file(_))
+    JEdit_Lib.check_file(path).flatMap(session_base.known.get_file(_))
 
   def node_name(path: String): Document.Node.Name =
     known_file(path) getOrElse {
       val vfs = VFSManager.getVFSForPath(path)
       val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
-      theory_name(default_qualifier, Thy_Header.theory_name(node)) match {
+      theory_name(Sessions.DRAFT, Thy_Header.theory_name(node)) match {
         case (true, theory) => Document.Node.Name.loaded_theory(theory)
         case (false, theory) =>
           val master_dir = if (theory == "") "" else vfs.getParentOfPath(path)

@@ -115,6 +115,7 @@ object Isabelle_Tool
       Remote_DMG.isabelle_tool,
       Update_Cartouches.isabelle_tool,
       Update_Header.isabelle_tool,
+      Update_Imports.isabelle_tool,
       Update_Then.isabelle_tool,
       Update_Theorems.isabelle_tool,
       isabelle.vscode.Build_VSCode.isabelle_tool,

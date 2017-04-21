@@ -24,11 +24,11 @@ object Build_Doc
   {
     val selection =
       for {
-        (name, info) <- Sessions.load(options).build_topological_order
+        info <- Sessions.load(options).build_topological_order
         if info.groups.contains("doc")
         doc = info.options.string("document_variants")
         if all_docs || docs.contains(doc)
-      } yield (doc, name)
+      } yield (doc, info.name)
 
     val selected_docs = selection.map(_._1)
     val sessions = selection.map(_._2)

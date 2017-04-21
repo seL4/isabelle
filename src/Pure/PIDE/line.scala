@@ -123,8 +123,7 @@ object Line
     lazy val text: String = Document.text(lines)
 
     def try_get_text(range: Text.Range): Option[String] =
-      if (text_range.contains(range)) Some(text.substring(range.start, range.stop))
-      else None
+      if (text_range.contains(range)) Some(range.substring(text)) else None
 
     override def toString: String = text
 

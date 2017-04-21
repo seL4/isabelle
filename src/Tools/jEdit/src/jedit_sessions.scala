@@ -77,8 +77,8 @@ object JEdit_Sessions
   {
     val sessions = Sessions.load(options, dirs = session_dirs())
     val (main_sessions, other_sessions) =
-      sessions.imports_topological_order.partition(p => p._2.groups.contains("main"))
-    main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
+      sessions.imports_topological_order.partition(info => info.groups.contains("main"))
+    main_sessions.map(_.name).sorted ::: other_sessions.map(_.name).sorted
   }
 
 

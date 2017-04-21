@@ -231,7 +231,6 @@ text \<open>
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
-    -A           explore theory imports of all known sessions
     -D NAME=X    set JVM system property
     -J OPTION    add JVM runtime option
     -R           open ROOT entry of logic session and use its parent
@@ -257,11 +256,6 @@ text \<open>
   option determines where to store the result session image of @{tool build}.
   The \<^verbatim>\<open>-n\<close> option bypasses the implicit build process for the selected
   session image.
-
-  Option \<^verbatim>\<open>-A\<close> explores theory imports of all known sessions (according to the
-  directories specified via option \<^verbatim>\<open>-d\<close>). This facilitates editing of a
-  complex session hierarchy with session-qualified theory imports, while using
-  a different base session image than usual.
 
   Option \<^verbatim>\<open>-R\<close> modifies the meaning of option \<^verbatim>\<open>-l\<close> as follows: the \<^verbatim>\<open>ROOT\<close>
   entry of the specified session is opened in the editor, while its parent

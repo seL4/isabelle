@@ -6,8 +6,8 @@ section \<open>Smartcard protocols: rely on conventional Message and on new Even
 
 theory Auth_Smartcard
 imports
-  "ShoupRubin"
-  "ShoupRubinBella"
+  ShoupRubin
+  ShoupRubinBella
 begin
 
 end

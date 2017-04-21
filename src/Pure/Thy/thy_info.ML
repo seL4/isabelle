@@ -408,7 +408,7 @@ fun use_theories {document, symbols, last_timing, qualifier, master_dir} imports
 fun use_thy name =
   use_theories
     {document = false, symbols = HTML.no_symbols, last_timing = K Time.zeroTime,
-     qualifier = Resources.default_qualifier (), master_dir = Path.current}
+     qualifier = Resources.default_qualifier, master_dir = Path.current}
     [(name, Position.none)];
 
 

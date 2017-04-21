@@ -6,10 +6,10 @@ section \<open>Blanqui's "guard" concept: protocol-independent secrecy\<close>
 
 theory Auth_Guard_Public
 imports
-  "P1"
-  "P2"
-  "Guard_NS_Public"
-  "Proto"
+  P1
+  P2
+  Guard_NS_Public
+  Proto
 begin
 
 end

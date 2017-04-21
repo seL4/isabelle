@@ -15,7 +15,6 @@ import java.io.{File => JFile}
 
 class Resources(
   val session_base: Sessions.Base,
-  val default_qualifier: String = Sessions.DRAFT,
   val log: Logger = No_Logger)
 {
   val thy_info = new Thy_Info(this)
@@ -93,8 +92,8 @@ class Resources(
         }
     }
 
-  def import_name(node_name: Document.Node.Name, s: String): Document.Node.Name =
-    import_name(theory_qualifier(node_name), node_name.master_dir, s)
+  def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
+    import_name(theory_qualifier(name), name.master_dir, s)
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {

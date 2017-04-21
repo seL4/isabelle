@@ -6,8 +6,7 @@
 section \<open>Weak normalization for simply-typed lambda calculus\<close>
 
 theory WeakNorm
-imports LambdaType NormalForm "~~/src/HOL/Library/Old_Datatype"
-  "~~/src/HOL/Library/Code_Target_Int"
+imports LambdaType NormalForm "HOL-Library.Old_Datatype" "HOL-Library.Code_Target_Int"
 begin
 
 text \<open>

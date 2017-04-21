@@ -176,7 +176,7 @@ object JEdit_Lib
     catch { case _: ArrayIndexOutOfBoundsException => None }
 
   def try_get_text(text: String, range: Text.Range): Option[String] =
-    try { Some(text.substring(range.start, range.stop)) }
+    try { Some(range.substring(text)) }
     catch { case _: IndexOutOfBoundsException => None }
 
 
