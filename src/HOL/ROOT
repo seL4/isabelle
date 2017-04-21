@@ -194,7 +194,7 @@ session "HOL-IMPP" in IMPP = HOL +
 session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
   options [document_variants = document]
   theories [document = false]
-    "Less_False"
+    Less_False
     "~~/src/HOL/Library/Multiset"
     "~~/src/HOL/Number_Theory/Fib"
   theories
@@ -352,7 +352,7 @@ session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
   *}
   theories
     (*Basic meta-theory*)
-    "UNITY_Main"
+    UNITY_Main
 
     (*Simple examples: no composition*)
     "Simple/Deadlock"
@@ -384,7 +384,7 @@ session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
     "Comp/Client"
 
     (*obsolete*)
-    "ELT"
+    ELT
   document_files "root.tex"
 
 session "HOL-Unix" in Unix = HOL +
@@ -741,9 +741,9 @@ session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
 
 session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
   theories
-    "Dining_Cryptographers"
-    "Koepf_Duermuth_Countermeasure"
-    "Measure_Not_CCC"
+    Dining_Cryptographers
+    Koepf_Duermuth_Countermeasure
+    Measure_Not_CCC
 
 session "HOL-Nominal" in Nominal = HOL +
   options [document = false]
@@ -1124,7 +1124,7 @@ session IOA (timing) in "HOLCF/IOA" = HOLCF +
     finite and infinite sequences.
   *}
   options [document = false]
-  theories "Abstraction"
+  theories Abstraction
 
 session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
   description {*

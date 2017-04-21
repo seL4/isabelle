@@ -6,10 +6,10 @@ section \<open>Conventional protocols: rely on conventional Message, Event and P
 
 theory Auth_Public
 imports
-  "NS_Public_Bad"
-  "NS_Public"
-  "TLS"
-  "CertifiedEmail"
+  NS_Public_Bad
+  NS_Public
+  TLS
+  CertifiedEmail
 begin
 
 end

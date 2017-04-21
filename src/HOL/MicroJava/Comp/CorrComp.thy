@@ -5,7 +5,7 @@
 (* Compiler correctness statement and proof *)
 
 theory CorrComp
-imports "../J/JTypeSafe" "LemmasComp"
+imports "../J/JTypeSafe" LemmasComp
 begin
 
 declare wf_prog_ws_prog [simp add]

@@ -5,7 +5,7 @@ text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2016)\
 text\<open>Also Cauchy's residue theorem by Wenda Li (2016)\<close>
 
 theory Conformal_Mappings
-imports "Cauchy_Integral_Theorem"
+imports Cauchy_Integral_Theorem
 
 begin
 
