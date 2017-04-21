@@ -78,10 +78,13 @@ object Update_Imports
       def standard_import(qualifier: String, dir: String, s: String): String =
       {
         val name = resources.import_name(qualifier, dir, s)
-        if (!local_theories.contains(name)) s
-        if (resources.theory_qualifier(name) != qualifier) name.theory
-        else if (Thy_Header.is_base_name(s)) name.theory_base_name
-        else s
+        val s1 =
+          if (!local_theories.contains(name)) s
+          else if (resources.theory_qualifier(name) != qualifier) name.theory
+          else if (Thy_Header.is_base_name(s)) name.theory_base_name
+          else s
+        val name1 = resources.import_name(qualifier, dir, s1)
+        if (name == name1) s1 else s
       }
 
       val updates_root =
