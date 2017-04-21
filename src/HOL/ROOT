@@ -21,7 +21,10 @@ session "HOL-Proofs" (timing) = Pure +
   options [document = false, theory_qualifier = "HOL",
     quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
   sessions "HOL-Library"
-  theories "HOL-Library.Old_Datatype"
+  theories
+    GCD
+    Binomial
+    "HOL-Library.Old_Datatype"
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
