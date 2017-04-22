@@ -62,10 +62,7 @@ session "HOL-Library" (main timing) in Library = HOL +
     Refute
   document_files "root.bib" "root.tex"
 
-session "HOL-Analysis" (main timing) in Analysis = HOL +
-  sessions
-    "HOL-Library"
-    "HOL-Computational_Algebra"
+session "HOL-Analysis" (main timing) in Analysis = "HOL-Computational_Algebra" +
   theories
     Analysis
   document_files
@@ -76,16 +73,14 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
     Approximations
     Circle_Area
 
-session "HOL-Computational_Algebra" in "Computational_Algebra" = HOL +
-  sessions
-    "HOL-Library"
+session "HOL-Computational_Algebra" in "Computational_Algebra" = "HOL-Library" +
   theories
     Computational_Algebra
     (*conflicting type class instantiations and dependent applications*)
     Field_as_Ring
     Polynomial_Factorial
 
-session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
+session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
   description {*
     Author:     Gertrud Bauer, TU Munich
 
@@ -103,13 +98,11 @@ session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
     subspaces (not only one-dimensional subspaces), can be extended to a
     continous linearform on the whole vectorspace.
   *}
-  sessions
-    "HOL-Library"
   theories
     Hahn_Banach
   document_files "root.bib" "root.tex"
 
-session "HOL-Induct" in Induct = HOL +
+session "HOL-Induct" in Induct = "HOL-Library" +
   description {*
     Examples of (Co)Inductive Definitions.
 
@@ -126,8 +119,6 @@ session "HOL-Induct" in Induct = HOL +
     Exp demonstrates the use of iterated inductive definitions to reason about
     mutually recursive relations.
   *}
-  sessions
-    "HOL-Library"
   theories [document = false]
     "~~/src/HOL/Library/Old_Datatype"
   theories [quick_and_dirty]
@@ -224,15 +215,13 @@ session "HOL-Import" in Import = HOL +
   theories HOL_Light_Maps
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
-session "HOL-Number_Theory" (timing) in Number_Theory = HOL +
+session "HOL-Number_Theory" (timing) in Number_Theory = "HOL-Computational_Algebra" +
   description {*
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
   *}
   sessions
-    "HOL-Library"
     "HOL-Algebra"
-    "HOL-Computational_Algebra"
   theories [document = false]
     "~~/src/HOL/Library/FuncSet"
     "~~/src/HOL/Library/Multiset"
@@ -259,11 +248,8 @@ session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
   theories Hoare_Parallel
   document_files "root.bib" "root.tex"
 
-session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
+session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
   options [document = false, browser_info = false]
-  sessions
-    "HOL-Computational_Algebra"
-    "HOL-Number_Theory"
   theories
     Generate
     Generate_Binary_Nat
@@ -318,15 +304,12 @@ session "HOL-Nunchaku" in Nunchaku = HOL +
   options [document = false]
   theories Nunchaku
 
-session "HOL-Algebra" (main timing) in Algebra = HOL +
+session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   description {*
     Author: Clemens Ballarin, started 24 September 1999
 
     The Isabelle Algebraic Library.
   *}
-  sessions
-    "HOL-Library"
-    "HOL-Computational_Algebra"
   theories [document = false]
     (* Preliminaries from set and number theory *)
     "~~/src/HOL/Library/FuncSet"
@@ -416,10 +399,8 @@ session "HOL-ZF" in ZF = HOL +
   theories MainZF Games
   document_files "root.tex"
 
-session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
+session "HOL-Imperative_HOL" in Imperative_HOL = "HOL-Library" +
   options [print_mode = "iff,no_brackets"]
-  sessions
-    "HOL-Library"
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Monad_Syntax"
@@ -427,14 +408,11 @@ session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
 
-session "HOL-Decision_Procs" (timing) in Decision_Procs = HOL +
+session "HOL-Decision_Procs" (timing) in Decision_Procs = "HOL-Algebra" +
   description {*
     Various decision procedures, typically involving reflection.
   *}
   options [document = false]
-  sessions
-    "HOL-Library"
-    "HOL-Algebra"
   theories
     Decision_Procs
 
@@ -500,14 +478,12 @@ session "HOL-Prolog" in Prolog = HOL +
   options [document = false]
   theories Test Type
 
-session "HOL-MicroJava" (timing) in MicroJava = HOL +
+session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
   description {*
     Formalization of a fragment of Java, together with a corresponding virtual
     machine and a specification of its bytecode verifier and a lightweight
     bytecode verifier, including proofs of type-safety.
   *}
-  sessions
-    "HOL-Library"
   theories [document = false]
     "~~/src/HOL/Library/While_Combinator"
   theories
@@ -573,112 +549,103 @@ session "HOL-Lattice" in Lattice = HOL +
   theories CompleteLattice
   document_files "root.tex"
 
-session "HOL-ex" in ex = HOL +
+session "HOL-ex" in ex = "HOL-Library" +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
+  options [document = false]
   sessions
-    "HOL-Library"
     "HOL-Number_Theory"
-  theories [document = false]
-    "~~/src/HOL/Library/State_Monad"
-    Code_Binary_Nat_examples
-    "~~/src/HOL/Library/FuncSet"
-    Eval_Examples
-    Normalization_by_Evaluation
-    Hebrew
-    Chinese
-    Serbian
-    "~~/src/HOL/Library/Refute"
-    "~~/src/HOL/Library/Transitive_Closure_Table"
-    Cartouche_Examples
-    Computations
   theories
-    Commands
     Adhoc_Overloading_Examples
-    Iff_Oracle
-    Coercion_Examples
-    Peano_Axioms
-    Guess
-    Functions
-    Induction_Schema
-    LocaleTest2
-    Records
-    While_Combinator_Example
-    MonoidGroup
-    BinEx
-    Hex_Bin_Examples
     Antiquote
-    Multiquote
-    PER
-    NatSum
-    ThreeDivides
-    Cubic_Quartic
-    Pythagoras
-    Intuitionistic
-    CTL
+    Argo_Examples
     Arith_Examples
-    Tree23
-    Bubblesort
-    MergeSort
-    Lagrange
-    Groebner_Examples
-    Unification
-    Primrec
-    Tarski
-    Classical
-    Set_Theory
-    Termination
-    Coherent
-    PresburgerEx
-    Reflection_Examples
-    Sqrt
-    Sqrt_Script
-    Transfer_Debug
-    Transfer_Ex
-    Transfer_Int_Nat
-    Transitive_Closure_Table_Ex
-    HarmonicSeries
-    Refute_Examples
-    Execute_Choice
-    Gauge_Integration
-    Dedekind_Real
-    Quicksort
+    Ballot
+    BinEx
     Birthday_Paradox
-    List_to_Set_Comprehension_Examples
-    Seq
-    Simproc_Tests
+    Bubblesort
+    CTL
+    Cartouche_Examples
+    Chinese
+    Classical
+    Code_Binary_Nat_examples
+    Code_Timing
+    Coercion_Examples
+    Coherent
+    Commands
+    Computations
+    Cubic_Quartic
+    Dedekind_Real
+    Erdoes_Szekeres
+    Eval_Examples
     Executable_Relation
-    Set_Comprehension_Pointfree_Examples
-    Parallel_Example
+    Execute_Choice
+    Functions
+    Gauge_Integration
+    Groebner_Examples
+    Guess
+    HarmonicSeries
+    Hebrew
+    Hex_Bin_Examples
     IArray_Examples
-    Simps_Case_Conv_Examples
+    Iff_Oracle
+    Induction_Schema
+    Intuitionistic
+    Lagrange
+    List_to_Set_Comprehension_Examples
+    LocaleTest2
     ML
+    MergeSort
+    MonoidGroup
+    Multiquote
+    NatSum
+    Normalization_by_Evaluation
+    PER
+    Parallel_Example
+    Peano_Axioms
+    Perm_Fragments
+    PresburgerEx
+    Primrec
+    Pythagoras
+    Quicksort
+    Records
+    Reflection_Examples
+    Refute_Examples
     Rewrite_Examples
     SAT_Examples
     SOS
     SOS_Cert
-    Ballot
-    Erdoes_Szekeres
-    Sum_of_Powers
+    Seq
+    Serbian
+    Set_Comprehension_Pointfree_Examples
+    Set_Theory
+    Simproc_Tests
+    Simps_Case_Conv_Examples
+    Sqrt
+    Sqrt_Script
     Sudoku
-    Code_Timing
-    Perm_Fragments
-    Argo_Examples
+    Sum_of_Powers
+    Tarski
+    Termination
+    ThreeDivides
+    Transfer_Debug
+    Transfer_Ex
+    Transfer_Int_Nat
+    Transitive_Closure_Table_Ex
+    Tree23
+    Unification
+    While_Combinator_Example
     Word_Type
     veriT_Preprocessing
   theories [skip_proofs = false]
     Meson_Test
-  document_files "root.bib" "root.tex"
 
-session "HOL-Isar_Examples" in Isar_Examples = HOL +
+session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
   description {*
     Miscellaneous Isabelle/Isar examples.
   *}
   options [quick_and_dirty]
-  sessions
-    "HOL-Library"
-    "HOL-Computational_Algebra"
   theories [document = false]
     "~~/src/HOL/Library/Lattice_Syntax"
     "../Computational_Algebra/Primes"
@@ -714,12 +681,10 @@ session "HOL-Eisbach" in Eisbach = HOL +
     Examples
     Examples_FOL
 
-session "HOL-SET_Protocol" (timing) in SET_Protocol = HOL +
+session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
   description {*
     Verification of the SET Protocol.
   *}
-  sessions
-    "HOL-Library"
   theories [document = false]
     "~~/src/HOL/Library/Nat_Bijection"
   theories
@@ -771,8 +736,6 @@ session "HOL-TPTP" in TPTP = HOL +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
-  sessions
-    "HOL-Library"
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Permutation"
@@ -889,7 +852,7 @@ session "HOL-Statespace" in Statespace = HOL +
     StateSpaceEx
   document_files "root.tex"
 
-session "HOL-Nonstandard_Analysis" (timing) in Nonstandard_Analysis = HOL +
+session "HOL-Nonstandard_Analysis" (timing) in Nonstandard_Analysis = "HOL-Computational_Algebra" +
   description {*
     Nonstandard analysis.
   *}
@@ -899,8 +862,6 @@ session "HOL-Nonstandard_Analysis" (timing) in Nonstandard_Analysis = HOL +
 
 session "HOL-Nonstandard_Analysis-Examples" (timing) in "Nonstandard_Analysis/Examples" = "HOL-Nonstandard_Analysis" +
   options [document = false]
-  sessions
-    "HOL-Computational_Algebra"
   theories
     NSPrimes
 
@@ -1034,13 +995,11 @@ session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = HOL +
     Hotel_Example
     Quickcheck_Narrowing_Examples
 
-session "HOL-Quotient_Examples" (timing) in Quotient_Examples = HOL +
+session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Library" +
   description {*
     Author:     Cezary Kaliszyk and Christian Urban
   *}
   options [document = false]
-  sessions
-    "HOL-Library"
   theories
     DList
     Quotient_FSet
