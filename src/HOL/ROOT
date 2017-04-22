@@ -23,8 +23,6 @@ session "HOL-Proofs" (timing) = Pure +
   sessions
     "HOL-Library"
   theories
-    GCD
-    Binomial
     "HOL-Library.Old_Datatype"
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"

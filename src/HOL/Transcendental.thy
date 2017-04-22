@@ -7,7 +7,7 @@
 section \<open>Power Series, Transcendental Functions etc.\<close>
 
 theory Transcendental
-imports Binomial Series Deriv NthRoot
+imports Series Deriv NthRoot
 begin
 
 text \<open>A fact theorem on reals.\<close>
@@ -74,7 +74,7 @@ qed
 subsection \<open>More facts about binomial coefficients\<close>
 
 text \<open>
-  These facts could have been proven before, but having real numbers 
+  These facts could have been proven before, but having real numbers
   makes the proofs a lot easier.
 \<close>
 
@@ -115,11 +115,11 @@ proof -
   thus ?thesis
   proof (induction rule: inc_induct)
     case base
-    with assms binomial_less_binomial_Suc[of "k' - 1" n] 
+    with assms binomial_less_binomial_Suc[of "k' - 1" n]
       show ?case by simp
   next
     case (step k)
-    from step.prems step.hyps assms have "n choose k < n choose (Suc k)" 
+    from step.prems step.hyps assms have "n choose k < n choose (Suc k)"
       by (intro binomial_less_binomial_Suc) simp_all
     also have "\<dots> < n choose k'" by (rule step.IH)
     finally show ?case .
@@ -150,12 +150,12 @@ proof (cases "k = k'")
   proof (cases "k = n div 2 \<and> odd n")
     case False
     with assms(2) have "2*k \<ge> n" by presburger
-    with not_eq assms binomial_strict_antimono[of k k' n] 
+    with not_eq assms binomial_strict_antimono[of k k' n]
       show ?thesis by simp
   next
     case True
     have "n choose k' \<le> n choose (Suc (n div 2))"
-    proof (cases "k' = Suc (n div 2)") 
+    proof (cases "k' = Suc (n div 2)")
       case False
       with assms True not_eq have "Suc (n div 2) < k'" by simp
       with assms binomial_strict_antimono[of "Suc (n div 2)" k' n] True
@@ -191,10 +191,10 @@ proof -
     have "4 ^ n = (\<Sum>k=0..2*n. (2*n) choose k)"
     by (simp add: power_mult power2_eq_square One_nat_def [symmetric] del: One_nat_def)
   also have "{0..2*n} = {0<..<2*n} \<union> {0,2*n}" by auto
-  also have "(\<Sum>k\<in>\<dots>. (2*n) choose k) = 
+  also have "(\<Sum>k\<in>\<dots>. (2*n) choose k) =
                (\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) + (\<Sum>k\<in>{0,2*n}. (2*n) choose k)"
     by (subst sum.union_disjoint) auto
-  also have "(\<Sum>k\<in>{0,2*n}. (2*n) choose k) \<le> (\<Sum>k\<le>1. (n choose k)\<^sup>2)" 
+  also have "(\<Sum>k\<in>{0,2*n}. (2*n) choose k) \<le> (\<Sum>k\<le>1. (n choose k)\<^sup>2)"
     by (cases n) simp_all
   also from assms have "\<dots> \<le> (\<Sum>k\<le>n. (n choose k)\<^sup>2)"
     by (intro sum_mono3) auto
@@ -959,7 +959,7 @@ proof -
   have summable: "summable (\<lambda>n. diffs c n * z^n)"
     by (intro termdiff_converges[OF norm] sums_summable[OF sums])
   from norm have "eventually (\<lambda>z. z \<in> norm -` {..<K}) (nhds z)"
-    by (intro eventually_nhds_in_open open_vimage) 
+    by (intro eventually_nhds_in_open open_vimage)
        (simp_all add: continuous_on_norm continuous_on_id)
   hence eq: "eventually (\<lambda>z. (\<Sum>n. c n * z^n) = f z) (nhds z)"
     by eventually_elim (insert sums, simp add: sums_iff)

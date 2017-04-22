@@ -11,7 +11,7 @@ which is FOL/ex/LocaleTest.thy
 section \<open>Test of Locale Interpretation\<close>
 
 theory LocaleTest2
-imports Main GCD
+imports Main
 begin
 
 section \<open>Interpretation of Defined Concepts\<close>

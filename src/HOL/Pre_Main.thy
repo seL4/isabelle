@@ -1,6 +1,6 @@
 section \<open>Main HOL\<close>
 
-theory Main
+theory Pre_Main
 imports Predicate_Compile Quickcheck_Narrowing Extraction Nitpick BNF_Greatest_Fixpoint Filter Conditionally_Complete_Lattices
 begin
 

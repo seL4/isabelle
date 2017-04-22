@@ -5,7 +5,7 @@
 section \<open>Permutations, both general and specifically on finite sets.\<close>
 
 theory Permutations
-  imports Binomial Multiset Disjoint_Sets
+  imports Multiset Disjoint_Sets
 begin
 
 subsection \<open>Transpositions\<close>

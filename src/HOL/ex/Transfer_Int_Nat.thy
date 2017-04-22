@@ -5,7 +5,7 @@
 section \<open>Using the transfer method between nat and int\<close>
 
 theory Transfer_Int_Nat
-imports GCD
+imports Main
 begin
 
 subsection \<open>Correspondence relation\<close>
@@ -15,7 +15,7 @@ definition ZN :: "int \<Rightarrow> nat \<Rightarrow> bool"
 
 subsection \<open>Transfer domain rules\<close>
 
-lemma Domainp_ZN [transfer_domain_rule]: "Domainp ZN = (\<lambda>x. x \<ge> 0)" 
+lemma Domainp_ZN [transfer_domain_rule]: "Domainp ZN = (\<lambda>x. x \<ge> 0)"
   unfolding ZN_def Domainp_iff[abs_def] by (auto intro: zero_le_imp_eq_int)
 
 subsection \<open>Transfer rules\<close>
@@ -177,7 +177,7 @@ apply fact
 done
 
 lemma
-  assumes "\<And>x y z::int. \<lbrakk>0 \<le> x; 0 \<le> y; 0 \<le> z\<rbrakk> \<Longrightarrow> 
+  assumes "\<And>x y z::int. \<lbrakk>0 \<le> x; 0 \<le> y; 0 \<le> z\<rbrakk> \<Longrightarrow>
     sum_list [x, y, z] = 0 \<longleftrightarrow> list_all (\<lambda>x. x = 0) [x, y, z]"
   shows "sum_list [x, y, z] = (0::nat) \<longleftrightarrow> list_all (\<lambda>x. x = 0) [x, y, z]"
 apply transfer

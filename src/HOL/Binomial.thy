@@ -9,7 +9,7 @@
 section \<open>Combinatorial Functions: Factorial Function, Rising Factorials, Binomial Coefficients and Binomial Theorem\<close>
 
 theory Binomial
-  imports Main
+  imports Pre_Main
 begin
 
 subsection \<open>Factorial\<close>
@@ -534,12 +534,12 @@ lemma pochhammer_Suc: "pochhammer a (Suc n) = pochhammer a n * (a + of_nat n)"
 
 end
 
-lemma pochhammer_nonneg: 
+lemma pochhammer_nonneg:
   fixes x :: "'a :: linordered_semidom"
   shows "x > 0 \<Longrightarrow> pochhammer x n \<ge> 0"
   by (induction n) (auto simp: pochhammer_Suc intro!: mult_nonneg_nonneg add_nonneg_nonneg)
 
-lemma pochhammer_pos: 
+lemma pochhammer_pos:
   fixes x :: "'a :: linordered_semidom"
   shows "x > 0 \<Longrightarrow> pochhammer x n > 0"
   by (induction n) (auto simp: pochhammer_Suc intro!: mult_pos_pos add_pos_nonneg)
@@ -1616,7 +1616,7 @@ next
   qed
 qed
 
-lemma card_disjoint_shuffle: 
+lemma card_disjoint_shuffle:
   assumes "set xs \<inter> set ys = {}"
   shows   "card (shuffle xs ys) = (length xs + length ys) choose length xs"
 using assms
@@ -1634,7 +1634,7 @@ proof (induction xs ys rule: shuffle.induct)
     by (rule card_image) auto
   also have "\<dots> = (length (x # xs) + length ys) choose length (x # xs)"
     using "3.prems" by (intro "3.IH") auto
-  also have "length xs + length (y # ys) choose length xs + \<dots> = 
+  also have "length xs + length (y # ys) choose length xs + \<dots> =
                (length (x # xs) + length (y # ys)) choose length (x # xs)" by simp
   finally show ?case .
 qed auto

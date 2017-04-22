@@ -8,7 +8,7 @@
 section \<open>Stirling numbers of first and second kind\<close>
 
 theory Stirling
-imports Binomial
+imports Main
 begin
 
 subsection \<open>Stirling numbers of the second kind\<close>

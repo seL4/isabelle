@@ -31,12 +31,12 @@ Tobias Nipkow cleaned up a lot.
 section \<open>Greatest common divisor and least common multiple\<close>
 
 theory GCD
-  imports Main
+  imports Pre_Main
 begin
 
 subsection \<open>Abstract bounded quasi semilattices as common foundation\<close>
-  
-locale bounded_quasi_semilattice = abel_semigroup + 
+
+locale bounded_quasi_semilattice = abel_semigroup +
   fixes top :: 'a  ("\<top>") and bot :: 'a  ("\<bottom>")
     and normalize :: "'a \<Rightarrow> 'a"
   assumes idem_normalize [simp]: "a \<^bold>* a = normalize a"
@@ -65,7 +65,7 @@ interpretation comp_fun_idem f
 lemma top_right_normalize [simp]:
   "a \<^bold>* \<top> = normalize a"
   using top_left_normalize [of a] by (simp add: ac_simps)
-  
+
 lemma bottom_right_bottom [simp]:
   "a \<^bold>* \<bottom> = \<bottom>"
   using bottom_left_bottom [of a] by (simp add: ac_simps)
@@ -74,7 +74,7 @@ lemma normalize_right_idem [simp]:
   "a \<^bold>* normalize b = a \<^bold>* b"
   using normalize_left_idem [of b a] by (simp add: ac_simps)
 
-end    
+end
 
 locale bounded_quasi_semilattice_set = bounded_quasi_semilattice
 begin
@@ -134,7 +134,7 @@ lemma subset:
   assumes "B \<subseteq> A"
   shows "F B \<^bold>* F A = F A"
   using assms by (simp add: union [symmetric] Un_absorb1)
-  
+
 end
 
 subsection \<open>Abstract GCD and LCM\<close>
@@ -282,7 +282,7 @@ proof
   show "coprime 1 a" for a
     by (rule associated_eqI) simp_all
 qed simp_all
-  
+
 lemma gcd_self: "gcd a a = normalize a"
   by (fact gcd.idem_normalize)
 
@@ -1071,7 +1071,7 @@ next
   moreover from assms have "p dvd gcd (b * a) (b * p)"
     by (intro gcd_greatest) (simp_all add: mult.commute)
   hence "p dvd b * gcd a p" by (simp add: gcd_mult_distrib)
-  with False have "y dvd b" 
+  with False have "y dvd b"
     by (simp add: x_def y_def div_dvd_iff_mult assms)
   ultimately show ?thesis by (rule that)
 qed
@@ -1527,7 +1527,7 @@ lemma pairwise_coprime_subset: "pairwise_coprime A \<Longrightarrow> B \<subsete
 
 end
 
-  
+
 subsection \<open>An aside: GCD and LCM on finite sets for incomplete gcd rings\<close>
 
 context semiring_gcd
@@ -1546,15 +1546,15 @@ defines
 
 abbreviation lcm_list :: "'a list \<Rightarrow> 'a"
   where "lcm_list xs \<equiv> Lcm\<^sub>f\<^sub>i\<^sub>n (set xs)"
-    
+
 lemma Gcd_fin_dvd:
   "a \<in> A \<Longrightarrow> Gcd\<^sub>f\<^sub>i\<^sub>n A dvd a"
-  by (induct A rule: infinite_finite_induct) 
+  by (induct A rule: infinite_finite_induct)
     (auto intro: dvd_trans)
 
 lemma dvd_Lcm_fin:
   "a \<in> A \<Longrightarrow> a dvd Lcm\<^sub>f\<^sub>i\<^sub>n A"
-  by (induct A rule: infinite_finite_induct) 
+  by (induct A rule: infinite_finite_induct)
     (auto intro: dvd_trans)
 
 lemma Gcd_fin_greatest:
@@ -1580,7 +1580,7 @@ lemma dvd_Gcd_fin_iff:
 lemma dvd_gcd_list_iff:
   "b dvd gcd_list xs \<longleftrightarrow> (\<forall>a\<in>set xs. b dvd a)"
   by (simp add: dvd_Gcd_fin_iff)
-  
+
 lemma Lcm_fin_dvd_iff:
   "Lcm\<^sub>f\<^sub>i\<^sub>n A dvd b  \<longleftrightarrow> (\<forall>a\<in>A. a dvd b)" if "finite A"
   using that by (auto intro: Lcm_fin_least dvd_Lcm_fin dvd_trans [of _ "Lcm\<^sub>f\<^sub>i\<^sub>n A" b])

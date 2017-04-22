@@ -8,6 +8,8 @@ theory Universal
 imports Bifinite Completion "~~/src/HOL/Library/Nat_Bijection"
 begin
 
+no_notation binomial  (infixl "choose" 65)
+
 subsection \<open>Basis for universal domain\<close>
 
 subsubsection \<open>Basis datatype\<close>
@@ -976,7 +978,7 @@ apply simp
 apply (simp add: udom_approx_principal)
 apply (simp add: ubasis_until_same ubasis_le_refl)
 done
- 
+
 lemma udom_approx [simp]: "approx_chain udom_approx"
 proof
   show "chain (\<lambda>i. udom_approx i)"
@@ -989,5 +991,7 @@ instance udom :: bifinite
   by standard (fast intro: udom_approx)
 
 hide_const (open) node
+
+notation binomial  (infixl "choose" 65)
 
 end

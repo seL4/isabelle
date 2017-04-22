@@ -9,7 +9,7 @@ Tutorial for nonprimitively corecursive definitions.
 *)
 
 theory Corec
-imports GCD "../Datatypes/Setup" "~~/src/HOL/Library/BNF_Corec"
+imports Main "../Datatypes/Setup" "~~/src/HOL/Library/BNF_Corec"
   "~~/src/HOL/Library/FSet"
 begin
 

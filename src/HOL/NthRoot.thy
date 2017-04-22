@@ -6,7 +6,7 @@
 section \<open>Nth Roots of Real Numbers\<close>
 
 theory NthRoot
-  imports Deriv Binomial
+  imports Deriv
 begin
 
 
@@ -469,7 +469,7 @@ lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"
 lemma real_less_rsqrt: "x\<^sup>2 < y \<Longrightarrow> x < sqrt y"
   using real_sqrt_less_mono[of "x\<^sup>2" y] by simp
 
-lemma real_sqrt_power_even: 
+lemma real_sqrt_power_even:
   assumes "even n" "x \<ge> 0"
   shows   "sqrt x ^ n = x ^ (n div 2)"
 proof -

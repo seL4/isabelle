@@ -5,7 +5,7 @@
 section \<open>Implementation of integer numbers by target-language integers\<close>
 
 theory Code_Target_Int
-imports "../GCD"
+imports Main
 begin
 
 code_datatype int_of_integer
@@ -22,11 +22,11 @@ lemma [code]:
 
 lemma [code]:
   "Int.Pos = int_of_integer \<circ> integer_of_num"
-  by transfer (simp add: fun_eq_iff) 
+  by transfer (simp add: fun_eq_iff)
 
 lemma [code]:
   "Int.Neg = int_of_integer \<circ> uminus \<circ> integer_of_num"
-  by transfer (simp add: fun_eq_iff) 
+  by transfer (simp add: fun_eq_iff)
 
 lemma [code_abbrev]:
   "int_of_integer (numeral k) = Int.Pos k"
@@ -37,7 +37,7 @@ lemma [code_abbrev]:
   by transfer simp
 
 context
-begin  
+begin
 
 qualified definition positive :: "num \<Rightarrow> int"
   where [simp]: "positive = numeral"
