@@ -73,11 +73,8 @@ class Plugin extends EBPlugin
     val options = this.options.value
     val session_name = JEdit_Sessions.session_name(options)
     val session_base =
-      try {
-        Sessions.session_base(
-          options, session_name, dirs = JEdit_Sessions.session_dirs(), all_known = true)
-      }
-      catch { case ERROR(_) => Sessions.Base.pure(options) }
+      Sessions.session_base(
+        options, session_name, dirs = JEdit_Sessions.session_dirs(), all_known = true)
 
     _resources = new JEdit_Resources(session_base.platform_path)
   }
