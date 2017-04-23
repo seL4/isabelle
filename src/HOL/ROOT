@@ -565,6 +565,7 @@ session "HOL-ex" in ex = "HOL-Library" +
     Bubblesort
     CTL
     Cartouche_Examples
+    Case_Product
     Chinese
     Classical
     Code_Binary_Nat_examples
