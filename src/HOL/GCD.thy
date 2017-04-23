@@ -31,21 +31,21 @@ Tobias Nipkow cleaned up a lot.
 section \<open>Greatest common divisor and least common multiple\<close>
 
 theory GCD
-  imports Pre_Main
+  imports Groups_List 
 begin
 
 subsection \<open>Abstract bounded quasi semilattices as common foundation\<close>
 
 locale bounded_quasi_semilattice = abel_semigroup +
-  fixes top :: 'a  ("\<top>") and bot :: 'a  ("\<bottom>")
+  fixes top :: 'a  ("\<^bold>\<top>") and bot :: 'a  ("\<^bold>\<bottom>")
     and normalize :: "'a \<Rightarrow> 'a"
   assumes idem_normalize [simp]: "a \<^bold>* a = normalize a"
     and normalize_left_idem [simp]: "normalize a \<^bold>* b = a \<^bold>* b"
     and normalize_idem [simp]: "normalize (a \<^bold>* b) = a \<^bold>* b"
-    and normalize_top [simp]: "normalize \<top> = \<top>"
-    and normalize_bottom [simp]: "normalize \<bottom> = \<bottom>"
-    and top_left_normalize [simp]: "\<top> \<^bold>* a = normalize a"
-    and bottom_left_bottom [simp]: "\<bottom> \<^bold>* a = \<bottom>"
+    and normalize_top [simp]: "normalize \<^bold>\<top> = \<^bold>\<top>"
+    and normalize_bottom [simp]: "normalize \<^bold>\<bottom> = \<^bold>\<bottom>"
+    and top_left_normalize [simp]: "\<^bold>\<top> \<^bold>* a = normalize a"
+    and bottom_left_bottom [simp]: "\<^bold>\<bottom> \<^bold>* a = \<^bold>\<bottom>"
 begin
 
 lemma left_idem [simp]:
@@ -63,11 +63,11 @@ interpretation comp_fun_idem f
   by (fact comp_fun_idem)
 
 lemma top_right_normalize [simp]:
-  "a \<^bold>* \<top> = normalize a"
+  "a \<^bold>* \<^bold>\<top> = normalize a"
   using top_left_normalize [of a] by (simp add: ac_simps)
 
 lemma bottom_right_bottom [simp]:
-  "a \<^bold>* \<bottom> = \<bottom>"
+  "a \<^bold>* \<^bold>\<bottom> = \<^bold>\<bottom>"
   using bottom_left_bottom [of a] by (simp add: ac_simps)
 
 lemma normalize_right_idem [simp]:
@@ -84,18 +84,18 @@ interpretation comp_fun_idem f
 
 definition F :: "'a set \<Rightarrow> 'a"
 where
-  eq_fold: "F A = (if finite A then Finite_Set.fold f \<top> A else \<bottom>)"
-
-lemma set_eq_fold [code]:
-  "F (set xs) = fold f xs \<top>"
-  by (simp add: eq_fold fold_set_fold)
+  eq_fold: "F A = (if finite A then Finite_Set.fold f \<^bold>\<top> A else \<^bold>\<bottom>)"
 
 lemma infinite [simp]:
-  "infinite A \<Longrightarrow> F A = \<bottom>"
+  "infinite A \<Longrightarrow> F A = \<^bold>\<bottom>"
   by (simp add: eq_fold)
 
+lemma set_eq_fold [code]:
+  "F (set xs) = fold f xs \<^bold>\<top>"
+  by (simp add: eq_fold fold_set_fold)
+
 lemma empty [simp]:
-  "F {} = \<top>"
+  "F {} = \<^bold>\<top>"
   by (simp add: eq_fold)
 
 lemma insert [simp]:
@@ -908,7 +908,7 @@ next
   from ab'(1) have "a' dvd a"
     unfolding dvd_def by blast
   with assms have "a' dvd b * c"
-    using dvd_trans[of a' a "b*c"] by simp
+    using dvd_trans [of a' a "b * c"] by simp
   from assms ab'(1,2) have "a' * ?d dvd (b' * ?d) * c"
     by simp
   then have "?d * a' dvd ?d * (b' * c)"
@@ -2661,16 +2661,6 @@ lemma mult_inj_if_coprime_nat:
     inj_on (\<lambda>(a, b). f a * g b) (A \<times> B)"
   for f :: "'a \<Rightarrow> nat" and g :: "'b \<Rightarrow> nat"
   by (auto simp add: inj_on_def coprime_crossproduct_nat simp del: One_nat_def)
-
-
-text \<open>Nitpick:\<close>
-
-lemma gcd_eq_nitpick_gcd [nitpick_unfold]: "gcd x y = Nitpick.nat_gcd x y"
-  by (induct x y rule: nat_gcd.induct)
-    (simp add: gcd_nat.simps Nitpick.nat_gcd.simps)
-
-lemma lcm_eq_nitpick_lcm [nitpick_unfold]: "lcm x y = Nitpick.nat_lcm x y"
-  by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 
 subsubsection \<open>Setwise GCD and LCM for integers\<close>

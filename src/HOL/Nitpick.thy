@@ -8,7 +8,7 @@ Nitpick: Yet another counterexample generator for Isabelle/HOL.
 section \<open>Nitpick: Yet Another Counterexample Generator for Isabelle/HOL\<close>
 
 theory Nitpick
-imports Record
+imports Record GCD
 keywords
   "nitpick" :: diag and
   "nitpick_params" :: thy_decl
@@ -129,7 +129,7 @@ termination
   apply (metis mod_mod_trivial mod_self nat_neq_iff xt1(10))
   done
 
-declare nat_gcd.simps[simp del]
+declare nat_gcd.simps [simp del]
 
 definition nat_lcm :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_lcm x y = x * y div (nat_gcd x y)"
@@ -139,6 +139,13 @@ definition int_gcd :: "int \<Rightarrow> int \<Rightarrow> int" where
 
 definition int_lcm :: "int \<Rightarrow> int \<Rightarrow> int" where
   "int_lcm x y = int (nat_lcm (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
+
+lemma gcd_eq_nitpick_gcd [nitpick_unfold]: "gcd x y = Nitpick.nat_gcd x y"
+  by (induct x y rule: nat_gcd.induct)
+    (simp add: gcd_nat.simps Nitpick.nat_gcd.simps)
+
+lemma lcm_eq_nitpick_lcm [nitpick_unfold]: "lcm x y = Nitpick.nat_lcm x y"
+  by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 definition Frac :: "int \<times> int \<Rightarrow> bool" where
   "Frac \<equiv> \<lambda>(a, b). b > 0 \<and> int_gcd a b = 1"
