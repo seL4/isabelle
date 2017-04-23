@@ -1070,7 +1070,9 @@ session "HOLCF-Tutorial" in "HOLCF/Tutorial" = HOLCF +
 
 session "HOLCF-Library" in "HOLCF/Library" = HOLCF +
   options [document = false]
-  theories HOLCF_Library
+  theories
+    HOLCF_Library
+    HOL_Cpo
 
 session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
   description {*
