@@ -12,6 +12,23 @@ import java.io.{File => JFile}
 
 object Imports
 {
+  /* manifest */
+
+  def manifest_files(start: Path, pred: JFile => Boolean = _ => true): List[JFile] =
+    Mercurial.find_repository(start) match {
+      case None =>
+        Output.warning("Ignoring directory " + quote(start.toString) + " (no Mercurial repository)")
+        Nil
+      case Some(hg) =>
+        val start_path = start.file.getCanonicalFile.toPath
+        for {
+          name <- hg.manifest()
+          file = (hg.root + Path.explode(name)).file
+          if pred(file) && file.getCanonicalFile.toPath.startsWith(start_path)
+        } yield file
+    }
+
+
   /* update imports */
 
   sealed case class Update(range: Text.Range, old_text: String, new_text: String)
@@ -81,8 +98,12 @@ object Imports
     }
   }
 
+
+  /* collective operations */
+
   def imports(
     options: Options,
+    operation_manifest: Boolean = false,
     operation_update: Boolean = false,
     progress: Progress = No_Progress,
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -95,7 +116,19 @@ object Imports
 
     val deps =
       Sessions.deps(selected_sessions, progress = progress, verbose = verbose,
-        global_theories = full_sessions.global_theories)
+        global_theories = full_sessions.global_theories,
+        all_known = true)
+
+    if (operation_manifest) {
+      progress.echo("\nManifest check:")
+      val unused_files =
+        for {
+          (_, dir) <- Sessions.directories(dirs, select_dirs)
+          file <- manifest_files(dir, file => file.getName.endsWith(".thy"))
+          if deps.all_known.get_file(file).isEmpty
+        } yield file
+      unused_files.foreach(file => progress.echo("unused file " + quote(file.toString)))
+    }
 
     if (operation_update) {
       val updates =
@@ -156,6 +189,7 @@ object Imports
     Isabelle_Tool("imports", "maintain theory imports wrt. session structure", args =>
     {
       var select_dirs: List[Path] = Nil
+      var operation_manifest = false
       var requirements = false
       var operation_update = false
       var exclude_session_groups: List[String] = Nil
@@ -171,6 +205,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
   Options are:
     -D DIR       include session directory and select its sessions
+    -M           operation: Mercurial manifest check for imported theory files
     -R           operate on requirements of selected sessions
     -U           operation: update theory imports to use session qualifiers
     -X NAME      exclude sessions from group NAME and all descendants
@@ -185,6 +220,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
   needs to be specified (see option -U).
 """,
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+      "M" -> (_ => operation_manifest = true),
       "R" -> (_ => requirements = true),
       "U" -> (_ => operation_update = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -196,7 +232,8 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
       val sessions = getopts(args)
-      if (args.isEmpty || !operation_update) getopts.usage()
+      if (args.isEmpty || !(operation_manifest || operation_update))
+        getopts.usage()
 
       val selection =
         Sessions.Selection(requirements, all_sessions, exclude_session_groups,
@@ -204,7 +241,8 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      imports(options, operation_update = operation_update, progress = progress,
-        selection = selection, dirs = dirs, select_dirs = select_dirs, verbose = verbose)
+      imports(options, operation_manifest = operation_manifest, operation_update = operation_update,
+        progress = progress, selection = selection, dirs = dirs, select_dirs = select_dirs,
+        verbose = verbose)
     })
 }
