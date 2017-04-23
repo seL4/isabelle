@@ -17,7 +17,7 @@ object Imports
   def manifest_files(start: Path, pred: JFile => Boolean = _ => true): List[JFile] =
     Mercurial.find_repository(start) match {
       case None =>
-        Output.warning("Ignoring directory " + quote(start.toString) + " (no Mercurial repository)")
+        Output.warning("Ignoring directory " + start + " (no Mercurial repository)")
         Nil
       case Some(hg) =>
         val start_path = start.file.getCanonicalFile.toPath
@@ -66,38 +66,6 @@ object Imports
     }
   }
 
-  def apply_updates(updates: List[(JFile, Update)])
-  {
-    val file_updates = (Multi_Map.empty[JFile, Update] /: updates)(_ + _)
-    val conflicts =
-      file_updates.iterator_list.flatMap({ case (file, upds) =>
-        Library.duplicates(upds.sortBy(_.range.start),
-          (x: Update, y: Update) => x.range overlaps y.range) match
-        {
-          case Nil => None
-          case bad => Some((file, bad))
-        }
-      })
-    if (conflicts.nonEmpty)
-      error(cat_lines(
-        conflicts.map({ case (file, bad) =>
-          "Conflicting updates for file " + file + bad.mkString("\n  ", "\n  ", "") })))
-
-    for ((file, upds) <- file_updates.iterator_list) {
-      val edits =
-        upds.sortBy(upd => - upd.range.start).flatMap(upd =>
-          Text.Edit.replace(upd.range.start, upd.old_text, upd.new_text))
-      val new_text =
-        (File.read(file) /: edits)({ case (text, edit) =>
-          edit.edit(text, 0) match {
-            case (None, text1) => text1
-            case (Some(_), _) => error("Failed to apply edit " + edit + " to file " + file)
-          }
-        })
-      File.write_backup2(Path.explode(File.standard_path(file)), new_text)
-    }
-  }
-
 
   /* collective operations */
 
@@ -131,6 +99,7 @@ object Imports
     }
 
     if (operation_update) {
+      progress.echo("\nUpdate theory imports:")
       val updates =
         selected.flatMap(session_name =>
         {
@@ -178,7 +147,36 @@ object Imports
 
           updates_root ::: updates_theories
         })
-      apply_updates(updates)
+
+      val file_updates = (Multi_Map.empty[JFile, Update] /: updates)(_ + _)
+      val conflicts =
+        file_updates.iterator_list.flatMap({ case (file, upds) =>
+          Library.duplicates(upds.sortBy(_.range.start),
+            (x: Update, y: Update) => x.range overlaps y.range) match
+          {
+            case Nil => None
+            case bad => Some((file, bad))
+          }
+        })
+      if (conflicts.nonEmpty)
+        error(cat_lines(
+          conflicts.map({ case (file, bad) =>
+            "Conflicting updates for file " + file + bad.mkString("\n  ", "\n  ", "") })))
+
+      for ((file, upds) <- file_updates.iterator_list) {
+        progress.echo("file " + quote(file.toString))
+        val edits =
+          upds.sortBy(upd => - upd.range.start).flatMap(upd =>
+            Text.Edit.replace(upd.range.start, upd.old_text, upd.new_text))
+        val new_text =
+          (File.read(file) /: edits)({ case (text, edit) =>
+            edit.edit(text, 0) match {
+              case (None, text1) => text1
+              case (Some(_), _) => error("Failed to apply edit " + edit + " to file " + file)
+            }
+          })
+        File.write_backup2(Path.explode(File.standard_path(file)), new_text)
+      }
     }
   }
 
