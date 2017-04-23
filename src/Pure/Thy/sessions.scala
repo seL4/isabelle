@@ -448,6 +448,9 @@ object Sessions
     def build_topological_order: List[Info] =
       build_graph.topological_order.map(apply(_))
 
+    def imports_ancestors(name: String): List[String] =
+      imports_graph.all_preds(List(name)).tail.reverse
+
     def imports_topological_order: List[Info] =
       imports_graph.topological_order.map(apply(_))
 

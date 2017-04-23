@@ -71,6 +71,7 @@ object Imports
 
   def imports(
     options: Options,
+    operation_imports: Boolean = false,
     operation_manifest: Boolean = false,
     operation_update: Boolean = false,
     progress: Progress = No_Progress,
@@ -86,6 +87,34 @@ object Imports
       Sessions.deps(selected_sessions, progress = progress, verbose = verbose,
         global_theories = full_sessions.global_theories,
         all_known = true)
+
+    val root_keywords = Sessions.root_syntax.keywords
+
+
+    if (operation_imports) {
+      progress.echo("\nPotential session imports:")
+      selected.sorted.foreach(session_name =>
+      {
+        val info = full_sessions(session_name)
+        val session_resources = new Resources(deps(session_name))
+
+        val declared_imports =
+          full_sessions.imports_ancestors(session_name).toSet + session_name
+        val extra_imports =
+          (for {
+            (_, a) <- session_resources.session_base.known.theories.iterator
+            if session_resources.theory_qualifier(a) == info.theory_qualifier
+            b <- deps.all_known.get_file(Path.explode(a.node).file)
+            qualifier = session_resources.theory_qualifier(b)
+            if !declared_imports.contains(qualifier)
+          } yield qualifier).toSet
+
+        if (extra_imports.nonEmpty) {
+          progress.echo("session " + Token.quote_name(root_keywords, session_name) + ": " +
+            extra_imports.toList.sorted.map(Token.quote_name(root_keywords, _)).mkString(" "))
+        }
+      })
+    }
 
     if (operation_manifest) {
       progress.echo("\nManifest check:")
@@ -108,12 +137,6 @@ object Imports
           val session_resources = new Resources(session_base)
           val imports_resources = new Resources(session_base.get_imports)
 
-          val local_theories =
-            (for {
-              (_, name) <- session_base.known.theories_local.iterator
-              if session_resources.theory_qualifier(name) == info.theory_qualifier
-            } yield name).toSet
-
           def standard_import(qualifier: String, dir: String, s: String): String =
           {
             val name = imports_resources.import_name(qualifier, dir, s)
@@ -133,7 +156,7 @@ object Imports
           val updates_root =
             for {
               (_, pos) <- info.theories.flatMap(_._2)
-              upd <- update_name(Sessions.root_syntax.keywords, pos,
+              upd <- update_name(root_keywords, pos,
                 standard_import(info.theory_qualifier, info.dir.implode, _))
             } yield upd
 
@@ -163,7 +186,7 @@ object Imports
           conflicts.map({ case (file, bad) =>
             "Conflicting updates for file " + file + bad.mkString("\n  ", "\n  ", "") })))
 
-      for ((file, upds) <- file_updates.iterator_list) {
+      for ((file, upds) <- file_updates.iterator_list.toList.sortBy(p => p._1.toString)) {
         progress.echo("file " + quote(file.toString))
         val edits =
           upds.sortBy(upd => - upd.range.start).flatMap(upd =>
@@ -187,6 +210,7 @@ object Imports
     Isabelle_Tool("imports", "maintain theory imports wrt. session structure", args =>
     {
       var select_dirs: List[Path] = Nil
+      var operation_imports = false
       var operation_manifest = false
       var requirements = false
       var operation_update = false
@@ -203,6 +227,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
   Options are:
     -D DIR       include session directory and select its sessions
+    -I           operation: report potential session imports
     -M           operation: Mercurial manifest check for imported theory files
     -R           operate on requirements of selected sessions
     -U           operation: update theory imports to use session qualifiers
@@ -215,9 +240,10 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
     -x NAME      exclude session NAME and all descendants
 
   Maintain theory imports wrt. session structure. At least one operation
-  needs to be specified (see option -U).
+  needs to be specified (see options -I -M -U).
 """,
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+      "I" -> (_ => operation_imports = true),
       "M" -> (_ => operation_manifest = true),
       "R" -> (_ => requirements = true),
       "U" -> (_ => operation_update = true),
@@ -230,7 +256,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
       val sessions = getopts(args)
-      if (args.isEmpty || !(operation_manifest || operation_update))
+      if (args.isEmpty || !(operation_imports || operation_manifest || operation_update))
         getopts.usage()
 
       val selection =
@@ -239,7 +265,8 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      imports(options, operation_manifest = operation_manifest, operation_update = operation_update,
+      imports(options, operation_imports = operation_imports,
+        operation_manifest = operation_manifest, operation_update = operation_update,
         progress = progress, selection = selection, dirs = dirs, select_dirs = select_dirs,
         verbose = verbose)
     })
