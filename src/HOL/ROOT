@@ -128,7 +128,7 @@ session "HOL-Induct" in Induct = "HOL-Library" +
     Term
     SList
     ABexp
-    Tree
+    Infinitely_Branching_Tree
     Ordinals
     Sigma_Algebra
     Comb
@@ -565,6 +565,7 @@ session "HOL-ex" in ex = "HOL-Library" +
     Bubblesort
     CTL
     Cartouche_Examples
+    Case_Product
     Chinese
     Classical
     Code_Binary_Nat_examples

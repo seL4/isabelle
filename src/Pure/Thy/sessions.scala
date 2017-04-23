@@ -274,8 +274,7 @@ object Sessions
     val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
 
     if (all_known) {
-      val deps = Sessions.deps(
-        full_sessions, global_theories = global_theories, all_known = all_known)
+      val deps = Sessions.deps(full_sessions, global_theories = global_theories, all_known = true)
       deps(session).copy(known = deps.all_known)
     }
     else
@@ -448,6 +447,9 @@ object Sessions
 
     def build_topological_order: List[Info] =
       build_graph.topological_order.map(apply(_))
+
+    def imports_ancestors(name: String): List[String] =
+      imports_graph.all_preds(List(name)).tail.reverse
 
     def imports_topological_order: List[Info] =
       imports_graph.topological_order.map(apply(_))
@@ -629,6 +631,12 @@ object Sessions
     if (is_session_dir(dir)) File.pwd() + dir.expand
     else error("Bad session root directory: " + dir.toString)
 
+  def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
+  {
+    val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
+    (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
+  }
+
   def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): T =
   {
     def load_dir(select: Boolean, dir: Path): List[(String, Info)] =
@@ -656,11 +664,9 @@ object Sessions
       else Nil
     }
 
-    val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
-
     make(
       for {
-        (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
+        (select, dir) <- directories(dirs, select_dirs)
         info <- load_dir(select, check_session_dir(dir))
       } yield info)
   }

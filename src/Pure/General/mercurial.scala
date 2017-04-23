@@ -35,6 +35,19 @@ object Mercurial
     hg
   }
 
+  def find_repository(start: Path, ssh: Option[SSH.Session] = None): Option[Repository] =
+  {
+    def find(root: Path): Option[Repository] =
+      if (is_repository(root, ssh)) Some(repository(root, ssh = ssh))
+      else if (root.is_root) None
+      else find(root + Path.parent)
+
+    ssh match {
+      case None => find(start.expand)
+      case Some(ssh) => find(ssh.expand_path(start))
+    }
+  }
+
   def clone_repository(
     source: String, root: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
   {

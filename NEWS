@@ -201,6 +201,13 @@ Proofterm.proofs variable for a session. Regular values are are 0, 1, 2;
 a negative value means the current state in the ML heap image remains
 unchanged.
 
+* Command-line tool "isabelle imports" helps to maintain theory imports
+wrt. session structure. Examples:
+
+  isabelle imports -I -a
+  isabelle imports -U -a
+  isabelle imports -M -a -d '~~/src/Benchmarks'
+
 
 
 New in Isabelle2016-1 (December 2016)

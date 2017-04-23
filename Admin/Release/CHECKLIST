@@ -11,6 +11,7 @@ Checklist for official releases
 
 - check sources:
     isabelle check_sources '~~' '$AFP_BASE'
+    isabelle imports -M -a -d '~~/src/Benchmarks'
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
