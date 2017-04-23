@@ -202,7 +202,11 @@ a negative value means the current state in the ML heap image remains
 unchanged.
 
 * Command-line tool "isabelle imports" helps to maintain theory imports
-wrt. session structure.
+wrt. session structure. Examples:
+
+  isabelle imports -I -a
+  isabelle imports -U -a
+  isabelle imports -M -a -d '~~/src/Benchmarks'
 
 
 
