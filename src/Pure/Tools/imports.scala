@@ -1,7 +1,7 @@
-/*  Title:      Pure/Tools/update_imports.scala
+/*  Title:      Pure/Tools/imports.scala
     Author:     Makarius
 
-Update theory imports to use session qualifiers.
+Maintain theory imports wrt. session structure.
 */
 
 package isabelle
@@ -10,7 +10,7 @@ package isabelle
 import java.io.{File => JFile}
 
 
-object Update_Imports
+object Imports
 {
   /* update imports */
 
@@ -148,7 +148,7 @@ object Update_Imports
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("update_imports", "update theory imports to use session qualifiers", args =>
+    Isabelle_Tool("imports", "maintain theory imports wrt. session structure", args =>
     {
       var select_dirs: List[Path] = Nil
       var requirements = false
@@ -161,7 +161,7 @@ object Update_Imports
       var exclude_sessions: List[String] = Nil
 
       val getopts = Getopts("""
-Usage: isabelle update_imports [OPTIONS] [SESSIONS ...]
+Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
   Options are:
     -D DIR       include session directory and select its sessions
@@ -174,7 +174,7 @@ Usage: isabelle update_imports [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Update theory imports to use session qualifiers.
+  Maintain theory imports wrt. session structure.
 
   Old versions of files are preserved by appending "~~".
 """,
