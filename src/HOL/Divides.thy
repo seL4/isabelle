@@ -164,6 +164,15 @@ lemma mult_mod_right: "c * (a mod b) = (c * a) mod (c * b)"
 lemma dvd_mod: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m mod n)"
   unfolding dvd_def by (auto simp add: mod_mult_mult1)
 
+lemma div_plus_div_distrib_dvd_left:
+  "c dvd a \<Longrightarrow> (a + b) div c = a div c + b div c"
+  by (cases "c = 0") (auto elim: dvdE)
+
+lemma div_plus_div_distrib_dvd_right:
+  "c dvd b \<Longrightarrow> (a + b) div c = a div c + b div c"
+  using div_plus_div_distrib_dvd_left [of c b a]
+  by (simp add: ac_simps)
+
 named_theorems mod_simps
 
 text \<open>Addition respects modular equivalence.\<close>
