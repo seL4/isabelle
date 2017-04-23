@@ -49,69 +49,6 @@ object Imports
     }
   }
 
-  def update_imports(
-    options: Options,
-    progress: Progress = No_Progress,
-    selection: Sessions.Selection = Sessions.Selection.empty,
-    dirs: List[Path] = Nil,
-    select_dirs: List[Path] = Nil,
-    verbose: Boolean = false): List[(JFile, Update)] =
-  {
-    val full_sessions = Sessions.load(options, dirs, select_dirs)
-    val (selected, selected_sessions) = full_sessions.selection(selection)
-
-    val deps =
-      Sessions.deps(selected_sessions, progress = progress, verbose = verbose,
-        global_theories = full_sessions.global_theories)
-
-    selected.flatMap(session_name =>
-    {
-      val info = full_sessions(session_name)
-      val session_base = deps(session_name)
-      val session_resources = new Resources(session_base)
-      val imports_resources = new Resources(session_base.get_imports)
-
-      val local_theories =
-        (for {
-          (_, name) <- session_base.known.theories_local.iterator
-          if session_resources.theory_qualifier(name) == info.theory_qualifier
-        } yield name).toSet
-
-      def standard_import(qualifier: String, dir: String, s: String): String =
-      {
-        val name = imports_resources.import_name(qualifier, dir, s)
-        val file = Path.explode(name.node).file
-        val s1 =
-          imports_resources.session_base.known.get_file(file) match {
-            case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
-              name1.theory
-            case Some(name1) if Thy_Header.is_base_name(s) =>
-              name1.theory_base_name
-            case _ => s
-          }
-        val name2 = imports_resources.import_name(qualifier, dir, s1)
-        if (name.node == name2.node) s1 else s
-      }
-
-      val updates_root =
-        for {
-          (_, pos) <- info.theories.flatMap(_._2)
-          upd <- update_name(Sessions.root_syntax.keywords, pos,
-            standard_import(info.theory_qualifier, info.dir.implode, _))
-        } yield upd
-
-      val updates_theories =
-        for {
-          (_, name) <- session_base.known.theories_local.toList
-          (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
-          upd <- update_name(session_base.syntax.keywords, pos,
-            standard_import(session_resources.theory_qualifier(name), name.master_dir, _))
-        } yield upd
-
-      updates_root ::: updates_theories
-    })
-  }
-
   def apply_updates(updates: List[(JFile, Update)])
   {
     val file_updates = (Multi_Map.empty[JFile, Update] /: updates)(_ + _)
@@ -144,6 +81,74 @@ object Imports
     }
   }
 
+  def imports(
+    options: Options,
+    operation_update: Boolean = false,
+    progress: Progress = No_Progress,
+    selection: Sessions.Selection = Sessions.Selection.empty,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
+    verbose: Boolean = false) =
+  {
+    val full_sessions = Sessions.load(options, dirs, select_dirs)
+    val (selected, selected_sessions) = full_sessions.selection(selection)
+
+    val deps =
+      Sessions.deps(selected_sessions, progress = progress, verbose = verbose,
+        global_theories = full_sessions.global_theories)
+
+    if (operation_update) {
+      val updates =
+        selected.flatMap(session_name =>
+        {
+          val info = full_sessions(session_name)
+          val session_base = deps(session_name)
+          val session_resources = new Resources(session_base)
+          val imports_resources = new Resources(session_base.get_imports)
+
+          val local_theories =
+            (for {
+              (_, name) <- session_base.known.theories_local.iterator
+              if session_resources.theory_qualifier(name) == info.theory_qualifier
+            } yield name).toSet
+
+          def standard_import(qualifier: String, dir: String, s: String): String =
+          {
+            val name = imports_resources.import_name(qualifier, dir, s)
+            val file = Path.explode(name.node).file
+            val s1 =
+              imports_resources.session_base.known.get_file(file) match {
+                case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
+                  name1.theory
+                case Some(name1) if Thy_Header.is_base_name(s) =>
+                  name1.theory_base_name
+                case _ => s
+              }
+            val name2 = imports_resources.import_name(qualifier, dir, s1)
+            if (name.node == name2.node) s1 else s
+          }
+
+          val updates_root =
+            for {
+              (_, pos) <- info.theories.flatMap(_._2)
+              upd <- update_name(Sessions.root_syntax.keywords, pos,
+                standard_import(info.theory_qualifier, info.dir.implode, _))
+            } yield upd
+
+          val updates_theories =
+            for {
+              (_, name) <- session_base.known.theories_local.toList
+              (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
+              upd <- update_name(session_base.syntax.keywords, pos,
+                standard_import(session_resources.theory_qualifier(name), name.master_dir, _))
+            } yield upd
+
+          updates_root ::: updates_theories
+        })
+      apply_updates(updates)
+    }
+  }
+
 
   /* Isabelle tool wrapper */
 
@@ -152,6 +157,7 @@ object Imports
     {
       var select_dirs: List[Path] = Nil
       var requirements = false
+      var operation_update = false
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
       var dirs: List[Path] = Nil
@@ -166,6 +172,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
   Options are:
     -D DIR       include session directory and select its sessions
     -R           operate on requirements of selected sessions
+    -U           operation: update theory imports to use session qualifiers
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -d DIR       include session directory
@@ -174,12 +181,12 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Maintain theory imports wrt. session structure.
-
-  Old versions of files are preserved by appending "~~".
+  Maintain theory imports wrt. session structure. At least one operation
+  needs to be specified (see option -U).
 """,
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "R" -> (_ => requirements = true),
+      "U" -> (_ => operation_update = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
@@ -189,7 +196,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
       val sessions = getopts(args)
-      if (args.isEmpty) getopts.usage()
+      if (args.isEmpty || !operation_update) getopts.usage()
 
       val selection =
         Sessions.Selection(requirements, all_sessions, exclude_session_groups,
@@ -197,10 +204,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      val updates =
-        update_imports(options, progress = progress, selection = selection,
-          dirs = dirs, select_dirs = select_dirs, verbose = verbose)
-
-      apply_updates(updates)
+      imports(options, operation_update = operation_update, progress = progress,
+        selection = selection, dirs = dirs, select_dirs = select_dirs, verbose = verbose)
     })
 }
