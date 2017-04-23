@@ -690,7 +690,7 @@ session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
     SET_Protocol
   document_files "root.tex"
 
-session "HOL-Matrix_LP" in Matrix_LP = HOL +
+session "HOL-Matrix_LP" in Matrix_LP = "HOL-Library" +
   description {*
     Two-dimensional matrices and linear programming.
   *}
@@ -982,7 +982,7 @@ session "HOL-Mutabelle" in Mutabelle = HOL +
   options [document = false]
   theories MutabelleExtra
 
-session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = HOL +
+session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = "HOL-Library" +
   options [document = false]
   theories
     Quickcheck_Examples
@@ -994,7 +994,7 @@ session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = HOL +
     Hotel_Example
     Quickcheck_Narrowing_Examples
 
-session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Library" +
+session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Algebra" +
   description {*
     Author:     Cezary Kaliszyk and Christian Urban
   *}
@@ -1012,7 +1012,7 @@ session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Library" +
     Int_Pow
     Lifting_Code_Dt_Test
 
-session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples = HOL +
+session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples = "HOL-Library" +
   options [document = false]
   theories
     Examples

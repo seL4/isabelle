@@ -198,7 +198,7 @@ session "ZF-Resid" (ZF) in Resid = ZF +
   options [document = false]
   theories Confluence
 
-session "ZF-UNITY" (timing ZF) in UNITY = ZF +
+session "ZF-UNITY" (timing ZF) in UNITY = "ZF-Induct" +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
