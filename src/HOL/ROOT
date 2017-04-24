@@ -812,20 +812,18 @@ session "HOL-Cardinals" (timing) in Cardinals = "HOL-Library" +
     "root.tex"
     "root.bib"
 
-session "HOL-Datatype_Examples" (timing) in Datatype_Examples = HOL +
+session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
   description {*
     (Co)datatype Examples.
   *}
   options [document = false]
-  sessions
-    "HOL-Library"
   theories
     Compat
     Lambda_Term
     Process
     TreeFsetI
     "Derivation_Trees/Gram_Lang"
-    "Derivation_Trees/Parallel"
+    "Derivation_Trees/Parallel_Composition"
     Koenig
     Lift_BNF
     Milner_Tofte

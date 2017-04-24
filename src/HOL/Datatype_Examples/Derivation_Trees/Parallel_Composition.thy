@@ -1,4 +1,4 @@
-(*  Title:      HOL/Datatype_Examples/Derivation_Trees/Parallel.thy
+(*  Title:      HOL/Datatype_Examples/Derivation_Trees/Parallel_Composition.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -7,7 +7,7 @@ Parallel composition.
 
 section \<open>Parallel Composition\<close>
 
-theory Parallel
+theory Parallel_Composition
 imports DTree
 begin
 
