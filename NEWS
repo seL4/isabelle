@@ -52,9 +52,10 @@ tutorial on code generation.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Command-line invocation "isabelle jedit -R -l LOGIC" opens the ROOT
-entry of the specified logic session in the editor, while its parent is
-used for formal checking.
+* Command-line invocation "isabelle jedit -R -l SESSION" uses the parent
+image of the SESSION, with qualified theory imports restricted to that
+portion of the session graph. Moreover, the ROOT entry of the SESSION is
+opened in the editor.
 
 * The PIDE document model maintains file content independently of the
 status of jEdit editor buffers. Reloading jEdit buffers no longer causes

@@ -30,6 +30,9 @@ object JEdit_Sessions
       case s => options.string("ML_process_policy") = s
     }
 
+  def session_restricted(): Boolean =
+    Isabelle_System.getenv("JEDIT_LOGIC_RESTRICT") == "true"
+
   def session_info(options: Options): Info =
   {
     val logic =
@@ -43,16 +46,19 @@ object JEdit_Sessions
         catch { case ERROR(_) => None }
       info <- sessions.get(logic)
       parent <- info.parent
-      if Isabelle_System.getenv("JEDIT_LOGIC_ROOT") == "true"
+      if session_restricted()
     } yield Info(parent, info.pos)) getOrElse Info(logic, Position.none)
   }
 
   def session_name(options: Options): String = session_info(options).name
 
   def session_base(options: Options): Sessions.Base =
+  {
+    val all_known = !session_restricted()
     Sessions.session_base(
-      options, session_name(options), dirs = JEdit_Sessions.session_dirs(), all_known = true)
+      options, session_name(options), dirs = JEdit_Sessions.session_dirs(), all_known = all_known)
     .platform_path
+  }
 
   def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
 
