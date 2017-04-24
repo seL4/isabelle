@@ -1,6 +1,6 @@
 chapter HOL
 
-session "HOL-Datatype_Benchmark" in Datatype_Benchmark = HOL +
+session "HOL-Datatype_Benchmark" in Datatype_Benchmark = "HOL-Library" +
   description {*
     Big (co)datatypes.
   *}
@@ -10,7 +10,7 @@ session "HOL-Datatype_Benchmark" in Datatype_Benchmark = HOL +
     IsaFoR
     Misc_N2M
 
-session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = HOL +
+session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = "HOL-Library" +
   theories [quick_and_dirty]
     Find_Unused_Assms_Examples
     Needham_Schroeder_No_Attacker_Example

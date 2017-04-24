@@ -96,6 +96,8 @@ session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
     subspaces (not only one-dimensional subspaces), can be extended to a
     continous linearform on the whole vectorspace.
   *}
+  sessions
+    "HOL-Analysis"
   theories
     Hahn_Banach
   document_files "root.bib" "root.tex"
@@ -136,7 +138,7 @@ session "HOL-Induct" in Induct = "HOL-Library" +
     Com
   document_files "root.tex"
 
-session "HOL-IMP" (timing) in IMP = HOL +
+session "HOL-IMP" (timing) in IMP = "HOL-Library" +
   options [document_variants = document]
   theories [document = false]
     "~~/src/HOL/Library/While_Combinator"
@@ -192,6 +194,8 @@ session "HOL-IMPP" in IMPP = HOL +
 
 session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
   options [document_variants = document]
+  sessions
+    "HOL-Number_Theory"
   theories [document = false]
     Less_False
     "~~/src/HOL/Library/Multiset"
@@ -248,6 +252,9 @@ session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
   options [document = false, browser_info = false]
+  sessions
+    "HOL-Data_Structures"
+    "HOL-ex"
   theories
     Generate
     Generate_Binary_Nat
@@ -265,7 +272,7 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
   theories [condition = "ISABELLE_SMLNJ"]
     Code_Test_SMLNJ
 
-session "HOL-Metis_Examples" (timing) in Metis_Examples = HOL +
+session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -273,6 +280,8 @@ session "HOL-Metis_Examples" (timing) in Metis_Examples = HOL +
     Testing Metis and Sledgehammer.
   *}
   options [document = false]
+  sessions
+    "HOL-Decision_Procs"
   theories
     Abstraction
     Big_O
@@ -284,7 +293,7 @@ session "HOL-Metis_Examples" (timing) in Metis_Examples = HOL +
     Trans_Closure
     Sets
 
-session "HOL-Nitpick_Examples" in Nitpick_Examples = HOL +
+session "HOL-Nitpick_Examples" in Nitpick_Examples = "HOL-Library" +
   description {*
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009
@@ -332,7 +341,7 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
     More_Ring
   document_files "root.bib" "root.tex"
 
-session "HOL-Auth" (timing) in Auth = HOL +
+session "HOL-Auth" (timing) in Auth = "HOL-Library" +
   description {*
     A new approach to verifying authentication protocols.
   *}
@@ -388,13 +397,15 @@ session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
     ELT
   document_files "root.tex"
 
-session "HOL-Unix" in Unix = HOL +
+session "HOL-Unix" in Unix = "HOL-Library" +
   options [print_mode = "no_brackets,no_type_brackets"]
   theories Unix
   document_files "root.bib" "root.tex"
 
-session "HOL-ZF" in ZF = HOL +
-  theories MainZF Games
+session "HOL-ZF" in ZF = "HOL-Library" +
+  theories
+    MainZF
+    Games
   document_files "root.tex"
 
 session "HOL-Imperative_HOL" in Imperative_HOL = "HOL-Library" +
@@ -416,6 +427,8 @@ session "HOL-Decision_Procs" (timing) in Decision_Procs = "HOL-Algebra" +
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
   options [document = false]
+  sessions
+    "HOL-Isar_Examples"
   theories
     Hilbert_Classical
     Proof_Terms
@@ -482,6 +495,8 @@ session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
     machine and a specification of its bytecode verifier and a lightweight
     bytecode verifier, including proofs of type-safety.
   *}
+  sessions
+    "HOL-Eisbach"
   theories [document = false]
     "~~/src/HOL/Library/While_Combinator"
   theories
@@ -498,7 +513,7 @@ session "HOL-NanoJava" in NanoJava = HOL +
   theories Example
   document_files "root.bib" "root.tex"
 
-session "HOL-Bali" (timing) in Bali = HOL +
+session "HOL-Bali" (timing) in Bali = "HOL-Library" +
   theories
     AxExample
     AxSound
@@ -716,7 +731,7 @@ session "HOL-TLA-Memory" in "TLA/Memory" = "HOL-TLA" +
   options [document = false]
   theories MemoryImplementation
 
-session "HOL-TPTP" in TPTP = HOL +
+session "HOL-TPTP" in TPTP = "HOL-Library" +
   description {*
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Nik Sultana, University of Cambridge
@@ -753,7 +768,10 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
 
 session "HOL-Nominal" in Nominal = HOL +
   options [document = false]
-  theories Nominal
+  sessions
+    "HOL-Library"
+  theories
+    Nominal
 
 session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
   options [document = false]
@@ -781,7 +799,7 @@ session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
   theories [quick_and_dirty]
     VC_Condition
 
-session "HOL-Cardinals" (timing) in Cardinals = HOL +
+session "HOL-Cardinals" (timing) in Cardinals = "HOL-Library" +
   description {*
     Ordinals and Cardinals, Full Theories.
   *}
@@ -799,6 +817,8 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = HOL +
     (Co)datatype Examples.
   *}
   options [document = false]
+  sessions
+    "HOL-Library"
   theories
     Compat
     Lambda_Term
@@ -815,7 +835,7 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = HOL +
     Misc_Primcorec
     Misc_Primrec
 
-session "HOL-Corec_Examples" (timing) in Corec_Examples = HOL +
+session "HOL-Corec_Examples" (timing) in Corec_Examples = "HOL-Library" +
   description {*
     Corecursion Examples.
   *}
@@ -838,6 +858,8 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = HOL +
     "Tests/Type_Class"
 
 session "HOL-Word" (main timing) in Word = HOL +
+  sessions
+    "HOL-Library"
   theories
     Word
   document_files "root.bib" "root.tex"
@@ -944,7 +966,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
     "RIPEMD-160/rmd/s_r.rls"
     "RIPEMD-160/rmd/s_r.siv"
 
-session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
+session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK-Examples" +
   options [show_question_marks = false, spark_prv = false]
   theories
     Example_Verification
@@ -978,7 +1000,7 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     "Simple_Gcd.adb"
     "Simple_Gcd.ads"
 
-session "HOL-Mutabelle" in Mutabelle = HOL +
+session "HOL-Mutabelle" in Mutabelle = "HOL-Library" +
   options [document = false]
   theories MutabelleExtra
 
@@ -1081,10 +1103,13 @@ session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
     This is the HOLCF-based denotational semantics of a simple WHILE-language.
   *}
   options [document = false]
-  theories HoareEx
+  sessions
+    "HOL-IMP"
+  theories
+    HoareEx
   document_files "root.tex"
 
-session "HOLCF-ex" in "HOLCF/ex" = HOLCF +
+session "HOLCF-ex" in "HOLCF/ex" = "HOLCF-Library" +
   description {*
     Miscellaneous examples for HOLCF.
   *}
@@ -1102,7 +1127,7 @@ session "HOLCF-ex" in "HOLCF/ex" = HOLCF +
     Letrec
     Pattern_Match
 
-session "HOLCF-FOCUS" in "HOLCF/FOCUS" = HOLCF +
+session "HOLCF-FOCUS" in "HOLCF/FOCUS" = "HOLCF-Library" +
   description {*
     FOCUS: a theory of stream-processing functions Isabelle/HOLCF.
 

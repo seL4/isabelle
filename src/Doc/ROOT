@@ -46,6 +46,8 @@ session Codegen (doc) in "Codegen" = "Codegen_Basics" +
 
 session Corec (doc) in "Corec" = "HOL-Library" +
   options [document_variants = "corec"]
+  sessions
+    Datatypes
   theories [document = false] "../Datatypes/Setup"
   theories Corec
   document_files (in "..")
@@ -170,7 +172,7 @@ session Implementation (doc) in "Implementation" = "HOL" +
     "root.tex"
     "style.sty"
 
-session Isar_Ref (doc) in "Isar_Ref" = HOL +
+session Isar_Ref (doc) in "Isar_Ref" = "HOL-Library" +
   options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
   theories
     Preface
@@ -244,7 +246,9 @@ session JEdit (doc) in "JEdit" = HOL +
 
 session Sugar (doc) in "Sugar" = HOL +
   options [document_variants = "sugar"]
-  theories [document = ""]
+  sessions
+    "HOL-Library"
+  theories [document = false]
     "~~/src/HOL/Library/LaTeXsugar"
     "~~/src/HOL/Library/OptionalSugar"
   theories Sugar
@@ -436,7 +440,7 @@ session Tutorial (doc) in "Tutorial" = HOL +
   theories
     "Protocol/NS_Public"
     "Documents/Documents"
-  theories [document = ""]
+  theories [document = false]
     "Types/Setup"
   theories [thy_output_margin = 64, thy_output_indent = 0]
     "Types/Numbers"
@@ -502,7 +506,7 @@ session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = "Typeclass_Hierarch
     "root.tex"
     "style.sty"
 
-session Typeclass_Hierarchy_Basics in "Typeclass_Hierarchy" = "HOL" +
+session Typeclass_Hierarchy_Basics in "Typeclass_Hierarchy" = "HOL-Library" +
   options [document = false]
   theories
     Setup
