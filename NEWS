@@ -74,7 +74,7 @@ buffers.
 *** HOL ***
 
 * Theories "GCD" and "Binomial" are already included in "Main" (instead
-of "Complex_Main".
+of "Complex_Main").
 
 * Constants E/L/F in Library/Formal_Power_Series were renamed to
 fps_exp/fps_ln/fps_hypergeo to avoid polluting the name space.
