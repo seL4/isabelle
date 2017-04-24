@@ -68,16 +68,8 @@ class Plugin extends EBPlugin
   /* resources */
 
   private var _resources: JEdit_Resources = null
-  private def init_resources()
-  {
-    val options = this.options.value
-    val session_name = JEdit_Sessions.session_name(options)
-    val session_base =
-      Sessions.session_base(
-        options, session_name, dirs = JEdit_Sessions.session_dirs(), all_known = true)
-
-    _resources = new JEdit_Resources(session_base.platform_path)
-  }
+  private def init_resources(): Unit =
+    _resources = new JEdit_Resources(JEdit_Sessions.session_base(options.value))
   def resources: JEdit_Resources = _resources
 
 

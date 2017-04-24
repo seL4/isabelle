@@ -49,6 +49,11 @@ object JEdit_Sessions
 
   def session_name(options: Options): String = session_info(options).name
 
+  def session_base(options: Options): Sessions.Base =
+    Sessions.session_base(
+      options, session_name(options), dirs = JEdit_Sessions.session_dirs(), all_known = true)
+    .platform_path
+
   def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
 
   def session_build(
