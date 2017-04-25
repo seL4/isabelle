@@ -138,7 +138,7 @@ qed
 end
 
 
-subsection \<open>Numerals, Arithmetic, and Embedding from \<real>\<close>
+subsection \<open>Numerals, Arithmetic, and Embedding from R\<close>
 
 abbreviation complex_of_real :: "real \<Rightarrow> complex"
   where "complex_of_real \<equiv> of_real"
