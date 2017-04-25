@@ -502,6 +502,10 @@ object Sessions
       theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
       files: List[String],
       document_files: List[(String, String)]) extends Entry
+    {
+      def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
+        theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
+    }
 
     private val chapter: Parser[Chapter] =
     {
@@ -583,8 +587,8 @@ object Sessions
             entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
 
           val meta_digest =
-            SHA1.digest((entry_chapter, name, entry.parent, entry.options,
-              entry.imports, entry.theories, entry.files, entry.document_files).toString)
+            SHA1.digest((entry_chapter, name, entry.parent, entry.options, entry.imports,
+              entry.theories_no_position, entry.files, entry.document_files).toString)
 
           val info =
             Info(name, entry_chapter, select, entry.pos, entry.groups,
