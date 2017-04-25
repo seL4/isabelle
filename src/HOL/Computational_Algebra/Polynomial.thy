@@ -1363,6 +1363,9 @@ subsection \<open>Polynomials form an integral domain\<close>
 
 instance poly :: (idom) idom ..
 
+instance poly :: ("{ring_char_0, comm_ring_1}") ring_char_0
+  by standard (auto simp add: of_nat_poly intro: injI)
+
 lemma degree_mult_eq: "p \<noteq> 0 \<Longrightarrow> q \<noteq> 0 \<Longrightarrow> degree (p * q) = degree p + degree q"
   for p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   by (rule order_antisym [OF degree_mult_le le_degree]) (simp add: coeff_mult_degree_sum)
