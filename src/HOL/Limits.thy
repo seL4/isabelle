@@ -1799,10 +1799,12 @@ lemma Lim_cong_at(*[cong add]*):
   using assms by simp
 
 text \<open>An unbounded sequence's inverse tends to 0.\<close>
-lemma LIMSEQ_inverse_zero: "\<forall>r::real. \<exists>N. \<forall>n\<ge>N. r < X n \<Longrightarrow> (\<lambda>n. inverse (X n)) \<longlonglongrightarrow> 0"
+lemma LIMSEQ_inverse_zero:
+  assumes "\<And>r::real. \<exists>N. \<forall>n\<ge>N. r < X n"
+  shows "(\<lambda>n. inverse (X n)) \<longlonglongrightarrow> 0"
   apply (rule filterlim_compose[OF tendsto_inverse_0])
   apply (simp add: filterlim_at_infinity[OF order_refl] eventually_sequentially)
-  apply (metis abs_le_D1 linorder_le_cases linorder_not_le)
+  apply (metis assms abs_le_D1 linorder_le_cases linorder_not_le)
   done
 
 text \<open>The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity.\<close>
@@ -2189,16 +2191,16 @@ lemma LIM_offset_zero_iff: "f \<midarrow>a\<rightarrow> L \<longleftrightarrow> 
   using LIM_offset_zero_cancel[of f a L] LIM_offset_zero[of f L a] by auto
 
 lemma LIM_zero: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. f x - l) \<longlongrightarrow> 0) F"
-  for f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  for f :: "'a \<Rightarrow> 'b::real_normed_vector"
   unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_cancel:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   shows "((\<lambda>x. f x - l) \<longlongrightarrow> 0) F \<Longrightarrow> (f \<longlongrightarrow> l) F"
 unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_iff: "((\<lambda>x. f x - l) \<longlongrightarrow> 0) F = (f \<longlongrightarrow> l) F"
-  for f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  for f :: "'a \<Rightarrow> 'b::real_normed_vector"
   unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_imp_LIM:

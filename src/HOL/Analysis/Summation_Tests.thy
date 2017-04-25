@@ -246,9 +246,9 @@ lemma abs_summable_complex_powr_iff:
 proof (cases "Re s \<le> 0")
   let ?l = "\<lambda>n. complex_of_real (ln (of_nat n))"
   case False
-  with eventually_gt_at_top[of "0::nat"]
-    have "eventually (\<lambda>n. norm (1 :: real) \<le> norm (exp (?l n * s))) sequentially"
-    by (auto intro!: ge_one_powr_ge_zero elim!: eventually_mono)
+  have "eventually (\<lambda>n. norm (1 :: real) \<le> norm (exp (?l n * s))) sequentially"
+    apply (rule eventually_mono [OF eventually_gt_at_top[of "0::nat"]])
+    using False ge_one_powr_ge_zero by auto
   from summable_comparison_test_ev[OF this] False show ?thesis by (auto simp: summable_const_iff)
 next
   let ?l = "\<lambda>n. complex_of_real (ln (of_nat n))"
@@ -387,11 +387,11 @@ proof
     by (auto simp: eventually_at_top_linorder)
   hence A: "p n * f n < p (Suc n) * f (Suc n)" if "n \<ge> N" for n using that N[of n] N[of "Suc n"]
     by (simp add: field_simps)
-  have "p n * f n \<ge> p N * f N" if "n \<ge> N" for n using that and A
-      by (induction n rule: dec_induct) (auto intro!: less_imp_le elim!: order.trans)
-  from eventually_ge_at_top[of N] N this
-    have "eventually (\<lambda>n. norm (p N * f N * inverse (p n)) \<le> f n) sequentially"
-    by (auto elim!: eventually_mono simp: field_simps abs_of_pos)
+  have B: "p n * f n \<ge> p N * f N" if "n \<ge> N" for n using that and A
+    by (induction n rule: dec_induct) (auto intro!: less_imp_le elim!: order.trans)
+  have "eventually (\<lambda>n. norm (p N * f N * inverse (p n)) \<le> f n) sequentially"
+    apply (rule eventually_mono [OF eventually_ge_at_top[of N]])
+    using B N  by (auto  simp: field_simps abs_of_pos)
   from this and \<open>summable f\<close> have "summable (\<lambda>n. p N * f N * inverse (p n))"
     by (rule summable_comparison_test_ev)
   from summable_mult[OF this, of "inverse (p N * f N)"] N[OF le_refl]
@@ -779,9 +779,8 @@ lemma conv_radius_mult_power:
 proof -
   have "limsup (\<lambda>n. ereal (root n (norm (c ^ n * f n)))) =
           limsup (\<lambda>n. ereal (norm c) * ereal (root n (norm (f n))))"
-    using eventually_gt_at_top[of "0::nat"]
-    by (intro Limsup_eq)
-       (auto elim!: eventually_mono simp: norm_mult norm_power real_root_mult real_root_power)
+    by (intro Limsup_eq eventually_mono [OF eventually_gt_at_top[of "0::nat"]])
+       (auto simp: norm_mult norm_power real_root_mult real_root_power)
   also have "\<dots> = ereal (norm c) * limsup (\<lambda>n. ereal (root n (norm (f n))))"
     using assms by (subst Limsup_ereal_mult_left[symmetric]) simp_all
   finally have A: "limsup (\<lambda>n. ereal (root n (norm (c ^ n * f n)))) =

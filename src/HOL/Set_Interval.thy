@@ -1892,7 +1892,7 @@ lemma sum_lessThan_telescope':
   by (induction m) (simp_all add: algebra_simps)
 
 
-subsubsection \<open>The formula for geometric sums\<close>
+subsection \<open>The formula for geometric sums\<close>
 
 lemma geometric_sum:
   assumes "x \<noteq> 1"
@@ -1947,6 +1947,71 @@ lemma one_diff_power_eq:
   shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
 by (metis one_diff_power_eq' [of n x] nat_diff_sum_reindex)
 
+lemma sum_gp_basic:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "(1 - x) * (\<Sum>i\<le>n. x^i) = 1 - x^Suc n"
+  by (simp only: one_diff_power_eq [of "Suc n" x] lessThan_Suc_atMost)
+
+lemma sum_power_shift:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  assumes "m \<le> n"
+  shows "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i\<le>n-m. x^i)"
+proof -
+  have "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i=m..n. x^(i-m))"
+    by (simp add: sum_distrib_left power_add [symmetric])
+  also have "(\<Sum>i=m..n. x^(i-m)) = (\<Sum>i\<le>n-m. x^i)"
+    using \<open>m \<le> n\<close> by (intro sum.reindex_bij_witness[where j="\<lambda>i. i - m" and i="\<lambda>i. i + m"]) auto
+  finally show ?thesis .
+qed
+
+lemma sum_gp_multiplied:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  assumes "m \<le> n"
+  shows "(1 - x) * (\<Sum>i=m..n. x^i) = x^m - x^Suc n"
+proof -
+  have  "(1 - x) * (\<Sum>i=m..n. x^i) = x^m * (1 - x) * (\<Sum>i\<le>n-m. x^i)"
+    by (metis mult.assoc mult.commute assms sum_power_shift)
+  also have "... =x^m * (1 - x^Suc(n-m))"
+    by (metis mult.assoc sum_gp_basic)
+  also have "... = x^m - x^Suc n"
+    using assms
+    by (simp add: algebra_simps) (metis le_add_diff_inverse power_add)
+  finally show ?thesis .
+qed
+
+lemma sum_gp:
+  fixes x :: "'a::{comm_ring,division_ring}"
+  shows   "(\<Sum>i=m..n. x^i) =
+               (if n < m then 0
+                else if x = 1 then of_nat((n + 1) - m)
+                else (x^m - x^Suc n) / (1 - x))"
+using sum_gp_multiplied [of m n x] apply auto
+by (metis eq_iff_diff_eq_0 mult.commute nonzero_divide_eq_eq)
+
+subsection\<open>Geometric progressions\<close>
+
+lemma sum_gp0:
+  fixes x :: "'a::{comm_ring,division_ring}"
+  shows   "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
+  using sum_gp_basic[of x n]
+  by (simp add: mult.commute divide_simps)
+
+lemma sum_power_add:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "(\<Sum>i\<in>I. x^(m+i)) = x^m * (\<Sum>i\<in>I. x^i)"
+  by (simp add: sum_distrib_left power_add)
+
+lemma sum_gp_offset:
+  fixes x :: "'a::{comm_ring,division_ring}"
+  shows   "(\<Sum>i=m..m+n. x^i) =
+       (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
+  using sum_gp [of x m "m+n"]
+  by (auto simp: power_add algebra_simps)
+
+lemma sum_gp_strict:
+  fixes x :: "'a::{comm_ring,division_ring}"
+  shows "(\<Sum>i<n. x^i) = (if x = 1 then of_nat n else (1 - x^n) / (1 - x))"
+  by (induct n) (auto simp: algebra_simps divide_simps)
 
 subsubsection \<open>The formula for arithmetic sums\<close>
 

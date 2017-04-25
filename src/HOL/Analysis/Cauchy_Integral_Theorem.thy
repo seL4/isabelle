@@ -1727,8 +1727,7 @@ proof (cases "k = 0 \<or> k = 1")
 next
   case False
   then have k: "0 < k" "k < 1" "complex_of_real k \<noteq> 1"
-    using assms apply auto
-    using of_real_eq_iff by fastforce
+    using assms by auto
   have c': "c = k *\<^sub>R (b - a) + a"
     by (metis diff_add_cancel c)
   have bc: "(b - c) = (1 - k) *\<^sub>R (b - a)"
@@ -3871,7 +3870,7 @@ lemma winding_number_less_1:
   shows
   "\<lbrakk>valid_path \<gamma>; z \<notin> path_image \<gamma>; w \<noteq> z;
     \<And>a::real. 0 < a \<Longrightarrow> z + a*(w - z) \<notin> path_image \<gamma>\<rbrakk>
-   \<Longrightarrow> \<bar>Re(winding_number \<gamma> z)\<bar> < 1"
+   \<Longrightarrow> Re(winding_number \<gamma> z) < 1"
    by (auto simp: not_less dest: winding_number_big_meets)
 
 text\<open>One way of proving that WN=1 for a loop.\<close>
@@ -6532,6 +6531,21 @@ apply (rule_tac x="Re o h" in exI)
 apply (force simp add: summable_Re o_def nonneg_Reals_cmod_eq_Re image_subset_iff)
 done
 
+text\<open>Sometimes convenient to compare with a complex series of positive reals. (?)\<close>
+lemma series_differentiable_comparison_complex:
+  fixes S :: "complex set"
+  assumes S: "open S"
+    and hfd: "\<And>n x. x \<in> S \<Longrightarrow> f n field_differentiable (at x)"
+    and to_g: "\<And>x. x \<in> S \<Longrightarrow> \<exists>d h. 0 < d \<and> summable h \<and> range h \<subseteq> \<real>\<^sub>\<ge>\<^sub>0 \<and> (\<forall>\<^sub>F n in sequentially. \<forall>y\<in>ball x d \<inter> S. cmod(f n y) \<le> cmod (h n))"
+  obtains g where "\<forall>x \<in> S. ((\<lambda>n. f n x) sums g x) \<and> g field_differentiable (at x)"
+proof -
+  have hfd': "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative deriv (f n) x) (at x)"
+    using hfd field_differentiable_derivI by blast
+  have "\<exists>g g'. \<forall>x \<in> S. ((\<lambda>n. f n x) sums g x) \<and> ((\<lambda>n. deriv (f n) x) sums g' x) \<and> (g has_field_derivative g' x) (at x)"
+    by (metis series_and_derivative_comparison_complex [OF S hfd' to_g])
+  then show ?thesis
+    using field_differentiable_def that by blast
+qed
 
 text\<open>In particular, a power series is analytic inside circle of convergence.\<close>
 
@@ -7440,6 +7454,5 @@ apply (simp add: simply_connected_eq_contractible_path)
 apply (auto intro!: Cauchy_theorem_null_homotopic [where a = "pathstart g"]
                          homotopic_paths_imp_homotopic_loops)
 using valid_path_imp_path by blast
-
 
 end

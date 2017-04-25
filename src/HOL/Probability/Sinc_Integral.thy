@@ -219,12 +219,11 @@ proof -
     have *: "0 < x \<Longrightarrow> \<bar>x * sin t + cos t\<bar> / (1 + x\<^sup>2) \<le> (x * 1 + 1) / 1" for x t :: real
       by (intro frac_le abs_triangle_ineq[THEN order_trans] add_mono)
          (auto simp add: abs_mult simp del: mult_1_right intro!: mult_mono)
-    then have **: "1 \<le> t \<Longrightarrow> 0 < x \<Longrightarrow> \<bar>?F x t\<bar> \<le> exp (- x) * (x + 1)" for x t :: real
+    then have "1 \<le> t \<Longrightarrow> 0 < x \<Longrightarrow> \<bar>?F x t\<bar> \<le> exp (- x) * (x + 1)" for x t :: real
         by (auto simp add: abs_mult times_divide_eq_right[symmetric] simp del: times_divide_eq_right
                  intro!:  mult_mono)
-
-    show "\<forall>\<^sub>F i in at_top. AE x in lborel. 0 < x \<longrightarrow> \<bar>?F x i\<bar> \<le> exp (- x) * (x + 1)"
-      using eventually_ge_at_top[of "1::real"] ** by (auto elim: eventually_mono)
+    then show "\<forall>\<^sub>F i in at_top. AE x in lborel. 0 < x \<longrightarrow> \<bar>?F x i\<bar> \<le> exp (- x) * (x + 1)"
+      by (auto intro: eventually_mono eventually_ge_at_top[of "1::real"])
     show "AE x in lborel. 0 < x \<longrightarrow> (?F x \<longlongrightarrow> 0) at_top"
     proof (intro always_eventually impI allI)
       fix x :: real assume "0 < x"

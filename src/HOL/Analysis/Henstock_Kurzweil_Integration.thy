@@ -2578,36 +2578,38 @@ lemma integrable_continuous:
 proof (rule integrable_uniform_limit, safe)
   fix e :: real
   assume e: "e > 0"
-  from compact_uniformly_continuous[OF assms compact_cbox,unfolded uniformly_continuous_on_def,rule_format,OF e] guess d ..
-  note d=conjunctD2[OF this,rule_format]
-  from fine_division_exists[OF gauge_ball[OF d(1)], of a b] guess p . note p=this
-  note p' = tagged_division_ofD[OF p(1)]
+  then obtain d where "0 < d" and d: "\<And>x x'. \<lbrakk>x \<in> cbox a b; x' \<in> cbox a b; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+    using compact_uniformly_continuous[OF assms compact_cbox] unfolding uniformly_continuous_on_def by metis
+  obtain p where ptag: "p tagged_division_of cbox a b" and finep: "(\<lambda>x. ball x d) fine p"
+    using fine_division_exists[OF gauge_ball[OF \<open>0 < d\<close>], of a b] .
   have *: "\<forall>i\<in>snd ` p. \<exists>g. (\<forall>x\<in>i. norm (f x - g x) \<le> e) \<and> g integrable_on i"
   proof (safe, unfold snd_conv)
     fix x l
     assume as: "(x, l) \<in> p"
-    from p'(4)[OF this] guess a b by (elim exE) note l=this
+    obtain a b where l: "l = cbox a b"
+      using as ptag by blast
+    then have x: "x \<in> cbox a b"
+      using as ptag by auto
     show "\<exists>g. (\<forall>x\<in>l. norm (f x - g x) \<le> e) \<and> g integrable_on l"
       apply (rule_tac x="\<lambda>y. f x" in exI)
     proof safe
       show "(\<lambda>y. f x) integrable_on l"
-        unfolding integrable_on_def l
-        apply rule
-        apply (rule has_integral_const)
-        done
+        unfolding integrable_on_def l by blast
+    next
       fix y
       assume y: "y \<in> l"
-      note fineD[OF p(2) as,unfolded subset_eq,rule_format,OF this]
-      note d(2)[OF _ _ this[unfolded mem_ball]]
+      then have "y \<in> ball x d"
+        using as finep by fastforce
       then show "norm (f y - f x) \<le> e"
-        using y p'(2-3)[OF as] unfolding dist_norm l norm_minus_commute by fastforce
+        using d x y as l
+        by (metis dist_commute dist_norm less_imp_le mem_ball ptag subsetCE tagged_division_ofD(3))
     qed
   qed
   from e have "e \<ge> 0"
     by auto
-  from approximable_on_division[OF this division_of_tagged_division[OF p(1)] *] guess g .
-  then show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
-    by auto
+  from approximable_on_division[OF this division_of_tagged_division[OF ptag] *]
+  show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
+    by metis
 qed
 
 lemma integrable_continuous_interval:
@@ -6276,89 +6278,6 @@ proof -
       done
   qed
 qed
-
-
-subsection \<open>Geometric progression\<close>
-
-text \<open>FIXME: Should one or more of these theorems be moved to
-  \<^file>\<open>~~/src/HOL/Set_Interval.thy\<close>, alongside \<open>geometric_sum\<close>?\<close>
-
-lemma sum_gp_basic:
-  fixes x :: "'a::ring_1"
-  shows "(1 - x) * sum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
-proof -
-  define y where "y = 1 - x"
-  have "y * (\<Sum>i=0..n. (1 - y) ^ i) = 1 - (1 - y) ^ Suc n"
-    by (induct n) (simp_all add: algebra_simps)
-  then show ?thesis
-    unfolding y_def by simp
-qed
-
-lemma sum_gp_multiplied:
-  assumes mn: "m \<le> n"
-  shows "((1::'a::{field}) - x) * sum (op ^ x) {m..n} = x^m - x^ Suc n"
-  (is "?lhs = ?rhs")
-proof -
-  let ?S = "{0..(n - m)}"
-  from mn have mn': "n - m \<ge> 0"
-    by arith
-  let ?f = "op + m"
-  have i: "inj_on ?f ?S"
-    unfolding inj_on_def by auto
-  have f: "?f ` ?S = {m..n}"
-    using mn
-    apply (auto simp add: image_iff Bex_def)
-    apply presburger
-    done
-  have th: "op ^ x \<circ> op + m = (\<lambda>i. x^m * x^i)"
-    by (rule ext) (simp add: power_add power_mult)
-  from sum.reindex[OF i, of "op ^ x", unfolded f th sum_distrib_left[symmetric]]
-  have "?lhs = x^m * ((1 - x) * sum (op ^ x) {0..n - m})"
-    by simp
-  then show ?thesis
-    unfolding sum_gp_basic
-    using mn
-    by (simp add: field_simps power_add[symmetric])
-qed
-
-lemma sum_gp:
-  "sum (op ^ (x::'a::{field})) {m .. n} =
-    (if n < m then 0
-     else if x = 1 then of_nat ((n + 1) - m)
-     else (x^ m - x^ (Suc n)) / (1 - x))"
-proof -
-  {
-    assume nm: "n < m"
-    then have ?thesis by simp
-  }
-  moreover
-  {
-    assume "\<not> n < m"
-    then have nm: "m \<le> n"
-      by arith
-    {
-      assume x: "x = 1"
-      then have ?thesis
-        by simp
-    }
-    moreover
-    {
-      assume x: "x \<noteq> 1"
-      then have nz: "1 - x \<noteq> 0"
-        by simp
-      from sum_gp_multiplied[OF nm, of x] nz have ?thesis
-        by (simp add: field_simps)
-    }
-    ultimately have ?thesis by blast
-  }
-  ultimately show ?thesis by blast
-qed
-
-lemma sum_gp_offset:
-  "sum (op ^ (x::'a::{field})) {m .. m+n} =
-    (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
-  unfolding sum_gp[of x m "m + n"] power_Suc
-  by (simp add: field_simps power_add)
 
 
 subsection \<open>Monotone convergence (bounded interval first)\<close>

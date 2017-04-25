@@ -1506,7 +1506,7 @@ proof
   finally show False by simp
 qed
 
-lemma exp_minus_inverse: "exp x * exp (- x) = 1"
+lemma exp_minus_inverse [simp]: "exp x * exp (- x) = 1"
   by (simp add: exp_add_commuting[symmetric])
 
 lemma exp_minus: "exp (- x) = inverse (exp x)"
@@ -1517,17 +1517,18 @@ lemma exp_diff: "exp (x - y) = exp x / exp y"
   for x :: "'a::{real_normed_field,banach}"
   using exp_add [of x "- y"] by (simp add: exp_minus divide_inverse)
 
-lemma exp_of_nat_mult: "exp (of_nat n * x) = exp x ^ n"
+lemma exp_of_nat_mult [simp]: "exp (of_nat n * x) = exp x ^ n"
   for x :: "'a::{real_normed_field,banach}"
   by (induct n) (auto simp add: distrib_left exp_add mult.commute)
 
-corollary exp_real_of_nat_mult: "exp (real n * x) = exp x ^ n"
-  by (simp add: exp_of_nat_mult)
+corollary exp_of_nat2_mult [simp]: "exp (x * of_nat n) = exp x ^ n"
+  for x :: "'a::{real_normed_field,banach}"
+  by (metis exp_of_nat_mult mult_of_nat_commute)
 
 lemma exp_sum: "finite I \<Longrightarrow> exp (sum f I) = prod (\<lambda>x. exp (f x)) I"
   by (induct I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
 
-lemma exp_divide_power_eq:
+lemma exp_divide_power_eq [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
   assumes "n > 0"
   shows "exp (x / of_nat n) ^ n = exp x"
@@ -1742,7 +1743,7 @@ lemma ln_unique: "exp y = x \<Longrightarrow> ln x = y"
   for x :: real
   by (erule subst) (rule ln_exp)
 
-lemma ln_mult: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln x + ln y"
+lemma ln_mult [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln x + ln y"
   for x :: real
   by (rule ln_unique) (simp add: exp_add)
 
@@ -1750,7 +1751,7 @@ lemma ln_prod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow>
   for f :: "'a \<Rightarrow> real"
   by (induct I rule: finite_induct) (auto simp: ln_mult prod_pos)
 
-lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
+lemma ln_inverse [simp]: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
   for x :: real
   by (rule ln_unique) (simp add: exp_minus)
 
@@ -1758,8 +1759,8 @@ lemma ln_div: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x / y) = ln x
   for x :: real
   by (rule ln_unique) (simp add: exp_diff)
 
-lemma ln_realpow: "0 < x \<Longrightarrow> ln (x^n) = real n * ln x"
-  by (rule ln_unique) (simp add: exp_real_of_nat_mult)
+lemma ln_realpow [simp]: "0 < x \<Longrightarrow> ln (x^n) = real n * ln x"
+  by (rule ln_unique) simp
 
 lemma ln_less_cancel_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x < ln y \<longleftrightarrow> x < y"
   for x :: real
@@ -1780,6 +1781,9 @@ lemma ln_add_one_self_le_self [simp]: "0 \<le> x \<Longrightarrow> ln (1 + x) \<
 lemma ln_less_self [simp]: "0 < x \<Longrightarrow> ln x < x"
   for x :: real
   by (rule order_less_le_trans [where y = "ln (1 + x)"]) simp_all
+
+lemma ln_ge_iff: "\<And>x::real. 0 < x \<Longrightarrow> y \<le> ln x \<longleftrightarrow> exp y \<le> x"
+  using exp_le_cancel_iff exp_total by force
 
 lemma ln_ge_zero [simp]: "1 \<le> x \<Longrightarrow> 0 \<le> ln x"
   for x :: real
@@ -2298,7 +2302,7 @@ proof (cases "x = - of_nat n")
   also from assms False have "ln (1 + x / real n) \<le> x / real n"
     by (intro ln_add_one_self_le_self2) (simp_all add: field_simps)
   with assms have "exp (of_nat n * ln (1 + x / of_nat n)) \<le> exp x"
-    by (simp add: field_simps)
+    by (simp add: field_simps del: exp_of_nat_mult)
   finally show ?thesis .
 next
   case True
@@ -2701,7 +2705,7 @@ lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<
 lemma powr_realpow: "0 < x \<Longrightarrow> x powr (real n) = x^n"
   by (induct n) (simp_all add: ac_simps powr_add)
 
-lemma powr_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
+lemma powr_numeral [simp]: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   by (metis of_nat_numeral powr_realpow)
 
 lemma numeral_powr_numeral[simp]:
@@ -2841,14 +2845,26 @@ lemma powr_less_mono2_neg: "a < 0 \<Longrightarrow> 0 < x \<Longrightarrow> x < 
   for x :: real
   by (simp add: powr_def)
 
-lemma powr_mono2: "0 \<le> a \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> x powr a \<le> y powr a"
+lemma powr_mono2: "x powr a \<le> y powr a" if "0 \<le> a" "0 \<le> x" "x \<le> y"
   for x :: real
-  apply (case_tac "a = 0")
-   apply simp
-  apply (case_tac "x = y")
-   apply simp
-  apply (metis dual_order.strict_iff_order powr_less_mono2)
-  done
+proof (cases "a = 0")
+  case True
+  with that show ?thesis by simp
+next
+  case False show ?thesis
+  proof (cases "x = y")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then show ?thesis
+      by (metis dual_order.strict_iff_order powr_less_mono2 that \<open>a \<noteq> 0\<close>)
+  qed
+qed
+
+lemma powr_le1: "0 \<le> a \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr a \<le> 1"
+  for x :: real
+  using powr_mono2 by fastforce
 
 lemma powr_mono2':
   fixes a x y :: real
@@ -2860,6 +2876,12 @@ proof -
   with assms show ?thesis
     by (auto simp add: powr_minus field_simps)
 qed
+
+lemma powr_mono_both:
+  fixes x :: real
+  assumes "0 \<le> a" "a \<le> b" "1 \<le> x" "x \<le> y"
+    shows "x powr a \<le> y powr b"
+  by (meson assms order.trans powr_mono powr_mono2 zero_le_one)
 
 lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
   for x :: real

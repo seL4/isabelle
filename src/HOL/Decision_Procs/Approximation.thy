@@ -1987,7 +1987,7 @@ proof -
       have "exp x = exp (?num * (x / ?num))"
         using \<open>real ?num \<noteq> 0\<close> by auto
       also have "\<dots> = exp (x / ?num) ^ ?num"
-        unfolding exp_real_of_nat_mult ..
+        unfolding exp_of_nat_mult ..
       also have "\<dots> \<le> exp (float_divr prec x (- floor_fl x)) ^ ?num"
         unfolding num_eq fl_eq
         by (rule power_mono, rule exp_le_cancel_iff[THEN iffD2], rule float_divr) auto
@@ -2023,7 +2023,7 @@ proof -
           unfolding num_eq fl_eq
           using float_divl by (auto intro!: power_mono simp del: uminus_float.rep_eq)
         also have "\<dots> = exp (?num * (x / ?num))"
-          unfolding exp_real_of_nat_mult ..
+          unfolding exp_of_nat_mult ..
         also have "\<dots> = exp x"
           using \<open>real ?num \<noteq> 0\<close> by auto
         finally show ?thesis
@@ -2050,7 +2050,7 @@ proof -
         hence "real_of_float (Float 1 (- 2)) ^ ?num \<le> exp (x / (- floor_fl x)) ^ ?num"
           by (metis Float_num(5) power_mono zero_le_divide_1_iff zero_le_numeral)
         also have "\<dots> = exp x"
-          unfolding num_eq fl_eq exp_real_of_nat_mult[symmetric]
+          unfolding num_eq fl_eq exp_of_nat_mult[symmetric]
           using \<open>real_of_float (floor_fl x) \<noteq> 0\<close> by auto
         finally show ?thesis
           unfolding lb_exp.simps if_not_P[OF \<open>\<not> 0 < x\<close>] if_P[OF \<open>x < - 1\<close>]

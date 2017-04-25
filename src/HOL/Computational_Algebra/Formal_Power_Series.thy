@@ -913,7 +913,7 @@ proof -
   then have "exp (real k * ln y + ln x) > exp 0"
     by (simp add: ac_simps)
   then have "y ^ k * x > 1"
-    unfolding exp_zero exp_add exp_real_of_nat_mult exp_ln [OF xp] exp_ln [OF yp]
+    unfolding exp_zero exp_add exp_of_nat_mult exp_ln [OF xp] exp_ln [OF yp]
     by simp
   then have "x > (1 / y)^k" using yp
     by (simp add: field_simps)

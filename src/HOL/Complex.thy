@@ -138,7 +138,7 @@ qed
 end
 
 
-subsection \<open>Numerals, Arithmetic, and Embedding from Reals\<close>
+subsection \<open>Numerals, Arithmetic, and Embedding from \<real>\<close>
 
 abbreviation complex_of_real :: "real \<Rightarrow> complex"
   where "complex_of_real \<equiv> of_real"
@@ -649,10 +649,10 @@ lemma Re_divide_of_real [simp]: "Re (z / of_real r) = Re z / r"
 lemma Im_divide_of_real [simp]: "Im (z / of_real r) = Im z / r"
   by (simp add: Im_divide power2_eq_square)
 
-lemma Re_divide_Reals: "r \<in> Reals \<Longrightarrow> Re (z / r) = Re z / Re r"
+lemma Re_divide_Reals [simp]: "r \<in> \<real> \<Longrightarrow> Re (z / r) = Re z / Re r"
   by (metis Re_divide_of_real of_real_Re)
 
-lemma Im_divide_Reals: "r \<in> Reals \<Longrightarrow> Im (z / r) = Im z / Re r"
+lemma Im_divide_Reals [simp]: "r \<in> \<real> \<Longrightarrow> Im (z / r) = Im z / Re r"
   by (metis Im_divide_of_real of_real_Re)
 
 lemma Re_sum[simp]: "Re (sum f s) = (\<Sum>x\<in>s. Re (f x))"
@@ -690,6 +690,12 @@ lemma Reals_cnj_iff: "z \<in> \<real> \<longleftrightarrow> cnj z = z"
 
 lemma in_Reals_norm: "z \<in> \<real> \<Longrightarrow> norm z = \<bar>Re z\<bar>"
   by (simp add: complex_is_Real_iff norm_complex_def)
+
+lemma Re_Reals_divide: "r \<in> \<real> \<Longrightarrow> Re (r / z) = Re r * Re z / (norm z)\<^sup>2"
+  by (simp add: Re_divide complex_is_Real_iff cmod_power2)
+
+lemma Im_Reals_divide: "r \<in> \<real> \<Longrightarrow> Im (r / z) = -Re r * Im z / (norm z)\<^sup>2"
+  by (simp add: Im_divide complex_is_Real_iff cmod_power2)
 
 lemma series_comparison_complex:
   fixes f:: "nat \<Rightarrow> 'a::banach"

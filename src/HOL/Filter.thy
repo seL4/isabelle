@@ -624,7 +624,7 @@ lemma eventually_at_top_linorderI:
   shows "eventually P at_top"
   using assms by (auto simp: eventually_at_top_linorder)
 
-lemma eventually_ge_at_top:
+lemma eventually_ge_at_top [simp]:
   "eventually (\<lambda>x. (c::_::linorder) \<le> x) at_top"
   unfolding eventually_at_top_linorder by auto
 
@@ -638,10 +638,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma eventually_at_top_not_equal: "eventually (\<lambda>x::'a::{no_top, linorder}. x \<noteq> c) at_top"
+lemma eventually_at_top_not_equal [simp]: "eventually (\<lambda>x::'a::{no_top, linorder}. x \<noteq> c) at_top"
   unfolding eventually_at_top_dense by auto
 
-lemma eventually_gt_at_top: "eventually (\<lambda>x. (c::_::{no_top, linorder}) < x) at_top"
+lemma eventually_gt_at_top [simp]: "eventually (\<lambda>x. (c::_::{no_top, linorder}) < x) at_top"
   unfolding eventually_at_top_dense by auto
 
 lemma eventually_all_ge_at_top:
@@ -664,7 +664,7 @@ lemma eventually_at_bot_linorder:
   unfolding at_bot_def
   by (subst eventually_INF_base) (auto simp: eventually_principal intro: min.cobounded1 min.cobounded2)
 
-lemma eventually_le_at_bot:
+lemma eventually_le_at_bot [simp]:
   "eventually (\<lambda>x. x \<le> (c::_::linorder)) at_bot"
   unfolding eventually_at_bot_linorder by auto
 
@@ -678,10 +678,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma eventually_at_bot_not_equal: "eventually (\<lambda>x::'a::{no_bot, linorder}. x \<noteq> c) at_bot"
+lemma eventually_at_bot_not_equal [simp]: "eventually (\<lambda>x::'a::{no_bot, linorder}. x \<noteq> c) at_bot"
   unfolding eventually_at_bot_dense by auto
 
-lemma eventually_gt_at_bot:
+lemma eventually_gt_at_bot [simp]:
   "eventually (\<lambda>x. x < (c::_::unbounded_dense_linorder)) at_bot"
   unfolding eventually_at_bot_dense by auto
 

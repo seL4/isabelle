@@ -364,6 +364,7 @@ lemma inj_of_real: "inj of_real"
   by (auto intro: injI)
 
 lemmas of_real_eq_0_iff [simp] = of_real_eq_iff [of _ 0, simplified]
+lemmas of_real_eq_1_iff [simp] = of_real_eq_iff [of _ 1, simplified]
 
 lemma of_real_eq_id [simp]: "of_real = (id :: real \<Rightarrow> real)"
   by (rule ext) (simp add: of_real_def)

@@ -1880,7 +1880,7 @@ proof (rule antisym)
   show "G x \<ge> Gamma x"
   proof (rule tendsto_upperbound)
     from G_lower[of x] show "eventually (\<lambda>n. Gamma_series x n \<le> G x) sequentially"
-      using eventually_ge_at_top[of "1::nat"] x by (auto elim!: eventually_mono)
+      using  x by (auto intro: eventually_mono[OF eventually_ge_at_top[of "1::nat"]])
   qed (simp_all add: Gamma_series_LIMSEQ)
 next
   show "G x \<le> Gamma x"
@@ -1891,7 +1891,7 @@ next
     thus "(\<lambda>n. Gamma_series x n * (1 + x / real n)) \<longlonglongrightarrow> Gamma x" by simp
   next
     from G_upper[of x] show "eventually (\<lambda>n. Gamma_series x n * (1 + x / real n) \<ge> G x) sequentially"
-      using eventually_ge_at_top[of "2::nat"] x by (auto elim!: eventually_mono)
+      using x by (auto intro: eventually_mono[OF eventually_ge_at_top[of "2::nat"]])
   qed simp_all
 qed
 
@@ -2472,9 +2472,9 @@ proof (rule Gamma_seriesI, rule Lim_transform_eventually)
   let ?r' = "\<lambda>n. exp (z * of_real (ln (of_nat (Suc n) / of_nat n)))"
   from z have z': "z \<noteq> 0" by auto
 
-  have "eventually (\<lambda>n. ?r' n = ?r n) sequentially" using eventually_gt_at_top[of "0::nat"]
+  have "eventually (\<lambda>n. ?r' n = ?r n) sequentially" 
     using z by (auto simp: divide_simps Gamma_series_def ring_distribs exp_diff ln_div add_ac
-                     elim!: eventually_mono dest: pochhammer_eq_0_imp_nonpos_Int)
+                     intro: eventually_mono eventually_gt_at_top[of "0::nat"] dest: pochhammer_eq_0_imp_nonpos_Int)
   moreover have "?r' \<longlonglongrightarrow> exp (z * of_real (ln 1))"
     by (intro tendsto_intros LIMSEQ_Suc_n_over_n) simp_all
   ultimately show "?r \<longlonglongrightarrow> 1" by (force dest!: Lim_transform_eventually)

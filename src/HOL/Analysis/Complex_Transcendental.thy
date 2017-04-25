@@ -709,6 +709,7 @@ lemma e_approx_32: "\<bar>exp(1) - 5837465777 / 2147483648\<bar> \<le> (inverse(
   apply (simp only: pos_le_divide_eq [symmetric], linarith)
   done
 
+text\<open>An odd contrast with the much more easily proved @{thm exp_le}\<close>
 lemma e_less_3: "exp 1 < (3::real)"
   using e_approx_32
   by (simp add: abs_if split: if_split_asm)
@@ -1752,7 +1753,7 @@ lemma has_field_derivative_powr:
 declare has_field_derivative_powr[THEN DERIV_chain2, derivative_intros]
 
 
-lemma has_field_derivative_powr_right:
+lemma has_field_derivative_powr_right [derivative_intros]:
     "w \<noteq> 0 \<Longrightarrow> ((\<lambda>z. w powr z) has_field_derivative Ln w * w powr z) (at z)"
   apply (simp add: powr_def)
   apply (intro derivative_eq_intros | simp)+

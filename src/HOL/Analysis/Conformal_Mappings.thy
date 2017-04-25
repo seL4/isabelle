@@ -1244,7 +1244,7 @@ proof -
         by (meson Tsb min.cobounded1 order_trans r subset_ball)
       ultimately have False
         using inj_onD [OF injf, of y0 y1] \<open>y0 \<in> T\<close> \<open>y1 \<in> T\<close>
-        using fd [of y0] fd [of y1] complex_root_unity [of n 1]
+        using fd [of y0] fd [of y1] complex_root_unity [of n 1] n_ne
         apply (simp add: y0 y1 power_mult_distrib)
         apply (force simp: algebra_simps)
         done

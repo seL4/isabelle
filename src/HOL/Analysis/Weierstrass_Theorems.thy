@@ -398,12 +398,17 @@ proof -
     using \<open>k>0\<close> \<open>\<delta>>0\<close> NN  k\<delta>
     apply (force simp add: field_simps)+
     done
-  have NN0: "\<And>e. e>0 \<Longrightarrow> (1/(k*\<delta>))^NN e < e"
-    apply (subst Transcendental.ln_less_cancel_iff [symmetric])
-      prefer 3 apply (subst ln_realpow)
-    using \<open>k>0\<close> \<open>\<delta>>0\<close> NN k\<delta>
-    apply (force simp add: field_simps ln_div)+
-    done
+  have NN0: "(1/(k*\<delta>)) ^ (NN e) < e" if "e>0" for e
+  proof -
+    have "0 < ln (real k) + ln \<delta>"
+      using \<delta>01(1) \<open>0 < k\<close> k\<delta>(1) ln_gt_zero by fastforce
+    then have "real (NN e) * ln (1 / (real k * \<delta>)) < ln e"
+      using k\<delta>(1) NN(2) [of e] that by (simp add: ln_div divide_simps)
+    then have "exp (real (NN e) * ln (1 / (real k * \<delta>))) < e"
+      by (metis exp_less_mono exp_ln that)
+    then show ?thesis
+      by (simp add: \<delta>01(1) \<open>0 < k\<close>)
+  qed
   { fix t and e::real
     assume "e>0"
     have "t \<in> S \<inter> V \<Longrightarrow> 1 - q (NN e) t < e" "t \<in> S - U \<Longrightarrow> q (NN e) t < e"
