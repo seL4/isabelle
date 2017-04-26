@@ -90,14 +90,19 @@ object Build_Log
 
   /* log file collections */
 
-  def is_log(file: JFile): Boolean =
-    List(".log", ".log.gz", ".log.xz").exists(ext => file.getName.endsWith(ext))
+  def is_log(file: JFile,
+    prefixes: Iterable[String] =
+      List(Build_History.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix),
+    suffixes: Iterable[String] =
+      List(".log", ".log.gz", ".log.xz")): Boolean =
+  {
+    val name = file.getName
+    prefixes.iterator.exists(name.startsWith(_)) &&
+    suffixes.iterator.exists(name.endsWith(_))
+  }
 
-  def isatest_files(dir: Path): List[JFile] =
-    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("isatest-makeall-"))
-
-  def afp_test_files(dir: Path): List[JFile] =
-    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("afp-test-devel-"))
+  def log_files(dirs: Iterable[Path]): List[JFile] =
+    dirs.iterator.flatMap(dir => File.find_files(dir.file, is_log(_))).toList
 
 
 
@@ -277,6 +282,7 @@ object Build_Log
 
   object Isatest
   {
+    val log_prefix = "isatest-makeall-"
     val engine = "isatest"
     val Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
     val End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
@@ -286,6 +292,7 @@ object Build_Log
 
   object AFP_Test
   {
+    val log_prefix = "afp-test-devel-"
     val engine = "afp-test"
     val Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
     val Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")

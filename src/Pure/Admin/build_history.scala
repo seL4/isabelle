@@ -16,7 +16,8 @@ object Build_History
 {
   /* log files */
 
-  val BUILD_HISTORY = "build_history"
+  val engine = "build_history"
+  val log_prefix = engine + "-"
   val META_INFO_MARKER = "\fmeta_info = "
 
 
@@ -198,7 +199,7 @@ object Build_History
       val log_path =
         other_isabelle.isabelle_home_user +
           Build_Log.log_subdir(build_history_date) +
-          Build_Log.log_filename(BUILD_HISTORY, build_history_date,
+          Build_Log.log_filename(Build_History.engine, build_history_date,
             List(build_host, ml_platform, "M" + threads) ::: build_tags)
 
       val build_info =
@@ -215,7 +216,7 @@ object Build_History
         List(
           Build_Log.Prop.build_group_id -> build_group_id,
           Build_Log.Prop.build_id -> (build_host + ":" + build_start.time.ms),
-          Build_Log.Prop.build_engine -> BUILD_HISTORY,
+          Build_Log.Prop.build_engine -> Build_History.engine,
           Build_Log.Prop.build_host -> build_host,
           Build_Log.Prop.build_start -> Build_Log.print_date(build_start),
           Build_Log.Prop.build_end -> Build_Log.print_date(build_end),
