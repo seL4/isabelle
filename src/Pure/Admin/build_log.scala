@@ -505,7 +505,7 @@ object Build_Log
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
 
-        case _ if line.startsWith(ML_STATISTICS_MARKER) =>
+        case _ if line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
           val (name, props) =
             Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
               case Some((SESSION_NAME, session_name) :: props) => (session_name, props)
