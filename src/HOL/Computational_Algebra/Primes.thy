@@ -119,7 +119,8 @@ next
   proof (intro allI impI)
     fix m assume "m dvd nat n"
     with \<open>n > 1\<close> have "int m dvd n" by (auto simp: int_dvd_iff)
-    with n(2) have "int m = 1 \<or> int m = n" by auto
+    with n(2) have "int m = 1 \<or> int m = n"
+      using of_nat_0_le_iff by blast
     thus "m = 1 \<or> m = nat n" by auto
   qed
   ultimately show "prime n" 

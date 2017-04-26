@@ -170,7 +170,7 @@ lemma float_add_r0: "x + float (0, e) = x"
 lemma float_add:
   "float (a1, e1) + float (a2, e2) =
   (if e1<=e2 then float (a1+a2*2^(nat(e2-e1)), e1) else float (a1*2^(nat (e1-e2))+a2, e2))"
-  by (simp add: float_def algebra_simps powr_realpow[symmetric] powr_divide2[symmetric])
+  by (simp add: float_def algebra_simps powr_realpow[symmetric] powr_diff)
 
 lemma float_mult_l0: "float (0, e) * x = float (0, 0)"
   by (simp add: float_def)

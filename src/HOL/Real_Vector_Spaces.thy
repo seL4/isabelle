@@ -1407,6 +1407,10 @@ corollary real_linearD:
   assumes "linear f" obtains c where "f = op* c"
   by (rule linear_imp_scaleR [OF assms]) (force simp: scaleR_conv_of_real)
 
+lemma linear_times_of_real: "linear (\<lambda>x. a * of_real x)"
+  apply (simp add: linear_def Real_Vector_Spaces.additive_def linear_axioms_def)
+  by (metis distrib_left mult_scaleR_right scaleR_conv_of_real)
+
 lemma linearI:
   assumes "\<And>x y. f (x + y) = f x + f y"
     and "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"

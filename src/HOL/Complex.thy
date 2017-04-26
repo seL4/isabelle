@@ -95,6 +95,11 @@ lemma Im_divide: "Im (x / y) = (Im x * Re y - Re x * Im y) / ((Re y)\<^sup>2 + (
   unfolding divide_complex_def times_complex.sel inverse_complex.sel
   by (simp add: divide_simps)
 
+lemma Complex_divide:
+    "(x / y) = Complex ((Re x * Re y + Im x * Im y) / ((Re y)\<^sup>2 + (Im y)\<^sup>2))
+                       ((Im x * Re y - Re x * Im y) / ((Re y)\<^sup>2 + (Im y)\<^sup>2))"
+  by (metis Im_divide Re_divide complex_surj)
+
 lemma Re_power2: "Re (x ^ 2) = (Re x)^2 - (Im x)^2"
   by (simp add: power2_eq_square)
 
@@ -261,6 +266,20 @@ lemma i_times_eq_iff: "\<i> * w = z \<longleftrightarrow> w = - (\<i> * z)"
 lemma divide_numeral_i [simp]: "z / (numeral n * \<i>) = - (\<i> * z) / numeral n"
   by (metis divide_divide_eq_left divide_i mult.commute mult_minus_right)
 
+lemma imaginary_eq_real_iff [simp]:
+  assumes "y \<in> Reals" "x \<in> Reals"
+  shows "\<i> * y = x \<longleftrightarrow> x=0 \<and> y=0"
+    using assms
+    unfolding Reals_def
+    apply clarify
+      apply (rule iffI)
+    apply (metis Im_complex_of_real Im_i_times Re_complex_of_real mult_eq_0_iff of_real_0)
+    by simp
+
+lemma real_eq_imaginary_iff [simp]:
+  assumes "y \<in> Reals" "x \<in> Reals"
+  shows "x = \<i> * y  \<longleftrightarrow> x=0 \<and> y=0"
+    using assms imaginary_eq_real_iff by fastforce
 
 subsection \<open>Vector Norm\<close>
 

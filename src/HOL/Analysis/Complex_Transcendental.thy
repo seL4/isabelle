@@ -1046,6 +1046,9 @@ lemma Ln_exp [simp]:
   apply auto
   done
 
+lemma Ln_eq_zero_iff [simp]: "x \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln x = 0 \<longleftrightarrow> x = 1"
+  by auto (metis exp_Ln exp_zero nonpos_Reals_zero_I)
+
 subsection\<open>Relation to Real Logarithm\<close>
 
 lemma Ln_of_real:
@@ -1679,22 +1682,18 @@ lemma powr_nat:
   fixes n::nat and z::complex shows "z powr n = (if z = 0 then 0 else z^n)"
   by (simp add: exp_of_nat_mult powr_def)
 
-lemma powr_add_complex:
-  fixes w::complex shows "w powr (z1 + z2) = w powr z1 * w powr z2"
-  by (simp add: powr_def algebra_simps exp_add)
-
-lemma powr_minus_complex:
-  fixes w::complex shows  "w powr (-z) = inverse(w powr z)"
-  by (simp add: powr_def exp_minus)
-
-lemma powr_diff_complex:
-  fixes w::complex shows  "w powr (z1 - z2) = w powr z1 / w powr z2"
-  by (simp add: powr_def algebra_simps exp_diff)
-
 lemma norm_powr_real: "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = exp(Re z * ln(Re w))"
   apply (simp add: powr_def)
   using Im_Ln_eq_0 complex_is_Real_iff norm_complex_def
   by auto
+
+lemma powr_complexpow [simp]:
+  fixes x::complex shows "x \<noteq> 0 \<Longrightarrow> x powr (of_nat n) = x^n"
+  by (induct n) (auto simp: ac_simps powr_add)
+
+lemma powr_complexnumeral [simp]:
+  fixes x::complex shows "x \<noteq> 0 \<Longrightarrow> x powr (numeral n) = x ^ (numeral n)"
+  by (metis of_nat_numeral powr_complexpow)
 
 lemma cnj_powr:
   assumes "Im a = 0 \<Longrightarrow> Re a \<ge> 0"
@@ -1759,16 +1758,15 @@ lemma has_field_derivative_powr_right [derivative_intros]:
   apply (intro derivative_eq_intros | simp)+
   done
 
-lemma field_differentiable_powr_right:
+lemma field_differentiable_powr_right [derivative_intros]:
   fixes w::complex
-  shows
-    "w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr z) field_differentiable (at z)"
+  shows "w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr z) field_differentiable (at z)"
 using field_differentiable_def has_field_derivative_powr_right by blast
 
-lemma holomorphic_on_powr_right:
+lemma holomorphic_on_powr_right [holomorphic_intros]:
     "f holomorphic_on s \<Longrightarrow> w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr (f z)) holomorphic_on s"
-    unfolding holomorphic_on_def field_differentiable_def
-by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
+  unfolding holomorphic_on_def field_differentiable_def
+  by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
 
 lemma norm_powr_real_powr:
   "w \<in> \<real> \<Longrightarrow> 0 \<le> Re w \<Longrightarrow> cmod (w powr z) = Re w powr Re z"
@@ -2562,6 +2560,9 @@ lemma pi_approx: "3.141592653588 \<le> pi" "pi \<le> 3.1415926535899"
   using arctan_bounds[of "1/5"   4]
         arctan_bounds[of "1/239" 4]
   by (simp_all add: eval_nat_numeral)
+    
+corollary pi_gt3: "pi > 3"
+  using pi_approx by simp
 
 
 subsection\<open>Inverse Sine\<close>

@@ -2150,11 +2150,12 @@ lemma compactE: (*related to COMPACT_IMP_HEINE_BOREL in HOL Light*)
 
 lemma compactE_image:
   assumes "compact S"
-    and "\<forall>T\<in>C. open (f T)"
-    and "S \<subseteq> (\<Union>c\<in>C. f c)"
+    and op: "\<And>T. T \<in> C \<Longrightarrow> open (f T)"
+    and S: "S \<subseteq> (\<Union>c\<in>C. f c)"
   obtains C' where "C' \<subseteq> C" and "finite C'" and "S \<subseteq> (\<Union>c\<in>C'. f c)"
-  using assms unfolding ball_simps [symmetric]
-  by (metis (lifting) finite_subset_image compact_eq_heine_borel[of S])
+    apply (rule compactE[OF \<open>compact S\<close> S])
+    using op apply force
+    by (metis finite_subset_image)
 
 lemma compact_Int_closed [intro]:
   assumes "compact S"
@@ -2287,7 +2288,7 @@ proof (rule compactI)
     unfolding continuous_on_open_invariant by blast
   then obtain A where A: "\<forall>c\<in>C. open (A c) \<and> A c \<inter> s = f -` c \<inter> s"
     unfolding bchoice_iff ..
-  with cover have "\<forall>c\<in>C. open (A c)" "s \<subseteq> (\<Union>c\<in>C. A c)"
+  with cover have "\<And>c. c \<in> C \<Longrightarrow> open (A c)" "s \<subseteq> (\<Union>c\<in>C. A c)"
     by (fastforce simp add: subset_eq set_eq_iff)+
   from compactE_image[OF s this] obtain D where "D \<subseteq> C" "finite D" "s \<subseteq> (\<Union>c\<in>D. A c)" .
   with A show "\<exists>D \<subseteq> C. finite D \<and> f`s \<subseteq> \<Union>D"
@@ -2340,10 +2341,10 @@ proof (rule classical)
   assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. t \<le> s)"
   then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. s < t s"
     by (metis not_le)
-  then have "\<forall>s\<in>S. open {..< t s}" "S \<subseteq> (\<Union>s\<in>S. {..< t s})"
+  then have "\<And>s. s\<in>S \<Longrightarrow> open {..< t s}" "S \<subseteq> (\<Union>s\<in>S. {..< t s})"
     by auto
   with \<open>compact S\<close> obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {..< t s})"
-    by (erule compactE_image)
+    by (metis compactE_image)
   with \<open>S \<noteq> {}\<close> have Max: "Max (t`C) \<in> t`C" and "\<forall>s\<in>t`C. s \<le> Max (t`C)"
     by (auto intro!: Max_in)
   with C have "S \<subseteq> {..< Max (t`C)}"
@@ -2359,10 +2360,10 @@ proof (rule classical)
   assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. s \<le> t)"
   then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. t s < s"
     by (metis not_le)
-  then have "\<forall>s\<in>S. open {t s <..}" "S \<subseteq> (\<Union>s\<in>S. {t s <..})"
+  then have "\<And>s. s\<in>S \<Longrightarrow> open {t s <..}" "S \<subseteq> (\<Union>s\<in>S. {t s <..})"
     by auto
   with \<open>compact S\<close> obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {t s <..})"
-    by (erule compactE_image)
+    by (metis compactE_image)
   with \<open>S \<noteq> {}\<close> have Min: "Min (t`C) \<in> t`C" and "\<forall>s\<in>t`C. Min (t`C) \<le> s"
     by (auto intro!: Min_in)
   with C have "S \<subseteq> {Min (t`C) <..}"

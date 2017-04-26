@@ -407,7 +407,7 @@ proof -
     then have "exp (real (NN e) * ln (1 / (real k * \<delta>))) < e"
       by (metis exp_less_mono exp_ln that)
     then show ?thesis
-      by (simp add: \<delta>01(1) \<open>0 < k\<close>)
+      by (simp add: \<delta>01(1) \<open>0 < k\<close> exp_of_nat_mult)
   qed
   { fix t and e::real
     assume "e>0"

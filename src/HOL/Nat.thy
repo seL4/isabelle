@@ -1700,6 +1700,12 @@ lemma of_nat_0_eq_iff [simp]: "0 = of_nat n \<longleftrightarrow> 0 = n"
 lemma of_nat_eq_0_iff [simp]: "of_nat m = 0 \<longleftrightarrow> m = 0"
   by (fact of_nat_eq_iff [of m 0, unfolded of_nat_0])
 
+lemma of_nat_1_eq_iff [simp]: "1 = of_nat n \<longleftrightarrow> n=1"
+  using of_nat_eq_iff by fastforce
+
+lemma of_nat_eq_1_iff [simp]: "of_nat n = 1 \<longleftrightarrow> n=1"
+  using of_nat_eq_iff by fastforce
+
 lemma of_nat_neq_0 [simp]: "of_nat (Suc n) \<noteq> 0"
   unfolding of_nat_eq_0_iff by simp
 

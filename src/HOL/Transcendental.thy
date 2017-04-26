@@ -1506,7 +1506,7 @@ proof
   finally show False by simp
 qed
 
-lemma exp_minus_inverse [simp]: "exp x * exp (- x) = 1"
+lemma exp_minus_inverse: "exp x * exp (- x) = 1"
   by (simp add: exp_add_commuting[symmetric])
 
 lemma exp_minus: "exp (- x) = inverse (exp x)"
@@ -1517,18 +1517,18 @@ lemma exp_diff: "exp (x - y) = exp x / exp y"
   for x :: "'a::{real_normed_field,banach}"
   using exp_add [of x "- y"] by (simp add: exp_minus divide_inverse)
 
-lemma exp_of_nat_mult [simp]: "exp (of_nat n * x) = exp x ^ n"
+lemma exp_of_nat_mult: "exp (of_nat n * x) = exp x ^ n"
   for x :: "'a::{real_normed_field,banach}"
   by (induct n) (auto simp add: distrib_left exp_add mult.commute)
 
-corollary exp_of_nat2_mult [simp]: "exp (x * of_nat n) = exp x ^ n"
+corollary exp_of_nat2_mult: "exp (x * of_nat n) = exp x ^ n"
   for x :: "'a::{real_normed_field,banach}"
   by (metis exp_of_nat_mult mult_of_nat_commute)
 
 lemma exp_sum: "finite I \<Longrightarrow> exp (sum f I) = prod (\<lambda>x. exp (f x)) I"
   by (induct I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
 
-lemma exp_divide_power_eq [simp]:
+lemma exp_divide_power_eq:
   fixes x :: "'a::{real_normed_field,banach}"
   assumes "n > 0"
   shows "exp (x / of_nat n) ^ n = exp x"
@@ -1743,7 +1743,7 @@ lemma ln_unique: "exp y = x \<Longrightarrow> ln x = y"
   for x :: real
   by (erule subst) (rule ln_exp)
 
-lemma ln_mult [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln x + ln y"
+lemma ln_mult: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln x + ln y"
   for x :: real
   by (rule ln_unique) (simp add: exp_add)
 
@@ -1751,7 +1751,7 @@ lemma ln_prod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow>
   for f :: "'a \<Rightarrow> real"
   by (induct I rule: finite_induct) (auto simp: ln_mult prod_pos)
 
-lemma ln_inverse [simp]: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
+lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
   for x :: real
   by (rule ln_unique) (simp add: exp_minus)
 
@@ -1759,8 +1759,8 @@ lemma ln_div: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x / y) = ln x
   for x :: real
   by (rule ln_unique) (simp add: exp_diff)
 
-lemma ln_realpow [simp]: "0 < x \<Longrightarrow> ln (x^n) = real n * ln x"
-  by (rule ln_unique) simp
+lemma ln_realpow: "0 < x \<Longrightarrow> ln (x^n) = real n * ln x"
+  by (rule ln_unique) (simp add: exp_of_nat_mult)
 
 lemma ln_less_cancel_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x < ln y \<longleftrightarrow> x < y"
   for x :: real
@@ -2480,6 +2480,10 @@ lemma powr_one_gt_zero_iff [simp]: "x powr 1 = x \<longleftrightarrow> 0 \<le> x
   by (auto simp: powr_def)
 declare powr_one_gt_zero_iff [THEN iffD2, simp]
 
+lemma powr_diff:
+  fixes w:: "'a::{ln,real_normed_field}" shows  "w powr (z1 - z2) = w powr z1 / w powr z2"
+  by (simp add: powr_def algebra_simps exp_diff)
+
 lemma powr_mult: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> (x * y) powr a = (x powr a) * (y powr a)"
   for a x y :: real
   by (simp add: powr_def exp_add [symmetric] ln_mult distrib_left)
@@ -2494,15 +2498,8 @@ lemma powr_divide: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> (x / y) powr
   apply (simp add: powr_def exp_minus [symmetric] exp_add [symmetric] ln_inverse)
   done
 
-lemma powr_divide2: "x powr a / x powr b = x powr (a - b)"
-  for a b x :: real
-  apply (simp add: powr_def)
-  apply (subst exp_diff [THEN sym])
-  apply (simp add: left_diff_distrib)
-  done
-
 lemma powr_add: "x powr (a + b) = (x powr a) * (x powr b)"
-  for a b x :: real
+  for a b x :: "'a::{ln,real_normed_field}"
   by (simp add: powr_def exp_add [symmetric] distrib_right)
 
 lemma powr_mult_base: "0 < x \<Longrightarrow>x * x powr y = x powr (1 + y)"
@@ -2518,7 +2515,7 @@ lemma powr_powr_swap: "(x powr a) powr b = (x powr b) powr a"
   by (simp add: powr_powr mult.commute)
 
 lemma powr_minus: "x powr (- a) = inverse (x powr a)"
-  for x a :: real
+      for a x :: "'a::{ln,real_normed_field}"
   by (simp add: powr_def exp_minus [symmetric])
 
 lemma powr_minus_divide: "x powr (- a) = 1/(x powr a)"
@@ -2705,27 +2702,13 @@ lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<
 lemma powr_realpow: "0 < x \<Longrightarrow> x powr (real n) = x^n"
   by (induct n) (simp_all add: ac_simps powr_add)
 
-lemma powr_numeral [simp]: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
-  by (metis of_nat_numeral powr_realpow)
-
-lemma numeral_powr_numeral[simp]:
-  "(numeral m :: real) powr (numeral n :: real) = numeral m ^ (numeral n)"
-by(simp add: powr_numeral)
-
 lemma powr_real_of_int:
   "x > 0 \<Longrightarrow> x powr real_of_int n = (if n \<ge> 0 then x ^ nat n else inverse (x ^ nat (- n)))"
   using powr_realpow[of x "nat n"] powr_realpow[of x "nat (-n)"]
   by (auto simp: field_simps powr_minus)
 
-lemma powr2_sqrt[simp]: "0 < x \<Longrightarrow> sqrt x powr 2 = x"
-  by (simp add: powr_numeral)
-
-lemma powr_realpow2: "0 \<le> x \<Longrightarrow> 0 < n \<Longrightarrow> x^n = (if (x = 0) then 0 else x powr (real n))"
-  apply (cases "x = 0")
-   apply simp_all
-  apply (rule powr_realpow [THEN sym])
-  apply simp
-  done
+lemma powr_numeral [simp]: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
+  by (metis of_nat_numeral powr_realpow)
 
 lemma powr_int:
   assumes "x > 0"
@@ -3027,7 +3010,7 @@ lemma DERIV_fun_powr:
     and pos: "g x > 0"
   shows "DERIV (\<lambda>x. (g x) powr r) x :> r * (g x) powr (r - of_nat 1) * m"
   using DERIV_powr[OF g pos DERIV_const, of r] pos
-  by (simp add: powr_divide2[symmetric] field_simps)
+  by (simp add: powr_diff field_simps)
 
 lemma has_real_derivative_powr:
   assumes "z > 0"

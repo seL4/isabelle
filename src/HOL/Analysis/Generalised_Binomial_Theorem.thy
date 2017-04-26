@@ -129,12 +129,12 @@ proof -
       by (auto intro!: derivative_eq_intros)
     also from z have "a * f z = (1 + z) * f' z" by (rule deriv)
     finally show "((\<lambda>z. f z * (1 + z) powr (-a)) has_field_derivative 0) (at z within ball 0 K)"
-      using nz by (simp add: field_simps powr_diff_complex at_within_open[OF z'])
+      using nz by (simp add: field_simps powr_diff at_within_open[OF z'])
   qed simp_all
   then obtain c where c: "\<And>z. z \<in> ball 0 K \<Longrightarrow> f z * (1 + z) powr (-a) = c" by blast
   from c[of 0] and K have "c = 1" by simp
   with c[of z] have "f z = (1 + z) powr a" using K
-    by (simp add: powr_minus_complex field_simps dist_complex_def)
+    by (simp add: powr_minus field_simps dist_complex_def)
   with summable K show ?thesis unfolding f_f'_def by (simp add: sums_iff)
 qed
 
@@ -158,7 +158,7 @@ proof -
       by (subst powr_times_real[symmetric]) (simp_all add: field_simps)
     also from xy have "complex_of_real (1 + x / y) * complex_of_real y = of_real (x + y)"
       by (simp add: field_simps)
-    finally have "?P x y" using xy by (simp add: field_simps powr_diff_complex powr_nat)
+    finally have "?P x y" using xy by (simp add: field_simps powr_diff powr_nat)
   } note A = this
 
   show ?thesis
@@ -174,7 +174,7 @@ proof -
       fix n :: nat
       from y have "(a gchoose n) * of_real (-x) ^ n * of_real (-y) powr (a - of_nat n) =
                        (a gchoose n) * (-of_real x / -of_real y) ^ n * (- of_real y) powr a"
-        by (subst power_divide) (simp add: powr_diff_complex powr_nat)
+        by (subst power_divide) (simp add: powr_diff powr_nat)
       also from y have "(- of_real y) powr a = (-1) powr -a * of_real y powr a"
         by (subst powr_neg_real_complex) simp
       also have "-complex_of_real x / -complex_of_real y = complex_of_real x / complex_of_real y"
@@ -182,7 +182,7 @@ proof -
       also have "... ^ n = of_real x ^ n / of_real y ^ n" by (simp add: power_divide)
       also have "(a gchoose n) * ... * ((-1) powr -a * of_real y powr a) =
                    (-1) powr -a * ((a gchoose n) * of_real x ^ n * of_real y powr (a - n))"
-        by (simp add: algebra_simps powr_diff_complex powr_nat)
+        by (simp add: algebra_simps powr_diff powr_nat)
       finally have "(a gchoose n) * of_real (- x) ^ n * of_real (- y) powr (a - of_nat n) =
                       (-1) powr -a * ((a gchoose n) * of_real x ^ n * of_real y powr (a - of_nat n))" .
     }
@@ -229,7 +229,7 @@ proof -
   hence "(\<lambda>n. (a gchoose n) * (x / y) ^ n * y powr a) sums ((1 + x / y) powr a * y powr a)"
     by (rule sums_mult2)
   with xy show ?thesis
-    by (simp add: field_simps powr_divide powr_divide2[symmetric] powr_realpow)
+    by (simp add: field_simps powr_divide powr_diff powr_realpow)
 qed
 
 lemma one_plus_neg_powr_powser:

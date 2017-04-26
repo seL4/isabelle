@@ -258,6 +258,14 @@ proof -
     unfolding * using convex_halfspace_le[of "-a" "-b"] by auto
 qed
 
+lemma convex_halfspace_abs_le: "convex {x. \<bar>inner a x\<bar> \<le> b}"
+proof -
+  have *: "{x. \<bar>inner a x\<bar> \<le> b} = {x. inner a x \<le> b} \<inter> {x. -b \<le> inner a x}"
+    by auto
+  show ?thesis
+    unfolding * by (simp add: convex_Int convex_halfspace_ge convex_halfspace_le)
+qed
+
 lemma convex_hyperplane: "convex {x. inner a x = b}"
 proof -
   have *: "{x. inner a x = b} = {x. inner a x \<le> b} \<inter> {x. inner a x \<ge> b}"
