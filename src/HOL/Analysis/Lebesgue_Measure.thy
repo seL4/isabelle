@@ -220,7 +220,7 @@ next
     proof (rule compactE_image)
       show "compact {a'..b}"
         by (rule compact_Icc)
-      show "\<forall>i \<in> S'. open ({l i<..<r i + delta i})" by auto
+      show "\<And>i. i \<in> S' \<Longrightarrow> open ({l i<..<r i + delta i})" by auto
       have "{a'..b} \<subseteq> {a <.. b}"
         by auto
       also have "{a <.. b} = (\<Union>i\<in>S'. {l i<..r i})"

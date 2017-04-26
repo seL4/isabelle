@@ -261,7 +261,7 @@ proof -
   then have *: "S-U \<subseteq> (\<Union>x \<in> S-U. Uf x)"
     by blast
   obtain subU where subU: "subU \<subseteq> S - U" "finite subU" "S - U \<subseteq> (\<Union>x \<in> subU. Uf x)"
-    by (blast intro: that open_Uf compactE_image [OF com_sU _ *])
+    by (blast intro: that compactE_image [OF com_sU open_Uf *])
   then have [simp]: "subU \<noteq> {}"
     using t1 by auto
   then have cardp: "card subU > 0" using subU
@@ -401,7 +401,7 @@ proof -
   have NN0: "(1/(k*\<delta>)) ^ (NN e) < e" if "e>0" for e
   proof -
     have "0 < ln (real k) + ln \<delta>"
-      using \<delta>01(1) \<open>0 < k\<close> k\<delta>(1) ln_gt_zero by fastforce
+      using \<delta>01(1) \<open>0 < k\<close> k\<delta>(1) ln_gt_zero ln_mult by fastforce 
     then have "real (NN e) * ln (1 / (real k * \<delta>)) < ln e"
       using k\<delta>(1) NN(2) [of e] that by (simp add: ln_div divide_simps)
     then have "exp (real (NN e) * ln (1 / (real k * \<delta>))) < e"
@@ -459,7 +459,7 @@ proof -
   have com_A: "compact A" using A
     by (metis compact compact_Int_closed inf.absorb_iff2)
   obtain subA where subA: "subA \<subseteq> A" "finite subA" "A \<subseteq> (\<Union>x \<in> subA. Vf x)"
-    by (blast intro: that open_Vf compactE_image [OF com_A _ sum_max_0])
+    by (blast intro: that compactE_image [OF com_A open_Vf sum_max_0])
   then have [simp]: "subA \<noteq> {}"
     using \<open>a \<in> A\<close> by auto
   then have cardp: "card subA > 0" using subA

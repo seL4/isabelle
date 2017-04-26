@@ -4538,7 +4538,7 @@ proof -
   have "compact U" "\<forall>x\<in>U. open (ball x 1)" "U \<subseteq> (\<Union>x\<in>U. ball x 1)"
     using assms by auto
   then obtain D where D: "D \<subseteq> U" "finite D" "U \<subseteq> (\<Union>x\<in>D. ball x 1)"
-    by (rule compactE_image)
+    by (metis compactE_image)
   from \<open>finite D\<close> have "bounded (\<Union>x\<in>D. ball x 1)"
     by (simp add: bounded_UN)
   then show "bounded U" using \<open>U \<subseteq> (\<Union>x\<in>D. ball x 1)\<close>
@@ -7717,14 +7717,14 @@ proof (rule compactI)
       and c: "\<And>y. y \<in> t \<Longrightarrow> c y \<in> C \<and> open (a y) \<and> open (b y) \<and> x \<in> a y \<and> y \<in> b y \<and> a y \<times> b y \<subseteq> c y"
       by metis
     then have "\<forall>y\<in>t. open (b y)" "t \<subseteq> (\<Union>y\<in>t. b y)" by auto
-    from compactE_image[OF \<open>compact t\<close> this] obtain D where D: "D \<subseteq> t" "finite D" "t \<subseteq> (\<Union>y\<in>D. b y)"
-      by auto
+    with compactE_image[OF \<open>compact t\<close>] obtain D where D: "D \<subseteq> t" "finite D" "t \<subseteq> (\<Union>y\<in>D. b y)"
+      by metis
     moreover from D c have "(\<Inter>y\<in>D. a y) \<times> t \<subseteq> (\<Union>y\<in>D. c y)"
       by (fastforce simp: subset_eq)
     ultimately show "\<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>C. finite d \<and> a \<times> t \<subseteq> \<Union>d)"
       using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>(a`D)"] conjI) (auto intro!: open_INT)
   qed
-  then obtain a d where a: "\<forall>x\<in>s. open (a x)" "s \<subseteq> (\<Union>x\<in>s. a x)"
+  then obtain a d where a: "\<And>x. x\<in>s \<Longrightarrow> open (a x)" "s \<subseteq> (\<Union>x\<in>s. a x)"
     and d: "\<And>x. x \<in> s \<Longrightarrow> d x \<subseteq> C \<and> finite (d x) \<and> a x \<times> t \<subseteq> \<Union>d x"
     unfolding subset_eq UN_iff by metis
   moreover

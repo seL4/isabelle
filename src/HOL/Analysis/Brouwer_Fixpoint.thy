@@ -3604,7 +3604,7 @@ lemma ANR_closed_Un_local_aux:
   obtains V where "openin (subtopology euclidean U) V" "(S \<union> T) retract_of V"
 proof (cases "S = {} \<or> T = {}")
   case True with assms that show ?thesis
-    by (auto simp: intro: ANR_imp_neighbourhood_retract)
+    by (metis ANR_imp_neighbourhood_retract Un_commute inf_bot_right sup_inf_absorb)
 next
   case False
   then have [simp]: "S \<noteq> {}" "T \<noteq> {}" by auto

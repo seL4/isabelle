@@ -1017,6 +1017,7 @@ begin
 definition ln_complex :: "complex \<Rightarrow> complex"
   where "ln_complex \<equiv> \<lambda>z. THE w. exp w = z & -pi < Im(w) & Im(w) \<le> pi"
 
+text\<open>NOTE: within this scope, the constant Ln is not yet available!\<close>
 lemma
   assumes "z \<noteq> 0"
     shows exp_Ln [simp]:  "exp(ln z) = z"
@@ -1046,9 +1047,6 @@ lemma Ln_exp [simp]:
   apply auto
   done
 
-lemma Ln_eq_zero_iff [simp]: "x \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln x = 0 \<longleftrightarrow> x = 1"
-  by auto (metis exp_Ln exp_zero nonpos_Reals_zero_I)
-
 subsection\<open>Relation to Real Logarithm\<close>
 
 lemma Ln_of_real:
@@ -1073,13 +1071,17 @@ corollary Im_Ln_of_real [simp]: "r > 0 \<Longrightarrow> Im (ln (of_real r)) = 0
 lemma cmod_Ln_Reals [simp]: "z \<in> \<real> \<Longrightarrow> 0 < Re z \<Longrightarrow> cmod (ln z) = norm (ln (Re z))"
   using Ln_of_real by force
 
-lemma Ln_1: "ln 1 = (0::complex)"
+lemma Ln_1 [simp]: "ln 1 = (0::complex)"
 proof -
   have "ln (exp 0) = (0::complex)"
     by (metis (mono_tags, hide_lams) Ln_of_real exp_zero ln_one of_real_0 of_real_1 zero_less_one)
   then show ?thesis
-    by simp
+    by simp                              
 qed
+
+  
+lemma Ln_eq_zero_iff [simp]: "x \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> ln x = 0 \<longleftrightarrow> x = 1" for x::complex
+  by auto (metis exp_Ln exp_zero nonpos_Reals_zero_I)
 
 instance
   by intro_classes (rule ln_complex_def Ln_1)
