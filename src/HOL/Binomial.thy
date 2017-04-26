@@ -1688,10 +1688,8 @@ lemma gbinomial_code [code]:
     (simp_all add: gbinomial_prod_rev prod_atLeastAtMost_code [symmetric]
       atLeastLessThanSuc_atLeastAtMost)
 
-(* FIXME *)
-(*TODO: This code equation breaks Scala code generation in HOL-Codegenerator_Test. We have to figure out why and how to prevent that. *)
-
-(*
+lemmas [code del] = binomial_Suc_Suc binomial_n_0 binomial_0_Suc
+    
 lemma binomial_code [code]:
   "(n choose k) =
       (if k > n then 0
@@ -1702,10 +1700,9 @@ proof -
     assume "k \<le> n"
     then have "{1..n} = {1..n-k} \<union> {n-k+1..n}" by auto
     then have "(fact n :: nat) = fact (n-k) * \<Prod>{n-k+1..n}"
-      by (simp add: prod.union_disjoint fact_altdef_nat)
+      by (simp add: prod.union_disjoint fact_prod)
   }
   then show ?thesis by (auto simp: binomial_altdef_nat mult_ac prod_atLeastAtMost_code)
 qed
-*)
 
 end
