@@ -302,7 +302,9 @@ object SQLite
     def sql_type(T: SQL.Type.Value): String = SQL.sql_type_sqlite(T)
 
     def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
-      set_string(stmt, i, date_format(date))
+      if (date == null) set_string(stmt, i, null)
+      else set_string(stmt, i, date_format(date))
+
     def date(rs: ResultSet, name: String): Date =
       date_format.parse(string(rs, name))
 
@@ -368,7 +370,9 @@ object PostgreSQL
 
     // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
     def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
-      stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
+      if (date == null) stmt.setObject(i, null)
+      else stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
+
     def date(rs: ResultSet, name: String): Date =
       Date.instant(rs.getObject(name, classOf[OffsetDateTime]).toInstant)
 
