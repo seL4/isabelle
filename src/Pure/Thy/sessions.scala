@@ -748,15 +748,12 @@ object Sessions
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
 
-    def where_session_name(name: String): String =
-      "WHERE " + session_name.sql_name + " = " + SQL.quote_string(name)
-
     def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
         : PreparedStatement =
-      db.select_statement(table, columns, where_session_name(name))
+      db.select_statement(table, columns, session_name.sql_where_eq_string(name))
 
     def delete_statement(db: SQL.Database, name: String): PreparedStatement =
-      db.delete_statement(table, where_session_name(name))
+      db.delete_statement(table, session_name.sql_where_eq_string(name))
   }
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
