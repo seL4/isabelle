@@ -29,6 +29,19 @@ object Timing
       Exn.release(result)
     }
     else e
+
+  val encode: XML.Encode.T[Timing] = (t: Timing) =>
+  {
+    import XML.Encode._
+    triple(Time.encode, Time.encode, Time.encode)(t.elapsed, t.cpu, t.gc)
+  }
+
+  val decode: XML.Decode.T[Timing] = (body: XML.Body) =>
+  {
+    import XML.Decode._
+    val (elapsed, cpu, gc) = triple(Time.decode, Time.decode, Time.decode)(body)
+    Timing(elapsed, cpu, gc)
+  }
 }
 
 sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
