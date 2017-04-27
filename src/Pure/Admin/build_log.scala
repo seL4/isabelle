@@ -11,6 +11,7 @@ import java.io.{File => JFile}
 import java.time.ZoneId
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
+import java.sql.PreparedStatement
 
 import scala.collection.mutable
 import scala.util.matching.Regex
@@ -277,16 +278,14 @@ object Build_Log
   object Meta_Info
   {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
-
-    val log_filename = SQL.Column.string("log_filename", primary_key = true)
-
-    val columns: List[SQL.Column] =
-      log_filename :: Prop.columns ::: Settings.all_settings.map(SQL.Column.string(_))
   }
 
   sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
   {
     def is_empty: Boolean = props.isEmpty && settings.isEmpty
+
+    def get(c: SQL.Column): Option[String] = Properties.get(props, c.name)
+    def get_date(c: SQL.Column): Option[Date] = get(c).map(Log_File.Date_Format.parse(_))
   }
 
   object Isatest
@@ -337,11 +336,11 @@ object Build_Log
       val build_engine = if (engine == "") Nil else List(Prop.build_engine.name -> engine)
       val build_host = if (host == "") Nil else List(Prop.build_host.name -> host)
 
-      val start_date = List(Prop.build_start.name -> start.toString)
+      val start_date = List(Prop.build_start.name -> print_date(start))
       val end_date =
         log_file.lines.last match {
           case End(log_file.Strict_Date(end_date)) =>
-            List(Prop.build_end.name -> end_date.toString)
+            List(Prop.build_end.name -> print_date(end_date))
           case _ => Nil
         }
 
@@ -406,6 +405,27 @@ object Build_Log
     val CANCELLED = Value("cancelled")
   }
 
+  object Session_Entry
+  {
+    val encode: XML.Encode.T[Session_Entry] = (entry: Session_Entry) =>
+    {
+      import XML.Encode._
+      pair(string, pair(list(string), pair(option(int), pair(Timing.encode, pair(Timing.encode,
+        pair(list(properties), pair(option(long), string)))))))(
+        entry.chapter, (entry.groups, (entry.threads, (entry.timing, (entry.ml_timing,
+        (entry.ml_statistics, (entry.heap_size, entry.status.toString)))))))
+    }
+    val decode: XML.Decode.T[Session_Entry] = (body: XML.Body) =>
+    {
+      import XML.Decode._
+      val (chapter, (groups, (threads, (timing, (ml_timing, (ml_statistics, (heap_size, status))))))) =
+        pair(string, pair(list(string), pair(option(int), pair(Timing.decode, pair(Timing.decode,
+          pair(list(properties), pair(option(long), string)))))))(body)
+      Session_Entry(chapter, groups, threads, timing, ml_timing, ml_statistics, heap_size,
+        Session_Status.withName(status))
+    }
+  }
+
   sealed case class Session_Entry(
     chapter: String,
     groups: List[String],
@@ -417,6 +437,20 @@ object Build_Log
     status: Session_Status.Value)
   {
     def finished: Boolean = status == Session_Status.FINISHED
+  }
+
+  object Build_Info
+  {
+    def encode: XML.Encode.T[Build_Info] = (info: Build_Info) =>
+    {
+      import XML.Encode._
+      list(pair(string, Session_Entry.encode))(info.sessions.toList)
+    }
+    def decode: XML.Decode.T[Build_Info] = (body: XML.Body) =>
+    {
+      import XML.Decode._
+      Build_Info(list(pair(string, Session_Entry.decode))(body).toMap)
+    }
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -578,6 +612,20 @@ object Build_Log
 
   /** persistent store **/
 
+  object Info
+  {
+    val log_filename = SQL.Column.string("log_filename", primary_key = true)
+    val settings = SQL.Column.bytes("settings")
+    val build_info = SQL.Column.bytes("build_info")
+
+    val table =
+      SQL.Table("isabelle_build_log", log_filename :: Prop.columns ::: List(settings, build_info))
+
+    def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
+        : PreparedStatement =
+      db.select_statement(table, columns, log_filename.sql_where_eq_string(name))
+  }
+
   def store(options: Options): Store = new Store(options)
 
   class Store private[Build_Log](options: Options) extends Properties.Store
@@ -597,6 +645,49 @@ object Build_Log
         ssh =
           if (ssh_host == "") None
           else Some(SSH.init_context(options).open_session(ssh_host, ssh_user, port)))
+    }
+
+    def compress_build_info(build_info: Build_Info, options: XZ.Options = XZ.options()): Bytes =
+      Bytes(YXML.string_of_body(Build_Info.encode(build_info))).compress(options)
+
+    def uncompress_build_info(bytes: Bytes): Build_Info =
+      Build_Info.decode(xml_cache.body(YXML.parse_body(bytes.uncompress().text)))
+
+    def write_infos(db: SQL.Database, files: List[JFile])
+    {
+      db.transaction {
+        db.create_table(Info.table)
+
+        val known_files =
+          using(db.select_statement(Info.table, List(Info.log_filename)))(stmt =>
+            SQL.iterator(stmt.executeQuery)(rs => db.string(rs, Info.log_filename)).toSet)
+
+        using(db.insert_statement(Info.table))(stmt =>
+        {
+          for (file <- files.toSet if !known_files(file.getName)) {
+            val log_file = Log_File(file)
+            val meta_info = log_file.parse_meta_info()
+            val build_info = log_file.parse_build_info()
+
+            stmt.clearParameters
+
+            db.set_string(stmt, 1, file.getName)
+
+            for ((c, i) <- Prop.columns.zipWithIndex) {
+              if (c.T == SQL.Type.Date)
+                db.set_date(stmt, i + 2, meta_info.get_date(c).orNull)
+              else
+                db.set_string(stmt, i + 2, meta_info.get(c).orNull)
+            }
+
+            val n = Info.table.columns.length
+            db.set_bytes(stmt, n - 1, encode_properties(meta_info.settings))
+            db.set_bytes(stmt, n, compress_build_info(build_info))
+
+            stmt.execute()
+          }
+        })
+      }
     }
   }
 }
