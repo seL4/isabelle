@@ -1265,6 +1265,11 @@ lemma cbox_Pair_eq: "cbox (a, c) (b, d) = cbox a b \<times> cbox c d"
 lemma cbox_Pair_iff [iff]: "(x, y) \<in> cbox (a, c) (b, d) \<longleftrightarrow> x \<in> cbox a b \<and> y \<in> cbox c d"
   by (force simp: cbox_Pair_eq)
 
+lemma cbox_Complex_eq: "cbox (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (cbox a b \<times> cbox c d)"
+  apply (auto simp: cbox_def Basis_complex_def)
+  apply (rule_tac x = "(Re x, Im x)" in image_eqI)
+  using complex_eq by auto
+
 lemma cbox_Pair_eq_0: "cbox (a, c) (b, d) = {} \<longleftrightarrow> cbox a b = {} \<or> cbox c d = {}"
   by (force simp: cbox_Pair_eq)
 
@@ -3916,19 +3921,6 @@ definition (in metric_space) bounded :: "'a set \<Rightarrow> bool"
 lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<subseteq> cball x e \<and> 0 \<le> e)"
   unfolding bounded_def subset_eq  by auto (meson order_trans zero_le_dist)
 
-lemma bounded_subset_ballD:
-  assumes "bounded S" shows "\<exists>r. 0 < r \<and> S \<subseteq> ball x r"
-proof -
-  obtain e::real and y where "S \<subseteq> cball y e"  "0 \<le> e"
-    using assms by (auto simp: bounded_subset_cball)
-  then show ?thesis
-    apply (rule_tac x="dist x y + e + 1" in exI)
-    apply (simp add: add.commute add_pos_nonneg)
-    apply (erule subset_trans)
-    apply (clarsimp simp add: cball_def)
-    by (metis add_le_cancel_right add_strict_increasing dist_commute dist_triangle_le zero_less_one)
-qed
-
 lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
   unfolding bounded_def
   by auto (metis add.commute add_le_cancel_right dist_commute dist_triangle_le)
@@ -4012,6 +4004,22 @@ proof -
     unfolding bounded_def by fast
   then show ?thesis
     by (metis insert_is_Un bounded_Un)
+qed
+
+lemma bounded_subset_ballI: "S \<subseteq> ball x r \<Longrightarrow> bounded S"
+  by (meson bounded_ball bounded_subset)
+
+lemma bounded_subset_ballD:
+  assumes "bounded S" shows "\<exists>r. 0 < r \<and> S \<subseteq> ball x r"
+proof -
+  obtain e::real and y where "S \<subseteq> cball y e"  "0 \<le> e"
+    using assms by (auto simp: bounded_subset_cball)
+  then show ?thesis
+    apply (rule_tac x="dist x y + e + 1" in exI)
+    apply (simp add: add.commute add_pos_nonneg)
+    apply (erule subset_trans)
+    apply (clarsimp simp add: cball_def)
+    by (metis add_le_cancel_right add_strict_increasing dist_commute dist_triangle_le zero_less_one)
 qed
 
 lemma finite_imp_bounded [intro]: "finite S \<Longrightarrow> bounded S"

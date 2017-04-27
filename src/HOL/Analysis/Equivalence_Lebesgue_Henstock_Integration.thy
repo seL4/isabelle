@@ -683,7 +683,7 @@ proof -
     by (simp add: AE_iff_measurable)
   show ?thesis
   proof (rule has_integral_spike_eq[symmetric])
-    show "\<forall>x\<in>\<Omega> - N. f x = g x" using N(3) by auto
+    show "\<And>x. x\<in>\<Omega> - N \<Longrightarrow> f x = g x" using N(3) by auto
     show "negligible N"
       unfolding negligible_def
     proof (intro allI)
@@ -2246,7 +2246,7 @@ proof (rule Bochner_Integration.integrable_bound)
   proof
     show "(\<lambda>x. norm (g x)) integrable_on s"
       using le norm_ge_zero[of "f _"]
-      by (intro integrable_spike_finite[OF _ _ g, where s="{}"])
+      by (intro integrable_spike_finite[OF _ _ g, of "{}"])
          (auto intro!: abs_of_nonneg intro: order_trans simp del: norm_ge_zero)
   qed fact
   show "set_borel_measurable lebesgue s f"
@@ -2266,9 +2266,9 @@ proof -
     unfolding absolutely_integrable_on_def
   proof
     show "(\<lambda>x. norm (h x)) integrable_on s"
-    proof (intro integrable_spike_finite[OF _ _ h, where s="{}"] ballI)
+    proof (intro integrable_spike_finite[OF _ _ h, of "{}"] ballI)
       fix x assume "x \<in> s - {}" then show "norm (h x) = h x"
-        using order_trans[OF norm_ge_zero le[THEN bspec, of x]] by auto
+        by (metis Diff_empty abs_of_nonneg bot_set_def le norm_ge_zero order_trans real_norm_def)
     qed auto
   qed fact
   have 2: "set_borel_measurable lebesgue s (f k)" for k

@@ -482,6 +482,8 @@ definition analytic_on (infixl "(analytic'_on)" 50)
   where
    "f analytic_on s \<equiv> \<forall>x \<in> s. \<exists>e. 0 < e \<and> f holomorphic_on (ball x e)"
 
+named_theorems analytic_intros "introduction rules for proving analyticity"
+
 lemma analytic_imp_holomorphic: "f analytic_on s \<Longrightarrow> f holomorphic_on s"
   by (simp add: at_within_open [OF _ open_ball] analytic_on_def holomorphic_on_def)
      (metis centre_in_ball field_differentiable_at_within)
@@ -531,16 +533,16 @@ proof -
   finally show ?thesis .
 qed
 
-lemma analytic_on_linear: "(op * c) analytic_on s"
-  by (auto simp add: analytic_on_holomorphic holomorphic_on_linear)
+lemma analytic_on_linear [analytic_intros,simp]: "(op * c) analytic_on s"
+  by (auto simp add: analytic_on_holomorphic)
 
-lemma analytic_on_const: "(\<lambda>z. c) analytic_on s"
+lemma analytic_on_const [analytic_intros,simp]: "(\<lambda>z. c) analytic_on s"
   by (metis analytic_on_def holomorphic_on_const zero_less_one)
 
-lemma analytic_on_ident: "(\<lambda>x. x) analytic_on s"
-  by (simp add: analytic_on_def holomorphic_on_ident gt_ex)
+lemma analytic_on_ident [analytic_intros,simp]: "(\<lambda>x. x) analytic_on s"
+  by (simp add: analytic_on_def gt_ex)
 
-lemma analytic_on_id: "id analytic_on s"
+lemma analytic_on_id [analytic_intros]: "id analytic_on s"
   unfolding id_def by (rule analytic_on_ident)
 
 lemma analytic_on_compose:
@@ -572,11 +574,11 @@ lemma analytic_on_compose_gen:
              \<Longrightarrow> g o f analytic_on s"
 by (metis analytic_on_compose analytic_on_subset image_subset_iff)
 
-lemma analytic_on_neg:
+lemma analytic_on_neg [analytic_intros]:
   "f analytic_on s \<Longrightarrow> (\<lambda>z. -(f z)) analytic_on s"
 by (metis analytic_on_holomorphic holomorphic_on_minus)
 
-lemma analytic_on_add:
+lemma analytic_on_add [analytic_intros]:
   assumes f: "f analytic_on s"
       and g: "g analytic_on s"
     shows "(\<lambda>z. f z + g z) analytic_on s"
@@ -596,7 +598,7 @@ proof (intro ballI)
     by (metis e e' min_less_iff_conj)
 qed
 
-lemma analytic_on_diff:
+lemma analytic_on_diff [analytic_intros]:
   assumes f: "f analytic_on s"
       and g: "g analytic_on s"
     shows "(\<lambda>z. f z - g z) analytic_on s"
@@ -616,7 +618,7 @@ proof (intro ballI)
     by (metis e e' min_less_iff_conj)
 qed
 
-lemma analytic_on_mult:
+lemma analytic_on_mult [analytic_intros]:
   assumes f: "f analytic_on s"
       and g: "g analytic_on s"
     shows "(\<lambda>z. f z * g z) analytic_on s"
@@ -636,7 +638,7 @@ proof (intro ballI)
     by (metis e e' min_less_iff_conj)
 qed
 
-lemma analytic_on_inverse:
+lemma analytic_on_inverse [analytic_intros]:
   assumes f: "f analytic_on s"
       and nz: "(\<And>z. z \<in> s \<Longrightarrow> f z \<noteq> 0)"
     shows "(\<lambda>z. inverse (f z)) analytic_on s"
@@ -658,7 +660,7 @@ proof (intro ballI)
     by (metis e e' min_less_iff_conj)
 qed
 
-lemma analytic_on_divide:
+lemma analytic_on_divide [analytic_intros]:
   assumes f: "f analytic_on s"
       and g: "g analytic_on s"
       and nz: "(\<And>z. z \<in> s \<Longrightarrow> g z \<noteq> 0)"
@@ -666,11 +668,11 @@ lemma analytic_on_divide:
 unfolding divide_inverse
 by (metis analytic_on_inverse analytic_on_mult f g nz)
 
-lemma analytic_on_power:
+lemma analytic_on_power [analytic_intros]:
   "f analytic_on s \<Longrightarrow> (\<lambda>z. (f z) ^ n) analytic_on s"
-by (induct n) (auto simp: analytic_on_const analytic_on_mult)
+by (induct n) (auto simp: analytic_on_mult)
 
-lemma analytic_on_sum:
+lemma analytic_on_sum [analytic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) analytic_on s"
   by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_const analytic_on_add)
 

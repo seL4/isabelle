@@ -1401,7 +1401,7 @@ lemma Ln_times_ii:
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z] Re_Ln_pos_le [of z]
   by (simp add: Ln_times) auto
 
-lemma Ln_of_nat: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
+lemma Ln_of_nat [simp]: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
   by (subst of_real_of_nat_eq[symmetric], subst Ln_of_real[symmetric]) simp_all
 
 lemma Ln_of_nat_over_of_nat:
@@ -1936,14 +1936,13 @@ proof (simp add: lim_sequentially dist_norm, clarify)
 qed
 
 lemma lim_Ln_over_n: "((\<lambda>n. Ln(of_nat n) / of_nat n) \<longlongrightarrow> 0) sequentially"
-  using lim_Ln_over_power [of 1]
-  by simp
+  using lim_Ln_over_power [of 1] by simp
 
-lemma Ln_Reals_eq: "x \<in> \<real> \<Longrightarrow> Re x > 0 \<Longrightarrow> Ln x = of_real (ln (Re x))"
+lemma Ln_Reals_eq: "\<lbrakk>x \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow> Ln x = of_real (ln (Re x))"
   using Ln_of_real by force
 
-lemma powr_Reals_eq: "x \<in> \<real> \<Longrightarrow> Re x > 0 \<Longrightarrow> x powr complex_of_real y = of_real (x powr y)"
-  by (simp add: powr_of_real)
+lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
+  by (metis linear not_le of_real_Re powr_of_real)
 
 lemma lim_ln_over_power:
   fixes s :: real

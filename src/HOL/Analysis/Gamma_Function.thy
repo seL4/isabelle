@@ -2785,7 +2785,7 @@ proof -
       by (intro has_integral_spike_finite_eq[of "{0}"]) (simp_all add: powr_def Ln_of_real)
     also have "fact n * of_nat n / pochhammer z (n+1) * exp ((z - 1) * Ln (of_nat n)) =
                  (of_nat n powr z * fact n / pochhammer z (n+1))"
-      by (auto simp add: powr_def algebra_simps exp_diff)
+      by (auto simp add: powr_def algebra_simps exp_diff exp_of_real)
     finally show ?thesis by (subst has_integral_restrict) simp_all
   next
     case False

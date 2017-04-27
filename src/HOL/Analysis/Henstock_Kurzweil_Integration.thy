@@ -2238,78 +2238,50 @@ qed
 
 lemma has_integral_spike:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "negligible s"
-    and "(\<forall>x\<in>(t - s). g x = f x)"
-    and "(f has_integral y) t"
-  shows "(g has_integral y) t"
+  assumes "negligible S"
+    and gf: "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+    and fint: "(f has_integral y) T"
+  shows "(g has_integral y) T"
 proof -
-  {
-    fix a b :: 'b
-    fix f g :: "'b \<Rightarrow> 'a"
-    fix y :: 'a
-    assume as: "\<forall>x \<in> cbox a b - s. g x = f x" "(f has_integral y) (cbox a b)"
+  have *: "(g has_integral y) (cbox a b)"
+       if "(f has_integral y) (cbox a b)" "\<forall>x \<in> cbox a b - S. g x = f x" for a b f and g:: "'b \<Rightarrow> 'a" and y
+  proof -
     have "((\<lambda>x. f x + (g x - f x)) has_integral (y + 0)) (cbox a b)"
-      apply (rule has_integral_add[OF as(2)])
-      apply (rule has_integral_negligible[OF assms(1)])
-      using as
-      apply auto
-      done
-    then have "(g has_integral y) (cbox a b)"
+      using that by (intro has_integral_add has_integral_negligible) (auto intro!: \<open>negligible S\<close>)
+    then show ?thesis
       by auto
-  } note * = this
+  qed
   show ?thesis
+    using fint gf
     apply (subst has_integral_alt)
-    using assms(2-)
-    apply -
-    apply (rule cond_cases)
-    apply safe
-    apply (rule *)
-    apply assumption+
-    apply (subst(asm) has_integral_alt)
-    unfolding if_not_P
-    apply (erule_tac x=e in allE)
-    apply safe
-    apply (rule_tac x=B in exI)
-    apply safe
-    apply (erule_tac x=a in allE)
-    apply (erule_tac x=b in allE)
-    apply safe
-    apply (rule_tac x=z in exI)
-    apply safe
-    apply (rule *[where fa2="\<lambda>x. if x\<in>t then f x else 0"])
-    apply auto
+    apply (subst (asm) has_integral_alt)
+    apply (simp add: split: if_split_asm)
+      apply (blast dest: *)
+    apply (elim all_forward imp_forward ex_forward)
+    apply (force dest: *[where f="\<lambda>x. if x\<in>T then f x else 0" and g="\<lambda>x. if x \<in> T then g x else 0"])+
     done
 qed
 
 lemma has_integral_spike_eq:
-  assumes "negligible s"
-    and "\<forall>x\<in>(t - s). g x = f x"
-  shows "((f has_integral y) t \<longleftrightarrow> (g has_integral y) t)"
-  apply rule
-  apply (rule_tac[!] has_integral_spike[OF assms(1)])
-  using assms(2)
-  apply auto
-  done
+  assumes "negligible S"
+    and gf: "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+  shows "(f has_integral y) T \<longleftrightarrow> (g has_integral y) T"
+    using has_integral_spike [OF \<open>negligible S\<close>] gf
+    by metis
 
 lemma integrable_spike:
-  assumes "negligible s"
-    and "\<forall>x\<in>(t - s). g x = f x"
-    and "f integrable_on t"
-  shows "g integrable_on  t"
-  using assms
-  unfolding integrable_on_def
-  apply -
-  apply (erule exE)
-  apply rule
-  apply (rule has_integral_spike)
-  apply fastforce+
-  done
+  assumes "negligible S"
+    and "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+    and "f integrable_on T"
+  shows "g integrable_on T"
+  using assms unfolding integrable_on_def by (blast intro: has_integral_spike)
 
 lemma integral_spike:
-  assumes "negligible s"
-    and "\<forall>x\<in>(t - s). g x = f x"
-  shows "integral t f = integral t g"
-  using has_integral_spike_eq[OF assms] by (simp add: integral_def integrable_on_def)
+  assumes "negligible S"
+    and "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+  shows "integral T f = integral T g"
+  using has_integral_spike_eq[OF assms]
+    by (auto simp: integral_def integrable_on_def)
 
 
 subsection \<open>Some other trivialities about negligible sets.\<close>
@@ -2337,7 +2309,7 @@ lemma negligible_Un:
   unfolding negligible_def
 proof (safe, goal_cases)
   case (1 a b)
-  note assm = assms[unfolded negligible_def,rule_format,of a b]
+  note assms[unfolded negligible_def,rule_format,of a b]
   then show ?case
     apply (subst has_integral_spike_eq[OF assms(2)])
     defer
@@ -2405,37 +2377,24 @@ qed auto
 subsection \<open>Finite case of the spike theorem is quite commonly needed.\<close>
 
 lemma has_integral_spike_finite:
-  assumes "finite s"
-    and "\<forall>x\<in>t-s. g x = f x"
-    and "(f has_integral y) t"
-  shows "(g has_integral y) t"
-  apply (rule has_integral_spike)
-  using assms
-  apply auto
-  done
+  assumes "finite S"
+    and "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+    and "(f has_integral y) T"
+  shows "(g has_integral y) T"
+  using assms has_integral_spike negligible_finite by blast
 
 lemma has_integral_spike_finite_eq:
-  assumes "finite s"
-    and "\<forall>x\<in>t-s. g x = f x"
-  shows "((f has_integral y) t \<longleftrightarrow> (g has_integral y) t)"
-  apply rule
-  apply (rule_tac[!] has_integral_spike_finite)
-  using assms
-  apply auto
-  done
+  assumes "finite S"
+    and "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+  shows "((f has_integral y) T \<longleftrightarrow> (g has_integral y) T)"
+  by (metis assms has_integral_spike_finite)
 
 lemma integrable_spike_finite:
-  assumes "finite s"
-    and "\<forall>x\<in>t-s. g x = f x"
-    and "f integrable_on t"
-  shows "g integrable_on  t"
-  using assms
-  unfolding integrable_on_def
-  apply safe
-  apply (rule_tac x=y in exI)
-  apply (rule has_integral_spike_finite)
-  apply auto
-  done
+  assumes "finite S"
+    and "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+    and "f integrable_on T"
+  shows "g integrable_on T"
+  using assms has_integral_spike_finite by blast
 
 
 subsection \<open>In particular, the boundary of an interval is negligible.\<close>

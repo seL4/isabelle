@@ -831,7 +831,7 @@ proof -
     apply (drule has_integral_affinity01 [where m= "-1" and c=1])
     apply (auto simp: reversepath_def valid_path_def piecewise_C1_differentiable_on_def)
     apply (drule has_integral_neg)
-    apply (rule_tac s = "(\<lambda>x. 1 - x) ` s" in has_integral_spike_finite)
+    apply (rule_tac S = "(\<lambda>x. 1 - x) ` s" in has_integral_spike_finite)
     apply (auto simp: *)
     done
 qed
@@ -1114,7 +1114,7 @@ proof -
   have "((\<lambda>x. f (shiftpath a g x) * vector_derivative (shiftpath a g) (at x))
         has_integral  integral {a..1} (\<lambda>x. f (g x) * vector_derivative g (at x)))  {0..1 - a}"
     apply (rule has_integral_spike_finite
-             [where s = "{1-a} \<union> (\<lambda>x. x-a) ` s" and f = "\<lambda>x. f(g(a+x)) * vector_derivative g (at(a+x))"])
+             [where S = "{1-a} \<union> (\<lambda>x. x-a) ` s" and f = "\<lambda>x. f(g(a+x)) * vector_derivative g (at(a+x))"])
       using s apply blast
      using a apply (auto simp: algebra_simps vd1)
      apply (force simp: shiftpath_def add.commute)
@@ -1125,7 +1125,7 @@ proof -
   have "((\<lambda>x. f (shiftpath a g x) * vector_derivative (shiftpath a g) (at x))
         has_integral  integral {0..a} (\<lambda>x. f (g x) * vector_derivative g (at x)))  {1 - a..1}"
     apply (rule has_integral_spike_finite
-             [where s = "{1-a} \<union> (\<lambda>x. x-a+1) ` s" and f = "\<lambda>x. f(g(a+x-1)) * vector_derivative g (at(a+x-1))"])
+             [where S = "{1-a} \<union> (\<lambda>x. x-a+1) ` s" and f = "\<lambda>x. f(g(a+x-1)) * vector_derivative g (at(a+x-1))"])
       using s apply blast
      using a apply (auto simp: algebra_simps vd2)
      apply (force simp: shiftpath_def add.commute)
@@ -1324,7 +1324,7 @@ next
     apply (cut_tac has_integral_cmul [OF *, where c = "v-u"])
     using fs assms
     apply (simp add: False subpath_def has_contour_integral)
-    apply (rule_tac s = "(\<lambda>t. ((v-u) *\<^sub>R t + u)) -` s" in has_integral_spike_finite)
+    apply (rule_tac S = "(\<lambda>t. ((v-u) *\<^sub>R t + u)) -` s" in has_integral_spike_finite)
     apply (auto simp: inj_on_def False finite_vimageI vd scaleR_conv_of_real)
     done
 qed
@@ -3543,6 +3543,63 @@ lemma winding_number_offset: "winding_number p z = winding_number (\<lambda>w. p
   apply (force simp: algebra_simps)
   done
 
+subsubsection\<open>Some lemmas about negating a path.\<close>
+
+lemma valid_path_negatepath: "valid_path \<gamma> \<Longrightarrow> valid_path (uminus \<circ> \<gamma>)"
+   unfolding o_def using piecewise_C1_differentiable_neg valid_path_def by blast
+
+lemma has_contour_integral_negatepath:
+  assumes \<gamma>: "valid_path \<gamma>" and cint: "((\<lambda>z. f (- z)) has_contour_integral - i) \<gamma>"
+  shows "(f has_contour_integral i) (uminus \<circ> \<gamma>)"
+proof -
+  obtain S where cont: "continuous_on {0..1} \<gamma>" and "finite S" and diff: "\<gamma> C1_differentiable_on {0..1} - S"
+    using \<gamma> by (auto simp: valid_path_def piecewise_C1_differentiable_on_def)
+  have "((\<lambda>x. - (f (- \<gamma> x) * vector_derivative \<gamma> (at x within {0..1}))) has_integral i) {0..1}"
+    using cint by (auto simp: has_contour_integral_def dest: has_integral_neg)
+  then
+  have "((\<lambda>x. f (- \<gamma> x) * vector_derivative (uminus \<circ> \<gamma>) (at x within {0..1})) has_integral i) {0..1}"
+  proof (rule rev_iffD1 [OF _ has_integral_spike_eq])
+    show "negligible S"
+      by (simp add: \<open>finite S\<close> negligible_finite)
+    show "f (- \<gamma> x) * vector_derivative (uminus \<circ> \<gamma>) (at x within {0..1}) =
+         - (f (- \<gamma> x) * vector_derivative \<gamma> (at x within {0..1}))"
+      if "x \<in> {0..1} - S" for x
+    proof -
+      have "vector_derivative (uminus \<circ> \<gamma>) (at x within cbox 0 1) = - vector_derivative \<gamma> (at x within cbox 0 1)"
+        apply (rule vector_derivative_within_closed_interval)
+        using that
+          apply (auto simp: o_def)
+        apply (rule has_vector_derivative_minus)
+        by (metis C1_differentiable_on_def diff has_vector_derivative_at_within that vector_derivative_at_within_ivl zero_less_one)
+      then show ?thesis
+        by simp
+    qed
+  qed
+  then show ?thesis by (simp add: has_contour_integral_def)
+qed
+
+lemma winding_number_negatepath:
+  assumes \<gamma>: "valid_path \<gamma>" and 0: "0 \<notin> path_image \<gamma>"
+  shows "winding_number(uminus \<circ> \<gamma>) 0 = winding_number \<gamma> 0"
+proof -
+  have "op / 1 contour_integrable_on \<gamma>"
+    using "0" \<gamma> contour_integrable_inversediff by fastforce
+  then have "((\<lambda>z. 1/z) has_contour_integral contour_integral \<gamma> (op / 1)) \<gamma>"
+    by (rule has_contour_integral_integral)
+  then have "((\<lambda>z. 1 / - z) has_contour_integral - contour_integral \<gamma> (op / 1)) \<gamma>"
+    using has_contour_integral_neg by auto
+  then show ?thesis
+    using assms
+    apply (simp add: winding_number_valid_path valid_path_negatepath image_def path_defs)
+    apply (simp add: contour_integral_unique has_contour_integral_negatepath)
+    done
+qed
+
+lemma contour_integrable_negatepath:
+  assumes \<gamma>: "valid_path \<gamma>" and pi: "(\<lambda>z. f (- z)) contour_integrable_on \<gamma>"
+  shows "f contour_integrable_on (uminus \<circ> \<gamma>)"
+  by (metis \<gamma> add.inverse_inverse contour_integrable_on_def has_contour_integral_negatepath pi)
+
 (* A combined theorem deducing several things piecewise.*)
 lemma winding_number_join_pos_combined:
      "\<lbrakk>valid_path \<gamma>1; z \<notin> path_image \<gamma>1; 0 < Re(winding_number \<gamma>1 z);
@@ -3551,7 +3608,7 @@ lemma winding_number_join_pos_combined:
   by (simp add: valid_path_join path_image_join winding_number_join valid_path_imp_path)
 
 
-(* Useful sufficient conditions for the winding number to be positive etc.*)
+subsubsection\<open>Useful sufficient conditions for the winding number to be positive\<close>
 
 lemma Re_winding_number:
     "\<lbrakk>valid_path \<gamma>; z \<notin> path_image \<gamma>\<rbrakk>
@@ -5589,13 +5646,13 @@ lemma holomorphic_deriv [holomorphic_intros]:
     "\<lbrakk>f holomorphic_on s; open s\<rbrakk> \<Longrightarrow> (deriv f) holomorphic_on s"
 by (metis DERIV_deriv_iff_field_differentiable at_within_open derivative_is_holomorphic holomorphic_on_def)
 
-lemma analytic_deriv: "f analytic_on s \<Longrightarrow> (deriv f) analytic_on s"
+lemma analytic_deriv [analytic_intros]: "f analytic_on s \<Longrightarrow> (deriv f) analytic_on s"
   using analytic_on_holomorphic holomorphic_deriv by auto
 
 lemma holomorphic_higher_deriv [holomorphic_intros]: "\<lbrakk>f holomorphic_on s; open s\<rbrakk> \<Longrightarrow> (deriv ^^ n) f holomorphic_on s"
   by (induction n) (auto simp: holomorphic_deriv)
 
-lemma analytic_higher_deriv: "f analytic_on s \<Longrightarrow> (deriv ^^ n) f analytic_on s"
+lemma analytic_higher_deriv [analytic_intros]: "f analytic_on s \<Longrightarrow> (deriv ^^ n) f analytic_on s"
   unfolding analytic_on_def using holomorphic_higher_deriv by blast
 
 lemma has_field_derivative_higher_deriv:
