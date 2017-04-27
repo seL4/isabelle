@@ -211,16 +211,16 @@ object Build_History
       val store = Sessions.store()
 
       val meta_info =
-        Build_Log.Prop.multiple(Build_Log.Prop.build_tags, build_tags) :::
-        Build_Log.Prop.multiple(Build_Log.Prop.build_args, build_args1) :::
+        Build_Log.Prop.multiple(Build_Log.Prop.build_tags.name, build_tags) :::
+        Build_Log.Prop.multiple(Build_Log.Prop.build_args.name, build_args1) :::
         List(
-          Build_Log.Prop.build_group_id -> build_group_id,
-          Build_Log.Prop.build_id -> (build_host + ":" + build_start.time.ms),
-          Build_Log.Prop.build_engine -> Build_History.engine,
-          Build_Log.Prop.build_host -> build_host,
-          Build_Log.Prop.build_start -> Build_Log.print_date(build_start),
-          Build_Log.Prop.build_end -> Build_Log.print_date(build_end),
-          Build_Log.Prop.isabelle_version -> isabelle_version)
+          Build_Log.Prop.build_group_id.name -> build_group_id,
+          Build_Log.Prop.build_id.name -> (build_host + ":" + build_start.time.ms),
+          Build_Log.Prop.build_engine.name -> Build_History.engine,
+          Build_Log.Prop.build_host.name -> build_host,
+          Build_Log.Prop.build_start.name -> Build_Log.print_date(build_start),
+          Build_Log.Prop.build_end.name -> Build_Log.print_date(build_end),
+          Build_Log.Prop.isabelle_version.name -> isabelle_version)
 
       val ml_statistics =
         build_info.finished_sessions.flatMap(session_name =>

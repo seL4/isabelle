@@ -30,16 +30,20 @@ object Build_Log
       if (args.isEmpty) Nil
       else List(name -> args.mkString(separator.toString))
 
-    val build_tags = "build_tags"  // multiple
-    val build_args = "build_args"  // multiple
-    val build_group_id = "build_group_id"
-    val build_id = "build_id"
-    val build_engine = "build_engine"
-    val build_host = "build_host"
-    val build_start = "build_start"
-    val build_end = "build_end"
-    val isabelle_version = "isabelle_version"
-    val afp_version = "afp_version"
+    val build_tags = SQL.Column.string("build_tags")  // multiple
+    val build_args = SQL.Column.string("build_args")  // multiple
+    val build_group_id = SQL.Column.string("build_group_id")
+    val build_id = SQL.Column.string("build_id")
+    val build_engine = SQL.Column.string("build_engine")
+    val build_host = SQL.Column.string("build_host")
+    val build_start = SQL.Column.date("build_start")
+    val build_end = SQL.Column.date("build_end")
+    val isabelle_version = SQL.Column.string("isabelle_version")
+    val afp_version = SQL.Column.string("afp_version")
+
+    val columns: List[SQL.Column] =
+      List(build_tags, build_args, build_group_id, build_id, build_engine,
+        build_host, build_start, build_end, isabelle_version, afp_version)
   }
 
 
@@ -273,6 +277,11 @@ object Build_Log
   object Meta_Info
   {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
+
+    val log_filename = SQL.Column.string("log_filename", primary_key = true)
+
+    val columns: List[SQL.Column] =
+      log_filename :: Prop.columns ::: Settings.all_settings.map(SQL.Column.string(_))
   }
 
   sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
@@ -325,23 +334,23 @@ object Build_Log
         val prefix = if (host != "") host else if (engine != "") engine else ""
         (if (prefix == "") "build" else prefix) + ":" + start.time.ms
       }
-      val build_engine = if (engine == "") Nil else List(Prop.build_engine -> engine)
-      val build_host = if (host == "") Nil else List(Prop.build_host -> host)
+      val build_engine = if (engine == "") Nil else List(Prop.build_engine.name -> engine)
+      val build_host = if (host == "") Nil else List(Prop.build_host.name -> host)
 
-      val start_date = List(Prop.build_start -> start.toString)
+      val start_date = List(Prop.build_start.name -> start.toString)
       val end_date =
         log_file.lines.last match {
           case End(log_file.Strict_Date(end_date)) =>
-            List(Prop.build_end -> end_date.toString)
+            List(Prop.build_end.name -> end_date.toString)
           case _ => Nil
         }
 
       val isabelle_version =
-        log_file.find_match(Isabelle_Version).map(Prop.isabelle_version -> _)
+        log_file.find_match(Isabelle_Version).map(Prop.isabelle_version.name -> _)
       val afp_version =
-        log_file.find_match(AFP_Version).map(Prop.afp_version -> _)
+        log_file.find_match(AFP_Version).map(Prop.afp_version.name -> _)
 
-      Meta_Info((Prop.build_id -> build_id) :: build_engine ::: build_host :::
+      Meta_Info((Prop.build_id.name -> build_id) :: build_engine ::: build_host :::
           start_date ::: end_date ::: isabelle_version.toList ::: afp_version.toList,
         log_file.get_settings(Settings.all_settings))
     }
