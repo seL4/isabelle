@@ -17,7 +17,7 @@ object Build_History
   /* log files */
 
   val engine = "build_history"
-  val log_prefix = engine + "-"
+  val log_prefix = engine + "_"
   val META_INFO_MARKER = "\fmeta_info = "
 
 
