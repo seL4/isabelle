@@ -232,3 +232,15 @@ option ssh_connect_timeout : real = 60
 
 option ssh_alive_interval : real = 30
   -- "time interval to keep SSH server connection alive (seconds)"
+
+
+section "Build Log Database"
+
+option build_log_database_user : string = ""
+option build_log_database_password : string = ""
+option build_log_database_name : string = ""
+option build_log_database_host : string = ""
+option build_log_database_port : int = 0
+option build_log_ssh_host : string = ""
+option build_log_ssh_user : string = ""
+option build_log_ssh_port : int = 0

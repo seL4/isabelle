@@ -573,4 +573,30 @@ object Build_Log
       ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
       task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil)
   }
+
+
+
+  /** persistent store **/
+
+  def store(options: Options): Store = new Store(options)
+
+  class Store private[Build_Log](options: Options) extends Properties.Store
+  {
+    def open_database(
+      user: String = options.string("build_log_database_user"),
+      password: String = options.string("build_log_database_password"),
+      database: String = options.string("build_log_database_name"),
+      host: String = options.string("build_log_database_host"),
+      port: Int = options.int("build_log_database_port"),
+      ssh_host: String = options.string("build_log_ssh_host"),
+      ssh_user: String = options.string("build_log_ssh_user"),
+      ssh_port: Int = options.int("build_log_ssh_port")): PostgreSQL.Database =
+    {
+      PostgreSQL.open_database(
+        user = user, password = password, database = database, host = host, port = port,
+        ssh =
+          if (ssh_host == "") None
+          else Some(SSH.init_context(options).open_session(ssh_host, ssh_user, port)))
+    }
+  }
 }
