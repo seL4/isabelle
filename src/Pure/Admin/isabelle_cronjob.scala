@@ -89,7 +89,7 @@ object Isabelle_Cronjob
   sealed case class Remote_Build(
     host: String,
     user: String = "",
-    port: Int = SSH.default_port,
+    port: Int = 0,
     shared_home: Boolean = true,
     options: String = "",
     args: String = "")

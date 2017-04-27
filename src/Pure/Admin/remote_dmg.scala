@@ -32,14 +32,14 @@ object Remote_DMG
     Isabelle_Tool("remote_dmg", "build dmg on remote Mac OS X system", args =>
     {
       Command_Line.tool0 {
-        var port = SSH.default_port
+        var port = 0
         var volume_name = ""
 
         val getopts = Getopts("""
 Usage: isabelle remote_dmg [OPTIONS] USER@HOST TAR_GZ_FILE DMG_FILE
 
   Options are:
-    -p PORT      alternative SSH port (default: """ + SSH.default_port + """)
+    -p PORT      alternative SSH port
     -V NAME      specify volume name
 
   Turn the contents of a tar.gz file into a dmg file -- produced on a remote

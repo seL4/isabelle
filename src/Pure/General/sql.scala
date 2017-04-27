@@ -325,7 +325,7 @@ object PostgreSQL
     password: String,
     database: String = "",
     host: String = "",
-    port: Int = default_port,
+    port: Int = 0,
     ssh: Option[SSH.Session] = None): Database =
   {
     init_jdbc
@@ -333,7 +333,7 @@ object PostgreSQL
     require(user != "")
 
     val db_host = if (host != "") host else "localhost"
-    val db_port = if (port != default_port) ":" + port else ""
+    val db_port = if (port > 0 && port != default_port) ":" + port else ""
     val db_name = "/" + (if (database != "") database else user)
 
     val (url, name, port_forwarding) =
@@ -344,7 +344,9 @@ object PostgreSQL
           val name = user + "@" + spec
           (url, name, None)
         case Some(ssh) =>
-          val fw = ssh.port_forwarding(remote_host = db_host, remote_port = port)
+          val fw =
+            ssh.port_forwarding(remote_host = db_host,
+              remote_port = if (port > 0) port else default_port)
           val url = "jdbc:postgresql://localhost:" + fw.local_port + db_name
           val name = user + "@" + fw + db_name + " via ssh " + ssh
           (url, name, Some(fw))
