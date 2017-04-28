@@ -447,15 +447,19 @@ object Build_Log
     val chapter = SQL.Column.string("chapter")
     val groups = SQL.Column.string("groups")
     val threads = SQL.Column.int("threads")
-    val timing = SQL.Column.bytes("timing")
-    val ml_timing = SQL.Column.bytes("ml_timing")
+    val timing_elapsed = SQL.Column.long("timing_elapsed")
+    val timing_cpu = SQL.Column.long("timing_cpu")
+    val timing_gc = SQL.Column.long("timing_gc")
+    val ml_timing_elapsed = SQL.Column.long("ml_timing_elapsed")
+    val ml_timing_cpu = SQL.Column.long("ml_timing_cpu")
+    val ml_timing_gc = SQL.Column.long("ml_timing_gc")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
     val heap_size = SQL.Column.long("heap_size")
     val status = SQL.Column.string("status")
 
     val table = SQL.Table("isabelle_build_log_build_info",
-      List(Meta_Info.log_name, session_name, chapter, groups, threads, timing, ml_timing,
-        ml_statistics, heap_size, status))
+      List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
+        timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_statistics, heap_size, status))
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -699,11 +703,15 @@ object Build_Log
               db.set_string(stmt, 3, session.chapter)
               db.set_string(stmt, 4, cat_lines(session.groups))
               db.set_int(stmt, 5, session.threads)
-              db.set_bytes(stmt, 6, Timing.write(session.timing))
-              db.set_bytes(stmt, 7, Timing.write(session.ml_timing))
-              db.set_bytes(stmt, 8, compress_properties(session.ml_statistics))
-              db.set_long(stmt, 9, session.heap_size)
-              db.set_string(stmt, 10, session.status.toString)
+              db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+              db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+              db.set_long(stmt, 8, session.timing.gc.proper_ms)
+              db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
+              db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
+              db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
+              db.set_bytes(stmt, 12, compress_properties(session.ml_statistics))
+              db.set_long(stmt, 13, session.heap_size)
+              db.set_string(stmt, 14, session.status.toString)
               stmt.execute()
             }
           })
