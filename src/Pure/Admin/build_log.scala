@@ -652,7 +652,7 @@ object Build_Log
 
         val key = Meta_Info.log_name
         val known_files =
-          using(db.select(table, List(key)))(stmt =>
+          using(db.select(table, List(key), distinct = true))(stmt =>
             SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
 
         val unique_files =
