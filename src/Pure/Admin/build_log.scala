@@ -664,57 +664,61 @@ object Build_Log
 
     def write_meta_info(db: SQL.Database, files: List[JFile])
     {
-      for (file <- filter_files(db, Meta_Info.table, files)) {
-        val log_file = Log_File(file)
-        val meta_info = log_file.parse_meta_info()
-
+      for (file_group <- filter_files(db, Meta_Info.table, files).grouped(1000)) {
         db.transaction {
-          using(db.delete_statement(
-            Meta_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-          using(db.insert_statement(Meta_Info.table))(stmt =>
-          {
-            db.set_string(stmt, 1, log_file.name)
-            for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
-              if (c.T == SQL.Type.Date)
-                db.set_date(stmt, i + 2, meta_info.get_date(c))
-              else
-                db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)))
-            }
-            stmt.execute()
-          })
+          for (file <- file_group) {
+            val log_file = Log_File(file)
+            val meta_info = log_file.parse_meta_info()
+
+            using(db.delete_statement(
+              Meta_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
+            using(db.insert_statement(Meta_Info.table))(stmt =>
+            {
+              db.set_string(stmt, 1, log_file.name)
+              for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
+                if (c.T == SQL.Type.Date)
+                  db.set_date(stmt, i + 2, meta_info.get_date(c))
+                else
+                  db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)))
+              }
+              stmt.execute()
+            })
+          }
         }
       }
     }
 
     def write_build_info(db: SQL.Database, files: List[JFile])
     {
-      for (file <- filter_files(db, Build_Info.table, files)) {
-        val log_file = Log_File(file)
-        val build_info = log_file.parse_build_info()
-
+      for (file_group <- filter_files(db, Build_Info.table, files).grouped(100)) {
         db.transaction {
-          using(db.delete_statement(
-            Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-          using(db.insert_statement(Build_Info.table))(stmt =>
-          {
-            for ((session_name, session) <- build_info.sessions.iterator) {
-              db.set_string(stmt, 1, log_file.name)
-              db.set_string(stmt, 2, session_name)
-              db.set_string(stmt, 3, session.chapter)
-              db.set_string(stmt, 4, cat_lines(session.groups))
-              db.set_int(stmt, 5, session.threads)
-              db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
-              db.set_long(stmt, 7, session.timing.cpu.proper_ms)
-              db.set_long(stmt, 8, session.timing.gc.proper_ms)
-              db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
-              db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
-              db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
-              db.set_bytes(stmt, 12, compress_properties(session.ml_statistics))
-              db.set_long(stmt, 13, session.heap_size)
-              db.set_string(stmt, 14, session.status.toString)
-              stmt.execute()
-            }
-          })
+          for (file <- file_group) {
+            val log_file = Log_File(file)
+            val build_info = log_file.parse_build_info()
+
+            using(db.delete_statement(
+              Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
+            using(db.insert_statement(Build_Info.table))(stmt =>
+            {
+              for ((session_name, session) <- build_info.sessions.iterator) {
+                db.set_string(stmt, 1, log_file.name)
+                db.set_string(stmt, 2, session_name)
+                db.set_string(stmt, 3, session.chapter)
+                db.set_string(stmt, 4, cat_lines(session.groups))
+                db.set_int(stmt, 5, session.threads)
+                db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+                db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+                db.set_long(stmt, 8, session.timing.gc.proper_ms)
+                db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
+                db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
+                db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
+                db.set_bytes(stmt, 12, compress_properties(session.ml_statistics))
+                db.set_long(stmt, 13, session.heap_size)
+                db.set_string(stmt, 14, session.status.toString)
+                stmt.execute()
+              }
+            })
+          }
         }
       }
     }
