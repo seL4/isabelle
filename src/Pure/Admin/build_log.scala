@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_log.scala
     Author:     Makarius
 
-Build log parsing for current and historic formats.
+Management of build log files and database storage.
 */
 
 package isabelle
