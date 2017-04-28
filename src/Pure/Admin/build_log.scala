@@ -46,7 +46,7 @@ object Build_Log
     val isabelle_version = SQL.Column.string("isabelle_version")
     val afp_version = SQL.Column.string("afp_version")
 
-    val columns: List[SQL.Column] =
+    val all_props: List[SQL.Column] =
       List(build_tags, build_args, build_group_id, build_id, build_engine,
         build_host, build_start, build_end, isabelle_version, afp_version)
   }
@@ -56,9 +56,14 @@ object Build_Log
 
   object Settings
   {
-    val build_settings = List("ISABELLE_BUILD_OPTIONS")
-    val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
-    val all_settings = build_settings ::: ml_settings
+    val ISABELLE_BUILD_OPTIONS = SQL.Column.string("ISABELLE_BUILD_OPTIONS")
+    val ML_PLATFORM = SQL.Column.string("ML_PLATFORM")
+    val ML_HOME = SQL.Column.string("ML_HOME")
+    val ML_SYSTEM = SQL.Column.string("ML_SYSTEM")
+    val ML_OPTIONS = SQL.Column.string("ML_OPTIONS")
+
+    val ml_settings = List(ML_PLATFORM, ML_HOME, ML_SYSTEM, ML_OPTIONS)
+    val all_settings = ISABELLE_BUILD_OPTIONS :: ml_settings
 
     type Entry = (String, String)
     type T = List[Entry]
@@ -79,7 +84,8 @@ object Build_Log
 
     def show(): String =
       cat_lines(
-        build_settings.map(Entry.getenv(_)) ::: List("") ::: ml_settings.map(Entry.getenv(_)))
+        List(Entry.getenv(ISABELLE_BUILD_OPTIONS.name), "") :::
+        ml_settings.map(c => Entry.getenv(c.name)))
   }
 
 
@@ -241,8 +247,9 @@ object Build_Log
         case None => None
       }
 
-    def get_settings(as: List[String]): Settings.T =
-      for { a <- as; entry <- get_setting(a) } yield entry
+    def get_all_settings: Settings.T =
+      for { c <- Settings.all_settings; entry <- get_setting(c.name) }
+      yield entry
 
 
     /* properties (YXML) */
@@ -288,18 +295,20 @@ object Build_Log
     val empty: Meta_Info = Meta_Info(Nil, Nil)
 
     val log_name = SQL.Column.string("log_name", primary_key = true)
-    val settings = SQL.Column.bytes("settings")
-
     val table =
-      SQL.Table("isabelle_build_log_meta_info", log_name :: Prop.columns ::: List(settings))
+      SQL.Table("isabelle_build_log_meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
   }
 
-  sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
+  sealed case class Meta_Info(props: Properties.T, settings: Settings.T)
   {
     def is_empty: Boolean = props.isEmpty && settings.isEmpty
 
-    def get(c: SQL.Column): Option[String] = Properties.get(props, c.name)
-    def get_date(c: SQL.Column): Option[Date] = get(c).map(Log_File.Date_Format.parse(_))
+    def get(c: SQL.Column): Option[String] =
+      Properties.get(props, c.name) orElse
+      Properties.get(settings, c.name)
+
+    def get_date(c: SQL.Column): Option[Date] =
+      get(c).map(Log_File.Date_Format.parse(_))
   }
 
   object Isatest
@@ -365,13 +374,13 @@ object Build_Log
 
       Meta_Info((Prop.build_id.name -> build_id) :: build_engine ::: build_host :::
           start_date ::: end_date ::: isabelle_version.toList ::: afp_version.toList,
-        log_file.get_settings(Settings.all_settings))
+        log_file.get_all_settings)
     }
 
     log_file.lines match {
       case line :: _ if line.startsWith(Build_History.META_INFO_MARKER) =>
         Meta_Info(log_file.find_props(Build_History.META_INFO_MARKER).get,
-          log_file.get_settings(Settings.all_settings))
+          log_file.get_all_settings)
 
       case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
         parse(Isatest.engine, host, start, Isatest.End,
@@ -684,13 +693,12 @@ object Build_Log
             val meta_info = log_file.parse_meta_info()
 
             db.set_string(stmt, 1, log_file.name)
-            for ((c, i) <- Prop.columns.zipWithIndex) {
+            for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
               if (c.T == SQL.Type.Date)
                 db.set_date(stmt, i + 2, meta_info.get_date(c).orNull)
               else
                 db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)).orNull)
             }
-            db.set_bytes(stmt, Meta_Info.table.columns.length, encode_properties(meta_info.settings))
 
             stmt.execute()
           }
