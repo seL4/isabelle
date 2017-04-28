@@ -97,23 +97,6 @@ object Build_Log
     Path.explode((engine :: log_date(date) :: more).mkString("", "_", ".log"))
 
 
-  /* log file collections */
-
-  def is_log(file: JFile,
-    prefixes: Iterable[String] =
-      List(Build_History.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix),
-    suffixes: Iterable[String] =
-      List(".log", ".log.gz", ".log.xz")): Boolean =
-  {
-    val name = file.getName
-    prefixes.iterator.exists(name.startsWith(_)) &&
-    suffixes.iterator.exists(name.endsWith(_))
-  }
-
-  def log_files(dirs: Iterable[Path]): List[JFile] =
-    dirs.iterator.flatMap(dir => File.find_files(dir.file, is_log(_))).toList
-
-
 
   /** log file **/
 
@@ -121,6 +104,8 @@ object Build_Log
 
   object Log_File
   {
+    /* log file */
+
     def apply(name: String, lines: List[String]): Log_File =
       new Log_File(name, lines)
 
@@ -143,6 +128,23 @@ object Build_Log
     }
 
     def apply(path: Path): Log_File = apply(path.file)
+
+
+    /* log file collections */
+
+    val suffixes: List[String] = List(".log", ".log.gz", ".log.xz")
+
+    def is_log(file: JFile,
+      prefixes: List[String] =
+        List(Build_History.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix)): Boolean =
+    {
+      val name = file.getName
+      prefixes.exists(name.startsWith(_)) &&
+      suffixes.exists(name.endsWith(_))
+    }
+
+    def find_files(dirs: Iterable[Path]): List[JFile] =
+      dirs.iterator.flatMap(dir => File.find_files(dir.file, is_log(_))).toList
 
 
     /* date format */
