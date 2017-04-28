@@ -216,7 +216,10 @@ object SQL
     def set_double(stmt: PreparedStatement, i: Int, x: Double) { stmt.setDouble(i, x) }
     def set_string(stmt: PreparedStatement, i: Int, x: String) { stmt.setString(i, x) }
     def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
-    { stmt.setBinaryStream(i, bytes.stream(), bytes.length) }
+    {
+      if (bytes == null) stmt.setBytes(i, null)
+      else stmt.setBinaryStream(i, bytes.stream(), bytes.length)
+    }
     def set_date(stmt: PreparedStatement, i: Int, date: Date)
 
 
