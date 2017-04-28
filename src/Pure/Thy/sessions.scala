@@ -747,13 +747,6 @@ object Sessions
     val build_columns = List(sources, input_heaps, output_heap, return_code)
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
-
-    def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
-        : PreparedStatement =
-      db.select_statement(table, columns, session_name.sql_where_equal(name))
-
-    def delete_statement(db: SQL.Database, name: String): PreparedStatement =
-      db.delete_statement(table, session_name.sql_where_equal(name))
   }
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
@@ -770,7 +763,8 @@ object Sessions
     /* SQL database content */
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
-      using(Session_Info.select_statement(db, name, List(column)))(stmt =>
+      using(db.select_statement(Session_Info.table, List(column),
+        Session_Info.session_name.sql_where_equal(name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) Bytes.empty else db.bytes(rs, column)
@@ -827,7 +821,8 @@ object Sessions
     {
       db.transaction {
         db.create_table(Session_Info.table)
-        using(Session_Info.delete_statement(db, name))(_.execute)
+        using(db.delete_statement(Session_Info.table,
+          Session_Info.session_name.sql_where_equal(name)))(_.execute)
         using(db.insert_statement(Session_Info.table))(stmt =>
         {
           db.set_string(stmt, 1, name)
@@ -869,7 +864,8 @@ object Sessions
     }
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
-      using(Session_Info.select_statement(db, name, Session_Info.build_columns))(stmt =>
+      using(db.select_statement(Session_Info.table, Session_Info.build_columns,
+        Session_Info.session_name.sql_where_equal(name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
