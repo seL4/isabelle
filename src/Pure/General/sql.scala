@@ -92,7 +92,7 @@ object SQL
       sql_name + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
     def sql_where_eq: String = "WHERE " + sql_name + " = "
-    def sql_where_eq_string(s: String): String = sql_where_eq + quote_string(s)
+    def sql_where_equal(s: String): String = sql_where_eq + quote_string(s)
 
     override def toString: String = sql_decl(sql_type_default)
   }

@@ -627,7 +627,7 @@ object Build_Log
 
     def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
         : PreparedStatement =
-      db.select_statement(table, columns, log_filename.sql_where_eq_string(name))
+      db.select_statement(table, columns, log_filename.sql_where_equal(name))
   }
 
   def store(options: Options): Store = new Store(options)

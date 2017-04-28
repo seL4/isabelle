@@ -750,10 +750,10 @@ object Sessions
 
     def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
         : PreparedStatement =
-      db.select_statement(table, columns, session_name.sql_where_eq_string(name))
+      db.select_statement(table, columns, session_name.sql_where_equal(name))
 
     def delete_statement(db: SQL.Database, name: String): PreparedStatement =
-      db.delete_statement(table, session_name.sql_where_eq_string(name))
+      db.delete_statement(table, session_name.sql_where_equal(name))
   }
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
