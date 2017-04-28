@@ -42,6 +42,14 @@ object Timing
     val (elapsed, cpu, gc) = triple(Time.decode, Time.decode, Time.decode)(body)
     Timing(elapsed, cpu, gc)
   }
+
+  def write(t: Timing): Bytes =
+    if (t.is_zero) Bytes.empty
+    else Bytes(YXML.string_of_body(encode(t)))
+
+  def read(bs: Bytes): Timing =
+    if (bs.isEmpty) zero
+    else decode(YXML.parse_body(bs.text))
 }
 
 sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)

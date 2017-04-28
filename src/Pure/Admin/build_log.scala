@@ -428,27 +428,6 @@ object Build_Log
     val CANCELLED = Value("cancelled")
   }
 
-  object Session_Entry
-  {
-    val encode: XML.Encode.T[Session_Entry] = (entry: Session_Entry) =>
-    {
-      import XML.Encode._
-      pair(string, pair(list(string), pair(option(int), pair(Timing.encode, pair(Timing.encode,
-        pair(list(properties), pair(option(long), string)))))))(
-        entry.chapter, (entry.groups, (entry.threads, (entry.timing, (entry.ml_timing,
-        (entry.ml_statistics, (entry.heap_size, entry.status.toString)))))))
-    }
-    val decode: XML.Decode.T[Session_Entry] = (body: XML.Body) =>
-    {
-      import XML.Decode._
-      val (chapter, (groups, (threads, (timing, (ml_timing, (ml_statistics, (heap_size, status))))))) =
-        pair(string, pair(list(string), pair(option(int), pair(Timing.decode, pair(Timing.decode,
-          pair(list(properties), pair(option(long), string)))))))(body)
-      Session_Entry(chapter, groups, threads, timing, ml_timing, ml_statistics, heap_size,
-        Session_Status.withName(status))
-    }
-  }
-
   sealed case class Session_Entry(
     chapter: String,
     groups: List[String],
@@ -464,19 +443,19 @@ object Build_Log
 
   object Build_Info
   {
-    val build_info = SQL.Column.bytes("build_info")
-    val table = SQL.Table("isabelle_build_log_build_info", List(Meta_Info.log_name, build_info))
+    val session_name = SQL.Column.string("session_name", primary_key = true)
+    val chapter = SQL.Column.string("chapter")
+    val groups = SQL.Column.string("groups")
+    val threads = SQL.Column.int("threads")
+    val timing = SQL.Column.bytes("timing")
+    val ml_timing = SQL.Column.bytes("ml_timing")
+    val ml_statistics = SQL.Column.bytes("ml_statistics")
+    val heap_size = SQL.Column.long("heap_size")
+    val status = SQL.Column.string("status")
 
-    def encode: XML.Encode.T[Build_Info] = (info: Build_Info) =>
-    {
-      import XML.Encode._
-      list(pair(string, Session_Entry.encode))(info.sessions.toList)
-    }
-    def decode: XML.Decode.T[Build_Info] = (body: XML.Body) =>
-    {
-      import XML.Decode._
-      Build_Info(list(pair(string, Session_Entry.decode))(body).toMap)
-    }
+    val table = SQL.Table("isabelle_build_log_build_info",
+      List(Meta_Info.log_name, session_name, chapter, groups, threads, timing, ml_timing,
+        ml_statistics, heap_size, status))
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -659,12 +638,6 @@ object Build_Log
           else Some(SSH.init_context(options).open_session(ssh_host, ssh_user, port)))
     }
 
-    def compress_build_info(build_info: Build_Info, options: XZ.Options = XZ.options()): Bytes =
-      Bytes(YXML.string_of_body(Build_Info.encode(build_info))).compress(options)
-
-    def uncompress_build_info(bytes: Bytes): Build_Info =
-      Build_Info.decode(xml_cache.body(YXML.parse_body(bytes.uncompress().text)))
-
     def filter_files(db: SQL.Database, table: SQL.Table, files: List[JFile]): List[JFile] =
     {
       val key = Meta_Info.log_name
@@ -716,11 +689,19 @@ object Build_Log
           for (file <- filter_files(db, Build_Info.table, files)) {
             val log_file = Log_File(file)
             val build_info = log_file.parse_build_info()
-
-            db.set_string(stmt, 1, log_file.name)
-            db.set_bytes(stmt, 2, compress_build_info(build_info))
-
-            stmt.execute()
+            for ((session_name, session) <- build_info.sessions.iterator) {
+              db.set_string(stmt, 1, log_file.name)
+              db.set_string(stmt, 2, session_name)
+              db.set_string(stmt, 3, session.chapter)
+              db.set_string(stmt, 4, cat_lines(session.groups))
+              db.set_int(stmt, 5, session.threads)
+              db.set_bytes(stmt, 6, Timing.write(session.timing))
+              db.set_bytes(stmt, 7, Timing.write(session.ml_timing))
+              db.set_bytes(stmt, 8, compress_properties(session.ml_statistics))
+              db.set_long(stmt, 9, session.heap_size)
+              db.set_string(stmt, 10, session.status.toString)
+              stmt.execute()
+            }
           }
         })
       }
