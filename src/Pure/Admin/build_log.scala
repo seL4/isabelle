@@ -463,6 +463,8 @@ object Build_Log
     val table = SQL.Table("isabelle_build_log_build_info",
       List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
         timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_statistics, heap_size, status))
+
+    val table0 = table.copy(columns = table.columns.take(2))
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -723,26 +725,36 @@ object Build_Log
 
             using(db.delete(Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(
               _.execute)
-            using(db.insert(Build_Info.table))(stmt =>
-            {
-              for ((session_name, session) <- build_info.sessions.iterator) {
+            if (build_info.sessions.isEmpty) {
+              using(db.insert(Build_Info.table0))(stmt =>
+              {
                 db.set_string(stmt, 1, log_file.name)
-                db.set_string(stmt, 2, session_name)
-                db.set_string(stmt, 3, session.chapter)
-                db.set_string(stmt, 4, cat_lines(session.groups))
-                db.set_int(stmt, 5, session.threads)
-                db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
-                db.set_long(stmt, 7, session.timing.cpu.proper_ms)
-                db.set_long(stmt, 8, session.timing.gc.proper_ms)
-                db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
-                db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
-                db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
-                db.set_bytes(stmt, 12, compress_properties(session.ml_statistics))
-                db.set_long(stmt, 13, session.heap_size)
-                db.set_string(stmt, 14, session.status.toString)
+                db.set_string(stmt, 2, "")
                 stmt.execute()
-              }
-            })
+              })
+            }
+            else {
+              using(db.insert(Build_Info.table))(stmt =>
+              {
+                for ((session_name, session) <- build_info.sessions.iterator) {
+                  db.set_string(stmt, 1, log_file.name)
+                  db.set_string(stmt, 2, session_name)
+                  db.set_string(stmt, 3, session.chapter)
+                  db.set_string(stmt, 4, cat_lines(session.groups))
+                  db.set_int(stmt, 5, session.threads)
+                  db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+                  db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+                  db.set_long(stmt, 8, session.timing.gc.proper_ms)
+                  db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
+                  db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
+                  db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
+                  db.set_bytes(stmt, 12, compress_properties(session.ml_statistics))
+                  db.set_long(stmt, 13, session.heap_size)
+                  db.set_string(stmt, 14, session.status.toString)
+                  stmt.execute()
+                }
+              })
+            }
           }
         }
       }
@@ -751,11 +763,13 @@ object Build_Log
     def read_build_info(
       db: SQL.Database, log_name: String, session_names: List[String] = Nil): Build_Info =
     {
-      val where_log_name = Meta_Info.log_name.sql_where_equal(log_name)
+      val where0 =
+        Meta_Info.log_name.sql_where_equal(log_name) + " AND "
+          Build_Info.session_name.sql_name + " <> ''"
       val where =
-        if (session_names.isEmpty) where_log_name
+        if (session_names.isEmpty) where0
         else
-          where_log_name + " AND " +
+          where0 + " AND " +
           session_names.map(a => Build_Info.session_name.sql_name + " = " + SQL.quote_string(a)).
             mkString("(", " OR ", ")")
       val sessions =
