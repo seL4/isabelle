@@ -640,31 +640,35 @@ object Build_Log
 
     def filter_files(db: SQL.Database, table: SQL.Table, files: List[JFile]): List[JFile] =
     {
-      val key = Meta_Info.log_name
-      val known_files =
-        using(db.select_statement(table, List(key)))(stmt =>
-          SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
+      db.transaction {
+        db.create_table(table)
 
-      val unique_files =
-        (Map.empty[String, JFile] /: files.iterator)({ case (m, file) =>
-          val name = Log_File.plain_name(file.getName)
-          if (known_files(name)) m else m + (name -> file)
-        })
+        val key = Meta_Info.log_name
+        val known_files =
+          using(db.select_statement(table, List(key)))(stmt =>
+            SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
 
-      unique_files.iterator.map(_._2).toList
+        val unique_files =
+          (Map.empty[String, JFile] /: files.iterator)({ case (m, file) =>
+            val name = Log_File.plain_name(file.getName)
+            if (known_files(name)) m else m + (name -> file)
+          })
+
+        unique_files.iterator.map(_._2).toList
+      }
     }
 
     def write_meta_info(db: SQL.Database, files: List[JFile])
     {
-      db.transaction {
-        db.create_table(Meta_Info.table)
+      for (file <- filter_files(db, Meta_Info.table, files)) {
+        val log_file = Log_File(file)
+        val meta_info = log_file.parse_meta_info()
 
-        using(db.insert_statement(Meta_Info.table))(stmt =>
-        {
-          for (file <- filter_files(db, Meta_Info.table, files)) {
-            val log_file = Log_File(file)
-            val meta_info = log_file.parse_meta_info()
-
+        db.transaction {
+          using(db.delete_statement(
+            Meta_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
+          using(db.insert_statement(Meta_Info.table))(stmt =>
+          {
             db.set_string(stmt, 1, log_file.name)
             for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
               if (c.T == SQL.Type.Date)
@@ -672,23 +676,23 @@ object Build_Log
               else
                 db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)).orNull)
             }
-
             stmt.execute()
-          }
-        })
+          })
+        }
       }
     }
 
     def write_build_info(db: SQL.Database, files: List[JFile])
     {
-      db.transaction {
-        db.create_table(Build_Info.table)
+      for (file <- filter_files(db, Build_Info.table, files)) {
+        val log_file = Log_File(file)
+        val build_info = log_file.parse_build_info()
 
-        using(db.insert_statement(Build_Info.table))(stmt =>
-        {
-          for (file <- filter_files(db, Build_Info.table, files)) {
-            val log_file = Log_File(file)
-            val build_info = log_file.parse_build_info()
+        db.transaction {
+          using(db.delete_statement(
+            Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
+          using(db.insert_statement(Build_Info.table))(stmt =>
+          {
             for ((session_name, session) <- build_info.sessions.iterator) {
               db.set_string(stmt, 1, log_file.name)
               db.set_string(stmt, 2, session_name)
@@ -702,8 +706,8 @@ object Build_Log
               db.set_string(stmt, 10, session.status.toString)
               stmt.execute()
             }
-          }
-        })
+          })
+        }
       }
     }
   }
