@@ -27,9 +27,6 @@ object Time
     String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])
 
   def instant(t: Instant): Time = ms(t.getEpochSecond * 1000L + t.getNano / 1000000L)
-
-  val encode: XML.Encode.T[Time] = (t: Time) => XML.Encode.long(t.ms)
-  val decode: XML.Decode.T[Time] = (body: XML.Body) => ms(XML.Decode.long(body))
 }
 
 final class Time private(val ms: Long) extends AnyVal
