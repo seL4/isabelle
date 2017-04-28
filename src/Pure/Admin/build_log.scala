@@ -282,6 +282,12 @@ object Build_Log
   object Meta_Info
   {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
+
+    val log_filename = SQL.Column.string("log_filename", primary_key = true)
+    val settings = SQL.Column.bytes("settings")
+
+    val table =
+      SQL.Table("isabelle_build_log_meta_info", log_filename :: Prop.columns ::: List(settings))
   }
 
   sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
@@ -445,6 +451,9 @@ object Build_Log
 
   object Build_Info
   {
+    val build_info = SQL.Column.bytes("build_info")
+    val table = SQL.Table("isabelle_build_log_build_info", List(Meta_Info.log_filename, build_info))
+
     def encode: XML.Encode.T[Build_Info] = (info: Build_Info) =>
     {
       import XML.Encode._
@@ -616,16 +625,6 @@ object Build_Log
 
   /** persistent store **/
 
-  object Info
-  {
-    val log_filename = SQL.Column.string("log_filename", primary_key = true)
-    val settings = SQL.Column.bytes("settings")
-    val build_info = SQL.Column.bytes("build_info")
-
-    val table =
-      SQL.Table("isabelle_build_log", log_filename :: Prop.columns ::: List(settings, build_info))
-  }
-
   def store(options: Options): Store = new Store(options)
 
   class Store private[Build_Log](options: Options) extends Properties.Store
@@ -653,11 +652,12 @@ object Build_Log
     def uncompress_build_info(bytes: Bytes): Build_Info =
       Build_Info.decode(xml_cache.body(YXML.parse_body(bytes.uncompress().text)))
 
-    def filter_files(db: SQL.Database, files: List[JFile]): List[JFile] =
+    def filter_files(db: SQL.Database, table: SQL.Table, files: List[JFile]): List[JFile] =
     {
+      val key = Meta_Info.log_filename
       val known_files =
-        using(db.select_statement(Info.table, List(Info.log_filename)))(stmt =>
-          SQL.iterator(stmt.executeQuery)(rs => db.string(rs, Info.log_filename)).toSet)
+        using(db.select_statement(table, List(key)))(stmt =>
+          SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
 
       val unique_files =
         (Map.empty[String, JFile] /: files.iterator)({ case (m, file) =>
@@ -668,32 +668,43 @@ object Build_Log
       unique_files.iterator.map(_._2).toList
     }
 
-    def write_infos(db: SQL.Database, files: List[JFile])
+    def write_meta_info(db: SQL.Database, files: List[JFile])
     {
       db.transaction {
-        db.create_table(Info.table)
+        db.create_table(Meta_Info.table)
 
-        using(db.insert_statement(Info.table))(stmt =>
+        using(db.insert_statement(Meta_Info.table))(stmt =>
         {
-          for (file <- filter_files(db, files)) {
-            val log_file = Log_File(file)
-            val meta_info = log_file.parse_meta_info()
-            val build_info = log_file.parse_build_info()
-
-            stmt.clearParameters
+          for (file <- filter_files(db, Meta_Info.table, files)) {
+            val meta_info = Log_File(file).parse_meta_info()
 
             db.set_string(stmt, 1, file.getName)
-
             for ((c, i) <- Prop.columns.zipWithIndex) {
               if (c.T == SQL.Type.Date)
                 db.set_date(stmt, i + 2, meta_info.get_date(c).orNull)
               else
                 db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)).orNull)
             }
+            db.set_bytes(stmt, Meta_Info.table.columns.length, encode_properties(meta_info.settings))
 
-            val n = Info.table.columns.length
-            db.set_bytes(stmt, n - 1, encode_properties(meta_info.settings))
-            db.set_bytes(stmt, n, compress_build_info(build_info))
+            stmt.execute()
+          }
+        })
+      }
+    }
+
+    def write_build_info(db: SQL.Database, files: List[JFile])
+    {
+      db.transaction {
+        db.create_table(Build_Info.table)
+
+        using(db.insert_statement(Build_Info.table))(stmt =>
+        {
+          for (file <- filter_files(db, Build_Info.table, files)) {
+            val build_info = Log_File(file).parse_build_info()
+
+            db.set_string(stmt, 1, file.getName)
+            db.set_bytes(stmt, 2, compress_build_info(build_info))
 
             stmt.execute()
           }
