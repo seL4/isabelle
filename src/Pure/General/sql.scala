@@ -216,31 +216,43 @@ object SQL
       if (x.isDefined) set_bool(stmt, i, x.get)
       else stmt.setNull(i, java.sql.Types.BOOLEAN)
     }
+
     def set_int(stmt: PreparedStatement, i: Int, x: Int) { stmt.setInt(i, x) }
     def set_int(stmt: PreparedStatement, i: Int, x: Option[Int])
     {
       if (x.isDefined) set_int(stmt, i, x.get)
       else stmt.setNull(i, java.sql.Types.INTEGER)
     }
+
     def set_long(stmt: PreparedStatement, i: Int, x: Long) { stmt.setLong(i, x) }
     def set_long(stmt: PreparedStatement, i: Int, x: Option[Long])
     {
       if (x.isDefined) set_long(stmt, i, x.get)
       else stmt.setNull(i, java.sql.Types.BIGINT)
     }
+
     def set_double(stmt: PreparedStatement, i: Int, x: Double) { stmt.setDouble(i, x) }
     def set_double(stmt: PreparedStatement, i: Int, x: Option[Double])
     {
       if (x.isDefined) set_double(stmt, i, x.get)
       else stmt.setNull(i, java.sql.Types.DOUBLE)
     }
+
     def set_string(stmt: PreparedStatement, i: Int, x: String) { stmt.setString(i, x) }
+    def set_string(stmt: PreparedStatement, i: Int, x: Option[String]): Unit =
+      set_string(stmt, i, x.orNull)
+
     def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
     {
       if (bytes == null) stmt.setBytes(i, null)
       else stmt.setBinaryStream(i, bytes.stream(), bytes.length)
     }
-    def set_date(stmt: PreparedStatement, i: Int, date: Date)
+    def set_bytes(stmt: PreparedStatement, i: Int, bytes: Option[Bytes]): Unit =
+      set_bytes(stmt, i, bytes.orNull)
+
+    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit
+    def set_date(stmt: PreparedStatement, i: Int, date: Option[Date]): Unit =
+      set_date(stmt, i, date.orNull)
 
 
     /* output */
@@ -325,7 +337,7 @@ object SQLite
     def sql_type(T: SQL.Type.Value): String = SQL.sql_type_sqlite(T)
 
     def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
-      if (date == null) set_string(stmt, i, null)
+      if (date == null) set_string(stmt, i, null: String)
       else set_string(stmt, i, date_format(date))
 
     def date(rs: ResultSet, name: String): Date =

@@ -672,9 +672,9 @@ object Build_Log
             db.set_string(stmt, 1, log_file.name)
             for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
               if (c.T == SQL.Type.Date)
-                db.set_date(stmt, i + 2, meta_info.get_date(c).orNull)
+                db.set_date(stmt, i + 2, meta_info.get_date(c))
               else
-                db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)).orNull)
+                db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)))
             }
             stmt.execute()
           })
