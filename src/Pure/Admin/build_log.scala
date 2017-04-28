@@ -106,8 +106,16 @@ object Build_Log
   {
     /* log file */
 
+    def plain_name(name: String): String =
+    {
+      List(".log", ".log.gz", ".log.xz", ".gz", ".xz").find(name.endsWith(_)) match {
+        case Some(s) => Library.try_unsuffix(s, name).get
+        case None => name
+      }
+    }
+
     def apply(name: String, lines: List[String]): Log_File =
-      new Log_File(name, lines)
+      new Log_File(plain_name(name), lines)
 
     def apply(name: String, text: String): Log_File =
       Log_File(name, Library.trim_split_lines(text))
@@ -115,16 +123,11 @@ object Build_Log
     def apply(file: JFile): Log_File =
     {
       val name = file.getName
-      val (base_name, text) =
-        Library.try_unsuffix(".gz", name) match {
-          case Some(base_name) => (base_name, File.read_gzip(file))
-          case None =>
-            Library.try_unsuffix(".xz", name) match {
-              case Some(base_name) => (base_name, File.read_xz(file))
-              case None => (name, File.read(file))
-            }
-          }
-      apply(base_name, text)
+      val text =
+        if (name.endsWith(".gz")) File.read_gzip(file)
+        else if (name.endsWith(".xz")) File.read_xz(file)
+        else File.read(file)
+      apply(name, text)
     }
 
     def apply(path: Path): Log_File = apply(path.file)
@@ -132,11 +135,10 @@ object Build_Log
 
     /* log file collections */
 
-    val suffixes: List[String] = List(".log", ".log.gz", ".log.xz")
-
     def is_log(file: JFile,
       prefixes: List[String] =
-        List(Build_History.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix)): Boolean =
+        List(Build_History.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix),
+      suffixes: List[String] = List(".log", ".log.gz", ".log.xz")): Boolean =
     {
       val name = file.getName
       prefixes.exists(name.startsWith(_)) &&
@@ -285,11 +287,11 @@ object Build_Log
   {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
 
-    val log_filename = SQL.Column.string("log_filename", primary_key = true)
+    val log_name = SQL.Column.string("log_name", primary_key = true)
     val settings = SQL.Column.bytes("settings")
 
     val table =
-      SQL.Table("isabelle_build_log_meta_info", log_filename :: Prop.columns ::: List(settings))
+      SQL.Table("isabelle_build_log_meta_info", log_name :: Prop.columns ::: List(settings))
   }
 
   sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
@@ -454,7 +456,7 @@ object Build_Log
   object Build_Info
   {
     val build_info = SQL.Column.bytes("build_info")
-    val table = SQL.Table("isabelle_build_log_build_info", List(Meta_Info.log_filename, build_info))
+    val table = SQL.Table("isabelle_build_log_build_info", List(Meta_Info.log_name, build_info))
 
     def encode: XML.Encode.T[Build_Info] = (info: Build_Info) =>
     {
@@ -656,14 +658,14 @@ object Build_Log
 
     def filter_files(db: SQL.Database, table: SQL.Table, files: List[JFile]): List[JFile] =
     {
-      val key = Meta_Info.log_filename
+      val key = Meta_Info.log_name
       val known_files =
         using(db.select_statement(table, List(key)))(stmt =>
           SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
 
       val unique_files =
         (Map.empty[String, JFile] /: files.iterator)({ case (m, file) =>
-          val name = file.getName
+          val name = Log_File.plain_name(file.getName)
           if (known_files(name)) m else m + (name -> file)
         })
 
@@ -678,9 +680,10 @@ object Build_Log
         using(db.insert_statement(Meta_Info.table))(stmt =>
         {
           for (file <- filter_files(db, Meta_Info.table, files)) {
-            val meta_info = Log_File(file).parse_meta_info()
+            val log_file = Log_File(file)
+            val meta_info = log_file.parse_meta_info()
 
-            db.set_string(stmt, 1, file.getName)
+            db.set_string(stmt, 1, log_file.name)
             for ((c, i) <- Prop.columns.zipWithIndex) {
               if (c.T == SQL.Type.Date)
                 db.set_date(stmt, i + 2, meta_info.get_date(c).orNull)
@@ -703,9 +706,10 @@ object Build_Log
         using(db.insert_statement(Build_Info.table))(stmt =>
         {
           for (file <- filter_files(db, Build_Info.table, files)) {
-            val build_info = Log_File(file).parse_build_info()
+            val log_file = Log_File(file)
+            val build_info = log_file.parse_build_info()
 
-            db.set_string(stmt, 1, file.getName)
+            db.set_string(stmt, 1, log_file.name)
             db.set_bytes(stmt, 2, compress_build_info(build_info))
 
             stmt.execute()
