@@ -13,6 +13,7 @@ import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
 import java.sql.PreparedStatement
 
+import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -653,18 +654,29 @@ object Build_Log
     def uncompress_build_info(bytes: Bytes): Build_Info =
       Build_Info.decode(xml_cache.body(YXML.parse_body(bytes.uncompress().text)))
 
+    def filter_files(db: SQL.Database, files: List[JFile]): List[JFile] =
+    {
+      val known_files =
+        using(db.select_statement(Info.table, List(Info.log_filename)))(stmt =>
+          SQL.iterator(stmt.executeQuery)(rs => db.string(rs, Info.log_filename)).toSet)
+
+      val unique_files =
+        (Map.empty[String, JFile] /: files.iterator)({ case (m, file) =>
+          val name = file.getName
+          if (known_files(name)) m else m + (name -> file)
+        })
+
+      unique_files.iterator.map(_._2).toList
+    }
+
     def write_infos(db: SQL.Database, files: List[JFile])
     {
       db.transaction {
         db.create_table(Info.table)
 
-        val known_files =
-          using(db.select_statement(Info.table, List(Info.log_filename)))(stmt =>
-            SQL.iterator(stmt.executeQuery)(rs => db.string(rs, Info.log_filename)).toSet)
-
         using(db.insert_statement(Info.table))(stmt =>
         {
-          for (file <- files.toSet if !known_files(file.getName)) {
+          for (file <- filter_files(db, files)) {
             val log_file = Log_File(file)
             val meta_info = log_file.parse_meta_info()
             val build_info = log_file.parse_build_info()
