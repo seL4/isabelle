@@ -649,7 +649,7 @@ object Build_Log
 
         val key = Meta_Info.log_name
         val known_files =
-          using(db.select_statement(table, List(key)))(stmt =>
+          using(db.select(table, List(key)))(stmt =>
             SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
 
         val unique_files =
@@ -670,9 +670,9 @@ object Build_Log
             val log_file = Log_File(file)
             val meta_info = log_file.parse_meta_info()
 
-            using(db.delete_statement(
-              Meta_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-            using(db.insert_statement(Meta_Info.table))(stmt =>
+            using(db.delete(Meta_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(
+              _.execute)
+            using(db.insert(Meta_Info.table))(stmt =>
             {
               db.set_string(stmt, 1, log_file.name)
               for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
@@ -696,9 +696,9 @@ object Build_Log
             val log_file = Log_File(file)
             val build_info = log_file.parse_build_info()
 
-            using(db.delete_statement(
-              Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-            using(db.insert_statement(Build_Info.table))(stmt =>
+            using(db.delete(Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(
+              _.execute)
+            using(db.insert(Build_Info.table))(stmt =>
             {
               for ((session_name, session) <- build_info.sessions.iterator) {
                 db.set_string(stmt, 1, log_file.name)

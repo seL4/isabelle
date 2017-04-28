@@ -198,13 +198,13 @@ object SQL
 
     def statement(sql: String): PreparedStatement = connection.prepareStatement(sql)
 
-    def insert_statement(table: Table): PreparedStatement = statement(table.sql_insert)
+    def insert(table: Table): PreparedStatement = statement(table.sql_insert)
 
-    def delete_statement(table: Table, sql: String = ""): PreparedStatement =
+    def delete(table: Table, sql: String = ""): PreparedStatement =
       statement(table.sql_delete + (if (sql == "") "" else " " + sql))
 
-    def select_statement(table: Table, columns: List[Column],
-        sql: String = "", distinct: Boolean = false): PreparedStatement =
+    def select(table: Table, columns: List[Column], sql: String = "", distinct: Boolean = false)
+        : PreparedStatement =
       statement(table.sql_select(columns, distinct) + (if (sql == "") "" else " " + sql))
 
 
