@@ -624,10 +624,6 @@ object Build_Log
 
     val table =
       SQL.Table("isabelle_build_log", log_filename :: Prop.columns ::: List(settings, build_info))
-
-    def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
-        : PreparedStatement =
-      db.select_statement(table, columns, log_filename.sql_where_equal(name))
   }
 
   def store(options: Options): Store = new Store(options)
