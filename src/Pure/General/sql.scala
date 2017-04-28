@@ -257,33 +257,25 @@ object SQL
 
     /* output */
 
-    def bool(rs: ResultSet, name: String): Boolean = rs.getBoolean(name)
-    def int(rs: ResultSet, name: String): Int = rs.getInt(name)
-    def long(rs: ResultSet, name: String): Long = rs.getLong(name)
-    def double(rs: ResultSet, name: String): Double = rs.getDouble(name)
-    def string(rs: ResultSet, name: String): String =
+    def bool(rs: ResultSet, column: Column): Boolean = rs.getBoolean(column.name)
+    def int(rs: ResultSet, column: Column): Int = rs.getInt(column.name)
+    def long(rs: ResultSet, column: Column): Long = rs.getLong(column.name)
+    def double(rs: ResultSet, column: Column): Double = rs.getDouble(column.name)
+    def string(rs: ResultSet, column: Column): String =
     {
-      val s = rs.getString(name)
+      val s = rs.getString(column.name)
       if (s == null) "" else s
     }
-    def bytes(rs: ResultSet, name: String): Bytes =
+    def bytes(rs: ResultSet, column: Column): Bytes =
     {
-      val bs = rs.getBytes(name)
+      val bs = rs.getBytes(column.name)
       if (bs == null) Bytes.empty else Bytes(bs)
     }
-    def date(rs: ResultSet, name: String): Date
+    def date(rs: ResultSet, column: Column): Date
 
-    def bool(rs: ResultSet, column: Column): Boolean = bool(rs, column.name)
-    def int(rs: ResultSet, column: Column): Int = int(rs, column.name)
-    def long(rs: ResultSet, column: Column): Long = long(rs, column.name)
-    def double(rs: ResultSet, column: Column): Double = double(rs, column.name)
-    def string(rs: ResultSet, column: Column): String = string(rs, column.name)
-    def bytes(rs: ResultSet, column: Column): Bytes = bytes(rs, column.name)
-    def date(rs: ResultSet, column: Column): Date = date(rs, column.name)
-
-    def get[A, B](rs: ResultSet, a: A, f: (ResultSet, A) => B): Option[B] =
+    def get[A](rs: ResultSet, column: Column, f: (ResultSet, Column) => A): Option[A] =
     {
-      val x = f(rs, a)
+      val x = f(rs, column)
       if (rs.wasNull) None else Some(x)
     }
 
@@ -340,8 +332,8 @@ object SQLite
       if (date == null) set_string(stmt, i, null: String)
       else set_string(stmt, i, date_format(date))
 
-    def date(rs: ResultSet, name: String): Date =
-      date_format.parse(string(rs, name))
+    def date(rs: ResultSet, column: SQL.Column): Date =
+      date_format.parse(string(rs, column))
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
@@ -408,8 +400,8 @@ object PostgreSQL
       if (date == null) stmt.setObject(i, null)
       else stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
 
-    def date(rs: ResultSet, name: String): Date =
-      Date.instant(rs.getObject(name, classOf[OffsetDateTime]).toInstant)
+    def date(rs: ResultSet, column: SQL.Column): Date =
+      Date.instant(rs.getObject(column.name, classOf[OffsetDateTime]).toInstant)
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }
